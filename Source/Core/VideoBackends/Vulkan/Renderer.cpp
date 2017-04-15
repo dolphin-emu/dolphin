@@ -959,6 +959,10 @@ bool Renderer::ResizeFrameDumpBuffer(u32 new_width, u32 new_height)
     return true;
   }
 
+  // Ensure all previous frames have been dumped, since we are destroying a framebuffer
+  // that may still be in use.
+  FlushFrameDump();
+
   if (m_frame_dump_framebuffer != VK_NULL_HANDLE)
   {
     vkDestroyFramebuffer(g_vulkan_context->GetDevice(), m_frame_dump_framebuffer, nullptr);
