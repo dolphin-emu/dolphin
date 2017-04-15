@@ -241,7 +241,7 @@ void JitArm64::stfXX(UGeckoInstruction inst)
   u32 imm_addr = 0;
   bool is_immediate = false;
 
-  gpr.Lock(W0, W1);
+  gpr.Lock(W0, W1, W30);
   fpr.Lock(Q0);
 
   bool single = (flags & BackPatchInfo::FLAG_SIZE_F32) && fpr.IsSingle(inst.FS, true);
@@ -398,6 +398,6 @@ void JitArm64::stfXX(UGeckoInstruction inst)
   {
     EmitBackpatchRoutine(flags, jo.fastmem, jo.fastmem, V0, XA, regs_in_use, fprs_in_use);
   }
-  gpr.Unlock(W0, W1);
+  gpr.Unlock(W0, W1, W30);
   fpr.Unlock(Q0);
 }

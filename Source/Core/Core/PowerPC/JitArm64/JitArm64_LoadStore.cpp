@@ -141,7 +141,7 @@ void JitArm64::SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 o
 void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s32 offset)
 {
   // We want to make sure to not get LR as a temp register
-  gpr.Lock(W0, W1);
+  gpr.Lock(W0, W1, W30);
 
   ARM64Reg RS = gpr.R(value);
 
@@ -282,7 +282,7 @@ void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s
     EmitBackpatchRoutine(flags, jo.fastmem, jo.fastmem, RS, XA, regs_in_use, fprs_in_use);
   }
 
-  gpr.Unlock(W0, W1);
+  gpr.Unlock(W0, W1, W30);
 }
 
 void JitArm64::lXX(UGeckoInstruction inst)
