@@ -1616,10 +1616,12 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
       Jit->MOV(32, R(RSCRATCH2), Imm32(0x3F07));
       Jit->AND(32, R(RSCRATCH2), M(((char*)&GQR(quantreg)) + 2));
       Jit->MOVZX(32, 8, RSCRATCH, R(RSCRATCH2));
-      Jit->OR(32, R(RSCRATCH), Imm8(w << 3));
+
+      const u8** table =
+          w ? Jit->asm_routines.singleLoadQuantized : Jit->asm_routines.pairedLoadQuantized;
 
       Jit->MOV(32, R(RSCRATCH_EXTRA), regLocForInst(RI, getOp1(I)));
-      Jit->CALLptr(MScaled(RSCRATCH, SCALE_8, (u32)(u64)(Jit->asm_routines.pairedLoadQuantized)));
+      Jit->CALLptr(MScaled(RSCRATCH, SCALE_8, (u32)(u64)table));
       Jit->MOVAPD(reg, R(XMM0));
       RI.fregs[reg] = I;
       regNormalRegClear(RI, I);

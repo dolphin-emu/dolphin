@@ -81,7 +81,7 @@ void JitArm64::psq_l(UGeckoInstruction inst)
     UBFM(type_reg, scale_reg, 16, 18);   // Type
     UBFM(scale_reg, scale_reg, 24, 29);  // Scale
 
-    MOVP2R(X30, &pairedLoadQuantized[inst.W * 8]);
+    MOVP2R(X30, inst.W ? singleLoadQuantized : pairedLoadQuantized);
     LDR(X30, X30, ArithOption(EncodeRegTo64(type_reg), true));
     BLR(X30);
 

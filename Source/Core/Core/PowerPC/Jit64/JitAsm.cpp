@@ -237,6 +237,7 @@ void Jit64AsmRoutineManager::GenerateCommon()
   GenMfcr();
 
   GenQuantizedLoads();
+  GenQuantizedSingleLoads();
   GenQuantizedStores();
   GenQuantizedSingleStores();
 

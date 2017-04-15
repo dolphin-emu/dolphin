@@ -336,7 +336,7 @@ void JitArm64::GenerateCommonAsm()
   JitRegister::Register(start, GetCodePtr(), "JIT_QuantizedLoad");
 
   pairedLoadQuantized = reinterpret_cast<const u8**>(const_cast<u8*>(AlignCode16()));
-  ReserveCodeSpace(16 * sizeof(u8*));
+  ReserveCodeSpace(8 * sizeof(u8*));
 
   pairedLoadQuantized[0] = loadPairedFloatTwo;
   pairedLoadQuantized[1] = loadPairedIllegal;
@@ -347,14 +347,17 @@ void JitArm64::GenerateCommonAsm()
   pairedLoadQuantized[6] = loadPairedS8Two;
   pairedLoadQuantized[7] = loadPairedS16Two;
 
-  pairedLoadQuantized[8] = loadPairedFloatOne;
-  pairedLoadQuantized[9] = loadPairedIllegal;
-  pairedLoadQuantized[10] = loadPairedIllegal;
-  pairedLoadQuantized[11] = loadPairedIllegal;
-  pairedLoadQuantized[12] = loadPairedU8One;
-  pairedLoadQuantized[13] = loadPairedU16One;
-  pairedLoadQuantized[14] = loadPairedS8One;
-  pairedLoadQuantized[15] = loadPairedS16One;
+  singleLoadQuantized = reinterpret_cast<const u8**>(const_cast<u8*>(AlignCode16()));
+  ReserveCodeSpace(8 * sizeof(u8*));
+
+  singleLoadQuantized[0] = loadPairedFloatOne;
+  singleLoadQuantized[1] = loadPairedIllegal;
+  singleLoadQuantized[2] = loadPairedIllegal;
+  singleLoadQuantized[3] = loadPairedIllegal;
+  singleLoadQuantized[4] = loadPairedU8One;
+  singleLoadQuantized[5] = loadPairedU16One;
+  singleLoadQuantized[6] = loadPairedS8One;
+  singleLoadQuantized[7] = loadPairedS16One;
 
   // Stores
   start = GetCodePtr();
