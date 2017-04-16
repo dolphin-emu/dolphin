@@ -5,6 +5,45 @@
 #include "Common/GL/GLInterface/AGL.h"
 #include "Common/Logging/Log.h"
 
+static bool UpdateCachedDimensions(NSView* view, u32* width, u32* height)
+{
+  NSWindow* window = [view window];
+  NSSize size = [view frame].size;
+
+  float scale = [window backingScaleFactor];
+  size.width *= scale;
+  size.height *= scale;
+
+  if (*width == size.width && *height == size.height)
+    return false;
+
+  *width = size.width;
+  *height = size.height;
+
+  return true;
+}
+
+static bool AttachContextToView(NSOpenGLContext* context, NSView* view, u32* width, u32* height)
+{
+  // Enable high-resolution display support.
+  [view setWantsBestResolutionOpenGLSurface:YES];
+
+  NSWindow* window = [view window];
+  if (window == nil)
+  {
+    ERROR_LOG(VIDEO, "failed to get NSWindow");
+    return false;
+  }
+
+  (void)UpdateCachedDimensions(view, width, height);
+
+  [window makeFirstResponder:view];
+  [context setView:view];
+  [window makeKeyAndOrderFront:nil];
+
+  return true;
+}
+
 void cInterfaceAGL::Swap()
 {
   [cocoaCtx flushBuffer];
@@ -33,36 +72,11 @@ bool cInterfaceAGL::Create(void* window_handle, bool core)
     return false;
   }
 
-  if (window_handle)
-  {
-    cocoaWin = reinterpret_cast<NSView*>(window_handle);
-    NSSize size = [cocoaWin frame].size;
+  if (!window_handle)
+    return true;
 
-    // Enable high-resolution display support.
-    [cocoaWin setWantsBestResolutionOpenGLSurface:YES];
-
-    NSWindow* window = [cocoaWin window];
-
-    float scale = [window backingScaleFactor];
-    size.width *= scale;
-    size.height *= scale;
-
-    // Control window size and picture scaling
-    s_backbuffer_width = size.width;
-    s_backbuffer_height = size.height;
-
-    if (cocoaWin == nil)
-    {
-      ERROR_LOG(VIDEO, "failed to create window");
-      return false;
-    }
-
-    [window makeFirstResponder:cocoaWin];
-    [cocoaCtx setView:cocoaWin];
-    [window makeKeyAndOrderFront:nil];
-  }
-
-  return true;
+  cocoaWin = static_cast<NSView*>(window_handle);
+  return AttachContextToView(cocoaCtx, cocoaWin, &s_backbuffer_width, &s_backbuffer_height);
 }
 
 bool cInterfaceAGL::MakeCurrent()
@@ -87,23 +101,11 @@ void cInterfaceAGL::Shutdown()
 
 void cInterfaceAGL::Update()
 {
-  if (cocoaWin)
-  {
-    NSWindow* window = [cocoaWin window];
-    NSSize size = [cocoaWin frame].size;
+  if (!cocoaWin)
+    return;
 
-    float scale = [window backingScaleFactor];
-    size.width *= scale;
-    size.height *= scale;
-
-    if (s_backbuffer_width == size.width && s_backbuffer_height == size.height)
-      return;
-
-    s_backbuffer_width = size.width;
-    s_backbuffer_height = size.height;
-  }
-
-  [cocoaCtx update];
+  if (UpdateCachedDimensions(cocoaWin, &s_backbuffer_width, &s_backbuffer_height))
+    [cocoaCtx update];
 }
 
 void cInterfaceAGL::SwapInterval(int interval)
