@@ -20,7 +20,7 @@
     <application
         android:name=".DolphinApplication"
         android:label="@string/app_name"
-        android:icon="@drawable/ic_launcher"
+        android:icon="@mipmap/ic_launcher"
         android:allowBackup="true"
         android:supportsRtl="true"
         android:isGame="true"

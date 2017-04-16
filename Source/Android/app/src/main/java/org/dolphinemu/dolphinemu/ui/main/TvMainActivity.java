@@ -53,7 +53,7 @@ public final class TvMainActivity extends Activity implements MainView
 		mBrowseFragment.setHeadersState(BrowseFragment.HEADERS_ENABLED);
 		mBrowseFragment.setTitle(getString(R.string.app_name));
 		mBrowseFragment.setBadgeDrawable(getResources().getDrawable(
-				R.drawable.ic_launcher, null));
+				R.mipmap.ic_launcher, null));
 		mBrowseFragment.setBrandColor(getResources().getColor(R.color.dolphin_blue_dark));
 
 		buildRowsAdapter();
