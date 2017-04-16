@@ -10,9 +10,9 @@
 
     <item
         android:id="@+id/menu_settings_video"
+        android:icon="@drawable/ic_tv_white_24dp"
         android:title="@string/grid_menu_video_settings"
-        android:icon="@drawable/ic_settings_graphics"
-        app:showAsAction="ifRoom"/>
+        app:showAsAction="ifRoom" />
 
     <item
         android:id="@+id/menu_settings_gcpad"
