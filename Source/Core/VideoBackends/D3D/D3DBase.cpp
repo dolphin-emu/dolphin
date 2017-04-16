@@ -239,6 +239,19 @@ D3D_FEATURE_LEVEL GetFeatureLevel(IDXGIAdapter* adapter)
   return feat_level;
 }
 
+static bool SupportsS3TCTextures(ID3D11Device* device)
+{
+  UINT bc1_support, bc2_support, bc3_support;
+  if (FAILED(device->CheckFormatSupport(DXGI_FORMAT_BC1_UNORM, &bc1_support)) ||
+      FAILED(device->CheckFormatSupport(DXGI_FORMAT_BC2_UNORM, &bc2_support)) ||
+      FAILED(device->CheckFormatSupport(DXGI_FORMAT_BC3_UNORM, &bc3_support)))
+  {
+    return false;
+  }
+
+  return ((bc1_support & bc2_support & bc3_support) & D3D11_FORMAT_SUPPORT_TEXTURE2D) != 0;
+}
+
 HRESULT Create(HWND wnd)
 {
   hWnd = wnd;
@@ -427,6 +440,7 @@ HRESULT Create(HWND wnd)
   UINT format_support;
   device->CheckFormatSupport(DXGI_FORMAT_B8G8R8A8_UNORM, &format_support);
   bgra_textures_supported = (format_support & D3D11_FORMAT_SUPPORT_TEXTURE2D) != 0;
+  g_Config.backend_info.bSupportsST3CTextures = SupportsS3TCTextures(device);
 
   stateman = new StateManager;
   return S_OK;
