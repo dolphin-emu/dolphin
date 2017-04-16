@@ -172,8 +172,8 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 
 		builder.setTitle(item.getNameId());
 		builder.setView(view);
-		builder.setPositiveButton(R.string.ok, this);
-		builder.setNegativeButton(R.string.cancel, this);
+		builder.setPositiveButton(android.R.string.ok, this);
+		builder.setNegativeButton(android.R.string.cancel, this);
 		mDialog = builder.show();
 
 		mTextSliderValue = (TextView) view.findViewById(R.id.text_value);
@@ -200,7 +200,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 		final MotionAlertDialog dialog = new MotionAlertDialog(mContext, item);
 		dialog.setTitle(R.string.input_binding);
 		dialog.setMessage(String.format(mContext.getString(R.string.input_binding_descrip), mContext.getString(item.getNameId())));
-		dialog.setButton(AlertDialog.BUTTON_NEGATIVE, mContext.getString(R.string.cancel), this);
+		dialog.setButton(AlertDialog.BUTTON_NEGATIVE, mContext.getString(android.R.string.cancel), this);
 		dialog.setButton(AlertDialog.BUTTON_NEUTRAL, mContext.getString(R.string.clear), new AlertDialog.OnClickListener()
 		{
 			@Override

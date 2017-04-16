@@ -688,7 +688,7 @@ public final class EmulationActivity extends AppCompatActivity
 				emulationFragment.toggleInputOverlayVisibility();
 			}
 		});
-		builder.setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
+		builder.setPositiveButton(getString(android.R.string.ok), new DialogInterface.OnClickListener() {
 			@Override
 			public void onClick(DialogInterface dialogInterface, int i) {
 				editor.apply();
@@ -733,7 +733,7 @@ public final class EmulationActivity extends AppCompatActivity
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setTitle(R.string.emulation_control_scale);
 		builder.setView(view);
-		builder.setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
+		builder.setPositiveButton(getString(android.R.string.ok), new DialogInterface.OnClickListener() {
 			@Override
 			public void onClick(DialogInterface dialogInterface, int i) {
 				SharedPreferences.Editor editor = mPreferences.edit();
@@ -764,7 +764,7 @@ public final class EmulationActivity extends AppCompatActivity
 								getResources().getStringArray(R.array.controllersValues)[indexSelected]);
 					}
 				});
-		builder.setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
+		builder.setPositiveButton(getString(android.R.string.ok), new DialogInterface.OnClickListener() {
 			@Override
 			public void onClick(DialogInterface dialogInterface, int i) {
 				editor.apply();

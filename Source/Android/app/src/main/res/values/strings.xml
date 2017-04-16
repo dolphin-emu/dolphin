@@ -180,12 +180,7 @@
     <string name="aspect_ratio_descrip">Select what aspect ratio to use when rendering</string>
 
     <!-- Miscellaneous -->
-    <string name="yes">Yes</string>
-    <string name="no">No</string>
-    <string name="ok">OK</string>
-    <string name="cancel">Cancel</string>
     <string name="clear">Clear</string>
-    <string name="disabled">Disabled</string>
     <string name="other">Other</string>
 
     <!-- Game Grid Screen-->
