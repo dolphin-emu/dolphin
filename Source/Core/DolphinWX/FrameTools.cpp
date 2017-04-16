@@ -259,6 +259,8 @@ wxToolBar* CFrame::OnCreateToolBar(long style, wxWindowID id, const wxString& na
 
 void CFrame::OpenGeneralConfiguration(wxWindowID tab_id)
 {
+  if (!m_main_config_dialog)
+    m_main_config_dialog = new CConfigMain(this);
   if (tab_id > wxID_ANY)
     m_main_config_dialog->SetSelectedTab(tab_id);
 

@@ -321,8 +321,6 @@ CFrame::CFrame(wxFrame* parent, wxWindowID id, const wxString& title, wxRect geo
 {
   BindEvents();
 
-  m_main_config_dialog = new CConfigMain(this);
-
   for (int i = 0; i <= IDM_CODE_WINDOW - IDM_LOG_WINDOW; i++)
     bFloatWindow[i] = false;
 
