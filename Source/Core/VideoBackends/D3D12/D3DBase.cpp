@@ -262,6 +262,21 @@ std::vector<DXGI_SAMPLE_DESC> EnumAAModes(ID3D12Device* device)
   return aa_modes;
 }
 
+static bool SupportsS3TCTextures(ID3D12Device* device)
+{
+  auto CheckForFormat = [](ID3D12Device* device, DXGI_FORMAT format) {
+    D3D12_FEATURE_DATA_FORMAT_SUPPORT data = {format};
+    if (FAILED(device->CheckFeatureSupport(D3D12_FEATURE_FORMAT_SUPPORT, &data, sizeof(data))))
+      return false;
+
+    return (data.Support1 & D3D12_FORMAT_SUPPORT1_TEXTURE2D) != 0;
+  };
+
+  return CheckForFormat(device, DXGI_FORMAT_BC1_UNORM) &&
+         CheckForFormat(device, DXGI_FORMAT_BC2_UNORM) &&
+         CheckForFormat(device, DXGI_FORMAT_BC3_UNORM);
+}
+
 HRESULT Create(HWND wnd)
 {
   hWnd = wnd;
@@ -477,6 +492,8 @@ HRESULT Create(HWND wnd)
 
   SAFE_RELEASE(factory);
   SAFE_RELEASE(adapter);
+
+  g_Config.backend_info.bSupportsST3CTextures = SupportsS3TCTextures(device12);
 
   return S_OK;
 }
