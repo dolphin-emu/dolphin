@@ -46,7 +46,7 @@ static bool AttachContextToView(NSOpenGLContext* context, NSView* view, u32* wid
 
 void cInterfaceAGL::Swap()
 {
-  [cocoaCtx flushBuffer];
+  [m_context flushBuffer];
 }
 
 // Create rendering window.
@@ -64,9 +64,9 @@ bool cInterfaceAGL::Create(void* window_handle, bool core)
     return false;
   }
 
-  cocoaCtx = [[NSOpenGLContext alloc] initWithFormat:fmt shareContext:nil];
+  m_context = [[NSOpenGLContext alloc] initWithFormat:fmt shareContext:nil];
   [fmt release];
-  if (cocoaCtx == nil)
+  if (m_context == nil)
   {
     ERROR_LOG(VIDEO, "failed to create context");
     return false;
@@ -75,13 +75,13 @@ bool cInterfaceAGL::Create(void* window_handle, bool core)
   if (!window_handle)
     return true;
 
-  cocoaWin = static_cast<NSView*>(window_handle);
-  return AttachContextToView(cocoaCtx, cocoaWin, &s_backbuffer_width, &s_backbuffer_height);
+  m_view = static_cast<NSView*>(window_handle);
+  return AttachContextToView(m_context, m_view, &s_backbuffer_width, &s_backbuffer_height);
 }
 
 bool cInterfaceAGL::MakeCurrent()
 {
-  [cocoaCtx makeCurrentContext];
+  [m_context makeCurrentContext];
   return true;
 }
 
@@ -94,21 +94,21 @@ bool cInterfaceAGL::ClearCurrent()
 // Close backend
 void cInterfaceAGL::Shutdown()
 {
-  [cocoaCtx clearDrawable];
-  [cocoaCtx release];
-  cocoaCtx = nil;
+  [m_context clearDrawable];
+  [m_context release];
+  m_context = nil;
 }
 
 void cInterfaceAGL::Update()
 {
-  if (!cocoaWin)
+  if (!m_view)
     return;
 
-  if (UpdateCachedDimensions(cocoaWin, &s_backbuffer_width, &s_backbuffer_height))
-    [cocoaCtx update];
+  if (UpdateCachedDimensions(m_view, &s_backbuffer_width, &s_backbuffer_height))
+    [m_context update];
 }
 
 void cInterfaceAGL::SwapInterval(int interval)
 {
-  [cocoaCtx setValues:(GLint*)&interval forParameter:NSOpenGLCPSwapInterval];
+  [m_context setValues:static_cast<GLint*>(&interval) forParameter:NSOpenGLCPSwapInterval];
 }
