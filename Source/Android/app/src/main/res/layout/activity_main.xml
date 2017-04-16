@@ -14,17 +14,22 @@
         <android.support.v7.widget.Toolbar
             android:id="@+id/toolbar_main"
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
-            app:layout_scrollFlags="scroll|enterAlways"/>
+            android:layout_height="67dp"
+            android:layout_marginBottom="8dp"
+            android:paddingStart="4dp"
+            android:paddingEnd="4dp"
+            android:paddingTop="4dp"
+            app:layout_scrollFlags="scroll|enterAlways"
+            app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
 
         <android.support.design.widget.TabLayout
             android:id="@+id/tabs_platforms"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:tabTextAppearance="@style/MyCustomTextAppearance"
+            android:paddingBottom="0dp"
+            app:tabGravity="fill"
             app:tabMode="fixed"
-            app:tabGravity="fill"/>
+            app:tabTextAppearance="@style/MyCustomTextAppearance" />
 
     </android.support.design.widget.AppBarLayout>
 
@@ -36,13 +41,14 @@
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/button_add_directory"
-        android:layout_height="wrap_content"
         android:layout_width="wrap_content"
-        android:layout_margin="32dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
         android:src="@drawable/ic_add"
         app:borderWidth="0dp"
-        app:rippleColor="?android:colorPrimaryDark"
+        app:fabSize="normal"
         app:layout_anchor="@+id/pager_platforms"
-        app:layout_anchorGravity="bottom|right|end"/>
+        app:layout_anchorGravity="bottom|right|end"
+        app:rippleColor="?android:colorPrimaryDark" />
 
 </android.support.design.widget.CoordinatorLayout>
