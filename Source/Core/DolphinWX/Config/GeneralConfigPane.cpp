@@ -85,7 +85,7 @@ void GeneralConfigPane::InitializeGUI()
         "which is dissociated from the previous one."));
   m_throttler_choice->SetToolTip(_("Limits the emulation speed to the specified percentage.\nNote "
                                    "that raising or lowering the emulation speed will also raise "
-                                   "or lower the audio pitch to prevent audio from stuttering."));
+                                   "or lower the audio pitch unless audio stretching is enabled."));
 
   const int space5 = FromDIP(5);
 
