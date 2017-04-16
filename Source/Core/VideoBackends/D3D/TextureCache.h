@@ -30,7 +30,8 @@ private:
                                   const MathUtil::Rectangle<int>& srcrect,
                                   const MathUtil::Rectangle<int>& dstrect) override;
 
-    void Load(const u8* buffer, u32 width, u32 height, u32 expanded_width, u32 levels) override;
+    void Load(u32 level, u32 width, u32 height, u32 row_length, const u8* buffer,
+              size_t buffer_size) override;
 
     void FromRenderTarget(bool is_depth_copy, const EFBRectangle& srcRect, bool scaleByHalf,
                           unsigned int cbufid, const float* colmat) override;

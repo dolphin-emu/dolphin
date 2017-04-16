@@ -202,8 +202,8 @@ void TextureCache::TCacheEntry::CopyRectangleFromTexture(const TCacheEntryBase* 
   g_renderer->RestoreAPIState();
 }
 
-void TextureCache::TCacheEntry::Load(const u8* buffer, u32 width, u32 height, u32 expanded_width,
-                                     u32 level)
+void TextureCache::TCacheEntry::Load(u32 level, u32 width, u32 height, u32 row_length,
+                                     const u8* buffer, size_t buffer_size)
 {
   if (level >= config.levels)
     PanicAlert("Texture only has %d levels, can't update level %d", config.levels, level);
@@ -216,8 +216,8 @@ void TextureCache::TCacheEntry::Load(const u8* buffer, u32 width, u32 height, u3
   glActiveTexture(GL_TEXTURE9);
   glBindTexture(GL_TEXTURE_2D_ARRAY, texture);
 
-  if (expanded_width != width)
-    glPixelStorei(GL_UNPACK_ROW_LENGTH, expanded_width);
+  if (row_length != width)
+    glPixelStorei(GL_UNPACK_ROW_LENGTH, row_length);
 
   if (g_ogl_config.bSupportsTextureStorage)
   {
@@ -230,7 +230,7 @@ void TextureCache::TCacheEntry::Load(const u8* buffer, u32 width, u32 height, u3
                  GL_UNSIGNED_BYTE, buffer);
   }
 
-  if (expanded_width != width)
+  if (row_length != width)
     glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 
   TextureCache::SetStage();

@@ -341,8 +341,8 @@ TextureCache::TCacheEntry::~TCacheEntry()
     g_command_buffer_mgr->DeferFramebufferDestruction(m_framebuffer);
 }
 
-void TextureCache::TCacheEntry::Load(const u8* buffer, unsigned int width, unsigned int height,
-                                     unsigned int expanded_width, unsigned int level)
+void TextureCache::TCacheEntry::Load(u32 level, u32 width, u32 height, u32 row_length,
+                                     const u8* buffer, size_t buffer_size)
 {
   // Can't copy data larger than the texture extents.
   width = std::max(1u, std::min(width, m_texture->GetWidth() >> level));
@@ -371,7 +371,7 @@ void TextureCache::TCacheEntry::Load(const u8* buffer, unsigned int width, unsig
   u32 upload_pitch = upload_width * sizeof(u32);
   u32 upload_size = upload_pitch * height;
   u32 upload_alignment = static_cast<u32>(g_vulkan_context->GetBufferImageGranularity());
-  u32 source_pitch = expanded_width * 4;
+  u32 source_pitch = row_length * 4;
   if ((upload_size + upload_alignment) <= STAGING_TEXTURE_UPLOAD_THRESHOLD &&
       (upload_size + upload_alignment) <= MAXIMUM_TEXTURE_UPLOAD_BUFFER_SIZE)
   {

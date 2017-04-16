@@ -175,10 +175,10 @@ void TextureCache::TCacheEntry::CopyRectangleFromTexture(const TCacheEntryBase* 
   g_renderer->RestoreAPIState();
 }
 
-void TextureCache::TCacheEntry::Load(const u8* buffer, u32 width, u32 height, u32 expanded_width,
-                                     u32 level)
+void TextureCache::TCacheEntry::Load(u32 level, u32 width, u32 height, u32 row_length,
+                                     const u8* buffer, size_t buffer_size)
 {
-  unsigned int src_pitch = 4 * expanded_width;
+  u32 src_pitch = 4 * row_length;
   D3D::ReplaceRGBATexture2D(m_texture->GetTex12(), buffer, width, height, src_pitch, level,
                             m_texture->GetResourceUsageState());
 }
