@@ -41,6 +41,7 @@ VideoConfig::VideoConfig()
   backend_info.bSupportsExclusiveFullscreen = false;
   backend_info.bSupportsMultithreading = false;
   backend_info.bSupportsInternalResolutionFrameDumps = false;
+  backend_info.bSupportsST3CTextures = false;
 
   bEnableValidationLayer = false;
   bBackendMultithreading = true;

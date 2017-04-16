@@ -197,6 +197,7 @@ struct VideoConfig final
     bool bSupportsMultithreading;
     bool bSupportsInternalResolutionFrameDumps;
     bool bSupportsGPUTextureDecoding;
+    bool bSupportsST3CTextures;
   } backend_info;
 
   // Utility

@@ -404,23 +404,18 @@ std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filenam
       filename += StringFromFormat("_mip%u", level);
     }
 
-    if (s_textureMap.find(filename) != s_textureMap.end())
+    auto filename_iter = s_textureMap.find(filename);
+    if (filename_iter != s_textureMap.end())
     {
       Level l;
 
       File::IOFile file;
-      file.Open(s_textureMap[filename], "rb");
+      file.Open(filename_iter->second, "rb");
       std::vector<u8> buffer(file.GetSize());
       file.ReadBytes(buffer.data(), file.GetSize());
 
-      int channels;
-      l.data =
-          SOILPointer(SOIL_load_image_from_memory(buffer.data(), (int)buffer.size(), (int*)&l.width,
-                                                  (int*)&l.height, &channels, SOIL_LOAD_RGBA),
-                      SOIL_free_image_data);
-      l.data_size = (size_t)l.width * l.height * 4;
-
-      if (l.data == nullptr)
+      // Try loading DDS textures first, that way we maintain compression of DXT formats.
+      if (!LoadDDSTexture(l, buffer) && !LoadTexture(l, buffer))
       {
         ERROR_LOG(VIDEO, "Custom texture %s failed to load", filename.c_str());
         break;
@@ -467,7 +462,37 @@ std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filenam
     }
   }
 
+  // All levels have to have the same format.
+  if (ret && std::any_of(ret->m_levels.begin(), ret->m_levels.end(),
+                         [&ret](const Level& l) { return l.format != ret->m_levels[0].format; }))
+  {
+    ERROR_LOG(VIDEO, "Custom texture %s has inconsistent formats across mip levels.",
+              base_filename.c_str());
+    ret.reset();
+  }
+
   return ret;
+}
+
+bool HiresTexture::LoadTexture(Level& level, const std::vector<u8>& buffer)
+{
+  int channels;
+  int width;
+  int height;
+
+  u8* data = SOIL_load_image_from_memory(buffer.data(), static_cast<int>(buffer.size()), &width,
+                                         &height, &channels, SOIL_LOAD_RGBA);
+  if (!data)
+    return false;
+
+  // Images loaded by SOIL are converted to RGBA.
+  level.width = static_cast<u32>(width);
+  level.height = static_cast<u32>(height);
+  level.format = HostTextureFormat::RGBA8;
+  level.data = ImageDataPointer(data, SOIL_free_image_data);
+  level.row_length = level.width;
+  level.data_size = static_cast<size_t>(level.row_length) * 4 * level.height;
+  return true;
 }
 
 std::string HiresTexture::GetTextureDirectory(const std::string& game_id)
@@ -483,4 +508,9 @@ std::string HiresTexture::GetTextureDirectory(const std::string& game_id)
 
 HiresTexture::~HiresTexture()
 {
+}
+
+HostTextureFormat HiresTexture::GetFormat() const
+{
+  return m_levels.at(0).format;
 }
