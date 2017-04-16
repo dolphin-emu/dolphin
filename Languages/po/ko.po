@@ -11,8 +11,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-04-09 10:57+0200\n"
-"PO-Revision-Date: 2017-04-09 08:58+0000\n"
+"POT-Creation-Date: 2017-04-16 12:13+0200\n"
+"PO-Revision-Date: 2017-04-16 10:14+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Korean (http://www.transifex.com/delroth/dolphin-emu/language/"
 "ko/)\n"
@@ -70,7 +70,7 @@ msgstr "\"%s\" 가 실패해 취소되었습니다. 이미지 파일이 손상�
 msgid "\"%s\" is already compressed! Cannot compress it further."
 msgstr "\"%s\" 는 이미 압축되어 있습니다! 더 이상 압축할 수 없습니다."
 
-#: Source/Core/Core/ConfigManager.cpp:935
+#: Source/Core/Core/ConfigManager.cpp:939
 #, c-format
 msgid "\"%s\" is an invalid GCM/ISO file, or is not a GC/Wii ISO."
 msgstr "\"%s\"는 부적합한 GCM/ISO 파일이거나, GC/Wii ISO 파일이 아닙니다."
@@ -158,7 +158,7 @@ msgstr ""
 msgid "%s (Disc %i)"
 msgstr "%s (디스크 %i)"
 
-#: Source/Core/Core/Boot/Boot.cpp:224
+#: Source/Core/Core/Boot/Boot.cpp:223
 #, c-format
 msgid "%s IPL found in %s directory. The disc might not be recognized"
 msgstr ""
@@ -270,7 +270,7 @@ msgstr "함수 추가 (&A)"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:420
 msgid "&Address"
-msgstr ""
+msgstr "주소 (&A)"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:173
 msgid "&Audio Settings"
@@ -357,7 +357,7 @@ msgstr "프레임 진행(&F)"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:426
 msgid "&Generate Symbols From"
-msgstr ""
+msgstr "부호 생성 (&G)"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:494
 msgid "&GitHub Repository"
@@ -531,7 +531,7 @@ msgstr "명령 찾기 (&S)"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:423
 msgid "&Signature Database"
-msgstr ""
+msgstr "서명 데이터베이스 (&S)"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:311
 msgid "&Sound"
@@ -583,7 +583,7 @@ msgstr ""
 "(c) 2003-2015+ 돌핀 팀. \"게임큐브\" 와 \"Wii\" 는 닌텐도의 상표입니다. 돌핀"
 "은 닌텐도와 아무런 관련이 없습니다."
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:1270
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:1263
 msgid "(off)"
 msgstr "(꺼짐)"
 
@@ -1047,11 +1047,11 @@ msgstr "앱로더:"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:468
 msgid "Apply &MEGA Signature File..."
-msgstr ""
+msgstr "MEGA 서명 파일 적용하기... (&M)"
 
 #: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:399
 msgid "Apply MEGA signature file"
-msgstr ""
+msgstr "MEGA 서명 파일 적용"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:464
 msgid "Apply Signat&ure File..."
@@ -1089,7 +1089,7 @@ msgstr "이 파일을 정말로 삭제하시겠습니까? 영원히 사라지게
 msgid "Are you trying to use the same file in both slots?"
 msgstr "두 슬롯에 같은 파일을 사용하시겠습니까?"
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:80
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:82
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:450
 msgid "Aspect Ratio:"
 msgstr "종횡비:"
@@ -1106,9 +1106,13 @@ msgstr "적어도 하나의 창이 열려 있어야 합니다."
 msgid "Audio"
 msgstr "오디오"
 
-#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:72
+#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:79
 msgid "Audio Backend:"
 msgstr "오디오 백엔드:"
+
+#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:116
+msgid "Audio Stretching Settings"
+msgstr ""
 
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:92
 msgid "Australia"
@@ -1185,7 +1189,7 @@ msgstr "BP 레지스터"
 msgid "Back"
 msgstr "뒤로"
 
-#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:84
+#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:91
 msgid "Backend Settings"
 msgstr "백엔드 설정"
 
@@ -1331,6 +1335,10 @@ msgstr "추가할 디렉토리 찾아보기"
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1256
 msgid "Browse for output directory"
 msgstr "출력 디렉토리 찾아보기"
+
+#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:52
+msgid "Buffer Size:"
+msgstr ""
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:253
 msgid "Buffer:"
@@ -1479,10 +1487,6 @@ msgstr ""
 #: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:158
 msgid "Changing cheats will only take effect when the game is restarted."
 msgstr "치트 변경은 게임을 재시작해야만 효과가 반영될 것입니다."
-
-#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:52
-msgid "Changing this will have no effect while the emulator is running."
-msgstr "에뮬레이터가 작동하고 있는 동안엔 이 변경은 적용되지 않습니다."
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:160
 msgid "Chat"
@@ -1862,7 +1866,7 @@ msgstr "함수 복사 (&f)"
 msgid "Copy &hex"
 msgstr "헥스 복사 (&h)"
 
-#: Source/Core/Core/ConfigManager.cpp:1089
+#: Source/Core/Core/ConfigManager.cpp:1093
 msgid "Copy failed"
 msgstr "복사에 실패했습니다."
 
@@ -1897,7 +1901,7 @@ msgstr ""
 "NAND 에 없어서 %016<PRIx64> 타이틀을 시작할 수 없었습니다. \n"
 "에뮬된 소프트웨어가 지금 멈출 것 같습니다."
 
-#: Source/Core/Core/ConfigManager.cpp:929
+#: Source/Core/Core/ConfigManager.cpp:933
 #, c-format
 msgid ""
 "Could not read \"%s\". There is no disc in the drive or it is not a GameCube/"
@@ -1908,7 +1912,7 @@ msgstr ""
 "닙니다. 돌핀은 오리지널 게임큐브와 Wii 디스크로 직접 게임을 플레이할 수 없다"
 "는 것을 알아두세요."
 
-#: Source/Core/Core/ConfigManager.cpp:1004
+#: Source/Core/Core/ConfigManager.cpp:1008
 #, c-format
 msgid "Could not recognize ISO file %s"
 msgstr "%s ISO 파일을 인식할 수 없습니다."
@@ -1949,7 +1953,7 @@ msgstr "피어를 생성할 수 없습니다."
 msgid "Couldn't find open command for extension 'ini'!"
 msgstr "확장자 'ini'에 대한 열기 명령을 발견할 수 없습니다!"
 
-#: Source/Core/Core/BootManager.cpp:402
+#: Source/Core/Core/BootManager.cpp:400
 msgid ""
 "Couldn't init the core.\n"
 "Check your configuration."
@@ -1960,7 +1964,7 @@ msgstr ""
 #: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:65
 #, c-format
 msgid "Couldn't initialise libusb for Bluetooth passthrough: %s"
-msgstr ""
+msgstr "블루투스 패스쓰루: %s 를 위한 libusb 를 초기화 할 수 없었습니다"
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:476
 msgid "Couldn't look up central server"
@@ -2206,7 +2210,7 @@ msgstr "깊이 퍼센트:"
 msgid "Depth:"
 msgstr "깊이:"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:1245
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:1238
 msgid "Description"
 msgstr "설명"
 
@@ -2233,7 +2237,6 @@ msgid "Device PID (e.g., 0305)"
 msgstr "장치 PID (예, 0305)"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:119
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:133
 msgid "Device Settings"
 msgstr "장치 설정"
 
@@ -2250,7 +2253,7 @@ msgstr "장치가 없습니다"
 msgid "Dial"
 msgstr "다이얼"
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:68
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:70
 msgid "Dims the screen after five minutes of inactivity."
 msgstr "활동이 없을 경우 5분후에 화면을 어둡게 합니다."
 
@@ -2631,7 +2634,7 @@ msgstr "내장형 프레임 버퍼 (EFB)"
 msgid "Empty"
 msgstr "비어있음"
 
-#: Source/Core/Core/Core.cpp:232
+#: Source/Core/Core/Core.cpp:229
 msgid "Emu Thread already running"
 msgstr "에뮬 쓰레드가 이미 구동중임"
 
@@ -2689,6 +2692,10 @@ msgstr "API 검증 레이어 활성화"
 msgid "Enable AR Logging"
 msgstr "AR 로깅 활성화"
 
+#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:51
+msgid "Enable Audio Stretching"
+msgstr ""
+
 #: Source/Core/DolphinWX/Config/AdvancedConfigPane.cpp:32
 msgid "Enable CPU Clock Override"
 msgstr "CPU 클럭 오버라이드 활성화"
@@ -2725,7 +2732,7 @@ msgstr "멀티-쓰레딩 활성화"
 msgid "Enable Progressive Scan"
 msgstr "프로그레시브 스캔 활성화"
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:50
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:51
 msgid "Enable Screen Saver"
 msgstr "화면 보호기 활성화"
 
@@ -2795,7 +2802,7 @@ msgstr ""
 "\n"
 "잘 모르겠으면, 이것을 체크 해제해 두세요."
 
-#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:56
+#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:60
 msgid ""
 "Enables Dolby Pro Logic II emulation using 5.1 surround. Certain backends "
 "only."
@@ -2835,6 +2842,10 @@ msgstr ""
 "\n"
 "잘 모르겠으면, 이것을 체크 해제해 두세요."
 
+#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:61
+msgid "Enables stretching of the audio to match emulation speed."
+msgstr ""
+
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:290
 msgid ""
 "Enables texture decoding using the GPU instead of the CPU. This may result "
@@ -2843,6 +2854,10 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"CPU 대신 GPU 를 이용하는 텍스처 디코딩을 활성화합니다. 일부 시나리오, 혹은 "
+"CPU가 병목에 걸린 시스템에서 성능을 얻을 수도 있습니다.\n"
+"\n"
+"잘 모르겠으면, 체크 해제해 두세요."
 
 #: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:264
 msgid ""
@@ -3536,7 +3551,7 @@ msgstr "프레임 범위"
 msgid "Frame advance"
 msgstr "프레임 진행"
 
-#: Source/Core/VideoCommon/RenderBase.cpp:926
+#: Source/Core/VideoCommon/RenderBase.cpp:954
 #, c-format
 msgid "Frame dump image(s) '%s' already exists. Overwrite?"
 msgstr "프레임 덤프 이미지(들) '%s' 가 이미 존재합니다. 덮어쓰시겠습니까?"
@@ -3695,7 +3710,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:767
 msgid "GPU Texture Decoding"
-msgstr ""
+msgstr "GPU 텍스처 디코딩"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:361
 msgid "Game Boy Advance Carts (*.gba)"
@@ -4011,7 +4026,7 @@ msgstr ""
 msgid "IPL Settings"
 msgstr "IPL 설정"
 
-#: Source/Core/Core/Boot/Boot.cpp:217
+#: Source/Core/Core/Boot/Boot.cpp:216
 #, c-format
 msgid "IPL with unknown hash %x"
 msgstr "알려지지 않은 해쉬 %x 를 가진 IPL"
@@ -4023,7 +4038,7 @@ msgid "IR"
 msgstr "IR"
 
 #. i18n: IR stands for infrared and refers to the pointer functionality of Wii Remotes
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:115
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:117
 msgid "IR Sensitivity:"
 msgstr "IR 감도:"
 
@@ -4501,11 +4516,8 @@ msgstr "광원 명령"
 msgid ""
 "Limits the emulation speed to the specified percentage.\n"
 "Note that raising or lowering the emulation speed will also raise or lower "
-"the audio pitch to prevent audio from stuttering."
+"the audio pitch unless audio stretching is enabled."
 msgstr ""
-"특정 비율로 에뮬 속도를 제한합니다.\n"
-"에뮬 속도를 올리거나 낮추면 소리 끊김 방지를 위해 소리의 높낮이 또한 오르거"
-"나 낮아지게 된다는 것을 알아두세요."
 
 #: Source/Core/DolphinWX/Debugger/BreakpointWindow.cpp:60
 #: Source/Core/DolphinWX/Debugger/WatchWindow.cpp:35
@@ -4731,7 +4743,7 @@ msgstr "MD5 체크중..."
 
 #: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:400
 msgid "MEGA Signature File (*.mega)"
-msgstr ""
+msgstr "MEGA 서명 파일 (*.mega)"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:524
 #: Source/Core/DolphinWX/MemcardManager.cpp:559
@@ -4786,8 +4798,8 @@ msgstr "매치 발견"
 msgid "Matrix Cmd"
 msgstr "행렬 명령"
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:99
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:106
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:101
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:108
 msgid "Max"
 msgstr "최대값"
 
@@ -4809,7 +4821,7 @@ msgstr "메모리 카드"
 msgid "Memory Card Manager"
 msgstr "메모리 카드 매니저"
 
-#: Source/Core/Core/ConfigManager.cpp:1081
+#: Source/Core/Core/ConfigManager.cpp:1085
 #, c-format
 msgid ""
 "Memory Card filename in Slot %c is incorrect\n"
@@ -4866,8 +4878,8 @@ msgstr "메뉴"
 msgid "Microphone"
 msgstr "마이크"
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:96
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:103
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:98
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:105
 msgid "Min"
 msgstr "최소값"
 
@@ -4875,7 +4887,7 @@ msgstr "최소값"
 msgid "Misc"
 msgstr "기타"
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:127
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:129
 msgid "Misc Settings"
 msgstr "기타 설정"
 
@@ -4936,12 +4948,16 @@ msgid ""
 "Must use Generate Symbols first! Recognise names of any standard library "
 "functions used in multiple games, by loading them from a .dsy file."
 msgstr ""
+"부호 생성하기를 먼저 사용해야 합니다! .dsy 파일에서 그것을 로딩해서 여러 게임"
+"에서 사용되는 표준 라이브러리 함수들의 이름을 인식합니다."
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:469
 msgid ""
 "Must use Generate Symbols first! Recognise names of any standard library "
 "functions used in multiple games, by loading them from a .mega file."
 msgstr ""
+"부호 생성하기를 먼저 사용해야 합니다! .mega 파일에서 그것을 로딩해서 여러 게"
+"임에서 사용되는 표준 라이브러리 함수들의 이름을 인식합니다."
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:635
 msgid "NOTE: Stream size doesn't match actual data length\n"
@@ -5131,7 +5147,7 @@ msgstr ""
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:50
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:312
 #: Source/Core/DolphinWX/NetPlay/PadMapDialog.cpp:27
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:1307
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:1300
 msgid "None"
 msgstr "없음"
 
@@ -5279,16 +5295,16 @@ msgstr "Wii 저장 폴더 열기(&s)"
 msgid "Open file..."
 msgstr "파일 열기..."
 
-#: Source/Core/AudioCommon/OpenALStream.cpp:58
+#: Source/Core/AudioCommon/OpenALStream.cpp:56
 #, c-format
 msgid "OpenAL: can't create context for device %s"
 msgstr "OpenAL: %s 장치에 대한 맥락(context)을 만들 수 없음"
 
-#: Source/Core/AudioCommon/OpenALStream.cpp:68
+#: Source/Core/AudioCommon/OpenALStream.cpp:66
 msgid "OpenAL: can't find sound devices"
 msgstr "OpenAL: 사운드 장치들을 찾을 수 없음"
 
-#: Source/Core/AudioCommon/OpenALStream.cpp:63
+#: Source/Core/AudioCommon/OpenALStream.cpp:61
 #, c-format
 msgid "OpenAL: can't open device %s"
 msgstr "OpenAL: %s 장치를 열 수 없음"
@@ -5840,6 +5856,8 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"2D 버텍스들을 전체 픽셀들로 반올림합니다. 더 높은 내부 해상도일 때 일부 게임"
+"에서 생기는 그래픽 문제를 해결합니다."
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:67
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:289
@@ -6308,7 +6326,7 @@ msgstr ""
 msgid "Send"
 msgstr "보내기"
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:110
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:112
 msgid "Sensor Bar Position:"
 msgstr "센서 바 위치:"
 
@@ -6352,7 +6370,7 @@ msgstr "현재 명령 설정"
 msgid "Sets the GameCube system language."
 msgstr "게임큐브 시스템 언어를 설정합니다."
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:69
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:68
 msgid ""
 "Sets the Wii display mode to 60Hz (480i) instead of 50Hz (576i) for PAL "
 "games.\n"
@@ -6366,7 +6384,7 @@ msgstr ""
 msgid "Sets the Wii system language."
 msgstr "Wii 시스템 언어를 설정합니다."
 
-#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:53
+#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:57
 msgid ""
 "Sets the latency (in ms). Higher values may reduce audio crackling. Certain "
 "backends only."
@@ -6628,6 +6646,12 @@ msgstr "DK 봉고 시뮬"
 msgid "Size"
 msgstr "크기"
 
+#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:62
+msgid ""
+"Size of stretch buffer in milliseconds. Values too low may cause audio "
+"crackling."
+msgstr ""
+
 #: Source/Core/Core/HotkeyManager.cpp:54
 #: Source/Core/DolphinWX/MainToolBar.cpp:205
 msgid "Skip"
@@ -6692,7 +6716,7 @@ msgstr ""
 "소프트웨어 렌더링을 활성을 정말 원합니까? 잘 모르겠으면, '아니오'를 선택하세"
 "요."
 
-#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:61
+#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:68
 msgid "Sound Settings"
 msgstr "사운드 설정"
 
@@ -6714,7 +6738,7 @@ msgstr "스페인어"
 msgid "Speaker Pan"
 msgstr "스피커 팬"
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:119
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:121
 msgid "Speaker Volume:"
 msgstr "스피커 볼륨:"
 
@@ -7018,7 +7042,7 @@ msgid "Syntax error"
 msgstr "문법 오류"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:106
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:84
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:86
 msgid "System Language:"
 msgstr "시스템 언어:"
 
@@ -7113,7 +7137,7 @@ msgstr ""
 "\n"
 "잘 모르겠으면, 가장 오른쪽 값을 사용하세요."
 
-#: Source/Core/Core/ConfigManager.cpp:992
+#: Source/Core/Core/ConfigManager.cpp:996
 msgid "The WAD has been installed successfully"
 msgstr "WAD가 성공적으로 설치되었습니다"
 
@@ -7246,7 +7270,7 @@ msgstr "서버의 응답: 그 게임은 현재 구동중입니다!"
 msgid "The server sent an unknown error message!"
 msgstr "서버가 알려지지 않은 오류 메시지를 보냈음!"
 
-#: Source/Core/Core/ConfigManager.cpp:913
+#: Source/Core/Core/ConfigManager.cpp:917
 #, c-format
 msgid "The specified file \"%s\" does not exist"
 msgstr "기술된 \"%s\" 파일은 존재하지 않습니다"
@@ -7526,7 +7550,7 @@ msgstr "횡단 서버가 호스트에 연결중 시간이 초과되었습니다.
 msgid "Tried to decrypt data from a non-Wii volume"
 msgstr "Wii 볼륨이 아닌 것으로부터 데이터를 풀려고 시도했습니다"
 
-#: Source/Core/Core/Boot/Boot.cpp:477
+#: Source/Core/Core/Boot/Boot.cpp:462
 msgid "Tried to load an unknown file type."
 msgstr "알려지지 않은 파일 타입을 로드 시도했습니다."
 
@@ -7725,7 +7749,7 @@ msgstr "전체화면 사용"
 msgid "Use Hex"
 msgstr "16진수 사용"
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:51
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:50
 msgid "Use PAL60 Mode (EuRGB60)"
 msgstr "PAL60 모드 (EuRGB60) 사용"
 
@@ -7754,7 +7778,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:421
 msgid "Use generic zz_ names for functions."
-msgstr ""
+msgstr "함수 이름에 통칭 zz_ 를 사용합니다."
 
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:105
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:903
@@ -7821,7 +7845,7 @@ msgstr "버텍스 행렬들"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:824
 msgid "Vertex Rounding"
-msgstr ""
+msgstr "버텍스 반올림"
 
 #: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:52
 #: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:134
@@ -7873,7 +7897,7 @@ msgid "Virtual"
 msgstr "가상"
 
 #: Source/Core/Core/HotkeyManager.cpp:243
-#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:66
+#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:73
 msgid "Volume"
 msgstr "볼륨"
 
@@ -7921,11 +7945,11 @@ msgstr ""
 msgid "Warning"
 msgstr "경고"
 
-#: Source/Core/Core/Boot/Boot.cpp:334
+#: Source/Core/Core/Boot/Boot.cpp:333
 msgid "Warning - starting DOL in wrong console mode!"
 msgstr "경고 - 잘못된 콘솔 모드에서 DOL을 시작!"
 
-#: Source/Core/Core/Boot/Boot.cpp:284
+#: Source/Core/Core/Boot/Boot.cpp:283
 msgid "Warning - starting ISO in wrong console mode!"
 msgstr "경고 - 잘못된 콘솔 모드에서 ISO 시작!"
 
@@ -8052,7 +8076,7 @@ msgstr ""
 "\n"
 "잘 모르겠으면, 체크 해제해 두세요."
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:141
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:135
 msgid "Whitelisted USB Passthrough Devices"
 msgstr "화이트리스트된 USB 패스쓰루 장치들"
 
@@ -8095,7 +8119,7 @@ msgstr "Wii 리모트가 연결되었습니다"
 msgid "Wii Remote Rumble"
 msgstr "Wii 리모트 진동"
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:150
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:144
 msgid "Wii Remote Settings"
 msgstr "Wii 리모트 설정"
 
@@ -8241,7 +8265,7 @@ msgstr ""
 "문제를 고치기위해 지금 중단하시겠습니까?\n"
 "\"아니오\"를 선택하면, 오디오가 왜곡될 지도 모릅니다."
 
-#: Source/Core/Core/ConfigManager.cpp:945
+#: Source/Core/Core/ConfigManager.cpp:949
 msgid ""
 "Your GCM/ISO file seems to be invalid (invalid country).\n"
 "Continue with PAL region?"

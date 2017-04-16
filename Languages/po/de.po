@@ -32,8 +32,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-04-09 10:57+0200\n"
-"PO-Revision-Date: 2017-04-09 08:57+0000\n"
+"POT-Creation-Date: 2017-04-16 12:13+0200\n"
+"PO-Revision-Date: 2017-04-16 10:14+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: German (http://www.transifex.com/delroth/dolphin-emu/language/"
 "de/)\n"
@@ -96,7 +96,7 @@ msgid "\"%s\" is already compressed! Cannot compress it further."
 msgstr ""
 "\"%s\" ist bereits komprimiert und kann nicht weiter komprimiert werden."
 
-#: Source/Core/Core/ConfigManager.cpp:935
+#: Source/Core/Core/ConfigManager.cpp:939
 #, c-format
 msgid "\"%s\" is an invalid GCM/ISO file, or is not a GC/Wii ISO."
 msgstr "\"%s\" ist keine gültige GCM/ISO-Datei oder kein GC/Wii-Image."
@@ -187,7 +187,7 @@ msgstr ""
 msgid "%s (Disc %i)"
 msgstr "%s (Disc %i)"
 
-#: Source/Core/Core/Boot/Boot.cpp:224
+#: Source/Core/Core/Boot/Boot.cpp:223
 #, c-format
 msgid "%s IPL found in %s directory. The disc might not be recognized"
 msgstr ""
@@ -303,7 +303,7 @@ msgstr "Funktion &hinzufügen"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:420
 msgid "&Address"
-msgstr ""
+msgstr "&Adresse"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:173
 msgid "&Audio Settings"
@@ -390,7 +390,7 @@ msgstr "&Einzelbildwiedergabe"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:426
 msgid "&Generate Symbols From"
-msgstr ""
+msgstr "Symbole erzeu&gen aus"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:494
 msgid "&GitHub Repository"
@@ -564,7 +564,7 @@ msgstr "&Suche nach einer Anweisung"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:423
 msgid "&Signature Database"
-msgstr ""
+msgstr "&Signaturdatenbank"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:311
 msgid "&Sound"
@@ -616,7 +616,7 @@ msgstr ""
 "(c) 2003-2017+ Dolphin Team. \"GameCube\" und \"Wii\" sind Markenzeichen von "
 "Nintendo. Dolphin ist in keiner Weise mit Nintendo verbunden."
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:1270
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:1263
 msgid "(off)"
 msgstr "(aus)"
 
@@ -1087,11 +1087,11 @@ msgstr "Apploader:"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:468
 msgid "Apply &MEGA Signature File..."
-msgstr ""
+msgstr "&MEGA-Signaturdatei anwenden..."
 
 #: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:399
 msgid "Apply MEGA signature file"
-msgstr ""
+msgstr "MEGA-Signaturdatei anwenden"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:464
 msgid "Apply Signat&ure File..."
@@ -1133,7 +1133,7 @@ msgstr ""
 msgid "Are you trying to use the same file in both slots?"
 msgstr "Die gleiche Datei kann nicht in beiden Steckplätzen verwendet werden."
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:80
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:82
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:450
 msgid "Aspect Ratio:"
 msgstr "Seitenverhältnis:"
@@ -1150,9 +1150,13 @@ msgstr "Mindestens eine Palette muss geöffnet bleiben."
 msgid "Audio"
 msgstr "Audio"
 
-#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:72
+#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:79
 msgid "Audio Backend:"
 msgstr "Audio-Backend:"
+
+#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:116
+msgid "Audio Stretching Settings"
+msgstr ""
 
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:92
 msgid "Australia"
@@ -1231,7 +1235,7 @@ msgstr "BP-Register"
 msgid "Back"
 msgstr "Zurück"
 
-#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:84
+#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:91
 msgid "Backend Settings"
 msgstr "Backend-Einstellungen"
 
@@ -1377,6 +1381,10 @@ msgstr "Verzeichnis auswählen und hinzufügen"
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1256
 msgid "Browse for output directory"
 msgstr "Ausgabeverzeichnis auswählen"
+
+#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:52
+msgid "Buffer Size:"
+msgstr ""
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:253
 msgid "Buffer:"
@@ -1532,11 +1540,6 @@ msgid "Changing cheats will only take effect when the game is restarted."
 msgstr ""
 "Das Wechseln der Cheats wird erst wirksam, nachdem das Spiel neu gestartet "
 "wurde."
-
-#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:52
-msgid "Changing this will have no effect while the emulator is running."
-msgstr ""
-"Änderung dieser Option zeigt keine Auswirkung, solange die Emulation läuft."
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:160
 msgid "Chat"
@@ -1917,7 +1920,7 @@ msgstr "&Funktion kopieren"
 msgid "Copy &hex"
 msgstr "&Hex kopieren"
 
-#: Source/Core/Core/ConfigManager.cpp:1089
+#: Source/Core/Core/ConfigManager.cpp:1093
 msgid "Copy failed"
 msgstr "Kopieren fehlgeschlagen"
 
@@ -1952,7 +1955,7 @@ msgstr ""
 "Titel %016<PRIx64> konnte nicht gestartet werden, da er im NAND fehlt.\n"
 "Die emulierte Software wird wahrscheinlich jetzt hängen."
 
-#: Source/Core/Core/ConfigManager.cpp:929
+#: Source/Core/Core/ConfigManager.cpp:933
 #, c-format
 msgid ""
 "Could not read \"%s\". There is no disc in the drive or it is not a GameCube/"
@@ -1963,7 +1966,7 @@ msgstr ""
 "ist kein GameCube/Wii Backup. Bitte beachte, dass Dolphin keine Spiele von "
 "originalen GameCube und Wii Discs lesen kann."
 
-#: Source/Core/Core/ConfigManager.cpp:1004
+#: Source/Core/Core/ConfigManager.cpp:1008
 #, c-format
 msgid "Could not recognize ISO file %s"
 msgstr "Konnte ISO-Datei %s nicht erkennen."
@@ -2008,7 +2011,7 @@ msgstr "Peer konnte nicht erstellt werden."
 msgid "Couldn't find open command for extension 'ini'!"
 msgstr "Konnte den Befehl zum Öffnen der Dateierweiterung 'ini' nicht finden!"
 
-#: Source/Core/Core/BootManager.cpp:402
+#: Source/Core/Core/BootManager.cpp:400
 msgid ""
 "Couldn't init the core.\n"
 "Check your configuration."
@@ -2020,6 +2023,7 @@ msgstr ""
 #, c-format
 msgid "Couldn't initialise libusb for Bluetooth passthrough: %s"
 msgstr ""
+"libusb konnte nicht für Bluetooth-Durchleitung initialisiert werden: %s"
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:476
 msgid "Couldn't look up central server"
@@ -2268,7 +2272,7 @@ msgstr "Tiefe in Prozent:"
 msgid "Depth:"
 msgstr "Tiefe:"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:1245
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:1238
 msgid "Description"
 msgstr "Beschreibung"
 
@@ -2295,7 +2299,6 @@ msgid "Device PID (e.g., 0305)"
 msgstr "Geräte PID (z.b., 0305)"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:119
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:133
 msgid "Device Settings"
 msgstr "Geräteeinstellungen"
 
@@ -2312,7 +2315,7 @@ msgstr "Gerät nicht gefunden"
 msgid "Dial"
 msgstr "Skala"
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:68
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:70
 msgid "Dims the screen after five minutes of inactivity."
 msgstr "Verdunkelt den Bildschirm nach fünf Minuten Inaktivität."
 
@@ -2697,7 +2700,7 @@ msgstr "Eingebetteter Bildspeicher (EFB)"
 msgid "Empty"
 msgstr "Leer"
 
-#: Source/Core/Core/Core.cpp:232
+#: Source/Core/Core/Core.cpp:229
 msgid "Emu Thread already running"
 msgstr "Emu-Thread läuft bereits."
 
@@ -2757,6 +2760,10 @@ msgstr "API-Validierungsschichten aktivieren"
 msgid "Enable AR Logging"
 msgstr "AR-Logging aktivieren"
 
+#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:51
+msgid "Enable Audio Stretching"
+msgstr ""
+
 #: Source/Core/DolphinWX/Config/AdvancedConfigPane.cpp:32
 msgid "Enable CPU Clock Override"
 msgstr "CPU-Taktüberschreibung aktivieren"
@@ -2793,7 +2800,7 @@ msgstr "Multi-Threading aktivieren"
 msgid "Enable Progressive Scan"
 msgstr "Progressiven Scan aktivieren"
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:50
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:51
 msgid "Enable Screen Saver"
 msgstr "Bildschirmschoner aktivieren"
 
@@ -2864,7 +2871,7 @@ msgstr ""
 "\n"
 "Im Zweifel deaktiviert lassen."
 
-#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:56
+#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:60
 msgid ""
 "Enables Dolby Pro Logic II emulation using 5.1 surround. Certain backends "
 "only."
@@ -2905,6 +2912,10 @@ msgstr ""
 "\n"
 "Im Zweifel deaktiviert lassen."
 
+#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:61
+msgid "Enables stretching of the audio to match emulation speed."
+msgstr ""
+
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:290
 msgid ""
 "Enables texture decoding using the GPU instead of the CPU. This may result "
@@ -2913,6 +2924,11 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Aktiviert Texturdecodierung mit Hilfe der GPU anstatt der CPU. Dies kann in "
+"einigen Situationen die Emulationsgeschwindigkeit erhöhen, oder auf "
+"Systemen, die eine schwache CPU haben.\n"
+"\n"
+"Im Zweifel deaktiviert lassen."
 
 #: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:264
 msgid ""
@@ -3618,7 +3634,7 @@ msgstr "Bildbereich"
 msgid "Frame advance"
 msgstr "Einzelbildwiedergabe"
 
-#: Source/Core/VideoCommon/RenderBase.cpp:926
+#: Source/Core/VideoCommon/RenderBase.cpp:954
 #, c-format
 msgid "Frame dump image(s) '%s' already exists. Overwrite?"
 msgstr "Frame-Dump Bild(er) '%s' existiert bereits. Überschreiben?"
@@ -3779,7 +3795,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:767
 msgid "GPU Texture Decoding"
-msgstr ""
+msgstr "GPU-Texturkodierung"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:361
 msgid "Game Boy Advance Carts (*.gba)"
@@ -4101,7 +4117,7 @@ msgstr ""
 msgid "IPL Settings"
 msgstr "IPL-Einstellungen"
 
-#: Source/Core/Core/Boot/Boot.cpp:217
+#: Source/Core/Core/Boot/Boot.cpp:216
 #, c-format
 msgid "IPL with unknown hash %x"
 msgstr "Unbekanntes IPL mit Prüfsumme %x"
@@ -4113,7 +4129,7 @@ msgid "IR"
 msgstr "IR"
 
 #. i18n: IR stands for infrared and refers to the pointer functionality of Wii Remotes
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:115
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:117
 msgid "IR Sensitivity:"
 msgstr "IR-Empfindlichkeit:"
 
@@ -4595,12 +4611,8 @@ msgstr "Licht-Bef"
 msgid ""
 "Limits the emulation speed to the specified percentage.\n"
 "Note that raising or lowering the emulation speed will also raise or lower "
-"the audio pitch to prevent audio from stuttering."
+"the audio pitch unless audio stretching is enabled."
 msgstr ""
-"Begrenzt die Emulationsgeschwindigkeit auf die gewählten Prozent der echten "
-"Geschwindigkeit.\n"
-"Beachte, dass das erhöhen oder verringern der Geschwindigkeit die Tonhöhe "
-"ebenfalls verändert, damit kein Audioruckeln entsteht."
 
 #: Source/Core/DolphinWX/Debugger/BreakpointWindow.cpp:60
 #: Source/Core/DolphinWX/Debugger/WatchWindow.cpp:35
@@ -4829,7 +4841,7 @@ msgstr "MD5-Prüfung..."
 
 #: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:400
 msgid "MEGA Signature File (*.mega)"
-msgstr ""
+msgstr "MEGA-Signaturdatei (*.mega)"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:524
 #: Source/Core/DolphinWX/MemcardManager.cpp:559
@@ -4885,8 +4897,8 @@ msgstr "Übereinstimmung gefunden"
 msgid "Matrix Cmd"
 msgstr "Matrix-Bef"
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:99
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:106
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:101
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:108
 msgid "Max"
 msgstr "Max"
 
@@ -4908,7 +4920,7 @@ msgstr "Speicherkarte"
 msgid "Memory Card Manager"
 msgstr "Speicherkartenverwaltung"
 
-#: Source/Core/Core/ConfigManager.cpp:1081
+#: Source/Core/Core/ConfigManager.cpp:1085
 #, c-format
 msgid ""
 "Memory Card filename in Slot %c is incorrect\n"
@@ -4966,8 +4978,8 @@ msgstr "Menü"
 msgid "Microphone"
 msgstr "Mikrofon"
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:96
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:103
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:98
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:105
 msgid "Min"
 msgstr "Min"
 
@@ -4975,7 +4987,7 @@ msgstr "Min"
 msgid "Misc"
 msgstr "Sonstiges"
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:127
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:129
 msgid "Misc Settings"
 msgstr "Sonstige Einstellungen"
 
@@ -5038,12 +5050,18 @@ msgid ""
 "Must use Generate Symbols first! Recognise names of any standard library "
 "functions used in multiple games, by loading them from a .dsy file."
 msgstr ""
+"Generiere Symbole muss zuerst genutzt werden! Erkennt die Namen der "
+"standardmäßigen Bibliotheksfunktionen, die in mehreren Spielen verwendet "
+"werden, indem sie von einer .dsy-Datei geladen werden."
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:469
 msgid ""
 "Must use Generate Symbols first! Recognise names of any standard library "
 "functions used in multiple games, by loading them from a .mega file."
 msgstr ""
+"Generiere Symbole muss zuerst genutzt werden! Erkennt die Namen der "
+"standardmäßigen Bibliotheksfunktionen, die in mehreren Spielen verwendet "
+"werden, indem sie von einer .mega-Datei geladen werden."
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:635
 msgid "NOTE: Stream size doesn't match actual data length\n"
@@ -5235,7 +5253,7 @@ msgstr ""
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:50
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:312
 #: Source/Core/DolphinWX/NetPlay/PadMapDialog.cpp:27
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:1307
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:1300
 msgid "None"
 msgstr "Keine"
 
@@ -5382,16 +5400,16 @@ msgstr "&Wii-Spielstand-Ordner öffnen..."
 msgid "Open file..."
 msgstr "Datei öffnen..."
 
-#: Source/Core/AudioCommon/OpenALStream.cpp:58
+#: Source/Core/AudioCommon/OpenALStream.cpp:56
 #, c-format
 msgid "OpenAL: can't create context for device %s"
 msgstr "OpenAL: Kann Kontext für Gerät %s nicht erstellen"
 
-#: Source/Core/AudioCommon/OpenALStream.cpp:68
+#: Source/Core/AudioCommon/OpenALStream.cpp:66
 msgid "OpenAL: can't find sound devices"
 msgstr "OpenAL: Kann kein Sound-Gerät finden"
 
-#: Source/Core/AudioCommon/OpenALStream.cpp:63
+#: Source/Core/AudioCommon/OpenALStream.cpp:61
 #, c-format
 msgid "OpenAL: can't open device %s"
 msgstr "OpenAL: Kann Gerät %s nicht öffnen"
@@ -5951,6 +5969,11 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Rundet 2D-Vertices zu ganzen Pixeln. Dies behebt Grafikprobleme in einigen "
+"Spielen bei höheren internen Auflösungen. Diese Einstellung hat keinen "
+"Effekt, wenn die native Auflösung genutzt wird.\n"
+"\n"
+"Im Zweifel deaktiviert lassen."
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:67
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:289
@@ -6432,7 +6455,7 @@ msgstr ""
 msgid "Send"
 msgstr "Senden"
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:110
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:112
 msgid "Sensor Bar Position:"
 msgstr "Position der Sensorleiste:"
 
@@ -6480,7 +6503,7 @@ msgstr ""
 "Die im GameCube-BIOS eingestellte Systemsprache. Viele Spiele übernehmen "
 "diese Einstellung automatisch."
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:69
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:68
 msgid ""
 "Sets the Wii display mode to 60Hz (480i) instead of 50Hz (576i) for PAL "
 "games.\n"
@@ -6494,7 +6517,7 @@ msgstr ""
 msgid "Sets the Wii system language."
 msgstr "Stellt die Wii Systemsprache ein."
 
-#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:53
+#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:57
 msgid ""
 "Sets the latency (in ms). Higher values may reduce audio crackling. Certain "
 "backends only."
@@ -6758,6 +6781,12 @@ msgstr "DK-Bongos simulieren"
 msgid "Size"
 msgstr "Größe"
 
+#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:62
+msgid ""
+"Size of stretch buffer in milliseconds. Values too low may cause audio "
+"crackling."
+msgstr ""
+
 #: Source/Core/Core/HotkeyManager.cpp:54
 #: Source/Core/DolphinWX/MainToolBar.cpp:205
 msgid "Skip"
@@ -6825,7 +6854,7 @@ msgstr ""
 "Möchtst du wirklich Software Rendering aktivieren? Im Zweifel, wähle \"Nein"
 "\"."
 
-#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:61
+#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:68
 msgid "Sound Settings"
 msgstr "Audio-Einstellungen"
 
@@ -6847,7 +6876,7 @@ msgstr "Spanisch"
 msgid "Speaker Pan"
 msgstr "Lautsprecherregler"
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:119
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:121
 msgid "Speaker Volume:"
 msgstr "Lautsprecher-Lautstärke"
 
@@ -7153,7 +7182,7 @@ msgid "Syntax error"
 msgstr "Syntaxfehler"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:106
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:84
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:86
 msgid "System Language:"
 msgstr "Systemsprache:"
 
@@ -7250,7 +7279,7 @@ msgstr ""
 "\n"
 "Im Zweifel den Wert ganz rechts benutzen."
 
-#: Source/Core/Core/ConfigManager.cpp:992
+#: Source/Core/Core/ConfigManager.cpp:996
 msgid "The WAD has been installed successfully"
 msgstr "Die WAD-Datei wurde erfolgreich installiert"
 
@@ -7389,7 +7418,7 @@ msgstr "Der Server meldet: Das Spiel läuft derzeit!"
 msgid "The server sent an unknown error message!"
 msgstr "Der Server sendete einen unbekannten Fehler!"
 
-#: Source/Core/Core/ConfigManager.cpp:913
+#: Source/Core/Core/ConfigManager.cpp:917
 #, c-format
 msgid "The specified file \"%s\" does not exist"
 msgstr "Die ausgewählte Datei \"%s\" existiert nicht"
@@ -7676,7 +7705,7 @@ msgstr "Zeitüberschreitung bei der Verbindung vom Übergangsserver zum Host."
 msgid "Tried to decrypt data from a non-Wii volume"
 msgstr "Versuch der Entschlüsselung von Daten auf einem nicht-Wii-Datenträger"
 
-#: Source/Core/Core/Boot/Boot.cpp:477
+#: Source/Core/Core/Boot/Boot.cpp:462
 msgid "Tried to load an unknown file type."
 msgstr "Versuchte einen unbekannten Dateityp zu laden."
 
@@ -7881,7 +7910,7 @@ msgstr "Verwende gesamten Bildschirm"
 msgid "Use Hex"
 msgstr "Hex verwenden"
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:51
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:50
 msgid "Use PAL60 Mode (EuRGB60)"
 msgstr "PAL60-Modus (EuRGB60) verwenden"
 
@@ -7911,7 +7940,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:421
 msgid "Use generic zz_ names for functions."
-msgstr ""
+msgstr "Generische zz_-Namen für Funktionen verwenden."
 
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:105
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:903
@@ -7979,7 +8008,7 @@ msgstr "Vertex-Matrizen"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:824
 msgid "Vertex Rounding"
-msgstr ""
+msgstr "Vertex-Rundung"
 
 #: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:52
 #: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:134
@@ -8031,7 +8060,7 @@ msgid "Virtual"
 msgstr "Virtuell"
 
 #: Source/Core/Core/HotkeyManager.cpp:243
-#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:66
+#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:73
 msgid "Volume"
 msgstr "Lautstärke"
 
@@ -8079,11 +8108,11 @@ msgstr ""
 msgid "Warning"
 msgstr "Warnungen"
 
-#: Source/Core/Core/Boot/Boot.cpp:334
+#: Source/Core/Core/Boot/Boot.cpp:333
 msgid "Warning - starting DOL in wrong console mode!"
 msgstr "Warnung - Starte DOL im falschen Konsolenmodus!"
 
-#: Source/Core/Core/Boot/Boot.cpp:284
+#: Source/Core/Core/Boot/Boot.cpp:283
 msgid "Warning - starting ISO in wrong console mode!"
 msgstr "Warnung - Starte ISO im falschen Konsolenmodus!"
 
@@ -8219,7 +8248,7 @@ msgstr ""
 "\n"
 "Im Zweifel deaktiviert lassen."
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:141
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:135
 msgid "Whitelisted USB Passthrough Devices"
 msgstr "Freigegebene USB-Durchleitungsgeräte"
 
@@ -8262,7 +8291,7 @@ msgstr "Wiimote verbunden"
 msgid "Wii Remote Rumble"
 msgstr "Wiimote Rumble"
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:150
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:144
 msgid "Wii Remote Settings"
 msgstr "Wiimote-Einstellungen"
 
@@ -8408,7 +8437,7 @@ msgstr ""
 "Möchtest du die Emulation beenden um das Problem zu beheben?\n"
 "Wenn du \"Nein\" wählst, könnte die Audiowiedergabe verzerrt klingen."
 
-#: Source/Core/Core/ConfigManager.cpp:945
+#: Source/Core/Core/ConfigManager.cpp:949
 msgid ""
 "Your GCM/ISO file seems to be invalid (invalid country).\n"
 "Continue with PAL region?"
