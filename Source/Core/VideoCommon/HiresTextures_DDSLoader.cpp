@@ -8,6 +8,7 @@
 #include <cstdint>
 #include <cstring>
 #include "Common/Align.h"
+#include "Common/FileUtil.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace
@@ -153,19 +154,49 @@ static_assert(sizeof(DDS_HEADER_DXT10) == 20, "DDS DX10 Extended Header size mis
 
 }  // namespace
 
-bool HiresTexture::LoadDDSTexture(Level& level, const std::vector<u8>& buffer)
+struct DDSLoadInfo
 {
-  u32 magic;
-  std::memcpy(&magic, buffer.data(), sizeof(magic));
+  u32 block_size = 1;
+  u32 bytes_per_block = 4;
+  u32 width = 0;
+  u32 height = 0;
+  u32 mip_count = 0;
+  HostTextureFormat format = HostTextureFormat::RGBA8;
+  size_t first_mip_offset = 0;
+  size_t first_mip_size = 0;
+  u32 first_mip_row_length = 0;
+};
 
+static u32 GetBlockCount(u32 extent, u32 block_size)
+{
+  return std::max(Common::AlignUp(extent, block_size) / block_size, 1u);
+}
+
+static u32 CalculateMipCount(u32 width, u32 height)
+{
+  u32 mip_width = std::max(width / 2, 1u);
+  u32 mip_height = std::max(height / 2, 1u);
+  u32 mip_count = 1;
+  while (mip_width > 1 || mip_height > 1)
+  {
+    mip_width = std::max(mip_width / 2, 1u);
+    mip_height = std::max(mip_height / 2, 1u);
+    mip_count++;
+  }
+
+  return mip_count;
+}
+
+static bool ParseDDSHeader(File::IOFile& file, DDSLoadInfo* info)
+{
   // Exit as early as possible for non-DDS textures, since all extensions are currently
   // passed through this function.
-  if (magic != DDS_MAGIC)
+  u32 magic;
+  if (!file.ReadBytes(&magic, sizeof(magic)) || magic != DDS_MAGIC)
     return false;
 
   DDS_HEADER header;
-  std::memcpy(&header, &buffer[sizeof(magic)], sizeof(header));
-  if (header.dwSize < sizeof(header))
+  if (!file.ReadBytes(&header, sizeof(header)) || header.dwSize < sizeof(header))
     return false;
 
   // Required fields.
@@ -177,34 +208,51 @@ bool HiresTexture::LoadDDSTexture(Level& level, const std::vector<u8>& buffer)
     return false;
 
   // Presence of width/height fields is already tested by DDS_HEADER_FLAGS_TEXTURE.
-  level.width = header.dwWidth;
-  level.height = header.dwHeight;
+  info->width = header.dwWidth;
+  info->height = header.dwHeight;
+  if (info->width == 0 || info->height == 0)
+    return false;
+
+  // Check for mip levels.
+  if (header.dwFlags & DDS_HEADER_FLAGS_MIPMAP)
+  {
+    // Miplevels = 0 means full mip chain?
+    // Some files may specify a number too large here, which doesn't play well with the backends.
+    info->mip_count = header.dwMipMapCount;
+    if (info->mip_count != 0)
+      info->mip_count = std::min(info->mip_count, CalculateMipCount(info->width, info->height));
+    else
+      info->mip_count = CalculateMipCount(info->width, info->height);
+  }
+  else
+  {
+    info->mip_count = 1;
+  }
 
   // Currently, we only handle compressed textures here, and leave the rest to the SOIL loader.
   // In the future, this could be extended, but these isn't much benefit in doing so currently.
   // TODO: DX10 extension header handling.
-  u32 block_size = 1;
-  u32 bytes_per_block = 4;
+  // TODO: Support RGBA8 and friends.
   bool needs_s3tc = false;
   if (header.ddspf.dwFourCC == MAKEFOURCC('D', 'X', 'T', '1'))
   {
-    level.format = HostTextureFormat::DXT1;
-    block_size = 4;
-    bytes_per_block = 8;
+    info->format = HostTextureFormat::DXT1;
+    info->block_size = 4;
+    info->bytes_per_block = 8;
     needs_s3tc = true;
   }
   else if (header.ddspf.dwFourCC == MAKEFOURCC('D', 'X', 'T', '3'))
   {
-    level.format = HostTextureFormat::DXT3;
-    block_size = 4;
-    bytes_per_block = 16;
+    info->format = HostTextureFormat::DXT3;
+    info->block_size = 4;
+    info->bytes_per_block = 16;
     needs_s3tc = true;
   }
   else if (header.ddspf.dwFourCC == MAKEFOURCC('D', 'X', 'T', '5'))
   {
-    level.format = HostTextureFormat::DXT5;
-    block_size = 4;
-    bytes_per_block = 16;
+    info->format = HostTextureFormat::DXT5;
+    info->block_size = 4;
+    info->bytes_per_block = 16;
     needs_s3tc = true;
   }
   else
@@ -219,8 +267,8 @@ bool HiresTexture::LoadDDSTexture(Level& level, const std::vector<u8>& buffer)
     return false;
 
   // Mip levels smaller than the block size are padded to multiples of the block size.
-  u32 blocks_wide = std::max(level.width / block_size, 1u);
-  u32 blocks_high = std::max(level.height / block_size, 1u);
+  u32 blocks_wide = GetBlockCount(info->width, info->block_size);
+  u32 blocks_high = GetBlockCount(info->height, info->block_size);
 
   // Pitch can be specified in the header, otherwise we can derive it from the dimensions. For
   // compressed formats, both DDS_HEADER_FLAGS_LINEARSIZE and DDS_HEADER_FLAGS_PITCH should be
@@ -228,30 +276,110 @@ bool HiresTexture::LoadDDSTexture(Level& level, const std::vector<u8>& buffer)
   if (header.dwFlags & DDS_HEADER_FLAGS_PITCH && header.dwFlags & DDS_HEADER_FLAGS_LINEARSIZE)
   {
     // Convert pitch (in bytes) to texels/row length.
-    if (header.dwPitchOrLinearSize < bytes_per_block)
+    if (header.dwPitchOrLinearSize < info->bytes_per_block)
     {
       // Likely a corrupted or invalid file.
       return false;
     }
 
-    level.row_length = std::max(header.dwPitchOrLinearSize / bytes_per_block, 1u) * block_size;
-    level.data_size = static_cast<size_t>(level.row_length / block_size) * block_size * blocks_high;
+    info->first_mip_row_length =
+        std::max(header.dwPitchOrLinearSize / info->bytes_per_block, 1u) * info->block_size;
+    info->first_mip_size = static_cast<size_t>(info->first_mip_row_length / info->block_size) *
+                           info->block_size * blocks_high;
   }
   else
   {
     // Assume no padding between rows of blocks.
-    level.row_length = blocks_wide * block_size;
-    level.data_size = blocks_wide * static_cast<size_t>(bytes_per_block) * blocks_high;
+    info->first_mip_row_length = blocks_wide * info->block_size;
+    info->first_mip_size = blocks_wide * static_cast<size_t>(info->bytes_per_block) * blocks_high;
   }
 
   // Check for truncated or corrupted files.
-  size_t data_offset = sizeof(magic) + sizeof(DDS_HEADER);
-  if ((data_offset + level.data_size) > buffer.size())
+  info->first_mip_offset = sizeof(magic) + sizeof(DDS_HEADER);
+  if (info->first_mip_offset >= file.GetSize())
     return false;
 
+  return true;
+}
+
+static bool ReadMipLevel(HiresTexture::Level& level, File::IOFile& file, u32 width, u32 height,
+                         HostTextureFormat format, u32 row_length, size_t size)
+{
   // Copy to the final storage location. The deallocator here is simple, nothing extra is
   // needed, compared to the SOIL-based loader.
-  level.data = ImageDataPointer(new u8[level.data_size], [](u8* data) { delete[] data; });
-  std::memcpy(level.data.get(), &buffer[data_offset], level.data_size);
+  level.width = width;
+  level.height = height;
+  level.format = format;
+  level.row_length = row_length;
+  level.data_size = size;
+  level.data =
+      HiresTexture::ImageDataPointer(new u8[level.data_size], [](u8* data) { delete[] data; });
+  if (!file.ReadBytes(level.data.get(), level.data_size))
+  {
+    level.data.reset();
+    return false;
+  }
+
   return true;
+}
+
+bool HiresTexture::LoadDDSTexture(HiresTexture* tex, const std::string& filename)
+{
+  File::IOFile file;
+  file.Open(filename, "rb");
+  if (!file.IsOpen())
+    return false;
+
+  DDSLoadInfo info;
+  if (!ParseDDSHeader(file, &info))
+    return false;
+
+  // Read first mip level, as it may have a custom pitch.
+  Level first_level;
+  if (!file.Seek(info.first_mip_offset, SEEK_SET) ||
+      !ReadMipLevel(first_level, file, info.width, info.height, info.format,
+                    info.first_mip_row_length, info.first_mip_size))
+  {
+    return false;
+  }
+
+  tex->m_levels.push_back(std::move(first_level));
+
+  // Read in any remaining mip levels in the file.
+  // If the .dds file does not contain a full mip chain, we'll fall back to the old path.
+  u32 mip_width = std::max(info.width / 2, 1u);
+  u32 mip_height = std::max(info.height / 2, 1u);
+  for (u32 i = 1; i < info.mip_count; i++)
+  {
+    // Pitch can't be specified with each mip level, so we have to calculate it ourselves.
+    u32 blocks_wide = GetBlockCount(mip_width, info.block_size);
+    u32 blocks_high = GetBlockCount(mip_height, info.block_size);
+    u32 mip_row_length = blocks_wide * info.block_size;
+    size_t mip_size = blocks_wide * static_cast<size_t>(info.bytes_per_block) * blocks_high;
+    Level level;
+    if (!ReadMipLevel(level, file, mip_width, mip_height, info.format, mip_row_length, mip_size))
+      break;
+
+    tex->m_levels.push_back(std::move(level));
+    mip_width = std::max(mip_width / 2, 1u);
+    mip_height = std::max(mip_height / 2, 1u);
+  }
+
+  return true;
+}
+
+bool HiresTexture::LoadDDSTexture(Level& level, const std::string& filename)
+{
+  // Only loading a single mip level.
+  File::IOFile file;
+  file.Open(filename, "rb");
+  if (!file.IsOpen())
+    return false;
+
+  DDSLoadInfo info;
+  if (!ParseDDSHeader(file, &info))
+    return false;
+
+  return ReadMipLevel(level, file, info.width, info.height, info.format, info.first_mip_row_length,
+                      info.first_mip_size);
 }

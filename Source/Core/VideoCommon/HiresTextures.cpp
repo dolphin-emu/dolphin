@@ -395,71 +395,92 @@ std::shared_ptr<HiresTexture> HiresTexture::Search(const u8* texture, size_t tex
 std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filename, u32 width,
                                                  u32 height)
 {
-  std::unique_ptr<HiresTexture> ret;
-  for (int level = 0;; level++)
+  // We need to have a level 0 custom texture to even consider loading.
+  auto filename_iter = s_textureMap.find(base_filename);
+  if (filename_iter == s_textureMap.end())
+    return nullptr;
+
+  // Try to load level 0 (and any mipmaps) from a DDS file.
+  // If this fails, it's fine, we'll just load level0 again using SOIL.
+  // Can't use make_unique due to private constructor.
+  std::unique_ptr<HiresTexture> ret = std::unique_ptr<HiresTexture>(new HiresTexture());
+  const std::string& first_mip_filename = filename_iter->second;
+  LoadDDSTexture(ret.get(), first_mip_filename);
+
+  // Load remaining mip levels, or from the start if it's not a DDS texture.
+  for (u32 mip_level = static_cast<u32>(ret->m_levels.size());; mip_level++)
   {
     std::string filename = base_filename;
-    if (level)
-    {
-      filename += StringFromFormat("_mip%u", level);
-    }
+    if (mip_level != 0)
+      filename += StringFromFormat("_mip%u", mip_level);
 
-    auto filename_iter = s_textureMap.find(filename);
-    if (filename_iter != s_textureMap.end())
-    {
-      Level l;
+    filename_iter = s_textureMap.find(filename);
+    if (filename_iter == s_textureMap.end())
+      break;
 
+    // Try loading DDS textures first, that way we maintain compression of DXT formats.
+    // TODO: Reduce the number of open() calls here. We could use one fd.
+    Level level;
+    if (!LoadDDSTexture(level, filename_iter->second))
+    {
       File::IOFile file;
       file.Open(filename_iter->second, "rb");
       std::vector<u8> buffer(file.GetSize());
       file.ReadBytes(buffer.data(), file.GetSize());
-
-      // Try loading DDS textures first, that way we maintain compression of DXT formats.
-      if (!LoadDDSTexture(l, buffer) && !LoadTexture(l, buffer))
+      if (!LoadTexture(level, buffer))
       {
         ERROR_LOG(VIDEO, "Custom texture %s failed to load", filename.c_str());
         break;
       }
-
-      if (!level)
-      {
-        if (l.width * height != l.height * width)
-          ERROR_LOG(VIDEO, "Invalid custom texture size %dx%d for texture %s. The aspect differs "
-                           "from the native size %dx%d.",
-                    l.width, l.height, filename.c_str(), width, height);
-        if (width && height && (l.width % width || l.height % height))
-          WARN_LOG(VIDEO, "Invalid custom texture size %dx%d for texture %s. Please use an integer "
-                          "upscaling factor based on the native size %dx%d.",
-                   l.width, l.height, filename.c_str(), width, height);
-        width = l.width;
-        height = l.height;
-      }
-      else if (width != l.width || height != l.height)
-      {
-        ERROR_LOG(
-            VIDEO,
-            "Invalid custom texture size %dx%d for texture %s. This mipmap layer _must_ be %dx%d.",
-            l.width, l.height, filename.c_str(), width, height);
-        l.data.reset();
-        break;
-      }
-
-      if (!ret)
-        ret = std::unique_ptr<HiresTexture>(new HiresTexture);
-      ret->m_levels.push_back(std::move(l));
-
-      // no more mipmaps available
-      if (width == 1 && height == 1)
-        break;
-
-      // calculate the size of the next mipmap
-      width = std::max(1u, width >> 1);
-      height = std::max(1u, height >> 1);
     }
-    else
+
+    ret->m_levels.push_back(std::move(level));
+  }
+
+  // If we failed to load any mip levels, we can't use this texture at all.
+  if (ret->m_levels.empty())
+    return nullptr;
+
+  // Verify that the aspect ratio of the texture hasn't changed, as this could have side-effects.
+  const Level& first_mip = ret->m_levels[0];
+  if (first_mip.width * height != first_mip.height * width)
+  {
+    ERROR_LOG(VIDEO, "Invalid custom texture size %ux%u for texture %s. The aspect differs "
+                     "from the native size %ux%u.",
+              first_mip.width, first_mip.height, first_mip_filename.c_str(), width, height);
+  }
+
+  // Same deal if the custom texture isn't a multiple of the native size.
+  if (width != 0 && height != 0 && (first_mip.width % width || first_mip.height % height))
+  {
+    WARN_LOG(VIDEO, "Invalid custom texture size %ux%u for texture %s. Please use an integer "
+                    "upscaling factor based on the native size %ux%u.",
+             first_mip.width, first_mip.height, first_mip_filename.c_str(), width, height);
+  }
+
+  // Verify that each mip level is the correct size (divide by 2 each time).
+  u32 current_mip_width = std::max(first_mip.width / 2, 1u);
+  u32 current_mip_height = std::max(first_mip.height / 2, 1u);
+  for (u32 mip_level = 1; mip_level < static_cast<u32>(ret->m_levels.size()); mip_level++)
+  {
+    const Level& level = ret->m_levels[mip_level];
+    if (current_mip_width == level.width && current_mip_height == level.height)
     {
-      break;
+      current_mip_width = std::max(current_mip_width / 2, 1u);
+      current_mip_height = std::max(current_mip_height / 2, 1u);
+      continue;
     }
+
+    ERROR_LOG(VIDEO,
+              "Invalid custom texture size %dx%d for texture %s. Mipmap level %u _must_ be %dx%d.",
+              level.width, level.height, first_mip_filename.c_str(), mip_level, current_mip_width,
+              current_mip_height);
+
+    // Drop this mip level and any others after it.
+    while (ret->m_levels.size() > mip_level)
+      ret->m_levels.pop_back();
+
+    break;
   }
 
   // All levels have to have the same format.
@@ -467,8 +488,9 @@ std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filenam
                          [&ret](const Level& l) { return l.format != ret->m_levels[0].format; }))
   {
     ERROR_LOG(VIDEO, "Custom texture %s has inconsistent formats across mip levels.",
-              base_filename.c_str());
-    ret.reset();
+              first_mip_filename.c_str());
+
+    return nullptr;
   }
 
   return ret;
