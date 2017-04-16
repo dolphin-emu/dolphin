@@ -11,6 +11,7 @@
 #include <memory>
 #include <vector>
 
+#include "Common/Assert.h"
 #include "Common/GL/GLInterfaceBase.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
@@ -87,6 +88,53 @@ bool SaveTexture(const std::string& filename, u32 textarget, u32 tex, int virtua
   return TextureToPng(data.data(), width * 4, filename, width, height, true);
 }
 
+static bool IsCompressedTextureFormat(HostTextureFormat format)
+{
+  return format >= HostTextureFormat::DXT1 && format <= HostTextureFormat::DXT5;
+}
+
+static GLenum GetGLInternalFormatForTextureFormat(HostTextureFormat format, bool storage)
+{
+  switch (format)
+  {
+  case HostTextureFormat::DXT1:
+    return GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
+  case HostTextureFormat::DXT3:
+    return GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
+  case HostTextureFormat::DXT5:
+    return GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
+  case HostTextureFormat::RGBA8:
+  default:
+    return storage ? GL_RGBA8 : GL_RGBA;
+  }
+}
+
+static GLenum GetGLFormatForTextureFormat(HostTextureFormat format)
+{
+  switch (format)
+  {
+  case HostTextureFormat::RGBA8:
+    return GL_RGBA;
+
+  // Compressed texture formats don't use this parameter.
+  default:
+    return GL_UNSIGNED_BYTE;
+  }
+}
+
+static GLenum GetGLTypeForTextureFormat(HostTextureFormat format)
+{
+  switch (format)
+  {
+  case HostTextureFormat::RGBA8:
+    return GL_UNSIGNED_BYTE;
+
+  // Compressed texture formats don't use this parameter.
+  default:
+    return GL_UNSIGNED_BYTE;
+  }
+}
+
 TextureCache::TCacheEntry::~TCacheEntry()
 {
   if (texture)
@@ -129,6 +177,11 @@ void TextureCache::TCacheEntry::Bind(unsigned int stage)
 
 bool TextureCache::TCacheEntry::Save(const std::string& filename, unsigned int level)
 {
+  // We can't dump compressed textures currently (it would mean drawing them to a RGBA8
+  // framebuffer, and saving that). TextureCache does not call Save for custom textures
+  // anyway, so this is fine for now.
+  _assert_(config.format == HostTextureFormat::RGBA8);
+
   return SaveTexture(filename, GL_TEXTURE_2D_ARRAY, texture, config.width, config.height, level);
 }
 
@@ -143,12 +196,15 @@ TextureCache::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntryConf
 
   if (g_ogl_config.bSupportsTextureStorage)
   {
-    glTexStorage3D(GL_TEXTURE_2D_ARRAY, config.levels, GL_RGBA8, config.width, config.height,
-                   config.layers);
+    GLenum gl_internal_format = GetGLInternalFormatForTextureFormat(config.format, true);
+    glTexStorage3D(GL_TEXTURE_2D_ARRAY, config.levels, gl_internal_format, config.width,
+                   config.height, config.layers);
   }
 
   if (config.rendertarget)
   {
+    // We can't render to compressed formats.
+    _assert_(!IsCompressedTextureFormat(config.format));
     if (!g_ogl_config.bSupportsTextureStorage)
     {
       for (u32 level = 0; level < config.levels; level++)
@@ -219,15 +275,34 @@ void TextureCache::TCacheEntry::Load(u32 level, u32 width, u32 height, u32 row_l
   if (row_length != width)
     glPixelStorei(GL_UNPACK_ROW_LENGTH, row_length);
 
-  if (g_ogl_config.bSupportsTextureStorage)
+  GLenum gl_internal_format = GetGLInternalFormatForTextureFormat(config.format, false);
+  if (IsCompressedTextureFormat(config.format))
   {
-    glTexSubImage3D(GL_TEXTURE_2D_ARRAY, level, 0, 0, 0, width, height, 1, GL_RGBA,
-                    GL_UNSIGNED_BYTE, buffer);
+    if (g_ogl_config.bSupportsTextureStorage)
+    {
+      glCompressedTexSubImage3D(GL_TEXTURE_2D_ARRAY, level, 0, 0, 0, width, height, 1,
+                                gl_internal_format, static_cast<GLsizei>(buffer_size), buffer);
+    }
+    else
+    {
+      glCompressedTexImage3D(GL_TEXTURE_2D_ARRAY, level, gl_internal_format, width, height, 1, 0,
+                             static_cast<GLsizei>(buffer_size), buffer);
+    }
   }
   else
   {
-    glTexImage3D(GL_TEXTURE_2D_ARRAY, level, GL_RGBA, width, height, 1, 0, GL_RGBA,
-                 GL_UNSIGNED_BYTE, buffer);
+    GLenum gl_format = GetGLFormatForTextureFormat(config.format);
+    GLenum gl_type = GetGLTypeForTextureFormat(config.format);
+    if (g_ogl_config.bSupportsTextureStorage)
+    {
+      glTexSubImage3D(GL_TEXTURE_2D_ARRAY, level, 0, 0, 0, width, height, 1, gl_format, gl_type,
+                      buffer);
+    }
+    else
+    {
+      glTexImage3D(GL_TEXTURE_2D_ARRAY, level, gl_internal_format, width, height, 1, 0, gl_format,
+                   gl_type, buffer);
+    }
   }
 
   if (row_length != width)
