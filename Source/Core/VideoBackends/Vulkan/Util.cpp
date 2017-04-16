@@ -53,6 +53,20 @@ bool IsDepthFormat(VkFormat format)
   }
 }
 
+bool IsCompressedFormat(VkFormat format)
+{
+  switch (format)
+  {
+  case VK_FORMAT_BC1_RGBA_UNORM_BLOCK:
+  case VK_FORMAT_BC2_UNORM_BLOCK:
+  case VK_FORMAT_BC3_UNORM_BLOCK:
+    return true;
+
+  default:
+    return false;
+  }
+}
+
 VkFormat GetLinearFormat(VkFormat format)
 {
   switch (format)
@@ -74,6 +88,25 @@ VkFormat GetLinearFormat(VkFormat format)
   }
 }
 
+VkFormat GetVkFormatForHostTextureFormat(HostTextureFormat format)
+{
+  switch (format)
+  {
+  case HostTextureFormat::DXT1:
+    return VK_FORMAT_BC1_RGBA_UNORM_BLOCK;
+
+  case HostTextureFormat::DXT3:
+    return VK_FORMAT_BC2_UNORM_BLOCK;
+
+  case HostTextureFormat::DXT5:
+    return VK_FORMAT_BC3_UNORM_BLOCK;
+
+  case HostTextureFormat::RGBA8:
+  default:
+    return VK_FORMAT_R8G8B8A8_UNORM;
+  }
+}
+
 u32 GetTexelSize(VkFormat format)
 {
   // Only contains pixel formats we use.
@@ -91,9 +124,56 @@ u32 GetTexelSize(VkFormat format)
   case VK_FORMAT_B8G8R8A8_UNORM:
     return 4;
 
+  case VK_FORMAT_BC1_RGBA_UNORM_BLOCK:
+    return 8;
+
+  case VK_FORMAT_BC2_UNORM_BLOCK:
+  case VK_FORMAT_BC3_UNORM_BLOCK:
+    return 16;
+
   default:
     PanicAlert("Unhandled pixel format");
     return 1;
+  }
+}
+
+u32 GetBlockSize(VkFormat format)
+{
+  switch (format)
+  {
+  case VK_FORMAT_BC1_RGBA_UNORM_BLOCK:
+  case VK_FORMAT_BC2_UNORM_BLOCK:
+  case VK_FORMAT_BC3_UNORM_BLOCK:
+    return 4;
+
+  default:
+    return 1;
+  }
+}
+
+
+size_t GetPitchForTexture(VkFormat format, u32 row_length)
+{
+  switch (format)
+  {
+  case VK_FORMAT_BC1_RGBA_UNORM_BLOCK:
+    return static_cast<size_t>(std::max(1u, row_length / 4)) * 8;
+
+  case VK_FORMAT_BC2_UNORM_BLOCK:
+    return static_cast<size_t>(std::max(1u, row_length / 4)) * 16;
+
+  case VK_FORMAT_BC3_UNORM_BLOCK:
+    return static_cast<size_t>(std::max(1u, row_length / 4)) * 16;
+
+  case VK_FORMAT_R8G8B8A8_UNORM:
+  case VK_FORMAT_B8G8R8A8_UNORM:
+  case VK_FORMAT_R32_SFLOAT:
+  case VK_FORMAT_D32_SFLOAT:
+    return static_cast<size_t>(row_length) * 4;
+
+  default:
+    PanicAlert("Unhandled pixel format");
+    return row_length;
   }
 }
 

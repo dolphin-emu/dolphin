@@ -284,6 +284,9 @@ void VulkanContext::PopulateBackendInfoFeatures(VideoConfig* config, VkPhysicalD
   config->backend_info.bSupportsDepthClamp =
       (features.depthClamp == VK_TRUE && features.shaderClipDistance == VK_TRUE);
 
+  // textureCompressionBC implies BC1 through BC7, which is a superset of DXT1/3/5, which we need.
+  config->backend_info.bSupportsST3CTextures = features.textureCompressionBC == VK_TRUE;
+
   // Our usage of primitive restart appears to be broken on AMD's binary drivers.
   // Seems to be fine on GCN Gen 1-2, unconfirmed on GCN Gen 3, causes driver resets on GCN Gen 4.
   if (DriverDetails::HasBug(DriverDetails::BUG_PRIMITIVE_RESTART))
@@ -460,6 +463,7 @@ bool VulkanContext::SelectDeviceFeatures()
   m_device_features.occlusionQueryPrecise = available_features.occlusionQueryPrecise;
   m_device_features.shaderClipDistance = available_features.shaderClipDistance;
   m_device_features.depthClamp = available_features.depthClamp;
+  m_device_features.textureCompressionBC = available_features.textureCompressionBC;
   return true;
 }
 
