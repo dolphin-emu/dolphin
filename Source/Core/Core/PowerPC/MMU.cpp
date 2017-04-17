@@ -551,20 +551,17 @@ void Write_F64(const double var, const u32 address)
 
 u8 HostRead_U8(const u32 address)
 {
-  u8 var = ReadFromHardware<FLAG_NO_EXCEPTION, u8>(address);
-  return var;
+  return ReadFromHardware<FLAG_NO_EXCEPTION, u8>(address);
 }
 
 u16 HostRead_U16(const u32 address)
 {
-  u16 var = ReadFromHardware<FLAG_NO_EXCEPTION, u16>(address);
-  return var;
+  return ReadFromHardware<FLAG_NO_EXCEPTION, u16>(address);
 }
 
 u32 HostRead_U32(const u32 address)
 {
-  u32 var = ReadFromHardware<FLAG_NO_EXCEPTION, u32>(address);
-  return var;
+  return ReadFromHardware<FLAG_NO_EXCEPTION, u32>(address);
 }
 
 u64 HostRead_U64(const u32 address)
