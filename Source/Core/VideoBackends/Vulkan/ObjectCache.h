@@ -18,6 +18,7 @@
 
 #include "VideoCommon/GeometryShaderGen.h"
 #include "VideoCommon/PixelShaderGen.h"
+#include "VideoCommon/RenderState.h"
 #include "VideoCommon/VertexShaderGen.h"
 
 namespace Vulkan
@@ -36,7 +37,7 @@ struct PipelineInfo
   VkShaderModule gs;
   VkShaderModule ps;
   VkRenderPass render_pass;
-  BlendState blend_state;
+  BlendingState blend_state;
   RasterizationState rasterization_state;
   DepthStencilState depth_stencil_state;
   VkPrimitiveTopology primitive_topology;

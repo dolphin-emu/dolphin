@@ -35,6 +35,7 @@
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
+#include "VideoCommon/RenderState.h"
 #include "VideoCommon/SamplerCommon.h"
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VideoBackendBase.h"
@@ -432,13 +433,9 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool color_enable, bool alpha
   StateTracker::GetInstance()->SetPendingRebind();
 
   // Mask away the appropriate colors and use a shader
-  BlendState blend_state = Util::GetNoBlendingBlendState();
-  u32 write_mask = 0;
-  if (color_enable)
-    write_mask |= VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT;
-  if (alpha_enable)
-    write_mask |= VK_COLOR_COMPONENT_A_BIT;
-  blend_state.write_mask = write_mask;
+  BlendingState blend_state = Util::GetNoBlendingBlendState();
+  blend_state.colorupdate = color_enable;
+  blend_state.alphaupdate = alpha_enable;
 
   DepthStencilState depth_state = Util::GetNoDepthTestingDepthStencilState();
   depth_state.test_enable = z_enable ? VK_TRUE : VK_FALSE;
@@ -1300,232 +1297,12 @@ void Renderer::SetDepthMode()
   StateTracker::GetInstance()->SetDepthStencilState(new_ds_state);
 }
 
-void Renderer::SetColorMask()
-{
-  u32 color_mask = 0;
-
-  if (bpmem.alpha_test.TestResult() != AlphaTest::FAIL)
-  {
-    if (bpmem.blendmode.alphaupdate && bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24)
-      color_mask |= VK_COLOR_COMPONENT_A_BIT;
-    if (bpmem.blendmode.colorupdate)
-      color_mask |= VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT;
-  }
-
-  BlendState new_blend_state = {};
-  new_blend_state.bits = StateTracker::GetInstance()->GetBlendState().bits;
-  new_blend_state.write_mask = color_mask;
-
-  StateTracker::GetInstance()->SetBlendState(new_blend_state);
-}
-
 void Renderer::SetBlendMode(bool force_update)
 {
-  BlendState new_blend_state = {};
-  new_blend_state.bits = StateTracker::GetInstance()->GetBlendState().bits;
+  BlendingState state;
+  state.Generate(bpmem);
 
-  // Fast path for blending disabled
-  if (!bpmem.blendmode.blendenable)
-  {
-    new_blend_state.blend_enable = VK_FALSE;
-    new_blend_state.blend_op = VK_BLEND_OP_ADD;
-    new_blend_state.src_blend = VK_BLEND_FACTOR_ONE;
-    new_blend_state.dst_blend = VK_BLEND_FACTOR_ZERO;
-    new_blend_state.alpha_blend_op = VK_BLEND_OP_ADD;
-    new_blend_state.src_alpha_blend = VK_BLEND_FACTOR_ONE;
-    new_blend_state.dst_alpha_blend = VK_BLEND_FACTOR_ZERO;
-    StateTracker::GetInstance()->SetBlendState(new_blend_state);
-    return;
-  }
-  // Fast path for subtract blending
-  else if (bpmem.blendmode.subtract)
-  {
-    new_blend_state.blend_enable = VK_TRUE;
-    new_blend_state.blend_op = VK_BLEND_OP_REVERSE_SUBTRACT;
-    new_blend_state.src_blend = VK_BLEND_FACTOR_ONE;
-    new_blend_state.dst_blend = VK_BLEND_FACTOR_ONE;
-    new_blend_state.alpha_blend_op = VK_BLEND_OP_REVERSE_SUBTRACT;
-    new_blend_state.src_alpha_blend = VK_BLEND_FACTOR_ONE;
-    new_blend_state.dst_alpha_blend = VK_BLEND_FACTOR_ONE;
-    StateTracker::GetInstance()->SetBlendState(new_blend_state);
-    return;
-  }
-
-  // Our render target always uses an alpha channel, so we need to override the blend functions to
-  // assume a destination alpha of 1 if the render target isn't supposed to have an alpha channel.
-  bool target_has_alpha = bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24;
-  bool use_dst_alpha = bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate && target_has_alpha;
-  bool use_dual_src = g_vulkan_context->SupportsDualSourceBlend();
-
-  new_blend_state.blend_enable = VK_TRUE;
-  new_blend_state.blend_op = VK_BLEND_OP_ADD;
-
-  switch (bpmem.blendmode.srcfactor)
-  {
-  case BlendMode::ZERO:
-    new_blend_state.src_blend = VK_BLEND_FACTOR_ZERO;
-    break;
-  case BlendMode::ONE:
-    new_blend_state.src_blend = VK_BLEND_FACTOR_ONE;
-    break;
-  case BlendMode::DSTCLR:
-    new_blend_state.src_blend = VK_BLEND_FACTOR_DST_COLOR;
-    break;
-  case BlendMode::INVDSTCLR:
-    new_blend_state.src_blend = VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR;
-    break;
-  case BlendMode::SRCALPHA:
-    new_blend_state.src_blend =
-        use_dual_src ? VK_BLEND_FACTOR_SRC1_ALPHA : VK_BLEND_FACTOR_SRC_ALPHA;
-    break;
-  case BlendMode::INVSRCALPHA:
-    new_blend_state.src_blend =
-        use_dual_src ? VK_BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA : VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-    break;
-  case BlendMode::DSTALPHA:
-    new_blend_state.src_blend = target_has_alpha ? VK_BLEND_FACTOR_DST_ALPHA : VK_BLEND_FACTOR_ONE;
-    break;
-  case BlendMode::INVDSTALPHA:
-    new_blend_state.src_blend =
-        target_has_alpha ? VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA : VK_BLEND_FACTOR_ZERO;
-    break;
-  default:
-    new_blend_state.src_blend = VK_BLEND_FACTOR_ONE;
-    break;
-  }
-
-  switch (bpmem.blendmode.dstfactor)
-  {
-  case BlendMode::ZERO:
-    new_blend_state.dst_blend = VK_BLEND_FACTOR_ZERO;
-    break;
-  case BlendMode::ONE:
-    new_blend_state.dst_blend = VK_BLEND_FACTOR_ONE;
-    break;
-  case BlendMode::SRCCLR:
-    new_blend_state.dst_blend = VK_BLEND_FACTOR_SRC_COLOR;
-    break;
-  case BlendMode::INVSRCCLR:
-    new_blend_state.dst_blend = VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR;
-    break;
-  case BlendMode::SRCALPHA:
-    new_blend_state.dst_blend =
-        use_dual_src ? VK_BLEND_FACTOR_SRC1_ALPHA : VK_BLEND_FACTOR_SRC_ALPHA;
-    break;
-  case BlendMode::INVSRCALPHA:
-    new_blend_state.dst_blend =
-        use_dual_src ? VK_BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA : VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-    break;
-  case BlendMode::DSTALPHA:
-    new_blend_state.dst_blend = target_has_alpha ? VK_BLEND_FACTOR_DST_ALPHA : VK_BLEND_FACTOR_ONE;
-    break;
-  case BlendMode::INVDSTALPHA:
-    new_blend_state.dst_blend =
-        target_has_alpha ? VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA : VK_BLEND_FACTOR_ZERO;
-    break;
-  default:
-    new_blend_state.dst_blend = VK_BLEND_FACTOR_ONE;
-    break;
-  }
-
-  if (use_dst_alpha)
-  {
-    // Destination alpha sets 1*SRC
-    new_blend_state.alpha_blend_op = VK_BLEND_OP_ADD;
-    new_blend_state.src_alpha_blend = VK_BLEND_FACTOR_ONE;
-    new_blend_state.dst_alpha_blend = VK_BLEND_FACTOR_ZERO;
-  }
-  else
-  {
-    new_blend_state.alpha_blend_op = VK_BLEND_OP_ADD;
-    new_blend_state.src_alpha_blend = Util::GetAlphaBlendFactor(new_blend_state.src_blend);
-    new_blend_state.dst_alpha_blend = Util::GetAlphaBlendFactor(new_blend_state.dst_blend);
-  }
-
-  StateTracker::GetInstance()->SetBlendState(new_blend_state);
-}
-
-void Renderer::SetLogicOpMode()
-{
-  BlendState new_blend_state = {};
-  new_blend_state.bits = StateTracker::GetInstance()->GetBlendState().bits;
-
-  // Does our device support logic ops?
-  bool logic_op_enable = bpmem.blendmode.logicopenable && !bpmem.blendmode.blendenable;
-  if (g_vulkan_context->SupportsLogicOps())
-  {
-    if (logic_op_enable)
-    {
-      static const std::array<VkLogicOp, 16> logic_ops = {
-          {VK_LOGIC_OP_CLEAR, VK_LOGIC_OP_AND, VK_LOGIC_OP_AND_REVERSE, VK_LOGIC_OP_COPY,
-           VK_LOGIC_OP_AND_INVERTED, VK_LOGIC_OP_NO_OP, VK_LOGIC_OP_XOR, VK_LOGIC_OP_OR,
-           VK_LOGIC_OP_NOR, VK_LOGIC_OP_EQUIVALENT, VK_LOGIC_OP_INVERT, VK_LOGIC_OP_OR_REVERSE,
-           VK_LOGIC_OP_COPY_INVERTED, VK_LOGIC_OP_OR_INVERTED, VK_LOGIC_OP_NAND, VK_LOGIC_OP_SET}};
-
-      new_blend_state.logic_op_enable = VK_TRUE;
-      new_blend_state.logic_op = logic_ops[bpmem.blendmode.logicmode];
-    }
-    else
-    {
-      new_blend_state.logic_op_enable = VK_FALSE;
-      new_blend_state.logic_op = VK_LOGIC_OP_CLEAR;
-    }
-
-    StateTracker::GetInstance()->SetBlendState(new_blend_state);
-  }
-  else
-  {
-    // No logic op support, approximate with blending instead.
-    // This is by no means correct, but necessary for some devices.
-    if (logic_op_enable)
-    {
-      struct LogicOpBlend
-      {
-        VkBlendFactor src_factor;
-        VkBlendOp op;
-        VkBlendFactor dst_factor;
-      };
-      static const std::array<LogicOpBlend, 16> logic_ops = {
-          {{VK_BLEND_FACTOR_ZERO, VK_BLEND_OP_ADD, VK_BLEND_FACTOR_ZERO},
-           {VK_BLEND_FACTOR_DST_COLOR, VK_BLEND_OP_ADD, VK_BLEND_FACTOR_ZERO},
-           {VK_BLEND_FACTOR_ONE, VK_BLEND_OP_SUBTRACT, VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR},
-           {VK_BLEND_FACTOR_ONE, VK_BLEND_OP_ADD, VK_BLEND_FACTOR_ZERO},
-           {VK_BLEND_FACTOR_DST_COLOR, VK_BLEND_OP_REVERSE_SUBTRACT, VK_BLEND_FACTOR_ONE},
-           {VK_BLEND_FACTOR_ZERO, VK_BLEND_OP_ADD, VK_BLEND_FACTOR_ONE},
-           {VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR, VK_BLEND_OP_MAX,
-            VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR},
-           {VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR, VK_BLEND_OP_ADD, VK_BLEND_FACTOR_ONE},
-           {VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR, VK_BLEND_OP_MAX,
-            VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR},
-           {VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR, VK_BLEND_OP_MAX, VK_BLEND_FACTOR_SRC_COLOR},
-           {VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR, VK_BLEND_OP_ADD,
-            VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR},
-           {VK_BLEND_FACTOR_ONE, VK_BLEND_OP_ADD, VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR},
-           {VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR, VK_BLEND_OP_ADD,
-            VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR},
-           {VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR, VK_BLEND_OP_ADD, VK_BLEND_FACTOR_ONE},
-           {VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR, VK_BLEND_OP_ADD,
-            VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR},
-           {VK_BLEND_FACTOR_ONE, VK_BLEND_OP_ADD, VK_BLEND_FACTOR_ONE}}};
-
-      new_blend_state.blend_enable = VK_TRUE;
-      new_blend_state.blend_op = logic_ops[bpmem.blendmode.logicmode].op;
-      new_blend_state.src_blend = logic_ops[bpmem.blendmode.logicmode].src_factor;
-      new_blend_state.dst_blend = logic_ops[bpmem.blendmode.logicmode].dst_factor;
-      new_blend_state.alpha_blend_op = new_blend_state.blend_op;
-      new_blend_state.src_alpha_blend = Util::GetAlphaBlendFactor(new_blend_state.src_blend);
-      new_blend_state.dst_alpha_blend = Util::GetAlphaBlendFactor(new_blend_state.dst_blend);
-
-      StateTracker::GetInstance()->SetBlendState(new_blend_state);
-    }
-    else
-    {
-      // This is unfortunate. Since we clobber the blend state when enabling logic ops,
-      // we have to call SetBlendMode again to restore the current blend state.
-      SetBlendMode(true);
-      return;
-    }
-  }
+  StateTracker::GetInstance()->SetBlendState(state);
 }
 
 void Renderer::SetSamplerState(int stage, int texindex, bool custom_tex)

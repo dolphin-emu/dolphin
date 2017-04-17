@@ -145,34 +145,6 @@ union DepthStencilState
   u32 bits;
 };
 
-// Blend state info
-union BlendState
-{
-  struct
-  {
-    union
-    {
-      BitField<0, 1, VkBool32> blend_enable;
-      BitField<1, 3, VkBlendOp> blend_op;
-      BitField<4, 5, VkBlendFactor> src_blend;
-      BitField<9, 5, VkBlendFactor> dst_blend;
-      BitField<14, 3, VkBlendOp> alpha_blend_op;
-      BitField<17, 5, VkBlendFactor> src_alpha_blend;
-      BitField<22, 5, VkBlendFactor> dst_alpha_blend;
-      BitField<27, 4, VkColorComponentFlags> write_mask;
-      u32 low_bits;
-    };
-    union
-    {
-      BitField<0, 1, VkBool32> logic_op_enable;
-      BitField<1, 4, VkLogicOp> logic_op;
-      u32 high_bits;
-    };
-  };
-
-  u64 bits;
-};
-
 // Sampler info
 union SamplerState
 {

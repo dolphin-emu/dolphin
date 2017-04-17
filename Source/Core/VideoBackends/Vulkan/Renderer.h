@@ -56,12 +56,10 @@ public:
   void ResetAPIState() override;
   void RestoreAPIState() override;
 
-  void SetColorMask() override;
   void SetBlendMode(bool force_update) override;
   void SetScissorRect(const EFBRectangle& rc) override;
   void SetGenerationMode() override;
   void SetDepthMode() override;
-  void SetLogicOpMode() override;
   void SetDitherMode() override;
   void SetSamplerState(int stage, int texindex, bool custom_tex) override;
   void SetInterlacingMode() override;
