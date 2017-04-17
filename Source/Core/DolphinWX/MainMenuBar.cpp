@@ -276,6 +276,8 @@ wxMenu* MainMenuBar::CreateViewMenu() const
   columns_menu->Check(IDM_SHOW_SYSTEM, config_instance.m_showSystemColumn);
   columns_menu->AppendCheckItem(IDM_SHOW_BANNER, _("Banner"));
   columns_menu->Check(IDM_SHOW_BANNER, config_instance.m_showBannerColumn);
+  columns_menu->AppendCheckItem(IDM_SHOW_TITLE, _("Title"));
+  columns_menu->Check(IDM_SHOW_TITLE, config_instance.m_showTitleColumn);
   columns_menu->AppendCheckItem(IDM_SHOW_MAKER, _("Maker"));
   columns_menu->Check(IDM_SHOW_MAKER, config_instance.m_showMakerColumn);
   columns_menu->AppendCheckItem(IDM_SHOW_FILENAME, _("File Name"));

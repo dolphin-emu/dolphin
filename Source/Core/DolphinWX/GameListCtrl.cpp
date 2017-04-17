@@ -448,7 +448,8 @@ void CGameListCtrl::ReloadList()
                                         0);
     SetColumnWidth(COLUMN_BANNER,
                    SConfig::GetInstance().m_showBannerColumn ? FromDIP(96 + platform_padding) : 0);
-    SetColumnWidth(COLUMN_TITLE, FromDIP(175 + platform_padding));
+    SetColumnWidth(COLUMN_TITLE,
+                   SConfig::GetInstance().m_showTitleColumn ? FromDIP(175 + platform_padding) : 0);
     SetColumnWidth(COLUMN_MAKER,
                    SConfig::GetInstance().m_showMakerColumn ? FromDIP(150 + platform_padding) : 0);
     SetColumnWidth(COLUMN_FILENAME, SConfig::GetInstance().m_showFileNameColumn ?
@@ -1433,26 +1434,45 @@ void CGameListCtrl::AutomaticColumnWidth()
         rc.GetWidth() - (GetColumnWidth(COLUMN_PLATFORM) + GetColumnWidth(COLUMN_BANNER) +
                          GetColumnWidth(COLUMN_ID) + GetColumnWidth(COLUMN_COUNTRY) +
                          GetColumnWidth(COLUMN_SIZE) + GetColumnWidth(COLUMN_EMULATION_STATE));
-
-    if (SConfig::GetInstance().m_showMakerColumn && SConfig::GetInstance().m_showFileNameColumn)
+    if (SConfig::GetInstance().m_showTitleColumn && SConfig::GetInstance().m_showMakerColumn &&
+        SConfig::GetInstance().m_showFileNameColumn)
     {
       SetColumnWidth(COLUMN_TITLE, resizable / 3);
       SetColumnWidth(COLUMN_MAKER, resizable / 3);
       SetColumnWidth(COLUMN_FILENAME, resizable / 3);
     }
-    else if (SConfig::GetInstance().m_showMakerColumn)
+    else if (SConfig::GetInstance().m_showMakerColumn &&
+             SConfig::GetInstance().m_showFileNameColumn)
     {
-      SetColumnWidth(COLUMN_TITLE, resizable / 2);
       SetColumnWidth(COLUMN_MAKER, resizable / 2);
+      SetColumnWidth(COLUMN_FILENAME, resizable / 2);
     }
-    else if (SConfig::GetInstance().m_showFileNameColumn)
+    else if (SConfig::GetInstance().m_showMakerColumn && SConfig::GetInstance().m_showTitleColumn)
+    {
+      SetColumnWidth(COLUMN_MAKER, resizable / 2);
+      SetColumnWidth(COLUMN_TITLE, resizable / 2);
+    }
+    else if (SConfig::GetInstance().m_showFileNameColumn &&
+             SConfig::GetInstance().m_showTitleColumn)
     {
       SetColumnWidth(COLUMN_TITLE, resizable / 2);
       SetColumnWidth(COLUMN_FILENAME, resizable / 2);
     }
-    else
+    else if (SConfig::GetInstance().m_showMakerColumn)
+    {
+      SetColumnWidth(COLUMN_MAKER, resizable);
+    }
+    else if (SConfig::GetInstance().m_showFileNameColumn)
+    {
+      SetColumnWidth(COLUMN_FILENAME, resizable);
+    }
+    else if (SConfig::GetInstance().m_showTitleColumn)
     {
       SetColumnWidth(COLUMN_TITLE, resizable);
+    }
+    else
+    {
+      SetColumnWidth(COLUMN_DUMMY, resizable);
     }
   }
   Thaw();

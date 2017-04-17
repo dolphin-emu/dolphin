@@ -293,6 +293,7 @@ struct SConfig : NonCopyable
   // Game list column toggles
   bool m_showSystemColumn;
   bool m_showBannerColumn;
+  bool m_showTitleColumn;
   bool m_showMakerColumn;
   bool m_showFileNameColumn;
   bool m_showIDColumn;
