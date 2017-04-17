@@ -14,7 +14,7 @@
         <android.support.v7.widget.Toolbar
             android:id="@+id/toolbar_main"
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
+            android:layout_height="67dp"
             android:layout_marginBottom="8dp"
             android:paddingStart="4dp"
             android:paddingEnd="4dp"
