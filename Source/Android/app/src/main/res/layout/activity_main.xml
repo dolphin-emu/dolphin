@@ -14,13 +14,13 @@
         <android.support.v7.widget.Toolbar
             android:id="@+id/toolbar_main"
             android:layout_width="match_parent"
-            android:layout_height="67dp"
+            android:layout_height="?attr/actionBarSize"
             android:layout_marginBottom="8dp"
             android:paddingStart="4dp"
             android:paddingEnd="4dp"
             android:paddingTop="4dp"
-            app:layout_scrollFlags="scroll|enterAlways"
-            app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
+            app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+            app:layout_scrollFlags="scroll|enterAlways" />
 
         <android.support.design.widget.TabLayout
             android:id="@+id/tabs_platforms"
@@ -41,8 +41,8 @@
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/button_add_directory"
-        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
         android:layout_margin="16dp"
         android:src="@drawable/ic_add"
         app:borderWidth="0dp"

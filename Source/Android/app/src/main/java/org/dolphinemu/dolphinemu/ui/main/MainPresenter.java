@@ -28,7 +28,7 @@ public final class MainPresenter
 	public void onCreate()
 	{
 		// TODO Rather than calling into native code, this should use the commented line below.
-		//String versionName = BuildConfig.VERSION_NAME;
+		// String versionName = BuildConfig.VERSION_NAME;
 		String versionName = NativeLibrary.GetVersionString();
 		mView.setVersionString(versionName);
 	}
