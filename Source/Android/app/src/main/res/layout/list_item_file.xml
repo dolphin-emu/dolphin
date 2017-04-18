@@ -17,7 +17,7 @@
         android:layout_marginRight="16dp"
         android:background="@drawable/oval_ripple_grey"
         android:padding="4dp"
-        tools:src="@drawable/ic_wii"/>
+        tools:src="@drawable/ic_folder"/>
 
     <TextView
         android:id="@+id/text_file_name"
