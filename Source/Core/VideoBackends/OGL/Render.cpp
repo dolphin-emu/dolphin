@@ -1274,11 +1274,6 @@ void Renderer::SetBlendMode(bool forceUpdate)
     glDisable(GL_COLOR_LOGIC_OP);
   }
 
-  if (state.dither)
-    glEnable(GL_DITHER);
-  else
-    glDisable(GL_DITHER);
-
   glColorMask(state.colorupdate, state.colorupdate, state.colorupdate, state.alphaupdate);
 }
 
