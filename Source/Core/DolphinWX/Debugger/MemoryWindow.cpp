@@ -49,6 +49,7 @@ enum
   IDM_VALBOX,
   IDM_DATA_TYPE_RBOX,
   IDM_FIND_NEXT,
+  IDM_FIND_PREVIOUS,
   IDM_ASCII,
   IDM_HEX,
   IDM_MEMCHECK_OPTIONS_CHANGE
@@ -61,6 +62,7 @@ EVT_BUTTON(IDM_DUMP_MEM2, CMemoryWindow::OnDumpMem2)
 EVT_BUTTON(IDM_DUMP_FAKEVMEM, CMemoryWindow::OnDumpFakeVMEM)
 EVT_RADIOBOX(IDM_DATA_TYPE_RBOX, CMemoryWindow::OnDataTypeChanged)
 EVT_BUTTON(IDM_FIND_NEXT, CMemoryWindow::OnFindNext)
+EVT_BUTTON(IDM_FIND_PREVIOUS, CMemoryWindow::OnFindPrevious)
 EVT_RADIOBUTTON(IDM_MEMCHECK_OPTIONS_CHANGE, CMemoryWindow::OnMemCheckOptionChange)
 EVT_CHECKBOX(IDM_MEMCHECK_OPTIONS_CHANGE, CMemoryWindow::OnMemCheckOptionChange)
 END_EVENT_TABLE()
@@ -98,7 +100,9 @@ CMemoryWindow::CMemoryWindow(wxWindow* parent, wxWindowID id, const wxPoint& pos
     dump_sizer->Add(new wxButton(this, IDM_DUMP_FAKEVMEM, _("Dump FakeVMEM")), 0, wxEXPAND);
 
   wxStaticBoxSizer* const sizerSearchType = new wxStaticBoxSizer(wxVERTICAL, this, _("Search"));
-  sizerSearchType->Add(btnSearch = new wxButton(this, IDM_FIND_NEXT, _("Find Next")));
+  sizerSearchType->Add(m_btn_find_next = new wxButton(this, IDM_FIND_NEXT, _("Find Next")));
+  sizerSearchType->Add(m_btn_find_previous =
+                           new wxButton(this, IDM_FIND_PREVIOUS, _("Find Previous")));
   sizerSearchType->Add(m_rb_ascii = new wxRadioButton(this, IDM_ASCII, "Ascii", wxDefaultPosition,
                                                       wxDefaultSize, wxRB_GROUP));
   sizerSearchType->Add(m_rb_hex = new wxRadioButton(this, IDM_HEX, _("Hex")));
@@ -270,13 +274,19 @@ void CMemoryWindow::OnDataTypeChanged(wxCommandEvent& ev)
 void CMemoryWindow::OnFindNext(wxCommandEvent& event)
 {
   wxBusyCursor hourglass_cursor;
-  Search(true);
+  Search(SearchType::FindNext);
 }
 
-void CMemoryWindow::Search(bool find_next)
+void CMemoryWindow::OnFindPrevious(wxCommandEvent& event)
+{
+  wxBusyCursor hourglass_cursor;
+  Search(SearchType::FindPrevious);
+}
+
+void CMemoryWindow::Search(SearchType search_type)
 {
   u8* ram_ptr = nullptr;
-  u32 ram_size = 0;
+  std::size_t ram_size = 0;
   // NOTE: We're assuming the base address is zero.
   switch (memview->GetMemoryType())
   {
@@ -362,8 +372,11 @@ void CMemoryWindow::Search(bool find_next)
       {
         addr = static_cast<u32>(addr_ul);
         // Don't find the result we're already looking at
-        if (m_continue_search && addr == m_last_search_address)
+        if (m_continue_search && addr == m_last_search_address &&
+            search_type == SearchType::FindNext)
+        {
           addr += 1;
+        }
       }
     }
   }
@@ -375,30 +388,33 @@ void CMemoryWindow::Search(bool find_next)
     return;
   }
 
-  u8* end = &ram_ptr[ram_size - search_bytes.size() + 1];
-  u8* ptr = &ram_ptr[addr];
-  while (true)
+  const u8* ptr;
+  const u8* end;
+  if (search_type == SearchType::FindNext)
   {
-    ptr = std::find(ptr, end, search_bytes[0]);
-    if (ptr == end)
-    {
-      m_search_result_msg->SetLabel(_("No Match"));
-      break;
-    }
-
-    if (std::equal(search_bytes.begin(), search_bytes.end(), ptr))
-    {
-      m_search_result_msg->SetLabel(_("Match Found"));
-      u32 offset = static_cast<u32>(ptr - ram_ptr);
-      // NOTE: SetValue() generates a synthetic wxEVT_TEXT
-      addrbox->SetValue(wxString::Format("%08x", offset));
-      m_last_search_address = offset;
-      m_continue_search = true;
-      break;
-    }
-
-    ++ptr;
+    const u8* begin = &ram_ptr[addr];
+    end = &ram_ptr[ram_size - search_bytes.size() + 1];
+    ptr = std::search(begin, end, search_bytes.begin(), search_bytes.end());
   }
+  else
+  {
+    const u8* begin = ram_ptr;
+    end = &ram_ptr[addr + search_bytes.size() - 1];
+    ptr = std::find_end(begin, end, search_bytes.begin(), search_bytes.end());
+  }
+
+  if (ptr != end)
+  {
+    m_search_result_msg->SetLabel(_("Match Found"));
+    u32 offset = static_cast<u32>(ptr - ram_ptr);
+    // NOTE: SetValue() generates a synthetic wxEVT_TEXT
+    addrbox->SetValue(wxString::Format("%08x", offset));
+    m_last_search_address = offset;
+    m_continue_search = true;
+    return;
+  }
+
+  m_search_result_msg->SetLabel(_("No Match"));
 }
 
 void CMemoryWindow::OnMemCheckOptionChange(wxCommandEvent& event)
