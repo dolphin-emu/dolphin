@@ -12,6 +12,7 @@
 class DolphinSlider;
 class wxCheckBox;
 class wxDatePickerCtrl;
+class wxRadioBox;
 class wxStaticText;
 class wxTimePickerCtrl;
 
@@ -28,6 +29,8 @@ private:
   void OnUpdateCPUClockControls(wxUpdateUIEvent&);
   void OnUpdateRTCDateTimeEntries(wxUpdateUIEvent&);
 
+  void OnCPUEngineRadioBoxChanged(wxCommandEvent&);
+  void OnForceNTSCJCheckBoxChanged(wxCommandEvent&);
   void OnClockOverrideCheckBoxChanged(wxCommandEvent&);
   void OnClockOverrideSliderChanged(wxCommandEvent&);
   void OnCustomRTCCheckBoxChanged(wxCommandEvent&);
@@ -36,12 +39,22 @@ private:
 
   void UpdateCPUClock();
 
+  struct CPUCore
+  {
+    int CPUid;
+    wxString name;
+  };
+  std::vector<CPUCore> m_cpu_cores;
+
   // Custom RTC
   void LoadCustomRTC();
   void UpdateCustomRTC(time_t date, time_t time);
   u32 m_temp_date;
   u32 m_temp_time;
 
+  wxArrayString m_cpu_engine_array_string;
+  wxRadioBox* m_cpu_engine_radiobox;
+  wxCheckBox* m_force_ntscj_checkbox;
   wxCheckBox* m_clock_override_checkbox;
   DolphinSlider* m_clock_override_slider;
   wxStaticText* m_clock_override_text;
