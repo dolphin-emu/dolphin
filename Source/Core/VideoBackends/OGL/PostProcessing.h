@@ -38,7 +38,7 @@ private:
   std::unordered_map<std::string, GLuint> m_uniform_bindings;
 
   void CreateHeader();
-  std::string LoadShaderOptions(const std::string& code);
+  std::string LoadShaderOptions();
 };
 
 }  // namespace

@@ -19,12 +19,6 @@ public:
   GeneralConfigPane(wxWindow* parent, wxWindowID id);
 
 private:
-  struct CPUCore
-  {
-    int CPUid;
-    wxString name;
-  };
-  std::vector<CPUCore> m_cpu_cores;
   void InitializeGUI();
   void LoadGUIValues();
   void BindEvents();
