@@ -4,19 +4,33 @@
 <resources>
 
     <!-- New UI CPU Core selection - Default -->
-    <string-array name="emuCoresEntries" translatable="false">
+    <string-array name="emuCoresEntriesX86_64" translatable="false">
+        <item>Interpreter</item>
+        <item>Cached Interpreter</item>
+        <item>JIT Recompiler</item>
+    </string-array>
+    <integer-array name="emuCoresValuesX86_64" translatable="false">
+        <item>0</item>
+        <item>5</item>
+        <item>1</item>
+    </integer-array>
+    <string-array name="emuCoresEntriesARM64" translatable="false">
         <item>Interpreter</item>
         <item>Cached Interpreter</item>
         <item>JIT ARM64 Recompiler</item>
-        <!--<item>JIT64 Recompiler</item>
-        <item>JITIL Recompiler</item>-->
     </string-array>
-    <integer-array name="emuCoresValues" translatable="false">
+    <integer-array name="emuCoresValuesARM64" translatable="false">
         <item>0</item>
         <item>5</item>
         <item>4</item>
-        <!--<item>1</item>
-        <item>2</item>-->
+    </integer-array>
+    <string-array name="emuCoresEntriesGeneric" translatable="false">
+        <item>Interpreter</item>
+        <item>Cached Interpreter</item>
+    </string-array>
+    <integer-array name="emuCoresValuesGeneric" translatable="false">
+        <item>0</item>
+        <item>5</item>
     </integer-array>
 
     <!-- Video backend selection -->

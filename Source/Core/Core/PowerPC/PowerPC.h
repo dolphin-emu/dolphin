@@ -7,6 +7,7 @@
 #include <array>
 #include <cstddef>
 #include <tuple>
+#include <vector>
 
 #include "Common/CommonTypes.h"
 
@@ -20,7 +21,7 @@ class PointerWrap;
 
 namespace PowerPC
 {
-enum
+enum CPUCore
 {
   CORE_INTERPRETER,
   CORE_JIT64,
@@ -134,6 +135,9 @@ extern Watches watches;
 extern BreakPoints breakpoints;
 extern MemChecks memchecks;
 extern PPCDebugInterface debug_interface;
+
+const std::vector<CPUCore>& AvailableCPUCores();
+CPUCore DefaultCPUCore();
 
 void Init(int cpu_core);
 void Reset();
