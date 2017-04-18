@@ -35,7 +35,8 @@ private:
   DECLARE_EVENT_TABLE()
 
   void OnDataTypeChanged(wxCommandEvent& event);
-  void OnSearch(wxCommandEvent& event);
+  void OnFindNext(wxCommandEvent& event);
+  void Search(bool find_next = true);
   void OnAddrBoxChange(wxCommandEvent& event);
   void OnValueChanged(wxCommandEvent&);
   void SetMemoryValueFromValBox(wxCommandEvent& event);

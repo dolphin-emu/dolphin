@@ -48,7 +48,7 @@ enum
   IDM_DUMP_FAKEVMEM,
   IDM_VALBOX,
   IDM_DATA_TYPE_RBOX,
-  IDM_SEARCH,
+  IDM_FIND_NEXT,
   IDM_ASCII,
   IDM_HEX,
   IDM_MEMCHECK_OPTIONS_CHANGE
@@ -60,7 +60,7 @@ EVT_BUTTON(IDM_DUMP_MEMORY, CMemoryWindow::OnDumpMemory)
 EVT_BUTTON(IDM_DUMP_MEM2, CMemoryWindow::OnDumpMem2)
 EVT_BUTTON(IDM_DUMP_FAKEVMEM, CMemoryWindow::OnDumpFakeVMEM)
 EVT_RADIOBOX(IDM_DATA_TYPE_RBOX, CMemoryWindow::OnDataTypeChanged)
-EVT_BUTTON(IDM_SEARCH, CMemoryWindow::OnSearch)
+EVT_BUTTON(IDM_FIND_NEXT, CMemoryWindow::OnFindNext)
 EVT_RADIOBUTTON(IDM_MEMCHECK_OPTIONS_CHANGE, CMemoryWindow::OnMemCheckOptionChange)
 EVT_CHECKBOX(IDM_MEMCHECK_OPTIONS_CHANGE, CMemoryWindow::OnMemCheckOptionChange)
 END_EVENT_TABLE()
@@ -98,7 +98,7 @@ CMemoryWindow::CMemoryWindow(wxWindow* parent, wxWindowID id, const wxPoint& pos
     dump_sizer->Add(new wxButton(this, IDM_DUMP_FAKEVMEM, _("Dump FakeVMEM")), 0, wxEXPAND);
 
   wxStaticBoxSizer* const sizerSearchType = new wxStaticBoxSizer(wxVERTICAL, this, _("Search"));
-  sizerSearchType->Add(btnSearch = new wxButton(this, IDM_SEARCH, _("Search")));
+  sizerSearchType->Add(btnSearch = new wxButton(this, IDM_FIND_NEXT, _("Find Next")));
   sizerSearchType->Add(m_rb_ascii = new wxRadioButton(this, IDM_ASCII, "Ascii", wxDefaultPosition,
                                                       wxDefaultSize, wxRB_GROUP));
   sizerSearchType->Add(m_rb_hex = new wxRadioButton(this, IDM_HEX, _("Hex")));
@@ -267,9 +267,14 @@ void CMemoryWindow::OnDataTypeChanged(wxCommandEvent& ev)
   }
 }
 
-void CMemoryWindow::OnSearch(wxCommandEvent& event)
+void CMemoryWindow::OnFindNext(wxCommandEvent& event)
 {
   wxBusyCursor hourglass_cursor;
+  Search(true);
+}
+
+void CMemoryWindow::Search(bool find_next)
+{
   u8* ram_ptr = nullptr;
   u32 ram_size = 0;
   // NOTE: We're assuming the base address is zero.
