@@ -10,6 +10,7 @@
 #include "Common/CommonTypes.h"
 #include "VideoBackends/Vulkan/Constants.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
+#include "VideoCommon/RenderState.h"
 
 namespace Vulkan
 {
@@ -35,7 +36,7 @@ VkBlendFactor GetAlphaBlendFactor(VkBlendFactor factor);
 
 RasterizationState GetNoCullRasterizationState();
 DepthStencilState GetNoDepthTestingDepthStencilState();
-BlendState GetNoBlendingBlendState();
+BlendingState GetNoBlendingBlendState();
 
 // Combines viewport and scissor updates
 void SetViewportAndScissor(VkCommandBuffer command_buffer, int x, int y, int width, int height,
@@ -147,7 +148,7 @@ public:
 
   void SetRasterizationState(const RasterizationState& state);
   void SetDepthStencilState(const DepthStencilState& state);
-  void SetBlendState(const BlendState& state);
+  void SetBlendState(const BlendingState& state);
 
   void BeginRenderPass(VkFramebuffer framebuffer, const VkRect2D& region,
                        const VkClearValue* clear_value = nullptr);

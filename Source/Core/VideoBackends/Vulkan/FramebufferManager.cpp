@@ -1163,14 +1163,10 @@ void FramebufferManager::DrawPokeVertices(const EFBPokeVertex* vertices, size_t 
   pipeline_info.rasterization_state.bits = Util::GetNoCullRasterizationState().bits;
   pipeline_info.rasterization_state.samples = m_efb_samples;
   pipeline_info.depth_stencil_state.bits = Util::GetNoDepthTestingDepthStencilState().bits;
-  pipeline_info.blend_state.bits = Util::GetNoBlendingBlendState().bits;
-  pipeline_info.blend_state.write_mask = 0;
+  pipeline_info.blend_state.hex = Util::GetNoBlendingBlendState().hex;
+  pipeline_info.blend_state.colorupdate = write_color;
+  pipeline_info.blend_state.alphaupdate = write_color;
   pipeline_info.primitive_topology = m_poke_primitive_topology;
-  if (write_color)
-  {
-    pipeline_info.blend_state.write_mask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
-                                           VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-  }
   if (write_depth)
   {
     pipeline_info.depth_stencil_state.test_enable = VK_TRUE;

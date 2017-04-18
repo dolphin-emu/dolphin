@@ -61,10 +61,10 @@ void BlendingState::Generate(const BPMemory& bp)
   bool target_has_alpha = bp.zcontrol.pixel_format == PEControl::RGBA6_Z24;
   bool alpha_test_may_success = bp.alpha_test.TestResult() != AlphaTest::FAIL;
 
-  dither = bp.blendmode.dither;
   colorupdate = bp.blendmode.colorupdate && alpha_test_may_success;
   alphaupdate = bp.blendmode.alphaupdate && target_has_alpha && alpha_test_may_success;
   dstalpha = bp.dstalpha.enable && alphaupdate;
+  usedualsrc = true;
 
   // The subtract bit has the highest priority
   if (bp.blendmode.subtract)

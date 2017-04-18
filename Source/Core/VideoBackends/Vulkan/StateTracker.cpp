@@ -59,17 +59,14 @@ bool StateTracker::Initialize()
   m_pipeline_state.depth_stencil_state.test_enable = VK_TRUE;
   m_pipeline_state.depth_stencil_state.write_enable = VK_TRUE;
   m_pipeline_state.depth_stencil_state.compare_op = VK_COMPARE_OP_LESS;
-  m_pipeline_state.blend_state.blend_enable = VK_FALSE;
-  m_pipeline_state.blend_state.blend_op = VK_BLEND_OP_ADD;
-  m_pipeline_state.blend_state.src_blend = VK_BLEND_FACTOR_ONE;
-  m_pipeline_state.blend_state.dst_blend = VK_BLEND_FACTOR_ZERO;
-  m_pipeline_state.blend_state.alpha_blend_op = VK_BLEND_OP_ADD;
-  m_pipeline_state.blend_state.src_alpha_blend = VK_BLEND_FACTOR_ONE;
-  m_pipeline_state.blend_state.dst_alpha_blend = VK_BLEND_FACTOR_ZERO;
-  m_pipeline_state.blend_state.logic_op_enable = VK_FALSE;
-  m_pipeline_state.blend_state.logic_op = VK_LOGIC_OP_CLEAR;
-  m_pipeline_state.blend_state.write_mask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
-                                            VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+  m_pipeline_state.blend_state.hex = 0;
+  m_pipeline_state.blend_state.blendenable = false;
+  m_pipeline_state.blend_state.srcfactor = BlendMode::ONE;
+  m_pipeline_state.blend_state.srcfactoralpha = BlendMode::ONE;
+  m_pipeline_state.blend_state.dstfactor = BlendMode::ZERO;
+  m_pipeline_state.blend_state.dstfactoralpha = BlendMode::ZERO;
+  m_pipeline_state.blend_state.colorupdate = true;
+  m_pipeline_state.blend_state.alphaupdate = true;
 
   // Enable depth clamping if supported by driver.
   if (g_ActiveConfig.backend_info.bSupportsDepthClamp)
@@ -144,7 +141,7 @@ void StateTracker::LoadPipelineUIDCache()
 void StateTracker::AppendToPipelineUIDCache(const PipelineInfo& info)
 {
   SerializedPipelineUID sinfo;
-  sinfo.blend_state_bits = info.blend_state.bits;
+  sinfo.blend_state_bits = info.blend_state.hex;
   sinfo.rasterizer_state_bits = info.rasterization_state.bits;
   sinfo.depth_stencil_state_bits = info.depth_stencil_state.bits;
   sinfo.vertex_decl = m_pipeline_state.vertex_format->GetVertexDeclaration();
@@ -189,9 +186,9 @@ bool StateTracker::PrecachePipelineUID(const SerializedPipelineUID& uid)
     return false;
   }
   pinfo.render_pass = m_load_render_pass;
-  pinfo.blend_state.bits = uid.blend_state_bits;
   pinfo.rasterization_state.bits = uid.rasterizer_state_bits;
   pinfo.depth_stencil_state.bits = uid.depth_stencil_state_bits;
+  pinfo.blend_state.hex = uid.blend_state_bits;
   pinfo.primitive_topology = uid.primitive_topology;
 
   VkPipeline pipeline = g_object_cache->GetPipeline(pinfo);
@@ -295,12 +292,12 @@ void StateTracker::SetDepthStencilState(const DepthStencilState& state)
   m_dirty_flags |= DIRTY_FLAG_PIPELINE;
 }
 
-void StateTracker::SetBlendState(const BlendState& state)
+void StateTracker::SetBlendState(const BlendingState& state)
 {
-  if (m_pipeline_state.blend_state.bits == state.bits)
+  if (m_pipeline_state.blend_state.hex == state.hex)
     return;
 
-  m_pipeline_state.blend_state.bits = state.bits;
+  m_pipeline_state.blend_state.hex = state.hex;
   m_dirty_flags |= DIRTY_FLAG_PIPELINE;
 }
 

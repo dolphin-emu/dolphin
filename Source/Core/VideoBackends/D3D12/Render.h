@@ -26,7 +26,6 @@ public:
   void SetGenerationMode() override;
   void SetDepthMode() override;
   void SetLogicOpMode() override;
-  void SetDitherMode() override;
   void SetSamplerState(int stage, int tex_index, bool custom_tex) override;
   void SetInterlacingMode() override;
   void SetViewport() override;

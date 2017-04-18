@@ -1108,11 +1108,6 @@ void Renderer::SetLogicOpMode()
   D3D::command_list_mgr->SetCommandListDirtyState(COMMAND_LIST_STATE_PSO, true);
 }
 
-void Renderer::SetDitherMode()
-{
-  // EXISTINGD3D11TODO: Set dither mode to bpmem.blendmode.dither
-}
-
 void Renderer::SetSamplerState(int stage, int tex_index, bool custom_tex)
 {
   const FourTexUnits& tex = bpmem.tex[tex_index];

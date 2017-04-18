@@ -143,20 +143,17 @@ DepthStencilState GetNoDepthTestingDepthStencilState()
   return state;
 }
 
-BlendState GetNoBlendingBlendState()
+BlendingState GetNoBlendingBlendState()
 {
-  BlendState state = {};
-  state.blend_enable = VK_FALSE;
-  state.blend_op = VK_BLEND_OP_ADD;
-  state.src_blend = VK_BLEND_FACTOR_ONE;
-  state.dst_blend = VK_BLEND_FACTOR_ZERO;
-  state.alpha_blend_op = VK_BLEND_OP_ADD;
-  state.src_alpha_blend = VK_BLEND_FACTOR_ONE;
-  state.dst_alpha_blend = VK_BLEND_FACTOR_ZERO;
-  state.logic_op_enable = VK_FALSE;
-  state.logic_op = VK_LOGIC_OP_CLEAR;
-  state.write_mask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
-                     VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+  BlendingState state = {};
+  state.blendenable = false;
+  state.srcfactor = BlendMode::ONE;
+  state.srcfactoralpha = BlendMode::ZERO;
+  state.dstfactor = BlendMode::ONE;
+  state.dstfactoralpha = BlendMode::ZERO;
+  state.logicopenable = false;
+  state.colorupdate = true;
+  state.alphaupdate = true;
   return state;
 }
 
@@ -289,7 +286,7 @@ UtilityShaderDraw::UtilityShaderDraw(VkCommandBuffer command_buffer,
   m_pipeline_info.ps = pixel_shader;
   m_pipeline_info.rasterization_state.bits = Util::GetNoCullRasterizationState().bits;
   m_pipeline_info.depth_stencil_state.bits = Util::GetNoDepthTestingDepthStencilState().bits;
-  m_pipeline_info.blend_state.bits = Util::GetNoBlendingBlendState().bits;
+  m_pipeline_info.blend_state.hex = Util::GetNoBlendingBlendState().hex;
   m_pipeline_info.primitive_topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 }
 
@@ -397,9 +394,9 @@ void UtilityShaderDraw::SetDepthStencilState(const DepthStencilState& state)
   m_pipeline_info.depth_stencil_state.bits = state.bits;
 }
 
-void UtilityShaderDraw::SetBlendState(const BlendState& state)
+void UtilityShaderDraw::SetBlendState(const BlendingState& state)
 {
-  m_pipeline_info.blend_state.bits = state.bits;
+  m_pipeline_info.blend_state.hex = state.hex;
 }
 
 void UtilityShaderDraw::BeginRenderPass(VkFramebuffer framebuffer, const VkRect2D& region,

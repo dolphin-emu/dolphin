@@ -41,7 +41,7 @@ public:
   {
     return m_pipeline_state.depth_stencil_state;
   }
-  const BlendState& GetBlendState() const { return m_pipeline_state.blend_state; }
+  const BlendingState& GetBlendState() const { return m_pipeline_state.blend_state; }
   void SetVertexBuffer(VkBuffer buffer, VkDeviceSize offset);
   void SetIndexBuffer(VkBuffer buffer, VkDeviceSize offset, VkIndexType type);
 
@@ -57,7 +57,7 @@ public:
 
   void SetRasterizationState(const RasterizationState& state);
   void SetDepthStencilState(const DepthStencilState& state);
-  void SetBlendState(const BlendState& state);
+  void SetBlendState(const BlendingState& state);
 
   bool CheckForShaderChanges(u32 gx_primitive_type);
 
@@ -123,9 +123,9 @@ private:
   // Serialized version of PipelineInfo, used when loading/saving the pipeline UID cache.
   struct SerializedPipelineUID
   {
-    u64 blend_state_bits;
     u32 rasterizer_state_bits;
     u32 depth_stencil_state_bits;
+    u32 blend_state_bits;
     PortableVertexDeclaration vertex_decl;
     VertexShaderUid vs_uid;
     GeometryShaderUid gs_uid;

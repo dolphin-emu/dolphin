@@ -1214,7 +1214,7 @@ void Renderer::SetBlendMode(bool forceUpdate)
   state.Generate(bpmem);
 
   bool useDualSource =
-      g_ActiveConfig.backend_info.bSupportsDualSourceBlend &&
+      state.usedualsrc && g_ActiveConfig.backend_info.bSupportsDualSourceBlend &&
       (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING) || state.dstalpha);
 
   const GLenum src_factors[8] = {
@@ -1273,11 +1273,6 @@ void Renderer::SetBlendMode(bool forceUpdate)
   {
     glDisable(GL_COLOR_LOGIC_OP);
   }
-
-  if (state.dither)
-    glEnable(GL_DITHER);
-  else
-    glDisable(GL_DITHER);
 
   glColorMask(state.colorupdate, state.colorupdate, state.colorupdate, state.alphaupdate);
 }

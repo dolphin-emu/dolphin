@@ -69,7 +69,6 @@ public:
   virtual void SetGenerationMode() {}
   virtual void SetDepthMode() {}
   virtual void SetLogicOpMode() {}
-  virtual void SetDitherMode() {}
   virtual void SetSamplerState(int stage, int texindex, bool custom_tex) {}
   virtual void SetInterlacingMode() {}
   virtual void SetViewport() {}
