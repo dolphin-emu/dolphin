@@ -96,11 +96,14 @@ void TextureCache::CopyEFB(u8* dst, const EFBCopyFormat& format, u32 native_widt
   FramebufferManager::GetInstance()->FlushEFBPokes();
 
   // MSAA case where we need to resolve first.
-  // TODO: Do in one pass.
+  // An out-of-bounds source region is valid here, and fine for the draw (since it is converted
+  // to texture coordinates), but it's not valid to resolve an out-of-range rectangle.
   TargetRectangle scaled_src_rect = g_renderer->ConvertEFBRectangle(src_rect);
   VkRect2D region = {{scaled_src_rect.left, scaled_src_rect.top},
                      {static_cast<u32>(scaled_src_rect.GetWidth()),
                       static_cast<u32>(scaled_src_rect.GetHeight())}};
+  region = Util::ClampRect2D(region, FramebufferManager::GetInstance()->GetEFBWidth(),
+                             FramebufferManager::GetInstance()->GetEFBHeight());
   Texture2D* src_texture;
   if (is_depth_copy)
     src_texture = FramebufferManager::GetInstance()->ResolveEFBDepthTexture(region);
@@ -465,10 +468,14 @@ void TextureCache::TCacheEntry::FromRenderTarget(bool is_depth_copy, const EFBRe
   VkCommandBuffer command_buffer = g_command_buffer_mgr->GetCurrentCommandBuffer();
   StateTracker::GetInstance()->EndRenderPass();
 
-  // Transition EFB to shader resource before binding
+  // Transition EFB to shader resource before binding.
+  // An out-of-bounds source region is valid here, and fine for the draw (since it is converted
+  // to texture coordinates), but it's not valid to resolve an out-of-range rectangle.
   VkRect2D region = {{scaled_src_rect.left, scaled_src_rect.top},
                      {static_cast<u32>(scaled_src_rect.GetWidth()),
                       static_cast<u32>(scaled_src_rect.GetHeight())}};
+  region = Util::ClampRect2D(region, FramebufferManager::GetInstance()->GetEFBWidth(),
+                             FramebufferManager::GetInstance()->GetEFBHeight());
   Texture2D* src_texture;
   if (is_depth_copy)
     src_texture = FramebufferManager::GetInstance()->ResolveEFBDepthTexture(region);
