@@ -57,8 +57,6 @@ void InitSoundStream()
     g_sound_stream = std::make_unique<NullSound>();
   }
 
-  UpdateSoundStream();
-
   if (!g_sound_stream->Start())
   {
     ERROR_LOG(AUDIO, "Could not start backend %s, using %s instead", backend.c_str(),
@@ -67,6 +65,8 @@ void InitSoundStream()
     g_sound_stream = std::make_unique<NullSound>();
     g_sound_stream->Start();
   }
+
+  UpdateSoundStream();
 
   if (SConfig::GetInstance().m_DumpAudio && !s_audio_dump_start)
     StartAudioDump();
