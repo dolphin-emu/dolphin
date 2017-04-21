@@ -5,9 +5,9 @@
 #include "DolphinWX/Debugger/MemoryView.h"
 
 #include <algorithm>
-#include <cctype>
 #include <cmath>
 #include <cstring>
+#include <locale>
 #include <string>
 #include <wx/brush.h>
 #include <wx/clipbrd.h>
@@ -123,9 +123,9 @@ wxString CMemoryView::ReadMemoryAsString(u32 address) const
     str.reserve(4);
     for (unsigned int i = 0; i < 4; ++i)
     {
-      u8 byte = static_cast<u8>(mem_data >> (24 - i * 8));
-      if (std::isprint(byte))
-        str += static_cast<char>(byte);
+      char byte = static_cast<char>(mem_data >> (24 - i * 8) & 0xFF);
+      if (std::isprint(byte, std::locale::classic()))
+        str += byte;
       else
         str += ' ';
     }
