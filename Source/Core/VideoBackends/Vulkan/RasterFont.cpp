@@ -175,6 +175,11 @@ RasterFont::~RasterFont()
     vkDestroyShaderModule(g_vulkan_context->GetDevice(), m_fragment_shader, nullptr);
 }
 
+const Texture2D* RasterFont::GetTexture() const
+{
+  return m_texture.get();
+}
+
 bool RasterFont::Initialize()
 {
   // Create shaders and texture

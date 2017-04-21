@@ -137,6 +137,13 @@ public:
   // Find a pipeline by the specified description, if not found, attempts to create it
   VkPipeline GetComputePipeline(const ComputePipelineInfo& info);
 
+  // Clears our pipeline cache of all objects. This is necessary when recompiling shaders,
+  // as drivers are free to return the same pointer again, which means that we may end up using
+  // and old pipeline object if they are not cleared first. Some stutter may be experienced
+  // while our cache is rebuilt on use, but the pipeline cache object should mitigate this.
+  // NOTE: Ensure that none of these objects are in use before calling.
+  void ClearPipelineCache();
+
   // Saves the pipeline cache to disk. Call when shutting down.
   void SavePipelineCache();
 

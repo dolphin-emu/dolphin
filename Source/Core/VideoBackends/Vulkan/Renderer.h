@@ -136,7 +136,7 @@ private:
 
   // Copies/scales an image to the currently-bound framebuffer.
   void BlitScreen(VkRenderPass render_pass, const TargetRectangle& dst_rect,
-                  const TargetRectangle& src_rect, const Texture2D* src_tex, bool linear_filter);
+                  const TargetRectangle& src_rect, const Texture2D* src_tex);
 
   bool ResizeFrameDumpBuffer(u32 new_width, u32 new_height);
   void DestroyFrameDumpResources();
@@ -153,11 +153,6 @@ private:
 
   // Shaders used for clear/blit.
   VkShaderModule m_clear_fragment_shader = VK_NULL_HANDLE;
-
-  // NOTE: The blit shader here is used for the final copy from the source buffer(s) to the swap
-  // chain buffer for presentation. It ignores the alpha channel of the input image and sets the
-  // alpha channel to 1.0 to avoid issues with frame dumping and screenshots.
-  VkShaderModule m_blit_fragment_shader = VK_NULL_HANDLE;
 
   // Texture used for screenshot/frame dumping
   std::unique_ptr<Texture2D> m_frame_dump_render_texture;
