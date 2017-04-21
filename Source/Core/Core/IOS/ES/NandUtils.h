@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <array>
 #include <vector>
 
 #include "Common/CommonTypes.h"
@@ -26,6 +27,9 @@ std::vector<u64> GetTitleImports();
 std::vector<u64> GetTitlesWithTickets();
 
 std::vector<Content> GetStoredContentsFromTMD(const TMDReader& tmd);
+
+u32 GetSharedContentsCount();
+std::vector<std::array<u8, 20>> GetSharedContents();
 
 // Start a title import.
 bool InitImport(u64 title_id);

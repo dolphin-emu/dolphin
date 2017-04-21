@@ -205,6 +205,35 @@ IPCCommandResult ES::GetBoot2Version(const IOCtlVRequest& request)
   Memory::Write_U32(4, request.io_vectors[0].address);
   return GetDefaultReply(IPC_SUCCESS);
 }
+
+IPCCommandResult ES::GetSharedContentsCount(const IOCtlVRequest& request) const
+{
+  if (!request.HasNumberOfValidVectors(0, 1) || request.io_vectors[0].size != sizeof(u32))
+    return GetDefaultReply(ES_EINVAL);
+
+  const u32 count = IOS::ES::GetSharedContentsCount();
+  Memory::Write_U32(count, request.io_vectors[0].address);
+
+  INFO_LOG(IOS_ES, "GetSharedContentsCount: %u contents", count);
+  return GetDefaultReply(IPC_SUCCESS);
+}
+
+IPCCommandResult ES::GetSharedContents(const IOCtlVRequest& request) const
+{
+  if (!request.HasNumberOfValidVectors(1, 1) || request.in_vectors[0].size != sizeof(u32))
+    return GetDefaultReply(ES_EINVAL);
+
+  const u32 max_count = Memory::Read_U32(request.in_vectors[0].address);
+  if (request.io_vectors[0].size != 20 * max_count)
+    return GetDefaultReply(ES_EINVAL);
+
+  const std::vector<std::array<u8, 20>> hashes = IOS::ES::GetSharedContents();
+  const u32 count = std::min(static_cast<u32>(hashes.size()), max_count);
+  Memory::CopyToEmu(request.io_vectors[0].address, hashes.data(), 20 * count);
+
+  INFO_LOG(IOS_ES, "GetSharedContents: %u contents (%u requested)", count, max_count);
+  return GetDefaultReply(IPC_SUCCESS);
+}
 }  // namespace Device
 }  // namespace HLE
 }  // namespace IOS
