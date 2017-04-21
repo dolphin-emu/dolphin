@@ -196,7 +196,8 @@ static bool ParseDDSHeader(File::IOFile& file, DDSLoadInfo* info)
     return false;
 
   DDS_HEADER header;
-  if (!file.ReadBytes(&header, sizeof(header)) || header.dwSize < sizeof(header))
+  size_t header_size = sizeof(header);
+  if (!file.ReadBytes(&header, header_size) || header.dwSize < header_size)
     return false;
 
   // Required fields.
@@ -229,35 +230,59 @@ static bool ParseDDSHeader(File::IOFile& file, DDSLoadInfo* info)
     info->mip_count = 1;
   }
 
-  // Currently, we only handle compressed textures here, and leave the rest to the SOIL loader.
-  // In the future, this could be extended, but these isn't much benefit in doing so currently.
-  // TODO: DX10 extension header handling.
-  // TODO: Support RGBA8 and friends.
+  // Handle fourcc formats vs uncompressed formats.
+  bool has_fourcc = (header.ddspf.dwFlags & DDS_FOURCC) != 0;
   bool needs_s3tc = false;
-  if (header.ddspf.dwFourCC == MAKEFOURCC('D', 'X', 'T', '1'))
+  if (has_fourcc)
   {
-    info->format = HostTextureFormat::DXT1;
-    info->block_size = 4;
-    info->bytes_per_block = 8;
-    needs_s3tc = true;
-  }
-  else if (header.ddspf.dwFourCC == MAKEFOURCC('D', 'X', 'T', '3'))
-  {
-    info->format = HostTextureFormat::DXT3;
-    info->block_size = 4;
-    info->bytes_per_block = 16;
-    needs_s3tc = true;
-  }
-  else if (header.ddspf.dwFourCC == MAKEFOURCC('D', 'X', 'T', '5'))
-  {
-    info->format = HostTextureFormat::DXT5;
-    info->block_size = 4;
-    info->bytes_per_block = 16;
-    needs_s3tc = true;
+    // Handle DX10 extension header.
+    u32 dxt10_format = 0;
+    if (header.ddspf.dwFourCC == MAKEFOURCC('D', 'X', '1', '0'))
+    {
+      DDS_HEADER_DXT10 dxt10_header;
+      if (!file.ReadBytes(&dxt10_header, sizeof(dxt10_header)))
+        return false;
+
+      // Can't handle array textures here. Doesn't make sense to use them, anyway.
+      if (dxt10_header.resourceDimension != DDS_DIMENSION_TEXTURE2D || dxt10_header.arraySize != 1)
+        return false;
+
+      header_size += sizeof(dxt10_header);
+      dxt10_format = dxt10_header.dxgiFormat;
+    }
+
+    // Currently, we only handle compressed textures here, and leave the rest to the SOIL loader.
+    // In the future, this could be extended, but these isn't much benefit in doing so currently.
+    if (header.ddspf.dwFourCC == MAKEFOURCC('D', 'X', 'T', '1') || dxt10_format == 71)
+    {
+      info->format = HostTextureFormat::DXT1;
+      info->block_size = 4;
+      info->bytes_per_block = 8;
+      needs_s3tc = true;
+    }
+    else if (header.ddspf.dwFourCC == MAKEFOURCC('D', 'X', 'T', '3') || dxt10_format == 74)
+    {
+      info->format = HostTextureFormat::DXT3;
+      info->block_size = 4;
+      info->bytes_per_block = 16;
+      needs_s3tc = true;
+    }
+    else if (header.ddspf.dwFourCC == MAKEFOURCC('D', 'X', 'T', '5') || dxt10_format == 77)
+    {
+      info->format = HostTextureFormat::DXT5;
+      info->block_size = 4;
+      info->bytes_per_block = 16;
+      needs_s3tc = true;
+    }
+    else
+    {
+      // Leave all remaining formats to SOIL.
+      return false;
+    }
   }
   else
   {
-    // Leave all remaining formats to SOIL.
+    // TODO: Support RGBA8 and friends.
     return false;
   }
 
@@ -295,7 +320,7 @@ static bool ParseDDSHeader(File::IOFile& file, DDSLoadInfo* info)
   }
 
   // Check for truncated or corrupted files.
-  info->first_mip_offset = sizeof(magic) + sizeof(DDS_HEADER);
+  info->first_mip_offset = sizeof(magic) + header_size;
   if (info->first_mip_offset >= file.GetSize())
     return false;
 
