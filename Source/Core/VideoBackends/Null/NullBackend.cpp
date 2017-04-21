@@ -49,8 +49,6 @@ void VideoBackend::InitBackendInfo()
   // aamodes: We only support 1 sample, so no MSAA
   g_Config.backend_info.Adapters.clear();
   g_Config.backend_info.AAModes = {1};
-  g_Config.backend_info.PPShaders.clear();
-  g_Config.backend_info.AnaglyphShaders.clear();
 }
 
 bool VideoBackend::Initialize(void* window_handle)

@@ -6,9 +6,6 @@
 
 #include "Common/Assert.h"
 #include "Common/CommonFuncs.h"
-#include "Common/CommonPaths.h"
-#include "Common/FileSearch.h"
-#include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
@@ -225,21 +222,6 @@ VulkanContext::GPUList VulkanContext::EnumerateGPUs(VkInstance instance)
   return gpus;
 }
 
-static std::vector<std::string> GetShaders(const std::string& sub_dir = "")
-{
-  std::vector<std::string> paths =
-      Common::DoFileSearch({".glsl"}, {File::GetUserPath(D_SHADERS_IDX) + sub_dir,
-                                       File::GetSysDirectory() + SHADERS_DIR DIR_SEP + sub_dir});
-  std::vector<std::string> result;
-  for (std::string path : paths)
-  {
-    std::string name;
-    SplitPath(path, nullptr, &name, nullptr);
-    result.push_back(name);
-  }
-  return result;
-}
-
 void VulkanContext::PopulateBackendInfo(VideoConfig* config)
 {
   config->backend_info.api_type = APIType::Vulkan;
@@ -264,9 +246,6 @@ void VulkanContext::PopulateBackendInfo(VideoConfig* config)
   config->backend_info.bSupportsSSAA = false;                         // Dependent on features.
   config->backend_info.bSupportsDepthClamp = false;                   // Dependent on features.
   config->backend_info.bSupportsReversedDepthRange = false;  // No support yet due to driver bugs.
-
-  g_Config.backend_info.PPShaders = GetShaders("");
-  g_Config.backend_info.AnaglyphShaders = GetShaders(ANAGLYPH_DIR DIR_SEP);
 }
 
 void VulkanContext::PopulateBackendInfoAdapters(VideoConfig* config, const GPUList& gpu_list)

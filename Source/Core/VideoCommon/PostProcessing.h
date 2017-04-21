@@ -83,6 +83,9 @@ public:
   PostProcessingShaderImplementation();
   virtual ~PostProcessingShaderImplementation();
 
+  static std::vector<std::string> GetShaderList(APIType api_type);
+  static std::vector<std::string> GetAnaglyphShaderList(APIType api_type);
+
   PostProcessingShaderConfiguration* GetConfig() { return &m_config; }
 protected:
   // Timer for determining our time value

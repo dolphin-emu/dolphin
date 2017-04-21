@@ -1253,9 +1253,10 @@ void VideoConfigDiag::CreateDescriptionArea(wxPanel* const page, wxBoxSizer* con
 
 void VideoConfigDiag::PopulatePostProcessingShaders()
 {
-  std::vector<std::string>& shaders = (vconfig.iStereoMode == STEREO_ANAGLYPH) ?
-                                          vconfig.backend_info.AnaglyphShaders :
-                                          vconfig.backend_info.PPShaders;
+  std::vector<std::string> shaders =
+      vconfig.iStereoMode == STEREO_ANAGLYPH ?
+          PostProcessingShaderImplementation::GetAnaglyphShaderList(vconfig.backend_info.api_type) :
+          PostProcessingShaderImplementation::GetShaderList(vconfig.backend_info.api_type);
 
   if (shaders.empty())
     return;
