@@ -7,8 +7,10 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include <functional>
 #include "Common/Align.h"
 #include "Common/FileUtil.h"
+#include "Common/Swap.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace
@@ -70,54 +72,12 @@ struct DDS_PIXELFORMAT
 #define DDS_HEADER_FLAGS_PITCH 0x00000008       // DDSD_PITCH
 #define DDS_HEADER_FLAGS_LINEARSIZE 0x00080000  // DDSD_LINEARSIZE
 
-#define DDS_HEIGHT 0x00000002  // DDSD_HEIGHT
-#define DDS_WIDTH 0x00000004   // DDSD_WIDTH
-
-#define DDS_SURFACE_FLAGS_TEXTURE 0x00001000  // DDSCAPS_TEXTURE
-#define DDS_SURFACE_FLAGS_MIPMAP 0x00400008   // DDSCAPS_COMPLEX | DDSCAPS_MIPMAP
-#define DDS_SURFACE_FLAGS_CUBEMAP 0x00000008  // DDSCAPS_COMPLEX
-
-#define DDS_CUBEMAP_POSITIVEX 0x00000600  // DDSCAPS2_CUBEMAP | DDSCAPS2_CUBEMAP_POSITIVEX
-#define DDS_CUBEMAP_NEGATIVEX 0x00000a00  // DDSCAPS2_CUBEMAP | DDSCAPS2_CUBEMAP_NEGATIVEX
-#define DDS_CUBEMAP_POSITIVEY 0x00001200  // DDSCAPS2_CUBEMAP | DDSCAPS2_CUBEMAP_POSITIVEY
-#define DDS_CUBEMAP_NEGATIVEY 0x00002200  // DDSCAPS2_CUBEMAP | DDSCAPS2_CUBEMAP_NEGATIVEY
-#define DDS_CUBEMAP_POSITIVEZ 0x00004200  // DDSCAPS2_CUBEMAP | DDSCAPS2_CUBEMAP_POSITIVEZ
-#define DDS_CUBEMAP_NEGATIVEZ 0x00008200  // DDSCAPS2_CUBEMAP | DDSCAPS2_CUBEMAP_NEGATIVEZ
-
-#define DDS_CUBEMAP_ALLFACES                                                                       \
-  (DDS_CUBEMAP_POSITIVEX | DDS_CUBEMAP_NEGATIVEX | DDS_CUBEMAP_POSITIVEY | DDS_CUBEMAP_NEGATIVEY | \
-   DDS_CUBEMAP_POSITIVEZ | DDS_CUBEMAP_NEGATIVEZ)
-
-#define DDS_CUBEMAP 0x00000200  // DDSCAPS2_CUBEMAP
-
-#define DDS_FLAGS_VOLUME 0x00200000  // DDSCAPS2_VOLUME
-
 // Subset here matches D3D10_RESOURCE_DIMENSION and D3D11_RESOURCE_DIMENSION
 enum DDS_RESOURCE_DIMENSION
 {
   DDS_DIMENSION_TEXTURE1D = 2,
   DDS_DIMENSION_TEXTURE2D = 3,
   DDS_DIMENSION_TEXTURE3D = 4,
-};
-
-// Subset here matches D3D10_RESOURCE_MISC_FLAG and D3D11_RESOURCE_MISC_FLAG
-enum DDS_RESOURCE_MISC_FLAG
-{
-  DDS_RESOURCE_MISC_TEXTURECUBE = 0x4L,
-};
-
-enum DDS_MISC_FLAGS2
-{
-  DDS_MISC_FLAGS2_ALPHA_MODE_MASK = 0x7L,
-};
-
-enum DDS_ALPHA_MODE
-{
-  DDS_ALPHA_MODE_UNKNOWN = 0,
-  DDS_ALPHA_MODE_STRAIGHT = 1,
-  DDS_ALPHA_MODE_PREMULTIPLIED = 2,
-  DDS_ALPHA_MODE_OPAQUE = 3,
-  DDS_ALPHA_MODE_CUSTOM = 4,
 };
 
 struct DDS_HEADER
@@ -152,7 +112,26 @@ struct DDS_HEADER_DXT10
 static_assert(sizeof(DDS_HEADER) == 124, "DDS Header size mismatch");
 static_assert(sizeof(DDS_HEADER_DXT10) == 20, "DDS DX10 Extended Header size mismatch");
 
-}  // namespace
+constexpr DDS_PIXELFORMAT DDSPF_A8R8G8B8 = {
+    sizeof(DDS_PIXELFORMAT), DDS_RGBA, 0, 32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000};
+constexpr DDS_PIXELFORMAT DDSPF_X8R8G8B8 = {
+    sizeof(DDS_PIXELFORMAT), DDS_RGB, 0, 32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0x00000000};
+constexpr DDS_PIXELFORMAT DDSPF_A8B8G8R8 = {
+    sizeof(DDS_PIXELFORMAT), DDS_RGBA, 0, 32, 0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000};
+constexpr DDS_PIXELFORMAT DDSPF_X8B8G8R8 = {
+    sizeof(DDS_PIXELFORMAT), DDS_RGB, 0, 32, 0x000000ff, 0x0000ff00, 0x00ff0000, 0x00000000};
+constexpr DDS_PIXELFORMAT DDSPF_R8G8B8 = {
+    sizeof(DDS_PIXELFORMAT), DDS_RGB, 0, 24, 0x00ff0000, 0x0000ff00, 0x000000ff, 0x00000000};
+
+// End of Microsoft code from DDS.h.
+
+bool DDSPixelFormatMatches(const DDS_PIXELFORMAT& pf1, const DDS_PIXELFORMAT& pf2)
+{
+  return std::tie(pf1.dwSize, pf1.dwFlags, pf1.dwFourCC, pf1.dwRGBBitCount, pf1.dwRBitMask,
+                  pf1.dwGBitMask, pf1.dwGBitMask, pf1.dwBBitMask, pf1.dwABitMask) ==
+         std::tie(pf2.dwSize, pf2.dwFlags, pf2.dwFourCC, pf2.dwRGBBitCount, pf2.dwRBitMask,
+                  pf2.dwGBitMask, pf2.dwGBitMask, pf2.dwBBitMask, pf2.dwABitMask);
+}
 
 struct DDSLoadInfo
 {
@@ -165,14 +144,95 @@ struct DDSLoadInfo
   size_t first_mip_offset = 0;
   size_t first_mip_size = 0;
   u32 first_mip_row_length = 0;
+
+  std::function<void(HiresTexture::Level*)> conversion_function;
 };
 
-static u32 GetBlockCount(u32 extent, u32 block_size)
+u32 GetBlockCount(u32 extent, u32 block_size)
 {
   return std::max(Common::AlignUp(extent, block_size) / block_size, 1u);
 }
 
-static bool ParseDDSHeader(File::IOFile& file, DDSLoadInfo* info)
+HiresTexture::ImageDataPointer AllocateLevelData(size_t size)
+{
+  return HiresTexture::ImageDataPointer(new u8[size], [](u8* data) { delete[] data; });
+}
+
+void ConvertTexture_X8B8G8R8(HiresTexture::Level* level)
+{
+  u8* data_ptr = level->data.get();
+  for (u32 row = 0; row < level->height; row++)
+  {
+    for (u32 x = 0; x < level->row_length; x++)
+    {
+      // Set alpha channel to full intensity.
+      data_ptr[3] = 0xFF;
+      data_ptr += sizeof(u32);
+    }
+  }
+}
+
+void ConvertTexture_A8R8G8B8(HiresTexture::Level* level)
+{
+  u8* data_ptr = level->data.get();
+  for (u32 row = 0; row < level->height; row++)
+  {
+    for (u32 x = 0; x < level->row_length; x++)
+    {
+      // Byte swap ABGR -> RGBA
+      u32 val;
+      std::memcpy(&val, data_ptr, sizeof(val));
+      val = ((val & 0xFF00FF00) | ((val >> 16) & 0xFF) | ((val << 16) & 0xFF0000));
+      std::memcpy(data_ptr, &val, sizeof(u32));
+      data_ptr += sizeof(u32);
+    }
+  }
+}
+
+void ConvertTexture_X8R8G8B8(HiresTexture::Level* level)
+{
+  u8* data_ptr = level->data.get();
+  for (u32 row = 0; row < level->height; row++)
+  {
+    for (u32 x = 0; x < level->row_length; x++)
+    {
+      // Byte swap XBGR -> RGBX, and set alpha to full intensity.
+      u32 val;
+      std::memcpy(&val, data_ptr, sizeof(val));
+      val = ((val & 0x0000FF00) | ((val >> 16) & 0xFF) | ((val << 16) & 0xFF0000)) | 0xFF000000;
+      std::memcpy(data_ptr, &val, sizeof(u32));
+      data_ptr += sizeof(u32);
+    }
+  }
+}
+
+void ConvertTexture_R8G8B8(HiresTexture::Level* level)
+{
+  // Have to reallocate the buffer for this one, since the data in the file
+  // does not have an alpha byte.
+  level->data_size = level->row_length * level->height * sizeof(u32);
+  HiresTexture::ImageDataPointer rgb_data = AllocateLevelData(level->data_size);
+  std::swap(level->data, rgb_data);
+
+  const u8* rgb_data_ptr = rgb_data.get();
+  u8* data_ptr = level->data.get();
+
+  for (u32 row = 0; row < level->height; row++)
+  {
+    for (u32 x = 0; x < level->row_length; x++)
+    {
+      // This is BGR in memory.
+      u32 val;
+      std::memcpy(&val, rgb_data_ptr, sizeof(val));
+      val = ((val & 0x0000FF00) | ((val >> 16) & 0xFF) | ((val << 16) & 0xFF0000)) | 0xFF000000;
+      std::memcpy(data_ptr, &val, sizeof(u32));
+      data_ptr += sizeof(u32);
+      rgb_data_ptr += 3;
+    }
+  }
+}
+
+bool ParseDDSHeader(File::IOFile& file, DDSLoadInfo* info)
 {
   // Exit as early as possible for non-DDS textures, since all extensions are currently
   // passed through this function.
@@ -265,8 +325,35 @@ static bool ParseDDSHeader(File::IOFile& file, DDSLoadInfo* info)
   }
   else
   {
-    // TODO: Support RGBA8 and friends.
-    return false;
+    if (DDSPixelFormatMatches(header.ddspf, DDSPF_A8R8G8B8))
+    {
+      info->conversion_function = ConvertTexture_A8R8G8B8;
+    }
+    else if (DDSPixelFormatMatches(header.ddspf, DDSPF_X8R8G8B8))
+    {
+      info->conversion_function = ConvertTexture_X8R8G8B8;
+    }
+    else if (DDSPixelFormatMatches(header.ddspf, DDSPF_X8B8G8R8))
+    {
+      info->conversion_function = ConvertTexture_X8B8G8R8;
+    }
+    else if (DDSPixelFormatMatches(header.ddspf, DDSPF_R8G8B8))
+    {
+      info->conversion_function = ConvertTexture_R8G8B8;
+    }
+    else if (DDSPixelFormatMatches(header.ddspf, DDSPF_A8B8G8R8))
+    {
+      // This format is already in RGBA order, so no conversion necessary.
+    }
+    else
+    {
+      return false;
+    }
+
+    // All these formats are RGBA, just with byte swapping.
+    info->format = HostTextureFormat::RGBA8;
+    info->block_size = 1;
+    info->bytes_per_block = header.ddspf.dwRGBBitCount / 8;
   }
 
   // We also need to ensure the backend supports these formats natively before loading them,
@@ -310,26 +397,31 @@ static bool ParseDDSHeader(File::IOFile& file, DDSLoadInfo* info)
   return true;
 }
 
-static bool ReadMipLevel(HiresTexture::Level& level, File::IOFile& file, u32 width, u32 height,
-                         HostTextureFormat format, u32 row_length, size_t size)
+bool ReadMipLevel(HiresTexture::Level* level, File::IOFile& file, const DDSLoadInfo& info,
+                  u32 width, u32 height, u32 row_length, size_t size)
 {
   // Copy to the final storage location. The deallocator here is simple, nothing extra is
   // needed, compared to the SOIL-based loader.
-  level.width = width;
-  level.height = height;
-  level.format = format;
-  level.row_length = row_length;
-  level.data_size = size;
-  level.data =
-      HiresTexture::ImageDataPointer(new u8[level.data_size], [](u8* data) { delete[] data; });
-  if (!file.ReadBytes(level.data.get(), level.data_size))
+  level->width = width;
+  level->height = height;
+  level->format = info.format;
+  level->row_length = row_length;
+  level->data_size = size;
+  level->data = AllocateLevelData(level->data_size);
+  if (!file.ReadBytes(level->data.get(), level->data_size))
   {
-    level.data.reset();
+    level->data.reset();
     return false;
   }
 
+  // Apply conversion function for uncompressed textures.
+  if (info.conversion_function)
+    info.conversion_function(level);
+
   return true;
 }
+
+}  // namespace
 
 bool HiresTexture::LoadDDSTexture(HiresTexture* tex, const std::string& filename)
 {
@@ -345,8 +437,8 @@ bool HiresTexture::LoadDDSTexture(HiresTexture* tex, const std::string& filename
   // Read first mip level, as it may have a custom pitch.
   Level first_level;
   if (!file.Seek(info.first_mip_offset, SEEK_SET) ||
-      !ReadMipLevel(first_level, file, info.width, info.height, info.format,
-                    info.first_mip_row_length, info.first_mip_size))
+      !ReadMipLevel(&first_level, file, info, info.width, info.height, info.first_mip_row_length,
+                    info.first_mip_size))
   {
     return false;
   }
@@ -368,7 +460,7 @@ bool HiresTexture::LoadDDSTexture(HiresTexture* tex, const std::string& filename
     u32 mip_row_length = blocks_wide * info.block_size;
     size_t mip_size = blocks_wide * static_cast<size_t>(info.bytes_per_block) * blocks_high;
     Level level;
-    if (!ReadMipLevel(level, file, mip_width, mip_height, info.format, mip_row_length, mip_size))
+    if (!ReadMipLevel(&level, file, info, mip_width, mip_height, mip_row_length, mip_size))
       break;
 
     tex->m_levels.push_back(std::move(level));
@@ -389,6 +481,6 @@ bool HiresTexture::LoadDDSTexture(Level& level, const std::string& filename)
   if (!ParseDDSHeader(file, &info))
     return false;
 
-  return ReadMipLevel(level, file, info.width, info.height, info.format, info.first_mip_row_length,
+  return ReadMipLevel(&level, file, info, info.width, info.height, info.first_mip_row_length,
                       info.first_mip_size);
 }
