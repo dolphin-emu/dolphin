@@ -28,6 +28,8 @@ public:
                                  size_t tlut_size, u32 width, u32 height, int format,
                                  bool has_mipmaps, bool dump = false);
 
+  static u32 CalculateMipCount(u32 width, u32 height);
+
   ~HiresTexture();
 
   HostTextureFormat GetFormat() const;

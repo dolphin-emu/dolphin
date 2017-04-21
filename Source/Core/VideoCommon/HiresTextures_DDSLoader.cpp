@@ -172,21 +172,6 @@ static u32 GetBlockCount(u32 extent, u32 block_size)
   return std::max(Common::AlignUp(extent, block_size) / block_size, 1u);
 }
 
-static u32 CalculateMipCount(u32 width, u32 height)
-{
-  u32 mip_width = std::max(width / 2, 1u);
-  u32 mip_height = std::max(height / 2, 1u);
-  u32 mip_count = 1;
-  while (mip_width > 1 || mip_height > 1)
-  {
-    mip_width = std::max(mip_width / 2, 1u);
-    mip_height = std::max(mip_height / 2, 1u);
-    mip_count++;
-  }
-
-  return mip_count;
-}
-
 static bool ParseDDSHeader(File::IOFile& file, DDSLoadInfo* info)
 {
   // Exit as early as possible for non-DDS textures, since all extensions are currently
@@ -217,13 +202,11 @@ static bool ParseDDSHeader(File::IOFile& file, DDSLoadInfo* info)
   // Check for mip levels.
   if (header.dwFlags & DDS_HEADER_FLAGS_MIPMAP)
   {
-    // Miplevels = 0 means full mip chain?
-    // Some files may specify a number too large here, which doesn't play well with the backends.
     info->mip_count = header.dwMipMapCount;
-    if (info->mip_count != 0)
-      info->mip_count = std::min(info->mip_count, CalculateMipCount(info->width, info->height));
+    if (header.dwMipMapCount != 0)
+      info->mip_count = header.dwMipMapCount;
     else
-      info->mip_count = CalculateMipCount(info->width, info->height);
+      info->mip_count = HiresTexture::CalculateMipCount(info->width, info->height);
   }
   else
   {
@@ -372,10 +355,13 @@ bool HiresTexture::LoadDDSTexture(HiresTexture* tex, const std::string& filename
 
   // Read in any remaining mip levels in the file.
   // If the .dds file does not contain a full mip chain, we'll fall back to the old path.
-  u32 mip_width = std::max(info.width / 2, 1u);
-  u32 mip_height = std::max(info.height / 2, 1u);
+  u32 mip_width = info.width;
+  u32 mip_height = info.height;
   for (u32 i = 1; i < info.mip_count; i++)
   {
+    mip_width = std::max(mip_width / 2, 1u);
+    mip_height = std::max(mip_height / 2, 1u);
+
     // Pitch can't be specified with each mip level, so we have to calculate it ourselves.
     u32 blocks_wide = GetBlockCount(mip_width, info.block_size);
     u32 blocks_high = GetBlockCount(mip_height, info.block_size);
@@ -386,8 +372,6 @@ bool HiresTexture::LoadDDSTexture(HiresTexture* tex, const std::string& filename
       break;
 
     tex->m_levels.push_back(std::move(level));
-    mip_width = std::max(mip_width / 2, 1u);
-    mip_height = std::max(mip_height / 2, 1u);
   }
 
   return true;
