@@ -372,6 +372,10 @@ IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
     return DIGetTMDViewSize(request);
   case IOCTL_ES_DIGETTMDVIEW:
     return DIGetTMDView(request);
+  case IOCTL_ES_DIGETTMDSIZE:
+    return DIGetTMDSize(request);
+  case IOCTL_ES_DIGETTMD:
+    return DIGetTMD(request);
 
   case IOCTL_ES_GETCONSUMPTION:
     return GetConsumption(request);
@@ -414,8 +418,6 @@ IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
 
   case IOCTL_ES_VERIFYSIGN:
   case IOCTL_ES_DELETESHAREDCONTENT:
-  case IOCTL_ES_UNKNOWN_39:
-  case IOCTL_ES_UNKNOWN_3A:
   case IOCTL_ES_UNKNOWN_3B:
   case IOCTL_ES_UNKNOWN_3C:
   case IOCTL_ES_UNKNOWN_3D:

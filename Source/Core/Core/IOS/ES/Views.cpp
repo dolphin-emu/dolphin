@@ -260,6 +260,39 @@ IPCCommandResult ES::DIGetTicketView(const IOCtlVRequest& request)
   return GetDefaultReply(IPC_SUCCESS);
 }
 
+IPCCommandResult ES::DIGetTMDSize(const IOCtlVRequest& request)
+{
+  if (!request.HasNumberOfValidVectors(0, 1) || request.io_vectors[0].size != sizeof(u32))
+    return GetDefaultReply(ES_EINVAL);
+
+  if (!GetTitleContext().active)
+    return GetDefaultReply(ES_EINVAL);
+
+  Memory::Write_U32(static_cast<u32>(GetTitleContext().tmd.GetRawTMD().size()),
+                    request.io_vectors[0].address);
+  return GetDefaultReply(IPC_SUCCESS);
+}
+
+IPCCommandResult ES::DIGetTMD(const IOCtlVRequest& request)
+{
+  if (!request.HasNumberOfValidVectors(1, 1) || request.in_vectors[0].size != sizeof(u32))
+    return GetDefaultReply(ES_EINVAL);
+
+  const u32 tmd_size = Memory::Read_U32(request.in_vectors[0].address);
+  if (tmd_size != request.io_vectors[0].size)
+    return GetDefaultReply(ES_EINVAL);
+
+  if (!GetTitleContext().active)
+    return GetDefaultReply(ES_EINVAL);
+
+  const std::vector<u8>& tmd_bytes = GetTitleContext().tmd.GetRawTMD();
+
+  if (static_cast<u32>(tmd_bytes.size()) > tmd_size)
+    return GetDefaultReply(ES_EINVAL);
+
+  Memory::CopyToEmu(request.io_vectors[0].address, tmd_bytes.data(), tmd_bytes.size());
+  return GetDefaultReply(IPC_SUCCESS);
+}
 }  // namespace Device
 }  // namespace HLE
 }  // namespace IOS
