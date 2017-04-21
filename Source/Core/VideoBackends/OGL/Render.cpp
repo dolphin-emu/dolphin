@@ -1176,6 +1176,7 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 void Renderer::BlitScreen(TargetRectangle src, TargetRectangle dst, GLuint src_texture,
                           int src_width, int src_height)
 {
+  OpenGLPostProcessing* post_processor = static_cast<OpenGLPostProcessing*>(m_post_processor.get());
   if (g_ActiveConfig.iStereoMode == STEREO_SBS || g_ActiveConfig.iStereoMode == STEREO_TAB)
   {
     TargetRectangle leftRc, rightRc;
@@ -1186,12 +1187,12 @@ void Renderer::BlitScreen(TargetRectangle src, TargetRectangle dst, GLuint src_t
     else
       std::tie(leftRc, rightRc) = ConvertStereoRectangle(dst);
 
-    m_post_processor->BlitFromTexture(src, leftRc, src_texture, src_width, src_height, 0);
-    m_post_processor->BlitFromTexture(src, rightRc, src_texture, src_width, src_height, 1);
+    post_processor->BlitFromTexture(src, leftRc, src_texture, src_width, src_height, 0);
+    post_processor->BlitFromTexture(src, rightRc, src_texture, src_width, src_height, 1);
   }
   else
   {
-    m_post_processor->BlitFromTexture(src, dst, src_texture, src_width, src_height);
+    post_processor->BlitFromTexture(src, dst, src_texture, src_width, src_height, 0);
   }
 }
 
