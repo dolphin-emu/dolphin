@@ -134,16 +134,13 @@ static float* DesignFIR(unsigned int n, float fc, float opt)
   if (n == 0)
     return nullptr;
 
-  fc = MathUtil::Clamp(fc, 0.001f, 1.0f);
-
   float* w = (float*)calloc(sizeof(float), n);
 
   // Get window coefficients
   Hamming(n, w);
 
-  fc1 = fc;
   // Cutoff frequency must be < 0.5 where 0.5 <=> Fs/2
-  fc1 = ((fc1 <= 1.0) && (fc1 > 0.0)) ? fc1 / 2 : 0.25f;
+  fc1 = MathUtil::Clamp(fc, 0.001f, 1.0f) / 2;
   k1 *= fc1;
 
   // Low pass filter
