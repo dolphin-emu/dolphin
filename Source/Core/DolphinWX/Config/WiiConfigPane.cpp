@@ -21,6 +21,20 @@
 #include "DolphinWX/WxUtils.h"
 #include "UICommon/USBUtils.h"
 
+// SYSCONF uses 0 for bottom and 1 for top, but we place them in
+// the other order in the GUI so that Top will be above Bottom,
+// matching the respective physical placements of the sensor bar.
+// This also matches the layout of the settings in the Wii Menu.
+static int TranslateSensorBarPosition(int position)
+{
+  if (position == 0)
+    return 1;
+  if (position == 1)
+    return 0;
+
+  return position;
+}
+
 WiiConfigPane::WiiConfigPane(wxWindow* parent, wxWindowID id) : wxPanel(parent, id)
 {
   InitializeGUI();
@@ -44,8 +58,8 @@ void WiiConfigPane::InitializeGUI()
   m_system_language_strings.Add(_("Traditional Chinese"));
   m_system_language_strings.Add(_("Korean"));
 
-  m_bt_sensor_bar_pos_strings.Add(_("Bottom"));
   m_bt_sensor_bar_pos_strings.Add(_("Top"));
+  m_bt_sensor_bar_pos_strings.Add(_("Bottom"));
 
   m_pal60_mode_checkbox = new wxCheckBox(this, wxID_ANY, _("Use PAL60 Mode (EuRGB60)"));
   m_screensaver_checkbox = new wxCheckBox(this, wxID_ANY, _("Enable Screen Saver"));
@@ -170,7 +184,8 @@ void WiiConfigPane::LoadGUIValues()
 
   PopulateUSBPassthroughListbox();
 
-  m_bt_sensor_bar_pos->SetSelection(SConfig::GetInstance().m_sensor_bar_position);
+  m_bt_sensor_bar_pos->SetSelection(
+      TranslateSensorBarPosition(SConfig::GetInstance().m_sensor_bar_position));
   m_bt_sensor_bar_sens->SetValue(SConfig::GetInstance().m_sensor_bar_sensitivity);
   m_bt_speaker_volume->SetValue(SConfig::GetInstance().m_speaker_volume);
   m_bt_wiimote_motor->SetValue(SConfig::GetInstance().m_wiimote_motor);
@@ -284,7 +299,7 @@ void WiiConfigPane::OnAspectRatioChoiceChanged(wxCommandEvent& event)
 
 void WiiConfigPane::OnSensorBarPosChanged(wxCommandEvent& event)
 {
-  SConfig::GetInstance().m_sensor_bar_position = event.GetInt();
+  SConfig::GetInstance().m_sensor_bar_position = TranslateSensorBarPosition(event.GetInt());
 }
 
 void WiiConfigPane::OnSensorBarSensChanged(wxCommandEvent& event)
