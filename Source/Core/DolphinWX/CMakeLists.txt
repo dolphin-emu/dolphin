@@ -75,7 +75,6 @@ set(GUI_SRCS
   TASInputDlg.cpp
   VideoConfigDiag.cpp
   WxEventUtils.cpp
-  WXInputBase.cpp
   WxUtils.cpp
 )
 
