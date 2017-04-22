@@ -75,7 +75,6 @@
 #include "DolphinWX/NetPlay/NetPlaySetupFrame.h"
 #include "DolphinWX/NetPlay/NetWindow.h"
 #include "DolphinWX/TASInputDlg.h"
-#include "DolphinWX/WXInputBase.h"
 #include "DolphinWX/WxEventUtils.h"
 #include "DolphinWX/WxUtils.h"
 
