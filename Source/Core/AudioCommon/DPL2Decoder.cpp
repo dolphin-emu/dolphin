@@ -12,6 +12,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <functional>
+#include <numeric>
 #include <vector>
 
 #include "AudioCommon/DPL2Decoder.h"
@@ -41,23 +42,7 @@ static unsigned int len125;
 template <class T>
 static float DotProduct(int count, const T* buf, const std::vector<float>& coeffs, int offset)
 {
-  int i;
-  float sum0 = 0.0f, sum1 = 0.0f, sum2 = 0.0f, sum3 = 0.0f;
-
-  // Unrolled loop
-  for (i = 0; (i + 3) < count; i += 4)
-  {
-    sum0 += buf[i + 0] * coeffs[offset + i + 0];
-    sum1 += buf[i + 1] * coeffs[offset + i + 1];
-    sum2 += buf[i + 2] * coeffs[offset + i + 2];
-    sum3 += buf[i + 3] * coeffs[offset + i + 3];
-  }
-
-  // Epilogue of unrolled loop
-  for (; i < count; i++)
-    sum0 += buf[i] * coeffs[offset + i];
-
-  return sum0 + sum1 + sum2 + sum3;
+  return std::inner_product(buf, buf + count, coeffs.begin() + offset, T(0));
 }
 
 template <class T>
