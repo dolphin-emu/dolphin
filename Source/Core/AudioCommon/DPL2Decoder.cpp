@@ -128,7 +128,6 @@ static float* DesignFIR(unsigned int n, float fc, float opt)
   float k1 = 2 * float(M_PI);        // 2*pi*fc1
   float k2 = 0.5f * (float)(1 - o);  // Constant used if the filter has even length
   float g = 0.0f;                    // Gain
-  float t1;                          // Temporary variables
   float fc1;                         // Cutoff frequencies
 
   // Sanity check
@@ -162,9 +161,10 @@ static float* DesignFIR(unsigned int n, float fc, float opt)
   // Create filter
   for (u32 i = 0; i < end; i++)
   {
-    t1 = (float)(i + 1) - k2;
-    w[end - i - 1] = w[n - end + i] = float(w[end - i - 1] * sin(k1 * t1) / (M_PI * t1));  // Sinc
-    g += 2 * w[end - i - 1];  // Total gain in filter
+    float t1 = static_cast<float>(i + 1) - k2;
+    w[end - i - 1] = w[n - end + i] =
+        static_cast<float>(w[end - i - 1] * sin(k1 * t1) / (M_PI * t1));  // Sinc
+    g += 2 * w[end - i - 1];                                              // Total gain in filter
   }
 
   // Normalize gain
