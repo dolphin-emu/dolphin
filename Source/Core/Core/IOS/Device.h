@@ -197,7 +197,6 @@ public:
 
 protected:
   std::string m_name;
-  // STATE_TO_SAVE
   u32 m_device_id;
   DeviceType m_device_type;
   bool m_is_active = false;

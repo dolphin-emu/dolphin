@@ -141,14 +141,10 @@ Device::Device(const u32 device_id, const std::string& device_name, const Device
 void Device::DoState(PointerWrap& p)
 {
   DoStateShared(p);
-  p.Do(m_is_active);
 }
 
 void Device::DoStateShared(PointerWrap& p)
 {
-  p.Do(m_name);
-  p.Do(m_device_id);
-  p.Do(m_device_type);
   p.Do(m_is_active);
 }
 
