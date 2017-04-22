@@ -105,9 +105,7 @@ static void Hamming(int n, float* w)
     *w++ = float(0.54 - 0.46 * cos(k * (float)i));
 }
 
-/******************************************************************************
-*  FIR filter design
-******************************************************************************/
+// FIR filter design
 
 /* Design FIR filter using the Window method
 
@@ -122,10 +120,10 @@ opt   beta constant used only when designing using kaiser windows
 
 returns 0 if OK, -1 if fail
 */
-static float* DesignFIR(unsigned int* n, float* fc, float opt)
+static float* DesignFIR(unsigned int n, float fc, float opt)
 {
-  unsigned int o = *n & 1;                 // Indicator for odd filter length
-  unsigned int end = ((*n + 1) >> 1) - o;  // Loop end
+  unsigned int o = n & 1;                 // Indicator for odd filter length
+  unsigned int end = ((n + 1) >> 1) - o;  // Loop end
 
   float k1 = 2 * float(M_PI);        // 2*pi*fc1
   float k2 = 0.5f * (float)(1 - o);  // Constant used if the filter has even length
@@ -134,17 +132,17 @@ static float* DesignFIR(unsigned int* n, float* fc, float opt)
   float fc1;                         // Cutoff frequencies
 
   // Sanity check
-  if (*n == 0)
+  if (n == 0)
     return nullptr;
 
-  fc[0] = MathUtil::Clamp(fc[0], 0.001f, 1.0f);
+  fc = MathUtil::Clamp(fc, 0.001f, 1.0f);
 
-  float* w = (float*)calloc(sizeof(float), *n);
+  float* w = (float*)calloc(sizeof(float), n);
 
   // Get window coefficients
-  Hamming(*n, w);
+  Hamming(n, w);
 
-  fc1 = *fc;
+  fc1 = fc;
   // Cutoff frequency must be < 0.5 where 0.5 <=> Fs/2
   fc1 = ((fc1 <= 1.0) && (fc1 > 0.0)) ? fc1 / 2 : 0.25f;
   k1 *= fc1;
@@ -165,13 +163,13 @@ static float* DesignFIR(unsigned int* n, float* fc, float opt)
   for (u32 i = 0; i < end; i++)
   {
     t1 = (float)(i + 1) - k2;
-    w[end - i - 1] = w[*n - end + i] = float(w[end - i - 1] * sin(k1 * t1) / (M_PI * t1));  // Sinc
+    w[end - i - 1] = w[n - end + i] = float(w[end - i - 1] * sin(k1 * t1) / (M_PI * t1));  // Sinc
     g += 2 * w[end - i - 1];  // Total gain in filter
   }
 
   // Normalize gain
   g = 1 / g;
-  for (u32 i = 0; i < *n; i++)
+  for (u32 i = 0; i < n; i++)
     w[i] *= g;
 
   return w;
@@ -209,7 +207,7 @@ static float* CalculateCoefficients125HzLowpass(int rate)
 {
   len125 = 256;
   float f = 125.0f / (rate / 2);
-  float* coeffs = DesignFIR(&len125, &f, 0);
+  float* coeffs = DesignFIR(len125, f, 0);
   static const float M3_01DB = 0.7071067812f;
   for (unsigned int i = 0; i < len125; i++)
   {
