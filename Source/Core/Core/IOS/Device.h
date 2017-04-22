@@ -174,8 +174,7 @@ public:
   virtual ~Device() = default;
   // Release any resources which might interfere with savestating.
   virtual void PrepareForState(PointerWrap::Mode mode) {}
-  virtual void DoState(PointerWrap& p);
-  void DoStateShared(PointerWrap& p);
+  void DoState(PointerWrap& p);
 
   const std::string& GetDeviceName() const { return m_name; }
   u32 GetDeviceID() const { return m_device_id; }
@@ -196,6 +195,8 @@ public:
   static IPCCommandResult GetNoReply();
 
 protected:
+  virtual void DoStateInternal(PointerWrap& p);
+
   std::string m_name;
   u32 m_device_id;
   DeviceType m_device_type;

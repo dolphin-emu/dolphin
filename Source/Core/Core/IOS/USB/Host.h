@@ -39,7 +39,6 @@ public:
   ReturnCode Open(const OpenRequest& request) override;
 
   void UpdateWantDeterminism(bool new_want_determinism) override;
-  void DoState(PointerWrap& p) override;
 
 protected:
   enum class ChangeEvent
@@ -63,6 +62,8 @@ protected:
                                   std::function<s32()> submit) const;
 
 private:
+  void DoStateInternal(PointerWrap& p) override;
+
   bool AddDevice(std::unique_ptr<USB::Device> device);
   bool UpdateDevices(bool always_add_hooks = false);
 

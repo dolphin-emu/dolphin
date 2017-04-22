@@ -50,9 +50,9 @@ public:
   IPCCommandResult DeviceIOCtl(u64 device_id, const IOCtlRequest& request);
   IPCCommandResult DeviceIOCtlV(u64 device_id, const IOCtlVRequest& request);
 
-  void DoState(PointerWrap& p) override;
-
 private:
+  void DoStateInternal(PointerWrap& p) override;
+
   IPCCommandResult CancelInsertionHook(const IOCtlRequest& request);
   IPCCommandResult GetDeviceList(const IOCtlVRequest& request) const;
   IPCCommandResult GetRhDesca(const IOCtlRequest& request) const;

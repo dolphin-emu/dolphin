@@ -28,8 +28,6 @@ class SDIOSlot0 : public Device
 public:
   SDIOSlot0(u32 device_id, const std::string& device_name);
 
-  void DoState(PointerWrap& p) override;
-
   ReturnCode Open(const OpenRequest& request) override;
   void Close() override;
   IPCCommandResult IOCtl(const IOCtlRequest& request) override;
@@ -117,6 +115,8 @@ private:
     EventType type;
     Request request;
   };
+
+  void DoStateInternal(PointerWrap& p) override;
 
   IPCCommandResult WriteHCRegister(const IOCtlRequest& request);
   IPCCommandResult ReadHCRegister(const IOCtlRequest& request);

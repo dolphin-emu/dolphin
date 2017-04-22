@@ -98,7 +98,7 @@ IPCCommandResult USB_VEN::IOCtlV(const IOCtlVRequest& request)
   }
 }
 
-void USB_VEN::DoState(PointerWrap& p)
+void USB_VEN::DoStateInternal(PointerWrap& p)
 {
   p.Do(m_devicechange_first_call);
   u32 hook_address = m_devicechange_hook_request ? m_devicechange_hook_request->address : 0;

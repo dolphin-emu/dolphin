@@ -43,7 +43,7 @@ OH0Device::OH0Device(u32 id, const std::string& name) : Device(id, name, DeviceT
     GetVidPidFromDevicePath(name, m_vid, m_pid);
 }
 
-void OH0Device::DoState(PointerWrap& p)
+void OH0Device::DoStateInternal(PointerWrap& p)
 {
   m_oh0 = std::static_pointer_cast<OH0>(GetDeviceByName("/dev/usb/oh0"));
   p.Do(m_name);

@@ -55,7 +55,6 @@ public:
   void Close() override;
   IPCCommandResult IOCtlV(const IOCtlVRequest& request) override;
 
-  void DoState(PointerWrap& p) override;
   void UpdateSyncButtonState(bool is_held) override;
   void TriggerSyncButtonPressedEvent() override;
   void TriggerSyncButtonHeldEvent() override;
@@ -109,6 +108,8 @@ private:
   Common::Flag m_showed_failed_transfer;
 
   bool m_is_wii_bt_module = false;
+
+  void DoStateInternal(PointerWrap& p) override;
 
   void WaitForHCICommandComplete(u16 opcode);
   void SendHCIResetCommand();

@@ -26,7 +26,9 @@ public:
   {
   }
   ReturnCode Open(const OpenRequest& request) override;
-  void DoState(PointerWrap& p) override;
+
+private:
+  void DoStateInternal(PointerWrap& p) override;
 };
 }  // namespace Device
 }  // namespace HLE

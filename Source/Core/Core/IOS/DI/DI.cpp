@@ -28,9 +28,8 @@ DI::DI(u32 device_id, const std::string& device_name) : Device(device_id, device
 {
 }
 
-void DI::DoState(PointerWrap& p)
+void DI::DoStateInternal(PointerWrap& p)
 {
-  DoStateShared(p);
   p.Do(m_commands_to_execute);
 }
 

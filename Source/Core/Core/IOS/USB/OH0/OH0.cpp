@@ -78,7 +78,7 @@ IPCCommandResult OH0::IOCtlV(const IOCtlVRequest& request)
   }
 }
 
-void OH0::DoState(PointerWrap& p)
+void OH0::DoStateInternal(PointerWrap& p)
 {
   if (p.GetMode() == PointerWrap::MODE_READ && !m_devices.empty())
   {

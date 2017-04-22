@@ -279,7 +279,7 @@ IPCCommandResult BluetoothReal::IOCtlV(const IOCtlVRequest& request)
 }
 
 static bool s_has_shown_savestate_warning = false;
-void BluetoothReal::DoState(PointerWrap& p)
+void BluetoothReal::DoStateInternal(PointerWrap& p)
 {
   bool passthrough_bluetooth = true;
   p.Do(passthrough_bluetooth);

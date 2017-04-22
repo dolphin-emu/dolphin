@@ -63,8 +63,6 @@ public:
   WiimoteDevice* AccessWiiMote(const bdaddr_t& _rAddr);
   WiimoteDevice* AccessWiiMote(u16 _ConnectionHandle);
 
-  void DoState(PointerWrap& p) override;
-
 private:
   bdaddr_t m_ControllerBD;
 
@@ -100,6 +98,8 @@ private:
 
   u32 m_PacketCount[MAX_BBMOTES] = {};
   u64 m_last_ticks = 0;
+
+  void DoStateInternal(PointerWrap& p) override;
 
   // Send ACL data to a device (wiimote)
   void IncDataPacket(u16 _ConnectionHandle);

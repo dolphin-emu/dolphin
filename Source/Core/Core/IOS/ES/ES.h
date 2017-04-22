@@ -55,8 +55,6 @@ public:
   // Internal implementation of the ES_DECRYPT ioctlv.
   static void DecryptContent(u32 key_index, u8* iv, u8* input, u32 size, u8* new_iv, u8* output);
 
-  void DoState(PointerWrap& p) override;
-
   ReturnCode Open(const OpenRequest& request) override;
   void Close() override;
   IPCCommandResult IOCtlV(const IOCtlVRequest& request) override;
@@ -154,6 +152,8 @@ private:
     u8 ecc_pubkey[0x3c];
     u8 padding[0x3c];
   };
+
+  void DoStateInternal(PointerWrap& p) override;
 
   // Title management
   IPCCommandResult AddTicket(const IOCtlVRequest& request);

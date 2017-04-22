@@ -30,9 +30,9 @@ public:
 
   IPCCommandResult IOCtl(const IOCtlRequest& request) override;
 
-  void DoState(PointerWrap& p) override;
-
 private:
+  void DoStateInternal(PointerWrap& p) override;
+
   std::shared_ptr<USB::Device> GetDeviceByIOSID(s32 ios_id) const;
 
   IPCCommandResult CancelInterrupt(const IOCtlRequest& request);

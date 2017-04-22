@@ -21,7 +21,7 @@ ReturnCode BluetoothStub::Open(const OpenRequest& request)
   return IPC_ENOENT;
 }
 
-void BluetoothStub::DoState(PointerWrap& p)
+void BluetoothStub::DoStateInternal(PointerWrap& p)
 {
   Core::DisplayMessage("The current IPC_HLE_Device_usb is a stub. Aborting load.", 4000);
   p.SetMode(PointerWrap::MODE_VERIFY);

@@ -116,7 +116,7 @@ static void DoStateForMessage(PointerWrap& p, std::unique_ptr<T>& message)
   }
 }
 
-void BluetoothEmu::DoState(PointerWrap& p)
+void BluetoothEmu::DoStateInternal(PointerWrap& p)
 {
   bool passthrough_bluetooth = false;
   p.Do(passthrough_bluetooth);
