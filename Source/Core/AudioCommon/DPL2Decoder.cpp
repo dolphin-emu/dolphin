@@ -122,13 +122,15 @@ returns 0 if OK, -1 if fail
 */
 static float* DesignFIR(unsigned int n, float fc, float opt)
 {
-  unsigned int o = n & 1;                 // Indicator for odd filter length
-  unsigned int end = ((n + 1) >> 1) - o;  // Loop end
+  const unsigned int o = n & 1;                 // Indicator for odd filter length
+  const unsigned int end = ((n + 1) >> 1) - o;  // Loop end
 
-  float k1 = 2 * float(M_PI);        // 2*pi*fc1
-  float k2 = 0.5f * (float)(1 - o);  // Constant used if the filter has even length
-  float g = 0.0f;                    // Gain
-  float fc1;                         // Cutoff frequencies
+  // Cutoff frequency must be < 0.5 where 0.5 <=> Fs/2
+  const float fc1 = MathUtil::Clamp(fc, 0.001f, 1.0f) / 2;
+
+  const float k1 = 2 * static_cast<float>(M_PI) * fc1;  // Cutoff frequency in rad/s
+  const float k2 = 0.5f * static_cast<float>(1 - o);    // Time offset if filter has even length
+  float g = 0.0f;                                       // Gain
 
   // Sanity check
   if (n == 0)
@@ -138,10 +140,6 @@ static float* DesignFIR(unsigned int n, float fc, float opt)
 
   // Get window coefficients
   Hamming(n, w);
-
-  // Cutoff frequency must be < 0.5 where 0.5 <=> Fs/2
-  fc1 = MathUtil::Clamp(fc, 0.001f, 1.0f) / 2;
-  k1 *= fc1;
 
   // Low pass filter
 
