@@ -84,11 +84,11 @@ static std::vector<float> Hamming(int n)
 {
   std::vector<float> w(n);
 
-  float k = float(2 * M_PI / ((float)(n - 1)));  // 2*pi/(N-1)
+  float k = static_cast<float>(2.0 * M_PI / (n - 1));
 
   // Calculate window coefficients
   for (int i = 0; i < n; i++)
-    w[i] = float(0.54 - 0.46 * cos(k * (float)i));
+    w[i] = static_cast<float>(0.54 - 0.46 * cos(k * i));
 
   return w;
 }
@@ -238,10 +238,10 @@ static void MatrixDecode(const float* in, const int k, const int il, const int i
   /* Matrix */
   l_agc = in[il] * PassiveLock(*_adapt_l_gain);
   r_agc = in[ir] * PassiveLock(*_adapt_r_gain);
-  _cf[k] = (l_agc + r_agc) * (float)M_SQRT1_2;
+  _cf[k] = (l_agc + r_agc) * static_cast<float>(M_SQRT1_2);
   if (decode_rear)
   {
-    _lr[kr] = _rr[kr] = (l_agc - r_agc) * (float)M_SQRT1_2;
+    _lr[kr] = _rr[kr] = (l_agc - r_agc) * static_cast<float>(M_SQRT1_2);
     // Stereo rear channel is steered with the same AGC steering as
     // the decoding matrix. Note this requires a fast updating AGC
     // at the order of 20 ms (which is the case here).
@@ -250,8 +250,8 @@ static void MatrixDecode(const float* in, const int k, const int il, const int i
   }
 
   /*** AXIS NO. 2: (Lt + Rt, Lt - Rt) -> (L, R) ***/
-  lpr = (in[il] + in[ir]) * (float)M_SQRT1_2;
-  lmr = (in[il] - in[ir]) * (float)M_SQRT1_2;
+  lpr = (in[il] + in[ir]) * static_cast<float>(M_SQRT1_2);
+  lmr = (in[il] - in[ir]) * static_cast<float>(M_SQRT1_2);
   /* AGC adaption */
   d_gain = fabs(lmr_unlim_gain - *_adapt_lmr_gain);
   f = d_gain * (1.0f / MATAGCTRIG);
@@ -261,8 +261,8 @@ static void MatrixDecode(const float* in, const int k, const int il, const int i
   /* Matrix */
   lpr_agc = lpr * PassiveLock(*_adapt_lpr_gain);
   lmr_agc = lmr * PassiveLock(*_adapt_lmr_gain);
-  _lf[k] = (lpr_agc + lmr_agc) * (float)M_SQRT1_2;
-  _rf[k] = (lpr_agc - lmr_agc) * (float)M_SQRT1_2;
+  _lf[k] = (lpr_agc + lmr_agc) * static_cast<float>(M_SQRT1_2);
+  _rf[k] = (lpr_agc - lmr_agc) * static_cast<float>(M_SQRT1_2);
 
   /*** CENTER FRONT CANCELLATION ***/
   // A heuristic approach exploits that Lt + Rt gain contains the
