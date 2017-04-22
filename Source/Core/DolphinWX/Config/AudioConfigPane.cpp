@@ -64,12 +64,6 @@ void AudioConfigPane::InitializeGUI()
 
   const int space5 = FromDIP(5);
 
-  wxStaticBoxSizer* const dsp_engine_sizer =
-      new wxStaticBoxSizer(wxVERTICAL, this, _("Sound Settings"));
-  dsp_engine_sizer->Add(m_dsp_engine_radiobox, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
-  dsp_engine_sizer->AddSpacer(space5);
-  dsp_engine_sizer->AddStretchSpacer();
-
   wxStaticBoxSizer* const volume_sizer = new wxStaticBoxSizer(wxVERTICAL, this, _("Volume"));
   volume_sizer->Add(m_volume_slider, 1, wxALIGN_CENTER_HORIZONTAL);
   volume_sizer->Add(m_volume_text, 0, wxALIGN_CENTER_HORIZONTAL | wxLEFT | wxRIGHT, space5);
@@ -95,7 +89,7 @@ void AudioConfigPane::InitializeGUI()
 
   wxBoxSizer* const dsp_audio_sizer = new wxBoxSizer(wxHORIZONTAL);
   dsp_audio_sizer->AddSpacer(space5);
-  dsp_audio_sizer->Add(dsp_engine_sizer, 1, wxEXPAND | wxTOP | wxBOTTOM, space5);
+  dsp_audio_sizer->Add(m_dsp_engine_radiobox, 1, wxEXPAND | wxTOP | wxBOTTOM, space5);
   dsp_audio_sizer->AddSpacer(space5);
   dsp_audio_sizer->Add(volume_sizer, 0, wxEXPAND | wxTOP | wxBOTTOM, space5);
   dsp_audio_sizer->AddSpacer(space5);
