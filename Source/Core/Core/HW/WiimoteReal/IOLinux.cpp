@@ -35,13 +35,8 @@ WiimoteScannerLinux::WiimoteScannerLinux() : m_device_id(-1), m_device_sock(-1)
 
 WiimoteScannerLinux::~WiimoteScannerLinux()
 {
-  if (IsReady())
+  if (m_device_sock > 0)
     close(m_device_sock);
-}
-
-bool WiimoteScannerLinux::IsReady() const
-{
-  return m_device_sock > 0;
 }
 
 void WiimoteScannerLinux::FindWiimotes(std::vector<Wiimote*>& found_wiimotes, Wiimote*& found_board)

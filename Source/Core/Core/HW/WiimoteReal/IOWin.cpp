@@ -458,32 +458,6 @@ void WiimoteScannerWindows::FindWiimotes(std::vector<Wiimote*>& found_wiimotes,
   SetupDiDestroyDeviceInfoList(device_info);
 }
 
-bool WiimoteScannerWindows::IsReady() const
-{
-  if (!s_loaded_ok)
-  {
-    return false;
-  }
-
-  // TODO: don't search for a radio each time
-
-  BLUETOOTH_FIND_RADIO_PARAMS radioParam;
-  radioParam.dwSize = sizeof(radioParam);
-
-  HANDLE hRadio;
-  HBLUETOOTH_RADIO_FIND hFindRadio = pBluetoothFindFirstRadio(&radioParam, &hRadio);
-
-  if (nullptr != hFindRadio)
-  {
-    pBluetoothFindRadioClose(hFindRadio);
-    return true;
-  }
-  else
-  {
-    return false;
-  }
-}
-
 // Connect to a Wiimote with a known device path.
 bool WiimoteWindows::ConnectInternal()
 {

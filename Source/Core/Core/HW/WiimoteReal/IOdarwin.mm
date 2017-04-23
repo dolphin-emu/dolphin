@@ -86,12 +86,6 @@ void WiimoteScannerDarwin::FindWiimotes(std::vector<Wiimote*>& found_wiimotes,
   [sbt release];
 }
 
-bool WiimoteScannerDarwin::IsReady() const
-{
-  // TODO: only return true when a BT device is present
-  return true;
-}
-
 WiimoteDarwin::WiimoteDarwin(IOBluetoothDevice* device) : m_btd(device)
 {
   m_inputlen = 0;

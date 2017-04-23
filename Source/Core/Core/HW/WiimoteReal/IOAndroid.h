@@ -18,6 +18,7 @@ public:
   WiimoteAndroid(int index);
   ~WiimoteAndroid() override;
   std::string GetId() const override { return "Android " + StringFromInt(m_mayflash_index); }
+
 protected:
   bool ConnectInternal() override;
   void DisconnectInternal() override;
@@ -43,7 +44,6 @@ class WiimoteScannerAndroid final : public WiimoteScannerBackend
 public:
   WiimoteScannerAndroid() = default;
   ~WiimoteScannerAndroid() override = default;
-  bool IsReady() const override { return true; }
   void FindWiimotes(std::vector<Wiimote*>&, Wiimote*&) override;
   void Update() override {}
 };

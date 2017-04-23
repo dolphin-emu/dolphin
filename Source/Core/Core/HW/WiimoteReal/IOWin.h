@@ -27,6 +27,7 @@ public:
   WiimoteWindows(const std::basic_string<TCHAR>& path, WinWriteMethod initial_write_method);
   ~WiimoteWindows() override;
   std::string GetId() const override { return UTF16ToUTF8(m_devicepath); }
+
 protected:
   bool ConnectInternal() override;
   void DisconnectInternal() override;
@@ -48,7 +49,6 @@ class WiimoteScannerWindows final : public WiimoteScannerBackend
 public:
   WiimoteScannerWindows();
   ~WiimoteScannerWindows() override;
-  bool IsReady() const override;
   void FindWiimotes(std::vector<Wiimote*>&, Wiimote*&) override;
   void Update() override;
 };

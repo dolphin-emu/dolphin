@@ -533,12 +533,6 @@ void WiimoteScanner::SetScanMode(WiimoteScanMode scan_mode)
   m_scan_mode_changed_event.Set();
 }
 
-bool WiimoteScanner::IsReady() const
-{
-  return std::any_of(m_scanner_backends.begin(), m_scanner_backends.end(),
-                     [](const auto& backend) { return backend->IsReady(); });
-}
-
 void WiimoteScanner::AddScannerBackend(std::unique_ptr<WiimoteScannerBackend> backend)
 {
   m_scanner_backends.emplace_back(std::move(backend));

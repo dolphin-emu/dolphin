@@ -47,11 +47,6 @@ WiimoteScannerHidapi::~WiimoteScannerHidapi()
     ERROR_LOG(WIIMOTE, "Failed to clean up hidapi.");
 }
 
-bool WiimoteScannerHidapi::IsReady() const
-{
-  return true;
-}
-
 void WiimoteScannerHidapi::FindWiimotes(std::vector<Wiimote*>& wiimotes, Wiimote*& board)
 {
   hid_device_info* list = hid_enumerate(0x0, 0x0);
