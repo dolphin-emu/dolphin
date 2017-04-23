@@ -10,8 +10,9 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
+#include <cstring>
 #include <functional>
-#include <string.h>
+#include <numeric>
 #include <vector>
 
 #include "AudioCommon/DPL2Decoder.h"
@@ -35,33 +36,17 @@ static float adapt_l_gain, adapt_r_gain, adapt_lpr_gain, adapt_lmr_gain;
 static std::vector<float> lf, rf, lr, rr, cf, cr;
 static float LFE_buf[256];
 static unsigned int lfe_pos;
-static float* filter_coefs_lfe;
+static std::vector<float> filter_coefs_lfe;
 static unsigned int len125;
 
-template <class T, class _ftype_t>
-static _ftype_t DotProduct(int count, const T* buf, const _ftype_t* coefficients)
+template <class T>
+static float DotProduct(int count, const T* buf, const std::vector<float>& coeffs, int offset)
 {
-  int i;
-  float sum0 = 0.0f, sum1 = 0.0f, sum2 = 0.0f, sum3 = 0.0f;
-
-  // Unrolled loop
-  for (i = 0; (i + 3) < count; i += 4)
-  {
-    sum0 += buf[i + 0] * coefficients[i + 0];
-    sum1 += buf[i + 1] * coefficients[i + 1];
-    sum2 += buf[i + 2] * coefficients[i + 2];
-    sum3 += buf[i + 3] * coefficients[i + 3];
-  }
-
-  // Epilogue of unrolled loop
-  for (; i < count; i++)
-    sum0 += buf[i] * coefficients[i];
-
-  return sum0 + sum1 + sum2 + sum3;
+  return std::inner_product(buf, buf + count, coeffs.begin() + offset, T(0));
 }
 
 template <class T>
-static T FIRFilter(const T* buf, int pos, int len, int count, const float* coefficients)
+static T FIRFilter(const T* buf, int pos, int len, int count, const std::vector<float>& coeffs)
 {
   int count1, count2;
 
@@ -81,9 +66,8 @@ static T FIRFilter(const T* buf, int pos, int len, int count, const float* coeff
   // high part of window
   const T* ptr = &buf[pos];
 
-  float r1 = DotProduct(count1, ptr, coefficients);
-  coefficients += count1;
-  float r2 = DotProduct(count2, buf, coefficients);
+  float r1 = DotProduct(count1, ptr, coeffs, 0);
+  float r2 = DotProduct(count2, buf, coeffs, count1);
   return T(r1 + r2);
 }
 
@@ -94,25 +78,26 @@ static T FIRFilter(const T* buf, int pos, int len, int count, const float* coeff
 //                         N-1
 //
 // n window length
-// w buffer for the window parameters
+// returns buffer with the window parameters
 */
-static void Hamming(int n, float* w)
+static std::vector<float> Hamming(int n)
 {
-  float k = float(2 * M_PI / ((float)(n - 1)));  // 2*pi/(N-1)
+  std::vector<float> w(n);
+
+  float k = static_cast<float>(2.0 * M_PI / (n - 1));
 
   // Calculate window coefficients
   for (int i = 0; i < n; i++)
-    *w++ = float(0.54 - 0.46 * cos(k * (float)i));
+    w[i] = static_cast<float>(0.54 - 0.46 * cos(k * i));
+
+  return w;
 }
 
-/******************************************************************************
-*  FIR filter design
-******************************************************************************/
+// FIR filter design
 
 /* Design FIR filter using the Window method
 
 n     filter length must be odd for HP and BS filters
-w     buffer for the filter taps (must be n long)
 fc    cutoff frequencies (1 for LP and HP, 2 for BP and BS)
 0 < fc < 1 where 1 <=> Fs/2
 flags window and filter type as defined in filter.h
@@ -120,34 +105,26 @@ variables are ored together: i.e. LP|HAMMING will give a
 low pass filter designed using a hamming window
 opt   beta constant used only when designing using kaiser windows
 
-returns 0 if OK, -1 if fail
+returns buffer for the filter taps (will be n long)
 */
-static float* DesignFIR(unsigned int* n, float* fc, float opt)
+static std::vector<float> DesignFIR(unsigned int n, float fc, float opt)
 {
-  unsigned int o = *n & 1;                 // Indicator for odd filter length
-  unsigned int end = ((*n + 1) >> 1) - o;  // Loop end
+  const unsigned int o = n & 1;                 // Indicator for odd filter length
+  const unsigned int end = ((n + 1) >> 1) - o;  // Loop end
 
-  float k1 = 2 * float(M_PI);        // 2*pi*fc1
-  float k2 = 0.5f * (float)(1 - o);  // Constant used if the filter has even length
-  float g = 0.0f;                    // Gain
-  float t1;                          // Temporary variables
-  float fc1;                         // Cutoff frequencies
+  // Cutoff frequency must be < 0.5 where 0.5 <=> Fs/2
+  const float fc1 = MathUtil::Clamp(fc, 0.001f, 1.0f) / 2;
+
+  const float k1 = 2 * static_cast<float>(M_PI) * fc1;  // Cutoff frequency in rad/s
+  const float k2 = 0.5f * static_cast<float>(1 - o);    // Time offset if filter has even length
+  float g = 0.0f;                                       // Gain
 
   // Sanity check
-  if (*n == 0)
-    return nullptr;
-
-  fc[0] = MathUtil::Clamp(fc[0], 0.001f, 1.0f);
-
-  float* w = (float*)calloc(sizeof(float), *n);
+  if (n == 0)
+    return {};
 
   // Get window coefficients
-  Hamming(*n, w);
-
-  fc1 = *fc;
-  // Cutoff frequency must be < 0.5 where 0.5 <=> Fs/2
-  fc1 = ((fc1 <= 1.0) && (fc1 > 0.0)) ? fc1 / 2 : 0.25f;
-  k1 *= fc1;
+  std::vector<float> w = Hamming(n);
 
   // Low pass filter
 
@@ -164,14 +141,15 @@ static float* DesignFIR(unsigned int* n, float* fc, float opt)
   // Create filter
   for (u32 i = 0; i < end; i++)
   {
-    t1 = (float)(i + 1) - k2;
-    w[end - i - 1] = w[*n - end + i] = float(w[end - i - 1] * sin(k1 * t1) / (M_PI * t1));  // Sinc
-    g += 2 * w[end - i - 1];  // Total gain in filter
+    float t1 = static_cast<float>(i + 1) - k2;
+    w[end - i - 1] = w[n - end + i] =
+        static_cast<float>(w[end - i - 1] * sin(k1 * t1) / (M_PI * t1));  // Sinc
+    g += 2 * w[end - i - 1];                                              // Total gain in filter
   }
 
   // Normalize gain
   g = 1 / g;
-  for (u32 i = 0; i < *n; i++)
+  for (u32 i = 0; i < n; i++)
     w[i] *= g;
 
   return w;
@@ -197,19 +175,14 @@ static void Done()
 {
   OnSeek();
 
-  if (filter_coefs_lfe)
-  {
-    free(filter_coefs_lfe);
-  }
-
-  filter_coefs_lfe = nullptr;
+  filter_coefs_lfe.clear();
 }
 
-static float* CalculateCoefficients125HzLowpass(int rate)
+static std::vector<float> CalculateCoefficients125HzLowpass(int rate)
 {
   len125 = 256;
   float f = 125.0f / (rate / 2);
-  float* coeffs = DesignFIR(&len125, &f, 0);
+  std::vector<float> coeffs = DesignFIR(len125, f, 0);
   static const float M3_01DB = 0.7071067812f;
   for (unsigned int i = 0; i < len125; i++)
   {
@@ -265,10 +238,10 @@ static void MatrixDecode(const float* in, const int k, const int il, const int i
   /* Matrix */
   l_agc = in[il] * PassiveLock(*_adapt_l_gain);
   r_agc = in[ir] * PassiveLock(*_adapt_r_gain);
-  _cf[k] = (l_agc + r_agc) * (float)M_SQRT1_2;
+  _cf[k] = (l_agc + r_agc) * static_cast<float>(M_SQRT1_2);
   if (decode_rear)
   {
-    _lr[kr] = _rr[kr] = (l_agc - r_agc) * (float)M_SQRT1_2;
+    _lr[kr] = _rr[kr] = (l_agc - r_agc) * static_cast<float>(M_SQRT1_2);
     // Stereo rear channel is steered with the same AGC steering as
     // the decoding matrix. Note this requires a fast updating AGC
     // at the order of 20 ms (which is the case here).
@@ -277,8 +250,8 @@ static void MatrixDecode(const float* in, const int k, const int il, const int i
   }
 
   /*** AXIS NO. 2: (Lt + Rt, Lt - Rt) -> (L, R) ***/
-  lpr = (in[il] + in[ir]) * (float)M_SQRT1_2;
-  lmr = (in[il] - in[ir]) * (float)M_SQRT1_2;
+  lpr = (in[il] + in[ir]) * static_cast<float>(M_SQRT1_2);
+  lmr = (in[il] - in[ir]) * static_cast<float>(M_SQRT1_2);
   /* AGC adaption */
   d_gain = fabs(lmr_unlim_gain - *_adapt_lmr_gain);
   f = d_gain * (1.0f / MATAGCTRIG);
@@ -288,8 +261,8 @@ static void MatrixDecode(const float* in, const int k, const int il, const int i
   /* Matrix */
   lpr_agc = lpr * PassiveLock(*_adapt_lpr_gain);
   lmr_agc = lmr * PassiveLock(*_adapt_lmr_gain);
-  _lf[k] = (lpr_agc + lmr_agc) * (float)M_SQRT1_2;
-  _rf[k] = (lpr_agc - lmr_agc) * (float)M_SQRT1_2;
+  _lf[k] = (lpr_agc + lmr_agc) * static_cast<float>(M_SQRT1_2);
+  _rf[k] = (lpr_agc - lmr_agc) * static_cast<float>(M_SQRT1_2);
 
   /*** CENTER FRONT CANCELLATION ***/
   // A heuristic approach exploits that Lt + Rt gain contains the
@@ -387,5 +360,5 @@ void DPL2Reset()
 {
   olddelay = -1;
   oldfreq = 0;
-  filter_coefs_lfe = nullptr;
+  filter_coefs_lfe.clear();
 }
