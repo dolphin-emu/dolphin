@@ -194,7 +194,7 @@ bool InitImport(u64 title_id)
   }
 
   UIDSys uid_sys{Common::FROM_CONFIGURED_ROOT};
-  uid_sys.AddTitle(title_id);
+  uid_sys.GetOrInsertUIDForTitle(title_id);
 
   // IOS moves the title content directory to /import if the TMD exists during an import.
   if (File::Exists(Common::GetTMDFileName(title_id, Common::FROM_SESSION_ROOT)))

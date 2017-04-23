@@ -219,8 +219,8 @@ class UIDSys final
 public:
   explicit UIDSys(Common::FromWhichRoot root);
 
-  u32 GetUIDFromTitle(u64 title_id);
-  void AddTitle(u64 title_id);
+  u32 GetUIDFromTitle(u64 title_id) const;
+  u32 GetOrInsertUIDForTitle(u64 title_id);
   u32 GetNextUID() const;
 
 private:

@@ -446,11 +446,11 @@ UIDSys::UIDSys(Common::FromWhichRoot root)
 
   if (m_entries.empty())
   {
-    AddTitle(TITLEID_SYSMENU);
+    GetOrInsertUIDForTitle(TITLEID_SYSMENU);
   }
 }
 
-u32 UIDSys::GetUIDFromTitle(u64 title_id)
+u32 UIDSys::GetUIDFromTitle(u64 title_id) const
 {
   const auto it = std::find_if(m_entries.begin(), m_entries.end(),
                                [title_id](const auto& entry) { return entry.second == title_id; });
@@ -464,26 +464,33 @@ u32 UIDSys::GetNextUID() const
   return m_entries.rbegin()->first + 1;
 }
 
-void UIDSys::AddTitle(u64 title_id)
+u32 UIDSys::GetOrInsertUIDForTitle(const u64 title_id)
 {
-  if (GetUIDFromTitle(title_id))
+  const u32 current_uid = GetUIDFromTitle(title_id);
+  if (current_uid)
   {
     INFO_LOG(IOS_ES, "Title %016" PRIx64 " already exists in uid.sys", title_id);
-    return;
+    return current_uid;
   }
 
-  u32 uid = GetNextUID();
+  const u32 uid = GetNextUID();
   m_entries.insert({uid, title_id});
 
   // Byte swap before writing.
-  title_id = Common::swap64(title_id);
-  uid = Common::swap32(uid);
+  const u64 swapped_title_id = Common::swap64(title_id);
+  const u32 swapped_uid = Common::swap32(uid);
 
   File::CreateFullPath(m_file_path);
   File::IOFile file(m_file_path, "ab");
 
-  if (!file.WriteBytes(&title_id, sizeof(title_id)) || !file.WriteBytes(&uid, sizeof(uid)))
+  if (!file.WriteBytes(&swapped_title_id, sizeof(title_id)) ||
+      !file.WriteBytes(&swapped_uid, sizeof(uid)))
+  {
     ERROR_LOG(IOS_ES, "Failed to write to /sys/uid.sys");
+    return 0;
+  }
+
+  return uid;
 }
 }  // namespace ES
 }  // namespace IOS

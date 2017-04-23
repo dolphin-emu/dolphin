@@ -91,6 +91,9 @@ static u64 s_last_reply_time;
 
 static u64 s_active_title_id;
 
+static u32 s_ppc_uid;
+static u16 s_ppc_gid;
+
 static constexpr u64 ENQUEUE_REQUEST_FLAG = 0x100000000ULL;
 static constexpr u64 ENQUEUE_ACKNOWLEDGEMENT_FLAG = 0x200000000ULL;
 
@@ -702,6 +705,28 @@ bool Reload(const u64 ios_title_id)
   return true;
 }
 
+// Since we don't have actual processes, we keep track of only the PPC's UID/GID.
+// These functions roughly correspond to syscalls 0x2b, 0x2c, 0x2d, 0x2e (though only for the PPC).
+void SetUIDForPPC(u32 uid)
+{
+  s_ppc_uid = uid;
+}
+
+u32 GetUIDForPPC()
+{
+  return s_ppc_uid;
+}
+
+void SetGIDForPPC(u16 gid)
+{
+  s_ppc_gid = gid;
+}
+
+u16 GetGIDForPPC()
+{
+  return s_ppc_gid;
+}
+
 // This corresponds to syscall 0x41, which loads a binary from the NAND and bootstraps the PPC.
 // Unlike 0x42, IOS will set up some constants in memory before booting the PPC.
 bool BootstrapPPC(const DiscIO::CNANDContentLoader& content_loader)
@@ -783,6 +808,8 @@ void DoState(PointerWrap& p)
   p.Do(s_reply_queue);
   p.Do(s_last_reply_time);
   p.Do(s_active_title_id);
+  p.Do(s_ppc_uid);
+  p.Do(s_ppc_gid);
 
   if (s_active_title_id == MIOS_TITLE_ID)
     return;

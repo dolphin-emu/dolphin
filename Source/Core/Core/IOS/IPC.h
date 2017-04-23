@@ -59,6 +59,11 @@ void Shutdown();
 bool Reload(u64 ios_title_id);
 u32 GetVersion();
 
+void SetUIDForPPC(u32 uid);
+u32 GetUIDForPPC();
+void SetGIDForPPC(u16 gid);
+u16 GetGIDForPPC();
+
 bool BootstrapPPC(const DiscIO::CNANDContentLoader& content_loader);
 
 // Do State
