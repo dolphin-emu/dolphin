@@ -17,6 +17,7 @@ public:
   explicit WiimoteHidapi(const std::string& device_path);
   ~WiimoteHidapi() override;
   std::string GetId() const override { return m_device_path; }
+
 protected:
   bool ConnectInternal() override;
   void DisconnectInternal() override;
@@ -35,7 +36,6 @@ class WiimoteScannerHidapi final : public WiimoteScannerBackend
 public:
   WiimoteScannerHidapi();
   ~WiimoteScannerHidapi();
-  bool IsReady() const override;
   void FindWiimotes(std::vector<Wiimote*>&, Wiimote*&) override;
   void Update() override{};  // not needed for hidapi
 };

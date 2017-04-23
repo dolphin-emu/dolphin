@@ -75,7 +75,6 @@ private:
 
   wxCheckBox* m_enable_continuous_scanning;
   wxButton* m_refresh_wm_button;
-  wxStaticText* m_unsupported_bt_text;
   wxCheckBox* m_enable_speaker_data;
 
   wxCheckBox* m_background_input_checkbox;

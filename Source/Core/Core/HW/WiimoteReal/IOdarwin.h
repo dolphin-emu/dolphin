@@ -14,7 +14,6 @@ class WiimoteScannerDarwin final : public WiimoteScannerBackend
 public:
   WiimoteScannerDarwin() = default;
   ~WiimoteScannerDarwin() override = default;
-  bool IsReady() const override;
   void FindWiimotes(std::vector<Wiimote*>&, Wiimote*&) override;
   void Update() override{};  // not needed
 };

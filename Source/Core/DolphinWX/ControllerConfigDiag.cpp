@@ -106,7 +106,6 @@ void ControllerConfigDiag::UpdateUI()
   m_balance_board_checkbox->Enable(!enable_bt_passthrough_mode);
   m_enable_continuous_scanning->Enable(!enable_bt_passthrough_mode);
   m_refresh_wm_button->Enable(!enable_bt_passthrough_mode);
-  m_unsupported_bt_text->Enable(!enable_bt_passthrough_mode);
   m_enable_speaker_data->Enable(!enable_bt_passthrough_mode);
 
   // Disable some controls when emulation is running
@@ -134,7 +133,6 @@ void ControllerConfigDiag::UpdateUI()
     {
       m_enable_continuous_scanning->Disable();
       m_refresh_wm_button->Disable();
-      m_unsupported_bt_text->Disable();
       m_enable_speaker_data->Disable();
     }
   }
@@ -353,11 +351,6 @@ wxSizer* ControllerConfigDiag::CreateEmulatedBTConfigSizer()
                                      wxDLG_UNIT(this, wxSize(60, -1)));
   m_refresh_wm_button->Bind(wxEVT_BUTTON, &ControllerConfigDiag::OnWiimoteRefreshButton, this);
 
-  m_unsupported_bt_text =
-      new wxStaticText(this, wxID_ANY, _("A supported Bluetooth device could not be found,\n"
-                                         "so you must connect Wii Remotes manually."));
-  m_unsupported_bt_text->Show(!WiimoteReal::g_wiimote_scanner.IsReady());
-
   // Balance Board
   m_balance_board_checkbox = new wxCheckBox(this, wxID_ANY, _("Real Balance Board"));
   m_balance_board_checkbox->Bind(wxEVT_CHECKBOX, &ControllerConfigDiag::OnBalanceBoardChanged,
@@ -382,8 +375,6 @@ wxSizer* ControllerConfigDiag::CreateEmulatedBTConfigSizer()
 
   auto* const sizer = new wxBoxSizer(wxVERTICAL);
   sizer->Add(grid, 0, wxEXPAND);
-  sizer->AddSpacer(space5);
-  sizer->Add(m_unsupported_bt_text, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, space5);
   sizer->AddSpacer(space5);
   sizer->Add(scanning_sizer, 0, wxEXPAND);
 

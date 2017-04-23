@@ -117,7 +117,6 @@ class WiimoteScannerBackend
 {
 public:
   virtual ~WiimoteScannerBackend() = default;
-  virtual bool IsReady() const = 0;
   virtual void FindWiimotes(std::vector<Wiimote*>&, Wiimote*&) = 0;
   // function called when not looking for more Wiimotes
   virtual void Update() = 0;
@@ -139,7 +138,6 @@ public:
   void SetScanMode(WiimoteScanMode scan_mode);
 
   void AddScannerBackend(std::unique_ptr<WiimoteScannerBackend> backend);
-  bool IsReady() const;
 
 private:
   void ThreadFunc();
