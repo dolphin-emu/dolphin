@@ -22,10 +22,12 @@
 #include "VideoBackends/Vulkan/Texture2D.h"
 #include "VideoBackends/Vulkan/TextureConverter.h"
 #include "VideoBackends/Vulkan/Util.h"
+#include "VideoBackends/Vulkan/VKTexture.h"
 #include "VideoBackends/Vulkan/VertexFormat.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 
 #include "VideoCommon/RenderBase.h"
+#include "VideoCommon/TextureConfig.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace Vulkan
@@ -1354,20 +1356,19 @@ std::unique_ptr<XFBSourceBase> FramebufferManager::CreateXFBSource(unsigned int 
                                                                    unsigned int target_height,
                                                                    unsigned int layers)
 {
-  TextureCacheBase::TCacheEntryConfig config;
+  TextureConfig config;
   config.width = target_width;
   config.height = target_height;
   config.layers = layers;
   config.rendertarget = true;
-  auto* base_texture = TextureCache::GetInstance()->CreateTexture(config);
-  auto* texture = static_cast<TextureCache::TCacheEntry*>(base_texture);
+  auto texture = TextureCache::GetInstance()->CreateTexture(config);
   if (!texture)
   {
     PanicAlert("Failed to create texture for XFB source");
     return nullptr;
   }
 
-  return std::make_unique<XFBSource>(std::unique_ptr<TextureCache::TCacheEntry>(texture));
+  return std::make_unique<XFBSource>(std::move(texture));
 }
 
 void FramebufferManager::CopyToRealXFB(u32 xfb_addr, u32 fb_stride, u32 fb_height,
@@ -1405,7 +1406,7 @@ void FramebufferManager::CopyToRealXFB(u32 xfb_addr, u32 fb_stride, u32 fb_heigh
   }
 }
 
-XFBSource::XFBSource(std::unique_ptr<TextureCache::TCacheEntry> texture)
+XFBSource::XFBSource(std::unique_ptr<AbstractTexture> texture)
     : XFBSourceBase(), m_texture(std::move(texture))
 {
 }
@@ -1414,13 +1415,18 @@ XFBSource::~XFBSource()
 {
 }
 
+VKTexture* XFBSource::GetTexture() const
+{
+  return static_cast<VKTexture*>(m_texture.get());
+}
+
 void XFBSource::DecodeToTexture(u32 xfb_addr, u32 fb_width, u32 fb_height)
 {
   // Guest memory -> GPU EFB Textures
   const u8* src_ptr = Memory::GetPointer(xfb_addr);
   _assert_(src_ptr);
   TextureCache::GetInstance()->GetTextureConverter()->DecodeYUYVTextureFromMemory(
-      m_texture.get(), src_ptr, fb_width, fb_width * 2, fb_height);
+      static_cast<VKTexture*>(m_texture.get()), src_ptr, fb_width, fb_width * 2, fb_height);
 }
 
 void XFBSource::CopyEFB(float gamma)
@@ -1434,7 +1440,7 @@ void XFBSource::CopyEFB(float gamma)
                       {static_cast<u32>(rect.GetWidth()), static_cast<u32>(rect.GetHeight())}};
 
   Texture2D* src_texture = FramebufferManager::GetInstance()->ResolveEFBColorTexture(vk_rect);
-  TextureCache::GetInstance()->CopyRectangleFromTexture(m_texture.get(), rect, src_texture, rect);
+  static_cast<VKTexture*>(m_texture.get())->CopyRectangleFromTexture(src_texture, rect, rect);
 
   // If we sourced directly from the EFB framebuffer, restore it to a color attachment.
   if (src_texture == FramebufferManager::GetInstance()->GetEFBColorTexture())

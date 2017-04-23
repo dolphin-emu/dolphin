@@ -137,7 +137,7 @@ void SHADER::SetProgramBindings(bool is_compute)
   }
 }
 
-void SHADER::Bind()
+void SHADER::Bind() const
 {
   if (CurrentProgram != glprogid)
   {

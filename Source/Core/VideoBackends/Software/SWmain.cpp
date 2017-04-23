@@ -15,6 +15,7 @@
 #include "VideoBackends/Software/Rasterizer.h"
 #include "VideoBackends/Software/SWOGLWindow.h"
 #include "VideoBackends/Software/SWRenderer.h"
+#include "VideoBackends/Software/SWTexture.h"
 #include "VideoBackends/Software/SWVertexLoader.h"
 #include "VideoBackends/Software/VideoBackend.h"
 
@@ -49,7 +50,7 @@ class TextureCache : public TextureCacheBase
 public:
   bool CompileShaders() override { return true; }
   void DeleteShaders() override {}
-  void ConvertTexture(TCacheEntryBase* entry, TCacheEntryBase* unconverted, void* palette,
+  void ConvertTexture(TCacheEntry* entry, TCacheEntry* unconverted, void* palette,
                       TlutFormat format) override
   {
   }
@@ -61,33 +62,15 @@ public:
   }
 
 private:
-  struct TCacheEntry : TCacheEntryBase
+  std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config) override
   {
-    TCacheEntry(const TCacheEntryConfig& _config) : TCacheEntryBase(_config) {}
-    ~TCacheEntry() {}
-    void Load(u32 level, u32 width, u32 height, u32 row_length, const u8* buffer,
-              size_t buffer_size) override
-    {
-    }
-    void FromRenderTarget(bool is_depth_copy, const EFBRectangle& srcRect, bool scaleByHalf,
-                          unsigned int cbufid, const float* colmat) override
-    {
-      EfbCopy::CopyEfb();
-    }
+    return std::make_unique<SWTexture>(config);
+  }
 
-    void CopyRectangleFromTexture(const TCacheEntryBase* source,
-                                  const MathUtil::Rectangle<int>& srcrect,
-                                  const MathUtil::Rectangle<int>& dstrect) override
-    {
-    }
-
-    void Bind(unsigned int stage) override {}
-    bool Save(const std::string& filename, unsigned int level) override { return false; }
-  };
-
-  TCacheEntryBase* CreateTexture(const TCacheEntryConfig& config) override
+  void CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy, const EFBRectangle& src_rect,
+                           bool scale_by_half, unsigned int cbuf_id, const float* colmat) override
   {
-    return new TCacheEntry(config);
+    EfbCopy::CopyEfb();
   }
 };
 

@@ -17,6 +17,7 @@
 #include "Core/HW/Memmap.h"
 
 #include "VideoBackends/OGL/FramebufferManager.h"
+#include "VideoBackends/OGL/OGLTexture.h"
 #include "VideoBackends/OGL/ProgramShaderCache.h"
 #include "VideoBackends/OGL/Render.h"
 #include "VideoBackends/OGL/SamplerCache.h"
@@ -309,7 +310,7 @@ void EncodeToRamYUYV(GLuint srcTexture, const TargetRectangle& sourceRc, u8* des
   // Otherwise we get jaggies when a game uses yscaling (most PAL games)
   EncodeToRamUsingShader(srcTexture, destAddr, dstWidth * 2, dstHeight, dstStride, true);
   FramebufferManager::SetFramebuffer(0);
-  TextureCache::DisableStage(0);
+  OGLTexture::DisableStage(0);
   g_renderer->RestoreAPIState();
 }
 

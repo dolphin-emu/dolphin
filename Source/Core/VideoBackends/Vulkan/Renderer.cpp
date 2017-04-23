@@ -2,8 +2,6 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "VideoBackends/Vulkan/Renderer.h"
-
 #include <cstddef>
 #include <cstdio>
 #include <limits>
@@ -23,11 +21,13 @@
 #include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoBackends/Vulkan/PostProcessing.h"
 #include "VideoBackends/Vulkan/RasterFont.h"
+#include "VideoBackends/Vulkan/Renderer.h"
 #include "VideoBackends/Vulkan/StagingTexture2D.h"
 #include "VideoBackends/Vulkan/StateTracker.h"
 #include "VideoBackends/Vulkan/SwapChain.h"
 #include "VideoBackends/Vulkan/TextureCache.h"
 #include "VideoBackends/Vulkan/Util.h"
+#include "VideoBackends/Vulkan/VKTexture.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 
 #include "VideoCommon/AVIDump.h"
@@ -626,7 +626,7 @@ void Renderer::TransitionBuffersForSwap(const TargetRectangle& scaled_rect,
   for (u32 i = 0; i < xfb_count; i++)
   {
     const XFBSource* xfb_source = static_cast<const XFBSource*>(xfb_sources[i]);
-    xfb_source->GetTexture()->GetTexture()->TransitionToLayout(
+    xfb_source->GetTexture()->GetRawTexIdentifier()->TransitionToLayout(
         command_buffer, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
   }
 }
@@ -687,7 +687,8 @@ void Renderer::DrawVirtualXFB(VkRenderPass render_pass, const TargetRectangle& t
                           2;
 
     source_rect.right -= Renderer::EFBToScaledX(fb_stride - fb_width);
-    BlitScreen(render_pass, draw_rect, source_rect, xfb_source->GetTexture()->GetTexture());
+    BlitScreen(render_pass, draw_rect, source_rect,
+               xfb_source->GetTexture()->GetRawTexIdentifier());
   }
 }
 
@@ -701,7 +702,8 @@ void Renderer::DrawRealXFB(VkRenderPass render_pass, const TargetRectangle& targ
     TargetRectangle source_rect = xfb_source->sourceRc;
     TargetRectangle draw_rect = target_rect;
     source_rect.right -= fb_stride - fb_width;
-    BlitScreen(render_pass, draw_rect, source_rect, xfb_source->GetTexture()->GetTexture());
+    BlitScreen(render_pass, draw_rect, source_rect,
+               xfb_source->GetTexture()->GetRawTexIdentifier());
   }
 }
 
