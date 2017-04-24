@@ -796,17 +796,20 @@ if(NOT DISABLE_WX)
   endif()
 
   if(wxWidgets_FOUND)
-    include(${wxWidgets_USE_FILE})
     message(STATUS "wxWidgets found, enabling GUI build")
+    if(NOT TARGET wxWidgets::wxWidgets)
+      add_library(wxWidgets::wxWidgets INTERFACE IMPORTED)
+      set_target_properties(wxWidgets::wxWidgets PROPERTIES
+        INTERFACE_LINK_LIBRARIES "${wxWidgets_LIBRARIES}"
+        INTERFACE_INCLUDE_DIRECTORIES "${wxWidgets_INCLUDE_DIRS}"
+        INTERFACE_COMPILE_DEFINITIONS "${wxWidgets_DEFINITIONS}"
+        INTERFACE_COMPILE_OPTIONS "${wxWidgets_CXX_FLAGS}"
+      )
+    endif()
   else()
     message(STATUS "Using static wxWidgets from Externals")
-
-    include_directories(SYSTEM
-      Externals/wxWidgets3
-      Externals/wxWidgets3/include)
     add_subdirectory(Externals/wxWidgets3)
     set(wxWidgets_FOUND TRUE)
-    set(wxWidgets_LIBRARIES "wx")
   endif()
 endif()
 

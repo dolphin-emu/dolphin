@@ -78,7 +78,7 @@ set(GUI_SRCS
   WxUtils.cpp
 )
 
-set(WXLIBS ${wxWidgets_LIBRARIES})
+set(WXLIBS wxWidgets::wxWidgets)
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   set(WXLIBS ${WXLIBS} dl)
