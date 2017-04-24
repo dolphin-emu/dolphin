@@ -158,6 +158,21 @@ IPCCommandResult ES::GetTitleID(const IOCtlVRequest& request)
   return GetDefaultReply(IPC_SUCCESS);
 }
 
+static bool UpdateUIDAndGID(const IOS::ES::TMDReader& tmd)
+{
+  IOS::ES::UIDSys uid_sys{Common::FromWhichRoot::FROM_SESSION_ROOT};
+  const u64 title_id = tmd.GetTitleId();
+  const u32 uid = uid_sys.GetOrInsertUIDForTitle(title_id);
+  if (!uid)
+  {
+    ERROR_LOG(IOS_ES, "Failed to get UID for title %016" PRIx64, title_id);
+    return false;
+  }
+  SetUIDForPPC(uid);
+  SetGIDForPPC(tmd.GetGroupId());
+  return true;
+}
+
 IPCCommandResult ES::SetUID(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 0))
@@ -226,6 +241,16 @@ bool ES::LaunchPPCTitle(u64 title_id, bool skip_reload)
   s_title_context.Update(content_loader);
   INFO_LOG(IOS_ES, "LaunchPPCTitle: Title context changed: %016" PRIx64,
            s_title_context.tmd.GetTitleId());
+
+  // Note: the UID/GID is also updated for IOS titles, but since we have no guarantee IOS titles
+  // are installed, we can only do this for PPC titles.
+  if (!UpdateUIDAndGID(s_title_context.tmd))
+  {
+    s_title_context.Clear();
+    INFO_LOG(IOS_ES, "LaunchPPCTitle: Title context changed: (none)");
+    return false;
+  }
+
   return BootstrapPPC(content_loader);
 }
 
@@ -533,6 +558,9 @@ s32 ES::DIVerify(const IOS::ES::TMDReader& tmd, const IOS::ES::TicketReader& tic
   if (tmd.GetTitleId() != ticket.GetTitleId())
     return ES_EINVAL;
 
+  s_title_context.Update(tmd, ticket);
+  INFO_LOG(IOS_ES, "ES_DIVerify: Title context changed: %016" PRIx64, tmd.GetTitleId());
+
   std::string tmd_path = Common::GetTMDFileName(tmd.GetTitleId(), Common::FROM_SESSION_ROOT);
 
   File::CreateFullPath(tmd_path);
@@ -545,14 +573,15 @@ s32 ES::DIVerify(const IOS::ES::TMDReader& tmd, const IOS::ES::TicketReader& tic
     if (!tmd_file.WriteBytes(tmd_bytes.data(), tmd_bytes.size()))
       ERROR_LOG(IOS_ES, "DIVerify failed to write disc TMD to NAND.");
   }
-  IOS::ES::UIDSys uid_sys{Common::FromWhichRoot::FROM_SESSION_ROOT};
-  uid_sys.AddTitle(tmd.GetTitleId());
   // DI_VERIFY writes to title.tmd, which is read and cached inside the NAND Content Manager.
   // clear the cache to avoid content access mismatches.
   DiscIO::CNANDContentManager::Access().ClearCache();
 
-  s_title_context.Update(tmd, ticket);
-  INFO_LOG(IOS_ES, "ES_DIVerify: Title context changed: %016" PRIx64, tmd.GetTitleId());
+  if (!UpdateUIDAndGID(s_title_context.tmd))
+  {
+    return ES_SHORT_READ;
+  }
+
   return IPC_SUCCESS;
 }
 }  // namespace Device
