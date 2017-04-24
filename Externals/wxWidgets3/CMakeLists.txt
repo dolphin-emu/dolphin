@@ -860,6 +860,8 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux|FreeBSD")
 	if (NOT X11_xf86vmode_FOUND OR NOT X11_Xinerama_FOUND)
 		message(FATAL_ERROR "wxGTK2 needs Xinerama and Xxf86vm")
 	endif()
+        find_package(GTK2 REQUIRED)
+        target_include_directories(wx PUBLIC ${GTK2_INCLUDE_DIRS})
         target_link_libraries(wx PRIVATE
 		png
 		${GTHREAD2_LIBRARIES}
