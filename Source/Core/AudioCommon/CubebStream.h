@@ -20,7 +20,7 @@ public:
 
 private:
   bool m_stereo = false;
-  cubeb* m_ctx = nullptr;
+  std::shared_ptr<cubeb> m_ctx;
   cubeb_stream* m_stream = nullptr;
 
   std::vector<short> m_short_buffer;

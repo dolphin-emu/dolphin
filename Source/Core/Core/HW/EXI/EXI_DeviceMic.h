@@ -69,7 +69,7 @@ private:
   void UpdateNextInterruptTicks();
 
   // Streaming input interface
-  cubeb* m_cubeb_ctx = nullptr;
+  std::shared_ptr<cubeb> m_cubeb_ctx = nullptr;
   cubeb_stream* m_cubeb_stream = nullptr;
 
   void StreamLog(const char* msg);

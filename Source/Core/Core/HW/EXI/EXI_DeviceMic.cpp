@@ -5,6 +5,7 @@
 #include <cstring>
 #include <mutex>
 
+#include "AudioCommon/CubebUtils.h"
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
@@ -22,8 +23,7 @@ namespace ExpansionInterface
 {
 void CEXIMic::StreamInit()
 {
-  if (cubeb_init(&m_cubeb_ctx, "Dolphin", NULL) != CUBEB_OK)
-    ERROR_LOG(EXPANSIONINTERFACE, "Error initializing cubeb library");
+  m_cubeb_ctx = CubebUtils::GetContext();
 
   stream_buffer = nullptr;
   samples_avail = stream_wpos = stream_rpos = 0;
@@ -32,12 +32,7 @@ void CEXIMic::StreamInit()
 void CEXIMic::StreamTerminate()
 {
   StreamStop();
-
-  if (m_cubeb_ctx)
-  {
-    cubeb_destroy(m_cubeb_ctx);
-    m_cubeb_ctx = nullptr;
-  }
+  m_cubeb_ctx.reset();
 }
 
 static void state_callback(cubeb_stream* stream, void* user_data, cubeb_state state)
@@ -84,12 +79,12 @@ void CEXIMic::StreamStart()
   params.layout = CUBEB_LAYOUT_MONO;
 
   u32 minimum_latency;
-  if (cubeb_get_min_latency(m_cubeb_ctx, params, &minimum_latency) != CUBEB_OK)
+  if (cubeb_get_min_latency(m_cubeb_ctx.get(), params, &minimum_latency) != CUBEB_OK)
   {
     WARN_LOG(EXPANSIONINTERFACE, "Error getting minimum latency");
   }
 
-  if (cubeb_stream_init(m_cubeb_ctx, &m_cubeb_stream, "Dolphin Emulated GameCube Microphone",
+  if (cubeb_stream_init(m_cubeb_ctx.get(), &m_cubeb_stream, "Dolphin Emulated GameCube Microphone",
                         nullptr, &params, nullptr, nullptr,
                         std::max<u32>(buff_size_samples, minimum_latency), data_callback,
                         state_callback, this) != CUBEB_OK)

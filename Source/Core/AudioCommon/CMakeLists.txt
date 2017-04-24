@@ -1,6 +1,7 @@
 set(SRCS
   AudioCommon.cpp
   CubebStream.cpp
+  CubebUtils.cpp
   DPL2Decoder.cpp
   Mixer.cpp
   WaveFile.cpp

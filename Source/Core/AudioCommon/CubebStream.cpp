@@ -5,6 +5,7 @@
 #include <cubeb/cubeb.h>
 
 #include "AudioCommon/CubebStream.h"
+#include "AudioCommon/CubebUtils.h"
 #include "AudioCommon/DPL2Decoder.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
@@ -53,13 +54,9 @@ void CubebStream::StateCallback(cubeb_stream* stream, void* user_data, cubeb_sta
 
 bool CubebStream::Start()
 {
-  if (cubeb_init(&m_ctx, "Dolphin", nullptr) != CUBEB_OK)
-  {
-    ERROR_LOG(AUDIO, "Error initializing cubeb library");
+  m_ctx = CubebUtils::GetContext();
+  if (!m_ctx)
     return false;
-  }
-
-  INFO_LOG(AUDIO, "Cubeb initialized using %s backend", cubeb_get_backend_id(m_ctx));
 
   m_stereo = !SConfig::GetInstance().bDPL2Decoder;
 
@@ -79,11 +76,11 @@ bool CubebStream::Start()
   }
 
   u32 minimum_latency = 0;
-  if (cubeb_get_min_latency(m_ctx, params, &minimum_latency) != CUBEB_OK)
+  if (cubeb_get_min_latency(m_ctx.get(), params, &minimum_latency) != CUBEB_OK)
     ERROR_LOG(AUDIO, "Error getting minimum latency");
   INFO_LOG(AUDIO, "Minimum latency: %i frames", minimum_latency);
 
-  if (cubeb_stream_init(m_ctx, &m_stream, "Dolphin Audio Output", nullptr, nullptr, nullptr,
+  if (cubeb_stream_init(m_ctx.get(), &m_stream, "Dolphin Audio Output", nullptr, nullptr, nullptr,
                         &params, std::max(BUFFER_SAMPLES, minimum_latency), DataCallback,
                         StateCallback, this) != CUBEB_OK)
   {
@@ -106,7 +103,7 @@ void CubebStream::Stop()
     ERROR_LOG(AUDIO, "Error stopping cubeb stream");
   }
   cubeb_stream_destroy(m_stream);
-  cubeb_destroy(m_ctx);
+  m_ctx.reset();
 }
 
 void CubebStream::SetVolume(int volume)
