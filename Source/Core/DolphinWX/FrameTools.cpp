@@ -1675,6 +1675,9 @@ void CFrame::OnChangeColumnsVisible(wxCommandEvent& event)
   case IDM_SHOW_BANNER:
     SConfig::GetInstance().m_showBannerColumn = !SConfig::GetInstance().m_showBannerColumn;
     break;
+  case IDM_SHOW_TITLE:
+    SConfig::GetInstance().m_showTitleColumn = !SConfig::GetInstance().m_showTitleColumn;
+    break;
   case IDM_SHOW_MAKER:
     SConfig::GetInstance().m_showMakerColumn = !SConfig::GetInstance().m_showMakerColumn;
     break;
