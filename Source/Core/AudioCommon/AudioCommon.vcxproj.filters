@@ -8,6 +8,7 @@
   <ItemGroup>
     <ClCompile Include="aldlist.cpp" />
     <ClCompile Include="AudioCommon.cpp" />
+    <ClCompile Include="AudioStretcher.cpp" />
     <ClCompile Include="CubebUtils.cpp" />
     <ClCompile Include="DPL2Decoder.cpp" />
     <ClCompile Include="Mixer.cpp" />
@@ -31,6 +32,7 @@
   <ItemGroup>
     <ClInclude Include="aldlist.h" />
     <ClInclude Include="AudioCommon.h" />
+    <ClInclude Include="AudioStretcher.h" />
     <ClInclude Include="CubebUtils.h" />
     <ClInclude Include="DPL2Decoder.h" />
     <ClInclude Include="Mixer.h" />
