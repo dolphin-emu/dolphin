@@ -6,7 +6,6 @@
 #include <cstring>
 #include <thread>
 
-#include "AudioCommon/DPL2Decoder.h"
 #include "AudioCommon/OpenALStream.h"
 #include "AudioCommon/aldlist.h"
 #include "Common/Logging/Log.h"
@@ -65,9 +64,6 @@ bool OpenALStream::Start()
   {
     PanicAlertT("OpenAL: can't find sound devices");
   }
-
-  // Initialize DPL2 parameters
-  DPL2Reset();
 
   return bReturn;
 }
@@ -228,23 +224,18 @@ void OpenALStream::SoundLoop()
       numBuffersQueued -= numBuffersProcessed;
     }
 
-    // DPL2 accepts 240 samples minimum (FWRDURATION)
-    unsigned int minSamples = surround_capable ? 240 : 0;
-
     unsigned int numSamples = OAL_MAX_SAMPLES;
-    numSamples = m_mixer->Mix(realtimeBuffer, numSamples);
-
-    // Convert the samples from short to float
-    for (u32 i = 0; i < numSamples * STEREO_CHANNELS; ++i)
-      sampleBuffer[i] = static_cast<float>(realtimeBuffer[i]) / (1 << 15);
-
-    if (numSamples <= minSamples)
-      continue;
 
     if (surround_capable)
     {
+      // DPL2 accepts 240 samples minimum (FWRDURATION)
+      unsigned int minSamples = 240;
+
       float dpl2[OAL_MAX_SAMPLES * OAL_MAX_BUFFERS * SURROUND_CHANNELS];
-      DPL2Decode(sampleBuffer, numSamples, dpl2);
+      numSamples = m_mixer->MixSurround(dpl2, numSamples);
+
+      if (numSamples < minSamples)
+        continue;
 
       // zero-out the subwoofer channel - DPL2Decode generates a pretty
       // good 5.0 but not a good 5.1 output.  Sadly there is not a 5.0
@@ -311,6 +302,15 @@ void OpenALStream::SoundLoop()
     }
     else
     {
+      numSamples = m_mixer->Mix(realtimeBuffer, numSamples);
+
+      // Convert the samples from short to float
+      for (u32 i = 0; i < numSamples * STEREO_CHANNELS; ++i)
+        sampleBuffer[i] = static_cast<float>(realtimeBuffer[i]) / (1 << 15);
+
+      if (!numSamples)
+        continue;
+
       if (float32_capable)
       {
         alBufferData(uiBuffers[nextBuffer], AL_FORMAT_STEREO_FLOAT32, sampleBuffer,

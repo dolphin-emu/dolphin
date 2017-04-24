@@ -7,6 +7,7 @@
 #include <cmath>
 #include <cstring>
 
+#include "AudioCommon/DPL2Decoder.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
@@ -25,6 +26,8 @@ CMixer::CMixer(unsigned int BackendSampleRate) : m_sampleRate(BackendSampleRate)
   m_sound_touch.setSetting(SETTING_SEQUENCE_MS, 62);
   m_sound_touch.setSetting(SETTING_SEEKWINDOW_MS, 28);
   m_sound_touch.setSetting(SETTING_OVERLAP_MS, 8);
+
+  DPL2Reset();
 }
 
 CMixer::~CMixer()
@@ -157,6 +160,25 @@ unsigned int CMixer::Mix(short* samples, unsigned int num_samples)
   }
 
   return num_samples;
+}
+
+unsigned int CMixer::MixSurround(float* samples, unsigned int num_samples)
+{
+  if (!num_samples)
+    return 0;
+
+  memset(samples, 0, num_samples * 6 * sizeof(float));
+
+  unsigned int available_samples = Mix(m_stretch_buffer.data(), num_samples);
+  for (size_t i = 0; i < static_cast<size_t>(available_samples) * 2; ++i)
+  {
+    m_float_conversion_buffer[i] =
+        m_stretch_buffer[i] / static_cast<float>(std::numeric_limits<short>::max());
+  }
+
+  DPL2Decode(m_float_conversion_buffer.data(), available_samples, samples);
+
+  return available_samples;
 }
 
 void CMixer::StretchAudio(const short* in, unsigned int num_in, short* out, unsigned int num_out)

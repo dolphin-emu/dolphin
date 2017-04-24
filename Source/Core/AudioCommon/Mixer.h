@@ -21,6 +21,7 @@ public:
 
   // Called from audio threads
   unsigned int Mix(short* samples, unsigned int numSamples);
+  unsigned int MixSurround(float* samples, unsigned int num_samples);
 
   // Called from main thread
   void PushSamples(const short* samples, unsigned int num_samples);
@@ -87,6 +88,7 @@ private:
   double m_stretch_ratio = 1.0;
   std::array<short, 2> m_last_stretched_sample = {};
   std::array<short, MAX_SAMPLES * 2> m_stretch_buffer;
+  std::array<float, MAX_SAMPLES * 2> m_float_conversion_buffer;
 
   WaveFileWriter m_wave_writer_dtk;
   WaveFileWriter m_wave_writer_dsp;
