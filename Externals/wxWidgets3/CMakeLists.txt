@@ -860,7 +860,14 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux|FreeBSD")
 	if (NOT X11_xf86vmode_FOUND OR NOT X11_Xinerama_FOUND)
 		message(FATAL_ERROR "wxGTK2 needs Xinerama and Xxf86vm")
 	endif()
+
         find_package(GTK2 REQUIRED)
+        check_lib(GTHREAD2 gthread-2.0 gthread-2.0 glib/gthread.h REQUIRED)
+        check_lib(PANGOCAIRO pangocairo pangocairo pango/pangocairo.h REQUIRED)
+        # On Linux "backtrace" is part of glibc. FreeBSD has a separate library.
+        # Required for wxUSE_STACKWALKER in Externals/wxWidgets3/wx/wxgtk.h
+        find_package(Backtrace REQUIRED)
+
         target_include_directories(wx PUBLIC ${GTK2_INCLUDE_DIRS})
         target_link_libraries(wx PRIVATE
 		png
@@ -872,7 +879,7 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux|FreeBSD")
 		${X11_Xxf86vm_LIB}
 		${X11_Xinerama_LIB}
         )
-else()
+elseif(WIN32)
 	remove_definitions(-DWIN32_LEAN_AND_MEAN)
         target_compile_definitions(wx PRIVATE "__WXMSW__" "NOPCH")
         target_sources(wx PRIVATE
@@ -880,9 +887,11 @@ else()
 		${SRCS_MSW}
         )
         target_link_libraries(wx PRIVATE
-	  Comctl32.lib
+	        Comctl32.lib
 		Rpcrt4.lib
 		${OPENGL_LIBRARIES}
 	)
+else()
+        message(FATAL_ERROR "wxWidgets in Externals is not compatible with your platform")
 endif()
 

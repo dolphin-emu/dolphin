@@ -801,21 +801,6 @@ if(NOT DISABLE_WX)
   else()
     message(STATUS "Using static wxWidgets from Externals")
 
-    # These definitions and includes are used when building dolphin against wx,
-    # not when building wx itself (see wxw3 CMakeLists.txt for that)
-    if(APPLE)
-    elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux|FreeBSD")
-      # Check for required libs
-      check_lib(GTHREAD2 gthread-2.0 gthread-2.0 glib/gthread.h REQUIRED)
-      check_lib(PANGOCAIRO pangocairo pangocairo pango/pangocairo.h REQUIRED)
-      # On Linux "backtrace" is part of glibc. FreeBSD has a separate library.
-      # Required for wxUSE_STACKWALKER in Externals/wxWidgets3/wx/wxgtk.h
-      find_package(Backtrace REQUIRED)
-    elseif(WIN32)
-    else()
-      message(FATAL_ERROR "wxWidgets in Externals is not compatible with your platform")
-    endif()
-
     include_directories(SYSTEM
       Externals/wxWidgets3
       Externals/wxWidgets3/include)
