@@ -138,18 +138,18 @@ public:
   void StopThread();
   void SetScanMode(WiimoteScanMode scan_mode);
 
-  void AddScannerBackend(std::unique_ptr<WiimoteScannerBackend> backend);
   bool IsReady() const;
 
 private:
   void ThreadFunc();
+
+  std::vector<std::unique_ptr<WiimoteScannerBackend>> m_backends;
+  mutable std::mutex m_backends_mutex;
+
   std::thread m_scan_thread;
   Common::Flag m_scan_thread_running;
-
   Common::Event m_scan_mode_changed_event;
   std::atomic<WiimoteScanMode> m_scan_mode{WiimoteScanMode::DO_NOT_SCAN};
-
-  std::vector<std::unique_ptr<WiimoteScannerBackend>> m_scanner_backends;
 };
 
 extern std::mutex g_wiimotes_mutex;

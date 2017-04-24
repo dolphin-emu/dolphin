@@ -535,13 +535,9 @@ void WiimoteScanner::SetScanMode(WiimoteScanMode scan_mode)
 
 bool WiimoteScanner::IsReady() const
 {
-  return std::any_of(m_scanner_backends.begin(), m_scanner_backends.end(),
+  std::lock_guard<std::mutex> lg(m_backends_mutex);
+  return std::any_of(m_backends.begin(), m_backends.end(),
                      [](const auto& backend) { return backend->IsReady(); });
-}
-
-void WiimoteScanner::AddScannerBackend(std::unique_ptr<WiimoteScannerBackend> backend)
-{
-  m_scanner_backends.emplace_back(std::move(backend));
 }
 
 static void CheckForDisconnectedWiimotes()
@@ -558,6 +554,20 @@ void WiimoteScanner::ThreadFunc()
 
   NOTICE_LOG(WIIMOTE, "Wiimote scanning thread has started.");
 
+  // Create and destroy scanner backends here to ensure all operations stay on the same thread. The
+  // HIDAPI backend on macOS has an error condition when IOHIDManagerCreate and IOHIDManagerClose
+  // are called on different threads (and so reference different CFRunLoops) which can cause an
+  // EXC_BAD_ACCES crash.
+  {
+    std::lock_guard<std::mutex> lg(m_backends_mutex);
+
+    m_backends.emplace_back(std::make_unique<WiimoteScannerLinux>());
+    m_backends.emplace_back(std::make_unique<WiimoteScannerAndroid>());
+    m_backends.emplace_back(std::make_unique<WiimoteScannerWindows>());
+    m_backends.emplace_back(std::make_unique<WiimoteScannerDarwin>());
+    m_backends.emplace_back(std::make_unique<WiimoteScannerHidapi>());
+  }
+
   while (m_scan_thread_running.IsSet())
   {
     m_scan_mode_changed_event.WaitFor(std::chrono::milliseconds(500));
@@ -567,7 +577,7 @@ void WiimoteScanner::ThreadFunc()
     if (m_scan_mode.load() == WiimoteScanMode::DO_NOT_SCAN)
       continue;
 
-    for (const auto& backend : m_scanner_backends)
+    for (const auto& backend : m_backends)
     {
       if (CalculateWantedWiimotes() != 0 || CalculateWantedBB() != 0)
       {
@@ -593,6 +603,10 @@ void WiimoteScanner::ThreadFunc()
       m_scan_mode.store(WiimoteScanMode::DO_NOT_SCAN);
   }
 
+  {
+    std::lock_guard<std::mutex> lg(m_backends_mutex);
+    m_backends.clear();
+  }
   NOTICE_LOG(WIIMOTE, "Wiimote scanning thread has stopped.");
 }
 
@@ -695,11 +709,6 @@ void Initialize(::Wiimote::InitializeMode init_mode)
   if (!g_real_wiimotes_initialized)
   {
     s_known_ids.clear();
-    g_wiimote_scanner.AddScannerBackend(std::make_unique<WiimoteScannerLinux>());
-    g_wiimote_scanner.AddScannerBackend(std::make_unique<WiimoteScannerAndroid>());
-    g_wiimote_scanner.AddScannerBackend(std::make_unique<WiimoteScannerWindows>());
-    g_wiimote_scanner.AddScannerBackend(std::make_unique<WiimoteScannerDarwin>());
-    g_wiimote_scanner.AddScannerBackend(std::make_unique<WiimoteScannerHidapi>());
     g_wiimote_scanner.StartThread();
   }
 
