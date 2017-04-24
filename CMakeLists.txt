@@ -789,26 +789,10 @@ if(NOT ANDROID)
 endif()
 
 if(NOT DISABLE_WX)
-  find_package(wxWidgets COMPONENTS core aui adv)
+  find_package(wxWidgets 3.1.0 COMPONENTS core aui adv)
 
   if(_ARCH_32)
     add_definitions(-DwxSIZE_T_IS_UINT)
-  endif()
-
-  if(wxWidgets_FOUND)
-    EXECUTE_PROCESS(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-      COMMAND sh "${wxWidgets_CONFIG_EXECUTABLE}"
-      ${wxWidgets_CONFIG_OPTIONS} --version
-      OUTPUT_VARIABLE wxWidgets_VERSION
-      OUTPUT_STRIP_TRAILING_WHITESPACE
-      ERROR_QUIET
-      )
-    message(STATUS "Found wxWidgets version ${wxWidgets_VERSION}")
-    set(wxMIN_VERSION "3.1.0")
-    if(${wxWidgets_VERSION} VERSION_LESS ${wxMIN_VERSION})
-      message(STATUS "At least ${wxMIN_VERSION} is required; ignoring found version")
-      unset(wxWidgets_FOUND)
-    endif()
   endif()
 
   if(UNIX AND NOT APPLE AND NOT HAIKU)
