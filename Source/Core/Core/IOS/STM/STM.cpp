@@ -86,7 +86,7 @@ IPCCommandResult STMEventHook::IOCtl(const IOCtlRequest& request)
   return GetNoReply();
 }
 
-void STMEventHook::DoState(PointerWrap& p)
+void STMEventHook::DoStateInternal(PointerWrap& p)
 {
   u32 address = s_event_hook_request ? s_event_hook_request->address : 0;
   p.Do(address);
@@ -94,7 +94,6 @@ void STMEventHook::DoState(PointerWrap& p)
     s_event_hook_request = std::make_unique<IOCtlRequest>(address);
   else
     s_event_hook_request.reset();
-  Device::DoState(p);
 }
 
 bool STMEventHook::HasHookInstalled() const

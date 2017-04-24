@@ -57,13 +57,14 @@ public:
   STMEventHook(u32 device_id, const std::string& device_name) : Device(device_id, device_name) {}
   void Close() override;
   IPCCommandResult IOCtl(const IOCtlRequest& request) override;
-  void DoState(PointerWrap& p) override;
 
   bool HasHookInstalled() const;
   void ResetButton() const;
   void PowerButton() const;
 
 private:
+  void DoStateInternal(PointerWrap& p) override;
+
   void TriggerEvent(u32 event) const;
 };
 }  // namespace Device

@@ -124,7 +124,7 @@ s32 USB_HIDv4::SubmitTransfer(USB::Device& device, const IOCtlRequest& request)
   }
 }
 
-void USB_HIDv4::DoState(PointerWrap& p)
+void USB_HIDv4::DoStateInternal(PointerWrap& p)
 {
   p.Do(m_devicechange_first_call);
   u32 hook_address = m_devicechange_hook_request ? m_devicechange_hook_request->address : 0;

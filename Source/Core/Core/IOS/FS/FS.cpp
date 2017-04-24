@@ -40,10 +40,8 @@ FS::FS(u32 device_id, const std::string& device_name) : Device(device_id, device
   File::CreateDir(tmp_dir);
 }
 
-void FS::DoState(PointerWrap& p)
+void FS::DoStateInternal(PointerWrap& p)
 {
-  DoStateShared(p);
-
   // handle /tmp
 
   std::string Path = File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/tmp";

@@ -35,8 +35,6 @@ public:
   IPCCommandResult IOCtl(const IOCtlRequest& request) override;
   IPCCommandResult IOCtlV(const IOCtlVRequest& request) override;
 
-  void DoState(PointerWrap& p) override;
-
 private:
 #pragma pack(push, 1)
   struct DeviceID
@@ -58,6 +56,8 @@ private:
     u8 num_altsettings;
   };
 #pragma pack(pop)
+
+  void DoStateInternal(PointerWrap& p) override;
 
   std::shared_ptr<USB::Device> GetDeviceByIOSID(s32 ios_id) const;
   u8 GetInterfaceNumber(s32 ios_id) const;

@@ -229,9 +229,8 @@ bool ES::LaunchPPCTitle(u64 title_id, bool skip_reload)
   return BootstrapPPC(content_loader);
 }
 
-void ES::DoState(PointerWrap& p)
+void ES::DoStateInternal(PointerWrap& p)
 {
-  Device::DoState(p);
   p.Do(s_content_file);
   p.Do(m_AccessIdentID);
   s_title_context.DoState(p);

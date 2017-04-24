@@ -29,14 +29,13 @@ class DI : public Device
 public:
   DI(u32 device_id, const std::string& device_name);
 
-  void DoState(PointerWrap& p) override;
-
   IPCCommandResult IOCtl(const IOCtlRequest& request) override;
   IPCCommandResult IOCtlV(const IOCtlVRequest& request) override;
 
   void FinishIOCtl(DVDInterface::DIInterruptType interrupt_type);
 
 private:
+  void DoStateInternal(PointerWrap& p) override;
   void StartIOCtl(const IOCtlRequest& request);
 
   std::deque<u32> m_commands_to_execute;

@@ -28,9 +28,10 @@ public:
   void Close() override;
   IPCCommandResult IOCtl(const IOCtlRequest& request) override;
   IPCCommandResult IOCtlV(const IOCtlVRequest& request) override;
-  void DoState(PointerWrap& p) override;
 
 private:
+  void DoStateInternal(PointerWrap& p) override;
+
   std::shared_ptr<OH0> m_oh0;
   u16 m_vid = 0;
   u16 m_pid = 0;

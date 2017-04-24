@@ -34,8 +34,6 @@ class FS : public Device
 public:
   FS(u32 device_id, const std::string& device_name);
 
-  void DoState(PointerWrap& p) override;
-
   ReturnCode Open(const OpenRequest& request) override;
   IPCCommandResult IOCtl(const IOCtlRequest& request) override;
   IPCCommandResult IOCtlV(const IOCtlVRequest& request) override;
@@ -54,6 +52,8 @@ private:
     IOCTLV_GETUSAGE = 0x0C,
     IOCTL_SHUTDOWN = 0x0D
   };
+
+  void DoStateInternal(PointerWrap& p) override;
 
   IPCCommandResult GetFSReply(s32 return_value) const;
 

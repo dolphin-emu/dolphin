@@ -288,10 +288,8 @@ void FileIO::PrepareForState(PointerWrap::Mode mode)
   m_file.reset();
 }
 
-void FileIO::DoState(PointerWrap& p)
+void FileIO::DoStateInternal(PointerWrap& p)
 {
-  DoStateShared(p);
-
   p.Do(m_Mode);
   p.Do(m_SeekPos);
 

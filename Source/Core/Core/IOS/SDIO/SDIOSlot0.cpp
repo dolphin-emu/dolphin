@@ -27,9 +27,8 @@ SDIOSlot0::SDIOSlot0(u32 device_id, const std::string& device_name) : Device(dev
 {
 }
 
-void SDIOSlot0::DoState(PointerWrap& p)
+void SDIOSlot0::DoStateInternal(PointerWrap& p)
 {
-  DoStateShared(p);
   if (p.GetMode() == PointerWrap::MODE_READ)
   {
     OpenInternal();

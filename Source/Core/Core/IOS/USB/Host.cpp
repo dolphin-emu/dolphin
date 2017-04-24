@@ -62,7 +62,7 @@ void USBHost::UpdateWantDeterminism(const bool new_want_determinism)
     StartThreads();
 }
 
-void USBHost::DoState(PointerWrap& p)
+void USBHost::DoStateInternal(PointerWrap& p)
 {
   if (IsOpened() && p.GetMode() == PointerWrap::MODE_READ)
   {

@@ -39,7 +39,6 @@ public:
   IPCCommandResult Write(const ReadWriteRequest& request) override;
   IPCCommandResult IOCtl(const IOCtlRequest& request) override;
   void PrepareForState(PointerWrap::Mode mode) override;
-  void DoState(PointerWrap& p) override;
 
   void OpenFile();
 
@@ -69,6 +68,8 @@ private:
     ISFS_IOCTL_GETUSAGE = 12,
     ISFS_IOCTL_SHUTDOWN = 13
   };
+
+  void DoStateInternal(PointerWrap& p) override;
 
   IPCCommandResult GetFileStats(const IOCtlRequest& request);
 
