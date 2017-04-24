@@ -802,14 +802,15 @@ void CFrame::DoStop()
     std::lock_guard<std::recursive_mutex> lk(keystate_lock);
     wxMutexGuiEnter();
 #endif
+
+    // Pause the state during confirmation and restore it afterwards
+    Core::State state = Core::GetState();
+
     // Ask for confirmation in case the user accidentally clicked Stop / Escape
     if (SConfig::GetInstance().bConfirmStop)
     {
       // Exit fullscreen to ensure it does not cover the stop dialog.
       DoFullscreen(false);
-
-      // Pause the state during confirmation and restore it afterwards
-      Core::State state = Core::GetState();
 
       // Do not pause if netplay is running as CPU thread might be blocked
       // waiting on inputs
@@ -849,6 +850,7 @@ void CFrame::DoStop()
         g_pCodeWindow->GetPanel<CBreakPointWindow>()->NotifyUpdate();
       g_symbolDB.Clear();
       Host_NotifyMapLoaded();
+      Core::SetState(state);
     }
 
     // TODO: Show the author/description dialog here
@@ -877,8 +879,9 @@ bool CFrame::TriggerSTMPowerEvent()
     return false;
 
   Core::DisplayMessage("Shutting down", 30000);
-  // Unpause because gracefully shutting down needs the game to actually request a shutdown
-  if (Core::GetState() == Core::State::Paused)
+  // Unpause because gracefully shutting down needs the game to actually request a shutdown.
+  // Do not unpause in debug mode to allow debugging until the complete shutdown.
+  if (Core::GetState() == Core::State::Paused && !UseDebugger)
     DoPause();
   ProcessorInterface::PowerButton_Tap();
   m_confirmStop = false;
