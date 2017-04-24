@@ -92,6 +92,10 @@ struct OpenRequest final : Request
 {
   std::string path;
   OpenMode flags = IOS_OPEN_READ;
+  // The UID and GID are not part of the IPC request sent from the PPC to the Starlet,
+  // but they are set after they reach IOS and are dispatched to the appropriate module.
+  u32 uid = 0;
+  u16 gid = 0;
   explicit OpenRequest(u32 address);
 };
 
