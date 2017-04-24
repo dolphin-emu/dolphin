@@ -81,7 +81,7 @@ private:
 
   bool m_is_stretching = false;
   AudioCommon::AudioStretcher m_stretcher;
-  std::array<short, MAX_SAMPLES * 2> m_stretch_buffer;
+  std::array<short, MAX_SAMPLES * 2> m_scratch_buffer;
   std::array<float, MAX_SAMPLES * 2> m_float_conversion_buffer;
 
   WaveFileWriter m_wave_writer_dtk;

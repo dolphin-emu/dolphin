@@ -129,18 +129,19 @@ unsigned int CMixer::Mix(short* samples, unsigned int num_samples)
     unsigned int available_samples =
         std::min(m_dma_mixer.AvailableSamples(), m_streaming_mixer.AvailableSamples());
 
-    m_stretch_buffer.fill(0);
+    m_scratch_buffer.fill(0);
 
-    m_dma_mixer.Mix(m_stretch_buffer.data(), available_samples, false);
-    m_streaming_mixer.Mix(m_stretch_buffer.data(), available_samples, false);
-    m_wiimote_speaker_mixer.Mix(m_stretch_buffer.data(), available_samples, false);
+    m_dma_mixer.Mix(m_scratch_buffer.data(), available_samples, false);
+    m_streaming_mixer.Mix(m_scratch_buffer.data(), available_samples, false);
+    m_wiimote_speaker_mixer.Mix(m_scratch_buffer.data(), available_samples, false);
 
     if (!m_is_stretching)
     {
       m_stretcher.Clear();
       m_is_stretching = true;
     }
-    m_stretcher.StretchAudio(m_stretch_buffer.data(), available_samples, samples, num_samples);
+    m_stretcher.ProcessSamples(m_scratch_buffer.data(), available_samples, num_samples);
+    m_stretcher.GetStretchedSamples(samples, num_samples);
   }
   else
   {
@@ -160,11 +161,13 @@ unsigned int CMixer::MixSurround(float* samples, unsigned int num_samples)
 
   memset(samples, 0, num_samples * 6 * sizeof(float));
 
-  unsigned int available_samples = Mix(m_stretch_buffer.data(), num_samples);
+  // Mix() may also use m_scratch_buffer internally, but is safe because it alternates reads and
+  // writes.
+  unsigned int available_samples = Mix(m_scratch_buffer.data(), num_samples);
   for (size_t i = 0; i < static_cast<size_t>(available_samples) * 2; ++i)
   {
     m_float_conversion_buffer[i] =
-        m_stretch_buffer[i] / static_cast<float>(std::numeric_limits<short>::max());
+        m_scratch_buffer[i] / static_cast<float>(std::numeric_limits<short>::max());
   }
 
   DPL2Decode(m_float_conversion_buffer.data(), available_samples, samples);

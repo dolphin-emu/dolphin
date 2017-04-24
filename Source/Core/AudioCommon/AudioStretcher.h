@@ -13,8 +13,9 @@ namespace AudioCommon
 class AudioStretcher
 {
 public:
-  AudioStretcher(unsigned int sample_rate);
-  void StretchAudio(const short* in, unsigned int num_in, short* out, unsigned int num_out);
+  explicit AudioStretcher(unsigned int sample_rate);
+  void ProcessSamples(const short* in, unsigned int num_in, unsigned int num_out);
+  void GetStretchedSamples(short* out, unsigned int num_out);
   void Clear();
 
 private:

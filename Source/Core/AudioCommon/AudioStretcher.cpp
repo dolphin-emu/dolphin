@@ -2,7 +2,9 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <cmath>
+#include <cstddef>
 
 #include "AudioCommon/AudioStretcher.h"
 #include "Common/Logging/Log.h"
@@ -27,8 +29,7 @@ void AudioStretcher::Clear()
   m_sound_touch.clear();
 }
 
-void AudioStretcher::StretchAudio(const short* in, unsigned int num_in, short* out,
-                                  unsigned int num_out)
+void AudioStretcher::ProcessSamples(const short* in, unsigned int num_in, unsigned int num_out)
 {
   const double time_delta = static_cast<double>(num_out) / m_sample_rate;  // seconds
 
@@ -65,7 +66,10 @@ void AudioStretcher::StretchAudio(const short* in, unsigned int num_in, short* o
             m_stretch_ratio, backlog_fullness, lpf_gain);
 
   m_sound_touch.putSamples(in, num_in);
+}
 
+void AudioStretcher::GetStretchedSamples(short* out, unsigned int num_out)
+{
   const size_t samples_received = m_sound_touch.receiveSamples(out, num_out);
 
   if (samples_received != 0)
