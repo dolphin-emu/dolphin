@@ -89,11 +89,6 @@ set(LIBS
   wxWidgets::wxWidgets
 )
 
-
-if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-  list(APPEND LIBS dl)
-endif()
-
 if(APPLE)
   # Add resource files to application bundle.
   set(RESOURCES resources/Dolphin.icns)
@@ -123,71 +118,71 @@ target_link_libraries(${DOLPHIN_EXE} ${LIBS})
 # Handle localization
 find_package(Gettext)
 if(GETTEXT_MSGMERGE_EXECUTABLE AND GETTEXT_MSGFMT_EXECUTABLE)
-set(pot_file "${CMAKE_SOURCE_DIR}/Languages/po/dolphin-emu.pot")
-file(GLOB LINGUAS ${CMAKE_SOURCE_DIR}/Languages/po/*.po)
+  set(pot_file "${CMAKE_SOURCE_DIR}/Languages/po/dolphin-emu.pot")
+  file(GLOB LINGUAS ${CMAKE_SOURCE_DIR}/Languages/po/*.po)
 
-target_sources(${DOLPHIN_EXE} PRIVATE ${pot_file} ${LINGUAS})
-source_group("Localization" FILES ${LINGUAS})
-source_group("Localization\\\\Generated" FILES ${pot_file})
+  target_sources(${DOLPHIN_EXE} PRIVATE ${pot_file} ${LINGUAS})
+  source_group("Localization" FILES ${LINGUAS})
+  source_group("Localization\\\\Generated" FILES ${pot_file})
 
-foreach(po ${LINGUAS})
-  get_filename_component(lang ${po} NAME_WE)
-  set(mo_dir ${CMAKE_CURRENT_BINARY_DIR}/${lang})
-  set(mo ${mo_dir}/dolphin-emu.mo)
+  foreach(po ${LINGUAS})
+    get_filename_component(lang ${po} NAME_WE)
+    set(mo_dir ${CMAKE_CURRENT_BINARY_DIR}/${lang})
+    set(mo ${mo_dir}/dolphin-emu.mo)
 
-  target_sources(${DOLPHIN_EXE} PRIVATE ${mo})
-  source_group("Localization\\\\Generated" FILES ${mo})
+    target_sources(${DOLPHIN_EXE} PRIVATE ${mo})
+    source_group("Localization\\\\Generated" FILES ${mo})
 
-  if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-    set_source_files_properties(${mo} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/${lang}.lproj")
-  else()
-    install(FILES ${mo} DESTINATION share/locale/${lang}/LC_MESSAGES)
-  endif()
+    if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+      set_source_files_properties(${mo} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/${lang}.lproj")
+    else()
+      install(FILES ${mo} DESTINATION share/locale/${lang}/LC_MESSAGES)
+    endif()
 
-  add_custom_command(OUTPUT ${mo}
-    COMMAND mkdir -p ${mo_dir}
-    COMMAND ${GETTEXT_MSGMERGE_EXECUTABLE} --quiet --update --backup=none -s ${po} ${pot_file}
-    COMMAND ${GETTEXT_MSGFMT_EXECUTABLE} -o ${mo} ${po}
-    DEPENDS ${po}
-  )
-endforeach()
+    add_custom_command(OUTPUT ${mo}
+      COMMAND mkdir -p ${mo_dir}
+      COMMAND ${GETTEXT_MSGMERGE_EXECUTABLE} --quiet --update --backup=none -s ${po} ${pot_file}
+      COMMAND ${GETTEXT_MSGFMT_EXECUTABLE} -o ${mo} ${po}
+      DEPENDS ${po}
+    )
+  endforeach()
 endif()
 
 if(APPLE)
-set(BUNDLE_PATH ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${DOLPHIN_EXE}.app)
+  set(BUNDLE_PATH ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${DOLPHIN_EXE}.app)
 
-# Ask for an application bundle.
-set_target_properties(${DOLPHIN_EXE} PROPERTIES
-  MACOSX_BUNDLE true
-  MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in
-  )
+  # Ask for an application bundle.
+  set_target_properties(${DOLPHIN_EXE} PROPERTIES
+    MACOSX_BUNDLE true
+    MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in
+    )
 
-# Copy resources in the bundle
-set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/Data/Sys")
-file(GLOB_RECURSE resources RELATIVE "${CMAKE_SOURCE_DIR}/Data" "${CMAKE_SOURCE_DIR}/Data/Sys/*")
-foreach(res ${resources})
-  target_sources(${DOLPHIN_EXE} PRIVATE "${CMAKE_SOURCE_DIR}/Data/${res}")
-  get_filename_component(resdir "${res}" DIRECTORY)
-  set_source_files_properties("${CMAKE_SOURCE_DIR}/Data/${res}" PROPERTIES
-    MACOSX_PACKAGE_LOCATION "Resources/${resdir}")
-  source_group("Resources" FILES "${CMAKE_SOURCE_DIR}/Data/${res}")
-endforeach()
+  # Copy resources in the bundle
+  set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/Data/Sys")
+  file(GLOB_RECURSE resources RELATIVE "${CMAKE_SOURCE_DIR}/Data" "${CMAKE_SOURCE_DIR}/Data/Sys/*")
+  foreach(res ${resources})
+    target_sources(${DOLPHIN_EXE} PRIVATE "${CMAKE_SOURCE_DIR}/Data/${res}")
+    get_filename_component(resdir "${res}" DIRECTORY)
+    set_source_files_properties("${CMAKE_SOURCE_DIR}/Data/${res}" PROPERTIES
+      MACOSX_PACKAGE_LOCATION "Resources/${resdir}")
+    source_group("Resources" FILES "${CMAKE_SOURCE_DIR}/Data/${res}")
+  endforeach()
 
-# Update library references to make the bundle portable
-include(DolphinPostprocessBundle)
-dolphin_postprocess_bundle(${DOLPHIN_EXE})
+  # Update library references to make the bundle portable
+  include(DolphinPostprocessBundle)
+  dolphin_postprocess_bundle(${DOLPHIN_EXE})
 
-# Install bundle into systemwide /Applications directory.
-install(TARGETS ${DOLPHIN_EXE} DESTINATION /Applications)
+  # Install bundle into systemwide /Applications directory.
+  install(TARGETS ${DOLPHIN_EXE} DESTINATION /Applications)
 elseif(WIN32)
-set_target_properties(${DOLPHIN_EXE} PROPERTIES
-  WIN32_EXECUTABLE ON
-)
-add_custom_command(TARGET ${DOLPHIN_EXE}
-  COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/Data/Sys $<TARGET_FILE_DIR:${DOLPHIN_EXE}>/Sys
-)
+  set_target_properties(${DOLPHIN_EXE} PROPERTIES
+    WIN32_EXECUTABLE ON
+  )
+  add_custom_command(TARGET ${DOLPHIN_EXE}
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/Data/Sys $<TARGET_FILE_DIR:${DOLPHIN_EXE}>/Sys
+  )
 else()
-install(TARGETS ${DOLPHIN_EXE} RUNTIME DESTINATION ${bindir})
+  install(TARGETS ${DOLPHIN_EXE} RUNTIME DESTINATION ${bindir})
 endif()
 
 set(CPACK_PACKAGE_EXECUTABLES ${CPACK_PACKAGE_EXECUTABLES} ${DOLPHIN_EXE})
