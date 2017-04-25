@@ -53,6 +53,8 @@
 
 #include "DiscIO/NANDContentLoader.h"
 #include "DiscIO/NANDImporter.h"
+#include "DiscIO/VolumeCreator.h"
+#include "DiscIO/VolumeWad.h"
 
 #include "DolphinWX/AboutDolphin.h"
 #include "DolphinWX/Cheats/CheatsWindow.h"
@@ -1226,6 +1228,31 @@ void CFrame::OnInstallWAD(wxCommandEvent& event)
   {
     UpdateLoadWiiMenuItem();
   }
+}
+
+void CFrame::OnUninstallWAD(wxCommandEvent&)
+{
+  const GameListItem* file = m_GameListCtrl->GetSelectedISO();
+  if (!file)
+    return;
+
+  if (!AskYesNoT("Uninstalling the WAD will remove the currently installed version "
+                 "of this title from the NAND without deleting its save data. Continue?"))
+  {
+    return;
+  }
+
+  const auto volume = DiscIO::CreateVolumeFromFilename(file->GetFileName());
+  u64 title_id;
+  volume->GetTitleID(&title_id);
+  if (!DiscIO::CNANDContentManager::Access().RemoveTitle(title_id, Common::FROM_CONFIGURED_ROOT))
+  {
+    PanicAlertT("Failed to remove this title from the NAND.");
+    return;
+  }
+
+  if (title_id == TITLEID_SYSMENU)
+    UpdateLoadWiiMenuItem();
 }
 
 void CFrame::OnImportBootMiiBackup(wxCommandEvent& WXUNUSED(event))
