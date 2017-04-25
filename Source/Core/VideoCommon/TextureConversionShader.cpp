@@ -78,11 +78,6 @@ u16 GetEncodedSampleCount(u32 format)
   }
 }
 
-static bool EFBFormatHasAlpha(u32 format)
-{
-  return format == PEControl::RGBA6_Z24;
-}
-
 // block dimensions : widthStride, heightStride
 // texture dims : width, height, x offset, y offset
 static void WriteSwizzler(char*& p, u32 format, APIType ApiType)
@@ -93,6 +88,25 @@ static void WriteSwizzler(char*& p, u32 format, APIType ApiType)
     WRITE(p, "layout(std140, push_constant) uniform PCBlock { int4 position; } PC;\n");
   else
     WRITE(p, "uniform int4 position;\n");
+
+  // Alpha channel in the copy is set to 1 the EFB format does not have an alpha channel.
+  WRITE(p, "float4 RGBA8ToRGB8(float4 src)\n");
+  WRITE(p, "{\n");
+  WRITE(p, "  return float4(src.xyz, 1.0);\n");
+  WRITE(p, "}\n");
+
+  WRITE(p, "float4 RGBA8ToRGBA6(float4 src)\n");
+  WRITE(p, "{\n");
+  WRITE(p, "  int4 val = int4(src * 255.0) >> 2;\n");
+  WRITE(p, "  return float4(val) / 63.0;\n");
+  WRITE(p, "}\n");
+
+  WRITE(p, "float4 RGBA8ToRGB565(float4 src)\n");
+  WRITE(p, "{\n");
+  WRITE(p, "  int4 val = int4(src * 255.0);\n");
+  WRITE(p, "  val = int4(val.r >> 3, val.g >> 2, val.b >> 3, 1);\n");
+  WRITE(p, "  return float4(val) / float4(31.0, 63.0, 31.0, 1.0);\n");
+  WRITE(p, "}\n");
 
   int blkW = TexDecoder_GetBlockWidthInTexels(format);
   int blkH = TexDecoder_GetBlockHeightInTexels(format);
@@ -168,42 +182,45 @@ static void WriteSwizzler(char*& p, u32 format, APIType ApiType)
 static void WriteSampleColor(char*& p, const char* colorComp, const char* dest, int xoffset,
                              APIType ApiType, const EFBCopyFormat& format, bool depth)
 {
-  if (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan)
+  WRITE(p, "  %s = ", dest);
+
+  if (!depth)
   {
-    WRITE(p, "  %s = texture(samp0, float3(uv0 + float2(%d, 0) * sample_offset, 0.0)).%s;\n", dest,
-          xoffset, colorComp);
+    switch (format.efb_format)
+    {
+    case PEControl::RGB8_Z24:
+      WRITE(p, "RGBA8ToRGB8(");
+      break;
+    case PEControl::RGBA6_Z24:
+      WRITE(p, "RGBA8ToRGBA6(");
+      break;
+    case PEControl::RGB565_Z16:
+      WRITE(p, "RGBA8ToRGB565(");
+      break;
+    default:
+      WRITE(p, "(");
+      break;
+    }
   }
   else
   {
-    WRITE(p, "  %s = Tex0.Sample(samp0, float3(uv0 + float2(%d, 0) * sample_offset, 0.0)).%s;\n",
-          dest, xoffset, colorComp);
-  }
-
-  if (ApiType == APIType::D3D || ApiType == APIType::Vulkan)
-  {
     // Handle D3D depth inversion.
-    if (depth)
-      WRITE(p, "  %s = 1.0 - %s;\n", dest, dest);
+    if (ApiType == APIType::D3D || ApiType == APIType::Vulkan)
+      WRITE(p, "1.0 - (");
+    else
+      WRITE(p, "(");
   }
 
-  // Truncate 8-bits to 5/6-bits per channel.
-  switch (format.efb_format)
+  if (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan)
   {
-  case PEControl::RGBA6_Z24:
-    WRITE(p, "  %s = floor(%s * 63.0) / 63.0;\n", dest, dest);
-    break;
-
-  case PEControl::RGB565_Z16:
-    WRITE(
-        p,
-        "  %s = floor(%s * float4(31.0, 63.0, 31.0, 1.0).%s) / float4(31.0, 63.0, 31.0, 1.0).%s;\n",
-        dest, dest, colorComp, colorComp);
-    break;
+    WRITE(p, "texture(samp0, float3(uv0 + float2(%d, 0) * sample_offset, 0.0))).%s;\n", xoffset,
+          colorComp);
   }
-
-  // Alpha channel is set to 1 in the copy if the EFB does not have an alpha channel.
-  if (std::strchr(colorComp, 'a') && !EFBFormatHasAlpha(format.efb_format))
-    WRITE(p, "  %s.a = 1.0;\n", dest);
+  else
+  {
+    WRITE(p, "Tex0.Sample(samp0, float3(uv0 + float2(%d, 0) * sample_offset, 0.0))).%s;\n", xoffset,
+          colorComp);
+  }
 }
 
 static void WriteColorToIntensity(char*& p, const char* src, const char* dest)
@@ -403,7 +420,6 @@ static void WriteRGB5A3Encoder(char*& p, APIType ApiType, const EFBCopyFormat& f
   WRITE(p, "}\n");
 
   WriteSampleColor(p, "rgba", "texSample", 1, ApiType, format, false);
-  WRITE(p, "  texSample.a = 1.0;\n");
 
   WRITE(p, "if(texSample.a > 0.878f) {\n");
 
