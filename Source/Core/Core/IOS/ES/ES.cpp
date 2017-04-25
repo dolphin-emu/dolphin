@@ -173,14 +173,39 @@ static bool UpdateUIDAndGID(const IOS::ES::TMDReader& tmd)
   return true;
 }
 
+static ReturnCode CheckIsAllowedToSetUID(const u32 caller_uid)
+{
+  IOS::ES::UIDSys uid_map{Common::FromWhichRoot::FROM_SESSION_ROOT};
+  const u32 system_menu_uid = uid_map.GetOrInsertUIDForTitle(TITLEID_SYSMENU);
+  if (!system_menu_uid)
+    return ES_SHORT_READ;
+  return caller_uid == system_menu_uid ? IPC_SUCCESS : ES_EINVAL;
+}
+
 IPCCommandResult ES::SetUID(const IOCtlVRequest& request)
 {
-  if (!request.HasNumberOfValidVectors(1, 0))
+  if (!request.HasNumberOfValidVectors(1, 0) || request.in_vectors[0].size != 8)
     return GetDefaultReply(ES_EINVAL);
 
-  // TODO: fs permissions based on this
-  u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
-  INFO_LOG(IOS_ES, "IOCTL_ES_SETUID titleID: %08x/%08x", (u32)(TitleID >> 32), (u32)TitleID);
+  const u64 title_id = Memory::Read_U64(request.in_vectors[0].address);
+
+  const s32 ret = CheckIsAllowedToSetUID(m_caller_uid);
+  if (ret < 0)
+  {
+    ERROR_LOG(IOS_ES, "SetUID: Permission check failed with error %d", ret);
+    return GetDefaultReply(ret);
+  }
+
+  const auto tmd = IOS::ES::FindInstalledTMD(title_id);
+  if (!tmd.IsValid())
+    return GetDefaultReply(FS_ENOENT);
+
+  if (!UpdateUIDAndGID(tmd))
+  {
+    ERROR_LOG(IOS_ES, "SetUID: Failed to get UID for title %016" PRIx64, title_id);
+    return GetDefaultReply(ES_SHORT_READ);
+  }
+
   return GetDefaultReply(IPC_SUCCESS);
 }
 
@@ -265,6 +290,9 @@ void ES::DoState(PointerWrap& p)
   p.Do(m_addtitle_content_id);
   p.Do(m_addtitle_content_buffer);
 
+  p.Do(m_caller_uid);
+  p.Do(m_caller_gid);
+
   p.Do(m_export_title_context.valid);
   m_export_title_context.tmd.DoState(p);
   p.Do(m_export_title_context.title_key);
@@ -296,8 +324,8 @@ void ES::DoState(PointerWrap& p)
 
 ReturnCode ES::Open(const OpenRequest& request)
 {
-  if (m_is_active)
-    INFO_LOG(IOS_ES, "Device was re-opened.");
+  m_caller_uid = request.uid;
+  m_caller_gid = request.gid;
   return Device::Open(request);
 }
 

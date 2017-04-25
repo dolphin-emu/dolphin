@@ -246,6 +246,9 @@ private:
   u32 m_addtitle_content_id = 0xFFFFFFFF;
   std::vector<u8> m_addtitle_content_buffer;
 
+  u32 m_caller_uid = 0;
+  u16 m_caller_gid = 0;
+
   struct TitleExportContext
   {
     struct ExportContent

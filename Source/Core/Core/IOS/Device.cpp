@@ -26,6 +26,8 @@ OpenRequest::OpenRequest(const u32 address_) : Request(address_)
 {
   path = Memory::GetString(Memory::Read_U32(address + 0xc));
   flags = static_cast<OpenMode>(Memory::Read_U32(address + 0x10));
+  uid = GetUIDForPPC();
+  gid = GetGIDForPPC();
 }
 
 ReadWriteRequest::ReadWriteRequest(const u32 address_) : Request(address_)
