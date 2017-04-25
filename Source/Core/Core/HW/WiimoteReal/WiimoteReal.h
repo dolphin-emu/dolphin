@@ -43,6 +43,8 @@ public:
   void Read();
   bool Write();
 
+  bool WriteSound();
+
   bool IsBalanceBoard();
 
   void StartThread();
@@ -98,10 +100,12 @@ private:
   virtual void IOWakeup() = 0;
 
   void ThreadFunc();
+  void SndThreadFunc();
 
   bool m_rumble_state;
 
   std::thread m_wiimote_thread;
+  std::thread m_wiimote_snd_thread;
   // Whether to keep running the thread.
   Common::Flag m_run_thread;
   // Whether to call PrepareOnThread.
@@ -111,6 +115,7 @@ private:
 
   Common::FifoQueue<Report> m_read_reports;
   Common::FifoQueue<Report> m_write_reports;
+  Common::FifoQueue<Report> m_write_reports_snd;
 };
 
 class WiimoteScannerBackend
