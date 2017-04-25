@@ -28,9 +28,9 @@ namespace CoreTiming
 struct Globals
 {
   s64 global_timer;
+  int slice_length;
   u64 fake_TB_start_value;
   u64 fake_TB_start_ticks;
-  int slice_length;
   float last_OC_factor_inverted;
 };
 extern Globals g;
