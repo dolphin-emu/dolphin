@@ -384,10 +384,10 @@ void CMemoryWindow::OnSearch(wxCommandEvent& event)
     if (std::equal(search_bytes.begin(), search_bytes.end(), ptr))
     {
       m_search_result_msg->SetLabel(_("Match Found"));
-      u32 offset = static_cast<u32>(ptr - ram_ptr);
+      u32 found_addr = static_cast<u32>(ptr - ram_ptr) + 0x80000000;
       // NOTE: SetValue() generates a synthetic wxEVT_TEXT
-      addrbox->SetValue(wxString::Format("%08x", offset));
-      m_last_search_address = offset;
+      addrbox->SetValue(wxString::Format("%08x", found_addr));
+      m_last_search_address = found_addr;
       m_continue_search = true;
       break;
     }
