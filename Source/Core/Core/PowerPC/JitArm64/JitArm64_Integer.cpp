@@ -17,33 +17,23 @@ using namespace Arm64Gen;
 
 void JitArm64::ComputeRC(ARM64Reg reg, int crf, bool needs_sext)
 {
+  gpr.BindCRToRegister(crf, false);
   if (needs_sext)
   {
-    ARM64Reg WA = gpr.GetReg();
-    ARM64Reg XA = EncodeRegTo64(WA);
-
-    SXTW(XA, reg);
-
-    STR(INDEX_UNSIGNED, XA, PPC_REG, PPCSTATE_OFF(cr_val[crf]));
-    gpr.Unlock(WA);
+    SXTW(gpr.CR(crf), reg);
   }
   else
   {
-    STR(INDEX_UNSIGNED, EncodeRegTo64(reg), PPC_REG, PPCSTATE_OFF(cr_val[crf]));
+    MOV(gpr.CR(crf), EncodeRegTo64(reg));
   }
 }
 
 void JitArm64::ComputeRC(u64 imm, int crf, bool needs_sext)
 {
-  ARM64Reg WA = gpr.GetReg();
-  ARM64Reg XA = EncodeRegTo64(WA);
-
-  MOVI2R(XA, imm);
+  gpr.BindCRToRegister(crf, false);
+  MOVI2R(gpr.CR(crf), imm);
   if (imm & 0x80000000 && needs_sext)
-    SXTW(XA, WA);
-
-  STR(INDEX_UNSIGNED, XA, PPC_REG, PPCSTATE_OFF(cr_val[crf]));
-  gpr.Unlock(WA);
+    SXTW(gpr.CR(crf), DecodeReg(gpr.CR(crf)));
 }
 
 void JitArm64::ComputeCarry(bool Carry)
@@ -425,19 +415,18 @@ void JitArm64::cmp(UGeckoInstruction inst)
     return;
   }
 
+  gpr.BindCRToRegister(crf, false);
   ARM64Reg WA = gpr.GetReg();
-  ARM64Reg WB = gpr.GetReg();
   ARM64Reg XA = EncodeRegTo64(WA);
-  ARM64Reg XB = EncodeRegTo64(WB);
   ARM64Reg RA = gpr.R(a);
   ARM64Reg RB = gpr.R(b);
+  ARM64Reg CR = gpr.CR(crf);
+
   SXTW(XA, RA);
-  SXTW(XB, RB);
+  SXTW(CR, RB);
+  SUB(CR, XA, CR);
 
-  SUB(XA, XA, XB);
-  STR(INDEX_UNSIGNED, XA, PPC_REG, PPCSTATE_OFF(cr_val[crf]));
-
-  gpr.Unlock(WA, WB);
+  gpr.Unlock(WA);
 }
 
 void JitArm64::cmpl(UGeckoInstruction inst)
@@ -459,11 +448,8 @@ void JitArm64::cmpl(UGeckoInstruction inst)
     return;
   }
 
-  ARM64Reg WA = gpr.GetReg();
-  ARM64Reg XA = EncodeRegTo64(WA);
-  SUB(XA, EncodeRegTo64(gpr.R(a)), EncodeRegTo64(gpr.R(b)));
-  STR(INDEX_UNSIGNED, XA, PPC_REG, PPCSTATE_OFF(cr_val[crf]));
-  gpr.Unlock(WA);
+  gpr.BindCRToRegister(crf, false);
+  SUB(gpr.CR(crf), EncodeRegTo64(gpr.R(a)), EncodeRegTo64(gpr.R(b)));
 }
 
 void JitArm64::cmpi(UGeckoInstruction inst)
@@ -507,13 +493,10 @@ void JitArm64::cmpli(UGeckoInstruction inst)
     return;
   }
 
-  ARM64Reg WA = gpr.GetReg();
-  ARM64Reg XA = EncodeRegTo64(WA);
+  gpr.BindCRToRegister(crf, false);
+  ARM64Reg XA = gpr.CR(crf);
 
   SUBI2R(XA, EncodeRegTo64(gpr.R(a)), inst.UIMM, XA);
-
-  STR(INDEX_UNSIGNED, XA, PPC_REG, PPCSTATE_OFF(cr_val[crf]));
-  gpr.Unlock(WA);
 }
 
 void JitArm64::rlwinmx(UGeckoInstruction inst)

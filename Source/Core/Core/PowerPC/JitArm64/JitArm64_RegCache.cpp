@@ -195,13 +195,13 @@ void Arm64GPRCache::FlushRegisters(BitSet32 regs, bool maintain_state)
             reg2.GetType() == REG_REG)
         {
           size_t ppc_offset = GetGuestByIndex(i).ppc_offset;
-          ARM64Reg RX1 = R(i);
-          ARM64Reg RX2 = R(i + 1);
+          ARM64Reg RX1 = R(GetGuestByIndex(i));
+          ARM64Reg RX2 = R(GetGuestByIndex(i + 1));
           m_emit->STP(INDEX_SIGNED, RX1, RX2, PPC_REG, ppc_offset);
           if (!maintain_state)
           {
-            UnlockRegister(RX1);
-            UnlockRegister(RX2);
+            UnlockRegister(DecodeReg(RX1));
+            UnlockRegister(DecodeReg(RX2));
             reg1.Flush();
             reg2.Flush();
           }
