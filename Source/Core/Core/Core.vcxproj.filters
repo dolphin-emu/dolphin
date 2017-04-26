@@ -958,9 +958,6 @@
     <ClInclude Include="FifoPlayer\FifoDataFile.h">
       <Filter>FifoPlayer</Filter>
     </ClInclude>
-    <ClInclude Include="FifoPlayer\FifoFileStruct.h">
-      <Filter>FifoPlayer</Filter>
-    </ClInclude>
     <ClInclude Include="FifoPlayer\FifoPlaybackAnalyzer.h">
       <Filter>FifoPlayer</Filter>
     </ClInclude>
