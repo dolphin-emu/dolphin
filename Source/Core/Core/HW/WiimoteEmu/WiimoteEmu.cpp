@@ -15,13 +15,15 @@
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/HW/Wiimote.h"
+#include "Core/HW/WiimoteCommon/WiimoteConstants.h"
+#include "Core/HW/WiimoteCommon/WiimoteHid.h"
 #include "Core/HW/WiimoteEmu/Attachment/Classic.h"
 #include "Core/HW/WiimoteEmu/Attachment/Drums.h"
 #include "Core/HW/WiimoteEmu/Attachment/Guitar.h"
 #include "Core/HW/WiimoteEmu/Attachment/Nunchuk.h"
 #include "Core/HW/WiimoteEmu/Attachment/Turntable.h"
 #include "Core/HW/WiimoteEmu/MatrixMath.h"
-#include "Core/HW/WiimoteEmu/WiimoteHid.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/Host.h"
 #include "Core/Movie.h"
@@ -195,7 +197,7 @@ static const char* const named_buttons[] = {
 
 void Wiimote::Reset()
 {
-  m_reporting_mode = WM_REPORT_CORE;
+  m_reporting_mode = RT_REPORT_CORE;
   // i think these two are good
   m_reporting_channel = 0;
   m_reporting_auto = false;
@@ -726,7 +728,7 @@ void Wiimote::Update()
 
   m_status.battery = (u8)(m_battery_setting->GetValue() * 100);
 
-  const ReportFeatures& rptf = reporting_mode_features[m_reporting_mode - WM_REPORT_CORE];
+  const ReportFeatures& rptf = reporting_mode_features[m_reporting_mode - RT_REPORT_CORE];
   s8 rptf_size = rptf.size;
   if (Movie::IsPlayingInput() &&
       Movie::PlayWiimote(m_index, data, rptf, m_extension->active_extension, m_ext_key))
@@ -776,10 +778,10 @@ void Wiimote::Update()
           {
           // use data reports
           default:
-            if (real_data[1] >= WM_REPORT_CORE)
+            if (real_data[1] >= RT_REPORT_CORE)
             {
               const ReportFeatures& real_rptf =
-                  reporting_mode_features[real_data[1] - WM_REPORT_CORE];
+                  reporting_mode_features[real_data[1] - RT_REPORT_CORE];
 
               // force same report type from real-Wiimote
               if (&real_rptf != &rptf)
@@ -807,7 +809,7 @@ void Wiimote::Update()
                 memcpy(data + rptf.ext, real_data + real_rptf.ext,
                        sizeof(wm_nc));  // TODO: Why NC specific?
             }
-            else if (WM_ACK_DATA != real_data[1] || m_extension->active_extension > 0)
+            else if (real_data[1] != RT_ACK_DATA || m_extension->active_extension > 0)
               rptf_size = 0;
             else
               // use real-acks if an emu-extension isn't chosen
@@ -815,7 +817,7 @@ void Wiimote::Update()
             break;
 
           // use all status reports, after modification of the extension bit
-          case WM_STATUS_REPORT:
+          case RT_STATUS_REPORT:
             // if (m_extension->switch_extension)
             //((wm_status_report*)(real_data + 2))->extension = (m_extension->active_extension > 0);
             if (m_extension->active_extension)
@@ -824,7 +826,7 @@ void Wiimote::Update()
             break;
 
           // use all read-data replies
-          case WM_READ_DATA_REPLY:
+          case RT_READ_DATA_REPLY:
             rptf_size = -1;
             break;
           }
@@ -851,7 +853,7 @@ void Wiimote::Update()
   Movie::CheckWiimoteStatus(m_index, data, rptf, m_extension->active_extension, m_ext_key);
 
   // don't send a data report if auto reporting is off
-  if (false == m_reporting_auto && data[1] >= WM_REPORT_CORE)
+  if (false == m_reporting_auto && data[1] >= RT_REPORT_CORE)
     return;
 
   // send data report
@@ -935,8 +937,8 @@ void Wiimote::InterruptChannel(const u16 _channelID, const void* _pData, u32 _Si
         switch (sr->wm)
         {
         // these two types are handled in RequestStatus() & ReadData()
-        case WM_REQUEST_STATUS:
-        case WM_READ_DATA:
+        case RT_REQUEST_STATUS:
+        case RT_READ_DATA:
           if (WIIMOTE_SRC_REAL == g_wiimote_sources[m_index])
             WiimoteReal::InterruptChannel(m_index, _channelID, _pData, _Size);
           break;

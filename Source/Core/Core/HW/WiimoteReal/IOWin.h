@@ -8,7 +8,7 @@
 #include <windows.h>
 
 #include "Common/StringUtil.h"
-#include "Core/HW/WiimoteEmu/WiimoteHid.h"
+#include "Core/HW/WiimoteCommon/WiimoteHid.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 
 namespace WiimoteReal

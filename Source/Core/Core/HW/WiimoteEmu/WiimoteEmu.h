@@ -7,8 +7,9 @@
 #include <queue>
 #include <string>
 
+#include "Core/HW/WiimoteCommon/WiimoteHid.h"
+#include "Core/HW/WiimoteCommon/WiimoteReport.h"
 #include "Core/HW/WiimoteEmu/Encryption.h"
-#include "Core/HW/WiimoteEmu/WiimoteHid.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 
 // Registry sizes
