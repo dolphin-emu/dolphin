@@ -107,6 +107,12 @@ endif()
 add_executable(dolphin-emu ${SRCS})
 target_link_libraries(dolphin-emu ${LIBS})
 
+if(USE_X11)
+  find_package(GTK2 REQUIRED)
+  target_link_libraries(dolphin-emu ${GTK2_LIBRARIES})
+  target_include_directories(dolphin-emu PRIVATE ${GTK2_INCLUDE_DIRS})
+endif()
+
 # Handle localization
 find_package(Gettext)
 if(GETTEXT_MSGMERGE_EXECUTABLE AND GETTEXT_MSGFMT_EXECUTABLE)
