@@ -26,6 +26,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/Thread.h"
+#include "Core/HW/WiimoteEmu/WiimoteHid.h"
 #include "Core/HW/WiimoteReal/IOWin.h"
 
 // Create func_t function pointer type and declare a nullptr-initialized static variable of that
@@ -576,6 +577,38 @@ bool WiimoteWindows::IsConnected() const
   return m_dev_handle != nullptr;
 }
 
+// See http://wiibrew.org/wiki/Wiimote for the Report IDs and its sizes
+size_t GetReportSize(u8 report_id)
+{
+  switch (report_id)
+  {
+  case WM_STATUS_REPORT:
+    return sizeof(wm_status_report);
+  case WM_READ_DATA_REPLY:
+    return sizeof(wm_read_data_reply);
+  case WM_ACK_DATA:
+    return sizeof(wm_acknowledge);
+  case WM_REPORT_CORE:
+    return sizeof(wm_report_core);
+  case WM_REPORT_CORE_ACCEL:
+    return sizeof(wm_report_core_accel);
+  case WM_REPORT_CORE_EXT8:
+    return sizeof(wm_report_core_ext8);
+  case WM_REPORT_CORE_ACCEL_IR12:
+    return sizeof(wm_report_core_accel_ir12);
+  case WM_REPORT_CORE_EXT19:
+  case WM_REPORT_CORE_ACCEL_EXT16:
+  case WM_REPORT_CORE_IR10_EXT9:
+  case WM_REPORT_CORE_ACCEL_IR10_EXT6:
+  case WM_REPORT_EXT21:
+  case WM_REPORT_INTERLEAVE1:
+  case WM_REPORT_INTERLEAVE2:
+    return sizeof(wm_report_ext21);
+  default:
+    return 0;
+  }
+}
+
 // positive = read packet
 // negative = didn't read packet
 // zero = error
@@ -583,8 +616,6 @@ int IORead(HANDLE& dev_handle, OVERLAPPED& hid_overlap_read, u8* buf, int index)
 {
   // Add data report indicator byte (here, 0xa1)
   buf[0] = 0xa1;
-  // Used below for a warning
-  buf[1] = 0;
 
   DWORD bytes = 0;
   ResetEvent(hid_overlap_read.hEvent);
@@ -623,7 +654,17 @@ int IORead(HANDLE& dev_handle, OVERLAPPED& hid_overlap_read, u8* buf, int index)
     }
   }
 
-  return bytes + 1;
+  // ReadFile will always return 22 bytes read.
+  // So we need to calculate the actual report size by its report ID
+  DWORD report_size = static_cast<DWORD>(GetReportSize(buf[1]));
+  if (report_size == 0)
+  {
+    WARN_LOG(WIIMOTE, "Received unsupported report %d in Wii Remote %i", buf[1], index + 1);
+    return -1;
+  }
+
+  // 1 Byte for the Data Report Byte, another for the Report ID and the actual report size
+  return report_size + 2;
 }
 
 void WiimoteWindows::IOWakeup()
