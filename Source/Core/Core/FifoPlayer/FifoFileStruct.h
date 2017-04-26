@@ -15,44 +15,38 @@ enum
   MIN_LOADER_VERSION = 1,
 };
 
-#pragma pack(push, 4)
+#pragma pack(push, 1)
 
-union FileHeader
+struct FileHeader
 {
-  struct
-  {
-    u32 fileId;
-    u32 file_version;
-    u32 min_loader_version;
-    u64 bpMemOffset;
-    u32 bpMemSize;
-    u64 cpMemOffset;
-    u32 cpMemSize;
-    u64 xfMemOffset;
-    u32 xfMemSize;
-    u64 xfRegsOffset;
-    u32 xfRegsSize;
-    u64 frameListOffset;
-    u32 frameCount;
-    u32 flags;
-    u64 texMemOffset;
-    u32 texMemSize;
-  };
-  u32 rawData[32];
+  u32 fileId;
+  u32 file_version;
+  u32 min_loader_version;
+  u64 bpMemOffset;
+  u32 bpMemSize;
+  u64 cpMemOffset;
+  u32 cpMemSize;
+  u64 xfMemOffset;
+  u32 xfMemSize;
+  u64 xfRegsOffset;
+  u32 xfRegsSize;
+  u64 frameListOffset;
+  u32 frameCount;
+  u32 flags;
+  u64 texMemOffset;
+  u32 texMemSize;
+  u8 reserved[40];
 };
 
-union FileFrameInfo
+struct FileFrameInfo
 {
-  struct
-  {
-    u64 fifoDataOffset;
-    u32 fifoDataSize;
-    u32 fifoStart;
-    u32 fifoEnd;
-    u64 memoryUpdatesOffset;
-    u32 numMemoryUpdates;
-  };
-  u32 rawData[16];
+  u64 fifoDataOffset;
+  u32 fifoDataSize;
+  u32 fifoStart;
+  u32 fifoEnd;
+  u64 memoryUpdatesOffset;
+  u32 numMemoryUpdates;
+  u8 reserved[32];
 };
 
 struct FileMemoryUpdate
@@ -62,6 +56,7 @@ struct FileMemoryUpdate
   u64 dataOffset;
   u32 dataSize;
   u8 type;
+  u8 reserved[3];
 };
 
 #pragma pack(pop)
