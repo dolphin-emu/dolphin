@@ -55,12 +55,14 @@ void GeneralConfigPane::InitializeGUI()
   m_dual_core_checkbox = new wxCheckBox(this, wxID_ANY, _("Enable Dual Core (speedup)"));
   m_cheats_checkbox = new wxCheckBox(this, wxID_ANY, _("Enable Cheats"));
   m_force_ntscj_checkbox = new wxCheckBox(this, wxID_ANY, _("Force Console as NTSC-J"));
+#if defined(USE_ANALYTICS) && USE_ANALYTICS
   m_analytics_checkbox = new wxCheckBox(this, wxID_ANY, _("Enable Usage Statistics Reporting"));
 #ifdef __APPLE__
   m_analytics_new_id = new wxButton(this, wxID_ANY, _("Generate a New Statistics Identity"),
                                     wxDefaultPosition, wxSize(350, 25));
 #else
   m_analytics_new_id = new wxButton(this, wxID_ANY, _("Generate a New Statistics Identity"));
+#endif
 #endif
   m_throttler_choice =
       new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_throttler_array_string);
@@ -75,6 +77,7 @@ void GeneralConfigPane::InitializeGUI()
   m_force_ntscj_checkbox->SetToolTip(
       _("Forces NTSC-J mode for using the Japanese ROM font.\nIf left unchecked, Dolphin defaults "
         "to NTSC-U and automatically enables this setting when playing Japanese games."));
+#if defined(USE_ANALYTICS) && USE_ANALYTICS
   m_analytics_checkbox->SetToolTip(
       _("Enables the collection and sharing of usage statistics data with the Dolphin development "
         "team. This data is used to improve the emulator and help us understand how our users "
@@ -83,6 +86,8 @@ void GeneralConfigPane::InitializeGUI()
       _("Usage statistics reporting uses a unique random per-machine identifier to distinguish "
         "users from one another. This button generates a new random identifier for this machine "
         "which is dissociated from the previous one."));
+#endif
+
   m_throttler_choice->SetToolTip(_("Limits the emulation speed to the specified percentage.\nNote "
                                    "that raising or lowering the emulation speed will also raise "
                                    "or lower the audio pitch unless audio stretching is enabled."));
@@ -106,6 +111,7 @@ void GeneralConfigPane::InitializeGUI()
   basic_settings_sizer->AddSpacer(space5);
   basic_settings_sizer->Add(throttler_sizer);
 
+#if defined(USE_ANALYTICS) && USE_ANALYTICS
   wxStaticBoxSizer* const analytics_sizer =
       new wxStaticBoxSizer(wxVERTICAL, this, _("Usage Statistics Reporting Settings"));
   analytics_sizer->AddSpacer(space5);
@@ -113,6 +119,7 @@ void GeneralConfigPane::InitializeGUI()
   analytics_sizer->AddSpacer(space5);
   analytics_sizer->Add(m_analytics_new_id, 0, wxLEFT | wxRIGHT, space5);
   analytics_sizer->AddSpacer(space5);
+#endif
 
   wxStaticBoxSizer* const advanced_settings_sizer =
       new wxStaticBoxSizer(wxVERTICAL, this, _("Advanced Settings"));
@@ -126,7 +133,9 @@ void GeneralConfigPane::InitializeGUI()
   main_sizer->AddSpacer(space5);
   main_sizer->Add(basic_settings_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
   main_sizer->AddSpacer(space5);
+#if defined(USE_ANALYTICS) && USE_ANALYTICS
   main_sizer->Add(analytics_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+#endif
   main_sizer->AddSpacer(space5);
   main_sizer->Add(advanced_settings_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
   main_sizer->AddSpacer(space5);
@@ -141,7 +150,11 @@ void GeneralConfigPane::LoadGUIValues()
   m_dual_core_checkbox->SetValue(startup_params.bCPUThread);
   m_cheats_checkbox->SetValue(startup_params.bEnableCheats);
   m_force_ntscj_checkbox->SetValue(startup_params.bForceNTSCJ);
+
+#if defined(USE_ANALYTICS) && USE_ANALYTICS
   m_analytics_checkbox->SetValue(startup_params.m_analytics_enabled);
+#endif
+
   u32 selection = std::lround(startup_params.m_EmulationSpeed * 10.0f);
   if (selection < m_throttler_array_string.size())
     m_throttler_choice->SetSelection(selection);
@@ -165,9 +178,11 @@ void GeneralConfigPane::BindEvents()
                                this);
   m_force_ntscj_checkbox->Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreNotRunning);
 
+#if defined(USE_ANALYTICS) && USE_ANALYTICS
   m_analytics_checkbox->Bind(wxEVT_CHECKBOX, &GeneralConfigPane::OnAnalyticsCheckBoxChanged, this);
 
   m_analytics_new_id->Bind(wxEVT_BUTTON, &GeneralConfigPane::OnAnalyticsNewIdButtonClick, this);
+#endif
 
   m_throttler_choice->Bind(wxEVT_CHOICE, &GeneralConfigPane::OnThrottlerChoiceChanged, this);
 

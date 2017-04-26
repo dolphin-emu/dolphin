@@ -207,6 +207,7 @@ void DolphinApp::AfterInit()
   if (!m_batch_mode)
     main_frame->UpdateGameList();
 
+#if defined(USE_ANALYTICS) && USE_ANALYTICS
   if (!SConfig::GetInstance().m_analytics_permission_asked)
   {
     int answer =
@@ -229,6 +230,7 @@ void DolphinApp::AfterInit()
 
     DolphinAnalytics::Instance()->ReloadConfig();
   }
+#endif
 
   if (m_confirm_stop)
     SConfig::GetInstance().bConfirmStop = m_confirm_setting;
