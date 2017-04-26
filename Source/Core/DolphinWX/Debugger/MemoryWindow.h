@@ -32,10 +32,17 @@ public:
   void JumpToAddress(u32 _Address);
 
 private:
+  enum class SearchType
+  {
+    FindNext,
+    FindPrevious
+  };
+
   DECLARE_EVENT_TABLE()
 
   void OnDataTypeChanged(wxCommandEvent& event);
-  void OnSearch(wxCommandEvent& event);
+  void OnFindNext(wxCommandEvent& event);
+  void OnFindPrevious(wxCommandEvent& event);
   void OnAddrBoxChange(wxCommandEvent& event);
   void OnValueChanged(wxCommandEvent&);
   void SetMemoryValueFromValBox(wxCommandEvent& event);
@@ -45,7 +52,10 @@ private:
   void OnDumpFakeVMEM(wxCommandEvent& event);
   void OnMemCheckOptionChange(wxCommandEvent& event);
 
-  wxButton* btnSearch;
+  void Search(SearchType search_type);
+
+  wxButton* m_btn_find_next;
+  wxButton* m_btn_find_previous;
   wxRadioButton* m_rb_ascii;
   wxRadioButton* m_rb_hex;
 
