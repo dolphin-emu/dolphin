@@ -1,37 +1,47 @@
-// Copyright 2008 Dolphin Emulator Project
+// Copyright 2017 Dolphin Emulator Project
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
 
+#include <vector>
+
 #include "Common/CommonTypes.h"
 
-// what is this ?
-#ifdef _MSC_VER
-#pragma warning(disable : 4200)
-#endif
+typedef std::vector<u8> Report;
 
-#pragma pack(push, 1)
-
-// Source: HID_010_SPC_PFL/1.0 (official HID specification)
-
-struct hid_packet
+// Report defines
+enum ReportType
 {
-  u8 param : 4;
-  u8 type : 4;
-  u8 data[0];
+  RT_RUMBLE = 0x10,
+  RT_LEDS = 0x11,
+  RT_REPORT_MODE = 0x12,
+  RT_IR_PIXEL_CLOCK = 0x13,
+  RT_SPEAKER_ENABLE = 0x14,
+  RT_REQUEST_STATUS = 0x15,
+  RT_WRITE_DATA = 0x16,
+  RT_READ_DATA = 0x17,
+  RT_WRITE_SPEAKER_DATA = 0x18,
+  RT_SPEAKER_MUTE = 0x19,
+  RT_IR_LOGIC = 0x1A,
+  RT_STATUS_REPORT = 0x20,
+  RT_READ_DATA_REPLY = 0x21,
+  RT_ACK_DATA = 0x22,
+  RT_REPORT_CORE = 0x30,
+  RT_REPORT_CORE_ACCEL = 0x31,
+  RT_REPORT_CORE_EXT8 = 0x32,
+  RT_REPORT_CORE_ACCEL_IR12 = 0x33,
+  RT_REPORT_CORE_EXT19 = 0x34,
+  RT_REPORT_CORE_ACCEL_EXT16 = 0x35,
+  RT_REPORT_CORE_IR10_EXT9 = 0x36,
+  RT_REPORT_CORE_ACCEL_IR10_EXT6 = 0x37,
+  RT_REPORT_EXT21 = 0x3d,  // never used?
+  RT_REPORT_INTERLEAVE1 = 0x3e,
+  RT_REPORT_INTERLEAVE2 = 0x3f
 };
 
-#define HID_TYPE_HANDSHAKE 0
-#define HID_TYPE_SET_REPORT 5
-#define HID_TYPE_DATA 0xA
-
-#define HID_HANDSHAKE_SUCCESS 0
-
-#define HID_PARAM_INPUT 1
-#define HID_PARAM_OUTPUT 2
-
 // Source: http://wiibrew.org/wiki/Wiimote
+// Custom structs
 
 union wm_buttons  // also just called "core data"
 {
@@ -332,9 +342,6 @@ struct wm_report
   };
 };
 
-#define WM_RUMBLE 0x10
-
-#define WM_LEDS 0x11
 struct wm_leds
 {
   u8 rumble : 1;
@@ -343,7 +350,6 @@ struct wm_leds
   u8 leds : 4;
 };
 
-#define WM_REPORT_MODE 0x12
 struct wm_report_mode
 {
   u8 rumble : 1;
@@ -354,17 +360,12 @@ struct wm_report_mode
   u8 mode;
 };
 
-#define WM_IR_PIXEL_CLOCK 0x13
-#define WM_IR_LOGIC 0x1A
-
-#define WM_REQUEST_STATUS 0x15
 struct wm_request_status
 {
   u8 rumble : 1;
   u8 : 7;
 };
 
-#define WM_STATUS_REPORT 0x20
 struct wm_status_report
 {
   wm_buttons buttons;
@@ -377,7 +378,6 @@ struct wm_status_report
   u8 battery;
 };
 
-#define WM_WRITE_DATA 0x16
 struct wm_write_data
 {
   u8 rumble : 1;
@@ -388,7 +388,6 @@ struct wm_write_data
   u8 data[16];
 };
 
-#define WM_ACK_DATA 0x22
 struct wm_acknowledge
 {
   wm_buttons buttons;
@@ -396,7 +395,6 @@ struct wm_acknowledge
   u8 errorID;
 };
 
-#define WM_READ_DATA 0x17
 struct wm_read_data
 {
   u8 rumble : 1;
@@ -406,12 +404,6 @@ struct wm_read_data
   u16 size;
 };
 
-#define WM_SPACE_EEPROM 0
-#define WM_SPACE_REGS1 1
-#define WM_SPACE_REGS2 2
-#define WM_SPACE_INVALID 3
-
-#define WM_READ_DATA_REPLY 0x21
 struct wm_read_data_reply
 {
   wm_buttons buttons;
@@ -421,27 +413,19 @@ struct wm_read_data_reply
   u8 data[16];
 };
 
-#define WM_RDERR_WOREG 7
-#define WM_RDERR_NOMEM 8
-
 // Data reports
 
-#define WM_REPORT_CORE 0x30
 struct wm_report_core
 {
   wm_buttons c;
 };
 
-#define WM_REPORT_CORE_ACCEL 0x31
 struct wm_report_core_accel
 {
   wm_buttons c;
   wm_accel a;
 };
 
-#define WM_REPORT_CORE_EXT8 0x32
-
-#define WM_REPORT_CORE_ACCEL_IR12 0x33
 struct wm_report_core_accel_ir12
 {
   wm_buttons c;
@@ -449,8 +433,6 @@ struct wm_report_core_accel_ir12
   wm_ir_extended ir[4];
 };
 
-#define WM_REPORT_CORE_EXT19 0x34
-#define WM_REPORT_CORE_ACCEL_EXT16 0x35
 struct wm_report_core_accel_ext16
 {
   wm_buttons c;
@@ -460,9 +442,6 @@ struct wm_report_core_accel_ext16
   u8 pad[10];
 };
 
-#define WM_REPORT_CORE_IR10_EXT9 0x36
-
-#define WM_REPORT_CORE_ACCEL_IR10_EXT6 0x37
 struct wm_report_core_accel_ir10_ext6
 {
   wm_buttons c;
@@ -472,25 +451,14 @@ struct wm_report_core_accel_ir10_ext6
   wm_nc ext;  // TODO: Does this make any sense? Shouldn't it be just a general "extension" field?
 };
 
-#define WM_REPORT_EXT21 0x3d  // never used?
 struct wm_report_ext21
 {
   u8 ext[21];
 };
 
-#define WM_REPORT_INTERLEAVE1 0x3e
-#define WM_REPORT_INTERLEAVE2 0x3f
-
-#define WM_SPEAKER_ENABLE 0x14
-#define WM_SPEAKER_MUTE 0x19
-#define WM_WRITE_SPEAKER_DATA 0x18
 struct wm_speaker_data
 {
   u8 unknown : 3;
   u8 length : 5;
   u8 data[20];
 };
-
-// Custom structs
-
-#pragma pack(pop)

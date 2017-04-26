@@ -16,11 +16,11 @@
 #include "Common/Flag.h"
 #include "Common/NonCopyable.h"
 #include "Core/HW/Wiimote.h"
-#include "Core/HW/WiimoteReal/WiimoteRealBase.h"
+#include "Core/HW/WiimoteCommon/WiimoteConstants.h"
+#include "Core/HW/WiimoteCommon/WiimoteHid.h"
+#include "Core/HW/WiimoteCommon/WiimoteReport.h"
 
 class PointerWrap;
-
-typedef std::vector<u8> Report;
 
 namespace WiimoteReal
 {
