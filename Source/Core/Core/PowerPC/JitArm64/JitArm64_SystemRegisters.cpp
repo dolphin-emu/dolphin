@@ -622,7 +622,7 @@ void JitArm64::crXXX(UGeckoInstruction inst)
     break;
   }
 
-  ORR(XA, XA, 32, 0, true);  // XA | 1<<32
+  ORR(XB, XB, 32, 0, true);  // XB | 1<<32
   STR(INDEX_UNSIGNED, XB, PPC_REG, PPCSTATE_OFF(cr_val[field]));
 
   gpr.Unlock(WA);
