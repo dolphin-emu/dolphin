@@ -82,7 +82,7 @@ struct TimeLimit
 
 struct TicketView
 {
-  u32 view;
+  u32 version;
   u64 ticket_id;
   u32 device_id;
   u64 title_id;

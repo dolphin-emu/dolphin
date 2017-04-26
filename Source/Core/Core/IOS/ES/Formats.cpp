@@ -285,17 +285,17 @@ const std::vector<u8>& TicketReader::GetRawTicket() const
 
 std::vector<u8> TicketReader::GetRawTicketView(u32 ticket_num) const
 {
-  // A ticket view is composed of a view ID + part of a ticket starting from the ticket_id field.
+  // A ticket view is composed of a version + part of a ticket starting from the ticket_id field.
   const auto ticket_start = m_bytes.cbegin() + GetOffset() + sizeof(Ticket) * ticket_num;
   const auto view_start = ticket_start + offsetof(Ticket, ticket_id);
 
-  // Copy the view ID to the buffer.
-  std::vector<u8> view(sizeof(TicketView::view));
-  const u32 view_id = Common::swap32(ticket_num);
-  std::memcpy(view.data(), &view_id, sizeof(view_id));
+  // Copy the ticket version to the buffer (a single byte extended to 4).
+  std::vector<u8> view(sizeof(TicketView::version));
+  const u32 version = Common::swap32(m_bytes.at(offsetof(Ticket, version)));
+  std::memcpy(view.data(), &version, sizeof(version));
 
   // Copy the rest of the ticket view structure from the ticket.
-  view.insert(view.end(), view_start, view_start + (sizeof(TicketView) - sizeof(view_id)));
+  view.insert(view.end(), view_start, view_start + (sizeof(TicketView) - sizeof(version)));
   _assert_(view.size() == sizeof(TicketView));
 
   return view;
