@@ -139,7 +139,7 @@ protected:
   SettingRadioButton* virtual_xfb;
   SettingRadioButton* real_xfb;
 
-  SettingCheckBox* cache_hires_textures;
+  SettingCheckBox* cache_custom_textures;
 
   wxCheckBox* progressive_scan_checkbox;
   wxCheckBox* vertex_rounding_checkbox;

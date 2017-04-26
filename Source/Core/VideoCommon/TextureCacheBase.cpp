@@ -26,7 +26,7 @@
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/Debugger.h"
 #include "VideoCommon/FramebufferManagerBase.h"
-#include "VideoCommon/HiresTextures.h"
+#include "VideoCommon/CustomTextures.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/SamplerCommon.h"
 #include "VideoCommon/Statistics.h"
@@ -67,7 +67,7 @@ TextureCacheBase::TextureCacheBase()
   TexDecoder_SetTexFmtOverlayOptions(backup_config.texfmt_overlay,
                                      backup_config.texfmt_overlay_center);
 
-  HiresTexture::Init();
+  CustomTexture::Init();
 
   SetHash64Function();
 }
@@ -92,7 +92,7 @@ void TextureCacheBase::Invalidate()
 
 TextureCacheBase::~TextureCacheBase()
 {
-  HiresTexture::Shutdown();
+  CustomTexture::Shutdown();
   Invalidate();
   Common::FreeAlignedMemory(temp);
   temp = nullptr;
@@ -100,17 +100,17 @@ TextureCacheBase::~TextureCacheBase()
 
 void TextureCacheBase::OnConfigChanged(VideoConfig& config)
 {
-  if (config.bHiresTextures != backup_config.hires_textures ||
-      config.bCacheHiresTextures != backup_config.cache_hires_textures)
+  if (config.bCustomTextures != backup_config.custom_textures ||
+      config.bCacheCustomTextures != backup_config.cache_custom_textures)
   {
-    HiresTexture::Update();
+    CustomTexture::Update();
   }
 
   // TODO: Invalidating texcache is really stupid in some of these cases
   if (config.iSafeTextureCache_ColorSamples != backup_config.color_samples ||
       config.bTexFmtOverlayEnable != backup_config.texfmt_overlay ||
       config.bTexFmtOverlayCenter != backup_config.texfmt_overlay_center ||
-      config.bHiresTextures != backup_config.hires_textures ||
+      config.bCustomTextures != backup_config.custom_textures ||
       config.bEnableGPUTextureDecoding != backup_config.gpu_texture_decoding)
   {
     Invalidate();
@@ -206,8 +206,8 @@ void TextureCacheBase::SetBackupConfig(const VideoConfig& config)
   backup_config.color_samples = config.iSafeTextureCache_ColorSamples;
   backup_config.texfmt_overlay = config.bTexFmtOverlayEnable;
   backup_config.texfmt_overlay_center = config.bTexFmtOverlayCenter;
-  backup_config.hires_textures = config.bHiresTextures;
-  backup_config.cache_hires_textures = config.bCacheHiresTextures;
+  backup_config.custom_textures = config.bCustomTextures;
+  backup_config.cache_custom_textures = config.bCacheCustomTextures;
   backup_config.stereo_3d = config.iStereoMode > 0;
   backup_config.efb_mono_depth = config.bStereoEFBMonoDepth;
   backup_config.gpu_texture_decoding = config.bEnableGPUTextureDecoding;
@@ -734,15 +734,15 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
     InvalidateTexture(oldest_entry);
   }
 
-  std::shared_ptr<HiresTexture> hires_tex;
-  if (g_ActiveConfig.bHiresTextures)
+  std::shared_ptr<CustomTexture> custom_tex;
+  if (g_ActiveConfig.bCustomTextures)
   {
-    hires_tex = HiresTexture::Search(src_data, texture_size, &texMem[tlutaddr], palette_size, width,
+    custom_tex = CustomTexture::Search(src_data, texture_size, &texMem[tlutaddr], palette_size, width,
                                      height, texformat, use_mipmaps);
 
-    if (hires_tex)
+    if (custom_tex)
     {
-      const auto& level = hires_tex->m_levels[0];
+      const auto& level = custom_tex->m_levels[0];
       if (level.width != width || level.height != height)
       {
         width = level.width;
@@ -756,7 +756,7 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
   }
 
   // how many levels the allocated texture shall have
-  const u32 texLevels = hires_tex ? (u32)hires_tex->m_levels.size() : tex_levels;
+  const u32 texLevels = custom_tex ? static_cast<u32>custom_tex->m_levels.size() : tex_levels;
 
   // We can decode on the GPU if it is a supported format and the flag is enabled.
   // Currently we don't decode RGBA8 textures from Tmem, as that would require copying from both
@@ -764,7 +764,7 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
   // there's no conversion between formats. In the future this could be extended with a separate
   // shader, however.
   bool decode_on_gpu =
-      !hires_tex && g_ActiveConfig.UseGPUTextureDecoding() &&
+      !custom_tex && g_ActiveConfig.UseGPUTextureDecoding() &&
       g_texture_cache->SupportsGPUTextureDecode(static_cast<TextureFormat>(texformat),
                                                 static_cast<TlutFormat>(tlutfmt)) &&
       !(from_tmem && texformat == GX_TF_RGBA8);
@@ -782,7 +782,7 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
     return nullptr;
 
   const u8* tlut = &texMem[tlutaddr];
-  if (hires_tex)
+  if (custom_tex)
   {
     entry->Load(temp, width, height, expandedWidth, 0);
   }
@@ -822,21 +822,21 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
   entry->SetDimensions(nativeW, nativeH, tex_levels);
   entry->SetHashes(base_hash, full_hash);
   entry->is_efb_copy = false;
-  entry->is_custom_tex = hires_tex != nullptr;
+  entry->is_custom_tex = custom_tex != nullptr;
 
   std::string basename = "";
-  if (g_ActiveConfig.bDumpTextures && !hires_tex)
+  if (g_ActiveConfig.bDumpTextures && !custom_tex)
   {
-    basename = HiresTexture::GenBaseName(src_data, texture_size, &texMem[tlutaddr], palette_size,
+    basename = CustomTexture::GenBaseName(src_data, texture_size, &texMem[tlutaddr], palette_size,
                                          width, height, texformat, use_mipmaps, true);
     DumpTexture(entry, basename, 0);
   }
 
-  if (hires_tex)
+  if (custom_tex)
   {
     for (u32 level_index = 1; level_index != texLevels; ++level_index)
     {
-      const auto& level = hires_tex->m_levels[level_index];
+      const auto& level = custom_tex->m_levels[level_index];
       CheckTempSize(level.data_size);
       memcpy(temp, level.data.get(), level.data_size);
       entry->Load(temp, level.width, level.height, level.width, level_index);

@@ -98,7 +98,7 @@
     <ClCompile Include="FPSCounter.cpp">
       <Filter>Util</Filter>
     </ClCompile>
-    <ClCompile Include="HiresTextures.cpp">
+    <ClCompile Include="CustomTextures.cpp">
       <Filter>Util</Filter>
     </ClCompile>
     <ClCompile Include="ImageWrite.cpp">
@@ -251,7 +251,7 @@
     <ClInclude Include="FPSCounter.h">
       <Filter>Util</Filter>
     </ClInclude>
-    <ClInclude Include="HiresTextures.h">
+    <ClInclude Include="CustomTextures.h">
       <Filter>Util</Filter>
     </ClInclude>
     <ClInclude Include="ImageWrite.h">
