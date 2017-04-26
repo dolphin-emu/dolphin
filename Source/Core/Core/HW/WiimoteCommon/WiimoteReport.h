@@ -67,11 +67,13 @@ union wm_buttons  // also just called "core data"
     u8 home : 1;
   };
 };
+static_assert(sizeof(wm_buttons) == 2, "Wrong size");
 
 struct wm_accel
 {
   u8 x, y, z;
 };
+static_assert(sizeof(wm_accel) == 3, "Wrong size");
 
 // Four bytes for two objects. Filled with 0xFF if empty
 struct wm_ir_basic
@@ -85,6 +87,7 @@ struct wm_ir_basic
   u8 x2;
   u8 y2;
 };
+static_assert(sizeof(wm_ir_basic) == 5, "Wrong size");
 
 // Three bytes for one object
 struct wm_ir_extended
@@ -95,6 +98,7 @@ struct wm_ir_extended
   u8 xhi : 2;
   u8 yhi : 2;
 };
+static_assert(sizeof(wm_ir_extended) == 3, "Wrong size");
 
 // Nunchuk
 union wm_nc_core
@@ -112,6 +116,7 @@ union wm_nc_core
     u8 acc_z_lsb : 2;
   };
 };
+static_assert(sizeof(wm_nc_core) == 1, "Wrong size");
 
 union wm_nc
 {
@@ -148,6 +153,7 @@ union wm_nc
     u8 acc_z_lsb : 2;
   } passthrough_data;
 };
+static_assert(sizeof(wm_nc) == 6, "Wrong size");
 
 union wm_classic_extension_buttons
 {
@@ -193,6 +199,7 @@ union wm_classic_extension_buttons
     u8 : 6;
   } passthrough_data;
 };
+static_assert(sizeof(wm_classic_extension_buttons) == 2, "Wrong size");
 
 union wm_classic_extension
 {
@@ -243,6 +250,7 @@ union wm_classic_extension
     unsigned : 32;
   } passthrough_data;
 };
+static_assert(sizeof(wm_classic_extension) == 6, "Wrong size");
 
 struct wm_guitar_extension
 {
@@ -260,6 +268,7 @@ struct wm_guitar_extension
 
   u16 bt;  // buttons
 };
+static_assert(sizeof(wm_guitar_extension) == 6, "Wrong size");
 
 struct wm_drums_extension
 {
@@ -280,6 +289,7 @@ struct wm_drums_extension
 
   u16 bt;  // buttons
 };
+static_assert(sizeof(wm_drums_extension) == 6, "Wrong size");
 
 struct wm_turntable_extension
 {
@@ -303,6 +313,7 @@ struct wm_turntable_extension
     u16 bt;  // buttons
   };
 };
+static_assert(sizeof(wm_turntable_extension) == 6, "Wrong size");
 
 struct wm_motionplus_data
 {
@@ -325,6 +336,7 @@ struct wm_motionplus_data
   u8 is_mp_data : 1;
   u8 pitch2 : 6;
 };
+static_assert(sizeof(wm_motionplus_data) == 6, "Wrong size");
 
 struct wm_report
 {
@@ -341,6 +353,7 @@ struct wm_report
     };
   };
 };
+static_assert(sizeof(wm_report) == 2, "Wrong size");
 
 struct wm_leds
 {
@@ -349,6 +362,7 @@ struct wm_leds
   u8 : 3;
   u8 leds : 4;
 };
+static_assert(sizeof(wm_leds) == 1, "Wrong size");
 
 struct wm_report_mode
 {
@@ -359,12 +373,14 @@ struct wm_report_mode
   u8 : 5;
   u8 mode;
 };
+static_assert(sizeof(wm_report_mode) == 2, "Wrong size");
 
 struct wm_request_status
 {
   u8 rumble : 1;
   u8 : 7;
 };
+static_assert(sizeof(wm_request_status) == 1, "Wrong size");
 
 struct wm_status_report
 {
@@ -377,6 +393,7 @@ struct wm_status_report
   u8 padding2[2];  // two 00, TODO: this needs more investigation
   u8 battery;
 };
+static_assert(sizeof(wm_status_report) == 6, "Wrong size");
 
 struct wm_write_data
 {
@@ -387,6 +404,7 @@ struct wm_write_data
   u8 size;
   u8 data[16];
 };
+static_assert(sizeof(wm_write_data) == 21, "Wrong size");
 
 struct wm_acknowledge
 {
@@ -394,6 +412,7 @@ struct wm_acknowledge
   u8 reportID;
   u8 errorID;
 };
+static_assert(sizeof(wm_acknowledge) == 4, "Wrong size");
 
 struct wm_read_data
 {
@@ -403,6 +422,7 @@ struct wm_read_data
   u8 address[3];
   u16 size;
 };
+static_assert(sizeof(wm_read_data) == 6, "Wrong size");
 
 struct wm_read_data_reply
 {
@@ -412,6 +432,7 @@ struct wm_read_data_reply
   u16 address;
   u8 data[16];
 };
+static_assert(sizeof(wm_read_data_reply) == 21, "Wrong size");
 
 // Data reports
 
@@ -419,12 +440,14 @@ struct wm_report_core
 {
   wm_buttons c;
 };
+static_assert(sizeof(wm_report_core) == 2, "Wrong size");
 
 struct wm_report_core_accel
 {
   wm_buttons c;
   wm_accel a;
 };
+static_assert(sizeof(wm_report_core_accel) == 5, "Wrong size");
 
 struct wm_report_core_accel_ir12
 {
@@ -432,6 +455,7 @@ struct wm_report_core_accel_ir12
   wm_accel a;
   wm_ir_extended ir[4];
 };
+static_assert(sizeof(wm_report_core_accel_ir12) == 17, "Wrong size");
 
 struct wm_report_core_accel_ext16
 {
@@ -441,6 +465,7 @@ struct wm_report_core_accel_ext16
   // wm_ir_basic ir[2];
   u8 pad[10];
 };
+static_assert(sizeof(wm_report_core_accel_ext16) == 21, "Wrong size");
 
 struct wm_report_core_accel_ir10_ext6
 {
@@ -450,11 +475,13 @@ struct wm_report_core_accel_ir10_ext6
   // u8 ext[6];
   wm_nc ext;  // TODO: Does this make any sense? Shouldn't it be just a general "extension" field?
 };
+static_assert(sizeof(wm_report_core_accel_ir10_ext6) == 21, "Wrong size");
 
 struct wm_report_ext21
 {
   u8 ext[21];
 };
+static_assert(sizeof(wm_report_ext21) == 21, "Wrong size");
 
 struct wm_speaker_data
 {
@@ -462,4 +489,5 @@ struct wm_speaker_data
   u8 length : 5;
   u8 data[20];
 };
+static_assert(sizeof(wm_speaker_data) == 21, "Wrong size");
 #pragma pack(pop)
