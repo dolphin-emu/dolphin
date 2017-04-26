@@ -39,6 +39,7 @@ struct FileHeader
   u32 texMemSize;
   u8 reserved[40];
 };
+static_assert(sizeof(FileHeader) == 128, "FileHeader should be 128 bytes");
 
 struct FileFrameInfo
 {
@@ -50,6 +51,7 @@ struct FileFrameInfo
   u32 numMemoryUpdates;
   u8 reserved[32];
 };
+static_assert(sizeof(FileFrameInfo) == 64, "FileFrameInfo should be 64 bytes");
 
 struct FileMemoryUpdate
 {
@@ -60,6 +62,7 @@ struct FileMemoryUpdate
   u8 type;
   u8 reserved[3];
 };
+static_assert(sizeof(FileMemoryUpdate) == 24, "FileMemoryUpdate should be 24 bytes");
 
 #pragma pack(pop)
 
