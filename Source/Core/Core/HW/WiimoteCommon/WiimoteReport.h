@@ -42,7 +42,7 @@ enum ReportType
 
 // Source: http://wiibrew.org/wiki/Wiimote
 // Custom structs
-
+#pragma pack(push, 1)
 union wm_buttons  // also just called "core data"
 {
   u16 hex;
@@ -462,3 +462,4 @@ struct wm_speaker_data
   u8 length : 5;
   u8 data[20];
 };
+#pragma pack(pop)
