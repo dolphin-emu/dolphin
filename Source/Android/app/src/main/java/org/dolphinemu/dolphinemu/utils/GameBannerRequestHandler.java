@@ -25,7 +25,6 @@ public class GameBannerRequestHandler extends RequestHandler {
 		int height = 32;
 		Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
 		bitmap.setPixels(vector, 0, width, 0, 0, width, height);
-		bitmap.copyPixelsFromBuffer(IntBuffer.wrap(vector));
 		return new Result(bitmap, Picasso.LoadedFrom.DISK);
 	}
 }
