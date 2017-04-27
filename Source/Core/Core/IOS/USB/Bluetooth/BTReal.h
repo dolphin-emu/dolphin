@@ -52,7 +52,7 @@ public:
   ~BluetoothReal() override;
 
   ReturnCode Open(const OpenRequest& request) override;
-  void Close() override;
+  ReturnCode Close(u32 fd) override;
   IPCCommandResult IOCtlV(const IOCtlVRequest& request) override;
 
   void DoState(PointerWrap& p) override;

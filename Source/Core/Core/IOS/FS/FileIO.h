@@ -32,7 +32,7 @@ class FileIO : public Device
 public:
   FileIO(u32 device_id, const std::string& device_name);
 
-  void Close() override;
+  ReturnCode Close(u32 fd) override;
   ReturnCode Open(const OpenRequest& request) override;
   IPCCommandResult Seek(const SeekRequest& request) override;
   IPCCommandResult Read(const ReadWriteRequest& request) override;

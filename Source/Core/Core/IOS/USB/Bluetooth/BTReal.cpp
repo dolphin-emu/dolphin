@@ -149,7 +149,7 @@ ReturnCode BluetoothReal::Open(const OpenRequest& request)
   return IPC_SUCCESS;
 }
 
-void BluetoothReal::Close()
+ReturnCode BluetoothReal::Close(u32 fd)
 {
   if (m_handle)
   {
@@ -159,7 +159,7 @@ void BluetoothReal::Close()
     m_handle = nullptr;
   }
 
-  m_is_active = false;
+  return Device::Close(fd);
 }
 
 IPCCommandResult BluetoothReal::IOCtlV(const IOCtlVRequest& request)

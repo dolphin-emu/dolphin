@@ -68,9 +68,10 @@ ReturnCode OH0Device::Open(const OpenRequest& request)
   return return_code;
 }
 
-void OH0Device::Close()
+ReturnCode OH0Device::Close(u32 fd)
 {
   m_oh0->DeviceClose(m_device_id);
+  return Device::Close(fd);
 }
 
 IPCCommandResult OH0Device::IOCtl(const IOCtlRequest& request)

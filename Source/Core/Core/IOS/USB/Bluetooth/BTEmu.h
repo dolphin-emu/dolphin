@@ -49,7 +49,7 @@ public:
 
   virtual ~BluetoothEmu();
 
-  void Close() override;
+  ReturnCode Close(u32 fd) override;
   IPCCommandResult IOCtlV(const IOCtlVRequest& request) override;
 
   void Update() override;

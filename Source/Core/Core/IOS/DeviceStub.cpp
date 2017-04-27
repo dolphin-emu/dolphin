@@ -22,12 +22,6 @@ ReturnCode Stub::Open(const OpenRequest& request)
   return IPC_SUCCESS;
 }
 
-void Stub::Close()
-{
-  WARN_LOG(IOS, "%s faking Close()", m_name.c_str());
-  m_is_active = false;
-}
-
 IPCCommandResult Stub::IOCtl(const IOCtlRequest& request)
 {
   WARN_LOG(IOS, "%s faking IOCtl()", m_name.c_str());

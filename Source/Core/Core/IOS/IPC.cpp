@@ -75,9 +75,7 @@ static std::mutex s_device_map_mutex;
 
 // STATE_TO_SAVE
 constexpr u8 IPC_MAX_FDS = 0x18;
-constexpr u8 ES_MAX_COUNT = 3;
 static std::shared_ptr<Device::Device> s_fdmap[IPC_MAX_FDS];
-static std::shared_ptr<Device::ES> s_es_handles[ES_MAX_COUNT];
 
 using IPCMsgQueue = std::deque<u32>;
 static IPCMsgQueue s_request_queue;  // ppc -> arm
@@ -595,11 +593,7 @@ static void AddStaticDevices()
   AddDevice<Device::STMImmediate>("/dev/stm/immediate");
   AddDevice<Device::STMEventHook>("/dev/stm/eventhook");
   AddDevice<Device::FS>("/dev/fs");
-
-  // IOS allows three ES devices at a time
-  for (auto& es_device : s_es_handles)
-    es_device = AddDevice<Device::ES>("/dev/es");
-
+  AddDevice<Device::ES>("/dev/es");
   AddDevice<Device::DI>("/dev/di");
   AddDevice<Device::NetKDRequest>("/dev/net/kd/request");
   AddDevice<Device::NetKDTime>("/dev/net/kd/time");
@@ -643,7 +637,7 @@ static void Reset()
   {
     if (!device)
       continue;
-    device->Close();
+    device->Close(0);
     device.reset();
   }
 
@@ -701,7 +695,6 @@ bool Reload(const u64 ios_title_id)
 
   AddStaticDevices();
 
-  Device::ES::Init();
   return true;
 }
 
@@ -855,13 +848,6 @@ void DoState(PointerWrap& p)
         }
       }
     }
-
-    for (auto& es_device : s_es_handles)
-    {
-      const u32 handle_id = es_device->GetDeviceID();
-      p.Do(handle_id);
-      es_device = std::static_pointer_cast<Device::ES>(AccessDeviceByID(handle_id));
-    }
   }
   else
   {
@@ -884,24 +870,11 @@ void DoState(PointerWrap& p)
         }
       }
     }
-
-    for (const auto& es_device : s_es_handles)
-    {
-      const u32 handle_id = es_device->GetDeviceID();
-      p.Do(handle_id);
-    }
   }
 }
 
-static std::shared_ptr<Device::Device> GetUnusedESDevice()
-{
-  const auto iterator = std::find_if(std::begin(s_es_handles), std::end(s_es_handles),
-                                     [](const auto& es_device) { return !es_device->IsOpened(); });
-  return (iterator != std::end(s_es_handles)) ? *iterator : nullptr;
-}
-
 // Returns the FD for the newly opened device (on success) or an error code.
-static s32 OpenDevice(const OpenRequest& request)
+static s32 OpenDevice(OpenRequest& request)
 {
   const s32 new_fd = GetFreeDeviceID();
   INFO_LOG(IOS, "Opening %s (mode %d, fd %d)", request.path.c_str(), request.flags, new_fd);
@@ -910,15 +883,10 @@ static s32 OpenDevice(const OpenRequest& request)
     ERROR_LOG(IOS, "Couldn't get a free fd, too many open files");
     return FS_EFDEXHAUSTED;
   }
+  request.fd = new_fd;
 
   std::shared_ptr<Device::Device> device;
-  if (request.path == "/dev/es")
-  {
-    device = GetUnusedESDevice();
-    if (!device)
-      return ES_FD_EXHAUSTED;
-  }
-  else if (request.path.find("/dev/usb/oh0/") == 0 && !GetDeviceByName(request.path))
+  if (request.path.find("/dev/usb/oh0/") == 0 && !GetDeviceByName(request.path))
   {
     device = std::make_shared<Device::OH0Device>(new_fd, request.path);
   }
@@ -961,8 +929,7 @@ static IPCCommandResult HandleCommand(const Request& request)
   {
   case IPC_CMD_CLOSE:
     s_fdmap[request.fd].reset();
-    device->Close();
-    return Device::Device::GetDefaultReply(IPC_SUCCESS);
+    return Device::Device::GetDefaultReply(device->Close(request.fd));
   case IPC_CMD_READ:
     return device->Read(ReadWriteRequest{request.address});
   case IPC_CMD_WRITE:

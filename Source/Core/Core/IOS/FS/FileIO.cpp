@@ -76,7 +76,7 @@ FileIO::FileIO(u32 device_id, const std::string& device_name)
 {
 }
 
-void FileIO::Close()
+ReturnCode FileIO::Close(u32 fd)
 {
   INFO_LOG(IOS_FILEIO, "FileIO: Close %s (DeviceID=%08x)", m_name.c_str(), m_device_id);
   m_Mode = 0;
@@ -86,6 +86,7 @@ void FileIO::Close()
   m_file.reset();
 
   m_is_active = false;
+  return IPC_SUCCESS;
 }
 
 ReturnCode FileIO::Open(const OpenRequest& request)
