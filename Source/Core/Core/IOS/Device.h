@@ -153,7 +153,6 @@ struct IOCtlVRequest final : Request
   std::vector<IOVector> in_vectors;
   std::vector<IOVector> io_vectors;
   explicit IOCtlVRequest(u32 address);
-  bool HasInputVectorWithAddress(u32 vector_address) const;
   bool HasNumberOfValidVectors(size_t in_count, size_t io_count) const;
   void Dump(const std::string& description, LogTypes::LOG_TYPE type = LogTypes::IOS,
             LogTypes::LOG_LEVELS level = LogTypes::LINFO) const;

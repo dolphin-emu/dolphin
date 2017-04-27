@@ -345,13 +345,6 @@ IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
 {
   DEBUG_LOG(IOS_ES, "%s (0x%x)", GetDeviceName().c_str(), request.request);
 
-  // Clear the IO buffers. Note that this is unsafe for other ioctlvs.
-  for (const auto& io_vector : request.io_vectors)
-  {
-    if (!request.HasInputVectorWithAddress(io_vector.address))
-      Memory::Memset(io_vector.address, 0, io_vector.size);
-  }
-
   switch (request.request)
   {
   case IOCTL_ES_ADDTICKET:
