@@ -67,6 +67,8 @@ public:
 #endif
 
 private:
+  struct ColumnInfo;
+
   void ReloadList();
 
   void ClearIsoFiles() { m_ISOFiles.clear(); }
@@ -117,4 +119,6 @@ private:
   int last_sort;
   wxSize lastpos;
   wxEmuStateTip* toolTip;
+
+  std::vector<ColumnInfo> m_columns;
 };
