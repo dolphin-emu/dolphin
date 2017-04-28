@@ -128,10 +128,6 @@ void VideoBackend::InitBackendInfo()
   }
   factory->Release();
 
-  // Clear ppshaders string vector
-  g_Config.backend_info.PPShaders.clear();
-  g_Config.backend_info.AnaglyphShaders.clear();
-
   DX11::D3D::UnloadDXGI();
   DX11::D3D::UnloadD3D();
 }

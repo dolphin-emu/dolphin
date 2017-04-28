@@ -21,6 +21,7 @@
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/FramebufferManager.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
+#include "VideoBackends/Vulkan/PostProcessing.h"
 #include "VideoBackends/Vulkan/RasterFont.h"
 #include "VideoBackends/Vulkan/StagingTexture2D.h"
 #include "VideoBackends/Vulkan/StateTracker.h"
@@ -116,6 +117,15 @@ bool Renderer::Initialize()
 
   // Ensure all pipelines previously used by the game have been created.
   StateTracker::GetInstance()->LoadPipelineUIDCache();
+
+  // Initialize post processing.
+  m_post_processor = std::make_unique<VulkanPostProcessing>();
+  if (!static_cast<VulkanPostProcessing*>(m_post_processor.get())
+           ->Initialize(m_raster_font->GetTexture()))
+  {
+    PanicAlert("failed to initialize post processor.");
+    return false;
+  }
 
   // Various initialization routines will have executed commands on the command buffer.
   // Execute what we have done before beginning the first frame.
@@ -618,7 +628,7 @@ void Renderer::DrawEFB(VkRenderPass render_pass, const TargetRectangle& target_r
                                         VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
   // Copy EFB -> backbuffer
-  BlitScreen(render_pass, target_rect, scaled_efb_rect, efb_color_texture, true);
+  BlitScreen(render_pass, target_rect, scaled_efb_rect, efb_color_texture);
 
   // Restore the EFB color texture to color attachment ready for rendering the next frame.
   if (efb_color_texture == FramebufferManager::GetInstance()->GetEFBColorTexture())
@@ -660,7 +670,7 @@ void Renderer::DrawVirtualXFB(VkRenderPass render_pass, const TargetRectangle& t
                           2;
 
     source_rect.right -= Renderer::EFBToScaledX(fb_stride - fb_width);
-    BlitScreen(render_pass, draw_rect, source_rect, xfb_source->GetTexture()->GetTexture(), true);
+    BlitScreen(render_pass, draw_rect, source_rect, xfb_source->GetTexture()->GetTexture());
   }
 }
 
@@ -677,7 +687,7 @@ void Renderer::DrawRealXFB(VkRenderPass render_pass, const TargetRectangle& targ
     TargetRectangle source_rect = xfb_source->sourceRc;
     TargetRectangle draw_rect = target_rect;
     source_rect.right -= fb_stride - fb_width;
-    BlitScreen(render_pass, draw_rect, source_rect, xfb_source->GetTexture()->GetTexture(), true);
+    BlitScreen(render_pass, draw_rect, source_rect, xfb_source->GetTexture()->GetTexture());
   }
 }
 
@@ -911,40 +921,21 @@ void Renderer::FlushFrameDump()
 }
 
 void Renderer::BlitScreen(VkRenderPass render_pass, const TargetRectangle& dst_rect,
-                          const TargetRectangle& src_rect, const Texture2D* src_tex,
-                          bool linear_filter)
+                          const TargetRectangle& src_rect, const Texture2D* src_tex)
 {
-  // We could potentially use vkCmdBlitImage here.
-  VkSampler sampler =
-      linear_filter ? g_object_cache->GetLinearSampler() : g_object_cache->GetPointSampler();
-
-  // Set up common data
-  UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                         g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_STANDARD), render_pass,
-                         g_object_cache->GetPassthroughVertexShader(), VK_NULL_HANDLE,
-                         m_blit_fragment_shader);
-
-  draw.SetPSSampler(0, src_tex->GetView(), sampler);
-
+  VulkanPostProcessing* post_processor = static_cast<VulkanPostProcessing*>(m_post_processor.get());
   if (g_ActiveConfig.iStereoMode == STEREO_SBS || g_ActiveConfig.iStereoMode == STEREO_TAB)
   {
     TargetRectangle left_rect;
     TargetRectangle right_rect;
     std::tie(left_rect, right_rect) = ConvertStereoRectangle(dst_rect);
 
-    draw.DrawQuad(left_rect.left, left_rect.top, left_rect.GetWidth(), left_rect.GetHeight(),
-                  src_rect.left, src_rect.top, 0, src_rect.GetWidth(), src_rect.GetHeight(),
-                  src_tex->GetWidth(), src_tex->GetHeight());
-
-    draw.DrawQuad(right_rect.left, right_rect.top, right_rect.GetWidth(), right_rect.GetHeight(),
-                  src_rect.left, src_rect.top, 1, src_rect.GetWidth(), src_rect.GetHeight(),
-                  src_tex->GetWidth(), src_tex->GetHeight());
+    post_processor->BlitFromTexture(left_rect, src_rect, src_tex, 0, render_pass);
+    post_processor->BlitFromTexture(right_rect, src_rect, src_tex, 1, render_pass);
   }
   else
   {
-    draw.DrawQuad(dst_rect.left, dst_rect.top, dst_rect.GetWidth(), dst_rect.GetHeight(),
-                  src_rect.left, src_rect.top, 0, src_rect.GetWidth(), src_rect.GetHeight(),
-                  src_tex->GetWidth(), src_tex->GetHeight());
+    post_processor->BlitFromTexture(dst_rect, src_rect, src_tex, 0, render_pass);
   }
 }
 
@@ -1182,6 +1173,9 @@ void Renderer::CheckForConfigChanges()
   // Wipe sampler cache if force texture filtering or anisotropy changes.
   if (anisotropy_changed || force_texture_filtering_changed)
     ResetSamplerStates();
+
+  // Check for a changed post-processing shader and recompile if needed.
+  static_cast<VulkanPostProcessing*>(m_post_processor.get())->UpdateConfig();
 }
 
 void Renderer::OnSwapChainResized()
@@ -1490,33 +1484,10 @@ bool Renderer::CompileShaders()
 
   )";
 
-  static const char BLIT_FRAGMENT_SHADER_SOURCE[] = R"(
-    layout(set = 1, binding = 0) uniform sampler2DArray samp0;
-
-    layout(location = 0) in float3 uv0;
-    layout(location = 1) in float4 col0;
-    layout(location = 0) out float4 ocol0;
-
-    void main()
-    {
-      ocol0 = float4(texture(samp0, uv0).xyz, 1.0);
-    }
-  )";
-
-  std::string header = g_object_cache->GetUtilityShaderHeader();
-  std::string source;
-
-  source = header + CLEAR_FRAGMENT_SHADER_SOURCE;
+  std::string source = g_object_cache->GetUtilityShaderHeader() + CLEAR_FRAGMENT_SHADER_SOURCE;
   m_clear_fragment_shader = Util::CompileAndCreateFragmentShader(source);
-  source = header + BLIT_FRAGMENT_SHADER_SOURCE;
-  m_blit_fragment_shader = Util::CompileAndCreateFragmentShader(source);
 
-  if (m_clear_fragment_shader == VK_NULL_HANDLE || m_blit_fragment_shader == VK_NULL_HANDLE)
-  {
-    return false;
-  }
-
-  return true;
+  return m_clear_fragment_shader != VK_NULL_HANDLE;
 }
 
 void Renderer::DestroyShaders()
@@ -1530,7 +1501,6 @@ void Renderer::DestroyShaders()
   };
 
   DestroyShader(m_clear_fragment_shader);
-  DestroyShader(m_blit_fragment_shader);
 }
 
 }  // namespace Vulkan

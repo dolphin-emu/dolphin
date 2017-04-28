@@ -21,6 +21,8 @@ public:
   RasterFont();
   ~RasterFont();
 
+  const Texture2D* GetTexture() const;
+
   bool Initialize();
 
   void PrintMultiLineText(VkRenderPass render_pass, const std::string& text, float start_x,

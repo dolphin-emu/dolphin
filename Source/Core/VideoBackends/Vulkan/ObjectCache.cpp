@@ -421,6 +421,23 @@ VkPipeline ObjectCache::GetComputePipeline(const ComputePipelineInfo& info)
   return pipeline;
 }
 
+void ObjectCache::ClearPipelineCache()
+{
+  for (const auto& it : m_pipeline_objects)
+  {
+    if (it.second != VK_NULL_HANDLE)
+      vkDestroyPipeline(g_vulkan_context->GetDevice(), it.second, nullptr);
+  }
+  m_pipeline_objects.clear();
+
+  for (const auto& it : m_compute_pipeline_objects)
+  {
+    if (it.second != VK_NULL_HANDLE)
+      vkDestroyPipeline(g_vulkan_context->GetDevice(), it.second, nullptr);
+  }
+  m_compute_pipeline_objects.clear();
+}
+
 std::string ObjectCache::GetDiskCacheFileName(const char* type)
 {
   return StringFromFormat("%svulkan-%s-%s.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
@@ -567,20 +584,7 @@ bool ObjectCache::ValidatePipelineCache(const u8* data, size_t data_length)
 
 void ObjectCache::DestroyPipelineCache()
 {
-  for (const auto& it : m_pipeline_objects)
-  {
-    if (it.second != VK_NULL_HANDLE)
-      vkDestroyPipeline(g_vulkan_context->GetDevice(), it.second, nullptr);
-  }
-  m_pipeline_objects.clear();
-
-  for (const auto& it : m_compute_pipeline_objects)
-  {
-    if (it.second != VK_NULL_HANDLE)
-      vkDestroyPipeline(g_vulkan_context->GetDevice(), it.second, nullptr);
-  }
-  m_compute_pipeline_objects.clear();
-
+  ClearPipelineCache();
   vkDestroyPipelineCache(g_vulkan_context->GetDevice(), m_pipeline_cache, nullptr);
   m_pipeline_cache = VK_NULL_HANDLE;
 }
