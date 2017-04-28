@@ -30,23 +30,6 @@ static std::unique_ptr<PSTextureEncoder> g_encoder;
 const size_t MAX_COPY_BUFFERS = 32;
 ID3D11Buffer* efbcopycbuf[MAX_COPY_BUFFERS] = {0};
 
-static u32 GetLevelPitch(HostTextureFormat format, u32 row_length)
-{
-  switch (format)
-  {
-  case HostTextureFormat::DXT1:
-    return row_length / 4 * 8;
-
-  case HostTextureFormat::DXT3:
-  case HostTextureFormat::DXT5:
-    return row_length / 4 * 16;
-
-  case HostTextureFormat::RGBA8:
-  default:
-    return row_length * 4;
-  }
-}
-
 static DXGI_FORMAT GetDXGIFormatForHostFormat(HostTextureFormat format)
 {
   switch (format)
@@ -174,8 +157,9 @@ void TextureCache::TCacheEntry::CopyRectangleFromTexture(const TCacheEntryBase* 
 void TextureCache::TCacheEntry::Load(u32 level, u32 width, u32 height, u32 row_length,
                                      const u8* buffer, size_t buffer_size)
 {
-  u32 src_pitch = GetLevelPitch(config.format, row_length);
-  D3D::context->UpdateSubresource(texture->GetTex(), level, nullptr, buffer, src_pitch, 0);
+  size_t src_pitch = CalculateHostTextureLevelPitch(config.format, row_length);
+  D3D::context->UpdateSubresource(texture->GetTex(), level, nullptr, buffer,
+                                  static_cast<UINT>(src_pitch), 0);
 }
 
 TextureCacheBase::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntryConfig& config)

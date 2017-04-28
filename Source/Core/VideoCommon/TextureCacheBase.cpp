@@ -47,6 +47,29 @@ TextureCacheBase::TCacheEntryBase::~TCacheEntryBase()
 {
 }
 
+bool TextureCacheBase::IsCompressedHostTextureFormat(HostTextureFormat format)
+{
+  // This will need to be changed if we add any other uncompressed formats.
+  return format != HostTextureFormat::RGBA8;
+}
+
+size_t TextureCacheBase::CalculateHostTextureLevelPitch(HostTextureFormat format, u32 row_length)
+{
+  switch (format)
+  {
+  case HostTextureFormat::DXT1:
+    return static_cast<size_t>(std::max(1u, row_length / 4)) * 8;
+
+  case HostTextureFormat::DXT3:
+  case HostTextureFormat::DXT5:
+    return static_cast<size_t>(std::max(1u, row_length / 4)) * 16;
+
+  case HostTextureFormat::RGBA8:
+  default:
+    return static_cast<size_t>(row_length) * 4;
+  }
+}
+
 void TextureCacheBase::CheckTempSize(size_t required_size)
 {
   if (required_size <= temp_size)

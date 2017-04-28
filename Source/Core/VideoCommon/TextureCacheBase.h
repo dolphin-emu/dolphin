@@ -146,6 +146,10 @@ public:
 
   virtual ~TextureCacheBase();  // needs virtual for DX11 dtor
 
+  // TODO: Move these to AbstractTexture once it is finished.
+  static bool IsCompressedHostTextureFormat(HostTextureFormat format);
+  static size_t CalculateHostTextureLevelPitch(HostTextureFormat format, u32 row_length);
+
   void OnConfigChanged(VideoConfig& config);
 
   // Removes textures which aren't used for more than TEXTURE_KILL_THRESHOLD frames,

@@ -88,11 +88,6 @@ bool SaveTexture(const std::string& filename, u32 textarget, u32 tex, int virtua
   return TextureToPng(data.data(), width * 4, filename, width, height, true);
 }
 
-static bool IsCompressedTextureFormat(HostTextureFormat format)
-{
-  return format >= HostTextureFormat::DXT1 && format <= HostTextureFormat::DXT5;
-}
-
 static GLenum GetGLInternalFormatForTextureFormat(HostTextureFormat format, bool storage)
 {
   switch (format)
@@ -204,7 +199,7 @@ TextureCache::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntryConf
   if (config.rendertarget)
   {
     // We can't render to compressed formats.
-    _assert_(!IsCompressedTextureFormat(config.format));
+    _assert_(!IsCompressedHostTextureFormat(config.format));
     if (!g_ogl_config.bSupportsTextureStorage)
     {
       for (u32 level = 0; level < config.levels; level++)
@@ -276,7 +271,7 @@ void TextureCache::TCacheEntry::Load(u32 level, u32 width, u32 height, u32 row_l
     glPixelStorei(GL_UNPACK_ROW_LENGTH, row_length);
 
   GLenum gl_internal_format = GetGLInternalFormatForTextureFormat(config.format, false);
-  if (IsCompressedTextureFormat(config.format))
+  if (IsCompressedHostTextureFormat(config.format))
   {
     if (g_ogl_config.bSupportsTextureStorage)
     {

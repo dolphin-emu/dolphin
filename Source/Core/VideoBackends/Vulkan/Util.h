@@ -31,8 +31,6 @@ VkFormat GetVkFormatForHostTextureFormat(HostTextureFormat format);
 u32 GetTexelSize(VkFormat format);
 u32 GetBlockSize(VkFormat format);
 
-size_t GetPitchForTexture(VkFormat format, u32 row_length);
-
 // Clamps a VkRect2D to the specified dimensions.
 VkRect2D ClampRect2D(const VkRect2D& rect, u32 width, u32 height);
 

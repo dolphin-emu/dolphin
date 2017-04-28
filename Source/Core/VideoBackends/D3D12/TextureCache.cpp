@@ -33,23 +33,6 @@ static u32 s_efb_copy_last_cbuf_id = UINT_MAX;
 static ID3D12Resource* s_texture_cache_entry_readback_buffer = nullptr;
 static size_t s_texture_cache_entry_readback_buffer_size = 0;
 
-static u32 GetLevelPitch(HostTextureFormat format, u32 row_length)
-{
-  switch (format)
-  {
-  case HostTextureFormat::DXT1:
-    return row_length / 4 * 8;
-
-  case HostTextureFormat::DXT3:
-  case HostTextureFormat::DXT5:
-    return row_length / 4 * 16;
-
-  case HostTextureFormat::RGBA8:
-  default:
-    return row_length * 4;
-  }
-}
-
 static DXGI_FORMAT GetDXGIFormatForHostFormat(HostTextureFormat format)
 {
   switch (format)
@@ -219,8 +202,9 @@ void TextureCache::TCacheEntry::CopyRectangleFromTexture(const TCacheEntryBase* 
 void TextureCache::TCacheEntry::Load(u32 level, u32 width, u32 height, u32 row_length,
                                      const u8* buffer, size_t buffer_size)
 {
-  u32 src_pitch = GetLevelPitch(config.format, row_length);
-  D3D::ReplaceRGBATexture2D(m_texture->GetTex12(), buffer, width, height, src_pitch, level,
+  size_t src_pitch = CalculateHostTextureLevelPitch(config.format, row_length);
+  D3D::ReplaceRGBATexture2D(m_texture->GetTex12(), buffer, width, height,
+                            static_cast<unsigned int>(src_pitch), level,
                             m_texture->GetResourceUsageState());
 }
 

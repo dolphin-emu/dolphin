@@ -373,7 +373,7 @@ void TextureCache::TCacheEntry::Load(u32 level, u32 width, u32 height, u32 row_l
   u32 upload_alignment = static_cast<u32>(g_vulkan_context->GetBufferImageGranularity());
   u32 block_size = Util::GetBlockSize(m_texture->GetFormat());
   u32 num_rows = Common::AlignUp(height, block_size) / block_size;
-  size_t source_pitch = Util::GetPitchForTexture(m_texture->GetFormat(), row_length);
+  size_t source_pitch = CalculateHostTextureLevelPitch(config.format, row_length);
   size_t upload_size = source_pitch * num_rows;
   std::unique_ptr<StagingBuffer> temp_buffer;
   VkBuffer upload_buffer;
