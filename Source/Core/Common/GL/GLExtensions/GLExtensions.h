@@ -31,6 +31,7 @@
 #include "Common/GL/GLExtensions/ARB_uniform_buffer_object.h"
 #include "Common/GL/GLExtensions/ARB_vertex_array_object.h"
 #include "Common/GL/GLExtensions/ARB_viewport_array.h"
+#include "Common/GL/GLExtensions/EXT_texture_compression_s3tc.h"
 #include "Common/GL/GLExtensions/EXT_texture_filter_anisotropic.h"
 #include "Common/GL/GLExtensions/HP_occlusion_test.h"
 #include "Common/GL/GLExtensions/KHR_debug.h"

@@ -127,7 +127,7 @@ void StagingBuffer::InvalidateCPUCache(VkDeviceSize offset, VkDeviceSize size)
 void StagingBuffer::Read(VkDeviceSize offset, void* data, size_t size, bool invalidate_caches)
 {
   _assert_((offset + size) <= m_size);
-  _assert_(offset >= m_map_offset && size < (m_map_size + (offset - m_map_offset)));
+  _assert_(offset >= m_map_offset && size <= (m_map_size + (offset - m_map_offset)));
   if (invalidate_caches)
     InvalidateCPUCache(offset, size);
 
@@ -138,7 +138,7 @@ void StagingBuffer::Write(VkDeviceSize offset, const void* data, size_t size,
                           bool invalidate_caches)
 {
   _assert_((offset + size) <= m_size);
-  _assert_(offset >= m_map_offset && size < (m_map_size + (offset - m_map_offset)));
+  _assert_(offset >= m_map_offset && size <= (m_map_size + (offset - m_map_offset)));
 
   memcpy(m_map_pointer + (offset - m_map_offset), data, size);
   if (invalidate_caches)

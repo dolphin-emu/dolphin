@@ -27,16 +27,16 @@ public:
 
     bool operator==(const TCacheEntryConfig& o) const
     {
-      return std::tie(width, height, levels, layers, rendertarget) ==
-             std::tie(o.width, o.height, o.levels, o.layers, o.rendertarget);
+      return std::tie(width, height, levels, layers, format, rendertarget) ==
+             std::tie(o.width, o.height, o.levels, o.layers, o.format, o.rendertarget);
     }
 
     struct Hasher : std::hash<u64>
     {
       size_t operator()(const TCacheEntryConfig& c) const
       {
-        u64 id = (u64)c.rendertarget << 63 | (u64)c.layers << 48 | (u64)c.levels << 32 |
-                 (u64)c.height << 16 | (u64)c.width;
+        u64 id = (u64)c.rendertarget << 63 | (u64)c.format << 50 | (u64)c.layers << 48 |
+                 (u64)c.levels << 32 | (u64)c.height << 16 | (u64)c.width;
         return std::hash<u64>::operator()(id);
       }
     };
@@ -45,6 +45,7 @@ public:
     u32 height = 0;
     u32 levels = 1;
     u32 layers = 1;
+    HostTextureFormat format = HostTextureFormat::RGBA8;
     bool rendertarget = false;
   };
 
@@ -129,7 +130,8 @@ public:
                                           const MathUtil::Rectangle<int>& srcrect,
                                           const MathUtil::Rectangle<int>& dstrect) = 0;
 
-    virtual void Load(const u8* buffer, u32 width, u32 height, u32 expanded_width, u32 level) = 0;
+    virtual void Load(u32 level, u32 width, u32 height, u32 row_length, const u8* buffer,
+                      size_t buffer_size) = 0;
     virtual void FromRenderTarget(bool is_depth_copy, const EFBRectangle& srcRect, bool scaleByHalf,
                                   unsigned int cbufid, const float* colmat) = 0;
 
@@ -143,6 +145,10 @@ public:
   };
 
   virtual ~TextureCacheBase();  // needs virtual for DX11 dtor
+
+  // TODO: Move these to AbstractTexture once it is finished.
+  static bool IsCompressedHostTextureFormat(HostTextureFormat format);
+  static size_t CalculateHostTextureLevelPitch(HostTextureFormat format, u32 row_length);
 
   void OnConfigChanged(VideoConfig& config);
 

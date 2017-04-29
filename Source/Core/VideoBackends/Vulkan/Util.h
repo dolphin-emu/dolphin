@@ -25,8 +25,11 @@ size_t AlignBufferOffset(size_t offset, size_t alignment);
 u32 MakeRGBA8Color(float r, float g, float b, float a);
 
 bool IsDepthFormat(VkFormat format);
+bool IsCompressedFormat(VkFormat format);
 VkFormat GetLinearFormat(VkFormat format);
+VkFormat GetVkFormatForHostTextureFormat(HostTextureFormat format);
 u32 GetTexelSize(VkFormat format);
+u32 GetBlockSize(VkFormat format);
 
 // Clamps a VkRect2D to the specified dimensions.
 VkRect2D ClampRect2D(const VkRect2D& rect, u32 width, u32 height);

@@ -462,6 +462,8 @@ Renderer::Renderer()
   g_ogl_config.bSupportsConservativeDepth = GLExtensions::Supports("GL_ARB_conservative_depth");
   g_ogl_config.bSupportsAniso = GLExtensions::Supports("GL_EXT_texture_filter_anisotropic");
   g_Config.backend_info.bSupportsComputeShaders = GLExtensions::Supports("GL_ARB_compute_shader");
+  g_Config.backend_info.bSupportsST3CTextures =
+      GLExtensions::Supports("GL_EXT_texture_compression_s3tc");
 
   if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3)
   {

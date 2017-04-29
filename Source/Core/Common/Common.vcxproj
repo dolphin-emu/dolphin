@@ -93,6 +93,7 @@
     <ClInclude Include="GL\GLExtensions\ARB_uniform_buffer_object.h" />
     <ClInclude Include="GL\GLExtensions\ARB_vertex_array_object.h" />
     <ClInclude Include="GL\GLExtensions\ARB_viewport_array.h" />
+    <ClInclude Include="GL\GLExtensions\EXT_texture_compression_s3tc.h" />
     <ClInclude Include="GL\GLExtensions\EXT_texture_filter_anisotropic.h" />
     <ClInclude Include="GL\GLExtensions\GLExtensions.h" />
     <ClInclude Include="GL\GLExtensions\gl_1_1.h" />

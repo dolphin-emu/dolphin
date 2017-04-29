@@ -77,6 +77,7 @@ void VideoBackend::InitBackendInfo()
   g_Config.backend_info.bSupportsMultithreading = false;
   g_Config.backend_info.bSupportsInternalResolutionFrameDumps = false;
   g_Config.backend_info.bSupportsGPUTextureDecoding = false;
+  g_Config.backend_info.bSupportsST3CTextures = false;
 
   IDXGIFactory* factory;
   IDXGIAdapter* ad;

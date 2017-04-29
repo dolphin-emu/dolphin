@@ -164,6 +164,9 @@
     <ClCompile Include="LightingShaderGen.cpp">
       <Filter>Shader Generators</Filter>
     </ClCompile>
+    <ClCompile Include="HiresTextures_DDSLoader.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommandProcessor.h" />
@@ -201,9 +204,6 @@
       <Filter>Decoding</Filter>
     </ClInclude>
     <ClInclude Include="TextureDecoder.h">
-      <Filter>Decoding</Filter>
-    </ClInclude>
-    <ClInclude Include="TextureDecoder_Util.h">
       <Filter>Decoding</Filter>
     </ClInclude>
     <ClInclude Include="BPFunctions.h">

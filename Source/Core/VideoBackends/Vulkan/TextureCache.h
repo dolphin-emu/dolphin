@@ -27,8 +27,8 @@ public:
 
     Texture2D* GetTexture() const { return m_texture.get(); }
     VkFramebuffer GetFramebuffer() const { return m_framebuffer; }
-    void Load(const u8* buffer, unsigned int width, unsigned int height,
-              unsigned int expanded_width, unsigned int level) override;
+    void Load(u32 level, u32 width, u32 height, u32 row_length, const u8* buffer,
+              size_t buffer_size) override;
     void FromRenderTarget(bool is_depth_copy, const EFBRectangle& src_rect, bool scale_by_half,
                           unsigned int cbufid, const float* colmat) override;
     void CopyRectangleFromTexture(const TCacheEntryBase* source,

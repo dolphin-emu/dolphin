@@ -109,7 +109,7 @@ constexpr size_t MAXIMUM_TEXTURE_UPLOAD_BUFFER_SIZE = 64 * 1024 * 1024;
 // streaming buffer and be blocking frequently. Games are unlikely to have textures this
 // large anyway, so it's only really an issue for HD texture packs, and memory is not
 // a limiting factor in these scenarios anyway.
-constexpr size_t STAGING_TEXTURE_UPLOAD_THRESHOLD = 1024 * 1024 * 4;
+constexpr size_t STAGING_TEXTURE_UPLOAD_THRESHOLD = 1024 * 1024 * 8;
 
 // Streaming uniform buffer size
 constexpr size_t INITIAL_UNIFORM_STREAM_BUFFER_SIZE = 16 * 1024 * 1024;

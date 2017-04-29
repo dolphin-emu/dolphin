@@ -47,6 +47,29 @@ TextureCacheBase::TCacheEntryBase::~TCacheEntryBase()
 {
 }
 
+bool TextureCacheBase::IsCompressedHostTextureFormat(HostTextureFormat format)
+{
+  // This will need to be changed if we add any other uncompressed formats.
+  return format != HostTextureFormat::RGBA8;
+}
+
+size_t TextureCacheBase::CalculateHostTextureLevelPitch(HostTextureFormat format, u32 row_length)
+{
+  switch (format)
+  {
+  case HostTextureFormat::DXT1:
+    return static_cast<size_t>(std::max(1u, row_length / 4)) * 8;
+
+  case HostTextureFormat::DXT3:
+  case HostTextureFormat::DXT5:
+    return static_cast<size_t>(std::max(1u, row_length / 4)) * 16;
+
+  case HostTextureFormat::RGBA8:
+  default:
+    return static_cast<size_t>(row_length) * 4;
+  }
+}
+
 void TextureCacheBase::CheckTempSize(size_t required_size)
 {
   if (required_size <= temp_size)
@@ -750,8 +773,6 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
       }
       expandedWidth = level.width;
       expandedHeight = level.height;
-      CheckTempSize(level.data_size);
-      memcpy(temp, level.data.get(), level.data_size);
     }
   }
 
@@ -774,6 +795,7 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
   config.width = width;
   config.height = height;
   config.levels = texLevels;
+  config.format = hires_tex ? hires_tex->GetFormat() : HostTextureFormat::RGBA8;
 
   TCacheEntryBase* entry = AllocateTexture(config);
   GFX_DEBUGGER_PAUSE_AT(NEXT_NEW_TEXTURE, true);
@@ -784,17 +806,20 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
   const u8* tlut = &texMem[tlutaddr];
   if (hires_tex)
   {
-    entry->Load(temp, width, height, expandedWidth, 0);
+    const auto& level = hires_tex->m_levels[0];
+    entry->Load(0, level.width, level.height, level.row_length, level.data.get(), level.data_size);
   }
-  else if (decode_on_gpu)
+  if (!hires_tex && decode_on_gpu)
   {
     u32 row_stride = bytes_per_block * (expandedWidth / bsw);
     g_texture_cache->DecodeTextureOnGPU(
         entry, 0, src_data, texture_size, static_cast<TextureFormat>(texformat), width, height,
         expandedWidth, expandedHeight, row_stride, tlut, static_cast<TlutFormat>(tlutfmt));
   }
-  else
+  else if (!hires_tex)
   {
+    size_t decoded_texture_size = expandedWidth * sizeof(u32) * expandedHeight;
+    CheckTempSize(decoded_texture_size);
     if (!(texformat == GX_TF_RGBA8 && from_tmem))
     {
       TexDecoder_Decode(temp, src_data, expandedWidth, expandedHeight, texformat, tlut,
@@ -807,7 +832,7 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
       TexDecoder_DecodeRGBA8FromTmem(temp, src_data, src_data_gb, expandedWidth, expandedHeight);
     }
 
-    entry->Load(temp, width, height, expandedWidth, 0);
+    entry->Load(0, width, height, expandedWidth, temp, decoded_texture_size);
   }
 
   iter = textures_by_address.emplace(address, entry);
@@ -837,9 +862,8 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
     for (u32 level_index = 1; level_index != texLevels; ++level_index)
     {
       const auto& level = hires_tex->m_levels[level_index];
-      CheckTempSize(level.data_size);
-      memcpy(temp, level.data.get(), level.data_size);
-      entry->Load(temp, level.width, level.height, level.width, level_index);
+      entry->Load(level_index, level.width, level.height, level.row_length, level.data.get(),
+                  level.data_size);
     }
   }
   else
@@ -877,9 +901,11 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
       }
       else
       {
+        // No need to call CheckTempSize here, as mips will always be smaller than the base level.
+        size_t decoded_mip_size = expanded_mip_width * sizeof(u32) * expanded_mip_height;
         TexDecoder_Decode(temp, mip_src_data, expanded_mip_width, expanded_mip_height, texformat,
                           tlut, (TlutFormat)tlutfmt);
-        entry->Load(temp, mip_width, mip_height, expanded_mip_width, level);
+        entry->Load(level, mip_width, mip_height, expanded_mip_width, temp, decoded_mip_size);
       }
 
       mip_src_data += mip_size;

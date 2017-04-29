@@ -65,7 +65,10 @@ private:
   {
     TCacheEntry(const TCacheEntryConfig& _config) : TCacheEntryBase(_config) {}
     ~TCacheEntry() {}
-    void Load(const u8* buffer, u32 width, u32 height, u32 expanded_width, u32 level) override {}
+    void Load(u32 level, u32 width, u32 height, u32 row_length, const u8* buffer,
+              size_t buffer_size) override
+    {
+    }
     void FromRenderTarget(bool is_depth_copy, const EFBRectangle& srcRect, bool scaleByHalf,
                           unsigned int cbufid, const float* colmat) override
     {
@@ -134,6 +137,7 @@ void VideoSoftware::InitBackendInfo()
   g_Config.backend_info.bSupportsComputeShaders = false;
   g_Config.backend_info.bSupportsInternalResolutionFrameDumps = false;
   g_Config.backend_info.bSupportsGPUTextureDecoding = false;
+  g_Config.backend_info.bSupportsST3CTextures = false;
 
   // aamodes
   g_Config.backend_info.AAModes = {1};
