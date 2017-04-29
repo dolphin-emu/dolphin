@@ -62,6 +62,10 @@ public final class SaveStateFragment extends Fragment implements View.OnClickLis
 	@Override
 	public void onClick(View button)
 	{
-		((EmulationActivity) getActivity()).handleMenuAction(buttonsActionsMap.get(button.getId()));
+		int action = buttonsActionsMap.get(button.getId(), -1);
+		if (action >= 0)
+		{
+			((EmulationActivity) getActivity()).handleMenuAction(action);
+		}
 	}
 }
