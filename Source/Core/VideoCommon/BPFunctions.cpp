@@ -75,16 +75,6 @@ void SetBlendMode()
   g_renderer->SetBlendMode(false);
 }
 
-void SetLogicOpMode()
-{
-  g_renderer->SetLogicOpMode();
-}
-
-void SetColorMask()
-{
-  g_renderer->SetColorMask();
-}
-
 /* Explanation of the magic behind ClearScreen:
   There's numerous possible formats for the pixel data in the EFB.
   However, in the HW accelerated backends we're always using RGBA8

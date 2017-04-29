@@ -63,12 +63,10 @@ public:
     PP_EFB_COPY_CLOCKS
   };
 
-  virtual void SetColorMask() {}
   virtual void SetBlendMode(bool forceUpdate) {}
   virtual void SetScissorRect(const EFBRectangle& rc) {}
   virtual void SetGenerationMode() {}
   virtual void SetDepthMode() {}
-  virtual void SetLogicOpMode() {}
   virtual void SetSamplerState(int stage, int texindex, bool custom_tex) {}
   virtual void SetInterlacingMode() {}
   virtual void SetViewport() {}

@@ -148,17 +148,7 @@ static void BPWritten(const BPCmd& bp)
                bpmem.blendmode.dstfactor.Value(), bpmem.blendmode.srcfactor.Value(),
                bpmem.blendmode.subtract.Value(), bpmem.blendmode.logicmode.Value());
 
-      // Set Blending Mode
-      if (bp.changes)
-        SetBlendMode();
-
-      // Set LogicOp Blending Mode
-      if (bp.changes & 0xF002)  // logicopenable | logicmode
-        SetLogicOpMode();
-
-      // Set Color Mask
-      if (bp.changes & 0x18)  // colorupdate | alphaupdate
-        SetColorMask();
+      SetBlendMode();
 
       // Dither
       if (bp.changes & 0x04)
@@ -331,7 +321,6 @@ static void BPWritten(const BPCmd& bp)
     if (bp.changes)
     {
       PixelShaderManager::SetAlphaTestChanged();
-      g_renderer->SetColorMask();
       SetBlendMode();
     }
     return;
@@ -420,11 +409,7 @@ static void BPWritten(const BPCmd& bp)
   case BPMEM_ZCOMPARE:  // Set the Z-Compare and EFB pixel format
     OnPixelFormatChange();
     if (bp.changes & 7)
-    {
       SetBlendMode();  // dual source could be activated by changing to PIXELFMT_RGBA6_Z24
-      g_renderer->SetColorMask();  // alpha writing needs to be disabled if the new pixel format
-                                   // doesn't have an alpha channel
-    }
     PixelShaderManager::SetZModeControl();
     return;
 
@@ -1414,8 +1399,6 @@ void BPReload()
   SetGenerationMode();
   SetScissor();
   SetDepthMode();
-  SetLogicOpMode();
   SetBlendMode();
-  SetColorMask();
   OnPixelFormatChange();
 }

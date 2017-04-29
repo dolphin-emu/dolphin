@@ -19,8 +19,6 @@ void SetGenerationMode();
 void SetScissor();
 void SetDepthMode();
 void SetBlendMode();
-void SetLogicOpMode();
-void SetColorMask();
 void ClearScreen(const EFBRectangle& rc);
 void OnPixelFormatChange();
 void SetInterlacingMode(const BPCmd& bp);
