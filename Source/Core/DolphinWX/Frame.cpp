@@ -244,6 +244,7 @@ EVT_MENU_RANGE(IDM_FLOAT_LOG_WINDOW, IDM_FLOAT_CODE_WINDOW, CFrame::OnFloatWindo
 
 // Game list context menu
 EVT_MENU(IDM_LIST_INSTALL_WAD, CFrame::OnInstallWAD)
+EVT_MENU(IDM_LIST_UNINSTALL_WAD, CFrame::OnUninstallWAD)
 
 // Other
 EVT_ACTIVATE(CFrame::OnActive)

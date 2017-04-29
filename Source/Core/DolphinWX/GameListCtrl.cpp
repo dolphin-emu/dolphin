@@ -956,6 +956,27 @@ void CGameListCtrl::OnLeftClick(wxMouseEvent& event)
   event.Skip();
 }
 
+static bool IsWADInstalled(const std::string& wad_path)
+{
+  const auto volume = DiscIO::CreateVolumeFromFilename(wad_path);
+  u64 title_id;
+  if (!volume || !volume->GetTitleID(&title_id))
+    return false;
+
+  const std::string content_dir =
+      Common::GetTitleContentPath(title_id, Common::FromWhichRoot::FROM_CONFIGURED_ROOT);
+
+  if (!File::IsDirectory(content_dir))
+    return false;
+
+  // Since this isn't IOS and we only need a simple way to figure out if a title is installed,
+  // we make the (reasonable) assumption that having more than just the TMD in the content
+  // directory means that the title is installed.
+  const auto entries = File::ScanDirectoryTree(content_dir, false);
+  return std::any_of(entries.children.begin(), entries.children.end(),
+                     [](const auto& file) { return file.virtualName != "title.tmd"; });
+}
+
 void CGameListCtrl::OnRightClick(wxMouseEvent& event)
 {
   // Focus the clicked item.
@@ -1024,9 +1045,15 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
       if (platform == DiscIO::Platform::WII_WAD)
       {
         auto* const install_wad_item =
-            popupMenu.Append(IDM_LIST_INSTALL_WAD, _("Install to Wii Menu"));
-        // This should not be allowed while emulation is running, just like the Install WAD option.
-        install_wad_item->Enable(!Core::IsRunning() || !SConfig::GetInstance().bWii);
+            popupMenu.Append(IDM_LIST_INSTALL_WAD, _("Install to the NAND"));
+        auto* const uninstall_wad_item =
+            popupMenu.Append(IDM_LIST_UNINSTALL_WAD, _("Uninstall from the NAND"));
+        // These should not be allowed while emulation is running for safety reasons.
+        for (auto* menu_item : {install_wad_item, uninstall_wad_item})
+          menu_item->Enable(!Core::IsRunning() || !SConfig::GetInstance().bWii);
+
+        if (!IsWADInstalled(selected_iso->GetFileName()))
+          uninstall_wad_item->Enable(false);
       }
 
       popupMenu.Append(IDM_START_NETPLAY, _("Host with Netplay"));

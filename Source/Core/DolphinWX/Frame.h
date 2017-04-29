@@ -316,6 +316,7 @@ private:
   void OnShowCheatsWindow(wxCommandEvent& event);
   void OnLoadWiiMenu(wxCommandEvent& event);
   void OnInstallWAD(wxCommandEvent& event);
+  void OnUninstallWAD(wxCommandEvent& event);
   void OnImportBootMiiBackup(wxCommandEvent& event);
   void OnExtractCertificates(wxCommandEvent& event);
   void OnFifoPlayer(wxCommandEvent& event);
