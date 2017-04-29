@@ -25,7 +25,7 @@ public:
   OH0Device(u32 device_id, const std::string& device_name);
 
   ReturnCode Open(const OpenRequest& request) override;
-  void Close() override;
+  ReturnCode Close(u32 fd) override;
   IPCCommandResult IOCtl(const IOCtlRequest& request) override;
   IPCCommandResult IOCtlV(const IOCtlVRequest& request) override;
   void DoState(PointerWrap& p) override;

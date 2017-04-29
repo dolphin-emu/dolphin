@@ -154,9 +154,10 @@ ReturnCode Device::Open(const OpenRequest& request)
   return IPC_SUCCESS;
 }
 
-void Device::Close()
+ReturnCode Device::Close(u32 fd)
 {
   m_is_active = false;
+  return IPC_SUCCESS;
 }
 
 IPCCommandResult Device::Unsupported(const Request& request)

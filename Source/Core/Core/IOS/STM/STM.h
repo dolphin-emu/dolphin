@@ -55,7 +55,7 @@ class STMEventHook final : public Device
 {
 public:
   STMEventHook(u32 device_id, const std::string& device_name) : Device(device_id, device_name) {}
-  void Close() override;
+  ReturnCode Close(u32 fd) override;
   IPCCommandResult IOCtl(const IOCtlRequest& request) override;
   void DoState(PointerWrap& p) override;
 

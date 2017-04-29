@@ -83,13 +83,13 @@ ReturnCode SDIOSlot0::Open(const OpenRequest& request)
   return IPC_SUCCESS;
 }
 
-void SDIOSlot0::Close()
+ReturnCode SDIOSlot0::Close(u32 fd)
 {
   m_Card.Close();
   m_BlockLength = 0;
   m_BusWidth = 0;
 
-  m_is_active = false;
+  return Device::Close(fd);
 }
 
 IPCCommandResult SDIOSlot0::IOCtl(const IOCtlRequest& request)

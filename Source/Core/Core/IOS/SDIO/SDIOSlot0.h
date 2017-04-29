@@ -31,7 +31,7 @@ public:
   void DoState(PointerWrap& p) override;
 
   ReturnCode Open(const OpenRequest& request) override;
-  void Close() override;
+  ReturnCode Close(u32 fd) override;
   IPCCommandResult IOCtl(const IOCtlRequest& request) override;
   IPCCommandResult IOCtlV(const IOCtlVRequest& request) override;
 

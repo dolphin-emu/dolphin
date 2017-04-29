@@ -147,7 +147,7 @@ bool BluetoothEmu::RemoteDisconnect(u16 _connectionHandle)
   return SendEventDisconnect(_connectionHandle, 0x13);
 }
 
-void BluetoothEmu::Close()
+ReturnCode BluetoothEmu::Close(u32 fd)
 {
   // Clean up state
   m_ScanEnable = 0;
@@ -156,7 +156,7 @@ void BluetoothEmu::Close()
   m_HCIEndpoint.reset();
   m_ACLEndpoint.reset();
 
-  m_is_active = false;
+  return Device::Close(fd);
 }
 
 IPCCommandResult BluetoothEmu::IOCtlV(const IOCtlVRequest& request)

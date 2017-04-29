@@ -4,6 +4,7 @@
 
 #include "Core/IOS/ES/ES.h"
 
+#include <algorithm>
 #include <cinttypes>
 #include <cstdio>
 #include <memory>
@@ -27,16 +28,12 @@ namespace HLE
 {
 namespace Device
 {
-// Shared across all ES instances.
+// TODO: drop this and convert the title context into a member once the WAD launch hack is gone.
 static std::string s_content_file;
 static TitleContext s_title_context;
 
 // Title to launch after IOS has been reset and reloaded (similar to /sys/launch.sys).
 static u64 s_title_to_launch;
-
-ES::ES(u32 device_id, const std::string& device_name) : Device(device_id, device_name)
-{
-}
 
 static void FinishAllStaleImports()
 {
@@ -58,7 +55,7 @@ static void FinishAllStaleImports()
   File::CreateDir(import_dir);
 }
 
-void ES::Init()
+ES::ES(u32 device_id, const std::string& device_name) : Device(device_id, device_name)
 {
   FinishAllStaleImports();
 
@@ -182,14 +179,14 @@ static ReturnCode CheckIsAllowedToSetUID(const u32 caller_uid)
   return caller_uid == system_menu_uid ? IPC_SUCCESS : ES_EINVAL;
 }
 
-IPCCommandResult ES::SetUID(const IOCtlVRequest& request)
+IPCCommandResult ES::SetUID(u32 uid, const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 0) || request.in_vectors[0].size != 8)
     return GetDefaultReply(ES_EINVAL);
 
   const u64 title_id = Memory::Read_U64(request.in_vectors[0].address);
 
-  const s32 ret = CheckIsAllowedToSetUID(m_caller_uid);
+  const s32 ret = CheckIsAllowedToSetUID(uid);
   if (ret < 0)
   {
     ERROR_LOG(IOS_ES, "SetUID: Permission check failed with error %d", ret);
@@ -279,6 +276,24 @@ bool ES::LaunchPPCTitle(u64 title_id, bool skip_reload)
   return BootstrapPPC(content_loader);
 }
 
+void ES::Context::DoState(PointerWrap& p)
+{
+  p.Do(uid);
+  p.Do(gid);
+
+  title_import.tmd.DoState(p);
+  p.Do(title_import.content_id);
+  p.Do(title_import.content_buffer);
+
+  p.Do(title_export.valid);
+  title_export.tmd.DoState(p);
+  p.Do(title_export.title_key);
+  p.Do(title_export.contents);
+
+  p.Do(active);
+  p.Do(ipc_fd);
+}
+
 void ES::DoState(PointerWrap& p)
 {
   Device::DoState(p);
@@ -286,17 +301,8 @@ void ES::DoState(PointerWrap& p)
   p.Do(m_AccessIdentID);
   s_title_context.DoState(p);
 
-  m_addtitle_tmd.DoState(p);
-  p.Do(m_addtitle_content_id);
-  p.Do(m_addtitle_content_buffer);
-
-  p.Do(m_caller_uid);
-  p.Do(m_caller_gid);
-
-  p.Do(m_export_title_context.valid);
-  m_export_title_context.tmd.DoState(p);
-  p.Do(m_export_title_context.title_key);
-  p.Do(m_export_title_context.contents);
+  for (auto& context : m_contexts)
+    context.DoState(p);
 
   u32 Count = (u32)(m_ContentAccessMap.size());
   p.Do(Count);
@@ -322,16 +328,41 @@ void ES::DoState(PointerWrap& p)
   }
 }
 
+ES::ContextArray::iterator ES::FindActiveContext(u32 fd)
+{
+  return std::find_if(m_contexts.begin(), m_contexts.end(),
+                      [fd](const auto& context) { return context.ipc_fd == fd && context.active; });
+}
+
+ES::ContextArray::iterator ES::FindInactiveContext()
+{
+  return std::find_if(m_contexts.begin(), m_contexts.end(),
+                      [](const auto& context) { return !context.active; });
+}
+
 ReturnCode ES::Open(const OpenRequest& request)
 {
-  m_caller_uid = request.uid;
-  m_caller_gid = request.gid;
+  auto context = FindInactiveContext();
+  if (context == m_contexts.end())
+    return ES_FD_EXHAUSTED;
+
+  context->active = true;
+  context->uid = request.uid;
+  context->gid = request.gid;
+  context->ipc_fd = request.fd;
   return Device::Open(request);
 }
 
-void ES::Close()
+ReturnCode ES::Close(u32 fd)
 {
-  // XXX: does IOS really clear the content access map here?
+  auto context = FindActiveContext(fd);
+  if (context == m_contexts.end())
+    return ES_EINVAL;
+
+  context->active = false;
+  context->ipc_fd = -1;
+
+  // FIXME: IOS doesn't clear the content access map here.
   m_ContentAccessMap.clear();
   m_AccessIdentID = 0;
 
@@ -339,48 +370,52 @@ void ES::Close()
   m_is_active = false;
   // clear the NAND content cache to make sure nothing remains open.
   DiscIO::CNANDContentManager::Access().ClearCache();
+  return IPC_SUCCESS;
 }
 
 IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
 {
   DEBUG_LOG(IOS_ES, "%s (0x%x)", GetDeviceName().c_str(), request.request);
+  auto context = FindActiveContext(request.fd);
+  if (context == m_contexts.end())
+    return GetDefaultReply(ES_EINVAL);
 
   switch (request.request)
   {
   case IOCTL_ES_ADDTICKET:
     return AddTicket(request);
   case IOCTL_ES_ADDTMD:
-    return AddTMD(request);
+    return AddTMD(*context, request);
   case IOCTL_ES_ADDTITLESTART:
-    return AddTitleStart(request);
+    return AddTitleStart(*context, request);
   case IOCTL_ES_ADDCONTENTSTART:
-    return AddContentStart(request);
+    return AddContentStart(*context, request);
   case IOCTL_ES_ADDCONTENTDATA:
-    return AddContentData(request);
+    return AddContentData(*context, request);
   case IOCTL_ES_ADDCONTENTFINISH:
-    return AddContentFinish(request);
+    return AddContentFinish(*context, request);
   case IOCTL_ES_ADDTITLEFINISH:
-    return AddTitleFinish(request);
+    return AddTitleFinish(*context, request);
   case IOCTL_ES_ADDTITLECANCEL:
-    return AddTitleCancel(request);
+    return AddTitleCancel(*context, request);
   case IOCTL_ES_GETDEVICEID:
     return GetConsoleID(request);
   case IOCTL_ES_OPENTITLECONTENT:
-    return OpenTitleContent(request);
+    return OpenTitleContent(context->uid, request);
   case IOCTL_ES_OPENCONTENT:
-    return OpenContent(request);
+    return OpenContent(context->uid, request);
   case IOCTL_ES_READCONTENT:
-    return ReadContent(request);
+    return ReadContent(context->uid, request);
   case IOCTL_ES_CLOSECONTENT:
-    return CloseContent(request);
+    return CloseContent(context->uid, request);
   case IOCTL_ES_SEEKCONTENT:
-    return SeekContent(request);
+    return SeekContent(context->uid, request);
   case IOCTL_ES_GETTITLEDIR:
     return GetTitleDirectory(request);
   case IOCTL_ES_GETTITLEID:
     return GetTitleID(request);
   case IOCTL_ES_SETUID:
-    return SetUID(request);
+    return SetUID(context->uid, request);
   case IOCTL_ES_DIVERIFY:
     return DIVerify(request);
 
@@ -441,23 +476,23 @@ IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
   case IOCTL_ES_GETSTOREDTMD:
     return GetStoredTMD(request);
   case IOCTL_ES_ENCRYPT:
-    return Encrypt(request);
+    return Encrypt(context->uid, request);
   case IOCTL_ES_DECRYPT:
-    return Decrypt(request);
+    return Decrypt(context->uid, request);
   case IOCTL_ES_LAUNCH:
     return Launch(request);
   case IOCTL_ES_LAUNCHBC:
     return LaunchBC(request);
   case IOCTL_ES_EXPORTTITLEINIT:
-    return ExportTitleInit(request);
+    return ExportTitleInit(*context, request);
   case IOCTL_ES_EXPORTCONTENTBEGIN:
-    return ExportContentBegin(request);
+    return ExportContentBegin(*context, request);
   case IOCTL_ES_EXPORTCONTENTDATA:
-    return ExportContentData(request);
+    return ExportContentData(*context, request);
   case IOCTL_ES_EXPORTCONTENTEND:
-    return ExportContentEnd(request);
+    return ExportContentEnd(*context, request);
   case IOCTL_ES_EXPORTTITLEDONE:
-    return ExportTitleDone(request);
+    return ExportTitleDone(*context, request);
   case IOCTL_ES_CHECKKOREAREGION:
     return CheckKoreaRegion(request);
   case IOCTL_ES_GETDEVICECERT:
