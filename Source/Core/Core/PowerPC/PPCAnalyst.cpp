@@ -67,12 +67,11 @@ static u32 EvaluateBranchTarget(UGeckoInstruction instr, u32 pc)
 }
 
 // To find the size of each found function, scan
-// forward until we hit blr. In the meantime, collect information
+// forward until we hit blr or rfi. In the meantime, collect information
 // about which functions this function calls.
-// Also collect which internal branch goes the farthest
-// If any one goes farther than the blr, assume that there is more than
-// one blr, and keep scanning.
-
+// Also collect which internal branch goes the farthest.
+// If any one goes farther than the blr or rfi, assume that there is more than
+// one blr or rfi, and keep scanning.
 bool AnalyzeFunction(u32 startAddr, Symbol& func, int max_size)
 {
   if (!func.name.size())
@@ -107,9 +106,10 @@ bool AnalyzeFunction(u32 startAddr, Symbol& func, int max_size)
     const UGeckoInstruction instr = read_result.hex;
     if (read_result.valid && PPCTables::IsValidInstruction(instr))
     {
-      if (instr.hex == 0x4e800020)  // 4e800021 is blrl, not the end of a function
+      // BLR or RFI
+      // 4e800021 is blrl, not the end of a function
+      if (instr.hex == 0x4e800020 || instr.hex == 0x4C000064)
       {
-        // BLR
         if (farthestInternalBranchTarget > addr)
         {
           // bah, not this one, continue..
@@ -300,7 +300,7 @@ static void FindFunctionsFromBranches(u32 startAddr, u32 endAddr, SymbolDB* func
   }
 }
 
-static void FindFunctionsAfterBLR(PPCSymbolDB* func_db)
+static void FindFunctionsAfterReturnInstruction(PPCSymbolDB* func_db)
 {
   std::vector<u32> funcAddrs;
 
@@ -340,7 +340,7 @@ void FindFunctions(u32 startAddr, u32 endAddr, PPCSymbolDB* func_db)
 {
   // Step 1: Find all functions
   FindFunctionsFromBranches(startAddr, endAddr, func_db);
-  FindFunctionsAfterBLR(func_db);
+  FindFunctionsAfterReturnInstruction(func_db);
 
   // Step 2:
   func_db->FillInCallers();
