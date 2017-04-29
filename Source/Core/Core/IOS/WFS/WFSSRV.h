@@ -10,7 +10,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Core/IOS/Device.h"
-#include "Core/IOS/IPC.h"
+#include "Core/IOS/IOS.h"
 #include "DiscIO/Volume.h"
 
 namespace IOS
@@ -27,7 +27,7 @@ namespace Device
 class WFSSRV : public Device
 {
 public:
-  WFSSRV(u32 device_id, const std::string& device_name);
+  WFSSRV(Kernel& ios, const std::string& device_name);
 
   IPCCommandResult IOCtl(const IOCtlRequest& request) override;
 

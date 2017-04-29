@@ -50,7 +50,7 @@
 #include "Core/HW/SystemTimers.h"
 #include "Core/HW/VideoInterface.h"
 #include "Core/HW/Wiimote.h"
-#include "Core/IOS/IPC.h"
+#include "Core/IOS/IOS.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayClient.h"
 #include "Core/NetPlayProto.h"
@@ -952,7 +952,9 @@ void UpdateWantDeterminism(bool initial)
     bool was_unpaused = Core::PauseAndLock(true);
 
     s_wants_determinism = new_want_determinism;
-    IOS::HLE::UpdateWantDeterminism(new_want_determinism);
+    const auto ios = IOS::HLE::GetIOS();
+    if (ios)
+      ios->UpdateWantDeterminism(new_want_determinism);
     Fifo::UpdateWantDeterminism(new_want_determinism);
     // We need to clear the cache because some parts of the JIT depend on want_determinism, e.g. use
     // of FMA.

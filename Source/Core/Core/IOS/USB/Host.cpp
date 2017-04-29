@@ -27,7 +27,7 @@ namespace HLE
 {
 namespace Device
 {
-USBHost::USBHost(u32 device_id, const std::string& device_name) : Device(device_id, device_name)
+USBHost::USBHost(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
 {
 #ifdef __LIBUSB__
   const int ret = libusb_init(&m_libusb_context);
@@ -150,7 +150,7 @@ bool USBHost::AddNewDevices(std::set<u64>& new_devices, DeviceChangeHooks& hooks
         continue;
       }
 
-      auto usb_device = std::make_unique<USB::LibusbDevice>(device, descriptor);
+      auto usb_device = std::make_unique<USB::LibusbDevice>(m_ios, device, descriptor);
       if (!ShouldAddDevice(*usb_device))
       {
         libusb_unref_device(device);

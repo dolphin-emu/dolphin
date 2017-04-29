@@ -7,7 +7,7 @@
 #include <string>
 
 #include "Common/CommonTypes.h"
-#include "Core/IOS/IPC.h"
+#include "Core/IOS/IOS.h"
 #include "Core/IOS/USB/Bluetooth/BTBase.h"
 
 class PointerWrap;
@@ -21,10 +21,7 @@ namespace Device
 class BluetoothStub final : public BluetoothBase
 {
 public:
-  BluetoothStub(const u32 device_id, const std::string& device_name)
-      : BluetoothBase(device_id, device_name)
-  {
-  }
+  using BluetoothBase::BluetoothBase;
   ReturnCode Open(const OpenRequest& request) override;
   void DoState(PointerWrap& p) override;
 };

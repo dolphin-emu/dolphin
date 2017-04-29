@@ -14,7 +14,7 @@
 #include "Common/SDCardUtil.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/Memmap.h"
-#include "Core/IOS/IPC.h"
+#include "Core/IOS/IOS.h"
 #include "Core/IOS/SDIO/SDIOSlot0.h"
 
 namespace IOS
@@ -23,7 +23,7 @@ namespace HLE
 {
 namespace Device
 {
-SDIOSlot0::SDIOSlot0(u32 device_id, const std::string& device_name) : Device(device_id, device_name)
+SDIOSlot0::SDIOSlot0(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
 {
 }
 
@@ -49,7 +49,7 @@ void SDIOSlot0::EventNotify()
   if ((SConfig::GetInstance().m_WiiSDCard && m_event->type == EVENT_INSERT) ||
       (!SConfig::GetInstance().m_WiiSDCard && m_event->type == EVENT_REMOVE))
   {
-    EnqueueReply(m_event->request, m_event->type);
+    m_ios.EnqueueIPCReply(m_event->request, m_event->type);
     m_event.reset();
   }
 }
@@ -302,7 +302,7 @@ u32 SDIOSlot0::ExecuteCommand(const Request& request, u32 _BufferIn, u32 _Buffer
     // release returns 0
     // unknown sd int
     // technically we do it out of order, oh well
-    EnqueueReply(m_event->request, EVENT_INVALID);
+    m_ios.EnqueueIPCReply(m_event->request, EVENT_INVALID);
     m_event.reset();
     break;
   }

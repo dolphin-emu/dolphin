@@ -23,7 +23,7 @@
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/ES/ES.h"
 #include "Core/IOS/ES/Formats.h"
-#include "Core/IOS/IPC.h"
+#include "Core/IOS/IOS.h"
 #include "Core/PatchEngine.h"
 #include "Core/PowerPC/PowerPC.h"
 
@@ -289,7 +289,7 @@ bool CBoot::SetupWiiMemory(u64 ios_title_id)
   Memory::Write_U16(0x8201, 0x000030e6);                // Dev console / debug capable
   Memory::Write_U32(0x00000000, 0x000030f0);            // Apploader
 
-  if (!IOS::HLE::Reload(ios_title_id))
+  if (!IOS::HLE::GetIOS()->BootIOS(ios_title_id))
   {
     return false;
   }

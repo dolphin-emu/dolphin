@@ -790,7 +790,10 @@
     <ClCompile Include="IOS\Network\ICMPLin.cpp">
       <Filter>IOS\Network</Filter>
     </ClCompile>
-    <ClCompile Include="IOS\IPC.cpp">
+    <ClCompile Include="IOS\IOS.cpp">
+      <Filter>IOS</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\MemoryValues.cpp">
       <Filter>IOS</Filter>
     </ClCompile>
     <ClCompile Include="IOS\MIOS.cpp">
@@ -1504,7 +1507,10 @@
     <ClInclude Include="IOS\Device.h">
       <Filter>IOS</Filter>
     </ClInclude>
-    <ClInclude Include="IOS\IPC.h">
+    <ClInclude Include="IOS\IOS.h">
+      <Filter>IOS</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\MemoryValues.h">
       <Filter>IOS</Filter>
     </ClInclude>
     <ClInclude Include="IOS\MIOS.h">

@@ -100,15 +100,19 @@ struct TransferCommand
   Request ios_request;
   u32 data_address = 0;
 
-  TransferCommand(const Request& ios_request_, u32 data_address_)
-      : ios_request(ios_request_), data_address(data_address_)
+  TransferCommand(Kernel& ios, const Request& ios_request_, u32 data_address_)
+      : ios_request(ios_request_), data_address(data_address_), m_ios(ios)
   {
   }
   virtual ~TransferCommand() = default;
-  // Called after a transfer has completed and before replying to the transfer request.
-  virtual void OnTransferComplete() const {}
+  // Called after a transfer has completed to reply to the IPC request.
+  // This can be overridden for additional processing before replying.
+  virtual void OnTransferComplete(s32 return_value) const;
   std::unique_ptr<u8[]> MakeBuffer(size_t size) const;
   void FillBuffer(const u8* src, size_t size) const;
+
+private:
+  Kernel& m_ios;
 };
 
 struct CtrlMessage : TransferCommand

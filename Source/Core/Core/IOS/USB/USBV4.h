@@ -32,18 +32,18 @@ enum V4Requests
 
 struct V4CtrlMessage final : CtrlMessage
 {
-  explicit V4CtrlMessage(const IOCtlRequest& ioctl);
+  V4CtrlMessage(Kernel& ios, const IOCtlRequest& ioctl);
 };
 
 struct V4GetUSStringMessage final : CtrlMessage
 {
-  explicit V4GetUSStringMessage(const IOCtlRequest& ioctl);
-  void OnTransferComplete() const override;
+  V4GetUSStringMessage(Kernel& ios, const IOCtlRequest& ioctl);
+  void OnTransferComplete(s32 return_value) const override;
 };
 
 struct V4IntrMessage final : IntrMessage
 {
-  explicit V4IntrMessage(const IOCtlRequest& ioctl);
+  V4IntrMessage(Kernel& ios, const IOCtlRequest& ioctl);
 };
 }  // namespace USB
 }  // namespace HLE

@@ -27,7 +27,7 @@ std::string NativePath(const std::string& wfs_path)
 
 namespace Device
 {
-WFSSRV::WFSSRV(u32 device_id, const std::string& device_name) : Device(device_id, device_name)
+WFSSRV::WFSSRV(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
 {
   m_device_name = "msc01";
 }

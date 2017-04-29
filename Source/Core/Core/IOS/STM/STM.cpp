@@ -39,7 +39,7 @@ IPCCommandResult STMImmediate::IOCtl(const IOCtlRequest& request)
       break;
     }
     Memory::Write_U32(0, s_event_hook_request->buffer_out);
-    EnqueueReply(*s_event_hook_request, IPC_SUCCESS);
+    m_ios.EnqueueIPCReply(*s_event_hook_request, IPC_SUCCESS);
     s_event_hook_request.reset();
     break;
 
@@ -109,7 +109,7 @@ void STMEventHook::TriggerEvent(const u32 event) const
     return;
 
   Memory::Write_U32(event, s_event_hook_request->buffer_out);
-  EnqueueReply(*s_event_hook_request, IPC_SUCCESS);
+  m_ios.EnqueueIPCReply(*s_event_hook_request, IPC_SUCCESS);
   s_event_hook_request.reset();
 }
 

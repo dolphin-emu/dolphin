@@ -36,22 +36,22 @@ enum V5Requests
 
 struct V5CtrlMessage final : CtrlMessage
 {
-  explicit V5CtrlMessage(const IOCtlVRequest& ioctlv);
+  V5CtrlMessage(Kernel& ios, const IOCtlVRequest& ioctlv);
 };
 
 struct V5BulkMessage final : BulkMessage
 {
-  explicit V5BulkMessage(const IOCtlVRequest& ioctlv);
+  V5BulkMessage(Kernel& ios, const IOCtlVRequest& ioctlv);
 };
 
 struct V5IntrMessage final : IntrMessage
 {
-  explicit V5IntrMessage(const IOCtlVRequest& ioctlv);
+  V5IntrMessage(Kernel& ios, const IOCtlVRequest& ioctlv);
 };
 
 struct V5IsoMessage final : IsoMessage
 {
-  explicit V5IsoMessage(const IOCtlVRequest& cmd_buffer);
+  V5IsoMessage(Kernel& ios, const IOCtlVRequest& cmd_buffer);
 };
 }  // namespace USB
 }  // namespace HLE

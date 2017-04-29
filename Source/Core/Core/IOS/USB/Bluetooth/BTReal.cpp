@@ -56,8 +56,8 @@ static bool IsBluetoothDevice(const libusb_interface_descriptor& descriptor)
 
 namespace Device
 {
-BluetoothReal::BluetoothReal(u32 device_id, const std::string& device_name)
-    : BluetoothBase(device_id, device_name)
+BluetoothReal::BluetoothReal(Kernel& ios, const std::string& device_name)
+    : BluetoothBase(ios, device_name)
 {
   const int ret = libusb_init(&m_libusb_context);
   if (ret < 0)
@@ -179,7 +179,7 @@ IPCCommandResult BluetoothReal::IOCtlV(const IOCtlVRequest& request)
   case USB::IOCTLV_USBV0_CTRLMSG:
   {
     std::lock_guard<std::mutex> lk(m_transfers_mutex);
-    auto cmd = std::make_unique<USB::V0CtrlMessage>(request);
+    auto cmd = std::make_unique<USB::V0CtrlMessage>(m_ios, request);
     const u16 opcode = Common::swap16(Memory::Read_U16(cmd->data_address));
     if (opcode == HCI_CMD_READ_BUFFER_SIZE)
     {
@@ -228,7 +228,7 @@ IPCCommandResult BluetoothReal::IOCtlV(const IOCtlVRequest& request)
   case USB::IOCTLV_USBV0_INTRMSG:
   {
     std::lock_guard<std::mutex> lk(m_transfers_mutex);
-    auto cmd = std::make_unique<USB::V0IntrMessage>(request);
+    auto cmd = std::make_unique<USB::V0IntrMessage>(m_ios, request);
     if (request.request == USB::IOCTLV_USBV0_INTRMSG)
     {
       if (m_sync_button_state == SyncButtonState::Pressed)
@@ -310,7 +310,7 @@ void BluetoothReal::DoState(PointerWrap& p)
     // waiting for the previous request to complete. This is usually not an issue as long as
     // the Bluetooth state is the same (same Wii remote connections).
     for (const auto& address_to_discard : addresses_to_discard)
-      EnqueueReply(Request{address_to_discard}, 0);
+      m_ios.EnqueueIPCReply(Request{address_to_discard}, 0);
 
     // Prevent the callbacks from replying to a request that has already been discarded.
     m_current_transfers.clear();
@@ -452,7 +452,7 @@ void BluetoothReal::FakeVendorCommandReply(USB::V0IntrMessage& ctrl)
   hci_event.PacketIndicator = 0x01;
   hci_event.Opcode = m_fake_vendor_command_reply_opcode;
   Memory::CopyToEmu(ctrl.data_address, &hci_event, sizeof(hci_event));
-  EnqueueReply(ctrl.ios_request, static_cast<s32>(sizeof(hci_event)));
+  m_ios.EnqueueIPCReply(ctrl.ios_request, static_cast<s32>(sizeof(hci_event)));
 }
 
 // Due to how the widcomm stack which Nintendo uses is coded, we must never
@@ -477,7 +477,7 @@ void BluetoothReal::FakeReadBufferSizeReply(USB::V0IntrMessage& ctrl)
   reply.max_sco_size = SCO_PKT_SIZE;
   reply.num_sco_pkts = SCO_PKT_NUM;
   Memory::CopyToEmu(ctrl.data_address + sizeof(hci_event), &reply, sizeof(reply));
-  EnqueueReply(ctrl.ios_request, static_cast<s32>(sizeof(hci_event) + sizeof(reply)));
+  m_ios.EnqueueIPCReply(ctrl.ios_request, static_cast<s32>(sizeof(hci_event) + sizeof(reply)));
 }
 
 void BluetoothReal::FakeSyncButtonEvent(USB::V0IntrMessage& ctrl, const u8* payload, const u8 size)
@@ -488,7 +488,7 @@ void BluetoothReal::FakeSyncButtonEvent(USB::V0IntrMessage& ctrl, const u8* payl
   hci_event.length = size;
   Memory::CopyToEmu(ctrl.data_address, &hci_event, sizeof(hci_event));
   Memory::CopyToEmu(ctrl.data_address + sizeof(hci_event), payload, size);
-  EnqueueReply(ctrl.ios_request, static_cast<s32>(sizeof(hci_event) + size));
+  m_ios.EnqueueIPCReply(ctrl.ios_request, static_cast<s32>(sizeof(hci_event) + size));
 }
 
 // When the red sync button is pressed, a HCI event is generated:
@@ -638,7 +638,8 @@ void BluetoothReal::HandleCtrlTransfer(libusb_transfer* tr)
   }
   const auto& command = m_current_transfers.at(tr).command;
   command->FillBuffer(libusb_control_transfer_get_data(tr), tr->actual_length);
-  EnqueueReply(command->ios_request, tr->actual_length, 0, CoreTiming::FromThread::NON_CPU);
+  m_ios.EnqueueIPCReply(command->ios_request, tr->actual_length, 0,
+                        CoreTiming::FromThread::NON_CPU);
   m_current_transfers.erase(tr);
 }
 
@@ -688,7 +689,8 @@ void BluetoothReal::HandleBulkOrIntrTransfer(libusb_transfer* tr)
 
   const auto& command = m_current_transfers.at(tr).command;
   command->FillBuffer(tr->buffer, tr->actual_length);
-  EnqueueReply(command->ios_request, tr->actual_length, 0, CoreTiming::FromThread::NON_CPU);
+  m_ios.EnqueueIPCReply(command->ios_request, tr->actual_length, 0,
+                        CoreTiming::FromThread::NON_CPU);
   m_current_transfers.erase(tr);
 }
 }  // namespace Device

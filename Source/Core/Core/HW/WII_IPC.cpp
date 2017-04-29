@@ -9,7 +9,7 @@
 #include "Core/CoreTiming.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/ProcessorInterface.h"
-#include "Core/IOS/IPC.h"
+#include "Core/IOS/IOS.h"
 
 // This is the intercommunication between ARM and PPC. Currently only PPC actually uses it, because
 // of the IOS HLE
@@ -153,8 +153,8 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                  MMIO::ComplexWrite<u32>([](u32, u32 val) {
                    ctrl.ppc(val);
                    if (ctrl.X1)
-                     HLE::EnqueueRequest(ppc_msg);
-                   HLE::Update();
+                     HLE::GetIOS()->EnqueueIPCRequest(ppc_msg);
+                   HLE::GetIOS()->UpdateIPC();
                    CoreTiming::ScheduleEvent(0, updateInterrupts, 0);
                  }));
 
@@ -163,7 +163,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   mmio->Register(base | PPC_IRQFLAG, MMIO::InvalidRead<u32>(),
                  MMIO::ComplexWrite<u32>([](u32, u32 val) {
                    ppc_irq_flags &= ~val;
-                   HLE::Update();
+                   HLE::GetIOS()->UpdateIPC();
                    CoreTiming::ScheduleEvent(0, updateInterrupts, 0);
                  }));
 
@@ -172,7 +172,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    ppc_irq_masks = val;
                    if (ppc_irq_masks & INT_CAUSE_IPC_BROADWAY)  // wtf?
                      Reset();
-                   HLE::Update();
+                   HLE::GetIOS()->UpdateIPC();
                    CoreTiming::ScheduleEvent(0, updateInterrupts, 0);
                  }));
 

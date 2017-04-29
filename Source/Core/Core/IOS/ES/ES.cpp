@@ -55,7 +55,7 @@ static void FinishAllStaleImports()
   File::CreateDir(import_dir);
 }
 
-ES::ES(u32 device_id, const std::string& device_name) : Device(device_id, device_name)
+ES::ES(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
 {
   FinishAllStaleImports();
 
@@ -155,7 +155,7 @@ IPCCommandResult ES::GetTitleID(const IOCtlVRequest& request)
   return GetDefaultReply(IPC_SUCCESS);
 }
 
-static bool UpdateUIDAndGID(const IOS::ES::TMDReader& tmd)
+static bool UpdateUIDAndGID(Kernel& kernel, const IOS::ES::TMDReader& tmd)
 {
   IOS::ES::UIDSys uid_sys{Common::FromWhichRoot::FROM_SESSION_ROOT};
   const u64 title_id = tmd.GetTitleId();
@@ -165,8 +165,8 @@ static bool UpdateUIDAndGID(const IOS::ES::TMDReader& tmd)
     ERROR_LOG(IOS_ES, "Failed to get UID for title %016" PRIx64, title_id);
     return false;
   }
-  SetUIDForPPC(uid);
-  SetGIDForPPC(tmd.GetGroupId());
+  kernel.SetUidForPPC(uid);
+  kernel.SetGidForPPC(tmd.GetGroupId());
   return true;
 }
 
@@ -197,7 +197,7 @@ IPCCommandResult ES::SetUID(u32 uid, const IOCtlVRequest& request)
   if (!tmd.IsValid())
     return GetDefaultReply(FS_ENOENT);
 
-  if (!UpdateUIDAndGID(tmd))
+  if (!UpdateUIDAndGID(m_ios, tmd))
   {
     ERROR_LOG(IOS_ES, "SetUID: Failed to get UID for title %016" PRIx64, title_id);
     return GetDefaultReply(ES_SHORT_READ);
@@ -225,7 +225,7 @@ bool ES::LaunchTitle(u64 title_id, bool skip_reload)
 
 bool ES::LaunchIOS(u64 ios_title_id)
 {
-  return Reload(ios_title_id);
+  return m_ios.BootIOS(ios_title_id);
 }
 
 bool ES::LaunchPPCTitle(u64 title_id, bool skip_reload)
@@ -266,14 +266,14 @@ bool ES::LaunchPPCTitle(u64 title_id, bool skip_reload)
 
   // Note: the UID/GID is also updated for IOS titles, but since we have no guarantee IOS titles
   // are installed, we can only do this for PPC titles.
-  if (!UpdateUIDAndGID(s_title_context.tmd))
+  if (!UpdateUIDAndGID(m_ios, s_title_context.tmd))
   {
     s_title_context.Clear();
     INFO_LOG(IOS_ES, "LaunchPPCTitle: Title context changed: (none)");
     return false;
   }
 
-  return BootstrapPPC(content_loader);
+  return m_ios.BootstrapPPC(content_loader);
 }
 
 void ES::Context::DoState(PointerWrap& p)
@@ -555,11 +555,9 @@ IPCCommandResult ES::Launch(const IOCtlVRequest& request)
   if (!LaunchTitle(TitleID))
     return GetDefaultReply(FS_ENOENT);
 
-  // Generate a "reply" to the IPC command.  ES_LAUNCH is unique because it
-  // involves restarting IOS; IOS generates two acknowledgements in a row.
-  // Note: If the launch succeeded, we should not write anything to the command buffer as
-  // IOS does not even reply unless it failed.
-  EnqueueCommandAcknowledgement(request.address, 0);
+  // ES_LAUNCH involves restarting IOS, which results in two acknowledgements in a row
+  // (one from the previous IOS for this IPC request, and one from the new one as it boots).
+  // Nothing should be written to the command buffer if the launch succeeded for obvious reasons.
   return GetNoReply();
 }
 
@@ -570,13 +568,12 @@ IPCCommandResult ES::LaunchBC(const IOCtlVRequest& request)
 
   // Here, IOS checks the clock speed and prevents ioctlv 0x25 from being used in GC mode.
   // An alternative way to do this is to check whether the current active IOS is MIOS.
-  if (GetVersion() == 0x101)
+  if (m_ios.GetVersion() == 0x101)
     return GetDefaultReply(ES_EINVAL);
 
   if (!LaunchTitle(0x0000000100000100))
     return GetDefaultReply(FS_ENOENT);
 
-  EnqueueCommandAcknowledgement(request.address, 0);
   return GetNoReply();
 }
 
@@ -633,7 +630,7 @@ s32 ES::DIVerify(const IOS::ES::TMDReader& tmd, const IOS::ES::TicketReader& tic
   // clear the cache to avoid content access mismatches.
   DiscIO::CNANDContentManager::Access().ClearCache();
 
-  if (!UpdateUIDAndGID(s_title_context.tmd))
+  if (!UpdateUIDAndGID(*GetIOS(), s_title_context.tmd))
   {
     return ES_SHORT_READ;
   }

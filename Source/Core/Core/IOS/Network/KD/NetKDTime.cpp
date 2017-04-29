@@ -16,7 +16,7 @@ namespace HLE
 {
 namespace Device
 {
-NetKDTime::NetKDTime(u32 device_id, const std::string& device_name) : Device(device_id, device_name)
+NetKDTime::NetKDTime(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
 {
 }
 

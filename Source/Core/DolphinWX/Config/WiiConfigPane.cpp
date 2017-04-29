@@ -13,7 +13,7 @@
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "Core/IOS/IPC.h"
+#include "Core/IOS/IOS.h"
 #include "DolphinWX/Config/AddUSBDeviceDiag.h"
 #include "DolphinWX/Config/WiiConfigPane.h"
 #include "DolphinWX/DolphinSlider.h"
@@ -279,7 +279,9 @@ void WiiConfigPane::OnPAL60CheckBoxChanged(wxCommandEvent& event)
 void WiiConfigPane::OnSDCardCheckBoxChanged(wxCommandEvent& event)
 {
   SConfig::GetInstance().m_WiiSDCard = m_sd_card_checkbox->IsChecked();
-  IOS::HLE::SDIO_EventNotify();
+  const auto ios = IOS::HLE::GetIOS();
+  if (ios)
+    ios->SDIO_EventNotify();
 }
 
 void WiiConfigPane::OnConnectKeyboardCheckBoxChanged(wxCommandEvent& event)

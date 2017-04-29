@@ -41,22 +41,22 @@ enum V0Requests
 
 struct V0CtrlMessage final : CtrlMessage
 {
-  explicit V0CtrlMessage(const IOCtlVRequest& ioctlv);
+  V0CtrlMessage(Kernel& ios, const IOCtlVRequest& ioctlv);
 };
 
 struct V0BulkMessage final : BulkMessage
 {
-  explicit V0BulkMessage(const IOCtlVRequest& ioctlv, bool long_length = false);
+  V0BulkMessage(Kernel& ios, const IOCtlVRequest& ioctlv, bool long_length = false);
 };
 
 struct V0IntrMessage final : IntrMessage
 {
-  explicit V0IntrMessage(const IOCtlVRequest& ioctlv);
+  V0IntrMessage(Kernel& ios, const IOCtlVRequest& ioctlv);
 };
 
 struct V0IsoMessage final : IsoMessage
 {
-  explicit V0IsoMessage(const IOCtlVRequest& ioctlv);
+  V0IsoMessage(Kernel& ios, const IOCtlVRequest& ioctlv);
 };
 }  // namespace USB
 }  // namespace HLE
