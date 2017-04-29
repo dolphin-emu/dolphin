@@ -100,7 +100,7 @@ static void Trace(UGeckoInstruction& inst)
 int Interpreter::SingleStepInner()
 {
   static UGeckoInstruction instCode;
-  u32 function = HLE::GetFunctionIndex(PC);
+  u32 function = HLE::GetFirstFunctionIndex(PC);
   if (function != 0)
   {
     int type = HLE::GetFunctionTypeByIndex(function);

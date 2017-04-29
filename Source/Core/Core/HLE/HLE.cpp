@@ -55,17 +55,17 @@ static const SPatch OSPatches[] = {
     {"OSPanic",                      HLE_OS::HLE_OSPanic,                   HLE_HOOK_REPLACE, HLE_TYPE_DEBUG},
 
     // This needs to be put before vprintf (because vprintf is called indirectly by this)
-    {"JUTWarningConsole_f",          HLE_OS::HLE_GeneralDebugPrint,         HLE_HOOK_REPLACE, HLE_TYPE_DEBUG},
+    {"JUTWarningConsole_f",          HLE_OS::HLE_GeneralDebugPrint,         HLE_HOOK_START,   HLE_TYPE_DEBUG},
 
-    {"OSReport",                     HLE_OS::HLE_GeneralDebugPrint,         HLE_HOOK_REPLACE, HLE_TYPE_DEBUG},
-    {"DEBUGPrint",                   HLE_OS::HLE_GeneralDebugPrint,         HLE_HOOK_REPLACE, HLE_TYPE_DEBUG},
-    {"WUD_DEBUGPrint",               HLE_OS::HLE_GeneralDebugPrint,         HLE_HOOK_REPLACE, HLE_TYPE_DEBUG},
-    {"vprintf",                      HLE_OS::HLE_GeneralDebugPrint,         HLE_HOOK_REPLACE, HLE_TYPE_DEBUG},
-    {"printf",                       HLE_OS::HLE_GeneralDebugPrint,         HLE_HOOK_REPLACE, HLE_TYPE_DEBUG},
-    {"nlPrintf",                     HLE_OS::HLE_GeneralDebugPrint,         HLE_HOOK_REPLACE, HLE_TYPE_DEBUG},
-    {"puts",                         HLE_OS::HLE_GeneralDebugPrint,         HLE_HOOK_REPLACE, HLE_TYPE_DEBUG}, // gcc-optimized printf?
-    {"___blank",                     HLE_OS::HLE_GeneralDebugPrint,         HLE_HOOK_REPLACE, HLE_TYPE_DEBUG}, // used for early init things (normally)
-    {"__write_console",              HLE_OS::HLE_write_console,             HLE_HOOK_REPLACE, HLE_TYPE_DEBUG}, // used by sysmenu (+more?)
+    {"OSReport",                     HLE_OS::HLE_GeneralDebugPrint,         HLE_HOOK_START,   HLE_TYPE_DEBUG},
+    {"DEBUGPrint",                   HLE_OS::HLE_GeneralDebugPrint,         HLE_HOOK_START,   HLE_TYPE_DEBUG},
+    {"WUD_DEBUGPrint",               HLE_OS::HLE_GeneralDebugPrint,         HLE_HOOK_START,   HLE_TYPE_DEBUG},
+    {"vprintf",                      HLE_OS::HLE_GeneralDebugPrint,         HLE_HOOK_START,   HLE_TYPE_DEBUG},
+    {"printf",                       HLE_OS::HLE_GeneralDebugPrint,         HLE_HOOK_START,   HLE_TYPE_DEBUG},
+    {"nlPrintf",                     HLE_OS::HLE_GeneralDebugPrint,         HLE_HOOK_START,   HLE_TYPE_DEBUG},
+    {"puts",                         HLE_OS::HLE_GeneralDebugPrint,         HLE_HOOK_START,   HLE_TYPE_DEBUG}, // gcc-optimized printf?
+    {"___blank",                     HLE_OS::HLE_GeneralDebugPrint,         HLE_HOOK_START,   HLE_TYPE_DEBUG}, // used for early init things (normally)
+    {"__write_console",              HLE_OS::HLE_write_console,             HLE_HOOK_START,   HLE_TYPE_DEBUG}, // used by sysmenu (+more?)
 
     {"GeckoCodehandler",             HLE_Misc::GeckoCodeHandlerICacheFlush, HLE_HOOK_START,   HLE_TYPE_FIXED},
     {"GeckoHandlerReturnTrampoline", HLE_Misc::GeckoReturnTrampoline,       HLE_HOOK_REPLACE, HLE_TYPE_FIXED},
@@ -183,10 +183,19 @@ void Execute(u32 _CurrentPC, u32 _Instruction)
   // OSPatches[pos].m_szPatchName);
 }
 
-u32 GetFunctionIndex(u32 addr)
+u32 GetFunctionIndex(u32 address)
 {
-  auto iter = s_original_instructions.find(addr);
+  auto iter = s_original_instructions.find(address);
   return (iter != s_original_instructions.end()) ? iter->second : 0;
+}
+
+u32 GetFirstFunctionIndex(u32 address)
+{
+  u32 index = GetFunctionIndex(address);
+  auto first = std::find_if(
+      s_original_instructions.begin(), s_original_instructions.end(),
+      [=](const auto& entry) { return entry.second == index && entry.first < address; });
+  return first == std::end(s_original_instructions) ? index : 0;
 }
 
 int GetFunctionTypeByIndex(u32 index)
