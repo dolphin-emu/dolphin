@@ -29,6 +29,7 @@
 #include "VideoCommon/AVIDump.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/FPSCounter.h"
+#include "VideoCommon/RenderState.h"
 #include "VideoCommon/VideoCommon.h"
 
 class PostProcessingShaderImplementation;
@@ -63,7 +64,7 @@ public:
     PP_EFB_COPY_CLOCKS
   };
 
-  virtual void SetBlendMode(bool forceUpdate) {}
+  virtual void SetBlendingState(const BlendingState& state) {}
   virtual void SetScissorRect(const EFBRectangle& rc) {}
   virtual void SetGenerationMode() {}
   virtual void SetDepthMode() {}

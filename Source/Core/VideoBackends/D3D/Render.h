@@ -19,7 +19,7 @@ public:
   Renderer();
   ~Renderer() override;
 
-  void SetBlendMode(bool forceUpdate) override;
+  void SetBlendingState(const BlendingState& state) override;
   void SetScissorRect(const EFBRectangle& rc) override;
   void SetGenerationMode() override;
   void SetDepthMode() override;

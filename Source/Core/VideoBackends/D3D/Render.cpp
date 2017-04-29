@@ -640,11 +640,9 @@ void Renderer::ReinterpretPixelData(unsigned int convtype)
                                    FramebufferManager::GetEFBDepthTexture()->GetDSV());
 }
 
-void Renderer::SetBlendMode(bool forceUpdate)
+void Renderer::SetBlendingState(const BlendingState& state)
 {
-  BlendingState state;
-  state.Generate(bpmem);
-  gx_state.blend.hex = state.hex;
+  s_gx_state.blend.hex = state.hex;
 }
 
 // This function has the final picture. We adjust the aspect ratio here.
