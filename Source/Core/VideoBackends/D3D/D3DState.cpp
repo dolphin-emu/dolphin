@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <array>
 
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
@@ -351,72 +352,51 @@ ID3D11SamplerState* StateCache::Get(SamplerState state)
   return res;
 }
 
-ID3D11BlendState* StateCache::Get(BlendState state)
+ID3D11BlendState* StateCache::Get(BlendingState state)
 {
-  if (!state.blend_enable)
-  {
-    state.src_blend = D3D11_BLEND_ONE;
-    state.dst_blend = D3D11_BLEND_ZERO;
-    state.blend_op = D3D11_BLEND_OP_ADD;
-    state.use_dst_alpha = false;
-  }
-
-  auto it = m_blend.find(state.packed);
-
+  auto it = m_blend.find(state.hex);
   if (it != m_blend.end())
     return it->second;
 
-  D3D11_BLEND_DESC blenddc = CD3D11_BLEND_DESC(CD3D11_DEFAULT());
+  D3D11_BLEND_DESC desc = {};
+  desc.AlphaToCoverageEnable = FALSE;
+  desc.IndependentBlendEnable = FALSE;
 
-  blenddc.AlphaToCoverageEnable = FALSE;
-  blenddc.IndependentBlendEnable = FALSE;
-  blenddc.RenderTarget[0].BlendEnable = state.blend_enable;
-  blenddc.RenderTarget[0].RenderTargetWriteMask = (u32)state.write_mask;
-  blenddc.RenderTarget[0].SrcBlend = state.src_blend;
-  blenddc.RenderTarget[0].DestBlend = state.dst_blend;
-  blenddc.RenderTarget[0].BlendOp = state.blend_op;
-  blenddc.RenderTarget[0].SrcBlendAlpha = state.src_blend;
-  blenddc.RenderTarget[0].DestBlendAlpha = state.dst_blend;
-  blenddc.RenderTarget[0].BlendOpAlpha = state.blend_op;
+  D3D11_RENDER_TARGET_BLEND_DESC& tdesc = desc.RenderTarget[0];
+  tdesc.BlendEnable = state.blendenable;
 
-  if (blenddc.RenderTarget[0].SrcBlend == D3D11_BLEND_SRC_COLOR)
-    blenddc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_SRC1_ALPHA;
-  else if (blenddc.RenderTarget[0].SrcBlend == D3D11_BLEND_INV_SRC_COLOR)
-    blenddc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
-  else if (blenddc.RenderTarget[0].SrcBlend == D3D11_BLEND_DEST_COLOR)
-    blenddc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_DEST_ALPHA;
-  else if (blenddc.RenderTarget[0].SrcBlend == D3D11_BLEND_INV_DEST_COLOR)
-    blenddc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_INV_DEST_ALPHA;
+  if (state.colorupdate)
+    tdesc.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_RED | D3D11_COLOR_WRITE_ENABLE_GREEN |
+                                  D3D11_COLOR_WRITE_ENABLE_BLUE;
   else
-    blenddc.RenderTarget[0].SrcBlendAlpha = blenddc.RenderTarget[0].SrcBlend;
+    tdesc.RenderTargetWriteMask = 0;
+  if (state.alphaupdate)
+    tdesc.RenderTargetWriteMask |= D3D11_COLOR_WRITE_ENABLE_ALPHA;
 
-  if (blenddc.RenderTarget[0].DestBlend == D3D11_BLEND_SRC_COLOR)
-    blenddc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_SRC1_ALPHA;
-  else if (blenddc.RenderTarget[0].DestBlend == D3D11_BLEND_INV_SRC_COLOR)
-    blenddc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
-  else if (blenddc.RenderTarget[0].DestBlend == D3D11_BLEND_DEST_COLOR)
-    blenddc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_DEST_ALPHA;
-  else if (blenddc.RenderTarget[0].DestBlend == D3D11_BLEND_INV_DEST_COLOR)
-    blenddc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_INV_DEST_ALPHA;
-  else
-    blenddc.RenderTarget[0].DestBlendAlpha = blenddc.RenderTarget[0].DestBlend;
+  static constexpr std::array<D3D11_BLEND, 8> src_factors = {
+      {D3D11_BLEND_ZERO, D3D11_BLEND_ONE, D3D11_BLEND_DEST_COLOR, D3D11_BLEND_INV_DEST_COLOR,
+       D3D11_BLEND_SRC1_ALPHA, D3D11_BLEND_INV_SRC1_ALPHA, D3D11_BLEND_DEST_ALPHA,
+       D3D11_BLEND_INV_DEST_ALPHA}};
+  static constexpr std::array<D3D11_BLEND, 8> dst_factors = {
+      {D3D11_BLEND_ZERO, D3D11_BLEND_ONE, D3D11_BLEND_SRC_COLOR, D3D11_BLEND_INV_SRC_COLOR,
+       D3D11_BLEND_SRC1_ALPHA, D3D11_BLEND_INV_SRC1_ALPHA, D3D11_BLEND_DEST_ALPHA,
+       D3D11_BLEND_INV_DEST_ALPHA}};
 
-  if (state.use_dst_alpha)
-  {
-    blenddc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
-    blenddc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
-    blenddc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-  }
+  tdesc.SrcBlend = src_factors[state.srcfactor];
+  tdesc.SrcBlendAlpha = src_factors[state.srcfactoralpha];
+  tdesc.DestBlend = dst_factors[state.dstfactor];
+  tdesc.DestBlendAlpha = dst_factors[state.dstfactoralpha];
+  tdesc.BlendOp = state.subtract ? D3D11_BLEND_OP_REV_SUBTRACT : D3D11_BLEND_OP_ADD;
+  tdesc.BlendOpAlpha = state.subtractAlpha ? D3D11_BLEND_OP_REV_SUBTRACT : D3D11_BLEND_OP_ADD;
 
   ID3D11BlendState* res = nullptr;
 
-  HRESULT hr = D3D::device->CreateBlendState(&blenddc, &res);
+  HRESULT hr = D3D::device->CreateBlendState(&desc, &res);
   if (FAILED(hr))
     PanicAlert("Failed to create blend state at %s %d\n", __FILE__, __LINE__);
 
   D3D::SetDebugObjectName(res, "blend state used to emulate the GX pipeline");
-  m_blend.emplace(state.packed, res);
-
+  m_blend.emplace(state.hex, res);
   return res;
 }
 

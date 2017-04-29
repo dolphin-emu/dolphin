@@ -36,6 +36,7 @@
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
+#include "VideoCommon/RenderState.h"
 #include "VideoCommon/SamplerCommon.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
@@ -58,7 +59,7 @@ typedef struct _Nv_Stereo_Image_Header
 struct GXPipelineState
 {
   std::array<SamplerState, 8> samplers;
-  BlendState blend;
+  BlendingState blend;
   ZMode zmode;
   RasterizerState raster;
 };
@@ -247,17 +248,8 @@ Renderer::Renderer() : ::Renderer(D3D::GetBackBufferWidth(), D3D::GetBackBufferH
   SetupDeviceObjects();
 
   // Setup GX pipeline state
-  s_gx_state.blend.blend_enable = false;
-  s_gx_state.blend.write_mask = D3D11_COLOR_WRITE_ENABLE_ALL;
-  s_gx_state.blend.src_blend = D3D11_BLEND_ONE;
-  s_gx_state.blend.dst_blend = D3D11_BLEND_ZERO;
-  s_gx_state.blend.blend_op = D3D11_BLEND_OP_ADD;
-  s_gx_state.blend.use_dst_alpha = false;
-
   for (auto& sampler : s_gx_state.samplers)
-  {
     sampler.packed = 0;
-  }
 
   s_gx_state.zmode.testenable = false;
   s_gx_state.zmode.updateenable = false;
@@ -327,21 +319,6 @@ void Renderer::SetScissorRect(const EFBRectangle& rc)
 {
   TargetRectangle trc = ConvertEFBRectangle(rc);
   D3D::context->RSSetScissorRects(1, trc.AsRECT());
-}
-
-void Renderer::SetColorMask()
-{
-  // Only enable alpha channel if it's supported by the current EFB format
-  UINT8 color_mask = 0;
-  if (bpmem.alpha_test.TestResult() != AlphaTest::FAIL)
-  {
-    if (bpmem.blendmode.alphaupdate && (bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24))
-      color_mask = D3D11_COLOR_WRITE_ENABLE_ALPHA;
-    if (bpmem.blendmode.colorupdate)
-      color_mask |= D3D11_COLOR_WRITE_ENABLE_RED | D3D11_COLOR_WRITE_ENABLE_GREEN |
-                    D3D11_COLOR_WRITE_ENABLE_BLUE;
-  }
-  s_gx_state.blend.write_mask = color_mask;
 }
 
 // This function allows the CPU to directly access the EFB.
@@ -665,44 +642,9 @@ void Renderer::ReinterpretPixelData(unsigned int convtype)
 
 void Renderer::SetBlendMode(bool forceUpdate)
 {
-  // Our render target always uses an alpha channel, so we need to override the blend functions to
-  // assume a destination alpha of 1 if the render target isn't supposed to have an alpha channel
-  // Example: D3DBLEND_DESTALPHA needs to be D3DBLEND_ONE since the result without an alpha channel
-  // is assumed to always be 1.
-  bool target_has_alpha = bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24;
-  const std::array<D3D11_BLEND, 8> d3d_src_factors{{
-      D3D11_BLEND_ZERO, D3D11_BLEND_ONE, D3D11_BLEND_DEST_COLOR, D3D11_BLEND_INV_DEST_COLOR,
-      D3D11_BLEND_SRC1_ALPHA, D3D11_BLEND_INV_SRC1_ALPHA,
-      (target_has_alpha) ? D3D11_BLEND_DEST_ALPHA : D3D11_BLEND_ONE,
-      (target_has_alpha) ? D3D11_BLEND_INV_DEST_ALPHA : D3D11_BLEND_ZERO,
-  }};
-  const std::array<D3D11_BLEND, 8> d3d_dest_factors{{
-      D3D11_BLEND_ZERO, D3D11_BLEND_ONE, D3D11_BLEND_SRC_COLOR, D3D11_BLEND_INV_SRC_COLOR,
-      D3D11_BLEND_SRC1_ALPHA, D3D11_BLEND_INV_SRC1_ALPHA,
-      (target_has_alpha) ? D3D11_BLEND_DEST_ALPHA : D3D11_BLEND_ONE,
-      (target_has_alpha) ? D3D11_BLEND_INV_DEST_ALPHA : D3D11_BLEND_ZERO,
-  }};
-
-  if (bpmem.blendmode.logicopenable && !bpmem.blendmode.blendenable && !forceUpdate)
-    return;
-
-  if (bpmem.blendmode.subtract)
-  {
-    s_gx_state.blend.blend_enable = true;
-    s_gx_state.blend.blend_op = D3D11_BLEND_OP_REV_SUBTRACT;
-    s_gx_state.blend.src_blend = D3D11_BLEND_ONE;
-    s_gx_state.blend.dst_blend = D3D11_BLEND_ONE;
-  }
-  else
-  {
-    s_gx_state.blend.blend_enable = (u32)bpmem.blendmode.blendenable;
-    if (bpmem.blendmode.blendenable)
-    {
-      s_gx_state.blend.blend_op = D3D11_BLEND_OP_ADD;
-      s_gx_state.blend.src_blend = d3d_src_factors[bpmem.blendmode.srcfactor];
-      s_gx_state.blend.dst_blend = d3d_dest_factors[bpmem.blendmode.dstfactor];
-    }
-  }
+  BlendingState state;
+  state.Generate(bpmem);
+  gx_state.blend.hex = state.hex;
 }
 
 // This function has the final picture. We adjust the aspect ratio here.
@@ -930,11 +872,6 @@ void Renderer::RestoreAPIState()
 
 void Renderer::ApplyState()
 {
-  // TODO: Refactor this logic here.
-  bool bUseDstAlpha = bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate &&
-                      bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24;
-
-  s_gx_state.blend.use_dst_alpha = bUseDstAlpha;
   D3D::stateman->PushBlendState(s_gx_state_cache.Get(s_gx_state.blend));
   D3D::stateman->PushDepthState(s_gx_state_cache.Get(s_gx_state.zmode));
   D3D::stateman->PushRasterizerState(s_gx_state_cache.Get(s_gx_state.raster));
@@ -944,13 +881,6 @@ void Renderer::ApplyState()
     // TODO: cache SamplerState directly, not d3d object
     s_gx_state.samplers[stage].max_anisotropy = UINT64_C(1) << g_ActiveConfig.iMaxAnisotropy;
     D3D::stateman->SetSampler(stage, s_gx_state_cache.Get(s_gx_state.samplers[stage]));
-  }
-
-  if (bUseDstAlpha)
-  {
-    // restore actual state
-    SetBlendMode(false);
-    SetLogicOpMode();
   }
 
   ID3D11Buffer* vertexConstants = VertexShaderCache::GetConstantBuffer();
@@ -996,95 +926,6 @@ void Renderer::SetGenerationMode()
 void Renderer::SetDepthMode()
 {
   s_gx_state.zmode.hex = bpmem.zmode.hex;
-}
-
-void Renderer::SetLogicOpMode()
-{
-  // D3D11 doesn't support logic blending, so this is a huge hack
-  // TODO: Make use of D3D11.1's logic blending support
-
-  // 0   0x00
-  // 1   Source & destination
-  // 2   Source & ~destination
-  // 3   Source
-  // 4   ~Source & destination
-  // 5   Destination
-  // 6   Source ^ destination =  Source & ~destination | ~Source & destination
-  // 7   Source | destination
-  // 8   ~(Source | destination)
-  // 9   ~(Source ^ destination) = ~Source & ~destination | Source & destination
-  // 10  ~Destination
-  // 11  Source | ~destination
-  // 12  ~Source
-  // 13  ~Source | destination
-  // 14  ~(Source & destination)
-  // 15  0xff
-  constexpr std::array<D3D11_BLEND_OP, 16> d3d_logic_ops{{
-      D3D11_BLEND_OP_ADD,           // 0
-      D3D11_BLEND_OP_ADD,           // 1
-      D3D11_BLEND_OP_SUBTRACT,      // 2
-      D3D11_BLEND_OP_ADD,           // 3
-      D3D11_BLEND_OP_REV_SUBTRACT,  // 4
-      D3D11_BLEND_OP_ADD,           // 5
-      D3D11_BLEND_OP_MAX,           // 6
-      D3D11_BLEND_OP_ADD,           // 7
-      D3D11_BLEND_OP_MAX,           // 8
-      D3D11_BLEND_OP_MAX,           // 9
-      D3D11_BLEND_OP_ADD,           // 10
-      D3D11_BLEND_OP_ADD,           // 11
-      D3D11_BLEND_OP_ADD,           // 12
-      D3D11_BLEND_OP_ADD,           // 13
-      D3D11_BLEND_OP_ADD,           // 14
-      D3D11_BLEND_OP_ADD            // 15
-  }};
-  constexpr std::array<D3D11_BLEND, 16> d3d_logic_op_src_factors{{
-      D3D11_BLEND_ZERO,            // 0
-      D3D11_BLEND_DEST_COLOR,      // 1
-      D3D11_BLEND_ONE,             // 2
-      D3D11_BLEND_ONE,             // 3
-      D3D11_BLEND_DEST_COLOR,      // 4
-      D3D11_BLEND_ZERO,            // 5
-      D3D11_BLEND_INV_DEST_COLOR,  // 6
-      D3D11_BLEND_INV_DEST_COLOR,  // 7
-      D3D11_BLEND_INV_SRC_COLOR,   // 8
-      D3D11_BLEND_INV_SRC_COLOR,   // 9
-      D3D11_BLEND_INV_DEST_COLOR,  // 10
-      D3D11_BLEND_ONE,             // 11
-      D3D11_BLEND_INV_SRC_COLOR,   // 12
-      D3D11_BLEND_INV_SRC_COLOR,   // 13
-      D3D11_BLEND_INV_DEST_COLOR,  // 14
-      D3D11_BLEND_ONE              // 15
-  }};
-  constexpr std::array<D3D11_BLEND, 16> d3d_logic_op_dest_factors{{
-      D3D11_BLEND_ZERO,            // 0
-      D3D11_BLEND_ZERO,            // 1
-      D3D11_BLEND_INV_SRC_COLOR,   // 2
-      D3D11_BLEND_ZERO,            // 3
-      D3D11_BLEND_ONE,             // 4
-      D3D11_BLEND_ONE,             // 5
-      D3D11_BLEND_INV_SRC_COLOR,   // 6
-      D3D11_BLEND_ONE,             // 7
-      D3D11_BLEND_INV_DEST_COLOR,  // 8
-      D3D11_BLEND_SRC_COLOR,       // 9
-      D3D11_BLEND_INV_DEST_COLOR,  // 10
-      D3D11_BLEND_INV_DEST_COLOR,  // 11
-      D3D11_BLEND_INV_SRC_COLOR,   // 12
-      D3D11_BLEND_ONE,             // 13
-      D3D11_BLEND_INV_SRC_COLOR,   // 14
-      D3D11_BLEND_ONE              // 15
-  }};
-
-  if (bpmem.blendmode.logicopenable && !bpmem.blendmode.blendenable)
-  {
-    s_gx_state.blend.blend_enable = true;
-    s_gx_state.blend.blend_op = d3d_logic_ops[bpmem.blendmode.logicmode];
-    s_gx_state.blend.src_blend = d3d_logic_op_src_factors[bpmem.blendmode.logicmode];
-    s_gx_state.blend.dst_blend = d3d_logic_op_dest_factors[bpmem.blendmode.logicmode];
-  }
-  else
-  {
-    SetBlendMode(true);
-  }
 }
 
 void Renderer::SetSamplerState(int stage, int texindex, bool custom_tex)
