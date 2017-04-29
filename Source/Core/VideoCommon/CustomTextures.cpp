@@ -2,7 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "VideoCommon/HiresTextures.h"
+#include "VideoCommon/CustomTextures.h"
 
 #include <SOIL/SOIL.h>
 #include <algorithm>
@@ -32,7 +32,7 @@
 #include "VideoCommon/VideoConfig.h"
 
 static std::unordered_map<std::string, std::string> s_textureMap;
-static std::unordered_map<std::string, std::shared_ptr<HiresTexture>> s_textureCache;
+static std::unordered_map<std::string, std::shared_ptr<CustomTexture>> s_textureCache;
 static std::mutex s_textureCacheMutex;
 static std::mutex s_textureCacheAquireMutex;  // for high priority access
 static Common::Flag s_textureCacheAbortLoading;
@@ -43,11 +43,11 @@ static std::thread s_prefetcher;
 
 static const std::string s_format_prefix = "tex1_";
 
-HiresTexture::Level::Level() : data(nullptr, SOIL_free_image_data)
+CustomTexture::Level::Level() : data(nullptr, SOIL_free_image_data)
 {
 }
 
-void HiresTexture::Init()
+void CustomTexture::Init()
 {
   s_check_native_format = false;
   s_check_new_format = false;
@@ -55,7 +55,7 @@ void HiresTexture::Init()
   Update();
 }
 
-void HiresTexture::Shutdown()
+void CustomTexture::Shutdown()
 {
   if (s_prefetcher.joinable())
   {
@@ -67,7 +67,7 @@ void HiresTexture::Shutdown()
   s_textureCache.clear();
 }
 
-void HiresTexture::Update()
+void CustomTexture::Update()
 {
   if (s_prefetcher.joinable())
   {
@@ -75,14 +75,14 @@ void HiresTexture::Update()
     s_prefetcher.join();
   }
 
-  if (!g_ActiveConfig.bHiresTextures)
+  if (!g_ActiveConfig.bCustomTextures)
   {
     s_textureMap.clear();
     s_textureCache.clear();
     return;
   }
 
-  if (!g_ActiveConfig.bCacheHiresTextures)
+  if (!g_ActiveConfig.bCacheCustomTextures)
   {
     s_textureCache.clear();
   }
@@ -117,7 +117,7 @@ void HiresTexture::Update()
     }
   }
 
-  if (g_ActiveConfig.bCacheHiresTextures)
+  if (g_ActiveConfig.bCacheCustomTextures)
   {
     // remove cached but deleted textures
     auto iter = s_textureCache.begin();
@@ -138,7 +138,7 @@ void HiresTexture::Update()
   }
 }
 
-void HiresTexture::Prefetch()
+void CustomTexture::Prefetch()
 {
   Common::SetCurrentThreadName("Prefetcher");
 
@@ -172,11 +172,11 @@ void HiresTexture::Prefetch()
         // Also TODO: remove s_textureCacheAquireMutex afterwards. It won't be needed as the main
         // mutex will be locked rarely
         // lk.unlock();
-        std::unique_ptr<HiresTexture> texture = Load(base_filename, 0, 0);
+        std::unique_ptr<CustomTexture> texture = Load(base_filename, 0, 0);
         // lk.lock();
         if (texture)
         {
-          std::shared_ptr<HiresTexture> ptr(std::move(texture));
+          std::shared_ptr<CustomTexture> ptr(std::move(texture));
           iter = s_textureCache.insert(iter, std::make_pair(base_filename, ptr));
         }
       }
@@ -196,7 +196,7 @@ void HiresTexture::Prefetch()
 
     if (size_sum > max_mem)
     {
-      g_Config.bCacheHiresTextures = false;
+      g_Config.bCacheCustomTextures = false;
 
       OSD::AddMessage(
           StringFromFormat(
@@ -212,7 +212,7 @@ void HiresTexture::Prefetch()
                   10000);
 }
 
-std::string HiresTexture::GenBaseName(const u8* texture, size_t texture_size, const u8* tlut,
+std::string CustomTexture::GenBaseName(const u8* texture, size_t texture_size, const u8* tlut,
                                       size_t tlut_size, u32 width, u32 height, int format,
                                       bool has_mipmaps, bool dump)
 {
@@ -221,16 +221,16 @@ std::string HiresTexture::GenBaseName(const u8* texture, size_t texture_size, co
   if (!dump && s_check_native_format)
   {
     // try to load the old format first
-    u64 tex_hash = GetHashHiresTexture(texture, (int)texture_size,
+    u64 tex_hash = GetHashCustomTexture(texture, (int)texture_size,
                                        g_ActiveConfig.iSafeTextureCache_ColorSamples);
-    u64 tlut_hash = tlut_size ? GetHashHiresTexture(tlut, (int)tlut_size,
+    u64 tlut_hash = tlut_size ? GetHashCustomTexture(tlut, (int)tlut_size,
                                                     g_ActiveConfig.iSafeTextureCache_ColorSamples) :
                                 0;
     name = StringFromFormat("%s_%08x_%i", SConfig::GetInstance().GetGameID().c_str(),
                             (u32)(tex_hash ^ tlut_hash), (u16)format);
     if (s_textureMap.find(name) != s_textureMap.end())
     {
-      if (g_ActiveConfig.bConvertHiresTextures)
+      if (g_ActiveConfig.bConvertCustomTextures)
         convert = true;
       else
         return name;
@@ -366,7 +366,7 @@ std::string HiresTexture::GenBaseName(const u8* texture, size_t texture_size, co
   return name;
 }
 
-std::shared_ptr<HiresTexture> HiresTexture::Search(const u8* texture, size_t texture_size,
+std::shared_ptr<CustomTexture> CustomTexture::Search(const u8* texture, size_t texture_size,
                                                    const u8* tlut, size_t tlut_size, u32 width,
                                                    u32 height, int format, bool has_mipmaps)
 {
@@ -382,9 +382,9 @@ std::shared_ptr<HiresTexture> HiresTexture::Search(const u8* texture, size_t tex
     return iter->second;
   }
 
-  std::shared_ptr<HiresTexture> ptr(Load(base_filename, width, height));
+  std::shared_ptr<CustomTexture> ptr(Load(base_filename, width, height));
 
-  if (ptr && g_ActiveConfig.bCacheHiresTextures)
+  if (ptr && g_ActiveConfig.bCacheCustomTextures)
   {
     s_textureCache[base_filename] = ptr;
   }
@@ -392,10 +392,10 @@ std::shared_ptr<HiresTexture> HiresTexture::Search(const u8* texture, size_t tex
   return ptr;
 }
 
-std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filename, u32 width,
+std::unique_ptr<CustomTexture> CustomTexture::Load(const std::string& base_filename, u32 width,
                                                  u32 height)
 {
-  std::unique_ptr<HiresTexture> ret;
+  std::unique_ptr<CustomTexture> ret;
   for (int level = 0;; level++)
   {
     std::string filename = base_filename;
@@ -450,7 +450,7 @@ std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filenam
       }
 
       if (!ret)
-        ret = std::unique_ptr<HiresTexture>(new HiresTexture);
+        ret = std::unique_ptr<CustomTexture>(new CustomTexture);
       ret->m_levels.push_back(std::move(l));
 
       // no more mipmaps available
@@ -470,17 +470,17 @@ std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filenam
   return ret;
 }
 
-std::string HiresTexture::GetTextureDirectory(const std::string& game_id)
+std::string CustomTexture::GetTextureDirectory(const std::string& game_id)
 {
-  const std::string texture_directory = File::GetUserPath(D_HIRESTEXTURES_IDX) + game_id;
+  const std::string texture_directory = File::GetUserPath(D_CUSTOMTEXTURES_IDX) + game_id;
 
   // If there's no directory with the region-specific ID, look for a 3-character region-free one
   if (!File::Exists(texture_directory))
-    return File::GetUserPath(D_HIRESTEXTURES_IDX) + game_id.substr(0, 3);
+    return File::GetUserPath(D_CUSTOMTEXTURES_IDX) + game_id.substr(0, 3);
 
   return texture_directory;
 }
 
-HiresTexture::~HiresTexture()
+CustomTexture::~CustomTexture()
 {
 }

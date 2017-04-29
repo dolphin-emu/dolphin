@@ -10,7 +10,7 @@
 
 #include "Common/CommonTypes.h"
 
-class HiresTexture
+class CustomTexture
 {
 public:
   using SOILPointer = std::unique_ptr<u8, void (*)(unsigned char*)>;
@@ -19,7 +19,7 @@ public:
   static void Update();
   static void Shutdown();
 
-  static std::shared_ptr<HiresTexture> Search(const u8* texture, size_t texture_size,
+  static std::shared_ptr<CustomTexture> Search(const u8* texture, size_t texture_size,
                                               const u8* tlut, size_t tlut_size, u32 width,
                                               u32 height, int format, bool has_mipmaps);
 
@@ -27,7 +27,7 @@ public:
                                  size_t tlut_size, u32 width, u32 height, int format,
                                  bool has_mipmaps, bool dump = false);
 
-  ~HiresTexture();
+  ~CustomTexture();
 
   struct Level
   {
@@ -41,11 +41,11 @@ public:
   std::vector<Level> m_levels;
 
 private:
-  static std::unique_ptr<HiresTexture> Load(const std::string& base_filename, u32 width,
+  static std::unique_ptr<CustomTexture> Load(const std::string& base_filename, u32 width,
                                             u32 height);
   static void Prefetch();
 
   static std::string GetTextureDirectory(const std::string& game_id);
 
-  HiresTexture() {}
+  CustomTexture() {}
 };

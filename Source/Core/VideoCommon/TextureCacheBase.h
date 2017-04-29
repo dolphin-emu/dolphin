@@ -237,8 +237,8 @@ private:
     int color_samples;
     bool texfmt_overlay;
     bool texfmt_overlay_center;
-    bool hires_textures;
-    bool cache_hires_textures;
+    bool custom_textures;
+    bool cache_custom_textures;
     bool copy_cache_enable;
     bool stereo_3d;
     bool efb_mono_depth;

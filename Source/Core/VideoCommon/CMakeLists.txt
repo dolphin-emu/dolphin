@@ -13,7 +13,7 @@ set(SRCS
   FramebufferManagerBase.cpp
   GeometryShaderGen.cpp
   GeometryShaderManager.cpp
-  HiresTextures.cpp
+  CustomTextures.cpp
   ImageWrite.cpp
   IndexGenerator.cpp
   LightingShaderGen.cpp
