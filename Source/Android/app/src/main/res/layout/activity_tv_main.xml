@@ -1,12 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+             android:id="@+id/content"
              android:layout_width="match_parent"
              android:layout_height="match_parent">
-
-    <fragment
-        android:name="android.support.v17.leanback.app.BrowseFragment"
-        android:id="@+id/fragment_game_list"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
 
 </FrameLayout>
