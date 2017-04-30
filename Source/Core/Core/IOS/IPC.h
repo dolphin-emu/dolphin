@@ -29,6 +29,8 @@ class Device;
 }
 
 struct Request;
+struct IOCtlRequest;
+struct IOCtlVRequest;
 
 struct IPCCommandResult
 {
@@ -88,5 +90,11 @@ void EnqueueRequest(u32 address);
 void EnqueueReply(const Request& request, s32 return_value, int cycles_in_future = 0,
                   CoreTiming::FromThread from = CoreTiming::FromThread::CPU);
 void EnqueueCommandAcknowledgement(u32 address, int cycles_in_future = 0);
+
+// Report an unknown request.
+void ReportUnknownDevice(const std::string& path);
+void ReportUnknownRequest(const std::string& path, const IOCtlRequest& ioctl);
+void ReportUnknownRequest(const std::string& path, const IOCtlVRequest& ioctlv);
+
 }  // namespace HLE
 }  // namespace IOS

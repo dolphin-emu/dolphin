@@ -10,9 +10,9 @@
 #include "Common/Logging/Log.h"
 #include "Common/Swap.h"
 
-#include "Core/CoreTiming.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/Device.h"
+#include "Core/IOS/IPC.h"
 #include "Core/IOS/USB/Common.h"
 #include "Core/IOS/USB/USBV5.h"
 
@@ -63,6 +63,7 @@ IPCCommandResult USB_VEN::IOCtl(const IOCtlRequest& request)
     return HandleDeviceIOCtl(request, &USB_VEN::CancelEndpoint);
   default:
     request.DumpUnknown(GetDeviceName(), LogTypes::IOS_USB, LogTypes::LERROR);
+    ReportUnknownRequest(GetDeviceName(), request);
     return GetDefaultReply(IPC_SUCCESS);
   }
 }

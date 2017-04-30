@@ -11,8 +11,8 @@
 #include "Common/Logging/Log.h"
 #include "Common/Network.h"
 #include "Common/Swap.h"
-
 #include "Core/HW/Memmap.h"
+#include "Core/IOS/IPC.h"
 #include "Core/IOS/Network/MACUtils.h"
 
 namespace IOS
@@ -93,7 +93,9 @@ IPCCommandResult NetWDCommand::IOCtlV(const IOCtlVRequest& request)
   case IOCTLV_WD_RECV_FRAME:
   case IOCTLV_WD_RECV_NOTIFICATION:
   default:
-    request.Dump(GetDeviceName(), LogTypes::IOS_NET, LogTypes::LINFO);
+    request.DumpUnknown(GetDeviceName(), LogTypes::IOS_NET, LogTypes::LINFO);
+    ReportUnknownRequest(GetDeviceName(), request);
+    break;
   }
 
   return GetDefaultReply(return_value);

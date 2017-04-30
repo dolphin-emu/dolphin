@@ -9,8 +9,8 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/Network.h"
-
 #include "Core/HW/Memmap.h"
+#include "Core/IOS/IPC.h"
 #include "Core/IOS/Network/MACUtils.h"
 
 namespace IOS
@@ -78,6 +78,7 @@ IPCCommandResult NetNCDManage::IOCtlV(const IOCtlVRequest& request)
 
   default:
     INFO_LOG(IOS_NET, "NET_NCD_MANAGE IOCtlV: %#x", request.request);
+    ReportUnknownRequest(GetDeviceName(), request);
     break;
   }
 

@@ -20,6 +20,8 @@
 #include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/GCPad.h"
+#include "Core/IOS/Device.h"
+#include "Core/IOS/IPC.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayProto.h"
 #include "InputCommon/GCAdapter.h"
@@ -83,7 +85,7 @@ void DolphinAnalytics::GenerateNewIdentity()
   SConfig::GetInstance().SaveSettings();
 }
 
-std::string DolphinAnalytics::MakeUniqueId(const std::string& data)
+std::string DolphinAnalytics::MakeUniqueId(const std::string& data) const
 {
   u8 digest[20];
   std::string input = m_unique_id + data;
@@ -114,6 +116,20 @@ void DolphinAnalytics::ReportGameStart()
   Common::AnalyticsReportBuilder builder(m_per_game_builder);
   builder.AddData("type", "game-start");
   Send(builder);
+}
+
+Common::AnalyticsReportBuilder DolphinAnalytics::MakeBuilderWithGameID() const
+{
+  Common::AnalyticsReportBuilder builder;
+
+  // Gameid and title ID.
+  builder.AddData("gameid", SConfig::GetInstance().GetGameID());
+  builder.AddData("titleid", SConfig::GetInstance().GetTitleID());
+
+  // Unique id bound to the gameid.
+  builder.AddData("id", MakeUniqueId(SConfig::GetInstance().GetGameID()));
+
+  return builder;
 }
 
 void DolphinAnalytics::MakeBaseBuilder()
@@ -181,12 +197,7 @@ void DolphinAnalytics::MakeBaseBuilder()
 void DolphinAnalytics::MakePerGameBuilder()
 {
   Common::AnalyticsReportBuilder builder(m_base_builder);
-
-  // Gameid.
-  builder.AddData("gameid", SConfig::GetInstance().GetGameID());
-
-  // Unique id bound to the gameid.
-  builder.AddData("id", MakeUniqueId(SConfig::GetInstance().GetGameID()));
+  builder.AddBuilder(MakeBuilderWithGameID());
 
   // Configuration.
   builder.AddData("cfg-dsp-hle", SConfig::GetInstance().bDSPHLE);

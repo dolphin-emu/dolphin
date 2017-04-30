@@ -276,6 +276,7 @@ IPCCommandResult FileIO::IOCtl(const IOCtlRequest& request)
 
   default:
     request.Log(GetDeviceName(), LogTypes::IOS_FILEIO, LogTypes::LERROR);
+    ReportUnknownRequest(GetDeviceName(), request);
     break;
   }
 

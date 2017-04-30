@@ -13,8 +13,8 @@
 #include "Common/Logging/Log.h"
 #include "Common/NandPaths.h"
 #include "Common/SettingsHandler.h"
-
 #include "Core/HW/Memmap.h"
+#include "Core/IOS/IPC.h"
 #include "Core/IOS/Network/Socket.h"
 #include "Core/ec_wii.h"
 
@@ -145,6 +145,8 @@ IPCCommandResult NetKDRequest::IOCtl(const IOCtlRequest& request)
 
   default:
     request.Log(GetDeviceName(), LogTypes::IOS_WC24);
+    ReportUnknownRequest(GetDeviceName(), request);
+    break;
   }
 
   return GetDefaultReply(return_value);

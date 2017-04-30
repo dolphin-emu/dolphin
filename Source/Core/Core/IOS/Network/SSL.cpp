@@ -16,6 +16,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/Memmap.h"
+#include "Core/IOS/IPC.h"
 #include "Core/IOS/Network/SSL.h"
 #include "Core/IOS/Network/Socket.h"
 
@@ -541,6 +542,8 @@ IPCCommandResult NetSSL::IOCtlV(const IOCtlVRequest& request)
   }
   default:
     request.DumpUnknown(GetDeviceName(), LogTypes::IOS_SSL);
+    ReportUnknownRequest(GetDeviceName(), request);
+    break;
   }
 
   // SSL return codes are written to BufferIn

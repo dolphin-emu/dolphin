@@ -42,6 +42,9 @@ public:
     m_reporter.Send(report);
   }
 
+  // Returns a builder with only the game ID, title ID and unique ID.
+  Common::AnalyticsReportBuilder MakeBuilderWithGameID() const;
+
 private:
   DolphinAnalytics();
 
@@ -51,7 +54,7 @@ private:
   // Returns a unique ID derived on the global unique ID, hashed with some
   // report-specific data. This avoid correlation between different types of
   // events.
-  std::string MakeUniqueId(const std::string& data);
+  std::string MakeUniqueId(const std::string& data) const;
 
   // Unique ID. This should never leave the application. Only used derived
   // values created by MakeUniqueId.
