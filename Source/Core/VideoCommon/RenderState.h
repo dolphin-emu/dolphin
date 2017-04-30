@@ -9,6 +9,24 @@
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/BPStructs.h"
 
+enum class PrimitiveType : u32
+{
+  Points,
+  Lines,
+  Triangles,
+  TriangleStrip,
+};
+
+union RasterizationState
+{
+  void Generate(const BPMemory& bp, PrimitiveType primitive_type);
+
+  BitField<0, 2, GenMode::CullMode> cullmode;
+  BitField<3, 2, PrimitiveType> primitive;
+
+  u32 hex;
+};
+
 union DepthState
 {
   void Generate(const BPMemory& bp);

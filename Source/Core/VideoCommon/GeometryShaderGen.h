@@ -6,6 +6,7 @@
 
 #include <functional>
 #include "Common/CommonTypes.h"
+#include "VideoCommon/RenderState.h"
 #include "VideoCommon/ShaderGenCommon.h"
 #include "VideoCommon/VertexManagerBase.h"
 
@@ -19,7 +20,7 @@ struct geometry_shader_uid_data
   bool IsPassthrough() const;
 
   u32 numTexGens : 4;
-  u32 primitive_type : 2;
+  PrimitiveType primitive_type : 2;
 };
 
 #pragma pack()
@@ -28,5 +29,5 @@ typedef ShaderUid<geometry_shader_uid_data> GeometryShaderUid;
 
 ShaderCode GenerateGeometryShaderCode(APIType ApiType, const ShaderHostConfig& host_config,
                                       const geometry_shader_uid_data* uid_data);
-GeometryShaderUid GetGeometryShaderUid(u32 primitive_type);
+GeometryShaderUid GetGeometryShaderUid(PrimitiveType primitive_type);
 void EnumerateGeometryShaderUids(const std::function<void(const GeometryShaderUid&)>& callback);

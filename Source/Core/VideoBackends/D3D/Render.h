@@ -21,7 +21,7 @@ public:
 
   void SetBlendingState(const BlendingState& state) override;
   void SetScissorRect(const EFBRectangle& rc) override;
-  void SetGenerationMode() override;
+  void SetRasterizationState(const RasterizationState& state) override;
   void SetDepthState(const DepthState& state) override;
   void SetSamplerState(int stage, int texindex, bool custom_tex) override;
   void SetInterlacingMode() override;
@@ -32,9 +32,6 @@ public:
   // TODO: Fix confusing names (see ResetAPIState and RestoreAPIState)
   void ApplyState() override;
   void RestoreState() override;
-
-  void ApplyCullDisable();
-  void RestoreCull();
 
   void RenderText(const std::string& text, int left, int top, u32 color) override;
 

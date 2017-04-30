@@ -61,7 +61,7 @@ struct GXPipelineState
   std::array<SamplerState, 8> samplers;
   BlendingState blend;
   DepthState zmode;
-  RasterizerState raster;
+  RasterizationState raster;
 };
 
 static u32 s_last_multisamples = 1;
@@ -254,8 +254,7 @@ Renderer::Renderer() : ::Renderer(D3D::GetBackBufferWidth(), D3D::GetBackBufferH
   s_gx_state.zmode.testenable = false;
   s_gx_state.zmode.updateenable = false;
   s_gx_state.zmode.func = ZMode::NEVER;
-
-  s_gx_state.raster.cull_mode = D3D11_CULL_NONE;
+  s_gx_state.raster.cullmode = GenMode::CULL_NONE;
 
   // Clear EFB textures
   constexpr std::array<float, 4> clear_color{{0.f, 0.f, 0.f, 1.f}};
@@ -867,6 +866,8 @@ void Renderer::ApplyState()
   D3D::stateman->PushBlendState(s_gx_state_cache.Get(s_gx_state.blend));
   D3D::stateman->PushDepthState(s_gx_state_cache.Get(s_gx_state.zmode));
   D3D::stateman->PushRasterizerState(s_gx_state_cache.Get(s_gx_state.raster));
+  D3D::stateman->SetPrimitiveTopology(
+      StateCache::GetPrimitiveTopology(s_gx_state.raster.primitive));
   FramebufferManager::SetIntegerEFBRenderTarget(s_gx_state.blend.logicopenable);
 
   for (size_t stage = 0; stage < s_gx_state.samplers.size(); stage++)
@@ -891,29 +892,9 @@ void Renderer::RestoreState()
   D3D::stateman->PopRasterizerState();
 }
 
-void Renderer::ApplyCullDisable()
+void Renderer::SetRasterizationState(const RasterizationState& state)
 {
-  RasterizerState rast = s_gx_state.raster;
-  rast.cull_mode = D3D11_CULL_NONE;
-
-  ID3D11RasterizerState* raststate = s_gx_state_cache.Get(rast);
-  D3D::stateman->PushRasterizerState(raststate);
-}
-
-void Renderer::RestoreCull()
-{
-  D3D::stateman->PopRasterizerState();
-}
-
-void Renderer::SetGenerationMode()
-{
-  constexpr std::array<D3D11_CULL_MODE, 4> d3d_cull_modes{{
-      D3D11_CULL_NONE, D3D11_CULL_BACK, D3D11_CULL_FRONT, D3D11_CULL_BACK,
-  }};
-
-  // rastdc.FrontCounterClockwise must be false for this to work
-  // TODO: GX_CULL_ALL not supported, yet!
-  s_gx_state.raster.cull_mode = d3d_cull_modes[bpmem.genMode.cullmode];
+  s_gx_state.raster.hex = state.hex;
 }
 
 void Renderer::SetDepthState(const DepthState& state)

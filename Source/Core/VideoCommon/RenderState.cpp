@@ -4,6 +4,16 @@
 
 #include "VideoCommon/RenderState.h"
 
+void RasterizationState::Generate(const BPMemory& bp, PrimitiveType primitive_type)
+{
+  cullmode = bp.genMode.cullmode;
+  primitive = primitive_type;
+
+  // Back-face culling should be disabled for points/lines.
+  if (primitive_type != PrimitiveType::Triangles && primitive_type != PrimitiveType::TriangleStrip)
+    cullmode = GenMode::CULL_NONE;
+}
+
 void DepthState::Generate(const BPMemory& bp)
 {
   testenable = bp.zmode.testenable.Value();

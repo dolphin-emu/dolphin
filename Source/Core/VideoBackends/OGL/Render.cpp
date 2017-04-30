@@ -1785,7 +1785,7 @@ void Renderer::RestoreAPIState()
     glEnable(GL_CLIP_DISTANCE0);
     glEnable(GL_CLIP_DISTANCE1);
   }
-  SetGenerationMode();
+  BPFunctions::SetGenerationMode();
   BPFunctions::SetScissor();
   BPFunctions::SetDepthMode();
   BPFunctions::SetBlendMode();
@@ -1798,14 +1798,14 @@ void Renderer::RestoreAPIState()
   OGLTexture::SetStage();
 }
 
-void Renderer::SetGenerationMode()
+void Renderer::SetRasterizationState(const RasterizationState& state)
 {
   // none, ccw, cw, ccw
-  if (bpmem.genMode.cullmode > 0)
+  if (state.cullmode != GenMode::CULL_NONE)
   {
     // TODO: GX_CULL_ALL not supported, yet!
     glEnable(GL_CULL_FACE);
-    glFrontFace(bpmem.genMode.cullmode == 2 ? GL_CCW : GL_CW);
+    glFrontFace(state.cullmode == GenMode::CULL_FRONT ? GL_CCW : GL_CW);
   }
   else
   {

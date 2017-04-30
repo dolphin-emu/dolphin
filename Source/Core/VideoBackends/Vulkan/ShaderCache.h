@@ -50,7 +50,7 @@ struct PipelineInfo
   BlendingState blend_state;
   RasterizationState rasterization_state;
   DepthState depth_state;
-  VkPrimitiveTopology primitive_topology;
+  MultisamplingState multisampling_state;
 };
 
 struct PipelineInfoHash

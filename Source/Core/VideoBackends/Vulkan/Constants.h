@@ -124,15 +124,12 @@ constexpr u32 PUSH_CONSTANT_BUFFER_SIZE = 128;
 // Minimum number of draw calls per command buffer when attempting to preempt a readback operation.
 constexpr u32 MINIMUM_DRAW_CALLS_PER_COMMAND_BUFFER_FOR_READBACK = 10;
 
-// Rasterization state info
-union RasterizationState
+// Multisampling state info that we don't expose in VideoCommon.
+union MultisamplingState
 {
-  BitField<0, 2, VkCullModeFlags> cull_mode;
-  BitField<2, 7, VkSampleCountFlagBits> samples;
-  BitField<9, 1, VkBool32> per_sample_shading;
-  BitField<10, 1, VkBool32> depth_clamp;
-
-  u32 bits;
+  BitField<0, 5, u32> samples;             // 1-16
+  BitField<0, 1, u32> per_sample_shading;  // SSAA
+  u32 hex;
 };
 
 // Sampler info

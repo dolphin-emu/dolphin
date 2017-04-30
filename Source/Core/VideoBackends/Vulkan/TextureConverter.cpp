@@ -214,7 +214,7 @@ void TextureConverter::ConvertTexture(TextureCacheBase::TCacheEntry* dst_entry,
                     g_object_cache->GetPointSampler());
   draw.SetPSTexelBuffer(m_texel_buffer_view_r16_uint);
   draw.SetViewportAndScissor(0, 0, dst_entry->GetWidth(), dst_entry->GetHeight());
-  draw.DrawWithoutVertexBuffer(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP, 4);
+  draw.DrawWithoutVertexBuffer(4);
   draw.EndRenderPass();
 }
 
@@ -261,7 +261,7 @@ void TextureConverter::EncodeTextureToMemory(VkImageView src_texture, u8* dest_p
 
   VkRect2D render_region = {{0, 0}, {render_width, render_height}};
   draw.BeginRenderPass(m_encoding_render_framebuffer, render_region);
-  draw.DrawWithoutVertexBuffer(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP, 4);
+  draw.DrawWithoutVertexBuffer(4);
   draw.EndRenderPass();
 
   // Transition the image before copying
@@ -382,7 +382,7 @@ void TextureConverter::DecodeYUYVTextureFromMemory(VKTexture* dst_texture, const
   draw.SetViewportAndScissor(0, 0, static_cast<int>(src_width), static_cast<int>(src_height));
   draw.SetPSTexelBuffer(m_texel_buffer_view_rgba8_unorm);
   draw.SetPushConstants(&push_constants, sizeof(push_constants));
-  draw.DrawWithoutVertexBuffer(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP, 4);
+  draw.DrawWithoutVertexBuffer(4);
   draw.EndRenderPass();
 }
 

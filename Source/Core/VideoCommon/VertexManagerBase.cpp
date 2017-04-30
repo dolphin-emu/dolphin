@@ -4,6 +4,7 @@
 
 #include "VideoCommon/VertexManagerBase.h"
 
+#include <array>
 #include <cmath>
 #include <memory>
 
@@ -32,15 +33,28 @@
 
 std::unique_ptr<VertexManagerBase> g_vertex_manager;
 
-static const PrimitiveType primitive_from_gx[8] = {
-    PRIMITIVE_TRIANGLES,  // GX_DRAW_QUADS
-    PRIMITIVE_TRIANGLES,  // GX_DRAW_QUADS_2
-    PRIMITIVE_TRIANGLES,  // GX_DRAW_TRIANGLES
-    PRIMITIVE_TRIANGLES,  // GX_DRAW_TRIANGLE_STRIP
-    PRIMITIVE_TRIANGLES,  // GX_DRAW_TRIANGLE_FAN
-    PRIMITIVE_LINES,      // GX_DRAW_LINES
-    PRIMITIVE_LINES,      // GX_DRAW_LINE_STRIP
-    PRIMITIVE_POINTS,     // GX_DRAW_POINTS
+// GX primitive -> RenderState primitive, no primitive restart
+constexpr std::array<PrimitiveType, 8> primitive_from_gx = {
+    PrimitiveType::Triangles,  // GX_DRAW_QUADS
+    PrimitiveType::Triangles,  // GX_DRAW_QUADS_2
+    PrimitiveType::Triangles,  // GX_DRAW_TRIANGLES
+    PrimitiveType::Triangles,  // GX_DRAW_TRIANGLE_STRIP
+    PrimitiveType::Triangles,  // GX_DRAW_TRIANGLE_FAN
+    PrimitiveType::Lines,      // GX_DRAW_LINES
+    PrimitiveType::Lines,      // GX_DRAW_LINE_STRIP
+    PrimitiveType::Points,     // GX_DRAW_POINTS
+};
+
+// GX primitive -> RenderState primitive, using primitive restart
+constexpr std::array<PrimitiveType, 8> primitive_from_gx_pr = {
+    PrimitiveType::TriangleStrip,  // GX_DRAW_QUADS
+    PrimitiveType::TriangleStrip,  // GX_DRAW_QUADS_2
+    PrimitiveType::TriangleStrip,  // GX_DRAW_TRIANGLES
+    PrimitiveType::TriangleStrip,  // GX_DRAW_TRIANGLE_STRIP
+    PrimitiveType::TriangleStrip,  // GX_DRAW_TRIANGLE_FAN
+    PrimitiveType::Lines,          // GX_DRAW_LINES
+    PrimitiveType::Lines,          // GX_DRAW_LINE_STRIP
+    PrimitiveType::Points,         // GX_DRAW_POINTS
 };
 
 // Due to the BT.601 standard which the GameCube is based on being a compromise
@@ -80,9 +94,19 @@ DataReader VertexManagerBase::PrepareForAdditionalData(int primitive, u32 count,
   u32 const needed_vertex_bytes = count * stride + 4;
 
   // We can't merge different kinds of primitives, so we have to flush here
-  if (m_current_primitive_type != primitive_from_gx[primitive])
+  PrimitiveType new_primitive_type = g_ActiveConfig.backend_info.bSupportsPrimitiveRestart ?
+                                         primitive_from_gx_pr[primitive] :
+                                         primitive_from_gx[primitive];
+  if (m_current_primitive_type != new_primitive_type)
+  {
     Flush();
-  m_current_primitive_type = primitive_from_gx[primitive];
+
+    // Have to update the rasterization state for point/line cull modes.
+    RasterizationState raster_state = {};
+    raster_state.Generate(bpmem, new_primitive_type);
+    g_renderer->SetRasterizationState(raster_state);
+    m_current_primitive_type = new_primitive_type;
+  }
 
   // Check for size in buffer, if the buffer gets full, call Flush()
   if (!m_is_flushed &&
@@ -332,8 +356,11 @@ void VertexManagerBase::CalculateZSlope(NativeVertexFormat* format)
   float viewOffset[2] = {xfmem.viewport.xOrig - bpmem.scissorOffset.x * 2,
                          xfmem.viewport.yOrig - bpmem.scissorOffset.y * 2};
 
-  if (m_current_primitive_type != PRIMITIVE_TRIANGLES)
+  if (m_current_primitive_type != PrimitiveType::Triangles &&
+      m_current_primitive_type != PrimitiveType::TriangleStrip)
+  {
     return;
+  }
 
   // Global matrix ID.
   u32 mtxIdx = g_main_cp_state.matrix_index_a.PosNormalMtxIdx;

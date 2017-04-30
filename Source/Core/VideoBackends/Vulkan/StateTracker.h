@@ -45,20 +45,15 @@ public:
   void SetIndexBuffer(VkBuffer buffer, VkDeviceSize offset, VkIndexType type);
 
   void SetRenderPass(VkRenderPass load_render_pass, VkRenderPass clear_render_pass);
-
   void SetFramebuffer(VkFramebuffer framebuffer, const VkRect2D& render_area);
-
   void SetVertexFormat(const VertexFormat* vertex_format);
 
-  void SetPrimitiveTopology(VkPrimitiveTopology primitive_topology);
-
-  void DisableBackFaceCulling();
-
   void SetRasterizationState(const RasterizationState& state);
+  void SetMultisamplingstate(const MultisamplingState& state);
   void SetDepthState(const DepthState& state);
   void SetBlendState(const BlendingState& state);
 
-  bool CheckForShaderChanges(u32 gx_primitive_type);
+  bool CheckForShaderChanges();
   void ClearShaders();
 
   void UpdateVertexShaderConstants();
@@ -133,7 +128,6 @@ private:
     VertexShaderUid vs_uid;
     GeometryShaderUid gs_uid;
     PixelShaderUid ps_uid;
-    VkPrimitiveTopology primitive_topology;
   };
 
   // Number of descriptor sets for game draws.

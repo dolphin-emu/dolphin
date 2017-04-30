@@ -464,10 +464,6 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool color_enable, bool alpha
   depth_state.updateenable = z_enable;
   depth_state.func = ZMode::ALWAYS;
 
-  RasterizationState rs_state = Util::GetNoCullRasterizationState();
-  rs_state.per_sample_shading = g_ActiveConfig.bSSAA ? VK_TRUE : VK_FALSE;
-  rs_state.samples = FramebufferManager::GetInstance()->GetEFBSamples();
-
   // No need to start a new render pass, but we do need to restore viewport state
   UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                          g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_STANDARD),
@@ -475,7 +471,7 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool color_enable, bool alpha
                          g_shader_cache->GetPassthroughVertexShader(),
                          g_shader_cache->GetPassthroughGeometryShader(), m_clear_fragment_shader);
 
-  draw.SetRasterizationState(rs_state);
+  draw.SetMultisamplingState(FramebufferManager::GetInstance()->GetEFBMultisamplingState());
   draw.SetDepthState(depth_state);
   draw.SetBlendState(blend_state);
 
@@ -1227,13 +1223,8 @@ void Renderer::BindEFBToStateTracker()
       FramebufferManager::GetInstance()->GetEFBClearRenderPass());
   StateTracker::GetInstance()->SetFramebuffer(
       FramebufferManager::GetInstance()->GetEFBFramebuffer(), framebuffer_size);
-
-  // Update rasterization state with MSAA info
-  RasterizationState rs_state = {};
-  rs_state.bits = StateTracker::GetInstance()->GetRasterizationState().bits;
-  rs_state.samples = FramebufferManager::GetInstance()->GetEFBSamples();
-  rs_state.per_sample_shading = g_ActiveConfig.bSSAA ? VK_TRUE : VK_FALSE;
-  StateTracker::GetInstance()->SetRasterizationState(rs_state);
+  StateTracker::GetInstance()->SetMultisamplingstate(
+      FramebufferManager::GetInstance()->GetEFBMultisamplingState());
 }
 
 void Renderer::ResizeEFBTextures()
@@ -1276,31 +1267,9 @@ void Renderer::RestoreAPIState()
   StateTracker::GetInstance()->SetPendingRebind();
 }
 
-void Renderer::SetGenerationMode()
+void Renderer::SetRasterizationState(const RasterizationState& state)
 {
-  RasterizationState new_rs_state = {};
-  new_rs_state.bits = StateTracker::GetInstance()->GetRasterizationState().bits;
-
-  switch (bpmem.genMode.cullmode)
-  {
-  case GenMode::CULL_NONE:
-    new_rs_state.cull_mode = VK_CULL_MODE_NONE;
-    break;
-  case GenMode::CULL_BACK:
-    new_rs_state.cull_mode = VK_CULL_MODE_BACK_BIT;
-    break;
-  case GenMode::CULL_FRONT:
-    new_rs_state.cull_mode = VK_CULL_MODE_FRONT_BIT;
-    break;
-  case GenMode::CULL_ALL:
-    new_rs_state.cull_mode = VK_CULL_MODE_FRONT_AND_BACK;
-    break;
-  default:
-    new_rs_state.cull_mode = VK_CULL_MODE_NONE;
-    break;
-  }
-
-  StateTracker::GetInstance()->SetRasterizationState(new_rs_state);
+  StateTracker::GetInstance()->SetRasterizationState(state);
 }
 
 void Renderer::SetDepthState(const DepthState& state)

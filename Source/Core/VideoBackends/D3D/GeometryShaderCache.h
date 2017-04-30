@@ -18,7 +18,7 @@ public:
   static void Reload();
   static void Clear();
   static void Shutdown();
-  static bool SetShader(u32 primitive_type);
+  static bool SetShader(PrimitiveType primitive_type);
   static bool CompileShader(const GeometryShaderUid& uid);
   static bool InsertByteCode(const GeometryShaderUid& uid, const u8* bytecode, size_t len);
   static void PrecompileShaders();

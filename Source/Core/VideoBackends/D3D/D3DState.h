@@ -20,13 +20,6 @@ struct ID3D11RasterizerState;
 
 namespace DX11
 {
-union RasterizerState
-{
-  BitField<0, 2, D3D11_CULL_MODE> cull_mode;
-
-  u32 packed;
-};
-
 union SamplerState
 {
   BitField<0, 3, u64> min_filter;
@@ -48,11 +41,14 @@ public:
   // Returned objects is owned by the cache and does not need to be released.
   ID3D11SamplerState* Get(SamplerState state);
   ID3D11BlendState* Get(BlendingState state);
-  ID3D11RasterizerState* Get(RasterizerState state);
+  ID3D11RasterizerState* Get(RasterizationState state);
   ID3D11DepthStencilState* Get(DepthState state);
 
   // Release all cached states and clear hash tables.
   void Clear();
+
+  // Convert RasterState primitive type to D3D11 primitive topology.
+  static D3D11_PRIMITIVE_TOPOLOGY GetPrimitiveTopology(PrimitiveType primitive);
 
 private:
   std::unordered_map<u32, ID3D11DepthStencilState*> m_depth;

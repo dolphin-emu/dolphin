@@ -434,25 +434,27 @@ ID3D11BlendState* StateCache::Get(BlendingState state)
   return res;
 }
 
-ID3D11RasterizerState* StateCache::Get(RasterizerState state)
+ID3D11RasterizerState* StateCache::Get(RasterizationState state)
 {
-  auto it = m_raster.find(state.packed);
-
+  auto it = m_raster.find(state.hex);
   if (it != m_raster.end())
     return it->second;
 
-  D3D11_RASTERIZER_DESC rastdc = CD3D11_RASTERIZER_DESC(D3D11_FILL_SOLID, state.cull_mode, false, 0,
-                                                        0.f, 0, false, true, false, false);
+  static constexpr std::array<D3D11_CULL_MODE, 4> cull_modes = {
+      {D3D11_CULL_NONE, D3D11_CULL_BACK, D3D11_CULL_FRONT, D3D11_CULL_BACK}};
+
+  D3D11_RASTERIZER_DESC desc = {};
+  desc.FillMode = D3D11_FILL_SOLID;
+  desc.CullMode = cull_modes[state.cullmode];
+  desc.ScissorEnable = TRUE;
 
   ID3D11RasterizerState* res = nullptr;
-
-  HRESULT hr = D3D::device->CreateRasterizerState(&rastdc, &res);
+  HRESULT hr = D3D::device->CreateRasterizerState(&desc, &res);
   if (FAILED(hr))
     PanicAlert("Failed to create rasterizer state at %s %d\n", __FILE__, __LINE__);
 
   D3D::SetDebugObjectName(res, "rasterizer state used to emulate the GX pipeline");
-  m_raster.emplace(state.packed, res);
-
+  m_raster.emplace(state.hex, res);
   return res;
 }
 
@@ -529,6 +531,14 @@ void StateCache::Clear()
     SAFE_RELEASE(it.second);
   }
   m_sampler.clear();
+}
+
+D3D11_PRIMITIVE_TOPOLOGY StateCache::GetPrimitiveTopology(PrimitiveType primitive)
+{
+  static constexpr std::array<D3D11_PRIMITIVE_TOPOLOGY, 4> primitives = {
+      {D3D11_PRIMITIVE_TOPOLOGY_POINTLIST, D3D11_PRIMITIVE_TOPOLOGY_LINELIST,
+       D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP}};
+  return primitives[static_cast<u32>(primitive)];
 }
 
 }  // namespace DX11

@@ -221,7 +221,8 @@ void ProgramShaderCache::UploadConstants()
   }
 }
 
-SHADER* ProgramShaderCache::SetShader(u32 primitive_type, const GLVertexFormat* vertex_format)
+SHADER* ProgramShaderCache::SetShader(PrimitiveType primitive_type,
+                                      const GLVertexFormat* vertex_format)
 {
   if (g_ActiveConfig.bDisableSpecializedShaders)
     return SetUberShader(primitive_type, vertex_format);
@@ -292,7 +293,8 @@ SHADER* ProgramShaderCache::SetShader(u32 primitive_type, const GLVertexFormat* 
   return &last_entry->shader;
 }
 
-SHADER* ProgramShaderCache::SetUberShader(u32 primitive_type, const GLVertexFormat* vertex_format)
+SHADER* ProgramShaderCache::SetUberShader(PrimitiveType primitive_type,
+                                          const GLVertexFormat* vertex_format)
 {
   UBERSHADERUID uid;
   std::memset(&uid, 0, sizeof(uid));
@@ -1295,7 +1297,7 @@ void ProgramShaderCache::DestroyPrerenderArrays(SharedContextData* data)
   }
 }
 
-void ProgramShaderCache::DrawPrerenderArray(const SHADER& shader, u32 primitive_type)
+void ProgramShaderCache::DrawPrerenderArray(const SHADER& shader, PrimitiveType primitive_type)
 {
   // This is called on a worker thread, so we don't want to use the normal binding process.
   glUseProgram(shader.glprogid);
@@ -1303,14 +1305,17 @@ void ProgramShaderCache::DrawPrerenderArray(const SHADER& shader, u32 primitive_
   // The number of primitives drawn depends on the type.
   switch (primitive_type)
   {
-  case PRIMITIVE_POINTS:
+  case PrimitiveType::Points:
     glDrawElements(GL_POINTS, 1, GL_UNSIGNED_SHORT, nullptr);
     break;
-  case PRIMITIVE_LINES:
+  case PrimitiveType::Lines:
     glDrawElements(GL_LINES, 2, GL_UNSIGNED_SHORT, nullptr);
     break;
-  case PRIMITIVE_TRIANGLES:
+  case PrimitiveType::Triangles:
     glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_SHORT, nullptr);
+    break;
+  case PrimitiveType::TriangleStrip:
+    glDrawElements(GL_TRIANGLE_STRIP, 3, GL_UNSIGNED_SHORT, nullptr);
     break;
   }
 

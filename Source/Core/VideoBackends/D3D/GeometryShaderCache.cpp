@@ -207,7 +207,7 @@ void GeometryShaderCache::Shutdown()
   g_gs_disk_cache.Close();
 }
 
-bool GeometryShaderCache::SetShader(u32 primitive_type)
+bool GeometryShaderCache::SetShader(PrimitiveType primitive_type)
 {
   GeometryShaderUid uid = GetGeometryShaderUid(primitive_type);
   if (last_entry && uid == last_uid)

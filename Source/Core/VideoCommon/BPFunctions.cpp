@@ -27,7 +27,9 @@ void FlushPipeline()
 
 void SetGenerationMode()
 {
-  g_renderer->SetGenerationMode();
+  RasterizationState state = {};
+  state.Generate(bpmem, g_vertex_manager->GetCurrentPrimitiveType());
+  g_renderer->SetRasterizationState(state);
 }
 
 void SetScissor()

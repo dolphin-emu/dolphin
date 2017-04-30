@@ -188,10 +188,7 @@ VkBlendFactor GetAlphaBlendFactor(VkBlendFactor factor)
 RasterizationState GetNoCullRasterizationState()
 {
   RasterizationState state = {};
-  state.cull_mode = VK_CULL_MODE_NONE;
-  state.samples = VK_SAMPLE_COUNT_1_BIT;
-  state.per_sample_shading = VK_FALSE;
-  state.depth_clamp = VK_FALSE;
+  state.cullmode = GenMode::CULL_NONE;
   return state;
 }
 
@@ -335,7 +332,7 @@ VkShaderModule CompileAndCreateComputeShader(const std::string& source_code, boo
 UtilityShaderDraw::UtilityShaderDraw(VkCommandBuffer command_buffer,
                                      VkPipelineLayout pipeline_layout, VkRenderPass render_pass,
                                      VkShaderModule vertex_shader, VkShaderModule geometry_shader,
-                                     VkShaderModule pixel_shader)
+                                     VkShaderModule pixel_shader, PrimitiveType primitive)
     : m_command_buffer(command_buffer)
 {
   // Populate minimal pipeline state
@@ -345,16 +342,16 @@ UtilityShaderDraw::UtilityShaderDraw(VkCommandBuffer command_buffer,
   m_pipeline_info.vs = vertex_shader;
   m_pipeline_info.gs = geometry_shader;
   m_pipeline_info.ps = pixel_shader;
-  m_pipeline_info.rasterization_state.bits = Util::GetNoCullRasterizationState().bits;
+  m_pipeline_info.rasterization_state.hex = Util::GetNoCullRasterizationState().hex;
+  m_pipeline_info.rasterization_state.primitive = primitive;
   m_pipeline_info.depth_state.hex = Util::GetNoDepthTestingDepthStencilState().hex;
   m_pipeline_info.blend_state.hex = Util::GetNoBlendingBlendState().hex;
-  m_pipeline_info.primitive_topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+  m_pipeline_info.multisampling_state.per_sample_shading = false;
+  m_pipeline_info.multisampling_state.samples = 1;
 }
 
-UtilityShaderVertex* UtilityShaderDraw::ReserveVertices(VkPrimitiveTopology topology, size_t count)
+UtilityShaderVertex* UtilityShaderDraw::ReserveVertices(size_t count)
 {
-  m_pipeline_info.primitive_topology = topology;
-
   if (!g_object_cache->GetUtilityShaderVertexBuffer()->ReserveMemory(
           sizeof(UtilityShaderVertex) * count, sizeof(UtilityShaderVertex), true, true, true))
     PanicAlert("Failed to allocate space for vertices in backend shader");
@@ -372,10 +369,9 @@ void UtilityShaderDraw::CommitVertices(size_t count)
   m_vertex_count = static_cast<uint32_t>(count);
 }
 
-void UtilityShaderDraw::UploadVertices(VkPrimitiveTopology topology, UtilityShaderVertex* vertices,
-                                       size_t count)
+void UtilityShaderDraw::UploadVertices(UtilityShaderVertex* vertices, size_t count)
 {
-  UtilityShaderVertex* upload_vertices = ReserveVertices(topology, count);
+  UtilityShaderVertex* upload_vertices = ReserveVertices(count);
   memcpy(upload_vertices, vertices, sizeof(UtilityShaderVertex) * count);
   CommitVertices(count);
 }
@@ -447,7 +443,12 @@ void UtilityShaderDraw::SetPSTexelBuffer(VkBufferView view)
 
 void UtilityShaderDraw::SetRasterizationState(const RasterizationState& state)
 {
-  m_pipeline_info.rasterization_state.bits = state.bits;
+  m_pipeline_info.rasterization_state.hex = state.hex;
+}
+
+void UtilityShaderDraw::SetMultisamplingState(const MultisamplingState& state)
+{
+  m_pipeline_info.multisampling_state.hex = state.hex;
 }
 
 void UtilityShaderDraw::SetDepthState(const DepthState& state)
@@ -506,7 +507,7 @@ void UtilityShaderDraw::DrawQuad(int x, int y, int width, int height, float z)
   vertices[3].SetColor(1.0f, 1.0f, 1.0f, 1.0f);
 
   Util::SetViewportAndScissor(m_command_buffer, x, y, width, height);
-  UploadVertices(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP, vertices, ArraySize(vertices));
+  UploadVertices(vertices, ArraySize(vertices));
   Draw();
 }
 
@@ -535,7 +536,7 @@ void UtilityShaderDraw::DrawQuad(int dst_x, int dst_y, int dst_width, int dst_he
   vertices[3].SetColor(1.0f, 1.0f, 1.0f, 1.0f);
 
   Util::SetViewportAndScissor(m_command_buffer, dst_x, dst_y, dst_width, dst_height);
-  UploadVertices(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP, vertices, ArraySize(vertices));
+  UploadVertices(vertices, ArraySize(vertices));
   Draw();
 }
 
@@ -562,7 +563,7 @@ void UtilityShaderDraw::DrawColoredQuad(int x, int y, int width, int height, u32
   vertices[3].SetColor(color);
 
   Util::SetViewportAndScissor(m_command_buffer, x, y, width, height);
-  UploadVertices(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP, vertices, ArraySize(vertices));
+  UploadVertices(vertices, ArraySize(vertices));
   Draw();
 }
 
@@ -571,11 +572,9 @@ void UtilityShaderDraw::SetViewportAndScissor(int x, int y, int width, int heigh
   Util::SetViewportAndScissor(m_command_buffer, x, y, width, height, 0.0f, 1.0f);
 }
 
-void UtilityShaderDraw::DrawWithoutVertexBuffer(VkPrimitiveTopology primitive_topology,
-                                                u32 vertex_count)
+void UtilityShaderDraw::DrawWithoutVertexBuffer(u32 vertex_count)
 {
   m_pipeline_info.vertex_format = nullptr;
-  m_pipeline_info.primitive_topology = primitive_topology;
 
   BindDescriptors();
   if (!BindPipeline())
