@@ -55,18 +55,6 @@ enum
   IDM_MEMCHECK_OPTIONS_CHANGE
 };
 
-BEGIN_EVENT_TABLE(CMemoryWindow, wxPanel)
-EVT_BUTTON(IDM_SET_VALUE_BUTTON, CMemoryWindow::OnSetMemoryValue)
-EVT_BUTTON(IDM_DUMP_MEMORY, CMemoryWindow::OnDumpMemory)
-EVT_BUTTON(IDM_DUMP_MEM2, CMemoryWindow::OnDumpMem2)
-EVT_BUTTON(IDM_DUMP_FAKEVMEM, CMemoryWindow::OnDumpFakeVMEM)
-EVT_RADIOBOX(IDM_DATA_TYPE_RBOX, CMemoryWindow::OnDataTypeChanged)
-EVT_BUTTON(IDM_FIND_NEXT, CMemoryWindow::OnFindNext)
-EVT_BUTTON(IDM_FIND_PREVIOUS, CMemoryWindow::OnFindPrevious)
-EVT_RADIOBUTTON(IDM_MEMCHECK_OPTIONS_CHANGE, CMemoryWindow::OnMemCheckOptionChange)
-EVT_CHECKBOX(IDM_MEMCHECK_OPTIONS_CHANGE, CMemoryWindow::OnMemCheckOptionChange)
-END_EVENT_TABLE()
-
 CMemoryWindow::CMemoryWindow(wxWindow* parent, wxWindowID id, const wxPoint& pos,
                              const wxSize& size, long style, const wxString& name)
     : wxPanel(parent, id, pos, size, style, name)
@@ -101,6 +89,7 @@ wxSizer* CMemoryWindow::CreateRightHandSideSizer()
   data_type_options.Add("Float32");
   m_rbox_data_type = new wxRadioBox(this, IDM_DATA_TYPE_RBOX, _("Data Type"), wxDefaultPosition,
                                     wxDefaultSize, data_type_options, 1);
+  m_rbox_data_type->Bind(wxEVT_RADIOBOX, &CMemoryWindow::OnDataTypeChanged, this);
   m_rbox_data_type->SetSelection(static_cast<int>(m_memory_view->GetDataType()));
 
   const int space5 = FromDIP(5);
@@ -128,6 +117,7 @@ wxSizer* CMemoryWindow::CreateSearchSizer()
   m_value_text_ctrl->Bind(wxEVT_TEXT, &CMemoryWindow::OnValueChanged, this);
 
   auto* const set_value_button = new wxButton(this, IDM_SET_VALUE_BUTTON, _("Set Value"));
+  set_value_button->Bind(wxEVT_BUTTON, &CMemoryWindow::OnSetMemoryValue, this);
 
   auto* const search_sizer = new wxBoxSizer(wxVERTICAL);
   search_sizer->Add(m_address_search_ctrl, 0, wxEXPAND);
@@ -140,7 +130,10 @@ wxSizer* CMemoryWindow::CreateSearchSizer()
 wxSizer* CMemoryWindow::CreateDumpSizer()
 {
   auto* const dump_mram_button = new wxButton(this, IDM_DUMP_MEMORY, _("Dump MRAM"));
+  dump_mram_button->Bind(wxEVT_BUTTON, &CMemoryWindow::OnDumpMemory, this);
+
   auto* const dump_exram_button = new wxButton(this, IDM_DUMP_MEM2, _("Dump EXRAM"));
+  dump_exram_button->Bind(wxEVT_BUTTON, &CMemoryWindow::OnDumpMem2, this);
 
   auto* const dump_sizer = new wxBoxSizer(wxVERTICAL);
   dump_sizer->Add(dump_mram_button, 0, wxEXPAND);
@@ -149,6 +142,7 @@ wxSizer* CMemoryWindow::CreateDumpSizer()
   if (!SConfig::GetInstance().bMMU)
   {
     auto* const dump_fake_vmem_button = new wxButton(this, IDM_DUMP_FAKEVMEM, _("Dump FakeVMEM"));
+    dump_fake_vmem_button->Bind(wxEVT_BUTTON, &CMemoryWindow::OnDumpFakeVMEM, this);
 
     dump_sizer->Add(dump_fake_vmem_button, 0, wxEXPAND);
   }
@@ -159,7 +153,10 @@ wxSizer* CMemoryWindow::CreateDumpSizer()
 wxSizer* CMemoryWindow::CreateSearchTypeSizer()
 {
   m_btn_find_next = new wxButton(this, IDM_FIND_NEXT, _("Find Next"));
+  m_btn_find_next->Bind(wxEVT_BUTTON, &CMemoryWindow::OnFindNext, this);
+
   m_btn_find_previous = new wxButton(this, IDM_FIND_PREVIOUS, _("Find Previous"));
+  m_btn_find_previous->Bind(wxEVT_BUTTON, &CMemoryWindow::OnFindPrevious, this);
 
   m_rb_ascii =
       new wxRadioButton(this, IDM_ASCII, "Ascii", wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
@@ -184,10 +181,16 @@ wxSizer* CMemoryWindow::CreateMemcheckOptionSizer()
 {
   m_read_write_radio_btn = new wxRadioButton(this, IDM_MEMCHECK_OPTIONS_CHANGE, _("Read and Write"),
                                              wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
+  m_read_write_radio_btn->Bind(wxEVT_RADIOBUTTON, &CMemoryWindow::OnMemCheckOptionChange, this);
+
   m_read_radio_btn = new wxRadioButton(this, IDM_MEMCHECK_OPTIONS_CHANGE, _("Read only"));
+  m_read_radio_btn->Bind(wxEVT_RADIOBUTTON, &CMemoryWindow::OnMemCheckOptionChange, this);
+
   m_write_radio_btn = new wxRadioButton(this, IDM_MEMCHECK_OPTIONS_CHANGE, _("Write only"));
+  m_write_radio_btn->Bind(wxEVT_RADIOBUTTON, &CMemoryWindow::OnMemCheckOptionChange, this);
 
   m_log_checkbox = new wxCheckBox(this, IDM_MEMCHECK_OPTIONS_CHANGE, _("Log"));
+  m_log_checkbox->Bind(wxEVT_CHECKBOX, &CMemoryWindow::OnMemCheckOptionChange, this);
   m_log_checkbox->SetValue(true);
 
   auto* const memcheck_options_sizer =

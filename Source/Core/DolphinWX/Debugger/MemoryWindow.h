@@ -39,8 +39,6 @@ private:
     FindPrevious
   };
 
-  DECLARE_EVENT_TABLE()
-
   void CreateGUI();
   wxSizer* CreateRightHandSideSizer();
   wxSizer* CreateSearchSizer();
