@@ -64,12 +64,6 @@ constexpr u64 ENQUEUE_ACKNOWLEDGEMENT_FLAG = 0x200000000ULL;
 static CoreTiming::EventType* s_event_enqueue;
 static CoreTiming::EventType* s_event_sdio_notify;
 
-enum class MemorySetupType
-{
-  IOSReload,
-  Full,
-};
-
 constexpr u32 ADDR_MEM1_SIZE = 0x3100;
 constexpr u32 ADDR_MEM1_SIM_SIZE = 0x3104;
 constexpr u32 ADDR_MEM1_END = 0x3108;
@@ -97,16 +91,14 @@ constexpr u32 ADDR_BOOT_FLAG = 0x315c;
 constexpr u32 ADDR_APPLOADER_FLAG = 0x315d;
 constexpr u32 ADDR_DEVKIT_BOOT_PROGRAM_VERSION = 0x315e;
 constexpr u32 ADDR_SYSMENU_SYNC = 0x3160;
-
-// The title ID is a u64 where the first 32 bits are used for the title type.
-// For IOS title IDs, the type will always be 00000001 (system), and the lower 32 bits
-// are used for the IOS major version -- which is what we want here.
-u32 Kernel::GetVersion() const
-{
-  return static_cast<u32>(m_title_id);
-}
-
 constexpr u32 PLACEHOLDER = 0xDEADBEEF;
+
+enum class MemorySetupType
+{
+  IOSReload,
+  Full,
+};
+
 static bool SetupMemory(u64 ios_title_id, MemorySetupType setup_type)
 {
   auto target_imv = std::find_if(
@@ -175,44 +167,6 @@ static bool SetupMemory(u64 ios_title_id, MemorySetupType setup_type)
   return true;
 }
 
-void Kernel::AddDevice(std::unique_ptr<Device::Device> device)
-{
-  _assert_(device->GetDeviceType() == Device::Device::DeviceType::Static);
-  m_device_map[device->GetDeviceName()] = std::move(device);
-}
-
-void Kernel::AddStaticDevices()
-{
-  std::lock_guard<std::mutex> lock(m_device_map_mutex);
-  _assert_msg_(IOS, m_device_map.empty(), "Reinit called while already initialized");
-
-  if (!SConfig::GetInstance().m_bt_passthrough_enabled)
-    AddDevice(std::make_unique<Device::BluetoothEmu>(*this, "/dev/usb/oh1/57e/305"));
-  else
-    AddDevice(std::make_unique<Device::BluetoothReal>(*this, "/dev/usb/oh1/57e/305"));
-
-  AddDevice(std::make_unique<Device::STMImmediate>(*this, "/dev/stm/immediate"));
-  AddDevice(std::make_unique<Device::STMEventHook>(*this, "/dev/stm/eventhook"));
-  AddDevice(std::make_unique<Device::FS>(*this, "/dev/fs"));
-  AddDevice(std::make_unique<Device::ES>(*this, "/dev/es"));
-  AddDevice(std::make_unique<Device::DI>(*this, "/dev/di"));
-  AddDevice(std::make_unique<Device::NetKDRequest>(*this, "/dev/net/kd/request"));
-  AddDevice(std::make_unique<Device::NetKDTime>(*this, "/dev/net/kd/time"));
-  AddDevice(std::make_unique<Device::NetNCDManage>(*this, "/dev/net/ncd/manage"));
-  AddDevice(std::make_unique<Device::NetWDCommand>(*this, "/dev/net/wd/command"));
-  AddDevice(std::make_unique<Device::NetIPTop>(*this, "/dev/net/ip/top"));
-  AddDevice(std::make_unique<Device::NetSSL>(*this, "/dev/net/ssl"));
-  AddDevice(std::make_unique<Device::USB_KBD>(*this, "/dev/usb/kbd"));
-  AddDevice(std::make_unique<Device::SDIOSlot0>(*this, "/dev/sdio/slot0"));
-  AddDevice(std::make_unique<Device::Stub>(*this, "/dev/sdio/slot1"));
-  AddDevice(std::make_unique<Device::USB_HIDv4>(*this, "/dev/usb/hid"));
-  AddDevice(std::make_unique<Device::OH0>(*this, "/dev/usb/oh0"));
-  AddDevice(std::make_unique<Device::Stub>(*this, "/dev/usb/oh1"));
-  AddDevice(std::make_unique<Device::USB_VEN>(*this, "/dev/usb/ven"));
-  AddDevice(std::make_unique<Device::WFSSRV>(*this, "/dev/usb/wfssrv"));
-  AddDevice(std::make_unique<Device::WFSI>(*this, "/dev/wfsi"));
-}
-
 // IOS used by the latest System Menu (4.3).
 constexpr u64 IOS80_TITLE_ID = 0x0000000100000050;
 constexpr u64 BC_TITLE_ID = 0x0000000100000100;
@@ -255,77 +209,12 @@ Kernel::~Kernel()
   }
 }
 
-void Kernel::HandleIPCEvent(u64 userdata)
+// The title ID is a u64 where the first 32 bits are used for the title type.
+// For IOS title IDs, the type will always be 00000001 (system), and the lower 32 bits
+// are used for the IOS major version -- which is what we want here.
+u32 Kernel::GetVersion() const
 {
-  if (userdata & ENQUEUE_ACKNOWLEDGEMENT_FLAG)
-    m_ack_queue.push_back(static_cast<u32>(userdata));
-  else if (userdata & ENQUEUE_REQUEST_FLAG)
-    m_request_queue.push_back(static_cast<u32>(userdata));
-  else
-    m_reply_queue.push_back(static_cast<u32>(userdata));
-
-  UpdateIPC();
-}
-
-void Init()
-{
-  s_event_enqueue = CoreTiming::RegisterEvent("IPCEvent", [](u64 userdata, s64) {
-    if (s_ios)
-      s_ios->HandleIPCEvent(userdata);
-  });
-
-  s_event_sdio_notify = CoreTiming::RegisterEvent("SDIO_EventNotify", [](u64, s64) {
-    if (!s_ios)
-      return;
-
-    auto device = static_cast<Device::SDIOSlot0*>(s_ios->GetDeviceByName("/dev/sdio/slot0").get());
-    if (device)
-      device->EventNotify();
-  });
-
-  // Start with IOS80 to simulate part of the Wii boot process.
-  s_ios = std::make_unique<Kernel>(IOS80_TITLE_ID);
-  // On a Wii, boot2 launches the system menu IOS, which then launches the system menu
-  // (which bootstraps the PPC). Bootstrapping the PPC results in memory values being set up.
-  // This means that the constants in the 0x3100 region are always set up by the time
-  // a game is launched. This is necessary because booting games from the game list skips
-  // a significant part of a Wii's boot process.
-  SetupMemory(IOS80_TITLE_ID, MemorySetupType::Full);
-}
-
-void Shutdown()
-{
-  s_ios.reset();
-}
-
-Kernel* GetIOS()
-{
-  return s_ios.get();
-}
-
-// Similar to syscall 0x42 (ios_boot); this is used to change the current active IOS.
-// IOS writes the new version to 0x3140 before restarting, but it does *not* poke any
-// of the other constants to the memory.
-bool Kernel::BootIOS(const u64 ios_title_id)
-{
-  // A real Wii goes through several steps before getting to MIOS.
-  //
-  // * The System Menu detects a GameCube disc and launches BC (1-100) instead of the game.
-  // * BC (similar to boot1) lowers the clock speed to the Flipper's and then launches boot2.
-  // * boot2 sees the lowered clock speed and launches MIOS (1-101) instead of the System Menu.
-  //
-  // Because we currently don't have boot1 and boot2, and BC is only ever used to launch MIOS
-  // (indirectly via boot2), we can just launch MIOS when BC is launched.
-  if (ios_title_id == BC_TITLE_ID)
-  {
-    NOTICE_LOG(IOS, "BC: Launching MIOS...");
-    return BootIOS(MIOS_TITLE_ID);
-  }
-
-  // Shut down the active IOS first before switching to the new one.
-  s_ios.reset();
-  s_ios = std::make_unique<Kernel>(ios_title_id);
-  return true;
+  return static_cast<u32>(m_title_id);
 }
 
 // Since we don't have actual processes, we keep track of only the PPC's UID/GID.
@@ -379,12 +268,67 @@ bool Kernel::BootstrapPPC(const DiscIO::CNANDContentLoader& content_loader)
   return true;
 }
 
-void Kernel::SDIO_EventNotify()
+// Similar to syscall 0x42 (ios_boot); this is used to change the current active IOS.
+// IOS writes the new version to 0x3140 before restarting, but it does *not* poke any
+// of the other constants to the memory. Warning: this resets the kernel instance.
+bool Kernel::BootIOS(const u64 ios_title_id)
 {
-  // TODO: Potential race condition: If IsRunning() becomes false after
-  // it's checked, an event may be scheduled after CoreTiming shuts down.
-  if (SConfig::GetInstance().bWii && Core::IsRunning())
-    CoreTiming::ScheduleEvent(0, s_event_sdio_notify, 0, CoreTiming::FromThread::NON_CPU);
+  // A real Wii goes through several steps before getting to MIOS.
+  //
+  // * The System Menu detects a GameCube disc and launches BC (1-100) instead of the game.
+  // * BC (similar to boot1) lowers the clock speed to the Flipper's and then launches boot2.
+  // * boot2 sees the lowered clock speed and launches MIOS (1-101) instead of the System Menu.
+  //
+  // Because we currently don't have boot1 and boot2, and BC is only ever used to launch MIOS
+  // (indirectly via boot2), we can just launch MIOS when BC is launched.
+  if (ios_title_id == BC_TITLE_ID)
+  {
+    NOTICE_LOG(IOS, "BC: Launching MIOS...");
+    return BootIOS(MIOS_TITLE_ID);
+  }
+
+  // Shut down the active IOS first before switching to the new one.
+  s_ios.reset();
+  s_ios = std::make_unique<Kernel>(ios_title_id);
+  return true;
+}
+
+void Kernel::AddDevice(std::unique_ptr<Device::Device> device)
+{
+  _assert_(device->GetDeviceType() == Device::Device::DeviceType::Static);
+  m_device_map[device->GetDeviceName()] = std::move(device);
+}
+
+void Kernel::AddStaticDevices()
+{
+  std::lock_guard<std::mutex> lock(m_device_map_mutex);
+  _assert_msg_(IOS, m_device_map.empty(), "Reinit called while already initialized");
+
+  if (!SConfig::GetInstance().m_bt_passthrough_enabled)
+    AddDevice(std::make_unique<Device::BluetoothEmu>(*this, "/dev/usb/oh1/57e/305"));
+  else
+    AddDevice(std::make_unique<Device::BluetoothReal>(*this, "/dev/usb/oh1/57e/305"));
+
+  AddDevice(std::make_unique<Device::STMImmediate>(*this, "/dev/stm/immediate"));
+  AddDevice(std::make_unique<Device::STMEventHook>(*this, "/dev/stm/eventhook"));
+  AddDevice(std::make_unique<Device::FS>(*this, "/dev/fs"));
+  AddDevice(std::make_unique<Device::ES>(*this, "/dev/es"));
+  AddDevice(std::make_unique<Device::DI>(*this, "/dev/di"));
+  AddDevice(std::make_unique<Device::NetKDRequest>(*this, "/dev/net/kd/request"));
+  AddDevice(std::make_unique<Device::NetKDTime>(*this, "/dev/net/kd/time"));
+  AddDevice(std::make_unique<Device::NetNCDManage>(*this, "/dev/net/ncd/manage"));
+  AddDevice(std::make_unique<Device::NetWDCommand>(*this, "/dev/net/wd/command"));
+  AddDevice(std::make_unique<Device::NetIPTop>(*this, "/dev/net/ip/top"));
+  AddDevice(std::make_unique<Device::NetSSL>(*this, "/dev/net/ssl"));
+  AddDevice(std::make_unique<Device::USB_KBD>(*this, "/dev/usb/kbd"));
+  AddDevice(std::make_unique<Device::SDIOSlot0>(*this, "/dev/sdio/slot0"));
+  AddDevice(std::make_unique<Device::Stub>(*this, "/dev/sdio/slot1"));
+  AddDevice(std::make_unique<Device::USB_HIDv4>(*this, "/dev/usb/hid"));
+  AddDevice(std::make_unique<Device::OH0>(*this, "/dev/usb/oh0"));
+  AddDevice(std::make_unique<Device::Stub>(*this, "/dev/usb/oh1"));
+  AddDevice(std::make_unique<Device::USB_VEN>(*this, "/dev/usb/ven"));
+  AddDevice(std::make_unique<Device::WFSSRV>(*this, "/dev/usb/wfssrv"));
+  AddDevice(std::make_unique<Device::WFSI>(*this, "/dev/wfsi"));
 }
 
 s32 Kernel::GetFreeDeviceID()
@@ -405,84 +349,6 @@ std::shared_ptr<Device::Device> Kernel::GetDeviceByName(const std::string& devic
   std::lock_guard<std::mutex> lock(m_device_map_mutex);
   const auto iterator = m_device_map.find(device_name);
   return iterator != m_device_map.end() ? iterator->second : nullptr;
-}
-
-void Kernel::DoState(PointerWrap& p)
-{
-  p.Do(m_request_queue);
-  p.Do(m_reply_queue);
-  p.Do(m_last_reply_time);
-  p.Do(m_title_id);
-  p.Do(m_ppc_uid);
-  p.Do(m_ppc_gid);
-
-  if (m_title_id == MIOS_TITLE_ID)
-    return;
-
-  // We need to make sure all file handles are closed so IOS::HLE::Device::FS::DoState can
-  // successfully save or re-create /tmp
-  for (auto& descriptor : m_fdmap)
-  {
-    if (descriptor)
-      descriptor->PrepareForState(p.GetMode());
-  }
-
-  for (const auto& entry : m_device_map)
-    entry.second->DoState(p);
-
-  if (p.GetMode() == PointerWrap::MODE_READ)
-  {
-    for (u32 i = 0; i < IPC_MAX_FDS; i++)
-    {
-      u32 exists = 0;
-      p.Do(exists);
-      if (exists)
-      {
-        auto device_type = Device::Device::DeviceType::Static;
-        p.Do(device_type);
-        switch (device_type)
-        {
-        case Device::Device::DeviceType::Static:
-        {
-          std::string device_name;
-          p.Do(device_name);
-          m_fdmap[i] = GetDeviceByName(device_name);
-          break;
-        }
-        case Device::Device::DeviceType::FileIO:
-          m_fdmap[i] = std::make_shared<Device::FileIO>(*this, "");
-          m_fdmap[i]->DoState(p);
-          break;
-        case Device::Device::DeviceType::OH0:
-          m_fdmap[i] = std::make_shared<Device::OH0Device>(*this, "");
-          m_fdmap[i]->DoState(p);
-          break;
-        }
-      }
-    }
-  }
-  else
-  {
-    for (auto& descriptor : m_fdmap)
-    {
-      u32 exists = descriptor ? 1 : 0;
-      p.Do(exists);
-      if (exists)
-      {
-        auto device_type = descriptor->GetDeviceType();
-        p.Do(device_type);
-        if (device_type == Device::Device::DeviceType::Static)
-        {
-          std::string device_name = descriptor->GetDeviceName();
-          p.Do(device_name);
-        }
-        else
-        {
-          descriptor->DoState(p);
-        }
-      }
-    }
-  }
 }
 
 // Returns the FD for the newly opened device (on success) or an error code.
@@ -599,6 +465,18 @@ void Kernel::EnqueueIPCAcknowledgement(u32 address, int cycles_in_future)
                             address | ENQUEUE_ACKNOWLEDGEMENT_FLAG);
 }
 
+void Kernel::HandleIPCEvent(u64 userdata)
+{
+  if (userdata & ENQUEUE_ACKNOWLEDGEMENT_FLAG)
+    m_ack_queue.push_back(static_cast<u32>(userdata));
+  else if (userdata & ENQUEUE_REQUEST_FLAG)
+    m_request_queue.push_back(static_cast<u32>(userdata));
+  else
+    m_reply_queue.push_back(static_cast<u32>(userdata));
+
+  UpdateIPC();
+}
+
 // This is called every IPC_HLE_PERIOD from SystemTimers.cpp
 // Takes care of routing ipc <-> ipc HLE
 void Kernel::UpdateIPC()
@@ -649,6 +527,128 @@ void Kernel::UpdateWantDeterminism(const bool new_want_determinism)
   WiiSockMan::GetInstance().UpdateWantDeterminism(new_want_determinism);
   for (const auto& device : m_device_map)
     device.second->UpdateWantDeterminism(new_want_determinism);
+}
+
+void Kernel::SDIO_EventNotify()
+{
+  // TODO: Potential race condition: If IsRunning() becomes false after
+  // it's checked, an event may be scheduled after CoreTiming shuts down.
+  if (SConfig::GetInstance().bWii && Core::IsRunning())
+    CoreTiming::ScheduleEvent(0, s_event_sdio_notify, 0, CoreTiming::FromThread::NON_CPU);
+}
+
+void Kernel::DoState(PointerWrap& p)
+{
+  p.Do(m_request_queue);
+  p.Do(m_reply_queue);
+  p.Do(m_last_reply_time);
+  p.Do(m_title_id);
+  p.Do(m_ppc_uid);
+  p.Do(m_ppc_gid);
+
+  if (m_title_id == MIOS_TITLE_ID)
+    return;
+
+  // We need to make sure all file handles are closed so IOS::HLE::Device::FS::DoState can
+  // successfully save or re-create /tmp
+  for (auto& descriptor : m_fdmap)
+  {
+    if (descriptor)
+      descriptor->PrepareForState(p.GetMode());
+  }
+
+  for (const auto& entry : m_device_map)
+    entry.second->DoState(p);
+
+  if (p.GetMode() == PointerWrap::MODE_READ)
+  {
+    for (u32 i = 0; i < IPC_MAX_FDS; i++)
+    {
+      u32 exists = 0;
+      p.Do(exists);
+      if (exists)
+      {
+        auto device_type = Device::Device::DeviceType::Static;
+        p.Do(device_type);
+        switch (device_type)
+        {
+        case Device::Device::DeviceType::Static:
+        {
+          std::string device_name;
+          p.Do(device_name);
+          m_fdmap[i] = GetDeviceByName(device_name);
+          break;
+        }
+        case Device::Device::DeviceType::FileIO:
+          m_fdmap[i] = std::make_shared<Device::FileIO>(*this, "");
+          m_fdmap[i]->DoState(p);
+          break;
+        case Device::Device::DeviceType::OH0:
+          m_fdmap[i] = std::make_shared<Device::OH0Device>(*this, "");
+          m_fdmap[i]->DoState(p);
+          break;
+        }
+      }
+    }
+  }
+  else
+  {
+    for (auto& descriptor : m_fdmap)
+    {
+      u32 exists = descriptor ? 1 : 0;
+      p.Do(exists);
+      if (exists)
+      {
+        auto device_type = descriptor->GetDeviceType();
+        p.Do(device_type);
+        if (device_type == Device::Device::DeviceType::Static)
+        {
+          std::string device_name = descriptor->GetDeviceName();
+          p.Do(device_name);
+        }
+        else
+        {
+          descriptor->DoState(p);
+        }
+      }
+    }
+  }
+}
+
+void Init()
+{
+  s_event_enqueue = CoreTiming::RegisterEvent("IPCEvent", [](u64 userdata, s64) {
+    if (s_ios)
+      s_ios->HandleIPCEvent(userdata);
+  });
+
+  s_event_sdio_notify = CoreTiming::RegisterEvent("SDIO_EventNotify", [](u64, s64) {
+    if (!s_ios)
+      return;
+
+    auto device = static_cast<Device::SDIOSlot0*>(s_ios->GetDeviceByName("/dev/sdio/slot0").get());
+    if (device)
+      device->EventNotify();
+  });
+
+  // Start with IOS80 to simulate part of the Wii boot process.
+  s_ios = std::make_unique<Kernel>(IOS80_TITLE_ID);
+  // On a Wii, boot2 launches the system menu IOS, which then launches the system menu
+  // (which bootstraps the PPC). Bootstrapping the PPC results in memory values being set up.
+  // This means that the constants in the 0x3100 region are always set up by the time
+  // a game is launched. This is necessary because booting games from the game list skips
+  // a significant part of a Wii's boot process.
+  SetupMemory(IOS80_TITLE_ID, MemorySetupType::Full);
+}
+
+void Shutdown()
+{
+  s_ios.reset();
+}
+
+Kernel* GetIOS()
+{
+  return s_ios.get();
 }
 }  // namespace HLE
 }  // namespace IOS
