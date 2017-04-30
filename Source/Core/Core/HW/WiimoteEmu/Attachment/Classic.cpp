@@ -64,7 +64,10 @@ Classic::Classic(ExtensionReg& reg) : Attachment(_trans("Classic"), reg)
   // buttons
   groups.emplace_back(m_buttons = new ControllerEmu::Buttons(_trans("Buttons")));
   for (auto& classic_button_name : classic_button_names)
-    m_buttons->controls.emplace_back(new ControllerEmu::Input(classic_button_name));
+  {
+    const std::string& ui_name = (classic_button_name == "Home") ? "HOME" : classic_button_name;
+    m_buttons->controls.emplace_back(new ControllerEmu::Input(classic_button_name, ui_name));
+  }
 
   // sticks
   groups.emplace_back(m_left_stick = new ControllerEmu::AnalogStick(
