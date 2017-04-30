@@ -41,6 +41,13 @@ private:
 
   DECLARE_EVENT_TABLE()
 
+  void CreateGUI();
+  wxSizer* CreateRightHandSideSizer();
+  wxSizer* CreateSearchSizer();
+  wxSizer* CreateDumpSizer();
+  wxSizer* CreateSearchTypeSizer();
+  wxSizer* CreateMemcheckOptionSizer();
+
   void OnDataTypeChanged(wxCommandEvent& event);
   void OnFindNext(wxCommandEvent& event);
   void OnFindPrevious(wxCommandEvent& event);
