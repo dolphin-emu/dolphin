@@ -122,16 +122,16 @@ CMemoryWindow::CMemoryWindow(wxWindow* parent, wxWindowID id, const wxPoint& pos
                                     wxDefaultSize, data_type_options, 1);
 
   wxStaticBoxSizer* const memcheck_options_sizer =
-      new wxStaticBoxSizer(wxVERTICAL, this, "Memory breakpoint options");
+      new wxStaticBoxSizer(wxVERTICAL, this, _("Memory breakpoint options"));
   memcheck_options_sizer->Add(m_read_write_radio_btn = new wxRadioButton(
-                                  this, IDM_MEMCHECK_OPTIONS_CHANGE, "Read and Write",
+                                  this, IDM_MEMCHECK_OPTIONS_CHANGE, _("Read and Write"),
                                   wxDefaultPosition, wxDefaultSize, wxRB_GROUP));
   memcheck_options_sizer->Add(
-      m_read_radio_btn = new wxRadioButton(this, IDM_MEMCHECK_OPTIONS_CHANGE, "Read only"));
+      m_read_radio_btn = new wxRadioButton(this, IDM_MEMCHECK_OPTIONS_CHANGE, _("Read only")));
   memcheck_options_sizer->Add(
-      m_write_radio_btn = new wxRadioButton(this, IDM_MEMCHECK_OPTIONS_CHANGE, "Write only"));
+      m_write_radio_btn = new wxRadioButton(this, IDM_MEMCHECK_OPTIONS_CHANGE, _("Write only")));
   memcheck_options_sizer->Add(m_log_checkbox =
-                                  new wxCheckBox(this, IDM_MEMCHECK_OPTIONS_CHANGE, "Log"));
+                                  new wxCheckBox(this, IDM_MEMCHECK_OPTIONS_CHANGE, _("Log")));
 
   wxBoxSizer* const right_sizer = new wxBoxSizer(wxVERTICAL);
   right_sizer->Add(search_sizer);
