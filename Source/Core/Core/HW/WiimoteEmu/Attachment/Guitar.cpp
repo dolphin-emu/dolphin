@@ -27,7 +27,7 @@ constexpr std::array<u16, 5> guitar_fret_bitmasks{{
 }};
 
 constexpr std::array<const char*, 5> guitar_fret_names{{
-    "Green", "Red", "Yellow", "Blue", "Orange",
+    _trans("Green"), _trans("Red"), _trans("Yellow"), _trans("Blue"), _trans("Orange"),
 }};
 
 constexpr std::array<u16, 2> guitar_button_bitmasks{{
@@ -47,11 +47,11 @@ Guitar::Guitar(ExtensionReg& reg) : Attachment(_trans("Guitar"), reg)
 
   // strum
   groups.emplace_back(m_strum = new ControllerEmu::Buttons(_trans("Strum")));
-  m_strum->controls.emplace_back(new ControllerEmu::Input("Up"));
-  m_strum->controls.emplace_back(new ControllerEmu::Input("Down"));
+  m_strum->controls.emplace_back(new ControllerEmu::Input(_trans("Up")));
+  m_strum->controls.emplace_back(new ControllerEmu::Input(_trans("Down")));
 
   // buttons
-  groups.emplace_back(m_buttons = new ControllerEmu::Buttons("Buttons"));
+  groups.emplace_back(m_buttons = new ControllerEmu::Buttons(_trans("Buttons")));
   m_buttons->controls.emplace_back(new ControllerEmu::Input("-"));
   m_buttons->controls.emplace_back(new ControllerEmu::Input("+"));
 

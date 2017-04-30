@@ -41,11 +41,11 @@ Drums::Drums(ExtensionReg& reg) : Attachment(_trans("Drums"), reg)
     m_pads->controls.emplace_back(new ControllerEmu::Input(drum_pad_name));
 
   // stick
-  groups.emplace_back(m_stick =
-                          new ControllerEmu::AnalogStick("Stick", DEFAULT_ATTACHMENT_STICK_RADIUS));
+  groups.emplace_back(
+      m_stick = new ControllerEmu::AnalogStick(_trans("Stick"), DEFAULT_ATTACHMENT_STICK_RADIUS));
 
   // buttons
-  groups.emplace_back(m_buttons = new ControllerEmu::Buttons("Buttons"));
+  groups.emplace_back(m_buttons = new ControllerEmu::Buttons(_trans("Buttons")));
   m_buttons->controls.emplace_back(new ControllerEmu::Input("-"));
   m_buttons->controls.emplace_back(new ControllerEmu::Input("+"));
 

@@ -255,7 +255,7 @@ Wiimote::Wiimote(const unsigned int index)
   // ---- set up all the controls ----
 
   // buttons
-  groups.emplace_back(m_buttons = new ControllerEmu::Buttons("Buttons"));
+  groups.emplace_back(m_buttons = new ControllerEmu::Buttons(_trans("Buttons")));
   for (auto& named_button : named_buttons)
     m_buttons->controls.emplace_back(new ControllerEmu::Input(named_button));
 
@@ -271,9 +271,12 @@ Wiimote::Wiimote(const unsigned int index)
 
   // shake
   groups.emplace_back(m_shake = new ControllerEmu::Buttons(_trans("Shake")));
-  m_shake->controls.emplace_back(new ControllerEmu::Input("X"));
-  m_shake->controls.emplace_back(new ControllerEmu::Input("Y"));
-  m_shake->controls.emplace_back(new ControllerEmu::Input("Z"));
+  // i18n: Refers to a 3D axis (used when mapping motion controls)
+  m_shake->controls.emplace_back(new ControllerEmu::Input(_trans("X")));
+  // i18n: Refers to a 3D axis (used when mapping motion controls)
+  m_shake->controls.emplace_back(new ControllerEmu::Input(_trans("Y")));
+  // i18n: Refers to a 3D axis (used when mapping motion controls)
+  m_shake->controls.emplace_back(new ControllerEmu::Input(_trans("Z")));
 
   // extension
   groups.emplace_back(m_extension = new ControllerEmu::Extension(_trans("Extension")));
@@ -292,7 +295,7 @@ Wiimote::Wiimote(const unsigned int index)
   m_rumble->controls.emplace_back(m_motor = new ControllerEmu::Output(_trans("Motor")));
 
   // dpad
-  groups.emplace_back(m_dpad = new ControllerEmu::Buttons("D-Pad"));
+  groups.emplace_back(m_dpad = new ControllerEmu::Buttons(_trans("D-Pad")));
   for (auto& named_direction : named_directions)
     m_dpad->controls.emplace_back(new ControllerEmu::Input(named_direction));
 
