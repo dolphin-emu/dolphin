@@ -23,6 +23,7 @@ enum ReturnCode : s32
   IPC_EACCES = -1,          // Permission denied
   IPC_EEXIST = -2,          // File exists
   IPC_EINVAL = -4,          // Invalid argument or fd
+  IPC_EMAX = -5,            // Too many file descriptors open
   IPC_ENOENT = -6,          // File not found
   IPC_EQUEUEFULL = -8,      // Queue full
   IPC_EIO = -12,            // ECC error
@@ -83,6 +84,7 @@ struct Request
 
 enum OpenMode : s32
 {
+  IOS_OPEN_NONE = 0,
   IOS_OPEN_READ = 1,
   IOS_OPEN_WRITE = 2,
   IOS_OPEN_RW = (IOS_OPEN_READ | IOS_OPEN_WRITE)
@@ -106,14 +108,15 @@ struct ReadWriteRequest final : Request
   explicit ReadWriteRequest(u32 address);
 };
 
+enum SeekMode : s32
+{
+  IOS_SEEK_SET = 0,
+  IOS_SEEK_CUR = 1,
+  IOS_SEEK_END = 2,
+};
+
 struct SeekRequest final : Request
 {
-  enum SeekMode
-  {
-    IOS_SEEK_SET = 0,
-    IOS_SEEK_CUR = 1,
-    IOS_SEEK_END = 2,
-  };
   u32 offset = 0;
   SeekMode mode = IOS_SEEK_SET;
   explicit SeekRequest(u32 address);
