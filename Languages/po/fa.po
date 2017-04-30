@@ -9,8 +9,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-04-22 11:05+0200\n"
-"PO-Revision-Date: 2017-04-22 09:05+0000\n"
+"POT-Creation-Date: 2017-04-30 10:15+0200\n"
+"PO-Revision-Date: 2017-04-30 08:15+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Persian (http://www.transifex.com/delroth/dolphin-emu/"
 "language/fa/)\n"
@@ -63,7 +63,7 @@ msgstr ""
 msgid "\"%s\" is already compressed! Cannot compress it further."
 msgstr ""
 
-#: Source/Core/Core/ConfigManager.cpp:939
+#: Source/Core/Core/ConfigManager.cpp:941
 #, c-format
 msgid "\"%s\" is an invalid GCM/ISO file, or is not a GC/Wii ISO."
 msgstr ""
@@ -133,12 +133,12 @@ msgid ""
 "Total Blocks: %d; Free Blocks: %d"
 msgstr ""
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:574
+#: Source/Core/DolphinWX/GameListCtrl.cpp:575
 #, c-format
 msgid "%s (Disc %i)"
 msgstr ""
 
-#: Source/Core/Core/Boot/Boot.cpp:223
+#: Source/Core/Core/Boot/Boot.cpp:229
 #, c-format
 msgid "%s IPL found in %s directory. The disc might not be recognized"
 msgstr ""
@@ -227,7 +227,7 @@ msgstr ""
 msgid "&& AND"
 msgstr "&& و"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:500
+#: Source/Core/DolphinWX/MainMenuBar.cpp:504
 msgid "&About"
 msgstr ""
 
@@ -239,7 +239,7 @@ msgstr ""
 msgid "&Add function"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:422
+#: Source/Core/DolphinWX/MainMenuBar.cpp:426
 msgid "&Address"
 msgstr ""
 
@@ -255,19 +255,19 @@ msgstr ""
 msgid "&Boot from DVD Backup"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:310
+#: Source/Core/DolphinWX/MainMenuBar.cpp:314
 msgid "&Breakpoints"
 msgstr "&نقاط انفصال"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:218
+#: Source/Core/DolphinWX/MainMenuBar.cpp:219
 msgid "&Cheat Manager"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:356
+#: Source/Core/DolphinWX/MainMenuBar.cpp:360
 msgid "&Clear JIT Cache"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:419
+#: Source/Core/DolphinWX/MainMenuBar.cpp:423
 msgid "&Clear Symbols"
 msgstr ""
 
@@ -275,7 +275,7 @@ msgstr ""
 msgid "&Controller Settings"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:459
+#: Source/Core/DolphinWX/MainMenuBar.cpp:463
 msgid "&Create Signature File..."
 msgstr ""
 
@@ -283,11 +283,11 @@ msgstr ""
 msgid "&Debug"
 msgstr ""
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1010
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1032
 msgid "&Delete File..."
 msgstr ""
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1039
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1067
 msgid "&Delete selected ISOs..."
 msgstr "&حذف آیزو های انتخاب شده..."
 
@@ -297,7 +297,7 @@ msgstr "&حذف آیزو های انتخاب شده..."
 msgid "&Delete watch"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:352
+#: Source/Core/DolphinWX/MainMenuBar.cpp:356
 msgid "&Disable JIT Cache"
 msgstr ""
 
@@ -326,11 +326,11 @@ msgstr ""
 msgid "&Frame Advance"
 msgstr "&پيشروى فریم"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:430
+#: Source/Core/DolphinWX/MainMenuBar.cpp:434
 msgid "&Generate Symbols From"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:498
+#: Source/Core/DolphinWX/MainMenuBar.cpp:502
 msgid "&GitHub Repository"
 msgstr ""
 
@@ -346,60 +346,60 @@ msgstr "&کمک"
 msgid "&Hotkey Settings"
 msgstr "تنظیم &شرت کاتها"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:341
+#: Source/Core/DolphinWX/MainMenuBar.cpp:345
 msgid "&Interpreter Core"
 msgstr ""
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:52
-#: Source/Core/DolphinWX/MainMenuBar.cpp:312
+#: Source/Core/DolphinWX/MainMenuBar.cpp:316
 msgid "&JIT"
 msgstr "&جیت"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:348
+#: Source/Core/DolphinWX/MainMenuBar.cpp:352
 msgid "&JIT Block Linking Off"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:372
+#: Source/Core/DolphinWX/MainMenuBar.cpp:376
 msgid "&JIT FloatingPoint Off"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:373
+#: Source/Core/DolphinWX/MainMenuBar.cpp:377
 msgid "&JIT Integer Off"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:370
+#: Source/Core/DolphinWX/MainMenuBar.cpp:374
 msgid "&JIT LoadStore Floating Off"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:366
+#: Source/Core/DolphinWX/MainMenuBar.cpp:370
 msgid "&JIT LoadStore Off"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:371
+#: Source/Core/DolphinWX/MainMenuBar.cpp:375
 msgid "&JIT LoadStore Paired Off"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:368
+#: Source/Core/DolphinWX/MainMenuBar.cpp:372
 msgid "&JIT LoadStore lXz Off"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:367
+#: Source/Core/DolphinWX/MainMenuBar.cpp:371
 msgid "&JIT LoadStore lbzx Off"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:369
+#: Source/Core/DolphinWX/MainMenuBar.cpp:373
 msgid "&JIT LoadStore lwz Off"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:363
+#: Source/Core/DolphinWX/MainMenuBar.cpp:367
 msgid "&JIT Off (JIT Core)"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:374
+#: Source/Core/DolphinWX/MainMenuBar.cpp:378
 msgid "&JIT Paired Off"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:375
+#: Source/Core/DolphinWX/MainMenuBar.cpp:379
 msgid "&JIT SystemRegisters Off"
 msgstr ""
 
@@ -407,15 +407,15 @@ msgstr ""
 msgid "&Load State"
 msgstr "&بارگذاری وضعیت"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:432
+#: Source/Core/DolphinWX/MainMenuBar.cpp:436
 msgid "&Load Symbol Map"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:358
+#: Source/Core/DolphinWX/MainMenuBar.cpp:362
 msgid "&Log JIT Instruction Coverage"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:311
+#: Source/Core/DolphinWX/MainMenuBar.cpp:315
 msgid "&Memory"
 msgstr "&حافظه"
 
@@ -435,20 +435,20 @@ msgstr "&باز کردن..."
 msgid "&Options"
 msgstr "&گزینه ها"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:476
+#: Source/Core/DolphinWX/MainMenuBar.cpp:480
 msgid "&Patch HLE Functions"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:529
+#: Source/Core/DolphinWX/MainMenuBar.cpp:533
 msgid "&Pause"
 msgstr "مکث"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:531
+#: Source/Core/DolphinWX/MainMenuBar.cpp:535
 msgid "&Play"
 msgstr "&شروع بازی"
 
 #. i18n: "Profile" is used as a verb, not a noun.
-#: Source/Core/DolphinWX/MainMenuBar.cpp:486
+#: Source/Core/DolphinWX/MainMenuBar.cpp:490
 msgid "&Profile Blocks"
 msgstr ""
 
@@ -456,11 +456,11 @@ msgstr ""
 msgid "&Profiler"
 msgstr ""
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:982
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1004
 msgid "&Properties"
 msgstr "خواص"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:428
+#: Source/Core/DolphinWX/MainMenuBar.cpp:432
 msgid "&RSO Modules"
 msgstr ""
 
@@ -476,7 +476,7 @@ msgstr ""
 msgid "&Refresh Game List"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:306
+#: Source/Core/DolphinWX/MainMenuBar.cpp:310
 msgid "&Registers"
 msgstr "ثبت کردن"
 
@@ -484,7 +484,7 @@ msgstr "ثبت کردن"
 msgid "&Remove Code"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:477
+#: Source/Core/DolphinWX/MainMenuBar.cpp:481
 msgid "&Rename Symbols from File..."
 msgstr ""
 
@@ -496,19 +496,19 @@ msgstr "شروع &دوباره"
 msgid "&Run To Here"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:435
+#: Source/Core/DolphinWX/MainMenuBar.cpp:439
 msgid "&Save Symbol Map"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:359
+#: Source/Core/DolphinWX/MainMenuBar.cpp:363
 msgid "&Search for an Instruction"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:425
+#: Source/Core/DolphinWX/MainMenuBar.cpp:429
 msgid "&Signature Database"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:313
+#: Source/Core/DolphinWX/MainMenuBar.cpp:317
 msgid "&Sound"
 msgstr "&صدا"
 
@@ -524,7 +524,7 @@ msgstr ""
 msgid "&Tools"
 msgstr "&ابزارها"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:314
+#: Source/Core/DolphinWX/MainMenuBar.cpp:318
 msgid "&Video"
 msgstr "&ویدیو"
 
@@ -534,19 +534,19 @@ msgstr "&دیدگاه"
 
 #. i18n: This kind of "watch" is used for watching emulated memory.
 #. It's not related to timekeeping devices.
-#: Source/Core/DolphinWX/MainMenuBar.cpp:309
+#: Source/Core/DolphinWX/MainMenuBar.cpp:313
 msgid "&Watch"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:496
+#: Source/Core/DolphinWX/MainMenuBar.cpp:500
 msgid "&Website"
 msgstr ""
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:983
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1005
 msgid "&Wiki"
 msgstr "&ویکی"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:488
+#: Source/Core/DolphinWX/MainMenuBar.cpp:492
 msgid "&Write to profile.txt, Show"
 msgstr ""
 
@@ -556,7 +556,7 @@ msgid ""
 "Nintendo. Dolphin is not affiliated with Nintendo in any way."
 msgstr ""
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:1263
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:1264
 msgid "(off)"
 msgstr "(خاموش)"
 
@@ -674,7 +674,7 @@ msgstr ""
 msgid "A game is not currently running."
 msgstr "بازی در حال حاضر اجرا نشده است."
 
-#: Source/Core/DolphinWX/FrameTools.cpp:829
+#: Source/Core/DolphinWX/FrameTools.cpp:832
 msgid ""
 "A shutdown is already in progress. Unsaved data may be lost if you stop the "
 "current emulation before it completes. Force stop?"
@@ -828,7 +828,6 @@ msgstr "آداپتور:"
 
 #: Source/Core/DolphinWX/Config/AddUSBDeviceDiag.cpp:33
 #: Source/Core/DolphinWX/PatchAddEdit.cpp:84
-#: Source/Core/DolphinWX/WXInputBase.cpp:112
 msgid "Add"
 msgstr "اضافه کردن"
 
@@ -840,7 +839,7 @@ msgstr "اضافه کردن کد اکشن ریپلی"
 msgid "Add Breakpoint"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:400
+#: Source/Core/DolphinWX/MainMenuBar.cpp:404
 msgid "Add New Pane To"
 msgstr ""
 
@@ -861,7 +860,7 @@ msgstr ""
 msgid "Add a Memory Breakpoint"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:462
+#: Source/Core/DolphinWX/MainMenuBar.cpp:466
 msgid ""
 "Add any named functions missing from a .dsy file, so that these additional "
 "functions can also be recognized in other games."
@@ -879,7 +878,7 @@ msgid "Add to &watch"
 msgstr ""
 
 #: Source/Core/DolphinWX/Config/PathConfigPane.cpp:38
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:60
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:74
 #: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:394
 msgid "Add..."
 msgstr "اضافه کردن..."
@@ -892,7 +891,7 @@ msgstr "اضافه کردن..."
 msgid "Address"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:369
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:387
 msgid "Address Out of Range"
 msgstr ""
 
@@ -915,24 +914,24 @@ msgid "Advanced Settings"
 msgstr "تنظیمات پیشرفته"
 
 #: Source/Core/DolphinWX/Config/PathConfigPane.cpp:44
-#: Source/Core/DolphinWX/FrameTools.cpp:337
+#: Source/Core/DolphinWX/FrameTools.cpp:338
 msgid "All GC/Wii files (elf, dol, gcm, iso, tgc, wbfs, ciso, gcz, wad)"
 msgstr ""
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1355
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1383
 msgid "All GameCube GCM files (gcm)"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1325
-#: Source/Core/DolphinWX/FrameTools.cpp:1337
+#: Source/Core/DolphinWX/FrameTools.cpp:1355
+#: Source/Core/DolphinWX/FrameTools.cpp:1367
 msgid "All Save States (sav, s##)"
 msgstr "همه وضعیت های ذخیره (sav, s##)"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1353
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1381
 msgid "All Wii ISO files (iso)"
 msgstr "همه فایل های آیزو وی (iso)"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1368
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1396
 msgid "All compressed GC/Wii ISO files (gcz)"
 msgstr "همه فایل های آیزو فشرده شده گیم کیوب/وی (gcz)"
 
@@ -975,7 +974,7 @@ msgstr "آنتی آلیاسینگ:"
 msgid "Append signature to"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:461
+#: Source/Core/DolphinWX/MainMenuBar.cpp:465
 msgid "Append to &Existing Signature File..."
 msgstr ""
 
@@ -995,7 +994,7 @@ msgstr "بارگذار برنامه ناتوان در بارگذاری از فا
 msgid "Apploader:"
 msgstr "بار گذار برنامه:"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:472
+#: Source/Core/DolphinWX/MainMenuBar.cpp:476
 msgid "Apply &MEGA Signature File..."
 msgstr ""
 
@@ -1003,7 +1002,7 @@ msgstr ""
 msgid "Apply MEGA signature file"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:468
+#: Source/Core/DolphinWX/MainMenuBar.cpp:472
 msgid "Apply Signat&ure File..."
 msgstr ""
 
@@ -1027,11 +1026,11 @@ msgstr ""
 msgid "Are you sure you want to delete \"%s\"?"
 msgstr "آیا شما مطمئن هستید که میخواهید \"%s\" را حذف کنید؟"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1149
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1177
 msgid "Are you sure you want to delete these files? They will be gone forever!"
 msgstr ""
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1148
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1176
 msgid "Are you sure you want to delete this file? It will be gone forever!"
 msgstr ""
 
@@ -1039,7 +1038,7 @@ msgstr ""
 msgid "Are you trying to use the same file in both slots?"
 msgstr ""
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:82
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:96
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:450
 msgid "Aspect Ratio:"
 msgstr "نسبت طول به عرض تصویر:"
@@ -1056,11 +1055,11 @@ msgstr "حداقل یک قطه می بایست باز بماند."
 msgid "Audio"
 msgstr "صدا"
 
-#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:79
+#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:73
 msgid "Audio Backend:"
 msgstr "پشتوانه صدا:"
 
-#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:116
+#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:110
 msgid "Audio Stretching Settings"
 msgstr ""
 
@@ -1108,7 +1107,7 @@ msgid ""
 "you are developing a homebrew game.]"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:353
+#: Source/Core/DolphinWX/MainMenuBar.cpp:357
 msgid ""
 "Avoid any involuntary JIT cache clearing, this may prevent Zelda TP from "
 "crashing.\n"
@@ -1128,11 +1127,7 @@ msgstr ""
 msgid "BP register "
 msgstr "ثبت اشاره گر پایه"
 
-#: Source/Core/DolphinWX/WXInputBase.cpp:19
-msgid "Back"
-msgstr "برگشت"
-
-#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:91
+#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:85
 msgid "Backend Settings"
 msgstr "تنظیمات پشتوانه"
 
@@ -1151,7 +1146,7 @@ msgid "Backward"
 msgstr "به عقب"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:426
-#: Source/Core/DolphinWX/MainMenuBar.cpp:279
+#: Source/Core/DolphinWX/MainMenuBar.cpp:281
 #: Source/Core/DolphinWX/MemcardManager.cpp:626
 msgid "Banner"
 msgstr "نشان"
@@ -1180,7 +1175,7 @@ msgstr "تنظیمات بنیانی"
 msgid "Bass"
 msgstr "بم"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:310
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:312
 msgid "Battery"
 msgstr ""
 
@@ -1220,7 +1215,7 @@ msgstr ""
 msgid "Boot to Pause"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1238
+#: Source/Core/DolphinWX/FrameTools.cpp:1268
 msgid "BootMii NAND backup file (*.bin)"
 msgstr ""
 
@@ -1228,8 +1223,8 @@ msgstr ""
 msgid "Borderless Fullscreen"
 msgstr ""
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:47
-#: Source/Core/DolphinWX/MainMenuBar.cpp:386
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:62
+#: Source/Core/DolphinWX/MainMenuBar.cpp:390
 msgid "Bottom"
 msgstr "پائین"
 
@@ -1275,7 +1270,7 @@ msgstr "خراب"
 msgid "Browse for a directory to add"
 msgstr "مرور برای پوشه جهت اضافه کردن"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1256
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1284
 msgid "Browse for output directory"
 msgstr "مرور برای پوشه خروجی"
 
@@ -1362,15 +1357,11 @@ msgstr ""
 msgid "Can't find Wii Remote by connection handle %02x"
 msgstr ""
 
-#: Source/Core/DolphinWX/WXInputBase.cpp:44
-msgid "Cancel"
-msgstr "لغو کردن"
-
 #: Source/Core/Core/FifoPlayer/FifoPlayer.cpp:96
 msgid "Cannot SingleStep the FIFO. Use Frame Advance instead."
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:168
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:172
 msgid "Cannot set uninitialized memory."
 msgstr ""
 
@@ -1382,16 +1373,12 @@ msgid ""
 "is not a valid GameCube memory card file"
 msgstr ""
 
-#: Source/Core/DolphinWX/WXInputBase.cpp:64
-msgid "Caps Lock"
-msgstr "کپس لاک"
-
-#: Source/Core/DolphinWX/MainMenuBar.cpp:389
+#: Source/Core/DolphinWX/MainMenuBar.cpp:393
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:34
 msgid "Center"
 msgstr "مرکز"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1019
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1041
 msgid "Change &Disc"
 msgstr ""
 
@@ -1403,7 +1390,7 @@ msgstr "تعویض &دیسک..."
 msgid "Change Disc"
 msgstr "تعویض دیسک"
 
-#: Source/Core/Core/Movie.cpp:1274
+#: Source/Core/Core/Movie.cpp:1275
 #, c-format
 msgid "Change the disc to %s"
 msgstr ""
@@ -1518,25 +1505,22 @@ msgstr ""
 #: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:750
 #: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1215
 #: Source/Core/DolphinWX/LogWindow.cpp:132
-#: Source/Core/DolphinWX/WXInputBase.cpp:48
 msgid "Clear"
 msgstr "پاک کردن"
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:125
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:116
 msgid "Clear Pixel Shaders"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:108
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:109
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:102
 msgid "Clear Screen"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:113
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:114
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:105
 msgid "Clear Textures"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:118
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:109
 msgid "Clear Vertex Shaders"
 msgstr ""
 
@@ -1573,32 +1557,28 @@ msgstr ""
 msgid "Code: "
 msgstr "کد:"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:464
+#: Source/Core/DolphinWX/MainMenuBar.cpp:468
 msgid "Combine Two Signature Files..."
 msgstr ""
-
-#: Source/Core/DolphinWX/WXInputBase.cpp:57
-msgid "Command"
-msgstr "دستور"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:628
 msgid "Comment"
 msgstr "توضیح"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1017
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1039
 msgid "Compress ISO..."
 msgstr "فشرده کردن آیزو..."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1041
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1069
 msgid "Compress selected ISOs..."
 msgstr "فشرده کردن آیزو های انتخاب شده..."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1265
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1383
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1293
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1411
 msgid "Compressing ISO"
 msgstr "در حال فشرده کردن آیزو"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1470
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1517
 msgid ""
 "Compressing a Wii disc image will irreversibly change the compressed copy by "
 "removing padding data. Your disc image will still work. Continue?"
@@ -1650,9 +1630,9 @@ msgstr ""
 msgid "Configure..."
 msgstr "پیکربندی..."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1288
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1313
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1378
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1316
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1341
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1406
 msgid "Confirm File Overwrite"
 msgstr "تائید بازنویسی فایل"
 
@@ -1670,7 +1650,7 @@ msgstr "اتصال"
 msgid "Connect Balance Board"
 msgstr ""
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:57
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:71
 msgid "Connect USB Keyboard"
 msgstr "اتصال کیبورد USB"
 
@@ -1695,7 +1675,7 @@ msgstr ""
 msgid "Connect Wii Remote 4"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:226
+#: Source/Core/DolphinWX/MainMenuBar.cpp:228
 msgid "Connect Wii Remotes"
 msgstr ""
 
@@ -1707,18 +1687,13 @@ msgstr "در حال اتصال..."
 msgid "Connection Type:"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:85
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:86
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:82
 msgid "Continue"
 msgstr ""
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:348
 msgid "Continuous Scanning"
 msgstr ""
-
-#: Source/Core/DolphinWX/WXInputBase.cpp:54
-msgid "Control"
-msgstr "کنترل"
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:57
 msgid "Control Stick"
@@ -1788,7 +1763,7 @@ msgstr ""
 msgid "Copy &hex"
 msgstr ""
 
-#: Source/Core/Core/ConfigManager.cpp:1093
+#: Source/Core/Core/ConfigManager.cpp:1095
 msgid "Copy failed"
 msgstr "کپی با شکست مواجه شد"
 
@@ -1806,20 +1781,20 @@ msgstr "هسته"
 msgid "Cost"
 msgstr ""
 
-#: Source/Core/Core/IOS/ES/ES.cpp:201
+#: Source/Core/Core/IOS/ES/ES.cpp:238
 msgid ""
 "Could not launch the Wii Menu because it is missing from the NAND.\n"
 "The emulated software will likely hang now."
 msgstr ""
 
-#: Source/Core/Core/IOS/ES/ES.cpp:206
+#: Source/Core/Core/IOS/ES/ES.cpp:243
 #, c-format
 msgid ""
 "Could not launch title %016<PRIx64> because it is missing from the NAND.\n"
 "The emulated software will likely hang now."
 msgstr ""
 
-#: Source/Core/Core/ConfigManager.cpp:933
+#: Source/Core/Core/ConfigManager.cpp:935
 #, c-format
 msgid ""
 "Could not read \"%s\". There is no disc in the drive or it is not a GameCube/"
@@ -1827,7 +1802,7 @@ msgid ""
 "original GameCube and Wii discs."
 msgstr ""
 
-#: Source/Core/Core/ConfigManager.cpp:1008
+#: Source/Core/Core/ConfigManager.cpp:1010
 #, c-format
 msgid "Could not recognize ISO file %s"
 msgstr "قادر به تشخیص فایل آیزو %s نبود"
@@ -1879,7 +1854,7 @@ msgstr ""
 msgid "Couldn't look up central server"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:90
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:86
 msgid "Count"
 msgstr ""
 
@@ -1901,11 +1876,11 @@ msgstr "کشور:"
 msgid "Create AR Code"
 msgstr "ساخت کد اکشن ریپلی"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:397
+#: Source/Core/DolphinWX/MainMenuBar.cpp:401
 msgid "Create New Perspective"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:460
+#: Source/Core/DolphinWX/MainMenuBar.cpp:464
 msgid ""
 "Create a .dsy file that can be used to recognise these same functions in "
 "other games."
@@ -1948,7 +1923,7 @@ msgstr ""
 msgid "Crossfade"
 msgstr "ضرب دری"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:350
+#: Source/Core/DolphinWX/FrameTools.cpp:351
 #, c-format
 msgid "Current directory changed from %s to %s after wxFileSelector!"
 msgstr ""
@@ -2006,7 +1981,7 @@ msgstr ""
 msgid "Data Size"
 msgstr "اندازه داده"
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:116
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:120
 msgid "Data Type"
 msgstr ""
 
@@ -2032,27 +2007,26 @@ msgstr "اشکال زدائی"
 msgid "Debug Only"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:175
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:166
 #: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:116
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:864
 msgid "Debugging"
 msgstr "اشکال زدائی کردن"
 
 #: Source/Core/DolphinWX/Debugger/WatchView.cpp:88
-#: Source/Core/DolphinWX/WXInputBase.cpp:118
 msgid "Decimal"
 msgstr "دسیمال"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1015
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1037
 msgid "Decompress ISO..."
 msgstr "ناهمفشرده کردن آیزو..."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1042
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1070
 msgid "Decompress selected ISOs..."
 msgstr "ناهمفشرده کردن آیزو های انتخاب شده..."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1265
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1383
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1293
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1411
 msgid "Decompressing ISO"
 msgstr "در حال ناهمفشرده کردن آیزو"
 
@@ -2087,7 +2061,6 @@ msgstr "دست خط پیش فرز"
 
 #: Source/Core/DolphinWX/Debugger/BreakpointWindow.cpp:48
 #: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1238
-#: Source/Core/DolphinWX/WXInputBase.cpp:29
 msgid "Delete"
 msgstr "حذف"
 
@@ -2152,7 +2125,7 @@ msgstr ""
 msgid "Dial"
 msgstr "شماره گیری"
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:70
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:84
 msgid "Dims the screen after five minutes of inactivity."
 msgstr ""
 
@@ -2172,7 +2145,7 @@ msgstr "از کارانداختن"
 msgid "Disable Bounding Box"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:402
+#: Source/Core/DolphinWX/MainMenuBar.cpp:406
 msgid "Disable Docking"
 msgstr ""
 
@@ -2199,7 +2172,7 @@ msgstr ""
 "\n"
 "اگر در این مورد اطمینان ندارید، این گزینه را رها کنید."
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:403
+#: Source/Core/DolphinWX/MainMenuBar.cpp:407
 msgid "Disable docking of perspective panes to main window"
 msgstr ""
 
@@ -2234,15 +2207,11 @@ msgid ""
 "information, and JIT cache clearing."
 msgstr ""
 
-#: Source/Core/DolphinWX/WXInputBase.cpp:120
-msgid "Divide"
-msgstr "تقسیم"
-
 #: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:180
 msgid "Do you want to clear the list of symbol names?"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:828
+#: Source/Core/DolphinWX/FrameTools.cpp:831
 msgid "Do you want to stop the current emulation?"
 msgstr "آیا می خواهید برابرسازی فعلی را متوقف کنید؟"
 
@@ -2251,7 +2220,7 @@ msgid "Dolby Pro Logic II decoder"
 msgstr "کدبردار دالبی پرو لاجیک دو"
 
 #: Source/Core/DolphinWX/AboutDolphin.cpp:26
-#: Source/Core/DolphinWX/FrameTools.cpp:669
+#: Source/Core/DolphinWX/FrameTools.cpp:671
 msgid "Dolphin"
 msgstr "دلفین"
 
@@ -2278,7 +2247,7 @@ msgstr ""
 msgid "Dolphin FIFO"
 msgstr "دلفین فیفو"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1037
+#: Source/Core/DolphinWX/FrameTools.cpp:1042
 msgid "Dolphin Hotkeys"
 msgstr ""
 
@@ -2308,18 +2277,18 @@ msgstr ""
 msgid "Dolphin Symbol Rename File (*.sym)"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:484
-#: Source/Core/DolphinWX/FrameTools.cpp:972
+#: Source/Core/DolphinWX/FrameTools.cpp:485
+#: Source/Core/DolphinWX/FrameTools.cpp:977
 msgid "Dolphin TAS Movies (*.dtm)"
 msgstr "فیلم های تاس دلفین (*.dtm)"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:501
+#: Source/Core/DolphinWX/GameListCtrl.cpp:502
 msgid ""
 "Dolphin could not find any GameCube/Wii ISOs or WADs. Double-click here to "
 "set a games directory..."
 msgstr ""
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:497
+#: Source/Core/DolphinWX/GameListCtrl.cpp:498
 msgid ""
 "Dolphin is currently set to hide all games. Double-click here to show all "
 "games..."
@@ -2329,8 +2298,8 @@ msgstr ""
 msgid "Dolphin is too old for traversal server"
 msgstr ""
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1325
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1398
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1353
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1426
 msgid "Dolphin was unable to complete the requested action."
 msgstr "دلفین نتوانست عمل خواسته شده را تکمیل کند."
 
@@ -2344,7 +2313,6 @@ msgstr ""
 
 #: Source/Core/DolphinWX/TASInputDlg.cpp:97
 #: Source/Core/DolphinWX/TASInputDlg.cpp:249
-#: Source/Core/DolphinWX/WXInputBase.cpp:76
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:23
 msgid "Down"
 msgstr "پائین"
@@ -2378,8 +2346,7 @@ msgstr ""
 msgid "Dummy"
 msgstr "مصنوعی"
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:100
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:101
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:96
 msgid "Dump"
 msgstr ""
 
@@ -2391,11 +2358,11 @@ msgstr "نسخه برداری صدا"
 msgid "Dump EFB Target"
 msgstr "نسخه برداری مقصد ای اف بی"
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:96
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:98
 msgid "Dump EXRAM"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:98
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:100
 msgid "Dump FakeVMEM"
 msgstr ""
 
@@ -2403,7 +2370,7 @@ msgstr ""
 msgid "Dump Frames"
 msgstr "نسخه برداری فریم ها"
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:95
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:97
 msgid "Dump MRAM"
 msgstr ""
 
@@ -2447,7 +2414,7 @@ msgid "Duplicate Bundled ActionReplay Code"
 msgstr ""
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:58
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:42
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:56
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:66
 msgid "Dutch"
 msgstr "هلندی"
@@ -2489,8 +2456,8 @@ msgstr "ویرایش پیکربندی"
 msgid "Edit Patch"
 msgstr "ویرایش وصله"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:394
-#: Source/Core/DolphinWX/MainMenuBar.cpp:411
+#: Source/Core/DolphinWX/MainMenuBar.cpp:398
+#: Source/Core/DolphinWX/MainMenuBar.cpp:415
 msgid "Edit Perspectives"
 msgstr ""
 
@@ -2615,7 +2582,7 @@ msgstr ""
 msgid "Enable Progressive Scan"
 msgstr "فعال کردن پويش تصاعدی (Progressive Scan)"
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:51
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:65
 msgid "Enable Screen Saver"
 msgstr "فعال کردن اسکیرین سیور"
 
@@ -2763,7 +2730,6 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:31
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:145
-#: Source/Core/DolphinWX/WXInputBase.cpp:66
 msgid "End"
 msgstr "پایان"
 
@@ -2772,7 +2738,7 @@ msgid "Enet Didn't Initialize"
 msgstr ""
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:53
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:37
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:51
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:51
 msgid "English"
 msgstr "انگلیسی"
@@ -2847,10 +2813,6 @@ msgid ""
 "may not show fonts correctly, or crash."
 msgstr ""
 
-#: Source/Core/DolphinWX/WXInputBase.cpp:25
-msgid "Escape"
-msgstr "گریختن"
-
 #: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:33
 msgid "Euphoria"
 msgstr "خوشی"
@@ -2858,10 +2820,6 @@ msgstr "خوشی"
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:94
 msgid "Europe"
 msgstr ""
-
-#: Source/Core/DolphinWX/WXInputBase.cpp:82
-msgid "Execute"
-msgstr "اجرا کردن"
 
 #: Source/Core/Core/HotkeyManager.cpp:31
 msgid "Exit"
@@ -2883,7 +2841,7 @@ msgstr "صادر کردن ضبط..."
 msgid "Export Save"
 msgstr "صادر کردن ذخیره"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:991
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1013
 msgid "Export Wii save (Experimental)"
 msgstr "صادر کردن فایل ذخیره وی (آزمایشی)"
 
@@ -2900,7 +2858,7 @@ msgstr ""
 msgid "Export save as..."
 msgstr "صادر کردن ذخیره بعنوان..."
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:277
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:279
 msgid "Extension"
 msgstr "پسوند"
 
@@ -2916,7 +2874,7 @@ msgstr "استخراج همه فایل ها..."
 msgid "Extract Apploader..."
 msgstr "استخراج بارگذار برنامه..."
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:223
+#: Source/Core/DolphinWX/MainMenuBar.cpp:226
 msgid "Extract Certificates from NAND"
 msgstr ""
 
@@ -2958,7 +2916,7 @@ msgid "Extracting..."
 msgstr "استخراج کردن..."
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:48
-#: Source/Core/DolphinWX/MainMenuBar.cpp:224
+#: Source/Core/DolphinWX/MainMenuBar.cpp:221
 msgid "FIFO Player"
 msgstr "پخش کننده فیفو"
 
@@ -3038,7 +2996,7 @@ msgid ""
 "media can be written."
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:1014
+#: Source/Core/Core/Movie.cpp:1015
 #, c-format
 msgid "Failed to read %s"
 msgstr "خواندن %s با شکست مواجه شد"
@@ -3100,6 +3058,10 @@ msgstr ""
 msgid "Failed to read unique ID from disc image"
 msgstr "خواندن آی دی یگانه از ایمیج دیسک با شکست مواجه شد"
 
+#: Source/Core/DolphinWX/FrameTools.cpp:1250
+msgid "Failed to remove this title from the NAND."
+msgstr ""
+
 #: Source/Core/Core/IOS/USB/Bluetooth/BTEmu.cpp:87
 msgid "Failed to write BT.DINF to SYSCONF"
 msgstr "نوشتن BT.DINF به SYSCONF با شکست مواجه شد"
@@ -3120,7 +3082,7 @@ msgstr "سریع"
 msgid "Fast Depth Calculation"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:1306
+#: Source/Core/Core/Movie.cpp:1307
 #, c-format
 msgid ""
 "Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s"
@@ -3135,11 +3097,11 @@ msgstr ""
 msgid "File Info"
 msgstr "مشخصات فایل"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:283
+#: Source/Core/DolphinWX/MainMenuBar.cpp:287
 msgid "File Name"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:289
+#: Source/Core/DolphinWX/MainMenuBar.cpp:293
 msgid "File Size"
 msgstr ""
 
@@ -3210,15 +3172,17 @@ msgstr ""
 msgid "Filter the symbol list by name. This is case-sensitive."
 msgstr ""
 
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:103
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:234
 msgid "Find Next"
 msgstr ""
 
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:105
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:235
 msgid "Find Previous"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:429
+#: Source/Core/DolphinWX/MainMenuBar.cpp:433
 msgid "Find functions based on RSO modules (experimental)..."
 msgstr ""
 
@@ -3238,7 +3202,7 @@ msgstr "درست کردن چک سام ها"
 msgid "Flags"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:161
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:152
 msgid "Flow Control"
 msgstr ""
 
@@ -3358,7 +3322,7 @@ msgstr ""
 msgid "Frame Advance Reset Speed"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:138
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:129
 msgid "Frame Buffer"
 msgstr ""
 
@@ -3440,7 +3404,7 @@ msgid "Freelook Zoom Out"
 msgstr ""
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:55
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:39
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:53
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:57
 msgid "French"
 msgstr "فرانسوی"
@@ -3532,7 +3496,7 @@ msgstr ""
 msgid "Game Boy Advance Carts (*.gba)"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:285
+#: Source/Core/DolphinWX/MainMenuBar.cpp:289
 msgid "Game ID"
 msgstr ""
 
@@ -3620,12 +3584,12 @@ msgstr ""
 msgid "Generate a New Statistics Identity"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:139
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:130
 msgid "Geometry data"
 msgstr ""
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:54
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:38
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:52
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:54
 msgid "German"
 msgstr "آلمانی"
@@ -3634,7 +3598,7 @@ msgstr "آلمانی"
 msgid "Germany"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:81
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:79
 msgid "Go to Next Frame"
 msgstr ""
 
@@ -3716,12 +3680,8 @@ msgstr "چک کردن سر خط برای یافتن خطا با شکست موا�
 msgid "Height"
 msgstr "ارتفاع"
 
-#: Source/Core/DolphinWX/WXInputBase.cpp:88
-msgid "Help"
-msgstr "کمک"
-
 #: Source/Core/DolphinWX/Debugger/MemoryView.cpp:324
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:104
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:108
 msgid "Hex"
 msgstr ""
 
@@ -3757,7 +3717,6 @@ msgstr ""
 
 #: Source/Core/DolphinWX/TASInputDlg.cpp:151
 #: Source/Core/DolphinWX/TASInputDlg.cpp:251
-#: Source/Core/DolphinWX/WXInputBase.cpp:68
 msgid "Home"
 msgstr "خانه"
 
@@ -3776,12 +3735,12 @@ msgid ""
 "Please recheck that you have the correct code"
 msgstr ""
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1031
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1059
 msgid "Host with Netplay"
 msgstr ""
 
 #: Source/Core/Core/HotkeyManager.cpp:164
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:313
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:315
 msgid "Hotkeys"
 msgstr "شرت کاتها"
 
@@ -3817,19 +3776,19 @@ msgstr ""
 msgid "IPL Settings"
 msgstr "تنظیمات آی پی ال"
 
-#: Source/Core/Core/Boot/Boot.cpp:216
+#: Source/Core/Core/Boot/Boot.cpp:222
 #, c-format
 msgid "IPL with unknown hash %x"
 msgstr ""
 
 #. i18n: IR stands for infrared and refers to the pointer functionality of Wii Remotes
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:262
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:264
 #: Source/Core/DolphinWX/TASInputDlg.cpp:135
 msgid "IR"
 msgstr "فروسرخ"
 
 #. i18n: IR stands for infrared and refers to the pointer functionality of Wii Remotes
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:117
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:131
 msgid "IR Sensitivity:"
 msgstr "میزان حساسیت فروسرخ"
 
@@ -3899,7 +3858,7 @@ msgid ""
 "If unsure, leave this unchecked."
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:222
+#: Source/Core/DolphinWX/MainMenuBar.cpp:225
 msgid "Import BootMii NAND Backup..."
 msgstr ""
 
@@ -3931,7 +3890,7 @@ msgid ""
 "but does not have a correct header."
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1244
+#: Source/Core/DolphinWX/FrameTools.cpp:1274
 msgid "Importing NAND backup"
 msgstr ""
 
@@ -3969,10 +3928,6 @@ msgstr "مشخصات"
 msgid "Input"
 msgstr "ورودی"
 
-#: Source/Core/DolphinWX/WXInputBase.cpp:86
-msgid "Insert"
-msgstr "درج"
-
 #: Source/Core/DolphinWX/Debugger/CodeView.cpp:373
 msgid "Insert &blr"
 msgstr ""
@@ -3981,19 +3936,19 @@ msgstr ""
 msgid "Insert &nop"
 msgstr ""
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:56
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:70
 msgid "Insert SD Card"
 msgstr "درج کارت اس دی"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:220
+#: Source/Core/DolphinWX/MainMenuBar.cpp:223
 msgid "Install WAD..."
 msgstr ""
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1026
-msgid "Install to Wii Menu"
-msgstr "نصب به فهرست انتخاب وی"
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1048
+msgid "Install to the NAND"
+msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1217
+#: Source/Core/DolphinWX/FrameTools.cpp:1222
 msgid "Installing WAD..."
 msgstr "در حال نصب واد..."
 
@@ -4065,7 +4020,7 @@ msgstr "صفحه نخست"
 msgid "Invalid Mixed Code"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:179
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:183
 #, c-format
 msgid "Invalid address: %s"
 msgstr ""
@@ -4082,7 +4037,7 @@ msgstr ""
 msgid "Invalid index"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:955
+#: Source/Core/Core/Movie.cpp:956
 msgid "Invalid recording file"
 msgstr "فایل ضبط نامعتبر"
 
@@ -4102,13 +4057,13 @@ msgstr "رشته جستجوی نامعتبر (فقط رشته های با طول
 msgid "Invalid value."
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:185
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:189
 #, c-format
 msgid "Invalid value: %s"
 msgstr ""
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:57
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:41
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:55
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:63
 msgid "Italian"
 msgstr "ایتالیایی"
@@ -4118,7 +4073,7 @@ msgid "Italy"
 msgstr ""
 
 #: Source/Core/Core/HW/GCKeyboardEmu.cpp:84 Source/Core/Core/HW/GCPadEmu.cpp:82
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:306
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:308
 #: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:65
 msgid "Iterative Input"
 msgstr ""
@@ -4143,7 +4098,7 @@ msgstr ""
 msgid "Japan"
 msgstr ""
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:36
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:50
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:48
 msgid "Japanese"
 msgstr "ژاپنی"
@@ -4184,7 +4139,7 @@ msgstr ""
 msgid "Korea"
 msgstr ""
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:45
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:59
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:75
 msgid "Korean"
 msgstr "کره ای"
@@ -4195,10 +4150,6 @@ msgstr "کره ای"
 #: Source/Core/DolphinWX/TASInputDlg.cpp:393
 msgid "L"
 msgstr "ال"
-
-#: Source/Core/DolphinWX/WXInputBase.cpp:40
-msgid "L Button"
-msgstr "دکمه ال"
 
 #. i18n: The left trigger button (labeled L on real controllers) used as an analog input
 #: Source/Core/Core/HW/GCPadEmu.cpp:44
@@ -4222,10 +4173,9 @@ msgstr ""
 msgid "Latency:"
 msgstr "زمان بيکارى:"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:387
+#: Source/Core/DolphinWX/MainMenuBar.cpp:391
 #: Source/Core/DolphinWX/TASInputDlg.cpp:99
 #: Source/Core/DolphinWX/TASInputDlg.cpp:249
-#: Source/Core/DolphinWX/WXInputBase.cpp:70
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:24
 msgid "Left"
 msgstr "چپ"
@@ -4288,11 +4238,11 @@ msgstr ""
 msgid "Load"
 msgstr "بارگذاری"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:443
+#: Source/Core/DolphinWX/MainMenuBar.cpp:447
 msgid "Load &Bad Map File..."
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:440
+#: Source/Core/DolphinWX/MainMenuBar.cpp:444
 msgid "Load &Other Map File..."
 msgstr ""
 
@@ -4396,16 +4346,16 @@ msgstr "بارگذاری وضعیت..."
 msgid "Load Wii Save"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:584
+#: Source/Core/DolphinWX/MainMenuBar.cpp:588
 msgid "Load Wii System Menu"
 msgstr "بارگذاری منوی سیستم وی"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:579
+#: Source/Core/DolphinWX/MainMenuBar.cpp:583
 #, c-format
 msgid "Load Wii System Menu %s"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:441
+#: Source/Core/DolphinWX/MainMenuBar.cpp:445
 msgid ""
 "Load any .map file containing the function names and addresses for this game."
 msgstr ""
@@ -4477,13 +4427,9 @@ msgid "Logger Outputs"
 msgstr "خروجی های واقعه نگار"
 
 #: Source/Core/DolphinWX/Cheats/CheatsWindow.cpp:131
-#: Source/Core/DolphinWX/Frame.cpp:378
+#: Source/Core/DolphinWX/Frame.cpp:379
 msgid "Logging"
 msgstr "واقعه نگاری"
-
-#: Source/Core/DolphinWX/WXInputBase.cpp:46
-msgid "M Button"
-msgstr "دکمه ام"
 
 #: Source/Core/DolphinWX/NetPlay/MD5Dialog.cpp:19
 msgid "MD5 Checksum"
@@ -4510,14 +4456,14 @@ msgstr "فایل های گیم شارک مد کتذ (*.gcs)"
 msgid "Main Stick"
 msgstr "استیک اصلی"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:465
+#: Source/Core/DolphinWX/MainMenuBar.cpp:469
 msgid ""
 "Make a new .dsy file which can recognise more functions, by combining two "
 "existing files. The first input file has priority."
 msgstr ""
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:429
-#: Source/Core/DolphinWX/MainMenuBar.cpp:281
+#: Source/Core/DolphinWX/MainMenuBar.cpp:285
 msgid "Maker"
 msgstr ""
 
@@ -4538,7 +4484,7 @@ msgid ""
 "If unsure, leave this unchecked."
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:386
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:408
 msgid "Match Found"
 msgstr ""
 
@@ -4546,12 +4492,12 @@ msgstr ""
 msgid "Matrix Cmd"
 msgstr ""
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:101
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:108
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:115
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:122
 msgid "Max"
 msgstr "حداکثر"
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:73
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:87
 msgid "May cause slow down in Wii Menu and some games."
 msgstr ""
 
@@ -4569,7 +4515,7 @@ msgstr "کارت حافظه"
 msgid "Memory Card Manager"
 msgstr ""
 
-#: Source/Core/Core/ConfigManager.cpp:1085
+#: Source/Core/Core/ConfigManager.cpp:1087
 #, c-format
 msgid ""
 "Memory Card filename in Slot %c is incorrect\n"
@@ -4586,7 +4532,7 @@ msgstr ""
 "%s\n"
 "آیا مایل هستید فایل قبلی را به مکان جدید کپی کنید؟\n"
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:299
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:314
 msgid "Memory Not Ready"
 msgstr ""
 
@@ -4617,11 +4563,7 @@ msgstr ""
 msgid "MemoryCard: Write called with invalid destination address (0x%x)"
 msgstr ""
 
-#: Source/Core/DolphinWX/WXInputBase.cpp:60
-msgid "Menu"
-msgstr "فهرست انتخاب"
-
-#: Source/Core/DolphinWX/FrameTools.cpp:1230
+#: Source/Core/DolphinWX/FrameTools.cpp:1260
 msgid ""
 "Merging a new NAND over your currently selected NAND will overwrite any "
 "channels and savegames that already exist. This process is not reversible, "
@@ -4634,8 +4576,8 @@ msgstr ""
 msgid "Microphone"
 msgstr ""
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:98
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:105
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:112
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:119
 msgid "Min"
 msgstr "حداقل"
 
@@ -4643,7 +4585,7 @@ msgstr "حداقل"
 msgid "Misc"
 msgstr "متفرقه"
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:129
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:143
 msgid "Misc Settings"
 msgstr "تنظیمات متفرقه"
 
@@ -4677,12 +4619,12 @@ msgstr "فونت هم عرض"
 msgid "Motion Controls and IR"
 msgstr ""
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:286
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:288
 msgid "Motion Plus"
 msgstr "موشن پلاس"
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:68
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:290
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:292
 msgid "Motor"
 msgstr "موتور"
 
@@ -4695,17 +4637,13 @@ msgstr ""
 msgid "Movie"
 msgstr ""
 
-#: Source/Core/DolphinWX/WXInputBase.cpp:110
-msgid "Multiply"
-msgstr "ضریب"
-
-#: Source/Core/DolphinWX/MainMenuBar.cpp:469
+#: Source/Core/DolphinWX/MainMenuBar.cpp:473
 msgid ""
 "Must use Generate Symbols first! Recognise names of any standard library "
 "functions used in multiple games, by loading them from a .dsy file."
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:473
+#: Source/Core/DolphinWX/MainMenuBar.cpp:477
 msgid ""
 "Must use Generate Symbols first! Recognise names of any standard library "
 "functions used in multiple games, by loading them from a .mega file."
@@ -4714,90 +4652,6 @@ msgstr ""
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:635
 msgid "NOTE: Stream size doesn't match actual data length\n"
 msgstr "توجه: سایز مسیل با طول حقیقی داده برابر نیست\n"
-
-#: Source/Core/DolphinWX/WXInputBase.cpp:218
-msgid "NP Add"
-msgstr "اضافه کردن ان پی"
-
-#: Source/Core/DolphinWX/WXInputBase.cpp:208
-msgid "NP Begin"
-msgstr "شروع ان پی"
-
-#: Source/Core/DolphinWX/WXInputBase.cpp:224
-msgid "NP Decimal"
-msgstr "دسیمال ان پی"
-
-#: Source/Core/DolphinWX/WXInputBase.cpp:212
-msgid "NP Delete"
-msgstr "حذف ان پی"
-
-#: Source/Core/DolphinWX/WXInputBase.cpp:226
-msgid "NP Divide"
-msgstr "جداکردن ان پی"
-
-#: Source/Core/DolphinWX/WXInputBase.cpp:200
-msgid "NP Down"
-msgstr "پایین ان پی"
-
-#: Source/Core/DolphinWX/WXInputBase.cpp:206
-msgid "NP End"
-msgstr "پایان ان پی"
-
-#: Source/Core/DolphinWX/WXInputBase.cpp:182
-msgid "NP Enter"
-msgstr "وارد شدن ان پی"
-
-#: Source/Core/DolphinWX/WXInputBase.cpp:214
-msgid "NP Equal"
-msgstr "یکسان ان پی"
-
-#: Source/Core/DolphinWX/WXInputBase.cpp:192
-msgid "NP Home"
-msgstr "خانه ان پی"
-
-#: Source/Core/DolphinWX/WXInputBase.cpp:210
-msgid "NP Insert"
-msgstr "درج ان پی"
-
-#: Source/Core/DolphinWX/WXInputBase.cpp:194
-msgid "NP Left"
-msgstr "چپ ان پی"
-
-#: Source/Core/DolphinWX/WXInputBase.cpp:216
-msgid "NP Multiply"
-msgstr "تکثیر ان پی"
-
-#: Source/Core/DolphinWX/WXInputBase.cpp:204
-msgid "NP Page Down"
-msgstr "صفحه پایین ان پی"
-
-#: Source/Core/DolphinWX/WXInputBase.cpp:202
-msgid "NP Page Up"
-msgstr "صفحه بالا ان پی"
-
-#: Source/Core/DolphinWX/WXInputBase.cpp:198
-msgid "NP Right"
-msgstr "راست ان پی"
-
-#: Source/Core/DolphinWX/WXInputBase.cpp:220
-msgid "NP Separator"
-msgstr "جدا ساز ان پی"
-
-#: Source/Core/DolphinWX/WXInputBase.cpp:178
-msgid "NP Space"
-msgstr "فاصله ان پی"
-
-#: Source/Core/DolphinWX/WXInputBase.cpp:222
-msgid "NP Subtract"
-msgstr "کاستن ان پی"
-
-#: Source/Core/DolphinWX/WXInputBase.cpp:180
-msgid "NP Tab"
-msgstr "تب ان پی"
-
-#: Source/Core/DolphinWX/WXInputBase.cpp:196
-msgid "NP Up"
-msgstr "بالا ان پی"
 
 #: Source/Core/DolphinWX/Cheats/ARCodeAddEdit.cpp:42
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:265
@@ -4841,10 +4695,6 @@ msgstr ""
 msgid "New identity generated."
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:82
-msgid "Next Frame"
-msgstr ""
-
 #: Source/Core/DolphinWX/MemcardManager.cpp:181
 #: Source/Core/DolphinWX/MemcardManager.cpp:818
 msgid "Next Page"
@@ -4858,11 +4708,11 @@ msgstr "پویش بعدی"
 msgid "Nickname:"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:380
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:417
 msgid "No Match"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:344
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:359
 msgid "No Value Given"
 msgstr ""
 
@@ -4898,7 +4748,7 @@ msgstr ""
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:50
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:312
 #: Source/Core/DolphinWX/NetPlay/PadMapDialog.cpp:27
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:1300
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:1301
 msgid "None"
 msgstr "هیچ"
 
@@ -4906,13 +4756,13 @@ msgstr "هیچ"
 msgid "Not Equal"
 msgstr "برابر نیست"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:914
+#: Source/Core/DolphinWX/GameListCtrl.cpp:915
 #: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:288
 #: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:330
 msgid "Not Set"
 msgstr "ست نشده است"
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:322
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:337
 msgid "Not Valid Hex"
 msgstr ""
 
@@ -4924,18 +4774,18 @@ msgstr ""
 msgid "Not connected"
 msgstr "متصل نشده است"
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:251
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:256
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:261
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:266
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:271
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:276
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:281
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:286
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:300
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:311
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:317
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:322
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:242
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:247
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:252
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:257
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:262
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:267
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:272
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:277
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:291
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:302
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:308
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:313
 msgid "Not implemented"
 msgstr ""
 
@@ -4950,10 +4800,6 @@ msgstr "یادداشت ها:"
 #: Source/Core/DolphinWX/LogConfigWindow.cpp:42
 msgid "Notice"
 msgstr "توجه"
-
-#: Source/Core/DolphinWX/WXInputBase.cpp:170
-msgid "Num Lock"
-msgstr "قفل کلید نام لاک"
 
 #. i18n: The number of times a code block has been executed
 #: Source/Core/DolphinWX/Debugger/JitWindow.cpp:182
@@ -5006,7 +4852,7 @@ msgstr "افست:"
 msgid "On-Screen Display Messages"
 msgstr "پیام های روی صفحه نمایش"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:497
+#: Source/Core/DolphinWX/MainMenuBar.cpp:501
 msgid "Online &Documentation"
 msgstr ""
 
@@ -5031,11 +4877,11 @@ msgstr ""
 msgid "Open"
 msgstr "گشودن"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1000
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1022
 msgid "Open &containing folder"
 msgstr "باز کردن پوشه &شامل"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:989
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1011
 msgid "Open Wii &save folder"
 msgstr "باز کردن پوشه &ذخیره وی"
 
@@ -5064,7 +4910,7 @@ msgid ""
 msgstr ""
 
 #: Source/Core/Core/HW/GCKeyboardEmu.cpp:82 Source/Core/Core/HW/GCPadEmu.cpp:80
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:298
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:300
 #: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:70
 msgid "Options"
 msgstr "گزینه ها"
@@ -5133,18 +4979,6 @@ msgstr "گیم پد"
 msgid "Pads"
 msgstr "گیم پد ها"
 
-#: Source/Core/DolphinWX/WXInputBase.cpp:176
-msgid "Page Down"
-msgstr "صفحه پايينی"
-
-#: Source/Core/DolphinWX/WXInputBase.cpp:174
-msgid "Page Up"
-msgstr "صفحه بالایی"
-
-#: Source/Core/DolphinWX/WXInputBase.cpp:33
-msgid "Paragraph"
-msgstr "پاراگراف"
-
 #: Source/Core/DolphinWX/Cheats/ARCodeAddEdit.cpp:140
 msgid "Parsing Error"
 msgstr ""
@@ -5167,20 +5001,14 @@ msgid "Paths"
 msgstr "مسیرها"
 
 #: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:73
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:74
 #: Source/Core/DolphinWX/Debugger/DSPDebugWindow.cpp:47
 #: Source/Core/DolphinWX/Debugger/DSPDebugWindow.cpp:180
 #: Source/Core/DolphinWX/MainToolBar.cpp:229
-#: Source/Core/DolphinWX/WXInputBase.cpp:62
 msgid "Pause"
 msgstr "مکث"
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:77
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:76
 msgid "Pause After"
-msgstr ""
-
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:78
-msgid "Pause At Next"
 msgstr ""
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:147
@@ -5214,20 +5042,20 @@ msgstr ""
 msgid "Perspective %d"
 msgstr "چشم انداز %d"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:411
+#: Source/Core/DolphinWX/MainMenuBar.cpp:415
 msgid "Perspectives"
 msgstr ""
 
 #: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:51
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:133
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:124
 msgid "Pixel Shader"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:135
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:126
 msgid "Pixel Shader Constants"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:277
+#: Source/Core/DolphinWX/MainMenuBar.cpp:279
 msgid "Platform"
 msgstr ""
 
@@ -5253,17 +5081,13 @@ msgstr "گزینه های بازنواخت"
 msgid "Players"
 msgstr "بازی کنان"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:832
+#: Source/Core/DolphinWX/FrameTools.cpp:835
 msgid "Please confirm..."
 msgstr "لطفا تایید کنید..."
 
 #: Source/Core/DolphinWX/FrameAui.cpp:510
 msgid "Please create a perspective before saving"
 msgstr "لطفا قبل از ذخیره کردن یک چشم انداز بسازید"
-
-#: Source/Core/DolphinWX/WXInputBase.cpp:35
-msgid "Plus-Minus"
-msgstr "مینوس پلاس"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:160
 #, c-format
@@ -5287,17 +5111,17 @@ msgstr "افکت ها:"
 msgid "Prefetch Custom Textures"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:1193
+#: Source/Core/Core/Movie.cpp:1194
 #, c-format
 msgid "Premature movie end in PlayController. %u + %zu > %u"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:1320
+#: Source/Core/Core/Movie.cpp:1321
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u + %d > %u"
 msgstr "پایان نابهنگام فیلم در ویموت پخش. %u + %d > %u"
 
-#: Source/Core/Core/Movie.cpp:1294
+#: Source/Core/Core/Movie.cpp:1295
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u > %u"
 msgstr "پایان نابهنگام فیلم در ویموت پخش. %u > %u"
@@ -5314,10 +5138,6 @@ msgstr "صفحه قبلی"
 msgid "Previous Page"
 msgstr "صفحه قبلی"
 
-#: Source/Core/DolphinWX/WXInputBase.cpp:80
-msgid "Print"
-msgstr "چاپ"
-
 #: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1231
 msgid "Profile"
 msgstr "پروفایل"
@@ -5330,11 +5150,11 @@ msgstr ""
 msgid "Properties"
 msgstr "خواص"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:349
+#: Source/Core/DolphinWX/MainMenuBar.cpp:353
 msgid "Provide safer execution by not linking the JIT blocks."
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:329
+#: Source/Core/DolphinWX/MainMenuBar.cpp:333
 msgid "Purge Game List Cache"
 msgstr ""
 
@@ -5360,10 +5180,6 @@ msgstr ""
 #: Source/Core/DolphinWX/TASInputDlg.cpp:395
 msgid "R"
 msgstr "آر"
-
-#: Source/Core/DolphinWX/WXInputBase.cpp:42
-msgid "R Button"
-msgstr "دکمه آر"
 
 #. i18n: The right trigger button (labeled R on real controllers) used as an analog input
 #: Source/Core/Core/HW/GCPadEmu.cpp:46
@@ -5402,7 +5218,7 @@ msgstr ""
 msgid "Real Wii Remote"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:426
+#: Source/Core/DolphinWX/MainMenuBar.cpp:430
 msgid ""
 "Recognise standard functions from Sys/totaldb.dsy, and use generic zz_ names "
 "for other functions."
@@ -5465,7 +5281,7 @@ msgstr "به روز کردن لیست"
 msgid "Refresh game list"
 msgstr "به روز کردن لیست بازی"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:287
+#: Source/Core/DolphinWX/MainMenuBar.cpp:291
 msgid "Region"
 msgstr ""
 
@@ -5479,13 +5295,13 @@ msgid "Relative Input"
 msgstr ""
 
 #: Source/Core/DolphinWX/Config/PathConfigPane.cpp:39
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:61
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:75
 #: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:395
 #: Source/Core/DolphinWX/PatchAddEdit.cpp:87
 msgid "Remove"
 msgstr "پاک کردن"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:420
+#: Source/Core/DolphinWX/MainMenuBar.cpp:424
 msgid "Remove names from all functions and variables."
 msgstr ""
 
@@ -5550,10 +5366,6 @@ msgstr "نتایج"
 msgid "Retry"
 msgstr ""
 
-#: Source/Core/DolphinWX/WXInputBase.cpp:23
-msgid "Return"
-msgstr "برگشت"
-
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:222
 msgid "Revision:"
 msgstr ""
@@ -5563,10 +5375,9 @@ msgstr ""
 msgid "Revision: %s"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:388
+#: Source/Core/DolphinWX/MainMenuBar.cpp:392
 #: Source/Core/DolphinWX/TASInputDlg.cpp:95
 #: Source/Core/DolphinWX/TASInputDlg.cpp:249
-#: Source/Core/DolphinWX/WXInputBase.cpp:74
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:25
 msgid "Right"
 msgstr "راست"
@@ -5593,7 +5404,7 @@ msgid ""
 msgstr ""
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:67
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:289
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:291
 #: Source/Core/DolphinWX/Config/GCAdapterConfigDiag.cpp:22
 msgid "Rumble"
 msgstr "شوک"
@@ -5629,7 +5440,7 @@ msgstr "بی خطر"
 msgid "Save"
 msgstr "ذخیره"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:450
+#: Source/Core/DolphinWX/MainMenuBar.cpp:454
 msgid "Save Code"
 msgstr ""
 
@@ -5642,7 +5453,7 @@ msgstr "ذخیره جی سی آی بعنوان..."
 msgid "Save Oldest State"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:392
+#: Source/Core/DolphinWX/MainMenuBar.cpp:396
 msgid "Save Perspectives"
 msgstr ""
 
@@ -5698,7 +5509,7 @@ msgstr ""
 msgid "Save State..."
 msgstr "ذخیره وضعیت..."
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:445
+#: Source/Core/DolphinWX/MainMenuBar.cpp:449
 msgid "Save Symbol Map &As..."
 msgstr ""
 
@@ -5715,15 +5526,15 @@ msgstr "ذخیره بعنوان..."
 msgid "Save combined output file as"
 msgstr ""
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1366
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1394
 msgid "Save compressed GCM/ISO"
 msgstr "ذخیره جی سی ام/آیزو فشرده شده"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:393
+#: Source/Core/DolphinWX/MainMenuBar.cpp:397
 msgid "Save currently-toggled perspectives"
 msgstr ""
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1357
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1385
 msgid "Save decompressed GCM/ISO"
 msgstr "ذخیره جی سی ام/آیزو ناهمفشرده شده"
 
@@ -5739,7 +5550,7 @@ msgstr ""
 msgid "Save state"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:451
+#: Source/Core/DolphinWX/MainMenuBar.cpp:455
 msgid ""
 "Save the entire disassembled code. This may take a several seconds and may "
 "require between 50 and 100 MB of hard drive space. It will only save code "
@@ -5748,13 +5559,13 @@ msgid ""
 "8 MB. That can be done in SymbolDB::SaveMap()."
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:446
+#: Source/Core/DolphinWX/MainMenuBar.cpp:450
 msgid ""
 "Save the function names and addresses for this game as a .map file. If you "
 "want to open the .map file in IDA Pro, use the .idc script."
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:436
+#: Source/Core/DolphinWX/MainMenuBar.cpp:440
 msgid ""
 "Save the function names for each address to a .map file in your user "
 "settings map folder, named after the title ID."
@@ -5764,7 +5575,7 @@ msgstr ""
 msgid "Save to selected slot"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:398
+#: Source/Core/DolphinWX/MainMenuBar.cpp:402
 msgid "Saved Perspectives"
 msgstr ""
 
@@ -5772,11 +5583,11 @@ msgstr ""
 msgid "Saved Wii Remote pairings can only be reset when a Wii game is running."
 msgstr ""
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:72
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:86
 msgid "Saved to /Wii/sd.raw (default size is 128mb)"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:1023
+#: Source/Core/Core/Movie.cpp:1024
 #, c-format
 msgid "Savestate movie %s is corrupted, movie recording stopping..."
 msgstr "ذخیره وضعیت فیلم %s خراب است، ضبط فیلم میایستد..."
@@ -5785,16 +5596,16 @@ msgstr "ذخیره وضعیت فیلم %s خراب است، ضبط فیلم می
 msgid "Scaled EFB Copy"
 msgstr "کپی ای اف بی تغییر سایز یافته"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:684
+#: Source/Core/DolphinWX/GameListCtrl.cpp:685
 #, c-format
 msgid "Scanning %s"
 msgstr "در حال پویش %s"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:673
+#: Source/Core/DolphinWX/GameListCtrl.cpp:674
 msgid "Scanning for ISOs"
 msgstr "پویش برای فایل های آیزو"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:673
+#: Source/Core/DolphinWX/GameListCtrl.cpp:674
 msgid "Scanning..."
 msgstr "در حال پویش..."
 
@@ -5807,12 +5618,7 @@ msgstr "عکس فوری"
 msgid "Screenshot failed: Could not open file \"%s\" (error %d)"
 msgstr ""
 
-#: Source/Core/DolphinWX/WXInputBase.cpp:172
-msgid "Scroll Lock"
-msgstr "اسکرول لاک"
-
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:100
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:101
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:102
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:233
 msgid "Search"
 msgstr "جستجو"
@@ -5822,7 +5628,7 @@ msgid "Search (clear to use previous value)"
 msgstr ""
 
 #: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:80
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:79
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:81
 msgid "Search Address"
 msgstr ""
 
@@ -5846,11 +5652,10 @@ msgstr "بخش %s در SYSCONF پیدا نشد"
 
 #: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:752
 #: Source/Core/DolphinWX/NetPlay/ChangeGameDialog.cpp:23
-#: Source/Core/DolphinWX/WXInputBase.cpp:78
 msgid "Select"
 msgstr "انتخاب"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:330
+#: Source/Core/DolphinWX/MainMenuBar.cpp:334
 msgid "Select Columns"
 msgstr ""
 
@@ -5858,7 +5663,7 @@ msgstr ""
 msgid "Select Game"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:548
+#: Source/Core/DolphinWX/MainMenuBar.cpp:552
 #, c-format
 msgid "Select Slot %u - %s"
 msgstr ""
@@ -5907,16 +5712,16 @@ msgstr ""
 msgid "Select State Slot 9"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:483
-#: Source/Core/DolphinWX/FrameTools.cpp:971
+#: Source/Core/DolphinWX/FrameTools.cpp:484
+#: Source/Core/DolphinWX/FrameTools.cpp:976
 msgid "Select The Recording File"
 msgstr "انتخاب فایل ضبط شده"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1237
+#: Source/Core/DolphinWX/FrameTools.cpp:1267
 msgid "Select a BootMii NAND backup to import"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1207
+#: Source/Core/DolphinWX/FrameTools.cpp:1212
 msgid "Select a Wii WAD file to install"
 msgstr "انتخاب فایل وی واد برای نصب"
 
@@ -5932,19 +5737,19 @@ msgstr "انتخاب پنجره های شناور"
 msgid "Select state"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:336
+#: Source/Core/DolphinWX/FrameTools.cpp:337
 msgid "Select the file to load"
 msgstr "انتخاب فایل برای بارگذاری"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1168
+#: Source/Core/DolphinWX/FrameTools.cpp:1173
 msgid "Select the save file"
 msgstr "انتخاب فایل ذخیره"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1324
+#: Source/Core/DolphinWX/FrameTools.cpp:1354
 msgid "Select the state to load"
 msgstr "انتخاب وضعیت برای بارگذاری"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1336
+#: Source/Core/DolphinWX/FrameTools.cpp:1366
 msgid "Select the state to save"
 msgstr "انتخاب وضعیت برای ذخیره"
 
@@ -6020,13 +5825,9 @@ msgstr ""
 msgid "Send"
 msgstr "فرستادن"
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:112
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:126
 msgid "Sensor Bar Position:"
 msgstr "موقعیت سنسور بار:"
-
-#: Source/Core/DolphinWX/WXInputBase.cpp:114
-msgid "Separator"
-msgstr "جدا کننده"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:93
 msgid ""
@@ -6043,11 +5844,11 @@ msgstr ""
 msgid "Set PC"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:92
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:94
 msgid "Set Value"
 msgstr ""
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1003
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1025
 msgid "Set as &default ISO"
 msgstr "ست کردن بعنوان آیزو &پیش فرض"
 
@@ -6064,14 +5865,14 @@ msgstr ""
 msgid "Sets the GameCube system language."
 msgstr ""
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:68
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:82
 msgid ""
 "Sets the Wii display mode to 60Hz (480i) instead of 50Hz (576i) for PAL "
 "games.\n"
 "May not work for all games."
 msgstr ""
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:71
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:85
 msgid "Sets the Wii system language."
 msgstr ""
 
@@ -6085,7 +5886,7 @@ msgstr ""
 msgid "SetupWiiMemory: Can't create setting.txt file"
 msgstr ""
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:271
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:273
 msgid "Shake"
 msgstr "لرزش"
 
@@ -6094,19 +5895,19 @@ msgstr "لرزش"
 msgid "Shoulder Buttons"
 msgstr "دکمه های شانه"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:300
+#: Source/Core/DolphinWX/MainMenuBar.cpp:304
 msgid "Show &Log"
 msgstr "نمایش &ثبت وقایع"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:297
+#: Source/Core/DolphinWX/MainMenuBar.cpp:301
 msgid "Show &Status Bar"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:295
+#: Source/Core/DolphinWX/MainMenuBar.cpp:299
 msgid "Show &Toolbar"
 msgstr "نمایش نوار &ابزار"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:253
+#: Source/Core/DolphinWX/MainMenuBar.cpp:255
 msgid "Show Australia"
 msgstr ""
 
@@ -6114,11 +5915,11 @@ msgstr ""
 msgid "Show Defaults"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:326
+#: Source/Core/DolphinWX/MainMenuBar.cpp:330
 msgid "Show Drives"
 msgstr "نمایش درایوها"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:242
+#: Source/Core/DolphinWX/MainMenuBar.cpp:244
 msgid "Show ELF/DOL"
 msgstr ""
 
@@ -6130,15 +5931,15 @@ msgstr "نمایش فریم بر ثانیه"
 msgid "Show Frame Counter"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:255
+#: Source/Core/DolphinWX/MainMenuBar.cpp:257
 msgid "Show France"
 msgstr "نمایش فرانسه"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:238
+#: Source/Core/DolphinWX/MainMenuBar.cpp:240
 msgid "Show GameCube"
 msgstr "نمایش گیم کیوب"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:257
+#: Source/Core/DolphinWX/MainMenuBar.cpp:259
 msgid "Show Germany"
 msgstr ""
 
@@ -6146,15 +5947,15 @@ msgstr ""
 msgid "Show Input Display"
 msgstr "نمایش ورودی تصویر"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:259
+#: Source/Core/DolphinWX/MainMenuBar.cpp:261
 msgid "Show Italy"
 msgstr "نمایش ایتالیا"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:246
+#: Source/Core/DolphinWX/MainMenuBar.cpp:248
 msgid "Show JAP"
 msgstr "نمایش ژاپن"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:261
+#: Source/Core/DolphinWX/MainMenuBar.cpp:263
 msgid "Show Korea"
 msgstr "نمایش کره"
 
@@ -6166,7 +5967,7 @@ msgstr ""
 msgid "Show Language:"
 msgstr "نمایش زبان:"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:301
+#: Source/Core/DolphinWX/MainMenuBar.cpp:305
 msgid "Show Log &Configuration"
 msgstr "نمایش &پیکربندی ثبت وقایع"
 
@@ -6178,11 +5979,11 @@ msgstr ""
 msgid "Show NetPlay Ping"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:263
+#: Source/Core/DolphinWX/MainMenuBar.cpp:265
 msgid "Show Netherlands"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:248
+#: Source/Core/DolphinWX/MainMenuBar.cpp:250
 msgid "Show PAL"
 msgstr "نمایش پال"
 
@@ -6193,19 +5994,19 @@ msgstr "نمایش پال"
 msgid "Show PC"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:323
+#: Source/Core/DolphinWX/MainMenuBar.cpp:327
 msgid "Show Platforms"
 msgstr "نمایش پایگاه ها"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:324
+#: Source/Core/DolphinWX/MainMenuBar.cpp:328
 msgid "Show Regions"
 msgstr "نمایش مناطق"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:265
+#: Source/Core/DolphinWX/MainMenuBar.cpp:267
 msgid "Show Russia"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:267
+#: Source/Core/DolphinWX/MainMenuBar.cpp:269
 msgid "Show Spain"
 msgstr ""
 
@@ -6217,27 +6018,27 @@ msgstr "نمایش آمار"
 msgid "Show System Clock"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:269
+#: Source/Core/DolphinWX/MainMenuBar.cpp:271
 msgid "Show Taiwan"
 msgstr "نمایش تایوان"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:250
+#: Source/Core/DolphinWX/MainMenuBar.cpp:252
 msgid "Show USA"
 msgstr "نمایش ایالات متحده آمریکا"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:273
+#: Source/Core/DolphinWX/MainMenuBar.cpp:275
 msgid "Show Unknown"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:240
+#: Source/Core/DolphinWX/MainMenuBar.cpp:242
 msgid "Show WAD"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:236
+#: Source/Core/DolphinWX/MainMenuBar.cpp:238
 msgid "Show Wii"
 msgstr "نمایش وی"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:271
+#: Source/Core/DolphinWX/MainMenuBar.cpp:273
 msgid "Show World"
 msgstr ""
 
@@ -6301,19 +6102,19 @@ msgstr ""
 msgid "Side-by-Side"
 msgstr ""
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:319
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:321
 msgid "Sideways Hold"
 msgstr ""
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:316
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:318
 msgid "Sideways Toggle"
 msgstr ""
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:301
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:303
 msgid "Sideways Wii Remote"
 msgstr ""
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:43
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:57
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:69
 msgid "Simplified Chinese"
 msgstr "چینی ساده شده"
@@ -6362,8 +6163,8 @@ msgid ""
 "If unsure, leave this unchecked."
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:542
-#: Source/Core/DolphinWX/MainMenuBar.cpp:545
+#: Source/Core/DolphinWX/MainMenuBar.cpp:546
+#: Source/Core/DolphinWX/MainMenuBar.cpp:549
 #, c-format
 msgid "Slot %u - %s"
 msgstr ""
@@ -6375,10 +6176,6 @@ msgstr "شکاف ای"
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:85
 msgid "Slot B"
 msgstr "شکاف بی"
-
-#: Source/Core/DolphinWX/WXInputBase.cpp:84
-msgid "Snapshot"
-msgstr "عکس فوری"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:986
 msgid ""
@@ -6393,29 +6190,21 @@ msgstr ""
 "آیا شما واقعا قصد فعال کردن این گزینه را دارید؟ اگر در این مورد اطمینان "
 "ندارید، 'نه' را انتخاب کنید."
 
-#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:68
-msgid "Sound Settings"
-msgstr "تنظیمات صدا"
-
-#: Source/Core/DolphinWX/WXInputBase.cpp:27
-msgid "Space"
-msgstr "فضا"
-
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:106
 msgid "Spain"
 msgstr ""
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:56
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:40
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:54
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:60
 msgid "Spanish"
 msgstr "اسپانیایی"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:308
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:310
 msgid "Speaker Pan"
 msgstr ""
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:121
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:135
 msgid "Speaker Volume:"
 msgstr "حجم صدای اسپیکر:"
 
@@ -6456,11 +6245,10 @@ msgstr "کنترولر استاندارد"
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:250
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:144
 #: Source/Core/DolphinWX/TASInputDlg.cpp:399
-#: Source/Core/DolphinWX/WXInputBase.cpp:38
 msgid "Start"
 msgstr "شروع"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:219
+#: Source/Core/DolphinWX/MainMenuBar.cpp:220
 msgid "Start &NetPlay..."
 msgstr ""
 
@@ -6477,11 +6265,11 @@ msgid "Start the game directly instead of booting to pause"
 msgstr ""
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:434
-#: Source/Core/DolphinWX/MainMenuBar.cpp:291
+#: Source/Core/DolphinWX/MainMenuBar.cpp:295
 msgid "State"
 msgstr "وضعیت"
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:142
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:133
 msgid "Statistics"
 msgstr ""
 
@@ -6496,11 +6284,11 @@ msgstr "چرخ فرمان"
 msgid "Step"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:406
+#: Source/Core/DolphinWX/MainMenuBar.cpp:410
 msgid "Step &Into"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:407
+#: Source/Core/DolphinWX/MainMenuBar.cpp:411
 msgid "Step &Over"
 msgstr ""
 
@@ -6508,7 +6296,7 @@ msgstr ""
 msgid "Step Into"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:408
+#: Source/Core/DolphinWX/MainMenuBar.cpp:412
 msgid "Step O&ut"
 msgstr ""
 
@@ -6577,17 +6365,17 @@ msgstr "استیک"
 msgid "Stop"
 msgstr "توقف"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1544
+#: Source/Core/DolphinWX/FrameTools.cpp:1574
 msgid "Stop Playing Input"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1529
-#: Source/Core/DolphinWX/FrameTools.cpp:1546
+#: Source/Core/DolphinWX/FrameTools.cpp:1559
+#: Source/Core/DolphinWX/FrameTools.cpp:1576
 #: Source/Core/DolphinWX/MainMenuBar.cpp:142
 msgid "Stop Playing/Recording Input"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1542
+#: Source/Core/DolphinWX/FrameTools.cpp:1572
 msgid "Stop Recording Input"
 msgstr ""
 
@@ -6619,10 +6407,6 @@ msgstr ""
 msgid "Strum"
 msgstr "مرتعش کردن"
 
-#: Source/Core/DolphinWX/WXInputBase.cpp:116
-msgid "Subtract"
-msgstr "کاستن"
-
 #: Source/Core/Core/HW/WiiSaveCrypted.cpp:96
 #, c-format
 msgid "Successfully exported %u saves to %s"
@@ -6653,7 +6437,7 @@ msgid ""
 "If unsure, leave this unchecked."
 msgstr ""
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:265
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:267
 msgid "Swing"
 msgstr "نوسان"
 
@@ -6694,7 +6478,7 @@ msgid "Syntax error"
 msgstr ""
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:106
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:86
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:100
 msgid "System Language:"
 msgstr "زبان سیستم:"
 
@@ -6703,12 +6487,12 @@ msgstr "زبان سیستم:"
 msgid "TAS Input"
 msgstr "ورودی تاس"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:381
+#: Source/Core/DolphinWX/FrameTools.cpp:382
 #, c-format
 msgid "TAS Input - GameCube Controller %d"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:389
+#: Source/Core/DolphinWX/FrameTools.cpp:390
 #, c-format
 msgid "TAS Input - Wii Remote %d"
 msgstr ""
@@ -6723,11 +6507,7 @@ msgstr ""
 msgid "TLUT Cmd"
 msgstr ""
 
-#: Source/Core/DolphinWX/WXInputBase.cpp:21
-msgid "Tab"
-msgstr "تب"
-
-#: Source/Core/DolphinWX/MainMenuBar.cpp:401
+#: Source/Core/DolphinWX/MainMenuBar.cpp:405
 msgid "Tab Split"
 msgstr ""
 
@@ -6772,7 +6552,7 @@ msgstr ""
 msgid "Texture Format Overlay"
 msgstr "قالب بندی بافت اشیاء"
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:137
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:128
 msgid "Textures"
 msgstr ""
 
@@ -6785,7 +6565,7 @@ msgid ""
 "If unsure, use the rightmost value."
 msgstr ""
 
-#: Source/Core/Core/ConfigManager.cpp:996
+#: Source/Core/Core/ConfigManager.cpp:998
 msgid "The WAD has been installed successfully"
 msgstr "واد با موفقیت نصب شد"
 
@@ -6806,7 +6586,7 @@ msgstr ""
 msgid "The chosen directory is already in the list."
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:394
+#: Source/Core/Core/Movie.cpp:395
 #, c-format
 msgid ""
 "The disc change to \"%s\" could not be saved in the .dtm file.\n"
@@ -6844,9 +6624,9 @@ msgstr ""
 msgid "The entered VID is invalid."
 msgstr ""
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1286
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1311
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1376
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1314
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1339
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1404
 #, c-format
 msgid ""
 "The file %s already exists.\n"
@@ -6877,7 +6657,7 @@ msgstr ""
 msgid "The name cannot contain the character ','"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:234
+#: Source/Core/Core/Movie.cpp:235
 #, c-format
 msgid "The recorded game (%s) is not the same as the selected game (%s)"
 msgstr ""
@@ -6913,7 +6693,7 @@ msgstr "سرور پاسخ داد: بازی در حال اجراست!"
 msgid "The server sent an unknown error message!"
 msgstr "سرور یک پیغام خطای ناشناخته فرستاد!"
 
-#: Source/Core/Core/ConfigManager.cpp:917
+#: Source/Core/Core/ConfigManager.cpp:919
 #, c-format
 msgid "The specified file \"%s\" does not exist"
 msgstr "فایل مشخص شده \"%s\" وجود ندارد"
@@ -6992,7 +6772,7 @@ msgid ""
 "or freezes while running this game."
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:342
+#: Source/Core/DolphinWX/MainMenuBar.cpp:346
 msgid ""
 "This is necessary to get break points and stepping to work as explained in "
 "the Developer Documentation. But it can be very slow, perhaps slower than 1 "
@@ -7046,11 +6826,12 @@ msgstr ""
 msgid "Threshold"
 msgstr "سرحد"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:268
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:270
 msgid "Tilt"
 msgstr "لرزیدن"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:427
+#: Source/Core/DolphinWX/MainMenuBar.cpp:283
 #: Source/Core/DolphinWX/MemcardManager.cpp:627
 msgid "Title"
 msgstr "عنوان"
@@ -7060,7 +6841,7 @@ msgstr "عنوان"
 msgid "To"
 msgstr "به"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:409
+#: Source/Core/DolphinWX/MainMenuBar.cpp:413
 msgid "Toggle &Breakpoint"
 msgstr ""
 
@@ -7128,7 +6909,7 @@ msgstr ""
 msgid "Toggle Texture Dumping"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:395
+#: Source/Core/DolphinWX/MainMenuBar.cpp:399
 msgid "Toggle editing of perspectives"
 msgstr ""
 
@@ -7136,8 +6917,8 @@ msgstr ""
 msgid "Toggle fullscreen"
 msgstr ""
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:48
-#: Source/Core/DolphinWX/MainMenuBar.cpp:385
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:61
+#: Source/Core/DolphinWX/MainMenuBar.cpp:389
 msgid "Top"
 msgstr "بالا"
 
@@ -7145,7 +6926,7 @@ msgstr "بالا"
 msgid "Top-and-Bottom"
 msgstr ""
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:44
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:58
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:72
 msgid "Traditional Chinese"
 msgstr "چینی سنتی"
@@ -7168,7 +6949,7 @@ msgstr ""
 msgid "Tried to decrypt data from a non-Wii volume"
 msgstr ""
 
-#: Source/Core/Core/Boot/Boot.cpp:462
+#: Source/Core/Core/Boot/Boot.cpp:469
 msgid "Tried to load an unknown file type."
 msgstr "آزمایش برای بارگذاری فایل ناشناخته."
 
@@ -7176,12 +6957,12 @@ msgstr "آزمایش برای بارگذاری فایل ناشناخته."
 msgid "Triggers"
 msgstr "دکمه ها"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:444
+#: Source/Core/DolphinWX/MainMenuBar.cpp:448
 msgid ""
 "Try to load a .map file that might be from a slightly different version."
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:433
+#: Source/Core/DolphinWX/MainMenuBar.cpp:437
 msgid ""
 "Try to load this game's function names automatically - but doesn't check ."
 "map files stored on the disc image yet."
@@ -7197,7 +6978,7 @@ msgid ""
 "Wii Remote Bluetooth IDs are not available"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:364
+#: Source/Core/DolphinWX/MainMenuBar.cpp:368
 msgid "Turn off all JIT functions, but still use the JIT core from Jit.cpp"
 msgstr ""
 
@@ -7271,6 +7052,16 @@ msgstr ""
 msgid "Unexpected 0x80 call? Aborting..."
 msgstr "فرمان 0x80 غیرمنتظره؟ برنامه در حال اجرا متوقف می شود..."
 
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1050
+msgid "Uninstall from the NAND"
+msgstr ""
+
+#: Source/Core/DolphinWX/FrameTools.cpp:1239
+msgid ""
+"Uninstalling the WAD will remove the currently installed version of this "
+"title from the NAND without deleting its save data. Continue?"
+msgstr ""
+
 #: Source/Core/Core/State.cpp:467
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:107
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:79
@@ -7318,7 +7109,6 @@ msgstr ""
 
 #: Source/Core/DolphinWX/TASInputDlg.cpp:93
 #: Source/Core/DolphinWX/TASInputDlg.cpp:249
-#: Source/Core/DolphinWX/WXInputBase.cpp:72
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:22
 msgid "Up"
 msgstr "بالا"
@@ -7327,20 +7117,19 @@ msgstr "بالا"
 msgid "Update"
 msgstr "به روز کردن"
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:104
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:105
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:99
 msgid "Update Screen"
 msgstr ""
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:320
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:322
 msgid "Upright Hold"
 msgstr ""
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:317
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:319
 msgid "Upright Toggle"
 msgstr ""
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:304
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:306
 msgid "Upright Wii Remote"
 msgstr ""
 
@@ -7367,7 +7156,7 @@ msgstr "استفاده از حالت تمام صفحه"
 msgid "Use Hex"
 msgstr "استفاده از حالت  شانزده شانزدهی"
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:50
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:64
 msgid "Use PAL60 Mode (EuRGB60)"
 msgstr ""
 
@@ -7388,7 +7177,7 @@ msgstr ""
 msgid "Use a single depth buffer for both eyes. Needed for a few games."
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:423
+#: Source/Core/DolphinWX/MainMenuBar.cpp:427
 msgid "Use generic zz_ names for functions."
 msgstr ""
 
@@ -7415,7 +7204,7 @@ msgstr ""
 msgid "Value (float)"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:338
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:353
 msgid "Value Too Large"
 msgstr ""
 
@@ -7445,11 +7234,11 @@ msgstr "دراز نویسی"
 msgid "Vertex Cmd"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:140
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:131
 msgid "Vertex Description"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:141
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:132
 msgid "Vertex Matrices"
 msgstr ""
 
@@ -7458,11 +7247,11 @@ msgid "Vertex Rounding"
 msgstr ""
 
 #: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:52
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:134
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:125
 msgid "Vertex Shader"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:136
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:127
 msgid "Vertex Shader Constants"
 msgstr ""
 
@@ -7507,7 +7296,7 @@ msgid "Virtual"
 msgstr "مجازی"
 
 #: Source/Core/Core/HotkeyManager.cpp:243
-#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:73
+#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:67
 msgid "Volume"
 msgstr "حجم صدا"
 
@@ -7545,8 +7334,8 @@ msgstr ""
 "اگر در این مورد اطمینان ندارید، این گزینه را فعال نکنید."
 
 #: Source/Core/Common/MsgHandler.cpp:67
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1151
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1472
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1179
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1519
 #: Source/Core/DolphinWX/LogConfigWindow.cpp:44
 #: Source/Core/DolphinWX/MemcardManager.cpp:587
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:363
@@ -7554,11 +7343,11 @@ msgstr ""
 msgid "Warning"
 msgstr "اخطار"
 
-#: Source/Core/Core/Boot/Boot.cpp:333
+#: Source/Core/Core/Boot/Boot.cpp:339
 msgid "Warning - starting DOL in wrong console mode!"
 msgstr "اخطار - شروع دال در حالت کنسول اشتباه!"
 
-#: Source/Core/Core/Boot/Boot.cpp:283
+#: Source/Core/Core/Boot/Boot.cpp:289
 msgid "Warning - starting ISO in wrong console mode!"
 msgstr "اخطار - شروع آیزو در حالت کنسول اشتباه!"
 
@@ -7589,7 +7378,7 @@ msgid ""
 "Continue?"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:1072
+#: Source/Core/Core/Movie.cpp:1073
 #, c-format
 msgid ""
 "Warning: You loaded a save that's after the end of the current movie. (byte "
@@ -7597,7 +7386,7 @@ msgid ""
 "load this state with read-only mode off."
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:1046
+#: Source/Core/Core/Movie.cpp:1047
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie ends before the current frame in the "
@@ -7605,7 +7394,7 @@ msgid ""
 "continuing."
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:1098
+#: Source/Core/Core/Movie.cpp:1099
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on byte %zu (0x%zX). You "
@@ -7613,7 +7402,7 @@ msgid ""
 "only mode off. Otherwise you'll probably get a desync."
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:1113
+#: Source/Core/Core/Movie.cpp:1114
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on frame %td. You should "
@@ -7654,7 +7443,7 @@ msgid ""
 "If unsure, leave this unchecked."
 msgstr ""
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:135
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:149
 msgid "Whitelisted USB Passthrough Devices"
 msgstr ""
 
@@ -7693,11 +7482,11 @@ msgstr ""
 msgid "Wii Remote Connected"
 msgstr ""
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:66
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:80
 msgid "Wii Remote Rumble"
 msgstr ""
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:144
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:158
 msgid "Wii Remote Settings"
 msgstr ""
 
@@ -7710,7 +7499,7 @@ msgstr ""
 msgid "Wii U GameCube Controller Adapter Configuration Port %i"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1208
+#: Source/Core/DolphinWX/FrameTools.cpp:1213
 msgid "Wii WAD files (*.wad)"
 msgstr ""
 
@@ -7718,28 +7507,13 @@ msgstr ""
 msgid "Wii and Wii Remote"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1169
+#: Source/Core/DolphinWX/FrameTools.cpp:1174
 msgid "Wii save files (*.bin)"
 msgstr ""
 
 #: Source/Core/DiscIO/WiiWad.cpp:31
 msgid "WiiWAD: Could not read from file"
 msgstr "وی واد: ناتوان در خواندن از فایل"
-
-#. i18n: The left Windows key on PC keyboards
-#: Source/Core/DolphinWX/WXInputBase.cpp:229
-msgid "Windows Left"
-msgstr "پنجره ها چپ"
-
-#. i18n: The context menu key on the right of PC keyboards
-#: Source/Core/DolphinWX/WXInputBase.cpp:235
-msgid "Windows Menu"
-msgstr "فهرست پنجره ها"
-
-#. i18n: The right Windows key on PC keyboards
-#: Source/Core/DolphinWX/WXInputBase.cpp:232
-msgid "Windows Right"
-msgstr "پنجره ها راست"
 
 #: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:38
 msgid "With an address"
@@ -7753,10 +7527,10 @@ msgstr ""
 msgid "Word Wrap"
 msgstr "پیچیدن کلمه"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1217
-#: Source/Core/DolphinWX/FrameTools.cpp:1244
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1265
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1384
+#: Source/Core/DolphinWX/FrameTools.cpp:1222
+#: Source/Core/DolphinWX/FrameTools.cpp:1274
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1293
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1412
 #: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:381
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:325
 msgid "Working..."
@@ -7841,7 +7615,7 @@ msgid ""
 "If you select \"No\", audio might be garbled."
 msgstr ""
 
-#: Source/Core/Core/ConfigManager.cpp:949
+#: Source/Core/Core/ConfigManager.cpp:951
 msgid ""
 "Your GCM/ISO file seems to be invalid (invalid country).\n"
 "Continue with PAL region?"
