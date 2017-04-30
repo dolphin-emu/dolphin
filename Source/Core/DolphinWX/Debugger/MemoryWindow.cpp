@@ -176,17 +176,16 @@ void CMemoryWindow::OnSetMemoryValue(wxCommandEvent& event)
   }
 
   std::string str_addr = WxStrToStr(m_address_search_ctrl->GetValue());
-  std::string str_val = WxStrToStr(m_value_text_ctrl->GetValue());
   u32 addr;
-  u32 val;
-
-  if (!TryParse(std::string("0x") + str_addr, &addr))
+  if (!TryParse("0x" + str_addr, &addr))
   {
     WxUtils::ShowErrorDialog(wxString::Format(_("Invalid address: %s"), str_addr.c_str()));
     return;
   }
 
-  if (!TryParse(std::string("0x") + str_val, &val))
+  std::string str_val = WxStrToStr(m_value_text_ctrl->GetValue());
+  u32 val;
+  if (!TryParse("0x" + str_val, &val))
   {
     WxUtils::ShowErrorDialog(wxString::Format(_("Invalid value: %s"), str_val.c_str()));
     return;
