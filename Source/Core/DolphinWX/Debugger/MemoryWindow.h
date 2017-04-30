@@ -8,7 +8,6 @@
 #include "Common/CommonTypes.h"
 
 class CMemoryView;
-class CCodeWindow;
 class IniFile;
 class wxButton;
 class wxCheckBox;
@@ -72,8 +71,6 @@ private:
   wxRadioButton* m_read_radio_btn;
   wxRadioButton* m_write_radio_btn;
   wxRadioButton* m_read_write_radio_btn;
-
-  CCodeWindow* m_code_window;
 
   CMemoryView* m_memory_view;
 
