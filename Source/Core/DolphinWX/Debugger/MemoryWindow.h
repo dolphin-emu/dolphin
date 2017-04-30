@@ -29,7 +29,7 @@ public:
 
   void Repopulate();
 
-  void JumpToAddress(u32 _Address);
+  void JumpToAddress(u32 address);
 
 private:
   enum class SearchType
@@ -43,10 +43,10 @@ private:
   void OnDataTypeChanged(wxCommandEvent& event);
   void OnFindNext(wxCommandEvent& event);
   void OnFindPrevious(wxCommandEvent& event);
-  void OnAddrBoxChange(wxCommandEvent& event);
+  void OnSearchAddressChanged(wxCommandEvent& event);
   void OnValueChanged(wxCommandEvent&);
-  void SetMemoryValueFromValBox(wxCommandEvent& event);
-  void SetMemoryValue(wxCommandEvent& event);
+  void OnSetMemoryValueFromValBox(wxCommandEvent& event);
+  void OnSetMemoryValue(wxCommandEvent& event);
   void OnDumpMemory(wxCommandEvent& event);
   void OnDumpMem2(wxCommandEvent& event);
   void OnDumpFakeVMEM(wxCommandEvent& event);
@@ -62,17 +62,17 @@ private:
   wxRadioBox* m_rbox_data_type;
   wxStaticText* m_search_result_msg;
 
-  wxCheckBox* chkLog;
-  wxRadioButton* rdbRead;
-  wxRadioButton* rdbWrite;
-  wxRadioButton* rdbReadWrite;
+  wxCheckBox* m_log_checkbox;
+  wxRadioButton* m_read_radio_btn;
+  wxRadioButton* m_write_radio_btn;
+  wxRadioButton* m_read_write_radio_btn;
 
   CCodeWindow* m_code_window;
 
-  CMemoryView* memview;
+  CMemoryView* m_memory_view;
 
-  wxSearchCtrl* addrbox;
-  wxTextCtrl* valbox;
+  wxSearchCtrl* m_address_search_ctrl;
+  wxTextCtrl* m_value_text_ctrl;
 
   u32 m_last_search_address = 0;
   bool m_continue_search = false;
