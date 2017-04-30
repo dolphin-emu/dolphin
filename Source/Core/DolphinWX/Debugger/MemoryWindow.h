@@ -23,9 +23,10 @@ class wxRadioButton;
 class CMemoryWindow : public wxPanel
 {
 public:
-  CMemoryWindow(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition,
-                const wxSize& size = wxDefaultSize, long style = wxTAB_TRAVERSAL | wxBORDER_NONE,
-                const wxString& name = _("Memory"));
+  explicit CMemoryWindow(wxWindow* parent, wxWindowID id = wxID_ANY,
+                         const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize,
+                         long style = wxTAB_TRAVERSAL | wxBORDER_NONE,
+                         const wxString& name = _("Memory"));
 
   void Repopulate();
 
