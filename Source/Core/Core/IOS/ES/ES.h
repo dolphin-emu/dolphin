@@ -12,7 +12,7 @@
 #include "Common/CommonTypes.h"
 #include "Core/IOS/Device.h"
 #include "Core/IOS/ES/Formats.h"
-#include "Core/IOS/IPC.h"
+#include "Core/IOS/IOS.h"
 
 class PointerWrap;
 
@@ -43,11 +43,11 @@ struct TitleContext
 class ES final : public Device
 {
 public:
-  ES(u32 device_id, const std::string& device_name);
+  ES(Kernel& ios, const std::string& device_name);
 
   static s32 DIVerify(const IOS::ES::TMDReader& tmd, const IOS::ES::TicketReader& ticket);
   static void LoadWAD(const std::string& _rContentFile);
-  static bool LaunchTitle(u64 title_id, bool skip_reload = false);
+  bool LaunchTitle(u64 title_id, bool skip_reload = false);
 
   // Internal implementation of the ES_DECRYPT ioctlv.
   static void DecryptContent(u32 key_index, u8* iv, u8* input, u32 size, u8* new_iv, u8* output);
@@ -265,8 +265,8 @@ private:
   ContextArray::iterator FindActiveContext(u32 fd);
   ContextArray::iterator FindInactiveContext();
 
-  static bool LaunchIOS(u64 ios_title_id);
-  static bool LaunchPPCTitle(u64 title_id, bool skip_reload);
+  bool LaunchIOS(u64 ios_title_id);
+  bool LaunchPPCTitle(u64 title_id, bool skip_reload);
   static TitleContext& GetTitleContext();
 
   static const DiscIO::CNANDContentLoader& AccessContentDevice(u64 title_id);

@@ -932,7 +932,7 @@ void Callback_WiimoteInterruptChannel(int _number, u16 _channelID, const void* _
   DEBUG_LOG(WIIMOTE, "   Channel: %x", _channelID);
 
   const auto bt = std::static_pointer_cast<IOS::HLE::Device::BluetoothEmu>(
-      IOS::HLE::GetDeviceByName("/dev/usb/oh1/57e/305"));
+      IOS::HLE::GetIOS()->GetDeviceByName("/dev/usb/oh1/57e/305"));
   if (bt)
     bt->m_WiiMotes[_number].ReceiveL2capData(_channelID, _pData, _Size);
 }

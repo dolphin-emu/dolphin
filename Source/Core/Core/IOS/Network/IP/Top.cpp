@@ -61,7 +61,7 @@ namespace HLE
 {
 namespace Device
 {
-NetIPTop::NetIPTop(u32 device_id, const std::string& device_name) : Device(device_id, device_name)
+NetIPTop::NetIPTop(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
 {
 #ifdef _WIN32
   int ret = WSAStartup(MAKEWORD(2, 2), &InitData);

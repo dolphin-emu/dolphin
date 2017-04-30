@@ -24,8 +24,7 @@ namespace HLE
 {
 namespace Device
 {
-NetKDRequest::NetKDRequest(u32 device_id, const std::string& device_name)
-    : Device(device_id, device_name)
+NetKDRequest::NetKDRequest(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
 {
 }
 

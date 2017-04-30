@@ -18,7 +18,7 @@ namespace Device
 class NetWDCommand : public Device
 {
 public:
-  NetWDCommand(u32 device_id, const std::string& device_name);
+  NetWDCommand(Kernel& ios, const std::string& device_name);
 
   IPCCommandResult IOCtlV(const IOCtlVRequest& request) override;
 

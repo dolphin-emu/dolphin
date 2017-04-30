@@ -147,7 +147,8 @@ set(SRCS
   HW/WiiSaveCrypted.cpp
   IOS/Device.cpp
   IOS/DeviceStub.cpp
-  IOS/IPC.cpp
+  IOS/IOS.cpp
+  IOS/MemoryValues.cpp
   IOS/MIOS.cpp
   IOS/DI/DI.cpp
   IOS/ES/ES.cpp

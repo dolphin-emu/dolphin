@@ -33,6 +33,11 @@ void TransferCommand::FillBuffer(const u8* src, const size_t size) const
   Memory::CopyToEmu(data_address, src, size);
 }
 
+void TransferCommand::OnTransferComplete(s32 return_value) const
+{
+  m_ios.EnqueueIPCReply(ios_request, return_value, 0, CoreTiming::FromThread::NON_CPU);
+}
+
 void IsoMessage::SetPacketReturnValue(const size_t packet_num, const u16 return_value) const
 {
   Memory::Write_U16(return_value, static_cast<u32>(packet_sizes_addr + packet_num * sizeof(u16)));

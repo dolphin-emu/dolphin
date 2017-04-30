@@ -19,7 +19,7 @@
 // clang-format on
 
 #include "Common/CommonTypes.h"
-#include "Core/IOS/IPC.h"
+#include "Core/IOS/IOS.h"
 #include "Core/IOS/Device.h"
 
 namespace IOS
@@ -90,7 +90,7 @@ namespace Device
 class NetSSL : public Device
 {
 public:
-  NetSSL(u32 device_id, const std::string& device_name);
+  NetSSL(Kernel& ios, const std::string& device_name);
 
   virtual ~NetSSL();
 

@@ -10,7 +10,7 @@
 #include "Core/HW/Memmap.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/IOS/Device.h"
-#include "Core/IOS/IPC.h"
+#include "Core/IOS/IOS.h"
 
 namespace IOS
 {
@@ -26,8 +26,12 @@ OpenRequest::OpenRequest(const u32 address_) : Request(address_)
 {
   path = Memory::GetString(Memory::Read_U32(address + 0xc));
   flags = static_cast<OpenMode>(Memory::Read_U32(address + 0x10));
-  uid = GetUIDForPPC();
-  gid = GetGIDForPPC();
+  const Kernel* ios = GetIOS();
+  if (ios)
+  {
+    uid = ios->GetUidForPPC();
+    gid = ios->GetGidForPPC();
+  }
 }
 
 ReadWriteRequest::ReadWriteRequest(const u32 address_) : Request(address_)
@@ -129,8 +133,8 @@ void IOCtlVRequest::DumpUnknown(const std::string& description, LogTypes::LOG_TY
 
 namespace Device
 {
-Device::Device(const u32 device_id, const std::string& device_name, const DeviceType type)
-    : m_name(device_name), m_device_id(device_id), m_device_type(type)
+Device::Device(Kernel& ios, const std::string& device_name, const DeviceType type)
+    : m_ios(ios), m_name(device_name), m_device_type(type)
 {
 }
 
@@ -143,7 +147,6 @@ void Device::DoState(PointerWrap& p)
 void Device::DoStateShared(PointerWrap& p)
 {
   p.Do(m_name);
-  p.Do(m_device_id);
   p.Do(m_device_type);
   p.Do(m_is_active);
 }

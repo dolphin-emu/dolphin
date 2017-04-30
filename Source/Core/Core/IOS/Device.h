@@ -11,7 +11,7 @@
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
-#include "Core/IOS/IPC.h"
+#include "Core/IOS/IOS.h"
 
 namespace IOS
 {
@@ -172,7 +172,7 @@ public:
     OH0,     // OH0 child devices which are created dynamically.
   };
 
-  Device(u32 device_id, const std::string& device_name, DeviceType type = DeviceType::Static);
+  Device(Kernel& ios, const std::string& device_name, DeviceType type = DeviceType::Static);
 
   virtual ~Device() = default;
   // Release any resources which might interfere with savestating.
@@ -181,7 +181,6 @@ public:
   void DoStateShared(PointerWrap& p);
 
   const std::string& GetDeviceName() const { return m_name; }
-  u32 GetDeviceID() const { return m_device_id; }
   // Replies to Open and Close requests are sent by the IPC request handler (HandleCommand),
   // not by the devices themselves.
   virtual ReturnCode Open(const OpenRequest& request);
@@ -199,9 +198,10 @@ public:
   static IPCCommandResult GetNoReply();
 
 protected:
+  Kernel& m_ios;
+
   std::string m_name;
   // STATE_TO_SAVE
-  u32 m_device_id;
   DeviceType m_device_type;
   bool m_is_active = false;
 

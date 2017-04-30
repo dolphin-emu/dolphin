@@ -9,7 +9,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Core/IOS/Device.h"
-#include "Core/IOS/IPC.h"
+#include "Core/IOS/IOS.h"
 
 namespace IOS
 {
@@ -20,7 +20,7 @@ namespace Device
 class USB_KBD : public Device
 {
 public:
-  USB_KBD(u32 device_id, const std::string& device_name);
+  USB_KBD(Kernel& ios, const std::string& device_name);
 
   ReturnCode Open(const OpenRequest& request) override;
   IPCCommandResult Write(const ReadWriteRequest& request) override;

@@ -42,7 +42,7 @@
 #include "Core/HW/Wiimote.h"
 #include "Core/Host.h"
 #include "Core/HotkeyManager.h"
-#include "Core/IOS/IPC.h"
+#include "Core/IOS/IOS.h"
 #include "Core/IOS/STM/STM.h"
 #include "Core/IOS/USB/Bluetooth/BTEmu.h"
 #include "Core/IOS/USB/Bluetooth/WiimoteDevice.h"
@@ -880,7 +880,11 @@ void CFrame::DoStop()
 
 bool CFrame::TriggerSTMPowerEvent()
 {
-  const auto stm = IOS::HLE::GetDeviceByName("/dev/stm/eventhook");
+  const auto ios = IOS::HLE::GetIOS();
+  if (!ios)
+    return false;
+
+  const auto stm = ios->GetDeviceByName("/dev/stm/eventhook");
   if (!stm || !std::static_pointer_cast<IOS::HLE::Device::STMEventHook>(stm)->HasHookInstalled())
     return false;
 
@@ -1310,8 +1314,12 @@ void CFrame::ConnectWiimote(int wm_idx, bool connect)
       !SConfig::GetInstance().m_bt_passthrough_enabled)
   {
     bool was_unpaused = Core::PauseAndLock(true);
+    const auto ios = IOS::HLE::GetIOS();
+    if (!ios)
+      return;
+
     const auto bt = std::static_pointer_cast<IOS::HLE::Device::BluetoothEmu>(
-        IOS::HLE::GetDeviceByName("/dev/usb/oh1/57e/305"));
+        ios->GetDeviceByName("/dev/usb/oh1/57e/305"));
     if (bt)
       bt->AccessWiiMote(wm_idx | 0x100)->Activate(connect);
     const char* message = connect ? "Wii Remote %i connected" : "Wii Remote %i disconnected";
@@ -1323,11 +1331,12 @@ void CFrame::ConnectWiimote(int wm_idx, bool connect)
 
 void CFrame::OnConnectWiimote(wxCommandEvent& event)
 {
-  if (SConfig::GetInstance().m_bt_passthrough_enabled)
+  const auto ios = IOS::HLE::GetIOS();
+  if (!ios || SConfig::GetInstance().m_bt_passthrough_enabled)
     return;
   bool was_unpaused = Core::PauseAndLock(true);
   const auto bt = std::static_pointer_cast<IOS::HLE::Device::BluetoothEmu>(
-      IOS::HLE::GetDeviceByName("/dev/usb/oh1/57e/305"));
+      ios->GetDeviceByName("/dev/usb/oh1/57e/305"));
   const bool is_connected =
       bt && bt->AccessWiiMote((event.GetId() - IDM_CONNECT_WIIMOTE1) | 0x100)->IsConnected();
   ConnectWiimote(event.GetId() - IDM_CONNECT_WIIMOTE1, !is_connected);
@@ -1486,8 +1495,10 @@ void CFrame::UpdateGUI()
   // Tools
   GetMenuBar()->FindItem(IDM_CHEATS)->Enable(SConfig::GetInstance().bEnableCheats);
 
-  const auto bt = std::static_pointer_cast<IOS::HLE::Device::BluetoothEmu>(
-      IOS::HLE::GetDeviceByName("/dev/usb/oh1/57e/305"));
+  const auto ios = IOS::HLE::GetIOS();
+  const auto bt = ios ? std::static_pointer_cast<IOS::HLE::Device::BluetoothEmu>(
+                            ios->GetDeviceByName("/dev/usb/oh1/57e/305")) :
+                        nullptr;
   bool ShouldEnableWiimotes = Running && bt && !SConfig::GetInstance().m_bt_passthrough_enabled;
   GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE1)->Enable(ShouldEnableWiimotes);
   GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE2)->Enable(ShouldEnableWiimotes);

@@ -50,7 +50,7 @@
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HotkeyManager.h"
-#include "Core/IOS/IPC.h"
+#include "Core/IOS/IOS.h"
 #include "Core/IOS/USB/Bluetooth/BTBase.h"
 #include "Core/Movie.h"
 #include "Core/State.h"
@@ -1278,7 +1278,8 @@ void CFrame::ParseHotkeys()
 
   if (SConfig::GetInstance().m_bt_passthrough_enabled)
   {
-    auto device = IOS::HLE::GetDeviceByName("/dev/usb/oh1/57e/305");
+    const auto ios = IOS::HLE::GetIOS();
+    auto device = ios ? ios->GetDeviceByName("/dev/usb/oh1/57e/305") : nullptr;
     if (device != nullptr)
       std::static_pointer_cast<IOS::HLE::Device::BluetoothBase>(device)->UpdateSyncButtonState(
           IsHotkey(HK_TRIGGER_SYNC_BUTTON, true));

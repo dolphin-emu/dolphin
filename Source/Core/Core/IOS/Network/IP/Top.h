@@ -61,7 +61,7 @@ namespace Device
 class NetIPTop : public Device
 {
 public:
-  NetIPTop(u32 device_id, const std::string& device_name);
+  NetIPTop(Kernel& ios, const std::string& device_name);
   virtual ~NetIPTop();
 
   IPCCommandResult IOCtl(const IOCtlRequest& request) override;

@@ -17,7 +17,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Flag.h"
 #include "Core/IOS/Device.h"
-#include "Core/IOS/IPC.h"
+#include "Core/IOS/IOS.h"
 #include "Core/IOS/USB/Common.h"
 
 class PointerWrap;
@@ -33,7 +33,7 @@ namespace Device
 class USBHost : public Device
 {
 public:
-  USBHost(u32 device_id, const std::string& device_name);
+  USBHost(Kernel& ios, const std::string& device_name);
   virtual ~USBHost();
 
   ReturnCode Open(const OpenRequest& request) override;

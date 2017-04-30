@@ -37,7 +37,7 @@ static constexpr mbedtls_x509_crt_profile mbedtls_x509_crt_profile_wii = {
     0,         /* No RSA min key size */
 };
 
-NetSSL::NetSSL(u32 device_id, const std::string& device_name) : Device(device_id, device_name)
+NetSSL::NetSSL(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
 {
   for (WII_SSL& ssl : _SSL)
   {

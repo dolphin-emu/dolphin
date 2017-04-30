@@ -27,7 +27,7 @@
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/HotkeyManager.h"
-#include "Core/IOS/IPC.h"
+#include "Core/IOS/IOS.h"
 #include "Core/IOS/USB/Bluetooth/BTReal.h"
 #include "Core/NetPlayProto.h"
 #include "DolphinWX/Config/GCAdapterConfigDiag.h"
@@ -543,13 +543,14 @@ void ControllerConfigDiag::OnBluetoothModeChanged(wxCommandEvent& event)
 
 void ControllerConfigDiag::OnPassthroughScanButton(wxCommandEvent& event)
 {
-  if (!Core::IsRunning())
+  const auto ios = IOS::HLE::GetIOS();
+  if (!ios)
   {
     wxMessageBox(_("A sync can only be triggered when a Wii game is running."),
                  _("Sync Wii Remotes"), wxICON_WARNING);
     return;
   }
-  auto device = IOS::HLE::GetDeviceByName("/dev/usb/oh1/57e/305");
+  auto device = ios->GetDeviceByName("/dev/usb/oh1/57e/305");
   if (device != nullptr)
     std::static_pointer_cast<IOS::HLE::Device::BluetoothBase>(device)
         ->TriggerSyncButtonPressedEvent();
@@ -557,13 +558,14 @@ void ControllerConfigDiag::OnPassthroughScanButton(wxCommandEvent& event)
 
 void ControllerConfigDiag::OnPassthroughResetButton(wxCommandEvent& event)
 {
-  if (!Core::IsRunning())
+  const auto ios = IOS::HLE::GetIOS();
+  if (!ios)
   {
     wxMessageBox(_("Saved Wii Remote pairings can only be reset when a Wii game is running."),
                  _("Reset Wii Remote pairings"), wxICON_WARNING);
     return;
   }
-  auto device = IOS::HLE::GetDeviceByName("/dev/usb/oh1/57e/305");
+  auto device = ios->GetDeviceByName("/dev/usb/oh1/57e/305");
   if (device != nullptr)
     std::static_pointer_cast<IOS::HLE::Device::BluetoothBase>(device)->TriggerSyncButtonHeldEvent();
 }

@@ -16,7 +16,7 @@
 #include "Core/Boot/Boot.h"
 #include "Core/IOS/ES/ES.h"
 #include "Core/IOS/FS/FileIO.h"
-#include "Core/IOS/IPC.h"
+#include "Core/IOS/IOS.h"
 #include "Core/PatchEngine.h"
 
 #include "DiscIO/NANDContentLoader.h"
@@ -88,7 +88,7 @@ bool CBoot::Boot_WiiWAD(const std::string& _pFilename)
     return false;
 
   IOS::HLE::Device::ES::LoadWAD(_pFilename);
-  if (!IOS::HLE::BootstrapPPC(ContentLoader))
+  if (!IOS::HLE::GetIOS()->BootstrapPPC(ContentLoader))
     return false;
 
   return true;
