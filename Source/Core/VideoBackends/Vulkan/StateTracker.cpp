@@ -58,9 +58,9 @@ bool StateTracker::Initialize()
   m_pipeline_state.rasterization_state.cull_mode = VK_CULL_MODE_NONE;
   m_pipeline_state.rasterization_state.per_sample_shading = VK_FALSE;
   m_pipeline_state.rasterization_state.depth_clamp = VK_FALSE;
-  m_pipeline_state.depth_stencil_state.test_enable = VK_TRUE;
-  m_pipeline_state.depth_stencil_state.write_enable = VK_TRUE;
-  m_pipeline_state.depth_stencil_state.compare_op = VK_COMPARE_OP_LESS;
+  m_pipeline_state.depth_state.testenable = true;
+  m_pipeline_state.depth_state.updateenable = true;
+  m_pipeline_state.depth_state.func = ZMode::ALWAYS;
   m_pipeline_state.blend_state.hex = 0;
   m_pipeline_state.blend_state.blendenable = false;
   m_pipeline_state.blend_state.srcfactor = BlendMode::ONE;
@@ -167,7 +167,7 @@ void StateTracker::AppendToPipelineUIDCache(const PipelineInfo& info)
   SerializedPipelineUID sinfo;
   sinfo.blend_state_bits = info.blend_state.hex;
   sinfo.rasterizer_state_bits = info.rasterization_state.bits;
-  sinfo.depth_stencil_state_bits = info.depth_stencil_state.bits;
+  sinfo.depth_state_bits = info.depth_state.hex;
   sinfo.vertex_decl = m_pipeline_state.vertex_format->GetVertexDeclaration();
   sinfo.vs_uid = m_vs_uid;
   sinfo.gs_uid = m_gs_uid;
@@ -212,7 +212,7 @@ bool StateTracker::PrecachePipelineUID(const SerializedPipelineUID& uid)
   }
   pinfo.render_pass = m_load_render_pass;
   pinfo.rasterization_state.bits = uid.rasterizer_state_bits;
-  pinfo.depth_stencil_state.bits = uid.depth_stencil_state_bits;
+  pinfo.depth_state.hex = uid.depth_state_bits;
   pinfo.blend_state.hex = uid.blend_state_bits;
   pinfo.primitive_topology = uid.primitive_topology;
 
@@ -316,12 +316,12 @@ void StateTracker::SetRasterizationState(const RasterizationState& state)
   m_dirty_flags |= DIRTY_FLAG_PIPELINE;
 }
 
-void StateTracker::SetDepthStencilState(const DepthStencilState& state)
+void StateTracker::SetDepthState(const DepthState& state)
 {
-  if (m_pipeline_state.depth_stencil_state.bits == state.bits)
+  if (m_pipeline_state.depth_state.hex == state.hex)
     return;
 
-  m_pipeline_state.depth_stencil_state.bits = state.bits;
+  m_pipeline_state.depth_state.hex = state.hex;
   m_dirty_flags |= DIRTY_FLAG_PIPELINE;
 }
 

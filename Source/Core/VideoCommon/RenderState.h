@@ -9,6 +9,17 @@
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/BPStructs.h"
 
+union DepthState
+{
+  void Generate(const BPMemory& bp);
+
+  BitField<0, 1, u32> testenable;
+  BitField<1, 1, u32> updateenable;
+  BitField<2, 3, ZMode::CompareMode> func;
+
+  u32 hex;
+};
+
 union BlendingState
 {
   void Generate(const BPMemory& bp);

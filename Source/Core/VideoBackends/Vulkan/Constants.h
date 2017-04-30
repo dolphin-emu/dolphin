@@ -135,16 +135,6 @@ union RasterizationState
   u32 bits;
 };
 
-// Depth state info
-union DepthStencilState
-{
-  BitField<0, 1, VkBool32> test_enable;
-  BitField<1, 1, VkBool32> write_enable;
-  BitField<2, 3, VkCompareOp> compare_op;
-
-  u32 bits;
-};
-
 // Sampler info
 union SamplerState
 {

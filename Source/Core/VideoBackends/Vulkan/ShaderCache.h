@@ -49,7 +49,7 @@ struct PipelineInfo
   VkRenderPass render_pass;
   BlendingState blend_state;
   RasterizationState rasterization_state;
-  DepthStencilState depth_stencil_state;
+  DepthState depth_state;
   VkPrimitiveTopology primitive_topology;
 };
 

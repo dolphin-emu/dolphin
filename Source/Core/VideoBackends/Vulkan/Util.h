@@ -39,7 +39,7 @@ VkRect2D ClampRect2D(const VkRect2D& rect, u32 width, u32 height);
 VkBlendFactor GetAlphaBlendFactor(VkBlendFactor factor);
 
 RasterizationState GetNoCullRasterizationState();
-DepthStencilState GetNoDepthTestingDepthStencilState();
+DepthState GetNoDepthTestingDepthStencilState();
 BlendingState GetNoBlendingBlendState();
 
 // Combines viewport and scissor updates
@@ -151,7 +151,7 @@ public:
   void SetPSTexelBuffer(VkBufferView view);
 
   void SetRasterizationState(const RasterizationState& state);
-  void SetDepthStencilState(const DepthStencilState& state);
+  void SetDepthState(const DepthState& state);
   void SetBlendState(const BlendingState& state);
 
   void BeginRenderPass(VkFramebuffer framebuffer, const VkRect2D& region,

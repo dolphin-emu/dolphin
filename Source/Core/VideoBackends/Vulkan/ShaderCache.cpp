@@ -122,16 +122,21 @@ GetVulkanMultisampleState(const RasterizationState& rs_state)
   };
 }
 
-static VkPipelineDepthStencilStateCreateInfo
-GetVulkanDepthStencilState(const DepthStencilState& state)
+static VkPipelineDepthStencilStateCreateInfo GetVulkanDepthStencilState(const DepthState& state)
 {
+  // Less/greater are swapped due to inverted depth.
+  static constexpr std::array<VkCompareOp, 8> funcs = {
+      {VK_COMPARE_OP_NEVER, VK_COMPARE_OP_GREATER, VK_COMPARE_OP_EQUAL,
+       VK_COMPARE_OP_GREATER_OR_EQUAL, VK_COMPARE_OP_LESS, VK_COMPARE_OP_NOT_EQUAL,
+       VK_COMPARE_OP_LESS_OR_EQUAL, VK_COMPARE_OP_ALWAYS}};
+
   return {
       VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,  // VkStructureType sType
       nullptr,             // const void*                               pNext
       0,                   // VkPipelineDepthStencilStateCreateFlags    flags
-      state.test_enable,   // VkBool32                                  depthTestEnable
-      state.write_enable,  // VkBool32                                  depthWriteEnable
-      state.compare_op,    // VkCompareOp                               depthCompareOp
+      state.testenable,    // VkBool32                                  depthTestEnable
+      state.updateenable,  // VkBool32                                  depthWriteEnable
+      funcs[state.func],   // VkCompareOp                               depthCompareOp
       VK_FALSE,            // VkBool32                                  depthBoundsTestEnable
       VK_FALSE,            // VkBool32                                  stencilTestEnable
       {},                  // VkStencilOpState                          front

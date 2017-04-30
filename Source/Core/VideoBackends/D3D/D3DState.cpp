@@ -456,10 +456,9 @@ ID3D11RasterizerState* StateCache::Get(RasterizerState state)
   return res;
 }
 
-ID3D11DepthStencilState* StateCache::Get(ZMode state)
+ID3D11DepthStencilState* StateCache::Get(DepthState state)
 {
   auto it = m_depth.find(state.hex);
-
   if (it != m_depth.end())
     return it->second;
 
@@ -472,6 +471,7 @@ ID3D11DepthStencilState* StateCache::Get(ZMode state)
   depthdc.StencilReadMask = D3D11_DEFAULT_STENCIL_READ_MASK;
   depthdc.StencilWriteMask = D3D11_DEFAULT_STENCIL_WRITE_MASK;
 
+  // Less/greater are swapped due to inverted depth.
   const D3D11_COMPARISON_FUNC d3dCmpFuncs[8] = {
       D3D11_COMPARISON_NEVER,         D3D11_COMPARISON_GREATER, D3D11_COMPARISON_EQUAL,
       D3D11_COMPARISON_GREATER_EQUAL, D3D11_COMPARISON_LESS,    D3D11_COMPARISON_NOT_EQUAL,

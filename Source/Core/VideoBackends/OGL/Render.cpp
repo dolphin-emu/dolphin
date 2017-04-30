@@ -1787,7 +1787,7 @@ void Renderer::RestoreAPIState()
   }
   SetGenerationMode();
   BPFunctions::SetScissor();
-  SetDepthMode();
+  BPFunctions::SetDepthMode();
   BPFunctions::SetBlendMode();
   SetViewport();
 
@@ -1813,16 +1813,16 @@ void Renderer::SetGenerationMode()
   }
 }
 
-void Renderer::SetDepthMode()
+void Renderer::SetDepthState(const DepthState& state)
 {
   const GLenum glCmpFuncs[8] = {GL_NEVER,   GL_LESS,     GL_EQUAL,  GL_LEQUAL,
                                 GL_GREATER, GL_NOTEQUAL, GL_GEQUAL, GL_ALWAYS};
 
-  if (bpmem.zmode.testenable)
+  if (state.testenable)
   {
     glEnable(GL_DEPTH_TEST);
-    glDepthMask(bpmem.zmode.updateenable ? GL_TRUE : GL_FALSE);
-    glDepthFunc(glCmpFuncs[bpmem.zmode.func]);
+    glDepthMask(state.updateenable ? GL_TRUE : GL_FALSE);
+    glDepthFunc(glCmpFuncs[state.func]);
   }
   else
   {

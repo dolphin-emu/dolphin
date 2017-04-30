@@ -59,7 +59,7 @@ public:
   void SetBlendingState(const BlendingState& state) override;
   void SetScissorRect(const EFBRectangle& rc) override;
   void SetGenerationMode() override;
-  void SetDepthMode() override;
+  void SetDepthState(const DepthState& state) override;
   void SetSamplerState(int stage, int texindex, bool custom_tex) override;
   void SetInterlacingMode() override;
   void SetViewport() override;

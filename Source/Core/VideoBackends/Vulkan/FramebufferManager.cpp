@@ -1164,16 +1164,16 @@ void FramebufferManager::DrawPokeVertices(const EFBPokeVertex* vertices, size_t 
   pipeline_info.render_pass = m_efb_load_render_pass;
   pipeline_info.rasterization_state.bits = Util::GetNoCullRasterizationState().bits;
   pipeline_info.rasterization_state.samples = m_efb_samples;
-  pipeline_info.depth_stencil_state.bits = Util::GetNoDepthTestingDepthStencilState().bits;
+  pipeline_info.depth_state.hex = Util::GetNoDepthTestingDepthStencilState().hex;
   pipeline_info.blend_state.hex = Util::GetNoBlendingBlendState().hex;
   pipeline_info.blend_state.colorupdate = write_color;
   pipeline_info.blend_state.alphaupdate = write_color;
   pipeline_info.primitive_topology = m_poke_primitive_topology;
   if (write_depth)
   {
-    pipeline_info.depth_stencil_state.test_enable = VK_TRUE;
-    pipeline_info.depth_stencil_state.write_enable = VK_TRUE;
-    pipeline_info.depth_stencil_state.compare_op = VK_COMPARE_OP_ALWAYS;
+    pipeline_info.depth_state.testenable = true;
+    pipeline_info.depth_state.updateenable = true;
+    pipeline_info.depth_state.func = ZMode::ALWAYS;
   }
 
   VkPipeline pipeline = g_shader_cache->GetPipeline(pipeline_info);

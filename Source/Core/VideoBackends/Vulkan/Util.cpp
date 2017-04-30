@@ -195,12 +195,12 @@ RasterizationState GetNoCullRasterizationState()
   return state;
 }
 
-DepthStencilState GetNoDepthTestingDepthStencilState()
+DepthState GetNoDepthTestingDepthStencilState()
 {
-  DepthStencilState state = {};
-  state.test_enable = VK_FALSE;
-  state.write_enable = VK_FALSE;
-  state.compare_op = VK_COMPARE_OP_ALWAYS;
+  DepthState state = {};
+  state.testenable = false;
+  state.updateenable = false;
+  state.func = ZMode::ALWAYS;
   return state;
 }
 
@@ -346,7 +346,7 @@ UtilityShaderDraw::UtilityShaderDraw(VkCommandBuffer command_buffer,
   m_pipeline_info.gs = geometry_shader;
   m_pipeline_info.ps = pixel_shader;
   m_pipeline_info.rasterization_state.bits = Util::GetNoCullRasterizationState().bits;
-  m_pipeline_info.depth_stencil_state.bits = Util::GetNoDepthTestingDepthStencilState().bits;
+  m_pipeline_info.depth_state.hex = Util::GetNoDepthTestingDepthStencilState().hex;
   m_pipeline_info.blend_state.hex = Util::GetNoBlendingBlendState().hex;
   m_pipeline_info.primitive_topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 }
@@ -450,9 +450,9 @@ void UtilityShaderDraw::SetRasterizationState(const RasterizationState& state)
   m_pipeline_info.rasterization_state.bits = state.bits;
 }
 
-void UtilityShaderDraw::SetDepthStencilState(const DepthStencilState& state)
+void UtilityShaderDraw::SetDepthState(const DepthState& state)
 {
-  m_pipeline_info.depth_stencil_state.bits = state.bits;
+  m_pipeline_info.depth_state.hex = state.hex;
 }
 
 void UtilityShaderDraw::SetBlendState(const BlendingState& state)

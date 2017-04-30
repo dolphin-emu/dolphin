@@ -60,7 +60,7 @@ struct GXPipelineState
 {
   std::array<SamplerState, 8> samplers;
   BlendingState blend;
-  ZMode zmode;
+  DepthState zmode;
   RasterizerState raster;
 };
 
@@ -916,9 +916,9 @@ void Renderer::SetGenerationMode()
   s_gx_state.raster.cull_mode = d3d_cull_modes[bpmem.genMode.cullmode];
 }
 
-void Renderer::SetDepthMode()
+void Renderer::SetDepthState(const DepthState& state)
 {
-  s_gx_state.zmode.hex = bpmem.zmode.hex;
+  s_gx_state.zmode.hex = state.hex;
 }
 
 void Renderer::SetSamplerState(int stage, int texindex, bool custom_tex)

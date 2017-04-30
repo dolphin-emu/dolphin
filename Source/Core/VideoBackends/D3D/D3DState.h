@@ -49,7 +49,7 @@ public:
   ID3D11SamplerState* Get(SamplerState state);
   ID3D11BlendState* Get(BlendingState state);
   ID3D11RasterizerState* Get(RasterizerState state);
-  ID3D11DepthStencilState* Get(ZMode state);
+  ID3D11DepthStencilState* Get(DepthState state);
 
   // Release all cached states and clear hash tables.
   void Clear();

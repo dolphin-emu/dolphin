@@ -4,6 +4,13 @@
 
 #include "VideoCommon/RenderState.h"
 
+void DepthState::Generate(const BPMemory& bp)
+{
+  testenable = bp.zmode.testenable.Value();
+  updateenable = bp.zmode.updateenable.Value();
+  func = bp.zmode.func.Value();
+}
+
 // If the framebuffer format has no alpha channel, it is assumed to
 // ONE on blending. As the backends may emulate this framebuffer
 // configuration with an alpha channel, we just drop all references

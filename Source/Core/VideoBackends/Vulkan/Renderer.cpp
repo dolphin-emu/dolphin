@@ -459,10 +459,10 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool color_enable, bool alpha
   blend_state.colorupdate = color_enable;
   blend_state.alphaupdate = alpha_enable;
 
-  DepthStencilState depth_state = Util::GetNoDepthTestingDepthStencilState();
-  depth_state.test_enable = z_enable ? VK_TRUE : VK_FALSE;
-  depth_state.write_enable = z_enable ? VK_TRUE : VK_FALSE;
-  depth_state.compare_op = VK_COMPARE_OP_ALWAYS;
+  DepthState depth_state = Util::GetNoDepthTestingDepthStencilState();
+  depth_state.testenable = z_enable;
+  depth_state.updateenable = z_enable;
+  depth_state.func = ZMode::ALWAYS;
 
   RasterizationState rs_state = Util::GetNoCullRasterizationState();
   rs_state.per_sample_shading = g_ActiveConfig.bSSAA ? VK_TRUE : VK_FALSE;
@@ -476,7 +476,7 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool color_enable, bool alpha
                          g_shader_cache->GetPassthroughGeometryShader(), m_clear_fragment_shader);
 
   draw.SetRasterizationState(rs_state);
-  draw.SetDepthStencilState(depth_state);
+  draw.SetDepthState(depth_state);
   draw.SetBlendState(blend_state);
 
   draw.DrawColoredQuad(target_rc.left, target_rc.top, target_rc.GetWidth(), target_rc.GetHeight(),
@@ -1303,45 +1303,9 @@ void Renderer::SetGenerationMode()
   StateTracker::GetInstance()->SetRasterizationState(new_rs_state);
 }
 
-void Renderer::SetDepthMode()
+void Renderer::SetDepthState(const DepthState& state)
 {
-  DepthStencilState new_ds_state = {};
-  new_ds_state.test_enable = bpmem.zmode.testenable ? VK_TRUE : VK_FALSE;
-  new_ds_state.write_enable = bpmem.zmode.updateenable ? VK_TRUE : VK_FALSE;
-
-  // Inverted depth, hence these are swapped
-  switch (bpmem.zmode.func)
-  {
-  case ZMode::NEVER:
-    new_ds_state.compare_op = VK_COMPARE_OP_NEVER;
-    break;
-  case ZMode::LESS:
-    new_ds_state.compare_op = VK_COMPARE_OP_GREATER;
-    break;
-  case ZMode::EQUAL:
-    new_ds_state.compare_op = VK_COMPARE_OP_EQUAL;
-    break;
-  case ZMode::LEQUAL:
-    new_ds_state.compare_op = VK_COMPARE_OP_GREATER_OR_EQUAL;
-    break;
-  case ZMode::GREATER:
-    new_ds_state.compare_op = VK_COMPARE_OP_LESS;
-    break;
-  case ZMode::NEQUAL:
-    new_ds_state.compare_op = VK_COMPARE_OP_NOT_EQUAL;
-    break;
-  case ZMode::GEQUAL:
-    new_ds_state.compare_op = VK_COMPARE_OP_LESS_OR_EQUAL;
-    break;
-  case ZMode::ALWAYS:
-    new_ds_state.compare_op = VK_COMPARE_OP_ALWAYS;
-    break;
-  default:
-    new_ds_state.compare_op = VK_COMPARE_OP_ALWAYS;
-    break;
-  }
-
-  StateTracker::GetInstance()->SetDepthStencilState(new_ds_state);
+  StateTracker::GetInstance()->SetDepthState(state);
 }
 
 void Renderer::SetBlendingState(const BlendingState& state)

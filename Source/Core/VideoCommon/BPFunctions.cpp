@@ -68,12 +68,14 @@ void SetScissor()
 
 void SetDepthMode()
 {
-  g_renderer->SetDepthMode();
+  DepthState state = {};
+  state.Generate(bpmem);
+  g_renderer->SetDepthState(state);
 }
 
 void SetBlendMode()
 {
-  BlendingState state;
+  BlendingState state = {};
   state.Generate(bpmem);
   g_renderer->SetBlendingState(state);
 }
