@@ -312,7 +312,7 @@ NetPlaySetupFrame::~NetPlaySetupFrame()
 #endif
 
   inifile.Save(dolphin_ini);
-  main_frame->g_NetPlaySetupDiag = nullptr;
+  main_frame->m_netplay_setup_frame = nullptr;
 }
 
 void NetPlaySetupFrame::OnHost(wxCommandEvent&)
