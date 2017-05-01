@@ -12,6 +12,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/NandPaths.h"
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/ES/NandUtils.h"
@@ -25,14 +26,18 @@ namespace Device
 {
 // HACK: Since we do not want to require users to install disc updates when launching
 //       Wii games from the game list (which is the inaccurate game boot path anyway),
-//       IOSes have to be faked for games which reload IOS to work properly.
+//       or in TAS/netplay (because forcing every user to have a proper NAND setup in those cases
+//       is unrealistic), IOSes have to be faked for games and homebrew that reload IOS
+//       such as Gecko to work properly.
+//
 //       To minimize the effect of this hack, we should only do this for disc titles
 //       booted from the game list, though.
 static bool ShouldReturnFakeViewsForIOSes(u64 title_id, const TitleContext& context)
 {
   const bool ios = IsTitleType(title_id, IOS::ES::TitleType::System) && title_id != TITLEID_SYSMENU;
   const bool disc_title = context.active && IOS::ES::IsDiscTitle(context.tmd.GetTitleId());
-  return ios && SConfig::GetInstance().m_BootType == SConfig::BOOT_ISO && disc_title;
+  return Core::WantsDeterminism() ||
+         (ios && SConfig::GetInstance().m_BootType == SConfig::BOOT_ISO && disc_title);
 }
 
 IPCCommandResult ES::GetTicketViewCount(const IOCtlVRequest& request)
