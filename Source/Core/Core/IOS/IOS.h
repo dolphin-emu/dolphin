@@ -15,6 +15,7 @@
 #include "Common/CommonTypes.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/SystemTimers.h"
+#include "Core/IOS/IOSC.h"
 
 class PointerWrap;
 
@@ -108,6 +109,8 @@ public:
   bool BootIOS(u64 ios_title_id);
   u32 GetVersion() const;
 
+  IOSC& GetIOSC();
+
 private:
   void ExecuteIPCCommand(u32 address);
   IPCCommandResult HandleIPCCommand(const Request& request);
@@ -133,6 +136,8 @@ private:
   IPCMsgQueue m_reply_queue;    // arm -> ppc
   IPCMsgQueue m_ack_queue;      // arm -> ppc
   u64 m_last_reply_time = 0;
+
+  IOSC m_iosc;
 };
 
 // Used for controlling and accessing an IOS instance that is tied to emulation.

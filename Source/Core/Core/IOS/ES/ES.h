@@ -49,9 +49,6 @@ public:
   static void LoadWAD(const std::string& _rContentFile);
   bool LaunchTitle(u64 title_id, bool skip_reload = false);
 
-  // Internal implementation of the ES_DECRYPT ioctlv.
-  static void DecryptContent(u32 key_index, u8* iv, u8* input, u32 size, u8* new_iv, u8* output);
-
   void DoState(PointerWrap& p) override;
 
   ReturnCode Open(const OpenRequest& request) override;

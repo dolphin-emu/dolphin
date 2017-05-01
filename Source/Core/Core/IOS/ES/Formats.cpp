@@ -16,12 +16,12 @@
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
-#include "Common/Crypto/AES.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
-#include "Core/ec_wii.h"
+#include "Core/IOS/Device.h"
+#include "Core/IOS/IOSC.h"
 
 namespace IOS
 {
@@ -313,15 +313,18 @@ u64 TicketReader::GetTitleId() const
 
 std::vector<u8> TicketReader::GetTitleKey() const
 {
-  const u8 common_key[16] = {0xeb, 0xe4, 0x2a, 0x22, 0x5e, 0x85, 0x93, 0xe4,
-                             0x48, 0xd9, 0xc5, 0x45, 0x73, 0x81, 0xaa, 0xf7};
   u8 iv[16] = {};
   std::copy_n(&m_bytes[GetOffset() + offsetof(Ticket, title_id)], sizeof(Ticket::title_id), iv);
-  return Common::AES::Decrypt(common_key, iv, &m_bytes[GetOffset() + offsetof(Ticket, title_key)],
-                              16);
-}
+  auto common_key_handle = m_bytes.at(GetOffset() + offsetof(Ticket, common_key_index)) == 0 ?
+                               HLE::IOSC::HANDLE_COMMON_KEY :
+                               HLE::IOSC::HANDLE_NEW_COMMON_KEY;
 
-constexpr s32 IOSC_OK = 0;
+  std::vector<u8> key(16);
+  HLE::IOSC iosc;
+  iosc.Decrypt(common_key_handle, iv, &m_bytes[GetOffset() + offsetof(Ticket, title_key)], 16,
+               key.data(), HLE::PID_ES);
+  return key;
+}
 
 s32 TicketReader::Unpersonalise()
 {
@@ -329,24 +332,38 @@ s32 TicketReader::Unpersonalise()
 
   // IOS uses IOSC to compute an AES key from the peer public key and the device's private ECC key,
   // which is used the decrypt the title key. The IV is the ticket ID (8 bytes), zero extended.
+  using namespace HLE;
+  IOSC iosc;
+  IOSC::Handle public_handle;
+  s32 ret = iosc.CreateObject(&public_handle, IOSC::TYPE_PUBLIC_KEY, IOSC::SUBTYPE_ECC233, PID_ES);
+  if (ret != IPC_SUCCESS)
+    return ret;
 
   const auto public_key_iter = ticket_begin + offsetof(Ticket, server_public_key);
-  EcWii::ECCKey public_key;
-  std::copy_n(public_key_iter, sizeof(Ticket::server_public_key), public_key.begin());
+  ret = iosc.ImportPublicKey(public_handle, &*public_key_iter, PID_ES);
+  if (ret != IPC_SUCCESS)
+    return ret;
 
-  const EcWii& ec = EcWii::GetInstance();
-  const std::array<u8, 16> shared_secret = ec.GetSharedSecret(public_key);
+  IOSC::Handle key_handle;
+  ret = iosc.CreateObject(&key_handle, IOSC::TYPE_SECRET_KEY, IOSC::SUBTYPE_AES128, PID_ES);
+  if (ret != IPC_SUCCESS)
+    return ret;
+
+  ret = iosc.ComputeSharedKey(key_handle, IOSC::HANDLE_CONSOLE_KEY, public_handle, PID_ES);
+  if (ret != IPC_SUCCESS)
+    return ret;
 
   std::array<u8, 16> iv{};
   std::copy_n(ticket_begin + offsetof(Ticket, ticket_id), sizeof(Ticket::ticket_id), iv.begin());
 
-  const std::vector<u8> key =
-      Common::AES::Decrypt(shared_secret.data(), iv.data(),
-                           &*ticket_begin + offsetof(Ticket, title_key), sizeof(Ticket::title_key));
-
+  std::array<u8, 16> key{};
+  ret = iosc.Decrypt(key_handle, iv.data(), &*ticket_begin + offsetof(Ticket, title_key),
+                     sizeof(Ticket::title_key), key.data(), PID_ES);
   // Finally, IOS copies the decrypted title key back to the ticket buffer.
-  std::copy(key.cbegin(), key.cend(), ticket_begin + offsetof(Ticket, title_key));
-  return IOSC_OK;
+  if (ret == IPC_SUCCESS)
+    std::copy(key.cbegin(), key.cend(), ticket_begin + offsetof(Ticket, title_key));
+
+  return ret;
 }
 
 struct SharedContentMap::Entry

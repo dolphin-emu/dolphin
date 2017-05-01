@@ -546,6 +546,8 @@ void Kernel::DoState(PointerWrap& p)
   p.Do(m_ppc_uid);
   p.Do(m_ppc_gid);
 
+  m_iosc.DoState(p);
+
   if (m_title_id == MIOS_TITLE_ID)
     return;
 
@@ -613,6 +615,11 @@ void Kernel::DoState(PointerWrap& p)
       }
     }
   }
+}
+
+IOSC& Kernel::GetIOSC()
+{
+  return m_iosc;
 }
 
 void Init()
