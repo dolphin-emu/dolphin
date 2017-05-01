@@ -793,6 +793,9 @@
     <ClCompile Include="IOS\IOS.cpp">
       <Filter>IOS</Filter>
     </ClCompile>
+    <ClCompile Include="IOS\IOSC.cpp">
+      <Filter>IOS</Filter>
+    </ClCompile>
     <ClCompile Include="IOS\MemoryValues.cpp">
       <Filter>IOS</Filter>
     </ClCompile>
@@ -1505,6 +1508,9 @@
       <Filter>IOS</Filter>
     </ClInclude>
     <ClInclude Include="IOS\IOS.h">
+      <Filter>IOS</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\IOSC.h">
       <Filter>IOS</Filter>
     </ClInclude>
     <ClInclude Include="IOS\MemoryValues.h">
