@@ -6,13 +6,13 @@
 
 #include <QFileSystemWatcher>
 #include <QMap>
+#include <QSet>
 #include <QSharedPointer>
 #include <QString>
 #include <QStringList>
 #include <QThread>
 
 #include "DolphinQt2/GameList/GameFile.h"
-#include "DolphinQt2/GameList/GameTracker.h"
 
 class GameLoader;
 
@@ -42,9 +42,10 @@ signals:
 private:
   void UpdateDirectory(const QString& dir);
   void UpdateFile(const QString& path);
+  QSet<QString> FindMissingFiles(const QString& dir);
 
-  // game path -> number of directories that track it
-  QMap<QString, int> m_tracked_files;
+  // game path -> directories that track it
+  QMap<QString, QSet<QString>> m_tracked_files;
   QThread m_loader_thread;
   GameLoader* m_loader;
 };

@@ -90,6 +90,8 @@ void GameListModel::UpdateGame(QSharedPointer<GameFile> game)
   int entry = FindGame(path);
   if (entry < 0)
     entry = m_games.size();
+  else
+    return;
 
   beginInsertRows(QModelIndex(), entry, entry);
   m_games.insert(entry, game);
