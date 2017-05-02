@@ -5,6 +5,7 @@
 #include "DiscIO/NANDImporter.h"
 
 #include <array>
+#include <cinttypes>
 #include <cstring>
 
 #include "Common/Crypto/AES.h"
@@ -51,7 +52,8 @@ bool NANDImporter::ReadNANDBin(const std::string& path_to_bin)
   File::IOFile file(path_to_bin, "rb");
   if (file.GetSize() != NAND_BIN_SIZE)
   {
-    PanicAlertT("This file does not look like a BootMii NAND backup. (0x%lx does not equal 0x%zx)",
+    PanicAlertT("This file does not look like a BootMii NAND backup. (0x%" PRIx64
+                " does not equal 0x%zx)",
                 file.GetSize(), NAND_BIN_SIZE);
     return false;
   }
