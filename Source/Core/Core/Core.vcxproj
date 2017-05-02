@@ -340,7 +340,6 @@
     <ClInclude Include="ec_wii.h" />
     <ClInclude Include="FifoPlayer\FifoAnalyzer.h" />
     <ClInclude Include="FifoPlayer\FifoDataFile.h" />
-    <ClInclude Include="FifoPlayer\FifoFileStruct.h" />
     <ClInclude Include="FifoPlayer\FifoPlaybackAnalyzer.h" />
     <ClInclude Include="FifoPlayer\FifoPlayer.h" />
     <ClInclude Include="FifoPlayer\FifoRecordAnalyzer.h" />
