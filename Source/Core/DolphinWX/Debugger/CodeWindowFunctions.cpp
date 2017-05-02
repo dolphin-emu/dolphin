@@ -83,8 +83,8 @@ void CCodeWindow::Load()
     ini.GetOrCreateSection("ShowOnStart")->Get(SettingName[i], &bShowOnStart[i], false);
 
   // Get notebook affiliation
-  std::string section = "P - " + ((Parent->ActivePerspective < Parent->Perspectives.size()) ?
-                                      Parent->Perspectives[Parent->ActivePerspective].Name :
+  std::string section = "P - " + ((Parent->m_active_perspective < Parent->m_perspectives.size()) ?
+                                      Parent->m_perspectives[Parent->m_active_perspective].name :
                                       "Perspective 1");
 
   for (int i = 0; i <= IDM_CODE_WINDOW - IDM_LOG_WINDOW; i++)
@@ -92,7 +92,7 @@ void CCodeWindow::Load()
 
   // Get floating setting
   for (int i = 0; i <= IDM_CODE_WINDOW - IDM_LOG_WINDOW; i++)
-    ini.GetOrCreateSection("Float")->Get(SettingName[i], &Parent->bFloatWindow[i], false);
+    ini.GetOrCreateSection("Float")->Get(SettingName[i], &Parent->m_float_window[i], false);
 }
 
 void CCodeWindow::Save()
@@ -114,7 +114,7 @@ void CCodeWindow::Save()
         ->Set(SettingName[i - IDM_LOG_WINDOW], GetParentMenuBar()->IsChecked(i));
 
   // Save notebook affiliations
-  std::string section = "P - " + Parent->Perspectives[Parent->ActivePerspective].Name;
+  std::string section = "P - " + Parent->m_perspectives[Parent->m_active_perspective].name;
   for (int i = 0; i <= IDM_CODE_WINDOW - IDM_LOG_WINDOW; i++)
     ini.GetOrCreateSection(section)->Set(SettingName[i], iNbAffiliation[i]);
 
@@ -536,7 +536,7 @@ void CCodeWindow::TogglePanel(int id, bool show)
       panel = CreateSiblingPanel(id);
     }
     Parent->DoAddPage(panel, iNbAffiliation[id - IDM_DEBUG_WINDOW_LIST_START],
-                      Parent->bFloatWindow[id - IDM_DEBUG_WINDOW_LIST_START]);
+                      Parent->m_float_window[id - IDM_DEBUG_WINDOW_LIST_START]);
   }
   else if (panel)  // Close
   {
