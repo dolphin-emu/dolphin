@@ -63,3 +63,4 @@ add_definitions(-Wno-unused-variable)
 endif()
 
 add_library(glslang STATIC ${SRCS})
+target_include_directories(glslang PUBLIC glslang/Public SPIRV)
