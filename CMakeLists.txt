@@ -25,6 +25,7 @@ option(ENABLE_PULSEAUDIO "Enables PulseAudio sound backend" ON)
 option(ENABLE_OPENAL "Enables OpenAL sound backend" ON)
 option(ENABLE_LLVM "Enables LLVM support, for disassembly" ON)
 option(ENABLE_BLUEZ "Enables bluetooth support" ON)
+option(ENABLE_XCB "Use xcb over xlib for Vulkan backend" OFF)
 
 # Maintainers: if you consider blanket disabling this for your users, please
 # consider the following points:
@@ -552,6 +553,11 @@ endif()
 if(ENABLE_ANALYTICS)
   message(STATUS "Enabling analytics collection (subject to end-user opt-in)")
   add_definitions(-DUSE_ANALYTICS=1)
+endif()
+
+if(ENABLE_XCB)
+  message(STATUS "Using XCB instead of Xlib.")
+  add_definitions(-DUSE_XCB=1)
 endif()
 
 ########################################
