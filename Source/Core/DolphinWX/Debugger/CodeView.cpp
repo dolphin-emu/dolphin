@@ -194,36 +194,12 @@ u32 CCodeView::AddrToBranch(u32 addr)
   return 0;
 }
 
-void CCodeView::InsertBlrNop(int Blr)
+void CCodeView::InsertBlrNop(bool is_blr)
 {
-  // Check if this address has been modified
-  int find = -1;
-  for (u32 i = 0; i < m_blrList.size(); i++)
-  {
-    if (m_blrList.at(i).address == m_selection)
-    {
-      find = i;
-      break;
-    }
-  }
-
-  // Save the old value
-  if (find >= 0)
-  {
-    m_debugger->WriteExtraMemory(0, m_blrList.at(find).oldValue, m_selection);
-    m_blrList.erase(m_blrList.begin() + find);
-  }
+  if (is_blr)
+    m_debugger->Patch(m_selection, 0x4e800020);
   else
-  {
-    BlrStruct temp;
-    temp.address = m_selection;
-    temp.oldValue = m_debugger->ReadMemory(m_selection);
-    m_blrList.push_back(temp);
-    if (Blr == 0)
-      m_debugger->InsertBLR(m_selection, 0x4e800020);
-    else
-      m_debugger->InsertBLR(m_selection, 0x60000000);
-  }
+    m_debugger->Patch(m_selection, 0x60000000);
   Refresh();
 }
 
@@ -289,12 +265,12 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 
   // Insert blr or restore old value
   case IDM_INSERTBLR:
-    InsertBlrNop(0);
+    InsertBlrNop(true);
     Refresh();
     break;
 
   case IDM_INSERTNOP:
-    InsertBlrNop(1);
+    InsertBlrNop(false);
     Refresh();
     break;
 
