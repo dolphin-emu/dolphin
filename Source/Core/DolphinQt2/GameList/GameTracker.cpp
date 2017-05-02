@@ -72,10 +72,10 @@ void GameTracker::UpdateDirectory(const QString& dir)
   while (it.hasNext())
   {
     QString path = QFileInfo(it.next()).canonicalFilePath();
-    auto& tracked_file = m_tracked_files[path];
 
     if (m_tracked_files.contains(path))
     {
+      auto& tracked_file = m_tracked_files[path];
       if (!tracked_file.contains(dir))
         tracked_file.insert(dir);
     }
