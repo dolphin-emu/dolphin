@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Core/PowerPC/SignatureDB/SignatureDB.h"
 
 class PPCSymbolDB;
 
@@ -35,15 +36,21 @@ struct MEGASignature
 //  - Hexstring representation with "." acting as a wildcard
 //  - Name, represented as follow: ":0000 function_name"
 //  - References located in the hexstring at offset: "^offset reference_name"
-class MEGASignatureDB
+class MEGASignatureDB : public SignatureDBFormatHandler
 {
 public:
   MEGASignatureDB();
   ~MEGASignatureDB();
 
+  void Clear();
   bool Load(const std::string& file_path);
-  void Apply(PPCSymbolDB* symbol_db) const;
+  bool Save(const std::string& file_path) const;
   void List() const;
+
+  void Apply(PPCSymbolDB* symbol_db) const;
+  void Populate(const PPCSymbolDB* func_db, const std::string& filter = "");
+
+  bool Add(u32 startAddr, u32 size, const std::string& name);
 
 private:
   std::vector<MEGASignature> m_signatures;

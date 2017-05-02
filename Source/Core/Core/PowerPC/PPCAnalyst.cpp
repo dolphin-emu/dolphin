@@ -97,7 +97,7 @@ bool AnalyzeFunction(u32 startAddr, Symbol& func, int max_size)
     {
       func.address = startAddr;
       func.analyzed = true;
-      func.hash = SignatureDB::ComputeCodeChecksum(startAddr, addr);
+      func.hash = HashSignatureDB::ComputeCodeChecksum(startAddr, addr);
       if (numInternalBranches == 0)
         func.flags |= FFLAG_STRAIGHT;
       return true;
@@ -121,7 +121,7 @@ bool AnalyzeFunction(u32 startAddr, Symbol& func, int max_size)
           // Let's calc the checksum and get outta here
           func.address = startAddr;
           func.analyzed = true;
-          func.hash = SignatureDB::ComputeCodeChecksum(startAddr, addr);
+          func.hash = HashSignatureDB::ComputeCodeChecksum(startAddr, addr);
           if (numInternalBranches == 0)
             func.flags |= FFLAG_STRAIGHT;
           return true;
@@ -137,7 +137,7 @@ bool AnalyzeFunction(u32 startAddr, Symbol& func, int max_size)
           func.size *= 4; // into bytes
           func.address = startAddr;
           func.analyzed = 1;
-          func.hash = SignatureDB::ComputeCodeChecksum(startAddr, addr);
+          func.hash = HashSignatureDB::ComputeCodeChecksum(startAddr, addr);
           if (numInternalBranches == 0)
             func.flags |= FFLAG_STRAIGHT;
           return true;

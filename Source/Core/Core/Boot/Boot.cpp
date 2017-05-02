@@ -308,7 +308,7 @@ bool CBoot::BootUp()
     if (_StartupPara.bHLE_BS2 && !_StartupPara.bEnableDebugging)
     {
       PPCAnalyst::FindFunctions(0x80004000, 0x811fffff, &g_symbolDB);
-      SignatureDB db;
+      SignatureDB db(SignatureDB::HandlerType::DSY);
       if (db.Load(File::GetSysDirectory() + TOTALDB))
       {
         db.Apply(&g_symbolDB);
