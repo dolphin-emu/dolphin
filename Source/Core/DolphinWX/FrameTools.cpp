@@ -86,6 +86,10 @@
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
+#if defined(__APPLE__)
+#import <IOKit/pwr_mgt/IOPMLib.h>
+#endif
+
 class InputConfig;
 class wxFrame;
 
@@ -732,6 +736,15 @@ void CFrame::StartGame(const std::string& filename)
         SConfig::GetInstance().bDisableScreenSaver ? ES_DISPLAY_REQUIRED : 0;
     SetThreadExecutionState(ES_CONTINUOUS | shouldScreenSave | ES_SYSTEM_REQUIRED);
 #endif
+#ifdef __APPLE__
+    CFStringRef reason_for_activity = CFSTR("Emulation Running");
+     m_disable_screensaver_assertion_creation_success =
+      IOPMAssertionCreateWithName(
+        kIOPMAssertionTypeNoDisplaySleep,
+        kIOPMAssertionLevelOn,
+         reason_for_activity,
+        & m_disable_screensaver_assertion_id);
+#endif
 
     // We need this specifically to support setting the focus properly when using
     // the 'render to main window' feature on Windows
@@ -912,6 +925,13 @@ void CFrame::OnStopped()
 #ifdef _WIN32
   // Allow windows to resume normal idling behavior
   SetThreadExecutionState(ES_CONTINUOUS);
+#endif
+#ifdef __APPLE__
+    if (m_disable_screensaver_assertion_creation_success == kIOReturnSuccess)
+    { 
+       m_disable_screensaver_assertion_creation_success =
+        IOPMAssertionRelease( m_disable_screensaver_assertion_id);
+    }
 #endif
 
   m_RenderFrame->SetTitle(StrToWxStr(scm_rev_str));
