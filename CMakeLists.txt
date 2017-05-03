@@ -835,7 +835,6 @@ include_directories("${PROJECT_BINARY_DIR}/Source/Core")
 # Unit testing.
 #
 message(STATUS "Using static gtest from Externals")
-include_directories(Externals/gtest/include)
 add_subdirectory(Externals/gtest EXCLUDE_FROM_ALL)
 
 enable_testing()
