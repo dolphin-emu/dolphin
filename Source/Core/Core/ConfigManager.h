@@ -29,15 +29,6 @@ class TMDReader;
 }
 }
 
-// DSP Backend Types
-#define BACKEND_NULLSOUND _trans("No audio output")
-#define BACKEND_ALSA "ALSA"
-#define BACKEND_COREAUDIO "CoreAudio"
-#define BACKEND_OPENAL "OpenAL"
-#define BACKEND_PULSEAUDIO "Pulse"
-#define BACKEND_XAUDIO2 "XAudio2"
-#define BACKEND_OPENSLES "OpenSLES"
-
 enum GPUDeterminismMode
 {
   GPU_DETERMINISM_AUTO,
@@ -109,7 +100,6 @@ struct SConfig : NonCopyable
   bool bCopyWiiSaveNetplay = true;
 
   bool bDPL2Decoder = false;
-  int iLatency = 14;
   bool m_audio_stretch = false;
   int m_audio_stretch_max_latency = 80;
 
@@ -324,7 +314,6 @@ struct SConfig : NonCopyable
   bool m_IsMuted;
   bool m_DumpUCode;
   int m_Volume;
-  std::string sBackend;
 
   // Input settings
   bool m_BackgroundInput;

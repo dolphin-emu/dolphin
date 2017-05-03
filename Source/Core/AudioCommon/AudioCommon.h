@@ -18,11 +18,6 @@ namespace AudioCommon
 {
 void InitSoundStream();
 void ShutdownSoundStream();
-std::string GetDefaultSoundBackend();
-std::vector<std::string> GetSoundBackends();
-bool SupportsDPL2Decoder(const std::string& backend);
-bool SupportsLatencyControl(const std::string& backend);
-bool SupportsVolumeChanges(const std::string& backend);
 void UpdateSoundStream();
 void ClearAudioBuffer(bool mute);
 void SendAIBuffer(const short* samples, unsigned int num_samples);

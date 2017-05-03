@@ -344,10 +344,6 @@ if(HIDAPI_FOUND)
   set(SRCS ${SRCS} HW/WiimoteReal/IOhidapi.cpp)
 endif()
 
-if(PORTAUDIO_FOUND)
-  set(LIBS ${LIBS} ${PORTAUDIO_LIBRARIES})
-endif()
-
 if(OPROFILE_FOUND)
   set(LIBS ${LIBS} ${OPROFILE_LIBRARIES})
 endif()

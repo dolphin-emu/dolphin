@@ -1,11 +1,11 @@
 Dolphin includes or links code of the following third-party software projects:
 
-- [ALSA](http://www.alsa-project.org/):
-   [LGPLv2.1+](http://git.alsa-project.org/?p=alsa-lib.git;a=blob;f=COPYING)
 - [BlueZ](http://www.bluez.org/):
    [LGPLv2.1+](https://git.kernel.org/cgit/bluetooth/bluez.git/tree/COPYING.LIB)
 - [Bochs](http://bochs.sourceforge.net/):
    [LGPLv2.1+](http://bochs.sourceforge.net/cgi-bin/lxr/source/COPYING)
+- [cubeb](https://github.com/kinetiknz/cubeb):
+   [ISC](https://github.com/kinetiknz/cubeb/blob/master/LICENSE)
 - [d3dx12.h](https://github.com/Microsoft/DirectX-Graphics-Samples/blob/master/Samples/D3D1211On12/src/d3dx12.h):
    [MIT](https://github.com/Microsoft/DirectX-Graphics-Samples/blob/master/LICENSE)
 - [ENet](http://enet.bespin.org/):
@@ -36,8 +36,6 @@ Dolphin includes or links code of the following third-party software projects:
    [3-clause BSD](https://github.com/miniupnp/miniupnp/blob/master/miniupnpc/LICENSE)
 - [Microsoft Visual C++ Runtime Library](http://www.microsoft.com/en-us/download/details.aspx?id=40784):
    [System Library if not distributed](https://www.gnu.org/licenses/gpl-faq.html#WindowsRuntimeAndGPL)
-- [OpenAL Soft](http://kcat.strangesoft.net/openal.html):
-   [LGPLv2+](http://repo.or.cz/w/openal-soft.git/blob/HEAD:/COPYING)
 - [OpenGL Header (MESA)](http://mesa3d.org/):
    [MIT](http://cgit.freedesktop.org/mesa/mesa/tree/include/GL/gl.h)
 - [OpenGL Extension Header (Khronos)](https://www.opengl.org/registry/#headers):
@@ -46,10 +44,6 @@ Dolphin includes or links code of the following third-party software projects:
    [GPLv2](http://pearpc.cvs.sourceforge.net/viewvc/pearpc/pearpc/COPYING?view=markup) (with permission by the author to license under GPLv2+)
 - [mbed TLS](https://tls.mbed.org/):
    [Apache 2.0](https://github.com/ARMmbed/mbedtls/blob/development/LICENSE)
-- [PortAudio](http://www.portaudio.com/):
-   [MIT](http://www.portaudio.com/license.html)
-- [PulseAudio](http://www.freedesktop.org/wiki/Software/PulseAudio/):
-   [LGPLv2.1+](http://cgit.freedesktop.org/pulseaudio/pulseaudio/tree/LICENSE)
 - [Qt5](http://qt-project.org/):
    [LGPLv3 and other licenses](http://doc.qt.io/qt-5/licensing.html)
 - [SDL](https://www.libsdl.org/):
@@ -64,8 +58,6 @@ Dolphin includes or links code of the following third-party software projects:
    header only
 - [wxWidgets](https://www.wxwidgets.org/):
    [wxWindows Library License](https://www.wxwidgets.org/about/licence/) (LGPLv2+-like)
-- [XAudio2](http://msdn.microsoft.com/en-us/library/windows/desktop/hh405049.aspx):
-   headers only
 - [xxHash](https://github.com/Cyan4973/xxHash):
    [2-clause BSD](https://github.com/Cyan4973/xxHash/blob/master/LICENSE)
 - [zlib](http://www.zlib.net/):

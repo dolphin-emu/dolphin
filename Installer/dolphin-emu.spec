@@ -43,7 +43,6 @@ BuildRequires:  desktop-file-utils
 BuildRequires:  cmake >= 2.8
 BuildRequires:  gcc-c++
 BuildRequires:  gtk2-devel
-BuildRequires:  pkgconfig(alsa)
 BuildRequires:  pkgconfig(ao)
 BuildRequires:  pkgconfig(bluez)
 BuildRequires:  pkgconfig(libpulse)
@@ -55,10 +54,8 @@ BuildRequires:  libusb-devel
 BuildRequires:  lzo-devel
 # Disable miniupnpc in OBS for F20
 BuildRequires:  miniupnpc-devel
-BuildRequires:  openal-soft-devel
 #polarssl is now mbedtls:
 BuildRequires:  mbedtls-devel
-BuildRequires:  portaudio-devel
 BuildRequires:  SDL2-devel
 BuildRequires:  SFML-devel
 BuildRequires:  SOIL-devel
@@ -70,8 +67,6 @@ BuildRequires:  libminiupnpc-devel
 BuildRequires:  libSDL2-devel
 BuildRequires:  libSOIL-devel
 BuildRequires:  lzo-devel
-BuildRequires:  openal-devel
-BuildRequires:  portaudio-devel
 BuildRequires:  sfml-devel
 BuildRequires:  soundtouch-devel
 BuildRequires:  update-desktop-files

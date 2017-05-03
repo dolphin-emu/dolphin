@@ -89,7 +89,6 @@ private:
   float m_OCFactor;
   bool m_OCEnable;
   std::string strBackend;
-  std::string sBackend;
   std::string m_strGPUDeterminismMode;
   std::array<int, MAX_BBMOTES> iWiimoteSource;
   std::array<SerialInterface::SIDevices, SerialInterface::MAX_SI_CHANNELS> Pads;
@@ -119,7 +118,6 @@ void ConfigCache::SaveConfig(const SConfig& config)
   Volume = config.m_Volume;
   m_EmulationSpeed = config.m_EmulationSpeed;
   strBackend = config.m_strVideoBackend;
-  sBackend = config.sBackend;
   m_strGPUDeterminismMode = config.m_strGPUDeterminismMode;
   m_wii_language = config.m_wii_language;
   m_OCFactor = config.m_OCFactor;
@@ -196,7 +194,6 @@ void ConfigCache::RestoreConfig(SConfig* config)
   }
 
   config->m_strVideoBackend = strBackend;
-  config->sBackend = sBackend;
   config->m_strGPUDeterminismMode = m_strGPUDeterminismMode;
   config->m_OCFactor = m_OCFactor;
   config->m_OCEnable = m_OCEnable;
@@ -272,7 +269,6 @@ bool BootCore(const std::string& _rFilename)
     if (dsp_section->Get("Volume", &StartUp.m_Volume, StartUp.m_Volume))
       config_cache.bSetVolume = true;
     dsp_section->Get("EnableJIT", &StartUp.m_DSPEnableJIT, StartUp.m_DSPEnableJIT);
-    dsp_section->Get("Backend", &StartUp.sBackend, StartUp.sBackend);
     VideoBackendBase::ActivateBackend(StartUp.m_strVideoBackend);
     core_section->Get("GPUDeterminismMode", &StartUp.m_strGPUDeterminismMode,
                       StartUp.m_strGPUDeterminismMode);

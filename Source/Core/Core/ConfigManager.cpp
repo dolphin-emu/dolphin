@@ -249,7 +249,6 @@ void SConfig::SaveCoreSettings(IniFile& ini)
   core->Set("SelectedLanguage", SelectedLanguage);
   core->Set("OverrideGCLang", bOverrideGCLanguage);
   core->Set("DPL2Decoder", bDPL2Decoder);
-  core->Set("Latency", iLatency);
   core->Set("AudioStretch", m_audio_stretch);
   core->Set("AudioStretchMaxLatency", m_audio_stretch_max_latency);
   core->Set("MemcardAPath", m_strMemoryCardA);
@@ -303,7 +302,6 @@ void SConfig::SaveDSPSettings(IniFile& ini)
   dsp->Set("DumpAudio", m_DumpAudio);
   dsp->Set("DumpAudioSilent", m_DumpAudioSilent);
   dsp->Set("DumpUCode", m_DumpUCode);
-  dsp->Set("Backend", sBackend);
   dsp->Set("Volume", m_Volume);
   dsp->Set("CaptureLog", m_DSPCaptureLog);
 }
@@ -570,7 +568,6 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("SelectedLanguage", &SelectedLanguage, 0);
   core->Get("OverrideGCLang", &bOverrideGCLanguage, false);
   core->Get("DPL2Decoder", &bDPL2Decoder, false);
-  core->Get("Latency", &iLatency, 2);
   core->Get("AudioStretch", &m_audio_stretch, false);
   core->Get("AudioStretchMaxLatency", &m_audio_stretch_max_latency, 80);
   core->Get("MemcardAPath", &m_strMemoryCardA);
@@ -639,7 +636,6 @@ void SConfig::LoadDSPSettings(IniFile& ini)
   dsp->Get("DumpAudio", &m_DumpAudio, false);
   dsp->Get("DumpAudioSilent", &m_DumpAudioSilent, false);
   dsp->Get("DumpUCode", &m_DumpUCode, false);
-  dsp->Get("Backend", &sBackend, AudioCommon::GetDefaultSoundBackend());
   dsp->Get("Volume", &m_Volume, 100);
   dsp->Get("CaptureLog", &m_DSPCaptureLog, false);
 
@@ -832,7 +828,6 @@ void SConfig::LoadDefaults()
   bOverrideGCLanguage = false;
   bWii = false;
   bDPL2Decoder = false;
-  iLatency = 14;
   m_audio_stretch = false;
   m_audio_stretch_max_latency = 80;
 
