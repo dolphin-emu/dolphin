@@ -9,6 +9,10 @@
 #include "Common/CommonFuncs.h"
 #include "Common/Intrinsics.h"
 
+#ifdef _M_ARM_64
+#include <arm_acle.h>
+#endif
+
 static u64 (*ptrHashFunction)(const u8* src, u32 len, u32 samples) = &GetMurmurHash3;
 
 // uint32_t
@@ -293,47 +297,26 @@ u64 GetCRC32(const u8* src, u32 len, u32 samples)
   if (Step < 1)
     Step = 1;
 
-  // We should be able to use intrinsics for this
-  // Too bad the intrinsics for this instruction was added in GCC 4.9.1
-  // The Android NDK (as of r10e) only has GCC 4.9
-  // Once the Android NDK has a newer GCC version, update these to use intrinsics
   while (data < end - Step * 3)
   {
-    asm("crc32x %w[res], %w[two], %x[three]"
-        : [res] "=r"(h[0])
-        : [two] "r"(h[0]), [three] "r"(data[Step * 0]));
-    asm("crc32x %w[res], %w[two], %x[three]"
-        : [res] "=r"(h[1])
-        : [two] "r"(h[1]), [three] "r"(data[Step * 1]));
-    asm("crc32x %w[res], %w[two], %x[three]"
-        : [res] "=r"(h[2])
-        : [two] "r"(h[2]), [three] "r"(data[Step * 2]));
-    asm("crc32x %w[res], %w[two], %x[three]"
-        : [res] "=r"(h[3])
-        : [two] "r"(h[3]), [three] "r"(data[Step * 3]));
-
+    h[0] = __crc32d(h[0], data[Step * 0]);
+    h[1] = __crc32d(h[1], data[Step * 1]);
+    h[2] = __crc32d(h[2], data[Step * 2]);
+    h[3] = __crc32d(h[3], data[Step * 3]);
     data += Step * 4;
   }
   if (data < end - Step * 0)
-    asm("crc32x %w[res], %w[two], %x[three]"
-        : [res] "=r"(h[0])
-        : [two] "r"(h[0]), [three] "r"(data[Step * 0]));
+    h[0] = __crc32d(h[0], data[Step * 0]);
   if (data < end - Step * 1)
-    asm("crc32x %w[res], %w[two], %x[three]"
-        : [res] "=r"(h[1])
-        : [two] "r"(h[1]), [three] "r"(data[Step * 1]));
+    h[1] = __crc32d(h[1], data[Step * 1]);
   if (data < end - Step * 2)
-    asm("crc32x %w[res], %w[two], %x[three]"
-        : [res] "=r"(h[2])
-        : [two] "r"(h[2]), [three] "r"(data[Step * 2]));
+    h[2] = __crc32d(h[2], data[Step * 2]);
 
   if (len & 7)
   {
     u64 temp = 0;
     memcpy(&temp, end, len & 7);
-    asm("crc32x %w[res], %w[two], %x[three]"
-        : [res] "=r"(h[0])
-        : [two] "r"(h[0]), [three] "r"(temp));
+    h[0] = __crc32d(h[0], temp);
   }
 
   // FIXME: is there a better way to combine these partial hashes?
