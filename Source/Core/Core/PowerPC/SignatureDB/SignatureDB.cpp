@@ -18,8 +18,7 @@
 #include "Core/PowerPC/SignatureDB/DSYSignatureDB.h"
 #include "Core/PowerPC/SignatureDB/MEGASignatureDB.h"
 
-SignatureDB::SignatureDB(SignatureDB::HandlerType handler)
-    : m_handler(std::move(CreateFormatHandler(handler)))
+SignatureDB::SignatureDB(SignatureDB::HandlerType handler) : m_handler(CreateFormatHandler(handler))
 {
 }
 
