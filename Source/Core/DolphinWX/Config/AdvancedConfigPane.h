@@ -4,11 +4,14 @@
 
 #pragma once
 
+#include <ctime>
 #include <wx/panel.h>
 
+#include "Common/CommonTypes.h"
+
+class DolphinSlider;
 class wxCheckBox;
 class wxDatePickerCtrl;
-class wxSlider;
 class wxStaticText;
 class wxTimePickerCtrl;
 
@@ -20,6 +23,10 @@ public:
 private:
   void InitializeGUI();
   void LoadGUIValues();
+  void BindEvents();
+
+  void OnUpdateCPUClockControls(wxUpdateUIEvent&);
+  void OnUpdateRTCDateTimeEntries(wxUpdateUIEvent&);
 
   void OnClockOverrideCheckBoxChanged(wxCommandEvent&);
   void OnClockOverrideSliderChanged(wxCommandEvent&);
@@ -36,7 +43,7 @@ private:
   u32 m_temp_time;
 
   wxCheckBox* m_clock_override_checkbox;
-  wxSlider* m_clock_override_slider;
+  DolphinSlider* m_clock_override_slider;
   wxStaticText* m_clock_override_text;
   wxCheckBox* m_custom_rtc_checkbox;
   wxDatePickerCtrl* m_custom_rtc_date_picker;

@@ -62,7 +62,8 @@
 #define mbedtls_free       free
 #endif
 
-#if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && !defined(inline)
+#if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
+    !defined(inline) && !defined(__cplusplus)
 #define inline __inline
 #endif
 
@@ -400,6 +401,22 @@ cleanup:
 int mbedtls_ecp_is_zero( mbedtls_ecp_point *pt )
 {
     return( mbedtls_mpi_cmp_int( &pt->Z, 0 ) == 0 );
+}
+
+/*
+ * Compare two points lazyly
+ */
+int mbedtls_ecp_point_cmp( const mbedtls_ecp_point *P,
+                           const mbedtls_ecp_point *Q )
+{
+    if( mbedtls_mpi_cmp_mpi( &P->X, &Q->X ) == 0 &&
+        mbedtls_mpi_cmp_mpi( &P->Y, &Q->Y ) == 0 &&
+        mbedtls_mpi_cmp_mpi( &P->Z, &Q->Z ) == 0 )
+    {
+        return( 0 );
+    }
+
+    return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 }
 
 /*
@@ -1667,7 +1684,38 @@ cleanup:
 #endif /* ECP_SHORTWEIERSTRASS */
 
 /*
+ * R = m * P with shortcuts for m == 1 and m == -1
+ * NOT constant-time - ONLY for short Weierstrass!
+ */
+static int mbedtls_ecp_mul_shortcuts( mbedtls_ecp_group *grp,
+                                      mbedtls_ecp_point *R,
+                                      const mbedtls_mpi *m,
+                                      const mbedtls_ecp_point *P )
+{
+    int ret;
+
+    if( mbedtls_mpi_cmp_int( m, 1 ) == 0 )
+    {
+        MBEDTLS_MPI_CHK( mbedtls_ecp_copy( R, P ) );
+    }
+    else if( mbedtls_mpi_cmp_int( m, -1 ) == 0 )
+    {
+        MBEDTLS_MPI_CHK( mbedtls_ecp_copy( R, P ) );
+        if( mbedtls_mpi_cmp_int( &R->Y, 0 ) != 0 )
+            MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mpi( &R->Y, &grp->P, &R->Y ) );
+    }
+    else
+    {
+        MBEDTLS_MPI_CHK( mbedtls_ecp_mul( grp, R, m, P, NULL, NULL ) );
+    }
+
+cleanup:
+    return( ret );
+}
+
+/*
  * Linear combination
+ * NOT constant-time
  */
 int mbedtls_ecp_muladd( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
              const mbedtls_mpi *m, const mbedtls_ecp_point *P,
@@ -1681,8 +1729,9 @@ int mbedtls_ecp_muladd( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 
     mbedtls_ecp_point_init( &mP );
 
-    MBEDTLS_MPI_CHK( mbedtls_ecp_mul( grp, &mP, m, P, NULL, NULL ) );
-    MBEDTLS_MPI_CHK( mbedtls_ecp_mul( grp, R,   n, Q, NULL, NULL ) );
+    MBEDTLS_MPI_CHK( mbedtls_ecp_mul_shortcuts( grp, &mP, m, P ) );
+    MBEDTLS_MPI_CHK( mbedtls_ecp_mul_shortcuts( grp, R,   n, Q ) );
+
     MBEDTLS_MPI_CHK( ecp_add_mixed( grp, R, &mP, R ) );
     MBEDTLS_MPI_CHK( ecp_normalize_jac( grp, R ) );
 
@@ -1761,9 +1810,11 @@ int mbedtls_ecp_check_privkey( const mbedtls_ecp_group *grp, const mbedtls_mpi *
 }
 
 /*
- * Generate a keypair
+ * Generate a keypair with configurable base point
  */
-int mbedtls_ecp_gen_keypair( mbedtls_ecp_group *grp, mbedtls_mpi *d, mbedtls_ecp_point *Q,
+int mbedtls_ecp_gen_keypair_base( mbedtls_ecp_group *grp,
+                     const mbedtls_ecp_point *G,
+                     mbedtls_mpi *d, mbedtls_ecp_point *Q,
                      int (*f_rng)(void *, unsigned char *, size_t),
                      void *p_rng )
 {
@@ -1776,7 +1827,9 @@ int mbedtls_ecp_gen_keypair( mbedtls_ecp_group *grp, mbedtls_mpi *d, mbedtls_ecp
         /* [M225] page 5 */
         size_t b;
 
-        MBEDTLS_MPI_CHK( mbedtls_mpi_fill_random( d, n_size, f_rng, p_rng ) );
+        do {
+            MBEDTLS_MPI_CHK( mbedtls_mpi_fill_random( d, n_size, f_rng, p_rng ) );
+        } while( mbedtls_mpi_bitlen( d ) == 0);
 
         /* Make sure the most significant bit is nbits */
         b = mbedtls_mpi_bitlen( d ) - 1; /* mbedtls_mpi_bitlen is one-based */
@@ -1835,7 +1888,18 @@ cleanup:
     if( ret != 0 )
         return( ret );
 
-    return( mbedtls_ecp_mul( grp, Q, d, &grp->G, f_rng, p_rng ) );
+    return( mbedtls_ecp_mul( grp, Q, d, G, f_rng, p_rng ) );
+}
+
+/*
+ * Generate key pair, wrapper for conventional base point
+ */
+int mbedtls_ecp_gen_keypair( mbedtls_ecp_group *grp,
+                             mbedtls_mpi *d, mbedtls_ecp_point *Q,
+                             int (*f_rng)(void *, unsigned char *, size_t),
+                             void *p_rng )
+{
+    return( mbedtls_ecp_gen_keypair_base( grp, &grp->G, d, Q, f_rng, p_rng ) );
 }
 
 /*

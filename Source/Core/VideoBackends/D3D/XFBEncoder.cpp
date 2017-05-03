@@ -15,7 +15,8 @@
 
 namespace DX11
 {
-union XFBEncodeParams {
+union XFBEncodeParams
+{
   struct
   {
     FLOAT Width;  // Width and height of encoded XFB in luma pixels

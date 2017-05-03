@@ -4,12 +4,13 @@
 
 #include "Core/PowerPC/Jit64/Jit.h"
 #include "Common/BitSet.h"
+#include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
 #include "Common/x64Emitter.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/PowerPC/Jit64/JitRegCache.h"
-#include "Core/PowerPC/JitCommon/Jit_Util.h"
+#include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
 #include "Core/PowerPC/PowerPC.h"
 
 using namespace Gen;
@@ -243,7 +244,7 @@ void Jit64::mtspr(UGeckoInstruction inst)
     FixupBranch dont_reset_icache = J_CC(CC_NC);
     BitSet32 regs = CallerSavedRegistersInUse();
     ABI_PushRegistersAndAdjustStack(regs, 0);
-    ABI_CallFunction((void*)DoICacheReset);
+    ABI_CallFunction(DoICacheReset);
     ABI_PopRegistersAndAdjustStack(regs, 0);
     SetJumpTarget(dont_reset_icache);
     break;
@@ -281,18 +282,21 @@ void Jit64::mfspr(UGeckoInstruction inst)
     // no register choice
 
     gpr.FlushLockX(RDX, RAX);
+    gpr.FlushLockX(RCX);
+
+    MOV(64, R(RCX), ImmPtr(&CoreTiming::g));
 
     // An inline implementation of CoreTiming::GetFakeTimeBase, since in timer-heavy games the
     // cost of calling out to C for this is actually significant.
     // Scale downcount by the CPU overclocking factor.
     CVTSI2SS(XMM0, PPCSTATE(downcount));
-    MULSS(XMM0, M(&CoreTiming::g_lastOCFactor_inverted));
+    MULSS(XMM0, MDisp(RCX, offsetof(CoreTiming::Globals, last_OC_factor_inverted)));
     CVTSS2SI(RDX, R(XMM0));  // RDX is downcount scaled by the overclocking factor
-    MOV(32, R(RAX), M(&CoreTiming::g_slicelength));
+    MOV(32, R(RAX), MDisp(RCX, offsetof(CoreTiming::Globals, slice_length)));
     SUB(64, R(RAX), R(RDX));  // cycles since the last CoreTiming::Advance() event is (slicelength -
                               // Scaled_downcount)
-    ADD(64, R(RAX), M(&CoreTiming::g_globalTimer));
-    SUB(64, R(RAX), M(&CoreTiming::g_fakeTBStartTicks));
+    ADD(64, R(RAX), MDisp(RCX, offsetof(CoreTiming::Globals, global_timer)));
+    SUB(64, R(RAX), MDisp(RCX, offsetof(CoreTiming::Globals, fake_TB_start_ticks)));
     // It might seem convenient to correct the timer for the block position here for even more
     // accurate
     // timing, but as of currently, this can break games. If we end up reading a time *after* the
@@ -308,12 +312,12 @@ void Jit64::mfspr(UGeckoInstruction inst)
     // a / 12 = (a * 0xAAAAAAAAAAAAAAAB) >> 67
     MOV(64, R(RDX), Imm64(0xAAAAAAAAAAAAAAABULL));
     MUL(64, R(RDX));
-    MOV(64, R(RAX), M(&CoreTiming::g_fakeTBStartValue));
+    MOV(64, R(RAX), MDisp(RCX, offsetof(CoreTiming::Globals, fake_TB_start_value)));
     SHR(64, R(RDX), Imm8(3));
     ADD(64, R(RAX), R(RDX));
     MOV(64, PPCSTATE(spr[SPR_TL]), R(RAX));
 
-    if (MergeAllowedNextInstructions(1))
+    if (CanMergeNextInstructions(1))
     {
       const UGeckoInstruction& next = js.op[1].inst;
       // Two calls of TU/TL next to each other are extremely common in typical usage, so merge them
@@ -391,6 +395,10 @@ void Jit64::mtmsr(UGeckoInstruction inst)
   gpr.Flush();
   fpr.Flush();
 
+  // Our jit cache also stores some MSR bits, as they have changed, we either
+  // have to validate them in the BLR/RET check, or just flush the stack here.
+  asm_routines.ResetStack(*this);
+
   // If some exceptions are pending and EE are now enabled, force checking
   // external exceptions when going out of mtmsr in order to execute delayed
   // interrupts as soon as possible.
@@ -402,7 +410,8 @@ void Jit64::mtmsr(UGeckoInstruction inst)
   FixupBranch noExceptionsPending = J_CC(CC_Z);
 
   // Check if a CP interrupt is waiting and keep the GPU emulation in sync (issue 4336)
-  TEST(32, M(&ProcessorInterface::m_InterruptCause), Imm32(ProcessorInterface::INT_CAUSE_CP));
+  MOV(64, R(RSCRATCH), ImmPtr(&ProcessorInterface::m_InterruptCause));
+  TEST(32, MatR(RSCRATCH), Imm32(ProcessorInterface::INT_CAUSE_CP));
   FixupBranch cpInt = J_CC(CC_NZ);
 
   MOV(32, PPCSTATE(pc), Imm32(js.compilerPC + 4));
@@ -479,6 +488,7 @@ void Jit64::mtcrf(UGeckoInstruction inst)
     }
     else
     {
+      MOV(64, R(RSCRATCH2), ImmPtr(m_crTable.data()));
       gpr.Lock(inst.RS);
       gpr.BindToRegister(inst.RS, true, false);
       for (int i = 0; i < 8; i++)
@@ -490,7 +500,7 @@ void Jit64::mtcrf(UGeckoInstruction inst)
             SHR(32, R(RSCRATCH), Imm8(28 - (i * 4)));
           if (i != 0)
             AND(32, R(RSCRATCH), Imm8(0xF));
-          MOV(64, R(RSCRATCH), MScaled(RSCRATCH, SCALE_8, (u32)(u64)m_crTable));
+          MOV(64, R(RSCRATCH), MComplex(RSCRATCH2, RSCRATCH, SCALE_8, 0));
           MOV(64, PPCSTATE(cr_val[i]), R(RSCRATCH));
         }
       }
@@ -525,7 +535,8 @@ void Jit64::mcrxr(UGeckoInstruction inst)
   // [SO OV CA 0] << 3
   SHL(32, R(RSCRATCH), Imm8(4));
 
-  MOV(64, R(RSCRATCH), MDisp(RSCRATCH, (u32)(u64)m_crTable));
+  MOV(64, R(RSCRATCH2), ImmPtr(m_crTable.data()));
+  MOV(64, R(RSCRATCH), MRegSum(RSCRATCH, RSCRATCH2));
   MOV(64, PPCSTATE(cr_val[inst.CRFD]), R(RSCRATCH));
 
   // Clear XER[0-3]
@@ -616,7 +627,7 @@ void Jit64::mcrfs(UGeckoInstruction inst)
   }
   AND(32, R(RSCRATCH), Imm32(mask));
   MOV(32, PPCSTATE(fpscr), R(RSCRATCH));
-  LEA(64, RSCRATCH, M(&m_crTable));
+  LEA(64, RSCRATCH, MConst(m_crTable));
   MOV(64, R(RSCRATCH), MComplex(RSCRATCH, RSCRATCH2, SCALE_8, 0));
   MOV(64, PPCSTATE(cr_val[inst.CRFD]), R(RSCRATCH));
 }
@@ -650,14 +661,14 @@ void Jit64::mffsx(UGeckoInstruction inst)
 }
 
 // MXCSR = s_fpscr_to_mxcsr[FPSCR & 7]
-static const u32 s_fpscr_to_mxcsr[] = {
+static const u32 s_fpscr_to_mxcsr[8] = {
     0x1F80, 0x7F80, 0x5F80, 0x3F80, 0x9F80, 0xFF80, 0xDF80, 0xBF80,
 };
 
 // Needs value of FPSCR in RSCRATCH.
 void Jit64::UpdateMXCSR()
 {
-  LEA(64, RSCRATCH2, M(&s_fpscr_to_mxcsr));
+  LEA(64, RSCRATCH2, MConst(s_fpscr_to_mxcsr));
   AND(32, R(RSCRATCH), Imm32(7));
   LDMXCSR(MComplex(RSCRATCH2, RSCRATCH, SCALE_4, 0));
 }
@@ -723,7 +734,7 @@ void Jit64::mtfsfix(UGeckoInstruction inst)
 
   // Field 7 contains NI and RN.
   if (inst.CRFD == 7)
-    LDMXCSR(M(&s_fpscr_to_mxcsr[imm & 7]));
+    LDMXCSR(MConst(s_fpscr_to_mxcsr, imm & 7));
 }
 
 void Jit64::mtfsfx(UGeckoInstruction inst)

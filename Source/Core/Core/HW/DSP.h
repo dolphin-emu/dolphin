@@ -31,7 +31,8 @@ enum
 
 // UDSPControl
 constexpr u16 DSP_CONTROL_MASK = 0x0C07;
-union UDSPControl {
+union UDSPControl
+{
   u16 Hex;
   struct
   {
@@ -55,12 +56,11 @@ union UDSPControl {
     u16 DSPInit : 1;      // DSPInit() writes to this flag
     u16 pad : 4;
   };
-  UDSPControl(u16 _Hex = 0) : Hex(_Hex) {}
+  UDSPControl(u16 hex = 0) : Hex(hex) {}
 };
 
-extern UDSPControl g_dspState;
-
 void Init(bool hle);
+void Reinit(bool hle);
 void Shutdown();
 
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
@@ -69,19 +69,16 @@ DSPEmulator* GetDSPEmulator();
 
 void DoState(PointerWrap& p);
 
-void GenerateDSPInterruptFromDSPEmu(DSPInterruptType _DSPInterruptType);
+void GenerateDSPInterruptFromDSPEmu(DSPInterruptType type);
 
 // Audio/DSP Helper
-u8 ReadARAM(const u32 _uAddress);
-void WriteARAM(u8 value, u32 _uAddress);
+u8 ReadARAM(u32 address);
+void WriteARAM(u8 value, u32 address);
 
 // Debugger Helper
 u8* GetARAMPtr();
 
 void UpdateAudioDMA();
 void UpdateDSPSlice(int cycles);
-u64 DMAInProgress();
-void EnableInstantDMA();
-void FlushInstantDMA(u32 address);
 
 }  // end of namespace DSP

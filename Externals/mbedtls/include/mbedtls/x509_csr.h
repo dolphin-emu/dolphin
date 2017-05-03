@@ -1,5 +1,5 @@
 /**
- * \file mbedtls_x509_csr.h
+ * \file x509_csr.h
  *
  * \brief X.509 certificate signing request parsing and writing
  *
@@ -83,6 +83,8 @@ mbedtls_x509write_csr;
 /**
  * \brief          Load a Certificate Signing Request (CSR) in DER format
  *
+ * \note           CSR attributes (if any) are currently silently ignored.
+ *
  * \param csr      CSR context to fill
  * \param buf      buffer holding the CRL data
  * \param buflen   size of the buffer
@@ -94,6 +96,8 @@ int mbedtls_x509_csr_parse_der( mbedtls_x509_csr *csr,
 
 /**
  * \brief          Load a Certificate Signing Request (CSR), DER or PEM format
+ *
+ * \note           See notes for \c mbedtls_x509_csr_parse_der()
  *
  * \param csr      CSR context to fill
  * \param buf      buffer holding the CRL data
@@ -107,6 +111,8 @@ int mbedtls_x509_csr_parse( mbedtls_x509_csr *csr, const unsigned char *buf, siz
 #if defined(MBEDTLS_FS_IO)
 /**
  * \brief          Load a Certificate Signing Request (CSR)
+ *
+ * \note           See notes for \c mbedtls_x509_csr_parse()
  *
  * \param csr      CSR context to fill
  * \param path     filename to read the CSR from
@@ -276,7 +282,7 @@ int mbedtls_x509write_csr_der( mbedtls_x509write_csr *ctx, unsigned char *buf, s
  *
  * \note            f_rng may be NULL if RSA is used for signature and the
  *                  signature is made offline (otherwise f_rng is desirable
- *                  for couermeasures against timing attacks).
+ *                  for countermeasures against timing attacks).
  *                  ECDSA signatures always require a non-NULL f_rng.
  */
 int mbedtls_x509write_csr_pem( mbedtls_x509write_csr *ctx, unsigned char *buf, size_t size,

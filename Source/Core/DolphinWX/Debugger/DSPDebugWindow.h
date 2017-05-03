@@ -14,7 +14,7 @@ class DSPRegisterView;
 class CCodeView;
 class CMemoryView;
 class wxAuiNotebook;
-class wxAuiToolBar;
+class DolphinAuiToolBar;
 class wxListBox;
 
 class DSPDebuggerLLE : public wxPanel
@@ -23,7 +23,7 @@ public:
   DSPDebuggerLLE(wxWindow* parent, wxWindowID id = wxID_ANY);
   virtual ~DSPDebuggerLLE();
 
-  void Update() override;
+  void Repopulate();
 
 private:
   enum
@@ -34,7 +34,7 @@ private:
     ID_SHOWPCTOOL,
   };
 
-  DSPDebugInterface debug_interface;
+  DSP::LLE::DSPDebugInterface debug_interface;
   u64 m_CachedStepCounter;
 
   // GUI updaters
@@ -45,15 +45,15 @@ private:
 
   // GUI items
   wxAuiManager m_mgr;
-  wxAuiToolBar* m_Toolbar;
+  DolphinAuiToolBar* m_Toolbar;
   CCodeView* m_CodeView;
   CMemoryView* m_MemView;
   DSPRegisterView* m_Regs;
   wxListBox* m_SymbolList;
   wxTextCtrl* m_addr_txtctrl;
   wxAuiNotebook* m_MainNotebook;
+  wxSize m_toolbar_item_size;
 
-  void OnClose(wxCloseEvent& event);
   void OnChangeState(wxCommandEvent& event);
   // void OnRightClick(wxListEvent& event);
   // void OnDoubleClick(wxListEvent& event);

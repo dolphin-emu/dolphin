@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
       xmlns:app="http://schemas.android.com/apk/res-auto">
+
     <!-- TODO Please give me an icon! -->
     <item
         android:id="@+id/menu_up_one_level"
         android:title="@string/add_directory_up_one_level"
         app:showAsAction="ifRoom|withText"/>
+
 </menu>

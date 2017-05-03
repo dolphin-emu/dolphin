@@ -1,0 +1,8 @@
+[main]
+host = https://www.transifex.com
+
+[dolphin-emu.emulator]
+file_filter = Languages/po/<lang>.po
+source_file = Languages/po/dolphin-emu.pot
+source_lang = en-US
+type = PO

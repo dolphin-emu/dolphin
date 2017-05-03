@@ -5,9 +5,10 @@
 #pragma once
 
 #include <cstring>
+
 #include "Common/Common.h"
-#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
+#include "Common/Swap.h"
 
 class DataReader
 {

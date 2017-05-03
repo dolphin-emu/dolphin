@@ -44,7 +44,7 @@ u64 CFileSystemGCWii::GetFileSize(const std::string& _rFullPath)
   return 0;
 }
 
-const std::string CFileSystemGCWii::GetFileName(u64 _Address)
+std::string CFileSystemGCWii::GetFileName(u64 _Address)
 {
   if (!m_Initialized)
     InitFileSystem();

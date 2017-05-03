@@ -8,6 +8,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
+#include "Core/ConfigManager.h"
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DState.h"
 #include "VideoBackends/D3D/D3DTexture.h"
@@ -238,6 +239,19 @@ D3D_FEATURE_LEVEL GetFeatureLevel(IDXGIAdapter* adapter)
   return feat_level;
 }
 
+static bool SupportsS3TCTextures(ID3D11Device* device)
+{
+  UINT bc1_support, bc2_support, bc3_support;
+  if (FAILED(device->CheckFormatSupport(DXGI_FORMAT_BC1_UNORM, &bc1_support)) ||
+      FAILED(device->CheckFormatSupport(DXGI_FORMAT_BC2_UNORM, &bc2_support)) ||
+      FAILED(device->CheckFormatSupport(DXGI_FORMAT_BC3_UNORM, &bc3_support)))
+  {
+    return false;
+  }
+
+  return ((bc1_support & bc2_support & bc3_support) & D3D11_FORMAT_SUPPORT_TEXTURE2D) != 0;
+}
+
 HRESULT Create(HWND wnd)
 {
   hWnd = wnd;
@@ -315,7 +329,8 @@ HRESULT Create(HWND wnd)
   swap_chain_desc.OutputWindow = wnd;
   swap_chain_desc.SampleDesc.Count = 1;
   swap_chain_desc.SampleDesc.Quality = 0;
-  swap_chain_desc.Windowed = !g_Config.bFullscreen;
+  swap_chain_desc.Windowed =
+      !SConfig::GetInstance().bFullscreen || g_ActiveConfig.bBorderlessFullscreen;
 
   DXGI_OUTPUT_DESC out_desc = {};
   output->GetDesc(&out_desc);
@@ -425,6 +440,7 @@ HRESULT Create(HWND wnd)
   UINT format_support;
   device->CheckFormatSupport(DXGI_FORMAT_B8G8R8A8_UNORM, &format_support);
   bgra_textures_supported = (format_support & D3D11_FORMAT_SUPPORT_TEXTURE2D) != 0;
+  g_Config.backend_info.bSupportsST3CTextures = SupportsS3TCTextures(device);
 
   stateman = new StateManager;
   return S_OK;
@@ -524,9 +540,9 @@ bool BGRATexturesSupported()
 
 // Returns the maximum width/height of a texture. This value only depends upon the feature level in
 // DX11
-unsigned int GetMaxTextureSize()
+u32 GetMaxTextureSize(D3D_FEATURE_LEVEL feature_level)
 {
-  switch (featlevel)
+  switch (feature_level)
   {
   case D3D_FEATURE_LEVEL_11_0:
     return D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION;
@@ -610,17 +626,11 @@ HRESULT SetFullscreenState(bool enable_fullscreen)
   return swapchain->SetFullscreenState(enable_fullscreen, nullptr);
 }
 
-HRESULT GetFullscreenState(bool* fullscreen_state)
+bool GetFullscreenState()
 {
-  if (fullscreen_state == nullptr)
-  {
-    return E_POINTER;
-  }
-
-  BOOL state;
-  HRESULT hr = swapchain->GetFullscreenState(&state, nullptr);
-  *fullscreen_state = !!state;
-  return hr;
+  BOOL state = FALSE;
+  swapchain->GetFullscreenState(&state, nullptr);
+  return !!state;
 }
 
 }  // namespace D3D

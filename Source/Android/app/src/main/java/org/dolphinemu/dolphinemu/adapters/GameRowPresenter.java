@@ -1,15 +1,13 @@
 package org.dolphinemu.dolphinemu.adapters;
 
-import android.graphics.Bitmap;
 import android.support.v17.leanback.widget.ImageCardView;
 import android.support.v17.leanback.widget.Presenter;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
-import com.squareup.picasso.Picasso;
-
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.model.Game;
+import org.dolphinemu.dolphinemu.utils.PicassoUtils;
 import org.dolphinemu.dolphinemu.viewholders.TvGameViewHolder;
 
 /**
@@ -51,16 +49,8 @@ public final class GameRowPresenter extends Presenter
 
 		String screenPath = game.getScreenshotPath();
 
-		// Fill in the view contents.
-		Picasso.with(holder.imageScreenshot.getContext())
-				.load(screenPath)
-				.fit()
-				.centerCrop()
-				.noFade()
-				.noPlaceholder()
-				.config(Bitmap.Config.RGB_565)
-				.error(R.drawable.no_banner)
-				.into(holder.imageScreenshot);
+		holder.imageScreenshot.setImageDrawable(null);
+		PicassoUtils.loadGameBanner(holder.imageScreenshot, screenPath, game.getPath());
 
 		holder.cardParent.setTitleText(game.getTitle());
 		holder.cardParent.setContentText(game.getCompany());

@@ -72,7 +72,6 @@
     <ClInclude Include="Render.h" />
     <ClInclude Include="Television.h" />
     <ClInclude Include="TextureCache.h" />
-    <ClInclude Include="TextureEncoder.h" />
     <ClInclude Include="VertexManager.h" />
     <ClInclude Include="VertexShaderCache.h" />
     <ClInclude Include="VideoBackend.h" />

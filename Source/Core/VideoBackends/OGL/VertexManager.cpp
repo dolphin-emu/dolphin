@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoBackends/OGL/VertexManager.h"
+
 #include <fstream>
 #include <memory>
 #include <string>
@@ -12,12 +14,12 @@
 #include "Common/GL/GLExtensions/GLExtensions.h"
 #include "Common/StringUtil.h"
 
+#include "VideoBackends/OGL/BoundingBox.h"
 #include "VideoBackends/OGL/ProgramShaderCache.h"
 #include "VideoBackends/OGL/Render.h"
 #include "VideoBackends/OGL/StreamBuffer.h"
-#include "VideoBackends/OGL/VertexManager.h"
+#include "VideoCommon/BoundingBox.h"
 
-#include "VideoCommon/BPMemory.h"
 #include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexLoaderManager.h"
@@ -75,19 +77,19 @@ void VertexManager::PrepareDrawBuffers(u32 stride)
 
 void VertexManager::ResetBuffer(u32 stride)
 {
-  if (s_cull_all)
+  if (m_cull_all)
   {
     // This buffer isn't getting sent to the GPU. Just allocate it on the cpu.
-    s_pCurBufferPointer = s_pBaseBufferPointer = m_cpu_v_buffer.data();
-    s_pEndBufferPointer = s_pBaseBufferPointer + m_cpu_v_buffer.size();
+    m_cur_buffer_pointer = m_base_buffer_pointer = m_cpu_v_buffer.data();
+    m_end_buffer_pointer = m_base_buffer_pointer + m_cpu_v_buffer.size();
 
     IndexGenerator::Start((u16*)m_cpu_i_buffer.data());
   }
   else
   {
     auto buffer = s_vertexBuffer->Map(MAXVBUFFERSIZE, stride);
-    s_pCurBufferPointer = s_pBaseBufferPointer = buffer.first;
-    s_pEndBufferPointer = buffer.first + MAXVBUFFERSIZE;
+    m_cur_buffer_pointer = m_base_buffer_pointer = buffer.first;
+    m_end_buffer_pointer = buffer.first + MAXVBUFFERSIZE;
     s_baseVertex = buffer.second / stride;
 
     buffer = s_indexBuffer->Map(MAXIBUFFERSIZE * sizeof(u16));
@@ -102,7 +104,7 @@ void VertexManager::Draw(u32 stride)
   u32 max_index = IndexGenerator::GetNumVerts();
   GLenum primitive_mode = 0;
 
-  switch (current_primitive_type)
+  switch (m_current_primitive_type)
   {
   case PRIMITIVE_POINTS:
     primitive_mode = GL_POINTS;
@@ -131,11 +133,11 @@ void VertexManager::Draw(u32 stride)
 
   INCSTAT(stats.thisFrame.numDrawCalls);
 
-  if (current_primitive_type != PRIMITIVE_TRIANGLES)
+  if (m_current_primitive_type != PRIMITIVE_TRIANGLES)
     static_cast<Renderer*>(g_renderer.get())->SetGenerationMode();
 }
 
-void VertexManager::vFlush(bool useDstAlpha)
+void VertexManager::vFlush()
 {
   GLVertexFormat* nativeVertexFmt = (GLVertexFormat*)VertexLoaderManager::GetCurrentVertexFormat();
   u32 stride = nativeVertexFmt->GetVertexStride();
@@ -148,19 +150,7 @@ void VertexManager::vFlush(bool useDstAlpha)
 
   PrepareDrawBuffers(stride);
 
-  // Makes sure we can actually do Dual source blending
-  bool dualSourcePossible = g_ActiveConfig.backend_info.bSupportsDualSourceBlend;
-
-  // If host supports GL_ARB_blend_func_extended, we can do dst alpha in
-  // the same pass as regular rendering.
-  if (useDstAlpha && dualSourcePossible)
-  {
-    ProgramShaderCache::SetShader(DSTALPHA_DUAL_SOURCE_BLEND, current_primitive_type);
-  }
-  else
-  {
-    ProgramShaderCache::SetShader(DSTALPHA_NONE, current_primitive_type);
-  }
+  ProgramShaderCache::SetShader(m_current_primitive_type);
 
   // upload global constants
   ProgramShaderCache::UploadConstants();
@@ -168,25 +158,17 @@ void VertexManager::vFlush(bool useDstAlpha)
   // setup the pointers
   nativeVertexFmt->SetupVertexPointers();
 
+  if (::BoundingBox::active && !g_Config.BBoxUseFragmentShaderImplementation())
+  {
+    glEnable(GL_STENCIL_TEST);
+  }
+
   Draw(stride);
 
-  // run through vertex groups again to set alpha
-  if (useDstAlpha && !dualSourcePossible)
+  if (::BoundingBox::active && !g_Config.BBoxUseFragmentShaderImplementation())
   {
-    ProgramShaderCache::SetShader(DSTALPHA_ALPHA_PASS, current_primitive_type);
-
-    // only update alpha
-    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_TRUE);
-
-    glDisable(GL_BLEND);
-
-    Draw(stride);
-
-    // restore color mask
-    g_renderer->SetColorMask();
-
-    if (bpmem.blendmode.blendenable || bpmem.blendmode.subtract)
-      glEnable(GL_BLEND);
+    OGL::BoundingBox::StencilWasUpdated();
+    glDisable(GL_STENCIL_TEST);
   }
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
@@ -198,30 +180,16 @@ void VertexManager::vFlush(bool useDstAlpha)
         "%sps%.3d.txt", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), g_ActiveConfig.iSaveTargetId);
     std::ofstream fps;
     OpenFStream(fps, filename, std::ios_base::out);
-    fps << prog.shader.strpprog.c_str();
+    fps << prog.shader.strpprog;
 
     filename = StringFromFormat("%svs%.3d.txt", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(),
                                 g_ActiveConfig.iSaveTargetId);
     std::ofstream fvs;
     OpenFStream(fvs, filename, std::ios_base::out);
-    fvs << prog.shader.strvprog.c_str();
-  }
-
-  if (g_ActiveConfig.iLog & CONF_SAVETARGETS)
-  {
-    std::string filename =
-        StringFromFormat("%starg%.3d.png", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(),
-                         g_ActiveConfig.iSaveTargetId);
-    TargetRectangle tr;
-    tr.left = 0;
-    tr.right = Renderer::GetTargetWidth();
-    tr.top = 0;
-    tr.bottom = Renderer::GetTargetHeight();
-    g_renderer->SaveScreenshot(filename, tr);
+    fvs << prog.shader.strvprog;
   }
 #endif
   g_Config.iSaveTargetId++;
-
   ClearEFBCache();
 }
 

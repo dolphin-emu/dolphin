@@ -2,7 +2,10 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <sstream>
+#include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"

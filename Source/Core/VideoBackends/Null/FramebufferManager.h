@@ -2,6 +2,11 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#pragma once
+
+#include <utility>
+
+#include "Common/CommonTypes.h"
 #include "VideoCommon/FramebufferManagerBase.h"
 
 class XFBSource : public XFBSourceBase
@@ -21,7 +26,7 @@ public:
     return std::make_unique<XFBSource>();
   }
 
-  void GetTargetSize(unsigned int* width, unsigned int* height) override {}
+  std::pair<u32, u32> GetTargetSize() const override { return std::make_pair(0, 0); }
   void CopyToRealXFB(u32 xfb_addr, u32 fb_stride, u32 fb_height, const EFBRectangle& source_rc,
                      float gamma = 1.0f) override
   {

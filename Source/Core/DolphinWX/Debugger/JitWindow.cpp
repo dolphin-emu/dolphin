@@ -34,7 +34,8 @@ CJitWindow::CJitWindow(wxWindow* parent, wxWindowID id, const wxPoint& pos, cons
   sizerSplit->Add(x86_box = new wxTextCtrl(this, wxID_ANY, "(x86)", wxDefaultPosition,
                                            wxDefaultSize, wxTE_MULTILINE),
                   1, wxEXPAND);
-  sizerBig->Add(block_list = new JitBlockList(this, wxID_ANY, wxDefaultPosition, wxSize(100, 140),
+  sizerBig->Add(block_list = new JitBlockList(this, wxID_ANY, wxDefaultPosition,
+                                              wxDLG_UNIT(this, wxSize(80, 96)),
                                               wxLC_REPORT | wxSUNKEN_BORDER | wxLC_ALIGN_LEFT |
                                                   wxLC_SINGLE_SEL | wxLC_SORT_ASCENDING),
                 0, wxEXPAND);
@@ -43,23 +44,20 @@ CJitWindow::CJitWindow(wxWindow* parent, wxWindowID id, const wxPoint& pos, cons
   sizerBig->Add(button_refresh = new wxButton(this, wxID_ANY, _("&Refresh")));
   button_refresh->Bind(wxEVT_BUTTON, &CJitWindow::OnRefresh, this);
 
-  SetSizer(sizerBig);
-
-  sizerSplit->Fit(this);
-  sizerBig->Fit(this);
+  SetSizerAndFit(sizerBig);
 
 #if defined(_M_X86)
-  m_disassembler.reset(GetNewDisassembler("x86"));
+  m_disassembler = GetNewDisassembler("x86");
 #elif defined(_M_ARM_64)
-  m_disassembler.reset(GetNewDisassembler("aarch64"));
+  m_disassembler = GetNewDisassembler("aarch64");
 #else
-  m_disassembler.reset(GetNewDisassembler("UNK"));
+  m_disassembler = GetNewDisassembler("UNK");
 #endif
 }
 
 void CJitWindow::OnRefresh(wxCommandEvent& /*event*/)
 {
-  block_list->Update();
+  block_list->Repopulate();
 }
 
 void CJitWindow::ViewAddr(u32 em_address)
@@ -135,7 +133,7 @@ void CJitWindow::Compare(u32 em_address)
   }
 }
 
-void CJitWindow::Update()
+void CJitWindow::Repopulate()
 {
 }
 
@@ -175,12 +173,17 @@ void JitBlockList::Init()
   InsertColumn(COLUMN_ADDRESS, _("Address"));
   InsertColumn(COLUMN_PPCSIZE, _("PPC Size"));
   InsertColumn(COLUMN_X86SIZE, _("x86 Size"));
+  // i18n: The symbolic name of a code block
   InsertColumn(COLUMN_NAME, _("Symbol"));
+  // i18n: These are the kinds of flags that a CPU uses (e.g. carry),
+  // not the kinds of flags that represent e.g. countries
   InsertColumn(COLUMN_FLAGS, _("Flags"));
+  // i18n: The number of times a code block has been executed
   InsertColumn(COLUMN_NUMEXEC, _("NumExec"));
+  // i18n: Performance cost, not monetary cost
   InsertColumn(COLUMN_COST, _("Cost"));
 }
 
-void JitBlockList::Update()
+void JitBlockList::Repopulate()
 {
 }

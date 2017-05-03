@@ -1,6 +1,5 @@
 package org.dolphinemu.dolphinemu.model;
 
-
 public final class TvSettingsItem
 {
 	private final int mItemId;

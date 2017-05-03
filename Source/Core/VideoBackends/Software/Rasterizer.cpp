@@ -264,7 +264,8 @@ static void BuildBlock(s32 blockX, s32 blockY)
   }
 }
 
-void DrawTriangleFrontFace(OutputVertexData* v0, OutputVertexData* v1, OutputVertexData* v2)
+void DrawTriangleFrontFace(const OutputVertexData* v0, const OutputVertexData* v1,
+                           const OutputVertexData* v2)
 {
   INCSTAT(stats.thisFrame.numTrianglesDrawn);
 

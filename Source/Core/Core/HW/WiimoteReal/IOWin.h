@@ -7,7 +7,8 @@
 #ifdef _WIN32
 #include <windows.h>
 
-#include "Core/HW/WiimoteEmu/WiimoteHid.h"
+#include "Common/StringUtil.h"
+#include "Core/HW/WiimoteCommon/WiimoteHid.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 
 namespace WiimoteReal
@@ -25,7 +26,7 @@ class WiimoteWindows final : public Wiimote
 public:
   WiimoteWindows(const std::basic_string<TCHAR>& path, WinWriteMethod initial_write_method);
   ~WiimoteWindows() override;
-
+  std::string GetId() const override { return UTF16ToUTF8(m_devicepath); }
 protected:
   bool ConnectInternal() override;
   void DisconnectInternal() override;
@@ -50,10 +51,6 @@ public:
   bool IsReady() const override;
   void FindWiimotes(std::vector<Wiimote*>&, Wiimote*&) override;
   void Update() override;
-
-private:
-  void CheckDeviceType(std::basic_string<TCHAR>& devicepath, WinWriteMethod& write_method,
-                       bool& real_wiimote, bool& is_bb);
 };
 }
 

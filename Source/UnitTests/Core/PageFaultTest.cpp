@@ -38,7 +38,7 @@ public:
   virtual bool HandleFault(uintptr_t access_address, SContext* ctx) override
   {
     m_pre_unprotect_time = std::chrono::high_resolution_clock::now();
-    UnWriteProtectMemory(m_data, PAGE_GRAN, /*allowExecute*/ false);
+    Common::UnWriteProtectMemory(m_data, PAGE_GRAN, /*allowExecute*/ false);
     m_post_unprotect_time = std::chrono::high_resolution_clock::now();
     return true;
   }
@@ -51,12 +51,12 @@ public:
 TEST(PageFault, PageFault)
 {
   EMM::InstallExceptionHandler();
-  void* data = AllocateMemoryPages(PAGE_GRAN);
+  void* data = Common::AllocateMemoryPages(PAGE_GRAN);
   EXPECT_NE(data, nullptr);
-  WriteProtectMemory(data, PAGE_GRAN, false);
+  Common::WriteProtectMemory(data, PAGE_GRAN, false);
 
   PageFaultFakeJit pfjit;
-  jit = &pfjit;
+  g_jit = &pfjit;
   pfjit.m_data = data;
 
   auto start = std::chrono::high_resolution_clock::now();
@@ -67,7 +67,7 @@ TEST(PageFault, PageFault)
   ((unsigned long long)std::chrono::duration_cast<std::chrono::nanoseconds>(diff).count())
 
   EMM::UninstallExceptionHandler();
-  jit = nullptr;
+  g_jit = nullptr;
 
   printf("page fault timing:\n");
   printf("start->HandleFault     %llu ns\n", AS_NS(pfjit.m_pre_unprotect_time - start));

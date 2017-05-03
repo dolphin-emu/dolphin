@@ -6,9 +6,10 @@
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/x64Emitter.h"
-#include "Core/ConfigManager.h"
+#include "Core/CoreTiming.h"
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/Jit64/JitRegCache.h"
+#include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PowerPC.h"
 
@@ -73,6 +74,13 @@ void Jit64::bx(UGeckoInstruction inst)
   // Because PPCAnalyst::Flatten() merged the blocks.
   if (!js.isLastInstruction)
   {
+    if (inst.LK && !js.op->skipLRStack)
+    {
+      // We have to fake the stack as the RET instruction was not
+      // found in the same block. This is a big overhead, but still
+      // better than calling the dispatcher.
+      FakeBLCall(js.compilerPC + 4);
+    }
     return;
   }
 
@@ -90,11 +98,12 @@ void Jit64::bx(UGeckoInstruction inst)
 #endif
   if (destination == js.compilerPC)
   {
-    // PanicAlert("Idle loop detected at %08x", destination);
-    // CALL(ProtectFunction(&CoreTiming::Idle, 0));
-    // JMP(Asm::testExceptions, true);
-    // make idle loops go faster
-    js.downcountAmount += 8;
+    ABI_PushRegistersAndAdjustStack({}, 0);
+    ABI_CallFunction(CoreTiming::Idle);
+    ABI_PopRegistersAndAdjustStack({}, 0);
+    MOV(32, PPCSTATE(pc), Imm32(destination));
+    WriteExceptionExit();
+    return;
   }
   WriteExit(destination, inst.LK, js.compilerPC + 4);
 }
@@ -129,14 +138,30 @@ void Jit64::bcx(UGeckoInstruction inst)
   if (inst.LK)
     MOV(32, PPCSTATE_LR, Imm32(js.compilerPC + 4));
 
+  // If this is not the last instruction of a block
+  // and an unconditional branch, we will skip the rest process.
+  // Because PPCAnalyst::Flatten() merged the blocks.
+  if (!js.isLastInstruction && (inst.BO & BO_DONT_DECREMENT_FLAG) &&
+      (inst.BO & BO_DONT_CHECK_CONDITION))
+  {
+    if (inst.LK && !js.op->skipLRStack)
+    {
+      // We have to fake the stack as the RET instruction was not
+      // found in the same block. This is a big overhead, but still
+      // better than calling the dispatcher.
+      FakeBLCall(js.compilerPC + 4);
+    }
+    return;
+  }
+
   u32 destination;
   if (inst.AA)
     destination = SignExt16(inst.BD << 2);
   else
     destination = js.compilerPC + SignExt16(inst.BD << 2);
 
-  gpr.Flush(FLUSH_MAINTAIN_STATE);
-  fpr.Flush(FLUSH_MAINTAIN_STATE);
+  gpr.Flush(RegCache::FlushMode::MaintainState);
+  fpr.Flush(RegCache::FlushMode::MaintainState);
   WriteExit(destination, inst.LK, js.compilerPC + 4);
 
   if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)
@@ -190,8 +215,8 @@ void Jit64::bcctrx(UGeckoInstruction inst)
     if (inst.LK_3)
       MOV(32, PPCSTATE_LR, Imm32(js.compilerPC + 4));  // LR = PC + 4;
 
-    gpr.Flush(FLUSH_MAINTAIN_STATE);
-    fpr.Flush(FLUSH_MAINTAIN_STATE);
+    gpr.Flush(RegCache::FlushMode::MaintainState);
+    fpr.Flush(RegCache::FlushMode::MaintainState);
     WriteExitDestInRSCRATCH(inst.LK_3, js.compilerPC + 4);
     // Would really like to continue the block here, but it ends. TODO.
     SetJumpTarget(b);
@@ -244,8 +269,8 @@ void Jit64::bclrx(UGeckoInstruction inst)
   if (inst.LK)
     MOV(32, PPCSTATE_LR, Imm32(js.compilerPC + 4));
 
-  gpr.Flush(FLUSH_MAINTAIN_STATE);
-  fpr.Flush(FLUSH_MAINTAIN_STATE);
+  gpr.Flush(RegCache::FlushMode::MaintainState);
+  fpr.Flush(RegCache::FlushMode::MaintainState);
   WriteBLRExit();
 
   if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)

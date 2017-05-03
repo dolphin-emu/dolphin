@@ -1,6 +1,5 @@
 package org.dolphinemu.dolphinemu.adapters;
 
-
 import android.content.res.Resources;
 import android.support.v17.leanback.widget.ImageCardView;
 import android.support.v17.leanback.widget.Presenter;

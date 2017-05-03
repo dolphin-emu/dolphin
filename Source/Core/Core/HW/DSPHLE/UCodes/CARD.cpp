@@ -3,21 +3,30 @@
 // Refer to the license.txt file included.
 
 #include "Core/HW/DSPHLE/UCodes/CARD.h"
+
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/DSPHLE/DSPHLE.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
+namespace DSP
+{
+namespace HLE
+{
 CARDUCode::CARDUCode(DSPHLE* dsphle, u32 crc) : UCodeInterface(dsphle, crc)
 {
-  DEBUG_LOG(DSPHLE, "CARDUCode - initialized");
-  m_mail_handler.PushMail(DSP_INIT);
+  INFO_LOG(DSPHLE, "CARDUCode - initialized");
 }
 
 CARDUCode::~CARDUCode()
 {
   m_mail_handler.Clear();
+}
+
+void CARDUCode::Initialize()
+{
+  m_mail_handler.PushMail(DSP_INIT);
 }
 
 void CARDUCode::Update()
@@ -37,9 +46,11 @@ void CARDUCode::HandleMail(u32 mail)
   }
   else
   {
-    DEBUG_LOG(DSPHLE, "CARDUCode - unknown command: %x", mail);
+    WARN_LOG(DSPHLE, "CARDUCode - unknown command: %x", mail);
   }
 
   m_mail_handler.PushMail(DSP_DONE);
   m_dsphle->SetUCode(UCODE_ROM);
 }
+}  // namespace HLE
+}  // namespace DSP

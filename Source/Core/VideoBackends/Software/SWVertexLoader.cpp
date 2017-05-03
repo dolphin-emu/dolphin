@@ -2,17 +2,17 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoBackends/Software/SWVertexLoader.h"
+
 #include <limits>
 
-#include "Common/ChunkFile.h"
+#include "Common/Assert.h"
 #include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
 
-#include "VideoBackends/Software/Clipper.h"
 #include "VideoBackends/Software/DebugUtil.h"
 #include "VideoBackends/Software/NativeVertexFormat.h"
 #include "VideoBackends/Software/Rasterizer.h"
-#include "VideoBackends/Software/SWVertexLoader.h"
-#include "VideoBackends/Software/SetupUnit.h"
 #include "VideoBackends/Software/Tev.h"
 #include "VideoBackends/Software/TransformUnit.h"
 
@@ -33,52 +33,48 @@ public:
   void SetupVertexPointers() override {}
 };
 
-NativeVertexFormat*
+std::unique_ptr<NativeVertexFormat>
 SWVertexLoader::CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl)
 {
-  return new NullNativeVertexFormat(vtx_decl);
+  return std::make_unique<NullNativeVertexFormat>(vtx_decl);
 }
 
-SWVertexLoader::SWVertexLoader()
+SWVertexLoader::SWVertexLoader() : LocalVBuffer(MAXVBUFFERSIZE), LocalIBuffer(MAXIBUFFERSIZE)
 {
-  LocalVBuffer.resize(MAXVBUFFERSIZE);
-  LocalIBuffer.resize(MAXIBUFFERSIZE);
-  m_SetupUnit = new SetupUnit;
 }
 
 SWVertexLoader::~SWVertexLoader()
 {
-  delete m_SetupUnit;
-  m_SetupUnit = nullptr;
 }
 
 void SWVertexLoader::ResetBuffer(u32 stride)
 {
-  s_pCurBufferPointer = s_pBaseBufferPointer = LocalVBuffer.data();
-  s_pEndBufferPointer = s_pCurBufferPointer + LocalVBuffer.size();
+  m_cur_buffer_pointer = m_base_buffer_pointer = LocalVBuffer.data();
+  m_end_buffer_pointer = m_cur_buffer_pointer + LocalVBuffer.size();
   IndexGenerator::Start(GetIndexBuffer());
 }
 
-void SWVertexLoader::vFlush(bool useDstAlpha)
+void SWVertexLoader::vFlush()
 {
   DebugUtil::OnObjectBegin();
 
   u8 primitiveType = 0;
-  switch (current_primitive_type)
+  switch (m_current_primitive_type)
   {
   case PRIMITIVE_POINTS:
-    primitiveType = GX_DRAW_POINTS;
+    primitiveType = OpcodeDecoder::GX_DRAW_POINTS;
     break;
   case PRIMITIVE_LINES:
-    primitiveType = GX_DRAW_LINES;
+    primitiveType = OpcodeDecoder::GX_DRAW_LINES;
     break;
   case PRIMITIVE_TRIANGLES:
-    primitiveType = g_ActiveConfig.backend_info.bSupportsPrimitiveRestart ? GX_DRAW_TRIANGLE_STRIP :
-                                                                            GX_DRAW_TRIANGLES;
+    primitiveType = g_ActiveConfig.backend_info.bSupportsPrimitiveRestart ?
+                        OpcodeDecoder::GX_DRAW_TRIANGLE_STRIP :
+                        OpcodeDecoder::GX_DRAW_TRIANGLES;
     break;
   }
 
-  m_SetupUnit->Init(primitiveType);
+  m_SetupUnit.Init(primitiveType);
 
   // set all states with are stored within video sw
   for (int i = 0; i < 4; i++)
@@ -96,7 +92,7 @@ void SWVertexLoader::vFlush(bool useDstAlpha)
     if (index == 0xffff)
     {
       // primitive restart
-      m_SetupUnit->Init(primitiveType);
+      m_SetupUnit.Init(primitiveType);
       continue;
     }
     memset(&m_Vertex, 0, sizeof(m_Vertex));
@@ -109,7 +105,7 @@ void SWVertexLoader::vFlush(bool useDstAlpha)
     ParseVertex(VertexLoaderManager::GetCurrentVertexFormat()->GetVertexDeclaration(), index);
 
     // transform this vertex so that it can be used for rasterization (outVertex)
-    OutputVertexData* outVertex = m_SetupUnit->GetVertex();
+    OutputVertexData* outVertex = m_SetupUnit.GetVertex();
     TransformUnit::TransformPosition(&m_Vertex, outVertex);
     memset(&outVertex->normal, 0, sizeof(outVertex->normal));
     if (VertexLoaderManager::g_current_components & VB_HAS_NRM0)
@@ -121,7 +117,7 @@ void SWVertexLoader::vFlush(bool useDstAlpha)
     TransformUnit::TransformTexCoord(&m_Vertex, outVertex, m_TexGenSpecialCase);
 
     // assemble and rasterize the primitive
-    m_SetupUnit->SetupVertex();
+    m_SetupUnit.SetupVertex();
 
     INCSTAT(stats.thisFrame.numVerticesLoaded)
   }

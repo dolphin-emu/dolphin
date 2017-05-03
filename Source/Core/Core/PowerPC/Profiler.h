@@ -15,8 +15,8 @@
 #if defined(_M_X86_64)
 
 #define PROFILER_QUERY_PERFORMANCE_COUNTER(pt)                                                     \
-  MOV(64, R(ABI_PARAM1), Imm64((u64)pt));                                                          \
-  ABI_CallFunction((const void*)QueryPerformanceCounter)
+  MOV(64, R(ABI_PARAM1), Imm64(reinterpret_cast<u64>(pt)));                                        \
+  ABI_CallFunction(QueryPerformanceCounter)
 
 // block->ticCounter += block->ticStop - block->ticStart
 #define PROFILER_UPDATE_TIME(block)                                                                \
@@ -43,11 +43,10 @@
 
 struct BlockStat
 {
-  BlockStat(int bn, u32 _addr, u64 c, u64 ticks, u64 run, u32 size)
-      : blockNum(bn), addr(_addr), cost(c), tick_counter(ticks), run_count(run), block_size(size)
+  BlockStat(u32 _addr, u64 c, u64 ticks, u64 run, u32 size)
+      : addr(_addr), cost(c), tick_counter(ticks), run_count(run), block_size(size)
   {
   }
-  int blockNum;
   u32 addr;
   u64 cost;
   u64 tick_counter;

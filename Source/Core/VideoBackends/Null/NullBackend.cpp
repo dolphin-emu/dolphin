@@ -24,18 +24,31 @@ namespace Null
 void VideoBackend::InitBackendInfo()
 {
   g_Config.backend_info.api_type = APIType::Nothing;
+  g_Config.backend_info.MaxTextureSize = 16384;
   g_Config.backend_info.bSupportsExclusiveFullscreen = true;
   g_Config.backend_info.bSupportsDualSourceBlend = true;
-  g_Config.backend_info.bSupportsEarlyZ = true;
   g_Config.backend_info.bSupportsPrimitiveRestart = true;
   g_Config.backend_info.bSupportsOversizedViewports = true;
   g_Config.backend_info.bSupportsGeometryShaders = true;
+  g_Config.backend_info.bSupportsComputeShaders = false;
   g_Config.backend_info.bSupports3DVision = false;
+  g_Config.backend_info.bSupportsEarlyZ = true;
+  g_Config.backend_info.bSupportsBindingLayout = true;
+  g_Config.backend_info.bSupportsBBox = true;
+  g_Config.backend_info.bSupportsGSInstancing = true;
   g_Config.backend_info.bSupportsPostProcessing = false;
   g_Config.backend_info.bSupportsPaletteConversion = true;
   g_Config.backend_info.bSupportsClipControl = true;
+  g_Config.backend_info.bSupportsSSAA = true;
+  g_Config.backend_info.bSupportsDepthClamp = true;
+  g_Config.backend_info.bSupportsReversedDepthRange = true;
+  g_Config.backend_info.bSupportsMultithreading = false;
+  g_Config.backend_info.bSupportsInternalResolutionFrameDumps = false;
+  g_Config.backend_info.bSupportsGPUTextureDecoding = false;
+  g_Config.backend_info.bSupportsST3CTextures = false;
 
   // aamodes: We only support 1 sample, so no MSAA
+  g_Config.backend_info.Adapters.clear();
   g_Config.backend_info.AAModes = {1};
 }
 

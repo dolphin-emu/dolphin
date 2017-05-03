@@ -11,6 +11,8 @@ namespace MMIO
 class Mapping;
 }
 
+namespace PixelEngine
+{
 // internal hardware addresses
 enum
 {
@@ -43,10 +45,9 @@ enum
   PE_PERF_EFB_COPY_CLOCKS_H = 0x2e,
 };
 
-namespace PixelEngine
-{
 // ReadMode specifies the returned alpha channel for EFB peeks
-union UPEAlphaReadReg {
+union UPEAlphaReadReg
+{
   u16 Hex;
   struct
   {
@@ -61,7 +62,7 @@ void DoState(PointerWrap& p);
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 
 // gfx backend support
-void SetToken(const u16 _token, const int _bSetTokenAcknowledge);
+void SetToken(const u16 token, const bool interrupt);
 void SetFinish();
 UPEAlphaReadReg GetAlphaReadMode();
 

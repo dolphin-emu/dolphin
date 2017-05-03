@@ -3,86 +3,72 @@
 // Refer to the license.txt file included.
 
 #include <wx/choice.h>
+#include <wx/gbsizer.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
+
+#include "DolphinWX/NetPlay/PadMapDialog.h"
+#include "DolphinWX/WxUtils.h"
 
 #include "Core/NetPlayClient.h"
 #include "Core/NetPlayProto.h"
 #include "Core/NetPlayServer.h"
-#include "DolphinWX/NetPlay/PadMapDialog.h"
 
 PadMapDialog::PadMapDialog(wxWindow* parent, NetPlayServer* server, NetPlayClient* client)
     : wxDialog(parent, wxID_ANY, _("Controller Ports")), m_pad_mapping(server->GetPadMapping()),
       m_wii_mapping(server->GetWiimoteMapping()), m_player_list(client->GetPlayers())
 {
-  wxBoxSizer* const h_szr = new wxBoxSizer(wxHORIZONTAL);
-  h_szr->AddSpacer(10);
+  const int space5 = FromDIP(5);
+  const int space10 = FromDIP(10);
+
+  wxGridBagSizer* pad_sizer = new wxGridBagSizer(space5, space10);
 
   wxArrayString player_names;
   player_names.Add(_("None"));
-  for (auto& player : m_player_list)
-    player_names.Add(player->name);
+  for (const auto& player : m_player_list)
+    player_names.Add(StrToWxStr(player->name));
 
-  for (unsigned int i = 0; i < 4; ++i)
-  {
-    wxBoxSizer* const v_szr = new wxBoxSizer(wxVERTICAL);
-    v_szr->Add(new wxStaticText(this, wxID_ANY, (wxString(_("GC Port ")) + (wxChar)('1' + i))), 1,
-               wxALIGN_CENTER_HORIZONTAL);
+  auto build_choice = [&](unsigned int base_idx, unsigned int idx, const PadMappingArray& mapping,
+                          const wxString& port_name) {
+    pad_sizer->Add(new wxStaticText(this, wxID_ANY, wxString::Format("%s %d", port_name, idx + 1)),
+                   wxGBPosition(0, base_idx + idx), wxDefaultSpan, wxALIGN_CENTER);
 
-    m_map_cbox[i] = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, player_names);
-    m_map_cbox[i]->Bind(wxEVT_CHOICE, &PadMapDialog::OnAdjust, this);
-    if (m_pad_mapping[i] == -1)
-    {
-      m_map_cbox[i]->Select(0);
-    }
-    else
-    {
-      for (unsigned int j = 0; j < m_player_list.size(); j++)
-      {
-        if (m_pad_mapping[i] == m_player_list[j]->pid)
-          m_map_cbox[i]->Select(j + 1);
-      }
-    }
-
-    v_szr->Add(m_map_cbox[i], 1);
-
-    h_szr->Add(v_szr, 1, wxTOP | wxEXPAND, 20);
-    h_szr->AddSpacer(10);
-  }
-
-  for (unsigned int i = 0; i < 4; ++i)
-  {
-    wxBoxSizer* const v_szr = new wxBoxSizer(wxVERTICAL);
-    v_szr->Add(new wxStaticText(this, wxID_ANY, (wxString(_("Wiimote ")) + (wxChar)('1' + i))), 1,
-               wxALIGN_CENTER_HORIZONTAL);
-
-    m_map_cbox[i + 4] =
+    m_map_cbox[base_idx + idx] =
         new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, player_names);
-    m_map_cbox[i + 4]->Bind(wxEVT_CHOICE, &PadMapDialog::OnAdjust, this);
-    if (m_wii_mapping[i] == -1)
-    {
-      m_map_cbox[i + 4]->Select(0);
-    }
-    else
+    m_map_cbox[base_idx + idx]->Select(0);
+    m_map_cbox[base_idx + idx]->Bind(wxEVT_CHOICE, &PadMapDialog::OnAdjust, this);
+    if (mapping[idx] != -1)
     {
       for (unsigned int j = 0; j < m_player_list.size(); j++)
       {
-        if (m_wii_mapping[i] == m_player_list[j]->pid)
-          m_map_cbox[i + 4]->Select(j + 1);
+        if (mapping[idx] == m_player_list[j]->pid)
+        {
+          m_map_cbox[base_idx + idx]->Select(j + 1);
+          break;
+        }
       }
     }
+    // Combo boxes break on Windows when wxEXPAND-ed vertically but you can't control the
+    // direction of expansion in a grid sizer. Solution is to wrap in a box sizer.
+    wxBoxSizer* wrapper = new wxBoxSizer(wxHORIZONTAL);
+    wrapper->Add(m_map_cbox[base_idx + idx], 1, wxALIGN_CENTER_VERTICAL);
+    pad_sizer->Add(wrapper, wxGBPosition(1, base_idx + idx), wxDefaultSpan, wxEXPAND);
+  };
 
-    v_szr->Add(m_map_cbox[i + 4], 1);
-
-    h_szr->Add(v_szr, 1, wxTOP | wxEXPAND, 20);
-    h_szr->AddSpacer(10);
+  for (unsigned int i = 0; i < 4; ++i)
+  {
+    // This looks a little weird but it's fine because we're using a grid bag sizer;
+    // we can add columns in any order.
+    build_choice(0, i, m_pad_mapping, _("GC Port"));
+    build_choice(4, i, m_wii_mapping, _("Wii Remote"));
   }
 
   wxBoxSizer* const main_szr = new wxBoxSizer(wxVERTICAL);
-  main_szr->Add(h_szr);
-  main_szr->AddSpacer(5);
-  main_szr->Add(CreateButtonSizer(wxOK), 0, wxEXPAND | wxLEFT | wxRIGHT, 20);
-  main_szr->AddSpacer(5);
+  main_szr->AddSpacer(space10);
+  main_szr->Add(pad_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, space10);
+  main_szr->AddSpacer(space10);
+  main_szr->Add(CreateButtonSizer(wxOK), 0, wxEXPAND | wxLEFT | wxRIGHT, space10);
+  main_szr->AddSpacer(space5);
   SetSizerAndFit(main_szr);
   SetFocus();
 }

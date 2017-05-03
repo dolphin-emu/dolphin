@@ -33,55 +33,60 @@ struct Slope
 class VertexManagerBase
 {
 private:
-  static const u32 SMALLEST_POSSIBLE_VERTEX = sizeof(float) * 3;  // 3 pos
-  static const u32 LARGEST_POSSIBLE_VERTEX =
-      sizeof(float) * 45 + sizeof(u32) * 2;  // 3 pos, 3*3 normal, 2*u32 color, 8*4 tex, 1 posMat
+  // 3 pos
+  static constexpr u32 SMALLEST_POSSIBLE_VERTEX = sizeof(float) * 3;
+  // 3 pos, 3*3 normal, 2*u32 color, 8*4 tex, 1 posMat
+  static constexpr u32 LARGEST_POSSIBLE_VERTEX = sizeof(float) * 45 + sizeof(u32) * 2;
 
-  static const u32 MAX_PRIMITIVES_PER_COMMAND = (u16)-1;
+  static constexpr u32 MAX_PRIMITIVES_PER_COMMAND = 65535;
 
 public:
-  static const u32 MAXVBUFFERSIZE =
+  static constexpr u32 MAXVBUFFERSIZE =
       ROUND_UP_POW2(MAX_PRIMITIVES_PER_COMMAND * LARGEST_POSSIBLE_VERTEX);
 
   // We may convert triangle-fans to triangle-lists, almost 3x as many indices.
-  static const u32 MAXIBUFFERSIZE = ROUND_UP_POW2(MAX_PRIMITIVES_PER_COMMAND * 3);
+  static constexpr u32 MAXIBUFFERSIZE = ROUND_UP_POW2(MAX_PRIMITIVES_PER_COMMAND * 3);
 
   VertexManagerBase();
   // needs to be virtual for DX11's dtor
   virtual ~VertexManagerBase();
 
-  static DataReader PrepareForAdditionalData(int primitive, u32 count, u32 stride, bool cullall);
-  static void FlushData(u32 count, u32 stride);
+  DataReader PrepareForAdditionalData(int primitive, u32 count, u32 stride, bool cullall);
+  void FlushData(u32 count, u32 stride);
 
-  static void Flush();
+  void Flush();
 
-  virtual NativeVertexFormat*
+  virtual std::unique_ptr<NativeVertexFormat>
   CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl) = 0;
 
-  static void DoState(PointerWrap& p);
+  void DoState(PointerWrap& p);
+
+  std::pair<size_t, size_t> ResetFlushAspectRatioCount();
 
 protected:
   virtual void vDoState(PointerWrap& p) {}
-  static PrimitiveType current_primitive_type;
+  PrimitiveType m_current_primitive_type = PrimitiveType::PRIMITIVE_POINTS;
 
   virtual void ResetBuffer(u32 stride) = 0;
 
-  static u8* s_pCurBufferPointer;
-  static u8* s_pBaseBufferPointer;
-  static u8* s_pEndBufferPointer;
+  u8* m_cur_buffer_pointer = nullptr;
+  u8* m_base_buffer_pointer = nullptr;
+  u8* m_end_buffer_pointer = nullptr;
 
-  static u32 GetRemainingSize();
+  u32 GetRemainingSize() const;
   static u32 GetRemainingIndices(int primitive);
 
-  static Slope s_zslope;
-  static void CalculateZSlope(NativeVertexFormat* format);
+  Slope m_zslope = {};
+  void CalculateZSlope(NativeVertexFormat* format);
 
-  static bool s_cull_all;
+  bool m_cull_all = false;
 
 private:
-  static bool s_is_flushed;
+  bool m_is_flushed = true;
+  size_t m_flush_count_4_3 = 0;
+  size_t m_flush_count_anamorphic = 0;
 
-  virtual void vFlush(bool useDstAlpha) = 0;
+  virtual void vFlush() = 0;
 
   virtual void CreateDeviceObjects() {}
   virtual void DestroyDeviceObjects() {}

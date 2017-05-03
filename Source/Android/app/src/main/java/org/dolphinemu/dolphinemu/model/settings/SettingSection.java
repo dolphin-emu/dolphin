@@ -4,7 +4,7 @@ import java.util.HashMap;
 
 /**
  * A semantically-related group of Settings objects. These Settings are
- * internally stored as a Hashmap.
+ * internally stored as a HashMap.
  */
 public final class SettingSection
 {
@@ -28,18 +28,17 @@ public final class SettingSection
 	}
 
 	/**
-	 * Convenience method; inserts a value directly into the backing Hashmap.
+	 * Convenience method; inserts a value directly into the backing HashMap.
 	 *
-	 * @param key The key where the Setting will be inserted.
 	 * @param setting The Setting to be inserted.
 	 */
-	public void putSetting(String key, Setting setting)
+	public void putSetting(Setting setting)
 	{
-		mSettings.put(key, setting);
+		mSettings.put(setting.getKey(), setting);
 	}
 
 	/**
-	 * Convenience method; gets a value directly from the backing Hashmap.
+	 * Convenience method; gets a value directly from the backing HashMap.
 	 *
 	 * @param key Used to retrieve the Setting.
 	 * @return A Setting object (you should probably cast this before using)

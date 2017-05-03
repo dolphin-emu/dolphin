@@ -16,13 +16,16 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
-#include "config.h"
+
+#include <config.h>
 
 #include <locale.h>
 #include <stdlib.h>
 #include <string.h>
+#if defined(HAVE_STRINGS_H)
+#include <strings.h>
+#endif
 
-#include "libusb.h"
 #include "libusbi.h"
 
 #if defined(_MSC_VER)
@@ -31,7 +34,7 @@
 
 static size_t usbi_locale = 0;
 
-/** \ingroup misc
+/** \ingroup libusb_misc
  * How to add a new \ref libusb_strerror() translation:
  * <ol>
  * <li> Download the latest \c strerror.c from:<br>
@@ -122,7 +125,7 @@ static const char* usbi_localized_errors[ARRAYSIZE(usbi_locale_supported)][LIBUS
 	}
 };
 
-/** \ingroup misc
+/** \ingroup libusb_misc
  * Set the language, and only the language, not the encoding! used for
  * translatable libusb messages.
  *
@@ -173,7 +176,7 @@ int API_EXPORTED libusb_setlocale(const char *locale)
 	return LIBUSB_SUCCESS;
 }
 
-/** \ingroup misc
+/** \ingroup libusb_misc
  * Returns a constant string with a short description of the given error code,
  * this description is intended for displaying to the end user and will be in
  * the language set by libusb_setlocale().

@@ -8,10 +8,22 @@
 #include <vector>
 #include <wx/frame.h>
 
+#include "Common/CommonTypes.h"
 #include "Common/FifoQueue.h"
 #include "Core/NetPlayClient.h"
 #include "Core/NetPlayProto.h"
 #include "Core/NetPlayServer.h"
+
+#ifdef _WIN32
+// HACK: wxWidgets headers don't play well with some of the macros defined in Windows
+// headers and perform their own magic to fix things, as long as they're included entirely
+// either before or after any Windows headers.
+//
+// This file can cause a conflict in other DolphinWX files because NetPlay headers directly
+// include ENet headers, which leak Windows header macros. To fix this, explicitly tell
+// wxWidgets here that it needs to re-clean macros.
+#include <wx/msw/winundef.h>
+#endif
 
 class CGameListCtrl;
 class MD5Dialog;
@@ -19,6 +31,7 @@ class wxButton;
 class wxCheckBox;
 class wxChoice;
 class wxListBox;
+class wxSizer;
 class wxStaticText;
 class wxString;
 class wxTextCtrl;
@@ -69,8 +82,6 @@ public:
                 const bool is_hosting = false);
   ~NetPlayDialog();
 
-  Common::FifoQueue<std::string> chat_msgs;
-
   void OnStart(wxCommandEvent& event);
 
   // implementation of NetPlayUI methods
@@ -101,6 +112,13 @@ public:
   bool IsRecording() override;
 
 private:
+  void CreateGUI();
+  wxSizer* CreateTopGUI(wxWindow* parent);
+  wxSizer* CreateMiddleGUI(wxWindow* parent);
+  wxSizer* CreateChatGUI(wxWindow* parent);
+  wxSizer* CreatePlayerListGUI(wxWindow* parent);
+  wxSizer* CreateBottomGUI(wxWindow* parent);
+
   void OnChat(wxCommandEvent& event);
   void OnQuit(wxCommandEvent& event);
   void OnThread(wxThreadEvent& event);
@@ -112,7 +130,7 @@ private:
   void OnPlayerSelect(wxCommandEvent& event);
   void GetNetSettings(NetSettings& settings);
   std::string FindCurrentGame();
-  std::string FindGame(const std::string& game);
+  std::string FindGame(const std::string& game) override;
   void AddChatMessage(ChatMessageType type, const std::string& msg);
 
   void OnCopyIP(wxCommandEvent&);
@@ -123,6 +141,7 @@ private:
   wxTextCtrl* m_chat_text;
   wxTextCtrl* m_chat_msg_text;
   wxCheckBox* m_memcard_write;
+  wxCheckBox* m_copy_wii_save;
   wxCheckBox* m_record_chkbox;
 
   std::string m_selected_game;
@@ -133,7 +152,7 @@ private:
   wxStaticText* m_host_label;
   wxChoice* m_host_type_choice;
   wxButton* m_host_copy_btn;
-  wxChoice* m_MD5_choice;
+  wxChoice* m_MD5_choice = nullptr;
   MD5Dialog* m_MD5_dialog = nullptr;
   bool m_host_copy_btn_is_retry;
   bool m_is_hosting;
@@ -142,6 +161,7 @@ private:
   std::string m_desync_player;
 
   std::vector<int> m_playerids;
+  Common::FifoQueue<std::string> m_chat_msgs;
 
   const CGameListCtrl* const m_game_list;
 

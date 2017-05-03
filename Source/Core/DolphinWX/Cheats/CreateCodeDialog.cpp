@@ -9,18 +9,16 @@
 #include <wx/textctrl.h>
 
 #include "Core/ActionReplay.h"
-#include "Core/ConfigManager.h"
 #include "DolphinWX/Cheats/CheatsWindow.h"
 #include "DolphinWX/Cheats/CreateCodeDialog.h"
-#include "DolphinWX/ISOProperties.h"
 #include "DolphinWX/WxUtils.h"
 
 CreateCodeDialog::CreateCodeDialog(wxWindow* const parent, const u32 address)
     : wxDialog(parent, wxID_ANY, _("Create AR Code")), m_code_address(address)
 {
   wxStaticText* const label_name = new wxStaticText(this, wxID_ANY, _("Name: "));
-  m_textctrl_name =
-      new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(256, -1));
+  m_textctrl_name = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition,
+                                   wxDLG_UNIT(this, wxSize(180, -1)));
 
   wxStaticText* const label_code = new wxStaticText(this, wxID_ANY, _("Code: "));
   m_textctrl_code = new wxTextCtrl(this, wxID_ANY, wxString::Format("0x%08x", address));
@@ -33,22 +31,31 @@ CreateCodeDialog::CreateCodeDialog(wxWindow* const parent, const u32 address)
   m_checkbox_use_hex->SetValue(true);
 
   wxBoxSizer* const sizer_value_label = new wxBoxSizer(wxHORIZONTAL);
-  sizer_value_label->Add(label_value, 0, wxRIGHT, 5);
-  sizer_value_label->Add(m_checkbox_use_hex);
+  const int space5 = FromDIP(5);
+  sizer_value_label->Add(label_value);
+  sizer_value_label->Add(m_checkbox_use_hex, 0, wxLEFT, space5);
 
   // main sizer
   wxBoxSizer* const sizer_main = new wxBoxSizer(wxVERTICAL);
-  sizer_main->Add(label_name, 0, wxALL, 5);
-  sizer_main->Add(m_textctrl_name, 0, wxALL, 5);
-  sizer_main->Add(label_code, 0, wxALL, 5);
-  sizer_main->Add(m_textctrl_code, 0, wxALL, 5);
-  sizer_main->Add(sizer_value_label, 0, wxALL, 5);
-  sizer_main->Add(m_textctrl_value, 0, wxALL, 5);
-  sizer_main->Add(CreateButtonSizer(wxOK | wxCANCEL | wxNO_DEFAULT), 0, wxALL, 5);
+  sizer_main->AddSpacer(space5);
+  sizer_main->Add(label_name, 0, wxLEFT | wxRIGHT, space5);
+  sizer_main->AddSpacer(space5);
+  sizer_main->Add(m_textctrl_name, 0, wxLEFT | wxRIGHT, space5);
+  sizer_main->AddSpacer(space5);
+  sizer_main->Add(label_code, 0, wxLEFT | wxRIGHT, space5);
+  sizer_main->AddSpacer(space5);
+  sizer_main->Add(m_textctrl_code, 0, wxLEFT | wxRIGHT, space5);
+  sizer_main->AddSpacer(space5);
+  sizer_main->Add(sizer_value_label, 0, wxLEFT | wxRIGHT, space5);
+  sizer_main->AddSpacer(space5);
+  sizer_main->Add(m_textctrl_value, 0, wxLEFT | wxRIGHT, space5);
+  sizer_main->AddSpacer(space5);
+  sizer_main->Add(CreateButtonSizer(wxOK | wxCANCEL | wxNO_DEFAULT), 0, wxEXPAND | wxLEFT | wxRIGHT,
+                  space5);
+  sizer_main->AddSpacer(space5);
 
+  // NOTE: Use default wxCANCEL handling.
   Bind(wxEVT_BUTTON, &CreateCodeDialog::PressOK, this, wxID_OK);
-  Bind(wxEVT_BUTTON, &CreateCodeDialog::PressCancel, this, wxID_CANCEL);
-  Bind(wxEVT_CLOSE_WINDOW, &CreateCodeDialog::OnEvent_Close, this);
 
   SetSizerAndFit(sizer_main);
   SetFocus();
@@ -82,15 +89,6 @@ void CreateCodeDialog::PressOK(wxCommandEvent& ev)
   add_event.SetClientData(&new_cheat);
   GetParent()->GetEventHandler()->ProcessEvent(add_event);
 
-  Close();
-}
-
-void CreateCodeDialog::PressCancel(wxCommandEvent& ev)
-{
-  Close();
-}
-
-void CreateCodeDialog::OnEvent_Close(wxCloseEvent& ev)
-{
-  Destroy();
+  // Allow base class to process. wxDialog will set the return code and hide the window.
+  ev.Skip();
 }

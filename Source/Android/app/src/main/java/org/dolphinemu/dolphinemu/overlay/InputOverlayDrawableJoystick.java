@@ -24,7 +24,7 @@ public final class InputOverlayDrawableJoystick extends BitmapDrawable
 	private final float[] axises = {0f, 0f};
 	private final BitmapDrawable ringInner;
 	private int trackId = -1;
-	private String mSharedPrefsId;
+	private int mJoystickType;
 	private int mControlPositionX,	mControlPositionY;
 	private int mPreviousTouchX, mPreviousTouchY;
 
@@ -37,12 +37,11 @@ public final class InputOverlayDrawableJoystick extends BitmapDrawable
 	 * @param rectOuter   {@link Rect} which represents the outer joystick bounds.
 	 * @param rectInner   {@link Rect} which represents the inner joystick bounds.
 	 * @param joystick    Identifier for which joystick this is.
-	 * @param sharedPrefsId  Identifier for getting X and Y control positions from Shared Preferences.
 	 */
 	public InputOverlayDrawableJoystick(Resources res,
 	                                    Bitmap bitmapOuter, Bitmap bitmapInner,
 	                                    Rect rectOuter, Rect rectInner,
-	                                    int joystick, String sharedPrefsId)
+	                                    int joystick)
 	{
 		super(res, bitmapOuter);
 		this.setBounds(rectOuter);
@@ -54,7 +53,17 @@ public final class InputOverlayDrawableJoystick extends BitmapDrawable
 		this.axisIDs[1] = joystick + 2;
 		this.axisIDs[2] = joystick + 3;
 		this.axisIDs[3] = joystick + 4;
-		mSharedPrefsId = sharedPrefsId;
+		mJoystickType = joystick;
+	}
+
+	/**
+	 * Gets this InputOverlayDrawableJoystick's button ID.
+	 *
+	 * @return this InputOverlayDrawableJoystick's button ID.
+	 */
+	public int getId()
+	{
+		return mJoystickType;
 	}
 
 	@Override
@@ -111,7 +120,7 @@ public final class InputOverlayDrawableJoystick extends BitmapDrawable
 		}
 	}
 
-	public boolean onConfigureTouch(View v, MotionEvent event)
+	public boolean onConfigureTouch(MotionEvent event)
 	{
 		int pointerIndex = event.getActionIndex();
 		int fingerPositionX = (int)event.getX(pointerIndex);
@@ -166,11 +175,6 @@ public final class InputOverlayDrawableJoystick extends BitmapDrawable
 		this.ringInner.setBounds(X - width, Y - height,
 				X + width,  Y + height);
 		ringInner.invalidateSelf();
-	}
-
-	public String getSharedPrefsId()
-	{
-		return mSharedPrefsId;
 	}
 
 	public void setPosition(int x, int y)

@@ -14,6 +14,7 @@ Source/Core/Common/scmrev.h
 *.ipch
 *.opensdf
 *.sdf
+*.sln.db
 *.suo
 *.vcxproj.user
 *.obj
@@ -30,8 +31,6 @@ CMakeLists.txt.user
 # Ignore emacs temp files
 \#*\#
 .\#*
-# Ignore transifex configuration directory
-.tx
 # Ignore kdevelop files/dirs
 *.kdev4
 # Ignore IDEA/Clion files/dirs

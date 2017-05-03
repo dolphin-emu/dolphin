@@ -6,16 +6,28 @@
 
 #include "Core/HW/WiimoteEmu/Attachment/Attachment.h"
 
+namespace ControllerEmu
+{
+class AnalogStick;
+class Buttons;
+class ControlGroup;
+class Slider;
+class Triggers;
+}
+
 namespace WiimoteEmu
 {
+enum class TurntableGroup;
 struct ExtensionReg;
 
 class Turntable : public Attachment
 {
 public:
-  Turntable(WiimoteEmu::ExtensionReg& _reg);
+  explicit Turntable(ExtensionReg& reg);
   void GetState(u8* const data) override;
   bool IsButtonPressed() const override;
+
+  ControllerEmu::ControlGroup* GetGroup(TurntableGroup group);
 
   enum
   {
@@ -34,11 +46,11 @@ public:
   };
 
 private:
-  Buttons* m_buttons;
-  AnalogStick* m_stick;
-  Triggers* m_effect_dial;
-  Slider* m_left_table;
-  Slider* m_right_table;
-  Slider* m_crossfade;
+  ControllerEmu::Buttons* m_buttons;
+  ControllerEmu::AnalogStick* m_stick;
+  ControllerEmu::Triggers* m_effect_dial;
+  ControllerEmu::Slider* m_left_table;
+  ControllerEmu::Slider* m_right_table;
+  ControllerEmu::Slider* m_crossfade;
 };
 }

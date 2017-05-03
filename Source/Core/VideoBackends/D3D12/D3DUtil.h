@@ -7,23 +7,20 @@
 #include <memory>
 #include <string>
 
-#include "Common/MathUtil.h"
+#include "Common/CommonTypes.h"
 #include "VideoBackends/D3D12/D3DState.h"
-#include "VideoBackends/D3D12/D3DStreamBuffer.h"
 
-#include "VideoCommon/RenderBase.h"
+enum class EFBAccessType;
+struct EfbPokeData;
 
 namespace DX12
 {
+class D3DStreamBuffer;
+
 extern StateCache gx_state_cache;
 
 namespace D3D
 {
-constexpr unsigned int AlignValue(unsigned int value, unsigned int alignment)
-{
-  return (value + (alignment - 1)) & ~(alignment - 1);
-}
-
 void ResourceBarrier(ID3D12GraphicsCommandList* command_list, ID3D12Resource* resource,
                      D3D12_RESOURCE_STATES state_before, D3D12_RESOURCE_STATES state_after,
                      UINT subresource);

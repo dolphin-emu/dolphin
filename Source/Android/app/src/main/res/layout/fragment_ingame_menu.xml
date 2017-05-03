@@ -5,8 +5,7 @@
               android:layout_width="match_parent"
               android:layout_height="match_parent"
               android:background="@color/dolphin_blue_dark"
-              tools:layout_width="250dp"
-    >
+              tools:layout_width="250dp">
 
     <TextView
         android:id="@+id/text_game_title"
@@ -20,8 +19,7 @@
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        >
+        android:layout_weight="1">
 
         <LinearLayout
             android:id="@+id/layout_options"
@@ -31,7 +29,7 @@
 
             <Button
                 android:id="@+id/menu_take_screenshot"
-                android:text="@string/overlay_screenshot"
+                android:text="@string/emulation_screenshot"
                 style="@style/InGameMenuOption"/>
 
             <Button
@@ -46,17 +44,12 @@
 
             <Button
                 android:id="@+id/menu_emulation_save_root"
-                android:text="@string/overlay_savestate"
+                android:text="@string/emulation_savestate"
                 style="@style/InGameMenuOption"/>
 
             <Button
                 android:id="@+id/menu_emulation_load_root"
-                android:text="@string/overlay_loadstate"
-                style="@style/InGameMenuOption"/>
-
-            <Button
-                android:id="@+id/menu_ingame_settings"
-                android:text="@string/settings"
+                android:text="@string/emulation_loadstate"
                 style="@style/InGameMenuOption"/>
 
             <Button
@@ -66,9 +59,11 @@
 
             <Button
                 android:id="@+id/menu_exit"
-                android:text="@string/overlay_exit_emulation"
+                android:text="@string/emulation_exit"
                 style="@style/InGameMenuOption"/>
 
         </LinearLayout>
+
     </ScrollView>
+
 </LinearLayout>

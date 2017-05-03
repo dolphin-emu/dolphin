@@ -19,23 +19,23 @@ public interface SettingsFragmentView
 	 * Called by the containing Activity to notify the Fragment that an
 	 * asynchronous load operation completed.
 	 *
-	 * @param settings The potentially-null result of the load operation.
+	 * @param settings The (possibly null) result of the ini load operation.
 	 */
-	void onSettingsFileLoaded(HashMap<String, SettingSection> settings);
+	void onSettingsFileLoaded(ArrayList<HashMap<String, SettingSection>> settings);
 
 	/**
-	 * Pass a settings Hashmap to the containing activity, so that it can
-	 * share the Hashmap with other SettingsFragments; useful so that rotations
+	 * Pass a settings HashMap to the containing activity, so that it can
+	 * share the HashMap with other SettingsFragments; useful so that rotations
 	 * do not require an additional load operation.
 	 *
-	 * @param settings A Hashmap containing all the settings
+	 * @param settings An ArrayList containing all the settings HashMaps.
 	 */
-	void passSettingsToActivity(HashMap<String, SettingSection> settings);
+	void passSettingsToActivity(ArrayList<HashMap<String, SettingSection>> settings);
 
 	/**
 	 * Pass an ArrayList to the View so that it can be displayed on screen.
 	 *
-	 * @param settingsList The result of converting the Hashmap to an ArrayList
+	 * @param settingsList The result of converting the HashMap to an ArrayList
 	 */
 	void showSettingsList(ArrayList<SettingsItem> settingsList);
 
@@ -66,7 +66,7 @@ public interface SettingsFragmentView
 	void showToastMessage(String message);
 
 	/**
-	 * Have the fragment add a setting to the Hashmap.
+	 * Have the fragment add a setting to the HashMap.
 	 *
 	 * @param setting The (possibly previously missing) new setting.
 	 */
@@ -93,4 +93,12 @@ public interface SettingsFragmentView
 	 * @param value   New setting for the Wiimote.
 	 */
 	void onWiimoteSettingChanged(String section, int value);
+
+	/**
+	 * Have the fragment tell the containing Activity that an extension setting was modified.
+	 *
+	 * @param key   Identifier for the extension that was modified.
+	 * @param value New setting for the extension.
+	 */
+	void onExtensionSettingChanged(String key, int value);
 }

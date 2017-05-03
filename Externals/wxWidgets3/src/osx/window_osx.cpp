@@ -1212,8 +1212,7 @@ void wxWindowMac::DoSetClientSize(int clientwidth, int clientheight)
         GetClientSize( &currentclientwidth , &currentclientheight ) ;
         GetSize( &currentwidth , &currentheight ) ;
 
-	   // XXX: Dolphin. Do not allow internal semantic call to become visible to derived classes.
-        wxWindowMac::DoSetSize( wxDefaultCoord , wxDefaultCoord , currentwidth + clientwidth - currentclientwidth ,
+        DoSetSize( wxDefaultCoord , wxDefaultCoord , currentwidth + clientwidth - currentclientwidth ,
             currentheight + clientheight - currentclientheight , wxSIZE_USE_EXISTING ) ;
     }
 }

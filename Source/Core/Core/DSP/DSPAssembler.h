@@ -5,8 +5,10 @@
 
 #pragma once
 
+#include <cstddef>
 #include <map>
 #include <string>
+#include <vector>
 
 #include "Common/CommonTypes.h"
 
@@ -14,6 +16,8 @@
 #include "Core/DSP/DSPTables.h"
 #include "Core/DSP/LabelMap.h"
 
+namespace DSP
+{
 enum err_t
 {
   ERR_OK = 0,
@@ -46,7 +50,7 @@ enum err_t
 class DSPAssembler
 {
 public:
-  DSPAssembler(const AssemblerSettings& settings);
+  explicit DSPAssembler(const AssemblerSettings& settings);
   ~DSPAssembler();
 
   // line_numbers is optional (and not yet implemented). It'll receieve a list of ints,
@@ -74,6 +78,12 @@ private:
     SEGMENT_MAX
   };
 
+  enum class OpcodeType
+  {
+    Primary,
+    Extension
+  };
+
   // Utility functions
   s32 ParseValue(const char* str);
   u32 ParseExpression(const char* ptr);
@@ -81,18 +91,17 @@ private:
   u32 GetParams(char* parstr, param_t* par);
 
   void InitPass(int pass);
-  bool AssembleFile(const char* fname, int pass);
+  bool AssembleFile(const std::string& file_path, int pass);
 
   void ShowError(err_t err_code, const char* extra_info = nullptr);
   // void ShowWarning(err_t err_code, const char *extra_info = nullptr);
 
   char* FindBrackets(char* src, char* dst);
-  const opc_t* FindOpcode(const char* opcode, u32 par_count, const opc_t* const opcod,
-                          int opcod_size);
-  bool VerifyParams(const opc_t* opc, param_t* par, int count, bool ext = false);
+  const opc_t* FindOpcode(std::string name, size_t par_count, OpcodeType type);
+  bool VerifyParams(const opc_t* opc, param_t* par, size_t count, OpcodeType type);
   void BuildCode(const opc_t* opc, param_t* par, u32 par_count, u16* outbuf);
 
-  char* gdg_buffer;
+  std::vector<u16> m_output_buffer;
 
   std::string include_dir;
   std::string cur_line;
@@ -116,3 +125,4 @@ private:
   int m_current_param;
   const AssemblerSettings settings_;
 };
+}  // namespace DSP

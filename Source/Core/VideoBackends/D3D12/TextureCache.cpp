@@ -3,6 +3,11 @@
 // Refer to the license.txt file included.
 
 #include "VideoBackends/D3D12/TextureCache.h"
+
+#include "Common/Align.h"
+#include "Common/Assert.h"
+#include "Common/Logging/Log.h"
+
 #include "VideoBackends/D3D12/D3DBase.h"
 #include "VideoBackends/D3D12/D3DCommandListManager.h"
 #include "VideoBackends/D3D12/D3DDescriptorHeapManager.h"
@@ -13,21 +18,39 @@
 #include "VideoBackends/D3D12/FramebufferManager.h"
 #include "VideoBackends/D3D12/PSTextureEncoder.h"
 #include "VideoBackends/D3D12/StaticShaderCache.h"
-#include "VideoBackends/D3D12/TextureEncoder.h"
+
 #include "VideoCommon/ImageWrite.h"
-#include "VideoCommon/LookUpTables.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace DX12
 {
-static std::unique_ptr<TextureEncoder> s_encoder = nullptr;
+static std::unique_ptr<PSTextureEncoder> s_encoder = nullptr;
 
 static std::unique_ptr<D3DStreamBuffer> s_efb_copy_stream_buffer = nullptr;
 static u32 s_efb_copy_last_cbuf_id = UINT_MAX;
 
 static ID3D12Resource* s_texture_cache_entry_readback_buffer = nullptr;
 static size_t s_texture_cache_entry_readback_buffer_size = 0;
+
+static DXGI_FORMAT GetDXGIFormatForHostFormat(HostTextureFormat format)
+{
+  switch (format)
+  {
+  case HostTextureFormat::DXT1:
+    return DXGI_FORMAT_BC1_UNORM;
+
+  case HostTextureFormat::DXT3:
+    return DXGI_FORMAT_BC2_UNORM;
+
+  case HostTextureFormat::DXT5:
+    return DXGI_FORMAT_BC3_UNORM;
+
+  case HostTextureFormat::RGBA8:
+  default:
+    return DXGI_FORMAT_R8G8B8A8_UNORM;
+  }
+}
 
 TextureCache::TCacheEntry::~TCacheEntry()
 {
@@ -44,8 +67,13 @@ bool TextureCache::TCacheEntry::Save(const std::string& filename, unsigned int l
   u32 level_width = std::max(config.width >> level, 1u);
   u32 level_height = std::max(config.height >> level, 1u);
   size_t level_pitch =
-      D3D::AlignValue(level_width * sizeof(u32), D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
+      Common::AlignUp(level_width * sizeof(u32), D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
   size_t required_readback_buffer_size = level_pitch * level_height;
+
+  // We can't dump compressed textures currently (it would mean drawing them to a RGBA8
+  // framebuffer, and saving that). TextureCache does not call Save for custom textures
+  // anyway, so this is fine for now.
+  _assert_(config.format == HostTextureFormat::RGBA8);
 
   // Check if the current readback buffer is large enough
   if (required_readback_buffer_size > s_texture_cache_entry_readback_buffer_size)
@@ -171,22 +199,24 @@ void TextureCache::TCacheEntry::CopyRectangleFromTexture(const TCacheEntryBase* 
   g_renderer->RestoreAPIState();
 }
 
-void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
-                                     unsigned int expanded_width, unsigned int level)
+void TextureCache::TCacheEntry::Load(u32 level, u32 width, u32 height, u32 row_length,
+                                     const u8* buffer, size_t buffer_size)
 {
-  unsigned int src_pitch = 4 * expanded_width;
-  D3D::ReplaceRGBATexture2D(m_texture->GetTex12(), TextureCache::temp, width, height, src_pitch,
-                            level, m_texture->GetResourceUsageState());
+  size_t src_pitch = CalculateHostTextureLevelPitch(config.format, row_length);
+  D3D::ReplaceRGBATexture2D(m_texture->GetTex12(), buffer, width, height,
+                            static_cast<unsigned int>(src_pitch), level,
+                            m_texture->GetResourceUsageState());
 }
 
 TextureCacheBase::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntryConfig& config)
 {
+  DXGI_FORMAT dxgi_format = GetDXGIFormatForHostFormat(config.format);
   if (config.rendertarget)
   {
     D3DTexture2D* texture =
         D3DTexture2D::Create(config.width, config.height,
                              TEXTURE_BIND_FLAG_SHADER_RESOURCE | TEXTURE_BIND_FLAG_RENDER_TARGET,
-                             DXGI_FORMAT_R8G8B8A8_UNORM, 1, config.layers);
+                             dxgi_format, 1, config.layers);
 
     TCacheEntry* entry = new TCacheEntry(config, texture);
 
@@ -200,8 +230,8 @@ TextureCacheBase::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntry
   {
     ID3D12Resource* texture_resource = nullptr;
 
-    D3D12_RESOURCE_DESC texture_resource_desc = CD3DX12_RESOURCE_DESC::Tex2D(
-        DXGI_FORMAT_R8G8B8A8_UNORM, config.width, config.height, 1, config.levels);
+    D3D12_RESOURCE_DESC texture_resource_desc =
+        CD3DX12_RESOURCE_DESC::Tex2D(dxgi_format, config.width, config.height, 1, config.levels);
 
     CheckHR(D3D::device12->CreateCommittedResource(
         &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT), D3D12_HEAP_FLAG_NONE,
@@ -228,22 +258,21 @@ TextureCacheBase::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntry
   }
 }
 
-void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, PEControl::PixelFormat src_format,
-                                                 const EFBRectangle& srcRect, bool scale_by_half,
-                                                 unsigned int cbuf_id, const float* colmat)
+void TextureCache::TCacheEntry::FromRenderTarget(bool is_depth_copy, const EFBRectangle& srcRect,
+                                                 bool scale_by_half, unsigned int cbuf_id,
+                                                 const float* colmat)
 {
   // When copying at half size, in multisampled mode, resolve the color/depth buffer first.
   // This is because multisampled texture reads go through Load, not Sample, and the linear
   // filter is ignored.
   bool multisampled = (g_ActiveConfig.iMultisamples > 1);
-  D3DTexture2D* efb_tex = (src_format == PEControl::Z24) ?
-                              FramebufferManager::GetEFBDepthTexture() :
-                              FramebufferManager::GetEFBColorTexture();
+  D3DTexture2D* efb_tex = is_depth_copy ? FramebufferManager::GetEFBDepthTexture() :
+                                          FramebufferManager::GetEFBColorTexture();
   if (multisampled && scale_by_half)
   {
     multisampled = false;
-    efb_tex = (src_format == PEControl::Z24) ? FramebufferManager::GetResolvedEFBDepthTexture() :
-                                               FramebufferManager::GetResolvedEFBColorTexture();
+    efb_tex = is_depth_copy ? FramebufferManager::GetResolvedEFBDepthTexture() :
+                              FramebufferManager::GetResolvedEFBColorTexture();
   }
 
   // set transformation
@@ -284,9 +313,9 @@ void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, PEControl::PixelFormat
 
   // Create texture copy
   D3D::DrawShadedTexQuad(
-      efb_tex, &sourcerect, Renderer::GetTargetWidth(), Renderer::GetTargetHeight(),
-      (src_format == PEControl::Z24) ? StaticShaderCache::GetDepthMatrixPixelShader(multisampled) :
-                                       StaticShaderCache::GetColorMatrixPixelShader(multisampled),
+      efb_tex, &sourcerect, g_renderer->GetTargetWidth(), g_renderer->GetTargetHeight(),
+      is_depth_copy ? StaticShaderCache::GetDepthMatrixPixelShader(multisampled) :
+                      StaticShaderCache::GetColorMatrixPixelShader(multisampled),
       StaticShaderCache::GetSimpleVertexShader(),
       StaticShaderCache::GetSimpleVertexShaderInputLayout(),
       StaticShaderCache::GetCopyGeometryShader(), 1.0f, 0, DXGI_FORMAT_R8G8B8A8_UNORM, false,
@@ -303,12 +332,12 @@ void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, PEControl::PixelFormat
   g_renderer->RestoreAPIState();
 }
 
-void TextureCache::CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_row,
-                           u32 num_blocks_y, u32 memory_stride, PEControl::PixelFormat srcFormat,
-                           const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf)
+void TextureCache::CopyEFB(u8* dst, const EFBCopyFormat& format, u32 native_width,
+                           u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
+                           bool is_depth_copy, const EFBRectangle& src_rect, bool scale_by_half)
 {
   s_encoder->Encode(dst, format, native_width, bytes_per_row, num_blocks_y, memory_stride,
-                    srcFormat, srcRect, isIntensity, scaleByHalf);
+                    is_depth_copy, src_rect, scale_by_half);
 }
 
 static const constexpr char s_palette_shader_hlsl[] =
@@ -495,7 +524,7 @@ void TextureCache::ConvertTexture(TCacheEntryBase* entry, TCacheEntryBase* uncon
   g_renderer->RestoreAPIState();
 }
 
-D3D12_SHADER_BYTECODE GetConvertShader12(std::string& Type)
+D3D12_SHADER_BYTECODE GetConvertShader12(const std::string& Type)
 {
   std::string shader = "#define DECODE DecodePixel_";
   shader.append(Type);

@@ -8,6 +8,8 @@
 
 // TODO: Get rid of this file.
 
+namespace DSP
+{
 #define PROFILE 0
 
 #if PROFILE
@@ -16,3 +18,4 @@ void ProfilerInit();
 void ProfilerAddDelta(int _addr, int _delta);
 void ProfilerStart();
 #endif
+}  // namespace DSP

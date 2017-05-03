@@ -48,15 +48,14 @@ public final class PlatformGamesPresenter
 				.subscribeOn(Schedulers.io())
 				.observeOn(AndroidSchedulers.mainThread())
 				.subscribe(new Action1<Cursor>()
-						   {
-							   @Override
-							   public void call(Cursor games)
-							   {
-								   Log.debug("[PlatformGamesPresenter] " + mPlatform + ": Load finished, swapping cursor...");
+				{
+					@Override
+					public void call(Cursor games)
+					{
+						Log.debug("[PlatformGamesPresenter] " + mPlatform + ": Load finished, swapping cursor...");
 
-								   mView.showGames(games);
-							   }
-						   }
-				);
+						mView.showGames(games);
+					}
+				});
 	}
 }

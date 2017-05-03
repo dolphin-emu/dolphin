@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <array>
 #include <cstddef>
 #include <mutex>
 #include <string>
@@ -16,17 +17,20 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
-#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "DolphinWX/Globals.h"
-#include "InputCommon/GCPadStatus.h"
 
 #if defined(HAVE_X11) && HAVE_X11
-#include "DolphinWX/X11Utils.h"
+#include "UICommon/X11Utils.h"
+#endif
+
+#ifdef __APPLE__
+#include <IOKit/pwr_mgt/IOPMLib.h>
 #endif
 
 // Class declarations
 class CGameListCtrl;
 class CCodeWindow;
+class CConfigMain;
 class CLogWindow;
 class FifoPlayerDlg;
 class LogConfigWindow;
@@ -46,7 +50,7 @@ class CRenderFrame : public wxFrame
 public:
   CRenderFrame(wxFrame* parent, wxWindowID id = wxID_ANY, const wxString& title = "Dolphin",
                const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize,
-               long style = wxDEFAULT_FRAME_STYLE | wxNO_FULL_REPAINT_ON_RESIZE);
+               long style = wxDEFAULT_FRAME_STYLE);
 
   bool ShowFullScreen(bool show, long style = wxFULLSCREEN_ALL) override;
 
@@ -59,12 +63,17 @@ private:
 #endif
 };
 
+wxDECLARE_EVENT(DOLPHIN_EVT_RELOAD_THEME_BITMAPS, wxCommandEvent);
+wxDECLARE_EVENT(DOLPHIN_EVT_UPDATE_LOAD_WII_MENU_ITEM, wxCommandEvent);
+wxDECLARE_EVENT(DOLPHIN_EVT_BOOT_SOFTWARE, wxCommandEvent);
+wxDECLARE_EVENT(DOLPHIN_EVT_STOP_SOFTWARE, wxCommandEvent);
+
 class CFrame : public CRenderFrame
 {
 public:
   CFrame(wxFrame* parent, wxWindowID id = wxID_ANY, const wxString& title = "Dolphin",
-         const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize,
-         bool _UseDebugger = false, bool _BatchMode = false, bool ShowLogWindow = false,
+         wxRect geometry = wxDefaultSize, bool use_debugger = false, bool batch_mode = false,
+         bool show_log_window = false,
          long style = wxDEFAULT_FRAME_STYLE | wxNO_FULL_REPAINT_ON_RESIZE);
 
   virtual ~CFrame();
@@ -72,110 +81,54 @@ public:
   void* GetRenderHandle()
   {
 #if defined(HAVE_X11) && HAVE_X11
-    return reinterpret_cast<void*>(X11Utils::XWindowFromHandle(m_RenderParent->GetHandle()));
+    return reinterpret_cast<void*>(X11Utils::XWindowFromHandle(m_render_parent->GetHandle()));
 #else
-    return reinterpret_cast<void*>(m_RenderParent->GetHandle());
+    return reinterpret_cast<void*>(m_render_parent->GetHandle());
 #endif
   }
 
   // These have to be public
-  CCodeWindow* g_pCodeWindow;
-  NetPlaySetupFrame* g_NetPlaySetupDiag;
-  wxCheatsWindow* g_CheatsWindow;
-  TASInputDlg* g_TASInputDlg[8];
+  CCodeWindow* m_code_window = nullptr;
+  NetPlaySetupFrame* m_netplay_setup_frame = nullptr;
 
-  void InitBitmaps();
-  void DoPause();
   void DoStop();
-  void OnStopped();
-  void DoRecordingSave();
   void UpdateGUI();
   void UpdateGameList();
   void ToggleLogWindow(bool bShow);
   void ToggleLogConfigWindow(bool bShow);
-  void PostEvent(wxCommandEvent& event);
   void StatusBarMessage(const char* Text, ...);
   void ClearStatusBar();
-  void OnRenderWindowSizeRequest(int width, int height);
   void BootGame(const std::string& filename);
-  void OnRenderParentClose(wxCloseEvent& event);
-  void OnRenderParentMove(wxMoveEvent& event);
   bool RendererHasFocus();
-  bool UIHasFocus();
   bool RendererIsFullscreen();
-  void DoFullscreen(bool bF);
-  void ToggleDisplayMode(bool bFullscreen);
-  void UpdateWiiMenuChoice(wxMenuItem* WiiMenuItem = nullptr);
-  void PopulateSavedPerspectives();
-  static void ConnectWiimote(int wm_idx, bool connect);
-  void UpdateTitle(const std::string& str);
+  void OpenGeneralConfiguration(wxWindowID tab_id = wxID_ANY);
 
-  const CGameListCtrl* GetGameListCtrl() const;
   wxMenuBar* GetMenuBar() const override;
 
-#ifdef __WXGTK__
-  Common::Event panic_event;
-  bool bPanicResult;
-  std::recursive_mutex keystate_lock;
-#endif
+  Common::Event m_panic_event;
+  bool m_panic_result;
 
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
-  X11Utils::XRRConfiguration* m_XRRConfig;
+  X11Utils::XRRConfiguration* m_xrr_config;
 #endif
 
-  wxMenu* m_SavedPerspectives;
-
-  wxToolBar* m_ToolBar;
   // AUI
-  wxAuiManager* m_Mgr;
-  bool bFloatWindow[IDM_CODE_WINDOW - IDM_LOG_WINDOW + 1];
+  wxAuiManager* m_mgr = nullptr;
+  bool m_float_window[IDM_DEBUG_WINDOW_LIST_END - IDM_DEBUG_WINDOW_LIST_START] = {};
 
   // Perspectives (Should find a way to make all of this private)
   void DoAddPage(wxWindow* Win, int i, bool Float);
   void DoRemovePage(wxWindow*, bool bHide = true);
   struct SPerspectives
   {
-    std::string Name;
-    wxString Perspective;
-    std::vector<int> Width, Height;
+    std::string name;
+    wxString perspective;
+    std::vector<int> width, height;
   };
-  std::vector<SPerspectives> Perspectives;
-  u32 ActivePerspective;
+  std::vector<SPerspectives> m_perspectives;
+  u32 m_active_perspective;
 
 private:
-  CGameListCtrl* m_GameListCtrl;
-  wxPanel* m_Panel;
-  CRenderFrame* m_RenderFrame;
-  wxWindow* m_RenderParent;
-  CLogWindow* m_LogWindow;
-  LogConfigWindow* m_LogConfigWindow;
-  FifoPlayerDlg* m_FifoPlayerDlg;
-  bool UseDebugger;
-  bool m_bBatchMode;
-  bool m_bEdit;
-  bool m_bTabSplit;
-  bool m_bNoDocking;
-  bool m_bGameLoading;
-  bool m_bClosing;
-  bool m_confirmStop;
-
-  std::vector<std::string> drives;
-
-  enum EToolbar
-  {
-    Toolbar_FileOpen,
-    Toolbar_Refresh,
-    Toolbar_Play,
-    Toolbar_Stop,
-    Toolbar_Pause,
-    Toolbar_Screenshot,
-    Toolbar_FullScreen,
-    Toolbar_ConfigMain,
-    Toolbar_ConfigGFX,
-    Toolbar_Controller,
-    EToolbar_Max
-  };
-
   enum
   {
     ADD_PANE_TOP,
@@ -185,19 +138,52 @@ private:
     ADD_PANE_CENTER
   };
 
+  CGameListCtrl* m_game_list_ctrl = nullptr;
+  CConfigMain* m_main_config_dialog = nullptr;
+  wxPanel* m_panel = nullptr;
+  CRenderFrame* m_render_frame = nullptr;
+  wxWindow* m_render_parent = nullptr;
+  CLogWindow* m_log_window = nullptr;
+  LogConfigWindow* m_log_config_window = nullptr;
+  FifoPlayerDlg* m_fifo_player_dialog = nullptr;
+  std::array<TASInputDlg*, 8> m_tas_input_dialogs{};
+  wxCheatsWindow* m_cheats_window = nullptr;
+  bool m_use_debugger = false;
+  bool m_batch_mode = false;
+  bool m_editing_perspectives = false;
+  bool m_is_split_tab_notebook = false;
+  bool m_no_panel_docking = false;
+  bool m_is_game_loading = false;
+  bool m_is_closing = false;
+  bool m_renderer_has_focus = false;
+  bool m_confirm_stop = false;
+  bool m_tried_graceful_shutdown = false;
+  int m_save_slot = 1;
+
   wxTimer m_poll_hotkey_timer;
   wxTimer m_handle_signal_timer;
 
-  wxBitmap m_Bitmaps[EToolbar_Max];
+  wxMenuBar* m_menubar_shadow = nullptr;
 
-  wxMenuBar* m_menubar_shadow;
+  wxString m_aui_fullscreen_perspective;
+  wxString m_aui_current_perspective;
 
-  void PopulateToolbar(wxToolBar* toolBar);
-  void RecreateToolbar();
-  wxMenuBar* CreateMenu();
+#ifdef __WXGTK__
+  std::recursive_mutex m_keystate_lock;
+#endif
+
+  void BindEvents();
+  void BindMenuBarEvents();
+  void BindDebuggerMenuBarEvents();
+  void BindDebuggerMenuBarUpdateEvents();
+
+  wxToolBar* OnCreateToolBar(long style, wxWindowID id, const wxString& name) override;
+  wxMenuBar* CreateMenuBar() const;
+
+  void InitializeTASDialogs();
+  void InitializeCoreCallbacks();
 
   // Utility
-  wxString GetMenuLabel(int Id);
   wxWindow* GetNotebookPageFromId(wxWindowID Id);
   wxAuiNotebook* GetNotebookFromId(u32 NBId);
   int GetNotebookCount();
@@ -206,12 +192,12 @@ private:
 
   // Perspectives
   void AddRemoveBlankPage();
-  void OnNotebookPageClose(wxAuiNotebookEvent& event);
-  void OnAllowNotebookDnD(wxAuiNotebookEvent& event);
+  void OnNotebookAllowDnD(wxAuiNotebookEvent& event);
   void OnNotebookPageChanged(wxAuiNotebookEvent& event);
+  void OnNotebookPageClose(wxAuiNotebookEvent& event);
+  void OnNotebookTabRightUp(wxAuiNotebookEvent& event);
   void OnFloatWindow(wxCommandEvent& event);
   void ToggleFloatWindow(int Id);
-  void OnTab(wxAuiNotebookEvent& event);
   int GetNotebookAffiliation(wxWindowID Id);
   void ClosePages();
   void CloseAllNotebooks();
@@ -220,14 +206,15 @@ private:
   void SetPaneSize();
   void TogglePaneStyle(bool On, int EventId);
   void ToggleNotebookStyle(bool On, long Style);
+  void PopulateSavedPerspectives();
+
   // Float window
   void DoUnfloatPage(int Id);
   void OnFloatingPageClosed(wxCloseEvent& event);
-  void OnFloatingPageSize(wxSizeEvent& event);
   void DoFloatNotebookPage(wxWindowID Id);
   wxFrame* CreateParentFrame(wxWindowID Id = wxID_ANY, const wxString& title = "",
                              wxWindow* = nullptr);
-  wxString AuiFullscreen, AuiCurrent;
+
   void AddPane(int dir);
   void UpdateCurrentPerspective();
   void SaveIniPerspectives();
@@ -242,12 +229,44 @@ private:
   // Override window proc for tricks like screensaver disabling
   WXLRESULT MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam);
 #endif
+
+// Screensaver
+#ifdef __APPLE__
+  IOPMAssertionID m_power_assertion = kIOPMNullAssertionID;
+#endif
+  void InhibitScreensaver();
+  void UninhibitScreensaver();
+
+  void DoOpen(bool Boot);
+  void DoPause();
+  void DoToggleToolbar(bool);
+  void DoRecordingSave();
+  void DoFullscreen(bool enable_fullscreen);
+  void DoExclusiveFullscreen(bool enable_fullscreen);
+  void ToggleDisplayMode(bool bFullscreen);
+  bool TriggerSTMPowerEvent();
+  void OnStopped();
+  void OnRenderWindowSizeRequest(int width, int height);
+  void UpdateTitle(const std::string& str);
+  static void ConnectWiimote(int wm_idx, bool connect);
+
   // Event functions
+  void PostEvent(wxCommandEvent& event);
+  void OnRenderParentClose(wxCloseEvent& event);
+  void OnRenderParentMove(wxMoveEvent& event);
+
   void OnQuit(wxCommandEvent& event);
   void OnHelp(wxCommandEvent& event);
 
+  void OnReloadThemeBitmaps(wxCommandEvent& event);
+  void OnReloadGameList(wxCommandEvent& event);
+
+  void OnUpdateInterpreterMenuItem(wxUpdateUIEvent& event);
+
+  void OnUpdateLoadWiiMenuItem(wxCommandEvent&);
+  void UpdateLoadWiiMenuItem() const;
+
   void OnOpen(wxCommandEvent& event);  // File menu
-  void DoOpen(bool Boot);
   void OnRefresh(wxCommandEvent& event);
   void OnBootDrive(wxCommandEvent& event);
 
@@ -256,6 +275,7 @@ private:
   void OnReset(wxCommandEvent& event);
   void OnRecord(wxCommandEvent& event);
   void OnPlayRecording(wxCommandEvent& event);
+  void OnStopRecording(wxCommandEvent& event);
   void OnRecordExport(wxCommandEvent& event);
   void OnRecordReadOnly(wxCommandEvent& event);
   void OnTASInput(wxCommandEvent& event);
@@ -279,7 +299,6 @@ private:
   void OnUndoLoadState(wxCommandEvent& event);
   void OnUndoSaveState(wxCommandEvent& event);
 
-  void OnFrameSkip(wxCommandEvent& event);
   void OnFrameStep(wxCommandEvent& event);
 
   void OnConfigMain(wxCommandEvent& event);  // Options
@@ -290,19 +309,15 @@ private:
 
   void OnToggleFullscreen(wxCommandEvent& event);
   void OnToggleDualCore(wxCommandEvent& event);
-  void OnToggleSkipIdle(wxCommandEvent& event);
   void OnManagerResize(wxAuiManagerEvent& event);
   void OnMove(wxMoveEvent& event);
   void OnResize(wxSizeEvent& event);
   void OnToggleToolbar(wxCommandEvent& event);
-  void DoToggleToolbar(bool);
   void OnToggleStatusbar(wxCommandEvent& event);
   void OnToggleWindow(wxCommandEvent& event);
 
   void OnKeyDown(wxKeyEvent& event);  // Keyboard
   void OnMouse(wxMouseEvent& event);  // Mouse
-
-  void OnFocusChange(wxFocusEvent& event);
 
   void OnHostMessage(wxCommandEvent& event);
 
@@ -315,6 +330,9 @@ private:
   void OnShowCheatsWindow(wxCommandEvent& event);
   void OnLoadWiiMenu(wxCommandEvent& event);
   void OnInstallWAD(wxCommandEvent& event);
+  void OnUninstallWAD(wxCommandEvent& event);
+  void OnImportBootMiiBackup(wxCommandEvent& event);
+  void OnExtractCertificates(wxCommandEvent& event);
   void OnFifoPlayer(wxCommandEvent& event);
   void OnConnectWiimote(wxCommandEvent& event);
   void GameListChanged(wxCommandEvent& event);
@@ -337,14 +355,3 @@ private:
   // Event table
   DECLARE_EVENT_TABLE();
 };
-
-int GetCmdForHotkey(unsigned int key);
-
-void OnAfterLoadCallback();
-void OnStoppedCallback();
-
-// For TASInputDlg
-void GCTASManipFunction(GCPadStatus* PadStatus, int controllerID);
-void WiiTASManipFunction(u8* data, WiimoteEmu::ReportFeatures rptf, int controllerID, int ext,
-                         const wiimote_key key);
-extern int g_saveSlot;

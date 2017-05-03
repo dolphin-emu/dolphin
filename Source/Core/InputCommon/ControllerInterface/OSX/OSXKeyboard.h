@@ -64,6 +64,7 @@ public:
 
   std::string GetName() const override;
   std::string GetSource() const override;
+  bool IsSameDevice(const IOHIDDeviceRef) const;
 
 private:
   struct

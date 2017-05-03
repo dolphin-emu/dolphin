@@ -1,6 +1,5 @@
 package org.dolphinemu.dolphinemu.utils;
 
-
 import org.dolphinemu.dolphinemu.BuildConfig;
 
 /**

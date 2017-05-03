@@ -276,6 +276,7 @@
 #include <sstream>  // NOLINT
 #include <string>  // NOLINT
 #include <utility>
+#include <vector>  // NOLINT
 
 #include "gtest/internal/gtest-port-arch.h"
 #include "gtest/internal/custom/gtest-port.h"
@@ -286,8 +287,12 @@
 # define GTEST_FLAG_PREFIX_DASH_ "gtest-"
 # define GTEST_FLAG_PREFIX_UPPER_ "GTEST_"
 # define GTEST_NAME_ "Google Test"
-# define GTEST_PROJECT_URL_ "http://code.google.com/p/googletest/"
+# define GTEST_PROJECT_URL_ "https://github.com/google/googletest/"
 #endif  // !defined(GTEST_DEV_EMAIL_)
+
+#if !defined(GTEST_INIT_GOOGLE_TEST_NAME_)
+# define GTEST_INIT_GOOGLE_TEST_NAME_ "testing::InitGoogleTest"
+#endif  // !defined(GTEST_INIT_GOOGLE_TEST_NAME_)
 
 // Determines the version of gcc that is used to compile this.
 #ifdef __GNUC__
@@ -353,6 +358,8 @@
 # define GTEST_HAS_STD_FUNCTION_ 1
 # define GTEST_HAS_STD_INITIALIZER_LIST_ 1
 # define GTEST_HAS_STD_MOVE_ 1
+# define GTEST_HAS_STD_SHARED_PTR_ 1
+# define GTEST_HAS_STD_TYPE_TRAITS_ 1
 # define GTEST_HAS_STD_UNIQUE_PTR_ 1
 #endif
 
@@ -389,10 +396,16 @@
 #  include <io.h>
 # endif
 // In order to avoid having to include <windows.h>, use forward declaration
-// assuming CRITICAL_SECTION is a typedef of _RTL_CRITICAL_SECTION.
+#if GTEST_OS_WINDOWS_MINGW && !defined(__MINGW64_VERSION_MAJOR)
+// MinGW defined _CRITICAL_SECTION and _RTL_CRITICAL_SECTION as two
+// separate (equivalent) structs, instead of using typedef
+typedef struct _CRITICAL_SECTION GTEST_CRITICAL_SECTION;
+#else
+// Assume CRITICAL_SECTION is a typedef of _RTL_CRITICAL_SECTION.
 // This assumption is verified by
 // WindowsTypesTest.CRITICAL_SECTIONIs_RTL_CRITICAL_SECTION.
-struct _RTL_CRITICAL_SECTION;
+typedef struct _RTL_CRITICAL_SECTION GTEST_CRITICAL_SECTION;
+#endif
 #else
 // This assumes that non-Windows OSes provide unistd.h. For OSes where this
 // is not the case, we need to include headers that provide the functions
@@ -747,8 +760,12 @@ using ::std::tuple_size;
 
 # if GTEST_OS_LINUX && !defined(__ia64__)
 #  if GTEST_OS_LINUX_ANDROID
-// On Android, clone() is only available on ARM starting with Gingerbread.
-#    if defined(__arm__) && __ANDROID_API__ >= 9
+// On Android, clone() became available at different API levels for each 32-bit
+// architecture.
+#    if defined(__LP64__) || \
+        (defined(__arm__) && __ANDROID_API__ >= 9) || \
+        (defined(__mips__) && __ANDROID_API__ >= 12) || \
+        (defined(__i386__) && __ANDROID_API__ >= 17)
 #     define GTEST_HAS_CLONE 1
 #    else
 #     define GTEST_HAS_CLONE 0
@@ -785,7 +802,6 @@ using ::std::tuple_size;
      GTEST_OS_WINDOWS_MINGW || GTEST_OS_AIX || GTEST_OS_HPUX || \
      GTEST_OS_OPENBSD || GTEST_OS_QNX || GTEST_OS_FREEBSD)
 # define GTEST_HAS_DEATH_TEST 1
-# include <vector>  // NOLINT
 #endif
 
 // We don't support MSVC 7.1 with exceptions disabled now.  Therefore
@@ -915,14 +931,14 @@ using ::std::tuple_size;
 #endif  // GTEST_HAS_SEH
 
 #ifdef _MSC_VER
-
 # if GTEST_LINKED_AS_SHARED_LIBRARY
 #  define GTEST_API_ __declspec(dllimport)
 # elif GTEST_CREATE_SHARED_LIBRARY
 #  define GTEST_API_ __declspec(dllexport)
 # endif
-
-#endif  // _MSC_VER
+#elif __GNUC__ >= 4 || defined(__clang__)
+# define GTEST_API_ __attribute__((visibility ("default")))
+#endif // _MSC_VER
 
 #ifndef GTEST_API_
 # define GTEST_API_
@@ -1334,7 +1350,7 @@ const T& move(const T& t) {
 // similar functions users may have (e.g., implicit_cast). The internal
 // namespace alone is not enough because the function can be found by ADL.
 template<typename To>
-inline To ImplicitCast_(To x) { return ::testing::internal::move(x); }
+inline To ImplicitCast_(To x) { return x; }
 
 // When you upcast (that is, cast a pointer from type Foo to type
 // SuperclassOfFoo), it's fine to use ImplicitCast_<>, since upcasts
@@ -1421,14 +1437,15 @@ GTEST_API_ size_t GetFileSize(FILE* file);
 // Reads the entire content of a file as a string.
 GTEST_API_ std::string ReadEntireFile(FILE* file);
 
+// All command line arguments.
+GTEST_API_ const ::std::vector<testing::internal::string>& GetArgvs();
+
 #if GTEST_HAS_DEATH_TEST
 
 const ::std::vector<testing::internal::string>& GetInjectableArgvs();
 void SetInjectableArgvs(const ::std::vector<testing::internal::string>*
                              new_argvs);
 
-// A copy of all command line arguments.  Set by ParseGTestFlags().
-extern ::std::vector<testing::internal::string> g_argvs;
 
 #endif  // GTEST_HAS_DEATH_TEST
 
@@ -1686,7 +1703,7 @@ class GTEST_API_ Mutex {
   // by the linker.
   MutexType type_;
   long critical_section_init_phase_;  // NOLINT
-  _RTL_CRITICAL_SECTION* critical_section_;
+  GTEST_CRITICAL_SECTION* critical_section_;
 
   GTEST_DISALLOW_COPY_AND_ASSIGN_(Mutex);
 };
@@ -1962,13 +1979,8 @@ class MutexBase {
      extern ::testing::internal::MutexBase mutex
 
 // Defines and statically (i.e. at link time) initializes a static mutex.
-// The initialization list here does not explicitly initialize each field,
-// instead relying on default initialization for the unspecified fields. In
-// particular, the owner_ field (a pthread_t) is not explicitly initialized.
-// This allows initialization to work whether pthread_t is a scalar or struct.
-// The flag -Wmissing-field-initializers must not be specified for this to work.
 #  define GTEST_DEFINE_STATIC_MUTEX_(mutex) \
-     ::testing::internal::MutexBase mutex = { PTHREAD_MUTEX_INITIALIZER, false }
+     ::testing::internal::MutexBase mutex = { PTHREAD_MUTEX_INITIALIZER, false, pthread_t() }
 
 // The Mutex class can only be used for mutexes created at runtime. It
 // shares its API with MutexBase otherwise.
@@ -2544,10 +2556,9 @@ bool ParseInt32(const Message& src_text, const char* str, Int32* value);
 // corresponding to the given Google Test flag.
 bool BoolFromGTestEnv(const char* flag, bool default_val);
 GTEST_API_ Int32 Int32FromGTestEnv(const char* flag, Int32 default_val);
-const char* StringFromGTestEnv(const char* flag, const char* default_val);
+std::string StringFromGTestEnv(const char* flag, const char* default_val);
 
 }  // namespace internal
 }  // namespace testing
 
 #endif  // GTEST_INCLUDE_GTEST_INTERNAL_GTEST_PORT_H_
-

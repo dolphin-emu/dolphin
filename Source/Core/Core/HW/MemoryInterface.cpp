@@ -49,7 +49,8 @@ enum
   MI_UNKNOWN2 = 0x05A,
 };
 
-union MIRegion {
+union MIRegion
+{
   u32 hex;
   struct
   {
@@ -58,7 +59,8 @@ union MIRegion {
   };
 };
 
-union MIProtType {
+union MIProtType
+{
   u16 hex;
   struct
   {
@@ -70,7 +72,8 @@ union MIProtType {
   };
 };
 
-union MIIRQMask {
+union MIIRQMask
+{
   u16 hex;
   struct
   {
@@ -83,7 +86,8 @@ union MIIRQMask {
   };
 };
 
-union MIIRQFlag {
+union MIIRQFlag
+{
   u16 hex;
   struct
   {
@@ -96,7 +100,8 @@ union MIIRQFlag {
   };
 };
 
-union MIProtAddr {
+union MIProtAddr
+{
   u32 hex;
   struct
   {
@@ -111,7 +116,8 @@ union MIProtAddr {
   };
 };
 
-union MITimer {
+union MITimer
+{
   u32 hex;
   struct
   {

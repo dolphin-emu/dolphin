@@ -5,16 +5,10 @@
 #pragma once
 
 #include <d3d11.h>
+#include "Common/CommonTypes.h"
 
 namespace DX11
 {
-namespace D3D
-{
-void ReplaceRGBATexture2D(ID3D11Texture2D* pTexture, const u8* buffer, unsigned int width,
-                          unsigned int height, unsigned int src_pitch, unsigned int level,
-                          D3D11_USAGE usage);
-}
-
 class D3DTexture2D
 {
 public:

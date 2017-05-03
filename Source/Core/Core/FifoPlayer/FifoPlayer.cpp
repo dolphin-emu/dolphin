@@ -25,7 +25,15 @@
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/CommandProcessor.h"
 
+// We need to include TextureDecoder.h for the texMem array.
+// TODO: Move texMem somewhere else so this isn't an issue.
+#include "VideoCommon/TextureDecoder.h"
+
 bool IsPlayingBackFifologWithBrokenEFBCopies = false;
+
+FifoPlayer::FifoPlayer() : m_Loop{SConfig::GetInstance().bLoopFifoReplay}
+{
+}
 
 FifoPlayer::~FifoPlayer()
 {
@@ -91,18 +99,21 @@ public:
   const char* GetName() override { return "FifoPlayer"; }
   void Run() override
   {
-    while (CPU::GetState() == CPU::CPU_RUNNING)
+    while (CPU::GetState() == CPU::State::Running)
     {
       switch (m_parent->AdvanceFrame())
       {
-      case CPU::CPU_POWERDOWN:
+      case CPU::State::PowerDown:
         CPU::Break();
         Host_Message(WM_USER_STOP);
         break;
 
-      case CPU::CPU_STEPPING:
+      case CPU::State::Stepping:
         CPU::Break();
         Host_UpdateMainFrame();
+        break;
+
+      case CPU::State::Running:
         break;
       }
     }
@@ -112,17 +123,23 @@ private:
   FifoPlayer* m_parent;
 };
 
-int FifoPlayer::AdvanceFrame()
+CPU::State FifoPlayer::AdvanceFrame()
 {
   if (m_CurrentFrame >= m_FrameRangeEnd)
   {
     if (!m_Loop)
-      return CPU::CPU_POWERDOWN;
+      return CPU::State::PowerDown;
     // If there are zero frames in the range then sleep instead of busy spinning
     if (m_FrameRangeStart >= m_FrameRangeEnd)
-      return CPU::CPU_STEPPING;
+      return CPU::State::Stepping;
 
+    // When looping, reload the contents of all the BP/CP/CF registers.
+    // This ensures that each time the first frame is played back, the state of the
+    // GPU is the same for each playback loop.
     m_CurrentFrame = m_FrameRangeStart;
+    LoadRegisters();
+    LoadTextureMemory();
+    FlushWGP();
   }
 
   if (m_FrameWrittenCb)
@@ -134,7 +151,7 @@ int FifoPlayer::AdvanceFrame()
   WriteFrame(m_File->GetFrame(m_CurrentFrame), m_FrameInfo[m_CurrentFrame]);
 
   ++m_CurrentFrame;
-  return CPU::CPU_RUNNING;
+  return CPU::State::Running;
 }
 
 std::unique_ptr<CPUCoreBase> FifoPlayer::GetCPUCore()
@@ -193,14 +210,6 @@ FifoPlayer& FifoPlayer::GetInstance()
 {
   static FifoPlayer instance;
   return instance;
-}
-
-FifoPlayer::FifoPlayer()
-    : m_CurrentFrame(0), m_FrameRangeStart(0), m_FrameRangeEnd(0), m_ObjectRangeStart(0),
-      m_ObjectRangeEnd(10000), m_EarlyMemoryUpdates(false), m_FileLoadedCb(nullptr),
-      m_FrameWrittenCb(nullptr), m_File(nullptr)
-{
-  m_Loop = SConfig::GetInstance().bLoopFifoReplay;
 }
 
 void FifoPlayer::WriteFrame(const FifoFrameInfo& frame, const AnalyzedFrameInfo& info)
@@ -410,9 +419,17 @@ void FifoPlayer::LoadMemory()
   PowerPC::ppcState.spr[SPR_DBAT0L] = 0x00000002;
   PowerPC::ppcState.spr[SPR_DBAT1U] = 0xc0001fff;
   PowerPC::ppcState.spr[SPR_DBAT1L] = 0x0000002a;
+  PowerPC::DBATUpdated();
+  PowerPC::IBATUpdated();
 
   SetupFifo();
+  LoadRegisters();
+  LoadTextureMemory();
+  FlushWGP();
+}
 
+void FifoPlayer::LoadRegisters()
+{
   const u32* regs = m_File->GetBPMem();
   for (int i = 0; i < FifoDataFile::BP_MEM_SIZE; ++i)
   {
@@ -446,8 +463,13 @@ void FifoPlayer::LoadMemory()
   regs = m_File->GetXFRegs();
   for (int i = 0; i < FifoDataFile::XF_REGS_SIZE; ++i)
     LoadXFReg(i, regs[i]);
+}
 
-  FlushWGP();
+void FifoPlayer::LoadTextureMemory()
+{
+  static_assert(static_cast<size_t>(TMEM_SIZE) == static_cast<size_t>(FifoDataFile::TEX_MEM_SIZE),
+                "TMEM_SIZE matches the size of texture memory in FifoDataFile");
+  std::memcpy(texMem, m_File->GetTexMem(), FifoDataFile::TEX_MEM_SIZE);
 }
 
 void FifoPlayer::WriteCP(u32 address, u16 value)
@@ -512,6 +534,7 @@ bool FifoPlayer::ShouldLoadBP(u8 address)
   case BPMEM_PE_TOKEN_INT_ID:
   case BPMEM_TRIGGER_EFB_COPY:
   case BPMEM_LOADTLUT1:
+  case BPMEM_PRELOAD_MODE:
   case BPMEM_PERF1:
     return false;
   default:

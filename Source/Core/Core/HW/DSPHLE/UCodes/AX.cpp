@@ -3,31 +3,40 @@
 // Refer to the license.txt file included.
 
 #include "Core/HW/DSPHLE/UCodes/AX.h"
+
 #include "Common/ChunkFile.h"
-#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
-#include "Core/ConfigManager.h"
+#include "Common/Swap.h"
 #include "Core/HW/DSP.h"
+#include "Core/HW/DSPHLE/DSPHLE.h"
+#include "Core/HW/DSPHLE/MailHandler.h"
 #include "Core/HW/DSPHLE/UCodes/AXStructs.h"
 
 #define AX_GC
 #include "Core/HW/DSPHLE/UCodes/AXVoice.h"
 
+namespace DSP
+{
+namespace HLE
+{
 AXUCode::AXUCode(DSPHLE* dsphle, u32 crc) : UCodeInterface(dsphle, crc), m_cmdlist_size(0)
 {
-  WARN_LOG(DSPHLE, "Instantiating AXUCode: crc=%08x", crc);
-  m_mail_handler.PushMail(DSP_INIT);
-  DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
-
-  LoadResamplingCoefficients();
+  INFO_LOG(DSPHLE, "Instantiating AXUCode: crc=%08x", crc);
 }
 
 AXUCode::~AXUCode()
 {
   m_mail_handler.Clear();
+}
+
+void AXUCode::Initialize()
+{
+  m_mail_handler.PushMail(DSP_INIT, true);
+
+  LoadResamplingCoefficients();
 }
 
 void AXUCode::LoadResamplingCoefficients()
@@ -54,7 +63,7 @@ void AXUCode::LoadResamplingCoefficients()
   if (fidx >= ArraySize(filenames))
     return;
 
-  WARN_LOG(DSPHLE, "Loading polyphase resampling coeffs from %s", filename.c_str());
+  INFO_LOG(DSPHLE, "Loading polyphase resampling coeffs from %s", filename.c_str());
 
   File::IOFile fp(filename, "rb");
   fp.ReadBytes(m_coeffs, 0x1000);
@@ -68,8 +77,7 @@ void AXUCode::LoadResamplingCoefficients()
 void AXUCode::SignalWorkEnd()
 {
   // Signal end of processing
-  m_mail_handler.PushMail(DSP_YIELD);
-  DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
+  m_mail_handler.PushMail(DSP_YIELD, true);
 }
 
 void AXUCode::HandleCommandList()
@@ -82,10 +90,10 @@ void AXUCode::HandleCommandList()
   u32 pb_addr = 0;
 
 #if 0
-	WARN_LOG(DSPHLE, "Command list:");
+	INFO_LOG(DSPHLE, "Command list:");
 	for (u32 i = 0; m_cmdlist[i] != CMD_END; ++i)
-		WARN_LOG(DSPHLE, "%04x", m_cmdlist[i]);
-	WARN_LOG(DSPHLE, "-------------");
+		INFO_LOG(DSPHLE, "%04x", m_cmdlist[i]);
+	INFO_LOG(DSPHLE, "-------------");
 #endif
 
   u32 curr_idx = 0;
@@ -414,7 +422,7 @@ void AXUCode::ProcessPBList(u32 pb_addr)
                           m_samples_auxA_right, m_samples_auxA_surround, m_samples_auxB_left,
                           m_samples_auxB_right, m_samples_auxB_surround}};
 
-    ReadPB(pb_addr, pb);
+    ReadPB(pb_addr, pb, m_crc);
 
     u32 updates_addr = HILO_TO_32(pb.updates.data);
     u16* updates = (u16*)HLEMemory_Get_Pointer(updates_addr);
@@ -431,7 +439,7 @@ void AXUCode::ProcessPBList(u32 pb_addr)
         buffers.ptrs[i] += spms;
     }
 
-    WritePB(pb_addr, pb);
+    WritePB(pb_addr, pb, m_crc);
     pb_addr = HILO_TO_32(pb.next_pb);
   }
 }
@@ -613,8 +621,7 @@ void AXUCode::HandleMail(u32 mail)
   else if (mail == MAIL_RESUME)
   {
     // Acknowledge the resume request
-    m_mail_handler.PushMail(DSP_RESUME);
-    DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
+    m_mail_handler.PushMail(DSP_RESUME, true);
   }
   else if (mail == MAIL_NEW_UCODE)
   {
@@ -661,8 +668,7 @@ void AXUCode::Update()
   // Used for UCode switching.
   if (NeedsResumeMail())
   {
-    m_mail_handler.PushMail(DSP_RESUME);
-    DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
+    m_mail_handler.PushMail(DSP_RESUME, true);
   }
 }
 
@@ -687,3 +693,5 @@ void AXUCode::DoState(PointerWrap& p)
   DoStateShared(p);
   DoAXState(p);
 }
+}  // namespace HLE
+}  // namespace DSP

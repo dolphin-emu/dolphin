@@ -39,6 +39,11 @@ static const unsigned char s_master_key[16] = {0xeb, 0xe4, 0x2a, 0x22, 0x5e, 0x8
 static const unsigned char s_master_key_korean[16] = {
     0x63, 0xb8, 0x2b, 0xb4, 0xf4, 0x61, 0x4e, 0x2e, 0x13, 0xf2, 0xfe, 0xfb, 0xba, 0x4c, 0x9b, 0x7e};
 
+static const unsigned char s_master_key_rvt[16] = {0xa1, 0x60, 0x4a, 0x6a, 0x71, 0x23, 0xb5, 0x29,
+                                                   0xae, 0x8b, 0xec, 0x32, 0xc8, 0x16, 0xfc, 0xaa};
+
+static const char s_issuer_rvt[] = "Root-CA00000002-XS00000006";
+
 static std::unique_ptr<IVolume> CreateVolumeFromCryptedWiiImage(std::unique_ptr<IBlobReader> reader,
                                                                 u32 partition_group,
                                                                 u32 volume_type, u32 volume_number);
@@ -64,14 +69,7 @@ std::unique_ptr<IVolume> CreateVolumeFromFilename(const std::string& filename, u
     return CreateVolumeFromCryptedWiiImage(std::move(reader), partition_group, 0, volume_number);
 
   case DISC_TYPE_UNK:
-  default:
-    std::string name, extension;
-    SplitPath(filename, nullptr, &name, &extension);
-    name += extension;
-    NOTICE_LOG(DISCIO,
-               "%s does not have the Magic word for a gcm, wiidisc or wad file\n"
-               "Set Log Verbosity to Warning and attempt to load the game again to view the values",
-               name.c_str());
+    return nullptr;
   }
 
   return nullptr;
@@ -96,18 +94,30 @@ void VolumeKeyForPartition(IBlobReader& _rReader, u64 offset, u8* VolumeKey)
   memset(IV, 0, 16);
   _rReader.Read(offset + 0x44c, 8, IV);
 
-  // Issue: 6813
-  // Magic value is at partition's offset + 0x1f1 (1byte)
-  // If encrypted with the Korean key, the magic value would be 1
-  // Otherwise it is zero
-  u8 using_korean_key = 0;
-  _rReader.Read(offset + 0x1f1, sizeof(u8), &using_korean_key);
-  u8 region = 0;
-  _rReader.Read(0x3, sizeof(u8), &region);
-
   mbedtls_aes_context AES_ctx;
-  mbedtls_aes_setkey_dec(
-      &AES_ctx, (using_korean_key == 1 && region == 'K' ? s_master_key_korean : s_master_key), 128);
+
+  u8 issuer[sizeof(s_issuer_rvt)];
+  _rReader.Read(offset + 0x140, sizeof(issuer), issuer);
+  if (!memcmp(issuer, s_issuer_rvt, sizeof(s_issuer_rvt)))
+  {
+    // RVT issuer. Use the RVT (debug) master key.
+    mbedtls_aes_setkey_dec(&AES_ctx, s_master_key_rvt, 128);
+  }
+  else
+  {
+    // Issue: 6813
+    // Magic value is at partition's offset + 0x1f1 (1byte)
+    // If encrypted with the Korean key, the magic value would be 1
+    // Otherwise it is zero
+    u8 using_korean_key = 0;
+    _rReader.Read(offset + 0x1f1, sizeof(u8), &using_korean_key);
+    u8 region = 0;
+    _rReader.Read(0x3, sizeof(u8), &region);
+
+    mbedtls_aes_setkey_dec(
+        &AES_ctx, (using_korean_key == 1 && region == 'K' ? s_master_key_korean : s_master_key),
+        128);
+  }
 
   mbedtls_aes_crypt_cbc(&AES_ctx, MBEDTLS_AES_DECRYPT, 16, IV, SubKey, VolumeKey);
 }
@@ -206,12 +216,7 @@ EDiscType GetDiscType(IBlobReader& _rReader)
   if (GCMagic == 0xC2339F3D)
     return DISC_TYPE_GC;
 
-  WARN_LOG(DISCIO, "No known magic words found");
-  WARN_LOG(DISCIO, "Wii  offset: 0x18 value: 0x%08x", WiiMagic);
-  WARN_LOG(DISCIO, "WiiC offset: 0x60 value: 0x%08x", WiiContainerMagic);
-  WARN_LOG(DISCIO, "WAD  offset: 0x02 value: 0x%08x", WADMagic);
-  WARN_LOG(DISCIO, "GC   offset: 0x1C value: 0x%08x", GCMagic);
-
+  // No known magic words found
   return DISC_TYPE_UNK;
 }
 

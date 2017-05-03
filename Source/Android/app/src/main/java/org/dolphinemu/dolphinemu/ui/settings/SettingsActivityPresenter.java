@@ -1,19 +1,17 @@
 package org.dolphinemu.dolphinemu.ui.settings;
 
-
 import android.os.Bundle;
 
 import org.dolphinemu.dolphinemu.BuildConfig;
+import org.dolphinemu.dolphinemu.DolphinApplication;
+import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.model.settings.SettingSection;
 import org.dolphinemu.dolphinemu.utils.Log;
 import org.dolphinemu.dolphinemu.utils.SettingsFile;
 
+import java.util.ArrayList;
 import java.util.HashMap;
-
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action1;
-import rx.schedulers.Schedulers;
 
 public final class SettingsActivityPresenter
 {
@@ -21,8 +19,7 @@ public final class SettingsActivityPresenter
 
 	private SettingsActivityView mView;
 
-	private String mFileName;
-	private HashMap<String, SettingSection> mSettingsBySection;
+	private ArrayList<HashMap<String, SettingSection>> mSettings = new ArrayList<>();
 
 	private int mStackCount;
 
@@ -33,48 +30,16 @@ public final class SettingsActivityPresenter
 		mView = view;
 	}
 
-	public void onCreate(Bundle savedInstanceState, final String filename)
+	public void onCreate(Bundle savedInstanceState, String menuTag)
 	{
-		mFileName = filename;
-
 		if (savedInstanceState == null)
 		{
-			// TODO DI should be able to get rid of this hack
-			if (filename.equals(SettingsFile.FILE_NAME_GCPAD))
-			{
-				// Psyche! Don't actually load that file (yet).
-				mFileName = SettingsFile.FILE_NAME_DOLPHIN;
+			mView.showSettingsFragment(menuTag, false);
 
-				// But do display its fragment, as if we had.
-				mView.showSettingsFragment(SettingsFile.FILE_NAME_GCPAD, false);
-			}
-			else
-			{
-				mFileName = filename;
-				mView.showSettingsFragment(mFileName, false);
-			}
-
-			SettingsFile.readFile(mFileName)
-					.subscribeOn(Schedulers.io())
-					.observeOn(AndroidSchedulers.mainThread())
-					.subscribe(new Action1<HashMap<String, SettingSection>>()
-							   {
-								   @Override
-								   public void call(HashMap<String, SettingSection> settingsBySection)
-								   {
-									   mSettingsBySection = settingsBySection;
-									   mView.onSettingsFileLoaded(settingsBySection);
-								   }
-							   },
-							new Action1<Throwable>()
-							{
-								@Override
-								public void call(Throwable throwable)
-								{
-									Log.error("[SettingsActivityPresenter] Error reading file " + filename + ".ini: "+ throwable.getMessage());
-									mView.onSettingsFileNotFound();
-								}
-							});
+			mSettings.add(SettingsFile.SETTINGS_DOLPHIN, SettingsFile.readFile(SettingsFile.FILE_NAME_DOLPHIN, mView));
+			mSettings.add(SettingsFile.SETTINGS_GFX, SettingsFile.readFile(SettingsFile.FILE_NAME_GFX, mView));
+			mSettings.add(SettingsFile.SETTINGS_WIIMOTE, SettingsFile.readFile(SettingsFile.FILE_NAME_WIIMOTE, mView));
+			mView.onSettingsFileLoaded(mSettings);
 		}
 		else
 		{
@@ -82,41 +47,25 @@ public final class SettingsActivityPresenter
 		}
 	}
 
-	public void setSettings(HashMap<String, SettingSection> settings)
+	public void setSettings(ArrayList<HashMap<String, SettingSection>> settings)
 	{
-		mSettingsBySection = settings;
+		mSettings = settings;
 	}
 
-	public HashMap<String, SettingSection> getSettings()
+	public HashMap<String, SettingSection> getSettings(int file)
 	{
-		return mSettingsBySection;
+		return mSettings.get(file);
 	}
 
 	public void onStop(boolean finishing)
 	{
-		if (mSettingsBySection != null && finishing && mShouldSave)
+		if (mSettings != null && finishing && mShouldSave)
 		{
 			Log.debug("[SettingsActivity] Settings activity stopping. Saving settings to INI...");
-			SettingsFile.saveFile(mFileName, mSettingsBySection)
-					.subscribeOn(Schedulers.io())
-					.observeOn(AndroidSchedulers.mainThread())
-					.subscribe(
-							new Action1<Boolean>()
-							{
-								@Override
-								public void call(Boolean aBoolean)
-								{
-									mView.showToastMessage("Saved successfully to " + mFileName + ".ini");
-								}
-							},
-							new Action1<Throwable>()
-							{
-								@Override
-								public void call(Throwable throwable)
-								{
-									mView.showToastMessage("Error saving " + mFileName + ".ini: " + throwable.getMessage());
-								}
-							});
+			SettingsFile.saveFile(SettingsFile.FILE_NAME_DOLPHIN, mSettings.get(SettingsFile.SETTINGS_DOLPHIN), mView);
+			SettingsFile.saveFile(SettingsFile.FILE_NAME_GFX, mSettings.get(SettingsFile.SETTINGS_GFX), mView);
+			SettingsFile.saveFile(SettingsFile.FILE_NAME_WIIMOTE, mSettings.get(SettingsFile.SETTINGS_WIIMOTE), mView);
+			mView.showToastMessage("Saved settings to INI files");
 		}
 	}
 
@@ -142,8 +91,7 @@ public final class SettingsActivityPresenter
 	{
 		switch (itemId)
 		{
-			case R.id.menu_exit_no_save:
-				mShouldSave = false;
+			case R.id.menu_save_exit:
 				mView.finish();
 				return true;
 		}
@@ -163,15 +111,9 @@ public final class SettingsActivityPresenter
 
 	public void onGcPadSettingChanged(String key, int value)
 	{
-		switch (value)
+		if (value != 0) // Not disabled
 		{
-			case 6:
-				mView.showToastMessage("Configuration coming soon. Settings from old versions will still work.");
-				break;
-
-			case 12:
-				mView.showSettingsFragment(key, true);
-				break;
+			mView.showSettingsFragment(key + (value / 6), true);
 		}
 	}
 
@@ -180,12 +122,20 @@ public final class SettingsActivityPresenter
 		switch (value)
 		{
 			case 1:
-				mView.showToastMessage("Configuration coming soon. Settings from old versions will still work.");
+				mView.showSettingsFragment(section, true);
 				break;
 
 			case 2:
 				mView.showToastMessage("Please make sure Continuous Scanning is enabled in Core Settings.");
 				break;
+		}
+	}
+
+	public void onExtensionSettingChanged(String key, int value)
+	{
+		if (value != 0) // None
+		{
+			mView.showSettingsFragment(key + value, true);
 		}
 	}
 }

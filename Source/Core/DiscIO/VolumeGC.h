@@ -16,9 +16,11 @@
 
 namespace DiscIO
 {
+class IBlobReader;
 enum class BlobType;
 enum class Country;
 enum class Language;
+enum class Region;
 enum class Platform;
 
 class CVolumeGC : public IVolume
@@ -27,7 +29,7 @@ public:
   CVolumeGC(std::unique_ptr<IBlobReader> reader);
   ~CVolumeGC();
   bool Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt = false) const override;
-  std::string GetUniqueID() const override;
+  std::string GetGameID() const override;
   std::string GetMakerID() const override;
   u16 GetRevision() const override;
   std::string GetInternalName() const override;
@@ -42,6 +44,7 @@ public:
   u8 GetDiscNumber() const override;
 
   Platform GetVolumeType() const override;
+  Region GetRegion() const override;
   Country GetCountry() const override;
   BlobType GetBlobType() const override;
   u64 GetSize() const override;

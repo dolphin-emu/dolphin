@@ -7,7 +7,7 @@
 #include <d3d11.h>
 #include <string>
 
-#include "Common/MathUtil.h"
+#include "Common/CommonTypes.h"
 #include "VideoCommon/RenderBase.h"
 
 namespace DX11

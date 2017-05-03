@@ -2,6 +2,7 @@ package org.dolphinemu.dolphinemu.ui.settings;
 
 import org.dolphinemu.dolphinemu.model.settings.SettingSection;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
@@ -18,29 +19,30 @@ public interface SettingsActivityView
 	void showSettingsFragment(String menuTag, boolean addToStack);
 
 	/**
-	 * Called by a contained Fragment to get access to the Setting Hashmap
+	 * Called by a contained Fragment to get access to the Setting HashMap
 	 * loaded from disk, so that each Fragment doesn't need to perform its own
 	 * read operation.
 	 *
-	 * @return A possibly null Hashmap of Settings.
+	 * @param file The settings file to load.
+	 * @return A possibly null HashMap of Settings.
 	 */
-	HashMap<String, SettingSection> getSettings();
+	HashMap<String, SettingSection> getSettings(int file);
 
 	/**
-	 * Used to provide the Activity with a Settings Hashmap if a Fragment already
+	 * Used to provide the Activity with Settings HashMaps if a Fragment already
 	 * has one; for example, if a rotation occurs, the Fragment will not be killed,
-	 * but the Activity will, so the Activity needs to have its Hashmap resupplied.
+	 * but the Activity will, so the Activity needs to have its HashMaps resupplied.
 	 *
-	 * @param settings The Fragment's Settings hashmap.
+	 * @param settings The ArrayList of all the Settings HashMaps.
 	 */
-	void setSettings(HashMap<String, SettingSection> settings);
+	void setSettings(ArrayList<HashMap<String, SettingSection>> settings);
 
 	/**
 	 * Called when an asynchronous load operation completes.
 	 *
-	 * @param settings The (possibly null) result of the load operation.
+	 * @param settings The (possibly null) result of the ini load operation.
 	 */
-	void onSettingsFileLoaded(HashMap<String, SettingSection> settings);
+	void onSettingsFileLoaded(ArrayList<HashMap<String, SettingSection>> settings);
 
 	/**
 	 * Called when an asynchronous load operation fails.
@@ -88,4 +90,13 @@ public interface SettingsActivityView
 	 * @param value   New setting for the Wiimote.
 	 */
 	void onWiimoteSettingChanged(String section, int value);
+
+	/**
+	 * Called by a containing Fragment to tell the containing Activity that an extension setting
+	 * was modified.
+	 *
+	 * @param key   Identifier for the extension that was modified.
+	 * @param value New setting for the extension.
+	 */
+	void onExtensionSettingChanged(String key, int value);
 }

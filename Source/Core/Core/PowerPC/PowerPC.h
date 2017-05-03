@@ -4,13 +4,15 @@
 
 #pragma once
 
+#include <array>
 #include <cstddef>
 #include <tuple>
+#include <vector>
 
-#include "Common/BreakPoints.h"
 #include "Common/CommonTypes.h"
 
 #include "Core/Debugger/PPCDebugInterface.h"
+#include "Core/PowerPC/BreakPoints.h"
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/PPCCache.h"
 
@@ -19,7 +21,7 @@ class PointerWrap;
 
 namespace PowerPC
 {
-enum
+enum CPUCore
 {
   CORE_INTERPRETER,
   CORE_JIT64,
@@ -29,29 +31,25 @@ enum
   CORE_CACHEDINTERPRETER,
 };
 
-enum CoreMode
+enum class CoreMode
 {
-  MODE_INTERPRETER,
-  MODE_JIT,
+  Interpreter,
+  JIT,
 };
 
 // TLB cache
-#define TLB_SIZE 128
-#define NUM_TLBS 2
-#define TLB_WAYS 2
+constexpr size_t TLB_SIZE = 128;
+constexpr size_t NUM_TLBS = 2;
+constexpr size_t TLB_WAYS = 2;
 
-#define HW_PAGE_INDEX_SHIFT 12
-#define HW_PAGE_INDEX_MASK 0x3f
-#define HW_PAGE_TAG_SHIFT 18
-
-#define TLB_TAG_INVALID 0xffffffff
-
-struct tlb_entry
+struct TLBEntry
 {
-  u32 tag[TLB_WAYS];
-  u32 paddr[TLB_WAYS];
-  u32 pte[TLB_WAYS];
-  u8 recent;
+  static constexpr u32 INVALID_TAG = 0xffffffff;
+
+  u32 tag[TLB_WAYS] = {INVALID_TAG, INVALID_TAG};
+  u32 paddr[TLB_WAYS] = {};
+  u32 pte[TLB_WAYS] = {};
+  u8 recent = 0;
 };
 
 // This contains the entire state of the emulated PowerPC "Gekko" CPU.
@@ -115,7 +113,10 @@ struct PowerPCState
   // also for power management, but we don't care about that.
   u32 spr[1024];
 
-  tlb_entry tlb[NUM_TLBS][TLB_SIZE / TLB_WAYS];
+  // Storage for the stack pointer of the BLR optimization.
+  u8* stored_stack_pointer;
+
+  std::array<std::array<TLBEntry, TLB_SIZE / TLB_WAYS>, NUM_TLBS> tlb;
 
   u32 pagetable_base;
   u32 pagetable_hashmask;
@@ -135,22 +136,27 @@ extern BreakPoints breakpoints;
 extern MemChecks memchecks;
 extern PPCDebugInterface debug_interface;
 
+const std::vector<CPUCore>& AvailableCPUCores();
+CPUCore DefaultCPUCore();
+
 void Init(int cpu_core);
+void Reset();
 void Shutdown();
 void DoState(PointerWrap& p);
+void ScheduleInvalidateCacheThreadSafe(u32 address);
 
 CoreMode GetMode();
-// [NOT THREADSAFE] CPU Thread or CPU::PauseAndLock or CORE_UNINITIALIZED
+// [NOT THREADSAFE] CPU Thread or CPU::PauseAndLock or Core::State::Uninitialized
 void SetMode(CoreMode _coreType);
 const char* GetCPUName();
 
 // Set the current CPU Core to the given implementation until removed.
 // Remove the current injected CPU Core by passing nullptr.
-// While an external CPUCoreBase is injected, GetMode() will return MODE_INTERPRETER.
+// While an external CPUCoreBase is injected, GetMode() will return CoreMode::Interpreter.
 // Init() will be called when added and Shutdown() when removed.
 // [Threadsafety: Same as SetMode(), except it cannot be called from inside the CPU
 //  run loop on the CPU Thread - it doesn't make sense for a CPU to remove itself
-//  while it is CPU_RUNNING]
+//  while it is in State::Running]
 void InjectExternalCPUCore(CPUCoreBase* core);
 
 // Stepping requires the CPU Execution lock (CPU::PauseAndLock or CPU Thread)
@@ -204,74 +210,104 @@ void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst);
 // Routines for debugger UI, cheats, etc. to access emulated memory from the
 // perspective of the CPU.  Not for use by core emulation routines.
 // Use "Host_" prefix.
-u8 HostRead_U8(const u32 address);
-u16 HostRead_U16(const u32 address);
-u32 HostRead_U32(const u32 address);
-u32 HostRead_Instruction(const u32 address);
+u8 HostRead_U8(u32 address);
+u16 HostRead_U16(u32 address);
+u32 HostRead_U32(u32 address);
+u64 HostRead_U64(u32 address);
+u32 HostRead_Instruction(u32 address);
 
-void HostWrite_U8(const u8 var, const u32 address);
-void HostWrite_U16(const u16 var, const u32 address);
-void HostWrite_U32(const u32 var, const u32 address);
-void HostWrite_U64(const u64 var, const u32 address);
+void HostWrite_U8(u8 var, u32 address);
+void HostWrite_U16(u16 var, u32 address);
+void HostWrite_U32(u32 var, u32 address);
+void HostWrite_U64(u64 var, u32 address);
 
 // Returns whether a read or write to the given address will resolve to a RAM
 // access given the current CPU state.
-bool HostIsRAMAddress(const u32 address);
+bool HostIsRAMAddress(u32 address);
+// Same as HostIsRAMAddress, but uses IBAT instead of DBAT.
+bool HostIsInstructionRAMAddress(u32 address);
 
 std::string HostGetString(u32 em_address, size_t size = 0);
 
 // Routines for the CPU core to access memory.
 
 // Used by interpreter to read instructions, uses iCache
-u32 Read_Opcode(const u32 address);
+u32 Read_Opcode(u32 address);
 struct TryReadInstResult
 {
   bool valid;
   bool from_bat;
   u32 hex;
+  u32 physical_address;
 };
-TryReadInstResult TryReadInstruction(const u32 address);
+TryReadInstResult TryReadInstruction(u32 address);
 
-u8 Read_U8(const u32 address);
-u16 Read_U16(const u32 address);
-u32 Read_U32(const u32 address);
-u64 Read_U64(const u32 address);
+u8 Read_U8(u32 address);
+u16 Read_U16(u32 address);
+u32 Read_U32(u32 address);
+u64 Read_U64(u32 address);
 
 // Useful helper functions, used by ARM JIT
-float Read_F32(const u32 address);
-double Read_F64(const u32 address);
+float Read_F32(u32 address);
+double Read_F64(u32 address);
 
 // used by JIT. Return zero-extended 32bit values
-u32 Read_U8_ZX(const u32 address);
-u32 Read_U16_ZX(const u32 address);
+u32 Read_U8_ZX(u32 address);
+u32 Read_U16_ZX(u32 address);
 
-void Write_U8(const u8 var, const u32 address);
-void Write_U16(const u16 var, const u32 address);
-void Write_U32(const u32 var, const u32 address);
-void Write_U64(const u64 var, const u32 address);
+void Write_U8(u8 var, u32 address);
+void Write_U16(u16 var, u32 address);
+void Write_U32(u32 var, u32 address);
+void Write_U64(u64 var, u32 address);
 
-void Write_U16_Swap(const u16 var, const u32 address);
-void Write_U32_Swap(const u32 var, const u32 address);
-void Write_U64_Swap(const u64 var, const u32 address);
+void Write_U16_Swap(u16 var, u32 address);
+void Write_U32_Swap(u32 var, u32 address);
+void Write_U64_Swap(u64 var, u32 address);
 
 // Useful helper functions, used by ARM JIT
-void Write_F64(const double var, const u32 address);
+void Write_F64(double var, u32 address);
 
-void DMA_LCToMemory(const u32 memAddr, const u32 cacheAddr, const u32 numBlocks);
-void DMA_MemoryToLC(const u32 cacheAddr, const u32 memAddr, const u32 numBlocks);
-void ClearCacheLine(const u32 address);  // Zeroes 32 bytes; address should be 32-byte-aligned
+void DMA_LCToMemory(u32 memAddr, u32 cacheAddr, u32 numBlocks);
+void DMA_MemoryToLC(u32 cacheAddr, u32 memAddr, u32 numBlocks);
+void ClearCacheLine(u32 address);  // Zeroes 32 bytes; address should be 32-byte-aligned
 
 // TLB functions
 void SDRUpdated();
 void InvalidateTLBEntry(u32 address);
+void DBATUpdated();
+void IBATUpdated();
 
 // Result changes based on the BAT registers and MSR.DR.  Returns whether
 // it's safe to optimize a read or write to this address to an unguarded
 // memory access.  Does not consider page tables.
-bool IsOptimizableRAMAddress(const u32 address);
+bool IsOptimizableRAMAddress(u32 address);
 u32 IsOptimizableMMIOAccess(u32 address, u32 accessSize);
 bool IsOptimizableGatherPipeWrite(u32 address);
 
+struct TranslateResult
+{
+  bool valid;
+  bool from_bat;
+  u32 address;
+};
+TranslateResult JitCache_TranslateAddress(u32 address);
+
+constexpr int BAT_INDEX_SHIFT = 17;
+constexpr u32 BAT_PAGE_SIZE = 1 << BAT_INDEX_SHIFT;
+constexpr u32 BAT_MAPPED_BIT = 0x1;
+constexpr u32 BAT_PHYSICAL_BIT = 0x2;
+constexpr u32 BAT_RESULT_MASK = ~0x3;
+using BatTable = std::array<u32, 1 << (32 - BAT_INDEX_SHIFT)>;  // 128 KB
+extern BatTable ibat_table;
+extern BatTable dbat_table;
+inline bool TranslateBatAddess(const BatTable& bat_table, u32* address)
+{
+  u32 bat_result = bat_table[*address >> BAT_INDEX_SHIFT];
+  if ((bat_result & BAT_MAPPED_BIT) == 0)
+    return false;
+  *address = (bat_result & BAT_RESULT_MASK) | (*address & (BAT_PAGE_SIZE - 1));
+  return true;
+}
 }  // namespace
 
 enum CRBits
@@ -300,7 +336,7 @@ inline u64 PPCCRToInternal(u8 value)
 }
 
 // convert flags into 64-bit CR values with a lookup table
-extern const u64 m_crTable[16];
+extern const std::array<u64, 16> m_crTable;
 
 // Warning: these CR operations are fairly slow since they need to convert from
 // PowerPC format (4 bit) to our internal 64 bit format. See the definition of

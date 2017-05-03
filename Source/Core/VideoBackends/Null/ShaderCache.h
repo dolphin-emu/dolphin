@@ -22,11 +22,11 @@ public:
   virtual ~ShaderCache();
 
   void Clear();
-  bool SetShader(DSTALPHA_MODE dst_alpha_mode, u32 primitive_type);
+  bool SetShader(u32 primitive_type);
 
 protected:
-  virtual Uid GetUid(DSTALPHA_MODE dst_alpha_mode, u32 primitive_type, APIType api_type) = 0;
-  virtual ShaderCode GenerateCode(DSTALPHA_MODE dst_alpha_mode, APIType api_type, Uid uid) = 0;
+  virtual Uid GetUid(u32 primitive_type, APIType api_type) = 0;
+  virtual ShaderCode GenerateCode(APIType api_type, Uid uid) = 0;
 
 private:
   std::map<Uid, std::string> m_shaders;
@@ -40,13 +40,11 @@ public:
   static std::unique_ptr<VertexShaderCache> s_instance;
 
 protected:
-  VertexShaderUid GetUid(DSTALPHA_MODE dst_alpha_mode, u32 primitive_type,
-                         APIType api_type) override
+  VertexShaderUid GetUid(u32 primitive_type, APIType api_type) override
   {
     return GetVertexShaderUid();
   }
-  ShaderCode GenerateCode(DSTALPHA_MODE dst_alpha_mode, APIType api_type,
-                          VertexShaderUid uid) override
+  ShaderCode GenerateCode(APIType api_type, VertexShaderUid uid) override
   {
     return GenerateVertexShaderCode(api_type, uid.GetUidData());
   }
@@ -58,13 +56,11 @@ public:
   static std::unique_ptr<GeometryShaderCache> s_instance;
 
 protected:
-  GeometryShaderUid GetUid(DSTALPHA_MODE dst_alpha_mode, u32 primitive_type,
-                           APIType api_type) override
+  GeometryShaderUid GetUid(u32 primitive_type, APIType api_type) override
   {
     return GetGeometryShaderUid(primitive_type);
   }
-  ShaderCode GenerateCode(DSTALPHA_MODE dst_alpha_mode, APIType api_type,
-                          GeometryShaderUid uid) override
+  ShaderCode GenerateCode(APIType api_type, GeometryShaderUid uid) override
   {
     return GenerateGeometryShaderCode(api_type, uid.GetUidData());
   }
@@ -76,14 +72,13 @@ public:
   static std::unique_ptr<PixelShaderCache> s_instance;
 
 protected:
-  PixelShaderUid GetUid(DSTALPHA_MODE dst_alpha_mode, u32 primitive_type, APIType api_type) override
+  PixelShaderUid GetUid(u32 primitive_type, APIType api_type) override
   {
-    return GetPixelShaderUid(dst_alpha_mode);
+    return GetPixelShaderUid();
   }
-  ShaderCode GenerateCode(DSTALPHA_MODE dst_alpha_mode, APIType api_type,
-                          PixelShaderUid uid) override
+  ShaderCode GenerateCode(APIType api_type, PixelShaderUid uid) override
   {
-    return GeneratePixelShaderCode(dst_alpha_mode, api_type, uid.GetUidData());
+    return GeneratePixelShaderCode(api_type, uid.GetUidData());
   }
 };
 

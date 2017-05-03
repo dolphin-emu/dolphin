@@ -9,7 +9,6 @@
 
 #include "Core/PowerPC/JitILCommon/JitILBase.h"
 #include "Common/CommonTypes.h"
-#include "Core/ConfigManager.h"
 
 static void ComputeRC(IREmitter::IRBuilder& ibuild, IREmitter::InstLoc val)
 {

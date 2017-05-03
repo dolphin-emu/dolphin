@@ -1,6 +1,5 @@
 package org.dolphinemu.dolphinemu.adapters;
 
-
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.content.Context;
@@ -17,10 +16,11 @@ public class PlatformPagerAdapter extends FragmentPagerAdapter
 {
 	private Context mContext;
 
-	private final static int[] TAB_ICONS = {
+	private final static int[] TAB_ICONS =
+	{
 			R.drawable.ic_gamecube,
 			R.drawable.ic_wii,
-			R.drawable.ic_folder// wiiware TODO Have an icon here.
+			R.drawable.ic_folder // WiiWare TODO Have an icon here.
 	};
 
 	public PlatformPagerAdapter(FragmentManager fm, Context context)

@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <vector>
 #include <wx/arrstr.h>
 #include <wx/panel.h>
 
@@ -18,18 +19,11 @@ public:
   GeneralConfigPane(wxWindow* parent, wxWindowID id);
 
 private:
-  struct CPUCore
-  {
-    int CPUid;
-    wxString name;
-  };
-  std::vector<CPUCore> cpu_cores;
   void InitializeGUI();
   void LoadGUIValues();
-  void RefreshGUI();
+  void BindEvents();
 
   void OnDualCoreCheckBoxChanged(wxCommandEvent&);
-  void OnIdleSkipCheckBoxChanged(wxCommandEvent&);
   void OnCheatCheckBoxChanged(wxCommandEvent&);
   void OnForceNTSCJCheckBoxChanged(wxCommandEvent&);
   void OnThrottlerChoiceChanged(wxCommandEvent&);
@@ -41,7 +35,6 @@ private:
   wxArrayString m_cpu_engine_array_string;
 
   wxCheckBox* m_dual_core_checkbox;
-  wxCheckBox* m_idle_skip_checkbox;
   wxCheckBox* m_cheats_checkbox;
   wxCheckBox* m_force_ntscj_checkbox;
 

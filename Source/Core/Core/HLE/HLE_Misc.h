@@ -9,5 +9,6 @@ namespace HLE_Misc
 void HLEPanicAlert();
 void UnimplementedFunction();
 void HBReload();
-void HLEGeckoCodehandler();
+void GeckoCodeHandlerICacheFlush();
+void GeckoReturnTrampoline();
 }

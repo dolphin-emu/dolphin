@@ -4,6 +4,7 @@
 
 #include <list>
 #include <string>
+#include <vector>
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
@@ -27,8 +28,8 @@ Inputs:
 data      : This is an array of RGBA with 8 bits per channel. 4 bytes for each pixel.
 row_stride: Determines the amount of bytes per row of pixels.
 */
-bool TextureToPng(u8* data, int row_stride, const std::string& filename, int width, int height,
-                  bool saveAlpha)
+bool TextureToPng(const u8* data, int row_stride, const std::string& filename, int width,
+                  int height, bool saveAlpha)
 {
   bool success = false;
 
@@ -39,6 +40,10 @@ bool TextureToPng(u8* data, int row_stride, const std::string& filename, int wid
   char title_key[] = "Title";
   png_structp png_ptr = nullptr;
   png_infop info_ptr = nullptr;
+  std::vector<u8> buffer;
+
+  if (!saveAlpha)
+    buffer.resize(width * 4);
 
   // Open file for writing (binary mode)
   File::IOFile fp(filename, "wb");
@@ -89,15 +94,21 @@ bool TextureToPng(u8* data, int row_stride, const std::string& filename, int wid
   // Write image data
   for (auto y = 0; y < height; ++y)
   {
-    u8* row_ptr = (u8*)data + y * row_stride;
-    u8* ptr = row_ptr;
-    for (auto x = 0; x < row_stride / 4; ++x)
+    const u8* row_ptr = data + y * row_stride;
+    if (!saveAlpha)
     {
-      if (!saveAlpha)
-        ptr[3] = 0xff;
-      ptr += 4;
+      for (int x = 0; x < width; x++)
+      {
+        for (int i = 0; i < 3; i++)
+          buffer[4 * x + i] = row_ptr[4 * x + i];
+        buffer[4 * x + 3] = 0xff;
+      }
+      row_ptr = buffer.data();
     }
-    png_write_row(png_ptr, row_ptr);
+
+    // The old API uses u8* instead of const u8*. It doesn't write
+    // to this pointer, but to fit the API, we have to drop the const qualifier.
+    png_write_row(png_ptr, const_cast<u8*>(row_ptr));
   }
 
   // End write

@@ -8,8 +8,7 @@
 
 #include <Windows.h>
 
-#include "Common/Common.h"
-#include "Common/Intrinsics.h"
+#include "Common/CommonTypes.h"
 
 // Atomic operations are performed in a single step by the CPU. It is
 // impossible for other threads to see the operation "half-done."

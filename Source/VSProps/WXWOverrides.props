@@ -8,7 +8,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>wx/wxprec.h</PrecompiledHeaderFile>
       <ExceptionHandling>Async</ExceptionHandling>
-      <PreprocessorDefinitions>__WXMSW__;WXBUILDING;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WXBUILDING;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\;..\..\include;..\..\..\xxhash;..\..\..\zlib;..\..\..\libpng</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>

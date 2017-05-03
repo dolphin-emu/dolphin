@@ -2,14 +2,19 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoBackends/Software/TransformUnit.h"
+
 #include <algorithm>
 #include <cmath>
 
+#include "Common/Assert.h"
 #include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
+#include "Common/MsgHandler.h"
+#include "Common/Swap.h"
 
 #include "VideoBackends/Software/NativeVertexFormat.h"
-#include "VideoBackends/Software/TransformUnit.h"
 #include "VideoBackends/Software/Vec3.h"
 
 #include "VideoCommon/BPMemory.h"
@@ -106,24 +111,26 @@ void TransformNormal(const InputVertexData* src, bool nbt, OutputVertexData* dst
 static void TransformTexCoordRegular(const TexMtxInfo& texinfo, int coordNum, bool specialCase,
                                      const InputVertexData* srcVertex, OutputVertexData* dstVertex)
 {
-  const Vec3* src;
+  Vec3 src;
   switch (texinfo.sourcerow)
   {
   case XF_SRCGEOM_INROW:
-    src = &srcVertex->position;
+    src = srcVertex->position;
     break;
   case XF_SRCNORMAL_INROW:
-    src = &srcVertex->normal[0];
+    src = srcVertex->normal[0];
     break;
   case XF_SRCBINORMAL_T_INROW:
-    src = &srcVertex->normal[1];
+    src = srcVertex->normal[1];
     break;
   case XF_SRCBINORMAL_B_INROW:
-    src = &srcVertex->normal[2];
+    src = srcVertex->normal[2];
     break;
   default:
     _assert_(texinfo.sourcerow >= XF_SRCTEX0_INROW && texinfo.sourcerow <= XF_SRCTEX7_INROW);
-    src = (Vec3*)srcVertex->texCoords[texinfo.sourcerow - XF_SRCTEX0_INROW];
+    src.x = srcVertex->texCoords[texinfo.sourcerow - XF_SRCTEX0_INROW][0];
+    src.y = srcVertex->texCoords[texinfo.sourcerow - XF_SRCTEX0_INROW][1];
+    src.z = 1.0f;
     break;
   }
 
@@ -133,18 +140,18 @@ static void TransformTexCoordRegular(const TexMtxInfo& texinfo, int coordNum, bo
   if (texinfo.projection == XF_TEXPROJ_ST)
   {
     if (texinfo.inputform == XF_TEXINPUT_AB11 || specialCase)
-      MultiplyVec2Mat24(*src, mat, *dst);
+      MultiplyVec2Mat24(src, mat, *dst);
     else
-      MultiplyVec3Mat24(*src, mat, *dst);
+      MultiplyVec3Mat24(src, mat, *dst);
   }
   else  // texinfo.projection == XF_TEXPROJ_STQ
   {
     _assert_(!specialCase);
 
     if (texinfo.inputform == XF_TEXINPUT_AB11)
-      MultiplyVec2Mat34(*src, mat, *dst);
+      MultiplyVec2Mat34(src, mat, *dst);
     else
-      MultiplyVec3Mat34(*src, mat, *dst);
+      MultiplyVec3Mat34(src, mat, *dst);
   }
 
   if (xfmem.dualTexTrans.enabled)
@@ -176,6 +183,15 @@ static void TransformTexCoordRegular(const TexMtxInfo& texinfo, int coordNum, bo
 
       MultiplyVec3Mat34(tempCoord, postMat, *dst);
     }
+  }
+
+  // When q is 0, the GameCube appears to have a special case
+  // This can be seen in devkitPro's neheGX Lesson08 example for Wii
+  // Makes differences in Rogue Squadron 3 (Hoth sky) and The Last Story (shadow culling)
+  if (dst->z == 0.0f)
+  {
+    dst->x = MathUtil::Clamp(dst->x / 2.0f, -1.0f, 1.0f);
+    dst->y = MathUtil::Clamp(dst->y / 2.0f, -1.0f, 1.0f);
   }
 }
 

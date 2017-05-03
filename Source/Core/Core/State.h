@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <functional>
 #include <string>
 #include <vector>
 
@@ -33,7 +34,7 @@ bool ReadHeader(const std::string& filename, StateHeader& header);
 
 // Returns a string containing information of the savestate in the given slot
 // which can be presented to the user for identification purposes
-std::string GetInfoStringOfSlot(int slot);
+std::string GetInfoStringOfSlot(int slot, bool translate = true);
 
 // These don't happen instantly - they get scheduled as events.
 // ...But only if we're not in the main CPU thread.
@@ -61,6 +62,6 @@ void UndoLoadState();
 void Flush();
 
 // for calling back into UI code without introducing a dependency on it in core
-typedef void (*CallbackFunc)(void);
-void SetOnAfterLoadCallback(CallbackFunc callback);
+using AfterLoadCallbackFunc = std::function<void()>;
+void SetOnAfterLoadCallback(AfterLoadCallbackFunc callback);
 }

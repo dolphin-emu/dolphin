@@ -5,47 +5,52 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstring>
+#include <locale>
 #include <map>
 #include <memory>
 #include <string>
 #include <vector>
 
+#include "Common/Align.h"
 #include "Common/Assert.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
-#include "Common/MathUtil.h"
+#include "Common/StringUtil.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
-#include "DiscIO/FileMonitor.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeDirectory.h"
 
 namespace DiscIO
 {
+static u32 ComputeNameSize(const File::FSTEntry& parent_entry);
+static std::string ASCIIToUppercase(std::string str);
+static void ConvertUTF8NamesToSHIFTJIS(File::FSTEntry& parent_entry);
+
 const size_t CVolumeDirectory::MAX_NAME_LENGTH;
 const size_t CVolumeDirectory::MAX_ID_LENGTH;
 
-CVolumeDirectory::CVolumeDirectory(const std::string& _rDirectory, bool _bIsWii,
-                                   const std::string& _rApploader, const std::string& _rDOL)
-    : m_totalNameSize(0), m_dataStartAddress(-1), m_diskHeader(DISKHEADERINFO_ADDRESS),
-      m_diskHeaderInfo(std::make_unique<SDiskHeaderInfo>()), m_fst_address(0), m_dol_address(0)
+CVolumeDirectory::CVolumeDirectory(const std::string& directory, bool is_wii,
+                                   const std::string& apploader, const std::string& dol)
+    : m_data_start_address(-1), m_disk_header(DISKHEADERINFO_ADDRESS),
+      m_disk_header_info(std::make_unique<SDiskHeaderInfo>()), m_fst_address(0), m_dol_address(0)
 {
-  m_rootDirectory = ExtractDirectoryName(_rDirectory);
+  m_root_directory = ExtractDirectoryName(directory);
 
   // create the default disk header
-  SetUniqueID("AGBJ01");
+  SetGameID("AGBJ01");
   SetName("Default name");
 
-  if (_bIsWii)
+  if (is_wii)
     SetDiskTypeWii();
   else
     SetDiskTypeGC();
 
   // Don't load the DOL if we don't have an apploader
-  if (SetApploader(_rApploader))
-    SetDOL(_rDOL);
+  if (SetApploader(apploader))
+    SetDOL(dol);
 
   BuildFST();
 }
@@ -54,14 +59,14 @@ CVolumeDirectory::~CVolumeDirectory()
 {
 }
 
-bool CVolumeDirectory::IsValidDirectory(const std::string& _rDirectory)
+bool CVolumeDirectory::IsValidDirectory(const std::string& directory)
 {
-  return File::IsDirectory(ExtractDirectoryName(_rDirectory));
+  return File::IsDirectory(ExtractDirectoryName(directory));
 }
 
-bool CVolumeDirectory::Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt) const
+bool CVolumeDirectory::Read(u64 offset, u64 length, u8* buffer, bool decrypt) const
 {
-  if (!decrypt && (_Offset + _Length >= 0x400) && m_is_wii)
+  if (!decrypt && (offset + length >= 0x400) && m_is_wii)
   {
     // Fully supporting this would require re-encrypting every file that's read.
     // Only supporting the areas that IOS allows software to read could be more feasible.
@@ -75,49 +80,49 @@ bool CVolumeDirectory::Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt
     PanicAlertT("Tried to decrypt data from a non-Wii volume");
 
   // header
-  if (_Offset < DISKHEADERINFO_ADDRESS)
+  if (offset < DISKHEADERINFO_ADDRESS)
   {
-    WriteToBuffer(DISKHEADER_ADDRESS, DISKHEADERINFO_ADDRESS, m_diskHeader.data(), _Offset, _Length,
-                  _pBuffer);
+    WriteToBuffer(DISKHEADER_ADDRESS, DISKHEADERINFO_ADDRESS, m_disk_header.data(), &offset,
+                  &length, &buffer);
   }
   // header info
-  if (_Offset >= DISKHEADERINFO_ADDRESS && _Offset < APPLOADER_ADDRESS)
+  if (offset >= DISKHEADERINFO_ADDRESS && offset < APPLOADER_ADDRESS)
   {
-    WriteToBuffer(DISKHEADERINFO_ADDRESS, sizeof(m_diskHeaderInfo), (u8*)m_diskHeaderInfo.get(),
-                  _Offset, _Length, _pBuffer);
+    WriteToBuffer(DISKHEADERINFO_ADDRESS, sizeof(m_disk_header_info), (u8*)m_disk_header_info.get(),
+                  &offset, &length, &buffer);
   }
   // apploader
-  if (_Offset >= APPLOADER_ADDRESS && _Offset < APPLOADER_ADDRESS + m_apploader.size())
+  if (offset >= APPLOADER_ADDRESS && offset < APPLOADER_ADDRESS + m_apploader.size())
   {
-    WriteToBuffer(APPLOADER_ADDRESS, m_apploader.size(), m_apploader.data(), _Offset, _Length,
-                  _pBuffer);
+    WriteToBuffer(APPLOADER_ADDRESS, m_apploader.size(), m_apploader.data(), &offset, &length,
+                  &buffer);
   }
   // dol
-  if (_Offset >= m_dol_address && _Offset < m_dol_address + m_DOL.size())
+  if (offset >= m_dol_address && offset < m_dol_address + m_dol.size())
   {
-    WriteToBuffer(m_dol_address, m_DOL.size(), m_DOL.data(), _Offset, _Length, _pBuffer);
+    WriteToBuffer(m_dol_address, m_dol.size(), m_dol.data(), &offset, &length, &buffer);
   }
   // fst
-  if (_Offset >= m_fst_address && _Offset < m_dataStartAddress)
+  if (offset >= m_fst_address && offset < m_data_start_address)
   {
-    WriteToBuffer(m_fst_address, m_FSTData.size(), m_FSTData.data(), _Offset, _Length, _pBuffer);
+    WriteToBuffer(m_fst_address, m_fst_data.size(), m_fst_data.data(), &offset, &length, &buffer);
   }
 
-  if (m_virtualDisk.empty())
+  if (m_virtual_disk.empty())
     return true;
 
   // Determine which file the offset refers to
-  std::map<u64, std::string>::const_iterator fileIter = m_virtualDisk.lower_bound(_Offset);
-  if (fileIter->first > _Offset && fileIter != m_virtualDisk.begin())
+  std::map<u64, std::string>::const_iterator fileIter = m_virtual_disk.lower_bound(offset);
+  if (fileIter->first > offset && fileIter != m_virtual_disk.begin())
     --fileIter;
 
   // zero fill to start of file data
-  PadToAddress(fileIter->first, _Offset, _Length, _pBuffer);
+  PadToAddress(fileIter->first, &offset, &length, &buffer);
 
-  while (fileIter != m_virtualDisk.end() && _Length > 0)
+  while (fileIter != m_virtual_disk.end() && length > 0)
   {
-    _dbg_assert_(DVDINTERFACE, fileIter->first <= _Offset);
-    u64 fileOffset = _Offset - fileIter->first;
+    _dbg_assert_(DVDINTERFACE, fileIter->first <= offset);
+    u64 fileOffset = offset - fileIter->first;
     const std::string fileName = fileIter->second;
 
     File::IOFile file(fileName, "rb");
@@ -126,47 +131,53 @@ bool CVolumeDirectory::Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt
 
     u64 fileSize = file.GetSize();
 
-    FileMon::CheckFile(fileName, fileSize);
-
     if (fileOffset < fileSize)
     {
-      u64 fileBytes = std::min(fileSize - fileOffset, _Length);
+      u64 fileBytes = std::min(fileSize - fileOffset, length);
 
       if (!file.Seek(fileOffset, SEEK_SET))
         return false;
-      if (!file.ReadBytes(_pBuffer, fileBytes))
+      if (!file.ReadBytes(buffer, fileBytes))
         return false;
 
-      _Length -= fileBytes;
-      _pBuffer += fileBytes;
-      _Offset += fileBytes;
+      length -= fileBytes;
+      buffer += fileBytes;
+      offset += fileBytes;
     }
 
     ++fileIter;
 
-    if (fileIter != m_virtualDisk.end())
+    if (fileIter != m_virtual_disk.end())
     {
-      _dbg_assert_(DVDINTERFACE, fileIter->first >= _Offset);
-      PadToAddress(fileIter->first, _Offset, _Length, _pBuffer);
+      _dbg_assert_(DVDINTERFACE, fileIter->first >= offset);
+      PadToAddress(fileIter->first, &offset, &length, &buffer);
     }
   }
 
   return true;
 }
 
-std::string CVolumeDirectory::GetUniqueID() const
+std::string CVolumeDirectory::GetGameID() const
 {
-  return std::string(m_diskHeader.begin(), m_diskHeader.begin() + MAX_ID_LENGTH);
+  return std::string(m_disk_header.begin(), m_disk_header.begin() + MAX_ID_LENGTH);
 }
 
-void CVolumeDirectory::SetUniqueID(const std::string& id)
+void CVolumeDirectory::SetGameID(const std::string& id)
 {
-  memcpy(m_diskHeader.data(), id.c_str(), std::min(id.length(), MAX_ID_LENGTH));
+  memcpy(m_disk_header.data(), id.c_str(), std::min(id.length(), MAX_ID_LENGTH));
+}
+
+Region CVolumeDirectory::GetRegion() const
+{
+  if (m_is_wii)
+    return RegionSwitchWii(m_disk_header[3]);
+
+  return RegionSwitchGC(m_disk_header[3]);
 }
 
 Country CVolumeDirectory::GetCountry() const
 {
-  return CountrySwitch(m_diskHeader[3]);
+  return CountrySwitch(m_disk_header[3]);
 }
 
 std::string CVolumeDirectory::GetMakerID() const
@@ -203,8 +214,8 @@ std::vector<u32> CVolumeDirectory::GetBanner(int* width, int* height) const
 void CVolumeDirectory::SetName(const std::string& name)
 {
   size_t length = std::min(name.length(), MAX_NAME_LENGTH);
-  memcpy(&m_diskHeader[0x20], name.c_str(), length);
-  m_diskHeader[length + 0x20] = 0;
+  memcpy(&m_disk_header[0x20], name.c_str(), length);
+  m_disk_header[length + 0x20] = 0;
 }
 
 u64 CVolumeDirectory::GetFSTSize() const
@@ -244,71 +255,71 @@ u64 CVolumeDirectory::GetRawSize() const
   return 0;
 }
 
-std::string CVolumeDirectory::ExtractDirectoryName(const std::string& _rDirectory)
+std::string CVolumeDirectory::ExtractDirectoryName(const std::string& directory)
 {
-  std::string directoryName = _rDirectory;
+  std::string result = directory;
 
-  size_t lastSep = directoryName.find_last_of(DIR_SEP_CHR);
+  size_t last_separator = result.find_last_of(DIR_SEP_CHR);
 
-  if (lastSep != directoryName.size() - 1)
+  if (last_separator != result.size() - 1)
   {
     // TODO: This assumes that file names will always have a dot in them
     //       and directory names never will; both assumptions are often
     //       right but in general wrong.
-    size_t extensionStart = directoryName.find_last_of('.');
-    if (extensionStart != std::string::npos && extensionStart > lastSep)
+    size_t extension_start = result.find_last_of('.');
+    if (extension_start != std::string::npos && extension_start > last_separator)
     {
-      directoryName.resize(lastSep);
+      result.resize(last_separator);
     }
   }
   else
   {
-    directoryName.resize(lastSep);
+    result.resize(last_separator);
   }
 
-  return directoryName;
+  return result;
 }
 
 void CVolumeDirectory::SetDiskTypeWii()
 {
-  Write32(0x5d1c9ea3, 0x18, &m_diskHeader);
-  memset(&m_diskHeader[0x1c], 0, 4);
+  Write32(0x5d1c9ea3, 0x18, &m_disk_header);
+  memset(&m_disk_header[0x1c], 0, 4);
 
   m_is_wii = true;
-  m_addressShift = 2;
+  m_address_shift = 2;
 }
 
 void CVolumeDirectory::SetDiskTypeGC()
 {
-  memset(&m_diskHeader[0x18], 0, 4);
-  Write32(0xc2339f3d, 0x1c, &m_diskHeader);
+  memset(&m_disk_header[0x18], 0, 4);
+  Write32(0xc2339f3d, 0x1c, &m_disk_header);
 
   m_is_wii = false;
-  m_addressShift = 0;
+  m_address_shift = 0;
 }
 
-bool CVolumeDirectory::SetApploader(const std::string& _rApploader)
+bool CVolumeDirectory::SetApploader(const std::string& apploader)
 {
-  if (!_rApploader.empty())
+  if (!apploader.empty())
   {
     std::string data;
-    if (!File::ReadFileToString(_rApploader, data))
+    if (!File::ReadFileToString(apploader, data))
     {
       PanicAlertT("Apploader unable to load from file");
       return false;
     }
-    size_t apploaderSize = 0x20 + Common::swap32(*(u32*)&data.data()[0x14]) +
-                           Common::swap32(*(u32*)&data.data()[0x18]);
-    if (apploaderSize != data.size())
+    size_t apploader_size = 0x20 + Common::swap32(*(u32*)&data.data()[0x14]) +
+                            Common::swap32(*(u32*)&data.data()[0x18]);
+    if (apploader_size != data.size())
     {
       PanicAlertT("Apploader is the wrong size...is it really an apploader?");
       return false;
     }
-    m_apploader.resize(apploaderSize);
+    m_apploader.resize(apploader_size);
     std::copy(data.begin(), data.end(), m_apploader.begin());
 
     // 32byte aligned (plus 0x20 padding)
-    m_dol_address = ROUND_UP(APPLOADER_ADDRESS + m_apploader.size() + 0x20, 0x20ull);
+    m_dol_address = Common::AlignUp(APPLOADER_ADDRESS + m_apploader.size() + 0x20, 0x20ull);
     return true;
   }
   else
@@ -320,95 +331,93 @@ bool CVolumeDirectory::SetApploader(const std::string& _rApploader)
   }
 }
 
-void CVolumeDirectory::SetDOL(const std::string& rDOL)
+void CVolumeDirectory::SetDOL(const std::string& dol)
 {
-  if (!rDOL.empty())
+  if (!dol.empty())
   {
     std::string data;
-    File::ReadFileToString(rDOL, data);
-    m_DOL.resize(data.size());
-    std::copy(data.begin(), data.end(), m_DOL.begin());
+    File::ReadFileToString(dol, data);
+    m_dol.resize(data.size());
+    std::copy(data.begin(), data.end(), m_dol.begin());
 
-    Write32((u32)(m_dol_address >> m_addressShift), 0x0420, &m_diskHeader);
+    Write32((u32)(m_dol_address >> m_address_shift), 0x0420, &m_disk_header);
 
     // 32byte aligned (plus 0x20 padding)
-    m_fst_address = ROUND_UP(m_dol_address + m_DOL.size() + 0x20, 0x20ull);
+    m_fst_address = Common::AlignUp(m_dol_address + m_dol.size() + 0x20, 0x20ull);
   }
 }
 
 void CVolumeDirectory::BuildFST()
 {
-  m_FSTData.clear();
+  m_fst_data.clear();
 
-  File::FSTEntry rootEntry;
+  File::FSTEntry rootEntry = File::ScanDirectoryTree(m_root_directory, true);
 
-  // read data from physical disk to rootEntry
-  u64 totalEntries = AddDirectoryEntries(m_rootDirectory, rootEntry) + 1;
+  ConvertUTF8NamesToSHIFTJIS(rootEntry);
 
-  m_fstNameOffset = totalEntries * ENTRY_SIZE;  // offset in FST nameTable
-  m_FSTData.resize(m_fstNameOffset + m_totalNameSize);
+  u32 name_table_size = Common::AlignUp(ComputeNameSize(rootEntry), 1ull << m_address_shift);
+  u64 total_entries = rootEntry.size + 1;  // The root entry itself isn't counted in rootEntry.size
+
+  m_fst_name_offset = total_entries * ENTRY_SIZE;  // offset of name table in FST
+  m_fst_data.resize(m_fst_name_offset + name_table_size);
 
   // if FST hasn't been assigned (ie no apploader/dol setup), set to default
   if (m_fst_address == 0)
     m_fst_address = APPLOADER_ADDRESS + 0x2000;
 
   // 4 byte aligned start of data on disk
-  m_dataStartAddress = ROUND_UP(m_fst_address + m_FSTData.size(), 0x8000ull);
-  u64 curDataAddress = m_dataStartAddress;
+  m_data_start_address = Common::AlignUp(m_fst_address + m_fst_data.size(), 0x8000ull);
+  u64 current_data_address = m_data_start_address;
 
-  u32 fstOffset = 0;   // Offset within FST data
-  u32 nameOffset = 0;  // Offset within name table
-  u32 rootOffset = 0;  // Offset of root of FST
+  u32 fst_offset = 0;   // Offset within FST data
+  u32 name_offset = 0;  // Offset within name table
+  u32 root_offset = 0;  // Offset of root of FST
 
   // write root entry
-  WriteEntryData(fstOffset, DIRECTORY_ENTRY, 0, 0, totalEntries);
+  WriteEntryData(&fst_offset, DIRECTORY_ENTRY, 0, 0, total_entries, m_address_shift);
 
-  for (auto& entry : rootEntry.children)
-  {
-    WriteEntry(entry, fstOffset, nameOffset, curDataAddress, rootOffset);
-  }
+  WriteDirectory(rootEntry, &fst_offset, &name_offset, &current_data_address, root_offset);
 
-  // overflow check
-  _dbg_assert_(DVDINTERFACE, nameOffset == m_totalNameSize);
+  // overflow check, compare the aligned name offset with the aligned name table size
+  _assert_(Common::AlignUp(name_offset, 1ull << m_address_shift) == name_table_size);
 
   // write FST size and location
-  Write32((u32)(m_fst_address >> m_addressShift), 0x0424, &m_diskHeader);
-  Write32((u32)(m_FSTData.size() >> m_addressShift), 0x0428, &m_diskHeader);
-  Write32((u32)(m_FSTData.size() >> m_addressShift), 0x042c, &m_diskHeader);
+  Write32((u32)(m_fst_address >> m_address_shift), 0x0424, &m_disk_header);
+  Write32((u32)(m_fst_data.size() >> m_address_shift), 0x0428, &m_disk_header);
+  Write32((u32)(m_fst_data.size() >> m_address_shift), 0x042c, &m_disk_header);
 }
 
-void CVolumeDirectory::WriteToBuffer(u64 _SrcStartAddress, u64 _SrcLength, const u8* _Src,
-                                     u64& _Address, u64& _Length, u8*& _pBuffer) const
+void CVolumeDirectory::WriteToBuffer(u64 source_start_address, u64 source_length, const u8* source,
+                                     u64* address, u64* length, u8** buffer) const
 {
-  if (_Length == 0)
+  if (*length == 0)
     return;
 
-  _dbg_assert_(DVDINTERFACE, _Address >= _SrcStartAddress);
+  _dbg_assert_(DVDINTERFACE, *address >= source_start_address);
 
-  u64 srcOffset = _Address - _SrcStartAddress;
+  u64 source_offset = *address - source_start_address;
 
-  if (srcOffset < _SrcLength)
+  if (source_offset < source_length)
   {
-    u64 srcBytes = std::min(_SrcLength - srcOffset, _Length);
+    size_t bytes_to_read = std::min(source_length - source_offset, *length);
 
-    memcpy(_pBuffer, _Src + srcOffset, (size_t)srcBytes);
+    memcpy(*buffer, source + source_offset, bytes_to_read);
 
-    _Length -= srcBytes;
-    _pBuffer += srcBytes;
-    _Address += srcBytes;
+    *length -= bytes_to_read;
+    *buffer += bytes_to_read;
+    *address += bytes_to_read;
   }
 }
 
-void CVolumeDirectory::PadToAddress(u64 _StartAddress, u64& _Address, u64& _Length,
-                                    u8*& _pBuffer) const
+void CVolumeDirectory::PadToAddress(u64 start_address, u64* address, u64* length, u8** buffer) const
 {
-  if (_StartAddress > _Address && _Length > 0)
+  if (start_address > *address && *length > 0)
   {
-    u64 padBytes = std::min(_StartAddress - _Address, _Length);
-    memset(_pBuffer, 0, (size_t)padBytes);
-    _Length -= padBytes;
-    _pBuffer += padBytes;
-    _Address += padBytes;
+    u64 padBytes = std::min(start_address - *address, *length);
+    memset(*buffer, 0, (size_t)padBytes);
+    *length -= padBytes;
+    *buffer += padBytes;
+    *address += padBytes;
   }
 }
 
@@ -420,82 +429,99 @@ void CVolumeDirectory::Write32(u32 data, u32 offset, std::vector<u8>* const buff
   (*buffer)[offset] = (data)&0xff;
 }
 
-void CVolumeDirectory::WriteEntryData(u32& entryOffset, u8 type, u32 nameOffset, u64 dataOffset,
-                                      u64 length)
+void CVolumeDirectory::WriteEntryData(u32* entry_offset, u8 type, u32 name_offset, u64 data_offset,
+                                      u64 length, u32 address_shift)
 {
-  m_FSTData[entryOffset++] = type;
+  m_fst_data[(*entry_offset)++] = type;
 
-  m_FSTData[entryOffset++] = (nameOffset >> 16) & 0xff;
-  m_FSTData[entryOffset++] = (nameOffset >> 8) & 0xff;
-  m_FSTData[entryOffset++] = (nameOffset)&0xff;
+  m_fst_data[(*entry_offset)++] = (name_offset >> 16) & 0xff;
+  m_fst_data[(*entry_offset)++] = (name_offset >> 8) & 0xff;
+  m_fst_data[(*entry_offset)++] = (name_offset)&0xff;
 
-  Write32((u32)(dataOffset >> m_addressShift), entryOffset, &m_FSTData);
-  entryOffset += 4;
+  Write32((u32)(data_offset >> address_shift), *entry_offset, &m_fst_data);
+  *entry_offset += 4;
 
-  Write32((u32)length, entryOffset, &m_FSTData);
-  entryOffset += 4;
+  Write32((u32)length, *entry_offset, &m_fst_data);
+  *entry_offset += 4;
 }
 
-void CVolumeDirectory::WriteEntryName(u32& nameOffset, const std::string& name)
+void CVolumeDirectory::WriteEntryName(u32* name_offset, const std::string& name)
 {
-  strncpy((char*)&m_FSTData[nameOffset + m_fstNameOffset], name.c_str(), name.length() + 1);
+  strncpy((char*)&m_fst_data[*name_offset + m_fst_name_offset], name.c_str(), name.length() + 1);
 
-  nameOffset += (u32)(name.length() + 1);
+  *name_offset += (u32)(name.length() + 1);
 }
 
-void CVolumeDirectory::WriteEntry(const File::FSTEntry& entry, u32& fstOffset, u32& nameOffset,
-                                  u64& dataOffset, u32 parentEntryNum)
+void CVolumeDirectory::WriteDirectory(const File::FSTEntry& parent_entry, u32* fst_offset,
+                                      u32* name_offset, u64* data_offset, u32 parent_entry_index)
 {
-  if (entry.isDirectory)
+  std::vector<File::FSTEntry> sorted_entries = parent_entry.children;
+
+  // Sort for determinism
+  std::sort(sorted_entries.begin(), sorted_entries.end(), [](const File::FSTEntry& one,
+                                                             const File::FSTEntry& two) {
+    const std::string one_upper = ASCIIToUppercase(one.virtualName);
+    const std::string two_upper = ASCIIToUppercase(two.virtualName);
+    return one_upper == two_upper ? one.virtualName < two.virtualName : one_upper < two_upper;
+  });
+
+  for (const File::FSTEntry& entry : sorted_entries)
   {
-    u32 myOffset = fstOffset;
-    u32 myEntryNum = myOffset / ENTRY_SIZE;
-    WriteEntryData(fstOffset, DIRECTORY_ENTRY, nameOffset, parentEntryNum,
-                   myEntryNum + entry.size + 1);
-    WriteEntryName(nameOffset, entry.virtualName);
-
-    for (const auto& child : entry.children)
-    {
-      WriteEntry(child, fstOffset, nameOffset, dataOffset, myEntryNum);
-    }
-  }
-  else
-  {
-    // put entry in FST
-    WriteEntryData(fstOffset, FILE_ENTRY, nameOffset, dataOffset, entry.size);
-    WriteEntryName(nameOffset, entry.virtualName);
-
-    // write entry to virtual disk
-    _dbg_assert_(DVDINTERFACE, m_virtualDisk.find(dataOffset) == m_virtualDisk.end());
-    m_virtualDisk.emplace(dataOffset, entry.physicalName);
-
-    // 4 byte aligned
-    dataOffset = ROUND_UP(dataOffset + std::max<u64>(entry.size, 1ull), 0x8000ull);
-  }
-}
-
-static u32 ComputeNameSize(const File::FSTEntry& parentEntry)
-{
-  u32 nameSize = 0;
-  const std::vector<File::FSTEntry>& children = parentEntry.children;
-  for (auto it = children.cbegin(); it != children.cend(); ++it)
-  {
-    const File::FSTEntry& entry = *it;
     if (entry.isDirectory)
     {
-      nameSize += ComputeNameSize(entry);
+      u32 entry_index = *fst_offset / ENTRY_SIZE;
+      WriteEntryData(fst_offset, DIRECTORY_ENTRY, *name_offset, parent_entry_index,
+                     entry_index + entry.size + 1, 0);
+      WriteEntryName(name_offset, entry.virtualName);
+
+      WriteDirectory(entry, fst_offset, name_offset, data_offset, entry_index);
     }
-    nameSize += (u32)entry.virtualName.length() + 1;
+    else
+    {
+      // put entry in FST
+      WriteEntryData(fst_offset, FILE_ENTRY, *name_offset, *data_offset, entry.size,
+                     m_address_shift);
+      WriteEntryName(name_offset, entry.virtualName);
+
+      // write entry to virtual disk
+      _dbg_assert_(DVDINTERFACE, m_virtual_disk.find(*data_offset) == m_virtual_disk.end());
+      m_virtual_disk.emplace(*data_offset, entry.physicalName);
+
+      // 4 byte aligned
+      *data_offset = Common::AlignUp(*data_offset + std::max<u64>(entry.size, 1ull), 0x8000ull);
+    }
   }
-  return nameSize;
 }
 
-u64 CVolumeDirectory::AddDirectoryEntries(const std::string& _Directory,
-                                          File::FSTEntry& parentEntry)
+static u32 ComputeNameSize(const File::FSTEntry& parent_entry)
 {
-  parentEntry = File::ScanDirectoryTree(_Directory, true);
-  m_totalNameSize += ComputeNameSize(parentEntry);
-  return parentEntry.size;
+  u32 name_size = 0;
+  for (const File::FSTEntry& entry : parent_entry.children)
+  {
+    if (entry.isDirectory)
+      name_size += ComputeNameSize(entry);
+
+    name_size += (u32)entry.virtualName.length() + 1;
+  }
+  return name_size;
+}
+
+static void ConvertUTF8NamesToSHIFTJIS(File::FSTEntry& parent_entry)
+{
+  for (File::FSTEntry& entry : parent_entry.children)
+  {
+    if (entry.isDirectory)
+      ConvertUTF8NamesToSHIFTJIS(entry);
+
+    entry.virtualName = UTF8ToSHIFTJIS(entry.virtualName);
+  }
+}
+
+static std::string ASCIIToUppercase(std::string str)
+{
+  std::transform(str.begin(), str.end(), str.begin(),
+                 [](char c) { return std::toupper(c, std::locale::classic()); });
+  return str;
 }
 
 }  // namespace

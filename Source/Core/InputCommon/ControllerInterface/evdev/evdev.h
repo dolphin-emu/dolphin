@@ -15,6 +15,7 @@ namespace ciface
 namespace evdev
 {
 void Init();
+void PopulateDevices();
 void Shutdown();
 
 class evdevDevice : public Core::Device

@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <array>
 #include <jni.h>
 #include <mutex>
 
@@ -13,7 +14,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
-#include "Core/HW/SI.h"
+#include "Core/HW/SI/SI.h"
 #include "Core/HW/SystemTimers.h"
 
 #include "InputCommon/GCAdapter.h"
@@ -32,14 +33,14 @@ static jclass s_adapter_class;
 
 static bool s_detected = false;
 static int s_fd = 0;
-static u8 s_controller_type[MAX_SI_CHANNELS] = {
+static u8 s_controller_type[SerialInterface::MAX_SI_CHANNELS] = {
     ControllerTypes::CONTROLLER_NONE, ControllerTypes::CONTROLLER_NONE,
     ControllerTypes::CONTROLLER_NONE, ControllerTypes::CONTROLLER_NONE};
 static u8 s_controller_rumble[4];
 
 // Input handling
 static std::mutex s_read_mutex;
-static u8 s_controller_payload[37];
+static std::array<u8, 37> s_controller_payload;
 static std::atomic<int> s_controller_payload_size{0};
 
 // Output handling
@@ -158,7 +159,7 @@ static void Read()
       jbyte* java_data = env->GetByteArrayElements(*java_controller_payload, nullptr);
       {
         std::lock_guard<std::mutex> lk(s_read_mutex);
-        memcpy(s_controller_payload, java_data, 0x37);
+        std::copy(java_data, java_data + s_controller_payload.size(), s_controller_payload.begin());
         s_controller_payload_size.store(read_size);
       }
       env->ReleaseByteArrayElements(*java_controller_payload, java_data, 0);
@@ -194,7 +195,7 @@ void Init()
   if (s_fd)
     return;
 
-  if (Core::GetState() != Core::CORE_UNINITIALIZED)
+  if (Core::GetState() != Core::State::Uninitialized)
   {
     if ((CoreTiming::GetTicks() - s_last_init) < SystemTimers::GetTicksPerSecond())
       return;
@@ -233,7 +234,7 @@ static void Reset()
   if (s_read_adapter_thread_running.TestAndClear())
     s_read_adapter_thread.join();
 
-  for (int i = 0; i < MAX_SI_CHANNELS; i++)
+  for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; i++)
     s_controller_type[i] = ControllerTypes::CONTROLLER_NONE;
 
   s_detected = false;
@@ -268,17 +269,16 @@ GCPadStatus Input(int chan)
     return {};
 
   int payload_size = 0;
-  u8 controller_payload_copy[37];
+  std::array<u8, 37> controller_payload_copy;
 
   {
     std::lock_guard<std::mutex> lk(s_read_mutex);
-    std::copy(std::begin(s_controller_payload), std::end(s_controller_payload),
-              std::begin(controller_payload_copy));
+    controller_payload_copy = s_controller_payload;
     payload_size = s_controller_payload_size.load();
   }
 
   GCPadStatus pad = {};
-  if (payload_size != sizeof(controller_payload_copy))
+  if (payload_size != controller_payload_copy.size())
   {
     ERROR_LOG(SERIALINTERFACE, "error reading payload (size: %d, type: %02x)", payload_size,
               controller_payload_copy[0]);
@@ -385,10 +385,11 @@ bool DeviceConnected(int chan)
 
 bool UseAdapter()
 {
-  return SConfig::GetInstance().m_SIDevice[0] == SIDEVICE_WIIU_ADAPTER ||
-         SConfig::GetInstance().m_SIDevice[1] == SIDEVICE_WIIU_ADAPTER ||
-         SConfig::GetInstance().m_SIDevice[2] == SIDEVICE_WIIU_ADAPTER ||
-         SConfig::GetInstance().m_SIDevice[3] == SIDEVICE_WIIU_ADAPTER;
+  const auto& si_devices = SConfig::GetInstance().m_SIDevice;
+
+  return std::any_of(std::begin(si_devices), std::end(si_devices), [](const auto device_type) {
+    return device_type == SerialInterface::SIDEVICE_WIIU_ADAPTER;
+  });
 }
 
 void ResetRumble()

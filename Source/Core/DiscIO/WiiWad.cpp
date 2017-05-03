@@ -6,16 +6,44 @@
 #include <memory>
 #include <string>
 
+#include "Common/Align.h"
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
-#include "Common/MathUtil.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/WiiWad.h"
 
 namespace DiscIO
 {
+namespace
+{
+std::vector<u8> CreateWADEntry(IBlobReader& reader, u32 size, u64 offset)
+{
+  if (size == 0)
+    return {};
+
+  std::vector<u8> buffer(size);
+
+  if (!reader.Read(offset, size, buffer.data()))
+  {
+    ERROR_LOG(DISCIO, "WiiWAD: Could not read from file");
+    PanicAlertT("WiiWAD: Could not read from file");
+  }
+
+  return buffer;
+}
+
+bool IsWiiWAD(const CBlobBigEndianReader& reader)
+{
+  u32 header_size = 0;
+  u32 header_type = 0;
+  reader.ReadSwapped(0x0, &header_size);
+  reader.ReadSwapped(0x4, &header_type);
+  return header_size == 0x20 && (header_type == 0x49730000 || header_type == 0x69620000);
+}
+}  // Anonymous namespace
+
 WiiWAD::WiiWAD(const std::string& name)
 {
   std::unique_ptr<IBlobReader> reader(CreateBlobReader(name));
@@ -30,22 +58,6 @@ WiiWAD::WiiWAD(const std::string& name)
 
 WiiWAD::~WiiWAD()
 {
-}
-
-std::vector<u8> WiiWAD::CreateWADEntry(IBlobReader& reader, u32 size, u64 offset)
-{
-  if (size == 0)
-    return {};
-
-  std::vector<u8> buffer(size);
-
-  if (!reader.Read(offset, size, buffer.data()))
-  {
-    ERROR_LOG(DISCIO, "WiiWAD: Could not read from file");
-    PanicAlertT("WiiWAD: Could not read from file");
-  }
-
-  return buffer;
 }
 
 bool WiiWAD::ParseWAD(IBlobReader& reader)
@@ -75,26 +87,17 @@ bool WiiWAD::ParseWAD(IBlobReader& reader)
 
   u32 offset = 0x40;
   m_certificate_chain = CreateWADEntry(reader, certificate_chain_size, offset);
-  offset += ROUND_UP(certificate_chain_size, 0x40);
-  m_ticket = CreateWADEntry(reader, ticket_size, offset);
-  offset += ROUND_UP(ticket_size, 0x40);
-  m_tmd = CreateWADEntry(reader, tmd_size, offset);
-  offset += ROUND_UP(tmd_size, 0x40);
+  offset += Common::AlignUp(certificate_chain_size, 0x40);
+  m_ticket.SetBytes(CreateWADEntry(reader, ticket_size, offset));
+  offset += Common::AlignUp(ticket_size, 0x40);
+  m_tmd.SetBytes(CreateWADEntry(reader, tmd_size, offset));
+  offset += Common::AlignUp(tmd_size, 0x40);
   m_data_app = CreateWADEntry(reader, data_app_size, offset);
-  offset += ROUND_UP(data_app_size, 0x40);
+  offset += Common::AlignUp(data_app_size, 0x40);
   m_footer = CreateWADEntry(reader, footer_size, offset);
-  offset += ROUND_UP(footer_size, 0x40);
+  offset += Common::AlignUp(footer_size, 0x40);
 
   return true;
 }
 
-bool WiiWAD::IsWiiWAD(const CBlobBigEndianReader& reader)
-{
-  u32 header_size = 0;
-  u32 header_type = 0;
-  reader.ReadSwapped(0x0, &header_size);
-  reader.ReadSwapped(0x4, &header_type);
-  return header_size == 0x20 && (header_type == 0x49730000 || header_type == 0x69620000);
-}
-
-}  // namespace end
+}  // namespace DiscIO

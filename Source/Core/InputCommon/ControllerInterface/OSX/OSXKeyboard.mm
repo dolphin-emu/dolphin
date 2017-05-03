@@ -17,7 +17,7 @@ namespace OSX
 Keyboard::Keyboard(IOHIDDeviceRef device, std::string name, void* window)
     : m_device(device), m_device_name(name)
 {
-  // This class should only recieve Keyboard or Keypad devices
+  // This class should only receive Keyboard or Keypad devices
   // Now, filter on just the buttons we can handle sanely
   NSDictionary* matchingElements = @{
     @kIOHIDElementTypeKey : @(kIOHIDElementTypeInput_Button),
@@ -262,6 +262,11 @@ std::string Keyboard::Button::GetName() const
 std::string Keyboard::Key::GetName() const
 {
   return m_name;
+}
+
+bool Keyboard::IsSameDevice(const IOHIDDeviceRef other_device) const
+{
+  return m_device == other_device;
 }
 }
 }

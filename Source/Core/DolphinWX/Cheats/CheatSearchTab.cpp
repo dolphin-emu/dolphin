@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "DolphinWX/Cheats/CheatSearchTab.h"
+
 #include <algorithm>
 #include <array>
 #include <cstring>
@@ -17,20 +19,17 @@
 #include <wx/textctrl.h>
 #include <wx/timer.h>
 
-#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
-#include "Core/ActionReplay.h"
+#include "Common/Swap.h"
+
 #include "Core/Core.h"
 #include "Core/HW/Memmap.h"
-#include "DolphinWX/Cheats/CheatSearchTab.h"
+
 #include "DolphinWX/Cheats/CreateCodeDialog.h"
 #include "DolphinWX/WxUtils.h"
 
-namespace
-{
-const unsigned int MAX_CHEAT_SEARCH_RESULTS_DISPLAY = 1024;
-}
+static constexpr unsigned int MAX_CHEAT_SEARCH_RESULTS_DISPLAY = 1024;
 
 CheatSearchTab::CheatSearchTab(wxWindow* const parent) : wxPanel(parent)
 {
@@ -39,12 +38,24 @@ CheatSearchTab::CheatSearchTab(wxWindow* const parent) : wxPanel(parent)
 
   // first scan button
   m_btn_init_scan = new wxButton(this, wxID_ANY, _("New Scan"));
+  m_btn_init_scan->SetToolTip(_("Perform a full index of the game's RAM at the current Data Size. "
+                                "Required before any Searching can be performed."));
   m_btn_init_scan->Bind(wxEVT_BUTTON, &CheatSearchTab::OnNewScanClicked, this);
+  m_btn_init_scan->Disable();
 
   // next scan button
   m_btn_next_scan = new wxButton(this, wxID_ANY, _("Next Scan"));
+  m_btn_next_scan->SetToolTip(_("Eliminate items from the current scan results that do not match "
+                                "the current Search settings."));
   m_btn_next_scan->Bind(wxEVT_BUTTON, &CheatSearchTab::OnNextScanClicked, this);
   m_btn_next_scan->Disable();
+
+  m_label_scan_disabled = new wxStaticText(this, wxID_ANY, _("No game is running."));
+
+  // create AR code button
+  m_btn_create_code = new wxButton(this, wxID_ANY, _("Create AR Code"));
+  m_btn_create_code->Bind(wxEVT_BUTTON, &CheatSearchTab::OnCreateARCodeClicked, this);
+  m_btn_create_code->Disable();
 
   // data sizes radiobox
   std::array<wxString, 3> data_size_names = {{_("8-bit"), _("16-bit"), _("32-bit")}};
@@ -54,30 +65,41 @@ CheatSearchTab::CheatSearchTab(wxWindow* const parent) : wxPanel(parent)
   // ListView for search results
   m_lview_search_results = new wxListView(this, wxID_ANY, wxDefaultPosition, wxDefaultSize,
                                           wxLC_REPORT | wxLC_SINGLE_SEL);
-  ResetListViewColumns();
+  m_lview_search_results->AppendColumn(_("Address"));
+  m_lview_search_results->AppendColumn(_("Value"));
+  // i18n: Float means floating point number
+  m_lview_search_results->AppendColumn(_("Value (float)"));
+  // i18n: Double means double-precision floating point number
+  m_lview_search_results->AppendColumn(_("Value (double)"));
+  m_lview_search_results->Bind(wxEVT_LIST_ITEM_ACTIVATED, &CheatSearchTab::OnListViewItemActivated,
+                               this);
+  m_lview_search_results->Bind(wxEVT_LIST_ITEM_SELECTED, &CheatSearchTab::OnListViewItemSelected,
+                               this);
+  m_lview_search_results->Bind(wxEVT_LIST_ITEM_DESELECTED, &CheatSearchTab::OnListViewItemSelected,
+                               this);
 
   // Result count
   m_label_results_count = new wxStaticText(this, wxID_ANY, _("Count:"));
 
-  // create AR code button
-  wxButton* const button_cheat_search_copy_address =
-      new wxButton(this, wxID_ANY, _("Create AR Code"));
-  button_cheat_search_copy_address->Bind(wxEVT_BUTTON, &CheatSearchTab::OnCreateARCodeClicked,
-                                         this);
+  const int space5 = FromDIP(5);
 
   // results groupbox
   wxStaticBoxSizer* const sizer_cheat_search_results =
       new wxStaticBoxSizer(wxVERTICAL, this, _("Results"));
-  sizer_cheat_search_results->Add(m_label_results_count, 0, wxALIGN_LEFT | wxALL, 5);
-  sizer_cheat_search_results->Add(m_lview_search_results, 1, wxEXPAND | wxALL, 5);
-  sizer_cheat_search_results->Add(button_cheat_search_copy_address, 0,
-                                  wxLEFT | wxRIGHT | wxBOTTOM | wxEXPAND, 5);
+  sizer_cheat_search_results->AddSpacer(space5);
+  sizer_cheat_search_results->Add(m_label_results_count, 0, wxLEFT | wxRIGHT, space5);
+  sizer_cheat_search_results->AddSpacer(space5);
+  sizer_cheat_search_results->Add(m_lview_search_results, 1, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  sizer_cheat_search_results->AddSpacer(space5);
+  sizer_cheat_search_results->Add(m_btn_create_code, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  sizer_cheat_search_results->AddSpacer(space5);
 
   // search value textbox
-  m_textctrl_value_x = new wxTextCtrl(this, wxID_ANY, "0x0", wxDefaultPosition, wxSize(96, -1));
-
-  wxBoxSizer* const sizer_cheat_filter_text = new wxBoxSizer(wxHORIZONTAL);
-  sizer_cheat_filter_text->Add(m_textctrl_value_x, 1, wxALIGN_CENTER_VERTICAL, 5);
+  m_textctrl_value_x = new wxTextCtrl(this, wxID_ANY, "0x0");
+  m_textctrl_value_x->SetMinSize(WxUtils::GetTextWidgetMinSize(m_textctrl_value_x, "0x00000000  "));
+  m_textctrl_value_x->SetToolTip(
+      _("Value to match against. Can be Hex (\"0x\"), Octal (\"0\") or Decimal. "
+        "Leave blank to filter each result against its own previous value."));
 
   // Filter types in the compare dropdown
   // TODO: Implement between search
@@ -93,31 +115,44 @@ CheatSearchTab::CheatSearchTab(wxWindow* const parent) : wxPanel(parent)
 
   wxStaticBoxSizer* const sizer_cheat_search_filter =
       new wxStaticBoxSizer(wxVERTICAL, this, _("Search (clear to use previous value)"));
-  sizer_cheat_search_filter->Add(sizer_cheat_filter_text, 0, wxALL | wxEXPAND, 5);
-  sizer_cheat_search_filter->Add(m_search_type, 0, wxALL, 5);
-
-  // left sizer
-  wxBoxSizer* const sizer_left = new wxBoxSizer(wxVERTICAL);
-  sizer_left->Add(sizer_cheat_search_results, 1, wxEXPAND, 5);
+  sizer_cheat_search_filter->AddSpacer(space5);
+  sizer_cheat_search_filter->Add(m_textctrl_value_x, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  sizer_cheat_search_filter->AddSpacer(space5);
+  sizer_cheat_search_filter->Add(m_search_type, 0, wxLEFT | wxRIGHT, space5);
+  sizer_cheat_search_filter->AddSpacer(space5);
 
   // button sizer
   wxBoxSizer* boxButtons = new wxBoxSizer(wxHORIZONTAL);
-  boxButtons->Add(m_btn_init_scan, 1, wxRIGHT, 5);
-  boxButtons->Add(m_btn_next_scan, 1);
+  boxButtons->Add(m_btn_init_scan, 1);
+  boxButtons->Add(m_btn_next_scan, 1, wxLEFT, space5);
 
   // right sizer
   wxBoxSizer* const sizer_right = new wxBoxSizer(wxVERTICAL);
-  sizer_right->Add(m_data_sizes, 0, wxEXPAND | wxBOTTOM, 5);
-  sizer_right->Add(sizer_cheat_search_filter, 0, wxEXPAND | wxBOTTOM, 5);
+  sizer_right->Add(m_data_sizes, 0, wxEXPAND);
+  sizer_right->Add(sizer_cheat_search_filter, 0, wxEXPAND | wxTOP, space5);
   sizer_right->AddStretchSpacer(1);
-  sizer_right->Add(boxButtons, 0, wxTOP | wxEXPAND, 5);
+  sizer_right->Add(m_label_scan_disabled, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP, space5);
+  sizer_right->Add(boxButtons, 0, wxEXPAND | wxTOP, space5);
 
   // main sizer
   wxBoxSizer* const sizer_main = new wxBoxSizer(wxHORIZONTAL);
-  sizer_main->Add(sizer_left, 1, wxEXPAND | wxALL, 5);
-  sizer_main->Add(sizer_right, 0, wxEXPAND | wxALL, 5);
+  sizer_main->AddSpacer(space5);
+  sizer_main->Add(sizer_cheat_search_results, 1, wxEXPAND | wxTOP | wxBOTTOM, space5);
+  sizer_main->AddSpacer(space5);
+  sizer_main->Add(sizer_right, 0, wxEXPAND | wxTOP | wxBOTTOM, space5);
+  sizer_main->AddSpacer(space5);
 
   SetSizerAndFit(sizer_main);
+}
+
+void CheatSearchTab::UpdateGUI()
+{
+  bool core_running = Core::IsRunning();
+  m_btn_init_scan->Enable(core_running);
+  m_btn_next_scan->Enable(core_running && m_scan_is_initialized);
+  m_label_scan_disabled->Show(!core_running);
+
+  Layout();  // Label shown/hidden may require layout adjustment
 }
 
 void CheatSearchTab::OnNewScanClicked(wxCommandEvent& WXUNUSED(event))
@@ -136,6 +171,7 @@ void CheatSearchTab::OnNewScanClicked(wxCommandEvent& WXUNUSED(event))
   m_search_results.reserve(Memory::RAM_SIZE / m_search_type_size);
 
   // Enable the "Next Scan" button.
+  m_scan_is_initialized = true;
   m_btn_next_scan->Enable();
 
   CheatSearchResult r;
@@ -183,15 +219,30 @@ void CheatSearchTab::OnCreateARCodeClicked(wxCommandEvent&)
   arcode_dlg.ShowModal();
 }
 
+void CheatSearchTab::OnListViewItemActivated(wxListEvent&)
+{
+  if (!m_btn_create_code->IsEnabled())
+    return;
+
+  wxCommandEvent fake(wxEVT_BUTTON, m_btn_create_code->GetId());
+  m_btn_create_code->GetEventHandler()->ProcessEvent(fake);
+}
+
+void CheatSearchTab::OnListViewItemSelected(wxListEvent&)
+{
+  // Toggle "Create AR Code" Button
+  m_btn_create_code->Enable(m_lview_search_results->GetSelectedItemCount() > 0);
+}
+
 void CheatSearchTab::OnTimerUpdate(wxTimerEvent&)
 {
-  if (Core::GetState() != Core::CORE_RUN)
+  if (Core::GetState() != Core::State::Running)
     return;
 
   // Only update the currently visible list rows.
   long first = m_lview_search_results->GetTopItem();
-  long last =
-      std::min(m_lview_search_results->GetItemCount(), m_lview_search_results->GetCountPerPage());
+  long last = std::min<long>(m_lview_search_results->GetItemCount(),
+                             first + m_lview_search_results->GetCountPerPage());
 
   m_lview_search_results->Freeze();
 
@@ -207,8 +258,8 @@ void CheatSearchTab::OnTimerUpdate(wxTimerEvent&)
 void CheatSearchTab::UpdateCheatSearchResultsList()
 {
   m_update_timer.Stop();
-  m_lview_search_results->ClearAll();
-  ResetListViewColumns();
+  m_lview_search_results->DeleteAllItems();
+  m_btn_create_code->Disable();
 
   wxString count_label = wxString::Format(_("Count: %lu"), (unsigned long)m_search_results.size());
   if (m_search_results.size() > MAX_CHEAT_SEARCH_RESULTS_DISPLAY)
@@ -310,14 +361,6 @@ void CheatSearchTab::FilterCheatSearchResults(u32 value, bool prev)
   }
 
   m_search_results.swap(filtered_results);
-}
-
-void CheatSearchTab::ResetListViewColumns()
-{
-  m_lview_search_results->AppendColumn(_("Address"));
-  m_lview_search_results->AppendColumn(_("Value"));
-  m_lview_search_results->AppendColumn(_("Value (float)"));
-  m_lview_search_results->AppendColumn(_("Value (double)"));
 }
 
 bool CheatSearchTab::ParseUserEnteredValue(u32* out) const

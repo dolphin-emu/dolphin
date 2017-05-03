@@ -24,7 +24,7 @@
 #include "wx/osx/uma.h"
 
 #if wxOSX_USE_COCOA_OR_CARBON
-    #include <Appkit/Appkit.h>
+    #include <AppKit/AppKit.h>
 #endif
 
 // FYI a link to help with implementing: http://www.cocoadev.com/index.pl?LittleYellowBox

@@ -46,7 +46,7 @@ namespace ciface
 namespace XInput2
 {
 // This function will add zero or more KeyboardMouse objects to devices.
-void Init(void* const hwnd)
+void PopulateDevices(void* const hwnd)
 {
   Display* dpy = XOpenDisplay(nullptr);
 
@@ -216,12 +216,10 @@ void KeyboardMouse::UpdateInput()
 {
   XFlush(m_display);
 
-  // Get the absolute position of the mouse pointer
-  UpdateCursor();
-
   // for the axis controls
   float delta_x = 0.0f, delta_y = 0.0f;
   double delta_delta;
+  bool mouse_moved = false;
 
   // Iterate through the event queue - update the axis controls, mouse
   // button controls, and keyboard controls.
@@ -256,6 +254,8 @@ void KeyboardMouse::UpdateInput()
       m_state.keyboard[dev_event->detail / 8] &= ~(1 << (dev_event->detail % 8));
       break;
     case XI_RawMotion:
+      mouse_moved = true;
+
       // always safe because there is always at least one byte in
       // raw_event->valuators.mask, and if a bit is set in the mask,
       // then the value in raw_values is also available.
@@ -286,6 +286,10 @@ void KeyboardMouse::UpdateInput()
   m_state.axis.y *= MOUSE_AXIS_SMOOTHING;
   m_state.axis.y += delta_y;
   m_state.axis.y /= MOUSE_AXIS_SMOOTHING + 1.0f;
+
+  // Get the absolute position of the mouse pointer
+  if (mouse_moved)
+    UpdateCursor();
 }
 
 std::string KeyboardMouse::GetName() const

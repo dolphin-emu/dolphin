@@ -10,10 +10,10 @@ import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.widget.Toolbar;
 
 import org.dolphinemu.dolphinemu.BuildConfig;
 import org.dolphinemu.dolphinemu.R;
@@ -41,7 +41,7 @@ public class AddDirectoryActivity extends AppCompatActivity implements FileAdapt
 		setContentView(R.layout.activity_add_directory);
 
 		mToolbar = (Toolbar) findViewById(R.id.toolbar_folder_list);
-		setActionBar(mToolbar);
+		setSupportActionBar(mToolbar);
 
 		RecyclerView recyclerView = (RecyclerView) findViewById(R.id.list_files);
 

@@ -2,13 +2,15 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoBackends/D3D/FramebufferManager.h"
+
 #include <memory>
 
+#include "Common/CommonTypes.h"
 #include "Core/HW/Memmap.h"
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DState.h"
 #include "VideoBackends/D3D/D3DUtil.h"
-#include "VideoBackends/D3D/FramebufferManager.h"
 #include "VideoBackends/D3D/GeometryShaderCache.h"
 #include "VideoBackends/D3D/PixelShaderCache.h"
 #include "VideoBackends/D3D/Render.h"
@@ -96,18 +98,10 @@ D3DTexture2D*& FramebufferManager::GetResolvedEFBDepthTexture()
   }
 }
 
-FramebufferManager::FramebufferManager()
+FramebufferManager::FramebufferManager(int target_width, int target_height)
 {
-  m_target_width = Renderer::GetTargetWidth();
-  m_target_height = Renderer::GetTargetHeight();
-  if (m_target_height < 1)
-  {
-    m_target_height = 1;
-  }
-  if (m_target_width < 1)
-  {
-    m_target_width = 1;
-  }
+  m_target_width = static_cast<unsigned int>(std::max(target_width, 1));
+  m_target_height = static_cast<unsigned int>(std::max(target_height, 1));
   DXGI_SAMPLE_DESC sample_desc;
   sample_desc.Count = g_ActiveConfig.iMultisamples;
   sample_desc.Quality = 0;
@@ -275,8 +269,10 @@ void FramebufferManager::CopyToRealXFB(u32 xfbAddr, u32 fbStride, u32 fbHeight,
                                        const EFBRectangle& sourceRc, float Gamma)
 {
   u8* dst = Memory::GetPointer(xfbAddr);
-  // below div2 due to dx using pixel width
-  s_xfbEncoder.Encode(dst, fbStride / 2, fbHeight, sourceRc, Gamma);
+
+  // The destination stride can differ from the copy region width, in which case the pixels
+  // outside the copy region should not be written to.
+  s_xfbEncoder.Encode(dst, static_cast<u32>(sourceRc.GetWidth()), fbHeight, sourceRc, Gamma);
 }
 
 std::unique_ptr<XFBSourceBase> FramebufferManager::CreateXFBSource(unsigned int target_width,
@@ -290,10 +286,9 @@ std::unique_ptr<XFBSourceBase> FramebufferManager::CreateXFBSource(unsigned int 
       layers);
 }
 
-void FramebufferManager::GetTargetSize(unsigned int* width, unsigned int* height)
+std::pair<u32, u32> FramebufferManager::GetTargetSize() const
 {
-  *width = m_target_width;
-  *height = m_target_height;
+  return std::make_pair(m_target_width, m_target_height);
 }
 
 void XFBSource::DecodeToTexture(u32 xfbAddr, u32 fbWidth, u32 fbHeight)
@@ -315,8 +310,8 @@ void XFBSource::CopyEFB(float Gamma)
   D3D::SetPointCopySampler();
 
   D3D::drawShadedTexQuad(
-      FramebufferManager::GetEFBColorTexture()->GetSRV(), &rect, Renderer::GetTargetWidth(),
-      Renderer::GetTargetHeight(), PixelShaderCache::GetColorCopyProgram(true),
+      FramebufferManager::GetEFBColorTexture()->GetSRV(), &rect, g_renderer->GetTargetWidth(),
+      g_renderer->GetTargetHeight(), PixelShaderCache::GetColorCopyProgram(true),
       VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(),
       GeometryShaderCache::GetCopyGeometryShader(), Gamma);
 

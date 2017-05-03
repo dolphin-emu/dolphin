@@ -21,6 +21,10 @@
 #include "Core/HW/DSPHLE/UCodes/AXStructs.h"
 #include "Core/HW/Memmap.h"
 
+namespace DSP
+{
+namespace HLE
+{
 #ifdef AX_GC
 #define PB_TYPE AXPB
 #define MAX_SAMPLES_PER_FRAME 32
@@ -37,7 +41,8 @@ namespace
 #define HILO_TO_32(name) ((name##_hi << 16) | name##_lo)
 
 // Used to pass a large amount of buffers to the mixing function.
-union AXBuffers {
+union AXBuffers
+{
   struct
   {
     int* left;
@@ -75,18 +80,63 @@ union AXBuffers {
 #endif
 };
 
-// Read a PB from MRAM/ARAM
-void ReadPB(u32 addr, PB_TYPE& pb)
+// Determines if this version of the UCode has a PBLowPassFilter in its AXPB layout.
+bool HasLpf(u32 crc)
 {
-  u16* dst = (u16*)&pb;
-  Memory::CopyFromEmuSwapped<u16>(dst, addr, sizeof(pb));
+  switch (crc)
+  {
+  case 0x4E8A8B21:
+    return false;
+  default:
+    return true;
+  }
+}
+
+// Read a PB from MRAM/ARAM
+void ReadPB(u32 addr, PB_TYPE& pb, u32 crc)
+{
+  if (HasLpf(crc))
+  {
+    u16* dst = (u16*)&pb;
+    Memory::CopyFromEmuSwapped<u16>(dst, addr, sizeof(pb));
+  }
+  else
+  {
+    // The below is a terrible hack in order to support two different AXPB layouts.
+    // We skip lpf in this layout.
+
+    char* dst = (char*)&pb;
+
+    constexpr size_t lpf_off = offsetof(AXPB, lpf);
+    constexpr size_t lc_off = offsetof(AXPB, loop_counter);
+
+    Memory::CopyFromEmuSwapped<u16>((u16*)dst, addr, lpf_off);
+    memset(dst + lpf_off, 0, lc_off - lpf_off);
+    Memory::CopyFromEmuSwapped<u16>((u16*)(dst + lc_off), addr + lpf_off, sizeof(pb) - lc_off);
+  }
 }
 
 // Write a PB back to MRAM/ARAM
-void WritePB(u32 addr, const PB_TYPE& pb)
+void WritePB(u32 addr, const PB_TYPE& pb, u32 crc)
 {
-  const u16* src = (const u16*)&pb;
-  Memory::CopyToEmuSwapped<u16>(addr, src, sizeof(pb));
+  if (HasLpf(crc))
+  {
+    const u16* src = (const u16*)&pb;
+    Memory::CopyToEmuSwapped<u16>(addr, src, sizeof(pb));
+  }
+  else
+  {
+    // The below is a terrible hack in order to support two different AXPB layouts.
+    // We skip lpf in this layout.
+
+    const char* src = (const char*)&pb;
+
+    constexpr size_t lpf_off = offsetof(AXPB, lpf);
+    constexpr size_t lc_off = offsetof(AXPB, loop_counter);
+
+    Memory::CopyToEmuSwapped<u16>(addr, (const u16*)src, lpf_off);
+    Memory::CopyToEmuSwapped<u16>(addr + lpf_off, (const u16*)(src + lc_off), sizeof(pb) - lc_off);
+  }
 }
 
 #if 0
@@ -229,6 +279,13 @@ u16 AcceleratorGetSample()
         acc_pb->adpcm.yn1 = acc_pb->adpcm_loop_info.yn1;
         acc_pb->adpcm.yn2 = acc_pb->adpcm_loop_info.yn2;
       }
+#ifdef AX_GC
+      else
+      {
+        // If we're streaming, increment the loop counter.
+        acc_pb->loop_counter++;
+      }
+#endif
     }
     else
     {
@@ -573,3 +630,5 @@ void ProcessVoice(PB_TYPE& pb, const AXBuffers& buffers, u16 count, AXMixControl
 }
 
 }  // namespace
+}  // namespace HLE
+}  // namespace DSP

@@ -16,6 +16,7 @@ namespace DiscIO
 enum class BlobType;
 enum class Country;
 enum class Language;
+enum class Region;
 enum class Platform;
 class IVolume;
 }
@@ -34,7 +35,7 @@ public:
   QString GetFileFolder() const { return m_folder; }
   qint64 GetFileSize() const { return m_size; }
   // The rest will not.
-  QString GetUniqueID() const { return m_unique_id; }
+  QString GetGameID() const { return m_game_id; }
   QString GetMakerID() const { return m_maker_id; }
   QString GetMaker() const { return m_maker; }
   u16 GetRevision() const { return m_revision; }
@@ -47,6 +48,7 @@ public:
   QString GetApploaderDate() const { return m_apploader_date; }
   DiscIO::Platform GetPlatformID() const { return m_platform; }
   QString GetPlatform() const;
+  DiscIO::Region GetRegion() const { return m_region; }
   DiscIO::Country GetCountryID() const { return m_country; }
   QString GetCountry() const;
   DiscIO::BlobType GetBlobType() const { return m_blob_type; }
@@ -84,7 +86,7 @@ private:
   QDateTime m_last_modified;
   qint64 m_size = 0;
 
-  QString m_unique_id;
+  QString m_game_id;
   QString m_maker;
   QString m_maker_id;
   u16 m_revision = 0;
@@ -96,6 +98,7 @@ private:
   QMap<DiscIO::Language, QString> m_descriptions;
   QString m_company;
   u8 m_disc_number = 0;
+  DiscIO::Region m_region;
   DiscIO::Platform m_platform;
   DiscIO::Country m_country;
   DiscIO::BlobType m_blob_type;

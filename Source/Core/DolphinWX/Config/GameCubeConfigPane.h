@@ -12,6 +12,11 @@ class wxCheckBox;
 class wxChoice;
 class wxString;
 
+namespace ExpansionInterface
+{
+enum TEXIDevices : int;
+}
+
 class GameCubeConfigPane final : public wxPanel
 {
 public:
@@ -20,7 +25,7 @@ public:
 private:
   void InitializeGUI();
   void LoadGUIValues();
-  void RefreshGUI();
+  void BindEvents();
 
   void OnSystemLanguageChange(wxCommandEvent&);
   void OnOverrideLanguageCheckBoxChanged(wxCommandEvent&);
@@ -32,7 +37,8 @@ private:
   void OnSlotBButtonClick(wxCommandEvent&);
 
   void ChooseEXIDevice(const wxString& device_name, int device_id);
-  void ChooseSlotPath(bool is_slot_a, TEXIDevices device_type);
+  void HandleEXISlotChange(int slot, const wxString& title);
+  void ChooseSlotPath(bool is_slot_a, ExpansionInterface::TEXIDevices device_type);
 
   wxArrayString m_ipl_language_strings;
 

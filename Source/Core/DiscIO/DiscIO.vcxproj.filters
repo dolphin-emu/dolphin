@@ -33,6 +33,9 @@
     <ClCompile Include="NANDContentLoader.cpp">
       <Filter>NAND</Filter>
     </ClCompile>
+    <ClCompile Include="NANDImporter.cpp">
+      <Filter>NAND</Filter>
+    </ClCompile>
     <ClCompile Include="Blob.cpp">
       <Filter>Volume\Blob</Filter>
     </ClCompile>
@@ -50,9 +53,6 @@
     </ClCompile>
     <ClCompile Include="WbfsBlob.cpp">
       <Filter>Volume\Blob</Filter>
-    </ClCompile>
-    <ClCompile Include="FileMonitor.cpp">
-      <Filter>Volume</Filter>
     </ClCompile>
     <ClCompile Include="VolumeCreator.cpp">
       <Filter>Volume</Filter>
@@ -75,6 +75,9 @@
     <ClCompile Include="Volume.cpp">
       <Filter>Volume</Filter>
     </ClCompile>
+    <ClCompile Include="TGCBlob.cpp">
+      <Filter>Volume\Blob</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DiscScrubber.h">
@@ -90,6 +93,9 @@
       <Filter>NAND</Filter>
     </ClInclude>
     <ClInclude Include="NANDContentLoader.h">
+      <Filter>NAND</Filter>
+    </ClInclude>
+    <ClInclude Include="NANDImporter.h">
       <Filter>NAND</Filter>
     </ClInclude>
     <ClInclude Include="Blob.h">
@@ -109,9 +115,6 @@
     </ClInclude>
     <ClInclude Include="WbfsBlob.h">
       <Filter>Volume\Blob</Filter>
-    </ClInclude>
-    <ClInclude Include="FileMonitor.h">
-      <Filter>Volume</Filter>
     </ClInclude>
     <ClInclude Include="Volume.h">
       <Filter>Volume</Filter>
@@ -133,6 +136,9 @@
     </ClInclude>
     <ClInclude Include="Enums.h">
       <Filter>Volume</Filter>
+    </ClInclude>
+    <ClInclude Include="TGCBlob.h">
+      <Filter>Volume\Blob</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

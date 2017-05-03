@@ -23,14 +23,11 @@ void InitJoystick(IDirectInput8* const idi8, HWND hwnd)
   idi8->EnumDevices(DI8DEVCLASS_GAMECTRL, DIEnumDevicesCallback, (LPVOID)&joysticks,
                     DIEDFL_ATTACHEDONLY);
 
-  std::vector<DWORD> xinput_guids;
-  GetXInputGUIDS(&xinput_guids);
-
+  std::unordered_set<DWORD> xinput_guids = GetXInputGUIDS();
   for (DIDEVICEINSTANCE& joystick : joysticks)
   {
     // skip XInput Devices
-    if (std::find(xinput_guids.begin(), xinput_guids.end(), joystick.guidProduct.Data1) !=
-        xinput_guids.end())
+    if (xinput_guids.count(joystick.guidProduct.Data1))
     {
       continue;
     }

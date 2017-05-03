@@ -14,7 +14,7 @@
 
 namespace DiscIO
 {
-bool IsCISOBlob(const std::string& filename);
+static constexpr u32 CISO_MAGIC = 0x4F534943;  // "CISO" (byteswapped to little endian)
 
 static const u32 CISO_HEADER_SIZE = 0x8000;
 static const u32 CISO_MAP_SIZE = CISO_HEADER_SIZE - sizeof(u32) - sizeof(char) * 4;
@@ -22,7 +22,7 @@ static const u32 CISO_MAP_SIZE = CISO_HEADER_SIZE - sizeof(u32) - sizeof(char) *
 struct CISOHeader
 {
   // "CISO"
-  char magic[4];
+  u32 magic;
 
   // little endian
   u32 block_size;
@@ -34,7 +34,7 @@ struct CISOHeader
 class CISOFileReader : public IBlobReader
 {
 public:
-  static std::unique_ptr<CISOFileReader> Create(const std::string& filename);
+  static std::unique_ptr<CISOFileReader> Create(File::IOFile file);
 
   BlobType GetBlobType() const override { return BlobType::CISO; }
   // The CISO format does not save the original file size.
@@ -45,7 +45,7 @@ public:
   bool Read(u64 offset, u64 nbytes, u8* out_ptr) override;
 
 private:
-  CISOFileReader(std::FILE* file);
+  CISOFileReader(File::IOFile file);
 
   typedef u16 MapType;
   static const MapType UNUSED_BLOCK_ID = -1;

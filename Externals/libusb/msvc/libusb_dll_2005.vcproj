@@ -374,7 +374,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\libusb\os\windows_usb.c"
+				RelativePath="..\libusb\os\windows_winusb.c"
 				>
 			</File>
 		</Filter>
@@ -408,7 +408,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\libusb\os\windows_usb.h"
+				RelativePath="..\libusb\os\windows_winusb.h"
 				>
 			</File>
 			<File

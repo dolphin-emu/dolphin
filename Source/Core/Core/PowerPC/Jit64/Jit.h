@@ -21,44 +21,27 @@
 #include "Common/CommonTypes.h"
 #include "Common/x64ABI.h"
 #include "Common/x64Emitter.h"
+#include "Core/PowerPC/Jit64/FPURegCache.h"
+#include "Core/PowerPC/Jit64/GPRRegCache.h"
 #include "Core/PowerPC/Jit64/JitAsm.h"
 #include "Core/PowerPC/Jit64/JitRegCache.h"
-#include "Core/PowerPC/JitCommon/JitBase.h"
+#include "Core/PowerPC/Jit64Common/Jit64Base.h"
 #include "Core/PowerPC/JitCommon/JitCache.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 
 class Jit64 : public Jitx86Base
 {
-private:
-  void AllocStack();
-  void FreeStack();
-
-  GPRRegCache gpr;
-  FPURegCache fpr;
-
-  // The default code buffer. We keep it around to not have to alloc/dealloc a
-  // large chunk of memory for each recompiled block.
-  PPCAnalyst::CodeBuffer code_buffer;
-  Jit64AsmRoutineManager asm_routines;
-
-  bool m_enable_blr_optimization;
-  bool m_cleanup_after_stackfault;
-  u8* m_stack;
-
 public:
   Jit64() : code_buffer(32000) {}
   ~Jit64() {}
   void Init() override;
-
-  void EnableOptimization();
-
-  void EnableBlockLink();
-
   void Shutdown() override;
 
   bool HandleFault(uintptr_t access_address, SContext* ctx) override;
-
   bool HandleStackFault() override;
+
+  void EnableOptimization();
+  void EnableBlockLink();
 
   // Jit!
 
@@ -67,6 +50,8 @@ public:
 
   BitSet32 CallerSavedRegistersInUse() const;
   BitSet8 ComputeStaticGQRs(const PPCAnalyst::CodeBlock&) const;
+
+  void IntializeSpeculativeConstants();
 
   JitBlockCache* GetBlockCache() override { return &blocks; }
   void Trace();
@@ -81,6 +66,7 @@ public:
 
   // Utilities for use by opcodes
 
+  void FakeBLCall(u32 after);
   void WriteExit(u32 destination, bool bl = false, u32 after = 0);
   void JustWriteExit(u32 destination, bool bl, u32 after);
   void WriteExitDestInRSCRATCH(bool bl = false, u32 after = 0);
@@ -241,4 +227,25 @@ public:
   void stmw(UGeckoInstruction inst);
 
   void dcbx(UGeckoInstruction inst);
+
+  void eieio(UGeckoInstruction inst);
+
+private:
+  static void InitializeInstructionTables();
+  void CompileInstruction(PPCAnalyst::CodeOp& op);
+
+  void AllocStack();
+  void FreeStack();
+
+  GPRRegCache gpr{*this};
+  FPURegCache fpr{*this};
+
+  // The default code buffer. We keep it around to not have to alloc/dealloc a
+  // large chunk of memory for each recompiled block.
+  PPCAnalyst::CodeBuffer code_buffer;
+  Jit64AsmRoutineManager asm_routines;
+
+  bool m_enable_blr_optimization;
+  bool m_cleanup_after_stackfault;
+  u8* m_stack;
 };

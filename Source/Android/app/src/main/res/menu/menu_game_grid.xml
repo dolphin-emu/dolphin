@@ -1,26 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
       xmlns:app="http://schemas.android.com/apk/res-auto">
+
     <item
         android:id="@+id/menu_settings_core"
         android:title="@string/grid_menu_core_settings"
         android:icon="@drawable/ic_settings_core"
         app:showAsAction="ifRoom"/>
+
     <item
         android:id="@+id/menu_settings_video"
         android:title="@string/grid_menu_video_settings"
         android:icon="@drawable/ic_settings_graphics"
         app:showAsAction="ifRoom"/>
+
     <item
         android:id="@+id/menu_settings_gcpad"
         android:title="@string/grid_menu_gcpad_settings"
         android:icon="@drawable/ic_settings_gcpad"
         app:showAsAction="ifRoom"/>
+
     <item
         android:id="@+id/menu_settings_wiimote"
         android:title="@string/grid_menu_wiimote_settings"
         android:icon="@drawable/ic_settings_wiimote"
         app:showAsAction="ifRoom"/>
+
     <item
         android:id="@+id/menu_refresh"
         android:title="@string/grid_menu_refresh"

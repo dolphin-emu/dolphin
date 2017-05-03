@@ -3,20 +3,56 @@
 // Refer to the license.txt file included.
 
 #include "Core/HW/Wiimote.h"
+
 #include "Common/ChunkFile.h"
+#include "Common/CommonTypes.h"
+
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/Movie.h"
+
+#include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/InputConfig.h"
 
 namespace Wiimote
 {
-static InputConfig s_config(WIIMOTE_INI_NAME, _trans("Wiimote"), "Wiimote");
+static InputConfig s_config(WIIMOTE_INI_NAME, _trans("Wii Remote"), "Wiimote");
 
 InputConfig* GetConfig()
 {
   return &s_config;
+}
+
+ControllerEmu::ControlGroup* GetWiimoteGroup(int number, WiimoteEmu::WiimoteGroup group)
+{
+  return static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))->GetWiimoteGroup(group);
+}
+
+ControllerEmu::ControlGroup* GetNunchukGroup(int number, WiimoteEmu::NunchukGroup group)
+{
+  return static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))->GetNunchukGroup(group);
+}
+
+ControllerEmu::ControlGroup* GetClassicGroup(int number, WiimoteEmu::ClassicGroup group)
+{
+  return static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))->GetClassicGroup(group);
+}
+
+ControllerEmu::ControlGroup* GetGuitarGroup(int number, WiimoteEmu::GuitarGroup group)
+{
+  return static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))->GetGuitarGroup(group);
+}
+
+ControllerEmu::ControlGroup* GetDrumsGroup(int number, WiimoteEmu::DrumsGroup group)
+{
+  return static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))->GetDrumsGroup(group);
+}
+
+ControllerEmu::ControlGroup* GetTurntableGroup(int number, WiimoteEmu::TurntableGroup group)
+{
+  return static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))
+      ->GetTurntableGroup(group);
 }
 
 void Shutdown()
@@ -24,11 +60,9 @@ void Shutdown()
   s_config.ClearControllers();
 
   WiimoteReal::Stop();
-
-  g_controller_interface.Shutdown();
 }
 
-void Initialize(void* const hwnd, InitializeMode init_mode)
+void Initialize(InitializeMode init_mode)
 {
   if (s_config.ControllersNeedToBeCreated())
   {
@@ -36,7 +70,6 @@ void Initialize(void* const hwnd, InitializeMode init_mode)
       s_config.CreateController<WiimoteEmu::Wiimote>(i);
   }
 
-  g_controller_interface.Initialize(hwnd);
   g_controller_interface.RegisterHotplugCallback(LoadConfig);
 
   s_config.LoadConfig(false);

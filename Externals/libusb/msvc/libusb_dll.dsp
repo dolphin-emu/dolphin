@@ -135,7 +135,7 @@ SOURCE=..\libusb\os\threads_windows.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\libusb\os\windows_usb.c
+SOURCE=..\libusb\os\windows_winusb.c
 # End Source File
 # End Group
 # Begin Group "Header Files"
@@ -179,7 +179,7 @@ SOURCE=..\libusb\os\threads_windows.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\libusb\os\windows_usb.h
+SOURCE=..\libusb\os\windows_winusb.h
 # End Source File
 # Begin Source File
 

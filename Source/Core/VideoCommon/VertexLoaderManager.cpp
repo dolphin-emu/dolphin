@@ -28,7 +28,10 @@
 namespace VertexLoaderManager
 {
 float position_cache[3][4];
-u32 position_matrix_index[3];
+
+// The counter added to the address of the array is 1, 2, or 3, but never zero.
+// So only index 1 - 3 are used.
+u32 position_matrix_index[4];
 
 static NativeVertexFormatMap s_native_vertex_map;
 static NativeVertexFormat* s_current_vtx_fmt;
@@ -95,7 +98,7 @@ struct entry
 };
 }
 
-void AppendListToString(std::string* dest)
+std::string VertexLoadersToString()
 {
   std::lock_guard<std::mutex> lk(s_vertex_loader_map_lock);
   std::vector<entry> entries;
@@ -103,19 +106,24 @@ void AppendListToString(std::string* dest)
   size_t total_size = 0;
   for (const auto& map_entry : s_vertex_loader_map)
   {
-    entry e;
-    map_entry.second->AppendToString(&e.text);
-    e.num_verts = map_entry.second->m_numLoadedVertices;
-    entries.push_back(e);
+    entry e = {map_entry.second->ToString(),
+               static_cast<u64>(map_entry.second->m_numLoadedVertices)};
+
     total_size += e.text.size() + 1;
+    entries.push_back(std::move(e));
   }
+
   sort(entries.begin(), entries.end());
-  dest->reserve(dest->size() + total_size);
+
+  std::string dest;
+  dest.reserve(total_size);
   for (const entry& entry : entries)
   {
-    *dest += entry.text;
-    *dest += '\n';
+    dest += entry.text;
+    dest += '\n';
   }
+
+  return dest;
 }
 
 void MarkAllDirty()
@@ -158,7 +166,7 @@ static VertexLoaderBase* RefreshLoader(int vtx_attr_group, bool preprocess = fal
       std::unique_ptr<NativeVertexFormat>& native = s_native_vertex_map[format];
       if (!native)
       {
-        native.reset(g_vertex_manager->CreateNativeVertexFormat(format));
+        native = g_vertex_manager->CreateNativeVertexFormat(format);
       }
       loader->m_native_vertex_format = native.get();
     }
@@ -177,8 +185,7 @@ static VertexLoaderBase* RefreshLoader(int vtx_attr_group, bool preprocess = fal
   return loader;
 }
 
-int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bool skip_drawing,
-                bool is_preprocess)
+int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bool is_preprocess)
 {
   if (!count)
     return 0;
@@ -189,14 +196,14 @@ int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bo
   if ((int)src.size() < size)
     return -1;
 
-  if (skip_drawing || is_preprocess)
+  if (is_preprocess)
     return size;
 
   // If the native vertex format changed, force a flush.
   if (loader->m_native_vertex_format != s_current_vtx_fmt ||
       loader->m_native_components != g_current_components)
   {
-    VertexManagerBase::Flush();
+    g_vertex_manager->Flush();
   }
   s_current_vtx_fmt = loader->m_native_vertex_format;
   g_current_components = loader->m_native_components;
@@ -206,14 +213,14 @@ int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bo
   // slope.
   bool cullall = (bpmem.genMode.cullmode == GenMode::CULL_ALL && primitive < 5);
 
-  DataReader dst = VertexManagerBase::PrepareForAdditionalData(
+  DataReader dst = g_vertex_manager->PrepareForAdditionalData(
       primitive, count, loader->m_native_vtx_decl.stride, cullall);
 
   count = loader->RunVertices(src, dst, count);
 
   IndexGenerator::AddIndices(primitive, count);
 
-  VertexManagerBase::FlushData(count, loader->m_native_vtx_decl.stride);
+  g_vertex_manager->FlushData(count, loader->m_native_vtx_decl.stride);
 
   ADDSTAT(stats.thisFrame.numPrims, count);
   INCSTAT(stats.thisFrame.numPrimitiveJoins);

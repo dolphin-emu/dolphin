@@ -6,14 +6,12 @@
 // Should give a very noticeable speed boost to paired single heavy code.
 
 #include "Core/PowerPC/Jit64/Jit.h"
-#include "Common/BitSet.h"
-#include "Common/CPUDetect.h"
+
 #include "Common/CommonTypes.h"
 #include "Common/x64Emitter.h"
-#include "Core/ConfigManager.h"
 #include "Core/PowerPC/Jit64/JitRegCache.h"
+#include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
 #include "Core/PowerPC/JitCommon/JitAsmCommon.h"
-#include "Core/PowerPC/JitCommon/Jit_Util.h"
 #include "Core/PowerPC/PowerPC.h"
 
 using namespace Gen;
@@ -24,6 +22,9 @@ void Jit64::psq_stXX(UGeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStorePairedOff);
+
+  // For performance, the AsmCommon routines assume address translation is on.
+  FALLBACK_IF(!UReg_MSR(MSR).DR);
 
   s32 offset = inst.SIMM_12;
   bool indexed = inst.OPCD == 4;
@@ -88,12 +89,12 @@ void Jit64::psq_stXX(UGeckoInstruction inst)
     // 0b0011111100000111, or 0x3F07.
     MOV(32, R(RSCRATCH2), Imm32(0x3F07));
     AND(32, R(RSCRATCH2), PPCSTATE(spr[SPR_GQR0 + i]));
-    MOVZX(32, 8, RSCRATCH, R(RSCRATCH2));
-
-    if (w)
-      CALLptr(MScaled(RSCRATCH, SCALE_8, (u32)(u64)asm_routines.singleStoreQuantized));
-    else
-      CALLptr(MScaled(RSCRATCH, SCALE_8, (u32)(u64)asm_routines.pairedStoreQuantized));
+    LEA(64, RSCRATCH, M(w ? asm_routines.singleStoreQuantized : asm_routines.pairedStoreQuantized));
+    // 8-bit operations do not zero upper 32-bits of 64-bit registers.
+    // Here we know that RSCRATCH's least significant byte is zero.
+    OR(8, R(RSCRATCH), R(RSCRATCH2));
+    SHL(8, R(RSCRATCH), Imm8(3));
+    CALLptr(MatR(RSCRATCH));
   }
 
   if (update && jo.memcheck)
@@ -111,6 +112,9 @@ void Jit64::psq_lXX(UGeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStorePairedOff);
+
+  // For performance, the AsmCommon routines assume address translation is on.
+  FALLBACK_IF(!UReg_MSR(MSR).DR);
 
   s32 offset = inst.SIMM_12;
   bool indexed = inst.OPCD == 4;
@@ -144,16 +148,18 @@ void Jit64::psq_lXX(UGeckoInstruction inst)
   }
   else
   {
-    MOV(32, R(RSCRATCH2), Imm32(0x3F07));
-
     // Get the high part of the GQR register
     OpArg gqr = PPCSTATE(spr[SPR_GQR0 + i]);
     gqr.AddMemOffset(2);
 
+    MOV(32, R(RSCRATCH2), Imm32(0x3F07));
     AND(32, R(RSCRATCH2), gqr);
-    MOVZX(32, 8, RSCRATCH, R(RSCRATCH2));
-
-    CALLptr(MScaled(RSCRATCH, SCALE_8, (u32)(u64)(&asm_routines.pairedLoadQuantized[w * 8])));
+    LEA(64, RSCRATCH, M(w ? asm_routines.singleLoadQuantized : asm_routines.pairedLoadQuantized));
+    // 8-bit operations do not zero upper 32-bits of 64-bit registers.
+    // Here we know that RSCRATCH's least significant byte is zero.
+    OR(8, R(RSCRATCH), R(RSCRATCH2));
+    SHL(8, R(RSCRATCH), Imm8(3));
+    CALLptr(MatR(RSCRATCH));
   }
 
   CVTPS2PD(fpr.RX(s), R(XMM0));

@@ -24,13 +24,13 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
     switch (index.column())
     {
     case COL_PLATFORM:
-      return game->GetPlatform();
+      return static_cast<int>(game->GetPlatformID());
     case COL_BANNER:
       return game->GetBanner();
     case COL_TITLE:
       return game->GetLongName();
     case COL_ID:
-      return game->GetUniqueID();
+      return game->GetGameID();
     case COL_DESCRIPTION:
       return game->GetDescription();
     case COL_MAKER:
@@ -90,6 +90,8 @@ void GameListModel::UpdateGame(QSharedPointer<GameFile> game)
   int entry = FindGame(path);
   if (entry < 0)
     entry = m_games.size();
+  else
+    return;
 
   beginInsertRows(QModelIndex(), entry, entry);
   m_games.insert(entry, game);

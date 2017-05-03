@@ -3,93 +3,86 @@
 // Refer to the license.txt file included.
 
 #include "Core/HW/DSPHLE/UCodes/GBA.h"
-#include "Common/CommonFuncs.h"
+
+#include "Common/Align.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Core/HW/DSP.h"
+#include "Core/HW/DSPHLE/DSPHLE.h"
+#include "Core/HW/DSPHLE/MailHandler.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
+namespace DSP
+{
+namespace HLE
+{
 void ProcessGBACrypto(u32 address)
 {
-  struct sec_params_t
-  {
-    u16 key[2];
-    u16 unk1[2];
-    u16 unk2[2];
-    u32 length;
-    u32 dest_addr;
-    u32 pad[3];
-  } sec_params;
+  // Nonce challenge (first read from GBA, hence already little-endian)
+  const u32 challenge = HLEMemory_Read_U32LE(address);
 
-  // 32 bytes from mram addr to DRAM @ 0
-  for (int i = 0; i < 8; i++, address += 4)
-    ((u32*)&sec_params)[i] = HLEMemory_Read_U32(address);
+  // Palette of pulsing logo on GBA during transmission [0,6]
+  const u32 logo_palette = HLEMemory_Read_U32(address + 4);
 
-  // This is the main decrypt routine
-  u16 x11 = 0, x12 = 0, x20 = 0, x21 = 0, x22 = 0, x23 = 0;
+  // Speed and direction of palette interpolation [-4,4]
+  const u32 logo_speed_32 = HLEMemory_Read_U32(address + 8);
 
-  x20 = Common::swap16(sec_params.key[0]) ^ 0x6f64;
-  x21 = Common::swap16(sec_params.key[1]) ^ 0x6573;
+  // Length of JoyBoot program to upload
+  const u32 length = HLEMemory_Read_U32(address + 12);
 
-  s16 unk2 = (s8)sec_params.unk2[0];
-  if (unk2 < 0)
-  {
-    x11 = ((~unk2 + 3) << 1) | (sec_params.unk1[0] << 4);
-  }
-  else if (unk2 == 0)
-  {
-    x11 = (sec_params.unk1[0] << 1) | 0x70;
-  }
-  else  // unk2 > 0
-  {
-    x11 = ((unk2 - 1) << 1) | (sec_params.unk1[0] << 4);
-  }
+  // Address to return results to game
+  const u32 dest_addr = HLEMemory_Read_U32(address + 16);
 
-  s32 rounded_sub = ((sec_params.length + 7) & ~7) - 0x200;
-  u16 size = (rounded_sub < 0) ? 0 : rounded_sub >> 3;
+  // Unwrap key from challenge using 'sedo' magic number (to encrypt JoyBoot program)
+  const u32 key = challenge ^ 0x6f646573;
+  HLEMemory_Write_U32(dest_addr, key);
 
-  u32 t = (((size << 16) | 0x3f80) & 0x3f80ffff) << 1;
-  s16 t_low = (s8)(t >> 8);
-  t += (t_low & size) << 16;
-  x12 = t >> 16;
-  x11 |=
-      (size & 0x4000) >> 14;  // this would be stored in ac0.h if we weren't constrained to 32bit :)
-  t = ((x11 & 0xff) << 16) + ((x12 & 0xff) << 16) + (x12 << 8);
+  // Pack palette parameters
+  u16 palette_speed_coded;
+  const s16 logo_speed = static_cast<s8>(logo_speed_32);
+  if (logo_speed < 0)
+    palette_speed_coded = ((-logo_speed + 2) * 2) | (logo_palette << 4);
+  else if (logo_speed == 0)
+    palette_speed_coded = (logo_palette * 2) | 0x70;
+  else  // logo_speed > 0
+    palette_speed_coded = ((logo_speed - 1) * 2) | (logo_palette << 4);
 
-  u16 final11 = 0, final12 = 0;
-  final11 = x11 | ((t >> 8) & 0xff00) | 0x8080;
-  final12 = x12 | 0x8080;
+  // JoyBoot ROMs start with a padded header; this is the length beyond that header
+  const s32 length_no_header = Common::AlignUp(length, 8) - 0x200;
 
-  if ((final12 & 0x200) != 0)
-  {
-    x22 = final11 ^ 0x6f64;
-    x23 = final12 ^ 0x6573;
-  }
-  else
-  {
-    x22 = final11 ^ 0x6177;
-    x23 = final12 ^ 0x614b;
-  }
+  // The JoyBus protocol transmits in 4-byte packets while flipping a state flag;
+  // so the GBA BIOS counts the program length in 8-byte packet-pairs
+  const u16 packet_pair_count = (length_no_header < 0) ? 0 : length_no_header / 8;
+  palette_speed_coded |= (packet_pair_count & 0x4000) >> 14;
 
-  // Send the result back to mram
-  *(u32*)HLEMemory_Get_Pointer(sec_params.dest_addr) = Common::swap32((x20 << 16) | x21);
-  *(u32*)HLEMemory_Get_Pointer(sec_params.dest_addr + 4) = Common::swap32((x22 << 16) | x23);
+  // Pack together encoded transmission parameters
+  u32 t1 = (((packet_pair_count << 16) | 0x3f80) & 0x3f80ffff) * 2;
+  t1 += (static_cast<s16>(static_cast<s8>(t1 >> 8)) & packet_pair_count) << 16;
+  const u32 t2 = ((palette_speed_coded & 0xff) << 16) + (t1 & 0xff0000) + ((t1 >> 8) & 0xffff00);
+  u32 t3 = palette_speed_coded << 16 | ((t2 << 8) & 0xff000000) | (t1 >> 16) | 0x80808080;
+
+  // Wrap with 'Kawa' or 'sedo' (Kawasedo is the author of the BIOS cipher)
+  t3 ^= ((t3 & 0x200) != 0 ? 0x6f646573 : 0x6177614b);
+  HLEMemory_Write_U32(dest_addr + 4, t3);
 
   // Done!
-  DEBUG_LOG(DSPHLE, "\n%08x -> key: %08x, len: %08x, dest_addr: %08x, unk1: %08x, unk2: %08x"
-                    " 22: %04x, 23: %04x",
-            address, *(u32*)sec_params.key, sec_params.length, sec_params.dest_addr,
-            *(u32*)sec_params.unk1, *(u32*)sec_params.unk2, x22, x23);
+  DEBUG_LOG(DSPHLE, "\n%08x -> challenge: %08x, len: %08x, dest_addr: %08x, "
+                    "palette: %08x, speed: %08x key: %08x, auth_code: %08x",
+            address, challenge, length, dest_addr, logo_palette, logo_speed_32, key, t3);
 }
 
 GBAUCode::GBAUCode(DSPHLE* dsphle, u32 crc) : UCodeInterface(dsphle, crc)
 {
-  m_mail_handler.PushMail(DSP_INIT);
 }
 
 GBAUCode::~GBAUCode()
 {
   m_mail_handler.Clear();
+}
+
+void GBAUCode::Initialize()
+{
+  m_mail_handler.PushMail(DSP_INIT);
 }
 
 void GBAUCode::Update()
@@ -134,12 +127,14 @@ void GBAUCode::HandleMail(u32 mail)
       m_dsphle->SetUCode(UCODE_ROM);
       break;
     default:
-      DEBUG_LOG(DSPHLE, "GBAUCode - unknown 0xcdd1 command: %08x", mail);
+      WARN_LOG(DSPHLE, "GBAUCode - unknown 0xcdd1 command: %08x", mail);
       break;
     }
   }
   else
   {
-    DEBUG_LOG(DSPHLE, "GBAUCode - unknown command: %08x", mail);
+    WARN_LOG(DSPHLE, "GBAUCode - unknown command: %08x", mail);
   }
 }
+}  // namespace HLE
+}  // namespace DSP

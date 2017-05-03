@@ -21,7 +21,7 @@ public:
               long style = wxDEFAULT_DIALOG_STYLE);
   virtual ~CConfigMain();
 
-  void SetSelectedTab(int tab);
+  void SetSelectedTab(wxWindowID tab_id);
 
   enum
   {
@@ -38,7 +38,8 @@ public:
 private:
   void CreateGUIControls();
   void OnClose(wxCloseEvent& event);
-  void OnOk(wxCommandEvent& event);
+  void OnCloseButton(wxCommandEvent& event);
+  void OnShow(wxShowEvent& event);
   void OnSetRefreshGameListOnClose(wxCommandEvent& event);
 
   wxNotebook* Notebook;

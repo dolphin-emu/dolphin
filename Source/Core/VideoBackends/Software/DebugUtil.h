@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 
 namespace DebugUtil
 {
@@ -18,8 +18,9 @@ void DumpActiveTextures();
 void OnObjectBegin();
 void OnObjectEnd();
 
-void DrawObjectBuffer(s16 x, s16 y, u8* color, int bufferBase, int subBuffer, const char* name);
+void DrawObjectBuffer(s16 x, s16 y, const u8* color, int bufferBase, int subBuffer,
+                      const char* name);
 
-void DrawTempBuffer(u8* color, int buffer);
+void DrawTempBuffer(const u8* color, int buffer);
 void CopyTempBuffer(s16 x, s16 y, int bufferBase, int subBuffer, const char* name);
 }

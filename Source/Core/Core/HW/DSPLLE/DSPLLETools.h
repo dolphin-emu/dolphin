@@ -6,5 +6,11 @@
 
 #include "Common/CommonTypes.h"
 
+namespace DSP
+{
+namespace LLE
+{
 bool DumpDSPCode(const u8* code_be, int size_in_bytes, u32 crc);
 bool DumpCWCode(u32 _Address, u32 _Length);
+}  // namespace DSP
+}  // namespace LLE

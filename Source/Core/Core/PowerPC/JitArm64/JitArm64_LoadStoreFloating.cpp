@@ -8,7 +8,6 @@
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 
-#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/GPFifo.h"
@@ -101,19 +100,7 @@ void JitArm64::lfXX(UGeckoInstruction inst)
     {
       if (offset_reg == -1)
       {
-        if (offset >= 0 && offset < 4096)
-        {
-          ADD(addr_reg, gpr.R(a), offset);
-        }
-        else if (offset < 0 && offset > -4096)
-        {
-          SUB(addr_reg, gpr.R(a), std::abs(offset));
-        }
-        else
-        {
-          MOVI2R(addr_reg, offset);
-          ADD(addr_reg, addr_reg, gpr.R(a));
-        }
+        ADDI2R(addr_reg, gpr.R(a), offset, addr_reg);
       }
       else
       {
@@ -132,19 +119,7 @@ void JitArm64::lfXX(UGeckoInstruction inst)
       }
       else if (a)
       {
-        if (offset >= 0 && offset < 4096)
-        {
-          ADD(addr_reg, gpr.R(a), offset);
-        }
-        else if (offset < 0 && offset > -4096)
-        {
-          SUB(addr_reg, gpr.R(a), std::abs(offset));
-        }
-        else
-        {
-          MOVI2R(addr_reg, offset);
-          ADD(addr_reg, addr_reg, gpr.R(a));
-        }
+        ADDI2R(addr_reg, gpr.R(a), offset, addr_reg);
       }
       else
       {
@@ -298,19 +273,7 @@ void JitArm64::stfXX(UGeckoInstruction inst)
     {
       if (offset_reg == -1)
       {
-        if (offset >= 0 && offset < 4096)
-        {
-          ADD(addr_reg, gpr.R(a), offset);
-        }
-        else if (offset < 0 && offset > -4096)
-        {
-          SUB(addr_reg, gpr.R(a), std::abs(offset));
-        }
-        else
-        {
-          MOVI2R(addr_reg, offset);
-          ADD(addr_reg, addr_reg, gpr.R(a));
-        }
+        ADDI2R(addr_reg, gpr.R(a), offset, addr_reg);
       }
       else
       {
@@ -329,19 +292,7 @@ void JitArm64::stfXX(UGeckoInstruction inst)
       }
       else if (a)
       {
-        if (offset >= 0 && offset < 4096)
-        {
-          ADD(addr_reg, gpr.R(a), offset);
-        }
-        else if (offset < 0 && offset > -4096)
-        {
-          SUB(addr_reg, gpr.R(a), std::abs(offset));
-        }
-        else
-        {
-          MOVI2R(addr_reg, offset);
-          ADD(addr_reg, addr_reg, gpr.R(a));
-        }
+        ADDI2R(addr_reg, gpr.R(a), offset, addr_reg);
       }
       else
       {
@@ -374,8 +325,7 @@ void JitArm64::stfXX(UGeckoInstruction inst)
 
   ARM64Reg XA = EncodeRegTo64(addr_reg);
 
-  if (is_immediate &&
-      !(jit->jo.optimizeGatherPipe && PowerPC::IsOptimizableGatherPipeWrite(imm_addr)))
+  if (is_immediate && !(jo.optimizeGatherPipe && PowerPC::IsOptimizableGatherPipeWrite(imm_addr)))
   {
     MOVI2R(XA, imm_addr);
 
@@ -399,7 +349,7 @@ void JitArm64::stfXX(UGeckoInstruction inst)
 
   if (is_immediate)
   {
-    if (jit->jo.optimizeGatherPipe && PowerPC::IsOptimizableGatherPipeWrite(imm_addr))
+    if (jo.optimizeGatherPipe && PowerPC::IsOptimizableGatherPipeWrite(imm_addr))
     {
       int accessSize;
       if (flags & BackPatchInfo::FLAG_SIZE_F64)
@@ -407,16 +357,8 @@ void JitArm64::stfXX(UGeckoInstruction inst)
       else
         accessSize = 32;
 
-      u64 base_ptr = std::min((u64)&GPFifo::m_gatherPipeCount, (u64)&GPFifo::m_gatherPipe);
-      u32 count_off = (u64)&GPFifo::m_gatherPipeCount - base_ptr;
-      u32 pipe_off = (u64)&GPFifo::m_gatherPipe - base_ptr;
-
-      MOVI2R(X30, base_ptr);
-
-      if (pipe_off)
-        ADD(X1, X30, pipe_off);
-
-      LDR(INDEX_UNSIGNED, W0, X30, count_off);
+      MOVP2R(X1, &GPFifo::g_gather_pipe_ptr);
+      LDR(INDEX_UNSIGNED, X0, X1, 0);
       if (flags & BackPatchInfo::FLAG_SIZE_F64)
       {
         m_float_emit.REV64(8, Q0, V0);
@@ -431,18 +373,10 @@ void JitArm64::stfXX(UGeckoInstruction inst)
         m_float_emit.REV32(8, D0, V0);
       }
 
-      if (pipe_off)
-      {
-        m_float_emit.STR(accessSize, accessSize == 64 ? Q0 : D0, X1, ArithOption(X0));
-      }
-      else
-      {
-        m_float_emit.STR(accessSize, accessSize == 64 ? Q0 : D0, X30, ArithOption(X0));
-      }
+      m_float_emit.STR(accessSize, INDEX_POST, accessSize == 64 ? Q0 : D0, X0, accessSize >> 3);
 
-      ADD(W0, W0, accessSize >> 3);
-      STR(INDEX_UNSIGNED, W0, X30, count_off);
-      js.fifoBytesThisBlock += accessSize >> 3;
+      STR(INDEX_UNSIGNED, X0, X1, 0);
+      js.fifoBytesSinceCheck += accessSize >> 3;
 
       if (update)
       {

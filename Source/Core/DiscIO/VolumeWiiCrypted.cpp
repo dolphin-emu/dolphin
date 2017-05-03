@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "DiscIO/VolumeWiiCrypted.h"
+
 #include <cstddef>
 #include <cstring>
 #include <map>
@@ -12,18 +14,17 @@
 #include <utility>
 #include <vector>
 
-#include "Common/CommonFuncs.h"
+#include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
+#include "Common/Swap.h"
+
 #include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
-#include "DiscIO/FileMonitor.h"
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeCreator.h"
-#include "DiscIO/VolumeGC.h"
-#include "DiscIO/VolumeWiiCrypted.h"
 
 namespace DiscIO
 {
@@ -32,6 +33,8 @@ CVolumeWiiCrypted::CVolumeWiiCrypted(std::unique_ptr<IBlobReader> reader, u64 _V
     : m_pReader(std::move(reader)), m_AES_ctx(std::make_unique<mbedtls_aes_context>()),
       m_VolumeOffset(_VolumeOffset), m_dataOffset(0x20000), m_LastDecryptedBlockOffset(-1)
 {
+  _assert_(m_pReader);
+
   mbedtls_aes_setkey_dec(m_AES_ctx.get(), _pVolumeKey, 128);
 }
 
@@ -52,34 +55,29 @@ CVolumeWiiCrypted::~CVolumeWiiCrypted()
 
 bool CVolumeWiiCrypted::Read(u64 _ReadOffset, u64 _Length, u8* _pBuffer, bool decrypt) const
 {
-  if (m_pReader == nullptr)
-    return false;
-
   if (!decrypt)
     return m_pReader->Read(_ReadOffset, _Length, _pBuffer);
 
-  FileMon::FindFilename(_ReadOffset);
-
-  std::vector<u8> read_buffer(s_block_total_size);
+  std::vector<u8> read_buffer(BLOCK_TOTAL_SIZE);
   while (_Length > 0)
   {
     // Calculate block offset
-    u64 Block = _ReadOffset / s_block_data_size;
-    u64 Offset = _ReadOffset % s_block_data_size;
+    u64 Block = _ReadOffset / BLOCK_DATA_SIZE;
+    u64 Offset = _ReadOffset % BLOCK_DATA_SIZE;
 
     if (m_LastDecryptedBlockOffset != Block)
     {
       // Read the current block
-      if (!m_pReader->Read(m_VolumeOffset + m_dataOffset + Block * s_block_total_size,
-                           s_block_total_size, read_buffer.data()))
+      if (!m_pReader->Read(m_VolumeOffset + m_dataOffset + Block * BLOCK_TOTAL_SIZE,
+                           BLOCK_TOTAL_SIZE, read_buffer.data()))
         return false;
 
       // Decrypt the block's data.
       // 0x3D0 - 0x3DF in m_pBuffer will be overwritten,
       // but that won't affect anything, because we won't
       // use the content of m_pBuffer anymore after this
-      mbedtls_aes_crypt_cbc(m_AES_ctx.get(), MBEDTLS_AES_DECRYPT, s_block_data_size,
-                            &read_buffer[0x3D0], &read_buffer[s_block_header_size],
+      mbedtls_aes_crypt_cbc(m_AES_ctx.get(), MBEDTLS_AES_DECRYPT, BLOCK_DATA_SIZE,
+                            &read_buffer[0x3D0], &read_buffer[BLOCK_HEADER_SIZE],
                             m_LastDecryptedBlock);
       m_LastDecryptedBlockOffset = Block;
 
@@ -90,7 +88,7 @@ bool CVolumeWiiCrypted::Read(u64 _ReadOffset, u64 _Length, u8* _pBuffer, bool de
     }
 
     // Copy the decrypted data
-    u64 MaxSizeToCopy = s_block_data_size - Offset;
+    u64 MaxSizeToCopy = BLOCK_DATA_SIZE - Offset;
     u64 CopySize = (_Length > MaxSizeToCopy) ? MaxSizeToCopy : _Length;
     memcpy(_pBuffer, &m_LastDecryptedBlock[Offset], (size_t)CopySize);
 
@@ -105,24 +103,26 @@ bool CVolumeWiiCrypted::Read(u64 _ReadOffset, u64 _Length, u8* _pBuffer, bool de
 
 bool CVolumeWiiCrypted::GetTitleID(u64* buffer) const
 {
-  // Tik is at m_VolumeOffset size 0x2A4
-  // TitleID offset in tik is 0x1DC
-  if (!Read(m_VolumeOffset + 0x1DC, sizeof(u64), reinterpret_cast<u8*>(buffer), false))
-    return false;
-
-  *buffer = Common::swap64(*buffer);
-  return true;
+  return ReadSwapped(m_VolumeOffset + 0x1DC, buffer, false);
 }
 
-std::vector<u8> CVolumeWiiCrypted::GetTMD() const
+IOS::ES::TicketReader CVolumeWiiCrypted::GetTicket() const
 {
-  u32 tmd_size;
-  u32 tmd_address;
+  std::vector<u8> buffer(0x2a4);
+  Read(m_VolumeOffset, buffer.size(), buffer.data(), false);
+  return IOS::ES::TicketReader{std::move(buffer)};
+}
 
-  Read(m_VolumeOffset + 0x2a4, sizeof(u32), (u8*)&tmd_size, false);
-  Read(m_VolumeOffset + 0x2a8, sizeof(u32), (u8*)&tmd_address, false);
-  tmd_size = Common::swap32(tmd_size);
-  tmd_address = Common::swap32(tmd_address) << 2;
+IOS::ES::TMDReader CVolumeWiiCrypted::GetTMD() const
+{
+  u32 tmd_size = 0;
+  u32 tmd_address = 0;
+
+  if (!ReadSwapped(m_VolumeOffset + 0x2a4, &tmd_size, false))
+    return {};
+  if (!ReadSwapped(m_VolumeOffset + 0x2a8, &tmd_address, false))
+    return {};
+  tmd_address <<= 2;
 
   if (tmd_size > 1024 * 1024 * 4)
   {
@@ -135,80 +135,56 @@ std::vector<u8> CVolumeWiiCrypted::GetTMD() const
   }
 
   std::vector<u8> buffer(tmd_size);
-  Read(m_VolumeOffset + tmd_address, tmd_size, buffer.data(), false);
+  if (!Read(m_VolumeOffset + tmd_address, tmd_size, buffer.data(), false))
+    return {};
 
-  return buffer;
+  return IOS::ES::TMDReader{std::move(buffer)};
 }
 
-std::string CVolumeWiiCrypted::GetUniqueID() const
+u64 CVolumeWiiCrypted::PartitionOffsetToRawOffset(u64 offset) const
 {
-  if (m_pReader == nullptr)
-    return std::string();
+  return m_VolumeOffset + m_dataOffset + (offset / BLOCK_DATA_SIZE * BLOCK_TOTAL_SIZE) +
+         (offset % BLOCK_DATA_SIZE);
+}
 
+std::string CVolumeWiiCrypted::GetGameID() const
+{
   char ID[6];
 
-  if (!Read(0, 6, (u8*)ID, false))
+  if (!Read(0, 6, (u8*)ID, true))
     return std::string();
 
   return DecodeString(ID);
 }
 
-Country CVolumeWiiCrypted::GetCountry() const
+Region CVolumeWiiCrypted::GetRegion() const
 {
-  if (!m_pReader)
-    return Country::COUNTRY_UNKNOWN;
-
-  u8 country_byte;
-  if (!m_pReader->Read(3, 1, &country_byte))
-    return Country::COUNTRY_UNKNOWN;
-
-  Country country_value = CountrySwitch(country_byte);
-
   u32 region_code;
   if (!ReadSwapped(0x4E000, &region_code, false))
-    return country_value;
+    return Region::UNKNOWN_REGION;
 
-  switch (region_code)
-  {
-  case 0:
-    switch (country_value)
-    {
-    case Country::COUNTRY_TAIWAN:
-      return Country::COUNTRY_TAIWAN;
-    default:
-      return Country::COUNTRY_JAPAN;
-    }
-  case 1:
-    return Country::COUNTRY_USA;
-  case 2:
-    switch (country_value)
-    {
-    case Country::COUNTRY_FRANCE:
-    case Country::COUNTRY_GERMANY:
-    case Country::COUNTRY_ITALY:
-    case Country::COUNTRY_NETHERLANDS:
-    case Country::COUNTRY_RUSSIA:
-    case Country::COUNTRY_SPAIN:
-    case Country::COUNTRY_AUSTRALIA:
-      return country_value;
-    default:
-      return Country::COUNTRY_EUROPE;
-    }
-  case 4:
-    return Country::COUNTRY_KOREA;
-  default:
-    return country_value;
-  }
+  return static_cast<Region>(region_code);
+}
+
+Country CVolumeWiiCrypted::GetCountry() const
+{
+  u8 country_byte;
+  if (!ReadSwapped(3, &country_byte, true))
+    return Country::COUNTRY_UNKNOWN;
+
+  const Region region = GetRegion();
+
+  if (RegionSwitchWii(country_byte) != region)
+    return TypicalCountryForRegion(region);
+
+  return CountrySwitch(country_byte);
 }
 
 std::string CVolumeWiiCrypted::GetMakerID() const
 {
-  if (m_pReader == nullptr)
-    return std::string();
-
   char makerID[2];
 
-  if (!Read(0x4, 0x2, (u8*)&makerID, false))
+  if (!Read(0x4, 0x2, (u8*)&makerID, true))
     return std::string();
 
   return DecodeString(makerID);
@@ -216,11 +192,8 @@ std::string CVolumeWiiCrypted::GetMakerID() const
 
 u16 CVolumeWiiCrypted::GetRevision() const
 {
-  if (!m_pReader)
-    return 0;
-
   u8 revision;
-  if (!m_pReader->Read(7, 1, &revision))
+  if (!ReadSwapped(7, &revision, true))
     return 0;
 
   return revision;
@@ -229,7 +202,7 @@ u16 CVolumeWiiCrypted::GetRevision() const
 std::string CVolumeWiiCrypted::GetInternalName() const
 {
   char name_buffer[0x60];
-  if (m_pReader != nullptr && Read(0x20, 0x60, (u8*)&name_buffer, false))
+  if (Read(0x20, 0x60, (u8*)&name_buffer, true))
     return DecodeString(name_buffer);
 
   return "";
@@ -258,9 +231,6 @@ std::vector<u32> CVolumeWiiCrypted::GetBanner(int* width, int* height) const
 
 u64 CVolumeWiiCrypted::GetFSTSize() const
 {
-  if (m_pReader == nullptr)
-    return 0;
-
   u32 size;
 
   if (!Read(0x428, 0x4, (u8*)&size, true))
@@ -271,9 +241,6 @@ u64 CVolumeWiiCrypted::GetFSTSize() const
 
 std::string CVolumeWiiCrypted::GetApploaderDate() const
 {
-  if (m_pReader == nullptr)
-    return std::string();
-
   char date[16];
 
   if (!Read(0x2440, 0x10, (u8*)&date, true))
@@ -289,30 +256,24 @@ Platform CVolumeWiiCrypted::GetVolumeType() const
 
 u8 CVolumeWiiCrypted::GetDiscNumber() const
 {
-  u8 disc_number;
-  m_pReader->Read(6, 1, &disc_number);
+  u8 disc_number = 0;
+  ReadSwapped(6, &disc_number, true);
   return disc_number;
 }
 
 BlobType CVolumeWiiCrypted::GetBlobType() const
 {
-  return m_pReader ? m_pReader->GetBlobType() : BlobType::PLAIN;
+  return m_pReader->GetBlobType();
 }
 
 u64 CVolumeWiiCrypted::GetSize() const
 {
-  if (m_pReader)
-    return m_pReader->GetDataSize();
-  else
-    return 0;
+  return m_pReader->GetDataSize();
 }
 
 u64 CVolumeWiiCrypted::GetRawSize() const
 {
-  if (m_pReader)
-    return m_pReader->GetRawSize();
-  else
-    return 0;
+  return m_pReader->GetRawSize();
 }
 
 bool CVolumeWiiCrypted::CheckIntegrity() const
@@ -331,9 +292,9 @@ bool CVolumeWiiCrypted::CheckIntegrity() const
     u8 clusterMDCrypted[0x400];
     u8 clusterMD[0x400];
     u8 IV[16] = {0};
-    if (!m_pReader->Read(clusterOff, 0x400, clusterMDCrypted))
+    if (!Read(clusterOff, 0x400, clusterMDCrypted, false))
     {
-      NOTICE_LOG(DISCIO, "Integrity Check: fail at cluster %d: could not read metadata", clusterID);
+      WARN_LOG(DISCIO, "Integrity Check: fail at cluster %d: could not read metadata", clusterID);
       return false;
     }
     mbedtls_aes_crypt_cbc(m_AES_ctx.get(), MBEDTLS_AES_DECRYPT, 0x400, IV, clusterMDCrypted,
@@ -358,7 +319,7 @@ bool CVolumeWiiCrypted::CheckIntegrity() const
     u8 clusterData[0x7C00];
     if (!Read((u64)clusterID * 0x7C00, 0x7C00, clusterData, true))
     {
-      NOTICE_LOG(DISCIO, "Integrity Check: fail at cluster %d: could not read data", clusterID);
+      WARN_LOG(DISCIO, "Integrity Check: fail at cluster %d: could not read data", clusterID);
       return false;
     }
 
@@ -371,8 +332,8 @@ bool CVolumeWiiCrypted::CheckIntegrity() const
       // Note that we do not use strncmp here
       if (memcmp(hash, clusterMD + hashID * 20, 20))
       {
-        NOTICE_LOG(DISCIO, "Integrity Check: fail at cluster %d: hash %d is invalid", clusterID,
-                   hashID);
+        WARN_LOG(DISCIO, "Integrity Check: fail at cluster %d: hash %d is invalid", clusterID,
+                 hashID);
         return false;
       }
     }

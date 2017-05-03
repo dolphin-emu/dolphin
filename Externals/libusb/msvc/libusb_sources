@@ -12,8 +12,12 @@ USE_LIBCMT=1
 USE_MSVCRT=1
 !ENDIF
 
+!IFDEF WITH_USBDK
+BACKEND_DEFINES="/DUSE_USBDK"
+!ENDIF
+
 INCLUDES=..;..\..\msvc;$(DDK_INC_PATH)
-C_DEFINES= $(C_DEFINES) $(LIBUSB_DEFINES) /DDDKBUILD
+C_DEFINES= $(C_DEFINES) $(LIBUSB_DEFINES) $(BACKEND_DEFINES) /DDDKBUILD
 
 # http://jpassing.com/2009/10/21/ltcg-issues-with-the-win7amd64-environment-of-wdk-7600/
 # prevents the following error when using the 64 bit static lib with Visual Studio 2010:
@@ -34,5 +38,8 @@ SOURCES=..\core.c \
 	..\hotplug.c \
 	threads_windows.c \
 	poll_windows.c \
-	windows_usb.c \
+	windows_usbdk.c \
+	windows_winusb.c \
+	windows_usbdk.c \
+	windows_nt_common.c \
 	..\libusb-1.0.rc

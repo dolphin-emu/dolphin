@@ -21,7 +21,6 @@
 #include "Common/x64Emitter.h"
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/Jit64/JitAsm.h"
-#include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/JitCommon/JitCache.h"
 #include "Core/PowerPC/JitILCommon/JitILBase.h"
 #include "Core/PowerPC/PPCAnalyst.h"
@@ -36,10 +35,9 @@ public:
   // Initialization, etc
 
   void Init() override;
+  void Shutdown() override;
 
   void EnableBlockLink();
-
-  void Shutdown() override;
 
   // Jit!
 
@@ -78,4 +76,8 @@ public:
   void DynaRunTable31(UGeckoInstruction _inst) override;
   void DynaRunTable59(UGeckoInstruction _inst) override;
   void DynaRunTable63(UGeckoInstruction _inst) override;
+
+private:
+  static void InitializeInstructionTables();
+  void CompileInstruction(PPCAnalyst::CodeOp& op);
 };

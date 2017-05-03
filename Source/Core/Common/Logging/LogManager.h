@@ -87,6 +87,7 @@ private:
   LogContainer* m_Log[LogTypes::NUMBER_OF_LOGS];
   static LogManager* m_logManager;  // Singleton. Ugh.
   std::array<LogListener*, LogListener::NUMBER_OF_LISTENERS> m_listeners;
+  size_t m_path_cutoff_point = 0;
 
   LogManager();
   ~LogManager();

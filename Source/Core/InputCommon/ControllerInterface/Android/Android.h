@@ -11,7 +11,7 @@ namespace ciface
 {
 namespace Android
 {
-void Init();
+void PopulateDevices();
 class Touchscreen : public Core::Device
 {
 private:

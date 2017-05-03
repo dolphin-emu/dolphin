@@ -19,10 +19,11 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+#include <config.h>
+
+#include <time.h>
 #if defined(__linux__) || defined(__OpenBSD__)
-# if defined(__linux__)
-#  define _GNU_SOURCE
-# else
+# if defined(__OpenBSD__)
 #  define _BSD_SOURCE
 # endif
 # include <unistd.h>
@@ -34,30 +35,26 @@
 #endif
 
 #include "threads_posix.h"
+#include "libusbi.h"
 
-int usbi_mutex_init_recursive(pthread_mutex_t *mutex, pthread_mutexattr_t *attr)
+int usbi_cond_timedwait(pthread_cond_t *cond,
+	pthread_mutex_t *mutex, const struct timeval *tv)
 {
-	int err;
-	pthread_mutexattr_t stack_attr;
-	if (!attr) {
-		attr = &stack_attr;
-		err = pthread_mutexattr_init(&stack_attr);
-		if (err != 0)
-			return err;
+	struct timespec timeout;
+	int r;
+
+	r = usbi_backend->clock_gettime(USBI_CLOCK_REALTIME, &timeout);
+	if (r < 0)
+		return r;
+
+	timeout.tv_sec += tv->tv_sec;
+	timeout.tv_nsec += tv->tv_usec * 1000;
+	while (timeout.tv_nsec >= 1000000000L) {
+		timeout.tv_nsec -= 1000000000L;
+		timeout.tv_sec++;
 	}
 
-	/* mutexattr_settype requires _GNU_SOURCE or _XOPEN_SOURCE >= 500 on Linux */
-	err = pthread_mutexattr_settype(attr, PTHREAD_MUTEX_RECURSIVE);
-	if (err != 0)
-		goto finish;
-
-	err = pthread_mutex_init(mutex, attr);
-
-finish:
-	if (attr == &stack_attr)
-		pthread_mutexattr_destroy(&stack_attr);
-
-	return err;
+	return pthread_cond_timedwait(cond, mutex, &timeout);
 }
 
 int usbi_get_tid(void)

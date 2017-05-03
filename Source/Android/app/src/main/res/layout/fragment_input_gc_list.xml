@@ -14,23 +14,20 @@
 
         <include
             android:id="@+id/list_item_controller_one"
-            layout="@layout/list_item_setting"
-            />
+            layout="@layout/list_item_setting"/>
 
         <include
             android:id="@+id/list_item_controller_two"
-            layout="@layout/list_item_setting"
-            />
+            layout="@layout/list_item_setting"/>
 
         <include
             android:id="@+id/list_item_controller_two"
-            layout="@layout/list_item_setting"
-            />
+            layout="@layout/list_item_setting"/>
 
         <include
             android:id="@+id/list_item_controller_two"
-            layout="@layout/list_item_setting"
-            />
+            layout="@layout/list_item_setting"/>
+
     </LinearLayout>
 
 </org.dolphinemu.dolphinemu.ui.settings.SettingsFrameLayout>

@@ -6,87 +6,77 @@
 
 #include <array>
 #include <map>
+
 #include <wx/dialog.h>
 
-#include "Common/SysConf.h"
-#include "Core/ConfigManager.h"
 #include "Core/HW/Wiimote.h"
 #include "InputCommon/GCAdapter.h"
 
 class InputConfig;
-class wxButton;
-class wxStaticBoxSizer;
+class wxCheckBox;
+class wxChoice;
+class wxRadioButton;
+class wxStaticText;
 
-class ControllerConfigDiag : public wxDialog
+class ControllerConfigDiag final : public wxDialog
 {
 public:
   ControllerConfigDiag(wxWindow* const parent);
 
 private:
-  void RefreshRealWiimotes(wxCommandEvent& event);
+  void UpdateUI();
 
-  void ConfigEmulatedWiimote(wxCommandEvent& event);
+  wxSizer* CreateGamecubeSizer();
+  wxSizer* CreateWiimoteConfigSizer();
+  wxSizer* CreatePassthroughBTConfigSizer();
+  wxSizer* CreateEmulatedBTConfigSizer();
+  wxSizer* CreateAdvancedSettingsSizer();
 
-  void SelectSource(wxCommandEvent& event);
-  void RevertSource();
+  void OnClose(wxCloseEvent& event);
+  void OnCloseButton(wxCommandEvent& event);
 
-  void Save(wxCommandEvent& event);
+  void OnWiimoteSourceChanged(wxCommandEvent& event);
+  void OnWiimoteConfigButton(wxCommandEvent& event);
+  void OnWiimoteRefreshButton(wxCommandEvent& event);
+  void SaveWiimoteSource();
 
-  void OnSensorBarPos(wxCommandEvent& event)
-  {
-    SConfig::GetInstance().m_SYSCONF->SetData("BT.BAR", event.GetInt());
-    event.Skip();
-  }
-
-  void OnSensorBarSensitivity(wxCommandEvent& event)
-  {
-    SConfig::GetInstance().m_SYSCONF->SetData("BT.SENS", event.GetInt());
-    event.Skip();
-  }
-
-  void OnSpeakerVolume(wxCommandEvent& event)
-  {
-    SConfig::GetInstance().m_SYSCONF->SetData("BT.SPKV", event.GetInt());
-    event.Skip();
-  }
-
-  void OnMotor(wxCommandEvent& event)
-  {
-    SConfig::GetInstance().m_SYSCONF->SetData("BT.MOT", event.GetInt());
-    event.Skip();
-  }
-
-  void OnContinuousScanning(wxCommandEvent& event)
-  {
-    SConfig::GetInstance().m_WiimoteContinuousScanning = event.IsChecked();
-    WiimoteReal::Initialize(Wiimote::InitializeMode::DO_NOT_WAIT_FOR_WIIMOTES);
-    event.Skip();
-  }
-
-  void OnEnableSpeaker(wxCommandEvent& event)
-  {
-    SConfig::GetInstance().m_WiimoteEnableSpeaker = event.IsChecked();
-    event.Skip();
-  }
-
-  wxStaticBoxSizer* CreateGamecubeSizer();
-  wxStaticBoxSizer* CreateWiimoteConfigSizer();
-  wxStaticBoxSizer* CreateBalanceBoardSizer();
-  wxStaticBoxSizer* CreateRealWiimoteSizer();
-  wxStaticBoxSizer* CreateGeneralWiimoteSettingsSizer();
-
-  void Cancel(wxCommandEvent& event);
   void OnGameCubePortChanged(wxCommandEvent& event);
   void OnGameCubeConfigButton(wxCommandEvent& event);
 
-  std::map<wxWindowID, unsigned int> m_gc_port_choice_ids;
-  std::map<wxWindowID, unsigned int> m_gc_port_config_ids;
-  std::array<wxString, 9> m_gc_pad_type_strs;
+  void OnBluetoothModeChanged(wxCommandEvent& event);
 
-  std::map<wxWindowID, unsigned int> m_wiimote_index_from_ctrl_id;
-  unsigned int m_orig_wiimote_sources[MAX_BBMOTES];
+  void OnPassthroughScanButton(wxCommandEvent& event);
+  void OnPassthroughResetButton(wxCommandEvent& event);
+  void OnBalanceBoardChanged(wxCommandEvent& event);
+  void OnContinuousScanning(wxCommandEvent& event);
+  void OnEnableSpeaker(wxCommandEvent& event);
 
-  wxButton* wiimote_configure_bt[MAX_WIIMOTES];
-  wxButton* gamecube_configure_bt[4];
-  std::map<wxWindowID, unsigned int> m_wiimote_index_from_conf_bt_id;
+  void OnBackgroundInputChanged(wxCommandEvent& event);
+
+  std::map<wxWindowID, unsigned int> m_gc_port_from_choice_id;
+  std::map<wxWindowID, unsigned int> m_gc_port_from_config_id;
+  std::array<wxButton*, 4> m_gc_port_configure_button;
+  std::array<wxString, 8> m_gc_pad_type_strs;
+
+  wxRadioButton* m_passthrough_bt_radio;
+  wxRadioButton* m_emulated_bt_radio;
+
+  wxStaticText* m_passthrough_sync_text;
+  wxButton* m_passthrough_sync_btn;
+  wxStaticText* m_passthrough_reset_text;
+  wxButton* m_passthrough_reset_btn;
+
+  std::map<wxWindowID, unsigned int> m_wiimote_index_from_choice_id;
+  std::map<wxWindowID, unsigned int> m_wiimote_index_from_config_id;
+  std::array<wxButton*, MAX_WIIMOTES> m_wiimote_configure_button;
+  std::array<wxStaticText*, MAX_WIIMOTES> m_wiimote_labels;
+  std::array<wxChoice*, MAX_WIIMOTES> m_wiimote_sources;
+  wxCheckBox* m_balance_board_checkbox;
+
+  wxCheckBox* m_enable_continuous_scanning;
+  wxButton* m_refresh_wm_button;
+  wxStaticText* m_unsupported_bt_text;
+  wxCheckBox* m_enable_speaker_data;
+
+  wxCheckBox* m_background_input_checkbox;
 };

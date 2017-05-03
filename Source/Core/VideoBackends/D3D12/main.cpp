@@ -5,9 +5,8 @@
 #include <string>
 
 #include "Common/CommonTypes.h"
+#include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
-
-#include "Core/ConfigManager.h"
 
 #include "VideoBackends/D3D12/BoundingBox.h"
 #include "VideoBackends/D3D12/D3DBase.h"
@@ -65,15 +64,23 @@ void VideoBackend::InitBackendInfo()
   }
 
   g_Config.backend_info.api_type = APIType::D3D;
+  g_Config.backend_info.MaxTextureSize = D3D12_REQ_TEXTURE2D_U_OR_V_DIMENSION;
   g_Config.backend_info.bSupportsExclusiveFullscreen = false;
   g_Config.backend_info.bSupportsDualSourceBlend = true;
   g_Config.backend_info.bSupportsPrimitiveRestart = true;
   g_Config.backend_info.bSupportsOversizedViewports = false;
   g_Config.backend_info.bSupportsGeometryShaders = true;
+  g_Config.backend_info.bSupportsComputeShaders = false;
   g_Config.backend_info.bSupports3DVision = true;
   g_Config.backend_info.bSupportsPostProcessing = false;
   g_Config.backend_info.bSupportsPaletteConversion = true;
   g_Config.backend_info.bSupportsClipControl = true;
+  g_Config.backend_info.bSupportsDepthClamp = true;
+  g_Config.backend_info.bSupportsReversedDepthRange = false;
+  g_Config.backend_info.bSupportsMultithreading = false;
+  g_Config.backend_info.bSupportsInternalResolutionFrameDumps = false;
+  g_Config.backend_info.bSupportsGPUTextureDecoding = false;
+  g_Config.backend_info.bSupportsST3CTextures = false;
 
   IDXGIFactory* factory;
   IDXGIAdapter* ad;
@@ -116,7 +123,8 @@ void VideoBackend::InitBackendInfo()
         g_Config.backend_info.bSupportsEarlyZ = true;
 
         // Requires full UAV functionality (only available in shader model 5)
-        g_Config.backend_info.bSupportsBBox = true;
+        g_Config.backend_info.bSupportsBBox =
+            g_Config.backend_info.bSupportsFragmentStoresAndAtomics = true;
 
         // Requires the instance attribute (only available in shader model 5)
         g_Config.backend_info.bSupportsGSInstancing = true;
@@ -132,10 +140,6 @@ void VideoBackend::InitBackendInfo()
     ad->Release();
   }
   factory->Release();
-
-  // Clear ppshaders string vector
-  g_Config.backend_info.PPShaders.clear();
-  g_Config.backend_info.AnaglyphShaders.clear();
 
   D3D::UnloadD3D();
   D3D::UnloadDXGI();
@@ -160,7 +164,7 @@ bool VideoBackend::Initialize(void* window_handle)
 void VideoBackend::Video_Prepare()
 {
   // internal interfaces
-  g_renderer = std::make_unique<Renderer>(m_window_handle);
+  g_renderer = std::make_unique<Renderer>();
   g_texture_cache = std::make_unique<TextureCache>();
   g_vertex_manager = std::make_unique<VertexManager>();
   g_perf_query = std::make_unique<PerfQuery>();

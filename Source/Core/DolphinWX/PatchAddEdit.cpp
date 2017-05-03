@@ -52,7 +52,8 @@ void CPatchAddEdit::CreateGUIControls(int _selection)
 
   itCurEntry = tempEntries.begin();
 
-  wxBoxSizer* sEditPatch = new wxBoxSizer(wxVERTICAL);
+  const int space5 = FromDIP(5);
+  const int space10 = FromDIP(10);
 
   wxStaticText* EditPatchNameText = new wxStaticText(this, wxID_ANY, _("Name:"));
   EditPatchName = new wxTextCtrl(this, wxID_ANY);
@@ -89,32 +90,38 @@ void CPatchAddEdit::CreateGUIControls(int _selection)
     EntryRemove->Disable();
 
   wxBoxSizer* sEditPatchName = new wxBoxSizer(wxHORIZONTAL);
-  sEditPatchName->Add(EditPatchNameText, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
-  sEditPatchName->Add(EditPatchName, 1, wxEXPAND | wxALL, 5);
-  sEditPatch->Add(sEditPatchName, 0, wxEXPAND);
+  sEditPatchName->Add(EditPatchNameText, 0, wxALIGN_CENTER_VERTICAL);
+  sEditPatchName->Add(EditPatchName, 1, wxEXPAND | wxLEFT, space5);
   sbEntry = new wxStaticBoxSizer(wxVERTICAL, this,
                                  wxString::Format(_("Entry 1/%d"), (int)tempEntries.size()));
   currentItem = 1;
 
-  wxGridBagSizer* sgEntry = new wxGridBagSizer(0, 0);
-  sgEntry->Add(EditPatchType, wxGBPosition(0, 0), wxGBSpan(1, 2), wxEXPAND | wxALL, 5);
-  sgEntry->Add(EditPatchOffsetText, wxGBPosition(1, 0), wxGBSpan(1, 1),
-               wxALIGN_CENTER_VERTICAL | wxALL, 5);
-  sgEntry->Add(EditPatchOffset, wxGBPosition(1, 1), wxGBSpan(1, 1), wxEXPAND | wxALL, 5);
-  sgEntry->Add(EditPatchValueText, wxGBPosition(2, 0), wxGBSpan(1, 1),
-               wxALIGN_CENTER_VERTICAL | wxALL, 5);
-  sgEntry->Add(EditPatchValue, wxGBPosition(2, 1), wxGBSpan(1, 1), wxEXPAND | wxALL, 5);
-  sgEntry->Add(EntrySelection, wxGBPosition(0, 2), wxGBSpan(3, 1), wxEXPAND | wxALL, 5);
+  wxGridBagSizer* sgEntry = new wxGridBagSizer(space10, space10);
+  sgEntry->Add(EditPatchType, wxGBPosition(0, 0), wxGBSpan(1, 2), wxEXPAND);
+  sgEntry->Add(EditPatchOffsetText, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL);
+  sgEntry->Add(EditPatchOffset, wxGBPosition(1, 1), wxGBSpan(1, 1), wxEXPAND);
+  sgEntry->Add(EditPatchValueText, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL);
+  sgEntry->Add(EditPatchValue, wxGBPosition(2, 1), wxGBSpan(1, 1), wxEXPAND);
+  sgEntry->Add(EntrySelection, wxGBPosition(0, 2), wxGBSpan(3, 1), wxEXPAND);
   sgEntry->AddGrowableCol(1);
 
   wxBoxSizer* sEntryAddRemove = new wxBoxSizer(wxHORIZONTAL);
-  sEntryAddRemove->Add(EntryAdd, 0, wxALL, 5);
-  sEntryAddRemove->Add(EntryRemove, 0, wxALL, 5);
-  sbEntry->Add(sgEntry, 0, wxEXPAND);
-  sbEntry->Add(sEntryAddRemove, 0, wxEXPAND);
+  sEntryAddRemove->Add(EntryAdd, 0, wxALIGN_CENTER_VERTICAL);
+  sEntryAddRemove->Add(EntryRemove, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, space5);
+  sbEntry->AddSpacer(space5);
+  sbEntry->Add(sgEntry, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  sbEntry->AddSpacer(space5);
+  sbEntry->Add(sEntryAddRemove, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  sbEntry->AddSpacer(space5);
 
-  sEditPatch->Add(sbEntry, 0, wxEXPAND | wxALL, 5);
-  sEditPatch->Add(CreateButtonSizer(wxOK | wxCANCEL), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
+  wxBoxSizer* sEditPatch = new wxBoxSizer(wxVERTICAL);
+  sEditPatch->AddSpacer(space5);
+  sEditPatch->Add(sEditPatchName, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  sEditPatch->AddSpacer(space5);
+  sEditPatch->Add(sbEntry, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  sEditPatch->AddSpacer(space5);
+  sEditPatch->Add(CreateButtonSizer(wxOK | wxCANCEL), 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  sEditPatch->AddSpacer(space5);
   SetSizerAndFit(sEditPatch);
   SetFocus();
 }

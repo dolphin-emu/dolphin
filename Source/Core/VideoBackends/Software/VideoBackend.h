@@ -7,11 +7,6 @@
 #include <string>
 #include "VideoCommon/VideoBackendBase.h"
 
-namespace MMIO
-{
-class Mapping;
-}
-
 namespace SW
 {
 class VideoSoftware : public VideoBackendBase

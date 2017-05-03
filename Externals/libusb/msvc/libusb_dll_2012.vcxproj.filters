@@ -35,7 +35,7 @@
     <ClCompile Include="..\libusb\os\threads_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\libusb\os\windows_usb.c">
+    <ClCompile Include="..\libusb\os\windows_winusb.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\libusb\hotplug.c">
@@ -58,7 +58,7 @@
     <ClInclude Include="..\libusb\os\threads_windows.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\libusb\os\windows_usb.h">
+    <ClInclude Include="..\libusb\os\windows_winusb.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\libusb\version.h">

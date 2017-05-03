@@ -46,7 +46,7 @@ GLuint OpenGL_CompileProgram(const std::string& vertexShader, const std::string&
   }
   else
   {
-    DEBUG_LOG(VIDEO, "GLSL vertex shader compiled:\n%s", vertexShader.c_str());
+    INFO_LOG(VIDEO, "GLSL vertex shader compiled:\n%s", vertexShader.c_str());
   }
 
   bool shader_errors = !Result;
@@ -70,7 +70,7 @@ GLuint OpenGL_CompileProgram(const std::string& vertexShader, const std::string&
   }
   else
   {
-    DEBUG_LOG(VIDEO, "GLSL fragment shader compiled:\n%s", fragmentShader.c_str());
+    INFO_LOG(VIDEO, "GLSL fragment shader compiled:\n%s", fragmentShader.c_str());
   }
 
   shader_errors |= !Result;

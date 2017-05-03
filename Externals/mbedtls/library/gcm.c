@@ -362,7 +362,7 @@ int mbedtls_gcm_update( mbedtls_gcm_context *ctx,
     /* Total length is restricted to 2^39 - 256 bits, ie 2^36 - 2^5 bytes
      * Also check for possible overflow */
     if( ctx->len + length < ctx->len ||
-        (uint64_t) ctx->len + length > 0x03FFFFE0ull )
+        (uint64_t) ctx->len + length > 0xFFFFFFFE0ull )
     {
         return( MBEDTLS_ERR_GCM_BAD_INPUT );
     }
@@ -415,8 +415,7 @@ int mbedtls_gcm_finish( mbedtls_gcm_context *ctx,
     if( tag_len > 16 || tag_len < 4 )
         return( MBEDTLS_ERR_GCM_BAD_INPUT );
 
-    if( tag_len != 0 )
-        memcpy( tag, ctx->base_ectr, tag_len );
+    memcpy( tag, ctx->base_ectr, tag_len );
 
     if( orig_len || orig_add_len )
     {

@@ -16,6 +16,11 @@ class FifoDataFile;
 struct MemoryUpdate;
 struct AnalyzedFrameInfo;
 
+namespace CPU
+{
+enum class State;
+}
+
 // Story time:
 // When FifoRecorder was created, efb copies weren't really used or they used efb2tex which ignored
 // the underlying memory, so FifoRecorder didn't do anything special about the memory backing efb
@@ -94,7 +99,7 @@ private:
 
   FifoPlayer();
 
-  int AdvanceFrame();
+  CPU::State AdvanceFrame();
 
   void WriteFrame(const FifoFrameInfo& frame, const AnalyzedFrameInfo& info);
   void WriteFramePart(u32 dataStart, u32 dataEnd, u32& nextMemUpdate, const FifoFrameInfo& frame,
@@ -110,6 +115,8 @@ private:
   void SetupFifo();
 
   void LoadMemory();
+  void LoadRegisters();
+  void LoadTextureMemory();
 
   void WriteCP(u32 address, u16 value);
   void WritePI(u32 address, u32 value);
@@ -128,21 +135,21 @@ private:
 
   bool m_Loop;
 
-  u32 m_CurrentFrame;
-  u32 m_FrameRangeStart;
-  u32 m_FrameRangeEnd;
+  u32 m_CurrentFrame = 0;
+  u32 m_FrameRangeStart = 0;
+  u32 m_FrameRangeEnd = 0;
 
-  u32 m_ObjectRangeStart;
-  u32 m_ObjectRangeEnd;
+  u32 m_ObjectRangeStart = 0;
+  u32 m_ObjectRangeEnd = 10000;
 
-  bool m_EarlyMemoryUpdates;
+  bool m_EarlyMemoryUpdates = false;
 
-  u64 m_CyclesPerFrame;
-  u32 m_ElapsedCycles;
-  u32 m_FrameFifoSize;
+  u64 m_CyclesPerFrame = 0;
+  u32 m_ElapsedCycles = 0;
+  u32 m_FrameFifoSize = 0;
 
-  CallbackFunc m_FileLoadedCb;
-  CallbackFunc m_FrameWrittenCb;
+  CallbackFunc m_FileLoadedCb = nullptr;
+  CallbackFunc m_FrameWrittenCb = nullptr;
 
   std::unique_ptr<FifoDataFile> m_File;
 

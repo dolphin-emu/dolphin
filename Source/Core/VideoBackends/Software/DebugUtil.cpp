@@ -2,19 +2,20 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoBackends/Software/DebugUtil.h"
+
+#include <cstring>
+
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
+#include "Common/Swap.h"
 
-#include "Core/ConfigManager.h"
-
-#include "VideoBackends/Software/DebugUtil.h"
 #include "VideoBackends/Software/EfbInterface.h"
 #include "VideoBackends/Software/SWRenderer.h"
 #include "VideoBackends/Software/TextureSampler.h"
 
 #include "VideoCommon/BPMemory.h"
-#include "VideoCommon/Fifo.h"
 #include "VideoCommon/ImageWrite.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VideoConfig.h"
@@ -133,18 +134,16 @@ static void DumpEfb(const std::string& filename)
 {
   u8* data = new u8[EFB_WIDTH * EFB_HEIGHT * 4];
   u8* writePtr = data;
-  u8 sample[4];
 
   for (int y = 0; y < EFB_HEIGHT; y++)
   {
     for (int x = 0; x < EFB_WIDTH; x++)
     {
-      EfbInterface::GetColor(x, y, sample);
       // ABGR to RGBA
-      *(writePtr++) = sample[3];
-      *(writePtr++) = sample[2];
-      *(writePtr++) = sample[1];
-      *(writePtr++) = sample[0];
+      const u32 sample = Common::swap32(EfbInterface::GetColor(x, y));
+
+      std::memcpy(writePtr, &sample, sizeof(u32));
+      writePtr += sizeof(u32);
     }
   }
 
@@ -152,7 +151,8 @@ static void DumpEfb(const std::string& filename)
   delete[] data;
 }
 
-void DrawObjectBuffer(s16 x, s16 y, u8* color, int bufferBase, int subBuffer, const char* name)
+void DrawObjectBuffer(s16 x, s16 y, const u8* color, int bufferBase, int subBuffer,
+                      const char* name)
 {
   int buffer = bufferBase + subBuffer;
 
@@ -168,7 +168,7 @@ void DrawObjectBuffer(s16 x, s16 y, u8* color, int bufferBase, int subBuffer, co
   BufferBase[buffer] = bufferBase;
 }
 
-void DrawTempBuffer(u8* color, int buffer)
+void DrawTempBuffer(const u8* color, int buffer)
 {
   u8* dst = (u8*)&TempBuffer[buffer];
   *(dst++) = color[2];
@@ -191,40 +191,32 @@ void CopyTempBuffer(s16 x, s16 y, int bufferBase, int subBuffer, const char* nam
 
 void OnObjectBegin()
 {
-  if (!Fifo::WillSkipCurrentFrame())
-  {
-    if (g_ActiveConfig.bDumpTextures &&
-        stats.thisFrame.numDrawnObjects >= g_ActiveConfig.drawStart &&
-        stats.thisFrame.numDrawnObjects < g_ActiveConfig.drawEnd)
-      DumpActiveTextures();
-  }
+  if (g_ActiveConfig.bDumpTextures && stats.thisFrame.numDrawnObjects >= g_ActiveConfig.drawStart &&
+      stats.thisFrame.numDrawnObjects < g_ActiveConfig.drawEnd)
+    DumpActiveTextures();
 }
 
 void OnObjectEnd()
 {
-  if (!Fifo::WillSkipCurrentFrame())
+  if (g_ActiveConfig.bDumpObjects && stats.thisFrame.numDrawnObjects >= g_ActiveConfig.drawStart &&
+      stats.thisFrame.numDrawnObjects < g_ActiveConfig.drawEnd)
+    DumpEfb(StringFromFormat("%sobject%i.png", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(),
+                             stats.thisFrame.numDrawnObjects));
+
+  for (int i = 0; i < NUM_OBJECT_BUFFERS; i++)
   {
-    if (g_ActiveConfig.bDumpObjects &&
-        stats.thisFrame.numDrawnObjects >= g_ActiveConfig.drawStart &&
-        stats.thisFrame.numDrawnObjects < g_ActiveConfig.drawEnd)
-      DumpEfb(StringFromFormat("%sobject%i.png", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(),
-                               stats.thisFrame.numDrawnObjects));
-
-    for (int i = 0; i < NUM_OBJECT_BUFFERS; i++)
+    if (DrawnToBuffer[i])
     {
-      if (DrawnToBuffer[i])
-      {
-        DrawnToBuffer[i] = false;
-        std::string filename = StringFromFormat(
-            "%sobject%i_%s(%i).png", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(),
-            stats.thisFrame.numDrawnObjects, ObjectBufferName[i], i - BufferBase[i]);
+      DrawnToBuffer[i] = false;
+      std::string filename =
+          StringFromFormat("%sobject%i_%s(%i).png", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(),
+                           stats.thisFrame.numDrawnObjects, ObjectBufferName[i], i - BufferBase[i]);
 
-        TextureToPng((u8*)ObjectBuffer[i], EFB_WIDTH * 4, filename, EFB_WIDTH, EFB_HEIGHT, true);
-        memset(ObjectBuffer[i], 0, EFB_WIDTH * EFB_HEIGHT * sizeof(u32));
-      }
+      TextureToPng((u8*)ObjectBuffer[i], EFB_WIDTH * 4, filename, EFB_WIDTH, EFB_HEIGHT, true);
+      memset(ObjectBuffer[i], 0, EFB_WIDTH * EFB_HEIGHT * sizeof(u32));
     }
-
-    stats.thisFrame.numDrawnObjects++;
   }
+
+  stats.thisFrame.numDrawnObjects++;
 }
 }

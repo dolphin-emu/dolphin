@@ -1,5 +1,6 @@
 package org.dolphinemu.dolphinemu.adapters;
 
+import android.os.Environment;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -197,12 +198,15 @@ public final class FileAdapter extends RecyclerView.Adapter<FileViewHolder> impl
 
 	public void upOneLevel()
 	{
-		File currentDirectory = new File(mPath);
-		File parentDirectory = currentDirectory.getParentFile();
+		if (!mPath.equals("/"))
+		{
+			File currentDirectory = new File(mPath);
+			File parentDirectory = currentDirectory.getParentFile();
 
-		mFileList = generateFileList(parentDirectory);
-		notifyDataSetChanged();
-		mListener.updateSubtitle(mPath);
+			mFileList = generateFileList(parentDirectory);
+			notifyDataSetChanged();
+			mListener.updateSubtitle(mPath);
+		}
 	}
 
 	/**

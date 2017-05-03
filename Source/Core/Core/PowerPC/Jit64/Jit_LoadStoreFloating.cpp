@@ -4,12 +4,10 @@
 
 #include "Core/PowerPC/Jit64/Jit.h"
 #include "Common/BitSet.h"
-#include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
 #include "Common/x64Emitter.h"
-#include "Core/ConfigManager.h"
 #include "Core/PowerPC/Jit64/JitRegCache.h"
-#include "Core/PowerPC/JitCommon/Jit_Util.h"
+#include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
 
 using namespace Gen;
 
@@ -107,7 +105,7 @@ void Jit64::stfXXX(UGeckoInstruction inst)
 
   if (single)
   {
-    if (jit->js.op->fprIsStoreSafe[s])
+    if (js.op->fprIsStoreSafe[s])
     {
       CVTSD2SS(XMM0, fpr.R(s));
     }

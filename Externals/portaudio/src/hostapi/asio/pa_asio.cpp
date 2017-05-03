@@ -1,5 +1,5 @@
 /*
- * $Id: pa_asio.cpp 1778 2011-11-10 13:59:53Z rossb $
+ * $Id$
  * Portable Audio I/O Library for ASIO Drivers
  *
  * Author: Stephane Letz
@@ -1019,6 +1019,149 @@ static ASIOSampleRate defaultSampleRateSearchOrder_[]
         192000.0, 16000.0, 12000.0, 11025.0, 9600.0, 8000.0 };
 
 
+static PaError InitPaDeviceInfoFromAsioDriver( PaAsioHostApiRepresentation *asioHostApi, 
+        const char *driverName, int driverIndex,
+        PaDeviceInfo *deviceInfo, PaAsioDeviceInfo *asioDeviceInfo )
+{
+    PaError result = paNoError;
+
+    /* Due to the headless design of the ASIO API, drivers are free to write over data given to them (like M-Audio
+       drivers f.i.). This is an attempt to overcome that. */
+    union _tag_local {
+        PaAsioDriverInfo info;
+        char _padding[4096];
+    } paAsioDriver;
+
+    asioDeviceInfo->asioChannelInfos = 0; /* we check this below to handle error cleanup */
+
+    result = LoadAsioDriver( asioHostApi, driverName, &paAsioDriver.info, asioHostApi->systemSpecific );
+    if( result == paNoError )
+    {
+        PA_DEBUG(("PaAsio_Initialize: drv:%d name = %s\n",  driverIndex,deviceInfo->name));
+        PA_DEBUG(("PaAsio_Initialize: drv:%d inputChannels       = %d\n", driverIndex, paAsioDriver.info.inputChannelCount));
+        PA_DEBUG(("PaAsio_Initialize: drv:%d outputChannels      = %d\n", driverIndex, paAsioDriver.info.outputChannelCount));
+        PA_DEBUG(("PaAsio_Initialize: drv:%d bufferMinSize       = %d\n", driverIndex, paAsioDriver.info.bufferMinSize));
+        PA_DEBUG(("PaAsio_Initialize: drv:%d bufferMaxSize       = %d\n", driverIndex, paAsioDriver.info.bufferMaxSize));
+        PA_DEBUG(("PaAsio_Initialize: drv:%d bufferPreferredSize = %d\n", driverIndex, paAsioDriver.info.bufferPreferredSize));
+        PA_DEBUG(("PaAsio_Initialize: drv:%d bufferGranularity   = %d\n", driverIndex, paAsioDriver.info.bufferGranularity));
+
+        deviceInfo->maxInputChannels  = paAsioDriver.info.inputChannelCount;
+        deviceInfo->maxOutputChannels = paAsioDriver.info.outputChannelCount;
+
+        deviceInfo->defaultSampleRate = 0.;
+        bool foundDefaultSampleRate = false;
+        for( int j=0; j < PA_DEFAULTSAMPLERATESEARCHORDER_COUNT_; ++j )
+        {
+            ASIOError asioError = ASIOCanSampleRate( defaultSampleRateSearchOrder_[j] );
+            if( asioError != ASE_NoClock && asioError != ASE_NotPresent )
+            {
+                deviceInfo->defaultSampleRate = defaultSampleRateSearchOrder_[j];
+                foundDefaultSampleRate = true;
+                break;
+            }
+        }
+
+        PA_DEBUG(("PaAsio_Initialize: drv:%d defaultSampleRate = %f\n", driverIndex, deviceInfo->defaultSampleRate));
+
+        if( foundDefaultSampleRate ){
+
+            /* calculate default latency values from bufferPreferredSize
+                for default low latency, and bufferMaxSize
+                for default high latency.
+                use the default sample rate to convert from samples to
+                seconds. Without knowing what sample rate the user will
+                use this is the best we can do.
+            */
+
+            double defaultLowLatency =
+                    paAsioDriver.info.bufferPreferredSize / deviceInfo->defaultSampleRate;
+
+            deviceInfo->defaultLowInputLatency = defaultLowLatency;
+            deviceInfo->defaultLowOutputLatency = defaultLowLatency;
+
+            double defaultHighLatency =
+                    paAsioDriver.info.bufferMaxSize / deviceInfo->defaultSampleRate;
+
+            if( defaultHighLatency < defaultLowLatency )
+                defaultHighLatency = defaultLowLatency; /* just in case the driver returns something strange */ 
+                    
+            deviceInfo->defaultHighInputLatency = defaultHighLatency;
+            deviceInfo->defaultHighOutputLatency = defaultHighLatency;
+            
+        }else{
+
+            deviceInfo->defaultLowInputLatency = 0.;
+            deviceInfo->defaultLowOutputLatency = 0.;
+            deviceInfo->defaultHighInputLatency = 0.;
+            deviceInfo->defaultHighOutputLatency = 0.;
+        }
+
+        PA_DEBUG(("PaAsio_Initialize: drv:%d defaultLowInputLatency = %f\n", driverIndex, deviceInfo->defaultLowInputLatency));
+        PA_DEBUG(("PaAsio_Initialize: drv:%d defaultLowOutputLatency = %f\n", driverIndex, deviceInfo->defaultLowOutputLatency));
+        PA_DEBUG(("PaAsio_Initialize: drv:%d defaultHighInputLatency = %f\n", driverIndex, deviceInfo->defaultHighInputLatency));
+        PA_DEBUG(("PaAsio_Initialize: drv:%d defaultHighOutputLatency = %f\n", driverIndex, deviceInfo->defaultHighOutputLatency));
+
+        asioDeviceInfo->minBufferSize = paAsioDriver.info.bufferMinSize;
+        asioDeviceInfo->maxBufferSize = paAsioDriver.info.bufferMaxSize;
+        asioDeviceInfo->preferredBufferSize = paAsioDriver.info.bufferPreferredSize;
+        asioDeviceInfo->bufferGranularity = paAsioDriver.info.bufferGranularity;
+
+
+        asioDeviceInfo->asioChannelInfos = (ASIOChannelInfo*)PaUtil_GroupAllocateMemory(
+                asioHostApi->allocations,
+                sizeof(ASIOChannelInfo) * (deviceInfo->maxInputChannels
+                        + deviceInfo->maxOutputChannels) );
+        if( !asioDeviceInfo->asioChannelInfos )
+        {
+            result = paInsufficientMemory;
+            goto error_unload;
+        }
+
+        int a;
+
+        for( a=0; a < deviceInfo->maxInputChannels; ++a ){
+            asioDeviceInfo->asioChannelInfos[a].channel = a;
+            asioDeviceInfo->asioChannelInfos[a].isInput = ASIOTrue;
+            ASIOError asioError = ASIOGetChannelInfo( &asioDeviceInfo->asioChannelInfos[a] );
+            if( asioError != ASE_OK )
+            {
+                result = paUnanticipatedHostError;
+                PA_ASIO_SET_LAST_ASIO_ERROR( asioError );
+                goto error_unload;
+            }
+        }
+
+        for( a=0; a < deviceInfo->maxOutputChannels; ++a ){
+            int b = deviceInfo->maxInputChannels + a;
+            asioDeviceInfo->asioChannelInfos[b].channel = a;
+            asioDeviceInfo->asioChannelInfos[b].isInput = ASIOFalse;
+            ASIOError asioError = ASIOGetChannelInfo( &asioDeviceInfo->asioChannelInfos[b] );
+            if( asioError != ASE_OK )
+            {
+                result = paUnanticipatedHostError;
+                PA_ASIO_SET_LAST_ASIO_ERROR( asioError );
+                goto error_unload;
+            }
+        }
+
+        /* unload the driver */
+        UnloadAsioDriver();
+    }
+
+    return result;
+
+error_unload:
+    UnloadAsioDriver();
+
+    if( asioDeviceInfo->asioChannelInfos ){
+        PaUtil_GroupFreeMemory( asioHostApi->allocations, asioDeviceInfo->asioChannelInfos );
+        asioDeviceInfo->asioChannelInfos = 0;
+    }
+
+    return result;
+}
+
+
 /* we look up IsDebuggerPresent at runtime incase it isn't present (on Win95 for example) */
 typedef BOOL (WINAPI *IsDebuggerPresentPtr)(VOID);
 IsDebuggerPresentPtr IsDebuggerPresent_ = 0;
@@ -1031,14 +1174,14 @@ PaError PaAsio_Initialize( PaUtilHostApiRepresentation **hostApi, PaHostApiIndex
     PaAsioHostApiRepresentation *asioHostApi;
     PaAsioDeviceInfo *deviceInfoArray;
     char **names;
-    PaAsioDriverInfo paAsioDriverInfo;
-
     asioHostApi = (PaAsioHostApiRepresentation*)PaUtil_AllocateMemory( sizeof(PaAsioHostApiRepresentation) );
     if( !asioHostApi )
     {
         result = paInsufficientMemory;
         goto error;
     }
+
+    memset( asioHostApi, 0, sizeof(PaAsioHostApiRepresentation) ); /* ensure all fields are zeroed. especially asioHostApi->allocations */
 
     /*
         We initialize COM ourselves here and uninitialize it in Terminate().
@@ -1142,7 +1285,6 @@ PaError PaAsio_Initialize( PaUtilHostApiRepresentation **hostApi, PaHostApiIndex
 
         for( i=0; i < driverCount; ++i )
         {
-
             PA_DEBUG(("ASIO names[%d]:%s\n",i,names[i]));
 
             // Since portaudio opens ALL ASIO drivers, and no one else does that,
@@ -1170,13 +1312,12 @@ PaError PaAsio_Initialize( PaUtilHostApiRepresentation **hostApi, PaHostApiIndex
                 if( strcmp(names[i], "ASIO Digidesign Driver") == 0 )  
                 {
                     PA_DEBUG(("BLACKLISTED!!! ASIO Digidesign Driver would quit the debugger\n"));  
-                    continue;  
+                    continue;
                 }  
             }  
 
 
-            /* Attempt to load the asio driver... */
-            if( LoadAsioDriver( asioHostApi, names[i], &paAsioDriverInfo, asioHostApi->systemSpecific ) == paNoError )
+            /* Attempt to init device info from the asio driver... */
             {
                 PaAsioDeviceInfo *asioDeviceInfo = &deviceInfoArray[ (*hostApi)->info.deviceCount ];
                 PaDeviceInfo *deviceInfo = &asioDeviceInfo->commonDeviceInfo;
@@ -1185,119 +1326,17 @@ PaError PaAsio_Initialize( PaUtilHostApiRepresentation **hostApi, PaHostApiIndex
                 deviceInfo->hostApi = hostApiIndex;
 
                 deviceInfo->name = names[i];
-                PA_DEBUG(("PaAsio_Initialize: drv:%d name = %s\n",  i,deviceInfo->name));
-                PA_DEBUG(("PaAsio_Initialize: drv:%d inputChannels       = %d\n", i, paAsioDriverInfo.inputChannelCount));
-                PA_DEBUG(("PaAsio_Initialize: drv:%d outputChannels      = %d\n", i, paAsioDriverInfo.outputChannelCount));
-                PA_DEBUG(("PaAsio_Initialize: drv:%d bufferMinSize       = %d\n", i, paAsioDriverInfo.bufferMinSize));
-                PA_DEBUG(("PaAsio_Initialize: drv:%d bufferMaxSize       = %d\n", i, paAsioDriverInfo.bufferMaxSize));
-                PA_DEBUG(("PaAsio_Initialize: drv:%d bufferPreferredSize = %d\n", i, paAsioDriverInfo.bufferPreferredSize));
-                PA_DEBUG(("PaAsio_Initialize: drv:%d bufferGranularity   = %d\n", i, paAsioDriverInfo.bufferGranularity));
 
-                deviceInfo->maxInputChannels  = paAsioDriverInfo.inputChannelCount;
-                deviceInfo->maxOutputChannels = paAsioDriverInfo.outputChannelCount;
-
-                deviceInfo->defaultSampleRate = 0.;
-                bool foundDefaultSampleRate = false;
-                for( int j=0; j < PA_DEFAULTSAMPLERATESEARCHORDER_COUNT_; ++j )
+                if( InitPaDeviceInfoFromAsioDriver( asioHostApi, names[i], i, deviceInfo, asioDeviceInfo ) == paNoError )
                 {
-                    ASIOError asioError = ASIOCanSampleRate( defaultSampleRateSearchOrder_[j] );
-                    if( asioError != ASE_NoClock && asioError != ASE_NotPresent )
-                    {
-                        deviceInfo->defaultSampleRate = defaultSampleRateSearchOrder_[j];
-                        foundDefaultSampleRate = true;
-                        break;
-                    }
+                    (*hostApi)->deviceInfos[ (*hostApi)->info.deviceCount ] = deviceInfo;
+                    ++(*hostApi)->info.deviceCount;
                 }
-
-                PA_DEBUG(("PaAsio_Initialize: drv:%d defaultSampleRate = %f\n", i, deviceInfo->defaultSampleRate));
-
-                if( foundDefaultSampleRate ){
-
-                    /* calculate default latency values from bufferPreferredSize
-                        for default low latency, and bufferMaxSize
-                        for default high latency.
-                        use the default sample rate to convert from samples to
-                        seconds. Without knowing what sample rate the user will
-                        use this is the best we can do.
-                    */
-
-                    double defaultLowLatency =
-                            paAsioDriverInfo.bufferPreferredSize / deviceInfo->defaultSampleRate;
-
-                    deviceInfo->defaultLowInputLatency = defaultLowLatency;
-                    deviceInfo->defaultLowOutputLatency = defaultLowLatency;
-
-                    double defaultHighLatency =
-                            paAsioDriverInfo.bufferMaxSize / deviceInfo->defaultSampleRate;
-
-                    if( defaultHighLatency < defaultLowLatency )
-                        defaultHighLatency = defaultLowLatency; /* just in case the driver returns something strange */ 
-                            
-                    deviceInfo->defaultHighInputLatency = defaultHighLatency;
-                    deviceInfo->defaultHighOutputLatency = defaultHighLatency;
-                    
-                }else{
-
-                    deviceInfo->defaultLowInputLatency = 0.;
-                    deviceInfo->defaultLowOutputLatency = 0.;
-                    deviceInfo->defaultHighInputLatency = 0.;
-                    deviceInfo->defaultHighOutputLatency = 0.;
+				else
+				{
+                    PA_DEBUG(("Skipping ASIO device:%s\n",names[i]));
+                    continue;
                 }
-
-                PA_DEBUG(("PaAsio_Initialize: drv:%d defaultLowInputLatency = %f\n", i, deviceInfo->defaultLowInputLatency));
-                PA_DEBUG(("PaAsio_Initialize: drv:%d defaultLowOutputLatency = %f\n", i, deviceInfo->defaultLowOutputLatency));
-                PA_DEBUG(("PaAsio_Initialize: drv:%d defaultHighInputLatency = %f\n", i, deviceInfo->defaultHighInputLatency));
-                PA_DEBUG(("PaAsio_Initialize: drv:%d defaultHighOutputLatency = %f\n", i, deviceInfo->defaultHighOutputLatency));
-
-                asioDeviceInfo->minBufferSize = paAsioDriverInfo.bufferMinSize;
-                asioDeviceInfo->maxBufferSize = paAsioDriverInfo.bufferMaxSize;
-                asioDeviceInfo->preferredBufferSize = paAsioDriverInfo.bufferPreferredSize;
-                asioDeviceInfo->bufferGranularity = paAsioDriverInfo.bufferGranularity;
-
-
-                asioDeviceInfo->asioChannelInfos = (ASIOChannelInfo*)PaUtil_GroupAllocateMemory(
-                        asioHostApi->allocations,
-                        sizeof(ASIOChannelInfo) * (deviceInfo->maxInputChannels
-                                + deviceInfo->maxOutputChannels) );
-                if( !asioDeviceInfo->asioChannelInfos )
-                {
-                    result = paInsufficientMemory;
-                    goto error_unload;
-                }
-
-                int a;
-
-                for( a=0; a < deviceInfo->maxInputChannels; ++a ){
-                    asioDeviceInfo->asioChannelInfos[a].channel = a;
-                    asioDeviceInfo->asioChannelInfos[a].isInput = ASIOTrue;
-                    ASIOError asioError = ASIOGetChannelInfo( &asioDeviceInfo->asioChannelInfos[a] );
-                    if( asioError != ASE_OK )
-                    {
-                        result = paUnanticipatedHostError;
-                        PA_ASIO_SET_LAST_ASIO_ERROR( asioError );
-                        goto error_unload;
-                    }
-                }
-
-                for( a=0; a < deviceInfo->maxOutputChannels; ++a ){
-                    int b = deviceInfo->maxInputChannels + a;
-                    asioDeviceInfo->asioChannelInfos[b].channel = a;
-                    asioDeviceInfo->asioChannelInfos[b].isInput = ASIOFalse;
-                    ASIOError asioError = ASIOGetChannelInfo( &asioDeviceInfo->asioChannelInfos[b] );
-                    if( asioError != ASE_OK )
-                    {
-                        result = paUnanticipatedHostError;
-                        PA_ASIO_SET_LAST_ASIO_ERROR( asioError );
-                        goto error_unload;
-                    }
-                }
-
-
-                /* unload the driver */
-                UnloadAsioDriver();
-
-                (*hostApi)->deviceInfos[ (*hostApi)->info.deviceCount ] = deviceInfo;
-                ++(*hostApi)->info.deviceCount;
             }
         }
     }
@@ -1330,9 +1369,6 @@ PaError PaAsio_Initialize( PaUtilHostApiRepresentation **hostApi, PaHostApiIndex
                                       ReadStream, WriteStream, GetStreamReadAvailable, GetStreamWriteAvailable );
 
     return result;
-
-error_unload:
-	UnloadAsioDriver();
 
 error:
     if( asioHostApi )
@@ -1744,7 +1780,7 @@ static unsigned long SelectHostBufferSizeForSpecifiedUserFramesPerBuffer(
 		do {
 			if( (x % userFramesPerBuffer) == 0 )
 			{
-                /* any power-of-two multiple of userFramesPerBuffer is acceptable */
+                /* any multiple of userFramesPerBuffer is acceptable */
 				result = x;
 				if( result >= targetBufferingLatencyFrames )
 					break; /* stop. a value >= to targetBufferingLatencyFrames is ideal. */
@@ -1767,7 +1803,7 @@ static unsigned long SelectHostBufferSizeForSpecifiedUserFramesPerBuffer(
 		do {
 			if( (x % userFramesPerBuffer) == 0 )
 			{
-                /* any power-of-two multiple of userFramesPerBuffer is acceptable */
+                /* any multiple of userFramesPerBuffer is acceptable */
 				result = x;
 				if( result >= targetBufferingLatencyFrames )
 					break; /* stop. a value >= to targetBufferingLatencyFrames is ideal. */
@@ -2447,10 +2483,10 @@ static PaError OpenStream( struct PaUtilHostApiRepresentation *hostApi,
         result = PaUtil_InitializeBufferProcessor( &stream->bufferProcessor               ,
                                                     inputChannelCount                     ,
                                                     inputSampleFormat & ~paNonInterleaved , /* Ring buffer. */
-                                                    hostInputSampleFormat                 , /* Host format. */
+                                                    (hostInputSampleFormat | paNonInterleaved), /* Host format. */
                                                     outputChannelCount                    ,
                                                     outputSampleFormat & ~paNonInterleaved, /* Ring buffer. */
-                                                    hostOutputSampleFormat                , /* Host format. */
+                                                    (hostOutputSampleFormat | paNonInterleaved), /* Host format. */
                                                     sampleRate                            ,
                                                     streamFlags                           ,
                                                     framesPerBuffer                       , /* Frames per ring buffer block. */
@@ -3046,7 +3082,7 @@ previousIndex = index;
                 paTimeInfo.outputBufferDacTime = paTimeInfo.currentTime + theAsioStream->streamRepresentation.streamInfo.outputLatency;
                 */
 
-/* Disabled! Stopping and re-starting the stream causes an input overflow / output undeflow. S.Fischer */
+/* Disabled! Stopping and re-starting the stream causes an input overflow / output underflow. S.Fischer */
 #if 0
 // detect underflows by checking inter-callback time > 2 buffer period
 static double previousTime = -1;
@@ -3498,6 +3534,7 @@ static PaError IsStreamActive( PaStream *s )
 static PaTime GetStreamTime( PaStream *s )
 {
     (void) s; /* unused parameter */
+
     return (double)timeGetTime() * .001;
 }
 

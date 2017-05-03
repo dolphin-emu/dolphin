@@ -18,6 +18,9 @@ IFileSystem::~IFileSystem()
 
 std::unique_ptr<IFileSystem> CreateFileSystem(const IVolume* volume)
 {
+  if (!volume)
+    return nullptr;
+
   std::unique_ptr<IFileSystem> filesystem = std::make_unique<CFileSystemGCWii>(volume);
 
   if (!filesystem)

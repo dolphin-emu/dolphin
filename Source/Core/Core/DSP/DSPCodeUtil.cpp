@@ -15,6 +15,8 @@
 #include "Core/DSP/DSPCodeUtil.h"
 #include "Core/DSP/DSPDisassembler.h"
 
+namespace DSP
+{
 bool Assemble(const std::string& text, std::vector<u16>& code, bool force)
 {
   AssemblerSettings settings;
@@ -216,3 +218,4 @@ bool SaveBinary(const std::vector<u16>& code, const std::string& filename)
     return false;
   return true;
 }
+}  // namespace DSP

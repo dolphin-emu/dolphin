@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <set xmlns:android="http://schemas.android.com/apk/res/android">
+
     <objectAnimator
         android:propertyName="translationX"
         android:valueType="floatType"
@@ -7,6 +8,7 @@
         android:valueTo="0"
         android:interpolator="@android:interpolator/decelerate_quad"
         android:duration="300"/>
+
     <objectAnimator
         android:propertyName="alpha"
         android:valueType="floatType"
@@ -14,4 +16,5 @@
         android:valueTo="1"
         android:interpolator="@android:interpolator/accelerate_quad"
         android:duration="300"/>
+
 </set>

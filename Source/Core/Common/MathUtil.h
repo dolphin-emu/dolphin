@@ -5,10 +5,15 @@
 #pragma once
 
 #include <algorithm>
+#include <array>
 #include <cstdlib>
 #include <vector>
 
 #include "Common/CommonTypes.h"
+
+#ifdef _MSC_VER
+#include <intrin.h>
+#endif
 
 namespace MathUtil
 {
@@ -24,6 +29,7 @@ constexpr T SNANConstant()
 // will use __builtin_nans, which is improperly handled by the compiler and generates
 // a bad constant. Here we go back to the version MSVC used before the builtin.
 // TODO: Remove this and use numeric_limits directly whenever this bug is fixed.
+
 template <>
 constexpr double SNANConstant()
 {
@@ -57,14 +63,16 @@ static const u64 DOUBLE_SIGN = 0x8000000000000000ULL, DOUBLE_EXP = 0x7FF00000000
 static const u32 FLOAT_SIGN = 0x80000000, FLOAT_EXP = 0x7F800000, FLOAT_FRAC = 0x007FFFFF,
                  FLOAT_ZERO = 0x00000000;
 
-union IntDouble {
+union IntDouble
+{
   double d;
   u64 i;
 
   explicit IntDouble(u64 _i) : i(_i) {}
   explicit IntDouble(double _d) : d(_d) {}
 };
-union IntFloat {
+union IntFloat
+{
   float f;
   u32 i;
 
@@ -124,10 +132,13 @@ u32 ClassifyDouble(double dvalue);
 // More efficient float version.
 u32 ClassifyFloat(float fvalue);
 
-extern const int frsqrte_expected_base[];
-extern const int frsqrte_expected_dec[];
-extern const int fres_expected_base[];
-extern const int fres_expected_dec[];
+struct BaseAndDec
+{
+  int m_base;
+  int m_dec;
+};
+extern const std::array<BaseAndDec, 32> frsqrte_expected;
+extern const std::array<BaseAndDec, 32> fres_expected;
 
 // PowerPC approximation algorithms
 double ApproximateReciprocalSquareRoot(double val);
@@ -179,9 +190,6 @@ struct Rectangle
 }  // namespace MathUtil
 
 float MathFloatVectorSum(const std::vector<float>&);
-
-#define ROUND_UP(x, a) (((x) + (a)-1) & ~((a)-1))
-#define ROUND_DOWN(x, a) ((x) & ~((a)-1))
 
 // Rounds down. 0 -> undefined
 inline int IntLog2(u64 val)

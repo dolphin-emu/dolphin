@@ -4,26 +4,15 @@
 
 #pragma once
 
-#include <cstring>
+#include <array>
 #include <wx/grid.h>
 
 #include "Common/CommonTypes.h"
 
-class CDSPRegTable : public wxGridTableBase
+class CDSPRegTable final : public wxGridTableBase
 {
-private:
-  u64 m_CachedCounter;
-  u16 m_CachedRegs[32];
-  bool m_CachedRegHasChanged[32];
-
-  DECLARE_NO_COPY_CLASS(CDSPRegTable);
-
 public:
-  CDSPRegTable()
-  {
-    memset(m_CachedRegs, 0, sizeof(m_CachedRegs));
-    memset(m_CachedRegHasChanged, 0, sizeof(m_CachedRegHasChanged));
-  }
+  CDSPRegTable() = default;
 
   int GetNumberCols() override { return 2; }
   int GetNumberRows() override { return 32; }
@@ -32,13 +21,20 @@ public:
   void SetValue(int row, int col, const wxString&) override;
   wxGridCellAttr* GetAttr(int, int, wxGridCellAttr::wxAttrKind) override;
   void UpdateCachedRegs();
+
+private:
+  u64 m_CachedCounter = 0;
+  std::array<u16, 32> m_CachedRegs{};
+  std::array<bool, 32> m_CachedRegHasChanged{};
+
+  DECLARE_NO_COPY_CLASS(CDSPRegTable);
 };
 
-class DSPRegisterView : public wxGrid
+class DSPRegisterView final : public wxGrid
 {
 public:
-  DSPRegisterView(wxWindow* parent, wxWindowID id = wxID_ANY);
-  void Update() override;
+  explicit DSPRegisterView(wxWindow* parent, wxWindowID id = wxID_ANY);
+  void Repopulate();
 
 private:
   // Owned by wx. Deleted implicitly upon destruction.

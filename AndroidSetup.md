@@ -4,16 +4,9 @@ If you'd like to contribute to the Android project, but do not currently have a 
 
 ## Prerequisites
 
-* A Linux VM or host, or a Mac.
-* JDK 7 for your platform.
-* CMake
-* [Android NDK](https://developer.android.com/tools/sdk/ndk/index.html) 
-* [Android Studio](http://developer.android.com/tools/studio/index.html) **OR**
-* [Android SDK Tools](http://developer.android.com/sdk/index.html#Other) (for command-line usage)
+* [Android Studio](http://developer.android.com/tools/studio/index.html)
 
 If you downloaded Android Studio, extract it and then see [Setting up Android Studio](#setting-up-android-studio).
-
-If you instead chose to download the commoand-line SDK tools, see [Setting up the SDK Tools](#setting-up-the-sdk-tools).
 
 ## Setting up Android Studio
 
@@ -25,12 +18,6 @@ If you instead chose to download the commoand-line SDK tools, see [Setting up th
 6. At the Android Studio welcome screen, click "Configure", then "SDK Manager".
 7. Use the SDK Manager to get necessary dependencies, as described in [Getting Dependencies](#getting-dependencies).
 8. When done, follow the steps in [Readme.md](Readme.md#installation-on-android) to compile and deploy the application.
-
-## Setting up the SDK Tools
-
-1. In `Source/Android`, create a file called `local.properties`.
-2. Add a single line: `sdk.dir=<sdk-path>`, where `<sdk-path>` is the path where you extracted the SDK Tools package.
-3. Follow the steps in [Readme.md](Readme.md#installation-on-android) to compile and deploy the application.
 
 ## Executing Gradle Tasks
 
@@ -50,15 +37,10 @@ For command-line users, any task may be executed with `Source/Android/gradlew <t
 
 Most dependencies for the Android project are supplied by Gradle automatically. However, Android platform libraries (and a few Google-supplied supplementary libraries) must be downloaded through the Android package manager.
 
-1. Launch the Android SDK Manager from the commandline by executing `<sdk-path>/tools/android`, or by clicking on its icon in Android Studio's main toolbar:
+1. Launch the Android SDK Manager by clicking on its icon in Android Studio's main toolbar:
 ![Android Studio Package Icon][package-icon]
-2. At the bottom of the window, click "Deselect All", and then "Updates".
-3. Install or update the following packages:
-
-* SDK Platform, under "Android 5.0.1 (API 21)". This will allow compiling apps that target Lollipop.
-* Android Support Repository
-* Android Support Library
-* Google Repository
+2. Install or update the SDK Platform. Choose the API level selected as [compileSdkVersion](Source/Android/app/build.gradle#L5).
+3. Install or update the SDK Tools. CMake, LLDB and NDK. If you don't use android-studio, please check out https://github.com/Commit451/android-cmake-installer.
 
 In the future, if the project targets a newer version of Android, or use newer versions of the tools/build-tools packages, it will be necessary to use this tool to download updates.
 

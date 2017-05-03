@@ -3,8 +3,9 @@
       xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/menu_exit_no_save"
-        android:title="@string/preferences_exit_no_save"
-        android:icon="@drawable/ic_cancel"
+        android:id="@+id/menu_save_exit"
+        android:title="@string/preferences_save_exit"
+        android:icon="@drawable/ic_quicksave"
         app:showAsAction="ifRoom"/>
+
 </menu>

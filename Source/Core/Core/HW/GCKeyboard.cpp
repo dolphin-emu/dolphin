@@ -2,12 +2,16 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/HW/GCKeyboard.h"
+
 #include <cstring>
 
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
-#include "Core/HW/GCKeyboard.h"
+
 #include "Core/HW/GCKeyboardEmu.h"
+
+#include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/InputConfig.h"
 #include "InputCommon/KeyboardStatus.h"
@@ -23,11 +27,9 @@ InputConfig* GetConfig()
 void Shutdown()
 {
   s_config.ClearControllers();
-
-  g_controller_interface.Shutdown();
 }
 
-void Initialize(void* const hwnd)
+void Initialize()
 {
   if (s_config.ControllersNeedToBeCreated())
   {
@@ -35,7 +37,6 @@ void Initialize(void* const hwnd)
       s_config.CreateController<GCKeyboard>(i);
   }
 
-  g_controller_interface.Initialize(hwnd);
   g_controller_interface.RegisterHotplugCallback(LoadConfig);
 
   // Load the saved controller config
@@ -47,7 +48,12 @@ void LoadConfig()
   s_config.LoadConfig(true);
 }
 
-KeyboardStatus GetStatus(u8 port)
+ControllerEmu::ControlGroup* GetGroup(int port, KeyboardGroup group)
+{
+  return static_cast<GCKeyboard*>(s_config.GetController(port))->GetGroup(group);
+}
+
+KeyboardStatus GetStatus(int port)
 {
   return static_cast<GCKeyboard*>(s_config.GetController(port))->GetInput();
 }

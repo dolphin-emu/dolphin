@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <functional>
 #include <string>
 
 #include "Common/CommonTypes.h"
@@ -48,15 +49,6 @@ struct ControllerState
 static_assert(sizeof(ControllerState) == 8, "ControllerState should be 8 bytes");
 #pragma pack(pop)
 
-// Global declarations
-extern bool g_bDiscChange, g_bClearSave, g_bReset;
-extern u64 g_titleID;
-
-extern u64 g_currentFrame, g_totalFrames;
-extern u64 g_currentLagCount;
-extern u64 g_currentInputCount, g_totalInputCount;
-extern std::string g_discChange;
-
 #pragma pack(push, 1)
 struct DTMHeader
 {
@@ -65,7 +57,8 @@ struct DTMHeader
   char gameID[6];  // The Game ID
   bool bWii;       // Wii game
 
-  u8 numControllers;  // The number of connected controllers (1-4)
+  u8 controllers;  // Controllers plugged in (from least to most significant,
+                   // the bits are GC controllers 1-4 and Wiimotes 1-4)
 
   bool
       bFromSaveState;  // false indicates that the recording started from bootup, true for savestate
@@ -96,9 +89,9 @@ struct DTMHeader
   bool bEFBEmulateFormatChanges;
   bool bUseXFB;
   bool bUseRealXFB;
-  u8 memcards;
+  u8 memcards;      // Memcards inserted (from least to most significant, the bits are slot A and B)
   bool bClearSave;  // Create a new memory card when playing back a movie if true
-  u8 bongos;
+  u8 bongos;        // Bongos plugged in (from least to most significant, the bits are ports 1-4)
   bool bSyncGPU;
   bool bNetPlay;
   bool bPAL60;
@@ -130,11 +123,21 @@ bool IsMovieActive();
 bool IsReadOnly();
 u64 GetRecordingStartTime();
 
+u64 GetCurrentFrame();
+u64 GetTotalFrames();
+u64 GetCurrentInputCount();
+u64 GetTotalInputCount();
+u64 GetCurrentLagCount();
+u64 GetTotalLagCount();
+
+void SetClearSave(bool enabled);
+void SignalDiscChange(const std::string& new_path);
+void SetReset(bool reset);
+
 bool IsConfigSaved();
 bool IsDualCore();
 bool IsProgressive();
 bool IsPAL60();
-bool IsSkipIdle();
 bool IsDSPHLE();
 bool IsFastDiscSpeed();
 int GetCPUMode();
@@ -154,9 +157,6 @@ void ChangeWiiPads(bool instantly = false);
 
 void DoFrameStep();
 void SetReadOnly(bool bEnabled);
-
-void SetFrameSkipping(unsigned int framesToSkip);
-void FrameSkipping();
 
 bool BeginRecordingInput(int controllers);
 void RecordInput(GCPadStatus* PadStatus, int controllerID);
@@ -182,8 +182,9 @@ std::string GetInputDisplay();
 std::string GetRTCDisplay();
 
 // Done this way to avoid mixing of core and gui code
-typedef void (*GCManipFunction)(GCPadStatus*, int);
-typedef void (*WiiManipFunction)(u8*, WiimoteEmu::ReportFeatures, int, int, wiimote_key);
+using GCManipFunction = std::function<void(GCPadStatus*, int)>;
+using WiiManipFunction =
+    std::function<void(u8*, WiimoteEmu::ReportFeatures, int, int, wiimote_key)>;
 
 void SetGCInputManip(GCManipFunction);
 void SetWiiInputManip(WiiManipFunction);

@@ -18,13 +18,15 @@ struct ID3D11RasterizerState;
 
 namespace DX11
 {
-union RasterizerState {
+union RasterizerState
+{
   BitField<0, 2, D3D11_CULL_MODE> cull_mode;
 
   u32 packed;
 };
 
-union BlendState {
+union BlendState
+{
   BitField<0, 1, u32> blend_enable;
   BitField<1, 3, D3D11_BLEND_OP> blend_op;
   BitField<4, 4, u32> write_mask;
@@ -35,7 +37,8 @@ union BlendState {
   u32 packed;
 };
 
-union SamplerState {
+union SamplerState
+{
   BitField<0, 3, u64> min_filter;
   BitField<3, 1, u64> mag_filter;
   BitField<4, 8, u64> min_lod;

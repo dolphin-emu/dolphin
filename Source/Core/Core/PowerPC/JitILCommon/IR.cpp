@@ -121,6 +121,7 @@ TODO (in no particular order):
 #endif
 
 #include <algorithm>
+#include <array>
 #include <cinttypes>
 #include <ctime>
 #include <memory>
@@ -137,6 +138,39 @@ using namespace Gen;
 
 namespace IREmitter
 {
+IRBuilder::IRBuilder()
+{
+  Reset();
+}
+
+void IRBuilder::Reset()
+{
+  InstList.clear();
+  InstList.reserve(100000);
+  MarkUsed.clear();
+  MarkUsed.reserve(100000);
+
+  InvalidateCaches();
+}
+
+void IRBuilder::InvalidateCaches()
+{
+  GRegCache = {};
+  GRegCacheStore = {};
+
+  FRegCache = {};
+  FRegCacheStore = {};
+
+  CarryCache = nullptr;
+  CarryCacheStore = nullptr;
+
+  CRCache = {};
+  CRCacheStore = {};
+
+  CTRCache = nullptr;
+  CTRCacheStore = nullptr;
+}
+
 InstLoc IRBuilder::EmitZeroOp(unsigned Opcode, unsigned extra = 0)
 {
   InstLoc curIndex = InstList.data() + InstList.size();
@@ -1180,25 +1214,7 @@ InstLoc IRBuilder::FoldICmpCRUnsigned(InstLoc Op1, InstLoc Op2)
 
 InstLoc IRBuilder::FoldFallBackToInterpreter(InstLoc Op1, InstLoc Op2)
 {
-  for (unsigned i = 0; i < 32; i++)
-  {
-    GRegCache[i] = nullptr;
-    GRegCacheStore[i] = nullptr;
-    FRegCache[i] = nullptr;
-    FRegCacheStore[i] = nullptr;
-  }
-
-  CarryCache = nullptr;
-  CarryCacheStore = nullptr;
-
-  for (unsigned i = 0; i < 8; i++)
-  {
-    CRCache[i] = nullptr;
-    CRCacheStore[i] = nullptr;
-  }
-
-  CTRCache = nullptr;
-  CTRCacheStore = nullptr;
+  InvalidateCaches();
   return EmitBiOp(FallBackToInterpreter, Op1, Op2);
 }
 
@@ -1343,22 +1359,22 @@ unsigned IRBuilder::getComplexity(InstLoc I) const
 
 unsigned IRBuilder::getNumberOfOperands(InstLoc I) const
 {
-  static unsigned numberOfOperands[256];
+  static std::array<u32, 256> number_of_operands;
   static bool initialized = false;
   if (!initialized)
   {
     initialized = true;
-    std::fill_n(numberOfOperands, sizeof(numberOfOperands) / sizeof(numberOfOperands[0]), -1U);
 
-    numberOfOperands[Nop] = 0;
-    numberOfOperands[CInt16] = 0;
-    numberOfOperands[CInt32] = 0;
+    number_of_operands.fill(0xFFFFFFFF);
+    number_of_operands[Nop] = 0;
+    number_of_operands[CInt16] = 0;
+    number_of_operands[CInt32] = 0;
 
-    static unsigned ZeroOp[] = {
-        LoadCR,    LoadLink, LoadMSR,  LoadGReg,          LoadCTR, InterpreterBranch,
-        LoadCarry, RFIExit,  LoadFReg, LoadFRegDENToZero, LoadGQR, Int3,
-    };
-    static unsigned UOp[] = {
+    static constexpr std::array<u32, 12> zero_op = {{
+        LoadCR, LoadLink, LoadMSR, LoadGReg, LoadCTR, InterpreterBranch, LoadCarry, RFIExit,
+        LoadFReg, LoadFRegDENToZero, LoadGQR, Int3,
+    }};
+    static constexpr std::array<u32, 39> unary_op = {{
         StoreLink,
         BranchUncond,
         StoreCR,
@@ -1398,8 +1414,8 @@ unsigned IRBuilder::getNumberOfOperands(InstLoc I) const
         FastCREQSet,
         FastCRGTSet,
         FastCRLTSet,
-    };
-    static unsigned BiOp[] = {
+    }};
+    static constexpr std::array<u32, 44> binary_op = {{
         BranchCond,
         IdleBranch,
         And,
@@ -1444,18 +1460,18 @@ unsigned IRBuilder::getNumberOfOperands(InstLoc I) const
         FPMerge10,
         FPMerge11,
         FDCmpCR,
-    };
-    for (auto& op : ZeroOp)
-      numberOfOperands[op] = 0;
+    }};
+    for (auto op : zero_op)
+      number_of_operands[op] = 0;
 
-    for (auto& op : UOp)
-      numberOfOperands[op] = 1;
+    for (auto op : unary_op)
+      number_of_operands[op] = 1;
 
-    for (auto& op : BiOp)
-      numberOfOperands[op] = 2;
+    for (auto op : binary_op)
+      number_of_operands[op] = 2;
   }
 
-  return numberOfOperands[getOpcode(*I)];
+  return number_of_operands[getOpcode(*I)];
 }
 
 // Performs a few simplifications for commutative operators
@@ -1741,15 +1757,15 @@ void IRBuilder::WriteToFile(u64 codeHash)
 
   const InstLoc lastCurReadPtr = curReadPtr;
   StartForwardPass();
-  const unsigned numInsts = getNumInsts();
-  for (unsigned int i = 0; i < numInsts; ++i)
+  const size_t numInsts = getNumInsts();
+  for (size_t i = 0; i < numInsts; ++i)
   {
     const InstLoc I = ReadForward();
     const unsigned opcode = getOpcode(*I);
     const bool thisUsed = IsMarkUsed(I) || alwaysUseds.find(opcode) != alwaysUseds.end();
 
     // Line number
-    fprintf(file, "%4u", i);
+    fprintf(file, "%4zu", i);
 
     if (!thisUsed)
       fprintf(file, "%*c", 32, ' ');
@@ -1767,7 +1783,7 @@ void IRBuilder::WriteToFile(u64 codeHash)
       if (isImm(*inst))
         fprintf(file, " 0x%08x", GetImmValue(inst));
       else
-        fprintf(file, " %10u", i - (unsigned int)(I - inst));
+        fprintf(file, " %10zu", i - static_cast<size_t>(I - inst));
     }
 
     // Op2
@@ -1778,7 +1794,7 @@ void IRBuilder::WriteToFile(u64 codeHash)
       if (isImm(*inst))
         fprintf(file, " 0x%08x", GetImmValue(inst));
       else
-        fprintf(file, " %10u", i - (unsigned int)(I - inst));
+        fprintf(file, " %10zu", i - static_cast<size_t>(I - inst));
     }
 
     if (extra8Regs.count(opcode))

@@ -6,6 +6,11 @@ project(enet)
 include(CheckFunctionExists)
 include(CheckStructHasMember)
 include(CheckTypeSize)
+
+if(HAIKU)
+  set(CMAKE_REQUIRED_LIBRARIES network)
+endif(HAIKU)
+
 check_function_exists("fcntl" HAS_FCNTL)
 check_function_exists("poll" HAS_POLL)
 check_function_exists("getaddrinfo" HAS_GETADDRINFO)
@@ -18,7 +23,11 @@ check_struct_has_member("struct msghdr" "msg_flags" "sys/types.h;sys/socket.h" H
 set(CMAKE_EXTRA_INCLUDE_FILES "sys/types.h" "sys/socket.h")
 check_type_size("socklen_t" HAS_SOCKLEN_T BUILTIN_TYPES_ONLY)
 unset(CMAKE_EXTRA_INCLUDE_FILES)
- 
+
+if(HAIKU)
+  unset(CMAKE_REQUIRED_LIBRARIES)
+endif()
+
 if(HAS_FCNTL)
     add_definitions(-DHAS_FCNTL=1)
 endif()
@@ -49,9 +58,9 @@ endif()
 if(HAS_SOCKLEN_T)
     add_definitions(-DHAS_SOCKLEN_T=1)
 endif()
- 
+
 include_directories(${PROJECT_SOURCE_DIR}/include)
- 
+
 add_library(enet STATIC
         callbacks.c
         compress.c
@@ -63,3 +72,6 @@ add_library(enet STATIC
         unix.c
         win32.c
     )
+if(HAIKU)
+  target_link_libraries(enet network)
+endif(HAIKU)

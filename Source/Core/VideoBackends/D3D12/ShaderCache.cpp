@@ -69,29 +69,32 @@ void ShaderCache::Init()
   s_last_pixel_shader_uid = {};
   s_last_vertex_shader_uid = {};
 
-  // Ensure shader cache directory exists..
-  std::string shader_cache_path = File::GetUserPath(D_SHADERCACHE_IDX);
+  if (g_ActiveConfig.bShaderCache)
+  {
+    // Ensure shader cache directory exists..
+    std::string shader_cache_path = File::GetUserPath(D_SHADERCACHE_IDX);
 
-  if (!File::Exists(shader_cache_path))
-    File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX));
+    if (!File::Exists(shader_cache_path))
+      File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX));
 
-  std::string title_unique_id = SConfig::GetInstance().m_strUniqueID.c_str();
+    const std::string& title_game_id = SConfig::GetInstance().GetGameID();
 
-  std::string gs_cache_filename =
-      StringFromFormat("%sdx11-%s-gs.cache", shader_cache_path.c_str(), title_unique_id.c_str());
-  std::string ps_cache_filename =
-      StringFromFormat("%sdx11-%s-ps.cache", shader_cache_path.c_str(), title_unique_id.c_str());
-  std::string vs_cache_filename =
-      StringFromFormat("%sdx11-%s-vs.cache", shader_cache_path.c_str(), title_unique_id.c_str());
+    std::string gs_cache_filename =
+        StringFromFormat("%sdx11-%s-gs.cache", shader_cache_path.c_str(), title_game_id.c_str());
+    std::string ps_cache_filename =
+        StringFromFormat("%sdx11-%s-ps.cache", shader_cache_path.c_str(), title_game_id.c_str());
+    std::string vs_cache_filename =
+        StringFromFormat("%sdx11-%s-vs.cache", shader_cache_path.c_str(), title_game_id.c_str());
 
-  ShaderCacheInserter<GeometryShaderUid, GsBytecodeCache, &s_gs_bytecode_cache> gs_inserter;
-  s_gs_disk_cache.OpenAndRead(gs_cache_filename, gs_inserter);
+    ShaderCacheInserter<GeometryShaderUid, GsBytecodeCache, &s_gs_bytecode_cache> gs_inserter;
+    s_gs_disk_cache.OpenAndRead(gs_cache_filename, gs_inserter);
 
-  ShaderCacheInserter<PixelShaderUid, PsBytecodeCache, &s_ps_bytecode_cache> ps_inserter;
-  s_ps_disk_cache.OpenAndRead(ps_cache_filename, ps_inserter);
+    ShaderCacheInserter<PixelShaderUid, PsBytecodeCache, &s_ps_bytecode_cache> ps_inserter;
+    s_ps_disk_cache.OpenAndRead(ps_cache_filename, ps_inserter);
 
-  ShaderCacheInserter<VertexShaderUid, VsBytecodeCache, &s_vs_bytecode_cache> vs_inserter;
-  s_vs_disk_cache.OpenAndRead(vs_cache_filename, vs_inserter);
+    ShaderCacheInserter<VertexShaderUid, VsBytecodeCache, &s_vs_bytecode_cache> vs_inserter;
+    s_vs_disk_cache.OpenAndRead(vs_cache_filename, vs_inserter);
+  }
 
   SETSTAT(stats.numPixelShadersAlive, static_cast<int>(s_ps_bytecode_cache.size()));
   SETSTAT(stats.numPixelShadersCreated, static_cast<int>(s_ps_bytecode_cache.size()));
@@ -132,12 +135,12 @@ void ShaderCache::Shutdown()
   s_vs_disk_cache.Close();
 }
 
-void ShaderCache::LoadAndSetActiveShaders(DSTALPHA_MODE ps_dst_alpha_mode, u32 gs_primitive_type)
+void ShaderCache::LoadAndSetActiveShaders(u32 gs_primitive_type)
 {
   SetCurrentPrimitiveTopology(gs_primitive_type);
 
   GeometryShaderUid gs_uid = GetGeometryShaderUid(gs_primitive_type);
-  PixelShaderUid ps_uid = GetPixelShaderUid(ps_dst_alpha_mode);
+  PixelShaderUid ps_uid = GetPixelShaderUid();
   VertexShaderUid vs_uid = GetVertexShaderUid();
 
   bool gs_changed = gs_uid != s_last_geometry_shader_uid;
@@ -156,7 +159,7 @@ void ShaderCache::LoadAndSetActiveShaders(DSTALPHA_MODE ps_dst_alpha_mode, u32 g
 
   if (ps_changed)
   {
-    HandlePSUIDChange(ps_uid, ps_dst_alpha_mode);
+    HandlePSUIDChange(ps_uid);
   }
 
   if (vs_changed)
@@ -219,7 +222,7 @@ void ShaderCache::HandleGSUIDChange(GeometryShaderUid gs_uid, u32 gs_primitive_t
   }
 }
 
-void ShaderCache::HandlePSUIDChange(PixelShaderUid ps_uid, DSTALPHA_MODE ps_dst_alpha_mode)
+void ShaderCache::HandlePSUIDChange(PixelShaderUid ps_uid)
 {
   s_last_pixel_shader_uid = ps_uid;
 
@@ -231,8 +234,7 @@ void ShaderCache::HandlePSUIDChange(PixelShaderUid ps_uid, DSTALPHA_MODE ps_dst_
   }
   else
   {
-    ShaderCode ps_code =
-        GeneratePixelShaderCode(ps_dst_alpha_mode, APIType::D3D, ps_uid.GetUidData());
+    ShaderCode ps_code = GeneratePixelShaderCode(APIType::D3D, ps_uid.GetUidData());
     ID3DBlob* ps_bytecode = nullptr;
 
     if (!D3D::CompilePixelShader(ps_code.GetBuffer(), &ps_bytecode))

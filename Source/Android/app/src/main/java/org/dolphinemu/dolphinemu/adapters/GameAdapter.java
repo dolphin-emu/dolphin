@@ -3,20 +3,18 @@ package org.dolphinemu.dolphinemu.adapters;
 import android.app.Activity;
 import android.database.Cursor;
 import android.database.DataSetObserver;
-import android.graphics.Bitmap;
 import android.graphics.Rect;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.squareup.picasso.Picasso;
-
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 import org.dolphinemu.dolphinemu.dialogs.GameDetailsDialog;
 import org.dolphinemu.dolphinemu.model.GameDatabase;
 import org.dolphinemu.dolphinemu.utils.Log;
+import org.dolphinemu.dolphinemu.utils.PicassoUtils;
 import org.dolphinemu.dolphinemu.viewholders.GameViewHolder;
 
 /**
@@ -80,17 +78,7 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
 			if (mCursor.moveToPosition(position))
 			{
 				String screenPath = mCursor.getString(GameDatabase.GAME_COLUMN_SCREENSHOT_PATH);
-
-				// Fill in the view contents.
-				Picasso.with(holder.imageScreenshot.getContext())
-						.load(screenPath)
-						.fit()
-						.centerCrop()
-						.noFade()
-						.noPlaceholder()
-						.config(Bitmap.Config.RGB_565)
-						.error(R.drawable.no_banner)
-						.into(holder.imageScreenshot);
+				PicassoUtils.loadGameBanner(holder.imageScreenshot, screenPath, mCursor.getString(GameDatabase.GAME_COLUMN_PATH));
 
 				holder.textGameTitle.setText(mCursor.getString(GameDatabase.GAME_COLUMN_TITLE));
 				holder.textCompany.setText(mCursor.getString(GameDatabase.GAME_COLUMN_COMPANY));

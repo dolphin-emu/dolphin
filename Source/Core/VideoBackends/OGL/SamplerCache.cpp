@@ -2,12 +2,12 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoBackends/OGL/SamplerCache.h"
+
 #include <memory>
 
-#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/GL/GLInterfaceBase.h"
-#include "VideoBackends/OGL/SamplerCache.h"
 #include "VideoCommon/SamplerCommon.h"
 #include "VideoCommon/VideoConfig.h"
 

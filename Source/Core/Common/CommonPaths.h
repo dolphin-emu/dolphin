@@ -64,6 +64,7 @@
 #define DUMP_FRAMES_DIR "Frames"
 #define DUMP_AUDIO_DIR "Audio"
 #define DUMP_DSP_DIR "DSP"
+#define DUMP_SSL_DIR "SSL"
 #define LOGS_DIR "Logs"
 #define MAIL_LOGS_DIR "Mail"
 #define SHADERS_DIR "Shaders"
@@ -74,6 +75,8 @@
 #define ANAGLYPH_DIR "Anaglyph"
 #define PIPES_DIR "Pipes"
 #define MEMORYWATCHER_DIR "MemoryWatcher"
+#define WFSROOT_DIR "WFS"
+#define BACKUP_DIR "Backup"
 
 // This one is only used to remove it if it was present
 #define SHADERCACHE_LEGACY_DIR "ShaderCache"
@@ -84,8 +87,13 @@
 // Filenames
 // Files in the directory returned by GetUserPath(D_CONFIG_IDX)
 #define DOLPHIN_CONFIG "Dolphin.ini"
+#define GCPAD_CONFIG "GCPadNew.ini"
+#define WIIPAD_CONFIG "WiimoteNew.ini"
+#define GCKEYBOARD_CONFIG "GCKeyNew.ini"
+#define GFX_CONFIG "GFX.ini"
 #define DEBUGGER_CONFIG "Debugger.ini"
 #define LOGGER_CONFIG "Logger.ini"
+#define UI_CONFIG "UI.ini"
 
 // Files in the directory returned by GetUserPath(D_LOGS_IDX)
 #define MAIN_LOG "dolphin.log"
@@ -105,8 +113,8 @@
 // Sys files
 #define TOTALDB "totaldb.dsy"
 
-#define FONT_ANSI "font_ansi.bin"
-#define FONT_SJIS "font_sjis.bin"
+#define FONT_WINDOWS_1252 "font_western.bin"
+#define FONT_SHIFT_JIS "font_japanese.bin"
 
 #define DSP_IROM "dsp_rom.bin"
 #define DSP_COEF "dsp_coef.bin"
@@ -119,6 +127,7 @@
 #define WII_STATE "state.dat"
 
 #define WII_SDCARD "sd.raw"
+#define WII_BTDINF_BACKUP "btdinf.bak"
 
 #define WII_SETTING "setting.txt"
 

@@ -7,6 +7,7 @@
 
 #include "Core/FifoPlayer/FifoRecorder.h"
 
+#include "Common/MsgHandler.h"
 #include "Common/Thread.h"
 #include "Core/ConfigManager.h"
 #include "Core/FifoPlayer/FifoAnalyzer.h"
@@ -16,11 +17,7 @@
 static FifoRecorder instance;
 static std::recursive_mutex sMutex;
 
-FifoRecorder::FifoRecorder()
-    : m_IsRecording(false), m_WasRecording(false), m_RequestedRecordingEnd(false),
-      m_RecordFramesRemaining(0), m_FinishedCb(nullptr), m_File(nullptr), m_SkipNextData(true),
-      m_SkipFutureData(true), m_FrameEnded(false), m_Ram(Memory::RAM_SIZE),
-      m_ExRam(Memory::EXRAM_SIZE)
+FifoRecorder::FifoRecorder() : m_Ram(Memory::RAM_SIZE), m_ExRam(Memory::EXRAM_SIZE)
 {
 }
 
@@ -182,7 +179,7 @@ void FifoRecorder::EndFrame(u32 fifoStart, u32 fifoEnd)
 }
 
 void FifoRecorder::SetVideoMemory(const u32* bpMem, const u32* cpMem, const u32* xfMem,
-                                  const u32* xfRegs, u32 xfRegsSize)
+                                  const u32* xfRegs, u32 xfRegsSize, const u8* texMem)
 {
   std::lock_guard<std::recursive_mutex> lk(sMutex);
 
@@ -194,6 +191,8 @@ void FifoRecorder::SetVideoMemory(const u32* bpMem, const u32* cpMem, const u32*
 
     u32 xfRegsCopySize = std::min((u32)FifoDataFile::XF_REGS_SIZE, xfRegsSize);
     memcpy(m_File->GetXFRegs(), xfRegs, xfRegsCopySize * 4);
+
+    memcpy(m_File->GetTexMem(), texMem, FifoDataFile::TEX_MEM_SIZE);
   }
 
   FifoRecordAnalyzer::Initialize(cpMem);

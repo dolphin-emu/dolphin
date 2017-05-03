@@ -26,6 +26,8 @@ The register allocation is linear scan allocation.
 #endif
 
 #include <algorithm>
+#include <array>
+#include <cstddef>
 #include <vector>
 
 #include "Common/BitSet.h"
@@ -33,24 +35,26 @@ The register allocation is linear scan allocation.
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
 #include "Common/MsgHandler.h"
+#include "Common/NonCopyable.h"
 #include "Common/x64ABI.h"
 #include "Common/x64Emitter.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/PowerPC/Gekko.h"
+#include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
 #include "Core/PowerPC/Jit64IL/JitIL.h"
 #include "Core/PowerPC/PowerPC.h"
 
 using namespace IREmitter;
 using namespace Gen;
 
-static const unsigned int MAX_NUMBER_OF_REGS = 16;
-
-struct RegInfo
+struct RegInfo final : private NonCopyable
 {
+  static constexpr size_t MAX_NUMBER_OF_REGS = 16;
+
   JitIL* Jit;
-  IRBuilder* Build;
+  IRBuilder* Build = nullptr;
   InstLoc FirstI;
 
   // IInfo contains (per instruction)
@@ -62,31 +66,24 @@ struct RegInfo
   //           and if we can clobber the operands registers.
   //           Warning, Memory instruction use these bits slightly differently.
   // Bits 15-31: Spill location
-  std::vector<unsigned> IInfo;
+  std::vector<u32> IInfo;
 
   // The last instruction which uses the result of this instruction. Used by the register allocator.
   std::vector<InstLoc> lastUsed;
 
-  InstLoc regs[MAX_NUMBER_OF_REGS];
-  InstLoc fregs[MAX_NUMBER_OF_REGS];
-  unsigned numSpills;
-  unsigned numFSpills;
-  unsigned exitNumber;
+  std::array<InstLoc, MAX_NUMBER_OF_REGS> regs{};
+  std::array<InstLoc, MAX_NUMBER_OF_REGS> fregs{};
+  u32 numSpills = 0;
+  u32 numFSpills = 0;
+  u32 exitNumber = 0;
 
-  RegInfo(JitIL* j, InstLoc f, unsigned insts)
-      : Jit(j), Build(nullptr), FirstI(f), IInfo(insts), lastUsed(insts), regs(), fregs(),
-        numSpills(0), numFSpills(0), exitNumber(0)
-  {
-  }
-
-private:
-  RegInfo(RegInfo&);  // DO NOT IMPLEMENT
+  RegInfo(JitIL* j, InstLoc f, size_t insts) : Jit(j), FirstI(f), IInfo(insts), lastUsed(insts) {}
 };
 
 static BitSet32 regsInUse(RegInfo& R)
 {
   BitSet32 result;
-  for (unsigned i = 0; i < MAX_NUMBER_OF_REGS; i++)
+  for (size_t i = 0; i < RegInfo::MAX_NUMBER_OF_REGS; i++)
   {
     if (R.regs[i] != nullptr)
       result[i] = true;
@@ -791,7 +788,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
   {
     InstLoc I = ibuild->ReadBackward();
     unsigned int op = getOpcode(*I);
-    bool thisUsed = regReadUse(RI, I) ? true : false;
+    bool thisUsed = regReadUse(RI, I) != 0;
 
     switch (op)
     {
@@ -965,7 +962,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
   for (unsigned i = 0; i != RI.IInfo.size(); i++)
   {
     InstLoc I = ibuild->ReadForward();
-    bool thisUsed = regReadUse(RI, I) ? true : false;
+    bool thisUsed = regReadUse(RI, I) != 0;
     if (thisUsed)
     {
       // Needed for IR Writer
@@ -984,7 +981,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
       regSpillCallerSaved(RI);
       Jit->MOV(32, PPCSTATE(pc), Imm32(InstLoc));
       Jit->MOV(32, PPCSTATE(npc), Imm32(InstLoc + 4));
-      Jit->ABI_CallFunctionC((void*)GetInterpreterOp(InstCode), InstCode);
+      Jit->ABI_CallFunctionC(GetInterpreterOp(InstCode), InstCode);
       break;
     }
     case LoadGReg:
@@ -1619,10 +1616,12 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
       Jit->MOV(32, R(RSCRATCH2), Imm32(0x3F07));
       Jit->AND(32, R(RSCRATCH2), M(((char*)&GQR(quantreg)) + 2));
       Jit->MOVZX(32, 8, RSCRATCH, R(RSCRATCH2));
-      Jit->OR(32, R(RSCRATCH), Imm8(w << 3));
+
+      const u8** table =
+          w ? Jit->asm_routines.singleLoadQuantized : Jit->asm_routines.pairedLoadQuantized;
 
       Jit->MOV(32, R(RSCRATCH_EXTRA), regLocForInst(RI, getOp1(I)));
-      Jit->CALLptr(MScaled(RSCRATCH, SCALE_8, (u32)(u64)(Jit->asm_routines.pairedLoadQuantized)));
+      Jit->CALLptr(MScaled(RSCRATCH, SCALE_8, PtrOffset(table)));
       Jit->MOVAPD(reg, R(XMM0));
       RI.fregs[reg] = I;
       regNormalRegClear(RI, I);
@@ -1680,7 +1679,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 
       Jit->MOV(32, R(RSCRATCH_EXTRA), regLocForInst(RI, getOp2(I)));
       Jit->MOVAPD(XMM0, fregLocForInst(RI, getOp1(I)));
-      Jit->CALLptr(MScaled(RSCRATCH, SCALE_8, (u32)(u64)(Jit->asm_routines.pairedStoreQuantized)));
+      Jit->CALLptr(MScaled(RSCRATCH, SCALE_8, PtrOffset(Jit->asm_routines.pairedStoreQuantized)));
       if (RI.IInfo[I - RI.FirstI] & 4)
         fregClearInst(RI, getOp1(I));
       if (RI.IInfo[I - RI.FirstI] & 8)
@@ -1756,7 +1755,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 
       X64Reg reg = fregURegWithMov(RI, I);
       alignas(16) static const u32 ssSignBits[4] = {0x80000000};
-      Jit->PXOR(reg, M(ssSignBits));
+      Jit->PXOR(reg, Jit->MConst(ssSignBits));
       RI.fregs[reg] = I;
       fregNormalRegClear(RI, I);
       break;
@@ -1768,7 +1767,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 
       X64Reg reg = fregURegWithMov(RI, I);
       alignas(16) static const u64 sdSignBits[2] = {0x8000000000000000ULL};
-      Jit->PXOR(reg, M(sdSignBits));
+      Jit->PXOR(reg, Jit->MConst(sdSignBits));
       RI.fregs[reg] = I;
       fregNormalRegClear(RI, I);
       break;
@@ -1780,7 +1779,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 
       X64Reg reg = fregURegWithMov(RI, I);
       alignas(16) static const u32 psSignBits[4] = {0x80000000, 0x80000000};
-      Jit->PXOR(reg, M(psSignBits));
+      Jit->PXOR(reg, Jit->MConst(psSignBits));
       RI.fregs[reg] = I;
       fregNormalRegClear(RI, I);
       break;
@@ -1940,7 +1939,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
           Jit->MOVSD(XMM0, loc2);
           Jit->MOVSD(M(isSNANTemp[1]), XMM0);
         }
-        Jit->ABI_CallFunction((void*)checkIsSNAN);
+        Jit->ABI_CallFunction(checkIsSNAN);
         Jit->TEST(8, R(ABI_RETURN), R(ABI_RETURN));
         FixupBranch ok = Jit->J_CC(CC_Z);
         Jit->OR(32, PPCSTATE(fpscr), Imm32(FPSCR_FX));      // FPSCR.FX = 1;
@@ -1969,7 +1968,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
           Jit->MOVSD(XMM0, loc2);
           Jit->MOVSD(M(isSNANTemp[1]), XMM0);
         }
-        Jit->ABI_CallFunction((void*)checkIsSNAN);
+        Jit->ABI_CallFunction(checkIsSNAN);
         Jit->TEST(8, R(ABI_RETURN), R(ABI_RETURN));
         FixupBranch finish = Jit->J_CC(CC_Z);
         Jit->OR(32, PPCSTATE(fpscr), Imm32(FPSCR_FX));    // FPSCR.FX = 1;
@@ -2102,10 +2101,10 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 
       X64Reg reg = regFindFreeReg(RI);
       u64 val = ibuild->GetImmValue64(I);
-      if ((u32)val == val)
-        Jit->MOV(32, R(reg), Imm32((u32)val));
-      else if ((s32)val == (s64)val)
-        Jit->MOV(64, R(reg), Imm32((s32)val));
+      if (static_cast<u32>(val) == val)
+        Jit->MOV(32, R(reg), Imm32(static_cast<u32>(val)));
+      else if (static_cast<s32>(val) == static_cast<s64>(val))
+        Jit->MOV(64, R(reg), Imm32(static_cast<s32>(val)));
       else
         Jit->MOV(64, R(reg), Imm64(val));
       RI.regs[reg] = I;
@@ -2123,7 +2122,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
       FixupBranch noidle = Jit->J_CC(CC_NZ);
 
       RI.Jit->Cleanup();  // is it needed?
-      Jit->ABI_CallFunction((void*)&CoreTiming::Idle);
+      Jit->ABI_CallFunction(CoreTiming::Idle);
 
       Jit->MOV(32, PPCSTATE(pc), Imm32(ibuild->GetImmValue(getOp2(I))));
       Jit->WriteExceptionExit();
@@ -2209,7 +2208,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
     case ShortIdleLoop:
     {
       unsigned InstLoc = ibuild->GetImmValue(getOp1(I));
-      Jit->ABI_CallFunction((void*)&CoreTiming::Idle);
+      Jit->ABI_CallFunction(CoreTiming::Idle);
       Jit->MOV(32, PPCSTATE(pc), Imm32(InstLoc));
       Jit->WriteExceptionExit();
       break;
@@ -2307,7 +2306,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
       unsigned InstLoc = ibuild->GetImmValue(getOp1(I));
 
       Jit->MOV(32, PPCSTATE(pc), Imm32(InstLoc));
-      Jit->ABI_CallFunction(reinterpret_cast<void*>(&PowerPC::CheckBreakPoints));
+      Jit->ABI_CallFunction(PowerPC::CheckBreakPoints);
       Jit->TEST(32, M(CPU::GetStatePtr()), Imm32(0xFFFFFFFF));
       FixupBranch noBreakpoint = Jit->J_CC(CC_Z);
       Jit->WriteExit(InstLoc);
@@ -2329,7 +2328,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
     }
   }
 
-  for (unsigned i = 0; i < MAX_NUMBER_OF_REGS; i++)
+  for (size_t i = 0; i < RegInfo::MAX_NUMBER_OF_REGS; i++)
   {
     if (RI.regs[i])
     {

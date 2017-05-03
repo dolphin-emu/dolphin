@@ -31,6 +31,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/IniFile.h"
 #include "Common/Logging/LogManager.h"
+#include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 
 #include "Core/ARDecrypt.h"
@@ -88,7 +89,8 @@ static bool s_disable_logging = false;
 
 struct ARAddr
 {
-  union {
+  union
+  {
     u32 address;
     struct
     {
@@ -184,7 +186,7 @@ std::vector<ARCode> LoadCodes(const IniFile& global_ini, const IniFile& local_in
         }
         if (encrypted_lines.size())
         {
-          DecryptARCode(encrypted_lines, current_code.ops);
+          DecryptARCode(encrypted_lines, &current_code.ops);
           codes.push_back(current_code);
           current_code.ops.clear();
           encrypted_lines.clear();
@@ -242,7 +244,7 @@ std::vector<ARCode> LoadCodes(const IniFile& global_ini, const IniFile& local_in
     }
     if (encrypted_lines.size())
     {
-      DecryptARCode(encrypted_lines, current_code.ops);
+      DecryptARCode(encrypted_lines, &current_code.ops);
       codes.push_back(current_code);
     }
   }

@@ -34,7 +34,7 @@ bool CompileShader(const std::string& code, ID3DBlob** blob, const D3D_SHADER_MA
 
   if (error_buffer)
   {
-    WARN_LOG(VIDEO, "Warning generated when compiling %s shader:\n%s\n",
+    WARN_LOG(VIDEO, "Warning generated when compiling %s shader:\n%s",
              shader_version_string.c_str(),
              static_cast<const char*>(error_buffer->GetBufferPointer()));
   }

@@ -18,6 +18,7 @@
 #include "DolphinWX/Debugger/WatchView.h"
 #include "DolphinWX/Debugger/WatchWindow.h"
 #include "DolphinWX/Frame.h"
+#include "DolphinWX/Main.h"
 #include "DolphinWX/WxUtils.h"
 
 enum
@@ -34,7 +35,7 @@ static std::string GetWatchName(int count)
 
 static u32 GetWatchAddr(int count)
 {
-  return PowerPC::watches.GetWatches().at(count - 1).iAddress;
+  return PowerPC::watches.GetWatches().at(count - 1).address;
 }
 
 static u32 GetWatchValue(int count)
@@ -86,6 +87,7 @@ static wxString GetValueByRowCol(int row, int col)
     case 3:
       return _("Decimal");
     case 4:
+      // i18n: Data type used in computing
       return _("String");
     default:
       return wxEmptyString;
@@ -232,7 +234,7 @@ CWatchView::CWatchView(wxWindow* parent, wxWindowID id) : wxGrid(parent, id)
   Bind(wxEVT_MENU, &CWatchView::OnPopupMenu, this);
 }
 
-void CWatchView::Update()
+void CWatchView::Repopulate()
 {
   if (Core::IsRunning())
   {
@@ -257,13 +259,15 @@ void CWatchView::OnMouseDownR(wxGridEvent& event)
 
   wxMenu menu;
   if (row != 0 && row != (int)(PowerPC::watches.GetWatches().size() + 1))
+  {
+    // i18n: This kind of "watch" is used for watching emulated memory.
+    // It's not related to timekeeping devices.
     menu.Append(IDM_DELETEWATCH, _("&Delete watch"));
+  }
 
   if (row != 0 && row != (int)(PowerPC::watches.GetWatches().size() + 1) && (col == 1 || col == 2))
   {
-#ifdef ENABLE_MEM_CHECK
     menu.Append(IDM_ADDMEMCHECK, _("Add memory &breakpoint"));
-#endif
     menu.Append(IDM_VIEWMEMORY, _("View &memory"));
   }
   PopupMenu(&menu);
@@ -271,19 +275,18 @@ void CWatchView::OnMouseDownR(wxGridEvent& event)
 
 void CWatchView::OnPopupMenu(wxCommandEvent& event)
 {
-  CFrame* main_frame = static_cast<CFrame*>(GetGrandParent()->GetParent());
-  CCodeWindow* code_window = main_frame->g_pCodeWindow;
-  CWatchWindow* watch_window = code_window->m_WatchWindow;
-  CMemoryWindow* memory_window = code_window->m_MemoryWindow;
-  CBreakPointWindow* breakpoint_window = code_window->m_BreakpointWindow;
-
-  wxString strNewVal;
-  TMemCheck MemCheck;
+  // FIXME: This is terrible. Generate events instead.
+  CFrame* cframe = wxGetApp().GetCFrame();
+  CCodeWindow* code_window = cframe->m_code_window;
+  CWatchWindow* watch_window = code_window->GetPanel<CWatchWindow>();
+  CMemoryWindow* memory_window = code_window->GetPanel<CMemoryWindow>();
+  CBreakPointWindow* breakpoint_window = code_window->GetPanel<CBreakPointWindow>();
 
   switch (event.GetId())
   {
   case IDM_DELETEWATCH:
-    strNewVal = GetValueByRowCol(m_selectedRow, 1);
+  {
+    wxString strNewVal = GetValueByRowCol(m_selectedRow, 1);
     if (TryParse("0x" + WxStrToStr(strNewVal), &m_selectedAddress))
     {
       PowerPC::watches.Remove(m_selectedAddress);
@@ -292,20 +295,24 @@ void CWatchView::OnPopupMenu(wxCommandEvent& event)
       Refresh();
     }
     break;
+  }
   case IDM_ADDMEMCHECK:
-    MemCheck.StartAddress = m_selectedAddress;
-    MemCheck.EndAddress = m_selectedAddress;
-    MemCheck.bRange = false;
-    MemCheck.OnRead = true;
-    MemCheck.OnWrite = true;
-    MemCheck.Log = true;
-    MemCheck.Break = true;
+  {
+    TMemCheck MemCheck;
+    MemCheck.start_address = m_selectedAddress;
+    MemCheck.end_address = m_selectedAddress;
+    MemCheck.is_ranged = false;
+    MemCheck.is_break_on_read = true;
+    MemCheck.is_break_on_write = true;
+    MemCheck.log_on_hit = true;
+    MemCheck.break_on_hit = true;
     PowerPC::memchecks.Add(MemCheck);
 
     if (breakpoint_window)
       breakpoint_window->NotifyUpdate();
     Refresh();
     break;
+  }
   case IDM_VIEWMEMORY:
     if (memory_window)
       memory_window->JumpToAddress(m_selectedAddress);

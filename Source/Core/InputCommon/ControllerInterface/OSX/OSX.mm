@@ -2,23 +2,29 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <thread>
+
 #include <Cocoa/Cocoa.h>
 #include <Foundation/Foundation.h>
 #include <IOKit/hid/IOHIDLib.h>
 
+#include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
+#include "Common/Thread.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/OSX/OSX.h"
 #include "InputCommon/ControllerInterface/OSX/OSXJoystick.h"
 #include "InputCommon/ControllerInterface/OSX/OSXKeyboard.h"
-
-#include <map>
+#include "InputCommon/ControllerInterface/OSX/RunLoopStopper.h"
 
 namespace ciface
 {
 namespace OSX
 {
+constexpr CFTimeInterval FOREVER = 1e20;
+static std::thread s_hotplug_thread;
+static RunLoopStopper s_stopper;
 static IOHIDManagerRef HIDManager = nullptr;
 static CFStringRef OurRunLoop = CFSTR("DolphinOSXInput");
 
@@ -134,13 +140,36 @@ static void DeviceDebugPrint(IOHIDDeviceRef device)
 
 static void* g_window;
 
-static void DeviceMatching_callback(void* inContext, IOReturn inResult, void* inSender,
-                                    IOHIDDeviceRef inIOHIDDeviceRef)
+static std::string GetDeviceRefName(IOHIDDeviceRef inIOHIDDeviceRef)
 {
-  NSString* pName = (NSString*)IOHIDDeviceGetProperty(inIOHIDDeviceRef, CFSTR(kIOHIDProductKey));
-  std::string name = (pName != nullptr) ? StripSpaces([pName UTF8String]) : "Unknown device";
+  const NSString* name = reinterpret_cast<const NSString*>(
+      IOHIDDeviceGetProperty(inIOHIDDeviceRef, CFSTR(kIOHIDProductKey)));
+  return (name != nullptr) ? StripSpaces([name UTF8String]) : "Unknown device";
+}
 
+static void DeviceRemovalCallback(void* inContext, IOReturn inResult, void* inSender,
+                                  IOHIDDeviceRef inIOHIDDeviceRef)
+{
+  g_controller_interface.RemoveDevice([&inIOHIDDeviceRef](const auto* device) {
+    const Joystick* joystick = dynamic_cast<const Joystick*>(device);
+    if (joystick && joystick->IsSameDevice(inIOHIDDeviceRef))
+      return true;
+
+    const Keyboard* keyboard = dynamic_cast<const Keyboard*>(device);
+    if (keyboard && keyboard->IsSameDevice(inIOHIDDeviceRef))
+      return true;
+
+    return false;
+  });
+  g_controller_interface.InvokeHotplugCallbacks();
+  NOTICE_LOG(SERIALINTERFACE, "Removed device: %s", GetDeviceRefName(inIOHIDDeviceRef).c_str());
+}
+
+static void DeviceMatchingCallback(void* inContext, IOReturn inResult, void* inSender,
+                                   IOHIDDeviceRef inIOHIDDeviceRef)
+{
   DeviceDebugPrint(inIOHIDDeviceRef);
+  std::string name = GetDeviceRefName(inIOHIDDeviceRef);
 
   // Add a device if it's of a type we want
   if (IOHIDDeviceConformsTo(inIOHIDDeviceRef, kHIDPage_GenericDesktop, kHIDUsage_GD_Keyboard))
@@ -151,39 +180,60 @@ static void DeviceMatching_callback(void* inContext, IOReturn inResult, void* in
 #endif
   else
     g_controller_interface.AddDevice(std::make_shared<Joystick>(inIOHIDDeviceRef, name));
+
+  NOTICE_LOG(SERIALINTERFACE, "Added device: %s", name.c_str());
+  g_controller_interface.InvokeHotplugCallbacks();
 }
 
 void Init(void* window)
 {
   HIDManager = IOHIDManagerCreate(kCFAllocatorDefault, kIOHIDOptionsTypeNone);
   if (!HIDManager)
-    NSLog(@"Failed to create HID Manager reference");
+    ERROR_LOG(SERIALINTERFACE, "Failed to create HID Manager reference");
 
   g_window = window;
 
   IOHIDManagerSetDeviceMatching(HIDManager, nullptr);
+  if (IOHIDManagerOpen(HIDManager, kIOHIDOptionsTypeNone) != kIOReturnSuccess)
+    ERROR_LOG(SERIALINTERFACE, "Failed to open HID Manager");
 
   // Callbacks for acquisition or loss of a matching device
-  IOHIDManagerRegisterDeviceMatchingCallback(HIDManager, DeviceMatching_callback, nullptr);
+  IOHIDManagerRegisterDeviceMatchingCallback(HIDManager, DeviceMatchingCallback, nullptr);
+  IOHIDManagerRegisterDeviceRemovalCallback(HIDManager, DeviceRemovalCallback, nullptr);
 
   // Match devices that are plugged in right now
   IOHIDManagerScheduleWithRunLoop(HIDManager, CFRunLoopGetCurrent(), OurRunLoop);
-  if (IOHIDManagerOpen(HIDManager, kIOHIDOptionsTypeNone) != kIOReturnSuccess)
-    NSLog(@"Failed to open HID Manager");
-
-  // Wait while current devices are initialized
   while (CFRunLoopRunInMode(OurRunLoop, 0, TRUE) == kCFRunLoopRunHandledSource)
   {
   };
-
-  // Things should be configured now
-  // Disable hotplugging and other scheduling
-  IOHIDManagerRegisterDeviceMatchingCallback(HIDManager, nullptr, nullptr);
   IOHIDManagerUnscheduleFromRunLoop(HIDManager, CFRunLoopGetCurrent(), OurRunLoop);
+
+  // Enable hotplugging
+  s_hotplug_thread = std::thread([] {
+    Common::SetCurrentThreadName("IOHIDManager Hotplug Thread");
+    NOTICE_LOG(SERIALINTERFACE, "IOHIDManager hotplug thread started");
+
+    IOHIDManagerScheduleWithRunLoop(HIDManager, CFRunLoopGetCurrent(), OurRunLoop);
+    s_stopper.AddToRunLoop(CFRunLoopGetCurrent(), OurRunLoop);
+    CFRunLoopRunInMode(OurRunLoop, FOREVER, FALSE);
+    s_stopper.RemoveFromRunLoop(CFRunLoopGetCurrent(), OurRunLoop);
+    IOHIDManagerUnscheduleFromRunLoop(HIDManager, CFRunLoopGetCurrent(), OurRunLoop);
+
+    NOTICE_LOG(SERIALINTERFACE, "IOHIDManager hotplug thread stopped");
+  });
+}
+
+void PopulateDevices(void* window)
+{
+  DeInit();
+  Init(window);
 }
 
 void DeInit()
 {
+  s_stopper.Signal();
+  s_hotplug_thread.join();
+
   // This closes all devices as well
   IOHIDManagerClose(HIDManager, kIOHIDOptionsTypeNone);
   CFRelease(HIDManager);

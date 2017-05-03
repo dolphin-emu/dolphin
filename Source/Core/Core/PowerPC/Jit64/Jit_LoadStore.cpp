@@ -6,18 +6,20 @@
 // Should give a very noticable speed boost to paired single heavy code.
 
 #include "Core/PowerPC/Jit64/Jit.h"
+
+#include "Common/Assert.h"
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
 #include "Common/x64ABI.h"
 #include "Common/x64Emitter.h"
+
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/CPU.h"
-#include "Core/HW/DSP.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/Jit64/JitRegCache.h"
-#include "Core/PowerPC/JitCommon/Jit_Util.h"
+#include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
 
@@ -108,7 +110,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
 
   // PowerPC has no 8-bit sign extended load, but x86 does, so merge extsb with the load if we find
   // it.
-  if (MergeAllowedNextInstructions(1) && accessSize == 8 && js.op[1].inst.OPCD == 31 &&
+  if (CanMergeNextInstructions(1) && accessSize == 8 && js.op[1].inst.OPCD == 31 &&
       js.op[1].inst.SUBOP10 == 954 && js.op[1].inst.RS == inst.RD && js.op[1].inst.RA == inst.RD &&
       !js.op[1].inst.Rc)
   {
@@ -117,26 +119,12 @@ void Jit64::lXXx(UGeckoInstruction inst)
     signExtend = true;
   }
 
-  // TODO(ector): Make it dynamically enable/disable idle skipping where appropriate
-  // Will give nice boost to dual core mode
-  // (mb2): I agree,
-  // IMHO those Idles should always be skipped and replaced by a more controllable "native" Idle
-  // methode
-  // ... maybe the throttle one already do that :p
-  // TODO: We shouldn't use a debug read here.  It should be possible to get
-  // the following instructions out of the JIT state.
-  if (SConfig::GetInstance().bSkipIdle && CPU::GetState() != CPU::CPU_STEPPING && inst.OPCD == 32 &&
-      MergeAllowedNextInstructions(2) && (inst.hex & 0xFFFF0000) == 0x800D0000 &&
+  if (!CPU::IsStepping() && inst.OPCD == 32 && CanMergeNextInstructions(2) &&
+      (inst.hex & 0xFFFF0000) == 0x800D0000 &&
       (js.op[1].inst.hex == 0x28000000 ||
        (SConfig::GetInstance().bWii && js.op[1].inst.hex == 0x2C000000)) &&
       js.op[2].inst.hex == 0x4182fff8)
   {
-    // TODO(LinesPrower):
-    // - Rewrite this!
-    // It seems to be ugly and inefficient, but I don't know JIT stuff enough to make it right
-    // It only demonstrates the idea
-
-    // do our job at first
     s32 offset = (s32)(s16)inst.SIMM_16;
     gpr.BindToRegister(a, true, false);
     gpr.BindToRegister(d, false, true);
@@ -149,7 +137,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
     BitSet32 registersInUse = CallerSavedRegistersInUse();
     ABI_PushRegistersAndAdjustStack(registersInUse, 0);
 
-    ABI_CallFunction((void*)&CoreTiming::Idle);
+    ABI_CallFunction(CoreTiming::Idle);
 
     ABI_PopRegistersAndAdjustStack(registersInUse, 0);
 
@@ -294,7 +282,7 @@ void Jit64::dcbx(UGeckoInstruction inst)
   // Check whether a JIT cache line needs to be invalidated.
   LEA(32, value, MScaled(addr, SCALE_8, 0));  // addr << 3 (masks the first 3 bits)
   SHR(32, R(value), Imm8(3 + 5 + 5));         // >> 5 for cache line size, >> 5 for width of bitset
-  MOV(64, R(tmp), ImmPtr(jit->GetBlockCache()->GetBlockBitSet()));
+  MOV(64, R(tmp), ImmPtr(GetBlockCache()->GetBlockBitSet()));
   MOV(32, R(value), MComplex(tmp, value, SCALE_4, 0));
   SHR(32, R(addr), Imm8(5));
   BT(32, R(value), R(addr));
@@ -308,28 +296,12 @@ void Jit64::dcbx(UGeckoInstruction inst)
   SHL(32, R(ABI_PARAM1), Imm8(5));
   MOV(32, R(ABI_PARAM2), Imm32(32));
   XOR(32, R(ABI_PARAM3), R(ABI_PARAM3));
-  ABI_CallFunction((void*)JitInterface::InvalidateICache);
+  ABI_CallFunction(JitInterface::InvalidateICache);
   ABI_PopRegistersAndAdjustStack(registersInUse, 0);
+  asm_routines.ResetStack(*this);
   c = J(true);
   SwitchToNearCode();
   SetJumpTarget(c);
-
-  // dcbi
-  if (inst.SUBOP10 == 470)
-  {
-    // Flush DSP DMA if DMAState bit is set
-    TEST(16, M(&DSP::g_dspState), Imm16(1 << 9));
-    c = J_CC(CC_NZ, true);
-    SwitchToFarCode();
-    SetJumpTarget(c);
-    ABI_PushRegistersAndAdjustStack(registersInUse, 0);
-    SHL(32, R(addr), Imm8(5));
-    ABI_CallFunctionR((void*)DSP::FlushInstantDMA, addr);
-    ABI_PopRegistersAndAdjustStack(registersInUse, 0);
-    c = J(true);
-    SwitchToNearCode();
-    SetJumpTarget(c);
-  }
 
   gpr.UnlockAllX();
 }
@@ -346,7 +318,7 @@ void Jit64::dcbt(UGeckoInstruction inst)
   // This is important because invalidating the block cache when we don't
   // need to is terrible for performance.
   // (Invalidating the jit block cache on dcbst is a heuristic.)
-  if (MergeAllowedNextInstructions(1) && js.op[1].inst.OPCD == 31 && js.op[1].inst.SUBOP10 == 54 &&
+  if (CanMergeNextInstructions(1) && js.op[1].inst.OPCD == 31 && js.op[1].inst.SUBOP10 == 54 &&
       js.op[1].inst.RA == inst.RA && js.op[1].inst.RB == inst.RB)
   {
     js.skipInstructions = 1;
@@ -360,42 +332,47 @@ void Jit64::dcbz(UGeckoInstruction inst)
   JITDISABLE(bJITLoadStoreOff);
   if (SConfig::GetInstance().bDCBZOFF)
     return;
+  FALLBACK_IF(SConfig::GetInstance().bLowDCBZHack);
 
   int a = inst.RA;
   int b = inst.RB;
-
-  u32 mem_mask = Memory::ADDR_MASK_HW_ACCESS;
-
-  // The following masks the region used by the GC/Wii virtual memory lib
-  mem_mask |= Memory::ADDR_MASK_MEM1;
 
   MOV(32, R(RSCRATCH), gpr.R(b));
   if (a)
     ADD(32, R(RSCRATCH), gpr.R(a));
   AND(32, R(RSCRATCH), Imm32(~31));
-  TEST(32, R(RSCRATCH), Imm32(mem_mask));
-  FixupBranch slow = J_CC(CC_NZ, true);
 
-  // Should this code ever run? I can't find any games that use DCBZ on non-physical addresses, but
-  // supposedly there are, at least for some MMU titles. Let's be careful and support it to be sure.
-  SwitchToFarCode();
-  SetJumpTarget(slow);
-  MOV(32, M(&PC), Imm32(jit->js.compilerPC));
+  if (UReg_MSR(MSR).DR)
+  {
+    // Perform lookup to see if we can use fast path.
+    MOV(64, R(RSCRATCH2), ImmPtr(&PowerPC::dbat_table[0]));
+    PUSH(RSCRATCH);
+    SHR(32, R(RSCRATCH), Imm8(PowerPC::BAT_INDEX_SHIFT));
+    TEST(32, MComplex(RSCRATCH2, RSCRATCH, SCALE_4, 0), Imm32(PowerPC::BAT_PHYSICAL_BIT));
+    POP(RSCRATCH);
+    FixupBranch slow = J_CC(CC_Z, true);
+
+    // Fast path: compute full address, then zero out 32 bytes of memory.
+    XORPS(XMM0, R(XMM0));
+    MOVAPS(MComplex(RMEM, RSCRATCH, SCALE_1, 0), XMM0);
+    MOVAPS(MComplex(RMEM, RSCRATCH, SCALE_1, 16), XMM0);
+
+    // Slow path: call the general-case code.
+    SwitchToFarCode();
+    SetJumpTarget(slow);
+  }
+  MOV(32, PPCSTATE(pc), Imm32(js.compilerPC));
   BitSet32 registersInUse = CallerSavedRegistersInUse();
   ABI_PushRegistersAndAdjustStack(registersInUse, 0);
-  ABI_CallFunctionR((void*)&PowerPC::ClearCacheLine, RSCRATCH);
+  ABI_CallFunctionR(PowerPC::ClearCacheLine, RSCRATCH);
   ABI_PopRegistersAndAdjustStack(registersInUse, 0);
-  FixupBranch exit = J(true);
-  SwitchToNearCode();
 
-  // Mask out the address so we don't write to MEM1 out of bounds
-  // FIXME: Work out why the AGP disc writes out of bounds
-  if (!SConfig::GetInstance().bWii)
-    AND(32, R(RSCRATCH), Imm32(Memory::RAM_MASK));
-  PXOR(XMM0, R(XMM0));
-  MOVAPS(MComplex(RMEM, RSCRATCH, SCALE_1, 0), XMM0);
-  MOVAPS(MComplex(RMEM, RSCRATCH, SCALE_1, 16), XMM0);
-  SetJumpTarget(exit);
+  if (UReg_MSR(MSR).DR)
+  {
+    FixupBranch end = J(true);
+    SwitchToNearCode();
+    SetJumpTarget(end);
+  }
 }
 
 void Jit64::stX(UGeckoInstruction inst)
@@ -596,4 +573,16 @@ void Jit64::stmw(UGeckoInstruction inst)
     }
   }
   gpr.UnlockAllX();
+}
+
+void Jit64::eieio(UGeckoInstruction inst)
+{
+  INSTRUCTION_START
+  JITDISABLE(bJITLoadStoreOff);
+
+  // optimizeGatherPipe generally postpones FIFO checks to the end of the JIT block,
+  // which is generally safe. However postponing FIFO writes across eieio instructions
+  // is incorrect (would crash NBA2K11 strap screen if we improve our FIFO detection).
+  if (jo.optimizeGatherPipe && js.fifoBytesSinceCheck > 0)
+    js.mustCheckFifo = true;
 }

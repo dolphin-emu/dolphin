@@ -6,19 +6,14 @@
 
 #include <cstdarg>
 #include <cstring>
-#include <fstream>
-#include <iomanip>
 #include <map>
 #include <string>
 #include <vector>
 
 #include "Common/CommonTypes.h"
-#include "Common/FileUtil.h"
-#include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
-#include "VideoCommon/XFMemory.h"
 
 /**
  * Common interface for classes that need to go through the shader generation path
@@ -104,7 +99,8 @@ public:
   const u8* GetUidDataRaw() const { return &values[0]; }
   size_t GetUidDataSize() const { return sizeof(values); }
 private:
-  union {
+  union
+  {
     uid_data data;
     u8 values[sizeof(uid_data)];
   };
@@ -196,6 +192,9 @@ inline void GenerateVSOutputMembers(T& object, APIType api_type, u32 texgens,
     DefineOutputMember(object, api_type, qualifier, "float3", "WorldPos", -1, "TEXCOORD",
                        texgens + 2);
   }
+
+  DefineOutputMember(object, api_type, qualifier, "float", "clipDist", 0, "SV_ClipDistance", 0);
+  DefineOutputMember(object, api_type, qualifier, "float", "clipDist", 1, "SV_ClipDistance", 1);
 }
 
 template <class T>
@@ -216,6 +215,9 @@ inline void AssignVSOutputMembers(T& object, const char* a, const char* b, u32 t
     object.Write("\t%s.Normal = %s.Normal;\n", a, b);
     object.Write("\t%s.WorldPos = %s.WorldPos;\n", a, b);
   }
+
+  object.Write("\t%s.clipDist0 = %s.clipDist0;\n", a, b);
+  object.Write("\t%s.clipDist1 = %s.clipDist1;\n", a, b);
 }
 
 // We use the flag "centroid" to fix some MSAA rendering bugs. With MSAA, the
@@ -273,6 +275,7 @@ inline const char* GetInterpolationQualifier(bool msaa, bool ssaa,
 #define I_NORMALMATRICES "cnmtx"
 #define I_POSTTRANSFORMMATRICES "cpostmtx"
 #define I_PIXELCENTERCORRECTION "cpixelcenter"
+#define I_VIEWPORT_SIZE "cviewport"
 
 #define I_STEREOPARAMS "cstereo"
 #define I_LINEPTPARAMS "clinept"
@@ -286,4 +289,5 @@ static const char s_shader_uniforms[] = "\tfloat4 " I_POSNORMALMATRIX "[6];\n"
                                         "\tfloat4 " I_TRANSFORMMATRICES "[64];\n"
                                         "\tfloat4 " I_NORMALMATRICES "[32];\n"
                                         "\tfloat4 " I_POSTTRANSFORMMATRICES "[64];\n"
-                                        "\tfloat4 " I_PIXELCENTERCORRECTION ";\n";
+                                        "\tfloat4 " I_PIXELCENTERCORRECTION ";\n"
+                                        "\tfloat2 " I_VIEWPORT_SIZE ";\n";

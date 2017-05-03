@@ -8,9 +8,9 @@
 
 alignas(16) extern const u8 pbswapShuffle1x4[16];
 alignas(16) extern const u8 pbswapShuffle2x4[16];
-alignas(16) extern const float m_one[];
-alignas(16) extern const float m_quantizeTableS[];
-alignas(16) extern const float m_dequantizeTableS[];
+alignas(16) extern const float m_one[4];
+alignas(16) extern const float m_quantizeTableS[128];
+alignas(16) extern const float m_dequantizeTableS[128];
 
 class CommonAsmRoutinesBase
 {
@@ -38,6 +38,12 @@ public:
   //            converted to a pair of floats.
   // Trashes: all three RSCRATCH
   const u8** pairedLoadQuantized;
+
+  // In: array index: GQR to use.
+  // In: ECX: Address to read from.
+  // Out: XMM0: Bottom 32-bit slot holds the read value.
+  // Trashes: all three RSCRATCH
+  const u8** singleLoadQuantized;
 
   // In: array index: GQR to use.
   // In: ECX: Address to write to.

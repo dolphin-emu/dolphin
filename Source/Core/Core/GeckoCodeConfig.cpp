@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -12,11 +13,11 @@
 
 namespace Gecko
 {
-void LoadCodes(const IniFile& globalIni, const IniFile& localIni, std::vector<GeckoCode>& gcodes)
+std::vector<GeckoCode> LoadCodes(const IniFile& globalIni, const IniFile& localIni)
 {
-  const IniFile* inis[2] = {&globalIni, &localIni};
+  std::vector<GeckoCode> gcodes;
 
-  for (const IniFile* ini : inis)
+  for (const IniFile* ini : {&globalIni, &localIni})
   {
     std::vector<std::string> lines;
     ini->GetLines("Gecko", &lines, false);
@@ -78,20 +79,35 @@ void LoadCodes(const IniFile& globalIni, const IniFile& localIni, std::vector<Ge
 
     for (const std::string& line : lines)
     {
-      if (line.size() == 0 || line[0] != '$')
+      if (line.empty() || line[0] != '$')
       {
         continue;
       }
-      std::string name = line.substr(1);
+
       for (GeckoCode& ogcode : gcodes)
       {
-        if (ogcode.name == name)
+        // Exclude the initial '$' from the comparison.
+        if (line.compare(1, std::string::npos, ogcode.name) == 0)
         {
           ogcode.enabled = true;
         }
       }
     }
   }
+
+  return gcodes;
+}
+
+static std::string MakeGeckoCodeTitle(const GeckoCode& code)
+{
+  std::string title = '$' + code.name;
+
+  if (!code.creator.empty())
+  {
+    title += " [" + code.creator + ']';
+  }
+
+  return title;
 }
 
 // used by the SaveGeckoCodes function
@@ -99,39 +115,22 @@ static void SaveGeckoCode(std::vector<std::string>& lines, std::vector<std::stri
                           const GeckoCode& gcode)
 {
   if (gcode.enabled)
-    enabledLines.push_back("$" + gcode.name);
+    enabledLines.push_back('$' + gcode.name);
 
   if (!gcode.user_defined)
     return;
 
-  std::string name;
-
-  // save the name
-  name += '$';
-  name += gcode.name;
-
-  // save the creator name
-  if (gcode.creator.size())
-  {
-    name += " [";
-    name += gcode.creator;
-    name += ']';
-  }
-
-  lines.push_back(name);
+  lines.push_back(MakeGeckoCodeTitle(gcode));
 
   // save all the code lines
   for (const GeckoCode::Code& code : gcode.codes)
   {
-    // ss << std::hex << codes_iter->address << ' ' << codes_iter->data;
-    // lines.push_back(StringFromFormat("%08X %08X", codes_iter->address, codes_iter->data));
     lines.push_back(code.original_line);
-    // ss.clear();
   }
 
   // save the notes
   for (const std::string& note : gcode.notes)
-    lines.push_back(std::string("*") + note);
+    lines.push_back('*' + note);
 }
 
 void SaveCodes(IniFile& inifile, const std::vector<GeckoCode>& gcodes)

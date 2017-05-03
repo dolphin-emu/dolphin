@@ -13,6 +13,12 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
+#include "Common/NandPaths.h"
+
+namespace File
+{
+class IOFile;
+}
 
 // This class is meant to edit the values in a given Wii SYSCONF file
 // It currently does not add/remove/rearrange sections,
@@ -27,7 +33,7 @@ enum SysconfType
   Type_Byte,
   Type_Short,
   Type_Long,
-  Type_Unknown,
+  Type_LongLong,
   Type_Bool
 };
 
@@ -39,32 +45,34 @@ struct SSysConfHeader
 
 struct SSysConfEntry
 {
-  u16 offset;
+  u16 offset = 0;
   SysconfType type;
-  u8 nameLength;
-  char name[32];
-  u16 dataLength;
-  u8* data;
+  u8 nameLength = 0;
+  char name[32] = {};
+  u16 dataLength = 0;
+  std::vector<u8> data;
 
   template <class T>
-  T GetData()
+  T GetData() const
   {
-    return *(T*)data;
+    T extracted_data;
+    std::memcpy(&extracted_data, data.data(), sizeof(T));
+    return extracted_data;
   }
-  bool GetArrayData(u8* dest, u16 destSize)
+  bool GetArrayData(u8* dest, u16 destSize) const
   {
     if (dest && destSize >= dataLength)
     {
-      memcpy(dest, data, dataLength);
+      memcpy(dest, data.data(), dataLength);
       return true;
     }
     return false;
   }
-  bool SetArrayData(u8* buffer, u16 bufferSize)
+  bool SetArrayData(const u8* buffer, u16 bufferSize)
   {
     if (buffer)
     {
-      memcpy(data, buffer, std::min<u16>(bufferSize, dataLength));
+      memcpy(data.data(), buffer, std::min<u16>(bufferSize, dataLength));
       return true;
     }
     return false;
@@ -74,12 +82,12 @@ struct SSysConfEntry
 class SysConf
 {
 public:
-  SysConf();
+  SysConf(Common::FromWhichRoot root_type);
   ~SysConf();
 
-  bool IsValid() { return m_IsValid; }
+  bool IsValid() const { return m_IsValid; }
   template <class T>
-  T GetData(const char* sectionName)
+  T GetData(const char* sectionName) const
   {
     if (!m_IsValid)
     {
@@ -87,13 +95,13 @@ public:
       return 0;
     }
 
-    std::vector<SSysConfEntry>::iterator index = m_Entries.begin();
-    for (; index < m_Entries.end() - 1; ++index)
+    auto index = m_Entries.cbegin();
+    for (; index < m_Entries.cend() - 1; ++index)
     {
       if (strcmp(index->name, sectionName) == 0)
         break;
     }
-    if (index == m_Entries.end() - 1)
+    if (index == m_Entries.cend() - 1)
     {
       PanicAlertT("Section %s not found in SYSCONF", sectionName);
       return 0;
@@ -102,35 +110,35 @@ public:
     return index->GetData<T>();
   }
 
-  bool GetArrayData(const char* sectionName, u8* dest, u16 destSize)
+  bool GetArrayData(const char* sectionName, u8* dest, u16 destSize) const
   {
     if (!m_IsValid)
     {
       PanicAlertT("Trying to read from invalid SYSCONF");
-      return 0;
+      return false;
     }
 
-    std::vector<SSysConfEntry>::iterator index = m_Entries.begin();
-    for (; index < m_Entries.end() - 1; ++index)
+    auto index = m_Entries.cbegin();
+    for (; index < m_Entries.cend() - 1; ++index)
     {
       if (strcmp(index->name, sectionName) == 0)
         break;
     }
-    if (index == m_Entries.end() - 1)
+    if (index == m_Entries.cend() - 1)
     {
       PanicAlertT("Section %s not found in SYSCONF", sectionName);
-      return 0;
+      return false;
     }
 
     return index->GetArrayData(dest, destSize);
   }
 
-  bool SetArrayData(const char* sectionName, u8* buffer, u16 bufferSize)
+  bool SetArrayData(const char* sectionName, const u8* buffer, u16 bufferSize)
   {
     if (!m_IsValid)
       return false;
 
-    std::vector<SSysConfEntry>::iterator index = m_Entries.begin();
+    auto index = m_Entries.begin();
     for (; index < m_Entries.end() - 1; ++index)
     {
       if (strcmp(index->name, sectionName) == 0)
@@ -151,7 +159,7 @@ public:
     if (!m_IsValid)
       return false;
 
-    std::vector<SSysConfEntry>::iterator index = m_Entries.begin();
+    auto index = m_Entries.begin();
     for (; index < m_Entries.end() - 1; ++index)
     {
       if (strcmp(index->name, sectionName) == 0)
@@ -163,7 +171,7 @@ public:
       return false;
     }
 
-    *(T*)index->data = newValue;
+    std::memcpy(index->data.data(), &newValue, sizeof(T));
     return true;
   }
 
@@ -171,16 +179,16 @@ public:
   bool SaveToFile(const std::string& filename);
   bool LoadFromFile(const std::string& filename);
   bool Reload();
-  // This function is used when the NAND root is changed
-  void UpdateLocation();
+  void UpdateLocation(Common::FromWhichRoot root_type);
 
 private:
-  bool LoadFromFileInternal(FILE* fh);
+  bool LoadFromFileInternal(File::IOFile&& file);
   void GenerateSysConf();
   void Clear();
+  void ApplySettingsFromMovie();
 
   std::string m_Filename;
   std::string m_FilenameDefault;
   std::vector<SSysConfEntry> m_Entries;
-  bool m_IsValid;
+  bool m_IsValid = false;
 };

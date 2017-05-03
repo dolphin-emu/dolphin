@@ -7,9 +7,9 @@
 #include <string>
 
 #ifdef _WIN32
+#include <windows.h>
 #include <mmsystem.h>
 #include <sys/timeb.h>
-#include <windows.h>
 #else
 #include <sys/time.h>
 #endif

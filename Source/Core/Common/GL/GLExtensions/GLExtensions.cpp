@@ -653,19 +653,12 @@ PFNDOLDRAWELEMENTSINSTANCEDBASEVERTEXBASEINSTANCEPROC
 dolDrawElementsInstancedBaseVertexBaseInstance;
 PFNDOLGETINTERNALFORMATIVPROC dolGetInternalformativ;
 PFNDOLGETACTIVEATOMICCOUNTERBUFFERIVPROC dolGetActiveAtomicCounterBufferiv;
-PFNDOLBINDIMAGETEXTUREPROC dolBindImageTexture;
-PFNDOLMEMORYBARRIERPROC dolMemoryBarrier;
-PFNDOLTEXSTORAGE1DPROC dolTexStorage1D;
-PFNDOLTEXSTORAGE2DPROC dolTexStorage2D;
-PFNDOLTEXSTORAGE3DPROC dolTexStorage3D;
 PFNDOLDRAWTRANSFORMFEEDBACKINSTANCEDPROC dolDrawTransformFeedbackInstanced;
 PFNDOLDRAWTRANSFORMFEEDBACKSTREAMINSTANCEDPROC dolDrawTransformFeedbackStreamInstanced;
 
 // gl_4_3
 PFNDOLCLEARBUFFERDATAPROC dolClearBufferData;
 PFNDOLCLEARBUFFERSUBDATAPROC dolClearBufferSubData;
-PFNDOLDISPATCHCOMPUTEPROC dolDispatchCompute;
-PFNDOLDISPATCHCOMPUTEINDIRECTPROC dolDispatchComputeIndirect;
 PFNDOLFRAMEBUFFERPARAMETERIPROC dolFramebufferParameteri;
 PFNDOLGETFRAMEBUFFERPARAMETERIVPROC dolGetFramebufferParameteriv;
 PFNDOLGETINTERNALFORMATI64VPROC dolGetInternalformati64v;
@@ -905,6 +898,11 @@ PFNDOLTEXIMAGE3DMULTISAMPLEPROC dolTexImage3DMultisample;
 PFNDOLGETMULTISAMPLEFVPROC dolGetMultisamplefv;
 PFNDOLSAMPLEMASKIPROC dolSampleMaski;
 
+// ARB_texture_storage
+PFNDOLTEXSTORAGE1DPROC dolTexStorage1D;
+PFNDOLTEXSTORAGE2DPROC dolTexStorage2D;
+PFNDOLTEXSTORAGE3DPROC dolTexStorage3D;
+
 // ARB_texture_storage_multisample
 PFNDOLTEXSTORAGE2DMULTISAMPLEPROC dolTexStorage2DMultisample;
 PFNDOLTEXSTORAGE3DMULTISAMPLEPROC dolTexStorage3DMultisample;
@@ -983,6 +981,19 @@ PFNDOLCOPYIMAGESUBDATAPROC dolCopyImageSubData;
 
 // ARB_shader_storage_buffer_object
 PFNDOLSHADERSTORAGEBLOCKBINDINGPROC dolShaderStorageBlockBinding;
+
+// NV_depth_buffer_float
+PFNDOLDEPTHRANGEDNVPROC dolDepthRangedNV;
+PFNDOLCLEARDEPTHDNVPROC dolClearDepthdNV;
+PFNDOLDEPTHBOUNDSDNVPROC dolDepthBoundsdNV;
+
+// ARB_shader_image_load_store
+PFNDOLBINDIMAGETEXTUREPROC dolBindImageTexture;
+PFNDOLMEMORYBARRIERPROC dolMemoryBarrier;
+
+// ARB_compute_shader
+PFNDOLDISPATCHCOMPUTEPROC dolDispatchCompute;
+PFNDOLDISPATCHCOMPUTEINDIRECTPROC dolDispatchComputeIndirect;
 
 // Creates a GLFunc object that requires a feature
 #define GLFUNC_REQUIRES(x, y)                                                                      \
@@ -1676,6 +1687,11 @@ const GLFunc gl_function_array[] = {
     GLFUNC_REQUIRES(glGetMultisamplefv, "GL_ARB_texture_multisample"),
     GLFUNC_REQUIRES(glSampleMaski, "GL_ARB_texture_multisample"),
 
+    // ARB_texture_storage
+    GLFUNC_REQUIRES(glTexStorage1D, "GL_ARB_texture_storage !VERSION_4_2"),
+    GLFUNC_REQUIRES(glTexStorage2D, "GL_ARB_texture_storage !VERSION_4_2 |VERSION_GLES_3"),
+    GLFUNC_REQUIRES(glTexStorage3D, "GL_ARB_texture_storage !VERSION_4_2 |VERSION_GLES_3"),
+
     // ARB_texture_storage_multisample
     GLFUNC_REQUIRES(glTexStorage2DMultisample,
                     "GL_ARB_texture_storage_multisample !VERSION_4_3 |VERSION_GLES_3_1"),
@@ -1838,6 +1854,22 @@ const GLFunc gl_function_array[] = {
 
     // ARB_shader_storage_buffer_object
     GLFUNC_REQUIRES(glShaderStorageBlockBinding, "ARB_shader_storage_buffer_object !VERSION_4_3"),
+
+    // NV_depth_buffer_float
+    GLFUNC_REQUIRES(glDepthRangedNV, "GL_NV_depth_buffer_float"),
+    GLFUNC_REQUIRES(glClearDepthdNV, "GL_NV_depth_buffer_float"),
+    GLFUNC_REQUIRES(glDepthBoundsdNV, "GL_NV_depth_buffer_float"),
+
+    // ARB_shader_image_load_store
+    GLFUNC_REQUIRES(glBindImageTexture,
+                    "GL_ARB_shader_image_load_store !VERSION_4_2 |VERSION_GLES_3_1"),
+    GLFUNC_REQUIRES(glMemoryBarrier,
+                    "GL_ARB_shader_image_load_store !VERSION_4_2 |VERSION_GLES_3_1"),
+
+    // ARB_compute_shader
+    GLFUNC_REQUIRES(glDispatchCompute, "GL_ARB_compute_shader !VERSION_4_3 |VERSION_GLES_3_1"),
+    GLFUNC_REQUIRES(glDispatchComputeIndirect,
+                    "GL_ARB_compute_shader !VERSION_4_3 |VERSION_GLES_3_1"),
 };
 
 namespace GLExtensions
@@ -2060,26 +2092,21 @@ static void InitExtensionList()
       // Quite a lot of these had their names changed when merged in to core
       // Disable the ones that have
       std::string gl300exts[] = {
-          "GL_ARB_map_buffer_range",
+          "GL_ARB_map_buffer_range", "GL_ARB_color_buffer_float", "GL_ARB_texture_float",
+          "GL_ARB_half_float_pixel", "GL_ARB_framebuffer_object", "GL_ARB_texture_float",
+          "GL_ARB_vertex_array_object", "GL_ARB_depth_buffer_float",
+          //"GL_EXT_texture_integer",
           //"GL_EXT_gpu_shader4",
           //"GL_APPLE_flush_buffer_range",
-          "GL_ARB_color_buffer_float",
-          //"GL_NV_depth_buffer_float",
-          "GL_ARB_texture_float",
           //"GL_EXT_packed_float",
           //"GL_EXT_texture_shared_exponent",
-          "GL_ARB_half_float_pixel",
           //"GL_NV_half_float",
-          "GL_ARB_framebuffer_object",
           //"GL_EXT_framebuffer_sRGB",
-          "GL_ARB_texture_float",
-          //"GL_EXT_texture_integer",
           //"GL_EXT_draw_buffers2",
           //"GL_EXT_texture_integer",
           //"GL_EXT_texture_array",
           //"GL_EXT_texture_compression_rgtc",
           //"GL_EXT_transform_feedback",
-          "GL_ARB_vertex_array_object",
           //"GL_NV_conditional_render",
           "VERSION_3_0",
       };

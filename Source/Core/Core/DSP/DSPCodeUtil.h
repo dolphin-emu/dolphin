@@ -9,6 +9,8 @@
 
 #include "Common/CommonTypes.h"
 
+namespace DSP
+{
 bool Assemble(const std::string& text, std::vector<u16>& code, bool force = false);
 bool Disassemble(const std::vector<u16>& code, bool line_numbers, std::string& text);
 bool Compare(const std::vector<u16>& code1, const std::vector<u16>& code2);
@@ -25,3 +27,4 @@ void BinaryStringBEToCode(const std::string& str, std::vector<u16>& code);
 // Load code (big endian binary).
 bool LoadBinary(const std::string& filename, std::vector<u16>& code);
 bool SaveBinary(const std::vector<u16>& code, const std::string& filename);
+}  // namespace DSP

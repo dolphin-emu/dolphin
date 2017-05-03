@@ -4,7 +4,14 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
+
+namespace DSP
+{
+namespace HLE
+{
+class DSPHLE;
 
 class ROMUCode : public UCodeInterface
 {
@@ -12,6 +19,7 @@ public:
   ROMUCode(DSPHLE* dsphle, u32 crc);
   virtual ~ROMUCode();
 
+  void Initialize() override;
   void HandleMail(u32 mail) override;
   void Update() override;
 
@@ -33,3 +41,5 @@ private:
 
   void BootUCode();
 };
+}  // namespace HLE
+}  // namespace DSP

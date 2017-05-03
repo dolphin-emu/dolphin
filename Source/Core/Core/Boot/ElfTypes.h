@@ -264,7 +264,8 @@ struct Elf32_Rela
 struct Elf32_Dyn
 {
   s32 d_tag;
-  union {
+  union
+  {
     u32 d_val;
     u32 d_ptr;
   } d_un;

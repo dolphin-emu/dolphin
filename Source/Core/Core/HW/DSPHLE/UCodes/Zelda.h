@@ -4,9 +4,17 @@
 
 #pragma once
 
+#include <array>
+
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
+
+namespace DSP
+{
+namespace HLE
+{
+class DSPHLE;
 
 class ZeldaAudioRenderer
 {
@@ -188,6 +196,7 @@ public:
   ZeldaUCode(DSPHLE* dsphle, u32 crc);
   virtual ~ZeldaUCode();
 
+  void Initialize() override;
   void HandleMail(u32 mail) override;
   void Update() override;
 
@@ -221,11 +230,7 @@ private:
 
   // Utility function to set the current state. Useful for debugging and
   // logging as a hook point.
-  void SetMailState(MailState new_state)
-  {
-    // WARN_LOG(DSPHLE, "MailState %d -> %d", m_mail_current_state, new_state);
-    m_mail_current_state = new_state;
-  }
+  void SetMailState(MailState new_state);
 
   // Voice synchronization / audio rendering flow control. When rendering an
   // audio frame, only voices up to max_voice_id will be rendered until a
@@ -246,25 +251,10 @@ private:
   bool m_cmd_can_execute = true;
 
   // Reads a 32 bit value from the command buffer. Advances the read pointer.
-  u32 Read32()
-  {
-    if (m_read_offset == m_write_offset)
-    {
-      ERROR_LOG(DSPHLE, "Reading too many command params");
-      return 0;
-    }
-
-    u32 res = m_cmd_buffer[m_read_offset];
-    m_read_offset = (m_read_offset + 1) % (sizeof(m_cmd_buffer) / sizeof(u32));
-    return res;
-  }
+  u32 Read32();
 
   // Writes a 32 bit value to the command buffer. Advances the write pointer.
-  void Write32(u32 val)
-  {
-    m_cmd_buffer[m_write_offset] = val;
-    m_write_offset = (m_write_offset + 1) % (sizeof(m_cmd_buffer) / sizeof(u32));
-  }
+  void Write32(u32 val);
 
   // Tries to run as many commands as possible until either the command
   // buffer is empty (pending_commands == 0) or we reached a long lived
@@ -296,3 +286,5 @@ private:
   // Main object handling audio rendering logic and state.
   ZeldaAudioRenderer m_renderer;
 };
+}  // namespace HLE
+}  // namespace DSP

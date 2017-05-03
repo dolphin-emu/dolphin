@@ -36,9 +36,6 @@ void Host_UpdateMainFrame()
 void Host_RequestRenderWindowSize(int, int)
 {
 }
-void Host_RequestFullscreen(bool)
-{
-}
 void Host_SetStartupDebuggingParameters()
 {
 }
@@ -61,6 +58,9 @@ void Host_SetWiiMoteConnectionState(int)
 {
 }
 void Host_ShowVideoConfig(void*, const std::string&)
+{
+}
+void Host_YieldToUI()
 {
 }
 std::unique_ptr<cInterfaceBase> HostGL_CreateGLInterface()

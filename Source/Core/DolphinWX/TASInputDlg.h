@@ -4,57 +4,58 @@
 
 #pragma once
 
-#include <wx/bitmap.h>
-#include <wx/dcmemory.h>
+#include <array>
+
 #include <wx/dialog.h>
 #include <wx/sizer.h>
 
 #include "Common/CommonTypes.h"
-#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
-#include "InputCommon/GCPadStatus.h"
 
+class DolphinSlider;
+struct GCPadStatus;
+class wxBitmap;
 class wxCheckBox;
-class wxSlider;
 class wxStaticBitmap;
 class wxTextCtrl;
+
+namespace WiimoteEmu
+{
+struct ReportFeatures;
+}
 
 class TASInputDlg : public wxDialog
 {
 public:
-  TASInputDlg(wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = _("TAS Input"),
-              const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize,
-              long style = wxDEFAULT_DIALOG_STYLE | wxSTAY_ON_TOP);
+  explicit TASInputDlg(wxWindow* parent, wxWindowID id = wxID_ANY,
+                       const wxString& title = _("TAS Input"),
+                       const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize,
+                       long style = wxDEFAULT_DIALOG_STYLE | wxSTAY_ON_TOP);
 
-  void OnCloseWindow(wxCloseEvent& event);
-  void UpdateFromSliders(wxCommandEvent& event);
-  void UpdateFromText(wxCommandEvent& event);
-  void OnMouseDownL(wxMouseEvent& event);
-  void OnMouseUpR(wxMouseEvent& event);
-  void OnRightClickSlider(wxMouseEvent& event);
-  void ResetValues();
   void GetValues(GCPadStatus* PadStatus);
   void GetValues(u8* data, WiimoteEmu::ReportFeatures rptf, int ext, const wiimote_key key);
-  void SetTurbo(wxMouseEvent& event);
-  void ButtonTurbo();
   void GetKeyBoardInput(GCPadStatus* PadStatus);
   void GetKeyBoardInput(u8* data, WiimoteEmu::ReportFeatures rptf, int ext, const wiimote_key key);
   void CreateGCLayout();
   void CreateWiiLayout(int num);
-  wxBitmap CreateStickBitmap(int x, int y);
-  void SetWiiButtons(u16* butt);
-  void HandleExtensionChange();
 
 private:
-  const int ID_C_STICK = 1001;
-  const int ID_MAIN_STICK = 1002;
-  const int ID_CC_L_STICK = 1003;
-  const int ID_CC_R_STICK = 1004;
+  enum : int
+  {
+    ID_C_STICK = 1001,
+    ID_MAIN_STICK = 1002,
+    ID_CC_L_STICK = 1003,
+    ID_CC_R_STICK = 1004
+  };
+
+  // Used in the context of creating controls on the fly
+  // This is greater than the last stick enum constant to
+  // prevent ID clashing in wx's event system.
   int m_eleID = 1005;
 
   struct Control
   {
     wxTextCtrl* text;
-    wxSlider* slider;
+    DolphinSlider* slider;
     int value = -1;
     int text_id;
     int slider_id;
@@ -100,9 +101,22 @@ private:
                     bool reverseY);
   wxStaticBoxSizer* CreateStickLayout(Stick* tempStick, const wxString& title);
   wxStaticBoxSizer* CreateAccelLayout(Control* x, Control* y, Control* z, const wxString& title);
-  Button CreateButton(const std::string& name);
+  Button CreateButton(const wxString& name);
   Control CreateControl(long style, int width, int height, bool reverse = false, u32 range = 255,
                         u32 default_value = 128);
+  wxBitmap CreateStickBitmap(int x, int y);
+
+  void OnCloseWindow(wxCloseEvent& event);
+  void UpdateFromSliders(wxCommandEvent& event);
+  void UpdateFromText(wxCommandEvent& event);
+  void OnMouseDownL(wxMouseEvent& event);
+  void OnMouseUpR(wxMouseEvent& event);
+  void OnRightClickSlider(wxMouseEvent& event);
+  void SetTurbo(wxMouseEvent& event);
+  void ButtonTurbo();
+  void HandleExtensionChange();
+  void ResetValues();
+  void SetWiiButtons(u16* butt);
 
   enum
   {
@@ -123,14 +137,10 @@ private:
 
   Stick m_cc_l_stick, m_cc_r_stick;
 
-  Button* m_buttons[13];
-  Button m_cc_buttons[15];
-  Control* m_controls[10];
-  Control* m_cc_controls[6];
-  static const int m_gc_pad_buttons_bitmask[12];
-  static const int m_wii_buttons_bitmask[11];
-  static const int m_cc_buttons_bitmask[15];
-  static const std::string m_cc_button_names[15];
+  std::array<Button*, 13> m_buttons;
+  std::array<Button, 15> m_cc_buttons;
+  std::array<Control*, 10> m_controls;
+  std::array<Control*, 6> m_cc_controls;
   u8 m_ext = 0;
   wxBoxSizer* m_main_szr;
   wxBoxSizer* m_wiimote_szr;

@@ -48,7 +48,8 @@ enum
 };
 
 #pragma pack(4)
-union TVtxDesc {
+union TVtxDesc
+{
   u64 Hex;
   struct
   {
@@ -92,7 +93,8 @@ union TVtxDesc {
   u32 GetVertexArrayStatus(int idx) { return (Hex >> (9 + idx * 2)) & 0x3; }
 };
 
-union UVAT_group0 {
+union UVAT_group0
+{
   u32 Hex;
   struct
   {
@@ -119,7 +121,8 @@ union UVAT_group0 {
   };
 };
 
-union UVAT_group1 {
+union UVAT_group1
+{
   u32 Hex;
   struct
   {
@@ -143,7 +146,8 @@ union UVAT_group1 {
   };
 };
 
-union UVAT_group2 {
+union UVAT_group2
+{
   u32 Hex;
   struct
   {
@@ -191,7 +195,8 @@ struct TVtxAttr
 };
 
 // Matrix indices
-union TMatrixIndexA {
+union TMatrixIndexA
+{
   struct
   {
     u32 PosNormalMtxIdx : 6;
@@ -207,7 +212,8 @@ union TMatrixIndexA {
   };
 };
 
-union TMatrixIndexB {
+union TMatrixIndexB
+{
   struct
   {
     u32 Tex4MtxIdx : 6;

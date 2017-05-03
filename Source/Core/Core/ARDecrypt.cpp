@@ -6,6 +6,8 @@
 // GCNcrypt - GameCube AR Crypto Program
 // Copyright (C) 2003-2004 Parasyte
 
+#include "Core/ARDecrypt.h"
+
 #include <algorithm>
 #include <cstring>
 
@@ -16,7 +18,7 @@
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
-#include "Core/ARDecrypt.h"
+#include "Common/Swap.h"
 
 namespace ActionReplay
 {
@@ -207,7 +209,7 @@ static void buildseeds()
   generateseeds(genseeds, gensubtable, 0);
 }
 
-static void getcode(u32* src, u32* addr, u32* val)
+static void getcode(const u32* src, u32* addr, u32* val)
 {
   *addr = Common::swap32(src[0]);
   *val = Common::swap32(src[1]);
@@ -219,7 +221,7 @@ static void setcode(u32* dst, u32 addr, u32 val)
   dst[1] = Common::swap32(val);
 }
 
-static u16 gencrc16(u32* codes, u16 size)
+static u16 gencrc16(const u32* codes, u16 size)
 {
   u16 ret = 0;
 
@@ -237,7 +239,7 @@ static u16 gencrc16(u32* codes, u16 size)
   return ret;
 }
 
-static u8 verifycode(u32* codes, u16 size)
+static u8 verifycode(const u32* codes, u16 size)
 {
   u16 tmp = gencrc16(codes, size);
   return (((tmp >> 12) ^ (tmp >> 8) ^ (tmp >> 4) ^ tmp) & 0x0F);
@@ -297,7 +299,7 @@ static void unscramble2(u32* addr, u32* val)
   *addr = _rotr((*addr ^ tmp), 4);
 }
 
-static void decryptcode(u32* seeds, u32* code)
+static void decryptcode(const u32* seeds, u32* code)
 {
   u32 addr, val;
   u32 tmp, tmp2;
@@ -454,7 +456,7 @@ static int alphatobin(u32* dst, const std::vector<std::string>& alpha, int size)
   return ret;
 }
 
-void DecryptARCode(std::vector<std::string> vCodes, std::vector<AREntry>& ops)
+void DecryptARCode(std::vector<std::string> vCodes, std::vector<AREntry>* ops)
 {
   // The almighty buildseeds() function!! without this, the crypto routines are useless
   buildseeds();
@@ -469,9 +471,9 @@ void DecryptARCode(std::vector<std::string> vCodes, std::vector<AREntry>& ops)
 
   if ((ret = alphatobin(uCodes, vCodes, (int)vCodes.size())))
   {
+    // Return value is index + 1, 0 being the success flag value.
     PanicAlertT("Action Replay Code Decryption Error:\nParity Check Failed\n\nCulprit Code:\n%s",
-                vCodes[ret].c_str());
-    batchdecrypt(uCodes, (u16)vCodes.size() << 1);
+                vCodes[ret - 1].c_str());
   }
   else if (!batchdecrypt(uCodes, (u16)vCodes.size() << 1))
   {
@@ -481,10 +483,7 @@ void DecryptARCode(std::vector<std::string> vCodes, std::vector<AREntry>& ops)
 
     for (size_t i = 0; i < (vCodes.size() << 1); i += 2)
     {
-      AREntry op;
-      op.cmd_addr = uCodes[i];
-      op.value = uCodes[i + 1];
-      ops.push_back(op);
+      ops->emplace_back(uCodes[i], uCodes[i + 1]);
       // PanicAlert("Decrypted AR Code without verification code:\n%08X %08X", uCodes[i],
       // uCodes[i+1]);
     }
@@ -494,10 +493,7 @@ void DecryptARCode(std::vector<std::string> vCodes, std::vector<AREntry>& ops)
     // Skip passing the verification code back
     for (size_t i = 2; i < (vCodes.size() << 1); i += 2)
     {
-      AREntry op;
-      op.cmd_addr = uCodes[i];
-      op.value = uCodes[i + 1];
-      ops.push_back(op);
+      ops->emplace_back(uCodes[i], uCodes[i + 1]);
       // PanicAlert("Decrypted AR Code:\n%08X %08X", uCodes[i], uCodes[i+1]);
     }
   }

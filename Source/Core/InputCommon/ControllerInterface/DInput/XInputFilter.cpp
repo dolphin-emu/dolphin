@@ -2,131 +2,79 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-// This function is contained in a separate file because WbemIdl.h pulls in files which break on
-// /Zc:strictStrings, so this compilation unit is compiled without /Zc:strictStrings.
-
-#include <WbemIdl.h>
-#include <Windows.h>
+#include <cwchar>
+#include <unordered_set>
 #include <vector>
 
-#define SAFE_RELEASE(p)                                                                            \
-  {                                                                                                \
-    if (p)                                                                                         \
-    {                                                                                              \
-      (p)->Release();                                                                              \
-      (p) = nullptr;                                                                               \
-    }                                                                                              \
-  }
+#include <Windows.h>
+#include <SetupAPI.h>
 
 namespace ciface
 {
 namespace DInput
 {
-//-----------------------------------------------------------------------------
-// Modified some MSDN code to get all the XInput device GUID.Data1 values in a vector,
-// faster than checking all the devices for each DirectInput device, like MSDN says to do
-//-----------------------------------------------------------------------------
-void GetXInputGUIDS(std::vector<DWORD>* guids)
+// Code for enumerating hardware devices that use the XINPUT device driver.
+// The MSDN recommended code suffers from massive performance problems when using language packs,
+// if the system and user languages differ then WMI Queries become incredibly slow (multiple
+// seconds). This is more or less equivalent and much faster.
+std::unordered_set<DWORD> GetXInputGUIDS()
 {
-  IWbemLocator* pIWbemLocator = nullptr;
-  IEnumWbemClassObject* pEnumDevices = nullptr;
-  IWbemClassObject* pDevices[20] = {0};
-  IWbemServices* pIWbemServices = nullptr;
-  BSTR bstrNamespace = nullptr;
-  BSTR bstrDeviceID = nullptr;
-  BSTR bstrClassName = nullptr;
-  DWORD uReturned = 0;
-  VARIANT var;
-  HRESULT hr;
+  static const GUID s_GUID_devclass_HID = {
+      0x745a17a0, 0x74d3, 0x11d0, {0xb6, 0xfe, 0x00, 0xa0, 0xc9, 0x0f, 0x57, 0xda}};
+  std::unordered_set<DWORD> guids;
 
-  // CoInit if needed
-  hr = CoInitialize(nullptr);
-  bool bCleanupCOM = SUCCEEDED(hr);
+  // Enumerate everything under the "Human Interface Devices" tree in the Device Manager
+  // NOTE: Some devices show up multiple times due to sub-devices, we rely on the set to
+  //   prevent duplicates.
+  HDEVINFO setup_enum = SetupDiGetClassDevsW(&s_GUID_devclass_HID, nullptr, nullptr, DIGCF_PRESENT);
+  if (setup_enum == INVALID_HANDLE_VALUE)
+    return guids;
 
-  // Create WMI
-  hr = CoCreateInstance(__uuidof(WbemLocator), nullptr, CLSCTX_INPROC_SERVER,
-                        __uuidof(IWbemLocator), (LPVOID*)&pIWbemLocator);
-  if (FAILED(hr) || pIWbemLocator == nullptr)
-    goto LCleanup;
-
-  bstrNamespace = SysAllocString(L"\\\\.\\root\\cimv2");
-  if (bstrNamespace == nullptr)
-    goto LCleanup;
-  bstrClassName = SysAllocString(L"Win32_PNPEntity");
-  if (bstrClassName == nullptr)
-    goto LCleanup;
-  bstrDeviceID = SysAllocString(L"DeviceID");
-  if (bstrDeviceID == nullptr)
-    goto LCleanup;
-
-  // Connect to WMI
-  hr = pIWbemLocator->ConnectServer(bstrNamespace, nullptr, nullptr, 0L, 0L, nullptr, nullptr,
-                                    &pIWbemServices);
-  if (FAILED(hr) || pIWbemServices == nullptr)
-    goto LCleanup;
-
-  // Switch security level to IMPERSONATE.
-  CoSetProxyBlanket(pIWbemServices, RPC_C_AUTHN_WINNT, RPC_C_AUTHZ_NONE, nullptr,
-                    RPC_C_AUTHN_LEVEL_CALL, RPC_C_IMP_LEVEL_IMPERSONATE, nullptr, EOAC_NONE);
-
-  hr = pIWbemServices->CreateInstanceEnum(bstrClassName, 0, nullptr, &pEnumDevices);
-  if (FAILED(hr) || pEnumDevices == nullptr)
-    goto LCleanup;
-
-  // Loop over all devices
-  while (true)
+  std::vector<wchar_t> buffer(128);
+  SP_DEVINFO_DATA dev_info;
+  dev_info.cbSize = sizeof(SP_DEVINFO_DATA);
+  for (DWORD i = 0; SetupDiEnumDeviceInfo(setup_enum, i, &dev_info); ++i)
   {
-    // Get 20 at a time
-    hr = pEnumDevices->Next(10000, 20, pDevices, &uReturned);
-    if (FAILED(hr) || uReturned == 0)
-      break;
-
-    for (UINT iDevice = 0; iDevice < uReturned; ++iDevice)
+    // Need to find the size of the data and set the buffer appropriately
+    DWORD buffer_size = 0;
+    while (!SetupDiGetDeviceRegistryPropertyW(setup_enum, &dev_info, SPDRP_HARDWAREID, nullptr,
+                                              reinterpret_cast<BYTE*>(buffer.data()),
+                                              static_cast<DWORD>(buffer.size()), &buffer_size))
     {
-      // For each device, get its device ID
-      hr = pDevices[iDevice]->Get(bstrDeviceID, 0L, &var, nullptr, nullptr);
-      if (SUCCEEDED(hr) && var.vt == VT_BSTR && var.bstrVal != nullptr)
-      {
-        // Check if the device ID contains "IG_".  If it does, then it's an XInput device
-        // This information can not be found from DirectInput
-        if (wcsstr(var.bstrVal, L"IG_"))
-        {
-          // If it does, then get the VID/PID from var.bstrVal
-          DWORD dwPid = 0, dwVid = 0;
-          WCHAR* strVid = wcsstr(var.bstrVal, L"VID_");
-          if (strVid && swscanf(strVid, L"VID_%4X", &dwVid) != 1)
-            dwVid = 0;
-          WCHAR* strPid = wcsstr(var.bstrVal, L"PID_");
-          if (strPid && swscanf(strPid, L"PID_%4X", &dwPid) != 1)
-            dwPid = 0;
+      if (buffer_size > buffer.size())
+        buffer.resize(buffer_size);
+      else
+        break;
+    }
+    if (GetLastError() != ERROR_SUCCESS)
+      continue;
 
-          // Compare the VID/PID to the DInput device
-          DWORD dwVidPid = MAKELONG(dwVid, dwPid);
-          guids->push_back(dwVidPid);
-          // bIsXinputDevice = true;
-        }
-      }
-      SAFE_RELEASE(pDevices[iDevice]);
+    // HARDWAREID is a REG_MULTI_SZ
+    // There are multiple strings separated by NULs, the list is ended by an empty string.
+    for (std::size_t j = 0; buffer[j]; j += std::wcslen(&buffer[j]) + 1)
+    {
+      // XINPUT devices have "IG_xx" embedded in their IDs which is what we look for.
+      if (!std::wcsstr(&buffer[j], L"IG_"))
+        continue;
+
+      unsigned int vid = 0;
+      unsigned int pid = 0;
+
+      // Extract Vendor and Product IDs for matching against DirectInput's device list.
+      wchar_t* pos = std::wcsstr(&buffer[j], L"VID_");
+      if (!pos || !std::swscanf(pos, L"VID_%4X", &vid))
+        continue;
+      pos = std::wcsstr(&buffer[j], L"PID_");
+      if (!pos || !std::swscanf(pos, L"PID_%4X", &pid))
+        continue;
+
+      guids.insert(MAKELONG(vid, pid));
+      break;
     }
   }
 
-LCleanup:
-  if (bstrNamespace)
-    SysFreeString(bstrNamespace);
-  if (bstrDeviceID)
-    SysFreeString(bstrDeviceID);
-  if (bstrClassName)
-    SysFreeString(bstrClassName);
-  for (UINT iDevice = 0; iDevice < 20; iDevice++)
-    SAFE_RELEASE(pDevices[iDevice]);
-  SAFE_RELEASE(pEnumDevices);
-  SAFE_RELEASE(pIWbemLocator);
-  SAFE_RELEASE(pIWbemServices);
-
-  if (bCleanupCOM)
-    CoUninitialize();
+  SetupDiDestroyDeviceInfoList(setup_enum);
+  return guids;
 }
 }
 }
-
-#undef SAFE_RELEASE

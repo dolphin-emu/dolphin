@@ -9,6 +9,7 @@
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/LogManager.h"
+#include "Common/MsgHandler.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/HW/Wiimote.h"
@@ -16,6 +17,7 @@
 #include "InputCommon/GCAdapter.h"
 
 #include "UICommon/UICommon.h"
+#include "UICommon/USBUtils.h"
 
 #include "VideoCommon/VideoBackendBase.h"
 
@@ -51,6 +53,7 @@ void CreateDirectories()
   File::CreateFullPath(File::GetUserPath(D_CACHE_IDX));
   File::CreateFullPath(File::GetUserPath(D_CONFIG_IDX));
   File::CreateFullPath(File::GetUserPath(D_DUMPDSP_IDX));
+  File::CreateFullPath(File::GetUserPath(D_DUMPSSL_IDX));
   File::CreateFullPath(File::GetUserPath(D_DUMPTEXTURES_IDX));
   File::CreateFullPath(File::GetUserPath(D_GAMESETTINGS_IDX));
   File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX));

@@ -10,6 +10,8 @@
 #include "Core/DSP/DSPCore.h"
 #include "Core/HW/DSPLLE/DSPLLEGlobals.h"
 
+namespace DSP
+{
 #if PROFILE
 
 #define PROFILE_MAP_SIZE 0x10000
@@ -59,3 +61,4 @@ char SilenceLNK4221;
 };
 
 #endif
+}  // namespace DSP

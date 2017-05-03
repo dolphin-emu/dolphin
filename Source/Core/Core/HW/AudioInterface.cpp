@@ -70,7 +70,8 @@ enum
 };
 
 // AI Control Register
-union AICR {
+union AICR
+{
   AICR() { hex = 0; }
   AICR(u32 _hex) { hex = _hex; }
   struct
@@ -90,7 +91,8 @@ union AICR {
 };
 
 // AI Volume Register
-union AIVR {
+union AIVR
+{
   AIVR() { hex = 0; }
   struct
   {
@@ -130,7 +132,7 @@ static void GenerateAudioInterrupt();
 static void UpdateInterrupts();
 static void IncreaseSampleCount(const u32 _uAmount);
 static int GetAIPeriod();
-static int et_AI;
+static CoreTiming::EventType* et_AI;
 static void Update(u64 userdata, s64 cyclesLate);
 
 void Init()

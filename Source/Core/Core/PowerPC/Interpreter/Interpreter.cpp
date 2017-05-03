@@ -30,41 +30,42 @@ namespace
 u32 last_pc;
 }
 
-bool Interpreter::m_EndBlock;
+bool Interpreter::m_end_block;
 
 // function tables
-Interpreter::Instruction Interpreter::m_opTable[64];
-Interpreter::Instruction Interpreter::m_opTable4[1024];
-Interpreter::Instruction Interpreter::m_opTable19[1024];
-Interpreter::Instruction Interpreter::m_opTable31[1024];
-Interpreter::Instruction Interpreter::m_opTable59[32];
-Interpreter::Instruction Interpreter::m_opTable63[1024];
+std::array<Interpreter::Instruction, 64> Interpreter::m_op_table;
+std::array<Interpreter::Instruction, 1024> Interpreter::m_op_table4;
+std::array<Interpreter::Instruction, 1024> Interpreter::m_op_table19;
+std::array<Interpreter::Instruction, 1024> Interpreter::m_op_table31;
+std::array<Interpreter::Instruction, 32> Interpreter::m_op_table59;
+std::array<Interpreter::Instruction, 1024> Interpreter::m_op_table63;
 
-void Interpreter::RunTable4(UGeckoInstruction _inst)
+void Interpreter::RunTable4(UGeckoInstruction inst)
 {
-  m_opTable4[_inst.SUBOP10](_inst);
+  m_op_table4[inst.SUBOP10](inst);
 }
-void Interpreter::RunTable19(UGeckoInstruction _inst)
+void Interpreter::RunTable19(UGeckoInstruction inst)
 {
-  m_opTable19[_inst.SUBOP10](_inst);
+  m_op_table19[inst.SUBOP10](inst);
 }
-void Interpreter::RunTable31(UGeckoInstruction _inst)
+void Interpreter::RunTable31(UGeckoInstruction inst)
 {
-  m_opTable31[_inst.SUBOP10](_inst);
+  m_op_table31[inst.SUBOP10](inst);
 }
-void Interpreter::RunTable59(UGeckoInstruction _inst)
+void Interpreter::RunTable59(UGeckoInstruction inst)
 {
-  m_opTable59[_inst.SUBOP5](_inst);
+  m_op_table59[inst.SUBOP5](inst);
 }
-void Interpreter::RunTable63(UGeckoInstruction _inst)
+void Interpreter::RunTable63(UGeckoInstruction inst)
 {
-  m_opTable63[_inst.SUBOP10](_inst);
+  m_op_table63[inst.SUBOP10](inst);
 }
 
 void Interpreter::Init()
 {
-  g_bReserve = false;
-  m_EndBlock = false;
+  InitializeInstructionTables();
+  m_reserve = false;
+  m_end_block = false;
 }
 
 void Interpreter::Shutdown()
@@ -73,7 +74,7 @@ void Interpreter::Shutdown()
 
 static int startTrace = 0;
 
-static void Trace(UGeckoInstruction& instCode)
+static void Trace(UGeckoInstruction& inst)
 {
   std::string regs = "";
   for (int i = 0; i < 32; i++)
@@ -88,18 +89,18 @@ static void Trace(UGeckoInstruction& instCode)
                               PowerPC::ppcState.ps[i][1]);
   }
 
-  std::string ppc_inst = GekkoDisassembler::Disassemble(instCode.hex, PC);
+  std::string ppc_inst = GekkoDisassembler::Disassemble(inst.hex, PC);
   DEBUG_LOG(POWERPC, "INTER PC: %08x SRR0: %08x SRR1: %08x CRval: %016lx FPSCR: %08x MSR: %08x LR: "
                      "%08x %s %08x %s",
             PC, SRR0, SRR1, (unsigned long)PowerPC::ppcState.cr_val[0], PowerPC::ppcState.fpscr,
-            PowerPC::ppcState.msr, PowerPC::ppcState.spr[8], regs.c_str(), instCode.hex,
+            PowerPC::ppcState.msr, PowerPC::ppcState.spr[8], regs.c_str(), inst.hex,
             ppc_inst.c_str());
 }
 
 int Interpreter::SingleStepInner()
 {
   static UGeckoInstruction instCode;
-  u32 function = HLE::GetFunctionIndex(PC);
+  u32 function = HLE::GetFirstFunctionIndex(PC);
   if (function != 0)
   {
     int type = HLE::GetFunctionTypeByIndex(function);
@@ -153,11 +154,11 @@ int Interpreter::SingleStepInner()
       UReg_MSR& msr = (UReg_MSR&)MSR;
       if (msr.FP)  // If FPU is enabled, just execute
       {
-        m_opTable[instCode.OPCD](instCode);
+        m_op_table[instCode.OPCD](instCode);
         if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
         {
           PowerPC::CheckExceptions();
-          m_EndBlock = true;
+          m_end_block = true;
         }
       }
       else
@@ -165,18 +166,18 @@ int Interpreter::SingleStepInner()
         // check if we have to generate a FPU unavailable exception
         if (!PPCTables::UsesFPU(instCode))
         {
-          m_opTable[instCode.OPCD](instCode);
+          m_op_table[instCode.OPCD](instCode);
           if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
           {
             PowerPC::CheckExceptions();
-            m_EndBlock = true;
+            m_end_block = true;
           }
         }
         else
         {
           PowerPC::ppcState.Exceptions |= EXCEPTION_FPU_UNAVAILABLE;
           PowerPC::CheckExceptions();
-          m_EndBlock = true;
+          m_end_block = true;
         }
       }
     }
@@ -184,7 +185,7 @@ int Interpreter::SingleStepInner()
     {
       // Memory exception on instruction fetch
       PowerPC::CheckExceptions();
-      m_EndBlock = true;
+      m_end_block = true;
     }
   }
   last_pc = PC;
@@ -196,11 +197,14 @@ int Interpreter::SingleStepInner()
 
 void Interpreter::SingleStep()
 {
+  // Declare start of new slice
+  CoreTiming::Advance();
+
   SingleStepInner();
 
-  CoreTiming::g_slicelength = 1;
+  // The interpreter ignores instruction timing information outside the 'fast runloop'.
+  CoreTiming::g.slice_length = 1;
   PowerPC::ppcState.downcount = 0;
-  CoreTiming::Advance();
 
   if (PowerPC::ppcState.Exceptions)
   {
@@ -220,8 +224,13 @@ int ShowSteps = 300;
 // FastRun - inspired by GCemu (to imitate the JIT so that they can be compared).
 void Interpreter::Run()
 {
-  while (!CPU::GetState())
+  while (CPU::GetState() == CPU::State::Running)
   {
+    // CoreTiming Advance() ends the previous slice and declares the start of the next
+    // one so it must always be called at the start. At boot, we are in slice -1 and must
+    // advance into slice 0 to get a correct slice length before executing any cycles.
+    CoreTiming::Advance();
+
     // we have to check exceptions at branches apparently (or maybe just rfi?)
     if (SConfig::GetInstance().bEnableDebugging)
     {
@@ -235,9 +244,9 @@ void Interpreter::Run()
       // JIT as possible. Does not take into account that some instructions take multiple cycles.
       while (PowerPC::ppcState.downcount > 0)
       {
-        m_EndBlock = false;
+        m_end_block = false;
         int i;
-        for (i = 0; !m_EndBlock; i++)
+        for (i = 0; !m_end_block; i++)
         {
 #ifdef SHOW_HISTORY
           PCVec.push_back(PC);
@@ -285,35 +294,33 @@ void Interpreter::Run()
       // "fast" version of inner loop. well, it's not so fast.
       while (PowerPC::ppcState.downcount > 0)
       {
-        m_EndBlock = false;
+        m_end_block = false;
 
         int cycles = 0;
-        while (!m_EndBlock)
+        while (!m_end_block)
         {
           cycles += SingleStepInner();
         }
         PowerPC::ppcState.downcount -= cycles;
       }
     }
-
-    CoreTiming::Advance();
   }
 }
 
-void Interpreter::unknown_instruction(UGeckoInstruction _inst)
+void Interpreter::unknown_instruction(UGeckoInstruction inst)
 {
   std::string disasm = GekkoDisassembler::Disassemble(PowerPC::HostRead_U32(last_pc), last_pc);
   NOTICE_LOG(POWERPC, "Last PC = %08x : %s", last_pc, disasm.c_str());
   Dolphin_Debugger::PrintCallstack();
   NOTICE_LOG(POWERPC,
              "\nIntCPU: Unknown instruction %08x at PC = %08x  last_PC = %08x  LR = %08x\n",
-             _inst.hex, PC, last_pc, LR);
+             inst.hex, PC, last_pc, LR);
   for (int i = 0; i < 32; i += 4)
     NOTICE_LOG(POWERPC, "r%d: 0x%08x r%d: 0x%08x r%d:0x%08x r%d: 0x%08x", i, rGPR[i], i + 1,
                rGPR[i + 1], i + 2, rGPR[i + 2], i + 3, rGPR[i + 3]);
   _assert_msg_(POWERPC, 0,
                "\nIntCPU: Unknown instruction %08x at PC = %08x  last_PC = %08x  LR = %08x\n",
-               _inst.hex, PC, last_pc, LR);
+               inst.hex, PC, last_pc, LR);
 }
 
 void Interpreter::ClearCache()

@@ -6,6 +6,8 @@
 
 #include "Common/CommonTypes.h"
 
+class PointerWrap;
+
 namespace PowerPC
 {
 const u32 ICACHE_SETS = 128;
@@ -35,5 +37,6 @@ struct InstructionCache
   void Invalidate(u32 addr);
   void Init();
   void Reset();
+  void DoState(PointerWrap& p);
 };
-}
+}  // namespace PowerPC

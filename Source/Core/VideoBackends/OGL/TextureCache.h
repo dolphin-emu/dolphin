@@ -6,9 +6,9 @@
 
 #include <map>
 
+#include "Common/CommonTypes.h"
 #include "Common/GL/GLUtil.h"
 
-#include "VideoCommon/BPStructs.h"
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VideoCommon.h"
 
@@ -22,6 +22,12 @@ public:
 
   static void DisableStage(unsigned int stage);
   static void SetStage();
+
+  bool SupportsGPUTextureDecode(TextureFormat format, TlutFormat palette_format) override;
+  void DecodeTextureOnGPU(TCacheEntryBase* entry, u32 dst_level, const u8* data, size_t data_size,
+                          TextureFormat format, u32 width, u32 height, u32 aligned_width,
+                          u32 aligned_height, u32 row_stride, const u8* palette,
+                          TlutFormat palette_format) override;
 
 private:
   struct TCacheEntry : TCacheEntryBase
@@ -39,11 +45,11 @@ private:
                                   const MathUtil::Rectangle<int>& srcrect,
                                   const MathUtil::Rectangle<int>& dstrect) override;
 
-    void Load(unsigned int width, unsigned int height, unsigned int expanded_width,
-              unsigned int level) override;
+    void Load(u32 level, u32 width, u32 height, u32 row_length, const u8* buffer,
+              size_t buffer_size) override;
 
-    void FromRenderTarget(u8* dst, PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect,
-                          bool scaleByHalf, unsigned int cbufid, const float* colmat) override;
+    void FromRenderTarget(bool is_depth_copy, const EFBRectangle& srcRect, bool scaleByHalf,
+                          unsigned int cbufid, const float* colmat) override;
 
     void Bind(unsigned int stage) override;
     bool Save(const std::string& filename, unsigned int level) override;
@@ -53,11 +59,11 @@ private:
   void ConvertTexture(TCacheEntryBase* entry, TCacheEntryBase* unconverted, void* palette,
                       TlutFormat format) override;
 
-  void CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_row, u32 num_blocks_y,
-               u32 memory_stride, PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect,
-               bool isIntensity, bool scaleByHalf) override;
+  void CopyEFB(u8* dst, const EFBCopyFormat& format, u32 native_width, u32 bytes_per_row,
+               u32 num_blocks_y, u32 memory_stride, bool is_depth_copy,
+               const EFBRectangle& src_rect, bool scale_by_half) override;
 
-  void CompileShaders() override;
+  bool CompileShaders() override;
   void DeleteShaders() override;
 };
 

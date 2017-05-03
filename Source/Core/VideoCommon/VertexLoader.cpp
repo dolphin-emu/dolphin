@@ -23,7 +23,7 @@ static void PosMtx_ReadDirect_UByte(VertexLoader* loader)
 {
   u32 posmtx = DataRead<u8>() & 0x3f;
   if (loader->m_counter < 3)
-    VertexLoaderManager::position_matrix_index[loader->m_counter] = posmtx;
+    VertexLoaderManager::position_matrix_index[loader->m_counter + 1] = posmtx;
   DataWrite<u32>(posmtx);
   PRIM_LOG("posmtx: %d, ", posmtx);
 }

@@ -2,7 +2,14 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoBackends/D3D/TextureCache.h"
+
+#include <algorithm>
 #include <memory>
+
+#include "Common/Assert.h"
+#include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
 
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DShader.h"
@@ -12,19 +19,35 @@
 #include "VideoBackends/D3D/GeometryShaderCache.h"
 #include "VideoBackends/D3D/PSTextureEncoder.h"
 #include "VideoBackends/D3D/PixelShaderCache.h"
-#include "VideoBackends/D3D/TextureCache.h"
-#include "VideoBackends/D3D/TextureEncoder.h"
 #include "VideoBackends/D3D/VertexShaderCache.h"
 #include "VideoCommon/ImageWrite.h"
-#include "VideoCommon/LookUpTables.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace DX11
 {
-static std::unique_ptr<TextureEncoder> g_encoder;
+static std::unique_ptr<PSTextureEncoder> g_encoder;
 const size_t MAX_COPY_BUFFERS = 32;
 ID3D11Buffer* efbcopycbuf[MAX_COPY_BUFFERS] = {0};
+
+static DXGI_FORMAT GetDXGIFormatForHostFormat(HostTextureFormat format)
+{
+  switch (format)
+  {
+  case HostTextureFormat::DXT1:
+    return DXGI_FORMAT_BC1_UNORM;
+
+  case HostTextureFormat::DXT3:
+    return DXGI_FORMAT_BC2_UNORM;
+
+  case HostTextureFormat::DXT5:
+    return DXGI_FORMAT_BC3_UNORM;
+
+  case HostTextureFormat::RGBA8:
+  default:
+    return DXGI_FORMAT_R8G8B8A8_UNORM;
+  }
+}
 
 TextureCache::TCacheEntry::~TCacheEntry()
 {
@@ -38,43 +61,46 @@ void TextureCache::TCacheEntry::Bind(unsigned int stage)
 
 bool TextureCache::TCacheEntry::Save(const std::string& filename, unsigned int level)
 {
-  // TODO: Somehow implement this (D3DX11 doesn't support dumping individual LODs)
-  static bool warn_once = true;
-  if (level && warn_once)
+  // We can't dump compressed textures currently (it would mean drawing them to a RGBA8
+  // framebuffer, and saving that). TextureCache does not call Save for custom textures
+  // anyway, so this is fine for now.
+  _assert_(config.format == HostTextureFormat::RGBA8);
+
+  // Create a staging/readback texture with the dimensions of the specified mip level.
+  u32 mip_width = std::max(config.width >> level, 1u);
+  u32 mip_height = std::max(config.height >> level, 1u);
+  CD3D11_TEXTURE2D_DESC staging_texture_desc(DXGI_FORMAT_R8G8B8A8_UNORM, mip_width, mip_height, 1,
+                                             1, 0, D3D11_USAGE_STAGING, D3D11_CPU_ACCESS_READ);
+
+  ID3D11Texture2D* staging_texture;
+  HRESULT hr = D3D::device->CreateTexture2D(&staging_texture_desc, nullptr, &staging_texture);
+  if (FAILED(hr))
   {
-    WARN_LOG(VIDEO, "Dumping individual LOD not supported by D3D11 backend!");
-    warn_once = false;
+    WARN_LOG(VIDEO, "Failed to create texture dumping readback texture: %X", static_cast<u32>(hr));
     return false;
   }
 
-  ID3D11Texture2D* pNewTexture = nullptr;
-  ID3D11Texture2D* pSurface = texture->GetTex();
-  D3D11_TEXTURE2D_DESC desc;
-  pSurface->GetDesc(&desc);
+  // Copy the selected mip level to the staging texture.
+  CD3D11_BOX src_box(0, 0, 0, mip_width, mip_height, 1);
+  D3D::context->CopySubresourceRegion(staging_texture, 0, 0, 0, 0, texture->GetTex(),
+                                      D3D11CalcSubresource(level, 0, config.levels), &src_box);
 
-  desc.BindFlags = 0;
-  desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ | D3D11_CPU_ACCESS_WRITE;
-  desc.Usage = D3D11_USAGE_STAGING;
-
-  HRESULT hr = D3D::device->CreateTexture2D(&desc, nullptr, &pNewTexture);
-
-  bool saved_png = false;
-
-  if (SUCCEEDED(hr) && pNewTexture)
+  // Map the staging texture to client memory, and encode it as a .png image.
+  D3D11_MAPPED_SUBRESOURCE map;
+  hr = D3D::context->Map(staging_texture, 0, D3D11_MAP_READ, 0, &map);
+  if (FAILED(hr))
   {
-    D3D::context->CopyResource(pNewTexture, pSurface);
-
-    D3D11_MAPPED_SUBRESOURCE map;
-    hr = D3D::context->Map(pNewTexture, 0, D3D11_MAP_READ_WRITE, 0, &map);
-    if (SUCCEEDED(hr))
-    {
-      saved_png = TextureToPng((u8*)map.pData, map.RowPitch, filename, desc.Width, desc.Height);
-      D3D::context->Unmap(pNewTexture, 0);
-    }
-    SAFE_RELEASE(pNewTexture);
+    WARN_LOG(VIDEO, "Failed to map texture dumping readback texture: %X", static_cast<u32>(hr));
+    staging_texture->Release();
+    return false;
   }
 
-  return saved_png;
+  bool encode_result =
+      TextureToPng(reinterpret_cast<u8*>(map.pData), map.RowPitch, filename, mip_width, mip_height);
+  D3D::context->Unmap(staging_texture, 0);
+  staging_texture->Release();
+
+  return encode_result;
 }
 
 void TextureCache::TCacheEntry::CopyRectangleFromTexture(const TCacheEntryBase* source,
@@ -128,38 +154,30 @@ void TextureCache::TCacheEntry::CopyRectangleFromTexture(const TCacheEntryBase* 
   g_renderer->RestoreAPIState();
 }
 
-void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
-                                     unsigned int expanded_width, unsigned int level)
+void TextureCache::TCacheEntry::Load(u32 level, u32 width, u32 height, u32 row_length,
+                                     const u8* buffer, size_t buffer_size)
 {
-  unsigned int src_pitch = 4 * expanded_width;
-  D3D::ReplaceRGBATexture2D(texture->GetTex(), TextureCache::temp, width, height, src_pitch, level,
-                            usage);
+  size_t src_pitch = CalculateHostTextureLevelPitch(config.format, row_length);
+  D3D::context->UpdateSubresource(texture->GetTex(), level, nullptr, buffer,
+                                  static_cast<UINT>(src_pitch), 0);
 }
 
 TextureCacheBase::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntryConfig& config)
 {
+  DXGI_FORMAT dxgi_format = GetDXGIFormatForHostFormat(config.format);
   if (config.rendertarget)
   {
     return new TCacheEntry(
-        config, D3DTexture2D::Create(
-                    config.width, config.height, (D3D11_BIND_FLAG)((int)D3D11_BIND_RENDER_TARGET |
-                                                                   (int)D3D11_BIND_SHADER_RESOURCE),
-                    D3D11_USAGE_DEFAULT, DXGI_FORMAT_R8G8B8A8_UNORM, 1, config.layers));
+        config, D3DTexture2D::Create(config.width, config.height,
+                                     (D3D11_BIND_FLAG)((int)D3D11_BIND_RENDER_TARGET |
+                                                       (int)D3D11_BIND_SHADER_RESOURCE),
+                                     D3D11_USAGE_DEFAULT, dxgi_format, 1, config.layers));
   }
   else
   {
-    D3D11_USAGE usage = D3D11_USAGE_DEFAULT;
-    D3D11_CPU_ACCESS_FLAG cpu_access = (D3D11_CPU_ACCESS_FLAG)0;
-
-    if (config.levels == 1)
-    {
-      usage = D3D11_USAGE_DYNAMIC;
-      cpu_access = D3D11_CPU_ACCESS_WRITE;
-    }
-
     const D3D11_TEXTURE2D_DESC texdesc =
-        CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R8G8B8A8_UNORM, config.width, config.height, 1,
-                              config.levels, D3D11_BIND_SHADER_RESOURCE, usage, cpu_access);
+        CD3D11_TEXTURE2D_DESC(dxgi_format, config.width, config.height, 1, config.levels,
+                              D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0);
 
     ID3D11Texture2D* pTexture;
     const HRESULT hr = D3D::device->CreateTexture2D(&texdesc, nullptr, &pTexture);
@@ -167,7 +185,6 @@ TextureCacheBase::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntry
 
     TCacheEntry* const entry =
         new TCacheEntry(config, new D3DTexture2D(pTexture, D3D11_BIND_SHADER_RESOURCE));
-    entry->usage = usage;
 
     // TODO: better debug names
     D3D::SetDebugObjectName((ID3D11DeviceChild*)entry->texture->GetTex(),
@@ -181,23 +198,22 @@ TextureCacheBase::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntry
   }
 }
 
-void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, PEControl::PixelFormat srcFormat,
-                                                 const EFBRectangle& srcRect, bool scaleByHalf,
-                                                 unsigned int cbufid, const float* colmat)
+void TextureCache::TCacheEntry::FromRenderTarget(bool is_depth_copy, const EFBRectangle& srcRect,
+                                                 bool scaleByHalf, unsigned int cbufid,
+                                                 const float* colmat)
 {
   // When copying at half size, in multisampled mode, resolve the color/depth buffer first.
   // This is because multisampled texture reads go through Load, not Sample, and the linear
   // filter is ignored.
   bool multisampled = (g_ActiveConfig.iMultisamples > 1);
-  ID3D11ShaderResourceView* efbTexSRV = (srcFormat == PEControl::Z24) ?
+  ID3D11ShaderResourceView* efbTexSRV = is_depth_copy ?
                                             FramebufferManager::GetEFBDepthTexture()->GetSRV() :
                                             FramebufferManager::GetEFBColorTexture()->GetSRV();
   if (multisampled && scaleByHalf)
   {
     multisampled = false;
-    efbTexSRV = (srcFormat == PEControl::Z24) ?
-                    FramebufferManager::GetResolvedEFBDepthTexture()->GetSRV() :
-                    FramebufferManager::GetResolvedEFBColorTexture()->GetSRV();
+    efbTexSRV = is_depth_copy ? FramebufferManager::GetResolvedEFBDepthTexture()->GetSRV() :
+                                FramebufferManager::GetResolvedEFBColorTexture()->GetSRV();
   }
 
   g_renderer->ResetAPIState();
@@ -240,9 +256,9 @@ void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, PEControl::PixelFormat
 
   // Create texture copy
   D3D::drawShadedTexQuad(
-      efbTexSRV, &sourcerect, Renderer::GetTargetWidth(), Renderer::GetTargetHeight(),
-      srcFormat == PEControl::Z24 ? PixelShaderCache::GetDepthMatrixProgram(multisampled) :
-                                    PixelShaderCache::GetColorMatrixProgram(multisampled),
+      efbTexSRV, &sourcerect, g_renderer->GetTargetWidth(), g_renderer->GetTargetHeight(),
+      is_depth_copy ? PixelShaderCache::GetDepthMatrixProgram(multisampled) :
+                      PixelShaderCache::GetColorMatrixProgram(multisampled),
       VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(),
       GeometryShaderCache::GetCopyGeometryShader());
 
@@ -252,12 +268,12 @@ void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, PEControl::PixelFormat
   g_renderer->RestoreAPIState();
 }
 
-void TextureCache::CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_row,
-                           u32 num_blocks_y, u32 memory_stride, PEControl::PixelFormat srcFormat,
-                           const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf)
+void TextureCache::CopyEFB(u8* dst, const EFBCopyFormat& format, u32 native_width,
+                           u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
+                           bool is_depth_copy, const EFBRectangle& src_rect, bool scale_by_half)
 {
   g_encoder->Encode(dst, format, native_width, bytes_per_row, num_blocks_y, memory_stride,
-                    srcFormat, srcRect, isIntensity, scaleByHalf);
+                    is_depth_copy, src_rect, scale_by_half);
 }
 
 const char palette_shader[] =

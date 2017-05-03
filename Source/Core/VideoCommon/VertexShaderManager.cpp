@@ -92,23 +92,6 @@ static float PHackValue(std::string sValue)
   return f;
 }
 
-// Due to the BT.601 standard which the GameCube is based on being a compromise
-// between PAL and NTSC, neither standard gets square pixels. They are each off
-// by ~9% in opposite directions.
-// Just in case any game decides to take this into account, we do both these
-// tests with a large amount of slop.
-static bool AspectIs4_3(float width, float height)
-{
-  float aspect = fabsf(width / height);
-  return fabsf(aspect - 4.0f / 3.0f) < 4.0f / 3.0f * 0.11;  // within 11% of 4:3
-}
-
-static bool AspectIs16_9(float width, float height)
-{
-  float aspect = fabsf(width / height);
-  return fabsf(aspect - 16.0f / 9.0f) < 16.0f / 9.0f * 0.11;  // within 11% of 16:9
-}
-
 void UpdateProjectionHack(int iPhackvalue[], std::string sPhackvalue[])
 {
   float fhackvalue1 = 0, fhackvalue2 = 0;
@@ -203,8 +186,8 @@ void VertexShaderManager::Init()
   bProjectionChanged = true;
   bViewportChanged = false;
 
-  memset(&xfmem, 0, sizeof(xfmem));
-  memset(&constants, 0, sizeof(constants));
+  xfmem = {};
+  constants = {};
   ResetView();
 
   // TODO: should these go inside ResetView()?
@@ -382,10 +365,50 @@ void VertexShaderManager::SetConstants()
     // NOTE: If we ever emulate antialiasing, the sample locations set by
     // BP registers 0x01-0x04 need to be considered here.
     const float pixel_center_correction = 7.0f / 12.0f - 0.5f;
-    const float pixel_size_x = 2.f / Renderer::EFBToScaledXf(2.f * xfmem.viewport.wd);
-    const float pixel_size_y = 2.f / Renderer::EFBToScaledXf(2.f * xfmem.viewport.ht);
+    const bool bUseVertexRounding =
+        g_ActiveConfig.bVertexRounding && g_ActiveConfig.iEFBScale != SCALE_1X;
+    const float viewport_width = bUseVertexRounding ?
+                                     (2.f * xfmem.viewport.wd) :
+                                     g_renderer->EFBToScaledXf(2.f * xfmem.viewport.wd);
+    const float viewport_height = bUseVertexRounding ?
+                                      (2.f * xfmem.viewport.ht) :
+                                      g_renderer->EFBToScaledXf(2.f * xfmem.viewport.ht);
+    const float pixel_size_x = 2.f / viewport_width;
+    const float pixel_size_y = 2.f / viewport_height;
     constants.pixelcentercorrection[0] = pixel_center_correction * pixel_size_x;
     constants.pixelcentercorrection[1] = pixel_center_correction * pixel_size_y;
+
+    // By default we don't change the depth value at all in the vertex shader.
+    constants.pixelcentercorrection[2] = 1.0f;
+    constants.pixelcentercorrection[3] = 0.0f;
+
+    constants.viewport[0] = (2.f * xfmem.viewport.wd);
+    constants.viewport[1] = (2.f * xfmem.viewport.ht);
+
+    if (g_renderer->UseVertexDepthRange())
+    {
+      // Oversized depth ranges are handled in the vertex shader. We need to reverse
+      // the far value to use the reversed-Z trick.
+      if (g_ActiveConfig.backend_info.bSupportsReversedDepthRange)
+      {
+        // Sometimes the console also tries to use the reversed-Z trick. We can only do
+        // that with the expected accuracy if the backend can reverse the depth range.
+        constants.pixelcentercorrection[2] = fabs(xfmem.viewport.zRange) / 16777215.0f;
+        if (xfmem.viewport.zRange < 0.0f)
+          constants.pixelcentercorrection[3] = xfmem.viewport.farZ / 16777215.0f;
+        else
+          constants.pixelcentercorrection[3] = 1.0f - xfmem.viewport.farZ / 16777215.0f;
+      }
+      else
+      {
+        // For backends that don't support reversing the depth range we can still render
+        // cases where the console uses the reversed-Z trick. But we simply can't provide
+        // the expected accuracy, which might result in z-fighting.
+        constants.pixelcentercorrection[2] = xfmem.viewport.zRange / 16777215.0f;
+        constants.pixelcentercorrection[3] = 1.0f - xfmem.viewport.farZ / 16777215.0f;
+      }
+    }
+
     dirty = true;
     // This is so implementation-dependent that we can't have it here.
     g_renderer->SetViewport();
@@ -410,12 +433,12 @@ void VertexShaderManager::SetConstants()
 
       g_fProjectionMatrix[0] = rawProjection[0] * g_ActiveConfig.fAspectRatioHackW;
       g_fProjectionMatrix[1] = 0.0f;
-      g_fProjectionMatrix[2] = rawProjection[1];
+      g_fProjectionMatrix[2] = rawProjection[1] * g_ActiveConfig.fAspectRatioHackW;
       g_fProjectionMatrix[3] = 0.0f;
 
       g_fProjectionMatrix[4] = 0.0f;
       g_fProjectionMatrix[5] = rawProjection[2] * g_ActiveConfig.fAspectRatioHackH;
-      g_fProjectionMatrix[6] = rawProjection[3];
+      g_fProjectionMatrix[6] = rawProjection[3] * g_ActiveConfig.fAspectRatioHackH;
       g_fProjectionMatrix[7] = 0.0f;
 
       g_fProjectionMatrix[8] = 0.0f;
@@ -427,21 +450,8 @@ void VertexShaderManager::SetConstants()
       g_fProjectionMatrix[12] = 0.0f;
       g_fProjectionMatrix[13] = 0.0f;
 
-      // Hack to fix depth clipping precision issues (such as Sonic Adventure UI)
-      g_fProjectionMatrix[14] = -(1.0f + FLT_EPSILON);
+      g_fProjectionMatrix[14] = -1.0f;
       g_fProjectionMatrix[15] = 0.0f;
-
-      // Heuristic to detect if a GameCube game is in 16:9 anamorphic widescreen mode.
-      if (!SConfig::GetInstance().bWii)
-      {
-        bool viewport_is_4_3 = AspectIs4_3(xfmem.viewport.wd, xfmem.viewport.ht);
-        if (AspectIs16_9(rawProjection[2], rawProjection[0]) && viewport_is_4_3)
-          Core::g_aspect_wide = true;  // Projection is 16:9 and viewport is 4:3, we are rendering
-                                       // an anamorphic widescreen picture
-        else if (AspectIs4_3(rawProjection[2], rawProjection[0]) && viewport_is_4_3)
-          Core::g_aspect_wide =
-              false;  // Project and viewports are both 4:3, we are rendering a normal image.
-      }
 
       SETSTAT_FT(stats.gproj_0, g_fProjectionMatrix[0]);
       SETSTAT_FT(stats.gproj_1, g_fProjectionMatrix[1]);
@@ -484,9 +494,7 @@ void VertexShaderManager::SetConstants()
       g_fProjectionMatrix[13] = 0.0f;
 
       g_fProjectionMatrix[14] = 0.0f;
-
-      // Hack to fix depth clipping precision issues (such as Sonic Unleashed UI)
-      g_fProjectionMatrix[15] = 1.0f + FLT_EPSILON;
+      g_fProjectionMatrix[15] = 1.0f;
 
       SETSTAT_FT(stats.g2proj_0, g_fProjectionMatrix[0]);
       SETSTAT_FT(stats.g2proj_1, g_fProjectionMatrix[1]);
@@ -516,8 +524,8 @@ void VertexShaderManager::SetConstants()
       ERROR_LOG(VIDEO, "Unknown projection type: %d", xfmem.projection.type);
     }
 
-    PRIM_LOG("Projection: %f %f %f %f %f %f\n", rawProjection[0], rawProjection[1],
-             rawProjection[2], rawProjection[3], rawProjection[4], rawProjection[5]);
+    PRIM_LOG("Projection: %f %f %f %f %f %f", rawProjection[0], rawProjection[1], rawProjection[2],
+             rawProjection[3], rawProjection[4], rawProjection[5]);
 
     if (g_ActiveConfig.bFreeLook && xfmem.projection.type == GX_PERSPECTIVE)
     {
@@ -667,7 +675,7 @@ void VertexShaderManager::SetTexMatrixChangedA(u32 Value)
 {
   if (g_main_cp_state.matrix_index_a.Hex != Value)
   {
-    VertexManagerBase::Flush();
+    g_vertex_manager->Flush();
     if (g_main_cp_state.matrix_index_a.PosNormalMtxIdx != (Value & 0x3f))
       bPosNormalMatrixChanged = true;
     bTexMatricesChanged[0] = true;
@@ -679,7 +687,7 @@ void VertexShaderManager::SetTexMatrixChangedB(u32 Value)
 {
   if (g_main_cp_state.matrix_index_b.Hex != Value)
   {
-    VertexManagerBase::Flush();
+    g_vertex_manager->Flush();
     bTexMatricesChanged[1] = true;
     g_main_cp_state.matrix_index_b.Hex = Value;
   }

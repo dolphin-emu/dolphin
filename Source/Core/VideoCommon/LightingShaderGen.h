@@ -4,11 +4,9 @@
 
 #pragma once
 
-#include "Common/Assert.h"
 #include "Common/CommonTypes.h"
-#include "VideoCommon/NativeVertexFormat.h"
-#include "VideoCommon/ShaderGenCommon.h"
-#include "VideoCommon/XFMemory.h"
+
+class ShaderCode;
 
 #define LIGHT_COL "%s[%d].color.%s"
 #define LIGHT_COL_PARAMS(index, swizzle) (I_LIGHTS), (index), (swizzle)
@@ -47,5 +45,5 @@ static const char s_lighting_struct[] = "struct Light {\n"
                                         "};\n";
 
 void GenerateLightingShaderCode(ShaderCode& object, const LightingUidData& uid_data, int components,
-                                const char* inColorName, const char* dest);
+                                u32 numColorChans, const char* inColorName, const char* dest);
 void GetLightingShaderUid(LightingUidData& uid_data);

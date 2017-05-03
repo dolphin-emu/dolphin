@@ -51,6 +51,7 @@ public:
     CP_MEM_SIZE = 256,
     XF_MEM_SIZE = 4096,
     XF_REGS_SIZE = 96,
+    TEX_MEM_SIZE = 1024 * 1024,
   };
 
   FifoDataFile();
@@ -64,6 +65,7 @@ public:
   u32* GetCPMem() { return m_CPMem; }
   u32* GetXFMem() { return m_XFMem; }
   u32* GetXFRegs() { return m_XFRegs; }
+  u8* GetTexMem() { return m_TexMem; }
   void AddFrame(const FifoFrameInfo& frameInfo);
   const FifoFrameInfo& GetFrame(u32 frame) const { return m_Frames[frame]; }
   u32 GetFrameCount() const { return static_cast<u32>(m_Frames.size()); }
@@ -90,9 +92,10 @@ private:
   u32 m_CPMem[CP_MEM_SIZE];
   u32 m_XFMem[XF_MEM_SIZE];
   u32 m_XFRegs[XF_REGS_SIZE];
+  u8 m_TexMem[TEX_MEM_SIZE];
 
-  u32 m_Flags;
-  u32 m_Version;
+  u32 m_Flags = 0;
+  u32 m_Version = 0;
 
   std::vector<FifoFrameInfo> m_Frames;
 };

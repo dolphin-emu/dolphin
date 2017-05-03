@@ -64,10 +64,6 @@
             android:name=".activities.EmulationActivity"
             android:theme="@style/DolphinEmulationGamecube"/>
 
-        <activity
-            android:name=".activities.OverlayConfigActivity"
-            android:theme="@style/DolphinSettingsGamecube"/>
-
 
         <service android:name=".services.AssetCopyService"/>
 

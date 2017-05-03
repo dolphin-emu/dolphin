@@ -4,7 +4,11 @@
 
 #pragma once
 
+#include <cstddef>
+#include <vector>
+
 #include "Common/Assert.h"
+#include "Common/CommonTypes.h"
 #include "Common/MemoryUtil.h"
 #include "Common/NonCopyable.h"
 
@@ -23,21 +27,16 @@ private:
   virtual void PoisonMemory() = 0;
 
 protected:
-  u8* region;
-  size_t region_size;
-  size_t parent_region_size;
+  u8* region = nullptr;
+  // Size of region we can use.
+  size_t region_size = 0;
+  // Original size of the region we allocated.
+  size_t total_region_size = 0;
 
-  bool m_has_child;
-  bool m_is_child;
-  CodeBlock* m_child;
+  bool m_is_child = false;
+  std::vector<CodeBlock*> m_children;
 
 public:
-  CodeBlock()
-      : region(nullptr), region_size(0), parent_region_size(0), m_has_child(false),
-        m_is_child(false), m_child(nullptr)
-  {
-  }
-
   virtual ~CodeBlock()
   {
     if (region)
@@ -45,10 +44,11 @@ public:
   }
 
   // Call this before you generate any code.
-  void AllocCodeSpace(int size, bool need_low = true)
+  void AllocCodeSpace(size_t size, bool need_low = true)
   {
     region_size = size;
-    region = (u8*)AllocateExecutableMemory(region_size, need_low);
+    total_region_size = size;
+    region = static_cast<u8*>(Common::AllocateExecutableMemory(total_region_size, need_low));
     T::SetCodePtr(region);
   }
 
@@ -63,25 +63,28 @@ public:
   // Call this when shutting down. Don't rely on the destructor, even though it'll do the job.
   void FreeCodeSpace()
   {
-    FreeMemoryPages(region, region_size);
+    _assert_(!m_is_child);
+    Common::FreeMemoryPages(region, total_region_size);
     region = nullptr;
     region_size = 0;
-    parent_region_size = 0;
-    if (m_has_child)
+    total_region_size = 0;
+    for (CodeBlock* child : m_children)
     {
-      m_child->region = nullptr;
-      m_child->region_size = 0;
+      child->region = nullptr;
+      child->region_size = 0;
+      child->total_region_size = 0;
     }
   }
 
-  bool IsInSpace(u8* ptr) const { return (ptr >= region) && (ptr < (region + region_size)); }
+  bool IsInSpace(const u8* ptr) const { return ptr >= region && ptr < (region + region_size); }
   // Cannot currently be undone. Will write protect the entire code region.
   // Start over if you need to change the code (call FreeCodeSpace(), AllocCodeSpace()).
-  void WriteProtect() { WriteProtectMemory(region, region_size, true); }
+  void WriteProtect() { Common::WriteProtectMemory(region, region_size, true); }
   void ResetCodePtr() { T::SetCodePtr(region); }
   size_t GetSpaceLeft() const
   {
-    return (m_has_child ? parent_region_size : region_size) - (T::GetCodePtr() - region);
+    _assert_(static_cast<size_t>(T::GetCodePtr() - region) < region_size);
+    return region_size - (T::GetCodePtr() - region);
   }
 
   bool IsAlmostFull() const
@@ -89,16 +92,23 @@ public:
     // This should be bigger than the biggest block ever.
     return GetSpaceLeft() < 0x10000;
   }
-  void AddChildCodeSpace(CodeBlock* child, size_t size)
+
+  bool HasChildren() const { return region_size != total_region_size; }
+  u8* AllocChildCodeSpace(size_t child_size)
   {
-    _assert_msg_(DYNA_REC, !m_has_child, "Already have a child! Can't have another!");
-    m_child = child;
-    m_has_child = true;
-    m_child->m_is_child = true;
-    u8* child_region = region + region_size - size;
-    m_child->region = child_region;
-    m_child->region_size = size;
-    m_child->ResetCodePtr();
-    parent_region_size = region_size - size;
+    _assert_msg_(DYNA_REG, child_size < GetSpaceLeft(), "Insufficient space for child allocation.");
+    u8* child_region = region + region_size - child_size;
+    region_size -= child_size;
+    return child_region;
+  }
+  void AddChildCodeSpace(CodeBlock* child, size_t child_size)
+  {
+    u8* child_region = AllocChildCodeSpace(child_size);
+    child->m_is_child = true;
+    child->region = child_region;
+    child->region_size = child_size;
+    child->total_region_size = child_size;
+    child->ResetCodePtr();
+    m_children.emplace_back(child);
   }
 };

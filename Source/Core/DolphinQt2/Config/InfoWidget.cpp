@@ -32,7 +32,7 @@ QGroupBox* InfoWidget::CreateISODetails()
 
   QLineEdit* file_path = CreateValueDisplay(m_game.GetFilePath());
   QLineEdit* internal_name = CreateValueDisplay(m_game.GetInternalName());
-  QLineEdit* game_id = CreateValueDisplay(m_game.GetUniqueID());
+  QLineEdit* game_id = CreateValueDisplay(m_game.GetGameID());
   QLineEdit* country = CreateValueDisplay(m_game.GetCountry());
   QLineEdit* maker = CreateValueDisplay(m_game.GetMaker());
   QLineEdit* maker_id = CreateValueDisplay(QStringLiteral("0x") + m_game.GetMakerID());
@@ -187,7 +187,7 @@ void InfoWidget::ComputeChecksum()
     if (progress->wasCanceled())
       return;
 
-    u64 read_size = std::min(file_data.size(), game_size - read_offset);
+    u64 read_size = std::min<u64>(file_data.size(), game_size - read_offset);
     file->Read(read_offset, read_size, file_data.data());
     hash.addData(reinterpret_cast<char*>(file_data.data()), read_size);
     read_offset += read_size;

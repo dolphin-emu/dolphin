@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/PowerPC/Jit64IL/JitIL.h"
+
 #include <cinttypes>
 #include <ctime>  // For profiling
 #include <map>
@@ -18,8 +20,7 @@
 #include "Core/HLE/HLE.h"
 #include "Core/HW/CPU.h"
 #include "Core/PatchEngine.h"
-#include "Core/PowerPC/Jit64IL/JitIL.h"
-#include "Core/PowerPC/Jit64IL/JitIL_Tables.h"
+#include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/Profiler.h"
 
@@ -254,18 +255,26 @@ static void Shutdown()
 
 void JitIL::Init()
 {
+  InitializeInstructionTables();
   EnableBlockLink();
 
   jo.optimizeGatherPipe = true;
   jo.accurateSinglePrecision = false;
   UpdateMemoryOptions();
 
-  trampolines.Init(jo.memcheck ? TRAMPOLINE_CODE_SIZE_MMU : TRAMPOLINE_CODE_SIZE);
-  AllocCodeSpace(CODE_SIZE);
+  const size_t routines_size = asm_routines.CODE_SIZE;
+  const size_t trampolines_size = jo.memcheck ? TRAMPOLINE_CODE_SIZE_MMU : TRAMPOLINE_CODE_SIZE;
+  const size_t farcode_size = jo.memcheck ? FARCODE_SIZE_MMU : FARCODE_SIZE;
+  const size_t constpool_size = m_const_pool.CONST_POOL_SIZE;
+  AllocCodeSpace(CODE_SIZE + routines_size + trampolines_size + farcode_size + constpool_size);
+  AddChildCodeSpace(&asm_routines, routines_size);
+  AddChildCodeSpace(&trampolines, trampolines_size);
+  AddChildCodeSpace(&m_far_code, farcode_size);
+  m_const_pool.Init(AllocChildCodeSpace(constpool_size), constpool_size);
+
   blocks.Init();
   asm_routines.Init(nullptr);
-
-  farcode.Init(jo.memcheck ? FARCODE_SIZE_MMU : FARCODE_SIZE);
+  m_far_code.Init();
   Clear();
 
   code_block.m_stats = &js.st;
@@ -282,7 +291,7 @@ void JitIL::ClearCache()
 {
   blocks.Clear();
   trampolines.ClearCodeSpace();
-  farcode.ClearCodeSpace();
+  m_far_code.ClearCodeSpace();
   ClearCodeSpace();
   Clear();
 }
@@ -297,9 +306,7 @@ void JitIL::Shutdown()
   FreeCodeSpace();
 
   blocks.Shutdown();
-  trampolines.Shutdown();
-  asm_routines.Shutdown();
-  farcode.Shutdown();
+  m_far_code.Shutdown();
 }
 
 void JitIL::FallBackToInterpreter(UGeckoInstruction _inst)
@@ -310,7 +317,7 @@ void JitIL::FallBackToInterpreter(UGeckoInstruction _inst)
 
 void JitIL::HLEFunction(UGeckoInstruction _inst)
 {
-  ABI_CallFunctionCC((void*)&HLE::Execute, js.compilerPC, _inst.hex);
+  ABI_CallFunctionCC(HLE::Execute, js.compilerPC, _inst.hex);
   MOV(32, R(RSCRATCH), PPCSTATE(npc));
   WriteExitDestInOpArg(R(RSCRATCH));
 }
@@ -345,7 +352,7 @@ static void ImHere()
       return;
   }
 
-  DEBUG_LOG(DYNA_REC, "I'm here - PC = %08x , LR = %08x", PC, LR);
+  INFO_LOG(DYNA_REC, "I'm here - PC = %08x , LR = %08x", PC, LR);
   been_here[PC] = 1;
 }
 
@@ -353,8 +360,8 @@ void JitIL::Cleanup()
 {
   // SPEED HACK: MMCR0/MMCR1 should be checked at run-time, not at compile time.
   if (MMCR0.Hex || MMCR1.Hex)
-    ABI_CallFunctionCCC((void*)&PowerPC::UpdatePerformanceMonitor, js.downcountAmount,
-                        jit->js.numLoadStoreInst, jit->js.numFloatingPointInst);
+    ABI_CallFunctionCCC(PowerPC::UpdatePerformanceMonitor, js.downcountAmount, js.numLoadStoreInst,
+                        js.numFloatingPointInst);
 }
 
 void JitIL::WriteExit(u32 destination)
@@ -362,7 +369,7 @@ void JitIL::WriteExit(u32 destination)
   Cleanup();
   if (SConfig::GetInstance().bJITILTimeProfiling)
   {
-    ABI_CallFunction((void*)JitILProfiler::End);
+    ABI_CallFunction(JitILProfiler::End);
   }
   SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
 
@@ -373,19 +380,9 @@ void JitIL::WriteExit(u32 destination)
   linkData.exitPtrs = GetWritableCodePtr();
   linkData.linkStatus = false;
 
-  // Link opportunity!
-  int block;
-  if (jo.enableBlocklink && (block = blocks.GetBlockNumberFromStartAddress(destination)) >= 0)
-  {
-    // It exists! Joy of joy!
-    JMP(blocks.GetBlock(block)->checkedEntry, true);
-    linkData.linkStatus = true;
-  }
-  else
-  {
-    MOV(32, PPCSTATE(pc), Imm32(destination));
-    JMP(asm_routines.dispatcher, true);
-  }
+  MOV(32, PPCSTATE(pc), Imm32(destination));
+  JMP(asm_routines.dispatcher, true);
+
   b->linkData.push_back(linkData);
 }
 
@@ -395,7 +392,7 @@ void JitIL::WriteExitDestInOpArg(const OpArg& arg)
   Cleanup();
   if (SConfig::GetInstance().bJITILTimeProfiling)
   {
-    ABI_CallFunction((void*)JitILProfiler::End);
+    ABI_CallFunction(JitILProfiler::End);
   }
   SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
   JMP(asm_routines.dispatcher, true);
@@ -408,9 +405,9 @@ void JitIL::WriteRfiExitDestInOpArg(const OpArg& arg)
   Cleanup();
   if (SConfig::GetInstance().bJITILTimeProfiling)
   {
-    ABI_CallFunction((void*)JitILProfiler::End);
+    ABI_CallFunction(JitILProfiler::End);
   }
-  ABI_CallFunction(reinterpret_cast<void*>(&PowerPC::CheckExceptions));
+  ABI_CallFunction(PowerPC::CheckExceptions);
   SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
   JMP(asm_routines.dispatcher, true);
 }
@@ -420,11 +417,11 @@ void JitIL::WriteExceptionExit()
   Cleanup();
   if (SConfig::GetInstance().bJITILTimeProfiling)
   {
-    ABI_CallFunction((void*)JitILProfiler::End);
+    ABI_CallFunction(JitILProfiler::End);
   }
   MOV(32, R(EAX), PPCSTATE(pc));
   MOV(32, PPCSTATE(npc), R(EAX));
-  ABI_CallFunction(reinterpret_cast<void*>(&PowerPC::CheckExceptions));
+  ABI_CallFunction(PowerPC::CheckExceptions);
   SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
   JMP(asm_routines.dispatcher, true);
 }
@@ -474,7 +471,7 @@ void JitIL::Trace()
 
 void JitIL::Jit(u32 em_address)
 {
-  if (IsAlmostFull() || farcode.IsAlmostFull() || trampolines.IsAlmostFull() || blocks.IsFull() ||
+  if (IsAlmostFull() || m_far_code.IsAlmostFull() || trampolines.IsAlmostFull() ||
       SConfig::GetInstance().bJITNoBlockCache)
   {
     ClearCache();
@@ -490,7 +487,7 @@ void JitIL::Jit(u32 em_address)
     // Comment out the following to disable breakpoints (speed-up)
     if (!Profiler::g_ProfileBlocks)
     {
-      if (CPU::GetState() == CPU::CPU_STEPPING)
+      if (CPU::IsStepping())
       {
         blockSize = 1;
 
@@ -516,19 +513,19 @@ void JitIL::Jit(u32 em_address)
     return;
   }
 
-  int block_num = blocks.AllocateBlock(em_address);
-  JitBlock* b = blocks.GetBlock(block_num);
-  blocks.FinalizeBlock(block_num, jo.enableBlocklink, DoJit(em_address, &code_buffer, b, nextPC));
+  JitBlock* b = blocks.AllocateBlock(em_address);
+  DoJit(em_address, &code_buffer, b, nextPC);
+  blocks.FinalizeBlock(*b, jo.enableBlocklink, code_block.m_physical_addresses);
 }
 
 const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBlock* b, u32 nextPC)
 {
   js.isLastInstruction = false;
   js.blockStart = em_address;
-  js.fifoBytesThisBlock = 0;
+  js.fifoBytesSinceCheck = 0;
   js.curBlock = b;
-  jit->js.numLoadStoreInst = 0;
-  jit->js.numFloatingPointInst = 0;
+  js.numLoadStoreInst = 0;
+  js.numFloatingPointInst = 0;
 
   PPCAnalyst::CodeOp* ops = code_buf->codebuffer;
 
@@ -547,9 +544,9 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
   const u8* normalEntry = GetCodePtr();
   b->normalEntry = normalEntry;
 
+  // Used to get a trace of the last few blocks before a crash, sometimes VERY useful.
   if (ImHereDebug)
-    ABI_CallFunction((void*)&ImHere);  // Used to get a trace of the last few blocks before a crash,
-                                       // sometimes VERY useful
+    ABI_CallFunction(ImHere);
 
   if (js.fpa.any)
   {
@@ -583,7 +580,7 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
   if (SConfig::GetInstance().bJITILTimeProfiling)
   {
     JitILProfiler::Block& block = JitILProfiler::Add(codeHash);
-    ABI_CallFunctionC((void*)JitILProfiler::Begin, block.index);
+    ABI_CallFunctionC(JitILProfiler::Begin, block.index);
   }
 
   // Start up IR builder (structure that collects the
@@ -591,8 +588,6 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
   ibuild.Reset();
 
   js.downcountAmount = 0;
-  if (!SConfig::GetInstance().bEnableDebugging)
-    js.downcountAmount += PatchEngine::GetSpeedhackCycles(code_block.m_address);
 
   // Translate instructions
   for (u32 i = 0; i < code_block.m_num_instructions; i++)
@@ -603,10 +598,13 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
     const GekkoOPInfo* opinfo = GetOpInfo(ops[i].inst);
     js.downcountAmount += opinfo->numCycles;
 
+    if (!SConfig::GetInstance().bEnableDebugging)
+      js.downcountAmount += PatchEngine::GetSpeedhackCycles(js.compilerPC);
+
     if (i == (code_block.m_num_instructions - 1))
       js.isLastInstruction = true;
 
-    u32 function = HLE::GetFunctionIndex(ops[i].address);
+    u32 function = HLE::GetFirstFunctionIndex(ops[i].address);
     if (function != 0)
     {
       int type = HLE::GetFunctionTypeByIndex(function);
@@ -619,7 +617,7 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
           if (type == HLE::HLE_HOOK_REPLACE)
           {
             MOV(32, R(EAX), PPCSTATE(npc));
-            jit->js.downcountAmount += jit->js.st.numCycles;
+            js.downcountAmount += js.st.numCycles;
             WriteExitDestInOpArg(R(EAX));
             break;
           }
@@ -634,13 +632,13 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
         ibuild.EmitFPExceptionCheck(ibuild.EmitIntConst(ops[i].address));
       }
 
-      if (jit->js.fifoWriteAddresses.find(js.compilerPC) != jit->js.fifoWriteAddresses.end())
+      if (js.fifoWriteAddresses.find(js.compilerPC) != js.fifoWriteAddresses.end())
       {
         ibuild.EmitExtExceptionCheck(ibuild.EmitIntConst(ops[i].address));
       }
 
       if (SConfig::GetInstance().bEnableDebugging &&
-          breakpoints.IsAddressBreakPoint(ops[i].address) && CPU::GetState() != CPU::CPU_STEPPING)
+          breakpoints.IsAddressBreakPoint(ops[i].address) && !CPU::IsStepping())
       {
         // Turn off block linking if there are breakpoints so that the Step Over command does not
         // link this block.
@@ -649,7 +647,7 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
         ibuild.EmitBreakPointCheck(ibuild.EmitIntConst(ops[i].address));
       }
 
-      JitILTables::CompileInstruction(ops[i]);
+      CompileInstruction(ops[i]);
 
       if (jo.memcheck && (opinfo->flags & FL_LOADSTORE))
       {
@@ -657,10 +655,10 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
       }
 
       if (opinfo->flags & FL_LOADSTORE)
-        ++jit->js.numLoadStoreInst;
+        ++js.numLoadStoreInst;
 
       if (opinfo->flags & FL_USE_FPU)
-        ++jit->js.numFloatingPointInst;
+        ++js.numFloatingPointInst;
     }
   }
 

@@ -13,6 +13,7 @@
 #include "Core/Core.h"
 #include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/Jit64/JitRegCache.h"
+#include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PowerPC.h"
 
@@ -107,7 +108,7 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm_out, X64Reg xmm, X64Re
       UCOMISD(xmm, R(xmm));
       fixups.push_back(J_CC(CC_P));
     }
-    MOVDDUP(xmm, M(psGeneratedQNaN));
+    MOVDDUP(xmm, MConst(psGeneratedQNaN));
     for (FixupBranch fixup : fixups)
       SetJumpTarget(fixup);
     FixupBranch done = J(true);
@@ -126,7 +127,7 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm_out, X64Reg xmm, X64Re
       SwitchToFarCode();
       SetJumpTarget(handle_nan);
       _assert_msg_(DYNA_REC, clobber == XMM0, "BLENDVPD implicitly uses XMM0");
-      BLENDVPD(xmm, M(psGeneratedQNaN));
+      BLENDVPD(xmm, MConst(psGeneratedQNaN));
       for (u32 x : inputs)
       {
         avx_op(&XEmitter::VCMPPD, &XEmitter::CMPPD, clobber, fpr.R(x), fpr.R(x), CMP_UNORD);
@@ -149,18 +150,18 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm_out, X64Reg xmm, X64Re
       SwitchToFarCode();
       SetJumpTarget(handle_nan);
       MOVAPD(tmp, R(clobber));
-      PANDN(clobber, R(xmm));
-      PAND(tmp, M(psGeneratedQNaN));
-      POR(tmp, R(clobber));
+      ANDNPD(clobber, R(xmm));
+      ANDPD(tmp, MConst(psGeneratedQNaN));
+      ORPD(tmp, R(clobber));
       MOVAPD(xmm, R(tmp));
       for (u32 x : inputs)
       {
         MOVAPD(clobber, fpr.R(x));
         CMPPD(clobber, R(clobber), CMP_ORD);
         MOVAPD(tmp, R(clobber));
-        PANDN(clobber, fpr.R(x));
-        PAND(xmm, R(tmp));
-        POR(xmm, R(clobber));
+        ANDNPD(clobber, fpr.R(x));
+        ANDPD(xmm, R(tmp));
+        ORPD(xmm, R(clobber));
       }
       FixupBranch done = J(true);
       SwitchToNearCode();
@@ -188,15 +189,15 @@ void Jit64::fp_arith(UGeckoInstruction inst)
   // If both the inputs are known to have identical top and bottom halves, we can skip the MOVDDUP
   // at the end by
   // using packed arithmetic instead.
-  bool packed = inst.OPCD == 4 || (inst.OPCD == 59 && jit->js.op->fprIsDuplicated[a] &&
-                                   jit->js.op->fprIsDuplicated[arg2]);
+  bool packed = inst.OPCD == 4 ||
+                (inst.OPCD == 59 && js.op->fprIsDuplicated[a] && js.op->fprIsDuplicated[arg2]);
   // Packed divides are slower than scalar divides on basically all x86, so this optimization isn't
   // worth it in that case.
   // Atoms (and a few really old CPUs) are also slower on packed operations than scalar ones.
   if (inst.OPCD == 59 && (inst.SUBOP5 == 18 || cpu_info.bAtom))
     packed = false;
 
-  bool round_input = single && !jit->js.op->fprIsSingle[inst.FC];
+  bool round_input = single && !js.op->fprIsSingle[inst.FC];
   bool preserve_inputs = SConfig::GetInstance().bAccurateNaNs;
 
   X64Reg dest = INVALID_REG;
@@ -240,10 +241,9 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
   int c = inst.FC;
   int d = inst.FD;
   bool single = inst.OPCD == 4 || inst.OPCD == 59;
-  bool round_input = single && !jit->js.op->fprIsSingle[c];
-  bool packed =
-      inst.OPCD == 4 || (!cpu_info.bAtom && single && jit->js.op->fprIsDuplicated[a] &&
-                         jit->js.op->fprIsDuplicated[b] && jit->js.op->fprIsDuplicated[c]);
+  bool round_input = single && !js.op->fprIsSingle[c];
+  bool packed = inst.OPCD == 4 || (!cpu_info.bAtom && single && js.op->fprIsDuplicated[a] &&
+                                   js.op->fprIsDuplicated[b] && js.op->fprIsDuplicated[c]);
 
   fpr.Lock(a, b, c, d);
 
@@ -260,7 +260,7 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
       Force25BitPrecision(XMM1, R(XMM1), XMM0);
     break;
   default:
-    bool special = inst.SUBOP5 == 30 && (!cpu_info.bFMA || Core::g_want_determinism);
+    bool special = inst.SUBOP5 == 30 && (!cpu_info.bFMA || Core::WantsDeterminism());
     X64Reg tmp1 = special ? XMM0 : XMM1;
     X64Reg tmp2 = special ? XMM1 : XMM0;
     if (single && round_input)
@@ -276,7 +276,7 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
   // Note that FMA isn't necessarily less correct (it may actually be closer to correct) compared
   // to what the Gekko does here; in deterministic mode, the important thing is multiple Dolphin
   // instances on different computers giving identical results.
-  if (cpu_info.bFMA && !Core::g_want_determinism)
+  if (cpu_info.bFMA && !Core::WantsDeterminism())
   {
     // Statistics suggests b is a lot less likely to be unbound in practice, so
     // if we have to pick one of a or b to bind, let's make it b.
@@ -350,7 +350,7 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
         ADDSD(XMM1, fpr.R(b));
     }
     if (inst.SUBOP5 == 31)  // nmadd
-      PXOR(XMM1, M(packed ? psSignBits2 : psSignBits));
+      XORPD(XMM1, MConst(packed ? psSignBits2 : psSignBits));
   }
   fpr.BindToRegister(d, !single);
   if (single)
@@ -384,16 +384,16 @@ void Jit64::fsign(UGeckoInstruction inst)
   switch (inst.SUBOP10)
   {
   case 40:  // neg
-    avx_op(&XEmitter::VPXOR, &XEmitter::PXOR, fpr.RX(d), src, M(packed ? psSignBits2 : psSignBits),
-           packed);
+    avx_op(&XEmitter::VXORPD, &XEmitter::XORPD, fpr.RX(d), src,
+           MConst(packed ? psSignBits2 : psSignBits), packed);
     break;
   case 136:  // nabs
-    avx_op(&XEmitter::VPOR, &XEmitter::POR, fpr.RX(d), src, M(packed ? psSignBits2 : psSignBits),
-           packed);
+    avx_op(&XEmitter::VORPD, &XEmitter::ORPD, fpr.RX(d), src,
+           MConst(packed ? psSignBits2 : psSignBits), packed);
     break;
   case 264:  // abs
-    avx_op(&XEmitter::VPAND, &XEmitter::PAND, fpr.RX(d), src, M(packed ? psAbsMask2 : psAbsMask),
-           packed);
+    avx_op(&XEmitter::VANDPD, &XEmitter::ANDPD, fpr.RX(d), src,
+           MConst(packed ? psAbsMask2 : psAbsMask), packed);
     break;
   default:
     PanicAlert("fsign bleh");
@@ -416,7 +416,7 @@ void Jit64::fselx(UGeckoInstruction inst)
   bool packed = inst.OPCD == 4;  // ps_sel
 
   fpr.Lock(a, b, c, d);
-  PXOR(XMM0, R(XMM0));
+  XORPD(XMM0, R(XMM0));
   // This condition is very tricky; there's only one right way to handle both the case of
   // negative/positive zero and NaN properly.
   // (a >= -0.0 ? c : b) transforms into (0 > a ? b : c), hence the NLE.
@@ -433,9 +433,9 @@ void Jit64::fselx(UGeckoInstruction inst)
   else
   {
     MOVAPD(XMM1, R(XMM0));
-    PAND(XMM0, fpr.R(b));
-    PANDN(XMM1, fpr.R(c));
-    POR(XMM1, R(XMM0));
+    ANDPD(XMM0, fpr.R(b));
+    ANDNPD(XMM1, fpr.R(c));
+    ORPD(XMM1, R(XMM0));
   }
 
   fpr.BindToRegister(d, !packed);
@@ -492,7 +492,7 @@ void Jit64::FloatCompare(UGeckoInstruction inst, bool upper)
   // Merge neighboring fcmp and cror (the primary use of cror).
   UGeckoInstruction next = js.op[1].inst;
   if (analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CROR_MERGE) &&
-      MergeAllowedNextInstructions(1) && next.OPCD == 19 && next.SUBOP10 == 449 &&
+      CanMergeNextInstructions(1) && next.OPCD == 19 && next.SUBOP10 == 449 &&
       (next.CRBA >> 2) == crf && (next.CRBB >> 2) == crf && (next.CRBD >> 2) == crf)
   {
     js.skipInstructions = 1;
@@ -608,7 +608,7 @@ void Jit64::fctiwx(UGeckoInstruction inst)
   // The upper 32 bits of the result are set to 0xfff80000,
   // except for -0.0 where they are set to 0xfff80001 (TODO).
 
-  MOVAPD(XMM0, M(half_qnan_and_s32_max));
+  MOVAPD(XMM0, MConst(half_qnan_and_s32_max));
   MINSD(XMM0, fpr.R(b));
   switch (inst.SUBOP10)
   {
@@ -634,7 +634,7 @@ void Jit64::frspx(UGeckoInstruction inst)
   FALLBACK_IF(inst.Rc);
   int b = inst.FB;
   int d = inst.FD;
-  bool packed = jit->js.op->fprIsDuplicated[b] && !cpu_info.bAtom;
+  bool packed = js.op->fprIsDuplicated[b] && !cpu_info.bAtom;
 
   fpr.Lock(b, d);
   OpArg src = fpr.R(b);

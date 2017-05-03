@@ -268,8 +268,8 @@ void JitArm64::fcmpX(UGeckoInstruction inst)
   ARM64Reg VA = reg_encoder(fpr.R(a, type));
   ARM64Reg VB = reg_encoder(fpr.R(b, type));
 
-  ARM64Reg WA = gpr.GetReg();
-  ARM64Reg XA = EncodeRegTo64(WA);
+  gpr.BindCRToRegister(crf, false);
+  ARM64Reg XA = gpr.CR(crf);
 
   FixupBranch pNaN, pLesser, pGreater;
   FixupBranch continue1, continue2, continue3;
@@ -312,11 +312,6 @@ void JitArm64::fcmpX(UGeckoInstruction inst)
     SetJumpTarget(continue3);
   }
   SetJumpTarget(continue1);
-
-  STR(INDEX_UNSIGNED, XA, PPC_REG,
-      PPCSTATE_OFF(cr_val[0]) + (sizeof(PowerPC::ppcState.cr_val[0]) * crf));
-
-  gpr.Unlock(WA);
 }
 
 void JitArm64::fctiwzx(UGeckoInstruction inst)

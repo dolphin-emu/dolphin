@@ -40,7 +40,6 @@ public:
   void SetPlain() { m_plain = true; }
 private:
   void OnPaint(wxPaintEvent& event);
-  void OnErase(wxEraseEvent& event);
   void OnScrollWheel(wxMouseEvent& event);
   void OnMouseDown(wxMouseEvent& event);
   void OnMouseMove(wxMouseEvent& event);
@@ -55,20 +54,14 @@ private:
   u32 AddrToBranch(u32 addr);
   void OnResize(wxSizeEvent& event);
 
-  void MoveTo(int x, int y)
-  {
-    m_lx = x;
-    m_ly = y;
-  }
-
-  void LineTo(std::unique_ptr<wxGraphicsContext>& dc, int x, int y);
-
   struct BlrStruct  // for IDM_INSERTBLR
   {
     u32 address;
     u32 oldValue;
   };
   std::vector<BlrStruct> m_blrList;
+
+  static constexpr int LEFT_COL_WIDTH = 16;
 
   DebugInterface* m_debugger;
   SymbolDB* m_symbol_db;
@@ -78,10 +71,9 @@ private:
   int m_curAddress;
   int m_align;
   int m_rowHeight;
+  int m_left_col_width;
 
   u32 m_selection;
   u32 m_oldSelection;
   bool m_selecting;
-
-  int m_lx, m_ly;
 };

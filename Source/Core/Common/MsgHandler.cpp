@@ -12,6 +12,10 @@
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 bool DefaultMsgHandler(const char* caption, const char* text, bool yes_no, int Style);
 static MsgAlertHandler msg_handler = DefaultMsgHandler;
 static bool AlertEnabled = true;

@@ -134,6 +134,7 @@ AnalyticsReporter::~AnalyticsReporter()
 
 void AnalyticsReporter::Send(AnalyticsReportBuilder&& report)
 {
+#if defined(USE_ANALYTICS) && USE_ANALYTICS
   // Put a bound on the size of the queue to avoid uncontrolled memory growth.
   constexpr u32 QUEUE_SIZE_LIMIT = 25;
   if (m_reports_queue.Size() < QUEUE_SIZE_LIMIT)
@@ -141,6 +142,7 @@ void AnalyticsReporter::Send(AnalyticsReportBuilder&& report)
     m_reports_queue.Push(report.Consume());
     m_reporter_event.Set();
   }
+#endif
 }
 
 void AnalyticsReporter::ThreadProc()

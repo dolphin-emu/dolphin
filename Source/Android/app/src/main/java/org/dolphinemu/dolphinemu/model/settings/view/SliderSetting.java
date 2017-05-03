@@ -13,9 +13,9 @@ public final class SliderSetting extends SettingsItem
 
 	private String mUnits;
 
-	public SliderSetting(String key, String section, int titleId, int descriptionId, int max, String units, int defaultValue, Setting setting)
+	public SliderSetting(String key, String section, int file, int titleId, int descriptionId, int max, String units, int defaultValue, Setting setting)
 	{
-		super(key, section, setting, titleId, descriptionId);
+		super(key, section, file, setting, titleId, descriptionId);
 		mMax = max;
 		mUnits = units;
 		mDefaultValue = defaultValue;
@@ -70,7 +70,7 @@ public final class SliderSetting extends SettingsItem
 	{
 		if (getSetting() == null)
 		{
-			IntSetting setting = new IntSetting(getKey(), getSection(), selection);
+			IntSetting setting = new IntSetting(getKey(), getSection(), getFile(), selection);
 			setSetting(setting);
 			return setting;
 		}
@@ -93,7 +93,7 @@ public final class SliderSetting extends SettingsItem
 	{
 		if (getSetting() == null)
 		{
-			FloatSetting setting = new FloatSetting(getKey(), getSection(), selection);
+			FloatSetting setting = new FloatSetting(getKey(), getSection(), getFile(), selection);
 			setSetting(setting);
 			return setting;
 		}

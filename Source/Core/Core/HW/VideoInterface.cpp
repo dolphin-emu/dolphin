@@ -2,20 +2,27 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/HW/VideoInterface.h"
+
+#include <array>
 #include <cmath>
+#include <cstddef>
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
+
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/ProcessorInterface.h"
-#include "Core/HW/SI.h"
+#include "Core/HW/SI/SI.h"
 #include "Core/HW/SystemTimers.h"
-#include "Core/HW/VideoInterface.h"
+
+#include "DiscIO/Enums.h"
+
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -35,8 +42,8 @@ static UVIFBInfoRegister m_XFBInfoTop;
 static UVIFBInfoRegister m_XFBInfoBottom;
 static UVIFBInfoRegister m_3DFBInfoTop;  // Start making your stereoscopic demos! :p
 static UVIFBInfoRegister m_3DFBInfoBottom;
-static UVIInterruptRegister m_InterruptRegister[4];
-static UVILatchRegister m_LatchRegister[2];
+static std::array<UVIInterruptRegister, 4> m_InterruptRegister;
+static std::array<UVILatchRegister, 2> m_LatchRegister;
 static PictureConfigurationRegister m_PictureConfiguration;
 static UVIHorizontalScaling m_HorizontalScaling;
 static SVIFilterCoefTables m_FilterCoefTables;
@@ -50,9 +57,9 @@ static UVIBorderBlankRegister m_BorderHBlank;
 
 static u32 s_target_refresh_rate = 0;
 
-static u32 s_clock_freqs[2] = {
-    27000000UL, 54000000UL,
-};
+static constexpr std::array<u32, 2> s_clock_freqs{{
+    27000000, 54000000,
+}};
 
 static u64 s_ticks_last_line_start;  // number of ticks when the current full scanline started
 static u32 s_half_line_count;        // number of halflines that have occurred for this full frame
@@ -157,8 +164,7 @@ void Preset(bool _bNTSC)
   m_InterruptRegister[2].Hex = 0;
   m_InterruptRegister[3].Hex = 0;
 
-  m_LatchRegister[0].Hex = 0;
-  m_LatchRegister[1].Hex = 0;
+  m_LatchRegister = {};
 
   m_PictureConfiguration.STD = 40;
   m_PictureConfiguration.WPL = 40;
@@ -167,12 +173,14 @@ void Preset(bool _bNTSC)
   m_FilterCoefTables = {};
   m_UnkAARegister = 0;
 
+  DiscIO::Region region = SConfig::GetInstance().m_region;
+
   // 54MHz, capable of progressive scan
-  m_Clock = SConfig::GetInstance().bNTSC;
+  m_Clock = DiscIO::IsNTSC(region);
 
   // Say component cable is plugged
   m_DTVStatus.component_plugged = SConfig::GetInstance().bProgressive;
-  m_DTVStatus.ntsc_j = SConfig::GetInstance().bForceNTSCJ;
+  m_DTVStatus.ntsc_j = SConfig::GetInstance().bForceNTSCJ || region == DiscIO::Region::NTSC_J;
 
   m_FBWidth.Hex = 0;
   m_BorderHBlank.Hex = 0;
@@ -180,7 +188,7 @@ void Preset(bool _bNTSC)
   s_ticks_last_line_start = 0;
   s_half_line_count = 1;
   s_half_line_of_next_si_poll = num_half_lines_for_si_poll;  // first sampling starts at vsync
-  s_current_field = FIELD_ODD;
+  s_current_field = FieldType::Odd;
 
   UpdateParameters();
 }
@@ -192,11 +200,13 @@ void Init()
 
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 {
-  struct
+  struct MappedVar
   {
     u32 addr;
     u16* ptr;
-  } directly_mapped_vars[] = {
+  };
+
+  std::array<MappedVar, 46> directly_mapped_vars{{
       {VI_VERTICAL_TIMING, &m_VerticalTimingRegister.Hex},
       {VI_HORIZONTAL_TIMING_0_HI, &m_HTiming0.Hi},
       {VI_HORIZONTAL_TIMING_0_LO, &m_HTiming0.Lo},
@@ -243,7 +253,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
       {VI_FBWIDTH, &m_FBWidth.Hex},
       {VI_BORDER_BLANK_END, &m_BorderHBlank.Lo},
       {VI_BORDER_BLANK_START, &m_BorderHBlank.Hi},
-  };
+  }};
 
   // Declare all the boilerplate direct MMIOs.
   for (auto& mapped_var : directly_mapped_vars)
@@ -252,11 +262,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    MMIO::DirectWrite<u16>(mapped_var.ptr));
   }
 
-  struct
-  {
-    u32 addr;
-    u16* ptr;
-  } update_params_on_read_vars[] = {
+  std::array<MappedVar, 8> update_params_on_read_vars{{
       {VI_VERTICAL_TIMING, &m_VerticalTimingRegister.Hex},
       {VI_HORIZONTAL_TIMING_0_HI, &m_HTiming0.Hi},
       {VI_HORIZONTAL_TIMING_0_LO, &m_HTiming0.Lo},
@@ -265,7 +271,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
       {VI_VBLANK_TIMING_EVEN_HI, &m_VBlankTimingEven.Hi},
       {VI_VBLANK_TIMING_EVEN_LO, &m_VBlankTimingEven.Lo},
       {VI_CLOCK, &m_Clock},
-  };
+  }};
 
   // Declare all the MMIOs that update timing params.
   for (auto& mapped_var : update_params_on_read_vars)
@@ -382,10 +388,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    {
                      // shuffle2 clear all data, reset to default vals, and enter idle mode
                      m_DisplayControlRegister.RST = 0;
-                     for (UVIInterruptRegister& reg : m_InterruptRegister)
-                     {
-                       reg.Hex = 0;
-                     }
+                     m_InterruptRegister = {};
                      UpdateInterrupts();
                    }
 
@@ -406,12 +409,6 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
     mmio->Register(base | i, MMIO::ReadToSmaller<u32>(mmio, base | i, base | (i + 2)),
                    MMIO::WriteToSmaller<u32>(mmio, base | i, base | (i + 2)));
   }
-}
-
-void SetRegionReg(char region)
-{
-  if (!SConfig::GetInstance().bForceNTSCJ)
-    m_DTVStatus.ntsc_j = region == 'J';
 }
 
 void UpdateInterrupts()
@@ -638,7 +635,28 @@ u32 GetTicksPerField()
   return GetTicksPerEvenField();
 }
 
-static void BeginField(FieldType field)
+static void LogField(FieldType field, u32 xfb_address)
+{
+  static constexpr std::array<const char*, 2> field_type_names{{"Odd", "Even"}};
+
+  static const std::array<const UVIVBlankTimingRegister*, 2> vert_timing{{
+      &m_VBlankTimingOdd, &m_VBlankTimingEven,
+  }};
+
+  const auto field_index = static_cast<size_t>(field);
+
+  DEBUG_LOG(VIDEOINTERFACE, "(VI->BeginField): Address: %.08X | WPL %u | STD %u | EQ %u | PRB %u | "
+                            "ACV %u | PSB %u | Field %s",
+            xfb_address, m_PictureConfiguration.WPL, m_PictureConfiguration.STD,
+            m_VerticalTimingRegister.EQU, vert_timing[field_index]->PRB,
+            m_VerticalTimingRegister.ACV, vert_timing[field_index]->PSB,
+            field_type_names[field_index]);
+
+  DEBUG_LOG(VIDEOINTERFACE, "HorizScaling: %04x | fbwidth %d | %u | %u", m_HorizontalScaling.Hex,
+            m_FBWidth.Hex, GetTicksPerEvenField(), GetTicksPerOddField());
+}
+
+static void BeginField(FieldType field, u64 ticks)
 {
   // Could we fit a second line of data in the stride?
   bool potentially_interlaced_xfb =
@@ -652,7 +670,7 @@ static void BeginField(FieldType field)
 
   u32 xfbAddr;
 
-  if (field == FieldType::FIELD_EVEN)
+  if (field == FieldType::Even)
   {
     xfbAddr = GetXFBAddressBottom();
   }
@@ -678,34 +696,21 @@ static void BeginField(FieldType field)
     // has the first line. For the field with the second line, we
     // offset the xfb by (-stride_of_one_line) to get the start
     // address of the full xfb.
-    if (field == FieldType::FIELD_ODD && m_VBlankTimingOdd.PRB == m_VBlankTimingEven.PRB + 1)
+    if (field == FieldType::Odd && m_VBlankTimingOdd.PRB == m_VBlankTimingEven.PRB + 1 && xfbAddr)
       xfbAddr -= fbStride * 2;
 
-    if (field == FieldType::FIELD_EVEN && m_VBlankTimingOdd.PRB == m_VBlankTimingEven.PRB - 1)
+    if (field == FieldType::Even && m_VBlankTimingOdd.PRB == m_VBlankTimingEven.PRB - 1 && xfbAddr)
       xfbAddr -= fbStride * 2;
   }
 
-  static const char* const fieldTypeNames[] = {"Odd", "Even"};
-
-  static const UVIVBlankTimingRegister* vert_timing[] = {
-      &m_VBlankTimingOdd, &m_VBlankTimingEven,
-  };
-
-  DEBUG_LOG(VIDEOINTERFACE, "(VI->BeginField): Address: %.08X | WPL %u | STD %u | EQ %u | PRB %u | "
-                            "ACV %u | PSB %u | Field %s",
-            xfbAddr, m_PictureConfiguration.WPL, m_PictureConfiguration.STD,
-            m_VerticalTimingRegister.EQU, vert_timing[field]->PRB, m_VerticalTimingRegister.ACV,
-            vert_timing[field]->PSB, fieldTypeNames[field]);
-
-  DEBUG_LOG(VIDEOINTERFACE, "HorizScaling: %04x | fbwidth %d | %u | %u", m_HorizontalScaling.Hex,
-            m_FBWidth.Hex, GetTicksPerEvenField(), GetTicksPerOddField());
+  LogField(field, xfbAddr);
 
   // This assumes the game isn't going to change the VI registers while a
   // frame is scanning out.
   // To correctly handle that case we would need to collate all changes
   // to VI during scanout and delay outputting the frame till then.
   if (xfbAddr)
-    g_video_backend->Video_BeginField(xfbAddr, fbWidth, fbStride, fbHeight);
+    g_video_backend->Video_BeginField(xfbAddr, fbWidth, fbStride, fbHeight, ticks);
 }
 
 static void EndField()
@@ -715,7 +720,7 @@ static void EndField()
 
 // Purpose: Send VI interrupt when triggered
 // Run when: When a frame is scanned (progressive/interlace)
-void Update()
+void Update(u64 ticks)
 {
   if (s_half_line_of_next_si_poll == s_half_line_count)
   {
@@ -724,11 +729,11 @@ void Update()
   }
   if (s_half_line_count == s_even_field_first_hl)
   {
-    BeginField(FIELD_EVEN);
+    BeginField(FieldType::Even, ticks);
   }
   else if (s_half_line_count == s_odd_field_first_hl)
   {
-    BeginField(FIELD_ODD);
+    BeginField(FieldType::Odd, ticks);
   }
   else if (s_half_line_count == s_even_field_last_hl)
   {

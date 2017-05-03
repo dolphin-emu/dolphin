@@ -79,20 +79,23 @@ enum
   // VI_INTERLACE                      = 0x850, // ??? MYSTERY OLD CODE
 };
 
-union UVIVerticalTimingRegister {
-  u16 Hex;
+union UVIVerticalTimingRegister
+{
+  u16 Hex = 0;
   struct
   {
     u16 EQU : 4;   // Equalization pulse in half lines
     u16 ACV : 10;  // Active video in lines per field (seems always zero)
     u16 : 2;
   };
-  UVIVerticalTimingRegister(u16 _hex) { Hex = _hex; }
-  UVIVerticalTimingRegister() { Hex = 0; }
+
+  UVIVerticalTimingRegister() = default;
+  explicit UVIVerticalTimingRegister(u16 hex) : Hex{hex} {}
 };
 
-union UVIDisplayControlRegister {
-  u16 Hex;
+union UVIDisplayControlRegister
+{
+  u16 Hex = 0;
   struct
   {
     u16 ENB : 1;  // Enables video timing generation and data request
@@ -105,11 +108,13 @@ union UVIDisplayControlRegister {
     u16 FMT : 2;  // 0: NTSC, 1: PAL, 2: MPAL, 3: Debug
     u16 : 6;
   };
-  UVIDisplayControlRegister(u16 _hex) { Hex = _hex; }
-  UVIDisplayControlRegister() { Hex = 0; }
+
+  UVIDisplayControlRegister() = default;
+  explicit UVIDisplayControlRegister(u16 hex) : Hex{hex} {}
 };
 
-union UVIHorizontalTiming0 {
+union UVIHorizontalTiming0
+{
   u32 Hex;
   struct
   {
@@ -126,7 +131,8 @@ union UVIHorizontalTiming0 {
   };
 };
 
-union UVIHorizontalTiming1 {
+union UVIHorizontalTiming1
+{
   u32 Hex;
   struct
   {
@@ -142,7 +148,8 @@ union UVIHorizontalTiming1 {
 };
 
 // Exists for both odd and even fields
-union UVIVBlankTimingRegister {
+union UVIVBlankTimingRegister
+{
   u32 Hex;
   struct
   {
@@ -158,7 +165,8 @@ union UVIVBlankTimingRegister {
 };
 
 // Exists for both odd and even fields
-union UVIBurstBlankingRegister {
+union UVIBurstBlankingRegister
+{
   u32 Hex;
   struct
   {
@@ -173,7 +181,8 @@ union UVIBurstBlankingRegister {
   };
 };
 
-union UVIFBInfoRegister {
+union UVIFBInfoRegister
+{
   u32 Hex;
   struct
   {
@@ -192,7 +201,8 @@ union UVIFBInfoRegister {
 };
 
 // VI Interrupt Register
-union UVIInterruptRegister {
+union UVIInterruptRegister
+{
   u32 Hex;
   struct
   {
@@ -210,7 +220,8 @@ union UVIInterruptRegister {
   };
 };
 
-union UVILatchRegister {
+union UVILatchRegister
+{
   u32 Hex;
   struct
   {
@@ -226,7 +237,8 @@ union UVILatchRegister {
   };
 };
 
-union PictureConfigurationRegister {
+union PictureConfigurationRegister
+{
   u16 Hex;
   struct
   {
@@ -236,8 +248,9 @@ union PictureConfigurationRegister {
   };
 };
 
-union UVIHorizontalScaling {
-  u16 Hex;
+union UVIHorizontalScaling
+{
+  u16 Hex = 0;
   struct
   {
     u16 STP : 9;  // Horizontal stepping size (U1.8 Scaler Value) (0x160 Works for 320)
@@ -245,12 +258,14 @@ union UVIHorizontalScaling {
     u16 HS_EN : 1;  // Enable Horizontal Scaling
     u16 : 3;
   };
-  UVIHorizontalScaling(u16 _hex) { Hex = _hex; }
-  UVIHorizontalScaling() { Hex = 0; }
+
+  UVIHorizontalScaling() = default;
+  explicit UVIHorizontalScaling(u16 hex) : Hex{hex} {}
 };
 
 // Used for tables 0-2
-union UVIFilterCoefTable3 {
+union UVIFilterCoefTable3
+{
   u32 Hex;
   struct
   {
@@ -266,7 +281,8 @@ union UVIFilterCoefTable3 {
 };
 
 // Used for tables 3-6
-union UVIFilterCoefTable4 {
+union UVIFilterCoefTable4
+{
   u32 Hex;
   struct
   {
@@ -288,7 +304,8 @@ struct SVIFilterCoefTables
 };
 
 // Debug video mode only, probably never used in Dolphin...
-union UVIBorderBlankRegister {
+union UVIBorderBlankRegister
+{
   u32 Hex;
   struct
   {
@@ -304,7 +321,8 @@ union UVIBorderBlankRegister {
 };
 
 // ntsc-j and component cable bits
-union UVIDTVStatus {
+union UVIDTVStatus
+{
   u16 Hex;
   struct
   {
@@ -314,7 +332,8 @@ union UVIDTVStatus {
   };
 };
 
-union UVIHorizontalStepping {
+union UVIHorizontalStepping
+{
   u16 Hex;
   struct
   {
@@ -327,7 +346,6 @@ union UVIHorizontalStepping {
 void Preset(bool _bNTSC);
 
 void Init();
-void SetRegionReg(char region);
 void DoState(PointerWrap& p);
 
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
@@ -337,7 +355,7 @@ u32 GetXFBAddressTop();
 u32 GetXFBAddressBottom();
 
 // Update and draw framebuffer
-void Update();
+void Update(u64 ticks);
 
 // UpdateInterrupts: check if we have to generate a new VI Interrupt
 void UpdateInterrupts();

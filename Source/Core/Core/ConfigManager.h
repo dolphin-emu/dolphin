@@ -4,24 +4,34 @@
 
 #pragma once
 
+#include <limits>
+#include <set>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "Common/IniFile.h"
 #include "Common/NonCopyable.h"
-#include "Common/SysConf.h"
-#include "Core/HW/EXI_Device.h"
-#include "Core/HW/SI_Device.h"
+#include "Core/HW/EXI/EXI_Device.h"
+#include "Core/HW/SI/SI_Device.h"
 
 namespace DiscIO
 {
 enum class Language;
+enum class Region;
+class IVolume;
+}
+namespace IOS
+{
+namespace ES
+{
+class TMDReader;
+}
 }
 
 // DSP Backend Types
 #define BACKEND_NULLSOUND _trans("No audio output")
 #define BACKEND_ALSA "ALSA"
-#define BACKEND_AOSOUND "AOSound"
 #define BACKEND_COREAUDIO "CoreAudio"
 #define BACKEND_OPENAL "OpenAL"
 #define BACKEND_PULSEAUDIO "Pulse"
@@ -53,91 +63,121 @@ struct SConfig : NonCopyable
   bool m_RecursiveISOFolder;
 
   // Settings
-  bool bEnableDebugging;
+  bool bEnableDebugging = false;
 #ifdef USE_GDBSTUB
   int iGDBPort;
 #ifndef _WIN32
   std::string gdb_socket;
 #endif
 #endif
-  bool bAutomaticStart;
-  bool bBootToPause;
+  bool bAutomaticStart = false;
+  bool bBootToPause = false;
 
   int iCPUCore;
 
   // JIT (shared between JIT and JITIL)
-  bool bJITNoBlockCache, bJITNoBlockLinking;
-  bool bJITOff;
-  bool bJITLoadStoreOff, bJITLoadStorelXzOff, bJITLoadStorelwzOff, bJITLoadStorelbzxOff;
-  bool bJITLoadStoreFloatingOff;
-  bool bJITLoadStorePairedOff;
-  bool bJITFloatingPointOff;
-  bool bJITIntegerOff;
-  bool bJITPairedOff;
-  bool bJITSystemRegistersOff;
-  bool bJITBranchOff;
-  bool bJITILTimeProfiling;
-  bool bJITILOutputIR;
+  bool bJITNoBlockCache = false;
+  bool bJITNoBlockLinking = false;
+  bool bJITOff = false;
+  bool bJITLoadStoreOff = false;
+  bool bJITLoadStorelXzOff = false;
+  bool bJITLoadStorelwzOff = false;
+  bool bJITLoadStorelbzxOff = false;
+  bool bJITLoadStoreFloatingOff = false;
+  bool bJITLoadStorePairedOff = false;
+  bool bJITFloatingPointOff = false;
+  bool bJITIntegerOff = false;
+  bool bJITPairedOff = false;
+  bool bJITSystemRegistersOff = false;
+  bool bJITBranchOff = false;
+  bool bJITILTimeProfiling = false;
+  bool bJITILOutputIR = false;
 
   bool bFastmem;
-  bool bFPRF;
-  bool bAccurateNaNs;
+  bool bFPRF = false;
+  bool bAccurateNaNs = false;
 
-  int iTimingVariance;  // in milli secounds
-  bool bCPUThread;
-  bool bDSPThread;
-  bool bDSPHLE;
-  bool bSkipIdle;
-  bool bSyncGPUOnSkipIdleHack;
-  bool bNTSC;
-  bool bForceNTSCJ;
-  bool bHLE_BS2;
-  bool bEnableCheats;
-  bool bEnableMemcardSdWriting;
+  int iTimingVariance = 40;  // in milli secounds
+  bool bCPUThread = true;
+  bool bDSPThread = false;
+  bool bDSPHLE = true;
+  bool bSyncGPUOnSkipIdleHack = true;
+  bool bForceNTSCJ = false;
+  bool bHLE_BS2 = true;
+  bool bEnableCheats = false;
+  bool bEnableMemcardSdWriting = true;
+  bool bCopyWiiSaveNetplay = true;
 
-  bool bDPL2Decoder;
-  int iLatency;
+  bool bDPL2Decoder = false;
+  int iLatency = 14;
+  bool m_audio_stretch = false;
+  int m_audio_stretch_max_latency = 80;
 
-  bool bRunCompareServer;
-  bool bRunCompareClient;
+  bool bRunCompareServer = false;
+  bool bRunCompareClient = false;
 
-  bool bMMU;
-  bool bDCBZOFF;
-  int iBBDumpPort;
-  bool bFastDiscSpeed;
+  bool bMMU = false;
+  bool bDCBZOFF = false;
+  bool bLowDCBZHack = false;
+  int iBBDumpPort = 0;
+  bool bFastDiscSpeed = false;
 
-  bool bSyncGPU;
+  bool bSyncGPU = false;
   int iSyncGpuMaxDistance;
   int iSyncGpuMinDistance;
   float fSyncGpuOverclock;
 
-  int SelectedLanguage;
-  bool bOverrideGCLanguage;
+  int SelectedLanguage = 0;
+  bool bOverrideGCLanguage = false;
 
-  bool bWii;
+  bool bWii = false;
 
   // Interface settings
-  bool bConfirmStop, bHideCursor, bAutoHideCursor, bUsePanicHandlers, bOnScreenDisplayMessages;
+  bool bConfirmStop = false;
+  bool bHideCursor = false, bAutoHideCursor = false;
+  bool bUsePanicHandlers = true;
+  bool bOnScreenDisplayMessages = true;
   std::string theme_name;
 
   // Display settings
   std::string strFullscreenResolution;
-  int iRenderWindowXPos, iRenderWindowYPos;
-  int iRenderWindowWidth, iRenderWindowHeight;
-  bool bRenderWindowAutoSize, bKeepWindowOnTop;
-  bool bFullscreen, bRenderToMain;
-  bool bProgressive, bPAL60;
-  bool bDisableScreenSaver;
+  int iRenderWindowXPos = std::numeric_limits<int>::min();
+  int iRenderWindowYPos = std::numeric_limits<int>::min();
+  int iRenderWindowWidth = -1;
+  int iRenderWindowHeight = -1;
+  bool bRenderWindowAutoSize = false, bKeepWindowOnTop = false;
+  bool bFullscreen = false, bRenderToMain = false;
+  bool bProgressive = false, bPAL60 = false;
+  bool bDisableScreenSaver = false;
 
   int iPosX, iPosY, iWidth, iHeight;
 
   // Analytics settings.
   std::string m_analytics_id;
-  bool m_analytics_enabled;
-  bool m_analytics_permission_asked;
+  bool m_analytics_enabled = false;
+  bool m_analytics_permission_asked = false;
+
+  // Bluetooth passthrough mode settings
+  bool m_bt_passthrough_enabled = false;
+  int m_bt_passthrough_pid = -1;
+  int m_bt_passthrough_vid = -1;
+  std::string m_bt_passthrough_link_keys;
+
+  // USB passthrough settings
+  std::set<std::pair<u16, u16>> m_usb_passthrough_devices;
+  bool IsUSBDeviceWhitelisted(std::pair<u16, u16> vid_pid) const;
+
+  // SYSCONF settings
+  int m_sensor_bar_position = 0x01;
+  int m_sensor_bar_sensitivity = 0x03;
+  int m_speaker_volume = 0x58;
+  bool m_wiimote_motor = true;
+  int m_wii_language = 0x01;
+  int m_wii_aspect_ratio = 0x01;
+  int m_wii_screensaver = 0x00;
 
   // Fifo Player related settings
-  bool bLoopFifoReplay;
+  bool bLoopFifoReplay = true;
 
   // Custom RTC
   bool bEnableCustomRTC;
@@ -157,10 +197,13 @@ struct SConfig : NonCopyable
     BOOT_ELF,
     BOOT_DOL,
     BOOT_WII_NAND,
+    BOOT_MIOS,
     BOOT_BS2,
     BOOT_DFF
   };
+
   EBootType m_BootType;
+  DiscIO::Region m_region;
 
   std::string m_strVideoBackend;
   std::string m_strGPUDeterminismMode;
@@ -175,16 +218,20 @@ struct SConfig : NonCopyable
   std::string m_strDefaultISO;
   std::string m_strDVDRoot;
   std::string m_strApploader;
-  std::string m_strUniqueID;
-  std::string m_strName;
   std::string m_strWiiSDCardPath;
-  u16 m_revision;
 
   std::string m_perfDir;
 
+  const std::string& GetGameID() const { return m_game_id; }
+  u64 GetTitleID() const { return m_title_id; }
+  u16 GetRevision() const { return m_revision; }
+  void ResetRunningGameMetadata();
+  void SetRunningGameMetadata(const DiscIO::IVolume& volume);
+  void SetRunningGameMetadata(const IOS::ES::TMDReader& tmd);
+
   void LoadDefaults();
+  static const char* GetDirectoryForRegion(DiscIO::Region region);
   bool AutoSetup(EBootBS2 _BootBS2);
-  const std::string& GetUniqueID() const { return m_strUniqueID; }
   void CheckMemcardPath(std::string& memcardPath, const std::string& gameRegion, bool isSlotA);
   DiscIO::Language GetCurrentLanguage(bool wii) const;
 
@@ -205,12 +252,12 @@ struct SConfig : NonCopyable
   std::string m_strMemoryCardB;
   std::string m_strGbaCartA;
   std::string m_strGbaCartB;
-  TEXIDevices m_EXIDevice[3];
-  SIDevices m_SIDevice[4];
+  ExpansionInterface::TEXIDevices m_EXIDevice[3];
+  SerialInterface::SIDevices m_SIDevice[4];
   std::string m_bba_mac;
 
   // interface language
-  int m_InterfaceLanguage;
+  std::string m_InterfaceLanguage;
   float m_EmulationSpeed;
   bool m_OCEnable;
   float m_OCFactor;
@@ -246,15 +293,13 @@ struct SConfig : NonCopyable
   // Game list column toggles
   bool m_showSystemColumn;
   bool m_showBannerColumn;
+  bool m_showTitleColumn;
   bool m_showMakerColumn;
   bool m_showFileNameColumn;
   bool m_showIDColumn;
   bool m_showRegionColumn;
   bool m_showSizeColumn;
   bool m_showStateColumn;
-
-  // Toggles whether compressed titles show up in blue in the game list
-  bool m_ColorCompressed;
 
   std::string m_WirelessMac;
   bool m_PauseMovie;
@@ -269,10 +314,13 @@ struct SConfig : NonCopyable
 
   bool m_PauseOnFocusLost;
 
+  bool m_DisableTooltips;
+
   // DSP settings
   bool m_DSPEnableJIT;
   bool m_DSPCaptureLog;
   bool m_DumpAudio;
+  bool m_DumpAudioSilent;
   bool m_IsMuted;
   bool m_DumpUCode;
   int m_Volume;
@@ -283,13 +331,21 @@ struct SConfig : NonCopyable
   bool m_AdapterRumble[4];
   bool m_AdapterKonga[4];
 
-  SysConf* m_SYSCONF;
+  // Network settings
+  bool m_SSLDumpRead;
+  bool m_SSLDumpWrite;
+  bool m_SSLVerifyCert;
+  bool m_SSLDumpRootCA;
+  bool m_SSLDumpPeerCert;
 
   // Save settings
   void SaveSettings();
 
   // Load settings
   void LoadSettings();
+
+  void LoadSettingsFromSysconf();
+  void SaveSettingsToSysconf();
 
   // Return the permanent and somewhat globally used instance of this struct
   static SConfig& GetInstance() { return (*m_Instance); }
@@ -309,7 +365,11 @@ private:
   void SaveInputSettings(IniFile& ini);
   void SaveMovieSettings(IniFile& ini);
   void SaveFifoPlayerSettings(IniFile& ini);
+  void SaveNetworkSettings(IniFile& ini);
   void SaveAnalyticsSettings(IniFile& ini);
+  void SaveBluetoothPassthroughSettings(IniFile& ini);
+  void SaveUSBPassthroughSettings(IniFile& ini);
+  void SaveSysconfSettings(IniFile& ini);
 
   void LoadGeneralSettings(IniFile& ini);
   void LoadInterfaceSettings(IniFile& ini);
@@ -320,7 +380,18 @@ private:
   void LoadInputSettings(IniFile& ini);
   void LoadMovieSettings(IniFile& ini);
   void LoadFifoPlayerSettings(IniFile& ini);
+  void LoadNetworkSettings(IniFile& ini);
   void LoadAnalyticsSettings(IniFile& ini);
+  void LoadBluetoothPassthroughSettings(IniFile& ini);
+  void LoadUSBPassthroughSettings(IniFile& ini);
+  void LoadSysconfSettings(IniFile& ini);
+
+  void SetRunningGameMetadata(const std::string& game_id, u64 title_id, u16 revision);
+  bool SetRegion(DiscIO::Region region, std::string* directory_name);
 
   static SConfig* m_Instance;
+
+  std::string m_game_id;
+  u64 m_title_id;
+  u16 m_revision;
 };

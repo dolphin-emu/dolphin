@@ -1,6 +1,5 @@
 package org.dolphinemu.dolphinemu.model.settings.view;
 
-
 import org.dolphinemu.dolphinemu.model.settings.IntSetting;
 import org.dolphinemu.dolphinemu.model.settings.Setting;
 
@@ -11,9 +10,9 @@ public final class SingleChoiceSetting extends SettingsItem
 	private int mChoicesId;
 	private int mValuesId;
 
-	public SingleChoiceSetting(String key, String section, int titleId, int descriptionId, int choicesId, int valuesId, int defaultValue, Setting setting)
+	public SingleChoiceSetting(String key, String section, int file, int titleId, int descriptionId, int choicesId, int valuesId, int defaultValue, Setting setting)
 	{
-		super(key, section, setting, titleId, descriptionId);
+		super(key, section, file, setting, titleId, descriptionId);
 		mValuesId = valuesId;
 		mChoicesId = choicesId;
 		mDefaultValue = defaultValue;
@@ -53,7 +52,7 @@ public final class SingleChoiceSetting extends SettingsItem
 	{
 		if (getSetting() == null)
 		{
-			IntSetting setting = new IntSetting(getKey(), getSection(), selection);
+			IntSetting setting = new IntSetting(getKey(), getSection(), getFile(), selection);
 			setSetting(setting);
 			return setting;
 		}

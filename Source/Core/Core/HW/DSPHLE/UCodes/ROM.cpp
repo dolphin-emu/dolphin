@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/HW/DSPHLE/UCodes/ROM.h"
+
 #include <string>
 
 #ifdef _WIN32
@@ -15,19 +17,28 @@
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
-#include "Core/HW/DSPHLE/UCodes/ROM.h"
+#include "Core/HW/DSPHLE/DSPHLE.h"
+#include "Core/HW/DSPHLE/MailHandler.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
+namespace DSP
+{
+namespace HLE
+{
 ROMUCode::ROMUCode(DSPHLE* dsphle, u32 crc)
     : UCodeInterface(dsphle, crc), m_current_ucode(), m_boot_task_num_steps(0), m_next_parameter(0)
 {
-  DEBUG_LOG(DSPHLE, "UCode_Rom - initialized");
-  m_mail_handler.Clear();
-  m_mail_handler.PushMail(0x8071FEED);
+  INFO_LOG(DSPHLE, "UCode_Rom - initialized");
 }
 
 ROMUCode::~ROMUCode()
 {
+}
+
+void ROMUCode::Initialize()
+{
+  m_mail_handler.Clear();
+  m_mail_handler.PushMail(0x8071FEED);
 }
 
 void ROMUCode::Update()
@@ -107,13 +118,13 @@ void ROMUCode::BootUCode()
     }
   }
 
-  DEBUG_LOG(DSPHLE, "CurrentUCode SOURCE Addr: 0x%08x", m_current_ucode.m_ram_address);
-  DEBUG_LOG(DSPHLE, "CurrentUCode Length:      0x%08x", m_current_ucode.m_length);
-  DEBUG_LOG(DSPHLE, "CurrentUCode DEST Addr:   0x%08x", m_current_ucode.m_imem_address);
-  DEBUG_LOG(DSPHLE, "CurrentUCode DMEM Length: 0x%08x", m_current_ucode.m_dmem_length);
-  DEBUG_LOG(DSPHLE, "CurrentUCode init_vector: 0x%08x", m_current_ucode.m_start_pc);
-  DEBUG_LOG(DSPHLE, "CurrentUCode CRC:         0x%08x", ector_crc);
-  DEBUG_LOG(DSPHLE, "BootTask - done");
+  INFO_LOG(DSPHLE, "CurrentUCode SOURCE Addr: 0x%08x", m_current_ucode.m_ram_address);
+  INFO_LOG(DSPHLE, "CurrentUCode Length:      0x%08x", m_current_ucode.m_length);
+  INFO_LOG(DSPHLE, "CurrentUCode DEST Addr:   0x%08x", m_current_ucode.m_imem_address);
+  INFO_LOG(DSPHLE, "CurrentUCode DMEM Length: 0x%08x", m_current_ucode.m_dmem_length);
+  INFO_LOG(DSPHLE, "CurrentUCode init_vector: 0x%08x", m_current_ucode.m_start_pc);
+  INFO_LOG(DSPHLE, "CurrentUCode CRC:         0x%08x", ector_crc);
+  INFO_LOG(DSPHLE, "BootTask - done");
 
   m_dsphle->SetUCode(ector_crc);
 }
@@ -126,3 +137,5 @@ void ROMUCode::DoState(PointerWrap& p)
 
   DoStateShared(p);
 }
+}  // namespace HLE
+}  // namespace DSP

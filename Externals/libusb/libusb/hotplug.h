@@ -69,14 +69,22 @@ struct libusb_hotplug_callback {
 typedef struct libusb_hotplug_callback libusb_hotplug_callback;
 
 struct libusb_hotplug_message {
+	/** The hotplug event that occurred */
 	libusb_hotplug_event event;
+
+	/** The device for which this hotplug event occurred */
 	struct libusb_device *device;
+
+	/** List this message is contained in (ctx->hotplug_msgs) */
+	struct list_head list;
 };
 
 typedef struct libusb_hotplug_message libusb_hotplug_message;
 
 void usbi_hotplug_deregister_all(struct libusb_context *ctx);
 void usbi_hotplug_match(struct libusb_context *ctx, struct libusb_device *dev,
+			libusb_hotplug_event event);
+void usbi_hotplug_notification(struct libusb_context *ctx, struct libusb_device *dev,
 			libusb_hotplug_event event);
 
 #endif

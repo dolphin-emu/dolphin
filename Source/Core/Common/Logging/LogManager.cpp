@@ -9,6 +9,7 @@
 #include <set>
 #include <string>
 
+#include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/Logging/ConsoleListener.h"
@@ -29,6 +30,15 @@ void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, const char*
 
 LogManager* LogManager::m_logManager = nullptr;
 
+static size_t DeterminePathCutOffPoint()
+{
+  constexpr const char* pattern = DIR_SEP "Source" DIR_SEP "Core" DIR_SEP;
+  size_t pos = std::string(__FILE__).find(pattern);
+  if (pos != std::string::npos)
+    return pos + strlen(pattern);
+  return 0;
+}
+
 LogManager::LogManager()
 {
   // create log containers
@@ -39,6 +49,7 @@ LogManager::LogManager()
   m_Log[LogTypes::COMMANDPROCESSOR] = new LogContainer("CP", "CommandProc");
   m_Log[LogTypes::COMMON] = new LogContainer("COMMON", "Common");
   m_Log[LogTypes::CONSOLE] = new LogContainer("CONSOLE", "Dolphin Console");
+  m_Log[LogTypes::CORE] = new LogContainer("CORE", "Core");
   m_Log[LogTypes::DISCIO] = new LogContainer("DIO", "Disc IO");
   m_Log[LogTypes::DSPHLE] = new LogContainer("DSPHLE", "DSP HLE");
   m_Log[LogTypes::DSPLLE] = new LogContainer("DSPLLE", "DSP LLE");
@@ -51,6 +62,17 @@ LogManager::LogManager()
   m_Log[LogTypes::GDB_STUB] = new LogContainer("GDB_STUB", "GDB Stub");
   m_Log[LogTypes::GPFIFO] = new LogContainer("GP", "GPFifo");
   m_Log[LogTypes::HOST_GPU] = new LogContainer("Host GPU", "Host GPU");
+  m_Log[LogTypes::IOS] = new LogContainer("IOS", "IOS");
+  m_Log[LogTypes::IOS_DI] = new LogContainer("IOS_DI", "IOS - Drive Interface");
+  m_Log[LogTypes::IOS_ES] = new LogContainer("IOS_ES", "IOS - ETicket Services");
+  m_Log[LogTypes::IOS_FILEIO] = new LogContainer("IOS_FILEIO", "IOS - FileIO");
+  m_Log[LogTypes::IOS_SD] = new LogContainer("IOS_SD", "IOS - SDIO");
+  m_Log[LogTypes::IOS_SSL] = new LogContainer("IOS_SSL", "IOS - SSL");
+  m_Log[LogTypes::IOS_STM] = new LogContainer("IOS_STM", "IOS - State Transition Manager");
+  m_Log[LogTypes::IOS_NET] = new LogContainer("IOS_NET", "IOS - Network");
+  m_Log[LogTypes::IOS_USB] = new LogContainer("IOS_USB", "IOS - USB");
+  m_Log[LogTypes::IOS_WC24] = new LogContainer("IOS_WC24", "IOS - WiiConnect24");
+  m_Log[LogTypes::IOS_WIIMOTE] = new LogContainer("IOS_WIIMOTE", "IOS - Wii Remote");
   m_Log[LogTypes::MASTER_LOG] = new LogContainer("*", "Master Log");
   m_Log[LogTypes::MEMCARD_MANAGER] = new LogContainer("MemCard Manager", "MemCard Manager");
   m_Log[LogTypes::MEMMAP] = new LogContainer("MI", "MI & memmap");
@@ -67,17 +89,6 @@ LogManager::LogManager()
   m_Log[LogTypes::VIDEOINTERFACE] = new LogContainer("VI", "Video Interface (VI)");
   m_Log[LogTypes::WIIMOTE] = new LogContainer("Wiimote", "Wiimote");
   m_Log[LogTypes::WII_IPC] = new LogContainer("WII_IPC", "WII IPC");
-  m_Log[LogTypes::WII_IPC_DVD] = new LogContainer("WII_IPC_DVD", "WII IPC DVD");
-  m_Log[LogTypes::WII_IPC_ES] = new LogContainer("WII_IPC_ES", "WII IPC ES");
-  m_Log[LogTypes::WII_IPC_FILEIO] = new LogContainer("WII_IPC_FILEIO", "WII IPC FILEIO");
-  m_Log[LogTypes::WII_IPC_HID] = new LogContainer("WII_IPC_HID", "WII IPC HID");
-  m_Log[LogTypes::WII_IPC_HLE] = new LogContainer("WII_IPC_HLE", "WII IPC HLE");
-  m_Log[LogTypes::WII_IPC_SD] = new LogContainer("WII_IPC_SD", "WII IPC SD");
-  m_Log[LogTypes::WII_IPC_SSL] = new LogContainer("WII_IPC_SSL", "WII IPC SSL");
-  m_Log[LogTypes::WII_IPC_STM] = new LogContainer("WII_IPC_STM", "WII IPC STM");
-  m_Log[LogTypes::WII_IPC_NET] = new LogContainer("WII_IPC_NET", "WII IPC NET");
-  m_Log[LogTypes::WII_IPC_WC24] = new LogContainer("WII_IPC_WC24", "WII IPC WC24");
-  m_Log[LogTypes::WII_IPC_WIIMOTE] = new LogContainer("WII_IPC_WIIMOTE", "WII IPC WIIMOTE");
 
   RegisterListener(LogListener::FILE_LISTENER,
                    new FileLogListener(File::GetUserPath(F_MAINLOG_IDX)));
@@ -102,6 +113,8 @@ LogManager::LogManager()
     if (enable && write_console)
       container->AddListener(LogListener::CONSOLE_LISTENER);
   }
+
+  m_path_cutoff_point = DeterminePathCutOffPoint();
 }
 
 LogManager::~LogManager()
@@ -125,8 +138,10 @@ void LogManager::Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, const 
 
   CharArrayFromFormatV(temp, MAX_MSGLEN, format, args);
 
+  const char* path_to_print = file + m_path_cutoff_point;
+
   std::string msg = StringFromFormat(
-      "%s %s:%u %c[%s]: %s\n", Common::Timer::GetTimeFormatted().c_str(), file, line,
+      "%s %s:%u %c[%s]: %s\n", Common::Timer::GetTimeFormatted().c_str(), path_to_print, line,
       LogTypes::LOG_LEVEL_TO_CHAR[(int)level], log->GetShortName().c_str(), temp);
 
   for (auto listener_id : *log)

@@ -58,6 +58,11 @@
 # include <sys/procfs.h>
 #endif  // GTEST_OS_QNX
 
+#if GTEST_OS_AIX
+# include <procinfo.h>
+# include <sys/types.h>
+#endif  // GTEST_OS_AIX
+
 #include "gtest/gtest-spi.h"
 #include "gtest/gtest-message.h"
 #include "gtest/internal/gtest-internal.h"
@@ -146,6 +151,19 @@ size_t GetThreadCount() {
   }
 }
 
+#elif GTEST_OS_AIX
+
+size_t GetThreadCount() {
+  struct procentry64 entry;
+  pid_t pid = getpid();
+  int status = getprocs64(&entry, sizeof(entry), NULL, 0, &pid, 1);
+  if (status == 1) {
+    return entry.pi_thcount;
+  } else {
+    return 0;
+  }
+}
+
 #else
 
 size_t GetThreadCount() {
@@ -218,8 +236,8 @@ void Notification::WaitForNotification() {
 }
 
 Mutex::Mutex()
-    : type_(kDynamic),
-      owner_thread_id_(0),
+    : owner_thread_id_(0),
+      type_(kDynamic),
       critical_section_init_phase_(0),
       critical_section_(new CRITICAL_SECTION) {
   ::InitializeCriticalSection(critical_section_);
@@ -1084,9 +1102,6 @@ std::string ReadEntireFile(FILE* file) {
 
 #if GTEST_HAS_DEATH_TEST
 
-// A copy of all command line arguments.  Set by InitGoogleTest().
-::std::vector<testing::internal::string> g_argvs;
-
 static const ::std::vector<testing::internal::string>* g_injected_test_argvs =
                                         NULL;  // Owned.
 
@@ -1100,7 +1115,7 @@ const ::std::vector<testing::internal::string>& GetInjectableArgvs() {
   if (g_injected_test_argvs != NULL) {
     return *g_injected_test_argvs;
   }
-  return g_argvs;
+  return GetArgvs();
 }
 #endif  // GTEST_HAS_DEATH_TEST
 
@@ -1174,6 +1189,9 @@ bool ParseInt32(const Message& src_text, const char* str, Int32* value) {
 //
 // The value is considered true iff it's not "0".
 bool BoolFromGTestEnv(const char* flag, bool default_value) {
+#if defined(GTEST_GET_BOOL_FROM_ENV_)
+  return GTEST_GET_BOOL_FROM_ENV_(flag, default_value);
+#endif  // defined(GTEST_GET_BOOL_FROM_ENV_)
   const std::string env_var = FlagToEnvVar(flag);
   const char* const string_value = posix::GetEnv(env_var.c_str());
   return string_value == NULL ?
@@ -1184,6 +1202,9 @@ bool BoolFromGTestEnv(const char* flag, bool default_value) {
 // variable corresponding to the given flag; if it isn't set or
 // doesn't represent a valid 32-bit integer, returns default_value.
 Int32 Int32FromGTestEnv(const char* flag, Int32 default_value) {
+#if defined(GTEST_GET_INT32_FROM_ENV_)
+  return GTEST_GET_INT32_FROM_ENV_(flag, default_value);
+#endif  // defined(GTEST_GET_INT32_FROM_ENV_)
   const std::string env_var = FlagToEnvVar(flag);
   const char* const string_value = posix::GetEnv(env_var.c_str());
   if (string_value == NULL) {
@@ -1205,10 +1226,33 @@ Int32 Int32FromGTestEnv(const char* flag, Int32 default_value) {
 
 // Reads and returns the string environment variable corresponding to
 // the given flag; if it's not set, returns default_value.
-const char* StringFromGTestEnv(const char* flag, const char* default_value) {
+std::string StringFromGTestEnv(const char* flag, const char* default_value) {
+#if defined(GTEST_GET_STRING_FROM_ENV_)
+  return GTEST_GET_STRING_FROM_ENV_(flag, default_value);
+#endif  // defined(GTEST_GET_STRING_FROM_ENV_)
   const std::string env_var = FlagToEnvVar(flag);
-  const char* const value = posix::GetEnv(env_var.c_str());
-  return value == NULL ? default_value : value;
+  const char* value = posix::GetEnv(env_var.c_str());
+  if (value != NULL) {
+    return value;
+  }
+
+  // As a special case for the 'output' flag, if GTEST_OUTPUT is not
+  // set, we look for XML_OUTPUT_FILE, which is set by the Bazel build
+  // system.  The value of XML_OUTPUT_FILE is a filename without the
+  // "xml:" prefix of GTEST_OUTPUT.
+  //
+  // The net priority order after flag processing is thus:
+  //   --gtest_output command line flag
+  //   GTEST_OUTPUT environment variable
+  //   XML_OUTPUT_FILE environment variable
+  //   'default_value'
+  if (strcmp(flag, "output") == 0) {
+    value = posix::GetEnv("XML_OUTPUT_FILE");
+    if (value != NULL) {
+      return std::string("xml:") + value;
+    }
+  }
+  return default_value;
 }
 
 }  // namespace internal

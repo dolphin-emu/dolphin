@@ -12,7 +12,6 @@
 
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
-#include "Common/StringUtil.h"
 
 struct CaseInsensitiveStringCompare
 {
@@ -30,31 +29,21 @@ public:
     friend class IniFile;
 
   public:
-    Section() {}
-    Section(const std::string& _name) : name(_name) {}
+    Section();
+    explicit Section(std::string name_);
     bool Exists(const std::string& key) const;
     bool Delete(const std::string& key);
 
     void Set(const std::string& key, const std::string& newValue);
     void Set(const std::string& key, const std::string& newValue, const std::string& defaultValue);
+    void Set(const std::string& key, u32 newValue);
+    void Set(const std::string& key, u64 new_value);
+    void Set(const std::string& key, float newValue);
+    void Set(const std::string& key, double newValue);
+    void Set(const std::string& key, int newValue);
+    void Set(const std::string& key, s64 new_value);
+    void Set(const std::string& key, bool newValue);
 
-    void Set(const std::string& key, u32 newValue)
-    {
-      Set(key, StringFromFormat("0x%08x", newValue));
-    }
-
-    void Set(const std::string& key, float newValue)
-    {
-      Set(key, StringFromFormat("%#.9g", newValue));
-    }
-
-    void Set(const std::string& key, double newValue)
-    {
-      Set(key, StringFromFormat("%#.17g", newValue));
-    }
-
-    void Set(const std::string& key, int newValue) { Set(key, StringFromInt(newValue)); }
-    void Set(const std::string& key, bool newValue) { Set(key, StringFromBool(newValue)); }
     template <typename T>
     void Set(const std::string& key, T newValue, const T defaultValue)
     {
@@ -69,20 +58,31 @@ public:
     bool Get(const std::string& key, std::string* value,
              const std::string& defaultValue = NULL_STRING) const;
     bool Get(const std::string& key, int* value, int defaultValue = 0) const;
+    bool Get(const std::string& key, s64* value, s64 default_value = 0) const;
     bool Get(const std::string& key, u32* value, u32 defaultValue = 0) const;
+    bool Get(const std::string& key, u64* value, u64 default_value = 0) const;
     bool Get(const std::string& key, bool* value, bool defaultValue = false) const;
     bool Get(const std::string& key, float* value, float defaultValue = 0.0f) const;
     bool Get(const std::string& key, double* value, double defaultValue = 0.0) const;
     bool Get(const std::string& key, std::vector<std::string>* values) const;
 
+    void SetLines(const std::vector<std::string>& lines);
+    void SetLines(std::vector<std::string>&& lines);
+    bool GetLines(std::vector<std::string>* lines, const bool remove_comments = true) const;
+
     bool operator<(const Section& other) const { return name < other.name; }
+    using SectionMap = std::map<std::string, std::string, CaseInsensitiveStringCompare>;
+
+    const std::string& GetName() const { return name; }
+    const SectionMap& GetValues() const { return values; }
+    bool HasLines() const { return !m_lines.empty(); }
   protected:
     std::string name;
 
     std::vector<std::string> keys_order;
-    std::map<std::string, std::string, CaseInsensitiveStringCompare> values;
+    SectionMap values;
 
-    std::vector<std::string> lines;
+    std::vector<std::string> m_lines;
   };
 
   /**
@@ -125,6 +125,7 @@ public:
   bool GetKeys(const std::string& sectionName, std::vector<std::string>* keys) const;
 
   void SetLines(const std::string& sectionName, const std::vector<std::string>& lines);
+  void SetLines(const std::string& section_name, std::vector<std::string>&& lines);
   bool GetLines(const std::string& sectionName, std::vector<std::string>* lines,
                 const bool remove_comments = true) const;
 
@@ -140,6 +141,7 @@ public:
   // In particular it is used in PostProcessing for its configuration
   static void ParseLine(const std::string& line, std::string* keyOut, std::string* valueOut);
 
+  const std::list<Section>& GetSections() const { return sections; }
 private:
   std::list<Section> sections;
 

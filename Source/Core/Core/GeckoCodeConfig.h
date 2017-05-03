@@ -11,6 +11,6 @@ class IniFile;
 
 namespace Gecko
 {
-void LoadCodes(const IniFile& globalIni, const IniFile& localIni, std::vector<GeckoCode>& gcodes);
+std::vector<GeckoCode> LoadCodes(const IniFile& globalIni, const IniFile& localIni);
 void SaveCodes(IniFile& inifile, const std::vector<GeckoCode>& gcodes);
 }

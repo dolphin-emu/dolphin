@@ -6,7 +6,6 @@
 
 // clang-format off
 #include <wx/bitmap.h>
-#include <wx/aui/auibar.h>
 #include <wx/panel.h>
 // clang-format on
 
@@ -16,18 +15,22 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "DolphinWX/Debugger/WatchView.h"
 #include "DolphinWX/Debugger/WatchWindow.h"
+#include "DolphinWX/AuiToolBar.h"
 #include "DolphinWX/WxUtils.h"
 
-class CWatchToolbar : public wxAuiToolBar
+class CWatchToolbar : public DolphinAuiToolBar
 {
 public:
   CWatchToolbar(CWatchWindow* parent, const wxWindowID id)
-      : wxAuiToolBar(parent, id, wxDefaultPosition, wxDefaultSize,
-                     wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_TEXT)
+      : DolphinAuiToolBar(parent, id, wxDefaultPosition, wxDefaultSize,
+                          wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_TEXT)
   {
-    SetToolBitmapSize(wxSize(16, 16));
+    wxSize bitmap_size = FromDIP(wxSize(16, 16));
+    SetToolBitmapSize(bitmap_size);
 
-    m_Bitmaps[Toolbar_File] = WxUtils::LoadResourceBitmap("toolbar_debugger_delete");
+    m_Bitmaps[Toolbar_File] = WxUtils::LoadScaledResourceBitmap(
+        "toolbar_debugger_delete", this, bitmap_size, wxDefaultSize,
+        WxUtils::LSI_SCALE_DOWN | WxUtils::LSI_ALIGN_CENTER);
 
     AddTool(ID_LOAD, _("Load"), m_Bitmaps[Toolbar_File]);
     Bind(wxEVT_TOOL, &CWatchWindow::Event_LoadAll, parent, ID_LOAD);
@@ -80,7 +83,7 @@ CWatchWindow::~CWatchWindow()
 void CWatchWindow::NotifyUpdate()
 {
   if (m_GPRGridView != nullptr)
-    m_GPRGridView->Update();
+    m_GPRGridView->Repopulate();
 }
 
 void CWatchWindow::Event_SaveAll(wxCommandEvent& WXUNUSED(event))
@@ -91,10 +94,10 @@ void CWatchWindow::Event_SaveAll(wxCommandEvent& WXUNUSED(event))
 void CWatchWindow::SaveAll()
 {
   IniFile ini;
-  ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetUniqueID() + ".ini",
+  ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetGameID() + ".ini",
            false);
   ini.SetLines("Watches", PowerPC::watches.GetStrings());
-  ini.Save(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetUniqueID() + ".ini");
+  ini.Save(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetGameID() + ".ini");
 }
 
 void CWatchWindow::Event_LoadAll(wxCommandEvent& WXUNUSED(event))
@@ -107,8 +110,7 @@ void CWatchWindow::LoadAll()
   IniFile ini;
   Watches::TWatchesStr watches;
 
-  if (!ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetUniqueID() +
-                    ".ini",
+  if (!ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetGameID() + ".ini",
                 false))
   {
     return;

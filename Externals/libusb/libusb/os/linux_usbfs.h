@@ -81,7 +81,7 @@ struct usbfs_iso_packet_desc {
 	unsigned int status;
 };
 
-#define MAX_ISO_BUFFER_LENGTH		32768
+#define MAX_ISO_BUFFER_LENGTH		49152 * 128
 #define MAX_BULK_BUFFER_LENGTH		16384
 #define MAX_CTRL_BUFFER_LENGTH		4096
 
@@ -125,6 +125,7 @@ struct usbfs_hub_portinfo {
 #define USBFS_CAP_BULK_CONTINUATION	0x02
 #define USBFS_CAP_NO_PACKET_SIZE_LIM	0x04
 #define USBFS_CAP_BULK_SCATTER_GATHER	0x08
+#define USBFS_CAP_REAP_AFTER_DISCONNECT	0x10
 
 #define USBFS_DISCONNECT_CLAIM_IF_DRIVER	0x01
 #define USBFS_DISCONNECT_CLAIM_EXCEPT_DRIVER	0x02
@@ -181,7 +182,7 @@ void linux_netlink_hotplug_poll(void);
 #endif
 
 void linux_hotplug_enumerate(uint8_t busnum, uint8_t devaddr, const char *sys_name);
-void linux_device_disconnected(uint8_t busnum, uint8_t devaddr, const char *sys_name);
+void linux_device_disconnected(uint8_t busnum, uint8_t devaddr);
 
 int linux_get_device_address (struct libusb_context *ctx, int detached,
 	uint8_t *busnum, uint8_t *devaddr, const char *dev_node,

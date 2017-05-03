@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <cstddef>
 #include <map>
 #include <tuple>
 
@@ -22,22 +23,25 @@ class JitArm64 : public JitBase, public Arm64Gen::ARM64CodeBlock, public CommonA
 public:
   JitArm64() : code_buffer(32000), m_float_emit(this) {}
   ~JitArm64() {}
-  void Init();
-  void Shutdown();
+  void Init() override;
+  void Shutdown() override;
 
-  JitBaseBlockCache* GetBlockCache() { return &blocks; }
-  bool IsInCodeSpace(u8* ptr) const { return IsInSpace(ptr); }
+  JitBaseBlockCache* GetBlockCache() override { return &blocks; }
+  bool IsInCodeSpace(const u8* ptr) const { return IsInSpace(ptr); }
   bool HandleFault(uintptr_t access_address, SContext* ctx) override;
+  void DoBacktrace(uintptr_t access_address, SContext* ctx);
+  bool HandleStackFault() override;
+  bool HandleFastmemFault(uintptr_t access_address, SContext* ctx);
 
-  void ClearCache();
+  void ClearCache() override;
 
   CommonAsmRoutinesBase* GetAsmRoutines() override { return this; }
-  void Run();
-  void SingleStep();
+  void Run() override;
+  void SingleStep() override;
 
-  void Jit(u32);
+  void Jit(u32) override;
 
-  const char* GetName() { return "JITARM64"; }
+  const char* GetName() override { return "JITARM64"; }
   // OPCODES
   void FallBackToInterpreter(UGeckoInstruction inst);
   void DoNothing(UGeckoInstruction inst);
@@ -81,12 +85,15 @@ public:
   void addic(UGeckoInstruction inst);
   void mulli(UGeckoInstruction inst);
   void addzex(UGeckoInstruction inst);
+  void divwx(UGeckoInstruction inst);
   void subfx(UGeckoInstruction inst);
   void addcx(UGeckoInstruction inst);
   void slwx(UGeckoInstruction inst);
   void srwx(UGeckoInstruction inst);
+  void srawx(UGeckoInstruction inst);
   void rlwimix(UGeckoInstruction inst);
   void subfex(UGeckoInstruction inst);
+  void subfzex(UGeckoInstruction inst);
   void subfcx(UGeckoInstruction inst);
   void subfic(UGeckoInstruction inst);
   void addex(UGeckoInstruction inst);
@@ -96,6 +103,7 @@ public:
   void mtmsr(UGeckoInstruction inst);
   void mfmsr(UGeckoInstruction inst);
   void mcrf(UGeckoInstruction inst);
+  void mcrxr(UGeckoInstruction inst);
   void mfsr(UGeckoInstruction inst);
   void mtsr(UGeckoInstruction inst);
   void mfsrin(UGeckoInstruction inst);
@@ -116,6 +124,7 @@ public:
   void dcbx(UGeckoInstruction inst);
   void dcbt(UGeckoInstruction inst);
   void dcbz(UGeckoInstruction inst);
+  void eieio(UGeckoInstruction inst);
 
   // LoadStore floating point
   void lfXX(UGeckoInstruction inst);
@@ -163,23 +172,8 @@ private:
     const u8* slowmem_code;
   };
 
-  // <Fastmem fault location, slowmem handler location>
-  std::map<const u8*, FastmemArea> m_fault_to_handler;
-  std::map<SlowmemHandler, const u8*> m_handler_to_loc;
-  Arm64GPRCache gpr;
-  Arm64FPRCache fpr;
-
-  JitArm64BlockCache blocks;
-
-  PPCAnalyst::CodeBuffer code_buffer;
-
-  ARM64FloatEmitter m_float_emit;
-
-  Arm64Gen::ARM64CodeBlock farcode;
-  u8* nearcode;  // Backed up when we switch to far code.
-
-  // Do we support cycle counter profiling?
-  bool m_supports_cycle_counter;
+  static void InitializeInstructionTables();
+  void CompileInstruction(PPCAnalyst::CodeOp& op);
 
   void EmitResetCycleCounters();
   void EmitGetCycles(Arm64Gen::ARM64Reg reg);
@@ -210,25 +204,29 @@ private:
   void SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 offset, bool update);
   void SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s32 offset);
 
-  const u8* DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBlock* b, u32 nextPC);
+  void DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBlock* b, u32 nextPC);
 
   void DoDownCount();
   void Cleanup();
+  void ResetStack();
+  void AllocStack();
+  void FreeStack();
 
   // AsmRoutines
   void GenerateAsm();
   void GenerateCommonAsm();
-  void GenMfcr();
 
   // Profiling
   void BeginTimeProfile(JitBlock* b);
   void EndTimeProfile(JitBlock* b);
 
   // Exits
-  void WriteExit(u32 destination);
-  void WriteExit(Arm64Gen::ARM64Reg dest);
+  void WriteExit(u32 destination, bool LK = false, u32 exit_address_after_return = 0);
+  void WriteExit(Arm64Gen::ARM64Reg dest, bool LK = false, u32 exit_address_after_return = 0);
   void WriteExceptionExit(u32 destination, bool only_external = false);
   void WriteExceptionExit(Arm64Gen::ARM64Reg dest, bool only_external = false);
+  void FakeLKExit(u32 exit_address_after_return);
+  void WriteBLRExit(Arm64Gen::ARM64Reg dest);
 
   FixupBranch JumpIfCRFieldBit(int field, int bit, bool jump_if_set);
 
@@ -236,10 +234,32 @@ private:
   void ComputeRC(u64 imm, int crf = 0, bool needs_sext = true);
   void ComputeCarry(bool Carry);
   void ComputeCarry();
+  void FlushCarry();
 
-  typedef u32 (*Operation)(u32, u32);
-  void reg_imm(u32 d, u32 a, u32 value, Operation do_op,
-               void (ARM64XEmitter::*op)(Arm64Gen::ARM64Reg, Arm64Gen::ARM64Reg, Arm64Gen::ARM64Reg,
-                                         ArithOption),
-               bool Rc = false);
+  void reg_imm(u32 d, u32 a, u32 value, u32 (*do_op)(u32, u32),
+               void (ARM64XEmitter::*op)(ARM64Reg, ARM64Reg, u64, ARM64Reg), bool Rc = false);
+
+  // <Fastmem fault location, slowmem handler location>
+  std::map<const u8*, FastmemArea> m_fault_to_handler;
+  std::map<SlowmemHandler, const u8*> m_handler_to_loc;
+  Arm64GPRCache gpr;
+  Arm64FPRCache fpr;
+
+  JitArm64BlockCache blocks{*this};
+
+  PPCAnalyst::CodeBuffer code_buffer;
+
+  ARM64FloatEmitter m_float_emit;
+
+  Arm64Gen::ARM64CodeBlock farcode;
+  u8* nearcode;  // Backed up when we switch to far code.
+
+  // Do we support cycle counter profiling?
+  bool m_supports_cycle_counter;
+
+  bool m_enable_blr_optimization;
+  bool m_cleanup_after_stackfault = false;
+  u8* m_stack_base = nullptr;
+  u8* m_stack_pointer = nullptr;
+  u8* m_saved_stack_pointer = nullptr;
 };

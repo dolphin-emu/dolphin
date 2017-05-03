@@ -85,6 +85,12 @@ void Init()
       return;
     }
   }
+}
+
+void PopulateDevices()
+{
+  if (!hXInput)
+    return;
 
   XINPUT_CAPABILITIES caps;
   for (int i = 0; i != 4; ++i)

@@ -5,23 +5,26 @@
 #pragma once
 
 #include <string>
-#include "Common/ChunkFile.h"
+
+#include "Common/CommonTypes.h"
 #include "Core/MachineContext.h"
-#include "Core/PowerPC/CPUCoreBase.h"
-#include "Core/PowerPC/Profiler.h"
+
+class CPUCoreBase;
+class PointerWrap;
+struct ProfileStats;
 
 namespace JitInterface
 {
 enum class ExceptionType
 {
-  EXCEPTIONS_FIFO_WRITE,
-  EXCEPTIONS_PAIRED_QUANTIZE
+  FIFOWrite,
+  PairedQuantize,
+  SpeculativeConstants
 };
 
 void DoState(PointerWrap& p);
 
 CPUCoreBase* InitJitCore(int core);
-void InitTables(int core);
 CPUCoreBase* GetCore();
 
 // Debugging

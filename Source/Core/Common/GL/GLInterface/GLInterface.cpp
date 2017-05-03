@@ -20,6 +20,8 @@
 #include "Common/GL/GLInterface/EGL.h"
 #elif ANDROID
 #include "Common/GL/GLInterface/EGLAndroid.h"
+#elif defined(__HAIKU__)
+#include "Common/GL/GLInterface/BGL.h"
 #else
 #error Platform doesnt have a GLInterface
 #endif
@@ -40,6 +42,8 @@ std::unique_ptr<cInterfaceBase> HostGL_CreateGLInterface()
 #endif
 #elif ANDROID
   return std::make_unique<cInterfaceEGLAndroid>();
+#elif defined(__HAIKU__)
+  return std::make_unique<cInterfaceBGL>();
 #else
   return nullptr;
 #endif

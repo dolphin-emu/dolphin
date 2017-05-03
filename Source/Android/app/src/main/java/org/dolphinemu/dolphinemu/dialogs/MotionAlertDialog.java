@@ -3,13 +3,14 @@ package org.dolphinemu.dolphinemu.dialogs;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.preference.Preference;
 import android.preference.PreferenceManager;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
+import org.dolphinemu.dolphinemu.model.settings.StringSetting;
+import org.dolphinemu.dolphinemu.model.settings.view.InputBindingSetting;
 import org.dolphinemu.dolphinemu.utils.Log;
 
 import java.util.ArrayList;
@@ -22,7 +23,7 @@ import java.util.List;
 public final class MotionAlertDialog extends AlertDialog
 {
 	// The selected input preference
-	private final Preference inputPref;
+	private final InputBindingSetting setting;
 
 	private boolean firstEvent = true;
 	private final ArrayList<Float> m_values = new ArrayList<>();
@@ -30,14 +31,14 @@ public final class MotionAlertDialog extends AlertDialog
 	/**
 	 * Constructor
 	 *
-	 * @param ctx       The current {@link Context}.
-	 * @param inputPref The Preference to show this dialog for.
+	 * @param context The current {@link Context}.
+	 * @param setting The Preference to show this dialog for.
 	 */
-	public MotionAlertDialog(Context ctx, Preference inputPref)
+	public MotionAlertDialog(Context context, InputBindingSetting setting)
 	{
-		super(ctx);
+		super(context);
 
-		this.inputPref = inputPref;
+		this.setting = setting;
 	}
 
 	@Override
@@ -150,7 +151,7 @@ public final class MotionAlertDialog extends AlertDialog
 
 		if (bindStr != null)
 		{
-			NativeLibrary.SetConfig("Dolphin.ini", "Android", inputPref.getKey(), bindStr);
+			setting.setValue(bindStr);
 		}
 		else
 		{
@@ -163,10 +164,8 @@ public final class MotionAlertDialog extends AlertDialog
 			SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getContext());
 			SharedPreferences.Editor editor = preferences.edit();
 
-			editor.putString(inputPref.getKey(), uiString);
+			editor.putString(setting.getKey(), uiString);
 			editor.apply();
-
-			inputPref.setSummary(uiString);
 		}
 		else
 		{

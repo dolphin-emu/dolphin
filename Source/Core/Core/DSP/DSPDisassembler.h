@@ -14,30 +14,26 @@
 #include "Core/DSP/DSPTables.h"
 #include "Core/DSP/LabelMap.h"
 
+namespace DSP
+{
 struct AssemblerSettings
 {
-  AssemblerSettings()
-      : print_tabs(false), show_hex(false), show_pc(false), force(false), decode_names(true),
-        decode_registers(true), ext_separator('\''), lower_case_ops(true), pc(0)
-  {
-  }
+  bool print_tabs = false;
+  bool show_hex = false;
+  bool show_pc = false;
+  bool force = false;
+  bool decode_names = true;
+  bool decode_registers = true;
+  char ext_separator = '\'';
+  bool lower_case_ops = true;
 
-  bool print_tabs;
-  bool show_hex;
-  bool show_pc;
-  bool force;
-  bool decode_names;
-  bool decode_registers;
-  char ext_separator;
-  bool lower_case_ops;
-
-  u16 pc;
+  u16 pc = 0;
 };
 
 class DSPDisassembler
 {
 public:
-  DSPDisassembler(const AssemblerSettings& settings);
+  explicit DSPDisassembler(const AssemblerSettings& settings);
   ~DSPDisassembler();
 
   bool Disassemble(int start_pc, const std::vector<u16>& code, int base_addr, std::string& text);
@@ -57,3 +53,4 @@ private:
 
   LabelMap labels;
 };
+}  // namespace DSP

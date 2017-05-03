@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <cstddef>
 #include <cstring>
 #include <string>
 
@@ -13,10 +14,9 @@ protected:
   virtual ~DebugInterface() {}
 public:
   virtual std::string Disassemble(unsigned int /*address*/) { return "NODEBUGGER"; }
-  virtual void GetRawMemoryString(int /*memory*/, unsigned int /*address*/, char* dest,
-                                  int /*max_size*/)
+  virtual std::string GetRawMemoryString(int /*memory*/, unsigned int /*address*/)
   {
-    strcpy(dest, "NODEBUGGER");
+    return "NODEBUGGER";
   }
   virtual int GetInstructionSize(int /*instruction*/) { return 1; }
   virtual bool IsAlive() { return true; }
@@ -27,8 +27,10 @@ public:
   virtual void ToggleBreakpoint(unsigned int /*address*/) {}
   virtual void AddWatch(unsigned int /*address*/) {}
   virtual void ClearAllMemChecks() {}
-  virtual bool IsMemCheck(unsigned int /*address*/) { return false; }
-  virtual void ToggleMemCheck(unsigned int /*address*/) {}
+  virtual bool IsMemCheck(unsigned int /*address*/, size_t /*size*/) { return false; }
+  virtual void ToggleMemCheck(unsigned int /*address*/, bool /*read*/, bool /*write*/, bool /*log*/)
+  {
+  }
   virtual unsigned int ReadMemory(unsigned int /*address*/) { return 0; }
   virtual void WriteExtraMemory(int /*memory*/, unsigned int /*value*/, unsigned int /*address*/) {}
   virtual unsigned int ReadExtraMemory(int /*memory*/, unsigned int /*address*/) { return 0; }

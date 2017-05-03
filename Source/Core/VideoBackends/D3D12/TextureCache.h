@@ -39,11 +39,11 @@ private:
                                   const MathUtil::Rectangle<int>& src_rect,
                                   const MathUtil::Rectangle<int>& dst_rect) override;
 
-    void Load(unsigned int width, unsigned int height, unsigned int expanded_width,
-              unsigned int levels) override;
+    void Load(u32 level, u32 width, u32 height, u32 row_length, const u8* buffer,
+              size_t buffer_size) override;
 
-    void FromRenderTarget(u8* dst, PEControl::PixelFormat src_format, const EFBRectangle& src_rect,
-                          bool scale_by_half, unsigned int cbuf_id, const float* colmat) override;
+    void FromRenderTarget(bool is_depth_copy, const EFBRectangle& src_rect, bool scale_by_half,
+                          unsigned int cbuf_id, const float* colmat) override;
 
     void Bind(unsigned int stage) override;
     bool Save(const std::string& filename, unsigned int level) override;
@@ -61,11 +61,11 @@ private:
   void ConvertTexture(TCacheEntryBase* entry, TCacheEntryBase* unconverted, void* palette,
                       TlutFormat format) override;
 
-  void CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_row, u32 num_blocks_y,
-               u32 memory_stride, PEControl::PixelFormat src_format, const EFBRectangle& src_rect,
-               bool is_intensity, bool scale_by_half) override;
+  void CopyEFB(u8* dst, const EFBCopyFormat& format, u32 native_width, u32 bytes_per_row,
+               u32 num_blocks_y, u32 memory_stride, bool is_depth_copy,
+               const EFBRectangle& src_rect, bool scale_by_half) override;
 
-  void CompileShaders() override {}
+  bool CompileShaders() override { return true; }
   void DeleteShaders() override {}
   std::unique_ptr<D3DStreamBuffer> m_palette_stream_buffer;
 

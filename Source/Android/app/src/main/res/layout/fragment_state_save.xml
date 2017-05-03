@@ -3,8 +3,7 @@
              android:layout_width="match_parent"
              android:layout_height="match_parent"
              android:background="#af000000"
-             android:orientation="vertical"
-    >
+             android:orientation="vertical">
 
     <GridLayout
         android:id="@+id/grid_state_slots"
@@ -18,48 +17,44 @@
             android:id="@+id/menu_emulation_save_1"
             android:layout_width="128dp"
             android:layout_height="128dp"
-            android:text="@string/overlay_slot1"
-            style="@style/InGameMenuOption"
-            />
+            android:text="@string/emulation_slot1"
+            style="@style/OverlayInGameMenuOption"/>
 
         <Button
             android:id="@+id/menu_emulation_save_2"
             android:layout_width="128dp"
             android:layout_height="128dp"
-            android:text="@string/overlay_slot2"
-            style="@style/InGameMenuOption"
-            />
+            android:text="@string/emulation_slot2"
+            style="@style/OverlayInGameMenuOption"/>
 
         <Button
             android:id="@+id/menu_emulation_save_3"
             android:layout_width="128dp"
             android:layout_height="128dp"
-            android:text="@string/overlay_slot3"
-            style="@style/InGameMenuOption"
-            />
+            android:text="@string/emulation_slot3"
+            style="@style/OverlayInGameMenuOption"/>
 
         <Button
             android:id="@+id/menu_emulation_save_4"
             android:layout_width="128dp"
             android:layout_height="128dp"
-            android:text="@string/overlay_slot4"
-            style="@style/InGameMenuOption"
-            />
+            android:text="@string/emulation_slot4"
+            style="@style/OverlayInGameMenuOption"/>
 
         <Button
             android:id="@+id/menu_emulation_save_5"
             android:layout_width="128dp"
             android:layout_height="128dp"
-            android:text="@string/overlay_slot5"
-            style="@style/InGameMenuOption"
-            />
+            android:text="@string/emulation_slot5"
+            style="@style/OverlayInGameMenuOption"/>
 
         <Button
             android:id="@+id/menu_emulation_save_6"
             android:layout_width="128dp"
             android:layout_height="128dp"
-            android:text="@string/overlay_slot6"
-            style="@style/InGameMenuOption"
-            />
+            android:text="@string/emulation_slot6"
+            style="@style/OverlayInGameMenuOption"/>
+
     </GridLayout>
+
 </FrameLayout>

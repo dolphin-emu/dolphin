@@ -3072,9 +3072,7 @@ void wxWindowGTK::DoSetClientSize( int width, int height )
 
     const wxSize size = GetSize();
     const wxSize clientSize = GetClientSize();
-    // XXX: Dolphin: This is an internal call, it should never trigger the SetSize path in derived classes.
-    //      This fixes wxAuiToolbar setting itself to 21 pixels wide regardless of content.
-    wxWindowGTK::DoSetSize(wxDefaultCoord, wxDefaultCoord, width + (size.x - clientSize.x), height + (size.y - clientSize.y), wxSIZE_USE_EXISTING);
+    SetSize(width + (size.x - clientSize.x), height + (size.y - clientSize.y));
 }
 
 void wxWindowGTK::DoGetClientSize( int *width, int *height ) const

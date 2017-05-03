@@ -544,7 +544,7 @@
 #define wxUSE_DYNAMIC_LOADER  1
 
 // Set to 1 to use socket classes
-#define wxUSE_SOCKETS       1
+#define wxUSE_SOCKETS       0
 
 // Set to 1 to use ipv6 socket classes (requires wxUSE_SOCKETS)
 //
@@ -567,7 +567,7 @@
 #define wxUSE_FS_ARCHIVE    1
 
 // Set to 1 to enable virtual Internet filesystem (requires wxUSE_FILESYSTEM)
-#define wxUSE_FS_INET       1
+#define wxUSE_FS_INET       0
 
 // wxArchive classes for accessing archives such as zip and tar
 #define wxUSE_ARCHIVE_STREAMS     1
@@ -609,7 +609,7 @@
 // Default is 1.
 //
 // Recommended setting: 1
-#define wxUSE_PROTOCOL 1
+#define wxUSE_PROTOCOL 0
 
 // The settings for the individual URL schemes
 #define wxUSE_PROTOCOL_FILE 1
@@ -617,7 +617,7 @@
 #define wxUSE_PROTOCOL_HTTP 1
 
 // Define this to use wxURL class.
-#define wxUSE_URL 1
+#define wxUSE_URL 0
 
 // Define this to use native platform url and protocol support.
 // Currently valid only for MS-Windows.
@@ -1209,7 +1209,7 @@
 
 // Set to 0 to disable the use of the native progress dialog (currently only
 // available under MSW and suffering from some bugs there, hence this option).
-#define wxUSE_NATIVE_PROGRESSDLG 1
+#define wxUSE_NATIVE_PROGRESSDLG 0
 
 // support for startup tips (wxShowTip &c)
 #define wxUSE_STARTUP_TIPS 1

@@ -37,7 +37,7 @@ public:
   // bpMem must point to the actual bp mem array used by the plugin because it will be read as fifo
   // data is recorded
   void SetVideoMemory(const u32* bpMem, const u32* cpMem, const u32* xfMem, const u32* xfRegs,
-                      u32 xfRegsSize);
+                      u32 xfRegsSize, const u8* texMem);
 
   // Checked once per frame prior to callng EndFrame()
   bool IsRecording() const { return m_IsRecording; }
@@ -47,20 +47,20 @@ private:
   // Accessed from both GUI and video threads
 
   // True if video thread should send data
-  volatile bool m_IsRecording;
+  volatile bool m_IsRecording = false;
   // True if m_IsRecording was true during last frame
-  volatile bool m_WasRecording;
-  volatile bool m_RequestedRecordingEnd;
-  volatile s32 m_RecordFramesRemaining;
-  volatile CallbackFunc m_FinishedCb;
+  volatile bool m_WasRecording = false;
+  volatile bool m_RequestedRecordingEnd = false;
+  volatile s32 m_RecordFramesRemaining = 0;
+  volatile CallbackFunc m_FinishedCb = nullptr;
 
-  FifoDataFile* volatile m_File;
+  FifoDataFile* volatile m_File = nullptr;
 
   // Accessed only from video thread
 
-  bool m_SkipNextData;
-  bool m_SkipFutureData;
-  bool m_FrameEnded;
+  bool m_SkipNextData = true;
+  bool m_SkipFutureData = true;
+  bool m_FrameEnded = false;
   FifoFrameInfo m_CurrentFrame;
   std::vector<u8> m_FifoData;
   std::vector<u8> m_Ram;

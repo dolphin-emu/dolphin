@@ -18,7 +18,7 @@ void SWOGLWindow::Init(void* window_handle)
   GLInterface->SetMode(GLInterfaceMode::MODE_DETECT);
   if (!GLInterface->Create(window_handle))
   {
-    INFO_LOG(VIDEO, "GLInterface::Create failed.");
+    ERROR_LOG(VIDEO, "GLInterface::Create failed.");
   }
 
   s_instance.reset(new SWOGLWindow());
@@ -55,7 +55,7 @@ void SWOGLWindow::Prepare()
                             "out vec4 ColorOut;\n"
                             "uniform sampler2D Texture;\n"
                             "void main() {\n"
-                            "	ColorOut = texture2D(Texture, TexCoord);\n"
+                            "	ColorOut = texture(Texture, TexCoord);\n"
                             "}\n";
 
   std::string vertex_shader = "out vec2 TexCoord;\n"
@@ -86,11 +86,10 @@ void SWOGLWindow::Prepare()
 
 void SWOGLWindow::PrintText(const std::string& text, int x, int y, u32 color)
 {
-  TextData data{text, x, y, color};
-  m_text.emplace_back(data);
+  m_text.push_back({text, x, y, color});
 }
 
-void SWOGLWindow::ShowImage(u8* data, int stride, int width, int height, float aspect)
+void SWOGLWindow::ShowImage(const u8* data, int stride, int width, int height, float aspect)
 {
   GLInterface->MakeCurrent();
   GLInterface->Update();

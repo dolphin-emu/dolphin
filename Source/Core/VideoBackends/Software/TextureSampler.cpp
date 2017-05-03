@@ -2,12 +2,13 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoBackends/Software/TextureSampler.h"
+
 #include <algorithm>
 #include <cmath>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Core/HW/Memmap.h"
-#include "VideoBackends/Software/TextureSampler.h"
 
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/SamplerCommon.h"

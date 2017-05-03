@@ -5,7 +5,6 @@
 #include "Core/PowerPC/JitILCommon/JitILBase.h"
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
-#include "Core/ConfigManager.h"
 
 void JitILBase::mtspr(UGeckoInstruction inst)
 {

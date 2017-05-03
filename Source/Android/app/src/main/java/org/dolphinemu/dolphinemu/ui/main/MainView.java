@@ -1,6 +1,5 @@
 package org.dolphinemu.dolphinemu.ui.main;
 
-
 import android.database.Cursor;
 
 /**

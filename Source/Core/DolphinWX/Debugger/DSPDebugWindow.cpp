@@ -4,8 +4,8 @@
 
 #include <cstdio>
 #include <wx/artprov.h>
-#include <wx/aui/auibar.h>
 #include <wx/aui/auibook.h>
+#include <wx/aui/dockart.h>
 #include <wx/aui/framemanager.h>
 #include <wx/listbox.h>
 #include <wx/panel.h>
@@ -20,9 +20,11 @@
 #include "Core/HW/DSPLLE/DSPDebugInterface.h"
 #include "Core/HW/DSPLLE/DSPSymbols.h"
 #include "Core/Host.h"
+#include "DolphinWX/AuiToolBar.h"
 #include "DolphinWX/Debugger/CodeView.h"
 #include "DolphinWX/Debugger/DSPDebugWindow.h"
 #include "DolphinWX/Debugger/DSPRegisterView.h"
+#include "DolphinWX/Debugger/DebuggerUIUtil.h"
 #include "DolphinWX/Debugger/MemoryView.h"
 #include "DolphinWX/WxUtils.h"
 
@@ -30,9 +32,8 @@ static DSPDebuggerLLE* m_DebuggerFrame = nullptr;
 
 DSPDebuggerLLE::DSPDebuggerLLE(wxWindow* parent, wxWindowID id)
     : wxPanel(parent, id, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _("DSP LLE Debugger")),
-      m_CachedStepCounter(-1)
+      m_CachedStepCounter(-1), m_toolbar_item_size(FromDIP(wxSize(16, 16)))
 {
-  Bind(wxEVT_CLOSE_WINDOW, &DSPDebuggerLLE::OnClose, this);
   Bind(wxEVT_MENU, &DSPDebuggerLLE::OnChangeState, this, ID_RUNTOOL, ID_SHOWPCTOOL);
 
   m_DebuggerFrame = this;
@@ -42,13 +43,17 @@ DSPDebuggerLLE::DSPDebuggerLLE(wxWindow* parent, wxWindowID id)
   m_mgr.SetFlags(wxAUI_MGR_DEFAULT | wxAUI_MGR_LIVE_RESIZE);
 
   m_Toolbar =
-      new wxAuiToolBar(this, ID_TOOLBAR, wxDefaultPosition, wxDefaultSize, wxAUI_TB_HORZ_TEXT);
+      new DolphinAuiToolBar(this, ID_TOOLBAR, wxDefaultPosition, wxDefaultSize, wxAUI_TB_HORZ_TEXT);
   m_Toolbar->AddTool(ID_RUNTOOL, _("Pause"),
-                     wxArtProvider::GetBitmap(wxART_TICK_MARK, wxART_OTHER, wxSize(10, 10)));
+                     wxArtProvider::GetBitmap(wxART_TICK_MARK, wxART_OTHER, m_toolbar_item_size));
+  // i18n: Here, "Step" is a verb. This function is used for
+  // going through code step by step.
   m_Toolbar->AddTool(ID_STEPTOOL, _("Step"),
-                     wxArtProvider::GetBitmap(wxART_GO_DOWN, wxART_OTHER, wxSize(10, 10)));
-  m_Toolbar->AddTool(ID_SHOWPCTOOL, _("Show PC"),
-                     wxArtProvider::GetBitmap(wxART_GO_TO_PARENT, wxART_OTHER, wxSize(10, 10)));
+                     wxArtProvider::GetBitmap(wxART_GO_DOWN, wxART_OTHER, m_toolbar_item_size));
+  m_Toolbar->AddTool(
+      // i18n: Here, PC is an acronym for program counter, not personal computer.
+      ID_SHOWPCTOOL, _("Show PC"),
+      wxArtProvider::GetBitmap(wxART_GO_TO_PARENT, wxART_OTHER, m_toolbar_item_size));
   m_Toolbar->AddSeparator();
 
   m_addr_txtctrl = new wxTextCtrl(m_Toolbar, wxID_ANY, wxEmptyString, wxDefaultPosition,
@@ -58,8 +63,8 @@ DSPDebuggerLLE::DSPDebuggerLLE(wxWindow* parent, wxWindowID id)
   m_Toolbar->AddControl(m_addr_txtctrl);
   m_Toolbar->Realize();
 
-  m_SymbolList =
-      new wxListBox(this, wxID_ANY, wxDefaultPosition, wxSize(140, 100), 0, nullptr, wxLB_SORT);
+  m_SymbolList = new wxListBox(this, wxID_ANY, wxDefaultPosition, wxDLG_UNIT(this, wxSize(100, 80)),
+                               0, nullptr, wxLB_SORT);
   m_SymbolList->Bind(wxEVT_LISTBOX, &DSPDebuggerLLE::OnSymbolListChange, this);
 
   m_MainNotebook = new wxAuiNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize,
@@ -67,17 +72,16 @@ DSPDebuggerLLE::DSPDebuggerLLE(wxWindow* parent, wxWindowID id)
 
   wxPanel* code_panel = new wxPanel(m_MainNotebook, wxID_ANY);
   wxBoxSizer* code_sizer = new wxBoxSizer(wxVERTICAL);
-  m_CodeView = new CCodeView(&debug_interface, &DSPSymbols::g_dsp_symbol_db, code_panel);
+  m_CodeView = new CCodeView(&debug_interface, &DSP::Symbols::g_dsp_symbol_db, code_panel);
   m_CodeView->SetPlain();
-  code_sizer->Add(m_CodeView, 1, wxALL | wxEXPAND);
+  code_sizer->Add(m_CodeView, 1, wxEXPAND);
   code_panel->SetSizer(code_sizer);
   m_MainNotebook->AddPage(code_panel, _("Disassembly"), true);
 
   wxPanel* mem_panel = new wxPanel(m_MainNotebook, wxID_ANY);
   wxBoxSizer* mem_sizer = new wxBoxSizer(wxVERTICAL);
-  // TODO insert memViewer class
   m_MemView = new CMemoryView(&debug_interface, mem_panel);
-  mem_sizer->Add(m_MemView, 1, wxALL | wxEXPAND);
+  mem_sizer->Add(m_MemView, 1, wxEXPAND);
   mem_panel->SetSizer(mem_sizer);
   m_MainNotebook->AddPage(mem_panel, _("Memory"));
 
@@ -97,6 +101,7 @@ DSPDebuggerLLE::DSPDebuggerLLE(wxWindow* parent, wxWindowID id)
   m_mgr.AddPane(m_Regs,
                 wxAuiPaneInfo().Right().CloseButton(false).Caption(_("Registers")).Dockable(true));
 
+  m_mgr.GetArtProvider()->SetFont(wxAUI_DOCKART_CAPTION_FONT, DebuggerFont);
   UpdateState();
 
   m_mgr.Update();
@@ -108,30 +113,27 @@ DSPDebuggerLLE::~DSPDebuggerLLE()
   m_DebuggerFrame = nullptr;
 }
 
-void DSPDebuggerLLE::OnClose(wxCloseEvent& event)
-{
-  event.Skip();
-}
-
 void DSPDebuggerLLE::OnChangeState(wxCommandEvent& event)
 {
-  if (DSPCore_GetState() == DSPCORE_STOP)
+  const DSP::State dsp_state = DSP::DSPCore_GetState();
+
+  if (dsp_state == DSP::State::Stopped)
     return;
 
   switch (event.GetId())
   {
   case ID_RUNTOOL:
-    if (DSPCore_GetState() == DSPCORE_RUNNING)
-      DSPCore_SetState(DSPCORE_STEPPING);
+    if (dsp_state == DSP::State::Running)
+      DSP::DSPCore_SetState(DSP::State::Stepping);
     else
-      DSPCore_SetState(DSPCORE_RUNNING);
+      DSP::DSPCore_SetState(DSP::State::Running);
     break;
 
   case ID_STEPTOOL:
-    if (DSPCore_GetState() == DSPCORE_STEPPING)
+    if (dsp_state == DSP::State::Stepping)
     {
-      DSPCore_Step();
-      Update();
+      DSP::DSPCore_Step();
+      Repopulate();
     }
     break;
 
@@ -146,45 +148,45 @@ void DSPDebuggerLLE::OnChangeState(wxCommandEvent& event)
 
 void Host_RefreshDSPDebuggerWindow()
 {
+  // FIXME: This should use QueueEvent to post the update request to the UI thread.
+  //   Need to check if this can safely be performed asynchronously or if it races.
+  // FIXME: This probably belongs in Main.cpp with the other host functions.
+  // NOTE: The DSP never tells us when it shuts down. It probably should.
   if (m_DebuggerFrame)
-    m_DebuggerFrame->Update();
+    m_DebuggerFrame->Repopulate();
 }
 
-void DSPDebuggerLLE::Update()
+void DSPDebuggerLLE::Repopulate()
 {
-#if defined __WXGTK__
   if (!wxIsMainThread())
     wxMutexGuiEnter();
-#endif
   UpdateSymbolMap();
   UpdateDisAsmListView();
   UpdateRegisterFlags();
   UpdateState();
-#if defined __WXGTK__
   if (!wxIsMainThread())
     wxMutexGuiLeave();
-#endif
 }
 
 void DSPDebuggerLLE::FocusOnPC()
 {
-  JumpToAddress(g_dsp.pc);
+  JumpToAddress(DSP::g_dsp.pc);
 }
 
 void DSPDebuggerLLE::UpdateState()
 {
-  if (DSPCore_GetState() == DSPCORE_RUNNING)
+  if (DSP::DSPCore_GetState() == DSP::State::Running)
   {
     m_Toolbar->SetToolLabel(ID_RUNTOOL, _("Pause"));
     m_Toolbar->SetToolBitmap(
-        ID_RUNTOOL, wxArtProvider::GetBitmap(wxART_TICK_MARK, wxART_OTHER, wxSize(10, 10)));
+        ID_RUNTOOL, wxArtProvider::GetBitmap(wxART_TICK_MARK, wxART_OTHER, m_toolbar_item_size));
     m_Toolbar->EnableTool(ID_STEPTOOL, false);
   }
   else
   {
     m_Toolbar->SetToolLabel(ID_RUNTOOL, _("Run"));
     m_Toolbar->SetToolBitmap(
-        ID_RUNTOOL, wxArtProvider::GetBitmap(wxART_GO_FORWARD, wxART_OTHER, wxSize(10, 10)));
+        ID_RUNTOOL, wxArtProvider::GetBitmap(wxART_GO_FORWARD, wxART_OTHER, m_toolbar_item_size));
     m_Toolbar->EnableTool(ID_STEPTOOL, true);
   }
   m_Toolbar->Realize();
@@ -192,23 +194,23 @@ void DSPDebuggerLLE::UpdateState()
 
 void DSPDebuggerLLE::UpdateDisAsmListView()
 {
-  if (m_CachedStepCounter == g_dsp.step_counter)
+  if (m_CachedStepCounter == DSP::g_dsp.step_counter)
     return;
 
   // show PC
   FocusOnPC();
-  m_CachedStepCounter = g_dsp.step_counter;
-  m_Regs->Update();
+  m_CachedStepCounter = DSP::g_dsp.step_counter;
+  m_Regs->Repopulate();
 }
 
 void DSPDebuggerLLE::UpdateSymbolMap()
 {
-  if (g_dsp.dram == nullptr)
+  if (DSP::g_dsp.dram == nullptr)
     return;
 
   m_SymbolList->Freeze();  // HyperIris: wx style fast filling
   m_SymbolList->Clear();
-  for (const auto& symbol : DSPSymbols::g_dsp_symbol_db.Symbols())
+  for (const auto& symbol : DSP::Symbols::g_dsp_symbol_db.Symbols())
   {
     int idx = m_SymbolList->Append(StrToWxStr(symbol.second.name));
     m_SymbolList->SetClientData(idx, (void*)&symbol.second);
@@ -224,7 +226,7 @@ void DSPDebuggerLLE::OnSymbolListChange(wxCommandEvent& event)
     Symbol* pSymbol = static_cast<Symbol*>(m_SymbolList->GetClientData(index));
     if (pSymbol != nullptr)
     {
-      if (pSymbol->type == Symbol::SYMBOL_FUNCTION)
+      if (pSymbol->type == Symbol::Type::Function)
       {
         JumpToAddress(pSymbol->address);
       }
@@ -259,7 +261,7 @@ bool DSPDebuggerLLE::JumpToAddress(u16 addr)
   if (page == 0)
   {
     // Center on valid instruction in IRAM/IROM
-    int new_line = DSPSymbols::Addr2Line(addr);
+    int new_line = DSP::Symbols::Addr2Line(addr);
     if (new_line >= 0)
     {
       m_CodeView->Center(new_line);

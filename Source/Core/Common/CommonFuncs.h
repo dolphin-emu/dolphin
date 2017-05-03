@@ -4,10 +4,6 @@
 
 #pragma once
 
-#ifdef __APPLE__
-#include <libkern/OSByteOrder.h>
-#endif
-
 #include <cstddef>
 #include <string>
 #include "Common/CommonTypes.h"
@@ -27,13 +23,6 @@ constexpr size_t ArraySize(T (&arr)[N])
 #define ROUND_UP_POW2(x) (b32(x - 1) + 1)
 
 #ifndef _WIN32
-
-#include <errno.h>
-#ifdef __linux__
-#include <byteswap.h>
-#elif defined __FreeBSD__
-#include <sys/endian.h>
-#endif
 
 // go to debugger mode
 #define Crash()                                                                                    \
@@ -100,142 +89,4 @@ __declspec(dllimport) void __stdcall DebugBreak(void);
 // Generic function to get last error message.
 // Call directly after the command or use the error num.
 // This function might change the error code.
-// Defined in Misc.cpp.
 std::string GetLastErrorMsg();
-
-namespace Common
-{
-inline u8 swap8(u8 _data)
-{
-  return _data;
-}
-inline u32 swap24(const u8* _data)
-{
-  return (_data[0] << 16) | (_data[1] << 8) | _data[2];
-}
-
-#if defined(ANDROID) || defined(__OpenBSD__)
-#undef swap16
-#undef swap32
-#undef swap64
-#endif
-
-#ifdef _WIN32
-inline u16 swap16(u16 _data)
-{
-  return _byteswap_ushort(_data);
-}
-inline u32 swap32(u32 _data)
-{
-  return _byteswap_ulong(_data);
-}
-inline u64 swap64(u64 _data)
-{
-  return _byteswap_uint64(_data);
-}
-#elif __linux__ && !(ANDROID && _M_ARM_64)
-// Android NDK r10c has broken builtin byte swap routines
-// Disabled for now.
-inline u16 swap16(u16 _data)
-{
-  return bswap_16(_data);
-}
-inline u32 swap32(u32 _data)
-{
-  return bswap_32(_data);
-}
-inline u64 swap64(u64 _data)
-{
-  return bswap_64(_data);
-}
-#elif __APPLE__
-inline __attribute__((always_inline)) u16 swap16(u16 _data)
-{
-  return OSSwapInt16(_data);
-}
-inline __attribute__((always_inline)) u32 swap32(u32 _data)
-{
-  return OSSwapInt32(_data);
-}
-inline __attribute__((always_inline)) u64 swap64(u64 _data)
-{
-  return OSSwapInt64(_data);
-}
-#elif __FreeBSD__
-inline u16 swap16(u16 _data)
-{
-  return bswap16(_data);
-}
-inline u32 swap32(u32 _data)
-{
-  return bswap32(_data);
-}
-inline u64 swap64(u64 _data)
-{
-  return bswap64(_data);
-}
-#else
-// Slow generic implementation.
-inline u16 swap16(u16 data)
-{
-  return (data >> 8) | (data << 8);
-}
-inline u32 swap32(u32 data)
-{
-  return (swap16(data) << 16) | swap16(data >> 16);
-}
-inline u64 swap64(u64 data)
-{
-  return ((u64)swap32(data) << 32) | swap32(data >> 32);
-}
-#endif
-
-inline u16 swap16(const u8* _pData)
-{
-  return swap16(*(const u16*)_pData);
-}
-inline u32 swap32(const u8* _pData)
-{
-  return swap32(*(const u32*)_pData);
-}
-inline u64 swap64(const u8* _pData)
-{
-  return swap64(*(const u64*)_pData);
-}
-
-template <int count>
-void swap(u8*);
-
-template <>
-inline void swap<1>(u8* data)
-{
-}
-
-template <>
-inline void swap<2>(u8* data)
-{
-  *reinterpret_cast<u16*>(data) = swap16(data);
-}
-
-template <>
-inline void swap<4>(u8* data)
-{
-  *reinterpret_cast<u32*>(data) = swap32(data);
-}
-
-template <>
-inline void swap<8>(u8* data)
-{
-  *reinterpret_cast<u64*>(data) = swap64(data);
-}
-
-template <typename T>
-inline T FromBigEndian(T data)
-{
-  static_assert(std::is_arithmetic<T>::value, "function only makes sense with arithmetic types");
-
-  swap<sizeof(data)>(reinterpret_cast<u8*>(&data));
-  return data;
-}
-
-}  // Namespace Common

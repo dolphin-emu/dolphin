@@ -2,6 +2,11 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/PowerPC/PowerPC.h"
+
+#include <cstring>
+#include <vector>
+
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
@@ -10,6 +15,7 @@
 #include "Common/MathUtil.h"
 
 #include "Core/ConfigManager.h"
+#include "Core/CoreTiming.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/SystemTimers.h"
@@ -17,8 +23,6 @@
 #include "Core/PowerPC/CPUCoreBase.h"
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/JitInterface.h"
-#include "Core/PowerPC/PPCTables.h"
-#include "Core/PowerPC/PowerPC.h"
 
 namespace PowerPC
 {
@@ -28,12 +32,18 @@ PowerPCState ppcState;
 static CPUCoreBase* s_cpu_core_base = nullptr;
 static bool s_cpu_core_base_is_injected = false;
 Interpreter* const s_interpreter = Interpreter::getInstance();
-static CoreMode s_mode = MODE_INTERPRETER;
+static CoreMode s_mode = CoreMode::Interpreter;
 
 Watches watches;
 BreakPoints breakpoints;
 MemChecks memchecks;
 PPCDebugInterface debug_interface;
+
+static CoreTiming::EventType* s_invalidate_cache_thread_safe;
+static void InvalidateCacheThreadSafe(u64 userdata, s64 cyclesLate)
+{
+  ppcState.iCache.Invalidate(static_cast<u32>(userdata));
+}
 
 u32 CompactCR()
 {
@@ -65,7 +75,31 @@ void DoState(PointerWrap& p)
   // *((u64 *)&TL) = SystemTimers::GetFakeTimeBase(); //works since we are little endian and TL
   // comes first :)
 
-  p.DoPOD(ppcState);
+  p.DoArray(ppcState.gpr);
+  p.Do(ppcState.pc);
+  p.Do(ppcState.npc);
+  p.DoArray(ppcState.cr_val);
+  p.Do(ppcState.msr);
+  p.Do(ppcState.fpscr);
+  p.Do(ppcState.Exceptions);
+  p.Do(ppcState.downcount);
+  p.Do(ppcState.xer_ca);
+  p.Do(ppcState.xer_so_ov);
+  p.Do(ppcState.xer_stringctrl);
+  p.DoArray(ppcState.ps);
+  p.DoArray(ppcState.sr);
+  p.DoArray(ppcState.spr);
+  p.DoArray(ppcState.tlb);
+  p.Do(ppcState.pagetable_base);
+  p.Do(ppcState.pagetable_hashmask);
+
+  ppcState.iCache.DoState(p);
+
+  if (p.GetMode() == PointerWrap::MODE_READ)
+  {
+    IBATUpdated();
+    DBATUpdated();
+  }
 
   // SystemTimers::DecrementerSet();
   // SystemTimers::TimeBaseSet();
@@ -76,6 +110,7 @@ void DoState(PointerWrap& p)
 static void ResetRegisters()
 {
   memset(ppcState.ps, 0, sizeof(ppcState.ps));
+  memset(ppcState.sr, 0, sizeof(ppcState.sr));
   memset(ppcState.gpr, 0, sizeof(ppcState.gpr));
   memset(ppcState.spr, 0, sizeof(ppcState.spr));
   /*
@@ -101,6 +136,9 @@ static void ResetRegisters()
   for (auto& v : ppcState.cr_val)
     v = 0x8000000000000001;
 
+  DBATUpdated();
+  IBATUpdated();
+
   TL = 0;
   TU = 0;
   SystemTimers::TimeBaseSet();
@@ -111,33 +149,8 @@ static void ResetRegisters()
   SystemTimers::DecrementerSet();
 }
 
-void Init(int cpu_core)
+static void InitializeCPUCore(int cpu_core)
 {
-  // NOTE: This function runs on EmuThread, not the CPU Thread.
-  //   Changing the rounding mode has a limited effect.
-  FPURoundMode::SetPrecisionMode(FPURoundMode::PREC_53);
-
-  memset(ppcState.sr, 0, sizeof(ppcState.sr));
-  ppcState.pagetable_base = 0;
-  ppcState.pagetable_hashmask = 0;
-
-  for (int tlb = 0; tlb < 2; tlb++)
-  {
-    for (int set = 0; set < 64; set++)
-    {
-      ppcState.tlb[tlb][set].recent = 0;
-      for (int way = 0; way < 2; way++)
-      {
-        ppcState.tlb[tlb][set].paddr[way] = 0;
-        ppcState.tlb[tlb][set].pte[way] = 0;
-        ppcState.tlb[tlb][set].tag[way] = TLB_TAG_INVALID;
-      }
-    }
-  }
-
-  ResetRegisters();
-  PPCTables::InitTables(cpu_core);
-
   // We initialize the interpreter because
   // it is used on boot and code window independently.
   s_interpreter->Init();
@@ -160,17 +173,78 @@ void Init(int cpu_core)
 
   if (s_cpu_core_base != s_interpreter)
   {
-    s_mode = MODE_JIT;
+    s_mode = CoreMode::JIT;
   }
   else
   {
-    s_mode = MODE_INTERPRETER;
+    s_mode = CoreMode::Interpreter;
   }
+}
 
+const std::vector<CPUCore>& AvailableCPUCores()
+{
+  static const std::vector<CPUCore> cpu_cores = {
+      CORE_INTERPRETER, CORE_CACHEDINTERPRETER,
+#ifdef _M_X86_64
+      CORE_JIT64, CORE_JITIL64,
+#elif defined(_M_ARM_64)
+      CORE_JITARM64,
+#endif
+  };
+
+  return cpu_cores;
+}
+
+CPUCore DefaultCPUCore()
+{
+#ifdef _M_X86_64
+  return CORE_JIT64;
+#elif defined(_M_ARM_64)
+  return CORE_JITARM64;
+#else
+  return CORE_CACHEDINTERPRETER;
+#endif
+}
+
+void Init(int cpu_core)
+{
+  // NOTE: This function runs on EmuThread, not the CPU Thread.
+  //   Changing the rounding mode has a limited effect.
+  FPURoundMode::SetPrecisionMode(FPURoundMode::PREC_53);
+
+  s_invalidate_cache_thread_safe =
+      CoreTiming::RegisterEvent("invalidateEmulatedCache", InvalidateCacheThreadSafe);
+
+  Reset();
+
+  InitializeCPUCore(cpu_core);
   ppcState.iCache.Init();
 
   if (SConfig::GetInstance().bEnableDebugging)
     breakpoints.ClearAllTemporary();
+}
+
+void Reset()
+{
+  ppcState.pagetable_base = 0;
+  ppcState.pagetable_hashmask = 0;
+  ppcState.tlb = {};
+
+  ResetRegisters();
+  ppcState.iCache.Reset();
+}
+
+void ScheduleInvalidateCacheThreadSafe(u32 address)
+{
+  if (CPU::GetState() == CPU::State::Running)
+  {
+    CoreTiming::ScheduleEvent(0, s_invalidate_cache_thread_safe, address,
+                              CoreTiming::FromThread::NON_CPU);
+  }
+  else
+  {
+    PowerPC::ppcState.iCache.Invalidate(static_cast<u32>(address));
+  }
 }
 
 void Shutdown()
@@ -183,18 +257,18 @@ void Shutdown()
 
 CoreMode GetMode()
 {
-  return !s_cpu_core_base_is_injected ? s_mode : MODE_INTERPRETER;
+  return !s_cpu_core_base_is_injected ? s_mode : CoreMode::Interpreter;
 }
 
 static void ApplyMode()
 {
   switch (s_mode)
   {
-  case MODE_INTERPRETER:  // Switching from JIT to interpreter
+  case CoreMode::Interpreter:  // Switching from JIT to interpreter
     s_cpu_core_base = s_interpreter;
     break;
 
-  case MODE_JIT:  // Switching from interpreter to JIT.
+  case CoreMode::JIT:  // Switching from interpreter to JIT.
     // Don't really need to do much. It'll work, the cache will refill itself.
     s_cpu_core_base = JitInterface::GetCore();
     if (!s_cpu_core_base)  // Has a chance to not get a working JIT core if one isn't active on host
@@ -251,7 +325,6 @@ void SingleStep()
 
 void RunLoop()
 {
-  Host_UpdateDisasmDialog();
   s_cpu_core_base->Run();
   Host_UpdateDisasmDialog();
 }
@@ -345,7 +418,7 @@ void CheckExceptions()
     MSR &= ~0x04EF36;
     PC = NPC = 0x00000400;
 
-    INFO_LOG(POWERPC, "EXCEPTION_ISI");
+    DEBUG_LOG(POWERPC, "EXCEPTION_ISI");
     ppcState.Exceptions &= ~EXCEPTION_ISI;
   }
   else if (exceptions & EXCEPTION_PROGRAM)
@@ -357,7 +430,7 @@ void CheckExceptions()
     MSR &= ~0x04EF36;
     PC = NPC = 0x00000700;
 
-    INFO_LOG(POWERPC, "EXCEPTION_PROGRAM");
+    DEBUG_LOG(POWERPC, "EXCEPTION_PROGRAM");
     ppcState.Exceptions &= ~EXCEPTION_PROGRAM;
   }
   else if (exceptions & EXCEPTION_SYSCALL)
@@ -368,7 +441,7 @@ void CheckExceptions()
     MSR &= ~0x04EF36;
     PC = NPC = 0x00000C00;
 
-    INFO_LOG(POWERPC, "EXCEPTION_SYSCALL (PC=%08x)", PC);
+    DEBUG_LOG(POWERPC, "EXCEPTION_SYSCALL (PC=%08x)", PC);
     ppcState.Exceptions &= ~EXCEPTION_SYSCALL;
   }
   else if (exceptions & EXCEPTION_FPU_UNAVAILABLE)
@@ -380,15 +453,13 @@ void CheckExceptions()
     MSR &= ~0x04EF36;
     PC = NPC = 0x00000800;
 
-    INFO_LOG(POWERPC, "EXCEPTION_FPU_UNAVAILABLE");
+    DEBUG_LOG(POWERPC, "EXCEPTION_FPU_UNAVAILABLE");
     ppcState.Exceptions &= ~EXCEPTION_FPU_UNAVAILABLE;
   }
-#ifdef ENABLE_MEM_CHECK
   else if (exceptions & EXCEPTION_FAKE_MEMCHECK_HIT)
   {
     ppcState.Exceptions &= ~EXCEPTION_DSI & ~EXCEPTION_FAKE_MEMCHECK_HIT;
   }
-#endif
   else if (exceptions & EXCEPTION_DSI)
   {
     SRR0 = PC;
@@ -398,7 +469,7 @@ void CheckExceptions()
     PC = NPC = 0x00000300;
     // DSISR and DAR regs are changed in GenerateDSIException()
 
-    INFO_LOG(POWERPC, "EXCEPTION_DSI");
+    DEBUG_LOG(POWERPC, "EXCEPTION_DSI");
     ppcState.Exceptions &= ~EXCEPTION_DSI;
   }
   else if (exceptions & EXCEPTION_ALIGNMENT)
@@ -413,7 +484,7 @@ void CheckExceptions()
 
     // TODO crazy amount of DSISR options to check out
 
-    INFO_LOG(POWERPC, "EXCEPTION_ALIGNMENT");
+    DEBUG_LOG(POWERPC, "EXCEPTION_ALIGNMENT");
     ppcState.Exceptions &= ~EXCEPTION_ALIGNMENT;
   }
 
@@ -440,7 +511,7 @@ void CheckExternalExceptions()
       MSR &= ~0x04EF36;
       PC = NPC = 0x00000500;
 
-      INFO_LOG(POWERPC, "EXCEPTION_EXTERNAL_INT");
+      DEBUG_LOG(POWERPC, "EXCEPTION_EXTERNAL_INT");
       ppcState.Exceptions &= ~EXCEPTION_EXTERNAL_INT;
 
       _dbg_assert_msg_(POWERPC, (SRR1 & 0x02) != 0, "EXTERNAL_INT unrecoverable???");
@@ -453,7 +524,7 @@ void CheckExternalExceptions()
       MSR &= ~0x04EF36;
       PC = NPC = 0x00000F00;
 
-      INFO_LOG(POWERPC, "EXCEPTION_PERFORMANCE_MONITOR");
+      DEBUG_LOG(POWERPC, "EXCEPTION_PERFORMANCE_MONITOR");
       ppcState.Exceptions &= ~EXCEPTION_PERFORMANCE_MONITOR;
     }
     else if (exceptions & EXCEPTION_DECREMENTER)
@@ -464,7 +535,7 @@ void CheckExternalExceptions()
       MSR &= ~0x04EF36;
       PC = NPC = 0x00000900;
 
-      INFO_LOG(POWERPC, "EXCEPTION_DECREMENTER");
+      DEBUG_LOG(POWERPC, "EXCEPTION_DECREMENTER");
       ppcState.Exceptions &= ~EXCEPTION_DECREMENTER;
     }
     else

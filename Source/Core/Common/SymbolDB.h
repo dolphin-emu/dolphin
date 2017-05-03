@@ -8,6 +8,7 @@
 #pragma once
 
 #include <map>
+#include <set>
 #include <string>
 #include <utility>
 #include <vector>
@@ -23,27 +24,24 @@ struct SCall
 
 struct Symbol
 {
-  enum
+  enum class Type
   {
-    SYMBOL_FUNCTION = 0,
-    SYMBOL_DATA = 1,
+    Function,
+    Data,
   };
 
-  Symbol() : hash(0), address(0), flags(0), size(0), numCalls(0), type(SYMBOL_FUNCTION), analyzed(0)
-  {
-  }
-
   std::string name;
+  std::string function_name;   // stripped function name
   std::vector<SCall> callers;  // addresses of functions that call this function
   std::vector<SCall> calls;    // addresses of functions that are called by this function
-  u32 hash;                    // use for HLE function finding
-  u32 address;
-  u32 flags;
-  int size;
-  int numCalls;
-  int type;
-  int index;  // only used for coloring the disasm view
-  int analyzed;
+  u32 hash = 0;                // use for HLE function finding
+  u32 address = 0;
+  u32 flags = 0;
+  int size = 0;
+  int numCalls = 0;
+  Type type = Type::Function;
+  int index = 0;  // only used for coloring the disasm view
+  bool analyzed = false;
 };
 
 enum
@@ -60,7 +58,7 @@ class SymbolDB
 {
 public:
   typedef std::map<u32, Symbol> XFuncMap;
-  typedef std::map<u32, Symbol*> XFuncPtrMap;
+  typedef std::map<u32, std::set<Symbol*>> XFuncPtrMap;
 
 protected:
   XFuncMap functions;
@@ -74,14 +72,9 @@ public:
   void AddCompleteSymbol(const Symbol& symbol);
 
   Symbol* GetSymbolFromName(const std::string& name);
-  Symbol* GetSymbolFromHash(u32 hash)
-  {
-    XFuncPtrMap::iterator iter = checksumToFunction.find(hash);
-    if (iter != checksumToFunction.end())
-      return iter->second;
-    else
-      return nullptr;
-  }
+  std::vector<Symbol*> GetSymbolsFromName(const std::string& name);
+  Symbol* GetSymbolFromHash(u32 hash);
+  std::vector<Symbol*> GetSymbolsFromHash(u32 hash);
 
   const XFuncMap& Symbols() const { return functions; }
   XFuncMap& AccessSymbols() { return functions; }

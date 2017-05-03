@@ -3,7 +3,14 @@
 // Refer to the license.txt file included.
 
 #include "Core/HW/GCKeyboardEmu.h"
+
 #include "Common/Common.h"
+#include "Common/CommonTypes.h"
+#include "InputCommon/ControllerEmu/Control/Input.h"
+#include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
+#include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
+#include "InputCommon/ControllerEmu/ControllerEmu.h"
+#include "InputCommon/ControllerEmu/Setting/BooleanSetting.h"
 #include "InputCommon/KeyboardStatus.h"
 
 static const u16 keys0_bitmasks[] = {KEYMASK_HOME,       KEYMASK_END, KEYMASK_PGUP, KEYMASK_PGDN,
@@ -47,36 +54,34 @@ static const char* const named_keys5[] = {"LEFT", "DOWN", "UP", "RIGHT", "ENTER"
 GCKeyboard::GCKeyboard(const unsigned int index) : m_index(index)
 {
   // buttons
-  groups.emplace_back(m_keys0x = new Buttons(_trans("Keys")));
+  groups.emplace_back(m_keys0x = new ControllerEmu::Buttons(_trans("Keys")));
   for (const char* key : named_keys0)
-    m_keys0x->controls.emplace_back(new ControlGroup::Input(key));
+    m_keys0x->controls.emplace_back(new ControllerEmu::Input(key));
 
-  groups.emplace_back(m_keys1x = new Buttons(_trans("Keys")));
+  groups.emplace_back(m_keys1x = new ControllerEmu::Buttons(_trans("Keys")));
   for (const char* key : named_keys1)
-    m_keys1x->controls.emplace_back(new ControlGroup::Input(key));
+    m_keys1x->controls.emplace_back(new ControllerEmu::Input(key));
 
-  groups.emplace_back(m_keys2x = new Buttons(_trans("Keys")));
+  groups.emplace_back(m_keys2x = new ControllerEmu::Buttons(_trans("Keys")));
   for (const char* key : named_keys2)
-    m_keys2x->controls.emplace_back(new ControlGroup::Input(key));
+    m_keys2x->controls.emplace_back(new ControllerEmu::Input(key));
 
-  groups.emplace_back(m_keys3x = new Buttons(_trans("Keys")));
+  groups.emplace_back(m_keys3x = new ControllerEmu::Buttons(_trans("Keys")));
   for (const char* key : named_keys3)
-    m_keys3x->controls.emplace_back(new ControlGroup::Input(key));
+    m_keys3x->controls.emplace_back(new ControllerEmu::Input(key));
 
-  groups.emplace_back(m_keys4x = new Buttons(_trans("Keys")));
+  groups.emplace_back(m_keys4x = new ControllerEmu::Buttons(_trans("Keys")));
   for (const char* key : named_keys4)
-    m_keys4x->controls.emplace_back(new ControlGroup::Input(key));
+    m_keys4x->controls.emplace_back(new ControllerEmu::Input(key));
 
-  groups.emplace_back(m_keys5x = new Buttons(_trans("Keys")));
+  groups.emplace_back(m_keys5x = new ControllerEmu::Buttons(_trans("Keys")));
   for (const char* key : named_keys5)
-    m_keys5x->controls.emplace_back(new ControlGroup::Input(key));
+    m_keys5x->controls.emplace_back(new ControllerEmu::Input(key));
 
   // options
-  groups.emplace_back(m_options = new ControlGroup(_trans("Options")));
-  m_options->boolean_settings.emplace_back(
-      std::make_unique<ControlGroup::BackgroundInputSetting>(_trans("Background Input")));
-  m_options->boolean_settings.emplace_back(std::make_unique<ControlGroup::BooleanSetting>(
-      _trans("Iterative Input"), false, ControlGroup::SettingType::VIRTUAL));
+  groups.emplace_back(m_options = new ControllerEmu::ControlGroup(_trans("Options")));
+  m_options->boolean_settings.emplace_back(std::make_unique<ControllerEmu::BooleanSetting>(
+      _trans("Iterative Input"), false, ControllerEmu::SettingType::VIRTUAL));
 }
 
 std::string GCKeyboard::GetName() const
@@ -84,9 +89,32 @@ std::string GCKeyboard::GetName() const
   return std::string("GCKeyboard") + char('1' + m_index);
 }
 
+ControllerEmu::ControlGroup* GCKeyboard::GetGroup(KeyboardGroup group)
+{
+  switch (group)
+  {
+  case KeyboardGroup::Kb0x:
+    return m_keys0x;
+  case KeyboardGroup::Kb1x:
+    return m_keys1x;
+  case KeyboardGroup::Kb2x:
+    return m_keys2x;
+  case KeyboardGroup::Kb3x:
+    return m_keys3x;
+  case KeyboardGroup::Kb4x:
+    return m_keys4x;
+  case KeyboardGroup::Kb5x:
+    return m_keys5x;
+  case KeyboardGroup::Options:
+    return m_options;
+  default:
+    return nullptr;
+  }
+}
+
 KeyboardStatus GCKeyboard::GetInput() const
 {
-  auto lock = ControllerEmu::GetStateLock();
+  const auto lock = GetStateLock();
 
   KeyboardStatus kb = {};
 
@@ -102,7 +130,7 @@ KeyboardStatus GCKeyboard::GetInput() const
 
 void GCKeyboard::LoadDefaults(const ControllerInterface& ciface)
 {
-  ControllerEmu::LoadDefaults(ciface);
+  EmulatedController::LoadDefaults(ciface);
 
   // Buttons
   m_keys0x->SetControlExpression(5, "A");

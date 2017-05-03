@@ -5,7 +5,6 @@
 #pragma once
 
 #include <atomic>
-#include <condition_variable>
 #include <mutex>
 #include <string>
 #include <thread>
@@ -17,11 +16,11 @@
 #include "Common/Flag.h"
 #include "Common/NonCopyable.h"
 #include "Core/HW/Wiimote.h"
-#include "Core/HW/WiimoteReal/WiimoteRealBase.h"
+#include "Core/HW/WiimoteCommon/WiimoteConstants.h"
+#include "Core/HW/WiimoteCommon/WiimoteHid.h"
+#include "Core/HW/WiimoteCommon/WiimoteReport.h"
 
 class PointerWrap;
-
-typedef std::vector<u8> Report;
 
 namespace WiimoteReal
 {
@@ -32,6 +31,8 @@ public:
   // This needs to be called in derived destructors!
   void Shutdown();
 
+  virtual std::string GetId() const = 0;
+
   void ControlChannel(const u16 channel, const void* const data, const u32 size);
   void InterruptChannel(const u16 channel, const void* const data, const u32 size);
   void Update();
@@ -40,7 +41,9 @@ public:
   const Report& ProcessReadQueue();
 
   void Read();
-  void Write();
+  bool Write();
+
+  bool IsBalanceBoard();
 
   void StartThread();
   void StopThread();
@@ -95,20 +98,16 @@ private:
   virtual void IOWakeup() = 0;
 
   void ThreadFunc();
-  void SetReady();
-  void WaitReady();
 
   bool m_rumble_state;
 
   std::thread m_wiimote_thread;
   // Whether to keep running the thread.
-  std::atomic<bool> m_run_thread{false};
+  Common::Flag m_run_thread;
   // Whether to call PrepareOnThread.
-  std::atomic<bool> m_need_prepare{false};
-  // Whether the thread has finished ConnectInternal.
-  std::atomic<bool> m_thread_ready{false};
-  std::mutex m_thread_ready_mutex;
-  std::condition_variable m_thread_ready_cond;
+  Common::Flag m_need_prepare;
+  // Triggered when the thread has finished ConnectInternal.
+  Common::Event m_thread_ready_event;
 
   Common::FifoQueue<Report> m_read_reports;
   Common::FifoQueue<Report> m_write_reports;
@@ -139,18 +138,18 @@ public:
   void StopThread();
   void SetScanMode(WiimoteScanMode scan_mode);
 
-  void AddScannerBackend(std::unique_ptr<WiimoteScannerBackend> backend);
   bool IsReady() const;
 
 private:
   void ThreadFunc();
+
+  std::vector<std::unique_ptr<WiimoteScannerBackend>> m_backends;
+  mutable std::mutex m_backends_mutex;
+
   std::thread m_scan_thread;
   Common::Flag m_scan_thread_running;
-
   Common::Event m_scan_mode_changed_event;
   std::atomic<WiimoteScanMode> m_scan_mode{WiimoteScanMode::DO_NOT_SCAN};
-
-  std::vector<std::unique_ptr<WiimoteScannerBackend>> m_scanner_backends;
 };
 
 extern std::mutex g_wiimotes_mutex;
@@ -165,8 +164,9 @@ void ConnectOnInput(int _WiimoteNumber);
 void StateChange(EMUSTATE_CHANGE newState);
 void ChangeWiimoteSource(unsigned int index, int source);
 
-bool IsValidBluetoothName(const std::string& name);
+bool IsValidDeviceName(const std::string& name);
 bool IsBalanceBoardName(const std::string& name);
+bool IsNewWiimote(const std::string& identifier);
 
 #ifdef ANDROID
 void InitAdapterClass();

@@ -2,12 +2,16 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoCommon/VertexManagerBase.h"
+
+#include <cmath>
 #include <memory>
 
 #include "Common/BitSet.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
+#include "Core/ConfigManager.h"
 
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/DataReader.h"
@@ -21,23 +25,12 @@
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VertexLoaderManager.h"
-#include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VertexShaderManager.h"
+#include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
 
 std::unique_ptr<VertexManagerBase> g_vertex_manager;
-
-u8* VertexManagerBase::s_pCurBufferPointer;
-u8* VertexManagerBase::s_pBaseBufferPointer;
-u8* VertexManagerBase::s_pEndBufferPointer;
-
-PrimitiveType VertexManagerBase::current_primitive_type;
-
-Slope VertexManagerBase::s_zslope;
-
-bool VertexManagerBase::s_is_flushed;
-bool VertexManagerBase::s_cull_all;
 
 static const PrimitiveType primitive_from_gx[8] = {
     PRIMITIVE_TRIANGLES,  // GX_DRAW_QUADS
@@ -50,19 +43,34 @@ static const PrimitiveType primitive_from_gx[8] = {
     PRIMITIVE_POINTS,     // GX_DRAW_POINTS
 };
 
+// Due to the BT.601 standard which the GameCube is based on being a compromise
+// between PAL and NTSC, neither standard gets square pixels. They are each off
+// by ~9% in opposite directions.
+// Just in case any game decides to take this into account, we do both these
+// tests with a large amount of slop.
+static bool AspectIs4_3(float width, float height)
+{
+  float aspect = fabsf(width / height);
+  return fabsf(aspect - 4.0f / 3.0f) < 4.0f / 3.0f * 0.11;  // within 11% of 4:3
+}
+
+static bool AspectIs16_9(float width, float height)
+{
+  float aspect = fabsf(width / height);
+  return fabsf(aspect - 16.0f / 9.0f) < 16.0f / 9.0f * 0.11;  // within 11% of 16:9
+}
+
 VertexManagerBase::VertexManagerBase()
 {
-  s_is_flushed = true;
-  s_cull_all = false;
 }
 
 VertexManagerBase::~VertexManagerBase()
 {
 }
 
-u32 VertexManagerBase::GetRemainingSize()
+u32 VertexManagerBase::GetRemainingSize() const
 {
-  return (u32)(s_pEndBufferPointer - s_pCurBufferPointer);
+  return static_cast<u32>(m_end_buffer_pointer - m_cur_buffer_pointer);
 }
 
 DataReader VertexManagerBase::PrepareForAdditionalData(int primitive, u32 count, u32 stride,
@@ -72,12 +80,12 @@ DataReader VertexManagerBase::PrepareForAdditionalData(int primitive, u32 count,
   u32 const needed_vertex_bytes = count * stride + 4;
 
   // We can't merge different kinds of primitives, so we have to flush here
-  if (current_primitive_type != primitive_from_gx[primitive])
+  if (m_current_primitive_type != primitive_from_gx[primitive])
     Flush();
-  current_primitive_type = primitive_from_gx[primitive];
+  m_current_primitive_type = primitive_from_gx[primitive];
 
   // Check for size in buffer, if the buffer gets full, call Flush()
-  if (!s_is_flushed &&
+  if (!m_is_flushed &&
       (count > IndexGenerator::GetRemainingIndices() || count > GetRemainingIndices(primitive) ||
        needed_vertex_bytes > GetRemainingSize()))
   {
@@ -93,21 +101,21 @@ DataReader VertexManagerBase::PrepareForAdditionalData(int primitive, u32 count,
                        "Increase MAXVBUFFERSIZE or we need primitive breaking after all.");
   }
 
-  s_cull_all = cullall;
+  m_cull_all = cullall;
 
   // need to alloc new buffer
-  if (s_is_flushed)
+  if (m_is_flushed)
   {
     g_vertex_manager->ResetBuffer(stride);
-    s_is_flushed = false;
+    m_is_flushed = false;
   }
 
-  return DataReader(s_pCurBufferPointer, s_pEndBufferPointer);
+  return DataReader(m_cur_buffer_pointer, m_end_buffer_pointer);
 }
 
 void VertexManagerBase::FlushData(u32 count, u32 stride)
 {
-  s_pCurBufferPointer += count * stride;
+  m_cur_buffer_pointer += count * stride;
 }
 
 u32 VertexManagerBase::GetRemainingIndices(int primitive)
@@ -118,22 +126,22 @@ u32 VertexManagerBase::GetRemainingIndices(int primitive)
   {
     switch (primitive)
     {
-    case GX_DRAW_QUADS:
-    case GX_DRAW_QUADS_2:
+    case OpcodeDecoder::GX_DRAW_QUADS:
+    case OpcodeDecoder::GX_DRAW_QUADS_2:
       return index_len / 5 * 4;
-    case GX_DRAW_TRIANGLES:
+    case OpcodeDecoder::GX_DRAW_TRIANGLES:
       return index_len / 4 * 3;
-    case GX_DRAW_TRIANGLE_STRIP:
+    case OpcodeDecoder::GX_DRAW_TRIANGLE_STRIP:
       return index_len / 1 - 1;
-    case GX_DRAW_TRIANGLE_FAN:
+    case OpcodeDecoder::GX_DRAW_TRIANGLE_FAN:
       return index_len / 6 * 4 + 1;
 
-    case GX_DRAW_LINES:
+    case OpcodeDecoder::GX_DRAW_LINES:
       return index_len;
-    case GX_DRAW_LINE_STRIP:
+    case OpcodeDecoder::GX_DRAW_LINE_STRIP:
       return index_len / 2 + 1;
 
-    case GX_DRAW_POINTS:
+    case OpcodeDecoder::GX_DRAW_POINTS:
       return index_len;
 
     default:
@@ -144,22 +152,22 @@ u32 VertexManagerBase::GetRemainingIndices(int primitive)
   {
     switch (primitive)
     {
-    case GX_DRAW_QUADS:
-    case GX_DRAW_QUADS_2:
+    case OpcodeDecoder::GX_DRAW_QUADS:
+    case OpcodeDecoder::GX_DRAW_QUADS_2:
       return index_len / 6 * 4;
-    case GX_DRAW_TRIANGLES:
+    case OpcodeDecoder::GX_DRAW_TRIANGLES:
       return index_len;
-    case GX_DRAW_TRIANGLE_STRIP:
+    case OpcodeDecoder::GX_DRAW_TRIANGLE_STRIP:
       return index_len / 3 + 2;
-    case GX_DRAW_TRIANGLE_FAN:
+    case OpcodeDecoder::GX_DRAW_TRIANGLE_FAN:
       return index_len / 3 + 2;
 
-    case GX_DRAW_LINES:
+    case OpcodeDecoder::GX_DRAW_LINES:
       return index_len;
-    case GX_DRAW_LINE_STRIP:
+    case OpcodeDecoder::GX_DRAW_LINE_STRIP:
       return index_len / 2 + 1;
 
-    case GX_DRAW_POINTS:
+    case OpcodeDecoder::GX_DRAW_POINTS:
       return index_len;
 
     default:
@@ -168,9 +176,17 @@ u32 VertexManagerBase::GetRemainingIndices(int primitive)
   }
 }
 
+std::pair<size_t, size_t> VertexManagerBase::ResetFlushAspectRatioCount()
+{
+  std::pair<size_t, size_t> val = std::make_pair(m_flush_count_4_3, m_flush_count_anamorphic);
+  m_flush_count_4_3 = 0;
+  m_flush_count_anamorphic = 0;
+  return val;
+}
+
 void VertexManagerBase::Flush()
 {
-  if (s_is_flushed)
+  if (m_is_flushed)
     return;
 
   // loading a state will invalidate BP, so check for it
@@ -215,7 +231,7 @@ void VertexManagerBase::Flush()
 
   // If the primitave is marked CullAll. All we need to do is update the vertex constants and
   // calculate the zfreeze refrence slope
-  if (!s_cull_all)
+  if (!m_cull_all)
   {
     BitSet32 usedtextures;
     for (u32 i = 0; i < bpmem.genMode.numtevstages + 1u; ++i)
@@ -227,10 +243,10 @@ void VertexManagerBase::Flush()
         if (bpmem.tevind[i].IsActive() && bpmem.tevind[i].bt < bpmem.genMode.numindstages)
           usedtextures[bpmem.tevindref.getTexMap(bpmem.tevind[i].bt)] = true;
 
-    TextureCacheBase::UnbindTextures();
+    g_texture_cache->UnbindTextures();
     for (unsigned int i : usedtextures)
     {
-      const TextureCacheBase::TCacheEntryBase* tentry = TextureCacheBase::Load(i);
+      const auto* tentry = g_texture_cache->Load(i);
 
       if (tentry)
       {
@@ -248,30 +264,45 @@ void VertexManagerBase::Flush()
   // set global vertex constants
   VertexShaderManager::SetConstants();
 
+  // Track some stats used elsewhere by the anamorphic widescreen heuristic.
+  if (!SConfig::GetInstance().bWii)
+  {
+    float* rawProjection = xfmem.projection.rawProjection;
+    bool viewport_is_4_3 = AspectIs4_3(xfmem.viewport.wd, xfmem.viewport.ht);
+    if (AspectIs16_9(rawProjection[2], rawProjection[0]) && viewport_is_4_3)
+    {
+      // Projection is 16:9 and viewport is 4:3, we are rendering an anamorphic
+      // widescreen picture.
+      m_flush_count_anamorphic++;
+    }
+    else if (AspectIs4_3(rawProjection[2], rawProjection[0]) && viewport_is_4_3)
+    {
+      // Projection and viewports are both 4:3, we are rendering a normal image.
+      m_flush_count_4_3++;
+    }
+  }
+
   // Calculate ZSlope for zfreeze
   if (!bpmem.genMode.zfreeze)
   {
     // Must be done after VertexShaderManager::SetConstants()
     CalculateZSlope(VertexLoaderManager::GetCurrentVertexFormat());
   }
-  else if (s_zslope.dirty && !s_cull_all)  // or apply any dirty ZSlopes
+  else if (m_zslope.dirty && !m_cull_all)  // or apply any dirty ZSlopes
   {
-    PixelShaderManager::SetZSlope(s_zslope.dfdx, s_zslope.dfdy, s_zslope.f0);
-    s_zslope.dirty = false;
+    PixelShaderManager::SetZSlope(m_zslope.dfdx, m_zslope.dfdy, m_zslope.f0);
+    m_zslope.dirty = false;
   }
 
-  if (!s_cull_all)
+  if (!m_cull_all)
   {
     // set the rest of the global constants
     GeometryShaderManager::SetConstants();
     PixelShaderManager::SetConstants();
 
-    bool useDstAlpha = bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate &&
-                       bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24;
-
     if (PerfQueryBase::ShouldEmulate())
       g_perf_query->EnableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
-    g_vertex_manager->vFlush(useDstAlpha);
+    g_vertex_manager->vFlush();
     if (PerfQueryBase::ShouldEmulate())
       g_perf_query->DisableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
   }
@@ -283,13 +314,13 @@ void VertexManagerBase::Flush()
               "xf.numtexgens (%d) does not match bp.numtexgens (%d). Error in command stream.",
               xfmem.numTexGen.numTexGens, bpmem.genMode.numtexgens.Value());
 
-  s_is_flushed = true;
-  s_cull_all = false;
+  m_is_flushed = true;
+  m_cull_all = false;
 }
 
 void VertexManagerBase::DoState(PointerWrap& p)
 {
-  p.Do(s_zslope);
+  p.Do(m_zslope);
   g_vertex_manager->vDoState(p);
 }
 
@@ -299,7 +330,7 @@ void VertexManagerBase::CalculateZSlope(NativeVertexFormat* format)
   float viewOffset[2] = {xfmem.viewport.xOrig - bpmem.scissorOffset.x * 2,
                          xfmem.viewport.yOrig - bpmem.scissorOffset.y * 2};
 
-  if (current_primitive_type != PRIMITIVE_TRIANGLES)
+  if (m_current_primitive_type != PRIMITIVE_TRIANGLES)
     return;
 
   // Global matrix ID.
@@ -307,7 +338,7 @@ void VertexManagerBase::CalculateZSlope(NativeVertexFormat* format)
   const PortableVertexDeclaration vert_decl = format->GetVertexDeclaration();
 
   // Make sure the buffer contains at least 3 vertices.
-  if ((s_pCurBufferPointer - s_pBaseBufferPointer) < (vert_decl.stride * 3))
+  if ((m_cur_buffer_pointer - m_base_buffer_pointer) < (vert_decl.stride * 3))
     return;
 
   // Lookup vertices of the last rendered triangle and software-transform them
@@ -317,7 +348,7 @@ void VertexManagerBase::CalculateZSlope(NativeVertexFormat* format)
   {
     // If this vertex format has per-vertex position matrix IDs, look it up.
     if (vert_decl.posmtx.enable)
-      mtxIdx = VertexLoaderManager::position_matrix_index[2 - i];
+      mtxIdx = VertexLoaderManager::position_matrix_index[3 - i];
 
     if (vert_decl.position.components == 2)
       VertexLoaderManager::position_cache[2 - i][2] = 0;
@@ -348,8 +379,8 @@ void VertexManagerBase::CalculateZSlope(NativeVertexFormat* format)
   if (c == 0)
     return;
 
-  s_zslope.dfdx = -a / c;
-  s_zslope.dfdy = -b / c;
-  s_zslope.f0 = out[2] - (out[0] * s_zslope.dfdx + out[1] * s_zslope.dfdy);
-  s_zslope.dirty = true;
+  m_zslope.dfdx = -a / c;
+  m_zslope.dfdy = -b / c;
+  m_zslope.f0 = out[2] - (out[0] * m_zslope.dfdx + out[1] * m_zslope.dfdy);
+  m_zslope.dirty = true;
 }
