@@ -169,7 +169,8 @@ void JitArm64::ps_res(UGeckoInstruction inst)
   ARM64Reg VB = fpr.R(b, type);
   ARM64Reg VD = fpr.RW(d, type);
 
-  m_float_emit.FRSQRTE(size, reg_encoder(VD), reg_encoder(VB));
+  // FIXME: implement the same LUT as in the interpreter
+  m_float_emit.FRECPE(size, reg_encoder(VD), reg_encoder(VB));
 
   fpr.FixSinglePrecision(d);
 }
