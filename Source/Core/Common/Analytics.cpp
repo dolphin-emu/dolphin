@@ -10,6 +10,7 @@
 #include "Common/Analytics.h"
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
+#include "Common/Thread.h"
 
 namespace Common
 {
@@ -147,6 +148,7 @@ void AnalyticsReporter::Send(AnalyticsReportBuilder&& report)
 
 void AnalyticsReporter::ThreadProc()
 {
+  Common::SetCurrentThreadName("Analytics");
   while (true)
   {
     m_reporter_event.Wait();

@@ -142,7 +142,6 @@ public:
   void ps_maddXX(UGeckoInstruction inst);
   void ps_mergeXX(UGeckoInstruction inst);
   void ps_mulsX(UGeckoInstruction inst);
-  void ps_res(UGeckoInstruction inst);
   void ps_sel(UGeckoInstruction inst);
   void ps_sumX(UGeckoInstruction inst);
 
