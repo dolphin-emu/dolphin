@@ -56,7 +56,7 @@
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NODEFAULTLIB:libcmt</AdditionalOptions>
     </Link>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(ProjectDir)\VideoInterface;$(ProjectDir)\GameList;$(ProjectDir)\Settings;$(ProjectDir)\Config;$(ProjectDir)\Config\Mapping;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\VideoInterface;$(ProjectDir)\GameList;$(ProjectDir)\Settings;$(ProjectDir)\Config;$(ProjectDir)\Config\Mapping;$(QtIncludeDir)QtCore;$(QtIncludeDir)QtGui;$(QtIncludeDir)QtWidgets;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <ResourceCompile>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
