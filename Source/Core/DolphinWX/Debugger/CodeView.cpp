@@ -25,6 +25,7 @@
 #include "Common/SymbolDB.h"
 #include "Core/Core.h"
 #include "Core/Host.h"
+#include "Core/PowerPC/PPCAnalyst.h"
 #include "DolphinWX/Debugger/CodeView.h"
 #include "DolphinWX/Debugger/DebuggerUIUtil.h"
 #include "DolphinWX/Globals.h"
@@ -44,6 +45,7 @@ enum
   IDM_JITRESULTS,
   IDM_FOLLOWBRANCH,
   IDM_RENAMESYMBOL,
+  IDM_SETSYMBOLSIZE,
   IDM_PATCHALERT,
   IDM_COPYFUNCTION,
   IDM_ADDFUNCTION,
@@ -340,6 +342,29 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
   }
   break;
 
+  case IDM_SETSYMBOLSIZE:
+  {
+    Symbol* symbol = m_symbol_db->GetSymbolFromAddr(m_selection);
+    if (!symbol)
+      break;
+
+    wxTextEntryDialog dialog(this,
+                             wxString::Format(_("Enter symbol (%s) size:"), symbol->name.c_str()),
+                             wxGetTextFromUserPromptStr, wxString::Format(wxT("%i"), symbol->size));
+
+    if (dialog.ShowModal() == wxID_OK)
+    {
+      unsigned long size;
+      if (dialog.GetValue().ToULong(&size, 0) && size <= std::numeric_limits<u32>::max())
+      {
+        PPCAnalyst::ReanalyzeFunction(symbol->address, *symbol, size);
+        Refresh();
+        Host_NotifyMapLoaded();
+      }
+    }
+  }
+  break;
+
   case IDM_PATCHALERT:
     break;
 
@@ -366,6 +391,7 @@ void CCodeView::OnMouseUpR(wxMouseEvent& event)
   menu.AppendSeparator();
 #endif
   menu.Append(IDM_RENAMESYMBOL, _("Rename &symbol"))->Enable(isSymbol);
+  menu.Append(IDM_SETSYMBOLSIZE, _("&Set symbol size"))->Enable(isSymbol);
   menu.AppendSeparator();
   menu.Append(IDM_RUNTOHERE, _("&Run To Here"))->Enable(Core::IsRunning());
   menu.Append(IDM_ADDFUNCTION, _("&Add function"))->Enable(Core::IsRunning());
