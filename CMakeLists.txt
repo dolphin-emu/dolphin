@@ -24,7 +24,6 @@ option(ENABLE_ALSA "Enables ALSA sound backend" ON)
 option(ENABLE_PULSEAUDIO "Enables PulseAudio sound backend" ON)
 option(ENABLE_OPENAL "Enables OpenAL sound backend" ON)
 option(ENABLE_LLVM "Enables LLVM support, for disassembly" ON)
-option(ENABLE_BLUEZ "Enables bluetooth support" ON)
 
 # Maintainers: if you consider blanket disabling this for your users, please
 # consider the following points:
