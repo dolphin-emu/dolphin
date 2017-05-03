@@ -992,6 +992,7 @@ public:
   void FDIV(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
   void FMUL(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
   void FNEG(u8 size, ARM64Reg Rd, ARM64Reg Rn);
+  void FRECPE(u8 size, ARM64Reg Rd, ARM64Reg Rn);
   void FRSQRTE(u8 size, ARM64Reg Rd, ARM64Reg Rn);
   void FSUB(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
   void NOT(ARM64Reg Rd, ARM64Reg Rn);
