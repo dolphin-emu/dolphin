@@ -721,18 +721,7 @@ void CFrame::StartGame(const std::string& filename)
   }
   else
   {
-#if defined(HAVE_X11) && HAVE_X11
-    if (SConfig::GetInstance().bDisableScreenSaver)
-      X11Utils::InhibitScreensaver(X11Utils::XDisplayFromHandle(GetHandle()),
-                                   X11Utils::XWindowFromHandle(GetHandle()), true);
-#endif
-
-#ifdef _WIN32
-    // Prevents Windows from sleeping, turning off the display, or idling
-    EXECUTION_STATE shouldScreenSave =
-        SConfig::GetInstance().bDisableScreenSaver ? ES_DISPLAY_REQUIRED : 0;
-    SetThreadExecutionState(ES_CONTINUOUS | shouldScreenSave | ES_SYSTEM_REQUIRED);
-#endif
+    InhibitScreensaver();
 
     // We need this specifically to support setting the focus properly when using
     // the 'render to main window' feature on Windows
@@ -904,16 +893,7 @@ void CFrame::OnStopped()
   m_confirm_stop = false;
   m_tried_graceful_shutdown = false;
 
-#if defined(HAVE_X11) && HAVE_X11
-  if (SConfig::GetInstance().bDisableScreenSaver)
-    X11Utils::InhibitScreensaver(X11Utils::XDisplayFromHandle(GetHandle()),
-                                 X11Utils::XWindowFromHandle(GetHandle()), false);
-#endif
-
-#ifdef _WIN32
-  // Allow windows to resume normal idling behavior
-  SetThreadExecutionState(ES_CONTINUOUS);
-#endif
+  UninhibitScreensaver();
 
   m_render_frame->SetTitle(StrToWxStr(scm_rev_str));
 
