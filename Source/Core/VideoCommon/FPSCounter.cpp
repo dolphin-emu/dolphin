@@ -4,6 +4,7 @@
 
 #include <fstream>
 
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Timer.h"
@@ -21,7 +22,7 @@ FPSCounter::FPSCounter()
 void FPSCounter::LogRenderTimeToFile(u64 val)
 {
   if (!m_bench_file.is_open())
-    m_bench_file.open(File::GetUserPath(D_LOGS_IDX) + "render_time.txt");
+    m_bench_file.open(Paths::GetLogsDir() + "render_time.txt");
 
   m_bench_file << val << std::endl;
 }

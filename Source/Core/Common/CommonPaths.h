@@ -240,4 +240,14 @@ const std::string& GetLoadDir()
 {
   return GetUserPath(D_LOAD_IDX);
 }
+
+const std::string& GetLogsDir()
+{
+  return GetUserPath(D_LOGS_IDX);
+}
+
+const std::string& GetMailLogsDir()
+{
+  return GetUserPath(D_MAILLOGS_IDX);
+}
 }

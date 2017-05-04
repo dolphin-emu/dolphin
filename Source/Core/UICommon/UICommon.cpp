@@ -61,7 +61,7 @@ void CreateDirectories()
   File::CreateFullPath(Paths::GetGCUserDir() + EUR_DIR DIR_SEP);
   File::CreateFullPath(Paths::GetGCUserDir() + JAP_DIR DIR_SEP);
   File::CreateFullPath(Paths::GetHiresTexturesDir());
-  File::CreateFullPath(File::GetUserPath(D_MAILLOGS_IDX));
+  File::CreateFullPath(Paths::GetMailLogsDir());
   File::CreateFullPath(Paths::GetMapsDir());
   File::CreateFullPath(Paths::GetScreenshotsDir());
   File::CreateFullPath(Paths::GetShaderCacheDir());
