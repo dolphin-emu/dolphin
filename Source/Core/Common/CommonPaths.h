@@ -186,4 +186,9 @@ const std::string& GetShaderCacheDir()
 {
   return GetUserPath(D_SHADERCACHE_IDX);
 }
+
+const std::string& GetShadersDir()
+{
+  return GetUserPath(D_SHADERS_IDX);
+}
 }

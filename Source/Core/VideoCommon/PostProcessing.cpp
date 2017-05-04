@@ -31,7 +31,7 @@ PostProcessingShaderImplementation::~PostProcessingShaderImplementation()
 static std::vector<std::string> GetShaders(const std::string& sub_dir = "")
 {
   std::vector<std::string> paths =
-      Common::DoFileSearch({".glsl"}, {File::GetUserPath(D_SHADERS_IDX) + sub_dir,
+      Common::DoFileSearch({".glsl"}, {Paths::GetShaderCacheDir() + sub_dir,
                                        File::GetSysDirectory() + SHADERS_DIR DIR_SEP + sub_dir});
   std::vector<std::string> result;
   for (std::string path : paths)
@@ -73,7 +73,7 @@ std::string PostProcessingShaderConfiguration::LoadShader(std::string shader)
 
   // loading shader code
   std::string code;
-  std::string path = File::GetUserPath(D_SHADERS_IDX) + sub_dir + shader + ".glsl";
+  std::string path = Paths::GetShaderCacheDir() + sub_dir + shader + ".glsl";
 
   if (shader == "")
   {

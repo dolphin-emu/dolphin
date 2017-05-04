@@ -669,7 +669,7 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_CreateUserFo
   File::CreateFullPath(File::GetUserPath(D_SCREENSHOTS_IDX));
   File::CreateFullPath(File::GetUserPath(D_STATESAVES_IDX));
   File::CreateFullPath(File::GetUserPath(D_MAILLOGS_IDX));
-  File::CreateFullPath(File::GetUserPath(D_SHADERS_IDX) + "Anaglyph" DIR_SEP);
+  File::CreateFullPath(Paths::GetShaderCacheDir() + "Anaglyph" DIR_SEP);
   File::CreateFullPath(Paths::GetGCUserDir() + USA_DIR DIR_SEP);
   File::CreateFullPath(Paths::GetGCUserDir() + EUR_DIR DIR_SEP);
   File::CreateFullPath(Paths::GetGCUserDir() + JAP_DIR DIR_SEP);
