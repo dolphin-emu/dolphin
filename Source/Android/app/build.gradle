@@ -79,7 +79,7 @@ android {
 }
 
 ext {
-    androidSupportVersion = '25.2.0'
+    androidSupportVersion = '25.3.0'
 }
 
 dependencies {
