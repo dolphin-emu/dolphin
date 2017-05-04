@@ -10,6 +10,7 @@
 #include <fstream>
 #include <string>
 
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
@@ -26,7 +27,7 @@ DSPDisassembler::DSPDisassembler(const AssemblerSettings& settings) : settings_(
 DSPDisassembler::~DSPDisassembler()
 {
   // Some old code for logging unknown ops.
-  std::string filename = File::GetUserPath(D_DUMPDSP_IDX) + "UnkOps.txt";
+  std::string filename = Paths::GetDumpDSPDir() + "UnkOps.txt";
   std::ofstream uo(filename);
   if (!uo)
     return;

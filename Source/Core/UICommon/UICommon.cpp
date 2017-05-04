@@ -52,7 +52,7 @@ void CreateDirectories()
   File::CreateFullPath(Paths::GetUserDir());
   File::CreateFullPath(Paths::GetCacheDir());
   File::CreateFullPath(Paths::GetConfigDir());
-  File::CreateFullPath(File::GetUserPath(D_DUMPDSP_IDX));
+  File::CreateFullPath(Paths::GetDumpDSPDir());
   File::CreateFullPath(File::GetUserPath(D_DUMPSSL_IDX));
   File::CreateFullPath(Paths::GetDumpTexturesDir());
   File::CreateFullPath(Paths::GetGameSettingsDir());

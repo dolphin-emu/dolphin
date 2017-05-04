@@ -225,4 +225,9 @@ const std::string& GetDumpTexturesDir()
 {
   return GetUserPath(D_DUMPTEXTURES_IDX);
 }
+
+const std::string& GetDumpDSPDir()
+{
+  return GetUserPath(D_DUMPDSP_IDX);
+}
 }
