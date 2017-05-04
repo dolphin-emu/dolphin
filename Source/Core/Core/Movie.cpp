@@ -584,7 +584,7 @@ bool BeginRecordingInput(int controllers)
 
   if (Core::IsRunningAndStarted())
   {
-    const std::string save_path = File::GetUserPath(D_STATESAVES_IDX) + "dtm.sav";
+    const std::string save_path = Paths::GetStateSavesDir() + "dtm.sav";
     if (File::Exists(save_path))
       File::Delete(save_path);
 
@@ -1435,7 +1435,7 @@ void SaveRecording(const std::string& filename)
   if (success && s_bRecordingFromSaveState)
   {
     std::string stateFilename = filename + ".sav";
-    success = File::Copy(File::GetUserPath(D_STATESAVES_IDX) + "dtm.sav", stateFilename);
+    success = File::Copy(Paths::GetStateSavesDir() + "dtm.sav", stateFilename);
   }
 
   if (success)

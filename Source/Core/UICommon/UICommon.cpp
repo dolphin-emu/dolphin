@@ -66,7 +66,7 @@ void CreateDirectories()
   File::CreateFullPath(File::GetUserPath(D_SCREENSHOTS_IDX));
   File::CreateFullPath(Paths::GetShaderCacheDir());
   File::CreateFullPath(Paths::GetShaderCacheDir() + ANAGLYPH_DIR DIR_SEP);
-  File::CreateFullPath(File::GetUserPath(D_STATESAVES_IDX));
+  File::CreateFullPath(Paths::GetStateSavesDir());
   File::CreateFullPath(File::GetUserPath(D_THEMES_IDX));
 }
 

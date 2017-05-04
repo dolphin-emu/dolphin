@@ -191,4 +191,8 @@ const std::string& GetShadersDir()
 {
   return GetUserPath(D_SHADERS_IDX);
 }
+const std::string& GetStateSavesDir()
+{
+  return GetUserPath(D_STATESAVES_IDX);
+}
 }

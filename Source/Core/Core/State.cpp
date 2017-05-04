@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "Common/ChunkFile.h"
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
 #include "Common/FileUtil.h"
@@ -326,15 +327,15 @@ static void CompressAndDumpState(CompressAndDumpState_args save_args)
   // Moving to last overwritten save-state
   if (File::Exists(filename))
   {
-    if (File::Exists(File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav"))
-      File::Delete((File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav"));
-    if (File::Exists(File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav.dtm"))
-      File::Delete((File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav.dtm"));
+    if (File::Exists(Paths::GetStateSavesDir() + "lastState.sav"))
+      File::Delete((Paths::GetStateSavesDir() + "lastState.sav"));
+    if (File::Exists(Paths::GetStateSavesDir() + "lastState.sav.dtm"))
+      File::Delete((Paths::GetStateSavesDir() + "lastState.sav.dtm"));
 
-    if (!File::Rename(filename, File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav"))
+    if (!File::Rename(filename, Paths::GetStateSavesDir() + "lastState.sav"))
       Core::DisplayMessage("Failed to move previous state to state undo backup", 1000);
     else
-      File::Rename(filename + ".dtm", File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav.dtm");
+      File::Rename(filename + ".dtm", Paths::GetStateSavesDir() + "lastState.sav.dtm");
   }
 
   if ((Movie::IsMovieActive()) && !Movie::IsJustStartingRecordingInputFromSaveState())
@@ -559,9 +560,9 @@ void LoadAs(const std::string& filename)
     std::lock_guard<std::mutex> lk(g_cs_undo_load_buffer);
     SaveToBuffer(g_undo_load_buffer);
     if (Movie::IsMovieActive())
-      Movie::SaveRecording(File::GetUserPath(D_STATESAVES_IDX) + "undo.dtm");
-    else if (File::Exists(File::GetUserPath(D_STATESAVES_IDX) + "undo.dtm"))
-      File::Delete(File::GetUserPath(D_STATESAVES_IDX) + "undo.dtm");
+      Movie::SaveRecording(Paths::GetStateSavesDir() + "undo.dtm");
+    else if (File::Exists(Paths::GetStateSavesDir() + "undo.dtm"))
+      File::Delete(Paths::GetStateSavesDir() + "undo.dtm");
   }
 
   bool loaded = false;
@@ -669,7 +670,7 @@ void Shutdown()
 
 static std::string MakeStateFilename(int number)
 {
-  return StringFromFormat("%s%s.s%02i", File::GetUserPath(D_STATESAVES_IDX).c_str(),
+  return StringFromFormat("%s%s.s%02i", Paths::GetStateSavesDir().c_str(),
                           SConfig::GetInstance().GetGameID().c_str(), number);
 }
 
@@ -732,11 +733,11 @@ void UndoLoadState()
   std::lock_guard<std::mutex> lk(g_cs_undo_load_buffer);
   if (!g_undo_load_buffer.empty())
   {
-    if (File::Exists(File::GetUserPath(D_STATESAVES_IDX) + "undo.dtm") || (!Movie::IsMovieActive()))
+    if (File::Exists(Paths::GetStateSavesDir() + "undo.dtm") || (!Movie::IsMovieActive()))
     {
       LoadFromBuffer(g_undo_load_buffer);
       if (Movie::IsMovieActive())
-        Movie::LoadInput(File::GetUserPath(D_STATESAVES_IDX) + "undo.dtm");
+        Movie::LoadInput(Paths::GetStateSavesDir() + "undo.dtm");
     }
     else
     {
@@ -752,7 +753,7 @@ void UndoLoadState()
 // Load the state that the last save state overwritten on
 void UndoSaveState()
 {
-  LoadAs(File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav");
+  LoadAs(Paths::GetStateSavesDir() + "lastState.sav");
 }
 
 }  // namespace State
