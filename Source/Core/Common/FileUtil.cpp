@@ -868,7 +868,7 @@ void SetUserPath(unsigned int dir_index, const std::string& path)
 
 std::string GetThemeDir(const std::string& theme_name)
 {
-  std::string dir = File::GetUserPath(D_THEMES_IDX) + theme_name + "/";
+  std::string dir = Paths::GetThemesDir() + theme_name + "/";
   if (File::Exists(dir))
     return dir;
 

@@ -67,7 +67,7 @@ void CreateDirectories()
   File::CreateFullPath(Paths::GetShaderCacheDir());
   File::CreateFullPath(Paths::GetShaderCacheDir() + ANAGLYPH_DIR DIR_SEP);
   File::CreateFullPath(Paths::GetStateSavesDir());
-  File::CreateFullPath(File::GetUserPath(D_THEMES_IDX));
+  File::CreateFullPath(Paths::GetThemesDir());
 }
 
 void SetUserDirectory(const std::string& custom_path)

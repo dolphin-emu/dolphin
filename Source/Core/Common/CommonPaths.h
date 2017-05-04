@@ -250,4 +250,9 @@ const std::string& GetMailLogsDir()
 {
   return GetUserPath(D_MAILLOGS_IDX);
 }
+
+const std::string& GetThemesDir()
+{
+  return GetUserPath(D_THEMES_IDX);
+}
 }
