@@ -665,7 +665,7 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_CreateUserFo
   File::CreateFullPath(Paths::GetCacheDir());
   File::CreateFullPath(File::GetUserPath(D_DUMPDSP_IDX));
   File::CreateFullPath(File::GetUserPath(D_DUMPTEXTURES_IDX));
-  File::CreateFullPath(File::GetUserPath(D_HIRESTEXTURES_IDX));
+  File::CreateFullPath(Paths::GetHiresTexturesDir());
   File::CreateFullPath(Paths::GetScreenshotsDir());
   File::CreateFullPath(Paths::GetStateSavesDir());
   File::CreateFullPath(File::GetUserPath(D_MAILLOGS_IDX));

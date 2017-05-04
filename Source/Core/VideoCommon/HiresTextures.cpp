@@ -17,6 +17,7 @@
 #include <vector>
 #include <xxhash.h>
 
+#include "Common/CommonPaths.h"
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 #include "Common/Flag.h"
@@ -540,11 +541,11 @@ bool HiresTexture::LoadTexture(Level& level, const std::vector<u8>& buffer)
 
 std::string HiresTexture::GetTextureDirectory(const std::string& game_id)
 {
-  const std::string texture_directory = File::GetUserPath(D_HIRESTEXTURES_IDX) + game_id;
+  const std::string texture_directory = Paths::GetHiresTexturesDir() + game_id;
 
   // If there's no directory with the region-specific ID, look for a 3-character region-free one
   if (!File::Exists(texture_directory))
-    return File::GetUserPath(D_HIRESTEXTURES_IDX) + game_id.substr(0, 3);
+    return Paths::GetHiresTexturesDir() + game_id.substr(0, 3);
 
   return texture_directory;
 }

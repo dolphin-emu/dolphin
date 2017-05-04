@@ -60,7 +60,7 @@ void CreateDirectories()
   File::CreateFullPath(Paths::GetGCUserDir() + USA_DIR DIR_SEP);
   File::CreateFullPath(Paths::GetGCUserDir() + EUR_DIR DIR_SEP);
   File::CreateFullPath(Paths::GetGCUserDir() + JAP_DIR DIR_SEP);
-  File::CreateFullPath(File::GetUserPath(D_HIRESTEXTURES_IDX));
+  File::CreateFullPath(Paths::GetHiresTexturesDir());
   File::CreateFullPath(File::GetUserPath(D_MAILLOGS_IDX));
   File::CreateFullPath(Paths::GetMapsDir());
   File::CreateFullPath(Paths::GetScreenshotsDir());

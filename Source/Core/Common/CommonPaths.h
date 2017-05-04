@@ -200,4 +200,9 @@ const std::string& GetScreenshotsDir()
 {
   return GetUserPath(D_SCREENSHOTS_IDX);
 }
+
+const std::string& GetHiresTexturesDir()
+{
+  return GetUserPath(D_HIRESTEXTURES_IDX);
+}
 }
