@@ -4,7 +4,9 @@
 
 #include "DolphinQt2/Config/SettingsWindow.h"
 #include "DolphinQt2/Settings.h"
+#include "DolphinQt2/Settings/GeneralPane.h"
 #include "DolphinQt2/Settings/InterfacePane.h"
+
 
 SettingsWindow::SettingsWindow(QWidget* parent) : QDialog(parent)
 {
@@ -49,6 +51,8 @@ void SettingsWindow::SetupSettingsWidget()
   m_settings_outer = new QStackedWidget;
   m_settings_outer->setCurrentIndex(0);
 
+  // Panes initalised here
+  m_settings_outer->addWidget(new GeneralPane);
   m_settings_outer->addWidget(new InterfacePane);
 }
 
@@ -83,6 +87,7 @@ void SettingsWindow::MakeCategoryList()
   m_categories->setMovement(QListView::Static);
   m_categories->setSpacing(0);
 
+  AddCategoryToList(tr("General"), dir.append(QStringLiteral("config.png")));
   AddCategoryToList(tr("Interface"), dir.append(QStringLiteral("config.png")));
 
   connect(m_categories, &QListWidget::currentItemChanged, this, &SettingsWindow::changePage);
