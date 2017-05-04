@@ -34,7 +34,6 @@
 #define SHADERS_DIR "Shaders"
 #define THEMES_DIR "Themes"
 #define WII_USER_DIR "Wii"
-#define WII_SYSCONF "SYSCONF"
 #define WII_WC24CONF_DIR "shared2" DIR_SEP "wc24"
 
 // Dirs in both User and Sys
