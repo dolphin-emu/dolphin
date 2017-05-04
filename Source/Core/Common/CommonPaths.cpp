@@ -21,6 +21,69 @@
 #include <sys/param.h>
 #endif
 
+// Shared data dirs (Sys and shared User for Linux)
+#if defined(_WIN32) || defined(LINUX_LOCAL_DEV)
+#define SYSDATA_DIR "Sys"
+#elif defined __APPLE__
+#define SYSDATA_DIR "Contents/Resources/Sys"
+#elif defined ANDROID
+#define SYSDATA_DIR "/sdcard/dolphin-emu"
+#else
+#ifdef DATA_DIR
+#define SYSDATA_DIR DATA_DIR "sys"
+#else
+#define SYSDATA_DIR "sys"
+#endif
+#endif
+
+// Subdirs in the User dir returned by GetUserPath(D_USER_IDX)
+#define GC_USER_DIR "GC"
+#define CONFIG_DIR "Config"
+#define CACHE_DIR "Cache"
+#define SHADERCACHE_DIR "Shaders"
+#define STATESAVES_DIR "StateSaves"
+#define SCREENSHOTS_DIR "ScreenShots"
+#define LOAD_DIR "Load"
+#define HIRES_TEXTURES_DIR "Textures"
+#define DUMP_DIR "Dump"
+#define DUMP_TEXTURES_DIR "Textures"
+#define DUMP_FRAMES_DIR "Frames"
+#define DUMP_AUDIO_DIR "Audio"
+#define DUMP_DSP_DIR "DSP"
+#define DUMP_SSL_DIR "SSL"
+#define LOGS_DIR "Logs"
+#define MAIL_LOGS_DIR "Mail"
+#define PIPES_DIR "Pipes"
+#define MEMORYWATCHER_DIR "MemoryWatcher"
+#define WFSROOT_DIR "WFS"
+#define BACKUP_DIR "Backup"
+
+// This one is only used to remove it if it was present
+#define SHADERCACHE_LEGACY_DIR "ShaderCache"
+
+// Filenames
+// Files in the directory returned by GetUserPath(D_CONFIG_IDX)
+#define DOLPHIN_CONFIG "Dolphin.ini"
+#define GCPAD_CONFIG "GCPadNew.ini"
+#define WIIPAD_CONFIG "WiimoteNew.ini"
+#define GCKEYBOARD_CONFIG "GCKeyNew.ini"
+#define GFX_CONFIG "GFX.ini"
+#define DEBUGGER_CONFIG "Debugger.ini"
+#define LOGGER_CONFIG "Logger.ini"
+#define UI_CONFIG "UI.ini"
+
+// Files in the directory returned by GetUserPath(D_LOGS_IDX)
+#define MAIN_LOG "dolphin.log"
+
+// Files in the directory returned by GetUserPath(D_DUMP_IDX)
+#define RAM_DUMP "ram.raw"
+#define ARAM_DUMP "aram.raw"
+#define FAKEVMEM_DUMP "fakevmem.raw"
+
+// Files in the directory returned by GetUserPath(D_MEMORYWATCHER_IDX)
+#define MEMORYWATCHER_LOCATIONS "Locations.txt"
+#define MEMORYWATCHER_SOCKET "MemoryWatcher"
+
 // User directory indices for GetUserPath
 enum
 {
