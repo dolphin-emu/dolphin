@@ -63,7 +63,7 @@ void CreateDirectories()
   File::CreateFullPath(File::GetUserPath(D_HIRESTEXTURES_IDX));
   File::CreateFullPath(File::GetUserPath(D_MAILLOGS_IDX));
   File::CreateFullPath(Paths::GetMapsDir());
-  File::CreateFullPath(File::GetUserPath(D_SCREENSHOTS_IDX));
+  File::CreateFullPath(Paths::GetScreenshotsDir());
   File::CreateFullPath(Paths::GetShaderCacheDir());
   File::CreateFullPath(Paths::GetShaderCacheDir() + ANAGLYPH_DIR DIR_SEP);
   File::CreateFullPath(Paths::GetStateSavesDir());

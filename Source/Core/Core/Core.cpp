@@ -701,12 +701,12 @@ State GetState()
 static std::string GenerateScreenshotFolderPath()
 {
   const std::string& gameId = SConfig::GetInstance().GetGameID();
-  std::string path = File::GetUserPath(D_SCREENSHOTS_IDX) + gameId + DIR_SEP_CHR;
+  std::string path = Paths::GetScreenshotsDir() + gameId + DIR_SEP_CHR;
 
   if (!File::CreateFullPath(path))
   {
     // fallback to old-style screenshots, without folder.
-    path = File::GetUserPath(D_SCREENSHOTS_IDX);
+    path = Paths::GetScreenshotsDir();
   }
 
   return path;

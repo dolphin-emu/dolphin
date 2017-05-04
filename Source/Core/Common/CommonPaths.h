@@ -195,4 +195,9 @@ const std::string& GetStateSavesDir()
 {
   return GetUserPath(D_STATESAVES_IDX);
 }
+
+const std::string& GetScreenshotsDir()
+{
+  return GetUserPath(D_SCREENSHOTS_IDX);
+}
 }
