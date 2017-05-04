@@ -320,4 +320,9 @@ const std::string& GetMainLogFile()
 {
   return GetUserPath(F_MAINLOG_IDX);
 }
+
+const std::string& GetRAMDumpFile()
+{
+  return GetUserPath(F_RAMDUMP_IDX);
+}
 }
