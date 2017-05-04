@@ -10,6 +10,7 @@
 
 #include "Common/Align.h"
 #include "Common/Assert.h"
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Hash.h"
@@ -462,7 +463,7 @@ TextureCacheBase::DoPartialTextureUpdates(TCacheEntryBase* entry_to_update, u8* 
 
 void TextureCacheBase::DumpTexture(TCacheEntryBase* entry, std::string basename, unsigned int level)
 {
-  std::string szDir = File::GetUserPath(D_DUMPTEXTURES_IDX) + SConfig::GetInstance().GetGameID();
+  std::string szDir = Paths::GetDumpTexturesDir() + SConfig::GetInstance().GetGameID();
 
   // make sure that the directory exists
   if (!File::Exists(szDir) || !File::IsDirectory(szDir))
@@ -1398,9 +1399,9 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
       if (g_ActiveConfig.bDumpEFBTarget)
       {
         static int count = 0;
-        entry->Save(StringFromFormat("%sefb_frame_%i.png",
-                                     File::GetUserPath(D_DUMPTEXTURES_IDX).c_str(), count++),
-                    0);
+        entry->Save(
+            StringFromFormat("%sefb_frame_%i.png", Paths::GetDumpTexturesDir().c_str(), count++),
+            0);
       }
 
       textures_by_address.emplace(dstAddr, entry);

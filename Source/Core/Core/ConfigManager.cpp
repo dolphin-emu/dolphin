@@ -101,7 +101,7 @@ void CreateDumpPath(const std::string& path)
   File::CreateFullPath(File::GetUserPath(D_DUMPDSP_IDX));
   File::CreateFullPath(File::GetUserPath(D_DUMPSSL_IDX));
   File::CreateFullPath(Paths::GetDumpFramesDir());
-  File::CreateFullPath(File::GetUserPath(D_DUMPTEXTURES_IDX));
+  File::CreateFullPath(Paths::GetDumpTexturesDir());
 }
 }  // namespace
 

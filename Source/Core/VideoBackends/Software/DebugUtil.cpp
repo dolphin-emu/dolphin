@@ -106,7 +106,7 @@ void DumpActiveTextures()
     for (s32 mip = 0; mip <= maxLod; ++mip)
     {
       SaveTexture(StringFromFormat("%star%i_ind%i_map%i_mip%i.png",
-                                   File::GetUserPath(D_DUMPTEXTURES_IDX).c_str(),
+                                   Paths::GetDumpTexturesDir().c_str(),
                                    stats.thisFrame.numDrawnObjects, stageNum, texmap, mip),
                   texmap, mip);
     }
@@ -124,7 +124,7 @@ void DumpActiveTextures()
     for (s32 mip = 0; mip <= maxLod; ++mip)
     {
       SaveTexture(StringFromFormat("%star%i_stage%i_map%i_mip%i.png",
-                                   File::GetUserPath(D_DUMPTEXTURES_IDX).c_str(),
+                                   Paths::GetDumpTexturesDir().c_str(),
                                    stats.thisFrame.numDrawnObjects, stageNum, texmap, mip),
                   texmap, mip);
     }

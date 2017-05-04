@@ -220,4 +220,9 @@ const std::string& GetDumpAudioDir()
 {
   return GetUserPath(D_DUMPAUDIO_IDX);
 }
+
+const std::string& GetDumpTexturesDir()
+{
+  return GetUserPath(D_DUMPTEXTURES_IDX);
+}
 }
