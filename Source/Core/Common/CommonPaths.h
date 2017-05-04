@@ -161,4 +161,9 @@ const std::string& GetSessionWiiRootDir()
 {
   return GetUserPath(D_SESSION_WIIROOT_IDX);
 }
+
+const std::string& GetConfigDir()
+{
+  return GetUserPath(D_CONFIG_IDX);
+}
 }

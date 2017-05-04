@@ -306,7 +306,7 @@ private:
         {
           if (control_section->Get(type + "Profile" + num, &profile))
           {
-            if (File::Exists(File::GetUserPath(D_CONFIG_IDX) + path + profile + ".ini"))
+            if (File::Exists(Paths::GetConfigDir() + path + profile + ".ini"))
             {
               use_profile = true;
             }
@@ -321,7 +321,7 @@ private:
         if (use_profile)
         {
           IniFile profile_ini;
-          profile_ini.Load(File::GetUserPath(D_CONFIG_IDX) + path + profile + ".ini");
+          profile_ini.Load(Paths::GetConfigDir() + path + profile + ".ini");
 
           const IniFile::Section* ini_section = profile_ini.GetOrCreateSection("Profile");
           const IniFile::Section::SectionMap& section_map = ini_section->GetValues();

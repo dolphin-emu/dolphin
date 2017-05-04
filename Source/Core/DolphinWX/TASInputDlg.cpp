@@ -15,6 +15,7 @@
 #include <wx/textctrl.h>
 
 #include "Common/Assert.h"
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
@@ -161,7 +162,7 @@ void TASInputDlg::CreateWiiLayout(int num)
   else
   {
     IniFile ini;
-    ini.Load(File::GetUserPath(D_CONFIG_IDX) + "WiimoteNew.ini");
+    ini.Load(Paths::GetConfigDir() + "WiimoteNew.ini");
     std::string extension;
     ini.GetIfExists("Wiimote" + std::to_string(num + 1), "Extension", &extension);
 

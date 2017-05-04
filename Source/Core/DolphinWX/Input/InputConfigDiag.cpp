@@ -36,6 +36,7 @@
 #include <wx/textctrl.h>
 #include <wx/timer.h>
 
+#include "Common/CommonPaths.h"
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
@@ -260,7 +261,7 @@ wxSize ControlButton::DoGetBestSize() const
 
 void InputConfigDialog::UpdateProfileComboBox()
 {
-  std::string pname(File::GetUserPath(D_CONFIG_IDX));
+  std::string pname(Paths::GetConfigDir());
   pname += PROFILES_PATH;
   pname += m_config.GetProfileName();
 
@@ -837,7 +838,7 @@ void InputConfigDialog::GetProfilePath(std::string& path)
   {
     // TODO: check for dumb characters maybe
 
-    path = File::GetUserPath(D_CONFIG_IDX);
+    path = Paths::GetConfigDir();
     path += PROFILES_PATH;
     path += m_config.GetProfileName();
     path += '/';

@@ -5,6 +5,7 @@
 #include <cstring>
 
 #include "Common/ChunkFile.h"
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
 #include "Common/Flag.h"
@@ -190,7 +191,7 @@ void VideoBackendBase::InitializeShared()
   GeometryShaderManager::Init();
   PixelShaderManager::Init();
 
-  g_Config.Load(File::GetUserPath(D_CONFIG_IDX) + "GFX.ini");
+  g_Config.Load(Paths::GetConfigDir() + "GFX.ini");
   g_Config.GameIniLoad();
   g_Config.UpdateProjectionHack();
   g_Config.VerifyValidity();

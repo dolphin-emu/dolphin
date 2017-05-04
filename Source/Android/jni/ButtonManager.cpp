@@ -7,6 +7,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/Thread.h"
@@ -333,7 +334,7 @@ void Init()
   }
   // Init our controller bindings
   IniFile ini;
-  ini.Load(File::GetUserPath(D_CONFIG_IDX) + std::string("Dolphin.ini"));
+  ini.Load(Paths::GetConfigDir() + std::string("Dolphin.ini"));
   for (u32 a = 0; a < configStrings.size(); ++a)
   {
     for (int padID = 0; padID < 8; ++padID)

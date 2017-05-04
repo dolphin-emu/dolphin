@@ -608,7 +608,7 @@ JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetConfig
   std::string key = GetJString(env, jKey);
   std::string defaultValue = GetJString(env, jDefault);
 
-  ini.Load(File::GetUserPath(D_CONFIG_IDX) + std::string(file));
+  ini.Load(Paths::GetConfigDir() + std::string(file));
   std::string value;
 
   ini.GetOrCreateSection(section)->Get(key, &value, defaultValue);
@@ -624,10 +624,10 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetConfig(
   std::string key = GetJString(env, jKey);
   std::string value = GetJString(env, jValue);
 
-  ini.Load(File::GetUserPath(D_CONFIG_IDX) + std::string(file));
+  ini.Load(Paths::GetConfigDir() + std::string(file));
 
   ini.GetOrCreateSection(section)->Set(key, value);
-  ini.Save(File::GetUserPath(D_CONFIG_IDX) + std::string(file));
+  ini.Save(Paths::GetConfigDir() + std::string(file));
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetFilename(JNIEnv* env,
@@ -656,7 +656,7 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_LoadState(JN
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_CreateUserFolders(JNIEnv* env,
                                                                                       jobject obj)
 {
-  File::CreateFullPath(File::GetUserPath(D_CONFIG_IDX));
+  File::CreateFullPath(Paths::GetConfigDir());
   File::CreateFullPath(Paths::GetGCUserDir());
   File::CreateFullPath(Paths::GetWiiRootDir() + DIR_SEP WII_WC24CONF_DIR DIR_SEP "mbox" DIR_SEP);
   File::CreateFullPath(Paths::GetWiiRootDir() + DIR_SEP "shared2" DIR_SEP "succession" DIR_SEP);

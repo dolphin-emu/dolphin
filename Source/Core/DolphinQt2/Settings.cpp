@@ -4,13 +4,14 @@
 
 #include <QSize>
 
+#include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Core/ConfigManager.h"
 #include "DolphinQt2/Settings.h"
 
 static QString GetSettingsPath()
 {
-  return QString::fromStdString(File::GetUserPath(D_CONFIG_IDX)) + QStringLiteral("/UI.ini");
+  return QString::fromStdString(Paths::GetConfigDir()) + QStringLiteral("/UI.ini");
 }
 
 Settings::Settings(QObject* parent) : QSettings(GetSettingsPath(), QSettings::IniFormat, parent)

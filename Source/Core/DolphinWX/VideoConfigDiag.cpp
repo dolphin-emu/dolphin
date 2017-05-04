@@ -23,6 +23,7 @@
 #include <wx/stattext.h>
 
 #include "Common/Assert.h"
+#include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/SysConf.h"
 #include "Core/ConfigManager.h"
@@ -359,7 +360,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
                                                   wxGetTranslation(StrToWxStr(title)))),
       vconfig(g_Config)
 {
-  vconfig.Load(File::GetUserPath(D_CONFIG_IDX) + "GFX.ini");
+  vconfig.Load(Paths::GetConfigDir() + "GFX.ini");
 
   Bind(wxEVT_UPDATE_UI, &VideoConfigDiag::OnUpdateUI, this);
 
@@ -1101,7 +1102,7 @@ void VideoConfigDiag::Event_StereoMode(wxCommandEvent& ev)
 
 void VideoConfigDiag::Event_Close(wxCommandEvent& ev)
 {
-  g_Config.Save(File::GetUserPath(D_CONFIG_IDX) + "GFX.ini");
+  g_Config.Save(Paths::GetConfigDir() + "GFX.ini");
   ev.Skip();
 }
 
