@@ -36,7 +36,7 @@
 #endif
 #endif
 
-// Subdirs in the User dir returned by GetUserPath(D_USER_IDX)
+// Subdirs in the User dir
 #define GC_USER_DIR "GC"
 #define CONFIG_DIR "Config"
 #define CACHE_DIR "Cache"
@@ -62,7 +62,7 @@
 #define SHADERCACHE_LEGACY_DIR "ShaderCache"
 
 // Filenames
-// Files in the directory returned by GetUserPath(D_CONFIG_IDX)
+// Files in the config directory
 #define DOLPHIN_CONFIG "Dolphin.ini"
 #define GCPAD_CONFIG "GCPadNew.ini"
 #define WIIPAD_CONFIG "WiimoteNew.ini"
@@ -72,19 +72,19 @@
 #define LOGGER_CONFIG "Logger.ini"
 #define UI_CONFIG "UI.ini"
 
-// Files in the directory returned by GetUserPath(D_LOGS_IDX)
+// Files in the logs directory
 #define MAIN_LOG "dolphin.log"
 
-// Files in the directory returned by GetUserPath(D_DUMP_IDX)
+// Files in the dump directory
 #define RAM_DUMP "ram.raw"
 #define ARAM_DUMP "aram.raw"
 #define FAKEVMEM_DUMP "fakevmem.raw"
 
-// Files in the directory returned by GetUserPath(D_MEMORYWATCHER_IDX)
+// Files in the memorywatcher directory
 #define MEMORYWATCHER_LOCATIONS "Locations.txt"
 #define MEMORYWATCHER_SOCKET "MemoryWatcher"
 
-// User directory indices for GetUserPath
+// User directory indices for s_user_paths
 enum
 {
   D_USER_IDX,
@@ -134,13 +134,6 @@ enum
 };
 
 static std::string s_user_paths[NUM_PATH_INDICES];
-
-// Gets a set user directory path
-// Don't call prior to setting the base user directory
-static const std::string& GetUserPath(unsigned int dir_index)
-{
-  return s_user_paths[dir_index];
-}
 
 // Rebuilds internal directory structure to compensate for the new directory
 static void RebuildUserDirectories()
@@ -323,215 +316,215 @@ void SetWiiSDCardFile(std::string file)
 
 const std::string& GetUserDir()
 {
-  return GetUserPath(D_USER_IDX);
+  return s_user_paths[D_USER_IDX];
 };
 
 const std::string& GetGCUserDir()
 {
-  return GetUserPath(D_GCUSER_IDX);
+  return s_user_paths[D_GCUSER_IDX];
 }
 const std::string& GetWiiRootDir()
 {
-  return GetUserPath(D_WIIROOT_IDX);
+  return s_user_paths[D_WIIROOT_IDX];
 }
 
 const std::string& GetSessionWiiRootDir()
 {
-  return GetUserPath(D_SESSION_WIIROOT_IDX);
+  return s_user_paths[D_SESSION_WIIROOT_IDX];
 }
 
 const std::string& GetConfigDir()
 {
-  return GetUserPath(D_CONFIG_IDX);
+  return s_user_paths[D_CONFIG_IDX];
 }
 
 const std::string& GetGameSettingsDir()
 {
-  return GetUserPath(D_GAMESETTINGS_IDX);
+  return s_user_paths[D_GAMESETTINGS_IDX];
 }
 
 const std::string& GetMapsDir()
 {
-  return GetUserPath(D_MAPS_IDX);
+  return s_user_paths[D_MAPS_IDX];
 }
 
 const std::string& GetCacheDir()
 {
-  return GetUserPath(D_CACHE_IDX);
+  return s_user_paths[D_CACHE_IDX];
 }
 
 const std::string& GetShaderCacheDir()
 {
-  return GetUserPath(D_SHADERCACHE_IDX);
+  return s_user_paths[D_SHADERCACHE_IDX];
 }
 
 const std::string& GetShadersDir()
 {
-  return GetUserPath(D_SHADERS_IDX);
+  return s_user_paths[D_SHADERS_IDX];
 }
 const std::string& GetStateSavesDir()
 {
-  return GetUserPath(D_STATESAVES_IDX);
+  return s_user_paths[D_STATESAVES_IDX];
 }
 
 const std::string& GetScreenshotsDir()
 {
-  return GetUserPath(D_SCREENSHOTS_IDX);
+  return s_user_paths[D_SCREENSHOTS_IDX];
 }
 
 const std::string& GetHiresTexturesDir()
 {
-  return GetUserPath(D_HIRESTEXTURES_IDX);
+  return s_user_paths[D_HIRESTEXTURES_IDX];
 }
 
 const std::string& GetDumpDir()
 {
-  return GetUserPath(D_DUMP_IDX);
+  return s_user_paths[D_DUMP_IDX];
 }
 
 const std::string& GetDumpFramesDir()
 {
-  return GetUserPath(D_DUMPFRAMES_IDX);
+  return s_user_paths[D_DUMPFRAMES_IDX];
 }
 
 const std::string& GetDumpAudioDir()
 {
-  return GetUserPath(D_DUMPAUDIO_IDX);
+  return s_user_paths[D_DUMPAUDIO_IDX];
 }
 
 const std::string& GetDumpTexturesDir()
 {
-  return GetUserPath(D_DUMPTEXTURES_IDX);
+  return s_user_paths[D_DUMPTEXTURES_IDX];
 }
 
 const std::string& GetDumpDSPDir()
 {
-  return GetUserPath(D_DUMPDSP_IDX);
+  return s_user_paths[D_DUMPDSP_IDX];
 }
 
 const std::string& GetDumpSSLDir()
 {
-  return GetUserPath(D_DUMPSSL_IDX);
+  return s_user_paths[D_DUMPSSL_IDX];
 }
 
 const std::string& GetLoadDir()
 {
-  return GetUserPath(D_LOAD_IDX);
+  return s_user_paths[D_LOAD_IDX];
 }
 
 const std::string& GetLogsDir()
 {
-  return GetUserPath(D_LOGS_IDX);
+  return s_user_paths[D_LOGS_IDX];
 }
 
 const std::string& GetMailLogsDir()
 {
-  return GetUserPath(D_MAILLOGS_IDX);
+  return s_user_paths[D_MAILLOGS_IDX];
 }
 
 const std::string& GetThemesDir()
 {
-  return GetUserPath(D_THEMES_IDX);
+  return s_user_paths[D_THEMES_IDX];
 }
 
 const std::string& GetPipesDir()
 {
-  return GetUserPath(D_PIPES_IDX);
+  return s_user_paths[D_PIPES_IDX];
 }
 
 const std::string& GetMemoryWatcherDir()
 {
-  return GetUserPath(D_MEMORYWATCHER_IDX);
+  return s_user_paths[D_MEMORYWATCHER_IDX];
 }
 
 const std::string& GetWFSRootDir()
 {
-  return GetUserPath(D_WFSROOT_IDX);
+  return s_user_paths[D_WFSROOT_IDX];
 }
 
 const std::string& GetBackupDir()
 {
-  return GetUserPath(D_BACKUP_IDX);
+  return s_user_paths[D_BACKUP_IDX];
 }
 
 const std::string& GetDolphinConfigFile()
 {
-  return GetUserPath(F_DOLPHINCONFIG_IDX);
+  return s_user_paths[F_DOLPHINCONFIG_IDX];
 }
 
 const std::string& GetGCPadConfigFile()
 {
-  return GetUserPath(F_GCPADCONFIG_IDX);
+  return s_user_paths[F_GCPADCONFIG_IDX];
 }
 
 const std::string& GetWiiPadConfigFile()
 {
-  return GetUserPath(F_WIIPADCONFIG_IDX);
+  return s_user_paths[F_WIIPADCONFIG_IDX];
 }
 
 const std::string& GetGCKeyboardConfigFile()
 {
-  return GetUserPath(F_GCKEYBOARDCONFIG_IDX);
+  return s_user_paths[F_GCKEYBOARDCONFIG_IDX];
 }
 
 const std::string& GetGFXConfigFile()
 {
-  return GetUserPath(F_GFXCONFIG_IDX);
+  return s_user_paths[F_GFXCONFIG_IDX];
 }
 
 const std::string& GetDebuggerConfigFile()
 {
-  return GetUserPath(F_DEBUGGERCONFIG_IDX);
+  return s_user_paths[F_DEBUGGERCONFIG_IDX];
 }
 
 const std::string& GetLoggerConfigFile()
 {
-  return GetUserPath(F_LOGGERCONFIG_IDX);
+  return s_user_paths[F_LOGGERCONFIG_IDX];
 }
 
 const std::string& GetUIConfigFile()
 {
-  return GetUserPath(F_UICONFIG_IDX);
+  return s_user_paths[F_UICONFIG_IDX];
 }
 
 const std::string& GetMainLogFile()
 {
-  return GetUserPath(F_MAINLOG_IDX);
+  return s_user_paths[F_MAINLOG_IDX];
 }
 
 const std::string& GetRAMDumpFile()
 {
-  return GetUserPath(F_RAMDUMP_IDX);
+  return s_user_paths[F_RAMDUMP_IDX];
 }
 
 const std::string& GetARAMDumpFile()
 {
-  return GetUserPath(F_ARAMDUMP_IDX);
+  return s_user_paths[F_ARAMDUMP_IDX];
 }
 
 const std::string& GetFakeVMEMDumpFile()
 {
-  return GetUserPath(F_FAKEVMEMDUMP_IDX);
+  return s_user_paths[F_FAKEVMEMDUMP_IDX];
 }
 
 const std::string& GetGCSRAMFile()
 {
-  return GetUserPath(F_GCSRAM_IDX);
+  return s_user_paths[F_GCSRAM_IDX];
 }
 
 const std::string& GetMemoryWatcherLocationsFile()
 {
-  return GetUserPath(F_MEMORYWATCHERLOCATIONS_IDX);
+  return s_user_paths[F_MEMORYWATCHERLOCATIONS_IDX];
 }
 
 const std::string& GetMemoryWatcherSocketFile()
 {
-  return GetUserPath(F_MEMORYWATCHERSOCKET_IDX);
+  return s_user_paths[F_MEMORYWATCHERSOCKET_IDX];
 }
 
 const std::string& GetWiiSDCardFile()
 {
-  return GetUserPath(F_WIISDCARD_IDX);
+  return s_user_paths[F_WIISDCARD_IDX];
 }
 
 std::string GetThemeDir(const std::string& theme_name)
