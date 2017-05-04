@@ -162,7 +162,7 @@ void TASInputDlg::CreateWiiLayout(int num)
   else
   {
     IniFile ini;
-    ini.Load(Paths::GetConfigDir() + "WiimoteNew.ini");
+    ini.Load(Paths::GetWiiPadConfigFile());
     std::string extension;
     ini.GetIfExists("Wiimote" + std::to_string(num + 1), "Extension", &extension);
 

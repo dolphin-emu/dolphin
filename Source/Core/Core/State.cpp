@@ -328,9 +328,9 @@ static void CompressAndDumpState(CompressAndDumpState_args save_args)
   if (File::Exists(filename))
   {
     if (File::Exists(Paths::GetStateSavesDir() + "lastState.sav"))
-      File::Delete((Paths::GetStateSavesDir() + "lastState.sav"));
+      File::Delete(Paths::GetStateSavesDir() + "lastState.sav");
     if (File::Exists(Paths::GetStateSavesDir() + "lastState.sav.dtm"))
-      File::Delete((Paths::GetStateSavesDir() + "lastState.sav.dtm"));
+      File::Delete(Paths::GetStateSavesDir() + "lastState.sav.dtm");
 
     if (!File::Rename(filename, Paths::GetStateSavesDir() + "lastState.sav"))
       Core::DisplayMessage("Failed to move previous state to state undo backup", 1000);

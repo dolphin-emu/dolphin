@@ -360,7 +360,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
                                                   wxGetTranslation(StrToWxStr(title)))),
       vconfig(g_Config)
 {
-  vconfig.Load(Paths::GetConfigDir() + "GFX.ini");
+  vconfig.Load(Paths::GetGFXConfigFile());
 
   Bind(wxEVT_UPDATE_UI, &VideoConfigDiag::OnUpdateUI, this);
 
@@ -1102,7 +1102,7 @@ void VideoConfigDiag::Event_StereoMode(wxCommandEvent& ev)
 
 void VideoConfigDiag::Event_Close(wxCommandEvent& ev)
 {
-  g_Config.Save(Paths::GetConfigDir() + "GFX.ini");
+  g_Config.Save(Paths::GetGFXConfigFile());
   ev.Skip();
 }
 

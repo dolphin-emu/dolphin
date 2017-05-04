@@ -334,7 +334,7 @@ void Init()
   }
   // Init our controller bindings
   IniFile ini;
-  ini.Load(Paths::GetConfigDir() + std::string("Dolphin.ini"));
+  ini.Load(Paths::GetDolphinConfigFile());
   for (u32 a = 0; a < configStrings.size(); ++a)
   {
     for (int padID = 0; padID < 8; ++padID)
