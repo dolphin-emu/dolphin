@@ -297,7 +297,7 @@ void CMemoryWindow::OnDumpMem2(wxCommandEvent& event)
 // Write fake vmem to file
 void CMemoryWindow::OnDumpFakeVMEM(wxCommandEvent& event)
 {
-  DumpArray(File::GetUserPath(F_FAKEVMEMDUMP_IDX), Memory::m_pFakeVMEM, Memory::FAKEVMEM_SIZE);
+  DumpArray(Paths::GetFakeVMEMDumpFile(), Memory::m_pFakeVMEM, Memory::FAKEVMEM_SIZE);
 }
 
 void CMemoryWindow::OnDataTypeChanged(wxCommandEvent& ev)

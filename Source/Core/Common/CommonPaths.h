@@ -330,4 +330,9 @@ const std::string& GetARAMDumpFile()
 {
   return GetUserPath(F_ARAMDUMP_IDX);
 }
+
+const std::string& GetFakeVMEMDumpFile()
+{
+  return GetUserPath(F_FAKEVMEMDUMP_IDX);
+}
 }
