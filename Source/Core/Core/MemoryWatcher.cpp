@@ -43,7 +43,7 @@ MemoryWatcher::MemoryWatcher()
   m_running = false;
   if (!LoadAddresses(Paths::GetMemoryWatcherLocationsFile()))
     return;
-  if (!OpenSocket(File::GetUserPath(F_MEMORYWATCHERSOCKET_IDX)))
+  if (!OpenSocket(Paths::GetMemoryWatcherSocketFile()))
     return;
   m_running = true;
 }

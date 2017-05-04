@@ -345,4 +345,9 @@ const std::string& GetMemoryWatcherLocationsFile()
 {
   return GetUserPath(F_MEMORYWATCHERLOCATIONS_IDX);
 }
+
+const std::string& GetMemoryWatcherSocketFile()
+{
+  return GetUserPath(F_MEMORYWATCHERSOCKET_IDX);
+}
 }
