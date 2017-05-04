@@ -53,7 +53,7 @@ void CreateDirectories()
   File::CreateFullPath(Paths::GetCacheDir());
   File::CreateFullPath(Paths::GetConfigDir());
   File::CreateFullPath(Paths::GetDumpDSPDir());
-  File::CreateFullPath(File::GetUserPath(D_DUMPSSL_IDX));
+  File::CreateFullPath(Paths::GetDumpSSLDir());
   File::CreateFullPath(Paths::GetDumpTexturesDir());
   File::CreateFullPath(Paths::GetGameSettingsDir());
   File::CreateFullPath(Paths::GetGCUserDir());

@@ -293,7 +293,7 @@ IPCCommandResult NetSSL::IOCtlV(const IOCtlVRequest& request)
 
       if (SConfig::GetInstance().m_SSLDumpRootCA)
       {
-        std::string filename = File::GetUserPath(D_DUMPSSL_IDX) + ssl->hostname + "_rootca.der";
+        std::string filename = Paths::GetDumpSSLDir() + ssl->hostname + "_rootca.der";
         File::IOFile(filename, "wb").WriteBytes(Memory::GetPointer(BufferOut2), BufferOutSize2);
       }
 

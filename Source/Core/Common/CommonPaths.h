@@ -230,4 +230,9 @@ const std::string& GetDumpDSPDir()
 {
   return GetUserPath(D_DUMPDSP_IDX);
 }
+
+const std::string& GetDumpSSLDir()
+{
+  return GetUserPath(D_DUMPSSL_IDX);
+}
 }

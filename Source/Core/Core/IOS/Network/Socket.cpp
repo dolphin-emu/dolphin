@@ -12,6 +12,7 @@
 #include <sys/select.h>
 #endif
 
+#include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -375,7 +376,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
               const mbedtls_x509_crt* cert = ctx->session_negotiate->peer_cert;
               if (cert != nullptr)
               {
-                std::string filename = File::GetUserPath(D_DUMPSSL_IDX) +
+                std::string filename = Paths::GetDumpSSLDir() +
                                        ((ctx->hostname != nullptr) ? ctx->hostname : "") +
                                        "_peercert.der";
                 File::IOFile(filename, "wb").WriteBytes(cert->raw.p, cert->raw.len);
@@ -396,8 +397,8 @@ void WiiSocket::Update(bool read, bool write, bool except)
 
             if (SConfig::GetInstance().m_SSLDumpWrite && ret > 0)
             {
-              std::string filename = File::GetUserPath(D_DUMPSSL_IDX) +
-                                     SConfig::GetInstance().GetGameID() + "_write.bin";
+              std::string filename =
+                  Paths::GetDumpSSLDir() + SConfig::GetInstance().GetGameID() + "_write.bin";
               File::IOFile(filename, "ab").WriteBytes(Memory::GetPointer(BufferOut2), ret);
             }
 
@@ -434,8 +435,8 @@ void WiiSocket::Update(bool read, bool write, bool except)
 
             if (SConfig::GetInstance().m_SSLDumpRead && ret > 0)
             {
-              std::string filename = File::GetUserPath(D_DUMPSSL_IDX) +
-                                     SConfig::GetInstance().GetGameID() + "_read.bin";
+              std::string filename =
+                  Paths::GetDumpSSLDir() + SConfig::GetInstance().GetGameID() + "_read.bin";
               File::IOFile(filename, "ab").WriteBytes(Memory::GetPointer(BufferIn2), ret);
             }
 

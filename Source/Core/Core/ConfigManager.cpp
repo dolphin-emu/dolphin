@@ -99,7 +99,7 @@ void CreateDumpPath(const std::string& path)
   File::SetUserPath(D_DUMP_IDX, path + '/');
   File::CreateFullPath(Paths::GetDumpAudioDir());
   File::CreateFullPath(Paths::GetDumpDSPDir());
-  File::CreateFullPath(File::GetUserPath(D_DUMPSSL_IDX));
+  File::CreateFullPath(Paths::GetDumpSSLDir());
   File::CreateFullPath(Paths::GetDumpFramesDir());
   File::CreateFullPath(Paths::GetDumpTexturesDir());
 }
