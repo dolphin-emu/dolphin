@@ -138,256 +138,66 @@
 #define WII_SYS_DIR "Wii"
 
 #include <string>
-#include "Common/FileUtil.h"
 
 namespace Paths
 {
-using namespace File;
-const std::string& GetUserDir()
-{
-  return GetUserPath(D_USER_IDX);
-};
+// Sets a user directory path
+// Rebuilds internal directory structure to compensate for the new directory
+void SetUserDir(std::string dir);
+void SetConfigDir(std::string dir);
+void SetCacheDir(std::string dir);
+void SetDumpDir(std::string dir);
+void SetWiiRootDir(std::string dir);
+void SetSessionWiiRootDir(std::string dir);
+void SetWiiSDCardFile(std::string file);
 
-const std::string& GetGCUserDir()
-{
-  return GetUserPath(D_GCUSER_IDX);
-}
-const std::string& GetWiiRootDir()
-{
-  return GetUserPath(D_WIIROOT_IDX);
-}
-
-const std::string& GetSessionWiiRootDir()
-{
-  return GetUserPath(D_SESSION_WIIROOT_IDX);
-}
-
-const std::string& GetConfigDir()
-{
-  return GetUserPath(D_CONFIG_IDX);
-}
-
-const std::string& GetGameSettingsDir()
-{
-  return GetUserPath(D_GAMESETTINGS_IDX);
-}
-
-const std::string& GetMapsDir()
-{
-  return GetUserPath(D_MAPS_IDX);
-}
-
-const std::string& GetCacheDir()
-{
-  return GetUserPath(D_CACHE_IDX);
-}
-
-const std::string& GetShaderCacheDir()
-{
-  return GetUserPath(D_SHADERCACHE_IDX);
-}
-
-const std::string& GetShadersDir()
-{
-  return GetUserPath(D_SHADERS_IDX);
-}
-const std::string& GetStateSavesDir()
-{
-  return GetUserPath(D_STATESAVES_IDX);
-}
-
-const std::string& GetScreenshotsDir()
-{
-  return GetUserPath(D_SCREENSHOTS_IDX);
-}
-
-const std::string& GetHiresTexturesDir()
-{
-  return GetUserPath(D_HIRESTEXTURES_IDX);
-}
-
-const std::string& GetDumpDir()
-{
-  return GetUserPath(D_DUMP_IDX);
-}
-
-const std::string& GetDumpFramesDir()
-{
-  return GetUserPath(D_DUMPFRAMES_IDX);
-}
-
-const std::string& GetDumpAudioDir()
-{
-  return GetUserPath(D_DUMPAUDIO_IDX);
-}
-
-const std::string& GetDumpTexturesDir()
-{
-  return GetUserPath(D_DUMPTEXTURES_IDX);
-}
-
-const std::string& GetDumpDSPDir()
-{
-  return GetUserPath(D_DUMPDSP_IDX);
-}
-
-const std::string& GetDumpSSLDir()
-{
-  return GetUserPath(D_DUMPSSL_IDX);
-}
-
-const std::string& GetLoadDir()
-{
-  return GetUserPath(D_LOAD_IDX);
-}
-
-const std::string& GetLogsDir()
-{
-  return GetUserPath(D_LOGS_IDX);
-}
-
-const std::string& GetMailLogsDir()
-{
-  return GetUserPath(D_MAILLOGS_IDX);
-}
-
-const std::string& GetThemesDir()
-{
-  return GetUserPath(D_THEMES_IDX);
-}
-
-const std::string& GetPipesDir()
-{
-  return GetUserPath(D_PIPES_IDX);
-}
-
-const std::string& GetMemoryWatcherDir()
-{
-  return GetUserPath(D_MEMORYWATCHER_IDX);
-}
-
-const std::string& GetWFSRootDir()
-{
-  return GetUserPath(D_WFSROOT_IDX);
-}
-
-const std::string& GetBackupDir()
-{
-  return GetUserPath(D_BACKUP_IDX);
-}
-
-const std::string& GetDolphinConfigFile()
-{
-  return GetUserPath(F_DOLPHINCONFIG_IDX);
-}
-
-const std::string& GetGCPadConfigFile()
-{
-  return GetUserPath(F_GCPADCONFIG_IDX);
-}
-
-const std::string& GetWiiPadConfigFile()
-{
-  return GetUserPath(F_WIIPADCONFIG_IDX);
-}
-
-const std::string& GetGCKeyboardConfigFile()
-{
-  return GetUserPath(F_GCKEYBOARDCONFIG_IDX);
-}
-
-const std::string& GetGFXConfigFile()
-{
-  return GetUserPath(F_GFXCONFIG_IDX);
-}
-
-const std::string& GetDebuggerConfigFile()
-{
-  return GetUserPath(F_DEBUGGERCONFIG_IDX);
-}
-
-const std::string& GetLoggerConfigFile()
-{
-  return GetUserPath(F_LOGGERCONFIG_IDX);
-}
-
-const std::string& GetUIConfigFile()
-{
-  return GetUserPath(F_UICONFIG_IDX);
-}
-
-const std::string& GetMainLogFile()
-{
-  return GetUserPath(F_MAINLOG_IDX);
-}
-
-const std::string& GetRAMDumpFile()
-{
-  return GetUserPath(F_RAMDUMP_IDX);
-}
-
-const std::string& GetARAMDumpFile()
-{
-  return GetUserPath(F_ARAMDUMP_IDX);
-}
-
-const std::string& GetFakeVMEMDumpFile()
-{
-  return GetUserPath(F_FAKEVMEMDUMP_IDX);
-}
-
-const std::string& GetGCSRAMFile()
-{
-  return GetUserPath(F_GCSRAM_IDX);
-}
-
-const std::string& GetMemoryWatcherLocationsFile()
-{
-  return GetUserPath(F_MEMORYWATCHERLOCATIONS_IDX);
-}
-
-const std::string& GetMemoryWatcherSocketFile()
-{
-  return GetUserPath(F_MEMORYWATCHERSOCKET_IDX);
-}
-
-const std::string& GetWiiSDCardFile()
-{
-  return GetUserPath(F_WIISDCARD_IDX);
-}
-
-void SetUserDir(std::string dir)
-{
-  SetUserPath(D_USER_IDX, dir);
-}
-
-void SetConfigDir(std::string dir)
-{
-  SetUserPath(D_CONFIG_IDX, dir);
-}
-
-void SetCacheDir(std::string dir)
-{
-  SetUserPath(D_CACHE_IDX, dir);
-}
-
-void SetDumpDir(std::string dir)
-{
-  SetUserPath(D_DUMP_IDX, dir);
-}
-
-void SetWiiRootDir(std::string dir)
-{
-  SetUserPath(D_WIIROOT_IDX, dir);
-}
-
-void SetSessionWiiRootDir(std::string dir)
-{
-  SetUserPath(D_SESSION_WIIROOT_IDX, dir);
-}
-
-void SetWiiSDCardFile(std::string file)
-{
-  SetUserPath(F_WIISDCARD_IDX, file);
-}
-}
+// Gets a set user directory path
+// Don't call prior to setting the base user directory
+const std::string& GetUserDir();
+const std::string& GetGCUserDir();
+// always points to User/Wii or global user-configured directory
+const std::string& GetWiiRootDir();
+// may point to minimal temporary directory for determinism
+const std::string& GetSessionWiiRootDir();
+// global settings
+const std::string& GetConfigDir();
+// user-specified settings which override both the global and the default settings (per game)
+const std::string& GetGameSettingsDir();
+const std::string& GetMapsDir();
+const std::string& GetCacheDir();
+const std::string& GetShaderCacheDir();
+const std::string& GetShadersDir();
+const std::string& GetStateSavesDir();
+const std::string& GetScreenshotsDir();
+const std::string& GetHiresTexturesDir();
+const std::string& GetDumpDir();
+const std::string& GetDumpFramesDir();
+const std::string& GetDumpAudioDir();
+const std::string& GetDumpTexturesDir();
+const std::string& GetDumpDSPDir();
+const std::string& GetDumpSSLDir();
+const std::string& GetLoadDir();
+const std::string& GetLogsDir();
+const std::string& GetMailLogsDir();
+const std::string& GetThemesDir();
+const std::string& GetPipesDir();
+const std::string& GetMemoryWatcherDir();
+const std::string& GetWFSRootDir();
+const std::string& GetBackupDir();
+const std::string& GetDolphinConfigFile();
+const std::string& GetGCPadConfigFile();
+const std::string& GetWiiPadConfigFile();
+const std::string& GetGCKeyboardConfigFile();
+const std::string& GetGFXConfigFile();
+const std::string& GetDebuggerConfigFile();
+const std::string& GetLoggerConfigFile();
+const std::string& GetUIConfigFile();
+const std::string& GetMainLogFile();
+const std::string& GetRAMDumpFile();
+const std::string& GetARAMDumpFile();
+const std::string& GetFakeVMEMDumpFile();
+const std::string& GetGCSRAMFile();
+const std::string& GetMemoryWatcherLocationsFile();
+const std::string& GetMemoryWatcherSocketFile();
+const std::string& GetWiiSDCardFile();
+}  // namespace Paths
