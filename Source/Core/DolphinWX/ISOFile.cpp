@@ -201,8 +201,8 @@ bool GameListItem::LoadFromCache()
 
 void GameListItem::SaveToCache()
 {
-  if (!File::IsDirectory(File::GetUserPath(D_CACHE_IDX)))
-    File::CreateDir(File::GetUserPath(D_CACHE_IDX));
+  if (!File::IsDirectory(Paths::GetCacheDir()))
+    File::CreateDir(Paths::GetCacheDir());
 
   CChunkFileReader::Save<GameListItem>(CreateCacheFilename(), CACHE_REVISION, *this);
 }
@@ -252,7 +252,7 @@ std::string GameListItem::CreateCacheFilename() const
                        HashFletcher((const u8*)LegalPathname.c_str(), LegalPathname.size()),
                        File::GetSize(m_FileName)));
 
-  std::string fullname(File::GetUserPath(D_CACHE_IDX));
+  std::string fullname(Paths::GetCacheDir());
   fullname += Filename;
   return fullname;
 }

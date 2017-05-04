@@ -176,4 +176,9 @@ const std::string& GetMapsDir()
 {
   return GetUserPath(D_MAPS_IDX);
 }
+
+const std::string& GetCacheDir()
+{
+  return GetUserPath(D_CACHE_IDX);
+}
 }

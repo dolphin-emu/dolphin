@@ -9,6 +9,7 @@
 #include <QSharedPointer>
 
 #include "Common/Assert.h"
+#include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/NandPaths.h"
 #include "Core/ConfigManager.h"
@@ -63,7 +64,7 @@ GameFile::GameFile(const QString& path) : m_path(path)
 
 QString GameFile::GetCacheFileName() const
 {
-  QString folder = QString::fromStdString(File::GetUserPath(D_CACHE_IDX));
+  QString folder = QString::fromStdString(Paths::GetCacheDir());
   // Append a hash of the full path to prevent name clashes between
   // files with the same names in different folders.
   QString hash =

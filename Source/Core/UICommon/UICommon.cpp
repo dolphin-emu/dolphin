@@ -50,7 +50,7 @@ void CreateDirectories()
   File::CopyDir(File::GetSysDirectory() + WII_USER_DIR, Paths::GetWiiRootDir());
 
   File::CreateFullPath(Paths::GetUserDir());
-  File::CreateFullPath(File::GetUserPath(D_CACHE_IDX));
+  File::CreateFullPath(Paths::GetCacheDir());
   File::CreateFullPath(Paths::GetConfigDir());
   File::CreateFullPath(File::GetUserPath(D_DUMPDSP_IDX));
   File::CreateFullPath(File::GetUserPath(D_DUMPSSL_IDX));
