@@ -17,6 +17,7 @@
 #include "Common/Swap.h"
 
 constexpr auto WII_SYSCONF_DIR = "shared2" DIR_SEP "sys";
+constexpr auto WII_WC24CONF_DIR = "shared2" DIR_SEP "wc24";
 
 namespace Common
 {
@@ -28,6 +29,11 @@ std::string RootUserPath(FromWhichRoot from)
 std::string GetSysconfDir(FromWhichRoot from)
 {
   return RootUserPath(from) + DIR_SEP + WII_SYSCONF_DIR + DIR_SEP;
+}
+
+std::string GetWC24ConfDir(FromWhichRoot from)
+{
+  return RootUserPath(from) + WII_WC24CONF_DIR;
 }
 
 std::string GetImportTitlePath(u64 title_id, FromWhichRoot from)

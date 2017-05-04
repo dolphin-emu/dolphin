@@ -10,6 +10,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
+#include "Common/NandPaths.h"
 #include "Common/Swap.h"
 
 namespace IOS
@@ -20,7 +21,7 @@ namespace NWC24
 {
 NWC24Config::NWC24Config()
 {
-  m_path = Paths::GetSessionWiiRootDir() + "/" WII_WC24CONF_DIR "/nwc24msg.cfg";
+  m_path = Common::GetWC24ConfDir(Common::FROM_SESSION_ROOT) + "nwc24msg.cfg";
   ReadConfig();
 }
 
@@ -49,7 +50,7 @@ void NWC24Config::WriteConfig() const
 {
   if (!File::Exists(m_path))
   {
-    if (!File::CreateFullPath(Paths::GetSessionWiiRootDir() + "/" WII_WC24CONF_DIR))
+    if (!File::CreateFullPath(Common::GetWC24ConfDir(Common::FROM_SESSION_ROOT)))
     {
       ERROR_LOG(IOS_WC24, "Failed to create directory for WC24");
     }
