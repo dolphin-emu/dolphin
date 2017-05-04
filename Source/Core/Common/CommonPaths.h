@@ -285,4 +285,9 @@ const std::string& GetGCPadConfigFile()
 {
   return GetUserPath(F_GCPADCONFIG_IDX);
 }
+
+const std::string& GetWiiPadConfigFile()
+{
+  return GetUserPath(F_WIIPADCONFIG_IDX);
+}
 }
