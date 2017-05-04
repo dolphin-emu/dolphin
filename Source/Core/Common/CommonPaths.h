@@ -300,4 +300,9 @@ const std::string& GetGFXConfigFile()
 {
   return GetUserPath(F_GFXCONFIG_IDX);
 }
+
+const std::string& GetDebuggerConfigFile()
+{
+  return GetUserPath(F_DEBUGGERCONFIG_IDX);
+}
 }

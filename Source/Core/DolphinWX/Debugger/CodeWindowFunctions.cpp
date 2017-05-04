@@ -60,7 +60,7 @@
 void CCodeWindow::Load()
 {
   IniFile ini;
-  ini.Load(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
+  ini.Load(Paths::GetDebuggerConfigFile());
 
   // The font to override DebuggerFont with
   std::string fontDesc;
@@ -98,7 +98,7 @@ void CCodeWindow::Load()
 void CCodeWindow::Save()
 {
   IniFile ini;
-  ini.Load(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
+  ini.Load(Paths::GetDebuggerConfigFile());
 
   IniFile::Section* general = ini.GetOrCreateSection("General");
   general->Set("DebuggerFont", WxStrToStr(DebuggerFont.GetNativeFontInfoUserDesc()));
@@ -123,7 +123,7 @@ void CCodeWindow::Save()
     ini.GetOrCreateSection("Float")->Set(SettingName[i - IDM_LOG_WINDOW_PARENT],
                                          !!FindWindowById(i));
 
-  ini.Save(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
+  ini.Save(Paths::GetDebuggerConfigFile());
 }
 
 void CCodeWindow::OnProfilerMenu(wxCommandEvent& event)
