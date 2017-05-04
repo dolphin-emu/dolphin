@@ -90,9 +90,6 @@ std::string CreateTempDir();
 // Get a filename that can hopefully be atomically renamed to the given path.
 std::string GetTempFilenameForAtomicWrite(const std::string& path);
 
-// probably doesn't belong here
-std::string GetThemeDir(const std::string& theme_name);
-
 // Returns the path to where the sys file are
 std::string GetSysDirectory();
 

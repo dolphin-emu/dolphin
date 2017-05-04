@@ -391,7 +391,7 @@ wxBitmap LoadScaledThemeBitmap(const std::string& name, const wxWindow* context,
                                const wxSize& output_size, const wxRect& usable_rect, LSIFlags flags,
                                const wxColour& fill_color)
 {
-  std::string path = File::GetThemeDir(SConfig::GetInstance().theme_name) + name + ".png";
+  std::string path = Paths::GetThemeDir(SConfig::GetInstance().theme_name) + name + ".png";
   return LoadScaledBitmap(path, context, output_size, usable_rect, flags, fill_color);
 }
 

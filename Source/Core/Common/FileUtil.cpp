@@ -752,21 +752,6 @@ std::string GetSysDirectory()
   return sysDir;
 }
 
-std::string GetThemeDir(const std::string& theme_name)
-{
-  std::string dir = Paths::GetThemesDir() + theme_name + "/";
-  if (File::Exists(dir))
-    return dir;
-
-  // If the theme doesn't exist in the user dir, load from shared directory
-  dir = GetSysDirectory() + THEMES_DIR "/" + theme_name + "/";
-  if (File::Exists(dir))
-    return dir;
-
-  // If the theme doesn't exist at all, load the default theme
-  return GetSysDirectory() + THEMES_DIR "/" DEFAULT_THEME_DIR "/";
-}
-
 bool WriteStringToFile(const std::string& str, const std::string& filename)
 {
   return File::IOFile(filename, "wb").WriteBytes(str.data(), str.size());

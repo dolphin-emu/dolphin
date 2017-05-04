@@ -200,4 +200,6 @@ const std::string& GetGCSRAMFile();
 const std::string& GetMemoryWatcherLocationsFile();
 const std::string& GetMemoryWatcherSocketFile();
 const std::string& GetWiiSDCardFile();
+
+std::string GetThemeDir(const std::string& theme);
 }  // namespace Paths

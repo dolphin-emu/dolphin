@@ -418,4 +418,19 @@ const std::string& GetWiiSDCardFile()
   return GetUserPath(F_WIISDCARD_IDX);
 }
 
+std::string GetThemeDir(const std::string& theme_name)
+{
+  std::string dir = GetThemesDir() + theme_name + "/";
+  if (File::Exists(dir))
+    return dir;
+
+  // If the theme doesn't exist in the user dir, load from shared directory
+  dir = File::GetSysDirectory() + THEMES_DIR "/" + theme_name + "/";
+  if (File::Exists(dir))
+    return dir;
+
+  // If the theme doesn't exist at all, load the default theme
+  return File::GetSysDirectory() + THEMES_DIR "/" DEFAULT_THEME_DIR "/";
+}
+
 }  // namespace Paths
