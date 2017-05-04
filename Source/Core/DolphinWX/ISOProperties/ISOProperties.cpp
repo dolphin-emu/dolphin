@@ -202,7 +202,7 @@ CISOProperties::CISOProperties(const GameListItem& game_list_item, wxWindow* par
   game_id = m_open_iso->GetGameID();
 
   // Load game INIs
-  GameIniFileLocal = File::GetUserPath(D_GAMESETTINGS_IDX) + game_id + ".ini";
+  GameIniFileLocal = Paths::GetGameSettingsDir() + game_id + ".ini";
   GameIniDefault = SConfig::LoadDefaultGameIni(game_id, m_open_iso->GetRevision());
   GameIniLocal = SConfig::LoadLocalGameIni(game_id, m_open_iso->GetRevision());
 

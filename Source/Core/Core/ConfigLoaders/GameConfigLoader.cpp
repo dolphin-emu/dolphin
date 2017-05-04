@@ -261,7 +261,7 @@ public:
     else
     {
       for (const std::string& filename : GetGameIniFilenames(m_id, m_revision))
-        ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + filename, true);
+        ini.Load(Paths::GetGameSettingsDir() + filename, true);
     }
 
     const std::list<IniFile::Section>& system_sections = ini.GetSections();
@@ -385,7 +385,7 @@ void INIGameConfigLayerLoader::Save(Config::Layer* config_layer)
 
   IniFile ini;
   for (const std::string& file_name : GetGameIniFilenames(m_id, m_revision))
-    ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + file_name, true);
+    ini.Load(Paths::GetGameSettingsDir() + file_name, true);
 
   for (const auto& system : config_layer->GetLayerMap())
   {
@@ -406,7 +406,7 @@ void INIGameConfigLayerLoader::Save(Config::Layer* config_layer)
 
   // Try to save to the revision specific INI first, if it exists.
   const std::string gameini_with_rev =
-      File::GetUserPath(D_GAMESETTINGS_IDX) + m_id + StringFromFormat("r%d", m_revision) + ".ini";
+      Paths::GetGameSettingsDir() + m_id + StringFromFormat("r%d", m_revision) + ".ini";
   if (File::Exists(gameini_with_rev))
   {
     ini.Save(gameini_with_rev);
@@ -415,7 +415,7 @@ void INIGameConfigLayerLoader::Save(Config::Layer* config_layer)
 
   // Otherwise, save to the game INI. We don't try any INI broader than that because it will
   // likely cause issues with cheat codes and game patches.
-  const std::string gameini = File::GetUserPath(D_GAMESETTINGS_IDX) + m_id + ".ini";
+  const std::string gameini = Paths::GetGameSettingsDir() + m_id + ".ini";
   ini.Save(gameini);
 }
 

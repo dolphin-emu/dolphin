@@ -55,7 +55,7 @@ void CreateDirectories()
   File::CreateFullPath(File::GetUserPath(D_DUMPDSP_IDX));
   File::CreateFullPath(File::GetUserPath(D_DUMPSSL_IDX));
   File::CreateFullPath(File::GetUserPath(D_DUMPTEXTURES_IDX));
-  File::CreateFullPath(File::GetUserPath(D_GAMESETTINGS_IDX));
+  File::CreateFullPath(Paths::GetGameSettingsDir());
   File::CreateFullPath(Paths::GetGCUserDir());
   File::CreateFullPath(Paths::GetGCUserDir() + USA_DIR DIR_SEP);
   File::CreateFullPath(Paths::GetGCUserDir() + EUR_DIR DIR_SEP);

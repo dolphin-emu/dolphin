@@ -1149,7 +1149,7 @@ IniFile SConfig::LoadLocalGameIni(const std::string& id, u16 revision)
 {
   IniFile game_ini;
   for (const std::string& filename : GetGameIniFilenames(id, revision))
-    game_ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + filename, true);
+    game_ini.Load(Paths::GetGameSettingsDir() + filename, true);
   return game_ini;
 }
 
@@ -1159,7 +1159,7 @@ IniFile SConfig::LoadGameIni(const std::string& id, u16 revision)
   for (const std::string& filename : GetGameIniFilenames(id, revision))
     game_ini.Load(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + filename, true);
   for (const std::string& filename : GetGameIniFilenames(id, revision))
-    game_ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + filename, true);
+    game_ini.Load(Paths::GetGameSettingsDir() + filename, true);
   return game_ini;
 }
 
