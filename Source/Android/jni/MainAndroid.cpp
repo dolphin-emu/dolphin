@@ -658,12 +658,10 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_CreateUserFo
 {
   File::CreateFullPath(File::GetUserPath(D_CONFIG_IDX));
   File::CreateFullPath(Paths::GetGCUserDir());
-  File::CreateFullPath(File::GetUserPath(D_WIIROOT_IDX) + DIR_SEP WII_WC24CONF_DIR DIR_SEP
-                       "mbox" DIR_SEP);
-  File::CreateFullPath(File::GetUserPath(D_WIIROOT_IDX) + DIR_SEP "shared2" DIR_SEP
-                                                                  "succession" DIR_SEP);
-  File::CreateFullPath(File::GetUserPath(D_WIIROOT_IDX) + DIR_SEP "shared2" DIR_SEP "ec" DIR_SEP);
-  File::CreateFullPath(File::GetUserPath(D_WIIROOT_IDX) + DIR_SEP WII_SYSCONF_DIR DIR_SEP);
+  File::CreateFullPath(Paths::GetWiiRootDir() + DIR_SEP WII_WC24CONF_DIR DIR_SEP "mbox" DIR_SEP);
+  File::CreateFullPath(Paths::GetWiiRootDir() + DIR_SEP "shared2" DIR_SEP "succession" DIR_SEP);
+  File::CreateFullPath(Paths::GetWiiRootDir() + DIR_SEP "shared2" DIR_SEP "ec" DIR_SEP);
+  File::CreateFullPath(Paths::GetWiiRootDir() + DIR_SEP WII_SYSCONF_DIR DIR_SEP);
   File::CreateFullPath(File::GetUserPath(D_CACHE_IDX));
   File::CreateFullPath(File::GetUserPath(D_DUMPDSP_IDX));
   File::CreateFullPath(File::GetUserPath(D_DUMPTEXTURES_IDX));

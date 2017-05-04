@@ -152,4 +152,8 @@ const std::string& GetGCUserDir()
 {
   return GetUserPath(D_GCUSER_IDX);
 }
+const std::string& GetWiiRootDir()
+{
+  return GetUserPath(D_WIIROOT_IDX);
+}
 }

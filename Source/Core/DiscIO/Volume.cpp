@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "Common/ColorUtil.h"
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
@@ -30,9 +31,9 @@ std::vector<u32> IVolume::GetWiiBanner(int* width, int* height, u64 title_id)
   *width = 0;
   *height = 0;
 
-  std::string file_name = StringFromFormat("%s/title/%08x/%08x/data/banner.bin",
-                                           File::GetUserPath(D_WIIROOT_IDX).c_str(),
-                                           (u32)(title_id >> 32), (u32)title_id);
+  std::string file_name =
+      StringFromFormat("%s/title/%08x/%08x/data/banner.bin", Paths::GetWiiRootDir().c_str(),
+                       (u32)(title_id >> 32), (u32)title_id);
   if (!File::Exists(file_name))
     return std::vector<u32>();
 

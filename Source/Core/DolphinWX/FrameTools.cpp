@@ -23,6 +23,7 @@
 #include <wx/toplevel.h>
 
 #include "Common/CDUtils.h"
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
@@ -1268,7 +1269,7 @@ void CFrame::OnImportBootMiiBackup(wxCommandEvent& WXUNUSED(event))
 
 void CFrame::OnExtractCertificates(wxCommandEvent& WXUNUSED(event))
 {
-  DiscIO::NANDImporter().ExtractCertificates(File::GetUserPath(D_WIIROOT_IDX));
+  DiscIO::NANDImporter().ExtractCertificates(Paths::GetWiiRootDir());
 }
 
 void CFrame::UpdateLoadWiiMenuItem() const

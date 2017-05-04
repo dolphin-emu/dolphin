@@ -14,6 +14,7 @@
 
 #include <mbedtls/sha1.h>
 
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/Crypto/ec.h"
 #include "Common/FileUtil.h"
@@ -120,7 +121,7 @@ void MakeAPSigAndCert(u8* sig_out, u8* ap_cert_out, u64 title_id, u8* data, u32 
 EcWii::EcWii()
 {
   bool init = true;
-  std::string keys_path = File::GetUserPath(D_WIIROOT_IDX) + "/keys.bin";
+  std::string keys_path = Paths::GetWiiRootDir() + "/keys.bin";
   if (File::Exists(keys_path))
   {
     File::IOFile keys_f(keys_path, "rb");

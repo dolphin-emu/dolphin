@@ -59,7 +59,7 @@ bool CWiiSaveCrypted::ExportWiiSave(u64 title_id)
 
 void CWiiSaveCrypted::ExportAllSaves()
 {
-  std::string title_folder = File::GetUserPath(D_WIIROOT_IDX) + "/title";
+  std::string title_folder = Paths::GetWiiRootDir() + "/title";
   std::vector<u64> titles;
   const u32 path_mask = 0x00010000;
   for (int i = 0; i < 8; ++i)
