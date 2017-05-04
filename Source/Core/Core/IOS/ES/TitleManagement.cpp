@@ -9,10 +9,10 @@
 #include <utility>
 #include <vector>
 
-#include <mbedtls/aes.h>
 #include <mbedtls/sha1.h>
 
 #include "Common/Align.h"
+#include "Common/Crypto/AES.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/NandPaths.h"
@@ -207,9 +207,6 @@ IPCCommandResult ES::AddContentFinish(Context& context, const IOCtlVRequest& req
     return GetDefaultReply(ES_NO_TICKET);
   }
 
-  mbedtls_aes_context aes_ctx;
-  mbedtls_aes_setkey_dec(&aes_ctx, ticket.GetTitleKey().data(), 128);
-
   // The IV for title content decryption is the lower two bytes of the
   // content index, zero extended.
   IOS::ES::Content content_info;
@@ -220,9 +217,9 @@ IPCCommandResult ES::AddContentFinish(Context& context, const IOCtlVRequest& req
   u8 iv[16] = {0};
   iv[0] = (content_info.index >> 8) & 0xFF;
   iv[1] = content_info.index & 0xFF;
-  std::vector<u8> decrypted_data(context.title_import.content_buffer.size());
-  mbedtls_aes_crypt_cbc(&aes_ctx, MBEDTLS_AES_DECRYPT, context.title_import.content_buffer.size(),
-                        iv, context.title_import.content_buffer.data(), decrypted_data.data());
+  std::vector<u8> decrypted_data = Common::AES::Decrypt(ticket.GetTitleKey().data(), iv,
+                                                        context.title_import.content_buffer.data(),
+                                                        context.title_import.content_buffer.size());
   if (!CheckIfContentHashMatches(decrypted_data, content_info))
   {
     ERROR_LOG(IOS_ES, "AddContentFinish: Hash for content %08x doesn't match", content_info.id);
@@ -480,18 +477,10 @@ IPCCommandResult ES::ExportContentData(Context& context, const IOCtlVRequest& re
   // IOS aligns the buffer to 32 bytes. Since we also need to align it to 16 bytes,
   // let's just follow IOS here.
   buffer.resize(Common::AlignUp(buffer.size(), 32));
-  std::vector<u8> output(buffer.size());
 
-  mbedtls_aes_context aes_ctx;
-  mbedtls_aes_setkey_enc(&aes_ctx, context.title_export.title_key.data(), 128);
-  const int ret = mbedtls_aes_crypt_cbc(&aes_ctx, MBEDTLS_AES_ENCRYPT, buffer.size(),
-                                        iterator->second.iv.data(), buffer.data(), output.data());
-  if (ret != 0)
-  {
-    // XXX: proper error code when IOSC_Encrypt fails.
-    ERROR_LOG(IOS_ES, "ExportContentData: Failed to encrypt content.");
-    return GetDefaultReply(ES_EINVAL);
-  }
+  const std::vector<u8> output =
+      Common::AES::Encrypt(context.title_export.title_key.data(), iterator->second.iv.data(),
+                           buffer.data(), buffer.size());
 
   Memory::CopyToEmu(request.io_vectors[0].address, output.data(), output.size());
   metadata.m_position += length;

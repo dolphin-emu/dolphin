@@ -169,15 +169,15 @@ IPCCommandResult FileIO::Seek(const SeekRequest& request)
   u32 new_position = 0;
   switch (request.mode)
   {
-  case SeekRequest::IOS_SEEK_SET:
+  case IOS_SEEK_SET:
     new_position = request.offset;
     break;
 
-  case SeekRequest::IOS_SEEK_CUR:
+  case IOS_SEEK_CUR:
     new_position = m_SeekPos + request.offset;
     break;
 
-  case SeekRequest::IOS_SEEK_END:
+  case IOS_SEEK_END:
     new_position = file_size + request.offset;
     break;
 

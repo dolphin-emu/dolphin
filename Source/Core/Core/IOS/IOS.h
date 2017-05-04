@@ -15,6 +15,7 @@
 #include "Common/CommonTypes.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/SystemTimers.h"
+#include "Core/IOS/IOSC.h"
 
 class PointerWrap;
 
@@ -55,6 +56,30 @@ enum IPCCommandType : u32
   IPC_REPLY = 8,
 };
 
+enum ProcessId : u32
+{
+  PID_KERNEL = 0,
+  PID_ES = 1,
+  PID_FS = 2,
+  PID_DI = 3,
+  PID_OH0 = 4,
+  PID_OH1 = 5,
+  PID_EHCI = 6,
+  PID_SDI = 7,
+  PID_USBETH = 8,
+  PID_NET = 9,
+  PID_WD = 10,
+  PID_WL = 11,
+  PID_KD = 12,
+  PID_NCD = 13,
+  PID_STM = 14,
+  PID_PPCBOOT = 15,
+  PID_SSL = 16,
+  PID_USB = 17,
+  PID_P2P = 18,
+  PID_UNKNOWN = 19,
+};
+
 // HLE for the IOS kernel: IPC, device management, syscalls, and Dolphin-specific, IOS-wide calls.
 class Kernel
 {
@@ -84,6 +109,8 @@ public:
   bool BootIOS(u64 ios_title_id);
   u32 GetVersion() const;
 
+  IOSC& GetIOSC();
+
 private:
   void ExecuteIPCCommand(u32 address);
   IPCCommandResult HandleIPCCommand(const Request& request);
@@ -109,6 +136,8 @@ private:
   IPCMsgQueue m_reply_queue;    // arm -> ppc
   IPCMsgQueue m_ack_queue;      // arm -> ppc
   u64 m_last_reply_time = 0;
+
+  IOSC m_iosc;
 };
 
 // Used for controlling and accessing an IOS instance that is tied to emulation.
