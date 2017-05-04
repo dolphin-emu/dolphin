@@ -44,8 +44,8 @@ static u32 StateChecksum(const StateFlags& flags)
 
 bool CBoot::Boot_WiiWAD(const std::string& _pFilename)
 {
-  std::string state_filename(Common::GetTitleDataPath(TITLEID_SYSMENU, Common::FROM_SESSION_ROOT) +
-                             WII_STATE);
+  std::string state_filename =
+      Common::GetTitleStateFileName(TITLEID_SYSMENU, Common::FROM_SESSION_ROOT);
 
   if (File::Exists(state_filename))
   {

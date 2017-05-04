@@ -16,6 +16,7 @@
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
 
+constexpr auto WII_STATE_FILE = "state.dat";
 constexpr auto WII_SYSCONF_DIR = "shared2" DIR_SEP "sys";
 constexpr auto WII_WC24CONF_DIR = "shared2" DIR_SEP "wc24";
 
@@ -53,6 +54,11 @@ std::string GetTitleDataPath(u64 _titleID, FromWhichRoot from)
 {
   return StringFromFormat("%s/title/%08x/%08x/data/", RootUserPath(from).c_str(),
                           (u32)(_titleID >> 32), (u32)_titleID);
+}
+
+std::string GetTitleStateFileName(u64 titleID, FromWhichRoot from)
+{
+  return GetTitleDataPath(titleID, from) + WII_STATE_FILE;
 }
 
 std::string GetTMDFileName(u64 _titleID, FromWhichRoot from)
