@@ -325,4 +325,9 @@ const std::string& GetRAMDumpFile()
 {
   return GetUserPath(F_RAMDUMP_IDX);
 }
+
+const std::string& GetARAMDumpFile()
+{
+  return GetUserPath(F_ARAMDUMP_IDX);
+}
 }

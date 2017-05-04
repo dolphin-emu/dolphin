@@ -286,11 +286,11 @@ void CMemoryWindow::OnDumpMem2(wxCommandEvent& event)
 {
   if (SConfig::GetInstance().bWii)
   {
-    DumpArray(File::GetUserPath(F_ARAMDUMP_IDX), Memory::m_pEXRAM, Memory::EXRAM_SIZE);
+    DumpArray(Paths::GetARAMDumpFile(), Memory::m_pEXRAM, Memory::EXRAM_SIZE);
   }
   else
   {
-    DumpArray(File::GetUserPath(F_ARAMDUMP_IDX), DSP::GetARAMPtr(), DSP::ARAM_SIZE);
+    DumpArray(Paths::GetARAMDumpFile(), DSP::GetARAMPtr(), DSP::ARAM_SIZE);
   }
 }
 
