@@ -295,4 +295,9 @@ const std::string& GetGCKeyboardConfigFile()
 {
   return GetUserPath(F_GCKEYBOARDCONFIG_IDX);
 }
+
+const std::string& GetGFXConfigFile()
+{
+  return GetUserPath(F_GFXCONFIG_IDX);
+}
 }
