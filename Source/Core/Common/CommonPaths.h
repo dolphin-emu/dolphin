@@ -265,4 +265,9 @@ const std::string& GetMemoryWatcherDir()
 {
   return GetUserPath(D_MEMORYWATCHER_IDX);
 }
+
+const std::string& GetWFSRootDir()
+{
+  return GetUserPath(D_WFSROOT_IDX);
+}
 }

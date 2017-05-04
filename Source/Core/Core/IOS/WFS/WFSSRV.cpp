@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
@@ -21,7 +22,7 @@ namespace WFS
 {
 std::string NativePath(const std::string& wfs_path)
 {
-  return File::GetUserPath(D_WFSROOT_IDX) + Common::EscapePath(wfs_path);
+  return Paths::GetWFSRootDir() + Common::EscapePath(wfs_path);
 }
 }  // namespace WFS
 
