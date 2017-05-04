@@ -84,114 +84,105 @@
 #define MEMORYWATCHER_LOCATIONS "Locations.txt"
 #define MEMORYWATCHER_SOCKET "MemoryWatcher"
 
-// User directory indices for s_user_paths
-enum
-{
-  D_USER_IDX,
-  D_GCUSER_IDX,
-  D_WIIROOT_IDX,
-  D_SESSION_WIIROOT_IDX,
-  D_CONFIG_IDX,
-  D_GAMESETTINGS_IDX,
-  D_MAPS_IDX,
-  D_CACHE_IDX,
-  D_SHADERCACHE_IDX,
-  D_SHADERS_IDX,
-  D_STATESAVES_IDX,
-  D_SCREENSHOTS_IDX,
-  D_HIRESTEXTURES_IDX,
-  D_DUMP_IDX,
-  D_DUMPFRAMES_IDX,
-  D_DUMPAUDIO_IDX,
-  D_DUMPTEXTURES_IDX,
-  D_DUMPDSP_IDX,
-  D_DUMPSSL_IDX,
-  D_LOAD_IDX,
-  D_LOGS_IDX,
-  D_MAILLOGS_IDX,
-  D_THEMES_IDX,
-  D_PIPES_IDX,
-  D_MEMORYWATCHER_IDX,
-  D_WFSROOT_IDX,
-  D_BACKUP_IDX,
-  F_DOLPHINCONFIG_IDX,
-  F_GCPADCONFIG_IDX,
-  F_WIIPADCONFIG_IDX,
-  F_GCKEYBOARDCONFIG_IDX,
-  F_GFXCONFIG_IDX,
-  F_DEBUGGERCONFIG_IDX,
-  F_LOGGERCONFIG_IDX,
-  F_UICONFIG_IDX,
-  F_MAINLOG_IDX,
-  F_RAMDUMP_IDX,
-  F_ARAMDUMP_IDX,
-  F_FAKEVMEMDUMP_IDX,
-  F_GCSRAM_IDX,
-  F_MEMORYWATCHERLOCATIONS_IDX,
-  F_MEMORYWATCHERSOCKET_IDX,
-  F_WIISDCARD_IDX,
-  NUM_PATH_INDICES
-};
-
-static std::string s_user_paths[NUM_PATH_INDICES];
+static std::string s_user_dir;
+static std::string s_gcuser_dir;
+static std::string s_wiiroot_dir;
+static std::string s_session_wiiroot_dir;
+static std::string s_config_dir;
+static std::string s_gamesettings_dir;
+static std::string s_maps_dir;
+static std::string s_cache_dir;
+static std::string s_shadercache_dir;
+static std::string s_shaders_dir;
+static std::string s_statesaves_dir;
+static std::string s_screenshots_dir;
+static std::string s_hirestextures_dir;
+static std::string s_dump_dir;
+static std::string s_dumpframes_dir;
+static std::string s_dumpaudio_dir;
+static std::string s_dumptextures_dir;
+static std::string s_dumpdsp_dir;
+static std::string s_dumpssl_dir;
+static std::string s_load_dir;
+static std::string s_logs_dir;
+static std::string s_maillogs_dir;
+static std::string s_themes_dir;
+static std::string s_pipes_dir;
+static std::string s_memorywatcher_dir;
+static std::string s_wfsroot_dir;
+static std::string s_backup_dir;
+static std::string s_dolphinconfig_file;
+static std::string s_gcpadconfig_file;
+static std::string s_wiipadconfig_file;
+static std::string s_gckeyboardconfig_file;
+static std::string s_gfxconfig_file;
+static std::string s_debuggerconfig_file;
+static std::string s_loggerconfig_file;
+static std::string s_uiconfig_file;
+static std::string s_mainlog_file;
+static std::string s_ramdump_file;
+static std::string s_aramdump_file;
+static std::string s_fakevmemdump_file;
+static std::string s_gcsram_file;
+static std::string s_memorywatcherlocations_file;
+static std::string s_memorywatchersocket_file;
+static std::string s_wiisdcard_file;
 
 // Rebuilds internal directory structure to compensate for the new directory
 static void RebuildUserDirectories()
 {
-  s_user_paths[D_GAMESETTINGS_IDX] = s_user_paths[D_USER_IDX] + GAMESETTINGS_DIR DIR_SEP;
-  s_user_paths[D_BACKUP_IDX] = s_user_paths[D_USER_IDX] + BACKUP_DIR DIR_SEP;
-  s_user_paths[D_MAPS_IDX] = s_user_paths[D_USER_IDX] + MAPS_DIR DIR_SEP;
-  s_user_paths[D_PIPES_IDX] = s_user_paths[D_USER_IDX] + PIPES_DIR DIR_SEP;
-  s_user_paths[D_SCREENSHOTS_IDX] = s_user_paths[D_USER_IDX] + SCREENSHOTS_DIR DIR_SEP;
-  s_user_paths[D_SHADERS_IDX] = s_user_paths[D_USER_IDX] + SHADERS_DIR DIR_SEP;
-  s_user_paths[D_STATESAVES_IDX] = s_user_paths[D_USER_IDX] + STATESAVES_DIR DIR_SEP;
-  s_user_paths[D_THEMES_IDX] = s_user_paths[D_USER_IDX] + THEMES_DIR DIR_SEP;
-  s_user_paths[D_WFSROOT_IDX] = s_user_paths[D_USER_IDX] + WFSROOT_DIR DIR_SEP;
+  s_gamesettings_dir = s_user_dir + GAMESETTINGS_DIR DIR_SEP;
+  s_backup_dir = s_user_dir + BACKUP_DIR DIR_SEP;
+  s_maps_dir = s_user_dir + MAPS_DIR DIR_SEP;
+  s_pipes_dir = s_user_dir + PIPES_DIR DIR_SEP;
+  s_screenshots_dir = s_user_dir + SCREENSHOTS_DIR DIR_SEP;
+  s_shaders_dir = s_user_dir + SHADERS_DIR DIR_SEP;
+  s_statesaves_dir = s_user_dir + STATESAVES_DIR DIR_SEP;
+  s_themes_dir = s_user_dir + THEMES_DIR DIR_SEP;
+  s_wfsroot_dir = s_user_dir + WFSROOT_DIR DIR_SEP;
 
-  s_user_paths[D_GCUSER_IDX] = s_user_paths[D_USER_IDX] + GC_USER_DIR DIR_SEP;
-  s_user_paths[F_GCSRAM_IDX] = s_user_paths[D_GCUSER_IDX] + GC_SRAM;
+  s_gcuser_dir = s_user_dir + GC_USER_DIR DIR_SEP;
+  s_gcsram_file = s_gcuser_dir + GC_SRAM;
 
-  s_user_paths[D_WIIROOT_IDX] = s_user_paths[D_USER_IDX] + WII_USER_DIR;
-  s_user_paths[F_WIISDCARD_IDX] = s_user_paths[D_WIIROOT_IDX] + DIR_SEP WII_SDCARD;
+  s_wiiroot_dir = s_user_dir + WII_USER_DIR;
+  s_wiisdcard_file = s_wiiroot_dir + DIR_SEP WII_SDCARD;
 
-  s_user_paths[D_CACHE_IDX] = s_user_paths[D_USER_IDX] + CACHE_DIR DIR_SEP;
-  s_user_paths[D_SHADERCACHE_IDX] = s_user_paths[D_CACHE_IDX] + SHADERCACHE_DIR DIR_SEP;
+  s_cache_dir = s_user_dir + CACHE_DIR DIR_SEP;
+  s_shadercache_dir = s_cache_dir + SHADERCACHE_DIR DIR_SEP;
   // The shader cache has moved to the cache directory, so remove the old one.
   // TODO: remove that someday.
-  File::DeleteDirRecursively(s_user_paths[D_USER_IDX] + SHADERCACHE_LEGACY_DIR DIR_SEP);
+  File::DeleteDirRecursively(s_user_dir + SHADERCACHE_LEGACY_DIR DIR_SEP);
 
-  s_user_paths[D_LOAD_IDX] = s_user_paths[D_USER_IDX] + LOAD_DIR DIR_SEP;
-  s_user_paths[D_HIRESTEXTURES_IDX] = s_user_paths[D_LOAD_IDX] + HIRES_TEXTURES_DIR DIR_SEP;
+  s_load_dir = s_user_dir + LOAD_DIR DIR_SEP;
+  s_hirestextures_dir = s_load_dir + HIRES_TEXTURES_DIR DIR_SEP;
 
-  s_user_paths[D_DUMP_IDX] = s_user_paths[D_USER_IDX] + DUMP_DIR DIR_SEP;
-  s_user_paths[D_DUMPAUDIO_IDX] = s_user_paths[D_DUMP_IDX] + DUMP_AUDIO_DIR DIR_SEP;
-  s_user_paths[D_DUMPDSP_IDX] = s_user_paths[D_DUMP_IDX] + DUMP_DSP_DIR DIR_SEP;
-  s_user_paths[D_DUMPFRAMES_IDX] = s_user_paths[D_DUMP_IDX] + DUMP_FRAMES_DIR DIR_SEP;
-  s_user_paths[D_DUMPSSL_IDX] = s_user_paths[D_DUMP_IDX] + DUMP_SSL_DIR DIR_SEP;
-  s_user_paths[D_DUMPTEXTURES_IDX] = s_user_paths[D_DUMP_IDX] + DUMP_TEXTURES_DIR DIR_SEP;
-  s_user_paths[F_ARAMDUMP_IDX] = s_user_paths[D_DUMP_IDX] + ARAM_DUMP;
-  s_user_paths[F_FAKEVMEMDUMP_IDX] = s_user_paths[D_DUMP_IDX] + FAKEVMEM_DUMP;
-  s_user_paths[F_RAMDUMP_IDX] = s_user_paths[D_DUMP_IDX] + RAM_DUMP;
+  s_dump_dir = s_user_dir + DUMP_DIR DIR_SEP;
+  s_dumpaudio_dir = s_dump_dir + DUMP_AUDIO_DIR DIR_SEP;
+  s_dumpdsp_dir = s_dump_dir + DUMP_DSP_DIR DIR_SEP;
+  s_dumpframes_dir = s_dump_dir + DUMP_FRAMES_DIR DIR_SEP;
+  s_dumpssl_dir = s_dump_dir + DUMP_SSL_DIR DIR_SEP;
+  s_dumptextures_dir = s_dump_dir + DUMP_TEXTURES_DIR DIR_SEP;
+  s_aramdump_file = s_dump_dir + ARAM_DUMP;
+  s_fakevmemdump_file = s_dump_dir + FAKEVMEM_DUMP;
+  s_ramdump_file = s_dump_dir + RAM_DUMP;
 
-  s_user_paths[D_LOGS_IDX] = s_user_paths[D_USER_IDX] + LOGS_DIR DIR_SEP;
-  s_user_paths[D_MAILLOGS_IDX] = s_user_paths[D_LOGS_IDX] + MAIL_LOGS_DIR DIR_SEP;
-  s_user_paths[F_MAINLOG_IDX] = s_user_paths[D_LOGS_IDX] + MAIN_LOG;
+  s_logs_dir = s_user_dir + LOGS_DIR DIR_SEP;
+  s_maillogs_dir = s_logs_dir + MAIL_LOGS_DIR DIR_SEP;
+  s_mainlog_file = s_logs_dir + MAIN_LOG;
 
-  s_user_paths[D_CONFIG_IDX] = s_user_paths[D_USER_IDX] + CONFIG_DIR DIR_SEP;
-  s_user_paths[F_DEBUGGERCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + DEBUGGER_CONFIG;
-  s_user_paths[F_DOLPHINCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + DOLPHIN_CONFIG;
-  s_user_paths[F_GCKEYBOARDCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + GCKEYBOARD_CONFIG;
-  s_user_paths[F_GCPADCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + GCPAD_CONFIG;
-  s_user_paths[F_GFXCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + GFX_CONFIG;
-  s_user_paths[F_LOGGERCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + LOGGER_CONFIG;
-  s_user_paths[F_UICONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + UI_CONFIG;
-  s_user_paths[F_WIIPADCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + WIIPAD_CONFIG;
+  s_config_dir = s_user_dir + CONFIG_DIR DIR_SEP;
+  s_debuggerconfig_file = s_config_dir + DEBUGGER_CONFIG;
+  s_dolphinconfig_file = s_config_dir + DOLPHIN_CONFIG;
+  s_gckeyboardconfig_file = s_config_dir + GCKEYBOARD_CONFIG;
+  s_gcpadconfig_file = s_config_dir + GCPAD_CONFIG;
+  s_gfxconfig_file = s_config_dir + GFX_CONFIG;
+  s_loggerconfig_file = s_config_dir + LOGGER_CONFIG;
+  s_uiconfig_file = s_config_dir + UI_CONFIG;
+  s_wiipadconfig_file = s_config_dir + WIIPAD_CONFIG;
 
-  s_user_paths[D_MEMORYWATCHER_IDX] = s_user_paths[D_USER_IDX] + MEMORYWATCHER_DIR DIR_SEP;
-  s_user_paths[F_MEMORYWATCHERLOCATIONS_IDX] =
-      s_user_paths[D_MEMORYWATCHER_IDX] + MEMORYWATCHER_LOCATIONS;
-  s_user_paths[F_MEMORYWATCHERSOCKET_IDX] =
-      s_user_paths[D_MEMORYWATCHER_IDX] + MEMORYWATCHER_SOCKET;
+  s_memorywatcher_dir = s_user_dir + MEMORYWATCHER_DIR DIR_SEP;
+  s_memorywatcherlocations_file = s_memorywatcher_dir + MEMORYWATCHER_LOCATIONS;
+  s_memorywatchersocket_file = s_memorywatcher_dir + MEMORYWATCHER_SOCKET;
 }
 
 namespace Paths
@@ -262,7 +253,7 @@ void SetUserDir(std::string dir)
 {
   if (dir.empty())
     return;
-  s_user_paths[D_USER_IDX] = dir;
+  s_user_dir = dir;
   RebuildUserDirectories();
 }
 
@@ -270,7 +261,7 @@ void SetConfigDir(std::string dir)
 {
   if (dir.empty())
     return;
-  s_user_paths[D_CONFIG_IDX] = dir;
+  s_config_dir = dir;
   RebuildUserDirectories();
 }
 
@@ -278,7 +269,7 @@ void SetCacheDir(std::string dir)
 {
   if (dir.empty())
     return;
-  s_user_paths[D_CACHE_IDX] = dir;
+  s_cache_dir = dir;
   RebuildUserDirectories();
 }
 
@@ -286,7 +277,7 @@ void SetDumpDir(std::string dir)
 {
   if (dir.empty())
     return;
-  s_user_paths[D_DUMP_IDX] = dir;
+  s_dump_dir = dir;
   RebuildUserDirectories();
 }
 
@@ -294,7 +285,7 @@ void SetWiiRootDir(std::string dir)
 {
   if (dir.empty())
     return;
-  s_user_paths[D_WIIROOT_IDX] = dir;
+  s_wiiroot_dir = dir;
   RebuildUserDirectories();
 }
 
@@ -302,7 +293,7 @@ void SetSessionWiiRootDir(std::string dir)
 {
   if (dir.empty())
     return;
-  s_user_paths[D_SESSION_WIIROOT_IDX] = dir;
+  s_session_wiiroot_dir = dir;
   RebuildUserDirectories();
 }
 
@@ -310,221 +301,221 @@ void SetWiiSDCardFile(std::string file)
 {
   if (file.empty())
     return;
-  s_user_paths[F_WIISDCARD_IDX] = file;
+  s_wiisdcard_file = file;
   RebuildUserDirectories();
 }
 
 const std::string& GetUserDir()
 {
-  return s_user_paths[D_USER_IDX];
+  return s_user_dir;
 };
 
 const std::string& GetGCUserDir()
 {
-  return s_user_paths[D_GCUSER_IDX];
+  return s_gcuser_dir;
 }
 const std::string& GetWiiRootDir()
 {
-  return s_user_paths[D_WIIROOT_IDX];
+  return s_wiiroot_dir;
 }
 
 const std::string& GetSessionWiiRootDir()
 {
-  return s_user_paths[D_SESSION_WIIROOT_IDX];
+  return s_session_wiiroot_dir;
 }
 
 const std::string& GetConfigDir()
 {
-  return s_user_paths[D_CONFIG_IDX];
+  return s_config_dir;
 }
 
 const std::string& GetGameSettingsDir()
 {
-  return s_user_paths[D_GAMESETTINGS_IDX];
+  return s_gamesettings_dir;
 }
 
 const std::string& GetMapsDir()
 {
-  return s_user_paths[D_MAPS_IDX];
+  return s_maps_dir;
 }
 
 const std::string& GetCacheDir()
 {
-  return s_user_paths[D_CACHE_IDX];
+  return s_cache_dir;
 }
 
 const std::string& GetShaderCacheDir()
 {
-  return s_user_paths[D_SHADERCACHE_IDX];
+  return s_shadercache_dir;
 }
 
 const std::string& GetShadersDir()
 {
-  return s_user_paths[D_SHADERS_IDX];
+  return s_shaders_dir;
 }
 const std::string& GetStateSavesDir()
 {
-  return s_user_paths[D_STATESAVES_IDX];
+  return s_statesaves_dir;
 }
 
 const std::string& GetScreenshotsDir()
 {
-  return s_user_paths[D_SCREENSHOTS_IDX];
+  return s_screenshots_dir;
 }
 
 const std::string& GetHiresTexturesDir()
 {
-  return s_user_paths[D_HIRESTEXTURES_IDX];
+  return s_hirestextures_dir;
 }
 
 const std::string& GetDumpDir()
 {
-  return s_user_paths[D_DUMP_IDX];
+  return s_dump_dir;
 }
 
 const std::string& GetDumpFramesDir()
 {
-  return s_user_paths[D_DUMPFRAMES_IDX];
+  return s_dumpframes_dir;
 }
 
 const std::string& GetDumpAudioDir()
 {
-  return s_user_paths[D_DUMPAUDIO_IDX];
+  return s_dumpaudio_dir;
 }
 
 const std::string& GetDumpTexturesDir()
 {
-  return s_user_paths[D_DUMPTEXTURES_IDX];
+  return s_dumptextures_dir;
 }
 
 const std::string& GetDumpDSPDir()
 {
-  return s_user_paths[D_DUMPDSP_IDX];
+  return s_dumpdsp_dir;
 }
 
 const std::string& GetDumpSSLDir()
 {
-  return s_user_paths[D_DUMPSSL_IDX];
+  return s_dumpssl_dir;
 }
 
 const std::string& GetLoadDir()
 {
-  return s_user_paths[D_LOAD_IDX];
+  return s_load_dir;
 }
 
 const std::string& GetLogsDir()
 {
-  return s_user_paths[D_LOGS_IDX];
+  return s_logs_dir;
 }
 
 const std::string& GetMailLogsDir()
 {
-  return s_user_paths[D_MAILLOGS_IDX];
+  return s_maillogs_dir;
 }
 
 const std::string& GetThemesDir()
 {
-  return s_user_paths[D_THEMES_IDX];
+  return s_themes_dir;
 }
 
 const std::string& GetPipesDir()
 {
-  return s_user_paths[D_PIPES_IDX];
+  return s_pipes_dir;
 }
 
 const std::string& GetMemoryWatcherDir()
 {
-  return s_user_paths[D_MEMORYWATCHER_IDX];
+  return s_memorywatcher_dir;
 }
 
 const std::string& GetWFSRootDir()
 {
-  return s_user_paths[D_WFSROOT_IDX];
+  return s_wfsroot_dir;
 }
 
 const std::string& GetBackupDir()
 {
-  return s_user_paths[D_BACKUP_IDX];
+  return s_backup_dir;
 }
 
 const std::string& GetDolphinConfigFile()
 {
-  return s_user_paths[F_DOLPHINCONFIG_IDX];
+  return s_dolphinconfig_file;
 }
 
 const std::string& GetGCPadConfigFile()
 {
-  return s_user_paths[F_GCPADCONFIG_IDX];
+  return s_gcpadconfig_file;
 }
 
 const std::string& GetWiiPadConfigFile()
 {
-  return s_user_paths[F_WIIPADCONFIG_IDX];
+  return s_wiipadconfig_file;
 }
 
 const std::string& GetGCKeyboardConfigFile()
 {
-  return s_user_paths[F_GCKEYBOARDCONFIG_IDX];
+  return s_gckeyboardconfig_file;
 }
 
 const std::string& GetGFXConfigFile()
 {
-  return s_user_paths[F_GFXCONFIG_IDX];
+  return s_gfxconfig_file;
 }
 
 const std::string& GetDebuggerConfigFile()
 {
-  return s_user_paths[F_DEBUGGERCONFIG_IDX];
+  return s_debuggerconfig_file;
 }
 
 const std::string& GetLoggerConfigFile()
 {
-  return s_user_paths[F_LOGGERCONFIG_IDX];
+  return s_loggerconfig_file;
 }
 
 const std::string& GetUIConfigFile()
 {
-  return s_user_paths[F_UICONFIG_IDX];
+  return s_uiconfig_file;
 }
 
 const std::string& GetMainLogFile()
 {
-  return s_user_paths[F_MAINLOG_IDX];
+  return s_mainlog_file;
 }
 
 const std::string& GetRAMDumpFile()
 {
-  return s_user_paths[F_RAMDUMP_IDX];
+  return s_ramdump_file;
 }
 
 const std::string& GetARAMDumpFile()
 {
-  return s_user_paths[F_ARAMDUMP_IDX];
+  return s_aramdump_file;
 }
 
 const std::string& GetFakeVMEMDumpFile()
 {
-  return s_user_paths[F_FAKEVMEMDUMP_IDX];
+  return s_fakevmemdump_file;
 }
 
 const std::string& GetGCSRAMFile()
 {
-  return s_user_paths[F_GCSRAM_IDX];
+  return s_gcsram_file;
 }
 
 const std::string& GetMemoryWatcherLocationsFile()
 {
-  return s_user_paths[F_MEMORYWATCHERLOCATIONS_IDX];
+  return s_memorywatcherlocations_file;
 }
 
 const std::string& GetMemoryWatcherSocketFile()
 {
-  return s_user_paths[F_MEMORYWATCHERSOCKET_IDX];
+  return s_memorywatchersocket_file;
 }
 
 const std::string& GetWiiSDCardFile()
 {
-  return s_user_paths[F_WIISDCARD_IDX];
+  return s_wiisdcard_file;
 }
 
 std::string GetThemeDir(const std::string& theme_name)
