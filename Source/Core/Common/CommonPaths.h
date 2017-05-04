@@ -335,4 +335,9 @@ const std::string& GetFakeVMEMDumpFile()
 {
   return GetUserPath(F_FAKEVMEMDUMP_IDX);
 }
+
+const std::string& GetGCSRAMFile()
+{
+  return GetUserPath(F_GCSRAM_IDX);
+}
 }

@@ -1032,7 +1032,7 @@ bool SConfig::AutoSetup(EBootBS2 _BootBS2)
   // Setup paths
   CheckMemcardPath(SConfig::GetInstance().m_strMemoryCardA, set_region_dir, true);
   CheckMemcardPath(SConfig::GetInstance().m_strMemoryCardB, set_region_dir, false);
-  m_strSRAM = File::GetUserPath(F_GCSRAM_IDX);
+  m_strSRAM = Paths::GetGCSRAMFile();
   if (!bWii)
   {
     if (!bHLE_BS2)
