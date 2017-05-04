@@ -430,7 +430,7 @@ void SysConf::UpdateLocation(const Common::FromWhichRoot root_type)
   // So that it can be generated if the file does not exist in the new location
   m_Filename.clear();
   // In the future the SYSCONF should probably just be synced with the other settings.
-  m_FilenameDefault = Common::RootUserPath(root_type) + DIR_SEP WII_SYSCONF_DIR DIR_SEP WII_SYSCONF;
+  m_FilenameDefault = Common::GetSysconfDir(root_type) + WII_SYSCONF;
   Reload();
 }
 
