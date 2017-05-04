@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "Common/Align.h"
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/Crypto/ec.h"
 #include "Common/FileUtil.h"
@@ -94,7 +95,7 @@ void CWiiSaveCrypted::ExportAllSaves()
     delete export_save;
   }
   SuccessAlertT("Successfully exported %u saves to %s", success,
-                (File::GetUserPath(D_USER_IDX) + "private/wii/title/").c_str());
+                (Paths::GetUserDir() + "private/wii/title/").c_str());
 }
 
 CWiiSaveCrypted::CWiiSaveCrypted(const std::string& filename, u64 title_id)
@@ -590,7 +591,7 @@ bool CWiiSaveCrypted::getPaths(bool for_export)
     if (m_encrypted_save_path.length() == 0)
     {
       // If no path was passed, use User folder
-      m_encrypted_save_path = File::GetUserPath(D_USER_IDX);
+      m_encrypted_save_path = Paths::GetUserDir();
     }
     m_encrypted_save_path += StringFromFormat("private/wii/title/%s/data.bin", game_id);
     File::CreateFullPath(m_encrypted_save_path);

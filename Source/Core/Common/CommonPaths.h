@@ -136,3 +136,15 @@
 // Subdirs in Sys
 #define GC_SYS_DIR "GC"
 #define WII_SYS_DIR "Wii"
+
+#include <string>
+#include "Common/FileUtil.h"
+
+namespace Paths
+{
+using namespace File;
+const std::string& GetUserDir()
+{
+  return GetUserPath(D_USER_IDX);
+};
+}
