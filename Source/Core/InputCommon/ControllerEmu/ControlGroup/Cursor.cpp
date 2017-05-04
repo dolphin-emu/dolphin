@@ -26,8 +26,8 @@ Cursor::Cursor(const std::string& name_) : ControlGroup(name_, GroupType::Cursor
   for (auto& named_direction : named_directions)
     controls.emplace_back(std::make_unique<Input>(named_direction));
 
-  controls.emplace_back(std::make_unique<Input>("Forward"));
-  controls.emplace_back(std::make_unique<Input>("Backward"));
+  controls.emplace_back(std::make_unique<Input>(_trans("Forward")));
+  controls.emplace_back(std::make_unique<Input>(_trans("Backward")));
   controls.emplace_back(std::make_unique<Input>(_trans("Hide")));
   controls.emplace_back(std::make_unique<Input>(_trans("Recenter")));
 

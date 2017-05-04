@@ -492,8 +492,11 @@ wxStaticBoxSizer* TASInputDlg::CreateAccelLayout(Control* x, Control* y, Control
                                                  const wxString& title)
 {
   auto* const temp_box = new wxStaticBoxSizer(wxHORIZONTAL, this, title);
+  // i18n: Refers to a 3D axis (used when mapping motion controls)
   auto* const xBox = new wxStaticBoxSizer(wxVERTICAL, this, _("X"));
+  // i18n: Refers to a 3D axis (used when mapping motion controls)
   auto* const yBox = new wxStaticBoxSizer(wxVERTICAL, this, _("Y"));
+  // i18n: Refers to a 3D axis (used when mapping motion controls)
   auto* const zBox = new wxStaticBoxSizer(wxVERTICAL, this, _("Z"));
   const int space5 = FromDIP(5);
 

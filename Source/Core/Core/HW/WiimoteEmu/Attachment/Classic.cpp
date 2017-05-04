@@ -45,7 +45,14 @@ constexpr std::array<u16, 2> classic_trigger_bitmasks{{
 }};
 
 constexpr std::array<const char*, 4> classic_trigger_names{{
-    "L", "R", "L-Analog", "R-Analog",
+    // i18n: The left trigger button (labeled L on real controllers)
+    _trans("L"),
+    // i18n: The right trigger button (labeled R on real controllers)
+    _trans("R"),
+    // i18n: The left trigger button (labeled L on real controllers) used as an analog input
+    _trans("L-Analog"),
+    // i18n: The right trigger button (labeled R on real controllers) used as an analog input
+    _trans("R-Analog"),
 }};
 
 constexpr std::array<u16, 4> classic_dpad_bitmasks{{
@@ -55,7 +62,7 @@ constexpr std::array<u16, 4> classic_dpad_bitmasks{{
 Classic::Classic(ExtensionReg& reg) : Attachment(_trans("Classic"), reg)
 {
   // buttons
-  groups.emplace_back(m_buttons = new ControllerEmu::Buttons("Buttons"));
+  groups.emplace_back(m_buttons = new ControllerEmu::Buttons(_trans("Buttons")));
   for (auto& classic_button_name : classic_button_names)
     m_buttons->controls.emplace_back(new ControllerEmu::Input(classic_button_name));
 
@@ -66,12 +73,12 @@ Classic::Classic(ExtensionReg& reg) : Attachment(_trans("Classic"), reg)
                           _trans("Right Stick"), DEFAULT_ATTACHMENT_STICK_RADIUS));
 
   // triggers
-  groups.emplace_back(m_triggers = new ControllerEmu::MixedTriggers("Triggers"));
+  groups.emplace_back(m_triggers = new ControllerEmu::MixedTriggers(_trans("Triggers")));
   for (auto& classic_trigger_name : classic_trigger_names)
     m_triggers->controls.emplace_back(new ControllerEmu::Input(classic_trigger_name));
 
   // dpad
-  groups.emplace_back(m_dpad = new ControllerEmu::Buttons("D-Pad"));
+  groups.emplace_back(m_dpad = new ControllerEmu::Buttons(_trans("D-Pad")));
   for (auto& named_direction : named_directions)
     m_dpad->controls.emplace_back(new ControllerEmu::Input(named_direction));
 
