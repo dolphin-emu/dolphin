@@ -215,4 +215,9 @@ const std::string& GetDumpFramesDir()
 {
   return GetUserPath(D_DUMPFRAMES_IDX);
 }
+
+const std::string& GetDumpAudioDir()
+{
+  return GetUserPath(D_DUMPAUDIO_IDX);
+}
 }

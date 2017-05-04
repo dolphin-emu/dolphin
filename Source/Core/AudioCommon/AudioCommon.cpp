@@ -13,6 +13,7 @@
 #include "AudioCommon/XAudio2Stream.h"
 #include "AudioCommon/XAudio2_7Stream.h"
 #include "Common/Common.h"
+#include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
@@ -186,8 +187,8 @@ void SendAIBuffer(const short* samples, unsigned int num_samples)
 
 void StartAudioDump()
 {
-  std::string audio_file_name_dtk = File::GetUserPath(D_DUMPAUDIO_IDX) + "dtkdump.wav";
-  std::string audio_file_name_dsp = File::GetUserPath(D_DUMPAUDIO_IDX) + "dspdump.wav";
+  std::string audio_file_name_dtk = Paths::GetDumpAudioDir() + "dtkdump.wav";
+  std::string audio_file_name_dsp = Paths::GetDumpAudioDir() + "dspdump.wav";
   File::CreateFullPath(audio_file_name_dtk);
   File::CreateFullPath(audio_file_name_dsp);
   g_sound_stream->GetMixer()->StartLogDTKAudio(audio_file_name_dtk);
