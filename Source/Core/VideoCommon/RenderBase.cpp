@@ -22,6 +22,7 @@
 #include <tuple>
 
 #include "Common/Assert.h"
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
 #include "Common/FileUtil.h"
@@ -936,7 +937,7 @@ void Renderer::StopFrameDumpToAVI()
 
 std::string Renderer::GetFrameDumpNextImageFileName() const
 {
-  return StringFromFormat("%sframedump_%u.png", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(),
+  return StringFromFormat("%sframedump_%u.png", Paths::GetDumpFramesDir().c_str(),
                           m_frame_dump_image_counter);
 }
 

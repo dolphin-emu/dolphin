@@ -210,4 +210,9 @@ const std::string& GetDumpDir()
 {
   return GetUserPath(D_DUMP_IDX);
 }
+
+const std::string& GetDumpFramesDir()
+{
+  return GetUserPath(D_DUMPFRAMES_IDX);
+}
 }
