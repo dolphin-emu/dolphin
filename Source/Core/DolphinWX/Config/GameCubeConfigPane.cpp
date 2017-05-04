@@ -69,11 +69,11 @@ void GameCubeConfigPane::InitializeGUI()
   m_skip_bios_checkbox = new wxCheckBox(this, wxID_ANY, _("Skip BIOS"));
 
   if (!File::Exists(Paths::GetGCUserDir() + DIR_SEP + USA_DIR + DIR_SEP GC_IPL) &&
-      !File::Exists(File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + USA_DIR + DIR_SEP GC_IPL) &&
+      !File::Exists(Paths::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + USA_DIR + DIR_SEP GC_IPL) &&
       !File::Exists(Paths::GetGCUserDir() + DIR_SEP + JAP_DIR + DIR_SEP GC_IPL) &&
-      !File::Exists(File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + JAP_DIR + DIR_SEP GC_IPL) &&
+      !File::Exists(Paths::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + JAP_DIR + DIR_SEP GC_IPL) &&
       !File::Exists(Paths::GetGCUserDir() + DIR_SEP + EUR_DIR + DIR_SEP GC_IPL) &&
-      !File::Exists(File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + EUR_DIR + DIR_SEP GC_IPL))
+      !File::Exists(Paths::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + EUR_DIR + DIR_SEP GC_IPL))
   {
     m_skip_bios_checkbox->Disable();
     m_skip_bios_checkbox->SetToolTip(_("Put BIOS roms in User/GC/{region}."));
@@ -386,7 +386,7 @@ void GameCubeConfigPane::ChooseSlotPath(bool is_slot_a, ExpansionInterface::TEXI
     // stored relative
     // to the executable, so it stays set correctly when the probably portable Exe dir is moved.
     // TODO: Replace this with a cleaner, non-wx solution once std::filesystem is standard
-    std::string exeDir = File::GetExeDirectory() + '\\';
+    std::string exeDir = Paths::GetExeDirectory() + '\\';
     if (wxString(filename).Lower().StartsWith(wxString(exeDir).Lower()))
       filename.erase(0, exeDir.size());
 

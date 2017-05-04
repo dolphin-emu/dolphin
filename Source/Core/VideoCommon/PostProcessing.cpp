@@ -32,7 +32,7 @@ static std::vector<std::string> GetShaders(const std::string& sub_dir = "")
 {
   std::vector<std::string> paths =
       Common::DoFileSearch({".glsl"}, {Paths::GetShaderCacheDir() + sub_dir,
-                                       File::GetSysDirectory() + SHADERS_DIR DIR_SEP + sub_dir});
+                                       Paths::GetSysDirectory() + SHADERS_DIR DIR_SEP + sub_dir});
   std::vector<std::string> result;
   for (std::string path : paths)
   {
@@ -84,7 +84,7 @@ std::string PostProcessingShaderConfiguration::LoadShader(std::string shader)
     if (!File::Exists(path))
     {
       // Fallback to shared user dir
-      path = File::GetSysDirectory() + SHADERS_DIR DIR_SEP + sub_dir + shader + ".glsl";
+      path = Paths::GetSysDirectory() + SHADERS_DIR DIR_SEP + sub_dir + shader + ".glsl";
     }
 
     if (!File::ReadFileToString(path, code))

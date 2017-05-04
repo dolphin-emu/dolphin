@@ -4,6 +4,22 @@
 
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
+#include "Common/Logging/Log.h"
+
+#ifdef _WIN32
+#include <windows.h>
+#include "Common/StringUtil.h"
+#else
+#include <limits.h>
+#include <unistd.h>
+#endif
+
+#ifdef __APPLE__
+#include <CoreFoundation/CFBundle.h>
+#include <CoreFoundation/CFString.h>
+#include <CoreFoundation/CFURL.h>
+#include <sys/param.h>
+#endif
 
 // User directory indices for GetUserPath
 enum
@@ -170,6 +186,68 @@ static void SetUserPath(unsigned int dir_index, std::string path)
 
 namespace Paths
 {
+#if defined(__APPLE__)
+std::string GetBundleDirectory()
+{
+  CFURLRef BundleRef;
+  char AppBundlePath[MAXPATHLEN];
+  // Get the main bundle for the app
+  BundleRef = CFBundleCopyBundleURL(CFBundleGetMainBundle());
+  CFStringRef BundlePath = CFURLCopyFileSystemPath(BundleRef, kCFURLPOSIXPathStyle);
+  CFStringGetFileSystemRepresentation(BundlePath, AppBundlePath, sizeof(AppBundlePath));
+  CFRelease(BundleRef);
+  CFRelease(BundlePath);
+
+  return AppBundlePath;
+}
+#endif
+
+std::string& GetExeDirectory()
+{
+  static std::string DolphinPath;
+  if (DolphinPath.empty())
+  {
+#ifdef _WIN32
+    TCHAR Dolphin_exe_Path[2048];
+    TCHAR Dolphin_exe_Clean_Path[MAX_PATH];
+    GetModuleFileName(nullptr, Dolphin_exe_Path, 2048);
+    if (_tfullpath(Dolphin_exe_Clean_Path, Dolphin_exe_Path, MAX_PATH) != nullptr)
+      DolphinPath = TStrToUTF8(Dolphin_exe_Clean_Path);
+    else
+      DolphinPath = TStrToUTF8(Dolphin_exe_Path);
+    DolphinPath = DolphinPath.substr(0, DolphinPath.find_last_of('\\'));
+#else
+    char Dolphin_exe_Path[PATH_MAX];
+    ssize_t len = ::readlink("/proc/self/exe", Dolphin_exe_Path, sizeof(Dolphin_exe_Path));
+    if (len == -1 || len == sizeof(Dolphin_exe_Path))
+    {
+      len = 0;
+    }
+    Dolphin_exe_Path[len] = '\0';
+    DolphinPath = Dolphin_exe_Path;
+    DolphinPath = DolphinPath.substr(0, DolphinPath.rfind('/'));
+#endif
+  }
+  return DolphinPath;
+}
+
+std::string GetSysDirectory()
+{
+  std::string sysDir;
+
+#if defined(__APPLE__)
+  sysDir = GetBundleDirectory() + DIR_SEP + SYSDATA_DIR;
+#elif defined(_WIN32) || defined(LINUX_LOCAL_DEV)
+  sysDir = GetExeDirectory() + DIR_SEP + SYSDATA_DIR;
+#else
+  sysDir = SYSDATA_DIR;
+#endif
+  sysDir += DIR_SEP;
+
+  INFO_LOG(COMMON, "GetSysDirectory: Setting to %s:", sysDir.c_str());
+  return sysDir;
+}
+
 void SetUserDir(std::string dir)
 {
   SetUserPath(D_USER_IDX, dir);
@@ -425,12 +503,12 @@ std::string GetThemeDir(const std::string& theme_name)
     return dir;
 
   // If the theme doesn't exist in the user dir, load from shared directory
-  dir = File::GetSysDirectory() + THEMES_DIR "/" + theme_name + "/";
+  dir = GetSysDirectory() + THEMES_DIR "/" + theme_name + "/";
   if (File::Exists(dir))
     return dir;
 
   // If the theme doesn't exist at all, load the default theme
-  return File::GetSysDirectory() + THEMES_DIR "/" DEFAULT_THEME_DIR "/";
+  return GetSysDirectory() + THEMES_DIR "/" DEFAULT_THEME_DIR "/";
 }
 
 }  // namespace Paths

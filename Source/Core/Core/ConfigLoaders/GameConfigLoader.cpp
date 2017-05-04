@@ -256,7 +256,7 @@ public:
     if (config_layer->GetLayer() == Config::LayerType::GlobalGame)
     {
       for (const std::string& filename : GetGameIniFilenames(m_id, m_revision))
-        ini.Load(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + filename, true);
+        ini.Load(Paths::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + filename, true);
     }
     else
     {

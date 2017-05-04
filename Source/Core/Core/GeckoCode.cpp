@@ -82,7 +82,7 @@ void SetActiveCodes(const std::vector<GeckoCode>& gcodes)
 static Installation InstallCodeHandlerLocked()
 {
   std::string data;
-  if (!File::ReadFileToString(File::GetSysDirectory() + GECKO_CODE_HANDLER, data))
+  if (!File::ReadFileToString(Paths::GetSysDirectory() + GECKO_CODE_HANDLER, data))
   {
     ERROR_LOG(ACTIONREPLAY, "Could not enable cheats because " GECKO_CODE_HANDLER " was missing.");
     return Installation::Failed;

@@ -1520,9 +1520,9 @@ void GetSettings()
     std::string coef_file = Paths::GetGCUserDir() + DSP_COEF;
 
     if (!File::Exists(irom_file))
-      irom_file = File::GetSysDirectory() + GC_SYS_DIR DIR_SEP DSP_IROM;
+      irom_file = Paths::GetSysDirectory() + GC_SYS_DIR DIR_SEP DSP_IROM;
     if (!File::Exists(coef_file))
-      coef_file = File::GetSysDirectory() + GC_SYS_DIR DIR_SEP DSP_COEF;
+      coef_file = Paths::GetSysDirectory() + GC_SYS_DIR DIR_SEP DSP_COEF;
     std::vector<u16> irom(DSP::DSP_IROM_SIZE);
     File::IOFile file_irom(irom_file, "rb");
 

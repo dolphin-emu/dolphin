@@ -34,13 +34,6 @@
 #include <unistd.h>
 #endif
 
-#if defined(__APPLE__)
-#include <CoreFoundation/CFBundle.h>
-#include <CoreFoundation/CFString.h>
-#include <CoreFoundation/CFURL.h>
-#include <sys/param.h>
-#endif
-
 #ifndef S_ISDIR
 #define S_ISDIR(m) (((m)&S_IFMT) == S_IFDIR)
 #endif
@@ -688,68 +681,6 @@ std::string GetTempFilenameForAtomicWrite(const std::string& path)
     abs = absbuf;
 #endif
   return abs + ".xxx";
-}
-
-#if defined(__APPLE__)
-std::string GetBundleDirectory()
-{
-  CFURLRef BundleRef;
-  char AppBundlePath[MAXPATHLEN];
-  // Get the main bundle for the app
-  BundleRef = CFBundleCopyBundleURL(CFBundleGetMainBundle());
-  CFStringRef BundlePath = CFURLCopyFileSystemPath(BundleRef, kCFURLPOSIXPathStyle);
-  CFStringGetFileSystemRepresentation(BundlePath, AppBundlePath, sizeof(AppBundlePath));
-  CFRelease(BundleRef);
-  CFRelease(BundlePath);
-
-  return AppBundlePath;
-}
-#endif
-
-std::string& GetExeDirectory()
-{
-  static std::string DolphinPath;
-  if (DolphinPath.empty())
-  {
-#ifdef _WIN32
-    TCHAR Dolphin_exe_Path[2048];
-    TCHAR Dolphin_exe_Clean_Path[MAX_PATH];
-    GetModuleFileName(nullptr, Dolphin_exe_Path, 2048);
-    if (_tfullpath(Dolphin_exe_Clean_Path, Dolphin_exe_Path, MAX_PATH) != nullptr)
-      DolphinPath = TStrToUTF8(Dolphin_exe_Clean_Path);
-    else
-      DolphinPath = TStrToUTF8(Dolphin_exe_Path);
-    DolphinPath = DolphinPath.substr(0, DolphinPath.find_last_of('\\'));
-#else
-    char Dolphin_exe_Path[PATH_MAX];
-    ssize_t len = ::readlink("/proc/self/exe", Dolphin_exe_Path, sizeof(Dolphin_exe_Path));
-    if (len == -1 || len == sizeof(Dolphin_exe_Path))
-    {
-      len = 0;
-    }
-    Dolphin_exe_Path[len] = '\0';
-    DolphinPath = Dolphin_exe_Path;
-    DolphinPath = DolphinPath.substr(0, DolphinPath.rfind('/'));
-#endif
-  }
-  return DolphinPath;
-}
-
-std::string GetSysDirectory()
-{
-  std::string sysDir;
-
-#if defined(__APPLE__)
-  sysDir = GetBundleDirectory() + DIR_SEP + SYSDATA_DIR;
-#elif defined(_WIN32) || defined(LINUX_LOCAL_DEV)
-  sysDir = GetExeDirectory() + DIR_SEP + SYSDATA_DIR;
-#else
-  sysDir = SYSDATA_DIR;
-#endif
-  sysDir += DIR_SEP;
-
-  INFO_LOG(COMMON, "GetSysDirectory: Setting to %s:", sysDir.c_str());
-  return sysDir;
 }
 
 bool WriteStringToFile(const std::string& str, const std::string& filename)

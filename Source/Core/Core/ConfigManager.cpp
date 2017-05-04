@@ -1040,7 +1040,7 @@ bool SConfig::AutoSetup(EBootBS2 _BootBS2)
       m_strBootROM = Paths::GetGCUserDir() + DIR_SEP + set_region_dir + DIR_SEP GC_IPL;
       if (!File::Exists(m_strBootROM))
         m_strBootROM =
-            File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + set_region_dir + DIR_SEP GC_IPL;
+            Paths::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + set_region_dir + DIR_SEP GC_IPL;
 
       if (!File::Exists(m_strBootROM))
       {
@@ -1141,7 +1141,7 @@ IniFile SConfig::LoadDefaultGameIni(const std::string& id, u16 revision)
 {
   IniFile game_ini;
   for (const std::string& filename : GetGameIniFilenames(id, revision))
-    game_ini.Load(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + filename, true);
+    game_ini.Load(Paths::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + filename, true);
   return game_ini;
 }
 
@@ -1157,7 +1157,7 @@ IniFile SConfig::LoadGameIni(const std::string& id, u16 revision)
 {
   IniFile game_ini;
   for (const std::string& filename : GetGameIniFilenames(id, revision))
-    game_ini.Load(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + filename, true);
+    game_ini.Load(Paths::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + filename, true);
   for (const std::string& filename : GetGameIniFilenames(id, revision))
     game_ini.Load(Paths::GetGameSettingsDir() + filename, true);
   return game_ini;

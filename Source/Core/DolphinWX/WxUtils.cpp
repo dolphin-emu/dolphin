@@ -114,7 +114,7 @@ wxIconBundle GetDolphinIconBundle()
 
   for (const char* fname : {"Dolphin.png", "dolphin_logo.png", "dolphin_logo@2x.png"})
   {
-    wxImage image{StrToWxStr(File::GetSysDirectory() + RESOURCES_DIR DIR_SEP + fname),
+    wxImage image{StrToWxStr(Paths::GetSysDirectory() + RESOURCES_DIR DIR_SEP + fname),
                   wxBITMAP_TYPE_PNG};
     if (image.IsOk())
     {
@@ -383,7 +383,7 @@ wxBitmap LoadScaledResourceBitmap(const std::string& name, const wxWindow* conte
                                   const wxSize& output_size, const wxRect& usable_rect,
                                   LSIFlags flags, const wxColour& fill_color)
 {
-  std::string path = File::GetSysDirectory() + RESOURCES_DIR DIR_SEP + name + ".png";
+  std::string path = Paths::GetSysDirectory() + RESOURCES_DIR DIR_SEP + name + ".png";
   return LoadScaledBitmap(path, context, output_size, usable_rect, flags, fill_color);
 }
 

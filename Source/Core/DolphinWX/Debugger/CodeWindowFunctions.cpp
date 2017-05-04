@@ -192,7 +192,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
   {
     PPCAnalyst::FindFunctions(0x80000000, 0x81800000, &g_symbolDB);
     SignatureDB db(SignatureDB::HandlerType::DSY);
-    if (db.Load(File::GetSysDirectory() + TOTALDB))
+    if (db.Load(Paths::GetSysDirectory() + TOTALDB))
     {
       db.Apply(&g_symbolDB);
       Parent->StatusBarMessage("Generated symbol names from '%s'", TOTALDB);
@@ -241,7 +241,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
       g_symbolDB.Clear();
       PPCAnalyst::FindFunctions(0x81300000, 0x81800000, &g_symbolDB);
       SignatureDB db(SignatureDB::HandlerType::DSY);
-      if (db.Load(File::GetSysDirectory() + TOTALDB))
+      if (db.Load(Paths::GetSysDirectory() + TOTALDB))
         db.Apply(&g_symbolDB);
       Parent->StatusBarMessage("'%s' not found, scanning for common functions instead",
                                writable_map_file.c_str());
@@ -348,8 +348,8 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
     {
       std::string prefix(WxStrToStr(input_prefix.GetValue()));
 
-      wxString path = wxFileSelector(_("Save signature as"), File::GetSysDirectory(), wxEmptyString,
-                                     wxEmptyString, signature_selector,
+      wxString path = wxFileSelector(_("Save signature as"), Paths::GetSysDirectory(),
+                                     wxEmptyString, wxEmptyString, signature_selector,
                                      wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this);
       if (!path.IsEmpty())
       {
@@ -373,7 +373,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
       std::string prefix(WxStrToStr(input_prefix.GetValue()));
 
       wxString path =
-          wxFileSelector(_("Append signature to"), File::GetSysDirectory(), wxEmptyString,
+          wxFileSelector(_("Append signature to"), Paths::GetSysDirectory(), wxEmptyString,
                          wxEmptyString, signature_selector, wxFD_SAVE, this);
       if (!path.IsEmpty())
       {
@@ -391,7 +391,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
   case IDM_USE_SIGNATURE_FILE:
   {
     wxString path =
-        wxFileSelector(_("Apply signature file"), File::GetSysDirectory(), wxEmptyString,
+        wxFileSelector(_("Apply signature file"), Paths::GetSysDirectory(), wxEmptyString,
                        wxEmptyString, signature_selector, wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
     if (!path.IsEmpty())
     {
@@ -407,21 +407,21 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
   case IDM_COMBINE_SIGNATURE_FILES:
   {
     wxString path1 =
-        wxFileSelector(_("Choose priority input file"), File::GetSysDirectory(), wxEmptyString,
+        wxFileSelector(_("Choose priority input file"), Paths::GetSysDirectory(), wxEmptyString,
                        wxEmptyString, signature_selector, wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
     if (!path1.IsEmpty())
     {
       std::string load_path1 = WxStrToStr(path1);
       SignatureDB db(load_path1);
       wxString path2 =
-          wxFileSelector(_("Choose secondary input file"), File::GetSysDirectory(), wxEmptyString,
+          wxFileSelector(_("Choose secondary input file"), Paths::GetSysDirectory(), wxEmptyString,
                          wxEmptyString, signature_selector, wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
       if (!path2.IsEmpty())
       {
         db.Load(load_path1);
         db.Load(WxStrToStr(path2));
 
-        path2 = wxFileSelector(_("Save combined output file as"), File::GetSysDirectory(),
+        path2 = wxFileSelector(_("Save combined output file as"), Paths::GetSysDirectory(),
                                wxEmptyString, ".dsy", signature_selector,
                                wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this);
         db.Save(WxStrToStr(path2));

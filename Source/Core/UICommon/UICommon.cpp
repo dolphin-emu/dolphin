@@ -47,7 +47,7 @@ void Shutdown()
 void CreateDirectories()
 {
   // Copy initial Wii NAND data from Sys to User.
-  File::CopyDir(File::GetSysDirectory() + WII_USER_DIR, Paths::GetWiiRootDir());
+  File::CopyDir(Paths::GetSysDirectory() + WII_USER_DIR, Paths::GetWiiRootDir());
 
   File::CreateFullPath(Paths::GetUserDir());
   File::CreateFullPath(Paths::GetCacheDir());
@@ -113,7 +113,7 @@ void SetUserDirectory(const std::string& custom_path)
     RegCloseKey(hkey);
   }
 
-  local = local || File::Exists(File::GetExeDirectory() + DIR_SEP "portable.txt");
+  local = local || File::Exists(Paths::GetExeDirectory() + DIR_SEP "portable.txt");
 
   // Get Program Files path in case we need it.
   TCHAR my_documents[MAX_PATH];
@@ -121,13 +121,13 @@ void SetUserDirectory(const std::string& custom_path)
       SHGetFolderPath(nullptr, CSIDL_MYDOCUMENTS, nullptr, SHGFP_TYPE_CURRENT, my_documents));
 
   if (local)  // Case 1-2
-    user_path = File::GetExeDirectory() + DIR_SEP USERDATA_DIR DIR_SEP;
+    user_path = Paths::GetExeDirectory() + DIR_SEP USERDATA_DIR DIR_SEP;
   else if (configPath[0])  // Case 3
     user_path = TStrToUTF8(configPath);
   else if (my_documents_found)  // Case 4
     user_path = TStrToUTF8(my_documents) + DIR_SEP "Dolphin Emulator" DIR_SEP;
   else  // Case 5
-    user_path = File::GetExeDirectory() + DIR_SEP USERDATA_DIR DIR_SEP;
+    user_path = Paths::GetExeDirectory() + DIR_SEP USERDATA_DIR DIR_SEP;
 
   // Prettify the path: it will be displayed in some places, we don't want a mix
   // of \ and /.
@@ -162,7 +162,7 @@ void SetUserDirectory(const std::string& custom_path)
     //    -> Use XDG basedir, see
     //    http://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html
     user_path = home_path + "." DOLPHIN_DATA_DIR DIR_SEP;
-    std::string exe_path = File::GetExeDirectory();
+    std::string exe_path = Paths::GetExeDirectory();
     if (File::Exists(exe_path + DIR_SEP "portable.txt"))
     {
       user_path = exe_path + DIR_SEP "User" DIR_SEP;

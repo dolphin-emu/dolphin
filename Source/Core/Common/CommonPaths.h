@@ -141,6 +141,14 @@
 
 namespace Paths
 {
+// Returns the path to where the sys file are
+std::string GetSysDirectory();
+std::string& GetExeDirectory();
+
+#ifdef __APPLE__
+std::string GetBundleDirectory();
+#endif
+
 // Sets a user directory path
 // Rebuilds internal directory structure to compensate for the new directory
 void SetUserDir(std::string dir);

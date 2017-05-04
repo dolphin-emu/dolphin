@@ -90,15 +90,6 @@ std::string CreateTempDir();
 // Get a filename that can hopefully be atomically renamed to the given path.
 std::string GetTempFilenameForAtomicWrite(const std::string& path);
 
-// Returns the path to where the sys file are
-std::string GetSysDirectory();
-
-#ifdef __APPLE__
-std::string GetBundleDirectory();
-#endif
-
-std::string& GetExeDirectory();
-
 bool WriteStringToFile(const std::string& str, const std::string& filename);
 bool ReadFileToString(const std::string& filename, std::string& str);
 

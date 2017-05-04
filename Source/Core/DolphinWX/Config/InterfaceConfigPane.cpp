@@ -188,7 +188,7 @@ void InterfaceConfigPane::LoadGUIValues()
 void InterfaceConfigPane::LoadThemes()
 {
   auto sv =
-      Common::DoFileSearch({""}, {Paths::GetThemesDir(), File::GetSysDirectory() + THEMES_DIR},
+      Common::DoFileSearch({""}, {Paths::GetThemesDir(), Paths::GetSysDirectory() + THEMES_DIR},
                            /*recursive*/ false);
   for (const std::string& filename : sv)
   {
