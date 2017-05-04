@@ -235,4 +235,9 @@ const std::string& GetDumpSSLDir()
 {
   return GetUserPath(D_DUMPSSL_IDX);
 }
+
+const std::string& GetLoadDir()
+{
+  return GetUserPath(D_LOAD_IDX);
+}
 }

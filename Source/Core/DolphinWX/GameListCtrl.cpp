@@ -159,7 +159,7 @@ static std::unordered_map<std::string, std::string> LoadCustomTitles()
 {
   // Load custom game titles from titles.txt
   // http://www.gametdb.com/Wii/Downloads
-  const std::string& load_directory = File::GetUserPath(D_LOAD_IDX);
+  const std::string& load_directory = Paths::GetLoadDir();
 
   std::ifstream titlestxt;
   OpenFStream(titlestxt, load_directory + "titles.txt", std::ios::in);
