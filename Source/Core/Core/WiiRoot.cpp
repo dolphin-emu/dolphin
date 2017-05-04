@@ -97,7 +97,7 @@ void ShutdownWiiRoot()
     std::string user_save_path =
         Common::GetTitleDataPath(SConfig::GetInstance().GetTitleID(), Common::FROM_CONFIGURED_ROOT);
     std::string user_backup_path =
-        File::GetUserPath(D_BACKUP_IDX) +
+        Paths::GetBackupDir() +
         StringFromFormat("%08x/%08x/", static_cast<u32>(SConfig::GetInstance().GetTitleID() >> 32),
                          static_cast<u32>(SConfig::GetInstance().GetTitleID()));
     if (File::Exists(save_path + "banner.bin") && SConfig::GetInstance().bEnableMemcardSdWriting)

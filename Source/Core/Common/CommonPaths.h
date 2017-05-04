@@ -270,4 +270,9 @@ const std::string& GetWFSRootDir()
 {
   return GetUserPath(D_WFSROOT_IDX);
 }
+
+const std::string& GetBackupDir()
+{
+  return GetUserPath(D_BACKUP_IDX);
+}
 }
