@@ -239,19 +239,7 @@ void TicketReader::SetBytes(std::vector<u8>&& bytes)
 
 bool TicketReader::IsValid() const
 {
-  // Too small for the signature type.
-  if (m_bytes.size() < sizeof(u32))
-    return false;
-
-  u32 ticket_offset = GetOffset();
-  if (ticket_offset == 0)
-    return false;
-
-  // Too small for the ticket itself.
-  if (m_bytes.size() < ticket_offset + sizeof(Ticket))
-    return false;
-
-  return true;
+  return m_bytes.size() % sizeof(Ticket) == 0;
 }
 
 void TicketReader::DoState(PointerWrap& p)
@@ -259,23 +247,9 @@ void TicketReader::DoState(PointerWrap& p)
   p.Do(m_bytes);
 }
 
-u32 TicketReader::GetNumberOfTickets() const
+size_t TicketReader::GetNumberOfTickets() const
 {
-  return static_cast<u32>(m_bytes.size() / (GetOffset() + sizeof(Ticket)));
-}
-
-u32 TicketReader::GetOffset() const
-{
-  u32 signature_type = Common::swap32(m_bytes.data());
-  if (signature_type == 0x10000)  // RSA4096
-    return 576;
-  if (signature_type == 0x10001)  // RSA2048
-    return 320;
-  if (signature_type == 0x10002)  // ECDSA
-    return 128;
-
-  ERROR_LOG(COMMON, "Invalid ticket signature type: %08x", signature_type);
-  return 0;
+  return m_bytes.size() / sizeof(Ticket);
 }
 
 const std::vector<u8>& TicketReader::GetRawTicket() const
@@ -286,7 +260,7 @@ const std::vector<u8>& TicketReader::GetRawTicket() const
 std::vector<u8> TicketReader::GetRawTicketView(u32 ticket_num) const
 {
   // A ticket view is composed of a version + part of a ticket starting from the ticket_id field.
-  const auto ticket_start = m_bytes.cbegin() + GetOffset() + sizeof(Ticket) * ticket_num;
+  const auto ticket_start = m_bytes.cbegin() + sizeof(Ticket) * ticket_num;
   const auto view_start = ticket_start + offsetof(Ticket, ticket_id);
 
   // Copy the ticket version to the buffer (a single byte extended to 4).
@@ -303,32 +277,32 @@ std::vector<u8> TicketReader::GetRawTicketView(u32 ticket_num) const
 
 u32 TicketReader::GetDeviceId() const
 {
-  return Common::swap32(m_bytes.data() + GetOffset() + offsetof(Ticket, device_id));
+  return Common::swap32(m_bytes.data() + offsetof(Ticket, device_id));
 }
 
 u64 TicketReader::GetTitleId() const
 {
-  return Common::swap64(m_bytes.data() + GetOffset() + offsetof(Ticket, title_id));
+  return Common::swap64(m_bytes.data() + offsetof(Ticket, title_id));
 }
 
 std::vector<u8> TicketReader::GetTitleKey() const
 {
   u8 iv[16] = {};
-  std::copy_n(&m_bytes[GetOffset() + offsetof(Ticket, title_id)], sizeof(Ticket::title_id), iv);
-  auto common_key_handle = m_bytes.at(GetOffset() + offsetof(Ticket, common_key_index)) == 0 ?
+  std::copy_n(&m_bytes[offsetof(Ticket, title_id)], sizeof(Ticket::title_id), iv);
+  auto common_key_handle = m_bytes.at(offsetof(Ticket, common_key_index)) == 0 ?
                                HLE::IOSC::HANDLE_COMMON_KEY :
                                HLE::IOSC::HANDLE_NEW_COMMON_KEY;
 
   std::vector<u8> key(16);
   HLE::IOSC iosc;
-  iosc.Decrypt(common_key_handle, iv, &m_bytes[GetOffset() + offsetof(Ticket, title_key)], 16,
-               key.data(), HLE::PID_ES);
+  iosc.Decrypt(common_key_handle, iv, &m_bytes[offsetof(Ticket, title_key)], 16, key.data(),
+               HLE::PID_ES);
   return key;
 }
 
 s32 TicketReader::Unpersonalise()
 {
-  const auto ticket_begin = m_bytes.begin() + GetOffset();
+  const auto ticket_begin = m_bytes.begin();
 
   // IOS uses IOSC to compute an AES key from the peer public key and the device's private ECC key,
   // which is used the decrypt the title key. The IV is the ticket ID (8 bytes), zero extended.
