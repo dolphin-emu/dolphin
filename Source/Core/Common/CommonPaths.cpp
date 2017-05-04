@@ -62,6 +62,9 @@ constexpr auto BACKUP_DIR = "Backup";
 constexpr auto SHADERCACHE_LEGACY_DIR = "ShaderCache";
 
 // Filenames
+// Files in the user directory
+constexpr auto GC_SRAM = "SRAM.raw";
+
 // Files in the config directory
 constexpr auto DOLPHIN_CONFIG = "Dolphin.ini";
 constexpr auto GCPAD_CONFIG = "GCPadNew.ini";
