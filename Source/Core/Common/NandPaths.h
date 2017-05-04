@@ -17,8 +17,8 @@ namespace Common
 {
 enum FromWhichRoot
 {
-  FROM_CONFIGURED_ROOT,  // not related to currently running game - use D_WIIROOT_IDX
-  FROM_SESSION_ROOT,     // request from currently running game - use D_SESSION_WIIROOT_IDX
+  FROM_CONFIGURED_ROOT,  // not related to currently running game - use GetWiiRootDir()
+  FROM_SESSION_ROOT,     // request from currently running game - use GetSessionWiiRootDir()
 };
 
 std::string RootUserPath(FromWhichRoot from);

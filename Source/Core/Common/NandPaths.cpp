@@ -8,6 +8,7 @@
 #include <utility>
 #include <vector>
 
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
@@ -19,8 +20,7 @@ namespace Common
 {
 std::string RootUserPath(FromWhichRoot from)
 {
-  int idx = from == FROM_CONFIGURED_ROOT ? D_WIIROOT_IDX : D_SESSION_WIIROOT_IDX;
-  return File::GetUserPath(idx);
+  return from == FROM_CONFIGURED_ROOT ? Paths::GetWiiRootDir() : Paths::GetSessionWiiRootDir();
 }
 
 std::string GetImportTitlePath(u64 title_id, FromWhichRoot from)
