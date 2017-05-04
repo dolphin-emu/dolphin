@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Common/CommonPaths.h"
 #include "Common/LinearDiskCache.h"
 
 #include "Core/ConfigManager.h"
@@ -72,10 +73,10 @@ void ShaderCache::Init()
   if (g_ActiveConfig.bShaderCache)
   {
     // Ensure shader cache directory exists..
-    std::string shader_cache_path = File::GetUserPath(D_SHADERCACHE_IDX);
+    std::string shader_cache_path = Paths::GetShaderCacheDir();
 
     if (!File::Exists(shader_cache_path))
-      File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX));
+      File::CreateDir(Paths::GetShaderCacheDir());
 
     const std::string& title_game_id = SConfig::GetInstance().GetGameID();
 

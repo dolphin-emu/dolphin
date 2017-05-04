@@ -8,6 +8,7 @@
 #include <string>
 
 #include "Common/Align.h"
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
@@ -514,11 +515,11 @@ void ProgramShaderCache::Init()
     }
     else
     {
-      if (!File::Exists(File::GetUserPath(D_SHADERCACHE_IDX)))
-        File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX));
+      if (!File::Exists(Paths::GetShaderCacheDir()))
+        File::CreateDir(Paths::GetShaderCacheDir());
 
       std::string cache_filename =
-          StringFromFormat("%sogl-%s-shaders.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
+          StringFromFormat("%sogl-%s-shaders.cache", Paths::GetShaderCacheDir().c_str(),
                            SConfig::GetInstance().GetGameID().c_str());
 
       ProgramShaderCacheInserter inserter;
