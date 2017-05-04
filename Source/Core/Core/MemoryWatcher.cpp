@@ -8,6 +8,7 @@
 #include <sstream>
 #include <unistd.h>
 
+#include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/Memmap.h"
@@ -40,7 +41,7 @@ void MemoryWatcher::Shutdown()
 MemoryWatcher::MemoryWatcher()
 {
   m_running = false;
-  if (!LoadAddresses(File::GetUserPath(F_MEMORYWATCHERLOCATIONS_IDX)))
+  if (!LoadAddresses(Paths::GetMemoryWatcherLocationsFile()))
     return;
   if (!OpenSocket(File::GetUserPath(F_MEMORYWATCHERSOCKET_IDX)))
     return;

@@ -340,4 +340,9 @@ const std::string& GetGCSRAMFile()
 {
   return GetUserPath(F_GCSRAM_IDX);
 }
+
+const std::string& GetMemoryWatcherLocationsFile()
+{
+  return GetUserPath(F_MEMORYWATCHERLOCATIONS_IDX);
+}
 }
