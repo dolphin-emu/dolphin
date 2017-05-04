@@ -171,4 +171,9 @@ const std::string& GetGameSettingsDir()
 {
   return GetUserPath(D_GAMESETTINGS_IDX);
 }
+
+const std::string& GetMapsDir()
+{
+  return GetUserPath(D_MAPS_IDX);
+}
 }

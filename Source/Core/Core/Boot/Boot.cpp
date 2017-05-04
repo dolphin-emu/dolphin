@@ -132,13 +132,13 @@ bool CBoot::FindMapFile(std::string* existing_map_file, std::string* writable_ma
   }
 
   if (writable_map_file)
-    *writable_map_file = File::GetUserPath(D_MAPS_IDX) + title_id_str + ".map";
+    *writable_map_file = Paths::GetMapsDir() + title_id_str + ".map";
 
   if (title_id)
     *title_id = title_id_str;
 
   bool found = false;
-  static const std::string maps_directories[] = {File::GetUserPath(D_MAPS_IDX),
+  static const std::string maps_directories[] = {Paths::GetMapsDir(),
                                                  File::GetSysDirectory() + MAPS_DIR DIR_SEP};
   for (size_t i = 0; !found && i < ArraySize(maps_directories); ++i)
   {

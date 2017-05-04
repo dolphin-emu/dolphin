@@ -6,6 +6,7 @@
 #include <utility>
 #include <vector>
 
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
@@ -156,7 +157,7 @@ bool Load()
 
   // Load symbols for the IPL if they exist.
   g_symbolDB.Clear();
-  if (g_symbolDB.LoadMap(File::GetUserPath(D_MAPS_IDX) + "mios-ipl.map"))
+  if (g_symbolDB.LoadMap(Paths::GetMapsDir() + "mios-ipl.map"))
   {
     ::HLE::Clear();
     ::HLE::PatchFunctions();

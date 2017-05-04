@@ -256,10 +256,10 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
     break;
   case IDM_LOAD_MAP_FILE_AS:
   {
-    const wxString path = wxFileSelector(
-        _("Load map file"), File::GetUserPath(D_MAPS_IDX), title_id_str + ".map", ".map",
-        _("Dolphin Map File (*.map)") + "|*.map|" + wxGetTranslation(wxALL_FILES),
-        wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
+    const wxString path =
+        wxFileSelector(_("Load map file"), Paths::GetMapsDir(), title_id_str + ".map", ".map",
+                       _("Dolphin Map File (*.map)") + "|*.map|" + wxGetTranslation(wxALL_FILES),
+                       wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
 
     if (!path.IsEmpty())
     {
@@ -272,10 +272,10 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
   break;
   case IDM_LOAD_BAD_MAP_FILE:
   {
-    const wxString path = wxFileSelector(
-        _("Load bad map file"), File::GetUserPath(D_MAPS_IDX), title_id_str + ".map", ".map",
-        _("Dolphin Map File (*.map)") + "|*.map|" + wxGetTranslation(wxALL_FILES),
-        wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
+    const wxString path =
+        wxFileSelector(_("Load bad map file"), Paths::GetMapsDir(), title_id_str + ".map", ".map",
+                       _("Dolphin Map File (*.map)") + "|*.map|" + wxGetTranslation(wxALL_FILES),
+                       wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
 
     if (!path.IsEmpty())
     {
@@ -291,10 +291,10 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
     break;
   case IDM_SAVE_MAP_FILE_AS:
   {
-    const wxString path = wxFileSelector(
-        _("Save map file as"), File::GetUserPath(D_MAPS_IDX), title_id_str + ".map", ".map",
-        _("Dolphin Map File (*.map)") + "|*.map|" + wxGetTranslation(wxALL_FILES),
-        wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this);
+    const wxString path =
+        wxFileSelector(_("Save map file as"), Paths::GetMapsDir(), title_id_str + ".map", ".map",
+                       _("Dolphin Map File (*.map)") + "|*.map|" + wxGetTranslation(wxALL_FILES),
+                       wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this);
 
     if (!path.IsEmpty())
       g_symbolDB.SaveMap(WxStrToStr(path));
