@@ -46,7 +46,7 @@ void FS::DoState(PointerWrap& p)
 
   // handle /tmp
 
-  std::string Path = File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/tmp";
+  std::string Path = Paths::GetSessionWiiRootDir() + "/tmp";
   if (p.GetMode() == PointerWrap::MODE_READ)
   {
     File::DeleteDirRecursively(Path);

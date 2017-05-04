@@ -10,6 +10,7 @@
 #include <mbedtls/md.h>
 #include <mbedtls/sha256.h>
 
+#include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
@@ -327,7 +328,7 @@ IPCCommandResult NetSSL::IOCtlV(const IOCtlVRequest& request)
     if (SSLID_VALID(sslID))
     {
       WII_SSL* ssl = &_SSL[sslID];
-      const std::string cert_base_path = File::GetUserPath(D_SESSION_WIIROOT_IDX);
+      const std::string cert_base_path = Paths::GetSessionWiiRootDir();
       const std::vector<u8> client_cert =
           ReadCertFile(cert_base_path + "/clientca.pem", s_client_cert_hash);
       const std::vector<u8> client_key =
@@ -388,7 +389,7 @@ IPCCommandResult NetSSL::IOCtlV(const IOCtlVRequest& request)
     if (SSLID_VALID(sslID))
     {
       WII_SSL* ssl = &_SSL[sslID];
-      const std::string cert_base_path = File::GetUserPath(D_SESSION_WIIROOT_IDX);
+      const std::string cert_base_path = Paths::GetSessionWiiRootDir();
       const std::vector<u8> root_ca = ReadCertFile(cert_base_path + "/rootca.pem", s_root_ca_hash);
 
       int ret = mbedtls_x509_crt_parse(&ssl->cacert, root_ca.data(), root_ca.size());

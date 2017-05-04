@@ -20,7 +20,7 @@ namespace Net
 {
 WiiNetConfig::WiiNetConfig()
 {
-  m_path = File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/" WII_SYSCONF_DIR "/net/02/config.dat";
+  m_path = Paths::GetSessionWiiRootDir() + "/" WII_SYSCONF_DIR "/net/02/config.dat";
   ReadConfig();
 }
 
@@ -41,8 +41,7 @@ void WiiNetConfig::WriteConfig() const
 {
   if (!File::Exists(m_path))
   {
-    if (!File::CreateFullPath(File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/" WII_SYSCONF_DIR
-                                                                         "/net/02/"))
+    if (!File::CreateFullPath(Paths::GetSessionWiiRootDir() + "/" WII_SYSCONF_DIR "/net/02/"))
     {
       ERROR_LOG(IOS_NET, "Failed to create directory for network config file");
     }

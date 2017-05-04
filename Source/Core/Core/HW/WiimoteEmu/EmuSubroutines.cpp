@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "Common/ChunkFile.h"
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
@@ -282,7 +283,7 @@ void Wiimote::WriteData(const wm_write_data* const wd)
     {
       // writing the whole mii block each write :/
       std::ofstream file;
-      OpenFStream(file, File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/mii.bin",
+      OpenFStream(file, Paths::GetSessionWiiRootDir() + "/mii.bin",
                   std::ios::binary | std::ios::out);
       file.write((char*)m_eeprom + 0x0FCA, 0x02f0);
       file.close();
@@ -427,7 +428,7 @@ void Wiimote::ReadData(const wm_read_data* const rd)
     {
       // reading the whole mii block :/
       std::ifstream file;
-      file.open((File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/mii.bin").c_str(),
+      file.open((Paths::GetSessionWiiRootDir() + "/mii.bin").c_str(),
                 std::ios::binary | std::ios::in);
       file.read((char*)m_eeprom + 0x0FCA, 0x02f0);
       file.close();

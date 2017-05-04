@@ -20,7 +20,7 @@ namespace NWC24
 {
 NWC24Config::NWC24Config()
 {
-  m_path = File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/" WII_WC24CONF_DIR "/nwc24msg.cfg";
+  m_path = Paths::GetSessionWiiRootDir() + "/" WII_WC24CONF_DIR "/nwc24msg.cfg";
   ReadConfig();
 }
 
@@ -49,7 +49,7 @@ void NWC24Config::WriteConfig() const
 {
   if (!File::Exists(m_path))
   {
-    if (!File::CreateFullPath(File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/" WII_WC24CONF_DIR))
+    if (!File::CreateFullPath(Paths::GetSessionWiiRootDir() + "/" WII_WC24CONF_DIR))
     {
       ERROR_LOG(IOS_WC24, "Failed to create directory for WC24");
     }
