@@ -10,7 +10,7 @@
 
 // The user data dir
 #define ROOT_DIR "."
-#ifdef _WIN32
+#if defined _WIN32
 #define USERDATA_DIR "User"
 #define DOLPHIN_DATA_DIR "Dolphin"
 #elif defined __APPLE__

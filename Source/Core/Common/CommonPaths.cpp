@@ -23,7 +23,7 @@
 
 // Shared data dirs (Sys and shared User for Linux)
 constexpr auto SYSDATA_DIR =
-#if defined(_WIN32) || defined(LINUX_LOCAL_DEV)
+#if defined _WIN32 || defined LINUX_LOCAL_DEV
     "Sys"
 #elif defined __APPLE__
     "Contents/Resources/Sys"
@@ -153,7 +153,7 @@ static void RebuildUserDirectories()
   s_gcsram_file = s_gcuser_dir + GC_SRAM;
 
   s_wiiroot_dir = s_user_dir + WII_USER_DIR;
-  s_wiisdcard_file = s_wiiroot_dir + +DIR_SEP WII_SDCARD;
+  s_wiisdcard_file = s_wiiroot_dir + DIR_SEP + WII_SDCARD;
 
   s_cache_dir = s_user_dir + CACHE_DIR + DIR_SEP;
   s_shadercache_dir = s_cache_dir + SHADERCACHE_DIR + DIR_SEP;
@@ -538,17 +538,17 @@ const std::string& GetWiiSDCardFile()
 
 std::string GetThemeDir(const std::string& theme_name)
 {
-  std::string dir = GetThemesDir() + theme_name + "/";
+  std::string dir = GetThemesDir() + theme_name + DIR_SEP;
   if (File::Exists(dir))
     return dir;
 
   // If the theme doesn't exist in the user dir, load from shared directory
-  dir = GetSysDirectory() + THEMES_DIR "/" + theme_name + "/";
+  dir = GetSysDirectory() + THEMES_DIR + DIR_SEP + theme_name + DIR_SEP;
   if (File::Exists(dir))
     return dir;
 
   // If the theme doesn't exist at all, load the default theme
-  return GetSysDirectory() + THEMES_DIR "/" DEFAULT_THEME_DIR "/";
+  return GetSysDirectory() + THEMES_DIR + DIR_SEP + DEFAULT_THEME_DIR + DIR_SEP;
 }
 
 }  // namespace Paths
