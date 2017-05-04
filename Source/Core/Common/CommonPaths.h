@@ -260,4 +260,9 @@ const std::string& GetPipesDir()
 {
   return GetUserPath(D_PIPES_IDX);
 }
+
+const std::string& GetMemoryWatcherDir()
+{
+  return GetUserPath(D_MEMORYWATCHER_IDX);
+}
 }
