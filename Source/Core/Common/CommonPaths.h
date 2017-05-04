@@ -315,4 +315,9 @@ const std::string& GetUIConfigFile()
 {
   return GetUserPath(F_UICONFIG_IDX);
 }
+
+const std::string& GetMainLogFile()
+{
+  return GetUserPath(F_MAINLOG_IDX);
+}
 }
