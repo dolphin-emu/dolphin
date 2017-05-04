@@ -38,9 +38,11 @@ constexpr auto SYSDATA_DIR =
 
 // Subdirs in the Sys dir
 constexpr auto GC_SYS_DIR = "GC";
+constexpr auto WII_SYS_DIR = "Wii";
 
 // Subdirs in the User dir
 constexpr auto GC_USER_DIR = "GC";
+constexpr auto WII_USER_DIR = "Wii";
 constexpr auto CONFIG_DIR = "Config";
 constexpr auto CACHE_DIR = "Cache";
 constexpr auto SHADERCACHE_DIR = "Shaders";
@@ -258,6 +260,11 @@ std::string GetSysDirectory()
 std::string GetGCSysDirectory()
 {
   return GetSysDirectory() + GC_SYS_DIR + DIR_SEP;
+}
+
+std::string GetWiiSysDirectory()
+{
+  return GetSysDirectory() + WII_SYS_DIR + DIR_SEP;
 }
 
 void SetUserDir(std::string dir)

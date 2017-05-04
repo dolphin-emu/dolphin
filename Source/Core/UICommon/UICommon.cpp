@@ -47,7 +47,7 @@ void Shutdown()
 void CreateDirectories()
 {
   // Copy initial Wii NAND data from Sys to User.
-  File::CopyDir(Paths::GetSysDirectory() + WII_USER_DIR, Paths::GetWiiRootDir());
+  File::CopyDir(Paths::GetWiiSysDirectory(), Paths::GetWiiRootDir());
 
   File::CreateFullPath(Paths::GetUserDir());
   File::CreateFullPath(Paths::GetCacheDir());

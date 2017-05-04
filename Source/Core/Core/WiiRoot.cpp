@@ -66,7 +66,7 @@ void InitializeWiiRoot(bool use_temporary)
       ERROR_LOG(IOS_FILEIO, "Could not create temporary directory");
       return;
     }
-    File::CopyDir(Paths::GetSysDirectory() + WII_USER_DIR, s_temp_wii_root);
+    File::CopyDir(Paths::GetWiiSysDirectory(), s_temp_wii_root);
     WARN_LOG(IOS_FILEIO, "Using temporary directory %s for minimal Wii FS",
              s_temp_wii_root.c_str());
     static bool s_registered;

@@ -33,7 +33,6 @@
 #define RESOURCES_DIR "Resources"
 #define SHADERS_DIR "Shaders"
 #define THEMES_DIR "Themes"
-#define WII_USER_DIR "Wii"
 
 // Dirs in both User and Sys
 #define EUR_DIR "EUR"
@@ -64,9 +63,6 @@
 
 #define GECKO_CODE_HANDLER "codehandler.bin"
 
-// Subdirs in Sys
-#define WII_SYS_DIR "Wii"
-
 #include <string>
 
 namespace Paths
@@ -74,6 +70,7 @@ namespace Paths
 // Returns the path to where the sys file are
 std::string GetSysDirectory();
 std::string GetGCSysDirectory();
+std::string GetWiiSysDirectory();
 std::string& GetExeDirectory();
 
 #ifdef __APPLE__
