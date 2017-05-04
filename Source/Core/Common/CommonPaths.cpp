@@ -22,67 +22,67 @@
 #endif
 
 // Shared data dirs (Sys and shared User for Linux)
+constexpr auto SYSDATA_DIR =
 #if defined(_WIN32) || defined(LINUX_LOCAL_DEV)
-#define SYSDATA_DIR "Sys"
+    "Sys"
 #elif defined __APPLE__
-#define SYSDATA_DIR "Contents/Resources/Sys"
+    "Contents/Resources/Sys"
 #elif defined ANDROID
-#define SYSDATA_DIR "/sdcard/dolphin-emu"
+    "/sdcard/dolphin-emu"
+#elif defined DATA_DIR
+    DATA_DIR "sys"
 #else
-#ifdef DATA_DIR
-#define SYSDATA_DIR DATA_DIR "sys"
-#else
-#define SYSDATA_DIR "sys"
+    "sys"
 #endif
-#endif
+    ;
 
 // Subdirs in the User dir
-#define GC_USER_DIR "GC"
-#define CONFIG_DIR "Config"
-#define CACHE_DIR "Cache"
-#define SHADERCACHE_DIR "Shaders"
-#define STATESAVES_DIR "StateSaves"
-#define SCREENSHOTS_DIR "ScreenShots"
-#define LOAD_DIR "Load"
-#define HIRES_TEXTURES_DIR "Textures"
-#define DUMP_DIR "Dump"
-#define DUMP_TEXTURES_DIR "Textures"
-#define DUMP_FRAMES_DIR "Frames"
-#define DUMP_AUDIO_DIR "Audio"
-#define DUMP_DSP_DIR "DSP"
-#define DUMP_SSL_DIR "SSL"
-#define LOGS_DIR "Logs"
-#define MAIL_LOGS_DIR "Mail"
-#define PIPES_DIR "Pipes"
-#define MEMORYWATCHER_DIR "MemoryWatcher"
-#define WFSROOT_DIR "WFS"
-#define BACKUP_DIR "Backup"
+constexpr auto GC_USER_DIR = "GC";
+constexpr auto CONFIG_DIR = "Config";
+constexpr auto CACHE_DIR = "Cache";
+constexpr auto SHADERCACHE_DIR = "Shaders";
+constexpr auto STATESAVES_DIR = "StateSaves";
+constexpr auto SCREENSHOTS_DIR = "ScreenShots";
+constexpr auto LOAD_DIR = "Load";
+constexpr auto HIRES_TEXTURES_DIR = "Textures";
+constexpr auto DUMP_DIR = "Dump";
+constexpr auto DUMP_TEXTURES_DIR = "Textures";
+constexpr auto DUMP_FRAMES_DIR = "Frames";
+constexpr auto DUMP_AUDIO_DIR = "Audio";
+constexpr auto DUMP_DSP_DIR = "DSP";
+constexpr auto DUMP_SSL_DIR = "SSL";
+constexpr auto LOGS_DIR = "Logs";
+constexpr auto MAIL_LOGS_DIR = "Mail";
+constexpr auto PIPES_DIR = "Pipes";
+constexpr auto MEMORYWATCHER_DIR = "MemoryWatcher";
+constexpr auto WFSROOT_DIR = "WFS";
+constexpr auto BACKUP_DIR = "Backup";
 
 // This one is only used to remove it if it was present
-#define SHADERCACHE_LEGACY_DIR "ShaderCache"
+constexpr auto SHADERCACHE_LEGACY_DIR = "ShaderCache";
 
 // Filenames
 // Files in the config directory
-#define DOLPHIN_CONFIG "Dolphin.ini"
-#define GCPAD_CONFIG "GCPadNew.ini"
-#define WIIPAD_CONFIG "WiimoteNew.ini"
-#define GCKEYBOARD_CONFIG "GCKeyNew.ini"
-#define GFX_CONFIG "GFX.ini"
-#define DEBUGGER_CONFIG "Debugger.ini"
-#define LOGGER_CONFIG "Logger.ini"
-#define UI_CONFIG "UI.ini"
+constexpr auto DOLPHIN_CONFIG = "Dolphin.ini";
+constexpr auto GCPAD_CONFIG = "GCPadNew.ini";
+constexpr auto WIIPAD_CONFIG = "WiimoteNew.ini";
+constexpr auto GCKEYBOARD_CONFIG = "GCKeyNew.ini";
+constexpr auto GFX_CONFIG = "GFX.ini";
+constexpr auto DEBUGGER_CONFIG = "Debugger.ini";
+constexpr auto LOGGER_CONFIG = "Logger.ini";
+constexpr auto UI_CONFIG = "UI.ini";
 
 // Files in the logs directory
-#define MAIN_LOG "dolphin.log"
+constexpr auto MAIN_LOG = "dolphin.log";
 
 // Files in the dump directory
-#define RAM_DUMP "ram.raw"
-#define ARAM_DUMP "aram.raw"
-#define FAKEVMEM_DUMP "fakevmem.raw"
+constexpr auto RAM_DUMP = "ram.raw";
+constexpr auto ARAM_DUMP = "aram.raw";
+constexpr auto FAKEVMEM_DUMP = "fakevmem.raw";
 
 // Files in the memorywatcher directory
-#define MEMORYWATCHER_LOCATIONS "Locations.txt"
-#define MEMORYWATCHER_SOCKET "MemoryWatcher"
+constexpr auto MEMORYWATCHER_LOCATIONS = "Locations.txt";
+constexpr auto MEMORYWATCHER_SOCKET = "MemoryWatcher";
 
 static std::string s_user_dir;
 static std::string s_gcuser_dir;
@@ -131,46 +131,46 @@ static std::string s_wiisdcard_file;
 // Rebuilds internal directory structure to compensate for the new directory
 static void RebuildUserDirectories()
 {
-  s_gamesettings_dir = s_user_dir + GAMESETTINGS_DIR DIR_SEP;
-  s_backup_dir = s_user_dir + BACKUP_DIR DIR_SEP;
-  s_maps_dir = s_user_dir + MAPS_DIR DIR_SEP;
-  s_pipes_dir = s_user_dir + PIPES_DIR DIR_SEP;
-  s_screenshots_dir = s_user_dir + SCREENSHOTS_DIR DIR_SEP;
-  s_shaders_dir = s_user_dir + SHADERS_DIR DIR_SEP;
-  s_statesaves_dir = s_user_dir + STATESAVES_DIR DIR_SEP;
-  s_themes_dir = s_user_dir + THEMES_DIR DIR_SEP;
-  s_wfsroot_dir = s_user_dir + WFSROOT_DIR DIR_SEP;
+  s_gamesettings_dir = s_user_dir + GAMESETTINGS_DIR + DIR_SEP;
+  s_backup_dir = s_user_dir + BACKUP_DIR + DIR_SEP;
+  s_maps_dir = s_user_dir + MAPS_DIR + DIR_SEP;
+  s_pipes_dir = s_user_dir + PIPES_DIR + DIR_SEP;
+  s_screenshots_dir = s_user_dir + SCREENSHOTS_DIR + DIR_SEP;
+  s_shaders_dir = s_user_dir + SHADERS_DIR + DIR_SEP;
+  s_statesaves_dir = s_user_dir + STATESAVES_DIR + DIR_SEP;
+  s_themes_dir = s_user_dir + THEMES_DIR + DIR_SEP;
+  s_wfsroot_dir = s_user_dir + WFSROOT_DIR + DIR_SEP;
 
-  s_gcuser_dir = s_user_dir + GC_USER_DIR DIR_SEP;
+  s_gcuser_dir = s_user_dir + GC_USER_DIR + DIR_SEP;
   s_gcsram_file = s_gcuser_dir + GC_SRAM;
 
   s_wiiroot_dir = s_user_dir + WII_USER_DIR;
-  s_wiisdcard_file = s_wiiroot_dir + DIR_SEP WII_SDCARD;
+  s_wiisdcard_file = s_wiiroot_dir + +DIR_SEP WII_SDCARD;
 
-  s_cache_dir = s_user_dir + CACHE_DIR DIR_SEP;
-  s_shadercache_dir = s_cache_dir + SHADERCACHE_DIR DIR_SEP;
+  s_cache_dir = s_user_dir + CACHE_DIR + DIR_SEP;
+  s_shadercache_dir = s_cache_dir + SHADERCACHE_DIR + DIR_SEP;
   // The shader cache has moved to the cache directory, so remove the old one.
   // TODO: remove that someday.
-  File::DeleteDirRecursively(s_user_dir + SHADERCACHE_LEGACY_DIR DIR_SEP);
+  File::DeleteDirRecursively(s_user_dir + SHADERCACHE_LEGACY_DIR + DIR_SEP);
 
-  s_load_dir = s_user_dir + LOAD_DIR DIR_SEP;
-  s_hirestextures_dir = s_load_dir + HIRES_TEXTURES_DIR DIR_SEP;
+  s_load_dir = s_user_dir + LOAD_DIR + DIR_SEP;
+  s_hirestextures_dir = s_load_dir + HIRES_TEXTURES_DIR + DIR_SEP;
 
-  s_dump_dir = s_user_dir + DUMP_DIR DIR_SEP;
-  s_dumpaudio_dir = s_dump_dir + DUMP_AUDIO_DIR DIR_SEP;
-  s_dumpdsp_dir = s_dump_dir + DUMP_DSP_DIR DIR_SEP;
-  s_dumpframes_dir = s_dump_dir + DUMP_FRAMES_DIR DIR_SEP;
-  s_dumpssl_dir = s_dump_dir + DUMP_SSL_DIR DIR_SEP;
-  s_dumptextures_dir = s_dump_dir + DUMP_TEXTURES_DIR DIR_SEP;
+  s_dump_dir = s_user_dir + DUMP_DIR + DIR_SEP;
+  s_dumpaudio_dir = s_dump_dir + DUMP_AUDIO_DIR + DIR_SEP;
+  s_dumpdsp_dir = s_dump_dir + DUMP_DSP_DIR + DIR_SEP;
+  s_dumpframes_dir = s_dump_dir + DUMP_FRAMES_DIR + DIR_SEP;
+  s_dumpssl_dir = s_dump_dir + DUMP_SSL_DIR + DIR_SEP;
+  s_dumptextures_dir = s_dump_dir + DUMP_TEXTURES_DIR + DIR_SEP;
   s_aramdump_file = s_dump_dir + ARAM_DUMP;
   s_fakevmemdump_file = s_dump_dir + FAKEVMEM_DUMP;
   s_ramdump_file = s_dump_dir + RAM_DUMP;
 
-  s_logs_dir = s_user_dir + LOGS_DIR DIR_SEP;
-  s_maillogs_dir = s_logs_dir + MAIL_LOGS_DIR DIR_SEP;
+  s_logs_dir = s_user_dir + LOGS_DIR + DIR_SEP;
+  s_maillogs_dir = s_logs_dir + MAIL_LOGS_DIR + DIR_SEP;
   s_mainlog_file = s_logs_dir + MAIN_LOG;
 
-  s_config_dir = s_user_dir + CONFIG_DIR DIR_SEP;
+  s_config_dir = s_user_dir + CONFIG_DIR + DIR_SEP;
   s_debuggerconfig_file = s_config_dir + DEBUGGER_CONFIG;
   s_dolphinconfig_file = s_config_dir + DOLPHIN_CONFIG;
   s_gckeyboardconfig_file = s_config_dir + GCKEYBOARD_CONFIG;
@@ -180,7 +180,7 @@ static void RebuildUserDirectories()
   s_uiconfig_file = s_config_dir + UI_CONFIG;
   s_wiipadconfig_file = s_config_dir + WIIPAD_CONFIG;
 
-  s_memorywatcher_dir = s_user_dir + MEMORYWATCHER_DIR DIR_SEP;
+  s_memorywatcher_dir = s_user_dir + MEMORYWATCHER_DIR + DIR_SEP;
   s_memorywatcherlocations_file = s_memorywatcher_dir + MEMORYWATCHER_LOCATIONS;
   s_memorywatchersocket_file = s_memorywatcher_dir + MEMORYWATCHER_SOCKET;
 }
