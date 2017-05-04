@@ -4,10 +4,13 @@
 
 #include <QAction>
 #include <QDesktopServices>
+#include <QFileDialog>
+#include <QMessageBox>
 #include <QUrl>
 
 #include "Core/State.h"
 #include "DolphinQt2/AboutDialog.h"
+#include "DolphinQt2/GameList/GameFile.h"
 #include "DolphinQt2/MenuBar.h"
 #include "DolphinQt2/Settings.h"
 
@@ -17,7 +20,7 @@ MenuBar::MenuBar(QWidget* parent) : QMenuBar(parent)
   AddEmulationMenu();
   addMenu(tr("Movie"));
   addMenu(tr("Options"));
-  addMenu(tr("Tools"));
+  AddToolsMenu();
   AddViewMenu();
   AddHelpMenu();
 
@@ -69,6 +72,12 @@ void MenuBar::AddFileMenu()
   QMenu* file_menu = addMenu(tr("File"));
   m_open_action = file_menu->addAction(tr("Open"), this, SIGNAL(Open()));
   m_exit_action = file_menu->addAction(tr("Exit"), this, SIGNAL(Exit()));
+}
+
+void MenuBar::AddToolsMenu()
+{
+  QMenu* tools_menu = addMenu(tr("Tools"));
+  m_wad_install_action = tools_menu->addAction(tr("Install WAD..."), this, SLOT(InstallWAD()));
 }
 
 void MenuBar::AddEmulationMenu()
@@ -205,4 +214,28 @@ void MenuBar::AddTableColumnsMenu(QMenu* view_menu)
     QAction* action = column_group->addAction(cols_menu->addAction(col_names[i]));
     action->setCheckable(true);
   }
+}
+
+void MenuBar::InstallWAD()
+{
+  QString wad_file = QFileDialog::getOpenFileName(this, tr("Select a title to install to NAND"),
+                                                  QString(), tr("WAD files (*.wad)"));
+
+  if (wad_file.isEmpty())
+    return;
+
+  QMessageBox result_dialog(this);
+
+  if (GameFile(wad_file).Install())
+  {
+    result_dialog.setIcon(QMessageBox::Information);
+    result_dialog.setText(tr("Successfully installed title to the NAND"));
+  }
+  else
+  {
+    result_dialog.setIcon(QMessageBox::Critical);
+    result_dialog.setText(tr("Failed to install title to the NAND!"));
+  }
+
+  result_dialog.exec();
 }

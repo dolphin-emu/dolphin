@@ -29,9 +29,16 @@ public slots:
   void SetViewColumn(int col, bool view) { m_table->setColumnHidden(col, !view); }
 private slots:
   void ShowContextMenu(const QPoint&);
+  void OpenContainingFolder();
   void OpenProperties();
+  void OpenSaveFolder();
   void OpenWiki();
   void SetDefaultISO();
+  void DeleteFile();
+  void InstallWAD();
+  void UninstallWAD();
+  void ExportWiiSave();
+  void CompressISO();
 
 signals:
   void GameSelected();
