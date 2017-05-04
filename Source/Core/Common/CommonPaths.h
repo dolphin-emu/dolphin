@@ -255,4 +255,9 @@ const std::string& GetThemesDir()
 {
   return GetUserPath(D_THEMES_IDX);
 }
+
+const std::string& GetPipesDir()
+{
+  return GetUserPath(D_PIPES_IDX);
+}
 }
