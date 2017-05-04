@@ -290,4 +290,9 @@ const std::string& GetWiiPadConfigFile()
 {
   return GetUserPath(F_WIIPADCONFIG_IDX);
 }
+
+const std::string& GetGCKeyboardConfigFile()
+{
+  return GetUserPath(F_GCKEYBOARDCONFIG_IDX);
+}
 }
