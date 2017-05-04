@@ -193,6 +193,9 @@ public:
   u64 GetTitleId() const;
   std::vector<u8> GetTitleKey() const;
 
+  // Deletes a ticket with the given ticket ID from the internal buffer.
+  void DeleteTicket(u64 ticket_id);
+
   // Decrypts the title key field for a "personalised" ticket -- one that is device-specific
   // and has a title key that must be decrypted first.
   s32 Unpersonalise();

@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <cinttypes>
+#include <cstddef>
 #include <utility>
 #include <vector>
 
@@ -335,15 +336,45 @@ IPCCommandResult ES::DeleteTitle(const IOCtlVRequest& request)
 
 IPCCommandResult ES::DeleteTicket(const IOCtlVRequest& request)
 {
-  if (!request.HasNumberOfValidVectors(1, 0))
+  if (!request.HasNumberOfValidVectors(1, 0) ||
+      request.in_vectors[0].size != sizeof(IOS::ES::TicketView))
+  {
+    return GetDefaultReply(ES_EINVAL);
+  }
+
+  const u64 title_id =
+      Memory::Read_U64(request.in_vectors[0].address + offsetof(IOS::ES::TicketView, title_id));
+
+  if (!CanDeleteTitle(title_id))
     return GetDefaultReply(ES_EINVAL);
 
-  u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
-  INFO_LOG(IOS_ES, "IOCTL_ES_DELETETICKET: title: %08x/%08x", (u32)(TitleID >> 32), (u32)TitleID);
+  auto ticket = DiscIO::FindSignedTicket(title_id);
+  if (!ticket.IsValid())
+    return GetDefaultReply(FS_ENOENT);
 
-  // Presumably return -1017 when delete fails
-  if (!File::Delete(Common::GetTicketFileName(TitleID, Common::FROM_SESSION_ROOT)))
-    return GetDefaultReply(ES_EINVAL);
+  const u64 ticket_id =
+      Memory::Read_U64(request.in_vectors[0].address + offsetof(IOS::ES::TicketView, ticket_id));
+  ticket.DeleteTicket(ticket_id);
+
+  const std::vector<u8>& new_ticket = ticket.GetRawTicket();
+  const std::string ticket_path = Common::GetTicketFileName(title_id, Common::FROM_SESSION_ROOT);
+  {
+    File::IOFile ticket_file(ticket_path, "wb");
+    if (!ticket_file || !ticket_file.WriteBytes(new_ticket.data(), new_ticket.size()))
+      return GetDefaultReply(ES_EIO);
+  }
+
+  // Delete the ticket file if it is now empty.
+  if (new_ticket.empty())
+    File::Delete(ticket_path);
+
+  // Delete the ticket directory if it is now empty.
+  const std::string ticket_parent_dir =
+      Common::RootUserPath(Common::FROM_CONFIGURED_ROOT) +
+      StringFromFormat("/ticket/%08x", static_cast<u32>(title_id >> 32));
+  const auto ticket_parent_dir_entries = File::ScanDirectoryTree(ticket_parent_dir, false);
+  if (ticket_parent_dir_entries.children.empty())
+    File::DeleteDir(ticket_parent_dir);
 
   return GetDefaultReply(IPC_SUCCESS);
 }

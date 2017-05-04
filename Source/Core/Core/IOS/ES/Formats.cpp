@@ -300,6 +300,21 @@ std::vector<u8> TicketReader::GetTitleKey() const
   return key;
 }
 
+void TicketReader::DeleteTicket(u64 ticket_id_to_delete)
+{
+  std::vector<u8> new_ticket;
+  const size_t num_tickets = GetNumberOfTickets();
+  for (size_t i = 0; i < num_tickets; ++i)
+  {
+    const auto ticket_start = m_bytes.cbegin() + sizeof(Ticket) * i;
+    const u64 ticket_id = Common::swap64(&*ticket_start + offsetof(Ticket, ticket_id));
+    if (ticket_id != ticket_id_to_delete)
+      new_ticket.insert(new_ticket.end(), ticket_start, ticket_start + sizeof(Ticket));
+  }
+
+  m_bytes = std::move(new_ticket);
+}
+
 s32 TicketReader::Unpersonalise()
 {
   const auto ticket_begin = m_bytes.begin();
