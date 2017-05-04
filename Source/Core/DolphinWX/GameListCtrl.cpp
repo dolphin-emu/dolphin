@@ -967,7 +967,7 @@ static bool IsWADInstalled(const std::string& wad_path)
     return false;
 
   const std::string content_dir =
-      Common::GetTitleContentPath(title_id, Common::FromWhichRoot::FROM_CONFIGURED_ROOT);
+      NANDPaths::GetTitleContentPath(title_id, NANDPaths::FromWhichRoot::FROM_CONFIGURED_ROOT);
 
   if (!File::IsDirectory(content_dir))
     return false;

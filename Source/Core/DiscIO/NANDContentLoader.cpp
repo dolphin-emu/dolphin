@@ -185,7 +185,7 @@ void CNANDContentLoader::InitializeContentEntries(const std::vector<u8>& data_ap
 
   u32 data_app_offset = 0;
   const std::vector<u8> title_key = m_ticket.GetTitleKey();
-  IOS::ES::SharedContentMap shared_content{Common::FromWhichRoot::FROM_SESSION_ROOT};
+  IOS::ES::SharedContentMap shared_content{NANDPaths::FromWhichRoot::FROM_SESSION_ROOT};
 
   for (size_t i = 0; i < contents.size(); ++i)
   {
@@ -235,13 +235,13 @@ const CNANDContentLoader& CNANDContentManager::GetNANDLoader(const std::string& 
 }
 
 const CNANDContentLoader& CNANDContentManager::GetNANDLoader(u64 title_id,
-                                                             Common::FromWhichRoot from)
+                                                             NANDPaths::FromWhichRoot from)
 {
-  std::string path = Common::GetTitleContentPath(title_id, from);
+  std::string path = NANDPaths::GetTitleContentPath(title_id, from);
   return GetNANDLoader(path);
 }
 
-bool CNANDContentManager::RemoveTitle(u64 title_id, Common::FromWhichRoot from)
+bool CNANDContentManager::RemoveTitle(u64 title_id, NANDPaths::FromWhichRoot from)
 {
   auto& loader = GetNANDLoader(title_id, from);
   if (!loader.IsValid())
@@ -287,8 +287,9 @@ u64 CNANDContentManager::Install_WiiWAD(const std::string& filename)
 
   // copy WAD's TMD header and contents to content directory
 
-  std::string content_path(Common::GetTitleContentPath(title_id, Common::FROM_CONFIGURED_ROOT));
-  std::string tmd_filename(Common::GetTMDFileName(title_id, Common::FROM_CONFIGURED_ROOT));
+  std::string content_path(
+      NANDPaths::GetTitleContentPath(title_id, NANDPaths::FROM_CONFIGURED_ROOT));
+  std::string tmd_filename(NANDPaths::GetTMDFileName(title_id, NANDPaths::FROM_CONFIGURED_ROOT));
   File::CreateFullPath(tmd_filename);
 
   File::IOFile tmd_file(tmd_filename, "wb");
@@ -301,7 +302,7 @@ u64 CNANDContentManager::Install_WiiWAD(const std::string& filename)
   const auto& raw_tmd = content_loader.GetTMD().GetRawTMD();
   tmd_file.WriteBytes(raw_tmd.data(), raw_tmd.size());
 
-  IOS::ES::SharedContentMap shared_content{Common::FromWhichRoot::FROM_CONFIGURED_ROOT};
+  IOS::ES::SharedContentMap shared_content{NANDPaths::FromWhichRoot::FROM_CONFIGURED_ROOT};
   for (const auto& content : content_loader.GetContent())
   {
     std::string app_filename;
@@ -335,7 +336,7 @@ u64 CNANDContentManager::Install_WiiWAD(const std::string& filename)
     return 0;
   }
 
-  IOS::ES::UIDSys uid_sys{Common::FromWhichRoot::FROM_CONFIGURED_ROOT};
+  IOS::ES::UIDSys uid_sys{NANDPaths::FromWhichRoot::FROM_CONFIGURED_ROOT};
   uid_sys.GetOrInsertUIDForTitle(title_id);
 
   ClearCache();
@@ -352,7 +353,8 @@ bool AddTicket(const IOS::ES::TicketReader& signed_ticket)
 
   u64 title_id = signed_ticket.GetTitleId();
 
-  std::string ticket_filename = Common::GetTicketFileName(title_id, Common::FROM_CONFIGURED_ROOT);
+  std::string ticket_filename =
+      NANDPaths::GetTicketFileName(title_id, NANDPaths::FROM_CONFIGURED_ROOT);
   File::CreateFullPath(ticket_filename);
 
   File::IOFile ticket_file(ticket_filename, "wb");
@@ -365,7 +367,8 @@ bool AddTicket(const IOS::ES::TicketReader& signed_ticket)
 
 IOS::ES::TicketReader FindSignedTicket(u64 title_id)
 {
-  std::string ticket_filename = Common::GetTicketFileName(title_id, Common::FROM_CONFIGURED_ROOT);
+  std::string ticket_filename =
+      NANDPaths::GetTicketFileName(title_id, NANDPaths::FROM_CONFIGURED_ROOT);
   File::IOFile ticket_file(ticket_filename, "rb");
   if (!ticket_file)
   {

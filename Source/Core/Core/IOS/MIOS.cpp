@@ -93,8 +93,8 @@ u32 ARMBinary::GetElfSize() const
 
 static std::vector<u8> GetMIOSBinary()
 {
-  const auto& loader =
-      DiscIO::CNANDContentManager::Access().GetNANDLoader(MIOS_TITLE_ID, Common::FROM_SESSION_ROOT);
+  const auto& loader = DiscIO::CNANDContentManager::Access().GetNANDLoader(
+      MIOS_TITLE_ID, NANDPaths::FROM_SESSION_ROOT);
   if (!loader.IsValid())
     return {};
 

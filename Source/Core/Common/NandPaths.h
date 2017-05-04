@@ -13,7 +13,7 @@
 static const u64 TITLEID_SYSMENU = 0x0000000100000002;
 static const std::string TITLEID_SYSMENU_STRING = "0000000100000002";
 
-namespace Common
+namespace NANDPaths
 {
 enum FromWhichRoot
 {

@@ -22,6 +22,7 @@
 #include "Common/FileUtil.h"
 #include "Common/GL/GLInterfaceBase.h"
 #include "Common/Logging/LogManager.h"
+#include "Common/NandPaths.h"
 
 #include "Core/BootManager.h"
 #include "Core/ConfigManager.h"
@@ -658,10 +659,10 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_CreateUserFo
 {
   File::CreateFullPath(Paths::GetConfigDir());
   File::CreateFullPath(Paths::GetGCUserDir());
-  File::CreateFullPath(Common::GetWC24ConfDir(FROM_CONFIGURED_ROOT) + "mbox" DIR_SEP);
+  File::CreateFullPath(NANDPaths::GetWC24ConfDir(NANDPaths::FROM_CONFIGURED_ROOT) + "mbox" DIR_SEP);
   File::CreateFullPath(Paths::GetWiiRootDir() + DIR_SEP "shared2" DIR_SEP "succession" DIR_SEP);
   File::CreateFullPath(Paths::GetWiiRootDir() + DIR_SEP "shared2" DIR_SEP "ec" DIR_SEP);
-  File::CreateFullPath(Common::GetSysconfDir(FROM_CONFIGURED_ROOT));
+  File::CreateFullPath(NANDPaths::GetSysconfDir(NANDPaths::FROM_CONFIGURED_ROOT));
   File::CreateFullPath(Paths::GetCacheDir());
   File::CreateFullPath(Paths::GetDumpDSPDir());
   File::CreateFullPath(Paths::GetDumpTexturesDir());

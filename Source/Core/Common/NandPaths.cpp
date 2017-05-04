@@ -21,7 +21,7 @@ constexpr auto WII_STATE_FILE = "state.dat";
 constexpr auto WII_SYSCONF_DIR = "shared2" DIR_SEP "sys";
 constexpr auto WII_WC24CONF_DIR = "shared2" DIR_SEP "wc24";
 
-namespace Common
+namespace NANDPaths
 {
 std::string RootUserPath(FromWhichRoot from)
 {

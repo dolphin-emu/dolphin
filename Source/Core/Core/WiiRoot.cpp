@@ -26,10 +26,10 @@ static std::string s_temp_wii_root;
 
 static void InitializeDeterministicWiiSaves()
 {
-  std::string save_path =
-      Common::GetTitleDataPath(SConfig::GetInstance().GetTitleID(), Common::FROM_SESSION_ROOT);
-  std::string user_save_path =
-      Common::GetTitleDataPath(SConfig::GetInstance().GetTitleID(), Common::FROM_CONFIGURED_ROOT);
+  std::string save_path = NANDPaths::GetTitleDataPath(SConfig::GetInstance().GetTitleID(),
+                                                      NANDPaths::FROM_SESSION_ROOT);
+  std::string user_save_path = NANDPaths::GetTitleDataPath(SConfig::GetInstance().GetTitleID(),
+                                                           NANDPaths::FROM_CONFIGURED_ROOT);
   if (Movie::IsRecordingInput())
   {
     if (NetPlay::IsNetPlayRunning() && !SConfig::GetInstance().bCopyWiiSaveNetplay)
@@ -77,7 +77,7 @@ void InitializeWiiRoot(bool use_temporary)
     }
     Paths::SetSessionWiiRootDir(s_temp_wii_root);
     // Generate a SYSCONF with default settings for the temporary Wii NAND.
-    SysConf sysconf{Common::FromWhichRoot::FROM_SESSION_ROOT};
+    SysConf sysconf{NANDPaths::FromWhichRoot::FROM_SESSION_ROOT};
     sysconf.Save();
 
     InitializeDeterministicWiiSaves();
@@ -92,10 +92,10 @@ void ShutdownWiiRoot()
 {
   if (!s_temp_wii_root.empty())
   {
-    std::string save_path =
-        Common::GetTitleDataPath(SConfig::GetInstance().GetTitleID(), Common::FROM_SESSION_ROOT);
-    std::string user_save_path =
-        Common::GetTitleDataPath(SConfig::GetInstance().GetTitleID(), Common::FROM_CONFIGURED_ROOT);
+    std::string save_path = NANDPaths::GetTitleDataPath(SConfig::GetInstance().GetTitleID(),
+                                                        NANDPaths::FROM_SESSION_ROOT);
+    std::string user_save_path = NANDPaths::GetTitleDataPath(SConfig::GetInstance().GetTitleID(),
+                                                             NANDPaths::FROM_CONFIGURED_ROOT);
     std::string user_backup_path =
         Paths::GetBackupDir() +
         StringFromFormat("%08x/%08x/", static_cast<u32>(SConfig::GetInstance().GetTitleID() >> 32),

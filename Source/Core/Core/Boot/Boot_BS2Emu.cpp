@@ -211,7 +211,7 @@ bool CBoot::SetupWiiMemory(u64 ios_title_id)
   SettingsHandler gen;
   std::string serno;
   const std::string settings_file_path =
-      Common::GetTitleSettingFileName(TITLEID_SYSMENU, Common::FROM_SESSION_ROOT);
+      NANDPaths::GetTitleSettingFileName(TITLEID_SYSMENU, NANDPaths::FROM_SESSION_ROOT);
   if (File::Exists(settings_file_path) && gen.Open(settings_file_path))
   {
     serno = gen.GetValue("SERNO");

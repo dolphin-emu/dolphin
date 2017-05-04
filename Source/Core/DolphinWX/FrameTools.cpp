@@ -1175,7 +1175,7 @@ void CFrame::OnShowCheatsWindow(wxCommandEvent& WXUNUSED(event))
 
 void CFrame::OnLoadWiiMenu(wxCommandEvent& WXUNUSED(event))
 {
-  BootGame(Common::GetTitleContentPath(TITLEID_SYSMENU, Common::FROM_CONFIGURED_ROOT));
+  BootGame(NANDPaths::GetTitleContentPath(TITLEID_SYSMENU, NANDPaths::FROM_CONFIGURED_ROOT));
 }
 
 void CFrame::OnInstallWAD(wxCommandEvent& event)
@@ -1231,7 +1231,7 @@ void CFrame::OnUninstallWAD(wxCommandEvent&)
   const auto volume = DiscIO::CreateVolumeFromFilename(file->GetFileName());
   u64 title_id;
   volume->GetTitleID(&title_id);
-  if (!DiscIO::CNANDContentManager::Access().RemoveTitle(title_id, Common::FROM_CONFIGURED_ROOT))
+  if (!DiscIO::CNANDContentManager::Access().RemoveTitle(title_id, NANDPaths::FROM_CONFIGURED_ROOT))
   {
     PanicAlertT("Failed to remove this title from the NAND.");
     return;
@@ -1469,7 +1469,7 @@ void CFrame::UpdateGUI()
   // Misc
   GetMenuBar()->FindItem(IDM_CHANGE_DISC)->Enable(Initialized);
   if (DiscIO::CNANDContentManager::Access()
-          .GetNANDLoader(TITLEID_SYSMENU, Common::FROM_CONFIGURED_ROOT)
+          .GetNANDLoader(TITLEID_SYSMENU, NANDPaths::FROM_CONFIGURED_ROOT)
           .IsValid())
     GetMenuBar()->FindItem(IDM_LOAD_WII_MENU)->Enable(!Initialized);
 

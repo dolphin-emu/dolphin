@@ -554,7 +554,7 @@ IPCCommandResult FS::ReadDirectory(const IOCtlVRequest& request)
     {
       // Decode escaped invalid file system characters so that games (such as
       // Harry Potter and the Half-Blood Prince) can find what they expect.
-      child.virtualName = Common::UnescapeFileName(child.virtualName);
+      child.virtualName = NANDPaths::UnescapeFileName(child.virtualName);
     }
 
     std::sort(entry.children.begin(), entry.children.end(),

@@ -37,12 +37,12 @@ static TMDReader FindTMD(u64 title_id, const std::string& tmd_path)
 
 TMDReader FindImportTMD(u64 title_id)
 {
-  return FindTMD(title_id, Common::GetImportTitlePath(title_id) + "/content/title.tmd");
+  return FindTMD(title_id, NANDPaths::GetImportTitlePath(title_id) + "/content/title.tmd");
 }
 
 TMDReader FindInstalledTMD(u64 title_id)
 {
-  return FindTMD(title_id, Common::GetTMDFileName(title_id, Common::FROM_SESSION_ROOT));
+  return FindTMD(title_id, NANDPaths::GetTMDFileName(title_id, NANDPaths::FROM_SESSION_ROOT));
 }
 
 static bool IsValidPartOfTitleID(const std::string& string)
@@ -90,17 +90,18 @@ static std::vector<u64> GetTitlesInTitleOrImport(const std::string& titles_dir)
 
 std::vector<u64> GetInstalledTitles()
 {
-  return GetTitlesInTitleOrImport(Common::RootUserPath(Common::FROM_SESSION_ROOT) + "/title");
+  return GetTitlesInTitleOrImport(NANDPaths::RootUserPath(NANDPaths::FROM_SESSION_ROOT) + "/title");
 }
 
 std::vector<u64> GetTitleImports()
 {
-  return GetTitlesInTitleOrImport(Common::RootUserPath(Common::FROM_SESSION_ROOT) + "/import");
+  return GetTitlesInTitleOrImport(NANDPaths::RootUserPath(NANDPaths::FROM_SESSION_ROOT) +
+                                  "/import");
 }
 
 std::vector<u64> GetTitlesWithTickets()
 {
-  const std::string tickets_dir = Common::RootUserPath(Common::FROM_SESSION_ROOT) + "/ticket";
+  const std::string tickets_dir = NANDPaths::RootUserPath(NANDPaths::FROM_SESSION_ROOT) + "/ticket";
   if (!File::IsDirectory(tickets_dir))
   {
     ERROR_LOG(IOS_ES, "/ticket is not a directory");
@@ -143,7 +144,7 @@ std::vector<Content> GetStoredContentsFromTMD(const TMDReader& tmd)
   if (!tmd.IsValid())
     return {};
 
-  const IOS::ES::SharedContentMap shared{Common::FROM_SESSION_ROOT};
+  const IOS::ES::SharedContentMap shared{NANDPaths::FROM_SESSION_ROOT};
   const std::vector<Content> contents = tmd.GetContents();
 
   std::vector<Content> stored_contents;
@@ -155,9 +156,9 @@ std::vector<Content> GetStoredContentsFromTMD(const TMDReader& tmd)
                    const std::string path = shared.GetFilenameFromSHA1(content.sha1);
                    return path != "unk" && File::Exists(path);
                  }
-                 return File::Exists(
-                     Common::GetTitleContentPath(tmd.GetTitleId(), Common::FROM_SESSION_ROOT) +
-                     StringFromFormat("%08x.app", content.id));
+                 return File::Exists(NANDPaths::GetTitleContentPath(tmd.GetTitleId(),
+                                                                    NANDPaths::FROM_SESSION_ROOT) +
+                                     StringFromFormat("%08x.app", content.id));
                });
 
   return stored_contents;
@@ -165,7 +166,8 @@ std::vector<Content> GetStoredContentsFromTMD(const TMDReader& tmd)
 
 u32 GetSharedContentsCount()
 {
-  const std::string shared1_path = Common::RootUserPath(Common::FROM_SESSION_ROOT) + "/shared1";
+  const std::string shared1_path =
+      NANDPaths::RootUserPath(NANDPaths::FROM_SESSION_ROOT) + "/shared1";
   const auto entries = File::ScanDirectoryTree(shared1_path, false);
   return static_cast<u32>(
       std::count_if(entries.children.begin(), entries.children.end(), [](const auto& entry) {
@@ -176,14 +178,15 @@ u32 GetSharedContentsCount()
 
 std::vector<std::array<u8, 20>> GetSharedContents()
 {
-  const IOS::ES::SharedContentMap map{Common::FROM_SESSION_ROOT};
+  const IOS::ES::SharedContentMap map{NANDPaths::FROM_SESSION_ROOT};
   return map.GetHashes();
 }
 
 bool InitImport(u64 title_id)
 {
-  const std::string content_dir = Common::GetTitleContentPath(title_id, Common::FROM_SESSION_ROOT);
-  const std::string data_dir = Common::GetTitleDataPath(title_id, Common::FROM_SESSION_ROOT);
+  const std::string content_dir =
+      NANDPaths::GetTitleContentPath(title_id, NANDPaths::FROM_SESSION_ROOT);
+  const std::string data_dir = NANDPaths::GetTitleDataPath(title_id, NANDPaths::FROM_SESSION_ROOT);
   for (const auto& dir : {content_dir, data_dir})
   {
     if (!File::IsDirectory(dir) && !File::CreateFullPath(dir) && !File::CreateDir(dir))
@@ -193,13 +196,13 @@ bool InitImport(u64 title_id)
     }
   }
 
-  UIDSys uid_sys{Common::FROM_CONFIGURED_ROOT};
+  UIDSys uid_sys{NANDPaths::FROM_CONFIGURED_ROOT};
   uid_sys.GetOrInsertUIDForTitle(title_id);
 
   // IOS moves the title content directory to /import if the TMD exists during an import.
-  if (File::Exists(Common::GetTMDFileName(title_id, Common::FROM_SESSION_ROOT)))
+  if (File::Exists(NANDPaths::GetTMDFileName(title_id, NANDPaths::FROM_SESSION_ROOT)))
   {
-    const std::string import_content_dir = Common::GetImportTitlePath(title_id) + "/content";
+    const std::string import_content_dir = NANDPaths::GetImportTitlePath(title_id) + "/content";
     File::CreateFullPath(import_content_dir);
     if (!File::Rename(content_dir, import_content_dir))
     {
@@ -214,7 +217,7 @@ bool InitImport(u64 title_id)
 bool FinishImport(const IOS::ES::TMDReader& tmd)
 {
   const u64 title_id = tmd.GetTitleId();
-  const std::string import_content_dir = Common::GetImportTitlePath(title_id) + "/content";
+  const std::string import_content_dir = NANDPaths::GetImportTitlePath(title_id) + "/content";
 
   // Remove everything not listed in the TMD.
   std::unordered_set<std::string> expected_entries = {"title.tmd"};
@@ -230,7 +233,8 @@ bool FinishImport(const IOS::ES::TMDReader& tmd)
       File::Delete(entry.physicalName);
   }
 
-  const std::string content_dir = Common::GetTitleContentPath(title_id, Common::FROM_SESSION_ROOT);
+  const std::string content_dir =
+      NANDPaths::GetTitleContentPath(title_id, NANDPaths::FROM_SESSION_ROOT);
   if (File::IsDirectory(content_dir))
   {
     WARN_LOG(IOS_ES, "FinishImport: %s already exists -- removing", content_dir.c_str());
@@ -246,7 +250,8 @@ bool FinishImport(const IOS::ES::TMDReader& tmd)
 
 bool WriteImportTMD(const IOS::ES::TMDReader& tmd)
 {
-  const std::string tmd_path = Common::RootUserPath(Common::FROM_SESSION_ROOT) + "/tmp/title.tmd";
+  const std::string tmd_path =
+      NANDPaths::RootUserPath(NANDPaths::FROM_SESSION_ROOT) + "/tmp/title.tmd";
   File::CreateFullPath(tmd_path);
 
   {
@@ -255,7 +260,7 @@ bool WriteImportTMD(const IOS::ES::TMDReader& tmd)
       return false;
   }
 
-  const std::string dest = Common::GetImportTitlePath(tmd.GetTitleId()) + "/content/title.tmd";
+  const std::string dest = NANDPaths::GetImportTitlePath(tmd.GetTitleId()) + "/content/title.tmd";
   return File::Rename(tmd_path, dest);
 }
 }  // namespace ES

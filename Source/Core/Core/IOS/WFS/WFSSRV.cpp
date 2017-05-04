@@ -22,7 +22,7 @@ namespace WFS
 {
 std::string NativePath(const std::string& wfs_path)
 {
-  return Paths::GetWFSRootDir() + Common::EscapePath(wfs_path);
+  return Paths::GetWFSRootDir() + NANDPaths::EscapePath(wfs_path);
 }
 }  // namespace WFS
 

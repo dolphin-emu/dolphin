@@ -340,7 +340,8 @@ void CWiiSaveCrypted::ImportWiiSaveFiles()
     {
       // Allows files in subfolders to be escaped properly (ex: "nocopy/data00")
       // Special characters in path components will be escaped such as /../
-      std::string file_path = Common::EscapePath(reinterpret_cast<const char*>(file_hdr_tmp.name));
+      std::string file_path =
+          NANDPaths::EscapePath(reinterpret_cast<const char*>(file_hdr_tmp.name));
 
       std::string file_path_full = m_wii_title_path + file_path;
       File::CreateFullPath(file_path_full);
@@ -416,7 +417,7 @@ void CWiiSaveCrypted::ExportWiiSaveFiles()
     file_hdr_tmp.Permissions = 0x3c;
 
     std::string name =
-        Common::UnescapeFileName(m_files_list[i].substr(m_wii_title_path.length() + 1));
+        NANDPaths::UnescapeFileName(m_files_list[i].substr(m_wii_title_path.length() + 1));
 
     if (name.length() > 0x44)
     {
@@ -566,7 +567,7 @@ bool CWiiSaveCrypted::getPaths(bool for_export)
   if (m_title_id)
   {
     // CONFIGURED because this whole class is only used from the GUI, not directly by games.
-    m_wii_title_path = Common::GetTitleDataPath(m_title_id, Common::FROM_CONFIGURED_ROOT);
+    m_wii_title_path = NANDPaths::GetTitleDataPath(m_title_id, NANDPaths::FROM_CONFIGURED_ROOT);
   }
 
   if (for_export)

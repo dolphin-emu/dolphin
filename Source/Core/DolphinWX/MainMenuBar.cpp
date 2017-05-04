@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "Common/CDUtils.h"
+#include "Common/NandPaths.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -569,7 +570,7 @@ void MainMenuBar::RefreshWiiSystemMenuLabel() const
   auto* const item = FindItem(IDM_LOAD_WII_MENU);
 
   const auto& sys_menu_loader = DiscIO::CNANDContentManager::Access().GetNANDLoader(
-      TITLEID_SYSMENU, Common::FROM_CONFIGURED_ROOT);
+      TITLEID_SYSMENU, NANDPaths::FROM_CONFIGURED_ROOT);
 
   if (sys_menu_loader.IsValid())
   {

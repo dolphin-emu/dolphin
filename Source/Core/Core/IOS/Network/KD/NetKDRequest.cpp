@@ -83,7 +83,7 @@ IPCCommandResult NetKDRequest::IOCtl(const IOCtlRequest& request)
     if (config.CreationStage() == NWC24::NWC24Config::NWC24_IDCS_INITIAL)
     {
       const std::string settings_file_path =
-          Common::GetTitleSettingFileName(TITLEID_SYSMENU, Common::FROM_SESSION_ROOT);
+          NANDPaths::GetTitleSettingFileName(TITLEID_SYSMENU, NANDPaths::FROM_SESSION_ROOT);
       SettingsHandler gen;
       std::string area, model;
       bool got_settings = false;

@@ -29,7 +29,7 @@ std::string BuildFilename(const std::string& wii_path)
 {
   std::string nand_path = Paths::GetSessionWiiRootDir();
   if (wii_path.compare(0, 1, "/") == 0)
-    return nand_path + Common::EscapePath(wii_path);
+    return nand_path + NANDPaths::EscapePath(wii_path);
 
   _assert_(false);
   return nand_path;
@@ -39,7 +39,7 @@ void CreateVirtualFATFilesystem()
 {
   const int cdbSize = 0x01400000;
   const std::string cdbPath =
-      Common::GetTitleDataPath(TITLEID_SYSMENU, Common::FROM_SESSION_ROOT) + "cdb.vff";
+      NANDPaths::GetTitleDataPath(TITLEID_SYSMENU, NANDPaths::FROM_SESSION_ROOT) + "cdb.vff";
   if ((int)File::GetSize(cdbPath) < cdbSize)
   {
     // cdb.vff is a virtual Fat filesystem created on first launch of sysmenu

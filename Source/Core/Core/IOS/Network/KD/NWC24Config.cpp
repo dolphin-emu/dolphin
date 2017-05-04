@@ -21,7 +21,7 @@ namespace NWC24
 {
 NWC24Config::NWC24Config()
 {
-  m_path = Common::GetWC24ConfDir(Common::FROM_SESSION_ROOT) + "nwc24msg.cfg";
+  m_path = NANDPaths::GetWC24ConfDir(NANDPaths::FROM_SESSION_ROOT) + "nwc24msg.cfg";
   ReadConfig();
 }
 
@@ -50,7 +50,7 @@ void NWC24Config::WriteConfig() const
 {
   if (!File::Exists(m_path))
   {
-    if (!File::CreateFullPath(Common::GetWC24ConfDir(Common::FROM_SESSION_ROOT)))
+    if (!File::CreateFullPath(NANDPaths::GetWC24ConfDir(NANDPaths::FROM_SESSION_ROOT)))
     {
       ERROR_LOG(IOS_WC24, "Failed to create directory for WC24");
     }

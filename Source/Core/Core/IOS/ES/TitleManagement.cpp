@@ -183,7 +183,8 @@ static bool CheckIfContentHashMatches(const std::vector<u8>& content, const IOS:
 
 static std::string GetImportContentPath(u64 title_id, u32 content_id)
 {
-  return Common::GetImportTitlePath(title_id) + StringFromFormat("/content/%08x.app", content_id);
+  return NANDPaths::GetImportTitlePath(title_id) +
+         StringFromFormat("/content/%08x.app", content_id);
 }
 
 IPCCommandResult ES::AddContentFinish(Context& context, const IOCtlVRequest& request)
@@ -229,7 +230,7 @@ IPCCommandResult ES::AddContentFinish(Context& context, const IOCtlVRequest& req
   std::string content_path;
   if (content_info.IsShared())
   {
-    IOS::ES::SharedContentMap shared_content{Common::FROM_SESSION_ROOT};
+    IOS::ES::SharedContentMap shared_content{NANDPaths::FROM_SESSION_ROOT};
     content_path = shared_content.AddSharedContent(content_info.sha1);
   }
   else
@@ -239,7 +240,7 @@ IPCCommandResult ES::AddContentFinish(Context& context, const IOCtlVRequest& req
   }
   File::CreateFullPath(content_path);
 
-  const std::string temp_path = Common::RootUserPath(Common::FROM_SESSION_ROOT) +
+  const std::string temp_path = NANDPaths::RootUserPath(NANDPaths::FROM_SESSION_ROOT) +
                                 StringFromFormat("/tmp/%08x.app", context.title_import.content_id);
   File::CreateFullPath(temp_path);
 
@@ -316,10 +317,10 @@ IPCCommandResult ES::DeleteTitle(const IOCtlVRequest& request)
     return GetDefaultReply(ES_EINVAL);
 
   const std::string title_dir =
-      StringFromFormat("%s/title/%08x/%08x/", RootUserPath(Common::FROM_SESSION_ROOT).c_str(),
+      StringFromFormat("%s/title/%08x/%08x/", RootUserPath(NANDPaths::FROM_SESSION_ROOT).c_str(),
                        static_cast<u32>(title_id >> 32), static_cast<u32>(title_id));
   if (!File::IsDirectory(title_dir) ||
-      !DiscIO::CNANDContentManager::Access().RemoveTitle(title_id, Common::FROM_SESSION_ROOT))
+      !DiscIO::CNANDContentManager::Access().RemoveTitle(title_id, NANDPaths::FROM_SESSION_ROOT))
   {
     return GetDefaultReply(FS_ENOENT);
   }
@@ -342,7 +343,7 @@ IPCCommandResult ES::DeleteTicket(const IOCtlVRequest& request)
   INFO_LOG(IOS_ES, "IOCTL_ES_DELETETICKET: title: %08x/%08x", (u32)(TitleID >> 32), (u32)TitleID);
 
   // Presumably return -1017 when delete fails
-  if (!File::Delete(Common::GetTicketFileName(TitleID, Common::FROM_SESSION_ROOT)))
+  if (!File::Delete(NANDPaths::GetTicketFileName(TitleID, NANDPaths::FROM_SESSION_ROOT)))
     return GetDefaultReply(ES_EINVAL);
 
   return GetDefaultReply(IPC_SUCCESS);
@@ -358,7 +359,7 @@ IPCCommandResult ES::DeleteTitleContent(const IOCtlVRequest& request)
            (u32)TitleID);
 
   // Presumably return -1017 when title not installed TODO verify
-  if (!DiscIO::CNANDContentManager::Access().RemoveTitle(TitleID, Common::FROM_SESSION_ROOT))
+  if (!DiscIO::CNANDContentManager::Access().RemoveTitle(TitleID, NANDPaths::FROM_SESSION_ROOT))
     return GetDefaultReply(ES_EINVAL);
 
   return GetDefaultReply(IPC_SUCCESS);

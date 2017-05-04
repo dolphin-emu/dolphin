@@ -9,18 +9,18 @@
 
 static void TestEscapeAndUnescape(const std::string& unescaped, const std::string& escaped)
 {
-  EXPECT_EQ(escaped, Common::EscapeFileName(unescaped));
-  EXPECT_EQ(unescaped, Common::UnescapeFileName(escaped));
+  EXPECT_EQ(escaped, NANDPaths::EscapeFileName(unescaped));
+  EXPECT_EQ(unescaped, NANDPaths::UnescapeFileName(escaped));
 }
 
 TEST(NandPaths, EscapeUnescape)
 {
-  EXPECT_EQ("/a/__2e__/b/__3e__", Common::EscapePath("/a/./b/>"));
-  EXPECT_EQ("/a/__2e____2e__/b/__3e__", Common::EscapePath("/a/../b/>"));
-  EXPECT_EQ("/a/__2e____2e____2e__/b/__3e__", Common::EscapePath("/a/.../b/>"));
-  EXPECT_EQ("/a/__2e____2e____2e____2e__/b/__3e__", Common::EscapePath("/a/..../b/>"));
+  EXPECT_EQ("/a/__2e__/b/__3e__", NANDPaths::EscapePath("/a/./b/>"));
+  EXPECT_EQ("/a/__2e____2e__/b/__3e__", NANDPaths::EscapePath("/a/../b/>"));
+  EXPECT_EQ("/a/__2e____2e____2e__/b/__3e__", NANDPaths::EscapePath("/a/.../b/>"));
+  EXPECT_EQ("/a/__2e____2e____2e____2e__/b/__3e__", NANDPaths::EscapePath("/a/..../b/>"));
 
-  EXPECT_EQ("", Common::EscapePath(""));
+  EXPECT_EQ("", NANDPaths::EscapePath(""));
   TestEscapeAndUnescape("", "");
 
   TestEscapeAndUnescape("regular string", "regular string");

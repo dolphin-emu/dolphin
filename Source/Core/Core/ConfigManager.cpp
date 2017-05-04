@@ -381,7 +381,7 @@ void SConfig::SaveSysconfSettings(IniFile& ini)
 
 void SConfig::SaveSettingsToSysconf()
 {
-  SysConf sysconf{Common::FromWhichRoot::FROM_CONFIGURED_ROOT};
+  SysConf sysconf{NANDPaths::FromWhichRoot::FROM_CONFIGURED_ROOT};
 
   sysconf.SetData<u8>("IPL.SSV", m_wii_screensaver);
   sysconf.SetData<u8>("IPL.LNG", m_wii_language);
@@ -726,7 +726,7 @@ void SConfig::LoadSysconfSettings(IniFile& ini)
 
 void SConfig::LoadSettingsFromSysconf()
 {
-  SysConf sysconf{Common::FromWhichRoot::FROM_CONFIGURED_ROOT};
+  SysConf sysconf{NANDPaths::FromWhichRoot::FROM_CONFIGURED_ROOT};
 
   m_wii_screensaver = sysconf.GetData<u8>("IPL.SSV");
   m_wii_language = sysconf.GetData<u8>("IPL.LNG");

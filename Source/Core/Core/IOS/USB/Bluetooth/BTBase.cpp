@@ -12,6 +12,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
+#include "Common/NandPaths.h"
 #include "Common/SysConf.h"
 
 constexpr auto WII_BTDINF_BACKUP_FILE = "btdinf.bak";
@@ -25,7 +26,7 @@ constexpr u16 BT_INFO_SECTION_LENGTH = 0x460;
 void BackUpBTInfoSection(const SysConf* sysconf)
 {
   const std::string filename =
-      Common::RootUserPath(Common::FROM_SESSION_ROOT) + WII_BTDINF_BACKUP_FILE;
+      NANDPaths::RootUserPath(NANDPaths::FROM_SESSION_ROOT) + WII_BTDINF_BACKUP_FILE;
   if (File::Exists(filename))
     return;
   File::IOFile backup(filename, "wb");
@@ -42,7 +43,7 @@ void BackUpBTInfoSection(const SysConf* sysconf)
 void RestoreBTInfoSection(SysConf* sysconf)
 {
   const std::string filename =
-      Common::RootUserPath(Common::FROM_SESSION_ROOT) + WII_BTDINF_BACKUP_FILE;
+      NANDPaths::RootUserPath(NANDPaths::FROM_SESSION_ROOT) + WII_BTDINF_BACKUP_FILE;
   if (!File::Exists(filename))
     return;
   File::IOFile backup(filename, "rb");

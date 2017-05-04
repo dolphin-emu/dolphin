@@ -302,7 +302,7 @@ bool GameFile::IsInstalled() const
   _assert_(m_platform == DiscIO::Platform::WII_WAD);
 
   const std::string content_dir =
-      Common::GetTitleContentPath(m_title_id, Common::FromWhichRoot::FROM_CONFIGURED_ROOT);
+      NANDPaths::GetTitleContentPath(m_title_id, NANDPaths::FromWhichRoot::FROM_CONFIGURED_ROOT);
 
   if (!File::IsDirectory(content_dir))
     return false;
@@ -327,7 +327,7 @@ bool GameFile::Uninstall()
   _assert_(m_platform == DiscIO::Platform::WII_WAD);
 
   return DiscIO::CNANDContentManager::Access().RemoveTitle(m_title_id,
-                                                           Common::FROM_CONFIGURED_ROOT);
+                                                           NANDPaths::FROM_CONFIGURED_ROOT);
 }
 
 bool GameFile::ExportWiiSave()
@@ -339,7 +339,7 @@ QString GameFile::GetWiiFSPath() const
 {
   _assert_(m_platform != DiscIO::Platform::GAMECUBE_DISC);
 
-  const std::string path = Common::GetTitleDataPath(m_title_id, Common::FROM_CONFIGURED_ROOT);
+  const std::string path = NANDPaths::GetTitleDataPath(m_title_id, NANDPaths::FROM_CONFIGURED_ROOT);
 
   return QString::fromStdString(path);
 }
