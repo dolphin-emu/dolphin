@@ -65,7 +65,6 @@
 #define GECKO_CODE_HANDLER "codehandler.bin"
 
 // Subdirs in Sys
-#define GC_SYS_DIR "GC"
 #define WII_SYS_DIR "Wii"
 
 #include <string>
@@ -74,6 +73,7 @@ namespace Paths
 {
 // Returns the path to where the sys file are
 std::string GetSysDirectory();
+std::string GetGCSysDirectory();
 std::string& GetExeDirectory();
 
 #ifdef __APPLE__

@@ -107,8 +107,8 @@ CEXIIPL::CEXIIPL() : m_uPosition(0), m_uAddress(0), m_uRWOffset(0), m_FontsLoade
       memcpy(m_pIPL, iplverPAL, sizeof(iplverPAL));
 
     // Load fonts
-    LoadFontFile((Paths::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + FONT_SHIFT_JIS), 0x1aff00);
-    LoadFontFile((Paths::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + FONT_WINDOWS_1252), 0x1fcf00);
+    LoadFontFile(Paths::GetGCSysDirectory() + FONT_SHIFT_JIS, 0x1aff00);
+    LoadFontFile(Paths::GetGCSysDirectory() + FONT_WINDOWS_1252, 0x1fcf00);
   }
   else
   {
@@ -196,7 +196,7 @@ void CEXIIPL::LoadFontFile(const std::string& filename, u32 offset)
 
   // If not found, check again in Sys folder
   if (ipl_rom_path.empty())
-    ipl_rom_path = FindIPLDump(Paths::GetSysDirectory() + GC_SYS_DIR);
+    ipl_rom_path = FindIPLDump(Paths::GetGCSysDirectory());
 
   if (File::Exists(ipl_rom_path))
   {

@@ -1039,8 +1039,7 @@ bool SConfig::AutoSetup(EBootBS2 _BootBS2)
     {
       m_strBootROM = Paths::GetGCUserDir() + DIR_SEP + set_region_dir + DIR_SEP GC_IPL;
       if (!File::Exists(m_strBootROM))
-        m_strBootROM =
-            Paths::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + set_region_dir + DIR_SEP GC_IPL;
+        m_strBootROM = Paths::GetGCSysDirectory() + set_region_dir + DIR_SEP GC_IPL;
 
       if (!File::Exists(m_strBootROM))
       {

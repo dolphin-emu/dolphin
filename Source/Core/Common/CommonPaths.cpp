@@ -36,6 +36,9 @@ constexpr auto SYSDATA_DIR =
 #endif
     ;
 
+// Subdirs in the Sys dir
+constexpr auto GC_SYS_DIR = "GC";
+
 // Subdirs in the User dir
 constexpr auto GC_USER_DIR = "GC";
 constexpr auto CONFIG_DIR = "Config";
@@ -250,6 +253,11 @@ std::string GetSysDirectory()
 
   INFO_LOG(COMMON, "GetSysDirectory: Setting to %s:", sysDir.c_str());
   return sysDir;
+}
+
+std::string GetGCSysDirectory()
+{
+  return GetSysDirectory() + GC_SYS_DIR + DIR_SEP;
 }
 
 void SetUserDir(std::string dir)
