@@ -711,7 +711,7 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_WriteProfile
                                                                                         jobject obj)
 {
   std::lock_guard<std::mutex> guard(s_host_identity_lock);
-  std::string filename = File::GetUserPath(D_DUMP_IDX) + "Debug/profiler.txt";
+  std::string filename = Paths::GetDumpDir() + "Debug/profiler.txt";
   File::CreateFullPath(filename);
   JitInterface::WriteProfileResults(filename);
 }

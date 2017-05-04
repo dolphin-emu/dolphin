@@ -15,6 +15,7 @@
 #include "ShaderLang.h"
 #include "disassemble.h"
 
+#include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
@@ -127,8 +128,8 @@ bool CompileShaderToSPV(SPIRVCodeVector* out_code, EShLanguage stage, const char
 
   auto DumpBadShader = [&](const char* msg) {
     static int counter = 0;
-    std::string filename = StringFromFormat(
-        "%sbad_%s_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), stage_filename, counter++);
+    std::string filename = StringFromFormat("%sbad_%s_%04i.txt", Paths::GetDumpDir().c_str(),
+                                            stage_filename, counter++);
 
     std::ofstream stream;
     OpenFStream(stream, filename, std::ios_base::out);
@@ -195,8 +196,8 @@ bool CompileShaderToSPV(SPIRVCodeVector* out_code, EShLanguage stage, const char
   if (g_ActiveConfig.iLog & CONF_SAVESHADERS)
   {
     static int counter = 0;
-    std::string filename = StringFromFormat("%s%s_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(),
-                                            stage_filename, counter++);
+    std::string filename =
+        StringFromFormat("%s%s_%04i.txt", Paths::GetDumpDir().c_str(), stage_filename, counter++);
 
     std::ofstream stream;
     OpenFStream(stream, filename, std::ios_base::out);

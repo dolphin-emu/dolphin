@@ -142,7 +142,7 @@ void CCodeWindow::OnProfilerMenu(wxCommandEvent& event)
 
     if (Core::GetState() == Core::State::Paused && PowerPC::GetMode() == PowerPC::CoreMode::JIT)
     {
-      std::string filename = File::GetUserPath(D_DUMP_IDX) + "Debug/profiler.txt";
+      std::string filename = Paths::GetDumpDir() + "Debug/profiler.txt";
       File::CreateFullPath(filename);
       Profiler::WriteProfileResults(filename);
 

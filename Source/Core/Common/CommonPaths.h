@@ -205,4 +205,9 @@ const std::string& GetHiresTexturesDir()
 {
   return GetUserPath(D_HIRESTEXTURES_IDX);
 }
+
+const std::string& GetDumpDir()
+{
+  return GetUserPath(D_DUMP_IDX);
+}
 }

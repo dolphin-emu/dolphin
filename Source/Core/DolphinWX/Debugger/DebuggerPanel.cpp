@@ -12,6 +12,7 @@
 #include <wx/textctrl.h>
 
 #include "Common/CommonFuncs.h"
+#include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Core/ConfigManager.h"
@@ -222,8 +223,7 @@ void GFXDebuggerPanel::OnPauseAtNextFrameButton(wxCommandEvent& event)
 
 void GFXDebuggerPanel::OnDumpButton(wxCommandEvent& event)
 {
-  std::string dump_path =
-      File::GetUserPath(D_DUMP_IDX) + "Debug/" + SConfig::GetInstance().GetGameID() + "/";
+  std::string dump_path = Paths::GetDumpDir() + "Debug/" + SConfig::GetInstance().GetGameID() + "/";
   if (!File::CreateFullPath(dump_path))
     return;
 

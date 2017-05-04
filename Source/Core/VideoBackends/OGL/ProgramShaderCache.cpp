@@ -229,16 +229,15 @@ SHADER* ProgramShaderCache::SetShader(u32 primitive_type)
   {
     static int counter = 0;
     std::string filename =
-        StringFromFormat("%svs_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), counter++);
+        StringFromFormat("%svs_%04i.txt", Paths::GetDumpDir().c_str(), counter++);
     SaveData(filename, vcode.GetBuffer());
 
-    filename = StringFromFormat("%sps_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), counter++);
+    filename = StringFromFormat("%sps_%04i.txt", Paths::GetDumpDir().c_str(), counter++);
     SaveData(filename, pcode.GetBuffer());
 
     if (!gcode.GetBuffer().empty())
     {
-      filename =
-          StringFromFormat("%sgs_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), counter++);
+      filename = StringFromFormat("%sgs_%04i.txt", Paths::GetDumpDir().c_str(), counter++);
       SaveData(filename, gcode.GetBuffer());
     }
   }
@@ -308,7 +307,7 @@ bool ProgramShaderCache::CompileShader(SHADER& shader, const std::string& vcode,
     ERROR_LOG(VIDEO, "Program info log:\n%s", info_log.c_str());
 
     std::string filename =
-        StringFromFormat("%sbad_p_%d.txt", File::GetUserPath(D_DUMP_IDX).c_str(), num_failures++);
+        StringFromFormat("%sbad_p_%d.txt", Paths::GetDumpDir().c_str(), num_failures++);
     std::ofstream file;
     OpenFStream(file, filename, std::ios_base::out);
     file << s_glsl_header << vcode << s_glsl_header << pcode;
@@ -379,7 +378,7 @@ bool ProgramShaderCache::CompileComputeShader(SHADER& shader, const std::string&
     ERROR_LOG(VIDEO, "Program info log:\n%s", info_log.c_str());
 
     std::string filename =
-        StringFromFormat("%sbad_p_%d.txt", File::GetUserPath(D_DUMP_IDX).c_str(), num_failures++);
+        StringFromFormat("%sbad_p_%d.txt", Paths::GetDumpDir().c_str(), num_failures++);
     std::ofstream file;
     OpenFStream(file, filename, std::ios_base::out);
     file << s_glsl_header << code;
@@ -445,8 +444,8 @@ GLuint ProgramShaderCache::CompileSingleShader(GLuint type, const std::string& c
 
     ERROR_LOG(VIDEO, "%s Shader info log:\n%s", prefix, info_log.c_str());
 
-    std::string filename = StringFromFormat(
-        "%sbad_%s_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), prefix, num_failures++);
+    std::string filename =
+        StringFromFormat("%sbad_%s_%04i.txt", Paths::GetDumpDir().c_str(), prefix, num_failures++);
     std::ofstream file;
     OpenFStream(file, filename, std::ios_base::out);
     file << s_glsl_header << code << info_log;
