@@ -1220,7 +1220,7 @@ void NetPlayClient::ComputeMD5(const std::string& file_identifier)
 
   std::string file;
   if (file_identifier == WII_SDCARD)
-    file = File::GetUserPath(F_WIISDCARD_IDX);
+    file = Paths::GetWiiSDCardFile();
   else
     file = m_dialog->FindGame(file_identifier);
 

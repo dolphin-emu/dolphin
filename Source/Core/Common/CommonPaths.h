@@ -350,4 +350,9 @@ const std::string& GetMemoryWatcherSocketFile()
 {
   return GetUserPath(F_MEMORYWATCHERSOCKET_IDX);
 }
+
+const std::string& GetWiiSDCardFile()
+{
+  return GetUserPath(F_WIISDCARD_IDX);
+}
 }

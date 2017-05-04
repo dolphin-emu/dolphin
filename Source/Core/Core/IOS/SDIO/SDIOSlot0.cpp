@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "Common/ChunkFile.h"
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
@@ -56,7 +57,7 @@ void SDIOSlot0::EventNotify()
 
 void SDIOSlot0::OpenInternal()
 {
-  const std::string filename = File::GetUserPath(F_WIISDCARD_IDX);
+  const std::string filename = Paths::GetWiiSDCardFile();
   m_Card.Open(filename, "r+b");
   if (!m_Card)
   {
