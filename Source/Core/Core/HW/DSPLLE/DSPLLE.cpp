@@ -137,8 +137,8 @@ static bool LoadDSPRom(u16* rom, const std::string& filename, u32 size_in_bytes)
 
 static bool FillDSPInitOptions(DSPInitOptions* opts)
 {
-  std::string irom_file = File::GetUserPath(D_GCUSER_IDX) + DSP_IROM;
-  std::string coef_file = File::GetUserPath(D_GCUSER_IDX) + DSP_COEF;
+  std::string irom_file = Paths::GetGCUserDir() + DSP_IROM;
+  std::string coef_file = Paths::GetGCUserDir() + DSP_COEF;
 
   if (!File::Exists(irom_file))
     irom_file = File::GetSysDirectory() + GC_SYS_DIR DIR_SEP DSP_IROM;

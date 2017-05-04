@@ -23,6 +23,7 @@
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
@@ -189,11 +190,11 @@ void CMemcardManager::CreateGUIControls()
     paging_sizer->Add(t_Status[slot], 0, wxALIGN_CENTER);
     paging_sizer->Add(m_NextPage[slot], 0, wxEXPAND);
 
-    m_MemcardPath[slot] = new wxFilePickerCtrl(
-        this, ID_MEMCARDPATH_A + slot, StrToWxStr(File::GetUserPath(D_GCUSER_IDX)),
-        _("Choose a memory card:"),
-        _("GameCube Memory Cards (*.raw,*.gcp)") + wxString("|*.raw;*.gcp"), wxDefaultPosition,
-        wxDefaultSize, wxFLP_USE_TEXTCTRL | wxFLP_OPEN);
+    m_MemcardPath[slot] =
+        new wxFilePickerCtrl(this, ID_MEMCARDPATH_A + slot, StrToWxStr(Paths::GetGCUserDir()),
+                             _("Choose a memory card:"),
+                             _("GameCube Memory Cards (*.raw,*.gcp)") + wxString("|*.raw;*.gcp"),
+                             wxDefaultPosition, wxDefaultSize, wxFLP_USE_TEXTCTRL | wxFLP_OPEN);
 
     m_MemcardList[slot] = new CMemcardListCtrl(
         this, ID_MEMCARDLIST_A + slot, wxDefaultPosition, FromDIP(wxSize(350, 400)),

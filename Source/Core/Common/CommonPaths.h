@@ -147,4 +147,9 @@ const std::string& GetUserDir()
 {
   return GetUserPath(D_USER_IDX);
 };
+
+const std::string& GetGCUserDir()
+{
+  return GetUserPath(D_GCUSER_IDX);
+}
 }

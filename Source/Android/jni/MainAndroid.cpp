@@ -657,7 +657,7 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_CreateUserFo
                                                                                       jobject obj)
 {
   File::CreateFullPath(File::GetUserPath(D_CONFIG_IDX));
-  File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX));
+  File::CreateFullPath(Paths::GetGCUserDir());
   File::CreateFullPath(File::GetUserPath(D_WIIROOT_IDX) + DIR_SEP WII_WC24CONF_DIR DIR_SEP
                        "mbox" DIR_SEP);
   File::CreateFullPath(File::GetUserPath(D_WIIROOT_IDX) + DIR_SEP "shared2" DIR_SEP
@@ -672,9 +672,9 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_CreateUserFo
   File::CreateFullPath(File::GetUserPath(D_STATESAVES_IDX));
   File::CreateFullPath(File::GetUserPath(D_MAILLOGS_IDX));
   File::CreateFullPath(File::GetUserPath(D_SHADERS_IDX) + "Anaglyph" DIR_SEP);
-  File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX) + USA_DIR DIR_SEP);
-  File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX) + EUR_DIR DIR_SEP);
-  File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX) + JAP_DIR DIR_SEP);
+  File::CreateFullPath(Paths::GetGCUserDir() + USA_DIR DIR_SEP);
+  File::CreateFullPath(Paths::GetGCUserDir() + EUR_DIR DIR_SEP);
+  File::CreateFullPath(Paths::GetGCUserDir() + JAP_DIR DIR_SEP);
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetUserDirectory(

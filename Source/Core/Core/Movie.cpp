@@ -1516,8 +1516,8 @@ void GetSettings()
 
   if (!s_bDSPHLE)
   {
-    std::string irom_file = File::GetUserPath(D_GCUSER_IDX) + DSP_IROM;
-    std::string coef_file = File::GetUserPath(D_GCUSER_IDX) + DSP_COEF;
+    std::string irom_file = Paths::GetGCUserDir() + DSP_IROM;
+    std::string coef_file = Paths::GetGCUserDir() + DSP_COEF;
 
     if (!File::Exists(irom_file))
       irom_file = File::GetSysDirectory() + GC_SYS_DIR DIR_SEP DSP_IROM;

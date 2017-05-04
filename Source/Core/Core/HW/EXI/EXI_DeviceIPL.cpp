@@ -192,7 +192,7 @@ void CEXIIPL::LoadFontFile(const std::string& filename, u32 offset)
   // from those dumps instead of loading the bundled fonts
 
   // Check for IPL dumps in User folder
-  std::string ipl_rom_path = FindIPLDump(File::GetUserPath(D_GCUSER_IDX));
+  std::string ipl_rom_path = FindIPLDump(Paths::GetGCUserDir());
 
   // If not found, check again in Sys folder
   if (ipl_rom_path.empty())

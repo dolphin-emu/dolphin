@@ -1037,7 +1037,7 @@ bool SConfig::AutoSetup(EBootBS2 _BootBS2)
   {
     if (!bHLE_BS2)
     {
-      m_strBootROM = File::GetUserPath(D_GCUSER_IDX) + DIR_SEP + set_region_dir + DIR_SEP GC_IPL;
+      m_strBootROM = Paths::GetGCUserDir() + DIR_SEP + set_region_dir + DIR_SEP GC_IPL;
       if (!File::Exists(m_strBootROM))
         m_strBootROM =
             File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + set_region_dir + DIR_SEP GC_IPL;
@@ -1066,7 +1066,7 @@ void SConfig::CheckMemcardPath(std::string& memcardPath, const std::string& game
   {
     // Use default memcard path if there is no user defined name
     std::string defaultFilename = isSlotA ? GC_MEMCARDA : GC_MEMCARDB;
-    memcardPath = File::GetUserPath(D_GCUSER_IDX) + defaultFilename + ext;
+    memcardPath = Paths::GetGCUserDir() + defaultFilename + ext;
   }
   else
   {

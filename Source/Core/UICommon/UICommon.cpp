@@ -56,10 +56,10 @@ void CreateDirectories()
   File::CreateFullPath(File::GetUserPath(D_DUMPSSL_IDX));
   File::CreateFullPath(File::GetUserPath(D_DUMPTEXTURES_IDX));
   File::CreateFullPath(File::GetUserPath(D_GAMESETTINGS_IDX));
-  File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX));
-  File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX) + USA_DIR DIR_SEP);
-  File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX) + EUR_DIR DIR_SEP);
-  File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX) + JAP_DIR DIR_SEP);
+  File::CreateFullPath(Paths::GetGCUserDir());
+  File::CreateFullPath(Paths::GetGCUserDir() + USA_DIR DIR_SEP);
+  File::CreateFullPath(Paths::GetGCUserDir() + EUR_DIR DIR_SEP);
+  File::CreateFullPath(Paths::GetGCUserDir() + JAP_DIR DIR_SEP);
   File::CreateFullPath(File::GetUserPath(D_HIRESTEXTURES_IDX));
   File::CreateFullPath(File::GetUserPath(D_MAILLOGS_IDX));
   File::CreateFullPath(File::GetUserPath(D_MAPS_IDX));

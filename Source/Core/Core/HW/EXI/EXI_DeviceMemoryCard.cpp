@@ -165,7 +165,7 @@ void CEXIMemoryCard::SetupGciFolder(u16 sizeMb)
 
   const bool shift_jis = region == DiscIO::Region::NTSC_J;
 
-  std::string strDirectoryName = File::GetUserPath(D_GCUSER_IDX);
+  std::string strDirectoryName = Paths::GetGCUserDir();
 
   if (Movie::IsPlayingInput() && Movie::IsConfigSaved() && Movie::IsUsingMemcard(card_index) &&
       Movie::IsStartingFromClearSave())
@@ -205,8 +205,8 @@ void CEXIMemoryCard::SetupRawMemcard(u16 sizeMb)
                                              SConfig::GetInstance().m_strMemoryCardB;
   if (Movie::IsPlayingInput() && Movie::IsConfigSaved() && Movie::IsUsingMemcard(card_index) &&
       Movie::IsStartingFromClearSave())
-    filename = File::GetUserPath(D_GCUSER_IDX) +
-               StringFromFormat("Movie%s.raw", (card_index == 0) ? "A" : "B");
+    filename =
+        Paths::GetGCUserDir() + StringFromFormat("Movie%s.raw", (card_index == 0) ? "A" : "B");
 
   if (sizeMb == MemCard251Mb)
   {
