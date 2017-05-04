@@ -96,7 +96,7 @@ void CreateDumpPath(const std::string& path)
 {
   if (path.empty())
     return;
-  File::SetUserPath(D_DUMP_IDX, path + '/');
+  Paths::SetDumpDir(path + '/');
   File::CreateFullPath(Paths::GetDumpAudioDir());
   File::CreateFullPath(Paths::GetDumpDSPDir());
   File::CreateFullPath(Paths::GetDumpSSLDir());
@@ -456,12 +456,12 @@ void SConfig::LoadGeneralSettings(IniFile& ini)
 
   general->Get("RecursiveISOPaths", &m_RecursiveISOFolder, false);
   general->Get("NANDRootPath", &m_NANDPath);
-  File::SetUserPath(D_WIIROOT_IDX, m_NANDPath);
+  Paths::SetWiiRootDir(m_NANDPath);
   general->Get("DumpPath", &m_DumpPath);
   CreateDumpPath(m_DumpPath);
   general->Get("WirelessMac", &m_WirelessMac);
   general->Get("WiiSDCardPath", &m_strWiiSDCardPath, Paths::GetWiiSDCardFile());
-  File::SetUserPath(F_WIISDCARD_IDX, m_strWiiSDCardPath);
+  Paths::SetWiiSDCardFile(m_strWiiSDCardPath);
 }
 
 void SConfig::LoadInterfaceSettings(IniFile& ini)

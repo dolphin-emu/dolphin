@@ -75,7 +75,7 @@ void InitializeWiiRoot(bool use_temporary)
       s_registered = true;
       atexit(ShutdownWiiRoot);
     }
-    File::SetUserPath(D_SESSION_WIIROOT_IDX, s_temp_wii_root);
+    Paths::SetSessionWiiRootDir(s_temp_wii_root);
     // Generate a SYSCONF with default settings for the temporary Wii NAND.
     SysConf sysconf{Common::FromWhichRoot::FROM_SESSION_ROOT};
     sysconf.Save();
@@ -84,7 +84,7 @@ void InitializeWiiRoot(bool use_temporary)
   }
   else
   {
-    File::SetUserPath(D_SESSION_WIIROOT_IDX, Paths::GetWiiRootDir());
+    Paths::SetSessionWiiRootDir(Paths::GetWiiRootDir());
   }
 }
 

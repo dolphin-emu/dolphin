@@ -75,7 +75,7 @@ void SetUserDirectory(const std::string& custom_path)
   if (!custom_path.empty())
   {
     File::CreateFullPath(custom_path + DIR_SEP);
-    File::SetUserPath(D_USER_IDX, custom_path + DIR_SEP);
+    Paths::SetUserDir(custom_path + DIR_SEP);
     return;
   }
 
@@ -186,15 +186,15 @@ void SetUserDirectory(const std::string& custom_path)
           std::string(cache_home && cache_home[0] == '/' ? cache_home : (home_path + ".cache")) +
           DIR_SEP DOLPHIN_DATA_DIR DIR_SEP;
 
-      File::SetUserPath(D_USER_IDX, data_path);
-      File::SetUserPath(D_CONFIG_IDX, config_path);
-      File::SetUserPath(D_CACHE_IDX, cache_path);
+      Paths::SetUserDir(data_path);
+      Paths::SetConfigDir(config_path);
+      Paths::SetCacheDir(cache_path);
       return;
     }
 #endif
   }
 #endif
-  File::SetUserPath(D_USER_IDX, user_path);
+  Paths::SetUserDir(user_path);
 }
 
 }  // namespace UICommon

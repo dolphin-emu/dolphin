@@ -355,4 +355,39 @@ const std::string& GetWiiSDCardFile()
 {
   return GetUserPath(F_WIISDCARD_IDX);
 }
+
+void SetUserDir(std::string dir)
+{
+  SetUserPath(D_USER_IDX, dir);
+}
+
+void SetConfigDir(std::string dir)
+{
+  SetUserPath(D_CONFIG_IDX, dir);
+}
+
+void SetCacheDir(std::string dir)
+{
+  SetUserPath(D_CACHE_IDX, dir);
+}
+
+void SetDumpDir(std::string dir)
+{
+  SetUserPath(D_DUMP_IDX, dir);
+}
+
+void SetWiiRootDir(std::string dir)
+{
+  SetUserPath(D_WIIROOT_IDX, dir);
+}
+
+void SetSessionWiiRootDir(std::string dir)
+{
+  SetUserPath(D_SESSION_WIIROOT_IDX, dir);
+}
+
+void SetWiiSDCardFile(std::string file)
+{
+  SetUserPath(F_WIISDCARD_IDX, file);
+}
 }
