@@ -1215,7 +1215,7 @@ void CGameListCtrl::OnNetPlayHost(wxCommandEvent& WXUNUSED(event))
     return;
 
   IniFile ini_file;
-  const std::string dolphin_ini = File::GetUserPath(F_DOLPHINCONFIG_IDX);
+  const std::string dolphin_ini = Paths::GetDolphinConfigFile();
   ini_file.Load(dolphin_ini);
   IniFile::Section& netplay_section = *ini_file.GetOrCreateSection("NetPlay");
 

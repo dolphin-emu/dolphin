@@ -68,9 +68,9 @@ SConfig::~SConfig()
 
 void SConfig::SaveSettings()
 {
-  NOTICE_LOG(BOOT, "Saving settings to %s", File::GetUserPath(F_DOLPHINCONFIG_IDX).c_str());
+  NOTICE_LOG(BOOT, "Saving settings to %s", Paths::GetDolphinConfigFile().c_str());
   IniFile ini;
-  ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));  // load first to not kill unknown stuff
+  ini.Load(Paths::GetDolphinConfigFile());  // load first to not kill unknown stuff
 
   SaveGeneralSettings(ini);
   SaveInterfaceSettings(ini);
@@ -87,7 +87,7 @@ void SConfig::SaveSettings()
   SaveUSBPassthroughSettings(ini);
   SaveSysconfSettings(ini);
 
-  ini.Save(File::GetUserPath(F_DOLPHINCONFIG_IDX));
+  ini.Save(Paths::GetDolphinConfigFile());
 }
 
 namespace
@@ -407,9 +407,9 @@ void SConfig::SaveSettingsToSysconf()
 
 void SConfig::LoadSettings()
 {
-  INFO_LOG(BOOT, "Loading Settings from %s", File::GetUserPath(F_DOLPHINCONFIG_IDX).c_str());
+  INFO_LOG(BOOT, "Loading Settings from %s", Paths::GetDolphinConfigFile().c_str());
   IniFile ini;
-  ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
+  ini.Load(Paths::GetDolphinConfigFile());
 
   LoadGeneralSettings(ini);
   LoadInterfaceSettings(ini);

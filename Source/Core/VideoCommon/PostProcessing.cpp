@@ -251,7 +251,7 @@ void PostProcessingShaderConfiguration::LoadOptions(const std::string& code)
 void PostProcessingShaderConfiguration::LoadOptionsConfiguration()
 {
   IniFile ini;
-  ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
+  ini.Load(Paths::GetDolphinConfigFile());
   std::string section = m_current_shader + "-options";
 
   for (auto& it : m_options)
@@ -285,7 +285,7 @@ void PostProcessingShaderConfiguration::LoadOptionsConfiguration()
 void PostProcessingShaderConfiguration::SaveOptionsConfiguration()
 {
   IniFile ini;
-  ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
+  ini.Load(Paths::GetDolphinConfigFile());
   std::string section = m_current_shader + "-options";
 
   for (auto& it : m_options)
@@ -322,7 +322,7 @@ void PostProcessingShaderConfiguration::SaveOptionsConfiguration()
     break;
     }
   }
-  ini.Save(File::GetUserPath(F_DOLPHINCONFIG_IDX));
+  ini.Save(Paths::GetDolphinConfigFile());
 }
 
 void PostProcessingShaderConfiguration::ReloadShader()

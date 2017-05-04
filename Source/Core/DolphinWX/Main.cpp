@@ -275,7 +275,7 @@ void DolphinApp::InitLanguageSupport()
   std::string language_code;
   {
     IniFile ini;
-    ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
+    ini.Load(Paths::GetDolphinConfigFile());
     ini.GetOrCreateSection("Interface")->Get("LanguageCode", &language_code, "");
   }
   int language = wxLANGUAGE_UNKNOWN;

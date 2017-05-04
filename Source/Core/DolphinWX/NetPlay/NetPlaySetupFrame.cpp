@@ -21,6 +21,7 @@
 #include "DolphinWX/NetPlay/NetWindow.h"
 #include "DolphinWX/WxUtils.h"
 
+#include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Core/NetPlayClient.h"
@@ -40,7 +41,7 @@ NetPlaySetupFrame::NetPlaySetupFrame(wxWindow* const parent, const CGameListCtrl
     : wxFrame(parent, wxID_ANY, _("Dolphin NetPlay Setup")), m_game_list(game_list)
 {
   IniFile inifile;
-  inifile.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
+  inifile.Load(Paths::GetDolphinConfigFile());
   IniFile::Section& netplay_section = *inifile.GetOrCreateSection("NetPlay");
 
   CreateGUI();
@@ -278,7 +279,7 @@ wxNotebook* NetPlaySetupFrame::CreateNotebookGUI(wxWindow* parent)
 NetPlaySetupFrame::~NetPlaySetupFrame()
 {
   IniFile inifile;
-  const std::string dolphin_ini = File::GetUserPath(F_DOLPHINCONFIG_IDX);
+  const std::string dolphin_ini = Paths::GetDolphinConfigFile();
   inifile.Load(dolphin_ini);
   IniFile::Section& netplay_section = *inifile.GetOrCreateSection("NetPlay");
 
@@ -329,7 +330,7 @@ void NetPlaySetupFrame::DoHost()
   }
 
   IniFile ini_file;
-  const std::string dolphin_ini = File::GetUserPath(F_DOLPHINCONFIG_IDX);
+  const std::string dolphin_ini = Paths::GetDolphinConfigFile();
   ini_file.Load(dolphin_ini);
   IniFile::Section& netplay_section = *ini_file.GetOrCreateSection("NetPlay");
 
@@ -375,7 +376,7 @@ void NetPlaySetupFrame::OnJoin(wxCommandEvent&)
 void NetPlaySetupFrame::DoJoin()
 {
   IniFile inifile;
-  inifile.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
+  inifile.Load(Paths::GetDolphinConfigFile());
   IniFile::Section& netplay_section = *inifile.GetOrCreateSection("NetPlay");
 
   NetPlayJoinConfig join_config;
@@ -406,7 +407,7 @@ void NetPlaySetupFrame::DoJoin()
 void NetPlaySetupFrame::OnResetTraversal(wxCommandEvent& event)
 {
   IniFile inifile;
-  const std::string dolphin_ini = File::GetUserPath(F_DOLPHINCONFIG_IDX);
+  const std::string dolphin_ini = Paths::GetDolphinConfigFile();
   inifile.Load(dolphin_ini);
   IniFile::Section& netplay_section = *inifile.GetOrCreateSection("NetPlay");
   netplay_section.Delete("TraversalServer");
@@ -425,7 +426,7 @@ void NetPlaySetupFrame::OnDirectTraversalChoice(wxCommandEvent& event)
 {
   int sel = m_direct_traversal->GetSelection();
   IniFile inifile;
-  inifile.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
+  inifile.Load(Paths::GetDolphinConfigFile());
   IniFile::Section& netplay_section = *inifile.GetOrCreateSection("NetPlay");
 
   if (sel == TRAVERSAL_CHOICE)

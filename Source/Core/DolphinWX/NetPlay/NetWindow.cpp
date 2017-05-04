@@ -78,7 +78,7 @@ NetPlayDialog::NetPlayDialog(wxWindow* const parent, const CGameListCtrl* const 
   // Remember the window size and position for NetWindow
   {
     IniFile inifile;
-    inifile.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
+    inifile.Load(Paths::GetDolphinConfigFile());
     IniFile::Section& netplay_section = *inifile.GetOrCreateSection("NetPlay");
 
     int winPosX, winPosY, winWidth, winHeight;
@@ -283,7 +283,7 @@ wxSizer* NetPlayDialog::CreateBottomGUI(wxWindow* parent)
 NetPlayDialog::~NetPlayDialog()
 {
   IniFile inifile;
-  const std::string dolphin_ini = File::GetUserPath(F_DOLPHINCONFIG_IDX);
+  const std::string dolphin_ini = Paths::GetDolphinConfigFile();
   inifile.Load(dolphin_ini);
   IniFile::Section& netplay_config = *inifile.GetOrCreateSection("NetPlay");
 

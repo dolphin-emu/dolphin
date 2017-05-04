@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cmath>
 
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
@@ -133,7 +134,7 @@ void VideoConfig::Load(const std::string& ini_file)
   bPerfQueriesEnable = false;
 
   // Load common settings
-  iniFile.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
+  iniFile.Load(Paths::GetDolphinConfigFile());
   IniFile::Section* interface = iniFile.GetOrCreateSection("Interface");
   bool bTmp;
   interface->Get("UsePanicHandlers", &bTmp, true);

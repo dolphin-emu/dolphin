@@ -275,4 +275,9 @@ const std::string& GetBackupDir()
 {
   return GetUserPath(D_BACKUP_IDX);
 }
+
+const std::string& GetDolphinConfigFile()
+{
+  return GetUserPath(F_DOLPHINCONFIG_IDX);
+}
 }
