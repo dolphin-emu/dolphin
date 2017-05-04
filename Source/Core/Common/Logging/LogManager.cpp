@@ -95,7 +95,7 @@ LogManager::LogManager()
   RegisterListener(LogListener::CONSOLE_LISTENER, new ConsoleListener());
 
   IniFile ini;
-  ini.Load(File::GetUserPath(F_LOGGERCONFIG_IDX));
+  ini.Load(Paths::GetLoggerConfigFile());
   IniFile::Section* logs = ini.GetOrCreateSection("Logs");
   IniFile::Section* options = ini.GetOrCreateSection("Options");
   bool write_file;

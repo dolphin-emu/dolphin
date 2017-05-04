@@ -305,4 +305,9 @@ const std::string& GetDebuggerConfigFile()
 {
   return GetUserPath(F_DEBUGGERCONFIG_IDX);
 }
+
+const std::string& GetLoggerConfigFile()
+{
+  return GetUserPath(F_LOGGERCONFIG_IDX);
+}
 }

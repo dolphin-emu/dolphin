@@ -11,6 +11,7 @@
 #include <wx/sizer.h>
 #include <wx/validate.h>
 
+#include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/Logging/ConsoleListener.h"
@@ -91,7 +92,7 @@ void LogConfigWindow::CreateGUIControls()
 void LogConfigWindow::LoadSettings()
 {
   IniFile ini;
-  ini.Load(File::GetUserPath(F_LOGGERCONFIG_IDX));
+  ini.Load(Paths::GetLoggerConfigFile());
 
   IniFile::Section* options = ini.GetOrCreateSection("Options");
 
@@ -134,7 +135,7 @@ void LogConfigWindow::LoadSettings()
 void LogConfigWindow::SaveSettings()
 {
   IniFile ini;
-  ini.Load(File::GetUserPath(F_LOGGERCONFIG_IDX));
+  ini.Load(Paths::GetLoggerConfigFile());
 
   IniFile::Section* options = ini.GetOrCreateSection("Options");
   options->Set("Verbosity", m_verbosity->GetSelection() + 1);
@@ -149,7 +150,7 @@ void LogConfigWindow::SaveSettings()
                                         m_checks->IsChecked(i));
   }
 
-  ini.Save(File::GetUserPath(F_LOGGERCONFIG_IDX));
+  ini.Save(Paths::GetLoggerConfigFile());
 }
 
 // If the verbosity changes while logging
