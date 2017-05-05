@@ -212,7 +212,7 @@ void ZeldaUCode::HandleMailDefault(u32 mail)
         RunPendingCommands();
         NOTICE_LOG(DSPHLE, "UCode being replaced.");
         m_upload_setup_in_progress = true;
-        SetMailState(MailState::HALTED);
+        SetMailState(MailState::WAITING);
         break;
 
       case 2:
