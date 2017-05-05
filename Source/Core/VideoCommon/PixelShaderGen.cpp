@@ -876,9 +876,19 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
                   n, mtxidx, n, mtxidx + 1, n);
 
         // TODO: should use a shader uid branch for this for better performance
-        out.Write("\tif (" I_INDTEXMTX "[%d].w >= 0) indtevtrans%d >>= " I_INDTEXMTX "[%d].w;\n",
-                  mtxidx, n, mtxidx);
-        out.Write("\telse indtevtrans%d <<= (-" I_INDTEXMTX "[%d].w);\n", n, mtxidx);
+        if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_BITWISE_OP_NEGATION))
+        {
+          out.Write("\tint indtexmtx_w_inverse_%d = -" I_INDTEXMTX "[%d].w;\n", n, mtxidx);
+          out.Write("\tif (" I_INDTEXMTX "[%d].w >= 0) indtevtrans%d >>= " I_INDTEXMTX "[%d].w;\n",
+                    mtxidx, n, mtxidx);
+          out.Write("\telse indtevtrans%d <<= indtexmtx_w_inverse_%d;\n", n, n);
+        }
+        else
+        {
+          out.Write("\tif (" I_INDTEXMTX "[%d].w >= 0) indtevtrans%d >>= " I_INDTEXMTX "[%d].w;\n",
+                    mtxidx, n, mtxidx);
+          out.Write("\telse indtevtrans%d <<= (-" I_INDTEXMTX "[%d].w);\n", n, mtxidx);
+        }
       }
       else if (tevind.mid <= 7 && bHasTexCoord)
       {  // s matrix
@@ -888,10 +898,19 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
 
         out.Write("\tint2 indtevtrans%d = int2(fixpoint_uv%d * iindtevcrd%d.xx) >> 8;\n", n,
                   texcoord, n);
-
-        out.Write("\tif (" I_INDTEXMTX "[%d].w >= 0) indtevtrans%d >>= " I_INDTEXMTX "[%d].w;\n",
-                  mtxidx, n, mtxidx);
-        out.Write("\telse indtevtrans%d <<= (-" I_INDTEXMTX "[%d].w);\n", n, mtxidx);
+        if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_BITWISE_OP_NEGATION))
+        {
+          out.Write("\tint  indtexmtx_w_inverse_%d = -" I_INDTEXMTX "[%d].w;\n", n, mtxidx);
+          out.Write("\tif (" I_INDTEXMTX "[%d].w >= 0) indtevtrans%d >>= " I_INDTEXMTX "[%d].w;\n",
+                    mtxidx, n, mtxidx);
+          out.Write("\telse indtevtrans%d <<= (indtexmtx_w_inverse_%d);\n", n, n);
+        }
+        else
+        {
+          out.Write("\tif (" I_INDTEXMTX "[%d].w >= 0) indtevtrans%d >>= " I_INDTEXMTX "[%d].w;\n",
+                    mtxidx, n, mtxidx);
+          out.Write("\telse indtevtrans%d <<= (-" I_INDTEXMTX "[%d].w);\n", n, mtxidx);
+        }
       }
       else if (tevind.mid <= 11 && bHasTexCoord)
       {  // t matrix
@@ -902,9 +921,19 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
         out.Write("\tint2 indtevtrans%d = int2(fixpoint_uv%d * iindtevcrd%d.yy) >> 8;\n", n,
                   texcoord, n);
 
-        out.Write("\tif (" I_INDTEXMTX "[%d].w >= 0) indtevtrans%d >>= " I_INDTEXMTX "[%d].w;\n",
-                  mtxidx, n, mtxidx);
-        out.Write("\telse indtevtrans%d <<= (-" I_INDTEXMTX "[%d].w);\n", n, mtxidx);
+        if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_BITWISE_OP_NEGATION))
+        {
+          out.Write("\tint  indtexmtx_w_inverse_%d = -" I_INDTEXMTX "[%d].w;\n", n, mtxidx);
+          out.Write("\tif (" I_INDTEXMTX "[%d].w >= 0) indtevtrans%d >>= " I_INDTEXMTX "[%d].w;\n",
+                    mtxidx, n, mtxidx);
+          out.Write("\telse indtevtrans%d <<= (indtexmtx_w_inverse_%d);\n", n, n);
+        }
+        else
+        {
+          out.Write("\tif (" I_INDTEXMTX "[%d].w >= 0) indtevtrans%d >>= " I_INDTEXMTX "[%d].w;\n",
+                    mtxidx, n, mtxidx);
+          out.Write("\telse indtevtrans%d <<= (-" I_INDTEXMTX "[%d].w);\n", n, mtxidx);
+        }
       }
       else
       {

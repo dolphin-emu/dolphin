@@ -240,6 +240,13 @@ enum Bug
   // sometimes this happens in the kernel mode part of the driver resulting in a BSOD.
   // Disable dual-source blending support for now.
   BUG_BROKEN_DUAL_SOURCE_BLENDING,
+  // BUG: ImgTec GLSL shader compiler fails when negating the input to a bitwise operation
+  // Started version: 1.5
+  // Ended version: 1.10
+  // Shaders that do something like "variable <<= (-othervariable);" cause the shader to
+  // fail compilation with no useful diagnostic log. This can be worked around by storing
+  // the negated value to a temporary variable then using that in the bitwise op.
+  BUG_BROKEN_BITWISE_OP_NEGATION,
 };
 
 // Initializes our internal vendor, device family, and driver version
