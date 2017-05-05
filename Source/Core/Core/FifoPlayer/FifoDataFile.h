@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <array>
 #include <memory>
 #include <string>
 #include <vector>
@@ -33,6 +34,11 @@ struct MemoryUpdate
 
 struct FifoFrameInfo
 {
+  enum
+  {
+    VI_MEM_SIZE = 256,
+  };
+
   std::vector<u8> fifoData;
 
   u32 fifoStart;
@@ -40,6 +46,7 @@ struct FifoFrameInfo
 
   // Must be sorted by fifoPosition
   std::vector<MemoryUpdate> memoryUpdates;
+  std::array<u8, VI_MEM_SIZE> vi_mem;
 };
 
 class FifoDataFile
@@ -60,6 +67,7 @@ public:
   void SetIsWii(bool isWii);
   bool GetIsWii() const;
   bool HasBrokenEFBCopies() const;
+  bool HasVideoInterfaceRegisters() const;
 
   u32* GetBPMem() { return m_BPMem; }
   u32* GetCPMem() { return m_CPMem; }

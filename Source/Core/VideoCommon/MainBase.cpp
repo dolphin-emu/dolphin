@@ -10,6 +10,7 @@
 #include "Common/Flag.h"
 #include "Common/Logging/Log.h"
 #include "Core/FifoPlayer/FifoRecorder.h"
+#include "Core/HW/VideoInterface.h"
 #include "Core/Host.h"
 #include "VideoCommon/AsyncRequests.h"
 #include "VideoCommon/BPStructs.h"

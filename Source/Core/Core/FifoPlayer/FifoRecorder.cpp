@@ -13,6 +13,7 @@
 #include "Core/FifoPlayer/FifoAnalyzer.h"
 #include "Core/FifoPlayer/FifoRecordAnalyzer.h"
 #include "Core/HW/Memmap.h"
+#include "Core/HW/VideoInterface.h"
 
 static FifoRecorder instance;
 static std::recursive_mutex sMutex;
@@ -144,6 +145,8 @@ void FifoRecorder::EndFrame(u32 fifoStart, u32 fifoEnd)
 
   m_CurrentFrame.fifoStart = fifoStart;
   m_CurrentFrame.fifoEnd = fifoEnd;
+
+  VideoInterface::FillVIMemoryArray(m_CurrentFrame.vi_mem.data());
 
   if (m_WasRecording)
   {

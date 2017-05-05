@@ -214,6 +214,10 @@ FifoPlayer& FifoPlayer::GetInstance()
 
 void FifoPlayer::WriteFrame(const FifoFrameInfo& frame, const AnalyzedFrameInfo& info)
 {
+  // VideoInterface registers
+  if (m_File->HasVideoInterfaceRegisters())
+    VideoInterface::LoadVIRegs(frame.vi_mem.data());
+
   // Core timing information
   m_CyclesPerFrame = SystemTimers::GetTicksPerSecond() / VideoInterface::GetTargetRefreshRate();
   m_ElapsedCycles = 0;
