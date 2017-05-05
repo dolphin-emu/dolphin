@@ -42,11 +42,20 @@ void InterfacePane::CreateUI()
   groupbox->setLayout(groupbox_layout);
   m_main_layout->addWidget(groupbox);
 
+  auto* combobox_layout = new QFormLayout;
+  groupbox_layout->addLayout(combobox_layout);
+
+  m_combobox_language = new QComboBox;
+  m_combobox_language->setMaximumWidth(300);
+  // TODO: Support more languages other then English
+  m_combobox_language->addItem(tr("English"));
+  combobox_layout->addRow(tr("&Language:"), m_combobox_language);
+
   // Theme Combobox
   auto* theme_layout = new QFormLayout;
   m_combobox_theme = new QComboBox;
-  theme_layout->addRow(tr("&Theme:"), m_combobox_theme);
-  groupbox_layout->addLayout(theme_layout);
+  m_combobox_theme->setMaximumWidth(300);
+  combobox_layout->addRow(tr("&Theme:"), m_combobox_theme);
 
   // List avalable themes
   auto file_search_results = Common::DoFileSearch(
@@ -99,6 +108,8 @@ void InterfacePane::ConnectLayout()
   connect(m_checkbox_render_to_window, &QCheckBox::clicked, this, &InterfacePane::OnSaveConfig);
   connect(m_combobox_theme, static_cast<void (QComboBox::*)(const QString&)>(&QComboBox::activated),
           [this](const QString& text) { OnSaveConfig(); });
+  connect(m_combobox_language, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated),
+          [this](int index) { OnSaveConfig(); });
   connect(m_checkbox_confirm_on_stop, &QCheckBox::clicked, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_use_panic_handlers, &QCheckBox::clicked, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_enable_osd, &QCheckBox::clicked, this, &InterfacePane::OnSaveConfig);

@@ -25,6 +25,8 @@ private:
   void OnSaveConfig();
 
   QVBoxLayout* m_main_layout;
+  QComboBox* m_combobox_language;
+
   QComboBox* m_combobox_theme;
   QCheckBox* m_checkbox_auto_window;
   QCheckBox* m_checkbox_top_window;
