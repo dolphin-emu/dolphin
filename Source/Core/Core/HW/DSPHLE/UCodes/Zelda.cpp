@@ -208,6 +208,8 @@ void ZeldaUCode::HandleMailDefault(u32 mail)
       switch (mail & 0xFFFF)
       {
       case 1:
+        m_cmd_can_execute = true;
+        RunPendingCommands();
         NOTICE_LOG(DSPHLE, "UCode being replaced.");
         m_upload_setup_in_progress = true;
         SetMailState(MailState::HALTED);
