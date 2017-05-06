@@ -47,14 +47,14 @@ std::string GetTitleDataPath(u64 _titleID, FromWhichRoot from)
   return GetTitlePath(_titleID, from) + "data/";
 }
 
-std::string GetTMDFileName(u64 _titleID, FromWhichRoot from)
-{
-  return GetTitleContentPath(_titleID, from) + "title.tmd";
-}
-
 std::string GetTitleContentPath(u64 _titleID, FromWhichRoot from)
 {
   return GetTitlePath(_titleID, from) + "content/";
+}
+
+std::string GetTMDFileName(u64 _titleID, FromWhichRoot from)
+{
+  return GetTitleContentPath(_titleID, from) + "title.tmd";
 }
 
 std::string EscapeFileName(const std::string& filename)
