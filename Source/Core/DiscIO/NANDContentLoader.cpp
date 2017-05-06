@@ -258,7 +258,7 @@ void CNANDContentManager::ClearCache()
 void CNANDContentLoader::RemoveTitle() const
 {
   const u64 title_id = m_tmd.GetTitleId();
-  INFO_LOG(DISCIO, "RemoveTitle %08x/%08x", (u32)(title_id >> 32), (u32)title_id);
+  INFO_LOG(DISCIO, "RemoveTitle %016" PRIx64, title_id);
   if (IsValid())
   {
     // remove TMD?

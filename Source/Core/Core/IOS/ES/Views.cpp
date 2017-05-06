@@ -56,8 +56,8 @@ IPCCommandResult ES::GetTicketViewCount(const IOCtlVRequest& request)
     WARN_LOG(IOS_ES, "GetViewCount: Faking IOS title %016" PRIx64 " being present", TitleID);
   }
 
-  INFO_LOG(IOS_ES, "IOCTL_ES_GETVIEWCNT for titleID: %08x/%08x (View Count = %u)",
-           static_cast<u32>(TitleID >> 32), static_cast<u32>(TitleID), view_count);
+  INFO_LOG(IOS_ES, "IOCTL_ES_GETVIEWCNT for titleID: %016" PRIx64 " (View Count = %u)", TitleID,
+           view_count);
 
   Memory::Write_U32(view_count, request.io_vectors[0].address);
   return GetDefaultReply(IPC_SUCCESS);
@@ -89,8 +89,8 @@ IPCCommandResult ES::GetTicketViews(const IOCtlVRequest& request)
     WARN_LOG(IOS_ES, "GetViews: Faking IOS title %016" PRIx64 " being present", TitleID);
   }
 
-  INFO_LOG(IOS_ES, "IOCTL_ES_GETVIEWS for titleID: %08x/%08x (MaxViews = %i)", (u32)(TitleID >> 32),
-           (u32)TitleID, maxViews);
+  INFO_LOG(IOS_ES, "IOCTL_ES_GETVIEWS for titleID: %016" PRIx64 " (MaxViews = %i)", TitleID,
+           maxViews);
 
   return GetDefaultReply(IPC_SUCCESS);
 }

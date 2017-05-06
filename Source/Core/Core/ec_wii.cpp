@@ -9,6 +9,7 @@
 
 #include "Core/ec_wii.h"
 
+#include <cinttypes>
 #include <cstdio>
 #include <cstring>
 
@@ -107,7 +108,7 @@ void MakeAPSigAndCert(u8* sig_out, u8* ap_cert_out, u64 title_id, u8* data, u32 
   memset(ap_cert_out + 4, 0, 60);
 
   sprintf(signer, "Root-CA00000001-MS00000002-NG%08x", NG_id);
-  sprintf(name, "AP%08x%08x", (u32)(title_id >> 32), (u32)(title_id & 0xffffffff));
+  sprintf(name, "AP%016" PRIx64, title_id);
   MakeBlankSigECCert(ap_cert_out, signer, name, ap_priv, 0);
 
   mbedtls_sha1(ap_cert_out + 0x80, 0x100, hash);

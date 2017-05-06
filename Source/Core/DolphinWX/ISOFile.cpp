@@ -23,6 +23,7 @@
 #include "Common/FileUtil.h"
 #include "Common/Hash.h"
 #include "Common/IniFile.h"
+#include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
 
 #include "Core/Boot/Boot.h"
@@ -371,9 +372,7 @@ const std::string GameListItem::GetWiiFSPath() const
     u64 title_id = 0;
     iso->GetTitleID(&title_id);
 
-    const std::string path =
-        StringFromFormat("%s/title/%08x/%08x/data/", File::GetUserPath(D_WIIROOT_IDX).c_str(),
-                         (u32)(title_id >> 32), (u32)title_id);
+    const std::string path = Common::GetTitleDataPath(title_id, Common::FROM_CONFIGURED_ROOT);
 
     if (!File::Exists(path))
       File::CreateFullPath(path);
