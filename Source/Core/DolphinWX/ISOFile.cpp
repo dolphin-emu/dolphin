@@ -363,7 +363,7 @@ const std::string GameListItem::GetWiiFSPath() const
 {
   std::string ret;
 
-  if (m_Platform != DiscIO::Platform::GAMECUBE_DISC)
+  if (m_Platform == DiscIO::Platform::WII_DISC || m_Platform == DiscIO::Platform::WII_WAD)
   {
     const std::string path = Common::GetTitleDataPath(m_title_id, Common::FROM_CONFIGURED_ROOT);
 

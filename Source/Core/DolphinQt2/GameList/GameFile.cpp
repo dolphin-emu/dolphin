@@ -336,7 +336,7 @@ bool GameFile::ExportWiiSave()
 
 QString GameFile::GetWiiFSPath() const
 {
-  _assert_(m_platform != DiscIO::Platform::GAMECUBE_DISC);
+  _assert_(m_platform == DiscIO::Platform::WII_DISC || m_platform == DiscIO::Platform::WII_WAD);
 
   const std::string path = Common::GetTitleDataPath(m_title_id, Common::FROM_CONFIGURED_ROOT);
 
