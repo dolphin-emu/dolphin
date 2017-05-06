@@ -89,7 +89,7 @@ Classic::Classic(ExtensionReg& reg) : Attachment(_trans("Classic"), reg)
 
 void Classic::GetState(u8* const data)
 {
-  wm_classic_extension* const ccdata = (wm_classic_extension*)data;
+  wm_classic_extension* const ccdata = reinterpret_cast<wm_classic_extension* const>(data);
   ccdata->bt.hex = 0;
 
   // not using calibration data, o well
