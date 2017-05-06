@@ -959,15 +959,10 @@ void CGameListCtrl::OnLeftClick(wxMouseEvent& event)
   event.Skip();
 }
 
-static bool IsWADInstalled(const std::string& wad_path)
+static bool IsWADInstalled(const GameListItem& wad)
 {
-  const auto volume = DiscIO::CreateVolumeFromFilename(wad_path);
-  u64 title_id;
-  if (!volume || !volume->GetTitleID(&title_id))
-    return false;
-
   const std::string content_dir =
-      Common::GetTitleContentPath(title_id, Common::FromWhichRoot::FROM_CONFIGURED_ROOT);
+      Common::GetTitleContentPath(wad.GetTitleID(), Common::FromWhichRoot::FROM_CONFIGURED_ROOT);
 
   if (!File::IsDirectory(content_dir))
     return false;
@@ -1055,7 +1050,7 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
         for (auto* menu_item : {install_wad_item, uninstall_wad_item})
           menu_item->Enable(!Core::IsRunning() || !SConfig::GetInstance().bWii);
 
-        if (!IsWADInstalled(selected_iso->GetFileName()))
+        if (!IsWADInstalled(*selected_iso))
           uninstall_wad_item->Enable(false);
       }
 
@@ -1140,15 +1135,8 @@ void CGameListCtrl::OnOpenSaveFolder(wxCommandEvent& WXUNUSED(event))
 void CGameListCtrl::OnExportSave(wxCommandEvent& WXUNUSED(event))
 {
   const GameListItem* iso = GetSelectedISO();
-  if (!iso)
-    return;
-
-  u64 title_id;
-  std::unique_ptr<DiscIO::IVolume> volume(DiscIO::CreateVolumeFromFilename(iso->GetFileName()));
-  if (volume && volume->GetTitleID(&title_id))
-  {
-    CWiiSaveCrypted::ExportWiiSave(title_id);
-  }
+  if (iso)
+    CWiiSaveCrypted::ExportWiiSave(iso->GetTitleID());
 }
 
 // Save this file as the default file
