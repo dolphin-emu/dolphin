@@ -198,8 +198,8 @@ public:
   ControllerEmu::ControlGroup* GetTurntableGroup(TurntableGroup group);
 
   void Update();
-  void InterruptChannel(const u16 _channelID, const void* _pData, u32 _Size);
-  void ControlChannel(const u16 _channelID, const void* _pData, u32 _Size);
+  void InterruptChannel(const u16 channel_id, const void* data, u32 size);
+  void ControlChannel(const u16 channel_id, const void* data, u32 size);
   void ConnectOnInput();
   void Reset();
 
@@ -233,12 +233,12 @@ private:
   };
 
   void ReportMode(const wm_report_mode* const dr);
-  void SendAck(const u8 _reportID);
+  void SendAck(const u8 report_id);
   void RequestStatus(const wm_request_status* const rs = nullptr);
   void ReadData(const wm_read_data* const rd);
   void WriteData(const wm_write_data* const wd);
-  void SendReadDataReply(ReadRequest& _request);
-  void SpeakerData(wm_speaker_data* sd);
+  void SendReadDataReply(ReadRequest& request);
+  void SpeakerData(const wm_speaker_data* sd);
   bool NetPlay_GetWiimoteData(int wiimote, u8* data, u8 size, u8 reporting_mode);
 
   // control groups

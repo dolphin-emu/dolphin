@@ -81,14 +81,14 @@ void Wiimote::WriteReport(Report rpt)
 }
 
 // to be called from CPU thread
-void Wiimote::QueueReport(u8 rpt_id, const void* _data, unsigned int size)
+void Wiimote::QueueReport(u8 rpt_id, const void* data, unsigned int size)
 {
-  auto const data = static_cast<const u8*>(_data);
+  auto const queue_data = static_cast<const u8*>(data);
 
   Report rpt(size + 2);
   rpt[0] = WR_SET_REPORT | BT_OUTPUT;
   rpt[1] = rpt_id;
-  std::copy_n(data, size, rpt.begin() + 2);
+  std::copy_n(queue_data, size, rpt.begin() + 2);
   WriteReport(std::move(rpt));
 }
 
@@ -142,7 +142,7 @@ void Wiimote::ControlChannel(const u16 channel, const void* const data, const u3
   else
   {
     InterruptChannel(channel, data, size);
-    const hid_packet* const hidp = (hid_packet*)data;
+    const hid_packet* const hidp = reinterpret_cast<const hid_packet* const>(data);
     if (hidp->type == HID_TYPE_SET_REPORT)
     {
       u8 handshake_ok = HID_HANDSHAKE_SUCCESS;
@@ -151,7 +151,7 @@ void Wiimote::ControlChannel(const u16 channel, const void* const data, const u3
   }
 }
 
-void Wiimote::InterruptChannel(const u16 channel, const void* const _data, const u32 size)
+void Wiimote::InterruptChannel(const u16 channel, const void* const data, const u32 size)
 {
   // first interrupt/control channel sent
   if (channel != m_channel)
@@ -163,8 +163,8 @@ void Wiimote::InterruptChannel(const u16 channel, const void* const _data, const
     EmuStart();
   }
 
-  auto const data = static_cast<const u8*>(_data);
-  Report rpt(data, data + size);
+  auto const report_data = static_cast<const u8*>(data);
+  Report rpt(report_data, report_data + size);
   WiimoteEmu::Wiimote* const wm =
       static_cast<WiimoteEmu::Wiimote*>(::Wiimote::GetConfig()->GetController(m_index));
 
@@ -320,7 +320,7 @@ static bool IsDataReport(const Report& rpt)
 }
 
 // Returns the next report that should be sent
-const Report& Wiimote::ProcessReadQueue()
+Report& Wiimote::ProcessReadQueue()
 {
   // Pop through the queued reports
   while (m_read_reports.Pop(m_last_input_report))
@@ -692,7 +692,7 @@ void LoadSettings()
   for (unsigned int i = 0; i < MAX_WIIMOTES; ++i)
   {
     std::string secname("Wiimote");
-    secname += (char)('1' + i);
+    secname += static_cast<char>('1' + i);
     IniFile::Section& sec = *inifile.GetOrCreateSection(secname);
 
     sec.Get("Source", &g_wiimote_sources[i], i ? WIIMOTE_SRC_NONE : WIIMOTE_SRC_EMU);
@@ -858,18 +858,18 @@ void Refresh()
     g_wiimote_scanner.SetScanMode(WiimoteScanMode::SCAN_ONCE);
 }
 
-void InterruptChannel(int _WiimoteNumber, u16 _channelID, const void* _pData, u32 _Size)
+void InterruptChannel(int wiimote_number, u16 channel_id, const void* data, u32 size)
 {
   std::lock_guard<std::mutex> lk(g_wiimotes_mutex);
-  if (g_wiimotes[_WiimoteNumber])
-    g_wiimotes[_WiimoteNumber]->InterruptChannel(_channelID, _pData, _Size);
+  if (g_wiimotes[wiimote_number])
+    g_wiimotes[wiimote_number]->InterruptChannel(channel_id, data, size);
 }
 
-void ControlChannel(int _WiimoteNumber, u16 _channelID, const void* _pData, u32 _Size)
+void ControlChannel(int wiimote_number, u16 channel_id, const void* data, u32 size)
 {
   std::lock_guard<std::mutex> lk(g_wiimotes_mutex);
-  if (g_wiimotes[_WiimoteNumber])
-    g_wiimotes[_WiimoteNumber]->ControlChannel(_channelID, _pData, _Size);
+  if (g_wiimotes[wiimote_number])
+    g_wiimotes[wiimote_number]->ControlChannel(channel_id, data, size);
 }
 
 // Read the Wiimote once

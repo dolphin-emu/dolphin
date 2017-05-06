@@ -61,7 +61,7 @@ Turntable::Turntable(ExtensionReg& reg) : Attachment(_trans("Turntable"), reg)
 
 void Turntable::GetState(u8* const data)
 {
-  wm_turntable_extension* const ttdata = (wm_turntable_extension*)data;
+  wm_turntable_extension* const ttdata = reinterpret_cast<wm_turntable_extension*>(data);
   ttdata->bt = 0;
 
   // stick
