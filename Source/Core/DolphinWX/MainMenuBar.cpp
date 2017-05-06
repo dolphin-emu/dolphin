@@ -560,8 +560,11 @@ void MainMenuBar::RefreshWiiToolsLabels() const
   // For similar reasons, it should not be possible to export or import saves, because this can
   // result in the emulated software being confused, or even worse, exported saves having
   // inconsistent data.
-  for (const int index : {IDM_MENU_INSTALL_WAD, IDM_EXPORT_ALL_SAVE, IDM_IMPORT_SAVE})
+  for (const int index : {IDM_MENU_INSTALL_WAD, IDM_EXPORT_ALL_SAVE, IDM_IMPORT_SAVE,
+                          IDM_IMPORT_NAND, IDM_EXTRACT_CERTIFICATES})
+  {
     FindItem(index)->Enable(!Core::IsRunning() || !SConfig::GetInstance().bWii);
+  }
 }
 
 void MainMenuBar::RefreshWiiSystemMenuLabel() const
