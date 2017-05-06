@@ -361,18 +361,11 @@ std::vector<DiscIO::Language> GameListItem::GetLanguages() const
 
 const std::string GameListItem::GetWiiFSPath() const
 {
-  std::unique_ptr<DiscIO::IVolume> iso(DiscIO::CreateVolumeFromFilename(m_FileName));
   std::string ret;
 
-  if (iso == nullptr)
-    return ret;
-
-  if (iso->GetVolumeType() != DiscIO::Platform::GAMECUBE_DISC)
+  if (m_Platform != DiscIO::Platform::GAMECUBE_DISC)
   {
-    u64 title_id = 0;
-    iso->GetTitleID(&title_id);
-
-    const std::string path = Common::GetTitleDataPath(title_id, Common::FROM_CONFIGURED_ROOT);
+    const std::string path = Common::GetTitleDataPath(m_title_id, Common::FROM_CONFIGURED_ROOT);
 
     if (!File::Exists(path))
       File::CreateFullPath(path);

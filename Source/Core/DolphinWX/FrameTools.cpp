@@ -1227,9 +1227,7 @@ void CFrame::OnUninstallWAD(wxCommandEvent&)
     return;
   }
 
-  const auto volume = DiscIO::CreateVolumeFromFilename(file->GetFileName());
-  u64 title_id;
-  volume->GetTitleID(&title_id);
+  u64 title_id = file->GetTitleID();
   if (!DiscIO::CNANDContentManager::Access().RemoveTitle(title_id, Common::FROM_CONFIGURED_ROOT))
   {
     PanicAlertT("Failed to remove this title from the NAND.");
