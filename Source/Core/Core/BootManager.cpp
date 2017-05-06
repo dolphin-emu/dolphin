@@ -23,6 +23,7 @@
 #include <string>
 #include <vector>
 
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
@@ -338,12 +339,12 @@ bool BootCore(const std::string& _rFilename)
     {
       if (Movie::IsUsingMemcard(i) && Movie::IsStartingFromClearSave() && !StartUp.bWii)
       {
-        if (File::Exists(File::GetUserPath(D_GCUSER_IDX) +
+        if (File::Exists(Paths::GetGCUserDir() +
                          StringFromFormat("Movie%s.raw", (i == 0) ? "A" : "B")))
-          File::Delete(File::GetUserPath(D_GCUSER_IDX) +
+          File::Delete(Paths::GetGCUserDir() +
                        StringFromFormat("Movie%s.raw", (i == 0) ? "A" : "B"));
-        if (File::Exists(File::GetUserPath(D_GCUSER_IDX) + "Movie"))
-          File::DeleteDirRecursively(File::GetUserPath(D_GCUSER_IDX) + "Movie");
+        if (File::Exists(Paths::GetGCUserDir() + "Movie"))
+          File::DeleteDirRecursively(Paths::GetGCUserDir() + "Movie");
       }
     }
   }

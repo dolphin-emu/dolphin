@@ -21,6 +21,7 @@
 #include <wx/textctrl.h>
 #include <wx/utils.h>
 
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
@@ -277,7 +278,7 @@ static void DumpArray(const std::string& filename, const u8* data, size_t length
 // Write mram to file
 void CMemoryWindow::OnDumpMemory(wxCommandEvent& event)
 {
-  DumpArray(File::GetUserPath(F_RAMDUMP_IDX), Memory::m_pRAM, Memory::REALRAM_SIZE);
+  DumpArray(Paths::GetRAMDumpFile(), Memory::m_pRAM, Memory::REALRAM_SIZE);
 }
 
 // Write exram (aram or mem2) to file
@@ -285,18 +286,18 @@ void CMemoryWindow::OnDumpMem2(wxCommandEvent& event)
 {
   if (SConfig::GetInstance().bWii)
   {
-    DumpArray(File::GetUserPath(F_ARAMDUMP_IDX), Memory::m_pEXRAM, Memory::EXRAM_SIZE);
+    DumpArray(Paths::GetARAMDumpFile(), Memory::m_pEXRAM, Memory::EXRAM_SIZE);
   }
   else
   {
-    DumpArray(File::GetUserPath(F_ARAMDUMP_IDX), DSP::GetARAMPtr(), DSP::ARAM_SIZE);
+    DumpArray(Paths::GetARAMDumpFile(), DSP::GetARAMPtr(), DSP::ARAM_SIZE);
   }
 }
 
 // Write fake vmem to file
 void CMemoryWindow::OnDumpFakeVMEM(wxCommandEvent& event)
 {
-  DumpArray(File::GetUserPath(F_FAKEVMEMDUMP_IDX), Memory::m_pFakeVMEM, Memory::FAKEVMEM_SIZE);
+  DumpArray(Paths::GetFakeVMEMDumpFile(), Memory::m_pFakeVMEM, Memory::FAKEVMEM_SIZE);
 }
 
 void CMemoryWindow::OnDataTypeChanged(wxCommandEvent& ev)

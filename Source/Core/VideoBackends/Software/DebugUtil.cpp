@@ -6,6 +6,7 @@
 
 #include <cstring>
 
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
@@ -105,7 +106,7 @@ void DumpActiveTextures()
     for (s32 mip = 0; mip <= maxLod; ++mip)
     {
       SaveTexture(StringFromFormat("%star%i_ind%i_map%i_mip%i.png",
-                                   File::GetUserPath(D_DUMPTEXTURES_IDX).c_str(),
+                                   Paths::GetDumpTexturesDir().c_str(),
                                    stats.thisFrame.numDrawnObjects, stageNum, texmap, mip),
                   texmap, mip);
     }
@@ -123,7 +124,7 @@ void DumpActiveTextures()
     for (s32 mip = 0; mip <= maxLod; ++mip)
     {
       SaveTexture(StringFromFormat("%star%i_stage%i_map%i_mip%i.png",
-                                   File::GetUserPath(D_DUMPTEXTURES_IDX).c_str(),
+                                   Paths::GetDumpTexturesDir().c_str(),
                                    stats.thisFrame.numDrawnObjects, stageNum, texmap, mip),
                   texmap, mip);
     }
@@ -200,7 +201,7 @@ void OnObjectEnd()
 {
   if (g_ActiveConfig.bDumpObjects && stats.thisFrame.numDrawnObjects >= g_ActiveConfig.drawStart &&
       stats.thisFrame.numDrawnObjects < g_ActiveConfig.drawEnd)
-    DumpEfb(StringFromFormat("%sobject%i.png", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(),
+    DumpEfb(StringFromFormat("%sobject%i.png", Paths::GetDumpFramesDir().c_str(),
                              stats.thisFrame.numDrawnObjects));
 
   for (int i = 0; i < NUM_OBJECT_BUFFERS; i++)
@@ -209,7 +210,7 @@ void OnObjectEnd()
     {
       DrawnToBuffer[i] = false;
       std::string filename =
-          StringFromFormat("%sobject%i_%s(%i).png", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(),
+          StringFromFormat("%sobject%i_%s(%i).png", Paths::GetDumpFramesDir().c_str(),
                            stats.thisFrame.numDrawnObjects, ObjectBufferName[i], i - BufferBase[i]);
 
       TextureToPng((u8*)ObjectBuffer[i], EFB_WIDTH * 4, filename, EFB_WIDTH, EFB_HEIGHT, true);

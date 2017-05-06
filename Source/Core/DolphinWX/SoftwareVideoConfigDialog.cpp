@@ -14,6 +14,7 @@
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
 
+#include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Core/Core.h"
 #include "DolphinWX/SoftwareVideoConfigDialog.h"
@@ -36,7 +37,7 @@ SoftwareVideoConfigDialog::SoftwareVideoConfigDialog(wxWindow* parent, const std
                wxString(wxString::Format(_("Dolphin %s Graphics Configuration"), title)))
 {
   VideoConfig& vconfig = g_Config;
-  vconfig.Load(File::GetUserPath(D_CONFIG_IDX) + "GFX.ini");
+  vconfig.Load(Paths::GetGFXConfigFile());
 
   wxNotebook* const notebook = new wxNotebook(this, wxID_ANY);
 
@@ -168,5 +169,5 @@ SoftwareVideoConfigDialog::SoftwareVideoConfigDialog(wxWindow* parent, const std
 
 SoftwareVideoConfigDialog::~SoftwareVideoConfigDialog()
 {
-  g_Config.Save((File::GetUserPath(D_CONFIG_IDX) + "GFX.ini").c_str());
+  g_Config.Save(Paths::GetGFXConfigFile().c_str());
 }

@@ -15,6 +15,7 @@
 // clang-format on
 
 #include "Common/CommonTypes.h"
+#include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Core/ConfigManager.h"
@@ -171,11 +172,10 @@ void CBreakPointWindow::SaveAll()
 {
   // simply dump all to bp/mc files in a way we can read again
   IniFile ini;
-  ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetGameID() + ".ini",
-           false);
+  ini.Load(Paths::GetGameSettingsDir() + SConfig::GetInstance().GetGameID() + ".ini", false);
   ini.SetLines("BreakPoints", PowerPC::breakpoints.GetStrings());
   ini.SetLines("MemoryBreakPoints", PowerPC::memchecks.GetStrings());
-  ini.Save(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetGameID() + ".ini");
+  ini.Save(Paths::GetGameSettingsDir() + SConfig::GetInstance().GetGameID() + ".ini");
 }
 
 void CBreakPointWindow::Event_LoadAll(wxCommandEvent& WXUNUSED(event))
@@ -190,8 +190,7 @@ void CBreakPointWindow::LoadAll()
   BreakPoints::TBreakPointsStr newbps;
   MemChecks::TMemChecksStr newmcs;
 
-  if (!ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetGameID() + ".ini",
-                false))
+  if (!ini.Load(Paths::GetGameSettingsDir() + SConfig::GetInstance().GetGameID() + ".ini", false))
   {
     return;
   }

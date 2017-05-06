@@ -19,6 +19,7 @@
 #include <wx/timer.h>
 #include <wx/validate.h>
 
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
@@ -53,7 +54,7 @@ CLogWindow::CLogWindow(CFrame* parent, wxWindowID id, const wxPoint& pos, const 
 void CLogWindow::CreateGUIControls()
 {
   IniFile ini;
-  ini.Load(File::GetUserPath(F_LOGGERCONFIG_IDX));
+  ini.Load(Paths::GetLoggerConfigFile());
 
   IniFile::Section* options = ini.GetOrCreateSection("Options");
   IniFile::Section* log_window = ini.GetOrCreateSection("LogWindow");
@@ -172,7 +173,7 @@ void CLogWindow::RemoveAllListeners()
 void CLogWindow::SaveSettings()
 {
   IniFile ini;
-  ini.Load(File::GetUserPath(F_LOGGERCONFIG_IDX));
+  ini.Load(Paths::GetLoggerConfigFile());
 
   if (!Parent->m_code_window)
   {
@@ -186,7 +187,7 @@ void CLogWindow::SaveSettings()
   options->Set("Font", m_FontChoice->GetSelection());
   options->Set("WrapLines", m_WrapLine->IsChecked());
 
-  ini.Save(File::GetUserPath(F_LOGGERCONFIG_IDX));
+  ini.Save(Paths::GetLoggerConfigFile());
 }
 
 void CLogWindow::OnClear(wxCommandEvent& WXUNUSED(event))

@@ -4,6 +4,7 @@
 
 #include <vector>
 
+#include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/MsgHandler.h"
@@ -53,7 +54,7 @@ bool InputConfig::LoadConfig(bool isGC)
       {
         if (control_section->Get(type + "Profile" + num[i], &profile[i]))
         {
-          if (File::Exists(File::GetUserPath(D_CONFIG_IDX) + path + profile[i] + ".ini"))
+          if (File::Exists(Paths::GetConfigDir() + path + profile[i] + ".ini"))
           {
             useProfile[i] = true;
           }
@@ -67,7 +68,7 @@ bool InputConfig::LoadConfig(bool isGC)
     }
   }
 
-  if (inifile.Load(File::GetUserPath(D_CONFIG_IDX) + m_ini_name + ".ini"))
+  if (inifile.Load(Paths::GetConfigDir() + m_ini_name + ".ini"))
   {
     int n = 0;
     for (auto& controller : m_controllers)
@@ -76,7 +77,7 @@ bool InputConfig::LoadConfig(bool isGC)
       if (useProfile[n])
       {
         IniFile profile_ini;
-        profile_ini.Load(File::GetUserPath(D_CONFIG_IDX) + path + profile[n] + ".ini");
+        profile_ini.Load(Paths::GetConfigDir() + path + profile[n] + ".ini");
         controller->LoadConfig(profile_ini.GetOrCreateSection("Profile"));
       }
       else
@@ -102,7 +103,7 @@ bool InputConfig::LoadConfig(bool isGC)
 
 void InputConfig::SaveConfig()
 {
-  std::string ini_filename = File::GetUserPath(D_CONFIG_IDX) + m_ini_name + ".ini";
+  std::string ini_filename = Paths::GetConfigDir() + m_ini_name + ".ini";
 
   IniFile inifile;
   inifile.Load(ini_filename);

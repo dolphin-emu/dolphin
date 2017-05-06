@@ -15,7 +15,7 @@ QList<QPixmap> Resources::m_misc;
 
 void Resources::Init()
 {
-  QString sys_dir = QString::fromStdString(File::GetSysDirectory() + RESOURCES_DIR + DIR_SEP);
+  QString sys_dir = QString::fromStdString(Paths::GetSysDirectory() + RESOURCES_DIR + DIR_SEP);
 
   QStringList platforms{QStringLiteral("Platform_Gamecube.png"), QStringLiteral("Platform_Wii.png"),
                         QStringLiteral("Platform_Wad.png"), QStringLiteral("Platform_File.png")};

@@ -68,9 +68,9 @@ SConfig::~SConfig()
 
 void SConfig::SaveSettings()
 {
-  NOTICE_LOG(BOOT, "Saving settings to %s", File::GetUserPath(F_DOLPHINCONFIG_IDX).c_str());
+  NOTICE_LOG(BOOT, "Saving settings to %s", Paths::GetDolphinConfigFile().c_str());
   IniFile ini;
-  ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));  // load first to not kill unknown stuff
+  ini.Load(Paths::GetDolphinConfigFile());  // load first to not kill unknown stuff
 
   SaveGeneralSettings(ini);
   SaveInterfaceSettings(ini);
@@ -87,7 +87,7 @@ void SConfig::SaveSettings()
   SaveUSBPassthroughSettings(ini);
   SaveSysconfSettings(ini);
 
-  ini.Save(File::GetUserPath(F_DOLPHINCONFIG_IDX));
+  ini.Save(Paths::GetDolphinConfigFile());
 }
 
 namespace
@@ -96,12 +96,12 @@ void CreateDumpPath(const std::string& path)
 {
   if (path.empty())
     return;
-  File::SetUserPath(D_DUMP_IDX, path + '/');
-  File::CreateFullPath(File::GetUserPath(D_DUMPAUDIO_IDX));
-  File::CreateFullPath(File::GetUserPath(D_DUMPDSP_IDX));
-  File::CreateFullPath(File::GetUserPath(D_DUMPSSL_IDX));
-  File::CreateFullPath(File::GetUserPath(D_DUMPFRAMES_IDX));
-  File::CreateFullPath(File::GetUserPath(D_DUMPTEXTURES_IDX));
+  Paths::SetDumpDir(path + '/');
+  File::CreateFullPath(Paths::GetDumpAudioDir());
+  File::CreateFullPath(Paths::GetDumpDSPDir());
+  File::CreateFullPath(Paths::GetDumpSSLDir());
+  File::CreateFullPath(Paths::GetDumpFramesDir());
+  File::CreateFullPath(Paths::GetDumpTexturesDir());
 }
 }  // namespace
 
@@ -381,7 +381,7 @@ void SConfig::SaveSysconfSettings(IniFile& ini)
 
 void SConfig::SaveSettingsToSysconf()
 {
-  SysConf sysconf{Common::FromWhichRoot::FROM_CONFIGURED_ROOT};
+  SysConf sysconf{NANDPaths::FromWhichRoot::FROM_CONFIGURED_ROOT};
 
   sysconf.SetData<u8>("IPL.SSV", m_wii_screensaver);
   sysconf.SetData<u8>("IPL.LNG", m_wii_language);
@@ -407,9 +407,9 @@ void SConfig::SaveSettingsToSysconf()
 
 void SConfig::LoadSettings()
 {
-  INFO_LOG(BOOT, "Loading Settings from %s", File::GetUserPath(F_DOLPHINCONFIG_IDX).c_str());
+  INFO_LOG(BOOT, "Loading Settings from %s", Paths::GetDolphinConfigFile().c_str());
   IniFile ini;
-  ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
+  ini.Load(Paths::GetDolphinConfigFile());
 
   LoadGeneralSettings(ini);
   LoadInterfaceSettings(ini);
@@ -456,12 +456,12 @@ void SConfig::LoadGeneralSettings(IniFile& ini)
 
   general->Get("RecursiveISOPaths", &m_RecursiveISOFolder, false);
   general->Get("NANDRootPath", &m_NANDPath);
-  File::SetUserPath(D_WIIROOT_IDX, m_NANDPath);
+  Paths::SetWiiRootDir(m_NANDPath);
   general->Get("DumpPath", &m_DumpPath);
   CreateDumpPath(m_DumpPath);
   general->Get("WirelessMac", &m_WirelessMac);
-  general->Get("WiiSDCardPath", &m_strWiiSDCardPath, File::GetUserPath(F_WIISDCARD_IDX));
-  File::SetUserPath(F_WIISDCARD_IDX, m_strWiiSDCardPath);
+  general->Get("WiiSDCardPath", &m_strWiiSDCardPath, Paths::GetWiiSDCardFile());
+  Paths::SetWiiSDCardFile(m_strWiiSDCardPath);
 }
 
 void SConfig::LoadInterfaceSettings(IniFile& ini)
@@ -726,7 +726,7 @@ void SConfig::LoadSysconfSettings(IniFile& ini)
 
 void SConfig::LoadSettingsFromSysconf()
 {
-  SysConf sysconf{Common::FromWhichRoot::FROM_CONFIGURED_ROOT};
+  SysConf sysconf{NANDPaths::FromWhichRoot::FROM_CONFIGURED_ROOT};
 
   m_wii_screensaver = sysconf.GetData<u8>("IPL.SSV");
   m_wii_language = sysconf.GetData<u8>("IPL.LNG");
@@ -826,7 +826,7 @@ void SConfig::LoadDefaults()
   iBBDumpPort = -1;
   bSyncGPU = false;
   bFastDiscSpeed = false;
-  m_strWiiSDCardPath = File::GetUserPath(F_WIISDCARD_IDX);
+  m_strWiiSDCardPath = Paths::GetWiiSDCardFile();
   bEnableMemcardSdWriting = true;
   SelectedLanguage = 0;
   bOverrideGCLanguage = false;
@@ -1032,15 +1032,14 @@ bool SConfig::AutoSetup(EBootBS2 _BootBS2)
   // Setup paths
   CheckMemcardPath(SConfig::GetInstance().m_strMemoryCardA, set_region_dir, true);
   CheckMemcardPath(SConfig::GetInstance().m_strMemoryCardB, set_region_dir, false);
-  m_strSRAM = File::GetUserPath(F_GCSRAM_IDX);
+  m_strSRAM = Paths::GetGCSRAMFile();
   if (!bWii)
   {
     if (!bHLE_BS2)
     {
-      m_strBootROM = File::GetUserPath(D_GCUSER_IDX) + DIR_SEP + set_region_dir + DIR_SEP GC_IPL;
+      m_strBootROM = Paths::GetGCUserDir() + DIR_SEP + set_region_dir + DIR_SEP GC_IPL;
       if (!File::Exists(m_strBootROM))
-        m_strBootROM =
-            File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + set_region_dir + DIR_SEP GC_IPL;
+        m_strBootROM = Paths::GetGCSysDirectory() + set_region_dir + DIR_SEP GC_IPL;
 
       if (!File::Exists(m_strBootROM))
       {
@@ -1066,7 +1065,7 @@ void SConfig::CheckMemcardPath(std::string& memcardPath, const std::string& game
   {
     // Use default memcard path if there is no user defined name
     std::string defaultFilename = isSlotA ? GC_MEMCARDA : GC_MEMCARDB;
-    memcardPath = File::GetUserPath(D_GCUSER_IDX) + defaultFilename + ext;
+    memcardPath = Paths::GetGCUserDir() + defaultFilename + ext;
   }
   else
   {
@@ -1141,7 +1140,7 @@ IniFile SConfig::LoadDefaultGameIni(const std::string& id, u16 revision)
 {
   IniFile game_ini;
   for (const std::string& filename : GetGameIniFilenames(id, revision))
-    game_ini.Load(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + filename, true);
+    game_ini.Load(Paths::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + filename, true);
   return game_ini;
 }
 
@@ -1149,7 +1148,7 @@ IniFile SConfig::LoadLocalGameIni(const std::string& id, u16 revision)
 {
   IniFile game_ini;
   for (const std::string& filename : GetGameIniFilenames(id, revision))
-    game_ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + filename, true);
+    game_ini.Load(Paths::GetGameSettingsDir() + filename, true);
   return game_ini;
 }
 
@@ -1157,9 +1156,9 @@ IniFile SConfig::LoadGameIni(const std::string& id, u16 revision)
 {
   IniFile game_ini;
   for (const std::string& filename : GetGameIniFilenames(id, revision))
-    game_ini.Load(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + filename, true);
+    game_ini.Load(Paths::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + filename, true);
   for (const std::string& filename : GetGameIniFilenames(id, revision))
-    game_ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + filename, true);
+    game_ini.Load(Paths::GetGameSettingsDir() + filename, true);
   return game_ini;
 }
 

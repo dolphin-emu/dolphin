@@ -163,7 +163,7 @@ struct DEntry
   {
     std::string filename = std::string((char*)Makercode, 2) + '-' +
                            std::string((char*)Gamecode, 4) + '-' + (char*)Filename + ".gci";
-    return Common::EscapeFileName(filename);
+    return NANDPaths::EscapeFileName(filename);
   }
 
   u8 Gamecode[4];   // 0x00       0x04    Gamecode

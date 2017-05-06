@@ -11,6 +11,7 @@
 #include <string>
 #include <vector>
 
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
@@ -26,9 +27,9 @@ namespace LLE
 bool DumpDSPCode(const u8* code_be, int size_in_bytes, u32 crc)
 {
   const std::string binFile =
-      StringFromFormat("%sDSP_UC_%08X.bin", File::GetUserPath(D_DUMPDSP_IDX).c_str(), crc);
+      StringFromFormat("%sDSP_UC_%08X.bin", Paths::GetDumpDSPDir().c_str(), crc);
   const std::string txtFile =
-      StringFromFormat("%sDSP_UC_%08X.txt", File::GetUserPath(D_DUMPDSP_IDX).c_str(), crc);
+      StringFromFormat("%sDSP_UC_%08X.txt", Paths::GetDumpDSPDir().c_str(), crc);
 
   File::IOFile pFile(binFile, "wb");
   if (pFile)
@@ -65,7 +66,7 @@ bool DumpDSPCode(const u8* code_be, int size_in_bytes, u32 crc)
 // TODO make this useful :p
 bool DumpCWCode(u32 _Address, u32 _Length)
 {
-  std::string filename = File::GetUserPath(D_DUMPDSP_IDX) + "DSP_UCode.bin";
+  std::string filename = Paths::GetDumpDSPDir() + "DSP_UCode.bin";
   File::IOFile pFile(filename, "wb");
 
   if (pFile)

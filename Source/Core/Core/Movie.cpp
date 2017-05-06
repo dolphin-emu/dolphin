@@ -584,7 +584,7 @@ bool BeginRecordingInput(int controllers)
 
   if (Core::IsRunningAndStarted())
   {
-    const std::string save_path = File::GetUserPath(D_STATESAVES_IDX) + "dtm.sav";
+    const std::string save_path = Paths::GetStateSavesDir() + "dtm.sav";
     if (File::Exists(save_path))
       File::Delete(save_path);
 
@@ -1435,7 +1435,7 @@ void SaveRecording(const std::string& filename)
   if (success && s_bRecordingFromSaveState)
   {
     std::string stateFilename = filename + ".sav";
-    success = File::Copy(File::GetUserPath(D_STATESAVES_IDX) + "dtm.sav", stateFilename);
+    success = File::Copy(Paths::GetStateSavesDir() + "dtm.sav", stateFilename);
   }
 
   if (success)
@@ -1493,8 +1493,8 @@ void GetSettings()
   if (SConfig::GetInstance().bWii)
   {
     u64 title_id = SConfig::GetInstance().GetTitleID();
-    s_bClearSave =
-        !File::Exists(Common::GetTitleDataPath(title_id, Common::FROM_SESSION_ROOT) + "banner.bin");
+    s_bClearSave = !File::Exists(
+        NANDPaths::GetTitleDataPath(title_id, NANDPaths::FROM_SESSION_ROOT) + "banner.bin");
     s_language = SConfig::GetInstance().m_wii_language;
   }
   else
@@ -1516,13 +1516,13 @@ void GetSettings()
 
   if (!s_bDSPHLE)
   {
-    std::string irom_file = File::GetUserPath(D_GCUSER_IDX) + DSP_IROM;
-    std::string coef_file = File::GetUserPath(D_GCUSER_IDX) + DSP_COEF;
+    std::string irom_file = Paths::GetGCUserDir() + DSP_IROM;
+    std::string coef_file = Paths::GetGCUserDir() + DSP_COEF;
 
     if (!File::Exists(irom_file))
-      irom_file = File::GetSysDirectory() + GC_SYS_DIR DIR_SEP DSP_IROM;
+      irom_file = Paths::GetGCSysDirectory() + DSP_IROM;
     if (!File::Exists(coef_file))
-      coef_file = File::GetSysDirectory() + GC_SYS_DIR DIR_SEP DSP_COEF;
+      coef_file = Paths::GetGCSysDirectory() + DSP_COEF;
     std::vector<u16> irom(DSP::DSP_IROM_SIZE);
     File::IOFile file_irom(irom_file, "rb");
 

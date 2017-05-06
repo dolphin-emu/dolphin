@@ -10,6 +10,7 @@
 
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/NandPaths.h"
@@ -26,9 +27,9 @@ static std::map<std::string, std::weak_ptr<File::IOFile>> openFiles;
 // This is used by several of the FileIO and /dev/fs functions
 std::string BuildFilename(const std::string& wii_path)
 {
-  std::string nand_path = File::GetUserPath(D_SESSION_WIIROOT_IDX);
+  std::string nand_path = Paths::GetSessionWiiRootDir();
   if (wii_path.compare(0, 1, "/") == 0)
-    return nand_path + Common::EscapePath(wii_path);
+    return nand_path + NANDPaths::EscapePath(wii_path);
 
   _assert_(false);
   return nand_path;
@@ -38,7 +39,7 @@ void CreateVirtualFATFilesystem()
 {
   const int cdbSize = 0x01400000;
   const std::string cdbPath =
-      Common::GetTitleDataPath(TITLEID_SYSMENU, Common::FROM_SESSION_ROOT) + "cdb.vff";
+      NANDPaths::GetTitleDataPath(TITLEID_SYSMENU, NANDPaths::FROM_SESSION_ROOT) + "cdb.vff";
   if ((int)File::GetSize(cdbPath) < cdbSize)
   {
     // cdb.vff is a virtual Fat filesystem created on first launch of sysmenu

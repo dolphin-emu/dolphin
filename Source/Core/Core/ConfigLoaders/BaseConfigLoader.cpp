@@ -18,15 +18,15 @@
 
 namespace ConfigLoaders
 {
-const std::map<Config::System, int> system_to_ini = {
-    {Config::System::Main, F_DOLPHINCONFIG_IDX},
-    {Config::System::GCPad, F_GCPADCONFIG_IDX},
-    {Config::System::WiiPad, F_WIIPADCONFIG_IDX},
-    {Config::System::GCKeyboard, F_GCKEYBOARDCONFIG_IDX},
-    {Config::System::GFX, F_GFXCONFIG_IDX},
-    {Config::System::Logger, F_LOGGERCONFIG_IDX},
-    {Config::System::Debugger, F_DEBUGGERCONFIG_IDX},
-    {Config::System::UI, F_UICONFIG_IDX},
+const std::map<Config::System, const std::string& (*)()> system_to_ini = {
+    {Config::System::Main, Paths::GetDolphinConfigFile},
+    {Config::System::GCPad, Paths::GetGCPadConfigFile},
+    {Config::System::WiiPad, Paths::GetWiiPadConfigFile},
+    {Config::System::GCKeyboard, Paths::GetGCKeyboardConfigFile},
+    {Config::System::GFX, Paths::GetGFXConfigFile},
+    {Config::System::Logger, Paths::GetLoggerConfigFile},
+    {Config::System::Debugger, Paths::GetDebuggerConfigFile},
+    {Config::System::UI, Paths::GetUIConfigFile},
 };
 
 // INI layer configuration loader
@@ -39,7 +39,7 @@ public:
     for (const auto& system : system_to_ini)
     {
       IniFile ini;
-      ini.Load(File::GetUserPath(system.second));
+      ini.Load(system.second());
       const std::list<IniFile::Section>& system_sections = ini.GetSections();
 
       for (const auto& section : system_sections)
@@ -69,7 +69,7 @@ public:
       }
 
       IniFile ini;
-      ini.Load(File::GetUserPath(mapping->second));
+      ini.Load(mapping->second());
 
       for (const auto& section : system.second)
       {
@@ -82,7 +82,7 @@ public:
           ini_section->Set(value.first, value.second);
       }
 
-      ini.Save(File::GetUserPath(mapping->second));
+      ini.Save(mapping->second());
     }
   }
 };

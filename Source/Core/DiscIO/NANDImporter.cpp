@@ -8,6 +8,7 @@
 #include <cinttypes>
 #include <cstring>
 
+#include "Common/CommonPaths.h"
 #include "Common/Crypto/AES.h"
 #include "Common/FileUtil.h"
 #include "Common/MsgHandler.h"
@@ -30,7 +31,7 @@ void NANDImporter::ImportNANDBin(const std::string& path_to_bin,
   if (!ReadNANDBin(path_to_bin))
     return;
 
-  const std::string nand_root = File::GetUserPath(D_WIIROOT_IDX);
+  const std::string nand_root = Paths::GetWiiRootDir();
   FindSuperblock();
   CountEntries(0);
   ProcessEntry(0, nand_root);

@@ -26,10 +26,10 @@ static std::string s_temp_wii_root;
 
 static void InitializeDeterministicWiiSaves()
 {
-  std::string save_path =
-      Common::GetTitleDataPath(SConfig::GetInstance().GetTitleID(), Common::FROM_SESSION_ROOT);
-  std::string user_save_path =
-      Common::GetTitleDataPath(SConfig::GetInstance().GetTitleID(), Common::FROM_CONFIGURED_ROOT);
+  std::string save_path = NANDPaths::GetTitleDataPath(SConfig::GetInstance().GetTitleID(),
+                                                      NANDPaths::FROM_SESSION_ROOT);
+  std::string user_save_path = NANDPaths::GetTitleDataPath(SConfig::GetInstance().GetTitleID(),
+                                                           NANDPaths::FROM_CONFIGURED_ROOT);
   if (Movie::IsRecordingInput())
   {
     if (NetPlay::IsNetPlayRunning() && !SConfig::GetInstance().bCopyWiiSaveNetplay)
@@ -66,7 +66,7 @@ void InitializeWiiRoot(bool use_temporary)
       ERROR_LOG(IOS_FILEIO, "Could not create temporary directory");
       return;
     }
-    File::CopyDir(File::GetSysDirectory() + WII_USER_DIR, s_temp_wii_root);
+    File::CopyDir(Paths::GetWiiSysDirectory(), s_temp_wii_root);
     WARN_LOG(IOS_FILEIO, "Using temporary directory %s for minimal Wii FS",
              s_temp_wii_root.c_str());
     static bool s_registered;
@@ -75,16 +75,16 @@ void InitializeWiiRoot(bool use_temporary)
       s_registered = true;
       atexit(ShutdownWiiRoot);
     }
-    File::SetUserPath(D_SESSION_WIIROOT_IDX, s_temp_wii_root);
+    Paths::SetSessionWiiRootDir(s_temp_wii_root);
     // Generate a SYSCONF with default settings for the temporary Wii NAND.
-    SysConf sysconf{Common::FromWhichRoot::FROM_SESSION_ROOT};
+    SysConf sysconf{NANDPaths::FromWhichRoot::FROM_SESSION_ROOT};
     sysconf.Save();
 
     InitializeDeterministicWiiSaves();
   }
   else
   {
-    File::SetUserPath(D_SESSION_WIIROOT_IDX, File::GetUserPath(D_WIIROOT_IDX));
+    Paths::SetSessionWiiRootDir(Paths::GetWiiRootDir());
   }
 }
 
@@ -92,12 +92,12 @@ void ShutdownWiiRoot()
 {
   if (!s_temp_wii_root.empty())
   {
-    std::string save_path =
-        Common::GetTitleDataPath(SConfig::GetInstance().GetTitleID(), Common::FROM_SESSION_ROOT);
-    std::string user_save_path =
-        Common::GetTitleDataPath(SConfig::GetInstance().GetTitleID(), Common::FROM_CONFIGURED_ROOT);
+    std::string save_path = NANDPaths::GetTitleDataPath(SConfig::GetInstance().GetTitleID(),
+                                                        NANDPaths::FROM_SESSION_ROOT);
+    std::string user_save_path = NANDPaths::GetTitleDataPath(SConfig::GetInstance().GetTitleID(),
+                                                             NANDPaths::FROM_CONFIGURED_ROOT);
     std::string user_backup_path =
-        File::GetUserPath(D_BACKUP_IDX) +
+        Paths::GetBackupDir() +
         StringFromFormat("%08x/%08x/", static_cast<u32>(SConfig::GetInstance().GetTitleID() >> 32),
                          static_cast<u32>(SConfig::GetInstance().GetTitleID()));
     if (File::Exists(save_path + "banner.bin") && SConfig::GetInstance().bEnableMemcardSdWriting)

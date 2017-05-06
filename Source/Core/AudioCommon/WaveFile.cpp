@@ -6,6 +6,7 @@
 
 #include <string>
 
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
@@ -146,7 +147,7 @@ void WaveFileWriter::AddStereoSamplesBE(const short* sample_data, u32 count, int
     Stop();
     file_index++;
     std::stringstream filename;
-    filename << File::GetUserPath(D_DUMPAUDIO_IDX) << basename << file_index << ".wav";
+    filename << Paths::GetDumpAudioDir() << basename << file_index << ".wav";
     Start(filename.str(), sample_rate);
     current_sample_rate = sample_rate;
   }

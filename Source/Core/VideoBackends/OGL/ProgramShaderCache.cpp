@@ -8,6 +8,7 @@
 #include <string>
 
 #include "Common/Align.h"
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
@@ -228,16 +229,15 @@ SHADER* ProgramShaderCache::SetShader(u32 primitive_type)
   {
     static int counter = 0;
     std::string filename =
-        StringFromFormat("%svs_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), counter++);
+        StringFromFormat("%svs_%04i.txt", Paths::GetDumpDir().c_str(), counter++);
     SaveData(filename, vcode.GetBuffer());
 
-    filename = StringFromFormat("%sps_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), counter++);
+    filename = StringFromFormat("%sps_%04i.txt", Paths::GetDumpDir().c_str(), counter++);
     SaveData(filename, pcode.GetBuffer());
 
     if (!gcode.GetBuffer().empty())
     {
-      filename =
-          StringFromFormat("%sgs_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), counter++);
+      filename = StringFromFormat("%sgs_%04i.txt", Paths::GetDumpDir().c_str(), counter++);
       SaveData(filename, gcode.GetBuffer());
     }
   }
@@ -307,7 +307,7 @@ bool ProgramShaderCache::CompileShader(SHADER& shader, const std::string& vcode,
     ERROR_LOG(VIDEO, "Program info log:\n%s", info_log.c_str());
 
     std::string filename =
-        StringFromFormat("%sbad_p_%d.txt", File::GetUserPath(D_DUMP_IDX).c_str(), num_failures++);
+        StringFromFormat("%sbad_p_%d.txt", Paths::GetDumpDir().c_str(), num_failures++);
     std::ofstream file;
     OpenFStream(file, filename, std::ios_base::out);
     file << s_glsl_header << vcode << s_glsl_header << pcode;
@@ -378,7 +378,7 @@ bool ProgramShaderCache::CompileComputeShader(SHADER& shader, const std::string&
     ERROR_LOG(VIDEO, "Program info log:\n%s", info_log.c_str());
 
     std::string filename =
-        StringFromFormat("%sbad_p_%d.txt", File::GetUserPath(D_DUMP_IDX).c_str(), num_failures++);
+        StringFromFormat("%sbad_p_%d.txt", Paths::GetDumpDir().c_str(), num_failures++);
     std::ofstream file;
     OpenFStream(file, filename, std::ios_base::out);
     file << s_glsl_header << code;
@@ -444,8 +444,8 @@ GLuint ProgramShaderCache::CompileSingleShader(GLuint type, const std::string& c
 
     ERROR_LOG(VIDEO, "%s Shader info log:\n%s", prefix, info_log.c_str());
 
-    std::string filename = StringFromFormat(
-        "%sbad_%s_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), prefix, num_failures++);
+    std::string filename =
+        StringFromFormat("%sbad_%s_%04i.txt", Paths::GetDumpDir().c_str(), prefix, num_failures++);
     std::ofstream file;
     OpenFStream(file, filename, std::ios_base::out);
     file << s_glsl_header << code << info_log;
@@ -514,11 +514,11 @@ void ProgramShaderCache::Init()
     }
     else
     {
-      if (!File::Exists(File::GetUserPath(D_SHADERCACHE_IDX)))
-        File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX));
+      if (!File::Exists(Paths::GetShaderCacheDir()))
+        File::CreateDir(Paths::GetShaderCacheDir());
 
       std::string cache_filename =
-          StringFromFormat("%sogl-%s-shaders.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
+          StringFromFormat("%sogl-%s-shaders.cache", Paths::GetShaderCacheDir().c_str(),
                            SConfig::GetInstance().GetGameID().c_str());
 
       ProgramShaderCacheInserter inserter;

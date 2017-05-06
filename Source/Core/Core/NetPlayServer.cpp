@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 #include "Common/Common.h"
+#include "Common/CommonPaths.h"
 #include "Common/ENetUtil.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
@@ -307,7 +308,7 @@ unsigned int NetPlayServer::OnConnect(ENetPeer* socket)
   // sync GC SRAM with new client
   if (!g_SRAM_netplay_initialized)
   {
-    SConfig::GetInstance().m_strSRAM = File::GetUserPath(F_GCSRAM_IDX);
+    SConfig::GetInstance().m_strSRAM = Paths::GetGCSRAMFile();
     InitSRAM();
     g_SRAM_netplay_initialized = true;
   }

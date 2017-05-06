@@ -3,6 +3,7 @@ set(SRCS
   CDUtils.cpp
   ColorUtil.cpp
   CommonFuncs.cpp
+  CommonPaths.cpp
   Config/Config.cpp
   Config/Layer.cpp
   Config/Section.cpp

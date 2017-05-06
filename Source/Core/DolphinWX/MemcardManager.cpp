@@ -23,6 +23,7 @@
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
@@ -109,7 +110,7 @@ CMemcardManager::~CMemcardManager()
 
 bool CMemcardManager::LoadSettings()
 {
-  if (MemcardManagerIni.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX)))
+  if (MemcardManagerIni.Load(Paths::GetDolphinConfigFile()))
   {
     iniMemcardSection = MemcardManagerIni.GetOrCreateSection("MemcardManager");
     iniMemcardSection->Get("Items per page", &itemsPerPage, 16);
@@ -138,7 +139,7 @@ bool CMemcardManager::LoadSettings()
 
 bool CMemcardManager::SaveSettings()
 {
-  MemcardManagerIni.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
+  MemcardManagerIni.Load(Paths::GetDolphinConfigFile());
   iniMemcardSection = MemcardManagerIni.GetOrCreateSection("MemcardManager");
   iniMemcardSection->Set("Items per page", itemsPerPage, 16);
   iniMemcardSection->Set("DefaultMemcardA", DefaultMemcard[SLOT_A], "");
@@ -152,7 +153,7 @@ bool CMemcardManager::SaveSettings()
   iniMemcardSection->Set("cBlocks", mcmSettings.column[COLUMN_BLOCKS], true);
   iniMemcardSection->Set("cFirst Block", mcmSettings.column[COLUMN_FIRSTBLOCK], true);
 
-  return MemcardManagerIni.Save(File::GetUserPath(F_DOLPHINCONFIG_IDX));
+  return MemcardManagerIni.Save(Paths::GetDolphinConfigFile());
 }
 
 void CMemcardManager::CreateGUIControls()
@@ -189,11 +190,11 @@ void CMemcardManager::CreateGUIControls()
     paging_sizer->Add(t_Status[slot], 0, wxALIGN_CENTER);
     paging_sizer->Add(m_NextPage[slot], 0, wxEXPAND);
 
-    m_MemcardPath[slot] = new wxFilePickerCtrl(
-        this, ID_MEMCARDPATH_A + slot, StrToWxStr(File::GetUserPath(D_GCUSER_IDX)),
-        _("Choose a memory card:"),
-        _("GameCube Memory Cards (*.raw,*.gcp)") + wxString("|*.raw;*.gcp"), wxDefaultPosition,
-        wxDefaultSize, wxFLP_USE_TEXTCTRL | wxFLP_OPEN);
+    m_MemcardPath[slot] =
+        new wxFilePickerCtrl(this, ID_MEMCARDPATH_A + slot, StrToWxStr(Paths::GetGCUserDir()),
+                             _("Choose a memory card:"),
+                             _("GameCube Memory Cards (*.raw,*.gcp)") + wxString("|*.raw;*.gcp"),
+                             wxDefaultPosition, wxDefaultSize, wxFLP_USE_TEXTCTRL | wxFLP_OPEN);
 
     m_MemcardList[slot] = new CMemcardListCtrl(
         this, ID_MEMCARDLIST_A + slot, wxDefaultPosition, FromDIP(wxSize(350, 400)),

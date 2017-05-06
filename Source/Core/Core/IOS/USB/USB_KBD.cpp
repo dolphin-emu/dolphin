@@ -6,6 +6,7 @@
 
 #include <cstring>
 
+#include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/Logging/Log.h"
@@ -47,7 +48,7 @@ ReturnCode USB_KBD::Open(const OpenRequest& request)
 {
   INFO_LOG(IOS, "USB_KBD: Open");
   IniFile ini;
-  ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
+  ini.Load(Paths::GetDolphinConfigFile());
   ini.GetOrCreateSection("USB Keyboard")->Get("Layout", &m_KeyboardLayout, KBD_LAYOUT_QWERTY);
 
   m_MessageQueue = std::queue<SMessageData>();

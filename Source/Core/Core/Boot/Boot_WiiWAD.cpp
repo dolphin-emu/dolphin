@@ -44,8 +44,8 @@ static u32 StateChecksum(const StateFlags& flags)
 
 bool CBoot::Boot_WiiWAD(const std::string& _pFilename)
 {
-  std::string state_filename(Common::GetTitleDataPath(TITLEID_SYSMENU, Common::FROM_SESSION_ROOT) +
-                             WII_STATE);
+  std::string state_filename =
+      NANDPaths::GetTitleStateFileName(TITLEID_SYSMENU, NANDPaths::FROM_SESSION_ROOT);
 
   if (File::Exists(state_filename))
   {
@@ -78,7 +78,7 @@ bool CBoot::Boot_WiiWAD(const std::string& _pFilename)
 
   u64 titleID = ContentLoader.GetTMD().GetTitleId();
   // create data directory
-  File::CreateFullPath(Common::GetTitleDataPath(titleID, Common::FROM_SESSION_ROOT));
+  File::CreateFullPath(NANDPaths::GetTitleDataPath(titleID, NANDPaths::FROM_SESSION_ROOT));
 
   if (titleID == TITLEID_SYSMENU)
     IOS::HLE::CreateVirtualFATFilesystem();

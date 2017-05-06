@@ -43,14 +43,14 @@ static void FinishAllStaleImports()
     const IOS::ES::TMDReader tmd = IOS::ES::FindImportTMD(title_id);
     if (!tmd.IsValid())
     {
-      File::DeleteDirRecursively(Common::GetImportTitlePath(title_id) + "/content");
+      File::DeleteDirRecursively(NANDPaths::GetImportTitlePath(title_id) + "/content");
       continue;
     }
 
     FinishImport(tmd);
   }
 
-  const std::string import_dir = Common::RootUserPath(Common::FROM_SESSION_ROOT) + "/import";
+  const std::string import_dir = NANDPaths::RootUserPath(NANDPaths::FROM_SESSION_ROOT) + "/import";
   File::DeleteDirRecursively(import_dir);
   File::CreateDir(import_dir);
 }
@@ -157,7 +157,7 @@ IPCCommandResult ES::GetTitleID(const IOCtlVRequest& request)
 
 static bool UpdateUIDAndGID(Kernel& kernel, const IOS::ES::TMDReader& tmd)
 {
-  IOS::ES::UIDSys uid_sys{Common::FromWhichRoot::FROM_SESSION_ROOT};
+  IOS::ES::UIDSys uid_sys{NANDPaths::FromWhichRoot::FROM_SESSION_ROOT};
   const u64 title_id = tmd.GetTitleId();
   const u32 uid = uid_sys.GetOrInsertUIDForTitle(title_id);
   if (!uid)
@@ -172,7 +172,7 @@ static bool UpdateUIDAndGID(Kernel& kernel, const IOS::ES::TMDReader& tmd)
 
 static ReturnCode CheckIsAllowedToSetUID(const u32 caller_uid)
 {
-  IOS::ES::UIDSys uid_map{Common::FromWhichRoot::FROM_SESSION_ROOT};
+  IOS::ES::UIDSys uid_map{NANDPaths::FromWhichRoot::FROM_SESSION_ROOT};
   const u32 system_menu_uid = uid_map.GetOrInsertUIDForTitle(TITLEID_SYSMENU);
   if (!system_menu_uid)
     return ES_SHORT_READ;
@@ -589,7 +589,8 @@ const DiscIO::CNANDContentLoader& ES::AccessContentDevice(u64 title_id)
     return DiscIO::CNANDContentManager::Access().GetNANDLoader(s_content_file);
   }
 
-  return DiscIO::CNANDContentManager::Access().GetNANDLoader(title_id, Common::FROM_SESSION_ROOT);
+  return DiscIO::CNANDContentManager::Access().GetNANDLoader(title_id,
+                                                             NANDPaths::FROM_SESSION_ROOT);
 }
 
 // This is technically an ioctlv in IOS's ES, but it is an internal API which cannot be
@@ -614,10 +615,10 @@ s32 ES::DIVerify(const IOS::ES::TMDReader& tmd, const IOS::ES::TicketReader& tic
   s_title_context.Update(tmd, ticket);
   INFO_LOG(IOS_ES, "ES_DIVerify: Title context changed: %016" PRIx64, tmd.GetTitleId());
 
-  std::string tmd_path = Common::GetTMDFileName(tmd.GetTitleId(), Common::FROM_SESSION_ROOT);
+  std::string tmd_path = NANDPaths::GetTMDFileName(tmd.GetTitleId(), NANDPaths::FROM_SESSION_ROOT);
 
   File::CreateFullPath(tmd_path);
-  File::CreateFullPath(Common::GetTitleDataPath(tmd.GetTitleId(), Common::FROM_SESSION_ROOT));
+  File::CreateFullPath(NANDPaths::GetTitleDataPath(tmd.GetTitleId(), NANDPaths::FROM_SESSION_ROOT));
 
   if (!File::Exists(tmd_path))
   {

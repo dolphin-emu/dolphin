@@ -60,7 +60,7 @@
 void CCodeWindow::Load()
 {
   IniFile ini;
-  ini.Load(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
+  ini.Load(Paths::GetDebuggerConfigFile());
 
   // The font to override DebuggerFont with
   std::string fontDesc;
@@ -98,7 +98,7 @@ void CCodeWindow::Load()
 void CCodeWindow::Save()
 {
   IniFile ini;
-  ini.Load(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
+  ini.Load(Paths::GetDebuggerConfigFile());
 
   IniFile::Section* general = ini.GetOrCreateSection("General");
   general->Set("DebuggerFont", WxStrToStr(DebuggerFont.GetNativeFontInfoUserDesc()));
@@ -123,7 +123,7 @@ void CCodeWindow::Save()
     ini.GetOrCreateSection("Float")->Set(SettingName[i - IDM_LOG_WINDOW_PARENT],
                                          !!FindWindowById(i));
 
-  ini.Save(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
+  ini.Save(Paths::GetDebuggerConfigFile());
 }
 
 void CCodeWindow::OnProfilerMenu(wxCommandEvent& event)
@@ -142,7 +142,7 @@ void CCodeWindow::OnProfilerMenu(wxCommandEvent& event)
 
     if (Core::GetState() == Core::State::Paused && PowerPC::GetMode() == PowerPC::CoreMode::JIT)
     {
-      std::string filename = File::GetUserPath(D_DUMP_IDX) + "Debug/profiler.txt";
+      std::string filename = Paths::GetDumpDir() + "Debug/profiler.txt";
       File::CreateFullPath(filename);
       Profiler::WriteProfileResults(filename);
 
@@ -192,7 +192,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
   {
     PPCAnalyst::FindFunctions(0x80000000, 0x81800000, &g_symbolDB);
     SignatureDB db(SignatureDB::HandlerType::DSY);
-    if (db.Load(File::GetSysDirectory() + TOTALDB))
+    if (db.Load(Paths::GetSysDirectory() + TOTALDB))
     {
       db.Apply(&g_symbolDB);
       Parent->StatusBarMessage("Generated symbol names from '%s'", TOTALDB);
@@ -241,7 +241,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
       g_symbolDB.Clear();
       PPCAnalyst::FindFunctions(0x81300000, 0x81800000, &g_symbolDB);
       SignatureDB db(SignatureDB::HandlerType::DSY);
-      if (db.Load(File::GetSysDirectory() + TOTALDB))
+      if (db.Load(Paths::GetSysDirectory() + TOTALDB))
         db.Apply(&g_symbolDB);
       Parent->StatusBarMessage("'%s' not found, scanning for common functions instead",
                                writable_map_file.c_str());
@@ -256,10 +256,10 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
     break;
   case IDM_LOAD_MAP_FILE_AS:
   {
-    const wxString path = wxFileSelector(
-        _("Load map file"), File::GetUserPath(D_MAPS_IDX), title_id_str + ".map", ".map",
-        _("Dolphin Map File (*.map)") + "|*.map|" + wxGetTranslation(wxALL_FILES),
-        wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
+    const wxString path =
+        wxFileSelector(_("Load map file"), Paths::GetMapsDir(), title_id_str + ".map", ".map",
+                       _("Dolphin Map File (*.map)") + "|*.map|" + wxGetTranslation(wxALL_FILES),
+                       wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
 
     if (!path.IsEmpty())
     {
@@ -272,10 +272,10 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
   break;
   case IDM_LOAD_BAD_MAP_FILE:
   {
-    const wxString path = wxFileSelector(
-        _("Load bad map file"), File::GetUserPath(D_MAPS_IDX), title_id_str + ".map", ".map",
-        _("Dolphin Map File (*.map)") + "|*.map|" + wxGetTranslation(wxALL_FILES),
-        wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
+    const wxString path =
+        wxFileSelector(_("Load bad map file"), Paths::GetMapsDir(), title_id_str + ".map", ".map",
+                       _("Dolphin Map File (*.map)") + "|*.map|" + wxGetTranslation(wxALL_FILES),
+                       wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
 
     if (!path.IsEmpty())
     {
@@ -291,10 +291,10 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
     break;
   case IDM_SAVE_MAP_FILE_AS:
   {
-    const wxString path = wxFileSelector(
-        _("Save map file as"), File::GetUserPath(D_MAPS_IDX), title_id_str + ".map", ".map",
-        _("Dolphin Map File (*.map)") + "|*.map|" + wxGetTranslation(wxALL_FILES),
-        wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this);
+    const wxString path =
+        wxFileSelector(_("Save map file as"), Paths::GetMapsDir(), title_id_str + ".map", ".map",
+                       _("Dolphin Map File (*.map)") + "|*.map|" + wxGetTranslation(wxALL_FILES),
+                       wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this);
 
     if (!path.IsEmpty())
       g_symbolDB.SaveMap(WxStrToStr(path));
@@ -348,8 +348,8 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
     {
       std::string prefix(WxStrToStr(input_prefix.GetValue()));
 
-      wxString path = wxFileSelector(_("Save signature as"), File::GetSysDirectory(), wxEmptyString,
-                                     wxEmptyString, signature_selector,
+      wxString path = wxFileSelector(_("Save signature as"), Paths::GetSysDirectory(),
+                                     wxEmptyString, wxEmptyString, signature_selector,
                                      wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this);
       if (!path.IsEmpty())
       {
@@ -373,7 +373,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
       std::string prefix(WxStrToStr(input_prefix.GetValue()));
 
       wxString path =
-          wxFileSelector(_("Append signature to"), File::GetSysDirectory(), wxEmptyString,
+          wxFileSelector(_("Append signature to"), Paths::GetSysDirectory(), wxEmptyString,
                          wxEmptyString, signature_selector, wxFD_SAVE, this);
       if (!path.IsEmpty())
       {
@@ -391,7 +391,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
   case IDM_USE_SIGNATURE_FILE:
   {
     wxString path =
-        wxFileSelector(_("Apply signature file"), File::GetSysDirectory(), wxEmptyString,
+        wxFileSelector(_("Apply signature file"), Paths::GetSysDirectory(), wxEmptyString,
                        wxEmptyString, signature_selector, wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
     if (!path.IsEmpty())
     {
@@ -407,21 +407,21 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
   case IDM_COMBINE_SIGNATURE_FILES:
   {
     wxString path1 =
-        wxFileSelector(_("Choose priority input file"), File::GetSysDirectory(), wxEmptyString,
+        wxFileSelector(_("Choose priority input file"), Paths::GetSysDirectory(), wxEmptyString,
                        wxEmptyString, signature_selector, wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
     if (!path1.IsEmpty())
     {
       std::string load_path1 = WxStrToStr(path1);
       SignatureDB db(load_path1);
       wxString path2 =
-          wxFileSelector(_("Choose secondary input file"), File::GetSysDirectory(), wxEmptyString,
+          wxFileSelector(_("Choose secondary input file"), Paths::GetSysDirectory(), wxEmptyString,
                          wxEmptyString, signature_selector, wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
       if (!path2.IsEmpty())
       {
         db.Load(load_path1);
         db.Load(WxStrToStr(path2));
 
-        path2 = wxFileSelector(_("Save combined output file as"), File::GetSysDirectory(),
+        path2 = wxFileSelector(_("Save combined output file as"), Paths::GetSysDirectory(),
                                wxEmptyString, ".dsy", signature_selector,
                                wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this);
         db.Save(WxStrToStr(path2));

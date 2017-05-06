@@ -8,6 +8,7 @@
 #include <utility>
 #include <vector>
 
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
@@ -15,12 +16,26 @@
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
 
-namespace Common
+constexpr auto WII_SETTING_FILE = "setting.txt";
+constexpr auto WII_STATE_FILE = "state.dat";
+constexpr auto WII_SYSCONF_DIR = "shared2" DIR_SEP "sys";
+constexpr auto WII_WC24CONF_DIR = "shared2" DIR_SEP "wc24";
+
+namespace NANDPaths
 {
 std::string RootUserPath(FromWhichRoot from)
 {
-  int idx = from == FROM_CONFIGURED_ROOT ? D_WIIROOT_IDX : D_SESSION_WIIROOT_IDX;
-  return File::GetUserPath(idx);
+  return from == FROM_CONFIGURED_ROOT ? Paths::GetWiiRootDir() : Paths::GetSessionWiiRootDir();
+}
+
+std::string GetSysconfDir(FromWhichRoot from)
+{
+  return RootUserPath(from) + DIR_SEP + WII_SYSCONF_DIR + DIR_SEP;
+}
+
+std::string GetWC24ConfDir(FromWhichRoot from)
+{
+  return RootUserPath(from) + WII_WC24CONF_DIR;
 }
 
 std::string GetImportTitlePath(u64 title_id, FromWhichRoot from)
@@ -40,6 +55,16 @@ std::string GetTitleDataPath(u64 _titleID, FromWhichRoot from)
 {
   return StringFromFormat("%s/title/%08x/%08x/data/", RootUserPath(from).c_str(),
                           (u32)(_titleID >> 32), (u32)_titleID);
+}
+
+std::string GetTitleSettingFileName(u64 titleID, FromWhichRoot from)
+{
+  return GetTitleDataPath(titleID, from) + WII_SETTING_FILE;
+}
+
+std::string GetTitleStateFileName(u64 titleID, FromWhichRoot from)
+{
+  return GetTitleDataPath(titleID, from) + WII_STATE_FILE;
 }
 
 std::string GetTMDFileName(u64 _titleID, FromWhichRoot from)

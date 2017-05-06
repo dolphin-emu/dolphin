@@ -5,6 +5,7 @@
 #include "Core/HW/DSPHLE/UCodes/AX.h"
 
 #include "Common/ChunkFile.h"
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
@@ -43,8 +44,8 @@ void AXUCode::LoadResamplingCoefficients()
 {
   m_coeffs_available = false;
 
-  std::string filenames[] = {File::GetUserPath(D_GCUSER_IDX) + "dsp_coef.bin",
-                             File::GetSysDirectory() + "/GC/dsp_coef.bin"};
+  std::string filenames[] = {Paths::GetGCUserDir() + "dsp_coef.bin",
+                             Paths::GetSysDirectory() + "/GC/dsp_coef.bin"};
 
   size_t fidx;
   std::string filename;

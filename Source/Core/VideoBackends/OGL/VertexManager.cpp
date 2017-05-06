@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/GL/GLExtensions/GLExtensions.h"
@@ -176,13 +177,13 @@ void VertexManager::vFlush()
   {
     // save the shaders
     ProgramShaderCache::PCacheEntry prog = ProgramShaderCache::GetShaderProgram();
-    std::string filename = StringFromFormat(
-        "%sps%.3d.txt", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), g_ActiveConfig.iSaveTargetId);
+    std::string filename = StringFromFormat("%sps%.3d.txt", Paths::GetDumpFramesDir().c_str(),
+                                            g_ActiveConfig.iSaveTargetId);
     std::ofstream fps;
     OpenFStream(fps, filename, std::ios_base::out);
     fps << prog.shader.strpprog;
 
-    filename = StringFromFormat("%svs%.3d.txt", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(),
+    filename = StringFromFormat("%svs%.3d.txt", Paths::GetDumpFramesDir().c_str(),
                                 g_ActiveConfig.iSaveTargetId);
     std::ofstream fvs;
     OpenFStream(fvs, filename, std::ios_base::out);

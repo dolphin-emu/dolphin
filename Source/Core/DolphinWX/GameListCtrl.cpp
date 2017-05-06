@@ -159,7 +159,7 @@ static std::unordered_map<std::string, std::string> LoadCustomTitles()
 {
   // Load custom game titles from titles.txt
   // http://www.gametdb.com/Wii/Downloads
-  const std::string& load_directory = File::GetUserPath(D_LOAD_IDX);
+  const std::string& load_directory = Paths::GetLoadDir();
 
   std::ifstream titlestxt;
   OpenFStream(titlestxt, load_directory + "titles.txt", std::ios::in);
@@ -967,7 +967,7 @@ static bool IsWADInstalled(const std::string& wad_path)
     return false;
 
   const std::string content_dir =
-      Common::GetTitleContentPath(title_id, Common::FromWhichRoot::FROM_CONFIGURED_ROOT);
+      NANDPaths::GetTitleContentPath(title_id, NANDPaths::FromWhichRoot::FROM_CONFIGURED_ROOT);
 
   if (!File::IsDirectory(content_dir))
     return false;
@@ -1215,7 +1215,7 @@ void CGameListCtrl::OnNetPlayHost(wxCommandEvent& WXUNUSED(event))
     return;
 
   IniFile ini_file;
-  const std::string dolphin_ini = File::GetUserPath(F_DOLPHINCONFIG_IDX);
+  const std::string dolphin_ini = Paths::GetDolphinConfigFile();
   ini_file.Load(dolphin_ini);
   IniFile::Section& netplay_section = *ini_file.GetOrCreateSection("NetPlay");
 

@@ -6,6 +6,7 @@
 #include <utility>
 #include <vector>
 
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
@@ -92,8 +93,8 @@ u32 ARMBinary::GetElfSize() const
 
 static std::vector<u8> GetMIOSBinary()
 {
-  const auto& loader =
-      DiscIO::CNANDContentManager::Access().GetNANDLoader(MIOS_TITLE_ID, Common::FROM_SESSION_ROOT);
+  const auto& loader = DiscIO::CNANDContentManager::Access().GetNANDLoader(
+      MIOS_TITLE_ID, NANDPaths::FROM_SESSION_ROOT);
   if (!loader.IsValid())
     return {};
 
@@ -156,7 +157,7 @@ bool Load()
 
   // Load symbols for the IPL if they exist.
   g_symbolDB.Clear();
-  if (g_symbolDB.LoadMap(File::GetUserPath(D_MAPS_IDX) + "mios-ipl.map"))
+  if (g_symbolDB.LoadMap(Paths::GetMapsDir() + "mios-ipl.map"))
   {
     ::HLE::Clear();
     ::HLE::PatchFunctions();

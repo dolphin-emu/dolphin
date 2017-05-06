@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "Common/Align.h"
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/Crypto/ec.h"
 #include "Common/FileUtil.h"
@@ -58,7 +59,7 @@ bool CWiiSaveCrypted::ExportWiiSave(u64 title_id)
 
 void CWiiSaveCrypted::ExportAllSaves()
 {
-  std::string title_folder = File::GetUserPath(D_WIIROOT_IDX) + "/title";
+  std::string title_folder = Paths::GetWiiRootDir() + "/title";
   std::vector<u64> titles;
   const u32 path_mask = 0x00010000;
   for (int i = 0; i < 8; ++i)
@@ -94,7 +95,7 @@ void CWiiSaveCrypted::ExportAllSaves()
     delete export_save;
   }
   SuccessAlertT("Successfully exported %u saves to %s", success,
-                (File::GetUserPath(D_USER_IDX) + "private/wii/title/").c_str());
+                (Paths::GetUserDir() + "private/wii/title/").c_str());
 }
 
 CWiiSaveCrypted::CWiiSaveCrypted(const std::string& filename, u64 title_id)
@@ -339,7 +340,8 @@ void CWiiSaveCrypted::ImportWiiSaveFiles()
     {
       // Allows files in subfolders to be escaped properly (ex: "nocopy/data00")
       // Special characters in path components will be escaped such as /../
-      std::string file_path = Common::EscapePath(reinterpret_cast<const char*>(file_hdr_tmp.name));
+      std::string file_path =
+          NANDPaths::EscapePath(reinterpret_cast<const char*>(file_hdr_tmp.name));
 
       std::string file_path_full = m_wii_title_path + file_path;
       File::CreateFullPath(file_path_full);
@@ -415,7 +417,7 @@ void CWiiSaveCrypted::ExportWiiSaveFiles()
     file_hdr_tmp.Permissions = 0x3c;
 
     std::string name =
-        Common::UnescapeFileName(m_files_list[i].substr(m_wii_title_path.length() + 1));
+        NANDPaths::UnescapeFileName(m_files_list[i].substr(m_wii_title_path.length() + 1));
 
     if (name.length() > 0x44)
     {
@@ -565,7 +567,7 @@ bool CWiiSaveCrypted::getPaths(bool for_export)
   if (m_title_id)
   {
     // CONFIGURED because this whole class is only used from the GUI, not directly by games.
-    m_wii_title_path = Common::GetTitleDataPath(m_title_id, Common::FROM_CONFIGURED_ROOT);
+    m_wii_title_path = NANDPaths::GetTitleDataPath(m_title_id, NANDPaths::FROM_CONFIGURED_ROOT);
   }
 
   if (for_export)
@@ -590,7 +592,7 @@ bool CWiiSaveCrypted::getPaths(bool for_export)
     if (m_encrypted_save_path.length() == 0)
     {
       // If no path was passed, use User folder
-      m_encrypted_save_path = File::GetUserPath(D_USER_IDX);
+      m_encrypted_save_path = Paths::GetUserDir();
     }
     m_encrypted_save_path += StringFromFormat("private/wii/title/%s/data.bin", game_id);
     File::CreateFullPath(m_encrypted_save_path);

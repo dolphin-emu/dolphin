@@ -8,6 +8,7 @@
 
 #include <string>
 
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
@@ -148,7 +149,7 @@ static EncodingProgram& GetOrCreateEncodingShader(const EFBCopyFormat& format)
   {
     static int counter = 0;
     std::string filename =
-        StringFromFormat("%senc_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), counter++);
+        StringFromFormat("%senc_%04i.txt", Paths::GetDumpDir().c_str(), counter++);
 
     SaveData(filename, shader);
   }

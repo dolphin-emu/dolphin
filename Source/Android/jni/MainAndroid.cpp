@@ -22,6 +22,7 @@
 #include "Common/FileUtil.h"
 #include "Common/GL/GLInterfaceBase.h"
 #include "Common/Logging/LogManager.h"
+#include "Common/NandPaths.h"
 
 #include "Core/BootManager.h"
 #include "Core/ConfigManager.h"
@@ -454,8 +455,8 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetUserDirec
     JNIEnv* env, jobject obj, jstring jDirectory);
 JNIEXPORT jstring JNICALL
 Java_org_dolphinemu_dolphinemu_NativeLibrary_GetUserDirectory(JNIEnv* env, jobject obj);
-JNIEXPORT jint JNICALL
-Java_org_dolphinemu_dolphinemu_NativeLibrary_DefaultCPUCore(JNIEnv* env, jobject obj);
+JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_DefaultCPUCore(JNIEnv* env,
+                                                                                   jobject obj);
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetProfiling(JNIEnv* env,
                                                                                  jobject obj,
                                                                                  jboolean enable);
@@ -608,7 +609,7 @@ JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetConfig
   std::string key = GetJString(env, jKey);
   std::string defaultValue = GetJString(env, jDefault);
 
-  ini.Load(File::GetUserPath(D_CONFIG_IDX) + std::string(file));
+  ini.Load(Paths::GetConfigDir() + std::string(file));
   std::string value;
 
   ini.GetOrCreateSection(section)->Get(key, &value, defaultValue);
@@ -624,10 +625,10 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetConfig(
   std::string key = GetJString(env, jKey);
   std::string value = GetJString(env, jValue);
 
-  ini.Load(File::GetUserPath(D_CONFIG_IDX) + std::string(file));
+  ini.Load(Paths::GetConfigDir() + std::string(file));
 
   ini.GetOrCreateSection(section)->Set(key, value);
-  ini.Save(File::GetUserPath(D_CONFIG_IDX) + std::string(file));
+  ini.Save(Paths::GetConfigDir() + std::string(file));
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetFilename(JNIEnv* env,
@@ -656,25 +657,23 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_LoadState(JN
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_CreateUserFolders(JNIEnv* env,
                                                                                       jobject obj)
 {
-  File::CreateFullPath(File::GetUserPath(D_CONFIG_IDX));
-  File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX));
-  File::CreateFullPath(File::GetUserPath(D_WIIROOT_IDX) + DIR_SEP WII_WC24CONF_DIR DIR_SEP
-                       "mbox" DIR_SEP);
-  File::CreateFullPath(File::GetUserPath(D_WIIROOT_IDX) + DIR_SEP "shared2" DIR_SEP
-                                                                  "succession" DIR_SEP);
-  File::CreateFullPath(File::GetUserPath(D_WIIROOT_IDX) + DIR_SEP "shared2" DIR_SEP "ec" DIR_SEP);
-  File::CreateFullPath(File::GetUserPath(D_WIIROOT_IDX) + DIR_SEP WII_SYSCONF_DIR DIR_SEP);
-  File::CreateFullPath(File::GetUserPath(D_CACHE_IDX));
-  File::CreateFullPath(File::GetUserPath(D_DUMPDSP_IDX));
-  File::CreateFullPath(File::GetUserPath(D_DUMPTEXTURES_IDX));
-  File::CreateFullPath(File::GetUserPath(D_HIRESTEXTURES_IDX));
-  File::CreateFullPath(File::GetUserPath(D_SCREENSHOTS_IDX));
-  File::CreateFullPath(File::GetUserPath(D_STATESAVES_IDX));
-  File::CreateFullPath(File::GetUserPath(D_MAILLOGS_IDX));
-  File::CreateFullPath(File::GetUserPath(D_SHADERS_IDX) + "Anaglyph" DIR_SEP);
-  File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX) + USA_DIR DIR_SEP);
-  File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX) + EUR_DIR DIR_SEP);
-  File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX) + JAP_DIR DIR_SEP);
+  File::CreateFullPath(Paths::GetConfigDir());
+  File::CreateFullPath(Paths::GetGCUserDir());
+  File::CreateFullPath(NANDPaths::GetWC24ConfDir(NANDPaths::FROM_CONFIGURED_ROOT) + "mbox" DIR_SEP);
+  File::CreateFullPath(Paths::GetWiiRootDir() + DIR_SEP "shared2" DIR_SEP "succession" DIR_SEP);
+  File::CreateFullPath(Paths::GetWiiRootDir() + DIR_SEP "shared2" DIR_SEP "ec" DIR_SEP);
+  File::CreateFullPath(NANDPaths::GetSysconfDir(NANDPaths::FROM_CONFIGURED_ROOT));
+  File::CreateFullPath(Paths::GetCacheDir());
+  File::CreateFullPath(Paths::GetDumpDSPDir());
+  File::CreateFullPath(Paths::GetDumpTexturesDir());
+  File::CreateFullPath(Paths::GetHiresTexturesDir());
+  File::CreateFullPath(Paths::GetScreenshotsDir());
+  File::CreateFullPath(Paths::GetStateSavesDir());
+  File::CreateFullPath(Paths::GetMailLogsDir());
+  File::CreateFullPath(Paths::GetShaderCacheDir() + "Anaglyph" DIR_SEP);
+  File::CreateFullPath(Paths::GetGCUserDir() + USA_DIR DIR_SEP);
+  File::CreateFullPath(Paths::GetGCUserDir() + EUR_DIR DIR_SEP);
+  File::CreateFullPath(Paths::GetGCUserDir() + JAP_DIR DIR_SEP);
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetUserDirectory(
@@ -689,7 +688,7 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetUserDirec
 JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetUserDirectory(JNIEnv* env,
                                                                                         jobject obj)
 {
-  return env->NewStringUTF(File::GetUserPath(D_USER_IDX).c_str());
+  return env->NewStringUTF(Paths::GetUserDir().c_str());
 }
 
 JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_DefaultCPUCore(JNIEnv* env,
@@ -713,7 +712,7 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_WriteProfile
                                                                                         jobject obj)
 {
   std::lock_guard<std::mutex> guard(s_host_identity_lock);
-  std::string filename = File::GetUserPath(D_DUMP_IDX) + "Debug/profiler.txt";
+  std::string filename = Paths::GetDumpDir() + "Debug/profiler.txt";
   File::CreateFullPath(filename);
   JitInterface::WriteProfileResults(filename);
 }

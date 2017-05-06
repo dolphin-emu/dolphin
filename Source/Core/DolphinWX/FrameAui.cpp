@@ -26,6 +26,7 @@
 // clang-format on
 
 #include "Common/CommonTypes.h"
+#include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/Logging/ConsoleListener.h"
@@ -750,7 +751,7 @@ void CFrame::LoadIniPerspectives()
   std::string _Perspectives;
 
   IniFile ini;
-  ini.Load(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
+  ini.Load(Paths::GetDebuggerConfigFile());
 
   IniFile::Section* perspectives = ini.GetOrCreateSection("Perspectives");
   perspectives->Get("Perspectives", &_Perspectives, "Perspective 1");
@@ -836,7 +837,7 @@ void CFrame::SaveIniPerspectives()
   UpdateCurrentPerspective();
 
   IniFile ini;
-  ini.Load(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
+  ini.Load(Paths::GetDebuggerConfigFile());
 
   // Save perspective names
   std::string STmp = "";
@@ -871,7 +872,7 @@ void CFrame::SaveIniPerspectives()
     perspec_section->Set("Height", SHeight);
   }
 
-  ini.Save(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
+  ini.Save(Paths::GetDebuggerConfigFile());
 
   // Save notebook affiliations
   m_code_window->Save();

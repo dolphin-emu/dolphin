@@ -90,12 +90,11 @@ LogManager::LogManager()
   m_Log[LogTypes::WIIMOTE] = new LogContainer("Wiimote", "Wiimote");
   m_Log[LogTypes::WII_IPC] = new LogContainer("WII_IPC", "WII IPC");
 
-  RegisterListener(LogListener::FILE_LISTENER,
-                   new FileLogListener(File::GetUserPath(F_MAINLOG_IDX)));
+  RegisterListener(LogListener::FILE_LISTENER, new FileLogListener(Paths::GetMainLogFile()));
   RegisterListener(LogListener::CONSOLE_LISTENER, new ConsoleListener());
 
   IniFile ini;
-  ini.Load(File::GetUserPath(F_LOGGERCONFIG_IDX));
+  ini.Load(Paths::GetLoggerConfigFile());
   IniFile::Section* logs = ini.GetOrCreateSection("Logs");
   IniFile::Section* options = ini.GetOrCreateSection("Options");
   bool write_file;

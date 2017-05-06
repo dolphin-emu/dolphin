@@ -47,27 +47,27 @@ void Shutdown()
 void CreateDirectories()
 {
   // Copy initial Wii NAND data from Sys to User.
-  File::CopyDir(File::GetSysDirectory() + WII_USER_DIR, File::GetUserPath(D_WIIROOT_IDX));
+  File::CopyDir(Paths::GetWiiSysDirectory(), Paths::GetWiiRootDir());
 
-  File::CreateFullPath(File::GetUserPath(D_USER_IDX));
-  File::CreateFullPath(File::GetUserPath(D_CACHE_IDX));
-  File::CreateFullPath(File::GetUserPath(D_CONFIG_IDX));
-  File::CreateFullPath(File::GetUserPath(D_DUMPDSP_IDX));
-  File::CreateFullPath(File::GetUserPath(D_DUMPSSL_IDX));
-  File::CreateFullPath(File::GetUserPath(D_DUMPTEXTURES_IDX));
-  File::CreateFullPath(File::GetUserPath(D_GAMESETTINGS_IDX));
-  File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX));
-  File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX) + USA_DIR DIR_SEP);
-  File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX) + EUR_DIR DIR_SEP);
-  File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX) + JAP_DIR DIR_SEP);
-  File::CreateFullPath(File::GetUserPath(D_HIRESTEXTURES_IDX));
-  File::CreateFullPath(File::GetUserPath(D_MAILLOGS_IDX));
-  File::CreateFullPath(File::GetUserPath(D_MAPS_IDX));
-  File::CreateFullPath(File::GetUserPath(D_SCREENSHOTS_IDX));
-  File::CreateFullPath(File::GetUserPath(D_SHADERS_IDX));
-  File::CreateFullPath(File::GetUserPath(D_SHADERS_IDX) + ANAGLYPH_DIR DIR_SEP);
-  File::CreateFullPath(File::GetUserPath(D_STATESAVES_IDX));
-  File::CreateFullPath(File::GetUserPath(D_THEMES_IDX));
+  File::CreateFullPath(Paths::GetUserDir());
+  File::CreateFullPath(Paths::GetCacheDir());
+  File::CreateFullPath(Paths::GetConfigDir());
+  File::CreateFullPath(Paths::GetDumpDSPDir());
+  File::CreateFullPath(Paths::GetDumpSSLDir());
+  File::CreateFullPath(Paths::GetDumpTexturesDir());
+  File::CreateFullPath(Paths::GetGameSettingsDir());
+  File::CreateFullPath(Paths::GetGCUserDir());
+  File::CreateFullPath(Paths::GetGCUserDir() + USA_DIR DIR_SEP);
+  File::CreateFullPath(Paths::GetGCUserDir() + EUR_DIR DIR_SEP);
+  File::CreateFullPath(Paths::GetGCUserDir() + JAP_DIR DIR_SEP);
+  File::CreateFullPath(Paths::GetHiresTexturesDir());
+  File::CreateFullPath(Paths::GetMailLogsDir());
+  File::CreateFullPath(Paths::GetMapsDir());
+  File::CreateFullPath(Paths::GetScreenshotsDir());
+  File::CreateFullPath(Paths::GetShaderCacheDir());
+  File::CreateFullPath(Paths::GetShaderCacheDir() + ANAGLYPH_DIR DIR_SEP);
+  File::CreateFullPath(Paths::GetStateSavesDir());
+  File::CreateFullPath(Paths::GetThemesDir());
 }
 
 void SetUserDirectory(const std::string& custom_path)
@@ -75,7 +75,7 @@ void SetUserDirectory(const std::string& custom_path)
   if (!custom_path.empty())
   {
     File::CreateFullPath(custom_path + DIR_SEP);
-    File::SetUserPath(D_USER_IDX, custom_path + DIR_SEP);
+    Paths::SetUserDir(custom_path + DIR_SEP);
     return;
   }
 
@@ -113,7 +113,7 @@ void SetUserDirectory(const std::string& custom_path)
     RegCloseKey(hkey);
   }
 
-  local = local || File::Exists(File::GetExeDirectory() + DIR_SEP "portable.txt");
+  local = local || File::Exists(Paths::GetExeDirectory() + DIR_SEP "portable.txt");
 
   // Get Program Files path in case we need it.
   TCHAR my_documents[MAX_PATH];
@@ -121,13 +121,13 @@ void SetUserDirectory(const std::string& custom_path)
       SHGetFolderPath(nullptr, CSIDL_MYDOCUMENTS, nullptr, SHGFP_TYPE_CURRENT, my_documents));
 
   if (local)  // Case 1-2
-    user_path = File::GetExeDirectory() + DIR_SEP USERDATA_DIR DIR_SEP;
+    user_path = Paths::GetExeDirectory() + DIR_SEP USERDATA_DIR DIR_SEP;
   else if (configPath[0])  // Case 3
     user_path = TStrToUTF8(configPath);
   else if (my_documents_found)  // Case 4
     user_path = TStrToUTF8(my_documents) + DIR_SEP "Dolphin Emulator" DIR_SEP;
   else  // Case 5
-    user_path = File::GetExeDirectory() + DIR_SEP USERDATA_DIR DIR_SEP;
+    user_path = Paths::GetExeDirectory() + DIR_SEP USERDATA_DIR DIR_SEP;
 
   // Prettify the path: it will be displayed in some places, we don't want a mix
   // of \ and /.
@@ -162,7 +162,7 @@ void SetUserDirectory(const std::string& custom_path)
     //    -> Use XDG basedir, see
     //    http://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html
     user_path = home_path + "." DOLPHIN_DATA_DIR DIR_SEP;
-    std::string exe_path = File::GetExeDirectory();
+    std::string exe_path = Paths::GetExeDirectory();
     if (File::Exists(exe_path + DIR_SEP "portable.txt"))
     {
       user_path = exe_path + DIR_SEP "User" DIR_SEP;
@@ -186,15 +186,15 @@ void SetUserDirectory(const std::string& custom_path)
           std::string(cache_home && cache_home[0] == '/' ? cache_home : (home_path + ".cache")) +
           DIR_SEP DOLPHIN_DATA_DIR DIR_SEP;
 
-      File::SetUserPath(D_USER_IDX, data_path);
-      File::SetUserPath(D_CONFIG_IDX, config_path);
-      File::SetUserPath(D_CACHE_IDX, cache_path);
+      Paths::SetUserDir(data_path);
+      Paths::SetConfigDir(config_path);
+      Paths::SetCacheDir(cache_path);
       return;
     }
 #endif
   }
 #endif
-  File::SetUserPath(D_USER_IDX, user_path);
+  Paths::SetUserDir(user_path);
 }
 
 }  // namespace UICommon

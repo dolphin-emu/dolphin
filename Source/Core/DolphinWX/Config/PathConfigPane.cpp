@@ -15,6 +15,7 @@
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 
+#include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -213,7 +214,7 @@ void PathConfigPane::OnSdCardPathChanged(wxCommandEvent& event)
 {
   std::string sd_card_path = WxStrToStr(m_wii_sdcard_filepicker->GetPath());
   SConfig::GetInstance().m_strWiiSDCardPath = sd_card_path;
-  File::SetUserPath(F_WIISDCARD_IDX, sd_card_path);
+  Paths::SetWiiSDCardFile(sd_card_path);
 }
 
 void PathConfigPane::OnNANDRootChanged(wxCommandEvent& event)
@@ -221,7 +222,7 @@ void PathConfigPane::OnNANDRootChanged(wxCommandEvent& event)
   std::string nand_path = SConfig::GetInstance().m_NANDPath =
       WxStrToStr(m_nand_root_dirpicker->GetPath());
 
-  File::SetUserPath(D_WIIROOT_IDX, nand_path);
+  Paths::SetWiiRootDir(nand_path);
   m_nand_root_dirpicker->SetPath(StrToWxStr(nand_path));
 
   DiscIO::CNANDContentManager::Access().ClearCache();

@@ -137,13 +137,13 @@ static bool LoadDSPRom(u16* rom, const std::string& filename, u32 size_in_bytes)
 
 static bool FillDSPInitOptions(DSPInitOptions* opts)
 {
-  std::string irom_file = File::GetUserPath(D_GCUSER_IDX) + DSP_IROM;
-  std::string coef_file = File::GetUserPath(D_GCUSER_IDX) + DSP_COEF;
+  std::string irom_file = Paths::GetGCUserDir() + DSP_IROM;
+  std::string coef_file = Paths::GetGCUserDir() + DSP_COEF;
 
   if (!File::Exists(irom_file))
-    irom_file = File::GetSysDirectory() + GC_SYS_DIR DIR_SEP DSP_IROM;
+    irom_file = Paths::GetGCSysDirectory() + DSP_IROM;
   if (!File::Exists(coef_file))
-    coef_file = File::GetSysDirectory() + GC_SYS_DIR DIR_SEP DSP_COEF;
+    coef_file = Paths::GetGCSysDirectory() + DSP_COEF;
 
   if (!LoadDSPRom(opts->irom_contents.data(), irom_file, DSP_IROM_BYTE_SIZE))
     return false;
@@ -158,7 +158,7 @@ static bool FillDSPInitOptions(DSPInitOptions* opts)
 
   if (SConfig::GetInstance().m_DSPCaptureLog)
   {
-    const std::string pcap_path = File::GetUserPath(D_DUMPDSP_IDX) + "dsp.pcap";
+    const std::string pcap_path = Paths::GetDumpDSPDir() + "dsp.pcap";
     opts->capture_logger = new PCAPDSPCaptureLogger(pcap_path);
   }
 

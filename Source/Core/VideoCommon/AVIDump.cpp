@@ -16,6 +16,7 @@ extern "C" {
 #include <libswscale/swscale.h>
 }
 
+#include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
@@ -100,8 +101,8 @@ static std::string GetDumpPath(const std::string& format)
   if (!g_Config.sDumpPath.empty())
     return g_Config.sDumpPath;
 
-  std::string s_dump_path = File::GetUserPath(D_DUMPFRAMES_IDX) + "framedump" +
-                            std::to_string(s_file_index) + "." + format;
+  std::string s_dump_path =
+      Paths::GetDumpFramesDir() + "framedump" + std::to_string(s_file_index) + "." + format;
 
   // Ask to delete file
   if (File::Exists(s_dump_path))

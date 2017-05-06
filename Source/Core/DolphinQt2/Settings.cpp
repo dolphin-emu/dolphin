@@ -4,13 +4,14 @@
 
 #include <QSize>
 
+#include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Core/ConfigManager.h"
 #include "DolphinQt2/Settings.h"
 
 static QString GetSettingsPath()
 {
-  return QString::fromStdString(File::GetUserPath(D_CONFIG_IDX)) + QStringLiteral("/UI.ini");
+  return QString::fromStdString(Paths::GetUIConfigFile());
 }
 
 Settings::Settings(QObject* parent) : QSettings(GetSettingsPath(), QSettings::IniFormat, parent)
@@ -20,7 +21,7 @@ Settings::Settings(QObject* parent) : QSettings(GetSettingsPath(), QSettings::In
 QString Settings::GetThemeDir() const
 {
   QString theme_name = value(QStringLiteral("Theme"), QStringLiteral("Clean")).toString();
-  return QString::fromStdString(File::GetThemeDir(theme_name.toStdString()));
+  return QString::fromStdString(Paths::GetThemeDir(theme_name.toStdString()));
 }
 
 bool Settings::IsInDevelopmentWarningEnabled() const

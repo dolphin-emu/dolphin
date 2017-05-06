@@ -13,15 +13,18 @@
 static const u64 TITLEID_SYSMENU = 0x0000000100000002;
 static const std::string TITLEID_SYSMENU_STRING = "0000000100000002";
 
-namespace Common
+namespace NANDPaths
 {
 enum FromWhichRoot
 {
-  FROM_CONFIGURED_ROOT,  // not related to currently running game - use D_WIIROOT_IDX
-  FROM_SESSION_ROOT,     // request from currently running game - use D_SESSION_WIIROOT_IDX
+  FROM_CONFIGURED_ROOT,  // not related to currently running game - use GetWiiRootDir()
+  FROM_SESSION_ROOT,     // request from currently running game - use GetSessionWiiRootDir()
 };
 
 std::string RootUserPath(FromWhichRoot from);
+
+std::string GetSysconfDir(FromWhichRoot from);
+std::string GetWC24ConfDir(FromWhichRoot from);
 
 // Returns /import/%08x/%08x. Intended for use by ES.
 std::string GetImportTitlePath(u64 title_id, FromWhichRoot from = FROM_SESSION_ROOT);
@@ -30,6 +33,8 @@ std::string GetTicketFileName(u64 _titleID, FromWhichRoot from);
 std::string GetTMDFileName(u64 _titleID, FromWhichRoot from);
 std::string GetTitleDataPath(u64 _titleID, FromWhichRoot from);
 std::string GetTitleContentPath(u64 _titleID, FromWhichRoot from);
+std::string GetTitleSettingFileName(u64 titleID, FromWhichRoot from);
+std::string GetTitleStateFileName(u64 titleID, FromWhichRoot from);
 
 // Escapes characters that are invalid or have special meanings in the host file system
 std::string EscapeFileName(const std::string& filename);

@@ -374,11 +374,11 @@ struct SharedContentMap::Entry
   std::array<u8, 20> sha1;
 };
 
-SharedContentMap::SharedContentMap(Common::FromWhichRoot root) : m_root(root)
+SharedContentMap::SharedContentMap(NANDPaths::FromWhichRoot root) : m_root(root)
 {
   static_assert(sizeof(Entry) == 28, "SharedContentMap::Entry has the wrong size");
 
-  m_file_path = Common::RootUserPath(root) + "/shared1/content.map";
+  m_file_path = NANDPaths::RootUserPath(root) + "/shared1/content.map";
 
   File::IOFile file(m_file_path, "rb");
   Entry entry;
@@ -399,7 +399,7 @@ std::string SharedContentMap::GetFilenameFromSHA1(const std::array<u8, 20>& sha1
     return "unk";
 
   const std::string id_string(it->id.begin(), it->id.end());
-  return Common::RootUserPath(m_root) + StringFromFormat("/shared1/%s.app", id_string.c_str());
+  return NANDPaths::RootUserPath(m_root) + StringFromFormat("/shared1/%s.app", id_string.c_str());
 }
 
 std::vector<std::array<u8, 20>> SharedContentMap::GetHashes() const
@@ -429,7 +429,7 @@ std::string SharedContentMap::AddSharedContent(const std::array<u8, 20>& sha1)
   File::IOFile file(m_file_path, "ab");
   file.WriteArray(&entry, 1);
 
-  filename = Common::RootUserPath(m_root) + StringFromFormat("/shared1/%s.app", id.c_str());
+  filename = NANDPaths::RootUserPath(m_root) + StringFromFormat("/shared1/%s.app", id.c_str());
   m_last_id++;
   return filename;
 }
@@ -447,9 +447,9 @@ static std::pair<u32, u64> ReadUidSysEntry(File::IOFile& file)
   return {Common::swap32(uid), Common::swap64(title_id)};
 }
 
-UIDSys::UIDSys(Common::FromWhichRoot root)
+UIDSys::UIDSys(NANDPaths::FromWhichRoot root)
 {
-  m_file_path = Common::RootUserPath(root) + "/sys/uid.sys";
+  m_file_path = NANDPaths::RootUserPath(root) + "/sys/uid.sys";
 
   File::IOFile file(m_file_path, "rb");
   while (true)

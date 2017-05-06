@@ -5,6 +5,7 @@
 #include <fstream>
 #include <string>
 
+#include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
@@ -51,8 +52,8 @@ bool CompileVertexShader(const std::string& code, D3DBlob** blob)
   if (FAILED(hr))
   {
     static int num_failures = 0;
-    std::string filename = StringFromFormat("%sbad_vs_%04i.txt",
-                                            File::GetUserPath(D_DUMP_IDX).c_str(), num_failures++);
+    std::string filename =
+        StringFromFormat("%sbad_vs_%04i.txt", Paths::GetDumpDir().c_str(), num_failures++);
     std::ofstream file;
     OpenFStream(file, filename, std::ios_base::out);
     file << code;
@@ -109,8 +110,8 @@ bool CompileGeometryShader(const std::string& code, D3DBlob** blob,
   if (FAILED(hr))
   {
     static int num_failures = 0;
-    std::string filename = StringFromFormat("%sbad_gs_%04i.txt",
-                                            File::GetUserPath(D_DUMP_IDX).c_str(), num_failures++);
+    std::string filename =
+        StringFromFormat("%sbad_gs_%04i.txt", Paths::GetDumpDir().c_str(), num_failures++);
     std::ofstream file;
     OpenFStream(file, filename, std::ios_base::out);
     file << code;
@@ -166,8 +167,8 @@ bool CompilePixelShader(const std::string& code, D3DBlob** blob, const D3D_SHADE
   if (FAILED(hr))
   {
     static int num_failures = 0;
-    std::string filename = StringFromFormat("%sbad_ps_%04i.txt",
-                                            File::GetUserPath(D_DUMP_IDX).c_str(), num_failures++);
+    std::string filename =
+        StringFromFormat("%sbad_ps_%04i.txt", Paths::GetDumpDir().c_str(), num_failures++);
     std::ofstream file;
     OpenFStream(file, filename, std::ios_base::out);
     file << code;

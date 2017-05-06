@@ -110,8 +110,8 @@ public:
   u64 Install_WiiWAD(const std::string& fileName);
 
   const CNANDContentLoader& GetNANDLoader(const std::string& content_path);
-  const CNANDContentLoader& GetNANDLoader(u64 title_id, Common::FromWhichRoot from);
-  bool RemoveTitle(u64 title_id, Common::FromWhichRoot from);
+  const CNANDContentLoader& GetNANDLoader(u64 title_id, NANDPaths::FromWhichRoot from);
+  bool RemoveTitle(u64 title_id, NANDPaths::FromWhichRoot from);
   void ClearCache();
 
 private:

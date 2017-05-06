@@ -11,6 +11,7 @@
 
 #include "Common/Assert.h"
 #include "Common/CommonFuncs.h"
+#include "Common/CommonPaths.h"
 #include "Common/LinearDiskCache.h"
 #include "Common/MsgHandler.h"
 
@@ -440,7 +441,7 @@ void ObjectCache::ClearPipelineCache()
 
 std::string ObjectCache::GetDiskCacheFileName(const char* type)
 {
-  return StringFromFormat("%svulkan-%s-%s.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
+  return StringFromFormat("%svulkan-%s-%s.cache", Paths::GetShaderCacheDir().c_str(),
                           SConfig::GetInstance().GetGameID().c_str(), type);
 }
 

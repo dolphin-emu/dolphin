@@ -22,6 +22,7 @@
 #include <wx/textctrl.h>
 #include <wx/utils.h>
 
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
@@ -163,7 +164,7 @@ void wxCheatsWindow::UpdateGUI()
   m_gameini_local = parameters.LoadLocalGameIni();
   m_game_id = parameters.GetGameID();
   m_game_revision = parameters.GetRevision();
-  m_gameini_local_path = File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini";
+  m_gameini_local_path = Paths::GetGameSettingsDir() + m_game_id + ".ini";
   Load_ARCodes();
   Load_GeckoCodes();
   m_tab_cheat_search->UpdateGUI();

@@ -82,7 +82,7 @@ struct SSysConfEntry
 class SysConf
 {
 public:
-  SysConf(Common::FromWhichRoot root_type);
+  SysConf(NANDPaths::FromWhichRoot root_type);
   ~SysConf();
 
   bool IsValid() const { return m_IsValid; }
@@ -179,7 +179,7 @@ public:
   bool SaveToFile(const std::string& filename);
   bool LoadFromFile(const std::string& filename);
   bool Reload();
-  void UpdateLocation(Common::FromWhichRoot root_type);
+  void UpdateLocation(NANDPaths::FromWhichRoot root_type);
 
 private:
   bool LoadFromFileInternal(File::IOFile&& file);

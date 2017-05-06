@@ -275,7 +275,7 @@ void DolphinApp::InitLanguageSupport()
   std::string language_code;
   {
     IniFile ini;
-    ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
+    ini.Load(Paths::GetDolphinConfigFile());
     ini.GetOrCreateSection("Interface")->Get("LanguageCode", &language_code, "");
   }
   int language = wxLANGUAGE_UNKNOWN;
@@ -297,12 +297,13 @@ void DolphinApp::InitLanguageSupport()
 
 // Specify where dolphins *.gmo files are located on each operating system
 #ifdef __WXMSW__
-    m_locale->AddCatalogLookupPathPrefix(StrToWxStr(File::GetExeDirectory() + DIR_SEP "Languages"));
+    m_locale->AddCatalogLookupPathPrefix(
+        StrToWxStr(Paths::GetExeDirectory() + DIR_SEP "Languages"));
 #elif defined(__WXGTK__)
     m_locale->AddCatalogLookupPathPrefix(StrToWxStr(DATA_DIR "../locale"));
 #elif defined(__WXOSX__)
     m_locale->AddCatalogLookupPathPrefix(
-        StrToWxStr(File::GetBundleDirectory() + "Contents/Resources"));
+        StrToWxStr(Paths::GetBundleDirectory() + "Contents/Resources"));
 #endif
 
     m_locale->AddCatalog("dolphin-emu");

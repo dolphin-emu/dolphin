@@ -14,6 +14,7 @@
 #include <unistd.h>
 #include <vector>
 
+#include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/MathUtil.h"
 #include "Common/StringUtil.h"
@@ -46,7 +47,7 @@ void PopulateDevices()
   // Search the Pipes directory for files that we can open in read-only,
   // non-blocking mode. The device name is the virtual name of the file.
   File::FSTEntry fst;
-  std::string dir_path = File::GetUserPath(D_PIPES_IDX);
+  std::string dir_path = Paths::GetPipesDir();
   if (!File::Exists(dir_path))
     return;
   fst = File::ScanDirectoryTree(dir_path, false);

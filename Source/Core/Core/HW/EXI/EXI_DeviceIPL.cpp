@@ -107,8 +107,8 @@ CEXIIPL::CEXIIPL() : m_uPosition(0), m_uAddress(0), m_uRWOffset(0), m_FontsLoade
       memcpy(m_pIPL, iplverPAL, sizeof(iplverPAL));
 
     // Load fonts
-    LoadFontFile((File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + FONT_SHIFT_JIS), 0x1aff00);
-    LoadFontFile((File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + FONT_WINDOWS_1252), 0x1fcf00);
+    LoadFontFile(Paths::GetGCSysDirectory() + FONT_SHIFT_JIS, 0x1aff00);
+    LoadFontFile(Paths::GetGCSysDirectory() + FONT_WINDOWS_1252, 0x1fcf00);
   }
   else
   {
@@ -192,11 +192,11 @@ void CEXIIPL::LoadFontFile(const std::string& filename, u32 offset)
   // from those dumps instead of loading the bundled fonts
 
   // Check for IPL dumps in User folder
-  std::string ipl_rom_path = FindIPLDump(File::GetUserPath(D_GCUSER_IDX));
+  std::string ipl_rom_path = FindIPLDump(Paths::GetGCUserDir());
 
   // If not found, check again in Sys folder
   if (ipl_rom_path.empty())
-    ipl_rom_path = FindIPLDump(File::GetSysDirectory() + GC_SYS_DIR);
+    ipl_rom_path = FindIPLDump(Paths::GetGCSysDirectory());
 
   if (File::Exists(ipl_rom_path))
   {

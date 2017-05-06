@@ -16,6 +16,7 @@
 #include <wx/statbox.h>
 #include <wx/stattext.h>
 
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
@@ -594,7 +595,7 @@ void ControllerConfigDiag::OnEnableSpeaker(wxCommandEvent& event)
 
 void ControllerConfigDiag::SaveWiimoteSource()
 {
-  std::string ini_filename = File::GetUserPath(D_CONFIG_IDX) + WIIMOTE_INI_NAME ".ini";
+  std::string ini_filename = Paths::GetConfigDir() + WIIMOTE_INI_NAME ".ini";
 
   IniFile inifile;
   inifile.Load(ini_filename);

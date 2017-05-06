@@ -12,6 +12,7 @@
 #endif
 
 #include "Common/ChunkFile.h"
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Hash.h"
@@ -187,8 +188,8 @@ void UCodeInterface::PrepareBootUCode(u32 mail)
 
     if (SConfig::GetInstance().m_DumpUCode)
     {
-      std::string ucode_dump_path = StringFromFormat(
-          "%sDSP_UC_%08X.bin", File::GetUserPath(D_DUMPDSP_IDX).c_str(), ector_crc);
+      std::string ucode_dump_path =
+          StringFromFormat("%sDSP_UC_%08X.bin", Paths::GetDumpDSPDir().c_str(), ector_crc);
 
       File::IOFile fp(ucode_dump_path, "wb");
       if (fp)

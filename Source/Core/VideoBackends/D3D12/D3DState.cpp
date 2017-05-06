@@ -5,6 +5,7 @@
 #include <algorithm>
 
 #include "Common/BitSet.h"
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/LinearDiskCache.h"
@@ -138,11 +139,11 @@ void StateCache::Init()
   gx_state_cache.m_current_pso_desc.SampleDesc.Count = g_ActiveConfig.iMultisamples;
   gx_state_cache.m_current_pso_desc.SampleDesc.Quality = 0;
 
-  if (!File::Exists(File::GetUserPath(D_SHADERCACHE_IDX)))
-    File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX));
+  if (!File::Exists(Paths::GetShaderCacheDir()))
+    File::CreateDir(Paths::GetShaderCacheDir());
 
   std::string cache_filename =
-      StringFromFormat("%sdx12-%s-pso.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
+      StringFromFormat("%sdx12-%s-pso.cache", Paths::GetShaderCacheDir().c_str(),
                        SConfig::GetInstance().GetGameID().c_str());
 
   PipelineStateCacheInserter inserter;

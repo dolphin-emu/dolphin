@@ -202,7 +202,7 @@ CISOProperties::CISOProperties(const GameListItem& game_list_item, wxWindow* par
   game_id = m_open_iso->GetGameID();
 
   // Load game INIs
-  GameIniFileLocal = File::GetUserPath(D_GAMESETTINGS_IDX) + game_id + ".ini";
+  GameIniFileLocal = Paths::GetGameSettingsDir() + game_id + ".ini";
   GameIniDefault = SConfig::LoadDefaultGameIni(game_id, m_open_iso->GetRevision());
   GameIniLocal = SConfig::LoadLocalGameIni(game_id, m_open_iso->GetRevision());
 
@@ -448,7 +448,7 @@ void CISOProperties::CreateGUIControls()
   for (const std::string& ini_filename :
        SConfig::GetGameIniFilenames(game_id, m_open_iso->GetRevision()))
   {
-    if (File::Exists(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + ini_filename))
+    if (File::Exists(Paths::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + ini_filename))
     {
       game_ini_exists = true;
       break;
@@ -759,7 +759,7 @@ void CISOProperties::OnShowDefaultConfig(wxCommandEvent& WXUNUSED(event))
   for (const std::string& filename :
        SConfig::GetGameIniFilenames(game_id, m_open_iso->GetRevision()))
   {
-    std::string path = File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + filename;
+    std::string path = Paths::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + filename;
     if (File::Exists(path))
       LaunchExternalEditor(path, false);
   }

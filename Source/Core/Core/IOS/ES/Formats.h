@@ -199,7 +199,7 @@ private:
 class SharedContentMap final
 {
 public:
-  explicit SharedContentMap(Common::FromWhichRoot root);
+  explicit SharedContentMap(NANDPaths::FromWhichRoot root);
   ~SharedContentMap();
 
   std::string GetFilenameFromSHA1(const std::array<u8, 20>& sha1) const;
@@ -208,7 +208,7 @@ public:
 
 private:
   struct Entry;
-  Common::FromWhichRoot m_root;
+  NANDPaths::FromWhichRoot m_root;
   u32 m_last_id = 0;
   std::string m_file_path;
   std::vector<Entry> m_entries;
@@ -217,7 +217,7 @@ private:
 class UIDSys final
 {
 public:
-  explicit UIDSys(Common::FromWhichRoot root);
+  explicit UIDSys(NANDPaths::FromWhichRoot root);
 
   u32 GetUIDFromTitle(u64 title_id) const;
   u32 GetOrInsertUIDForTitle(u64 title_id);

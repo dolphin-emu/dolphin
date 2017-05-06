@@ -5,6 +5,7 @@
 #include <string>
 
 #include "Common/Align.h"
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/LinearDiskCache.h"
@@ -499,11 +500,11 @@ void PixelShaderCache::Init()
 
   if (g_ActiveConfig.bShaderCache)
   {
-    if (!File::Exists(File::GetUserPath(D_SHADERCACHE_IDX)))
-      File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX));
+    if (!File::Exists(Paths::GetShaderCacheDir()))
+      File::CreateDir(Paths::GetShaderCacheDir());
 
     std::string cache_filename =
-        StringFromFormat("%sdx11-%s-ps.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
+        StringFromFormat("%sdx11-%s-ps.cache", Paths::GetShaderCacheDir().c_str(),
                          SConfig::GetInstance().GetGameID().c_str());
     PixelShaderCacheInserter inserter;
     g_ps_disk_cache.OpenAndRead(cache_filename, inserter);

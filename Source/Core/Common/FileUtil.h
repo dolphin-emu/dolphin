@@ -17,56 +17,6 @@
 #include "Common/StringUtil.h"
 #endif
 
-// User directory indices for GetUserPath
-enum
-{
-  D_USER_IDX,
-  D_GCUSER_IDX,
-  D_WIIROOT_IDX,          // always points to User/Wii or global user-configured directory
-  D_SESSION_WIIROOT_IDX,  // may point to minimal temporary directory for determinism
-  D_CONFIG_IDX,           // global settings
-  D_GAMESETTINGS_IDX,     // user-specified settings which override both the global and the default
-                          // settings (per game)
-  D_MAPS_IDX,
-  D_CACHE_IDX,
-  D_SHADERCACHE_IDX,
-  D_SHADERS_IDX,
-  D_STATESAVES_IDX,
-  D_SCREENSHOTS_IDX,
-  D_HIRESTEXTURES_IDX,
-  D_DUMP_IDX,
-  D_DUMPFRAMES_IDX,
-  D_DUMPAUDIO_IDX,
-  D_DUMPTEXTURES_IDX,
-  D_DUMPDSP_IDX,
-  D_DUMPSSL_IDX,
-  D_LOAD_IDX,
-  D_LOGS_IDX,
-  D_MAILLOGS_IDX,
-  D_THEMES_IDX,
-  D_PIPES_IDX,
-  D_MEMORYWATCHER_IDX,
-  D_WFSROOT_IDX,
-  D_BACKUP_IDX,
-  F_DOLPHINCONFIG_IDX,
-  F_GCPADCONFIG_IDX,
-  F_WIIPADCONFIG_IDX,
-  F_GCKEYBOARDCONFIG_IDX,
-  F_GFXCONFIG_IDX,
-  F_DEBUGGERCONFIG_IDX,
-  F_LOGGERCONFIG_IDX,
-  F_UICONFIG_IDX,
-  F_MAINLOG_IDX,
-  F_RAMDUMP_IDX,
-  F_ARAMDUMP_IDX,
-  F_FAKEVMEMDUMP_IDX,
-  F_GCSRAM_IDX,
-  F_MEMORYWATCHERLOCATIONS_IDX,
-  F_MEMORYWATCHERSOCKET_IDX,
-  F_WIISDCARD_IDX,
-  NUM_PATH_INDICES
-};
-
 namespace File
 {
 // FileSystem tree node/
@@ -139,26 +89,6 @@ std::string CreateTempDir();
 
 // Get a filename that can hopefully be atomically renamed to the given path.
 std::string GetTempFilenameForAtomicWrite(const std::string& path);
-
-// Gets a set user directory path
-// Don't call prior to setting the base user directory
-const std::string& GetUserPath(unsigned int dir_index);
-
-// Sets a user directory path
-// Rebuilds internal directory structure to compensate for the new directory
-void SetUserPath(unsigned int dir_index, const std::string& path);
-
-// probably doesn't belong here
-std::string GetThemeDir(const std::string& theme_name);
-
-// Returns the path to where the sys file are
-std::string GetSysDirectory();
-
-#ifdef __APPLE__
-std::string GetBundleDirectory();
-#endif
-
-std::string& GetExeDirectory();
 
 bool WriteStringToFile(const std::string& str, const std::string& filename);
 bool ReadFileToString(const std::string& filename, std::string& str);
