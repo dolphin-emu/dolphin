@@ -28,6 +28,7 @@ std::string GetImportTitlePath(u64 title_id, FromWhichRoot from = FROM_SESSION_R
 
 std::string GetTicketFileName(u64 _titleID, FromWhichRoot from);
 std::string GetTMDFileName(u64 _titleID, FromWhichRoot from);
+std::string GetTitlePath(u64 title_id, FromWhichRoot from);
 std::string GetTitleDataPath(u64 _titleID, FromWhichRoot from);
 std::string GetTitleContentPath(u64 _titleID, FromWhichRoot from);
 

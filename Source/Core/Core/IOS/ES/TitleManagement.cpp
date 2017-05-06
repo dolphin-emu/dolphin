@@ -316,9 +316,7 @@ IPCCommandResult ES::DeleteTitle(const IOCtlVRequest& request)
   if (!CanDeleteTitle(title_id))
     return GetDefaultReply(ES_EINVAL);
 
-  const std::string title_dir =
-      StringFromFormat("%s/title/%08x/%08x/", RootUserPath(Common::FROM_SESSION_ROOT).c_str(),
-                       static_cast<u32>(title_id >> 32), static_cast<u32>(title_id));
+  const std::string title_dir = Common::GetTitlePath(title_id, Common::FROM_SESSION_ROOT);
   if (!File::IsDirectory(title_dir) ||
       !DiscIO::CNANDContentManager::Access().RemoveTitle(title_id, Common::FROM_SESSION_ROOT))
   {
