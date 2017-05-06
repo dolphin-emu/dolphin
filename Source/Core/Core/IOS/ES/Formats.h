@@ -97,8 +97,14 @@ struct TicketView
 };
 static_assert(sizeof(TicketView) == 0xd8, "TicketView has the wrong size");
 
+// This structure is used for (signed) tickets. Technically, there are other types of tickets
+// (RSA4096, ECDSA, ...). However, only RSA2048 tickets have ever been seen and these are also
+// the only ticket type that is supported by the Wii's IOS.
 struct Ticket
 {
+  u32 signature_type;
+  u8 signature[256];
+  u8 unused[60];
   u8 signature_issuer[0x40];
   u8 server_public_key[0x3c];
   u8 version;
@@ -118,7 +124,7 @@ struct Ticket
   u8 content_access_permissions[0x40];
   TimeLimit time_limits[8];
 };
-static_assert(sizeof(Ticket) == 356, "Ticket has the wrong size");
+static_assert(sizeof(Ticket) == 0x2A4, "Ticket has the wrong size");
 #pragma pack(pop)
 
 class TMDReader final
@@ -175,8 +181,7 @@ public:
   void DoState(PointerWrap& p);
 
   const std::vector<u8>& GetRawTicket() const;
-  u32 GetNumberOfTickets() const;
-  u32 GetOffset() const;
+  size_t GetNumberOfTickets() const;
 
   // Returns a "raw" ticket view, without byte swapping. Intended for use from ES.
   // Theoretically, a ticket file can contain one or more tickets. In practice, most (all?)
@@ -187,6 +192,9 @@ public:
   u32 GetDeviceId() const;
   u64 GetTitleId() const;
   std::vector<u8> GetTitleKey() const;
+
+  // Deletes a ticket with the given ticket ID from the internal buffer.
+  void DeleteTicket(u64 ticket_id);
 
   // Decrypts the title key field for a "personalised" ticket -- one that is device-specific
   // and has a title key that must be decrypted first.

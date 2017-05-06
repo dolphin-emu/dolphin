@@ -48,7 +48,7 @@ IPCCommandResult ES::GetTicketViewCount(const IOCtlVRequest& request)
   u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
 
   const IOS::ES::TicketReader ticket = DiscIO::FindSignedTicket(TitleID);
-  u32 view_count = ticket.IsValid() ? ticket.GetNumberOfTickets() : 0;
+  u32 view_count = ticket.IsValid() ? static_cast<u32>(ticket.GetNumberOfTickets()) : 0;
 
   if (ShouldReturnFakeViewsForIOSes(TitleID, GetTitleContext()))
   {
@@ -75,7 +75,7 @@ IPCCommandResult ES::GetTicketViews(const IOCtlVRequest& request)
 
   if (ticket.IsValid())
   {
-    u32 number_of_views = std::min(maxViews, ticket.GetNumberOfTickets());
+    u32 number_of_views = std::min(maxViews, static_cast<u32>(ticket.GetNumberOfTickets()));
     for (u32 view = 0; view < number_of_views; ++view)
     {
       const std::vector<u8> ticket_view = ticket.GetRawTicketView(view);
@@ -235,7 +235,7 @@ IPCCommandResult ES::DIGetTicketView(const IOCtlVRequest& request)
     return GetDefaultReply(ES_EINVAL);
   }
 
-  const bool has_ticket_vector = request.in_vectors[0].size == 0x2A4;
+  const bool has_ticket_vector = request.in_vectors[0].size == sizeof(IOS::ES::Ticket);
 
   // This ioctlv takes either a signed ticket or no ticket, in which case the ticket size must be 0.
   if (!has_ticket_vector && request.in_vectors[0].size != 0)
