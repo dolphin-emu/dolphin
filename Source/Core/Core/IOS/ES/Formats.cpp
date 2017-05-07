@@ -239,7 +239,7 @@ void TicketReader::SetBytes(std::vector<u8>&& bytes)
 
 bool TicketReader::IsValid() const
 {
-  return m_bytes.size() % sizeof(Ticket) == 0;
+  return !m_bytes.empty() && m_bytes.size() % sizeof(Ticket) == 0;
 }
 
 void TicketReader::DoState(PointerWrap& p)

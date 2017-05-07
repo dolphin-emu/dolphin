@@ -317,17 +317,16 @@ IPCCommandResult ES::DeleteTitle(const IOCtlVRequest& request)
     return GetDefaultReply(ES_EINVAL);
 
   const std::string title_dir = Common::GetTitlePath(title_id, Common::FROM_SESSION_ROOT);
-  if (!File::IsDirectory(title_dir) ||
-      !DiscIO::CNANDContentManager::Access().RemoveTitle(title_id, Common::FROM_SESSION_ROOT))
-  {
+  if (!File::IsDirectory(title_dir))
     return GetDefaultReply(FS_ENOENT);
-  }
 
   if (!File::DeleteDirRecursively(title_dir))
   {
     ERROR_LOG(IOS_ES, "DeleteTitle: Failed to delete title directory: %s", title_dir.c_str());
     return GetDefaultReply(FS_EACCESS);
   }
+  // XXX: ugly, but until we drop CNANDContentManager everywhere, this is going to be needed.
+  DiscIO::CNANDContentManager::Access().ClearCache();
 
   return GetDefaultReply(IPC_SUCCESS);
 }
