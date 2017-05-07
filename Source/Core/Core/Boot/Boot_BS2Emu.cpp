@@ -111,8 +111,6 @@ bool CBoot::EmulatedBS2_GC(bool skip_app_loader)
   // HIO checks this
   // PowerPC::HostWrite_U16(0x8200,     0x000030e6); // Console type
 
-  HLE::Patch(0x81300000, "OSReport");  // HLE OSReport for Apploader
-
   if (!DVDInterface::IsDiscInside())
     return false;
 
@@ -163,6 +161,7 @@ bool CBoot::EmulatedBS2_GC(bool skip_app_loader)
 
   // iAppLoaderInit
   DEBUG_LOG(MASTER_LOG, "Call iAppLoaderInit");
+  HLE::Patch(0x81300000, "AppLoaderReport");  // HLE OSReport for Apploader
   PowerPC::ppcState.gpr[3] = 0x81300000;
   RunFunction(iAppLoaderInit);
 
@@ -191,6 +190,7 @@ bool CBoot::EmulatedBS2_GC(bool skip_app_loader)
   // iAppLoaderClose
   DEBUG_LOG(MASTER_LOG, "call iAppLoaderClose");
   RunFunction(iAppLoaderClose);
+  HLE::UnPatch("AppLoaderReport");
 
   // return
   PC = PowerPC::ppcState.gpr[3];
@@ -358,8 +358,6 @@ bool CBoot::EmulatedBS2_Wii()
   Memory::Write_U32(0x4c000064, 0x00000800);  // Write default FPU Handler:   rfi
   Memory::Write_U32(0x4c000064, 0x00000C00);  // Write default Syscall Handler: rfi
 
-  HLE::Patch(0x81300000, "OSReport");  // HLE OSReport for Apploader
-
   PowerPC::ppcState.gpr[1] = 0x816ffff0;  // StackPointer
 
   // Execute the apploader
@@ -391,6 +389,7 @@ bool CBoot::EmulatedBS2_Wii()
 
   // iAppLoaderInit
   DEBUG_LOG(BOOT, "Run iAppLoaderInit");
+  HLE::Patch(0x81300000, "AppLoaderReport");  // HLE OSReport for Apploader
   PowerPC::ppcState.gpr[3] = 0x81300000;
   RunFunction(iAppLoaderInit);
 
@@ -416,6 +415,7 @@ bool CBoot::EmulatedBS2_Wii()
   // iAppLoaderClose
   DEBUG_LOG(BOOT, "Run iAppLoaderClose");
   RunFunction(iAppLoaderClose);
+  HLE::UnPatch("AppLoaderReport");
 
   IOS::HLE::Device::ES::DIVerify(tmd, DVDInterface::GetVolume().GetTicket());
 
