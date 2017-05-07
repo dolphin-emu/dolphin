@@ -163,9 +163,10 @@ bool AnalyzeFunction(u32 startAddr, Symbol& func, int max_size)
         if (target == INVALID_BRANCH_TARGET)
           continue;
 
-        if (instr.LK)
+        const bool is_external = target < startAddr || (max_size && target >= startAddr + max_size);
+        if (instr.LK || is_external)
         {
-          // Found a branch-n-link
+          // Found a function call
           func.calls.emplace_back(target, addr);
           func.flags &= ~FFLAG_LEAF;
         }
