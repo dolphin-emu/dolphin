@@ -376,20 +376,29 @@ IPCCommandResult ES::DeleteTicket(const IOCtlVRequest& request)
   return GetDefaultReply(IPC_SUCCESS);
 }
 
+ReturnCode ES::DeleteTitleContent(u64 title_id) const
+{
+  if (!CanDeleteTitle(title_id))
+    return ES_EINVAL;
+
+  const std::string content_dir = Common::GetTitleContentPath(title_id, Common::FROM_SESSION_ROOT);
+  if (!File::IsDirectory(content_dir))
+    return FS_ENOENT;
+
+  for (const auto& file : File::ScanDirectoryTree(content_dir, false).children)
+  {
+    if (file.virtualName.size() == 12 && file.virtualName.compare(8, 4, ".app") == 0)
+      File::Delete(file.physicalName);
+  }
+
+  return IPC_SUCCESS;
+}
+
 IPCCommandResult ES::DeleteTitleContent(const IOCtlVRequest& request)
 {
-  if (!request.HasNumberOfValidVectors(1, 0))
+  if (!request.HasNumberOfValidVectors(1, 0) || request.in_vectors[0].size != sizeof(u64))
     return GetDefaultReply(ES_EINVAL);
-
-  u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
-  INFO_LOG(IOS_ES, "IOCTL_ES_DELETETITLECONTENT: title: %08x/%08x", (u32)(TitleID >> 32),
-           (u32)TitleID);
-
-  // Presumably return -1017 when title not installed TODO verify
-  if (!DiscIO::CNANDContentManager::Access().RemoveTitle(TitleID, Common::FROM_SESSION_ROOT))
-    return GetDefaultReply(ES_EINVAL);
-
-  return GetDefaultReply(IPC_SUCCESS);
+  return GetDefaultReply(DeleteTitleContent(Memory::Read_U64(request.in_vectors[0].address)));
 }
 
 IPCCommandResult ES::ExportTitleInit(Context& context, const IOCtlVRequest& request)

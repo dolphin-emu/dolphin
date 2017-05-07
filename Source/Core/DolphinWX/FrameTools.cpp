@@ -42,6 +42,7 @@
 #include "Core/HW/Wiimote.h"
 #include "Core/Host.h"
 #include "Core/HotkeyManager.h"
+#include "Core/IOS/ES/ES.h"
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/STM/STM.h"
 #include "Core/IOS/USB/Bluetooth/BTEmu.h"
@@ -1228,7 +1229,8 @@ void CFrame::OnUninstallWAD(wxCommandEvent&)
   }
 
   u64 title_id = file->GetTitleID();
-  if (!DiscIO::CNANDContentManager::Access().RemoveTitle(title_id, Common::FROM_CONFIGURED_ROOT))
+  IOS::HLE::Kernel ios;
+  if (ios.GetES()->DeleteTitleContent(title_id) < 0)
   {
     PanicAlertT("Failed to remove this title from the NAND.");
     return;

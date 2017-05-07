@@ -13,6 +13,8 @@
 #include "Common/NandPaths.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/WiiSaveCrypted.h"
+#include "Core/IOS/ES/ES.h"
+#include "Core/IOS/IOS.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/NANDContentLoader.h"
@@ -324,9 +326,8 @@ bool GameFile::Install()
 bool GameFile::Uninstall()
 {
   _assert_(m_platform == DiscIO::Platform::WII_WAD);
-
-  return DiscIO::CNANDContentManager::Access().RemoveTitle(m_title_id,
-                                                           Common::FROM_CONFIGURED_ROOT);
+  IOS::HLE::Kernel ios;
+  return ios.GetES()->DeleteTitleContent(m_title_id) == IOS::HLE::IPC_SUCCESS;
 }
 
 bool GameFile::ExportWiiSave()

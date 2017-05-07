@@ -241,38 +241,9 @@ const CNANDContentLoader& CNANDContentManager::GetNANDLoader(u64 title_id,
   return GetNANDLoader(path);
 }
 
-bool CNANDContentManager::RemoveTitle(u64 title_id, Common::FromWhichRoot from)
-{
-  auto& loader = GetNANDLoader(title_id, from);
-  if (!loader.IsValid())
-    return false;
-  loader.RemoveTitle();
-  return GetNANDLoader(title_id, from).IsValid();
-}
-
 void CNANDContentManager::ClearCache()
 {
   m_map.clear();
-}
-
-void CNANDContentLoader::RemoveTitle() const
-{
-  const u64 title_id = m_tmd.GetTitleId();
-  INFO_LOG(DISCIO, "RemoveTitle %016" PRIx64, title_id);
-  if (IsValid())
-  {
-    // remove TMD?
-    for (const auto& content : m_Content)
-    {
-      if (!content.m_metadata.IsShared())
-      {
-        std::string path = StringFromFormat("%s/%08x.app", m_Path.c_str(), content.m_metadata.id);
-        INFO_LOG(DISCIO, "Delete %s", path.c_str());
-        File::Delete(path);
-      }
-    }
-    CNANDContentManager::Access().ClearCache();  // deletes 'this'
-  }
 }
 
 u64 CNANDContentManager::Install_WiiWAD(const std::string& filename)
