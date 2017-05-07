@@ -104,7 +104,8 @@ bool AnalyzeFunction(u32 startAddr, Symbol& func, int max_size)
     {
       func.address = startAddr;
       func.analyzed = true;
-      func.hash = HashSignatureDB::ComputeCodeChecksum(startAddr, addr);
+      func.size -= 4;
+      func.hash = HashSignatureDB::ComputeCodeChecksum(startAddr, addr - 4);
       if (numInternalBranches == 0)
         func.flags |= FFLAG_STRAIGHT;
       return true;
