@@ -1015,7 +1015,10 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
         // an inconsistent state; the emulated software can do *anything* to its data directory,
         // and we definitely do not want the user to touch anything in there if it's running.
         for (auto* menu_item : {open_save_folder_item, export_save_item})
-          menu_item->Enable(!Core::IsRunning() || !SConfig::GetInstance().bWii);
+        {
+          menu_item->Enable((!Core::IsRunning() || !SConfig::GetInstance().bWii) &&
+                            File::IsDirectory(selected_iso->GetWiiFSPath()));
+        }
       }
       popupMenu.Append(IDM_OPEN_CONTAINING_FOLDER, _("Open &containing folder"));
 
