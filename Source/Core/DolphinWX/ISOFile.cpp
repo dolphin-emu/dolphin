@@ -366,9 +366,6 @@ const std::string GameListItem::GetWiiFSPath() const
 
   const std::string path = Common::GetTitleDataPath(m_title_id, Common::FROM_CONFIGURED_ROOT);
 
-  if (!File::Exists(path))
-    File::CreateFullPath(path);
-
   if (path[0] == '.')
     return WxStrToStr(wxGetCwd()) + path.substr(strlen(ROOT_DIR));
 
