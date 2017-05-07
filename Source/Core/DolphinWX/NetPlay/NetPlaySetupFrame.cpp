@@ -223,11 +223,11 @@ wxNotebook* NetPlaySetupFrame::CreateNotebookGUI(wxWindow* parent)
 
   // host tab
   {
-    m_host_port_lbl = new wxStaticText(host_tab, wxID_ANY, _("Port :"));
+    m_host_port_lbl = new wxStaticText(host_tab, wxID_ANY, _("Port:"));
     m_host_port_text =
         new wxTextCtrl(host_tab, wxID_ANY, std::to_string(NetPlayHostConfig::DEFAULT_LISTEN_PORT));
 
-    m_traversal_listen_port_enabled = new wxCheckBox(host_tab, wxID_ANY, _("Force Listen Port: "));
+    m_traversal_listen_port_enabled = new wxCheckBox(host_tab, wxID_ANY, _("Force Listen Port:"));
     m_traversal_listen_port = new wxSpinCtrl(host_tab, wxID_ANY, "", wxDefaultPosition,
                                              wxDefaultSize, wxSP_ARROW_KEYS, 1, 65535);
     m_traversal_listen_port->SetMinSize(WxUtils::GetTextWidgetMinSize(m_traversal_listen_port));

@@ -38,9 +38,18 @@ MemoryCheckDlg::MemoryCheckDlg(wxWindow* parent)
   m_radioAddress = new wxRadioButton(this, wxID_ANY, _("With an address"), wxDefaultPosition,
                                      wxDefaultSize, wxRB_GROUP);
   m_radioRange = new wxRadioButton(this, wxID_ANY, _("Within a range"));
-  m_radioRead =
-      new wxRadioButton(this, wxID_ANY, _("Read"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
-  m_radioWrite = new wxRadioButton(this, wxID_ANY, _("Write"));
+  // i18n: This string is used for a radio button that represents the type of
+  // memory breakpoint that gets triggered when a read operation occurs.
+  // The string does not mean "read-only" in the sense that something cannot be written to.
+  m_radioRead = new wxRadioButton(this, wxID_ANY, _("Read only"), wxDefaultPosition, wxDefaultSize,
+                                  wxRB_GROUP);
+  // i18n: This string is used for a radio button that represents the type of
+  // memory breakpoint that gets triggered when a write operation occurs.
+  // The string does not mean "write-only" in the sense that something cannot be read from.
+  m_radioWrite = new wxRadioButton(this, wxID_ANY, _("Write only"));
+  // i18n: This string is used for a radio button that represents the type of
+  // memory breakpoint that gets triggered when a read operation or write operation occurs.
+  // The string is not a command to read and write something or to allow reading and writing.
   m_radioReadWrite = new wxRadioButton(this, wxID_ANY, _("Read and write"));
   m_radioLog =
       new wxRadioButton(this, wxID_ANY, _("Log"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP);

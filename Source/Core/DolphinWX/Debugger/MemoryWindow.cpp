@@ -179,13 +179,22 @@ wxSizer* CMemoryWindow::CreateSearchTypeSizer()
 
 wxSizer* CMemoryWindow::CreateMemcheckOptionSizer()
 {
-  m_read_write_radio_btn = new wxRadioButton(this, IDM_MEMCHECK_OPTIONS_CHANGE, _("Read and Write"),
+  // i18n: This string is used for a radio button that represents the type of
+  // memory breakpoint that gets triggered when a read operation or write operation occurs.
+  // The string is not a command to read and write something or to allow reading and writing.
+  m_read_write_radio_btn = new wxRadioButton(this, IDM_MEMCHECK_OPTIONS_CHANGE, _("Read and write"),
                                              wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
   m_read_write_radio_btn->Bind(wxEVT_RADIOBUTTON, &CMemoryWindow::OnMemCheckOptionChange, this);
 
+  // i18n: This string is used for a radio button that represents the type of
+  // memory breakpoint that gets triggered when a read operation occurs.
+  // The string does not mean "read-only" in the sense that something cannot be written to.
   m_read_radio_btn = new wxRadioButton(this, IDM_MEMCHECK_OPTIONS_CHANGE, _("Read only"));
   m_read_radio_btn->Bind(wxEVT_RADIOBUTTON, &CMemoryWindow::OnMemCheckOptionChange, this);
 
+  // i18n: This string is used for a radio button that represents the type of
+  // memory breakpoint that gets triggered when a write operation occurs.
+  // The string does not mean "write-only" in the sense that something cannot be read from.
   m_write_radio_btn = new wxRadioButton(this, IDM_MEMCHECK_OPTIONS_CHANGE, _("Write only"));
   m_write_radio_btn->Bind(wxEVT_RADIOBUTTON, &CMemoryWindow::OnMemCheckOptionChange, this);
 
