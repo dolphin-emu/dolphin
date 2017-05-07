@@ -31,6 +31,8 @@ namespace HLE
 namespace Device
 {
 class Device;
+class ES;
+class FS;
 }
 
 struct Request;
@@ -84,8 +86,8 @@ enum ProcessId : u32
 class Kernel
 {
 public:
-  explicit Kernel(u64 ios_title_id);
-  ~Kernel();
+  Kernel();
+  virtual ~Kernel();
 
   void DoState(PointerWrap& p);
   void HandleIPCEvent(u64 userdata);
@@ -93,7 +95,11 @@ public:
   void UpdateDevices();
   void UpdateWantDeterminism(bool new_want_determinism);
 
-  std::shared_ptr<Device::Device> GetDeviceByName(const std::string& device_name);
+  // These are *always* part of the IOS kernel and always available.
+  // They are also the only available resource managers even before loading any module.
+  std::shared_ptr<Device::FS> GetFS();
+  std::shared_ptr<Device::ES> GetES();
+
   void SDIO_EventNotify();
 
   void EnqueueIPCRequest(u32 address);
@@ -111,13 +117,15 @@ public:
 
   IOSC& GetIOSC();
 
-private:
+protected:
   void ExecuteIPCCommand(u32 address);
   IPCCommandResult HandleIPCCommand(const Request& request);
   void EnqueueIPCAcknowledgement(u32 address, int cycles_in_future = 0);
 
   void AddDevice(std::unique_ptr<Device::Device> device);
+  void AddCoreDevices();
   void AddStaticDevices();
+  std::shared_ptr<Device::Device> GetDeviceByName(const std::string& device_name);
   s32 GetFreeDeviceID();
   s32 OpenDevice(OpenRequest& request);
 
@@ -140,10 +148,22 @@ private:
   IOSC m_iosc;
 };
 
+// HLE for an IOS tied to emulation: base kernel which may have additional modules loaded.
+class EmulationKernel : public Kernel
+{
+public:
+  explicit EmulationKernel(u64 ios_title_id);
+  ~EmulationKernel();
+
+  // Get a resource manager by name.
+  // This only works for devices which are part of the device map.
+  std::shared_ptr<Device::Device> GetDeviceByName(const std::string& device_name);
+};
+
 // Used for controlling and accessing an IOS instance that is tied to emulation.
 void Init();
 void Shutdown();
-Kernel* GetIOS();
+EmulationKernel* GetIOS();
 
 }  // namespace HLE
 }  // namespace IOS
