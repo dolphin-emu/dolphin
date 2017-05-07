@@ -173,10 +173,20 @@ void MenuBar::AddViewMenu()
 void MenuBar::AddHelpMenu()
 {
   QMenu* help_menu = addMenu(tr("Help"));
+  QAction* website = help_menu->addAction(tr("Website"));
+  connect(website, &QAction::triggered, this,
+          []() { QDesktopServices::openUrl(QUrl(QStringLiteral("https://dolphin-emu.org/"))); });
   QAction* documentation = help_menu->addAction(tr("Online Documentation"));
-  connect(documentation, &QAction::triggered, this, [=]() {
+  connect(documentation, &QAction::triggered, this, []() {
     QDesktopServices::openUrl(QUrl(QStringLiteral("https://dolphin-emu.org/docs/guides")));
   });
+  QAction* github = help_menu->addAction(tr("GitHub Repository"));
+  connect(github, &QAction::triggered, this, []() {
+    QDesktopServices::openUrl(QUrl(QStringLiteral("https://github.com/dolphin-emu/dolphin")));
+  });
+
+  help_menu->addSeparator();
+
   help_menu->addAction(tr("About"), this, SIGNAL(ShowAboutDialog()));
 }
 
