@@ -23,7 +23,7 @@ NANDImporter::NANDImporter() = default;
 NANDImporter::~NANDImporter() = default;
 
 void NANDImporter::ImportNANDBin(const std::string& path_to_bin,
-                                 std::function<void(size_t, size_t)> update_callback)
+                                 std::function<void()> update_callback)
 {
   m_update_callback = std::move(update_callback);
 
@@ -32,7 +32,6 @@ void NANDImporter::ImportNANDBin(const std::string& path_to_bin,
 
   const std::string nand_root = File::GetUserPath(D_WIIROOT_IDX);
   FindSuperblock();
-  CountEntries(0);
   ProcessEntry(0, nand_root);
   ExportKeys(nand_root);
   ExtractCertificates(nand_root);
@@ -62,6 +61,11 @@ bool NANDImporter::ReadNANDBin(const std::string& path_to_bin)
 
   for (size_t i = 0; i < NAND_TOTAL_BLOCKS; i++)
   {
+    // Instead of updating on every cycle, we only update every 1000 cycles for a balance between
+    // not updating fast enough vs updating too fast
+    if (i % 1000 == 0)
+      m_update_callback();
+
     file.ReadBytes(&m_nand[i * NAND_BLOCK_SIZE], NAND_BLOCK_SIZE);
     file.Seek(NAND_ECC_BLOCK_SIZE, SEEK_CUR);  // We don't care about the ECC blocks
   }
@@ -113,7 +117,6 @@ void NANDImporter::ProcessEntry(u16 entry_number, const std::string& parent_path
   NANDFSTEntry entry;
   memcpy(&entry, &m_nand[m_nand_fst_offset + sizeof(NANDFSTEntry) * Common::swap16(entry_number)],
          sizeof(NANDFSTEntry));
-  UpdateStatus();
 
   if (entry.sib != 0xffff)
     ProcessEntry(entry.sib, parent_path);
@@ -126,6 +129,8 @@ void NANDImporter::ProcessEntry(u16 entry_number, const std::string& parent_path
 
 void NANDImporter::ProcessDirectory(const NANDFSTEntry& entry, const std::string& parent_path)
 {
+  m_update_callback();
+
   const std::string path = GetPath(entry, parent_path);
   File::CreateDir(path);
 
@@ -137,6 +142,8 @@ void NANDImporter::ProcessFile(const NANDFSTEntry& entry, const std::string& par
 {
   constexpr size_t NAND_AES_KEY_OFFSET = 0x158;
   constexpr size_t NAND_FAT_BLOCK_SIZE = 0x4000;
+
+  m_update_callback();
 
   const std::string path = GetPath(entry, parent_path);
   File::IOFile file(path, "wb");
@@ -200,25 +207,5 @@ void NANDImporter::ExportKeys(const std::string& nand_root)
   File::IOFile file(file_path, "wb");
   if (!file.WriteBytes(m_nand_keys.data(), NAND_KEYS_SIZE))
     PanicAlertT("Unable to write to file %s", file_path.c_str());
-}
-
-void NANDImporter::CountEntries(u16 entry_number)
-{
-  NANDFSTEntry entry;
-  memcpy(&entry, &m_nand[m_nand_fst_offset + sizeof(NANDFSTEntry) * Common::swap16(entry_number)],
-         sizeof(NANDFSTEntry));
-
-  m_total_entries++;
-
-  if (entry.sib != 0xffff)
-    CountEntries(entry.sib);
-
-  if ((entry.mode & 3) == 2 && entry.sub != 0xffff)
-    CountEntries(entry.sub);
-}
-
-void NANDImporter::UpdateStatus()
-{
-  m_update_callback(m_current_entry++, m_total_entries);
 }
 }
