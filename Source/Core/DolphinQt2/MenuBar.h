@@ -41,6 +41,7 @@ signals:
   // View
   void ShowTable();
   void ShowList();
+  void ColumnVisibilityToggled(const QString& row, bool visible);
 
   void ShowAboutDialog();
 

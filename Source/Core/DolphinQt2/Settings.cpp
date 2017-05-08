@@ -150,3 +150,58 @@ QSize Settings::GetRenderWindowSize() const
 {
   return value(QStringLiteral("Graphics/RenderWindowSize"), QSize(640, 480)).toSize();
 }
+
+bool& Settings::BannerVisible() const
+{
+  return SConfig::GetInstance().m_showBannerColumn;
+}
+
+bool& Settings::CountryVisible() const
+{
+  return SConfig::GetInstance().m_showRegionColumn;
+}
+
+bool& Settings::DescriptionVisible() const
+{
+  return SConfig::GetInstance().m_showDescriptionColumn;
+}
+
+bool& Settings::FilenameVisible() const
+{
+  return SConfig::GetInstance().m_showFileNameColumn;
+}
+
+bool& Settings::IDVisible() const
+{
+  return SConfig::GetInstance().m_showIDColumn;
+}
+
+bool& Settings::MakerVisible() const
+{
+  return SConfig::GetInstance().m_showMakerColumn;
+}
+
+bool& Settings::PlatformVisible() const
+{
+  return SConfig::GetInstance().m_showSystemColumn;
+}
+
+bool& Settings::TitleVisible() const
+{
+  return SConfig::GetInstance().m_showTitleColumn;
+}
+
+bool& Settings::SizeVisible() const
+{
+  return SConfig::GetInstance().m_showSizeColumn;
+}
+
+bool& Settings::StateVisible() const
+{
+  return SConfig::GetInstance().m_showStateColumn;
+}
+
+void Settings::Save()
+{
+  return SConfig::GetInstance().SaveSettings();
+}

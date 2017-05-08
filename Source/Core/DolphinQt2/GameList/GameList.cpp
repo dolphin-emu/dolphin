@@ -66,18 +66,18 @@ void GameList::MakeTableView()
   m_table->setSortingEnabled(true);
   m_table->setCurrentIndex(QModelIndex());
   m_table->setContextMenuPolicy(Qt::CustomContextMenu);
+
   connect(m_table, &QTableView::customContextMenuRequested, this, &GameList::ShowContextMenu);
 
-  // TODO load from config
-  m_table->setColumnHidden(GameListModel::COL_PLATFORM, false);
-  m_table->setColumnHidden(GameListModel::COL_ID, true);
-  m_table->setColumnHidden(GameListModel::COL_BANNER, false);
-  m_table->setColumnHidden(GameListModel::COL_TITLE, false);
-  m_table->setColumnHidden(GameListModel::COL_DESCRIPTION, true);
-  m_table->setColumnHidden(GameListModel::COL_MAKER, false);
-  m_table->setColumnHidden(GameListModel::COL_SIZE, false);
-  m_table->setColumnHidden(GameListModel::COL_COUNTRY, false);
-  m_table->setColumnHidden(GameListModel::COL_RATING, false);
+  m_table->setColumnHidden(GameListModel::COL_PLATFORM, !Settings().PlatformVisible());
+  m_table->setColumnHidden(GameListModel::COL_ID, !Settings().IDVisible());
+  m_table->setColumnHidden(GameListModel::COL_BANNER, !Settings().BannerVisible());
+  m_table->setColumnHidden(GameListModel::COL_TITLE, !Settings().TitleVisible());
+  m_table->setColumnHidden(GameListModel::COL_DESCRIPTION, !Settings().DescriptionVisible());
+  m_table->setColumnHidden(GameListModel::COL_MAKER, !Settings().MakerVisible());
+  m_table->setColumnHidden(GameListModel::COL_SIZE, !Settings().SizeVisible());
+  m_table->setColumnHidden(GameListModel::COL_COUNTRY, !Settings().CountryVisible());
+  m_table->setColumnHidden(GameListModel::COL_RATING, !Settings().StateVisible());
 
   QHeaderView* hor_header = m_table->horizontalHeader();
   hor_header->setSectionResizeMode(GameListModel::COL_PLATFORM, QHeaderView::ResizeToContents);
@@ -388,6 +388,18 @@ void GameList::keyReleaseEvent(QKeyEvent* event)
     emit GameSelected();
   else
     QStackedWidget::keyReleaseEvent(event);
+}
+
+void GameList::OnColumnVisibilityToggled(const QString& row, bool visible)
+{
+  for (int i = 0; i < m_table->model()->columnCount(); i++)
+  {
+    if (m_table->model()->headerData(i, Qt::Horizontal).toString() == row)
+    {
+      m_table->setColumnHidden(i, !visible);
+      return;
+    }
+  }
 }
 
 static bool CompressCB(const std::string& text, float percent, void* ptr)
