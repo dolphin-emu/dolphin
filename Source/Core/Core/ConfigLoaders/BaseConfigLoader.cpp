@@ -73,8 +73,8 @@ public:
 
       for (const auto& section : system.second)
       {
-        const std::string section_name = section.GetName();
-        const Config::SectionValueMap& section_values = section.GetValues();
+        const std::string section_name = section->GetName();
+        const Config::SectionValueMap& section_values = section->GetValues();
 
         IniFile::Section* ini_section = ini.GetOrCreateSection(section_name);
 

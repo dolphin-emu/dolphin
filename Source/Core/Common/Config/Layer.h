@@ -14,7 +14,7 @@
 
 namespace Config
 {
-using LayerMap = std::map<System, std::vector<Section>>;
+using LayerMap = std::map<System, std::vector<std::unique_ptr<Section>>>;
 
 class ConfigLayerLoader
 {

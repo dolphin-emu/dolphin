@@ -391,10 +391,10 @@ void INIGameConfigLayerLoader::Save(Config::Layer* config_layer)
   {
     for (const auto& section : system.second)
     {
-      for (const auto& value : section.GetValues())
+      for (const auto& value : section->GetValues())
       {
         const auto ini_location =
-            GetINILocationFromConfig({system.first, section.GetName(), value.first});
+            GetINILocationFromConfig({system.first, section->GetName(), value.first});
         if (ini_location.first.empty() && ini_location.second.empty())
           continue;
 
