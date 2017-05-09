@@ -22,13 +22,13 @@ CMailHandler::~CMailHandler()
   Clear();
 }
 
-void CMailHandler::PushMail(u32 _Mail, bool interrupt)
+void CMailHandler::PushMail(u32 _Mail, bool interrupt, int cycles_into_future)
 {
   if (interrupt)
   {
     if (m_Mails.empty())
     {
-      DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
+      DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP, cycles_into_future);
     }
     else
     {
