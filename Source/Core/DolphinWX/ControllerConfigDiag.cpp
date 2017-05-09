@@ -39,6 +39,7 @@
 #include "DolphinWX/Input/WiimoteInputConfigDiag.h"
 #include "DolphinWX/WxUtils.h"
 #include "InputCommon/GCAdapter.h"
+#include "UICommon/UICommon.h"
 
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
 #include "UICommon/X11Utils.h"
@@ -394,7 +395,7 @@ void ControllerConfigDiag::OnClose(wxCloseEvent& event)
 {
   // Save all settings
   SConfig::GetInstance().SaveSettings();
-  SaveWiimoteSource();
+  UICommon::SaveWiimoteSources();
   EndModal(wxID_OK);
 }
 
@@ -590,27 +591,4 @@ void ControllerConfigDiag::OnWiimoteRefreshButton(wxCommandEvent&)
 void ControllerConfigDiag::OnEnableSpeaker(wxCommandEvent& event)
 {
   SConfig::GetInstance().m_WiimoteEnableSpeaker = event.IsChecked();
-}
-
-void ControllerConfigDiag::SaveWiimoteSource()
-{
-  std::string ini_filename = File::GetUserPath(D_CONFIG_IDX) + WIIMOTE_INI_NAME ".ini";
-
-  IniFile inifile;
-  inifile.Load(ini_filename);
-
-  for (unsigned int i = 0; i < MAX_WIIMOTES; ++i)
-  {
-    std::string secname("Wiimote");
-    secname += (char)('1' + i);
-    IniFile::Section& sec = *inifile.GetOrCreateSection(secname);
-
-    sec.Set("Source", (int)g_wiimote_sources[i]);
-  }
-
-  std::string secname("BalanceBoard");
-  IniFile::Section& sec = *inifile.GetOrCreateSection(secname);
-  sec.Set("Source", (int)g_wiimote_sources[WIIMOTE_BALANCE_BOARD]);
-
-  inifile.Save(ini_filename);
 }

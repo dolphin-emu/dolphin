@@ -6,6 +6,8 @@
 
 #include <QSettings>
 
+#include "Core/HW/SI/SI.h"
+
 namespace DiscIO
 {
 enum class Language;
@@ -21,6 +23,7 @@ public:
 
   // UI
   QString GetThemeDir() const;
+  QString GetResourcesDir() const;
   bool IsInDevelopmentWarningEnabled() const;
 
   // GameList
@@ -44,6 +47,7 @@ public:
 
   // Emulation
   bool GetConfirmStop() const;
+  bool IsWiiGameRunning() const;
   int GetStateSlot() const;
   void SetStateSlot(int);
 
@@ -63,6 +67,22 @@ public:
   bool& SizeVisible() const;
   bool& StateVisible() const;
   bool& TitleVisible() const;
+
+  // Input
+  bool IsWiimoteSpeakerEnabled() const;
+  void SetWiimoteSpeakerEnabled(bool enabled);
+
+  bool IsBackgroundInputEnabled() const;
+  void SetBackgroundInputEnabled(bool enabled);
+
+  bool IsBluetoothPassthroughEnabled() const;
+  void SetBluetoothPassthroughEnabled(bool enabled);
+
+  SerialInterface::SIDevices GetSIDevice(size_t i) const;
+  void SetSIDevice(size_t i, SerialInterface::SIDevices device);
+
+  bool IsContinuousScanningEnabled() const;
+  void SetContinuousScanningEnabled(bool enabled);
 
   void Save();
 };

@@ -38,7 +38,6 @@ private:
   void OnWiimoteSourceChanged(wxCommandEvent& event);
   void OnWiimoteConfigButton(wxCommandEvent& event);
   void OnWiimoteRefreshButton(wxCommandEvent& event);
-  void SaveWiimoteSource();
 
   void OnGameCubePortChanged(wxCommandEvent& event);
   void OnGameCubeConfigButton(wxCommandEvent& event);

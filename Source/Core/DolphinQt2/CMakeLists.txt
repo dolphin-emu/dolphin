@@ -17,6 +17,7 @@ set(SRCS
   Resources.cpp
   Settings.cpp
   ToolBar.cpp
+  Config/ControllersWindow.cpp
   Config/FilesystemWidget.cpp
   Config/InfoWidget.cpp
   Config/PathDialog.cpp
