@@ -51,4 +51,18 @@ public:
   bool GetRenderToMain() const;
   bool GetFullScreen() const;
   QSize GetRenderWindowSize() const;
+
+  // Columns
+  bool& BannerVisible() const;
+  bool& CountryVisible() const;
+  bool& DescriptionVisible() const;
+  bool& FilenameVisible() const;
+  bool& IDVisible() const;
+  bool& PlatformVisible() const;
+  bool& MakerVisible() const;
+  bool& SizeVisible() const;
+  bool& StateVisible() const;
+  bool& TitleVisible() const;
+
+  void Save();
 };

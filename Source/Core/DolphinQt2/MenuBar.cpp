@@ -5,6 +5,7 @@
 #include <QAction>
 #include <QDesktopServices>
 #include <QFileDialog>
+#include <QMap>
 #include <QMessageBox>
 #include <QUrl>
 
@@ -210,19 +211,33 @@ void MenuBar::AddGameListTypeSection(QMenu* view_menu)
   connect(list_view, &QAction::triggered, this, &MenuBar::ShowList);
 }
 
-// TODO implement this
 void MenuBar::AddTableColumnsMenu(QMenu* view_menu)
 {
+  static const QMap<QString, bool*> columns{{tr("Platform"), &Settings().PlatformVisible()},
+                                            {tr("ID"), &Settings().IDVisible()},
+                                            {tr("Banner"), &Settings().BannerVisible()},
+                                            {tr("Title"), &Settings().TitleVisible()},
+                                            {tr("Description"), &Settings().DescriptionVisible()},
+                                            {tr("Maker"), &Settings().MakerVisible()},
+                                            {tr("Size"), &Settings().SizeVisible()},
+                                            {tr("Country"), &Settings().CountryVisible()},
+                                            {tr("Quality"), &Settings().StateVisible()}};
+
   QActionGroup* column_group = new QActionGroup(this);
   QMenu* cols_menu = view_menu->addMenu(tr("Table Columns"));
   column_group->setExclusive(false);
 
-  QStringList col_names{tr("Platform"), tr("ID"),   tr("Banner"),  tr("Title"),  tr("Description"),
-                        tr("Maker"),    tr("Size"), tr("Country"), tr("Quality")};
-  for (int i = 0; i < col_names.count(); i++)
+  for (const auto& key : columns.keys())
   {
-    QAction* action = column_group->addAction(cols_menu->addAction(col_names[i]));
+    bool* config = columns[key];
+    QAction* action = column_group->addAction(cols_menu->addAction(key));
     action->setCheckable(true);
+    action->setChecked(*config);
+    connect(action, &QAction::toggled, [this, config, key](bool value) {
+      *config = value;
+      Settings().Save();
+      emit ColumnVisibilityToggled(key, value);
+    });
   }
 }
 
