@@ -289,9 +289,15 @@ std::vector<u8> TicketReader::GetTitleKey() const
 {
   u8 iv[16] = {};
   std::copy_n(&m_bytes[offsetof(Ticket, title_id)], sizeof(Ticket::title_id), iv);
-  auto common_key_handle = m_bytes.at(offsetof(Ticket, common_key_index)) == 0 ?
-                               HLE::IOSC::HANDLE_COMMON_KEY :
-                               HLE::IOSC::HANDLE_NEW_COMMON_KEY;
+
+  const u8 index = m_bytes.at(offsetof(Ticket, common_key_index));
+  auto common_key_handle =
+      index != 1 ? HLE::IOSC::HANDLE_COMMON_KEY : HLE::IOSC::HANDLE_NEW_COMMON_KEY;
+  if (index != 0 && index != 1)
+  {
+    WARN_LOG(IOS_ES, "Bad common key index for title %016" PRIx64 ": %u -- using common key 0",
+             GetTitleId(), index);
+  }
 
   std::vector<u8> key(16);
   HLE::IOSC iosc;
