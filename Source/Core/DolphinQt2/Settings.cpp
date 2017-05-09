@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <QDir>
 #include <QSize>
 
 #include "Common/FileUtil.h"
@@ -21,6 +22,12 @@ QString Settings::GetThemeDir() const
 {
   QString theme_name = value(QStringLiteral("Theme"), QStringLiteral("Clean")).toString();
   return QString::fromStdString(File::GetThemeDir(theme_name.toStdString()));
+}
+
+QString Settings::GetResourcesDir() const
+{
+  return QString::fromStdString(File::GetSysDirectory().append("Resources"))
+      .append(QDir::separator());
 }
 
 bool Settings::IsInDevelopmentWarningEnabled() const
@@ -199,6 +206,61 @@ bool& Settings::SizeVisible() const
 bool& Settings::StateVisible() const
 {
   return SConfig::GetInstance().m_showStateColumn;
+}
+
+bool Settings::IsBluetoothPassthroughEnabled() const
+{
+  return SConfig::GetInstance().m_bt_passthrough_enabled;
+}
+
+void Settings::SetBluetoothPassthroughEnabled(bool enabled)
+{
+  SConfig::GetInstance().m_bt_passthrough_enabled = enabled;
+}
+
+bool Settings::IsContinuousScanningEnabled() const
+{
+  return SConfig::GetInstance().m_WiimoteContinuousScanning;
+}
+
+void Settings::SetContinuousScanningEnabled(bool enabled)
+{
+  SConfig::GetInstance().m_WiimoteContinuousScanning = enabled;
+}
+
+bool Settings::IsBackgroundInputEnabled() const
+{
+  return SConfig::GetInstance().m_BackgroundInput;
+}
+
+void Settings::SetBackgroundInputEnabled(bool enabled)
+{
+  SConfig::GetInstance().m_BackgroundInput = enabled;
+}
+
+bool Settings::IsWiimoteSpeakerEnabled() const
+{
+  return SConfig::GetInstance().m_WiimoteEnableSpeaker;
+}
+
+void Settings::SetWiimoteSpeakerEnabled(bool enabled)
+{
+  SConfig::GetInstance().m_WiimoteEnableSpeaker = enabled;
+}
+
+SerialInterface::SIDevices Settings::GetSIDevice(size_t i) const
+{
+  return SConfig::GetInstance().m_SIDevice[i];
+}
+
+void Settings::SetSIDevice(size_t i, SerialInterface::SIDevices device)
+{
+  SConfig::GetInstance().m_SIDevice[i] = device;
+}
+
+bool Settings::IsWiiGameRunning() const
+{
+  return SConfig::GetInstance().bWii;
 }
 
 void Settings::Save()

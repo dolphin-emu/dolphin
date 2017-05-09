@@ -12,4 +12,5 @@ void Shutdown();
 void CreateDirectories();
 void SetUserDirectory(const std::string& custom_path);
 
+void SaveWiimoteSources();
 }  // namespace UICommon

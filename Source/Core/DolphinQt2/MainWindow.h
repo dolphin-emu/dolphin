@@ -16,6 +16,7 @@
 
 class PathDialog;
 class SettingsWindow;
+class ControllersWindow;
 
 class MainWindow final : public QMainWindow
 {
@@ -70,6 +71,7 @@ private:
 
   void ShowPathsDialog();
   void ShowSettingsWindow();
+  void ShowControllersWindow();
   void ShowAboutDialog();
 
   QStackedWidget* m_stack;
@@ -81,5 +83,6 @@ private:
   int m_state_slot = 1;
 
   PathDialog* m_paths_dialog;
+  ControllersWindow* m_controllers_window;
   SettingsWindow* m_settings_window;
 };

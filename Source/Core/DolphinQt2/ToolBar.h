@@ -30,6 +30,7 @@ signals:
 
   void PathsPressed();
   void SettingsPressed();
+  void ControllersPressed();
 
 private:
   void MakeActions();
