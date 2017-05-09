@@ -189,7 +189,7 @@ void Reinit(bool hle)
   s_dsp_emulator = CreateDSPEmulator(hle);
   s_dsp_is_lle = s_dsp_emulator->IsLLE();
 
-  if (SConfig::GetInstance().bWii)
+  if (Config::Get(Config::WII))
   {
     s_ARAM.wii_mode = true;
     s_ARAM.size = Memory::EXRAM_SIZE;

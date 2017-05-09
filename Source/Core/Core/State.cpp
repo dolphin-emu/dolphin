@@ -32,6 +32,7 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/State.h"
 
+#include "Core/Config.h"
 #include "VideoCommon/AVIDump.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoBackendBase.h"
@@ -156,8 +157,7 @@ static std::string DoState(PointerWrap& p)
     return version_created_by;
   }
 
-  bool is_wii =
-      SConfig::GetInstance().bWii || SConfig::GetInstance().m_BootType == SConfig::BOOT_MIOS;
+  bool is_wii = Config::Get(Config::WII) || SConfig::GetInstance().m_BootType == SConfig::BOOT_MIOS;
   const bool is_wii_currently = is_wii;
   p.Do(is_wii);
   if (is_wii != is_wii_currently)
@@ -174,7 +174,7 @@ static std::string DoState(PointerWrap& p)
   g_video_backend->DoState(p);
   p.DoMarker("video_backend");
 
-  if (SConfig::GetInstance().bWii)
+  if (Config::Get(Config::WII))
     Wiimote::DoState(p);
   p.DoMarker("Wiimote");
 

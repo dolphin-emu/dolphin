@@ -5,6 +5,7 @@
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
+#include "Core/Config.h"
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
 #include "Core/HLE/HLE.h"
@@ -65,7 +66,7 @@ void Interpreter::bcx(UGeckoInstruction inst)
       u32 last_inst = PowerPC::HostRead_U32(PC - 4);
 
       if (last_inst == 0x28000000 /* cmplwi */ ||
-          (last_inst == 0x2C000000 /* cmpwi */ && SConfig::GetInstance().bWii))
+          (last_inst == 0x2C000000 /* cmpwi */ && Config::Get(Config::WII)))
       {
         CoreTiming::Idle();
       }

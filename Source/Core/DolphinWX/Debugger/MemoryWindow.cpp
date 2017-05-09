@@ -26,6 +26,7 @@
 #include "Common/IniFile.h"
 #include "Common/StringUtil.h"
 #include "Common/SymbolDB.h"
+#include "Core/Config.h"
 #include "Core/ConfigManager.h"
 #include "Core/Debugger/PPCDebugInterface.h"
 #include "Core/HW/DSP.h"
@@ -292,7 +293,7 @@ void CMemoryWindow::OnDumpMemory(wxCommandEvent& event)
 // Write exram (aram or mem2) to file
 void CMemoryWindow::OnDumpMem2(wxCommandEvent& event)
 {
-  if (SConfig::GetInstance().bWii)
+  if (Config::Get(Config::WII))
   {
     DumpArray(File::GetUserPath(F_ARAMDUMP_IDX), Memory::m_pEXRAM, Memory::EXRAM_SIZE);
   }

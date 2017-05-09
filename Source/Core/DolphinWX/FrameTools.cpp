@@ -82,6 +82,7 @@
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
+#include "Core/Config.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
@@ -382,7 +383,7 @@ void CFrame::OnTASInput(wxCommandEvent& event)
     }
 
     if (g_wiimote_sources[i] == WIIMOTE_SRC_EMU &&
-        !(Core::IsRunning() && !SConfig::GetInstance().bWii))
+        !(Core::IsRunning() && !Config::Get(Config::WII)))
     {
       m_tas_input_dialogs[i + 4]->CreateWiiLayout(i);
       m_tas_input_dialogs[i + 4]->Show();
@@ -1289,7 +1290,7 @@ void CFrame::OnFifoPlayer(wxCommandEvent& WXUNUSED(event))
 
 void CFrame::ConnectWiimote(int wm_idx, bool connect)
 {
-  if (Core::IsRunning() && SConfig::GetInstance().bWii &&
+  if (Core::IsRunning() && Config::Get(Config::WII) &&
       !SConfig::GetInstance().m_bt_passthrough_enabled)
   {
     bool was_unpaused = Core::PauseAndLock(true);

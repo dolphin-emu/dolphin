@@ -19,6 +19,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Core/Boot/Boot_DOL.h"
+#include "Core/Config.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -533,7 +534,7 @@ void Kernel::SDIO_EventNotify()
 {
   // TODO: Potential race condition: If IsRunning() becomes false after
   // it's checked, an event may be scheduled after CoreTiming shuts down.
-  if (SConfig::GetInstance().bWii && Core::IsRunning())
+  if (Config::Get(Config::WII) && Core::IsRunning())
     CoreTiming::ScheduleEvent(0, s_event_sdio_notify, 0, CoreTiming::FromThread::NON_CPU);
 }
 

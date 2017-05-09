@@ -69,6 +69,7 @@
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/GCPadStatus.h"
 
+#include "Core/Config.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VertexShaderManager.h"
@@ -1413,7 +1414,7 @@ void CFrame::ParseHotkeys()
     WiimoteId = 4;
 
   // Actually perform the Wiimote connection or disconnection
-  if (WiimoteId >= 0 && SConfig::GetInstance().bWii)
+  if (WiimoteId >= 0 && Config::Get(Config::WII))
   {
     wxCommandEvent evt;
     evt.SetId(IDM_CONNECT_WIIMOTE1 + WiimoteId);

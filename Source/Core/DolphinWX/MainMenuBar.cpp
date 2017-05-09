@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "Common/CDUtils.h"
+#include "Core/Config.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -563,7 +564,7 @@ void MainMenuBar::RefreshWiiToolsLabels() const
   for (const int index : {IDM_MENU_INSTALL_WAD, IDM_EXPORT_ALL_SAVE, IDM_IMPORT_SAVE,
                           IDM_IMPORT_NAND, IDM_EXTRACT_CERTIFICATES})
   {
-    FindItem(index)->Enable(!Core::IsRunning() || !SConfig::GetInstance().bWii);
+    FindItem(index)->Enable(!Core::IsRunning() || !Config::Get(Config::WII));
   }
 }
 

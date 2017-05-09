@@ -1376,7 +1376,6 @@
     <ClInclude Include="Analytics.h" />
     <ClInclude Include="PowerPC\SignatureDB\CSVSignatureDB.h" />
     <ClInclude Include="PowerPC\SignatureDB\DSYSignatureDB.h" />
-    <ClCompile Include="PowerPC\SignatureDB\MEGASignatureDB.h" />
     <ClInclude Include="PowerPC\SignatureDB\SignatureDB.h" />
     <ClInclude Include="IOS\USB\Bluetooth\BTBase.h">
       <Filter>IOS\USB\Bluetooth</Filter>
@@ -1522,6 +1521,7 @@
     <ClInclude Include="PowerPC\Jit64Common\ConstantPool.h">
       <Filter>PowerPC\Jit64Common</Filter>
     </ClInclude>
+    <ClInclude Include="PowerPC\SignatureDB\MEGASignatureDB.h" />
     <ClInclude Include="Config.h" />
   </ItemGroup>
   <ItemGroup>

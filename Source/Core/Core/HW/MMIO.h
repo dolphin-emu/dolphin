@@ -11,6 +11,7 @@
 
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
+#include "Core/Config.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/MMIOHandlers.h"
 
@@ -47,7 +48,7 @@ inline bool IsMMIOAddress(u32 address)
   if ((address & 0xFFFF0000) == 0x0C000000)
     return true;  // GameCube MMIOs
 
-  if (SConfig::GetInstance().bWii)
+  if (Config::Get(Config::WII))
   {
     return ((address & 0xFFFF0000) == 0x0D000000) ||  // Wii MMIOs
            ((address & 0xFFFF0000) == 0x0D800000);    // Mirror of Wii MMIOs

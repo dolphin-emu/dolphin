@@ -5,6 +5,7 @@
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 
+#include "Core/Config.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -48,7 +49,7 @@ void Init()
   CPU::Init(SConfig::GetInstance().iCPUCore);
   SystemTimers::Init();
 
-  if (SConfig::GetInstance().bWii)
+  if (Config::Get(Config::WII))
   {
     Core::InitializeWiiRoot(Core::WantsDeterminism());
     IOS::Init();
@@ -61,7 +62,7 @@ void Shutdown()
   // IOS should always be shut down regardless of bWii because it can be running in GC mode (MIOS).
   IOS::HLE::Shutdown();  // Depends on Memory
   IOS::Shutdown();
-  if (SConfig::GetInstance().bWii)
+  if (Config::Get(Config::WII))
     Core::ShutdownWiiRoot();
 
   SystemTimers::Shutdown();
@@ -98,7 +99,7 @@ void DoState(PointerWrap& p)
   AudioInterface::DoState(p);
   p.DoMarker("AudioInterface");
 
-  if (SConfig::GetInstance().bWii)
+  if (Config::Get(Config::WII))
   {
     IOS::DoState(p);
     p.DoMarker("IOS");

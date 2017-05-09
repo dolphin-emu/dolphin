@@ -4,6 +4,7 @@
 
 #include "Core/PowerPC/JitILCommon/JitILBase.h"
 #include "Common/CommonTypes.h"
+#include "Core/Config.h"
 #include "Core/ConfigManager.h"
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -148,7 +149,7 @@ void JitILBase::bcx(UGeckoInstruction inst)
   if (inst.hex == 0x4182fff8 &&
       (PowerPC::HostRead_U32(js.compilerPC - 8) & 0xFFFF0000) == 0x800D0000 &&
       (PowerPC::HostRead_U32(js.compilerPC - 4) == 0x28000000 ||
-       (SConfig::GetInstance().bWii && PowerPC::HostRead_U32(js.compilerPC - 4) == 0x2C000000)))
+       (Config::Get(Config::WII) && PowerPC::HostRead_U32(js.compilerPC - 4) == 0x2C000000)))
   {
     // Uh, Do nothing.
   }

@@ -164,7 +164,7 @@ static std::vector<LogicalMemoryView> logical_mapped_entries;
 
 void Init()
 {
-  bool wii = SConfig::GetInstance().bWii;
+  bool wii = Config::Get(Config::WII);
   bool bMMU = SConfig::GetInstance().bMMU;
   bool bFakeVMEM = false;
 #ifndef _ARCH_32
@@ -263,7 +263,7 @@ void UpdateLogicalMemory(const PowerPC::BatTable& dbat_table)
 
 void DoState(PointerWrap& p)
 {
-  bool wii = SConfig::GetInstance().bWii;
+  bool wii = Config::Get(Config::WII);
   p.DoArray(m_pRAM, RAM_SIZE);
   p.DoArray(m_pL1Cache, L1_CACHE_SIZE);
   p.DoMarker("Memory RAM");
@@ -279,7 +279,7 @@ void Shutdown()
 {
   m_IsInitialized = false;
   u32 flags = 0;
-  if (SConfig::GetInstance().bWii)
+  if (Config::Get(Config::WII))
     flags |= PhysicalMemoryRegion::WII_ONLY;
   if (m_pFakeVMEM)
     flags |= PhysicalMemoryRegion::FAKE_VMEM;

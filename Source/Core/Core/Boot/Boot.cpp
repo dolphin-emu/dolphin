@@ -34,6 +34,7 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/SignatureDB/SignatureDB.h"
 
+#include "Core/Config.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/NANDContentLoader.h"
 #include "DiscIO/Volume.h"
@@ -271,7 +272,7 @@ bool CBoot::BootUp()
 
   // PAL Wii uses NTSC framerate and linecount in 60Hz modes
   VideoInterface::Preset(DiscIO::IsNTSC(_StartupPara.m_region) ||
-                         (_StartupPara.bWii && _StartupPara.bPAL60));
+                         (Config::Get(Config::WII) && _StartupPara.bPAL60));
 
   switch (_StartupPara.m_BootType)
   {
@@ -284,22 +285,23 @@ bool CBoot::BootUp()
 
     const DiscIO::IVolume& pVolume = DVDInterface::GetVolume();
 
-    if ((pVolume.GetVolumeType() == DiscIO::Platform::WII_DISC) != _StartupPara.bWii)
+    if ((pVolume.GetVolumeType() == DiscIO::Platform::WII_DISC) != Config::Get(Config::WII))
     {
       PanicAlertT("Warning - starting ISO in wrong console mode!");
     }
 
-    _StartupPara.bWii = pVolume.GetVolumeType() == DiscIO::Platform::WII_DISC;
+    Config::Set(Config::LayerType::CurrentRun, Config::WII,
+                pVolume.GetVolumeType() == DiscIO::Platform::WII_DISC);
 
     // HLE BS2 or not
     if (_StartupPara.bHLE_BS2)
     {
-      EmulatedBS2(_StartupPara.bWii);
+      EmulatedBS2(Config::Get(Config::WII));
     }
     else if (!Load_BS2(_StartupPara.m_strBootROM))
     {
       // If we can't load the bootrom file we HLE it instead
-      EmulatedBS2(_StartupPara.bWii);
+      EmulatedBS2(Config::Get(Config::WII));
     }
 
     PatchEngine::LoadPatches();
@@ -334,7 +336,7 @@ bool CBoot::BootUp()
 
     // Check if we have gotten a Wii file or not
     bool dolWii = dolLoader.IsWii();
-    if (dolWii != _StartupPara.bWii)
+    if (dolWii != Config::Get(Config::WII))
     {
       PanicAlertT("Warning - starting DOL in wrong console mode!");
     }
@@ -398,7 +400,7 @@ bool CBoot::BootUp()
     if (!_StartupPara.m_strDVDRoot.empty())
     {
       NOTICE_LOG(BOOT, "Setting DVDRoot %s", _StartupPara.m_strDVDRoot.c_str());
-      DVDInterface::SetVolumeDirectory(_StartupPara.m_strDVDRoot, _StartupPara.bWii);
+      DVDInterface::SetVolumeDirectory(_StartupPara.m_strDVDRoot, Config::Get(Config::WII));
     }
     else if (!_StartupPara.m_strDefaultISO.empty())
     {
@@ -407,7 +409,7 @@ bool CBoot::BootUp()
     }
 
     // Poor man's bootup
-    if (_StartupPara.bWii)
+    if (Config::Get(Config::WII))
     {
       // Because there is no TMD to get the requested system (IOS) version from,
       // we default to IOS58, which is the version used by the Homebrew Channel.
@@ -418,7 +420,7 @@ bool CBoot::BootUp()
       EmulatedBS2_GC(true);
     }
 
-    Load_FST(_StartupPara.bWii);
+    Load_FST(Config::Get(Config::WII));
     if (!Boot_ELF(_StartupPara.m_strFilename))
       return false;
 

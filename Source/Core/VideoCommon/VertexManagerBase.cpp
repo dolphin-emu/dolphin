@@ -13,6 +13,7 @@
 #include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
 
+#include "Core/Config.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/DataReader.h"
 #include "VideoCommon/Debugger.h"
@@ -265,7 +266,7 @@ void VertexManagerBase::Flush()
   VertexShaderManager::SetConstants();
 
   // Track some stats used elsewhere by the anamorphic widescreen heuristic.
-  if (!SConfig::GetInstance().bWii)
+  if (!Config::Get(Config::WII))
   {
     float* rawProjection = xfmem.projection.rawProjection;
     bool viewport_is_4_3 = AspectIs4_3(xfmem.viewport.wd, xfmem.viewport.ht);

@@ -12,6 +12,7 @@
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 
+#include "Core/Config.h"
 #include "Core/ConfigManager.h"
 #include "Core/GeckoCode.h"
 #include "Core/HW/Memmap.h"
@@ -95,7 +96,7 @@ static Installation InstallCodeHandlerLocked()
   }
 
   u8 mmio_addr = 0xCC;
-  if (SConfig::GetInstance().bWii)
+  if (Config::Get(Config::WII))
   {
     mmio_addr = 0xCD;
   }
