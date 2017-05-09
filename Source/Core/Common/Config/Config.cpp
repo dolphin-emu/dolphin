@@ -91,6 +91,8 @@ void Save()
 
 void Init()
 {
+  // This layer contains temporary settings and is never loaded or saved
+  s_layers[LayerType::CurrentRun] = std::make_unique<Layer>(LayerType::CurrentRun);
   // This layer always has to exist
   s_layers[LayerType::Meta] = std::make_unique<RecursiveLayer>();
 }

@@ -1522,6 +1522,7 @@
     <ClInclude Include="PowerPC\Jit64Common\ConstantPool.h">
       <Filter>PowerPC\Jit64Common</Filter>
     </ClInclude>
+    <ClInclude Include="Config.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />
