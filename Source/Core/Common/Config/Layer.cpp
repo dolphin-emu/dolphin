@@ -68,9 +68,14 @@ Section* Layer::GetOrCreateSection(System system, const std::string& section_nam
   if (!section)
   {
     if (m_layer == LayerType::Meta)
-      m_sections[system].emplace_back(std::make_unique<RecursiveSection>(m_layer, system, section_name));
+    {
+      m_sections[system].emplace_back(
+          std::make_unique<RecursiveSection>(m_layer, system, section_name));
+    }
     else
+    {
       m_sections[system].emplace_back(std::make_unique<Section>(m_layer, system, section_name));
+    }
     section = m_sections[system].back().get();
   }
   return section;
@@ -140,7 +145,8 @@ Section* RecursiveLayer::GetOrCreateSection(System system, const std::string& se
   Section* section = Layer::GetSection(system, section_name);
   if (!section)
   {
-    m_sections[system].emplace_back(std::make_unique<RecursiveSection>(m_layer, system, section_name));
+    m_sections[system].emplace_back(
+        std::make_unique<RecursiveSection>(m_layer, system, section_name));
     section = m_sections[system].back().get();
   }
   return section;
