@@ -9,6 +9,7 @@
 #include <QFileInfo>
 #include <QHeaderView>
 #include <QKeyEvent>
+#include <QMap>
 #include <QMenu>
 #include <QMessageBox>
 #include <QProgressDialog>
@@ -392,14 +393,18 @@ void GameList::keyReleaseEvent(QKeyEvent* event)
 
 void GameList::OnColumnVisibilityToggled(const QString& row, bool visible)
 {
-  for (int i = 0; i < m_table->model()->columnCount(); i++)
-  {
-    if (m_table->model()->headerData(i, Qt::Horizontal).toString() == row)
-    {
-      m_table->setColumnHidden(i, !visible);
-      return;
-    }
-  }
+  static const QMap<QString, int> rowname_to_col_index = {
+      {tr("Banner"), GameListModel::COL_BANNER},
+      {tr("Country"), GameListModel::COL_COUNTRY},
+      {tr("Description"), GameListModel::COL_DESCRIPTION},
+      {tr("ID"), GameListModel::COL_ID},
+      {tr("Maker"), GameListModel::COL_MAKER},
+      {tr("Platform"), GameListModel::COL_PLATFORM},
+      {tr("Size"), GameListModel::COL_SIZE},
+      {tr("Title"), GameListModel::COL_TITLE},
+      {tr("Quality"), GameListModel::COL_RATING}};
+
+  m_table->setColumnHidden(rowname_to_col_index[row], !visible);
 }
 
 static bool CompressCB(const std::string& text, float percent, void* ptr)
