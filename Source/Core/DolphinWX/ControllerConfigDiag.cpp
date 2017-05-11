@@ -249,7 +249,7 @@ wxSizer* ControllerConfigDiag::CreateWiimoteConfigSizer()
 
   auto* const box = new wxStaticBoxSizer(wxVERTICAL, this, _("Wii Remotes"));
 
-  m_passthrough_bt_radio = new wxRadioButton(this, wxID_ANY, _("Passthrough a Bluetooth adapter"),
+  m_passthrough_bt_radio = new wxRadioButton(this, wxID_ANY, _("Passthrough a Bluetooth Adapter"),
                                              wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
   m_passthrough_bt_radio->Bind(wxEVT_RADIOBUTTON, &ControllerConfigDiag::OnBluetoothModeChanged,
                                this);
@@ -260,7 +260,7 @@ wxSizer* ControllerConfigDiag::CreateWiimoteConfigSizer()
 
   box->AddSpacer(space20);
 
-  m_emulated_bt_radio = new wxRadioButton(this, wxID_ANY, _("Emulate the Wii's Bluetooth adapter"));
+  m_emulated_bt_radio = new wxRadioButton(this, wxID_ANY, _("Emulate the Wii's Bluetooth Adapter"));
   m_emulated_bt_radio->Bind(wxEVT_RADIOBUTTON, &ControllerConfigDiag::OnBluetoothModeChanged, this);
 
   box->Add(m_emulated_bt_radio, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
