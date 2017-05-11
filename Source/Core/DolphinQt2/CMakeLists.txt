@@ -29,6 +29,7 @@ set(SRCS
   GameList/GameTracker.cpp
   GameList/ListProxyModel.cpp
   GameList/TableDelegate.cpp
+  Settings/InterfacePane.cpp
 )
 
 list(APPEND LIBS core uicommon)
