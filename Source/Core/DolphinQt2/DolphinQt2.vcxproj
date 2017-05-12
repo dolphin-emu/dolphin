@@ -100,6 +100,7 @@
     <QtMoc Include="MenuBar.h" />
     <QtMoc Include="RenderWidget.h" />
     <QtMoc Include="Settings.h" />
+    <QtMoc Include="Settings\GeneralPane.h" />
     <QtMoc Include="ToolBar.h" />
 
   </ItemGroup>
@@ -112,9 +113,11 @@
     <ClCompile Include="$(QtMocOutPrefix)GameList.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GameListModel.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GameTracker.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)GeneralPane.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)Host.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)InDevelopmentWarning.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)InfoWidget.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)InterfacePane.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)ListProxyModel.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)MainWindow.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)MenuBar.cpp" />
@@ -125,7 +128,7 @@
     <ClCompile Include="$(QtMocOutPrefix)SettingsWindow.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)TableDelegate.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)ToolBar.cpp" />
-    <ClCompile Include="$(QtMocOutPrefix)InterfacePane.cpp" />
+
     <ClCompile Include="AboutDialog.cpp" />
     <ClCompile Include="Config\ControllersWindow.cpp" />
     <ClCompile Include="Config\FilesystemWidget.cpp" />
@@ -147,8 +150,9 @@
     <ClCompile Include="RenderWidget.cpp" />
     <ClCompile Include="Resources.cpp" />
     <ClCompile Include="Settings.cpp" />
+    <ClCompile Include="Settings\GeneralPane.cpp" />
+    <ClCompile Include="Settings\InterfacePane.cpp" />
     <ClCompile Include="ToolBar.cpp" />
-    <ClCompile Include="Settings/InterfacePane.cpp" />
   </ItemGroup>
   <!--Put standard C/C++ headers here-->
   <!--

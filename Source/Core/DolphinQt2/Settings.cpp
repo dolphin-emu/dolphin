@@ -108,6 +108,36 @@ void Settings::SetWiiNAND(const QString& path)
   SConfig::GetInstance().SaveSettings();
 }
 
+float Settings::GetEmulationSpeed() const
+{
+  return SConfig::GetInstance().m_EmulationSpeed;
+}
+
+void Settings::SetEmulationSpeed(float val)
+{
+  SConfig::GetInstance().m_EmulationSpeed = val;
+}
+
+bool Settings::GetForceNTSCJ() const
+{
+  return SConfig::GetInstance().bForceNTSCJ;
+}
+
+void Settings::SetForceNTSCJ(bool val)
+{
+  SConfig::GetInstance().bForceNTSCJ = val;
+}
+
+bool Settings::GetAnalyticsEnabled() const
+{
+  return SConfig::GetInstance().m_analytics_enabled;
+}
+
+void Settings::SetAnalyticsEnabled(bool val)
+{
+  SConfig::GetInstance().m_analytics_enabled = val;
+}
+
 DiscIO::Language Settings::GetWiiSystemLanguage() const
 {
   return SConfig::GetInstance().GetCurrentLanguage(true);

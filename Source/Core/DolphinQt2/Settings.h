@@ -50,6 +50,14 @@ public:
   bool IsWiiGameRunning() const;
   int GetStateSlot() const;
   void SetStateSlot(int);
+  float GetEmulationSpeed() const;
+  void SetEmulationSpeed(float val);
+  bool GetForceNTSCJ() const;
+  void SetForceNTSCJ(bool val);
+
+  // Analytics
+  bool GetAnalyticsEnabled() const;
+  void SetAnalyticsEnabled(bool val);
 
   // Graphics
   bool GetRenderToMain() const;

@@ -91,11 +91,21 @@
     <ClCompile Include="$(QtMocOutPrefix)InDevelopmentWarning.cpp">
       <Filter>Generated Files</Filter>
     </ClCompile>
-    <ClCompile Include="Settings/InterfacePane.cpp">
+    <ClCompile Include="Settings\GeneralPane.cpp">
       <Filter>Settings</Filter>
+    </ClCompile>
+    <ClCompile Include="$(QtMocOutPrefix)GeneralPane.cpp">
+      <Filter>Generated Files</Filter>
     </ClCompile>
     <ClCompile Include="$(QtMocOutPrefix)InterfacePane.cpp">
       <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Config\ControllersWindow.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)ControllersWindow.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Settings\InterfacePane.cpp">
+      <Filter>Settings</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -130,7 +140,11 @@
     <QtMoc Include="Config\FilesystemWidget.h" />
     <QtMoc Include="Config\InfoWidget.h" />
     <QtMoc Include="InDevelopmentWarning.h" />
+    <QtMoc Include="Config\ControllersWindow.h" />
     <QtMoc Include="Settings\InterfacePane.h">
+      <Filter>Settings</Filter>
+    </QtMoc>
+    <QtMoc Include="Settings\GeneralPane.h">
       <Filter>Settings</Filter>
     </QtMoc>
   </ItemGroup>

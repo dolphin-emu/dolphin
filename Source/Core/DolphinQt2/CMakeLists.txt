@@ -29,6 +29,7 @@ set(SRCS
   GameList/GameTracker.cpp
   GameList/ListProxyModel.cpp
   GameList/TableDelegate.cpp
+  Settings/GeneralPane.cpp
   Settings/InterfacePane.cpp
 )
 
