@@ -5,6 +5,7 @@
 #pragma once
 
 #include <cstring>
+#include <memory>
 
 #include "Common/CommonTypes.h"
 
@@ -103,6 +104,6 @@ private:
   bool m_needs_resume_mail = false;
 };
 
-UCodeInterface* UCodeFactory(u32 crc, DSPHLE* dsphle, bool wii);
+std::unique_ptr<UCodeInterface> UCodeFactory(u32 crc, DSPHLE* dsphle, bool wii);
 }  // namespace HLE
 }  // namespace DSP
