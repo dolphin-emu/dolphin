@@ -1461,7 +1461,7 @@ void CGameListCtrl::AutomaticColumnWidth()
         if (c.resizable)
           visible_columns.push_back(c.id);
         else
-          remaining_width -= c.default_width;
+          remaining_width -= GetColumnWidth(c.id);
       }
     }
 
