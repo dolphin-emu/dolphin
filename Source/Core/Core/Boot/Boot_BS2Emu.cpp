@@ -89,7 +89,7 @@ bool CBoot::RunApploader(bool is_wii)
   u32 apploader_trailer = 0;
   if (!volume.ReadSwapped(apploader_offset + 0x10, &apploader_entry, is_wii) ||
       !volume.ReadSwapped(apploader_offset + 0x14, &apploader_size, is_wii) ||
-      (!is_wii && !volume.ReadSwapped(apploader_offset + 0x18, &apploader_trailer, is_wii)) ||
+      !volume.ReadSwapped(apploader_offset + 0x18, &apploader_trailer, is_wii) ||
       apploader_entry == (u32)-1 || apploader_size + apploader_trailer == (u32)-1)
   {
     INFO_LOG(BOOT, "Invalid apploader. Your disc image is probably corrupted.");
