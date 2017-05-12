@@ -359,8 +359,8 @@ void JitArm64::lXX(UGeckoInstruction inst)
   if (inst.OPCD == 32 && CanMergeNextInstructions(2) &&
       (inst.hex & 0xFFFF0000) == 0x800D0000 &&  // lwz r0, XXXX(r13)
       (js.op[1].inst.hex == 0x28000000 ||
-       (SConfig::GetInstance().bWii && js.op[1].inst.hex == 0x2C000000)) &&  // cmpXwi r0,0
-      js.op[2].inst.hex == 0x4182fff8)                                       // beq -8
+       (Config::Get(Config::WII) && js.op[1].inst.hex == 0x2C000000)) &&  // cmpXwi r0,0
+      js.op[2].inst.hex == 0x4182fff8)                                    // beq -8
   {
     ARM64Reg WA = gpr.GetReg();
     ARM64Reg XA = EncodeRegTo64(WA);

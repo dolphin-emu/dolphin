@@ -14,6 +14,7 @@
 #include "Common/x64ABI.h"
 #include "Common/x64Emitter.h"
 
+#include "Core/Config.h"
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/CPU.h"
@@ -122,7 +123,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
   if (!CPU::IsStepping() && inst.OPCD == 32 && CanMergeNextInstructions(2) &&
       (inst.hex & 0xFFFF0000) == 0x800D0000 &&
       (js.op[1].inst.hex == 0x28000000 ||
-       (SConfig::GetInstance().bWii && js.op[1].inst.hex == 0x2C000000)) &&
+       (Config::Get(Config::WII) && js.op[1].inst.hex == 0x2C000000)) &&
       js.op[2].inst.hex == 0x4182fff8)
   {
     s32 offset = (s32)(s16)inst.SIMM_16;

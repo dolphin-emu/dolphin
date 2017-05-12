@@ -19,6 +19,7 @@
 #include "UICommon/UICommon.h"
 #include "UICommon/USBUtils.h"
 
+#include "Core/Config.h"
 #include "VideoCommon/VideoBackendBase.h"
 
 namespace UICommon
@@ -26,6 +27,7 @@ namespace UICommon
 void Init()
 {
   LogManager::Init();
+  Config::Init();
   SConfig::Init();
   VideoBackendBase::PopulateList();
   WiimoteReal::LoadSettings();
@@ -41,6 +43,7 @@ void Shutdown()
   WiimoteReal::Shutdown();
   VideoBackendBase::ClearList();
   SConfig::Shutdown();
+  Config::Shutdown();
   LogManager::Shutdown();
 }
 

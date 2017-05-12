@@ -23,6 +23,7 @@
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
 #include "Common/Timer.h"
+#include "Core/Config.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -1037,7 +1038,7 @@ void LoadInput(const std::string& filename)
   }
 
   ChangePads(true);
-  if (SConfig::GetInstance().bWii)
+  if (Config::Get(Config::WII))
     ChangeWiiPads(true);
 
   u64 totalSavedBytes = t_record.GetSize() - 256;
@@ -1384,8 +1385,8 @@ void SaveRecording(const std::string& filename)
   header.filetype[2] = 'M';
   header.filetype[3] = 0x1A;
   strncpy(header.gameID, SConfig::GetInstance().GetGameID().c_str(), 6);
-  header.bWii = SConfig::GetInstance().bWii;
-  header.controllers = s_controllers & (SConfig::GetInstance().bWii ? 0xFF : 0x0F);
+  header.bWii = Config::Get(Config::WII);
+  header.controllers = s_controllers & (Config::Get(Config::WII) ? 0xFF : 0x0F);
 
   header.bFromSaveState = s_bRecordingFromSaveState;
   header.frameCount = s_totalFrames;
@@ -1490,7 +1491,7 @@ void GetSettings()
   s_bSyncGPU = SConfig::GetInstance().bSyncGPU;
   s_iCPUCore = SConfig::GetInstance().iCPUCore;
   s_bNetPlay = NetPlay::IsNetPlayRunning();
-  if (SConfig::GetInstance().bWii)
+  if (Config::Get(Config::WII))
   {
     u64 title_id = SConfig::GetInstance().GetTitleID();
     s_bClearSave =

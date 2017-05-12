@@ -5,6 +5,7 @@
 #include "Core/PowerPC/JitILCommon/JitILBase.h"
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
+#include "Core/Config.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/CPU.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -60,7 +61,7 @@ void JitILBase::lXz(UGeckoInstruction inst)
   if (!CPU::IsStepping() && inst.OPCD == 32 &&  // Lwx
       (inst.hex & 0xFFFF0000) == 0x800D0000 &&
       (PowerPC::HostRead_U32(js.compilerPC + 4) == 0x28000000 ||
-       (SConfig::GetInstance().bWii && PowerPC::HostRead_U32(js.compilerPC + 4) == 0x2C000000)) &&
+       (Config::Get(Config::WII) && PowerPC::HostRead_U32(js.compilerPC + 4) == 0x2C000000)) &&
       PowerPC::HostRead_U32(js.compilerPC + 8) == 0x4182fff8)
   {
     val = ibuild.EmitLoad32(addr);

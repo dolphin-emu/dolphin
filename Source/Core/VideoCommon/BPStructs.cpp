@@ -15,6 +15,7 @@
 #include "Core/FifoPlayer/FifoRecorder.h"
 #include "Core/HW/Memmap.h"
 
+#include "Core/Config.h"
 #include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/BoundingBox.h"
@@ -277,7 +278,7 @@ static void BPWritten(const BPCmd& bp)
     u32 addr = bpmem.tmem_config.tlut_src << 5;
 
     // The GameCube ignores the upper bits of this address. Some games (WW, MKDD) set them.
-    if (!SConfig::GetInstance().bWii)
+    if (!Config::Get(Config::WII))
       addr = addr & 0x01FFFFFF;
 
     Memory::CopyFromEmu(texMem + tlutTMemAddr, addr, tlutXferCount);

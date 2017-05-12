@@ -34,6 +34,7 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "VideoCommon/HiresTextures.h"
 
+#include "Core/Config.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/NANDContentLoader.h"
 #include "DiscIO/Volume.h"
@@ -832,7 +833,7 @@ void SConfig::LoadDefaults()
   bEnableMemcardSdWriting = true;
   SelectedLanguage = 0;
   bOverrideGCLanguage = false;
-  bWii = false;
+  Config::Set(Config::LayerType::CurrentRun, Config::WII, false);
   bDPL2Decoder = false;
   iLatency = 14;
   m_audio_stretch = false;
@@ -947,7 +948,8 @@ bool SConfig::AutoSetup(EBootBS2 _BootBS2)
       SetRunningGameMetadata(*pVolume);
 
       // Check if we have a Wii disc
-      bWii = pVolume->GetVolumeType() == DiscIO::Platform::WII_DISC;
+      Config::Set(Config::LayerType::CurrentRun, Config::WII,
+                  pVolume->GetVolumeType() == DiscIO::Platform::WII_DISC);
 
       if (!SetRegion(pVolume->GetRegion(), &set_region_dir))
         if (!PanicYesNoT("Your GCM/ISO file seems to be invalid (invalid country)."
@@ -956,26 +958,28 @@ bool SConfig::AutoSetup(EBootBS2 _BootBS2)
     }
     else if (!strcasecmp(Extension.c_str(), ".elf"))
     {
-      bWii = CBoot::IsElfWii(m_strFilename);
+      Config::Set(Config::LayerType::CurrentRun, Config::WII, CBoot::IsElfWii(m_strFilename));
       // TODO: Right now GC homebrew boots in NTSC and Wii homebrew in PAL.
       // This is intentional so that Wii homebrew can boot in both 50Hz and 60Hz, without forcing
       // all GC homebrew to 50Hz.
       // In the future, it probably makes sense to add a Region setting for homebrew somewhere in
       // the emulator config.
-      SetRegion(bWii ? DiscIO::Region::PAL : DiscIO::Region::NTSC_U, &set_region_dir);
+      SetRegion(Config::Get(Config::WII) ? DiscIO::Region::PAL : DiscIO::Region::NTSC_U,
+                &set_region_dir);
       m_BootType = BOOT_ELF;
     }
     else if (!strcasecmp(Extension.c_str(), ".dol"))
     {
       CDolLoader dolfile(m_strFilename);
-      bWii = dolfile.IsWii();
+      Config::Set(Config::LayerType::CurrentRun, Config::WII, dolfile.IsWii());
       // TODO: See the ELF code above.
-      SetRegion(bWii ? DiscIO::Region::PAL : DiscIO::Region::NTSC_U, &set_region_dir);
+      SetRegion(Config::Get(Config::WII) ? DiscIO::Region::PAL : DiscIO::Region::NTSC_U,
+                &set_region_dir);
       m_BootType = BOOT_DOL;
     }
     else if (!strcasecmp(Extension.c_str(), ".dff"))
     {
-      bWii = true;
+      Config::Set(Config::LayerType::CurrentRun, Config::WII, true);
       SetRegion(DiscIO::Region::NTSC_U, &set_region_dir);
       m_BootType = BOOT_DFF;
 
@@ -983,7 +987,7 @@ bool SConfig::AutoSetup(EBootBS2 _BootBS2)
 
       if (ddfFile)
       {
-        bWii = ddfFile->GetIsWii();
+        Config::Set(Config::LayerType::CurrentRun, Config::WII, ddfFile->GetIsWii());
       }
     }
     else if (DiscIO::CNANDContentManager::Access().GetNANDLoader(m_strFilename).IsValid())
@@ -1004,7 +1008,7 @@ bool SConfig::AutoSetup(EBootBS2 _BootBS2)
       SetRegion(tmd.GetRegion(), &set_region_dir);
       SetRunningGameMetadata(tmd);
 
-      bWii = true;
+      Config::Set(Config::LayerType::CurrentRun, Config::WII, true);
       m_BootType = BOOT_WII_NAND;
     }
     else
@@ -1035,7 +1039,7 @@ bool SConfig::AutoSetup(EBootBS2 _BootBS2)
   CheckMemcardPath(SConfig::GetInstance().m_strMemoryCardA, set_region_dir, true);
   CheckMemcardPath(SConfig::GetInstance().m_strMemoryCardB, set_region_dir, false);
   m_strSRAM = File::GetUserPath(F_GCSRAM_IDX);
-  if (!bWii)
+  if (!Config::Get(Config::WII))
   {
     if (!bHLE_BS2)
     {
@@ -1051,7 +1055,7 @@ bool SConfig::AutoSetup(EBootBS2 _BootBS2)
       }
     }
   }
-  else if (bWii && !bHLE_BS2)
+  else if (Config::Get(Config::WII) && !bHLE_BS2)
   {
     WARN_LOG(BOOT, "GC bootrom file will not be loaded for Wii mode.");
     bHLE_BS2 = true;

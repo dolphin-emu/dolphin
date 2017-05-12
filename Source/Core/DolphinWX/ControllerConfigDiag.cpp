@@ -19,6 +19,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
+#include "Core/Config.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/GCKeyboard.h"
@@ -91,7 +92,7 @@ void ControllerConfigDiag::UpdateUI()
     m_wiimote_sources[i]->Select(g_wiimote_sources[i]);
 
     const bool wii_game_started =
-        SConfig::GetInstance().bWii || Core::GetState() == Core::State::Uninitialized;
+        Config::Get(Config::WII) || Core::GetState() == Core::State::Uninitialized;
     if (Core::WantsDeterminism() || !wii_game_started)
       m_wiimote_sources[i]->Disable();
     if (!wii_game_started ||
@@ -113,7 +114,7 @@ void ControllerConfigDiag::UpdateUI()
   // Disable some controls when emulation is running
   if (Core::IsRunning())
   {
-    if (!SConfig::GetInstance().bWii || NetPlay::IsNetPlayRunning())
+    if (!Config::Get(Config::WII) || NetPlay::IsNetPlayRunning())
     {
       m_passthrough_sync_text->Disable();
       m_passthrough_sync_btn->Disable();
@@ -131,7 +132,7 @@ void ControllerConfigDiag::UpdateUI()
     m_passthrough_bt_radio->Disable();
     m_emulated_bt_radio->Disable();
 
-    if (!SConfig::GetInstance().bWii)
+    if (!Config::Get(Config::WII))
     {
       m_enable_continuous_scanning->Disable();
       m_refresh_wm_button->Disable();

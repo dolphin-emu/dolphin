@@ -30,6 +30,7 @@
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 
+#include "Core/Config.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/EXI/EXI.h"
@@ -166,7 +167,7 @@ void ConfigCache::RestoreConfig(SConfig* config)
   if (bSetVolume)
     config->m_Volume = Volume;
 
-  if (config->bWii)
+  if (Config::Get(Config::WII))
   {
     for (unsigned int i = 0; i < MAX_BBMOTES; ++i)
     {
@@ -291,7 +292,7 @@ bool BootCore(const std::string& _rFilename)
     }
 
     // Wii settings
-    if (StartUp.bWii)
+    if (Config::Get(Config::WII))
     {
       IniFile::Section* wii_section = game_ini.GetOrCreateSection("Wii");
       wii_section->Get("Widescreen", &StartUp.m_wii_aspect_ratio, !!StartUp.m_wii_aspect_ratio);
@@ -332,11 +333,11 @@ bool BootCore(const std::string& _rFilename)
     StartUp.bFastDiscSpeed = Movie::IsFastDiscSpeed();
     StartUp.iCPUCore = Movie::GetCPUMode();
     StartUp.bSyncGPU = Movie::IsSyncGPU();
-    if (!StartUp.bWii)
+    if (!Config::Get(Config::WII))
       StartUp.SelectedLanguage = Movie::GetLanguage();
     for (int i = 0; i < 2; ++i)
     {
-      if (Movie::IsUsingMemcard(i) && Movie::IsStartingFromClearSave() && !StartUp.bWii)
+      if (Movie::IsUsingMemcard(i) && Movie::IsStartingFromClearSave() && !Config::Get(Config::WII))
       {
         if (File::Exists(File::GetUserPath(D_GCUSER_IDX) +
                          StringFromFormat("Movie%s.raw", (i == 0) ? "A" : "B")))
@@ -385,12 +386,12 @@ bool BootCore(const std::string& _rFilename)
 
   // Some NTSC Wii games such as Doc Louis's Punch-Out!! and
   // 1942 (Virtual Console) crash if the PAL60 option is enabled
-  if (StartUp.bWii && ntsc)
+  if (Config::Get(Config::WII) && ntsc)
   {
     StartUp.bPAL60 = false;
   }
 
-  if (StartUp.bWii)
+  if (Config::Get(Config::WII))
     StartUp.SaveSettingsToSysconf();
 
   // Run the game

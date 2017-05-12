@@ -41,6 +41,7 @@
 #include "Core/Host.h"
 #include "Core/Movie.h"
 
+#include "Core/Config.h"
 #include "VideoCommon/AVIDump.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/CPMemory.h"
@@ -92,7 +93,7 @@ Renderer::Renderer(int backbuffer_width, int backbuffer_height)
   OSDChoice = 0;
   OSDTime = 0;
 
-  if (SConfig::GetInstance().bWii)
+  if (Config::Get(Config::WII))
   {
     m_aspect_wide = SConfig::GetInstance().m_wii_aspect_ratio != 0;
   }
@@ -735,7 +736,7 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
                     u64 ticks, float Gamma)
 {
   // Heuristic to detect if a GameCube game is in 16:9 anamorphic widescreen mode.
-  if (!SConfig::GetInstance().bWii)
+  if (!Config::Get(Config::WII))
   {
     size_t flush_count_4_3, flush_count_anamorphic;
     std::tie(flush_count_4_3, flush_count_anamorphic) =

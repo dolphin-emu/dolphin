@@ -130,8 +130,6 @@ struct SConfig : NonCopyable
   int SelectedLanguage = 0;
   bool bOverrideGCLanguage = false;
 
-  bool bWii = false;
-
   // Interface settings
   bool bConfirmStop = false;
   bool bHideCursor = false, bAutoHideCursor = false;

@@ -67,6 +67,7 @@
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/GCAdapter.h"
 
+#include "Core/Config.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/RenderBase.h"
@@ -239,7 +240,7 @@ bool Init()
 
   Core::UpdateWantDeterminism(/*initial*/ true);
 
-  INFO_LOG(OSREPORT, "Starting core = %s mode", SConfig::GetInstance().bWii ? "Wii" : "GameCube");
+  INFO_LOG(OSREPORT, "Starting core = %s mode", Config::Get(Config::WII) ? "Wii" : "GameCube");
   INFO_LOG(OSREPORT, "CPU Thread separate = %s", SConfig::GetInstance().bCPUThread ? "Yes" : "No");
 
   Host_UpdateMainFrame();  // Disable any menus or buttons at boot
@@ -484,7 +485,7 @@ static void EmuThread()
   else
     SConfig::GetInstance().bDSPThread = cpu_info.num_cores > 2;
 
-  if (!DSP::GetDSPEmulator()->Initialize(core_parameter.bWii, core_parameter.bDSPThread))
+  if (!DSP::GetDSPEmulator()->Initialize(Config::Get(Config::WII), core_parameter.bDSPThread))
   {
     s_is_booting.Clear();
     HW::Shutdown();
@@ -510,7 +511,7 @@ static void EmuThread()
   }
 
   // Load and Init Wiimotes - only if we are booting in Wii mode
-  if (core_parameter.bWii && !SConfig::GetInstance().m_bt_passthrough_enabled)
+  if (Config::Get(Config::WII) && !SConfig::GetInstance().m_bt_passthrough_enabled)
   {
     if (init_controllers)
       Wiimote::Initialize(!s_state_filename.empty() ?

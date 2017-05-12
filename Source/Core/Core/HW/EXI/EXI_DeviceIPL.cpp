@@ -25,6 +25,7 @@
 #include "Core/Movie.h"
 #include "Core/NetPlayProto.h"
 
+#include "Core/Config.h"
 #include "DiscIO/Enums.h"
 
 namespace ExpansionInterface
@@ -236,7 +237,7 @@ void CEXIIPL::SetCS(int _iCS)
 void CEXIIPL::UpdateRTC()
 {
   u32 epoch =
-      (SConfig::GetInstance().bWii || SConfig::GetInstance().m_BootType == SConfig::BOOT_MIOS) ?
+      (Config::Get(Config::WII) || SConfig::GetInstance().m_BootType == SConfig::BOOT_MIOS) ?
           WII_EPOCH :
           GC_EPOCH;
   u32 rtc = Common::swap32(GetEmulatedTime(epoch));

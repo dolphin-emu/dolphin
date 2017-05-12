@@ -45,6 +45,7 @@
 #include "Common/StringUtil.h"
 #include "Common/SysConf.h"
 #include "Core/Boot/Boot.h"
+#include "Core/Config.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/DVD/DVDInterface.h"
@@ -1016,7 +1017,7 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
         // and we definitely do not want the user to touch anything in there if it's running.
         for (auto* menu_item : {open_save_folder_item, export_save_item})
         {
-          menu_item->Enable((!Core::IsRunning() || !SConfig::GetInstance().bWii) &&
+          menu_item->Enable((!Core::IsRunning() || !Config::Get(Config::WII)) &&
                             File::IsDirectory(selected_iso->GetWiiFSPath()));
         }
       }
@@ -1051,7 +1052,7 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
             popupMenu.Append(IDM_LIST_UNINSTALL_WAD, _("Uninstall from the NAND"));
         // These should not be allowed while emulation is running for safety reasons.
         for (auto* menu_item : {install_wad_item, uninstall_wad_item})
-          menu_item->Enable(!Core::IsRunning() || !SConfig::GetInstance().bWii);
+          menu_item->Enable(!Core::IsRunning() || !Config::Get(Config::WII));
 
         if (!IsWADInstalled(*selected_iso))
           uninstall_wad_item->Enable(false);

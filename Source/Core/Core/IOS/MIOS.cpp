@@ -13,6 +13,7 @@
 #include "Common/NandPaths.h"
 #include "Common/Swap.h"
 #include "Core/Boot/ElfReader.h"
+#include "Core/Config.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/DSPEmulator.h"
@@ -106,7 +107,7 @@ static std::vector<u8> GetMIOSBinary()
 
 static void ReinitHardware()
 {
-  SConfig::GetInstance().bWii = false;
+  Config::Set(Config::LayerType::CurrentRun, Config::WII, false);
 
   // IOS clears mem2 and overwrites it with pseudo-random data (for security).
   std::memset(Memory::m_pEXRAM, 0, Memory::EXRAM_SIZE);
@@ -115,7 +116,7 @@ static void ReinitHardware()
   PowerPC::Reset();
   // Note: this is specific to Dolphin and is required because we initialised it in Wii mode.
   DSP::Reinit(SConfig::GetInstance().bDSPHLE);
-  DSP::GetDSPEmulator()->Initialize(SConfig::GetInstance().bWii, SConfig::GetInstance().bDSPThread);
+  DSP::GetDSPEmulator()->Initialize(Config::Get(Config::WII), SConfig::GetInstance().bDSPThread);
 
   SystemTimers::ChangePPCClock(SystemTimers::Mode::GC);
 }

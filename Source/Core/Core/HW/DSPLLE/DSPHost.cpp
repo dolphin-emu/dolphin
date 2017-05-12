@@ -6,6 +6,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Hash.h"
 #include "Common/Logging/Log.h"
+#include "Core/Config.h"
 #include "Core/ConfigManager.h"
 #include "Core/DSP/DSPAnalyzer.h"
 #include "Core/DSP/DSPCore.h"
@@ -47,7 +48,7 @@ bool OnThread()
 
 bool IsWiiHost()
 {
-  return SConfig::GetInstance().bWii;
+  return Config::Get(Config::WII);
 }
 
 void InterruptRequest()

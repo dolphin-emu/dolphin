@@ -49,6 +49,7 @@ IPC_HLE_PERIOD: For the Wii Remote this is the call schedule:
 #include "Common/Logging/Log.h"
 #include "Common/Thread.h"
 #include "Common/Timer.h"
+#include "Core/Config.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -110,7 +111,7 @@ static void AudioDMACallback(u64 userdata, s64 cyclesLate)
 
 static void IPC_HLE_UpdateCallback(u64 userdata, s64 cyclesLate)
 {
-  if (SConfig::GetInstance().bWii)
+  if (Config::Get(Config::WII))
   {
     IOS::HLE::GetIOS()->UpdateDevices();
     CoreTiming::ScheduleEvent(s_ipc_hle_period - cyclesLate, et_IPC_HLE);
@@ -223,7 +224,7 @@ static void ThrottleCallback(u64 last_time, s64 cyclesLate)
 // SystemTimers::Init
 void PreInit()
 {
-  ChangePPCClock(SConfig::GetInstance().bWii ? Mode::Wii : Mode::GC);
+  ChangePPCClock(Config::Get(Config::WII) ? Mode::Wii : Mode::GC);
 }
 
 void ChangePPCClock(Mode mode)
@@ -238,7 +239,7 @@ void ChangePPCClock(Mode mode)
 
 void Init()
 {
-  if (SConfig::GetInstance().bWii)
+  if (Config::Get(Config::WII))
   {
     // AyuanX: TO BE TWEAKED
     // Now the 1500 is a pure assumption
@@ -282,7 +283,7 @@ void Init()
 
   CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerField(), et_PatchEngine);
 
-  if (SConfig::GetInstance().bWii)
+  if (Config::Get(Config::WII))
     CoreTiming::ScheduleEvent(s_ipc_hle_period, et_IPC_HLE);
 }
 
