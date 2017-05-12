@@ -79,7 +79,6 @@ public:
   ~CNANDContentLoader();
 
   bool IsValid() const;
-  void RemoveTitle() const;
   const SNANDContent* GetContentByID(u32 id) const;
   const SNANDContent* GetContentByIndex(int index) const;
   const IOS::ES::TMDReader& GetTMD() const { return m_tmd; }
@@ -111,7 +110,6 @@ public:
 
   const CNANDContentLoader& GetNANDLoader(const std::string& content_path);
   const CNANDContentLoader& GetNANDLoader(u64 title_id, Common::FromWhichRoot from);
-  bool RemoveTitle(u64 title_id, Common::FromWhichRoot from);
   void ClearCache();
 
 private:

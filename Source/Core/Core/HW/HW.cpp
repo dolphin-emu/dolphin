@@ -24,7 +24,6 @@
 #include "Core/IOS/IOS.h"
 #include "Core/Movie.h"
 #include "Core/State.h"
-#include "Core/WiiRoot.h"
 
 namespace HW
 {
@@ -50,7 +49,6 @@ void Init()
 
   if (SConfig::GetInstance().bWii)
   {
-    Core::InitializeWiiRoot(Core::WantsDeterminism());
     IOS::Init();
     IOS::HLE::Init();  // Depends on Memory
   }
@@ -61,8 +59,6 @@ void Shutdown()
   // IOS should always be shut down regardless of bWii because it can be running in GC mode (MIOS).
   IOS::HLE::Shutdown();  // Depends on Memory
   IOS::Shutdown();
-  if (SConfig::GetInstance().bWii)
-    Core::ShutdownWiiRoot();
 
   SystemTimers::Shutdown();
   CPU::Shutdown();

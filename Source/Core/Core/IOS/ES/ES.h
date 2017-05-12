@@ -55,6 +55,8 @@ public:
   ReturnCode Close(u32 fd) override;
   IPCCommandResult IOCtlV(const IOCtlVRequest& request) override;
 
+  ReturnCode DeleteTitleContent(u64 title_id) const;
+
 private:
   enum
   {
