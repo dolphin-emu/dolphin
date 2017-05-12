@@ -14,6 +14,7 @@
 #include "Common/CommonPaths.h"
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
+#include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
 
 InterfacePane::InterfacePane(QWidget* parent) : QWidget(parent)
