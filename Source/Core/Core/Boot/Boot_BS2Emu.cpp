@@ -52,15 +52,8 @@ void CBoot::RunFunction(u32 address)
     PowerPC::SingleStep();
 }
 
-// __________________________________________________________________________________________________
-// GameCube Bootstrap 2 HLE:
-// copy the apploader to 0x81200000
-// execute the apploader, function by function, using the above utility.
-bool CBoot::EmulatedBS2_GC(bool skip_app_loader)
+void CBoot::SetupBAT(bool is_wii)
 {
-  INFO_LOG(BOOT, "Faking GC BS2...");
-
-  // Set up MSR and the BAT SPR registers.
   UReg_MSR& m_MSR = ((UReg_MSR&)PowerPC::ppcState.msr);
   m_MSR.FP = 1;
   m_MSR.DR = 1;
@@ -72,8 +65,28 @@ bool CBoot::EmulatedBS2_GC(bool skip_app_loader)
   PowerPC::ppcState.spr[SPR_DBAT0L] = 0x00000002;
   PowerPC::ppcState.spr[SPR_DBAT1U] = 0xc0001fff;
   PowerPC::ppcState.spr[SPR_DBAT1L] = 0x0000002a;
+  if (is_wii)
+  {
+    PowerPC::ppcState.spr[SPR_IBAT4U] = 0x90001fff;
+    PowerPC::ppcState.spr[SPR_IBAT4L] = 0x10000002;
+    PowerPC::ppcState.spr[SPR_DBAT4U] = 0x90001fff;
+    PowerPC::ppcState.spr[SPR_DBAT4L] = 0x10000002;
+    PowerPC::ppcState.spr[SPR_DBAT5U] = 0xd0001fff;
+    PowerPC::ppcState.spr[SPR_DBAT5L] = 0x1000002a;
+  }
   PowerPC::DBATUpdated();
   PowerPC::IBATUpdated();
+}
+
+// __________________________________________________________________________________________________
+// GameCube Bootstrap 2 HLE:
+// copy the apploader to 0x81200000
+// execute the apploader, function by function, using the above utility.
+bool CBoot::EmulatedBS2_GC(bool skip_app_loader)
+{
+  INFO_LOG(BOOT, "Faking GC BS2...");
+
+  SetupBAT(/*is_wii*/ false);
 
   // Write necessary values
   // Here we write values to memory that the apploader does not take care of. Game info goes
@@ -333,26 +346,7 @@ bool CBoot::EmulatedBS2_Wii()
   // after this check during booting.
   DVDRead(0, 0x3180, 4, true);
 
-  // Set up MSR and the BAT SPR registers.
-  UReg_MSR& m_MSR = ((UReg_MSR&)PowerPC::ppcState.msr);
-  m_MSR.FP = 1;
-  m_MSR.DR = 1;
-  m_MSR.IR = 1;
-  m_MSR.EE = 1;
-  PowerPC::ppcState.spr[SPR_IBAT0U] = 0x80001fff;
-  PowerPC::ppcState.spr[SPR_IBAT0L] = 0x00000002;
-  PowerPC::ppcState.spr[SPR_IBAT4U] = 0x90001fff;
-  PowerPC::ppcState.spr[SPR_IBAT4L] = 0x10000002;
-  PowerPC::ppcState.spr[SPR_DBAT0U] = 0x80001fff;
-  PowerPC::ppcState.spr[SPR_DBAT0L] = 0x00000002;
-  PowerPC::ppcState.spr[SPR_DBAT1U] = 0xc0001fff;
-  PowerPC::ppcState.spr[SPR_DBAT1L] = 0x0000002a;
-  PowerPC::ppcState.spr[SPR_DBAT4U] = 0x90001fff;
-  PowerPC::ppcState.spr[SPR_DBAT4L] = 0x10000002;
-  PowerPC::ppcState.spr[SPR_DBAT5U] = 0xd0001fff;
-  PowerPC::ppcState.spr[SPR_DBAT5L] = 0x1000002a;
-  PowerPC::DBATUpdated();
-  PowerPC::IBATUpdated();
+  SetupBAT(/*is_wii*/ true);
 
   Memory::Write_U32(0x4c000064, 0x00000300);  // Write default DSI Handler:   rfi
   Memory::Write_U32(0x4c000064, 0x00000800);  // Write default FPU Handler:   rfi
