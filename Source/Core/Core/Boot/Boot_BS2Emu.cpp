@@ -78,6 +78,77 @@ void CBoot::SetupBAT(bool is_wii)
   PowerPC::IBATUpdated();
 }
 
+bool CBoot::RunApploader(bool is_wii)
+{
+  // Load Apploader to Memory - The apploader is hardcoded to begin at 0x2440 on the disc,
+  // but the size can differ between discs. Compare with YAGCD chap 13.
+  const DiscIO::IVolume& volume = DVDInterface::GetVolume();
+  const u32 apploader_offset = 0x2440;
+  u32 apploader_entry = 0;
+  u32 apploader_size = 0;
+  u32 apploader_trailer = 0;
+  if (!volume.ReadSwapped(apploader_offset + 0x10, &apploader_entry, is_wii) ||
+      !volume.ReadSwapped(apploader_offset + 0x14, &apploader_size, is_wii) ||
+      (!is_wii && !volume.ReadSwapped(apploader_offset + 0x18, &apploader_trailer, is_wii)) ||
+      apploader_entry == (u32)-1 || apploader_size + apploader_trailer == (u32)-1)
+  {
+    INFO_LOG(BOOT, "Invalid apploader. Your disc image is probably corrupted.");
+    return false;
+  }
+  DVDRead(apploader_offset + 0x20, 0x01200000, apploader_size + apploader_trailer, is_wii);
+
+  // TODO - Make Apploader(or just RunFunction()) debuggable!!!
+
+  // Call iAppLoaderEntry.
+  DEBUG_LOG(MASTER_LOG, "Call iAppLoaderEntry");
+  const u32 iAppLoaderFuncAddr = is_wii ? 0x80004000 : 0x80003100;
+  PowerPC::ppcState.gpr[3] = iAppLoaderFuncAddr + 0;
+  PowerPC::ppcState.gpr[4] = iAppLoaderFuncAddr + 4;
+  PowerPC::ppcState.gpr[5] = iAppLoaderFuncAddr + 8;
+  RunFunction(apploader_entry);
+  const u32 iAppLoaderInit = PowerPC::Read_U32(iAppLoaderFuncAddr + 0);
+  const u32 iAppLoaderMain = PowerPC::Read_U32(iAppLoaderFuncAddr + 4);
+  const u32 iAppLoaderClose = PowerPC::Read_U32(iAppLoaderFuncAddr + 8);
+
+  // iAppLoaderInit
+  DEBUG_LOG(MASTER_LOG, "Call iAppLoaderInit");
+  HLE::Patch(0x81300000, "AppLoaderReport");  // HLE OSReport for Apploader
+  PowerPC::ppcState.gpr[3] = 0x81300000;
+  RunFunction(iAppLoaderInit);
+
+  // iAppLoaderMain - Here we load the apploader, the DOL (the exe) and the FST (filesystem).
+  // To give you an idea about where the stuff is located on the disc take a look at yagcd
+  // ch 13.
+  DEBUG_LOG(MASTER_LOG, "Call iAppLoaderMain");
+  do
+  {
+    PowerPC::ppcState.gpr[3] = 0x81300004;
+    PowerPC::ppcState.gpr[4] = 0x81300008;
+    PowerPC::ppcState.gpr[5] = 0x8130000c;
+
+    RunFunction(iAppLoaderMain);
+
+    u32 iRamAddress = PowerPC::Read_U32(0x81300004);
+    u32 iLength = PowerPC::Read_U32(0x81300008);
+    u32 iDVDOffset = PowerPC::Read_U32(0x8130000c) << (is_wii ? 2 : 0);
+
+    INFO_LOG(MASTER_LOG, "DVDRead: offset: %08x   memOffset: %08x   length: %i", iDVDOffset,
+             iRamAddress, iLength);
+    DVDRead(iDVDOffset, iRamAddress, iLength, is_wii);
+
+  } while (PowerPC::ppcState.gpr[3] != 0x00);
+
+  // iAppLoaderClose
+  DEBUG_LOG(MASTER_LOG, "call iAppLoaderClose");
+  RunFunction(iAppLoaderClose);
+  HLE::UnPatch("AppLoaderReport");
+
+  // return
+  PC = PowerPC::ppcState.gpr[3];
+
+  return true;
+}
+
 // __________________________________________________________________________________________________
 // GameCube Bootstrap 2 HLE:
 // copy the apploader to 0x81200000
@@ -127,21 +198,6 @@ bool CBoot::EmulatedBS2_GC(bool skip_app_loader)
   if (!DVDInterface::IsDiscInside())
     return false;
 
-  // Load Apploader to Memory - The apploader is hardcoded to begin at 0x2440 on the disc,
-  // but the size can differ between discs. Compare with YAGCD chap 13.
-  const DiscIO::IVolume& volume = DVDInterface::GetVolume();
-  const u32 apploader_offset = 0x2440;
-  u32 apploader_entry, apploader_size, apploader_trailer;
-  if (skip_app_loader || !volume.ReadSwapped(apploader_offset + 0x10, &apploader_entry, false) ||
-      !volume.ReadSwapped(apploader_offset + 0x14, &apploader_size, false) ||
-      !volume.ReadSwapped(apploader_offset + 0x18, &apploader_trailer, false) ||
-      apploader_entry == (u32)-1 || apploader_size + apploader_trailer == (u32)-1)
-  {
-    INFO_LOG(BOOT, "GC BS2: Not running apploader!");
-    return false;
-  }
-  DVDRead(apploader_offset + 0x20, 0x01200000, apploader_size + apploader_trailer, false);
-
   // Setup pointers like real BS2 does
   if (ntsc)
   {
@@ -159,56 +215,10 @@ bool CBoot::EmulatedBS2_GC(bool skip_app_loader)
     PowerPC::ppcState.gpr[13] = 0x814b4fc0;
   }
 
-  // TODO - Make Apploader(or just RunFunction()) debuggable!!!
+  if (skip_app_loader)
+    return false;
 
-  // Call iAppLoaderEntry.
-  DEBUG_LOG(MASTER_LOG, "Call iAppLoaderEntry");
-  u32 iAppLoaderFuncAddr = 0x80003100;
-  PowerPC::ppcState.gpr[3] = iAppLoaderFuncAddr + 0;
-  PowerPC::ppcState.gpr[4] = iAppLoaderFuncAddr + 4;
-  PowerPC::ppcState.gpr[5] = iAppLoaderFuncAddr + 8;
-  RunFunction(apploader_entry);
-  u32 iAppLoaderInit = PowerPC::Read_U32(iAppLoaderFuncAddr + 0);
-  u32 iAppLoaderMain = PowerPC::Read_U32(iAppLoaderFuncAddr + 4);
-  u32 iAppLoaderClose = PowerPC::Read_U32(iAppLoaderFuncAddr + 8);
-
-  // iAppLoaderInit
-  DEBUG_LOG(MASTER_LOG, "Call iAppLoaderInit");
-  HLE::Patch(0x81300000, "AppLoaderReport");  // HLE OSReport for Apploader
-  PowerPC::ppcState.gpr[3] = 0x81300000;
-  RunFunction(iAppLoaderInit);
-
-  // iAppLoaderMain - Here we load the apploader, the DOL (the exe) and the FST (filesystem).
-  // To give you an idea about where the stuff is located on the disc take a look at yagcd
-  // ch 13.
-  DEBUG_LOG(MASTER_LOG, "Call iAppLoaderMain");
-  do
-  {
-    PowerPC::ppcState.gpr[3] = 0x81300004;
-    PowerPC::ppcState.gpr[4] = 0x81300008;
-    PowerPC::ppcState.gpr[5] = 0x8130000c;
-
-    RunFunction(iAppLoaderMain);
-
-    u32 iRamAddress = PowerPC::Read_U32(0x81300004);
-    u32 iLength = PowerPC::Read_U32(0x81300008);
-    u32 iDVDOffset = PowerPC::Read_U32(0x8130000c);
-
-    INFO_LOG(MASTER_LOG, "DVDRead: offset: %08x   memOffset: %08x   length: %i", iDVDOffset,
-             iRamAddress, iLength);
-    DVDRead(iDVDOffset, iRamAddress, iLength, false);
-
-  } while (PowerPC::ppcState.gpr[3] != 0x00);
-
-  // iAppLoaderClose
-  DEBUG_LOG(MASTER_LOG, "call iAppLoaderClose");
-  RunFunction(iAppLoaderClose);
-  HLE::UnPatch("AppLoaderReport");
-
-  // return
-  PC = PowerPC::ppcState.gpr[3];
-
-  return true;
+  return RunApploader(/*is_wii*/ false);
 }
 
 bool CBoot::SetupWiiMemory(u64 ios_title_id)
@@ -354,67 +364,11 @@ bool CBoot::EmulatedBS2_Wii()
 
   PowerPC::ppcState.gpr[1] = 0x816ffff0;  // StackPointer
 
-  // Execute the apploader
-  const u32 apploader_offset = 0x2440;  // 0x1c40;
-
-  // Load Apploader to Memory
-  const DiscIO::IVolume& volume = DVDInterface::GetVolume();
-  u32 apploader_entry, apploader_size;
-  if (!volume.ReadSwapped(apploader_offset + 0x10, &apploader_entry, true) ||
-      !volume.ReadSwapped(apploader_offset + 0x14, &apploader_size, true) ||
-      apploader_entry == (u32)-1 || apploader_size == (u32)-1)
-  {
-    ERROR_LOG(BOOT, "Invalid apploader. Probably your image is corrupted.");
+  if (!RunApploader(/*is_wii*/ true))
     return false;
-  }
-  DVDRead(apploader_offset + 0x20, 0x01200000, apploader_size, true);
-
-  // call iAppLoaderEntry
-  DEBUG_LOG(BOOT, "Call iAppLoaderEntry");
-
-  u32 iAppLoaderFuncAddr = 0x80004000;
-  PowerPC::ppcState.gpr[3] = iAppLoaderFuncAddr + 0;
-  PowerPC::ppcState.gpr[4] = iAppLoaderFuncAddr + 4;
-  PowerPC::ppcState.gpr[5] = iAppLoaderFuncAddr + 8;
-  RunFunction(apploader_entry);
-  u32 iAppLoaderInit = PowerPC::Read_U32(iAppLoaderFuncAddr + 0);
-  u32 iAppLoaderMain = PowerPC::Read_U32(iAppLoaderFuncAddr + 4);
-  u32 iAppLoaderClose = PowerPC::Read_U32(iAppLoaderFuncAddr + 8);
-
-  // iAppLoaderInit
-  DEBUG_LOG(BOOT, "Run iAppLoaderInit");
-  HLE::Patch(0x81300000, "AppLoaderReport");  // HLE OSReport for Apploader
-  PowerPC::ppcState.gpr[3] = 0x81300000;
-  RunFunction(iAppLoaderInit);
-
-  // Let the apploader load the exe to memory
-  DEBUG_LOG(BOOT, "Run iAppLoaderMain");
-  do
-  {
-    PowerPC::ppcState.gpr[3] = 0x81300004;
-    PowerPC::ppcState.gpr[4] = 0x81300008;
-    PowerPC::ppcState.gpr[5] = 0x8130000c;
-
-    RunFunction(iAppLoaderMain);
-
-    u32 iRamAddress = PowerPC::Read_U32(0x81300004);
-    u32 iLength = PowerPC::Read_U32(0x81300008);
-    u32 iDVDOffset = PowerPC::Read_U32(0x8130000c) << 2;
-
-    INFO_LOG(BOOT, "DVDRead: offset: %08x   memOffset: %08x   length: %i", iDVDOffset, iRamAddress,
-             iLength);
-    DVDRead(iDVDOffset, iRamAddress, iLength, true);
-  } while (PowerPC::ppcState.gpr[3] != 0x00);
-
-  // iAppLoaderClose
-  DEBUG_LOG(BOOT, "Run iAppLoaderClose");
-  RunFunction(iAppLoaderClose);
-  HLE::UnPatch("AppLoaderReport");
 
   IOS::HLE::Device::ES::DIVerify(tmd, DVDInterface::GetVolume().GetTicket());
 
-  // return
-  PC = PowerPC::ppcState.gpr[3];
   return true;
 }
 
