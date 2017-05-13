@@ -308,7 +308,6 @@ private:
   void OnConfigHotkey(wxCommandEvent& event);
 
   void OnToggleFullscreen(wxCommandEvent& event);
-  void OnToggleDualCore(wxCommandEvent& event);
   void OnManagerResize(wxAuiManagerEvent& event);
   void OnMove(wxMoveEvent& event);
   void OnResize(wxSizeEvent& event);

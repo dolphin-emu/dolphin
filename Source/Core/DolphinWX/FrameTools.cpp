@@ -1331,12 +1331,6 @@ void CFrame::OnToggleFullscreen(wxCommandEvent& WXUNUSED(event))
   DoFullscreen(!RendererIsFullscreen());
 }
 
-void CFrame::OnToggleDualCore(wxCommandEvent& WXUNUSED(event))
-{
-  SConfig::GetInstance().bCPUThread = !SConfig::GetInstance().bCPUThread;
-  SConfig::GetInstance().SaveSettings();
-}
-
 void CFrame::OnLoadStateFromFile(wxCommandEvent& WXUNUSED(event))
 {
   wxString path =
