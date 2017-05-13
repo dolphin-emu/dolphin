@@ -40,6 +40,7 @@ void Save();
 
 void Init();
 void Shutdown();
+void ClearCurrentRunLayer();
 
 const std::string& GetSystemName(System system);
 System GetSystemFromName(const std::string& system);

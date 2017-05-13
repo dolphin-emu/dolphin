@@ -91,6 +91,9 @@ void Save()
 
 void Init()
 {
+  // These layers contain temporary values
+  s_layers[LayerType::CommandLine] = std::make_unique<Layer>(LayerType::CommandLine);
+  ClearCurrentRunLayer();
   // This layer always has to exist
   s_layers[LayerType::Meta] = std::make_unique<RecursiveLayer>();
 }
@@ -99,6 +102,11 @@ void Shutdown()
 {
   s_layers.clear();
   s_callbacks.clear();
+}
+
+void ClearCurrentRunLayer()
+{
+  s_layers[LayerType::CurrentRun] = std::make_unique<Layer>(LayerType::CurrentRun);
 }
 
 static const std::map<System, std::string> system_to_name = {
