@@ -200,9 +200,12 @@ Kernel::~Kernel()
   Core::ShutdownWiiRoot();
 }
 
-EmulationKernel::EmulationKernel(u64 title_id)
+Kernel::Kernel(u64 title_id) : m_title_id(title_id)
 {
-  m_title_id = title_id;
+}
+
+EmulationKernel::EmulationKernel(u64 title_id) : Kernel(title_id)
+{
   INFO_LOG(IOS, "Starting IOS %016" PRIx64, title_id);
 
   if (!SetupMemory(title_id, MemorySetupType::IOSReload))
