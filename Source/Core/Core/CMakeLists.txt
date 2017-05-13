@@ -28,6 +28,7 @@ set(SRCS
   Config/Config.cpp
   ConfigLoaders/BaseConfigLoader.cpp
   ConfigLoaders/GameConfigLoader.cpp
+  ConfigLoaders/IsSettingSaveable.cpp
   ConfigLoaders/MovieConfigLoader.cpp
   ConfigLoaders/NetPlayConfigLoader.cpp
   Debugger/Debugger_SymbolMap.cpp

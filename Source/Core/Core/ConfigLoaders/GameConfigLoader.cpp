@@ -20,6 +20,7 @@
 
 #include "Core/Config/Config.h"
 #include "Core/ConfigLoaders/GameConfigLoader.h"
+#include "Core/ConfigLoaders/IsSettingSaveable.h"
 
 namespace ConfigLoaders
 {
@@ -382,6 +383,9 @@ void INIGameConfigLayerLoader::Save(Config::Layer* config_layer)
     {
       for (const auto& value : section->GetValues())
       {
+        if (!IsSettingSaveable({system.first, section->GetName(), value.first}))
+          continue;
+
         const auto ini_location =
             GetINILocationFromConfig({system.first, section->GetName(), value.first});
         if (ini_location.first.empty() && ini_location.second.empty())

@@ -59,6 +59,7 @@
     <ClCompile Include="Config\Config.cpp" />
     <ClCompile Include="ConfigLoaders\BaseConfigLoader.cpp" />
     <ClCompile Include="ConfigLoaders\GameConfigLoader.cpp" />
+    <ClCompile Include="ConfigLoaders\IsSettingSaveable.cpp" />
     <ClCompile Include="ConfigLoaders\MovieConfigLoader.cpp" />
     <ClCompile Include="ConfigLoaders\NetPlayConfigLoader.cpp" />
     <ClCompile Include="ConfigManager.cpp" />
@@ -311,6 +312,7 @@
     <ClInclude Include="Config\Config.h" />
     <ClInclude Include="ConfigLoaders\BaseConfigLoader.h" />
     <ClInclude Include="ConfigLoaders\GameConfigLoader.h" />
+    <ClInclude Include="ConfigLoaders\IsSettingSaveable.h" />
     <ClInclude Include="ConfigLoaders\MovieConfigLoader.h" />
     <ClInclude Include="ConfigLoaders\NetPlayConfigLoader.h" />
     <ClInclude Include="ConfigManager.h" />

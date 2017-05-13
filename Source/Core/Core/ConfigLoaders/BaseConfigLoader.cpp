@@ -16,6 +16,7 @@
 
 #include "Core/Config/Config.h"
 #include "Core/ConfigLoaders/BaseConfigLoader.h"
+#include "Core/ConfigLoaders/IsSettingSaveable.h"
 
 namespace ConfigLoaders
 {
@@ -80,7 +81,12 @@ public:
         IniFile::Section* ini_section = ini.GetOrCreateSection(section_name);
 
         for (const auto& value : section_values)
+        {
+          if (!IsSettingSaveable({system.first, section->GetName(), value.first}))
+            continue;
+
           ini_section->Set(value.first, value.second);
+        }
       }
 
       ini.Save(File::GetUserPath(mapping->second));
