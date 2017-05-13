@@ -132,13 +132,13 @@ bool CreateDir(const std::string& path)
 #ifdef _WIN32
   if (::CreateDirectory(UTF8ToTStr(path).c_str(), nullptr))
     return true;
-  DWORD error = GetLastError();
-  if (error == ERROR_ALREADY_EXISTS)
+  if (GetLastError() == ERROR_ALREADY_EXISTS)
   {
     WARN_LOG(COMMON, "CreateDir: CreateDirectory failed on %s: already exists", path.c_str());
     return true;
   }
-  ERROR_LOG(COMMON, "CreateDir: CreateDirectory failed on %s: %i", path.c_str(), error);
+  ERROR_LOG(COMMON, "CreateDir: CreateDirectory failed on %s: %s", path.c_str(),
+            GetLastErrorMsg().c_str());
   return false;
 #else
   if (mkdir(path.c_str(), 0755) == 0)
@@ -152,7 +152,7 @@ bool CreateDir(const std::string& path)
     return true;
   }
 
-  ERROR_LOG(COMMON, "CreateDir: mkdir failed on %s: %s", path.c_str(), strerror(err));
+  ERROR_LOG(COMMON, "CreateDir: mkdir failed on %s: %s", path.c_str(), GetLastErrorMsg().c_str());
   return false;
 #endif
 }

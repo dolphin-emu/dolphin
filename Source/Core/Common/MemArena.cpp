@@ -76,7 +76,7 @@ void MemArena::GrabSHMSegment(size_t size)
     }
     else if (errno != EEXIST)
     {
-      ERROR_LOG(MEMMAP, "shm_open failed: %s", strerror(errno));
+      ERROR_LOG(MEMMAP, "shm_open failed: %s", GetLastErrorMsg().c_str());
       return;
     }
   }

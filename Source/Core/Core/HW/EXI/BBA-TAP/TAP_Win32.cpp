@@ -4,6 +4,7 @@
 
 #include "Core/HW/EXI/BBA-TAP/TAP_Win32.h"
 #include "Common/Assert.h"
+#include "Common/CommonFuncs.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
@@ -281,7 +282,7 @@ static void ReadThreadHandler(CEXIETHERNET* self)
       // IO should be pending.
       if (GetLastError() != ERROR_IO_PENDING)
       {
-        ERROR_LOG(SP1, "ReadFile failed (err=0x%X)", GetLastError());
+        ERROR_LOG(SP1, "ReadFile failed: %s", GetLastErrorMsg().c_str());
         continue;
       }
 
@@ -293,7 +294,7 @@ static void ReadThreadHandler(CEXIETHERNET* self)
           continue;
 
         // Something else went wrong.
-        ERROR_LOG(SP1, "GetOverlappedResult failed (err=0x%X)", GetLastError());
+        ERROR_LOG(SP1, "GetOverlappedResult failed: %s", GetLastErrorMsg().c_str());
         continue;
       }
     }
@@ -319,7 +320,7 @@ bool CEXIETHERNET::SendFrame(const u8* frame, u32 size)
   {
     // Wait for previous write to complete.
     if (!GetOverlappedResult(mHAdapter, &mWriteOverlapped, &transferred, TRUE))
-      ERROR_LOG(SP1, "GetOverlappedResult failed (err=0x%X)", GetLastError());
+      ERROR_LOG(SP1, "GetOverlappedResult failed: %s", GetLastErrorMsg().c_str());
   }
 
   // Copy to write buffer.
@@ -337,7 +338,7 @@ bool CEXIETHERNET::SendFrame(const u8* frame, u32 size)
     // IO should be pending.
     if (GetLastError() != ERROR_IO_PENDING)
     {
-      ERROR_LOG(SP1, "WriteFile failed (err=0x%X)", GetLastError());
+      ERROR_LOG(SP1, "WriteFile failed: %s", GetLastErrorMsg().c_str());
       ResetEvent(mWriteOverlapped.hEvent);
       mWritePending = false;
       return false;

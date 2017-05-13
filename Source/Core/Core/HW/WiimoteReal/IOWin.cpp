@@ -624,21 +624,18 @@ int IORead(HANDLE& dev_handle, OVERLAPPED& hid_overlap_read, u8* buf, int index)
   ResetEvent(hid_overlap_read.hEvent);
   if (!ReadFile(dev_handle, buf + 1, MAX_PAYLOAD - 1, &bytes, &hid_overlap_read))
   {
-    auto const read_err = GetLastError();
-
-    if (ERROR_IO_PENDING == read_err)
+    if (ERROR_IO_PENDING == GetLastError())
     {
       if (!GetOverlappedResult(dev_handle, &hid_overlap_read, &bytes, TRUE))
       {
-        auto const overlapped_err = GetLastError();
-
         // In case it was aborted by someone else
-        if (ERROR_OPERATION_ABORTED == overlapped_err)
+        if (ERROR_OPERATION_ABORTED == GetLastError())
         {
           return -1;
         }
 
-        WARN_LOG(WIIMOTE, "GetOverlappedResult error %d on Wiimote %i.", overlapped_err, index + 1);
+        WARN_LOG(WIIMOTE, "GetOverlappedResult error on Wiimote %i: %s", index + 1,
+                 GetLastErrorMsg().c_str());
         return 0;
       }
       // If IOWakeup sets the event so GetOverlappedResult returns prematurely, but the request is
@@ -652,7 +649,7 @@ int IORead(HANDLE& dev_handle, OVERLAPPED& hid_overlap_read, u8* buf, int index)
     }
     else
     {
-      WARN_LOG(WIIMOTE, "ReadFile error %d on Wiimote %i.", read_err, index + 1);
+      WARN_LOG(WIIMOTE, "ReadFile error on Wiimote %i: %s", index + 1, GetLastErrorMsg().c_str());
       return 0;
     }
   }

@@ -462,8 +462,8 @@ std::string UTF16ToCP(u32 code_page, const std::wstring& input)
       size != WideCharToMultiByte(code_page, 0, input.data(), static_cast<int>(input.size()),
                                   &output[0], static_cast<int>(output.size()), nullptr, false))
   {
-    const DWORD error_code = GetLastError();
-    ERROR_LOG(COMMON, "WideCharToMultiByte Error in String '%s': %lu", input.c_str(), error_code);
+    ERROR_LOG(COMMON, "WideCharToMultiByte Error in String '%s': %s", input.c_str(),
+              GetLastErrorMsg().c_str());
     output.clear();
   }
   return output;
@@ -499,7 +499,7 @@ std::string CodeTo(const char* tocode, const char* fromcode, const std::basic_st
   iconv_t const conv_desc = iconv_open(tocode, fromcode);
   if ((iconv_t)-1 == conv_desc)
   {
-    ERROR_LOG(COMMON, "Iconv initialization failure [%s]: %s", fromcode, strerror(errno));
+    ERROR_LOG(COMMON, "Iconv initialization failure [%s]: %s", fromcode, GetLastErrorMsg().c_str());
   }
   else
   {
@@ -532,7 +532,7 @@ std::string CodeTo(const char* tocode, const char* fromcode, const std::basic_st
         }
         else
         {
-          ERROR_LOG(COMMON, "iconv failure [%s]: %s", fromcode, strerror(errno));
+          ERROR_LOG(COMMON, "iconv failure [%s]: %s", fromcode, GetLastErrorMsg().c_str());
           break;
         }
       }

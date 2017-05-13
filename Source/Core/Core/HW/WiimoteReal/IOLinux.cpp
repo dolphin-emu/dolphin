@@ -8,6 +8,7 @@
 #include <bluetooth/l2cap.h>
 #include <unistd.h>
 
+#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Core/HW/WiimoteReal/IOLinux.h"
@@ -159,7 +160,7 @@ bool WiimoteLinux::ConnectInternal()
   }
   else
   {
-    WARN_LOG(WIIMOTE, "Unable to open output socket to Wiimote: %s", strerror(errno));
+    WARN_LOG(WIIMOTE, "Unable to open output socket to Wiimote: %s", GetLastErrorMsg().c_str());
     return false;
   }
 
@@ -185,7 +186,7 @@ bool WiimoteLinux::ConnectInternal()
   }
   else
   {
-    WARN_LOG(WIIMOTE, "Unable to open input socket from Wiimote: %s", strerror(errno));
+    WARN_LOG(WIIMOTE, "Unable to open input socket from Wiimote: %s", GetLastErrorMsg().c_str());
     close(m_cmd_sock);
     m_int_sock = m_cmd_sock = -1;
     return false;
