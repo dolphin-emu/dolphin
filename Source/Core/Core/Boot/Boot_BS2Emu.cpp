@@ -167,15 +167,16 @@ bool CBoot::EmulatedBS2_GC(bool skip_app_loader)
   if (DVDInterface::IsDiscInside())
     DVDRead(/*offset*/ 0x00000000, /*address*/ 0x00000000, 0x20, false);  // write disc info
 
-  PowerPC::HostWrite_U32(0x0D15EA5E,
-                         0x80000020);  // Booted from bootrom. 0xE5207C22 = booted from jtag
-  PowerPC::HostWrite_U32(Memory::REALRAM_SIZE,
-                         0x80000028);  // Physical Memory Size (24MB on retail)
-  // TODO determine why some games fail when using a retail ID. (Seem to take different EXI paths,
-  // see Ikaruga for example)
-  PowerPC::HostWrite_U32(
-      0x10000006,
-      0x8000002C);  // Console type - DevKit  (retail ID == 0x00000003) see YAGCD 4.2.1.1.2
+  // Booted from bootrom. 0xE5207C22 = booted from jtag
+  PowerPC::HostWrite_U32(0x0D15EA5E, 0x80000020);
+
+  // Physical Memory Size (24MB on retail)
+  PowerPC::HostWrite_U32(Memory::REALRAM_SIZE, 0x80000028);
+
+  // Console type - DevKit  (retail ID == 0x00000003) see YAGCD 4.2.1.1.2
+  // TODO: determine why some games fail when using a retail ID.
+  // (Seem to take different EXI paths, see Ikaruga for example)
+  PowerPC::HostWrite_U32(0x10000006, 0x8000002C);
 
   const bool ntsc = DiscIO::IsNTSC(SConfig::GetInstance().m_region);
   PowerPC::HostWrite_U32(ntsc ? 0 : 1, 0x800000CC);  // Fake the VI Init of the IPL (YAGCD 4.2.1.4)
@@ -193,27 +194,19 @@ bool CBoot::EmulatedBS2_GC(bool skip_app_loader)
   PresetTimeBaseTicks();
 
   // HIO checks this
-  // PowerPC::HostWrite_U16(0x8200,     0x000030e6); // Console type
+  // PowerPC::HostWrite_U16(0x8200, 0x000030e6);   // Console type
 
   if (!DVDInterface::IsDiscInside())
     return false;
 
   // Setup pointers like real BS2 does
-  if (ntsc)
-  {
-    // StackPointer, used to be set to 0x816ffff0
-    PowerPC::ppcState.gpr[1] = 0x81566550;
-    // Global pointer to Small Data Area 2 Base (haven't seen anything use it...meh)
-    PowerPC::ppcState.gpr[2] = 0x81465cc0;
-    // Global pointer to Small Data Area Base (Luigi's Mansion's apploader uses it)
-    PowerPC::ppcState.gpr[13] = 0x81465320;
-  }
-  else
-  {
-    PowerPC::ppcState.gpr[1] = 0x815edca8;
-    PowerPC::ppcState.gpr[2] = 0x814b5b20;
-    PowerPC::ppcState.gpr[13] = 0x814b4fc0;
-  }
+
+  // StackPointer, used to be set to 0x816ffff0
+  PowerPC::ppcState.gpr[1] = ntsc ? 0x81566550 : 0x815edca8;
+  // Global pointer to Small Data Area 2 Base (haven't seen anything use it...meh)
+  PowerPC::ppcState.gpr[2] = ntsc ? 0x81465cc0 : 0x814b5b20;
+  // Global pointer to Small Data Area Base (Luigi's Mansion's apploader uses it)
+  PowerPC::ppcState.gpr[13] = ntsc ? 0x81465320 : 0x814b4fc0;
 
   if (skip_app_loader)
     return false;
@@ -313,9 +306,7 @@ bool CBoot::SetupWiiMemory(u64 ios_title_id)
   Memory::Write_U32(0x00000000, 0x000030f0);            // Apploader
 
   if (!IOS::HLE::GetIOS()->BootIOS(ios_title_id))
-  {
     return false;
-  }
 
   Memory::Write_U8(0x80, 0x0000315c);         // OSInit
   Memory::Write_U16(0x0000, 0x000030e0);      // PADInit
@@ -329,6 +320,7 @@ bool CBoot::SetupWiiMemory(u64 ios_title_id)
   {
     Memory::Write_U32(0x00000000, i);
   }
+
   return true;
 }
 

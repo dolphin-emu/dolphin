@@ -275,7 +275,6 @@ bool CBoot::BootUp()
 
   switch (_StartupPara.m_BootType)
   {
-  // GCM and Wii
   case SConfig::BOOT_ISO:
   {
     DVDInterface::SetVolumeName(_StartupPara.m_strFilename);
@@ -291,16 +290,9 @@ bool CBoot::BootUp()
 
     _StartupPara.bWii = pVolume.GetVolumeType() == DiscIO::Platform::WII_DISC;
 
-    // HLE BS2 or not
-    if (_StartupPara.bHLE_BS2)
-    {
+    // We HLE the bootrom if requested or if LLEing it fails
+    if (_StartupPara.bHLE_BS2 || !Load_BS2(_StartupPara.m_strBootROM))
       EmulatedBS2(_StartupPara.bWii);
-    }
-    else if (!Load_BS2(_StartupPara.m_strBootROM))
-    {
-      // If we can't load the bootrom file we HLE it instead
-      EmulatedBS2(_StartupPara.bWii);
-    }
 
     PatchEngine::LoadPatches();
 
@@ -325,7 +317,6 @@ bool CBoot::BootUp()
     break;
   }
 
-  // DOL
   case SConfig::BOOT_DOL:
   {
     CDolLoader dolLoader(_StartupPara.m_strFilename);
@@ -353,13 +344,13 @@ bool CBoot::BootUp()
 
     if (!EmulatedBS2(dolWii))
     {
-      if (dolLoader.IsWii())
+      if (dolWii)
         HID4.SBE = 1;
       SetupBAT(dolWii);
 
       // Because there is no TMD to get the requested system (IOS) version from,
       // we default to IOS58, which is the version used by the Homebrew Channel.
-      if (dolLoader.IsWii())
+      if (dolWii)
         SetupWiiMemory(0x000000010000003a);
 
       dolLoader.Load();
@@ -372,7 +363,6 @@ bool CBoot::BootUp()
     break;
   }
 
-  // ELF
   case SConfig::BOOT_ELF:
   {
     // load image or create virtual drive from directory
@@ -408,7 +398,6 @@ bool CBoot::BootUp()
     break;
   }
 
-  // Wii WAD
   case SConfig::BOOT_WII_NAND:
     Boot_WiiWAD(_StartupPara.m_strFilename);
 
@@ -429,15 +418,12 @@ bool CBoot::BootUp()
   // Bootstrap 2 (AKA: Initial Program Loader, "BIOS")
   case SConfig::BOOT_BS2:
   {
-    if (Load_BS2(_StartupPara.m_strBootROM))
-    {
-      if (LoadMapFromFilename())
-        HLE::PatchFunctions();
-    }
-    else
-    {
+    if (!Load_BS2(_StartupPara.m_strBootROM))
       return false;
-    }
+
+    if (LoadMapFromFilename())
+      HLE::PatchFunctions();
+
     break;
   }
 
