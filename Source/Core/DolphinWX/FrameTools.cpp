@@ -83,6 +83,8 @@
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
+#include "UICommon/WiiUtils.h"
+
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
@@ -1209,11 +1211,8 @@ void CFrame::OnInstallWAD(wxCommandEvent& event)
                           wxPD_APP_MODAL | wxPD_ELAPSED_TIME | wxPD_ESTIMATED_TIME |
                               wxPD_REMAINING_TIME | wxPD_SMOOTH);
 
-  u64 titleID = DiscIO::CNANDContentManager::Access().Install_WiiWAD(fileName);
-  if (titleID == TITLEID_SYSMENU)
-  {
+  if (WiiUtils::InstallWAD(fileName))
     UpdateLoadWiiMenuItem();
-  }
 }
 
 void CFrame::OnUninstallWAD(wxCommandEvent&)

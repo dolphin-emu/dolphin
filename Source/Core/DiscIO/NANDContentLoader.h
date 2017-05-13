@@ -106,7 +106,6 @@ public:
     static CNANDContentManager instance;
     return instance;
   }
-  u64 Install_WiiWAD(const std::string& fileName);
 
   const CNANDContentLoader& GetNANDLoader(const std::string& content_path);
   const CNANDContentLoader& GetNANDLoader(u64 title_id, Common::FromWhichRoot from);
