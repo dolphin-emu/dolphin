@@ -6,6 +6,7 @@
 #include <unordered_set>
 
 #include "Common/CommonTypes.h"
+#include "Core/Config/Config.h"
 #include "Core/HW/MMIO.h"
 
 // Tests that the UniqueID function returns a "unique enough" identifier
@@ -29,6 +30,7 @@ TEST(UniqueID, UniqueEnough)
 
 TEST(IsMMIOAddress, SpecialAddresses)
 {
+  Config::Init();
   SConfig::Init();
   SConfig::GetInstance().bWii = true;
 
@@ -51,6 +53,7 @@ TEST(IsMMIOAddress, SpecialAddresses)
   EXPECT_TRUE(MMIO::IsMMIOAddress(0x0D800F10));  // Mirror of Wii MMIOs
 
   SConfig::Shutdown();
+  Config::Shutdown();
 }
 
 class MappingTest : public testing::Test
