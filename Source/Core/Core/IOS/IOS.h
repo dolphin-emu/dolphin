@@ -118,6 +118,8 @@ public:
   IOSC& GetIOSC();
 
 protected:
+  explicit Kernel(u64 title_id);
+
   void ExecuteIPCCommand(u32 address);
   IPCCommandResult HandleIPCCommand(const Request& request);
   void EnqueueIPCAcknowledgement(u32 address, int cycles_in_future = 0);
