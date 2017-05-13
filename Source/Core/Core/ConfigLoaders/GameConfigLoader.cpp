@@ -18,10 +18,13 @@
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 
+#include "Core/Config/Config.h"
 #include "Core/ConfigLoaders/GameConfigLoader.h"
 
 namespace ConfigLoaders
 {
+using ConfigLocation = Config::ConfigLocation;
+
 // Returns all possible filenames in ascending order of priority
 static std::vector<std::string> GetGameIniFilenames(const std::string& id, u16 revision)
 {
@@ -39,20 +42,6 @@ static std::vector<std::string> GetGameIniFilenames(const std::string& id, u16 r
 
   return filenames;
 }
-
-struct ConfigLocation
-{
-  Config::System system;
-  std::string section;
-  std::string key;
-
-  bool operator==(const ConfigLocation& other) const
-  {
-    return std::tie(system, section, key) == std::tie(other.system, other.section, other.key);
-  }
-
-  bool operator!=(const ConfigLocation& other) const { return !operator==(other); }
-};
 
 static std::map<std::pair<std::string, std::string>, ConfigLocation> ini_to_location = {
     // Core

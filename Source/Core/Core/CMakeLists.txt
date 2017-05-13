@@ -25,6 +25,7 @@ set(SRCS
   Boot/Boot_ELF.cpp
   Boot/Boot_WiiWAD.cpp
   Boot/ElfReader.cpp
+  Config/Config.cpp
   ConfigLoaders/BaseConfigLoader.cpp
   ConfigLoaders/GameConfigLoader.cpp
   ConfigLoaders/MovieConfigLoader.cpp

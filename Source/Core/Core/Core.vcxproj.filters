@@ -853,6 +853,7 @@
     <ClCompile Include="ConfigLoaders\NetPlayConfigLoader.cpp">
       <Filter>ConfigLoader</Filter>
     </ClCompile>
+    <ClCompile Include="Config\Config.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BootManager.h" />
@@ -1486,6 +1487,7 @@
     <ClInclude Include="ConfigLoaders\NetPlayConfigLoader.h">
       <Filter>ConfigLoader</Filter>
     </ClInclude>
+    <ClInclude Include="Config\Config.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />
