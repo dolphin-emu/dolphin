@@ -138,19 +138,6 @@ private:
     u32 m_position;
   };
 
-  struct ecc_cert_t
-  {
-    u32 sig_type;
-    u8 sig[0x3c];
-    u8 pad[0x40];
-    u8 issuer[0x40];
-    u32 key_type;
-    u8 key_name[0x40];
-    u32 ng_key_id;
-    u8 ecc_pubkey[0x3c];
-    u8 padding[0x3c];
-  };
-
   struct TitleImportContext
   {
     IOS::ES::TMDReader tmd;
