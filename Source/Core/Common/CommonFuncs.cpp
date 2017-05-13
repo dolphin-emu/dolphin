@@ -24,8 +24,11 @@ std::string GetLastErrorMsg()
   FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, nullptr, GetLastError(),
                  MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), err_str, buff_size, nullptr);
 #else
-  // Thread safe (XSI-compliant)
-  if (strerror_r(errno, err_str, buff_size))
+  // We assume that the XSI-compliant version of strerror_r (returns int) is used
+  // rather than the GNU version (returns char*). The returned value is stored to
+  // an int variable to get a compile-time check that the return type is not char*.
+  const int result = strerror_r(errno, err_str, buff_size);
+  if (result != 0)
     return "";
 #endif
 
