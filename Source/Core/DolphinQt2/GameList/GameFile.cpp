@@ -63,6 +63,17 @@ GameFile::GameFile(const QString& path) : m_path(path)
   m_valid = true;
 }
 
+bool GameFile::IsValid() const
+{
+  if (!m_valid)
+    return false;
+
+  if (m_platform == DiscIO::Platform::WII_WAD && !IOS::ES::IsChannel(m_title_id))
+    return false;
+
+  return true;
+}
+
 QString GameFile::GetCacheFileName() const
 {
   QString folder = QString::fromStdString(File::GetUserPath(D_CACHE_IDX));

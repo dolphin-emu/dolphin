@@ -27,7 +27,7 @@ class GameFile final
 public:
   explicit GameFile(const QString& path);
 
-  bool IsValid() const { return m_valid; }
+  bool IsValid() const;
   // These will be properly initialized before we try to load the file.
   QString GetFilePath() const { return m_path; }
   QString GetFileName() const { return m_file_name; }

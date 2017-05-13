@@ -35,7 +35,7 @@ public:
   // Reload settings after INI changes
   void ReloadINI();
 
-  bool IsValid() const { return m_Valid; }
+  bool IsValid() const;
   const std::string& GetFileName() const { return m_FileName; }
   std::string GetName(DiscIO::Language language) const;
   std::string GetName() const;

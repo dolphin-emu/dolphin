@@ -992,13 +992,10 @@ bool SConfig::AutoSetup(EBootBS2 _BootBS2)
           DiscIO::CNANDContentManager::Access().GetNANDLoader(m_strFilename);
       const IOS::ES::TMDReader& tmd = content_loader.GetTMD();
 
-      if (content_loader.GetContentByIndex(tmd.GetBootIndex()) == nullptr)
+      if (!IOS::ES::IsChannel(tmd.GetTitleId()))
       {
-        // WAD is valid yet cannot be booted. Install instead.
-        u64 installed = DiscIO::CNANDContentManager::Access().Install_WiiWAD(m_strFilename);
-        if (installed)
-          SuccessAlertT("The WAD has been installed successfully");
-        return false;  // do not boot
+        PanicAlertT("This WAD is not bootable.");
+        return false;
       }
 
       SetRegion(tmd.GetRegion(), &set_region_dir);

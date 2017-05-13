@@ -28,6 +28,7 @@
 
 #include "Core/Boot/Boot.h"
 #include "Core/ConfigManager.h"
+#include "Core/IOS/ES/Formats.h"
 
 #include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
@@ -175,6 +176,17 @@ GameListItem::GameListItem(const std::string& _rFileName,
 
 GameListItem::~GameListItem()
 {
+}
+
+bool GameListItem::IsValid() const
+{
+  if (!m_Valid)
+    return false;
+
+  if (m_Platform == DiscIO::Platform::WII_WAD && !IOS::ES::IsChannel(m_title_id))
+    return false;
+
+  return true;
 }
 
 void GameListItem::ReloadINI()
