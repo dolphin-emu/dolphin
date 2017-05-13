@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-05-06 15:02+0200\n"
-"PO-Revision-Date: 2017-05-06 13:03+0000\n"
+"POT-Creation-Date: 2017-05-13 11:35+0200\n"
+"PO-Revision-Date: 2017-05-13 09:35+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Czech (http://www.transifex.com/delroth/dolphin-emu/language/"
 "cs/)\n"
@@ -67,7 +67,7 @@ msgstr "\"%s\" nelze vyčistit. Obraz je pravděpodobně poškozen."
 msgid "\"%s\" is already compressed! Cannot compress it further."
 msgstr "\"%s\" již je zkomprimováno! Nelze ho dále komprimovat."
 
-#: Source/Core/Core/ConfigManager.cpp:941
+#: Source/Core/Core/ConfigManager.cpp:943
 #, c-format
 msgid "\"%s\" is an invalid GCM/ISO file, or is not a GC/Wii ISO."
 msgstr "\"%s\" je neplatný soubor GCM/ISO, nebo není GC/Wii ISO."
@@ -311,11 +311,11 @@ msgstr ""
 msgid "&Debug"
 msgstr ""
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1035
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1033
 msgid "&Delete File..."
 msgstr "&Smazat soubor..."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1070
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1068
 msgid "&Delete selected ISOs..."
 msgstr "&Smazat vybraná ISO..."
 
@@ -484,7 +484,7 @@ msgstr ""
 msgid "&Profiler"
 msgstr ""
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1007
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1002
 msgid "&Properties"
 msgstr "&Vlastnosti"
 
@@ -570,7 +570,7 @@ msgstr "&Sledování"
 msgid "&Website"
 msgstr "&Internetová stránka"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1008
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1003
 msgid "&Wiki"
 msgstr "&Wiki"
 
@@ -705,19 +705,19 @@ msgstr ""
 msgid "A game is not currently running."
 msgstr "Hra v současnosti neběží!"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:822
+#: Source/Core/DolphinWX/FrameTools.cpp:823
 msgid ""
 "A shutdown is already in progress. Unsaved data may be lost if you stop the "
 "current emulation before it completes. Force stop?"
 msgstr ""
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:357
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:358
 msgid ""
 "A supported Bluetooth device could not be found,\n"
 "so you must connect Wii Remotes manually."
 msgstr ""
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:549
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:550
 msgid "A sync can only be triggered when a Wii game is running."
 msgstr ""
 
@@ -749,7 +749,7 @@ msgstr "O Dolphinu"
 msgid "Accuracy:"
 msgstr "Přesnost:"
 
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:69
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:78
 msgid "Action"
 msgstr ""
 
@@ -925,7 +925,7 @@ msgstr "Přidat..."
 msgid "Address"
 msgstr "Adresa"
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:435
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:444
 msgid "Address Out of Range"
 msgstr ""
 
@@ -943,16 +943,16 @@ msgid "Advanced"
 msgstr "Pokročilé"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:127
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:239
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:240
 msgid "Advanced Settings"
 msgstr "Pokročilá Nastavení"
 
 #: Source/Core/DolphinWX/Config/PathConfigPane.cpp:44
-#: Source/Core/DolphinWX/FrameTools.cpp:337
+#: Source/Core/DolphinWX/FrameTools.cpp:338
 msgid "All GC/Wii files (elf, dol, gcm, iso, tgc, wbfs, ciso, gcz, wad)"
 msgstr ""
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1386
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1377
 msgid "All GameCube GCM files (gcm)"
 msgstr "Všechny soubory GameCube GCM )gcm)"
 
@@ -961,11 +961,11 @@ msgstr "Všechny soubory GameCube GCM )gcm)"
 msgid "All Save States (sav, s##)"
 msgstr "Všechny Uložené Stavy (sav, s##)"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1384
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1375
 msgid "All Wii ISO files (iso)"
 msgstr "Všechny soubory Wii ISO (iso)"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1399
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1390
 msgid "All compressed GC/Wii ISO files (gcz)"
 msgstr "Všechny komprimované soubory GC/WII ISO (gcz)"
 
@@ -1058,11 +1058,11 @@ msgstr ""
 msgid "Are you sure you want to delete \"%s\"?"
 msgstr "Jste si jisti, že chcete smazat \"%s\"?"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1180
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1171
 msgid "Are you sure you want to delete these files? They will be gone forever!"
 msgstr "Jste si jisti, že chcete tyto soubory smazat? Budou navždy ztraceny!"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1179
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1170
 msgid "Are you sure you want to delete this file? It will be gone forever!"
 msgstr "Opravdu chcete smazat tento soubor? Bude navždy ztracen!"
 
@@ -1168,7 +1168,7 @@ msgstr "Nastavení podpůrné vrstvy"
 msgid "Backend:"
 msgstr "Podpůrná vrstva:"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:234
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:235
 #: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:60
 msgid "Background Input"
 msgstr "Zadní Vstup"
@@ -1273,11 +1273,11 @@ msgstr "Spojené ovladače: %lu"
 msgid "Branch: %s"
 msgstr "Větev: %s"
 
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:47
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:56
 msgid "Break"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:48
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:57
 msgid "Break and log"
 msgstr ""
 
@@ -1305,7 +1305,7 @@ msgstr "Rozbité"
 msgid "Browse for a directory to add"
 msgstr "Procházet pro přidání adresáře"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1287
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1278
 msgid "Browse for output directory"
 msgstr "Procházet pro výstupní adresář"
 
@@ -1411,7 +1411,7 @@ msgstr ""
 msgid "Cannot SingleStep the FIFO. Use Frame Advance instead."
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:221
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:230
 msgid "Cannot set uninitialized memory."
 msgstr ""
 
@@ -1431,7 +1431,7 @@ msgstr ""
 msgid "Center"
 msgstr "Střed"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1044
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1042
 msgid "Change &Disc"
 msgstr "Vyměnit &disk"
 
@@ -1618,20 +1618,20 @@ msgstr ""
 msgid "Comment"
 msgstr "Komentář"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1042
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1040
 msgid "Compress ISO..."
 msgstr "Komprimovat ISO..."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1072
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1070
 msgid "Compress selected ISOs..."
 msgstr "Komprimovat vybraná ISO..."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1296
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1414
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1287
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1405
 msgid "Compressing ISO"
 msgstr "Komprimuji ISO"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1495
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1486
 msgid ""
 "Compressing a Wii disc image will irreversibly change the compressed copy by "
 "removing padding data. Your disc image will still work. Continue?"
@@ -1668,8 +1668,8 @@ msgstr ""
 msgid "Config"
 msgstr "Nastavení"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:166
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:338
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:167
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:339
 #: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:234
 msgid "Configure"
 msgstr "Nastavit"
@@ -1686,9 +1686,9 @@ msgstr ""
 msgid "Configure..."
 msgstr "Nastavit..."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1319
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1344
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1409
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1310
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1335
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1400
 msgid "Confirm File Overwrite"
 msgstr "Potvrdit Přepsání Souboru"
 
@@ -1747,7 +1747,7 @@ msgstr "Typ připojení:"
 msgid "Continue"
 msgstr ""
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:348
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:349
 msgid "Continuous Scanning"
 msgstr "Průběžné skenování"
 
@@ -1826,7 +1826,7 @@ msgstr ""
 msgid "Copy &hex"
 msgstr ""
 
-#: Source/Core/Core/ConfigManager.cpp:1095
+#: Source/Core/Core/ConfigManager.cpp:1097
 msgid "Copy failed"
 msgstr "Kopírování selhalo"
 
@@ -1857,7 +1857,7 @@ msgid ""
 "The emulated software will likely hang now."
 msgstr ""
 
-#: Source/Core/Core/ConfigManager.cpp:935
+#: Source/Core/Core/ConfigManager.cpp:937
 #, c-format
 msgid ""
 "Could not read \"%s\". There is no disc in the drive or it is not a GameCube/"
@@ -1865,7 +1865,7 @@ msgid ""
 "original GameCube and Wii discs."
 msgstr ""
 
-#: Source/Core/Core/ConfigManager.cpp:1010
+#: Source/Core/Core/ConfigManager.cpp:1012
 #, c-format
 msgid "Could not recognize ISO file %s"
 msgstr "Nelze rozpoznat ISO soubor %s"
@@ -1996,7 +1996,7 @@ msgstr ""
 msgid "Crossfade"
 msgstr "Crossfade"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:350
+#: Source/Core/DolphinWX/FrameTools.cpp:351
 #, c-format
 msgid "Current directory changed from %s to %s after wxFileSelector!"
 msgstr "Současný adresář se změnil z %s na %s po wxFileSelector!"
@@ -2019,7 +2019,7 @@ msgstr ""
 msgid "D-Pad"
 msgstr "D-Pad"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:51
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:52
 msgid "DK Bongos"
 msgstr "DK Bongos"
 
@@ -2048,7 +2048,7 @@ msgstr "DSP LLE rekompilátor"
 msgid "DVD Root:"
 msgstr "Kořen DVD:"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:51
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:52
 msgid "Dance Mat"
 msgstr "Taneční podložka"
 
@@ -2092,16 +2092,16 @@ msgstr "Ladění"
 msgid "Decimal"
 msgstr "Desetinné"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1040
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1038
 msgid "Decompress ISO..."
 msgstr "Dekomprimovat ISO..."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1073
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1071
 msgid "Decompress selected ISOs..."
 msgstr "Dekomprimovat vybraná ISO..."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1296
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1414
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1287
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1405
 msgid "Decompressing ISO"
 msgstr "Dekomprimuji ISO"
 
@@ -2293,7 +2293,7 @@ msgstr ""
 msgid "Do you want to clear the list of symbol names?"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:821
+#: Source/Core/DolphinWX/FrameTools.cpp:822
 msgid "Do you want to stop the current emulation?"
 msgstr "Chcete současnou emulaci zastavit?"
 
@@ -2302,7 +2302,7 @@ msgid "Dolby Pro Logic II decoder"
 msgstr "Dekodér Dolby Pro Logic II"
 
 #: Source/Core/DolphinWX/AboutDolphin.cpp:26
-#: Source/Core/DolphinWX/FrameTools.cpp:670
+#: Source/Core/DolphinWX/FrameTools.cpp:671
 msgid "Dolphin"
 msgstr "Dolphin"
 
@@ -2316,11 +2316,11 @@ msgstr "Dolphin %s Grafická Nastavení"
 msgid "Dolphin Configuration"
 msgstr "Dolphin Nastavení"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:48
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:49
 msgid "Dolphin Controller Configuration"
 msgstr "Nastavení ovladače Dolphin"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:530
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:531
 #, c-format
 msgid "Dolphin Emulated Wii Remote Configuration Port %i"
 msgstr ""
@@ -2329,7 +2329,7 @@ msgstr ""
 msgid "Dolphin FIFO"
 msgstr "Dolphin FIFO"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1027
+#: Source/Core/DolphinWX/FrameTools.cpp:1028
 msgid "Dolphin Hotkeys"
 msgstr "Klávesové zkratky Dolphin"
 
@@ -2359,8 +2359,8 @@ msgstr ""
 msgid "Dolphin Symbol Rename File (*.sym)"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:484
-#: Source/Core/DolphinWX/FrameTools.cpp:962
+#: Source/Core/DolphinWX/FrameTools.cpp:485
+#: Source/Core/DolphinWX/FrameTools.cpp:963
 msgid "Dolphin TAS Movies (*.dtm)"
 msgstr "Doplhin Filmy TAS (*.dtm)"
 
@@ -2384,8 +2384,8 @@ msgstr ""
 msgid "Dolphin is too old for traversal server"
 msgstr ""
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1356
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1429
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1347
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1420
 msgid "Dolphin was unable to complete the requested action."
 msgstr "Dolphin nemohl dokončit požadovanou činnost."
 
@@ -2609,11 +2609,11 @@ msgstr ""
 "\n"
 "Pokud si nejste jisti, nechejte toto zaškrtnuté."
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:262
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:263
 msgid "Emulate the Wii's Bluetooth adapter"
 msgstr ""
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:312
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:313
 msgid "Emulated Wii Remote"
 msgstr ""
 
@@ -2677,7 +2677,7 @@ msgstr "Povolit Progresivní Skenování"
 msgid "Enable Screen Saver"
 msgstr "Povolit Spořič Obrazovky"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:368
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:369
 msgid "Enable Speaker Data"
 msgstr "Povolit data reproduktorů"
 
@@ -2947,7 +2947,7 @@ msgstr "Exportovat Nahrávku..."
 msgid "Export Save"
 msgstr "Exportovat Uloženou hru"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1016
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1011
 msgid "Export Wii save (Experimental)"
 msgstr "Exportovat uloženou hru Wii (Experimentální)"
 
@@ -3321,7 +3321,7 @@ msgstr "Spravit Kontrolní Součty"
 #. not the kinds of flags that represent e.g. countries
 #: Source/Core/DolphinWX/Debugger/BreakpointView.cpp:37
 #: Source/Core/DolphinWX/Debugger/JitWindow.cpp:180
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:75
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:84
 msgid "Flags"
 msgstr ""
 
@@ -3354,8 +3354,8 @@ msgid "Force Console as NTSC-J"
 msgstr "Donutit konzoli být jako NTSC-J"
 
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:230
-msgid "Force Listen Port: "
-msgstr "Vynutit port pro naslouchání:"
+msgid "Force Listen Port:"
+msgstr ""
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:630
 msgid "Force Texture Filtering"
@@ -3579,7 +3579,7 @@ msgstr ""
 msgid "Function calls"
 msgstr ""
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:51
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:52
 msgid "GBA"
 msgstr "GBA"
 
@@ -3676,20 +3676,20 @@ msgstr "Nastavení Hry"
 msgid "GameCube"
 msgstr "GameCube"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:50
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:51
 msgid "GameCube Adapter for Wii U"
 msgstr "Adaptér GameCube pro Wii U"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:492
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:493
 #, c-format
 msgid "GameCube Controller Configuration Port %i"
 msgstr ""
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:147
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:148
 msgid "GameCube Controllers"
 msgstr "Ovladače GameCube"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:477
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:478
 #, c-format
 msgid "GameCube Keyboard Configuration Port %i"
 msgstr ""
@@ -3904,7 +3904,7 @@ msgstr ""
 "Velikost kódu hostitele je příliš vysoká.\n"
 "Zkontrolujte prosím ,že máte správný kód."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1062
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1060
 msgid "Host with Netplay"
 msgstr ""
 
@@ -3913,7 +3913,7 @@ msgstr ""
 msgid "Hotkeys"
 msgstr "Klávesové zkratky"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:312
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:313
 msgid "Hybrid Wii Remote"
 msgstr ""
 
@@ -4139,11 +4139,11 @@ msgstr "Vložit SD Kartu"
 msgid "Install WAD..."
 msgstr ""
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1051
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1049
 msgid "Install to the NAND"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1207
+#: Source/Core/DolphinWX/FrameTools.cpp:1208
 msgid "Installing WAD..."
 msgstr "Instaluji WAD..."
 
@@ -4217,7 +4217,7 @@ msgstr "Intro"
 msgid "Invalid Mixed Code"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:229
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:238
 #, c-format
 msgid "Invalid address: %s"
 msgstr ""
@@ -4254,7 +4254,7 @@ msgstr "Neplatný řetězec hledání (jsou podporovány pouze sudé délky řet
 msgid "Invalid value."
 msgstr "Neplatná hodnota."
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:237
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:246
 #, c-format
 msgid "Invalid value: %s"
 msgstr ""
@@ -4315,7 +4315,7 @@ msgstr ""
 "Pokud si nejste jisti, nechejte toto odškrtnuté."
 
 #: Source/Core/Core/HW/GCKeyboard.cpp:21
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:52
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:53
 msgid "Keyboard"
 msgstr "Klávesnice"
 
@@ -4549,11 +4549,11 @@ msgstr "Nahrát Stav..."
 msgid "Load Wii Save"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:584
+#: Source/Core/DolphinWX/MainMenuBar.cpp:587
 msgid "Load Wii System Menu"
 msgstr "Nahrát Systémové Menu Wii"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:579
+#: Source/Core/DolphinWX/MainMenuBar.cpp:582
 #, c-format
 msgid "Load Wii System Menu %s"
 msgstr ""
@@ -4603,8 +4603,8 @@ msgstr "Načteno %d dobrých funkcí, ignorováno %d špatných funkcí."
 msgid "Localhost"
 msgstr "Místní hostitel"
 
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:46
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:192
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:55
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:201
 #: Source/Core/DolphinWX/LogWindow.h:30
 msgid "Log"
 msgstr "Záznam"
@@ -4696,7 +4696,7 @@ msgstr ""
 "\n"
 "Pokud si nejste jisti, nechejte toto odškrtnuté."
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:456
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:465
 msgid "Match Found"
 msgstr ""
 
@@ -4727,7 +4727,7 @@ msgstr "Paměťová karta"
 msgid "Memory Card Manager"
 msgstr "Správce Paměťových karet"
 
-#: Source/Core/Core/ConfigManager.cpp:1087
+#: Source/Core/Core/ConfigManager.cpp:1089
 #, c-format
 msgid ""
 "Memory Card filename in Slot %c is incorrect\n"
@@ -4744,11 +4744,11 @@ msgstr ""
 "%s\n"
 "Chtěli byste starý soubor zkopírovat do nového umístění?\n"
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:362
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:371
 msgid "Memory Not Ready"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:197
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:206
 msgid "Memory breakpoint options"
 msgstr ""
 
@@ -4923,11 +4923,11 @@ msgstr "Další Skenování"
 msgid "Nickname:"
 msgstr "Přezdívka:"
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:465
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:474
 msgid "No Match"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:407
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:416
 msgid "No Value Given"
 msgstr ""
 
@@ -4961,8 +4961,8 @@ msgid "No undo.dtm found, aborting undo load state to prevent movie desyncs"
 msgstr ""
 "Žádné undo.dtm nenalezeno, aby se zabránilo desynchronizaci videa, bude "
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:50
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:312
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:51
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:313
 #: Source/Core/DolphinWX/NetPlay/PadMapDialog.cpp:27
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:1301
 msgid "None"
@@ -4978,7 +4978,7 @@ msgstr "Nerovná se"
 msgid "Not Set"
 msgstr "Nenastaven"
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:385
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:394
 msgid "Not Valid Hex"
 msgstr ""
 
@@ -5093,11 +5093,11 @@ msgstr ""
 msgid "Open"
 msgstr "Otevřít"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1025
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1023
 msgid "Open &containing folder"
 msgstr "Otevřít &adresář umístění"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1014
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1009
 msgid "Open Wii &save folder"
 msgstr "Otevřít Wii adre&sář uložení"
 
@@ -5207,7 +5207,7 @@ msgstr ""
 msgid "Partition %u"
 msgstr ""
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:251
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:252
 msgid "Passthrough a Bluetooth adapter"
 msgstr ""
 
@@ -5300,7 +5300,7 @@ msgstr "Možnosti Přehrávání"
 msgid "Players"
 msgstr "Hráči"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:825
+#: Source/Core/DolphinWX/FrameTools.cpp:826
 msgid "Please confirm..."
 msgstr "Prosím potvrďte..."
 
@@ -5308,16 +5308,13 @@ msgstr "Prosím potvrďte..."
 msgid "Please create a perspective before saving"
 msgstr "Před uložením si prosím vytvořte perspektivu"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:160
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:161
 #, c-format
 msgid "Port %i"
 msgstr "Port %i"
 
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:226
-msgid "Port :"
-msgstr "Port :"
-
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:186
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:226
 msgid "Port:"
 msgstr ""
 
@@ -5418,19 +5415,19 @@ msgstr "Rádius"
 msgid "Range"
 msgstr "Rozsah"
 
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:42
-msgid "Read"
-msgstr ""
-
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:182
-msgid "Read and Write"
-msgstr ""
-
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:44
+#. i18n: This string is used for a radio button that represents the type of
+#. memory breakpoint that gets triggered when a read operation or write operation occurs.
+#. The string is not a command to read and write something or to allow reading and writing.
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:53
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:185
 msgid "Read and write"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:186
+#. i18n: This string is used for a radio button that represents the type of
+#. memory breakpoint that gets triggered when a read operation occurs.
+#. The string does not mean "read-only" in the sense that something cannot be written to.
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:44
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:192
 msgid "Read only"
 msgstr ""
 
@@ -5442,11 +5439,11 @@ msgstr "Režim pouze pro čtení"
 msgid "Real"
 msgstr "Opravdová"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:362
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:363
 msgid "Real Balance Board"
 msgstr "Opravdové Rola-Bola"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:312
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:313
 msgid "Real Wii Remote"
 msgstr ""
 
@@ -5512,7 +5509,7 @@ msgstr ""
 "\n"
 "Pokud si nejste jisti, zvolte Žádné."
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:352
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:353
 #: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1192
 #: Source/Core/DolphinWX/MainToolBar.cpp:178
 msgid "Refresh"
@@ -5582,7 +5579,7 @@ msgid "Report: GCIFolder Writing to unallocated block 0x%x"
 msgstr "Hlášení: GCIFolder zapisuje do nepřiděleného bloku 0x%x"
 
 #: Source/Core/Core/HotkeyManager.cpp:28
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:289
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:290
 #: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1211
 msgid "Reset"
 msgstr "Resetovat"
@@ -5591,11 +5588,11 @@ msgstr "Resetovat"
 msgid "Reset Traversal Settings"
 msgstr "Resetovat nastavení průchod"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:565
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:566
 msgid "Reset Wii Remote pairings"
 msgstr ""
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:287
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:288
 msgid "Reset all saved Wii Remote pairings"
 msgstr ""
 
@@ -5772,7 +5769,7 @@ msgstr "Uložit jako"
 msgid "Save combined output file as"
 msgstr ""
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1397
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1388
 msgid "Save compressed GCM/ISO"
 msgstr "Uložit komprimované GCM/ISO"
 
@@ -5780,7 +5777,7 @@ msgstr "Uložit komprimované GCM/ISO"
 msgid "Save currently-toggled perspectives"
 msgstr ""
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1388
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1379
 msgid "Save decompressed GCM/ISO"
 msgstr "Uložit dekomprimované GCM/ISO"
 
@@ -5825,7 +5822,7 @@ msgstr "Uložit do zvolené pozice"
 msgid "Saved Perspectives"
 msgstr ""
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:564
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:565
 msgid "Saved Wii Remote pairings can only be reset when a Wii game is running."
 msgstr ""
 
@@ -5959,8 +5956,8 @@ msgstr "Vybrat stav na pozici 8"
 msgid "Select State Slot 9"
 msgstr "Vybrat stav na pozici 9"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:483
-#: Source/Core/DolphinWX/FrameTools.cpp:961
+#: Source/Core/DolphinWX/FrameTools.cpp:484
+#: Source/Core/DolphinWX/FrameTools.cpp:962
 msgid "Select The Recording File"
 msgstr "Vyberte Soubor s Nahrávkou"
 
@@ -5968,7 +5965,7 @@ msgstr "Vyberte Soubor s Nahrávkou"
 msgid "Select a BootMii NAND backup to import"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1197
+#: Source/Core/DolphinWX/FrameTools.cpp:1198
 msgid "Select a Wii WAD file to install"
 msgstr "Vyberte soubor Wii WAD k instalování"
 
@@ -5984,11 +5981,11 @@ msgstr "Vybrat plovoucí okna"
 msgid "Select state"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:336
+#: Source/Core/DolphinWX/FrameTools.cpp:337
 msgid "Select the file to load"
 msgstr "Vyberte soubor k nahrání"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1158
+#: Source/Core/DolphinWX/FrameTools.cpp:1159
 msgid "Select the save file"
 msgstr "Vyberte soubor s uloženou hrou"
 
@@ -6131,7 +6128,7 @@ msgstr ""
 msgid "Set Value"
 msgstr ""
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1028
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1026
 msgid "Set as &default ISO"
 msgstr "Nastavit jako &výchozí ISO"
 
@@ -6167,7 +6164,7 @@ msgid ""
 "backends only."
 msgstr ""
 
-#: Source/Core/Core/Boot/Boot_BS2Emu.cpp:248
+#: Source/Core/Core/Boot/Boot_BS2Emu.cpp:271
 msgid "SetupWiiMemory: Can't create setting.txt file"
 msgstr "Nastavení paměti Wii: Nelze vytvořit soubor settings.txt"
 
@@ -6546,7 +6543,7 @@ msgstr ""
 "Způsobí výrazné zvýšení rychlosti na většině moderních PC, ale také může "
 "způsobovat občasné chyby/pády."
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:50
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:51
 msgid "Standard Controller"
 msgstr "Standardní Ovladač"
 
@@ -6583,7 +6580,7 @@ msgstr "Stav"
 msgid "Statistics"
 msgstr ""
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:51
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:52
 msgid "Steering Wheel"
 msgstr "Volant"
 
@@ -6776,15 +6773,15 @@ msgstr ""
 msgid "Symbols"
 msgstr ""
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:283
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:284
 msgid "Sync"
 msgstr ""
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:550
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:551
 msgid "Sync Wii Remotes"
 msgstr ""
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:281
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:282
 msgid "Sync real Wii Remotes and pair them"
 msgstr ""
 
@@ -6814,12 +6811,12 @@ msgstr "Jazyk Systému:"
 msgid "TAS Input"
 msgstr "TAS Vstup"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:381
+#: Source/Core/DolphinWX/FrameTools.cpp:382
 #, c-format
 msgid "TAS Input - GameCube Controller %d"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:389
+#: Source/Core/DolphinWX/FrameTools.cpp:390
 #, c-format
 msgid "TAS Input - Wii Remote %d"
 msgstr ""
@@ -6897,7 +6894,7 @@ msgstr ""
 "\n"
 "Pokud si nejste jisti, použijte hodnotu zcela vpravo."
 
-#: Source/Core/Core/ConfigManager.cpp:998
+#: Source/Core/Core/ConfigManager.cpp:1000
 msgid "The WAD has been installed successfully"
 msgstr "WAD byl úspěšně nainstalován"
 
@@ -6960,9 +6957,9 @@ msgstr ""
 msgid "The entered VID is invalid."
 msgstr ""
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1317
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1342
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1407
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1308
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1333
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1398
 #, c-format
 msgid ""
 "The file %s already exists.\n"
@@ -7030,7 +7027,7 @@ msgstr "Server odpověděl: hra v současnosti běží!"
 msgid "The server sent an unknown error message!"
 msgstr "Server zaslal neznámou chybovou zprávu!"
 
-#: Source/Core/Core/ConfigManager.cpp:919
+#: Source/Core/Core/ConfigManager.cpp:921
 #, c-format
 msgid "The specified file \"%s\" does not exist"
 msgstr "Zadaný soubor \"%s\" neexistuje"
@@ -7308,7 +7305,7 @@ msgstr "Při připojování průchozího serveru k hostiteli vršek časový lim
 msgid "Tried to decrypt data from a non-Wii volume"
 msgstr "Pokus o rozšifrování dat pocházející ze svazku nepatřící Wii"
 
-#: Source/Core/Core/Boot/Boot.cpp:469
+#: Source/Core/Core/Boot/Boot.cpp:450
 msgid "Tried to load an unknown file type."
 msgstr "Pokus o načtení souboru neznámého typu."
 
@@ -7412,11 +7409,11 @@ msgstr "Vrátit zpět Uložení Stavu"
 msgid "Unexpected 0x80 call? Aborting..."
 msgstr "Neočekávané volání 0x80? Ukončování..."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1053
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1051
 msgid "Uninstall from the NAND"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1224
+#: Source/Core/DolphinWX/FrameTools.cpp:1225
 msgid ""
 "Uninstalling the WAD will remove the currently installed version of this "
 "title from the NAND without deleting its save data. Continue?"
@@ -7570,7 +7567,7 @@ msgstr "Hodnota (double)"
 msgid "Value (float)"
 msgstr "Hodnota (float)"
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:401
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:410
 msgid "Value Too Large"
 msgstr ""
 
@@ -7678,13 +7675,13 @@ msgstr "Zapnout ztlumení zvuku"
 msgid "Volume Up"
 msgstr "Zvýšit hlasitost"
 
-#: Source/Core/DiscIO/NANDContentLoader.cpp:297
-#: Source/Core/DiscIO/NANDContentLoader.cpp:319
+#: Source/Core/DiscIO/NANDContentLoader.cpp:268
+#: Source/Core/DiscIO/NANDContentLoader.cpp:290
 #, c-format
 msgid "WAD installation failed: error creating %s"
 msgstr "Instalace WAD selhala: chyba při vytváření %s"
 
-#: Source/Core/DiscIO/NANDContentLoader.cpp:334
+#: Source/Core/DiscIO/NANDContentLoader.cpp:305
 msgid "WAD installation failed: error creating ticket"
 msgstr "Instalace WAD selhala: chyba při vytváření lístku"
 
@@ -7701,8 +7698,8 @@ msgstr ""
 "Pokud si nejste jisti, nechejte toto odškrtnuté."
 
 #: Source/Core/Common/MsgHandler.cpp:67
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1182
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1497
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1173
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1488
 #: Source/Core/DolphinWX/LogConfigWindow.cpp:44
 #: Source/Core/DolphinWX/MemcardManager.cpp:587
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:363
@@ -7845,7 +7842,7 @@ msgstr "Wii Kořen NAND:"
 msgid "Wii Remote"
 msgstr ""
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:332
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:333
 #, c-format
 msgid "Wii Remote %i"
 msgstr ""
@@ -7862,16 +7859,16 @@ msgstr ""
 msgid "Wii Remote Settings"
 msgstr ""
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:249
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:250
 msgid "Wii Remotes"
 msgstr ""
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:483
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:484
 #, c-format
 msgid "Wii U GameCube Controller Adapter Configuration Port %i"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1198
+#: Source/Core/DolphinWX/FrameTools.cpp:1199
 msgid "Wii WAD files (*.wad)"
 msgstr "Soubory Wii WAD (*.wad)"
 
@@ -7879,7 +7876,7 @@ msgstr "Soubory Wii WAD (*.wad)"
 msgid "Wii and Wii Remote"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1159
+#: Source/Core/DolphinWX/FrameTools.cpp:1160
 msgid "Wii save files (*.bin)"
 msgstr "Wii soubory s uložením (*.bin)"
 
@@ -7903,10 +7900,10 @@ msgstr ""
 msgid "Word Wrap"
 msgstr "Zalamování textu"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1207
+#: Source/Core/DolphinWX/FrameTools.cpp:1208
 #: Source/Core/DolphinWX/FrameTools.cpp:1259
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1296
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1415
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1287
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1406
 #: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:381
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:325
 msgid "Working..."
@@ -7916,11 +7913,11 @@ msgstr "Pracuji..."
 msgid "World"
 msgstr "Světové"
 
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:43
-msgid "Write"
-msgstr ""
-
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:189
+#. i18n: This string is used for a radio button that represents the type of
+#. memory breakpoint that gets triggered when a write operation occurs.
+#. The string does not mean "write-only" in the sense that something cannot be read from.
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:49
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:198
 msgid "Write only"
 msgstr ""
 
@@ -8007,7 +8004,7 @@ msgstr ""
 "Chtěli byste nyní přestat a problém opravit?\n"
 "Pokud zvolíte \"Ne\", mlže být zvuk poškozený."
 
-#: Source/Core/Core/ConfigManager.cpp:951
+#: Source/Core/Core/ConfigManager.cpp:953
 msgid ""
 "Your GCM/ISO file seems to be invalid (invalid country).\n"
 "Continue with PAL region?"

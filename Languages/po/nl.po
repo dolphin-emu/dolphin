@@ -17,8 +17,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-05-06 15:02+0200\n"
-"PO-Revision-Date: 2017-05-06 13:03+0000\n"
+"POT-Creation-Date: 2017-05-13 11:35+0200\n"
+"PO-Revision-Date: 2017-05-13 09:35+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Dutch (http://www.transifex.com/delroth/dolphin-emu/language/"
 "nl/)\n"
@@ -79,7 +79,7 @@ msgstr ""
 msgid "\"%s\" is already compressed! Cannot compress it further."
 msgstr "\"%s\" is al gecomprimeerd en kan niet verder worden gecomprimeerd."
 
-#: Source/Core/Core/ConfigManager.cpp:941
+#: Source/Core/Core/ConfigManager.cpp:943
 #, c-format
 msgid "\"%s\" is an invalid GCM/ISO file, or is not a GC/Wii ISO."
 msgstr "\"%s\" is een ongeldig GCM/ISO bestand."
@@ -326,11 +326,11 @@ msgstr ""
 msgid "&Debug"
 msgstr "&Debug"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1035
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1033
 msgid "&Delete File..."
 msgstr "&Verwijder Bestand..."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1070
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1068
 msgid "&Delete selected ISOs..."
 msgstr "&Verwijder geselecteerde ISOs..."
 
@@ -499,7 +499,7 @@ msgstr ""
 msgid "&Profiler"
 msgstr ""
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1007
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1002
 msgid "&Properties"
 msgstr "&Eigenschappen "
 
@@ -585,7 +585,7 @@ msgstr "&Watchvenster"
 msgid "&Website"
 msgstr "&Website"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1008
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1003
 msgid "&Wiki"
 msgstr "&Wiki"
 
@@ -720,7 +720,7 @@ msgstr ""
 msgid "A game is not currently running."
 msgstr "Er is geen spel geladen."
 
-#: Source/Core/DolphinWX/FrameTools.cpp:822
+#: Source/Core/DolphinWX/FrameTools.cpp:823
 msgid ""
 "A shutdown is already in progress. Unsaved data may be lost if you stop the "
 "current emulation before it completes. Force stop?"
@@ -728,7 +728,7 @@ msgstr ""
 "Er wordt al afgesloten. Niet opgeslagen data kan verloren gaan wanneer je de "
 "huidige emulatie stopzet voordat het afsluiten voltooid wordt. Stop forceren?"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:357
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:358
 msgid ""
 "A supported Bluetooth device could not be found,\n"
 "so you must connect Wii Remotes manually."
@@ -736,7 +736,7 @@ msgstr ""
 "Er is geen ondersteunde Bluetooth apparaat gevonden.\n"
 "Koppel je Wii-Afstandsbedieningen handmatig aan het systeem."
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:549
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:550
 msgid "A sync can only be triggered when a Wii game is running."
 msgstr ""
 "Een synchronisatie kan alleen worden geactiveerd wanneer er een Wii "
@@ -782,7 +782,7 @@ msgstr "Over Dolphin"
 msgid "Accuracy:"
 msgstr "Nauwkeurigheid:"
 
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:69
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:78
 msgid "Action"
 msgstr "Actie"
 
@@ -959,7 +959,7 @@ msgstr "Toevoegen..."
 msgid "Address"
 msgstr "Adres"
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:435
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:444
 msgid "Address Out of Range"
 msgstr "Adres buiten Bereik"
 
@@ -978,16 +978,16 @@ msgid "Advanced"
 msgstr "Geavanceerd"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:127
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:239
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:240
 msgid "Advanced Settings"
 msgstr "Geavanceerde Instellingen"
 
 #: Source/Core/DolphinWX/Config/PathConfigPane.cpp:44
-#: Source/Core/DolphinWX/FrameTools.cpp:337
+#: Source/Core/DolphinWX/FrameTools.cpp:338
 msgid "All GC/Wii files (elf, dol, gcm, iso, tgc, wbfs, ciso, gcz, wad)"
 msgstr "Alle GC/Wii bestanden (elf, dol, gcm, iso, tgc, wbfs, ciso, gcz, wad)"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1386
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1377
 msgid "All GameCube GCM files (gcm)"
 msgstr "Alle GameCube GCM bestanden (gcm)"
 
@@ -996,11 +996,11 @@ msgstr "Alle GameCube GCM bestanden (gcm)"
 msgid "All Save States (sav, s##)"
 msgstr "Alle Savestaten (sav, s##)"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1384
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1375
 msgid "All Wii ISO files (iso)"
 msgstr "Alle Wii ISO Bestanden (iso)"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1399
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1390
 msgid "All compressed GC/Wii ISO files (gcz)"
 msgstr "Alle gecomprimeerde GC/Wii ISO-bestanden (GCZ)"
 
@@ -1093,13 +1093,13 @@ msgstr ""
 msgid "Are you sure you want to delete \"%s\"?"
 msgstr "Weet u zeker dat u  \"%s\"? wilt verwijderen?"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1180
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1171
 msgid "Are you sure you want to delete these files? They will be gone forever!"
 msgstr ""
 "Weet u zeker dat u deze bestanden wilt verwijderen?  Deze gegevens zijn niet "
 "meer terug te halen!"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1179
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1170
 msgid "Are you sure you want to delete this file? It will be gone forever!"
 msgstr ""
 "Weet u zeker dat u dit bestand wilt verwijderen?  Deze gegevens zijn niet "
@@ -1212,7 +1212,7 @@ msgstr "Backend Instellingen"
 msgid "Backend:"
 msgstr "Backend:"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:234
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:235
 #: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:60
 msgid "Background Input"
 msgstr "Achtergrond invoer"
@@ -1319,11 +1319,11 @@ msgstr "Gekoppelde controls: %lu"
 msgid "Branch: %s"
 msgstr "Tak: %s"
 
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:47
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:56
 msgid "Break"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:48
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:57
 msgid "Break and log"
 msgstr ""
 
@@ -1351,7 +1351,7 @@ msgstr "Defect"
 msgid "Browse for a directory to add"
 msgstr "Selecteer een map om toe te voegen"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1287
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1278
 msgid "Browse for output directory"
 msgstr "Selecteer een uitvoer folder"
 
@@ -1459,7 +1459,7 @@ msgstr ""
 msgid "Cannot SingleStep the FIFO. Use Frame Advance instead."
 msgstr "Kan SingleStep niet uitvoeren. Gebruik Frame Avanceren."
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:221
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:230
 msgid "Cannot set uninitialized memory."
 msgstr ""
 
@@ -1479,7 +1479,7 @@ msgstr ""
 msgid "Center"
 msgstr "Middelpunt"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1044
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1042
 msgid "Change &Disc"
 msgstr "Verander &Schijf"
 
@@ -1668,20 +1668,20 @@ msgstr ""
 msgid "Comment"
 msgstr "Reactie"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1042
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1040
 msgid "Compress ISO..."
 msgstr "Comprimeer ISO ..."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1072
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1070
 msgid "Compress selected ISOs..."
 msgstr "Comprimeer geselecteerde ISO's ..."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1296
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1414
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1287
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1405
 msgid "Compressing ISO"
 msgstr "ISO wordt gecomprimeerd"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1495
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1486
 msgid ""
 "Compressing a Wii disc image will irreversibly change the compressed copy by "
 "removing padding data. Your disc image will still work. Continue?"
@@ -1720,8 +1720,8 @@ msgstr "Berekenen:"
 msgid "Config"
 msgstr "Config"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:166
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:338
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:167
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:339
 #: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:234
 msgid "Configure"
 msgstr "Configureer"
@@ -1738,9 +1738,9 @@ msgstr "Dolphin Configureren"
 msgid "Configure..."
 msgstr "Configureer..."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1319
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1344
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1409
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1310
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1335
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1400
 msgid "Confirm File Overwrite"
 msgstr "Bevestig om bestand over te schrijven."
 
@@ -1799,7 +1799,7 @@ msgstr "Verbindingstype:"
 msgid "Continue"
 msgstr "Verdergaan"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:348
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:349
 msgid "Continuous Scanning"
 msgstr "Continu scannen"
 
@@ -1876,7 +1876,7 @@ msgstr "Kopieer &functie"
 msgid "Copy &hex"
 msgstr "Kopieer &hex"
 
-#: Source/Core/Core/ConfigManager.cpp:1095
+#: Source/Core/Core/ConfigManager.cpp:1097
 msgid "Copy failed"
 msgstr "Kopiëren mislukt"
 
@@ -1909,7 +1909,7 @@ msgstr ""
 "Kon %016<PRIx64> niet starten omdat het in de NAND mist.\n"
 "The geëmuleerde software zal nu waarschijnlijk vast lopen."
 
-#: Source/Core/Core/ConfigManager.cpp:935
+#: Source/Core/Core/ConfigManager.cpp:937
 #, c-format
 msgid ""
 "Could not read \"%s\". There is no disc in the drive or it is not a GameCube/"
@@ -1920,7 +1920,7 @@ msgstr ""
 "station gevonden. Dolphin kan geen spellen direct vanaf de originele "
 "GameCube of Wii schijf afspelen."
 
-#: Source/Core/Core/ConfigManager.cpp:1010
+#: Source/Core/Core/ConfigManager.cpp:1012
 #, c-format
 msgid "Could not recognize ISO file %s"
 msgstr "Kan ISO bestand %s niet herkennen."
@@ -2055,7 +2055,7 @@ msgstr ""
 msgid "Crossfade"
 msgstr "Crossfade"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:350
+#: Source/Core/DolphinWX/FrameTools.cpp:351
 #, c-format
 msgid "Current directory changed from %s to %s after wxFileSelector!"
 msgstr "Huidige map verandert van %s naar %s na wxFileSelector!"
@@ -2078,7 +2078,7 @@ msgstr "Aangepaste RTC Opties"
 msgid "D-Pad"
 msgstr "D-Pad"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:51
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:52
 msgid "DK Bongos"
 msgstr "DK Bongos"
 
@@ -2107,7 +2107,7 @@ msgstr "DSP LLE recompiler"
 msgid "DVD Root:"
 msgstr "DVD Station:"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:51
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:52
 msgid "Dance Mat"
 msgstr "Dansmat"
 
@@ -2151,16 +2151,16 @@ msgstr "Debugging"
 msgid "Decimal"
 msgstr "Decimaal"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1040
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1038
 msgid "Decompress ISO..."
 msgstr "Decomprimeer ISO..."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1073
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1071
 msgid "Decompress selected ISOs..."
 msgstr "Decomprimeer geselecteerde ISOs..."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1296
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1414
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1287
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1405
 msgid "Decompressing ISO"
 msgstr "Decomprimeer ISO"
 
@@ -2351,7 +2351,7 @@ msgstr ""
 msgid "Do you want to clear the list of symbol names?"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:821
+#: Source/Core/DolphinWX/FrameTools.cpp:822
 msgid "Do you want to stop the current emulation?"
 msgstr "Wilt u de emulatie stoppen?"
 
@@ -2360,7 +2360,7 @@ msgid "Dolby Pro Logic II decoder"
 msgstr "Dolby Pro Logic II decoder"
 
 #: Source/Core/DolphinWX/AboutDolphin.cpp:26
-#: Source/Core/DolphinWX/FrameTools.cpp:670
+#: Source/Core/DolphinWX/FrameTools.cpp:671
 msgid "Dolphin"
 msgstr "Dolphin"
 
@@ -2374,11 +2374,11 @@ msgstr "Dolphin %s Grafische Configuratie"
 msgid "Dolphin Configuration"
 msgstr "Dolphin Configuratie"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:48
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:49
 msgid "Dolphin Controller Configuration"
 msgstr "Dolphin Controllerconfiguratie"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:530
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:531
 #, c-format
 msgid "Dolphin Emulated Wii Remote Configuration Port %i"
 msgstr ""
@@ -2387,7 +2387,7 @@ msgstr ""
 msgid "Dolphin FIFO"
 msgstr "Dolphin FIFO"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1027
+#: Source/Core/DolphinWX/FrameTools.cpp:1028
 msgid "Dolphin Hotkeys"
 msgstr "Dolphin Sneltoetsen"
 
@@ -2417,8 +2417,8 @@ msgstr "Dolphin handtekening File (*.dsy)"
 msgid "Dolphin Symbol Rename File (*.sym)"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:484
-#: Source/Core/DolphinWX/FrameTools.cpp:962
+#: Source/Core/DolphinWX/FrameTools.cpp:485
+#: Source/Core/DolphinWX/FrameTools.cpp:963
 msgid "Dolphin TAS Movies (*.dtm)"
 msgstr "Dolphin TAS Film (*.dtm)"
 
@@ -2442,8 +2442,8 @@ msgstr ""
 msgid "Dolphin is too old for traversal server"
 msgstr "Dolphin is te oud voor de traversal server"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1356
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1429
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1347
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1420
 msgid "Dolphin was unable to complete the requested action."
 msgstr "Dolphin kan de verzochte actie niet uitvoeren."
 
@@ -2668,11 +2668,11 @@ msgstr ""
 "\n"
 "In geval van twijfel geselecteerd laten."
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:262
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:263
 msgid "Emulate the Wii's Bluetooth adapter"
 msgstr "Emuleer de Wii's Bluetooth adapter"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:312
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:313
 msgid "Emulated Wii Remote"
 msgstr "Emuleer Wii-afstandsbediening"
 
@@ -2736,7 +2736,7 @@ msgstr "Activeer Progressieve Scan"
 msgid "Enable Screen Saver"
 msgstr "Activeer Schermbeveiliger"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:368
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:369
 msgid "Enable Speaker Data"
 msgstr "Activeer Speaker Data"
 
@@ -3008,7 +3008,7 @@ msgstr "Exporteer Opname..."
 msgid "Export Save"
 msgstr "Exporteer Save"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1016
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1011
 msgid "Export Wii save (Experimental)"
 msgstr "Exporteer Wii save (Experimenteel)"
 
@@ -3383,7 +3383,7 @@ msgstr "Herstel Checksums"
 #. not the kinds of flags that represent e.g. countries
 #: Source/Core/DolphinWX/Debugger/BreakpointView.cpp:37
 #: Source/Core/DolphinWX/Debugger/JitWindow.cpp:180
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:75
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:84
 msgid "Flags"
 msgstr ""
 
@@ -3416,8 +3416,8 @@ msgid "Force Console as NTSC-J"
 msgstr "Forceer Console als NTSC-J"
 
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:230
-msgid "Force Listen Port: "
-msgstr "Forceer Luisterpoort:"
+msgid "Force Listen Port:"
+msgstr ""
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:630
 msgid "Force Texture Filtering"
@@ -3648,7 +3648,7 @@ msgstr ""
 msgid "Function calls"
 msgstr ""
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:51
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:52
 msgid "GBA"
 msgstr "GBA"
 
@@ -3744,20 +3744,20 @@ msgstr "Spel Config"
 msgid "GameCube"
 msgstr "GameCube"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:50
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:51
 msgid "GameCube Adapter for Wii U"
 msgstr "GameCube Adapter voor de Wii U"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:492
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:493
 #, c-format
 msgid "GameCube Controller Configuration Port %i"
 msgstr "GameCube Controller Configuratie Poort %i"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:147
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:148
 msgid "GameCube Controllers"
 msgstr "GameCube Controllers"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:477
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:478
 #, c-format
 msgid "GameCube Keyboard Configuration Port %i"
 msgstr "GameCube Toetsenbord Configuratie Poort  %i"
@@ -3973,7 +3973,7 @@ msgstr ""
 "De host code grootte klopt niet.\n"
 "Controleer of u de juiste code heeft."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1062
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1060
 msgid "Host with Netplay"
 msgstr "Host met Netplay"
 
@@ -3982,7 +3982,7 @@ msgstr "Host met Netplay"
 msgid "Hotkeys"
 msgstr "Sneltoetsen"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:312
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:313
 msgid "Hybrid Wii Remote"
 msgstr "Hybride Wii-afstandsbediening"
 
@@ -4220,11 +4220,11 @@ msgstr "Steek SD-kaart in"
 msgid "Install WAD..."
 msgstr "Installeer WAD..."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1051
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1049
 msgid "Install to the NAND"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1207
+#: Source/Core/DolphinWX/FrameTools.cpp:1208
 msgid "Installing WAD..."
 msgstr "WAD aan het installeren..."
 
@@ -4298,7 +4298,7 @@ msgstr "Intro"
 msgid "Invalid Mixed Code"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:229
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:238
 #, c-format
 msgid "Invalid address: %s"
 msgstr ""
@@ -4336,7 +4336,7 @@ msgstr ""
 msgid "Invalid value."
 msgstr "Ongeldige waarde."
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:237
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:246
 #, c-format
 msgid "Invalid value: %s"
 msgstr ""
@@ -4397,7 +4397,7 @@ msgstr ""
 "In geval van twijfel leeg laten."
 
 #: Source/Core/Core/HW/GCKeyboard.cpp:21
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:52
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:53
 msgid "Keyboard"
 msgstr "Toetsenbord"
 
@@ -4631,11 +4631,11 @@ msgstr "Laad Staat..."
 msgid "Load Wii Save"
 msgstr "Laad Wii Save"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:584
+#: Source/Core/DolphinWX/MainMenuBar.cpp:587
 msgid "Load Wii System Menu"
 msgstr "Laad Wii System Menu"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:579
+#: Source/Core/DolphinWX/MainMenuBar.cpp:582
 #, c-format
 msgid "Load Wii System Menu %s"
 msgstr ""
@@ -4687,8 +4687,8 @@ msgstr ""
 msgid "Localhost"
 msgstr "Localhost"
 
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:46
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:192
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:55
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:201
 #: Source/Core/DolphinWX/LogWindow.h:30
 msgid "Log"
 msgstr "Logboek"
@@ -4780,7 +4780,7 @@ msgstr ""
 "\n"
 "In geval van twijfel leeg laten."
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:456
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:465
 msgid "Match Found"
 msgstr "Overeenkomst Gevonden"
 
@@ -4811,7 +4811,7 @@ msgstr "Geheugenkaart"
 msgid "Memory Card Manager"
 msgstr "Geheugenkaart Manager"
 
-#: Source/Core/Core/ConfigManager.cpp:1087
+#: Source/Core/Core/ConfigManager.cpp:1089
 #, c-format
 msgid ""
 "Memory Card filename in Slot %c is incorrect\n"
@@ -4828,11 +4828,11 @@ msgstr ""
 "%s\n"
 "Wilt u de oude bestanden naar de nieuwe locatie kopiëren?\n"
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:362
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:371
 msgid "Memory Not Ready"
 msgstr "Geheugen Niet Gereed"
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:197
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:206
 msgid "Memory breakpoint options"
 msgstr ""
 
@@ -5007,11 +5007,11 @@ msgstr "Volgende Scan"
 msgid "Nickname:"
 msgstr "Bijnaam:"
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:465
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:474
 msgid "No Match"
 msgstr "Geen Overeenkomst"
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:407
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:416
 msgid "No Value Given"
 msgstr "Geen Waarde Gegeven"
 
@@ -5046,8 +5046,8 @@ msgstr ""
 "Geen undo.dtm gevonden. Het ongedaan maken van load state wordt afgebroken "
 "om desynchronisatie te voorkomen."
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:50
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:312
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:51
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:313
 #: Source/Core/DolphinWX/NetPlay/PadMapDialog.cpp:27
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:1301
 msgid "None"
@@ -5063,7 +5063,7 @@ msgstr "Niet gelijk"
 msgid "Not Set"
 msgstr "Niet ingesteld"
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:385
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:394
 msgid "Not Valid Hex"
 msgstr "Ongeldige Hex"
 
@@ -5178,11 +5178,11 @@ msgstr ""
 msgid "Open"
 msgstr "Open"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1025
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1023
 msgid "Open &containing folder"
 msgstr "Open &bevattende map"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1014
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1009
 msgid "Open Wii &save folder"
 msgstr "Open Wii &save map"
 
@@ -5292,7 +5292,7 @@ msgstr "Parseerfout"
 msgid "Partition %u"
 msgstr "Partitie %u"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:251
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:252
 msgid "Passthrough a Bluetooth adapter"
 msgstr "Passthrough een Bluetooth adapter"
 
@@ -5385,7 +5385,7 @@ msgstr "Terugspeel Opties"
 msgid "Players"
 msgstr "Spelers"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:825
+#: Source/Core/DolphinWX/FrameTools.cpp:826
 msgid "Please confirm..."
 msgstr "Bevestig alstublieft..."
 
@@ -5393,16 +5393,13 @@ msgstr "Bevestig alstublieft..."
 msgid "Please create a perspective before saving"
 msgstr "Maak een perspectief voor het opslaan"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:160
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:161
 #, c-format
 msgid "Port %i"
 msgstr "Poort %i"
 
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:226
-msgid "Port :"
-msgstr "Poort :"
-
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:186
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:226
 msgid "Port:"
 msgstr ""
 
@@ -5503,19 +5500,19 @@ msgstr "Radius"
 msgid "Range"
 msgstr "Afstand"
 
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:42
-msgid "Read"
-msgstr "Lezen"
-
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:182
-msgid "Read and Write"
-msgstr ""
-
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:44
+#. i18n: This string is used for a radio button that represents the type of
+#. memory breakpoint that gets triggered when a read operation or write operation occurs.
+#. The string is not a command to read and write something or to allow reading and writing.
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:53
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:185
 msgid "Read and write"
 msgstr "Lezen en schrijven"
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:186
+#. i18n: This string is used for a radio button that represents the type of
+#. memory breakpoint that gets triggered when a read operation occurs.
+#. The string does not mean "read-only" in the sense that something cannot be written to.
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:44
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:192
 msgid "Read only"
 msgstr ""
 
@@ -5527,11 +5524,11 @@ msgstr "Alleen-lezen modus"
 msgid "Real"
 msgstr "Echt"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:362
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:363
 msgid "Real Balance Board"
 msgstr "Echte Balance Board"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:312
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:313
 msgid "Real Wii Remote"
 msgstr "Echte Wii-afstandsbediening"
 
@@ -5596,7 +5593,7 @@ msgstr ""
 "\n"
 "In geval van twijfel selecteer \"Geen\"."
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:352
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:353
 #: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1192
 #: Source/Core/DolphinWX/MainToolBar.cpp:178
 msgid "Refresh"
@@ -5666,7 +5663,7 @@ msgid "Report: GCIFolder Writing to unallocated block 0x%x"
 msgstr "Report: GCIFolder schrijft naar niet gealloceerde blok 0x%x"
 
 #: Source/Core/Core/HotkeyManager.cpp:28
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:289
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:290
 #: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1211
 msgid "Reset"
 msgstr "Opnieuw"
@@ -5675,11 +5672,11 @@ msgstr "Opnieuw"
 msgid "Reset Traversal Settings"
 msgstr "Reset Traversal Instellingen"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:565
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:566
 msgid "Reset Wii Remote pairings"
 msgstr "Reset Wii-afstandsbediening Koppelingen"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:287
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:288
 msgid "Reset all saved Wii Remote pairings"
 msgstr "Reset alle opgeslagen Wii-afstandsbediening Koppelingen"
 
@@ -5856,7 +5853,7 @@ msgstr "Opslaan als..."
 msgid "Save combined output file as"
 msgstr ""
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1397
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1388
 msgid "Save compressed GCM/ISO"
 msgstr "Sla gecomprimeerde GCM / ISO op"
 
@@ -5864,7 +5861,7 @@ msgstr "Sla gecomprimeerde GCM / ISO op"
 msgid "Save currently-toggled perspectives"
 msgstr ""
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1388
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1379
 msgid "Save decompressed GCM/ISO"
 msgstr "Sla gedecomprimeerd GCM / ISO op"
 
@@ -5909,7 +5906,7 @@ msgstr "Opslaan naar geselecteerde slot"
 msgid "Saved Perspectives"
 msgstr "Opgeslagen Perspectieven"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:564
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:565
 msgid "Saved Wii Remote pairings can only be reset when a Wii game is running."
 msgstr ""
 "Opgeslagen Wii Remote koppelingen kunnen alleen gerest worden wanneer er een "
@@ -6044,8 +6041,8 @@ msgstr "Selecteer Staat Slot 8"
 msgid "Select State Slot 9"
 msgstr "Selecteer Staat Slot 9"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:483
-#: Source/Core/DolphinWX/FrameTools.cpp:961
+#: Source/Core/DolphinWX/FrameTools.cpp:484
+#: Source/Core/DolphinWX/FrameTools.cpp:962
 msgid "Select The Recording File"
 msgstr "Selecteer Opname Bestand"
 
@@ -6053,7 +6050,7 @@ msgstr "Selecteer Opname Bestand"
 msgid "Select a BootMii NAND backup to import"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1197
+#: Source/Core/DolphinWX/FrameTools.cpp:1198
 msgid "Select a Wii WAD file to install"
 msgstr "Selecteer een Wii WAD bestand om te installeren"
 
@@ -6069,11 +6066,11 @@ msgstr "Selecteer zwevende vensters"
 msgid "Select state"
 msgstr "Selecteer staat"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:336
+#: Source/Core/DolphinWX/FrameTools.cpp:337
 msgid "Select the file to load"
 msgstr "Selecteer het bestand om het te laden"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1158
+#: Source/Core/DolphinWX/FrameTools.cpp:1159
 msgid "Select the save file"
 msgstr "Selecteer het save bestand"
 
@@ -6215,7 +6212,7 @@ msgstr ""
 msgid "Set Value"
 msgstr "Stel Waarde In"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1028
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1026
 msgid "Set as &default ISO"
 msgstr "Ingesteld als &standaard ISO"
 
@@ -6254,7 +6251,7 @@ msgstr ""
 "Bepaalt de vertraging (in ms). Hogere waarden kan gekraak verminderen. "
 "Alleen bij bepaalde backends."
 
-#: Source/Core/Core/Boot/Boot_BS2Emu.cpp:248
+#: Source/Core/Core/Boot/Boot_BS2Emu.cpp:271
 msgid "SetupWiiMemory: Can't create setting.txt file"
 msgstr "SetupWiiMem: Kan setting.txt niet aanmaken"
 
@@ -6638,7 +6635,7 @@ msgstr ""
 "Leidt tot grote snelheidsverbeteringen op de meeste moderne pc's, maar kan "
 "ook voor crashes of glitches zorgen."
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:50
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:51
 msgid "Standard Controller"
 msgstr "Standaard Controller"
 
@@ -6675,7 +6672,7 @@ msgstr "Staat"
 msgid "Statistics"
 msgstr "Statistieken"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:51
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:52
 msgid "Steering Wheel"
 msgstr "Stuurwiel"
 
@@ -6868,15 +6865,15 @@ msgstr "Symbool"
 msgid "Symbols"
 msgstr "Symbolen"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:283
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:284
 msgid "Sync"
 msgstr "Sync"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:550
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:551
 msgid "Sync Wii Remotes"
 msgstr "Sync Wii-afstandsbedieningen"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:281
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:282
 msgid "Sync real Wii Remotes and pair them"
 msgstr "Sync echte Wii-afstandsbedieningen en paar ze"
 
@@ -6906,12 +6903,12 @@ msgstr "Systeemtaal:"
 msgid "TAS Input"
 msgstr "TAS Invoer"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:381
+#: Source/Core/DolphinWX/FrameTools.cpp:382
 #, c-format
 msgid "TAS Input - GameCube Controller %d"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:389
+#: Source/Core/DolphinWX/FrameTools.cpp:390
 #, c-format
 msgid "TAS Input - Wii Remote %d"
 msgstr ""
@@ -6989,7 +6986,7 @@ msgstr ""
 "\n"
 "In geval van twijfel sleep naar de meest rechtste waarde."
 
-#: Source/Core/Core/ConfigManager.cpp:998
+#: Source/Core/Core/ConfigManager.cpp:1000
 msgid "The WAD has been installed successfully"
 msgstr "WAD is succesvol geïnstalleerd"
 
@@ -7052,9 +7049,9 @@ msgstr "De ingevoerde PID is ongeldig."
 msgid "The entered VID is invalid."
 msgstr "De ingevoerde VID is ongeldig."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1317
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1342
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1407
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1308
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1333
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1398
 #, c-format
 msgid ""
 "The file %s already exists.\n"
@@ -7124,7 +7121,7 @@ msgstr "De server reageerde: het spel draait al!"
 msgid "The server sent an unknown error message!"
 msgstr "De server verstuurde een onbekende foutmelding!"
 
-#: Source/Core/Core/ConfigManager.cpp:919
+#: Source/Core/Core/ConfigManager.cpp:921
 #, c-format
 msgid "The specified file \"%s\" does not exist"
 msgstr "Het opgegeven bestand \"%s\" bestaat niet"
@@ -7410,7 +7407,7 @@ msgstr "Traversal server time-out tijdens het verbinden met de host"
 msgid "Tried to decrypt data from a non-Wii volume"
 msgstr "Poging tot het decrypten van een niet Wii volume"
 
-#: Source/Core/Core/Boot/Boot.cpp:469
+#: Source/Core/Core/Boot/Boot.cpp:450
 msgid "Tried to load an unknown file type."
 msgstr "Poging tot het laden van een onbekend bestandstype."
 
@@ -7514,11 +7511,11 @@ msgstr "Save Staat ongedaan maken"
 msgid "Unexpected 0x80 call? Aborting..."
 msgstr "Onverwachtte 0x80 fout? Annuleren..."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1053
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1051
 msgid "Uninstall from the NAND"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1224
+#: Source/Core/DolphinWX/FrameTools.cpp:1225
 msgid ""
 "Uninstalling the WAD will remove the currently installed version of this "
 "title from the NAND without deleting its save data. Continue?"
@@ -7677,7 +7674,7 @@ msgstr "Waarde (double)"
 msgid "Value (float)"
 msgstr "Waarde (float)"
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:401
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:410
 msgid "Value Too Large"
 msgstr "Waarde Te Groot"
 
@@ -7785,13 +7782,13 @@ msgstr "Volume Schakel Mute"
 msgid "Volume Up"
 msgstr "Volume Omhoog"
 
-#: Source/Core/DiscIO/NANDContentLoader.cpp:297
-#: Source/Core/DiscIO/NANDContentLoader.cpp:319
+#: Source/Core/DiscIO/NANDContentLoader.cpp:268
+#: Source/Core/DiscIO/NANDContentLoader.cpp:290
 #, c-format
 msgid "WAD installation failed: error creating %s"
 msgstr "WAD installatie mislukt: fout bij het creëren van %s"
 
-#: Source/Core/DiscIO/NANDContentLoader.cpp:334
+#: Source/Core/DiscIO/NANDContentLoader.cpp:305
 msgid "WAD installation failed: error creating ticket"
 msgstr "WAD installatie mislukt: fout bij het creëren van ticket"
 
@@ -7808,8 +7805,8 @@ msgstr ""
 "In geval van twijfel leeg laten."
 
 #: Source/Core/Common/MsgHandler.cpp:67
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1182
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1497
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1173
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1488
 #: Source/Core/DolphinWX/LogConfigWindow.cpp:44
 #: Source/Core/DolphinWX/MemcardManager.cpp:587
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:363
@@ -7981,7 +7978,7 @@ msgstr "Wii NAND basismap:"
 msgid "Wii Remote"
 msgstr "Wii-afstandsbediening"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:332
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:333
 #, c-format
 msgid "Wii Remote %i"
 msgstr "Wii-afstandsbediening %i"
@@ -7998,16 +7995,16 @@ msgstr ""
 msgid "Wii Remote Settings"
 msgstr "Wii-afstandsbediening Instellingen"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:249
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:250
 msgid "Wii Remotes"
 msgstr "Wii-afstandsbedieningen"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:483
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:484
 #, c-format
 msgid "Wii U GameCube Controller Adapter Configuration Port %i"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1198
+#: Source/Core/DolphinWX/FrameTools.cpp:1199
 msgid "Wii WAD files (*.wad)"
 msgstr "Wii WAD bestanden (*.wad)"
 
@@ -8015,7 +8012,7 @@ msgstr "Wii WAD bestanden (*.wad)"
 msgid "Wii and Wii Remote"
 msgstr "Wii en Wii-afstandsbediening"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1159
+#: Source/Core/DolphinWX/FrameTools.cpp:1160
 msgid "Wii save files (*.bin)"
 msgstr "Wii save bestanden (*.bin)"
 
@@ -8039,10 +8036,10 @@ msgstr ""
 msgid "Word Wrap"
 msgstr "Regelafbreking"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1207
+#: Source/Core/DolphinWX/FrameTools.cpp:1208
 #: Source/Core/DolphinWX/FrameTools.cpp:1259
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1296
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1415
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1287
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1406
 #: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:381
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:325
 msgid "Working..."
@@ -8052,11 +8049,11 @@ msgstr "Werken..."
 msgid "World"
 msgstr "Wereld"
 
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:43
-msgid "Write"
-msgstr ""
-
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:189
+#. i18n: This string is used for a radio button that represents the type of
+#. memory breakpoint that gets triggered when a write operation occurs.
+#. The string does not mean "write-only" in the sense that something cannot be read from.
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:49
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:198
 msgid "Write only"
 msgstr ""
 
@@ -8141,7 +8138,7 @@ msgstr ""
 "Wilt u nu stoppen om het probleem op te lossen?\n"
 "Als u \"Nee\" selecteert kan het geluid vervormd klinken."
 
-#: Source/Core/Core/ConfigManager.cpp:951
+#: Source/Core/Core/ConfigManager.cpp:953
 msgid ""
 "Your GCM/ISO file seems to be invalid (invalid country).\n"
 "Continue with PAL region?"
