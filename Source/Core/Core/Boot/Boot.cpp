@@ -355,7 +355,7 @@ bool CBoot::BootUp()
     {
       if (dolLoader.IsWii())
         HID4.SBE = 1;
-      SetupBAT(/*is_wii*/ true);
+      SetupBAT(dolWii);
 
       // Because there is no TMD to get the requested system (IOS) version from,
       // we default to IOS58, which is the version used by the Homebrew Channel.
