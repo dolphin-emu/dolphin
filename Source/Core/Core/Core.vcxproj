@@ -45,6 +45,10 @@
     <ClCompile Include="Boot\Boot_ELF.cpp" />
     <ClCompile Include="Boot\Boot_WiiWAD.cpp" />
     <ClCompile Include="Boot\ElfReader.cpp" />
+    <ClCompile Include="ConfigLoaders\BaseConfigLoader.cpp" />
+    <ClCompile Include="ConfigLoaders\GameConfigLoader.cpp" />
+    <ClCompile Include="ConfigLoaders\MovieConfigLoader.cpp" />
+    <ClCompile Include="ConfigLoaders\NetPlayConfigLoader.cpp" />
     <ClCompile Include="ConfigManager.cpp" />
     <ClCompile Include="Core.cpp" />
     <ClCompile Include="CoreTiming.cpp" />
@@ -231,10 +235,6 @@
     <ClCompile Include="Movie.cpp" />
     <ClCompile Include="NetPlayClient.cpp" />
     <ClCompile Include="NetPlayServer.cpp" />
-    <ClCompile Include="ConfigLoaders\BaseConfigLoader.cpp" />
-    <ClCompile Include="ConfigLoaders\GameConfigLoader.cpp" />
-    <ClCompile Include="ConfigLoaders\MovieConfigLoader.cpp" />
-    <ClCompile Include="ConfigLoaders\NetPlayConfigLoader.cpp" />
     <ClCompile Include="PatchEngine.cpp" />
     <ClCompile Include="PowerPC\BreakPoints.cpp" />
     <ClCompile Include="PowerPC\CachedInterpreter\CachedInterpreter.cpp" />
@@ -308,6 +308,10 @@
     <ClInclude Include="Boot\Boot_DOL.h" />
     <ClInclude Include="Boot\ElfReader.h" />
     <ClInclude Include="Boot\ElfTypes.h" />
+    <ClInclude Include="ConfigLoaders\BaseConfigLoader.h" />
+    <ClInclude Include="ConfigLoaders\GameConfigLoader.h" />
+    <ClInclude Include="ConfigLoaders\MovieConfigLoader.h" />
+    <ClInclude Include="ConfigLoaders\NetPlayConfigLoader.h" />
     <ClInclude Include="ConfigManager.h" />
     <ClInclude Include="Core.h" />
     <ClInclude Include="CoreTiming.h" />
@@ -483,10 +487,6 @@
     <ClInclude Include="NetPlayClient.h" />
     <ClInclude Include="NetPlayProto.h" />
     <ClInclude Include="NetPlayServer.h" />
-    <ClInclude Include="ConfigLoaders\BaseConfigLoader.h" />
-    <ClInclude Include="ConfigLoaders\GameConfigLoader.h" />
-    <ClInclude Include="ConfigLoaders\MovieConfigLoader.h" />
-    <ClInclude Include="ConfigLoaders\NetPlayConfigLoader.h" />
     <ClInclude Include="PatchEngine.h" />
     <ClInclude Include="PowerPC\BreakPoints.h" />
     <ClInclude Include="PowerPC\CPUCoreBase.h" />
