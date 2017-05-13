@@ -120,7 +120,7 @@ void DSPHLE::DoState(PointerWrap& p)
   // if a different type of ucode was being used when the savestate was created,
   // we have to reconstruct the old type of ucode so that we have a valid thing to call DoState on.
   const bool same_ucode = ucode_crc == ucode_crc_before_load;
-  const bool same_last_ucode = last_ucode_crc != last_ucode_crc_before_load;
+  const bool same_last_ucode = last_ucode_crc == last_ucode_crc_before_load;
   auto ucode = same_ucode ? std::move(m_ucode) : UCodeFactory(ucode_crc, this, m_wii);
   auto last_ucode =
       same_last_ucode ? std::move(m_last_ucode) : UCodeFactory(last_ucode_crc, this, m_wii);
