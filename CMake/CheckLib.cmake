@@ -60,9 +60,7 @@ macro(check_libav)
 	if(PKG_CONFIG_FOUND)
 		pkg_check_modules(LIBAV libavcodec>=54.35.0 libavformat>=54.20.4
 			libswscale>=2.1.1 libavutil>=52.3.0)
-	endif()
-
-	if(NOT LIBAV_FOUND)
+	else()
 		if(WIN32)
 			add_library(avcodec STATIC IMPORTED)
 			set_target_properties(avcodec PROPERTIES
@@ -116,7 +114,6 @@ macro(check_libav)
 			unset(CMAKE_REQUIRED_LIBRARIES)
 	  endif()
 	endif()
-
 	if(LIBAV_FOUND)
 		message(STATUS "libav/ffmpeg found, enabling AVI frame dumps")
 		add_definitions(-DHAVE_LIBAV)
