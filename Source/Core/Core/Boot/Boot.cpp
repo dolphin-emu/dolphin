@@ -358,6 +358,7 @@ bool CBoot::BootUp()
     if (dolWii)
     {
       HID4.SBE = 1;
+      SetupMSR();
       SetupBAT(dolWii);
 
       // Because there is no TMD to get the requested system (IOS) version from,
