@@ -707,6 +707,8 @@ void CFrame::StartGame(const std::string& filename)
 
   DoFullscreen(SConfig::GetInstance().bFullscreen);
 
+  SetDebuggerStartupParameters();
+
   if (!BootManager::BootCore(filename))
   {
     DoFullscreen(false);
@@ -742,6 +744,27 @@ void CFrame::StartGame(const std::string& filename)
     wxTheApp->Bind(wxEVT_MIDDLE_UP, &CFrame::OnMouse, this);
     wxTheApp->Bind(wxEVT_MOTION, &CFrame::OnMouse, this);
     m_render_parent->Bind(wxEVT_SIZE, &CFrame::OnRenderParentResize, this);
+  }
+}
+
+void CFrame::SetDebuggerStartupParameters() const
+{
+  SConfig& config = SConfig::GetInstance();
+
+  if (m_use_debugger)
+  {
+    const wxMenuBar* const menu_bar = GetMenuBar();
+
+    config.bBootToPause = menu_bar->IsChecked(IDM_BOOT_TO_PAUSE);
+    config.bAutomaticStart = menu_bar->IsChecked(IDM_AUTOMATIC_START);
+    config.bJITNoBlockCache = menu_bar->IsChecked(IDM_JIT_NO_BLOCK_CACHE);
+    config.bJITNoBlockLinking = menu_bar->IsChecked(IDM_JIT_NO_BLOCK_LINKING);
+    config.bEnableDebugging = true;
+  }
+  else
+  {
+    config.bBootToPause = false;
+    config.bEnableDebugging = false;
   }
 }
 
