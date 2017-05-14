@@ -383,21 +383,21 @@ IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
   switch (request.request)
   {
   case IOCTL_ES_ADDTICKET:
-    return AddTicket(request);
+    return ImportTicket(request);
   case IOCTL_ES_ADDTMD:
-    return AddTMD(*context, request);
+    return ImportTmd(*context, request);
   case IOCTL_ES_ADDTITLESTART:
-    return AddTitleStart(*context, request);
+    return ImportTitleInit(*context, request);
   case IOCTL_ES_ADDCONTENTSTART:
-    return AddContentStart(*context, request);
+    return ImportContentBegin(*context, request);
   case IOCTL_ES_ADDCONTENTDATA:
-    return AddContentData(*context, request);
+    return ImportContentData(*context, request);
   case IOCTL_ES_ADDCONTENTFINISH:
-    return AddContentFinish(*context, request);
+    return ImportContentEnd(*context, request);
   case IOCTL_ES_ADDTITLEFINISH:
-    return AddTitleFinish(*context, request);
+    return ImportTitleDone(*context, request);
   case IOCTL_ES_ADDTITLECANCEL:
-    return AddTitleCancel(*context, request);
+    return ImportTitleCancel(*context, request);
   case IOCTL_ES_GETDEVICEID:
     return GetConsoleID(request);
   case IOCTL_ES_OPENTITLECONTENT:

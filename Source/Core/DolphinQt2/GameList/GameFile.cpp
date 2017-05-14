@@ -23,6 +23,7 @@
 #include "DolphinQt2/GameList/GameFile.h"
 #include "DolphinQt2/Resources.h"
 #include "DolphinQt2/Settings.h"
+#include "UICommon/WiiUtils.h"
 
 static const int CACHE_VERSION = 13;  // Last changed in PR #3261
 static const int DATASTREAM_VERSION = QDataStream::Qt_5_5;
@@ -61,6 +62,17 @@ GameFile::GameFile(const QString& path) : m_path(path)
   }
 
   m_valid = true;
+}
+
+bool GameFile::IsValid() const
+{
+  if (!m_valid)
+    return false;
+
+  if (m_platform == DiscIO::Platform::WII_WAD && !IOS::ES::IsChannel(m_title_id))
+    return false;
+
+  return true;
 }
 
 QString GameFile::GetCacheFileName() const
@@ -320,7 +332,7 @@ bool GameFile::Install()
 {
   _assert_(m_platform == DiscIO::Platform::WII_WAD);
 
-  return DiscIO::CNANDContentManager::Access().Install_WiiWAD(m_path.toStdString());
+  return WiiUtils::InstallWAD(m_path.toStdString());
 }
 
 bool GameFile::Uninstall()

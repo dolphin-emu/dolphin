@@ -42,9 +42,13 @@ bool IsDiscTitle(u64 title_id)
 
 bool IsChannel(u64 title_id)
 {
+  if (title_id == TITLEID_SYSMENU)
+    return true;
+
   return IsTitleType(title_id, TitleType::Channel) ||
          IsTitleType(title_id, TitleType::SystemChannel) ||
-         IsTitleType(title_id, TitleType::GameWithChannel);
+         IsTitleType(title_id, TitleType::GameWithChannel) ||
+         IsTitleType(title_id, TitleType::HiddenChannel);
 }
 
 bool Content::IsShared() const
