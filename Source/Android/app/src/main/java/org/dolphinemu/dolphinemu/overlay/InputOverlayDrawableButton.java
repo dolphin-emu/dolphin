@@ -8,32 +8,38 @@ package org.dolphinemu.dolphinemu.overlay;
 
 import android.content.res.Resources;
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
+import android.support.annotation.NonNull;
 import android.view.MotionEvent;
-import android.view.View;
 
 /**
  * Custom {@link BitmapDrawable} that is capable
  * of storing it's own ID.
  */
-public final class InputOverlayDrawableButton extends BitmapDrawable
+public final class InputOverlayDrawableButton
 {
 	// The ID identifying what type of button this Drawable represents.
 	private int mButtonType;
 	private int mPreviousTouchX, mPreviousTouchY;
 	private int mControlPositionX, mControlPositionY;
+	private BitmapDrawable mDefaultStateBitmap;
+	private BitmapDrawable mPressedStateBitmap;
+	private boolean mPressedState = false;
 
 	/**
 	 * Constructor
 	 * 
-	 * @param res         {@link Resources} instance.
-	 * @param bitmap      {@link Bitmap} to use with this Drawable.
-	 * @param buttonType  Identifier for this type of button.
+	 * @param res         				{@link Resources} instance.
+	 * @param defaultStateBitmap      	{@link Bitmap} to use with the default state Drawable.
+	 * @param pressedStateBitmap      	{@link Bitmap} to use with the pressed state Drawable.
+	 * @param buttonType  				Identifier for this type of button.
 	 */
-	public InputOverlayDrawableButton(Resources res, Bitmap bitmap, int buttonType)
+	public InputOverlayDrawableButton(Resources res, Bitmap defaultStateBitmap, Bitmap pressedStateBitmap, int buttonType)
 	{
-		super(res, bitmap);
+		mDefaultStateBitmap = new BitmapDrawable(res, defaultStateBitmap);
+		mPressedStateBitmap = new BitmapDrawable(res, pressedStateBitmap);
 		mButtonType = buttonType;
 	}
 
@@ -74,5 +80,47 @@ public final class InputOverlayDrawableButton extends BitmapDrawable
 	{
 		mControlPositionX = x;
 		mControlPositionY = y;
+	}
+
+	public void draw(Canvas canvas) {
+		getCurrentStateBitmapDrawable().draw(canvas);
+	}
+
+	private BitmapDrawable getCurrentStateBitmapDrawable() {
+		return mPressedState ? mPressedStateBitmap : mDefaultStateBitmap;
+	}
+
+	public Bitmap getBitmap() {
+		return getCurrentStateBitmapDrawable().getBitmap();
+	}
+
+	public void setBounds(int left, int top, int right, int bottom) {
+		mDefaultStateBitmap.setBounds(left, top, right, bottom);
+		mPressedStateBitmap.setBounds(left, top, right, bottom);
+	}
+
+	public void setBounds(@NonNull Rect bounds) {
+		mDefaultStateBitmap.setBounds(bounds);
+		mPressedStateBitmap.setBounds(bounds);
+	}
+
+	public Rect getBounds() {
+		return getCurrentStateBitmapDrawable().getBounds();
+	}
+
+	public int getIntrinsicWidth() {
+		return getCurrentStateBitmapDrawable().getIntrinsicWidth();
+	}
+
+	public int getIntrinsicHeight() {
+		return getCurrentStateBitmapDrawable().getIntrinsicHeight();
+	}
+
+	public void setPressedState(boolean isPressed) {
+		mPressedState = isPressed;
+	}
+
+	public boolean isPressed() {
+		return mPressedState;
 	}
 }
