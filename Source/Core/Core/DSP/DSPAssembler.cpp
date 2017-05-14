@@ -290,14 +290,17 @@ u32 DSPAssembler::ParseExpression(const char* ptr)
   }
 
   int j = 0;
-  for (int i = 0; i < ((s32)strlen(s_buffer) + 1); i++)
+  
+  s32 s_buffer_len = ((s32)strlen(s_buffer) + 1);
+  for (int i = 0; i < s_buffer_len; i++)
   {
     char c = s_buffer[i];
     if (c != ' ')
       d_buffer[j++] = c;
   }
 
-  for (int i = 0; i < ((s32)strlen(d_buffer) + 1); i++)
+  s32 d_buffer_len = ((s32)strlen(d_buffer) + 1);
+  for (int i = 0; i < d_buffer_len; i++)
   {
     char c = d_buffer[i];
     if (c == '-')
@@ -318,14 +321,14 @@ u32 DSPAssembler::ParseExpression(const char* ptr)
     d_buffer[i] = c;
   }
 
-  while ((pbuf = strstr(d_buffer, "+")) != nullptr)
+  while ((pbuf = strchr(d_buffer, '+')) != nullptr)
   {
     *pbuf = 0x0;
     val = ParseExpression(d_buffer) + ParseExpression(pbuf + 1);
     sprintf(d_buffer, "%d", val);
   }
 
-  while ((pbuf = strstr(d_buffer, "-")) != nullptr)
+  while ((pbuf = strchr(d_buffer, '-')) != nullptr)
   {
     *pbuf = 0x0;
     val = ParseExpression(d_buffer) - ParseExpression(pbuf + 1);
@@ -339,28 +342,28 @@ u32 DSPAssembler::ParseExpression(const char* ptr)
     sprintf(d_buffer, "%d", val);
   }
 
-  while ((pbuf = strstr(d_buffer, "*")) != nullptr)
+  while ((pbuf = strchr(d_buffer, '*')) != nullptr)
   {
     *pbuf = 0x0;
     val = ParseExpression(d_buffer) * ParseExpression(pbuf + 1);
     sprintf(d_buffer, "%d", val);
   }
 
-  while ((pbuf = strstr(d_buffer, "/")) != nullptr)
+  while ((pbuf = strchr(d_buffer, '/')) != nullptr)
   {
     *pbuf = 0x0;
     val = ParseExpression(d_buffer) / ParseExpression(pbuf + 1);
     sprintf(d_buffer, "%d", val);
   }
 
-  while ((pbuf = strstr(d_buffer, "|")) != nullptr)
+  while ((pbuf = strchr(d_buffer, '|')) != nullptr)
   {
     *pbuf = 0x0;
     val = ParseExpression(d_buffer) | ParseExpression(pbuf + 1);
     sprintf(d_buffer, "%d", val);
   }
 
-  while ((pbuf = strstr(d_buffer, "&")) != nullptr)
+  while ((pbuf = strchr(d_buffer, '&')) != nullptr)
   {
     *pbuf = 0x0;
     val = ParseExpression(d_buffer) & ParseExpression(pbuf + 1);
@@ -384,13 +387,15 @@ u32 DSPAssembler::GetParams(char* parstr, param_t* par)
     if (tmpstr == nullptr)
       break;
     tmpstr = skip_spaces(tmpstr);
-    if (strlen(tmpstr) == 0)
-      break;
-    if (tmpstr)
+	
+	if (tmpstr)
       count++;
     else
       break;
-
+  
+    if (tmpstr[0] == '\0')
+      break;
+   
     par[i].type = P_NONE;
     switch (tmpstr[0])
     {
@@ -862,11 +867,11 @@ bool DSPAssembler::AssembleFile(const std::string& file_path, int pass)
     u32 params_count_ext = 0;
     if (opcode)
     {
-      if ((opcode_ext = strstr(opcode, "'")) != nullptr)
+      if ((opcode_ext = strchr(opcode, '\'')) != nullptr)
       {
         opcode_ext[0] = '\0';
         opcode_ext++;
-        if (strlen(opcode_ext) == 0)
+        if (opcode_ext[0] == '\0')
           opcode_ext = nullptr;
       }
       // now we have opcode and label
@@ -880,7 +885,7 @@ bool DSPAssembler::AssembleFile(const std::string& file_path, int pass)
 
       if (paramstr)
       {
-        if ((paramstr_ext = strstr(paramstr, ":")) != nullptr)
+        if ((paramstr_ext = strchr(paramstr, ':')) != nullptr)
         {
           paramstr_ext[0] = '\0';
           paramstr_ext++;
