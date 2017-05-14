@@ -354,18 +354,24 @@ bool CBoot::BootUp()
       volume = SetDisc(DiscIO::CreateVolumeFromFilename(_StartupPara.m_strDefaultISO));
     }
 
-    if (!EmulatedBS2(dolWii, volume))
+    // Poor man's bootup
+    if (dolWii)
     {
-      if (dolWii)
-        HID4.SBE = 1;
+      HID4.SBE = 1;
       SetupBAT(dolWii);
 
-      if (dolWii)
-        SetupWiiMemory(volume, 0x000000010000003a);
-
-      dolLoader.Load();
-      PC = dolLoader.GetEntryPoint();
+      // Because there is no TMD to get the requested system (IOS) version from,
+      // we default to IOS58, which is the version used by the Homebrew Channel.
+      SetupWiiMemory(volume, 0x000000010000003a);
     }
+    else
+    {
+      EmulatedBS2_GC(volume, true);
+    }
+
+    Load_FST(dolWii, volume);
+    dolLoader.Load();
+    PC = dolLoader.GetEntryPoint();
 
     if (LoadMapFromFilename())
       HLE::PatchFunctions();
