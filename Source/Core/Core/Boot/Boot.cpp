@@ -254,18 +254,12 @@ bool CBoot::Load_BS2(const std::string& boot_rom_filename)
   PowerPC::ppcState.gpr[5] = 0x0000009c;
   PowerPC::ppcState.msr = 0x00002030;
   PowerPC::ppcState.spr[SPR_HID0] = 0x0011c464;
-  PowerPC::ppcState.spr[SPR_IBAT0U] = 0x80001fff;
-  PowerPC::ppcState.spr[SPR_IBAT0L] = 0x00000002;
   PowerPC::ppcState.spr[SPR_IBAT3U] = 0xfff0001f;
   PowerPC::ppcState.spr[SPR_IBAT3L] = 0xfff00001;
-  PowerPC::ppcState.spr[SPR_DBAT0U] = 0x80001fff;
-  PowerPC::ppcState.spr[SPR_DBAT0L] = 0x00000002;
-  PowerPC::ppcState.spr[SPR_DBAT1U] = 0xc0001fff;
-  PowerPC::ppcState.spr[SPR_DBAT1L] = 0x0000002a;
   PowerPC::ppcState.spr[SPR_DBAT3U] = 0xfff0001f;
   PowerPC::ppcState.spr[SPR_DBAT3L] = 0xfff00001;
-  PowerPC::DBATUpdated();
-  PowerPC::IBATUpdated();
+  SetupBAT(/*is_wii*/ false);
+
   PC = 0x81200150;
   return true;
 }
