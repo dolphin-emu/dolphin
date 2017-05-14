@@ -249,10 +249,16 @@ bool CBoot::Load_BS2(const std::string& boot_rom_filename)
   // to work around this.
   Memory::CopyToEmu(0x01200000, data.data() + 0x100, 0x700);
   Memory::CopyToEmu(0x01300000, data.data() + 0x820, 0x1AFE00);
+
   PowerPC::ppcState.gpr[3] = 0xfff0001f;
   PowerPC::ppcState.gpr[4] = 0x00002030;
   PowerPC::ppcState.gpr[5] = 0x0000009c;
-  PowerPC::ppcState.msr = 0x00002030;
+
+  UReg_MSR& m_MSR = ((UReg_MSR&)PowerPC::ppcState.msr);
+  m_MSR.FP = 1;
+  m_MSR.DR = 1;
+  m_MSR.IR = 1;
+
   PowerPC::ppcState.spr[SPR_HID0] = 0x0011c464;
   PowerPC::ppcState.spr[SPR_IBAT3U] = 0xfff0001f;
   PowerPC::ppcState.spr[SPR_IBAT3L] = 0xfff00001;
