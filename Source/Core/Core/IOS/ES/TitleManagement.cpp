@@ -96,6 +96,15 @@ IPCCommandResult ES::ImportTmd(Context& context, const IOCtlVRequest& request)
   return GetDefaultReply(ImportTmd(context, tmd));
 }
 
+static void CleanUpStaleImport(const u64 title_id)
+{
+  const auto import_tmd = IOS::ES::FindImportTMD(title_id);
+  if (!import_tmd.IsValid())
+    File::DeleteDirRecursively(Common::GetImportTitlePath(title_id) + "/content");
+  else
+    IOS::ES::FinishImport(import_tmd);
+}
+
 ReturnCode ES::ImportTitleInit(Context& context, const std::vector<u8>& tmd_bytes)
 {
   INFO_LOG(IOS_ES, "ImportTitleInit");
@@ -107,10 +116,7 @@ ReturnCode ES::ImportTitleInit(Context& context, const std::vector<u8>& tmd_byte
   }
 
   // Finish a previous import (if it exists).
-  const IOS::ES::TMDReader previous_tmd =
-      IOS::ES::FindImportTMD(context.title_import.tmd.GetTitleId());
-  if (previous_tmd.IsValid())
-    FinishImport(previous_tmd);
+  CleanUpStaleImport(context.title_import.tmd.GetTitleId());
 
   if (!IOS::ES::InitImport(context.title_import.tmd.GetTitleId()))
     return ES_EIO;
@@ -312,17 +318,7 @@ ReturnCode ES::ImportTitleCancel(Context& context)
   if (!context.title_import.tmd.IsValid())
     return ES_EINVAL;
 
-  const IOS::ES::TMDReader original_tmd =
-      IOS::ES::FindInstalledTMD(context.title_import.tmd.GetTitleId());
-  if (!original_tmd.IsValid())
-  {
-    // This should never happen unless someone messed with the installed TMD directly.
-    // Still, let's check for this case and return an error instead of potentially crashing.
-    return FS_ENOENT;
-  }
-
-  if (!FinishImport(original_tmd))
-    return ES_EIO;
+  CleanUpStaleImport(context.title_import.tmd.GetTitleId());
 
   INFO_LOG(IOS_ES, "ImportTitleCancel: title %016" PRIx64, context.title_import.tmd.GetTitleId());
   context.title_import.tmd.SetBytes({});
