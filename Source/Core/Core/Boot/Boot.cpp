@@ -393,6 +393,8 @@ bool CBoot::BootUp()
     if (!Boot_ELF(_StartupPara.m_strFilename))
       return false;
 
+    // Note: Boot_ELF calls HLE::PatchFunctions()
+
     UpdateDebugger_MapLoaded();
     Dolphin_Debugger::AddAutoBreakpoints();
     break;
