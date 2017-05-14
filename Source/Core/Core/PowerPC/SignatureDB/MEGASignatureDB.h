@@ -40,17 +40,17 @@ class MEGASignatureDB : public SignatureDBFormatHandler
 {
 public:
   MEGASignatureDB();
-  ~MEGASignatureDB();
+  ~MEGASignatureDB() override;
 
-  void Clear();
-  bool Load(const std::string& file_path);
-  bool Save(const std::string& file_path) const;
-  void List() const;
+  void Clear() override;
+  bool Load(const std::string& file_path) override;
+  bool Save(const std::string& file_path) const override;
+  void List() const override;
 
-  void Apply(PPCSymbolDB* symbol_db) const;
-  void Populate(const PPCSymbolDB* func_db, const std::string& filter = "");
+  void Apply(PPCSymbolDB* symbol_db) const override;
+  void Populate(const PPCSymbolDB* func_db, const std::string& filter = "") override;
 
-  bool Add(u32 startAddr, u32 size, const std::string& name);
+  bool Add(u32 startAddr, u32 size, const std::string& name) override;
 
 private:
   std::vector<MEGASignature> m_signatures;
