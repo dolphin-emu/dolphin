@@ -60,9 +60,10 @@ void CodeLoaded(const u8* ptr, int size)
 {
   g_dsp.iram_crc = HashEctor(ptr, size);
 
-#if defined(_DEBUG) || defined(DEBUGFAST)
-  LLE::DumpDSPCode(ptr, size, g_dsp.iram_crc);
-#endif
+  if (SConfig::GetInstance().m_DumpUCode)
+  {
+    LLE::DumpDSPCode(ptr, size, g_dsp.iram_crc);
+  }
 
   Symbols::Clear();
 
