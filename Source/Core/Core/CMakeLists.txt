@@ -89,7 +89,6 @@ set(SRCS
   HW/DSPLLE/DSPSymbols.cpp
   HW/DSPLLE/DSPLLEGlobals.cpp
   HW/DSPLLE/DSPLLE.cpp
-  HW/DSPLLE/DSPLLETools.cpp
   HW/DVD/DVDInterface.cpp
   HW/DVD/DVDMath.cpp
   HW/DVD/DVDThread.cpp
