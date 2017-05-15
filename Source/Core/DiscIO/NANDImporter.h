@@ -41,6 +41,7 @@ private:
   bool ReadNANDBin(const std::string& path_to_bin);
   void FindSuperblock();
   std::string GetPath(const NANDFSTEntry& entry, const std::string& parent_path);
+  std::string FormatDebugString(const NANDFSTEntry& entry);
   void ProcessEntry(u16 entry_number, const std::string& parent_path);
   void ProcessFile(const NANDFSTEntry& entry, const std::string& parent_path);
   void ProcessDirectory(const NANDFSTEntry& entry, const std::string& parent_path);
@@ -51,5 +52,6 @@ private:
   size_t m_nand_fat_offset = 0;
   size_t m_nand_fst_offset = 0;
   std::function<void()> m_update_callback;
+  size_t m_nand_root_length = 0;
 };
 }
