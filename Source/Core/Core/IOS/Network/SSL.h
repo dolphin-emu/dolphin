@@ -81,6 +81,7 @@ struct WII_SSL
   mbedtls_x509_crt clicert;
   mbedtls_pk_context pk;
   int sockfd;
+  int hostfd;
   std::string hostname;
   bool active;
 };

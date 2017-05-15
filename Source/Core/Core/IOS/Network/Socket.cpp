@@ -239,6 +239,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
       }
       case IOCTL_SO_ACCEPT:
       {
+        s32 ret;
         if (ioctl.buffer_out_size > 0)
         {
           sockaddr_in local_name;
@@ -246,18 +247,17 @@ void WiiSocket::Update(bool read, bool write, bool except)
           WiiSockMan::Convert(*wii_name, local_name);
 
           socklen_t addrlen = sizeof(sockaddr_in);
-          int ret = (s32)accept(fd, (sockaddr*)&local_name, &addrlen);
-          ReturnValue = WiiSockMan::GetNetErrorCode(ret, "SO_ACCEPT", true);
+          ret = static_cast<s32>(accept(fd, (sockaddr*)&local_name, &addrlen));
 
           WiiSockMan::Convert(local_name, *wii_name, addrlen);
         }
         else
         {
-          int ret = (s32)accept(fd, nullptr, nullptr);
-          ReturnValue = WiiSockMan::GetNetErrorCode(ret, "SO_ACCEPT", true);
+          ret = static_cast<s32>(accept(fd, nullptr, nullptr));
         }
 
-        WiiSockMan::GetInstance().AddSocket(ReturnValue);
+        ret = WiiSockMan::GetInstance().AddSocket(ret);
+        ReturnValue = WiiSockMan::GetNetErrorCode(ret, "SO_ACCEPT", true);
 
         ioctl.Log("IOCTL_SO_ACCEPT", LogTypes::IOS_NET);
         break;
@@ -604,21 +604,33 @@ void WiiSocket::DoSock(Request request, SSL_IOCTL type)
   pending_sockops.push_back(so);
 }
 
-void WiiSockMan::AddSocket(s32 fd)
+s32 WiiSockMan::AddSocket(s32 fd)
 {
   if (fd >= 0)
   {
-    WiiSocket& sock = WiiSockets[fd];
+    s32 wii_fd = 3;
+    while (WiiSockets.count(wii_fd) > 0)
+      wii_fd += 1;
+    WiiSocket& sock = WiiSockets[wii_fd];
     sock.SetFd(fd);
+    return wii_fd;
   }
+  return fd;
 }
 
 s32 WiiSockMan::NewSocket(s32 af, s32 type, s32 protocol)
 {
-  s32 fd = (s32)socket(af, type, protocol);
-  s32 ret = GetNetErrorCode(fd, "NewSocket", false);
-  AddSocket(ret);
+  s32 fd = static_cast<s32>(socket(af, type, protocol));
+  s32 wii_fd = AddSocket(fd);
+  s32 ret = GetNetErrorCode(wii_fd, "NewSocket", false);
   return ret;
+}
+
+s32 WiiSockMan::GetHostSocket(s32 wii_fd) const
+{
+  if (WiiSockets.count(wii_fd) > 0)
+    return WiiSockets.at(wii_fd).fd;
+  return EBADF;
 }
 
 s32 WiiSockMan::DeleteSocket(s32 s)
@@ -694,7 +706,7 @@ void WiiSockMan::Convert(sockaddr_in const& from, WiiSockAddrIn& to, s32 addrlen
   to.addr.addr = from.sin_addr.s_addr;
   to.family = from.sin_family & 0xFF;
   to.port = from.sin_port;
-  if (addrlen < 0 || addrlen > (s32)sizeof(WiiSockAddrIn))
+  if (addrlen < 0 || addrlen > static_cast<s32>(sizeof(WiiSockAddrIn)))
     to.len = sizeof(WiiSockAddrIn);
   else
     to.len = addrlen;

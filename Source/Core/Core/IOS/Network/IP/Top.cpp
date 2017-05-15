@@ -290,7 +290,7 @@ IPCCommandResult NetIPTop::HandleShutdownRequest(const IOCtlRequest& request)
 
   u32 fd = Memory::Read_U32(request.buffer_in);
   u32 how = Memory::Read_U32(request.buffer_in + 4);
-  int ret = shutdown(fd, how);
+  int ret = shutdown(WiiSockMan::GetInstance().GetHostSocket(fd), how);
 
   return GetDefaultReply(WiiSockMan::GetNetErrorCode(ret, "SO_SHUTDOWN", false));
 }
@@ -299,7 +299,7 @@ IPCCommandResult NetIPTop::HandleListenRequest(const IOCtlRequest& request)
 {
   u32 fd = Memory::Read_U32(request.buffer_in);
   u32 BACKLOG = Memory::Read_U32(request.buffer_in + 0x04);
-  u32 ret = listen(fd, BACKLOG);
+  u32 ret = listen(WiiSockMan::GetInstance().GetHostSocket(fd), BACKLOG);
 
   request.Log(GetDeviceName(), LogTypes::IOS_WC24);
   return GetDefaultReply(WiiSockMan::GetNetErrorCode(ret, "SO_LISTEN", false));
@@ -320,7 +320,8 @@ IPCCommandResult NetIPTop::HandleGetSockOptRequest(const IOCtlRequest& request)
   u8 optval[20];
   u32 optlen = 4;
 
-  int ret = getsockopt(fd, nat_level, nat_optname, (char*)&optval, (socklen_t*)&optlen);
+  int ret = getsockopt(WiiSockMan::GetInstance().GetHostSocket(fd), nat_level, nat_optname,
+                       (char*)&optval, (socklen_t*)&optlen);
   const s32 return_value = WiiSockMan::GetNetErrorCode(ret, "SO_GETSOCKOPT", false);
 
   Memory::Write_U32(optlen, request.buffer_out + 0xC);
@@ -366,7 +367,8 @@ IPCCommandResult NetIPTop::HandleSetSockOptRequest(const IOCtlRequest& request)
   int nat_level = MapWiiSockOptLevelToNative(level);
   int nat_optname = MapWiiSockOptNameToNative(optname);
 
-  int ret = setsockopt(fd, nat_level, nat_optname, (char*)optval, optlen);
+  int ret = setsockopt(WiiSockMan::GetInstance().GetHostSocket(fd), nat_level, nat_optname,
+                       (char*)optval, optlen);
   return GetDefaultReply(WiiSockMan::GetNetErrorCode(ret, "SO_SETSOCKOPT", false));
 }
 
@@ -378,7 +380,7 @@ IPCCommandResult NetIPTop::HandleGetSockNameRequest(const IOCtlRequest& request)
 
   sockaddr sa;
   socklen_t sa_len = sizeof(sa);
-  int ret = getsockname(fd, &sa, &sa_len);
+  int ret = getsockname(WiiSockMan::GetInstance().GetHostSocket(fd), &sa, &sa_len);
 
   if (request.buffer_out_size < 2 + sizeof(sa.sa_data))
     WARN_LOG(IOS_NET, "IOCTL_SO_GETSOCKNAME output buffer is too small. Truncating");
@@ -402,7 +404,7 @@ IPCCommandResult NetIPTop::HandleGetPeerNameRequest(const IOCtlRequest& request)
 
   sockaddr sa;
   socklen_t sa_len = sizeof(sa);
-  int ret = getpeername(fd, &sa, &sa_len);
+  int ret = getpeername(WiiSockMan::GetInstance().GetHostSocket(fd), &sa, &sa_len);
 
   if (request.buffer_out_size < 2 + sizeof(sa.sa_data))
     WARN_LOG(IOS_NET, "IOCTL_SO_GETPEERNAME output buffer is too small. Truncating");
@@ -555,7 +557,8 @@ IPCCommandResult NetIPTop::HandlePollRequest(const IOCtlRequest& request)
 
   for (int i = 0; i < nfds; ++i)
   {
-    ufds[i].fd = Memory::Read_U32(request.buffer_out + 0xc * i);           // fd
+    s32 wii_fd = Memory::Read_U32(request.buffer_out + 0xc * i);
+    ufds[i].fd = WiiSockMan::GetInstance().GetHostSocket(wii_fd);          // fd
     int events = Memory::Read_U32(request.buffer_out + 0xc * i + 4);       // events
     ufds[i].revents = Memory::Read_U32(request.buffer_out + 0xc * i + 8);  // revents
 
@@ -571,7 +574,7 @@ IPCCommandResult NetIPTop::HandlePollRequest(const IOCtlRequest& request)
     DEBUG_LOG(IOS_NET, "IOCTL_SO_POLL(%d) "
                        "Sock: %08x, Unknown: %08x, Events: %08x, "
                        "NativeEvents: %08x",
-              i, ufds[i].fd, unknown, events, ufds[i].events);
+              i, wii_fd, unknown, events, ufds[i].events);
 
     // Do not pass return-only events to the native poll
     ufds[i].events &= ~(POLLERR | POLLHUP | POLLNVAL | UNSUPPORTED_WSAPOLL);
@@ -1009,10 +1012,11 @@ IPCCommandResult NetIPTop::HandleICMPPingRequest(const IOCtlVRequest& request)
     icmp_length = 22;
   }
 
-  int ret = icmp_echo_req(fd, &addr, data, icmp_length);
+  int ret = icmp_echo_req(WiiSockMan::GetInstance().GetHostSocket(fd), &addr, data, icmp_length);
   if (ret == icmp_length)
   {
-    ret = icmp_echo_rep(fd, &addr, (u32)timeout, icmp_length);
+    ret = icmp_echo_rep(WiiSockMan::GetInstance().GetHostSocket(fd), &addr,
+                        static_cast<u32>(timeout), icmp_length);
   }
 
   // TODO proper error codes
