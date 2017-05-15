@@ -424,8 +424,10 @@ IPCCommandResult NetSSL::IOCtlV(const IOCtlVRequest& request)
       WII_SSL* ssl = &_SSL[sslID];
       mbedtls_ssl_setup(&ssl->ctx, &ssl->config);
       ssl->sockfd = Memory::Read_U32(BufferOut2);
+      WiiSockMan& sm = WiiSockMan::GetInstance();
+      ssl->hostfd = sm.GetHostSocket(ssl->sockfd);
       INFO_LOG(IOS_SSL, "IOCTLV_NET_SSL_CONNECT socket = %d", ssl->sockfd);
-      mbedtls_ssl_set_bio(&ssl->ctx, &ssl->sockfd, mbedtls_net_send, mbedtls_net_recv, nullptr);
+      mbedtls_ssl_set_bio(&ssl->ctx, &ssl->hostfd, mbedtls_net_send, mbedtls_net_recv, nullptr);
       Memory::Write_U32(SSL_OK, BufferIn);
     }
     else
