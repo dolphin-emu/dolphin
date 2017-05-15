@@ -1,0 +1,9 @@
+TITLES = http://www.gametdb.com (type: Wii language: RU version: 20170521131105)
+R5IR4Q = История игрушек: Парк развлечений
+RN4P41 = Anno: Create A New World
+RWAR78 = Валл-И
+RXDR4Q = Disney Отвечай Не Зевай
+RY2R41 = Возвращение бешеных кролегов
+RYBP69 = BOOM BLOX Bash Party
+SFDPAF = 家庭训练机 梦幻主题乐园(欧)
+SP5E70 = 恶徒 来自地底的侵略者(美)
