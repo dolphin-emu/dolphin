@@ -220,7 +220,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
         int ret = bind(fd, (sockaddr*)&local_name, sizeof(local_name));
         ReturnValue = WiiSockMan::GetNetErrorCode(ret, "SO_BIND", false);
 
-        INFO_LOG(IOS_NET, "IOCTL_SO_BIND (%08X %s:%d) = %d ", fd, inet_ntoa(local_name.sin_addr),
+        INFO_LOG(IOS_NET, "IOCTL_SO_BIND (%08X %s:%d) = %d", fd, inet_ntoa(local_name.sin_addr),
                  Common::swap16(local_name.sin_port), ret);
         break;
       }
@@ -233,8 +233,8 @@ void WiiSocket::Update(bool read, bool write, bool except)
         int ret = connect(fd, (sockaddr*)&local_name, sizeof(local_name));
         ReturnValue = WiiSockMan::GetNetErrorCode(ret, "SO_CONNECT", false);
 
-        INFO_LOG(IOS_NET, "IOCTL_SO_CONNECT (%08x, %s:%d)", fd, inet_ntoa(local_name.sin_addr),
-                 Common::swap16(local_name.sin_port));
+        INFO_LOG(IOS_NET, "IOCTL_SO_CONNECT (%08x, %s:%d) = %d", fd, inet_ntoa(local_name.sin_addr),
+                 Common::swap16(local_name.sin_port), ret);
         break;
       }
       case IOCTL_SO_ACCEPT:
