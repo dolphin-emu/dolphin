@@ -285,6 +285,7 @@
     <ClCompile Include="PowerPC\PPCTables.cpp" />
     <ClCompile Include="PowerPC\Profiler.cpp" />
     <ClCompile Include="State.cpp" />
+    <ClCompile Include="TitleDatabase.cpp" />
     <ClCompile Include="WiiRoot.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -512,6 +513,7 @@
     <ClInclude Include="PowerPC\PPCTables.h" />
     <ClInclude Include="PowerPC\Profiler.h" />
     <ClInclude Include="State.h" />
+    <ClInclude Include="TitleDatabase.h" />
     <ClInclude Include="WiiRoot.h" />
   </ItemGroup>
   <ItemGroup>

@@ -17,6 +17,7 @@ set(SRCS
   NetPlayServer.cpp
   PatchEngine.cpp
   State.cpp
+  TitleDatabase.cpp
   WiiRoot.cpp
   Boot/Boot_BS2Emu.cpp
   Boot/Boot.cpp
