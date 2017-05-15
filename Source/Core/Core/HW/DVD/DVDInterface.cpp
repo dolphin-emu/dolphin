@@ -459,6 +459,8 @@ static void InsertDiscCallback(u64 userdata, s64 cyclesLate)
     SetDisc(std::move(new_volume));
   else
     PanicAlertT("The disc that was about to be inserted couldn't be found.");
+
+  s_disc_path_to_insert.clear();
 }
 
 // Can only be called by the host thread
