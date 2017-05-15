@@ -115,7 +115,7 @@ void ControllersWindow::CreateGamecubeLayout()
   m_gc_box->setLayout(m_gc_layout);
 }
 
-static QHBoxLayout* CreateSubItem(QLabel* label, QWidget* widget)
+static QHBoxLayout* CreateSubItem(QWidget* label, QWidget* widget)
 {
   QHBoxLayout* hbox = new QHBoxLayout();
   hbox->addItem(new QSpacerItem(25, 1));
@@ -123,15 +123,24 @@ static QHBoxLayout* CreateSubItem(QLabel* label, QWidget* widget)
   if (label != nullptr)
     hbox->addWidget(label);
 
-  hbox->addWidget(widget);
+  if (widget != nullptr)
+    hbox->addWidget(widget);
 
   return hbox;
 }
 
-static QHBoxLayout* CreateSubItem(const QString& text, QWidget* widget)
+static QHBoxLayout* CreateSubItem(QWidget* label, QLayoutItem* item)
 {
-  QLabel* label = text.isEmpty() ? nullptr : new QLabel(text);
-  return CreateSubItem(label, widget);
+  QHBoxLayout* hbox = new QHBoxLayout();
+  hbox->addItem(new QSpacerItem(25, 1));
+
+  if (label != nullptr)
+    hbox->addWidget(label);
+
+  if (item != nullptr)
+    hbox->addItem(item);
+
+  return hbox;
 }
 
 void ControllersWindow::CreateWiimoteLayout()
@@ -141,6 +150,7 @@ void ControllersWindow::CreateWiimoteLayout()
   m_wiimote_passthrough = new QRadioButton(tr("Use Bluetooth Passthrough"));
   m_wiimote_sync = new QPushButton(tr("Sync"));
   m_wiimote_reset = new QPushButton(tr("Reset"));
+  m_wiimote_refresh = new QPushButton(tr("Refresh"));
   m_wiimote_pt_labels[0] = new QLabel(tr("Sync real Wii Remotes and pair them"));
   m_wiimote_pt_labels[1] = new QLabel(tr("Reset all saved Wii Remote pairings"));
   m_wiimote_emu = new QRadioButton(tr("Emulate the Wii Bluetooth Adapter"));
@@ -161,6 +171,7 @@ void ControllersWindow::CreateWiimoteLayout()
 
   m_wiimote_sync->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
   m_wiimote_reset->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+  m_wiimote_refresh->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
   m_wiimote_layout->addRow(CreateSubItem(m_wiimote_pt_labels[0], m_wiimote_sync));
   m_wiimote_layout->addRow(CreateSubItem(m_wiimote_pt_labels[1], m_wiimote_reset));
@@ -193,9 +204,9 @@ void ControllersWindow::CreateWiimoteLayout()
     m_wiimote_layout->addRow(wm_group);
   }
 
-  m_wiimote_layout->addRow(CreateSubItem(QStringLiteral(""), m_wiimote_continuous_scanning));
-  m_wiimote_layout->addRow(CreateSubItem(QStringLiteral(""), m_wiimote_real_balance_board));
-  m_wiimote_layout->addRow(CreateSubItem(QStringLiteral(""), m_wiimote_speaker_data));
+  m_wiimote_layout->addRow(CreateSubItem(m_wiimote_continuous_scanning, m_wiimote_refresh));
+  m_wiimote_layout->addRow(CreateSubItem(nullptr, m_wiimote_real_balance_board));
+  m_wiimote_layout->addRow(CreateSubItem(m_wiimote_speaker_data, new QSpacerItem(1, 35)));
 
   m_wiimote_box->setLayout(m_wiimote_layout);
 }
@@ -239,6 +250,8 @@ void ControllersWindow::ConnectWidgets()
           &ControllersWindow::OnBluetoothPassthroughSyncPressed);
   connect(m_wiimote_reset, &QPushButton::clicked, this,
           &ControllersWindow::OnBluetoothPassthroughResetPressed);
+  connect(m_wiimote_refresh, &QPushButton::clicked, this,
+          &ControllersWindow::OnWiimoteRefreshPressed);
   connect(m_button_box, &QDialogButtonBox::accepted, this, &ControllersWindow::accept);
 
   for (size_t i = 0; i < m_wiimote_groups.size(); i++)
@@ -281,6 +294,7 @@ void ControllersWindow::OnWiimoteModeChanged(bool passthrough)
     m_wiimote_buttons[i]->setEnabled(!passthrough && index != 0 && index != 2);
   }
 
+  m_wiimote_refresh->setEnabled(!passthrough);
   m_wiimote_real_balance_board->setEnabled(!passthrough);
   m_wiimote_speaker_data->setEnabled(!passthrough);
   m_wiimote_continuous_scanning->setEnabled(!passthrough);
@@ -355,6 +369,11 @@ void ControllersWindow::OnBluetoothPassthroughSyncPressed()
     std::static_pointer_cast<IOS::HLE::Device::BluetoothBase>(device)
         ->TriggerSyncButtonPressedEvent();
   }
+}
+
+void ControllersWindow::OnWiimoteRefreshPressed()
+{
+  WiimoteReal::Refresh();
 }
 
 void ControllersWindow::OnEmulationStateChanged(bool running)

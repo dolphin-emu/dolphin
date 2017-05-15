@@ -35,6 +35,7 @@ private:
   void UnimplementedButton();
   void OnBluetoothPassthroughSyncPressed();
   void OnBluetoothPassthroughResetPressed();
+  void OnWiimoteRefreshPressed();
   void OnGCPadConfigure();
   void OnWiimoteConfigure();
 
@@ -79,6 +80,7 @@ private:
   QCheckBox* m_wiimote_continuous_scanning;
   QCheckBox* m_wiimote_real_balance_board;
   QCheckBox* m_wiimote_speaker_data;
+  QPushButton* m_wiimote_refresh;
 
   // Advanced
   QGroupBox* m_advanced_box;
