@@ -19,6 +19,7 @@
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
 #include "Core/ConfigManager.h"
+#include "Core/DSP/DSPCodeUtil.h"
 #include "Core/HW/DSPHLE/DSPHLE.h"
 #include "Core/HW/DSPHLE/UCodes/AX.h"
 #include "Core/HW/DSPHLE/UCodes/AXWii.h"
@@ -187,14 +188,8 @@ void UCodeInterface::PrepareBootUCode(u32 mail)
 
     if (SConfig::GetInstance().m_DumpUCode)
     {
-      std::string ucode_dump_path = StringFromFormat(
-          "%sDSP_UC_%08X.bin", File::GetUserPath(D_DUMPDSP_IDX).c_str(), ector_crc);
-
-      File::IOFile fp(ucode_dump_path, "wb");
-      if (fp)
-      {
-        fp.WriteArray((u8*)Memory::GetPointer(m_next_ucode.iram_mram_addr), m_next_ucode.iram_size);
-      }
+      DSP::DumpDSPCode(static_cast<u8*>(Memory::GetPointer(m_next_ucode.iram_mram_addr)),
+                       m_next_ucode.iram_size, ector_crc);
     }
 
     DEBUG_LOG(DSPHLE, "PrepareBootUCode 0x%08x", ector_crc);
