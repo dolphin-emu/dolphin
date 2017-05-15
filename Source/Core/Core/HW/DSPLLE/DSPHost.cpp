@@ -58,8 +58,6 @@ void InterruptRequest()
 
 void CodeLoaded(const u8* ptr, int size)
 {
-  g_dsp.iram_crc = HashEctor(ptr, size);
-
   if (SConfig::GetInstance().m_DumpUCode)
   {
     DSP::DumpDSPCode(ptr, size, g_dsp.iram_crc);
