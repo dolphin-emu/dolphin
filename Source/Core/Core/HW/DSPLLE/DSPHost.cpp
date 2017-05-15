@@ -8,10 +8,10 @@
 #include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
 #include "Core/DSP/DSPAnalyzer.h"
+#include "Core/DSP/DSPCodeUtil.h"
 #include "Core/DSP/DSPCore.h"
 #include "Core/DSP/Jit/DSPEmitter.h"
 #include "Core/HW/DSP.h"
-#include "Core/HW/DSPLLE/DSPLLETools.h"
 #include "Core/HW/DSPLLE/DSPSymbols.h"
 #include "Core/Host.h"
 #include "VideoCommon/OnScreenDisplay.h"
@@ -62,7 +62,7 @@ void CodeLoaded(const u8* ptr, int size)
 
   if (SConfig::GetInstance().m_DumpUCode)
   {
-    LLE::DumpDSPCode(ptr, size, g_dsp.iram_crc);
+    DSP::DumpDSPCode(ptr, size, g_dsp.iram_crc);
   }
 
   Symbols::Clear();
