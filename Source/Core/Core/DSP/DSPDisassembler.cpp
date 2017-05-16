@@ -25,36 +25,6 @@ DSPDisassembler::DSPDisassembler(const AssemblerSettings& settings) : settings_(
 {
 }
 
-DSPDisassembler::~DSPDisassembler()
-{
-  // Some old code for logging unknown ops.
-  std::string filename = File::GetUserPath(D_DUMPDSP_IDX) + "UnkOps.txt";
-  std::ofstream uo(filename);
-  if (!uo)
-    return;
-
-  int count = 0;
-  for (const auto& entry : unk_opcodes)
-  {
-    if (entry.second > 0)
-    {
-      count++;
-      uo << StringFromFormat("OP%04x\t%d", entry.first, entry.second);
-      for (int j = 15; j >= 0; j--)  // print op bits
-      {
-        if ((j & 0x3) == 3)
-          uo << "\tb";
-
-        uo << StringFromFormat("%d", (entry.first >> j) & 0x1);
-      }
-
-      uo << "\n";
-    }
-  }
-
-  uo << StringFromFormat("Unknown opcodes count: %d\n", count);
-}
-
 bool DSPDisassembler::Disassemble(const std::vector<u16>& code, int base_addr, std::string& text)
 {
   for (u16 pc = 0; pc < code.size();)
@@ -264,7 +234,6 @@ bool DSPDisassembler::DisassembleOpcode(const u16* binbuf, int base_addr, u16* p
   if (opc->opcode_mask == 0)
   {
     // unknown opcode
-    unk_opcodes[op1]++;
     dest += "\t\t; *** UNKNOWN OPCODE ***";
   }
 

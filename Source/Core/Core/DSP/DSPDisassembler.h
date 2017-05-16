@@ -34,7 +34,6 @@ class DSPDisassembler
 {
 public:
   explicit DSPDisassembler(const AssemblerSettings& settings);
-  ~DSPDisassembler();
 
   bool Disassemble(const std::vector<u16>& code, int base_addr, std::string& text);
 
@@ -43,7 +42,6 @@ public:
 
 private:
   std::string DisassembleParameters(const DSPOPCTemplate& opc, u16 op1, u16 op2);
-  std::map<u16, int> unk_opcodes;
 
   const AssemblerSettings settings_;
 
