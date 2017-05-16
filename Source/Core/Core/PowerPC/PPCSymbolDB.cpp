@@ -4,6 +4,7 @@
 
 #include <map>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "Common/CommonTypes.h"
@@ -38,28 +39,21 @@ PPCSymbolDB::~PPCSymbolDB()
 }
 
 // Adds the function to the list, unless it's already there
-Symbol* PPCSymbolDB::AddFunction(u32 startAddr)
+Symbol* PPCSymbolDB::AddFunction(u32 start_addr)
 {
-  if (startAddr < 0x80000010)
+  // It's already in the list
+  if (functions.find(start_addr) != functions.end())
     return nullptr;
-  XFuncMap::iterator iter = functions.find(startAddr);
-  if (iter != functions.end())
-  {
-    // it's already in the list
+
+  Symbol symbol;
+  if (!PPCAnalyst::AnalyzeFunction(start_addr, symbol))
     return nullptr;
-  }
-  else
-  {
-    Symbol tempFunc;  // the current one we're working on
-    u32 targetEnd = PPCAnalyst::AnalyzeFunction(startAddr, tempFunc);
-    if (targetEnd == 0)
-      return nullptr;  // found a dud :(
-    // LOG(OSHLE, "Symbol found at %08x", startAddr);
-    functions[startAddr] = tempFunc;
-    tempFunc.type = Symbol::Type::Function;
-    checksumToFunction[tempFunc.hash].insert(&functions[startAddr]);
-    return &functions[startAddr];
-  }
+
+  functions[start_addr] = std::move(symbol);
+  Symbol* ptr = &functions[start_addr];
+  ptr->type = Symbol::Type::Function;
+  checksumToFunction[ptr->hash].insert(ptr);
+  return ptr;
 }
 
 void PPCSymbolDB::AddKnownSymbol(u32 startAddr, u32 size, const std::string& name,
