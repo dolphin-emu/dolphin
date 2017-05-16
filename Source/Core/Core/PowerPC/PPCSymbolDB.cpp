@@ -50,14 +50,12 @@ Symbol* PPCSymbolDB::AddFunction(u32 startAddr)
   }
   else
   {
-    Symbol tempFunc;  // the current one we're working on
-    u32 targetEnd = PPCAnalyst::AnalyzeFunction(startAddr, tempFunc);
-    if (targetEnd == 0)
-      return nullptr;  // found a dud :(
-    // LOG(OSHLE, "Symbol found at %08x", startAddr);
-    functions[startAddr] = tempFunc;
-    tempFunc.type = Symbol::Type::Function;
-    checksumToFunction[tempFunc.hash].insert(&functions[startAddr]);
+    Symbol symbol;
+    if (!PPCAnalyst::AnalyzeFunction(startAddr, symbol))
+      return nullptr;
+    functions[startAddr] = symbol;
+    symbol.type = Symbol::Type::Function;
+    checksumToFunction[symbol.hash].insert(&functions[startAddr]);
     return &functions[startAddr];
   }
 }
