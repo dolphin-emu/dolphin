@@ -161,7 +161,6 @@ void ControlChannel(int wiimote_number, u16 channel_id, const void* data, u32 si
 void Update(int wiimote_number);
 void ConnectOnInput(int wiimote_number);
 
-void StateChange(EMUSTATE_CHANGE newState);
 void ChangeWiimoteSource(unsigned int index, int source);
 
 bool IsValidDeviceName(const std::string& name);

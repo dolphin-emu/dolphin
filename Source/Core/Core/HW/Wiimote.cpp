@@ -154,10 +154,4 @@ void DoState(PointerWrap& p)
   for (int i = 0; i < MAX_BBMOTES; ++i)
     static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(i))->DoState(p);
 }
-
-// Notifies the plugin of a change in emulation state
-void EmuStateChange(EMUSTATE_CHANGE newState)
-{
-  WiimoteReal::StateChange(newState);
-}
 }
