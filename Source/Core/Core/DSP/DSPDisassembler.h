@@ -12,7 +12,6 @@
 #include "Common/CommonTypes.h"
 
 #include "Core/DSP/DSPTables.h"
-#include "Core/DSP/LabelMap.h"
 
 namespace DSP
 {
@@ -44,7 +43,5 @@ private:
   std::string DisassembleParameters(const DSPOPCTemplate& opc, u16 op1, u16 op2);
 
   const AssemblerSettings settings_;
-
-  LabelMap labels;
 };
 }  // namespace DSP
