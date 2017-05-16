@@ -129,13 +129,6 @@ std::string DSPDisassembler::DisassembleParameters(const DSPOPCTemplate& opc, u1
   return buf;
 }
 
-static std::string MakeLowerCase(std::string in)
-{
-  std::transform(in.begin(), in.end(), in.begin(), ::tolower);
-
-  return in;
-}
-
 bool DSPDisassembler::DisassembleOpcode(const u16* binbuf, int base_addr, u16* pc,
                                         std::string& dest)
 {
@@ -150,10 +143,9 @@ bool DSPDisassembler::DisassembleOpcode(const u16* binbuf, int base_addr, u16* p
 
   // Find main opcode
   const DSPOPCTemplate* opc = FindOpInfoByOpcode(op1);
-  const DSPOPCTemplate fake_op = {"CW",    0x0000, 0x0000, DSP::Interpreter::nop,
-                                  nullptr, 1,      1,      {{P_VAL, 2, 0, 0, 0xffff}},
-                                  false,   false,  false,  false,
-                                  false};
+  const DSPOPCTemplate fake_op = {
+      "CW",  0x0000, 0x0000, nullptr, nullptr, 1, 1, {{P_VAL, 2, 0, 0, 0xffff}},
+      false, false,  false,  false,   false};
   if (!opc)
     opc = &fake_op;
 
@@ -200,21 +192,15 @@ bool DSPDisassembler::DisassembleOpcode(const u16* binbuf, int base_addr, u16* p
   }
 
   std::string opname = opc->name;
-  if (settings_.lower_case_ops)
-    opname = MakeLowerCase(opname);
-
-  std::string ext_buf;
   if (is_extended)
-    ext_buf = StringFromFormat("%s%c%s", opname.c_str(), settings_.ext_separator, opc_ext->name);
-  else
-    ext_buf = opname;
+    opname += StringFromFormat("%c%s", settings_.ext_separator, opc_ext->name);
   if (settings_.lower_case_ops)
-    ext_buf = MakeLowerCase(ext_buf);
+    std::transform(opname.begin(), opname.end(), opname.begin(), ::tolower);
 
   if (settings_.print_tabs)
-    dest += StringFromFormat("%s\t", ext_buf.c_str());
+    dest += StringFromFormat("%s\t", opname.c_str());
   else
-    dest += StringFromFormat("%-12s", ext_buf.c_str());
+    dest += StringFromFormat("%-12s", opname.c_str());
 
   if (opc->param_count > 0)
     dest += DisassembleParameters(*opc, op1, op2);
@@ -237,10 +223,7 @@ bool DSPDisassembler::DisassembleOpcode(const u16* binbuf, int base_addr, u16* p
     dest += "\t\t; *** UNKNOWN OPCODE ***";
   }
 
-  if (is_extended)
-    *pc += opc_ext->size;
-  else
-    *pc += opc->size;
+  *pc += is_extended ? opc_ext->size : opc->size;
 
   return true;
 }
