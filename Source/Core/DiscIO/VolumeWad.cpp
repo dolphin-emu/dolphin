@@ -29,11 +29,11 @@ CVolumeWAD::CVolumeWAD(std::unique_ptr<IBlobReader> reader) : m_reader(std::move
   _assert_(m_reader);
 
   // Source: http://wiibrew.org/wiki/WAD_files
-  ReadSwapped(0x00, &m_hdr_size, false);
-  ReadSwapped(0x08, &m_cert_size, false);
-  ReadSwapped(0x10, &m_tick_size, false);
-  ReadSwapped(0x14, &m_tmd_size, false);
-  ReadSwapped(0x18, &m_data_size, false);
+  ReadSwapped(0x00, &m_hdr_size, PARTITION_NONE);
+  ReadSwapped(0x08, &m_cert_size, PARTITION_NONE);
+  ReadSwapped(0x10, &m_tick_size, PARTITION_NONE);
+  ReadSwapped(0x14, &m_tmd_size, PARTITION_NONE);
+  ReadSwapped(0x18, &m_data_size, PARTITION_NONE);
 
   m_offset = Common::AlignUp(m_hdr_size, 0x40) + Common::AlignUp(m_cert_size, 0x40);
   m_tmd_offset = Common::AlignUp(m_hdr_size, 0x40) + Common::AlignUp(m_cert_size, 0x40) +
@@ -48,7 +48,7 @@ CVolumeWAD::CVolumeWAD(std::unique_ptr<IBlobReader> reader) : m_reader(std::move
   }
 
   std::vector<u8> tmd_buffer(m_tmd_size);
-  Read(m_tmd_offset, m_tmd_size, tmd_buffer.data(), false);
+  Read(m_tmd_offset, m_tmd_size, tmd_buffer.data());
   m_tmd.SetBytes(std::move(tmd_buffer));
 }
 
@@ -56,10 +56,10 @@ CVolumeWAD::~CVolumeWAD()
 {
 }
 
-bool CVolumeWAD::Read(u64 offset, u64 length, u8* buffer, bool decrypt) const
+bool CVolumeWAD::Read(u64 offset, u64 length, u8* buffer, const Partition& partition) const
 {
-  if (decrypt)
-    PanicAlertT("Tried to decrypt data from a non-Wii volume");
+  if (partition != PARTITION_NONE)
+    return false;
 
   return m_reader->Read(offset, length, buffer);
 }
@@ -71,7 +71,7 @@ Region CVolumeWAD::GetRegion() const
   return m_tmd.GetRegion();
 }
 
-Country CVolumeWAD::GetCountry() const
+Country CVolumeWAD::GetCountry(const Partition& partition) const
 {
   if (!m_tmd.IsValid())
     return Country::COUNTRY_UNKNOWN;
@@ -83,20 +83,20 @@ Country CVolumeWAD::GetCountry() const
   return CountrySwitch(country_code);
 }
 
-IOS::ES::TMDReader CVolumeWAD::GetTMD() const
+IOS::ES::TMDReader CVolumeWAD::GetTMD(const Partition& partition) const
 {
   return m_tmd;
 }
 
-std::string CVolumeWAD::GetGameID() const
+std::string CVolumeWAD::GetGameID(const Partition& partition) const
 {
   return m_tmd.GetGameID();
 }
 
-std::string CVolumeWAD::GetMakerID() const
+std::string CVolumeWAD::GetMakerID(const Partition& partition) const
 {
   char temp[2];
-  if (!Read(0x198 + m_tmd_offset, 2, (u8*)temp))
+  if (!Read(0x198 + m_tmd_offset, 2, (u8*)temp, partition))
     return "00";
 
   // Some weird channels use 0x0000 in place of the MakerID, so we need a check here
@@ -107,12 +107,12 @@ std::string CVolumeWAD::GetMakerID() const
   return DecodeString(temp);
 }
 
-bool CVolumeWAD::GetTitleID(u64* buffer) const
+bool CVolumeWAD::GetTitleID(u64* buffer, const Partition& partition) const
 {
-  return ReadSwapped(m_offset + 0x01DC, buffer, false);
+  return ReadSwapped(m_offset + 0x01DC, buffer, partition);
 }
 
-u16 CVolumeWAD::GetRevision() const
+u16 CVolumeWAD::GetRevision(const Partition& partition) const
 {
   if (!m_tmd.IsValid())
     return 0;

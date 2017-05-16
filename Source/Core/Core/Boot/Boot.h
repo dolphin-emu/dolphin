@@ -12,6 +12,7 @@
 namespace DiscIO
 {
 class IVolume;
+struct Partition;
 }
 
 struct RegionSetting
@@ -46,7 +47,7 @@ public:
 
 private:
   static bool DVDRead(const DiscIO::IVolume& volume, u64 dvd_offset, u32 output_address, u32 length,
-                      bool decrypt);
+                      const DiscIO::Partition& partition);
   static void RunFunction(u32 address);
 
   static void UpdateDebugger_MapLoaded();

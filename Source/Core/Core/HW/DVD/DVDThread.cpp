@@ -41,7 +41,7 @@ struct ReadRequest
   u32 output_address;
   u64 dvd_offset;
   u32 length;
-  bool decrypt;
+  DiscIO::Partition partition;
 
   // This determines which code DVDInterface will run to reply
   // to the emulated software. We can't use callbacks,
@@ -68,8 +68,8 @@ static void DVDThread();
 static void WaitUntilIdle();
 
 static void StartReadInternal(bool copy_to_ram, u32 output_address, u64 dvd_offset, u32 length,
-                              bool decrypt, DVDInterface::ReplyType reply_type,
-                              s64 ticks_until_completion);
+                              const DiscIO::Partition& partition,
+                              DVDInterface::ReplyType reply_type, s64 ticks_until_completion);
 
 static void FinishRead(u64 id, s64 cycles_late);
 static CoreTiming::EventType* s_finish_read;
@@ -191,42 +191,25 @@ bool HasDisc()
   return s_disc != nullptr;
 }
 
-u64 PartitionOffsetToRawOffset(u64 offset)
-{
-  // This is thread-safe as long as the partition currently isn't being changed,
-  // and that isn't supposed to be happening while running this function, because both
-  // this function and ChangePartition are only supposed to be called on the CPU thread.
-  _assert_(Core::IsCPUThread());
-  return s_disc->PartitionOffsetToRawOffset(offset);
-}
-
 DiscIO::Platform GetDiscType()
 {
   // GetVolumeType is thread-safe, so calling WaitUntilIdle isn't necessary.
   return s_disc->GetVolumeType();
 }
 
-IOS::ES::TMDReader GetTMD()
+IOS::ES::TMDReader GetTMD(const DiscIO::Partition& partition)
 {
   WaitUntilIdle();
-  return s_disc->GetTMD();
+  return s_disc->GetTMD(partition);
 }
 
-IOS::ES::TicketReader GetTicket()
+IOS::ES::TicketReader GetTicket(const DiscIO::Partition& partition)
 {
   WaitUntilIdle();
-  return s_disc->GetTicket();
+  return s_disc->GetTicket(partition);
 }
 
-bool ChangePartition(u64 offset)
-{
-  WaitUntilIdle();
-  const bool success = s_disc->ChangePartition(offset);
-  FileMonitor::SetFileSystem(s_disc.get());
-  return success;
-}
-
-bool UpdateRunningGameMetadata(u64 title_id)
+bool UpdateRunningGameMetadata(const DiscIO::Partition& partition, u64 title_id)
 {
   if (!s_disc)
     return false;
@@ -234,24 +217,24 @@ bool UpdateRunningGameMetadata(u64 title_id)
   WaitUntilIdle();
 
   u64 volume_title_id;
-  if (!s_disc->GetTitleID(&volume_title_id))
+  if (!s_disc->GetTitleID(&volume_title_id, partition))
     return false;
 
   if (volume_title_id != title_id)
     return false;
 
-  SConfig::GetInstance().SetRunningGameMetadata(*s_disc);
+  SConfig::GetInstance().SetRunningGameMetadata(*s_disc, partition);
   return true;
 }
 
-bool UpdateRunningGameMetadata()
+bool UpdateRunningGameMetadata(const DiscIO::Partition& partition)
 {
   if (!s_disc)
     return false;
 
   DVDThread::WaitUntilIdle();
 
-  SConfig::GetInstance().SetRunningGameMetadata(*s_disc);
+  SConfig::GetInstance().SetRunningGameMetadata(*s_disc, partition);
   return true;
 }
 
@@ -266,22 +249,23 @@ void WaitUntilIdle()
   StartDVDThread();
 }
 
-void StartRead(u64 dvd_offset, u32 length, bool decrypt, DVDInterface::ReplyType reply_type,
-               s64 ticks_until_completion)
+void StartRead(u64 dvd_offset, u32 length, const DiscIO::Partition& partition,
+               DVDInterface::ReplyType reply_type, s64 ticks_until_completion)
 {
-  StartReadInternal(false, 0, dvd_offset, length, decrypt, reply_type, ticks_until_completion);
+  StartReadInternal(false, 0, dvd_offset, length, partition, reply_type, ticks_until_completion);
 }
 
-void StartReadToEmulatedRAM(u32 output_address, u64 dvd_offset, u32 length, bool decrypt,
-                            DVDInterface::ReplyType reply_type, s64 ticks_until_completion)
+void StartReadToEmulatedRAM(u32 output_address, u64 dvd_offset, u32 length,
+                            const DiscIO::Partition& partition, DVDInterface::ReplyType reply_type,
+                            s64 ticks_until_completion)
 {
-  StartReadInternal(true, output_address, dvd_offset, length, decrypt, reply_type,
+  StartReadInternal(true, output_address, dvd_offset, length, partition, reply_type,
                     ticks_until_completion);
 }
 
 static void StartReadInternal(bool copy_to_ram, u32 output_address, u64 dvd_offset, u32 length,
-                              bool decrypt, DVDInterface::ReplyType reply_type,
-                              s64 ticks_until_completion)
+                              const DiscIO::Partition& partition,
+                              DVDInterface::ReplyType reply_type, s64 ticks_until_completion)
 {
   _assert_(Core::IsCPUThread());
 
@@ -291,7 +275,7 @@ static void StartReadInternal(bool copy_to_ram, u32 output_address, u64 dvd_offs
   request.output_address = output_address;
   request.dvd_offset = dvd_offset;
   request.length = length;
-  request.decrypt = decrypt;
+  request.partition = partition;
   request.reply_type = reply_type;
 
   u64 id = s_next_id++;
@@ -381,10 +365,10 @@ static void DVDThread()
     ReadRequest request;
     while (s_request_queue.Pop(request))
     {
-      FileMonitor::Log(request.dvd_offset, request.decrypt);
+      FileMonitor::Log(request.dvd_offset, request.partition);
 
       std::vector<u8> buffer(request.length);
-      if (!s_disc->Read(request.dvd_offset, request.length, buffer.data(), request.decrypt))
+      if (!s_disc->Read(request.dvd_offset, request.length, buffer.data(), request.partition))
         buffer.resize(0);
 
       request.realtime_done_us = Common::Timer::GetTimeUs();

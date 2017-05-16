@@ -14,11 +14,12 @@
 namespace DiscIO
 {
 class IVolume;
+struct Partition;
 
 class CFileSystemGCWii : public IFileSystem
 {
 public:
-  CFileSystemGCWii(const IVolume* _rVolume);
+  CFileSystemGCWii(const IVolume* _rVolume, const Partition& partition);
   virtual ~CFileSystemGCWii();
 
   bool IsValid() const override { return m_Valid; }
@@ -36,7 +37,7 @@ public:
 private:
   bool m_Initialized;
   bool m_Valid;
-  bool m_Wii;
+  u32 m_offset_shift;
   std::vector<SFileInfo> m_FileInfoVector;
 
   std::string GetStringFromOffset(u64 _Offset) const;
@@ -45,7 +46,6 @@ private:
   void InitFileSystem();
   size_t BuildFilenames(const size_t _FirstIndex, const size_t _LastIndex,
                         const std::string& _szDirectory, u64 _NameTableOffset);
-  u32 GetOffsetShift() const;
 };
 
 }  // namespace

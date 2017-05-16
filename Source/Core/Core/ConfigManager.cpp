@@ -25,7 +25,6 @@
 #include "Core/FifoPlayer/FifoDataFile.h"
 #include "Core/HLE/HLE.h"
 #include "Core/HW/DVD/DVDInterface.h"
-#include "Core/HW/DVD/DVDThread.h"
 #include "Core/HW/SI/SI.h"
 #include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/USB/Bluetooth/BTBase.h"
@@ -746,11 +745,12 @@ void SConfig::ResetRunningGameMetadata()
   SetRunningGameMetadata("00000000", 0, 0);
 }
 
-void SConfig::SetRunningGameMetadata(const DiscIO::IVolume& volume)
+void SConfig::SetRunningGameMetadata(const DiscIO::IVolume& volume,
+                                     const DiscIO::Partition& partition)
 {
   u64 title_id = 0;
-  volume.GetTitleID(&title_id);
-  SetRunningGameMetadata(volume.GetGameID(), title_id, volume.GetRevision());
+  volume.GetTitleID(&title_id, partition);
+  SetRunningGameMetadata(volume.GetGameID(partition), title_id, volume.GetRevision(partition));
 }
 
 void SConfig::SetRunningGameMetadata(const IOS::ES::TMDReader& tmd)
@@ -761,7 +761,7 @@ void SConfig::SetRunningGameMetadata(const IOS::ES::TMDReader& tmd)
   // the disc header instead of the TMD. They can differ.
   // (IOS HLE ES calls us with a TMDReader rather than a volume when launching
   // a disc game, because ES has no reason to be accessing the disc directly.)
-  if (!DVDThread::UpdateRunningGameMetadata(tmd_title_id))
+  if (!DVDInterface::UpdateRunningGameMetadata(tmd_title_id))
   {
     // If not launching a disc game, just read everything from the TMD.
     SetRunningGameMetadata(tmd.GetGameID(), tmd_title_id, tmd.GetTitleVersion());
@@ -935,7 +935,7 @@ bool SConfig::AutoSetup(EBootBS2 _BootBS2)
                       m_strFilename.c_str());
         return false;
       }
-      SetRunningGameMetadata(*pVolume);
+      SetRunningGameMetadata(*pVolume, pVolume->GetGamePartition());
 
       // Check if we have a Wii disc
       bWii = pVolume->GetVolumeType() == DiscIO::Platform::WII_DISC;

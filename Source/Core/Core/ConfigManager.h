@@ -19,6 +19,7 @@ namespace DiscIO
 {
 enum class Language;
 enum class Region;
+struct Partition;
 class IVolume;
 }
 namespace IOS
@@ -226,7 +227,7 @@ struct SConfig : NonCopyable
   u64 GetTitleID() const { return m_title_id; }
   u16 GetRevision() const { return m_revision; }
   void ResetRunningGameMetadata();
-  void SetRunningGameMetadata(const DiscIO::IVolume& volume);
+  void SetRunningGameMetadata(const DiscIO::IVolume& volume, const DiscIO::Partition& partition);
   void SetRunningGameMetadata(const IOS::ES::TMDReader& tmd);
 
   void LoadDefaults();
