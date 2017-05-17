@@ -133,25 +133,22 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 			{
 			case MotionEvent.ACTION_DOWN:
 			case MotionEvent.ACTION_POINTER_DOWN:
-			case MotionEvent.ACTION_MOVE:
 				// If a pointer enters the bounds of a button, press that button.
 				if (button.getBounds().contains((int)event.getX(pointerIndex), (int)event.getY(pointerIndex)))
 				{
 					button.setPressedState(true);
+					button.setTrackId(event.getPointerId(pointerIndex));
 					NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, button.getId(), ButtonState.PRESSED);
-					invalidate();
 				}
 				break;
 			case MotionEvent.ACTION_UP:
 			case MotionEvent.ACTION_POINTER_UP:
 				// If a pointer ends, release the button it was pressing.
-				if (button.getBounds().contains((int)event.getX(pointerIndex), (int)event.getY(pointerIndex)))
+				if (button.getTrackId() == event.getPointerId(pointerIndex))
 				{
+					button.setPressedState(false);
 					NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, button.getId(), ButtonState.RELEASED);
 				}
-
-				button.setPressedState(false);
-				invalidate();
 				break;
 			}
 		}
@@ -163,7 +160,6 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 			{
 				case MotionEvent.ACTION_DOWN:
 				case MotionEvent.ACTION_POINTER_DOWN:
-				case MotionEvent.ACTION_MOVE:
 					// If a pointer enters the bounds of a button, press that button.
 					if (dpad.getBounds().contains((int)event.getX(pointerIndex), (int)event.getY(pointerIndex)))
 					{
@@ -193,21 +189,20 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 						}
 
 						setDpadState(dpad, up, down, left, right);
-						invalidate();
+						dpad.setTrackId(event.getPointerId(pointerIndex));
 					}
 					break;
 				case MotionEvent.ACTION_UP:
 				case MotionEvent.ACTION_POINTER_UP:
 					// If a pointer ends, release the buttons.
-					if (dpad.getBounds().contains((int)event.getX(pointerIndex), (int)event.getY(pointerIndex)))
+					if (dpad.getTrackId() == event.getPointerId(pointerIndex))
 					{
 						for(int i = 0; i < 4; i++)
 						{
+							dpad.setState(InputOverlayDrawableDpad.STATE_DEFAULT);
 							NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, dpad.getId(i), ButtonState.RELEASED);
 						}
 					}
-					dpad.setState(InputOverlayDrawableDpad.STATE_DEFAULT);
-					invalidate();
 					break;
 			}
 		}
@@ -223,6 +218,8 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 				NativeLibrary.onGamePadMoveEvent(NativeLibrary.TouchScreenDevice, axisIDs[i], axises[i]);
 			}
 		}
+
+		invalidate();
 
 		return true;
 	}
@@ -333,10 +330,8 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 						mJoystickBeingConfigured = null;
 					}
 					break;
-
 			}
 		}
-
 
 		return true;
 	}
@@ -414,15 +409,13 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		}
 		if (mPreferences.getBoolean("buttonToggleGc9", true))
 		{
-			overlayJoysticks.add(initializeOverlayJoystick(getContext(),
-					R.drawable.gcwii_joystick_range, R.drawable.gcwii_joystick,
-					ButtonType.STICK_MAIN));
+			overlayJoysticks.add(initializeOverlayJoystick(getContext(), R.drawable.gcwii_joystick_range,
+					R.drawable.gcwii_joystick, R.drawable.gcwii_joystick_pressed, ButtonType.STICK_MAIN));
 		}
 		if (mPreferences.getBoolean("buttonToggleGc10", true))
 		{
-			overlayJoysticks.add(initializeOverlayJoystick(getContext(),
-					R.drawable.gcwii_joystick_range, R.drawable.gcpad_c,
-					ButtonType.STICK_C));
+			overlayJoysticks.add(initializeOverlayJoystick(getContext(), R.drawable.gcwii_joystick_range,
+					R.drawable.gcpad_c, R.drawable.gcpad_c_pressed, ButtonType.STICK_C));
 		}
 	}
 
@@ -487,9 +480,8 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		}
 		if (mPreferences.getBoolean("buttonToggleWii10", true))
 		{
-			overlayJoysticks.add(initializeOverlayJoystick(getContext(),
-					R.drawable.gcwii_joystick_range, R.drawable.gcwii_joystick,
-					ButtonType.NUNCHUK_STICK));
+			overlayJoysticks.add(initializeOverlayJoystick(getContext(), R.drawable.gcwii_joystick_range,
+					R.drawable.gcwii_joystick, R.drawable.gcwii_joystick_pressed, ButtonType.NUNCHUK_STICK));
 		}
 	}
 
@@ -548,15 +540,13 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		}
 		if (mPreferences.getBoolean("buttonToggleClassic12", true))
 		{
-			overlayJoysticks.add(initializeOverlayJoystick(getContext(),
-					R.drawable.gcwii_joystick_range, R.drawable.gcwii_joystick,
-					ButtonType.CLASSIC_STICK_LEFT));
+			overlayJoysticks.add(initializeOverlayJoystick(getContext(), R.drawable.gcwii_joystick_range,
+					R.drawable.gcwii_joystick, R.drawable.gcwii_joystick_pressed, ButtonType.CLASSIC_STICK_LEFT));
 		}
 		if (mPreferences.getBoolean("buttonToggleClassic13", true))
 		{
-			overlayJoysticks.add(initializeOverlayJoystick(getContext(),
-					R.drawable.gcwii_joystick_range, R.drawable.gcwii_joystick,
-					ButtonType.CLASSIC_STICK_RIGHT));
+			overlayJoysticks.add(initializeOverlayJoystick(getContext(), R.drawable.gcwii_joystick_range,
+					R.drawable.gcwii_joystick, R.drawable.gcwii_joystick_pressed, ButtonType.CLASSIC_STICK_RIGHT));
 		}
 	}
 
@@ -785,14 +775,15 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 	/**
 	 * Initializes an {@link InputOverlayDrawableJoystick} 
 	 * 
-	 * @param context   The current {@link Context}
-	 * @param resOuter  Resource ID for the outer image of the joystick (the static image that shows the circular bounds).
-	 * @param resInner  Resource ID for the inner image of the joystick (the one you actually move around).
-	 * @param joystick  Identifier for which joystick this is.
+	 * @param context         The current {@link Context}
+	 * @param resOuter        Resource ID for the outer image of the joystick (the static image that shows the circular bounds).
+	 * @param defaultResInner Resource ID for the default inner image of the joystick (the one you actually move around).
+	 * @param pressedResInner Resource ID for the pressed inner image of the joystick.
+	 * @param joystick        Identifier for which joystick this is.
 	 * 
 	 * @return the initialized {@link InputOverlayDrawableJoystick}.
 	 */
-	private static InputOverlayDrawableJoystick initializeOverlayJoystick(Context context, int resOuter, int resInner, int joystick)
+	private static InputOverlayDrawableJoystick initializeOverlayJoystick(Context context, int resOuter, int defaultResInner, int pressedResInner, int joystick)
 	{
 		// Resources handle for fetching the initial Drawable resource.
 		final Resources res = context.getResources();
@@ -807,7 +798,8 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
 		// Initialize the InputOverlayDrawableJoystick.
 		final Bitmap bitmapOuter = resizeBitmap(context, BitmapFactory.decodeResource(res, resOuter), scale);
-		final Bitmap bitmapInner = BitmapFactory.decodeResource(res, resInner);
+		final Bitmap bitmapInnerDefault = BitmapFactory.decodeResource(res, defaultResInner);
+		final Bitmap bitmapInnerPressed = BitmapFactory.decodeResource(res, pressedResInner);
 
 		// The X and Y coordinates of the InputOverlayDrawableButton on the InputOverlay.
 		// These were set in the input overlay configuration menu.
@@ -835,10 +827,9 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
 		// Send the drawableId to the joystick so it can be referenced when saving control position.
 		final InputOverlayDrawableJoystick overlayDrawable
-				= new InputOverlayDrawableJoystick(res,
-					bitmapOuter, bitmapInner,
-					outerRect, innerRect,
-					joystick);
+				= new InputOverlayDrawableJoystick(res, bitmapOuter,
+								   bitmapInnerDefault, bitmapInnerPressed,
+								   outerRect, innerRect, joystick);
 
 		// Need to set the image's position
 		overlayDrawable.setPosition(drawableX, drawableY);

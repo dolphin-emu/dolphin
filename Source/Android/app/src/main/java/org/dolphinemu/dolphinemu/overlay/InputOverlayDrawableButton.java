@@ -21,6 +21,7 @@ public final class InputOverlayDrawableButton
 {
 	// The ID identifying what type of button this Drawable represents.
 	private int mButtonType;
+	private int mTrackId;
 	private int mPreviousTouchX, mPreviousTouchY;
 	private int mControlPositionX, mControlPositionY;
 	private int mWidth;
@@ -55,6 +56,16 @@ public final class InputOverlayDrawableButton
 	public int getId()
 	{
 		return mButtonType;
+	}
+
+	public void setTrackId(int trackId)
+	{
+		mTrackId = trackId;
+	}
+
+	public int getTrackId()
+	{
+		return mTrackId;
 	}
 
 	public boolean onConfigureTouch(MotionEvent event)
