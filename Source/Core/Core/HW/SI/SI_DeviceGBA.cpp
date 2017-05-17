@@ -5,6 +5,7 @@
 #include "Core/HW/SI/SI_DeviceGBA.h"
 
 #include <cstddef>
+#include <cstring>
 #include <memory>
 #include <mutex>
 #include <queue>
@@ -303,6 +304,12 @@ int CSIDevice_GBA::RunBuffer(u8* buffer, int length)
 #endif
       m_sock_server.Send(buffer);
     }
+    else
+    {
+      constexpr u32 reply = SI_ERROR_NO_RESPONSE;
+      std::memcpy(buffer, &reply, sizeof(reply));
+      return sizeof(reply);
+    }
     m_last_cmd = buffer[3];
     m_timestamp_sent = CoreTiming::GetTicks();
     m_next_action = NextAction::WaitTransferTime;
@@ -322,22 +329,21 @@ int CSIDevice_GBA::RunBuffer(u8* buffer, int length)
   case NextAction::ReceiveResponse:
   {
     int num_data_received = m_sock_server.Receive(buffer);
-    if (m_sock_server.IsConnected())
+    if (!m_sock_server.IsConnected())
     {
+      m_next_action = NextAction::SendCommand;
+      constexpr u32 reply = SI_ERROR_NO_RESPONSE;
+      std::memcpy(buffer, &reply, sizeof(reply));
+      return sizeof(reply);
+    }
 #ifdef _DEBUG
-      LogTypes::LOG_LEVELS log_level = (m_last_cmd == CMD_STATUS || m_last_cmd == CMD_RESET) ?
-                                           LogTypes::LERROR :
-                                           LogTypes::LWARNING;
-      GENERIC_LOG(LogTypes::SERIALINTERFACE, log_level,
-                  "%01d                              [< %02x%02x%02x%02x%02x] (%i)",
-                  m_device_number, buffer[3], buffer[2], buffer[1], buffer[0], buffer[7],
-                  num_data_received);
+    LogTypes::LOG_LEVELS log_level = (m_last_cmd == CMD_STATUS || m_last_cmd == CMD_RESET) ?
+                                         LogTypes::LERROR :
+                                         LogTypes::LWARNING;
+    GENERIC_LOG(LogTypes::SERIALINTERFACE, log_level,
+                "%01d                              [< %02x%02x%02x%02x%02x] (%i)", m_device_number,
+                buffer[3], buffer[2], buffer[1], buffer[0], buffer[7], num_data_received);
 #endif
-    }
-    else
-    {
-      num_data_received = RECV_MAX_SIZE;
-    }
     if (num_data_received > 0)
       m_next_action = NextAction::SendCommand;
     return num_data_received;
