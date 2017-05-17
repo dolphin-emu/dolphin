@@ -97,7 +97,7 @@ bool AnalyzeFunction(u32 startAddr, Symbol& func, int max_size)
   for (u32 addr = startAddr; true; addr += 4)
   {
     func.size += 4;
-    if (func.size >= CODEBUFFER_SIZE * 4 || !PowerPC::HostIsRAMAddress(addr))  // weird
+    if (func.size >= CODEBUFFER_SIZE * 4 || !PowerPC::HostIsInstructionRAMAddress(addr))  // weird
       return false;
 
     if (max_size && func.size > max_size)
