@@ -78,4 +78,13 @@ void SetCurrent(const ConfigInfo<T>& info, const T& value)
   Set<T>(LayerType::CurrentRun, info, value);
 }
 
+template <typename T>
+void SetBaseOrCurrent(const ConfigInfo<T>& info, const T& value)
+{
+  if (GetActiveLayerForConfig(info) == LayerType::Base)
+    Set<T>(LayerType::Base, info, value);
+  else
+    Set<T>(LayerType::CurrentRun, info, value);
+}
+
 }  // namespace Config
