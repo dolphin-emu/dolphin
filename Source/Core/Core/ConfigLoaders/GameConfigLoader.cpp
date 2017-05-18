@@ -19,6 +19,7 @@
 #include "Common/StringUtil.h"
 
 #include "Core/Config/Config.h"
+#include "Core/Config/GraphicsSettings.h"
 #include "Core/ConfigLoaders/GameConfigLoader.h"
 #include "Core/ConfigLoaders/IsSettingSaveable.h"
 
@@ -51,7 +52,59 @@ using INIToLocationMap = std::map<std::pair<std::string, std::string>, ConfigLoc
 // See also: MapINIToRealLocation and GetINILocationFromConfig.
 static const INIToLocationMap& GetINIToLocationMap()
 {
-  static const INIToLocationMap ini_to_location{};
+  static const INIToLocationMap ini_to_location = {
+      {{"Video_Hardware", "VSync"}, {Config::GFX_VSYNC.location}},
+
+      {{"Video_Settings", "wideScreenHack"}, {Config::GFX_WIDESCREEN_HACK.location}},
+      {{"Video_Settings", "AspectRatio"}, {Config::GFX_ASPECT_RATIO.location}},
+      {{"Video_Settings", "Crop"}, {Config::GFX_CROP.location}},
+      {{"Video_Settings", "UseXFB"}, {Config::GFX_USE_XFB.location}},
+      {{"Video_Settings", "UseRealXFB"}, {Config::GFX_USE_REAL_XFB.location}},
+      {{"Video_Settings", "SafeTextureCacheColorSamples"},
+       {Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES.location}},
+      {{"Video_Settings", "HiresTextures"}, {Config::GFX_HIRES_TEXTURES.location}},
+      {{"Video_Settings", "ConvertHiresTextures"}, {Config::GFX_CONVERT_HIRES_TEXTURES.location}},
+      {{"Video_Settings", "CacheHiresTextures"}, {Config::GFX_CACHE_HIRES_TEXTURES.location}},
+      {{"Video_Settings", "EnablePixelLighting"}, {Config::GFX_ENABLE_PIXEL_LIGHTING.location}},
+      {{"Video_Settings", "FastDepthCalc"}, {Config::GFX_FAST_DEPTH_CALC.location}},
+      {{"Video_Settings", "MSAA"}, {Config::GFX_MSAA.location}},
+      {{"Video_Settings", "SSAA"}, {Config::GFX_SSAA.location}},
+      {{"Video_Settings", "ForceTrueColor"}, {Config::GFX_ENHANCE_FORCE_TRUE_COLOR.location}},
+      {{"Video_Settings", "EFBScale"}, {Config::GFX_EFB_SCALE.location}},
+      {{"Video_Settings", "DisableFog"}, {Config::GFX_DISABLE_FOG.location}},
+      {{"Video_Settings", "BackendMultithreading"}, {Config::GFX_BACKEND_MULTITHREADING.location}},
+      {{"Video_Settings", "CommandBufferExecuteInterval"},
+       {Config::GFX_COMMAND_BUFFER_EXECUTE_INTERVAL.location}},
+
+      {{"Video_Enhancements", "ForceFiltering"}, {Config::GFX_ENHANCE_FORCE_FILTERING.location}},
+      {{"Video_Enhancements", "MaxAnisotropy"}, {Config::GFX_ENHANCE_MAX_ANISOTROPY.location}},
+      {{"Video_Enhancements", "PostProcessingShader"}, {Config::GFX_ENHANCE_POST_SHADER.location}},
+
+      {{"Video_Stereoscopy", "StereoConvergence"}, {Config::GFX_STEREO_CONVERGENCE.location}},
+      {{"Video_Stereoscopy", "StereoEFBMonoDepth"}, {Config::GFX_STEREO_EFB_MONO_DEPTH.location}},
+      {{"Video_Stereoscopy", "StereoDepthPercentage"},
+       {Config::GFX_STEREO_DEPTH_PERCENTAGE.location}},
+
+      {{"Video_Stereoscopy", "StereoMode"}, {Config::GFX_STEREO_MODE.location}},
+      {{"Video_Stereoscopy", "StereoDepth"}, {Config::GFX_STEREO_DEPTH.location}},
+      {{"Video_Stereoscopy", "StereoSwapEyes"}, {Config::GFX_STEREO_SWAP_EYES.location}},
+
+      {{"Video_Hacks", "EFBAccessEnable"}, {Config::GFX_HACK_EFB_ACCESS_ENABLE.location}},
+      {{"Video_Hacks", "BBoxEnable"}, {Config::GFX_HACK_BBOX_ENABLE.location}},
+      {{"Video_Hacks", "ForceProgressive"}, {Config::GFX_HACK_FORCE_PROGRESSIVE.location}},
+      {{"Video_Hacks", "EFBToTextureEnable"}, {Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM.location}},
+      {{"Video_Hacks", "EFBScaledCopy"}, {Config::GFX_EFB_SCALE.location}},
+      {{"Video_Hacks", "EFBEmulateFormatChanges"},
+       {Config::GFX_HACK_EFB_EMULATE_FORMAT_CHANGES.location}},
+      {{"Video_Hacks", "VertexRounding"}, {Config::GFX_HACK_VERTEX_ROUDING.location}},
+
+      {{"Video", "ProjectionHack"}, {Config::GFX_PROJECTION_HACK.location}},
+      {{"Video", "PH_SZNear"}, {Config::GFX_PROJECTION_HACK_SZNEAR.location}},
+      {{"Video", "PH_SZFar"}, {Config::GFX_PROJECTION_HACK_SZFAR.location}},
+      {{"Video", "PH_ZNear"}, {Config::GFX_PROJECTION_HACK_ZNEAR.location}},
+      {{"Video", "PH_ZFar"}, {Config::GFX_PROJECTION_HACK_ZFAR.location}},
+      {{"Video", "PerfQueriesEnable"}, {Config::GFX_PERF_QUERIES_ENABLE.location}},
+  };
   return ini_to_location;
 }
 
