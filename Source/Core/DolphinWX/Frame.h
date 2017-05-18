@@ -183,6 +183,9 @@ private:
   void InitializeTASDialogs();
   void InitializeCoreCallbacks();
 
+  void StartGame(const std::string& filename);
+  void SetDebuggerStartupParameters() const;
+
   // Utility
   wxWindow* GetNotebookPageFromId(wxWindowID Id);
   wxAuiNotebook* GetNotebookFromId(u32 NBId);
@@ -338,7 +341,6 @@ private:
 
   void OnGameListCtrlItemActivated(wxListEvent& event);
   void OnRenderParentResize(wxSizeEvent& event);
-  void StartGame(const std::string& filename);
   void OnChangeColumnsVisible(wxCommandEvent& event);
 
   void OnSelectSlot(wxCommandEvent& event);

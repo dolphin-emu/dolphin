@@ -16,6 +16,7 @@
 #include <wx/imagpng.h>
 #include <wx/intl.h>
 #include <wx/language.h>
+#include <wx/menu.h>
 #include <wx/msgdlg.h>
 #include <wx/thread.h>
 #include <wx/timer.h>
@@ -256,9 +257,9 @@ void DolphinApp::AfterInit()
   }
   // If we have selected Automatic Start, start the default ISO,
   // or if no default ISO exists, start the last loaded ISO
-  else if (main_frame->m_code_window)
+  else if (m_use_debugger)
   {
-    if (main_frame->m_code_window->AutomaticStart())
+    if (main_frame->GetMenuBar()->IsChecked(IDM_AUTOMATIC_START))
     {
       main_frame->BootGame("");
     }
@@ -454,23 +455,6 @@ void Host_RequestRenderWindowSize(int width, int height)
   wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_WINDOW_SIZE_REQUEST);
   event.SetClientData(new std::pair<int, int>(width, height));
   main_frame->GetEventHandler()->AddPendingEvent(event);
-}
-
-void Host_SetStartupDebuggingParameters()
-{
-  SConfig& StartUp = SConfig::GetInstance();
-  if (main_frame->m_code_window)
-  {
-    StartUp.bBootToPause = main_frame->m_code_window->BootToPause();
-    StartUp.bAutomaticStart = main_frame->m_code_window->AutomaticStart();
-    StartUp.bJITNoBlockCache = main_frame->m_code_window->JITNoBlockCache();
-    StartUp.bJITNoBlockLinking = main_frame->m_code_window->JITNoBlockLinking();
-  }
-  else
-  {
-    StartUp.bBootToPause = false;
-  }
-  StartUp.bEnableDebugging = main_frame->m_code_window ? true : false;  // RUNNING_DEBUG
 }
 
 void Host_SetWiiMoteConnectionState(int _State)
