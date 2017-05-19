@@ -34,7 +34,7 @@ std::vector<u8> CreateWADEntry(IBlobReader& reader, u32 size, u64 offset)
   return buffer;
 }
 
-bool IsWiiWAD(const CBlobBigEndianReader& reader)
+bool IsWiiWAD(IBlobReader& reader)
 {
   u32 header_size = 0;
   u32 header_type = 0;
@@ -61,9 +61,7 @@ WiiWAD::~WiiWAD()
 
 bool WiiWAD::ParseWAD()
 {
-  CBlobBigEndianReader big_endian_reader(*m_reader);
-
-  if (!IsWiiWAD(big_endian_reader))
+  if (!IsWiiWAD(*m_reader))
     return false;
 
   u32 certificate_chain_size;
@@ -73,12 +71,12 @@ bool WiiWAD::ParseWAD()
   u32 data_app_size;
   u32 footer_size;
 
-  if (!big_endian_reader.ReadSwapped(0x08, &certificate_chain_size) ||
-      !big_endian_reader.ReadSwapped(0x0C, &reserved) ||
-      !big_endian_reader.ReadSwapped(0x10, &ticket_size) ||
-      !big_endian_reader.ReadSwapped(0x14, &tmd_size) ||
-      !big_endian_reader.ReadSwapped(0x18, &data_app_size) ||
-      !big_endian_reader.ReadSwapped(0x1C, &footer_size))
+  if (!m_reader->ReadSwapped(0x08, &certificate_chain_size) ||
+      !m_reader->ReadSwapped(0x0C, &reserved) ||
+      !m_reader->ReadSwapped(0x10, &ticket_size) ||
+      !m_reader->ReadSwapped(0x14, &tmd_size) ||
+      !m_reader->ReadSwapped(0x18, &data_app_size) ||
+      !m_reader->ReadSwapped(0x1C, &footer_size))
     return false;
 
   if (MAX_LOGLEVEL >= LogTypes::LOG_LEVELS::LDEBUG)
