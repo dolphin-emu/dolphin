@@ -36,28 +36,27 @@ CVolumeWiiCrypted::CVolumeWiiCrypted(std::unique_ptr<IBlobReader> reader)
   _assert_(m_pReader);
 
   // Get decryption keys for all partitions
-  CBlobBigEndianReader big_endian_reader(*m_pReader.get());
   for (u32 partition_group = 0; partition_group < 4; ++partition_group)
   {
     u32 number_of_partitions;
-    if (!big_endian_reader.ReadSwapped(0x40000 + (partition_group * 8), &number_of_partitions))
+    if (!m_pReader->ReadSwapped(0x40000 + (partition_group * 8), &number_of_partitions))
       continue;
 
     u32 read_buffer;
-    if (!big_endian_reader.ReadSwapped(0x40000 + (partition_group * 8) + 4, &read_buffer))
+    if (!m_pReader->ReadSwapped(0x40000 + (partition_group * 8) + 4, &read_buffer))
       continue;
     const u64 partition_table_offset = (u64)read_buffer << 2;
 
     for (u32 i = 0; i < number_of_partitions; i++)
     {
-      if (!big_endian_reader.ReadSwapped(partition_table_offset + (i * 8), &read_buffer))
+      if (!m_pReader->ReadSwapped(partition_table_offset + (i * 8), &read_buffer))
         continue;
       const u64 partition_offset = (u64)read_buffer << 2;
 
       if (m_game_partition == PARTITION_NONE)
       {
         u32 partition_type;
-        if (!big_endian_reader.ReadSwapped(partition_table_offset + (i * 8) + 4, &partition_type))
+        if (!m_pReader->ReadSwapped(partition_table_offset + (i * 8) + 4, &partition_type))
           continue;
 
         if (partition_type == 0)
@@ -95,7 +94,7 @@ CVolumeWiiCrypted::CVolumeWiiCrypted(std::unique_ptr<IBlobReader> reader)
       else
       {
         u8 key_number = 0;
-        if (!big_endian_reader.ReadSwapped(partition_offset + 0x1f1, &key_number))
+        if (!m_pReader->ReadSwapped(partition_offset + 0x1f1, &key_number))
           continue;
         common_key = (key_number == 1) ? common_key_korean : common_key_standard;
       }
