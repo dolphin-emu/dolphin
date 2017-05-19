@@ -42,7 +42,8 @@ enum err_t
   ERR_WRONG_PARAMETER_ACC,
   ERR_WRONG_PARAMETER_MID_ACC,
   ERR_INVALID_REGISTER,
-  ERR_OUT_RANGE_NUMBER
+  ERR_OUT_RANGE_NUMBER,
+  ERR_OUT_RANGE_PC,
 };
 
 // Unless you want labels to carry over between files, you probably

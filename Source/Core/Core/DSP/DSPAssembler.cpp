@@ -46,7 +46,8 @@ static const char* err_string[] = {"",
                                    "Wrong parameter: must be accumulator register",
                                    "Wrong parameter: must be mid accumulator register",
                                    "Invalid register",
-                                   "Number out of range"};
+                                   "Number out of range",
+                                   "Program counter out of range"};
 
 DSPAssembler::DSPAssembler(const AssemblerSettings& settings)
     : m_cur_addr(0), m_cur_pass(0), m_current_param(0), settings_(settings)
@@ -944,9 +945,14 @@ bool DSPAssembler::AssemblePass(const std::string& text, int pass)
     if (strcmp("ORG", opcode) == 0)
     {
       if (params[0].type == P_VAL)
+      {
+        m_totalSize = std::max(m_cur_addr, params[0].val);
         m_cur_addr = params[0].val;
+      }
       else
+      {
         ShowError(ERR_EXPECTED_PARAM_VAL);
+      }
       continue;
     }
 
