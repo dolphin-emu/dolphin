@@ -19,7 +19,6 @@
 #include "DiscIO/Enums.h"
 #include "DiscIO/NANDContentLoader.h"
 #include "DiscIO/Volume.h"
-#include "DiscIO/VolumeCreator.h"
 #include "DolphinQt2/GameList/GameFile.h"
 #include "DolphinQt2/Resources.h"
 #include "DolphinQt2/Settings.h"

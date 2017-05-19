@@ -13,7 +13,6 @@ set(SRCS
   NANDImporter.cpp
   TGCBlob.cpp
   Volume.cpp
-  VolumeCreator.cpp
   VolumeDirectory.cpp
   VolumeGC.cpp
   VolumeWad.cpp

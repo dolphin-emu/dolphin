@@ -33,7 +33,6 @@
 #include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
-#include "DiscIO/VolumeCreator.h"
 
 #include "DolphinWX/ISOFile.h"
 #include "DolphinWX/WxUtils.h"

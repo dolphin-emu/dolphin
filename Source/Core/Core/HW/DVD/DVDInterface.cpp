@@ -32,7 +32,6 @@
 
 #include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
-#include "DiscIO/VolumeCreator.h"
 #include "DiscIO/VolumeWiiCrypted.h"
 
 // The minimum time it takes for the DVD drive to process a command (in

@@ -49,7 +49,6 @@
 #include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
-#include "DiscIO/VolumeCreator.h"
 #include "DolphinWX/Cheats/ActionReplayCodesPanel.h"
 #include "DolphinWX/Cheats/GeckoCodeDiag.h"
 #include "DolphinWX/Config/ConfigMain.h"

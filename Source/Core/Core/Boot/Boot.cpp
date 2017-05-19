@@ -45,7 +45,6 @@
 #include "DiscIO/Enums.h"
 #include "DiscIO/NANDContentLoader.h"
 #include "DiscIO/Volume.h"
-#include "DiscIO/VolumeCreator.h"
 
 // Inserts a disc into the emulated disc drive and returns a pointer to it.
 // The returned pointer must only be used while we are still booting,
