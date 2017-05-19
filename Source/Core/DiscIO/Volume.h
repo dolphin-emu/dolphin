@@ -7,6 +7,7 @@
 #include <cstring>
 #include <limits>
 #include <map>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -111,5 +112,10 @@ protected:
   static const size_t NAME_BYTES_LENGTH = NAME_STRING_LENGTH * sizeof(u16);
   static const size_t NAMES_TOTAL_BYTES = NAME_BYTES_LENGTH * NUMBER_OF_LANGUAGES;
 };
+
+std::unique_ptr<IVolume> CreateVolumeFromFilename(const std::string& filename);
+std::unique_ptr<IVolume> CreateVolumeFromDirectory(const std::string& directory, bool is_wii,
+                                                   const std::string& apploader = "",
+                                                   const std::string& dol = "");
 
 }  // namespace
