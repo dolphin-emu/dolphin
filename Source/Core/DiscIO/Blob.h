@@ -42,8 +42,18 @@ public:
   virtual BlobType GetBlobType() const = 0;
   virtual u64 GetRawSize() const = 0;
   virtual u64 GetDataSize() const = 0;
+
   // NOT thread-safe - can't call this from multiple threads.
   virtual bool Read(u64 offset, u64 size, u8* out_ptr) = 0;
+  template <typename T>
+  bool ReadSwapped(u64 offset, T* buffer)
+  {
+    T temp;
+    if (!Read(offset, sizeof(T), reinterpret_cast<u8*>(&temp)))
+      return false;
+    *buffer = Common::FromBigEndian(temp);
+    return true;
+  }
 
 protected:
   IBlobReader() {}
@@ -139,24 +149,6 @@ private:
 	u32 m_block_size   = 0;  // Bytes in a sector/block
 	u32 m_chunk_blocks = 1;  // Number of sectors/blocks in a chunk
 	std::array<Cache, CACHE_LINES> m_cache;
-};
-
-class CBlobBigEndianReader
-{
-public:
-  CBlobBigEndianReader(IBlobReader& reader) : m_reader(reader) {}
-  template <typename T>
-  bool ReadSwapped(u64 offset, T* buffer) const
-  {
-    T temp;
-    if (!m_reader.Read(offset, sizeof(T), reinterpret_cast<u8*>(&temp)))
-      return false;
-    *buffer = Common::FromBigEndian(temp);
-    return true;
-  }
-
-private:
-  IBlobReader& m_reader;
 };
 
 // Factory function - examines the path to choose the right type of IBlobReader, and returns one.

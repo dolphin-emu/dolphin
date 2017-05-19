@@ -29,11 +29,11 @@ CVolumeWAD::CVolumeWAD(std::unique_ptr<IBlobReader> reader) : m_reader(std::move
   _assert_(m_reader);
 
   // Source: http://wiibrew.org/wiki/WAD_files
-  ReadSwapped(0x00, &m_hdr_size, PARTITION_NONE);
-  ReadSwapped(0x08, &m_cert_size, PARTITION_NONE);
-  ReadSwapped(0x10, &m_tick_size, PARTITION_NONE);
-  ReadSwapped(0x14, &m_tmd_size, PARTITION_NONE);
-  ReadSwapped(0x18, &m_data_size, PARTITION_NONE);
+  m_reader->ReadSwapped(0x00, &m_hdr_size);
+  m_reader->ReadSwapped(0x08, &m_cert_size);
+  m_reader->ReadSwapped(0x10, &m_tick_size);
+  m_reader->ReadSwapped(0x14, &m_tmd_size);
+  m_reader->ReadSwapped(0x18, &m_data_size);
 
   m_offset = Common::AlignUp(m_hdr_size, 0x40) + Common::AlignUp(m_cert_size, 0x40);
   m_tmd_offset = Common::AlignUp(m_hdr_size, 0x40) + Common::AlignUp(m_cert_size, 0x40) +
