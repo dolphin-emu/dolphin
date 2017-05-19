@@ -87,11 +87,3 @@ enum HOST_COMM
   WM_USER_SETCURSOR,
   WM_USER_JOB_DISPATCH,
 };
-
-// Used for notification on emulation state
-enum EMUSTATE_CHANGE
-{
-  EMUSTATE_CHANGE_PLAY = 1,
-  EMUSTATE_CHANGE_PAUSE,
-  EMUSTATE_CHANGE_STOP
-};

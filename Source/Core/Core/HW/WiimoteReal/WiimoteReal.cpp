@@ -903,11 +903,6 @@ void ConnectOnInput(int wiimote_number)
   g_wiimotes_mutex.unlock();
 }
 
-void StateChange(EMUSTATE_CHANGE newState)
-{
-  // TODO: disable/enable auto reporting, maybe
-}
-
 bool IsValidDeviceName(const std::string& name)
 {
   return "Nintendo RVL-CNT-01" == name || "Nintendo RVL-CNT-01-TR" == name ||

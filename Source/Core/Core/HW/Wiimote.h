@@ -65,7 +65,6 @@ void Pause();
 
 unsigned int GetAttached();
 void DoState(PointerWrap& p);
-void EmuStateChange(EMUSTATE_CHANGE newState);
 InputConfig* GetConfig();
 ControllerEmu::ControlGroup* GetWiimoteGroup(int number, WiimoteEmu::WiimoteGroup group);
 ControllerEmu::ControlGroup* GetNunchukGroup(int number, WiimoteEmu::NunchukGroup group);
