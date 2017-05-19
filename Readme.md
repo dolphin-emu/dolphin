@@ -29,7 +29,7 @@ Please read the [FAQ](https://dolphin-emu.org/docs/faq/) before using Dolphin.
 * OS
     * Android (5.0 Lollipop or higher).
 * Processor
-    * An ARM processor with support for 64-bit applications. (An Intel x86 processor could also work in theory, but no known x86 devices support 64-bit applications.)
+    * A processor with support for 64-bit applications (either ARMv8 or x86-64).
 * Graphics
     * A graphics processor that supports OpenGL ES 3.0 or higher. Performance varies heavily with [driver quality](https://dolphin-emu.org/blog/2013/09/26/dolphin-emulator-and-opengl-drivers-hall-fameshame/).
     * A graphics processor that supports standard desktop OpenGL features is recommended for best performance.
