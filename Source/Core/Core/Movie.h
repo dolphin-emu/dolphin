@@ -81,7 +81,7 @@ struct DTMHeader
   bool bProgressive;
   bool bDSPHLE;
   bool bFastDiscSpeed;
-  u8 CPUCore;  // 0 = interpreter, 1 = JIT, 2 = JITIL
+  u8 CPUCore;  // Uses the values of PowerPC::CPUCore
   bool bEFBAccessEnable;
   bool bEFBCopyEnable;
   bool bSkipEFBCopyToRam;

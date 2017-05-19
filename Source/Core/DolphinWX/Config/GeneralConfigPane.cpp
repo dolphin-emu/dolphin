@@ -29,7 +29,6 @@ static const std::map<PowerPC::CPUCore, std::string> CPU_CORE_NAMES = {
     {PowerPC::CORE_INTERPRETER, _trans("Interpreter (slowest)")},
     {PowerPC::CORE_CACHEDINTERPRETER, _trans("Cached Interpreter (slower)")},
     {PowerPC::CORE_JIT64, _trans("JIT Recompiler (recommended)")},
-    {PowerPC::CORE_JITIL64, _trans("JITIL Recompiler (slow, experimental)")},
     {PowerPC::CORE_JITARM64, _trans("JIT Arm64 (experimental)")},
 };
 

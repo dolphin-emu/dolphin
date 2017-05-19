@@ -21,14 +21,14 @@ class PointerWrap;
 
 namespace PowerPC
 {
+// The gaps in the CPUCore numbering are from cores that only existed in the past.
+// We avoid re-numbering cores so that settings will be compatible across versions.
 enum CPUCore
 {
-  CORE_INTERPRETER,
-  CORE_JIT64,
-  CORE_JITIL64,
-  CORE_JITARM,
-  CORE_JITARM64,
-  CORE_CACHEDINTERPRETER,
+  CORE_INTERPRETER = 0,
+  CORE_JIT64 = 1,
+  CORE_JITARM64 = 4,
+  CORE_CACHEDINTERPRETER = 5,
 };
 
 enum class CoreMode
