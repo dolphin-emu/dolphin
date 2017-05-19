@@ -196,3 +196,6 @@ ____mix_add_ramp_end_loop:
     mrr $AR1, $IX3
     mrr $AR3, $IX2
     ret
+
+WARNPC 0x1000
+ORG 0x1000
