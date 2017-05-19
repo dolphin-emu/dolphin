@@ -956,6 +956,24 @@ bool DSPAssembler::AssemblePass(const std::string& text, int pass)
       continue;
     }
 
+    if (strcmp("WARNPC", opcode) == 0)
+    {
+      if (params[0].type == P_VAL)
+      {
+        if (m_cur_addr > params[0].val)
+        {
+          std::string msg = StringFromFormat("WARNPC at 0x%04x, expected 0x%04x or less",
+                                             m_cur_addr, params[0].val);
+          ShowError(ERR_OUT_RANGE_PC, msg.c_str());
+        }
+      }
+      else
+      {
+        ShowError(ERR_EXPECTED_PARAM_VAL);
+      }
+      continue;
+    }
+
     if (strcmp("SEGMENT", opcode) == 0)
     {
       if (params[0].type == P_STR)
