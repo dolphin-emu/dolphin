@@ -10,7 +10,7 @@ mainloop:
 	clr $ACC0
 	call wait_for_cpu_mbox+#IROM_BASE
 
-;mmem-addr	
+;mmem-addr
 param1:
 	lr $AC1.M, @CMBL
 	lri $AC0.M, #0xa001
@@ -21,7 +21,7 @@ param1:
 	lr $IX1, @CMBL
 	jmp mainloop+#IROM_BASE
 
-;iram-addr	
+;iram-addr
 param2:
 	lri $AC0.M, #0xc002
 	cmp
@@ -30,7 +30,7 @@ param2:
 	lr $IX2, @CMBL
 	jmp mainloop+#IROM_BASE
 
-;iram-length	
+;iram-length
 param3:
 	lri $AC0.M, #0xa002
 	cmp
@@ -39,16 +39,16 @@ param3:
 	lr $IX3, @CMBL
 	jmp mainloop+#IROM_BASE
 
-;dram-length	
+;dram-length
 param4:
 	lri $AC0.M, #0xb002
 	cmp
 	jnz param5+#IROM_BASE
 	call wait_for_cpu_mbox+#IROM_BASE
 	lr $AX0.L, @CMBL
-	jmp mainloop+#IROM_BASE	
+	jmp mainloop+#IROM_BASE
 
-;iram-start-addr	
+;iram-start-addr
 param5:
 	lri $AC0.M, #0xd001
 	cmp
@@ -56,7 +56,7 @@ param5:
 	call wait_for_cpu_mbox+#IROM_BASE
 	lr $AR0, @CMBL
 	jmp 0x80b5
-	
+
 wait_for_dsp_mbox:
 	lrs		$AC0.M, @DMBH
 	andcf	$AC0.M, #0x8000
@@ -68,14 +68,14 @@ wait_for_cpu_mbox:
 	andcf	$AC0.M, #0x8000
 	jlnz	wait_for_cpu_mbox+#IROM_BASE
 	ret
-	
+
 wait_dma:
 	lrs		$AC0.M, @DSCR
 	andcf	$AC0.M, #0x0004
 	jlz		wait_dma+#IROM_BASE
 	ret
-	
-bootucode:	
+
+bootucode:
 	nop
 	nop
 	nop
@@ -136,14 +136,6 @@ bootucode:
 	nop
 	nop
 	nop
-	nop	
-	nop	
-	nop	
-	nop	
-	nop	
-	nop	
-	nop	
-	nop		
 	nop
 	nop
 	nop
@@ -152,25 +144,33 @@ bootucode:
 	nop
 	nop
 	nop
-	nop	
-	nop	
-	nop	
-	nop	
-	nop	
-	nop	
-	nop	
-	nop		
-	nop		
-	nop		
-	nop		
-	nop		
-	nop		
-	nop		
-	nop		
-	nop		
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
 
 sub_80b5:
-	set16       
+	set16
 	clr  $ACC1
 	clr  $ACC0
 	lris $AC0.M, #0x2
