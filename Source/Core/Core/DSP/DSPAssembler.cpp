@@ -61,11 +61,8 @@ bool DSPAssembler::Assemble(const std::string& text, std::vector<u16>& code,
 {
   if (line_numbers)
     line_numbers->clear();
-  const std::string file_name = "tmp.asm";
-  if (!File::WriteStringToFile(text, file_name))
-    return false;
   InitPass(1);
-  if (!AssembleFile(file_name, 1))
+  if (!AssemblePass(text, 1))
     return false;
 
   // We now have the size of the output buffer
@@ -75,7 +72,7 @@ bool DSPAssembler::Assemble(const std::string& text, std::vector<u16>& code,
   m_output_buffer.resize(m_totalSize);
 
   InitPass(2);
-  if (!AssembleFile(file_name, 2))
+  if (!AssemblePass(text, 2))
     return false;
 
   code = std::move(m_output_buffer);
@@ -752,18 +749,11 @@ void DSPAssembler::InitPass(int pass)
   segment_addr[SEGMENT_OVERLAY] = 0;
 }
 
-bool DSPAssembler::AssembleFile(const std::string& file_path, int pass)
+bool DSPAssembler::AssemblePass(const std::string& text, int pass)
 {
   int disable_text = 0;  // modified by Hermes
 
-  std::ifstream fsrc;
-  OpenFStream(fsrc, file_path, std::ios_base::in);
-
-  if (fsrc.fail())
-  {
-    std::cerr << "Cannot open file " << file_path << std::endl;
-    return false;
-  }
+  std::istringstream fsrc(text);
 
   // printf("%s: Pass %d\n", fname, pass);
   code_line = 0;
@@ -929,7 +919,9 @@ bool DSPAssembler::AssembleFile(const std::string& file_path, int pass)
           include_file_path = include_dir + '/' + params[0].str;
         }
 
-        AssembleFile(include_file_path, pass);
+        std::string included_text;
+        File::ReadFileToString(include_file_path, included_text);
+        AssemblePass(included_text, pass);
 
         code_line = this_code_line;
       }
@@ -1016,9 +1008,6 @@ bool DSPAssembler::AssembleFile(const std::string& file_path, int pass)
     m_cur_addr += opcode_size;
     m_totalSize += opcode_size;
   };
-
-  if (!failed)
-    fsrc.close();
 
   return !failed;
 }
