@@ -54,7 +54,6 @@
 
 #include "DiscIO/NANDContentLoader.h"
 #include "DiscIO/NANDImporter.h"
-#include "DiscIO/VolumeCreator.h"
 #include "DiscIO/VolumeWad.h"
 
 #include "DolphinWX/AboutDolphin.h"
