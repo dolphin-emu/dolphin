@@ -317,9 +317,9 @@ void JitIL::FallBackToInterpreter(UGeckoInstruction _inst)
 
 void JitIL::HLEFunction(UGeckoInstruction _inst)
 {
+  ABI_PushRegistersAndAdjustStack({}, 0);
   ABI_CallFunctionCC(HLE::Execute, js.compilerPC, _inst.hex);
-  MOV(32, R(RSCRATCH), PPCSTATE(npc));
-  WriteExitDestInOpArg(R(RSCRATCH));
+  ABI_PopRegistersAndAdjustStack({}, 0);
 }
 
 void JitIL::DoNothing(UGeckoInstruction _inst)
@@ -616,9 +616,9 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
           HLEFunction(function);
           if (type == HLE::HLE_HOOK_REPLACE)
           {
-            MOV(32, R(EAX), PPCSTATE(npc));
+            MOV(32, R(RSCRATCH), PPCSTATE(npc));
             js.downcountAmount += js.st.numCycles;
-            WriteExitDestInOpArg(R(EAX));
+            WriteExitDestInOpArg(R(RSCRATCH));
             break;
           }
         }
