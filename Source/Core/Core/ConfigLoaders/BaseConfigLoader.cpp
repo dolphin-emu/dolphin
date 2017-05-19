@@ -14,6 +14,7 @@
 #include "Common/IniFile.h"
 #include "Common/Logging/Log.h"
 
+#include "Core/Config/Config.h"
 #include "Core/ConfigLoaders/BaseConfigLoader.h"
 
 namespace ConfigLoaders
