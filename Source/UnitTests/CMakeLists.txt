@@ -11,7 +11,7 @@ file(MAKE_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Tests)
 # Otherwise CMake inserts the library after core, but before other core
 # dependencies like videocommon which also use Host_ functions, which makes the
 # GNU linker complain.
-add_library(unittests_stubhost OBJECT TestUtils/StubHost.cpp)
+add_library(unittests_stubhost OBJECT StubHost.cpp)
 
 macro(add_dolphin_test target)
   add_executable(${target} EXCLUDE_FROM_ALL
@@ -26,8 +26,6 @@ macro(add_dolphin_test target)
   add_dependencies(unittests ${target})
   add_test(NAME ${target} COMMAND ${target})
 endmacro()
-
-add_subdirectory(TestUtils)
 
 add_subdirectory(Common)
 add_subdirectory(Core)
