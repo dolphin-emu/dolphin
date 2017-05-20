@@ -13,6 +13,7 @@
 
 #include "Core/ConfigManager.h"
 #include "Core/HW/Wiimote.h"
+#include "Core/WiiRoot.h"
 
 #include "InputCommon/GCAdapter.h"
 
@@ -31,6 +32,7 @@ void Init()
   WiimoteReal::LoadSettings();
   GCAdapter::Init();
   VideoBackendBase::ActivateBackend(SConfig::GetInstance().m_strVideoBackend);
+  Core::InitializeWiiRoot(false);
 
   SetEnableAlert(SConfig::GetInstance().bUsePanicHandlers);
 }
