@@ -71,10 +71,10 @@ const std::string SettingsHandler::GetValue(const std::string& key)
     found = decoded.find(toFind);
     if (found == 0)
     {
-      size_t delimFound = decoded.find(delim, found + toFind.length());
+      size_t delimFound = decoded.find(delim, toFind.length());
       if (delimFound == decoded.npos)
         delimFound = decoded.length() - 1;
-      return decoded.substr(found + toFind.length(), delimFound - (found + toFind.length()));
+      return decoded.substr(toFind.length(), delimFound - toFind.length());
     }
   }
 
@@ -97,7 +97,7 @@ void SettingsHandler::Decrypt()
 
 void SettingsHandler::Reset()
 {
-  decoded = "";
+  decoded.clear();
   m_position = 0;
   m_key = INITIAL_SEED;
   m_buffer = {};
