@@ -13,10 +13,11 @@ file(MAKE_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Tests)
 # GNU linker complain.
 add_library(unittests_stubhost OBJECT TestUtils/StubHost.cpp)
 
-macro(add_dolphin_test target srcs)
-
-  set(srcs2 ${srcs} $<TARGET_OBJECTS:unittests_stubhost> ${ARGN})
-  add_executable(${target} EXCLUDE_FROM_ALL ${srcs2})
+macro(add_dolphin_test target)
+  add_executable(${target} EXCLUDE_FROM_ALL
+    ${ARGN}
+    $<TARGET_OBJECTS:unittests_stubhost>
+  )
   set_target_properties(${target} PROPERTIES
     OUTPUT_NAME Tests/${target}
     FOLDER Tests
