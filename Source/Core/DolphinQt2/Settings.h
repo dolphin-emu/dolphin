@@ -62,6 +62,8 @@ public:
   void SetForceNTSCJ(bool val);
 
   // Analytics
+  bool HasAskedForAnalyticsPermission() const;
+  void SetAskedForAnalyticsPermission(bool value);
   bool GetAnalyticsEnabled() const;
   void SetAnalyticsEnabled(bool val);
 
