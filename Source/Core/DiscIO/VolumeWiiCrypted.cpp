@@ -224,7 +224,11 @@ Partition CVolumeWiiCrypted::GetGamePartition() const
 
 bool CVolumeWiiCrypted::GetTitleID(u64* buffer, const Partition& partition) const
 {
-  return m_pReader->ReadSwapped(partition.offset + 0x1DC, buffer);
+  const IOS::ES::TicketReader& ticket = GetTicket(partition);
+  if (!ticket.IsValid())
+    return false;
+  *buffer = ticket.GetTitleId();
+  return true;
 }
 
 const IOS::ES::TicketReader& CVolumeWiiCrypted::GetTicket(const Partition& partition) const
