@@ -2724,7 +2724,11 @@ static stbi_uc *bmp_load(stbi *s, int *x, int *y, int *comp, int req_comp)
             easy = 2;
       }
       if (!easy) {
-         if (!mr || !mg || !mb) return epuc("bad masks", "Corrupt BMP");
+         if (!mr || !mg || !mb)
+	 {
+		 free(out); 
+		 return epuc("bad masks", "Corrupt BMP");
+	 }
          // right shift amt to put high bit in position #7
          rshift = high_bit(mr)-7; rcount = bitcount(mr);
          gshift = high_bit(mg)-7; gcount = bitcount(mr);
@@ -3002,6 +3006,7 @@ static stbi_uc *tga_load(stbi *s, int *x, int *y, int *comp, int req_comp)
 				trans_data[3] = raw_data[3];
 				break;
 			default:
+				if (tga_palette) free(tga_palette);
 				return NULL;
 			}
 			//	clear the reading flag for the next pixel
