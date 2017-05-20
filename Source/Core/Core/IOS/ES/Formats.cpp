@@ -279,6 +279,13 @@ std::vector<u8> TicketReader::GetRawTicketView(u32 ticket_num) const
   return view;
 }
 
+std::string TicketReader::GetIssuer() const
+{
+  const char* bytes =
+      reinterpret_cast<const char*>(m_bytes.data() + offsetof(Ticket, signature_issuer));
+  return std::string(bytes, strnlen(bytes, sizeof(Ticket::signature_issuer)));
+}
+
 u32 TicketReader::GetDeviceId() const
 {
   return Common::swap32(m_bytes.data() + offsetof(Ticket, device_id));
@@ -303,8 +310,12 @@ std::vector<u8> TicketReader::GetTitleKey() const
              GetTitleId(), index);
   }
 
+  const bool is_rvt = (GetIssuer() == "Root-CA00000002-XS00000006");
+  const HLE::IOSC::ConsoleType console_type =
+      is_rvt ? HLE::IOSC::ConsoleType::RVT : HLE::IOSC::ConsoleType::Retail;
+
   std::vector<u8> key(16);
-  HLE::IOSC iosc;
+  HLE::IOSC iosc(console_type);
   iosc.Decrypt(common_key_handle, iv, &m_bytes[offsetof(Ticket, title_key)], 16, key.data(),
                HLE::PID_ES);
   return key;
