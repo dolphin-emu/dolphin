@@ -22,7 +22,7 @@ CMailHandler::~CMailHandler()
   Clear();
 }
 
-void CMailHandler::PushMail(u32 _Mail, bool interrupt, int cycles_into_future)
+void CMailHandler::PushMail(u32 mail, bool interrupt, int cycles_into_future)
 {
   if (interrupt)
   {
@@ -35,8 +35,8 @@ void CMailHandler::PushMail(u32 _Mail, bool interrupt, int cycles_into_future)
       m_Mails.front().second = true;
     }
   }
-  m_Mails.emplace(_Mail, false);
-  DEBUG_LOG(DSP_MAIL, "DSP writes 0x%08x", _Mail);
+  m_Mails.emplace(mail, false);
+  DEBUG_LOG(DSP_MAIL, "DSP writes 0x%08x", mail);
 }
 
 u16 CMailHandler::ReadDSPMailboxHigh()
