@@ -68,14 +68,6 @@ android {
             }
         }
     }
-
-    applicationVariants.all { variant ->
-        variant.outputs.each { output ->
-            def name = output.outputFile.name.replace(variant.buildType.name, "${variant.versionName}")
-            name = name.replace("app", "dolphin")
-            output.outputFile = new File(output.outputFile.parent, name)
-        }
-    }
 }
 
 ext {
