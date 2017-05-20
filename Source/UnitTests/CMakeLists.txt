@@ -19,7 +19,7 @@ macro(add_dolphin_test target srcs)
   )
   target_link_libraries(${target} ${LIBS})
   add_dependencies(unittests ${target})
-  add_test(NAME ${target} COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Tests/${target})
+  add_test(NAME ${target} COMMAND ${target})
 endmacro()
 
 add_subdirectory(TestUtils)
