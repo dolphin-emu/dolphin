@@ -346,3 +346,13 @@ QVector<QString> Settings::GetProfiles(const InputConfig* config) const
 
   return vec;
 }
+
+bool Settings::HasAskedForAnalyticsPermission() const
+{
+  return SConfig::GetInstance().m_analytics_permission_asked;
+}
+
+void Settings::SetAskedForAnalyticsPermission(bool value)
+{
+  SConfig::GetInstance().m_analytics_permission_asked = value;
+}
