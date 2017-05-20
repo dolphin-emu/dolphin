@@ -83,7 +83,6 @@ void SConfig::SaveSettings()
   SaveNetworkSettings(ini);
   SaveBluetoothPassthroughSettings(ini);
   SaveUSBPassthroughSettings(ini);
-  SaveSysconfSettings(ini);
 
   ini.Save(File::GetUserPath(F_DOLPHINCONFIG_IDX));
 }
@@ -365,19 +364,6 @@ void SConfig::SaveUSBPassthroughSettings(IniFile& ini)
   section->Set("Devices", devices_string);
 }
 
-void SConfig::SaveSysconfSettings(IniFile& ini)
-{
-  IniFile::Section* section = ini.GetOrCreateSection("Sysconf");
-
-  section->Set("SensorBarPosition", m_sensor_bar_position);
-  section->Set("SensorBarSensitivity", m_sensor_bar_sensitivity);
-  section->Set("SpeakerVolume", m_speaker_volume);
-  section->Set("WiimoteMotor", m_wiimote_motor);
-  section->Set("WiiLanguage", m_wii_language);
-  section->Set("AspectRatio", m_wii_aspect_ratio);
-  section->Set("Screensaver", m_wii_screensaver);
-}
-
 void SConfig::SaveSettingsToSysconf()
 {
   SysConf sysconf{Common::FromWhichRoot::FROM_CONFIGURED_ROOT};
@@ -423,7 +409,6 @@ void SConfig::LoadSettings()
   LoadAnalyticsSettings(ini);
   LoadBluetoothPassthroughSettings(ini);
   LoadUSBPassthroughSettings(ini);
-  LoadSysconfSettings(ini);
 }
 
 void SConfig::LoadGeneralSettings(IniFile& ini)
@@ -707,19 +692,6 @@ void SConfig::LoadUSBPassthroughSettings(IniFile& ini)
     if (vid && pid)
       m_usb_passthrough_devices.emplace(vid, pid);
   }
-}
-
-void SConfig::LoadSysconfSettings(IniFile& ini)
-{
-  IniFile::Section* section = ini.GetOrCreateSection("Sysconf");
-
-  section->Get("SensorBarPosition", &m_sensor_bar_position, m_sensor_bar_position);
-  section->Get("SensorBarSensitivity", &m_sensor_bar_sensitivity, m_sensor_bar_sensitivity);
-  section->Get("SpeakerVolume", &m_speaker_volume, m_speaker_volume);
-  section->Get("WiimoteMotor", &m_wiimote_motor, m_wiimote_motor);
-  section->Get("WiiLanguage", &m_wii_language, m_wii_language);
-  section->Get("AspectRatio", &m_wii_aspect_ratio, m_wii_aspect_ratio);
-  section->Get("Screensaver", &m_wii_screensaver, m_wii_screensaver);
 }
 
 void SConfig::LoadSettingsFromSysconf()
