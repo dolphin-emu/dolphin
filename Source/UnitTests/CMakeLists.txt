@@ -12,13 +12,13 @@ macro(add_dolphin_test target srcs)
   # core, but before other core dependencies like videocommon which also use
   # Host_ functions.
   set(srcs2 ${srcs} ${CMAKE_SOURCE_DIR}/Source/UnitTests/TestUtils/StubHost.cpp ${ARGN})
-  add_executable(Test_${target} EXCLUDE_FROM_ALL ${srcs2})
-  set_target_properties(Test_${target} PROPERTIES
+  add_executable(${target} EXCLUDE_FROM_ALL ${srcs2})
+  set_target_properties(${target} PROPERTIES
     OUTPUT_NAME Tests/${target}
     FOLDER Tests
   )
-  target_link_libraries(Test_${target} ${LIBS})
-  add_dependencies(unittests Test_${target})
+  target_link_libraries(${target} ${LIBS})
+  add_dependencies(unittests ${target})
   add_test(NAME ${target} COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Tests/${target})
 endmacro()
 
