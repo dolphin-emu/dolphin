@@ -181,6 +181,7 @@ public:
   void DoState(PointerWrap& p);
 
   const std::vector<u8>& GetRawTicket() const;
+  std::vector<u8> GetRawTicket(u64 ticket_id) const;
   size_t GetNumberOfTickets() const;
 
   // Returns a "raw" ticket view, without byte swapping. Intended for use from ES.
