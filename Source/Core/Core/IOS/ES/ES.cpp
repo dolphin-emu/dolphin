@@ -471,6 +471,8 @@ IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
     return DeleteTicket(request);
   case IOCTL_ES_DELETETITLECONTENT:
     return DeleteTitleContent(request);
+  case IOCTL_ES_DELETESHAREDCONTENT:
+    return DeleteSharedContent(request);
   case IOCTL_ES_GETSTOREDTMDSIZE:
     return GetStoredTMDSize(request);
   case IOCTL_ES_GETSTOREDTMD:
@@ -503,7 +505,6 @@ IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
     return GetBoot2Version(request);
 
   case IOCTL_ES_VERIFYSIGN:
-  case IOCTL_ES_DELETESHAREDCONTENT:
   case IOCTL_ES_UNKNOWN_3B:
   case IOCTL_ES_UNKNOWN_3C:
   case IOCTL_ES_UNKNOWN_3D:
