@@ -20,6 +20,17 @@ set(SRCS
   Config/ControllersWindow.cpp
   Config/FilesystemWidget.cpp
   Config/InfoWidget.cpp
+  Config/Mapping/GCKeyboardEmu.cpp
+  Config/Mapping/GCPadEmu.cpp
+  Config/Mapping/GCPadWiiU.cpp
+  Config/Mapping/MappingBool.cpp
+  Config/Mapping/MappingButton.cpp
+  Config/Mapping/MappingNumeric.cpp
+  Config/Mapping/MappingWidget.cpp
+  Config/Mapping/MappingWindow.cpp
+  Config/Mapping/WiimoteEmuExtension.cpp
+  Config/Mapping/WiimoteEmuGeneral.cpp
+  Config/Mapping/WiimoteEmuMotionControl.cpp
   Config/PathDialog.cpp
   Config/PropertiesDialog.cpp
   Config/SettingsWindow.cpp
