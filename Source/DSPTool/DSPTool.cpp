@@ -39,6 +39,79 @@ void DSP::Host::UpdateDebugger()
 {
 }
 
+static void CodeToHeader(const std::vector<u16>& code, std::string filename, const char* name,
+                         std::string& header)
+{
+  std::vector<u16> code_padded = code;
+  // Pad with nops to 32byte boundary
+  while (code_padded.size() & 0x7f)
+    code_padded.push_back(0);
+  header.clear();
+  header.reserve(code_padded.size() * 4);
+  header.append("#define NUM_UCODES 1\n\n");
+  std::string filename_without_extension;
+  SplitPath(filename, nullptr, &filename_without_extension, nullptr);
+  header.append(StringFromFormat("const char* UCODE_NAMES[NUM_UCODES] = {\"%s\"};\n\n",
+                                 filename_without_extension.c_str()));
+  header.append("const unsigned short dsp_code[NUM_UCODES][0x1000] = {\n");
+
+  header.append("\t{\n\t\t");
+  for (u32 j = 0; j < code_padded.size(); j++)
+  {
+    if (j && ((j & 15) == 0))
+      header.append("\n\t\t");
+    header.append(StringFromFormat("0x%04x, ", code_padded[j]));
+  }
+  header.append("\n\t},\n");
+
+  header.append("};\n");
+}
+
+static void CodesToHeader(const std::vector<u16>* codes, const std::vector<std::string>* filenames,
+                          u32 num_codes, const char* name, std::string& header)
+{
+  std::vector<std::vector<u16>> codes_padded;
+  u32 reserveSize = 0;
+  for (u32 i = 0; i < num_codes; i++)
+  {
+    codes_padded.push_back(codes[i]);
+    // Pad with nops to 32byte boundary
+    while (codes_padded.at(i).size() & 0x7f)
+      codes_padded.at(i).push_back(0);
+
+    reserveSize += (u32)codes_padded.at(i).size();
+  }
+  header.clear();
+  header.reserve(reserveSize * 4);
+  header.append(StringFromFormat("#define NUM_UCODES %u\n\n", num_codes));
+  header.append("const char* UCODE_NAMES[NUM_UCODES] = {\n");
+  for (u32 i = 0; i < num_codes; i++)
+  {
+    std::string filename;
+    if (!SplitPath(filenames->at(i), nullptr, &filename, nullptr))
+      filename = filenames->at(i);
+    header.append(StringFromFormat("\t\"%s\",\n", filename.c_str()));
+  }
+  header.append("};\n\n");
+  header.append("const unsigned short dsp_code[NUM_UCODES][0x1000] = {\n");
+
+  for (u32 i = 0; i < num_codes; i++)
+  {
+    if (codes[i].size() == 0)
+      continue;
+
+    header.append("\t{\n\t\t");
+    for (u32 j = 0; j < codes_padded.at(i).size(); j++)
+    {
+      if (j && ((j & 15) == 0))
+        header.append("\n\t\t");
+      header.append(StringFromFormat("0x%04x, ", codes_padded.at(i).at(j)));
+    }
+    header.append("\n\t},\n");
+  }
+  header.append("};\n");
+}
+
 // Usage:
 // Disassemble a file:
 //   dsptool -d -o asdf.txt asdf.bin
@@ -313,7 +386,7 @@ int main(int argc, const char* argv[])
           }
         }
 
-        DSP::CodesToHeader(codes, &files, lines, output_header_name.c_str(), header);
+        CodesToHeader(codes, &files, lines, output_header_name.c_str(), header);
         File::WriteStringToFile(header, output_header_name + ".h");
 
         delete[] codes;
@@ -342,7 +415,7 @@ int main(int argc, const char* argv[])
         if (!output_header_name.empty())
         {
           std::string header;
-          DSP::CodeToHeader(code, input_name, output_header_name.c_str(), header);
+          CodeToHeader(code, input_name, output_header_name.c_str(), header);
           File::WriteStringToFile(header, output_header_name + ".h");
         }
       }
