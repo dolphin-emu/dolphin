@@ -189,6 +189,7 @@ public:
   // more than just one ticket and generate ticket views for them, so we implement it too.
   std::vector<u8> GetRawTicketView(u32 ticket_num) const;
 
+  std::string GetIssuer() const;
   u32 GetDeviceId() const;
   u64 GetTitleId() const;
   std::vector<u8> GetTitleKey() const;

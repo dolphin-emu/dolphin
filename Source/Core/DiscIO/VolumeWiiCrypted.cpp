@@ -70,6 +70,8 @@ CVolumeWiiCrypted::CVolumeWiiCrypted(std::unique_ptr<IBlobReader> reader)
       if (!m_pReader->Read(partition_offset, ticket_buffer.size(), ticket_buffer.data()))
         continue;
       IOS::ES::TicketReader ticket{std::move(ticket_buffer)};
+      if (!ticket.IsValid())
+        continue;
 
       // Read TMD
       u32 tmd_size = 0;
@@ -93,58 +95,17 @@ CVolumeWiiCrypted::CVolumeWiiCrypted(std::unique_ptr<IBlobReader> reader)
         continue;
       IOS::ES::TMDReader tmd{std::move(tmd_buffer)};
 
-      // All of the code below is for getting the decryption key
-
-      u8 sub_key[16];
-      if (!m_pReader->Read(partition_offset + 0x1bf, 16, sub_key))
+      // Get the decryption key
+      const std::vector<u8> key = ticket.GetTitleKey();
+      if (key.size() != 16)
         continue;
-
-      u8 iv[16];
-      memset(iv, 0, 16);
-      if (!m_pReader->Read(partition_offset + 0x44c, 8, iv))
-        continue;
-
-      static const u8 common_key_standard[16] = {0xeb, 0xe4, 0x2a, 0x22, 0x5e, 0x85, 0x93, 0xe4,
-                                                 0x48, 0xd9, 0xc5, 0x45, 0x73, 0x81, 0xaa, 0xf7};
-      static const u8 common_key_korean[16] = {0x63, 0xb8, 0x2b, 0xb4, 0xf4, 0x61, 0x4e, 0x2e,
-                                               0x13, 0xf2, 0xfe, 0xfb, 0xba, 0x4c, 0x9b, 0x7e};
-      static const u8 common_key_rvt[16] = {0xa1, 0x60, 0x4a, 0x6a, 0x71, 0x23, 0xb5, 0x29,
-                                            0xae, 0x8b, 0xec, 0x32, 0xc8, 0x16, 0xfc, 0xaa};
-      static const char issuer_rvt[] = "Root-CA00000002-XS00000006";
-
-      const u8* common_key;
-
-      u8 issuer[sizeof(issuer_rvt)];
-      if (!m_pReader->Read(partition_offset + 0x140, sizeof(issuer), issuer))
-        continue;
-
-      if (!memcmp(issuer, issuer_rvt, sizeof(issuer_rvt)))
-      {
-        // RVT issuer. Use the RVT (debug) master key.
-        common_key = common_key_rvt;
-      }
-      else
-      {
-        u8 key_number = 0;
-        if (!m_pReader->ReadSwapped(partition_offset + 0x1f1, &key_number))
-          continue;
-        common_key = (key_number == 1) ? common_key_korean : common_key_standard;
-      }
-
-      mbedtls_aes_context aes_context;
-      mbedtls_aes_setkey_dec(&aes_context, common_key, 128);
-
-      u8 volume_key[16];
-      mbedtls_aes_crypt_cbc(&aes_context, MBEDTLS_AES_DECRYPT, 16, iv, sub_key, volume_key);
-
-      std::unique_ptr<mbedtls_aes_context> partition_AES_context =
-          std::make_unique<mbedtls_aes_context>();
-      mbedtls_aes_setkey_dec(partition_AES_context.get(), volume_key, 128);
+      std::unique_ptr<mbedtls_aes_context> aes_context = std::make_unique<mbedtls_aes_context>();
+      mbedtls_aes_setkey_dec(aes_context.get(), key.data(), 128);
 
       // We've read everything. Time to store it! (The reason we don't store anything
       // earlier is because we want to be able to skip adding the partition if an error occurs.)
       const Partition partition(partition_offset);
-      m_partition_keys[partition] = std::move(partition_AES_context);
+      m_partition_keys[partition] = std::move(aes_context);
       m_partition_tickets[partition] = std::move(ticket);
       m_partition_tmds[partition] = std::move(tmd);
     }

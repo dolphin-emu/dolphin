@@ -19,9 +19,9 @@ namespace IOS
 {
 namespace HLE
 {
-IOSC::IOSC()
+IOSC::IOSC(ConsoleType console_type)
 {
-  LoadDefaultEntries();
+  LoadDefaultEntries(console_type);
 }
 
 IOSC::~IOSC() = default;
@@ -167,7 +167,7 @@ ReturnCode IOSC::SetOwnership(Handle handle, u32 new_owner, u32 pid)
   return IPC_SUCCESS;
 }
 
-void IOSC::LoadDefaultEntries()
+void IOSC::LoadDefaultEntries(ConsoleType console_type)
 {
   // TODO: add support for loading and writing to a BootMii / SEEPROM and OTP dump.
 
@@ -181,11 +181,26 @@ void IOSC::LoadDefaultEntries()
   m_key_entries[HANDLE_FS_KEY] = {TYPE_SECRET_KEY, SUBTYPE_AES128, std::vector<u8>(16), 5};
   m_key_entries[HANDLE_FS_MAC] = {TYPE_SECRET_KEY, SUBTYPE_MAC, std::vector<u8>(20), 5};
 
-  m_key_entries[HANDLE_COMMON_KEY] = {TYPE_SECRET_KEY,
-                                      SUBTYPE_AES128,
-                                      {{0xeb, 0xe4, 0x2a, 0x22, 0x5e, 0x85, 0x93, 0xe4, 0x48, 0xd9,
-                                        0xc5, 0x45, 0x73, 0x81, 0xaa, 0xf7}},
-                                      3};
+  switch (console_type)
+  {
+  case ConsoleType::Retail:
+    m_key_entries[HANDLE_COMMON_KEY] = {TYPE_SECRET_KEY,
+                                        SUBTYPE_AES128,
+                                        {{0xeb, 0xe4, 0x2a, 0x22, 0x5e, 0x85, 0x93, 0xe4, 0x48,
+                                          0xd9, 0xc5, 0x45, 0x73, 0x81, 0xaa, 0xf7}},
+                                        3};
+    break;
+  case ConsoleType::RVT:
+    m_key_entries[HANDLE_COMMON_KEY] = {TYPE_SECRET_KEY,
+                                        SUBTYPE_AES128,
+                                        {{0xa1, 0x60, 0x4a, 0x6a, 0x71, 0x23, 0xb5, 0x29, 0xae,
+                                          0x8b, 0xec, 0x32, 0xc8, 0x16, 0xfc, 0xaa}},
+                                        3};
+    break;
+  default:
+    _assert_msg_(IOS, false, "Unknown console type");
+    break;
+  }
 
   // Unimplemented.
   m_key_entries[HANDLE_PRNG_KEY] = {TYPE_SECRET_KEY, SUBTYPE_AES128, std::vector<u8>(16), 3};
