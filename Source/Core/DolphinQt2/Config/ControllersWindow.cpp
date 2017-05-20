@@ -83,7 +83,7 @@ ControllersWindow::ControllersWindow(QWidget* parent)
 
 void ControllersWindow::CreateGamecubeLayout()
 {
-  m_gc_box = new QGroupBox(m_gc_label);
+  m_gc_box = new QGroupBox();
   m_gc_layout = new QFormLayout();
   m_gc_label = new QLabel();
   m_gc_label->setPixmap(QPixmap(m_gamecube_icon));
