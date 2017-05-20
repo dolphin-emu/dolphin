@@ -6,6 +6,7 @@
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 #include "Core/DSP/DSPCodeUtil.h"
+#include "Core/DSP/DSPDisassembler.h"
 #include "Core/DSP/DSPHost.h"
 #include "Core/DSP/DSPTables.h"
 
@@ -38,13 +39,27 @@ void DSP::Host::UpdateDebugger()
 {
 }
 
+static bool RoundTrippableDissassemble(const std::vector<u16>& code, std::string& text)
+{
+  DSP::AssemblerSettings settings;
+  settings.ext_separator = '\'';
+  settings.decode_names = true;
+  settings.decode_registers = true;
+  // These two prevent roundtripping.
+  settings.show_hex = false;
+  settings.show_pc = false;
+  DSP::DSPDisassembler disasm(settings);
+
+  return disasm.Disassemble(0x0000, code, 0x0000, text);
+}
+
 // This test goes from text ASM to binary to text ASM and once again back to binary.
 // Then the two binaries are compared.
 static bool RoundTrip(const std::vector<u16>& code1)
 {
   std::vector<u16> code2;
   std::string text;
-  if (!DSP::Disassemble(code1, false, text))
+  if (!RoundTrippableDissassemble(code1, text))
   {
     printf("RoundTrip: Disassembly failed.\n");
     return false;
@@ -74,7 +89,8 @@ static bool SuperTrip(const char* asm_code)
     return false;
   }
   printf("First assembly: %i words\n", (int)code1.size());
-  if (!DSP::Disassemble(code1, false, text))
+
+  if (!RoundTrippableDissassemble(code1, text))
   {
     printf("SuperTrip: Disassembly failed\n");
     return false;
@@ -84,6 +100,7 @@ static bool SuperTrip(const char* asm_code)
     printf("Disass:\n");
     printf("%s", text.c_str());
   }
+
   if (!DSP::Assemble(text, code2))
   {
     printf("SuperTrip: Second assembly failed\n");
