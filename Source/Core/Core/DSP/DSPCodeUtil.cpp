@@ -100,15 +100,6 @@ bool Compare(const std::vector<u16>& code1, const std::vector<u16>& code2)
   return code1.size() == code2.size() && code1.size() == count_equal;
 }
 
-void GenRandomCode(u32 size, std::vector<u16>& code)
-{
-  code.resize(size);
-  for (u32 i = 0; i < size; i++)
-  {
-    code[i] = rand() ^ (rand() << 8);
-  }
-}
-
 void CodeToHeader(const std::vector<u16>& code, std::string _filename, const char* name,
                   std::string& header)
 {
