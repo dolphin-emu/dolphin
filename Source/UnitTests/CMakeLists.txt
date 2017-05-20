@@ -5,7 +5,6 @@ endif()
 if(ANDROID)
   set(LIBS ${LIBS} android log)
 endif()
-file(MAKE_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Tests)
 
 # Since this is a Core dependency, it can't be linked as a normal library.
 # Otherwise CMake inserts the library after core, but before other core
