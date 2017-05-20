@@ -1,4 +1,10 @@
+// Copyright 2017 Dolphin Emulator Project
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
 
+#include "DSPTestText.h"
+
+const char s_dsp_test_text[8434] = R"(
 DSCR:	equ 0xffc9	; DSP DMA Control Reg
 DSBL:	equ 0xffcb	; DSP DMA Block Length
 DSPA:	equ 0xffcd	; DSP DMA DMEM Address
@@ -637,3 +643,4 @@ _fill_loop2:
 
 
 ret
+)";
