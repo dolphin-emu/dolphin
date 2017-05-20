@@ -1,3 +1,7 @@
+enable_testing()
+add_custom_target(unittests)
+add_custom_command(TARGET unittests POST_BUILD COMMAND ${CMAKE_CTEST_COMMAND})
+
 set(LIBS core gtest_main)
 if(APPLE)
   list(APPEND LIBS ${FOUNDATION_LIBRARY} ${CORESERV_LIBRARY})
