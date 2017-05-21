@@ -18,6 +18,7 @@
 #include "Common/StringUtil.h"
 #include "Common/SysConf.h"
 
+#include "Core/Analytics.h"
 #include "Core/Boot/Boot.h"
 #include "Core/Boot/Boot_DOL.h"
 #include "Core/ConfigManager.h"
@@ -756,6 +757,7 @@ void SConfig::SetRunningGameMetadata(const std::string& game_id, u64 title_id, u
       HLE::Reload();
       PatchEngine::Reload();
       HiresTexture::Update();
+      DolphinAnalytics::Instance()->ReportGameStart();
     }
   }
 }
