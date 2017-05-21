@@ -27,8 +27,6 @@ public:
   explicit SignatureDB(HandlerType handler);
   explicit SignatureDB(const std::string& file_path);
 
-  static HandlerType GetHandlerType(const std::string& file_path);
-
   void Clear();
   // Does not clear. Remember to clear first if that's what you want.
   bool Load(const std::string& file_path);
@@ -41,7 +39,6 @@ public:
   bool Add(u32 start_addr, u32 size, const std::string& name);
 
 private:
-  std::unique_ptr<SignatureDBFormatHandler> CreateFormatHandler(HandlerType handler) const;
   std::unique_ptr<SignatureDBFormatHandler> m_handler;
 };
 
