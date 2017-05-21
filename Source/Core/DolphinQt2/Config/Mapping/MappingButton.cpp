@@ -54,7 +54,7 @@ GetExpressionForControl(const QString& control_name,
 
 void MappingButton::OnButtonPressed()
 {
-  if (m_block)
+  if (m_block || m_parent->GetDevice() == nullptr)
     return;
 
   // Make sure that we don't block event handling

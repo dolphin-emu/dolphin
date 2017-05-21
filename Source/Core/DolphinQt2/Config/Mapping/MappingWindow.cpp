@@ -211,7 +211,9 @@ void MappingWindow::OnSaveProfilePressed()
 
 void MappingWindow::OnDeviceChanged(int index)
 {
-  m_devq.FromString(m_devices_combo->currentText().toStdString());
+  const auto device = m_devices_combo->currentText().toStdString();
+  m_devq.FromString(device);
+  m_controller->default_device.FromString(device);
 }
 
 void MappingWindow::RefreshDevices()
@@ -233,6 +235,8 @@ void MappingWindow::RefreshDevices()
     if (name != default_device)
       m_devices_combo->addItem(QString::fromStdString(name));
   }
+
+  m_devices_combo->setCurrentIndex(0);
 
   Core::PauseAndLock(false, paused);
 }
