@@ -63,11 +63,10 @@ class HashSignatureDB : public SignatureDBFormatHandler
 public:
   struct DBFunc
   {
-    u32 size;
+    u32 size = 0;
     std::string name;
     std::string object_name;
     std::string object_location;
-    DBFunc() : size(0) {}
   };
   using FuncDB = std::map<u32, DBFunc>;
 
