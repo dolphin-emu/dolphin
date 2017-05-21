@@ -1006,16 +1006,19 @@ bool SConfig::AutoSetup(EBootBS2 _BootBS2)
   case BOOT_BS2_USA:
     SetRegion(DiscIO::Region::NTSC_U, &set_region_dir);
     m_strFilename.clear();
+    m_BootType = SConfig::BOOT_BS2;
     break;
 
   case BOOT_BS2_JAP:
     SetRegion(DiscIO::Region::NTSC_J, &set_region_dir);
     m_strFilename.clear();
+    m_BootType = SConfig::BOOT_BS2;
     break;
 
   case BOOT_BS2_EUR:
     SetRegion(DiscIO::Region::PAL, &set_region_dir);
     m_strFilename.clear();
+    m_BootType = SConfig::BOOT_BS2;
     break;
   }
 
