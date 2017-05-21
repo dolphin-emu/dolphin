@@ -23,6 +23,7 @@
 #include <wx/toplevel.h>
 
 #include "Common/CDUtils.h"
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
@@ -1501,6 +1502,15 @@ void CFrame::UpdateGUI()
   GetMenuBar()->FindItem(IDM_SAVE_STATE)->Enable(Initialized);
   // Misc
   GetMenuBar()->FindItem(IDM_CHANGE_DISC)->Enable(Initialized);
+  GetMenuBar()
+      ->FindItem(IDM_LOAD_GC_BIOS_JAP)
+      ->Enable(!Initialized && File::Exists(SConfig::GetInstance().GetBootROMPath(JAP_DIR)));
+  GetMenuBar()
+      ->FindItem(IDM_LOAD_GC_BIOS_USA)
+      ->Enable(!Initialized && File::Exists(SConfig::GetInstance().GetBootROMPath(USA_DIR)));
+  GetMenuBar()
+      ->FindItem(IDM_LOAD_GC_BIOS_EUR)
+      ->Enable(!Initialized && File::Exists(SConfig::GetInstance().GetBootROMPath(EUR_DIR)));
   if (DiscIO::CNANDContentManager::Access()
           .GetNANDLoader(TITLEID_SYSMENU, Common::FROM_CONFIGURED_ROOT)
           .IsValid())
