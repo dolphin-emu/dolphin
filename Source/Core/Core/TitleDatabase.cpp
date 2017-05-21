@@ -4,7 +4,6 @@
 
 #include <fstream>
 #include <functional>
-#include <iostream>
 
 #include "Core/TitleDatabase.h"
 
