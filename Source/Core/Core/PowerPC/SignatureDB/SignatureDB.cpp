@@ -44,7 +44,7 @@ std::unique_ptr<SignatureDBFormatHandler> CreateFormatHandler(SignatureDB::Handl
 }
 }  // Anonymous namespace
 
-SignatureDB::SignatureDB(SignatureDB::HandlerType handler) : m_handler(CreateFormatHandler(handler))
+SignatureDB::SignatureDB(HandlerType handler) : m_handler(CreateFormatHandler(handler))
 {
 }
 

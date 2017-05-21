@@ -73,13 +73,13 @@ public:
 
   static u32 ComputeCodeChecksum(u32 offsetStart, u32 offsetEnd);
 
-  virtual void Clear() override;
-  virtual void List() const override;
+  void Clear() override;
+  void List() const override;
 
-  virtual void Populate(const PPCSymbolDB* func_db, const std::string& filter = "") override;
-  virtual void Apply(PPCSymbolDB* func_db) const override;
+  void Populate(const PPCSymbolDB* func_db, const std::string& filter = "") override;
+  void Apply(PPCSymbolDB* func_db) const override;
 
-  virtual bool Add(u32 startAddr, u32 size, const std::string& name) override;
+  bool Add(u32 startAddr, u32 size, const std::string& name) override;
 
 protected:
   // Map from signature to function. We store the DB in this map because it optimizes the
