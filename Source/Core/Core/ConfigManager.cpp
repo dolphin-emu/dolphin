@@ -32,6 +32,7 @@
 #include "Core/PatchEngine.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/TitleDatabase.h"
 #include "VideoCommon/HiresTextures.h"
 
 #include "DiscIO/Enums.h"
@@ -162,6 +163,7 @@ void SConfig::SaveInterfaceSettings(IniFile& ini)
   interface->Set("ShowLogWindow", m_InterfaceLogWindow);
   interface->Set("ShowLogConfigWindow", m_InterfaceLogConfigWindow);
   interface->Set("ExtendedFPSInfo", m_InterfaceExtendedFPSInfo);
+  interface->Set("ShowActiveTitle", m_show_active_title);
   interface->Set("ThemeName", theme_name);
   interface->Set("PauseOnFocusLost", m_PauseOnFocusLost);
   interface->Set("DisableTooltips", m_DisableTooltips);
@@ -468,6 +470,7 @@ void SConfig::LoadInterfaceSettings(IniFile& ini)
   interface->Get("ShowLogWindow", &m_InterfaceLogWindow, false);
   interface->Get("ShowLogConfigWindow", &m_InterfaceLogConfigWindow, false);
   interface->Get("ExtendedFPSInfo", &m_InterfaceExtendedFPSInfo, false);
+  interface->Get("ShowActiveTitle", &m_show_active_title, true);
   interface->Get("ThemeName", &theme_name, DEFAULT_THEME_DIR);
   interface->Get("PauseOnFocusLost", &m_PauseOnFocusLost, false);
   interface->Get("DisableTooltips", &m_DisableTooltips, false);
@@ -712,7 +715,7 @@ void SConfig::LoadSettingsFromSysconf()
 
 void SConfig::ResetRunningGameMetadata()
 {
-  SetRunningGameMetadata("00000000", 0, 0);
+  SetRunningGameMetadata("00000000", 0, 0, Core::TitleDatabase::TitleType::Other);
 }
 
 void SConfig::SetRunningGameMetadata(const DiscIO::IVolume& volume,
@@ -720,7 +723,8 @@ void SConfig::SetRunningGameMetadata(const DiscIO::IVolume& volume,
 {
   u64 title_id = 0;
   volume.GetTitleID(&title_id, partition);
-  SetRunningGameMetadata(volume.GetGameID(partition), title_id, volume.GetRevision(partition));
+  SetRunningGameMetadata(volume.GetGameID(partition), title_id, volume.GetRevision(partition),
+                         Core::TitleDatabase::TitleType::Other);
 }
 
 void SConfig::SetRunningGameMetadata(const IOS::ES::TMDReader& tmd)
@@ -734,31 +738,41 @@ void SConfig::SetRunningGameMetadata(const IOS::ES::TMDReader& tmd)
   if (!DVDInterface::UpdateRunningGameMetadata(tmd_title_id))
   {
     // If not launching a disc game, just read everything from the TMD.
-    SetRunningGameMetadata(tmd.GetGameID(), tmd_title_id, tmd.GetTitleVersion());
+    SetRunningGameMetadata(tmd.GetGameID(), tmd_title_id, tmd.GetTitleVersion(),
+                           Core::TitleDatabase::TitleType::Channel);
   }
 }
 
-void SConfig::SetRunningGameMetadata(const std::string& game_id, u64 title_id, u16 revision)
+void SConfig::SetRunningGameMetadata(const std::string& game_id, u64 title_id, u16 revision,
+                                     Core::TitleDatabase::TitleType type)
 {
   const bool was_changed = m_game_id != game_id || m_title_id != title_id || m_revision != revision;
   m_game_id = game_id;
   m_title_id = title_id;
   m_revision = revision;
 
-  if (was_changed)
-  {
-    NOTICE_LOG(BOOT, "Game ID set to %s", game_id.c_str());
+  if (!was_changed)
+    return;
 
-    if (Core::IsRunning())
-    {
-      // TODO: have a callback mechanism for title changes?
-      g_symbolDB.Clear();
-      CBoot::LoadMapFromFilename();
-      HLE::Reload();
-      PatchEngine::Reload();
-      HiresTexture::Update();
-      DolphinAnalytics::Instance()->ReportGameStart();
-    }
+  if (game_id == "00000000")
+  {
+    m_title_description.clear();
+    return;
+  }
+
+  const Core::TitleDatabase title_database;
+  m_title_description = title_database.Describe(m_game_id, type);
+  NOTICE_LOG(CORE, "Active title: %s", m_title_description.c_str());
+
+  if (Core::IsRunning())
+  {
+    // TODO: have a callback mechanism for title changes?
+    g_symbolDB.Clear();
+    CBoot::LoadMapFromFilename();
+    HLE::Reload();
+    PatchEngine::Reload();
+    HiresTexture::Update();
+    DolphinAnalytics::Instance()->ReportGameStart();
   }
 }
 

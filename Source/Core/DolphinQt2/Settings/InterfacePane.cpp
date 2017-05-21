@@ -80,12 +80,14 @@ void InterfacePane::CreateInGame()
   m_checkbox_confirm_on_stop = new QCheckBox(tr("Confirm on Stop"));
   m_checkbox_use_panic_handlers = new QCheckBox(tr("Use Panic Handlers"));
   m_checkbox_enable_osd = new QCheckBox(tr("Enable On Screen Messages"));
+  m_checkbox_show_active_title = new QCheckBox(tr("Show Active Title in Window Title"));
   m_checkbox_pause_on_focus_lost = new QCheckBox(tr("Pause on Focus Loss"));
   m_checkbox_hide_mouse = new QCheckBox(tr("Hide Mouse Cursor"));
 
   groupbox_layout->addWidget(m_checkbox_confirm_on_stop);
   groupbox_layout->addWidget(m_checkbox_use_panic_handlers);
   groupbox_layout->addWidget(m_checkbox_enable_osd);
+  groupbox_layout->addWidget(m_checkbox_show_active_title);
   groupbox_layout->addWidget(m_checkbox_pause_on_focus_lost);
   groupbox_layout->addWidget(m_checkbox_hide_mouse);
 }
@@ -117,6 +119,7 @@ void InterfacePane::LoadConfig()
   m_checkbox_confirm_on_stop->setChecked(startup_params.bConfirmStop);
   m_checkbox_use_panic_handlers->setChecked(startup_params.bUsePanicHandlers);
   m_checkbox_enable_osd->setChecked(startup_params.bOnScreenDisplayMessages);
+  m_checkbox_show_active_title->setChecked(startup_params.m_show_active_title);
   m_checkbox_pause_on_focus_lost->setChecked(startup_params.m_PauseOnFocusLost);
   m_checkbox_hide_mouse->setChecked(startup_params.bAutoHideCursor);
 }
@@ -133,6 +136,7 @@ void InterfacePane::OnSaveConfig()
   settings.bConfirmStop = m_checkbox_confirm_on_stop->isChecked();
   settings.bUsePanicHandlers = m_checkbox_use_panic_handlers->isChecked();
   settings.bOnScreenDisplayMessages = m_checkbox_enable_osd->isChecked();
+  settings.m_show_active_title = m_checkbox_show_active_title->isChecked();
   settings.m_PauseOnFocusLost = m_checkbox_pause_on_focus_lost->isChecked();
   settings.bAutoHideCursor = m_checkbox_hide_mouse->isChecked();
 
