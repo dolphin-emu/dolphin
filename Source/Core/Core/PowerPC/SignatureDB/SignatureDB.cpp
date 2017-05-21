@@ -219,6 +219,4 @@ u32 HashSignatureDB::ComputeCodeChecksum(u32 offsetStart, u32 offsetEnd)
   return sum;
 }
 
-SignatureDBFormatHandler::~SignatureDBFormatHandler()
-{
-}
+SignatureDBFormatHandler::~SignatureDBFormatHandler() = default;
