@@ -93,7 +93,7 @@ void NANDImporter::FindSuperblock()
     if (!memcmp(m_nand.data() + pos, "SFFS", 4))
     {
       u32 version = Common::swap32(&m_nand[pos + 4]);
-      INFO_LOG(DISCIO, "Found superblock at 0x%x with version 0x%x", pos, version);
+      INFO_LOG(DISCIO, "Found superblock at 0x%zx with version 0x%x", pos, version);
       if (superblock == 0 || version > newest_version)
       {
         superblock = pos;
@@ -104,7 +104,7 @@ void NANDImporter::FindSuperblock()
 
   m_nand_fat_offset = superblock + 0xC;
   m_nand_fst_offset = m_nand_fat_offset + 0x10000;
-  INFO_LOG(DISCIO, "Using superblock version 0x%x at position 0x%x. FAT/FST offset: 0x%x/0x%x",
+  INFO_LOG(DISCIO, "Using superblock version 0x%x at position 0x%zx. FAT/FST offset: 0x%zx/0x%zx",
            newest_version, superblock, m_nand_fat_offset, m_nand_fst_offset);
 }
 
