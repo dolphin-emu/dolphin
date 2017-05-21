@@ -434,14 +434,32 @@ std::string SharedContentMap::AddSharedContent(const std::array<u8, 20>& sha1)
   entry.sha1 = sha1;
   m_entries.push_back(entry);
 
-  File::CreateFullPath(m_file_path);
-
-  File::IOFile file(m_file_path, "ab");
-  file.WriteArray(&entry, 1);
-
+  WriteEntries();
   filename = Common::RootUserPath(m_root) + StringFromFormat("/shared1/%s.app", id.c_str());
   m_last_id++;
   return filename;
+}
+
+bool SharedContentMap::DeleteSharedContent(const std::array<u8, 20>& sha1)
+{
+  m_entries.erase(std::remove_if(m_entries.begin(), m_entries.end(),
+                                 [&sha1](const auto& entry) { return entry.sha1 == sha1; }),
+                  m_entries.end());
+  return WriteEntries();
+}
+
+bool SharedContentMap::WriteEntries() const
+{
+  // Temporary files in ES are only 12 characters long (excluding /tmp/).
+  const std::string temp_path = Common::RootUserPath(m_root) + "/tmp/shared1/cont";
+  File::CreateFullPath(temp_path);
+
+  // Atomically write the new content map.
+  File::IOFile file(temp_path, "w+b");
+  if (!file.WriteArray(m_entries.data(), m_entries.size()))
+    return false;
+  File::CreateFullPath(m_file_path);
+  return File::RenameSync(temp_path, m_file_path);
 }
 
 static std::pair<u32, u64> ReadUidSysEntry(File::IOFile& file)

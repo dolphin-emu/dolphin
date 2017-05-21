@@ -114,6 +114,7 @@ public:
   ReturnCode DeleteTitle(u64 title_id);
   ReturnCode DeleteTitleContent(u64 title_id) const;
   ReturnCode DeleteTicket(const u8* ticket_view);
+  ReturnCode DeleteSharedContent(const std::array<u8, 20>& sha1) const;
 
 private:
   enum
@@ -209,6 +210,7 @@ private:
   IPCCommandResult DeleteTitle(const IOCtlVRequest& request);
   IPCCommandResult DeleteTitleContent(const IOCtlVRequest& request);
   IPCCommandResult DeleteTicket(const IOCtlVRequest& request);
+  IPCCommandResult DeleteSharedContent(const IOCtlVRequest& request);
 
   // Device identity and encryption
   IPCCommandResult GetConsoleID(const IOCtlVRequest& request);
