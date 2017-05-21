@@ -16,9 +16,6 @@
 // This has functionality overlapping Debugger_Symbolmap. Should merge that stuff in here later.
 class PPCSymbolDB : public SymbolDB
 {
-private:
-  DebugInterface* debugger;
-
 public:
   typedef void (*functionGetterCallback)(Symbol* f);
 
@@ -36,11 +33,15 @@ public:
   void FillInCallers();
 
   bool LoadMap(const std::string& filename, bool bad = false);
-  bool SaveMap(const std::string& filename, bool WithCodes = false) const;
+  bool SaveSymbolMap(const std::string& filename) const;
+  bool SaveCodeMap(const std::string& filename) const;
 
   void PrintCalls(u32 funcAddr) const;
   void PrintCallers(u32 funcAddr) const;
   void LogFunctionCall(u32 addr);
+
+private:
+  DebugInterface* debugger;
 };
 
 extern PPCSymbolDB g_symbolDB;
