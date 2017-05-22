@@ -3,12 +3,6 @@ add_custom_target(unittests)
 add_custom_command(TARGET unittests POST_BUILD COMMAND ${CMAKE_CTEST_COMMAND})
 
 set(LIBS core gtest_main)
-if(APPLE)
-  list(APPEND LIBS ${FOUNDATION_LIBRARY} ${CORESERV_LIBRARY})
-endif()
-if(ANDROID)
-  set(LIBS ${LIBS} android log)
-endif()
 
 # Since this is a Core dependency, it can't be linked as a normal library.
 # Otherwise CMake inserts the library after core, but before other core
