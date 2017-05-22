@@ -7,8 +7,6 @@
 #include <string>
 #include <unordered_map>
 
-#include "Common/CommonTypes.h"
-
 namespace Core
 {
 // Reader for title database files.

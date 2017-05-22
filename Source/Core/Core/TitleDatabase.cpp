@@ -2,8 +2,10 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <cstddef>
 #include <fstream>
 #include <functional>
+#include <utility>
 
 #include "Core/TitleDatabase.h"
 
