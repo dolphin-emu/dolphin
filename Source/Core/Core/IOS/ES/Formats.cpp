@@ -21,6 +21,7 @@
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
 #include "Core/IOS/Device.h"
+#include "Core/IOS/IOS.h"
 #include "Core/IOS/IOSC.h"
 
 namespace IOS
