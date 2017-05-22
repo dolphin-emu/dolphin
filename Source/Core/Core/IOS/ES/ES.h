@@ -184,7 +184,7 @@ private:
     IOCTL_ES_DIGETTMD = 0x3A,
     IOCTL_ES_DIVERIFY_WITH_VIEW = 0x3B,
     IOCTL_ES_UNKNOWN_3C = 0x3C,
-    IOCTL_ES_UNKNOWN_3D = 0x3D,
+    IOCTL_ES_DELETE_STREAM_KEY = 0x3D,
     IOCTL_ES_DELETE_CONTENT = 0x3E,
     IOCTL_ES_INVALID_3F = 0x3F,
     IOCTL_ES_GET_V0_TICKET_FROM_VIEW = 0x40,
@@ -234,6 +234,7 @@ private:
   IPCCommandResult Launch(const IOCtlVRequest& request);
   IPCCommandResult LaunchBC(const IOCtlVRequest& request);
   IPCCommandResult DIVerify(const IOCtlVRequest& request);
+  IPCCommandResult DeleteStreamKey(const IOCtlVRequest& request);
 
   // Title contents
   IPCCommandResult OpenTitleContent(u32 uid, const IOCtlVRequest& request);
