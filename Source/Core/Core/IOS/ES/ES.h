@@ -116,6 +116,10 @@ public:
   ReturnCode DeleteTicket(const u8* ticket_view);
   ReturnCode DeleteSharedContent(const std::array<u8, 20>& sha1) const;
 
+  // Views
+  ReturnCode GetV0TicketFromView(const u8* ticket_view, u8* ticket) const;
+  ReturnCode GetTicketFromView(const u8* ticket_view, u8* ticket, u32* ticket_size) const;
+
 private:
   enum
   {
@@ -181,12 +185,12 @@ private:
     IOCTL_ES_UNKNOWN_3C = 0x3C,
     IOCTL_ES_UNKNOWN_3D = 0x3D,
     IOCTL_ES_UNKNOWN_3E = 0x3E,
-    IOCTL_ES_UNKNOWN_3F = 0x3F,
-    IOCTL_ES_UNKNOWN_40 = 0x40,
+    IOCTL_ES_INVALID_3F = 0x3F,
+    IOCTL_ES_GET_V0_TICKET_FROM_VIEW = 0x40,
     IOCTL_ES_UNKNOWN_41 = 0x41,
     IOCTL_ES_UNKNOWN_42 = 0x42,
-    IOCTL_ES_UNKNOWN_43 = 0x43,
-    IOCTL_ES_UNKNOWN_44 = 0x44,
+    IOCTL_ES_GET_TICKET_SIZE_FROM_VIEW = 0x43,
+    IOCTL_ES_GET_TICKET_FROM_VIEW = 0x44,
     IOCTL_ES_CHECKKOREAREGION = 0x45,
   };
 
@@ -259,6 +263,9 @@ private:
   // Views for tickets and TMDs
   IPCCommandResult GetTicketViewCount(const IOCtlVRequest& request);
   IPCCommandResult GetTicketViews(const IOCtlVRequest& request);
+  IPCCommandResult GetV0TicketFromView(const IOCtlVRequest& request);
+  IPCCommandResult GetTicketSizeFromView(const IOCtlVRequest& request);
+  IPCCommandResult GetTicketFromView(const IOCtlVRequest& request);
   IPCCommandResult GetTMDViewSize(const IOCtlVRequest& request);
   IPCCommandResult GetTMDViews(const IOCtlVRequest& request);
   IPCCommandResult DIGetTicketView(const IOCtlVRequest& request);

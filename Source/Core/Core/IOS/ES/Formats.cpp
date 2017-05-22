@@ -261,6 +261,18 @@ const std::vector<u8>& TicketReader::GetRawTicket() const
   return m_bytes;
 }
 
+std::vector<u8> TicketReader::GetRawTicket(u64 ticket_id_to_find) const
+{
+  for (size_t i = 0; i < GetNumberOfTickets(); ++i)
+  {
+    const auto ticket_begin = m_bytes.begin() + sizeof(IOS::ES::Ticket) * i;
+    const u64 ticket_id = Common::swap64(&*ticket_begin + offsetof(IOS::ES::Ticket, ticket_id));
+    if (ticket_id == ticket_id_to_find)
+      return std::vector<u8>(ticket_begin, ticket_begin + sizeof(IOS::ES::Ticket));
+  }
+  return {};
+}
+
 std::vector<u8> TicketReader::GetRawTicketView(u32 ticket_num) const
 {
   // A ticket view is composed of a version + part of a ticket starting from the ticket_id field.

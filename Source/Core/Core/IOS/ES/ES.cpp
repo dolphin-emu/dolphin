@@ -504,22 +504,26 @@ IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
   case IOCTL_ES_GETBOOT2VERSION:
     return GetBoot2Version(request);
 
+  case IOCTL_ES_GET_V0_TICKET_FROM_VIEW:
+    return GetV0TicketFromView(request);
+  case IOCTL_ES_GET_TICKET_SIZE_FROM_VIEW:
+    return GetTicketSizeFromView(request);
+  case IOCTL_ES_GET_TICKET_FROM_VIEW:
+    return GetTicketFromView(request);
+
   case IOCTL_ES_VERIFYSIGN:
   case IOCTL_ES_UNKNOWN_3B:
   case IOCTL_ES_UNKNOWN_3C:
   case IOCTL_ES_UNKNOWN_3D:
   case IOCTL_ES_UNKNOWN_3E:
-  case IOCTL_ES_UNKNOWN_3F:
-  case IOCTL_ES_UNKNOWN_40:
   case IOCTL_ES_UNKNOWN_41:
   case IOCTL_ES_UNKNOWN_42:
-  case IOCTL_ES_UNKNOWN_43:
-  case IOCTL_ES_UNKNOWN_44:
     PanicAlert("IOS-ES: Unimplemented ioctlv 0x%x (%zu in vectors, %zu io vectors)",
                request.request, request.in_vectors.size(), request.io_vectors.size());
     request.DumpUnknown(GetDeviceName(), LogTypes::IOS_ES, LogTypes::LERROR);
     return GetDefaultReply(IPC_EINVAL);
 
+  case IOCTL_ES_INVALID_3F:
   default:
     return GetDefaultReply(IPC_EINVAL);
   }
