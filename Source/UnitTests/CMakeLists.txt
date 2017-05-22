@@ -6,12 +6,16 @@ if(ANDROID)
   set(LIBS ${LIBS} android log)
 endif()
 file(MAKE_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Tests)
+
+# Since this is a Core dependency, it can't be linked as a normal library.
+# Otherwise CMake inserts the library after core, but before other core
+# dependencies like videocommon which also use Host_ functions, which makes the
+# GNU linker complain.
+add_library(unittests_stubhost OBJECT TestUtils/StubHost.cpp)
+
 macro(add_dolphin_test target srcs)
-  # Since this is a Core dependency, it can't be linked as a library and has
-  # to be linked as an object file. Otherwise CMake inserts the library after
-  # core, but before other core dependencies like videocommon which also use
-  # Host_ functions.
-  set(srcs2 ${srcs} ${CMAKE_SOURCE_DIR}/Source/UnitTests/TestUtils/StubHost.cpp ${ARGN})
+
+  set(srcs2 ${srcs} $<TARGET_OBJECTS:unittests_stubhost> ${ARGN})
   add_executable(${target} EXCLUDE_FROM_ALL ${srcs2})
   set_target_properties(${target} PROPERTIES
     OUTPUT_NAME Tests/${target}
