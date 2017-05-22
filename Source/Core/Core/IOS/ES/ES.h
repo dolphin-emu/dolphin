@@ -115,6 +115,7 @@ public:
   ReturnCode DeleteTitleContent(u64 title_id) const;
   ReturnCode DeleteTicket(const u8* ticket_view);
   ReturnCode DeleteSharedContent(const std::array<u8, 20>& sha1) const;
+  ReturnCode DeleteContent(u64 title_id, u32 content_id) const;
 
   // Views
   ReturnCode GetV0TicketFromView(const u8* ticket_view, u8* ticket) const;
@@ -184,7 +185,7 @@ private:
     IOCTL_ES_DIVERIFY_WITH_VIEW = 0x3B,
     IOCTL_ES_UNKNOWN_3C = 0x3C,
     IOCTL_ES_UNKNOWN_3D = 0x3D,
-    IOCTL_ES_UNKNOWN_3E = 0x3E,
+    IOCTL_ES_DELETE_CONTENT = 0x3E,
     IOCTL_ES_INVALID_3F = 0x3F,
     IOCTL_ES_GET_V0_TICKET_FROM_VIEW = 0x40,
     IOCTL_ES_UNKNOWN_41 = 0x41,
@@ -215,6 +216,7 @@ private:
   IPCCommandResult DeleteTitleContent(const IOCtlVRequest& request);
   IPCCommandResult DeleteTicket(const IOCtlVRequest& request);
   IPCCommandResult DeleteSharedContent(const IOCtlVRequest& request);
+  IPCCommandResult DeleteContent(const IOCtlVRequest& request);
 
   // Device identity and encryption
   IPCCommandResult GetConsoleID(const IOCtlVRequest& request);

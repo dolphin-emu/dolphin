@@ -474,6 +474,8 @@ IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
     return DeleteTitleContent(request);
   case IOCTL_ES_DELETESHAREDCONTENT:
     return DeleteSharedContent(request);
+  case IOCTL_ES_DELETE_CONTENT:
+    return DeleteContent(request);
   case IOCTL_ES_GETSTOREDTMDSIZE:
     return GetStoredTMDSize(request);
   case IOCTL_ES_GETSTOREDTMD:
@@ -515,7 +517,6 @@ IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
   case IOCTL_ES_VERIFYSIGN:
   case IOCTL_ES_UNKNOWN_3C:
   case IOCTL_ES_UNKNOWN_3D:
-  case IOCTL_ES_UNKNOWN_3E:
   case IOCTL_ES_UNKNOWN_41:
   case IOCTL_ES_UNKNOWN_42:
     PanicAlert("IOS-ES: Unimplemented ioctlv 0x%x (%zu in vectors, %zu io vectors)",

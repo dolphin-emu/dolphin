@@ -440,6 +440,39 @@ IPCCommandResult ES::DeleteTitleContent(const IOCtlVRequest& request)
   return GetDefaultReply(DeleteTitleContent(Memory::Read_U64(request.in_vectors[0].address)));
 }
 
+ReturnCode ES::DeleteContent(u64 title_id, u32 content_id) const
+{
+  if (!CanDeleteTitle(title_id))
+    return ES_EINVAL;
+
+  const auto tmd = IOS::ES::FindInstalledTMD(title_id);
+  if (!tmd.IsValid())
+    return FS_ENOENT;
+
+  IOS::ES::Content content;
+  if (!tmd.FindContentById(content_id, &content))
+    return ES_EINVAL;
+
+  if (!File::Delete(Common::GetTitleContentPath(title_id, Common::FROM_SESSION_ROOT) +
+                    StringFromFormat("%08x.app", content_id)))
+  {
+    return FS_ENOENT;
+  }
+
+  return IPC_SUCCESS;
+}
+
+IPCCommandResult ES::DeleteContent(const IOCtlVRequest& request)
+{
+  if (!request.HasNumberOfValidVectors(2, 0) || request.in_vectors[0].size != sizeof(u64) ||
+      request.in_vectors[1].size != sizeof(u32))
+  {
+    return GetDefaultReply(ES_EINVAL);
+  }
+  return GetDefaultReply(DeleteContent(Memory::Read_U64(request.in_vectors[0].address),
+                                       Memory::Read_U32(request.in_vectors[1].address)));
+}
+
 ReturnCode ES::ExportTitleInit(Context& context, u64 title_id, u8* tmd_bytes, u32 tmd_size)
 {
   // No concurrent title import/export is allowed.
