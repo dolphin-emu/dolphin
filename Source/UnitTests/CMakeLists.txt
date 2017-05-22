@@ -2,8 +2,6 @@ enable_testing()
 add_custom_target(unittests)
 add_custom_command(TARGET unittests POST_BUILD COMMAND ${CMAKE_CTEST_COMMAND})
 
-set(LIBS core gtest_main)
-
 # Since this is a Core dependency, it can't be linked as a normal library.
 # Otherwise CMake inserts the library after core, but before other core
 # dependencies like videocommon which also use Host_ functions, which makes the
@@ -19,7 +17,7 @@ macro(add_dolphin_test target)
     OUTPUT_NAME Tests/${target}
     FOLDER Tests
   )
-  target_link_libraries(${target} ${LIBS})
+  target_link_libraries(${target} core gtest_main)
   add_dependencies(unittests ${target})
   add_test(NAME ${target} COMMAND ${target})
 endmacro()
