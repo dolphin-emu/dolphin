@@ -417,6 +417,7 @@ IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
   case IOCTL_ES_SETUID:
     return SetUID(context->uid, request);
   case IOCTL_ES_DIVERIFY:
+  case IOCTL_ES_DIVERIFY_WITH_VIEW:
     return DIVerify(request);
 
   case IOCTL_ES_GETOWNEDTITLECNT:
@@ -512,7 +513,6 @@ IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
     return GetTicketFromView(request);
 
   case IOCTL_ES_VERIFYSIGN:
-  case IOCTL_ES_UNKNOWN_3B:
   case IOCTL_ES_UNKNOWN_3C:
   case IOCTL_ES_UNKNOWN_3D:
   case IOCTL_ES_UNKNOWN_3E:
