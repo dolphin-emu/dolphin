@@ -10,6 +10,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
+#include "Common/Swap.h"
 
 #include "Core/DSP/DSPAssembler.h"
 #include "Core/DSP/DSPCodeUtil.h"
@@ -218,4 +219,30 @@ bool SaveBinary(const std::vector<u16>& code, const std::string& filename)
     return false;
   return true;
 }
+
+bool DumpDSPCode(const u8* code_be, int size_in_bytes, u32 crc)
+{
+  const std::string root_name =
+      File::GetUserPath(D_DUMPDSP_IDX) + StringFromFormat("DSP_UC_%08X", crc);
+  const std::string binary_file = root_name + ".bin";
+  const std::string text_file = root_name + ".txt";
+
+  if (!File::IOFile(binary_file, "wb").WriteBytes(code_be, size_in_bytes))
+  {
+    PanicAlert("Can't dump UCode to file '%s'!!", binary_file.c_str());
+    return false;
+  }
+
+  // The disassembler works in native endian
+  std::vector<u16> code(size_in_bytes / 2);
+  for (size_t i = 0; i < code.size(); i++)
+    code[i] = Common::swap16(&code_be[i * 2]);
+
+  std::string text;
+  if (!Disassemble(code, true, text))
+    return false;
+
+  return File::WriteStringToFile(text, text_file);
+}
+
 }  // namespace DSP
