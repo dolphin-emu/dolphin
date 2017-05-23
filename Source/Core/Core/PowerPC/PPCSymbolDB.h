@@ -25,7 +25,7 @@ public:
   PPCSymbolDB();
   ~PPCSymbolDB();
 
-  Symbol* AddFunction(u32 startAddr) override;
+  Symbol* AddFunction(u32 start_addr) override;
   void AddKnownSymbol(u32 startAddr, u32 size, const std::string& name,
                       Symbol::Type type = Symbol::Type::Function);
 
