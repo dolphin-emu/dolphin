@@ -14,8 +14,6 @@
 
 WiimoteEmuExtension::WiimoteEmuExtension(MappingWindow* window) : MappingWidget(window)
 {
-  Wiimote::Initialize(Wiimote::InitializeMode::DO_NOT_WAIT_FOR_WIIMOTES);
-
   CreateClassicLayout();
   CreateDrumsLayout();
   CreateGuitarLayout();

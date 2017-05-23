@@ -19,8 +19,6 @@
 WiimoteEmuGeneral::WiimoteEmuGeneral(MappingWindow* window, WiimoteEmuExtension* extension)
     : MappingWidget(window), m_extension_widget(extension)
 {
-  Wiimote::Initialize(Wiimote::InitializeMode::DO_NOT_WAIT_FOR_WIIMOTES);
-
   CreateMainLayout();
   Connect();
 }

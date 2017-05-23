@@ -10,7 +10,12 @@
 #include "Core/BootManager.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/HW/GCKeyboard.h"
+#include "Core/HW/GCPad.h"
 #include "Core/HW/ProcessorInterface.h"
+#include "Core/HW/Wiimote.h"
+#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
+#include "Core/HotkeyManager.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayProto.h"
 #include "Core/State.h"
@@ -23,6 +28,8 @@
 #include "DolphinQt2/MainWindow.h"
 #include "DolphinQt2/Resources.h"
 #include "DolphinQt2/Settings.h"
+
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 MainWindow::MainWindow() : QMainWindow(nullptr)
 {
@@ -38,11 +45,25 @@ MainWindow::MainWindow() : QMainWindow(nullptr)
   ConnectRenderWidget();
   ConnectStack();
   ConnectMenuBar();
+
+  InitControllers();
 }
 
 MainWindow::~MainWindow()
 {
   m_render_widget->deleteLater();
+}
+
+void MainWindow::InitControllers()
+{
+  if (g_controller_interface.IsInit())
+    return;
+
+  g_controller_interface.Initialize(reinterpret_cast<void*>(winId()));
+  Pad::Initialize();
+  Keyboard::Initialize();
+  Wiimote::Initialize(Wiimote::InitializeMode::DO_NOT_WAIT_FOR_WIIMOTES);
+  HotkeyManagerEmu::Initialize();
 }
 
 void MainWindow::CreateComponents()

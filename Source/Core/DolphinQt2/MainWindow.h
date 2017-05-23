@@ -65,6 +65,8 @@ private:
   void ConnectToolBar();
   void ConnectPathsDialog();
 
+  void InitControllers();
+
   void StartGame(const QString& path);
   void ShowRenderWidget();
   void HideRenderWidget();
