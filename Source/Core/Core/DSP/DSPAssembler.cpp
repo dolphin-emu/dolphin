@@ -46,7 +46,8 @@ static const char* err_string[] = {"",
                                    "Wrong parameter: must be accumulator register",
                                    "Wrong parameter: must be mid accumulator register",
                                    "Invalid register",
-                                   "Number out of range"};
+                                   "Number out of range",
+                                   "Program counter out of range"};
 
 DSPAssembler::DSPAssembler(const AssemblerSettings& settings)
     : m_cur_addr(0), m_cur_pass(0), m_current_param(0), settings_(settings)
@@ -61,11 +62,8 @@ bool DSPAssembler::Assemble(const std::string& text, std::vector<u16>& code,
 {
   if (line_numbers)
     line_numbers->clear();
-  const std::string file_name = "tmp.asm";
-  if (!File::WriteStringToFile(text, file_name))
-    return false;
   InitPass(1);
-  if (!AssembleFile(file_name, 1))
+  if (!AssemblePass(text, 1))
     return false;
 
   // We now have the size of the output buffer
@@ -75,7 +73,7 @@ bool DSPAssembler::Assemble(const std::string& text, std::vector<u16>& code,
   m_output_buffer.resize(m_totalSize);
 
   InitPass(2);
-  if (!AssembleFile(file_name, 2))
+  if (!AssemblePass(text, 2))
     return false;
 
   code = std::move(m_output_buffer);
@@ -752,18 +750,11 @@ void DSPAssembler::InitPass(int pass)
   segment_addr[SEGMENT_OVERLAY] = 0;
 }
 
-bool DSPAssembler::AssembleFile(const std::string& file_path, int pass)
+bool DSPAssembler::AssemblePass(const std::string& text, int pass)
 {
   int disable_text = 0;  // modified by Hermes
 
-  std::ifstream fsrc;
-  OpenFStream(fsrc, file_path, std::ios_base::in);
-
-  if (fsrc.fail())
-  {
-    std::cerr << "Cannot open file " << file_path << std::endl;
-    return false;
-  }
+  std::istringstream fsrc(text);
 
   // printf("%s: Pass %d\n", fname, pass);
   code_line = 0;
@@ -929,7 +920,9 @@ bool DSPAssembler::AssembleFile(const std::string& file_path, int pass)
           include_file_path = include_dir + '/' + params[0].str;
         }
 
-        AssembleFile(include_file_path, pass);
+        std::string included_text;
+        File::ReadFileToString(include_file_path, included_text);
+        AssemblePass(included_text, pass);
 
         code_line = this_code_line;
       }
@@ -952,9 +945,32 @@ bool DSPAssembler::AssembleFile(const std::string& file_path, int pass)
     if (strcmp("ORG", opcode) == 0)
     {
       if (params[0].type == P_VAL)
+      {
+        m_totalSize = std::max(m_cur_addr, params[0].val);
         m_cur_addr = params[0].val;
+      }
       else
+      {
         ShowError(ERR_EXPECTED_PARAM_VAL);
+      }
+      continue;
+    }
+
+    if (strcmp("WARNPC", opcode) == 0)
+    {
+      if (params[0].type == P_VAL)
+      {
+        if (m_cur_addr > params[0].val)
+        {
+          std::string msg = StringFromFormat("WARNPC at 0x%04x, expected 0x%04x or less",
+                                             m_cur_addr, params[0].val);
+          ShowError(ERR_OUT_RANGE_PC, msg.c_str());
+        }
+      }
+      else
+      {
+        ShowError(ERR_EXPECTED_PARAM_VAL);
+      }
       continue;
     }
 
@@ -1016,9 +1032,6 @@ bool DSPAssembler::AssembleFile(const std::string& file_path, int pass)
     m_cur_addr += opcode_size;
     m_totalSize += opcode_size;
   };
-
-  if (!failed)
-    fsrc.close();
 
   return !failed;
 }
