@@ -8,13 +8,16 @@
 #pragma once
 
 #include <array>
+#include <cstddef>
+#include <map>
 #include <string>
 #include <vector>
 
-#include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/NandPaths.h"
 #include "DiscIO/Enums.h"
+
+class PointerWrap;
 
 namespace IOS
 {

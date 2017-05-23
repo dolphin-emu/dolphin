@@ -7,7 +7,7 @@
 #pragma once
 
 #include <array>
-#include <map>
+#include <cstddef>
 #include <vector>
 
 #include "Common/CommonTypes.h"
