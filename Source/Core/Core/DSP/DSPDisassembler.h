@@ -34,10 +34,10 @@ class DSPDisassembler
 public:
   explicit DSPDisassembler(const AssemblerSettings& settings);
 
-  bool Disassemble(const std::vector<u16>& code, int base_addr, std::string& text);
+  bool Disassemble(const std::vector<u16>& code, std::string& text);
 
   // Warning - this one is trickier to use right.
-  bool DisassembleOpcode(const u16* binbuf, int base_addr, u16* pc, std::string& dest);
+  bool DisassembleOpcode(const u16* binbuf, u16* pc, std::string& dest);
 
 private:
   std::string DisassembleParameters(const DSPOPCTemplate& opc, u16 op1, u16 op2);

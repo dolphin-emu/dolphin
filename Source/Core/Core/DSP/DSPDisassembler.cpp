@@ -25,11 +25,11 @@ DSPDisassembler::DSPDisassembler(const AssemblerSettings& settings) : settings_(
 {
 }
 
-bool DSPDisassembler::Disassemble(const std::vector<u16>& code, int base_addr, std::string& text)
+bool DSPDisassembler::Disassemble(const std::vector<u16>& code, std::string& text)
 {
   for (u16 pc = 0; pc < code.size();)
   {
-    if (!DisassembleOpcode(code.data(), base_addr, &pc, text))
+    if (!DisassembleOpcode(code.data(), &pc, text))
       return false;
     text.append("\n");
   }
@@ -129,8 +129,7 @@ std::string DSPDisassembler::DisassembleParameters(const DSPOPCTemplate& opc, u1
   return buf;
 }
 
-bool DSPDisassembler::DisassembleOpcode(const u16* binbuf, int base_addr, u16* pc,
-                                        std::string& dest)
+bool DSPDisassembler::DisassembleOpcode(const u16* binbuf, u16* pc, std::string& dest)
 {
   if ((*pc & 0x7fff) >= 0x1000)
   {
