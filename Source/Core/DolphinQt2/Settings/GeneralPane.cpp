@@ -84,13 +84,13 @@ void GeneralPane::CreateBasic()
   m_combobox_speedlimit->addItem(tr("Unlimited"));
   for (int i = 10; i <= 200; i += 10)  // from 10% to 200%
   {
-	  QString str;
-	  if (i != 100)
-		  str.sprintf("%i%%", i);
-	  else
-		  str.sprintf("%i%% (Normal Speed)", i);
+    QString str;
+    if (i != 100)
+      str.sprintf("%i%%", i);
+    else
+      str.sprintf("%i%% (Normal Speed)", i);
 
-	  m_combobox_speedlimit->addItem(str);
+    m_combobox_speedlimit->addItem(str);
   }
 
   speed_limit_layout->addRow(tr("&Speed Limit:"), m_combobox_speedlimit);
