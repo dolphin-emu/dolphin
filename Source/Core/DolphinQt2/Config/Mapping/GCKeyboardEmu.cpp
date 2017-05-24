@@ -15,8 +15,6 @@
 
 GCKeyboardEmu::GCKeyboardEmu(MappingWindow* window) : MappingWidget(window)
 {
-  Keyboard::Initialize();
-
   CreateMainLayout();
 }
 

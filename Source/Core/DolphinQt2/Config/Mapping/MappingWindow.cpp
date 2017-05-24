@@ -25,9 +25,10 @@
 #include "DolphinQt2/Config/Mapping/WiimoteEmuMotionControl.h"
 #include "DolphinQt2/Settings.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
-#include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/Device.h"
 #include "InputCommon/InputConfig.h"
+
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 MappingWindow::MappingWindow(QWidget* parent, int port_num) : QDialog(parent), m_port(port_num)
 {
@@ -38,8 +39,6 @@ MappingWindow::MappingWindow(QWidget* parent, int port_num) : QDialog(parent), m
   CreateResetLayout();
   CreateMainLayout();
   ConnectWidgets();
-
-  g_controller_interface.Initialize(reinterpret_cast<void*>(winId()));
 }
 
 void MappingWindow::CreateDevicesLayout()

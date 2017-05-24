@@ -15,8 +15,6 @@
 
 GCPadEmu::GCPadEmu(MappingWindow* window) : MappingWidget(window)
 {
-  Pad::Initialize();
-
   CreateMainLayout();
 }
 
