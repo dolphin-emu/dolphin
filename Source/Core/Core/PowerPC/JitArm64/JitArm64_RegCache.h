@@ -21,7 +21,9 @@ static const ARM64Reg MEM_REG = X28;        // memory base register
 static const ARM64Reg PPC_REG = X29;        // ppcState pointer
 static const ARM64Reg DISPATCHER_PC = W26;  // register for PC when calling the dispatcher
 
-#define PPCSTATE_OFF(elem) (offsetof(PowerPC::PowerPCState, elem))
+// Offset of ppcState elements to the PPC_REG (X29) register.
+// We must not use offsetof() as "elem" may not be a constexpr, eg gpr[i].
+#define PPCSTATE_OFF(elem) ((u8*)&PowerPC::ppcState.elem - (u8*)&PowerPC::ppcState)
 
 // Some asserts to make sure we will be able to load everything
 static_assert(PPCSTATE_OFF(spr[1023]) <= 16380, "LDR(32bit) can't reach the last SPR");
