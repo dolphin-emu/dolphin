@@ -122,10 +122,7 @@ bool TextureConverter::Initialize()
 
 bool TextureConverter::ReserveTexelBufferStorage(size_t size, size_t alignment)
 {
-  // Enforce the minimum alignment for texture buffers on the device.
-  size_t actual_alignment =
-      std::max(static_cast<size_t>(g_vulkan_context->GetTexelBufferAlignment()), alignment);
-  if (m_texel_buffer->ReserveMemory(size, actual_alignment))
+  if (m_texel_buffer->ReserveMemory(size, alignment))
     return true;
 
   WARN_LOG(VIDEO, "Executing command list while waiting for space in palette buffer");
@@ -134,7 +131,7 @@ bool TextureConverter::ReserveTexelBufferStorage(size_t size, size_t alignment)
   // This next call should never fail, since a command buffer is now in-flight and we can
   // wait on the fence for the GPU to finish. If this returns false, it's probably because
   // the device has been lost, which is fatal anyway.
-  if (!m_texel_buffer->ReserveMemory(size, actual_alignment))
+  if (!m_texel_buffer->ReserveMemory(size, alignment))
   {
     PanicAlert("Failed to allocate space for texture conversion");
     return false;
@@ -327,47 +324,27 @@ void TextureConverter::DecodeYUYVTextureFromMemory(TextureCache::TCacheEntry* ds
   StateTracker::GetInstance()->EndRenderPass();
   StateTracker::GetInstance()->SetPendingRebind();
 
-  // Pack each row without any padding in the texel buffer.
-  size_t upload_stride = src_width * sizeof(u16);
-  size_t upload_size = upload_stride * src_height;
-
   // Reserve space in the texel buffer for storing the raw image.
-  if (!ReserveTexelBufferStorage(upload_size, sizeof(u16)))
+  size_t upload_size = src_stride * src_height;
+  if (!ReserveTexelBufferStorage(upload_size, sizeof(u32)))
     return;
 
-  // Handle pitch differences here.
-  if (src_stride != upload_stride)
-  {
-    const u8* src_row_ptr = reinterpret_cast<const u8*>(src_ptr);
-    u8* dst_row_ptr = m_texel_buffer->GetCurrentHostPointer();
-    size_t copy_size = std::min(upload_stride, static_cast<size_t>(src_stride));
-    for (u32 row = 0; row < src_height; row++)
-    {
-      std::memcpy(dst_row_ptr, src_row_ptr, copy_size);
-      src_row_ptr += src_stride;
-      dst_row_ptr += upload_stride;
-    }
-  }
-  else
-  {
-    std::memcpy(m_texel_buffer->GetCurrentHostPointer(), src_ptr, upload_size);
-  }
-
   VkDeviceSize texel_buffer_offset = m_texel_buffer->GetCurrentOffset();
+  std::memcpy(m_texel_buffer->GetCurrentHostPointer(), src_ptr, upload_size);
   m_texel_buffer->CommitMemory(upload_size);
 
   dst_texture->GetTexture()->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                                                 VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
-  // We divide the offset by 4 here because we're fetching RGBA8 elements.
-  // The stride is in RGBA8 elements, so we divide by two because our data is two bytes per pixel.
+  // We divide the offset/stride by 4 here because we're fetching RGBA8 elements.
+  _assert_((src_stride % sizeof(u32)) == 0);
   struct PSUniformBlock
   {
     int buffer_offset;
     int src_stride;
   };
   PSUniformBlock push_constants = {static_cast<int>(texel_buffer_offset / sizeof(u32)),
-                                   static_cast<int>(src_width / 2)};
+                                   static_cast<int>(src_stride / sizeof(u32))};
 
   // Convert from the YUYV data now in the intermediate texture to RGBA in the destination.
   UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
