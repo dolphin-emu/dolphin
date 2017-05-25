@@ -21,7 +21,10 @@ static const ARM64Reg MEM_REG = X28;        // memory base register
 static const ARM64Reg PPC_REG = X29;        // ppcState pointer
 static const ARM64Reg DISPATCHER_PC = W26;  // register for PC when calling the dispatcher
 
-#define PPCSTATE_OFF(elem) (offsetof(PowerPC::PowerPCState, elem))
+// GCC doesn't support dynamic attribute indicing with offsetof.
+// So just use a custom macro for now.
+#define myoffsetof(type, member) (reinterpret_cast<size_t>(&static_cast<type*>(nullptr)->member))
+#define PPCSTATE_OFF(elem) (myoffsetof(PowerPC::PowerPCState, elem))
 
 // Some asserts to make sure we will be able to load everything
 static_assert(PPCSTATE_OFF(spr[1023]) <= 16380, "LDR(32bit) can't reach the last SPR");
