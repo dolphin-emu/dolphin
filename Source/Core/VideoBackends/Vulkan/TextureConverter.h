@@ -45,8 +45,8 @@ public:
                                  Texture2D* src_texture, const MathUtil::Rectangle<int>& src_rect);
 
   // Decodes data from guest memory in XFB (YUYV) format to a RGBA format texture on the GPU.
-  void DecodeYUYVTextureFromMemory(TextureCache::TCacheEntry* dst_texture, const void* src_ptr,
-                                   u32 src_width, u32 src_stride, u32 src_height);
+  void DecodeYUYVTextureFromMemory(Texture2D* dst_texture, const void* src_ptr, u32 src_width,
+                                   u32 src_stride, u32 src_height);
 
   bool SupportsTextureDecoding(TextureFormat format, TlutFormat palette_format);
   void DecodeTexture(VkCommandBuffer command_buffer, TextureCache::TCacheEntry* entry,

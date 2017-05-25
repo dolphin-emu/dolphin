@@ -171,15 +171,13 @@ private:
   VkShaderModule m_poke_fragment_shader = VK_NULL_HANDLE;
 };
 
-// The XFB source class simply wraps a texture cache entry.
-// All the required functionality is provided by TextureCache.
 class XFBSource final : public XFBSourceBase
 {
 public:
-  explicit XFBSource(std::unique_ptr<TextureCache::TCacheEntry> texture);
+  explicit XFBSource(std::unique_ptr<Texture2D> texture);
   ~XFBSource();
 
-  TextureCache::TCacheEntry* GetTexture() const { return m_texture.get(); }
+  Texture2D* GetTexture() const { return m_texture.get(); }
   // Guest -> GPU EFB Textures
   void DecodeToTexture(u32 xfb_addr, u32 fb_width, u32 fb_height) override;
 
@@ -187,7 +185,7 @@ public:
   void CopyEFB(float gamma) override;
 
 private:
-  std::unique_ptr<TextureCache::TCacheEntry> m_texture;
+  std::unique_ptr<Texture2D> m_texture;
 };
 
 }  // namespace Vulkan

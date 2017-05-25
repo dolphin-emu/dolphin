@@ -1354,20 +1354,17 @@ std::unique_ptr<XFBSourceBase> FramebufferManager::CreateXFBSource(unsigned int 
                                                                    unsigned int target_height,
                                                                    unsigned int layers)
 {
-  TextureCacheBase::TCacheEntryConfig config;
-  config.width = target_width;
-  config.height = target_height;
-  config.layers = layers;
-  config.rendertarget = true;
-  auto* base_texture = TextureCache::GetInstance()->CreateTexture(config);
-  auto* texture = static_cast<TextureCache::TCacheEntry*>(base_texture);
-  if (!texture)
+  std::unique_ptr<Texture2D> tex = Texture2D::Create(
+      target_width, target_height, 1, layers, EFB_COLOR_TEXTURE_FORMAT, VK_SAMPLE_COUNT_1_BIT,
+      VK_IMAGE_VIEW_TYPE_2D_ARRAY, VK_IMAGE_TILING_OPTIMAL,
+      VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT);
+  if (!tex)
   {
     PanicAlert("Failed to create texture for XFB source");
     return nullptr;
   }
 
-  return std::make_unique<XFBSource>(std::unique_ptr<TextureCache::TCacheEntry>(texture));
+  return std::make_unique<XFBSource>(std::move(tex));
 }
 
 void FramebufferManager::CopyToRealXFB(u32 xfb_addr, u32 fb_stride, u32 fb_height,
@@ -1405,7 +1402,7 @@ void FramebufferManager::CopyToRealXFB(u32 xfb_addr, u32 fb_stride, u32 fb_heigh
   }
 }
 
-XFBSource::XFBSource(std::unique_ptr<TextureCache::TCacheEntry> texture)
+XFBSource::XFBSource(std::unique_ptr<Texture2D> texture)
     : XFBSourceBase(), m_texture(std::move(texture))
 {
 }
@@ -1427,14 +1424,25 @@ void XFBSource::CopyEFB(float gamma)
 {
   // Pending/batched EFB pokes should be included in the copied image.
   FramebufferManager::GetInstance()->FlushEFBPokes();
+  StateTracker::GetInstance()->EndRenderPass();
 
   // Virtual XFB, copy EFB at native resolution to m_texture
-  MathUtil::Rectangle<int> rect(0, 0, static_cast<int>(texWidth), static_cast<int>(texHeight));
-  VkRect2D vk_rect = {{rect.left, rect.top},
-                      {static_cast<u32>(rect.GetWidth()), static_cast<u32>(rect.GetHeight())}};
-
+  VkRect2D vk_rect = {{0, 0}, {texWidth, texHeight}};
   Texture2D* src_texture = FramebufferManager::GetInstance()->ResolveEFBColorTexture(vk_rect);
-  TextureCache::GetInstance()->CopyRectangleFromTexture(m_texture.get(), rect, src_texture, rect);
+  VkImageCopy image_copy = {{VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, src_texture->GetLayers()},
+                            {0, 0, 0},
+                            {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, m_texture->GetLayers()},
+                            {0, 0, 0},
+                            {texWidth, texHeight, 1}};
+
+  src_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                  VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+  m_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+
+  vkCmdCopyImage(g_command_buffer_mgr->GetCurrentCommandBuffer(), src_texture->GetImage(),
+                 VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, m_texture->GetImage(),
+                 VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &image_copy);
 
   // If we sourced directly from the EFB framebuffer, restore it to a color attachment.
   if (src_texture == FramebufferManager::GetInstance()->GetEFBColorTexture())
