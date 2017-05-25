@@ -329,8 +329,18 @@ void TextureConverter::DecodeYUYVTextureFromMemory(Texture2D* dst_texture, const
     return;
 
   VkDeviceSize texel_buffer_offset = m_texel_buffer->GetCurrentOffset();
+  Util::BufferMemoryBarrier(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                            m_texel_buffer->GetBuffer(), VK_ACCESS_SHADER_READ_BIT,
+                            VK_ACCESS_HOST_WRITE_BIT, texel_buffer_offset, upload_size,
+                            VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_HOST_BIT);
+
   std::memcpy(m_texel_buffer->GetCurrentHostPointer(), src_ptr, upload_size);
   m_texel_buffer->CommitMemory(upload_size);
+
+  Util::BufferMemoryBarrier(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                            m_texel_buffer->GetBuffer(), VK_ACCESS_HOST_WRITE_BIT,
+                            VK_ACCESS_SHADER_READ_BIT, texel_buffer_offset, upload_size,
+                            VK_PIPELINE_STAGE_HOST_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
 
   // We divide the offset/stride by 4 here because we're fetching RGBA8 elements.
   _assert_((src_stride % sizeof(u32)) == 0);
