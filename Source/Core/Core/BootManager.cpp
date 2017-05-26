@@ -218,13 +218,13 @@ static GPUDeterminismMode ParseGPUDeterminismMode(const std::string& mode)
 }
 
 // Boot the ISO or file
-bool BootCore(const std::string& _rFilename)
+bool BootCore(const std::string& filename, SConfig::EBootBS2 type)
 {
   SConfig& StartUp = SConfig::GetInstance();
 
   StartUp.m_BootType = SConfig::BOOT_ISO;
-  StartUp.m_strFilename = _rFilename;
-  StartUp.m_LastFilename = _rFilename;
+  StartUp.m_strFilename = filename;
+  StartUp.m_LastFilename = filename;
   StartUp.SaveSettings();
   StartUp.bRunCompareClient = false;
   StartUp.bRunCompareServer = false;
@@ -232,10 +232,11 @@ bool BootCore(const std::string& _rFilename)
   config_cache.SaveConfig(StartUp);
 
   // If for example the ISO file is bad we return here
-  if (!StartUp.AutoSetup(SConfig::BOOT_DEFAULT))
+  if (!StartUp.AutoSetup(type))
     return false;
 
   // Load game specific settings
+  if (type == SConfig::BOOT_DEFAULT)
   {
     IniFile game_ini = StartUp.LoadGameIni();
 

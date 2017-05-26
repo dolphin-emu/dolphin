@@ -289,7 +289,7 @@ void MainWindow::StartGame(const QString& path)
       return;
   }
   // Boot up, show an error if it fails to load the game.
-  if (!BootManager::BootCore(path.toStdString()))
+  if (!BootManager::BootCore(path.toStdString(), SConfig::BOOT_DEFAULT))
   {
     QMessageBox::critical(this, tr("Error"), tr("Failed to init core"), QMessageBox::Ok);
     return;

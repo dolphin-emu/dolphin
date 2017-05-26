@@ -6,9 +6,11 @@
 
 #include <string>
 
+#include "Core/ConfigManager.h"
+
 namespace BootManager
 {
-bool BootCore(const std::string& _rFilename);
+bool BootCore(const std::string& filename, SConfig::EBootBS2 type);
 
 // Stop the emulation core and restore the configuration.
 void Stop();
