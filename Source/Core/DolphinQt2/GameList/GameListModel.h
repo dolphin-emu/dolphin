@@ -29,13 +29,13 @@ public:
   enum
   {
     COL_PLATFORM = 0,
-    COL_ID,
     COL_BANNER,
     COL_TITLE,
     COL_DESCRIPTION,
     COL_MAKER,
-    COL_SIZE,
+    COL_ID,
     COL_COUNTRY,
+    COL_SIZE,
     COL_RATING,
     NUM_COLS
   };
