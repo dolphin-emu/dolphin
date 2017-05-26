@@ -39,7 +39,7 @@ Dolphin can only be installed on devices that satisfy the above requirements. At
 ## Building for Windows
 
 Use the solution file `Source/dolphin-emu.sln` to build Dolphin on Windows.
-Visual Studio 2015 Update 2 is a hard requirement. Other compilers might be
+Visual Studio 2017 is a hard requirement. Other compilers might be
 able to build Dolphin on Windows but have not been tested and are not
 recommended to be used. Git must be installed when building.
 
