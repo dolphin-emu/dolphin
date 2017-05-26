@@ -91,8 +91,7 @@ void GameList::MakeTableView()
   hor_header->setSectionResizeMode(GameListModel::COL_DESCRIPTION, QHeaderView::Stretch);
   hor_header->setSectionResizeMode(GameListModel::COL_RATING, QHeaderView::ResizeToContents);
 
-  QHeaderView* ver_header = m_table->verticalHeader();
-  ver_header->setSectionResizeMode(QHeaderView::ResizeToContents);
+  m_table->verticalHeader()->hide();
 }
 
 void GameList::MakeEmptyView()
