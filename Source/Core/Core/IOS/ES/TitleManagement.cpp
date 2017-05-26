@@ -91,6 +91,9 @@ IPCCommandResult ES::ImportTmd(Context& context, const IOCtlVRequest& request)
   if (!request.HasNumberOfValidVectors(1, 0))
     return GetDefaultReply(ES_EINVAL);
 
+  if (!IOS::ES::IsValidTMDSize(request.in_vectors[0].size))
+    return GetDefaultReply(ES_EINVAL);
+
   std::vector<u8> tmd(request.in_vectors[0].size);
   Memory::CopyFromEmu(tmd.data(), request.in_vectors[0].address, request.in_vectors[0].size);
   return GetDefaultReply(ImportTmd(context, tmd));
@@ -129,6 +132,9 @@ ReturnCode ES::ImportTitleInit(Context& context, const std::vector<u8>& tmd_byte
 IPCCommandResult ES::ImportTitleInit(Context& context, const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(4, 0))
+    return GetDefaultReply(ES_EINVAL);
+
+  if (!IOS::ES::IsValidTMDSize(request.in_vectors[0].size))
     return GetDefaultReply(ES_EINVAL);
 
   std::vector<u8> tmd(request.in_vectors[0].size);
