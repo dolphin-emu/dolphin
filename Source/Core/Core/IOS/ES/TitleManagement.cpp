@@ -665,8 +665,8 @@ IPCCommandResult ES::ExportTitleDone(Context& context, const IOCtlVRequest& requ
 ReturnCode ES::DeleteSharedContent(const std::array<u8, 20>& sha1) const
 {
   IOS::ES::SharedContentMap map{Common::FromWhichRoot::FROM_SESSION_ROOT};
-  const std::string content_path = map.GetFilenameFromSHA1(sha1);
-  if (content_path == "unk")
+  const auto content_path = map.GetFilenameFromSHA1(sha1);
+  if (!content_path)
     return ES_EINVAL;
 
   // Check whether the shared content is used by a system title.
@@ -689,7 +689,7 @@ ReturnCode ES::DeleteSharedContent(const std::array<u8, 20>& sha1) const
     return ES_EINVAL;
 
   // Delete the shared content and update the content map.
-  if (!File::Delete(content_path))
+  if (!File::Delete(*content_path))
     return FS_ENOENT;
 
   if (!map.DeleteSharedContent(sha1))

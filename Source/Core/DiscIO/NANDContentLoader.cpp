@@ -208,7 +208,7 @@ void CNANDContentLoader::InitializeContentEntries(const std::vector<u8>& data_ap
     {
       std::string filename;
       if (content.IsShared())
-        filename = shared_content.GetFilenameFromSHA1(content.sha1);
+        filename = *shared_content.GetFilenameFromSHA1(content.sha1);
       else
         filename = StringFromFormat("%s/%08x.app", m_Path.c_str(), content.id);
 
