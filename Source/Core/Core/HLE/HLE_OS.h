@@ -10,4 +10,6 @@ void HLE_GeneralDebugPrint();
 void HLE_GeneralDebugVPrint();
 void HLE_write_console();
 void HLE_OSPanic();
+void HLE_LogDPrint();
+void HLE_LogVDPrint();
 }

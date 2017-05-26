@@ -110,6 +110,32 @@ void HLE_write_console()
   NOTICE_LOG(OSREPORT, "%08x->%08x| %s", LR, PC, SHIFTJISToUTF8(report_message).c_str());
 }
 
+// Log (v)dprintf message if fd is 1 (stdout) or 2 (stderr)
+void HLE_LogDPrint(ParameterType parameter_type)
+{
+  NPC = LR;
+
+  if (GPR(3) != 1 && GPR(3) != 2)
+    return;
+
+  std::string report_message = GetStringVA(4, parameter_type);
+  NOTICE_LOG(OSREPORT, "%08x->%08x| %s", LR, PC, SHIFTJISToUTF8(report_message).c_str());
+}
+
+// Log dprintf message
+//  -> int dprintf(int fd, const char* format, ...);
+void HLE_LogDPrint()
+{
+  HLE_LogDPrint(ParameterType::ParameterList);
+}
+
+// Log vdprintf message
+//  -> int vdprintf(int fd, const char* format, va_list ap);
+void HLE_LogVDPrint()
+{
+  HLE_LogDPrint(ParameterType::VariableArgumentList);
+}
+
 std::string GetStringVA(u32 str_reg, ParameterType parameter_type)
 {
   std::string ArgumentBuffer;
