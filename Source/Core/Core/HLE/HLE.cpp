@@ -64,6 +64,8 @@ static const SPatch OSPatches[] = {
     {"printf",                       HLE_OS::HLE_GeneralDebugPrint,         HLE_HOOK_START,   HLE_TYPE_DEBUG},
     {"vdprintf",                     HLE_OS::HLE_LogVDPrint,                HLE_HOOK_START,   HLE_TYPE_DEBUG},
     {"dprintf",                      HLE_OS::HLE_LogDPrint,                 HLE_HOOK_START,   HLE_TYPE_DEBUG},
+    {"vfprintf",                     HLE_OS::HLE_LogVFPrint,                HLE_HOOK_START,   HLE_TYPE_DEBUG},
+    {"fprintf",                      HLE_OS::HLE_LogFPrint,                 HLE_HOOK_START,   HLE_TYPE_DEBUG},
     {"nlPrintf",                     HLE_OS::HLE_GeneralDebugPrint,         HLE_HOOK_START,   HLE_TYPE_DEBUG},
     {"puts",                         HLE_OS::HLE_GeneralDebugPrint,         HLE_HOOK_START,   HLE_TYPE_DEBUG}, // gcc-optimized printf?
     {"___blank",                     HLE_OS::HLE_GeneralDebugPrint,         HLE_HOOK_START,   HLE_TYPE_DEBUG}, // used for early init things (normally)

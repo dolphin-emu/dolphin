@@ -136,6 +136,45 @@ void HLE_LogVDPrint()
   HLE_LogDPrint(ParameterType::VariableArgumentList);
 }
 
+// Log (v)fprintf message if FILE is stdout or stderr
+void HLE_LogFPrint(ParameterType parameter_type)
+{
+  NPC = LR;
+
+  // The structure FILE is implementation defined.
+  // Both libogc and Dolphin SDK seem to store the fd at the same address.
+  int fd = -1;
+  if (PowerPC::HostIsRAMAddress(GPR(3)) && PowerPC::HostIsRAMAddress(GPR(3) + 0xF))
+  {
+    // The fd is stored as a short at FILE+0xE.
+    fd = static_cast<short>(PowerPC::HostRead_U16(GPR(3) + 0xE));
+  }
+  if (fd != 1 && fd != 2)
+  {
+    // On RVL SDK it seems stored at FILE+0x2.
+    fd = static_cast<short>(PowerPC::HostRead_U16(GPR(3) + 0x2));
+  }
+  if (fd != 1 && fd != 2)
+    return;
+
+  std::string report_message = GetStringVA(4, parameter_type);
+  NOTICE_LOG(OSREPORT, "%08x->%08x| %s", LR, PC, SHIFTJISToUTF8(report_message).c_str());
+}
+
+// Log fprintf message
+//  -> int fprintf(FILE* stream, const char* format, ...);
+void HLE_LogFPrint()
+{
+  HLE_LogFPrint(ParameterType::ParameterList);
+}
+
+// Log vfprintf message
+//  -> int vfprintf(FILE* stream, const char* format, va_list ap);
+void HLE_LogVFPrint()
+{
+  HLE_LogFPrint(ParameterType::VariableArgumentList);
+}
+
 std::string GetStringVA(u32 str_reg, ParameterType parameter_type)
 {
   std::string ArgumentBuffer;
