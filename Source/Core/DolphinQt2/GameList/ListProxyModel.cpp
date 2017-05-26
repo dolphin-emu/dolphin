@@ -7,7 +7,7 @@
 #include "DolphinQt2/GameList/GameListModel.h"
 #include "DolphinQt2/GameList/ListProxyModel.h"
 
-static QSize LARGE_BANNER_SIZE(144, 48);
+const QSize LARGE_BANNER_SIZE(144, 48);
 
 ListProxyModel::ListProxyModel(QObject* parent) : QSortFilterProxyModel(parent)
 {
@@ -25,10 +25,12 @@ QVariant ListProxyModel::data(const QModelIndex& i, int role) const
   }
   else if (role == Qt::DecorationRole)
   {
-    return sourceModel()
-        ->data(sourceModel()->index(source_index.row(), GameListModel::COL_BANNER), Qt::DisplayRole)
-        .value<QPixmap>()
-        .scaled(LARGE_BANNER_SIZE, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    auto pixmap = sourceModel()
+                      ->data(sourceModel()->index(source_index.row(), GameListModel::COL_BANNER),
+                             Qt::DecorationRole)
+                      .value<QPixmap>();
+    return pixmap.scaled(LARGE_BANNER_SIZE * pixmap.devicePixelRatio(), Qt::KeepAspectRatio,
+                         Qt::SmoothTransformation);
   }
   return QVariant();
 }

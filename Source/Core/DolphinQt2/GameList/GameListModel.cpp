@@ -5,6 +5,8 @@
 #include "DolphinQt2/GameList/GameListModel.h"
 #include "DolphinQt2/Resources.h"
 
+const QSize GAMECUBE_BANNER_SIZE(96, 32);
+
 GameListModel::GameListModel(QObject* parent) : QAbstractTableModel(parent)
 {
   connect(&m_tracker, &GameTracker::GameLoaded, this, &GameListModel::UpdateGame);
@@ -19,14 +21,29 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
     return QVariant();
 
   QSharedPointer<GameFile> game = m_games[index.row()];
-  if (role == Qt::DisplayRole)
+  if (role == Qt::DecorationRole)
   {
     switch (index.column())
     {
     case COL_PLATFORM:
-      return static_cast<int>(game->GetPlatformID());
+      return Resources::GetPlatform(static_cast<int>(game->GetPlatformID()));
+    case COL_COUNTRY:
+      return Resources::GetCountry(static_cast<int>(game->GetCountryID()));
+    case COL_RATING:
+      return Resources::GetRating(game->GetRating());
     case COL_BANNER:
-      return game->GetBanner();
+      // GameCube banners are 96x32, but Wii banners are 192x64.
+      // TODO: use custom banners from rom directory like DolphinWX?
+      QPixmap banner = game->GetBanner();
+      banner.setDevicePixelRatio(std::max(banner.width() / GAMECUBE_BANNER_SIZE.width(),
+                                          banner.height() / GAMECUBE_BANNER_SIZE.height()));
+      return banner;
+    }
+  }
+  if (role == Qt::DisplayRole)
+  {
+    switch (index.column())
+    {
     case COL_TITLE:
       return game->GetLongName();
     case COL_ID:
@@ -36,11 +53,7 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
     case COL_MAKER:
       return game->GetMaker();
     case COL_SIZE:
-      return game->GetFileSize();
-    case COL_COUNTRY:
-      return static_cast<int>(game->GetCountryID());
-    case COL_RATING:
-      return game->GetRating();
+      return FormatSize(game->GetFileSize());
     }
   }
   return QVariant();
