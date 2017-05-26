@@ -95,7 +95,7 @@ function(find_ffmpeg LIBNAME)
   if(NOT FFMPEG_DIR AND (NOT FFmpeg_LIBRARY_${LIBNAME} OR NOT FFmpeg_INCLUDE_${LIBNAME}))
     # Didn't find it in the usual paths, try pkg-config
     find_package(PkgConfig QUIET)
-    pkg_check_modules(FFmpeg_PKGCONFIG_${LIBNAME} REQUIRED QUIET lib${LIBNAME})
+    pkg_check_modules(FFmpeg_PKGCONFIG_${LIBNAME} QUIET lib${LIBNAME})
 
     find_path(FFmpeg_INCLUDE_${LIBNAME} lib${LIBNAME}/${LIBNAME}.h
       ${FFmpeg_PKGCONFIG_${LIBNAME}_INCLUDE_DIRS}
@@ -144,7 +144,9 @@ foreach(c ${_FFmpeg_ALL_COMPONENTS})
   endif()
 endforeach()
 
-list(REMOVE_DUPLICATES FFmpeg_INCLUDES)
+if(FFmpeg_INCLUDES)
+  list(REMOVE_DUPLICATES FFmpeg_INCLUDES)
+endif()
 
 foreach(c ${FFmpeg_FIND_COMPONENTS})
   list(APPEND _FFmpeg_REQUIRED_VARS FFmpeg_INCLUDE_${c} FFmpeg_LIBRARY_${c})
