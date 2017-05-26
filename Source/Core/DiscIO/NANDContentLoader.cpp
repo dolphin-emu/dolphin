@@ -94,7 +94,8 @@ bool CNANDContentDataBuffer::GetRange(u32 start, u32 size, u8* buffer)
   return true;
 }
 
-CNANDContentLoader::CNANDContentLoader(const std::string& content_name)
+CNANDContentLoader::CNANDContentLoader(const std::string& content_name, Common::FromWhichRoot from)
+    : m_root(from)
 {
   m_Valid = Initialize(content_name);
 }
@@ -185,7 +186,7 @@ void CNANDContentLoader::InitializeContentEntries(const std::vector<u8>& data_ap
 
   u32 data_app_offset = 0;
   const std::vector<u8> title_key = m_ticket.GetTitleKey();
-  IOS::ES::SharedContentMap shared_content{Common::FromWhichRoot::FROM_SESSION_ROOT};
+  IOS::ES::SharedContentMap shared_content{m_root};
 
   for (size_t i = 0; i < contents.size(); ++i)
   {
@@ -223,14 +224,15 @@ CNANDContentManager::~CNANDContentManager()
 {
 }
 
-const CNANDContentLoader& CNANDContentManager::GetNANDLoader(const std::string& content_path)
+const CNANDContentLoader& CNANDContentManager::GetNANDLoader(const std::string& content_path,
+                                                             Common::FromWhichRoot from)
 {
   auto it = m_map.find(content_path);
   if (it != m_map.end())
     return *it->second;
   return *m_map
-              .emplace_hint(it, std::make_pair(content_path,
-                                               std::make_unique<CNANDContentLoader>(content_path)))
+              .emplace_hint(it, std::make_pair(content_path, std::make_unique<CNANDContentLoader>(
+                                                                 content_path, from)))
               ->second;
 }
 
@@ -238,7 +240,7 @@ const CNANDContentLoader& CNANDContentManager::GetNANDLoader(u64 title_id,
                                                              Common::FromWhichRoot from)
 {
   std::string path = Common::GetTitleContentPath(title_id, from);
-  return GetNANDLoader(path);
+  return GetNANDLoader(path, from);
 }
 
 void CNANDContentManager::ClearCache()
