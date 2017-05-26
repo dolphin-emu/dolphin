@@ -81,13 +81,11 @@ CVolumeWiiCrypted::CVolumeWiiCrypted(std::unique_ptr<IBlobReader> reader)
       if (!m_pReader->ReadSwapped(partition_offset + 0x2a8, &tmd_address))
         continue;
       tmd_address <<= 2;
-      if (tmd_size > 1024 * 1024 * 4)
+      if (!IOS::ES::IsValidTMDSize(tmd_size))
       {
-        // The size is checked so that a malicious or corrupt ISO
-        // can't force Dolphin to allocate up to 4 GiB of memory.
-        // 4 MiB should be much bigger than the size of TMDs and much smaller
-        // than the amount of RAM in a computer that can run Dolphin.
-        PanicAlert("TMD > 4 MiB");
+        // This check is normally done by ES in ES_DiVerify, but that would happen too late
+        // (after allocating the buffer), so we do the check here.
+        PanicAlert("Invalid TMD size");
         continue;
       }
       std::vector<u8> tmd_buffer(tmd_size);

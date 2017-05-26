@@ -57,6 +57,11 @@ bool Content::IsShared() const
   return (type & 0x8000) != 0;
 }
 
+bool IsValidTMDSize(size_t size)
+{
+  return size <= 0x49e4;
+}
+
 TMDReader::TMDReader(const std::vector<u8>& bytes) : m_bytes(bytes)
 {
 }
