@@ -13,6 +13,12 @@ if(CMAKE_SYSTEM_NAME MATCHES "Windows")
   add_definitions(-D_CRT_SECURE_NO_DEPRECATE)
 endif()
 
+# enable the latest C++ standard feature set,
+# and also disable MSVC specific extensions
+# to be even more standards compliant.
+check_and_add_flag(CPPLATEST /std:c++latest)
+check_and_add_flag(STANDARD_COMPLIANCE /permissive-)
+
 # These aren't actually needed for C11/C++11
 # but some dependencies require them (LLVM, libav).
 add_definitions(-D__STDC_LIMIT_MACROS)
