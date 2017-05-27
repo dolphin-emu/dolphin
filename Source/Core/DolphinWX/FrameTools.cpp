@@ -818,7 +818,6 @@ void CFrame::DoStop()
   // don't let this function run again until it finishes, or is aborted.
   m_confirm_stop = true;
 
-  m_is_game_loading = false;
   if (Core::GetState() != Core::State::Uninitialized || m_render_parent != nullptr)
   {
 #if defined __WXGTK__
@@ -919,6 +918,7 @@ bool CFrame::TriggerSTMPowerEvent()
 void CFrame::OnStopped()
 {
   m_confirm_stop = false;
+  m_is_game_loading = false;
   m_tried_graceful_shutdown = false;
 
   UninhibitScreensaver();
