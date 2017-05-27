@@ -101,6 +101,8 @@ struct VideoConfig final
   bool bCacheHiresTextures;
   bool bDumpEFBTarget;
   bool bDumpFramesAsImages;
+  bool bDumpFramesToPPM;
+  bool bDumpFramesCounter;
   bool bUseFFV1;
   std::string sDumpCodec;
   std::string sDumpFormat;

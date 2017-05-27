@@ -75,6 +75,8 @@ void VideoConfig::Load(const std::string& ini_file)
   settings->Get("CacheHiresTextures", &bCacheHiresTextures, false);
   settings->Get("DumpEFBTarget", &bDumpEFBTarget, false);
   settings->Get("DumpFramesAsImages", &bDumpFramesAsImages, false);
+  settings->Get("DumpFramesToPPM", &bDumpFramesToPPM, false);
+  settings->Get("DumpFramesCounter", &bDumpFramesCounter, true);
   settings->Get("FreeLook", &bFreeLook, false);
   settings->Get("UseFFV1", &bUseFFV1, false);
   settings->Get("DumpFormat", &sDumpFormat, "avi");

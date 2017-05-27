@@ -16,6 +16,7 @@
 
 #include <cinttypes>
 #include <cmath>
+#include <fstream>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -774,10 +775,8 @@ bool Renderer::IsFrameDumping()
   if (m_screenshot_request.IsSet())
     return true;
 
-#if defined(HAVE_LIBAV) || defined(_WIN32)
   if (SConfig::GetInstance().m_DumpFrames)
     return true;
-#endif
 
   ShutdownFrameDumping();
   return false;
@@ -936,8 +935,19 @@ void Renderer::StopFrameDumpToAVI()
 
 std::string Renderer::GetFrameDumpNextImageFileName() const
 {
-  return StringFromFormat("%sframedump_%u.png", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(),
-                          m_frame_dump_image_counter);
+  std::stringstream filename;
+  filename << File::GetUserPath(D_DUMPFRAMES_IDX);
+  filename << "framedump";
+
+  if (g_Config.bDumpFramesCounter)
+    filename << "_" << m_frame_dump_image_counter;
+
+  if (g_Config.bDumpFramesToPPM)
+    filename << ".ppm";
+  else
+    filename << ".png";
+
+  return filename.str();
 }
 
 bool Renderer::StartFrameDumpToImage(const FrameDumpConfig& config)
@@ -959,10 +969,37 @@ bool Renderer::StartFrameDumpToImage(const FrameDumpConfig& config)
   return true;
 }
 
+static void WritePPM(std::ostream& os, int width, int height, int stride, const u8* data)
+{
+  // header
+  os << "P6\n"
+     << width << " " << height << "\n"
+     << "255\n";
+
+  // pixels. we omit the alpha channel
+  for (int row = 0; row < height; ++row)
+  {
+    int index = row * stride;
+    for (int col = 0; col < width; ++col)
+    {
+      os.write(reinterpret_cast<const char*>(data) + index, 3);
+      index += 4;
+    }
+  }
+}
+
 void Renderer::DumpFrameToImage(const FrameDumpConfig& config)
 {
   std::string filename = GetFrameDumpNextImageFileName();
-  TextureToPng(config.data, config.stride, filename, config.width, config.height, false);
+  if (g_Config.bDumpFramesToPPM)
+  {
+    std::ofstream out(filename);
+    WritePPM(out, config.width, config.height, config.stride, config.data);
+  }
+  else
+  {
+    TextureToPng(config.data, config.stride, filename, config.width, config.height, false);
+  }
   m_frame_dump_image_counter++;
 }
 
