@@ -11,6 +11,7 @@
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
+#include "Common/MsgHandler.h"
 #include "Common/NandPaths.h"
 
 #include "Core/Boot/Boot.h"
@@ -78,6 +79,13 @@ bool CBoot::Boot_WiiWAD(const std::string& _pFilename)
     return false;
 
   u64 titleID = ContentLoader.GetTMD().GetTitleId();
+
+  if (!IOS::ES::IsChannel(titleID))
+  {
+    PanicAlertT("This WAD is not bootable.");
+    return false;
+  }
+
   // create data directory
   File::CreateFullPath(Common::GetTitleDataPath(titleID, Common::FROM_SESSION_ROOT));
 

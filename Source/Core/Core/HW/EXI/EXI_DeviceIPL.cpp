@@ -98,7 +98,8 @@ CEXIIPL::CEXIIPL() : m_uPosition(0), m_uAddress(0), m_uRWOffset(0), m_FontsLoade
   // Create the IPL
   m_pIPL = static_cast<u8*>(Common::AllocateMemoryPages(ROM_SIZE));
 
-  if (SConfig::GetInstance().bHLE_BS2)
+  // The Wii doesn't have a copy of the IPL, only fonts.
+  if (SConfig::GetInstance().bWii || SConfig::GetInstance().bHLE_BS2)
   {
     // Copy header
     if (DiscIO::IsNTSC(SConfig::GetInstance().m_region))

@@ -5,15 +5,13 @@
 #pragma once
 
 #include <cstdlib>
+#include <optional>
 #include <string>
+#include <variant>
 
 #include "Common/CommonTypes.h"
-
-namespace DiscIO
-{
-class Volume;
-struct Partition;
-}
+#include "DiscIO/Enums.h"
+#include "DiscIO/Volume.h"
 
 struct RegionSetting
 {
@@ -23,10 +21,57 @@ struct RegionSetting
   const std::string code;
 };
 
+struct BootParameters
+{
+  struct Disc
+  {
+    std::string path;
+    std::unique_ptr<DiscIO::Volume> volume;
+  };
+
+  struct Executable
+  {
+    enum class Type
+    {
+      DOL,
+      ELF,
+    };
+    std::string path;
+    Type type;
+  };
+
+  struct NAND
+  {
+    std::string content_path;
+  };
+
+  struct IPL
+  {
+    explicit IPL(DiscIO::Region region_);
+    IPL(DiscIO::Region region_, Disc&& disc_);
+    std::string path;
+    DiscIO::Region region;
+    // It is possible to boot the IPL with a disc inserted (with "skip IPL" disabled).
+    std::optional<Disc> disc;
+  };
+
+  struct DFF
+  {
+    std::string dff_path;
+  };
+
+  static std::unique_ptr<BootParameters> GenerateFromFile(const std::string& path);
+
+  using Parameters = std::variant<Disc, Executable, NAND, IPL, DFF>;
+  BootParameters(Parameters&& parameters_);
+
+  Parameters parameters;
+};
+
 class CBoot
 {
 public:
-  static bool BootUp();
+  static bool BootUp(std::unique_ptr<BootParameters> boot);
   static bool IsElfWii(const std::string& filename);
 
   // Tries to find a map file for the current game by looking first in the
