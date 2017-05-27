@@ -129,6 +129,7 @@ struct SConfig : NonCopyable
   bool bOverrideGCLanguage = false;
 
   bool bWii = false;
+  bool m_is_mios = false;
 
   // Interface settings
   bool bConfirmStop = false;
@@ -195,7 +196,6 @@ struct SConfig : NonCopyable
     BOOT_ELF,
     BOOT_DOL,
     BOOT_WII_NAND,
-    BOOT_MIOS,
     BOOT_BS2,
     BOOT_DFF
   };

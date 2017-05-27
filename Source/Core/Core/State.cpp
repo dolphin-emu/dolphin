@@ -156,8 +156,7 @@ static std::string DoState(PointerWrap& p)
     return version_created_by;
   }
 
-  bool is_wii =
-      SConfig::GetInstance().bWii || SConfig::GetInstance().m_BootType == SConfig::BOOT_MIOS;
+  bool is_wii = SConfig::GetInstance().bWii || SConfig::GetInstance().m_is_mios;
   const bool is_wii_currently = is_wii;
   p.Do(is_wii);
   if (is_wii != is_wii_currently)

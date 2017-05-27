@@ -168,7 +168,7 @@ bool Load()
 
   Memory::Write_U32(0x00000000, ADDRESS_INIT_SEMAPHORE);
   NOTICE_LOG(IOS, "IPL ready.");
-  SConfig::GetInstance().m_BootType = SConfig::BOOT_MIOS;
+  SConfig::GetInstance().m_is_mios = true;
   DVDInterface::UpdateRunningGameMetadata();
   return true;
 }
