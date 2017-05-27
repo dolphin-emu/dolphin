@@ -13,7 +13,7 @@ Please read the [FAQ](https://dolphin-emu.org/docs/faq/) before using Dolphin.
 ### Desktop
 
 * OS
-    * Windows (7 SP1 or higher is officially supported, but Vista SP2 might also work).
+    * Windows (7 SP1 or higher is officially supported, but Vista SP2 with KB971644 might also work).
     * Linux.
     * macOS (10.10 Yosemite or higher).
     * Unix-like systems other than Linux are not officially supported but might work.
