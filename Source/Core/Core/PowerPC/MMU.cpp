@@ -791,9 +791,6 @@ u32 IsOptimizableMMIOAccess(u32 address, u32 accessSize)
 
 bool IsOptimizableGatherPipeWrite(u32 address)
 {
-  if (PowerPC::memchecks.HasAny())
-    return false;
-
   if (!UReg_MSR(MSR).DR)
     return false;
 
