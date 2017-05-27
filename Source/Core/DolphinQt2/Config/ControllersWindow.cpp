@@ -7,14 +7,13 @@
 #include <QComboBox>
 #include <QDialog>
 #include <QDialogButtonBox>
-#include <QFormLayout>
+#include <QGridLayout>
 #include <QGroupBox>
 #include <QLabel>
 #include <QLineEdit>
 #include <QMessageBox>
 #include <QPushButton>
 #include <QRadioButton>
-#include <QSpacerItem>
 #include <QVBoxLayout>
 
 #include <unordered_map>
@@ -86,16 +85,15 @@ ControllersWindow::ControllersWindow(QWidget* parent) : QDialog(parent)
 void ControllersWindow::CreateGamecubeLayout()
 {
   m_gc_box = new QGroupBox(tr("GameCube Controllers"));
-  m_gc_layout = new QFormLayout();
+  m_gc_layout = new QGridLayout();
+  m_gc_layout->setVerticalSpacing(7);
+  m_gc_layout->setColumnStretch(1, 1);
 
   for (size_t i = 0; i < m_gc_groups.size(); i++)
   {
+    auto* gc_label = new QLabel(tr("Controller %1").arg(i + 1));
     auto* gc_box = m_gc_controller_boxes[i] = new QComboBox();
     auto* gc_button = m_gc_buttons[i] = new QPushButton(tr("Configure"));
-    auto* gc_group = m_gc_groups[i] = new QHBoxLayout();
-
-    gc_box->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-    gc_button->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
     for (const auto& item :
          {tr("None"), tr("Standard Controller"), tr("GameCube Adapter for Wii U"),
@@ -104,47 +102,18 @@ void ControllersWindow::CreateGamecubeLayout()
       gc_box->addItem(item);
     }
 
-    gc_group->addItem(new QSpacerItem(42, 1));
-    gc_group->addWidget(gc_box);
-    gc_group->addWidget(gc_button);
-
-    m_gc_layout->addRow(tr("Controller %1").arg(i + 1), gc_group);
+    int controller_row = m_gc_layout->rowCount();
+    m_gc_layout->addWidget(gc_label, controller_row, 0);
+    m_gc_layout->addWidget(gc_box, controller_row, 1);
+    m_gc_layout->addWidget(gc_button, controller_row, 2);
   }
   m_gc_box->setLayout(m_gc_layout);
-}
-
-static QHBoxLayout* CreateSubItem(QWidget* label, QWidget* widget)
-{
-  QHBoxLayout* hbox = new QHBoxLayout();
-  hbox->addItem(new QSpacerItem(25, 1));
-
-  if (label != nullptr)
-    hbox->addWidget(label);
-
-  if (widget != nullptr)
-    hbox->addWidget(widget);
-
-  return hbox;
-}
-
-static QHBoxLayout* CreateSubItem(QWidget* label, QLayoutItem* item)
-{
-  QHBoxLayout* hbox = new QHBoxLayout();
-  hbox->addItem(new QSpacerItem(25, 1));
-
-  if (label != nullptr)
-    hbox->addWidget(label);
-
-  if (item != nullptr)
-    hbox->addItem(item);
-
-  return hbox;
 }
 
 void ControllersWindow::CreateWiimoteLayout()
 {
   m_wiimote_box = new QGroupBox(tr("Wii Remotes"));
-  m_wiimote_layout = new QFormLayout();
+  m_wiimote_layout = new QGridLayout();
   m_wiimote_passthrough = new QRadioButton(tr("Use Bluetooth Passthrough"));
   m_wiimote_sync = new QPushButton(tr("Sync"));
   m_wiimote_reset = new QPushButton(tr("Reset"));
@@ -156,28 +125,28 @@ void ControllersWindow::CreateWiimoteLayout()
   m_wiimote_real_balance_board = new QCheckBox(tr("Real Balance Board"));
   m_wiimote_speaker_data = new QCheckBox(tr("Enable Speaker Data"));
 
-  m_wiimote_layout->setLabelAlignment(Qt::AlignLeft);
+  m_wiimote_layout->setVerticalSpacing(7);
+  m_wiimote_layout->setColumnStretch(1, 1);
 
   // Passthrough BT
+  m_wiimote_layout->addWidget(m_wiimote_passthrough, m_wiimote_layout->rowCount(), 0, 1, -1);
 
-  m_wiimote_layout->addRow(m_wiimote_passthrough);
+  int sync_row = m_wiimote_layout->rowCount();
+  m_wiimote_layout->addWidget(m_wiimote_pt_labels[0], sync_row, 0, 1, 2);
+  m_wiimote_layout->addWidget(m_wiimote_sync, sync_row, 2);
 
-  m_wiimote_sync->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-  m_wiimote_reset->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-  m_wiimote_refresh->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-
-  m_wiimote_layout->addRow(CreateSubItem(m_wiimote_pt_labels[0], m_wiimote_sync));
-  m_wiimote_layout->addRow(CreateSubItem(m_wiimote_pt_labels[1], m_wiimote_reset));
+  int reset_row = m_wiimote_layout->rowCount();
+  m_wiimote_layout->addWidget(m_wiimote_pt_labels[1], reset_row, 0, 1, 2);
+  m_wiimote_layout->addWidget(m_wiimote_reset, reset_row, 2);
 
   // Emulated BT
-  m_wiimote_layout->addRow(m_wiimote_emu);
+  m_wiimote_layout->addWidget(m_wiimote_emu, m_wiimote_layout->rowCount(), 0, 1, -1);
 
   for (size_t i = 0; i < m_wiimote_groups.size(); i++)
   {
     auto* wm_label = m_wiimote_labels[i] = new QLabel(tr("Wii Remote %1").arg(i + 1));
     auto* wm_box = m_wiimote_boxes[i] = new QComboBox();
     auto* wm_button = m_wiimote_buttons[i] = new QPushButton(tr("Configure"));
-    auto* wm_group = m_wiimote_groups[i] = new QHBoxLayout();
 
     for (const auto& item :
          {tr("None"), tr("Emulated Wii Remote"), tr("Real Wii Remote"), tr("Hybrid Wii Remote")})
@@ -185,21 +154,18 @@ void ControllersWindow::CreateWiimoteLayout()
       wm_box->addItem(item);
     }
 
-    wm_button->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-    wm_box->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-
-    wm_group->addItem(new QSpacerItem(25, 1));
-    wm_group->addWidget(wm_label);
-    wm_group->addItem(new QSpacerItem(10, 1));
-    wm_group->addWidget(wm_box);
-    wm_group->addWidget(wm_button);
-
-    m_wiimote_layout->addRow(wm_group);
+    int wm_row = m_wiimote_layout->rowCount();
+    m_wiimote_layout->addWidget(wm_label, wm_row, 0);
+    m_wiimote_layout->addWidget(wm_box, wm_row, 1);
+    m_wiimote_layout->addWidget(wm_button, wm_row, 2);
   }
 
-  m_wiimote_layout->addRow(CreateSubItem(m_wiimote_continuous_scanning, m_wiimote_refresh));
-  m_wiimote_layout->addRow(CreateSubItem(nullptr, m_wiimote_real_balance_board));
-  m_wiimote_layout->addRow(CreateSubItem(m_wiimote_speaker_data, new QSpacerItem(1, 35)));
+  int continuous_scanning_row = m_wiimote_layout->rowCount();
+  m_wiimote_layout->addWidget(m_wiimote_continuous_scanning, continuous_scanning_row, 0, 1, 2);
+  m_wiimote_layout->addWidget(m_wiimote_refresh, continuous_scanning_row, 2);
+
+  m_wiimote_layout->addWidget(m_wiimote_real_balance_board, m_wiimote_layout->rowCount(), 0, 1, -1);
+  m_wiimote_layout->addWidget(m_wiimote_speaker_data, m_wiimote_layout->rowCount(), 0, 1, -1);
 
   m_wiimote_box->setLayout(m_wiimote_layout);
 }
