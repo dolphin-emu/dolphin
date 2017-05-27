@@ -63,12 +63,8 @@
     <ClCompile Include="Config\PathDialog.cpp">
       <Filter>Config</Filter>
     </ClCompile>
-    <ClCompile Include="GameList\TableDelegate.cpp" />
     <ClCompile Include="AboutDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)AboutDialog.cpp">
-      <Filter>Generated Files</Filter>
-    </ClCompile>
-    <ClCompile Include="$(QtMocOutPrefix)TableDelegate.cpp">
       <Filter>Generated Files</Filter>
     </ClCompile>
     <ClCompile Include="Config\SettingsWindow.cpp" />
@@ -146,7 +142,6 @@
     <QtMoc Include="Config\PathDialog.h">
       <Filter>Config</Filter>
     </QtMoc>
-    <QtMoc Include="GameList\TableDelegate.h" />
     <QtMoc Include="AboutDialog.h" />
     <QtMoc Include="Config\SettingsWindow.h" />
     <QtMoc Include="Config\PropertiesDialog.h" />
