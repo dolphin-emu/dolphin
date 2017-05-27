@@ -27,7 +27,7 @@ public:
   static void Stop();
   static void DoState();
 
-#if defined(HAVE_LIBAV) || defined(_WIN32)
+#if defined(HAVE_FFMPEG)
   static Frame FetchState(u64 ticks);
 #else
   static Frame FetchState(u64 ticks) { return {}; }
