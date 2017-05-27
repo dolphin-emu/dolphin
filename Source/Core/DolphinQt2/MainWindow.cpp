@@ -259,7 +259,6 @@ void MainWindow::ConnectRenderWidget()
 
 void MainWindow::ConnectStack()
 {
-  m_stack->setMinimumSize(800, 600);
   m_stack->addWidget(m_game_list);
   setCentralWidget(m_stack);
 }
@@ -620,4 +619,9 @@ void MainWindow::dropEvent(QDropEvent* event)
     }
     settings.AddPath(path);
   }
+}
+
+QSize MainWindow::sizeHint() const
+{
+  return QSize(800, 600);
 }
