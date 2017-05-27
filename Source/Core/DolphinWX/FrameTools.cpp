@@ -309,16 +309,8 @@ void CFrame::BootGame(const std::string& filename)
     }
     else
     {
-      if (!SConfig::GetInstance().m_LastFilename.empty() &&
-          File::Exists(SConfig::GetInstance().m_LastFilename))
-      {
-        bootfile = SConfig::GetInstance().m_LastFilename;
-      }
-      else
-      {
-        m_game_list_ctrl->BrowseForDirectory();
-        return;
-      }
+      m_game_list_ctrl->BrowseForDirectory();
+      return;
     }
   }
   if (!bootfile.empty())
@@ -1544,15 +1536,6 @@ void CFrame::UpdateGUI()
     {
       // Prepare to load Default ISO, enable play button
       if (!SConfig::GetInstance().m_strDefaultISO.empty())
-      {
-        GetToolBar()->EnableTool(IDM_PLAY, true);
-        GetMenuBar()->FindItem(IDM_PLAY)->Enable();
-        GetMenuBar()->FindItem(IDM_RECORD)->Enable();
-        GetMenuBar()->FindItem(IDM_PLAY_RECORD)->Enable();
-      }
-      // Prepare to load last selected file, enable play button
-      else if (!SConfig::GetInstance().m_LastFilename.empty() &&
-               File::Exists(SConfig::GetInstance().m_LastFilename))
       {
         GetToolBar()->EnableTool(IDM_PLAY, true);
         GetMenuBar()->FindItem(IDM_PLAY)->Enable();

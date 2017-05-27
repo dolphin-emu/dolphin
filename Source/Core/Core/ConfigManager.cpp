@@ -109,7 +109,6 @@ void SConfig::SaveGeneralSettings(IniFile& ini)
   IniFile::Section* general = ini.GetOrCreateSection("General");
 
   // General
-  general->Set("LastFilename", m_LastFilename);
   general->Set("ShowLag", m_ShowLag);
   general->Set("ShowFrameCount", m_ShowFrameCount);
 
@@ -418,7 +417,6 @@ void SConfig::LoadGeneralSettings(IniFile& ini)
 {
   IniFile::Section* general = ini.GetOrCreateSection("General");
 
-  general->Get("LastFilename", &m_LastFilename);
   general->Get("ShowLag", &m_ShowLag, false);
   general->Get("ShowFrameCount", &m_ShowFrameCount, false);
 #ifdef USE_GDBSTUB
