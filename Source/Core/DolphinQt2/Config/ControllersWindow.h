@@ -47,11 +47,6 @@ private:
   void ConnectWidgets();
   void LoadSettings();
 
-  // Icons
-  QString m_configure_icon;
-  QString m_gamecube_icon;
-  QString m_wii_icon;
-
   // Main
   QVBoxLayout* m_main_layout;
   QDialogButtonBox* m_button_box;
@@ -59,7 +54,6 @@ private:
   // Gamecube
   std::array<MappingWindow*, 4> m_gc_mappings;
   QGroupBox* m_gc_box;
-  QLabel* m_gc_label;
   QFormLayout* m_gc_layout;
   std::array<QComboBox*, 4> m_gc_controller_boxes;
   std::array<QPushButton*, 4> m_gc_buttons;
@@ -68,7 +62,6 @@ private:
   // Wii Remote
   std::array<MappingWindow*, 4> m_wiimote_mappings;
   QGroupBox* m_wiimote_box;
-  QLabel* m_wii_label;
   QFormLayout* m_wiimote_layout;
   std::array<QLabel*, 4> m_wiimote_labels;
   std::array<QComboBox*, 4> m_wiimote_boxes;
