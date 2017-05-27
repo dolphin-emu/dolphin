@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <QApplication>
 #include <QBoxLayout>
 #include <QCheckBox>
 #include <QComboBox>
@@ -14,6 +15,7 @@
 #include <QMessageBox>
 #include <QPushButton>
 #include <QRadioButton>
+#include <QScreen>
 #include <QVBoxLayout>
 
 #include <unordered_map>
@@ -110,10 +112,49 @@ void ControllersWindow::CreateGamecubeLayout()
   m_gc_box->setLayout(m_gc_layout);
 }
 
+static int GetRadioButtonIndicatorWidth()
+{
+  const QStyle* style = QApplication::style();
+  QStyleOptionButton opt;
+
+  // TODO: why does the macOS style act different? Is it because of the magic with
+  // Cocoa widgets it does behind the scenes?
+  if (style->objectName() == QStringLiteral("macintosh"))
+    return style->subElementRect(QStyle::SE_RadioButtonIndicator, &opt).width();
+
+  return style->subElementRect(QStyle::SE_RadioButtonContents, &opt).left();
+}
+
+static int GetLayoutHorizontalSpacing(const QGridLayout* layout)
+{
+  // TODO: shouldn't layout->horizontalSpacing() do all this? Why does it return -1?
+  int hspacing = layout->horizontalSpacing();
+  if (hspacing >= 0)
+    return hspacing;
+
+  // According to docs, this is the fallback if horizontalSpacing() isn't set.
+  auto style = layout->parentWidget()->style();
+  hspacing = style->pixelMetric(QStyle::PM_LayoutHorizontalSpacing);
+  if (hspacing >= 0)
+    return hspacing;
+
+  // Docs claim this is deprecated, but on macOS with Qt 5.8 this is the only one that actually
+  // works.
+  float pixel_ratio = QGuiApplication::primaryScreen()->devicePixelRatio();
+  hspacing = pixel_ratio * style->pixelMetric(QStyle::PM_DefaultLayoutSpacing);
+  if (hspacing >= 0)
+    return hspacing;
+
+  // Ripped from qtbase/src/widgets/styles/qcommonstyle.cpp
+  return pixel_ratio * 6;
+}
+
 void ControllersWindow::CreateWiimoteLayout()
 {
-  m_wiimote_box = new QGroupBox(tr("Wii Remotes"));
   m_wiimote_layout = new QGridLayout();
+  m_wiimote_box = new QGroupBox(tr("Wii Remotes"));
+  m_wiimote_box->setLayout(m_wiimote_layout);
+
   m_wiimote_passthrough = new QRadioButton(tr("Use Bluetooth Passthrough"));
   m_wiimote_sync = new QPushButton(tr("Sync"));
   m_wiimote_reset = new QPushButton(tr("Reset"));
@@ -126,18 +167,20 @@ void ControllersWindow::CreateWiimoteLayout()
   m_wiimote_speaker_data = new QCheckBox(tr("Enable Speaker Data"));
 
   m_wiimote_layout->setVerticalSpacing(7);
-  m_wiimote_layout->setColumnStretch(1, 1);
+  m_wiimote_layout->setColumnMinimumWidth(0, GetRadioButtonIndicatorWidth() -
+                                                 GetLayoutHorizontalSpacing(m_wiimote_layout));
+  m_wiimote_layout->setColumnStretch(2, 1);
 
   // Passthrough BT
   m_wiimote_layout->addWidget(m_wiimote_passthrough, m_wiimote_layout->rowCount(), 0, 1, -1);
 
   int sync_row = m_wiimote_layout->rowCount();
-  m_wiimote_layout->addWidget(m_wiimote_pt_labels[0], sync_row, 0, 1, 2);
-  m_wiimote_layout->addWidget(m_wiimote_sync, sync_row, 2);
+  m_wiimote_layout->addWidget(m_wiimote_pt_labels[0], sync_row, 1, 1, 2);
+  m_wiimote_layout->addWidget(m_wiimote_sync, sync_row, 3);
 
   int reset_row = m_wiimote_layout->rowCount();
-  m_wiimote_layout->addWidget(m_wiimote_pt_labels[1], reset_row, 0, 1, 2);
-  m_wiimote_layout->addWidget(m_wiimote_reset, reset_row, 2);
+  m_wiimote_layout->addWidget(m_wiimote_pt_labels[1], reset_row, 1, 1, 2);
+  m_wiimote_layout->addWidget(m_wiimote_reset, reset_row, 3);
 
   // Emulated BT
   m_wiimote_layout->addWidget(m_wiimote_emu, m_wiimote_layout->rowCount(), 0, 1, -1);
@@ -155,19 +198,17 @@ void ControllersWindow::CreateWiimoteLayout()
     }
 
     int wm_row = m_wiimote_layout->rowCount();
-    m_wiimote_layout->addWidget(wm_label, wm_row, 0);
-    m_wiimote_layout->addWidget(wm_box, wm_row, 1);
-    m_wiimote_layout->addWidget(wm_button, wm_row, 2);
+    m_wiimote_layout->addWidget(wm_label, wm_row, 1);
+    m_wiimote_layout->addWidget(wm_box, wm_row, 2);
+    m_wiimote_layout->addWidget(wm_button, wm_row, 3);
   }
 
   int continuous_scanning_row = m_wiimote_layout->rowCount();
-  m_wiimote_layout->addWidget(m_wiimote_continuous_scanning, continuous_scanning_row, 0, 1, 2);
-  m_wiimote_layout->addWidget(m_wiimote_refresh, continuous_scanning_row, 2);
+  m_wiimote_layout->addWidget(m_wiimote_continuous_scanning, continuous_scanning_row, 1, 1, 2);
+  m_wiimote_layout->addWidget(m_wiimote_refresh, continuous_scanning_row, 3);
 
-  m_wiimote_layout->addWidget(m_wiimote_real_balance_board, m_wiimote_layout->rowCount(), 0, 1, -1);
-  m_wiimote_layout->addWidget(m_wiimote_speaker_data, m_wiimote_layout->rowCount(), 0, 1, -1);
-
-  m_wiimote_box->setLayout(m_wiimote_layout);
+  m_wiimote_layout->addWidget(m_wiimote_real_balance_board, m_wiimote_layout->rowCount(), 1, 1, -1);
+  m_wiimote_layout->addWidget(m_wiimote_speaker_data, m_wiimote_layout->rowCount(), 1, 1, -1);
 }
 
 void ControllersWindow::CreateAdvancedLayout()
