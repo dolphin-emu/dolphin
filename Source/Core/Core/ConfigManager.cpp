@@ -23,7 +23,6 @@
 
 #include "Core/Analytics.h"
 #include "Core/Boot/Boot.h"
-#include "Core/Boot/Boot_DOL.h"
 #include "Core/Config/Config.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -896,10 +895,10 @@ struct SetGameMetadata
 
   bool operator()(const BootParameters::Executable& executable) const
   {
-    if (executable.type == BootParameters::Executable::Type::DOL)
-      config->bWii = CDolLoader{executable.path}.IsWii();
-    if (executable.type == BootParameters::Executable::Type::ELF)
-      config->bWii = CBoot::IsElfWii(executable.path);
+    if (!executable.reader->IsValid())
+      return false;
+
+    config->bWii = executable.reader->IsWii();
 
     // TODO: Right now GC homebrew boots in NTSC and Wii homebrew in PAL.
     // This is intentional so that Wii homebrew can boot in both 50Hz and 60Hz,

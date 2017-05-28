@@ -52,9 +52,8 @@
     <ClCompile Include="BootManager.cpp" />
     <ClCompile Include="Boot\Boot.cpp" />
     <ClCompile Include="Boot\Boot_BS2Emu.cpp" />
-    <ClCompile Include="Boot\Boot_DOL.cpp" />
-    <ClCompile Include="Boot\Boot_ELF.cpp" />
     <ClCompile Include="Boot\Boot_WiiWAD.cpp" />
+    <ClCompile Include="Boot\DolReader.cpp" />
     <ClCompile Include="Boot\ElfReader.cpp" />
     <ClCompile Include="Config\Config.cpp" />
     <ClCompile Include="Config\GraphicsSettings.cpp" />
@@ -308,7 +307,7 @@
     <ClInclude Include="ARDecrypt.h" />
     <ClInclude Include="BootManager.h" />
     <ClInclude Include="Boot\Boot.h" />
-    <ClInclude Include="Boot\Boot_DOL.h" />
+    <ClInclude Include="Boot\DolReader.h" />
     <ClInclude Include="Boot\ElfReader.h" />
     <ClInclude Include="Boot\ElfTypes.h" />
     <ClInclude Include="Config\Config.h" />

@@ -5,9 +5,11 @@
 #pragma once
 
 #include <cstdlib>
+#include <memory>
 #include <optional>
 #include <string>
 #include <variant>
+#include <vector>
 
 #include "Common/CommonTypes.h"
 #include "DiscIO/Enums.h"
@@ -21,6 +23,8 @@ struct RegionSetting
   const std::string code;
 };
 
+class BootExecutableReader;
+
 struct BootParameters
 {
   struct Disc
@@ -31,13 +35,8 @@ struct BootParameters
 
   struct Executable
   {
-    enum class Type
-    {
-      DOL,
-      ELF,
-    };
     std::string path;
-    Type type;
+    std::unique_ptr<BootExecutableReader> reader;
   };
 
   struct NAND
@@ -72,7 +71,6 @@ class CBoot
 {
 public:
   static bool BootUp(std::unique_ptr<BootParameters> boot);
-  static bool IsElfWii(const std::string& filename);
 
   // Tries to find a map file for the current game by looking first in the
   // local user directory, then in the shared user directory.
@@ -97,7 +95,6 @@ private:
 
   static void UpdateDebugger_MapLoaded();
 
-  static bool Boot_ELF(const std::string& filename);
   static bool Boot_WiiWAD(const std::string& filename);
 
   static void SetupMSR();
@@ -110,4 +107,21 @@ private:
   static void Load_FST(bool is_wii, const DiscIO::Volume* volume);
 
   static bool SetupWiiMemory(const DiscIO::Volume* volume, u64 ios_title_id);
+};
+
+class BootExecutableReader
+{
+public:
+  BootExecutableReader(const std::string& file_name);
+  BootExecutableReader(const std::vector<u8>& buffer);
+  virtual ~BootExecutableReader();
+
+  virtual u32 GetEntryPoint() const = 0;
+  virtual bool IsValid() const = 0;
+  virtual bool IsWii() const = 0;
+  virtual bool LoadIntoMemory(bool only_in_mem1 = false) const = 0;
+  virtual bool LoadSymbols() const = 0;
+
+protected:
+  std::vector<u8> m_bytes;
 };

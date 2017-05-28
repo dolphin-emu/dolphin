@@ -134,8 +134,7 @@ bool Load()
     return false;
   }
 
-  std::vector<u8> elf_bytes = mios.GetElf();
-  ElfReader elf{elf_bytes.data()};
+  ElfReader elf{mios.GetElf()};
   if (!elf.LoadIntoMemory(true))
   {
     PanicAlertT("Failed to load MIOS ELF into memory.");

@@ -21,7 +21,8 @@
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 
-#include "Core/Boot/Boot_DOL.h"
+#include "Core/Boot/DolReader.h"
+#include "Core/Boot/ElfReader.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Debugger/Debugger_SymbolMap.h"
@@ -86,11 +87,11 @@ std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(const std::stri
     return std::make_unique<BootParameters>(Disc{path, std::move(volume)});
   }
 
-  if (extension == ".elf" || extension == ".dol")
-  {
-    return std::make_unique<BootParameters>(
-        Executable{path, extension == ".elf" ? Executable::Type::ELF : Executable::Type::DOL});
-  }
+  if (extension == ".elf")
+    return std::make_unique<BootParameters>(Executable{path, std::make_unique<ElfReader>(path)});
+
+  if (extension == ".dol")
+    return std::make_unique<BootParameters>(Executable{path, std::make_unique<DolReader>(path)});
 
   if (extension == ".dff")
     return std::make_unique<BootParameters>(DFF{path});
@@ -371,14 +372,13 @@ bool CBoot::BootUp(std::unique_ptr<BootParameters> boot)
     {
       NOTICE_LOG(BOOT, "Booting from executable: %s", executable.path.c_str());
 
-      // TODO: needs more cleanup.
-      if (executable.type == BootParameters::Executable::Type::DOL)
-      {
-        CDolLoader dolLoader(executable.path);
-        if (!dolLoader.IsValid())
-          return false;
+      if (!executable.reader->IsValid())
+        return false;
 
-        const DiscIO::Volume* volume = nullptr;
+      const DiscIO::Volume* volume = nullptr;
+      // VolumeDirectory only works with DOLs.
+      if (StringEndsWith(executable.path, ".dol"))
+      {
         if (!config.m_strDVDRoot.empty())
         {
           NOTICE_LOG(BOOT, "Setting DVDRoot %s", config.m_strDVDRoot.c_str());
@@ -390,57 +390,41 @@ bool CBoot::BootUp(std::unique_ptr<BootParameters> boot)
           NOTICE_LOG(BOOT, "Loading default ISO %s", config.m_strDefaultISO.c_str());
           volume = SetDisc(DiscIO::CreateVolumeFromFilename(config.m_strDefaultISO));
         }
-
-        // Poor man's bootup
-        if (config.bWii)
-        {
-          HID4.SBE = 1;
-          SetupMSR();
-          SetupBAT(config.bWii);
-
-          // Because there is no TMD to get the requested system (IOS) version from,
-          // we default to IOS58, which is the version used by the Homebrew Channel.
-          SetupWiiMemory(volume, 0x000000010000003a);
-        }
-        else
-        {
-          EmulatedBS2_GC(volume, true);
-        }
-
-        Load_FST(config.bWii, volume);
-        dolLoader.Load();
-        PC = dolLoader.GetEntryPoint();
-
-        if (LoadMapFromFilename())
-          HLE::PatchFunctions();
       }
-
-      if (executable.type == BootParameters::Executable::Type::ELF)
+      else
       {
-        const DiscIO::Volume* volume = SetDefaultDisc();
-
-        // Poor man's bootup
-        if (config.bWii)
-        {
-          // Because there is no TMD to get the requested system (IOS) version from,
-          // we default to IOS58, which is the version used by the Homebrew Channel.
-          SetupWiiMemory(volume, 0x000000010000003a);
-        }
-        else
-        {
-          EmulatedBS2_GC(volume, true);
-        }
-
-        Load_FST(config.bWii, volume);
-        if (!Boot_ELF(executable.path))
-          return false;
-
-        // Note: Boot_ELF calls HLE::PatchFunctions()
-
-        UpdateDebugger_MapLoaded();
-        Dolphin_Debugger::AddAutoBreakpoints();
+        volume = SetDefaultDisc();
       }
 
+      if (!executable.reader->LoadIntoMemory())
+      {
+        PanicAlertT("Failed to load the executable to memory.");
+        return false;
+      }
+
+      // Poor man's bootup
+      if (config.bWii)
+      {
+        HID4.SBE = 1;
+        SetupMSR();
+        SetupBAT(config.bWii);
+        // Because there is no TMD to get the requested system (IOS) version from,
+        // we default to IOS58, which is the version used by the Homebrew Channel.
+        SetupWiiMemory(volume, 0x000000010000003a);
+      }
+      else
+      {
+        EmulatedBS2_GC(volume, true);
+      }
+
+      Load_FST(config.bWii, volume);
+      PC = executable.reader->GetEntryPoint();
+
+      if (executable.reader->LoadSymbols() || LoadMapFromFilename())
+      {
+        UpdateDebugger_MapLoaded();
+        HLE::PatchFunctions();
+      }
       return true;
     }
 
@@ -495,3 +479,16 @@ bool CBoot::BootUp(std::unique_ptr<BootParameters> boot)
   HLE::PatchFixedFunctions();
   return true;
 }
+
+BootExecutableReader::BootExecutableReader(const std::string& file_name)
+{
+  m_bytes.resize(File::GetSize(file_name));
+  File::IOFile file{file_name, "rb"};
+  file.ReadBytes(m_bytes.data(), m_bytes.size());
+}
+
+BootExecutableReader::BootExecutableReader(const std::vector<u8>& bytes) : m_bytes(bytes)
+{
+}
+
+BootExecutableReader::~BootExecutableReader() = default;
