@@ -30,6 +30,7 @@ GameList::GameList(QWidget* parent) : QStackedWidget(parent)
 {
   m_model = new GameListModel(this);
   m_table_proxy = new QSortFilterProxyModel(this);
+  m_table_proxy->setSortCaseSensitivity(Qt::CaseInsensitive);
   m_table_proxy->setSourceModel(m_model);
   m_list_proxy = new ListProxyModel(this);
   m_list_proxy->setSourceModel(m_model);
