@@ -6,6 +6,7 @@
 
 #include <cstddef>
 #include <memory>
+#include <vector>
 
 #include "AudioCommon/SoundStream.h"
 
