@@ -347,19 +347,6 @@ bool CBoot::BootUp(std::unique_ptr<BootParameters> boot)
       if (!EmulatedBS2(config.bWii, volume))
         return false;
 
-      // Scan for common HLE functions
-      if (!config.bEnableDebugging)
-      {
-        PPCAnalyst::FindFunctions(0x80004000, 0x811fffff, &g_symbolDB);
-        SignatureDB db(SignatureDB::HandlerType::DSY);
-        if (db.Load(File::GetSysDirectory() + TOTALDB))
-        {
-          db.Apply(&g_symbolDB);
-          HLE::PatchFunctions();
-          db.Clear();
-        }
-      }
-
       // Try to load the symbol map if there is one, and then scan it for
       // and eventually replace code
       if (LoadMapFromFilename())
