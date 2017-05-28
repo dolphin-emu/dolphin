@@ -27,14 +27,20 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
   case COL_PLATFORM:
     if (role == Qt::DecorationRole)
       return Resources::GetPlatform(static_cast<int>(game->GetPlatformID()));
+    if (role == Qt::InitialSortOrderRole)
+      return static_cast<int>(game->GetPlatformID());
     break;
   case COL_COUNTRY:
     if (role == Qt::DecorationRole)
       return Resources::GetCountry(static_cast<int>(game->GetCountryID()));
+    if (role == Qt::InitialSortOrderRole)
+      return static_cast<int>(game->GetCountryID());
     break;
   case COL_RATING:
     if (role == Qt::DecorationRole)
       return Resources::GetRating(game->GetRating());
+    if (role == Qt::InitialSortOrderRole)
+      return game->GetRating();
     break;
   case COL_BANNER:
     if (role == Qt::DecorationRole)
@@ -48,24 +54,26 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
     }
     break;
   case COL_TITLE:
-    if (role == Qt::DisplayRole)
+    if (role == Qt::DisplayRole || role == Qt::InitialSortOrderRole)
       return game->GetLongName();
     break;
   case COL_ID:
-    if (role == Qt::DisplayRole)
+    if (role == Qt::DisplayRole || role == Qt::InitialSortOrderRole)
       return game->GetGameID();
     break;
   case COL_DESCRIPTION:
-    if (role == Qt::DisplayRole)
+    if (role == Qt::DisplayRole || role == Qt::InitialSortOrderRole)
       return game->GetDescription();
     break;
   case COL_MAKER:
-    if (role == Qt::DisplayRole)
+    if (role == Qt::DisplayRole || role == Qt::InitialSortOrderRole)
       return game->GetMaker();
     break;
   case COL_SIZE:
     if (role == Qt::DisplayRole)
       return FormatSize(game->GetFileSize());
+    if (role == Qt::InitialSortOrderRole)
+      return game->GetFileSize();
     break;
   }
 
