@@ -1343,6 +1343,7 @@
   <PropertyGroup Label="Globals">
     <ProjectName>wxWidgets</ProjectName>
     <ProjectGuid>{1C8436C9-DBAF-42BE-83BC-CF3EC9175ABE}</ProjectGuid>
+    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Configuration">
