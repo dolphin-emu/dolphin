@@ -23,8 +23,7 @@ Settings::Settings(QObject* parent) : QSettings(GetSettingsPath(), QSettings::In
 
 QString Settings::GetThemeDir() const
 {
-  QString theme_name = value(QStringLiteral("Theme"), QStringLiteral("Clean")).toString();
-  return QString::fromStdString(File::GetThemeDir(theme_name.toStdString()));
+  return QString::fromStdString(File::GetThemeDir(SConfig::GetInstance().theme_name));
 }
 
 QString Settings::GetResourcesDir() const
