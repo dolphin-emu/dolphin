@@ -905,6 +905,7 @@ IPCCommandResult NetIPTop::HandleGetAddressInfoRequest(const IOCtlVRequest& requ
   u32 sockoffset = addr + 0x460;
   if (ret == 0)
   {
+    constexpr size_t WII_ADDR_INFO_SIZE = 0x20;
     for (addrinfo* result_iter = result; result_iter != nullptr; result_iter = result_iter->ai_next)
     {
       Memory::Write_U32(result_iter->ai_flags, addr);
@@ -932,14 +933,14 @@ IPCCommandResult NetIPTop::HandleGetAddressInfoRequest(const IOCtlVRequest& requ
 
       if (result_iter->ai_next)
       {
-        Memory::Write_U32(addr + sizeof(addrinfo), addr + 0x1C);
+        Memory::Write_U32(addr + WII_ADDR_INFO_SIZE, addr + 0x1C);
       }
       else
       {
         Memory::Write_U32(0, addr + 0x1C);
       }
 
-      addr += sizeof(addrinfo);
+      addr += WII_ADDR_INFO_SIZE;
     }
 
     freeaddrinfo(result);
