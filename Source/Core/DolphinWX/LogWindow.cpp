@@ -2,7 +2,9 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <cstddef>
+#include <locale>
 #include <mutex>
 #include <queue>
 #include <utility>
@@ -24,6 +26,7 @@
 #include "Common/IniFile.h"
 #include "Common/Logging/ConsoleListener.h"
 #include "Common/Logging/LogManager.h"
+#include "Common/MsgHandler.h"
 #include "DolphinWX/Debugger/DebuggerUIUtil.h"
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/LogWindow.h"
@@ -359,5 +362,17 @@ void CLogWindow::Log(LogTypes::LOG_LEVELS level, const char* text)
   if (msgQueue.size() >= MSGQUEUE_MAX_SIZE)
     msgQueue.pop();
 
-  msgQueue.emplace(static_cast<u8>(level), StrToWxStr(text));
+  // Convert from UTF-8
+  wxString encoded_message = StrToWxStr(text);
+  // Fallback to OS locale if conversion failed
+  if (*text && encoded_message.empty())
+  {
+    encoded_message = text;
+    // PanicAlert might rely on StrToWxStr so we need to escape invalid characters
+    std::string escaped_message(text);
+    std::replace_if(escaped_message.begin(), escaped_message.end(),
+                    [](char c) { return !std::isprint(c, std::locale::classic()); }, '?');
+    PanicAlert("Conversion from UTF-8 failed with: \"%s\"", escaped_message.c_str());
+  }
+  msgQueue.emplace(static_cast<u8>(level), encoded_message);
 }
