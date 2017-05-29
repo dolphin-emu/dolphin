@@ -437,6 +437,7 @@ void CGameListCtrl::ReloadList()
     // add all items
     for (int i = 0; i < (int)m_ISOFiles.size(); i++)
       InsertItemInReportView(i);
+    SetColors();
 
     // Sort items by Title
     if (!sorted)
@@ -596,9 +597,6 @@ void CGameListCtrl::InsertItemInReportView(long index)
     if (GetColumnWidth(i) != 0)
       UpdateItemAtColumn(item_index, i);
   }
-
-  // List colors
-  SetColors();
 }
 
 static wxColour blend50(const wxColour& c1, const wxColour& c2)
@@ -626,7 +624,7 @@ void CGameListCtrl::SetColors()
     wxColour color = (i & 1) ? blend50(wxSystemSettings::GetColour(wxSYS_COLOUR_3DLIGHT),
                                        wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW)) :
                                wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
-    CGameListCtrl::SetItemBackgroundColour(i, color);
+    SetItemBackgroundColour(i, color);
     SetItemTextColour(i, ContrastText(color));
   }
 }
