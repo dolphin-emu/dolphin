@@ -24,10 +24,10 @@
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DState.h"
 #include "VideoBackends/D3D/D3DUtil.h"
+#include "VideoBackends/D3D/DXTexture.h"
 #include "VideoBackends/D3D/FramebufferManager.h"
 #include "VideoBackends/D3D/GeometryShaderCache.h"
 #include "VideoBackends/D3D/PixelShaderCache.h"
-#include "VideoBackends/D3D/Television.h"
 #include "VideoBackends/D3D/TextureCache.h"
 #include "VideoBackends/D3D/VertexShaderCache.h"
 
@@ -40,6 +40,7 @@
 #include "VideoCommon/SamplerCommon.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/XFMemory.h"
 
 namespace DX11
@@ -66,10 +67,7 @@ struct GXPipelineState
 
 static u32 s_last_multisamples = 1;
 static bool s_last_stereo_mode = false;
-static bool s_last_xfb_mode = false;
 static bool s_last_fullscreen_mode = false;
-
-static Television s_television;
 
 static std::array<ID3D11BlendState*, 4> s_clear_blend_states{};
 static std::array<ID3D11DepthStencilState*, 3> s_clear_depth_states{};
@@ -85,8 +83,6 @@ static StateCache s_gx_state_cache;
 
 static void SetupDeviceObjects()
 {
-  s_television.Init();
-
   HRESULT hr;
 
   D3D11_DEPTH_STENCIL_DESC ddesc;
@@ -182,8 +178,6 @@ static void TeardownDeviceObjects()
   SAFE_RELEASE(s_screenshot_texture);
   SAFE_RELEASE(s_3d_vision_texture);
 
-  s_television.Shutdown();
-
   s_gx_state_cache.Clear();
 }
 
@@ -241,7 +235,6 @@ Renderer::Renderer() : ::Renderer(D3D::GetBackBufferWidth(), D3D::GetBackBufferH
 {
   s_last_multisamples = g_ActiveConfig.iMultisamples;
   s_last_stereo_mode = g_ActiveConfig.iStereoMode > 0;
-  s_last_xfb_mode = g_ActiveConfig.bUseRealXFB;
   s_last_fullscreen_mode = D3D::GetFullscreenState();
 
   g_framebuffer_manager = std::make_unique<FramebufferManager>(m_target_width, m_target_height);
@@ -640,22 +633,11 @@ void Renderer::SetBlendingState(const BlendingState& state)
 }
 
 // This function has the final picture. We adjust the aspect ratio here.
-void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
-                        const EFBRectangle& rc, u64 ticks, float Gamma)
+void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& rc, u64 ticks, float Gamma)
 {
-  if ((!m_xfb_written && !g_ActiveConfig.RealXFBEnabled()) || !fbWidth || !fbHeight)
+  if (!m_xfb_written)
   {
     Core::Callback_VideoCopiedToXFB(false);
-    return;
-  }
-
-  u32 xfbCount = 0;
-  const XFBSourceBase* const* xfbSourceList =
-      FramebufferManager::GetXFBSource(xfbAddr, fbStride, fbHeight, &xfbCount);
-  if ((!xfbSourceList || xfbCount == 0) && g_ActiveConfig.bUseXFB && !g_ActiveConfig.bUseRealXFB)
-  {
-    Core::Callback_VideoCopiedToXFB(false);
-    return;
   }
 
   ResetAPIState();
@@ -671,67 +653,11 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
 
   // activate linear filtering for the buffer copies
   D3D::SetLinearCopySampler();
+  auto* xfb_texture = static_cast<DXTexture*>(texture);
+  TargetRectangle source_rc = xfb_texture->config.Rect();
 
-  if (g_ActiveConfig.bUseXFB && g_ActiveConfig.bUseRealXFB)
-  {
-    // TODO: Television should be used to render Virtual XFB mode as well.
-    D3D11_VIEWPORT vp = CD3D11_VIEWPORT((float)targetRc.left, (float)targetRc.top,
-                                        (float)targetRc.GetWidth(), (float)targetRc.GetHeight());
-    D3D::context->RSSetViewports(1, &vp);
-
-    s_television.Submit(xfbAddr, fbStride, fbWidth, fbHeight);
-    s_television.Render();
-  }
-  else if (g_ActiveConfig.bUseXFB)
-  {
-    // draw each xfb source
-    for (u32 i = 0; i < xfbCount; ++i)
-    {
-      const auto* const xfbSource = static_cast<const XFBSource*>(xfbSourceList[i]);
-
-      // use virtual xfb with offset
-      int xfbHeight = xfbSource->srcHeight;
-      int xfbWidth = xfbSource->srcWidth;
-      int hOffset = ((s32)xfbSource->srcAddr - (s32)xfbAddr) / ((s32)fbStride * 2);
-
-      TargetRectangle drawRc;
-      drawRc.top = targetRc.top + hOffset * targetRc.GetHeight() / (s32)fbHeight;
-      drawRc.bottom = targetRc.top + (hOffset + xfbHeight) * targetRc.GetHeight() / (s32)fbHeight;
-      drawRc.left = targetRc.left +
-                    (targetRc.GetWidth() - xfbWidth * targetRc.GetWidth() / (s32)fbStride) / 2;
-      drawRc.right = targetRc.left +
-                     (targetRc.GetWidth() + xfbWidth * targetRc.GetWidth() / (s32)fbStride) / 2;
-
-      // The following code disables auto stretch.  Kept for reference.
-      // scale draw area for a 1 to 1 pixel mapping with the draw target
-      // float vScale = (float)fbHeight / (float)s_backbuffer_height;
-      // float hScale = (float)fbWidth / (float)s_backbuffer_width;
-      // drawRc.top *= vScale;
-      // drawRc.bottom *= vScale;
-      // drawRc.left *= hScale;
-      // drawRc.right *= hScale;
-
-      TargetRectangle sourceRc;
-      sourceRc.left = xfbSource->sourceRc.left;
-      sourceRc.top = xfbSource->sourceRc.top;
-      sourceRc.right = xfbSource->sourceRc.right;
-      sourceRc.bottom = xfbSource->sourceRc.bottom;
-
-      sourceRc.right -= Renderer::EFBToScaledX(fbStride - fbWidth);
-
-      BlitScreen(sourceRc, drawRc, xfbSource->tex, xfbSource->texWidth, xfbSource->texHeight,
-                 Gamma);
-    }
-  }
-  else
-  {
-    TargetRectangle sourceRc = Renderer::ConvertEFBRectangle(rc);
-
-    // TODO: Improve sampling algorithm for the pixel shader so that we can use the multisampled EFB
-    // texture as source
-    D3DTexture2D* read_texture = FramebufferManager::GetResolvedEFBColorTexture();
-    BlitScreen(sourceRc, targetRc, read_texture, GetTargetWidth(), GetTargetHeight(), Gamma);
-  }
+  BlitScreen(source_rc, targetRc, xfb_texture->GetRawTexIdentifier(), xfb_texture->config.width,
+             xfb_texture->config.height, Gamma);
 
   // Dump frames
   if (IsFrameDumping())
@@ -773,33 +699,20 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
   g_texture_cache->OnConfigChanged(g_ActiveConfig);
   VertexShaderCache::RetreiveAsyncShaders();
 
-  SetWindowSize(fbStride, fbHeight);
+  SetWindowSize(xfb_texture->config.width, xfb_texture->config.height);
 
   const bool window_resized = CheckForResize();
   const bool fullscreen = D3D::GetFullscreenState();
   const bool fs_changed = s_last_fullscreen_mode != fullscreen;
 
-  bool xfbchanged = s_last_xfb_mode != g_ActiveConfig.bUseRealXFB;
-
-  if (FramebufferManagerBase::LastXfbWidth() != fbStride ||
-      FramebufferManagerBase::LastXfbHeight() != fbHeight)
-  {
-    xfbchanged = true;
-    unsigned int xfb_w = (fbStride < 1 || fbStride > MAX_XFB_WIDTH) ? MAX_XFB_WIDTH : fbStride;
-    unsigned int xfb_h = (fbHeight < 1 || fbHeight > MAX_XFB_HEIGHT) ? MAX_XFB_HEIGHT : fbHeight;
-    FramebufferManagerBase::SetLastXfbWidth(xfb_w);
-    FramebufferManagerBase::SetLastXfbHeight(xfb_h);
-  }
-
   // Flip/present backbuffer to frontbuffer here
   D3D::Present();
 
   // Resize the back buffers NOW to avoid flickering
-  if (CalculateTargetSize() || xfbchanged || window_resized || fs_changed ||
+  if (CalculateTargetSize() || window_resized || fs_changed ||
       s_last_multisamples != g_ActiveConfig.iMultisamples ||
       s_last_stereo_mode != (g_ActiveConfig.iStereoMode > 0))
   {
-    s_last_xfb_mode = g_ActiveConfig.bUseRealXFB;
     s_last_multisamples = g_ActiveConfig.iMultisamples;
     s_last_fullscreen_mode = fullscreen;
     PixelShaderCache::InvalidateMSAAShaders();

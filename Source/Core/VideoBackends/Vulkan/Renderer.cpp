@@ -41,6 +41,7 @@
 #include "VideoCommon/SamplerCommon.h"
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VideoBackendBase.h"
+#include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
 
@@ -485,26 +486,18 @@ void Renderer::ReinterpretPixelData(unsigned int convtype)
   BindEFBToStateTracker();
 }
 
-void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height,
-                        const EFBRectangle& rc, u64 ticks, float gamma)
+void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& rc, u64 ticks, float Gamma)
 {
   // Pending/batched EFB pokes should be included in the final image.
   FramebufferManager::GetInstance()->FlushEFBPokes();
 
   // Check that we actually have an image to render in XFB-on modes.
-  if ((!m_xfb_written && !g_ActiveConfig.RealXFBEnabled()) || !fb_width || !fb_height)
+  if (!m_xfb_written)
   {
     Core::Callback_VideoCopiedToXFB(false);
-    return;
   }
-  u32 xfb_count = 0;
-  const XFBSourceBase* const* xfb_sources =
-      FramebufferManager::GetXFBSource(xfb_addr, fb_stride, fb_height, &xfb_count);
-  if (g_ActiveConfig.VirtualXFBEnabled() && (!xfb_sources || xfb_count == 0))
-  {
-    Core::Callback_VideoCopiedToXFB(false);
-    return;
-  }
+
+  auto* xfb_texture = static_cast<VKTexture*>(texture);
 
   // End the current render pass.
   StateTracker::GetInstance()->EndRenderPass();
@@ -514,14 +507,6 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
   // are determined by guest state. Currently, the only way to catch these is to update every frame.
   UpdateDrawRectangle();
 
-  // Scale the source rectangle to the internal resolution when XFB is disabled.
-  TargetRectangle scaled_efb_rect = Renderer::ConvertEFBRectangle(rc);
-
-  // If MSAA is enabled, and we're not using XFB, we need to resolve the EFB framebuffer before
-  // rendering the final image to the screen, or dumping the frame. This is because we can't resolve
-  // an image within a render pass, which will have already started by the time it is used.
-  TransitionBuffersForSwap(scaled_efb_rect, xfb_sources, xfb_count);
-
   // Render the frame dump image if enabled.
   if (IsFrameDumping())
   {
@@ -529,8 +514,8 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
     if (!m_frame_dumping_active)
       StartFrameDumping();
 
-    DrawFrameDump(scaled_efb_rect, xfb_addr, xfb_sources, xfb_count, fb_width, fb_stride, fb_height,
-                  ticks);
+   /* DrawFrameDump(scaled_efb_rect, xfb_addr, xfb_sources, xfb_count, fb_width, fb_stride, fb_height,
+                  ticks);*/
   }
   else
   {
@@ -547,7 +532,7 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
   // Draw to the screen if we have a swap chain.
   if (m_swap_chain)
   {
-    DrawScreen(scaled_efb_rect, xfb_addr, xfb_sources, xfb_count, fb_width, fb_stride, fb_height);
+    DrawScreen(xfb_texture);
 
     // Submit the current command buffer, signaling rendering finished semaphore when it's done
     // Because this final command buffer is rendering to the swap chain, we need to wait for
@@ -581,15 +566,12 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
   // Handle host window resizes.
   CheckForSurfaceChange();
 
-  // Handle output size changes from the guest.
-  // There is a downside to doing this here is that if the game changes its XFB source area,
-  // the changes will be delayed by one frame. For the moment it has to be done here because
-  // this can cause a target size change, which would result in a black frame if done earlier.
-  CheckForTargetResize(fb_width, fb_stride, fb_height);
+  if (CalculateTargetSize())
+    ResizeEFBTextures();
 
   // Update the window size based on the frame that was just rendered.
   // Due to depending on guest state, we need to call this every frame.
-  SetWindowSize(static_cast<int>(fb_stride), static_cast<int>(fb_height));
+  SetWindowSize(xfb_texture->config.width, xfb_texture->config.height);
 
   // Clean up stale textures.
   TextureCache::GetInstance()->Cleanup(frameCount);
@@ -714,9 +696,7 @@ void Renderer::DrawRealXFB(VkRenderPass render_pass, const TargetRectangle& targ
   }
 }
 
-void Renderer::DrawScreen(const TargetRectangle& scaled_efb_rect, u32 xfb_addr,
-                          const XFBSourceBase* const* xfb_sources, u32 xfb_count, u32 fb_width,
-                          u32 fb_stride, u32 fb_height)
+void Renderer::DrawScreen(VKTexture* xfb_texture)
 {
   VkResult res;
   if (!g_command_buffer_mgr->CheckLastPresentFail())
@@ -767,9 +747,9 @@ void Renderer::DrawScreen(const TargetRectangle& scaled_efb_rect, u32 xfb_addr,
   vkCmdBeginRenderPass(g_command_buffer_mgr->GetCurrentCommandBuffer(), &info,
                        VK_SUBPASS_CONTENTS_INLINE);
 
-  // Draw guest buffers (EFB or XFB)
-  DrawFrame(m_swap_chain->GetRenderPass(), GetTargetRectangle(), scaled_efb_rect, xfb_addr,
-            xfb_sources, xfb_count, fb_width, fb_stride, fb_height);
+  // Draw
+  TargetRectangle source_rc = xfb_texture->config.Rect();
+  BlitScreen(m_swap_chain->GetRenderPass(), GetTargetRectangle(), source_rc, xfb_texture->GetRawTexIdentifier());
 
   // Draw OSD
   Util::SetViewportAndScissor(g_command_buffer_mgr->GetCurrentCommandBuffer(), 0, 0,
@@ -1055,7 +1035,7 @@ void Renderer::DestroyFrameDumpResources()
 
 void Renderer::CheckForTargetResize(u32 fb_width, u32 fb_stride, u32 fb_height)
 {
-  if (FramebufferManagerBase::LastXfbWidth() == fb_stride &&
+  /*if (FramebufferManagerBase::LastXfbWidth() == fb_stride &&
       FramebufferManagerBase::LastXfbHeight() == fb_height)
   {
     return;
@@ -1068,7 +1048,7 @@ void Renderer::CheckForTargetResize(u32 fb_width, u32 fb_stride, u32 fb_height)
 
   // Changing the XFB source area may alter the target size.
   if (CalculateTargetSize())
-    ResizeEFBTextures();
+    ResizeEFBTextures();*/
 }
 
 void Renderer::CheckForSurfaceChange()

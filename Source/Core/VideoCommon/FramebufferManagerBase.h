@@ -20,7 +20,6 @@ inline bool AddressRangesOverlap(u32 aLower, u32 aUpper, u32 bLower, u32 bUpper)
 struct XFBSourceBase
 {
   virtual ~XFBSourceBase() {}
-  virtual void DecodeToTexture(u32 xfbAddr, u32 fbWidth, u32 fbHeight) = 0;
 
   virtual void CopyEFB(float Gamma) = 0;
 
@@ -50,15 +49,6 @@ public:
 
   static void CopyToXFB(u32 xfbAddr, u32 fbStride, u32 fbHeight, const EFBRectangle& sourceRc,
                         float Gamma);
-  static const XFBSourceBase* const* GetXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight,
-                                                  u32* xfbCount);
-
-  static void SetLastXfbWidth(unsigned int width) { s_last_xfb_width = width; }
-  static void SetLastXfbHeight(unsigned int height) { s_last_xfb_height = height; }
-  static unsigned int LastXfbWidth() { return s_last_xfb_width; }
-  static unsigned int LastXfbHeight() { return s_last_xfb_height; }
-  static int ScaleToVirtualXfbWidth(int x, const TargetRectangle& target_rectangle);
-  static int ScaleToVirtualXfbHeight(int y, const TargetRectangle& target_rectangle);
 
   static unsigned int GetEFBLayers() { return m_EFBLayers; }
   virtual std::pair<u32, u32> GetTargetSize() const = 0;
@@ -93,18 +83,10 @@ private:
   static void CopyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc,
                                float Gamma = 1.0f);
 
-  static const XFBSourceBase* const* GetRealXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight,
-                                                      u32* xfbCount);
-  static const XFBSourceBase* const* GetVirtualXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight,
-                                                         u32* xfbCount);
-
   static std::unique_ptr<XFBSourceBase> m_realXFBSource;  // Only used in Real XFB mode
   static VirtualXFBListType m_virtualXFBList;             // Only used in Virtual XFB mode
 
   static std::array<const XFBSourceBase*, MAX_VIRTUAL_XFB> m_overlappingXFBArray;
-
-  static unsigned int s_last_xfb_width;
-  static unsigned int s_last_xfb_height;
 };
 
 extern std::unique_ptr<FramebufferManagerBase> g_framebuffer_manager;

@@ -48,9 +48,6 @@
     <ClCompile Include="Render.cpp">
       <Filter>Render</Filter>
     </ClCompile>
-    <ClCompile Include="Television.cpp">
-      <Filter>Render</Filter>
-    </ClCompile>
     <ClCompile Include="TextureCache.cpp">
       <Filter>Render</Filter>
     </ClCompile>
@@ -106,9 +103,6 @@
       <Filter>Render</Filter>
     </ClInclude>
     <ClInclude Include="Render.h">
-      <Filter>Render</Filter>
-    </ClInclude>
-    <ClInclude Include="Television.h">
       <Filter>Render</Filter>
     </ClInclude>
     <ClInclude Include="TextureCache.h">

@@ -98,8 +98,7 @@ public:
 
   TargetRectangle ConvertEFBRectangle(const EFBRectangle& rc) override;
 
-  void SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const EFBRectangle& rc,
-                u64 ticks, float Gamma) override;
+  void SwapImpl(AbstractTexture* texture, const EFBRectangle& rc, u64 ticks, float Gamma) override;
 
   void ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable,
                    u32 color, u32 z) override;
@@ -112,27 +111,14 @@ private:
   void UpdateEFBCache(EFBAccessType type, u32 cacheRectIdx, const EFBRectangle& efbPixelRc,
                       const TargetRectangle& targetPixelRc, const void* data);
 
-  // Draw either the EFB, or specified XFB sources to the currently-bound framebuffer.
-  void DrawFrame(GLuint framebuffer, const TargetRectangle& target_rc,
-                 const EFBRectangle& source_rc, u32 xfb_addr,
-                 const XFBSourceBase* const* xfb_sources, u32 xfb_count, u32 fb_width,
-                 u32 fb_stride, u32 fb_height);
-  void DrawEFB(GLuint framebuffer, const TargetRectangle& target_rc, const EFBRectangle& source_rc);
-  void DrawVirtualXFB(GLuint framebuffer, const TargetRectangle& target_rc, u32 xfb_addr,
-                      const XFBSourceBase* const* xfb_sources, u32 xfb_count, u32 fb_width,
-                      u32 fb_stride, u32 fb_height);
-  void DrawRealXFB(GLuint framebuffer, const TargetRectangle& target_rc,
-                   const XFBSourceBase* const* xfb_sources, u32 xfb_count, u32 fb_width,
-                   u32 fb_stride, u32 fb_height);
+  void DrawEFB(GLuint framebuffer, const TargetRectangle& target_rc, const TargetRectangle& source_rc);
 
   void BlitScreen(TargetRectangle src, TargetRectangle dst, GLuint src_texture, int src_width,
                   int src_height);
 
   void FlushFrameDump();
   void DumpFrame(const TargetRectangle& flipped_trc, u64 ticks);
-  void DumpFrameUsingFBO(const EFBRectangle& source_rc, u32 xfb_addr,
-                         const XFBSourceBase* const* xfb_sources, u32 xfb_count, u32 fb_width,
-                         u32 fb_stride, u32 fb_height, u64 ticks);
+  void DumpFrameUsingFBO(const TargetRectangle& source_rc, u64 ticks);
 
   // Frame dumping framebuffer, we render to this, then read it back
   void PrepareFrameDumpRenderTexture(u32 width, u32 height);

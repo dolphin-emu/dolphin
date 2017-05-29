@@ -330,12 +330,6 @@ std::pair<u32, u32> FramebufferManager::GetTargetSize() const
   return std::make_pair(m_target_width, m_target_height);
 }
 
-void XFBSource::DecodeToTexture(u32 xfbAddr, u32 fbWidth, u32 fbHeight)
-{
-  // DX11's XFB decoder does not use this function.
-  // YUYV data is decoded in Render::Swap.
-}
-
 void XFBSource::CopyEFB(float Gamma)
 {
   g_renderer->ResetAPIState();  // reset any game specific settings

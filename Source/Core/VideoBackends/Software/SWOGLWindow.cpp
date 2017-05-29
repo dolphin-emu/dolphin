@@ -9,6 +9,7 @@
 #include "Common/Logging/Log.h"
 
 #include "VideoBackends/Software/SWOGLWindow.h"
+#include "VideoCommon/AbstractTexture.h"
 
 std::unique_ptr<SWOGLWindow> SWOGLWindow::s_instance;
 
@@ -53,9 +54,9 @@ void SWOGLWindow::Prepare()
 
   std::string frag_shader = "in vec2 TexCoord;\n"
                             "out vec4 ColorOut;\n"
-                            "uniform sampler2D Texture;\n"
+                            "uniform sampler2DArray samp;\n"
                             "void main() {\n"
-                            "	ColorOut = texture(Texture, TexCoord);\n"
+                            "	ColorOut = texture(samp, vec3(TexCoord, 0.0));\n"
                             "}\n";
 
   std::string vertex_shader = "out vec2 TexCoord;\n"
@@ -74,12 +75,9 @@ void SWOGLWindow::Prepare()
 
   glUseProgram(m_image_program);
 
-  glUniform1i(glGetUniformLocation(m_image_program, "Texture"), 0);
+  glUniform1i(glGetUniformLocation(m_image_program, "samp"), 0);
 
-  glGenTextures(1, &m_image_texture);
-  glBindTexture(GL_TEXTURE_2D, m_image_texture);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glPixelStorei(GL_UNPACK_ALIGNMENT, 4);  // 4-byte pixel alignment
 
   glGenVertexArrays(1, &m_image_vao);
 }
@@ -89,23 +87,19 @@ void SWOGLWindow::PrintText(const std::string& text, int x, int y, u32 color)
   m_text.push_back({text, x, y, color});
 }
 
-void SWOGLWindow::ShowImage(const u8* data, int stride, int width, int height, float aspect)
+void SWOGLWindow::ShowImage(AbstractTexture* image, float aspect)
 {
-  GLInterface->MakeCurrent();
-  GLInterface->Update();
-  Prepare();
+  GLInterface->Update();  // just updates the render window position and the backbuffer size
 
   GLsizei glWidth = (GLsizei)GLInterface->GetBackBufferWidth();
   GLsizei glHeight = (GLsizei)GLInterface->GetBackBufferHeight();
 
   glViewport(0, 0, glWidth, glHeight);
 
-  glBindTexture(GL_TEXTURE_2D, m_image_texture);
+  image->Bind(0);
 
-  glPixelStorei(GL_UNPACK_ALIGNMENT, 4);  // 4-byte pixel alignment
-  glPixelStorei(GL_UNPACK_ROW_LENGTH, stride / 4);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)width, (GLsizei)height, 0, GL_RGBA,
-               GL_UNSIGNED_BYTE, data);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
   glUseProgram(m_image_program);
 
@@ -119,7 +113,6 @@ void SWOGLWindow::ShowImage(const u8* data, int stride, int width, int height, f
   m_text.clear();
 
   GLInterface->Swap();
-  GLInterface->ClearCurrent();
 }
 
 int SWOGLWindow::PeekMessages()

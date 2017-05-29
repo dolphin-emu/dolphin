@@ -65,6 +65,7 @@
     <ClInclude Include="SWTexture.h" />
     <ClInclude Include="SWVertexLoader.h" />
     <ClInclude Include="Tev.h" />
+    <ClInclude Include="TextureCache.h" />
     <ClInclude Include="TextureEncoder.h" />
     <ClInclude Include="TextureSampler.h" />
     <ClInclude Include="TransformUnit.h" />

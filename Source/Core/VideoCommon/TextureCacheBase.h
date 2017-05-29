@@ -84,6 +84,7 @@ public:
     bool tmem_only = false;           // indicates that this texture only exists in the tmem cache
     bool has_arbitrary_mips = false;  // indicates that the mips in this texture are arbitrary
                                       // content, aren't just downscaled
+    bool should_force_safe_hashing = false;  // for XFB
 
     unsigned int native_width,
         native_height;  // Texture dimensions from the GameCube's point of view
@@ -105,11 +106,12 @@ public:
 
     ~TCacheEntry();
 
-    void SetGeneralParameters(u32 _addr, u32 _size, TextureAndTLUTFormat _format)
+    void SetGeneralParameters(u32 _addr, u32 _size, TextureAndTLUTFormat _format, bool force_safe_hashing)
     {
       addr = _addr;
       size_in_bytes = _size;
       format = _format;
+      should_force_safe_hashing = force_safe_hashing;
     }
 
     void SetDimensions(unsigned int _native_width, unsigned int _native_height,
@@ -145,6 +147,7 @@ public:
 
     u64 CalculateHash() const;
 
+    int HashSampleSize() const;
     u32 GetWidth() const { return texture->GetConfig().width; }
     u32 GetHeight() const { return texture->GetConfig().height; }
     u32 GetNumLevels() const { return texture->GetConfig().levels; }
@@ -172,7 +175,12 @@ public:
   TCacheEntry* Load(const u32 stage);
   static void InvalidateAllBindPoints() { valid_bind_points.reset(); }
   static bool IsValidBindPoint(u32 i) { return valid_bind_points.test(i); }
-  void BindTextures();
+  TCacheEntry* GetTexture(u32 address, u32 width, u32 height, const TextureFormat texformat,
+                          const int textureCacheSafetyColorSampleSize, u32 tlutaddr = 0,
+                          TLUTFormat  tlutfmt = TLUTFormat::IA8, bool use_mipmaps = false,
+                          u32 tex_levels = 1, bool from_tmem = false, u32 tmem_address_even = 0,
+                          u32 tmem_address_odd = 0);
+  virtual void BindTextures();
   void CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstFormat, u32 dstStride,
                                  bool is_depth_copy, const EFBRectangle& srcRect, bool isIntensity,
                                  bool scaleByHalf);
@@ -247,8 +255,6 @@ private:
 
   // Removes and unlinks texture from texture cache and returns it to the pool
   TexAddrCache::iterator InvalidateTexture(TexAddrCache::iterator t_iter);
-
-  TCacheEntry* ReturnEntry(unsigned int stage, TCacheEntry* entry);
 
   TexAddrCache textures_by_address;
   TexHashCache textures_by_hash;

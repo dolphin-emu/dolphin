@@ -49,6 +49,8 @@ u16 GetEncodedSampleCount(EFBCopyFormat format)
   case EFBCopyFormat::RG8:
   case EFBCopyFormat::GB8:
     return 2;
+  case EFBCopyFormat::XFB:
+    return 2;
   default:
     PanicAlert("Invalid EFB Copy Format (0x%X)! (GetEncodedSampleCount)", static_cast<int>(format));
     return 1;
@@ -656,6 +658,28 @@ static void WriteZ24Encoder(char*& p, APIType ApiType, const EFBCopyParams& para
   WriteEncoderEnd(p);
 }
 
+static void WriteXFBEncoder(char*& p, APIType ApiType, const EFBCopyParams& params)
+{
+  WriteSwizzler(p, EFBCopyFormat::XFB, ApiType);
+  
+  WRITE(p, "  float3 y_const = float3(0.257, 0.504, 0.098);\n");
+  WRITE(p, "  float3 u_const = float3(-0.148, -0.291, 0.439);\n");
+  WRITE(p, "  float3 v_const = float3(0.439, -0.368, -0.071);\n");
+  WRITE(p, "  float3 color0;\n");
+  WRITE(p, "  float3 color1;\n");
+  
+  WriteSampleColor(p, "rgb", "color0", 0, ApiType, params);
+  WriteSampleColor(p, "rgb", "color1", 1, ApiType, params);
+  WRITE(p, "  float3 average = (color0 + color1) * 0.5;\n");
+  
+  WRITE(p, "  ocol0.b = dot(color0,  y_const) + 0.0625;\n");
+  WRITE(p, "  ocol0.g = dot(average, u_const) + 0.5;\n");
+  WRITE(p, "  ocol0.r = dot(color1,  y_const) + 0.0625;\n");
+  WRITE(p, "  ocol0.a = dot(average, v_const) + 0.5;\n");
+  
+  WriteEncoderEnd(p);
+}
+
 const char* GenerateEncodingShader(const EFBCopyParams& params, APIType api_type)
 {
   text[sizeof(text) - 1] = 0x7C;  // canary
@@ -727,6 +751,9 @@ const char* GenerateEncodingShader(const EFBCopyParams& params, APIType api_type
       WriteZ16LEncoder(p, api_type, params);  // Z16L
     else
       WriteCC8Encoder(p, "gb", api_type, params);
+    break;
+  case EFBCopyFormat::XFB:
+    WriteXFBEncoder(p, api_type, params);
     break;
   default:
     PanicAlert("Invalid EFB Copy Format (0x%X)! (GenerateEncodingShader)",

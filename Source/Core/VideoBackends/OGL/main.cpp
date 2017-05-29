@@ -91,6 +91,7 @@ void VideoBackend::InitBackendInfo()
   g_Config.backend_info.bSupportsReversedDepthRange = true;
   g_Config.backend_info.bSupportsMultithreading = false;
   g_Config.backend_info.bSupportsInternalResolutionFrameDumps = true;
+  g_Config.backend_info.bSupportsCopyToVram = true;
 
   // TODO: There is a bug here, if texel buffers are not supported the graphics options
   // will show the option when it is not supported. The only way around this would be

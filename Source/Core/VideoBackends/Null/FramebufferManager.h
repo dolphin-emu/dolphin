@@ -12,7 +12,6 @@
 class XFBSource : public XFBSourceBase
 {
 public:
-  void DecodeToTexture(u32 xfb_addr, u32 fb_width, u32 fb_height) override {}
   void CopyEFB(float gamma) override {}
 };
 

@@ -54,7 +54,6 @@ struct XFBSource : public XFBSourceBase
   ~XFBSource();
 
   void CopyEFB(float Gamma) override;
-  void DecodeToTexture(u32 xfbAddr, u32 fbWidth, u32 fbHeight) override;
 
   const GLuint texture;
   const int m_layers;

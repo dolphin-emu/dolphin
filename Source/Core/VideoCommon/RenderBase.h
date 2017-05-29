@@ -32,6 +32,7 @@
 #include "VideoCommon/RenderState.h"
 #include "VideoCommon/VideoCommon.h"
 
+class AbstractTexture;
 class PostProcessingShaderImplementation;
 enum class EFBAccessType;
 
@@ -132,8 +133,7 @@ public:
   // Finish up the current frame, print some stats
   void Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const EFBRectangle& rc, u64 ticks,
             float Gamma = 1.0f);
-  virtual void SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
-                        const EFBRectangle& rc, u64 ticks, float Gamma = 1.0f) = 0;
+  virtual void SwapImpl(AbstractTexture* texture, const EFBRectangle& rc, u64 ticks, float Gamma = 1.0f) = 0;
 
   PEControl::PixelFormat GetPrevPixelFormat() const { return m_prev_efb_format; }
   void StorePixelFormat(PEControl::PixelFormat new_format) { m_prev_efb_format = new_format; }

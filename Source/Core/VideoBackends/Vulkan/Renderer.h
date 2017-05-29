@@ -23,6 +23,7 @@ class SwapChain;
 class StagingTexture2D;
 class Texture2D;
 class RasterFont;
+class VKTexture;
 
 class Renderer : public ::Renderer
 {
@@ -43,8 +44,7 @@ public:
   void BBoxWrite(int index, u16 value) override;
   TargetRectangle ConvertEFBRectangle(const EFBRectangle& rc) override;
 
-  void SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, const EFBRectangle& rc,
-                u64 ticks, float gamma) override;
+  void SwapImpl(AbstractTexture* texture, const EFBRectangle& rc, u64 ticks, float Gamma) override;
 
   void ClearScreen(const EFBRectangle& rc, bool color_enable, bool alpha_enable, bool z_enable,
                    u32 color, u32 z) override;
@@ -106,9 +106,7 @@ private:
                    u32 fb_stride, u32 fb_height);
 
   // Draw the frame, as well as the OSD to the swap chain.
-  void DrawScreen(const TargetRectangle& scaled_efb_rect, u32 xfb_addr,
-                  const XFBSourceBase* const* xfb_sources, u32 xfb_count, u32 fb_width,
-                  u32 fb_stride, u32 fb_height);
+  void DrawScreen(VKTexture* xfb_texture);
 
   // Draw the frame only to the screenshot buffer.
   bool DrawFrameDump(const TargetRectangle& scaled_efb_rect, u32 xfb_addr,

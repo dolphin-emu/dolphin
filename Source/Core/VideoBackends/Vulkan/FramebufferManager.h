@@ -43,7 +43,6 @@ public:
   u32 GetEFBLayers() const;
   VkSampleCountFlagBits GetEFBSamples() const;
   MultisamplingState GetEFBMultisamplingState() const;
-  std::pair<u32, u32> GetTargetSize() const override;
 
   std::unique_ptr<XFBSourceBase> CreateXFBSource(unsigned int target_width,
                                                  unsigned int target_height,
@@ -178,8 +177,6 @@ public:
   ~XFBSource();
 
   VKTexture* GetTexture() const;
-  // Guest -> GPU EFB Textures
-  void DecodeToTexture(u32 xfb_addr, u32 fb_width, u32 fb_height) override;
 
   // Used for virtual XFB
   void CopyEFB(float gamma) override;

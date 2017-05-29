@@ -21,9 +21,6 @@ FramebufferManagerBase::VirtualXFBListType
 std::array<const XFBSourceBase*, FramebufferManagerBase::MAX_VIRTUAL_XFB>
     FramebufferManagerBase::m_overlappingXFBArray;
 
-unsigned int FramebufferManagerBase::s_last_xfb_width = 1;
-unsigned int FramebufferManagerBase::s_last_xfb_height = 1;
-
 unsigned int FramebufferManagerBase::m_EFBLayers = 1;
 
 FramebufferManagerBase::FramebufferManagerBase()
@@ -38,85 +35,6 @@ FramebufferManagerBase::~FramebufferManagerBase()
   // (they really shouldn't be and should be refactored at some point).
   m_virtualXFBList.clear();
   m_realXFBSource.reset();
-}
-
-const XFBSourceBase* const* FramebufferManagerBase::GetXFBSource(u32 xfbAddr, u32 fbWidth,
-                                                                 u32 fbHeight, u32* xfbCountP)
-{
-  if (!g_ActiveConfig.bUseXFB)
-    return nullptr;
-
-  if (g_ActiveConfig.bUseRealXFB)
-    return GetRealXFBSource(xfbAddr, fbWidth, fbHeight, xfbCountP);
-  else
-    return GetVirtualXFBSource(xfbAddr, fbWidth, fbHeight, xfbCountP);
-}
-
-const XFBSourceBase* const* FramebufferManagerBase::GetRealXFBSource(u32 xfbAddr, u32 fbWidth,
-                                                                     u32 fbHeight, u32* xfbCountP)
-{
-  *xfbCountP = 1;
-
-  // recreate if needed
-  if (m_realXFBSource &&
-      (m_realXFBSource->texWidth != fbWidth || m_realXFBSource->texHeight != fbHeight))
-    m_realXFBSource.reset();
-
-  if (!m_realXFBSource && g_framebuffer_manager)
-    m_realXFBSource = g_framebuffer_manager->CreateXFBSource(fbWidth, fbHeight, 1);
-
-  if (!m_realXFBSource)
-    return nullptr;
-
-  m_realXFBSource->srcAddr = xfbAddr;
-
-  m_realXFBSource->srcWidth = MAX_XFB_WIDTH;
-  m_realXFBSource->srcHeight = MAX_XFB_HEIGHT;
-
-  m_realXFBSource->texWidth = fbWidth;
-  m_realXFBSource->texHeight = fbHeight;
-
-  m_realXFBSource->sourceRc.left = 0;
-  m_realXFBSource->sourceRc.top = 0;
-  m_realXFBSource->sourceRc.right = fbWidth;
-  m_realXFBSource->sourceRc.bottom = fbHeight;
-
-  // Decode YUYV data from GameCube RAM
-  m_realXFBSource->DecodeToTexture(xfbAddr, fbWidth, fbHeight);
-
-  m_overlappingXFBArray[0] = m_realXFBSource.get();
-  return &m_overlappingXFBArray[0];
-}
-
-const XFBSourceBase* const*
-FramebufferManagerBase::GetVirtualXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight, u32* xfbCountP)
-{
-  u32 xfbCount = 0;
-
-  if (m_virtualXFBList.empty())  // no Virtual XFBs available
-    return nullptr;
-
-  u32 srcLower = xfbAddr;
-  u32 srcUpper = xfbAddr + 2 * fbWidth * fbHeight;
-
-  VirtualXFBListType::reverse_iterator it = m_virtualXFBList.rbegin(),
-                                       vlend = m_virtualXFBList.rend();
-  for (; it != vlend; ++it)
-  {
-    VirtualXFB* vxfb = &*it;
-
-    u32 dstLower = vxfb->xfbAddr;
-    u32 dstUpper = vxfb->xfbAddr + 2 * vxfb->xfbWidth * vxfb->xfbHeight;
-
-    if (AddressRangesOverlap(srcLower, srcUpper, dstLower, dstUpper))
-    {
-      m_overlappingXFBArray[xfbCount] = vxfb->xfbSource.get();
-      ++xfbCount;
-    }
-  }
-
-  *xfbCountP = xfbCount;
-  return &m_overlappingXFBArray[0];
 }
 
 void FramebufferManagerBase::CopyToXFB(u32 xfbAddr, u32 fbStride, u32 fbHeight,
@@ -246,20 +164,4 @@ void FramebufferManagerBase::ReplaceVirtualXFB()
       }
     }
   }
-}
-
-int FramebufferManagerBase::ScaleToVirtualXfbWidth(int x, const TargetRectangle& target_rectangle)
-{
-  if (g_ActiveConfig.RealXFBEnabled())
-    return x;
-
-  return x * target_rectangle.GetWidth() / s_last_xfb_width;
-}
-
-int FramebufferManagerBase::ScaleToVirtualXfbHeight(int y, const TargetRectangle& target_rectangle)
-{
-  if (g_ActiveConfig.RealXFBEnabled())
-    return y;
-
-  return y * target_rectangle.GetHeight() / s_last_xfb_height;
 }

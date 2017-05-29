@@ -89,11 +89,6 @@ MultisamplingState FramebufferManager::GetEFBMultisamplingState() const
   return ms;
 }
 
-std::pair<u32, u32> FramebufferManager::GetTargetSize() const
-{
-  return std::make_pair(GetEFBWidth(), GetEFBHeight());
-}
-
 bool FramebufferManager::Initialize()
 {
   if (!CreateEFBRenderPass())
@@ -1448,15 +1443,6 @@ XFBSource::~XFBSource()
 VKTexture* XFBSource::GetTexture() const
 {
   return static_cast<VKTexture*>(m_texture.get());
-}
-
-void XFBSource::DecodeToTexture(u32 xfb_addr, u32 fb_width, u32 fb_height)
-{
-  // Guest memory -> GPU EFB Textures
-  const u8* src_ptr = Memory::GetPointer(xfb_addr);
-  _assert_(src_ptr);
-  TextureCache::GetInstance()->GetTextureConverter()->DecodeYUYVTextureFromMemory(
-      static_cast<VKTexture*>(m_texture.get()), src_ptr, fb_width, fb_width * 2, fb_height);
 }
 
 void XFBSource::CopyEFB(float gamma)
