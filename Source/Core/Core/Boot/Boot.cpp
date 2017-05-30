@@ -336,10 +336,10 @@ bool CBoot::BootUp(std::unique_ptr<BootParameters> boot)
   struct BootTitle
   {
     BootTitle() : config(SConfig::GetInstance()) {}
-    bool operator()(const BootParameters::Disc& disc) const
+    bool operator()(BootParameters::Disc& disc) const
     {
       NOTICE_LOG(BOOT, "Booting from disc: %s", disc.path.c_str());
-      const DiscIO::Volume* volume = SetDisc(DiscIO::CreateVolumeFromFilename(disc.path));
+      const DiscIO::Volume* volume = SetDisc(std::move(disc.volume));
 
       if (!volume)
         return false;
