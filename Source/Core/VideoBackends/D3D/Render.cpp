@@ -1408,7 +1408,7 @@ void Renderer::ApplyState()
   D3D::stateman->PushDepthState(s_gx_state_cache.Get(s_gx_state.zmode));
   D3D::stateman->PushRasterizerState(s_gx_state_cache.Get(s_gx_state.raster));
 
-  for (size_t stage = 0; s_gx_state.samplers.size(); stage++)
+  for (size_t stage = 0; stage < s_gx_state.samplers.size(); stage++)
   {
     // TODO: cache SamplerState directly, not d3d object
     s_gx_state.samplers[stage].max_anisotropy = UINT64_C(1) << g_ActiveConfig.iMaxAnisotropy;
