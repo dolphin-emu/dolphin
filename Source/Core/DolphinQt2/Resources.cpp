@@ -83,7 +83,7 @@ void Resources::Init()
     m_countries.append(GetScaledPixmap(country));
   }
   for (int stars = 0; stars <= 5; stars++)
-    m_ratings.append(GetScaledPixmap("rating" + std::to_string(stars)));
+    m_ratings.append(GetScaledThemePixmap("rating" + std::to_string(stars)));
 
   m_misc.append(GetScaledPixmap("nobanner"));
   m_misc.append(GetScaledPixmap("dolphin_logo"));
