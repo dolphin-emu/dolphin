@@ -4,9 +4,6 @@
 
 #pragma once
 
-#include <QPoint>
-#include <QString>
-
 #include "DolphinQt2/QtUtils/ElidedButton.h"
 
 class ControlReference;
