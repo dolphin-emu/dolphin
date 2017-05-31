@@ -48,14 +48,14 @@ void GCPadWiiU::ConnectWidgets()
 
 void GCPadWiiU::LoadSettings()
 {
-  m_rumble->setChecked(Settings().IsGCAdapterRumbleEnabled(GetPort()));
-  m_simulate_bongos->setChecked(Settings().IsGCAdapterSimulatingDKBongos(GetPort()));
+  m_rumble->setChecked(Settings::Instance().IsGCAdapterRumbleEnabled(GetPort()));
+  m_simulate_bongos->setChecked(Settings::Instance().IsGCAdapterSimulatingDKBongos(GetPort()));
 }
 
 void GCPadWiiU::SaveSettings()
 {
-  Settings().SetGCAdapterRumbleEnabled(GetPort(), m_rumble->isChecked());
-  Settings().SetGCAdapterSimulatingDKBongos(GetPort(), m_simulate_bongos->isChecked());
+  Settings::Instance().SetGCAdapterRumbleEnabled(GetPort(), m_rumble->isChecked());
+  Settings::Instance().SetGCAdapterSimulatingDKBongos(GetPort(), m_simulate_bongos->isChecked());
 }
 
 InputConfig* GCPadWiiU::GetConfig()

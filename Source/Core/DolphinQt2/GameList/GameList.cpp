@@ -50,7 +50,7 @@ GameList::GameList(QWidget* parent) : QStackedWidget(parent)
   addWidget(m_table);
   addWidget(m_list);
   addWidget(m_empty);
-  m_prefer_table = Settings().GetPreferredView();
+  m_prefer_table = Settings::Instance().GetPreferredView();
   ConsiderViewChange();
 }
 
@@ -70,15 +70,16 @@ void GameList::MakeTableView()
 
   connect(m_table, &QTableView::customContextMenuRequested, this, &GameList::ShowContextMenu);
 
-  m_table->setColumnHidden(GameListModel::COL_PLATFORM, !Settings().PlatformVisible());
-  m_table->setColumnHidden(GameListModel::COL_ID, !Settings().IDVisible());
-  m_table->setColumnHidden(GameListModel::COL_BANNER, !Settings().BannerVisible());
-  m_table->setColumnHidden(GameListModel::COL_TITLE, !Settings().TitleVisible());
-  m_table->setColumnHidden(GameListModel::COL_DESCRIPTION, !Settings().DescriptionVisible());
-  m_table->setColumnHidden(GameListModel::COL_MAKER, !Settings().MakerVisible());
-  m_table->setColumnHidden(GameListModel::COL_SIZE, !Settings().SizeVisible());
-  m_table->setColumnHidden(GameListModel::COL_COUNTRY, !Settings().CountryVisible());
-  m_table->setColumnHidden(GameListModel::COL_RATING, !Settings().StateVisible());
+  auto& settings = Settings::Instance();
+  m_table->setColumnHidden(GameListModel::COL_PLATFORM, !settings.PlatformVisible());
+  m_table->setColumnHidden(GameListModel::COL_ID, !settings.IDVisible());
+  m_table->setColumnHidden(GameListModel::COL_BANNER, !settings.BannerVisible());
+  m_table->setColumnHidden(GameListModel::COL_TITLE, !settings.TitleVisible());
+  m_table->setColumnHidden(GameListModel::COL_DESCRIPTION, !settings.DescriptionVisible());
+  m_table->setColumnHidden(GameListModel::COL_MAKER, !settings.MakerVisible());
+  m_table->setColumnHidden(GameListModel::COL_SIZE, !settings.SizeVisible());
+  m_table->setColumnHidden(GameListModel::COL_COUNTRY, !settings.CountryVisible());
+  m_table->setColumnHidden(GameListModel::COL_RATING, !settings.StateVisible());
 
   QHeaderView* hor_header = m_table->horizontalHeader();
   hor_header->setSectionResizeMode(GameListModel::COL_PLATFORM, QHeaderView::ResizeToContents);
@@ -284,7 +285,7 @@ void GameList::UninstallWAD()
 
 void GameList::SetDefaultISO()
 {
-  Settings().SetDefaultGame(GetSelectedGame());
+  Settings::Instance().SetDefaultGame(GetSelectedGame());
 }
 
 void GameList::OpenContainingFolder()
@@ -364,7 +365,7 @@ QString GameList::GetSelectedGame() const
 void GameList::SetPreferredView(bool table)
 {
   m_prefer_table = table;
-  Settings().SetPreferredView(table);
+  Settings::Instance().SetPreferredView(table);
   ConsiderViewChange();
 }
 

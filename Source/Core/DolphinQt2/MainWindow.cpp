@@ -206,7 +206,7 @@ void MainWindow::Play()
     }
     else
     {
-      QString default_path = Settings().GetDefaultGame();
+      QString default_path = Settings::Instance().GetDefaultGame();
       if (!default_path.isEmpty() && QFile::exists(default_path))
       {
         StartGame(default_path);
@@ -228,7 +228,7 @@ void MainWindow::Pause()
 bool MainWindow::Stop()
 {
   bool stop = true;
-  if (Settings().GetConfirmStop())
+  if (Settings::Instance().GetConfirmStop())
   {
     // We could pause the game here and resume it if they say no.
     QMessageBox::StandardButton confirm;
@@ -313,7 +313,7 @@ void MainWindow::StartGame(const QString& path)
 
 void MainWindow::ShowRenderWidget()
 {
-  Settings settings;
+  auto& settings = Settings::Instance();
   if (settings.GetRenderToMain())
   {
     // If we're rendering to main, add it to the stack and update our title when necessary.
@@ -432,6 +432,6 @@ void MainWindow::StateSaveOldest()
 
 void MainWindow::SetStateSlot(int slot)
 {
-  Settings().SetStateSlot(slot);
+  Settings::Instance().SetStateSlot(slot);
   m_state_slot = slot;
 }

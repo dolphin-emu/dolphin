@@ -67,7 +67,7 @@ void SettingsWindow::MakeUnfinishedWarning()
 
 void SettingsWindow::AddCategoryToList(const QString& title, const QString& icon)
 {
-  QString dir = Settings().GetThemeDir();
+  QString dir = Settings::Instance().GetThemeDir();
   QListWidgetItem* button = new QListWidgetItem();
   button->setIcon(QIcon(dir.append(icon)));
   button->setText(title);

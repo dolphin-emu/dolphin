@@ -38,12 +38,11 @@ void PathDialog::Browse()
       QFileDialog::getExistingDirectory(this, tr("Select a Directory"), QDir::currentPath());
   if (!dir.isEmpty())
   {
-    Settings settings;
-    QStringList game_folders = settings.GetPaths();
+    QStringList game_folders = Settings::Instance().GetPaths();
     if (!game_folders.contains(dir))
     {
       game_folders << dir;
-      settings.SetPaths(game_folders);
+      Settings::Instance().SetPaths(game_folders);
       m_path_list->addItem(dir);
       emit PathAdded(dir);
     }
@@ -59,7 +58,7 @@ void PathDialog::BrowseDefaultGame()
   if (!file.isEmpty())
   {
     m_game_edit->setText(file);
-    Settings().SetDefaultGame(file);
+    Settings::Instance().SetDefaultGame(file);
   }
 }
 
@@ -69,7 +68,7 @@ void PathDialog::BrowseDVDRoot()
   if (!dir.isEmpty())
   {
     m_dvd_edit->setText(dir);
-    Settings().SetDVDRoot(dir);
+    Settings::Instance().SetDVDRoot(dir);
   }
 }
 
@@ -80,7 +79,7 @@ void PathDialog::BrowseApploader()
   if (!file.isEmpty())
   {
     m_app_edit->setText(file);
-    Settings().SetApploader(file);
+    Settings::Instance().SetApploader(file);
   }
 }
 
@@ -91,7 +90,7 @@ void PathDialog::BrowseWiiNAND()
   if (!dir.isEmpty())
   {
     m_nand_edit->setText(dir);
-    Settings().SetWiiNAND(dir);
+    Settings::Instance().SetWiiNAND(dir);
   }
 }
 
@@ -102,7 +101,7 @@ QGroupBox* PathDialog::MakeGameFolderBox()
   QVBoxLayout* vlayout = new QVBoxLayout;
 
   m_path_list = new QListWidget;
-  m_path_list->insertItems(0, Settings().GetPaths());
+  m_path_list->insertItems(0, Settings::Instance().GetPaths());
   m_path_list->setSpacing(1);
   vlayout->addWidget(m_path_list);
 
@@ -124,39 +123,40 @@ QGroupBox* PathDialog::MakeGameFolderBox()
 
 QGridLayout* PathDialog::MakePathsLayout()
 {
+  auto& settings = Settings::Instance();
   QGridLayout* layout = new QGridLayout;
   layout->setColumnStretch(1, 1);
 
-  m_game_edit = new QLineEdit(Settings().GetDefaultGame());
+  m_game_edit = new QLineEdit(settings.GetDefaultGame());
   connect(m_game_edit, &QLineEdit::editingFinished,
-          [=] { Settings().SetDefaultGame(m_game_edit->text()); });
+          [=, &settings] { settings.SetDefaultGame(m_game_edit->text()); });
   QPushButton* game_open = new QPushButton;
   connect(game_open, &QPushButton::clicked, this, &PathDialog::BrowseDefaultGame);
   layout->addWidget(new QLabel(tr("Default Game")), 0, 0);
   layout->addWidget(m_game_edit, 0, 1);
   layout->addWidget(game_open, 0, 2);
 
-  m_dvd_edit = new QLineEdit(Settings().GetDVDRoot());
+  m_dvd_edit = new QLineEdit(settings.GetDVDRoot());
   connect(m_dvd_edit, &QLineEdit::editingFinished,
-          [=] { Settings().SetDVDRoot(m_dvd_edit->text()); });
+          [=, &settings] { settings.SetDVDRoot(m_dvd_edit->text()); });
   QPushButton* dvd_open = new QPushButton;
   connect(dvd_open, &QPushButton::clicked, this, &PathDialog::BrowseDVDRoot);
   layout->addWidget(new QLabel(tr("DVD Root")), 1, 0);
   layout->addWidget(m_dvd_edit, 1, 1);
   layout->addWidget(dvd_open, 1, 2);
 
-  m_app_edit = new QLineEdit(Settings().GetApploader());
+  m_app_edit = new QLineEdit(settings.GetApploader());
   connect(m_app_edit, &QLineEdit::editingFinished,
-          [=] { Settings().SetApploader(m_app_edit->text()); });
+          [=, &settings] { settings.SetApploader(m_app_edit->text()); });
   QPushButton* app_open = new QPushButton;
   connect(app_open, &QPushButton::clicked, this, &PathDialog::BrowseApploader);
   layout->addWidget(new QLabel(tr("Apploader")), 2, 0);
   layout->addWidget(m_app_edit, 2, 1);
   layout->addWidget(app_open, 2, 2);
 
-  m_nand_edit = new QLineEdit(Settings().GetWiiNAND());
+  m_nand_edit = new QLineEdit(settings.GetWiiNAND());
   connect(m_nand_edit, &QLineEdit::editingFinished,
-          [=] { Settings().SetWiiNAND(m_nand_edit->text()); });
+          [=, &settings] { settings.SetWiiNAND(m_nand_edit->text()); });
   QPushButton* nand_open = new QPushButton;
   connect(nand_open, &QPushButton::clicked, this, &PathDialog::BrowseWiiNAND);
   layout->addWidget(new QLabel(tr("Wii NAND Root")), 3, 0);
@@ -172,5 +172,5 @@ void PathDialog::RemovePath()
   if (row < 0)
     return;
   emit PathRemoved(m_path_list->takeItem(row)->text());
-  Settings().RemovePath(row);
+  Settings::Instance().RemovePath(row);
 }

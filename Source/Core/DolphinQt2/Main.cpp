@@ -34,8 +34,9 @@ int main(int argc, char* argv[])
   QObject::connect(QAbstractEventDispatcher::instance(), &QAbstractEventDispatcher::aboutToBlock,
                    &app, &Core::HostDispatchJobs);
 
+  auto& settings = Settings::Instance();
   int retval = 0;
-  if (Settings().IsInDevelopmentWarningEnabled())
+  if (settings.IsInDevelopmentWarningEnabled())
   {
     InDevelopmentWarning warning_box;
     retval = warning_box.exec() == QDialog::Rejected;
@@ -48,7 +49,7 @@ int main(int argc, char* argv[])
     win.show();
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
-    if (!Settings().HasAskedForAnalyticsPermission())
+    if (!settings.HasAskedForAnalyticsPermission())
     {
       QMessageBox analytics_prompt(&win);
 
@@ -69,9 +70,9 @@ int main(int argc, char* argv[])
 
       const int answer = analytics_prompt.exec();
 
-      Settings().SetAskedForAnalyticsPermission(true);
-      Settings().SetAnalyticsEnabled(answer == QMessageBox::Yes);
-      Settings().Save();
+      settings.SetAskedForAnalyticsPermission(true);
+      settings.SetAnalyticsEnabled(answer == QMessageBox::Yes);
+      settings.Save();
 
       DolphinAnalytics::Instance()->ReloadConfig();
     }

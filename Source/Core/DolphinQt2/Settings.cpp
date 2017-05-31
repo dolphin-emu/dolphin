@@ -17,8 +17,14 @@ static QString GetSettingsPath()
   return QString::fromStdString(File::GetUserPath(D_CONFIG_IDX)) + QStringLiteral("/UI.ini");
 }
 
-Settings::Settings(QObject* parent) : QSettings(GetSettingsPath(), QSettings::IniFormat, parent)
+Settings::Settings() : QSettings(GetSettingsPath(), QSettings::IniFormat)
 {
+}
+
+Settings& Settings::Instance()
+{
+  static Settings settings;
+  return settings;
 }
 
 QString Settings::GetThemeDir() const

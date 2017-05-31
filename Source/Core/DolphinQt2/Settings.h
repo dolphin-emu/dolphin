@@ -7,6 +7,7 @@
 #include <QSettings>
 #include <QVector>
 
+#include "Common/NonCopyable.h"
 #include "Core/HW/SI/SI.h"
 
 namespace DiscIO
@@ -17,12 +18,12 @@ enum class Language;
 class InputConfig;
 
 // UI settings to be stored in the config directory.
-class Settings final : public QSettings
+class Settings final : public QSettings, NonCopyable
 {
   Q_OBJECT
 
 public:
-  explicit Settings(QObject* parent = nullptr);
+  static Settings& Instance();
 
   // UI
   QString GetThemeDir() const;
@@ -105,4 +106,7 @@ public:
   void SetGCAdapterSimulatingDKBongos(int port, bool enabled);
 
   void Save();
+
+private:
+  Settings();
 };
