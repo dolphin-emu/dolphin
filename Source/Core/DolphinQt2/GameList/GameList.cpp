@@ -22,6 +22,7 @@
 #include "DolphinQt2/Config/PropertiesDialog.h"
 #include "DolphinQt2/GameList/GameList.h"
 #include "DolphinQt2/GameList/ListProxyModel.h"
+#include "DolphinQt2/QtUtils/DoubleClickEventFilter.h"
 #include "DolphinQt2/Settings.h"
 
 static bool CompressCB(const std::string&, float, void*);
@@ -98,9 +99,18 @@ void GameList::MakeTableView()
 void GameList::MakeEmptyView()
 {
   m_empty = new QLabel(this);
-  m_empty->setText(tr("Dolphin did not find any game files.\n"
-                      "Open the Paths dialog to add game folders."));
+  m_empty->setText(tr("Dolphin could not find any GameCube/Wii ISOs or WADs.\n"
+                      "Double-click here to set a games directory..."));
   m_empty->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
+
+  auto event_filter = new DoubleClickEventFilter{};
+  m_empty->installEventFilter(event_filter);
+  connect(event_filter, &DoubleClickEventFilter::doubleClicked, [this] {
+    auto current_dir = QDir::currentPath();
+    auto dir = QFileDialog::getExistingDirectory(this, tr("Select a Directory"), current_dir);
+    if (!dir.isEmpty())
+      Settings::Instance().AddPath(dir);
+  });
 }
 
 void GameList::MakeListView()
