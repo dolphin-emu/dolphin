@@ -29,6 +29,9 @@
     <ClCompile Include="$(QtMocOutPrefix)MenuBar.cpp">
       <Filter>Generated Files</Filter>
     </ClCompile>
+    <ClCompile Include="$(QtMocOutPrefix)DoubleClickEventFilter.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
     <ClCompile Include="$(QtMocOutPrefix)RenderWidget.cpp">
       <Filter>Generated Files</Filter>
     </ClCompile>
@@ -116,6 +119,9 @@
     <ClCompile Include="Config\Mapping\WiimoteEmuExtension.cpp" />
     <ClCompile Include="Config\Mapping\WiimoteEmuGeneral.cpp" />
     <ClCompile Include="Config\Mapping\WiimoteEmuMotionControl.cpp" />
+    <ClCompile Include="QtUtils\DoubleClickEventFilter.cpp">
+      <Filter>QtUtils</Filter>
+    </ClCompile>
     <ClCompile Include="QtUtils\ElidedButton.cpp">
       <Filter>QtUtils</Filter>
     </ClCompile>
@@ -160,6 +166,9 @@
     </QtMoc>
     <QtMoc Include="Config\Mapping\MappingWidget.h" />
     <QtMoc Include="Config\Mapping\MappingWindow.h" />
+    <QtMoc Include="QtUtils\DoubleClickEventFilter.h">
+      <Filter>QtUtils</Filter>
+    </QtMoc>
   </ItemGroup>
   <ItemGroup>
     <QtUi Include="*.ui" />
