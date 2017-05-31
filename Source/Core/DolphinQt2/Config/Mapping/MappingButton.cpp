@@ -19,7 +19,6 @@
 MappingButton::MappingButton(MappingWidget* widget, ControlReference* ref)
     : QPushButton(QString::fromStdString(ref->expression)), m_parent(widget), m_reference(ref)
 {
-  setText(QString::fromStdString(m_reference->expression));
   Connect();
 }
 
