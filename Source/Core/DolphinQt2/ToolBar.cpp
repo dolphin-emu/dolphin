@@ -18,6 +18,7 @@ ToolBar::ToolBar(QWidget* parent) : QToolBar(parent)
   setIconSize(ICON_SIZE);
 
   MakeActions();
+  connect(&Settings::Instance(), &Settings::ThemeChanged, this, &ToolBar::UpdateIcons);
   UpdateIcons();
 
   EmulationStopped();
