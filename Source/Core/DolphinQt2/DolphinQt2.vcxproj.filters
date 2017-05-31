@@ -116,6 +116,9 @@
     <ClCompile Include="Config\Mapping\WiimoteEmuExtension.cpp" />
     <ClCompile Include="Config\Mapping\WiimoteEmuGeneral.cpp" />
     <ClCompile Include="Config\Mapping\WiimoteEmuMotionControl.cpp" />
+    <ClCompile Include="QtUtils\ElidedButton.cpp">
+      <Filter>QtUtils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="MainWindow.h" />
@@ -176,6 +179,9 @@
     </Filter>
     <Filter Include="Config">
       <UniqueIdentifier>{42f8a963-563e-420d-8aca-5761657dcff5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="QtUtils">
+      <UniqueIdentifier>{fb4b5691-df66-4984-af40-fcc2b37f3622}</UniqueIdentifier>
     </Filter>
     <Filter Include="Settings">
       <UniqueIdentifier>{d2a31121-7903-4a66-9b42-9358e92d36ff}</UniqueIdentifier>
