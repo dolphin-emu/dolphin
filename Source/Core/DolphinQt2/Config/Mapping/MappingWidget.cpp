@@ -49,6 +49,7 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
   for (auto& control : group->controls)
   {
     auto* button = new MappingButton(this, control->control_ref.get());
+    button->setMinimumWidth(125);
     button->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     form_layout->addRow(QString::fromStdString(control->name), button);
     m_buttons.push_back(button);
