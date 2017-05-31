@@ -40,7 +40,6 @@ MainWindow::MainWindow() : QMainWindow(nullptr)
   CreateComponents();
 
   ConnectGameList();
-  ConnectPathsDialog();
   ConnectToolBar();
   ConnectRenderWidget();
   ConnectStack();
@@ -167,12 +166,6 @@ void MainWindow::ConnectStack()
   m_stack->setMinimumSize(800, 600);
   m_stack->addWidget(m_game_list);
   setCentralWidget(m_stack);
-}
-
-void MainWindow::ConnectPathsDialog()
-{
-  connect(m_paths_dialog, &PathDialog::PathAdded, m_game_list, &GameList::DirectoryAdded);
-  connect(m_paths_dialog, &PathDialog::PathRemoved, m_game_list, &GameList::DirectoryRemoved);
 }
 
 void MainWindow::Open()

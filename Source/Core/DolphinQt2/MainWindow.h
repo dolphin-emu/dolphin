@@ -63,7 +63,6 @@ private:
   void ConnectRenderWidget();
   void ConnectStack();
   void ConnectToolBar();
-  void ConnectPathsDialog();
 
   void InitControllers();
   void ShutdownControllers();

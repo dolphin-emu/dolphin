@@ -35,8 +35,9 @@ public:
 
   // GameList
   QStringList GetPaths() const;
+  void AddPath(const QString& path);
   void SetPaths(const QStringList& paths);
-  void RemovePath(int i);
+  void RemovePath(const QString& path);
   QString GetDefaultGame() const;
   void SetDefaultGame(const QString& path);
   QString GetDVDRoot() const;
@@ -106,6 +107,10 @@ public:
   void SetGCAdapterSimulatingDKBongos(int port, bool enabled);
 
   void Save();
+
+signals:
+  void PathAdded(const QString&);
+  void PathRemoved(const QString&);
 
 private:
   Settings();

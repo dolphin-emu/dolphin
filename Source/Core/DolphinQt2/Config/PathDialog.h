@@ -23,10 +23,6 @@ public slots:
   void BrowseApploader();
   void BrowseWiiNAND();
 
-signals:
-  void PathAdded(QString path);
-  void PathRemoved(QString path);
-
 private:
   QGroupBox* MakeGameFolderBox();
   QGridLayout* MakePathsLayout();

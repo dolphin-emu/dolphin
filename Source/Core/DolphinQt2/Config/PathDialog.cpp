@@ -37,16 +37,7 @@ void PathDialog::Browse()
   QString dir =
       QFileDialog::getExistingDirectory(this, tr("Select a Directory"), QDir::currentPath());
   if (!dir.isEmpty())
-  {
-    QStringList game_folders = Settings::Instance().GetPaths();
-    if (!game_folders.contains(dir))
-    {
-      game_folders << dir;
-      Settings::Instance().SetPaths(game_folders);
-      m_path_list->addItem(dir);
-      emit PathAdded(dir);
-    }
-  }
+    Settings::Instance().AddPath(dir);
 }
 
 void PathDialog::BrowseDefaultGame()
@@ -103,6 +94,13 @@ QGroupBox* PathDialog::MakeGameFolderBox()
   m_path_list = new QListWidget;
   m_path_list->insertItems(0, Settings::Instance().GetPaths());
   m_path_list->setSpacing(1);
+  connect(&Settings::Instance(), &Settings::PathAdded,
+          [this](const QString& dir) { m_path_list->addItem(dir); });
+  connect(&Settings::Instance(), &Settings::PathRemoved, [this](const QString& dir) {
+    auto items = m_path_list->findItems(dir, Qt::MatchExactly);
+    for (auto& item : items)
+      delete item;
+  });
   vlayout->addWidget(m_path_list);
 
   QHBoxLayout* hlayout = new QHBoxLayout;
@@ -168,9 +166,8 @@ QGridLayout* PathDialog::MakePathsLayout()
 
 void PathDialog::RemovePath()
 {
-  int row = m_path_list->currentRow();
-  if (row < 0)
+  auto item = m_path_list->currentItem();
+  if (!item)
     return;
-  emit PathRemoved(m_path_list->takeItem(row)->text());
-  Settings::Instance().RemovePath(row);
+  Settings::Instance().RemovePath(item->text());
 }

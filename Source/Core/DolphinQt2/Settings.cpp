@@ -61,16 +61,32 @@ QStringList Settings::GetPaths() const
   return value(QStringLiteral("GameList/Paths")).toStringList();
 }
 
+void Settings::AddPath(const QString& path)
+{
+  QStringList game_folders = Settings::Instance().GetPaths();
+  if (!game_folders.contains(path))
+  {
+    game_folders << path;
+    Settings::Instance().SetPaths(game_folders);
+    emit PathAdded(path);
+  }
+}
+
 void Settings::SetPaths(const QStringList& paths)
 {
   setValue(QStringLiteral("GameList/Paths"), paths);
 }
 
-void Settings::RemovePath(int i)
+void Settings::RemovePath(const QString& path)
 {
   QStringList paths = GetPaths();
+  int i = paths.indexOf(path);
+  if (i < 0)
+    return;
+
   paths.removeAt(i);
   SetPaths(paths);
+  emit PathRemoved(path);
 }
 
 QString Settings::GetDefaultGame() const

@@ -42,8 +42,8 @@ GameList::GameList(QWidget* parent) : QStackedWidget(parent)
 
   connect(m_table, &QTableView::doubleClicked, this, &GameList::GameSelected);
   connect(m_list, &QListView::doubleClicked, this, &GameList::GameSelected);
-  connect(this, &GameList::DirectoryAdded, m_model, &GameListModel::DirectoryAdded);
-  connect(this, &GameList::DirectoryRemoved, m_model, &GameListModel::DirectoryRemoved);
+  connect(&Settings::Instance(), &Settings::PathAdded, m_model, &GameListModel::DirectoryAdded);
+  connect(&Settings::Instance(), &Settings::PathRemoved, m_model, &GameListModel::DirectoryRemoved);
   connect(m_model, &QAbstractItemModel::rowsInserted, this, &GameList::ConsiderViewChange);
   connect(m_model, &QAbstractItemModel::rowsRemoved, this, &GameList::ConsiderViewChange);
 
