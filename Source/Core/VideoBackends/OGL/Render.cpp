@@ -460,6 +460,7 @@ Renderer::Renderer()
        GLExtensions::Supports("GL_EXT_copy_image") ||
        GLExtensions::Supports("GL_OES_copy_image")) &&
       !DriverDetails::HasBug(DriverDetails::BUG_BROKEN_COPYIMAGE);
+  g_ogl_config.bSupportTextureSubImage = GLExtensions::Supports("ARB_get_texture_sub_image");
 
   // Desktop OpenGL supports the binding layout if it supports 420pack
   // OpenGL ES 3.1 supports it implicitly without an extension
@@ -792,7 +793,7 @@ Renderer::Renderer()
 Renderer::~Renderer()
 {
   FlushFrameDump();
-  FinishFrameData();
+  //FinishFrameData();
   DestroyFrameDumpResources();
 }
 
@@ -1361,7 +1362,7 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& rc, u64 ti
 
   // The FlushFrameDump call here is necessary even after frame dumping is stopped.
   // If left out, screenshots are "one frame" behind, as an extra frame is dumped and buffered.
-  FlushFrameDump();
+  /*FlushFrameDump();
   if (IsFrameDumping())
   {
     // Currently, we only use the off-screen buffer as a frame dump source if full-resolution
@@ -1378,7 +1379,7 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& rc, u64 ti
       // GL_READ_FRAMEBUFFER is set by GL_FRAMEBUFFER in DrawFrame -> Draw{EFB,VirtualXFB,RealXFB}.
       DumpFrame(flipped_trc, ticks);
     }
-  }
+  }*/
 
   // Finish up the current frame, print some stats
 
@@ -1510,7 +1511,7 @@ void Renderer::DrawEFB(GLuint framebuffer, const TargetRectangle& target_rc,
 
 void Renderer::FlushFrameDump()
 {
-  if (!m_last_frame_exported)
+  /*if (!m_last_frame_exported)
     return;
 
   FinishFrameData();
@@ -1521,7 +1522,7 @@ void Renderer::FlushFrameDump()
   DumpFrameData(reinterpret_cast<u8*>(data), m_last_frame_width[0], m_last_frame_height[0],
                 m_last_frame_width[0] * 4, m_last_frame_state, true);
   glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
-  m_last_frame_exported = false;
+  m_last_frame_exported = false;*/
 }
 
 void Renderer::DumpFrame(const TargetRectangle& flipped_trc, u64 ticks)

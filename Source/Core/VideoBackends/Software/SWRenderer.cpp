@@ -47,14 +47,6 @@ void SWRenderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& rc, u64 
 {
   SWOGLWindow::s_instance->ShowImage(texture, 1.0);
 
-  // Save screenshot
-  if (IsFrameDumping())
-  {
-    AVIDump::Frame state = AVIDump::FetchState(ticks);
-    //DumpFrameData(GetCurrentColorTexture(), fbWidth, fbHeight, fbWidth * 4, state);
-    FinishFrameData();
-  }
-
   OSD::DoCallbacks(OSD::CallbackType::OnFrame);
 
   DrawDebugText();

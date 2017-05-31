@@ -43,6 +43,7 @@
 #include "Core/Host.h"
 #include "Core/Movie.h"
 
+#include "VideoCommon/AbstractTexture.h"
 #include "VideoCommon/AVIDump.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/CPMemory.h"
@@ -645,6 +646,20 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
       m_aspect_wide = flush_count_anamorphic > 0.75 * flush_total;
   }
 
+  // The FinishFrameData call here is necessary even after frame dumping is stopped.
+  // If left out, screenshots are "one frame" behind, as an extra frame is dumped and buffered.
+  FinishFrameData();
+  if (IsFrameDumping())
+  {
+    auto result = m_last_xfb_texture->Map();
+    if (result.has_value())
+    {
+      auto raw_data = result.value();
+      DumpFrameData(raw_data.data, raw_data.width, raw_data.height, raw_data.stride,
+                    AVIDump::FetchState(ticks));
+    }
+  }
+
   if (xfbAddr && fbWidth && fbStride && fbHeight)
   {
     constexpr int force_safe_texture_cache_hash = 0;
@@ -654,6 +669,9 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
     
     // TODO, check if xfb_entry is a duplicate of the previous frame and skip SwapImpl
 
+	m_previous_xfb_texture = xfb_entry->texture.get();
+
+      m_last_xfb_texture = xfb_entry->texture.get();
 
     // TODO: merge more generic parts into VideoCommon
     g_renderer->SwapImpl(xfb_entry->texture.get(), rc, ticks, Gamma);
@@ -697,12 +715,9 @@ void Renderer::ShutdownFrameDumping()
   m_frame_dump_start.Set();
 }
 
-void Renderer::DumpFrameData(const u8* data, int w, int h, int stride, const AVIDump::Frame& state,
-                             bool swap_upside_down)
+void Renderer::DumpFrameData(const u8* data, int w, int h, int stride, const AVIDump::Frame& state)
 {
-  FinishFrameData();
-
-  m_frame_dump_config = FrameDumpConfig{data, w, h, stride, swap_upside_down, state};
+  m_frame_dump_config = FrameDumpConfig{ m_last_xfb_texture, data, w, h, stride, state };
 
   if (!m_frame_dump_thread_running.IsSet())
   {
@@ -723,6 +738,7 @@ void Renderer::FinishFrameData()
 
   m_frame_dump_done.Wait();
   m_frame_dump_frame_running = false;
+  m_frame_dump_config.texture->Unmap();
 }
 
 void Renderer::RunFrameDumps()
@@ -748,12 +764,6 @@ void Renderer::RunFrameDumps()
       break;
 
     auto config = m_frame_dump_config;
-
-    if (config.upside_down)
-    {
-      config.data = config.data + (config.height - 1) * config.stride;
-      config.stride = -config.stride;
-    }
 
     // Save screenshot
     if (m_screenshot_request.TestAndClear())

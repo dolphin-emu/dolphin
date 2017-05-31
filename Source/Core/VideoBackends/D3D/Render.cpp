@@ -659,29 +659,6 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& rc, u64 ti
   BlitScreen(source_rc, targetRc, xfb_texture->GetRawTexIdentifier(), xfb_texture->config.width,
              xfb_texture->config.height, Gamma);
 
-  // Dump frames
-  if (IsFrameDumping())
-  {
-    if (!s_screenshot_texture)
-      CreateScreenshotTexture();
-
-    D3D11_BOX source_box = GetScreenshotSourceBox(targetRc);
-    unsigned int source_width = source_box.right - source_box.left;
-    unsigned int source_height = source_box.bottom - source_box.top;
-    D3D::context->CopySubresourceRegion(s_screenshot_texture, 0, 0, 0, 0,
-                                        D3D::GetBackBuffer()->GetTex(), 0, &source_box);
-
-    D3D11_MAPPED_SUBRESOURCE map;
-    D3D::context->Map(s_screenshot_texture, 0, D3D11_MAP_READ, 0, &map);
-
-    AVIDump::Frame state = AVIDump::FetchState(ticks);
-    DumpFrameData(reinterpret_cast<const u8*>(map.pData), source_width, source_height, map.RowPitch,
-                  state);
-    FinishFrameData();
-
-    D3D::context->Unmap(s_screenshot_texture, 0);
-  }
-
   // Reset viewport for drawing text
   D3D11_VIEWPORT vp =
       CD3D11_VIEWPORT(0.0f, 0.0f, (float)GetBackbufferWidth(), (float)GetBackbufferHeight());

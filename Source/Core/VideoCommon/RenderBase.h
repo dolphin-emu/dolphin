@@ -32,6 +32,7 @@
 #include "VideoCommon/RenderState.h"
 #include "VideoCommon/VideoCommon.h"
 
+class AbstractRawTexture;
 class AbstractTexture;
 class PostProcessingShaderImplementation;
 enum class EFBAccessType;
@@ -152,11 +153,6 @@ protected:
   void CheckFifoRecording();
   void RecordVideoMemory();
 
-  bool IsFrameDumping();
-  void DumpFrameData(const u8* data, int w, int h, int stride, const AVIDump::Frame& state,
-                     bool swap_upside_down = false);
-  void FinishFrameData();
-
   Common::Flag m_screenshot_request;
   Common::Event m_screenshot_completed;
   std::mutex m_screenshot_lock;
@@ -205,13 +201,15 @@ private:
   bool m_frame_dump_frame_running = false;
   struct FrameDumpConfig
   {
+    AbstractTexture* texture;
     const u8* data;
     int width;
     int height;
     int stride;
-    bool upside_down;
     AVIDump::Frame state;
   } m_frame_dump_config;
+
+  AbstractTexture * m_last_xfb_texture;
 
   // NOTE: The methods below are called on the framedumping thread.
   bool StartFrameDumpToAVI(const FrameDumpConfig& config);
@@ -220,6 +218,10 @@ private:
   std::string GetFrameDumpNextImageFileName() const;
   bool StartFrameDumpToImage(const FrameDumpConfig& config);
   void DumpFrameToImage(const FrameDumpConfig& config);
+
+  bool IsFrameDumping();
+  void DumpFrameData(const u8* data, int w, int h, int stride, const AVIDump::Frame& state);
+  void FinishFrameData();
 };
 
 extern std::unique_ptr<Renderer> g_renderer;

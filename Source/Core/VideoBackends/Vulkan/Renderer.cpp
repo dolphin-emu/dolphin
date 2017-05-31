@@ -507,23 +507,6 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& rc, u64 ti
   // are determined by guest state. Currently, the only way to catch these is to update every frame.
   UpdateDrawRectangle();
 
-  // Render the frame dump image if enabled.
-  if (IsFrameDumping())
-  {
-    // If we haven't dumped a single frame yet, set up frame dumping.
-    if (!m_frame_dumping_active)
-      StartFrameDumping();
-
-   /* DrawFrameDump(scaled_efb_rect, xfb_addr, xfb_sources, xfb_count, fb_width, fb_stride, fb_height,
-                  ticks);*/
-  }
-  else
-  {
-    // If frame dumping was previously enabled, flush all frames and remove the fence callback.
-    if (m_frame_dumping_active)
-      EndFrameDumping();
-  }
-
   // Ensure the worker thread is not still submitting a previous command buffer.
   // In other words, the last frame has been submitted (otherwise the next call would
   // be a race, as the image may not have been consumed yet).
@@ -856,7 +839,7 @@ void Renderer::OnFrameDumpImageReady(VkFence fence)
 
 void Renderer::WriteFrameDumpImage(size_t index)
 {
-  FrameDumpImage& frame = m_frame_dump_images[index];
+  /*FrameDumpImage& frame = m_frame_dump_images[index];
   _assert_(frame.pending);
 
   // Check fence has been signaled.
@@ -873,14 +856,14 @@ void Renderer::WriteFrameDumpImage(size_t index)
                 static_cast<int>(frame.readback_texture->GetHeight()),
                 static_cast<int>(frame.readback_texture->GetRowStride()), frame.dump_state);
 
-  frame.pending = false;
+  frame.pending = false;*/
 }
 
 StagingTexture2D* Renderer::PrepareFrameDumpImage(u32 width, u32 height, u64 ticks)
 {
   // Ensure the last frame that was sent to the frame dump has completed encoding before we send
   // the next image to it.
-  FinishFrameData();
+  //FinishFrameData();
 
   // If the last image hasn't been written to the frame dump yet, write it now.
   // This is necessary so that the worker thread is no more than one frame behind, and the pointer
