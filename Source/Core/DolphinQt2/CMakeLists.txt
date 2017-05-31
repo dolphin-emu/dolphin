@@ -32,7 +32,6 @@ set(SRCS
   Config/Mapping/WiimoteEmuExtension.cpp
   Config/Mapping/WiimoteEmuGeneral.cpp
   Config/Mapping/WiimoteEmuMotionControl.cpp
-  Config/PathDialog.cpp
   Config/PropertiesDialog.cpp
   Config/SettingsWindow.cpp
   GameList/GameFile.cpp
@@ -44,6 +43,7 @@ set(SRCS
   QtUtils/ElidedButton.cpp
   Settings/GeneralPane.cpp
   Settings/InterfacePane.cpp
+  Settings/PathPane.cpp
 )
 
 list(APPEND LIBS core uicommon)

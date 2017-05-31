@@ -60,12 +60,6 @@
     <ClCompile Include="Settings.cpp" />
     <ClCompile Include="ToolBar.cpp" />
     <ClCompile Include="Host.cpp" />
-    <ClCompile Include="$(QtMocOutPrefix)PathDialog.cpp">
-      <Filter>Generated Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Config\PathDialog.cpp">
-      <Filter>Config</Filter>
-    </ClCompile>
     <ClCompile Include="AboutDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)AboutDialog.cpp">
       <Filter>Generated Files</Filter>
@@ -104,6 +98,9 @@
       <Filter>Generated Files</Filter>
     </ClCompile>
     <ClCompile Include="Settings\InterfacePane.cpp">
+      <Filter>Settings</Filter>
+    </ClCompile>
+    <ClCompile Include="Settings\PathPane.cpp">
       <Filter>Settings</Filter>
     </ClCompile>
     <ClCompile Include="$(QtMocOutPrefix)MappingWidget.cpp" />
@@ -147,9 +144,6 @@
     </QtMoc>
     <QtMoc Include="GameList\GameTracker.h">
       <Filter>GameList</Filter>
-    </QtMoc>
-    <QtMoc Include="Config\PathDialog.h">
-      <Filter>Config</Filter>
     </QtMoc>
     <QtMoc Include="AboutDialog.h" />
     <QtMoc Include="Config\SettingsWindow.h" />

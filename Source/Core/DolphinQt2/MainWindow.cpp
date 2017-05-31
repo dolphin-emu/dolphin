@@ -22,7 +22,6 @@
 
 #include "DolphinQt2/AboutDialog.h"
 #include "DolphinQt2/Config/ControllersWindow.h"
-#include "DolphinQt2/Config/PathDialog.h"
 #include "DolphinQt2/Config/SettingsWindow.h"
 #include "DolphinQt2/Host.h"
 #include "DolphinQt2/MainWindow.h"
@@ -82,7 +81,6 @@ void MainWindow::CreateComponents()
   m_game_list = new GameList(this);
   m_render_widget = new RenderWidget;
   m_stack = new QStackedWidget(this);
-  m_paths_dialog = new PathDialog(this);
   m_controllers_window = new ControllersWindow(this);
   m_settings_window = new SettingsWindow(this);
 }
@@ -139,7 +137,6 @@ void MainWindow::ConnectToolBar()
   connect(m_tool_bar, &ToolBar::StopPressed, this, &MainWindow::Stop);
   connect(m_tool_bar, &ToolBar::FullScreenPressed, this, &MainWindow::FullScreen);
   connect(m_tool_bar, &ToolBar::ScreenShotPressed, this, &MainWindow::ScreenShot);
-  connect(m_tool_bar, &ToolBar::PathsPressed, this, &MainWindow::ShowPathsDialog);
   connect(m_tool_bar, &ToolBar::SettingsPressed, this, &MainWindow::ShowSettingsWindow);
   connect(m_tool_bar, &ToolBar::ControllersPressed, this, &MainWindow::ShowControllersWindow);
 
@@ -343,13 +340,6 @@ void MainWindow::HideRenderWidget()
     setWindowTitle(tr("Dolphin"));
   }
   m_render_widget->hide();
-}
-
-void MainWindow::ShowPathsDialog()
-{
-  m_paths_dialog->show();
-  m_paths_dialog->raise();
-  m_paths_dialog->activateWindow();
 }
 
 void MainWindow::ShowControllersWindow()

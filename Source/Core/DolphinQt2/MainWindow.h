@@ -14,7 +14,6 @@
 #include "DolphinQt2/RenderWidget.h"
 #include "DolphinQt2/ToolBar.h"
 
-class PathDialog;
 class SettingsWindow;
 class ControllersWindow;
 
@@ -71,7 +70,6 @@ private:
   void ShowRenderWidget();
   void HideRenderWidget();
 
-  void ShowPathsDialog();
   void ShowSettingsWindow();
   void ShowControllersWindow();
   void ShowAboutDialog();
@@ -84,7 +82,6 @@ private:
   bool m_rendering_to_main;
   int m_state_slot = 1;
 
-  PathDialog* m_paths_dialog;
   ControllersWindow* m_controllers_window;
   SettingsWindow* m_settings_window;
 };

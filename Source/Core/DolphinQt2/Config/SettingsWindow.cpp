@@ -6,6 +6,7 @@
 #include "DolphinQt2/Settings.h"
 #include "DolphinQt2/Settings/GeneralPane.h"
 #include "DolphinQt2/Settings/InterfacePane.h"
+#include "DolphinQt2/Settings/PathPane.h"
 
 SettingsWindow::SettingsWindow(QWidget* parent) : QDialog(parent)
 {
@@ -53,6 +54,7 @@ void SettingsWindow::SetupSettingsWidget()
   // Panes initalised here
   m_settings_outer->addWidget(new GeneralPane);
   m_settings_outer->addWidget(new InterfacePane);
+  m_settings_outer->addWidget(new PathPane);
 }
 
 void SettingsWindow::MakeUnfinishedWarning()
@@ -87,6 +89,7 @@ void SettingsWindow::MakeCategoryList()
 
   AddCategoryToList(tr("General"), QStringLiteral("config.png"));
   AddCategoryToList(tr("Interface"), QStringLiteral("browse.png"));
+  AddCategoryToList(tr("Paths"), QStringLiteral("browse.png"));
   connect(m_categories, &QListWidget::currentItemChanged, this, &SettingsWindow::changePage);
 }
 
