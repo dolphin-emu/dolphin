@@ -26,6 +26,7 @@ public:
   static Settings& Instance();
 
   // UI
+  void SetThemeName(const QString& theme_name);
   QString GetThemeDir() const;
   QString GetResourcesDir() const;
   QString GetProfilesDir() const;
@@ -109,6 +110,7 @@ public:
   void Save();
 
 signals:
+  void ThemeChanged();
   void PathAdded(const QString&);
   void PathRemoved(const QString&);
 

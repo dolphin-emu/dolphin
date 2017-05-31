@@ -17,6 +17,8 @@
 #include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
 
+#include "DolphinQt2/Settings.h"
+
 InterfacePane::InterfacePane(QWidget* parent) : QWidget(parent)
 {
   CreateLayout();
@@ -106,7 +108,7 @@ void InterfacePane::ConnectLayout()
   connect(m_checkbox_top_window, &QCheckBox::clicked, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_render_to_window, &QCheckBox::clicked, this, &InterfacePane::OnSaveConfig);
   connect(m_combobox_theme, static_cast<void (QComboBox::*)(const QString&)>(&QComboBox::activated),
-          [this](const QString& text) { OnSaveConfig(); });
+          &Settings::Instance(), &Settings::SetThemeName);
   connect(m_combobox_language, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated),
           [this](int index) { OnSaveConfig(); });
   connect(m_checkbox_confirm_on_stop, &QCheckBox::clicked, this, &InterfacePane::OnSaveConfig);
@@ -140,7 +142,6 @@ void InterfacePane::OnSaveConfig()
   settings.bRenderWindowAutoSize = m_checkbox_auto_window->isChecked();
   settings.bKeepWindowOnTop = m_checkbox_top_window->isChecked();
   settings.bRenderToMain = m_checkbox_render_to_window->isChecked();
-  settings.theme_name = m_combobox_theme->currentText().toStdString();
 
   // In Game Options
   settings.bConfirmStop = m_checkbox_confirm_on_stop->isChecked();
