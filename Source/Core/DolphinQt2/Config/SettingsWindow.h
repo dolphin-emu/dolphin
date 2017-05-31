@@ -5,17 +5,11 @@
 #pragma once
 
 #include <QDialog>
-#include <QDialogButtonBox>
-#include <QGroupBox>
-#include <QHBoxLayout>
-#include <QLabel>
-#include <QListView>
-#include <QListWidget>
-#include <QListWidgetItem>
-#include <QStackedWidget>
-#include <QString>
-#include <QVBoxLayout>
-#include <QWidget>
+
+class QGroupBox;
+class QListWidget;
+class QListWidgetItem;
+class QStackedWidget;
 
 class SettingsWindow final : public QDialog
 {
