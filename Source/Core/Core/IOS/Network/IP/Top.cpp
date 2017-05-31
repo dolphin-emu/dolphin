@@ -919,9 +919,8 @@ IPCCommandResult NetIPTop::HandleGetAddressInfoRequest(const IOCtlVRequest& requ
       if (result_iter->ai_addr)
       {
         Memory::Write_U32(sockoffset, addr + 0x18);
-        Memory::Write_U16(((result_iter->ai_addr->sa_family & 0xFF) << 8) |
-                              (result_iter->ai_addrlen & 0xFF),
-                          sockoffset);
+        Memory::Write_U8(result_iter->ai_addr->sa_family & 0xFF, sockoffset);
+        Memory::Write_U8(result_iter->ai_addrlen & 0xFF, sockoffset + 0x01);
         Memory::CopyToEmu(sockoffset + 0x2, result_iter->ai_addr->sa_data,
                           sizeof(result_iter->ai_addr->sa_data));
         sockoffset += 0x1C;
