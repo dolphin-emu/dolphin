@@ -498,7 +498,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
     {
       std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
       memcpy(g_SRAM.p_SRAM, sram, sizeof(g_SRAM.p_SRAM));
-      g_SRAM_netplay_initialized = true;
+      g_SRAM_determinism_initialized = true;
     }
   }
   break;

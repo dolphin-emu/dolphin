@@ -85,4 +85,4 @@ void SetCardFlashID(const u8* buffer, u8 card_index);
 void FixSRAMChecksums();
 
 extern SRAM g_SRAM;
-extern bool g_SRAM_netplay_initialized;
+extern bool g_SRAM_determinism_initialized;

@@ -365,10 +365,11 @@ bool BootCore(const std::string& filename, SConfig::EBootBS2 type)
     config_cache.bSetEXIDevice[0] = true;
     config_cache.bSetEXIDevice[1] = true;
   }
+
+  if (NetPlay::IsNetPlayRunning() || Movie::IsMovieActive())
+    g_SRAM_determinism_initialized = true;
   else
-  {
-    g_SRAM_netplay_initialized = false;
-  }
+    g_SRAM_determinism_initialized = false;
 
   const bool ntsc = DiscIO::IsNTSC(StartUp.m_region);
 
