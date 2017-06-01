@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////
 //
 // SFML - Simple and Fast Multimedia Library
-// Copyright (C) 2007-2013 Laurent Gomila (laurent.gom@gmail.com)
+// Copyright (C) 2007-2016 Laurent Gomila (laurent@sfml-dev.org)
 //
 // This software is provided 'as-is', without any express or implied warranty.
 // In no event will the authors be held liable for any damages arising from the use of this software.
@@ -45,7 +45,7 @@ class Packet;
 ////////////////////////////////////////////////////////////
 class SFML_NETWORK_API TcpSocket : public Socket
 {
-public :
+public:
 
     ////////////////////////////////////////////////////////////
     /// \brief Default constructor
@@ -124,6 +124,9 @@ public :
     ////////////////////////////////////////////////////////////
     /// \brief Send raw data to the remote peer
     ///
+    /// To be able to handle partial sends over non-blocking
+    /// sockets, use the send(const void*, std::size_t, std::size_t&)
+    /// overload instead.
     /// This function will fail if the socket is not connected.
     ///
     /// \param data Pointer to the sequence of bytes to send
@@ -135,6 +138,22 @@ public :
     ///
     ////////////////////////////////////////////////////////////
     Status send(const void* data, std::size_t size);
+
+    ////////////////////////////////////////////////////////////
+    /// \brief Send raw data to the remote peer
+    ///
+    /// This function will fail if the socket is not connected.
+    ///
+    /// \param data Pointer to the sequence of bytes to send
+    /// \param size Number of bytes to send
+    /// \param sent The number of bytes sent will be written here
+    ///
+    /// \return Status code
+    ///
+    /// \see receive
+    ///
+    ////////////////////////////////////////////////////////////
+    Status send(const void* data, std::size_t size, std::size_t& sent);
 
     ////////////////////////////////////////////////////////////
     /// \brief Receive raw data from the remote peer
@@ -157,6 +176,10 @@ public :
     ////////////////////////////////////////////////////////////
     /// \brief Send a formatted packet of data to the remote peer
     ///
+    /// In non-blocking mode, if this function returns sf::Socket::Partial,
+    /// you \em must retry sending the same unmodified packet before sending
+    /// anything else in order to guarantee the packet arrives at the remote
+    /// peer uncorrupted.
     /// This function will fail if the socket is not connected.
     ///
     /// \param packet Packet to send
@@ -244,7 +267,7 @@ private:
 /// class to get more details about how they work.
 ///
 /// The socket is automatically disconnected when it is destroyed,
-/// but if you want to explicitely close the connection while
+/// but if you want to explicitly close the connection while
 /// the socket instance is still alive, you can call disconnect.
 ///
 /// Usage example:

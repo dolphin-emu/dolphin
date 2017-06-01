@@ -1,0 +1,363 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+
+<!--
+SFML - Simple and Fast Multimedia Library
+Copyright (C) 2007-2016 Marco Antognini (antognini.marco@gmail.com),
+                        Laurent Gomila (laurent@sfml-dev.org)
+
+This software is provided 'as-is', without any express or implied warranty.
+In no event will the authors be held liable for any damages arising from the use of this software.
+
+Permission is granted to anyone to use this software for any purpose,
+including commercial applications, and to alter it and redistribute it freely,
+subject to the following restrictions:
+
+1. The origin of this software must not be misrepresented;
+   you must not claim that you wrote the original software.
+   If you use this software in a product, an acknowledgment
+   in the product documentation would be appreciated but is not required.
+
+2. Altered source versions must be plainly marked as such,
+   and must not be misrepresented as being the original software.
+
+3. This notice may not be removed or altered from any source distribution.
+-->
+
+<!--
+     This template defines :
+     - whether the project uses dylibs or frameworks
+     - which modules are used
+     - how the project links against those modules
+ -->
+
+<plist version="1.0">
+    <dict>
+        <!--
+             BASIC INFO
+         -->
+        <key>Identifier</key>
+        <string>org.sfml-dev.linker</string>
+
+        <key>Kind</key>
+        <string>Xcode.Xcode3.ProjectTemplateUnitKind</string>
+
+        <!--
+             OPTIONS
+         -->
+        <key>Options</key>
+        <array>
+            <!-- BINARY TYPE -->
+            <dict>
+                <key>Identifier</key>
+                <string>binaryType</string>
+
+                <key>Name</key>
+                <string>[ADVANCED] SFML binaries</string>
+
+                <key>Description</key>
+                <string>Choose between dylibs and frameworks. If you're not sure, keep the default value.</string>
+
+                <key>Default</key>
+                <string>Frameworks</string>
+
+                <key>NotPersisted</key>
+                <true />
+
+                <key>Type</key>
+                <string>popup</string>
+
+                <key>Units</key>
+                <dict>
+                    <!-- Use frameworks -->
+                    <key>Frameworks</key>
+                    <dict>
+                        <key>Project</key>
+                        <dict>
+                            <key>SharedSettings</key>
+                            <dict>
+                                <key>SFML_BINARY_TYPE</key>
+                                <string>FRAMEWORKS</string>
+
+                                <key>SFML_LINK_DYLIBS_SUFFIX</key>
+                                <string></string>
+                            </dict>
+                        </dict>
+                    </dict>
+
+                    <!-- Use dylibs -->
+                    <key>Dylibs</key>
+                    <dict>
+                        <key>Project</key>
+                        <dict>
+                            <key>SharedSettings</key>
+                            <dict>
+                                <key>SFML_BINARY_TYPE</key>
+                                <string>DYLIBS</string>
+
+                                <key>SFML_LINK_DYLIBS_SUFFIX</key>
+                                <string></string>
+                            </dict>
+                        </dict>
+                    </dict>
+
+                    <!-- Use dylibs (debug) -->
+                    <key>Dylibs (debug)</key>
+                    <dict>
+                        <key>Project</key>
+                        <dict>
+                            <key>SharedSettings</key>
+                            <dict>
+                                <key>SFML_BINARY_TYPE</key>
+                                <string>DYLIBS</string>
+                            </dict>
+
+                            <key>Configurations</key>
+                            <dict>
+                                <key>Debug</key>
+                                <dict>
+                                    <key>SFML_LINK_DYLIBS_SUFFIX</key>
+                                    <string>-d</string>
+                                </dict>
+
+                                <key>Release</key>
+                                <dict>
+                                    <key>SFML_LINK_DYLIBS_SUFFIX</key>
+                                    <string></string>
+                                </dict>
+                            </dict>
+                        </dict>
+                    </dict>
+                </dict>
+            </dict>
+
+            <!-- WINDOW MODULE -->
+            <dict>
+                <key>Identifier</key>
+                <string>windowModule</string>
+
+                <key>Name</key>
+                <string>Use window module</string>
+
+                <key>Description</key>
+                <string>Indicates whether window module should be used or not.</string>
+
+                <key>Type</key>
+                <string>checkbox</string>
+
+                <key>Default</key>
+                <string>true</string>
+
+                <key>Units</key>
+                <dict>
+                    <!-- WINDOW MODULE : YES -->
+                    <key>true</key>
+                    <dict>
+                        <key>Project</key>
+                        <dict>
+                            <key>SharedSettings</key>
+                            <dict>
+                                <key>SFML_WINDOW</key>
+                                <string>$(SFML_LINK_PREFIX) sfml-window$(SFML_LINK_SUFFIX)</string>
+                            </dict>
+                        </dict>
+                    </dict>
+
+                    <!-- WINDOW MODULE : NO -->
+                    <key>false</key>
+                    <dict>
+                        <key>Project</key>
+                        <dict>
+                            <key>SharedSettings</key>
+                            <dict>
+                                <key>SFML_WINDOW</key>
+                                <string></string>
+                            </dict>
+                        </dict>
+                    </dict>
+                </dict>
+            </dict>
+
+            <!-- GRAPHICS MODULE -->
+            <dict>
+                <key>Identifier</key>
+                <string>graphicsModule</string>
+
+                <key>Name</key>
+                <string>Use graphics module</string>
+
+                <key>Description</key>
+                <string>Indicates whether graphics module should be used or not.</string>
+
+                <key>RequiredOptions</key>
+                <dict>
+                    <key>windowModule</key>
+                    <string>true</string>
+                </dict>
+
+                <key>Type</key>
+                <string>checkbox</string>
+
+                <key>Default</key>
+                <string>true</string>
+
+                <key>Units</key>
+                <dict>
+                    <!-- GRAPHICS MODULE : YES -->
+                    <key>true</key>
+                    <dict>
+                        <key>Project</key>
+                        <dict>
+                            <key>SharedSettings</key>
+                            <dict>
+                                <key>SFML_GRAPHICS</key>
+                                <string>$(SFML_LINK_PREFIX) sfml-graphics$(SFML_LINK_SUFFIX)</string>
+                            </dict>
+                        </dict>
+                    </dict>
+
+                    <!-- GRAPHICS MODULE : NO -->
+                    <key>false</key>
+                    <dict>
+                        <key>Project</key>
+                        <dict>
+                            <key>SharedSettings</key>
+                            <dict>
+                                <key>SFML_GRAPHICS</key>
+                                <string></string>
+                            </dict>
+                        </dict>
+                    </dict>
+                </dict>
+            </dict>
+
+            <!-- AUDIO MODULE -->
+            <dict>
+                <key>Identifier</key>
+                <string>audioModule</string>
+
+                <key>Name</key>
+                <string>Use audio module</string>
+
+                <key>Description</key>
+                <string>Indicates whether audio module should be used or not.</string>
+
+                <key>Type</key>
+                <string>checkbox</string>
+
+                <key>Default</key>
+                <string>true</string>
+
+                <key>Units</key>
+                <dict>
+                    <!-- AUDIO MODULE : YES -->
+                    <key>true</key>
+                    <dict>
+                        <key>Project</key>
+                        <dict>
+                            <key>SharedSettings</key>
+                            <dict>
+                                <key>SFML_AUDIO</key>
+                                <string>$(SFML_LINK_PREFIX) sfml-audio$(SFML_LINK_SUFFIX)</string>
+                            </dict>
+                        </dict>
+                    </dict>
+
+                    <!-- AUDIO MODULE : NO -->
+                    <key>false</key>
+                    <dict>
+                        <key>Project</key>
+                        <dict>
+                            <key>SharedSettings</key>
+                            <dict>
+                                <key>SFML_AUDIO</key>
+                                <string></string>
+                            </dict>
+                        </dict>
+                    </dict>
+                </dict>
+            </dict>
+
+            <!-- NETWORK MODULE -->
+            <dict>
+                <key>Identifier</key>
+                <string>networkModule</string>
+
+                <key>Name</key>
+                <string>Use network module</string>
+
+                <key>Description</key>
+                <string>Indicates whether network module should be used or not.</string>
+
+                <key>Type</key>
+                <string>checkbox</string>
+
+                <key>Default</key>
+                <string>true</string>
+
+                <key>Units</key>
+                <dict>
+                    <!-- NETWORK MODULE : YES -->
+                    <key>true</key>
+                    <dict>
+                        <key>Project</key>
+                        <dict>
+                            <key>SharedSettings</key>
+                            <dict>
+                                <key>SFML_NETWORK</key>
+                                <string>$(SFML_LINK_PREFIX) sfml-network$(SFML_LINK_SUFFIX)</string>
+                            </dict>
+                        </dict>
+                    </dict>
+
+                    <!-- NETWORK MODULE : NO -->
+                    <key>false</key>
+                    <dict>
+                        <key>Project</key>
+                        <dict>
+                            <key>SharedSettings</key>
+                            <dict>
+                                <key>SFML_NETWORK</key>
+                                <string></string>
+                            </dict>
+                        </dict>
+                    </dict>
+                </dict>
+            </dict>
+        </array>
+
+        <!--
+             SETTINGS
+         -->
+        <key>Project</key>
+        <dict>
+            <key>SharedSettings</key>
+            <dict>
+                <!-- Define some prefixes and suffixes -->
+                <key>SFML_LINK_DYLIBS_PREFIX</key>
+                <string>-l</string>
+
+                <key>SFML_LINK_FRAMEWORKS_PREFIX</key>
+                <string>-framework</string>
+
+                <key>SFML_LINK_FRAMEWORKS_SUFFIX</key>
+                <string></string>
+
+                <key>SFML_LINK_PREFIX</key>
+                <string>$(SFML_LINK_$(SFML_BINARY_TYPE)_PREFIX)</string>
+
+                <key>SFML_LINK_SUFFIX</key>
+                <string>$(SFML_LINK_$(SFML_BINARY_TYPE)_SUFFIX)</string>
+
+                <!-- SFML SYSTEM : always used -->
+                <key>SFML_SYSTEM</key>
+                <string>$(SFML_LINK_PREFIX) sfml-system$(SFML_LINK_SUFFIX)</string>
+
+                <!-- LINKER FLAGS -->
+                <key>OTHER_LDFLAGS</key>
+                <string>$(inherited) $(SFML_SYSTEM) $(SFML_WINDOW) $(SFML_GRAPHICS) $(SFML_AUDIO) $(SFML_NETWORK)</string>
+            </dict>
+        </dict>
+    </dict>
+</plist>
+

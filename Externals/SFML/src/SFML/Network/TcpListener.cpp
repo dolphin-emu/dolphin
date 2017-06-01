@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////
 //
 // SFML - Simple and Fast Multimedia Library
-// Copyright (C) 2007-2013 Laurent Gomila (laurent.gom@gmail.com)
+// Copyright (C) 2007-2016 Laurent Gomila (laurent@sfml-dev.org)
 //
 // This software is provided 'as-is', without any express or implied warranty.
 // In no event will the authors be held liable for any damages arising from the use of this software.
@@ -61,14 +61,18 @@ unsigned short TcpListener::getLocalPort() const
 
 
 ////////////////////////////////////////////////////////////
-Socket::Status TcpListener::listen(unsigned short port)
+Socket::Status TcpListener::listen(unsigned short port, const IpAddress& address)
 {
     // Create the internal socket if it doesn't exist
     create();
 
+    // Check if the address is valid
+    if ((address == IpAddress::None) || (address == IpAddress::Broadcast))
+        return Error;
+
     // Bind the socket to the specified port
-    sockaddr_in address = priv::SocketImpl::createAddress(INADDR_ANY, port);
-    if (bind(getHandle(), reinterpret_cast<sockaddr*>(&address), sizeof(address)) == -1)
+    sockaddr_in addr = priv::SocketImpl::createAddress(address.toInteger(), port);
+    if (bind(getHandle(), reinterpret_cast<sockaddr*>(&addr), sizeof(addr)) == -1)
     {
         // Not likely to happen, but...
         err() << "Failed to bind listener socket to port " << port << std::endl;

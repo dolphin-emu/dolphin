@@ -1,0 +1,14 @@
+// Created with:
+// https://bitbucket.org/KhronosGroup/glloadgen
+// Commit d143d66ac90d538ed06f806188714861b8e8e2f9
+// lua LoadGen.lua -style=pointer_c -spec=glX -indent=space -prefix=sf -extfile=GlxExtensions.txt GlxExtensions
+
+EXT_swap_control
+// MESA_swap_control
+SGI_swap_control
+EXT_framebuffer_sRGB
+ARB_framebuffer_sRGB
+GLX_ARB_multisample
+GLX_SGIX_pbuffer
+GLX_ARB_create_context
+GLX_ARB_create_context_profile

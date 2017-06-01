@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////
 //
 // SFML - Simple and Fast Multimedia Library
-// Copyright (C) 2007-2013 Laurent Gomila (laurent.gom@gmail.com)
+// Copyright (C) 2007-2016 Laurent Gomila (laurent@sfml-dev.org)
 //
 // This software is provided 'as-is', without any express or implied warranty.
 // In no event will the authors be held liable for any damages arising from the use of this software.
@@ -49,7 +49,7 @@ class SFML_NETWORK_API Packet
     // A bool-like type that cannot be converted to integer or pointer types
     typedef bool (Packet::*BoolType)(std::size_t);
 
-public :
+public:
 
     ////////////////////////////////////////////////////////////
     /// \brief Default constructor
@@ -139,7 +139,7 @@ public:
     /// A packet will be in an invalid state if it has no more
     /// data to read.
     ///
-    /// This behaviour is the same as standard C++ streams.
+    /// This behavior is the same as standard C++ streams.
     ///
     /// Usage example:
     /// \code
@@ -181,6 +181,8 @@ public:
     Packet& operator >>(Uint16&       data);
     Packet& operator >>(Int32&        data);
     Packet& operator >>(Uint32&       data);
+    Packet& operator >>(Int64&        data);
+    Packet& operator >>(Uint64&       data);
     Packet& operator >>(float&        data);
     Packet& operator >>(double&       data);
     Packet& operator >>(char*         data);
@@ -200,6 +202,8 @@ public:
     Packet& operator <<(Uint16              data);
     Packet& operator <<(Int32               data);
     Packet& operator <<(Uint32              data);
+    Packet& operator <<(Int64               data);
+    Packet& operator <<(Uint64              data);
     Packet& operator <<(float               data);
     Packet& operator <<(double              data);
     Packet& operator <<(const char*         data);
@@ -238,7 +242,7 @@ protected:
     ///
     /// This function can be defined by derived classes to
     /// transform the data after it is received; this can be
-    /// used for uncompression, decryption, etc.
+    /// used for decompression, decryption, etc.
     /// The function receives a pointer to the received data,
     /// and must fill the packet with the transformed bytes.
     /// The default implementation fills the packet directly
@@ -252,7 +256,7 @@ protected:
     ////////////////////////////////////////////////////////////
     virtual void onReceive(const void* data, std::size_t size);
 
-private :
+private:
 
     ////////////////////////////////////////////////////////////
     /// Disallow comparisons between packets
@@ -278,6 +282,7 @@ private :
     ////////////////////////////////////////////////////////////
     std::vector<char> m_data;    ///< Data stored in the packet
     std::size_t       m_readPos; ///< Current reading position in the packet
+    std::size_t       m_sendPos; ///< Current send position in the packet (for handling partial sends)
     bool              m_isValid; ///< Reading state of the packet
 };
 
@@ -296,12 +301,12 @@ private :
 /// (sf::TcpSocket, sf::UdpSocket).
 ///
 /// Packets solve 2 fundamental problems that arise when
-/// transfering data over the network:
+/// transferring data over the network:
 /// \li data is interpreted correctly according to the endianness
 /// \li the bounds of the packet are preserved (one send == one receive)
 ///
 /// The sf::Packet class provides both input and output modes.
-/// It is designed to follow the behaviour of standard C++ streams,
+/// It is designed to follow the behavior of standard C++ streams,
 /// using operators >> and << to extract and insert data.
 ///
 /// It is recommended to use only fixed-size types (like sf::Int32, etc.),

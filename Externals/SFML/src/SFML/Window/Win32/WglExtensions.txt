@@ -1,0 +1,13 @@
+// Created with:
+// https://bitbucket.org/KhronosGroup/glloadgen
+// Commit d143d66ac90d538ed06f806188714861b8e8e2f9
+// lua LoadGen.lua -style=pointer_c -spec=wgl -indent=space -prefix=sf -extfile=WglExtensions.txt WglExtensions
+
+EXT_swap_control
+EXT_framebuffer_sRGB
+ARB_framebuffer_sRGB
+WGL_ARB_multisample
+WGL_ARB_pixel_format
+WGL_ARB_pbuffer
+WGL_ARB_create_context
+WGL_ARB_create_context_profile

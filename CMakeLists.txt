@@ -652,7 +652,7 @@ if(NOT ANDROID)
   set(LIBUSB_FOUND true)
 endif()
 
-set(SFML_REQD_VERSION 2.1)
+set(SFML_REQD_VERSION 2.4)
 if(NOT APPLE)
   find_package(SFML ${SFML_REQD_VERSION} COMPONENTS network system)
 endif()

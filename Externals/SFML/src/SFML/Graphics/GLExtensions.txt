@@ -1,0 +1,18 @@
+// Created with:
+// lua LoadGen.lua
+
+SGIS_texture_edge_clamp
+EXT_texture_edge_clamp
+EXT_blend_minmax
+EXT_blend_subtract
+ARB_multitexture
+EXT_blend_func_separate
+ARB_shading_language_100
+ARB_shader_objects
+ARB_vertex_shader
+ARB_fragment_shader
+ARB_texture_non_power_of_two
+EXT_blend_equation_separate
+EXT_texture_sRGB
+EXT_framebuffer_object
+ARB_geometry_shader4

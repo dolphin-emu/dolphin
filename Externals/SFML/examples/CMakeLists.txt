@@ -1,0 +1,18 @@
+
+# add the examples subdirectories
+add_subdirectory(ftp)
+add_subdirectory(opengl)
+add_subdirectory(pong)
+add_subdirectory(shader)
+add_subdirectory(sockets)
+add_subdirectory(sound)
+add_subdirectory(sound_capture)
+add_subdirectory(voip)
+add_subdirectory(window)
+if(SFML_OS_WINDOWS)
+    add_subdirectory(win32)
+elseif(SFML_OS_LINUX OR SFML_OS_FREEBSD)
+    add_subdirectory(X11)
+elseif(SFML_OS_MACOSX)
+    add_subdirectory(cocoa)
+endif()
