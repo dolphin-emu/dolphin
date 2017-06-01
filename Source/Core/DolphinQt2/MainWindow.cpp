@@ -326,7 +326,7 @@ void MainWindow::ShowRenderWidget()
     }
     else
     {
-      m_render_widget->setFixedSize(settings.GetRenderWindowSize());
+      m_render_widget->resize(settings.GetRenderWindowSize());
       m_render_widget->showNormal();
     }
   }
