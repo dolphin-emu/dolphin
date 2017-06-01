@@ -213,6 +213,17 @@ QSize Settings::GetRenderWindowSize() const
   return value(QStringLiteral("Graphics/RenderWindowSize"), QSize(640, 480)).toSize();
 }
 
+void Settings::SetHideCursor(bool hide_cursor)
+{
+  SConfig::GetInstance().bHideCursor = hide_cursor;
+  emit HideCursorChanged();
+}
+
+bool Settings::GetHideCursor() const
+{
+  return SConfig::GetInstance().bHideCursor;
+}
+
 bool& Settings::BannerVisible() const
 {
   return SConfig::GetInstance().m_showBannerColumn;
