@@ -131,7 +131,7 @@ void InterfacePane::LoadConfig()
   m_checkbox_enable_osd->setChecked(startup_params.bOnScreenDisplayMessages);
   m_checkbox_show_active_title->setChecked(startup_params.m_show_active_title);
   m_checkbox_pause_on_focus_lost->setChecked(startup_params.m_PauseOnFocusLost);
-  m_checkbox_hide_mouse->setChecked(startup_params.bAutoHideCursor);
+  m_checkbox_hide_mouse->setChecked(startup_params.bHideCursor);
 }
 
 void InterfacePane::OnSaveConfig()
@@ -148,7 +148,7 @@ void InterfacePane::OnSaveConfig()
   settings.bOnScreenDisplayMessages = m_checkbox_enable_osd->isChecked();
   settings.m_show_active_title = m_checkbox_show_active_title->isChecked();
   settings.m_PauseOnFocusLost = m_checkbox_pause_on_focus_lost->isChecked();
-  settings.bAutoHideCursor = m_checkbox_hide_mouse->isChecked();
+  settings.bHideCursor = m_checkbox_hide_mouse->isChecked();
 
   settings.SaveSettings();
 }
