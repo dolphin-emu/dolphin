@@ -237,7 +237,7 @@
   <!--Copy Exe, Data directory and DLLs which should be located in the executable directory-->
   <ItemGroup>
     <DataSysFiles Include="$(DolphinRootDir)Data\**\Sys\**\*.*" />
-    <DataTxtFiles Include="$(DolphinRootDir)Data\*.txt" />
+    <DataTxtFiles Include="$(DolphinRootDir)Data\license.txt" />
     <ExternalDlls Include="$(ExternalsDir)OpenAL\lib\*.dll" />
     <BinaryFiles Include="$(TargetPath)" />
     <AllInputFiles Include="@(DataSysFiles);@(DataTxtFiles);@(ExternalDlls);@(BinaryFiles)" />
