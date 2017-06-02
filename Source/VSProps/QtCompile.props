@@ -138,7 +138,6 @@
   </PropertyGroup>
   <Target Name="QtCopyBinaries"
     AfterTargets="Build"
-    Condition="'$(I_AM_BUILDACUS)'==''"
     Inputs="@(QtDlls);@(QtPlugins)"
     Outputs="@(QtDlls -> '$(BinaryOutputDir)%(RecursiveDir)%(Filename)%(Extension)');@(QtPlugins -> '$(BinaryOutputDir)$(QtPluginFolder)\%(RecursiveDir)%(Filename)%(Extension)')">
     <Message Text="Copying Qt .dlls" Importance="High" />
