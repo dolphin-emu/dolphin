@@ -66,6 +66,7 @@ private:
   void ConnectPathsDialog();
 
   void InitControllers();
+  void ShutdownControllers();
 
   void StartGame(const QString& path);
   void ShowRenderWidget();
