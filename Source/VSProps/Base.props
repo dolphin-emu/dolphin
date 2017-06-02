@@ -91,6 +91,7 @@
       <!--Treat sources as utf-8-->
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <DebugInformationFormat>OldStyle</DebugInformationFormat>
+      <DiagnosticsFormat>Caret</DiagnosticsFormat>
       <!--
       4996 is for GetVersionEx being marked as depreciated - which is idiotic and there's
         not much else we can do since many externals use it. The bad part is that there doesn't
