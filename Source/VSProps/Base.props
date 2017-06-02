@@ -87,12 +87,16 @@
       <!--Enforce some behaviors as standards-conformant when they don't default as such-->
       <AdditionalOptions>/Zc:inline /volatile:iso %(AdditionalOptions)</AdditionalOptions>
       <!--Enable detailed debug info-->
-      <AdditionalOptions>/Zo /utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/Zo %(AdditionalOptions)</AdditionalOptions>
+      <!--Treat sources as utf-8-->
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <DebugInformationFormat>OldStyle</DebugInformationFormat>
       <!--
-      This is for GetVersionEx being marked as depreciated - which is idiotic and there's
-      not much else we can do since many externals use it. The bad part is that there doesn't
-      seem to be a way to only ignore the specific instance we don't care about...
+      4996 is for GetVersionEx being marked as depreciated - which is idiotic and there's
+        not much else we can do since many externals use it. The bad part is that there doesn't
+        seem to be a way to only ignore the specific instance we don't care about...
+      4351 squashes a warning telling us the compiler is behaving as expected (instead of old,
+        broken behavior).
       -->
       <DisableSpecificWarnings>4996;4351</DisableSpecificWarnings>
     </ClCompile>
