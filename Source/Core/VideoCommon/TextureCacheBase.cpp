@@ -1309,18 +1309,6 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
     CopyEFB(dst, format, tex_w, bytes_per_row, num_blocks_y, dstStride, is_depth_copy, srcRect,
             scaleByHalf);
   }
-  else
-  {
-    // Hack: Most games don't actually need the correct texture data in RAM
-    //       and we can just keep a copy in VRAM. We zero the memory so we
-    //       can check it hasn't changed before using our copy in VRAM.
-    u8* ptr = dst;
-    for (u32 i = 0; i < num_blocks_y; i++)
-    {
-      memset(ptr, 0, bytes_per_row);
-      ptr += dstStride;
-    }
-  }
 
   if (g_bRecordFifoData)
   {
