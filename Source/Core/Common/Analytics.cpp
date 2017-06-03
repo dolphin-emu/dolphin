@@ -192,6 +192,9 @@ HttpAnalyticsBackend::HttpAnalyticsBackend(const std::string& endpoint)
   CURL* curl = curl_easy_init();
   if (curl)
   {
+    // libcurl may not have been built with async DNS support, so we disable
+    // signal handlers to avoid a possible and likely crash if a resolve times out.
+    curl_easy_setopt(curl, CURLOPT_NOSIGNAL, true);
     curl_easy_setopt(curl, CURLOPT_URL, endpoint.c_str());
     curl_easy_setopt(curl, CURLOPT_POST, true);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &DummyCurlWriteFunction);
