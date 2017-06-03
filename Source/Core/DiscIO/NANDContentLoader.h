@@ -24,7 +24,6 @@ namespace DiscIO
 enum class Region;
 
 // TODO: move some of these to Core/IOS/ES.
-bool AddTicket(const IOS::ES::TicketReader& signed_ticket);
 IOS::ES::TicketReader FindSignedTicket(u64 title_id);
 
 class CNANDContentData

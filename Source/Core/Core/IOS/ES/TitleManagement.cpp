@@ -30,6 +30,21 @@ namespace HLE
 {
 namespace Device
 {
+static ReturnCode WriteTicket(const IOS::ES::TicketReader& ticket)
+{
+  const u64 title_id = ticket.GetTitleId();
+
+  const std::string ticket_path = Common::GetTicketFileName(title_id, Common::FROM_SESSION_ROOT);
+  File::CreateFullPath(ticket_path);
+
+  File::IOFile ticket_file(ticket_path, "wb");
+  if (!ticket_file)
+    return ES_EIO;
+
+  const std::vector<u8>& raw_ticket = ticket.GetRawTicket();
+  return ticket_file.WriteBytes(raw_ticket.data(), raw_ticket.size()) ? IPC_SUCCESS : ES_EIO;
+}
+
 ReturnCode ES::ImportTicket(const std::vector<u8>& ticket_bytes)
 {
   IOS::ES::TicketReader ticket{ticket_bytes};
@@ -54,8 +69,9 @@ ReturnCode ES::ImportTicket(const std::vector<u8>& ticket_bytes)
     }
   }
 
-  if (!DiscIO::AddTicket(ticket))
-    return ES_EIO;
+  const ReturnCode write_ret = WriteTicket(ticket);
+  if (write_ret != IPC_SUCCESS)
+    return write_ret;
 
   INFO_LOG(IOS_ES, "ImportTicket: Imported ticket for title %016" PRIx64, ticket.GetTitleId());
   return IPC_SUCCESS;
