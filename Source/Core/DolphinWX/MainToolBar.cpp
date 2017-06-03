@@ -179,10 +179,10 @@ void MainToolBar::AddMainToolBarButtons()
   AddSeparator();
   AddToolBarButton(IDM_PLAY, TOOLBAR_PLAY, _("Play"), _("Play"));
   AddToolBarButton(IDM_STOP, TOOLBAR_STOP, _("Stop"), _("Stop"));
-  AddToolBarButton(IDM_TOGGLE_FULLSCREEN, TOOLBAR_FULLSCREEN, _("FullScr"), _("Toggle fullscreen"));
-  AddToolBarButton(IDM_SCREENSHOT, TOOLBAR_SCREENSHOT, _("ScrShot"), _("Take screenshot"));
+  AddToolBarButton(IDM_TOGGLE_FULLSCREEN, TOOLBAR_FULLSCREEN, _("Fullscreen"), _("Toggle fullscreen"));
+  AddToolBarButton(IDM_SCREENSHOT, TOOLBAR_SCREENSHOT, _("Screenshot"), _("Take screenshot"));
   AddSeparator();
-  AddToolBarButton(wxID_PREFERENCES, TOOLBAR_CONFIGMAIN, _("Config"), _("Configure..."));
+  AddToolBarButton(wxID_PREFERENCES, TOOLBAR_CONFIGMAIN, _("Configure"), _("Configure..."));
   AddToolBarButton(IDM_CONFIG_GFX_BACKEND, TOOLBAR_CONFIGGFX, _("Graphics"),
                    _("Graphics settings"));
   AddToolBarButton(IDM_CONFIG_CONTROLLERS, TOOLBAR_CONTROLLER, _("Controllers"),
