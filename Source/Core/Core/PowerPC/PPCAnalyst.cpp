@@ -6,6 +6,7 @@
 #include <queue>
 #include <string>
 
+#include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
@@ -187,6 +188,14 @@ bool AnalyzeFunction(u32 startAddr, Symbol& func, int max_size)
       return false;
     }
   }
+}
+
+bool ReanalyzeFunction(u32 start_addr, Symbol& func, int max_size)
+{
+  _assert_msg_(OSHLE, func.analyzed, "The function wasn't previously analyzed!");
+
+  func.analyzed = false;
+  return AnalyzeFunction(start_addr, func, max_size);
 }
 
 // Second pass analysis, done after the first pass is done for all functions

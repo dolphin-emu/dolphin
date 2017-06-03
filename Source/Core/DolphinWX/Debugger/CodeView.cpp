@@ -25,6 +25,7 @@
 #include "Common/SymbolDB.h"
 #include "Core/Core.h"
 #include "Core/Host.h"
+#include "Core/PowerPC/PPCAnalyst.h"
 #include "DolphinWX/Debugger/CodeView.h"
 #include "DolphinWX/Debugger/DebuggerUIUtil.h"
 #include "DolphinWX/Globals.h"
@@ -44,6 +45,8 @@ enum
   IDM_JITRESULTS,
   IDM_FOLLOWBRANCH,
   IDM_RENAMESYMBOL,
+  IDM_SETSYMBOLSIZE,
+  IDM_SETSYMBOLEND,
   IDM_PATCHALERT,
   IDM_COPYFUNCTION,
   IDM_ADDFUNCTION,
@@ -340,6 +343,53 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
   }
   break;
 
+  case IDM_SETSYMBOLSIZE:
+  {
+    Symbol* symbol = m_symbol_db->GetSymbolFromAddr(m_selection);
+    if (!symbol)
+      break;
+
+    wxTextEntryDialog dialog(this,
+                             wxString::Format(_("Enter symbol (%s) size:"), symbol->name.c_str()),
+                             wxGetTextFromUserPromptStr, wxString::Format(wxT("%i"), symbol->size));
+
+    if (dialog.ShowModal() == wxID_OK)
+    {
+      unsigned long size;
+      if (dialog.GetValue().ToULong(&size, 0) && size <= std::numeric_limits<u32>::max())
+      {
+        PPCAnalyst::ReanalyzeFunction(symbol->address, *symbol, size);
+        Refresh();
+        Host_NotifyMapLoaded();
+      }
+    }
+  }
+  break;
+
+  case IDM_SETSYMBOLEND:
+  {
+    Symbol* symbol = m_symbol_db->GetSymbolFromAddr(m_selection);
+    if (!symbol)
+      break;
+
+    wxTextEntryDialog dialog(
+        this, wxString::Format(_("Enter symbol (%s) end address:"), symbol->name.c_str()),
+        wxGetTextFromUserPromptStr, wxString::Format(wxT("%#08x"), symbol->address + symbol->size));
+
+    if (dialog.ShowModal() == wxID_OK)
+    {
+      unsigned long address;
+      if (dialog.GetValue().ToULong(&address, 0) && address <= std::numeric_limits<u32>::max() &&
+          address >= symbol->address)
+      {
+        PPCAnalyst::ReanalyzeFunction(symbol->address, *symbol, address - symbol->address);
+        Refresh();
+        Host_NotifyMapLoaded();
+      }
+    }
+  }
+  break;
+
   case IDM_PATCHALERT:
     break;
 
@@ -355,22 +405,24 @@ void CCodeView::OnMouseUpR(wxMouseEvent& event)
   // popup menu
   wxMenu menu;
   // menu->Append(IDM_GOTOINMEMVIEW, "&Goto in mem view");
-  menu.Append(IDM_FOLLOWBRANCH, _("&Follow branch"))
+  menu.Append(IDM_FOLLOWBRANCH, _("Follow &branch"))
       ->Enable(AddrToBranch(m_selection) ? true : false);
   menu.AppendSeparator();
 #if wxUSE_CLIPBOARD
-  menu.Append(IDM_COPYADDRESS, _("Copy &address"));
+  menu.Append(IDM_COPYADDRESS, _("&Copy address"));
   menu.Append(IDM_COPYFUNCTION, _("Copy &function"))->Enable(isSymbol);
-  menu.Append(IDM_COPYCODE, _("Copy &code line"));
+  menu.Append(IDM_COPYCODE, _("Copy code &line"));
   menu.Append(IDM_COPYHEX, _("Copy &hex"));
   menu.AppendSeparator();
 #endif
-  menu.Append(IDM_RENAMESYMBOL, _("Rename &symbol"))->Enable(isSymbol);
+  menu.Append(IDM_RENAMESYMBOL, _("&Rename symbol"))->Enable(isSymbol);
+  menu.Append(IDM_SETSYMBOLSIZE, _("Set symbol &size"))->Enable(isSymbol);
+  menu.Append(IDM_SETSYMBOLEND, _("Set symbol &end address"))->Enable(isSymbol);
   menu.AppendSeparator();
-  menu.Append(IDM_RUNTOHERE, _("&Run To Here"))->Enable(Core::IsRunning());
+  menu.Append(IDM_RUNTOHERE, _("Run &To Here"))->Enable(Core::IsRunning());
   menu.Append(IDM_ADDFUNCTION, _("&Add function"))->Enable(Core::IsRunning());
   menu.Append(IDM_JITRESULTS, _("PPC vs x86"))->Enable(Core::IsRunning());
-  menu.Append(IDM_INSERTBLR, _("Insert &blr"))->Enable(Core::IsRunning());
+  menu.Append(IDM_INSERTBLR, _("&Insert blr"))->Enable(Core::IsRunning());
   menu.Append(IDM_INSERTNOP, _("Insert &nop"))->Enable(Core::IsRunning());
   // menu.Append(IDM_PATCHALERT, _("Patch alert"))->Enable(Core::IsRunning());
   PopupMenu(&menu);
