@@ -512,11 +512,7 @@ bool UpdateRunningGameMetadata(std::optional<u64> title_id)
   if (!DVDThread::HasDisc())
     return false;
 
-  const DiscIO::Partition& partition = DVDThread::GetDiscType() == DiscIO::Platform::WII_DISC ?
-                                           s_current_partition :
-                                           DiscIO::PARTITION_NONE;
-
-  return DVDThread::UpdateRunningGameMetadata(partition, title_id);
+  return DVDThread::UpdateRunningGameMetadata(s_current_partition, title_id);
 }
 
 void ChangePartition(const DiscIO::Partition& partition)
