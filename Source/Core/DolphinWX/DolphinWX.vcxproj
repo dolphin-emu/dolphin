@@ -46,9 +46,6 @@
     <ResourceCompile>
       <AdditionalIncludeDirectories>$(ExternalsDir)wxWidgets3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
-    <ClCompile>
-      <AdditionalIncludeDirectories>$(ExternalsDir)cpp-optparse;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
     <Manifest>
       <AdditionalManifestFiles>DolphinWX.manifest;%(AdditionalManifestFiles)</AdditionalManifestFiles>
     </Manifest>
