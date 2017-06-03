@@ -5,6 +5,7 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 #include <vector>
 
 #include "Common/CommonTypes.h"
@@ -44,12 +45,12 @@ bool HasDisc();
 DiscIO::Platform GetDiscType();
 IOS::ES::TMDReader GetTMD(const DiscIO::Partition& partition);
 IOS::ES::TicketReader GetTicket(const DiscIO::Partition& partition);
-// If a disc is inserted and its title ID is equal to the title_id argument, returns true and
-// calls SConfig::SetRunningGameMetadata(IVolume&, Partition&). Otherwise, returns false.
-bool UpdateRunningGameMetadata(const DiscIO::Partition& partition, u64 title_id);
-// If a disc is inserted, returns true and calls
-// SConfig::SetRunningGameMetadata(IVolume&, Partition&). Otherwise, returns false.
-bool UpdateRunningGameMetadata(const DiscIO::Partition& partition);
+// This function returns true and calls SConfig::SetRunningGameMetadata(IVolume&, Partition&)
+// if both of the following conditions are true:
+// - A disc is inserted
+// - The title_id argument doesn't contain a value, or its value matches the disc's title ID
+bool UpdateRunningGameMetadata(const DiscIO::Partition& partition,
+                               std::optional<u64> title_id = {});
 
 void StartRead(u64 dvd_offset, u32 length, const DiscIO::Partition& partition,
                DVDInterface::ReplyType reply_type, s64 ticks_until_completion);
