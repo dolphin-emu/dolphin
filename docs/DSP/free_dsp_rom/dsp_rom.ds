@@ -57,40 +57,79 @@ param5:
 	lr $AR0, @CMBL
 	jmp 0x80b5
 
-wait_for_dsp_mbox:
-	lrs		$AC0.M, @DMBH
-	andcf	$AC0.M, #0x8000
-	jlz		wait_for_dsp_mbox+#IROM_BASE
-	ret
-
-wait_for_cpu_mbox:
-	lrs		$AC0.M, @CMBH
-	andcf	$AC0.M, #0x8000
-	jlnz	wait_for_cpu_mbox+#IROM_BASE
-	ret
-
 wait_dma:
 	lrs		$AC0.M, @DSCR
 	andcf	$AC0.M, #0x0004
 	jlz		wait_dma+#IROM_BASE
 	ret
 
-bootucode:
+WARNPC 0x78
+ORG 0x78
+; called by GBA ucode
+wait_for_cpu_mbox:
+    lrs   $AC0.M, @CMBH
+    andcf $AC0.M, #0x8000
+    jlnz  wait_for_cpu_mbox+#IROM_BASE
+    ret
+
+WARNPC 0x7e
+ORG 0x7e
+; called by GBA ucode
+wait_for_dsp_mbox:
+    lrs   $AC0.M, @DMBH
+    andcf $AC0.M, #0x8000
+    jlz   wait_for_dsp_mbox+#IROM_BASE
+    ret
+
+WARNPC 0x8b
+ORG 0x8b
+; called by GBA ucode
+dram_to_cpu:
+    srs @DSMAH, $AX0.H
+    srs @DSMAL, $AX0.L
+    si @DSCR, #0x1
+    srs @DSPA, $AX1.H
+    srs @DSBL, $AX1.L
+    call wait_dma+#IROM_BASE
+    ret
 
 WARNPC 0xb5
 ORG 0xb5
-sub_80b5:
-	set16
-	clr  $ACC1
-	clr  $ACC0
-	lris $AC0.M, #0x2
-	sr   @DSCR, $AC0.M
-	sr   @DSMAH, $IX0
-	sr   @DSMAL, $IX1
-	sr   @DSPA, $IX2
-	sr   @DSBL, $IX3
-	call wait_dma+#IROM_BASE
-	jmpr $AR0
+bootucode:
+    set16
+    clr  $ACC0
+    mrr  $AC0.M, $AX1.L
+    andi $AC0.M, #0xffff
+    jz bootucode_ix+#IROM_BASE
+
+WARNPC 0xbc
+ORG 0xbc
+; called by GBA ucode
+bootucode_ax:
+    lris $AC0.M, #0
+    srs  @DSCR, $AC0.M
+    srs  @DSMAH, $AX0.H
+    srs  @DSMAL, $AX0.L
+    srs  @DSPA, $AX1.H
+    srs  @DSBL, $AX1.L
+    call wait_dma+#IROM_BASE
+
+bootucode_ix:
+    mrr $AC0.M, $IX3
+    andi $AC0.M, #0xffff
+    jz bootucode_epilogue+#IROM_BASE
+    lris $AC0.M, #0x2
+    srs  @DSCR, $AC0.M
+    sr   @DSMAH, $IX0
+    sr   @DSMAL, $IX1
+    sr   @DSPA, $IX2
+    sr   @DSBL, $IX3
+    call wait_dma+#IROM_BASE
+
+bootucode_epilogue:
+    clr  $ACC1
+    lr   $AC1.M, @DSBL
+    jmpr $AR0
 
 WARNPC 0xe7
 ORG 0xe7
@@ -115,6 +154,21 @@ mix_two_add:
     call mix_add+#IROM_BASE
     mrr $AX1.H, $AX0.L
     mrr $AX0.L, $IX0
+    ret
+
+WARNPC 0x1f4
+ORG 0x1f4
+; used by GBA ucode for joyboot length and is the end of some mixing function
+; (for an example of hitting the full function, try running the main menu of
+; Metroid Prime using the Nintendo DSP ROM).
+sub_81f4:
+    asr16'ir $ACC1 : $AR1
+    clr's $ACC0 : @$AR3, $AC1.M ; AC1.M is always #0x0 here.
+    ; necessary both to match register state of official ROM, and for the
+    ; following mul. could also be mrr $AX1.H, $AC0.M (before clearing ACC0).
+    mrr $AX1.H, $AX0.H
+    ; make the product register match.
+    mul's $AX1.L, $AX1.H : @$AR3, $AC1.L
     ret
 
 WARNPC 0x1f9
@@ -158,6 +212,18 @@ mix_two_add_ramp:
     mrr $AX0.L, $IX1
     ret
 
+WARNPC 0x458
+ORG 0x458
+; used by GBA ucode for joyboot length
+sub_8458:
+    ; AC1.L after = AC1.M before + 7. this looks really stupid, but matches
+    ; captured traces and seems to work.
+    addis $AC1.M, #0x7
+    asr16 $ACC1
+    srri @$AR3, $AC1.M ; or just #0x0.
+    srri @$AR3, $AC1.L
+    ret
+
 WARNPC 0x45d
 ORG 0x45d
 mix_add_ramp:
@@ -195,6 +261,49 @@ ____mix_add_ramp_end_loop:
     mrr $AX1.H, $AR3
     mrr $AR1, $IX3
     mrr $AR3, $IX2
+    ret
+
+WARNPC 0x723
+ORG 0x723
+; called by GBA ucode
+sub_8723:
+    ; in GBA-HLE, the nonce challenge is XOR'd with 0x6f646573, which happens
+    ; to match the values of the AX1.H register across these two calls.
+    xorr $AC1.M, $AX1.H
+    ; the value of @AR2 is always the same as AC1.M after
+    srrd @$AR2, $AC1.M
+    ret
+
+WARNPC 0x809
+ORG 0x809
+; called by GBA ucode
+sub_8809:
+    ; AR2 is the only addressing register that corresponds to the dmem writes
+    ; could be AC1.L or AX0.L in the second call, but can't be AX0.L in the
+    ; third call.
+    srr @$AR2, $AC1.L
+    ; AC1.M after calling always look like either AC1.M | AC0.M or
+    ; AC1.M | AX0.H. TODO: Why pick AX0.H?
+    orr $AC1.M, $AX0.H
+    ; the second dmem write is incremented only in calls #3A and #3B. There,
+    ; IX2 is the only register set to 1, and it's specifically set to 1 in the
+    ; ucode. It's set to 0 in the first two calls.
+    addarn $AR2, $IX2
+    ; obvious
+    srri @$AR2, $AC1.M
+    ret
+
+WARNPC 0x8e5
+ORG 0x8e5
+; used by GBA ucode for challenge nonce, logo palette/speed, and joyboot length
+sub_88e5:
+    dar $AR1 ; always gets decremented, no effect on rest of function
+    lrri $AC1.M, @$AR2
+    lrrd $AC1.L, @$AR2
+    add $ACC0, $ACC1 ; signed addition
+    orr $AC0.M, $AX0.H
+    srri @$AR2, $AC0.M
+    srr @$AR2, $AC0.L
     ret
 
 WARNPC 0x1000
