@@ -107,9 +107,12 @@ std::string CVolumeWAD::GetMakerID(const Partition& partition) const
   return DecodeString(temp);
 }
 
-bool CVolumeWAD::GetTitleID(u64* buffer, const Partition& partition) const
+std::optional<u64> CVolumeWAD::GetTitleID(const Partition& partition) const
 {
-  return ReadSwapped(m_offset + 0x01DC, buffer, partition);
+  u64 title_id;
+  if (!ReadSwapped(m_offset + 0x01DC, &title_id, partition))
+    return {};
+  return title_id;
 }
 
 u16 CVolumeWAD::GetRevision(const Partition& partition) const
@@ -141,11 +144,11 @@ std::vector<u32> CVolumeWAD::GetBanner(int* width, int* height) const
   *width = 0;
   *height = 0;
 
-  u64 title_id;
-  if (!GetTitleID(&title_id))
+  const std::optional<u64> title_id = GetTitleID();
+  if (!title_id)
     return std::vector<u32>();
 
-  return GetWiiBanner(width, height, title_id);
+  return GetWiiBanner(width, height, *title_id);
 }
 
 BlobType CVolumeWAD::GetBlobType() const

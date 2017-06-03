@@ -8,6 +8,7 @@
 #include <limits>
 #include <map>
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -53,8 +54,8 @@ public:
   }
   virtual std::vector<Partition> GetPartitions() const { return {{}}; }
   virtual Partition GetGamePartition() const { return PARTITION_NONE; }
-  bool GetTitleID(u64* buffer) const { return GetTitleID(buffer, GetGamePartition()); }
-  virtual bool GetTitleID(u64* buffer, const Partition& partition) const { return false; }
+  std::optional<u64> GetTitleID() const { return GetTitleID(GetGamePartition()); }
+  virtual std::optional<u64> GetTitleID(const Partition& partition) const { return {}; }
   virtual const IOS::ES::TicketReader& GetTicket(const Partition& partition) const
   {
     return INVALID_TICKET;

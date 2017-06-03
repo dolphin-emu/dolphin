@@ -161,7 +161,8 @@ bool GameFile::TryLoadVolume()
 
   m_game_id = QString::fromStdString(volume->GetGameID());
   std::string maker_id = volume->GetMakerID();
-  volume->GetTitleID(&m_title_id);
+  if (std::optional<u64> title_id = volume->GetTitleID())
+    m_title_id = *title_id;
   m_maker = QString::fromStdString(DiscIO::GetCompanyFromID(maker_id));
   m_maker_id = QString::fromStdString(maker_id);
   m_revision = volume->GetRevision();
