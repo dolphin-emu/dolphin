@@ -9,7 +9,7 @@
       <PrecompiledHeaderFile>wx/wxprec.h</PrecompiledHeaderFile>
       <ExceptionHandling>Async</ExceptionHandling>
       <PreprocessorDefinitions>WXBUILDING;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\;..\..\include;..\..\..\xxhash;..\..\..\zlib;..\..\..\libpng</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\;..\..\include;..\..\..\zlib;..\..\..\libpng</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalOptions>"/manifestdependency:type='Win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\" %(AdditionalOptions)</AdditionalOptions>
