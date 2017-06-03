@@ -248,26 +248,6 @@ void CNANDContentManager::ClearCache()
   m_map.clear();
 }
 
-bool AddTicket(const IOS::ES::TicketReader& signed_ticket)
-{
-  if (!signed_ticket.IsValid())
-  {
-    return false;
-  }
-
-  u64 title_id = signed_ticket.GetTitleId();
-
-  std::string ticket_filename = Common::GetTicketFileName(title_id, Common::FROM_CONFIGURED_ROOT);
-  File::CreateFullPath(ticket_filename);
-
-  File::IOFile ticket_file(ticket_filename, "wb");
-  if (!ticket_file)
-    return false;
-
-  const std::vector<u8>& raw_ticket = signed_ticket.GetRawTicket();
-  return ticket_file.WriteBytes(raw_ticket.data(), raw_ticket.size());
-}
-
 IOS::ES::TicketReader FindSignedTicket(u64 title_id)
 {
   std::string ticket_filename = Common::GetTicketFileName(title_id, Common::FROM_CONFIGURED_ROOT);
