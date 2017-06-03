@@ -181,31 +181,6 @@ static void TeardownDeviceObjects()
   s_gx_state_cache.Clear();
 }
 
-static void CreateScreenshotTexture()
-{
-  // We can't render anything outside of the backbuffer anyway, so use the backbuffer size as the
-  // screenshot buffer size.
-  // This texture is released to be recreated when the window is resized in Renderer::SwapImpl.
-  D3D11_TEXTURE2D_DESC scrtex_desc = CD3D11_TEXTURE2D_DESC(
-      DXGI_FORMAT_R8G8B8A8_UNORM, D3D::GetBackBufferWidth(), D3D::GetBackBufferHeight(), 1, 1, 0,
-      D3D11_USAGE_STAGING, D3D11_CPU_ACCESS_READ | D3D11_CPU_ACCESS_WRITE);
-  HRESULT hr = D3D::device->CreateTexture2D(&scrtex_desc, nullptr, &s_screenshot_texture);
-  CHECK(hr == S_OK, "Create screenshot staging texture");
-  D3D::SetDebugObjectName(s_screenshot_texture, "staging screenshot texture");
-}
-
-static D3D11_BOX GetScreenshotSourceBox(const TargetRectangle& targetRc)
-{
-  // Since the screenshot buffer is copied back to the CPU via Map(), we can't access pixels that
-  // fall outside the backbuffer bounds. Therefore, when crop is enabled and the target rect is
-  // off-screen to the top/left, we clamp the origin at zero, as well as the bottom/right
-  // coordinates at the backbuffer dimensions. This will result in a rectangle that can be
-  // smaller than the backbuffer, but never larger.
-  return CD3D11_BOX(std::max(targetRc.left, 0), std::max(targetRc.top, 0), 0,
-                    std::min(D3D::GetBackBufferWidth(), (unsigned int)targetRc.right),
-                    std::min(D3D::GetBackBufferHeight(), (unsigned int)targetRc.bottom), 1);
-}
-
 static void Create3DVisionTexture(int width, int height)
 {
   // Create a staging texture for 3D vision with signature information in the last row.
@@ -654,10 +629,10 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& rc, u64 ti
   // activate linear filtering for the buffer copies
   D3D::SetLinearCopySampler();
   auto* xfb_texture = static_cast<DXTexture*>(texture);
-  TargetRectangle source_rc = xfb_texture->config.Rect();
+  TargetRectangle source_rc = xfb_texture->GetConfig().GetRect();
 
-  BlitScreen(source_rc, targetRc, xfb_texture->GetRawTexIdentifier(), xfb_texture->config.width,
-             xfb_texture->config.height, Gamma);
+  BlitScreen(source_rc, targetRc, xfb_texture->GetRawTexIdentifier(), xfb_texture->GetConfig().width,
+             xfb_texture->GetConfig().height, Gamma);
 
   // Reset viewport for drawing text
   D3D11_VIEWPORT vp =
@@ -676,7 +651,7 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& rc, u64 ti
   g_texture_cache->OnConfigChanged(g_ActiveConfig);
   VertexShaderCache::RetreiveAsyncShaders();
 
-  SetWindowSize(xfb_texture->config.width, xfb_texture->config.height);
+  SetWindowSize(xfb_texture->GetConfig().width, xfb_texture->GetConfig().height);
 
   const bool window_resized = CheckForResize();
   const bool fullscreen = D3D::GetFullscreenState();

@@ -81,6 +81,7 @@ void VideoConfig::Refresh()
   bConvertHiresTextures = Config::Get(Config::GFX_CONVERT_HIRES_TEXTURES);
   bCacheHiresTextures = Config::Get(Config::GFX_CACHE_HIRES_TEXTURES);
   bDumpEFBTarget = Config::Get(Config::GFX_DUMP_EFB_TARGET);
+  bDumpXFBTarget = Config::Get(Config::GFX_DUMP_XFB_TARGET);
   bDumpFramesAsImages = Config::Get(Config::GFX_DUMP_FRAMES_AS_IMAGES);
   bFreeLook = Config::Get(Config::GFX_FREE_LOOK);
   bUseFFV1 = Config::Get(Config::GFX_USE_FFV1);

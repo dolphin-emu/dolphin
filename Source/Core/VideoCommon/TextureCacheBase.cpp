@@ -1568,10 +1568,19 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstF
 
       if (g_ActiveConfig.bDumpEFBTarget && !is_xfb_copy)
       {
-        static int count = 0;
+        static int efb_count = 0;
         entry->texture->Save(StringFromFormat("%sefb_frame_%i.png",
                                               File::GetUserPath(D_DUMPTEXTURES_IDX).c_str(),
-                                              count++),
+                                              efb_count++),
+                             0);
+      }
+
+	  if (g_ActiveConfig.bDumpXFBTarget && is_xfb_copy)
+      {
+        static int xfb_count = 0;
+        entry->texture->Save(StringFromFormat("%sxfb_frame_%i.png",
+                                              File::GetUserPath(D_DUMPTEXTURES_IDX).c_str(),
+                                              xfb_count++),
                              0);
       }
 

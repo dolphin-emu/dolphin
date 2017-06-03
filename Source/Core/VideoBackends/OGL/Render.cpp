@@ -1344,8 +1344,8 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& rc, u64 ti
 
   TargetRectangle sourceRc = ConvertEFBRectangle(rc);
   sourceRc.left = 0;
-  sourceRc.right = xfb_texture->config.width;
-  sourceRc.top = xfb_texture->config.height;
+  sourceRc.right = xfb_texture->GetConfig().width;
+  sourceRc.top = xfb_texture->GetConfig().height;
   sourceRc.bottom = 0;
 
   ResetAPIState();
@@ -1358,7 +1358,7 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& rc, u64 ti
 
   // Copy the framebuffer to screen.
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
-  BlitScreen(sourceRc, flipped_trc, xfb_texture->GetRawTexIdentifier(), xfb_texture->config.width, xfb_texture->config.height);
+  BlitScreen(sourceRc, flipped_trc, xfb_texture->GetRawTexIdentifier(), xfb_texture->GetConfig().width, xfb_texture->GetConfig().height);
 
   // The FlushFrameDump call here is necessary even after frame dumping is stopped.
   // If left out, screenshots are "one frame" behind, as an extra frame is dumped and buffered.
@@ -1383,7 +1383,7 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& rc, u64 ti
 
   // Finish up the current frame, print some stats
 
-  SetWindowSize(xfb_texture->config.width, xfb_texture->config.height);
+  SetWindowSize(xfb_texture->GetConfig().width, xfb_texture->GetConfig().height);
 
   GLInterface->Update();  // just updates the render window position and the backbuffer size
 

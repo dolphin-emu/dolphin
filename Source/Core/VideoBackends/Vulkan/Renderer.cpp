@@ -554,7 +554,7 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& rc, u64 ti
 
   // Update the window size based on the frame that was just rendered.
   // Due to depending on guest state, we need to call this every frame.
-  SetWindowSize(xfb_texture->config.width, xfb_texture->config.height);
+  SetWindowSize(xfb_texture->GetConfig().width, xfb_texture->GetConfig().height);
 
   // Clean up stale textures.
   TextureCache::GetInstance()->Cleanup(frameCount);
@@ -731,7 +731,7 @@ void Renderer::DrawScreen(VKTexture* xfb_texture)
                        VK_SUBPASS_CONTENTS_INLINE);
 
   // Draw
-  TargetRectangle source_rc = xfb_texture->config.Rect();
+  TargetRectangle source_rc = xfb_texture->GetConfig().GetRect();
   BlitScreen(m_swap_chain->GetRenderPass(), GetTargetRectangle(), source_rc, xfb_texture->GetRawTexIdentifier());
 
   // Draw OSD

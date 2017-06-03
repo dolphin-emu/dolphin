@@ -37,6 +37,7 @@ extern const ConfigInfo<bool> GFX_HIRES_TEXTURES;
 extern const ConfigInfo<bool> GFX_CONVERT_HIRES_TEXTURES;
 extern const ConfigInfo<bool> GFX_CACHE_HIRES_TEXTURES;
 extern const ConfigInfo<bool> GFX_DUMP_EFB_TARGET;
+extern const ConfigInfo<bool> GFX_DUMP_XFB_TARGET;
 extern const ConfigInfo<bool> GFX_DUMP_FRAMES_AS_IMAGES;
 extern const ConfigInfo<bool> GFX_FREE_LOOK;
 extern const ConfigInfo<bool> GFX_USE_FFV1;
