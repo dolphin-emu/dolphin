@@ -152,8 +152,8 @@ std::vector<Content> GetStoredContentsFromTMD(const TMDReader& tmd)
                [&tmd, &shared](const auto& content) {
                  if (content.IsShared())
                  {
-                   const std::string path = shared.GetFilenameFromSHA1(content.sha1);
-                   return path != "unk" && File::Exists(path);
+                   const auto path = shared.GetFilenameFromSHA1(content.sha1);
+                   return path && File::Exists(*path);
                  }
                  return File::Exists(
                      Common::GetTitleContentPath(tmd.GetTitleId(), Common::FROM_SESSION_ROOT) +

@@ -75,7 +75,7 @@ struct SNANDContent
 class CNANDContentLoader final
 {
 public:
-  explicit CNANDContentLoader(const std::string& content_name);
+  explicit CNANDContentLoader(const std::string& content_name, Common::FromWhichRoot from);
   ~CNANDContentLoader();
 
   bool IsValid() const;
@@ -90,6 +90,7 @@ private:
 
   bool m_Valid = false;
   bool m_IsWAD = false;
+  Common::FromWhichRoot m_root;
   std::string m_Path;
   IOS::ES::TMDReader m_tmd;
   IOS::ES::TicketReader m_ticket;
@@ -107,8 +108,11 @@ public:
     return instance;
   }
 
-  const CNANDContentLoader& GetNANDLoader(const std::string& content_path);
-  const CNANDContentLoader& GetNANDLoader(u64 title_id, Common::FromWhichRoot from);
+  const CNANDContentLoader&
+  GetNANDLoader(const std::string& content_path,
+                Common::FromWhichRoot from = Common::FROM_CONFIGURED_ROOT);
+  const CNANDContentLoader&
+  GetNANDLoader(u64 title_id, Common::FromWhichRoot from = Common::FROM_CONFIGURED_ROOT);
   void ClearCache();
 
 private:
