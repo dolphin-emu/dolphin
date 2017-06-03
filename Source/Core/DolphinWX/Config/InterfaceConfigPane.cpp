@@ -1,4 +1,4 @@
-// Copyright 2015 Dolphin Emulator Project
+﻿// Copyright 2015 Dolphin Emulator Project
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
@@ -55,35 +55,34 @@ void InterfaceConfigPane::InitializeGUI()
   // keep these in sync with the language_ids array at the beginning of this file
   m_interface_lang_strings.Add(_("<System Language>"));
 
-  m_interface_lang_strings.Add(L"Bahasa Melayu");            // Malay
-  m_interface_lang_strings.Add(L"Catal\u00E0");              // Catalan
-  m_interface_lang_strings.Add(L"\u010Ce\u0161tina");        // Czech
-  m_interface_lang_strings.Add(L"Dansk");                    // Danish
-  m_interface_lang_strings.Add(L"Deutsch");                  // German
-  m_interface_lang_strings.Add(L"English");                  // English
-  m_interface_lang_strings.Add(L"Espa\u00F1ol");             // Spanish
-  m_interface_lang_strings.Add(L"Fran\u00E7ais");            // French
-  m_interface_lang_strings.Add(L"Hrvatski");                 // Croatian
-  m_interface_lang_strings.Add(L"Italiano");                 // Italian
-  m_interface_lang_strings.Add(L"Magyar");                   // Hungarian
-  m_interface_lang_strings.Add(L"Nederlands");               // Dutch
-  m_interface_lang_strings.Add(L"Norsk bokm\u00E5l");        // Norwegian
-  m_interface_lang_strings.Add(L"Polski");                   // Polish
-  m_interface_lang_strings.Add(L"Portugu\u00EAs");           // Portuguese
-  m_interface_lang_strings.Add(L"Portugu\u00EAs (Brasil)");  // Portuguese (Brazil)
-  m_interface_lang_strings.Add(L"Rom\u00E2n\u0103");         // Romanian
-  m_interface_lang_strings.Add(L"Srpski");                   // Serbian
-  m_interface_lang_strings.Add(L"Svenska");                  // Swedish
-  m_interface_lang_strings.Add(L"T\u00FCrk\u00E7e");         // Turkish
-
-  m_interface_lang_strings.Add(L"\u0395\u03BB\u03BB\u03B7\u03BD\u03B9\u03BA\u03AC");  // Greek
-  m_interface_lang_strings.Add(L"\u0420\u0443\u0441\u0441\u043A\u0438\u0439");        // Russian
-  m_interface_lang_strings.Add(L"\u0627\u0644\u0639\u0631\u0628\u064A\u0629");        // Arabic
-  m_interface_lang_strings.Add(L"\u0641\u0627\u0631\u0633\u06CC");                    // Farsi
-  m_interface_lang_strings.Add(L"\uD55C\uAD6D\uC5B4");                                // Korean
-  m_interface_lang_strings.Add(L"\u65E5\u672C\u8A9E");                                // Japanese
-  m_interface_lang_strings.Add(L"\u7B80\u4F53\u4E2D\u6587");  // Simplified Chinese
-  m_interface_lang_strings.Add(L"\u7E41\u9AD4\u4E2D\u6587");  // Traditional Chinese
+  m_interface_lang_strings.Add(u8"Bahasa Melayu");      // Malay
+  m_interface_lang_strings.Add(u8"Català");             // Catalan
+  m_interface_lang_strings.Add(u8"Čeština");            // Czech
+  m_interface_lang_strings.Add(u8"Dansk");              // Danish
+  m_interface_lang_strings.Add(u8"Deutsch");            // German
+  m_interface_lang_strings.Add(u8"English");            // English
+  m_interface_lang_strings.Add(u8"Español");            // Spanish
+  m_interface_lang_strings.Add(u8"Français");           // French
+  m_interface_lang_strings.Add(u8"Hrvatski");           // Croatian
+  m_interface_lang_strings.Add(u8"Italiano");           // Italian
+  m_interface_lang_strings.Add(u8"Magyar");             // Hungarian
+  m_interface_lang_strings.Add(u8"Nederlands");         // Dutch
+  m_interface_lang_strings.Add(u8"Norsk bokmål");       // Norwegian
+  m_interface_lang_strings.Add(u8"Polski");             // Polish
+  m_interface_lang_strings.Add(u8"Português");          // Portuguese
+  m_interface_lang_strings.Add(u8"Português (Brasil)"); // Portuguese (Brazil)
+  m_interface_lang_strings.Add(u8"Română");             // Romanian
+  m_interface_lang_strings.Add(u8"Srpski");             // Serbian
+  m_interface_lang_strings.Add(u8"Svenska");            // Swedish
+  m_interface_lang_strings.Add(u8"Türkçe");             // Turkish
+  m_interface_lang_strings.Add(u8"Ελληνικά");           // Greek
+  m_interface_lang_strings.Add(u8"Русский");            // Russian
+  m_interface_lang_strings.Add(u8"العربية");           // Arabic
+  m_interface_lang_strings.Add(u8"فارسی");              // Farsi
+  m_interface_lang_strings.Add(u8"한국어");              // Korean
+  m_interface_lang_strings.Add(u8"日本語");              // Japanese
+  m_interface_lang_strings.Add(u8"简体中文");            // Simplified Chinese
+  m_interface_lang_strings.Add(u8"繁體中文");            // Traditional Chinese
 
   m_confirm_stop_checkbox = new wxCheckBox(this, wxID_ANY, _("Confirm on Stop"));
   m_panic_handlers_checkbox = new wxCheckBox(this, wxID_ANY, _("Use Panic Handlers"));

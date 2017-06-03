@@ -1,4 +1,4 @@
-// Copyright 2016 Dolphin Emulator Project
+﻿// Copyright 2016 Dolphin Emulator Project
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
@@ -53,7 +53,7 @@ AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent)
   text_label->setOpenExternalLinks(true);
 
   QLabel* copyright =
-      new QLabel(tr("© 2003-%1 Dolphin Team. “GameCube” and “Wii” are"
+      new QLabel(tr(u8"© 2003-%1 Dolphin Team. “GameCube” and “Wii” are"
                     " trademarks of Nintendo. Dolphin is not affiliated with Nintendo in any way.")
                      .arg(QStringLiteral(__DATE__).right(4)));
 
