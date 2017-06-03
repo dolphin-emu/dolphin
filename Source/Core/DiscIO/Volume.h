@@ -51,7 +51,7 @@ public:
     *buffer = Common::FromBigEndian(temp);
     return true;
   }
-  virtual std::vector<Partition> GetPartitions() const { return {{}}; }
+  virtual std::vector<Partition> GetPartitions() const { return {}; }
   virtual Partition GetGamePartition() const { return PARTITION_NONE; }
   bool GetTitleID(u64* buffer) const { return GetTitleID(buffer, GetGamePartition()); }
   virtual bool GetTitleID(u64* buffer, const Partition& partition) const { return false; }
@@ -68,11 +68,11 @@ public:
   virtual u16 GetRevision(const Partition& partition) const = 0;
   std::string GetInternalName() const { return GetInternalName(GetGamePartition()); }
   virtual std::string GetInternalName(const Partition& partition) const = 0;
-  virtual std::map<Language, std::string> GetShortNames() const { return {{}}; }
-  virtual std::map<Language, std::string> GetLongNames() const { return {{}}; }
-  virtual std::map<Language, std::string> GetShortMakers() const { return {{}}; }
-  virtual std::map<Language, std::string> GetLongMakers() const { return {{}}; }
-  virtual std::map<Language, std::string> GetDescriptions() const { return {{}}; }
+  virtual std::map<Language, std::string> GetShortNames() const { return {}; }
+  virtual std::map<Language, std::string> GetLongNames() const { return {}; }
+  virtual std::map<Language, std::string> GetShortMakers() const { return {}; }
+  virtual std::map<Language, std::string> GetLongMakers() const { return {}; }
+  virtual std::map<Language, std::string> GetDescriptions() const { return {}; }
   virtual std::vector<u32> GetBanner(int* width, int* height) const = 0;
   u64 GetFSTSize() const { return GetFSTSize(GetGamePartition()); }
   virtual u64 GetFSTSize(const Partition& partition) const = 0;

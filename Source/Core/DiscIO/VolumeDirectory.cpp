@@ -211,7 +211,7 @@ std::map<Language, std::string> CVolumeDirectory::GetLongNames() const
 {
   std::string name = GetInternalName();
   if (name.empty())
-    return {{}};
+    return {};
   return {{Language::LANGUAGE_UNKNOWN, name}};
 }
 
