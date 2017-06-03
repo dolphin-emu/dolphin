@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cinttypes>
 #include <memory>
+#include <optional>
 #include <string>
 
 #include "AudioCommon/AudioCommon.h"
@@ -506,7 +507,7 @@ void SetLidOpen()
     GenerateDIInterrupt(INT_CVRINT);
 }
 
-bool UpdateRunningGameMetadata(u64 title_id)
+bool UpdateRunningGameMetadata(std::optional<u64> title_id)
 {
   if (!DVDThread::HasDisc())
     return false;
@@ -516,18 +517,6 @@ bool UpdateRunningGameMetadata(u64 title_id)
                                            DiscIO::PARTITION_NONE;
 
   return DVDThread::UpdateRunningGameMetadata(partition, title_id);
-}
-
-bool UpdateRunningGameMetadata()
-{
-  if (!DVDThread::HasDisc())
-    return false;
-
-  const DiscIO::Partition& partition = DVDThread::GetDiscType() == DiscIO::Platform::WII_DISC ?
-                                           s_current_partition :
-                                           DiscIO::PARTITION_NONE;
-
-  return DVDThread::UpdateRunningGameMetadata(partition);
 }
 
 void ChangePartition(const DiscIO::Partition& partition)

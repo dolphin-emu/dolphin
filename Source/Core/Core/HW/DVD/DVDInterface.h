@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -114,12 +115,11 @@ bool IsDiscInside();
 void ChangeDiscAsHost(const std::string& new_path);  // Can only be called by the host thread
 void ChangeDiscAsCPU(const std::string& new_path);   // Can only be called by the CPU thread
 
-// If a disc is inserted and its title ID is equal to the title_id argument, returns true and
-// calls SConfig::SetRunningGameMetadata(IVolume&, Partition&). Otherwise, returns false.
-bool UpdateRunningGameMetadata(u64 title_id);
-// If a disc is inserted, returns true and calls
-// SConfig::SetRunningGameMetadata(IVolume&, Partition&). Otherwise, returns false.
-bool UpdateRunningGameMetadata();
+// This function returns true and calls SConfig::SetRunningGameMetadata(IVolume&, Partition&)
+// if both of the following conditions are true:
+// - A disc is inserted
+// - The title_id argument doesn't contain a value, or its value matches the disc's title ID
+bool UpdateRunningGameMetadata(std::optional<u64> title_id = {});
 
 // Direct access to DI for IOS HLE (simpler to implement than how real IOS accesses DI,
 // and lets us skip encrypting/decrypting in some cases)
