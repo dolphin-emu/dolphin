@@ -46,7 +46,7 @@ VertexLoaderX64::VertexLoaderX64(const TVtxDesc& vtx_desc, const VAT& vtx_att)
   if (!IsInitialized())
     return;
 
-  AllocCodeSpace(4096, false);
+  AllocCodeSpace(4096);
   ClearCodeSpace();
   GenerateVertexLoader();
   WriteProtect();
