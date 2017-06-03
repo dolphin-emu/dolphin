@@ -461,8 +461,7 @@ void FilesystemPanel::ExtractDirectories(const std::string& full_path,
     size = static_cast<u32>(fst.size());
 
     filesystem->ExportApploader(output_folder);
-    if (m_opened_iso->GetVolumeType() == DiscIO::Platform::GAMECUBE_DISC)
-      filesystem->ExportDOL(output_folder);
+    filesystem->ExportDOL(output_folder);
   }
   else
   {
