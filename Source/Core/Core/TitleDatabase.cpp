@@ -67,7 +67,7 @@ static bool LoadMap(const std::string& file_path, Map& map,
     if (equals_index != std::string::npos)
     {
       const std::string game_id = StripSpaces(line.substr(0, equals_index));
-      if (predicate(game_id))
+      if (game_id.length() >= 4 && predicate(game_id))
         map[game_id] = StripSpaces(line.substr(equals_index + 1));
     }
   }
