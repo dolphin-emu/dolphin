@@ -65,10 +65,24 @@ void HLE_GeneralDebugPrint()
   NOTICE_LOG(OSREPORT, "%08x->%08x| %s", LR, PC, SHIFTJISToUTF8(report_message).c_str());
 }
 
-// __write_console is slightly abnormal
+// __write_console(int fd, const void* buffer, const u32* size)
 void HLE_write_console()
 {
   std::string report_message = GetStringVA(4);
+  if (PowerPC::HostIsRAMAddress(GPR(5)))
+  {
+    u32 size = PowerPC::Read_U32(GPR(5));
+    if (size > report_message.size())
+      WARN_LOG(OSREPORT, "__write_console uses an invalid size of 0x%08x", size);
+    else if (size == 0)
+      WARN_LOG(OSREPORT, "__write_console uses a size of zero");
+    else
+      report_message = report_message.substr(0, size);
+  }
+  else
+  {
+    ERROR_LOG(OSREPORT, "__write_console uses an unreachable size pointer");
+  }
 
   NPC = LR;
 
