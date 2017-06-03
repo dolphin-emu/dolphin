@@ -89,6 +89,16 @@ static bool IsWiiTitle(const std::string& game_id)
   return !IsGCTitle(game_id);
 }
 
+static bool IsJapaneseGCTitle(const std::string& game_id)
+{
+  return IsGCTitle(game_id) && DiscIO::RegionSwitchGC(game_id[3]) == DiscIO::Region::NTSC_J;
+}
+
+static bool IsNonJapaneseGCTitle(const std::string& game_id)
+{
+  return IsGCTitle(game_id) && DiscIO::RegionSwitchGC(game_id[3]) != DiscIO::Region::NTSC_J;
+}
+
 static bool LoadMap(const std::string& file_path, Map& gc_map, Map& wii_map)
 {
   Map map;
@@ -118,10 +128,16 @@ TitleDatabase::TitleDatabase()
   LoadMap(File::GetSysDirectory() + "wiitdb-en.txt", m_gc_title_map, m_wii_title_map);
 
   // Load the database in the console language.
+  // Note: The GameCube language setting can't be set to Japanese,
+  // so instead, we use Japanese names iff the games are NTSC-J.
   const std::string gc_code = GetLanguageCode(SConfig::GetInstance().GetCurrentLanguage(false));
   const std::string wii_code = GetLanguageCode(SConfig::GetInstance().GetCurrentLanguage(true));
+  LoadMap(File::GetSysDirectory() + "wiitdb-ja.txt", m_gc_title_map, IsJapaneseGCTitle);
   if (gc_code != "en")
-    LoadMap(File::GetSysDirectory() + "wiitdb-" + gc_code + ".txt", m_gc_title_map, IsGCTitle);
+  {
+    LoadMap(File::GetSysDirectory() + "wiitdb-" + gc_code + ".txt", m_gc_title_map,
+            IsNonJapaneseGCTitle);
+  }
   if (wii_code != "en")
     LoadMap(File::GetSysDirectory() + "wiitdb-" + wii_code + ".txt", m_wii_title_map, IsWiiTitle);
 
