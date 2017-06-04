@@ -11,6 +11,7 @@
 #include <mbedtls/aes.h>
 #include <mbedtls/sha1.h>
 #include <memory>
+#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -38,30 +39,30 @@ CVolumeWiiCrypted::CVolumeWiiCrypted(std::unique_ptr<IBlobReader> reader)
   // Get tickets, TMDs, and decryption keys for all partitions
   for (u32 partition_group = 0; partition_group < 4; ++partition_group)
   {
-    u32 number_of_partitions;
-    if (!m_pReader->ReadSwapped(0x40000 + (partition_group * 8), &number_of_partitions))
+    const std::optional<u32> number_of_partitions =
+        m_pReader->ReadSwapped<u32>(0x40000 + (partition_group * 8));
+    if (!number_of_partitions)
       continue;
 
-    u32 read_buffer;
-    if (!m_pReader->ReadSwapped(0x40000 + (partition_group * 8) + 4, &read_buffer))
+    std::optional<u32> read_buffer = m_pReader->ReadSwapped<u32>(0x40000 + (partition_group * 8) + 4);
+    if (!read_buffer)
       continue;
-    const u64 partition_table_offset = (u64)read_buffer << 2;
+    const u64 partition_table_offset = static_cast<u64>(*read_buffer) << 2;
 
     for (u32 i = 0; i < number_of_partitions; i++)
     {
       // Read the partition offset
-      if (!m_pReader->ReadSwapped(partition_table_offset + (i * 8), &read_buffer))
+      read_buffer = m_pReader->ReadSwapped<u32>(partition_table_offset + (i * 8));
+      if (!read_buffer)
         continue;
-      const u64 partition_offset = (u64)read_buffer << 2;
+      const u64 partition_offset = static_cast<u64>(*read_buffer) << 2;
 
       // Set m_game_partition if this is the game partition
       if (m_game_partition == PARTITION_NONE)
       {
-        u32 partition_type;
-        if (!m_pReader->ReadSwapped(partition_table_offset + (i * 8) + 4, &partition_type))
-          continue;
-
-        if (partition_type == 0)
+        const std::optional<u32> partition_type =
+            m_pReader->ReadSwapped<u32>(partition_table_offset + (i * 8) + 4);
+        if (partition_type == u32(0))
           m_game_partition = Partition(partition_offset);
       }
 
@@ -74,22 +75,20 @@ CVolumeWiiCrypted::CVolumeWiiCrypted(std::unique_ptr<IBlobReader> reader)
         continue;
 
       // Read TMD
-      u32 tmd_size = 0;
-      u32 tmd_address = 0;
-      if (!m_pReader->ReadSwapped(partition_offset + 0x2a4, &tmd_size))
+      const std::optional<u32> tmd_size = m_pReader->ReadSwapped<u32>(partition_offset + 0x2a4);
+      std::optional<u32> tmd_address = m_pReader->ReadSwapped<u32>(partition_offset + 0x2a8);
+      if (!tmd_size || !tmd_address)
         continue;
-      if (!m_pReader->ReadSwapped(partition_offset + 0x2a8, &tmd_address))
-        continue;
-      tmd_address <<= 2;
-      if (!IOS::ES::IsValidTMDSize(tmd_size))
+      *tmd_address <<= 2;
+      if (!IOS::ES::IsValidTMDSize(*tmd_size))
       {
         // This check is normally done by ES in ES_DiVerify, but that would happen too late
         // (after allocating the buffer), so we do the check here.
         PanicAlert("Invalid TMD size");
         continue;
       }
-      std::vector<u8> tmd_buffer(tmd_size);
-      if (!m_pReader->Read(partition_offset + tmd_address, tmd_size, tmd_buffer.data()))
+      std::vector<u8> tmd_buffer(*tmd_size);
+      if (!m_pReader->Read(partition_offset + *tmd_address, *tmd_size, tmd_buffer.data()))
         continue;
       IOS::ES::TMDReader tmd{std::move(tmd_buffer)};
 
@@ -222,19 +221,14 @@ std::string CVolumeWiiCrypted::GetGameID(const Partition& partition) const
 
 Region CVolumeWiiCrypted::GetRegion() const
 {
-  u32 region_code;
-  if (!m_pReader->ReadSwapped(0x4E000, &region_code))
-    return Region::UNKNOWN_REGION;
-
-  return static_cast<Region>(region_code);
+  const std::optional<u32> region_code = m_pReader->ReadSwapped<u32>(0x4E000);
+  return region_code ? static_cast<Region>(*region_code) : Region::UNKNOWN_REGION;
 }
 
 Country CVolumeWiiCrypted::GetCountry(const Partition& partition) const
 {
-  u8 country_byte;
-  if (!ReadSwapped(3, &country_byte, partition))
-    return Country::COUNTRY_UNKNOWN;
-
+  // The 0 that we use as a default value is mapped to COUNTRY_UNKNOWN and UNKNOWN_REGION
+  u8 country_byte = ReadSwapped<u8>(3, partition).value_or(0);
   const Region region = GetRegion();
 
   if (RegionSwitchWii(country_byte) != region)
@@ -253,13 +247,9 @@ std::string CVolumeWiiCrypted::GetMakerID(const Partition& partition) const
   return DecodeString(makerID);
 }
 
-u16 CVolumeWiiCrypted::GetRevision(const Partition& partition) const
+std::optional<u16> CVolumeWiiCrypted::GetRevision(const Partition& partition) const
 {
-  u8 revision;
-  if (!ReadSwapped(7, &revision, partition))
-    return 0;
-
-  return revision;
+  return ReadSwapped<u16>(7, partition);
 }
 
 std::string CVolumeWiiCrypted::GetInternalName(const Partition& partition) const
@@ -310,11 +300,9 @@ Platform CVolumeWiiCrypted::GetVolumeType() const
   return Platform::WII_DISC;
 }
 
-u8 CVolumeWiiCrypted::GetDiscNumber(const Partition& partition) const
+std::optional<u8> CVolumeWiiCrypted::GetDiscNumber(const Partition& partition) const
 {
-  u8 disc_number = 0;
-  ReadSwapped(6, &disc_number, partition);
-  return disc_number;
+  return ReadSwapped<u8>(6, partition);
 }
 
 BlobType CVolumeWiiCrypted::GetBlobType() const

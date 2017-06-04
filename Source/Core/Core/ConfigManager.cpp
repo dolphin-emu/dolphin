@@ -5,6 +5,7 @@
 #include <cinttypes>
 #include <climits>
 #include <memory>
+#include <optional>
 
 #include "AudioCommon/AudioCommon.h"
 
@@ -719,8 +720,11 @@ void SConfig::ResetRunningGameMetadata()
 void SConfig::SetRunningGameMetadata(const DiscIO::IVolume& volume,
                                      const DiscIO::Partition& partition)
 {
-  SetRunningGameMetadata(volume.GetGameID(partition), volume.GetTitleID(partition).value_or(0),
-                         volume.GetRevision(partition), Core::TitleDatabase::TitleType::Other);
+  if (const std::optional<u16> revision = volume.GetRevision(partition))
+  {
+    SetRunningGameMetadata(volume.GetGameID(partition), volume.GetTitleID(partition).value_or(0),
+                           *revision, Core::TitleDatabase::TitleType::Other);
+  }
 }
 
 void SConfig::SetRunningGameMetadata(const IOS::ES::TMDReader& tmd)
@@ -1117,7 +1121,7 @@ IniFile SConfig::LoadGameIni() const
   return LoadGameIni(GetGameID(), m_revision);
 }
 
-IniFile SConfig::LoadDefaultGameIni(const std::string& id, u16 revision)
+IniFile SConfig::LoadDefaultGameIni(const std::string& id, std::optional<u16> revision)
 {
   IniFile game_ini;
   for (const std::string& filename : GetGameIniFilenames(id, revision))
@@ -1125,7 +1129,7 @@ IniFile SConfig::LoadDefaultGameIni(const std::string& id, u16 revision)
   return game_ini;
 }
 
-IniFile SConfig::LoadLocalGameIni(const std::string& id, u16 revision)
+IniFile SConfig::LoadLocalGameIni(const std::string& id, std::optional<u16> revision)
 {
   IniFile game_ini;
   for (const std::string& filename : GetGameIniFilenames(id, revision))
@@ -1133,7 +1137,7 @@ IniFile SConfig::LoadLocalGameIni(const std::string& id, u16 revision)
   return game_ini;
 }
 
-IniFile SConfig::LoadGameIni(const std::string& id, u16 revision)
+IniFile SConfig::LoadGameIni(const std::string& id, std::optional<u16> revision)
 {
   IniFile game_ini;
   for (const std::string& filename : GetGameIniFilenames(id, revision))
@@ -1144,7 +1148,8 @@ IniFile SConfig::LoadGameIni(const std::string& id, u16 revision)
 }
 
 // Returns all possible filenames in ascending order of priority
-std::vector<std::string> SConfig::GetGameIniFilenames(const std::string& id, u16 revision)
+std::vector<std::string> SConfig::GetGameIniFilenames(const std::string& id,
+                                                      std::optional<u16> revision)
 {
   std::vector<std::string> filenames;
 
@@ -1162,7 +1167,8 @@ std::vector<std::string> SConfig::GetGameIniFilenames(const std::string& id, u16
   filenames.push_back(id + ".ini");
 
   // INIs with specific revisions
-  filenames.push_back(id + StringFromFormat("r%d", revision) + ".ini");
+  if (revision)
+    filenames.push_back(id + StringFromFormat("r%d", *revision) + ".ini");
 
   return filenames;
 }
