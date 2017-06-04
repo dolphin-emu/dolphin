@@ -75,8 +75,6 @@ public:
   virtual std::map<Language, std::string> GetLongMakers() const { return {}; }
   virtual std::map<Language, std::string> GetDescriptions() const { return {}; }
   virtual std::vector<u32> GetBanner(int* width, int* height) const = 0;
-  u64 GetFSTSize() const { return GetFSTSize(GetGamePartition()); }
-  virtual u64 GetFSTSize(const Partition& partition) const = 0;
   std::string GetApploaderDate() const { return GetApploaderDate(GetGamePartition()); }
   virtual std::string GetApploaderDate(const Partition& partition) const = 0;
   // 0 is the first disc, 1 is the second disc

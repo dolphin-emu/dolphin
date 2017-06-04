@@ -61,7 +61,6 @@ private:
   wxTextCtrl* m_maker_id;
   wxTextCtrl* m_revision;
   wxTextCtrl* m_date;
-  wxTextCtrl* m_fst;
   wxTextCtrl* m_ios_version = nullptr;
   wxTextCtrl* m_md5_sum;
   wxButton* m_md5_sum_compute;
