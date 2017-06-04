@@ -187,11 +187,13 @@ class WiiSocket
 
 private:
   s32 fd;
+  s32 wii_fd;
   bool nonBlock;
   std::list<sockop> pending_sockops;
 
   friend class WiiSockMan;
   void SetFd(s32 s);
+  void SetWiiFd(s32 s);
   s32 CloseFd();
   s32 FCntl(u32 cmd, u32 arg);
 
