@@ -39,7 +39,7 @@ private:
   void CreateGUI();
   void BindEvents();
 
-  void PopulateFileSystemTree();
+  bool PopulateFileSystemTree();
 
   void OnRightClickTree(wxTreeEvent&);
   void OnExtractFile(wxCommandEvent&);
