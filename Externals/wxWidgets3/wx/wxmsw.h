@@ -1663,6 +1663,8 @@
 //
 // Recommended setting: 1, set to 0 if your programs never crash
 #define wxUSE_CRASHREPORT 0
+
+#define wxUSE_DBGHELP 0
 /* --- end MSW options --- */
 
 #endif // _WX_SETUP_H_
