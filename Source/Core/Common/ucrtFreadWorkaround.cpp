@@ -1,95 +1,125 @@
-// Copyright 2014 Dolphin Emulator Project
+﻿// Copyright 2014 Dolphin Emulator Project
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #if defined(_WIN32)
 
+#include <string>
+#include <vector>
 #include <Windows.h>
 #include "CommonTypes.h"
+#include "StringUtil.h"
+#include "MsgHandler.h"
 
-struct PatchInfo
-{
-  const wchar_t* module_name;
-  u32 checksum;
-  u32 rva;
-  u32 length;
-} static const s_patches[] = {
-    // 10.0.10240.16384 (th1.150709-1700)
-    {L"ucrtbase.dll", 0xF61ED, 0x6AE7B, 5},
-    // 10.0.10240.16390 (th1_st1.150714-1601)
-    {L"ucrtbase.dll", 0xF5ED9, 0x6AE7B, 5},
-    // 10.0.10137.0 (th1.150602-2238)
-    {L"ucrtbase.dll", 0xF8B5E, 0x63ED6, 2},
-    // 10.0.10150.0 (th1.150616-1659)
-    {L"ucrtbased.dll", 0x1C1915, 0x91905, 5},
+#pragma comment(lib, "mincore.lib")
+
+// Old versions of ucrtbase implements caching between fseek/fread
+// such that some reads return incorrect data. This causes noticable bugs
+// in dolphin since we use these APIs for reading game images. Dolphin
+// used to patch ucrtbase to hack around the issue, but now we just advise the
+// user to install the fixed version.
+
+static const u16 fixed_build = 0xffff;// 10548;
+
+struct Version {
+  u16 major;
+  u16 minor;
+  u16 build;
+  u16 qfe;
+  Version &operator=(u64 &&rhs) {
+    major = static_cast<u16>(rhs >> 48);
+    minor = static_cast<u16>(rhs >> 32);
+    build = static_cast<u16>(rhs >> 16);
+    qfe = static_cast<u16>(rhs);
+    return *this;
+  }
 };
 
-bool ApplyPatch(const PatchInfo& patch)
-{
-  auto module = GetModuleHandleW(patch.module_name);
+static bool GetModulePath(const wchar_t *name, std::wstring *path) {
+  auto module = GetModuleHandleW(name);
   if (module == nullptr)
   {
     return false;
   }
+  DWORD path_len = MAX_PATH;
+retry:
+  path->resize(path_len);
+  path_len = GetModuleFileNameW(module, const_cast<wchar_t *>(path->data()),
+    static_cast<DWORD>(path->size()));
+  if (!path_len) {
+    return false;
+  }
+  auto error = GetLastError();
+  if (error == ERROR_SUCCESS) {
+    return true;
+  }
+  if (error == ERROR_INSUFFICIENT_BUFFER) {
+    goto retry;
+  }
+  return false;
+}
 
-  auto ucrtbase_pe = (PIMAGE_NT_HEADERS)((uintptr_t)module + ((PIMAGE_DOS_HEADER)module)->e_lfanew);
-  if (ucrtbase_pe->OptionalHeader.CheckSum != patch.checksum)
-  {
+static bool GetModuleVersion(const wchar_t *name, Version *version) {
+  std::wstring path;
+  if (!GetModulePath(name, &path)) {
     return false;
   }
 
-  void* patch_addr = (void*)((uintptr_t)module + patch.rva);
-  size_t patch_size = patch.length;
-
-  DWORD old_protect;
-  if (!VirtualProtect(patch_addr, patch_size, PAGE_EXECUTE_READWRITE, &old_protect))
-  {
+  bool rv = false;
+  DWORD handle;
+  DWORD data_len = GetFileVersionInfoSizeW(path.c_str(), &handle);
+  if (!data_len) {
     return false;
   }
-
-  memset(patch_addr, 0x90, patch_size);
-
-  VirtualProtect(patch_addr, patch_size, old_protect, &old_protect);
-
-  FlushInstructionCache(GetCurrentProcess(), patch_addr, patch_size);
-
+  std::vector<u8> block(data_len);
+  if (!GetFileVersionInfoW(path.c_str(), handle, data_len, block.data())) {
+    return false;
+  }
+  void *buf;
+  UINT buf_len;
+  if (!VerQueryValueW(block.data(), LR"(\)", &buf, &buf_len)) {
+    return false;
+  }
+  auto info = static_cast<VS_FIXEDFILEINFO *>(buf);
+  *version = (static_cast<u64>(info->dwFileVersionMS) << 32) | info->dwFileVersionLS;
   return true;
 }
 
 int __cdecl EnableucrtFreadWorkaround()
 {
-  // This patches ucrtbase such that fseek will always
-  // synchronize the file object's internal buffer.
-
-  bool applied_at_least_one = false;
-  for (const auto& patch : s_patches)
-  {
-    if (ApplyPatch(patch))
-    {
-      applied_at_least_one = true;
+  const wchar_t *const module_names[] = { L"ucrtbase.dll", L"ucrtbased.dll" };
+  for (const auto &name : module_names) {
+    Version version;
+    if (GetModuleVersion(name, &version)) {
+      if (version.build < fixed_build) {
+        auto msg = StringFromFormat("You are running %S version %d.%d.%d.%d.\n"
+          "An important fix affecting dolphin was introduced in build %d.\n"
+          "You can use dolphin, but there will be known bugs.\n"
+          "Please update this file by installing the latest UCRT:\n"
+          "<put_url_here>\n",
+          name, version.major, version.minor, version.build,
+          version.qfe, fixed_build);
+        // Use MessageBox for maximal user annoyance
+        MessageBoxA(nullptr, msg.c_str(), "WARNING: BUGGY UCRT VERSION",
+          MB_ICONEXCLAMATION);
+      }
     }
   }
-
-  /* For forward compat, do not fail if patches don't apply (e.g. version mismatch)
-  if (!applied_at_least_one) {
-    std::abort();
-  }
-  //*/
 
   return 0;
 }
 
 // Create a segment which is recognized by the linker to be part of the CRT
 // initialization. XI* = C startup, XC* = C++ startup. "A" placement is reserved
-// for system use. Thus, the earliest we can get is XIB (C startup is before
-// C++).
-#pragma section(".CRT$XIB", read)
+// for system use. C startup is before C++.
+// Use last C++ slot in hopes that makes using C++ from this code safe.
+#pragma section(".CRT$XCZ", read)
 
 // Place a symbol in the special segment, make it have C linkage so that
 // referencing it doesn't require ugly decorated names.
 // Use /include:EnableucrtFreadWorkaround linker flag to enable this.
 extern "C" {
-__declspec(allocate(".CRT$XIB")) decltype(&EnableucrtFreadWorkaround)
+  __declspec(allocate(".CRT$XCZ")) decltype(&EnableucrtFreadWorkaround)
     ucrtFreadWorkaround = EnableucrtFreadWorkaround;
 };
 
