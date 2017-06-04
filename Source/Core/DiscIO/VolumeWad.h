@@ -45,7 +45,6 @@ public:
   }
   std::map<Language, std::string> GetLongNames() const override;
   std::vector<u32> GetBanner(int* width, int* height) const override;
-  u64 GetFSTSize(const Partition& partition = PARTITION_NONE) const override { return 0; }
   std::string GetApploaderDate(const Partition& partition = PARTITION_NONE) const override
   {
     return "";

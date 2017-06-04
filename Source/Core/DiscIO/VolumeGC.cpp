@@ -138,15 +138,6 @@ std::vector<u32> CVolumeGC::GetBanner(int* width, int* height) const
   return m_image_buffer;
 }
 
-u64 CVolumeGC::GetFSTSize(const Partition& partition) const
-{
-  u32 size;
-  if (!Read(0x428, 0x4, (u8*)&size, partition))
-    return 0;
-
-  return Common::swap32(size);
-}
-
 std::string CVolumeGC::GetApploaderDate(const Partition& partition) const
 {
   char date[16];

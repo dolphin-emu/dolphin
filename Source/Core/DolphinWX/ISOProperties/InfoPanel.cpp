@@ -179,7 +179,6 @@ void InfoPanel::LoadISODetails()
   m_maker_id->SetValue("0x" + StrToWxStr(m_opened_iso->GetMakerID()));
   m_revision->SetValue(StrToWxStr(std::to_string(m_opened_iso->GetRevision())));
   m_date->SetValue(StrToWxStr(m_opened_iso->GetApploaderDate()));
-  m_fst->SetValue(StrToWxStr(std::to_string(m_opened_iso->GetFSTSize())));
   if (m_ios_version)
   {
     const IOS::ES::TMDReader tmd = m_opened_iso->GetTMD(m_opened_iso->GetGamePartition());
@@ -221,7 +220,6 @@ wxStaticBoxSizer* InfoPanel::CreateISODetailsSizer()
       {_("Maker ID:"), m_maker_id},
       {_("Revision:"), m_revision},
       {_("Apploader Date:"), m_date},
-      {_("FST Size:"), m_fst},
   }};
   if (m_opened_iso->GetTMD(m_opened_iso->GetGamePartition()).IsValid())
     controls.emplace_back(_("IOS Version:"), m_ios_version);

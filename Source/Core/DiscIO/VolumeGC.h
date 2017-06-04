@@ -40,7 +40,6 @@ public:
   std::map<Language, std::string> GetLongMakers() const override;
   std::map<Language, std::string> GetDescriptions() const override;
   std::vector<u32> GetBanner(int* width, int* height) const override;
-  u64 GetFSTSize(const Partition& partition = PARTITION_NONE) const override;
   std::string GetApploaderDate(const Partition& partition = PARTITION_NONE) const override;
   u8 GetDiscNumber(const Partition& partition = PARTITION_NONE) const override;
 

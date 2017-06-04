@@ -295,16 +295,6 @@ std::vector<u32> CVolumeWiiCrypted::GetBanner(int* width, int* height) const
   return GetWiiBanner(width, height, *title_id);
 }
 
-u64 CVolumeWiiCrypted::GetFSTSize(const Partition& partition) const
-{
-  u32 size;
-
-  if (!Read(0x428, 0x4, (u8*)&size, partition))
-    return 0;
-
-  return (u64)Common::swap32(size) << 2;
-}
-
 std::string CVolumeWiiCrypted::GetApploaderDate(const Partition& partition) const
 {
   char date[16];

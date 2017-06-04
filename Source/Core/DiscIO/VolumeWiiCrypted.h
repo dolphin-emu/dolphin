@@ -43,7 +43,6 @@ public:
   std::string GetInternalName(const Partition& partition) const override;
   std::map<Language, std::string> GetLongNames() const override;
   std::vector<u32> GetBanner(int* width, int* height) const override;
-  u64 GetFSTSize(const Partition& partition) const override;
   std::string GetApploaderDate(const Partition& partition) const override;
   u8 GetDiscNumber(const Partition& partition) const override;
 
