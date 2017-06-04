@@ -25,12 +25,15 @@
 #else
 #define ERRORCODE(name) name
 #define EITHER(win32, posix) posix
+#define closesocket close
 #endif
 
 namespace IOS
 {
 namespace HLE
 {
+constexpr int WII_SOCKET_FD_MAX = 24;
+
 char* WiiSockMan::DecodeError(s32 ErrorCode)
 {
 #ifdef _WIN32
@@ -148,11 +151,7 @@ s32 WiiSocket::CloseFd()
   s32 ReturnValue = 0;
   if (fd >= 0)
   {
-#ifdef _WIN32
     s32 ret = closesocket(fd);
-#else
-    s32 ret = close(fd);
-#endif
     ReturnValue = WiiSockMan::GetNetErrorCode(ret, "CloseFd", false);
   }
   else
@@ -256,8 +255,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
           ret = static_cast<s32>(accept(fd, nullptr, nullptr));
         }
 
-        ret = WiiSockMan::GetInstance().AddSocket(ret);
-        ReturnValue = WiiSockMan::GetNetErrorCode(ret, "SO_ACCEPT", true);
+        ReturnValue = WiiSockMan::GetInstance().AddSocket(ret, true);
 
         ioctl.Log("IOCTL_SO_ACCEPT", LogTypes::IOS_NET);
         break;
@@ -604,18 +602,36 @@ void WiiSocket::DoSock(Request request, SSL_IOCTL type)
   pending_sockops.push_back(so);
 }
 
-s32 WiiSockMan::AddSocket(s32 fd)
+s32 WiiSockMan::AddSocket(s32 fd, bool is_rw)
 {
-  if (fd >= 0)
+  const char* caller = is_rw ? "SO_ACCEPT" : "NewSocket";
+
+  if (fd < 0)
+    return GetNetErrorCode(fd, caller, is_rw);
+
+  s32 wii_fd;
+  for (wii_fd = 0; wii_fd < WII_SOCKET_FD_MAX; ++wii_fd)
   {
-    s32 wii_fd = 0;
-    while (WiiSockets.count(wii_fd) > 0)
-      wii_fd += 1;
+    // Find an available socket fd
+    if (WiiSockets.count(wii_fd) == 0)
+      break;
+  }
+
+  if (wii_fd == WII_SOCKET_FD_MAX)
+  {
+    // Close host socket
+    closesocket(fd);
+    wii_fd = -SO_EMFILE;
+    ERROR_LOG(IOS_NET, "%s failed: Too many open sockets, ret=%d", caller, wii_fd);
+  }
+  else
+  {
     WiiSocket& sock = WiiSockets[wii_fd];
     sock.SetFd(fd);
-    return wii_fd;
   }
-  return fd;
+
+  SetLastNetError(wii_fd);
+  return wii_fd;
 }
 
 s32 WiiSockMan::NewSocket(s32 af, s32 type, s32 protocol)
@@ -625,9 +641,7 @@ s32 WiiSockMan::NewSocket(s32 af, s32 type, s32 protocol)
   if (protocol != 0)  // IPPROTO_IP
     return -SO_EPROTONOSUPPORT;
   s32 fd = static_cast<s32>(socket(af, type, protocol));
-  s32 wii_fd = AddSocket(fd);
-  s32 ret = GetNetErrorCode(wii_fd, "NewSocket", false);
-  return ret;
+  return AddSocket(fd, false);
 }
 
 s32 WiiSockMan::GetHostSocket(s32 wii_fd) const
