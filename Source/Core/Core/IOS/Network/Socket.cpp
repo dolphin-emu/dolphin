@@ -663,12 +663,12 @@ s32 WiiSockMan::GetHostSocket(s32 wii_fd) const
 {
   if (WiiSockets.count(wii_fd) > 0)
     return WiiSockets.at(wii_fd).fd;
-  return EBADF;
+  return -EBADF;
 }
 
 s32 WiiSockMan::DeleteSocket(s32 s)
 {
-  s32 ReturnValue = EBADF;
+  s32 ReturnValue = -SO_EBADF;
   auto socket_entry = WiiSockets.find(s);
   if (socket_entry != WiiSockets.end())
   {
