@@ -470,12 +470,6 @@ static void EmuThread()
 
   Common::SetCurrentThreadName("Emuthread - Starting");
 
-  if (SConfig::GetInstance().m_OCEnable)
-    DisplayMessage("WARNING: running at non-native CPU clock! Game may not be stable.", 8000);
-  DisplayMessage(cpu_info.brand_string, 8000);
-  DisplayMessage(cpu_info.Summarize(), 8000);
-  DisplayMessage(core_parameter.m_strFilename, 3000);
-
   // For a time this acts as the CPU thread...
   DeclareAsCPUThread();
 
