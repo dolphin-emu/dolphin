@@ -640,6 +640,8 @@ s32 WiiSockMan::NewSocket(s32 af, s32 type, s32 protocol)
     return -SO_EAFNOSUPPORT;
   if (protocol != 0)  // IPPROTO_IP
     return -SO_EPROTONOSUPPORT;
+  if (type != 1 && type != 2)  // SOCK_STREAM && SOCK_DGRAM
+    return -SO_EPROTOTYPE;
   s32 fd = static_cast<s32>(socket(af, type, protocol));
   return AddSocket(fd, false);
 }
