@@ -159,10 +159,11 @@ FilesystemPanel::FilesystemPanel(wxWindow* parent, wxWindowID id,
     : wxPanel{parent, id}, m_opened_iso{opened_iso}
 {
   CreateGUI();
-  BindEvents();
-  PopulateFileSystemTree();
-
-  m_tree_ctrl->Expand(m_tree_ctrl->GetRootItem());
+  if (PopulateFileSystemTree())
+  {
+    BindEvents();
+    m_tree_ctrl->Expand(m_tree_ctrl->GetRootItem());
+  }
 }
 
 FilesystemPanel::~FilesystemPanel() = default;
@@ -194,7 +195,7 @@ void FilesystemPanel::CreateGUI()
   SetSizer(main_sizer);
 }
 
-void FilesystemPanel::PopulateFileSystemTree()
+bool FilesystemPanel::PopulateFileSystemTree()
 {
   const std::vector<DiscIO::Partition> partitions = m_opened_iso->GetPartitions();
   m_has_partitions = !partitions.empty();
@@ -224,10 +225,12 @@ void FilesystemPanel::PopulateFileSystemTree()
   {
     m_filesystem = DiscIO::CreateFileSystem(m_opened_iso.get(), DiscIO::PARTITION_NONE);
     if (!m_filesystem)
-      return;
+      return false;
 
     CreateDirectoryTree(m_tree_ctrl, m_tree_ctrl->GetRootItem(), m_filesystem->GetFileList());
   }
+
+  return true;
 }
 
 void FilesystemPanel::OnRightClickTree(wxTreeEvent& event)
