@@ -328,9 +328,9 @@ private:
   void OnImportSave(wxCommandEvent& event);
   void OnExportAllSaves(wxCommandEvent& event);
 
-  void OnLoadGameCubeBIOSJAP(wxCommandEvent& event);
-  void OnLoadGameCubeBIOSUSA(wxCommandEvent& event);
-  void OnLoadGameCubeBIOSEUR(wxCommandEvent& event);
+  void OnLoadGameCubeIPLJAP(wxCommandEvent& event);
+  void OnLoadGameCubeIPLUSA(wxCommandEvent& event);
+  void OnLoadGameCubeIPLEUR(wxCommandEvent& event);
 
   void OnNetPlay(wxCommandEvent& event);
 
