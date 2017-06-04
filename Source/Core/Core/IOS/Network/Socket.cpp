@@ -622,6 +622,8 @@ s32 WiiSockMan::NewSocket(s32 af, s32 type, s32 protocol)
 {
   if (af != 2 && af != 23)  // AF_INET && AF_INET6
     return -SO_EAFNOSUPPORT;
+  if (protocol != 0)  // IPPROTO_IP
+    return -SO_EPROTONOSUPPORT;
   s32 fd = static_cast<s32>(socket(af, type, protocol));
   s32 wii_fd = AddSocket(fd);
   s32 ret = GetNetErrorCode(wii_fd, "NewSocket", false);
