@@ -50,16 +50,6 @@ bool Settings::IsInDevelopmentWarningEnabled() const
   return value(QStringLiteral("ShowDevelopmentWarning"), true).toBool();
 }
 
-QString Settings::GetLastGame() const
-{
-  return value(QStringLiteral("GameList/LastGame")).toString();
-}
-
-void Settings::SetLastGame(const QString& path)
-{
-  setValue(QStringLiteral("GameList/LastGame"), path);
-}
-
 QStringList Settings::GetPaths() const
 {
   return value(QStringLiteral("GameList/Paths")).toStringList();
