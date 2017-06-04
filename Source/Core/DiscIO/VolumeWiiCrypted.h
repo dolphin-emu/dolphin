@@ -7,6 +7,7 @@
 #include <map>
 #include <mbedtls/aes.h>
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -33,7 +34,7 @@ public:
   bool Read(u64 _Offset, u64 _Length, u8* _pBuffer, const Partition& partition) const override;
   std::vector<Partition> GetPartitions() const override;
   Partition GetGamePartition() const override;
-  bool GetTitleID(u64* buffer, const Partition& partition) const override;
+  std::optional<u64> GetTitleID(const Partition& partition) const override;
   const IOS::ES::TicketReader& GetTicket(const Partition& partition) const override;
   const IOS::ES::TMDReader& GetTMD(const Partition& partition) const override;
   std::string GetGameID(const Partition& partition) const override;

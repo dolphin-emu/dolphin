@@ -219,11 +219,8 @@ bool UpdateRunningGameMetadata(const DiscIO::Partition& partition, std::optional
 
   if (title_id)
   {
-    u64 volume_title_id;
-    if (!s_disc->GetTitleID(&volume_title_id, partition))
-      return false;
-
-    if (volume_title_id != *title_id)
+    const std::optional<u64> volume_title_id = s_disc->GetTitleID(partition);
+    if (!volume_title_id || *volume_title_id != *title_id)
       return false;
   }
 
