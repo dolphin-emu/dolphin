@@ -24,6 +24,9 @@ option(ENABLE_PULSEAUDIO "Enables PulseAudio sound backend" ON)
 option(ENABLE_OPENAL "Enables OpenAL sound backend" ON)
 option(ENABLE_LLVM "Enables LLVM support, for disassembly" ON)
 
+execute_process(COMMAND lsb_release -a)
+message(FATAL_ERROR done)
+
 # Maintainers: if you consider blanket disabling this for your users, please
 # consider the following points:
 #  * No data is being sent without explicit user approval (pop up box at first
