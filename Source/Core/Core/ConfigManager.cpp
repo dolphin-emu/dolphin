@@ -719,11 +719,8 @@ void SConfig::ResetRunningGameMetadata()
 void SConfig::SetRunningGameMetadata(const DiscIO::IVolume& volume,
                                      const DiscIO::Partition& partition)
 {
-  const std::optional<u64> title_id = volume.GetTitleID(partition);
-  if (!title_id)
-    return;
-  SetRunningGameMetadata(volume.GetGameID(partition), *title_id, volume.GetRevision(partition),
-                         Core::TitleDatabase::TitleType::Other);
+  SetRunningGameMetadata(volume.GetGameID(partition), volume.GetTitleID(partition).value_or(0),
+                         volume.GetRevision(partition), Core::TitleDatabase::TitleType::Other);
 }
 
 void SConfig::SetRunningGameMetadata(const IOS::ES::TMDReader& tmd)
