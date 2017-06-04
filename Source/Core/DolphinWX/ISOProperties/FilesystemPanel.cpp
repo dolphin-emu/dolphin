@@ -196,52 +196,37 @@ void FilesystemPanel::CreateGUI()
 
 void FilesystemPanel::PopulateFileSystemTree()
 {
-  switch (m_opened_iso->GetVolumeType())
+  const std::vector<DiscIO::Partition> partitions = m_opened_iso->GetPartitions();
+  m_has_partitions = !partitions.empty();
+
+  if (m_has_partitions)
   {
-  case DiscIO::Platform::GAMECUBE_DISC:
-    PopulateFileSystemTreeGC();
-    break;
-
-  case DiscIO::Platform::WII_DISC:
-    PopulateFileSystemTreeWii();
-    break;
-
-  case DiscIO::Platform::ELF_DOL:
-  case DiscIO::Platform::NUMBER_OF_PLATFORMS:
-  case DiscIO::Platform::WII_WAD:
-    break;
-  }
-}
-
-void FilesystemPanel::PopulateFileSystemTreeGC()
-{
-  m_filesystem = DiscIO::CreateFileSystem(m_opened_iso.get(), DiscIO::PARTITION_NONE);
-  if (!m_filesystem)
-    return;
-
-  CreateDirectoryTree(m_tree_ctrl, m_tree_ctrl->GetRootItem(), m_filesystem->GetFileList());
-}
-
-void FilesystemPanel::PopulateFileSystemTreeWii() const
-{
-  std::vector<DiscIO::Partition> partitions = m_opened_iso->GetPartitions();
-  for (size_t i = 0; i < partitions.size(); ++i)
-  {
-    std::unique_ptr<DiscIO::IFileSystem> file_system(
-        DiscIO::CreateFileSystem(m_opened_iso.get(), partitions[i]));
-    if (file_system)
+    for (size_t i = 0; i < partitions.size(); ++i)
     {
-      wxTreeItemId partition_root = m_tree_ctrl->AppendItem(
-          m_tree_ctrl->GetRootItem(), wxString::Format(_("Partition %zu"), i), ICON_DISC);
+      std::unique_ptr<DiscIO::IFileSystem> file_system(
+          DiscIO::CreateFileSystem(m_opened_iso.get(), partitions[i]));
+      if (file_system)
+      {
+        wxTreeItemId partition_root = m_tree_ctrl->AppendItem(
+            m_tree_ctrl->GetRootItem(), wxString::Format(_("Partition %zu"), i), ICON_DISC);
 
-      WiiPartition* const partition = new WiiPartition(std::move(file_system));
+        WiiPartition* const partition = new WiiPartition(std::move(file_system));
 
-      m_tree_ctrl->SetItemData(partition_root, partition);
-      CreateDirectoryTree(m_tree_ctrl, partition_root, partition->filesystem->GetFileList());
+        m_tree_ctrl->SetItemData(partition_root, partition);
+        CreateDirectoryTree(m_tree_ctrl, partition_root, partition->filesystem->GetFileList());
 
-      if (i == 1)
-        m_tree_ctrl->Expand(partition_root);
+        if (i == 1)
+          m_tree_ctrl->Expand(partition_root);
+      }
     }
+  }
+  else
+  {
+    m_filesystem = DiscIO::CreateFileSystem(m_opened_iso.get(), DiscIO::PARTITION_NONE);
+    if (!m_filesystem)
+      return;
+
+    CreateDirectoryTree(m_tree_ctrl, m_tree_ctrl->GetRootItem(), m_filesystem->GetFileList());
   }
 }
 
@@ -270,8 +255,7 @@ void FilesystemPanel::OnRightClickTree(wxTreeEvent& event)
 
   menu.Append(ID_EXTRACT_ALL, _("Extract All Files..."));
 
-  if (m_opened_iso->GetVolumeType() != DiscIO::Platform::WII_DISC ||
-      (image_type == ICON_DISC && first_visible_item != selection))
+  if (!m_has_partitions || (image_type == ICON_DISC && first_visible_item != selection))
   {
     menu.AppendSeparator();
     menu.Append(ID_EXTRACT_APPLOADER, _("Extract Apploader..."));
@@ -329,7 +313,7 @@ void FilesystemPanel::OnExtractHeaderData(wxCommandEvent& event)
   if (path.empty())
     return;
 
-  if (m_opened_iso->GetVolumeType() == DiscIO::Platform::WII_DISC)
+  if (m_has_partitions)
   {
     const auto* const selection_data = m_tree_ctrl->GetItemData(m_tree_ctrl->GetSelection());
     const auto* const partition = static_cast<const WiiPartition*>(selection_data);
@@ -360,9 +344,9 @@ void FilesystemPanel::OnExtractHeaderData(wxCommandEvent& event)
 
 void FilesystemPanel::OnCheckPartitionIntegrity(wxCommandEvent& WXUNUSED(event))
 {
-  // Normally we can't enter this function if we aren't analyzing a Wii disc
-  // anyway, but let's still check to be sure.
-  if (m_opened_iso->GetVolumeType() != DiscIO::Platform::WII_DISC)
+  // Normally we can't enter this function if we're analyzing a volume that
+  // doesn't have partitions anyway, but let's still check to be sure.
+  if (!m_has_partitions)
     return;
 
   wxProgressDialog dialog(_("Checking integrity..."), _("Working..."), 1000, this,
@@ -398,122 +382,68 @@ void FilesystemPanel::OnCheckPartitionIntegrity(wxCommandEvent& WXUNUSED(event))
 
 void FilesystemPanel::ExtractAllFiles(const wxString& output_folder)
 {
-  switch (m_opened_iso->GetVolumeType())
+  if (m_has_partitions)
   {
-  case DiscIO::Platform::GAMECUBE_DISC:
-    ExtractAllFilesGC(output_folder);
-    break;
+    const wxTreeItemId root = m_tree_ctrl->GetRootItem();
 
-  case DiscIO::Platform::WII_DISC:
-    ExtractAllFilesWii(output_folder);
-    break;
+    wxTreeItemIdValue cookie;
+    wxTreeItemId item = m_tree_ctrl->GetFirstChild(root, cookie);
 
-  case DiscIO::Platform::ELF_DOL:
-  case DiscIO::Platform::NUMBER_OF_PLATFORMS:
-  case DiscIO::Platform::WII_WAD:
-    break;
+    while (item.IsOk())
+    {
+      const auto* const partition = static_cast<WiiPartition*>(m_tree_ctrl->GetItemData(item));
+      ExtractDirectories("", WxStrToStr(output_folder), partition->filesystem.get());
+      item = m_tree_ctrl->GetNextChild(root, cookie);
+    }
   }
-}
-
-void FilesystemPanel::ExtractAllFilesGC(const wxString& output_folder)
-{
-  ExtractDirectories("", WxStrToStr(output_folder), m_filesystem.get());
-}
-
-void FilesystemPanel::ExtractAllFilesWii(const wxString& output_folder)
-{
-  const wxTreeItemId root = m_tree_ctrl->GetRootItem();
-
-  wxTreeItemIdValue cookie;
-  wxTreeItemId item = m_tree_ctrl->GetFirstChild(root, cookie);
-
-  while (item.IsOk())
+  else
   {
-    const auto* const partition = static_cast<WiiPartition*>(m_tree_ctrl->GetItemData(item));
-    ExtractDirectories("", WxStrToStr(output_folder), partition->filesystem.get());
-    item = m_tree_ctrl->GetNextChild(root, cookie);
+    ExtractDirectories("", WxStrToStr(output_folder), m_filesystem.get());
   }
 }
 
 void FilesystemPanel::ExtractSingleFile(const wxString& output_file_path) const
 {
-  const auto selection_file_path = BuildFilePathFromSelection();
+  wxString selection_file_path = BuildFilePathFromSelection();
 
-  switch (m_opened_iso->GetVolumeType())
+  if (m_has_partitions)
   {
-  case DiscIO::Platform::GAMECUBE_DISC:
-    ExtractSingleFileGC(selection_file_path, output_file_path);
-    break;
+    const size_t slash_index = selection_file_path.find('/');
+    const wxString partition_label = selection_file_path.substr(0, slash_index);
+    const auto* const partition = FindWiiPartition(m_tree_ctrl, partition_label);
 
-  case DiscIO::Platform::WII_DISC:
-    ExtractSingleFileWii(selection_file_path, output_file_path);
-    break;
+    // Remove "Partition x/"
+    selection_file_path.erase(0, slash_index + 1);
 
-  case DiscIO::Platform::ELF_DOL:
-  case DiscIO::Platform::NUMBER_OF_PLATFORMS:
-  case DiscIO::Platform::WII_WAD:
-    break;
+    partition->filesystem->ExportFile(WxStrToStr(selection_file_path),
+                                      WxStrToStr(output_file_path));
   }
-}
-
-void FilesystemPanel::ExtractSingleFileGC(const wxString& file_path,
-                                          const wxString& output_file_path) const
-{
-  m_filesystem->ExportFile(WxStrToStr(file_path), WxStrToStr(output_file_path));
-}
-
-void FilesystemPanel::ExtractSingleFileWii(wxString file_path,
-                                           const wxString& output_file_path) const
-{
-  const size_t slash_index = file_path.find('/');
-  const wxString partition_label = file_path.substr(0, slash_index);
-  const auto* const partition = FindWiiPartition(m_tree_ctrl, partition_label);
-
-  // Remove "Partition x/"
-  file_path.erase(0, slash_index + 1);
-
-  partition->filesystem->ExportFile(WxStrToStr(file_path), WxStrToStr(output_file_path));
+  else
+  {
+    m_filesystem->ExportFile(WxStrToStr(selection_file_path), WxStrToStr(output_file_path));
+  }
 }
 
 void FilesystemPanel::ExtractSingleDirectory(const wxString& output_folder)
 {
-  const wxString directory_path = BuildDirectoryPathFromSelection();
+  wxString directory_path = BuildDirectoryPathFromSelection();
 
-  switch (m_opened_iso->GetVolumeType())
+  if (m_has_partitions)
   {
-  case DiscIO::Platform::GAMECUBE_DISC:
-    ExtractSingleDirectoryGC(directory_path, output_folder);
-    break;
+    const size_t slash_index = directory_path.find('/');
+    const wxString partition_label = directory_path.substr(0, slash_index);
+    const auto* const partition = FindWiiPartition(m_tree_ctrl, partition_label);
 
-  case DiscIO::Platform::WII_DISC:
-    ExtractSingleDirectoryWii(directory_path, output_folder);
-    break;
+    // Remove "Partition x/"
+    directory_path.erase(0, slash_index + 1);
 
-  case DiscIO::Platform::ELF_DOL:
-  case DiscIO::Platform::NUMBER_OF_PLATFORMS:
-  case DiscIO::Platform::WII_WAD:
-    break;
+    ExtractDirectories(WxStrToStr(directory_path), WxStrToStr(output_folder),
+                       partition->filesystem.get());
   }
-}
-
-void FilesystemPanel::ExtractSingleDirectoryGC(const wxString& directory_path,
-                                               const wxString& output_folder)
-{
-  ExtractDirectories(WxStrToStr(directory_path), WxStrToStr(output_folder), m_filesystem.get());
-}
-
-void FilesystemPanel::ExtractSingleDirectoryWii(wxString directory_path,
-                                                const wxString& output_folder)
-{
-  const size_t slash_index = directory_path.find('/');
-  const wxString partition_label = directory_path.substr(0, slash_index);
-  const auto* const partition = FindWiiPartition(m_tree_ctrl, partition_label);
-
-  // Remove "Partition x/"
-  directory_path.erase(0, slash_index + 1);
-
-  ExtractDirectories(WxStrToStr(directory_path), WxStrToStr(output_folder),
-                     partition->filesystem.get());
+  else
+  {
+    ExtractDirectories(WxStrToStr(directory_path), WxStrToStr(output_folder), m_filesystem.get());
+  }
 }
 
 void FilesystemPanel::ExtractDirectories(const std::string& full_path,
@@ -531,8 +461,7 @@ void FilesystemPanel::ExtractDirectories(const std::string& full_path,
     size = static_cast<u32>(fst.size());
 
     filesystem->ExportApploader(output_folder);
-    if (m_opened_iso->GetVolumeType() == DiscIO::Platform::GAMECUBE_DISC)
-      filesystem->ExportDOL(output_folder);
+    filesystem->ExportDOL(output_folder);
   }
   else
   {
