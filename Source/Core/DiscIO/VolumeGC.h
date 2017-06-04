@@ -6,6 +6,7 @@
 
 #include <map>
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -32,7 +33,7 @@ public:
             const Partition& partition = PARTITION_NONE) const override;
   std::string GetGameID(const Partition& partition = PARTITION_NONE) const override;
   std::string GetMakerID(const Partition& partition = PARTITION_NONE) const override;
-  u16 GetRevision(const Partition& partition = PARTITION_NONE) const override;
+  std::optional<u16> GetRevision(const Partition& partition = PARTITION_NONE) const override;
   std::string GetInternalName(const Partition& partition = PARTITION_NONE) const override;
   std::map<Language, std::string> GetShortNames() const override;
   std::map<Language, std::string> GetLongNames() const override;
@@ -41,7 +42,7 @@ public:
   std::map<Language, std::string> GetDescriptions() const override;
   std::vector<u32> GetBanner(int* width, int* height) const override;
   std::string GetApploaderDate(const Partition& partition = PARTITION_NONE) const override;
-  u8 GetDiscNumber(const Partition& partition = PARTITION_NONE) const override;
+  std::optional<u8> GetDiscNumber(const Partition& partition = PARTITION_NONE) const override;
 
   Platform GetVolumeType() const override;
   Region GetRegion() const override;

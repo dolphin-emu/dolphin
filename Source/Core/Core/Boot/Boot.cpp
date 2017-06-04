@@ -4,6 +4,7 @@
 
 #include "Core/Boot/Boot.h"
 
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -75,21 +76,19 @@ void CBoot::Load_FST(bool is_wii, const DiscIO::IVolume* volume)
   if (is_wii)
     shift = 2;
 
-  u32 fst_offset = 0;
-  u32 fst_size = 0;
-  u32 max_fst_size = 0;
+  const std::optional<u32> fst_offset = volume->ReadSwapped<u32>(0x0424, partition);
+  const std::optional<u32> fst_size = volume->ReadSwapped<u32>(0x0428, partition);
+  const std::optional<u32> max_fst_size = volume->ReadSwapped<u32>(0x042c, partition);
+  if (!fst_offset || !fst_size || !max_fst_size)
+    return;
 
-  volume->ReadSwapped(0x0424, &fst_offset, partition);
-  volume->ReadSwapped(0x0428, &fst_size, partition);
-  volume->ReadSwapped(0x042c, &max_fst_size, partition);
-
-  u32 arena_high = Common::AlignDown(0x817FFFFF - (max_fst_size << shift), 0x20);
+  u32 arena_high = Common::AlignDown(0x817FFFFF - (*max_fst_size << shift), 0x20);
   Memory::Write_U32(arena_high, 0x00000034);
 
   // load FST
-  DVDRead(*volume, fst_offset << shift, arena_high, fst_size << shift, partition);
+  DVDRead(*volume, *fst_offset << shift, arena_high, *fst_size << shift, partition);
   Memory::Write_U32(arena_high, 0x00000038);
-  Memory::Write_U32(max_fst_size << shift, 0x0000003c);
+  Memory::Write_U32(*max_fst_size << shift, 0x0000003c);
 
   if (is_wii)
   {
