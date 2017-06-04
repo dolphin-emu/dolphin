@@ -38,7 +38,7 @@ public:
   const IOS::ES::TMDReader& GetTMD(const Partition& partition = PARTITION_NONE) const override;
   std::string GetGameID(const Partition& partition = PARTITION_NONE) const override;
   std::string GetMakerID(const Partition& partition = PARTITION_NONE) const override;
-  u16 GetRevision(const Partition& partition = PARTITION_NONE) const override;
+  std::optional<u16> GetRevision(const Partition& partition = PARTITION_NONE) const override;
   std::string GetInternalName(const Partition& partition = PARTITION_NONE) const override
   {
     return "";
