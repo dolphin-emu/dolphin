@@ -74,7 +74,7 @@ private:
   void TransferByte(u8& _uByte) override;
   bool IsWriteCommand() const { return !!(m_uAddress & (1 << 31)); }
   u32 CommandRegion() const { return (m_uAddress & ~(1 << 31)) >> 8; }
-  void LoadFileToIPL(const std::string& filename, u32 offset);
+  bool LoadFileToIPL(const std::string& filename, u32 offset);
   void LoadFontFile(const std::string& filename, u32 offset);
   std::string FindIPLDump(const std::string& path_prefix);
 };
