@@ -217,14 +217,14 @@ wxMenu* MainMenuBar::CreateToolsMenu() const
   tools_menu->Append(IDM_EXPORT_ALL_SAVE, _("Export All Wii Saves"));
   tools_menu->AppendSeparator();
   auto* const gc_bios_menu = new wxMenu;
-  gc_bios_menu->Append(IDM_LOAD_GC_BIOS_JAP, _("NTSC-J"),
-                       _("Load NTSC-J GameCube BIOS from the JAP folder."));
-  gc_bios_menu->Append(IDM_LOAD_GC_BIOS_USA, _("NTSC-U"),
-                       _("Load NTSC-U GameCube BIOS from the USA folder."));
-  gc_bios_menu->Append(IDM_LOAD_GC_BIOS_EUR, _("PAL"),
-                       _("Load PAL GameCube BIOS from the EUR folder."));
-  tools_menu->AppendSubMenu(gc_bios_menu, _("Load GameCube BIOS"),
-                            _("Load a GameCube BIOS located under Dolphin's GC folder."));
+  gc_bios_menu->Append(IDM_LOAD_GC_IPL_JAP, _("NTSC-J"),
+                       _("Load NTSC-J GameCube Main Menu from the JAP folder."));
+  gc_bios_menu->Append(IDM_LOAD_GC_IPL_USA, _("NTSC-U"),
+                       _("Load NTSC-U GameCube Main Menu from the USA folder."));
+  gc_bios_menu->Append(IDM_LOAD_GC_IPL_EUR, _("PAL"),
+                       _("Load PAL GameCube Main Menu from the EUR folder."));
+  tools_menu->AppendSubMenu(gc_bios_menu, _("Load GameCube Main Menu"),
+                            _("Load a GameCube Main Menu located under Dolphin's GC folder."));
   tools_menu->AppendSeparator();
   tools_menu->Append(IDM_CHEATS, _("&Cheat Manager"));
   tools_menu->Append(IDM_NETPLAY, _("Start &NetPlay..."));
