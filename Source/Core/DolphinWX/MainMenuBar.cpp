@@ -218,13 +218,13 @@ wxMenu* MainMenuBar::CreateToolsMenu() const
   tools_menu->AppendSeparator();
   auto* const gc_bios_menu = new wxMenu;
   gc_bios_menu->Append(IDM_LOAD_GC_IPL_JAP, _("NTSC-J"),
-                       _("Load NTSC-J GameCube IPL from the JAP folder."));
+                       _("Load NTSC-J GameCube Main Menu from the JAP folder."));
   gc_bios_menu->Append(IDM_LOAD_GC_IPL_USA, _("NTSC-U"),
-                       _("Load NTSC-U GameCube IPL from the USA folder."));
+                       _("Load NTSC-U GameCube Main Menu from the USA folder."));
   gc_bios_menu->Append(IDM_LOAD_GC_IPL_EUR, _("PAL"),
-                       _("Load PAL GameCube IPL from the EUR folder."));
-  tools_menu->AppendSubMenu(gc_bios_menu, _("Load GameCube IPL"),
-                            _("Load a GameCube IPL located under Dolphin's GC folder."));
+                       _("Load PAL GameCube Main Menu from the EUR folder."));
+  tools_menu->AppendSubMenu(gc_bios_menu, _("Load GameCube Main Menu"),
+                            _("Load a GameCube Main Menu located under Dolphin's GC folder."));
   tools_menu->AppendSeparator();
   tools_menu->Append(IDM_CHEATS, _("&Cheat Manager"));
   tools_menu->Append(IDM_NETPLAY, _("Start &NetPlay..."));
