@@ -33,9 +33,9 @@ void HLE_GeneralDebugPrint()
   std::string report_message;
 
   // Is gpr3 pointing to a pointer rather than an ASCII string
-  if (PowerPC::HostRead_U32(GPR(3)) > 0x80000000)
+  if (PowerPC::HostIsRAMAddress(GPR(3)) && PowerPC::HostIsRAMAddress(PowerPC::HostRead_U32(GPR(3))))
   {
-    if (GPR(4) > 0x80000000)
+    if (PowerPC::HostIsRAMAddress(GPR(4)))
     {
       // ___blank(void* this, const char* fmt, ...);
       report_message = GetStringVA(4);
@@ -48,7 +48,7 @@ void HLE_GeneralDebugPrint()
   }
   else
   {
-    if (GPR(3) > 0x80000000)
+    if (PowerPC::HostIsRAMAddress(GPR(3)))
     {
       // ___blank(const char* fmt, ...);
       report_message = GetStringVA();
