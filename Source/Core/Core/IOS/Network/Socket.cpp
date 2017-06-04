@@ -80,6 +80,9 @@ static s32 TranslateErrorCode(s32 native_error, bool isRW)
     return -SO_ENETUNREACH;
   case ERRORCODE(EHOSTUNREACH):
     return -SO_EHOSTUNREACH;
+  case ENOMEM:  // See man (7) ip
+  case ERRORCODE(ENOBUFS):
+    return -SO_ENOMEM;
   case EITHER(WSAEWOULDBLOCK, EAGAIN):
     if (isRW)
     {
