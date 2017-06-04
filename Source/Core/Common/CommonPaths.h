@@ -131,7 +131,7 @@
 
 #define WII_SETTING "setting.txt"
 
-#define GECKO_CODE_HANDLER "codehandler.bin"
+#define GECKO_CODE_HANDLER "codehandleronly.bin"
 
 // Subdirs in Sys
 #define GC_SYS_DIR "GC"
