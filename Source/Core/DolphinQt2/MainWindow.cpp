@@ -213,11 +213,7 @@ void MainWindow::Play()
       }
       else
       {
-        QString last_path = Settings().GetLastGame();
-        if (!last_path.isEmpty() && QFile::exists(last_path))
-          StartGame(last_path);
-        else
-          Open();
+        Open();
       }
     }
   }
@@ -304,7 +300,6 @@ void MainWindow::StartGame(const QString& path)
     QMessageBox::critical(this, tr("Error"), tr("Failed to init core"), QMessageBox::Ok);
     return;
   }
-  Settings().SetLastGame(path);
   ShowRenderWidget();
   emit EmulationStarted();
 

@@ -33,8 +33,6 @@ public:
   bool IsInDevelopmentWarningEnabled() const;
 
   // GameList
-  QString GetLastGame() const;
-  void SetLastGame(const QString& path);
   QStringList GetPaths() const;
   void SetPaths(const QStringList& paths);
   void RemovePath(int i);
