@@ -1300,7 +1300,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
   const u32 bytes_per_row = num_blocks_x * bytes_per_block;
   const u32 covered_range = num_blocks_y * dstStride;
 
-  bool copy_to_ram = !g_ActiveConfig.bSkipEFBCopyToRam;
+  bool copy_to_ram = !g_ActiveConfig.bSkipEFBCopyToRam && dstStride >= bytes_per_row;
   bool copy_to_vram = true;
 
   if (copy_to_ram)
