@@ -202,6 +202,7 @@ struct SConfig : NonCopyable
 
   std::string m_perfDir;
 
+  std::string m_debugger_game_id;
   // TODO: remove this as soon as the ticket view hack in IOS/ES/Views is dropped.
   bool m_disc_booted_from_game_list = false;
 

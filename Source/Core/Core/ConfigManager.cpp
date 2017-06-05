@@ -753,6 +753,20 @@ void SConfig::SetRunningGameMetadata(const std::string& game_id, u64 title_id, u
   m_title_id = title_id;
   m_revision = revision;
 
+  if (game_id.length() == 6)
+  {
+    m_debugger_game_id = game_id;
+  }
+  else if (title_id != 0)
+  {
+    m_debugger_game_id =
+        StringFromFormat("%08X_%08X", static_cast<u32>(title_id >> 32), static_cast<u32>(title_id));
+  }
+  else
+  {
+    m_debugger_game_id.clear();
+  }
+
   if (!was_changed)
     return;
 
@@ -906,6 +920,9 @@ struct SetGameMetadata
     // In the future, it probably makes sense to add a Region setting for homebrew somewhere in
     // the emulator config.
     *region = config->bWii ? DiscIO::Region::PAL : DiscIO::Region::NTSC_U;
+
+    // Strip the .elf/.dol file extension and directories before the name
+    SplitPath(executable.path, nullptr, &config->m_debugger_game_id, nullptr);
     return true;
   }
 

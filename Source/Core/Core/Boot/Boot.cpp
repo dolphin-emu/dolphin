@@ -178,16 +178,12 @@ void CBoot::UpdateDebugger_MapLoaded()
 }
 
 // Get map file paths for the active title.
-bool CBoot::FindMapFile(std::string* existing_map_file, std::string* writable_map_file,
-                        std::string* title_id)
+bool CBoot::FindMapFile(std::string* existing_map_file, std::string* writable_map_file)
 {
-  const std::string game_id = SConfig::GetInstance().GetGameID();
+  const std::string& game_id = SConfig::GetInstance().m_debugger_game_id;
 
   if (writable_map_file)
     *writable_map_file = File::GetUserPath(D_MAPS_IDX) + game_id + ".map";
-
-  if (title_id)
-    *title_id = game_id;
 
   bool found = false;
   static const std::string maps_directories[] = {File::GetUserPath(D_MAPS_IDX),
