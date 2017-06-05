@@ -72,10 +72,8 @@ bool WiiWAD::ParseWAD()
   u32 footer_size;
 
   if (!m_reader->ReadSwapped(0x08, &certificate_chain_size) ||
-      !m_reader->ReadSwapped(0x0C, &reserved) ||
-      !m_reader->ReadSwapped(0x10, &ticket_size) ||
-      !m_reader->ReadSwapped(0x14, &tmd_size) ||
-      !m_reader->ReadSwapped(0x18, &data_app_size) ||
+      !m_reader->ReadSwapped(0x0C, &reserved) || !m_reader->ReadSwapped(0x10, &ticket_size) ||
+      !m_reader->ReadSwapped(0x14, &tmd_size) || !m_reader->ReadSwapped(0x18, &data_app_size) ||
       !m_reader->ReadSwapped(0x1C, &footer_size))
     return false;
 

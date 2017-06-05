@@ -7,7 +7,6 @@
 #include "DolphinQt2/Settings/GeneralPane.h"
 #include "DolphinQt2/Settings/InterfacePane.h"
 
-
 SettingsWindow::SettingsWindow(QWidget* parent) : QDialog(parent)
 {
   // Set Window Properties

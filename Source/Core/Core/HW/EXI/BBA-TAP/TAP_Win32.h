@@ -31,8 +31,8 @@
 // the TAP-Win32 driver and contains definitions
 // common to both.
 //===============================================
-#include <stdlib.h>
 #include <windows.h>
+#include <stdlib.h>
 #include <winioctl.h>
 #define TAP_WIN32_MIN_MAJOR 9
 #define TAP_WIN32_MIN_MINOR 0
