@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <string>
+
 #include <QDialog>
 
 class QGroupBox;
@@ -23,7 +25,7 @@ public slots:
 private:
   void MakeCategoryList();
   void MakeUnfinishedWarning();
-  void AddCategoryToList(const QString& title, const QString& icon);
+  void AddCategoryToList(const QString& title, const std::string& icon_name);
   void SetupSettingsWidget();
   QStackedWidget* m_settings_outer;
   QListWidget* m_categories;
