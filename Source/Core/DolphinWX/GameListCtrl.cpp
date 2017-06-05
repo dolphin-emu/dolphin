@@ -117,6 +117,8 @@ static int CompareGameListItems(const GameListItem* iso1, const GameListItem* is
     return wxStricmp(wxFileNameFromPath(iso1->GetFileName()),
                      wxFileNameFromPath(iso2->GetFileName())) *
            t;
+  case CGameListCtrl::COLUMN_FILETYPE:
+    return wxStricmp(_(iso1->GetFileType()), _(iso2->GetFileType())) * t;
   case CGameListCtrl::COLUMN_ID:
     return strcasecmp(iso1->GetGameID().c_str(), iso2->GetGameID().c_str()) * t;
   case CGameListCtrl::COLUMN_COUNTRY:
@@ -150,6 +152,7 @@ static int CompareGameListItems(const GameListItem* iso1, const GameListItem* is
       return 0;
   }
   break;
+
   }
 
   return 0;
@@ -260,6 +263,7 @@ CGameListCtrl::CGameListCtrl(wxWindow* parent, const wxWindowID id, const wxPoin
                  {COLUMN_TITLE, 175, true, SConfig::GetInstance().m_showTitleColumn},
                  {COLUMN_MAKER, 150, true, SConfig::GetInstance().m_showMakerColumn},
                  {COLUMN_FILENAME, 100, true, SConfig::GetInstance().m_showFileNameColumn},
+                 {COLUMN_FILETYPE, 32, true, SConfig::GetInstance().m_showFileTypeColumn},
                  {COLUMN_ID, 75, false, SConfig::GetInstance().m_showIDColumn},
                  {COLUMN_COUNTRY, 32, false, SConfig::GetInstance().m_showRegionColumn},
                  {COLUMN_EMULATION_STATE, 48, false, SConfig::GetInstance().m_showStateColumn},
@@ -419,6 +423,7 @@ void CGameListCtrl::ReloadList()
 
     InsertColumn(COLUMN_MAKER, _("Maker"));
     InsertColumn(COLUMN_FILENAME, _("File"));
+    InsertColumn(COLUMN_FILETYPE, _("File Type"));
     InsertColumn(COLUMN_ID, _("ID"));
     InsertColumn(COLUMN_COUNTRY, "");
     InsertColumn(COLUMN_SIZE, _("Size"));
@@ -559,6 +564,9 @@ void CGameListCtrl::UpdateItemAtColumn(long _Index, int column)
     break;
   case COLUMN_FILENAME:
     SetItem(_Index, COLUMN_FILENAME, wxFileNameFromPath(StrToWxStr(rISOFile.GetFileName())), -1);
+    break;
+  case COLUMN_FILETYPE:
+    SetItem(_Index, COLUMN_FILETYPE, _(rISOFile.GetFileType()), -1);
     break;
   case COLUMN_EMULATION_STATE:
     SetItemColumnImage(_Index, COLUMN_EMULATION_STATE,
@@ -728,7 +736,8 @@ void CGameListCtrl::OnColBeginDrag(wxListEvent& event)
 {
   const int column_id = event.GetColumn();
 
-  if (column_id != COLUMN_TITLE && column_id != COLUMN_MAKER && column_id != COLUMN_FILENAME)
+  if (column_id != COLUMN_TITLE && column_id != COLUMN_MAKER && column_id != COLUMN_FILENAME &&
+      column_id != COLUMN_FILETYPE)
     event.Veto();
 }
 

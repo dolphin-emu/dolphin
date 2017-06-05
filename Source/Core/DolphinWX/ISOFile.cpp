@@ -287,6 +287,34 @@ bool GameListItem::ReadPNGBanner(const std::string& path)
   return true;
 }
 
+std::string GameListItem::GetFileType() const
+{
+  if (GetPlatform() == DiscIO::Platform::ELF_DOL)
+    return wxTRANSLATE("ELF/DOL");
+  if (GetPlatform() == DiscIO::Platform::WII_WAD)
+    return wxTRANSLATE("WAD");
+
+  switch (GetBlobType())
+  {
+  case DiscIO::BlobType::PLAIN:
+    return wxTRANSLATE("ISO");
+  case DiscIO::BlobType::DRIVE:
+    return wxTRANSLATE("Drive");
+  case DiscIO::BlobType::DIRECTORY:
+    return wxTRANSLATE("Directory");
+  case DiscIO::BlobType::GCZ:
+    return wxTRANSLATE("GCZ");
+  case DiscIO::BlobType::CISO:
+    return wxTRANSLATE("CISO");
+  case DiscIO::BlobType::WBFS:
+    return wxTRANSLATE("WBFS");
+  case DiscIO::BlobType::TGC:
+    return wxTRANSLATE("TGC");
+  default:
+    return wxTRANSLATE("Unknown");
+  }
+}
+
 std::string GameListItem::GetDescription(DiscIO::Language language) const
 {
   return GetLanguageString(language, m_descriptions);

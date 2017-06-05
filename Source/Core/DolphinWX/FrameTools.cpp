@@ -1728,6 +1728,9 @@ void CFrame::OnChangeColumnsVisible(wxCommandEvent& event)
   case IDM_SHOW_FILENAME:
     SConfig::GetInstance().m_showFileNameColumn = !SConfig::GetInstance().m_showFileNameColumn;
     break;
+  case IDM_SHOW_FILETYPE:
+    SConfig::GetInstance().m_showFileTypeColumn = !SConfig::GetInstance().m_showFileTypeColumn;
+    break;
   case IDM_SHOW_ID:
     SConfig::GetInstance().m_showIDColumn = !SConfig::GetInstance().m_showIDColumn;
     break;

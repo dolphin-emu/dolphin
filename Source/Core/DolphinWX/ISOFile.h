@@ -40,6 +40,7 @@ public:
 
   bool IsValid() const;
   const std::string& GetFileName() const { return m_FileName; }
+  std::string GetFileType() const;
   std::string GetName(DiscIO::Language language) const;
   std::string GetName() const;
   std::string GetUniqueIdentifier() const;

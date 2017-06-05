@@ -296,6 +296,8 @@ wxMenu* MainMenuBar::CreateViewMenu() const
   columns_menu->Check(IDM_SHOW_MAKER, config_instance.m_showMakerColumn);
   columns_menu->AppendCheckItem(IDM_SHOW_FILENAME, _("File Name"));
   columns_menu->Check(IDM_SHOW_FILENAME, config_instance.m_showFileNameColumn);
+  columns_menu->AppendCheckItem(IDM_SHOW_FILETYPE, _("File Type"));
+  columns_menu->Check(IDM_SHOW_FILETYPE, config_instance.m_showFileTypeColumn);
   columns_menu->AppendCheckItem(IDM_SHOW_ID, _("Game ID"));
   columns_menu->Check(IDM_SHOW_ID, config_instance.m_showIDColumn);
   columns_menu->AppendCheckItem(IDM_SHOW_REGION, _("Region"));
