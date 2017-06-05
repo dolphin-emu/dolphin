@@ -313,9 +313,8 @@ static u32 AdvanceDTK(u32 maximum_samples, u32* samples_to_process)
   {
     if (s_audio_position >= s_current_start + s_current_length)
     {
-      DEBUG_LOG(DVDINTERFACE,
-                "AdvanceDTK: NextStart=%08" PRIx64 ", NextLength=%08x, "
-                "CurrentStart=%08" PRIx64 ", CurrentLength=%08x, AudioPos=%08" PRIx64,
+      DEBUG_LOG(DVDINTERFACE, "AdvanceDTK: NextStart=%08" PRIx64 ", NextLength=%08x, "
+                              "CurrentStart=%08" PRIx64 ", CurrentLength=%08x, AudioPos=%08" PRIx64,
                 s_next_start, s_next_length, s_current_start, s_current_length, s_audio_position);
 
       s_audio_position = s_next_start;
@@ -834,9 +833,8 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
     {
       u64 iDVDOffset = (u64)command_1 << 2;
 
-      INFO_LOG(DVDINTERFACE,
-               "Read: DVDOffset=%08" PRIx64
-               ", DMABuffer = %08x, SrcLength = %08x, DMALength = %08x",
+      INFO_LOG(DVDINTERFACE, "Read: DVDOffset=%08" PRIx64
+                             ", DMABuffer = %08x, SrcLength = %08x, DMALength = %08x",
                iDVDOffset, output_address, command_2, output_length);
 
       command_handled_by_thread =
@@ -958,10 +956,9 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
     switch (command_0 >> 16 & 0xFF)
     {
     case 0x00:  // Returns streaming status
-      INFO_LOG(DVDINTERFACE,
-               "(Audio): Stream Status: Request Audio status "
-               "AudioPos:%08" PRIx64 "/%08" PRIx64 " "
-               "CurrentStart:%08" PRIx64 " CurrentLength:%08x",
+      INFO_LOG(DVDINTERFACE, "(Audio): Stream Status: Request Audio status "
+                             "AudioPos:%08" PRIx64 "/%08" PRIx64 " "
+                             "CurrentStart:%08" PRIx64 " CurrentLength:%08x",
                s_audio_position, s_current_start + s_current_length, s_current_start,
                s_current_length);
       WriteImmediate(s_stream ? 1 : 0, output_address, reply_to_ios);
@@ -1305,9 +1302,8 @@ void ScheduleReads(u64 offset, u32 length, const DiscIO::Partition& partition, u
                              s_read_buffer_end_offset - s_read_buffer_start_offset, wii_disc));
   }
 
-  DEBUG_LOG(DVDINTERFACE,
-            "Schedule reads: ECC blocks unbuffered=%d, buffered=%d, "
-            "ticks=%" PRId64 ", time=%" PRId64 " us",
+  DEBUG_LOG(DVDINTERFACE, "Schedule reads: ECC blocks unbuffered=%d, buffered=%d, "
+                          "ticks=%" PRId64 ", time=%" PRId64 " us",
             unbuffered_blocks, buffered_blocks, ticks_until_completion,
             ticks_until_completion * 1000000 / SystemTimers::GetTicksPerSecond());
 }

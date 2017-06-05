@@ -390,10 +390,9 @@ void WiiSocket::Update(bool read, bool write, bool except)
               }
             }
 
-            INFO_LOG(IOS_SSL,
-                     "IOCTLV_NET_SSL_DOHANDSHAKE = (%d) "
-                     "BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
-                     "BufferOut: (%08x, %i), BufferOut2: (%08x, %i)",
+            INFO_LOG(IOS_SSL, "IOCTLV_NET_SSL_DOHANDSHAKE = (%d) "
+                              "BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
+                              "BufferOut: (%08x, %i), BufferOut2: (%08x, %i)",
                      ret, BufferIn, BufferInSize, BufferIn2, BufferInSize2, BufferOut,
                      BufferOutSize, BufferOut2, BufferOutSize2);
             break;
@@ -558,10 +557,9 @@ void WiiSocket::Update(bool read, bool write, bool except)
           ReturnValue =
               WiiSockMan::GetNetErrorCode(ret, BufferOutSize2 ? "SO_RECVFROM" : "SO_RECV", true);
 
-          INFO_LOG(IOS_NET,
-                   "%s(%d, %p) Socket: %08X, Flags: %08X, "
-                   "BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
-                   "BufferOut: (%08x, %i), BufferOut2: (%08x, %i)",
+          INFO_LOG(IOS_NET, "%s(%d, %p) Socket: %08X, Flags: %08X, "
+                            "BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
+                            "BufferOut: (%08x, %i), BufferOut2: (%08x, %i)",
                    BufferOutSize2 ? "IOCTLV_SO_RECVFROM " : "IOCTLV_SO_RECV ", ReturnValue, data,
                    wii_fd, flags, BufferIn, BufferInSize, BufferIn2, BufferInSize2, BufferOut,
                    BufferOutSize, BufferOut2, BufferOutSize2);
