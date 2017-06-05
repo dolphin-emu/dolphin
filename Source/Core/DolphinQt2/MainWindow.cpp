@@ -22,7 +22,6 @@
 
 #include "DolphinQt2/AboutDialog.h"
 #include "DolphinQt2/Config/ControllersWindow.h"
-#include "DolphinQt2/Config/PathDialog.h"
 #include "DolphinQt2/Config/SettingsWindow.h"
 #include "DolphinQt2/Host.h"
 #include "DolphinQt2/MainWindow.h"
@@ -40,7 +39,6 @@ MainWindow::MainWindow() : QMainWindow(nullptr)
   CreateComponents();
 
   ConnectGameList();
-  ConnectPathsDialog();
   ConnectToolBar();
   ConnectRenderWidget();
   ConnectStack();
@@ -83,7 +81,6 @@ void MainWindow::CreateComponents()
   m_game_list = new GameList(this);
   m_render_widget = new RenderWidget;
   m_stack = new QStackedWidget(this);
-  m_paths_dialog = new PathDialog(this);
   m_controllers_window = new ControllersWindow(this);
   m_settings_window = new SettingsWindow(this);
 }
@@ -140,7 +137,6 @@ void MainWindow::ConnectToolBar()
   connect(m_tool_bar, &ToolBar::StopPressed, this, &MainWindow::Stop);
   connect(m_tool_bar, &ToolBar::FullScreenPressed, this, &MainWindow::FullScreen);
   connect(m_tool_bar, &ToolBar::ScreenShotPressed, this, &MainWindow::ScreenShot);
-  connect(m_tool_bar, &ToolBar::PathsPressed, this, &MainWindow::ShowPathsDialog);
   connect(m_tool_bar, &ToolBar::SettingsPressed, this, &MainWindow::ShowSettingsWindow);
   connect(m_tool_bar, &ToolBar::ControllersPressed, this, &MainWindow::ShowControllersWindow);
 
@@ -167,12 +163,6 @@ void MainWindow::ConnectStack()
   m_stack->setMinimumSize(800, 600);
   m_stack->addWidget(m_game_list);
   setCentralWidget(m_stack);
-}
-
-void MainWindow::ConnectPathsDialog()
-{
-  connect(m_paths_dialog, &PathDialog::PathAdded, m_game_list, &GameList::DirectoryAdded);
-  connect(m_paths_dialog, &PathDialog::PathRemoved, m_game_list, &GameList::DirectoryRemoved);
 }
 
 void MainWindow::Open()
@@ -206,7 +196,7 @@ void MainWindow::Play()
     }
     else
     {
-      QString default_path = Settings().GetDefaultGame();
+      QString default_path = Settings::Instance().GetDefaultGame();
       if (!default_path.isEmpty() && QFile::exists(default_path))
       {
         StartGame(default_path);
@@ -228,7 +218,7 @@ void MainWindow::Pause()
 bool MainWindow::Stop()
 {
   bool stop = true;
-  if (Settings().GetConfirmStop())
+  if (Settings::Instance().GetConfirmStop())
   {
     // We could pause the game here and resume it if they say no.
     QMessageBox::StandardButton confirm;
@@ -313,7 +303,7 @@ void MainWindow::StartGame(const QString& path)
 
 void MainWindow::ShowRenderWidget()
 {
-  Settings settings;
+  auto& settings = Settings::Instance();
   if (settings.GetRenderToMain())
   {
     // If we're rendering to main, add it to the stack and update our title when necessary.
@@ -350,13 +340,6 @@ void MainWindow::HideRenderWidget()
     setWindowTitle(tr("Dolphin"));
   }
   m_render_widget->hide();
-}
-
-void MainWindow::ShowPathsDialog()
-{
-  m_paths_dialog->show();
-  m_paths_dialog->raise();
-  m_paths_dialog->activateWindow();
 }
 
 void MainWindow::ShowControllersWindow()
@@ -432,6 +415,6 @@ void MainWindow::StateSaveOldest()
 
 void MainWindow::SetStateSlot(int slot)
 {
-  Settings().SetStateSlot(slot);
+  Settings::Instance().SetStateSlot(slot);
   m_state_slot = slot;
 }

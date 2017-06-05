@@ -217,9 +217,9 @@ QString GameFile::GetBannerString(const QMap<DiscIO::Language, QString>& m) cons
   bool wii = m_platform != DiscIO::Platform::GAMECUBE_DISC;
   DiscIO::Language current_lang;
   if (wii)
-    current_lang = Settings().GetWiiSystemLanguage();
+    current_lang = Settings::Instance().GetWiiSystemLanguage();
   else
-    current_lang = Settings().GetGCSystemLanguage();
+    current_lang = Settings::Instance().GetGCSystemLanguage();
 
   if (m.contains(current_lang))
     return m[current_lang];

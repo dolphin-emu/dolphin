@@ -47,22 +47,22 @@ QPixmap Resources::GetPixmap(const QString& name, const QString& dir)
 
 QIcon Resources::GetScaledIcon(const std::string& name)
 {
-  return GetIcon(QString::fromStdString(name), Settings().GetResourcesDir());
+  return GetIcon(QString::fromStdString(name), Settings::Instance().GetResourcesDir());
 }
 
 QIcon Resources::GetScaledThemeIcon(const std::string& name)
 {
-  return GetIcon(QString::fromStdString(name), Settings().GetThemeDir());
+  return GetIcon(QString::fromStdString(name), Settings::Instance().GetThemeDir());
 }
 
 QPixmap Resources::GetScaledPixmap(const std::string& name)
 {
-  return GetPixmap(QString::fromStdString(name), Settings().GetResourcesDir());
+  return GetPixmap(QString::fromStdString(name), Settings::Instance().GetResourcesDir());
 }
 
 QPixmap Resources::GetScaledThemePixmap(const std::string& name)
 {
-  return GetPixmap(QString::fromStdString(name), Settings().GetThemeDir());
+  return GetPixmap(QString::fromStdString(name), Settings::Instance().GetThemeDir());
 }
 
 void Resources::Init()
