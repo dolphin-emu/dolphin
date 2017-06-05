@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <iterator>
+#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -36,6 +37,12 @@
 
 namespace
 {
+template <typename T>
+wxString OptionalToString(std::optional<T> value)
+{
+  return value ? StrToWxStr(std::to_string(*value)) : wxString();
+}
+
 wxArrayString GetLanguageChoiceStrings(const std::vector<DiscIO::Language>& languages)
 {
   wxArrayString available_languages;
@@ -177,7 +184,7 @@ void InfoPanel::LoadISODetails()
   m_game_id->SetValue(StrToWxStr(m_opened_iso->GetGameID()));
   m_country->SetValue(GetCountryName(m_opened_iso->GetCountry()));
   m_maker_id->SetValue("0x" + StrToWxStr(m_opened_iso->GetMakerID()));
-  m_revision->SetValue(StrToWxStr(std::to_string(m_opened_iso->GetRevision())));
+  m_revision->SetValue(OptionalToString(m_opened_iso->GetRevision()));
   m_date->SetValue(StrToWxStr(m_opened_iso->GetApploaderDate()));
   if (m_ios_version)
   {
