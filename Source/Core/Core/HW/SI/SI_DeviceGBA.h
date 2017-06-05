@@ -23,7 +23,7 @@ void GBAConnectionWaiter_Shutdown();
 class GBASockServer
 {
 public:
-  explicit GBASockServer(int device_number);
+  GBASockServer();
   ~GBASockServer();
 
   void Disconnect();
@@ -41,7 +41,6 @@ private:
 
   u64 m_time_cmd_sent = 0;
   u64 m_last_time_slice = 0;
-  int m_device_number;
   u8 m_cmd = 0;
   bool m_booted = false;
 };
