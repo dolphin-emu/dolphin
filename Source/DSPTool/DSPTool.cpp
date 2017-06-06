@@ -6,6 +6,7 @@
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 #include "Core/DSP/DSPCodeUtil.h"
+#include "Core/DSP/DSPDisassembler.h"
 #include "Core/DSP/DSPHost.h"
 #include "Core/DSP/DSPTables.h"
 
@@ -38,176 +39,80 @@ void DSP::Host::UpdateDebugger()
 {
 }
 
-// This test goes from text ASM to binary to text ASM and once again back to binary.
-// Then the two binaries are compared.
-static bool RoundTrip(const std::vector<u16>& code1)
+static void CodeToHeader(const std::vector<u16>& code, std::string filename, const char* name,
+                         std::string& header)
 {
-  std::vector<u16> code2;
-  std::string text;
-  if (!DSP::Disassemble(code1, false, text))
+  std::vector<u16> code_padded = code;
+  // Pad with nops to 32byte boundary
+  while (code_padded.size() & 0x7f)
+    code_padded.push_back(0);
+  header.clear();
+  header.reserve(code_padded.size() * 4);
+  header.append("#define NUM_UCODES 1\n\n");
+  std::string filename_without_extension;
+  SplitPath(filename, nullptr, &filename_without_extension, nullptr);
+  header.append(StringFromFormat("const char* UCODE_NAMES[NUM_UCODES] = {\"%s\"};\n\n",
+                                 filename_without_extension.c_str()));
+  header.append("const unsigned short dsp_code[NUM_UCODES][0x1000] = {\n");
+
+  header.append("\t{\n\t\t");
+  for (u32 j = 0; j < code_padded.size(); j++)
   {
-    printf("RoundTrip: Disassembly failed.\n");
-    return false;
+    if (j && ((j & 15) == 0))
+      header.append("\n\t\t");
+    header.append(StringFromFormat("0x%04x, ", code_padded[j]));
   }
-  if (!DSP::Assemble(text, code2))
-  {
-    printf("RoundTrip: Assembly failed.\n");
-    return false;
-  }
-  if (!DSP::Compare(code1, code2))
-  {
-    DSP::Disassemble(code1, true, text);
-    printf("%s", text.c_str());
-  }
-  return true;
+  header.append("\n\t},\n");
+
+  header.append("};\n");
 }
 
-// This test goes from text ASM to binary to text ASM and once again back to binary.
-// Very convenient for testing. Then the two binaries are compared.
-static bool SuperTrip(const char* asm_code)
+static void CodesToHeader(const std::vector<u16>* codes, const std::vector<std::string>* filenames,
+                          u32 num_codes, const char* name, std::string& header)
 {
-  std::vector<u16> code1, code2;
-  std::string text;
-  if (!DSP::Assemble(asm_code, code1))
+  std::vector<std::vector<u16>> codes_padded;
+  u32 reserveSize = 0;
+  for (u32 i = 0; i < num_codes; i++)
   {
-    printf("SuperTrip: First assembly failed\n");
-    return false;
+    codes_padded.push_back(codes[i]);
+    // Pad with nops to 32byte boundary
+    while (codes_padded.at(i).size() & 0x7f)
+      codes_padded.at(i).push_back(0);
+
+    reserveSize += (u32)codes_padded.at(i).size();
   }
-  printf("First assembly: %i words\n", (int)code1.size());
-  if (!DSP::Disassemble(code1, false, text))
+  header.clear();
+  header.reserve(reserveSize * 4);
+  header.append(StringFromFormat("#define NUM_UCODES %u\n\n", num_codes));
+  header.append("const char* UCODE_NAMES[NUM_UCODES] = {\n");
+  for (u32 i = 0; i < num_codes; i++)
   {
-    printf("SuperTrip: Disassembly failed\n");
-    return false;
+    std::string filename;
+    if (!SplitPath(filenames->at(i), nullptr, &filename, nullptr))
+      filename = filenames->at(i);
+    header.append(StringFromFormat("\t\"%s\",\n", filename.c_str()));
   }
-  else
+  header.append("};\n\n");
+  header.append("const unsigned short dsp_code[NUM_UCODES][0x1000] = {\n");
+
+  for (u32 i = 0; i < num_codes; i++)
   {
-    printf("Disass:\n");
-    printf("%s", text.c_str());
-  }
-  if (!DSP::Assemble(text, code2))
-  {
-    printf("SuperTrip: Second assembly failed\n");
-    return false;
-  }
-  /*
-  std::string text2;
-  Disassemble(code1, true, &text1);
-  Disassemble(code2, true, &text2);
-  File::WriteStringToFile(text1, "code1.txt");
-  File::WriteStringToFile(text2, "code2.txt");
-  */
-  return true;
-}
+    if (codes[i].size() == 0)
+      continue;
 
-static void RunAsmTests()
-{
-  bool fail = false;
-#define CHK(a)                                                                                     \
-  if (!SuperTrip(a))                                                                               \
-    printf("FAIL\n%s\n", a), fail = true;
-
-  // Let's start out easy - a trivial instruction..
-  CHK("	NOP\n");
-
-  // Now let's do several.
-  CHK("	NOP\n"
-      "	NOP\n"
-      "	NOP\n");
-
-  // Turning it up a notch.
-  CHK("	SET16\n"
-      "	SET40\n"
-      "	CLR15\n"
-      "	M0\n"
-      "	M2\n");
-
-  // Time to try labels and parameters, and comments.
-  CHK("DIRQ_TEST:	equ	0xfffb	; DSP Irq Request\n"
-      "	si		@0xfffc, #0x8888\n"
-      "	si		@0xfffd, #0xbeef\n"
-      "	si		@DIRQ_TEST, #0x0001\n");
-
-  // Let's see if registers roundtrip. Also try predefined labels.
-  CHK("	si		@0xfffc, #0x8888\n"
-      "	si		@0xfffd, #0xbeef\n"
-      "	si		@DIRQ, #0x0001\n");
-
-  // Let's try some messy extended instructions.
-  // CHK("   MULMV'SN    $AX0.L, $AX0.H, $ACC0 : @$AR2, $AC1.M\n");
-
-  //"   ADDAXL'MV   $ACC1, $AX1.L : $AX1.H, $AC1.M\n");
-  // Let's get brutal. We generate random code bytes and make sure that they can
-  // be roundtripped. We don't expect it to always succeed but it'll be sure to generate
-
-  // interesting test cases.
-  /*
-  std::vector<u16> hermes;
-  if (!LoadBinary("testdata/hermes.bin", &hermes))
-    PanicAlert("Failed to load hermes rom");
-  RoundTrip(hermes);
-  */
-  /*
-  std::vector<u16> code;
-  std::string text_orig;
-  File::ReadFileToString("testdata/dsp_test.S", &text_orig);
-  if (!Assemble(text_orig.c_str(), &code))
-  {
-    printf("SuperTrip: First assembly failed\n");
-    return;
-  }*/
-
-  /*
-  {
-    std::vector<u16> code;
-    code.clear();
-    for (int i = 0; i < sizeof(dsp_test)/4; i++)
+    header.append("\t{\n\t\t");
+    for (u32 j = 0; j < codes_padded.at(i).size(); j++)
     {
-      code.push_back(dsp_test[i] >> 16);
-      code.push_back(dsp_test[i] & 0xFFFF);
+      if (j && ((j & 15) == 0))
+        header.append("\n\t\t");
+      header.append(StringFromFormat("0x%04x, ", codes_padded.at(i).at(j)));
     }
-
-    SaveBinary(code, "dsp_test2.bin");
-    RoundTrip(code);
-  }*/
-  // if (Compare(code, hermes))
-  //	printf("Successs\n");
-  /*
-    {
-      std::vector<u16> code;
-      std::string text;
-      LoadBinary("testdata/dsp_test.bin", &code);
-      Disassemble(code, true, &text);
-      Assemble(text.c_str(), &code);
-      Disassemble(code, true, &text);
-      printf("%s", text.c_str());
-    }*/
-  /*
-  puts("Insane Random Code Test\n");
-  std::vector<u16> rand_code;
-  GenRandomCode(30, &rand_code);
-  std::string rand_code_text;
-  Disassemble(rand_code, true, &rand_code_text);
-  printf("%s", rand_code_text.c_str());
-  RoundTrip(rand_code);
-
-
-  if (File::ReadFileToString("C:/devkitPro/examples/wii/asndlib/dsptest/dsp_test.ds", &dsp_test))
-    SuperTrip(dsp_test.c_str());
-
-  //.File::ReadFileToString("C:/devkitPro/trunk/libogc/libasnd/dsp_mixer/dsp_mixer.s", &dsp_test);
-  // This is CLOSE to working. Sorry about the local path btw. This is preliminary code.
-*/
-
-  std::string dsp_test;
-  if (File::ReadFileToString("Testdata/dsp_test.s", dsp_test))
-    fail = fail || !SuperTrip(dsp_test.c_str());
-  if (!fail)
-    printf("All passed!\n");
+    header.append("\n\t},\n");
+  }
+  header.append("};\n");
 }
 
 // Usage:
-// Run internal tests:
-//   dsptool test
 // Disassemble a file:
 //   dsptool -d -o asdf.txt asdf.bin
 // Disassemble a file, output to standard output:
@@ -218,7 +123,6 @@ static void RunAsmTests()
 //   dsptool [-f] -h asdf.h asdf.txt
 // Print results from DSPSpy register dump
 //   dsptool -p dsp_dump0.bin
-// So far, all this binary can do is test partially that itself works correctly.
 int main(int argc, const char* argv[])
 {
   if (argc == 1 || (argc == 2 && (!strcmp(argv[1], "--help") || (!strcmp(argv[1], "-?")))))
@@ -238,12 +142,6 @@ int main(int argc, const char* argv[])
     printf("-psm <DUMP FILE>: Print results of DSPSpy register dump (convert PROD values/disable "
            "SR output)\n");
 
-    return 0;
-  }
-
-  if (argc == 2 && !strcmp(argv[1], "test"))
-  {
-    RunAsmTests();
     return 0;
   }
 
@@ -488,7 +386,7 @@ int main(int argc, const char* argv[])
           }
         }
 
-        DSP::CodesToHeader(codes, &files, lines, output_header_name.c_str(), header);
+        CodesToHeader(codes, &files, lines, output_header_name.c_str(), header);
         File::WriteStringToFile(header, output_header_name + ".h");
 
         delete[] codes;
@@ -517,7 +415,7 @@ int main(int argc, const char* argv[])
         if (!output_header_name.empty())
         {
           std::string header;
-          DSP::CodeToHeader(code, input_name, output_header_name.c_str(), header);
+          CodeToHeader(code, input_name, output_header_name.c_str(), header);
           File::WriteStringToFile(header, output_header_name + ".h");
         }
       }
