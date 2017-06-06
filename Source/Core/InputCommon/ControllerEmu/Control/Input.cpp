@@ -10,6 +10,11 @@
 
 namespace ControllerEmu
 {
+Input::Input(const std::string& name_, const std::string& ui_name_)
+    : Control(std::make_unique<InputReference>(), name_, ui_name_)
+{
+}
+
 Input::Input(const std::string& name_) : Control(std::make_unique<InputReference>(), name_)
 {
 }

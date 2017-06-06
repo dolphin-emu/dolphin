@@ -9,8 +9,14 @@
 
 namespace ControllerEmu
 {
+Control::Control(std::unique_ptr<ControlReference> ref, const std::string& name_,
+                 const std::string& ui_name_)
+    : control_ref(std::move(ref)), name(name_), ui_name(ui_name_)
+{
+}
+
 Control::Control(std::unique_ptr<ControlReference> ref, const std::string& name_)
-    : control_ref(std::move(ref)), name(name_)
+    : Control(std::move(ref), name_, name_)
 {
 }
 
