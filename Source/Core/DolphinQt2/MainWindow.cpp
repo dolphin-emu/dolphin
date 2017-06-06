@@ -24,9 +24,13 @@
 
 #include "DolphinQt2/AboutDialog.h"
 #include "DolphinQt2/Config/ControllersWindow.h"
+
+#include "DolphinQt2/Config/Mapping/MappingWindow.h"
 #include "DolphinQt2/Config/SettingsWindow.h"
 #include "DolphinQt2/Host.h"
+#include "DolphinQt2/HotkeyScheduler.h"
 #include "DolphinQt2/MainWindow.h"
+#include "DolphinQt2/QtUtils/FocusEventFilter.h"
 #include "DolphinQt2/Resources.h"
 #include "DolphinQt2/Settings.h"
 
@@ -64,16 +68,32 @@ void MainWindow::InitControllers()
   Pad::Initialize();
   Keyboard::Initialize();
   Wiimote::Initialize(Wiimote::InitializeMode::DO_NOT_WAIT_FOR_WIIMOTES);
-  HotkeyManagerEmu::Initialize();
+  m_hotkey_scheduler = new HotkeyScheduler();
+  m_hotkey_scheduler->Start();
+
+  ConnectHotkeys();
 }
 
 void MainWindow::ShutdownControllers()
 {
+  m_hotkey_scheduler->Stop();
+
   g_controller_interface.Shutdown();
   Pad::Shutdown();
   Keyboard::Shutdown();
   Wiimote::Shutdown();
   HotkeyManagerEmu::Shutdown();
+
+  m_hotkey_scheduler->deleteLater();
+}
+
+static void InstallHotkeyFilter(QDialog* dialog)
+{
+  auto* filter = new FocusEventFilter();
+  dialog->installEventFilter(filter);
+
+  filter->connect(filter, &FocusEventFilter::focusOutEvent, [] { HotkeyManagerEmu::Enable(true); });
+  filter->connect(filter, &FocusEventFilter::focusInEvent, [] { HotkeyManagerEmu::Enable(false); });
 }
 
 void MainWindow::CreateComponents()
@@ -85,6 +105,11 @@ void MainWindow::CreateComponents()
   m_stack = new QStackedWidget(this);
   m_controllers_window = new ControllersWindow(this);
   m_settings_window = new SettingsWindow(this);
+  m_hotkey_window = new MappingWindow(this, 0);
+
+  InstallHotkeyFilter(m_hotkey_window);
+  InstallHotkeyFilter(m_controllers_window);
+  InstallHotkeyFilter(m_settings_window);
 }
 
 void MainWindow::ConnectMenuBar()
@@ -113,6 +138,9 @@ void MainWindow::ConnectMenuBar()
   connect(m_menu_bar, &MenuBar::StateSaveOldest, this, &MainWindow::StateSaveOldest);
   connect(m_menu_bar, &MenuBar::SetStateSlot, this, &MainWindow::SetStateSlot);
 
+  // Options
+  connect(m_menu_bar, &MenuBar::ConfigureHotkeys, this, &MainWindow::ShowHotkeyDialog);
+
   // View
   connect(m_menu_bar, &MenuBar::ShowTable, m_game_list, &GameList::SetTableView);
   connect(m_menu_bar, &MenuBar::ShowList, m_game_list, &GameList::SetListView);
@@ -128,6 +156,22 @@ void MainWindow::ConnectMenuBar()
           [=]() { m_controllers_window->OnEmulationStateChanged(true); });
   connect(this, &MainWindow::EmulationStopped, this,
           [=]() { m_controllers_window->OnEmulationStateChanged(false); });
+}
+
+void MainWindow::ConnectHotkeys()
+{
+  connect(m_hotkey_scheduler, &HotkeyScheduler::ExitHotkey, this, &MainWindow::close);
+  connect(m_hotkey_scheduler, &HotkeyScheduler::PauseHotkey, this, &MainWindow::Pause);
+  connect(m_hotkey_scheduler, &HotkeyScheduler::StopHotkey, this, &MainWindow::Stop);
+  connect(m_hotkey_scheduler, &HotkeyScheduler::ScreenShotHotkey, this, &MainWindow::ScreenShot);
+  connect(m_hotkey_scheduler, &HotkeyScheduler::FullScreenHotkey, this, &MainWindow::FullScreen);
+
+  connect(m_hotkey_scheduler, &HotkeyScheduler::StateLoadSlotHotkey, this,
+          &MainWindow::StateLoadSlot);
+  connect(m_hotkey_scheduler, &HotkeyScheduler::StateSaveSlotHotkey, this,
+          &MainWindow::StateSaveSlot);
+  connect(m_hotkey_scheduler, &HotkeyScheduler::SetStateSlotHotkey, this,
+          &MainWindow::SetStateSlot);
 }
 
 void MainWindow::ConnectToolBar()
@@ -362,6 +406,14 @@ void MainWindow::ShowAboutDialog()
 {
   AboutDialog* about = new AboutDialog(this);
   about->show();
+}
+
+void MainWindow::ShowHotkeyDialog()
+{
+  m_hotkey_window->ChangeMappingType(MappingWindow::Type::MAPPING_HOTKEYS);
+  m_hotkey_window->show();
+  m_hotkey_window->raise();
+  m_hotkey_window->activateWindow();
 }
 
 void MainWindow::StateLoad()
