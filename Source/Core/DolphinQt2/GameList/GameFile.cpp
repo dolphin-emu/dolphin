@@ -309,6 +309,34 @@ QString GameFile::GetLanguage(DiscIO::Language lang) const
   }
 }
 
+QString GameFile::GetFileType() const
+{
+  if (GetPlatformID() == DiscIO::Platform::ELF_DOL)
+    return QObject::tr("ELF/DOL");
+  if (GetPlatformID() == DiscIO::Platform::WII_WAD)
+    return QObject::tr("WAD");
+
+  switch (GetBlobType())
+  {
+  case DiscIO::BlobType::PLAIN:
+    return QObject::tr("ISO");
+  case DiscIO::BlobType::DRIVE:
+    return QObject::tr("Drive");
+  case DiscIO::BlobType::DIRECTORY:
+    return QObject::tr("Directory");
+  case DiscIO::BlobType::GCZ:
+    return QObject::tr("GCZ");
+  case DiscIO::BlobType::CISO:
+    return QObject::tr("CISO");
+  case DiscIO::BlobType::WBFS:
+    return QObject::tr("WBFS");
+  case DiscIO::BlobType::TGC:
+    return QObject::tr("TGC");
+  default:
+    return QObject::tr("Unknown");
+  }
+}
+
 bool GameFile::IsInstalled() const
 {
   _assert_(m_platform == DiscIO::Platform::WII_WAD);

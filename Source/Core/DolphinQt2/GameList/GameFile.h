@@ -31,6 +31,7 @@ public:
   // These will be properly initialized before we try to load the file.
   QString GetFilePath() const { return m_path; }
   QString GetFileName() const { return m_file_name; }
+  QString GetFileType() const;
   QString GetFileExtension() const { return m_extension; }
   QString GetFileFolder() const { return m_folder; }
   qint64 GetFileSize() const { return m_size; }

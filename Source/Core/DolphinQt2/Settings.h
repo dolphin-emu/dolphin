@@ -80,6 +80,7 @@ public:
   bool& CountryVisible() const;
   bool& DescriptionVisible() const;
   bool& FilenameVisible() const;
+  bool& FiletypeVisible() const;
   bool& IDVisible() const;
   bool& PlatformVisible() const;
   bool& MakerVisible() const;

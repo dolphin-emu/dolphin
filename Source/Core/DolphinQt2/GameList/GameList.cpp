@@ -77,6 +77,7 @@ void GameList::MakeTableView()
   m_table->setColumnHidden(GameListModel::COL_BANNER, !settings.BannerVisible());
   m_table->setColumnHidden(GameListModel::COL_TITLE, !settings.TitleVisible());
   m_table->setColumnHidden(GameListModel::COL_DESCRIPTION, !settings.DescriptionVisible());
+  m_table->setColumnHidden(GameListModel::COL_FILETYPE, !settings.FiletypeVisible());
   m_table->setColumnHidden(GameListModel::COL_MAKER, !settings.MakerVisible());
   m_table->setColumnHidden(GameListModel::COL_SIZE, !settings.SizeVisible());
   m_table->setColumnHidden(GameListModel::COL_COUNTRY, !settings.CountryVisible());
@@ -92,6 +93,7 @@ void GameList::MakeTableView()
   hor_header->setSectionResizeMode(GameListModel::COL_SIZE, QHeaderView::ResizeToContents);
   hor_header->setSectionResizeMode(GameListModel::COL_DESCRIPTION, QHeaderView::Stretch);
   hor_header->setSectionResizeMode(GameListModel::COL_RATING, QHeaderView::ResizeToContents);
+  hor_header->setSectionResizeMode(GameListModel::COL_FILETYPE, QHeaderView::ResizeToContents);
 
   m_table->verticalHeader()->hide();
 }
@@ -407,6 +409,7 @@ void GameList::OnColumnVisibilityToggled(const QString& row, bool visible)
       {tr("Banner"), GameListModel::COL_BANNER},
       {tr("Country"), GameListModel::COL_COUNTRY},
       {tr("Description"), GameListModel::COL_DESCRIPTION},
+      {tr("File Type"), GameListModel::COL_FILETYPE},
       {tr("ID"), GameListModel::COL_ID},
       {tr("Maker"), GameListModel::COL_MAKER},
       {tr("Platform"), GameListModel::COL_PLATFORM},

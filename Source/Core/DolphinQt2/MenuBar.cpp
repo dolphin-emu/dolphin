@@ -219,6 +219,7 @@ void MenuBar::AddTableColumnsMenu(QMenu* view_menu)
                                             {tr("Banner"), &settings.BannerVisible()},
                                             {tr("Title"), &settings.TitleVisible()},
                                             {tr("Description"), &settings.DescriptionVisible()},
+                                            {tr("File Type"), &settings.FiletypeVisible()},
                                             {tr("Maker"), &settings.MakerVisible()},
                                             {tr("Size"), &settings.SizeVisible()},
                                             {tr("Country"), &settings.CountryVisible()},

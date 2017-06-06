@@ -32,6 +32,7 @@ public:
     COL_BANNER,
     COL_TITLE,
     COL_DESCRIPTION,
+    COL_FILETYPE,
     COL_MAKER,
     COL_ID,
     COL_COUNTRY,

@@ -250,6 +250,11 @@ bool& Settings::FilenameVisible() const
   return SConfig::GetInstance().m_showFileNameColumn;
 }
 
+bool& Settings::FiletypeVisible() const
+{
+  return SConfig::GetInstance().m_showFileTypeColumn;
+}
+
 bool& Settings::IDVisible() const
 {
   return SConfig::GetInstance().m_showIDColumn;

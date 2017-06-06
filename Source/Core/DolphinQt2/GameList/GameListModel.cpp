@@ -73,6 +73,10 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
     if (role == Qt::DisplayRole || role == Qt::InitialSortOrderRole)
       return game->GetDescription();
     break;
+  case COL_FILETYPE:
+    if (role == Qt::DisplayRole || role == Qt::InitialSortOrderRole)
+      return game->GetFileType();
+    break;
   case COL_MAKER:
     if (role == Qt::DisplayRole || role == Qt::InitialSortOrderRole)
       return game->GetMaker();
@@ -103,6 +107,8 @@ QVariant GameListModel::headerData(int section, Qt::Orientation orientation, int
     return tr("Banner");
   case COL_DESCRIPTION:
     return tr("Description");
+  case COL_FILETYPE:
+    return tr("File Type");
   case COL_MAKER:
     return tr("Maker");
   case COL_SIZE:
