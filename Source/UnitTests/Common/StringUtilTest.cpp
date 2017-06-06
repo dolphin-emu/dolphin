@@ -41,6 +41,40 @@ TEST(StringUtil, StringEndsWith)
   EXPECT_TRUE(StringEndsWith("", ""));
 }
 
+TEST(StringUtil, StringPopBackIf)
+{
+  std::string abc = "abc";
+  std::string empty = "";
+
+  StringPopBackIf(&abc, 'a');
+  StringPopBackIf(&empty, 'a');
+  EXPECT_STREQ("abc", abc.c_str());
+  EXPECT_STRNE(empty.c_str(), abc.c_str());
+
+  StringPopBackIf(&abc, 'c');
+  StringPopBackIf(&empty, 'c');
+  EXPECT_STRNE("abc", abc.c_str());
+  EXPECT_STREQ("ab", abc.c_str());
+  EXPECT_STRNE(empty.c_str(), abc.c_str());
+
+  StringPopBackIf(&abc, 'b');
+  StringPopBackIf(&empty, 'b');
+  EXPECT_STRNE("ab", abc.c_str());
+  EXPECT_STREQ("a", abc.c_str());
+  EXPECT_STRNE(empty.c_str(), abc.c_str());
+
+  StringPopBackIf(&abc, 'a');
+  StringPopBackIf(&empty, 'a');
+  EXPECT_STRNE("a", abc.c_str());
+  EXPECT_STREQ("", abc.c_str());
+  EXPECT_STREQ(empty.c_str(), abc.c_str());
+
+  StringPopBackIf(&abc, 'a');
+  StringPopBackIf(&empty, 'a');
+  EXPECT_STREQ("", abc.c_str());
+  EXPECT_STREQ(empty.c_str(), abc.c_str());
+}
+
 TEST(StringUtil, UTF8ToSHIFTJIS)
 {
   const std::string kirby_unicode =
