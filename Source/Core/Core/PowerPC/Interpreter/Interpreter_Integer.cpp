@@ -359,7 +359,7 @@ void Interpreter::srawx(UGeckoInstruction inst)
     s32 rrs = rGPR[inst.RS];
     rGPR[inst.RA] = rrs >> amount;
 
-    SetCarry(rrs < 0 && (u32(rrs) << (32 - amount)) != 0);
+    SetCarry(rrs < 0 && amount > 0 && (u32(rrs) << (32 - amount)) != 0);
   }
 
   if (inst.Rc)
@@ -373,7 +373,7 @@ void Interpreter::srawix(UGeckoInstruction inst)
   s32 rrs = rGPR[inst.RS];
   rGPR[inst.RA] = rrs >> amount;
 
-  SetCarry(rrs < 0 && (u32(rrs) << (32 - amount)) != 0);
+  SetCarry(rrs < 0 && amount > 0 && (u32(rrs) << (32 - amount)) != 0);
 
   if (inst.Rc)
     Helper_UpdateCR0(rGPR[inst.RA]);
