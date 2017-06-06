@@ -489,6 +489,7 @@ bool DSPAssembler::VerifyParams(const opc_t* opc, param_t* par, size_t count, Op
         case P_REG18:
         case P_REG19:
         case P_REG1A:
+        case P_REG1C:
           value = (opc->params[i].type >> 8) & 31;
           if ((int)par[i].val < value ||
               (int)par[i].val > value + get_mask_shifted_down(opc->params[i].mask))
