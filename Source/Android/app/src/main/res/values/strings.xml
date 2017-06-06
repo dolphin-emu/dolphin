@@ -56,7 +56,7 @@
     <!-- GameCube buttons (May be shared with other stuff too) -->
     <string name="button_a">A</string>
     <string name="button_b">B</string>
-    <string name="button_start">Start</string>
+    <string name="button_start">START</string>
     <string name="button_x">X</string>
     <string name="button_y">Y</string>
     <string name="button_z">Z</string>
@@ -68,7 +68,7 @@
     <string name="button_two">2</string>
     <string name="button_minus">-</string>
     <string name="button_plus">+</string>
-    <string name="button_home">Home</string>
+    <string name="button_home">HOME</string>
     <string name="ir_hide">Hide</string>
     <string name="tilt_modifier">Modifier</string>
     <string name="shake_x">X</string>

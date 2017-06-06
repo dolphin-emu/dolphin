@@ -8,20 +8,20 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Core/Boot/Boot.h"
 
-class CDolLoader
+class DolReader final : public BootExecutableReader
 {
 public:
-  CDolLoader(const std::string& filename);
-  CDolLoader(const std::vector<u8>& buffer);
-  ~CDolLoader();
+  DolReader(const std::string& filename);
+  DolReader(const std::vector<u8>& buffer);
+  ~DolReader();
 
-  bool IsValid() const { return m_is_valid; }
-  bool IsWii() const { return m_is_wii; }
-  u32 GetEntryPoint() const { return m_dolheader.entryPoint; }
-  // Load into emulated memory
-  void Load() const;
-
+  bool IsValid() const override { return m_is_valid; }
+  bool IsWii() const override { return m_is_wii; }
+  u32 GetEntryPoint() const override { return m_dolheader.entryPoint; }
+  bool LoadIntoMemory(bool only_in_mem1 = false) const override;
+  bool LoadSymbols() const override { return false; }
 private:
   enum
   {

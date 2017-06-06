@@ -13,13 +13,12 @@ class QDialogButtonBox;
 class QCheckBox;
 class QComboBox;
 class QHBoxLayout;
-class QFormLayout;
+class QGridLayout;
 class QGroupBox;
 class QLabel;
 class QVBoxLayout;
 class QPushButton;
 class QRadioButton;
-class QSpacerItem;
 
 class ControllersWindow final : public QDialog
 {
@@ -54,7 +53,7 @@ private:
   // Gamecube
   std::array<MappingWindow*, 4> m_gc_mappings;
   QGroupBox* m_gc_box;
-  QFormLayout* m_gc_layout;
+  QGridLayout* m_gc_layout;
   std::array<QComboBox*, 4> m_gc_controller_boxes;
   std::array<QPushButton*, 4> m_gc_buttons;
   std::array<QHBoxLayout*, 4> m_gc_groups;
@@ -62,7 +61,7 @@ private:
   // Wii Remote
   std::array<MappingWindow*, 4> m_wiimote_mappings;
   QGroupBox* m_wiimote_box;
-  QFormLayout* m_wiimote_layout;
+  QGridLayout* m_wiimote_layout;
   std::array<QLabel*, 4> m_wiimote_labels;
   std::array<QComboBox*, 4> m_wiimote_boxes;
   std::array<QPushButton*, 4> m_wiimote_buttons;

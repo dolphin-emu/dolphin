@@ -182,13 +182,10 @@
     <ClCompile Include="Boot\Boot_BS2Emu.cpp">
       <Filter>Boot</Filter>
     </ClCompile>
-    <ClCompile Include="Boot\Boot_DOL.cpp">
-      <Filter>Boot</Filter>
-    </ClCompile>
-    <ClCompile Include="Boot\Boot_ELF.cpp">
-      <Filter>Boot</Filter>
-    </ClCompile>
     <ClCompile Include="Boot\Boot_WiiWAD.cpp">
+      <Filter>Boot</Filter>
+    </ClCompile>
+    <ClCompile Include="Boot\DolReader.cpp">
       <Filter>Boot</Filter>
     </ClCompile>
     <ClCompile Include="Boot\ElfReader.cpp">
@@ -291,6 +288,9 @@
       <Filter>HLE</Filter>
     </ClCompile>
     <ClCompile Include="HLE\HLE_OS.cpp">
+      <Filter>HLE</Filter>
+    </ClCompile>
+    <ClCompile Include="HLE\HLE_VarArgs.cpp" />
       <Filter>HLE</Filter>
     </ClCompile>
     <ClCompile Include="PowerPC\BreakPoints.cpp">
@@ -853,6 +853,11 @@
     <ClCompile Include="ConfigLoaders\NetPlayConfigLoader.cpp">
       <Filter>ConfigLoader</Filter>
     </ClCompile>
+    <ClCompile Include="ConfigLoaders\IsSettingSaveable.cpp">
+      <Filter>ConfigLoader</Filter>
+    </ClCompile>
+    <ClCompile Include="Config\Config.cpp" />
+    <ClCompile Include="Config\GraphicsSettings.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BootManager.h" />
@@ -880,7 +885,7 @@
     <ClInclude Include="Boot\Boot.h">
       <Filter>Boot</Filter>
     </ClInclude>
-    <ClInclude Include="Boot\Boot_DOL.h">
+    <ClInclude Include="Boot\DolReader.h">
       <Filter>Boot</Filter>
     </ClInclude>
     <ClInclude Include="Boot\ElfReader.h">
@@ -953,6 +958,9 @@
       <Filter>HLE</Filter>
     </ClInclude>
     <ClInclude Include="HLE\HLE_OS.h">
+      <Filter>HLE</Filter>
+    </ClInclude>
+    <ClInclude Include="HLE\HLE_VarArgs.h">
       <Filter>HLE</Filter>
     </ClInclude>
     <ClInclude Include="PowerPC\CachedInterpreter\CachedInterpreter.h">
@@ -1484,6 +1492,11 @@
       <Filter>ConfigLoader</Filter>
     </ClInclude>
     <ClInclude Include="ConfigLoaders\NetPlayConfigLoader.h">
+      <Filter>ConfigLoader</Filter>
+    </ClInclude>
+    <ClInclude Include="Config\Config.h" />
+    <ClInclude Include="Config\GraphicsSettings.h" />
+    <ClInclude Include="ConfigLoaders\IsSettingSaveable.h">
       <Filter>ConfigLoader</Filter>
     </ClInclude>
   </ItemGroup>

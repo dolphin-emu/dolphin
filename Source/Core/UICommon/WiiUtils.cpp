@@ -58,7 +58,7 @@ bool InstallWAD(const std::string& wad_path)
     return false;
   }
 
-  DiscIO::CNANDContentManager::Access().ClearCache();
+  DiscIO::NANDContentManager::Access().ClearCache();
   return true;
 }
 }

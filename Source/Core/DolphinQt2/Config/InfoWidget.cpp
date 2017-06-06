@@ -168,7 +168,7 @@ void InfoWidget::ComputeChecksum()
 {
   QCryptographicHash hash(QCryptographicHash::Md5);
   hash.reset();
-  std::unique_ptr<DiscIO::IBlobReader> file(
+  std::unique_ptr<DiscIO::BlobReader> file(
       DiscIO::CreateBlobReader(m_game.GetFilePath().toStdString()));
   std::vector<u8> file_data(8 * 1080 * 1080);  // read 1MB at a time
   u64 game_size = file->GetDataSize();

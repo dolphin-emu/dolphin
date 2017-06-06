@@ -24,12 +24,17 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 
+#include "Core/Boot/Boot.h"
+#include "Core/Config/Config.h"
+#include "Core/ConfigLoaders/GameConfigLoader.h"
+#include "Core/ConfigLoaders/NetPlayConfigLoader.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/EXI/EXI.h"
@@ -218,24 +223,30 @@ static GPUDeterminismMode ParseGPUDeterminismMode(const std::string& mode)
 }
 
 // Boot the ISO or file
-bool BootCore(const std::string& filename, SConfig::EBootBS2 type)
+bool BootCore(std::unique_ptr<BootParameters> boot)
 {
+  if (!boot)
+    return false;
+
   SConfig& StartUp = SConfig::GetInstance();
 
-  StartUp.m_BootType = SConfig::BOOT_ISO;
-  StartUp.m_strFilename = filename;
   StartUp.bRunCompareClient = false;
   StartUp.bRunCompareServer = false;
 
   config_cache.SaveConfig(StartUp);
 
-  // If for example the ISO file is bad we return here
-  if (!StartUp.AutoSetup(type))
+  if (!StartUp.SetPathsAndGameMetadata(*boot))
     return false;
 
   // Load game specific settings
-  if (type == SConfig::BOOT_DEFAULT)
+  if (!std::holds_alternative<BootParameters::IPL>(boot->parameters))
   {
+    std::string game_id = SConfig::GetInstance().GetGameID();
+    u16 revision = SConfig::GetInstance().GetRevision();
+
+    Config::AddLoadLayer(ConfigLoaders::GenerateGlobalGameConfigLoader(game_id, revision));
+    Config::AddLoadLayer(ConfigLoaders::GenerateLocalGameConfigLoader(game_id, revision));
+
     IniFile game_ini = StartUp.LoadGameIni();
 
     // General settings
@@ -320,6 +331,7 @@ bool BootCore(const std::string& filename, SConfig::EBootBS2 type)
   // Movie settings
   if (Movie::IsPlayingInput() && Movie::IsConfigSaved())
   {
+    Config::AddLayer(std::make_unique<Config::Layer>(Config::LayerType::Movie));
     StartUp.bCPUThread = Movie::IsDualCore();
     StartUp.bDSPHLE = Movie::IsDSPHLE();
     StartUp.bProgressive = Movie::IsProgressive();
@@ -345,6 +357,7 @@ bool BootCore(const std::string& filename, SConfig::EBootBS2 type)
 
   if (NetPlay::IsNetPlayRunning())
   {
+    Config::AddLoadLayer(ConfigLoaders::GenerateNetPlayConfigLoader(g_NetPlaySettings));
     StartUp.bCPUThread = g_NetPlaySettings.m_CPUthread;
     StartUp.bEnableCheats = g_NetPlaySettings.m_EnableCheats;
     StartUp.bDSPHLE = g_NetPlaySettings.m_DSPHLE;
@@ -388,15 +401,14 @@ bool BootCore(const std::string& filename, SConfig::EBootBS2 type)
   if (StartUp.bWii)
     StartUp.SaveSettingsToSysconf();
 
-  // Run the game
-  // Init the core
-  if (!Core::Init())
+  const bool load_ipl = !StartUp.bWii && !StartUp.bHLE_BS2 &&
+                        std::holds_alternative<BootParameters::Disc>(boot->parameters);
+  if (load_ipl)
   {
-    PanicAlertT("Couldn't init the core.\nCheck your configuration.");
-    return false;
+    return Core::Init(std::make_unique<BootParameters>(BootParameters::IPL{
+        StartUp.m_region, std::move(std::get<BootParameters::Disc>(boot->parameters))}));
   }
-
-  return true;
+  return Core::Init(std::move(boot));
 }
 
 void Stop()
@@ -407,6 +419,11 @@ void Stop()
 
 void RestoreConfig()
 {
+  Config::ClearCurrentRunLayer();
+  Config::RemoveLayer(Config::LayerType::Movie);
+  Config::RemoveLayer(Config::LayerType::Netplay);
+  Config::RemoveLayer(Config::LayerType::GlobalGame);
+  Config::RemoveLayer(Config::LayerType::LocalGame);
   SConfig::GetInstance().LoadSettingsFromSysconf();
   SConfig::GetInstance().ResetRunningGameMetadata();
   config_cache.RestoreConfig(&SConfig::GetInstance());

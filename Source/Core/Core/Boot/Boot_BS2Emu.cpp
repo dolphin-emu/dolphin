@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <map>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -81,26 +82,22 @@ void CBoot::SetupBAT(bool is_wii)
   PowerPC::IBATUpdated();
 }
 
-bool CBoot::RunApploader(bool is_wii, const DiscIO::IVolume& volume)
+bool CBoot::RunApploader(bool is_wii, const DiscIO::Volume& volume)
 {
   const DiscIO::Partition partition = volume.GetGamePartition();
 
   // Load Apploader to Memory - The apploader is hardcoded to begin at 0x2440 on the disc,
   // but the size can differ between discs. Compare with YAGCD chap 13.
-  const u32 apploader_offset = 0x2440;
-  u32 apploader_entry = 0;
-  u32 apploader_size = 0;
-  u32 apploader_trailer = 0;
-  if (!volume.ReadSwapped(apploader_offset + 0x10, &apploader_entry, partition) ||
-      !volume.ReadSwapped(apploader_offset + 0x14, &apploader_size, partition) ||
-      !volume.ReadSwapped(apploader_offset + 0x18, &apploader_trailer, partition) ||
-      apploader_entry == (u32)-1 || apploader_size + apploader_trailer == (u32)-1)
+  constexpr u32 offset = 0x2440;
+  const std::optional<u32> entry = volume.ReadSwapped<u32>(offset + 0x10, partition);
+  const std::optional<u32> size = volume.ReadSwapped<u32>(offset + 0x14, partition);
+  const std::optional<u32> trailer = volume.ReadSwapped<u32>(offset + 0x18, partition);
+  if (!entry || !size || !trailer || *entry == (u32)-1 || *size + *trailer == (u32)-1)
   {
     INFO_LOG(BOOT, "Invalid apploader. Your disc image is probably corrupted.");
     return false;
   }
-  DVDRead(volume, apploader_offset + 0x20, 0x01200000, apploader_size + apploader_trailer,
-          partition);
+  DVDRead(volume, offset + 0x20, 0x01200000, *size + *trailer, partition);
 
   // TODO - Make Apploader(or just RunFunction()) debuggable!!!
 
@@ -110,7 +107,7 @@ bool CBoot::RunApploader(bool is_wii, const DiscIO::IVolume& volume)
   PowerPC::ppcState.gpr[3] = iAppLoaderFuncAddr + 0;
   PowerPC::ppcState.gpr[4] = iAppLoaderFuncAddr + 4;
   PowerPC::ppcState.gpr[5] = iAppLoaderFuncAddr + 8;
-  RunFunction(apploader_entry);
+  RunFunction(*entry);
   const u32 iAppLoaderInit = PowerPC::Read_U32(iAppLoaderFuncAddr + 0);
   const u32 iAppLoaderMain = PowerPC::Read_U32(iAppLoaderFuncAddr + 4);
   const u32 iAppLoaderClose = PowerPC::Read_U32(iAppLoaderFuncAddr + 8);
@@ -158,7 +155,7 @@ bool CBoot::RunApploader(bool is_wii, const DiscIO::IVolume& volume)
 // GameCube Bootstrap 2 HLE:
 // copy the apploader to 0x81200000
 // execute the apploader, function by function, using the above utility.
-bool CBoot::EmulatedBS2_GC(const DiscIO::IVolume* volume, bool skip_app_loader)
+bool CBoot::EmulatedBS2_GC(const DiscIO::Volume* volume, bool skip_app_loader)
 {
   INFO_LOG(BOOT, "Faking GC BS2...");
 
@@ -220,7 +217,7 @@ bool CBoot::EmulatedBS2_GC(const DiscIO::IVolume* volume, bool skip_app_loader)
   return RunApploader(/*is_wii*/ false, *volume);
 }
 
-bool CBoot::SetupWiiMemory(const DiscIO::IVolume* volume, u64 ios_title_id)
+bool CBoot::SetupWiiMemory(const DiscIO::Volume* volume, u64 ios_title_id)
 {
   static const std::map<DiscIO::Region, const RegionSetting> region_settings = {
       {DiscIO::Region::NTSC_J, {"JPN", "NTSC", "JP", "LJ"}},
@@ -334,7 +331,7 @@ bool CBoot::SetupWiiMemory(const DiscIO::IVolume* volume, u64 ios_title_id)
 // Wii Bootstrap 2 HLE:
 // copy the apploader to 0x81200000
 // execute the apploader
-bool CBoot::EmulatedBS2_Wii(const DiscIO::IVolume* volume)
+bool CBoot::EmulatedBS2_Wii(const DiscIO::Volume* volume)
 {
   INFO_LOG(BOOT, "Faking Wii BS2...");
   if (!volume)
@@ -377,7 +374,7 @@ bool CBoot::EmulatedBS2_Wii(const DiscIO::IVolume* volume)
 // Returns true if apploader has run successfully.
 // If is_wii is true and volume is not nullptr, the disc that volume
 // point to must currently be inserted into the emulated disc drive.
-bool CBoot::EmulatedBS2(bool is_wii, const DiscIO::IVolume* volume)
+bool CBoot::EmulatedBS2(bool is_wii, const DiscIO::Volume* volume)
 {
   return is_wii ? EmulatedBS2_Wii(volume) : EmulatedBS2_GC(volume);
 }

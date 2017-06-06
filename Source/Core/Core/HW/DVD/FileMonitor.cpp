@@ -21,9 +21,9 @@
 
 namespace FileMonitor
 {
-static const DiscIO::IVolume* s_volume;
+static const DiscIO::Volume* s_volume;
 static bool s_new_volume = false;
-static std::unique_ptr<DiscIO::IFileSystem> s_filesystem;
+static std::unique_ptr<DiscIO::FileSystem> s_filesystem;
 static DiscIO::Partition s_partition;
 static std::string s_previous_file;
 
@@ -53,7 +53,7 @@ static bool IsSoundFile(const std::string& filename)
   return extensions.find(extension) != extensions.end();
 }
 
-void SetFileSystem(const DiscIO::IVolume* volume)
+void SetFileSystem(const DiscIO::Volume* volume)
 {
   // Instead of creating the file system object right away, we will let Log
   // create it later once we know that it actually will get used

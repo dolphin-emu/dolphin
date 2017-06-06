@@ -32,18 +32,17 @@ namespace
 class WiiPartition final : public wxTreeItemData
 {
 public:
-  WiiPartition(std::unique_ptr<DiscIO::IFileSystem> filesystem_)
-      : filesystem{std::move(filesystem_)}
+  WiiPartition(std::unique_ptr<DiscIO::FileSystem> filesystem_) : filesystem{std::move(filesystem_)}
   {
   }
 
-  std::unique_ptr<DiscIO::IFileSystem> filesystem;
+  std::unique_ptr<DiscIO::FileSystem> filesystem;
 };
 
 class IntegrityCheckThread final : public wxThread
 {
 public:
-  explicit IntegrityCheckThread(const DiscIO::IVolume* volume, DiscIO::Partition partition)
+  explicit IntegrityCheckThread(const DiscIO::Volume* volume, DiscIO::Partition partition)
       : wxThread{wxTHREAD_JOINABLE}, m_volume{volume}, m_partition{partition}
   {
     Create();
@@ -55,7 +54,7 @@ public:
   }
 
 private:
-  const DiscIO::IVolume* const m_volume;
+  const DiscIO::Volume* const m_volume;
   const DiscIO::Partition m_partition;
 };
 
@@ -85,14 +84,14 @@ wxImageList* LoadIconBitmaps(const wxWindow* context)
 }
 
 size_t CreateDirectoryTree(wxTreeCtrl* tree_ctrl, wxTreeItemId parent,
-                           const std::vector<DiscIO::SFileInfo>& file_infos,
+                           const std::vector<DiscIO::FileInfo>& file_infos,
                            const size_t first_index, const size_t last_index)
 {
   size_t current_index = first_index;
 
   while (current_index < last_index)
   {
-    const DiscIO::SFileInfo& file_info = file_infos[current_index];
+    const DiscIO::FileInfo& file_info = file_infos[current_index];
     std::string file_path = file_info.m_FullPath;
 
     // Trim the trailing '/' if it exists.
@@ -127,7 +126,7 @@ size_t CreateDirectoryTree(wxTreeCtrl* tree_ctrl, wxTreeItemId parent,
 }
 
 size_t CreateDirectoryTree(wxTreeCtrl* tree_ctrl, wxTreeItemId parent,
-                           const std::vector<DiscIO::SFileInfo>& file_infos)
+                           const std::vector<DiscIO::FileInfo>& file_infos)
 {
   if (file_infos.empty())
     return 0;
@@ -155,14 +154,15 @@ WiiPartition* FindWiiPartition(wxTreeCtrl* tree_ctrl, const wxString& label)
 }  // Anonymous namespace
 
 FilesystemPanel::FilesystemPanel(wxWindow* parent, wxWindowID id,
-                                 const std::unique_ptr<DiscIO::IVolume>& opened_iso)
+                                 const std::unique_ptr<DiscIO::Volume>& opened_iso)
     : wxPanel{parent, id}, m_opened_iso{opened_iso}
 {
   CreateGUI();
-  BindEvents();
-  PopulateFileSystemTree();
-
-  m_tree_ctrl->Expand(m_tree_ctrl->GetRootItem());
+  if (PopulateFileSystemTree())
+  {
+    BindEvents();
+    m_tree_ctrl->Expand(m_tree_ctrl->GetRootItem());
+  }
 }
 
 FilesystemPanel::~FilesystemPanel() = default;
@@ -194,7 +194,7 @@ void FilesystemPanel::CreateGUI()
   SetSizer(main_sizer);
 }
 
-void FilesystemPanel::PopulateFileSystemTree()
+bool FilesystemPanel::PopulateFileSystemTree()
 {
   const std::vector<DiscIO::Partition> partitions = m_opened_iso->GetPartitions();
   m_has_partitions = !partitions.empty();
@@ -203,7 +203,7 @@ void FilesystemPanel::PopulateFileSystemTree()
   {
     for (size_t i = 0; i < partitions.size(); ++i)
     {
-      std::unique_ptr<DiscIO::IFileSystem> file_system(
+      std::unique_ptr<DiscIO::FileSystem> file_system(
           DiscIO::CreateFileSystem(m_opened_iso.get(), partitions[i]));
       if (file_system)
       {
@@ -224,10 +224,12 @@ void FilesystemPanel::PopulateFileSystemTree()
   {
     m_filesystem = DiscIO::CreateFileSystem(m_opened_iso.get(), DiscIO::PARTITION_NONE);
     if (!m_filesystem)
-      return;
+      return false;
 
     CreateDirectoryTree(m_tree_ctrl, m_tree_ctrl->GetRootItem(), m_filesystem->GetFileList());
   }
+
+  return true;
 }
 
 void FilesystemPanel::OnRightClickTree(wxTreeEvent& event)
@@ -307,7 +309,7 @@ void FilesystemPanel::OnExtractDirectories(wxCommandEvent& event)
 
 void FilesystemPanel::OnExtractHeaderData(wxCommandEvent& event)
 {
-  DiscIO::IFileSystem* file_system = nullptr;
+  DiscIO::FileSystem* file_system = nullptr;
   const wxString path = wxDirSelector(_("Choose the folder to extract to"));
 
   if (path.empty())
@@ -448,9 +450,9 @@ void FilesystemPanel::ExtractSingleDirectory(const wxString& output_folder)
 
 void FilesystemPanel::ExtractDirectories(const std::string& full_path,
                                          const std::string& output_folder,
-                                         DiscIO::IFileSystem* filesystem)
+                                         DiscIO::FileSystem* filesystem)
 {
-  const std::vector<DiscIO::SFileInfo>& fst = filesystem->GetFileList();
+  const std::vector<DiscIO::FileInfo>& fst = filesystem->GetFileList();
 
   u32 index = 0;
   u32 size = 0;

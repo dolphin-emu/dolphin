@@ -6,8 +6,8 @@
 
 #define DINPUT_SOURCE_NAME "DInput"
 
-#include <list>
 #include <windows.h>
+#include <list>
 
 #include "InputCommon/ControllerInterface/DInput/DInput8.h"
 

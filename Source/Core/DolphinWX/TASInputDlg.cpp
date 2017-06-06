@@ -86,9 +86,9 @@ void TASInputDlg::CreateBaseLayout()
   m_controls[0] = &m_main_stick.x_cont;
   m_controls[1] = &m_main_stick.y_cont;
 
-  m_a = CreateButton(_("A"));
+  m_a = CreateButton("A");
   m_a.checkbox->SetClientData(&m_a);
-  m_b = CreateButton(_("B"));
+  m_b = CreateButton("B");
   m_b.checkbox->SetClientData(&m_b);
   m_dpad_up = CreateButton(_("Up"));
   m_dpad_up.checkbox->SetClientData(&m_dpad_up);
@@ -140,15 +140,15 @@ void TASInputDlg::CreateWiiLayout(int num)
   wxStaticBoxSizer* const axisBox =
       CreateAccelLayout(&m_x_cont, &m_y_cont, &m_z_cont, _("Orientation"));
 
-  m_plus = CreateButton(_("+"));
+  m_plus = CreateButton("+");
   m_plus.checkbox->SetClientData(&m_plus);
-  m_minus = CreateButton(_("-"));
+  m_minus = CreateButton("-");
   m_minus.checkbox->SetClientData(&m_minus);
-  m_one = CreateButton(_("1"));
+  m_one = CreateButton("1");
   m_one.checkbox->SetClientData(&m_one);
-  m_two = CreateButton(_("2"));
+  m_two = CreateButton("2");
   m_two.checkbox->SetClientData(&m_two);
-  m_home = CreateButton(_("Home"));
+  m_home = CreateButton("HOME");
   m_home.checkbox->SetClientData(&m_home);
 
   m_cc_szr = CreateCCLayout();
@@ -188,9 +188,9 @@ void TASInputDlg::CreateWiiLayout(int num)
   wxStaticBoxSizer* const nunchukaxisBox =
       CreateAccelLayout(&m_nx_cont, &m_ny_cont, &m_nz_cont, _("Nunchuk orientation"));
 
-  m_c = CreateButton(_("C"));
+  m_c = CreateButton("C");
   m_c.checkbox->SetClientData(&m_c);
-  m_z = CreateButton(_("Z"));
+  m_z = CreateButton("Z");
   m_z.checkbox->SetClientData(&m_z);
 
   for (Control* const control : m_controls)
@@ -246,9 +246,8 @@ void TASInputDlg::FinishLayout()
 
 wxBoxSizer* TASInputDlg::CreateCCLayout()
 {
-  const std::array<wxString, 15> button_names{{_("Down"), _("Up"), _("Left"), _("Right"), _("A"),
-                                               _("B"), _("X"), _("Y"), _("+"), _("-"), _("L"),
-                                               _("R"), _("ZR"), _("ZL"), _("Home")}};
+  const std::array<wxString, 15> button_names{{_("Down"), _("Up"), _("Left"), _("Right"), "A", "B",
+                                               "X", "Y", "+", "-", "L", "R", "ZR", "ZL", "HOME"}};
   for (size_t i = 0; i < button_names.size(); ++i)
   {
     m_cc_buttons[i] = CreateButton(button_names[i]);
@@ -386,17 +385,18 @@ void TASInputDlg::CreateGCLayout()
       control->slider->Bind(wxEVT_RIGHT_UP, &TASInputDlg::OnRightClickSlider, this);
   }
 
-  m_x = CreateButton(_("X"));
+  m_x = CreateButton("X");
   m_x.checkbox->SetClientData(&m_x);
-  m_y = CreateButton(_("Y"));
+  m_y = CreateButton("Y");
   m_y.checkbox->SetClientData(&m_y);
-  m_l = CreateButton(_("L"));
+  m_l = CreateButton("L");
   m_l.checkbox->SetClientData(&m_l);
-  m_r = CreateButton(_("R"));
+  m_r = CreateButton("R");
   m_r.checkbox->SetClientData(&m_r);
-  m_z = CreateButton(_("Z"));
+  m_z = CreateButton("Z");
   m_z.checkbox->SetClientData(&m_z);
-  m_start = CreateButton(_("Start"));
+  // i18n: The START/PAUSE button on GameCube controllers
+  m_start = CreateButton(_("START"));
   m_start.checkbox->SetClientData(&m_start);
 
   const int space5 = FromDIP(5);

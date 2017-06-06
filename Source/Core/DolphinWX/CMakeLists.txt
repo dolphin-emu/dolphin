@@ -21,6 +21,7 @@ set(SRCS
   Config/InterfaceConfigPane.cpp
   Config/PathConfigPane.cpp
   Config/WiiConfigPane.cpp
+  Debugger/AssemblerEntryDialog.cpp
   Debugger/BreakpointDlg.cpp
   Debugger/BreakpointView.cpp
   Debugger/BreakpointWindow.cpp

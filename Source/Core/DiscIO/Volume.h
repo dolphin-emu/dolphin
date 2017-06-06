@@ -37,20 +37,19 @@ struct Partition final
 
 const Partition PARTITION_NONE(std::numeric_limits<u64>::max() - 1);
 
-class IVolume
+class Volume
 {
 public:
-  IVolume() {}
-  virtual ~IVolume() {}
+  Volume() {}
+  virtual ~Volume() {}
   virtual bool Read(u64 _Offset, u64 _Length, u8* _pBuffer, const Partition& partition) const = 0;
   template <typename T>
-  bool ReadSwapped(u64 offset, T* buffer, const Partition& partition) const
+  std::optional<T> ReadSwapped(u64 offset, const Partition& partition) const
   {
     T temp;
     if (!Read(offset, sizeof(T), reinterpret_cast<u8*>(&temp), partition))
-      return false;
-    *buffer = Common::FromBigEndian(temp);
-    return true;
+      return {};
+    return Common::FromBigEndian(temp);
   }
   virtual std::vector<Partition> GetPartitions() const { return {}; }
   virtual Partition GetGamePartition() const { return PARTITION_NONE; }
@@ -65,8 +64,8 @@ public:
   virtual std::string GetGameID(const Partition& partition) const = 0;
   std::string GetMakerID() const { return GetMakerID(GetGamePartition()); }
   virtual std::string GetMakerID(const Partition& partition) const = 0;
-  u16 GetRevision() const { return GetRevision(GetGamePartition()); }
-  virtual u16 GetRevision(const Partition& partition) const = 0;
+  std::optional<u16> GetRevision() const { return GetRevision(GetGamePartition()); }
+  virtual std::optional<u16> GetRevision(const Partition& partition) const = 0;
   std::string GetInternalName() const { return GetInternalName(GetGamePartition()); }
   virtual std::string GetInternalName(const Partition& partition) const = 0;
   virtual std::map<Language, std::string> GetShortNames() const { return {}; }
@@ -75,13 +74,11 @@ public:
   virtual std::map<Language, std::string> GetLongMakers() const { return {}; }
   virtual std::map<Language, std::string> GetDescriptions() const { return {}; }
   virtual std::vector<u32> GetBanner(int* width, int* height) const = 0;
-  u64 GetFSTSize() const { return GetFSTSize(GetGamePartition()); }
-  virtual u64 GetFSTSize(const Partition& partition) const = 0;
   std::string GetApploaderDate() const { return GetApploaderDate(GetGamePartition()); }
   virtual std::string GetApploaderDate(const Partition& partition) const = 0;
   // 0 is the first disc, 1 is the second disc
-  u8 GetDiscNumber() const { return GetDiscNumber(GetGamePartition()); }
-  virtual u8 GetDiscNumber(const Partition& partition) const { return 0; }
+  std::optional<u8> GetDiscNumber() const { return GetDiscNumber(GetGamePartition()); }
+  virtual std::optional<u8> GetDiscNumber(const Partition& partition) const { return 0; }
   virtual Platform GetVolumeType() const = 0;
   virtual bool SupportsIntegrityCheck() const { return false; }
   virtual bool CheckIntegrity(const Partition& partition) const { return false; }
@@ -120,9 +117,9 @@ protected:
   static const IOS::ES::TMDReader INVALID_TMD;
 };
 
-std::unique_ptr<IVolume> CreateVolumeFromFilename(const std::string& filename);
-std::unique_ptr<IVolume> CreateVolumeFromDirectory(const std::string& directory, bool is_wii,
-                                                   const std::string& apploader = "",
-                                                   const std::string& dol = "");
+std::unique_ptr<Volume> CreateVolumeFromFilename(const std::string& filename);
+std::unique_ptr<Volume> CreateVolumeFromDirectory(const std::string& directory, bool is_wii,
+                                                  const std::string& apploader = "",
+                                                  const std::string& dol = "");
 
 }  // namespace

@@ -27,6 +27,7 @@
 #include "Common/Swap.h"
 #include "Common/Thread.h"
 #include "Common/Timer.h"
+#include "Core/Config/GraphicsSettings.h"
 #include "Core/ConfigManager.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoConfig.h"
@@ -196,7 +197,7 @@ void HiresTexture::Prefetch()
 
     if (size_sum > max_mem)
     {
-      g_Config.bCacheHiresTextures = false;
+      Config::SetCurrent(Config::GFX_HIRES_TEXTURES, false);
 
       OSD::AddMessage(
           StringFromFormat(

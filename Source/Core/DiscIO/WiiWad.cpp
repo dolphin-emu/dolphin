@@ -4,6 +4,7 @@
 
 #include <cstddef>
 #include <memory>
+#include <optional>
 #include <string>
 
 #include "Common/Align.h"
@@ -18,7 +19,7 @@ namespace DiscIO
 {
 namespace
 {
-std::vector<u8> CreateWADEntry(IBlobReader& reader, u32 size, u64 offset)
+std::vector<u8> CreateWADEntry(BlobReader& reader, u32 size, u64 offset)
 {
   if (size == 0)
     return {};
@@ -34,13 +35,12 @@ std::vector<u8> CreateWADEntry(IBlobReader& reader, u32 size, u64 offset)
   return buffer;
 }
 
-bool IsWiiWAD(IBlobReader& reader)
+bool IsWiiWAD(BlobReader& reader)
 {
-  u32 header_size = 0;
-  u32 header_type = 0;
-  reader.ReadSwapped(0x0, &header_size);
-  reader.ReadSwapped(0x4, &header_type);
-  return header_size == 0x20 && (header_type == 0x49730000 || header_type == 0x69620000);
+  const std::optional<u32> header_size = reader.ReadSwapped<u32>(0x0);
+  const std::optional<u32> header_type = reader.ReadSwapped<u32>(0x4);
+  return header_size == u32(0x20) &&
+         (header_type == u32(0x49730000) || header_type == u32(0x69620000));
 }
 }  // Anonymous namespace
 
@@ -64,36 +64,33 @@ bool WiiWAD::ParseWAD()
   if (!IsWiiWAD(*m_reader))
     return false;
 
-  u32 certificate_chain_size;
-  u32 reserved;
-  u32 ticket_size;
-  u32 tmd_size;
-  u32 data_app_size;
-  u32 footer_size;
-
-  if (!m_reader->ReadSwapped(0x08, &certificate_chain_size) ||
-      !m_reader->ReadSwapped(0x0C, &reserved) ||
-      !m_reader->ReadSwapped(0x10, &ticket_size) ||
-      !m_reader->ReadSwapped(0x14, &tmd_size) ||
-      !m_reader->ReadSwapped(0x18, &data_app_size) ||
-      !m_reader->ReadSwapped(0x1C, &footer_size))
+  std::optional<u32> certificate_chain_size = m_reader->ReadSwapped<u32>(0x08);
+  std::optional<u32> reserved = m_reader->ReadSwapped<u32>(0x0C);
+  std::optional<u32> ticket_size = m_reader->ReadSwapped<u32>(0x10);
+  std::optional<u32> tmd_size = m_reader->ReadSwapped<u32>(0x14);
+  std::optional<u32> data_app_size = m_reader->ReadSwapped<u32>(0x18);
+  std::optional<u32> footer_size = m_reader->ReadSwapped<u32>(0x1C);
+  if (!certificate_chain_size || !reserved || !ticket_size || !tmd_size || !data_app_size ||
+      !footer_size)
+  {
     return false;
+  }
 
   if (MAX_LOGLEVEL >= LogTypes::LOG_LEVELS::LDEBUG)
-    _dbg_assert_msg_(BOOT, reserved == 0x00, "WiiWAD: Reserved must be 0x00");
+    _dbg_assert_msg_(BOOT, *reserved == 0x00, "WiiWAD: Reserved must be 0x00");
 
   u32 offset = 0x40;
-  m_certificate_chain = CreateWADEntry(*m_reader, certificate_chain_size, offset);
-  offset += Common::AlignUp(certificate_chain_size, 0x40);
-  m_ticket.SetBytes(CreateWADEntry(*m_reader, ticket_size, offset));
-  offset += Common::AlignUp(ticket_size, 0x40);
-  m_tmd.SetBytes(CreateWADEntry(*m_reader, tmd_size, offset));
-  offset += Common::AlignUp(tmd_size, 0x40);
+  m_certificate_chain = CreateWADEntry(*m_reader, *certificate_chain_size, offset);
+  offset += Common::AlignUp(*certificate_chain_size, 0x40);
+  m_ticket.SetBytes(CreateWADEntry(*m_reader, *ticket_size, offset));
+  offset += Common::AlignUp(*ticket_size, 0x40);
+  m_tmd.SetBytes(CreateWADEntry(*m_reader, *tmd_size, offset));
+  offset += Common::AlignUp(*tmd_size, 0x40);
   m_data_app_offset = offset;
-  m_data_app = CreateWADEntry(*m_reader, data_app_size, offset);
-  offset += Common::AlignUp(data_app_size, 0x40);
-  m_footer = CreateWADEntry(*m_reader, footer_size, offset);
-  offset += Common::AlignUp(footer_size, 0x40);
+  m_data_app = CreateWADEntry(*m_reader, *data_app_size, offset);
+  offset += Common::AlignUp(*data_app_size, 0x40);
+  m_footer = CreateWADEntry(*m_reader, *footer_size, offset);
+  offset += Common::AlignUp(*footer_size, 0x40);
 
   return true;
 }

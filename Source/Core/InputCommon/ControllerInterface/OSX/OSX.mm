@@ -173,13 +173,21 @@ static void DeviceMatchingCallback(void* inContext, IOReturn inResult, void* inS
 
   // Add a device if it's of a type we want
   if (IOHIDDeviceConformsTo(inIOHIDDeviceRef, kHIDPage_GenericDesktop, kHIDUsage_GD_Keyboard))
-    g_controller_interface.AddDevice(std::make_shared<Keyboard>(inIOHIDDeviceRef, name, g_window));
+  {
+    if (g_window)
+      g_controller_interface.AddDevice(
+          std::make_shared<Keyboard>(inIOHIDDeviceRef, name, g_window));
+  }
 #if 0
   else if (IOHIDDeviceConformsTo(inIOHIDDeviceRef, kHIDPage_GenericDesktop, kHIDUsage_GD_Mouse))
+  {
     g_controller_interface.AddDevice(new Mouse(inIOHIDDeviceRef, name));
+  }
 #endif
   else
+  {
     g_controller_interface.AddDevice(std::make_shared<Joystick>(inIOHIDDeviceRef, name));
+  }
 
   NOTICE_LOG(SERIALINTERFACE, "Added device: %s", name.c_str());
   g_controller_interface.InvokeHotplugCallbacks();
@@ -187,11 +195,11 @@ static void DeviceMatchingCallback(void* inContext, IOReturn inResult, void* inS
 
 void Init(void* window)
 {
+  g_window = window;
+
   HIDManager = IOHIDManagerCreate(kCFAllocatorDefault, kIOHIDOptionsTypeNone);
   if (!HIDManager)
     ERROR_LOG(SERIALINTERFACE, "Failed to create HID Manager reference");
-
-  g_window = window;
 
   IOHIDManagerSetDeviceMatching(HIDManager, nullptr);
   if (IOHIDManagerOpen(HIDManager, kIOHIDOptionsTypeNone) != kIOReturnSuccess)

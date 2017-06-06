@@ -217,6 +217,15 @@ if(CMAKE_C_COMPILER_ID MATCHES "MSVC")
   check_and_add_flag(EXCEPTIONS /EHsc)
   dolphin_compile_definitions(_DEBUG DEBUG_ONLY)
 
+  # Enforce C++ standard conforming conversion rules to catch possible bugs
+  add_compile_options(/permissive-)
+  # Remove unreferenced inline functions/data to reduce link time and catch bugs
+  add_compile_options(/Zc:inline)
+  # Assume `new` (w/o std::nothrow) throws to reduce binary size
+  add_compile_options(/Zc:throwingNew)
+  # Enforce strict volatile semantics as per ISO C++
+  add_compile_options(/volatile:iso)
+
   string(APPEND CMAKE_EXE_LINKER_FLAGS " /NXCOMPAT")
 else()
   add_definitions(-D_DEFAULT_SOURCE)
@@ -396,9 +405,13 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 endif()
 
 if(ENABLE_HEADLESS)
-  message(STATUS "Enabling Headless! Disabling GUI, force enabling EGL!")
+  if(APPLE)
+    message(STATUS "Enabling Headless! Disabling GUI.")
+  else()
+    message(STATUS "Enabling Headless! Disabling GUI, force enabling EGL!")
+    set(USE_EGL 1)
+  endif()
   set(USE_X11 0)
-  set(USE_EGL 1)
   set(DISABLE_WX 1)
   set(ENABLE_QT2 0)
   add_definitions(-DUSE_HEADLESS)

@@ -93,7 +93,8 @@ public:
   virtual TargetRectangle ConvertEFBRectangle(const EFBRectangle& rc) = 0;
 
   const TargetRectangle& GetTargetRectangle() const { return m_target_rectangle; }
-  float CalculateDrawAspectRatio(int target_width, int target_height) const;
+  float CalculateDrawAspectRatio() const;
+
   std::tuple<float, float> ScaleToDisplayAspectRatio(int width, int height) const;
   TargetRectangle CalculateFrameDumpDrawRectangle() const;
   void UpdateDrawRectangle();

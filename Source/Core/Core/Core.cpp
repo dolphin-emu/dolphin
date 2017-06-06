@@ -10,6 +10,7 @@
 #include <mutex>
 #include <queue>
 #include <utility>
+#include <variant>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -122,7 +123,7 @@ static void InitIsCPUKey()
 }
 #endif
 
-static void EmuThread();
+static void EmuThread(std::unique_ptr<BootParameters> boot);
 
 bool GetIsThrottlerTempDisabled()
 {
@@ -221,7 +222,7 @@ bool WantsDeterminism()
 
 // This is called from the GUI thread. See the booting call schedule in
 // BootManager.cpp
-bool Init()
+bool Init(std::unique_ptr<BootParameters> boot)
 {
   if (s_emu_thread.joinable())
   {
@@ -248,7 +249,7 @@ bool Init()
   s_window_handle = Host_GetRenderHandle();
 
   // Start the emu thread
-  s_emu_thread = std::thread(EmuThread);
+  s_emu_thread = std::thread(EmuThread, std::move(boot));
 
   return true;
 }
@@ -412,21 +413,18 @@ static void FifoPlayerThread()
   }
 
   // Enter CPU run loop. When we leave it - we are done.
-  if (FifoPlayer::GetInstance().Open(_CoreParameter.m_strFilename))
+  if (auto cpu_core = FifoPlayer::GetInstance().GetCPUCore())
   {
-    if (auto cpu_core = FifoPlayer::GetInstance().GetCPUCore())
-    {
-      PowerPC::InjectExternalCPUCore(cpu_core.get());
-      s_is_started = true;
+    PowerPC::InjectExternalCPUCore(cpu_core.get());
+    s_is_started = true;
 
-      CPUSetInitialExecutionState();
-      CPU::Run();
+    CPUSetInitialExecutionState();
+    CPU::Run();
 
-      s_is_started = false;
-      PowerPC::InjectExternalCPUCore(nullptr);
-    }
-    FifoPlayer::GetInstance().Close();
+    s_is_started = false;
+    PowerPC::InjectExternalCPUCore(nullptr);
   }
+  FifoPlayer::GetInstance().Close();
 
   // If we did not enter the CPU Run Loop above then run a fake one instead.
   // We need to be IsRunningAndStarted() for DolphinWX to stop us.
@@ -450,7 +448,7 @@ static void FifoPlayerThread()
 // Initialize and create emulation thread
 // Call browser: Init():s_emu_thread().
 // See the BootManager.cpp file description for a complete call schedule.
-static void EmuThread()
+static void EmuThread(std::unique_ptr<BootParameters> boot)
 {
   const SConfig& core_parameter = SConfig::GetInstance();
   s_is_booting.Set();
@@ -473,7 +471,7 @@ static void EmuThread()
   // For a time this acts as the CPU thread...
   DeclareAsCPUThread();
 
-  Movie::Init();
+  Movie::Init(*boot);
   Common::ScopeGuard movie_guard{Movie::Shutdown};
 
   HW::Init();
@@ -554,7 +552,15 @@ static void EmuThread()
   // Load GCM/DOL/ELF whatever ... we boot with the interpreter core
   PowerPC::SetMode(PowerPC::CoreMode::Interpreter);
 
-  CBoot::BootUp();
+  // Determine the CPU thread function
+  void (*cpuThreadFunc)();
+  if (std::holds_alternative<BootParameters::DFF>(boot->parameters))
+    cpuThreadFunc = FifoPlayerThread;
+  else
+    cpuThreadFunc = CpuThread;
+
+  if (!CBoot::BootUp(std::move(boot)))
+    return;
 
   // This adds the SyncGPU handler to CoreTiming, so now CoreTiming::Advance might block.
   Fifo::Prepare();
@@ -576,13 +582,6 @@ static void EmuThread()
   // Update the window again because all stuff is initialized
   Host_UpdateDisasmDialog();
   Host_UpdateMainFrame();
-
-  // Determine the CPU thread function
-  void (*cpuThreadFunc)(void);
-  if (core_parameter.m_BootType == SConfig::BOOT_DFF)
-    cpuThreadFunc = FifoPlayerThread;
-  else
-    cpuThreadFunc = CpuThread;
 
   // ENTER THE VIDEO THREAD LOOP
   if (core_parameter.bCPUThread)

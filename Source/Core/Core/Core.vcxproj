@@ -35,6 +35,16 @@
     <Import Project="..\..\VSProps\PCHUse.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <ObjectFileName>$(IntDir)/%(RelativeDir)/</ObjectFileName>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <ObjectFileName>$(IntDir)/%(RelativeDir)/</ObjectFileName>
+    </ClCompile>
+  </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ActionReplay.cpp" />
     <ClCompile Include="Analytics.cpp" />
@@ -42,12 +52,14 @@
     <ClCompile Include="BootManager.cpp" />
     <ClCompile Include="Boot\Boot.cpp" />
     <ClCompile Include="Boot\Boot_BS2Emu.cpp" />
-    <ClCompile Include="Boot\Boot_DOL.cpp" />
-    <ClCompile Include="Boot\Boot_ELF.cpp" />
     <ClCompile Include="Boot\Boot_WiiWAD.cpp" />
+    <ClCompile Include="Boot\DolReader.cpp" />
     <ClCompile Include="Boot\ElfReader.cpp" />
+    <ClCompile Include="Config\Config.cpp" />
+    <ClCompile Include="Config\GraphicsSettings.cpp" />
     <ClCompile Include="ConfigLoaders\BaseConfigLoader.cpp" />
     <ClCompile Include="ConfigLoaders\GameConfigLoader.cpp" />
+    <ClCompile Include="ConfigLoaders\IsSettingSaveable.cpp" />
     <ClCompile Include="ConfigLoaders\MovieConfigLoader.cpp" />
     <ClCompile Include="ConfigLoaders\NetPlayConfigLoader.cpp" />
     <ClCompile Include="ConfigManager.cpp" />
@@ -100,6 +112,7 @@
     <ClCompile Include="HLE\HLE.cpp" />
     <ClCompile Include="HLE\HLE_Misc.cpp" />
     <ClCompile Include="HLE\HLE_OS.cpp" />
+    <ClCompile Include="HLE\HLE_VarArgs.cpp" />
     <ClCompile Include="HotkeyManager.cpp" />
     <ClCompile Include="HW\AudioInterface.cpp" />
     <ClCompile Include="HW\CPU.cpp" />
@@ -294,11 +307,14 @@
     <ClInclude Include="ARDecrypt.h" />
     <ClInclude Include="BootManager.h" />
     <ClInclude Include="Boot\Boot.h" />
-    <ClInclude Include="Boot\Boot_DOL.h" />
+    <ClInclude Include="Boot\DolReader.h" />
     <ClInclude Include="Boot\ElfReader.h" />
     <ClInclude Include="Boot\ElfTypes.h" />
+    <ClInclude Include="Config\Config.h" />
+    <ClInclude Include="Config\GraphicsSettings.h" />
     <ClInclude Include="ConfigLoaders\BaseConfigLoader.h" />
     <ClInclude Include="ConfigLoaders\GameConfigLoader.h" />
+    <ClInclude Include="ConfigLoaders\IsSettingSaveable.h" />
     <ClInclude Include="ConfigLoaders\MovieConfigLoader.h" />
     <ClInclude Include="ConfigLoaders\NetPlayConfigLoader.h" />
     <ClInclude Include="ConfigManager.h" />
@@ -343,6 +359,7 @@
     <ClInclude Include="HLE\HLE.h" />
     <ClInclude Include="HLE\HLE_Misc.h" />
     <ClInclude Include="HLE\HLE_OS.h" />
+    <ClInclude Include="HLE\HLE_VarArgs.h" />
     <ClInclude Include="Host.h" />
     <ClInclude Include="HotkeyManager.h" />
     <ClInclude Include="HW\AudioInterface.h" />

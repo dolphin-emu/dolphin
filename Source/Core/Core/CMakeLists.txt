@@ -21,12 +21,14 @@ set(SRCS
   WiiRoot.cpp
   Boot/Boot_BS2Emu.cpp
   Boot/Boot.cpp
-  Boot/Boot_DOL.cpp
-  Boot/Boot_ELF.cpp
   Boot/Boot_WiiWAD.cpp
+  Boot/DolReader.cpp
   Boot/ElfReader.cpp
+  Config/Config.cpp
+  Config/GraphicsSettings.cpp
   ConfigLoaders/BaseConfigLoader.cpp
   ConfigLoaders/GameConfigLoader.cpp
+  ConfigLoaders/IsSettingSaveable.cpp
   ConfigLoaders/MovieConfigLoader.cpp
   ConfigLoaders/NetPlayConfigLoader.cpp
   Debugger/Debugger_SymbolMap.cpp
@@ -72,6 +74,7 @@ set(SRCS
   HLE/HLE.cpp
   HLE/HLE_Misc.cpp
   HLE/HLE_OS.cpp
+  HLE/HLE_VarArgs.cpp
   HW/AudioInterface.cpp
   HW/CPU.cpp
   HW/DSP.cpp

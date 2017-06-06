@@ -66,7 +66,7 @@ void GameCubeConfigPane::InitializeGUI()
       "Lets the system language be set to values that games were not designed for. This can allow "
       "the use of extra translations for a few games, but can also lead to text display issues."));
 
-  m_skip_bios_checkbox = new wxCheckBox(this, wxID_ANY, _("Skip BIOS"));
+  m_skip_ipl_checkbox = new wxCheckBox(this, wxID_ANY, _("Skip Main Menu"));
 
   if (!File::Exists(File::GetUserPath(D_GCUSER_IDX) + DIR_SEP + USA_DIR + DIR_SEP GC_IPL) &&
       !File::Exists(File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + USA_DIR + DIR_SEP GC_IPL) &&
@@ -75,8 +75,8 @@ void GameCubeConfigPane::InitializeGUI()
       !File::Exists(File::GetUserPath(D_GCUSER_IDX) + DIR_SEP + EUR_DIR + DIR_SEP GC_IPL) &&
       !File::Exists(File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + EUR_DIR + DIR_SEP GC_IPL))
   {
-    m_skip_bios_checkbox->Disable();
-    m_skip_bios_checkbox->SetToolTip(_("Put BIOS roms in User/GC/{region}."));
+    m_skip_ipl_checkbox->Disable();
+    m_skip_ipl_checkbox->SetToolTip(_("Put Main Menu roms in User/GC/{region}."));
   }
 
   // Device settings
@@ -102,7 +102,7 @@ void GameCubeConfigPane::InitializeGUI()
 
   // Populate the GameCube page
   wxGridBagSizer* const sGamecubeIPLSettings = new wxGridBagSizer(space5, space5);
-  sGamecubeIPLSettings->Add(m_skip_bios_checkbox, wxGBPosition(0, 0), wxGBSpan(1, 2));
+  sGamecubeIPLSettings->Add(m_skip_ipl_checkbox, wxGBPosition(0, 0), wxGBSpan(1, 2));
   sGamecubeIPLSettings->Add(new wxStaticText(this, wxID_ANY, _("System Language:")),
                             wxGBPosition(1, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
   sGamecubeIPLSettings->Add(m_system_lang_choice, wxGBPosition(1, 1), wxDefaultSpan,
@@ -148,7 +148,7 @@ void GameCubeConfigPane::LoadGUIValues()
   const SConfig& startup_params = SConfig::GetInstance();
 
   m_system_lang_choice->SetSelection(startup_params.SelectedLanguage);
-  m_skip_bios_checkbox->SetValue(startup_params.bHLE_BS2);
+  m_skip_ipl_checkbox->SetValue(startup_params.bHLE_BS2);
   m_override_lang_checkbox->SetValue(startup_params.bOverrideGCLanguage);
 
   wxArrayString slot_devices;
@@ -219,8 +219,8 @@ void GameCubeConfigPane::BindEvents()
                                  &GameCubeConfigPane::OnOverrideLanguageCheckBoxChanged, this);
   m_override_lang_checkbox->Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreNotRunning);
 
-  m_skip_bios_checkbox->Bind(wxEVT_CHECKBOX, &GameCubeConfigPane::OnSkipBiosCheckBoxChanged, this);
-  m_skip_bios_checkbox->Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreNotRunning);
+  m_skip_ipl_checkbox->Bind(wxEVT_CHECKBOX, &GameCubeConfigPane::OnSkipIPLCheckBoxChanged, this);
+  m_skip_ipl_checkbox->Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreNotRunning);
 
   m_exi_devices[0]->Bind(wxEVT_CHOICE, &GameCubeConfigPane::OnSlotAChanged, this);
   m_exi_devices[0]->Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfNetplayNotRunning);
@@ -247,9 +247,9 @@ void GameCubeConfigPane::OnOverrideLanguageCheckBoxChanged(wxCommandEvent& event
   AddPendingEvent(wxCommandEvent(wxDOLPHIN_CFG_REFRESH_LIST));
 }
 
-void GameCubeConfigPane::OnSkipBiosCheckBoxChanged(wxCommandEvent& event)
+void GameCubeConfigPane::OnSkipIPLCheckBoxChanged(wxCommandEvent& event)
 {
-  SConfig::GetInstance().bHLE_BS2 = m_skip_bios_checkbox->IsChecked();
+  SConfig::GetInstance().bHLE_BS2 = m_skip_ipl_checkbox->IsChecked();
 }
 
 void GameCubeConfigPane::OnSlotAChanged(wxCommandEvent& event)

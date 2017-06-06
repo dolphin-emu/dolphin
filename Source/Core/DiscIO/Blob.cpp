@@ -173,7 +173,7 @@ u32 SectorReader::ReadChunk(u8* buffer, u64 chunk_num)
   return 0;
 }
 
-std::unique_ptr<IBlobReader> CreateBlobReader(const std::string& filename)
+std::unique_ptr<BlobReader> CreateBlobReader(const std::string& filename)
 {
   if (cdio_is_cdrom(filename))
     return DriveReader::Create(filename);

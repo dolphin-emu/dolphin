@@ -22,7 +22,7 @@ enum class ReplyType : u32;
 namespace DiscIO
 {
 enum class Platform;
-class IVolume;
+class Volume;
 }
 namespace IOS
 {
@@ -39,13 +39,13 @@ void Start();
 void Stop();
 void DoState(PointerWrap& p);
 
-void SetDisc(std::unique_ptr<DiscIO::IVolume> disc);
+void SetDisc(std::unique_ptr<DiscIO::Volume> disc);
 bool HasDisc();
 
 DiscIO::Platform GetDiscType();
 IOS::ES::TMDReader GetTMD(const DiscIO::Partition& partition);
 IOS::ES::TicketReader GetTicket(const DiscIO::Partition& partition);
-// This function returns true and calls SConfig::SetRunningGameMetadata(IVolume&, Partition&)
+// This function returns true and calls SConfig::SetRunningGameMetadata(Volume&, Partition&)
 // if both of the following conditions are true:
 // - A disc is inserted
 // - The title_id argument doesn't contain a value, or its value matches the disc's title ID

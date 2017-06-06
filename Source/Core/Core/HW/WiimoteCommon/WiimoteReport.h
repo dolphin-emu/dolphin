@@ -449,6 +449,13 @@ struct wm_report_core_accel
 };
 static_assert(sizeof(wm_report_core_accel) == 5, "Wrong size");
 
+struct wm_report_core_ext8
+{
+  wm_buttons c;
+  u8 ext[8];
+};
+static_assert(sizeof(wm_report_core_ext8) == 10, "Wrong size");
+
 struct wm_report_core_accel_ir12
 {
   wm_buttons c;

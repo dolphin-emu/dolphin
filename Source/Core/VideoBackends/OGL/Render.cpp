@@ -23,6 +23,7 @@
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 
+#include "Core/Config/GraphicsSettings.h"
 #include "Core/Core.h"
 
 #include "VideoBackends/OGL/BoundingBox.h"
@@ -518,7 +519,7 @@ Renderer::Renderer()
       {
         // GLES 3.1 can't support stereo rendering and MSAA
         OSD::AddMessage("MSAA Stereo rendering isn't supported by your GPU.", 10000);
-        g_ActiveConfig.iMultisamples = 1;
+        Config::SetCurrent(Config::GFX_MSAA, 1);
       }
     }
     else

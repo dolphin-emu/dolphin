@@ -42,6 +42,7 @@
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
 
+#include "Core/Config/GraphicsSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/DVD/DVDInterface.h"
@@ -1423,41 +1424,46 @@ void CFrame::ParseHotkeys()
   if (IsHotkey(HK_INCREASE_IR))
   {
     OSDChoice = 1;
-    ++g_Config.iEFBScale;
+    Config::SetCurrent(Config::GFX_EFB_SCALE, Config::Get(Config::GFX_EFB_SCALE) + 1);
   }
   if (IsHotkey(HK_DECREASE_IR))
   {
     OSDChoice = 1;
-    if (--g_Config.iEFBScale < SCALE_AUTO)
-      g_Config.iEFBScale = SCALE_AUTO;
+    if (Config::Get(Config::GFX_EFB_SCALE) > SCALE_AUTO)
+      Config::SetCurrent(Config::GFX_EFB_SCALE, Config::Get(Config::GFX_EFB_SCALE) - 1);
   }
   if (IsHotkey(HK_TOGGLE_CROP))
   {
-    g_Config.bCrop = !g_Config.bCrop;
+    Config::SetCurrent(Config::GFX_CROP, !Config::Get(Config::GFX_CROP));
   }
   if (IsHotkey(HK_TOGGLE_AR))
   {
     OSDChoice = 2;
     // Toggle aspect ratio
-    g_Config.iAspectRatio = (g_Config.iAspectRatio + 1) & 3;
+    int aspect_ratio = Config::Get(Config::GFX_ASPECT_RATIO);
+    aspect_ratio = (aspect_ratio + 1) & 3;
+    Config::SetCurrent(Config::GFX_ASPECT_RATIO, aspect_ratio);
   }
   if (IsHotkey(HK_TOGGLE_EFBCOPIES))
   {
     OSDChoice = 3;
     // Toggle EFB copies between EFB2RAM and EFB2Texture
-    g_Config.bSkipEFBCopyToRam = !g_Config.bSkipEFBCopyToRam;
+    Config::SetCurrent(Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM,
+                       !Config::Get(Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM));
   }
   if (IsHotkey(HK_TOGGLE_FOG))
   {
     OSDChoice = 4;
-    g_Config.bDisableFog = !g_Config.bDisableFog;
+    Config::SetCurrent(Config::GFX_DISABLE_FOG, !Config::Get(Config::GFX_DISABLE_FOG));
   }
   if (IsHotkey(HK_TOGGLE_DUMPTEXTURES))
   {
-    g_Config.bDumpTextures = !g_Config.bDumpTextures;
+    Config::SetCurrent(Config::GFX_DUMP_TEXTURES, !Config::Get(Config::GFX_DUMP_TEXTURES));
   }
   if (IsHotkey(HK_TOGGLE_TEXTURES))
-    g_Config.bHiresTextures = !g_Config.bHiresTextures;
+  {
+    Config::SetCurrent(Config::GFX_HIRES_TEXTURES, !Config::Get(Config::GFX_HIRES_TEXTURES));
+  }
   Core::SetIsThrottlerTempDisabled(IsHotkey(HK_TOGGLE_THROTTLE, true));
   if (IsHotkey(HK_DECREASE_EMULATION_SPEED))
   {
@@ -1503,13 +1509,13 @@ void CFrame::ParseHotkeys()
       // turned off when selecting other stereoscopy modes.
       if (g_Config.sPostProcessingShader == "dubois")
       {
-        g_Config.sPostProcessingShader = "";
+        Config::SetCurrent(Config::GFX_ENHANCE_POST_SHADER, std::string(""));
       }
-      g_Config.iStereoMode = STEREO_SBS;
+      Config::SetCurrent(Config::GFX_STEREO_MODE, static_cast<int>(STEREO_SBS));
     }
     else
     {
-      g_Config.iStereoMode = STEREO_OFF;
+      Config::SetCurrent(Config::GFX_STEREO_MODE, static_cast<int>(STEREO_OFF));
     }
   }
   if (IsHotkey(HK_TOGGLE_STEREO_TAB))
@@ -1518,13 +1524,13 @@ void CFrame::ParseHotkeys()
     {
       if (g_Config.sPostProcessingShader == "dubois")
       {
-        g_Config.sPostProcessingShader = "";
+        Config::SetCurrent(Config::GFX_ENHANCE_POST_SHADER, std::string(""));
       }
-      g_Config.iStereoMode = STEREO_TAB;
+      Config::SetCurrent(Config::GFX_STEREO_MODE, static_cast<int>(STEREO_TAB));
     }
     else
     {
-      g_Config.iStereoMode = STEREO_OFF;
+      Config::SetCurrent(Config::GFX_STEREO_MODE, static_cast<int>(STEREO_OFF));
     }
   }
   if (IsHotkey(HK_TOGGLE_STEREO_ANAGLYPH))
@@ -1533,13 +1539,13 @@ void CFrame::ParseHotkeys()
     {
       // Setting the anaglyph mode also requires a specific
       // post-processing shader to be activated.
-      g_Config.iStereoMode = STEREO_ANAGLYPH;
-      g_Config.sPostProcessingShader = "dubois";
+      Config::SetCurrent(Config::GFX_STEREO_MODE, static_cast<int>(STEREO_ANAGLYPH));
+      Config::SetCurrent(Config::GFX_ENHANCE_POST_SHADER, std::string("dubois"));
     }
     else
     {
-      g_Config.iStereoMode = STEREO_OFF;
-      g_Config.sPostProcessingShader = "";
+      Config::SetCurrent(Config::GFX_STEREO_MODE, static_cast<int>(STEREO_OFF));
+      Config::SetCurrent(Config::GFX_ENHANCE_POST_SHADER, std::string(""));
     }
   }
   if (IsHotkey(HK_TOGGLE_STEREO_3DVISION))
@@ -1548,37 +1554,35 @@ void CFrame::ParseHotkeys()
     {
       if (g_Config.sPostProcessingShader == "dubois")
       {
-        g_Config.sPostProcessingShader = "";
+        Config::SetCurrent(Config::GFX_ENHANCE_POST_SHADER, std::string(""));
       }
-      g_Config.iStereoMode = STEREO_3DVISION;
+      Config::SetCurrent(Config::GFX_STEREO_MODE, static_cast<int>(STEREO_3DVISION));
     }
     else
     {
-      g_Config.iStereoMode = STEREO_OFF;
+      Config::SetCurrent(Config::GFX_STEREO_MODE, static_cast<int>(STEREO_OFF));
     }
   }
 
   if (IsHotkey(HK_DECREASE_DEPTH, true))
   {
-    if (--g_Config.iStereoDepth < 0)
-      g_Config.iStereoDepth = 0;
+    if (g_Config.iStereoDepth > 0)
+      Config::SetCurrent(Config::GFX_STEREO_DEPTH, g_Config.iStereoDepth - 1);
   }
   if (IsHotkey(HK_INCREASE_DEPTH, true))
   {
-    if (++g_Config.iStereoDepth > 100)
-      g_Config.iStereoDepth = 100;
+    if (g_Config.iStereoDepth < 100)
+      Config::SetCurrent(Config::GFX_STEREO_DEPTH, g_Config.iStereoDepth + 1);
   }
   if (IsHotkey(HK_DECREASE_CONVERGENCE, true))
   {
-    g_Config.iStereoConvergence -= 5;
-    if (g_Config.iStereoConvergence < 0)
-      g_Config.iStereoConvergence = 0;
+    int convergence = std::max(0, g_Config.iStereoConvergence - 5);
+    Config::SetCurrent(Config::GFX_STEREO_CONVERGENCE, convergence);
   }
   if (IsHotkey(HK_INCREASE_CONVERGENCE, true))
   {
-    g_Config.iStereoConvergence += 5;
-    if (g_Config.iStereoConvergence > 500)
-      g_Config.iStereoConvergence = 500;
+    int convergence = std::min(500, g_Config.iStereoConvergence + 5);
+    Config::SetCurrent(Config::GFX_STEREO_CONVERGENCE, convergence);
   }
 
   static float debugSpeed = 1.0f;

@@ -79,7 +79,7 @@ GameListItem::GameListItem(const std::string& _rFileName, const Core::TitleDatab
     if (m_pImage.empty())
     {
       std::vector<u32> buffer =
-          DiscIO::IVolume::GetWiiBanner(&m_ImageWidth, &m_ImageHeight, m_title_id);
+          DiscIO::Volume::GetWiiBanner(&m_ImageWidth, &m_ImageHeight, m_title_id);
       ReadVolumeBanner(buffer, m_ImageWidth, m_ImageHeight);
       if (!m_pImage.empty())
         SaveToCache();
@@ -87,7 +87,7 @@ GameListItem::GameListItem(const std::string& _rFileName, const Core::TitleDatab
   }
   else
   {
-    std::unique_ptr<DiscIO::IVolume> volume(DiscIO::CreateVolumeFromFilename(_rFileName));
+    std::unique_ptr<DiscIO::Volume> volume(DiscIO::CreateVolumeFromFilename(_rFileName));
 
     if (volume != nullptr)
     {
@@ -108,10 +108,9 @@ GameListItem::GameListItem(const std::string& _rFileName, const Core::TitleDatab
       m_VolumeSize = volume->GetSize();
 
       m_game_id = volume->GetGameID();
-      if (std::optional<u64> title_id = volume->GetTitleID())
-        m_title_id = *title_id;
-      m_disc_number = volume->GetDiscNumber();
-      m_Revision = volume->GetRevision();
+      m_title_id = volume->GetTitleID().value_or(0);
+      m_disc_number = volume->GetDiscNumber().value_or(0);
+      m_Revision = volume->GetRevision().value_or(0);
 
       std::vector<u32> buffer = volume->GetBanner(&m_ImageWidth, &m_ImageHeight);
       ReadVolumeBanner(buffer, m_ImageWidth, m_ImageHeight);

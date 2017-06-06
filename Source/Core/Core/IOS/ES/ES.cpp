@@ -89,7 +89,7 @@ void TitleContext::DoState(PointerWrap& p)
   p.Do(active);
 }
 
-void TitleContext::Update(const DiscIO::CNANDContentLoader& content_loader)
+void TitleContext::Update(const DiscIO::NANDContentLoader& content_loader)
 {
   if (!content_loader.IsValid())
     return;
@@ -121,7 +121,7 @@ void ES::LoadWAD(const std::string& _rContentFile)
   s_content_file = _rContentFile;
   // XXX: Ideally, this should be done during a launch, but because we support launching WADs
   // without installing them (which is a bit of a hack), we have to do this manually here.
-  const auto& content_loader = DiscIO::CNANDContentManager::Access().GetNANDLoader(s_content_file);
+  const auto& content_loader = DiscIO::NANDContentManager::Access().GetNANDLoader(s_content_file);
   s_title_context.Update(content_loader);
   INFO_LOG(IOS_ES, "LoadWAD: Title context changed: %016" PRIx64, s_title_context.tmd.GetTitleId());
 }
@@ -216,7 +216,7 @@ bool ES::LaunchTitle(u64 title_id, bool skip_reload)
   // ES_Launch should probably reset the whole state, which at least means closing all open files.
   // leaving them open through ES_Launch may cause hangs and other funky behavior
   // (supposedly when trying to re-open those files).
-  DiscIO::CNANDContentManager::Access().ClearCache();
+  DiscIO::NANDContentManager::Access().ClearCache();
 
   if (IsTitleType(title_id, IOS::ES::TitleType::System) && title_id != TITLEID_SYSMENU)
     return LaunchIOS(title_id);
@@ -230,7 +230,7 @@ bool ES::LaunchIOS(u64 ios_title_id)
 
 bool ES::LaunchPPCTitle(u64 title_id, bool skip_reload)
 {
-  const DiscIO::CNANDContentLoader& content_loader = AccessContentDevice(title_id);
+  const DiscIO::NANDContentLoader& content_loader = AccessContentDevice(title_id);
   if (!content_loader.IsValid())
   {
     if (title_id == 0x0000000100000002)
@@ -369,7 +369,7 @@ ReturnCode ES::Close(u32 fd)
   INFO_LOG(IOS_ES, "ES: Close");
   m_is_active = false;
   // clear the NAND content cache to make sure nothing remains open.
-  DiscIO::CNANDContentManager::Access().ClearCache();
+  DiscIO::NANDContentManager::Access().ClearCache();
   return IPC_SUCCESS;
 }
 
@@ -585,7 +585,7 @@ IPCCommandResult ES::LaunchBC(const IOCtlVRequest& request)
   return GetNoReply();
 }
 
-const DiscIO::CNANDContentLoader& ES::AccessContentDevice(u64 title_id)
+const DiscIO::NANDContentLoader& ES::AccessContentDevice(u64 title_id)
 {
   // for WADs, the passed title id and the stored title id match; along with s_content_file
   // being set to the actual WAD file name. We cannot simply get a NAND Loader for the title id
@@ -594,10 +594,10 @@ const DiscIO::CNANDContentLoader& ES::AccessContentDevice(u64 title_id)
   if (s_title_context.active && s_title_context.tmd.GetTitleId() == title_id &&
       !s_content_file.empty())
   {
-    return DiscIO::CNANDContentManager::Access().GetNANDLoader(s_content_file);
+    return DiscIO::NANDContentManager::Access().GetNANDLoader(s_content_file);
   }
 
-  return DiscIO::CNANDContentManager::Access().GetNANDLoader(title_id, Common::FROM_SESSION_ROOT);
+  return DiscIO::NANDContentManager::Access().GetNANDLoader(title_id, Common::FROM_SESSION_ROOT);
 }
 
 // This is technically an ioctlv in IOS's ES, but it is an internal API which cannot be
@@ -636,7 +636,7 @@ s32 ES::DIVerify(const IOS::ES::TMDReader& tmd, const IOS::ES::TicketReader& tic
   }
   // DI_VERIFY writes to title.tmd, which is read and cached inside the NAND Content Manager.
   // clear the cache to avoid content access mismatches.
-  DiscIO::CNANDContentManager::Access().ClearCache();
+  DiscIO::NANDContentManager::Access().ClearCache();
 
   if (!UpdateUIDAndGID(*GetIOS(), s_title_context.tmd))
   {
