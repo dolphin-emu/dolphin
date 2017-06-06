@@ -22,7 +22,7 @@ namespace Device
 {
 u32 ES::OpenTitleContent(u32 CFD, u64 TitleID, u16 Index)
 {
-  const DiscIO::CNANDContentLoader& Loader = AccessContentDevice(TitleID);
+  const DiscIO::NANDContentLoader& Loader = AccessContentDevice(TitleID);
 
   if (!Loader.IsValid() || !Loader.GetTMD().IsValid() || !Loader.GetTicket().IsValid())
   {
@@ -30,7 +30,7 @@ u32 ES::OpenTitleContent(u32 CFD, u64 TitleID, u16 Index)
     return 0xffffffff;
   }
 
-  const DiscIO::SNANDContent* pContent = Loader.GetContentByIndex(Index);
+  const DiscIO::NANDContent* pContent = Loader.GetContentByIndex(Index);
 
   if (pContent == nullptr)
   {
@@ -106,11 +106,11 @@ IPCCommandResult ES::ReadContent(u32 uid, const IOCtlVRequest& request)
   {
     if (pDest)
     {
-      const DiscIO::CNANDContentLoader& ContentLoader = AccessContentDevice(rContent.m_title_id);
+      const DiscIO::NANDContentLoader& ContentLoader = AccessContentDevice(rContent.m_title_id);
       // ContentLoader should never be invalid; rContent has been created by it.
       if (ContentLoader.IsValid() && ContentLoader.GetTicket().IsValid())
       {
-        const DiscIO::SNANDContent* pContent =
+        const DiscIO::NANDContent* pContent =
             ContentLoader.GetContentByIndex(rContent.m_content.index);
         if (!pContent->m_Data->GetRange(rContent.m_position, Size, pDest))
           ERROR_LOG(IOS_ES, "ES: failed to read %u bytes from %u!", Size, rContent.m_position);
@@ -146,11 +146,11 @@ IPCCommandResult ES::CloseContent(u32 uid, const IOCtlVRequest& request)
     return GetDefaultReply(-1);
   }
 
-  const DiscIO::CNANDContentLoader& ContentLoader = AccessContentDevice(itr->second.m_title_id);
+  const DiscIO::NANDContentLoader& ContentLoader = AccessContentDevice(itr->second.m_title_id);
   // ContentLoader should never be invalid; we shouldn't be here if ES_OPENCONTENT failed before.
   if (ContentLoader.IsValid())
   {
-    const DiscIO::SNANDContent* pContent =
+    const DiscIO::NANDContent* pContent =
         ContentLoader.GetContentByIndex(itr->second.m_content.index);
     pContent->m_Data->Close();
   }

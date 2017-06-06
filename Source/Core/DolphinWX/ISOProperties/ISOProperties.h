@@ -30,7 +30,7 @@ class wxTextCtrl;
 
 namespace DiscIO
 {
-class IVolume;
+class Volume;
 }
 
 namespace Gecko
@@ -60,7 +60,7 @@ public:
 private:
   DECLARE_EVENT_TABLE();
 
-  std::unique_ptr<DiscIO::IVolume> m_open_iso;
+  std::unique_ptr<DiscIO::Volume> m_open_iso;
 
   std::vector<PatchEngine::Patch> onFrame;
   PHackData m_PHack_Data;

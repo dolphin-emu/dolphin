@@ -11,7 +11,7 @@
 
 namespace DiscIO
 {
-class IVolume;
+class Volume;
 struct Partition;
 }
 
@@ -46,7 +46,7 @@ public:
   static bool LoadMapFromFilename();
 
 private:
-  static bool DVDRead(const DiscIO::IVolume& volume, u64 dvd_offset, u32 output_address, u32 length,
+  static bool DVDRead(const DiscIO::Volume& volume, u64 dvd_offset, u32 output_address, u32 length,
                       const DiscIO::Partition& partition);
   static void RunFunction(u32 address);
 
@@ -57,12 +57,12 @@ private:
 
   static void SetupMSR();
   static void SetupBAT(bool is_wii);
-  static bool RunApploader(bool is_wii, const DiscIO::IVolume& volume);
-  static bool EmulatedBS2_GC(const DiscIO::IVolume* volume, bool skip_app_loader = false);
-  static bool EmulatedBS2_Wii(const DiscIO::IVolume* volume);
-  static bool EmulatedBS2(bool is_wii, const DiscIO::IVolume* volume);
+  static bool RunApploader(bool is_wii, const DiscIO::Volume& volume);
+  static bool EmulatedBS2_GC(const DiscIO::Volume* volume, bool skip_app_loader = false);
+  static bool EmulatedBS2_Wii(const DiscIO::Volume* volume);
+  static bool EmulatedBS2(bool is_wii, const DiscIO::Volume* volume);
   static bool Load_BS2(const std::string& boot_rom_filename);
-  static void Load_FST(bool is_wii, const DiscIO::IVolume* volume);
+  static void Load_FST(bool is_wii, const DiscIO::Volume* volume);
 
-  static bool SetupWiiMemory(const DiscIO::IVolume* volume, u64 ios_title_id);
+  static bool SetupWiiMemory(const DiscIO::Volume* volume, u64 ios_title_id);
 };

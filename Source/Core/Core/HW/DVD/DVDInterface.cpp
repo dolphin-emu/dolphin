@@ -33,7 +33,7 @@
 
 #include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
-#include "DiscIO/VolumeWiiCrypted.h"
+#include "DiscIO/VolumeWii.h"
 
 // The minimum time it takes for the DVD drive to process a command (in
 // microseconds)
@@ -435,7 +435,7 @@ void Shutdown()
   DVDThread::Stop();
 }
 
-void SetDisc(std::unique_ptr<DiscIO::IVolume> disc)
+void SetDisc(std::unique_ptr<DiscIO::Volume> disc)
 {
   if (disc)
     s_current_partition = disc->GetGamePartition();
@@ -460,7 +460,7 @@ static void EjectDiscCallback(u64 userdata, s64 cyclesLate)
 
 static void InsertDiscCallback(u64 userdata, s64 cyclesLate)
 {
-  std::unique_ptr<DiscIO::IVolume> new_volume =
+  std::unique_ptr<DiscIO::Volume> new_volume =
       DiscIO::CreateVolumeFromFilename(s_disc_path_to_insert);
 
   if (new_volume)
@@ -1147,7 +1147,7 @@ void ScheduleReads(u64 offset, u32 length, const DiscIO::Partition& partition, u
   // The variable dvd_offset tracks the actual offset on the DVD
   // that the disc drive starts reading at, which differs in two ways:
   // It's rounded to a whole ECC block and never uses Wii partition addressing.
-  u64 dvd_offset = DiscIO::CVolumeWiiCrypted::PartitionOffsetToRawOffset(offset, partition);
+  u64 dvd_offset = DiscIO::VolumeWii::PartitionOffsetToRawOffset(offset, partition);
   dvd_offset = Common::AlignDown(dvd_offset, DVD_ECC_BLOCK_SIZE);
 
   if (SConfig::GetInstance().bFastDiscSpeed)
@@ -1215,7 +1215,7 @@ void ScheduleReads(u64 offset, u32 length, const DiscIO::Partition& partition, u
 
   const u32 bytes_per_chunk = partition == DiscIO::PARTITION_NONE ?
                                   DVD_ECC_BLOCK_SIZE :
-                                  DiscIO::CVolumeWiiCrypted::BLOCK_DATA_SIZE;
+                                  DiscIO::VolumeWii::BLOCK_DATA_SIZE;
 
   while (length > 0)
   {

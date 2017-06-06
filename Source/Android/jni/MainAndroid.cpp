@@ -192,7 +192,7 @@ static inline u32 GetPixel(u32* buffer, unsigned int x, unsigned int y)
 
 static bool LoadBanner(std::string filename, u32* Banner)
 {
-  std::unique_ptr<DiscIO::IVolume> pVolume(DiscIO::CreateVolumeFromFilename(filename));
+  std::unique_ptr<DiscIO::Volume> pVolume(DiscIO::CreateVolumeFromFilename(filename));
 
   if (pVolume != nullptr)
   {
@@ -230,7 +230,7 @@ static bool LoadBanner(std::string filename, u32* Banner)
 
 static int GetCountry(std::string filename)
 {
-  std::unique_ptr<DiscIO::IVolume> pVolume(DiscIO::CreateVolumeFromFilename(filename));
+  std::unique_ptr<DiscIO::Volume> pVolume(DiscIO::CreateVolumeFromFilename(filename));
 
   if (pVolume != nullptr)
   {
@@ -246,7 +246,7 @@ static int GetCountry(std::string filename)
 
 static int GetPlatform(std::string filename)
 {
-  std::unique_ptr<DiscIO::IVolume> pVolume(DiscIO::CreateVolumeFromFilename(filename));
+  std::unique_ptr<DiscIO::Volume> pVolume(DiscIO::CreateVolumeFromFilename(filename));
 
   if (pVolume != nullptr)
   {
@@ -272,7 +272,7 @@ static std::string GetTitle(std::string filename)
   __android_log_print(ANDROID_LOG_WARN, DOLPHIN_TAG, "Getting Title for file: %s",
                       filename.c_str());
 
-  std::unique_ptr<DiscIO::IVolume> pVolume(DiscIO::CreateVolumeFromFilename(filename));
+  std::unique_ptr<DiscIO::Volume> pVolume(DiscIO::CreateVolumeFromFilename(filename));
 
   if (pVolume != nullptr)
   {
@@ -315,7 +315,7 @@ static std::string GetDescription(std::string filename)
   __android_log_print(ANDROID_LOG_WARN, DOLPHIN_TAG, "Getting Description for file: %s",
                       filename.c_str());
 
-  std::unique_ptr<DiscIO::IVolume> volume(DiscIO::CreateVolumeFromFilename(filename));
+  std::unique_ptr<DiscIO::Volume> volume(DiscIO::CreateVolumeFromFilename(filename));
 
   if (volume != nullptr)
   {
@@ -350,7 +350,7 @@ static std::string GetGameId(std::string filename)
 {
   __android_log_print(ANDROID_LOG_WARN, DOLPHIN_TAG, "Getting ID for file: %s", filename.c_str());
 
-  std::unique_ptr<DiscIO::IVolume> volume(DiscIO::CreateVolumeFromFilename(filename));
+  std::unique_ptr<DiscIO::Volume> volume(DiscIO::CreateVolumeFromFilename(filename));
   if (volume == nullptr)
     return std::string();
 
@@ -364,7 +364,7 @@ static std::string GetCompany(std::string filename)
   __android_log_print(ANDROID_LOG_WARN, DOLPHIN_TAG, "Getting Company for file: %s",
                       filename.c_str());
 
-  std::unique_ptr<DiscIO::IVolume> volume(DiscIO::CreateVolumeFromFilename(filename));
+  std::unique_ptr<DiscIO::Volume> volume(DiscIO::CreateVolumeFromFilename(filename));
   if (volume == nullptr)
     return std::string();
 
@@ -377,7 +377,7 @@ static u64 GetFileSize(std::string filename)
 {
   __android_log_print(ANDROID_LOG_WARN, DOLPHIN_TAG, "Getting size of file: %s", filename.c_str());
 
-  std::unique_ptr<DiscIO::IVolume> volume(DiscIO::CreateVolumeFromFilename(filename));
+  std::unique_ptr<DiscIO::Volume> volume(DiscIO::CreateVolumeFromFilename(filename));
   if (volume == nullptr)
     return -1;
 

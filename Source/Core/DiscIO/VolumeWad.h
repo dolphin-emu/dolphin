@@ -15,23 +15,23 @@
 #include "DiscIO/Volume.h"
 
 // --- this volume type is used for Wad files ---
-// Some of this code might look redundant with the CNANDContentLoader class, however,
+// Some of this code might look redundant with the NANDContentLoader class, however,
 // We do not do any decryption here, we do raw read, so things are -Faster-
 
 namespace DiscIO
 {
-class IBlobReader;
+class BlobReader;
 enum class BlobType;
 enum class Country;
 enum class Language;
 enum class Region;
 enum class Platform;
 
-class CVolumeWAD : public IVolume
+class VolumeWAD : public Volume
 {
 public:
-  CVolumeWAD(std::unique_ptr<IBlobReader> reader);
-  ~CVolumeWAD();
+  VolumeWAD(std::unique_ptr<BlobReader> reader);
+  ~VolumeWAD();
   bool Read(u64 offset, u64 length, u8* buffer,
             const Partition& partition = PARTITION_NONE) const override;
   std::optional<u64> GetTitleID(const Partition& partition = PARTITION_NONE) const override;
@@ -58,7 +58,7 @@ public:
   u64 GetRawSize() const override;
 
 private:
-  std::unique_ptr<IBlobReader> m_reader;
+  std::unique_ptr<BlobReader> m_reader;
   IOS::ES::TMDReader m_tmd;
   u32 m_offset = 0;
   u32 m_tmd_offset = 0;

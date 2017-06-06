@@ -16,7 +16,7 @@ namespace DiscIO
 {
 static constexpr u32 WBFS_MAGIC = 0x53464257;  // "WBFS" (byteswapped to little endian)
 
-class WbfsFileReader : public IBlobReader
+class WbfsFileReader : public BlobReader
 {
 public:
   ~WbfsFileReader();

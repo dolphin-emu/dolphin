@@ -13,7 +13,7 @@
 class PointerWrap;
 namespace DiscIO
 {
-class IVolume;
+class Volume;
 struct Partition;
 }
 namespace MMIO
@@ -110,12 +110,12 @@ void DoState(PointerWrap& p);
 
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 
-void SetDisc(std::unique_ptr<DiscIO::IVolume> disc);
+void SetDisc(std::unique_ptr<DiscIO::Volume> disc);
 bool IsDiscInside();
 void ChangeDiscAsHost(const std::string& new_path);  // Can only be called by the host thread
 void ChangeDiscAsCPU(const std::string& new_path);   // Can only be called by the CPU thread
 
-// This function returns true and calls SConfig::SetRunningGameMetadata(IVolume&, Partition&)
+// This function returns true and calls SConfig::SetRunningGameMetadata(Volume&, Partition&)
 // if both of the following conditions are true:
 // - A disc is inserted
 // - The title_id argument doesn't contain a value, or its value matches the disc's title ID
