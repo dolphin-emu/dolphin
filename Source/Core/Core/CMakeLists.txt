@@ -21,9 +21,8 @@ set(SRCS
   WiiRoot.cpp
   Boot/Boot_BS2Emu.cpp
   Boot/Boot.cpp
-  Boot/Boot_DOL.cpp
-  Boot/Boot_ELF.cpp
   Boot/Boot_WiiWAD.cpp
+  Boot/DolReader.cpp
   Boot/ElfReader.cpp
   Config/Config.cpp
   Config/GraphicsSettings.cpp

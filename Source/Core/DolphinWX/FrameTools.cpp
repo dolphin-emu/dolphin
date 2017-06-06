@@ -30,6 +30,7 @@
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
 
+#include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -53,6 +54,7 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/State.h"
 
+#include "DiscIO/Enums.h"
 #include "DiscIO/NANDContentLoader.h"
 #include "DiscIO/NANDImporter.h"
 #include "DiscIO/VolumeWad.h"
@@ -315,7 +317,7 @@ void CFrame::BootGame(const std::string& filename)
   }
   if (!bootfile.empty())
   {
-    StartGame(bootfile);
+    StartGame(BootParameters::GenerateFromFile(bootfile));
   }
 }
 
@@ -627,7 +629,7 @@ void CFrame::ToggleDisplayMode(bool bFullscreen)
 }
 
 // Prepare the GUI to start the game.
-void CFrame::StartGame(const std::string& filename, SConfig::EBootBS2 type)
+void CFrame::StartGame(std::unique_ptr<BootParameters> boot)
 {
   if (m_is_game_loading)
     return;
@@ -705,7 +707,7 @@ void CFrame::StartGame(const std::string& filename, SConfig::EBootBS2 type)
 
   SetDebuggerStartupParameters();
 
-  if (!BootManager::BootCore(filename, type))
+  if (!BootManager::BootCore(std::move(boot)))
   {
     DoFullscreen(false);
 
@@ -1169,17 +1171,17 @@ void CFrame::OnMemcard(wxCommandEvent& WXUNUSED(event))
 
 void CFrame::OnLoadGameCubeIPLJAP(wxCommandEvent&)
 {
-  StartGame("", SConfig::BOOT_BS2_JAP);
+  StartGame(std::make_unique<BootParameters>(BootParameters::IPL{DiscIO::Region::NTSC_J}));
 }
 
 void CFrame::OnLoadGameCubeIPLUSA(wxCommandEvent&)
 {
-  StartGame("", SConfig::BOOT_BS2_USA);
+  StartGame(std::make_unique<BootParameters>(BootParameters::IPL{DiscIO::Region::NTSC_U}));
 }
 
 void CFrame::OnLoadGameCubeIPLEUR(wxCommandEvent&)
 {
-  StartGame("", SConfig::BOOT_BS2_EUR);
+  StartGame(std::make_unique<BootParameters>(BootParameters::IPL{DiscIO::Region::PAL}));
 }
 
 void CFrame::OnExportAllSaves(wxCommandEvent& WXUNUSED(event))

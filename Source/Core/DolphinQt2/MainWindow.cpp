@@ -9,6 +9,7 @@
 
 #include "Common/Common.h"
 
+#include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -287,7 +288,7 @@ void MainWindow::StartGame(const QString& path)
       return;
   }
   // Boot up, show an error if it fails to load the game.
-  if (!BootManager::BootCore(path.toStdString(), SConfig::BOOT_DEFAULT))
+  if (!BootManager::BootCore(BootParameters::GenerateFromFile(path.toStdString())))
   {
     QMessageBox::critical(this, tr("Error"), tr("Failed to init core"), QMessageBox::Ok);
     return;
