@@ -132,7 +132,7 @@ struct SConfig : NonCopyable
 
   // Interface settings
   bool bConfirmStop = false;
-  bool bHideCursor = false, bAutoHideCursor = false;
+  bool bHideCursor = false;
   bool bUsePanicHandlers = true;
   bool bOnScreenDisplayMessages = true;
   std::string theme_name;

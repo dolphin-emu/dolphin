@@ -71,6 +71,8 @@ public:
   bool GetRenderToMain() const;
   bool GetFullScreen() const;
   QSize GetRenderWindowSize() const;
+  void SetHideCursor(bool hide_cursor);
+  bool GetHideCursor() const;
 
   // Columns
   bool& BannerVisible() const;
@@ -111,6 +113,7 @@ public:
 signals:
   void PathAdded(const QString&);
   void PathRemoved(const QString&);
+  void HideCursorChanged();
 
 private:
   Settings();
