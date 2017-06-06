@@ -37,44 +37,6 @@
     </Link>
   </ItemDefinitionGroup>
 
-  <!--Passes all .qrc files to rcc and puts output in the build directory-->
-  <ItemGroup>
-    <ResFiles Include="$(MSBuildProjectDirectory)\**\*.qrc" />
-  </ItemGroup>
-  <Target Name="QtResource"
-    BeforeTargets="ClCompile"
-    Inputs="@(ResFiles)"
-    Condition="'@(QtResource)'!=''"
-    Outputs="@(ResFiles->'$(QtToolOutDir)qrc_%(Filename).h')">
-    <Message Text="rcc %(ResFiles.Filename)" Importance="High" />
-    <Error Condition="!$(QtDirValid)" Text="QTDIR not set or non-existent (pull the submodule?)" />
-    <MakeDir Directories="$(QtToolOutDir)" />
-    <Exec Command="&quot;$(QtBinDir)rcc.exe&quot; &quot;%(ResFiles.FullPath)&quot; -o &quot;$(QtToolOutDir)qrc_%(ResFiles.Filename).h&quot;" />
-  </Target>
-
-  <Target Name="QtResourceClean">
-    <Delete Files="@(ResFiles->'$(QtToolOutDir)qrc_%(Filename).h')" />
-  </Target>
-
-  <!--Passes all .ui files to uic and puts output in the build directory-->
-  <ItemGroup>
-    <UiFiles Include="$(MSBuildProjectDirectory)\**\*.ui" />
-  </ItemGroup>
-  <Target Name="QtUi"
-    BeforeTargets="ClCompile"
-    Inputs="@(UiFiles)"
-    Condition="'@(QtUi)'!=''"
-    Outputs="@(UiFiles->'$(QtToolOutDir)ui_%(Filename).h')">
-    <Message Text="uic %(UiFiles.Filename)" Importance="High" />
-    <Error Condition="!$(QtDirValid)" Text="QTDIR not set or non-existent (pull the submodule?)" />
-    <MakeDir Directories="$(QtToolOutDir)" />
-    <Exec Command="&quot;$(QtBinDir)uic.exe&quot; &quot;%(UiFiles.FullPath)&quot; -o &quot;$(QtToolOutDir)ui_%(UiFiles.Filename).h&quot;" />
-  </Target>
-
-  <Target Name="QtUiClean">
-    <Delete Files="@(UiFiles->'$(QtToolOutDir)ui_%(Filename).h')" />
-  </Target>
-
   <!--Compile files needed to MOC and output in the build directory-->
   <!--TODO find a way to autocreate from ClCompile settings-->
   <PropertyGroup>
@@ -112,12 +74,6 @@
   <!--Expose the new targets to VS-->
   <ItemGroup>
     <PropertyPageSchema Include="$(MSBuildThisFileDirectory)$(MSBuildThisFileName).xml" />
-    <AvailableItemName Include="QtResource">
-      <Targets>QtResource</Targets>
-    </AvailableItemName>
-    <AvailableItemName Include="QtUi">
-      <Targets>QtUi</Targets>
-    </AvailableItemName>
     <AvailableItemName Include="QtMoc">
       <Targets>QtMoc</Targets>
     </AvailableItemName>
