@@ -72,6 +72,7 @@ set(SRCS
   HLE/HLE.cpp
   HLE/HLE_Misc.cpp
   HLE/HLE_OS.cpp
+  HLE/HLE_VarArgs.cpp
   HW/AudioInterface.cpp
   HW/CPU.cpp
   HW/DSP.cpp
