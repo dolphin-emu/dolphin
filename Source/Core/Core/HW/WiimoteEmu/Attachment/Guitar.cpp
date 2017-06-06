@@ -23,14 +23,14 @@
 namespace WiimoteEmu
 {
 static const std::map<const ControlState, const u8> s_slider_bar_control_codes{
-  // values determined using a PS3 Guitar Hero 5 controller, which maps the touchbar to Zr on
-  // Windows
-  {0.0, 0x0F},        // not touching
-  {-0.4375, 0x04},    // top fret
-  {-0.097656, 0x0A},  // second fret
-  {0.203125, 0x12},   // third fret
-  {0.578125, 0x17},   // fourth fret
-  {1.0, 0x1F}         // bottom fret
+    // values determined using a PS3 Guitar Hero 5 controller, which maps the touchbar to Zr on
+    // Windows
+    {0.0, 0x0F},        // not touching
+    {-0.4375, 0x04},    // top fret
+    {-0.097656, 0x0A},  // second fret
+    {0.203125, 0x12},   // third fret
+    {0.578125, 0x17},   // fourth fret
+    {1.0, 0x1F}         // bottom fret
 };
 
 constexpr std::array<u8, 6> guitar_id{{0x00, 0x00, 0xa4, 0x20, 0x01, 0x03}};
@@ -101,7 +101,7 @@ void Guitar::GetState(u8* const data)
   }
 
   // slider bar
-  if(m_slider_bar->controls[0]->control_ref->BoundCount())
+  if (m_slider_bar->controls[0]->control_ref->BoundCount())
   {
     ControlState slider_bar;
     m_slider_bar->GetState(&slider_bar);
