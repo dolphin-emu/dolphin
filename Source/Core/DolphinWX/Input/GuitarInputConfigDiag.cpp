@@ -30,11 +30,15 @@ GuitarInputConfigDialog::GuitarInputConfigDialog(wxWindow* const parent, InputCo
       Wiimote::GetGuitarGroup(port_num, WiimoteEmu::GuitarGroup::Frets), this, this);
   ControlGroupBox* group_box_whammy = new ControlGroupBox(
       Wiimote::GetGuitarGroup(port_num, WiimoteEmu::GuitarGroup::Whammy), this, this);
+  ControlGroupBox* group_box_sliderbar = new ControlGroupBox(
+    Wiimote::GetGuitarGroup(port_num, WiimoteEmu::GuitarGroup::SliderBar), this, this);
 
   auto* const frets_whammy_sizer = new wxBoxSizer(wxVERTICAL);
   frets_whammy_sizer->Add(group_box_frets, 0, wxEXPAND);
   frets_whammy_sizer->AddSpacer(space5);
   frets_whammy_sizer->Add(group_box_whammy, 0, wxEXPAND);
+  frets_whammy_sizer->AddSpacer(space5);
+  frets_whammy_sizer->Add(group_box_sliderbar, 0, wxEXPAND);
 
   auto* const group_box_stick = new ControlGroupBox(
       Wiimote::GetGuitarGroup(port_num, WiimoteEmu::GuitarGroup::Stick), this, this);
