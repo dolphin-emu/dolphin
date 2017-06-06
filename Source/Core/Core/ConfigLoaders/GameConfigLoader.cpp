@@ -18,10 +18,15 @@
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 
+#include "Core/Config/Config.h"
+#include "Core/Config/GraphicsSettings.h"
 #include "Core/ConfigLoaders/GameConfigLoader.h"
+#include "Core/ConfigLoaders/IsSettingSaveable.h"
 
 namespace ConfigLoaders
 {
+using ConfigLocation = Config::ConfigLocation;
+
 // Returns all possible filenames in ascending order of priority
 static std::vector<std::string> GetGameIniFilenames(const std::string& id, u16 revision)
 {
@@ -40,155 +45,77 @@ static std::vector<std::string> GetGameIniFilenames(const std::string& id, u16 r
   return filenames;
 }
 
-struct ConfigLocation
+using INIToLocationMap = std::map<std::pair<std::string, std::string>, ConfigLocation>;
+
+// This is a mapping from the legacy section-key pairs to ConfigLocations.
+// New settings do not need to be added to this mapping.
+// See also: MapINIToRealLocation and GetINILocationFromConfig.
+static const INIToLocationMap& GetINIToLocationMap()
 {
-  Config::System system;
-  std::string section;
-  std::string key;
+  static const INIToLocationMap ini_to_location = {
+      {{"Video_Hardware", "VSync"}, {Config::GFX_VSYNC.location}},
 
-  bool operator==(const ConfigLocation& other) const
-  {
-    return std::tie(system, section, key) == std::tie(other.system, other.section, other.key);
-  }
+      {{"Video_Settings", "wideScreenHack"}, {Config::GFX_WIDESCREEN_HACK.location}},
+      {{"Video_Settings", "AspectRatio"}, {Config::GFX_ASPECT_RATIO.location}},
+      {{"Video_Settings", "Crop"}, {Config::GFX_CROP.location}},
+      {{"Video_Settings", "UseXFB"}, {Config::GFX_USE_XFB.location}},
+      {{"Video_Settings", "UseRealXFB"}, {Config::GFX_USE_REAL_XFB.location}},
+      {{"Video_Settings", "SafeTextureCacheColorSamples"},
+       {Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES.location}},
+      {{"Video_Settings", "HiresTextures"}, {Config::GFX_HIRES_TEXTURES.location}},
+      {{"Video_Settings", "ConvertHiresTextures"}, {Config::GFX_CONVERT_HIRES_TEXTURES.location}},
+      {{"Video_Settings", "CacheHiresTextures"}, {Config::GFX_CACHE_HIRES_TEXTURES.location}},
+      {{"Video_Settings", "EnablePixelLighting"}, {Config::GFX_ENABLE_PIXEL_LIGHTING.location}},
+      {{"Video_Settings", "FastDepthCalc"}, {Config::GFX_FAST_DEPTH_CALC.location}},
+      {{"Video_Settings", "MSAA"}, {Config::GFX_MSAA.location}},
+      {{"Video_Settings", "SSAA"}, {Config::GFX_SSAA.location}},
+      {{"Video_Settings", "ForceTrueColor"}, {Config::GFX_ENHANCE_FORCE_TRUE_COLOR.location}},
+      {{"Video_Settings", "EFBScale"}, {Config::GFX_EFB_SCALE.location}},
+      {{"Video_Settings", "DisableFog"}, {Config::GFX_DISABLE_FOG.location}},
+      {{"Video_Settings", "BackendMultithreading"}, {Config::GFX_BACKEND_MULTITHREADING.location}},
+      {{"Video_Settings", "CommandBufferExecuteInterval"},
+       {Config::GFX_COMMAND_BUFFER_EXECUTE_INTERVAL.location}},
 
-  bool operator!=(const ConfigLocation& other) const { return !operator==(other); }
-};
+      {{"Video_Enhancements", "ForceFiltering"}, {Config::GFX_ENHANCE_FORCE_FILTERING.location}},
+      {{"Video_Enhancements", "MaxAnisotropy"}, {Config::GFX_ENHANCE_MAX_ANISOTROPY.location}},
+      {{"Video_Enhancements", "PostProcessingShader"}, {Config::GFX_ENHANCE_POST_SHADER.location}},
 
-static std::map<std::pair<std::string, std::string>, ConfigLocation> ini_to_location = {
-    // Core
-    {{"Core", "CPUThread"}, {Config::System::Main, "Core", "CPUThread"}},
-    {{"Core", "SkipIdle"}, {Config::System::Main, "Core", "SkipIdle"}},
-    {{"Core", "SyncOnSkipIdle"}, {Config::System::Main, "Core", "SyncOnSkipIdle"}},
-    {{"Core", "FPRF"}, {Config::System::Main, "Core", "FPRF"}},
-    {{"Core", "AccurateNaNs"}, {Config::System::Main, "Core", "AccurateNaNs"}},
-    {{"Core", "MMU"}, {Config::System::Main, "Core", "MMU"}},
-    {{"Core", "DCBZ"}, {Config::System::Main, "Core", "DCBZ"}},
-    {{"Core", "SyncGPU"}, {Config::System::Main, "Core", "SyncGPU"}},
-    {{"Core", "FastDiscSpeed"}, {Config::System::Main, "Core", "FastDiscSpeed"}},
-    {{"Core", "DSPHLE"}, {Config::System::Main, "Core", "DSPHLE"}},
-    {{"Core", "GFXBackend"}, {Config::System::Main, "Core", "GFXBackend"}},
-    {{"Core", "CPUCore"}, {Config::System::Main, "Core", "CPUCore"}},
-    {{"Core", "HLE_BS2"}, {Config::System::Main, "Core", "HLE_BS2"}},
-    {{"Core", "EmulationSpeed"}, {Config::System::Main, "Core", "EmulationSpeed"}},
-    {{"Core", "GPUDeterminismMode"}, {Config::System::Main, "Core", "GPUDeterminismMode"}},
-    {{"Core", "ProgressiveScan"}, {Config::System::Main, "Display", "ProgressiveScan"}},
-    {{"Core", "PAL60"}, {Config::System::Main, "Display", "PAL60"}},
+      {{"Video_Stereoscopy", "StereoConvergence"}, {Config::GFX_STEREO_CONVERGENCE.location}},
+      {{"Video_Stereoscopy", "StereoEFBMonoDepth"}, {Config::GFX_STEREO_EFB_MONO_DEPTH.location}},
+      {{"Video_Stereoscopy", "StereoDepthPercentage"},
+       {Config::GFX_STEREO_DEPTH_PERCENTAGE.location}},
 
-    // Action Replay cheats
-    {{"ActionReplay_Enabled", ""}, {Config::System::Main, "ActionReplay_Enabled", ""}},
-    {{"ActionReplay", ""}, {Config::System::Main, "ActionReplay", ""}},
+      {{"Video_Stereoscopy", "StereoMode"}, {Config::GFX_STEREO_MODE.location}},
+      {{"Video_Stereoscopy", "StereoDepth"}, {Config::GFX_STEREO_DEPTH.location}},
+      {{"Video_Stereoscopy", "StereoSwapEyes"}, {Config::GFX_STEREO_SWAP_EYES.location}},
 
-    // Gecko cheats
-    {{"Gecko_Enabled", ""}, {Config::System::Main, "Gecko_Enabled", ""}},
-    {{"Gecko", ""}, {Config::System::Main, "Gecko", ""}},
+      {{"Video_Hacks", "EFBAccessEnable"}, {Config::GFX_HACK_EFB_ACCESS_ENABLE.location}},
+      {{"Video_Hacks", "BBoxEnable"}, {Config::GFX_HACK_BBOX_ENABLE.location}},
+      {{"Video_Hacks", "ForceProgressive"}, {Config::GFX_HACK_FORCE_PROGRESSIVE.location}},
+      {{"Video_Hacks", "EFBToTextureEnable"}, {Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM.location}},
+      {{"Video_Hacks", "EFBScaledCopy"}, {Config::GFX_EFB_SCALE.location}},
+      {{"Video_Hacks", "EFBEmulateFormatChanges"},
+       {Config::GFX_HACK_EFB_EMULATE_FORMAT_CHANGES.location}},
+      {{"Video_Hacks", "VertexRounding"}, {Config::GFX_HACK_VERTEX_ROUDING.location}},
 
-    // OnLoad cheats
-    {{"OnLoad", ""}, {Config::System::Main, "OnLoad", ""}},
+      {{"Video", "ProjectionHack"}, {Config::GFX_PROJECTION_HACK.location}},
+      {{"Video", "PH_SZNear"}, {Config::GFX_PROJECTION_HACK_SZNEAR.location}},
+      {{"Video", "PH_SZFar"}, {Config::GFX_PROJECTION_HACK_SZFAR.location}},
+      {{"Video", "PH_ZNear"}, {Config::GFX_PROJECTION_HACK_ZNEAR.location}},
+      {{"Video", "PH_ZFar"}, {Config::GFX_PROJECTION_HACK_ZFAR.location}},
+      {{"Video", "PerfQueriesEnable"}, {Config::GFX_PERF_QUERIES_ENABLE.location}},
+  };
+  return ini_to_location;
+}
 
-    // OnFrame cheats
-    {{"OnFrame_Enabled", ""}, {Config::System::Main, "OnFrame_Enabled", ""}},
-    {{"OnFrame", ""}, {Config::System::Main, "OnFrame", ""}},
-
-    // Speedhacks
-    {{"Speedhacks", ""}, {Config::System::Main, "Speedhacks", ""}},
-
-    // Debugger values
-    {{"Watches", ""}, {Config::System::Debugger, "Watches", ""}},
-    {{"BreakPoints", ""}, {Config::System::Debugger, "BreakPoints", ""}},
-    {{"MemoryChecks", ""}, {Config::System::Debugger, "MemoryChecks", ""}},
-
-    // DSP
-    {{"DSP", "Volume"}, {Config::System::Main, "DSP", "Volume"}},
-    {{"DSP", "EnableJIT"}, {Config::System::Main, "DSP", "EnableJIT"}},
-    {{"DSP", "Backend"}, {Config::System::Main, "DSP", "Backend"}},
-
-    // Controls
-    {{"Controls", "PadType0"}, {Config::System::GCPad, "Core", "SIDevice0"}},
-    {{"Controls", "PadType1"}, {Config::System::GCPad, "Core", "SIDevice1"}},
-    {{"Controls", "PadType2"}, {Config::System::GCPad, "Core", "SIDevice2"}},
-    {{"Controls", "PadType3"}, {Config::System::GCPad, "Core", "SIDevice3"}},
-    {{"Controls", "WiimoteSource0"}, {Config::System::WiiPad, "Wiimote1", "Source"}},
-    {{"Controls", "WiimoteSource1"}, {Config::System::WiiPad, "Wiimote2", "Source"}},
-    {{"Controls", "WiimoteSource2"}, {Config::System::WiiPad, "Wiimote3", "Source"}},
-    {{"Controls", "WiimoteSource3"}, {Config::System::WiiPad, "Wiimote4", "Source"}},
-    {{"Controls", "WiimoteSourceBB"}, {Config::System::WiiPad, "BalanceBoard", "Source"}},
-
-    // Controller profiles
-    {{"Controls", "PadProfile1"}, {Config::System::GCPad, "Controls", "PadProfile1"}},
-    {{"Controls", "PadProfile2"}, {Config::System::GCPad, "Controls", "PadProfile2"}},
-    {{"Controls", "PadProfile3"}, {Config::System::GCPad, "Controls", "PadProfile3"}},
-    {{"Controls", "PadProfile4"}, {Config::System::GCPad, "Controls", "PadProfile4"}},
-    {{"Controls", "WiimoteProfile1"}, {Config::System::WiiPad, "Controls", "WiimoteProfile1"}},
-    {{"Controls", "WiimoteProfile2"}, {Config::System::WiiPad, "Controls", "WiimoteProfile2"}},
-    {{"Controls", "WiimoteProfile3"}, {Config::System::WiiPad, "Controls", "WiimoteProfile3"}},
-    {{"Controls", "WiimoteProfile4"}, {Config::System::WiiPad, "Controls", "WiimoteProfile4"}},
-
-    // Video
-    {{"Video_Hardware", "VSync"}, {Config::System::GFX, "Hardware", "VSync"}},
-    {{"Video_Settings", "wideScreenHack"}, {Config::System::GFX, "Settings", "wideScreenHack"}},
-    {{"Video_Settings", "AspectRatio"}, {Config::System::GFX, "Settings", "AspectRatio"}},
-    {{"Video_Settings", "Crop"}, {Config::System::GFX, "Settings", "Crop"}},
-    {{"Video_Settings", "UseXFB"}, {Config::System::GFX, "Settings", "UseXFB"}},
-    {{"Video_Settings", "UseRealXFB"}, {Config::System::GFX, "Settings", "UseRealXFB"}},
-    {{"Video_Settings", "SafeTextureCacheColorSamples"},
-     {Config::System::GFX, "Settings", "SafeTextureCacheColorSamples"}},
-    {{"Video_Settings", "HiresTextures"}, {Config::System::GFX, "Settings", "HiresTextures"}},
-    {{"Video_Settings", "ConvertHiresTextures"},
-     {Config::System::GFX, "Settings", "ConvertHiresTextures"}},
-    {{"Video_Settings", "CacheHiresTextures"},
-     {Config::System::GFX, "Settings", "CacheHiresTextures"}},
-    {{"Video_Settings", "EnablePixelLighting"},
-     {Config::System::GFX, "Settings", "EnablePixelLighting"}},
-    {{"Video_Settings", "ForcedSlowDepth"}, {Config::System::GFX, "Settings", "ForcedSlowDepth"}},
-    {{"Video_Settings", "MSAA"}, {Config::System::GFX, "Settings", "MSAA"}},
-    {{"Video_Settings", "SSAA"}, {Config::System::GFX, "Settings", "SSAA"}},
-    {{"Video_Settings", "EFBScale"}, {Config::System::GFX, "Settings", "EFBScale"}},
-    {{"Video_Settings", "DisableFog"}, {Config::System::GFX, "Settings", "DisableFog"}},
-
-    {{"Video_Enhancements", "ForceFiltering"},
-     {Config::System::GFX, "Enhancements", "ForceFiltering"}},
-    {{"Video_Enhancements", "MaxAnisotropy"},
-     {Config::System::GFX, "Enhancements", "MaxAnisotropy"}},
-    {{"Video_Enhancements", "PostProcessingShader"},
-     {Config::System::GFX, "Enhancements", "PostProcessingShader"}},
-
-    {{"Video_Stereoscopy", "StereoMode"}, {Config::System::GFX, "Stereoscopy", "StereoMode"}},
-    {{"Video_Stereoscopy", "StereoDepth"}, {Config::System::GFX, "Stereoscopy", "StereoDepth"}},
-    {{"Video_Stereoscopy", "StereoSwapEyes"},
-     {Config::System::GFX, "Stereoscopy", "StereoSwapEyes"}},
-
-    {{"Video_Hacks", "EFBAccessEnable"}, {Config::System::GFX, "Hacks", "EFBAccessEnable"}},
-    {{"Video_Hacks", "BBoxEnable"}, {Config::System::GFX, "Hacks", "BBoxEnable"}},
-    {{"Video_Hacks", "ForceProgressive"}, {Config::System::GFX, "Hacks", "ForceProgressive"}},
-    {{"Video_Hacks", "EFBToTextureEnable"}, {Config::System::GFX, "Hacks", "EFBToTextureEnable"}},
-    {{"Video_Hacks", "EFBScaledCopy"}, {Config::System::GFX, "Hacks", "EFBScaledCopy"}},
-    {{"Video_Hacks", "EFBEmulateFormatChanges"},
-     {Config::System::GFX, "Hacks", "EFBEmulateFormatChanges"}},
-
-    // GameINI specific video settings
-    {{"Video", "ProjectionHack"}, {Config::System::GFX, "Video", "ProjectionHack"}},
-    {{"Video", "PH_SZNear"}, {Config::System::GFX, "Video", "PH_SZNear"}},
-    {{"Video", "PH_SZFar"}, {Config::System::GFX, "Video", "PH_SZFar"}},
-    {{"Video", "PH_ZNear"}, {Config::System::GFX, "Video", "PH_ZNear"}},
-    {{"Video", "PH_ZFar"}, {Config::System::GFX, "Video", "PH_ZFar"}},
-    {{"Video", "PH_ExtraParam"}, {Config::System::GFX, "Video", "PH_ExtraParam"}},
-    {{"Video", "PerfQueriesEnable"}, {Config::System::GFX, "Video", "PerfQueriesEnable"}},
-
-    {{"Video_Stereoscopy", "StereoConvergence"},
-     {Config::System::GFX, "Stereoscopy", "StereoConvergence"}},
-    {{"Video_Stereoscopy", "StereoEFBMonoDepth"},
-     {Config::System::GFX, "Stereoscopy", "StereoEFBMonoDepth"}},
-    {{"Video_Stereoscopy", "StereoDepthPercentage"},
-     {Config::System::GFX, "Stereoscopy", "StereoDepthPercentage"}},
-
-    // UI
-    {{"EmuState", "EmulationStateId"}, {Config::System::UI, "EmuState", "EmulationStateId"}},
-    {{"EmuState", "EmulationIssues"}, {Config::System::UI, "EmuState", "EmulationIssues"}},
-    {{"EmuState", "Title"}, {Config::System::UI, "EmuState", "Title"}},
-};
-
+// Converts from a legacy GameINI section-key tuple to a ConfigLocation.
+// Also supports the following format:
+// [System.Section]
+// Key = Value
 static ConfigLocation MapINIToRealLocation(const std::string& section, const std::string& key)
 {
+  static const INIToLocationMap& ini_to_location = GetINIToLocationMap();
+
   auto it = ini_to_location.find({section, key});
   if (it == ini_to_location.end())
   {
@@ -216,11 +143,13 @@ static ConfigLocation MapINIToRealLocation(const std::string& section, const std
     return {Config::System::Main, "", ""};
   }
 
-  return ini_to_location[{section, key}];
+  return ini_to_location.at({section, key});
 }
 
 static std::pair<std::string, std::string> GetINILocationFromConfig(const ConfigLocation& location)
 {
+  static const INIToLocationMap& ini_to_location = GetINIToLocationMap();
+
   auto it = std::find_if(ini_to_location.begin(), ini_to_location.end(),
                          [&location](const auto& entry) { return entry.second == location; });
 
@@ -236,8 +165,7 @@ static std::pair<std::string, std::string> GetINILocationFromConfig(const Config
   if (it != ini_to_location.end())
     return {it->first.first, location.key};
 
-  WARN_LOG(CORE, "Unknown option: %s.%s", location.section.c_str(), location.key.c_str());
-  return {"", ""};
+  return {Config::GetSystemName(location.system) + "." + location.section, location.key};
 }
 
 // INI Game layer configuration loader
@@ -393,6 +321,9 @@ void INIGameConfigLayerLoader::Save(Config::Layer* config_layer)
     {
       for (const auto& value : section->GetValues())
       {
+        if (!IsSettingSaveable({system.first, section->GetName(), value.first}))
+          continue;
+
         const auto ini_location =
             GetINILocationFromConfig({system.first, section->GetName(), value.first});
         if (ini_location.first.empty() && ini_location.second.empty())

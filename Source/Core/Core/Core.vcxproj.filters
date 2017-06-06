@@ -856,6 +856,11 @@
     <ClCompile Include="ConfigLoaders\NetPlayConfigLoader.cpp">
       <Filter>ConfigLoader</Filter>
     </ClCompile>
+    <ClCompile Include="ConfigLoaders\IsSettingSaveable.cpp">
+      <Filter>ConfigLoader</Filter>
+    </ClCompile>
+    <ClCompile Include="Config\Config.cpp" />
+    <ClCompile Include="Config\GraphicsSettings.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BootManager.h" />
@@ -1490,6 +1495,11 @@
       <Filter>ConfigLoader</Filter>
     </ClInclude>
     <ClInclude Include="ConfigLoaders\NetPlayConfigLoader.h">
+      <Filter>ConfigLoader</Filter>
+    </ClInclude>
+    <ClInclude Include="Config\Config.h" />
+    <ClInclude Include="Config\GraphicsSettings.h" />
+    <ClInclude Include="ConfigLoaders\IsSettingSaveable.h">
       <Filter>ConfigLoader</Filter>
     </ClInclude>
   </ItemGroup>
