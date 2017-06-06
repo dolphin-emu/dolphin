@@ -217,6 +217,15 @@ if(CMAKE_C_COMPILER_ID MATCHES "MSVC")
   check_and_add_flag(EXCEPTIONS /EHsc)
   dolphin_compile_definitions(_DEBUG DEBUG_ONLY)
 
+  # Enforce C++ standard conforming conversion rules to catch possible bugs
+  add_compile_options(/permissive-)
+  # Remove unreferenced inline functions/data to reduce link time and catch bugs
+  add_compile_options(/Zc:inline)
+  # Assume `new` (w/o std::nothrow) throws to reduce binary size
+  add_compile_options(/Zc:throwingNew)
+  # Enforce strict volatile semantics as per ISO C++
+  add_compile_options(/volatile:iso)
+
   string(APPEND CMAKE_EXE_LINKER_FLAGS " /NXCOMPAT")
 else()
   add_definitions(-D_DEFAULT_SOURCE)
