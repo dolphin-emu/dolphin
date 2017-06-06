@@ -83,11 +83,13 @@
     <QtMoc Include="GameList\GameTracker.h" />
     <QtMoc Include="GameList\ListProxyModel.h" />
     <QtMoc Include="Host.h" />
+    <QtMoc Include="HotkeyScheduler.h" />
     <QtMoc Include="InDevelopmentWarning.h" />
     <QtMoc Include="Settings\InterfacePane.h" />
     <QtMoc Include="MainWindow.h" />
     <QtMoc Include="MenuBar.h" />
     <QtMoc Include="QtUtils\DoubleClickEventFilter.h" />
+    <QtMoc Include="QtUtils\FocusEventFilter.h" />
     <QtMoc Include="RenderWidget.h" />
     <QtMoc Include="Settings.h" />
     <QtMoc Include="Settings\GeneralPane.h" />
@@ -98,12 +100,14 @@
     <ClCompile Include="$(QtMocOutPrefix)AboutDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)ControllersWindow.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)FilesystemWidget.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)FocusEventFilter.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GameFile.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GameList.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GameListModel.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GameTracker.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GeneralPane.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)Host.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)HotkeyScheduler.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)InDevelopmentWarning.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)InfoWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)InterfacePane.cpp" />
@@ -125,6 +129,12 @@
     <ClCompile Include="Config\Mapping\GCKeyboardEmu.cpp" />
     <ClCompile Include="Config\Mapping\GCPadEmu.cpp" />
     <ClCompile Include="Config\Mapping\GCPadWiiU.cpp" />
+    <ClCompile Include="Config\Mapping\Hotkey3D.cpp" />
+    <ClCompile Include="Config\Mapping\HotkeyGeneral.cpp" />
+    <ClCompile Include="Config\Mapping\HotkeyGraphics.cpp" />
+    <ClCompile Include="Config\Mapping\HotkeyStates.cpp" />
+    <ClCompile Include="Config\Mapping\HotkeyTAS.cpp" />
+    <ClCompile Include="Config\Mapping\HotkeyWii.cpp" />
     <ClCompile Include="Config\Mapping\MappingBool.cpp" />
     <ClCompile Include="Config\Mapping\MappingButton.cpp" />
     <ClCompile Include="Config\Mapping\MappingNumeric.cpp" />
@@ -140,6 +150,7 @@
     <ClCompile Include="GameList\GameListModel.cpp" />
     <ClCompile Include="GameList\GameTracker.cpp" />
     <ClCompile Include="GameList\ListProxyModel.cpp" />
+    <ClCompile Include="HotkeyScheduler.cpp" />
     <ClCompile Include="Host.cpp" />
     <ClCompile Include="InDevelopmentWarning.cpp" />
     <ClCompile Include="Main.cpp" />
@@ -147,6 +158,7 @@
     <ClCompile Include="MenuBar.cpp" />
     <ClCompile Include="QtUtils\DoubleClickEventFilter.cpp" />
     <ClCompile Include="QtUtils\ElidedButton.cpp" />
+    <ClCompile Include="QtUtils\FocusEventFilter.cpp" />
     <ClCompile Include="RenderWidget.cpp" />
     <ClCompile Include="Resources.cpp" />
     <ClCompile Include="Settings.cpp" />
