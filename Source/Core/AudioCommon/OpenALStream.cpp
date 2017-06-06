@@ -155,18 +155,23 @@ static ALenum CheckALError(const char* desc)
   return err;
 }
 
+static bool IsCreativeXFi()
+{
+  return strstr(alGetString(AL_RENDERER), "X-Fi") != nullptr;
+}
+
 void OpenALStream::SoundLoop()
 {
   Common::SetCurrentThreadName("Audio thread - openal");
 
   bool float32_capable = alIsExtensionPresent("AL_EXT_float32") != 0;
-  bool surround_capable =
-      SConfig::GetInstance().bDPL2Decoder && alIsExtensionPresent("AL_EXT_MCFORMATS");
+  bool surround_capable = alIsExtensionPresent("AL_EXT_MCFORMATS") || IsCreativeXFi();
+  bool use_surround = SConfig::GetInstance().bDPL2Decoder && surround_capable;
 
   // As there is no extension to check for 32-bit fixed point support
   // and we know that only a X-Fi with hardware OpenAL supports it,
   // we just check if one is being used.
-  bool fixed32_capable = strstr(alGetString(AL_RENDERER), "X-Fi") != nullptr;
+  bool fixed32_capable = IsCreativeXFi();
 
   u32 ulFrequency = m_mixer->GetSampleRate();
   numBuffers = SConfig::GetInstance().iLatency + 2;  // OpenAL requires a minimum of two buffers
@@ -218,7 +223,7 @@ void OpenALStream::SoundLoop()
 
     unsigned int numSamples = OAL_MAX_SAMPLES;
 
-    if (surround_capable)
+    if (use_surround)
     {
       // DPL2 accepts 240 samples minimum (FWRDURATION)
       unsigned int minSamples = 240;
@@ -289,7 +294,7 @@ void OpenALStream::SoundLoop()
         // 5.1 is not supported by the host, fallback to stereo
         WARN_LOG(AUDIO,
                  "Unable to set 5.1 surround mode.  Updating OpenAL Soft might fix this issue.");
-        surround_capable = false;
+        use_surround = false;
       }
     }
     else
