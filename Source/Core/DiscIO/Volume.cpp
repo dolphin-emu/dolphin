@@ -96,13 +96,7 @@ std::unique_ptr<IVolume> CreateVolumeFromFilename(const std::string& filename)
   // Check for Wii
   const std::optional<u32> wii_magic = reader->ReadSwapped<u32>(0x18);
   if (wii_magic == u32(0x5D1C9EA3))
-  {
-    const std::optional<u32> wii_container_magic = reader->ReadSwapped<u32>(0x60);
-    if (wii_container_magic == u32(0))
-      return std::make_unique<CVolumeWiiCrypted>(std::move(reader));
-
-    return std::make_unique<CVolumeGC>(std::move(reader));
-  }
+    return std::make_unique<CVolumeWiiCrypted>(std::move(reader));
 
   // Check for WAD
   // 0x206962 for boot2 wads

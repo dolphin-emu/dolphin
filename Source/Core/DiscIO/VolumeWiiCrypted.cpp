@@ -36,6 +36,12 @@ CVolumeWiiCrypted::CVolumeWiiCrypted(std::unique_ptr<IBlobReader> reader)
 {
   _assert_(m_pReader);
 
+  if (m_pReader->ReadSwapped<u32>(0x60) != u32(0))
+  {
+    // No partitions - just read unencrypted data like with a GC disc
+    return;
+  }
+
   // Get tickets, TMDs, and decryption keys for all partitions
   for (u32 partition_group = 0; partition_group < 4; ++partition_group)
   {
