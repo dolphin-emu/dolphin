@@ -7,6 +7,8 @@
 #include <QIcon>
 #include <QMessageBox>
 
+#include "Common/Common.h"
+
 #include "Core/BootManager.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -32,7 +34,7 @@
 
 MainWindow::MainWindow() : QMainWindow(nullptr)
 {
-  setWindowTitle(tr("Dolphin"));
+  setWindowTitle(QString::fromStdString(scm_rev_str));
   setWindowIcon(QIcon(Resources::GetMisc(Resources::LOGO_SMALL)));
   setUnifiedTitleAndToolBarOnMac(true);
 
@@ -337,7 +339,7 @@ void MainWindow::HideRenderWidget()
     m_render_widget->setParent(nullptr);
     m_rendering_to_main = false;
     disconnect(Host::GetInstance(), &Host::RequestTitle, this, &MainWindow::setWindowTitle);
-    setWindowTitle(tr("Dolphin"));
+    setWindowTitle(QString::fromStdString(scm_rev_str));
   }
   m_render_widget->hide();
 }
