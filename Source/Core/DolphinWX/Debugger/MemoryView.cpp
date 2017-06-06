@@ -161,7 +161,8 @@ wxString CMemoryView::ReadMemoryAsString(u32 address) const
     }
   }
 
-  return StrToWxStr(str);
+  // Not a UTF-8 string
+  return wxString(str.c_str(), wxCSConv(wxFONTENCODING_CP1252), str.size());
 }
 
 void CMemoryView::OnMouseDownL(wxMouseEvent& event)
