@@ -79,7 +79,7 @@ GameListItem::GameListItem(const std::string& _rFileName, const Core::TitleDatab
     if (m_pImage.empty())
     {
       std::vector<u32> buffer =
-          DiscIO::IVolume::GetWiiBanner(&m_ImageWidth, &m_ImageHeight, m_title_id);
+          DiscIO::Volume::GetWiiBanner(&m_ImageWidth, &m_ImageHeight, m_title_id);
       ReadVolumeBanner(buffer, m_ImageWidth, m_ImageHeight);
       if (!m_pImage.empty())
         SaveToCache();
@@ -87,7 +87,7 @@ GameListItem::GameListItem(const std::string& _rFileName, const Core::TitleDatab
   }
   else
   {
-    std::unique_ptr<DiscIO::IVolume> volume(DiscIO::CreateVolumeFromFilename(_rFileName));
+    std::unique_ptr<DiscIO::Volume> volume(DiscIO::CreateVolumeFromFilename(_rFileName));
 
     if (volume != nullptr)
     {

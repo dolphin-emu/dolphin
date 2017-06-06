@@ -63,10 +63,10 @@
     <ClCompile Include="VolumeWad.cpp">
       <Filter>Volume</Filter>
     </ClCompile>
-    <ClCompile Include="VolumeWiiCrypted.cpp">
+    <ClCompile Include="Enums.cpp">
       <Filter>Volume</Filter>
     </ClCompile>
-    <ClCompile Include="Enums.cpp">
+    <ClCompile Include="VolumeWii.cpp">
       <Filter>Volume</Filter>
     </ClCompile>
     <ClCompile Include="Volume.cpp">
@@ -125,7 +125,7 @@
     <ClInclude Include="VolumeWad.h">
       <Filter>Volume</Filter>
     </ClInclude>
-    <ClInclude Include="VolumeWiiCrypted.h">
+    <ClInclude Include="VolumeWii.h">
       <Filter>Volume</Filter>
     </ClInclude>
     <ClInclude Include="Enums.h">

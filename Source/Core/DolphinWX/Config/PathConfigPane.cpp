@@ -224,7 +224,7 @@ void PathConfigPane::OnNANDRootChanged(wxCommandEvent& event)
   File::SetUserPath(D_WIIROOT_IDX, nand_path);
   m_nand_root_dirpicker->SetPath(StrToWxStr(nand_path));
 
-  DiscIO::CNANDContentManager::Access().ClearCache();
+  DiscIO::NANDContentManager::Access().ClearCache();
 
   wxCommandEvent update_event{DOLPHIN_EVT_UPDATE_LOAD_WII_MENU_ITEM, GetId()};
   update_event.SetEventObject(this);

@@ -142,7 +142,7 @@ int FindPreferredLanguageIndex(DiscIO::Language preferred_language,
 }  // Anonymous namespace
 
 InfoPanel::InfoPanel(wxWindow* parent, wxWindowID id, const GameListItem& item,
-                     const std::unique_ptr<DiscIO::IVolume>& opened_iso)
+                     const std::unique_ptr<DiscIO::Volume>& opened_iso)
     : wxPanel{parent, id}, m_game_list_item{item}, m_opened_iso{opened_iso}
 {
   CreateGUI();

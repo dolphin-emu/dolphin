@@ -721,7 +721,7 @@ void SConfig::ResetRunningGameMetadata()
   SetRunningGameMetadata("00000000", 0, 0, Core::TitleDatabase::TitleType::Other);
 }
 
-void SConfig::SetRunningGameMetadata(const DiscIO::IVolume& volume,
+void SConfig::SetRunningGameMetadata(const DiscIO::Volume& volume,
                                      const DiscIO::Partition& partition)
 {
   SetRunningGameMetadata(volume.GetGameID(partition), volume.GetTitleID(partition).value_or(0),
@@ -917,7 +917,7 @@ bool SConfig::AutoSetup(EBootBS2 _BootBS2)
         bootDrive)
     {
       m_BootType = BOOT_ISO;
-      std::unique_ptr<DiscIO::IVolume> pVolume(DiscIO::CreateVolumeFromFilename(m_strFilename));
+      std::unique_ptr<DiscIO::Volume> pVolume(DiscIO::CreateVolumeFromFilename(m_strFilename));
       if (pVolume == nullptr)
       {
         if (bootDrive)
@@ -973,10 +973,10 @@ bool SConfig::AutoSetup(EBootBS2 _BootBS2)
         bWii = ddfFile->GetIsWii();
       }
     }
-    else if (DiscIO::CNANDContentManager::Access().GetNANDLoader(m_strFilename).IsValid())
+    else if (DiscIO::NANDContentManager::Access().GetNANDLoader(m_strFilename).IsValid())
     {
-      const DiscIO::CNANDContentLoader& content_loader =
-          DiscIO::CNANDContentManager::Access().GetNANDLoader(m_strFilename);
+      const DiscIO::NANDContentLoader& content_loader =
+          DiscIO::NANDContentManager::Access().GetNANDLoader(m_strFilename);
       const IOS::ES::TMDReader& tmd = content_loader.GetTMD();
 
       if (!IOS::ES::IsChannel(tmd.GetTitleId()))

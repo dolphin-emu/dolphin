@@ -273,7 +273,7 @@ u16 Kernel::GetGidForPPC() const
 
 // This corresponds to syscall 0x41, which loads a binary from the NAND and bootstraps the PPC.
 // Unlike 0x42, IOS will set up some constants in memory before booting the PPC.
-bool Kernel::BootstrapPPC(const DiscIO::CNANDContentLoader& content_loader)
+bool Kernel::BootstrapPPC(const DiscIO::NANDContentLoader& content_loader)
 {
   if (!content_loader.IsValid())
     return false;

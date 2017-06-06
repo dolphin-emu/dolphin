@@ -18,7 +18,7 @@ class PointerWrap;
 
 namespace DiscIO
 {
-class CNANDContentLoader;
+class NANDContentLoader;
 }
 
 namespace IOS
@@ -31,7 +31,7 @@ struct TitleContext
 {
   void Clear();
   void DoState(PointerWrap& p);
-  void Update(const DiscIO::CNANDContentLoader& content_loader);
+  void Update(const DiscIO::NANDContentLoader& content_loader);
   void Update(const IOS::ES::TMDReader& tmd_, const IOS::ES::TicketReader& ticket_);
 
   IOS::ES::TicketReader ticket;
@@ -284,7 +284,7 @@ private:
   bool LaunchPPCTitle(u64 title_id, bool skip_reload);
   static TitleContext& GetTitleContext();
 
-  static const DiscIO::CNANDContentLoader& AccessContentDevice(u64 title_id);
+  static const DiscIO::NANDContentLoader& AccessContentDevice(u64 title_id);
 
   u32 OpenTitleContent(u32 CFD, u64 TitleID, u16 Index);
 

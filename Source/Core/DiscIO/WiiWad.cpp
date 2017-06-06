@@ -19,7 +19,7 @@ namespace DiscIO
 {
 namespace
 {
-std::vector<u8> CreateWADEntry(IBlobReader& reader, u32 size, u64 offset)
+std::vector<u8> CreateWADEntry(BlobReader& reader, u32 size, u64 offset)
 {
   if (size == 0)
     return {};
@@ -35,7 +35,7 @@ std::vector<u8> CreateWADEntry(IBlobReader& reader, u32 size, u64 offset)
   return buffer;
 }
 
-bool IsWiiWAD(IBlobReader& reader)
+bool IsWiiWAD(BlobReader& reader)
 {
   const std::optional<u32> header_size = reader.ReadSwapped<u32>(0x0);
   const std::optional<u32> header_type = reader.ReadSwapped<u32>(0x4);

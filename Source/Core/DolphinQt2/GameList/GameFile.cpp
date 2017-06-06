@@ -84,7 +84,7 @@ QString GameFile::GetCacheFileName() const
   return folder + m_file_name + hash;
 }
 
-void GameFile::ReadBanner(const DiscIO::IVolume& volume)
+void GameFile::ReadBanner(const DiscIO::Volume& volume)
 {
   int width, height;
   std::vector<u32> buffer = volume.GetBanner(&width, &height);
@@ -154,7 +154,7 @@ bool GameFile::TryLoadCache()
 
 bool GameFile::TryLoadVolume()
 {
-  QSharedPointer<DiscIO::IVolume> volume(
+  QSharedPointer<DiscIO::Volume> volume(
       DiscIO::CreateVolumeFromFilename(m_path.toStdString()).release());
   if (volume == nullptr)
     return false;

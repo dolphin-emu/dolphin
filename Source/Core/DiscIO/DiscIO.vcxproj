@@ -52,7 +52,7 @@
     <ClCompile Include="VolumeDirectory.cpp" />
     <ClCompile Include="VolumeGC.cpp" />
     <ClCompile Include="VolumeWad.cpp" />
-    <ClCompile Include="VolumeWiiCrypted.cpp" />
+    <ClCompile Include="VolumeWii.cpp" />
     <ClCompile Include="WbfsBlob.cpp" />
     <ClCompile Include="WiiWad.cpp" />
   </ItemGroup>
@@ -73,7 +73,7 @@
     <ClInclude Include="VolumeDirectory.h" />
     <ClInclude Include="VolumeGC.h" />
     <ClInclude Include="VolumeWad.h" />
-    <ClInclude Include="VolumeWiiCrypted.h" />
+    <ClInclude Include="VolumeWii.h" />
     <ClInclude Include="WbfsBlob.h" />
     <ClInclude Include="WiiWad.h" />
   </ItemGroup>

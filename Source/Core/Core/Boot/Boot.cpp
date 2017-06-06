@@ -42,14 +42,14 @@
 // Inserts a disc into the emulated disc drive and returns a pointer to it.
 // The returned pointer must only be used while we are still booting,
 // because DVDThread can do whatever it wants to the disc after that.
-static const DiscIO::IVolume* SetDisc(std::unique_ptr<DiscIO::IVolume> volume)
+static const DiscIO::Volume* SetDisc(std::unique_ptr<DiscIO::Volume> volume)
 {
-  const DiscIO::IVolume* pointer = volume.get();
+  const DiscIO::Volume* pointer = volume.get();
   DVDInterface::SetDisc(std::move(volume));
   return pointer;
 }
 
-bool CBoot::DVDRead(const DiscIO::IVolume& volume, u64 dvd_offset, u32 output_address, u32 length,
+bool CBoot::DVDRead(const DiscIO::Volume& volume, u64 dvd_offset, u32 output_address, u32 length,
                     const DiscIO::Partition& partition)
 {
   std::vector<u8> buffer(length);
@@ -59,7 +59,7 @@ bool CBoot::DVDRead(const DiscIO::IVolume& volume, u64 dvd_offset, u32 output_ad
   return true;
 }
 
-void CBoot::Load_FST(bool is_wii, const DiscIO::IVolume* volume)
+void CBoot::Load_FST(bool is_wii, const DiscIO::Volume* volume)
 {
   if (!volume)
     return;
@@ -113,8 +113,8 @@ bool CBoot::FindMapFile(std::string* existing_map_file, std::string* writable_ma
   {
   case SConfig::BOOT_WII_NAND:
   {
-    const DiscIO::CNANDContentLoader& Loader =
-        DiscIO::CNANDContentManager::Access().GetNANDLoader(_StartupPara.m_strFilename);
+    const DiscIO::NANDContentLoader& Loader =
+        DiscIO::NANDContentManager::Access().GetNANDLoader(_StartupPara.m_strFilename);
     if (Loader.IsValid())
     {
       u64 TitleID = Loader.GetTMD().GetTitleId();
@@ -290,7 +290,7 @@ bool CBoot::BootUp()
   {
   case SConfig::BOOT_ISO:
   {
-    const DiscIO::IVolume* volume =
+    const DiscIO::Volume* volume =
         SetDisc(DiscIO::CreateVolumeFromFilename(_StartupPara.m_strFilename));
 
     if (!volume)
@@ -343,7 +343,7 @@ bool CBoot::BootUp()
       PanicAlertT("Warning - starting DOL in wrong console mode!");
     }
 
-    const DiscIO::IVolume* volume = nullptr;
+    const DiscIO::Volume* volume = nullptr;
     if (!_StartupPara.m_strDVDRoot.empty())
     {
       NOTICE_LOG(BOOT, "Setting DVDRoot %s", _StartupPara.m_strDVDRoot.c_str());
@@ -385,7 +385,7 @@ bool CBoot::BootUp()
 
   case SConfig::BOOT_ELF:
   {
-    const DiscIO::IVolume* volume = nullptr;
+    const DiscIO::Volume* volume = nullptr;
 
     // load image or create virtual drive from directory
     if (!_StartupPara.m_strDVDRoot.empty())

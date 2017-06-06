@@ -1497,7 +1497,7 @@ void CFrame::UpdateGUI()
   GetMenuBar()
       ->FindItem(IDM_LOAD_GC_IPL_EUR)
       ->Enable(!Initialized && File::Exists(SConfig::GetInstance().GetBootROMPath(EUR_DIR)));
-  if (DiscIO::CNANDContentManager::Access()
+  if (DiscIO::NANDContentManager::Access()
           .GetNANDLoader(TITLEID_SYSMENU, Common::FROM_CONFIGURED_ROOT)
           .IsValid())
     GetMenuBar()->FindItem(IDM_LOAD_WII_MENU)->Enable(!Initialized);

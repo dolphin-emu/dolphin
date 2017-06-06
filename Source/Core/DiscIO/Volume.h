@@ -37,11 +37,11 @@ struct Partition final
 
 const Partition PARTITION_NONE(std::numeric_limits<u64>::max() - 1);
 
-class IVolume
+class Volume
 {
 public:
-  IVolume() {}
-  virtual ~IVolume() {}
+  Volume() {}
+  virtual ~Volume() {}
   virtual bool Read(u64 _Offset, u64 _Length, u8* _pBuffer, const Partition& partition) const = 0;
   template <typename T>
   std::optional<T> ReadSwapped(u64 offset, const Partition& partition) const
@@ -117,9 +117,9 @@ protected:
   static const IOS::ES::TMDReader INVALID_TMD;
 };
 
-std::unique_ptr<IVolume> CreateVolumeFromFilename(const std::string& filename);
-std::unique_ptr<IVolume> CreateVolumeFromDirectory(const std::string& directory, bool is_wii,
-                                                   const std::string& apploader = "",
-                                                   const std::string& dol = "");
+std::unique_ptr<Volume> CreateVolumeFromFilename(const std::string& filename);
+std::unique_ptr<Volume> CreateVolumeFromDirectory(const std::string& directory, bool is_wii,
+                                                  const std::string& apploader = "",
+                                                  const std::string& dol = "");
 
 }  // namespace

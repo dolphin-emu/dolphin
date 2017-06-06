@@ -72,8 +72,8 @@ bool CBoot::Boot_WiiWAD(const std::string& _pFilename)
     state_file.WriteBytes(&state, sizeof(StateFlags));
   }
 
-  const DiscIO::CNANDContentLoader& ContentLoader =
-      DiscIO::CNANDContentManager::Access().GetNANDLoader(_pFilename);
+  const DiscIO::NANDContentLoader& ContentLoader =
+      DiscIO::NANDContentManager::Access().GetNANDLoader(_pFilename);
   if (!ContentLoader.IsValid())
     return false;
 
