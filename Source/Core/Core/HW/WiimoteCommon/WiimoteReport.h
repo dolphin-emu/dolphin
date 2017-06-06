@@ -260,7 +260,7 @@ struct wm_guitar_extension
   u8 sy : 6;
   u8 pad2 : 2;  // 1 on gh3, 0 on ghwt
 
-  u8 tb : 5;    // not used in gh3
+  u8 sb : 5;    // not used in gh3
   u8 pad3 : 3;  // always 0
 
   u8 whammy : 5;
