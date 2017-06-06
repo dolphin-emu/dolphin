@@ -363,7 +363,7 @@ class PlatformX11 : public Platform
 
 static Platform* GetPlatform()
 {
-#if defined(USE_EGL) && defined(USE_HEADLESS)
+#if defined(USE_HEADLESS)
   return new Platform();
 #elif HAVE_X11
   return new PlatformX11();
