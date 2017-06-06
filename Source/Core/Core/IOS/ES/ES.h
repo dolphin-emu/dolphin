@@ -97,6 +97,20 @@ public:
     s32 ipc_fd = -1;
   };
 
+  IOS::ES::TMDReader FindImportTMD(u64 title_id) const;
+  IOS::ES::TMDReader FindInstalledTMD(u64 title_id) const;
+
+  // Get installed titles (in /title) without checking for TMDs at all.
+  std::vector<u64> GetInstalledTitles() const;
+  // Get titles which are being imported (in /import) without checking for TMDs at all.
+  std::vector<u64> GetTitleImports() const;
+  // Get titles for which there is a ticket (in /ticket).
+  std::vector<u64> GetTitlesWithTickets() const;
+
+  std::vector<IOS::ES::Content> GetStoredContentsFromTMD(const IOS::ES::TMDReader& tmd) const;
+  u32 GetSharedContentsCount() const;
+  std::vector<std::array<u8, 20>> GetSharedContents() const;
+
   // Title management
   ReturnCode ImportTicket(const std::vector<u8>& ticket_bytes);
   ReturnCode ImportTmd(Context& context, const std::vector<u8>& tmd_bytes);
@@ -283,6 +297,16 @@ private:
   bool LaunchIOS(u64 ios_title_id);
   bool LaunchPPCTitle(u64 title_id, bool skip_reload);
   static TitleContext& GetTitleContext();
+
+  // Start a title import.
+  bool InitImport(u64 title_id);
+  // Clean up the import content directory and move it back to /title.
+  bool FinishImport(const IOS::ES::TMDReader& tmd);
+  // Write a TMD for a title in /import atomically.
+  bool WriteImportTMD(const IOS::ES::TMDReader& tmd);
+  // Finish stale imports and clear the import directory.
+  void FinishStaleImport(u64 title_id);
+  void FinishAllStaleImports();
 
   static const DiscIO::NANDContentLoader& AccessContentDevice(u64 title_id);
 

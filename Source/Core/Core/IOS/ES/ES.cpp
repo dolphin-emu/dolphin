@@ -19,7 +19,6 @@
 #include "Core/ConfigManager.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/ES/Formats.h"
-#include "Core/IOS/ES/NandUtils.h"
 #include "DiscIO/NANDContentLoader.h"
 
 namespace IOS
@@ -34,26 +33,6 @@ static TitleContext s_title_context;
 
 // Title to launch after IOS has been reset and reloaded (similar to /sys/launch.sys).
 static u64 s_title_to_launch;
-
-static void FinishAllStaleImports()
-{
-  const std::vector<u64> titles = IOS::ES::GetTitleImports();
-  for (const u64& title_id : titles)
-  {
-    const IOS::ES::TMDReader tmd = IOS::ES::FindImportTMD(title_id);
-    if (!tmd.IsValid())
-    {
-      File::DeleteDirRecursively(Common::GetImportTitlePath(title_id) + "/content");
-      continue;
-    }
-
-    FinishImport(tmd);
-  }
-
-  const std::string import_dir = Common::RootUserPath(Common::FROM_SESSION_ROOT) + "/import";
-  File::DeleteDirRecursively(import_dir);
-  File::CreateDir(import_dir);
-}
 
 ES::ES(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
 {
@@ -193,7 +172,7 @@ IPCCommandResult ES::SetUID(u32 uid, const IOCtlVRequest& request)
     return GetDefaultReply(ret);
   }
 
-  const auto tmd = IOS::ES::FindInstalledTMD(title_id);
+  const auto tmd = FindInstalledTMD(title_id);
   if (!tmd.IsValid())
     return GetDefaultReply(FS_ENOENT);
 
