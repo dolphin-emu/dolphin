@@ -33,6 +33,9 @@ void HLE_OSPanic()
   std::string error = GetStringVA();
   std::string msg = GetStringVA(5);
 
+  StringPopBackIf(&error, '\n');
+  StringPopBackIf(&msg, '\n');
+
   PanicAlert("OSPanic: %s: %s", error.c_str(), msg.c_str());
   ERROR_LOG(OSREPORT, "%08x->%08x| OSPanic: %s: %s", LR, PC, error.c_str(), msg.c_str());
 
@@ -72,6 +75,8 @@ void HLE_GeneralDebugPrint(ParameterType parameter_type)
     }
   }
 
+  StringPopBackIf(&report_message, '\n');
+
   NPC = LR;
 
   NOTICE_LOG(OSREPORT, "%08x->%08x| %s", LR, PC, SHIFTJISToUTF8(report_message).c_str());
@@ -108,6 +113,8 @@ void HLE_write_console()
     ERROR_LOG(OSREPORT, "__write_console uses an unreachable size pointer");
   }
 
+  StringPopBackIf(&report_message, '\n');
+
   NPC = LR;
 
   NOTICE_LOG(OSREPORT, "%08x->%08x| %s", LR, PC, SHIFTJISToUTF8(report_message).c_str());
@@ -122,6 +129,7 @@ void HLE_LogDPrint(ParameterType parameter_type)
     return;
 
   std::string report_message = GetStringVA(4, parameter_type);
+  StringPopBackIf(&report_message, '\n');
   NOTICE_LOG(OSREPORT, "%08x->%08x| %s", LR, PC, SHIFTJISToUTF8(report_message).c_str());
 }
 
@@ -161,6 +169,7 @@ void HLE_LogFPrint(ParameterType parameter_type)
     return;
 
   std::string report_message = GetStringVA(4, parameter_type);
+  StringPopBackIf(&report_message, '\n');
   NOTICE_LOG(OSREPORT, "%08x->%08x| %s", LR, PC, SHIFTJISToUTF8(report_message).c_str());
 }
 
@@ -250,9 +259,6 @@ std::string GetStringVA(u32 str_reg, ParameterType parameter_type)
       result += string[i];
     }
   }
-
-  if (!result.empty() && result.back() == '\n')
-    result.pop_back();
 
   return result;
 }

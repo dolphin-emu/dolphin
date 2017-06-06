@@ -405,6 +405,12 @@ bool StringEndsWith(const std::string& str, const std::string& end)
   return str.size() >= end.size() && std::equal(end.rbegin(), end.rend(), str.rbegin());
 }
 
+void StringPopBackIf(std::string* s, char c)
+{
+  if (!s->empty() && s->back() == c)
+    s->pop_back();
+}
+
 #ifdef _WIN32
 
 std::string UTF16ToUTF8(const std::wstring& input)

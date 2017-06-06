@@ -119,6 +119,7 @@ std::string ReplaceAll(std::string result, const std::string& src, const std::st
 
 bool StringBeginsWith(const std::string& str, const std::string& begin);
 bool StringEndsWith(const std::string& str, const std::string& end);
+void StringPopBackIf(std::string* s, char c);
 
 std::string CP1252ToUTF8(const std::string& str);
 std::string SHIFTJISToUTF8(const std::string& str);
