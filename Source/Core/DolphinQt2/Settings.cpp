@@ -27,6 +27,12 @@ Settings& Settings::Instance()
   return settings;
 }
 
+void Settings::SetThemeName(const QString& theme_name)
+{
+  SConfig::GetInstance().theme_name = theme_name.toStdString();
+  emit ThemeChanged();
+}
+
 QString Settings::GetThemeDir() const
 {
   return QString::fromStdString(File::GetThemeDir(SConfig::GetInstance().theme_name));

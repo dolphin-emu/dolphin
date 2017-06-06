@@ -2,7 +2,16 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <QDialogButtonBox>
+#include <QGroupBox>
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QListWidget>
+#include <QStackedWidget>
+#include <QVBoxLayout>
+
 #include "DolphinQt2/Config/SettingsWindow.h"
+#include "DolphinQt2/Resources.h"
 #include "DolphinQt2/Settings.h"
 #include "DolphinQt2/Settings/GeneralPane.h"
 #include "DolphinQt2/Settings/InterfacePane.h"
@@ -67,15 +76,18 @@ void SettingsWindow::MakeUnfinishedWarning()
   m_warning_group->setLayout(m_warning_group_layout);
 }
 
-void SettingsWindow::AddCategoryToList(const QString& title, const QString& icon)
+void SettingsWindow::AddCategoryToList(const QString& title, const std::string& icon_name)
 {
   QString dir = Settings::Instance().GetThemeDir();
   QListWidgetItem* button = new QListWidgetItem();
-  button->setIcon(QIcon(dir.append(icon)));
   button->setText(title);
   button->setTextAlignment(Qt::AlignVCenter);
   button->setSizeHint(QSize(28, 28));
   button->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+
+  auto set_icon = [=] { button->setIcon(Resources::GetScaledThemeIcon(icon_name)); };
+  QObject::connect(&Settings::Instance(), &Settings::ThemeChanged, set_icon);
+  set_icon();
   m_categories->addItem(button);
 }
 
@@ -87,9 +99,9 @@ void SettingsWindow::MakeCategoryList()
   m_categories->setMovement(QListView::Static);
   m_categories->setSpacing(0);
 
-  AddCategoryToList(tr("General"), QStringLiteral("config.png"));
-  AddCategoryToList(tr("Interface"), QStringLiteral("browse.png"));
-  AddCategoryToList(tr("Paths"), QStringLiteral("browse.png"));
+  AddCategoryToList(tr("General"), "config");
+  AddCategoryToList(tr("Interface"), "browse");
+  AddCategoryToList(tr("Paths"), "browse");
   connect(m_categories, &QListWidget::currentItemChanged, this, &SettingsWindow::changePage);
 }
 

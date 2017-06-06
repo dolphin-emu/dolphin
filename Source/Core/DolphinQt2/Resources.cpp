@@ -82,12 +82,20 @@ void Resources::Init()
   {
     m_countries.append(GetScaledPixmap(country));
   }
-  for (int stars = 0; stars <= 5; stars++)
-    m_ratings.append(GetScaledThemePixmap("rating" + std::to_string(stars)));
 
   m_misc.append(GetScaledPixmap("nobanner"));
   m_misc.append(GetScaledPixmap("dolphin_logo"));
   m_misc.append(GetScaledPixmap("Dolphin"));
+
+  QObject::connect(&Settings::Instance(), &Settings::ThemeChanged, Resources::InitThemeIcons);
+  InitThemeIcons();
+}
+
+void Resources::InitThemeIcons()
+{
+  m_ratings = {GetScaledThemePixmap("rating0"), GetScaledThemePixmap("rating1"),
+               GetScaledThemePixmap("rating2"), GetScaledThemePixmap("rating3"),
+               GetScaledThemePixmap("rating4"), GetScaledThemePixmap("rating5")};
 }
 
 QPixmap Resources::GetPlatform(int platform)
