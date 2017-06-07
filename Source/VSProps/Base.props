@@ -137,6 +137,8 @@
     <Link Condition="'$(ConfigurationType)'=='Application'">
       <!--See Common/ucrtFreadWorkaround.cpp-->
       <ForceSymbolReferences>ucrtFreadWorkaround</ForceSymbolReferences>
+      <!--TODO fix up ffmpeg garbage-->
+      <AdditionalOptions>/NODEFAULTLIB:libcmt %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <Lib>
       <TreatLibWarningAsErrors>true</TreatLibWarningAsErrors>
