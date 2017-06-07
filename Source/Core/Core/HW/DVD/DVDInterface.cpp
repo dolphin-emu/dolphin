@@ -1214,9 +1214,8 @@ void ScheduleReads(u64 offset, u32 length, const DiscIO::Partition& partition, u
   u32 buffered_blocks = 0;
   u32 unbuffered_blocks = 0;
 
-  const u32 bytes_per_chunk = partition == DiscIO::PARTITION_NONE ?
-                                  DVD_ECC_BLOCK_SIZE :
-                                  DiscIO::VolumeWii::BLOCK_DATA_SIZE;
+  const u32 bytes_per_chunk =
+      partition == DiscIO::PARTITION_NONE ? DVD_ECC_BLOCK_SIZE : DiscIO::VolumeWii::BLOCK_DATA_SIZE;
 
   while (length > 0)
   {
