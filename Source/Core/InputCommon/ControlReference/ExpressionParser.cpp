@@ -234,19 +234,19 @@ class ControlExpression : public ExpressionNode
 public:
   ControlQualifier qualifier;
   Device::Control* control;
+  // Keep a shared_ptr to the device so the control pointer doesn't become invalid
+  std::shared_ptr<Device> m_device;
 
   ControlExpression(ControlQualifier qualifier_, std::shared_ptr<Device> device,
                     Device::Control* control_)
-      : qualifier(qualifier_), control(control_), m_device(device)
+      : qualifier(qualifier_), control(control_), m_device(std::move(device))
   {
   }
 
   ControlState GetValue() const override { return control->ToInput()->GetState(); }
   void SetValue(ControlState value) override { control->ToOutput()->SetState(value); }
   int CountNumControls() const override { return 1; }
-  operator std::string() const override { return "`" + (std::string)qualifier + "`"; }
-private:
-  std::shared_ptr<Device> m_device;
+  operator std::string() const override { return "`" + static_cast<std::string>(qualifier) + "`"; }
 };
 
 class BinaryExpression : public ExpressionNode
@@ -405,7 +405,7 @@ private:
         return {ParseStatus::NoDevice, std::make_unique<DummyExpression>(tok.qualifier)};
 
       return {ParseStatus::Successful,
-              std::make_unique<ControlExpression>(tok.qualifier, device, control)};
+              std::make_unique<ControlExpression>(tok.qualifier, std::move(device), control)};
     }
     case TOK_LPAREN:
       return Paren();
@@ -550,8 +550,8 @@ std::pair<ParseStatus, std::unique_ptr<Expression>> ParseExpression(const std::s
   if (control)
   {
     return std::make_pair(ParseStatus::Successful,
-                          std::make_unique<Expression>(
-                              std::make_unique<ControlExpression>(qualifier, device, control)));
+                          std::make_unique<Expression>(std::make_unique<ControlExpression>(
+                              qualifier, std::move(device), control)));
   }
 
   return ParseExpressionInner(str, finder);
