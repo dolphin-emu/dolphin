@@ -5,6 +5,7 @@
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
 
 #include <cstring>
+#include <string>
 
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"

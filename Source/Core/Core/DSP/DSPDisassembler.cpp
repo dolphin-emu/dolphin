@@ -9,6 +9,7 @@
 #include <cstdlib>
 #include <fstream>
 #include <string>
+#include <vector>
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"

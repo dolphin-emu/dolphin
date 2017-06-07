@@ -2,8 +2,11 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <cstring>
 #include <mutex>
+
+#include <cubeb/cubeb.h>
 
 #include "AudioCommon/CubebUtils.h"
 #include "Common/Common.h"
@@ -16,8 +19,6 @@
 #include "Core/HW/EXI/EXI.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/SystemTimers.h"
-
-#include <cubeb/cubeb.h>
 
 namespace ExpansionInterface
 {

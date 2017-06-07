@@ -5,15 +5,17 @@
 
 #include "Core/DSP/DSPAssembler.h"
 
+#include <algorithm>
 #include <cstddef>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
-#include <iostream>
 #include <map>
+#include <sstream>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"

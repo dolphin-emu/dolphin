@@ -4,9 +4,11 @@
 
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
+#include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <cstring>
+#include <mutex>
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"

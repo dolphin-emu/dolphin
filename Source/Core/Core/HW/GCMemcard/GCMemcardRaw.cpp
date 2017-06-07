@@ -7,7 +7,9 @@
 #include <chrono>
 #include <cstring>
 #include <memory>
+#include <mutex>
 #include <string>
+#include <thread>
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"

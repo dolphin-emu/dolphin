@@ -3,8 +3,10 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <map>
 #include <queue>
 #include <string>
+#include <vector>
 
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"

@@ -4,7 +4,9 @@
 
 #include <algorithm>
 #include <array>
+#include <list>
 #include <map>
+#include <sstream>
 #include <string>
 #include <tuple>
 #include <utility>
