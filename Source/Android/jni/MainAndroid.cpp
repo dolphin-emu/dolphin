@@ -199,6 +199,11 @@ static bool LoadBanner(std::string filename, u32* Banner)
   {
     int Width, Height;
     std::vector<u32> BannerVec = pVolume->GetBanner(&Width, &Height);
+
+    // The call above returns RGBA, but the Java code wants ABGR.
+    for (u32& color : BannerVec)
+      color = Common::swap32(color);
+
     // This code (along with above inlines) is moved from
     // elsewhere.  Someone who knows anything about Android
     // please get rid of it and use proper high-resolution

@@ -267,9 +267,9 @@ void GameListItem::ReadVolumeBanner(const std::vector<u32>& buffer, int width, i
   m_pImage.resize(width * height * 3);
   for (int i = 0; i < width * height; i++)
   {
-    m_pImage[i * 3 + 0] = (buffer[i] & 0xFF0000) >> 16;
-    m_pImage[i * 3 + 1] = (buffer[i] & 0x00FF00) >> 8;
-    m_pImage[i * 3 + 2] = (buffer[i] & 0x0000FF) >> 0;
+    m_pImage[i * 3 + 0] = (buffer[i] & 0xFF000000) >> 24;
+    m_pImage[i * 3 + 1] = (buffer[i] & 0x00FF0000) >> 16;
+    m_pImage[i * 3 + 2] = (buffer[i] & 0x0000FF00) >> 8;
   }
 }
 

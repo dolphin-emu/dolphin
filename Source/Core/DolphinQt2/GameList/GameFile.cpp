@@ -92,8 +92,8 @@ void GameFile::ReadBanner(const DiscIO::Volume& volume)
   for (int i = 0; i < width * height; i++)
   {
     int x = i % width, y = i / width;
-    banner.setPixel(x, y, qRgb((buffer[i] & 0xFF0000) >> 16, (buffer[i] & 0x00FF00) >> 8,
-                               (buffer[i] & 0x0000FF) >> 0));
+    banner.setPixel(x, y, qRgb((buffer[i] & 0xFF000000) >> 24, (buffer[i] & 0x00FF0000) >> 16,
+                               (buffer[i] & 0x0000FF00) >> 8));
   }
 
   if (!banner.isNull())
