@@ -222,7 +222,7 @@ bool FilesystemPanel::PopulateFileSystemTree()
   }
   else
   {
-    m_filesystem = DiscIO::CreateFileSystem(m_opened_iso.get(), DiscIO::PARTITION_NONE);
+    m_filesystem = DiscIO::CreateFileSystem(m_opened_iso.get(), m_opened_iso->GetGamePartition());
     if (!m_filesystem)
       return false;
 
