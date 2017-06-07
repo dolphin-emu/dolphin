@@ -121,15 +121,6 @@ private:
 
   u64 m_fst_address;
   u64 m_dol_address;
-
-  static constexpr u8 ENTRY_SIZE = 0x0c;
-  static constexpr u8 FILE_ENTRY = 0;
-  static constexpr u8 DIRECTORY_ENTRY = 1;
-  static constexpr u64 DISKHEADER_ADDRESS = 0;
-  static constexpr u64 DISKHEADERINFO_ADDRESS = 0x440;
-  static constexpr u64 APPLOADER_ADDRESS = 0x2440;
-  static const size_t MAX_NAME_LENGTH = 0x3df;
-  static const size_t MAX_ID_LENGTH = 6;
 };
 
 }  // namespace
