@@ -266,27 +266,26 @@ static bool CheckDeviceAccess(libusb_device* device)
       }
       return false;
     }
-    else if ((ret = libusb_kernel_driver_active(s_handle, 0)) == 1)
+    else
     {
-      if ((ret = libusb_detach_kernel_driver(s_handle, 0)) && ret != LIBUSB_ERROR_NOT_SUPPORTED)
+      ret = libusb_kernel_driver_active(s_handle, 0);
+      if (ret == 1)
       {
-        ERROR_LOG(SERIALINTERFACE, "libusb_detach_kernel_driver failed with error: %d", ret);
+        ret = libusb_detach_kernel_driver(s_handle, 0);
+        if (ret != 0 && ret != LIBUSB_ERROR_NOT_SUPPORTED)
+          ERROR_LOG(SERIALINTERFACE, "libusb_detach_kernel_driver failed with error: %d", ret);
       }
     }
     // this split is needed so that we don't avoid claiming the interface when
     // detaching the kernel driver is successful
     if (ret != 0 && ret != LIBUSB_ERROR_NOT_SUPPORTED)
-    {
       return false;
-    }
-    else if ((ret = libusb_claim_interface(s_handle, 0)))
-    {
+
+    ret = libusb_claim_interface(s_handle, 0);
+    if (ret)
       ERROR_LOG(SERIALINTERFACE, "libusb_claim_interface failed with error: %d", ret);
-    }
     else
-    {
       return true;
-    }
   }
   return false;
 }
