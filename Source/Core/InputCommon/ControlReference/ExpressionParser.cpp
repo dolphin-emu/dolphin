@@ -217,18 +217,6 @@ public:
   virtual operator std::string() const { return ""; }
 };
 
-class DummyExpression : public ExpressionNode
-{
-public:
-  std::string name;
-
-  DummyExpression(const std::string& name_) : name(name_) {}
-  ControlState GetValue() const override { return 0.0; }
-  void SetValue(ControlState value) override {}
-  int CountNumControls() const override { return 0; }
-  operator std::string() const override { return "`" + name + "`"; }
-};
-
 class ControlExpression : public ExpressionNode
 {
 public:
@@ -243,9 +231,13 @@ public:
   {
   }
 
-  ControlState GetValue() const override { return control->ToInput()->GetState(); }
-  void SetValue(ControlState value) override { control->ToOutput()->SetState(value); }
-  int CountNumControls() const override { return 1; }
+  ControlState GetValue() const override { return control ? control->ToInput()->GetState() : 0.0; }
+  void SetValue(ControlState value) override
+  {
+    if (control)
+      control->ToOutput()->SetState(value);
+  }
+  int CountNumControls() const override { return control ? 1 : 0; }
   operator std::string() const override { return "`" + static_cast<std::string>(qualifier) + "`"; }
 };
 
@@ -402,7 +394,7 @@ private:
       std::shared_ptr<Device> device = finder.FindDevice(tok.qualifier);
       Device::Control* control = finder.FindControl(tok.qualifier);
       if (control == nullptr)
-        return {ParseStatus::NoDevice, std::make_unique<DummyExpression>(tok.qualifier)};
+        return {ParseStatus::NoDevice, std::make_unique<ControlExpression>(tok.qualifier, control)};
 
       return {ParseStatus::Successful,
               std::make_unique<ControlExpression>(tok.qualifier, std::move(device), control)};
