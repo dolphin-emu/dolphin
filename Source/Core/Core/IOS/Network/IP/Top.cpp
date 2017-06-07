@@ -431,7 +431,7 @@ IPCCommandResult NetIPTop::HandleGetHostIDRequest(const IOCtlRequest& request)
 
 #ifdef _WIN32
   DWORD forwardTableSize, ipTableSize, result;
-  DWORD ifIndex = -1;
+  NET_IFINDEX ifIndex = NET_IFINDEX_UNSPECIFIED;
   std::unique_ptr<MIB_IPFORWARDTABLE> forwardTable;
   std::unique_ptr<MIB_IPADDRTABLE> ipTable;
 
@@ -462,13 +462,14 @@ IPCCommandResult NetIPTop::HandleGetHostIDRequest(const IOCtlRequest& request)
       }
     }
 
-    if (result == NO_ERROR || ifIndex != -1)
+    if (result == NO_ERROR || ifIndex != NET_IFINDEX_UNSPECIFIED)
       break;
 
     result = GetIpForwardTable(forwardTable.get(), &forwardTableSize, FALSE);
   }
 
-  if (ifIndex != -1 && GetIpAddrTable(ipTable.get(), &ipTableSize, FALSE) == NO_ERROR)
+  if (ifIndex != NET_IFINDEX_UNSPECIFIED &&
+      GetIpAddrTable(ipTable.get(), &ipTableSize, FALSE) == NO_ERROR)
   {
     for (DWORD i = 0; i < ipTable->dwNumEntries; ++i)
     {
