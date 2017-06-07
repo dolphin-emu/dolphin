@@ -32,14 +32,20 @@ static u32 ComputeNameSize(const File::FSTEntry& parent_entry);
 static std::string ASCIIToUppercase(std::string str);
 static void ConvertUTF8NamesToSHIFTJIS(File::FSTEntry& parent_entry);
 
+constexpr u8 ENTRY_SIZE = 0x0c;
+constexpr u8 FILE_ENTRY = 0;
+constexpr u8 DIRECTORY_ENTRY = 1;
+constexpr u64 DISKHEADER_ADDRESS = 0;
+constexpr u64 DISKHEADERINFO_ADDRESS = 0x440;
+constexpr u64 APPLOADER_ADDRESS = 0x2440;
+constexpr size_t MAX_NAME_LENGTH = 0x3df;
+constexpr size_t MAX_ID_LENGTH = 6;
+
 constexpr u64 GAME_PARTITION_ADDRESS = 0x50000;
 constexpr u64 PARTITION_TABLE_ADDRESS = 0x40000;
 const std::array<u32, 10> PARTITION_TABLE = {
     {Common::swap32(1), Common::swap32((PARTITION_TABLE_ADDRESS + 0x20) >> 2), 0, 0, 0, 0, 0, 0,
      Common::swap32(GAME_PARTITION_ADDRESS >> 2), 0}};
-
-const size_t DirectoryBlobReader::MAX_NAME_LENGTH;
-const size_t DirectoryBlobReader::MAX_ID_LENGTH;
 
 bool DirectoryBlobReader::IsValidDirectoryBlob(std::string dol_path)
 {
