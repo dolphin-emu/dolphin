@@ -3,13 +3,15 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <array>
+#include <cinttypes>
 #include <cstddef>
 #include <cstring>
 #include <locale>
 #include <map>
 #include <memory>
-#include <optional>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "Common/Align.h"
@@ -19,10 +21,10 @@
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
+#include "Common/Swap.h"
+#include "Core/Boot/DolReader.h"
 #include "DiscIO/Blob.h"
-#include "DiscIO/Enums.h"
-#include "DiscIO/Volume.h"
-#include "DiscIO/VolumeDirectory.h"
+#include "DiscIO/DirectoryBlob.h"
 
 namespace DiscIO
 {
@@ -30,58 +32,53 @@ static u32 ComputeNameSize(const File::FSTEntry& parent_entry);
 static std::string ASCIIToUppercase(std::string str);
 static void ConvertUTF8NamesToSHIFTJIS(File::FSTEntry& parent_entry);
 
-const size_t VolumeDirectory::MAX_NAME_LENGTH;
-const size_t VolumeDirectory::MAX_ID_LENGTH;
+constexpr u64 GAME_PARTITION_ADDRESS = 0x50000;
+constexpr u64 PARTITION_TABLE_ADDRESS = 0x40000;
+const std::array<u32, 10> PARTITION_TABLE = {
+    {Common::swap32(1), Common::swap32((PARTITION_TABLE_ADDRESS + 0x20) >> 2), 0, 0, 0, 0, 0, 0,
+     Common::swap32(GAME_PARTITION_ADDRESS >> 2), 0}};
 
-VolumeDirectory::VolumeDirectory(const std::string& directory, bool is_wii,
-                                 const std::string& apploader, const std::string& dol)
-    : m_data_start_address(UINT64_MAX), m_disk_header(DISKHEADERINFO_ADDRESS),
+const size_t DirectoryBlobReader::MAX_NAME_LENGTH;
+const size_t DirectoryBlobReader::MAX_ID_LENGTH;
+
+bool DirectoryBlobReader::IsValidDirectoryBlob(std::string dol_path)
+{
+#ifdef _WIN32
+  std::replace(dol_path.begin(), dol_path.end(), '\\', '/');
+#endif
+  return StringEndsWith(dol_path, "/sys/main.dol");
+}
+
+std::unique_ptr<DirectoryBlobReader> DirectoryBlobReader::Create(File::IOFile dol,
+                                                                 const std::string& dol_path)
+{
+  if (!dol || !IsValidDirectoryBlob(dol_path))
+    return nullptr;
+
+  const size_t chars_to_remove = std::string("sys/main.dol").size();
+  const std::string root_directory = dol_path.substr(0, dol_path.size() - chars_to_remove);
+  return std::unique_ptr<DirectoryBlobReader>(
+      new DirectoryBlobReader(std::move(dol), root_directory));
+}
+
+DirectoryBlobReader::DirectoryBlobReader(File::IOFile dol_file, const std::string& root_directory)
+    : m_root_directory(root_directory), m_data_start_address(UINT64_MAX),
+      m_disk_header(DISKHEADERINFO_ADDRESS),
       m_disk_header_info(std::make_unique<SDiskHeaderInfo>()), m_fst_address(0), m_dol_address(0)
 {
-  m_root_directory = ExtractDirectoryName(directory);
-
   // create the default disk header
   SetGameID("AGBJ01");
   SetName("Default name");
 
-  if (is_wii)
-    SetDiskTypeWii();
-  else
-    SetDiskTypeGC();
-
-  // Don't load the DOL if we don't have an apploader
-  if (SetApploader(apploader))
-    SetDOL(dol);
+  // Setting the DOL relies on m_dol_address, which is set by SetApploader
+  if (SetApploader(m_root_directory + "sys/apploader.img"))
+    SetDOLAndDiskType(std::move(dol_file));
 
   BuildFST();
 }
 
-VolumeDirectory::~VolumeDirectory()
+bool DirectoryBlobReader::ReadPartition(u64 offset, u64 length, u8* buffer)
 {
-}
-
-bool VolumeDirectory::IsValidDirectory(const std::string& directory)
-{
-  return File::IsDirectory(ExtractDirectoryName(directory));
-}
-
-bool VolumeDirectory::Read(u64 offset, u64 length, u8* buffer, const Partition& partition) const
-{
-  bool decrypt = partition != PARTITION_NONE;
-
-  if (!decrypt && (offset + length >= 0x400) && m_is_wii)
-  {
-    // Fully supporting this would require re-encrypting every file that's read.
-    // Only supporting the areas that IOS allows software to read could be more feasible.
-    // Currently, only the header (up to 0x400) is supported, though we're cheating a bit
-    // with it by reading the header inside the current partition instead. Supporting the
-    // header is enough for booting games, but not for running things like the Disc Channel.
-    return false;
-  }
-
-  if (decrypt && !m_is_wii)
-    return false;
-
   // header
   if (offset < DISKHEADERINFO_ADDRESS)
   {
@@ -160,134 +157,80 @@ bool VolumeDirectory::Read(u64 offset, u64 length, u8* buffer, const Partition& 
   return true;
 }
 
-std::vector<Partition> VolumeDirectory::GetPartitions() const
+bool DirectoryBlobReader::ReadNonPartition(u64 offset, u64 length, u8* buffer)
 {
-  return m_is_wii ? std::vector<Partition>{GetGamePartition()} : std::vector<Partition>();
+  // header
+  if (offset < DISKHEADERINFO_ADDRESS)
+  {
+    WriteToBuffer(DISKHEADER_ADDRESS, DISKHEADERINFO_ADDRESS, m_disk_header.data(), &offset,
+                  &length, &buffer);
+  }
+  if (offset >= 0x40000)
+  {
+    WriteToBuffer(PARTITION_TABLE_ADDRESS, PARTITION_TABLE.size() * sizeof(u32),
+                  reinterpret_cast<const u8*>(PARTITION_TABLE.data()), &offset, &length, &buffer);
+  }
+
+  // TODO: TMDs, tickets, more headers, the partition contents...
+
+  if (length > 0)
+  {
+    ERROR_LOG(DISCIO, "Unsupported raw read in DirectoryBlob at 0x%" PRIx64, offset);
+    return false;
+  }
+
+  return true;
 }
 
-Partition VolumeDirectory::GetGamePartition() const
+bool DirectoryBlobReader::Read(u64 offset, u64 length, u8* buffer)
 {
-  return m_is_wii ? Partition(0x50000) : PARTITION_NONE;
+  return m_is_wii ? ReadNonPartition(offset, length, buffer) :
+                    ReadPartition(offset, length, buffer);
 }
 
-std::string VolumeDirectory::GetGameID(const Partition& partition) const
+bool DirectoryBlobReader::SupportsReadWiiDecrypted() const
 {
-  return std::string(m_disk_header.begin(), m_disk_header.begin() + MAX_ID_LENGTH);
+  return m_is_wii;
 }
 
-void VolumeDirectory::SetGameID(const std::string& id)
+bool DirectoryBlobReader::ReadWiiDecrypted(u64 offset, u64 size, u8* buffer, u64 partition_offset)
+{
+  if (!m_is_wii || partition_offset != GAME_PARTITION_ADDRESS)
+    return false;
+
+  return ReadPartition(offset, size, buffer);
+}
+
+void DirectoryBlobReader::SetGameID(const std::string& id)
 {
   memcpy(m_disk_header.data(), id.c_str(), std::min(id.length(), MAX_ID_LENGTH));
 }
 
-Region VolumeDirectory::GetRegion() const
-{
-  if (m_is_wii)
-    return RegionSwitchWii(m_disk_header[3]);
-
-  return RegionSwitchGC(m_disk_header[3]);
-}
-
-Country VolumeDirectory::GetCountry(const Partition& partition) const
-{
-  return CountrySwitch(m_disk_header[3]);
-}
-
-std::string VolumeDirectory::GetMakerID(const Partition& partition) const
-{
-  // Not implemented
-  return "00";
-}
-
-std::string VolumeDirectory::GetInternalName(const Partition& partition) const
-{
-  char name[0x60];
-  if (Read(0x20, 0x60, (u8*)name, partition))
-    return DecodeString(name);
-  else
-    return "";
-}
-
-std::map<Language, std::string> VolumeDirectory::GetLongNames() const
-{
-  std::string name = GetInternalName();
-  if (name.empty())
-    return {};
-  return {{Language::LANGUAGE_UNKNOWN, name}};
-}
-
-std::vector<u32> VolumeDirectory::GetBanner(int* width, int* height) const
-{
-  // Not implemented
-  *width = 0;
-  *height = 0;
-  return std::vector<u32>();
-}
-
-void VolumeDirectory::SetName(const std::string& name)
+void DirectoryBlobReader::SetName(const std::string& name)
 {
   size_t length = std::min(name.length(), MAX_NAME_LENGTH);
   memcpy(&m_disk_header[0x20], name.c_str(), length);
   m_disk_header[length + 0x20] = 0;
 }
 
-std::string VolumeDirectory::GetApploaderDate(const Partition& partition) const
+BlobType DirectoryBlobReader::GetBlobType() const
 {
-  // Not implemented
-  return "VOID";
-}
-
-Platform VolumeDirectory::GetVolumeType() const
-{
-  return m_is_wii ? Platform::WII_DISC : Platform::GAMECUBE_DISC;
-}
-
-BlobType VolumeDirectory::GetBlobType() const
-{
-  // VolumeDirectory isn't actually a blob, but it sort of acts
-  // like one, so it makes sense that it has its own blob type.
-  // It should be made into a proper blob in the future.
   return BlobType::DIRECTORY;
 }
 
-u64 VolumeDirectory::GetSize() const
+u64 DirectoryBlobReader::GetRawSize() const
 {
   // Not implemented
   return 0;
 }
 
-u64 VolumeDirectory::GetRawSize() const
+u64 DirectoryBlobReader::GetDataSize() const
 {
   // Not implemented
   return 0;
 }
 
-std::string VolumeDirectory::ExtractDirectoryName(const std::string& directory)
-{
-  std::string result = directory;
-
-  size_t last_separator = result.find_last_of(DIR_SEP_CHR);
-
-  if (last_separator != result.size() - 1)
-  {
-    // TODO: This assumes that file names will always have a dot in them
-    //       and directory names never will; both assumptions are often
-    //       right but in general wrong.
-    size_t extension_start = result.find_last_of('.');
-    if (extension_start != std::string::npos && extension_start > last_separator)
-    {
-      result.resize(last_separator);
-    }
-  }
-  else
-  {
-    result.resize(last_separator);
-  }
-
-  return result;
-}
-
-void VolumeDirectory::SetDiskTypeWii()
+void DirectoryBlobReader::SetDiskTypeWii()
 {
   Write32(0x5d1c9ea3, 0x18, &m_disk_header);
   memset(&m_disk_header[0x1c], 0, 4);
@@ -296,7 +239,7 @@ void VolumeDirectory::SetDiskTypeWii()
   m_address_shift = 2;
 }
 
-void VolumeDirectory::SetDiskTypeGC()
+void DirectoryBlobReader::SetDiskTypeGC()
 {
   memset(&m_disk_header[0x18], 0, 4);
   Write32(0xc2339f3d, 0x1c, &m_disk_header);
@@ -305,7 +248,7 @@ void VolumeDirectory::SetDiskTypeGC()
   m_address_shift = 0;
 }
 
-bool VolumeDirectory::SetApploader(const std::string& apploader)
+bool DirectoryBlobReader::SetApploader(const std::string& apploader)
 {
   if (!apploader.empty())
   {
@@ -338,27 +281,28 @@ bool VolumeDirectory::SetApploader(const std::string& apploader)
   }
 }
 
-void VolumeDirectory::SetDOL(const std::string& dol)
+void DirectoryBlobReader::SetDOLAndDiskType(File::IOFile dol_file)
 {
-  if (!dol.empty())
-  {
-    std::string data;
-    File::ReadFileToString(dol, data);
-    m_dol.resize(data.size());
-    std::copy(data.begin(), data.end(), m_dol.begin());
+  m_dol.resize(dol_file.GetSize());
+  dol_file.Seek(0, SEEK_SET);
+  dol_file.ReadBytes(m_dol.data(), m_dol.size());
 
-    Write32((u32)(m_dol_address >> m_address_shift), 0x0420, &m_disk_header);
+  if (DolReader(std::move(dol_file)).IsWii())
+    SetDiskTypeWii();
+  else
+    SetDiskTypeGC();
 
-    // 32byte aligned (plus 0x20 padding)
-    m_fst_address = Common::AlignUp(m_dol_address + m_dol.size() + 0x20, 0x20ull);
-  }
+  Write32((u32)(m_dol_address >> m_address_shift), 0x0420, &m_disk_header);
+
+  // 32byte aligned (plus 0x20 padding)
+  m_fst_address = Common::AlignUp(m_dol_address + m_dol.size() + 0x20, 0x20ull);
 }
 
-void VolumeDirectory::BuildFST()
+void DirectoryBlobReader::BuildFST()
 {
   m_fst_data.clear();
 
-  File::FSTEntry rootEntry = File::ScanDirectoryTree(m_root_directory, true);
+  File::FSTEntry rootEntry = File::ScanDirectoryTree(m_root_directory + "files/", true);
 
   ConvertUTF8NamesToSHIFTJIS(rootEntry);
 
@@ -394,8 +338,9 @@ void VolumeDirectory::BuildFST()
   Write32((u32)(m_fst_data.size() >> m_address_shift), 0x042c, &m_disk_header);
 }
 
-void VolumeDirectory::WriteToBuffer(u64 source_start_address, u64 source_length, const u8* source,
-                                    u64* address, u64* length, u8** buffer) const
+void DirectoryBlobReader::WriteToBuffer(u64 source_start_address, u64 source_length,
+                                        const u8* source, u64* address, u64* length,
+                                        u8** buffer) const
 {
   if (*length == 0)
     return;
@@ -416,7 +361,8 @@ void VolumeDirectory::WriteToBuffer(u64 source_start_address, u64 source_length,
   }
 }
 
-void VolumeDirectory::PadToAddress(u64 start_address, u64* address, u64* length, u8** buffer) const
+void DirectoryBlobReader::PadToAddress(u64 start_address, u64* address, u64* length,
+                                       u8** buffer) const
 {
   if (start_address > *address && *length > 0)
   {
@@ -428,7 +374,7 @@ void VolumeDirectory::PadToAddress(u64 start_address, u64* address, u64* length,
   }
 }
 
-void VolumeDirectory::Write32(u32 data, u32 offset, std::vector<u8>* const buffer)
+void DirectoryBlobReader::Write32(u32 data, u32 offset, std::vector<u8>* const buffer)
 {
   (*buffer)[offset++] = (data >> 24);
   (*buffer)[offset++] = (data >> 16) & 0xff;
@@ -436,8 +382,8 @@ void VolumeDirectory::Write32(u32 data, u32 offset, std::vector<u8>* const buffe
   (*buffer)[offset] = (data)&0xff;
 }
 
-void VolumeDirectory::WriteEntryData(u32* entry_offset, u8 type, u32 name_offset, u64 data_offset,
-                                     u64 length, u32 address_shift)
+void DirectoryBlobReader::WriteEntryData(u32* entry_offset, u8 type, u32 name_offset,
+                                         u64 data_offset, u64 length, u32 address_shift)
 {
   m_fst_data[(*entry_offset)++] = type;
 
@@ -452,15 +398,15 @@ void VolumeDirectory::WriteEntryData(u32* entry_offset, u8 type, u32 name_offset
   *entry_offset += 4;
 }
 
-void VolumeDirectory::WriteEntryName(u32* name_offset, const std::string& name)
+void DirectoryBlobReader::WriteEntryName(u32* name_offset, const std::string& name)
 {
   strncpy((char*)&m_fst_data[*name_offset + m_fst_name_offset], name.c_str(), name.length() + 1);
 
   *name_offset += (u32)(name.length() + 1);
 }
 
-void VolumeDirectory::WriteDirectory(const File::FSTEntry& parent_entry, u32* fst_offset,
-                                     u32* name_offset, u64* data_offset, u32 parent_entry_index)
+void DirectoryBlobReader::WriteDirectory(const File::FSTEntry& parent_entry, u32* fst_offset,
+                                         u32* name_offset, u64* data_offset, u32 parent_entry_index)
 {
   std::vector<File::FSTEntry> sorted_entries = parent_entry.children;
 

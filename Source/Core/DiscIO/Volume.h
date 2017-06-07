@@ -118,8 +118,5 @@ protected:
 };
 
 std::unique_ptr<Volume> CreateVolumeFromFilename(const std::string& filename);
-std::unique_ptr<Volume> CreateVolumeFromDirectory(const std::string& directory, bool is_wii,
-                                                  const std::string& apploader = "",
-                                                  const std::string& dol = "");
 
 }  // namespace
