@@ -83,7 +83,7 @@ void UpdateVertexArrayPointers()
   {
     // Only update the array base if the vertex description states we are going to use it.
     if (g_main_cp_state.vtx_desc.GetVertexArrayStatus(i) & MASK_INDEXED)
-      cached_arraybases[i] = Memory::GetPointer(g_main_cp_state.array_bases[i]);
+		cached_arraybases[i] = Memory::GetPointer(g_main_cp_state.array_bases[i] & 0x1fffffff);
   }
 
   g_main_cp_state.bases_dirty = false;
