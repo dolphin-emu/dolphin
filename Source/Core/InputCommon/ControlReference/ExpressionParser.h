@@ -6,6 +6,7 @@
 
 #include <memory>
 #include <string>
+#include <utility>
 #include "InputCommon/ControllerInterface/Device.h"
 
 namespace ciface
@@ -66,6 +67,6 @@ enum class ParseStatus
   NoDevice,
 };
 
-ParseStatus ParseExpression(const std::string& expr, ControlFinder& finder, Expression** expr_out);
+std::pair<ParseStatus, Expression*> ParseExpression(const std::string& expr, ControlFinder& finder);
 }
 }

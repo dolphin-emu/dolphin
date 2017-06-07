@@ -369,15 +369,14 @@ public:
     m_it = tokens.begin();
   }
 
-  ParseStatus Parse(Expression** expr_out)
+  std::pair<ParseStatus, Expression*> Parse()
   {
     ExpressionNode* node;
     ParseStatus status = Toplevel(&node);
     if (status != ParseStatus::Successful)
-      return status;
+      return std::make_pair(status, nullptr);
 
-    *expr_out = new Expression(node);
-    return ParseStatus::Successful;
+    return std::make_pair(ParseStatus::Successful, new Expression(node));
   }
 
 private:
@@ -522,32 +521,28 @@ Expression::~Expression()
   delete node;
 }
 
-static ParseStatus ParseExpressionInner(const std::string& str, ControlFinder& finder,
-                                        Expression** expr_out)
+static std::pair<ParseStatus, Expression*> ParseExpressionInner(const std::string& str,
+                                                                ControlFinder& finder)
 {
-  ParseStatus status;
-  Expression* expr;
-  *expr_out = nullptr;
-
   if (str == "")
-    return ParseStatus::Successful;
+    return std::make_pair(ParseStatus::Successful, nullptr);
 
   Lexer l(str);
   std::vector<Token> tokens;
-  status = l.Tokenize(tokens);
-  if (status != ParseStatus::Successful)
-    return status;
+  ParseStatus tokenize_status = l.Tokenize(tokens);
+  if (tokenize_status != ParseStatus::Successful)
+    return std::make_pair(tokenize_status, nullptr);
 
-  Parser p(tokens, finder);
-  status = p.Parse(&expr);
+  ParseStatus status;
+  Expression* expr;
+  std::tie(status, expr) = Parser(tokens, finder).Parse();
   if (status != ParseStatus::Successful)
-    return status;
+    return std::make_pair(status, nullptr);
 
-  *expr_out = expr;
-  return ParseStatus::Successful;
+  return std::make_pair(ParseStatus::Successful, expr);
 }
 
-ParseStatus ParseExpression(const std::string& str, ControlFinder& finder, Expression** expr_out)
+std::pair<ParseStatus, Expression*> ParseExpression(const std::string& str, ControlFinder& finder)
 {
   // Add compatibility with old simple expressions, which are simple
   // barewords control names.
@@ -560,11 +555,11 @@ ParseStatus ParseExpression(const std::string& str, ControlFinder& finder, Expre
   Device::Control* control = finder.FindControl(qualifier);
   if (control)
   {
-    *expr_out = new Expression(new ControlExpression(qualifier, device, control));
-    return ParseStatus::Successful;
+    Expression* expr = new Expression(new ControlExpression(qualifier, device, control));
+    return std::make_pair(ParseStatus::Successful, expr);
   }
 
-  return ParseExpressionInner(str, finder, expr_out);
+  return ParseExpressionInner(str, finder);
 }
 }
 }

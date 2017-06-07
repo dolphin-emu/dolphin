@@ -30,9 +30,9 @@ bool ControlReference::InputGateOn()
 void ControlReference::UpdateReference(const ciface::Core::DeviceContainer& devices,
                                        const ciface::Core::DeviceQualifier& default_device)
 {
-  Expression* expr;
   ControlFinder finder(devices, default_device, IsInput());
-  m_parse_status = ParseExpression(expression, finder, &expr);
+  Expression* expr;
+  std::tie(m_parse_status, expr) = ParseExpression(expression, finder);
   m_parsed_expression.reset(expr);
 }
 
