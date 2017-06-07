@@ -157,7 +157,7 @@ bool OpenTAP(HANDLE& adapter, const std::basic_string<TCHAR>& device_guid)
 
   if (adapter == INVALID_HANDLE_VALUE)
   {
-    INFO_LOG(SP1, "Failed to open TAP at %s", device_path);
+    INFO_LOG(SP1, "Failed to open TAP at %s", device_path.c_str());
     return false;
   }
   return true;
