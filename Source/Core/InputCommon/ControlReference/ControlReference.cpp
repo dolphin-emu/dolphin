@@ -31,9 +31,7 @@ void ControlReference::UpdateReference(const ciface::Core::DeviceContainer& devi
                                        const ciface::Core::DeviceQualifier& default_device)
 {
   ControlFinder finder(devices, default_device, IsInput());
-  Expression* expr;
-  std::tie(m_parse_status, expr) = ParseExpression(expression, finder);
-  m_parsed_expression.reset(expr);
+  std::tie(m_parse_status, m_parsed_expression) = ParseExpression(expression, finder);
 }
 
 int ControlReference::BoundCount() const

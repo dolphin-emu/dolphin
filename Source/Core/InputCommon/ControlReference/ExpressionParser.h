@@ -51,13 +51,12 @@ class ExpressionNode;
 class Expression
 {
 public:
-  Expression() : node(nullptr) {}
-  Expression(ExpressionNode* node);
+  explicit Expression(std::unique_ptr<ExpressionNode>&& node = {});
   ~Expression();
   ControlState GetValue() const;
   void SetValue(ControlState state);
   int num_controls;
-  ExpressionNode* node;
+  std::unique_ptr<ExpressionNode> node;
 };
 
 enum class ParseStatus
@@ -67,6 +66,7 @@ enum class ParseStatus
   NoDevice,
 };
 
-std::pair<ParseStatus, Expression*> ParseExpression(const std::string& expr, ControlFinder& finder);
+std::pair<ParseStatus, std::unique_ptr<Expression>> ParseExpression(const std::string& expr,
+                                                                    ControlFinder& finder);
 }
 }
