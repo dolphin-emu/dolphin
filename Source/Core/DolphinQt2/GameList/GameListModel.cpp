@@ -3,6 +3,8 @@
 // Refer to the license.txt file included.
 
 #include "DolphinQt2/GameList/GameListModel.h"
+
+#include "DiscIO/Enums.h"
 #include "DolphinQt2/Resources.h"
 #include "DolphinQt2/Settings.h"
 
@@ -21,6 +23,8 @@ GameListModel::GameListModel(QObject* parent) : QAbstractTableModel(parent)
     emit layoutAboutToBeChanged();
     emit layoutChanged();
   });
+
+  // TODO: Reload m_title_database when the language changes
 }
 
 QVariant GameListModel::data(const QModelIndex& index, int role) const
@@ -63,7 +67,16 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
     break;
   case COL_TITLE:
     if (role == Qt::DisplayRole || role == Qt::InitialSortOrderRole)
-      return game->GetLongName();
+    {
+      QString display_name = QString::fromStdString(m_title_database.GetTitleName(
+          game->GetGameID().toStdString(), game->GetPlatformID() == DiscIO::Platform::WII_WAD ?
+                                               Core::TitleDatabase::TitleType::Channel :
+                                               Core::TitleDatabase::TitleType::Other));
+      if (display_name.isEmpty())
+        return game->GetLongName();
+
+      return display_name;
+    }
     break;
   case COL_ID:
     if (role == Qt::DisplayRole || role == Qt::InitialSortOrderRole)
