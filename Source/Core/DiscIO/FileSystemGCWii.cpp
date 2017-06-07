@@ -155,7 +155,7 @@ bool FileSystemGCWii::ExportApploader(const std::string& _rExportFolder) const
 std::optional<u64> FileSystemGCWii::GetBootDOLOffset() const
 {
   std::optional<u32> offset = m_rVolume->ReadSwapped<u32>(0x420, m_partition);
-  return offset ? static_cast<u64>(*offset) << 2 : std::optional<u64>();
+  return offset ? static_cast<u64>(*offset) << m_offset_shift : std::optional<u64>();
 }
 
 std::optional<u32> FileSystemGCWii::GetBootDOLSize(u64 dol_offset) const
