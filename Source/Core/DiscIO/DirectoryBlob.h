@@ -11,74 +11,48 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
-#include "DiscIO/Volume.h"
+#include "Common/FileUtil.h"
+#include "DiscIO/Blob.h"
 
 namespace File
 {
 struct FSTEntry;
+class IOFile;
 }
-
-//
-// --- this volume type is used for reading files directly from the hard drive ---
-//
 
 namespace DiscIO
 {
-enum class BlobType;
-enum class Country;
-enum class Language;
-enum class Region;
-enum class Platform;
-
-class VolumeDirectory : public Volume
+class DirectoryBlobReader : public BlobReader
 {
 public:
-  VolumeDirectory(const std::string& directory, bool is_wii, const std::string& apploader = "",
-                  const std::string& dol = "");
+  static bool IsValidDirectoryBlob(std::string dol_path);
+  static std::unique_ptr<DirectoryBlobReader> Create(File::IOFile dol, const std::string& dol_path);
 
-  ~VolumeDirectory();
-
-  static bool IsValidDirectory(const std::string& directory);
-
-  bool Read(u64 offset, u64 length, u8* buffer, const Partition& partition) const override;
-  std::vector<Partition> GetPartitions() const override;
-  Partition GetGamePartition() const override;
-
-  std::string GetGameID(const Partition& partition = PARTITION_NONE) const override;
-  void SetGameID(const std::string& id);
-
-  std::string GetMakerID(const Partition& partition = PARTITION_NONE) const override;
-
-  std::optional<u16> GetRevision(const Partition& partition = PARTITION_NONE) const override
-  {
-    return {};
-  }
-  std::string GetInternalName(const Partition& partition = PARTITION_NONE) const override;
-  std::map<Language, std::string> GetLongNames() const override;
-  std::vector<u32> GetBanner(int* width, int* height) const override;
-  void SetName(const std::string&);
-
-  std::string GetApploaderDate(const Partition& partition = PARTITION_NONE) const override;
-  Platform GetVolumeType() const override;
-
-  Region GetRegion() const override;
-  Country GetCountry(const Partition& partition = PARTITION_NONE) const override;
+  bool Read(u64 offset, u64 length, u8* buffer) override;
+  bool SupportsReadWiiDecrypted() const override;
+  bool ReadWiiDecrypted(u64 offset, u64 size, u8* buffer, u64 partition_offset) override;
 
   BlobType GetBlobType() const override;
-  u64 GetSize() const override;
   u64 GetRawSize() const override;
+  u64 GetDataSize() const override;
+
+  void SetGameID(const std::string& id);
+  void SetName(const std::string&);
 
   void BuildFST();
 
 private:
-  static std::string ExtractDirectoryName(const std::string& directory);
+  DirectoryBlobReader(File::IOFile dol_file, const std::string& root_directory);
+
+  bool ReadPartition(u64 offset, u64 length, u8* buffer);
+  bool ReadNonPartition(u64 offset, u64 length, u8* buffer);
 
   void SetDiskTypeWii();
   void SetDiskTypeGC();
 
   bool SetApploader(const std::string& apploader);
 
-  void SetDOL(const std::string& dol);
+  void SetDOLAndDiskType(File::IOFile dol_file);
 
   // writing to read buffer
   void WriteToBuffer(u64 source_start_address, u64 source_length, const u8* source, u64* address,
@@ -99,10 +73,10 @@ private:
 
   std::map<u64, std::string> m_virtual_disk;
 
-  bool m_is_wii;
+  bool m_is_wii = false;
 
   // GameCube has no shift, Wii has 2 bit shift
-  u32 m_address_shift;
+  u32 m_address_shift = 0;
 
   // first address on disk containing file data
   u64 m_data_start_address;
