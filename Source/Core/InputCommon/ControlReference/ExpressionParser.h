@@ -63,7 +63,7 @@ enum class ParseStatus
 {
   Successful,
   SyntaxError,
-  NoDevice,
+  EmptyExpression,
 };
 
 std::pair<ParseStatus, std::unique_ptr<Expression>> ParseExpression(const std::string& expr,

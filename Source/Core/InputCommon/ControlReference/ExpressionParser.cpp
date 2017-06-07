@@ -10,6 +10,7 @@
 #include <string>
 #include <vector>
 
+#include "Common/StringUtil.h"
 #include "InputCommon/ControlReference/ExpressionParser.h"
 
 using namespace ciface::Core;
@@ -393,9 +394,6 @@ private:
     {
       std::shared_ptr<Device> device = finder.FindDevice(tok.qualifier);
       Device::Control* control = finder.FindControl(tok.qualifier);
-      if (control == nullptr)
-        return {ParseStatus::NoDevice, std::make_unique<ControlExpression>(tok.qualifier, control)};
-
       return {ParseStatus::Successful,
               std::make_unique<ControlExpression>(tok.qualifier, std::move(device), control)};
     }
@@ -510,8 +508,8 @@ Expression::~Expression()
 static std::pair<ParseStatus, std::unique_ptr<Expression>>
 ParseExpressionInner(const std::string& str, ControlFinder& finder)
 {
-  if (str == "")
-    return std::make_pair(ParseStatus::Successful, nullptr);
+  if (StripSpaces(str).empty())
+    return std::make_pair(ParseStatus::EmptyExpression, nullptr);
 
   Lexer l(str);
   std::vector<Token> tokens;

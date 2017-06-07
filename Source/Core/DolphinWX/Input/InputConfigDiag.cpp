@@ -347,11 +347,12 @@ void ControlDialog::UpdateGUI()
   case ParseStatus::SyntaxError:
     m_error_label->SetLabel(_("Syntax error"));
     break;
-  case ParseStatus::NoDevice:
-    m_error_label->SetLabel(_("Device not found"));
+  case ParseStatus::Successful:
+    m_error_label->SetLabel(control_reference->BoundCount() > 0 ? "" : _("Device not found"));
     break;
-  default:
+  case ParseStatus::EmptyExpression:
     m_error_label->SetLabel("");
+    break;
   }
 };
 
@@ -408,7 +409,7 @@ bool ControlDialog::Validate()
   UpdateGUI();
 
   const auto parse_status = control_reference->GetParseStatus();
-  return parse_status == ParseStatus::Successful || parse_status == ParseStatus::NoDevice;
+  return parse_status == ParseStatus::Successful || parse_status == ParseStatus::EmptyExpression;
 }
 
 void InputConfigDialog::SetDevice(wxCommandEvent&)
