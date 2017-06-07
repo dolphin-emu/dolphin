@@ -63,34 +63,33 @@ std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(const std::stri
   std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
 
   static const std::unordered_set<std::string> disc_image_extensions = {
-      {".gcm", ".iso", ".tgc", ".wbfs", ".ciso", ".gcz"}};
+      {".gcm", ".iso", ".tgc", ".wbfs", ".ciso", ".gcz", ".dol", ".elf"}};
   if (disc_image_extensions.find(extension) != disc_image_extensions.end() || is_drive)
   {
-    auto volume = DiscIO::CreateVolumeFromFilename(path);
-    if (!volume)
+    std::unique_ptr<DiscIO::Volume> volume = DiscIO::CreateVolumeFromFilename(path);
+    if (volume)
+      return std::make_unique<BootParameters>(Disc{path, std::move(volume)});
+
+    if (extension == ".elf")
+      return std::make_unique<BootParameters>(Executable{path, std::make_unique<ElfReader>(path)});
+
+    if (extension == ".dol")
+      return std::make_unique<BootParameters>(Executable{path, std::make_unique<DolReader>(path)});
+
+    if (is_drive)
     {
-      if (is_drive)
-      {
-        PanicAlertT("Could not read \"%s\". "
-                    "There is no disc in the drive or it is not a GameCube/Wii backup. "
-                    "Please note that Dolphin cannot play games directly from the original "
-                    "GameCube and Wii discs.",
-                    path.c_str());
-      }
-      else
-      {
-        PanicAlertT("\"%s\" is an invalid GCM/ISO file, or is not a GC/Wii ISO.", path.c_str());
-      }
-      return {};
+      PanicAlertT("Could not read \"%s\". "
+                  "There is no disc in the drive or it is not a GameCube/Wii backup. "
+                  "Please note that Dolphin cannot play games directly from the original "
+                  "GameCube and Wii discs.",
+                  path.c_str());
     }
-    return std::make_unique<BootParameters>(Disc{path, std::move(volume)});
+    else
+    {
+      PanicAlertT("\"%s\" is an invalid GCM/ISO file, or is not a GC/Wii ISO.", path.c_str());
+    }
+    return {};
   }
-
-  if (extension == ".elf")
-    return std::make_unique<BootParameters>(Executable{path, std::make_unique<ElfReader>(path)});
-
-  if (extension == ".dol")
-    return std::make_unique<BootParameters>(Executable{path, std::make_unique<DolReader>(path)});
 
   if (extension == ".dff")
     return std::make_unique<BootParameters>(DFF{path});
