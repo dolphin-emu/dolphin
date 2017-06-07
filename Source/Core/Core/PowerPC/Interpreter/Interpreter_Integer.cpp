@@ -495,7 +495,7 @@ void Interpreter::divwx(UGeckoInstruction inst)
     }
 
     if (((u32)a & 0x80000000) && b == 0)
-      rGPR[inst.RD] = -1;
+      rGPR[inst.RD] = UINT32_MAX;
     else
       rGPR[inst.RD] = 0;
   }

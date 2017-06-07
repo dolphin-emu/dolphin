@@ -48,7 +48,7 @@ private:
   CISOFileReader(File::IOFile file);
 
   typedef u16 MapType;
-  static const MapType UNUSED_BLOCK_ID = -1;
+  static const MapType UNUSED_BLOCK_ID = UINT16_MAX;
 
   File::IOFile m_file;
   u64 m_size;

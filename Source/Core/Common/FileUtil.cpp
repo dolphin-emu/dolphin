@@ -986,7 +986,7 @@ u64 IOFile::Tell() const
   if (IsOpen())
     return ftello(m_file);
   else
-    return -1;
+    return UINT64_MAX;
 }
 
 bool IOFile::Flush()

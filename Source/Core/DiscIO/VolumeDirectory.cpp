@@ -35,7 +35,7 @@ const size_t VolumeDirectory::MAX_ID_LENGTH;
 
 VolumeDirectory::VolumeDirectory(const std::string& directory, bool is_wii,
                                  const std::string& apploader, const std::string& dol)
-    : m_data_start_address(-1), m_disk_header(DISKHEADERINFO_ADDRESS),
+    : m_data_start_address(UINT64_MAX), m_disk_header(DISKHEADERINFO_ADDRESS),
       m_disk_header_info(std::make_unique<SDiskHeaderInfo>()), m_fst_address(0), m_dol_address(0)
 {
   m_root_directory = ExtractDirectoryName(directory);

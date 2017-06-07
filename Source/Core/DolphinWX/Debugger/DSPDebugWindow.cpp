@@ -32,7 +32,7 @@ static DSPDebuggerLLE* m_DebuggerFrame = nullptr;
 
 DSPDebuggerLLE::DSPDebuggerLLE(wxWindow* parent, wxWindowID id)
     : wxPanel(parent, id, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _("DSP LLE Debugger")),
-      m_CachedStepCounter(-1), m_toolbar_item_size(FromDIP(wxSize(16, 16)))
+      m_CachedStepCounter(UINT64_MAX), m_toolbar_item_size(FromDIP(wxSize(16, 16)))
 {
   Bind(wxEVT_MENU, &DSPDebuggerLLE::OnChangeState, this, ID_RUNTOOL, ID_SHOWPCTOOL);
 

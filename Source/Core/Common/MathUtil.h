@@ -198,7 +198,7 @@ inline int IntLog2(u64 val)
   return 63 - __builtin_clzll(val);
 
 #elif defined(_MSC_VER)
-  unsigned long result = -1;
+  unsigned long result = ULONG_MAX;
   _BitScanReverse64(&result, val);
   return result;
 

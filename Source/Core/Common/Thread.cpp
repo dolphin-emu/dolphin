@@ -62,11 +62,8 @@ void SwitchCurrentThread()
 }
 
 // Sets the debugger-visible name of the current thread.
-// Uses undocumented (actually, it is now documented) trick.
-// http://msdn.microsoft.com/library/default.asp?url=/library/en-us/vsdebug/html/vxtsksettingthreadname.asp
-
-// This is implemented much nicer in upcoming msvc++, see:
-// http://msdn.microsoft.com/en-us/library/xcb2z8hs(VS.100).aspx
+// Uses trick documented in:
+// https://docs.microsoft.com/en-us/visualstudio/debugger/how-to-set-a-thread-name-in-native-code
 void SetCurrentThreadName(const char* szThreadName)
 {
   static const DWORD MS_VC_EXCEPTION = 0x406D1388;
@@ -83,7 +80,7 @@ void SetCurrentThreadName(const char* szThreadName)
 
   info.dwType = 0x1000;
   info.szName = szThreadName;
-  info.dwThreadID = -1;  // dwThreadID;
+  info.dwThreadID = static_cast<DWORD>(-1);
   info.dwFlags = 0;
 
   __try
