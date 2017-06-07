@@ -4,6 +4,7 @@
 
 #include <cstddef>
 #include <cstring>
+#include <string>
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"

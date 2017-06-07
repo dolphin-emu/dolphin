@@ -3,7 +3,10 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <array>
+#include <cstddef>
 #include <cstring>
+#include <vector>
 
 #include <mbedtls/sha1.h>
 
