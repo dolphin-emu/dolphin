@@ -70,7 +70,7 @@
 #include "InputCommon/ControllerInterface/Device.h"
 #include "InputCommon/InputConfig.h"
 
-using namespace ciface::ExpressionParser;
+using ciface::ExpressionParser::ParseStatus;
 
 void InputConfigDialog::ConfigExtension(wxCommandEvent& event)
 {
