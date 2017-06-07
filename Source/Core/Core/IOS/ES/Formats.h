@@ -39,6 +39,20 @@ bool IsTitleType(u64 title_id, TitleType title_type);
 bool IsDiscTitle(u64 title_id);
 bool IsChannel(u64 title_id);
 
+enum TitleFlags : u32
+{
+  // All official titles have this flag set.
+  TITLE_TYPE_DEFAULT = 0x1,
+  // Unknown.
+  TITLE_TYPE_0x4 = 0x4,
+  // Used for DLC titles.
+  TITLE_TYPE_DATA = 0x8,
+  // Appears to be used for WFS titles.
+  TITLE_TYPE_WFS_MAYBE = 0x20,
+  // Unknown.
+  TITLE_TYPE_CT = 0x40,
+};
+
 #pragma pack(push, 4)
 struct TMDHeader
 {
@@ -51,7 +65,7 @@ struct TMDHeader
   u8 signer_crl_version;
   u64 ios_id;
   u64 title_id;
-  u32 title_type;
+  u32 title_flags;
   u16 group_id;
   u16 zero;
   u16 region;
@@ -154,6 +168,7 @@ public:
   u64 GetIOSId() const;
   DiscIO::Region GetRegion() const;
   u64 GetTitleId() const;
+  u32 GetTitleFlags() const;
   u16 GetTitleVersion() const;
   u16 GetGroupId() const;
 

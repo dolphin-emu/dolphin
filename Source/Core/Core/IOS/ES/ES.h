@@ -121,6 +121,9 @@ public:
   ReturnCode GetV0TicketFromView(const u8* ticket_view, u8* ticket) const;
   ReturnCode GetTicketFromView(const u8* ticket_view, u8* ticket, u32* ticket_size) const;
 
+  ReturnCode SetUpStreamKey(u32 uid, const u8* ticket_view, const IOS::ES::TMDReader& tmd,
+                            u32* handle);
+
 private:
   enum
   {
@@ -183,7 +186,7 @@ private:
     IOCTL_ES_DIGETTMDSIZE = 0x39,
     IOCTL_ES_DIGETTMD = 0x3A,
     IOCTL_ES_DIVERIFY_WITH_VIEW = 0x3B,
-    IOCTL_ES_UNKNOWN_3C = 0x3C,
+    IOCTL_ES_SET_UP_STREAM_KEY = 0x3C,
     IOCTL_ES_DELETE_STREAM_KEY = 0x3D,
     IOCTL_ES_DELETE_CONTENT = 0x3E,
     IOCTL_ES_INVALID_3F = 0x3F,
@@ -234,6 +237,7 @@ private:
   IPCCommandResult Launch(const IOCtlVRequest& request);
   IPCCommandResult LaunchBC(const IOCtlVRequest& request);
   IPCCommandResult DIVerify(const IOCtlVRequest& request);
+  IPCCommandResult SetUpStreamKey(const Context& context, const IOCtlVRequest& request);
   IPCCommandResult DeleteStreamKey(const IOCtlVRequest& request);
 
   // Title contents
@@ -283,6 +287,10 @@ private:
   bool LaunchIOS(u64 ios_title_id);
   bool LaunchPPCTitle(u64 title_id, bool skip_reload);
   static TitleContext& GetTitleContext();
+  bool IsActiveTitlePermittedByTicket(const u8* ticket_view) const;
+
+  ReturnCode CheckStreamKeyPermissions(u32 uid, const u8* ticket_view,
+                                       const IOS::ES::TMDReader& tmd) const;
 
   static const DiscIO::NANDContentLoader& AccessContentDevice(u64 title_id);
 
