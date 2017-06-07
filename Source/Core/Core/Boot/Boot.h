@@ -109,8 +109,8 @@ private:
 class BootExecutableReader
 {
 public:
-  BootExecutableReader(const std::string& file_name);
-  BootExecutableReader(const std::vector<u8>& buffer);
+  explicit BootExecutableReader(const std::string& file_name);
+  explicit BootExecutableReader(const std::vector<u8>& buffer);
   virtual ~BootExecutableReader();
 
   virtual u32 GetEntryPoint() const = 0;
