@@ -290,7 +290,7 @@
     <ClCompile Include="HLE\HLE_OS.cpp">
       <Filter>HLE</Filter>
     </ClCompile>
-    <ClCompile Include="HLE\HLE_VarArgs.cpp" />
+    <ClCompile Include="HLE\HLE_VarArgs.cpp">
       <Filter>HLE</Filter>
     </ClCompile>
     <ClCompile Include="PowerPC\BreakPoints.cpp">
