@@ -349,8 +349,8 @@ static void DTKStreamingCallback(const std::vector<u8>& audio_data, s64 cycles_l
 
   // Determine which audio data to read next.
   static const int MAXIMUM_SAMPLES = 48000 / 2000 * 7;  // 3.5ms of 48kHz samples
-  u64 read_offset;
-  u32 read_length;
+  u64 read_offset = 0;
+  u32 read_length = 0;
   if (s_stream && AudioInterface::IsPlaying())
   {
     read_offset = s_audio_position;
