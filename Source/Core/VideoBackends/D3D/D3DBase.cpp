@@ -320,7 +320,7 @@ HRESULT Create(HWND wnd)
         return desc.Count == g_Config.iMultisamples;
       }) == aa_modes.end())
   {
-    Config::SetCurrent(Config::GFX_MSAA, 1);
+    Config::SetCurrent(Config::GFX_MSAA, UINT32_C(1));
     UpdateActiveConfig();
   }
 

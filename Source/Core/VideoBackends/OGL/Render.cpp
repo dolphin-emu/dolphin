@@ -63,7 +63,7 @@ static std::unique_ptr<RasterFont> s_raster_font;
 
 // 1 for no MSAA. Use s_MSAASamples > 1 to check for MSAA.
 static int s_MSAASamples = 1;
-static int s_last_multisamples = 1;
+static u32 s_last_multisamples = 1;
 static bool s_last_stereo_mode = false;
 static bool s_last_xfb_mode = false;
 
@@ -519,7 +519,7 @@ Renderer::Renderer()
       {
         // GLES 3.1 can't support stereo rendering and MSAA
         OSD::AddMessage("MSAA Stereo rendering isn't supported by your GPU.", 10000);
-        Config::SetCurrent(Config::GFX_MSAA, 1);
+        Config::SetCurrent(Config::GFX_MSAA, UINT32_C(1));
       }
     }
     else
