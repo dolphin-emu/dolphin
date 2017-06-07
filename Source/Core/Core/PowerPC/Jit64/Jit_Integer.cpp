@@ -339,7 +339,7 @@ void Jit64::reg_imm(UGeckoInstruction inst)
   }
 }
 
-bool Jit64::CheckMergedBranch(int crf)
+bool Jit64::CheckMergedBranch(u32 crf)
 {
   if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_BRANCH_MERGE))
     return false;
@@ -473,7 +473,7 @@ void Jit64::cmpXX(UGeckoInstruction inst)
   JITDISABLE(bJITIntegerOff);
   int a = inst.RA;
   int b = inst.RB;
-  int crf = inst.CRFD;
+  u32 crf = inst.CRFD;
   bool merge_branch = CheckMergedBranch(crf);
 
   OpArg comparand;
