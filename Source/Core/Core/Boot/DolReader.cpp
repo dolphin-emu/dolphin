@@ -6,6 +6,7 @@
 
 #include <cstring>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "Common/File.h"
@@ -16,6 +17,11 @@
 DolReader::DolReader(const std::vector<u8>& buffer) : BootExecutableReader(buffer)
 {
   m_is_valid = Initialize(buffer);
+}
+
+DolReader::DolReader(File::IOFile file) : BootExecutableReader(std::move(file))
+{
+  m_is_valid = Initialize(m_bytes);
 }
 
 DolReader::DolReader(const std::string& filename) : BootExecutableReader(filename)
