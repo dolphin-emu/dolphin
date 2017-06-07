@@ -39,6 +39,7 @@
     <ClCompile Include="Blob.cpp" />
     <ClCompile Include="CISOBlob.cpp" />
     <ClCompile Include="CompressedBlob.cpp" />
+    <ClCompile Include="DirectoryBlob.cpp" />
     <ClCompile Include="DiscExtractor.cpp" />
     <ClCompile Include="DiscScrubber.cpp" />
     <ClCompile Include="DriveBlob.cpp" />
@@ -50,7 +51,6 @@
     <ClCompile Include="NANDImporter.cpp" />
     <ClCompile Include="TGCBlob.cpp" />
     <ClCompile Include="Volume.cpp" />
-    <ClCompile Include="VolumeDirectory.cpp" />
     <ClCompile Include="VolumeGC.cpp" />
     <ClCompile Include="VolumeWad.cpp" />
     <ClCompile Include="VolumeWii.cpp" />
@@ -61,6 +61,7 @@
     <ClInclude Include="Blob.h" />
     <ClInclude Include="CISOBlob.h" />
     <ClInclude Include="CompressedBlob.h" />
+    <ClInclude Include="DirectoryBlob.h" />
     <ClInclude Include="DiscExtractor.h" />
     <ClInclude Include="DiscScrubber.h" />
     <ClInclude Include="DriveBlob.h" />
@@ -72,7 +73,6 @@
     <ClInclude Include="NANDImporter.h" />
     <ClInclude Include="TGCBlob.h" />
     <ClInclude Include="Volume.h" />
-    <ClInclude Include="VolumeDirectory.h" />
     <ClInclude Include="VolumeGC.h" />
     <ClInclude Include="VolumeWad.h" />
     <ClInclude Include="VolumeWii.h" />

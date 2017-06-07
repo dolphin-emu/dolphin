@@ -22,7 +22,6 @@
 
 #include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
-#include "DiscIO/VolumeDirectory.h"
 #include "DiscIO/VolumeGC.h"
 #include "DiscIO/VolumeWad.h"
 #include "DiscIO/VolumeWii.h"
@@ -109,16 +108,6 @@ std::unique_ptr<Volume> CreateVolumeFromFilename(const std::string& filename)
     return std::make_unique<VolumeGC>(std::move(reader));
 
   // No known magic words found
-  return nullptr;
-}
-
-std::unique_ptr<Volume> CreateVolumeFromDirectory(const std::string& directory, bool is_wii,
-                                                  const std::string& apploader,
-                                                  const std::string& dol)
-{
-  if (VolumeDirectory::IsValidDirectory(directory))
-    return std::make_unique<VolumeDirectory>(directory, is_wii, apploader, dol);
-
   return nullptr;
 }
 
