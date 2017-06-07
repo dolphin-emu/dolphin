@@ -124,6 +124,9 @@ bool VolumeWii::Read(u64 _ReadOffset, u64 _Length, u8* _pBuffer, const Partition
   if (partition == PARTITION_NONE)
     return m_pReader->Read(_ReadOffset, _Length, _pBuffer);
 
+  if (m_pReader->SupportsReadWiiDecrypted())
+    return m_pReader->ReadWiiDecrypted(_ReadOffset, _Length, _pBuffer, partition.offset);
+
   // Get the decryption key for the partition
   auto it = m_partition_keys.find(partition);
   if (it == m_partition_keys.end())
