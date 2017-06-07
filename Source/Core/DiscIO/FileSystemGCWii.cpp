@@ -185,15 +185,16 @@ bool FileInfoGCWii::IsValid(u64 fst_size, const FileInfoGCWii& parent_directory)
 }
 
 FileSystemGCWii::FileSystemGCWii(const Volume* volume, const Partition& partition)
-    : FileSystem(volume, partition), m_valid(false), m_offset_shift(0), m_root(nullptr, 0, 0, 0)
+    : FileSystem(volume, partition), m_valid(false), m_root(nullptr, 0, 0, 0)
 {
+  u8 offset_shift;
   // Check if this is a GameCube or Wii disc
   if (m_volume->ReadSwapped<u32>(0x18, m_partition) == u32(0x5D1C9EA3))
-    m_offset_shift = 2;  // Wii file system
+    offset_shift = 2;  // Wii file system
   else if (m_volume->ReadSwapped<u32>(0x1c, m_partition) == u32(0xC2339F3D))
-    m_offset_shift = 0;  // GameCube file system
+    offset_shift = 0;  // GameCube file system
   else
-    return;
+    return;  // Invalid partition (maybe someone removed its data but not its partition table entry)
 
   const std::optional<u64> fst_offset = GetFSTOffset(*m_volume, m_partition);
   const std::optional<u64> fst_size = GetFSTSize(*m_volume, m_partition);
@@ -226,7 +227,7 @@ FileSystemGCWii::FileSystemGCWii(const Volume* volume, const Partition& partitio
   }
 
   // Create the root object
-  m_root = FileInfoGCWii(m_file_system_table.data(), m_offset_shift);
+  m_root = FileInfoGCWii(m_file_system_table.data(), offset_shift);
   if (!m_root.IsDirectory())
   {
     ERROR_LOG(DISCIO, "File system root is not a directory");

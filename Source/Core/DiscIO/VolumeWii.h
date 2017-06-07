@@ -64,6 +64,8 @@ public:
   static constexpr unsigned int BLOCK_DATA_SIZE = 0x7C00;
   static constexpr unsigned int BLOCK_TOTAL_SIZE = BLOCK_HEADER_SIZE + BLOCK_DATA_SIZE;
 
+protected:
+  u32 GetOffsetShift() const override { return 2; }
 private:
   struct PartitionDetails
   {
