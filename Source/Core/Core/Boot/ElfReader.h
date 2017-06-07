@@ -21,8 +21,8 @@ typedef int SectionID;
 class ElfReader final : public BootExecutableReader
 {
 public:
-  ElfReader(const std::string& filename);
-  ElfReader(const std::vector<u8>& buffer);
+  explicit ElfReader(const std::string& filename);
+  explicit ElfReader(const std::vector<u8>& buffer);
   ~ElfReader() {}
   u32 Read32(int off) const { return base32[off >> 2]; }
   // Quick accessors
