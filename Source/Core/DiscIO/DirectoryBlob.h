@@ -4,7 +4,9 @@
 
 #pragma once
 
+#include <array>
 #include <cstddef>
+#include <cstdint>
 #include <memory>
 #include <optional>
 #include <set>
@@ -92,6 +94,10 @@ private:
   void WriteDirectory(const File::FSTEntry& parent_entry, u32* fst_offset, u32* name_offset,
                       u64* data_offset, u32 parent_entry_index);
 
+  static const DiscContent& AddFileToContents(std::set<DiscContent>* contents,
+                                              const std::string& path, u64 offset,
+                                              u64 max_size = UINT64_MAX);
+
   std::string m_root_directory;
 
   std::set<DiscContent> m_virtual_disc;
@@ -109,6 +115,7 @@ private:
   std::vector<u8> m_fst_data;
 
   std::vector<u8> m_disk_header;
+  std::array<u32, 2> m_tmd_header;
 
 #pragma pack(push, 1)
   struct SDiskHeaderInfo
