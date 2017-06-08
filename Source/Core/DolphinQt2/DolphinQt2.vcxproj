@@ -50,7 +50,7 @@
       <AdditionalIncludeDirectories>$(ProjectDir)VideoInterface;$(ProjectDir)GameList;$(ProjectDir)Settings;$(ProjectDir)Config;$(ProjectDir)Config\Mapping;$(ProjectDir)QtUtils;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Manifest>
-      <AdditionalManifestFiles>DolphinQt2.manifest;%(AdditionalManifestFiles)</AdditionalManifestFiles>
+      <EnableDpiAwareness>true</EnableDpiAwareness>
     </Manifest>
   </ItemDefinitionGroup>
   <!--MOC files need to be listed. Perhaps scan for Q_OBJECT in the future? (like automoc)-->
