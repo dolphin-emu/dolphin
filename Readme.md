@@ -43,6 +43,9 @@ Visual Studio 2017 is a hard requirement. Other compilers might be
 able to build Dolphin on Windows but have not been tested and are not
 recommended to be used. Git and Windows 10 SDK 10.0.15063.0 must be installed when building.
 
+To build the DolphinQt2 project, you will need to obtain the Qt Submodule
+and place it in the `Externals/Qt` directory.
+
 An installer can be created by using the `Installer.nsi` script in the
 Installer directory. This will require the Nullsoft Scriptable Install System
 (NSIS) to be installed. Creating an installer is not necessary to run Dolphin
