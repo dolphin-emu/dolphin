@@ -154,7 +154,7 @@ void MemoryCheckDlg::OnOK(wxCommandEvent& event)
   bool Log = m_radioLog->GetValue() || m_radioBreakLog->GetValue();
   bool Break = m_radioBreak->GetValue() || m_radioBreakLog->GetValue();
 
-  u32 StartAddress, EndAddress;
+  u32 StartAddress = UINT32_MAX, EndAddress = 0;
   bool EndAddressOK =
       EndAddressString.Len() && AsciiToHex(WxStrToStr(EndAddressString), EndAddress);
 

@@ -20,7 +20,7 @@ MenuBar::MenuBar(QWidget* parent) : QMenuBar(parent)
   AddFileMenu();
   AddEmulationMenu();
   addMenu(tr("Movie"));
-  addMenu(tr("Options"));
+  AddOptionsMenu();
   AddToolsMenu();
   AddViewMenu();
   AddHelpMenu();
@@ -169,6 +169,12 @@ void MenuBar::AddViewMenu()
   AddGameListTypeSection(view_menu);
   view_menu->addSeparator();
   AddTableColumnsMenu(view_menu);
+}
+
+void MenuBar::AddOptionsMenu()
+{
+  QMenu* options_menu = addMenu(tr("Options"));
+  options_menu->addAction(tr("Hotkey Settings"), this, &MenuBar::ConfigureHotkeys);
 }
 
 void MenuBar::AddHelpMenu()

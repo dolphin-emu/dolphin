@@ -42,7 +42,7 @@ u32 CDump::GetGPR(int _step, int _gpr)
   u32 offset = _step * STRUCTUR_SIZE;
 
   if (offset >= m_size)
-    return -1;
+    return UINT32_MAX;
 
   return Read32(offset + OFFSET_GPR + (_gpr * 4));
 }
@@ -52,7 +52,7 @@ u32 CDump::GetPC(int _step)
   u32 offset = _step * STRUCTUR_SIZE;
 
   if (offset >= m_size)
-    return -1;
+    return UINT32_MAX;
 
   return Read32(offset + OFFSET_PC);
 }

@@ -4,12 +4,14 @@
 
 #include "Core/HW/GCMemcard/GCMemcardDirectory.h"
 
+#include <algorithm>
 #include <chrono>
 #include <cinttypes>
 #include <cstring>
 #include <memory>
 #include <mutex>
 #include <string>
+#include <vector>
 
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"

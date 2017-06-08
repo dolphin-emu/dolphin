@@ -18,7 +18,7 @@
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
-#include "Core/Boot/Boot_DOL.h"
+#include "Core/Boot/DolReader.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -282,14 +282,15 @@ bool Kernel::BootstrapPPC(const DiscIO::NANDContentLoader& content_loader)
   if (!content)
     return false;
 
-  const auto dol_loader = std::make_unique<CDolLoader>(content->m_Data->Get());
+  const auto dol_loader = std::make_unique<DolReader>(content->m_Data->Get());
   if (!dol_loader->IsValid())
     return false;
 
   if (!SetupMemory(m_title_id, MemorySetupType::Full))
     return false;
 
-  dol_loader->Load();
+  if (!dol_loader->LoadIntoMemory())
+    return false;
 
   // NAND titles start with address translation off at 0x3400 (via the PPC bootstub)
   // The state of other CPU registers (like the BAT registers) doesn't matter much

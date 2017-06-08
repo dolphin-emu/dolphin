@@ -76,6 +76,11 @@ NetIPTop::~NetIPTop()
 #endif
 }
 
+static constexpr u32 inet_addr(u8 a, u8 b, u8 c, u8 d)
+{
+  return (static_cast<u32>(a) << 24) | (static_cast<u32>(b) << 16) | (static_cast<u32>(c) << 8) | d;
+}
+
 static int inet_pton(const char* src, unsigned char* dst)
 {
   int saw_digit, octets;
@@ -431,7 +436,7 @@ IPCCommandResult NetIPTop::HandleGetHostIDRequest(const IOCtlRequest& request)
 
 #ifdef _WIN32
   DWORD forwardTableSize, ipTableSize, result;
-  DWORD ifIndex = -1;
+  NET_IFINDEX ifIndex = NET_IFINDEX_UNSPECIFIED;
   std::unique_ptr<MIB_IPFORWARDTABLE> forwardTable;
   std::unique_ptr<MIB_IPADDRTABLE> ipTable;
 
@@ -462,13 +467,14 @@ IPCCommandResult NetIPTop::HandleGetHostIDRequest(const IOCtlRequest& request)
       }
     }
 
-    if (result == NO_ERROR || ifIndex != -1)
+    if (result == NO_ERROR || ifIndex != NET_IFINDEX_UNSPECIFIED)
       break;
 
     result = GetIpForwardTable(forwardTable.get(), &forwardTableSize, FALSE);
   }
 
-  if (ifIndex != -1 && GetIpAddrTable(ipTable.get(), &ipTableSize, FALSE) == NO_ERROR)
+  if (ifIndex != NET_IFINDEX_UNSPECIFIED &&
+      GetIpAddrTable(ipTable.get(), &ipTableSize, FALSE) == NO_ERROR)
   {
     for (DWORD i = 0; i < ipTable->dwNumEntries; ++i)
     {
@@ -817,9 +823,9 @@ IPCCommandResult NetIPTop::HandleGetInterfaceOptRequest(const IOCtlVRequest& req
 
   case 0x4003:  // ip addr table
     Memory::Write_U32(0xC, request.io_vectors[1].address);
-    Memory::Write_U32(10 << 24 | 1 << 8 | 30, request.io_vectors[0].address);
-    Memory::Write_U32(255 << 24 | 255 << 16 | 255 << 8 | 0, request.io_vectors[0].address + 4);
-    Memory::Write_U32(10 << 24 | 0 << 16 | 255 << 8 | 255, request.io_vectors[0].address + 8);
+    Memory::Write_U32(inet_addr(10, 0, 1, 30), request.io_vectors[0].address);
+    Memory::Write_U32(inet_addr(255, 255, 255, 0), request.io_vectors[0].address + 4);
+    Memory::Write_U32(inet_addr(10, 0, 255, 255), request.io_vectors[0].address + 8);
     break;
 
   case 0x4005:  // hardcoded value

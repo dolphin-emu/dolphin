@@ -154,6 +154,12 @@
     <Filter Include="IOS\WFS">
       <UniqueIdentifier>{1fa9df3e-6741-4045-b2f6-457b4a0540a9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Config">
+      <UniqueIdentifier>{a3d4778e-1891-458e-9bd1-009c2f5e8ed9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="PowerPC\SignatureDB">
+      <UniqueIdentifier>{f0b52c84-49f4-470a-b037-edeea5634b9e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BootManager.cpp" />
@@ -182,13 +188,10 @@
     <ClCompile Include="Boot\Boot_BS2Emu.cpp">
       <Filter>Boot</Filter>
     </ClCompile>
-    <ClCompile Include="Boot\Boot_DOL.cpp">
-      <Filter>Boot</Filter>
-    </ClCompile>
-    <ClCompile Include="Boot\Boot_ELF.cpp">
-      <Filter>Boot</Filter>
-    </ClCompile>
     <ClCompile Include="Boot\Boot_WiiWAD.cpp">
+      <Filter>Boot</Filter>
+    </ClCompile>
+    <ClCompile Include="Boot\DolReader.cpp">
       <Filter>Boot</Filter>
     </ClCompile>
     <ClCompile Include="Boot\ElfReader.cpp">
@@ -293,7 +296,7 @@
     <ClCompile Include="HLE\HLE_OS.cpp">
       <Filter>HLE</Filter>
     </ClCompile>
-    <ClCompile Include="HLE\HLE_VarArgs.cpp" />
+    <ClCompile Include="HLE\HLE_VarArgs.cpp">
       <Filter>HLE</Filter>
     </ClCompile>
     <ClCompile Include="PowerPC\BreakPoints.cpp">
@@ -690,10 +693,18 @@
       <Filter>PowerPC\Jit64Common</Filter>
     </ClCompile>
     <ClCompile Include="Analytics.cpp" />
-    <ClCompile Include="PowerPC\SignatureDB\CSVSignatureDB.cpp" />
-    <ClCompile Include="PowerPC\SignatureDB\DSYSignatureDB.cpp" />
-    <ClCompile Include="PowerPC\SignatureDB\MEGASignatureDB.cpp" />
-    <ClCompile Include="PowerPC\SignatureDB\SignatureDB.cpp" />
+    <ClCompile Include="PowerPC\SignatureDB\CSVSignatureDB.cpp">
+      <Filter>PowerPC\SignatureDB</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\SignatureDB\DSYSignatureDB.cpp">
+      <Filter>PowerPC\SignatureDB</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\SignatureDB\MEGASignatureDB.cpp">
+      <Filter>PowerPC\SignatureDB</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\SignatureDB\SignatureDB.cpp">
+      <Filter>PowerPC\SignatureDB</Filter>
+    </ClCompile>
     <ClCompile Include="IOS\USB\Bluetooth\BTBase.cpp">
       <Filter>IOS\USB\Bluetooth</Filter>
     </ClCompile>
@@ -781,9 +792,6 @@
     <ClCompile Include="IOS\Network\KD\NWC24Config.cpp">
       <Filter>IOS\Network\KD</Filter>
     </ClCompile>
-    <ClCompile Include="IOS\Network\NCD\Config.cpp">
-      <Filter>IOS\Network\NCD</Filter>
-    </ClCompile>
     <ClCompile Include="IOS\Network\NCD\Manage.cpp">
       <Filter>IOS\Network\NCD</Filter>
     </ClCompile>
@@ -859,8 +867,15 @@
     <ClCompile Include="ConfigLoaders\IsSettingSaveable.cpp">
       <Filter>ConfigLoader</Filter>
     </ClCompile>
-    <ClCompile Include="Config\Config.cpp" />
-    <ClCompile Include="Config\GraphicsSettings.cpp" />
+    <ClCompile Include="Config\Config.cpp">
+      <Filter>Config</Filter>
+    </ClCompile>
+    <ClCompile Include="Config\GraphicsSettings.cpp">
+      <Filter>Config</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\Network\NCD\WiiNetConfig.cpp">
+      <Filter>IOS\Network\NCD</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BootManager.h" />
@@ -888,7 +903,7 @@
     <ClInclude Include="Boot\Boot.h">
       <Filter>Boot</Filter>
     </ClInclude>
-    <ClInclude Include="Boot\Boot_DOL.h">
+    <ClInclude Include="Boot\DolReader.h">
       <Filter>Boot</Filter>
     </ClInclude>
     <ClInclude Include="Boot\ElfReader.h">
@@ -1337,10 +1352,18 @@
       <Filter>PowerPC\Jit64Common</Filter>
     </ClInclude>
     <ClInclude Include="Analytics.h" />
-    <ClInclude Include="PowerPC\SignatureDB\CSVSignatureDB.h" />
-    <ClInclude Include="PowerPC\SignatureDB\DSYSignatureDB.h" />
-    <ClInclude Include="PowerPC\SignatureDB\MEGASignatureDB.h" />
-    <ClInclude Include="PowerPC\SignatureDB\SignatureDB.h" />
+    <ClInclude Include="PowerPC\SignatureDB\CSVSignatureDB.h">
+      <Filter>PowerPC\SignatureDB</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\SignatureDB\DSYSignatureDB.h">
+      <Filter>PowerPC\SignatureDB</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\SignatureDB\MEGASignatureDB.h">
+      <Filter>PowerPC\SignatureDB</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\SignatureDB\SignatureDB.h">
+      <Filter>PowerPC\SignatureDB</Filter>
+    </ClInclude>
     <ClInclude Include="IOS\USB\Bluetooth\BTBase.h">
       <Filter>IOS\USB\Bluetooth</Filter>
     </ClInclude>
@@ -1406,9 +1429,6 @@
     </ClInclude>
     <ClInclude Include="IOS\Network\KD\NWC24Config.h">
       <Filter>IOS\Network\KD</Filter>
-    </ClInclude>
-    <ClInclude Include="IOS\Network\NCD\Config.h">
-      <Filter>IOS\Network\NCD</Filter>
     </ClInclude>
     <ClInclude Include="IOS\Network\NCD\Manage.h">
       <Filter>IOS\Network\NCD</Filter>
@@ -1497,10 +1517,17 @@
     <ClInclude Include="ConfigLoaders\NetPlayConfigLoader.h">
       <Filter>ConfigLoader</Filter>
     </ClInclude>
-    <ClInclude Include="Config\Config.h" />
-    <ClInclude Include="Config\GraphicsSettings.h" />
     <ClInclude Include="ConfigLoaders\IsSettingSaveable.h">
       <Filter>ConfigLoader</Filter>
+    </ClInclude>
+    <ClInclude Include="Config\Config.h">
+      <Filter>Config</Filter>
+    </ClInclude>
+    <ClInclude Include="Config\GraphicsSettings.h">
+      <Filter>Config</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\Network\NCD\WiiNetConfig.h">
+      <Filter>IOS\Network\NCD</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

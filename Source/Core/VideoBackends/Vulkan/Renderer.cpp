@@ -1106,7 +1106,7 @@ void Renderer::CheckForSurfaceChange()
 void Renderer::CheckForConfigChanges()
 {
   // Save the video config so we can compare against to determine which settings have changed.
-  int old_multisamples = g_ActiveConfig.iMultisamples;
+  u32 old_multisamples = g_ActiveConfig.iMultisamples;
   int old_anisotropy = g_ActiveConfig.iMaxAnisotropy;
   int old_stereo_mode = g_ActiveConfig.iStereoMode;
   int old_aspect_ratio = g_ActiveConfig.iAspectRatio;

@@ -7,6 +7,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <vector>
 
 #include "AudioCommon/AudioCommon.h"
 
@@ -348,8 +349,8 @@ static void DTKStreamingCallback(const std::vector<u8>& audio_data, s64 cycles_l
 
   // Determine which audio data to read next.
   static const int MAXIMUM_SAMPLES = 48000 / 2000 * 7;  // 3.5ms of 48kHz samples
-  u64 read_offset;
-  u32 read_length;
+  u64 read_offset = 0;
+  u32 read_length = 0;
   if (s_stream && AudioInterface::IsPlaying())
   {
     read_offset = s_audio_position;
@@ -1213,9 +1214,8 @@ void ScheduleReads(u64 offset, u32 length, const DiscIO::Partition& partition, u
   u32 buffered_blocks = 0;
   u32 unbuffered_blocks = 0;
 
-  const u32 bytes_per_chunk = partition == DiscIO::PARTITION_NONE ?
-                                  DVD_ECC_BLOCK_SIZE :
-                                  DiscIO::VolumeWii::BLOCK_DATA_SIZE;
+  const u32 bytes_per_chunk =
+      partition == DiscIO::PARTITION_NONE ? DVD_ECC_BLOCK_SIZE : DiscIO::VolumeWii::BLOCK_DATA_SIZE;
 
   while (length > 0)
   {

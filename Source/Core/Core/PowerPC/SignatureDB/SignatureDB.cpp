@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <memory>
 #include <string>
 
 #include "Common/CommonTypes.h"

@@ -14,6 +14,8 @@
 #include "DolphinQt2/RenderWidget.h"
 #include "DolphinQt2/ToolBar.h"
 
+class HotkeyScheduler;
+class MappingWindow;
 class SettingsWindow;
 class ControllersWindow;
 
@@ -58,6 +60,7 @@ private:
   void CreateComponents();
 
   void ConnectGameList();
+  void ConnectHotkeys();
   void ConnectMenuBar();
   void ConnectRenderWidget();
   void ConnectStack();
@@ -73,6 +76,7 @@ private:
   void ShowSettingsWindow();
   void ShowControllersWindow();
   void ShowAboutDialog();
+  void ShowHotkeyDialog();
 
   QStackedWidget* m_stack;
   ToolBar* m_tool_bar;
@@ -82,6 +86,8 @@ private:
   bool m_rendering_to_main;
   int m_state_slot = 1;
 
+  HotkeyScheduler* m_hotkey_scheduler;
   ControllersWindow* m_controllers_window;
   SettingsWindow* m_settings_window;
+  MappingWindow* m_hotkey_window;
 };

@@ -25,6 +25,7 @@
 #include "Common/Logging/LogManager.h"
 #include "Common/MsgHandler.h"
 
+#include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -794,7 +795,7 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run(JNIEnv* 
 
   // No use running the loop when booting fails
   s_have_wm_user_stop = false;
-  if (BootManager::BootCore(s_filename.c_str(), SConfig::BOOT_DEFAULT))
+  if (BootManager::BootCore(BootParameters::GenerateFromFile(s_filename)))
   {
     static constexpr int TIMEOUT = 10000;
     static constexpr int WAIT_STEP = 25;

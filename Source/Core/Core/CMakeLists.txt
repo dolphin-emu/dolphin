@@ -21,9 +21,8 @@ set(SRCS
   WiiRoot.cpp
   Boot/Boot_BS2Emu.cpp
   Boot/Boot.cpp
-  Boot/Boot_DOL.cpp
-  Boot/Boot_ELF.cpp
   Boot/Boot_WiiWAD.cpp
+  Boot/DolReader.cpp
   Boot/ElfReader.cpp
   Config/Config.cpp
   Config/GraphicsSettings.cpp
@@ -174,7 +173,7 @@ set(SRCS
   IOS/Network/KD/NetKDRequest.cpp
   IOS/Network/KD/NetKDTime.cpp
   IOS/Network/KD/NWC24Config.cpp
-  IOS/Network/NCD/Config.cpp
+  IOS/Network/NCD/WiiNetConfig.cpp
   IOS/Network/NCD/Manage.cpp
   IOS/Network/WD/Command.cpp
   IOS/SDIO/SDIOSlot0.cpp

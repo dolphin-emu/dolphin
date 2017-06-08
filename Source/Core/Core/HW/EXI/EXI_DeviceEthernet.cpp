@@ -4,6 +4,7 @@
 
 #include "Core/HW/EXI/EXI_DeviceEthernet.h"
 
+#include <memory>
 #include <string>
 
 #include "Common/ChunkFile.h"

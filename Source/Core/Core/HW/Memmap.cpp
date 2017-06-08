@@ -7,6 +7,7 @@
 // However, if a JITed instruction (for example lwz) wants to access a bad memory area that call
 // may be redirected here (for example to Read_U32()).
 
+#include <algorithm>
 #include <cstring>
 #include <memory>
 
@@ -98,7 +99,7 @@ struct PhysicalMemoryRegion
   u8** out_pointer;
   u32 physical_address;
   u32 size;
-  enum
+  enum : u32
   {
     ALWAYS = 0,
     FAKE_VMEM = 1,

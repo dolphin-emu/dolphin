@@ -41,31 +41,18 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros">
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LinkIncremental>true</LinkIncremental>
-  </PropertyGroup>
   <ItemDefinitionGroup>
     <Link>
       <AdditionalLibraryDirectories>$(ExternalsDir)ffmpeg\lib;$(ExternalsDir)OpenAL\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>avrt.lib;iphlpapi.lib;winmm.lib;setupapi.lib;opengl32.lib;glu32.lib;rpcrt4.lib;comctl32.lib;avcodec.lib;avformat.lib;avutil.lib;swresample.lib;swscale.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <!--TODO fix up ffmpeg garbage-->
-      <AdditionalOptions>/NODEFAULTLIB:libcmt %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(ProjectDir)\VideoInterface;$(ProjectDir)\GameList;$(ProjectDir)\Settings;$(ProjectDir)\Config;$(ProjectDir)\Config\Mapping;$(ProjectDir)\QtUtils;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)VideoInterface;$(ProjectDir)GameList;$(ProjectDir)Settings;$(ProjectDir)Config;$(ProjectDir)Config\Mapping;$(ProjectDir)QtUtils;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Manifest>
       <AdditionalManifestFiles>DolphinQt2.manifest;%(AdditionalManifestFiles)</AdditionalManifestFiles>
     </Manifest>
   </ItemDefinitionGroup>
-  <!--QRC and UI files are handled automatically-->
-  <ItemGroup>
-    <QtResource Include="*.qrc" />
-  </ItemGroup>
-  <ItemGroup>
-    <QtUi Include="*.ui" />
-    <QtUi Include="GameList\*.ui" />
-  </ItemGroup>
   <!--MOC files need to be listed. Perhaps scan for Q_OBJECT in the future? (like automoc)-->
   <!--NOTE: When adding moc'd files, you must list the outputs in the following ItemGroup!-->
   <ItemGroup>
@@ -83,11 +70,13 @@
     <QtMoc Include="GameList\GameTracker.h" />
     <QtMoc Include="GameList\ListProxyModel.h" />
     <QtMoc Include="Host.h" />
+    <QtMoc Include="HotkeyScheduler.h" />
     <QtMoc Include="InDevelopmentWarning.h" />
     <QtMoc Include="Settings\InterfacePane.h" />
     <QtMoc Include="MainWindow.h" />
     <QtMoc Include="MenuBar.h" />
     <QtMoc Include="QtUtils\DoubleClickEventFilter.h" />
+    <QtMoc Include="QtUtils\FocusEventFilter.h" />
     <QtMoc Include="RenderWidget.h" />
     <QtMoc Include="Settings.h" />
     <QtMoc Include="Settings\GeneralPane.h" />
@@ -98,12 +87,14 @@
     <ClCompile Include="$(QtMocOutPrefix)AboutDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)ControllersWindow.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)FilesystemWidget.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)FocusEventFilter.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GameFile.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GameList.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GameListModel.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GameTracker.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GeneralPane.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)Host.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)HotkeyScheduler.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)InDevelopmentWarning.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)InfoWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)InterfacePane.cpp" />
@@ -125,6 +116,12 @@
     <ClCompile Include="Config\Mapping\GCKeyboardEmu.cpp" />
     <ClCompile Include="Config\Mapping\GCPadEmu.cpp" />
     <ClCompile Include="Config\Mapping\GCPadWiiU.cpp" />
+    <ClCompile Include="Config\Mapping\Hotkey3D.cpp" />
+    <ClCompile Include="Config\Mapping\HotkeyGeneral.cpp" />
+    <ClCompile Include="Config\Mapping\HotkeyGraphics.cpp" />
+    <ClCompile Include="Config\Mapping\HotkeyStates.cpp" />
+    <ClCompile Include="Config\Mapping\HotkeyTAS.cpp" />
+    <ClCompile Include="Config\Mapping\HotkeyWii.cpp" />
     <ClCompile Include="Config\Mapping\MappingBool.cpp" />
     <ClCompile Include="Config\Mapping\MappingButton.cpp" />
     <ClCompile Include="Config\Mapping\MappingNumeric.cpp" />
@@ -140,6 +137,7 @@
     <ClCompile Include="GameList\GameListModel.cpp" />
     <ClCompile Include="GameList\GameTracker.cpp" />
     <ClCompile Include="GameList\ListProxyModel.cpp" />
+    <ClCompile Include="HotkeyScheduler.cpp" />
     <ClCompile Include="Host.cpp" />
     <ClCompile Include="InDevelopmentWarning.cpp" />
     <ClCompile Include="Main.cpp" />
@@ -147,6 +145,7 @@
     <ClCompile Include="MenuBar.cpp" />
     <ClCompile Include="QtUtils\DoubleClickEventFilter.cpp" />
     <ClCompile Include="QtUtils\ElidedButton.cpp" />
+    <ClCompile Include="QtUtils\FocusEventFilter.cpp" />
     <ClCompile Include="RenderWidget.cpp" />
     <ClCompile Include="Resources.cpp" />
     <ClCompile Include="Settings.cpp" />
@@ -156,11 +155,9 @@
     <ClCompile Include="ToolBar.cpp" />
   </ItemGroup>
   <!--Put standard C/C++ headers here-->
-  <!--
   <ItemGroup>
-    <ClInclude Include="Main.h" />
+    <ClInclude Include="Resources.h" />
   </ItemGroup>
-  -->
   <ItemGroup>
     <Text Include="CMakeLists.txt" />
   </ItemGroup>
@@ -216,10 +213,10 @@
     <ProjectReference Include="$(CoreDir)UICommon\UICommon.vcxproj">
       <Project>{604C8368-F34A-4D55-82C8-CC92A0C13254}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Languages\Languages.vcxproj">
+    <ProjectReference Include="$(DolphinRootDir)Languages\Languages.vcxproj">
       <Project>{0e033be3-2e08-428e-9ae9-bc673efa12b5}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\VideoBackends\Vulkan\Vulkan.vcxproj">
+    <ProjectReference Include="$(CoreDir)VideoBackends\Vulkan\Vulkan.vcxproj">
       <Project>{29f29a19-f141-45ad-9679-5a2923b49da3}</Project>
     </ProjectReference>
   </ItemGroup>
@@ -235,10 +232,6 @@
     <BinaryFiles Include="$(TargetPath)" />
     <AllInputFiles Include="@(DataSysFiles);@(DataTxtFiles);@(ExternalDlls);@(BinaryFiles)" />
   </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Resources.h" />
-  </ItemGroup>
-  <!--Disable copying to binary dir for now on the buildbot to prevent packaging of the outputs-->
   <Target Name="AfterBuild" Inputs="@(AllInputFiles)" Outputs="@(AllInputFiles -> '$(BinaryOutputDir)%(RecursiveDir)%(Filename)%(Extension)')">
     <Message Text="Copying Data directory..." Importance="High" />
     <Copy SourceFiles="@(DataSysFiles)" DestinationFolder="$(BinaryOutputDir)%(RecursiveDir)" Condition="!Exists('$(BinaryOutputDir)%(RecursiveDir)%(Filename)%(DataSysFiles.Extension)') OR $([System.DateTime]::Parse('%(ModifiedTime)').Ticks) &gt; $([System.IO.File]::GetLastWriteTime('$(BinaryOutputDir)%(RecursiveDir)%(Filename)%(DataSysFiles.Extension)').Ticks)" />

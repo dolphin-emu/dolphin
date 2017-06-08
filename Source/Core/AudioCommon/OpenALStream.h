@@ -42,19 +42,23 @@
 #define FRAME_SURROUND_INT32 SURROUND_CHANNELS* SIZE_INT32
 #endif
 
-#if defined(__APPLE__)
-// OS X does not have the alext AL_FORMAT_STEREO_FLOAT32, AL_FORMAT_STEREO32,
-// AL_FORMAT_51CHN32 and AL_FORMAT_51CHN16 yet.
-#define AL_FORMAT_STEREO_FLOAT32 0
-#define AL_FORMAT_STEREO32 0
-#define AL_FORMAT_51CHN32 0
-#define AL_FORMAT_51CHN16 0
-#elif defined(_WIN32)
+// From AL_EXT_float32
+#ifndef AL_FORMAT_STEREO_FLOAT32
+#define AL_FORMAT_STEREO_FLOAT32 0x10011
+#endif
+
+// From AL_EXT_MCFORMATS
+#ifndef AL_FORMAT_51CHN16
+#define AL_FORMAT_51CHN16 0x120B
+#endif
+#ifndef AL_FORMAT_51CHN32
+#define AL_FORMAT_51CHN32 0x120C
+#endif
+
 // Only X-Fi on Windows supports the alext AL_FORMAT_STEREO32 alext for now,
 // but it is not documented or in "OpenAL/include/al.h".
+#ifndef AL_FORMAT_STEREO32
 #define AL_FORMAT_STEREO32 0x1203
-#else
-#define AL_FORMAT_STEREO32 0
 #endif
 
 class OpenALStream final : public SoundStream

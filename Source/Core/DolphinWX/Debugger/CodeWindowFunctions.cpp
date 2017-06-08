@@ -146,11 +146,12 @@ void CCodeWindow::OnProfilerMenu(wxCommandEvent& event)
       File::CreateFullPath(filename);
       Profiler::WriteProfileResults(filename);
 
-      wxFileType* filetype = nullptr;
-      if (!(filetype = wxTheMimeTypesManager->GetFileTypeFromExtension("txt")))
+      wxFileType* filetype = wxTheMimeTypesManager->GetFileTypeFromExtension("txt");
+      if (!filetype)
       {
         // From extension failed, trying with MIME type now
-        if (!(filetype = wxTheMimeTypesManager->GetFileTypeFromMimeType("text/plain")))
+        filetype = wxTheMimeTypesManager->GetFileTypeFromMimeType("text/plain");
+        if (!filetype)
           // MIME type failed, aborting mission
           break;
       }
@@ -173,8 +174,9 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
   if (!Core::IsRunning())
     return;
 
-  std::string existing_map_file, writable_map_file, title_id_str;
-  bool map_exists = CBoot::FindMapFile(&existing_map_file, &writable_map_file, &title_id_str);
+  const std::string& title_id_str = SConfig::GetInstance().m_debugger_game_id;
+  std::string existing_map_file, writable_map_file;
+  bool map_exists = CBoot::FindMapFile(&existing_map_file, &writable_map_file);
   switch (event.GetId())
   {
   case IDM_CLEAR_SYMBOLS:

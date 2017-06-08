@@ -3,6 +3,9 @@
 // Refer to the license.txt file included.
 
 #include "Core/IOS/MemoryValues.h"
+
+#include <array>
+
 #include "Common/CommonTypes.h"
 
 namespace IOS

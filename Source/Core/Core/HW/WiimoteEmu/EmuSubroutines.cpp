@@ -16,6 +16,7 @@
    0x30 - 0x3f   Input    This file: Update() */
 
 #include <fstream>
+#include <mutex>
 #include <queue>
 #include <string>
 #include <vector>

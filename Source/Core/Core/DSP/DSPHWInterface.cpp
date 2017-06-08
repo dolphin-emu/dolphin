@@ -5,6 +5,7 @@
 
 #include "Core/DSP/DSPHWInterface.h"
 
+#include <atomic>
 #include <cstddef>
 #include <cstring>
 

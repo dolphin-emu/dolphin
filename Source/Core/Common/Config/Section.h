@@ -27,6 +27,7 @@ class Section
 
 public:
   Section(LayerType layer, System system, const std::string& name);
+  virtual ~Section() = default;
 
   virtual bool Exists(const std::string& key) const;
   bool Delete(const std::string& key);

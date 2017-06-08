@@ -12,6 +12,7 @@
 #include <cinttypes>
 #include <cstdio>
 #include <cstring>
+#include <string>
 
 #include <mbedtls/sha1.h>
 

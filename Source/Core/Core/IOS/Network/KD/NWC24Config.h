@@ -13,7 +13,7 @@ namespace HLE
 {
 namespace NWC24
 {
-enum ErrorCode : int
+enum ErrorCode : s32
 {
   WC24_OK = 0,
   WC24_ERR_FATAL = -1,

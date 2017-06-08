@@ -77,10 +77,10 @@ u64 FileSystemGCWii::ReadFile(const std::string& _rFullPath, u8* _pBuffer, u64 _
 
   u64 read_length = std::min(_MaxBufferSize, pFileInfo->m_FileSize - _OffsetInFile);
 
-  DEBUG_LOG(
-      DISCIO,
-      "Reading %" PRIx64 " bytes at %" PRIx64 " from file %s. Offset: %" PRIx64 " Size: %" PRIx64,
-      read_length, _OffsetInFile, _rFullPath.c_str(), pFileInfo->m_Offset, pFileInfo->m_FileSize);
+  DEBUG_LOG(DISCIO, "Reading %" PRIx64 " bytes at %" PRIx64 " from file %s. Offset: %" PRIx64
+                    " Size: %" PRIx64,
+            read_length, _OffsetInFile, _rFullPath.c_str(), pFileInfo->m_Offset,
+            pFileInfo->m_FileSize);
 
   m_rVolume->Read(pFileInfo->m_Offset + _OffsetInFile, read_length, _pBuffer, m_partition);
   return read_length;
@@ -155,7 +155,7 @@ bool FileSystemGCWii::ExportApploader(const std::string& _rExportFolder) const
 std::optional<u64> FileSystemGCWii::GetBootDOLOffset() const
 {
   std::optional<u32> offset = m_rVolume->ReadSwapped<u32>(0x420, m_partition);
-  return offset ? static_cast<u64>(*offset) << 2 : std::optional<u64>();
+  return offset ? static_cast<u64>(*offset) << m_offset_shift : std::optional<u64>();
 }
 
 std::optional<u32> FileSystemGCWii::GetBootDOLSize(u64 dol_offset) const

@@ -51,6 +51,8 @@ enum GPUDeterminismMode
   GPU_DETERMINISM_FAKE_COMPLETION,
 };
 
+struct BootParameters;
+
 struct SConfig : NonCopyable
 {
   // Wii Devices
@@ -129,6 +131,7 @@ struct SConfig : NonCopyable
   bool bOverrideGCLanguage = false;
 
   bool bWii = false;
+  bool m_is_mios = false;
 
   // Interface settings
   bool bConfirmStop = false;
@@ -181,26 +184,6 @@ struct SConfig : NonCopyable
   bool bEnableCustomRTC;
   u32 m_customRTCValue;
 
-  enum EBootBS2
-  {
-    BOOT_DEFAULT,
-    BOOT_BS2_JAP,
-    BOOT_BS2_USA,
-    BOOT_BS2_EUR,
-  };
-
-  enum EBootType
-  {
-    BOOT_ISO,
-    BOOT_ELF,
-    BOOT_DOL,
-    BOOT_WII_NAND,
-    BOOT_MIOS,
-    BOOT_BS2,
-    BOOT_DFF
-  };
-
-  EBootType m_BootType;
   DiscIO::Region m_region;
 
   std::string m_strVideoBackend;
@@ -210,7 +193,6 @@ struct SConfig : NonCopyable
   GPUDeterminismMode m_GPUDeterminismMode;
 
   // files
-  std::string m_strFilename;
   std::string m_strBootROM;
   std::string m_strSRAM;
   std::string m_strDefaultISO;
@@ -219,6 +201,10 @@ struct SConfig : NonCopyable
   std::string m_strWiiSDCardPath;
 
   std::string m_perfDir;
+
+  std::string m_debugger_game_id;
+  // TODO: remove this as soon as the ticket view hack in IOS/ES/Views is dropped.
+  bool m_disc_booted_from_game_list = false;
 
   const std::string& GetGameID() const { return m_game_id; }
   const std::string& GetTitleDescription() const { return m_title_description; }
@@ -231,7 +217,7 @@ struct SConfig : NonCopyable
   void LoadDefaults();
   static const char* GetDirectoryForRegion(DiscIO::Region region);
   std::string GetBootROMPath(const std::string& region_directory) const;
-  bool AutoSetup(EBootBS2 _BootBS2);
+  bool SetPathsAndGameMetadata(const BootParameters& boot);
   void CheckMemcardPath(std::string& memcardPath, const std::string& gameRegion, bool isSlotA);
   DiscIO::Language GetCurrentLanguage(bool wii) const;
 
@@ -389,7 +375,6 @@ private:
 
   void SetRunningGameMetadata(const std::string& game_id, u64 title_id, u16 revision,
                               Core::TitleDatabase::TitleType type);
-  bool SetRegion(DiscIO::Region region, std::string* directory_name);
 
   static SConfig* m_Instance;
 

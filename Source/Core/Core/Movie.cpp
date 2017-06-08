@@ -7,12 +7,15 @@
 #include <algorithm>
 #include <array>
 #include <cctype>
+#include <iomanip>
 #include <iterator>
 #include <mbedtls/config.h>
 #include <mbedtls/md.h>
 #include <mutex>
+#include <sstream>
 #include <thread>
 #include <utility>
+#include <variant>
 #include <vector>
 
 #include "Common/Assert.h"
@@ -23,6 +26,7 @@
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
 #include "Common/Timer.h"
+#include "Core/Boot/Boot.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -96,6 +100,8 @@ static std::string s_InputDisplay[8];
 
 static GCManipFunction s_gc_manip_func;
 static WiiManipFunction s_wii_manip_func;
+
+static std::string s_current_file_name;
 
 // NOTE: Host / CPU Thread
 static void EnsureTmpInputSize(size_t bound)
@@ -183,13 +189,13 @@ std::string GetInputDisplay()
 // NOTE: GPU Thread
 std::string GetRTCDisplay()
 {
-  time_t current_time =
-      ExpansionInterface::CEXIIPL::GetEmulatedTime(ExpansionInterface::CEXIIPL::UNIX_EPOCH);
-  tm* gm_time = gmtime(&current_time);
-  char buffer[256];
-  strftime(buffer, sizeof(buffer), "Date/Time: %c\n", gm_time);
+  using ExpansionInterface::CEXIIPL;
+
+  const time_t current_time = CEXIIPL::GetEmulatedTime(CEXIIPL::UNIX_EPOCH);
+  const tm* const gm_time = gmtime(&current_time);
+
   std::stringstream format_time;
-  format_time << buffer;
+  format_time << std::put_time(gm_time, "Date/Time: %c\n");
   return format_time.str();
 }
 
@@ -216,11 +222,19 @@ void FrameUpdate()
   s_bPolled = false;
 }
 
+static void CheckMD5();
+static void GetMD5();
+
 // called when game is booting up, even if no movie is active,
 // but potentially after BeginRecordingInput or PlayInput has been called.
 // NOTE: EmuThread
-void Init()
+void Init(const BootParameters& boot)
 {
+  if (std::holds_alternative<BootParameters::Disc>(boot.parameters))
+    s_current_file_name = std::get<BootParameters::Disc>(boot.parameters).path;
+  else
+    s_current_file_name.clear();
+
   s_bPolled = false;
   s_bFrameStep = false;
   s_bSaveConfig = false;
@@ -1551,8 +1565,11 @@ void GetSettings()
 static const mbedtls_md_info_t* s_md5_info = mbedtls_md_info_from_type(MBEDTLS_MD_MD5);
 
 // NOTE: Entrypoint for own thread
-void CheckMD5()
+static void CheckMD5()
 {
+  if (s_current_file_name.empty())
+    return;
+
   for (int i = 0, n = 0; i < 16; ++i)
   {
     if (tmpHeader.md5[i] != 0)
@@ -1564,7 +1581,7 @@ void CheckMD5()
   Core::DisplayMessage("Verifying checksum...", 2000);
 
   unsigned char gameMD5[16];
-  mbedtls_md_file(s_md5_info, SConfig::GetInstance().m_strFilename.c_str(), gameMD5);
+  mbedtls_md_file(s_md5_info, s_current_file_name.c_str(), gameMD5);
 
   if (memcmp(gameMD5, s_MD5, 16) == 0)
     Core::DisplayMessage("Checksum of current game matches the recorded game.", 2000);
@@ -1573,11 +1590,14 @@ void CheckMD5()
 }
 
 // NOTE: Entrypoint for own thread
-void GetMD5()
+static void GetMD5()
 {
+  if (s_current_file_name.empty())
+    return;
+
   Core::DisplayMessage("Calculating checksum of game file...", 2000);
   memset(s_MD5, 0, sizeof(s_MD5));
-  mbedtls_md_file(s_md5_info, SConfig::GetInstance().m_strFilename.c_str(), s_MD5);
+  mbedtls_md_file(s_md5_info, s_current_file_name.c_str(), s_MD5);
   Core::DisplayMessage("Finished calculating checksum.", 2000);
 }
 

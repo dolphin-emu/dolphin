@@ -4,13 +4,16 @@
 
 #pragma once
 
+#include <memory>
 #include <string>
 
 #include "Core/ConfigManager.h"
 
+struct BootParameters;
+
 namespace BootManager
 {
-bool BootCore(const std::string& filename, SConfig::EBootBS2 type);
+bool BootCore(std::unique_ptr<BootParameters> parameters);
 
 // Stop the emulation core and restore the configuration.
 void Stop();

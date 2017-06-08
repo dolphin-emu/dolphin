@@ -5,7 +5,10 @@
 #include "Core/IOS/USB/USB_HID/HIDv4.h"
 
 #include <cstring>
+#include <mutex>
+#include <string>
 #include <utility>
+#include <vector>
 
 #include "Common/Align.h"
 #include "Common/ChunkFile.h"

@@ -38,6 +38,9 @@ signals:
   void StateSaveOldest();
   void SetStateSlot(int slot);
 
+  // Options
+  void ConfigureHotkeys();
+
   // View
   void ShowTable();
   void ShowList();
@@ -66,6 +69,7 @@ private:
   void AddGameListTypeSection(QMenu* view_menu);
   void AddTableColumnsMenu(QMenu* view_menu);
 
+  void AddOptionsMenu();
   void AddToolsMenu();
   void AddHelpMenu();
 
