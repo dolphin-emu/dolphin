@@ -9,6 +9,7 @@
 #include <optional>
 #include <set>
 #include <string>
+#include <variant>
 #include <vector>
 
 #include "Common/CommonTypes.h"
@@ -26,7 +27,10 @@ namespace DiscIO
 class DiscContent
 {
 public:
+  using ContentSource = std::variant<std::string, const u8*>;
+
   DiscContent(u64 offset, u64 size, const std::string& path);
+  DiscContent(u64 offset, u64 size, const u8* data);
 
   // Provided because it's convenient when searching for DiscContent in an std::set
   explicit DiscContent(u64 offset);
@@ -45,6 +49,7 @@ private:
   u64 m_offset;
   u64 m_size = 0;
   std::string m_path;
+  ContentSource m_content_source;
 };
 
 class DirectoryBlobReader : public BlobReader
@@ -52,6 +57,12 @@ class DirectoryBlobReader : public BlobReader
 public:
   static bool IsValidDirectoryBlob(std::string dol_path);
   static std::unique_ptr<DirectoryBlobReader> Create(File::IOFile dol, const std::string& dol_path);
+
+  // We do not allow copying, because it might mess up the pointers inside DiscContents
+  DirectoryBlobReader(const DirectoryBlobReader&) = delete;
+  DirectoryBlobReader& operator=(const DirectoryBlobReader&) = delete;
+  DirectoryBlobReader(DirectoryBlobReader&&) = default;
+  DirectoryBlobReader& operator=(DirectoryBlobReader&&) = default;
 
   bool Read(u64 offset, u64 length, u8* buffer) override;
   bool SupportsReadWiiDecrypted() const override;
