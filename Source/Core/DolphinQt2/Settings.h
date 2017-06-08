@@ -41,10 +41,6 @@ public:
   void RemovePath(const QString& path);
   QString GetDefaultGame() const;
   void SetDefaultGame(const QString& path);
-  QString GetDVDRoot() const;
-  void SetDVDRoot(const QString& path);
-  QString GetApploader() const;
-  void SetApploader(const QString& path);
   QString GetWiiNAND() const;
   void SetWiiNAND(const QString& path);
   DiscIO::Language GetWiiSystemLanguage() const;

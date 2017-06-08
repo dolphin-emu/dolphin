@@ -196,8 +196,6 @@ struct SConfig : NonCopyable
   std::string m_strBootROM;
   std::string m_strSRAM;
   std::string m_strDefaultISO;
-  std::string m_strDVDRoot;
-  std::string m_strApploader;
   std::string m_strWiiSDCardPath;
 
   std::string m_perfDir;
