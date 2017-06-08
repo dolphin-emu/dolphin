@@ -83,22 +83,32 @@ DirectoryBlobReader::DirectoryBlobReader(File::IOFile dol_file, const std::strin
   m_virtual_disc.emplace(APPLOADER_ADDRESS, m_apploader.size(), m_apploader.data());
   m_virtual_disc.emplace(m_dol_address, m_dol.size(), m_dol.data());
   m_virtual_disc.emplace(m_fst_address, m_fst_data.size(), m_fst_data.data());
+
+  if (m_is_wii)
+  {
+    m_nonpartition_contents.emplace(DISKHEADER_ADDRESS, DISKHEADERINFO_ADDRESS,
+                                    m_disk_header.data());
+    m_nonpartition_contents.emplace(PARTITION_TABLE_ADDRESS, PARTITION_TABLE.size() * sizeof(u32),
+                                    reinterpret_cast<const u8*>(PARTITION_TABLE.data()));
+    // TODO: TMDs, tickets, more headers, the raw partition contents...
+  }
 }
 
-bool DirectoryBlobReader::ReadPartition(u64 offset, u64 length, u8* buffer)
+bool DirectoryBlobReader::ReadInternal(u64 offset, u64 length, u8* buffer,
+                                       const std::set<DiscContent>& contents)
 {
-  if (m_virtual_disc.empty())
+  if (contents.empty())
     return true;
 
   // Determine which DiscContent the offset refers to
-  std::set<DiscContent>::const_iterator it = m_virtual_disc.lower_bound(DiscContent(offset));
-  if (it->GetOffset() > offset && it != m_virtual_disc.begin())
+  std::set<DiscContent>::const_iterator it = contents.lower_bound(DiscContent(offset));
+  if (it->GetOffset() > offset && it != contents.begin())
     --it;
 
   // zero fill to start of file data
   PadToAddress(it->GetOffset(), &offset, &length, &buffer);
 
-  while (it != m_virtual_disc.end() && length > 0)
+  while (it != contents.end() && length > 0)
   {
     _dbg_assert_(DVDINTERFACE, it->GetOffset() <= offset);
     if (!it->Read(&offset, &length, &buffer))
@@ -106,7 +116,7 @@ bool DirectoryBlobReader::ReadPartition(u64 offset, u64 length, u8* buffer)
 
     ++it;
 
-    if (it != m_virtual_disc.end())
+    if (it != contents.end())
     {
       _dbg_assert_(DVDINTERFACE, it->GetOffset() >= offset);
       PadToAddress(it->GetOffset(), &offset, &length, &buffer);
@@ -116,35 +126,9 @@ bool DirectoryBlobReader::ReadPartition(u64 offset, u64 length, u8* buffer)
   return true;
 }
 
-bool DirectoryBlobReader::ReadNonPartition(u64 offset, u64 length, u8* buffer)
-{
-  // header
-  if (offset < DISKHEADERINFO_ADDRESS)
-  {
-    WriteToBuffer(DISKHEADER_ADDRESS, DISKHEADERINFO_ADDRESS, m_disk_header.data(), &offset,
-                  &length, &buffer);
-  }
-  if (offset >= 0x40000)
-  {
-    WriteToBuffer(PARTITION_TABLE_ADDRESS, PARTITION_TABLE.size() * sizeof(u32),
-                  reinterpret_cast<const u8*>(PARTITION_TABLE.data()), &offset, &length, &buffer);
-  }
-
-  // TODO: TMDs, tickets, more headers, the partition contents...
-
-  if (length > 0)
-  {
-    ERROR_LOG(DISCIO, "Unsupported raw read in DirectoryBlob at 0x%" PRIx64, offset);
-    return false;
-  }
-
-  return true;
-}
-
 bool DirectoryBlobReader::Read(u64 offset, u64 length, u8* buffer)
 {
-  return m_is_wii ? ReadNonPartition(offset, length, buffer) :
-                    ReadPartition(offset, length, buffer);
+  return ReadInternal(offset, length, buffer, m_is_wii ? m_nonpartition_contents : m_virtual_disc);
 }
 
 bool DirectoryBlobReader::SupportsReadWiiDecrypted() const
@@ -157,7 +141,7 @@ bool DirectoryBlobReader::ReadWiiDecrypted(u64 offset, u64 size, u8* buffer, u64
   if (!m_is_wii || partition_offset != GAME_PARTITION_ADDRESS)
     return false;
 
-  return ReadPartition(offset, size, buffer);
+  return ReadInternal(offset, size, buffer, m_virtual_disc);
 }
 
 void DirectoryBlobReader::SetGameID(const std::string& id)
@@ -295,29 +279,6 @@ void DirectoryBlobReader::BuildFST()
   Write32((u32)(m_fst_address >> m_address_shift), 0x0424, &m_disk_header);
   Write32((u32)(m_fst_data.size() >> m_address_shift), 0x0428, &m_disk_header);
   Write32((u32)(m_fst_data.size() >> m_address_shift), 0x042c, &m_disk_header);
-}
-
-void DirectoryBlobReader::WriteToBuffer(u64 source_start_address, u64 source_length,
-                                        const u8* source, u64* address, u64* length,
-                                        u8** buffer) const
-{
-  if (*length == 0)
-    return;
-
-  _dbg_assert_(DVDINTERFACE, *address >= source_start_address);
-
-  u64 source_offset = *address - source_start_address;
-
-  if (source_offset < source_length)
-  {
-    size_t bytes_to_read = std::min(source_length - source_offset, *length);
-
-    memcpy(*buffer, source + source_offset, bytes_to_read);
-
-    *length -= bytes_to_read;
-    *buffer += bytes_to_read;
-    *address += bytes_to_read;
-  }
 }
 
 void DirectoryBlobReader::PadToAddress(u64 start_address, u64* address, u64* length,
