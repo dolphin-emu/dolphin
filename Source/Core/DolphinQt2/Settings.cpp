@@ -106,28 +106,6 @@ void Settings::SetDefaultGame(const QString& path)
   SConfig::GetInstance().SaveSettings();
 }
 
-QString Settings::GetDVDRoot() const
-{
-  return QString::fromStdString(SConfig::GetInstance().m_strDVDRoot);
-}
-
-void Settings::SetDVDRoot(const QString& path)
-{
-  SConfig::GetInstance().m_strDVDRoot = path.toStdString();
-  SConfig::GetInstance().SaveSettings();
-}
-
-QString Settings::GetApploader() const
-{
-  return QString::fromStdString(SConfig::GetInstance().m_strApploader);
-}
-
-void Settings::SetApploader(const QString& path)
-{
-  SConfig::GetInstance().m_strApploader = path.toStdString();
-  SConfig::GetInstance().SaveSettings();
-}
-
 QString Settings::GetWiiNAND() const
 {
   return QString::fromStdString(SConfig::GetInstance().m_NANDPath);
