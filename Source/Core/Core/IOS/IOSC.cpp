@@ -166,7 +166,11 @@ ReturnCode IOSC::SetOwnership(Handle handle, u32 new_owner, u32 pid)
   if (!HasOwnership(handle, pid))
     return IOSC_EACCES;
 
-  m_key_entries[handle].owner_mask = new_owner;
+  const u32 mask_with_current_pid = 1 << pid;
+  const u32 mask = m_key_entries[handle].owner_mask | mask_with_current_pid;
+  if (mask != mask_with_current_pid)
+    return IOSC_EACCES;
+  m_key_entries[handle].owner_mask = (new_owner & ~7) | mask;
   return IPC_SUCCESS;
 }
 
