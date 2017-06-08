@@ -47,16 +47,14 @@ private:
   bool is_input;
 };
 
-class ExpressionNode;
 class Expression
 {
 public:
-  explicit Expression(std::unique_ptr<ExpressionNode>&& node = {});
-  ~Expression();
-  ControlState GetValue() const;
-  void SetValue(ControlState state);
-  int num_controls;
-  std::unique_ptr<ExpressionNode> node;
+  virtual ~Expression() = default;
+  virtual ControlState GetValue() const = 0;
+  virtual void SetValue(ControlState state) = 0;
+  virtual int CountNumControls() const = 0;
+  virtual operator std::string() const = 0;
 };
 
 enum class ParseStatus

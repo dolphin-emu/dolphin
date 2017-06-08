@@ -37,7 +37,7 @@ void ControlReference::UpdateReference(const ciface::Core::DeviceContainer& devi
 int ControlReference::BoundCount() const
 {
   if (m_parsed_expression)
-    return m_parsed_expression->num_controls;
+    return m_parsed_expression->CountNumControls();
   else
     return 0;
 }

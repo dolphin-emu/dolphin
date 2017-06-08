@@ -208,17 +208,7 @@ public:
   }
 };
 
-class ExpressionNode
-{
-public:
-  virtual ~ExpressionNode() {}
-  virtual ControlState GetValue() const { return 0; }
-  virtual void SetValue(ControlState state) {}
-  virtual int CountNumControls() const { return 0; }
-  virtual operator std::string() const { return ""; }
-};
-
-class ControlExpression : public ExpressionNode
+class ControlExpression : public Expression
 {
 public:
   ControlQualifier qualifier;
@@ -242,15 +232,15 @@ public:
   operator std::string() const override { return "`" + static_cast<std::string>(qualifier) + "`"; }
 };
 
-class BinaryExpression : public ExpressionNode
+class BinaryExpression : public Expression
 {
 public:
   TokenType op;
-  std::unique_ptr<ExpressionNode> lhs;
-  std::unique_ptr<ExpressionNode> rhs;
+  std::unique_ptr<Expression> lhs;
+  std::unique_ptr<Expression> rhs;
 
-  BinaryExpression(TokenType op_, std::unique_ptr<ExpressionNode>&& lhs_,
-                   std::unique_ptr<ExpressionNode>&& rhs_)
+  BinaryExpression(TokenType op_, std::unique_ptr<Expression>&& lhs_,
+                   std::unique_ptr<Expression>&& rhs_)
       : op(op_), lhs(std::move(lhs_)), rhs(std::move(rhs_))
   {
   }
@@ -292,13 +282,13 @@ public:
   }
 };
 
-class UnaryExpression : public ExpressionNode
+class UnaryExpression : public Expression
 {
 public:
   TokenType op;
-  std::unique_ptr<ExpressionNode> inner;
+  std::unique_ptr<Expression> inner;
 
-  UnaryExpression(TokenType op_, std::unique_ptr<ExpressionNode>&& inner_)
+  UnaryExpression(TokenType op_, std::unique_ptr<Expression>&& inner_)
       : op(op_), inner(std::move(inner_))
   {
   }
@@ -354,13 +344,13 @@ Device::Control* ControlFinder::FindControl(ControlQualifier qualifier) const
 
 struct ParseResult
 {
-  ParseResult(ParseStatus status_, std::unique_ptr<ExpressionNode>&& expr_ = {})
+  ParseResult(ParseStatus status_, std::unique_ptr<Expression>&& expr_ = {})
       : status(status_), expr(std::move(expr_))
   {
   }
 
   ParseStatus status;
-  std::unique_ptr<ExpressionNode> expr;
+  std::unique_ptr<Expression> expr;
 };
 
 class Parser
@@ -449,7 +439,7 @@ private:
     if (result.status == ParseStatus::SyntaxError)
       return result;
 
-    std::unique_ptr<ExpressionNode> expr = std::move(result.expr);
+    std::unique_ptr<Expression> expr = std::move(result.expr);
     while (IsBinaryToken(Peek().type))
     {
       Token tok = Chew();
@@ -484,45 +474,19 @@ private:
   ParseResult Toplevel() { return Binary(); }
 };
 
-ControlState Expression::GetValue() const
-{
-  return node->GetValue();
-}
-
-void Expression::SetValue(ControlState value)
-{
-  node->SetValue(value);
-}
-
-Expression::Expression(std::unique_ptr<ExpressionNode>&& node_)
-{
-  node = std::move(node_);
-  if (node)
-    num_controls = node->CountNumControls();
-}
-
-Expression::~Expression()
-{
-}
-
-static std::pair<ParseStatus, std::unique_ptr<Expression>>
-ParseExpressionInner(const std::string& str, ControlFinder& finder)
+static ParseResult ParseExpressionInner(const std::string& str, ControlFinder& finder)
 {
   if (StripSpaces(str).empty())
-    return std::make_pair(ParseStatus::EmptyExpression, nullptr);
+    return {ParseStatus::EmptyExpression};
 
   Lexer l(str);
   std::vector<Token> tokens;
   ParseStatus tokenize_status = l.Tokenize(tokens);
   if (tokenize_status != ParseStatus::Successful)
-    return std::make_pair(tokenize_status, nullptr);
+    return {tokenize_status};
 
   ParseResult result = Parser(tokens, finder).Parse();
-  if (result.status != ParseStatus::Successful)
-    return std::make_pair(result.status, nullptr);
-
-  return std::make_pair(ParseStatus::Successful,
-                        std::make_unique<Expression>(std::move(result.expr)));
+  return result;
 }
 
 std::pair<ParseStatus, std::unique_ptr<Expression>> ParseExpression(const std::string& str,
@@ -539,12 +503,12 @@ std::pair<ParseStatus, std::unique_ptr<Expression>> ParseExpression(const std::s
   Device::Control* control = finder.FindControl(qualifier);
   if (control)
   {
-    return std::make_pair(ParseStatus::Successful,
-                          std::make_unique<Expression>(std::make_unique<ControlExpression>(
-                              qualifier, std::move(device), control)));
+    return std::make_pair(ParseStatus::Successful, std::make_unique<ControlExpression>(
+                                                       qualifier, std::move(device), control));
   }
 
-  return ParseExpressionInner(str, finder);
+  ParseResult result = ParseExpressionInner(str, finder);
+  return std::make_pair(result.status, std::move(result.expr));
 }
 }
 }
