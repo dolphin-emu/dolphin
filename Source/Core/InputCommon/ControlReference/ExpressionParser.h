@@ -54,6 +54,7 @@ public:
   virtual ControlState GetValue() const = 0;
   virtual void SetValue(ControlState state) = 0;
   virtual int CountNumControls() const = 0;
+  virtual void UpdateReferences(ControlFinder& finder) = 0;
   virtual operator std::string() const = 0;
 };
 
@@ -64,7 +65,6 @@ enum class ParseStatus
   EmptyExpression,
 };
 
-std::pair<ParseStatus, std::unique_ptr<Expression>> ParseExpression(const std::string& expr,
-                                                                    ControlFinder& finder);
+std::pair<ParseStatus, std::unique_ptr<Expression>> ParseExpression(const std::string& expr);
 }
 }

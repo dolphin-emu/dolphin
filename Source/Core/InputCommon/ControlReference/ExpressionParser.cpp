@@ -212,16 +212,11 @@ class ControlExpression : public Expression
 {
 public:
   ControlQualifier qualifier;
-  Device::Control* control;
+  Device::Control* control = nullptr;
   // Keep a shared_ptr to the device so the control pointer doesn't become invalid
   std::shared_ptr<Device> m_device;
 
-  ControlExpression(ControlQualifier qualifier_, std::shared_ptr<Device> device,
-                    Device::Control* control_)
-      : qualifier(qualifier_), control(control_), m_device(std::move(device))
-  {
-  }
-
+  ControlExpression(ControlQualifier qualifier_) : qualifier(qualifier_) {}
   ControlState GetValue() const override { return control ? control->ToInput()->GetState() : 0.0; }
   void SetValue(ControlState value) override
   {
@@ -229,6 +224,11 @@ public:
       control->ToOutput()->SetState(value);
   }
   int CountNumControls() const override { return control ? 1 : 0; }
+  void UpdateReferences(ControlFinder& finder) override
+  {
+    m_device = finder.FindDevice(qualifier);
+    control = finder.FindControl(qualifier);
+  }
   operator std::string() const override { return "`" + static_cast<std::string>(qualifier) + "`"; }
 };
 
@@ -276,6 +276,12 @@ public:
     return lhs->CountNumControls() + rhs->CountNumControls();
   }
 
+  void UpdateReferences(ControlFinder& finder) override
+  {
+    lhs->UpdateReferences(finder);
+    rhs->UpdateReferences(finder);
+  }
+
   operator std::string() const override
   {
     return OpName(op) + "(" + (std::string)(*lhs) + ", " + (std::string)(*rhs) + ")";
@@ -319,6 +325,7 @@ public:
   }
 
   int CountNumControls() const override { return inner->CountNumControls(); }
+  void UpdateReferences(ControlFinder& finder) override { inner->UpdateReferences(finder); }
   operator std::string() const override { return OpName(op) + "(" + (std::string)(*inner) + ")"; }
 };
 
@@ -344,6 +351,12 @@ public:
   {
     return "Coalesce(" + static_cast<std::string>(*m_lhs) + ", " +
            static_cast<std::string>(*m_rhs) + ')';
+  }
+
+  void UpdateReferences(ControlFinder& finder) override
+  {
+    m_lhs->UpdateReferences(finder);
+    m_rhs->UpdateReferences(finder);
   }
 
 private:
@@ -390,16 +403,11 @@ struct ParseResult
 class Parser
 {
 public:
-  Parser(std::vector<Token> tokens_, ControlFinder& finder_) : tokens(tokens_), finder(finder_)
-  {
-    m_it = tokens.begin();
-  }
-
+  explicit Parser(std::vector<Token> tokens_) : tokens(tokens_) { m_it = tokens.begin(); }
   ParseResult Parse() { return Toplevel(); }
 private:
   std::vector<Token> tokens;
   std::vector<Token>::iterator m_it;
-  ControlFinder& finder;
 
   Token Chew() { return *m_it++; }
   Token Peek() { return *m_it; }
@@ -415,12 +423,7 @@ private:
     switch (tok.type)
     {
     case TOK_CONTROL:
-    {
-      std::shared_ptr<Device> device = finder.FindDevice(tok.qualifier);
-      Device::Control* control = finder.FindControl(tok.qualifier);
-      return {ParseStatus::Successful,
-              std::make_unique<ControlExpression>(tok.qualifier, std::move(device), control)};
-    }
+      return {ParseStatus::Successful, std::make_unique<ControlExpression>(tok.qualifier)};
     case TOK_LPAREN:
       return Paren();
     default:
@@ -508,7 +511,7 @@ private:
   ParseResult Toplevel() { return Binary(); }
 };
 
-static ParseResult ParseComplexExpression(const std::string& str, ControlFinder& finder)
+static ParseResult ParseComplexExpression(const std::string& str)
 {
   Lexer l(str);
   std::vector<Token> tokens;
@@ -516,29 +519,25 @@ static ParseResult ParseComplexExpression(const std::string& str, ControlFinder&
   if (tokenize_status != ParseStatus::Successful)
     return {tokenize_status};
 
-  return Parser(tokens, finder).Parse();
+  return Parser(tokens).Parse();
 }
 
-static std::unique_ptr<Expression> ParseBarewordExpression(const std::string& str,
-                                                           ControlFinder& finder)
+static std::unique_ptr<Expression> ParseBarewordExpression(const std::string& str)
 {
   ControlQualifier qualifier;
   qualifier.control_name = str;
   qualifier.has_device = false;
 
-  std::shared_ptr<Device> device = finder.FindDevice(qualifier);
-  Device::Control* control = finder.FindControl(qualifier);
-  return std::make_unique<ControlExpression>(qualifier, std::move(device), control);
+  return std::make_unique<ControlExpression>(qualifier);
 }
 
-std::pair<ParseStatus, std::unique_ptr<Expression>> ParseExpression(const std::string& str,
-                                                                    ControlFinder& finder)
+std::pair<ParseStatus, std::unique_ptr<Expression>> ParseExpression(const std::string& str)
 {
   if (StripSpaces(str).empty())
     return std::make_pair(ParseStatus::EmptyExpression, nullptr);
 
-  auto bareword_expr = ParseBarewordExpression(str, finder);
-  ParseResult complex_result = ParseComplexExpression(str, finder);
+  auto bareword_expr = ParseBarewordExpression(str);
+  ParseResult complex_result = ParseComplexExpression(str);
 
   if (complex_result.status != ParseStatus::Successful)
   {
