@@ -313,7 +313,7 @@ void SysConf::GenerateSysConf()
 
   // IPL.IDL
   current_offset += create_item(items[23], Type_SmallArray, "IPL.IDL", 1, current_offset);
-  items[23].data[0] = 0x00;
+  items[23].data[0] = 0x01;
 
   // IPL.EULA
   current_offset += create_item(items[24], Type_Bool, "IPL.EULA", 1, current_offset);
