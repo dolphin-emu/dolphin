@@ -173,7 +173,7 @@ bool DirectoryBlobReader::ReadInternal(u64 offset, u64 length, u8* buffer,
 
   while (it != contents.end() && length > 0)
   {
-    _dbg_assert_(DVDINTERFACE, it->GetOffset() <= offset);
+    _dbg_assert_(DISCIO, it->GetOffset() <= offset);
     if (!it->Read(&offset, &length, &buffer))
       return false;
 
@@ -181,7 +181,7 @@ bool DirectoryBlobReader::ReadInternal(u64 offset, u64 length, u8* buffer,
 
     if (it != contents.end())
     {
-      _dbg_assert_(DVDINTERFACE, it->GetOffset() >= offset);
+      _dbg_assert_(DISCIO, it->GetOffset() >= offset);
       PadToAddress(it->GetOffset(), &offset, &length, &buffer);
     }
   }
