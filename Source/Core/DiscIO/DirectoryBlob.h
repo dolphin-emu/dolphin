@@ -36,11 +36,6 @@ public:
   u64 GetRawSize() const override;
   u64 GetDataSize() const override;
 
-  void SetGameID(const std::string& id);
-  void SetName(const std::string&);
-
-  void BuildFST();
-
 private:
   DirectoryBlobReader(File::IOFile dol_file, const std::string& root_directory);
 
@@ -50,9 +45,13 @@ private:
   void SetDiskTypeWii();
   void SetDiskTypeGC();
 
-  bool SetApploader(const std::string& apploader);
+  void SetGameID(const std::string& id);
+  void SetName(const std::string&);
 
+  bool SetApploader(const std::string& apploader);
   void SetDOLAndDiskType(File::IOFile dol_file);
+
+  void BuildFST();
 
   // writing to read buffer
   void WriteToBuffer(u64 source_start_address, u64 source_length, const u8* source, u64* address,
