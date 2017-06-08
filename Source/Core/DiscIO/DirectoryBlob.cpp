@@ -103,11 +103,6 @@ bool DirectoryBlobReader::ReadPartition(u64 offset, u64 length, u8* buffer)
   {
     WriteToBuffer(m_dol_address, m_dol.size(), m_dol.data(), &offset, &length, &buffer);
   }
-  // fst
-  if (offset >= m_fst_address && offset < m_data_start_address)
-  {
-    WriteToBuffer(m_fst_address, m_fst_data.size(), m_fst_data.data(), &offset, &length, &buffer);
-  }
 
   if (m_virtual_disc.empty())
     return true;
@@ -316,6 +311,9 @@ void DirectoryBlobReader::BuildFST()
   Write32((u32)(m_fst_address >> m_address_shift), 0x0424, &m_disk_header);
   Write32((u32)(m_fst_data.size() >> m_address_shift), 0x0428, &m_disk_header);
   Write32((u32)(m_fst_data.size() >> m_address_shift), 0x042c, &m_disk_header);
+
+  // add FST to virtual disc
+  m_virtual_disc.emplace(m_fst_address, m_fst_data.size(), m_fst_data.data());
 }
 
 void DirectoryBlobReader::WriteToBuffer(u64 source_start_address, u64 source_length,
