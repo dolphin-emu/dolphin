@@ -8,8 +8,8 @@
 #include <cstddef>
 #include <cstring>
 #include <locale>
-#include <map>
 #include <memory>
+#include <set>
 #include <string>
 #include <utility>
 #include <vector>
@@ -108,49 +108,28 @@ bool DirectoryBlobReader::ReadPartition(u64 offset, u64 length, u8* buffer)
     WriteToBuffer(m_fst_address, m_fst_data.size(), m_fst_data.data(), &offset, &length, &buffer);
   }
 
-  if (m_virtual_disk.empty())
+  if (m_virtual_disc.empty())
     return true;
 
-  // Determine which file the offset refers to
-  std::map<u64, std::string>::const_iterator fileIter = m_virtual_disk.lower_bound(offset);
-  if (fileIter->first > offset && fileIter != m_virtual_disk.begin())
-    --fileIter;
+  // Determine which DiscContent the offset refers to
+  std::set<DiscContent>::const_iterator it = m_virtual_disc.lower_bound(DiscContent(offset));
+  if (it->GetOffset() > offset && it != m_virtual_disc.begin())
+    --it;
 
   // zero fill to start of file data
-  PadToAddress(fileIter->first, &offset, &length, &buffer);
+  PadToAddress(it->GetOffset(), &offset, &length, &buffer);
 
-  while (fileIter != m_virtual_disk.end() && length > 0)
+  while (it != m_virtual_disc.end() && length > 0)
   {
-    _dbg_assert_(DVDINTERFACE, fileIter->first <= offset);
-    u64 fileOffset = offset - fileIter->first;
-    const std::string fileName = fileIter->second;
+    _dbg_assert_(DVDINTERFACE, it->GetOffset() <= offset);
+    it->Read(&offset, &length, &buffer);
 
-    File::IOFile file(fileName, "rb");
-    if (!file)
-      return false;
+    ++it;
 
-    u64 fileSize = file.GetSize();
-
-    if (fileOffset < fileSize)
+    if (it != m_virtual_disc.end())
     {
-      u64 fileBytes = std::min(fileSize - fileOffset, length);
-
-      if (!file.Seek(fileOffset, SEEK_SET))
-        return false;
-      if (!file.ReadBytes(buffer, fileBytes))
-        return false;
-
-      length -= fileBytes;
-      buffer += fileBytes;
-      offset += fileBytes;
-    }
-
-    ++fileIter;
-
-    if (fileIter != m_virtual_disk.end())
-    {
-      _dbg_assert_(DVDINTERFACE, fileIter->first >= offset);
-      PadToAddress(fileIter->first, &offset, &length, &buffer);
+      _dbg_assert_(DVDINTERFACE, it->GetOffset() >= offset);
+      PadToAddress(it->GetOffset(), &offset, &length, &buffer);
     }
   }
 
@@ -436,9 +415,9 @@ void DirectoryBlobReader::WriteDirectory(const File::FSTEntry& parent_entry, u32
                      m_address_shift);
       WriteEntryName(name_offset, entry.virtualName);
 
-      // write entry to virtual disk
-      _dbg_assert_(DVDINTERFACE, m_virtual_disk.find(*data_offset) == m_virtual_disk.end());
-      m_virtual_disk.emplace(*data_offset, entry.physicalName);
+      // write entry to virtual disc
+      auto result = m_virtual_disc.emplace(*data_offset, entry.size, entry.physicalName);
+      _dbg_assert_(DISCIO, result.second);  // Check that this offset wasn't already occupied
 
       // 4 byte aligned
       *data_offset = Common::AlignUp(*data_offset + std::max<u64>(entry.size, 1ull), 0x8000ull);
@@ -475,6 +454,50 @@ static std::string ASCIIToUppercase(std::string str)
   std::transform(str.begin(), str.end(), str.begin(),
                  [](char c) { return std::toupper(c, std::locale::classic()); });
   return str;
+}
+
+DirectoryBlobReader::DiscContent::DiscContent(u64 offset, u64 size, const std::string& path)
+    : m_offset(offset), m_size(size), m_path(path)
+{
+}
+
+DirectoryBlobReader::DiscContent::DiscContent(u64 offset) : m_offset(offset), m_size(0)
+{
+}
+
+u64 DirectoryBlobReader::DiscContent::GetOffset() const
+{
+  return m_offset;
+}
+
+u64 DirectoryBlobReader::DiscContent::GetSize() const
+{
+  return m_size;
+}
+
+bool DirectoryBlobReader::DiscContent::Read(u64* offset, u64* length, u8** buffer) const
+{
+  if (m_size == 0)
+    return true;
+
+  _dbg_assert_(DISCIO, *offset >= m_offset);
+  const u64 offset_in_content = *offset - m_offset;
+
+  if (offset_in_content < m_size)
+  {
+    const u64 bytes_to_read = std::min(m_size - offset_in_content, *length);
+
+    File::IOFile file(m_path, "rb");
+    file.Seek(offset_in_content, SEEK_SET);
+    if (!file.ReadBytes(*buffer, bytes_to_read))
+      return false;
+
+    *length -= bytes_to_read;
+    *buffer += bytes_to_read;
+    *offset += bytes_to_read;
+  }
+
+  return true;
 }
 
 }  // namespace

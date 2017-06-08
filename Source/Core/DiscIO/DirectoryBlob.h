@@ -4,9 +4,10 @@
 
 #pragma once
 
-#include <map>
+#include <cstddef>
 #include <memory>
 #include <optional>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -37,6 +38,30 @@ public:
   u64 GetDataSize() const override;
 
 private:
+  class DiscContent
+  {
+  public:
+    DiscContent(u64 offset, u64 size, const std::string& path);
+
+    // Provided because it's convenient when searching for DiscContent in an std::set
+    explicit DiscContent(u64 offset);
+
+    u64 GetOffset() const;
+    u64 GetSize() const;
+    bool Read(u64* offset, u64* length, u8** buffer) const;
+
+    bool operator==(const DiscContent& other) const { return m_offset == other.m_offset; }
+    bool operator!=(const DiscContent& other) const { return !(*this == other); }
+    bool operator<(const DiscContent& other) const { return m_offset < other.m_offset; }
+    bool operator>(const DiscContent& other) const { return other < *this; }
+    bool operator<=(const DiscContent& other) const { return !(*this < other); }
+    bool operator>=(const DiscContent& other) const { return !(*this > other); }
+  private:
+    u64 m_offset;
+    u64 m_size;
+    std::string m_path;
+  };
+
   DirectoryBlobReader(File::IOFile dol_file, const std::string& root_directory);
 
   bool ReadPartition(u64 offset, u64 length, u8* buffer);
@@ -70,7 +95,7 @@ private:
 
   std::string m_root_directory;
 
-  std::map<u64, std::string> m_virtual_disk;
+  std::set<DiscContent> m_virtual_disc;
 
   bool m_is_wii = false;
 
