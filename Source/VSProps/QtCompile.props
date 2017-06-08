@@ -27,6 +27,11 @@
       <AdditionalIncludeDirectories>$(QtIncludeDir)QtCore;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(QtIncludeDir)QtGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(QtIncludeDir)QtWidgets;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <!--
+      Negate the previously enabled warning (set in Base.props). Not compatible with QtCore\qtmap.h
+      This isn't too bad since we live with the fact that Qt-using projects will have different compiler args already.
+      -->
+      <AdditionalOptions>%(AdditionalOptions) /wd4946</AdditionalOptions>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(QtLibDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
