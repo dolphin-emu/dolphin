@@ -322,6 +322,40 @@ public:
   operator std::string() const override { return OpName(op) + "(" + (std::string)(*inner) + ")"; }
 };
 
+// This class proxies all methods to its either left-hand child if it has bound controls, or its
+// right-hand child. Its intended use is for supporting old-style barewords expressions.
+class CoalesceExpression : public Expression
+{
+public:
+  CoalesceExpression(std::unique_ptr<Expression>&& lhs, std::unique_ptr<Expression>&& rhs)
+      : m_lhs(std::move(lhs)), m_rhs(std::move(rhs))
+  {
+  }
+
+  ControlState GetValue() const override { return GetActiveChild()->GetValue(); }
+  void SetValue(ControlState value) override
+  {
+    m_lhs->SetValue(GetActiveChild() == m_lhs ? value : 0.0);
+    m_rhs->SetValue(GetActiveChild() == m_rhs ? value : 0.0);
+  }
+
+  int CountNumControls() const override { return GetActiveChild()->CountNumControls(); }
+  operator std::string() const override
+  {
+    return "Coalesce(" + static_cast<std::string>(*m_lhs) + ", " +
+           static_cast<std::string>(*m_rhs) + ')';
+  }
+
+private:
+  const std::unique_ptr<Expression>& GetActiveChild() const
+  {
+    return m_lhs->CountNumControls() > 0 ? m_lhs : m_rhs;
+  }
+
+  std::unique_ptr<Expression> m_lhs;
+  std::unique_ptr<Expression> m_rhs;
+};
+
 std::shared_ptr<Device> ControlFinder::FindDevice(ControlQualifier qualifier) const
 {
   if (qualifier.has_device)
@@ -474,41 +508,46 @@ private:
   ParseResult Toplevel() { return Binary(); }
 };
 
-static ParseResult ParseExpressionInner(const std::string& str, ControlFinder& finder)
+static ParseResult ParseComplexExpression(const std::string& str, ControlFinder& finder)
 {
-  if (StripSpaces(str).empty())
-    return {ParseStatus::EmptyExpression};
-
   Lexer l(str);
   std::vector<Token> tokens;
   ParseStatus tokenize_status = l.Tokenize(tokens);
   if (tokenize_status != ParseStatus::Successful)
     return {tokenize_status};
 
-  ParseResult result = Parser(tokens, finder).Parse();
-  return result;
+  return Parser(tokens, finder).Parse();
 }
 
-std::pair<ParseStatus, std::unique_ptr<Expression>> ParseExpression(const std::string& str,
-                                                                    ControlFinder& finder)
+static std::unique_ptr<Expression> ParseBarewordExpression(const std::string& str,
+                                                           ControlFinder& finder)
 {
-  // Add compatibility with old simple expressions, which are simple
-  // barewords control names.
-
   ControlQualifier qualifier;
   qualifier.control_name = str;
   qualifier.has_device = false;
 
   std::shared_ptr<Device> device = finder.FindDevice(qualifier);
   Device::Control* control = finder.FindControl(qualifier);
-  if (control)
+  return std::make_unique<ControlExpression>(qualifier, std::move(device), control);
+}
+
+std::pair<ParseStatus, std::unique_ptr<Expression>> ParseExpression(const std::string& str,
+                                                                    ControlFinder& finder)
+{
+  if (StripSpaces(str).empty())
+    return std::make_pair(ParseStatus::EmptyExpression, nullptr);
+
+  auto bareword_expr = ParseBarewordExpression(str, finder);
+  ParseResult complex_result = ParseComplexExpression(str, finder);
+
+  if (complex_result.status != ParseStatus::Successful)
   {
-    return std::make_pair(ParseStatus::Successful, std::make_unique<ControlExpression>(
-                                                       qualifier, std::move(device), control));
+    return std::make_pair(complex_result.status, std::move(bareword_expr));
   }
 
-  ParseResult result = ParseExpressionInner(str, finder);
-  return std::make_pair(result.status, std::move(result.expr));
+  auto combined_expr = std::make_unique<CoalesceExpression>(std::move(bareword_expr),
+                                                            std::move(complex_result.expr));
+  return std::make_pair(complex_result.status, std::move(combined_expr));
 }
 }
 }
