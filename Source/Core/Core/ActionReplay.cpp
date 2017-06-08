@@ -19,6 +19,8 @@
 // copy, etc
 // -------------------------------------------------------------------------------------------------------------
 
+#include "Core/ActionReplay.h"
+
 #include <algorithm>
 #include <atomic>
 #include <cstdarg>
@@ -36,9 +38,7 @@
 #include "Common/StringUtil.h"
 
 #include "Core/ARDecrypt.h"
-#include "Core/ActionReplay.h"
 #include "Core/ConfigManager.h"
-#include "Core/Core.h"
 #include "Core/PowerPC/PowerPC.h"
 
 namespace ActionReplay

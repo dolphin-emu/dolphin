@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/IOS/MIOS.h"
+
 #include <cstring>
 #include <utility>
 #include <vector>
@@ -22,11 +24,9 @@
 #include "Core/HW/Memmap.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/IOS/ES/Formats.h"
-#include "Core/IOS/MIOS.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "DiscIO/NANDContentLoader.h"
-#include "DiscIO/Volume.h"
 
 namespace IOS
 {

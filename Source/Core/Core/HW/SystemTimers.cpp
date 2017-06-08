@@ -44,6 +44,7 @@ IPC_HLE_PERIOD: For the Wii Remote this is the call schedule:
 */
 
 #include "Core/HW/SystemTimers.h"
+
 #include "Common/Atomic.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"

@@ -2,18 +2,17 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/ConfigLoaders/MovieConfigLoader.h"
+
 #include <cstring>
 #include <memory>
 #include <string>
 
 #include "Common/CommonFuncs.h"
-#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
-#include "Common/IniFile.h"
 
-#include "Core/ConfigLoaders/MovieConfigLoader.h"
 #include "Core/Movie.h"
 
 namespace ConfigLoaders

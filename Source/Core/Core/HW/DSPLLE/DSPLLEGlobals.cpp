@@ -2,13 +2,14 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/HW/DSPLLE/DSPLLEGlobals.h"
+
 #include <cinttypes>
 
 #include "Common/CommonTypes.h"
 #include "Common/File.h"
 
 #include "Core/DSP/DSPCore.h"
-#include "Core/HW/DSPLLE/DSPLLEGlobals.h"
 
 namespace DSP
 {

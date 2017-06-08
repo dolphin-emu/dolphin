@@ -6,7 +6,6 @@
 
 #include <array>
 
-#include "Common/Assert.h"
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
 #include "Common/JitRegister.h"

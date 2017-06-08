@@ -2,12 +2,13 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/PowerPC/Jit64Common/ConstantPool.h"
+
 #include <cstring>
 #include <memory>
 #include <utility>
 
 #include "Common/Assert.h"
-#include "Core/PowerPC/Jit64Common/ConstantPool.h"
 
 ConstantPool::ConstantPool() = default;
 

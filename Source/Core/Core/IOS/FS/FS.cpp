@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/IOS/FS/FS.h"
+
 #include <algorithm>
 #include <cstring>
 #include <deque>
@@ -17,10 +19,8 @@
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/NandPaths.h"
-#include "Common/StringUtil.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/SystemTimers.h"
-#include "Core/IOS/FS/FS.h"
 #include "Core/IOS/FS/FileIO.h"
 
 namespace IOS

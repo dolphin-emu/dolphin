@@ -4,10 +4,11 @@
 //
 // Copyright (C) Hector Martin "marcan" (hector@marcansoft.com)
 
+#include "Core/HW/WiimoteEmu/Encryption.h"
+
 #include <cstring>
 
 #include "Common/CommonTypes.h"
-#include "Core/HW/WiimoteEmu/Encryption.h"
 
 static const u8 ans_tbl[7][6] = {
     {0xA8, 0x77, 0xA6, 0xE0, 0xF7, 0x43}, {0x5A, 0x35, 0x85, 0xE2, 0x72, 0x97},

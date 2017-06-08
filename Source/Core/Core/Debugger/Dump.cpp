@@ -2,13 +2,13 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/Debugger/Dump.h"
+
 #include <cstdio>
 #include <string>
 
 #include "Common/CommonTypes.h"
 #include "Common/File.h"
-
-#include "Core/Debugger/Dump.h"
 
 CDump::CDump(const std::string& filename) : m_pData(nullptr)
 {

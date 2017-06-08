@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/DSP/DSPCodeUtil.h"
+
 #include <algorithm>
 #include <iostream>
 #include <string>
@@ -14,7 +16,6 @@
 #include "Common/Swap.h"
 
 #include "Core/DSP/DSPAssembler.h"
-#include "Core/DSP/DSPCodeUtil.h"
 #include "Core/DSP/DSPDisassembler.h"
 
 namespace DSP

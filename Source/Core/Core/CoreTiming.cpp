@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/CoreTiming.h"
+
 #include <algorithm>
 #include <cinttypes>
 #include <mutex>
@@ -18,7 +20,6 @@
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "Core/CoreTiming.h"
 #include "Core/PowerPC/PowerPC.h"
 
 #include "VideoCommon/Fifo.h"

@@ -7,7 +7,6 @@
 #include <functional>
 #include <memory>
 
-#include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/Logging/Log.h"
 #include "Core/Core.h"

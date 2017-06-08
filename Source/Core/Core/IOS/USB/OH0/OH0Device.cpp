@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/IOS/USB/OH0/OH0Device.h"
+
 #include <memory>
 #include <sstream>
 #include <string>
@@ -11,7 +13,6 @@
 #include "Common/ChunkFile.h"
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/USB/OH0/OH0.h"
-#include "Core/IOS/USB/OH0/OH0Device.h"
 
 namespace IOS
 {

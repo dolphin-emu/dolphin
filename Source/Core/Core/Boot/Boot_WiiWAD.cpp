@@ -20,7 +20,6 @@
 #include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/FS/FileIO.h"
 #include "Core/IOS/IOS.h"
-#include "Core/PatchEngine.h"
 
 #include "DiscIO/NANDContentLoader.h"
 

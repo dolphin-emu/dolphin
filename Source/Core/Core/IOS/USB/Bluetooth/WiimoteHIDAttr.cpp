@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "Core/IOS/USB/Bluetooth/WiimoteHIDAttr.h"
+
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 

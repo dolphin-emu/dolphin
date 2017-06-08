@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/IOS/IOSC.h"
+
 #include <algorithm>
 #include <array>
 #include <cstddef>
@@ -21,7 +23,6 @@
 #include "Common/ScopeGuard.h"
 #include "Common/Swap.h"
 #include "Core/IOS/Device.h"
-#include "Core/IOS/IOSC.h"
 #include "Core/ec_wii.h"
 
 namespace IOS

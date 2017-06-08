@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/HLE/HLE_OS.h"
+
 #include <memory>
 #include <string>
 
@@ -9,9 +11,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
-#include "Core/HLE/HLE_OS.h"
 #include "Core/HLE/HLE_VarArgs.h"
-#include "Core/HW/Memmap.h"
 #include "Core/PowerPC/PowerPC.h"
 
 namespace HLE_OS

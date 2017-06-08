@@ -22,6 +22,8 @@
 // the just used buffer through the AXList (or whatever it might be called in
 // Nintendo games).
 
+#include "Core/HW/DSP.h"
+
 #include <memory>
 
 #include "AudioCommon/AudioCommon.h"
@@ -31,11 +33,10 @@
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
 #include "Core/DSPEmulator.h"
-#include "Core/HW/DSP.h"
+
 #include "Core/HW/MMIO.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/ProcessorInterface.h"
-#include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
 
 namespace DSP

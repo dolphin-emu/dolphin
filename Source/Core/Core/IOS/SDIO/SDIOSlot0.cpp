@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/IOS/SDIO/SDIOSlot0.h"
+
 #include <cstdio>
 #include <cstring>
 #include <memory>
@@ -16,7 +18,6 @@
 #include "Core/ConfigManager.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/IOS.h"
-#include "Core/IOS/SDIO/SDIOSlot0.h"
 
 namespace IOS
 {

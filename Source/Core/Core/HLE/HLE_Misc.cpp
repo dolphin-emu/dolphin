@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "Core/HLE/HLE_Misc.h"
+
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"

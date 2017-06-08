@@ -2,13 +2,14 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/ConfigLoaders/BaseConfigLoader.h"
+
 #include <cstring>
 #include <list>
 #include <map>
 #include <memory>
 #include <string>
 
-#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
@@ -16,7 +17,6 @@
 #include "Common/Logging/Log.h"
 
 #include "Core/Config/Config.h"
-#include "Core/ConfigLoaders/BaseConfigLoader.h"
 #include "Core/ConfigLoaders/IsSettingSaveable.h"
 
 namespace ConfigLoaders
