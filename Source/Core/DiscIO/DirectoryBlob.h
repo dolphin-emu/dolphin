@@ -112,6 +112,13 @@ private:
   std::vector<u8> m_disk_header;
 
 #pragma pack(push, 1)
+  struct TMDHeader
+  {
+    u32 tmd_size;
+    u32 tmd_offset;
+  } m_tmd_header;
+  static_assert(sizeof(TMDHeader) == 8, "Wrong size for TMDHeader");
+
   struct SDiskHeaderInfo
   {
     u32 debug_monitor_size;
@@ -138,6 +145,7 @@ private:
       unknown2 = 0;
     }
   };
+  static_assert(sizeof(SDiskHeaderInfo) == 36, "Wrong size for SDiskHeaderInfo");
 #pragma pack(pop)
   std::unique_ptr<SDiskHeaderInfo> m_disk_header_info;
 
