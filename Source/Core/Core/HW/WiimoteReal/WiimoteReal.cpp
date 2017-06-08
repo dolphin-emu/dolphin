@@ -77,7 +77,11 @@ void Wiimote::WriteReport(Report rpt)
     m_rumble_state = new_rumble_state;
   }
 
-  m_write_reports.Push(std::move(rpt));
+  if (rpt[1] == WM_WRITE_SPEAKER_DATA || rpt[1] == WM_SPEAKER_ENABLE || rpt[1] == WM_SPEAKER_MUTE)
+    m_write_reports_snd.Push(std::move(rpt));
+  else
+    m_write_reports.Push(std::move(rpt));
+
   IOWakeup();
 }
 
@@ -224,6 +228,21 @@ void Wiimote::Read()
     ERROR_LOG(WIIMOTE, "Wiimote::IORead failed. Disconnecting Wii Remote %d.", m_index + 1);
     DisconnectInternal();
   }
+}
+
+bool Wiimote::WriteSound()
+{
+  if (m_write_reports_snd.Empty())
+    return true;
+
+  Report const& rpt = m_write_reports_snd.Front();
+
+  int ret = IOWrite(rpt.data(), rpt.size());
+  Common::SleepCurrentThread(13);
+
+  m_write_reports_snd.Pop();
+
+  return ret != 0;
 }
 
 bool Wiimote::Write()
@@ -627,6 +646,7 @@ bool Wiimote::Connect(int index)
 void Wiimote::StartThread()
 {
   m_wiimote_thread = std::thread(&Wiimote::ThreadFunc, this);
+  m_wiimote_snd_thread = std::thread(&Wiimote::SndThreadFunc, this);
 }
 
 void Wiimote::StopThread()
@@ -635,6 +655,21 @@ void Wiimote::StopThread()
     return;
   IOWakeup();
   m_wiimote_thread.join();
+  m_wiimote_snd_thread.join();
+}
+
+void Wiimote::SndThreadFunc()
+{
+  Common::SetCurrentThreadName("Wiimote Sound Device Thread");
+
+  while (!m_run_thread.IsSet())
+  {
+  }
+
+  while (m_run_thread.IsSet())
+  {
+    WriteSound();
+  }
 }
 
 void Wiimote::ThreadFunc()
