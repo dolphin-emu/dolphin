@@ -32,7 +32,8 @@ namespace DiscIO
 constexpr u64 PARTITION_DATA_OFFSET = 0x20000;
 
 VolumeWii::VolumeWii(std::unique_ptr<BlobReader> reader)
-    : m_pReader(std::move(reader)), m_game_partition(PARTITION_NONE), m_last_decrypted_block(-1)
+    : m_pReader(std::move(reader)), m_game_partition(PARTITION_NONE),
+      m_last_decrypted_block(UINT64_MAX)
 {
   _assert_(m_pReader);
 

@@ -471,7 +471,8 @@ void DecryptARCode(std::vector<std::string> vCodes, std::vector<AREntry>* ops)
     std::transform(s.begin(), s.end(), s.begin(), toupper);
   }
 
-  if ((ret = alphatobin(uCodes, vCodes, (int)vCodes.size())))
+  ret = alphatobin(uCodes, vCodes, (int)vCodes.size());
+  if (ret)
   {
     // Return value is index + 1, 0 being the success flag value.
     PanicAlertT("Action Replay Code Decryption Error:\nParity Check Failed\n\nCulprit Code:\n%s",

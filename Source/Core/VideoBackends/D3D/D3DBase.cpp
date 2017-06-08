@@ -240,12 +240,12 @@ D3D_FEATURE_LEVEL GetFeatureLevel(IDXGIAdapter* adapter)
   return feat_level;
 }
 
-static bool SupportsS3TCTextures(ID3D11Device* device)
+static bool SupportsS3TCTextures(ID3D11Device* dev)
 {
   UINT bc1_support, bc2_support, bc3_support;
-  if (FAILED(device->CheckFormatSupport(DXGI_FORMAT_BC1_UNORM, &bc1_support)) ||
-      FAILED(device->CheckFormatSupport(DXGI_FORMAT_BC2_UNORM, &bc2_support)) ||
-      FAILED(device->CheckFormatSupport(DXGI_FORMAT_BC3_UNORM, &bc3_support)))
+  if (FAILED(dev->CheckFormatSupport(DXGI_FORMAT_BC1_UNORM, &bc1_support)) ||
+      FAILED(dev->CheckFormatSupport(DXGI_FORMAT_BC2_UNORM, &bc2_support)) ||
+      FAILED(dev->CheckFormatSupport(DXGI_FORMAT_BC3_UNORM, &bc3_support)))
   {
     return false;
   }
@@ -320,7 +320,7 @@ HRESULT Create(HWND wnd)
         return desc.Count == g_Config.iMultisamples;
       }) == aa_modes.end())
   {
-    Config::SetCurrent(Config::GFX_MSAA, 1);
+    Config::SetCurrent(Config::GFX_MSAA, UINT32_C(1));
     UpdateActiveConfig();
   }
 

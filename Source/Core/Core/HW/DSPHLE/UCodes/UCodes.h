@@ -63,7 +63,7 @@ protected:
 
   CMailHandler& m_mail_handler;
 
-  enum EDSP_Codes
+  enum EDSP_Codes : u32
   {
     DSP_INIT = 0xDCD10000,
     DSP_RESUME = 0xDCD10001,

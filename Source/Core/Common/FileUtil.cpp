@@ -631,9 +631,9 @@ void CopyDir(const std::string& source_path, const std::string& dest_path)
 // Returns the current directory
 std::string GetCurrentDir()
 {
-  char* dir;
   // Get the current working directory (getcwd uses malloc)
-  if (!(dir = __getcwd(nullptr, 0)))
+  char* dir = __getcwd(nullptr, 0);
+  if (!dir)
   {
     ERROR_LOG(COMMON, "GetCurrentDirectory failed: %s", GetLastErrorMsg().c_str());
     return nullptr;
@@ -986,7 +986,7 @@ u64 IOFile::Tell() const
   if (IsOpen())
     return ftello(m_file);
   else
-    return -1;
+    return UINT64_MAX;
 }
 
 bool IOFile::Flush()

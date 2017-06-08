@@ -221,12 +221,12 @@ IPCCommandResult NetSSL::IOCtlV(const IOCtlVRequest& request)
       mbedtls_ssl_set_hostname(&ssl->ctx, ssl->hostname.c_str());
 
       ssl->active = true;
-      Memory::Write_U32(freeSSL, BufferIn);
+      WriteReturnValue(freeSSL, BufferIn);
     }
     else
     {
     _SSL_NEW_ERROR:
-      Memory::Write_U32(SSL_ERR_FAILED, BufferIn);
+      WriteReturnValue(SSL_ERR_FAILED, BufferIn);
     }
 
     INFO_LOG(IOS_SSL, "IOCTLV_NET_SSL_NEW (%d, %s) "
@@ -260,11 +260,11 @@ IPCCommandResult NetSSL::IOCtlV(const IOCtlVRequest& request)
 
       ssl->active = false;
 
-      Memory::Write_U32(SSL_OK, BufferIn);
+      WriteReturnValue(SSL_OK, BufferIn);
     }
     else
     {
-      Memory::Write_U32(SSL_ERR_ID, BufferIn);
+      WriteReturnValue(SSL_ERR_ID, BufferIn);
     }
     INFO_LOG(IOS_SSL, "IOCTLV_NET_SSL_SHUTDOWN "
                       "BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
@@ -298,19 +298,19 @@ IPCCommandResult NetSSL::IOCtlV(const IOCtlVRequest& request)
 
       if (ret)
       {
-        Memory::Write_U32(SSL_ERR_FAILED, BufferIn);
+        WriteReturnValue(SSL_ERR_FAILED, BufferIn);
       }
       else
       {
         mbedtls_ssl_conf_ca_chain(&ssl->config, &ssl->cacert, nullptr);
-        Memory::Write_U32(SSL_OK, BufferIn);
+        WriteReturnValue(SSL_OK, BufferIn);
       }
 
       INFO_LOG(IOS_SSL, "IOCTLV_NET_SSL_SETROOTCA = %d", ret);
     }
     else
     {
-      Memory::Write_U32(SSL_ERR_ID, BufferIn);
+      WriteReturnValue(SSL_ERR_ID, BufferIn);
     }
     break;
   }
@@ -339,19 +339,19 @@ IPCCommandResult NetSSL::IOCtlV(const IOCtlVRequest& request)
       {
         mbedtls_x509_crt_free(&ssl->clicert);
         mbedtls_pk_free(&ssl->pk);
-        Memory::Write_U32(SSL_ERR_FAILED, BufferIn);
+        WriteReturnValue(SSL_ERR_FAILED, BufferIn);
       }
       else
       {
         mbedtls_ssl_conf_own_cert(&ssl->config, &ssl->clicert, &ssl->pk);
-        Memory::Write_U32(SSL_OK, BufferIn);
+        WriteReturnValue(SSL_OK, BufferIn);
       }
 
       INFO_LOG(IOS_SSL, "IOCTLV_NET_SSL_SETBUILTINCLIENTCERT = (%d, %d)", ret, pk_ret);
     }
     else
     {
-      Memory::Write_U32(SSL_ERR_ID, BufferIn);
+      WriteReturnValue(SSL_ERR_ID, BufferIn);
       INFO_LOG(IOS_SSL, "IOCTLV_NET_SSL_SETBUILTINCLIENTCERT invalid sslID = %d", sslID);
     }
     break;
@@ -373,11 +373,11 @@ IPCCommandResult NetSSL::IOCtlV(const IOCtlVRequest& request)
       mbedtls_pk_free(&ssl->pk);
 
       mbedtls_ssl_conf_own_cert(&ssl->config, nullptr, nullptr);
-      Memory::Write_U32(SSL_OK, BufferIn);
+      WriteReturnValue(SSL_OK, BufferIn);
     }
     else
     {
-      Memory::Write_U32(SSL_ERR_ID, BufferIn);
+      WriteReturnValue(SSL_ERR_ID, BufferIn);
       INFO_LOG(IOS_SSL, "IOCTLV_NET_SSL_SETBUILTINCLIENTCERT invalid sslID = %d", sslID);
     }
     break;
@@ -395,18 +395,18 @@ IPCCommandResult NetSSL::IOCtlV(const IOCtlVRequest& request)
       if (ret)
       {
         mbedtls_x509_crt_free(&ssl->clicert);
-        Memory::Write_U32(SSL_ERR_FAILED, BufferIn);
+        WriteReturnValue(SSL_ERR_FAILED, BufferIn);
       }
       else
       {
         mbedtls_ssl_conf_ca_chain(&ssl->config, &ssl->cacert, nullptr);
-        Memory::Write_U32(SSL_OK, BufferIn);
+        WriteReturnValue(SSL_OK, BufferIn);
       }
       INFO_LOG(IOS_SSL, "IOCTLV_NET_SSL_SETBUILTINROOTCA = %d", ret);
     }
     else
     {
-      Memory::Write_U32(SSL_ERR_ID, BufferIn);
+      WriteReturnValue(SSL_ERR_ID, BufferIn);
     }
     INFO_LOG(IOS_SSL, "IOCTLV_NET_SSL_SETBUILTINROOTCA "
                       "BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
@@ -428,11 +428,11 @@ IPCCommandResult NetSSL::IOCtlV(const IOCtlVRequest& request)
       ssl->hostfd = sm.GetHostSocket(ssl->sockfd);
       INFO_LOG(IOS_SSL, "IOCTLV_NET_SSL_CONNECT socket = %d", ssl->sockfd);
       mbedtls_ssl_set_bio(&ssl->ctx, &ssl->hostfd, mbedtls_net_send, mbedtls_net_recv, nullptr);
-      Memory::Write_U32(SSL_OK, BufferIn);
+      WriteReturnValue(SSL_OK, BufferIn);
     }
     else
     {
-      Memory::Write_U32(SSL_ERR_ID, BufferIn);
+      WriteReturnValue(SSL_ERR_ID, BufferIn);
     }
     INFO_LOG(IOS_SSL, "IOCTLV_NET_SSL_CONNECT "
                       "BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
@@ -453,7 +453,7 @@ IPCCommandResult NetSSL::IOCtlV(const IOCtlVRequest& request)
     }
     else
     {
-      Memory::Write_U32(SSL_ERR_ID, BufferIn);
+      WriteReturnValue(SSL_ERR_ID, BufferIn);
     }
     break;
   }
@@ -468,7 +468,7 @@ IPCCommandResult NetSSL::IOCtlV(const IOCtlVRequest& request)
     }
     else
     {
-      Memory::Write_U32(SSL_ERR_ID, BufferIn);
+      WriteReturnValue(SSL_ERR_ID, BufferIn);
     }
     INFO_LOG(IOS_SSL, "IOCTLV_NET_SSL_WRITE "
                       "BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
@@ -491,7 +491,7 @@ IPCCommandResult NetSSL::IOCtlV(const IOCtlVRequest& request)
     }
     else
     {
-      Memory::Write_U32(SSL_ERR_ID, BufferIn);
+      WriteReturnValue(SSL_ERR_ID, BufferIn);
     }
 
     INFO_LOG(IOS_SSL, "IOCTLV_NET_SSL_READ(%d)"
@@ -507,11 +507,11 @@ IPCCommandResult NetSSL::IOCtlV(const IOCtlVRequest& request)
     int sslID = Memory::Read_U32(BufferOut) - 1;
     if (SSLID_VALID(sslID))
     {
-      Memory::Write_U32(SSL_OK, BufferIn);
+      WriteReturnValue(SSL_OK, BufferIn);
     }
     else
     {
-      Memory::Write_U32(SSL_ERR_ID, BufferIn);
+      WriteReturnValue(SSL_ERR_ID, BufferIn);
     }
     INFO_LOG(IOS_SSL, "IOCTLV_NET_SSL_SETROOTCADEFAULT "
                       "BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
@@ -533,11 +533,11 @@ IPCCommandResult NetSSL::IOCtlV(const IOCtlVRequest& request)
     int sslID = Memory::Read_U32(BufferOut) - 1;
     if (SSLID_VALID(sslID))
     {
-      Memory::Write_U32(SSL_OK, BufferIn);
+      WriteReturnValue(SSL_OK, BufferIn);
     }
     else
     {
-      Memory::Write_U32(SSL_ERR_ID, BufferIn);
+      WriteReturnValue(SSL_ERR_ID, BufferIn);
     }
     break;
   }

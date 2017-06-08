@@ -41,7 +41,7 @@ IPCCommandResult NetKDRequest::IOCtl(const IOCtlRequest& request)
   case IOCTL_NWC24_SUSPEND_SCHEDULAR:
     // NWC24iResumeForCloseLib  from NWC24SuspendScheduler (Input: none, Output: 32 bytes)
     INFO_LOG(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_SUSPEND_SCHEDULAR - NI");
-    Memory::Write_U32(0, request.buffer_out);  // no error
+    WriteReturnValue(0, request.buffer_out);  // no error
     break;
 
   case IOCTL_NWC24_EXEC_TRY_SUSPEND_SCHEDULAR:  // NWC24iResumeForCloseLib
@@ -50,11 +50,11 @@ IPCCommandResult NetKDRequest::IOCtl(const IOCtlRequest& request)
 
   case IOCTL_NWC24_EXEC_RESUME_SCHEDULAR:  // NWC24iResumeForCloseLib
     INFO_LOG(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_EXEC_RESUME_SCHEDULAR - NI");
-    Memory::Write_U32(0, request.buffer_out);  // no error
+    WriteReturnValue(0, request.buffer_out);  // no error
     break;
 
   case IOCTL_NWC24_STARTUP_SOCKET:  // NWC24iStartupSocket
-    Memory::Write_U32(0, request.buffer_out);
+    WriteReturnValue(0, request.buffer_out);
     Memory::Write_U32(0, request.buffer_out + 4);
     return_value = 0;
     INFO_LOG(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_STARTUP_SOCKET - NI");
@@ -74,7 +74,7 @@ IPCCommandResult NetKDRequest::IOCtl(const IOCtlRequest& request)
 
   case IOCTL_NWC24_REQUEST_REGISTER_USER_ID:
     INFO_LOG(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_REQUEST_REGISTER_USER_ID");
-    Memory::Write_U32(0, request.buffer_out);
+    WriteReturnValue(0, request.buffer_out);
     Memory::Write_U32(0, request.buffer_out + 4);
     break;
 
@@ -110,20 +110,20 @@ IPCCommandResult NetKDRequest::IOCtl(const IOCtlRequest& request)
         config.SetCreationStage(NWC24::NWC24Config::NWC24_IDCS_GENERATED);
         config.WriteConfig();
 
-        Memory::Write_U32(ret, request.buffer_out);
+        WriteReturnValue(ret, request.buffer_out);
       }
       else
       {
-        Memory::Write_U32(NWC24::WC24_ERR_FATAL, request.buffer_out);
+        WriteReturnValue(NWC24::WC24_ERR_FATAL, request.buffer_out);
       }
     }
     else if (config.CreationStage() == NWC24::NWC24Config::NWC24_IDCS_GENERATED)
     {
-      Memory::Write_U32(NWC24::WC24_ERR_ID_GENERATED, request.buffer_out);
+      WriteReturnValue(NWC24::WC24_ERR_ID_GENERATED, request.buffer_out);
     }
     else if (config.CreationStage() == NWC24::NWC24Config::NWC24_IDCS_REGISTERED)
     {
-      Memory::Write_U32(NWC24::WC24_ERR_ID_REGISTERED, request.buffer_out);
+      WriteReturnValue(NWC24::WC24_ERR_ID_REGISTERED, request.buffer_out);
     }
     Memory::Write_U64(config.Id(), request.buffer_out + 4);
     Memory::Write_U32(config.CreationStage(), request.buffer_out + 0xC);

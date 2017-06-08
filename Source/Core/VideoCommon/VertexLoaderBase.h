@@ -36,7 +36,7 @@ public:
 private:
   size_t CalculateHash() const
   {
-    size_t h = -1;
+    size_t h = SIZE_MAX;
 
     for (auto word : vid)
     {

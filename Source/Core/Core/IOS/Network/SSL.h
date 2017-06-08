@@ -32,7 +32,7 @@ namespace HLE
 #define SSLID_VALID(x)                                                                             \
   (x >= 0 && x < NET_SSL_MAXINSTANCES && ::IOS::HLE::Device::NetSSL::_SSL[x].active)
 
-enum ssl_err_t
+enum ssl_err_t : s32
 {
   SSL_OK = 0,
   SSL_ERR_FAILED = -1,

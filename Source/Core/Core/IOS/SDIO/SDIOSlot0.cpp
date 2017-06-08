@@ -134,7 +134,7 @@ IPCCommandResult SDIOSlot0::IOCtlV(const IOCtlVRequest& request)
   return GetDefaultReply(IPC_SUCCESS);
 }
 
-u32 SDIOSlot0::ExecuteCommand(const Request& request, u32 _BufferIn, u32 _BufferInSize,
+s32 SDIOSlot0::ExecuteCommand(const Request& request, u32 _BufferIn, u32 _BufferInSize,
                               u32 _rwBuffer, u32 _rwBufferSize, u32 _BufferOut, u32 _BufferOutSize)
 {
   // The game will send us a SendCMD with this information. To be able to read and write
@@ -164,7 +164,7 @@ u32 SDIOSlot0::ExecuteCommand(const Request& request, u32 _BufferIn, u32 _Buffer
 
   // Note: req.addr is the virtual address of _rwBuffer
 
-  u32 ret = RET_OK;
+  s32 ret = RET_OK;
 
   switch (req.command)
   {

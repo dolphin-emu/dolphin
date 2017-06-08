@@ -159,8 +159,9 @@ bool AVIDump::CreateVideoFile()
 
   const AVCodec* codec = nullptr;
 
-  if (!(codec = avcodec_find_encoder(codec_id)) ||
-      !(s_codec_context = avcodec_alloc_context3(codec)))
+  codec = avcodec_find_encoder(codec_id);
+  s_codec_context = avcodec_alloc_context3(codec);
+  if (!codec || !s_codec_context)
   {
     ERROR_LOG(VIDEO, "Could not find encoder or allocate codec context");
     return false;
@@ -203,8 +204,8 @@ bool AVIDump::CreateVideoFile()
     return false;
 #endif
 
-  if (!(s_stream = avformat_new_stream(s_format_context, codec)) ||
-      !AVStreamCopyContext(s_stream, s_codec_context))
+  s_stream = avformat_new_stream(s_format_context, codec);
+  if (!s_stream || !AVStreamCopyContext(s_stream, s_codec_context))
   {
     ERROR_LOG(VIDEO, "Could not create stream");
     return false;
@@ -299,9 +300,10 @@ void AVIDump::AddFrame(const u8* data, int width, int height, int stride, const 
   s_src_frame->height = s_height;
 
   // Convert image from {BGR24, RGBA} to desired pixel format
-  if ((s_sws_context =
-           sws_getCachedContext(s_sws_context, width, height, s_pix_fmt, s_width, s_height,
-                                s_codec_context->pix_fmt, SWS_BICUBIC, nullptr, nullptr, nullptr)))
+  s_sws_context =
+      sws_getCachedContext(s_sws_context, width, height, s_pix_fmt, s_width, s_height,
+                           s_codec_context->pix_fmt, SWS_BICUBIC, nullptr, nullptr, nullptr);
+  if (s_sws_context)
   {
     sws_scale(s_sws_context, s_src_frame->data, s_src_frame->linesize, 0, height,
               s_scaled_frame->data, s_scaled_frame->linesize);
