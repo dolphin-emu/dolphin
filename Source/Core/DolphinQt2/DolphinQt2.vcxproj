@@ -41,15 +41,10 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros">
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LinkIncremental>true</LinkIncremental>
-  </PropertyGroup>
   <ItemDefinitionGroup>
     <Link>
       <AdditionalLibraryDirectories>$(ExternalsDir)ffmpeg\lib;$(ExternalsDir)OpenAL\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>avrt.lib;iphlpapi.lib;winmm.lib;setupapi.lib;opengl32.lib;glu32.lib;rpcrt4.lib;comctl32.lib;avcodec.lib;avformat.lib;avutil.lib;swresample.lib;swscale.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <!--TODO fix up ffmpeg garbage-->
-      <AdditionalOptions>/NODEFAULTLIB:libcmt %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <ClCompile>
       <AdditionalIncludeDirectories>$(ProjectDir)\VideoInterface;$(ProjectDir)\GameList;$(ProjectDir)\Settings;$(ProjectDir)\Config;$(ProjectDir)\Config\Mapping;$(ProjectDir)\QtUtils;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -58,14 +53,6 @@
       <AdditionalManifestFiles>DolphinQt2.manifest;%(AdditionalManifestFiles)</AdditionalManifestFiles>
     </Manifest>
   </ItemDefinitionGroup>
-  <!--QRC and UI files are handled automatically-->
-  <ItemGroup>
-    <QtResource Include="*.qrc" />
-  </ItemGroup>
-  <ItemGroup>
-    <QtUi Include="*.ui" />
-    <QtUi Include="GameList\*.ui" />
-  </ItemGroup>
   <!--MOC files need to be listed. Perhaps scan for Q_OBJECT in the future? (like automoc)-->
   <!--NOTE: When adding moc'd files, you must list the outputs in the following ItemGroup!-->
   <ItemGroup>
@@ -168,11 +155,9 @@
     <ClCompile Include="ToolBar.cpp" />
   </ItemGroup>
   <!--Put standard C/C++ headers here-->
-  <!--
   <ItemGroup>
-    <ClInclude Include="Main.h" />
+    <ClInclude Include="Resources.h" />
   </ItemGroup>
-  -->
   <ItemGroup>
     <Text Include="CMakeLists.txt" />
   </ItemGroup>
@@ -247,10 +232,6 @@
     <BinaryFiles Include="$(TargetPath)" />
     <AllInputFiles Include="@(DataSysFiles);@(DataTxtFiles);@(ExternalDlls);@(BinaryFiles)" />
   </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Resources.h" />
-  </ItemGroup>
-  <!--Disable copying to binary dir for now on the buildbot to prevent packaging of the outputs-->
   <Target Name="AfterBuild" Inputs="@(AllInputFiles)" Outputs="@(AllInputFiles -> '$(BinaryOutputDir)%(RecursiveDir)%(Filename)%(Extension)')">
     <Message Text="Copying Data directory..." Importance="High" />
     <Copy SourceFiles="@(DataSysFiles)" DestinationFolder="$(BinaryOutputDir)%(RecursiveDir)" Condition="!Exists('$(BinaryOutputDir)%(RecursiveDir)%(Filename)%(DataSysFiles.Extension)') OR $([System.DateTime]::Parse('%(ModifiedTime)').Ticks) &gt; $([System.IO.File]::GetLastWriteTime('$(BinaryOutputDir)%(RecursiveDir)%(Filename)%(DataSysFiles.Extension)').Ticks)" />
