@@ -168,6 +168,11 @@ static bool SetupMemory(u64 ios_title_id, MemorySetupType setup_type)
   return true;
 }
 
+void WriteReturnValue(s32 value, u32 address)
+{
+  Memory::Write_U32(static_cast<u32>(value), address);
+}
+
 // IOS used by the latest System Menu (4.3).
 constexpr u64 IOS80_TITLE_ID = 0x0000000100000050;
 constexpr u64 BC_TITLE_ID = 0x0000000100000100;
