@@ -9,6 +9,7 @@
 #include <optional>
 #include <set>
 #include <string>
+#include <variant>
 #include <vector>
 
 #include "Common/CommonTypes.h"
@@ -41,7 +42,10 @@ private:
   class DiscContent
   {
   public:
-    DiscContent(u64 offset, u64 size, const std::string& path);
+    // Either a pointer to memory or a path to a file can be used as a content source
+    using ContentSource = std::variant<std::string, const u8*>;
+
+    DiscContent(u64 offset, u64 size, ContentSource content_source);
 
     // Provided because it's convenient when searching for DiscContent in an std::set
     explicit DiscContent(u64 offset);
@@ -59,7 +63,7 @@ private:
   private:
     u64 m_offset;
     u64 m_size;
-    std::string m_path;
+    ContentSource m_content_source;
   };
 
   DirectoryBlobReader(File::IOFile dol_file, const std::string& root_directory);
