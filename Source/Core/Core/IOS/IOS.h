@@ -14,7 +14,6 @@
 
 #include "Common/CommonTypes.h"
 #include "Core/CoreTiming.h"
-#include "Core/HW/Memmap.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/IOS/IOSC.h"
 
@@ -83,11 +82,7 @@ enum ProcessId : u32
   PID_UNKNOWN = 19,
 };
 
-template <typename T>
-void WriteReturnValue(T value, u32 address)
-{
-  Memory::Write_U32(static_cast<u32>(value), address);
-}
+void WriteReturnValue(s32 value, u32 address);
 
 // HLE for the IOS kernel: IPC, device management, syscalls, and Dolphin-specific, IOS-wide calls.
 class Kernel
