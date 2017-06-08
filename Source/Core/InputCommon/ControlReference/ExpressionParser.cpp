@@ -519,7 +519,7 @@ static ParseResult ParseComplexExpression(const std::string& str)
   if (tokenize_status != ParseStatus::Successful)
     return {tokenize_status};
 
-  return Parser(tokens).Parse();
+  return Parser(std::move(tokens)).Parse();
 }
 
 static std::unique_ptr<Expression> ParseBarewordExpression(const std::string& str)
