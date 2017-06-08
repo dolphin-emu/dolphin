@@ -160,6 +160,9 @@
     <Filter Include="PowerPC\SignatureDB">
       <UniqueIdentifier>{f0b52c84-49f4-470a-b037-edeea5634b9e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="HW %28Flipper/Hollywood%29\WiimoteCommon">
+      <UniqueIdentifier>{ee6645da-3ad9-4fe7-809f-e4646d0b0ca5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BootManager.cpp" />
@@ -1525,6 +1528,15 @@
     </ClInclude>
     <ClInclude Include="IOS\Network\NCD\WiiNetConfig.h">
       <Filter>IOS\Network\NCD</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\WiimoteCommon\WiimoteConstants.h">
+      <Filter>HW %28Flipper/Hollywood%29\WiimoteCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\WiimoteCommon\WiimoteHid.h">
+      <Filter>HW %28Flipper/Hollywood%29\WiimoteCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\WiimoteCommon\WiimoteReport.h">
+      <Filter>HW %28Flipper/Hollywood%29\WiimoteCommon</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
