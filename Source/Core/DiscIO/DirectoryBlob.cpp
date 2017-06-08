@@ -76,39 +76,17 @@ DirectoryBlobReader::DirectoryBlobReader(File::IOFile dol_file, const std::strin
     SetDOLAndDiskType(std::move(dol_file));
 
   BuildFST();
+
+  m_virtual_disc.emplace(DISKHEADER_ADDRESS, DISKHEADERINFO_ADDRESS, m_disk_header.data());
+  m_virtual_disc.emplace(DISKHEADERINFO_ADDRESS, sizeof(m_disk_header_info),
+                         reinterpret_cast<const u8*>(m_disk_header_info.get()));
+  m_virtual_disc.emplace(APPLOADER_ADDRESS, m_apploader.size(), m_apploader.data());
+  m_virtual_disc.emplace(m_dol_address, m_dol.size(), m_dol.data());
+  m_virtual_disc.emplace(m_fst_address, m_fst_data.size(), m_fst_data.data());
 }
 
 bool DirectoryBlobReader::ReadPartition(u64 offset, u64 length, u8* buffer)
 {
-  // header
-  if (offset < DISKHEADERINFO_ADDRESS)
-  {
-    WriteToBuffer(DISKHEADER_ADDRESS, DISKHEADERINFO_ADDRESS, m_disk_header.data(), &offset,
-                  &length, &buffer);
-  }
-  // header info
-  if (offset >= DISKHEADERINFO_ADDRESS && offset < APPLOADER_ADDRESS)
-  {
-    WriteToBuffer(DISKHEADERINFO_ADDRESS, sizeof(m_disk_header_info), (u8*)m_disk_header_info.get(),
-                  &offset, &length, &buffer);
-  }
-  // apploader
-  if (offset >= APPLOADER_ADDRESS && offset < APPLOADER_ADDRESS + m_apploader.size())
-  {
-    WriteToBuffer(APPLOADER_ADDRESS, m_apploader.size(), m_apploader.data(), &offset, &length,
-                  &buffer);
-  }
-  // dol
-  if (offset >= m_dol_address && offset < m_dol_address + m_dol.size())
-  {
-    WriteToBuffer(m_dol_address, m_dol.size(), m_dol.data(), &offset, &length, &buffer);
-  }
-  // fst
-  if (offset >= m_fst_address && offset < m_data_start_address)
-  {
-    WriteToBuffer(m_fst_address, m_fst_data.size(), m_fst_data.data(), &offset, &length, &buffer);
-  }
-
   if (m_virtual_disc.empty())
     return true;
 
