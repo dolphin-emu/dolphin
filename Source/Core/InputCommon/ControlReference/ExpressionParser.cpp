@@ -216,7 +216,7 @@ public:
   // Keep a shared_ptr to the device so the control pointer doesn't become invalid
   std::shared_ptr<Device> m_device;
 
-  ControlExpression(ControlQualifier qualifier_) : qualifier(qualifier_) {}
+  explicit ControlExpression(ControlQualifier qualifier_) : qualifier(qualifier_) {}
   ControlState GetValue() const override { return control ? control->ToInput()->GetState() : 0.0; }
   void SetValue(ControlState value) override
   {

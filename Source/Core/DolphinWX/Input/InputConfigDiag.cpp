@@ -243,7 +243,7 @@ ControlButton::ControlButton(wxWindow* const parent, ControlReference* const _re
       m_configured_width(FromDIP(width))
 {
   if (label.empty())
-    SetLabelText(StrToWxStr(_ref->expression));
+    SetLabelText(StrToWxStr(_ref->GetExpression()));
   else
     SetLabel(StrToWxStr(label));
 }
@@ -336,7 +336,7 @@ void ControlDialog::SelectControl(const std::string& name)
 void ControlDialog::UpdateGUI()
 {
   // update textbox
-  textctrl->SetValue(StrToWxStr(control_reference->expression));
+  textctrl->SetValue(StrToWxStr(control_reference->GetExpression()));
 
   // updates the "bound controls:" label
   m_bound_label->SetLabel(
@@ -365,7 +365,7 @@ void InputConfigDialog::UpdateGUI()
   {
     for (ControlButton* button : cgBox->control_buttons)
     {
-      button->SetLabelText(StrToWxStr(button->control_reference->expression));
+      button->SetLabelText(StrToWxStr(button->control_reference->GetExpression()));
     }
 
     for (PadSetting* padSetting : cgBox->options)
@@ -400,7 +400,7 @@ void InputConfigDialog::LoadDefaults(wxCommandEvent&)
 
 bool ControlDialog::Validate()
 {
-  control_reference->expression = WxStrToStr(textctrl->GetValue());
+  control_reference->SetExpression(WxStrToStr(textctrl->GetValue()));
 
   const auto lock = ControllerEmu::EmulatedController::GetStateLock();
   control_reference->UpdateReference(g_controller_interface,
@@ -439,7 +439,7 @@ void ControlDialog::SetDevice(wxCommandEvent&)
 
 void ControlDialog::ClearControl(wxCommandEvent&)
 {
-  control_reference->expression.clear();
+  control_reference->SetExpression("");
 
   const auto lock = ControllerEmu::EmulatedController::GetStateLock();
   control_reference->UpdateReference(g_controller_interface,
@@ -498,7 +498,7 @@ void ControlDialog::SetSelectedControl(wxCommandEvent&)
     return;
 
   textctrl->WriteText(expr);
-  control_reference->expression = textctrl->GetValue();
+  control_reference->SetExpression(WxStrToStr(textctrl->GetValue()));
 
   const auto lock = ControllerEmu::EmulatedController::GetStateLock();
   control_reference->UpdateReference(g_controller_interface,
@@ -534,7 +534,7 @@ void ControlDialog::AppendControl(wxCommandEvent& event)
   }
 
   textctrl->WriteText(expr);
-  control_reference->expression = textctrl->GetValue();
+  control_reference->SetExpression(WxStrToStr(textctrl->GetValue()));
 
   const auto lock = ControllerEmu::EmulatedController::GetStateLock();
   control_reference->UpdateReference(g_controller_interface,
@@ -638,7 +638,7 @@ void InputConfigDialog::ConfigControl(wxEvent& event)
 void InputConfigDialog::ClearControl(wxEvent& event)
 {
   ControlButton* const btn = (ControlButton*)event.GetEventObject();
-  btn->control_reference->expression.clear();
+  btn->control_reference->SetExpression("");
   btn->control_reference->range = 1.0;
 
   controller->UpdateReferences(g_controller_interface);
@@ -717,7 +717,7 @@ bool InputConfigDialog::DetectButton(ControlButton* button)
       wxString control_name = ctrl->GetName();
       wxString expr;
       GetExpressionForControl(expr, control_name);
-      button->control_reference->expression = expr;
+      button->control_reference->SetExpression(WxStrToStr(expr));
       const auto lock = ControllerEmu::EmulatedController::GetStateLock();
       button->control_reference->UpdateReference(g_controller_interface,
                                                  controller->default_device);
