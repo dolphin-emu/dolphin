@@ -12,6 +12,7 @@
 #include <set>
 #include <string>
 #include <utility>
+#include <variant>
 #include <vector>
 
 #include "Common/Align.h"
@@ -48,7 +49,12 @@ const std::array<u32, 10> PARTITION_TABLE = {
      Common::swap32(GAME_PARTITION_ADDRESS >> 2), 0}};
 
 DiscContent::DiscContent(u64 offset, u64 size, const std::string& path)
-    : m_offset(offset), m_size(size), m_path(path)
+    : m_offset(offset), m_size(size), m_content_source(path)
+{
+}
+
+DiscContent::DiscContent(u64 offset, u64 size, const u8* data)
+    : m_offset(offset), m_size(size), m_content_source(data)
 {
 }
 
@@ -78,10 +84,18 @@ bool DiscContent::Read(u64* offset, u64* length, u8** buffer) const
   {
     const u64 bytes_to_read = std::min(m_size - offset_in_content, *length);
 
-    File::IOFile file(m_path, "rb");
-    file.Seek(offset_in_content, SEEK_SET);
-    if (!file.ReadBytes(*buffer, bytes_to_read))
-      return false;
+    if (std::holds_alternative<std::string>(m_content_source))
+    {
+      File::IOFile file(std::get<std::string>(m_content_source), "rb");
+      file.Seek(offset_in_content, SEEK_SET);
+      if (!file.ReadBytes(*buffer, bytes_to_read))
+        return false;
+    }
+    else
+    {
+      const u8* const content_pointer = std::get<const u8*>(m_content_source) + offset_in_content;
+      std::copy(content_pointer, content_pointer + bytes_to_read, *buffer);
+    }
 
     *length -= bytes_to_read;
     *buffer += bytes_to_read;
