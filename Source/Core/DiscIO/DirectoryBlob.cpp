@@ -96,7 +96,22 @@ DirectoryBlobReader::DirectoryBlobReader(File::IOFile dol_file, const std::strin
                                     m_disk_header.data());
     m_nonpartition_contents.emplace(PARTITION_TABLE_ADDRESS, PARTITION_TABLE.size() * sizeof(u32),
                                     reinterpret_cast<const u8*>(PARTITION_TABLE.data()));
-    // TODO: TMDs, tickets, more headers, the raw partition contents...
+
+    constexpr u32 TICKET_OFFSET = 0x0;
+    constexpr u32 TICKET_SIZE = 0x2a4;
+    constexpr u32 TMD_OFFSET = 0x2c0;
+    constexpr u32 MAX_TMD_SIZE = 0x49e4;
+    AddFileToContents(&m_nonpartition_contents, m_root_directory + "ticket.bin",
+                      GAME_PARTITION_ADDRESS + TICKET_OFFSET, TICKET_SIZE);
+    const DiscContent& tmd =
+        AddFileToContents(&m_nonpartition_contents, m_root_directory + "tmd.bin",
+                          GAME_PARTITION_ADDRESS + TMD_OFFSET, MAX_TMD_SIZE);
+    m_tmd_header = {Common::swap32(static_cast<u32>(tmd.GetSize())),
+                    Common::swap32(TMD_OFFSET >> m_address_shift)};
+    m_nonpartition_contents.emplace(GAME_PARTITION_ADDRESS + TICKET_SIZE, sizeof(m_tmd_header),
+                                    reinterpret_cast<const u8*>(&m_tmd_header));
+
+    // TODO: We don't handle raw access to the encrypted area of Wii discs correctly.
   }
 }
 
@@ -370,6 +385,13 @@ void DirectoryBlobReader::WriteDirectory(const File::FSTEntry& parent_entry, u32
       *data_offset = Common::AlignUp(*data_offset + std::max<u64>(entry.size, 1ull), 0x8000ull);
     }
   }
+}
+
+const DirectoryBlobReader::DiscContent&
+DirectoryBlobReader::AddFileToContents(std::set<DiscContent>* contents, const std::string& path,
+                                       u64 offset, u64 max_size)
+{
+  return *(contents->emplace(offset, std::min(File::GetSize(path), max_size), path).first);
 }
 
 static u32 ComputeNameSize(const File::FSTEntry& parent_entry)
