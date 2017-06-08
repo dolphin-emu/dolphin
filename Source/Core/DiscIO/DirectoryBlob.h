@@ -69,8 +69,7 @@ private:
 
   DirectoryBlobReader(File::IOFile dol_file, const std::string& root_directory);
 
-  bool ReadPartition(u64 offset, u64 length, u8* buffer);
-  bool ReadNonPartition(u64 offset, u64 length, u8* buffer);
+  bool ReadInternal(u64 offset, u64 length, u8* buffer, const std::set<DiscContent>& contents);
 
   void SetDiskTypeWii();
   void SetDiskTypeGC();
@@ -82,10 +81,6 @@ private:
   void SetDOLAndDiskType(File::IOFile dol_file);
 
   void BuildFST();
-
-  // writing to read buffer
-  void WriteToBuffer(u64 source_start_address, u64 source_length, const u8* source, u64* address,
-                     u64* length, u8** buffer) const;
 
   void PadToAddress(u64 start_address, u64* address, u64* length, u8** buffer) const;
 
@@ -101,6 +96,7 @@ private:
   std::string m_root_directory;
 
   std::set<DiscContent> m_virtual_disc;
+  std::set<DiscContent> m_nonpartition_contents;
 
   bool m_is_wii = false;
 
