@@ -107,6 +107,14 @@ Android apps are compiled using a build system called Gradle. Dolphin's native c
 however, is compiled using CMake. The Gradle script will attempt to run a CMake build
 automatically while building the Java code.
 
+## Build types
+
+Set build types using the CMAKE_BUILD_TYPE flag. For example usage, see [Debugging](#debugging).
+
+- `Release`: default fast build without debugging facilities
+- `RelWithDebInfo`: much faster than `Debug`, while still providing debug symbols. Breakpoints may not work due to optimizations.
+- `Debug`: unoptimized (slow) build with debug symbols. Recommended for setting breakpoints.
+
 ## Uninstalling
 
 When Dolphin has been installed with the NSIS installer, you can uninstall
@@ -160,6 +168,22 @@ to dump the DSP files from a console and replace the default dumps if you want
 to fix those issues.
 
 Wii network certificates must be extracted from a Wii IOS. A guide for that can be found [here](https://wiki.dolphin-emu.org/index.php?title=Wii_Network_Guide).
+
+## Debugging
+
+To use a debugger with Dolphin (generate backtraces, set breakpoint etc.), it must be built using `CMAKE_BUILD_TYPE=Debug`. Instead of `cmake`, run `cmake -D CMAKE_BUILD_TYPE=Debug` when following the above build steps.
+
+Dolphin is non-deterministic in dual core mode. Therefore, it's typically recommended to disable this in Dolphin's configuration menu when debugging.
+
+### Linux
+
+`sudo gdb dolphin`
+
+### macOS
+
+gdb is also available for macOS but might cause problems. Therefore, it's recommended to use lldb.
+
+`sudo lldb Binaries/Dolphin.app/Contents/MacOS/Dolphin`
 
 ## Folder Structure
 
