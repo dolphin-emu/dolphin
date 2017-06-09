@@ -13,8 +13,10 @@
 
 #include "DolphinQt2/Config/Mapping/MappingWindow.h"
 
+#include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
+#include "Common/StringUtil.h"
 #include "Core/Core.h"
 #include "DolphinQt2/Config/Mapping/GCKeyboardEmu.h"
 #include "DolphinQt2/Config/Mapping/GCPadEmu.h"
@@ -132,14 +134,14 @@ void MappingWindow::ConnectWidgets()
 
 void MappingWindow::OnDeleteProfilePressed()
 {
-  auto& settings = Settings::Instance();
   const QString profile_name = m_profiles_combo->currentText();
-  if (!settings.GetProfiles(m_config).contains(profile_name))
+  const QString profile_path = m_profiles_combo->currentData().toString();
+
+  if (!File::Exists(profile_path.toStdString()))
   {
-    QMessageBox error;
+    QMessageBox error(this);
     error.setIcon(QMessageBox::Critical);
     error.setText(tr("The profile '%1' does not exist").arg(profile_name));
-
     error.exec();
     return;
   }
@@ -158,32 +160,22 @@ void MappingWindow::OnDeleteProfilePressed()
 
   m_profiles_combo->removeItem(m_profiles_combo->currentIndex());
 
+  File::Delete(profile_path.toStdString());
+
   QMessageBox result(this);
-
-  std::string profile_path = settings.GetProfileINIPath(m_config, profile_name).toStdString();
-
-  File::CreateFullPath(profile_path);
-
-  File::Delete(profile_path);
-
   result.setIcon(QMessageBox::Information);
   result.setText(tr("Successfully deleted '%1'.").arg(profile_name));
 }
 
 void MappingWindow::OnLoadProfilePressed()
 {
-  const QString profile_name = m_profiles_combo->currentText();
+  const QString profile_path = m_profiles_combo->currentData().toString();
 
-  if (profile_name.isEmpty())
+  if (m_profiles_combo->currentIndex() == 0)
     return;
 
-  std::string profile_path =
-      Settings::Instance().GetProfileINIPath(m_config, profile_name).toStdString();
-
-  File::CreateFullPath(profile_path);
-
   IniFile ini;
-  ini.Load(profile_path);
+  ini.Load(profile_path.toStdString());
 
   m_controller->LoadConfig(ini.GetOrCreateSection("Profile"));
   m_controller->UpdateReferences(g_controller_interface);
@@ -196,23 +188,21 @@ void MappingWindow::OnLoadProfilePressed()
 void MappingWindow::OnSaveProfilePressed()
 {
   const QString profile_name = m_profiles_combo->currentText();
+  const QString profile_path = m_profiles_combo->currentData().toString();
 
   if (profile_name.isEmpty())
     return;
 
-  std::string profile_path =
-      Settings::Instance().GetProfileINIPath(m_config, profile_name).toStdString();
-
-  File::CreateFullPath(profile_path);
+  File::CreateFullPath(profile_path.toStdString());
 
   IniFile ini;
 
   m_controller->SaveConfig(ini.GetOrCreateSection("Profile"));
-  ini.Save(profile_path);
+  ini.Save(profile_path.toStdString());
 
   if (m_profiles_combo->currentIndex() == 0)
   {
-    m_profiles_combo->addItem(profile_name);
+    m_profiles_combo->addItem(profile_name, profile_path);
     m_profiles_combo->setCurrentIndex(m_profiles_combo->count() - 1);
   }
 }
@@ -314,10 +304,16 @@ void MappingWindow::ChangeMappingType(MappingWindow::Type type)
   if (m_config)
   {
     m_controller = m_config->GetController(GetPort());
-
     m_profiles_combo->addItem(QStringLiteral(""));
-    for (const auto& item : Settings::Instance().GetProfiles(m_config))
-      m_profiles_combo->addItem(item);
+
+    const std::string profiles_path =
+        File::GetUserPath(D_CONFIG_IDX) + "Profiles/" + m_config->GetProfileName();
+    for (const auto& filename : Common::DoFileSearch({profiles_path}, {".ini"}))
+    {
+      std::string basename;
+      SplitPath(filename, nullptr, &basename, nullptr);
+      m_profiles_combo->addItem(QString::fromStdString(basename), QString::fromStdString(filename));
+    }
   }
 
   SetLayoutComplex(type != Type::MAPPING_GCPAD_WIIU);
