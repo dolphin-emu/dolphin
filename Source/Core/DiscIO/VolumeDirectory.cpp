@@ -372,7 +372,7 @@ void VolumeDirectory::BuildFST()
   if (m_fst_address == 0)
     m_fst_address = APPLOADER_ADDRESS + 0x2000;
 
-  // 4 byte aligned start of data on disk
+  // 32 KiB aligned start of data on disk
   m_data_start_address = Common::AlignUp(m_fst_address + m_fst_data.size(), 0x8000ull);
   u64 current_data_address = m_data_start_address;
 
@@ -494,7 +494,7 @@ void VolumeDirectory::WriteDirectory(const File::FSTEntry& parent_entry, u32* fs
       _dbg_assert_(DVDINTERFACE, m_virtual_disk.find(*data_offset) == m_virtual_disk.end());
       m_virtual_disk.emplace(*data_offset, entry.physicalName);
 
-      // 4 byte aligned
+      // 32 KiB aligned - many games are fine with less alignment, but not all
       *data_offset = Common::AlignUp(*data_offset + std::max<u64>(entry.size, 1ull), 0x8000ull);
     }
   }
