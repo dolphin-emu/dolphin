@@ -17,6 +17,85 @@ class PointerWrap;
 
 namespace IOS
 {
+enum class SignatureType : u32
+{
+  RSA4096 = 0x00010000,
+  RSA2048 = 0x00010001,
+  // XXX: Add support for ECC (0x00010002).
+};
+
+enum class PublicKeyType : u32
+{
+  RSA4096 = 0,
+  RSA2048 = 1,
+};
+
+#pragma pack(push, 4)
+struct SignatureRSA4096
+{
+  SignatureType type;
+  u8 sig[0x200];
+  u8 fill[0x3c];
+  char issuer[0x40];
+};
+static_assert(sizeof(SignatureRSA4096) == 0x280, "Wrong size for SignatureRSA4096");
+
+struct SignatureRSA2048
+{
+  SignatureType type;
+  u8 sig[0x100];
+  u8 fill[0x3c];
+  char issuer[0x40];
+};
+static_assert(sizeof(SignatureRSA2048) == 0x180, "Wrong size for SignatureRSA2048");
+
+struct SignatureECC
+{
+  SignatureType type;
+  u8 sig[0x3c];
+  u8 fill[0x40];
+  char issuer[0x40];
+};
+static_assert(sizeof(SignatureECC) == 0xc0, "Wrong size for SignatureECC");
+
+// Source: https://wiibrew.org/wiki/Certificate_chain
+struct CertHeader
+{
+  PublicKeyType public_key_type;
+  char name[0x40];
+  u32 id;
+};
+
+struct CertRSA4096
+{
+  SignatureRSA4096 signature;
+  CertHeader header;
+  // The signature is RSA4096, but the key is a RSA2048 public key,
+  // so its size is 0x100, not 0x200, as one would expect from the name.
+  u8 public_key[0x100];
+  u8 exponent[0x4];
+  u8 pad[0x34];
+};
+static_assert(sizeof(CertRSA4096) == 0x400, "Wrong size for CertRSA4096");
+
+struct CertRSA2048
+{
+  SignatureRSA2048 signature;
+  CertHeader header;
+  u8 public_key[0x100];
+  u8 exponent[0x4];
+  u8 pad[0x34];
+};
+static_assert(sizeof(CertRSA2048) == 0x300, "Wrong size for CertRSA2048");
+
+union Cert
+{
+  SignatureType type;
+  CertRSA4096 rsa4096;
+  CertRSA2048 rsa2048;
+};
+#pragma pack(pop)
+
 namespace HLE
 {
 enum ReturnCode : s32;

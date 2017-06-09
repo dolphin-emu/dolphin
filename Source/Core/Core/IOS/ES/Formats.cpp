@@ -307,8 +307,8 @@ std::vector<u8> TicketReader::GetRawTicketView(u32 ticket_num) const
 std::string TicketReader::GetIssuer() const
 {
   const char* bytes =
-      reinterpret_cast<const char*>(m_bytes.data() + offsetof(Ticket, signature_issuer));
-  return std::string(bytes, strnlen(bytes, sizeof(Ticket::signature_issuer)));
+      reinterpret_cast<const char*>(m_bytes.data() + offsetof(Ticket, signature.issuer));
+  return std::string(bytes, strnlen(bytes, sizeof(Ticket::signature.issuer)));
 }
 
 u32 TicketReader::GetDeviceId() const
