@@ -28,8 +28,6 @@ namespace DiscIO
 class DirectoryBlobReader : public BlobReader
 {
 public:
-  static bool IsValidDirectoryBlob(const std::string& dol_path, std::string* root_directory);
-  static bool IsValidDirectoryBlob(const std::string& dol_path);
   static std::unique_ptr<DirectoryBlobReader> Create(const std::string& dol_path);
 
   bool Read(u64 offset, u64 length, u8* buffer) override;
