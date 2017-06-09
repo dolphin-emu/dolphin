@@ -41,8 +41,10 @@ constexpr u8 ENTRY_SIZE = 0x0c;
 constexpr u8 FILE_ENTRY = 0;
 constexpr u8 DIRECTORY_ENTRY = 1;
 constexpr u64 DISKHEADER_ADDRESS = 0;
+constexpr u64 DISKHEADER_SIZE = 0x440;
 constexpr u64 NONPARTITION_DISKHEADER_SIZE = 0x100;
-constexpr u64 DISKHEADERINFO_ADDRESS = 0x440;
+constexpr u64 BI2_ADDRESS = 0x440;
+constexpr u64 BI2_SIZE = 0x2000;
 constexpr u64 APPLOADER_ADDRESS = 0x2440;
 
 constexpr u64 GAME_PARTITION_ADDRESS = 0x50000;
@@ -136,7 +138,7 @@ std::unique_ptr<DirectoryBlobReader> DirectoryBlobReader::Create(const std::stri
 
 DirectoryBlobReader::DirectoryBlobReader(const std::string& root_directory)
     : m_root_directory(root_directory), m_data_start_address(UINT64_MAX),
-      m_disk_header(DISKHEADERINFO_ADDRESS), m_fst_address(0), m_dol_address(0)
+      m_disk_header(DISKHEADER_SIZE), m_fst_address(0), m_dol_address(0)
 {
   SetDiscHeaderAndDiscType();
 
@@ -146,9 +148,8 @@ DirectoryBlobReader::DirectoryBlobReader(const std::string& root_directory)
 
   BuildFST();
 
-  m_virtual_disc.emplace(DISKHEADER_ADDRESS, DISKHEADERINFO_ADDRESS, m_disk_header.data());
-  AddFileToContents(&m_virtual_disc, m_root_directory + "sys/bi2.bin", DISKHEADERINFO_ADDRESS,
-                    APPLOADER_ADDRESS - DISKHEADERINFO_ADDRESS);
+  m_virtual_disc.emplace(DISKHEADER_ADDRESS, DISKHEADER_SIZE, m_disk_header.data());
+  AddFileToContents(&m_virtual_disc, m_root_directory + "sys/bi2.bin", BI2_ADDRESS, BI2_SIZE);
   m_virtual_disc.emplace(APPLOADER_ADDRESS, m_apploader.size(), m_apploader.data());
   m_virtual_disc.emplace(m_fst_address, m_fst_data.size(), m_fst_data.data());
 
