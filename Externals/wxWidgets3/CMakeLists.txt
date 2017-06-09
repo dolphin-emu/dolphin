@@ -895,4 +895,10 @@ else()
         message(FATAL_ERROR "wxWidgets in Externals is not compatible with your platform")
 endif()
 
+if (MSVC)
+	add_definitions(/W0)
+else()
+	add_definitions(-w)
+endif()
+
 add_library(wxWidgets::wxWidgets ALIAS wx)
