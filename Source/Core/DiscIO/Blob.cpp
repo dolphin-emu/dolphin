@@ -204,7 +204,7 @@ std::unique_ptr<BlobReader> CreateBlobReader(const std::string& filename)
     return WbfsFileReader::Create(std::move(file), filename);
   default:
     if (DirectoryBlobReader::IsValidDirectoryBlob(filename))
-      return DirectoryBlobReader::Create(std::move(file), filename);
+      return DirectoryBlobReader::Create(filename);
 
     return PlainFileReader::Create(std::move(file));
   }
