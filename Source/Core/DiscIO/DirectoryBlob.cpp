@@ -47,8 +47,7 @@ const std::array<u32, 10> PARTITION_TABLE = {
     {Common::swap32(1), Common::swap32((PARTITION_TABLE_ADDRESS + 0x20) >> 2), 0, 0, 0, 0, 0, 0,
      Common::swap32(GAME_PARTITION_ADDRESS >> 2), 0}};
 
-bool DirectoryBlobReader::IsValidDirectoryBlob(const std::string& dol_path,
-                                               std::string* root_directory)
+static bool IsValidDirectoryBlob(const std::string& dol_path, std::string* root_directory)
 {
 #ifdef _WIN32
   std::string normalized_dol_path = dol_path;
@@ -63,12 +62,6 @@ bool DirectoryBlobReader::IsValidDirectoryBlob(const std::string& dol_path,
   *root_directory = dol_path.substr(0, dol_path.size() - chars_to_remove);
 
   return File::GetSize(*root_directory + "sys/boot.bin") >= 0x20;
-}
-
-bool DirectoryBlobReader::IsValidDirectoryBlob(const std::string& dol_path)
-{
-  std::string root_directory;
-  return IsValidDirectoryBlob(dol_path, &root_directory);
 }
 
 std::unique_ptr<DirectoryBlobReader> DirectoryBlobReader::Create(const std::string& dol_path)
