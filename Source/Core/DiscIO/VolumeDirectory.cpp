@@ -333,7 +333,7 @@ bool VolumeDirectory::SetApploader(const std::string& apploader)
   {
     m_apploader.resize(0x20);
     // Make sure BS2 HLE doesn't try to run the apploader
-    *(u32*)&m_apploader[0x10] = (u32)-1;
+    Write32(static_cast<u32>(-1), 0x10, &m_apploader);
     return false;
   }
 }
