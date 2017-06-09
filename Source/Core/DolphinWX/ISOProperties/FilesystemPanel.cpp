@@ -215,7 +215,7 @@ bool FilesystemPanel::PopulateFileSystemTree()
         m_tree_ctrl->SetItemData(partition_root, partition);
         CreateDirectoryTree(m_tree_ctrl, partition_root, partition->filesystem->GetFileList());
 
-        if (i == 1)
+        if (partitions[i] == m_opened_iso->GetGamePartition())
           m_tree_ctrl->Expand(partition_root);
       }
     }
