@@ -55,8 +55,6 @@ private:
 class DirectoryBlobReader : public BlobReader
 {
 public:
-  static bool IsValidDirectoryBlob(const std::string& dol_path, std::string* root_directory);
-  static bool IsValidDirectoryBlob(const std::string& dol_path);
   static std::unique_ptr<DirectoryBlobReader> Create(const std::string& dol_path);
 
   // We do not allow copying, because it might mess up the pointers inside DiscContents

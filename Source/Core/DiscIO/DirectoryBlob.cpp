@@ -137,8 +137,7 @@ static bool PathEndsWith(const std::string& path, const std::string& suffix)
   return true;
 }
 
-bool DirectoryBlobReader::IsValidDirectoryBlob(const std::string& dol_path,
-                                               std::string* root_directory)
+static bool IsValidDirectoryBlob(const std::string& dol_path, std::string* root_directory)
 {
   if (!PathEndsWith(dol_path, "/sys/main.dol"))
     return false;
@@ -147,12 +146,6 @@ bool DirectoryBlobReader::IsValidDirectoryBlob(const std::string& dol_path,
   *root_directory = dol_path.substr(0, dol_path.size() - chars_to_remove);
 
   return File::GetSize(*root_directory + "sys/boot.bin") >= 0x20;
-}
-
-bool DirectoryBlobReader::IsValidDirectoryBlob(const std::string& dol_path)
-{
-  std::string root_directory;
-  return IsValidDirectoryBlob(dol_path, &root_directory);
 }
 
 std::unique_ptr<DirectoryBlobReader> DirectoryBlobReader::Create(const std::string& dol_path)
