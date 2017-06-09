@@ -117,36 +117,7 @@ private:
     u32 tmd_offset;
   } m_tmd_header;
   static_assert(sizeof(TMDHeader) == 8, "Wrong size for TMDHeader");
-
-  struct SDiskHeaderInfo
-  {
-    u32 debug_monitor_size;
-    u32 simulated_mem_size;
-    u32 arg_offset;
-    u32 debug_flag;
-    u32 track_location;
-    u32 track_size;
-    u32 country_code;
-    u32 unknown;
-    u32 unknown2;
-
-    // All the data is byteswapped
-    SDiskHeaderInfo()
-    {
-      debug_monitor_size = 0;
-      simulated_mem_size = 0;
-      arg_offset = 0;
-      debug_flag = 0;
-      track_location = 0;
-      track_size = 0;
-      country_code = 0;
-      unknown = 0;
-      unknown2 = 0;
-    }
-  };
-  static_assert(sizeof(SDiskHeaderInfo) == 36, "Wrong size for SDiskHeaderInfo");
 #pragma pack(pop)
-  std::unique_ptr<SDiskHeaderInfo> m_disk_header_info;
 
   std::vector<u8> m_apploader;
 
