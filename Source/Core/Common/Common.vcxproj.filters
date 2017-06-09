@@ -253,6 +253,7 @@
       <Filter>GL\GLExtensions</Filter>
     </ClInclude>
     <ClInclude Include="File.h" />
+    <ClInclude Include="LdrWatcher.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CDUtils.cpp" />
@@ -317,10 +318,11 @@
     <ClCompile Include="GL\GLInterface\GLInterface.cpp">
       <Filter>GL\GLInterface</Filter>
     </ClCompile>
-    <ClCompile Include="ucrtFreadWorkaround.cpp" />
     <ClCompile Include="Analytics.cpp" />
     <ClCompile Include="MD5.cpp" />
     <ClCompile Include="File.cpp" />
+    <ClCompile Include="LdrWatcher.cpp" />
+    <ClCompile Include="CompatPatches.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />
