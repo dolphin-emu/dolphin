@@ -14,7 +14,6 @@
 
 #ifdef _WIN32
 #include <windows.h>
-#include <psapi.h>
 #include "Common/StringUtil.h"
 #else
 #include <stdio.h>
@@ -174,31 +173,6 @@ void UnWriteProtectMemory(void* ptr, size_t size, bool allowExecute)
 
   if (error_occurred)
     PanicAlert("UnWriteProtectMemory failed!\n%s", GetLastErrorMsg().c_str());
-}
-
-std::string MemUsage()
-{
-#ifdef _WIN32
-#pragma comment(lib, "psapi")
-  DWORD processID = GetCurrentProcessId();
-  HANDLE hProcess;
-  PROCESS_MEMORY_COUNTERS pmc;
-  std::string Ret;
-
-  // Print information about the memory usage of the process.
-
-  hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, processID);
-  if (nullptr == hProcess)
-    return "MemUsage Error";
-
-  if (GetProcessMemoryInfo(hProcess, &pmc, sizeof(pmc)))
-    Ret = StringFromFormat("%s K", ThousandSeparate(pmc.WorkingSetSize / 1024, 7).c_str());
-
-  CloseHandle(hProcess);
-  return Ret;
-#else
-  return "";
-#endif
 }
 
 size_t MemPhysical()
