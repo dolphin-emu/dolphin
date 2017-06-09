@@ -28,7 +28,8 @@ namespace DiscIO
 class DirectoryBlobReader : public BlobReader
 {
 public:
-  static bool IsValidDirectoryBlob(std::string dol_path);
+  static bool IsValidDirectoryBlob(const std::string& dol_path, std::string* root_directory);
+  static bool IsValidDirectoryBlob(const std::string& dol_path);
   static std::unique_ptr<DirectoryBlobReader> Create(File::IOFile dol, const std::string& dol_path);
 
   bool Read(u64 offset, u64 length, u8* buffer) override;
@@ -72,14 +73,9 @@ private:
 
   bool ReadInternal(u64 offset, u64 length, u8* buffer, const std::set<DiscContent>& contents);
 
-  void SetDiskTypeWii();
-  void SetDiskTypeGC();
-
-  void SetGameID(const std::string& id);
-  void SetName(const std::string&);
-
+  void SetDiscHeaderAndDiscType();
   bool SetApploader(const std::string& apploader);
-  void SetDOLAndDiskType(File::IOFile dol_file);
+  void SetDOL(File::IOFile dol_file);
 
   void BuildFST();
 
@@ -103,10 +99,10 @@ private:
   std::set<DiscContent> m_virtual_disc;
   std::set<DiscContent> m_nonpartition_contents;
 
-  bool m_is_wii = false;
+  bool m_is_wii;
 
   // GameCube has no shift, Wii has 2 bit shift
-  u32 m_address_shift = 0;
+  u32 m_address_shift;
 
   // first address on disk containing file data
   u64 m_data_start_address;
@@ -115,6 +111,7 @@ private:
   std::vector<u8> m_fst_data;
 
   std::vector<u8> m_disk_header;
+  std::vector<u8> m_disk_header_nonpartition;
 
 #pragma pack(push, 1)
   struct TMDHeader
