@@ -65,14 +65,10 @@ VolumeWii::VolumeWii(std::unique_ptr<BlobReader> reader)
         continue;
       const u64 partition_offset = static_cast<u64>(*read_buffer) << 2;
 
-      // Set m_game_partition if this is the game partition
-      if (m_game_partition == PARTITION_NONE)
-      {
-        const std::optional<u32> partition_type =
-            m_pReader->ReadSwapped<u32>(partition_table_offset + (i * 8) + 4);
-        if (partition_type == u32(0))
-          m_game_partition = Partition(partition_offset);
-      }
+      // Check if this is the game partition
+      const bool is_game_partition =
+          m_game_partition == PARTITION_NONE &&
+          m_pReader->ReadSwapped<u32>(partition_table_offset + (i * 8) + 4) == u32(0);
 
       // Read ticket
       std::vector<u8> ticket_buffer(sizeof(IOS::ES::Ticket));
@@ -113,6 +109,8 @@ VolumeWii::VolumeWii(std::unique_ptr<BlobReader> reader)
       m_partition_keys[partition] = std::move(aes_context);
       m_partition_tickets[partition] = std::move(ticket);
       m_partition_tmds[partition] = std::move(tmd);
+      if (is_game_partition)
+        m_game_partition = partition;
     }
   }
 }
