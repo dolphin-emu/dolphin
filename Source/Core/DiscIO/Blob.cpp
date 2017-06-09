@@ -203,8 +203,8 @@ std::unique_ptr<BlobReader> CreateBlobReader(const std::string& filename)
   case WBFS_MAGIC:
     return WbfsFileReader::Create(std::move(file), filename);
   default:
-    if (DirectoryBlobReader::IsValidDirectoryBlob(filename))
-      return DirectoryBlobReader::Create(filename);
+    if (auto directory_blob = DirectoryBlobReader::Create(filename))
+      return directory_blob;
 
     return PlainFileReader::Create(std::move(file));
   }
