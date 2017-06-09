@@ -101,6 +101,11 @@ DirectoryBlobReader::DirectoryBlobReader(const std::string& root_directory)
     m_nonpartition_contents.emplace(PARTITION_TABLE_ADDRESS, PARTITION_TABLE.size() * sizeof(u32),
                                     reinterpret_cast<const u8*>(PARTITION_TABLE.data()));
 
+    constexpr u64 REGION_ADDRESS = 0x4E000;
+    constexpr u64 REGION_SIZE = 0x20;
+    AddFileToContents(&m_nonpartition_contents, m_root_directory + "disc/region.bin",
+                      REGION_ADDRESS, REGION_SIZE);
+
     constexpr u32 TICKET_OFFSET = 0x0;
     constexpr u32 TICKET_SIZE = 0x2a4;
     constexpr u32 TMD_OFFSET = 0x2c0;
