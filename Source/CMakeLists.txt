@@ -16,6 +16,8 @@ if(CMAKE_C_COMPILER_ID MATCHES "MSVC")
   check_and_add_flag(CPPLATEST /std:c++latest)
   check_and_add_flag(STANDARD_COMPLIANCE /permissive-)
 else()
+  check_and_add_flag(C_STYLE_CASTS -Wold-style-cast)
+
   # Enable C++17, but fall back to C++14 if it isn't available.
   # CMAKE_CXX_STANDARD cannot be used here because we require C++14 or newer, not any standard.
   check_and_add_flag(CXX17 -std=c++17)
