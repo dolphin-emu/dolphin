@@ -41,10 +41,9 @@ constexpr u8 ENTRY_SIZE = 0x0c;
 constexpr u8 FILE_ENTRY = 0;
 constexpr u8 DIRECTORY_ENTRY = 1;
 constexpr u64 DISKHEADER_ADDRESS = 0;
+constexpr u64 NONPARTITION_DISKHEADER_SIZE = 0x100;
 constexpr u64 DISKHEADERINFO_ADDRESS = 0x440;
 constexpr u64 APPLOADER_ADDRESS = 0x2440;
-constexpr size_t MAX_NAME_LENGTH = 0x3df;
-constexpr size_t MAX_ID_LENGTH = 6;
 
 constexpr u64 GAME_PARTITION_ADDRESS = 0x50000;
 constexpr u64 PARTITION_TABLE_ADDRESS = 0x40000;
@@ -109,22 +108,37 @@ bool DiscContent::Read(u64* offset, u64* length, u8** buffer) const
   return true;
 }
 
-bool DirectoryBlobReader::IsValidDirectoryBlob(std::string dol_path)
+bool DirectoryBlobReader::IsValidDirectoryBlob(const std::string& dol_path,
+                                               std::string* root_directory)
 {
 #ifdef _WIN32
-  std::replace(dol_path.begin(), dol_path.end(), '\\', '/');
+  std::string normalized_dol_path = dol_path;
+  std::replace(normalized_dol_path.begin(), normalized_dol_path.end(), '\\', '/');
+#else
+  const std::string& normalized_dol_path = dol_path;
 #endif
-  return StringEndsWith(dol_path, "/sys/main.dol");
+  if (!StringEndsWith(normalized_dol_path, "/sys/main.dol"))
+    return false;
+
+  const size_t chars_to_remove = std::string("sys/main.dol").size();
+  *root_directory = dol_path.substr(0, dol_path.size() - chars_to_remove);
+
+  return File::GetSize(*root_directory + "sys/boot.bin") >= 0x20;
+}
+
+bool DirectoryBlobReader::IsValidDirectoryBlob(const std::string& dol_path)
+{
+  std::string root_directory;
+  return IsValidDirectoryBlob(dol_path, &root_directory);
 }
 
 std::unique_ptr<DirectoryBlobReader> DirectoryBlobReader::Create(File::IOFile dol,
                                                                  const std::string& dol_path)
 {
-  if (!dol || !IsValidDirectoryBlob(dol_path))
+  std::string root_directory;
+  if (!dol || !IsValidDirectoryBlob(dol_path, &root_directory))
     return nullptr;
 
-  const size_t chars_to_remove = std::string("sys/main.dol").size();
-  const std::string root_directory = dol_path.substr(0, dol_path.size() - chars_to_remove);
   return std::unique_ptr<DirectoryBlobReader>(
       new DirectoryBlobReader(std::move(dol), root_directory));
 }
@@ -134,13 +148,11 @@ DirectoryBlobReader::DirectoryBlobReader(File::IOFile dol_file, const std::strin
       m_disk_header(DISKHEADERINFO_ADDRESS),
       m_disk_header_info(std::make_unique<SDiskHeaderInfo>()), m_fst_address(0), m_dol_address(0)
 {
-  // create the default disk header
-  SetGameID("AGBJ01");
-  SetName("Default name");
+  SetDiscHeaderAndDiscType();
 
   // Setting the DOL relies on m_dol_address, which is set by SetApploader
   if (SetApploader(m_root_directory + "sys/apploader.img"))
-    SetDOLAndDiskType(std::move(dol_file));
+    SetDOL(std::move(dol_file));
 
   BuildFST();
 
@@ -153,8 +165,8 @@ DirectoryBlobReader::DirectoryBlobReader(File::IOFile dol_file, const std::strin
 
   if (m_is_wii)
   {
-    m_nonpartition_contents.emplace(DISKHEADER_ADDRESS, DISKHEADERINFO_ADDRESS,
-                                    m_disk_header.data());
+    m_nonpartition_contents.emplace(DISKHEADER_ADDRESS, NONPARTITION_DISKHEADER_SIZE,
+                                    m_disk_header_nonpartition.data());
     m_nonpartition_contents.emplace(PARTITION_TABLE_ADDRESS, PARTITION_TABLE.size() * sizeof(u32),
                                     reinterpret_cast<const u8*>(PARTITION_TABLE.data()));
 
@@ -226,18 +238,6 @@ bool DirectoryBlobReader::ReadWiiDecrypted(u64 offset, u64 size, u8* buffer, u64
   return ReadInternal(offset, size, buffer, m_virtual_disc);
 }
 
-void DirectoryBlobReader::SetGameID(const std::string& id)
-{
-  memcpy(m_disk_header.data(), id.c_str(), std::min(id.length(), MAX_ID_LENGTH));
-}
-
-void DirectoryBlobReader::SetName(const std::string& name)
-{
-  size_t length = std::min(name.length(), MAX_NAME_LENGTH);
-  memcpy(&m_disk_header[0x20], name.c_str(), length);
-  m_disk_header[length + 0x20] = 0;
-}
-
 BlobType DirectoryBlobReader::GetBlobType() const
 {
   return BlobType::DIRECTORY;
@@ -255,22 +255,47 @@ u64 DirectoryBlobReader::GetDataSize() const
   return 0;
 }
 
-void DirectoryBlobReader::SetDiskTypeWii()
+void DirectoryBlobReader::SetDiscHeaderAndDiscType()
 {
-  Write32(0x5d1c9ea3, 0x18, &m_disk_header);
-  memset(&m_disk_header[0x1c], 0, 4);
+  const std::string boot_bin_path = m_root_directory + "sys/boot.bin";
+  {
+    File::IOFile boot_bin(boot_bin_path, "rb");
+    const u64 bytes_to_read = std::min<u64>(boot_bin.GetSize(), m_disk_header.size());
+    if (!boot_bin.ReadBytes(m_disk_header.data(), bytes_to_read))
+      ERROR_LOG(DISCIO, "Failed to read %s", boot_bin_path.c_str());
+  }
 
-  m_is_wii = true;
-  m_address_shift = 2;
-}
+  m_is_wii = Common::swap32(&m_disk_header[0x18]) == 0x5d1c9ea3;
+  const bool is_gc = Common::swap32(&m_disk_header[0x1c]) == 0xc2339f3d;
+  if (m_is_wii == is_gc)
+    ERROR_LOG(DISCIO, "Couldn't detect disc type based on %s", boot_bin_path.c_str());
 
-void DirectoryBlobReader::SetDiskTypeGC()
-{
-  memset(&m_disk_header[0x18], 0, 4);
-  Write32(0xc2339f3d, 0x1c, &m_disk_header);
+  m_address_shift = m_is_wii ? 2 : 0;
 
-  m_is_wii = false;
-  m_address_shift = 0;
+  if (m_is_wii)
+  {
+    m_disk_header_nonpartition.resize(NONPARTITION_DISKHEADER_SIZE);
+
+    size_t header_bin_bytes_read;
+    const std::string header_bin_path = m_root_directory + "disc/header.bin";
+    {
+      File::IOFile header_bin(header_bin_path, "rb");
+      const u64 bytes_to_read = std::min(header_bin.GetSize(), NONPARTITION_DISKHEADER_SIZE);
+      header_bin.ReadArray<u8>(m_disk_header_nonpartition.data(), bytes_to_read,
+                               &header_bin_bytes_read);
+    }
+
+    // If header.bin is missing or smaller than expected, use the content of sys/boot.bin instead
+    std::copy(m_disk_header.data() + header_bin_bytes_read,
+              m_disk_header.data() + m_disk_header_nonpartition.size(),
+              m_disk_header_nonpartition.data() + header_bin_bytes_read);
+
+    // 0x60 and 0x61 are the only differences between the partition and non-partition headers
+    if (header_bin_bytes_read < 0x60)
+      m_disk_header_nonpartition[0x60] = 0;
+    if (header_bin_bytes_read < 0x61)
+      m_disk_header_nonpartition[0x61] = 0;
+  }
 }
 
 bool DirectoryBlobReader::SetApploader(const std::string& apploader)
@@ -306,16 +331,11 @@ bool DirectoryBlobReader::SetApploader(const std::string& apploader)
   }
 }
 
-void DirectoryBlobReader::SetDOLAndDiskType(File::IOFile dol_file)
+void DirectoryBlobReader::SetDOL(File::IOFile dol_file)
 {
   m_dol.resize(dol_file.GetSize());
   dol_file.Seek(0, SEEK_SET);
   dol_file.ReadBytes(m_dol.data(), m_dol.size());
-
-  if (DolReader(std::move(dol_file)).IsWii())
-    SetDiskTypeWii();
-  else
-    SetDiskTypeGC();
 
   Write32((u32)(m_dol_address >> m_address_shift), 0x0420, &m_disk_header);
 
