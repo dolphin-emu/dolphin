@@ -108,8 +108,7 @@ bool DiscContent::Read(u64* offset, u64* length, u8** buffer) const
   return true;
 }
 
-bool DirectoryBlobReader::IsValidDirectoryBlob(const std::string& dol_path,
-                                               std::string* root_directory)
+static bool IsValidDirectoryBlob(const std::string& dol_path, std::string* root_directory)
 {
 #ifdef _WIN32
   std::string normalized_dol_path = dol_path;
@@ -124,12 +123,6 @@ bool DirectoryBlobReader::IsValidDirectoryBlob(const std::string& dol_path,
   *root_directory = dol_path.substr(0, dol_path.size() - chars_to_remove);
 
   return File::GetSize(*root_directory + "sys/boot.bin") >= 0x20;
-}
-
-bool DirectoryBlobReader::IsValidDirectoryBlob(const std::string& dol_path)
-{
-  std::string root_directory;
-  return IsValidDirectoryBlob(dol_path, &root_directory);
 }
 
 std::unique_ptr<DirectoryBlobReader> DirectoryBlobReader::Create(const std::string& dol_path)
