@@ -136,8 +136,7 @@ std::unique_ptr<DirectoryBlobReader> DirectoryBlobReader::Create(const std::stri
 
 DirectoryBlobReader::DirectoryBlobReader(const std::string& root_directory)
     : m_root_directory(root_directory), m_data_start_address(UINT64_MAX),
-      m_disk_header(DISKHEADERINFO_ADDRESS),
-      m_disk_header_info(std::make_unique<SDiskHeaderInfo>()), m_fst_address(0), m_dol_address(0)
+      m_disk_header(DISKHEADERINFO_ADDRESS), m_fst_address(0), m_dol_address(0)
 {
   SetDiscHeaderAndDiscType();
 
@@ -148,8 +147,8 @@ DirectoryBlobReader::DirectoryBlobReader(const std::string& root_directory)
   BuildFST();
 
   m_virtual_disc.emplace(DISKHEADER_ADDRESS, DISKHEADERINFO_ADDRESS, m_disk_header.data());
-  m_virtual_disc.emplace(DISKHEADERINFO_ADDRESS, sizeof(m_disk_header_info),
-                         reinterpret_cast<const u8*>(m_disk_header_info.get()));
+  AddFileToContents(&m_virtual_disc, m_root_directory + "sys/bi2.bin", DISKHEADERINFO_ADDRESS,
+                    APPLOADER_ADDRESS - DISKHEADERINFO_ADDRESS);
   m_virtual_disc.emplace(APPLOADER_ADDRESS, m_apploader.size(), m_apploader.data());
   m_virtual_disc.emplace(m_fst_address, m_fst_data.size(), m_fst_data.data());
 
