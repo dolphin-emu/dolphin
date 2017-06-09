@@ -132,18 +132,16 @@ bool DirectoryBlobReader::IsValidDirectoryBlob(const std::string& dol_path)
   return IsValidDirectoryBlob(dol_path, &root_directory);
 }
 
-std::unique_ptr<DirectoryBlobReader> DirectoryBlobReader::Create(File::IOFile dol,
-                                                                 const std::string& dol_path)
+std::unique_ptr<DirectoryBlobReader> DirectoryBlobReader::Create(const std::string& dol_path)
 {
   std::string root_directory;
-  if (!dol || !IsValidDirectoryBlob(dol_path, &root_directory))
+  if (!IsValidDirectoryBlob(dol_path, &root_directory))
     return nullptr;
 
-  return std::unique_ptr<DirectoryBlobReader>(
-      new DirectoryBlobReader(std::move(dol), root_directory));
+  return std::unique_ptr<DirectoryBlobReader>(new DirectoryBlobReader(root_directory));
 }
 
-DirectoryBlobReader::DirectoryBlobReader(File::IOFile dol_file, const std::string& root_directory)
+DirectoryBlobReader::DirectoryBlobReader(const std::string& root_directory)
     : m_root_directory(root_directory), m_data_start_address(UINT64_MAX),
       m_disk_header(DISKHEADERINFO_ADDRESS),
       m_disk_header_info(std::make_unique<SDiskHeaderInfo>()), m_fst_address(0), m_dol_address(0)
@@ -152,7 +150,7 @@ DirectoryBlobReader::DirectoryBlobReader(File::IOFile dol_file, const std::strin
 
   // Setting the DOL relies on m_dol_address, which is set by SetApploader
   if (SetApploader(m_root_directory + "sys/apploader.img"))
-    SetDOL(std::move(dol_file));
+    SetDOL();
 
   BuildFST();
 
@@ -160,7 +158,6 @@ DirectoryBlobReader::DirectoryBlobReader(File::IOFile dol_file, const std::strin
   m_virtual_disc.emplace(DISKHEADERINFO_ADDRESS, sizeof(m_disk_header_info),
                          reinterpret_cast<const u8*>(m_disk_header_info.get()));
   m_virtual_disc.emplace(APPLOADER_ADDRESS, m_apploader.size(), m_apploader.data());
-  m_virtual_disc.emplace(m_dol_address, m_dol.size(), m_dol.data());
   m_virtual_disc.emplace(m_fst_address, m_fst_data.size(), m_fst_data.data());
 
   if (m_is_wii)
@@ -331,16 +328,15 @@ bool DirectoryBlobReader::SetApploader(const std::string& apploader)
   }
 }
 
-void DirectoryBlobReader::SetDOL(File::IOFile dol_file)
+void DirectoryBlobReader::SetDOL()
 {
-  m_dol.resize(dol_file.GetSize());
-  dol_file.Seek(0, SEEK_SET);
-  dol_file.ReadBytes(m_dol.data(), m_dol.size());
+  const DiscContent& dol =
+      AddFileToContents(&m_virtual_disc, m_root_directory + "sys/main.dol", m_dol_address);
 
   Write32((u32)(m_dol_address >> m_address_shift), 0x0420, &m_disk_header);
 
   // 32byte aligned (plus 0x20 padding)
-  m_fst_address = Common::AlignUp(m_dol_address + m_dol.size() + 0x20, 0x20ull);
+  m_fst_address = Common::AlignUp(m_dol_address + dol.GetSize() + 0x20, 0x20ull);
 }
 
 void DirectoryBlobReader::BuildFST()

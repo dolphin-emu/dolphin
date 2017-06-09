@@ -57,7 +57,7 @@ class DirectoryBlobReader : public BlobReader
 public:
   static bool IsValidDirectoryBlob(const std::string& dol_path, std::string* root_directory);
   static bool IsValidDirectoryBlob(const std::string& dol_path);
-  static std::unique_ptr<DirectoryBlobReader> Create(File::IOFile dol, const std::string& dol_path);
+  static std::unique_ptr<DirectoryBlobReader> Create(const std::string& dol_path);
 
   bool Read(u64 offset, u64 length, u8* buffer) override;
   bool SupportsReadWiiDecrypted() const override;
@@ -68,13 +68,13 @@ public:
   u64 GetDataSize() const override;
 
 private:
-  DirectoryBlobReader(File::IOFile dol_file, const std::string& root_directory);
+  explicit DirectoryBlobReader(const std::string& root_directory);
 
   bool ReadInternal(u64 offset, u64 length, u8* buffer, const std::set<DiscContent>& contents);
 
   void SetDiscHeaderAndDiscType();
   bool SetApploader(const std::string& apploader);
-  void SetDOL(File::IOFile dol_file);
+  void SetDOL();
 
   void BuildFST();
 
@@ -147,7 +147,6 @@ private:
   std::unique_ptr<SDiskHeaderInfo> m_disk_header_info;
 
   std::vector<u8> m_apploader;
-  std::vector<u8> m_dol;
 
   u64 m_fst_address;
   u64 m_dol_address;
