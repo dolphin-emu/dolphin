@@ -16,7 +16,6 @@
 #include "Core/Core.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/ES/Formats.h"
-#include "Core/IOS/ES/NandUtils.h"
 #include "DiscIO/NANDContentLoader.h"
 
 namespace IOS
@@ -206,7 +205,7 @@ IPCCommandResult ES::GetTMDViewSize(const IOCtlVRequest& request)
 
   u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
 
-  const IOS::ES::TMDReader tmd = IOS::ES::FindInstalledTMD(TitleID);
+  const IOS::ES::TMDReader tmd = FindInstalledTMD(TitleID);
 
   if (!tmd.IsValid())
     return GetDefaultReply(FS_ENOENT);
@@ -229,7 +228,7 @@ IPCCommandResult ES::GetTMDViews(const IOCtlVRequest& request)
   }
 
   const u64 title_id = Memory::Read_U64(request.in_vectors[0].address);
-  const IOS::ES::TMDReader tmd = IOS::ES::FindInstalledTMD(title_id);
+  const IOS::ES::TMDReader tmd = FindInstalledTMD(title_id);
 
   if (!tmd.IsValid())
     return GetDefaultReply(FS_ENOENT);
