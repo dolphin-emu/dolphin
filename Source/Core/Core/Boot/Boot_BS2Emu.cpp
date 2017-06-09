@@ -343,6 +343,9 @@ bool CBoot::EmulatedBS2_Wii(const DiscIO::Volume* volume)
   const DiscIO::Partition partition = volume->GetGamePartition();
   const IOS::ES::TMDReader tmd = volume->GetTMD(partition);
 
+  if (!tmd.IsValid())
+    return false;
+
   if (!SetupWiiMemory(volume, tmd.GetIOSId()))
     return false;
 
