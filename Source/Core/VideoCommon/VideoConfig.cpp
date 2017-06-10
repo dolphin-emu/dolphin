@@ -3,15 +3,9 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
-#include <cmath>
 
 #include "Common/CommonTypes.h"
-#include "Common/FileUtil.h"
-#include "Common/IniFile.h"
-#include "Common/MsgHandler.h"
-#include "Common/StringUtil.h"
 #include "Core/Config/GraphicsSettings.h"
-#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Movie.h"
 #include "VideoCommon/OnScreenDisplay.h"
