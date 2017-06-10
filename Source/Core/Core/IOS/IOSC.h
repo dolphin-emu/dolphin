@@ -155,6 +155,7 @@ public:
   {
     SUBTYPE_AES128 = 0,
     SUBTYPE_MAC = 1,
+    SUBTYPE_RSA2048 = 2,
     SUBTYPE_RSA4096 = 3,
     SUBTYPE_ECC233 = 4,
     SUBTYPE_DATA = 5,
@@ -182,6 +183,9 @@ public:
                      u32 pid) const;
   ReturnCode Decrypt(Handle key_handle, u8* iv, const u8* input, size_t size, u8* output,
                      u32 pid) const;
+
+  ReturnCode VerifyPublicKeySign(const std::array<u8, 20>& sha1, Handle signer_handle,
+                                 const u8* signature, u32 pid) const;
 
   // Ownership
   ReturnCode GetOwnership(Handle handle, u32* owner) const;

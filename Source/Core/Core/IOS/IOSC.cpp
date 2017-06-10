@@ -8,12 +8,15 @@
 #include <cstring>
 #include <vector>
 
+#include <mbedtls/md.h>
+#include <mbedtls/rsa.h>
 #include <mbedtls/sha1.h>
 
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/Crypto/AES.h"
 #include "Common/Crypto/ec.h"
+#include "Common/ScopeGuard.h"
 #include "Core/IOS/Device.h"
 #include "Core/IOS/IOSC.h"
 #include "Core/ec_wii.h"
@@ -162,6 +165,54 @@ ReturnCode IOSC::Decrypt(Handle key_handle, u8* iv, const u8* input, size_t size
                          u32 pid) const
 {
   return DecryptEncrypt(Common::AES::Mode::Decrypt, key_handle, iv, input, size, output, pid);
+}
+
+ReturnCode IOSC::VerifyPublicKeySign(const std::array<u8, 20>& sha1, Handle signer_handle,
+                                     const u8* signature, u32 pid) const
+{
+  if (!HasOwnership(signer_handle, pid))
+    return IOSC_EACCES;
+
+  const KeyEntry* entry = FindEntry(signer_handle, SearchMode::IncludeRootKey);
+  if (!entry)
+    return IOSC_EINVAL;
+
+  // TODO: add support for keypair entries.
+  if (entry->type != TYPE_PUBLIC_KEY)
+    return IOSC_INVALID_OBJTYPE;
+
+  switch (entry->subtype)
+  {
+  case SUBTYPE_RSA2048:
+  case SUBTYPE_RSA4096:
+  {
+    const size_t expected_key_size = entry->subtype == SUBTYPE_RSA2048 ? 0x100 : 0x200;
+    _assert_(entry->data.size() == expected_key_size);
+
+    mbedtls_rsa_context rsa;
+    mbedtls_rsa_init(&rsa, MBEDTLS_RSA_PKCS_V15, 0);
+    Common::ScopeGuard context_guard{[&rsa] { mbedtls_rsa_free(&rsa); }};
+
+    mbedtls_mpi_read_binary(&rsa.N, entry->data.data(), entry->data.size());
+    mbedtls_mpi_read_binary(&rsa.E, entry->misc_data.data(), entry->misc_data.size());
+    rsa.len = entry->data.size();
+
+    const int ret = mbedtls_rsa_pkcs1_verify(&rsa, nullptr, nullptr, MBEDTLS_RSA_PUBLIC,
+                                             MBEDTLS_MD_SHA1, 0, sha1.data(), signature);
+    if (ret != 0)
+    {
+      WARN_LOG(IOS, "VerifyPublicKeySign: RSA verification failed (error %d)", ret);
+      return IOSC_FAIL_CHECKVALUE;
+    }
+
+    return IPC_SUCCESS;
+  }
+  case SUBTYPE_ECC233:
+    ERROR_LOG(IOS, "VerifyPublicKeySign: SUBTYPE_ECC233 is unimplemented");
+  // [[fallthrough]]
+  default:
+    return IOSC_INVALID_OBJTYPE;
+  }
 }
 
 ReturnCode IOSC::GetOwnership(Handle handle, u32* owner) const
