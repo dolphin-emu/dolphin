@@ -76,7 +76,7 @@ private:
   void SetTMDAndTicket();
 
   // Returns DOL address
-  u64 SetApploader(const std::string& apploader);
+  u64 SetApploader();
   // Returns FST address
   u64 SetDOL(u64 dol_address);
 
