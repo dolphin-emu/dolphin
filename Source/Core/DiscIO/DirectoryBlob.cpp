@@ -241,35 +241,42 @@ void DirectoryBlobReader::SetWiiRegionData()
 
 bool DirectoryBlobReader::SetApploader(const std::string& apploader)
 {
-  if (!apploader.empty())
+  bool success = false;
+
+  if (apploader.empty())
+  {
+    m_apploader.resize(0x20);
+    // Make sure BS2 HLE doesn't try to run the apploader
+    Write32(static_cast<u32>(-1), 0x10, &m_apploader);
+  }
+  else
   {
     std::string data;
     if (!File::ReadFileToString(apploader, data))
     {
       PanicAlertT("Apploader unable to load from file");
-      return false;
     }
-    size_t apploader_size = 0x20 + Common::swap32(*(u32*)&data.data()[0x14]) +
-                            Common::swap32(*(u32*)&data.data()[0x18]);
-    if (apploader_size != data.size())
+    else
     {
-      PanicAlertT("Apploader is the wrong size...is it really an apploader?");
-      return false;
-    }
-    m_apploader.resize(apploader_size);
-    std::copy(data.begin(), data.end(), m_apploader.begin());
+      const size_t apploader_size = 0x20 + Common::swap32(*(u32*)&data.data()[0x14]) +
+                                    Common::swap32(*(u32*)&data.data()[0x18]);
+      if (apploader_size != data.size())
+      {
+        PanicAlertT("Apploader is the wrong size...is it really an apploader?");
+      }
+      else
+      {
+        m_apploader.resize(apploader_size);
+        std::copy(data.begin(), data.end(), m_apploader.begin());
 
-    // 32byte aligned (plus 0x20 padding)
-    m_dol_address = Common::AlignUp(APPLOADER_ADDRESS + m_apploader.size() + 0x20, 0x20ull);
-    return true;
+        // 32byte aligned (plus 0x20 padding)
+        m_dol_address = Common::AlignUp(APPLOADER_ADDRESS + m_apploader.size() + 0x20, 0x20ull);
+        success = true;
+      }
+    }
   }
-  else
-  {
-    m_apploader.resize(0x20);
-    // Make sure BS2 HLE doesn't try to run the apploader
-    Write32(static_cast<u32>(-1), 0x10, &m_apploader);
-    return false;
-  }
+
+  return success;
 }
 
 void DirectoryBlobReader::SetDOL()
