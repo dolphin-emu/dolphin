@@ -16,6 +16,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/NandPaths.h"
+#include "Core/IOS/Device.h"
 #include "Core/IOS/IOSC.h"
 #include "DiscIO/Enums.h"
 
@@ -263,6 +264,25 @@ public:
 private:
   std::string m_file_path;
   std::map<u32, u64> m_entries;
+};
+
+class CertReader final : public SignedBlobReader
+{
+public:
+  explicit CertReader(std::vector<u8>&& bytes);
+
+  bool IsValid() const;
+
+  u32 GetId() const;
+  // Returns the certificate name. Examples: XS00000003, CA00000001
+  std::string GetName() const;
+  PublicKeyType GetPublicKeyType() const;
+  // Returns the public key bytes + any other data associated with it.
+  // For RSA public keys, this includes 4 bytes for the exponent at the end.
+  std::vector<u8> GetPublicKey() const;
+
+private:
+  bool m_is_valid = false;
 };
 }  // namespace ES
 }  // namespace IOS
