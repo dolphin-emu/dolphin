@@ -42,6 +42,8 @@ constexpr u64 NONPARTITION_DISKHEADER_SIZE = 0x100;
 constexpr u64 BI2_ADDRESS = 0x440;
 constexpr u64 BI2_SIZE = 0x2000;
 constexpr u64 APPLOADER_ADDRESS = 0x2440;
+constexpr u64 WII_REGION_DATA_ADDRESS = 0x4E000;
+constexpr u64 WII_REGION_DATA_SIZE = 0x20;
 
 constexpr u64 GAME_PARTITION_ADDRESS = 0x50000;
 constexpr u64 PARTITION_TABLE_ADDRESS = 0x40000;
@@ -98,6 +100,10 @@ DirectoryBlobReader::DirectoryBlobReader(const std::string& root_directory)
                                     m_disk_header_nonpartition.data());
     m_nonpartition_contents.emplace(PARTITION_TABLE_ADDRESS, PARTITION_TABLE.size() * sizeof(u32),
                                     reinterpret_cast<const u8*>(PARTITION_TABLE.data()));
+
+    SetWiiRegionData();
+    m_nonpartition_contents.emplace(WII_REGION_DATA_ADDRESS, WII_REGION_DATA_SIZE,
+                                    m_wii_region_data.data());
 
     constexpr u32 TICKET_OFFSET = 0x0;
     constexpr u32 TICKET_SIZE = 0x2a4;
@@ -214,6 +220,23 @@ void DirectoryBlobReader::SetDiscHeaderAndDiscType()
     if (header_bin_bytes_read < 0x61)
       m_disk_header_nonpartition[0x61] = 0;
   }
+}
+
+void DirectoryBlobReader::SetWiiRegionData()
+{
+  m_wii_region_data.resize(0x10, 0x00);
+  m_wii_region_data.resize(0x20, 0x80);
+
+  // 0xFF is an arbitrarily picked value. Note that we can't use 0x00, because that means NTSC-J
+  constexpr u32 INVALID_REGION = 0xFF;
+  Write32(INVALID_REGION, 0, &m_wii_region_data);
+
+  const std::string region_bin_path = m_root_directory + "disc/region.bin";
+  const size_t bytes_read = ReadFileToVector(region_bin_path, &m_wii_region_data);
+  if (bytes_read < 0x4)
+    ERROR_LOG(DISCIO, "Couldn't read region from %s", region_bin_path.c_str());
+  else if (bytes_read < 0x20)
+    ERROR_LOG(DISCIO, "Couldn't read age ratings from %s", region_bin_path.c_str());
 }
 
 bool DirectoryBlobReader::SetApploader(const std::string& apploader)

@@ -72,6 +72,7 @@ private:
   bool ReadInternal(u64 offset, u64 length, u8* buffer, const std::set<DiscContent>& contents);
 
   void SetDiscHeaderAndDiscType();
+  void SetWiiRegionData();
   bool SetApploader(const std::string& apploader);
   void SetDOL();
 
@@ -114,6 +115,7 @@ private:
 
   std::vector<u8> m_disk_header;
   std::vector<u8> m_disk_header_nonpartition;
+  std::vector<u8> m_wii_region_data;
 
 #pragma pack(push, 1)
   struct TMDHeader
