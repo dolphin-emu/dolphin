@@ -964,7 +964,10 @@ void UpdateWantDeterminism(bool initial)
     // We need to clear the cache because some parts of the JIT depend on want_determinism, e.g. use
     // of FMA.
     JitInterface::ClearCache();
-    Core::InitializeWiiRoot(s_wants_determinism);
+
+    // Don't call InitializeWiiRoot during boot, because IOS already does it.
+    if (!initial)
+      Core::InitializeWiiRoot(s_wants_determinism);
 
     Core::PauseAndLock(false, was_unpaused);
   }
