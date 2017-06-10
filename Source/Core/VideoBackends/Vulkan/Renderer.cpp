@@ -331,6 +331,10 @@ void Renderer::BeginFrame()
   // Activate a new command list, and restore state ready for the next draw
   g_command_buffer_mgr->ActivateCommandBuffer();
 
+  // Restore the EFB color texture to color attachment ready for rendering the next frame.
+  FramebufferManager::GetInstance()->GetEFBColorTexture()->TransitionToLayout(
+      g_command_buffer_mgr->GetCurrentCommandBuffer(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+
   // Ensure that the state tracker rebinds everything, and allocates a new set
   // of descriptors out of the next pool.
   StateTracker::GetInstance()->InvalidateDescriptorSets();
@@ -518,8 +522,7 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
   // If MSAA is enabled, and we're not using XFB, we need to resolve the EFB framebuffer before
   // rendering the final image to the screen, or dumping the frame. This is because we can't resolve
   // an image within a render pass, which will have already started by the time it is used.
-  if (g_ActiveConfig.iMultisamples > 1 && !g_ActiveConfig.bUseXFB)
-    ResolveEFBForSwap(scaled_efb_rect);
+  TransitionBuffersForSwap(scaled_efb_rect, xfb_sources, xfb_count);
 
   // Render the frame dump image if enabled.
   if (IsFrameDumping())
@@ -590,16 +593,44 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
   TextureCache::GetInstance()->Cleanup(frameCount);
 }
 
-void Renderer::ResolveEFBForSwap(const TargetRectangle& scaled_rect)
+void Renderer::TransitionBuffersForSwap(const TargetRectangle& scaled_rect,
+                                        const XFBSourceBase* const* xfb_sources, u32 xfb_count)
 {
-  // While the source rect can be out-of-range when drawing, the resolve rectangle must be within
-  // the bounds of the texture.
-  VkRect2D region = {
-      {scaled_rect.left, scaled_rect.top},
-      {static_cast<u32>(scaled_rect.GetWidth()), static_cast<u32>(scaled_rect.GetHeight())}};
-  region = Util::ClampRect2D(region, FramebufferManager::GetInstance()->GetEFBWidth(),
-                             FramebufferManager::GetInstance()->GetEFBHeight());
-  FramebufferManager::GetInstance()->ResolveEFBColorTexture(region);
+  VkCommandBuffer command_buffer = g_command_buffer_mgr->GetCurrentCommandBuffer();
+
+  if (!g_ActiveConfig.bUseXFB)
+  {
+    // Drawing EFB direct.
+    if (g_ActiveConfig.iMultisamples > 1)
+    {
+      // While the source rect can be out-of-range when drawing, the resolve rectangle must be
+      // within the bounds of the texture.
+      VkRect2D region = {
+          {scaled_rect.left, scaled_rect.top},
+          {static_cast<u32>(scaled_rect.GetWidth()), static_cast<u32>(scaled_rect.GetHeight())}};
+      region = Util::ClampRect2D(region, FramebufferManager::GetInstance()->GetEFBWidth(),
+                                 FramebufferManager::GetInstance()->GetEFBHeight());
+
+      Vulkan::Texture2D* rtex = FramebufferManager::GetInstance()->ResolveEFBColorTexture(region);
+      rtex->TransitionToLayout(command_buffer, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    }
+    else
+    {
+      FramebufferManager::GetInstance()->GetEFBColorTexture()->TransitionToLayout(
+          command_buffer, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    }
+
+    return;
+  }
+
+  // Drawing XFB sources, so transition all of them.
+  // Don't need the EFB, so leave it as-is.
+  for (u32 i = 0; i < xfb_count; i++)
+  {
+    const XFBSource* xfb_source = static_cast<const XFBSource*>(xfb_sources[i]);
+    xfb_source->GetTexture()->GetTexture()->TransitionToLayout(
+        command_buffer, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+  }
 }
 
 void Renderer::DrawFrame(VkRenderPass render_pass, const TargetRectangle& target_rect,
@@ -624,18 +655,9 @@ void Renderer::DrawEFB(VkRenderPass render_pass, const TargetRectangle& target_r
       g_ActiveConfig.iMultisamples > 1 ?
           FramebufferManager::GetInstance()->GetResolvedEFBColorTexture() :
           FramebufferManager::GetInstance()->GetEFBColorTexture();
-  efb_color_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                                        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
   // Copy EFB -> backbuffer
   BlitScreen(render_pass, target_rect, scaled_efb_rect, efb_color_texture);
-
-  // Restore the EFB color texture to color attachment ready for rendering the next frame.
-  if (efb_color_texture == FramebufferManager::GetInstance()->GetEFBColorTexture())
-  {
-    FramebufferManager::GetInstance()->GetEFBColorTexture()->TransitionToLayout(
-        g_command_buffer_mgr->GetCurrentCommandBuffer(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-  }
 }
 
 void Renderer::DrawVirtualXFB(VkRenderPass render_pass, const TargetRectangle& target_rect,
@@ -645,9 +667,6 @@ void Renderer::DrawVirtualXFB(VkRenderPass render_pass, const TargetRectangle& t
   for (u32 i = 0; i < xfb_count; ++i)
   {
     const XFBSource* xfb_source = static_cast<const XFBSource*>(xfb_sources[i]);
-    xfb_source->GetTexture()->GetTexture()->TransitionToLayout(
-        g_command_buffer_mgr->GetCurrentCommandBuffer(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-
     TargetRectangle source_rect = xfb_source->sourceRc;
     TargetRectangle draw_rect;
 
@@ -681,9 +700,6 @@ void Renderer::DrawRealXFB(VkRenderPass render_pass, const TargetRectangle& targ
   for (u32 i = 0; i < xfb_count; ++i)
   {
     const XFBSource* xfb_source = static_cast<const XFBSource*>(xfb_sources[i]);
-    xfb_source->GetTexture()->GetTexture()->TransitionToLayout(
-        g_command_buffer_mgr->GetCurrentCommandBuffer(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-
     TargetRectangle source_rect = xfb_source->sourceRc;
     TargetRectangle draw_rect = target_rect;
     source_rect.right -= fb_stride - fb_width;
