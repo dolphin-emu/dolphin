@@ -35,6 +35,10 @@ static const DiscContent& AddFileToContents(std::set<DiscContent>* contents,
                                             const std::string& path, u64 offset,
                                             u64 max_size = UINT64_MAX);
 
+// Reads as many bytes as the vector fits (or less, if the file is smaller).
+// Returns the number of bytes read.
+static size_t ReadFileToVector(const std::string& path, std::vector<u8>* vector);
+
 static u32 ComputeNameSize(const File::FSTEntry& parent_entry);
 static std::string ASCIIToUppercase(std::string str);
 static void ConvertUTF8NamesToSHIFTJIS(File::FSTEntry& parent_entry);
@@ -271,12 +275,8 @@ u64 DirectoryBlobReader::GetDataSize() const
 void DirectoryBlobReader::SetDiscHeaderAndDiscType()
 {
   const std::string boot_bin_path = m_root_directory + "sys/boot.bin";
-  {
-    File::IOFile boot_bin(boot_bin_path, "rb");
-    const u64 bytes_to_read = std::min<u64>(boot_bin.GetSize(), m_disk_header.size());
-    if (!boot_bin.ReadBytes(m_disk_header.data(), bytes_to_read))
-      ERROR_LOG(DISCIO, "Failed to read %s", boot_bin_path.c_str());
-  }
+  if (ReadFileToVector(boot_bin_path, &m_disk_header) < 0x20)
+    ERROR_LOG(DISCIO, "%s doesn't exist or is too small", boot_bin_path.c_str());
 
   m_is_wii = Common::swap32(&m_disk_header[0x18]) == 0x5d1c9ea3;
   const bool is_gc = Common::swap32(&m_disk_header[0x1c]) == 0xc2339f3d;
@@ -288,15 +288,8 @@ void DirectoryBlobReader::SetDiscHeaderAndDiscType()
   if (m_is_wii)
   {
     m_disk_header_nonpartition.resize(NONPARTITION_DISKHEADER_SIZE);
-
-    size_t header_bin_bytes_read;
-    const std::string header_bin_path = m_root_directory + "disc/header.bin";
-    {
-      File::IOFile header_bin(header_bin_path, "rb");
-      const u64 bytes_to_read = std::min(header_bin.GetSize(), NONPARTITION_DISKHEADER_SIZE);
-      header_bin.ReadArray<u8>(m_disk_header_nonpartition.data(), bytes_to_read,
-                               &header_bin_bytes_read);
-    }
+    const size_t header_bin_bytes_read =
+        ReadFileToVector(m_root_directory + "disc/header.bin", &m_disk_header_nonpartition);
 
     // If header.bin is missing or smaller than expected, use the content of sys/boot.bin instead
     std::copy(m_disk_header.data() + header_bin_bytes_read,
@@ -484,6 +477,14 @@ static const DiscContent& AddFileToContents(std::set<DiscContent>* contents,
                                             const std::string& path, u64 offset, u64 max_size)
 {
   return *(contents->emplace(offset, std::min(File::GetSize(path), max_size), path).first);
+}
+
+static size_t ReadFileToVector(const std::string& path, std::vector<u8>* vector)
+{
+  File::IOFile file(path, "rb");
+  size_t bytes_read;
+  file.ReadArray<u8>(vector->data(), std::min<u64>(file.GetSize(), vector->size()), &bytes_read);
+  return bytes_read;
 }
 
 static u32 ComputeNameSize(const File::FSTEntry& parent_entry)
