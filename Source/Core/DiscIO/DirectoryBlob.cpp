@@ -298,8 +298,8 @@ void DirectoryBlobReader::BuildFST(u64 fst_address)
   u32 name_table_size = Common::AlignUp(ComputeNameSize(rootEntry), 1ull << m_address_shift);
   u64 total_entries = rootEntry.size + 1;  // The root entry itself isn't counted in rootEntry.size
 
-  m_fst_name_offset = total_entries * ENTRY_SIZE;  // offset of name table in FST
-  m_fst_data.resize(m_fst_name_offset + name_table_size);
+  const u64 name_table_offset = total_entries * ENTRY_SIZE;
+  m_fst_data.resize(name_table_offset + name_table_size);
 
   // 32 KiB aligned start of data on dis
   u64 current_data_address = Common::AlignUp(fst_address + m_fst_data.size(), 0x8000ull);
@@ -311,7 +311,8 @@ void DirectoryBlobReader::BuildFST(u64 fst_address)
   // write root entry
   WriteEntryData(&fst_offset, DIRECTORY_ENTRY, 0, 0, total_entries, m_address_shift);
 
-  WriteDirectory(rootEntry, &fst_offset, &name_offset, &current_data_address, root_offset);
+  WriteDirectory(rootEntry, &fst_offset, &name_offset, &current_data_address, root_offset,
+                 name_table_offset);
 
   // overflow check, compare the aligned name offset with the aligned name table size
   _assert_(Common::AlignUp(name_offset, 1ull << m_address_shift) == name_table_size);
@@ -361,15 +362,17 @@ void DirectoryBlobReader::WriteEntryData(u32* entry_offset, u8 type, u32 name_of
   *entry_offset += 4;
 }
 
-void DirectoryBlobReader::WriteEntryName(u32* name_offset, const std::string& name)
+void DirectoryBlobReader::WriteEntryName(u32* name_offset, const std::string& name,
+                                         u64 name_table_offset)
 {
-  strncpy((char*)&m_fst_data[*name_offset + m_fst_name_offset], name.c_str(), name.length() + 1);
+  strncpy((char*)&m_fst_data[*name_offset + name_table_offset], name.c_str(), name.length() + 1);
 
   *name_offset += (u32)(name.length() + 1);
 }
 
 void DirectoryBlobReader::WriteDirectory(const File::FSTEntry& parent_entry, u32* fst_offset,
-                                         u32* name_offset, u64* data_offset, u32 parent_entry_index)
+                                         u32* name_offset, u64* data_offset, u32 parent_entry_index,
+                                         u64 name_table_offset)
 {
   std::vector<File::FSTEntry> sorted_entries = parent_entry.children;
 
@@ -388,16 +391,16 @@ void DirectoryBlobReader::WriteDirectory(const File::FSTEntry& parent_entry, u32
       u32 entry_index = *fst_offset / ENTRY_SIZE;
       WriteEntryData(fst_offset, DIRECTORY_ENTRY, *name_offset, parent_entry_index,
                      entry_index + entry.size + 1, 0);
-      WriteEntryName(name_offset, entry.virtualName);
+      WriteEntryName(name_offset, entry.virtualName, name_table_offset);
 
-      WriteDirectory(entry, fst_offset, name_offset, data_offset, entry_index);
+      WriteDirectory(entry, fst_offset, name_offset, data_offset, entry_index, name_table_offset);
     }
     else
     {
       // put entry in FST
       WriteEntryData(fst_offset, FILE_ENTRY, *name_offset, *data_offset, entry.size,
                      m_address_shift);
-      WriteEntryName(name_offset, entry.virtualName);
+      WriteEntryName(name_offset, entry.virtualName, name_table_offset);
 
       // write entry to virtual disc
       auto result = m_virtual_disc.emplace(*data_offset, entry.size, entry.physicalName);
