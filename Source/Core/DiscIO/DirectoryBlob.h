@@ -95,9 +95,9 @@ private:
   // FST creation
   void WriteEntryData(u32* entry_offset, u8 type, u32 name_offset, u64 data_offset, u64 length,
                       u32 address_shift);
-  void WriteEntryName(u32* name_offset, const std::string& name);
+  void WriteEntryName(u32* name_offset, const std::string& name, u64 name_table_offset);
   void WriteDirectory(const File::FSTEntry& parent_entry, u32* fst_offset, u32* name_offset,
-                      u64* data_offset, u32 parent_entry_index);
+                      u64* data_offset, u32 parent_entry_index, u64 name_table_offset);
 
   std::string m_root_directory;
 
@@ -109,7 +109,6 @@ private:
   // GameCube has no shift, Wii has 2 bit shift
   u32 m_address_shift;
 
-  u64 m_fst_name_offset;
   std::vector<u8> m_fst_data;
 
   std::vector<u8> m_disk_header;
