@@ -60,6 +60,7 @@ public:
   DirectoryBlobPartition(const std::string& root_directory, std::optional<bool> is_wii);
 
   bool IsWii() const { return m_is_wii; }
+  u64 GetDataSize() const { return m_data_size; }
   const std::vector<u8>& GetHeader() const { return m_disk_header; }
   const std::set<DiscContent>& GetContents() const { return m_contents; }
 private:
@@ -89,6 +90,8 @@ private:
   bool m_is_wii = false;
   // GameCube has no shift, Wii has 2 bit shift
   u32 m_address_shift = 0;
+
+  u64 m_data_size;
 };
 
 class DirectoryBlobReader : public BlobReader
@@ -136,6 +139,8 @@ private:
   } m_tmd_header;
   static_assert(sizeof(TMDHeader) == 8, "Wrong size for TMDHeader");
 #pragma pack(pop)
+
+  u64 m_data_size;
 };
 
 }  // namespace
