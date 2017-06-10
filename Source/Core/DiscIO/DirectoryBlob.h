@@ -92,6 +92,10 @@ private:
                                               const std::string& path, u64 offset,
                                               u64 max_size = UINT64_MAX);
 
+  // Reads as many bytes as the vector fits (or less, if the file is smaller).
+  // Returns the number of bytes read.
+  static size_t ReadFileToVector(const std::string& path, std::vector<u8>* vector);
+
   std::string m_root_directory;
 
   std::set<DiscContent> m_virtual_disc;
