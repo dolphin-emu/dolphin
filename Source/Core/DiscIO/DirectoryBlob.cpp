@@ -79,7 +79,7 @@ DirectoryBlobReader::DirectoryBlobReader(const std::string& root_directory)
 
   AddFileToContents(&m_virtual_disc, m_root_directory + "sys/bi2.bin", BI2_ADDRESS, BI2_SIZE);
 
-  BuildFST(SetDOL(SetApploader(m_root_directory + "sys/apploader.img")));
+  BuildFST(SetDOL(SetApploader()));
 
   if (m_is_wii)
   {
@@ -242,35 +242,32 @@ void DirectoryBlobReader::SetTMDAndTicket()
                                   reinterpret_cast<const u8*>(&m_tmd_header));
 }
 
-u64 DirectoryBlobReader::SetApploader(const std::string& apploader)
+u64 DirectoryBlobReader::SetApploader()
 {
-  if (apploader.empty())
+  bool success = false;
+
+  const std::string path = m_root_directory + "sys/apploader.img";
+  File::IOFile file(path, "rb");
+  m_apploader.resize(file.GetSize());
+  if (m_apploader.size() < 0x20 || !file.ReadBytes(m_apploader.data(), m_apploader.size()))
+  {
+    ERROR_LOG(DISCIO, "%s couldn't be accessed or is too small", path.c_str());
+  }
+  else
+  {
+    const size_t apploader_size = 0x20 + Common::swap32(*(u32*)&m_apploader[0x14]) +
+                                  Common::swap32(*(u32*)&m_apploader[0x18]);
+    if (apploader_size != m_apploader.size())
+      ERROR_LOG(DISCIO, "%s is the wrong size... Is it really an apploader?", path.c_str());
+    else
+      success = true;
+  }
+
+  if (!success)
   {
     m_apploader.resize(0x20);
     // Make sure BS2 HLE doesn't try to run the apploader
     Write32(static_cast<u32>(-1), 0x10, &m_apploader);
-  }
-  else
-  {
-    std::string data;
-    if (!File::ReadFileToString(apploader, data))
-    {
-      PanicAlertT("Apploader unable to load from file");
-    }
-    else
-    {
-      const size_t apploader_size = 0x20 + Common::swap32(*(u32*)&data.data()[0x14]) +
-                                    Common::swap32(*(u32*)&data.data()[0x18]);
-      if (apploader_size != data.size())
-      {
-        PanicAlertT("Apploader is the wrong size...is it really an apploader?");
-      }
-      else
-      {
-        m_apploader.resize(apploader_size);
-        std::copy(data.begin(), data.end(), m_apploader.begin());
-      }
-    }
   }
 
   m_virtual_disc.emplace(APPLOADER_ADDRESS, m_apploader.size(), m_apploader.data());
