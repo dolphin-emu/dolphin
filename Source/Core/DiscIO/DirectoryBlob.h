@@ -55,13 +55,13 @@ private:
 class DirectoryBlobPartition
 {
 public:
-  explicit DirectoryBlobPartition(const std::string& root_directory);
+  DirectoryBlobPartition(const std::string& root_directory, std::optional<bool> is_wii);
 
   bool IsWii() const { return m_is_wii; }
   const std::vector<u8>& GetHeader() const { return m_disk_header; }
   const std::set<DiscContent>& GetContents() const { return m_contents; }
 private:
-  void SetDiscHeaderAndDiscType();
+  void SetDiscHeaderAndDiscType(std::optional<bool> is_wii);
   void SetBI2();
 
   // Returns DOL address
