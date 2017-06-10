@@ -83,10 +83,6 @@ private:
 
   void BuildFST(u64 fst_address);
 
-  void PadToAddress(u64 start_address, u64* address, u64* length, u8** buffer) const;
-
-  void Write32(u32 data, u32 offset, std::vector<u8>* const buffer);
-
   // FST creation
   void WriteEntryData(u32* entry_offset, u8 type, u32 name_offset, u64 data_offset, u64 length,
                       u32 address_shift);

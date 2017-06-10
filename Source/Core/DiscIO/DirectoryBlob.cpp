@@ -37,6 +37,9 @@ static const DiscContent& AddFileToContents(std::set<DiscContent>* contents,
 // Returns the number of bytes read.
 static size_t ReadFileToVector(const std::string& path, std::vector<u8>* vector);
 
+static void PadToAddress(u64 start_address, u64* address, u64* length, u8** buffer);
+static void Write32(u32 data, u32 offset, std::vector<u8>* buffer);
+
 static u32 ComputeNameSize(const File::FSTEntry& parent_entry);
 static std::string ASCIIToUppercase(std::string str);
 static void ConvertUTF8NamesToSHIFTJIS(File::FSTEntry& parent_entry);
@@ -396,27 +399,6 @@ void DirectoryBlobReader::BuildFST(u64 fst_address)
   m_virtual_disc.emplace(fst_address, m_fst_data.size(), m_fst_data.data());
 }
 
-void DirectoryBlobReader::PadToAddress(u64 start_address, u64* address, u64* length,
-                                       u8** buffer) const
-{
-  if (start_address > *address && *length > 0)
-  {
-    u64 padBytes = std::min(start_address - *address, *length);
-    memset(*buffer, 0, (size_t)padBytes);
-    *length -= padBytes;
-    *buffer += padBytes;
-    *address += padBytes;
-  }
-}
-
-void DirectoryBlobReader::Write32(u32 data, u32 offset, std::vector<u8>* const buffer)
-{
-  (*buffer)[offset++] = (data >> 24);
-  (*buffer)[offset++] = (data >> 16) & 0xff;
-  (*buffer)[offset++] = (data >> 8) & 0xff;
-  (*buffer)[offset] = (data)&0xff;
-}
-
 void DirectoryBlobReader::WriteEntryData(u32* entry_offset, u8 type, u32 name_offset,
                                          u64 data_offset, u64 length, u32 address_shift)
 {
@@ -495,6 +477,26 @@ static size_t ReadFileToVector(const std::string& path, std::vector<u8>* vector)
   size_t bytes_read;
   file.ReadArray<u8>(vector->data(), std::min<u64>(file.GetSize(), vector->size()), &bytes_read);
   return bytes_read;
+}
+
+static void PadToAddress(u64 start_address, u64* address, u64* length, u8** buffer)
+{
+  if (start_address > *address && *length > 0)
+  {
+    u64 padBytes = std::min(start_address - *address, *length);
+    memset(*buffer, 0, (size_t)padBytes);
+    *length -= padBytes;
+    *buffer += padBytes;
+    *address += padBytes;
+  }
+}
+
+static void Write32(u32 data, u32 offset, std::vector<u8>* buffer)
+{
+  (*buffer)[offset++] = (data >> 24);
+  (*buffer)[offset++] = (data >> 16) & 0xff;
+  (*buffer)[offset++] = (data >> 8) & 0xff;
+  (*buffer)[offset] = (data)&0xff;
 }
 
 static u32 ComputeNameSize(const File::FSTEntry& parent_entry)
