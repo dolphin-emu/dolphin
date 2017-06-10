@@ -156,7 +156,7 @@ std::unique_ptr<DirectoryBlobReader> DirectoryBlobReader::Create(const std::stri
 }
 
 DirectoryBlobReader::DirectoryBlobReader(const std::string& root_directory)
-    : m_root_directory(root_directory), m_game_partition(root_directory)
+    : m_root_directory(root_directory), m_game_partition(root_directory, {})
 {
   m_is_wii = m_game_partition.IsWii();
 
@@ -311,15 +311,16 @@ void DirectoryBlobReader::SetTMDAndTicket()
                                   reinterpret_cast<const u8*>(&m_tmd_header));
 }
 
-DirectoryBlobPartition::DirectoryBlobPartition(const std::string& root_directory)
+DirectoryBlobPartition::DirectoryBlobPartition(const std::string& root_directory,
+                                               std::optional<bool> is_wii)
     : m_root_directory(root_directory)
 {
-  SetDiscHeaderAndDiscType();
+  SetDiscHeaderAndDiscType(is_wii);
   SetBI2();
   BuildFST(SetDOL(SetApploader()));
 }
 
-void DirectoryBlobPartition::SetDiscHeaderAndDiscType()
+void DirectoryBlobPartition::SetDiscHeaderAndDiscType(std::optional<bool> is_wii)
 {
   constexpr u64 DISKHEADER_ADDRESS = 0;
   constexpr u64 DISKHEADER_SIZE = 0x440;
@@ -331,10 +332,17 @@ void DirectoryBlobPartition::SetDiscHeaderAndDiscType()
 
   m_contents.emplace(DISKHEADER_ADDRESS, DISKHEADER_SIZE, m_disk_header.data());
 
-  m_is_wii = Common::swap32(&m_disk_header[0x18]) == 0x5d1c9ea3;
-  const bool is_gc = Common::swap32(&m_disk_header[0x1c]) == 0xc2339f3d;
-  if (m_is_wii == is_gc)
-    ERROR_LOG(DISCIO, "Couldn't detect disc type based on %s", boot_bin_path.c_str());
+  if (is_wii.has_value())
+  {
+    m_is_wii = *is_wii;
+  }
+  else
+  {
+    m_is_wii = Common::swap32(&m_disk_header[0x18]) == 0x5d1c9ea3;
+    const bool is_gc = Common::swap32(&m_disk_header[0x1c]) == 0xc2339f3d;
+    if (m_is_wii == is_gc)
+      ERROR_LOG(DISCIO, "Couldn't detect disc type based on %s", boot_bin_path.c_str());
+  }
 
   m_address_shift = m_is_wii ? 2 : 0;
 }
