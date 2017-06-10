@@ -138,18 +138,13 @@ std::unique_ptr<DirectoryBlobReader> DirectoryBlobReader::Create(const std::stri
 }
 
 DirectoryBlobReader::DirectoryBlobReader(const std::string& root_directory)
-    : m_root_directory(root_directory), m_data_start_address(UINT64_MAX),
-      m_disk_header(DISKHEADER_SIZE), m_fst_address(0), m_dol_address(0)
+    : m_root_directory(root_directory), m_disk_header(DISKHEADER_SIZE)
 {
   SetDiscHeaderAndDiscType();
 
   AddFileToContents(&m_virtual_disc, m_root_directory + "sys/bi2.bin", BI2_ADDRESS, BI2_SIZE);
 
-  // Setting the DOL relies on m_dol_address, which is set by SetApploader
-  if (SetApploader(m_root_directory + "sys/apploader.img"))
-    SetDOL();
-
-  BuildFST();
+  BuildFST(SetDOL(SetApploader(m_root_directory + "sys/apploader.img")));
 
   if (m_is_wii)
   {
@@ -312,10 +307,8 @@ void DirectoryBlobReader::SetTMDAndTicket()
                                   reinterpret_cast<const u8*>(&m_tmd_header));
 }
 
-bool DirectoryBlobReader::SetApploader(const std::string& apploader)
+u64 DirectoryBlobReader::SetApploader(const std::string& apploader)
 {
-  bool success = false;
-
   if (apploader.empty())
   {
     m_apploader.resize(0x20);
@@ -341,30 +334,28 @@ bool DirectoryBlobReader::SetApploader(const std::string& apploader)
       {
         m_apploader.resize(apploader_size);
         std::copy(data.begin(), data.end(), m_apploader.begin());
-
-        // 32byte aligned (plus 0x20 padding)
-        m_dol_address = Common::AlignUp(APPLOADER_ADDRESS + m_apploader.size() + 0x20, 0x20ull);
-        success = true;
       }
     }
   }
 
   m_virtual_disc.emplace(APPLOADER_ADDRESS, m_apploader.size(), m_apploader.data());
-  return success;
+
+  // Return DOL address, 32 byte aligned (plus 32 byte padding)
+  return Common::AlignUp(APPLOADER_ADDRESS + m_apploader.size() + 0x20, 0x20ull);
 }
 
-void DirectoryBlobReader::SetDOL()
+u64 DirectoryBlobReader::SetDOL(u64 dol_address)
 {
   const DiscContent& dol =
-      AddFileToContents(&m_virtual_disc, m_root_directory + "sys/main.dol", m_dol_address);
+      AddFileToContents(&m_virtual_disc, m_root_directory + "sys/main.dol", dol_address);
 
-  Write32((u32)(m_dol_address >> m_address_shift), 0x0420, &m_disk_header);
+  Write32(static_cast<u32>(dol_address >> m_address_shift), 0x0420, &m_disk_header);
 
-  // 32byte aligned (plus 0x20 padding)
-  m_fst_address = Common::AlignUp(m_dol_address + dol.GetSize() + 0x20, 0x20ull);
+  // Return FST address, 32 byte aligned (plus 32 byte padding)
+  return Common::AlignUp(dol_address + dol.GetSize() + 0x20, 0x20ull);
 }
 
-void DirectoryBlobReader::BuildFST()
+void DirectoryBlobReader::BuildFST(u64 fst_address)
 {
   m_fst_data.clear();
 
@@ -378,13 +369,8 @@ void DirectoryBlobReader::BuildFST()
   m_fst_name_offset = total_entries * ENTRY_SIZE;  // offset of name table in FST
   m_fst_data.resize(m_fst_name_offset + name_table_size);
 
-  // if FST hasn't been assigned (ie no apploader/dol setup), set to default
-  if (m_fst_address == 0)
-    m_fst_address = APPLOADER_ADDRESS + 0x2000;
-
   // 32 KiB aligned start of data on disk
-  m_data_start_address = Common::AlignUp(m_fst_address + m_fst_data.size(), 0x8000ull);
-  u64 current_data_address = m_data_start_address;
+  u64 current_data_address = Common::AlignUp(fst_address + m_fst_data.size(), 0x8000ull);
 
   u32 fst_offset = 0;   // Offset within FST data
   u32 name_offset = 0;  // Offset within name table
@@ -399,11 +385,11 @@ void DirectoryBlobReader::BuildFST()
   _assert_(Common::AlignUp(name_offset, 1ull << m_address_shift) == name_table_size);
 
   // write FST size and location
-  Write32((u32)(m_fst_address >> m_address_shift), 0x0424, &m_disk_header);
+  Write32((u32)(fst_address >> m_address_shift), 0x0424, &m_disk_header);
   Write32((u32)(m_fst_data.size() >> m_address_shift), 0x0428, &m_disk_header);
   Write32((u32)(m_fst_data.size() >> m_address_shift), 0x042c, &m_disk_header);
 
-  m_virtual_disc.emplace(m_fst_address, m_fst_data.size(), m_fst_data.data());
+  m_virtual_disc.emplace(fst_address, m_fst_data.size(), m_fst_data.data());
 }
 
 void DirectoryBlobReader::PadToAddress(u64 start_address, u64* address, u64* length,
