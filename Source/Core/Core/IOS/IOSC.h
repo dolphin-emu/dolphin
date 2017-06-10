@@ -191,12 +191,15 @@ private:
   {
     KeyEntry();
     KeyEntry(ObjectType type_, ObjectSubType subtype_, std::vector<u8>&& data_, u32 owner_mask_);
+    KeyEntry(ObjectType type_, ObjectSubType subtype_, std::vector<u8>&& data_,
+             std::array<u8, 4>&& misc_data_, u32 owner_mask_);
     void DoState(PointerWrap& p);
 
     bool in_use = false;
     ObjectType type;
     ObjectSubType subtype;
     std::vector<u8> data;
+    std::array<u8, 4> misc_data{};
     u32 owner_mask = 0;
   };
   // The Wii's IOSC is limited to 32 entries, including 12 built-in entries.

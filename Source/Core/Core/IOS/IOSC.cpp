@@ -252,8 +252,15 @@ void IOSC::LoadDefaultEntries(ConsoleType console_type)
 IOSC::KeyEntry::KeyEntry() = default;
 
 IOSC::KeyEntry::KeyEntry(ObjectType type_, ObjectSubType subtype_, std::vector<u8>&& data_,
+                         std::array<u8, 4>&& misc_data_, u32 owner_mask_)
+    : in_use(true), type(type_), subtype(subtype_), data(std::move(data_)),
+      misc_data(std::move(misc_data_)), owner_mask(owner_mask_)
+{
+}
+
+IOSC::KeyEntry::KeyEntry(ObjectType type_, ObjectSubType subtype_, std::vector<u8>&& data_,
                          u32 owner_mask_)
-    : in_use(true), type(type_), subtype(subtype_), data(std::move(data_)), owner_mask(owner_mask_)
+    : KeyEntry(type_, subtype_, std::move(data_), {}, owner_mask_)
 {
 }
 
