@@ -10,6 +10,7 @@
 #include <cstddef>
 #include <cstring>
 #include <locale>
+#include <map>
 #include <optional>
 #include <string>
 #include <utility>
@@ -613,6 +614,72 @@ u32 UIDSys::GetOrInsertUIDForTitle(const u64 title_id)
   }
 
   return uid;
+}
+
+CertReader::CertReader(std::vector<u8>&& bytes) : SignedBlobReader(std::move(bytes))
+{
+  if (!IsSignatureValid())
+    return;
+
+  switch (GetSignatureType())
+  {
+  case SignatureType::RSA4096:
+    if (m_bytes.size() < sizeof(CertRSA4096))
+      return;
+    m_bytes.resize(sizeof(CertRSA4096));
+    break;
+
+  case SignatureType::RSA2048:
+    if (m_bytes.size() < sizeof(CertRSA2048))
+      return;
+    m_bytes.resize(sizeof(CertRSA2048));
+    break;
+
+  default:
+    return;
+  }
+
+  m_is_valid = true;
+}
+
+bool CertReader::IsValid() const
+{
+  return m_is_valid;
+}
+
+u32 CertReader::GetId() const
+{
+  const size_t offset = GetSignatureSize() + offsetof(CertHeader, id);
+  return Common::swap32(m_bytes.data() + offset);
+}
+
+std::string CertReader::GetName() const
+{
+  const char* name = reinterpret_cast<const char*>(m_bytes.data() + GetSignatureSize() +
+                                                   offsetof(CertHeader, name));
+  return std::string(name, strnlen(name, sizeof(CertHeader::name)));
+}
+
+PublicKeyType CertReader::GetPublicKeyType() const
+{
+  const size_t offset = GetSignatureSize() + offsetof(CertHeader, public_key_type);
+  return static_cast<PublicKeyType>(Common::swap32(m_bytes.data() + offset));
+}
+
+std::vector<u8> CertReader::GetPublicKey() const
+{
+  static const std::map<SignatureType, std::pair<size_t, size_t>> type_to_key_info = {{
+      {SignatureType::RSA4096,
+       {offsetof(CertRSA4096, public_key),
+        sizeof(CertRSA4096::public_key) + sizeof(CertRSA4096::exponent)}},
+      {SignatureType::RSA2048,
+       {offsetof(CertRSA2048, public_key),
+        sizeof(CertRSA2048::public_key) + sizeof(CertRSA2048::exponent)}},
+  }};
+
+  const auto info = type_to_key_info.at(GetSignatureType());
+  const auto key_begin = m_bytes.begin() + info.first;
+  return std::vector<u8>(key_begin, key_begin + info.second);
 }
 }  // namespace ES
 }  // namespace IOS
