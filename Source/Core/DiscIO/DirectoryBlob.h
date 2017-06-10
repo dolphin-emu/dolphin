@@ -74,10 +74,13 @@ private:
   void SetPartitionTable();
   void SetWiiRegionData();
   void SetTMDAndTicket();
-  bool SetApploader(const std::string& apploader);
-  void SetDOL();
 
-  void BuildFST();
+  // Returns DOL address
+  u64 SetApploader(const std::string& apploader);
+  // Returns FST address
+  u64 SetDOL(u64 dol_address);
+
+  void BuildFST(u64 fst_address);
 
   void PadToAddress(u64 start_address, u64* address, u64* length, u8** buffer) const;
 
@@ -100,9 +103,6 @@ private:
   // GameCube has no shift, Wii has 2 bit shift
   u32 m_address_shift;
 
-  // first address on disk containing file data
-  u64 m_data_start_address;
-
   u64 m_fst_name_offset;
   std::vector<u8> m_fst_data;
 
@@ -120,9 +120,6 @@ private:
 #pragma pack(pop)
 
   std::vector<u8> m_apploader;
-
-  u64 m_fst_address;
-  u64 m_dol_address;
 };
 
 }  // namespace
