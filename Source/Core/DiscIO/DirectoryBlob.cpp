@@ -29,6 +29,7 @@
 #include "Common/Swap.h"
 #include "Core/Boot/DolReader.h"
 #include "DiscIO/Blob.h"
+#include "DiscIO/VolumeWii.h"
 
 namespace DiscIO
 {
@@ -165,10 +166,15 @@ DirectoryBlobReader::DirectoryBlobReader(const std::string& root_directory)
   if (!m_is_wii)
   {
     m_gamecube_pseudopartition = std::move(game_partition);
+    m_data_size = m_gamecube_pseudopartition.GetDataSize();
   }
   else
   {
     SetNonpartitionDiscHeader(game_partition.GetHeader());
+
+    const u64 unaligned_data_size = VolumeWii::PartitionOffsetToRawOffset(
+        game_partition.GetDataSize(), Partition(GAME_PARTITION_ADDRESS));
+    m_data_size = Common::AlignUp(unaligned_data_size, 0x8000ull);
 
     m_partitions.emplace(GAME_PARTITION_ADDRESS, std::move(game_partition));
 
@@ -249,8 +255,7 @@ u64 DirectoryBlobReader::GetRawSize() const
 
 u64 DirectoryBlobReader::GetDataSize() const
 {
-  // Not implemented
-  return 0;
+  return m_data_size;
 }
 
 void DirectoryBlobReader::SetNonpartitionDiscHeader(const std::vector<u8>& partition_header)
@@ -451,6 +456,8 @@ void DirectoryBlobPartition::BuildFST(u64 fst_address)
   Write32((u32)(m_fst_data.size() >> m_address_shift), 0x042c, &m_disk_header);
 
   m_contents.emplace(fst_address, m_fst_data.size(), m_fst_data.data());
+
+  m_data_size = current_data_address;
 }
 
 void DirectoryBlobPartition::WriteEntryData(u32* entry_offset, u8 type, u32 name_offset,
