@@ -101,8 +101,8 @@ ReturnCode IOSC::ImportSecretKey(Handle dest_handle, Handle decrypt_handle, u8* 
   return Decrypt(decrypt_handle, iv, encrypted_key, AES128_KEY_SIZE, dest_entry->data.data(), pid);
 }
 
-constexpr size_t ECC233_PUBLIC_KEY_SIZE = 0x3c;
-ReturnCode IOSC::ImportPublicKey(Handle dest_handle, const u8* public_key, u32 pid)
+ReturnCode IOSC::ImportPublicKey(Handle dest_handle, const u8* public_key,
+                                 const u8* public_key_exponent, u32 pid)
 {
   if (!HasOwnership(dest_handle, pid) || IsDefaultHandle(dest_handle))
     return IOSC_EACCES;
@@ -111,11 +111,20 @@ ReturnCode IOSC::ImportPublicKey(Handle dest_handle, const u8* public_key, u32 p
   if (!dest_entry)
     return IOSC_EINVAL;
 
-  // TODO: allow other public key subtypes
-  if (dest_entry->type != TYPE_PUBLIC_KEY || dest_entry->subtype != SUBTYPE_ECC233)
+  if (dest_entry->type != TYPE_PUBLIC_KEY)
     return IOSC_INVALID_OBJTYPE;
 
-  dest_entry->data.assign(public_key, public_key + ECC233_PUBLIC_KEY_SIZE);
+  const size_t size = GetSizeForType(dest_entry->type, dest_entry->subtype);
+  if (size == 0)
+    return IOSC_INVALID_OBJTYPE;
+
+  dest_entry->data.assign(public_key, public_key + size);
+
+  if (dest_entry->subtype == SUBTYPE_RSA2048 || dest_entry->subtype == SUBTYPE_RSA4096)
+  {
+    _assert_(public_key_exponent);
+    std::copy_n(public_key_exponent, 4, dest_entry->misc_data.begin());
+  }
   return IPC_SUCCESS;
 }
 

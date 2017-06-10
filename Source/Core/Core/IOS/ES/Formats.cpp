@@ -375,7 +375,7 @@ s32 TicketReader::Unpersonalise()
     return ret;
 
   const auto public_key_iter = ticket_begin + offsetof(Ticket, server_public_key);
-  ret = iosc.ImportPublicKey(public_handle, &*public_key_iter, PID_ES);
+  ret = iosc.ImportPublicKey(public_handle, &*public_key_iter, nullptr, PID_ES);
   if (ret != IPC_SUCCESS)
     return ret;
 
