@@ -97,20 +97,7 @@ DirectoryBlobReader::DirectoryBlobReader(const std::string& root_directory)
                                     reinterpret_cast<const u8*>(PARTITION_TABLE.data()));
 
     SetWiiRegionData();
-
-    constexpr u32 TICKET_OFFSET = 0x0;
-    constexpr u32 TICKET_SIZE = 0x2a4;
-    constexpr u32 TMD_OFFSET = 0x2c0;
-    constexpr u32 MAX_TMD_SIZE = 0x49e4;
-    AddFileToContents(&m_nonpartition_contents, m_root_directory + "ticket.bin",
-                      GAME_PARTITION_ADDRESS + TICKET_OFFSET, TICKET_SIZE);
-    const DiscContent& tmd =
-        AddFileToContents(&m_nonpartition_contents, m_root_directory + "tmd.bin",
-                          GAME_PARTITION_ADDRESS + TMD_OFFSET, MAX_TMD_SIZE);
-    m_tmd_header = {Common::swap32(static_cast<u32>(tmd.GetSize())),
-                    Common::swap32(TMD_OFFSET >> m_address_shift)};
-    m_nonpartition_contents.emplace(GAME_PARTITION_ADDRESS + TICKET_SIZE, sizeof(m_tmd_header),
-                                    reinterpret_cast<const u8*>(&m_tmd_header));
+    SetTMDAndTicket();
 
     // TODO: We don't handle raw access to the encrypted area of Wii discs correctly.
   }
@@ -238,6 +225,22 @@ void DirectoryBlobReader::SetWiiRegionData()
 
   m_nonpartition_contents.emplace(WII_REGION_DATA_ADDRESS, WII_REGION_DATA_SIZE,
                                   m_wii_region_data.data());
+}
+
+void DirectoryBlobReader::SetTMDAndTicket()
+{
+  constexpr u32 TICKET_OFFSET = 0x0;
+  constexpr u32 TICKET_SIZE = 0x2a4;
+  constexpr u32 TMD_OFFSET = 0x2c0;
+  constexpr u32 MAX_TMD_SIZE = 0x49e4;
+  AddFileToContents(&m_nonpartition_contents, m_root_directory + "ticket.bin",
+                    GAME_PARTITION_ADDRESS + TICKET_OFFSET, TICKET_SIZE);
+  const DiscContent& tmd = AddFileToContents(&m_nonpartition_contents, m_root_directory + "tmd.bin",
+                                             GAME_PARTITION_ADDRESS + TMD_OFFSET, MAX_TMD_SIZE);
+  m_tmd_header = {Common::swap32(static_cast<u32>(tmd.GetSize())),
+                  Common::swap32(TMD_OFFSET >> m_address_shift)};
+  m_nonpartition_contents.emplace(GAME_PARTITION_ADDRESS + TICKET_SIZE, sizeof(m_tmd_header),
+                                  reinterpret_cast<const u8*>(&m_tmd_header));
 }
 
 bool DirectoryBlobReader::SetApploader(const std::string& apploader)
