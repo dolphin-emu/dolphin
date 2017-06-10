@@ -83,27 +83,20 @@ DirectoryBlobReader::DirectoryBlobReader(const std::string& root_directory)
 {
   SetDiscHeaderAndDiscType();
 
+  AddFileToContents(&m_virtual_disc, m_root_directory + "sys/bi2.bin", BI2_ADDRESS, BI2_SIZE);
+
   // Setting the DOL relies on m_dol_address, which is set by SetApploader
   if (SetApploader(m_root_directory + "sys/apploader.img"))
     SetDOL();
 
   BuildFST();
 
-  m_virtual_disc.emplace(DISKHEADER_ADDRESS, DISKHEADER_SIZE, m_disk_header.data());
-  AddFileToContents(&m_virtual_disc, m_root_directory + "sys/bi2.bin", BI2_ADDRESS, BI2_SIZE);
-  m_virtual_disc.emplace(APPLOADER_ADDRESS, m_apploader.size(), m_apploader.data());
-  m_virtual_disc.emplace(m_fst_address, m_fst_data.size(), m_fst_data.data());
-
   if (m_is_wii)
   {
-    m_nonpartition_contents.emplace(DISKHEADER_ADDRESS, NONPARTITION_DISKHEADER_SIZE,
-                                    m_disk_header_nonpartition.data());
     m_nonpartition_contents.emplace(PARTITION_TABLE_ADDRESS, PARTITION_TABLE.size() * sizeof(u32),
                                     reinterpret_cast<const u8*>(PARTITION_TABLE.data()));
 
     SetWiiRegionData();
-    m_nonpartition_contents.emplace(WII_REGION_DATA_ADDRESS, WII_REGION_DATA_SIZE,
-                                    m_wii_region_data.data());
 
     constexpr u32 TICKET_OFFSET = 0x0;
     constexpr u32 TICKET_SIZE = 0x2a4;
@@ -196,6 +189,8 @@ void DirectoryBlobReader::SetDiscHeaderAndDiscType()
   if (ReadFileToVector(boot_bin_path, &m_disk_header) < 0x20)
     ERROR_LOG(DISCIO, "%s doesn't exist or is too small", boot_bin_path.c_str());
 
+  m_virtual_disc.emplace(DISKHEADER_ADDRESS, DISKHEADER_SIZE, m_disk_header.data());
+
   m_is_wii = Common::swap32(&m_disk_header[0x18]) == 0x5d1c9ea3;
   const bool is_gc = Common::swap32(&m_disk_header[0x1c]) == 0xc2339f3d;
   if (m_is_wii == is_gc)
@@ -219,6 +214,9 @@ void DirectoryBlobReader::SetDiscHeaderAndDiscType()
       m_disk_header_nonpartition[0x60] = 0;
     if (header_bin_bytes_read < 0x61)
       m_disk_header_nonpartition[0x61] = 0;
+
+    m_nonpartition_contents.emplace(DISKHEADER_ADDRESS, NONPARTITION_DISKHEADER_SIZE,
+                                    m_disk_header_nonpartition.data());
   }
 }
 
@@ -237,6 +235,9 @@ void DirectoryBlobReader::SetWiiRegionData()
     ERROR_LOG(DISCIO, "Couldn't read region from %s", region_bin_path.c_str());
   else if (bytes_read < 0x20)
     ERROR_LOG(DISCIO, "Couldn't read age ratings from %s", region_bin_path.c_str());
+
+  m_nonpartition_contents.emplace(WII_REGION_DATA_ADDRESS, WII_REGION_DATA_SIZE,
+                                  m_wii_region_data.data());
 }
 
 bool DirectoryBlobReader::SetApploader(const std::string& apploader)
@@ -276,6 +277,7 @@ bool DirectoryBlobReader::SetApploader(const std::string& apploader)
     }
   }
 
+  m_virtual_disc.emplace(APPLOADER_ADDRESS, m_apploader.size(), m_apploader.data());
   return success;
 }
 
@@ -328,6 +330,8 @@ void DirectoryBlobReader::BuildFST()
   Write32((u32)(m_fst_address >> m_address_shift), 0x0424, &m_disk_header);
   Write32((u32)(m_fst_data.size() >> m_address_shift), 0x0428, &m_disk_header);
   Write32((u32)(m_fst_data.size() >> m_address_shift), 0x042c, &m_disk_header);
+
+  m_virtual_disc.emplace(m_fst_address, m_fst_data.size(), m_fst_data.data());
 }
 
 void DirectoryBlobReader::PadToAddress(u64 start_address, u64* address, u64* length,
