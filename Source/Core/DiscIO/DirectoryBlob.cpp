@@ -157,10 +157,9 @@ std::unique_ptr<DirectoryBlobReader> DirectoryBlobReader::Create(const std::stri
   return std::unique_ptr<DirectoryBlobReader>(new DirectoryBlobReader(root_directory));
 }
 
-DirectoryBlobReader::DirectoryBlobReader(const std::string& root_directory)
-    : m_root_directory(root_directory)
+DirectoryBlobReader::DirectoryBlobReader(const std::string& game_partition_root)
 {
-  DirectoryBlobPartition game_partition(root_directory, {});
+  DirectoryBlobPartition game_partition(game_partition_root, {});
   m_is_wii = game_partition.IsWii();
 
   if (!m_is_wii)
@@ -170,7 +169,7 @@ DirectoryBlobReader::DirectoryBlobReader(const std::string& root_directory)
   }
   else
   {
-    SetNonpartitionDiscHeader(game_partition.GetHeader());
+    SetNonpartitionDiscHeader(game_partition.GetHeader(), game_partition_root);
 
     const u64 unaligned_data_size = VolumeWii::PartitionOffsetToRawOffset(
         game_partition.GetDataSize(), Partition(GAME_PARTITION_ADDRESS));
@@ -179,8 +178,8 @@ DirectoryBlobReader::DirectoryBlobReader(const std::string& root_directory)
     m_partitions.emplace(GAME_PARTITION_ADDRESS, std::move(game_partition));
 
     SetPartitionTable();
-    SetWiiRegionData();
-    SetTMDAndTicket();
+    SetWiiRegionData(game_partition_root);
+    SetTMDAndTicket(game_partition_root);
   }
 }
 
@@ -258,14 +257,15 @@ u64 DirectoryBlobReader::GetDataSize() const
   return m_data_size;
 }
 
-void DirectoryBlobReader::SetNonpartitionDiscHeader(const std::vector<u8>& partition_header)
+void DirectoryBlobReader::SetNonpartitionDiscHeader(const std::vector<u8>& partition_header,
+                                                    const std::string& game_partition_root)
 {
   constexpr u64 NONPARTITION_DISKHEADER_ADDRESS = 0;
   constexpr u64 NONPARTITION_DISKHEADER_SIZE = 0x100;
 
   m_disk_header_nonpartition.resize(NONPARTITION_DISKHEADER_SIZE);
   const size_t header_bin_bytes_read =
-      ReadFileToVector(m_root_directory + "disc/header.bin", &m_disk_header_nonpartition);
+      ReadFileToVector(game_partition_root + "disc/header.bin", &m_disk_header_nonpartition);
 
   // If header.bin is missing or smaller than expected, use the content of sys/boot.bin instead
   std::copy(partition_header.data() + header_bin_bytes_read,
@@ -293,7 +293,7 @@ void DirectoryBlobReader::SetPartitionTable()
                                   reinterpret_cast<const u8*>(PARTITION_TABLE.data()));
 }
 
-void DirectoryBlobReader::SetWiiRegionData()
+void DirectoryBlobReader::SetWiiRegionData(const std::string& game_partition_root)
 {
   m_wii_region_data.resize(0x10, 0x00);
   m_wii_region_data.resize(0x20, 0x80);
@@ -302,7 +302,7 @@ void DirectoryBlobReader::SetWiiRegionData()
   constexpr u32 INVALID_REGION = 0xFF;
   Write32(INVALID_REGION, 0, &m_wii_region_data);
 
-  const std::string region_bin_path = m_root_directory + "disc/region.bin";
+  const std::string region_bin_path = game_partition_root + "disc/region.bin";
   const size_t bytes_read = ReadFileToVector(region_bin_path, &m_wii_region_data);
   if (bytes_read < 0x4)
     ERROR_LOG(DISCIO, "Couldn't read region from %s", region_bin_path.c_str());
@@ -315,15 +315,15 @@ void DirectoryBlobReader::SetWiiRegionData()
                                   m_wii_region_data.data());
 }
 
-void DirectoryBlobReader::SetTMDAndTicket()
+void DirectoryBlobReader::SetTMDAndTicket(const std::string& partition_root)
 {
   constexpr u32 TICKET_OFFSET = 0x0;
   constexpr u32 TICKET_SIZE = 0x2a4;
   constexpr u32 TMD_OFFSET = 0x2c0;
   constexpr u32 MAX_TMD_SIZE = 0x49e4;
-  AddFileToContents(&m_nonpartition_contents, m_root_directory + "ticket.bin",
+  AddFileToContents(&m_nonpartition_contents, partition_root + "ticket.bin",
                     GAME_PARTITION_ADDRESS + TICKET_OFFSET, TICKET_SIZE);
-  const DiscContent& tmd = AddFileToContents(&m_nonpartition_contents, m_root_directory + "tmd.bin",
+  const DiscContent& tmd = AddFileToContents(&m_nonpartition_contents, partition_root + "tmd.bin",
                                              GAME_PARTITION_ADDRESS + TMD_OFFSET, MAX_TMD_SIZE);
   m_tmd_header = {Common::swap32(static_cast<u32>(tmd.GetSize())), Common::swap32(TMD_OFFSET >> 2)};
   m_nonpartition_contents.emplace(GAME_PARTITION_ADDRESS + TICKET_SIZE, sizeof(m_tmd_header),
