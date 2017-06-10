@@ -49,8 +49,11 @@ ReturnCode IOSC::DeleteObject(Handle handle, u32 pid)
   if (IsDefaultHandle(handle) || !HasOwnership(handle, pid))
     return IOSC_EACCES;
 
-  m_key_entries[handle].in_use = false;
-  m_key_entries[handle].data.clear();
+  KeyEntry* entry = FindEntry(handle);
+  if (!entry)
+    return IOSC_EINVAL;
+  entry->in_use = false;
+  entry->data.clear();
   return IPC_SUCCESS;
 }
 
@@ -64,7 +67,10 @@ ReturnCode IOSC::ImportSecretKey(Handle dest_handle, Handle decrypt_handle, u8* 
     return IOSC_EACCES;
   }
 
-  auto* dest_entry = &m_key_entries[dest_handle];
+  KeyEntry* dest_entry = FindEntry(dest_handle);
+  if (!dest_entry)
+    return IOSC_EINVAL;
+
   // TODO: allow other secret key subtypes
   if (dest_entry->type != TYPE_SECRET_KEY || dest_entry->subtype != SUBTYPE_AES128)
     return IOSC_INVALID_OBJTYPE;
@@ -79,7 +85,10 @@ ReturnCode IOSC::ImportPublicKey(Handle dest_handle, const u8* public_key, u32 p
   if (!HasOwnership(dest_handle, pid) || IsDefaultHandle(dest_handle))
     return IOSC_EACCES;
 
-  auto* dest_entry = &m_key_entries[dest_handle];
+  KeyEntry* dest_entry = FindEntry(dest_handle);
+  if (!dest_entry)
+    return IOSC_EINVAL;
+
   // TODO: allow other public key subtypes
   if (dest_entry->type != TYPE_PUBLIC_KEY || dest_entry->subtype != SUBTYPE_ECC233)
     return IOSC_INVALID_OBJTYPE;
@@ -97,9 +106,11 @@ ReturnCode IOSC::ComputeSharedKey(Handle dest_handle, Handle private_handle, Han
     return IOSC_EACCES;
   }
 
-  auto* dest_entry = &m_key_entries[dest_handle];
-  const auto* private_entry = &m_key_entries[private_handle];
-  const auto* public_entry = &m_key_entries[public_handle];
+  KeyEntry* dest_entry = FindEntry(dest_handle);
+  const KeyEntry* private_entry = FindEntry(private_handle);
+  const KeyEntry* public_entry = FindEntry(public_handle);
+  if (!dest_entry || !private_entry || !public_entry)
+    return IOSC_EINVAL;
   if (dest_entry->type != TYPE_SECRET_KEY || dest_entry->subtype != SUBTYPE_AES128 ||
       private_entry->type != TYPE_SECRET_KEY || private_entry->subtype != SUBTYPE_ECC233 ||
       public_entry->type != TYPE_PUBLIC_KEY || public_entry->subtype != SUBTYPE_ECC233)
@@ -125,7 +136,9 @@ ReturnCode IOSC::DecryptEncrypt(Common::AES::Mode mode, Handle key_handle, u8* i
   if (!HasOwnership(key_handle, pid))
     return IOSC_EACCES;
 
-  const auto* entry = &m_key_entries[key_handle];
+  const KeyEntry* entry = FindEntry(key_handle);
+  if (!entry)
+    return IOSC_EINVAL;
   if (entry->type != TYPE_SECRET_KEY || entry->subtype != SUBTYPE_AES128)
     return IOSC_INVALID_OBJTYPE;
 
@@ -153,9 +166,10 @@ ReturnCode IOSC::Decrypt(Handle key_handle, u8* iv, const u8* input, size_t size
 
 ReturnCode IOSC::GetOwnership(Handle handle, u32* owner) const
 {
-  if (handle < m_key_entries.size() && m_key_entries[handle].in_use)
+  const KeyEntry* entry = FindEntry(handle);
+  if (entry && entry->in_use)
   {
-    *owner = m_key_entries[handle].owner_mask;
+    *owner = entry->owner_mask;
     return IPC_SUCCESS;
   }
   return IOSC_EINVAL;
@@ -166,11 +180,15 @@ ReturnCode IOSC::SetOwnership(Handle handle, u32 new_owner, u32 pid)
   if (!HasOwnership(handle, pid))
     return IOSC_EACCES;
 
+  KeyEntry* entry = FindEntry(handle);
+  if (!entry)
+    return IOSC_EINVAL;
+
   const u32 mask_with_current_pid = 1 << pid;
-  const u32 mask = m_key_entries[handle].owner_mask | mask_with_current_pid;
+  const u32 mask = entry->owner_mask | mask_with_current_pid;
   if (mask != mask_with_current_pid)
     return IOSC_EACCES;
-  m_key_entries[handle].owner_mask = (new_owner & ~7) | mask;
+  entry->owner_mask = (new_owner & ~7) | mask;
   return IPC_SUCCESS;
 }
 
@@ -243,6 +261,15 @@ IOSC::KeyEntries::iterator IOSC::FindFreeEntry()
 {
   return std::find_if(m_key_entries.begin(), m_key_entries.end(),
                       [](const auto& entry) { return !entry.in_use; });
+}
+
+IOSC::KeyEntry* IOSC::FindEntry(Handle handle)
+{
+  return handle < m_key_entries.size() ? &m_key_entries[handle] : nullptr;
+}
+const IOSC::KeyEntry* IOSC::FindEntry(Handle handle) const
+{
+  return handle < m_key_entries.size() ? &m_key_entries[handle] : nullptr;
 }
 
 IOSC::Handle IOSC::GetHandleFromIterator(IOSC::KeyEntries::iterator iterator) const

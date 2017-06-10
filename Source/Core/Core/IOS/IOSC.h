@@ -203,7 +203,11 @@ private:
   using KeyEntries = std::array<KeyEntry, 32>;
 
   void LoadDefaultEntries(ConsoleType console_type);
+
   KeyEntries::iterator FindFreeEntry();
+  KeyEntry* FindEntry(Handle handle);
+  const KeyEntry* FindEntry(Handle handle) const;
+
   Handle GetHandleFromIterator(KeyEntries::iterator iterator) const;
   bool HasOwnership(Handle handle, u32 pid) const;
   bool IsDefaultHandle(Handle handle) const;
