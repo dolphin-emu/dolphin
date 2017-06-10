@@ -159,14 +159,6 @@ void VideoConfig::Refresh()
     }
   }
 
-  // Load common settings
-  IniFile iniFile;
-  iniFile.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
-  IniFile::Section* interface = iniFile.GetOrCreateSection("Interface");
-  bool bTmp;
-  interface->Get("UsePanicHandlers", &bTmp, true);
-  SetEnableAlert(bTmp);
-
   VerifyValidity();
 }
 
