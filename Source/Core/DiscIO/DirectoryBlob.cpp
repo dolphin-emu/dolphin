@@ -133,11 +133,7 @@ DirectoryBlobReader::DirectoryBlobReader(const std::string& root_directory)
     : m_root_directory(root_directory)
 {
   SetDiscHeaderAndDiscType();
-
-  constexpr u64 BI2_ADDRESS = 0x440;
-  constexpr u64 BI2_SIZE = 0x2000;
-  AddFileToContents(&m_virtual_disc, m_root_directory + "sys/bi2.bin", BI2_ADDRESS, BI2_SIZE);
-
+  SetBI2();
   BuildFST(SetDOL(SetApploader()));
 
   if (m_is_wii)
@@ -257,6 +253,13 @@ void DirectoryBlobReader::SetDiscHeaderAndDiscType()
     m_nonpartition_contents.emplace(DISKHEADER_ADDRESS, NONPARTITION_DISKHEADER_SIZE,
                                     m_disk_header_nonpartition.data());
   }
+}
+
+void DirectoryBlobReader::SetBI2()
+{
+  constexpr u64 BI2_ADDRESS = 0x440;
+  constexpr u64 BI2_SIZE = 0x2000;
+  AddFileToContents(&m_virtual_disc, m_root_directory + "sys/bi2.bin", BI2_ADDRESS, BI2_SIZE);
 }
 
 void DirectoryBlobReader::SetPartitionTable()

@@ -71,6 +71,7 @@ private:
   bool ReadInternal(u64 offset, u64 length, u8* buffer, const std::set<DiscContent>& contents);
 
   void SetDiscHeaderAndDiscType();
+  void SetBI2();
   void SetPartitionTable();
   void SetWiiRegionData();
   void SetTMDAndTicket();
