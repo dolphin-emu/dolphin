@@ -6,6 +6,8 @@
 #include <array>
 #include <cstddef>
 #include <cstring>
+#include <map>
+#include <utility>
 #include <vector>
 
 #include <mbedtls/md.h>
@@ -25,6 +27,23 @@ namespace IOS
 {
 namespace HLE
 {
+const std::map<std::pair<IOSC::ObjectType, IOSC::ObjectSubType>, size_t> s_type_to_size_map = {{
+    {{IOSC::TYPE_SECRET_KEY, IOSC::SUBTYPE_AES128}, 16},
+    {{IOSC::TYPE_SECRET_KEY, IOSC::SUBTYPE_MAC}, 20},
+    {{IOSC::TYPE_SECRET_KEY, IOSC::SUBTYPE_ECC233}, 30},
+    {{IOSC::TYPE_PUBLIC_KEY, IOSC::SUBTYPE_RSA2048}, 256},
+    {{IOSC::TYPE_PUBLIC_KEY, IOSC::SUBTYPE_RSA4096}, 512},
+    {{IOSC::TYPE_PUBLIC_KEY, IOSC::SUBTYPE_ECC233}, 60},
+    {{IOSC::TYPE_DATA, IOSC::SUBTYPE_DATA}, 0},
+    {{IOSC::TYPE_DATA, IOSC::SUBTYPE_VERSION}, 0},
+}};
+
+static size_t GetSizeForType(IOSC::ObjectType type, IOSC::ObjectSubType subtype)
+{
+  const auto iterator = s_type_to_size_map.find({type, subtype});
+  return iterator != s_type_to_size_map.end() ? iterator->second : 0;
+}
+
 IOSC::IOSC(ConsoleType console_type)
 {
   LoadDefaultEntries(console_type);
