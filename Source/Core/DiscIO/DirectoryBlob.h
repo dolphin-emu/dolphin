@@ -120,16 +120,15 @@ public:
   u64 GetDataSize() const override;
 
 private:
-  explicit DirectoryBlobReader(const std::string& root_directory);
+  explicit DirectoryBlobReader(const std::string& game_partition_root);
 
   bool ReadInternal(u64 offset, u64 length, u8* buffer, const std::set<DiscContent>& contents);
 
-  void SetNonpartitionDiscHeader(const std::vector<u8>& partition_header);
+  void SetNonpartitionDiscHeader(const std::vector<u8>& partition_header,
+                                 const std::string& game_partition_root);
   void SetPartitionTable();
-  void SetWiiRegionData();
-  void SetTMDAndTicket();
-
-  std::string m_root_directory;
+  void SetWiiRegionData(const std::string& game_partition_root);
+  void SetTMDAndTicket(const std::string& partition_root);
 
   // For GameCube:
   DirectoryBlobPartition m_gamecube_pseudopartition;
