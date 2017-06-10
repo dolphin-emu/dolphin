@@ -216,34 +216,6 @@ u64 DirectoryBlobReader::GetDataSize() const
   return 0;
 }
 
-DirectoryBlobPartition::DirectoryBlobPartition(const std::string& root_directory)
-  : m_root_directory(root_directory)
-{
-  SetDiscHeaderAndDiscType();
-  SetBI2();
-  BuildFST(SetDOL(SetApploader()));
-}
-
-void DirectoryBlobPartition::SetDiscHeaderAndDiscType()
-{
-  constexpr u64 DISKHEADER_ADDRESS = 0;
-  constexpr u64 DISKHEADER_SIZE = 0x440;
-
-  m_disk_header.resize(DISKHEADER_SIZE);
-  const std::string boot_bin_path = m_root_directory + "sys/boot.bin";
-  if (ReadFileToVector(boot_bin_path, &m_disk_header) < 0x20)
-    ERROR_LOG(DISCIO, "%s doesn't exist or is too small", boot_bin_path.c_str());
-
-  m_contents.emplace(DISKHEADER_ADDRESS, DISKHEADER_SIZE, m_disk_header.data());
-
-  m_is_wii = Common::swap32(&m_disk_header[0x18]) == 0x5d1c9ea3;
-  const bool is_gc = Common::swap32(&m_disk_header[0x1c]) == 0xc2339f3d;
-  if (m_is_wii == is_gc)
-    ERROR_LOG(DISCIO, "Couldn't detect disc type based on %s", boot_bin_path.c_str());
-
-  m_address_shift = m_is_wii ? 2 : 0;
-}
-
 void DirectoryBlobReader::SetNonpartitionDiscHeader(const std::vector<u8>& partition_header)
 {
   constexpr u64 NONPARTITION_DISKHEADER_ADDRESS = 0;
@@ -266,13 +238,6 @@ void DirectoryBlobReader::SetNonpartitionDiscHeader(const std::vector<u8>& parti
 
   m_nonpartition_contents.emplace(NONPARTITION_DISKHEADER_ADDRESS, NONPARTITION_DISKHEADER_SIZE,
                                   m_disk_header_nonpartition.data());
-}
-
-void DirectoryBlobPartition::SetBI2()
-{
-  constexpr u64 BI2_ADDRESS = 0x440;
-  constexpr u64 BI2_SIZE = 0x2000;
-  AddFileToContents(&m_contents, m_root_directory + "sys/bi2.bin", BI2_ADDRESS, BI2_SIZE);
 }
 
 void DirectoryBlobReader::SetPartitionTable()
@@ -321,6 +286,41 @@ void DirectoryBlobReader::SetTMDAndTicket()
   m_tmd_header = {Common::swap32(static_cast<u32>(tmd.GetSize())), Common::swap32(TMD_OFFSET >> 2)};
   m_nonpartition_contents.emplace(GAME_PARTITION_ADDRESS + TICKET_SIZE, sizeof(m_tmd_header),
                                   reinterpret_cast<const u8*>(&m_tmd_header));
+}
+
+DirectoryBlobPartition::DirectoryBlobPartition(const std::string& root_directory)
+    : m_root_directory(root_directory)
+{
+  SetDiscHeaderAndDiscType();
+  SetBI2();
+  BuildFST(SetDOL(SetApploader()));
+}
+
+void DirectoryBlobPartition::SetDiscHeaderAndDiscType()
+{
+  constexpr u64 DISKHEADER_ADDRESS = 0;
+  constexpr u64 DISKHEADER_SIZE = 0x440;
+
+  m_disk_header.resize(DISKHEADER_SIZE);
+  const std::string boot_bin_path = m_root_directory + "sys/boot.bin";
+  if (ReadFileToVector(boot_bin_path, &m_disk_header) < 0x20)
+    ERROR_LOG(DISCIO, "%s doesn't exist or is too small", boot_bin_path.c_str());
+
+  m_contents.emplace(DISKHEADER_ADDRESS, DISKHEADER_SIZE, m_disk_header.data());
+
+  m_is_wii = Common::swap32(&m_disk_header[0x18]) == 0x5d1c9ea3;
+  const bool is_gc = Common::swap32(&m_disk_header[0x1c]) == 0xc2339f3d;
+  if (m_is_wii == is_gc)
+    ERROR_LOG(DISCIO, "Couldn't detect disc type based on %s", boot_bin_path.c_str());
+
+  m_address_shift = m_is_wii ? 2 : 0;
+}
+
+void DirectoryBlobPartition::SetBI2()
+{
+  constexpr u64 BI2_ADDRESS = 0x440;
+  constexpr u64 BI2_SIZE = 0x2000;
+  AddFileToContents(&m_contents, m_root_directory + "sys/bi2.bin", BI2_ADDRESS, BI2_SIZE);
 }
 
 u64 DirectoryBlobPartition::SetApploader()
