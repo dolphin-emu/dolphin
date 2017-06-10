@@ -16,10 +16,6 @@
 #include "Core/Movie.h"
 #include "Core/NetPlayClient.h"
 
-#ifdef _WIN32
-#include <Windows.h>
-#endif
-
 namespace Core
 {
 static std::string s_temp_wii_root;
@@ -56,8 +52,6 @@ static void InitializeDeterministicWiiSaves()
 
 void InitializeWiiRoot(bool use_temporary)
 {
-  ShutdownWiiRoot();
-
   if (use_temporary)
   {
     s_temp_wii_root = File::CreateTempDir();
@@ -69,12 +63,6 @@ void InitializeWiiRoot(bool use_temporary)
     File::CopyDir(File::GetSysDirectory() + WII_USER_DIR, s_temp_wii_root);
     WARN_LOG(IOS_FILEIO, "Using temporary directory %s for minimal Wii FS",
              s_temp_wii_root.c_str());
-    static bool s_registered;
-    if (!s_registered)
-    {
-      s_registered = true;
-      atexit(ShutdownWiiRoot);
-    }
     File::SetUserPath(D_SESSION_WIIROOT_IDX, s_temp_wii_root);
     // Generate a SYSCONF with default settings for the temporary Wii NAND.
     SysConf sysconf{Common::FromWhichRoot::FROM_SESSION_ROOT};
