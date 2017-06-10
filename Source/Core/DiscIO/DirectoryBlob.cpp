@@ -44,12 +44,7 @@ constexpr u64 BI2_SIZE = 0x2000;
 constexpr u64 APPLOADER_ADDRESS = 0x2440;
 constexpr u64 WII_REGION_DATA_ADDRESS = 0x4E000;
 constexpr u64 WII_REGION_DATA_SIZE = 0x20;
-
 constexpr u64 GAME_PARTITION_ADDRESS = 0x50000;
-constexpr u64 PARTITION_TABLE_ADDRESS = 0x40000;
-const std::array<u32, 10> PARTITION_TABLE = {
-    {Common::swap32(1), Common::swap32((PARTITION_TABLE_ADDRESS + 0x20) >> 2), 0, 0, 0, 0, 0, 0,
-     Common::swap32(GAME_PARTITION_ADDRESS >> 2), 0}};
 
 static bool IsValidDirectoryBlob(const std::string& dol_path, std::string* root_directory)
 {
@@ -93,9 +88,7 @@ DirectoryBlobReader::DirectoryBlobReader(const std::string& root_directory)
 
   if (m_is_wii)
   {
-    m_nonpartition_contents.emplace(PARTITION_TABLE_ADDRESS, PARTITION_TABLE.size() * sizeof(u32),
-                                    reinterpret_cast<const u8*>(PARTITION_TABLE.data()));
-
+    SetPartitionTable();
     SetWiiRegionData();
     SetTMDAndTicket();
 
@@ -205,6 +198,17 @@ void DirectoryBlobReader::SetDiscHeaderAndDiscType()
     m_nonpartition_contents.emplace(DISKHEADER_ADDRESS, NONPARTITION_DISKHEADER_SIZE,
                                     m_disk_header_nonpartition.data());
   }
+}
+
+void DirectoryBlobReader::SetPartitionTable()
+{
+  constexpr u64 PARTITION_TABLE_ADDRESS = 0x40000;
+  static const std::array<u32, 10> PARTITION_TABLE = {
+      {Common::swap32(1), Common::swap32((PARTITION_TABLE_ADDRESS + 0x20) >> 2), 0, 0, 0, 0, 0, 0,
+       Common::swap32(GAME_PARTITION_ADDRESS >> 2), 0}};
+
+  m_nonpartition_contents.emplace(PARTITION_TABLE_ADDRESS, PARTITION_TABLE.size() * sizeof(u32),
+                                  reinterpret_cast<const u8*>(PARTITION_TABLE.data()));
 }
 
 void DirectoryBlobReader::SetWiiRegionData()
