@@ -140,6 +140,8 @@ public:
     HANDLE_FS_VERSION = 10,
     // New common key (aka Korean common key)
     HANDLE_NEW_COMMON_KEY = 11,
+
+    HANDLE_ROOT_KEY = 0xfffffff,
   };
 
   enum ObjectType : u8
@@ -153,6 +155,7 @@ public:
   {
     SUBTYPE_AES128 = 0,
     SUBTYPE_MAC = 1,
+    SUBTYPE_RSA4096 = 3,
     SUBTYPE_ECC233 = 4,
     SUBTYPE_DATA = 5,
     SUBTYPE_VERSION = 6
@@ -205,11 +208,17 @@ private:
   // The Wii's IOSC is limited to 32 entries, including 12 built-in entries.
   using KeyEntries = std::array<KeyEntry, 32>;
 
+  enum class SearchMode
+  {
+    IncludeRootKey,
+    ExcludeRootKey,
+  };
+
   void LoadDefaultEntries(ConsoleType console_type);
 
   KeyEntries::iterator FindFreeEntry();
   KeyEntry* FindEntry(Handle handle);
-  const KeyEntry* FindEntry(Handle handle) const;
+  const KeyEntry* FindEntry(Handle handle, SearchMode mode = SearchMode::ExcludeRootKey) const;
 
   Handle GetHandleFromIterator(KeyEntries::iterator iterator) const;
   bool HasOwnership(Handle handle, u32 pid) const;
@@ -218,6 +227,7 @@ private:
                             size_t size, u8* output, u32 pid) const;
 
   KeyEntries m_key_entries;
+  KeyEntry m_root_key_entry;
 };
 }  // namespace HLE
 }  // namespace IOS
