@@ -46,14 +46,6 @@ static void ConvertUTF8NamesToSHIFTJIS(File::FSTEntry& parent_entry);
 constexpr u8 ENTRY_SIZE = 0x0c;
 constexpr u8 FILE_ENTRY = 0;
 constexpr u8 DIRECTORY_ENTRY = 1;
-constexpr u64 DISKHEADER_ADDRESS = 0;
-constexpr u64 DISKHEADER_SIZE = 0x440;
-constexpr u64 NONPARTITION_DISKHEADER_SIZE = 0x100;
-constexpr u64 BI2_ADDRESS = 0x440;
-constexpr u64 BI2_SIZE = 0x2000;
-constexpr u64 APPLOADER_ADDRESS = 0x2440;
-constexpr u64 WII_REGION_DATA_ADDRESS = 0x4E000;
-constexpr u64 WII_REGION_DATA_SIZE = 0x20;
 constexpr u64 GAME_PARTITION_ADDRESS = 0x50000;
 
 DiscContent::DiscContent(u64 offset, u64 size, const std::string& path)
@@ -161,10 +153,12 @@ std::unique_ptr<DirectoryBlobReader> DirectoryBlobReader::Create(const std::stri
 }
 
 DirectoryBlobReader::DirectoryBlobReader(const std::string& root_directory)
-    : m_root_directory(root_directory), m_disk_header(DISKHEADER_SIZE)
+    : m_root_directory(root_directory)
 {
   SetDiscHeaderAndDiscType();
 
+  constexpr u64 BI2_ADDRESS = 0x440;
+  constexpr u64 BI2_SIZE = 0x2000;
   AddFileToContents(&m_virtual_disc, m_root_directory + "sys/bi2.bin", BI2_ADDRESS, BI2_SIZE);
 
   BuildFST(SetDOL(SetApploader()));
@@ -248,6 +242,11 @@ u64 DirectoryBlobReader::GetDataSize() const
 
 void DirectoryBlobReader::SetDiscHeaderAndDiscType()
 {
+  constexpr u64 DISKHEADER_ADDRESS = 0;
+  constexpr u64 DISKHEADER_SIZE = 0x440;
+  constexpr u64 NONPARTITION_DISKHEADER_SIZE = 0x100;
+
+  m_disk_header.resize(DISKHEADER_SIZE);
   const std::string boot_bin_path = m_root_directory + "sys/boot.bin";
   if (ReadFileToVector(boot_bin_path, &m_disk_header) < 0x20)
     ERROR_LOG(DISCIO, "%s doesn't exist or is too small", boot_bin_path.c_str());
@@ -310,6 +309,8 @@ void DirectoryBlobReader::SetWiiRegionData()
   else if (bytes_read < 0x20)
     ERROR_LOG(DISCIO, "Couldn't read age ratings from %s", region_bin_path.c_str());
 
+  constexpr u64 WII_REGION_DATA_ADDRESS = 0x4E000;
+  constexpr u64 WII_REGION_DATA_SIZE = 0x20;
   m_nonpartition_contents.emplace(WII_REGION_DATA_ADDRESS, WII_REGION_DATA_SIZE,
                                   m_wii_region_data.data());
 }
@@ -357,6 +358,8 @@ u64 DirectoryBlobReader::SetApploader()
     // Make sure BS2 HLE doesn't try to run the apploader
     Write32(static_cast<u32>(-1), 0x10, &m_apploader);
   }
+
+  constexpr u64 APPLOADER_ADDRESS = 0x2440;
 
   m_virtual_disc.emplace(APPLOADER_ADDRESS, m_apploader.size(), m_apploader.data());
 
