@@ -133,14 +133,13 @@ std::unique_ptr<DirectoryBlobReader> DirectoryBlobReader::Create(const std::stri
 }
 
 DirectoryBlobReader::DirectoryBlobReader(const std::string& root_directory)
-    : m_root_directory(root_directory)
+    : m_root_directory(root_directory), m_game_partition(root_directory)
 {
-  SetDiscHeaderAndDiscType();
-  SetBI2();
-  BuildFST(SetDOL(SetApploader()));
+  m_is_wii = m_game_partition.IsWii();
 
   if (m_is_wii)
   {
+    SetNonpartitionDiscHeader(m_game_partition.GetHeader());
     SetPartitionTable();
     SetWiiRegionData();
     SetTMDAndTicket();
@@ -183,7 +182,8 @@ bool DirectoryBlobReader::Read(u64 offset, u64 length, u8* buffer)
 {
   // TODO: We don't handle raw access to the encrypted area of Wii discs correctly.
 
-  return ReadInternal(offset, length, buffer, m_is_wii ? m_nonpartition_contents : m_virtual_disc);
+  return ReadInternal(offset, length, buffer,
+                      m_is_wii ? m_nonpartition_contents : m_game_partition.GetContents());
 }
 
 bool DirectoryBlobReader::SupportsReadWiiDecrypted() const
@@ -196,7 +196,7 @@ bool DirectoryBlobReader::ReadWiiDecrypted(u64 offset, u64 size, u8* buffer, u64
   if (!m_is_wii || partition_offset != GAME_PARTITION_ADDRESS)
     return false;
 
-  return ReadInternal(offset, size, buffer, m_virtual_disc);
+  return ReadInternal(offset, size, buffer, m_game_partition.GetContents());
 }
 
 BlobType DirectoryBlobReader::GetBlobType() const
@@ -216,18 +216,25 @@ u64 DirectoryBlobReader::GetDataSize() const
   return 0;
 }
 
-void DirectoryBlobReader::SetDiscHeaderAndDiscType()
+DirectoryBlobPartition::DirectoryBlobPartition(const std::string& root_directory)
+  : m_root_directory(root_directory)
+{
+  SetDiscHeaderAndDiscType();
+  SetBI2();
+  BuildFST(SetDOL(SetApploader()));
+}
+
+void DirectoryBlobPartition::SetDiscHeaderAndDiscType()
 {
   constexpr u64 DISKHEADER_ADDRESS = 0;
   constexpr u64 DISKHEADER_SIZE = 0x440;
-  constexpr u64 NONPARTITION_DISKHEADER_SIZE = 0x100;
 
   m_disk_header.resize(DISKHEADER_SIZE);
   const std::string boot_bin_path = m_root_directory + "sys/boot.bin";
   if (ReadFileToVector(boot_bin_path, &m_disk_header) < 0x20)
     ERROR_LOG(DISCIO, "%s doesn't exist or is too small", boot_bin_path.c_str());
 
-  m_virtual_disc.emplace(DISKHEADER_ADDRESS, DISKHEADER_SIZE, m_disk_header.data());
+  m_contents.emplace(DISKHEADER_ADDRESS, DISKHEADER_SIZE, m_disk_header.data());
 
   m_is_wii = Common::swap32(&m_disk_header[0x18]) == 0x5d1c9ea3;
   const bool is_gc = Common::swap32(&m_disk_header[0x1c]) == 0xc2339f3d;
@@ -235,34 +242,37 @@ void DirectoryBlobReader::SetDiscHeaderAndDiscType()
     ERROR_LOG(DISCIO, "Couldn't detect disc type based on %s", boot_bin_path.c_str());
 
   m_address_shift = m_is_wii ? 2 : 0;
-
-  if (m_is_wii)
-  {
-    m_disk_header_nonpartition.resize(NONPARTITION_DISKHEADER_SIZE);
-    const size_t header_bin_bytes_read =
-        ReadFileToVector(m_root_directory + "disc/header.bin", &m_disk_header_nonpartition);
-
-    // If header.bin is missing or smaller than expected, use the content of sys/boot.bin instead
-    std::copy(m_disk_header.data() + header_bin_bytes_read,
-              m_disk_header.data() + m_disk_header_nonpartition.size(),
-              m_disk_header_nonpartition.data() + header_bin_bytes_read);
-
-    // 0x60 and 0x61 are the only differences between the partition and non-partition headers
-    if (header_bin_bytes_read < 0x60)
-      m_disk_header_nonpartition[0x60] = 0;
-    if (header_bin_bytes_read < 0x61)
-      m_disk_header_nonpartition[0x61] = 0;
-
-    m_nonpartition_contents.emplace(DISKHEADER_ADDRESS, NONPARTITION_DISKHEADER_SIZE,
-                                    m_disk_header_nonpartition.data());
-  }
 }
 
-void DirectoryBlobReader::SetBI2()
+void DirectoryBlobReader::SetNonpartitionDiscHeader(const std::vector<u8>& partition_header)
+{
+  constexpr u64 NONPARTITION_DISKHEADER_ADDRESS = 0;
+  constexpr u64 NONPARTITION_DISKHEADER_SIZE = 0x100;
+
+  m_disk_header_nonpartition.resize(NONPARTITION_DISKHEADER_SIZE);
+  const size_t header_bin_bytes_read =
+      ReadFileToVector(m_root_directory + "disc/header.bin", &m_disk_header_nonpartition);
+
+  // If header.bin is missing or smaller than expected, use the content of sys/boot.bin instead
+  std::copy(partition_header.data() + header_bin_bytes_read,
+            partition_header.data() + m_disk_header_nonpartition.size(),
+            m_disk_header_nonpartition.data() + header_bin_bytes_read);
+
+  // 0x60 and 0x61 are the only differences between the partition and non-partition headers
+  if (header_bin_bytes_read < 0x60)
+    m_disk_header_nonpartition[0x60] = 0;
+  if (header_bin_bytes_read < 0x61)
+    m_disk_header_nonpartition[0x61] = 0;
+
+  m_nonpartition_contents.emplace(NONPARTITION_DISKHEADER_ADDRESS, NONPARTITION_DISKHEADER_SIZE,
+                                  m_disk_header_nonpartition.data());
+}
+
+void DirectoryBlobPartition::SetBI2()
 {
   constexpr u64 BI2_ADDRESS = 0x440;
   constexpr u64 BI2_SIZE = 0x2000;
-  AddFileToContents(&m_virtual_disc, m_root_directory + "sys/bi2.bin", BI2_ADDRESS, BI2_SIZE);
+  AddFileToContents(&m_contents, m_root_directory + "sys/bi2.bin", BI2_ADDRESS, BI2_SIZE);
 }
 
 void DirectoryBlobReader::SetPartitionTable()
@@ -308,13 +318,12 @@ void DirectoryBlobReader::SetTMDAndTicket()
                     GAME_PARTITION_ADDRESS + TICKET_OFFSET, TICKET_SIZE);
   const DiscContent& tmd = AddFileToContents(&m_nonpartition_contents, m_root_directory + "tmd.bin",
                                              GAME_PARTITION_ADDRESS + TMD_OFFSET, MAX_TMD_SIZE);
-  m_tmd_header = {Common::swap32(static_cast<u32>(tmd.GetSize())),
-                  Common::swap32(TMD_OFFSET >> m_address_shift)};
+  m_tmd_header = {Common::swap32(static_cast<u32>(tmd.GetSize())), Common::swap32(TMD_OFFSET >> 2)};
   m_nonpartition_contents.emplace(GAME_PARTITION_ADDRESS + TICKET_SIZE, sizeof(m_tmd_header),
                                   reinterpret_cast<const u8*>(&m_tmd_header));
 }
 
-u64 DirectoryBlobReader::SetApploader()
+u64 DirectoryBlobPartition::SetApploader()
 {
   bool success = false;
 
@@ -344,16 +353,16 @@ u64 DirectoryBlobReader::SetApploader()
 
   constexpr u64 APPLOADER_ADDRESS = 0x2440;
 
-  m_virtual_disc.emplace(APPLOADER_ADDRESS, m_apploader.size(), m_apploader.data());
+  m_contents.emplace(APPLOADER_ADDRESS, m_apploader.size(), m_apploader.data());
 
   // Return DOL address, 32 byte aligned (plus 32 byte padding)
   return Common::AlignUp(APPLOADER_ADDRESS + m_apploader.size() + 0x20, 0x20ull);
 }
 
-u64 DirectoryBlobReader::SetDOL(u64 dol_address)
+u64 DirectoryBlobPartition::SetDOL(u64 dol_address)
 {
   const DiscContent& dol =
-      AddFileToContents(&m_virtual_disc, m_root_directory + "sys/main.dol", dol_address);
+      AddFileToContents(&m_contents, m_root_directory + "sys/main.dol", dol_address);
 
   Write32(static_cast<u32>(dol_address >> m_address_shift), 0x0420, &m_disk_header);
 
@@ -361,7 +370,7 @@ u64 DirectoryBlobReader::SetDOL(u64 dol_address)
   return Common::AlignUp(dol_address + dol.GetSize() + 0x20, 0x20ull);
 }
 
-void DirectoryBlobReader::BuildFST(u64 fst_address)
+void DirectoryBlobPartition::BuildFST(u64 fst_address)
 {
   m_fst_data.clear();
 
@@ -396,11 +405,11 @@ void DirectoryBlobReader::BuildFST(u64 fst_address)
   Write32((u32)(m_fst_data.size() >> m_address_shift), 0x0428, &m_disk_header);
   Write32((u32)(m_fst_data.size() >> m_address_shift), 0x042c, &m_disk_header);
 
-  m_virtual_disc.emplace(fst_address, m_fst_data.size(), m_fst_data.data());
+  m_contents.emplace(fst_address, m_fst_data.size(), m_fst_data.data());
 }
 
-void DirectoryBlobReader::WriteEntryData(u32* entry_offset, u8 type, u32 name_offset,
-                                         u64 data_offset, u64 length, u32 address_shift)
+void DirectoryBlobPartition::WriteEntryData(u32* entry_offset, u8 type, u32 name_offset,
+                                            u64 data_offset, u64 length, u32 address_shift)
 {
   m_fst_data[(*entry_offset)++] = type;
 
@@ -415,17 +424,17 @@ void DirectoryBlobReader::WriteEntryData(u32* entry_offset, u8 type, u32 name_of
   *entry_offset += 4;
 }
 
-void DirectoryBlobReader::WriteEntryName(u32* name_offset, const std::string& name,
-                                         u64 name_table_offset)
+void DirectoryBlobPartition::WriteEntryName(u32* name_offset, const std::string& name,
+                                            u64 name_table_offset)
 {
   strncpy((char*)&m_fst_data[*name_offset + name_table_offset], name.c_str(), name.length() + 1);
 
   *name_offset += (u32)(name.length() + 1);
 }
 
-void DirectoryBlobReader::WriteDirectory(const File::FSTEntry& parent_entry, u32* fst_offset,
-                                         u32* name_offset, u64* data_offset, u32 parent_entry_index,
-                                         u64 name_table_offset)
+void DirectoryBlobPartition::WriteDirectory(const File::FSTEntry& parent_entry, u32* fst_offset,
+                                            u32* name_offset, u64* data_offset,
+                                            u32 parent_entry_index, u64 name_table_offset)
 {
   std::vector<File::FSTEntry> sorted_entries = parent_entry.children;
 
@@ -456,7 +465,7 @@ void DirectoryBlobReader::WriteDirectory(const File::FSTEntry& parent_entry, u32
       WriteEntryName(name_offset, entry.virtualName, name_table_offset);
 
       // write entry to virtual disc
-      auto result = m_virtual_disc.emplace(*data_offset, entry.size, entry.physicalName);
+      auto result = m_contents.emplace(*data_offset, entry.size, entry.physicalName);
       _dbg_assert_(DISCIO, result.second);  // Check that this offset wasn't already occupied
 
       // 32 KiB aligned - many games are fine with less alignment, but not all

@@ -52,6 +52,43 @@ private:
   ContentSource m_content_source;
 };
 
+class DirectoryBlobPartition
+{
+public:
+  explicit DirectoryBlobPartition(const std::string& root_directory);
+
+  bool IsWii() const { return m_is_wii; }
+  const std::vector<u8>& GetHeader() const { return m_disk_header; }
+  const std::set<DiscContent>& GetContents() const { return m_contents; }
+private:
+  void SetDiscHeaderAndDiscType();
+  void SetBI2();
+
+  // Returns DOL address
+  u64 SetApploader();
+  // Returns FST address
+  u64 SetDOL(u64 dol_address);
+
+  void BuildFST(u64 fst_address);
+
+  // FST creation
+  void WriteEntryData(u32* entry_offset, u8 type, u32 name_offset, u64 data_offset, u64 length,
+                      u32 address_shift);
+  void WriteEntryName(u32* name_offset, const std::string& name, u64 name_table_offset);
+  void WriteDirectory(const File::FSTEntry& parent_entry, u32* fst_offset, u32* name_offset,
+                      u64* data_offset, u32 parent_entry_index, u64 name_table_offset);
+
+  std::set<DiscContent> m_contents;
+  std::vector<u8> m_disk_header;
+  std::vector<u8> m_apploader;
+  std::vector<u8> m_fst_data;
+
+  std::string m_root_directory;
+  bool m_is_wii;
+  // GameCube has no shift, Wii has 2 bit shift
+  u32 m_address_shift;
+};
+
 class DirectoryBlobReader : public BlobReader
 {
 public:
@@ -70,39 +107,18 @@ private:
 
   bool ReadInternal(u64 offset, u64 length, u8* buffer, const std::set<DiscContent>& contents);
 
-  void SetDiscHeaderAndDiscType();
-  void SetBI2();
+  void SetNonpartitionDiscHeader(const std::vector<u8>& partition_header);
   void SetPartitionTable();
   void SetWiiRegionData();
   void SetTMDAndTicket();
 
-  // Returns DOL address
-  u64 SetApploader();
-  // Returns FST address
-  u64 SetDOL(u64 dol_address);
-
-  void BuildFST(u64 fst_address);
-
-  // FST creation
-  void WriteEntryData(u32* entry_offset, u8 type, u32 name_offset, u64 data_offset, u64 length,
-                      u32 address_shift);
-  void WriteEntryName(u32* name_offset, const std::string& name, u64 name_table_offset);
-  void WriteDirectory(const File::FSTEntry& parent_entry, u32* fst_offset, u32* name_offset,
-                      u64* data_offset, u32 parent_entry_index, u64 name_table_offset);
-
   std::string m_root_directory;
 
-  std::set<DiscContent> m_virtual_disc;
+  DirectoryBlobPartition m_game_partition;
   std::set<DiscContent> m_nonpartition_contents;
 
   bool m_is_wii;
 
-  // GameCube has no shift, Wii has 2 bit shift
-  u32 m_address_shift;
-
-  std::vector<u8> m_fst_data;
-
-  std::vector<u8> m_disk_header;
   std::vector<u8> m_disk_header_nonpartition;
   std::vector<u8> m_wii_region_data;
 
@@ -114,8 +130,6 @@ private:
   } m_tmd_header;
   static_assert(sizeof(TMDHeader) == 8, "Wrong size for TMDHeader");
 #pragma pack(pop)
-
-  std::vector<u8> m_apploader;
 };
 
 }  // namespace
