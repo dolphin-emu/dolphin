@@ -78,6 +78,7 @@ private:
 
   void SetDiscHeaderAndDiscType();
   void SetWiiRegionData();
+  void SetTMDAndTicket();
   bool SetApploader(const std::string& apploader);
   void SetDOL();
 
