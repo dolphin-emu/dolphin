@@ -8,6 +8,7 @@
 #include <cstddef>
 #include <cstring>
 #include <locale>
+#include <map>
 #include <memory>
 #include <set>
 #include <string>
@@ -133,13 +134,21 @@ std::unique_ptr<DirectoryBlobReader> DirectoryBlobReader::Create(const std::stri
 }
 
 DirectoryBlobReader::DirectoryBlobReader(const std::string& root_directory)
-    : m_root_directory(root_directory), m_game_partition(root_directory, {})
+    : m_root_directory(root_directory)
 {
-  m_is_wii = m_game_partition.IsWii();
+  DirectoryBlobPartition game_partition(root_directory, {});
+  m_is_wii = game_partition.IsWii();
 
-  if (m_is_wii)
+  if (!m_is_wii)
   {
-    SetNonpartitionDiscHeader(m_game_partition.GetHeader());
+    m_gamecube_pseudopartition = std::move(game_partition);
+  }
+  else
+  {
+    SetNonpartitionDiscHeader(game_partition.GetHeader());
+
+    m_partitions.emplace(GAME_PARTITION_ADDRESS, std::move(game_partition));
+
     SetPartitionTable();
     SetWiiRegionData();
     SetTMDAndTicket();
@@ -182,8 +191,9 @@ bool DirectoryBlobReader::Read(u64 offset, u64 length, u8* buffer)
 {
   // TODO: We don't handle raw access to the encrypted area of Wii discs correctly.
 
-  return ReadInternal(offset, length, buffer,
-                      m_is_wii ? m_nonpartition_contents : m_game_partition.GetContents());
+  const std::set<DiscContent>& contents =
+      m_is_wii ? m_nonpartition_contents : m_gamecube_pseudopartition.GetContents();
+  return ReadInternal(offset, length, buffer, contents);
 }
 
 bool DirectoryBlobReader::SupportsReadWiiDecrypted() const
@@ -193,10 +203,14 @@ bool DirectoryBlobReader::SupportsReadWiiDecrypted() const
 
 bool DirectoryBlobReader::ReadWiiDecrypted(u64 offset, u64 size, u8* buffer, u64 partition_offset)
 {
-  if (!m_is_wii || partition_offset != GAME_PARTITION_ADDRESS)
+  if (!m_is_wii)
     return false;
 
-  return ReadInternal(offset, size, buffer, m_game_partition.GetContents());
+  auto it = m_partitions.find(partition_offset);
+  if (it == m_partitions.end())
+    return false;
+
+  return ReadInternal(offset, size, buffer, it->second.GetContents());
 }
 
 BlobType DirectoryBlobReader::GetBlobType() const

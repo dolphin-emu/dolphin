@@ -5,6 +5,7 @@
 #pragma once
 
 #include <cstddef>
+#include <map>
 #include <memory>
 #include <optional>
 #include <set>
@@ -55,6 +56,7 @@ private:
 class DirectoryBlobPartition
 {
 public:
+  DirectoryBlobPartition() = default;
   DirectoryBlobPartition(const std::string& root_directory, std::optional<bool> is_wii);
 
   bool IsWii() const { return m_is_wii; }
@@ -84,9 +86,9 @@ private:
   std::vector<u8> m_fst_data;
 
   std::string m_root_directory;
-  bool m_is_wii;
+  bool m_is_wii = false;
   // GameCube has no shift, Wii has 2 bit shift
-  u32 m_address_shift;
+  u32 m_address_shift = 0;
 };
 
 class DirectoryBlobReader : public BlobReader
@@ -114,8 +116,12 @@ private:
 
   std::string m_root_directory;
 
-  DirectoryBlobPartition m_game_partition;
+  // For GameCube:
+  DirectoryBlobPartition m_gamecube_pseudopartition;
+
+  // For Wii:
   std::set<DiscContent> m_nonpartition_contents;
+  std::map<u64, DirectoryBlobPartition> m_partitions;
 
   bool m_is_wii;
 
