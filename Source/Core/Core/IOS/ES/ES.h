@@ -114,7 +114,8 @@ public:
   // Title management
   ReturnCode ImportTicket(const std::vector<u8>& ticket_bytes, const std::vector<u8>& cert_chain);
   ReturnCode ImportTmd(Context& context, const std::vector<u8>& tmd_bytes);
-  ReturnCode ImportTitleInit(Context& context, const std::vector<u8>& tmd_bytes);
+  ReturnCode ImportTitleInit(Context& context, const std::vector<u8>& tmd_bytes,
+                             const std::vector<u8>& cert_chain);
   ReturnCode ImportContentBegin(Context& context, u64 title_id, u32 content_id);
   ReturnCode ImportContentData(Context& context, u32 content_fd, const u8* data, u32 data_size);
   ReturnCode ImportContentEnd(Context& context, u32 content_fd);
