@@ -13,13 +13,11 @@ namespace Null
 // Init functions
 Renderer::Renderer() : ::Renderer(1, 1)
 {
-  g_Config.bRunning = true;
   UpdateActiveConfig();
 }
 
 Renderer::~Renderer()
 {
-  g_Config.bRunning = false;
   UpdateActiveConfig();
 }
 
