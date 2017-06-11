@@ -46,7 +46,7 @@ static void Write32(u32 data, u32 offset, std::vector<u8>* buffer);
 
 static u32 ComputeNameSize(const File::FSTEntry& parent_entry);
 static std::string ASCIIToUppercase(std::string str);
-static void ConvertUTF8NamesToSHIFTJIS(File::FSTEntry& parent_entry);
+static void ConvertUTF8NamesToSHIFTJIS(File::FSTEntry* parent_entry);
 
 enum class PartitionType : u32
 {
@@ -553,7 +553,7 @@ void DirectoryBlobPartition::BuildFST(u64 fst_address)
 
   File::FSTEntry rootEntry = File::ScanDirectoryTree(m_root_directory + "files/", true);
 
-  ConvertUTF8NamesToSHIFTJIS(rootEntry);
+  ConvertUTF8NamesToSHIFTJIS(&rootEntry);
 
   u32 name_table_size = Common::AlignUp(ComputeNameSize(rootEntry), 1ull << m_address_shift);
   u64 total_entries = rootEntry.size + 1;  // The root entry itself isn't counted in rootEntry.size
@@ -700,12 +700,12 @@ static u32 ComputeNameSize(const File::FSTEntry& parent_entry)
   return name_size;
 }
 
-static void ConvertUTF8NamesToSHIFTJIS(File::FSTEntry& parent_entry)
+static void ConvertUTF8NamesToSHIFTJIS(File::FSTEntry* parent_entry)
 {
-  for (File::FSTEntry& entry : parent_entry.children)
+  for (File::FSTEntry& entry : parent_entry->children)
   {
     if (entry.isDirectory)
-      ConvertUTF8NamesToSHIFTJIS(entry);
+      ConvertUTF8NamesToSHIFTJIS(&entry);
 
     entry.virtualName = UTF8ToSHIFTJIS(entry.virtualName);
   }
