@@ -52,6 +52,7 @@
 #include "Core/Movie.h"
 #include "Core/TitleDatabase.h"
 #include "DiscIO/Blob.h"
+#include "DiscIO/DirectoryBlob.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
 #include "DolphinWX/Frame.h"
@@ -659,11 +660,12 @@ void CGameListCtrl::ScanForISOs()
       if (dialog.WasCancelled())
         break;
 
-      auto iso_file = std::make_unique<GameListItem>(rFilenames[i], title_database);
-
-      if (iso_file->IsValid() && ShouldDisplayGameListItem(*iso_file))
+      if (!DiscIO::ShouldHideFromGameList(rFilenames[i]))
       {
-        m_ISOFiles.push_back(std::move(iso_file));
+        auto iso_file = std::make_unique<GameListItem>(rFilenames[i], title_database);
+
+        if (iso_file->IsValid() && ShouldDisplayGameListItem(*iso_file))
+          m_ISOFiles.push_back(std::move(iso_file));
       }
     }
   }
