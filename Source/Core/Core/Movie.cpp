@@ -29,6 +29,7 @@
 #include "Common/Timer.h"
 
 #include "Core/Boot/Boot.h"
+#include "Core/Config/GraphicsSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -1486,11 +1487,14 @@ void CallWiiInputManip(u8* data, WiimoteEmu::ReportFeatures rptf, int controller
 // NOTE: GPU Thread
 void SetGraphicsConfig()
 {
-  g_Config.bEFBAccessEnable = tmpHeader.bEFBAccessEnable;
-  g_Config.bSkipEFBCopyToRam = tmpHeader.bSkipEFBCopyToRam;
-  g_Config.bEFBEmulateFormatChanges = tmpHeader.bEFBEmulateFormatChanges;
-  g_Config.bUseXFB = tmpHeader.bUseXFB;
-  g_Config.bUseRealXFB = tmpHeader.bUseRealXFB;
+  Config::Set(Config::LayerType::Movie, Config::GFX_HACK_EFB_ACCESS_ENABLE,
+              tmpHeader.bEFBAccessEnable);
+  Config::Set(Config::LayerType::Movie, Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM,
+              tmpHeader.bSkipEFBCopyToRam);
+  Config::Set(Config::LayerType::Movie, Config::GFX_HACK_EFB_EMULATE_FORMAT_CHANGES,
+              tmpHeader.bEFBEmulateFormatChanges);
+  Config::Set(Config::LayerType::Movie, Config::GFX_USE_XFB, tmpHeader.bUseXFB);
+  Config::Set(Config::LayerType::Movie, Config::GFX_USE_REAL_XFB, tmpHeader.bUseRealXFB);
 }
 
 // NOTE: EmuThread / Host Thread

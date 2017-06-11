@@ -66,7 +66,7 @@ struct VideoConfig final
   void Refresh();
   void VerifyValidity();
   void UpdateProjectionHack();
-  bool IsVSync();
+  bool IsVSync() const;
 
   // General
   bool bVSync;
@@ -129,12 +129,12 @@ struct VideoConfig final
   bool bCopyEFBScaled;
   int iSafeTextureCache_ColorSamples;
   ProjectionHackConfig phack;
-  float fAspectRatioHackW, fAspectRatioHackH;
+  mutable float fAspectRatioHackW, fAspectRatioHackH;
   bool bEnablePixelLighting;
   bool bFastDepthCalc;
   bool bVertexRounding;
-  int iLog;           // CONF_ bits
-  int iSaveTargetId;  // TODO: Should be dropped
+  int iLog;                   // CONF_ bits
+  mutable int iSaveTargetId;  // TODO: Should be dropped
 
   // Stereoscopy
   int iStereoMode;
@@ -169,7 +169,7 @@ struct VideoConfig final
 
   // Static config per API
   // TODO: Move this out of VideoConfig
-  struct
+  mutable struct
   {
     APIType api_type;
 
@@ -224,8 +224,11 @@ struct VideoConfig final
   }
 };
 
-extern VideoConfig g_Config;
-extern VideoConfig g_ActiveConfig;
+extern const VideoConfig& g_Config;
+extern const VideoConfig& g_ActiveConfig;
+
+void RefreshVideoConfig();
+void VerifyVideoConfigValidity();
 
 // Called every frame.
 void UpdateActiveConfig();

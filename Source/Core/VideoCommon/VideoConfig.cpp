@@ -12,15 +12,33 @@
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
-VideoConfig g_Config;
-VideoConfig g_ActiveConfig;
+static VideoConfig s_Config;
+static VideoConfig s_ActiveConfig;
+const VideoConfig& g_Config = s_Config;
+const VideoConfig& g_ActiveConfig = s_ActiveConfig;
 static bool s_has_registered_callback = false;
+
+void RefreshVideoConfig()
+{
+  if (!s_has_registered_callback)
+  {
+    Config::AddConfigChangedCallback([]() { s_Config.Refresh(); });
+    s_has_registered_callback = true;
+  }
+
+  s_Config.Refresh();
+}
+
+void VerifyVideoConfigValidity()
+{
+  s_Config.VerifyValidity();
+}
 
 void UpdateActiveConfig()
 {
   if (Movie::IsPlayingInput() && Movie::IsConfigSaved())
     Movie::SetGraphicsConfig();
-  g_ActiveConfig = g_Config;
+  s_ActiveConfig = s_Config;
 }
 
 VideoConfig::VideoConfig()
@@ -43,12 +61,6 @@ VideoConfig::VideoConfig()
 
 void VideoConfig::Refresh()
 {
-  if (!s_has_registered_callback)
-  {
-    Config::AddConfigChangedCallback([]() { g_Config.Refresh(); });
-    s_has_registered_callback = true;
-  }
-
   bVSync = Config::Get(Config::GFX_VSYNC);
   iAdapter = Config::Get(Config::GFX_ADAPTER);
 
@@ -183,7 +195,7 @@ void VideoConfig::VerifyValidity()
   }
 }
 
-bool VideoConfig::IsVSync()
+bool VideoConfig::IsVSync() const
 {
   return bVSync && !Core::GetIsThrottlerTempDisabled();
 }

@@ -190,9 +190,9 @@ void VideoBackendBase::InitializeShared()
   GeometryShaderManager::Init();
   PixelShaderManager::Init();
 
-  g_Config.Refresh();
-  g_Config.UpdateProjectionHack();
-  g_Config.VerifyValidity();
+  RefreshVideoConfig();
+  UpdateProjectionHack(g_Config.phack);
+  VerifyVideoConfigValidity();
   UpdateActiveConfig();
 
   // Notify the core that the video backend is ready
