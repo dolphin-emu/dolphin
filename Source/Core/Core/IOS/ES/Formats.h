@@ -284,5 +284,7 @@ public:
 private:
   bool m_is_valid = false;
 };
+
+std::map<std::string, CertReader> ParseCertChain(const std::vector<u8>& chain);
 }  // namespace ES
 }  // namespace IOS

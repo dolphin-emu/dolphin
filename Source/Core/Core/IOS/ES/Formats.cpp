@@ -681,5 +681,23 @@ std::vector<u8> CertReader::GetPublicKey() const
   const auto key_begin = m_bytes.begin() + info.first;
   return std::vector<u8>(key_begin, key_begin + info.second);
 }
+
+std::map<std::string, CertReader> ParseCertChain(const std::vector<u8>& chain)
+{
+  std::map<std::string, CertReader> certs;
+
+  size_t processed = 0;
+  while (processed != chain.size())
+  {
+    CertReader cert_reader{std::vector<u8>(chain.begin() + processed, chain.end())};
+    if (!cert_reader.IsValid())
+      return certs;
+
+    processed += cert_reader.GetBytes().size();
+    const std::string name = cert_reader.GetName();
+    certs.emplace(std::move(name), std::move(cert_reader));
+  }
+  return certs;
+}
 }  // namespace ES
 }  // namespace IOS
