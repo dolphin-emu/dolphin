@@ -780,6 +780,19 @@ bool ES::IsIssuerCorrect(VerifyContainerType type, const IOS::ES::CertReader& is
   }
 }
 
+ReturnCode ES::ReadCertStore(std::vector<u8>* buffer) const
+{
+  const std::string store_path = Common::RootUserPath(Common::FROM_SESSION_ROOT) + "/sys/cert.sys";
+  File::IOFile store_file{store_path, "rb"};
+  if (!store_file)
+    return FS_ENOENT;
+
+  buffer->resize(store_file.GetSize());
+  if (!store_file.ReadBytes(buffer->data(), buffer->size()))
+    return ES_SHORT_READ;
+  return IPC_SUCCESS;
+}
+
 ReturnCode ES::WriteNewCertToStore(const IOS::ES::CertReader& cert)
 {
   const std::string store_path = Common::RootUserPath(Common::FROM_SESSION_ROOT) + "/sys/cert.sys";

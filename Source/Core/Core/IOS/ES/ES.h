@@ -319,6 +319,7 @@ private:
     UpdateCertStore,
   };
   bool IsIssuerCorrect(VerifyContainerType type, const IOS::ES::CertReader& issuer_cert) const;
+  ReturnCode ReadCertStore(std::vector<u8>* buffer) const;
   ReturnCode WriteNewCertToStore(const IOS::ES::CertReader& cert);
   ReturnCode VerifyContainer(VerifyContainerType type, VerifyMode mode,
                              const IOS::ES::SignedBlobReader& signed_blob,
