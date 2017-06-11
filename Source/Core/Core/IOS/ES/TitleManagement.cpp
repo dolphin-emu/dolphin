@@ -98,9 +98,21 @@ ReturnCode ES::ImportTmd(Context& context, const std::vector<u8>& tmd_bytes)
   // Ioctlv 0x2b writes the TMD to /tmp/title.tmd (for imports) and doesn't seem to write it
   // to either /import or /title. So here we simply have to set the import TMD.
   context.title_import.tmd.SetBytes(tmd_bytes);
-  // TODO: validate TMDs and return the proper error code (-1027) if the signature type is invalid.
   if (!context.title_import.tmd.IsValid())
     return ES_EINVAL;
+
+  std::vector<u8> cert_store;
+  ReturnCode ret = ReadCertStore(&cert_store);
+  if (ret != IPC_SUCCESS)
+    return ret;
+
+  ret = VerifyContainer(VerifyContainerType::TMD, VerifyMode::UpdateCertStore,
+                        context.title_import.tmd, cert_store);
+  if (ret != IPC_SUCCESS)
+  {
+    context.title_import.tmd.SetBytes({});
+    return ret;
+  }
 
   if (!InitImport(context.title_import.tmd.GetTitleId()))
     return ES_EIO;
