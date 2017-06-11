@@ -59,6 +59,106 @@ bool Content::IsShared() const
   return (type & 0x8000) != 0;
 }
 
+SignedBlobReader::SignedBlobReader(const std::vector<u8>& bytes) : m_bytes(bytes)
+{
+}
+
+SignedBlobReader::SignedBlobReader(std::vector<u8>&& bytes) : m_bytes(std::move(bytes))
+{
+}
+
+const std::vector<u8>& SignedBlobReader::GetBytes() const
+{
+  return m_bytes;
+}
+
+void SignedBlobReader::SetBytes(const std::vector<u8>& bytes)
+{
+  m_bytes = bytes;
+}
+
+void SignedBlobReader::SetBytes(std::vector<u8>&& bytes)
+{
+  m_bytes = std::move(bytes);
+}
+
+bool SignedBlobReader::IsSignatureValid() const
+{
+  // Too small for the certificate type.
+  if (m_bytes.size() < sizeof(Cert::type))
+    return false;
+
+  // Too small to contain the whole signature data.
+  const size_t signature_size = GetSignatureSize();
+  if (signature_size == 0 || m_bytes.size() < signature_size)
+    return false;
+
+  return true;
+}
+
+SignatureType SignedBlobReader::GetSignatureType() const
+{
+  return static_cast<SignatureType>(Common::swap32(m_bytes.data()));
+}
+
+std::vector<u8> SignedBlobReader::GetSignatureData() const
+{
+  switch (GetSignatureType())
+  {
+  case SignatureType::RSA4096:
+  {
+    const auto signature_begin = m_bytes.begin() + offsetof(SignatureRSA4096, sig);
+    return std::vector<u8>(signature_begin, signature_begin + sizeof(SignatureRSA4096::sig));
+  }
+  case SignatureType::RSA2048:
+  {
+    const auto signature_begin = m_bytes.begin() + offsetof(SignatureRSA2048, sig);
+    return std::vector<u8>(signature_begin, signature_begin + sizeof(SignatureRSA2048::sig));
+  }
+  default:
+    return {};
+  }
+}
+
+size_t SignedBlobReader::GetSignatureSize() const
+{
+  switch (GetSignatureType())
+  {
+  case SignatureType::RSA4096:
+    return sizeof(SignatureRSA4096);
+  case SignatureType::RSA2048:
+    return sizeof(SignatureRSA2048);
+  default:
+    return 0;
+  }
+}
+
+std::string SignedBlobReader::GetIssuer() const
+{
+  switch (GetSignatureType())
+  {
+  case SignatureType::RSA4096:
+  {
+    const char* issuer =
+        reinterpret_cast<const char*>(m_bytes.data() + offsetof(SignatureRSA4096, issuer));
+    return std::string(issuer, strnlen(issuer, sizeof(SignatureRSA4096::issuer)));
+  }
+  case SignatureType::RSA2048:
+  {
+    const char* issuer =
+        reinterpret_cast<const char*>(m_bytes.data() + offsetof(SignatureRSA2048, issuer));
+    return std::string(issuer, strnlen(issuer, sizeof(SignatureRSA2048::issuer)));
+  }
+  default:
+    return "";
+  }
+}
+
+void SignedBlobReader::DoState(PointerWrap& p)
+{
+  p.Do(m_bytes);
+}
+
 bool IsValidTMDSize(size_t size)
 {
   return size <= 0x49e4;

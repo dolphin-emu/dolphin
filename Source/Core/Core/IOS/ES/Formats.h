@@ -140,6 +140,33 @@ struct Ticket
 static_assert(sizeof(Ticket) == 0x2A4, "Ticket has the wrong size");
 #pragma pack(pop)
 
+class SignedBlobReader
+{
+public:
+  SignedBlobReader() = default;
+  explicit SignedBlobReader(const std::vector<u8>& bytes);
+  explicit SignedBlobReader(std::vector<u8>&& bytes);
+
+  const std::vector<u8>& GetBytes() const;
+  void SetBytes(const std::vector<u8>& bytes);
+  void SetBytes(std::vector<u8>&& bytes);
+
+  // Only checks whether the signature data could be parsed. The signature is not verified.
+  bool IsSignatureValid() const;
+
+  SignatureType GetSignatureType() const;
+  std::vector<u8> GetSignatureData() const;
+  size_t GetSignatureSize() const;
+  // Returns the whole issuer chain.
+  // Example: Root-CA00000001 if the blob was signed by CA00000001, which is signed by the Root.
+  std::string GetIssuer() const;
+
+  void DoState(PointerWrap& p);
+
+protected:
+  std::vector<u8> m_bytes;
+};
+
 bool IsValidTMDSize(size_t size);
 
 class TMDReader final
