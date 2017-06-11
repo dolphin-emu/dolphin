@@ -653,6 +653,9 @@ s32 ES::DIVerify(const IOS::ES::TMDReader& tmd, const IOS::ES::TicketReader& tic
 
   if (!File::Exists(tmd_path))
   {
+    // XXX: We are supposed to verify the TMD and ticket here, but cannot because
+    // this may cause issues with custom/patched games.
+
     File::IOFile tmd_file(tmd_path, "wb");
     const std::vector<u8>& tmd_bytes = tmd.GetBytes();
     if (!tmd_file.WriteBytes(tmd_bytes.data(), tmd_bytes.size()))
