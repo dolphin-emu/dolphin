@@ -306,6 +306,24 @@ private:
   ReturnCode CheckStreamKeyPermissions(u32 uid, const u8* ticket_view,
                                        const IOS::ES::TMDReader& tmd) const;
 
+  enum class VerifyContainerType
+  {
+    TMD,
+    Ticket,
+    Device,
+  };
+  enum class VerifyMode
+  {
+    // Whether or not new certificates should be added to the certificate store (/sys/cert.sys).
+    DoNotUpdateCertStore,
+    UpdateCertStore,
+  };
+  bool IsIssuerCorrect(VerifyContainerType type, const IOS::ES::CertReader& issuer_cert) const;
+  ReturnCode WriteNewCertToStore(const IOS::ES::CertReader& cert);
+  ReturnCode VerifyContainer(VerifyContainerType type, VerifyMode mode,
+                             const IOS::ES::SignedBlobReader& signed_blob,
+                             const std::vector<u8>& cert_chain, u32 iosc_handle = 0);
+
   // Start a title import.
   bool InitImport(u64 title_id);
   // Clean up the import content directory and move it back to /title.

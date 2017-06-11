@@ -11,15 +11,20 @@
 #include <utility>
 #include <vector>
 
+#include <mbedtls/sha1.h>
+
 #include "Common/ChunkFile.h"
 #include "Common/File.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/NandPaths.h"
+#include "Common/ScopeGuard.h"
+#include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/ES/Formats.h"
+#include "Core/IOS/IOSC.h"
 #include "DiscIO/NANDContentLoader.h"
 
 namespace IOS
@@ -759,6 +764,138 @@ bool ES::IsActiveTitlePermittedByTicket(const u8* ticket_view) const
   const u32 permitted_title_id =
       Common::swap32(ticket_view + offsetof(IOS::ES::TicketView, permitted_title_id));
   return title_identifier && (title_identifier & ~permitted_title_mask) == permitted_title_id;
+}
+
+bool ES::IsIssuerCorrect(VerifyContainerType type, const IOS::ES::CertReader& issuer_cert) const
+{
+  switch (type)
+  {
+  case VerifyContainerType::TMD:
+    return issuer_cert.GetName().compare(0, 2, "CP") == 0;
+  case VerifyContainerType::Ticket:
+    return issuer_cert.GetName().compare(0, 2, "XS") == 0;
+  case VerifyContainerType::Device:
+    return issuer_cert.GetName().compare(0, 2, "MS") == 0;
+  default:
+    return false;
+  }
+}
+
+ReturnCode ES::WriteNewCertToStore(const IOS::ES::CertReader& cert)
+{
+  const std::string store_path = Common::RootUserPath(Common::FROM_SESSION_ROOT) + "/sys/cert.sys";
+  // The certificate store file may not exist, so we use a+b and not r+b here.
+  File::IOFile store_file{store_path, "a+b"};
+  if (!store_file)
+    return ES_EIO;
+
+  // Read the current store to determine if the new cert needs to be written.
+  const u64 file_size = store_file.GetSize();
+  if (file_size != 0)
+  {
+    std::vector<u8> certs_bytes(file_size);
+    if (!store_file.ReadBytes(certs_bytes.data(), certs_bytes.size()))
+      return ES_SHORT_READ;
+
+    const std::map<std::string, IOS::ES::CertReader> certs = IOS::ES::ParseCertChain(certs_bytes);
+    // The cert is already present in the store. Nothing to do.
+    if (certs.find(cert.GetName()) != certs.end())
+      return IPC_SUCCESS;
+  }
+
+  // Otherwise, write the new cert at the end of the store.
+  // When opening a file in read-write mode, a seek is required before a write.
+  store_file.Seek(0, SEEK_END);
+  if (!store_file.WriteBytes(cert.GetBytes().data(), cert.GetBytes().size()))
+    return ES_EIO;
+  return IPC_SUCCESS;
+}
+
+ReturnCode ES::VerifyContainer(VerifyContainerType type, VerifyMode mode,
+                               const IOS::ES::SignedBlobReader& signed_blob,
+                               const std::vector<u8>& cert_chain, u32 iosc_handle)
+{
+  if (!SConfig::GetInstance().m_enable_signature_checks)
+    return IPC_SUCCESS;
+
+  if (!signed_blob.IsSignatureValid())
+    return ES_EINVAL;
+
+  // A blob should have exactly 3 parent issuers.
+  // Example for a ticket: "Root-CA00000001-XS00000003" => {"Root", "CA00000001", "XS00000003"}
+  const std::string issuer = signed_blob.GetIssuer();
+  const std::vector<std::string> parents = SplitString(issuer, '-');
+  if (parents.size() != 3)
+    return ES_EINVAL;
+
+  // Find the direct issuer and the CA certificates for the blob.
+  const std::map<std::string, IOS::ES::CertReader> certs = IOS::ES::ParseCertChain(cert_chain);
+  const auto issuer_cert_iterator = certs.find(parents[2]);
+  const auto ca_cert_iterator = certs.find(parents[1]);
+  if (issuer_cert_iterator == certs.end() || ca_cert_iterator == certs.end())
+    return ES_UNKNOWN_ISSUER;
+  const IOS::ES::CertReader& issuer_cert = issuer_cert_iterator->second;
+  const IOS::ES::CertReader& ca_cert = ca_cert_iterator->second;
+
+  // Some blobs can only be signed by specific certificates.
+  if (!IsIssuerCorrect(type, issuer_cert))
+    return ES_EINVAL;
+
+  // Verify the whole cert chain using IOSC.
+  // IOS assumes that the CA cert will always be signed by the root certificate,
+  // and that the issuer is signed by the CA.
+  IOSC& iosc = m_ios.GetIOSC();
+  IOSC::Handle handle;
+
+  // Create and initialise a handle for the CA cert and the issuer cert.
+  ReturnCode ret = iosc.CreateObject(&handle, IOSC::TYPE_PUBLIC_KEY, IOSC::SUBTYPE_RSA2048, PID_ES);
+  if (ret != IPC_SUCCESS)
+    return ret;
+  Common::ScopeGuard ca_guard{[&] { iosc.DeleteObject(handle, PID_ES); }};
+  ret = iosc.ImportCertificate(ca_cert.GetBytes().data(), IOSC::HANDLE_ROOT_KEY, handle, PID_ES);
+  if (ret != IPC_SUCCESS)
+    return ret;
+
+  IOSC::Handle issuer_handle;
+  const IOSC::ObjectSubType subtype =
+      type == VerifyContainerType::Device ? IOSC::SUBTYPE_ECC233 : IOSC::SUBTYPE_RSA2048;
+  ret = iosc.CreateObject(&issuer_handle, IOSC::TYPE_PUBLIC_KEY, subtype, PID_ES);
+  if (ret != IPC_SUCCESS)
+    return ret;
+  Common::ScopeGuard issuer_guard{[&] { iosc.DeleteObject(issuer_handle, PID_ES); }};
+  ret = iosc.ImportCertificate(issuer_cert.GetBytes().data(), handle, issuer_handle, PID_ES);
+  if (ret != IPC_SUCCESS)
+    return ret;
+
+  // Calculate the SHA1 of the signed blob.
+  const size_t skip = type == VerifyContainerType::Device ? offsetof(SignatureECC, issuer) :
+                                                            offsetof(SignatureRSA2048, issuer);
+  std::array<u8, 20> sha1;
+  mbedtls_sha1(signed_blob.GetBytes().data() + skip, signed_blob.GetBytes().size() - skip,
+               sha1.data());
+
+  // Verify the signature.
+  const std::vector<u8> signature = signed_blob.GetSignatureData();
+  ret = iosc.VerifyPublicKeySign(sha1, issuer_handle, signature.data(), PID_ES);
+  if (ret != IPC_SUCCESS)
+    return ret;
+
+  if (mode == VerifyMode::UpdateCertStore)
+  {
+    ret = WriteNewCertToStore(issuer_cert);
+    if (ret != IPC_SUCCESS)
+      ERROR_LOG(IOS_ES, "VerifyContainer: Writing the issuer cert failed with return code %d", ret);
+
+    ret = WriteNewCertToStore(ca_cert);
+    if (ret != IPC_SUCCESS)
+      ERROR_LOG(IOS_ES, "VerifyContainer: Writing the CA cert failed with return code %d", ret);
+  }
+
+  // Import the signed blob to iosc_handle (if a handle was passed to us).
+  if (ret == IPC_SUCCESS && iosc_handle)
+    ret = iosc.ImportCertificate(signed_blob.GetBytes().data(), issuer_handle, iosc_handle, PID_ES);
+
+  return ret;
 }
 }  // namespace Device
 }  // namespace HLE
