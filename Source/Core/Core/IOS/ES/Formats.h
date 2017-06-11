@@ -179,7 +179,6 @@ public:
   bool IsValid() const;
 
   // Returns parts of the TMD without any kind of parsing. Intended for use by ES.
-  std::vector<u8> GetRawHeader() const;
   std::vector<u8> GetRawView() const;
 
   u16 GetBootIndex() const;

@@ -192,11 +192,6 @@ bool TMDReader::IsValid() const
   return true;
 }
 
-std::vector<u8> TMDReader::GetRawHeader() const
-{
-  return std::vector<u8>(m_bytes.begin(), m_bytes.begin() + sizeof(TMDHeader));
-}
-
 std::vector<u8> TMDReader::GetRawView() const
 {
   // Base fields
