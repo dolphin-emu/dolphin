@@ -86,8 +86,7 @@ void LoadPatchSection(const std::string& section, std::vector<Patch>& patches, I
           line[loc] = ':';
         }
 
-        std::vector<std::string> items;
-        SplitString(line, ':', items);
+        const std::vector<std::string> items = SplitString(line, ':');
 
         if (items.size() >= 3)
         {
