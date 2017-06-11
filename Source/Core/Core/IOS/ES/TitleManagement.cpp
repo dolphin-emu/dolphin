@@ -123,7 +123,8 @@ IPCCommandResult ES::ImportTmd(Context& context, const IOCtlVRequest& request)
   return GetDefaultReply(ImportTmd(context, tmd));
 }
 
-ReturnCode ES::ImportTitleInit(Context& context, const std::vector<u8>& tmd_bytes)
+ReturnCode ES::ImportTitleInit(Context& context, const std::vector<u8>& tmd_bytes,
+                               const std::vector<u8>& cert_chain)
 {
   INFO_LOG(IOS_ES, "ImportTitleInit");
   context.title_import.tmd.SetBytes(tmd_bytes);
@@ -136,10 +137,33 @@ ReturnCode ES::ImportTitleInit(Context& context, const std::vector<u8>& tmd_byte
   // Finish a previous import (if it exists).
   FinishStaleImport(context.title_import.tmd.GetTitleId());
 
+  ReturnCode ret = VerifyContainer(VerifyContainerType::TMD, VerifyMode::UpdateCertStore,
+                                   context.title_import.tmd, cert_chain);
+  if (ret != IPC_SUCCESS)
+  {
+    context.title_import.tmd.SetBytes({});
+    return ret;
+  }
+
+  const auto ticket = DiscIO::FindSignedTicket(context.title_import.tmd.GetTitleId());
+  if (!ticket.IsValid())
+    return ES_NO_TICKET;
+
+  std::vector<u8> cert_store;
+  ret = ReadCertStore(&cert_store);
+  if (ret != IPC_SUCCESS)
+    return ret;
+
+  ret = VerifyContainer(VerifyContainerType::Ticket, VerifyMode::DoNotUpdateCertStore, ticket,
+                        cert_store);
+  if (ret != IPC_SUCCESS)
+  {
+    context.title_import.tmd.SetBytes({});
+    return ret;
+  }
+
   if (!InitImport(context.title_import.tmd.GetTitleId()))
     return ES_EIO;
-
-  // TODO: check and use the other vectors.
 
   return IPC_SUCCESS;
 }
@@ -154,7 +178,9 @@ IPCCommandResult ES::ImportTitleInit(Context& context, const IOCtlVRequest& requ
 
   std::vector<u8> tmd(request.in_vectors[0].size);
   Memory::CopyFromEmu(tmd.data(), request.in_vectors[0].address, request.in_vectors[0].size);
-  return GetDefaultReply(ImportTitleInit(context, tmd));
+  std::vector<u8> certs(request.in_vectors[1].size);
+  Memory::CopyFromEmu(certs.data(), request.in_vectors[1].address, request.in_vectors[1].size);
+  return GetDefaultReply(ImportTitleInit(context, tmd, certs));
 }
 
 ReturnCode ES::ImportContentBegin(Context& context, u64 title_id, u32 content_id)
