@@ -39,8 +39,46 @@ static TitleContext s_title_context;
 // Title to launch after IOS has been reset and reloaded (similar to /sys/launch.sys).
 static u64 s_title_to_launch;
 
+struct DirectoryToCreate
+{
+  const char* path;
+  u32 attributes;
+  OpenMode owner_perm;
+  OpenMode group_perm;
+  OpenMode other_perm;
+};
+
+constexpr std::array<DirectoryToCreate, 9> s_directories_to_create = {{
+    {"/sys", 0, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_NONE},
+    {"/ticket", 0, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_NONE},
+    {"/title", 0, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_READ},
+    {"/shared1", 0, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_NONE},
+    {"/shared2", 0, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_RW},
+    {"/tmp", 0, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_RW},
+    {"/import", 0, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_NONE},
+    {"/meta", 0, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_RW},
+    {"/wfs", 0, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_NONE, OpenMode::IOS_OPEN_NONE},
+}};
+
 ES::ES(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
 {
+  for (const auto& directory : s_directories_to_create)
+  {
+    const std::string path = Common::RootUserPath(Common::FROM_SESSION_ROOT) + directory.path;
+
+    // Create the directory if it does not exist.
+    if (File::IsDirectory(path))
+      continue;
+
+    File::CreateFullPath(path);
+    if (File::CreateDir(path))
+      INFO_LOG(IOS_ES, "Created %s (at %s)", directory.path, path.c_str());
+    else
+      ERROR_LOG(IOS_ES, "Failed to create %s (at %s)", directory.path, path.c_str());
+
+    // TODO: Set permissions.
+  }
+
   FinishAllStaleImports();
 
   s_content_file = "";
