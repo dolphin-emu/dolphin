@@ -737,6 +737,19 @@ ReturnCode ES::SetUpStreamKey(const u32 uid, const u8* ticket_view, const IOS::E
   if (ticket_bytes.empty())
     return ES_NO_TICKET;
 
+  std::vector<u8> cert_store;
+  ret = ReadCertStore(&cert_store);
+  if (ret != IPC_SUCCESS)
+    return ret;
+
+  ret = VerifyContainer(VerifyContainerType::TMD, VerifyMode::UpdateCertStore, tmd, cert_store);
+  if (ret != IPC_SUCCESS)
+    return ret;
+  ret = VerifyContainer(VerifyContainerType::Ticket, VerifyMode::UpdateCertStore, installed_ticket,
+                        cert_store);
+  if (ret != IPC_SUCCESS)
+    return ret;
+
   // Create the handle and return it.
   std::array<u8, 16> iv{};
   std::memcpy(iv.data(), &title_id, sizeof(title_id));
