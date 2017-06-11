@@ -112,7 +112,7 @@ public:
   std::vector<std::array<u8, 20>> GetSharedContents() const;
 
   // Title management
-  ReturnCode ImportTicket(const std::vector<u8>& ticket_bytes);
+  ReturnCode ImportTicket(const std::vector<u8>& ticket_bytes, const std::vector<u8>& cert_chain);
   ReturnCode ImportTmd(Context& context, const std::vector<u8>& tmd_bytes);
   ReturnCode ImportTitleInit(Context& context, const std::vector<u8>& tmd_bytes);
   ReturnCode ImportContentBegin(Context& context, u64 title_id, u32 content_id);
