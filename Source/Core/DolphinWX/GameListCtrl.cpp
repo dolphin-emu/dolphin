@@ -53,6 +53,7 @@
 #include "Core/Movie.h"
 #include "Core/TitleDatabase.h"
 #include "DiscIO/Blob.h"
+#include "DiscIO/DirectoryBlob.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
 #include "DolphinWX/Frame.h"
@@ -760,6 +761,12 @@ void GameListCtrl::RescanList()
   // TODO This could process paths iteratively as they are found
   auto search_results = Common::DoFileSearch(SConfig::GetInstance().m_ISOFolder, search_extensions,
                                              SConfig::GetInstance().m_RecursiveISOFolder);
+
+  // TODO Prevent DoFileSearch from looking inside /files/ directories of DirectoryBlobs at all?
+  // TODO Make DoFileSearch support filter predicates so we don't have remove things afterwards?
+  search_results.erase(
+      std::remove_if(search_results.begin(), search_results.end(), DiscIO::ShouldHideFromGameList),
+      search_results.end());
 
   std::vector<std::string> cached_paths;
   for (const auto& file : m_cached_files)
