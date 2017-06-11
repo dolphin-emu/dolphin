@@ -152,9 +152,19 @@ void TextureCache::DecodeTextureOnGPU(TCacheEntryBase* entry, u32 dst_level, con
                                       u32 aligned_width, u32 aligned_height, u32 row_stride,
                                       const u8* palette, TlutFormat palette_format)
 {
-  m_texture_converter->DecodeTexture(static_cast<TCacheEntry*>(entry), dst_level, data, data_size,
-                                     format, width, height, aligned_width, aligned_height,
-                                     row_stride, palette, palette_format);
+  // Group compute shader dispatches together in the init command buffer. That way we don't have to
+  // pay a penalty for switching from graphics->compute, or end/restart our render pass.
+  VkCommandBuffer command_buffer = g_command_buffer_mgr->GetCurrentInitCommandBuffer();
+  m_texture_converter->DecodeTexture(command_buffer, static_cast<TCacheEntry*>(entry), dst_level,
+                                     data, data_size, format, width, height, aligned_width,
+                                     aligned_height, row_stride, palette, palette_format);
+
+  // Last mip level? Ensure the texture is ready for use.
+  if (dst_level == (entry->config.levels - 1))
+  {
+    static_cast<TCacheEntry*>(entry)->GetTexture()->TransitionToLayout(
+        command_buffer, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+  }
 }
 
 void TextureCache::CopyTextureRectangle(TCacheEntry* dst_texture,
@@ -207,7 +217,8 @@ void TextureCache::ScaleTextureRectangle(TCacheEntry* dst_texture,
   _assert_msg_(VIDEO, dst_texture->config.rendertarget,
                "Destination texture for partial copy is not a rendertarget");
 
-  // Render pass expects dst_texture to be in SHADER_READ_ONLY state.
+  // Render pass expects dst_texture to be in COLOR_ATTACHMENT_OPTIMAL state.
+  // src_texture should already be in SHADER_READ_ONLY state, but transition in case (XFB).
   src_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                                   VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
   dst_texture->GetTexture()->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
@@ -363,8 +374,9 @@ void TextureCache::TCacheEntry::Load(u32 level, u32 width, u32 height, u32 row_l
   // should insert an explicit pipeline barrier just in case (done by TransitionToLayout).
   //
   // We transition to TRANSFER_DST, ready for the image copy, and leave the texture in this state.
-  // This is so that the remaining mip levels can be uploaded without barriers, and then when the
-  // texture is used, it can be transitioned to SHADER_READ_ONLY (see TCacheEntry::Bind).
+  // When the last mip level is uploaded, we transition to SHADER_READ_ONLY, ready for use. This is
+  // because we can't transition in a render pass, and we don't necessarily know when this texture
+  // is going to be used.
   m_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
                                 VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
@@ -430,6 +442,13 @@ void TextureCache::TCacheEntry::Load(u32 level, u32 width, u32 height, u32 row_l
   vkCmdCopyBufferToImage(g_command_buffer_mgr->GetCurrentInitCommandBuffer(), upload_buffer,
                          m_texture->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1,
                          &image_copy);
+
+  // Last mip level? We shouldn't be doing any further uploads now, so transition for rendering.
+  if (level == (config.levels - 1))
+  {
+    m_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
+                                  VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+  }
 }
 
 void TextureCache::TCacheEntry::FromRenderTarget(bool is_depth_copy, const EFBRectangle& src_rect,
@@ -497,7 +516,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(bool is_depth_copy, const EFBRe
   // Transition the EFB back to its original layout.
   src_texture->TransitionToLayout(command_buffer, original_layout);
 
-  // Render pass transitions texture to SHADER_READ_ONLY.
+  // Ensure texture is in SHADER_READ_ONLY layout, ready for usage.
   m_texture->TransitionToLayout(command_buffer, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 }
 
@@ -518,8 +537,9 @@ void TextureCache::TCacheEntry::CopyRectangleFromTexture(const TCacheEntryBase* 
 
 void TextureCache::TCacheEntry::Bind(unsigned int stage)
 {
-  m_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                                VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+  // Texture should always be in SHADER_READ_ONLY layout prior to use.
+  // This is so we don't need to transition during render passes.
+  _assert_(m_texture->GetLayout() == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
   StateTracker::GetInstance()->SetTexture(stage, m_texture->GetView());
 }
 

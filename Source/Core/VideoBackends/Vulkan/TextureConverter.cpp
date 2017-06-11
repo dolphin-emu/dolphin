@@ -416,7 +416,8 @@ bool TextureConverter::SupportsTextureDecoding(TextureFormat format, TlutFormat 
   return true;
 }
 
-void TextureConverter::DecodeTexture(TextureCache::TCacheEntry* entry, u32 dst_level,
+void TextureConverter::DecodeTexture(VkCommandBuffer command_buffer,
+                                     TextureCache::TCacheEntry* entry, u32 dst_level,
                                      const u8* data, size_t data_size, TextureFormat format,
                                      u32 width, u32 height, u32 aligned_width, u32 aligned_height,
                                      u32 row_stride, const u8* palette, TlutFormat palette_format)
@@ -497,11 +498,6 @@ void TextureConverter::DecodeTexture(TextureCache::TCacheEntry* entry, u32 dst_l
   default:
     break;
   }
-
-  // Place compute shader dispatches together in the init command buffer.
-  // That way we don't have to pay a penalty for switching from graphics->compute,
-  // or end/restart our render pass.
-  VkCommandBuffer command_buffer = g_command_buffer_mgr->GetCurrentInitCommandBuffer();
 
   // Dispatch compute to temporary texture.
   ComputeShaderDispatcher dispatcher(command_buffer,
