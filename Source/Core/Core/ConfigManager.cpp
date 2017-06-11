@@ -286,6 +286,7 @@ void SConfig::SaveCoreSettings(IniFile& ini)
   core->Set("PerfMapDir", m_perfDir);
   core->Set("EnableCustomRTC", bEnableCustomRTC);
   core->Set("CustomRTCValue", m_customRTCValue);
+  core->Set("DisableSignatureChecks", m_disable_signature_checks);
 }
 
 void SConfig::SaveMovieSettings(IniFile& ini)
@@ -608,6 +609,7 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("EnableCustomRTC", &bEnableCustomRTC, false);
   // Default to seconds between 1.1.1970 and 1.1.2000
   core->Get("CustomRTCValue", &m_customRTCValue, 946684800);
+  core->Get("DisableSignatureChecks", &m_disable_signature_checks, false);
 }
 
 void SConfig::LoadMovieSettings(IniFile& ini)

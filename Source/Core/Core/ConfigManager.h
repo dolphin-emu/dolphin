@@ -168,6 +168,8 @@ struct SConfig : NonCopyable
   std::set<std::pair<u16, u16>> m_usb_passthrough_devices;
   bool IsUSBDeviceWhitelisted(std::pair<u16, u16> vid_pid) const;
 
+  bool m_disable_signature_checks = false;
+
   // SYSCONF settings
   int m_sensor_bar_position = 0x01;
   int m_sensor_bar_sensitivity = 0x03;
