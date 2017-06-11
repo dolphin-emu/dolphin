@@ -61,7 +61,6 @@ struct VideoConfig final
 
   // General
   bool bVSync;
-  bool bRunning;
   bool bWidescreenHack;
   int iAspectRatio;
   bool bCrop;  // Aspect ratio controls.

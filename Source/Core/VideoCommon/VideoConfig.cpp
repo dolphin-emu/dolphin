@@ -25,8 +25,6 @@ void UpdateActiveConfig()
 
 VideoConfig::VideoConfig()
 {
-  bRunning = false;
-
   // Needed for the first frame, I think
   fAspectRatioHackW = 1;
   fAspectRatioHackH = 1;
