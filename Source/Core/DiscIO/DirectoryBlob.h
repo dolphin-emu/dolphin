@@ -27,6 +27,9 @@ namespace DiscIO
 {
 enum class PartitionType : u32;
 
+// Returns true if the path is inside a DirectoryBlob and doesn't represent the DirectoryBlob itself
+bool ShouldHideFromGameList(const std::string& volume_path);
+
 class DiscContent
 {
 public:
