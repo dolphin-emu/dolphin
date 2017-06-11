@@ -150,13 +150,18 @@ static std::optional<PartitionType> ParsePartitionDirectoryName(const std::strin
   return {};
 }
 
-static bool PathCharactersEqual(char a, char b)
+static bool IsDirectorySeparator(char c)
 {
-  return a == b
+  return c == '/'
 #ifdef _WIN32
-         || (a == '/' && b == '\\') || (a == '\\' && b == '/')
+         || c == '\\'
 #endif
       ;
+}
+
+static bool PathCharactersEqual(char a, char b)
+{
+  return a == b || (IsDirectorySeparator(a) && IsDirectorySeparator(b));
 }
 
 static bool PathEndsWith(const std::string& path, const std::string& suffix)
@@ -178,7 +183,7 @@ static bool PathEndsWith(const std::string& path, const std::string& suffix)
 }
 
 static bool IsValidDirectoryBlob(const std::string& dol_path, std::string* partition_root,
-                                 std::string* true_root)
+                                 std::string* true_root = nullptr)
 {
   if (!PathEndsWith(dol_path, "/sys/main.dol"))
     return false;
@@ -194,10 +199,73 @@ static bool IsValidDirectoryBlob(const std::string& dol_path, std::string* parti
 #else
   constexpr char dir_separator = '/';
 #endif
-  const size_t true_root_end = dol_path.find_last_of(dir_separator, partition_root->size() - 2) + 1;
-  *true_root = dol_path.substr(0, true_root_end);
+  if (true_root)
+  {
+    *true_root =
+        dol_path.substr(0, dol_path.find_last_of(dir_separator, partition_root->size() - 2) + 1);
+  }
 
   return true;
+}
+
+static bool ExistsAndIsValidDirectoryBlob(const std::string& dol_path)
+{
+  std::string partition_root;
+  return File::Exists(dol_path) && IsValidDirectoryBlob(dol_path, &partition_root);
+}
+
+static bool IsInFilesDirectory(const std::string& path)
+{
+  size_t files_pos = std::string::npos;
+  while (true)
+  {
+    files_pos = path.rfind("files", files_pos);
+    if (files_pos == std::string::npos)
+      return false;
+
+    const size_t slash_before_pos = files_pos - 1;
+    const size_t slash_after_pos = files_pos + 5;
+    if ((files_pos == 0 || IsDirectorySeparator(path[slash_before_pos])) &&
+        (slash_after_pos == path.size() || (IsDirectorySeparator(path[slash_after_pos]))) &&
+        ExistsAndIsValidDirectoryBlob(path.substr(0, files_pos) + "sys/main.dol"))
+    {
+      return true;
+    }
+
+    --files_pos;
+  }
+}
+
+static bool IsMainDolForNonGamePartition(const std::string& path)
+{
+  std::string partition_root, true_root;
+  if (!IsValidDirectoryBlob(path, &partition_root, &true_root))
+    return false;  // This is not a /sys/main.dol
+
+  std::string partition_directory_name = partition_root.substr(true_root.size());
+  partition_directory_name.pop_back();  // Remove trailing slash
+  const std::optional<PartitionType> partition_type =
+      ParsePartitionDirectoryName(partition_directory_name);
+  if (!partition_type || *partition_type == PartitionType::Game)
+    return false;  // volume_path is the game partition's /sys/main.dol
+
+  const File::FSTEntry true_root_entry = File::ScanDirectoryTree(true_root, false);
+  for (const File::FSTEntry& entry : true_root_entry.children)
+  {
+    if (entry.isDirectory &&
+        ParsePartitionDirectoryName(entry.virtualName) == PartitionType::Game &&
+        ExistsAndIsValidDirectoryBlob(entry.physicalName + "/sys/main.dol"))
+    {
+      return true;  // volume_path is the /sys/main.dol for a non-game partition
+    }
+  }
+
+  return false;  // volume_path is the game partition's /sys/main.dol
+}
+
+bool ShouldHideFromGameList(const std::string& volume_path)
+{
+  return IsInFilesDirectory(volume_path) || IsMainDolForNonGamePartition(volume_path);
 }
 
 std::unique_ptr<DirectoryBlobReader> DirectoryBlobReader::Create(const std::string& dol_path)
