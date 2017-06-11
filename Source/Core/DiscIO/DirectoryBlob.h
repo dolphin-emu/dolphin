@@ -15,6 +15,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
+#include "Common/NonCopyable.h"
 #include "DiscIO/Blob.h"
 
 namespace File
@@ -53,14 +54,19 @@ private:
   ContentSource m_content_source;
 };
 
-class DirectoryBlobPartition
+class DirectoryBlobPartition : NonCopyable
 {
 public:
   DirectoryBlobPartition() = default;
   DirectoryBlobPartition(const std::string& root_directory, std::optional<bool> is_wii);
 
+  // We do not allow copying, because it might mess up the pointers inside DiscContents
+  DirectoryBlobPartition(DirectoryBlobPartition&&) = default;
+  DirectoryBlobPartition& operator=(DirectoryBlobPartition&&) = default;
+
   bool IsWii() const { return m_is_wii; }
   u64 GetDataSize() const { return m_data_size; }
+  const std::string& GetRootDirectory() const { return m_root_directory; }
   const std::vector<u8>& GetHeader() const { return m_disk_header; }
   const std::set<DiscContent>& GetContents() const { return m_contents; }
 private:
@@ -108,15 +114,15 @@ public:
   u64 GetDataSize() const override;
 
 private:
-  explicit DirectoryBlobReader(const std::string& game_partition_root);
+  explicit DirectoryBlobReader(const std::string& game_partition_root,
+                               const std::string& true_root);
 
   bool ReadInternal(u64 offset, u64 length, u8* buffer, const std::set<DiscContent>& contents);
 
   void SetNonpartitionDiscHeader(const std::vector<u8>& partition_header,
                                  const std::string& game_partition_root);
-  void SetPartitionTable();
   void SetWiiRegionData(const std::string& game_partition_root);
-  void SetTMDAndTicket(const std::string& partition_root);
+  void SetTMDAndTicket(const std::string& partition_root, u64 partition_address);
 
   // For GameCube:
   DirectoryBlobPartition m_gamecube_pseudopartition;
@@ -128,16 +134,9 @@ private:
   bool m_is_wii;
 
   std::vector<u8> m_disk_header_nonpartition;
+  std::vector<u8> m_partition_table;
   std::vector<u8> m_wii_region_data;
-
-#pragma pack(push, 1)
-  struct TMDHeader
-  {
-    u32 tmd_size;
-    u32 tmd_offset;
-  } m_tmd_header;
-  static_assert(sizeof(TMDHeader) == 8, "Wrong size for TMDHeader");
-#pragma pack(pop)
+  std::vector<std::vector<u8>> m_tmd_headers;
 
   u64 m_data_size;
 };
