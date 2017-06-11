@@ -520,9 +520,7 @@ void BluetoothReal::LoadLinkKeys()
   const std::string& entries = SConfig::GetInstance().m_bt_passthrough_link_keys;
   if (entries.empty())
     return;
-  std::vector<std::string> pairs;
-  SplitString(entries, ',', pairs);
-  for (const auto& pair : pairs)
+  for (const auto& pair : SplitString(entries, ','))
   {
     const auto index = pair.find('=');
     if (index == std::string::npos)

@@ -564,8 +564,7 @@ void CCodeView::OnPaint(wxPaintEvent& event)
     // If running
     if (m_debugger->IsAlive())
     {
-      std::vector<std::string> dis;
-      SplitString(m_debugger->Disassemble(address), '\t', dis);
+      std::vector<std::string> dis = SplitString(m_debugger->Disassemble(address), '\t');
       dis.resize(2);
 
       static const size_t VALID_BRANCH_LENGTH = 10;
