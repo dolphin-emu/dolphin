@@ -44,7 +44,7 @@ static ReturnCode WriteTicket(const IOS::ES::TicketReader& ticket)
   return ticket_file.WriteBytes(raw_ticket.data(), raw_ticket.size()) ? IPC_SUCCESS : ES_EIO;
 }
 
-ReturnCode ES::ImportTicket(const std::vector<u8>& ticket_bytes)
+ReturnCode ES::ImportTicket(const std::vector<u8>& ticket_bytes, const std::vector<u8>& cert_chain)
 {
   IOS::ES::TicketReader ticket{ticket_bytes};
   if (!ticket.IsValid())
@@ -68,6 +68,11 @@ ReturnCode ES::ImportTicket(const std::vector<u8>& ticket_bytes)
     }
   }
 
+  const ReturnCode verify_ret =
+      VerifyContainer(VerifyContainerType::Ticket, VerifyMode::UpdateCertStore, ticket, cert_chain);
+  if (verify_ret != IPC_SUCCESS)
+    return verify_ret;
+
   const ReturnCode write_ret = WriteTicket(ticket);
   if (write_ret != IPC_SUCCESS)
     return write_ret;
@@ -83,7 +88,9 @@ IPCCommandResult ES::ImportTicket(const IOCtlVRequest& request)
 
   std::vector<u8> bytes(request.in_vectors[0].size);
   Memory::CopyFromEmu(bytes.data(), request.in_vectors[0].address, request.in_vectors[0].size);
-  return GetDefaultReply(ImportTicket(bytes));
+  std::vector<u8> cert_chain(request.in_vectors[1].size);
+  Memory::CopyFromEmu(bytes.data(), request.in_vectors[1].address, request.in_vectors[1].size);
+  return GetDefaultReply(ImportTicket(bytes, cert_chain));
 }
 
 ReturnCode ES::ImportTmd(Context& context, const std::vector<u8>& tmd_bytes)
