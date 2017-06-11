@@ -164,26 +164,19 @@ bool IsValidTMDSize(size_t size)
   return size <= 0x49e4;
 }
 
-TMDReader::TMDReader(const std::vector<u8>& bytes) : m_bytes(bytes)
+TMDReader::TMDReader(const std::vector<u8>& bytes) : SignedBlobReader(bytes)
 {
 }
 
-TMDReader::TMDReader(std::vector<u8>&& bytes) : m_bytes(std::move(bytes))
+TMDReader::TMDReader(std::vector<u8>&& bytes) : SignedBlobReader(std::move(bytes))
 {
-}
-
-void TMDReader::SetBytes(const std::vector<u8>& bytes)
-{
-  m_bytes = bytes;
-}
-
-void TMDReader::SetBytes(std::vector<u8>&& bytes)
-{
-  m_bytes = std::move(bytes);
 }
 
 bool TMDReader::IsValid() const
 {
+  if (!IsSignatureValid())
+    return false;
+
   if (m_bytes.size() < sizeof(TMDHeader))
   {
     // TMD is too small to contain its base fields.
@@ -197,11 +190,6 @@ bool TMDReader::IsValid() const
   }
 
   return true;
-}
-
-const std::vector<u8>& TMDReader::GetRawTMD() const
-{
-  return m_bytes;
 }
 
 std::vector<u8> TMDReader::GetRawHeader() const
@@ -331,47 +319,22 @@ bool TMDReader::FindContentById(u32 id, Content* content) const
   return false;
 }
 
-void TMDReader::DoState(PointerWrap& p)
-{
-  p.Do(m_bytes);
-}
-
-TicketReader::TicketReader(const std::vector<u8>& bytes) : m_bytes(bytes)
+TicketReader::TicketReader(const std::vector<u8>& bytes) : SignedBlobReader(bytes)
 {
 }
 
-TicketReader::TicketReader(std::vector<u8>&& bytes) : m_bytes(std::move(bytes))
+TicketReader::TicketReader(std::vector<u8>&& bytes) : SignedBlobReader(std::move(bytes))
 {
-}
-
-void TicketReader::SetBytes(const std::vector<u8>& bytes)
-{
-  m_bytes = bytes;
-}
-
-void TicketReader::SetBytes(std::vector<u8>&& bytes)
-{
-  m_bytes = std::move(bytes);
 }
 
 bool TicketReader::IsValid() const
 {
-  return !m_bytes.empty() && m_bytes.size() % sizeof(Ticket) == 0;
-}
-
-void TicketReader::DoState(PointerWrap& p)
-{
-  p.Do(m_bytes);
+  return IsSignatureValid() && !m_bytes.empty() && m_bytes.size() % sizeof(Ticket) == 0;
 }
 
 size_t TicketReader::GetNumberOfTickets() const
 {
   return m_bytes.size() / sizeof(Ticket);
-}
-
-const std::vector<u8>& TicketReader::GetRawTicket() const
-{
-  return m_bytes;
 }
 
 std::vector<u8> TicketReader::GetRawTicket(u64 ticket_id_to_find) const
@@ -402,13 +365,6 @@ std::vector<u8> TicketReader::GetRawTicketView(u32 ticket_num) const
   _assert_(view.size() == sizeof(TicketView));
 
   return view;
-}
-
-std::string TicketReader::GetIssuer() const
-{
-  const char* bytes =
-      reinterpret_cast<const char*>(m_bytes.data() + offsetof(Ticket, signature.issuer));
-  return std::string(bytes, strnlen(bytes, sizeof(Ticket::signature.issuer)));
 }
 
 u32 TicketReader::GetDeviceId() const

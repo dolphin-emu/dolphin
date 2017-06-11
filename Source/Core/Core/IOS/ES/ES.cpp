@@ -610,7 +610,7 @@ s32 ES::DIVerify(const IOS::ES::TMDReader& tmd, const IOS::ES::TicketReader& tic
   if (!File::Exists(tmd_path))
   {
     File::IOFile tmd_file(tmd_path, "wb");
-    const std::vector<u8>& tmd_bytes = tmd.GetRawTMD();
+    const std::vector<u8>& tmd_bytes = tmd.GetBytes();
     if (!tmd_file.WriteBytes(tmd_bytes.data(), tmd_bytes.size()))
       ERROR_LOG(IOS_ES, "DIVerify failed to write disc TMD to NAND.");
   }

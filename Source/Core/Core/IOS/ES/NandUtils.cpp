@@ -254,7 +254,7 @@ bool ES::WriteImportTMD(const IOS::ES::TMDReader& tmd)
 
   {
     File::IOFile file(tmd_path, "wb");
-    if (!file.WriteBytes(tmd.GetRawTMD().data(), tmd.GetRawTMD().size()))
+    if (!file.WriteBytes(tmd.GetBytes().data(), tmd.GetBytes().size()))
       return false;
   }
 
