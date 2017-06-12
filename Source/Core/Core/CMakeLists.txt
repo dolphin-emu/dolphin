@@ -19,6 +19,7 @@ set(SRCS
   State.cpp
   TitleDatabase.cpp
   WiiRoot.cpp
+  WiiUtils.cpp
   Boot/Boot_BS2Emu.cpp
   Boot/Boot.cpp
   Boot/Boot_WiiWAD.cpp
