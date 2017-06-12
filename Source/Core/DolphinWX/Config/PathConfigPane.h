@@ -22,6 +22,8 @@ private:
   void LoadGUIValues();
   void BindEvents();
 
+  void OnEnableIfCoreNotRunning(wxUpdateUIEvent& event);
+
   void OnISOPathSelectionChanged(wxCommandEvent&);
   void OnRecursiveISOCheckBoxChanged(wxCommandEvent&);
   void OnAddISOPath(wxCommandEvent&);
