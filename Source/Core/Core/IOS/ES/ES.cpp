@@ -421,7 +421,7 @@ IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
   case IOCTL_ES_ADDTITLECANCEL:
     return ImportTitleCancel(*context, request);
   case IOCTL_ES_GETDEVICEID:
-    return GetConsoleID(request);
+    return GetDeviceId(request);
   case IOCTL_ES_OPENTITLECONTENT:
     return OpenTitleContent(context->uid, request);
   case IOCTL_ES_OPENCONTENT:
