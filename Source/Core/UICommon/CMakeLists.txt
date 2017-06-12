@@ -3,7 +3,6 @@ set(SRCS
   Disassembler.cpp
   UICommon.cpp
   USBUtils.cpp
-  WiiUtils.cpp
 )
 
 if(USE_X11)
