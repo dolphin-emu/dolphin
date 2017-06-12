@@ -9,7 +9,14 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
-#include "VideoCommon/VideoCommon.h"
+
+enum class AbstractTextureFormat : u32
+{
+  RGBA8,
+  DXT1,
+  DXT3,
+  DXT5
+};
 
 struct TextureConfig
 {
@@ -21,7 +28,7 @@ struct TextureConfig
   u32 height = 0;
   u32 levels = 1;
   u32 layers = 1;
-  HostTextureFormat format = HostTextureFormat::RGBA8;
+  AbstractTextureFormat format = AbstractTextureFormat::RGBA8;
   bool rendertarget = false;
 
   struct Hasher : std::hash<u64>

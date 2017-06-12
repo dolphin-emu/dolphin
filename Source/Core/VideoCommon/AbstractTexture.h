@@ -23,8 +23,8 @@ public:
   virtual void Load(u32 level, u32 width, u32 height, u32 row_length, const u8* buffer,
                     size_t buffer_size) = 0;
 
-  static bool IsCompressedHostTextureFormat(HostTextureFormat format);
-  static size_t CalculateHostTextureLevelPitch(HostTextureFormat format, u32 row_length);
+  static bool IsCompressedHostTextureFormat(AbstractTextureFormat format);
+  static size_t CalculateHostTextureLevelPitch(AbstractTextureFormat format, u32 row_length);
 
   const TextureConfig GetConfig() const;
 

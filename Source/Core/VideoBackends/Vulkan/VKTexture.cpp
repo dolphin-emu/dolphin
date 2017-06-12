@@ -120,7 +120,7 @@ bool VKTexture::Save(const std::string& filename, unsigned int level)
   // We can't dump compressed textures currently (it would mean drawing them to a RGBA8
   // framebuffer, and saving that). TextureCache does not call Save for custom textures
   // anyway, so this is fine for now.
-  _assert_(m_config.format == HostTextureFormat::RGBA8);
+  _assert_(m_config.format == AbstractTextureFormat::RGBA8);
 
   // Determine dimensions of image we want to save.
   u32 level_width = std::max(1u, m_config.width >> level);

@@ -9,7 +9,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
-#include "VideoCommon/VideoCommon.h"
+#include "VideoCommon/TextureConfig.h"
 
 class HiresTexture
 {
@@ -32,13 +32,13 @@ public:
 
   ~HiresTexture();
 
-  HostTextureFormat GetFormat() const;
+  AbstractTextureFormat GetFormat() const;
   struct Level
   {
     Level();
 
     ImageDataPointer data;
-    HostTextureFormat format = HostTextureFormat::RGBA8;
+    AbstractTextureFormat format = AbstractTextureFormat::RGBA8;
     u32 width = 0;
     u32 height = 0;
     u32 row_length = 0;

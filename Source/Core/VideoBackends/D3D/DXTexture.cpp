@@ -27,17 +27,17 @@ namespace DX11
 {
 namespace
 {
-DXGI_FORMAT GetDXGIFormatForHostFormat(HostTextureFormat format)
+DXGI_FORMAT GetDXGIFormatForHostFormat(AbstractTextureFormat format)
 {
   switch (format)
   {
-  case HostTextureFormat::DXT1:
+  case AbstractTextureFormat::DXT1:
     return DXGI_FORMAT_BC1_UNORM;
-  case HostTextureFormat::DXT3:
+  case AbstractTextureFormat::DXT3:
     return DXGI_FORMAT_BC2_UNORM;
-  case HostTextureFormat::DXT5:
+  case AbstractTextureFormat::DXT5:
     return DXGI_FORMAT_BC3_UNORM;
-  case HostTextureFormat::RGBA8:
+  case AbstractTextureFormat::RGBA8:
   default:
     return DXGI_FORMAT_R8G8B8A8_UNORM;
   }
@@ -96,7 +96,7 @@ bool DXTexture::Save(const std::string& filename, unsigned int level)
   // We can't dump compressed textures currently (it would mean drawing them to a RGBA8
   // framebuffer, and saving that). TextureCache does not call Save for custom textures
   // anyway, so this is fine for now.
-  _assert_(m_config.format == HostTextureFormat::RGBA8);
+  _assert_(m_config.format == AbstractTextureFormat::RGBA8);
 
   // Create a staging/readback texture with the dimensions of the specified mip level.
   u32 mip_width = std::max(m_config.width >> level, 1u);

@@ -140,7 +140,7 @@ struct DDSLoadInfo
   u32 width = 0;
   u32 height = 0;
   u32 mip_count = 0;
-  HostTextureFormat format = HostTextureFormat::RGBA8;
+  AbstractTextureFormat format = AbstractTextureFormat::RGBA8;
   size_t first_mip_offset = 0;
   size_t first_mip_size = 0;
   u32 first_mip_row_length = 0;
@@ -298,21 +298,21 @@ bool ParseDDSHeader(File::IOFile& file, DDSLoadInfo* info)
     // In the future, this could be extended, but these isn't much benefit in doing so currently.
     if (header.ddspf.dwFourCC == MAKEFOURCC('D', 'X', 'T', '1') || dxt10_format == 71)
     {
-      info->format = HostTextureFormat::DXT1;
+      info->format = AbstractTextureFormat::DXT1;
       info->block_size = 4;
       info->bytes_per_block = 8;
       needs_s3tc = true;
     }
     else if (header.ddspf.dwFourCC == MAKEFOURCC('D', 'X', 'T', '3') || dxt10_format == 74)
     {
-      info->format = HostTextureFormat::DXT3;
+      info->format = AbstractTextureFormat::DXT3;
       info->block_size = 4;
       info->bytes_per_block = 16;
       needs_s3tc = true;
     }
     else if (header.ddspf.dwFourCC == MAKEFOURCC('D', 'X', 'T', '5') || dxt10_format == 77)
     {
-      info->format = HostTextureFormat::DXT5;
+      info->format = AbstractTextureFormat::DXT5;
       info->block_size = 4;
       info->bytes_per_block = 16;
       needs_s3tc = true;
@@ -351,7 +351,7 @@ bool ParseDDSHeader(File::IOFile& file, DDSLoadInfo* info)
     }
 
     // All these formats are RGBA, just with byte swapping.
-    info->format = HostTextureFormat::RGBA8;
+    info->format = AbstractTextureFormat::RGBA8;
     info->block_size = 1;
     info->bytes_per_block = header.ddspf.dwRGBBitCount / 8;
   }

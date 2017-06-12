@@ -11,6 +11,7 @@
 #include "VideoBackends/Vulkan/Constants.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoCommon/RenderState.h"
+#include "VideoCommon/TextureConfig.h"
 
 namespace Vulkan
 {
@@ -27,7 +28,7 @@ u32 MakeRGBA8Color(float r, float g, float b, float a);
 bool IsDepthFormat(VkFormat format);
 bool IsCompressedFormat(VkFormat format);
 VkFormat GetLinearFormat(VkFormat format);
-VkFormat GetVkFormatForHostTextureFormat(HostTextureFormat format);
+VkFormat GetVkFormatForHostTextureFormat(AbstractTextureFormat format);
 u32 GetTexelSize(VkFormat format);
 u32 GetBlockSize(VkFormat format);
 

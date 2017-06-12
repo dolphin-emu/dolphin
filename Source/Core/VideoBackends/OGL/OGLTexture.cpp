@@ -23,27 +23,27 @@ namespace
 std::array<u32, 8> s_Textures;
 u32 s_ActiveTexture;
 
-GLenum GetGLInternalFormatForTextureFormat(HostTextureFormat format, bool storage)
+GLenum GetGLInternalFormatForTextureFormat(AbstractTextureFormat format, bool storage)
 {
   switch (format)
   {
-  case HostTextureFormat::DXT1:
+  case AbstractTextureFormat::DXT1:
     return GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
-  case HostTextureFormat::DXT3:
+  case AbstractTextureFormat::DXT3:
     return GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
-  case HostTextureFormat::DXT5:
+  case AbstractTextureFormat::DXT5:
     return GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
-  case HostTextureFormat::RGBA8:
+  case AbstractTextureFormat::RGBA8:
   default:
     return storage ? GL_RGBA8 : GL_RGBA;
   }
 }
 
-GLenum GetGLFormatForTextureFormat(HostTextureFormat format)
+GLenum GetGLFormatForTextureFormat(AbstractTextureFormat format)
 {
   switch (format)
   {
-  case HostTextureFormat::RGBA8:
+  case AbstractTextureFormat::RGBA8:
     return GL_RGBA;
   // Compressed texture formats don't use this parameter.
   default:
@@ -51,11 +51,11 @@ GLenum GetGLFormatForTextureFormat(HostTextureFormat format)
   }
 }
 
-GLenum GetGLTypeForTextureFormat(HostTextureFormat format)
+GLenum GetGLTypeForTextureFormat(AbstractTextureFormat format)
 {
   switch (format)
   {
-  case HostTextureFormat::RGBA8:
+  case AbstractTextureFormat::RGBA8:
     return GL_UNSIGNED_BYTE;
   // Compressed texture formats don't use this parameter.
   default:
@@ -167,7 +167,7 @@ bool OGLTexture::Save(const std::string& filename, unsigned int level)
   // We can't dump compressed textures currently (it would mean drawing them to a RGBA8
   // framebuffer, and saving that). TextureCache does not call Save for custom textures
   // anyway, so this is fine for now.
-  _assert_(m_config.format == HostTextureFormat::RGBA8);
+  _assert_(m_config.format == AbstractTextureFormat::RGBA8);
 
   return SaveTexture(filename, GL_TEXTURE_2D_ARRAY, m_texId, m_config.width, m_config.height,
                      level);

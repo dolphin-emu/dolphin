@@ -753,7 +753,7 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::Load(const u32 stage)
   config.width = width;
   config.height = height;
   config.levels = texLevels;
-  config.format = hires_tex ? hires_tex->GetFormat() : HostTextureFormat::RGBA8;
+  config.format = hires_tex ? hires_tex->GetFormat() : AbstractTextureFormat::RGBA8;
 
   TCacheEntry* entry = AllocateCacheEntry(config);
   GFX_DEBUGGER_PAUSE_AT(NEXT_NEW_TEXTURE, true);

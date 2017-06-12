@@ -104,7 +104,7 @@ public:
     u32 GetHeight() const { return texture->GetConfig().height; }
     u32 GetNumLevels() const { return texture->GetConfig().levels; }
     u32 GetNumLayers() const { return texture->GetConfig().layers; }
-    HostTextureFormat GetFormat() const { return texture->GetConfig().format; }
+    AbstractTextureFormat GetFormat() const { return texture->GetConfig().format; }
   };
 
   virtual ~TextureCacheBase();  // needs virtual for DX11 dtor
