@@ -143,8 +143,8 @@ void GameLoader::LoadGame(const QString& path)
 {
   if (!DiscIO::ShouldHideFromGameList(path.toStdString()))
   {
-    GameFile* game = new GameFile(path);
+    auto game = QSharedPointer<GameFile>::create(path);
     if (game->IsValid())
-      emit GameLoaded(QSharedPointer<GameFile>(game));
+      emit GameLoaded(game);
   }
 }
