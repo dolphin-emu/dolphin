@@ -381,3 +381,13 @@ bool MappingWindow::event(QEvent* event)
 
   return false;
 }
+
+void MappingWindow::OnDefaultFieldsPressed()
+{
+  if (m_controller == nullptr)
+    return;
+
+  m_controller->LoadDefaults(g_controller_interface);
+  m_controller->UpdateReferences(g_controller_interface);
+  emit Update();
+}

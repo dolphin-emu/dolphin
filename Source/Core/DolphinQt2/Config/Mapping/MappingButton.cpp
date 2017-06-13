@@ -90,16 +90,6 @@ void MappingButton::SetBlockInputs(const bool block)
   m_block = block;
 }
 
-void MappingWindow::OnDefaultFieldsPressed()
-{
-  if (m_controller == nullptr)
-    return;
-
-  m_controller->LoadDefaults(g_controller_interface);
-  m_controller->UpdateReferences(g_controller_interface);
-  emit Update();
-}
-
 bool MappingButton::event(QEvent* event)
 {
   return !m_block ? QPushButton::event(event) : true;
