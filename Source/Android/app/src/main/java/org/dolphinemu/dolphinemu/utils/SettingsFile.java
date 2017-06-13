@@ -79,6 +79,9 @@ public final class SettingsFile
 	public static final String KEY_XFB_REAL = "UseRealXFB";
 	public static final String KEY_FAST_DEPTH = "FastDepthCalc";
 	public static final String KEY_ASPECT_RATIO = "AspectRatio";
+	public static final String KEY_UBERSHADER_MODE = "UberShaderMode";
+	public static final String KEY_DISABLE_SPECIALIZED_SHADERS = "DisableSpecializedShaders";
+	public static final String KEY_BACKGROUND_SHADER_COMPILING = "BackgroundShaderCompiling";
 
 	public static final String KEY_GCPAD_TYPE = "SIDevice";
 
