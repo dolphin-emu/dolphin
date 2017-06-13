@@ -98,6 +98,12 @@ void MappingWidget::OnClearFields()
 {
   for (auto* button : m_buttons)
     button->Clear();
+
+  for (auto* spinbox : m_numerics)
+    spinbox->Clear();
+
+  for (auto* checkbox : m_bools)
+    checkbox->Clear();
 }
 
 void MappingWidget::Update()
