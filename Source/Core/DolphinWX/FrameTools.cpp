@@ -3,8 +3,11 @@
 // Refer to the license.txt file included.
 
 #include <array>
+#include <chrono>
+#include <cinttypes>
 #include <cstdarg>
 #include <cstdio>
+#include <future>
 #include <mutex>
 #include <string>
 #include <vector>
@@ -18,7 +21,6 @@
 #include <wx/panel.h>
 #include <wx/progdlg.h>
 #include <wx/statusbr.h>
-#include <wx/thread.h>
 #include <wx/toolbar.h>
 #include <wx/toplevel.h>
 
@@ -182,6 +184,12 @@ void CFrame::BindMenuBarEvents()
   Bind(wxEVT_MENU, &CFrame::OnLoadWiiMenu, this, IDM_LOAD_WII_MENU);
   Bind(wxEVT_MENU, &CFrame::OnImportBootMiiBackup, this, IDM_IMPORT_NAND);
   Bind(wxEVT_MENU, &CFrame::OnExtractCertificates, this, IDM_EXTRACT_CERTIFICATES);
+  for (const int idm : {IDM_PERFORM_ONLINE_UPDATE_CURRENT, IDM_PERFORM_ONLINE_UPDATE_EUR,
+                        IDM_PERFORM_ONLINE_UPDATE_JPN, IDM_PERFORM_ONLINE_UPDATE_KOR,
+                        IDM_PERFORM_ONLINE_UPDATE_USA})
+  {
+    Bind(wxEVT_MENU, &CFrame::OnPerformOnlineWiiUpdate, this, idm);
+  }
   Bind(wxEVT_MENU, &CFrame::OnFifoPlayer, this, IDM_FIFOPLAYER);
   Bind(wxEVT_MENU, &CFrame::OnConnectWiimote, this, IDM_CONNECT_WIIMOTE1, IDM_CONNECT_BALANCEBOARD);
 
@@ -1293,6 +1301,93 @@ void CFrame::OnExtractCertificates(wxCommandEvent& WXUNUSED(event))
   DiscIO::NANDImporter().ExtractCertificates(File::GetUserPath(D_WIIROOT_IDX));
 }
 
+static std::string GetUpdateRegionFromIdm(int idm)
+{
+  switch (idm)
+  {
+  case IDM_PERFORM_ONLINE_UPDATE_EUR:
+    return "EUR";
+  case IDM_PERFORM_ONLINE_UPDATE_JPN:
+    return "JPN";
+  case IDM_PERFORM_ONLINE_UPDATE_KOR:
+    return "KOR";
+  case IDM_PERFORM_ONLINE_UPDATE_USA:
+    return "USA";
+  case IDM_PERFORM_ONLINE_UPDATE_CURRENT:
+  default:
+    return "";
+  }
+}
+
+void CFrame::OnPerformOnlineWiiUpdate(wxCommandEvent& event)
+{
+  int confirm = wxMessageBox(_("Connect to the Internet and perform an online system update?"),
+                             _("System Update"), wxYES_NO, this);
+  if (confirm != wxYES)
+    return;
+
+  wxProgressDialog dialog(_("Updating"), _("Preparing to update...\nThis can take a while."), 1,
+                          this, wxPD_APP_MODAL | wxPD_AUTO_HIDE | wxPD_SMOOTH | wxPD_CAN_ABORT);
+
+  const std::string region = GetUpdateRegionFromIdm(event.GetId());
+  std::future<WiiUtils::UpdateResult> result = std::async(std::launch::async, [&] {
+    const WiiUtils::UpdateResult res = WiiUtils::DoOnlineUpdate(
+        [&](size_t processed, size_t total, u64 title_id) {
+          Core::QueueHostJob(
+              [&dialog, processed, total, title_id] {
+                dialog.SetRange(total);
+                dialog.Update(processed, wxString::Format(_("Updating title %016" PRIx64 "...\n"
+                                                            "This can take a while."),
+                                                          title_id));
+                dialog.Fit();
+              },
+              true);
+          return !dialog.WasCancelled();
+        },
+        region);
+    Core::QueueHostJob([&dialog] { dialog.EndModal(0); }, true);
+    return res;
+  });
+
+  dialog.ShowModal();
+
+  switch (result.get())
+  {
+  case WiiUtils::UpdateResult::Succeeded:
+    wxMessageBox(_("The emulated Wii console has been updated."), _("Update completed"),
+                 wxOK | wxICON_INFORMATION);
+    DiscIO::NANDImporter().ExtractCertificates(File::GetUserPath(D_WIIROOT_IDX));
+    break;
+  case WiiUtils::UpdateResult::AlreadyUpToDate:
+    wxMessageBox(_("The emulated Wii console is already up-to-date."), _("Update completed"),
+                 wxOK | wxICON_INFORMATION);
+    DiscIO::NANDImporter().ExtractCertificates(File::GetUserPath(D_WIIROOT_IDX));
+    break;
+  case WiiUtils::UpdateResult::ServerFailed:
+    wxMessageBox(_("Could not download update information from Nintendo. "
+                   "Please check your Internet connection and try again."),
+                 _("Update failed"), wxOK | wxICON_ERROR);
+    break;
+  case WiiUtils::UpdateResult::DownloadFailed:
+    wxMessageBox(_("Could not download update files from Nintendo. "
+                   "Please check your Internet connection and try again."),
+                 _("Update failed"), wxOK | wxICON_ERROR);
+    break;
+  case WiiUtils::UpdateResult::ImportFailed:
+    wxMessageBox(_("Could not install an update to the Wii system memory. "
+                   "Please refer to logs for more information."),
+                 _("Update failed"), wxOK | wxICON_ERROR);
+    break;
+  case WiiUtils::UpdateResult::Cancelled:
+    wxMessageBox(_("The update has been cancelled. It is strongly recommended to "
+                   "finish it in order to avoid inconsistent system software versions."),
+                 _("Update cancelled"), wxOK | wxICON_WARNING);
+    break;
+  }
+
+  UpdateLoadWiiMenuItem();
+}
+
 void CFrame::UpdateLoadWiiMenuItem() const
 {
   GetMenuBar()->Refresh(true, nullptr);
@@ -1492,10 +1587,6 @@ void CFrame::UpdateGUI()
   GetMenuBar()
       ->FindItem(IDM_LOAD_GC_IPL_EUR)
       ->Enable(!Initialized && File::Exists(SConfig::GetInstance().GetBootROMPath(EUR_DIR)));
-  if (DiscIO::NANDContentManager::Access()
-          .GetNANDLoader(Titles::SYSTEM_MENU, Common::FROM_CONFIGURED_ROOT)
-          .IsValid())
-    GetMenuBar()->FindItem(IDM_LOAD_WII_MENU)->Enable(!Initialized);
 
   // Tools
   GetMenuBar()->FindItem(IDM_CHEATS)->Enable(SConfig::GetInstance().bEnableCheats);
