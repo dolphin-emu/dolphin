@@ -42,12 +42,7 @@ void MappingButton::OnButtonPressed()
 
     setText(QStringLiteral("..."));
 
-    Common::SleepCurrentThread(100);
-
     SetBlockInputs(true);
-
-    if (m_parent->GetFirstButtonPress())
-      m_reference->Detect(10, dev.get());
 
     // Avoid that the button press itself is registered as an event
     Common::SleepCurrentThread(100);

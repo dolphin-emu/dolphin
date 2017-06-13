@@ -114,16 +114,6 @@ void MappingWidget::Update()
   LoadSettings();
 }
 
-bool MappingWidget::GetFirstButtonPress()
-{
-  if (m_first)
-  {
-    m_first = false;
-    return true;
-  }
-  return false;
-}
-
 ControllerEmu::EmulatedController* MappingWidget::GetController() const
 {
   return m_parent->GetController();

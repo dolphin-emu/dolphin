@@ -51,7 +51,6 @@ public:
   virtual InputConfig* GetConfig() = 0;
 
   void Update();
-  bool GetFirstButtonPress();
 
 protected:
   int GetPort() const;
