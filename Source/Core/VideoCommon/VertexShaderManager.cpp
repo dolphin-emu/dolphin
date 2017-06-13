@@ -194,7 +194,7 @@ void VertexShaderManager::Init()
   bProjectionChanged = true;
   bViewportChanged = false;
 
-  xfmem = {};
+  std::memset(&xfmem, 0, sizeof(xfmem));
   constants = {};
   ResetView();
 
