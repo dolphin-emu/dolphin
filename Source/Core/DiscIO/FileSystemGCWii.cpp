@@ -45,9 +45,7 @@ FileInfoGCWii::FileInfoGCWii(const FileInfoGCWii& file_info, u32 index)
 {
 }
 
-FileInfoGCWii::~FileInfoGCWii()
-{
-}
+FileInfoGCWii::~FileInfoGCWii() = default;
 
 uintptr_t FileInfoGCWii::GetAddress() const
 {
@@ -252,9 +250,7 @@ FileSystemGCWii::FileSystemGCWii(const Volume* volume, const Partition& partitio
   m_valid = m_root.IsValid(fst_size, m_root);
 }
 
-FileSystemGCWii::~FileSystemGCWii()
-{
-}
+FileSystemGCWii::~FileSystemGCWii() = default;
 
 const FileInfo& FileSystemGCWii::GetRoot() const
 {
