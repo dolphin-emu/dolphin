@@ -114,7 +114,7 @@ void MappingWidget::Update()
   for (auto* spinbox : m_numerics)
     spinbox->Update();
 
-  for (auto* checkbox : m_numerics)
+  for (auto* checkbox : m_bools)
     checkbox->Update();
 
   LoadSettings();
