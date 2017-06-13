@@ -8,6 +8,8 @@
 #include <curl/curl.h>
 
 #include "Common/Logging/Log.h"
+#include "Common/ScopeGuard.h"
+#include "Common/StringUtil.h"
 
 namespace Common
 {
@@ -23,7 +25,8 @@ public:
   Impl();
 
   bool IsValid() const;
-  Response Fetch(const std::string& url, Method method, const u8* payload, size_t size);
+  Response Fetch(const std::string& url, Method method, const Headers& headers, const u8* payload,
+                 size_t size);
 
 private:
   std::unique_ptr<CURL, decltype(&curl_easy_cleanup)> m_curl{curl_easy_init(), curl_easy_cleanup};
@@ -40,20 +43,22 @@ bool HttpRequest::IsValid() const
   return m_impl->IsValid();
 }
 
-HttpRequest::Response HttpRequest::Get(const std::string& url)
+HttpRequest::Response HttpRequest::Get(const std::string& url, const Headers& headers)
 {
-  return m_impl->Fetch(url, Impl::Method::GET, nullptr, 0);
+  return m_impl->Fetch(url, Impl::Method::GET, headers, nullptr, 0);
 }
 
-HttpRequest::Response HttpRequest::Post(const std::string& url, const std::vector<u8>& payload)
+HttpRequest::Response HttpRequest::Post(const std::string& url, const std::vector<u8>& payload,
+                                        const Headers& headers)
 {
-  return m_impl->Fetch(url, Impl::Method::POST, payload.data(), payload.size());
+  return m_impl->Fetch(url, Impl::Method::POST, headers, payload.data(), payload.size());
 }
 
-HttpRequest::Response HttpRequest::Post(const std::string& url, const std::string& payload)
+HttpRequest::Response HttpRequest::Post(const std::string& url, const std::string& payload,
+                                        const Headers& headers)
 {
-  return m_impl->Fetch(url, Impl::Method::POST, reinterpret_cast<const u8*>(payload.data()),
-                       payload.size());
+  return m_impl->Fetch(url, Impl::Method::POST, headers,
+                       reinterpret_cast<const u8*>(payload.data()), payload.size());
 }
 
 HttpRequest::Impl::Impl()
@@ -85,7 +90,8 @@ static size_t CurlCallback(char* data, size_t size, size_t nmemb, void* userdata
 }
 
 HttpRequest::Response HttpRequest::Impl::Fetch(const std::string& url, Method method,
-                                               const u8* payload, size_t size)
+                                               const Headers& headers, const u8* payload,
+                                               size_t size)
 {
   curl_easy_setopt(m_curl.get(), CURLOPT_POST, method == Method::POST);
   curl_easy_setopt(m_curl.get(), CURLOPT_URL, url.c_str());
@@ -94,6 +100,19 @@ HttpRequest::Response HttpRequest::Impl::Fetch(const std::string& url, Method me
     curl_easy_setopt(m_curl.get(), CURLOPT_POSTFIELDS, payload);
     curl_easy_setopt(m_curl.get(), CURLOPT_POSTFIELDSIZE, size);
   }
+
+  curl_slist* list = nullptr;
+  Common::ScopeGuard list_guard{[&list] { curl_slist_free_all(list); }};
+  for (const std::pair<std::string, std::optional<std::string>>& header : headers)
+  {
+    if (!header.second)
+      list = curl_slist_append(list, (header.first + ":").c_str());
+    else if (header.second->empty())
+      list = curl_slist_append(list, (header.first + ";").c_str());
+    else
+      list = curl_slist_append(list, (header.first + ": " + *header.second).c_str());
+  }
+  curl_easy_setopt(m_curl.get(), CURLOPT_HTTPHEADER, list);
 
   std::vector<u8> buffer;
   curl_easy_setopt(m_curl.get(), CURLOPT_WRITEFUNCTION, CurlCallback);

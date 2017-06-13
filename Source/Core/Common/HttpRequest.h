@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <map>
 #include <memory>
 #include <optional>
 #include <string>
@@ -21,9 +22,11 @@ public:
   bool IsValid() const;
 
   using Response = std::optional<std::vector<u8>>;
-  Response Get(const std::string& url);
-  Response Post(const std::string& url, const std::vector<u8>& payload);
-  Response Post(const std::string& url, const std::string& payload);
+  using Headers = std::map<std::string, std::optional<std::string>>;
+  Response Get(const std::string& url, const Headers& headers = {});
+  Response Post(const std::string& url, const std::vector<u8>& payload,
+                const Headers& headers = {});
+  Response Post(const std::string& url, const std::string& payload, const Headers& headers = {});
 
 private:
   class Impl;
