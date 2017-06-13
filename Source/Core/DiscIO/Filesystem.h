@@ -34,7 +34,7 @@ public:
     const_iterator(std::unique_ptr<FileInfo> file_info) : m_file_info(std::move(file_info)) {}
     const_iterator(const const_iterator& it) : m_file_info(it.m_file_info->clone()) {}
     const_iterator(const_iterator&& it) : m_file_info(std::move(it.m_file_info)) {}
-    ~const_iterator() {}
+    ~const_iterator() = default;
     const_iterator& operator=(const const_iterator& it)
     {
       m_file_info = it.m_file_info ? it.m_file_info->clone() : nullptr;
