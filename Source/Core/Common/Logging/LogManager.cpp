@@ -100,8 +100,10 @@ LogManager::LogManager()
   IniFile::Section* options = ini.GetOrCreateSection("Options");
   bool write_file;
   bool write_console;
+  bool write_window;
   options->Get("WriteToFile", &write_file, false);
   options->Get("WriteToConsole", &write_console, true);
+  options->Get("WriteToWindow", &write_window, true);
 
   // Set up log listeners
   int verbosity;
@@ -123,6 +125,8 @@ LogManager::LogManager()
       container->AddListener(LogListener::FILE_LISTENER);
     if (enable && write_console)
       container->AddListener(LogListener::CONSOLE_LISTENER);
+    if (enable && write_window)
+      container->AddListener(LogListener::LOG_WINDOW_LISTENER);
   }
 
   m_path_cutoff_point = DeterminePathCutOffPoint();
