@@ -146,7 +146,7 @@ private:
                                  const std::string& game_partition_root);
   void SetWiiRegionData(const std::string& game_partition_root);
   void SetPartitions(std::vector<PartitionWithType>&& partitions);
-  void SetTMDAndTicket(const std::string& partition_root, u64 partition_address);
+  void SetPartitionHeader(const DirectoryBlobPartition& partition, u64 partition_address);
 
   // For GameCube:
   DirectoryBlobPartition m_gamecube_pseudopartition;
@@ -160,7 +160,7 @@ private:
   std::vector<u8> m_disk_header_nonpartition;
   std::vector<u8> m_partition_table;
   std::vector<u8> m_wii_region_data;
-  std::vector<std::vector<u8>> m_tmd_headers;
+  std::vector<std::vector<u8>> m_partition_headers;
 
   u64 m_data_size;
 };
