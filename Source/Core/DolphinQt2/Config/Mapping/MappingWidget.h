@@ -12,6 +12,7 @@
 
 class ControlGroupBox;
 class InputConfig;
+class IOWindow;
 class MappingBool;
 class MappingButton;
 class MappingNumeric;
@@ -22,6 +23,7 @@ namespace ControllerEmu
 {
 class Control;
 class ControlGroup;
+class EmulatedController;
 }
 
 namespace ciface
@@ -38,6 +40,7 @@ class MappingWidget : public QWidget
 public:
   explicit MappingWidget(MappingWindow* window);
 
+  ControllerEmu::EmulatedController* GetController() const;
   std::shared_ptr<ciface::Core::Device> GetDevice() const;
 
   void SetBlockInputs(const bool block);
