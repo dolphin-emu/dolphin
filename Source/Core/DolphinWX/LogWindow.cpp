@@ -61,16 +61,6 @@ void CLogWindow::CreateGUIControls()
   log_window->Get("y", &y, Parent->GetSize().GetY());
   log_window->Get("pos", &winpos, wxAUI_DOCK_RIGHT);
 
-  // Set up log listeners
-  int verbosity;
-  options->Get("Verbosity", &verbosity, 0);
-
-  // Ensure the verbosity level is valid
-  if (verbosity < 1)
-    verbosity = 1;
-  if (verbosity > MAX_LOGLEVEL)
-    verbosity = MAX_LOGLEVEL;
-
   // Get the logger output settings from the config ini file.
   options->Get("WriteToFile", &m_writeFile, false);
   options->Get("WriteToWindow", &m_writeWindow, true);
@@ -90,8 +80,6 @@ void CLogWindow::CreateGUIControls()
       m_LogManager->AddListener((LogTypes::LOG_TYPE)i, LogListener::FILE_LISTENER);
     else
       m_LogManager->RemoveListener((LogTypes::LOG_TYPE)i, LogListener::FILE_LISTENER);
-
-    m_LogManager->SetLogLevel((LogTypes::LOG_TYPE)i, (LogTypes::LOG_LEVELS)(verbosity));
   }
   m_has_listeners = true;
 

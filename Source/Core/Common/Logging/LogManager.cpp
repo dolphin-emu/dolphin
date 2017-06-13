@@ -103,11 +103,22 @@ LogManager::LogManager()
   options->Get("WriteToFile", &write_file, false);
   options->Get("WriteToConsole", &write_console, true);
 
+  // Set up log listeners
+  int verbosity;
+  options->Get("Verbosity", &verbosity, 0);
+
+  // Ensure the verbosity level is valid
+  if (verbosity < 1)
+    verbosity = 1;
+  if (verbosity > MAX_LOGLEVEL)
+    verbosity = MAX_LOGLEVEL;
+
   for (LogContainer* container : m_Log)
   {
     bool enable;
     logs->Get(container->GetShortName(), &enable, false);
     container->SetEnable(enable);
+    container->SetLevel(static_cast<LogTypes::LOG_LEVELS>(verbosity));
     if (enable && write_file)
       container->AddListener(LogListener::FILE_LISTENER);
     if (enable && write_console)
