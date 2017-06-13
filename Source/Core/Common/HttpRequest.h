@@ -17,7 +17,7 @@ namespace Common
 class HttpRequest final
 {
 public:
-  HttpRequest();
+  HttpRequest(int timeout_ms = 3000);
   ~HttpRequest();
   bool IsValid() const;
 
