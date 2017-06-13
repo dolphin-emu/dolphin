@@ -234,6 +234,8 @@ wxMenu* MainMenuBar::CreateToolsMenu() const
   tools_menu->Append(IDM_LOAD_WII_MENU, dummy_string);
   tools_menu->Append(IDM_IMPORT_NAND, _("Import BootMii NAND Backup..."));
   tools_menu->Append(IDM_EXTRACT_CERTIFICATES, _("Extract Certificates from NAND"));
+  tools_menu->Append(IDM_PERFORM_ONLINE_UPDATE, _("Perform Online System Update"),
+                     _("Update the Wii system software to the latest version from Nintendo."));
   tools_menu->AppendSeparator();
   tools_menu->AppendSubMenu(wiimote_menu, _("Connect Wii Remotes"));
 
@@ -571,7 +573,7 @@ void MainMenuBar::RefreshWiiToolsLabels() const
   // result in the emulated software being confused, or even worse, exported saves having
   // inconsistent data.
   for (const int index : {IDM_MENU_INSTALL_WAD, IDM_EXPORT_ALL_SAVE, IDM_IMPORT_SAVE,
-                          IDM_IMPORT_NAND, IDM_EXTRACT_CERTIFICATES})
+                          IDM_IMPORT_NAND, IDM_EXTRACT_CERTIFICATES, IDM_PERFORM_ONLINE_UPDATE})
   {
     FindItem(index)->Enable(!Core::IsRunning() || !SConfig::GetInstance().bWii);
   }

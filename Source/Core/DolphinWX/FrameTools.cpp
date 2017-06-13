@@ -3,8 +3,11 @@
 // Refer to the license.txt file included.
 
 #include <array>
+#include <chrono>
+#include <cinttypes>
 #include <cstdarg>
 #include <cstdio>
+#include <future>
 #include <mutex>
 #include <string>
 #include <vector>
@@ -18,7 +21,6 @@
 #include <wx/panel.h>
 #include <wx/progdlg.h>
 #include <wx/statusbr.h>
-#include <wx/thread.h>
 #include <wx/toolbar.h>
 #include <wx/toplevel.h>
 
@@ -179,6 +181,7 @@ void CFrame::BindMenuBarEvents()
   Bind(wxEVT_MENU, &CFrame::OnLoadWiiMenu, this, IDM_LOAD_WII_MENU);
   Bind(wxEVT_MENU, &CFrame::OnImportBootMiiBackup, this, IDM_IMPORT_NAND);
   Bind(wxEVT_MENU, &CFrame::OnExtractCertificates, this, IDM_EXTRACT_CERTIFICATES);
+  Bind(wxEVT_MENU, &CFrame::OnPerformOnlineWiiUpdate, this, IDM_PERFORM_ONLINE_UPDATE);
   Bind(wxEVT_MENU, &CFrame::OnFifoPlayer, this, IDM_FIFOPLAYER);
   Bind(wxEVT_MENU, &CFrame::OnConnectWiimote, this, IDM_CONNECT_WIIMOTE1, IDM_CONNECT_BALANCEBOARD);
 
@@ -1296,6 +1299,59 @@ void CFrame::OnImportBootMiiBackup(wxCommandEvent& WXUNUSED(event))
 
 void CFrame::OnExtractCertificates(wxCommandEvent& WXUNUSED(event))
 {
+  DiscIO::NANDImporter().ExtractCertificates(File::GetUserPath(D_WIIROOT_IDX));
+}
+
+void CFrame::OnPerformOnlineWiiUpdate(wxCommandEvent&)
+{
+  if (!AskYesNoT("Connect to the Internet and perform an online system update?"))
+    return;
+
+  wxProgressDialog dialog(_("Updating"),
+                          _("Preparing to update...\nThis can take a while. Do not close Dolphin."),
+                          1, this, wxPD_APP_MODAL | wxPD_AUTO_HIDE | wxPD_SMOOTH);
+
+  std::future<WiiUtils::UpdateResult> result =
+      std::async(std::launch::async, &WiiUtils::DoOnlineUpdate, [&dialog](size_t processed,
+                                                                          size_t total, u64 id) {
+        // WX isn't thread safe, so we have to ensure this runs on the Host (UI) thread.
+        Core::QueueHostJob(
+            [&dialog, processed, total, id]() {
+              dialog.SetRange(total);
+              dialog.Update(processed,
+                            wxString::Format(_("Updating title %016" PRIx64 "...\n"
+                                               "This can take a while. Do not close Dolphin."),
+                                             id));
+              dialog.Fit();
+            },
+            true);
+      });
+
+  while (result.wait_for(std::chrono::milliseconds(50)) != std::future_status::ready)
+  {
+    dialog.Update();
+    wxSafeYield(&dialog);
+    wxWakeUpIdle();
+  }
+
+  switch (result.get())
+  {
+  case WiiUtils::UpdateResult::AlreadyUpToDate:
+    wxMessageBox(_("The emulated Wii console is already up-to-date."), _("Update completed"),
+                 wxOK | wxICON_INFORMATION);
+    return;
+  case WiiUtils::UpdateResult::Failed:
+    wxMessageBox(_("Could not perform an online update. "
+                   "Please check your Internet connection and try again."),
+                 _("Update failed"), wxOK | wxICON_ERROR);
+    return;
+  case WiiUtils::UpdateResult::Succeeded:
+    wxMessageBox(_("The emulated Wii console has been updated."), _("Update completed"),
+                 wxOK | wxICON_INFORMATION);
+    break;
+  }
+
+  UpdateLoadWiiMenuItem();
   DiscIO::NANDImporter().ExtractCertificates(File::GetUserPath(D_WIIROOT_IDX));
 }
 
