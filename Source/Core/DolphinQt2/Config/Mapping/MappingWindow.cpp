@@ -354,6 +354,11 @@ int MappingWindow::GetPort() const
   return m_port;
 }
 
+ControllerEmu::EmulatedController* MappingWindow::GetController() const
+{
+  return m_controller;
+}
+
 const ciface::Core::DeviceQualifier& MappingWindow::GetDeviceQualifier() const
 {
   return m_devq;

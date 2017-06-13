@@ -13,11 +13,15 @@ class QMouseEvent;
 
 class MappingButton : public ElidedButton
 {
+  Q_OBJECT
 public:
   MappingButton(MappingWidget* widget, ControlReference* ref);
 
   void Clear();
   void Update();
+
+signals:
+  void AdvancedPressed();
 
 private:
   bool event(QEvent* event) override;

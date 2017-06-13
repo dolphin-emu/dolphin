@@ -31,8 +31,10 @@ set(SRCS
   Config/Mapping/HotkeyStates.cpp
   Config/Mapping/HotkeyTAS.cpp
   Config/Mapping/HotkeyWii.cpp
+  Config/Mapping/IOWindow.cpp
   Config/Mapping/MappingBool.cpp
   Config/Mapping/MappingButton.cpp
+  Config/Mapping/MappingCommon.cpp
   Config/Mapping/MappingNumeric.cpp
   Config/Mapping/MappingWidget.cpp
   Config/Mapping/MappingWindow.cpp
