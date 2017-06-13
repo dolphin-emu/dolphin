@@ -491,7 +491,7 @@ void DirectoryBlobReader::SetPartitions(std::vector<PartitionWithType>&& partiti
     Write32(static_cast<u32>(partitions[i].type), offset_in_table, &m_partition_table);
     offset_in_table += 4;
 
-    SetTMDAndTicket(partitions[i].partition.GetRootDirectory(), partition_address);
+    SetPartitionHeader(partitions[i].partition, partition_address);
 
     const u64 partition_data_size = partitions[i].partition.GetDataSize();
     m_partitions.emplace(partition_address, std::move(partitions[i].partition));
@@ -505,24 +505,49 @@ void DirectoryBlobReader::SetPartitions(std::vector<PartitionWithType>&& partiti
                                   m_partition_table.data());
 }
 
-void DirectoryBlobReader::SetTMDAndTicket(const std::string& partition_root, u64 partition_address)
+// This function sets the header that's shortly before the start of the encrypted
+// area, not the header that's right at the beginning of the encrypted area
+void DirectoryBlobReader::SetPartitionHeader(const DirectoryBlobPartition& partition,
+                                             u64 partition_address)
 {
   constexpr u32 TICKET_OFFSET = 0x0;
   constexpr u32 TICKET_SIZE = 0x2a4;
   constexpr u32 TMD_OFFSET = 0x2c0;
   constexpr u32 MAX_TMD_SIZE = 0x49e4;
+  constexpr u32 H3_OFFSET = 0x4000;
+  constexpr u32 H3_SIZE = 0x18000;
+
+  const std::string& partition_root = partition.GetRootDirectory();
+
   AddFileToContents(&m_nonpartition_contents, partition_root + "ticket.bin",
                     partition_address + TICKET_OFFSET, TICKET_SIZE);
+
   const DiscContent& tmd = AddFileToContents(&m_nonpartition_contents, partition_root + "tmd.bin",
                                              partition_address + TMD_OFFSET, MAX_TMD_SIZE);
 
-  constexpr u32 TMD_HEADER_SIZE = 8;
-  m_tmd_headers.emplace_back(TMD_HEADER_SIZE);
-  std::vector<u8>& tmd_header = m_tmd_headers.back();
-  Write32(static_cast<u32>(tmd.GetSize()), 0x0, &tmd_header);
-  Write32(TMD_OFFSET >> 2, 0x4, &tmd_header);
-  m_nonpartition_contents.emplace(partition_address + TICKET_SIZE, TMD_HEADER_SIZE,
-                                  tmd_header.data());
+  const u64 cert_offset = Common::AlignUp(TMD_OFFSET + tmd.GetSize(), 0x20ull);
+  const u64 max_cert_size = H3_OFFSET - cert_offset;
+  const DiscContent& cert = AddFileToContents(&m_nonpartition_contents, partition_root + "cert.bin",
+                                              partition_address + cert_offset, max_cert_size);
+
+  AddFileToContents(&m_nonpartition_contents, partition_root + "h3.bin",
+                    partition_address + H3_OFFSET, H3_SIZE);
+
+  constexpr u32 PARTITION_HEADER_SIZE = 0x1c;
+  constexpr u32 DATA_OFFSET = 0x20000;
+  const u64 data_size = Common::AlignUp(partition.GetDataSize(), 0x7c00) / 0x7c00 * 0x8000;
+  m_partition_headers.emplace_back(PARTITION_HEADER_SIZE);
+  std::vector<u8>& partition_header = m_partition_headers.back();
+  Write32(static_cast<u32>(tmd.GetSize()), 0x0, &partition_header);
+  Write32(TMD_OFFSET >> 2, 0x4, &partition_header);
+  Write32(static_cast<u32>(cert.GetSize()), 0x8, &partition_header);
+  Write32(static_cast<u32>(cert_offset >> 2), 0x0C, &partition_header);
+  Write32(H3_OFFSET >> 2, 0x10, &partition_header);
+  Write32(DATA_OFFSET >> 2, 0x14, &partition_header);
+  Write32(static_cast<u32>(data_size >> 2), 0x18, &partition_header);
+
+  m_nonpartition_contents.emplace(partition_address + TICKET_SIZE, PARTITION_HEADER_SIZE,
+                                  partition_header.data());
 }
 
 DirectoryBlobPartition::DirectoryBlobPartition(const std::string& root_directory,
