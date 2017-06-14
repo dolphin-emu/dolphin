@@ -2,8 +2,20 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <cstddef>
+// The code in GetErrorMessage can't handle some systems having the
+// GNU version of strerror_r and other systems having the XSI version,
+// so we undefine _GNU_SOURCE here in an attempt to always get the XSI version.
+// We include cstring before all other headers in case cstring is included
+// indirectly (without undefining _GNU_SOURCE) by some other header.
+#ifdef _GNU_SOURCE
+#undef _GNU_SOURCE
 #include <cstring>
+#define _GNU_SOURCE
+#else
+#include <cstring>
+#endif
+
+#include <cstddef>
 
 #include "Common/CommonFuncs.h"
 
