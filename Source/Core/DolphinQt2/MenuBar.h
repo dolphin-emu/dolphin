@@ -56,6 +56,7 @@ public slots:
 
   // Tools
   void InstallWAD();
+  void PerformOnlineUpdate();
 
 private:
   void AddFileMenu();
@@ -79,6 +80,7 @@ private:
 
   // Tools
   QAction* m_wad_install_action;
+  QAction* m_perform_online_update_action;
 
   // Emulation
   QAction* m_play_action;

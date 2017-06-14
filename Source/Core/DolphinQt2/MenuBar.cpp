@@ -2,14 +2,24 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <cinttypes>
+#include <future>
+
 #include <QAction>
+#include <QApplication>
 #include <QDesktopServices>
 #include <QFileDialog>
 #include <QMap>
 #include <QMessageBox>
+#include <QProgressDialog>
 #include <QUrl>
 
+#include "Common/FileUtil.h"
+#include "Common/MsgHandler.h"
+#include "Core/Core.h"
 #include "Core/State.h"
+#include "Core/WiiUtils.h"
+#include "DiscIO/NANDImporter.h"
 #include "DolphinQt2/AboutDialog.h"
 #include "DolphinQt2/GameList/GameFile.h"
 #include "DolphinQt2/MenuBar.h"
@@ -79,6 +89,8 @@ void MenuBar::AddToolsMenu()
 {
   QMenu* tools_menu = addMenu(tr("Tools"));
   m_wad_install_action = tools_menu->addAction(tr("Install WAD..."), this, SLOT(InstallWAD()));
+  m_perform_online_update_action =
+      tools_menu->addAction(tr("Perform Online System Update"), this, SLOT(PerformOnlineUpdate()));
 }
 
 void MenuBar::AddEmulationMenu()
@@ -270,4 +282,56 @@ void MenuBar::InstallWAD()
   }
 
   result_dialog.exec();
+}
+
+void MenuBar::PerformOnlineUpdate()
+{
+  const int confirm = QMessageBox::question(
+      nullptr, tr("Confirm"), tr("Connect to the Internet and perform an online system update?"));
+  if (confirm != QMessageBox::Yes)
+    return;
+
+  QProgressDialog dialog;
+  dialog.setCancelButton(nullptr);
+  dialog.setLabelText(tr("Preparing to update...\nThis can take a while. Do not close Dolphin."));
+  dialog.setWindowTitle(tr("Updating"));
+  dialog.setWindowModality(Qt::WindowModal);
+  dialog.setMinimumSize(360, 120);
+
+  std::future<WiiUtils::UpdateResult> result =
+      std::async(std::launch::async, &WiiUtils::DoOnlineUpdate, [&dialog](size_t processed,
+                                                                          size_t total, u64 id) {
+        Core::QueueHostJob(
+            [&dialog, processed, total, id]() {
+              dialog.setRange(0, static_cast<int>(total));
+              dialog.setValue(static_cast<int>(processed));
+              dialog.setLabelText(
+                  tr("Updating title %1...\nThis can take a while. Do not close Dolphin.")
+                      .arg(id, 16, 16, QLatin1Char('0')));
+            },
+            true);
+      });
+
+  dialog.exec();
+  while (result.wait_for(std::chrono::milliseconds(50)) != std::future_status::ready)
+    qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
+
+  switch (result.get())
+  {
+  case WiiUtils::UpdateResult::AlreadyUpToDate:
+    QMessageBox::information(nullptr, tr("Update completed"),
+                             tr("The emulated Wii console is already up-to-date."));
+    return;
+  case WiiUtils::UpdateResult::Failed:
+    QMessageBox::critical(nullptr, tr("Update failed"),
+                          tr("Could not perform an online update. Please check your Internet "
+                             "connection and try again."));
+    return;
+  case WiiUtils::UpdateResult::Succeeded:
+    QMessageBox::information(nullptr, tr("Update completed"),
+                             tr("The emulated Wii console has been updated."));
+    break;
+  }
+
+  DiscIO::NANDImporter().ExtractCertificates(File::GetUserPath(D_WIIROOT_IDX));
 }
