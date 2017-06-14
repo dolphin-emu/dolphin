@@ -102,7 +102,7 @@ s32 WiiSockMan::GetNetErrorCode(s32 ret, const char* caller, bool isRW)
   }
 
   ERROR_LOG(IOS_NET, "%s failed with error %d: %s, ret= %d", caller, errorCode,
-            GetLastErrorMsg().c_str(), ret);
+            GetErrorMessage(errorCode).c_str(), ret);
 
   s32 ReturnValue = TranslateErrorCode(errorCode, isRW);
   WiiSockMan::GetInstance().SetLastNetError(ReturnValue);

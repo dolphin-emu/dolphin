@@ -160,7 +160,7 @@ bool WiimoteLinux::ConnectInternal()
   }
   else
   {
-    WARN_LOG(WIIMOTE, "Unable to open output socket to Wiimote: %s", GetLastErrorMsg().c_str());
+    WARN_LOG(WIIMOTE, "Unable to open output socket to Wiimote: %s", GetLastErrorMessage().c_str());
     return false;
   }
 
@@ -186,7 +186,8 @@ bool WiimoteLinux::ConnectInternal()
   }
   else
   {
-    WARN_LOG(WIIMOTE, "Unable to open input socket from Wiimote: %s", GetLastErrorMsg().c_str());
+    WARN_LOG(WIIMOTE, "Unable to open input socket from Wiimote: %s",
+             GetLastErrorMessage().c_str());
     close(m_cmd_sock);
     m_int_sock = m_cmd_sock = -1;
     return false;
