@@ -369,19 +369,6 @@ std::shared_ptr<ciface::Core::Device> MappingWindow::GetDevice() const
   return g_controller_interface.FindDevice(m_devq);
 }
 
-void MappingWindow::SetBlockInputs(const bool block)
-{
-  m_block = block;
-}
-
-bool MappingWindow::event(QEvent* event)
-{
-  if (!m_block)
-    return QDialog::event(event);
-
-  return false;
-}
-
 void MappingWindow::OnDefaultFieldsPressed()
 {
   if (m_controller == nullptr)

@@ -89,11 +89,6 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
   return group_box;
 }
 
-void MappingWidget::SetBlockInputs(const bool block)
-{
-  m_parent->SetBlockInputs(block);
-}
-
 void MappingWidget::OnClearFields()
 {
   for (auto* button : m_buttons)

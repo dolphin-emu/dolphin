@@ -43,7 +43,6 @@ public:
   ControllerEmu::EmulatedController* GetController() const;
   std::shared_ptr<ciface::Core::Device> GetDevice() const;
 
-  void SetBlockInputs(const bool block);
   MappingWindow* GetParent() const;
 
   virtual void LoadSettings() = 0;

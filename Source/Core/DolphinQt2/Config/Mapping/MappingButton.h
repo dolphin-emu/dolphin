@@ -30,7 +30,6 @@ private:
   void OnButtonPressed();
   void OnButtonTimeout();
   void Connect();
-  void SetBlockInputs(const bool block);
 
   MappingWidget* m_parent;
   ControlReference* m_reference;

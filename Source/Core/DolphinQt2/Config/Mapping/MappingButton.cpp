@@ -42,7 +42,9 @@ void MappingButton::OnButtonPressed()
 
     setText(QStringLiteral("..."));
 
-    SetBlockInputs(true);
+    m_block = true;
+    grabKeyboard();
+    grabMouse();
 
     // Avoid that the button press itself is registered as an event
     Common::SleepCurrentThread(100);
@@ -51,7 +53,10 @@ void MappingButton::OnButtonPressed()
                                                       m_parent->GetParent()->GetDeviceQualifier(),
                                                       m_parent->GetController()->default_device);
 
-    SetBlockInputs(false);
+    releaseMouse();
+    releaseKeyboard();
+    m_block = false;
+
     if (!expr.isEmpty())
     {
       m_reference->expression = expr.toStdString();
@@ -84,15 +89,20 @@ void MappingButton::Update()
   m_parent->SaveSettings();
 }
 
-void MappingButton::SetBlockInputs(const bool block)
-{
-  m_parent->SetBlockInputs(block);
-  m_block = block;
-}
-
 bool MappingButton::event(QEvent* event)
 {
-  return !m_block ? QPushButton::event(event) : true;
+  const QEvent::Type event_type = event->type();
+  // Returning 'true' means "yes, this event has been handled, don't propagate it to parent
+  // widgets".
+  if (m_block &&
+      (event_type == QEvent::KeyPress || event_type == QEvent::KeyRelease ||
+       event_type == QEvent::MouseButtonPress || event_type == QEvent::MouseButtonRelease ||
+       event_type == QEvent::MouseButtonDblClick))
+  {
+    return true;
+  }
+
+  return QPushButton::event(event);
 }
 
 void MappingButton::mouseReleaseEvent(QMouseEvent* event)

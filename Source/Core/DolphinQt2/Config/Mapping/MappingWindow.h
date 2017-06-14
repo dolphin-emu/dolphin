@@ -53,7 +53,6 @@ public:
   const ciface::Core::DeviceQualifier& GetDeviceQualifier() const;
   std::shared_ptr<ciface::Core::Device> GetDevice() const;
 
-  void SetBlockInputs(const bool block);
   ControllerEmu::EmulatedController* GetController() const;
 signals:
   void Update();
@@ -79,8 +78,6 @@ private:
   void OnDefaultFieldsPressed();
   void OnProfileChanged(int index);
   void OnDeviceChanged(int index);
-
-  bool event(QEvent* event) override;
 
   ControllerEmu::EmulatedController* m_controller = nullptr;
 
@@ -114,7 +111,6 @@ private:
   Type m_mapping_type;
   const int m_port;
   bool m_is_complex;
-  bool m_block = false;
   InputConfig* m_config;
   ciface::Core::DeviceQualifier m_devq;
 };
