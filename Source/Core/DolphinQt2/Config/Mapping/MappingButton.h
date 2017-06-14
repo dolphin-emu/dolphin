@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "Common/Flag.h"
 #include "DolphinQt2/QtUtils/ElidedButton.h"
 
 class ControlReference;
@@ -33,5 +34,5 @@ private:
 
   MappingWidget* m_parent;
   ControlReference* m_reference;
-  bool m_block = false;
+  Common::Flag m_block;
 };

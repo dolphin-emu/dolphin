@@ -33,18 +33,20 @@ void MappingButton::Connect()
 
 void MappingButton::OnButtonPressed()
 {
-  if (m_block || m_parent->GetDevice() == nullptr || !m_reference->IsInput())
+  if (m_parent->GetDevice() == nullptr || !m_reference->IsInput())
     return;
+
+  if (!m_block.TestAndSet())
+    return;
+
+  grabKeyboard();
+  grabMouse();
 
   // Make sure that we don't block event handling
   std::thread([this] {
     const auto dev = m_parent->GetDevice();
 
     setText(QStringLiteral("..."));
-
-    m_block = true;
-    grabKeyboard();
-    grabMouse();
 
     // Avoid that the button press itself is registered as an event
     Common::SleepCurrentThread(100);
@@ -55,7 +57,7 @@ void MappingButton::OnButtonPressed()
 
     releaseMouse();
     releaseKeyboard();
-    m_block = false;
+    m_block.Clear();
 
     if (!expr.isEmpty())
     {
@@ -94,7 +96,7 @@ bool MappingButton::event(QEvent* event)
   const QEvent::Type event_type = event->type();
   // Returning 'true' means "yes, this event has been handled, don't propagate it to parent
   // widgets".
-  if (m_block &&
+  if (m_block.IsSet() &&
       (event_type == QEvent::KeyPress || event_type == QEvent::KeyRelease ||
        event_type == QEvent::MouseButtonPress || event_type == QEvent::MouseButtonRelease ||
        event_type == QEvent::MouseButtonDblClick))
