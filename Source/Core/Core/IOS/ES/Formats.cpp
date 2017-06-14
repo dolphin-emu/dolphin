@@ -533,10 +533,12 @@ bool SharedContentMap::WriteEntries() const
   File::CreateFullPath(temp_path);
 
   // Atomically write the new content map.
-  File::IOFile file(temp_path, "w+b");
-  if (!file.WriteArray(m_entries.data(), m_entries.size()))
-    return false;
-  File::CreateFullPath(m_file_path);
+  {
+    File::IOFile file(temp_path, "w+b");
+    if (!file.WriteArray(m_entries.data(), m_entries.size()))
+      return false;
+    File::CreateFullPath(m_file_path);
+  }
   return File::RenameSync(temp_path, m_file_path);
 }
 
