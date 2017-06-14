@@ -19,6 +19,8 @@ set(SRCS
   Resources.cpp
   Settings.cpp
   ToolBar.cpp
+  WiiUpdate.cpp
+  WiiUpdate.h
   Config/ControllersWindow.cpp
   Config/FilesystemWidget.cpp
   Config/InfoWidget.cpp

@@ -9,6 +9,9 @@
 #include <QMessageBox>
 #include <QUrl>
 
+#include "Core/CommonTitles.h"
+#include "Core/IOS/ES/ES.h"
+#include "Core/IOS/IOS.h"
 #include "Core/State.h"
 #include "DolphinQt2/AboutDialog.h"
 #include "DolphinQt2/GameList/GameFile.h"
@@ -43,6 +46,7 @@ void MenuBar::EmulationStarted()
   m_state_load_menu->setEnabled(true);
   m_state_save_menu->setEnabled(true);
   UpdateStateSlotMenu();
+  UpdateToolsMenu(true);
 }
 void MenuBar::EmulationPaused()
 {
@@ -66,6 +70,7 @@ void MenuBar::EmulationStopped()
   m_state_load_menu->setEnabled(false);
   m_state_save_menu->setEnabled(false);
   UpdateStateSlotMenu();
+  UpdateToolsMenu(false);
 }
 
 void MenuBar::AddFileMenu()
@@ -79,6 +84,17 @@ void MenuBar::AddToolsMenu()
 {
   QMenu* tools_menu = addMenu(tr("Tools"));
   m_wad_install_action = tools_menu->addAction(tr("Install WAD..."), this, SLOT(InstallWAD()));
+
+  m_perform_online_update_menu = tools_menu->addMenu(tr("Perform Online System Update"));
+  m_perform_online_update_for_current_region = m_perform_online_update_menu->addAction(
+      tr("Current Region"), [this] { emit PerformOnlineUpdate(""); });
+  m_perform_online_update_menu->addSeparator();
+  m_perform_online_update_menu->addAction(tr("Europe"),
+                                          [this] { emit PerformOnlineUpdate("EUR"); });
+  m_perform_online_update_menu->addAction(tr("Japan"), [this] { emit PerformOnlineUpdate("JPN"); });
+  m_perform_online_update_menu->addAction(tr("Korea"), [this] { emit PerformOnlineUpdate("KOR"); });
+  m_perform_online_update_menu->addAction(tr("United States"),
+                                          [this] { emit PerformOnlineUpdate("USA"); });
 }
 
 void MenuBar::AddEmulationMenu()
@@ -245,6 +261,20 @@ void MenuBar::AddTableColumnsMenu(QMenu* view_menu)
       Settings::Instance().Save();
       emit ColumnVisibilityToggled(key, value);
     });
+  }
+}
+
+void MenuBar::UpdateToolsMenu(bool emulation_started)
+{
+  const bool enable_wii_tools = !emulation_started || !Settings::Instance().IsWiiGameRunning();
+  m_perform_online_update_menu->setEnabled(enable_wii_tools);
+  if (enable_wii_tools)
+  {
+    IOS::HLE::Kernel ios;
+    const auto tmd = ios.GetES()->FindInstalledTMD(Titles::SYSTEM_MENU);
+    for (QAction* action : m_perform_online_update_menu->actions())
+      action->setEnabled(!tmd.IsValid());
+    m_perform_online_update_for_current_region->setEnabled(tmd.IsValid());
   }
 }
 

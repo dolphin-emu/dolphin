@@ -30,7 +30,6 @@
 
 #include "DolphinQt2/AboutDialog.h"
 #include "DolphinQt2/Config/ControllersWindow.h"
-
 #include "DolphinQt2/Config/Mapping/MappingWindow.h"
 #include "DolphinQt2/Config/SettingsWindow.h"
 #include "DolphinQt2/Host.h"
@@ -39,6 +38,7 @@
 #include "DolphinQt2/QtUtils/WindowActivationEventFilter.h"
 #include "DolphinQt2/Resources.h"
 #include "DolphinQt2/Settings.h"
+#include "DolphinQt2/WiiUpdate.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
@@ -164,6 +164,9 @@ void MainWindow::ConnectMenuBar()
 
   // Options
   connect(m_menu_bar, &MenuBar::ConfigureHotkeys, this, &MainWindow::ShowHotkeyDialog);
+
+  // Tools
+  connect(m_menu_bar, &MenuBar::PerformOnlineUpdate, this, &MainWindow::PerformOnlineUpdate);
 
   // View
   connect(m_menu_bar, &MenuBar::ShowTable, m_game_list, &GameList::SetTableView);
@@ -528,6 +531,13 @@ void MainWindow::SetStateSlot(int slot)
 {
   Settings::Instance().SetStateSlot(slot);
   m_state_slot = slot;
+}
+
+void MainWindow::PerformOnlineUpdate(const std::string& region)
+{
+  WiiUpdate::PerformOnlineUpdate(region, this);
+  // Since the update may have installed a newer system menu, refresh the tools menu.
+  m_menu_bar->UpdateToolsMenu(false);
 }
 
 bool MainWindow::eventFilter(QObject* object, QEvent* event)
