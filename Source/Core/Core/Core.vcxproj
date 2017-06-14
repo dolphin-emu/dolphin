@@ -567,6 +567,9 @@
     <ProjectReference Include="..\..\..\Externals\cubeb\msvc\cubeb.vcxproj">
       <Project>{8ea11166-6512-44fc-b7a5-a4d1ecc81170}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)pugixml\pugixml.vcxproj">
+      <Project>{C636D9D1-82FE-42B5-9987-63B7D4836341}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

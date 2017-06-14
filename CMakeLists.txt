@@ -552,6 +552,8 @@ include_directories(Externals/Bochs_disasm)
 
 add_subdirectory(Externals/glslang)
 
+add_subdirectory(Externals/pugixml)
+
 add_subdirectory(Externals/cpp-optparse)
 
 if(USE_SHARED_ENET)
