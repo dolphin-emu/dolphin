@@ -97,7 +97,7 @@ private:
 
   // Profiles
   QGroupBox* m_profiles_box;
-  QVBoxLayout* m_profiles_layout;
+  QHBoxLayout* m_profiles_layout;
   QComboBox* m_profiles_combo;
   QPushButton* m_profiles_load;
   QPushButton* m_profiles_save;
@@ -105,7 +105,7 @@ private:
 
   // Reset
   QGroupBox* m_reset_box;
-  QVBoxLayout* m_reset_layout;
+  QHBoxLayout* m_reset_layout;
   QPushButton* m_reset_default;
   QPushButton* m_reset_clear;
 
