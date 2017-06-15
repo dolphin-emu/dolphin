@@ -31,7 +31,7 @@
 #include "DolphinQt2/Host.h"
 #include "DolphinQt2/HotkeyScheduler.h"
 #include "DolphinQt2/MainWindow.h"
-#include "DolphinQt2/QtUtils/FocusEventFilter.h"
+#include "DolphinQt2/QtUtils/WindowActivationEventFilter.h"
 #include "DolphinQt2/Resources.h"
 #include "DolphinQt2/Settings.h"
 
@@ -88,13 +88,15 @@ void MainWindow::ShutdownControllers()
   m_hotkey_scheduler->deleteLater();
 }
 
-static void InstallHotkeyFilter(QDialog* dialog)
+static void InstallHotkeyFilter(QWidget* dialog)
 {
-  auto* filter = new FocusEventFilter();
+  auto* filter = new WindowActivationEventFilter();
   dialog->installEventFilter(filter);
 
-  filter->connect(filter, &FocusEventFilter::focusOutEvent, [] { HotkeyManagerEmu::Enable(true); });
-  filter->connect(filter, &FocusEventFilter::focusInEvent, [] { HotkeyManagerEmu::Enable(false); });
+  filter->connect(filter, &WindowActivationEventFilter::windowDeactivated,
+                  [] { HotkeyManagerEmu::Enable(true); });
+  filter->connect(filter, &WindowActivationEventFilter::windowActivated,
+                  [] { HotkeyManagerEmu::Enable(false); });
 }
 
 void MainWindow::CreateComponents()

@@ -6,12 +6,12 @@
 
 #include <QObject>
 
-class FocusEventFilter : public QObject
+class WindowActivationEventFilter : public QObject
 {
   Q_OBJECT
 signals:
-  void focusInEvent();
-  void focusOutEvent();
+  void windowActivated();
+  void windowDeactivated();
 
 private:
   bool eventFilter(QObject* object, QEvent* event) override;
