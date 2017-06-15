@@ -16,6 +16,7 @@
 #include "DolphinQt2/Config/Graphics/EnhancementsWidget.h"
 #include "DolphinQt2/Config/Graphics/GeneralWidget.h"
 #include "DolphinQt2/Config/Graphics/HacksWidget.h"
+#include "DolphinQt2/Config/Graphics/SoftwareRendererWidget.h"
 #include "DolphinQt2/MainWindow.h"
 
 GraphicsWindow::GraphicsWindow(X11Utils::XRRConfiguration* xrr_config, MainWindow* parent)
@@ -56,17 +57,28 @@ void GraphicsWindow::CreateMainLayout()
   main_layout->addWidget(description_box);
   main_layout->addWidget(m_button_box);
 
-  auto* general_widget = new GeneralWidget(m_xrr_config, this);
-  auto* enhancements_widget = new EnhancementsWidget(this);
-  auto* hacks_widget = new HacksWidget(this);
-  auto* advanced_widget = new AdvancedWidget(this);
+  m_general_widget = new GeneralWidget(m_xrr_config, this);
+  m_enhancements_widget = new EnhancementsWidget(this);
+  m_hacks_widget = new HacksWidget(this);
+  m_advanced_widget = new AdvancedWidget(this);
+  m_software_renderer = new SoftwareRendererWidget(this);
 
-  connect(general_widget, &GeneralWidget::BackendChanged, this, &GraphicsWindow::OnBackendChanged);
+  connect(m_general_widget, &GeneralWidget::BackendChanged, this,
+          &GraphicsWindow::OnBackendChanged);
+  connect(m_software_renderer, &SoftwareRendererWidget::BackendChanged, this,
+          &GraphicsWindow::OnBackendChanged);
 
-  m_tab_widget->addTab(general_widget, tr("General"));
-  m_tab_widget->addTab(enhancements_widget, tr("Enhancements"));
-  m_tab_widget->addTab(hacks_widget, tr("Hacks"));
-  m_tab_widget->addTab(advanced_widget, tr("Advanced"));
+  if (SConfig::GetInstance().m_strVideoBackend != "Software Renderer")
+  {
+    m_tab_widget->addTab(m_general_widget, tr("General"));
+    m_tab_widget->addTab(m_enhancements_widget, tr("Enhancements"));
+    m_tab_widget->addTab(m_hacks_widget, tr("Hacks"));
+    m_tab_widget->addTab(m_advanced_widget, tr("Advanced"));
+  }
+  else
+  {
+    m_tab_widget->addTab(m_software_renderer, tr("Software Renderer"));
+  }
 
   setLayout(main_layout);
 }
@@ -79,6 +91,21 @@ void GraphicsWindow::ConnectWidgets()
 void GraphicsWindow::OnBackendChanged(const QString& backend)
 {
   setWindowTitle(tr("Dolphin %1 Graphics Configuration").arg(backend));
+  if (backend == QStringLiteral("Software Renderer") && m_tab_widget->count() > 1)
+  {
+    m_tab_widget->clear();
+    m_tab_widget->addTab(m_software_renderer, tr("Software Renderer"));
+  }
+
+  if (backend != QStringLiteral("Software Renderer") && m_tab_widget->count() == 1)
+  {
+    m_tab_widget->clear();
+    m_tab_widget->addTab(m_general_widget, tr("General"));
+    m_tab_widget->addTab(m_enhancements_widget, tr("Enhancements"));
+    m_tab_widget->addTab(m_hacks_widget, tr("Hacks"));
+    m_tab_widget->addTab(m_advanced_widget, tr("Advanced"));
+  }
+
   emit BackendChanged(backend);
 }
 
@@ -97,6 +124,7 @@ bool GraphicsWindow::eventFilter(QObject* object, QEvent* event)
 {
   if (!m_widget_descriptions.contains(object))
     return false;
+
   if (event->type() == QEvent::Enter)
   {
     m_description->setText(tr(m_widget_descriptions[object]));

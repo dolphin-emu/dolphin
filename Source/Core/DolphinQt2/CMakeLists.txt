@@ -35,6 +35,7 @@ set(SRCS
   Config/Graphics/GraphicsSlider.cpp
   Config/Graphics/GraphicsWidget.cpp
   Config/Graphics/GraphicsWindow.cpp
+  Config/Graphics/SoftwareRendererWidget.cpp
   Config/InfoWidget.cpp
   Config/Mapping/GCKeyboardEmu.cpp
   Config/Mapping/GCPadEmu.cpp

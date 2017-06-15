@@ -7,11 +7,16 @@
 #include <QDialog>
 #include <QHash>
 
+class AdvancedWidget;
+class EnhancementsWidget;
+class HacksWidget;
+class GeneralWidget;
 class GraphicsWidget;
 class MainWindow;
 class QLabel;
 class QTabWidget;
 class QDialogButtonBox;
+class SoftwareRendererWidget;
 
 namespace X11Utils
 {
@@ -40,6 +45,12 @@ private:
   QTabWidget* m_tab_widget;
   QLabel* m_description;
   QDialogButtonBox* m_button_box;
+
+  AdvancedWidget* m_advanced_widget;
+  EnhancementsWidget* m_enhancements_widget;
+  HacksWidget* m_hacks_widget;
+  GeneralWidget* m_general_widget;
+  SoftwareRendererWidget* m_software_renderer;
 
   X11Utils::XRRConfiguration* m_xrr_config;
 
