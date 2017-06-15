@@ -7,6 +7,7 @@ set(SRCS
   Config/Layer.cpp
   Config/Section.cpp
   ENetUtil.cpp
+  File.cpp
   FileSearch.cpp
   FileUtil.cpp
   GekkoDisassembler.cpp

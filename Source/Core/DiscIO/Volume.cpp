@@ -14,6 +14,7 @@
 
 #include "Common/ColorUtil.h"
 #include "Common/CommonTypes.h"
+#include "Common/File.h"
 #include "Common/FileUtil.h"
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
@@ -43,13 +44,11 @@ std::vector<u32> Volume::GetWiiBanner(int* width, int* height, u64 title_id)
 
   const std::string file_name =
       Common::GetTitleDataPath(title_id, Common::FROM_CONFIGURED_ROOT) + "banner.bin";
-  if (!File::Exists(file_name))
-    return std::vector<u32>();
-
-  if (File::GetSize(file_name) < WII_BANNER_OFFSET + WII_BANNER_SIZE)
-    return std::vector<u32>();
 
   File::IOFile file(file_name, "rb");
+  if (file.GetSize() < WII_BANNER_OFFSET + WII_BANNER_SIZE)
+    return std::vector<u32>();
+
   if (!file.Seek(WII_BANNER_OFFSET, SEEK_SET))
     return std::vector<u32>();
 

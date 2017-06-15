@@ -10,6 +10,7 @@
 #include <mbedtls/md.h>
 #include <mbedtls/sha256.h>
 
+#include "Common/File.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"

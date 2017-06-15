@@ -53,7 +53,7 @@ static bool LoadMap(const std::string& file_path, Map& map,
                     std::function<bool(const std::string& game_id)> predicate)
 {
   std::ifstream txt;
-  OpenFStream(txt, file_path, std::ios::in);
+  File::OpenFStream(txt, file_path, std::ios::in);
 
   if (!txt.is_open())
     return false;

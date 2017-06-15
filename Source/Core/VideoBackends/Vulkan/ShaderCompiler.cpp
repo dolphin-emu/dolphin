@@ -131,7 +131,7 @@ bool CompileShaderToSPV(SPIRVCodeVector* out_code, EShLanguage stage, const char
         "%sbad_%s_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), stage_filename, counter++);
 
     std::ofstream stream;
-    OpenFStream(stream, filename, std::ios_base::out);
+    File::OpenFStream(stream, filename, std::ios_base::out);
     if (stream.good())
     {
       stream << full_source_code << std::endl;
@@ -199,7 +199,7 @@ bool CompileShaderToSPV(SPIRVCodeVector* out_code, EShLanguage stage, const char
                                             stage_filename, counter++);
 
     std::ofstream stream;
-    OpenFStream(stream, filename, std::ios_base::out);
+    File::OpenFStream(stream, filename, std::ios_base::out);
     if (stream.good())
     {
       stream << full_source_code << std::endl;
