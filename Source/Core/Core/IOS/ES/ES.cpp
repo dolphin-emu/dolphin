@@ -21,6 +21,7 @@
 #include "Common/NandPaths.h"
 #include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
+#include "Core/CommonTitles.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/ES/Formats.h"
@@ -196,7 +197,7 @@ static bool UpdateUIDAndGID(Kernel& kernel, const IOS::ES::TMDReader& tmd)
 static ReturnCode CheckIsAllowedToSetUID(const u32 caller_uid)
 {
   IOS::ES::UIDSys uid_map{Common::FromWhichRoot::FROM_SESSION_ROOT};
-  const u32 system_menu_uid = uid_map.GetOrInsertUIDForTitle(TITLEID_SYSMENU);
+  const u32 system_menu_uid = uid_map.GetOrInsertUIDForTitle(Titles::SYSTEM_MENU);
   if (!system_menu_uid)
     return ES_SHORT_READ;
   return caller_uid == system_menu_uid ? IPC_SUCCESS : ES_EINVAL;
@@ -241,7 +242,7 @@ bool ES::LaunchTitle(u64 title_id, bool skip_reload)
   // (supposedly when trying to re-open those files).
   DiscIO::NANDContentManager::Access().ClearCache();
 
-  if (IsTitleType(title_id, IOS::ES::TitleType::System) && title_id != TITLEID_SYSMENU)
+  if (IsTitleType(title_id, IOS::ES::TitleType::System) && title_id != Titles::SYSTEM_MENU)
     return LaunchIOS(title_id);
   return LaunchPPCTitle(title_id, skip_reload);
 }
@@ -256,7 +257,7 @@ bool ES::LaunchPPCTitle(u64 title_id, bool skip_reload)
   const DiscIO::NANDContentLoader& content_loader = AccessContentDevice(title_id);
   if (!content_loader.IsValid())
   {
-    if (title_id == 0x0000000100000002)
+    if (title_id == Titles::SYSTEM_MENU)
     {
       PanicAlertT("Could not launch the Wii Menu because it is missing from the NAND.\n"
                   "The emulated software will likely hang now.");

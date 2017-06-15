@@ -16,6 +16,7 @@
 #include "Common/NandPaths.h"
 
 #include "Core/Boot/Boot.h"
+#include "Core/CommonTitles.h"
 #include "Core/IOS/ES/ES.h"
 #include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/FS/FileIO.h"
@@ -46,8 +47,8 @@ static u32 StateChecksum(const StateFlags& flags)
 
 bool CBoot::Boot_WiiWAD(const std::string& _pFilename)
 {
-  std::string state_filename(Common::GetTitleDataPath(TITLEID_SYSMENU, Common::FROM_SESSION_ROOT) +
-                             WII_STATE);
+  std::string state_filename(
+      Common::GetTitleDataPath(Titles::SYSTEM_MENU, Common::FROM_SESSION_ROOT) + WII_STATE);
 
   if (File::Exists(state_filename))
   {
@@ -89,7 +90,7 @@ bool CBoot::Boot_WiiWAD(const std::string& _pFilename)
   // create data directory
   File::CreateFullPath(Common::GetTitleDataPath(titleID, Common::FROM_SESSION_ROOT));
 
-  if (titleID == TITLEID_SYSMENU)
+  if (titleID == Titles::SYSTEM_MENU)
     IOS::HLE::CreateVirtualFATFilesystem();
   // setup Wii memory
 

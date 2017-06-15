@@ -14,6 +14,7 @@
 #include "Common/NandPaths.h"
 #include "Common/SettingsHandler.h"
 
+#include "Core/CommonTitles.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/Network/Socket.h"
 #include "Core/ec_wii.h"
@@ -83,7 +84,7 @@ IPCCommandResult NetKDRequest::IOCtl(const IOCtlRequest& request)
     if (config.CreationStage() == NWC24::NWC24Config::NWC24_IDCS_INITIAL)
     {
       const std::string settings_file_path(
-          Common::GetTitleDataPath(TITLEID_SYSMENU, Common::FROM_SESSION_ROOT) + WII_SETTING);
+          Common::GetTitleDataPath(Titles::SYSTEM_MENU, Common::FROM_SESSION_ROOT) + WII_SETTING);
       SettingsHandler gen;
       std::string area, model;
       bool got_settings = false;
