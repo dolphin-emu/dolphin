@@ -10,6 +10,8 @@ set(CMAKE_OSX_ARCHITECTURES "x86_64")
 # handle configuration options
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.12.0" CACHE STRING "")
 
+set(CMAKE_USER_MAKE_RULES_OVERRIDE "CMake/FlagsOverride.cmake")
+
 project(dolphin-emu)
 
 # Name of the Dolphin distributor. If you redistribute Dolphin builds (forks,

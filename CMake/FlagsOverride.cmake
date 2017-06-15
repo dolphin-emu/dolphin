@@ -1,0 +1,7 @@
+if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+  foreach(f CMAKE_C_FLAGS_DEBUG CMAKE_CXX_FLAGS_DEBUG CMAKE_C_FLAGS_RELWITHDEBINFO CMAKE_CXX_FLAGS_RELWITHDEBINFO)
+	  if("${${f}}" MATCHES "/Zi")
+		  string(REGEX REPLACE "/Zi" "/Z7" "${f}" "${${f}}")
+		endif()
+	endforeach()
+endif()
