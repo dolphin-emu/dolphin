@@ -1,8 +1,11 @@
 find_package(Qt5Widgets REQUIRED)
+find_Package(Qt5Gui REQUIRED)
 set_property(TARGET Qt5::Core PROPERTY INTERFACE_COMPILE_FEATURES "")
 message(STATUS "Found Qt version ${Qt5Core_VERSION}")
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
+
+include_directories(${Qt5Gui_PRIVATE_INCLUDE_DIRS})
 
 add_definitions(-DQT_USE_QSTRINGBUILDER -DQT_NO_CAST_FROM_ASCII -DQT_NO_CAST_TO_ASCII)
 set(CMAKE_AUTOMOC ON)
@@ -23,6 +26,15 @@ set(SRCS
   WiiUpdate.h
   Config/ControllersWindow.cpp
   Config/FilesystemWidget.cpp
+  Config/Graphics/AdvancedWidget.cpp
+  Config/Graphics/EnhancementsWidget.cpp
+  Config/Graphics/GeneralWidget.cpp
+  Config/Graphics/HacksWidget.cpp
+  Config/Graphics/GraphicsBool.cpp
+  Config/Graphics/GraphicsChoice.cpp
+  Config/Graphics/GraphicsSlider.cpp
+  Config/Graphics/GraphicsWidget.cpp
+  Config/Graphics/GraphicsWindow.cpp
   Config/InfoWidget.cpp
   Config/Mapping/GCKeyboardEmu.cpp
   Config/Mapping/GCPadEmu.cpp
