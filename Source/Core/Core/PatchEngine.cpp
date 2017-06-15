@@ -6,6 +6,8 @@
 // Supports simple memory patches, and has a partial Action Replay implementation
 // in ActionReplay.cpp/h.
 
+#include "Core/PatchEngine.h"
+
 #include <algorithm>
 #include <map>
 #include <set>
@@ -20,7 +22,6 @@
 #include "Core/ConfigManager.h"
 #include "Core/GeckoCode.h"
 #include "Core/GeckoCodeConfig.h"
-#include "Core/PatchEngine.h"
 #include "Core/PowerPC/PowerPC.h"
 
 namespace PatchEngine

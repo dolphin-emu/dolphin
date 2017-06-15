@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/HW/DVD/DVDThread.h"
+
 #include <cinttypes>
 #include <map>
 #include <memory>
@@ -25,7 +27,6 @@
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/DVD/DVDInterface.h"
-#include "Core/HW/DVD/DVDThread.h"
 #include "Core/HW/DVD/FileMonitor.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/SystemTimers.h"

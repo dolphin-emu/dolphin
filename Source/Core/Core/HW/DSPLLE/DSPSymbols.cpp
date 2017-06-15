@@ -2,10 +2,13 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/HW/DSPLLE/DSPSymbols.h"
+
 #include <cctype>
 #include <list>
 #include <map>
 #include <string>
+#include <vector>
 
 #include "Common/CommonTypes.h"
 #include "Common/File.h"
@@ -13,7 +16,6 @@
 
 #include "Core/DSP/DSPCore.h"
 #include "Core/DSP/DSPDisassembler.h"
-#include "Core/HW/DSPLLE/DSPSymbols.h"
 
 namespace DSP
 {

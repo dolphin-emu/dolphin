@@ -8,6 +8,11 @@
 
 #include "Common/CommonTypes.h"
 
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable : 4200)
+#endif
+
 typedef std::vector<u8> Report;
 
 // Report defines
@@ -498,3 +503,7 @@ struct wm_speaker_data
 };
 static_assert(sizeof(wm_speaker_data) == 21, "Wrong size");
 #pragma pack(pop)
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif

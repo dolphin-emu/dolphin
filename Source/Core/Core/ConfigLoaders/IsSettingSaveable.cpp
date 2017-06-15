@@ -2,12 +2,13 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/ConfigLoaders/IsSettingSaveable.h"
+
 #include <algorithm>
 #include <vector>
 
 #include "Core/Config/Config.h"
 #include "Core/Config/GraphicsSettings.h"
-#include "Core/ConfigLoaders/IsSettingSaveable.h"
 
 namespace ConfigLoaders
 {

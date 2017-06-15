@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "Core/PowerPC/Profiler.h"
+
 #include <string>
 #include "Core/PowerPC/JitInterface.h"
 

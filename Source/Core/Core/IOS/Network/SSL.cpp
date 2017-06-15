@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/IOS/Network/SSL.h"
+
 #include <array>
 #include <cstring>
 #include <memory>
@@ -17,7 +19,6 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/Memmap.h"
-#include "Core/IOS/Network/SSL.h"
 #include "Core/IOS/Network/Socket.h"
 
 namespace IOS

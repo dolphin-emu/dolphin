@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/IOS/USB/Host.h"
+
 #include <algorithm>
 #include <memory>
 #include <mutex>
@@ -21,7 +23,6 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/IOS/USB/Common.h"
-#include "Core/IOS/USB/Host.h"
 #include "Core/IOS/USB/LibusbDevice.h"
 
 namespace IOS

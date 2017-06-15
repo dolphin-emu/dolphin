@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/IOS/USB/Bluetooth/BTEmu.h"
+
 #include <algorithm>
 #include <cstdint>
 #include <cstring>
@@ -9,7 +11,6 @@
 #include <string>
 
 #include "Common/Assert.h"
-#include "Common/CommonPaths.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/NandPaths.h"
@@ -24,7 +25,6 @@
 #include "Core/Host.h"
 #include "Core/IOS/Device.h"
 #include "Core/IOS/IOS.h"
-#include "Core/IOS/USB/Bluetooth/BTEmu.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 namespace IOS

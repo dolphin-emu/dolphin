@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/HW/EXI/EXI_DeviceMic.h"
+
 #include <algorithm>
 #include <cstring>
 #include <mutex>
@@ -12,8 +14,6 @@
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
-
-#include "Core/HW/EXI/EXI_DeviceMic.h"
 
 #include "Core/CoreTiming.h"
 #include "Core/HW/EXI/EXI.h"

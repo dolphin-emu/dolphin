@@ -5,6 +5,7 @@
 #pragma once
 
 #include "Common/CommonTypes.h"
+
 class PointerWrap;
 
 namespace MMIO

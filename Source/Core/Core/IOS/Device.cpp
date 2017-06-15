@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/IOS/Device.h"
+
 #include <algorithm>
 #include <map>
 
@@ -9,7 +11,6 @@
 #include "Common/StringUtil.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/SystemTimers.h"
-#include "Core/IOS/Device.h"
 #include "Core/IOS/IOS.h"
 
 namespace IOS

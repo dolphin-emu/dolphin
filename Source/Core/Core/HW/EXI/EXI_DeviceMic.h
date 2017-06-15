@@ -5,7 +5,8 @@
 #pragma once
 
 #include <mutex>
-#include "Common/Common.h"
+
+#include "Common/CommonTypes.h"
 #include "Core/HW/EXI/EXI_Device.h"
 
 struct cubeb;

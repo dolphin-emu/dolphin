@@ -2,15 +2,11 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/ConfigLoaders/NetPlayConfigLoader.h"
+
 #include <memory>
 
-#include "Common/CommonPaths.h"
 #include "Common/Config/Config.h"
-#include "Common/FileUtil.h"
-#include "Common/IniFile.h"
-#include "Common/Logging/Log.h"
-
-#include "Core/ConfigLoaders/NetPlayConfigLoader.h"
 #include "Core/NetPlayProto.h"
 
 namespace ConfigLoaders

@@ -2,6 +2,9 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+// No Wii socket support while using NetPlay or TAS
+#include "Core/IOS/Network/Socket.h"
+
 #include <algorithm>
 #include <mbedtls/error.h>
 #ifndef _WIN32
@@ -18,7 +21,6 @@
 #include "Core/Core.h"
 #include "Core/IOS/Device.h"
 #include "Core/IOS/IOS.h"
-#include "Core/IOS/Network/Socket.h"  // No Wii socket support while using NetPlay or TAS
 
 #ifdef _WIN32
 #define ERRORCODE(name) WSA##name

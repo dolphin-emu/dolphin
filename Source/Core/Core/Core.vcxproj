@@ -415,6 +415,9 @@
     <ClInclude Include="HW\SystemTimers.h" />
     <ClInclude Include="HW\VideoInterface.h" />
     <ClInclude Include="HW\Wiimote.h" />
+    <ClInclude Include="HW\WiimoteCommon\WiimoteConstants.h" />
+    <ClInclude Include="HW\WiimoteCommon\WiimoteHid.h" />
+    <ClInclude Include="HW\WiimoteCommon\WiimoteReport.h" />
     <ClInclude Include="HW\WiimoteEmu\Attachment\Attachment.h" />
     <ClInclude Include="HW\WiimoteEmu\Attachment\Classic.h" />
     <ClInclude Include="HW\WiimoteEmu\Attachment\Drums.h" />

@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/PowerPC/SignatureDB/CSVSignatureDB.h"
+
 #include <cstdio>
 #include <fstream>
 #include <sstream>
@@ -9,8 +11,6 @@
 #include "Common/File.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
-
-#include "Core/PowerPC/SignatureDB/CSVSignatureDB.h"
 
 // CSV separated with tabs
 // Checksum | Size | Symbol | [Object Location |] Object Name

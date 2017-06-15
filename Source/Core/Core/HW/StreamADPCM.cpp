@@ -5,6 +5,7 @@
 // Adapted from in_cube by hcs & destop
 
 #include "Core/HW/StreamADPCM.h"
+
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
 

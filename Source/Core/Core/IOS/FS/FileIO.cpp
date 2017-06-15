@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/IOS/FS/FileIO.h"
+
 #include <cinttypes>
 #include <cstdio>
 #include <map>
@@ -15,7 +17,6 @@
 #include "Common/FileUtil.h"
 #include "Common/NandPaths.h"
 #include "Core/HW/Memmap.h"
-#include "Core/IOS/FS/FileIO.h"
 #include "Core/IOS/IOS.h"
 
 namespace IOS

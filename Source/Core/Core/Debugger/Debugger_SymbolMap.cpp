@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/Debugger/Debugger_SymbolMap.h"
+
 #include <cstdio>
 #include <functional>
 #include <string>
@@ -10,7 +12,6 @@
 #include "Common/StringUtil.h"
 
 #include "Core/Core.h"
-#include "Core/Debugger/Debugger_SymbolMap.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
