@@ -76,7 +76,7 @@ void TMDReaderTest::TestGeneralInfo()
 
 void TMDReaderTest::TestRawTMDAndView()
 {
-  const std::vector<u8>& dolphin_tmd_bytes = m_tmd.GetRawTMD();
+  const std::vector<u8>& dolphin_tmd_bytes = m_tmd.GetBytes();
   // Separate check because gtest prints neither the size nor the full buffer.
   EXPECT_EQ(m_raw_tmd.size(), dolphin_tmd_bytes.size());
   EXPECT_EQ(m_raw_tmd, dolphin_tmd_bytes);

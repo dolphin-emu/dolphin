@@ -150,7 +150,7 @@ IPCCommandResult ES::GetStoredTMDSize(const IOCtlVRequest& request)
   if (!tmd.IsValid())
     return GetDefaultReply(FS_ENOENT);
 
-  const u32 tmd_size = static_cast<u32>(tmd.GetRawTMD().size());
+  const u32 tmd_size = static_cast<u32>(tmd.GetBytes().size());
   Memory::Write_U32(tmd_size, request.io_vectors[0].address);
 
   INFO_LOG(IOS_ES, "GetStoredTMDSize: %u bytes  for %016" PRIx64, tmd_size, title_id);
@@ -171,7 +171,7 @@ IPCCommandResult ES::GetStoredTMD(const IOCtlVRequest& request)
   // TODO: actually use this param in when writing to the outbuffer :/
   const u32 MaxCount = Memory::Read_U32(request.in_vectors[1].address);
 
-  const std::vector<u8> raw_tmd = tmd.GetRawTMD();
+  const std::vector<u8>& raw_tmd = tmd.GetBytes();
   if (raw_tmd.size() != request.io_vectors[0].size)
     return GetDefaultReply(ES_EINVAL);
 
