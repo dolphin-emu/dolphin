@@ -9,14 +9,14 @@
 
 namespace DiscIO
 {
-FileSystem::FileSystem(const Volume* _rVolume, const Partition& partition)
-    : m_rVolume(_rVolume), m_partition(partition)
+FileInfo::~FileInfo() = default;
+
+FileSystem::FileSystem(const Volume* volume, const Partition& partition)
+    : m_volume(volume), m_partition(partition)
 {
 }
 
-FileSystem::~FileSystem()
-{
-}
+FileSystem::~FileSystem() = default;
 
 std::unique_ptr<FileSystem> CreateFileSystem(const Volume* volume, const Partition& partition)
 {

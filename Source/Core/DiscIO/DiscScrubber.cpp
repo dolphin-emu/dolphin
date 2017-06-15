@@ -219,14 +219,21 @@ bool DiscScrubber::ParsePartitionData(const Partition& partition, PartitionHeade
   MarkAsUsedE(partition_data_offset, header->fst_offset, header->fst_size);
 
   // Go through the filesystem and mark entries as used
-  for (const FileInfo& file : filesystem->GetFileList())
-  {
-    DEBUG_LOG(DISCIO, "%s", file.m_FullPath.empty() ? "/" : file.m_FullPath.c_str());
-    if ((file.m_NameOffset & 0x1000000) == 0)
-      MarkAsUsedE(partition_data_offset, file.m_Offset, file.m_FileSize);
-  }
+  ParseFileSystemData(partition_data_offset, filesystem->GetRoot());
 
   return true;
+}
+
+void DiscScrubber::ParseFileSystemData(u64 partition_data_offset, const FileInfo& directory)
+{
+  for (const DiscIO::FileInfo& file_info : directory)
+  {
+    DEBUG_LOG(DISCIO, "Scrubbing %s", file_info.GetPath().c_str());
+    if (file_info.IsDirectory())
+      ParseFileSystemData(partition_data_offset, file_info);
+    else
+      MarkAsUsedE(partition_data_offset, file_info.GetOffset(), file_info.GetSize());
+  }
 }
 
 }  // namespace DiscIO
