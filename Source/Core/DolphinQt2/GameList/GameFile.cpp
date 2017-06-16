@@ -50,13 +50,12 @@ GameFile::GameFile(const QString& path) : m_path(path)
 
   if (!TryLoadCache())
   {
-    if (TryLoadVolume())
+    if (!TryLoadVolume())
     {
-      LoadState();
-    }
-    else if (!TryLoadElfDol())
-    {
-      return;
+      if (!TryLoadElfDol())
+      {
+        return;
+      }
     }
   }
 
@@ -115,15 +114,6 @@ bool GameFile::LoadFileInfo(const QString& path)
   m_size = info.size();
 
   return true;
-}
-
-void GameFile::LoadState()
-{
-  IniFile ini = SConfig::LoadGameIni(m_game_id.toStdString(), m_revision);
-  std::string issues_temp;
-  ini.GetIfExists("EmuState", "EmulationStateId", &m_rating);
-  ini.GetIfExists("EmuState", "EmulationIssues", &issues_temp);
-  m_issues = QString::fromStdString(issues_temp);
 }
 
 bool GameFile::IsElfOrDol()
@@ -198,7 +188,6 @@ bool GameFile::TryLoadElfDol()
   m_blob_type = DiscIO::BlobType::DIRECTORY;
   m_raw_size = m_size;
   m_banner = Resources::GetMisc(Resources::BANNER_MISSING);
-  m_rating = 0;
 
   return true;
 }

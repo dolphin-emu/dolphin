@@ -53,8 +53,6 @@ public:
   DiscIO::Country GetCountry() const { return m_country; }
   DiscIO::Platform GetPlatform() const { return m_platform; }
   DiscIO::BlobType GetBlobType() const { return m_blob_type; }
-  const std::string& GetIssues() const { return m_emu_state.issues; }
-  int GetEmuState() const { return m_emu_state.rating; }
   u64 GetFileSize() const { return m_file_size; }
   u64 GetVolumeSize() const { return m_volume_size; }
   // 0 is the first disc, 1 is the second disc
@@ -65,20 +63,8 @@ public:
   void DoState(PointerWrap& p);
   bool BannerChanged();
   void BannerCommit();
-  bool EmuStateChanged();
-  void EmuStateCommit();
 
 private:
-  struct EmuState
-  {
-    int rating{};
-    std::string issues{};
-    bool operator!=(const EmuState& rhs) const
-    {
-      return rating != rhs.rating || issues != rhs.issues;
-    }
-    void DoState(PointerWrap& p);
-  };
   struct Banner
   {
     std::vector<u8> buffer{};
@@ -119,7 +105,6 @@ private:
   u8 m_disc_number{};
 
   Banner m_banner{};
-  EmuState m_emu_state{};
   // Overridden name from TitleDatabase
   std::string m_custom_name{};
 
@@ -130,7 +115,6 @@ private:
   // way. They should not be handled in DoState.
   struct
   {
-    EmuState emu_state;
     Banner banner;
   } m_pending{};
 };
