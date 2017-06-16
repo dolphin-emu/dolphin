@@ -26,8 +26,6 @@
 #define SIZE_INT32 4
 #define SIZE_FLOAT 4  // size of a float in bytes
 #define FRAME_STEREO_SHORT STEREO_CHANNELS* SIZE_SHORT
-#define FRAME_STEREO_FLOAT STEREO_CHANNELS* SIZE_FLOAT
-#define FRAME_STEREO_INT32 STEREO_CHANNELS* SIZE_INT32
 #define FRAME_SURROUND_FLOAT SURROUND_CHANNELS* SIZE_FLOAT
 #define FRAME_SURROUND_SHORT SURROUND_CHANNELS* SIZE_SHORT
 #define FRAME_SURROUND_INT32 SURROUND_CHANNELS* SIZE_INT32
@@ -73,7 +71,6 @@ private:
   Common::Event m_sound_sync_event;
 
   std::vector<short> m_realtime_buffer;
-  std::vector<float> m_sample_buffer;
   std::array<ALuint, OAL_BUFFERS> m_buffers;
   ALuint m_source;
   ALfloat m_volume;
