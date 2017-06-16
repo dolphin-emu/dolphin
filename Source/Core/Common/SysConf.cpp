@@ -297,8 +297,8 @@ void SysConf::InsertDefaultEntries()
   AddEntry({Entry::Type::Byte, "IPL.AR", {1}});
   AddEntry({Entry::Type::Byte, "IPL.SSV", {1}});
 
-  AddEntry({Entry::Type::ByteBool, "IPL.CD", {1}});
-  AddEntry({Entry::Type::ByteBool, "IPL.CD2", {1}});
+  AddEntry({Entry::Type::ByteBool, "IPL.CD", {0}});
+  AddEntry({Entry::Type::ByteBool, "IPL.CD2", {0}});
   AddEntry({Entry::Type::ByteBool, "IPL.EULA", {1}});
   AddEntry({Entry::Type::Byte, "IPL.UPT", {2}});
   AddEntry({Entry::Type::Byte, "IPL.PGS", {0}});
