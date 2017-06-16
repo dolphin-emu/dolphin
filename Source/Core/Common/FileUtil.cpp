@@ -78,8 +78,7 @@ bool IsDirectory(const std::string& filename)
 
   if (result < 0)
   {
-    WARN_LOG(COMMON, "IsDirectory: stat failed on %s: %s", filename.c_str(),
-             GetLastErrorMsg().c_str());
+    WARN_LOG(COMMON, "IsDirectory: stat failed on %s: %s", filename.c_str(), strerror(errno));
     return false;
   }
 
