@@ -37,7 +37,6 @@ static ReturnCode WriteTicket(const IOS::ES::TicketReader& ticket)
   const std::string ticket_path = Common::GetTicketFileName(title_id, Common::FROM_SESSION_ROOT);
   File::CreateFullPath(ticket_path);
 
-
   File::IOFile ticket_file(ticket_path, "wb");
   if (!ticket_file)
     return ES_EIO;
@@ -46,7 +45,7 @@ static ReturnCode WriteTicket(const IOS::ES::TicketReader& ticket)
   return ticket_file.WriteBytes(raw_ticket.data(), raw_ticket.size()) ? IPC_SUCCESS : ES_EIO;
 }
 
-ReturnCode ES::ImportTicket(const std::vector<u8>& ticket_bytes)
+ReturnCode ES::ImportTicket(const std::vector<u8>& ticket_bytes, const std::vector<u8>& cert_chain)
 {
   IOS::ES::TicketReader ticket{ticket_bytes};
   if (!ticket.IsValid())
@@ -70,6 +69,11 @@ ReturnCode ES::ImportTicket(const std::vector<u8>& ticket_bytes)
     }
   }
 
+  const ReturnCode verify_ret =
+      VerifyContainer(VerifyContainerType::Ticket, VerifyMode::UpdateCertStore, ticket, cert_chain);
+  if (verify_ret != IPC_SUCCESS)
+    return verify_ret;
+
   const ReturnCode write_ret = WriteTicket(ticket);
   if (write_ret != IPC_SUCCESS)
     return write_ret;
@@ -85,7 +89,9 @@ IPCCommandResult ES::ImportTicket(const IOCtlVRequest& request)
 
   std::vector<u8> bytes(request.in_vectors[0].size);
   Memory::CopyFromEmu(bytes.data(), request.in_vectors[0].address, request.in_vectors[0].size);
-  return GetDefaultReply(ImportTicket(bytes));
+  std::vector<u8> cert_chain(request.in_vectors[1].size);
+  Memory::CopyFromEmu(bytes.data(), request.in_vectors[1].address, request.in_vectors[1].size);
+  return GetDefaultReply(ImportTicket(bytes, cert_chain));
 }
 
 ReturnCode ES::ImportTmd(Context& context, const std::vector<u8>& tmd_bytes)
@@ -93,9 +99,22 @@ ReturnCode ES::ImportTmd(Context& context, const std::vector<u8>& tmd_bytes)
   // Ioctlv 0x2b writes the TMD to /tmp/title.tmd (for imports) and doesn't seem to write it
   // to either /import or /title. So here we simply have to set the import TMD.
   context.title_import.tmd.SetBytes(tmd_bytes);
-  // TODO: validate TMDs and return the proper error code (-1027) if the signature type is invalid.
   if (!context.title_import.tmd.IsValid())
     return ES_EINVAL;
+
+  std::vector<u8> cert_store;
+  ReturnCode ret = ReadCertStore(&cert_store);
+  if (ret != IPC_SUCCESS)
+    return ret;
+
+  ret = VerifyContainer(VerifyContainerType::TMD, VerifyMode::UpdateCertStore,
+                        context.title_import.tmd, cert_store);
+  if (ret != IPC_SUCCESS)
+  {
+    // Reset the import context so that further calls consider the state as invalid.
+    context.title_import.tmd.SetBytes({});
+    return ret;
+  }
 
   if (!InitImport(context.title_import.tmd.GetTitleId()))
     return ES_EIO;
@@ -116,7 +135,8 @@ IPCCommandResult ES::ImportTmd(Context& context, const IOCtlVRequest& request)
   return GetDefaultReply(ImportTmd(context, tmd));
 }
 
-ReturnCode ES::ImportTitleInit(Context& context, const std::vector<u8>& tmd_bytes)
+ReturnCode ES::ImportTitleInit(Context& context, const std::vector<u8>& tmd_bytes,
+                               const std::vector<u8>& cert_chain)
 {
   INFO_LOG(IOS_ES, "ImportTitleInit");
   context.title_import.tmd.SetBytes(tmd_bytes);
@@ -129,10 +149,33 @@ ReturnCode ES::ImportTitleInit(Context& context, const std::vector<u8>& tmd_byte
   // Finish a previous import (if it exists).
   FinishStaleImport(context.title_import.tmd.GetTitleId());
 
+  ReturnCode ret = VerifyContainer(VerifyContainerType::TMD, VerifyMode::UpdateCertStore,
+                                   context.title_import.tmd, cert_chain);
+  if (ret != IPC_SUCCESS)
+  {
+    context.title_import.tmd.SetBytes({});
+    return ret;
+  }
+
+  const auto ticket = DiscIO::FindSignedTicket(context.title_import.tmd.GetTitleId());
+  if (!ticket.IsValid())
+    return ES_NO_TICKET;
+
+  std::vector<u8> cert_store;
+  ret = ReadCertStore(&cert_store);
+  if (ret != IPC_SUCCESS)
+    return ret;
+
+  ret = VerifyContainer(VerifyContainerType::Ticket, VerifyMode::DoNotUpdateCertStore, ticket,
+                        cert_store);
+  if (ret != IPC_SUCCESS)
+  {
+    context.title_import.tmd.SetBytes({});
+    return ret;
+  }
+
   if (!InitImport(context.title_import.tmd.GetTitleId()))
     return ES_EIO;
-
-  // TODO: check and use the other vectors.
 
   return IPC_SUCCESS;
 }
@@ -147,7 +190,9 @@ IPCCommandResult ES::ImportTitleInit(Context& context, const IOCtlVRequest& requ
 
   std::vector<u8> tmd(request.in_vectors[0].size);
   Memory::CopyFromEmu(tmd.data(), request.in_vectors[0].address, request.in_vectors[0].size);
-  return GetDefaultReply(ImportTitleInit(context, tmd));
+  std::vector<u8> certs(request.in_vectors[1].size);
+  Memory::CopyFromEmu(certs.data(), request.in_vectors[1].address, request.in_vectors[1].size);
+  return GetDefaultReply(ImportTitleInit(context, tmd, certs));
 }
 
 ReturnCode ES::ImportContentBegin(Context& context, u64 title_id, u32 content_id)
