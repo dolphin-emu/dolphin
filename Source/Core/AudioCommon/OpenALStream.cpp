@@ -296,8 +296,8 @@ void OpenALStream::SoundLoop()
     // Remove the Buffer from the Queue.
     if (num_buffers_processed)
     {
-      ALuint unqueued_buffer_ids[OAL_BUFFERS];
-      palSourceUnqueueBuffers(m_source, num_buffers_processed, unqueued_buffer_ids);
+      std::array<ALuint, OAL_BUFFERS> unqueued_buffer_ids;
+      palSourceUnqueueBuffers(m_source, num_buffers_processed, unqueued_buffer_ids.data());
       err = CheckALError("unqueuing buffers");
 
       num_buffers_queued -= num_buffers_processed;
@@ -307,8 +307,8 @@ void OpenALStream::SoundLoop()
 
     if (use_surround)
     {
-      float dpl2[OAL_MAX_FRAMES * SURROUND_CHANNELS];
-      u32 rendered_frames = m_mixer->MixSurround(dpl2, min_frames);
+      std::array<float, OAL_MAX_FRAMES * SURROUND_CHANNELS> dpl2;
+      u32 rendered_frames = m_mixer->MixSurround(dpl2.data(), min_frames);
 
       if (rendered_frames < min_frames)
         continue;
@@ -324,12 +324,12 @@ void OpenALStream::SoundLoop()
 
       if (float32_capable)
       {
-        palBufferData(m_buffers[next_buffer], AL_FORMAT_51CHN32, dpl2,
+        palBufferData(m_buffers[next_buffer], AL_FORMAT_51CHN32, dpl2.data(),
                       rendered_frames * FRAME_SURROUND_FLOAT, frequency);
       }
       else if (fixed32_capable)
       {
-        int surround_int32[OAL_MAX_FRAMES * SURROUND_CHANNELS];
+        std::array<int, OAL_MAX_FRAMES * SURROUND_CHANNELS> surround_int32;
 
         for (u32 i = 0; i < rendered_frames * SURROUND_CHANNELS; ++i)
         {
@@ -342,15 +342,15 @@ void OpenALStream::SoundLoop()
           else if (dpl2[i] < INT_MIN)
             surround_int32[i] = INT_MIN;
           else
-            surround_int32[i] = (int)dpl2[i];
+            surround_int32[i] = static_cast<int>(dpl2[i]);
         }
 
-        palBufferData(m_buffers[next_buffer], AL_FORMAT_51CHN32, surround_int32,
+        palBufferData(m_buffers[next_buffer], AL_FORMAT_51CHN32, surround_int32.data(),
                       rendered_frames * FRAME_SURROUND_INT32, frequency);
       }
       else
       {
-        short surround_short[OAL_MAX_FRAMES * SURROUND_CHANNELS];
+        std::array<short, OAL_MAX_FRAMES * SURROUND_CHANNELS> surround_short;
 
         for (u32 i = 0; i < rendered_frames * SURROUND_CHANNELS; ++i)
         {
@@ -360,10 +360,10 @@ void OpenALStream::SoundLoop()
           else if (dpl2[i] < SHRT_MIN)
             surround_short[i] = SHRT_MIN;
           else
-            surround_short[i] = (int)dpl2[i];
+            surround_short[i] = static_cast<int>(dpl2[i]);
         }
 
-        palBufferData(m_buffers[next_buffer], AL_FORMAT_51CHN16, surround_short,
+        palBufferData(m_buffers[next_buffer], AL_FORMAT_51CHN16, surround_short.data(),
                       rendered_frames * FRAME_SURROUND_SHORT, frequency);
       }
 
