@@ -43,8 +43,6 @@ private:
   void LoadCheckBox(QCheckBox* checkbox, const std::string& section, const std::string& key);
   void SaveCheckBox(QCheckBox* checkbox, const std::string& section, const std::string& key);
 
-  QComboBox* m_state_combo;
-  QLineEdit* m_state_comment_edit;
   QPushButton* m_refresh_config;
   QPushButton* m_edit_user_config;
   QPushButton* m_view_default_config;

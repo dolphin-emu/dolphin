@@ -142,25 +142,6 @@ void GameFile::CustomNameCommit()
   m_custom_name = std::move(m_pending.custom_name);
 }
 
-bool GameFile::EmuStateChanged()
-{
-  IniFile ini = SConfig::LoadGameIni(m_game_id, m_revision);
-  ini.GetIfExists("EmuState", "EmulationStateId", &m_pending.emu_state.rating, 0);
-  ini.GetIfExists("EmuState", "EmulationIssues", &m_pending.emu_state.issues, std::string());
-  return m_emu_state != m_pending.emu_state;
-}
-
-void GameFile::EmuStateCommit()
-{
-  m_emu_state = std::move(m_pending.emu_state);
-}
-
-void GameFile::EmuState::DoState(PointerWrap& p)
-{
-  p.Do(rating);
-  p.Do(issues);
-}
-
 void GameBanner::DoState(PointerWrap& p)
 {
   p.Do(buffer);
@@ -196,7 +177,6 @@ void GameFile::DoState(PointerWrap& p)
   p.Do(m_apploader_date);
 
   m_volume_banner.DoState(p);
-  m_emu_state.DoState(p);
   p.Do(m_custom_name);
 }
 

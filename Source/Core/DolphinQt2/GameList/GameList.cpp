@@ -93,7 +93,6 @@ void GameList::MakeListView()
   m_list->setColumnHidden(GameListModel::COL_ID, !SConfig::GetInstance().m_showIDColumn);
   m_list->setColumnHidden(GameListModel::COL_COUNTRY, !SConfig::GetInstance().m_showRegionColumn);
   m_list->setColumnHidden(GameListModel::COL_SIZE, !SConfig::GetInstance().m_showSizeColumn);
-  m_list->setColumnHidden(GameListModel::COL_RATING, !SConfig::GetInstance().m_showStateColumn);
   m_list->setColumnHidden(GameListModel::COL_FILE_NAME,
                           !SConfig::GetInstance().m_showFileNameColumn);
 
@@ -116,7 +115,6 @@ void GameList::MakeListView()
   hor_header->setSectionResizeMode(GameListModel::COL_ID, QHeaderView::ResizeToContents);
   hor_header->setSectionResizeMode(GameListModel::COL_COUNTRY, QHeaderView::ResizeToContents);
   hor_header->setSectionResizeMode(GameListModel::COL_SIZE, QHeaderView::ResizeToContents);
-  hor_header->setSectionResizeMode(GameListModel::COL_RATING, QHeaderView::ResizeToContents);
   hor_header->setSectionResizeMode(GameListModel::COL_FILE_NAME, QHeaderView::Interactive);
 
   m_list->verticalHeader()->hide();
@@ -494,7 +492,6 @@ void GameList::OnColumnVisibilityToggled(const QString& row, bool visible)
       {tr("Platform"), GameListModel::COL_PLATFORM},
       {tr("Size"), GameListModel::COL_SIZE},
       {tr("Title"), GameListModel::COL_TITLE},
-      {tr("State"), GameListModel::COL_RATING},
       {tr("File Name"), GameListModel::COL_FILE_NAME}};
 
   m_list->setColumnHidden(rowname_to_col_index[row], !visible);

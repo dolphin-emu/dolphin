@@ -80,10 +80,6 @@ private:
   wxSpinCtrl* m_convergence;
   wxCheckBox* m_mono_depth;
 
-  wxArrayString m_emustate_string;
-  wxChoice* m_emustate_choice;
-  wxTextCtrl* m_emu_issues;
-
   wxCheckListBox* m_patches;
   wxButton* m_edit_patch;
   wxButton* m_remove_patch;
@@ -116,8 +112,6 @@ private:
     ID_ENABLEWIDESCREEN,
     ID_EDITCONFIG,
     ID_SHOWDEFAULTCONFIG,
-    ID_EMUSTATE,
-    ID_EMU_ISSUES,
     ID_PATCHES_LIST,
     ID_EDITPATCH,
     ID_ADDPATCH,
@@ -137,7 +131,6 @@ private:
   void OnShowDefaultConfig(wxCommandEvent& event);
   void PatchListSelectionChanged(wxCommandEvent& event);
   void PatchButtonClicked(wxCommandEvent& event);
-  void OnEmustateChanged(wxCommandEvent& event);
   void OnCheatCodeToggled(wxCommandEvent& event);
   void OnChangeTitle(wxCommandEvent& event);
 
