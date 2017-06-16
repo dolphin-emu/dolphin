@@ -51,29 +51,15 @@
 // REMEMBER: strdup considered harmful!
 namespace File
 {
-// Remove any ending forward slashes from directory paths
-// Modifies argument.
-static void StripTailDirSlashes(std::string& fname)
-{
-  if (fname.length() > 1)
-  {
-    while (fname.back() == DIR_SEP_CHR)
-      fname.pop_back();
-  }
-}
-
 // Returns true if file filename exists
 bool Exists(const std::string& filename)
 {
   struct stat file_info;
 
-  std::string copy(filename);
-  StripTailDirSlashes(copy);
-
 #ifdef _WIN32
-  int result = _tstat64(UTF8ToTStr(copy).c_str(), &file_info);
+  int result = _tstat64(UTF8ToTStr(filename).c_str(), &file_info);
 #else
-  int result = stat(copy.c_str(), &file_info);
+  int result = stat(filename.c_str(), &file_info);
 #endif
 
   return (result == 0);
@@ -84,19 +70,15 @@ bool IsDirectory(const std::string& filename)
 {
   struct stat file_info;
 
-  std::string copy(filename);
-  StripTailDirSlashes(copy);
-
 #ifdef _WIN32
-  int result = _tstat64(UTF8ToTStr(copy).c_str(), &file_info);
+  int result = _tstat64(UTF8ToTStr(filename).c_str(), &file_info);
 #else
-  int result = stat(copy.c_str(), &file_info);
+  int result = stat(filename.c_str(), &file_info);
 #endif
 
   if (result < 0)
   {
-    WARN_LOG(COMMON, "IsDirectory: stat failed on %s: %s", filename.c_str(),
-             GetLastErrorMsg().c_str());
+    WARN_LOG(COMMON, "IsDirectory: stat failed on %s: %s", filename.c_str(), strerror(errno));
     return false;
   }
 
