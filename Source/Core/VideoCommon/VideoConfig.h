@@ -50,6 +50,15 @@ enum StereoMode
   STEREO_3DVISION
 };
 
+struct ProjectionHackConfig final
+{
+  bool m_enable;
+  bool m_sznear;
+  bool m_szfar;
+  std::string m_znear;
+  std::string m_zfar;
+};
+
 // NEVER inherit from this class.
 struct VideoConfig final
 {
@@ -119,8 +128,7 @@ struct VideoConfig final
   bool bSkipEFBCopyToRam;
   bool bCopyEFBScaled;
   int iSafeTextureCache_ColorSamples;
-  int iPhackvalue[3];
-  std::string sPhackvalue[2];
+  ProjectionHackConfig phack;
   float fAspectRatioHackW, fAspectRatioHackH;
   bool bEnablePixelLighting;
   bool bFastDepthCalc;

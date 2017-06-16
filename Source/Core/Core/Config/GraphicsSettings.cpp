@@ -129,8 +129,10 @@ const ConfigInfo<bool> GFX_HACK_VERTEX_ROUDING{{System::GFX, "Hacks", "VertexRou
 const ConfigInfo<int> GFX_PROJECTION_HACK{{System::GFX, "GameSpecific", "ProjectionHack"}, 0};
 const ConfigInfo<int> GFX_PROJECTION_HACK_SZNEAR{{System::GFX, "GameSpecific", "PH_SZNear"}, 0};
 const ConfigInfo<int> GFX_PROJECTION_HACK_SZFAR{{System::GFX, "GameSpecific", "PH_SZFar"}, 0};
-const ConfigInfo<int> GFX_PROJECTION_HACK_ZNEAR{{System::GFX, "GameSpecific", "PH_ZNear"}, 0};
-const ConfigInfo<int> GFX_PROJECTION_HACK_ZFAR{{System::GFX, "GameSpecific", "PH_ZFar"}, 0};
+const ConfigInfo<std::string> GFX_PROJECTION_HACK_ZNEAR{{System::GFX, "GameSpecific", "PH_ZNear"},
+                                                        ""};
+const ConfigInfo<std::string> GFX_PROJECTION_HACK_ZFAR{{System::GFX, "GameSpecific", "PH_ZFar"},
+                                                       ""};
 const ConfigInfo<bool> GFX_PERF_QUERIES_ENABLE{{System::GFX, "GameSpecific", "PerfQueriesEnable"},
                                                false};
 }  // namespace Config
