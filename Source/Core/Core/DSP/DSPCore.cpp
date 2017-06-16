@@ -88,6 +88,12 @@ static bool VerifyRoms()
     Host::OSD_AddMessage("All Wii games will work correctly, and most GC games should ", 8000);
     Host::OSD_AddMessage("also work fine, but the GBA/IPL/CARD UCodes will not work.", 8000);
   }
+  else if (rom_idx == 4)
+  {
+    Host::OSD_AddMessage("You are using a free DSP ROM made by the Dolphin Team.", 8000);
+    Host::OSD_AddMessage("All Wii games will work correctly, and most GC games should ", 8000);
+    Host::OSD_AddMessage("also work fine, but the IPL and CARD UCodes will not work.", 8000);
+  }
 
   return true;
 }
