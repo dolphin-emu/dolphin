@@ -22,7 +22,6 @@
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Hash.h"
-#include "Common/IniFile.h"
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
 
@@ -64,10 +63,9 @@ static std::string GetLanguageString(DiscIO::Language language,
 }
 
 GameListItem::GameListItem(const std::string& _rFileName, const Core::TitleDatabase& title_database)
-    : m_FileName(_rFileName), m_title_id(0), m_emu_state(0), m_FileSize(0),
+    : m_FileName(_rFileName), m_title_id(0), m_FileSize(0),
       m_region(DiscIO::Region::UNKNOWN_REGION), m_Country(DiscIO::Country::COUNTRY_UNKNOWN),
-      m_Revision(0), m_Valid(false), m_ImageWidth(0), m_ImageHeight(0), m_disc_number(0),
-      m_has_custom_name(false)
+      m_Revision(0), m_Valid(false), m_ImageWidth(0), m_ImageHeight(0), m_disc_number(0)
 {
   if (LoadFromCache())
   {
@@ -128,8 +126,7 @@ GameListItem::GameListItem(const std::string& _rFileName, const Core::TitleDatab
     const auto type = m_Platform == DiscIO::Platform::WII_WAD ?
                           Core::TitleDatabase::TitleType::Channel :
                           Core::TitleDatabase::TitleType::Other;
-    m_custom_name_titles_txt = title_database.GetTitleName(m_game_id, type);
-    ReloadINI();
+    m_custom_name = title_database.GetTitleName(m_game_id, type);
   }
 
   if (!IsValid() && IsElfOrDol())
@@ -178,24 +175,6 @@ bool GameListItem::IsValid() const
     return false;
 
   return true;
-}
-
-void GameListItem::ReloadINI()
-{
-  if (!IsValid())
-    return;
-
-  IniFile ini = SConfig::LoadGameIni(m_game_id, m_Revision);
-  ini.GetIfExists("EmuState", "EmulationStateId", &m_emu_state, 0);
-  ini.GetIfExists("EmuState", "EmulationIssues", &m_issues, std::string());
-
-  m_custom_name.clear();
-  m_has_custom_name = ini.GetIfExists("EmuState", "Title", &m_custom_name);
-  if (!m_has_custom_name && !m_custom_name_titles_txt.empty())
-  {
-    m_custom_name = m_custom_name_titles_txt;
-    m_has_custom_name = true;
-  }
 }
 
 bool GameListItem::LoadFromCache()
@@ -305,7 +284,7 @@ std::string GameListItem::GetName(DiscIO::Language language) const
 
 std::string GameListItem::GetName() const
 {
-  if (m_has_custom_name)
+  if (!m_custom_name.empty())
     return m_custom_name;
 
   bool wii = m_Platform != DiscIO::Platform::GAMECUBE_DISC;

@@ -15,7 +15,6 @@
 
 QList<QPixmap> Resources::m_platforms;
 QList<QPixmap> Resources::m_countries;
-QList<QPixmap> Resources::m_ratings;
 QList<QPixmap> Resources::m_misc;
 
 QIcon Resources::GetIcon(const QString& name, const QString& dir)
@@ -60,11 +59,6 @@ QPixmap Resources::GetScaledPixmap(const std::string& name)
   return GetPixmap(QString::fromStdString(name), Settings::Instance().GetResourcesDir());
 }
 
-QPixmap Resources::GetScaledThemePixmap(const std::string& name)
-{
-  return GetPixmap(QString::fromStdString(name), Settings::Instance().GetThemeDir());
-}
-
 void Resources::Init()
 {
   QString sys_dir = QString::fromStdString(File::GetSysDirectory() + RESOURCES_DIR + DIR_SEP);
@@ -86,16 +80,6 @@ void Resources::Init()
   m_misc.append(GetScaledPixmap("nobanner"));
   m_misc.append(GetScaledPixmap("dolphin_logo"));
   m_misc.append(GetScaledPixmap("Dolphin"));
-
-  QObject::connect(&Settings::Instance(), &Settings::ThemeChanged, Resources::InitThemeIcons);
-  InitThemeIcons();
-}
-
-void Resources::InitThemeIcons()
-{
-  m_ratings = {GetScaledThemePixmap("rating0"), GetScaledThemePixmap("rating1"),
-               GetScaledThemePixmap("rating2"), GetScaledThemePixmap("rating3"),
-               GetScaledThemePixmap("rating4"), GetScaledThemePixmap("rating5")};
 }
 
 QPixmap Resources::GetPlatform(int platform)
@@ -106,11 +90,6 @@ QPixmap Resources::GetPlatform(int platform)
 QPixmap Resources::GetCountry(int country)
 {
   return m_countries[country];
-}
-
-QPixmap Resources::GetRating(int rating)
-{
-  return m_ratings[rating];
 }
 
 QPixmap Resources::GetMisc(int id)

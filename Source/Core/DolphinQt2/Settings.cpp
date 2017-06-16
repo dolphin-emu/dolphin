@@ -275,11 +275,6 @@ bool& Settings::SizeVisible() const
   return SConfig::GetInstance().m_showSizeColumn;
 }
 
-bool& Settings::StateVisible() const
-{
-  return SConfig::GetInstance().m_showStateColumn;
-}
-
 bool Settings::IsBluetoothPassthroughEnabled() const
 {
   return SConfig::GetInstance().m_bt_passthrough_enabled;

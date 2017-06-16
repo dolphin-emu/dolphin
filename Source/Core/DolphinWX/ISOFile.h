@@ -35,9 +35,6 @@ public:
   GameListItem(const std::string& file_name, const Core::TitleDatabase& title_database);
   ~GameListItem();
 
-  // Reload settings after INI changes
-  void ReloadINI();
-
   bool IsValid() const;
   const std::string& GetFileName() const { return m_FileName; }
   std::string GetName(DiscIO::Language language) const;
@@ -55,8 +52,6 @@ public:
   DiscIO::Country GetCountry() const { return m_Country; }
   DiscIO::Platform GetPlatform() const { return m_Platform; }
   DiscIO::BlobType GetBlobType() const { return m_blob_type; }
-  const std::string& GetIssues() const { return m_issues; }
-  int GetEmuState() const { return m_emu_state; }
   u64 GetFileSize() const { return m_FileSize; }
   u64 GetVolumeSize() const { return m_VolumeSize; }
   // 0 is the first disc, 1 is the second disc
@@ -76,9 +71,6 @@ private:
   std::string m_game_id;
   u64 m_title_id = 0;
 
-  std::string m_issues;
-  int m_emu_state;
-
   u64 m_FileSize;
   u64 m_VolumeSize;
 
@@ -94,9 +86,8 @@ private:
   int m_ImageWidth, m_ImageHeight;
   u8 m_disc_number;
 
-  std::string m_custom_name_titles_txt;  // Custom title from titles.txt
-  std::string m_custom_name;             // Custom title from INI or titles.txt
-  bool m_has_custom_name;
+  // Custom title from TitleDatabase
+  std::string m_custom_name;
 
   bool LoadFromCache();
   void SaveToCache();

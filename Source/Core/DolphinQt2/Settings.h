@@ -84,7 +84,6 @@ public:
   bool& PlatformVisible() const;
   bool& MakerVisible() const;
   bool& SizeVisible() const;
-  bool& StateVisible() const;
   bool& TitleVisible() const;
 
   // Input

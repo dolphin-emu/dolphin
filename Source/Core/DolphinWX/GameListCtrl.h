@@ -14,23 +14,6 @@
 
 #include "DolphinWX/ISOFile.h"
 
-class wxEmuStateTip : public wxTipWindow
-{
-public:
-  wxEmuStateTip(wxWindow* parent, const wxString& text, wxEmuStateTip** windowPtr)
-      : wxTipWindow(parent, text, 70, (wxTipWindow**)windowPtr)
-  {
-    Bind(wxEVT_KEY_DOWN, &wxEmuStateTip::OnKeyDown, this);
-  }
-
-  // wxTipWindow doesn't correctly handle KeyEvents and crashes... we must overload that.
-  void OnKeyDown(wxKeyEvent& event)
-  {
-    event.StopPropagation();
-    Close();
-  }
-};
-
 wxDECLARE_EVENT(DOLPHIN_EVT_RELOAD_GAMELIST, wxCommandEvent);
 
 class CGameListCtrl : public wxListCtrl
@@ -58,7 +41,6 @@ public:
     COLUMN_ID,
     COLUMN_COUNTRY,
     COLUMN_SIZE,
-    COLUMN_EMULATION_STATE,
     NUMBER_OF_COLUMN
   };
 
@@ -82,7 +64,6 @@ private:
   void OnReloadGameList(wxCommandEvent& event);
   void OnLeftClick(wxMouseEvent& event);
   void OnRightClick(wxMouseEvent& event);
-  void OnMouseMotion(wxMouseEvent& event);
   void OnColumnClick(wxListEvent& event);
   void OnColBeginDrag(wxListEvent& event);
   void OnKeyPress(wxListEvent& event);
@@ -111,14 +92,12 @@ private:
 
   std::vector<int> m_FlagImageIndex;
   std::vector<int> m_PlatformImageIndex;
-  std::vector<int> m_EmuStateImageIndex;
   std::vector<int> m_utility_game_banners;
   std::vector<std::unique_ptr<GameListItem>> m_ISOFiles;
 
   int last_column;
   int last_sort;
   wxSize lastpos;
-  wxEmuStateTip* toolTip;
 
   std::vector<ColumnInfo> m_columns;
 };

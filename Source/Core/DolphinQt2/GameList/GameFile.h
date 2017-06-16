@@ -44,8 +44,6 @@ public:
   u8 GetDiscNumber() const { return m_disc_number; }
   u64 GetRawSize() const { return m_raw_size; }
   QPixmap GetBanner() const { return m_banner; }
-  QString GetIssues() const { return m_issues; }
-  int GetRating() const { return m_rating; }
   QString GetApploaderDate() const { return m_apploader_date; }
   DiscIO::Platform GetPlatformID() const { return m_platform; }
   QString GetPlatform() const;
@@ -78,7 +76,6 @@ private:
   QString GetCacheFileName() const;
   void ReadBanner(const DiscIO::Volume& volume);
   bool LoadFileInfo(const QString& path);
-  void LoadState();
   bool IsElfOrDol();
   bool TryLoadElfDol();
   bool TryLoadCache();
@@ -112,8 +109,6 @@ private:
   DiscIO::BlobType m_blob_type;
   u64 m_raw_size = 0;
   QPixmap m_banner;
-  QString m_issues;
-  int m_rating = 0;
   QString m_apploader_date;
 };
 

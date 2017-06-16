@@ -181,7 +181,6 @@ EVT_CLOSE(CISOProperties::OnClose)
 EVT_BUTTON(wxID_OK, CISOProperties::OnCloseClick)
 EVT_BUTTON(ID_EDITCONFIG, CISOProperties::OnEditConfig)
 EVT_BUTTON(ID_SHOWDEFAULTCONFIG, CISOProperties::OnShowDefaultConfig)
-EVT_CHOICE(ID_EMUSTATE, CISOProperties::OnEmustateChanged)
 EVT_LISTBOX(ID_PATCHES_LIST, CISOProperties::PatchListSelectionChanged)
 EVT_BUTTON(ID_EDITPATCH, CISOProperties::PatchButtonClicked)
 EVT_BUTTON(ID_ADDPATCH, CISOProperties::PatchButtonClicked)
@@ -323,22 +322,6 @@ void CISOProperties::CreateGUIControls()
                      wxDefaultSize, GetElementStyle("Video_Stereoscopy", "StereoEFBMonoDepth"));
   MonoDepth->SetToolTip(_("Use a single depth buffer for both eyes. Needed for a few games."));
 
-  wxBoxSizer* const sEmuState = new wxBoxSizer(wxHORIZONTAL);
-  wxStaticText* const EmuStateText =
-      new wxStaticText(m_GameConfig, wxID_ANY, _("Emulation State: "));
-  arrayStringFor_EmuState.Add(_("Not Set"));
-  arrayStringFor_EmuState.Add(_("Broken"));
-  arrayStringFor_EmuState.Add(_("Intro"));
-  arrayStringFor_EmuState.Add(_("In Game"));
-  arrayStringFor_EmuState.Add(_("Playable"));
-  arrayStringFor_EmuState.Add(_("Perfect"));
-  EmuState = new wxChoice(m_GameConfig, ID_EMUSTATE, wxDefaultPosition, wxDefaultSize,
-                          arrayStringFor_EmuState);
-  EmuIssues = new wxTextCtrl(m_GameConfig, ID_EMU_ISSUES, wxEmptyString);
-  sEmuState->Add(EmuStateText, 0, wxALIGN_CENTER_VERTICAL);
-  sEmuState->Add(EmuState, 0, wxALIGN_CENTER_VERTICAL);
-  sEmuState->Add(EmuIssues, 1, wxEXPAND);
-
   wxStaticBoxSizer* const sbCoreOverrides =
       new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Core"));
   sbCoreOverrides->Add(CPUThread, 0, wxLEFT | wxRIGHT, space5);
@@ -379,8 +362,6 @@ void CISOProperties::CreateGUIControls()
   wxBoxSizer* const sConfigPage = new wxBoxSizer(wxVERTICAL);
   sConfigPage->AddSpacer(space5);
   sConfigPage->Add(sbGameConfig, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
-  sConfigPage->AddSpacer(space5);
-  sConfigPage->Add(sEmuState, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
   sConfigPage->AddSpacer(space5);
   m_GameConfig->SetSizer(sConfigPage);
 
@@ -483,11 +464,6 @@ void CISOProperties::OnCloseClick(wxCommandEvent& WXUNUSED(event))
   Close();
 }
 
-void CISOProperties::OnEmustateChanged(wxCommandEvent& event)
-{
-  EmuIssues->Enable(event.GetSelection() != 0);
-}
-
 void CISOProperties::SetCheckboxValueFromGameini(const char* section, const char* key,
                                                  wxCheckBox* checkbox)
 {
@@ -531,20 +507,6 @@ void CISOProperties::LoadGameConfig()
   default_video->Get("PH_ZFar", &m_PHack_Data.PHZFar);
   if (GameIniLocal.GetIfExists("Video", "PH_ZFar", &sTemp))
     m_PHack_Data.PHZFar = sTemp;
-
-  IniFile::Section* default_emustate = GameIniDefault.GetOrCreateSection("EmuState");
-  default_emustate->Get("EmulationStateId", &iTemp, 0 /*Not Set*/);
-  EmuState->SetSelection(iTemp);
-  if (GameIniLocal.GetIfExists("EmuState", "EmulationStateId", &iTemp))
-    EmuState->SetSelection(iTemp);
-
-  default_emustate->Get("EmulationIssues", &sTemp);
-  if (!sTemp.empty())
-    EmuIssues->SetValue(StrToWxStr(sTemp));
-  if (GameIniLocal.GetIfExists("EmuState", "EmulationIssues", &sTemp))
-    EmuIssues->SetValue(StrToWxStr(sTemp));
-
-  EmuIssues->Enable(EmuState->GetSelection() != 0);
 
   sTemp = "";
   if (!GameIniLocal.GetIfExists("Core", "GPUDeterminismMode", &sTemp))
@@ -631,10 +593,6 @@ bool CISOProperties::SaveGameConfig()
   SAVE_IF_NOT_DEFAULT("Video", "PH_SZFar", (m_PHack_Data.PHackSZFar ? 1 : 0), 0);
   SAVE_IF_NOT_DEFAULT("Video", "PH_ZNear", m_PHack_Data.PHZNear, "");
   SAVE_IF_NOT_DEFAULT("Video", "PH_ZFar", m_PHack_Data.PHZFar, "");
-  SAVE_IF_NOT_DEFAULT("EmuState", "EmulationStateId", EmuState->GetSelection(), 0);
-
-  std::string emu_issues = EmuIssues->GetValue().ToStdString();
-  SAVE_IF_NOT_DEFAULT("EmuState", "EmulationIssues", emu_issues, "");
 
   std::string tmp;
   if (GPUDeterminism->GetSelection() == 0)
