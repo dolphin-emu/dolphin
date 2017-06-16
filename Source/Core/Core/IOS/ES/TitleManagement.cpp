@@ -37,7 +37,6 @@ static ReturnCode WriteTicket(const IOS::ES::TicketReader& ticket)
   const std::string ticket_path = Common::GetTicketFileName(title_id, Common::FROM_SESSION_ROOT);
   File::CreateFullPath(ticket_path);
 
-
   File::IOFile ticket_file(ticket_path, "wb");
   if (!ticket_file)
     return ES_EIO;
