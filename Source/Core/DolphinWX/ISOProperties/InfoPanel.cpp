@@ -198,7 +198,7 @@ void InfoPanel::LoadBannerDetails()
 {
   LoadBannerImage();
 
-  const bool is_wii = m_opened_iso->GetVolumeType() != DiscIO::Platform::GAMECUBE_DISC;
+  const bool is_wii = DiscIO::IsWii(m_opened_iso->GetVolumeType());
   ChangeBannerDetails(SConfig::GetInstance().GetCurrentLanguage(is_wii));
 }
 
@@ -311,7 +311,7 @@ wxStaticBoxSizer* InfoPanel::CreateBannerDetailsSizer()
 wxChoice* InfoPanel::CreateCommentLanguageChoice()
 {
   const auto languages = m_game_list_item.GetLanguages();
-  const bool is_wii = m_opened_iso->GetVolumeType() != DiscIO::Platform::GAMECUBE_DISC;
+  const bool is_wii = DiscIO::IsWii(m_opened_iso->GetVolumeType());
   const auto preferred_language = SConfig::GetInstance().GetCurrentLanguage(is_wii);
   const int preferred_language_index = FindPreferredLanguageIndex(preferred_language, languages);
   const auto choices = GetLanguageChoiceStrings(languages);
