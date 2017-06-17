@@ -56,7 +56,7 @@ class OpenALStream final : public SoundStream
 {
 #ifdef _WIN32
 public:
-  OpenALStream() : uiSource(0) {}
+  OpenALStream() : m_source(0) {}
   bool Start() override;
   void SoundLoop() override;
   void SetVolume(int volume) override;
@@ -67,16 +67,16 @@ public:
   static bool isValid();
 
 private:
-  std::thread thread;
+  std::thread m_thread;
   Common::Flag m_run_thread;
 
-  Common::Event soundSyncEvent;
+  Common::Event m_sound_sync_event;
 
-  std::vector<short> realtimeBuffer;
-  std::vector<float> sampleBuffer;
-  std::array<ALuint, OAL_BUFFERS> uiBuffers;
-  ALuint uiSource;
-  ALfloat fVolume;
+  std::vector<short> m_realtime_buffer;
+  std::vector<float> m_sample_buffer;
+  std::array<ALuint, OAL_BUFFERS> m_buffers;
+  ALuint m_source;
+  ALfloat m_volume;
 
 #endif  // _WIN32
 };

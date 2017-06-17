@@ -100,27 +100,27 @@ bool OpenALStream::Start()
     return false;
   }
 
-  const char* defaultDeviceName = palcGetString(nullptr, ALC_DEFAULT_DEVICE_SPECIFIER);
-  INFO_LOG(AUDIO, "Found OpenAL device %s", defaultDeviceName);
+  const char* default_device_dame = palcGetString(nullptr, ALC_DEFAULT_DEVICE_SPECIFIER);
+  INFO_LOG(AUDIO, "Found OpenAL device %s", default_device_dame);
 
-  ALCdevice* pDevice = palcOpenDevice(defaultDeviceName);
-  if (!pDevice)
+  ALCdevice* device = palcOpenDevice(default_device_dame);
+  if (!device)
   {
-    PanicAlertT("OpenAL: can't open device %s", defaultDeviceName);
+    PanicAlertT("OpenAL: can't open device %s", default_device_dame);
     return false;
   }
 
-  ALCcontext* pContext = palcCreateContext(pDevice, nullptr);
-  if (!pContext)
+  ALCcontext* context = palcCreateContext(device, nullptr);
+  if (!context)
   {
-    palcCloseDevice(pDevice);
-    PanicAlertT("OpenAL: can't create context for device %s", defaultDeviceName);
+    palcCloseDevice(device);
+    PanicAlertT("OpenAL: can't create context for device %s", default_device_dame);
     return false;
   }
 
-  palcMakeContextCurrent(pContext);
+  palcMakeContextCurrent(context);
   m_run_thread.Set();
-  thread = std::thread(&OpenALStream::SoundLoop, this);
+  m_thread = std::thread(&OpenALStream::SoundLoop, this);
   return true;
 }
 
@@ -128,37 +128,37 @@ void OpenALStream::Stop()
 {
   m_run_thread.Clear();
   // kick the thread if it's waiting
-  soundSyncEvent.Set();
+  m_sound_sync_event.Set();
 
-  thread.join();
+  m_thread.join();
 
-  palSourceStop(uiSource);
-  palSourcei(uiSource, AL_BUFFER, 0);
+  palSourceStop(m_source);
+  palSourcei(m_source, AL_BUFFER, 0);
 
   // Clean up buffers and sources
-  palDeleteSources(1, &uiSource);
-  uiSource = 0;
-  palDeleteBuffers(OAL_BUFFERS, uiBuffers.data());
+  palDeleteSources(1, &m_source);
+  m_source = 0;
+  palDeleteBuffers(OAL_BUFFERS, m_buffers.data());
 
-  ALCcontext* pContext = palcGetCurrentContext();
-  ALCdevice* pDevice = palcGetContextsDevice(pContext);
+  ALCcontext* context = palcGetCurrentContext();
+  ALCdevice* device = palcGetContextsDevice(context);
 
   palcMakeContextCurrent(nullptr);
-  palcDestroyContext(pContext);
-  palcCloseDevice(pDevice);
+  palcDestroyContext(context);
+  palcCloseDevice(device);
 }
 
 void OpenALStream::SetVolume(int volume)
 {
-  fVolume = (float)volume / 100.0f;
+  m_volume = (float)volume / 100.0f;
 
-  if (uiSource)
-    palSourcef(uiSource, AL_GAIN, fVolume);
+  if (m_source)
+    palSourcef(m_source, AL_GAIN, m_volume);
 }
 
 void OpenALStream::Update()
 {
-  soundSyncEvent.Set();
+  m_sound_sync_event.Set();
 }
 
 void OpenALStream::Clear(bool mute)
@@ -167,11 +167,11 @@ void OpenALStream::Clear(bool mute)
 
   if (m_muted)
   {
-    palSourceStop(uiSource);
+    palSourceStop(m_source);
   }
   else
   {
-    palSourcePlay(uiSource);
+    palSourcePlay(m_source);
   }
 }
 
@@ -229,17 +229,17 @@ void OpenALStream::SoundLoop()
   // we just check if one is being used.
   bool fixed32_capable = IsCreativeXFi();
 
-  u32 ulFrequency = m_mixer->GetSampleRate();
+  u32 frequency = m_mixer->GetSampleRate();
 
   u32 frames_per_buffer;
   // Can't have zero samples per buffer
   if (SConfig::GetInstance().iLatency > 0)
   {
-    frames_per_buffer = ulFrequency / 1000 * SConfig::GetInstance().iLatency / OAL_BUFFERS;
+    frames_per_buffer = frequency / 1000 * SConfig::GetInstance().iLatency / OAL_BUFFERS;
   }
   else
   {
-    frames_per_buffer = ulFrequency / 1000 * 1 / OAL_BUFFERS;
+    frames_per_buffer = frequency / 1000 * 1 / OAL_BUFFERS;
   }
 
   if (frames_per_buffer > OAL_MAX_FRAMES)
@@ -258,84 +258,81 @@ void OpenALStream::SoundLoop()
 
   // Should we make these larger just in case the mixer ever sends more samples
   // than what we request?
-  realtimeBuffer.resize(frames_per_buffer * STEREO_CHANNELS);
-  sampleBuffer.resize(frames_per_buffer * STEREO_CHANNELS);
-  uiSource = 0;
+  m_realtime_buffer.resize(frames_per_buffer * STEREO_CHANNELS);
+  m_sample_buffer.resize(frames_per_buffer * STEREO_CHANNELS);
+  m_source = 0;
 
   // Clear error state before querying or else we get false positives.
   ALenum err = palGetError();
 
   // Generate some AL Buffers for streaming
-  palGenBuffers(OAL_BUFFERS, (ALuint*)uiBuffers.data());
+  palGenBuffers(OAL_BUFFERS, (ALuint*)m_buffers.data());
   err = CheckALError("generating buffers");
 
   // Generate a Source to playback the Buffers
-  palGenSources(1, &uiSource);
+  palGenSources(1, &m_source);
   err = CheckALError("generating sources");
 
   // Set the default sound volume as saved in the config file.
-  palSourcef(uiSource, AL_GAIN, fVolume);
+  palSourcef(m_source, AL_GAIN, m_volume);
 
   // TODO: Error handling
   // ALenum err = alGetError();
 
-  unsigned int nextBuffer = 0;
-  unsigned int numBuffersQueued = 0;
-  ALint iState = 0;
+  unsigned int next_buffer = 0;
+  unsigned int num_buffers_queued = 0;
+  ALint state = 0;
 
   while (m_run_thread.IsSet())
   {
     // Block until we have a free buffer
-    int numBuffersProcessed;
-    palGetSourcei(uiSource, AL_BUFFERS_PROCESSED, &numBuffersProcessed);
-    if (OAL_BUFFERS == numBuffersQueued && !numBuffersProcessed)
+    int num_buffers_processed;
+    palGetSourcei(m_source, AL_BUFFERS_PROCESSED, &num_buffers_processed);
+    if (num_buffers_queued == OAL_BUFFERS && !num_buffers_processed)
     {
-      soundSyncEvent.Wait();
+      m_sound_sync_event.Wait();
       continue;
     }
 
     // Remove the Buffer from the Queue.
-    if (numBuffersProcessed)
+    if (num_buffers_processed)
     {
-      ALuint unqueuedBufferIds[OAL_BUFFERS];
-      palSourceUnqueueBuffers(uiSource, numBuffersProcessed, unqueuedBufferIds);
+      ALuint unqueued_buffer_ids[OAL_BUFFERS];
+      palSourceUnqueueBuffers(m_source, num_buffers_processed, unqueued_buffer_ids);
       err = CheckALError("unqueuing buffers");
 
-      numBuffersQueued -= numBuffersProcessed;
+      num_buffers_queued -= num_buffers_processed;
     }
 
-    unsigned int numSamples = frames_per_buffer;
+    unsigned int min_frames = frames_per_buffer;
 
     if (use_surround)
     {
-      // DPL2 accepts 240 samples minimum (FWRDURATION)
-      unsigned int minSamples = 240;
-
       float dpl2[OAL_MAX_FRAMES * SURROUND_CHANNELS];
-      numSamples = m_mixer->MixSurround(dpl2, numSamples);
+      u32 rendered_frames = m_mixer->MixSurround(dpl2, min_frames);
 
-      if (numSamples < minSamples)
+      if (rendered_frames < min_frames)
         continue;
 
       // zero-out the subwoofer channel - DPL2Decode generates a pretty
       // good 5.0 but not a good 5.1 output.  Sadly there is not a 5.0
       // AL_FORMAT_50CHN32 to make this super-explicit.
       // DPL2Decode output: LEFTFRONT, RIGHTFRONT, CENTREFRONT, (sub), LEFTREAR, RIGHTREAR
-      for (u32 i = 0; i < numSamples; ++i)
+      for (u32 i = 0; i < rendered_frames; ++i)
       {
         dpl2[i * SURROUND_CHANNELS + 3 /*sub/lfe*/] = 0.0f;
       }
 
       if (float32_capable)
       {
-        palBufferData(uiBuffers[nextBuffer], AL_FORMAT_51CHN32, dpl2,
-                      numSamples * FRAME_SURROUND_FLOAT, ulFrequency);
+        palBufferData(m_buffers[next_buffer], AL_FORMAT_51CHN32, dpl2,
+                      rendered_frames * FRAME_SURROUND_FLOAT, frequency);
       }
       else if (fixed32_capable)
       {
         int surround_int32[OAL_MAX_FRAMES * SURROUND_CHANNELS];
 
-        for (u32 i = 0; i < numSamples * SURROUND_CHANNELS; ++i)
+        for (u32 i = 0; i < rendered_frames * SURROUND_CHANNELS; ++i)
         {
           // For some reason the ffdshow's DPL2 decoder outputs samples bigger than 1.
           // Most are close to 2.5 and some go up to 8. Hard clamping here, we need to
@@ -349,14 +346,14 @@ void OpenALStream::SoundLoop()
             surround_int32[i] = (int)dpl2[i];
         }
 
-        palBufferData(uiBuffers[nextBuffer], AL_FORMAT_51CHN32, surround_int32,
-                      numSamples * FRAME_SURROUND_INT32, ulFrequency);
+        palBufferData(m_buffers[next_buffer], AL_FORMAT_51CHN32, surround_int32,
+                      rendered_frames * FRAME_SURROUND_INT32, frequency);
       }
       else
       {
         short surround_short[OAL_MAX_FRAMES * SURROUND_CHANNELS];
 
-        for (u32 i = 0; i < numSamples * SURROUND_CHANNELS; ++i)
+        for (u32 i = 0; i < rendered_frames * SURROUND_CHANNELS; ++i)
         {
           dpl2[i] = dpl2[i] * (1 << 15);
           if (dpl2[i] > SHRT_MAX)
@@ -367,8 +364,8 @@ void OpenALStream::SoundLoop()
             surround_short[i] = (int)dpl2[i];
         }
 
-        palBufferData(uiBuffers[nextBuffer], AL_FORMAT_51CHN16, surround_short,
-                      numSamples * FRAME_SURROUND_SHORT, ulFrequency);
+        palBufferData(m_buffers[next_buffer], AL_FORMAT_51CHN16, surround_short,
+                      rendered_frames * FRAME_SURROUND_SHORT, frequency);
       }
 
       err = CheckALError("buffering data");
@@ -382,19 +379,19 @@ void OpenALStream::SoundLoop()
     }
     else
     {
-      numSamples = m_mixer->Mix(realtimeBuffer.data(), numSamples);
+      u32 rendered_frames = m_mixer->Mix(m_realtime_buffer.data(), min_frames);
 
       // Convert the samples from short to float
-      for (u32 i = 0; i < numSamples * STEREO_CHANNELS; ++i)
-        sampleBuffer[i] = static_cast<float>(realtimeBuffer[i]) / (1 << 15);
+      for (u32 i = 0; i < rendered_frames * STEREO_CHANNELS; ++i)
+        m_sample_buffer[i] = static_cast<float>(m_realtime_buffer[i]) / (1 << 15);
 
-      if (!numSamples)
+      if (!rendered_frames)
         continue;
 
       if (float32_capable)
       {
-        palBufferData(uiBuffers[nextBuffer], AL_FORMAT_STEREO_FLOAT32, sampleBuffer.data(),
-                      numSamples * FRAME_STEREO_FLOAT, ulFrequency);
+        palBufferData(m_buffers[next_buffer], AL_FORMAT_STEREO_FLOAT32, m_sample_buffer.data(),
+                      rendered_frames * FRAME_STEREO_FLOAT, frequency);
 
         err = CheckALError("buffering float32 data");
         if (err == AL_INVALID_ENUM)
@@ -406,35 +403,35 @@ void OpenALStream::SoundLoop()
       {
         // Clamping is not necessary here, samples are always between (-1,1)
         int stereo_int32[OAL_MAX_FRAMES * STEREO_CHANNELS];
-        for (u32 i = 0; i < numSamples * STEREO_CHANNELS; ++i)
-          stereo_int32[i] = (int)((float)sampleBuffer[i] * (INT64_C(1) << 31));
+        for (u32 i = 0; i < rendered_frames * STEREO_CHANNELS; ++i)
+          stereo_int32[i] = (int)((float)m_sample_buffer[i] * (INT64_C(1) << 31));
 
-        palBufferData(uiBuffers[nextBuffer], AL_FORMAT_STEREO32, stereo_int32,
-                      numSamples * FRAME_STEREO_INT32, ulFrequency);
+        palBufferData(m_buffers[next_buffer], AL_FORMAT_STEREO32, stereo_int32,
+                      rendered_frames * FRAME_STEREO_INT32, frequency);
       }
       else
       {
         // Convert the samples from float to short
         short stereo[OAL_MAX_FRAMES * STEREO_CHANNELS];
-        for (u32 i = 0; i < numSamples * STEREO_CHANNELS; ++i)
-          stereo[i] = (short)((float)sampleBuffer[i] * (1 << 15));
+        for (u32 i = 0; i < rendered_frames * STEREO_CHANNELS; ++i)
+          stereo[i] = (short)((float)m_sample_buffer[i] * (1 << 15));
 
-        palBufferData(uiBuffers[nextBuffer], AL_FORMAT_STEREO16, stereo,
-                      numSamples * FRAME_STEREO_SHORT, ulFrequency);
+        palBufferData(m_buffers[next_buffer], AL_FORMAT_STEREO16, stereo,
+                      rendered_frames * FRAME_STEREO_SHORT, frequency);
       }
     }
 
-    palSourceQueueBuffers(uiSource, 1, &uiBuffers[nextBuffer]);
+    palSourceQueueBuffers(m_source, 1, &m_buffers[next_buffer]);
     err = CheckALError("queuing buffers");
 
-    numBuffersQueued++;
-    nextBuffer = (nextBuffer + 1) % OAL_BUFFERS;
+    num_buffers_queued++;
+    next_buffer = (next_buffer + 1) % OAL_BUFFERS;
 
-    palGetSourcei(uiSource, AL_SOURCE_STATE, &iState);
-    if (iState != AL_PLAYING)
+    palGetSourcei(m_source, AL_SOURCE_STATE, &state);
+    if (state != AL_PLAYING)
     {
       // Buffer underrun occurred, resume playback
-      palSourcePlay(uiSource);
+      palSourcePlay(m_source);
       err = CheckALError("occurred resuming playback");
     }
   }
