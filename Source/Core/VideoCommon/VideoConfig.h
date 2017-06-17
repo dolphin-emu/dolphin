@@ -169,7 +169,7 @@ struct VideoConfig final
 
   // Static config per API
   // TODO: Move this out of VideoConfig
-  mutable struct
+  mutable struct BackendInfo
   {
     APIType api_type;
 

@@ -32,12 +32,15 @@ public:
 
   // Populates backend/video config.
   // These are public so that the backend info can be populated without creating a context.
-  static void PopulateBackendInfo(VideoConfig* config);
-  static void PopulateBackendInfoAdapters(VideoConfig* config, const GPUList& gpu_list);
-  static void PopulateBackendInfoFeatures(VideoConfig* config, VkPhysicalDevice gpu,
+  static void PopulateBackendInfo(VideoConfig::BackendInfo* backend_info);
+  static void PopulateBackendInfoAdapters(VideoConfig::BackendInfo* backend_info,
+                                          const GPUList& gpu_list);
+  static void PopulateBackendInfoFeatures(VideoConfig::BackendInfo* backend_info,
+                                          VkPhysicalDevice gpu,
                                           const VkPhysicalDeviceProperties& properties,
                                           const VkPhysicalDeviceFeatures& features);
-  static void PopulateBackendInfoMultisampleModes(VideoConfig* config, VkPhysicalDevice gpu,
+  static void PopulateBackendInfoMultisampleModes(VideoConfig::BackendInfo* backend_info,
+                                                  VkPhysicalDevice gpu,
                                                   const VkPhysicalDeviceProperties& properties);
 
   // Creates a Vulkan device context.
