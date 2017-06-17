@@ -6,6 +6,7 @@
 #include <array>
 #include <cctype>
 #include <cinttypes>
+#include <functional>
 #include <iterator>
 #include <string>
 #include <unordered_set>
@@ -88,6 +89,12 @@ static std::vector<u64> GetTitlesInTitleOrImport(const std::string& titles_dir)
       title_ids.push_back(static_cast<u64>(type) << 32 | identifier);
     }
   }
+
+  // On a real Wii, the title list is not in any particular order. However, because of how
+  // the flash filesystem works, titles such as 1-2 are *never* in the first position.
+  // We must keep this behaviour, or some versions of the System Menu may break.
+
+  std::sort(title_ids.begin(), title_ids.end(), std::greater<>());
 
   return title_ids;
 }
