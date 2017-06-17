@@ -72,7 +72,7 @@ bool ExportFile(const Volume& volume, const Partition& partition, const FileInfo
 }
 
 bool ExportApploader(const Volume& volume, const Partition& partition,
-                     const std::string& export_folder)
+                     const std::string& export_filename)
 {
   if (!IsDisc(volume.GetVolumeType()))
     return false;
@@ -85,7 +85,7 @@ bool ExportApploader(const Volume& volume, const Partition& partition,
   *apploader_size += *trailer_size + header_size;
   DEBUG_LOG(DISCIO, "Apploader size -> %x", *apploader_size);
 
-  return ExportData(volume, partition, 0x2440, *apploader_size, export_folder + "/apploader.img");
+  return ExportData(volume, partition, 0x2440, *apploader_size, export_filename);
 }
 
 std::optional<u64> GetBootDOLOffset(const Volume& volume, const Partition& partition)
@@ -129,7 +129,7 @@ std::optional<u32> GetBootDOLSize(const Volume& volume, const Partition& partiti
   return dol_size;
 }
 
-bool ExportDOL(const Volume& volume, const Partition& partition, const std::string& export_folder)
+bool ExportDOL(const Volume& volume, const Partition& partition, const std::string& export_filename)
 {
   if (!IsDisc(volume.GetVolumeType()))
     return false;
@@ -141,7 +141,7 @@ bool ExportDOL(const Volume& volume, const Partition& partition, const std::stri
   if (!dol_size)
     return false;
 
-  return ExportData(volume, partition, *dol_offset, *dol_size, export_folder + "/boot.dol");
+  return ExportData(volume, partition, *dol_offset, *dol_size, export_filename);
 }
 
 }  // namespace DiscIO

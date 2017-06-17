@@ -283,11 +283,11 @@ void FilesystemPanel::OnExtractHeaderData(wxCommandEvent& event)
   bool ret = false;
   if (event.GetId() == ID_EXTRACT_APPLOADER)
   {
-    ret = DiscIO::ExportApploader(*m_opened_iso, partition, WxStrToStr(path));
+    ret = DiscIO::ExportApploader(*m_opened_iso, partition, WxStrToStr(path) + "/apploader.img");
   }
   else if (event.GetId() == ID_EXTRACT_DOL)
   {
-    ret = DiscIO::ExportDOL(*m_opened_iso, partition, WxStrToStr(path));
+    ret = DiscIO::ExportDOL(*m_opened_iso, partition, WxStrToStr(path) + "/boot.dol");
   }
 
   if (!ret)
@@ -437,8 +437,9 @@ void FilesystemPanel::ExtractDirectories(const std::string& full_path,
 {
   if (full_path.empty())  // Root
   {
-    DiscIO::ExportApploader(*m_opened_iso, filesystem.GetPartition(), output_folder);
-    DiscIO::ExportDOL(*m_opened_iso, filesystem.GetPartition(), output_folder);
+    DiscIO::ExportApploader(*m_opened_iso, filesystem.GetPartition(),
+                            output_folder + "/apploader.img");
+    DiscIO::ExportDOL(*m_opened_iso, filesystem.GetPartition(), output_folder + "/boot.dol");
   }
 
   std::unique_ptr<DiscIO::FileInfo> file_info = filesystem.FindFileInfo(full_path);
