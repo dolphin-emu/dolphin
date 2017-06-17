@@ -18,13 +18,10 @@ namespace DiscIO
 u64 ReadFile(const Volume& volume, const Partition& partition, const FileInfo* file_info,
              u8* buffer, u64 max_buffer_size, u64 offset_in_file)
 {
-  if (!file_info || file_info->IsDirectory())
+  if (!file_info || file_info->IsDirectory() || offset_in_file >= file_info->GetSize())
     return 0;
 
-  if (offset_in_file >= file_info->GetSize())
-    return 0;
-
-  u64 read_length = std::min(max_buffer_size, file_info->GetSize() - offset_in_file);
+  const u64 read_length = std::min(max_buffer_size, file_info->GetSize() - offset_in_file);
 
   DEBUG_LOG(DISCIO, "Reading %" PRIx64 " bytes at %" PRIx64 " from file %s. Offset: %" PRIx64
                     " Size: %" PRIx32,
@@ -49,27 +46,23 @@ bool ExportFile(const Volume& volume, const Partition& partition, const FileInfo
   if (!f)
     return false;
 
-  bool result = true;
-
   while (remaining_size)
   {
     // Limit read size to 128 MB
-    size_t read_size = (size_t)std::min(remaining_size, (u64)0x08000000);
+    const size_t read_size = static_cast<size_t>(std::min<u64>(remaining_size, 0x08000000));
 
     std::vector<u8> buffer(read_size);
 
-    result = volume.Read(file_offset, read_size, &buffer[0], partition);
+    if (!volume.Read(file_offset, read_size, buffer.data(), partition))
+      return false;
 
-    if (!result)
-      break;
-
-    f.WriteBytes(&buffer[0], read_size);
+    f.WriteBytes(buffer.data(), read_size);
 
     remaining_size -= read_size;
     file_offset += read_size;
   }
 
-  return result;
+  return true;
 }
 
 bool ExportApploader(const Volume& volume, const Partition& partition,
@@ -89,7 +82,7 @@ bool ExportApploader(const Volume& volume, const Partition& partition,
   std::vector<u8> buffer(*apploader_size);
   if (volume.Read(0x2440, *apploader_size, buffer.data(), partition))
   {
-    std::string export_name(export_folder + "/apploader.img");
+    const std::string export_name(export_folder + "/apploader.img");
 
     File::IOFile apploader_file(export_name, "wb");
     if (apploader_file)
@@ -108,7 +101,7 @@ std::optional<u64> GetBootDOLOffset(const Volume& volume, const Partition& parti
   if (!IsDisc(volume_type))
     return {};
 
-  std::optional<u32> offset = volume.ReadSwapped<u32>(0x420, partition);
+  const std::optional<u32> offset = volume.ReadSwapped<u32>(0x420, partition);
   const u8 offset_shift = volume_type == Platform::WII_DISC ? 2 : 0;
   return offset ? static_cast<u64>(*offset) << offset_shift : std::optional<u64>();
 }
@@ -148,22 +141,22 @@ bool ExportDOL(const Volume& volume, const Partition& partition, const std::stri
   if (!IsDisc(volume.GetVolumeType()))
     return false;
 
-  std::optional<u64> dol_offset = GetBootDOLOffset(volume, partition);
+  const std::optional<u64> dol_offset = GetBootDOLOffset(volume, partition);
   if (!dol_offset)
     return false;
-  std::optional<u32> dol_size = GetBootDOLSize(volume, partition, *dol_offset);
+  const std::optional<u32> dol_size = GetBootDOLSize(volume, partition, *dol_offset);
   if (!dol_size)
     return false;
 
   std::vector<u8> buffer(*dol_size);
   if (volume.Read(*dol_offset, *dol_size, buffer.data(), partition))
   {
-    std::string export_name(export_folder + "/boot.dol");
+    const std::string export_name(export_folder + "/boot.dol");
 
     File::IOFile dol_file(export_name, "wb");
     if (dol_file)
     {
-      dol_file.WriteBytes(&buffer[0], *dol_size);
+      dol_file.WriteBytes(buffer.data(), *dol_size);
       return true;
     }
   }
