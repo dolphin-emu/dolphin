@@ -14,8 +14,8 @@ set(SRCS
   FramebufferManagerBase.cpp
   GeometryShaderGen.cpp
   GeometryShaderManager.cpp
-  HiresTextures.cpp
-  HiresTextures_DDSLoader.cpp
+  CustomTextures.cpp
+  CustomTextures_DDSLoader.cpp
   ImageWrite.cpp
   IndexGenerator.cpp
   LightingShaderGen.cpp

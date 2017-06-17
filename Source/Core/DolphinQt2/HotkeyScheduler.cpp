@@ -218,7 +218,7 @@ void HotkeyScheduler::Run()
       if (IsHotkey(HK_TOGGLE_DUMPTEXTURES))
         g_Config.bDumpTextures = !g_Config.bDumpTextures;
       if (IsHotkey(HK_TOGGLE_TEXTURES))
-        g_Config.bHiresTextures = !g_Config.bHiresTextures;
+        g_Config.bCustomTextures = !g_Config.bCustomTextures;
 
       Core::SetIsThrottlerTempDisabled(IsHotkey(HK_TOGGLE_THROTTLE, true));
 

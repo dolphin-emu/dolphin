@@ -58,7 +58,7 @@
 #define STATESAVES_DIR "StateSaves"
 #define SCREENSHOTS_DIR "ScreenShots"
 #define LOAD_DIR "Load"
-#define HIRES_TEXTURES_DIR "Textures"
+#define CUSTOM_TEXTURES_DIR "Textures"
 #define DUMP_DIR "Dump"
 #define DUMP_TEXTURES_DIR "Textures"
 #define DUMP_FRAMES_DIR "Frames"

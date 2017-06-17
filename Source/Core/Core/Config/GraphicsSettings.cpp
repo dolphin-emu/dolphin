@@ -37,11 +37,11 @@ const ConfigInfo<bool> GFX_LOG_RENDER_TIME_TO_FILE{{System::GFX, "Settings", "Lo
 const ConfigInfo<bool> GFX_OVERLAY_STATS{{System::GFX, "Settings", "OverlayStats"}, false};
 const ConfigInfo<bool> GFX_OVERLAY_PROJ_STATS{{System::GFX, "Settings", "OverlayProjStats"}, false};
 const ConfigInfo<bool> GFX_DUMP_TEXTURES{{System::GFX, "Settings", "DumpTextures"}, false};
-const ConfigInfo<bool> GFX_HIRES_TEXTURES{{System::GFX, "Settings", "HiresTextures"}, false};
-const ConfigInfo<bool> GFX_CONVERT_HIRES_TEXTURES{{System::GFX, "Settings", "ConvertHiresTextures"},
-                                                  false};
-const ConfigInfo<bool> GFX_CACHE_HIRES_TEXTURES{{System::GFX, "Settings", "CacheHiresTextures"},
-                                                false};
+const ConfigInfo<bool> GFX_CUSTOM_TEXTURES{{System::GFX, "Settings", "HiresTextures"}, false};
+const ConfigInfo<bool> GFX_CONVERT_CUSTOM_TEXTURES{
+    {System::GFX, "Settings", "ConvertHiresTextures"}, false};
+const ConfigInfo<bool> GFX_PREFETCH_CUSTOM_TEXTURES{{System::GFX, "Settings", "CacheHiresTextures"},
+                                                    false};
 const ConfigInfo<bool> GFX_DUMP_EFB_TARGET{{System::GFX, "Settings", "DumpEFBTarget"}, false};
 const ConfigInfo<bool> GFX_DUMP_FRAMES_AS_IMAGES{{System::GFX, "Settings", "DumpFramesAsImages"},
                                                  false};

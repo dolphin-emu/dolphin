@@ -98,7 +98,7 @@
     <ClCompile Include="FPSCounter.cpp">
       <Filter>Util</Filter>
     </ClCompile>
-    <ClCompile Include="HiresTextures.cpp">
+    <ClCompile Include="CustomTextures.cpp">
       <Filter>Util</Filter>
     </ClCompile>
     <ClCompile Include="ImageWrite.cpp">
@@ -164,7 +164,7 @@
     <ClCompile Include="LightingShaderGen.cpp">
       <Filter>Shader Generators</Filter>
     </ClCompile>
-    <ClCompile Include="HiresTextures_DDSLoader.cpp">
+    <ClCompile Include="CustomTextures_DDSLoader.cpp">
       <Filter>Util</Filter>
     </ClCompile>
     <ClCompile Include="TextureConfig.cpp">
@@ -257,7 +257,7 @@
     <ClInclude Include="FPSCounter.h">
       <Filter>Util</Filter>
     </ClInclude>
-    <ClInclude Include="HiresTextures.h">
+    <ClInclude Include="CustomTextures.h">
       <Filter>Util</Filter>
     </ClInclude>
     <ClInclude Include="ImageWrite.h">

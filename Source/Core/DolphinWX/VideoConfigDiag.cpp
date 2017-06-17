@@ -243,9 +243,9 @@ static wxString xfb_real_desc =
 static wxString dump_textures_desc =
     wxTRANSLATE("Dump decoded game textures to User/Dump/Textures/<game_id>/.\n\nIf unsure, leave "
                 "this unchecked.");
-static wxString load_hires_textures_desc = wxTRANSLATE(
+static wxString load_custom_textures_desc = wxTRANSLATE(
     "Load custom textures from User/Load/Textures/<game_id>/.\n\nIf unsure, leave this unchecked.");
-static wxString cache_hires_textures_desc =
+static wxString prefetch_custom_textures_desc =
     wxTRANSLATE("Cache custom textures to system RAM on startup.\nThis can require exponentially "
                 "more RAM but fixes possible stuttering.\n\nIf unsure, leave this unchecked.");
 static wxString dump_efb_desc = wxTRANSLATE(
@@ -898,12 +898,12 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
                                       wxGetTranslation(dump_textures_desc),
                                       Config::GFX_DUMP_TEXTURES));
       szr_utility->Add(CreateCheckBox(page_advanced, _("Load Custom Textures"),
-                                      wxGetTranslation(load_hires_textures_desc),
-                                      Config::GFX_HIRES_TEXTURES));
-      cache_hires_textures = CreateCheckBox(page_advanced, _("Prefetch Custom Textures"),
-                                            wxGetTranslation(cache_hires_textures_desc),
-                                            Config::GFX_CACHE_HIRES_TEXTURES);
-      szr_utility->Add(cache_hires_textures);
+                                      wxGetTranslation(load_custom_textures_desc),
+                                      Config::GFX_CUSTOM_TEXTURES));
+      prefetch_custom_textures = CreateCheckBox(page_advanced, _("Prefetch Custom Textures"),
+                                                wxGetTranslation(prefetch_custom_textures_desc),
+                                                Config::GFX_PREFETCH_CUSTOM_TEXTURES);
+      szr_utility->Add(prefetch_custom_textures);
 
       if (vconfig.backend_info.bSupportsInternalResolutionFrameDumps)
       {
@@ -1137,7 +1137,7 @@ void VideoConfigDiag::OnUpdateUI(wxUpdateUIEvent& ev)
   real_xfb->Enable(vconfig.bUseXFB);
 
   // custom textures
-  cache_hires_textures->Enable(vconfig.bHiresTextures);
+  prefetch_custom_textures->Enable(vconfig.bCustomTextures);
 
   // Vertex rounding
   vertex_rounding_checkbox->Enable(vconfig.iEFBScale != SCALE_1X);

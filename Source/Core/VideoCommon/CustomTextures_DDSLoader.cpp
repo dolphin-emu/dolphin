@@ -2,7 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "VideoCommon/HiresTextures.h"
+#include "VideoCommon/CustomTextures.h"
 
 #include <algorithm>
 #include <cstddef>
@@ -147,7 +147,7 @@ struct DDSLoadInfo
   size_t first_mip_size = 0;
   u32 first_mip_row_length = 0;
 
-  std::function<void(HiresTexture::Level*)> conversion_function;
+  std::function<void(CustomTexture::Level*)> conversion_function;
 };
 
 u32 GetBlockCount(u32 extent, u32 block_size)
@@ -155,12 +155,12 @@ u32 GetBlockCount(u32 extent, u32 block_size)
   return std::max(Common::AlignUp(extent, block_size) / block_size, 1u);
 }
 
-HiresTexture::ImageDataPointer AllocateLevelData(size_t size)
+CustomTexture::ImageDataPointer AllocateLevelData(size_t size)
 {
-  return HiresTexture::ImageDataPointer(new u8[size], [](u8* data) { delete[] data; });
+  return CustomTexture::ImageDataPointer(new u8[size], [](u8* data) { delete[] data; });
 }
 
-void ConvertTexture_X8B8G8R8(HiresTexture::Level* level)
+void ConvertTexture_X8B8G8R8(CustomTexture::Level* level)
 {
   u8* data_ptr = level->data.get();
   for (u32 row = 0; row < level->height; row++)
@@ -174,7 +174,7 @@ void ConvertTexture_X8B8G8R8(HiresTexture::Level* level)
   }
 }
 
-void ConvertTexture_A8R8G8B8(HiresTexture::Level* level)
+void ConvertTexture_A8R8G8B8(CustomTexture::Level* level)
 {
   u8* data_ptr = level->data.get();
   for (u32 row = 0; row < level->height; row++)
@@ -191,7 +191,7 @@ void ConvertTexture_A8R8G8B8(HiresTexture::Level* level)
   }
 }
 
-void ConvertTexture_X8R8G8B8(HiresTexture::Level* level)
+void ConvertTexture_X8R8G8B8(CustomTexture::Level* level)
 {
   u8* data_ptr = level->data.get();
   for (u32 row = 0; row < level->height; row++)
@@ -208,12 +208,12 @@ void ConvertTexture_X8R8G8B8(HiresTexture::Level* level)
   }
 }
 
-void ConvertTexture_R8G8B8(HiresTexture::Level* level)
+void ConvertTexture_R8G8B8(CustomTexture::Level* level)
 {
   // Have to reallocate the buffer for this one, since the data in the file
   // does not have an alpha byte.
   level->data_size = level->row_length * level->height * sizeof(u32);
-  HiresTexture::ImageDataPointer rgb_data = AllocateLevelData(level->data_size);
+  CustomTexture::ImageDataPointer rgb_data = AllocateLevelData(level->data_size);
   std::swap(level->data, rgb_data);
 
   const u8* rgb_data_ptr = rgb_data.get();
@@ -268,7 +268,7 @@ bool ParseDDSHeader(File::IOFile& file, DDSLoadInfo* info)
     if (header.dwMipMapCount != 0)
       info->mip_count = header.dwMipMapCount;
     else
-      info->mip_count = HiresTexture::CalculateMipCount(info->width, info->height);
+      info->mip_count = CustomTexture::CalculateMipCount(info->width, info->height);
   }
   else
   {
@@ -399,7 +399,7 @@ bool ParseDDSHeader(File::IOFile& file, DDSLoadInfo* info)
   return true;
 }
 
-bool ReadMipLevel(HiresTexture::Level* level, File::IOFile& file, const DDSLoadInfo& info,
+bool ReadMipLevel(CustomTexture::Level* level, File::IOFile& file, const DDSLoadInfo& info,
                   u32 width, u32 height, u32 row_length, size_t size)
 {
   // Copy to the final storage location. The deallocator here is simple, nothing extra is
@@ -425,7 +425,7 @@ bool ReadMipLevel(HiresTexture::Level* level, File::IOFile& file, const DDSLoadI
 
 }  // namespace
 
-bool HiresTexture::LoadDDSTexture(HiresTexture* tex, const std::string& filename)
+bool CustomTexture::LoadDDSTexture(CustomTexture* tex, const std::string& filename)
 {
   File::IOFile file;
   file.Open(filename, "rb");
@@ -471,7 +471,7 @@ bool HiresTexture::LoadDDSTexture(HiresTexture* tex, const std::string& filename
   return true;
 }
 
-bool HiresTexture::LoadDDSTexture(Level& level, const std::string& filename)
+bool CustomTexture::LoadDDSTexture(Level& level, const std::string& filename)
 {
   // Only loading a single mip level.
   File::IOFile file;
