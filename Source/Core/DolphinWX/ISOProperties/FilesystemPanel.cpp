@@ -25,6 +25,7 @@
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
+#include "DiscIO/DiscExtractor.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
@@ -261,32 +262,32 @@ void FilesystemPanel::OnExtractDirectories(wxCommandEvent& event)
 
 void FilesystemPanel::OnExtractHeaderData(wxCommandEvent& event)
 {
-  DiscIO::FileSystem* file_system = nullptr;
   const wxString path = wxDirSelector(_("Choose the folder to extract to"));
 
   if (path.empty())
     return;
 
+  DiscIO::Partition partition;
   if (m_has_partitions)
   {
     const auto* const selection_data = m_tree_ctrl->GetItemData(m_tree_ctrl->GetSelection());
-    const auto* const partition = static_cast<const WiiPartition*>(selection_data);
+    const auto* const wii_partition = static_cast<const WiiPartition*>(selection_data);
 
-    file_system = partition->filesystem.get();
+    partition = wii_partition->filesystem->GetPartition();
   }
   else
   {
-    file_system = m_filesystem.get();
+    partition = DiscIO::PARTITION_NONE;
   }
 
   bool ret = false;
   if (event.GetId() == ID_EXTRACT_APPLOADER)
   {
-    ret = file_system->ExportApploader(WxStrToStr(path));
+    ret = DiscIO::ExportApploader(*m_opened_iso, partition, WxStrToStr(path));
   }
   else if (event.GetId() == ID_EXTRACT_DOL)
   {
-    ret = file_system->ExportDOL(WxStrToStr(path));
+    ret = DiscIO::ExportDOL(*m_opened_iso, partition, WxStrToStr(path));
   }
 
   if (!ret)
@@ -366,14 +367,15 @@ void FilesystemPanel::ExtractSingleFile(const wxString& output_file_path) const
     // Remove "Partition x/"
     selection_file_path.erase(0, slash_index + 1);
 
-    partition->filesystem->ExportFile(
-        partition->filesystem->FindFileInfo(WxStrToStr(selection_file_path)).get(),
-        WxStrToStr(output_file_path));
+    DiscIO::ExportFile(*m_opened_iso, partition->filesystem->GetPartition(),
+                       partition->filesystem->FindFileInfo(WxStrToStr(selection_file_path)).get(),
+                       WxStrToStr(output_file_path));
   }
   else
   {
-    m_filesystem->ExportFile(m_filesystem->FindFileInfo(WxStrToStr(selection_file_path)).get(),
-                             WxStrToStr(output_file_path));
+    DiscIO::ExportFile(*m_opened_iso, DiscIO::PARTITION_NONE,
+                       m_filesystem->FindFileInfo(WxStrToStr(selection_file_path)).get(),
+                       WxStrToStr(output_file_path));
   }
 }
 
@@ -400,7 +402,8 @@ void FilesystemPanel::ExtractSingleDirectory(const wxString& output_folder)
 }
 
 static void ExtractDir(const std::string& full_path, const std::string& output_folder,
-                       const DiscIO::FileSystem& file_system, const DiscIO::FileInfo& directory,
+                       const DiscIO::Volume& volume, const DiscIO::Partition partition,
+                       const DiscIO::FileInfo& directory,
                        const std::function<bool(const std::string& path)>& update_progress)
 {
   for (const DiscIO::FileInfo& file_info : directory)
@@ -416,13 +419,13 @@ static void ExtractDir(const std::string& full_path, const std::string& output_f
     if (file_info.IsDirectory())
     {
       File::CreateFullPath(output_path);
-      ExtractDir(path, output_folder, file_system, file_info, update_progress);
+      ExtractDir(path, output_folder, volume, partition, file_info, update_progress);
     }
     else
     {
       if (File::Exists(output_path))
         NOTICE_LOG(DISCIO, "%s already exists", output_path.c_str());
-      else if (!file_system.ExportFile(&file_info, output_path))
+      else if (!DiscIO::ExportFile(volume, partition, &file_info, output_path))
         ERROR_LOG(DISCIO, "Could not export %s", output_path.c_str());
     }
   }
@@ -434,8 +437,8 @@ void FilesystemPanel::ExtractDirectories(const std::string& full_path,
 {
   if (full_path.empty())  // Root
   {
-    filesystem.ExportApploader(output_folder);
-    filesystem.ExportDOL(output_folder);
+    DiscIO::ExportApploader(*m_opened_iso, filesystem.GetPartition(), output_folder);
+    DiscIO::ExportDOL(*m_opened_iso, filesystem.GetPartition(), output_folder);
   }
 
   std::unique_ptr<DiscIO::FileInfo> file_info = filesystem.FindFileInfo(full_path);
@@ -448,14 +451,16 @@ void FilesystemPanel::ExtractDirectories(const std::string& full_path,
                               wxPD_ESTIMATED_TIME | wxPD_REMAINING_TIME | wxPD_SMOOTH);
 
   File::CreateFullPath(output_folder + "/" + full_path);
-  ExtractDir(full_path, output_folder, filesystem, *file_info, [&](const std::string& path) {
-    dialog.SetTitle(wxString::Format(
-        "%s : %d%%", dialog_title.c_str(),
-        static_cast<u32>((static_cast<float>(progress) / static_cast<float>(size)) * 100)));
-    dialog.Update(progress, wxString::Format(_("Extracting %s"), StrToWxStr(path)));
-    ++progress;
-    return dialog.WasCancelled();
-  });
+  ExtractDir(
+      full_path, output_folder, *m_opened_iso, filesystem.GetPartition(), *file_info,
+      [&](const std::string& path) {
+        dialog.SetTitle(wxString::Format(
+            "%s : %d%%", dialog_title.c_str(),
+            static_cast<u32>((static_cast<float>(progress) / static_cast<float>(size)) * 100)));
+        dialog.Update(progress, wxString::Format(_("Extracting %s"), StrToWxStr(path)));
+        ++progress;
+        return dialog.WasCancelled();
+      });
 }
 
 wxString FilesystemPanel::BuildFilePathFromSelection() const

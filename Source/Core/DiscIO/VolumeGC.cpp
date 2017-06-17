@@ -16,7 +16,9 @@
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
+
 #include "DiscIO/Blob.h"
+#include "DiscIO/DiscExtractor.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
@@ -190,8 +192,8 @@ void VolumeGC::LoadBannerFile() const
     return;
   }
 
-  if (file_size !=
-      file_system->ReadFile(file_info.get(), reinterpret_cast<u8*>(&banner_file), file_size))
+  if (file_size != ReadFile(*this, PARTITION_NONE, file_info.get(),
+                            reinterpret_cast<u8*>(&banner_file), file_size))
   {
     WARN_LOG(DISCIO, "Could not read opening.bnr.");
     return;
