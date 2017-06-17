@@ -3,6 +3,7 @@ set(SRCS
   CISOBlob.cpp
   WbfsBlob.cpp
   CompressedBlob.cpp
+  DiscExtractor.cpp
   DiscScrubber.cpp
   DriveBlob.cpp
   Enums.cpp

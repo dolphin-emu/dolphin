@@ -39,6 +39,7 @@
     <ClCompile Include="Blob.cpp" />
     <ClCompile Include="CISOBlob.cpp" />
     <ClCompile Include="CompressedBlob.cpp" />
+    <ClCompile Include="DiscExtractor.cpp" />
     <ClCompile Include="DiscScrubber.cpp" />
     <ClCompile Include="DriveBlob.cpp" />
     <ClCompile Include="Enums.cpp" />
@@ -60,6 +61,7 @@
     <ClInclude Include="Blob.h" />
     <ClInclude Include="CISOBlob.h" />
     <ClInclude Include="CompressedBlob.h" />
+    <ClInclude Include="DiscExtractor.h" />
     <ClInclude Include="DiscScrubber.h" />
     <ClInclude Include="DriveBlob.h" />
     <ClInclude Include="Enums.h" />

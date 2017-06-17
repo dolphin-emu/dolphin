@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "DiscIO/DiscScrubber.h"
+
 #include <algorithm>
 #include <cinttypes>
 #include <cstddef>
@@ -14,7 +16,8 @@
 #include "Common/CommonTypes.h"
 #include "Common/File.h"
 #include "Common/Logging/Log.h"
-#include "DiscIO/DiscScrubber.h"
+
+#include "DiscIO/DiscExtractor.h"
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
 
@@ -200,10 +203,10 @@ bool DiscScrubber::ParsePartitionData(const Partition& partition, PartitionHeade
               0x2440 + header->apploader_size + header->apploader_trailer_size);
 
   // DOL
-  const std::optional<u64> dol_offset = filesystem->GetBootDOLOffset();
+  const std::optional<u64> dol_offset = GetBootDOLOffset(*m_disc, partition);
   if (!dol_offset)
     return false;
-  const std::optional<u64> dol_size = filesystem->GetBootDOLSize(*dol_offset);
+  const std::optional<u64> dol_size = GetBootDOLSize(*m_disc, partition, *dol_offset);
   if (!dol_size)
     return false;
   header->dol_offset = *dol_offset;
