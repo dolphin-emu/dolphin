@@ -164,7 +164,8 @@ void LogManager::LogWithFullPath(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE 
       LogTypes::LOG_LEVEL_TO_CHAR[(int)level], log->GetShortName().c_str(), temp);
 
   for (auto listener_id : *log)
-    m_listeners[listener_id]->Log(level, msg.c_str());
+    if (m_listeners[listener_id])
+      m_listeners[listener_id]->Log(level, msg.c_str());
 }
 
 void LogManager::Init()
