@@ -21,9 +21,10 @@ bool ExportData(const Volume& volume, const Partition& partition, u64 offset, u6
 bool ExportFile(const Volume& volume, const Partition& partition, const FileInfo* file_info,
                 const std::string& export_filename);
 bool ExportApploader(const Volume& volume, const Partition& partition,
-                     const std::string& export_folder);
+                     const std::string& export_filename);
 std::optional<u64> GetBootDOLOffset(const Volume& volume, const Partition& partition);
 std::optional<u32> GetBootDOLSize(const Volume& volume, const Partition& partition, u64 dol_offset);
-bool ExportDOL(const Volume& volume, const Partition& partition, const std::string& export_folder);
+bool ExportDOL(const Volume& volume, const Partition& partition,
+               const std::string& export_filename);
 
 }  // namespace DiscIO
