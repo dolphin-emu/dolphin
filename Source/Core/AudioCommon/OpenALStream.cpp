@@ -138,7 +138,7 @@ void OpenALStream::Stop()
   // Clean up buffers and sources
   palDeleteSources(1, &uiSource);
   uiSource = 0;
-  palDeleteBuffers(numBuffers, uiBuffers);
+  palDeleteBuffers(OAL_BUFFERS, uiBuffers.data());
 
   ALCcontext* pContext = palcGetCurrentContext();
   ALCdevice* pDevice = palcGetContextsDevice(pContext);
@@ -230,16 +230,43 @@ void OpenALStream::SoundLoop()
   bool fixed32_capable = IsCreativeXFi();
 
   u32 ulFrequency = m_mixer->GetSampleRate();
-  numBuffers = SConfig::GetInstance().iLatency + 2;  // OpenAL requires a minimum of two buffers
 
-  memset(uiBuffers, 0, numBuffers * sizeof(ALuint));
+  u32 frames_per_buffer;
+  // Can't have zero samples per buffer
+  if (SConfig::GetInstance().iLatency > 0)
+  {
+    frames_per_buffer = ulFrequency / 1000 * SConfig::GetInstance().iLatency / OAL_BUFFERS;
+  }
+  else
+  {
+    frames_per_buffer = ulFrequency / 1000 * 1 / OAL_BUFFERS;
+  }
+
+  if (frames_per_buffer > OAL_MAX_FRAMES)
+  {
+    frames_per_buffer = OAL_MAX_FRAMES;
+  }
+
+  // DPL2 needs a minimum number of samples to work (FWRDURATION)
+  if (use_surround && frames_per_buffer < 240)
+  {
+    frames_per_buffer = 240;
+  }
+
+  INFO_LOG(AUDIO, "Using %d buffers, each with %d audio frames for a total of %d.", OAL_BUFFERS,
+           frames_per_buffer, frames_per_buffer * OAL_BUFFERS);
+
+  // Should we make these larger just in case the mixer ever sends more samples
+  // than what we request?
+  realtimeBuffer.resize(frames_per_buffer * STEREO_CHANNELS);
+  sampleBuffer.resize(frames_per_buffer * STEREO_CHANNELS);
   uiSource = 0;
 
   // Clear error state before querying or else we get false positives.
   ALenum err = palGetError();
 
   // Generate some AL Buffers for streaming
-  palGenBuffers(numBuffers, (ALuint*)uiBuffers);
+  palGenBuffers(OAL_BUFFERS, (ALuint*)uiBuffers.data());
   err = CheckALError("generating buffers");
 
   // Generate a Source to playback the Buffers
@@ -261,7 +288,7 @@ void OpenALStream::SoundLoop()
     // Block until we have a free buffer
     int numBuffersProcessed;
     palGetSourcei(uiSource, AL_BUFFERS_PROCESSED, &numBuffersProcessed);
-    if (numBuffers == numBuffersQueued && !numBuffersProcessed)
+    if (OAL_BUFFERS == numBuffersQueued && !numBuffersProcessed)
     {
       soundSyncEvent.Wait();
       continue;
@@ -270,21 +297,21 @@ void OpenALStream::SoundLoop()
     // Remove the Buffer from the Queue.
     if (numBuffersProcessed)
     {
-      ALuint unqueuedBufferIds[OAL_MAX_BUFFERS];
+      ALuint unqueuedBufferIds[OAL_BUFFERS];
       palSourceUnqueueBuffers(uiSource, numBuffersProcessed, unqueuedBufferIds);
       err = CheckALError("unqueuing buffers");
 
       numBuffersQueued -= numBuffersProcessed;
     }
 
-    unsigned int numSamples = OAL_MAX_SAMPLES;
+    unsigned int numSamples = frames_per_buffer;
 
     if (use_surround)
     {
       // DPL2 accepts 240 samples minimum (FWRDURATION)
       unsigned int minSamples = 240;
 
-      float dpl2[OAL_MAX_SAMPLES * OAL_MAX_BUFFERS * SURROUND_CHANNELS];
+      float dpl2[OAL_MAX_FRAMES * SURROUND_CHANNELS];
       numSamples = m_mixer->MixSurround(dpl2, numSamples);
 
       if (numSamples < minSamples)
@@ -306,7 +333,7 @@ void OpenALStream::SoundLoop()
       }
       else if (fixed32_capable)
       {
-        int surround_int32[OAL_MAX_SAMPLES * SURROUND_CHANNELS * OAL_MAX_BUFFERS];
+        int surround_int32[OAL_MAX_FRAMES * SURROUND_CHANNELS];
 
         for (u32 i = 0; i < numSamples * SURROUND_CHANNELS; ++i)
         {
@@ -327,7 +354,7 @@ void OpenALStream::SoundLoop()
       }
       else
       {
-        short surround_short[OAL_MAX_SAMPLES * SURROUND_CHANNELS * OAL_MAX_BUFFERS];
+        short surround_short[OAL_MAX_FRAMES * SURROUND_CHANNELS];
 
         for (u32 i = 0; i < numSamples * SURROUND_CHANNELS; ++i)
         {
@@ -355,7 +382,7 @@ void OpenALStream::SoundLoop()
     }
     else
     {
-      numSamples = m_mixer->Mix(realtimeBuffer, numSamples);
+      numSamples = m_mixer->Mix(realtimeBuffer.data(), numSamples);
 
       // Convert the samples from short to float
       for (u32 i = 0; i < numSamples * STEREO_CHANNELS; ++i)
@@ -366,7 +393,7 @@ void OpenALStream::SoundLoop()
 
       if (float32_capable)
       {
-        palBufferData(uiBuffers[nextBuffer], AL_FORMAT_STEREO_FLOAT32, sampleBuffer,
+        palBufferData(uiBuffers[nextBuffer], AL_FORMAT_STEREO_FLOAT32, sampleBuffer.data(),
                       numSamples * FRAME_STEREO_FLOAT, ulFrequency);
 
         err = CheckALError("buffering float32 data");
@@ -378,7 +405,7 @@ void OpenALStream::SoundLoop()
       else if (fixed32_capable)
       {
         // Clamping is not necessary here, samples are always between (-1,1)
-        int stereo_int32[OAL_MAX_SAMPLES * STEREO_CHANNELS * OAL_MAX_BUFFERS];
+        int stereo_int32[OAL_MAX_FRAMES * STEREO_CHANNELS];
         for (u32 i = 0; i < numSamples * STEREO_CHANNELS; ++i)
           stereo_int32[i] = (int)((float)sampleBuffer[i] * (INT64_C(1) << 31));
 
@@ -388,7 +415,7 @@ void OpenALStream::SoundLoop()
       else
       {
         // Convert the samples from float to short
-        short stereo[OAL_MAX_SAMPLES * STEREO_CHANNELS * OAL_MAX_BUFFERS];
+        short stereo[OAL_MAX_FRAMES * STEREO_CHANNELS];
         for (u32 i = 0; i < numSamples * STEREO_CHANNELS; ++i)
           stereo[i] = (short)((float)sampleBuffer[i] * (1 << 15));
 
@@ -401,7 +428,7 @@ void OpenALStream::SoundLoop()
     err = CheckALError("queuing buffers");
 
     numBuffersQueued++;
-    nextBuffer = (nextBuffer + 1) % numBuffers;
+    nextBuffer = (nextBuffer + 1) % OAL_BUFFERS;
 
     palGetSourcei(uiSource, AL_SOURCE_STATE, &iState);
     if (iState != AL_PLAYING)

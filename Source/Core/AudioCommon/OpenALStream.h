@@ -17,9 +17,9 @@
 #include <OpenAL/include/alc.h>
 #include <OpenAL/include/alext.h>
 
-#define SFX_MAX_SOURCE 1
-#define OAL_MAX_BUFFERS 32
-#define OAL_MAX_SAMPLES 256
+// OpenAL requires a minimum of two buffers, three or more recommended
+#define OAL_BUFFERS 3
+#define OAL_MAX_FRAMES 4096
 #define STEREO_CHANNELS 2
 #define SURROUND_CHANNELS 6  // number of channels in surround mode
 #define SIZE_SHORT 2
@@ -72,12 +72,11 @@ private:
 
   Common::Event soundSyncEvent;
 
-  short realtimeBuffer[OAL_MAX_SAMPLES * STEREO_CHANNELS];
-  float sampleBuffer[OAL_MAX_SAMPLES * SURROUND_CHANNELS * OAL_MAX_BUFFERS];
-  ALuint uiBuffers[OAL_MAX_BUFFERS];
+  std::vector<short> realtimeBuffer;
+  std::vector<float> sampleBuffer;
+  std::array<ALuint, OAL_BUFFERS> uiBuffers;
   ALuint uiSource;
   ALfloat fVolume;
 
-  u8 numBuffers;
 #endif  // _WIN32
 };
