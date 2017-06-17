@@ -28,7 +28,8 @@ u64 ReadFile(const Volume& volume, const Partition& partition, const FileInfo* f
             read_length, offset_in_file, file_info->GetPath().c_str(), file_info->GetOffset(),
             file_info->GetSize());
 
-  volume.Read(file_info->GetOffset() + offset_in_file, read_length, buffer, partition);
+  if (!volume.Read(file_info->GetOffset() + offset_in_file, read_length, buffer, partition))
+    return 0;
 
   return read_length;
 }
@@ -56,7 +57,8 @@ bool ExportFile(const Volume& volume, const Partition& partition, const FileInfo
     if (!volume.Read(file_offset, read_size, buffer.data(), partition))
       return false;
 
-    f.WriteBytes(buffer.data(), read_size);
+    if (!f.WriteBytes(buffer.data(), read_size))
+      return false;
 
     remaining_size -= read_size;
     file_offset += read_size;
@@ -85,11 +87,8 @@ bool ExportApploader(const Volume& volume, const Partition& partition,
     const std::string export_name(export_folder + "/apploader.img");
 
     File::IOFile apploader_file(export_name, "wb");
-    if (apploader_file)
-    {
-      apploader_file.WriteBytes(buffer.data(), *apploader_size);
+    if (apploader_file.WriteBytes(buffer.data(), *apploader_size))
       return true;
-    }
   }
 
   return false;
@@ -154,11 +153,8 @@ bool ExportDOL(const Volume& volume, const Partition& partition, const std::stri
     const std::string export_name(export_folder + "/boot.dol");
 
     File::IOFile dol_file(export_name, "wb");
-    if (dol_file)
-    {
-      dol_file.WriteBytes(buffer.data(), *dol_size);
+    if (dol_file.WriteBytes(buffer.data(), *dol_size))
       return true;
-    }
   }
 
   return false;
