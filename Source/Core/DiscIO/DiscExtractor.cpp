@@ -34,37 +34,41 @@ u64 ReadFile(const Volume& volume, const Partition& partition, const FileInfo* f
   return read_length;
 }
 
+bool ExportData(const Volume& volume, const Partition& partition, u64 offset, u64 size,
+                const std::string& export_filename)
+{
+  File::IOFile f(export_filename, "wb");
+  if (!f)
+    return false;
+
+  while (size)
+  {
+    // Limit read size to 128 MB
+    const size_t read_size = static_cast<size_t>(std::min<u64>(size, 0x08000000));
+
+    std::vector<u8> buffer(read_size);
+
+    if (!volume.Read(offset, read_size, buffer.data(), partition))
+      return false;
+
+    if (!f.WriteBytes(buffer.data(), read_size))
+      return false;
+
+    size -= read_size;
+    offset += read_size;
+  }
+
+  return true;
+}
+
 bool ExportFile(const Volume& volume, const Partition& partition, const FileInfo* file_info,
                 const std::string& export_filename)
 {
   if (!file_info || file_info->IsDirectory())
     return false;
 
-  u64 remaining_size = file_info->GetSize();
-  u64 file_offset = file_info->GetOffset();
-
-  File::IOFile f(export_filename, "wb");
-  if (!f)
-    return false;
-
-  while (remaining_size)
-  {
-    // Limit read size to 128 MB
-    const size_t read_size = static_cast<size_t>(std::min<u64>(remaining_size, 0x08000000));
-
-    std::vector<u8> buffer(read_size);
-
-    if (!volume.Read(file_offset, read_size, buffer.data(), partition))
-      return false;
-
-    if (!f.WriteBytes(buffer.data(), read_size))
-      return false;
-
-    remaining_size -= read_size;
-    file_offset += read_size;
-  }
-
-  return true;
+  return ExportData(volume, partition, file_info->GetOffset(), file_info->GetSize(),
+                    export_filename);
 }
 
 bool ExportApploader(const Volume& volume, const Partition& partition,
@@ -81,17 +85,7 @@ bool ExportApploader(const Volume& volume, const Partition& partition,
   *apploader_size += *trailer_size + header_size;
   DEBUG_LOG(DISCIO, "Apploader size -> %x", *apploader_size);
 
-  std::vector<u8> buffer(*apploader_size);
-  if (volume.Read(0x2440, *apploader_size, buffer.data(), partition))
-  {
-    const std::string export_name(export_folder + "/apploader.img");
-
-    File::IOFile apploader_file(export_name, "wb");
-    if (apploader_file.WriteBytes(buffer.data(), *apploader_size))
-      return true;
-  }
-
-  return false;
+  return ExportData(volume, partition, 0x2440, *apploader_size, export_folder + "/apploader.img");
 }
 
 std::optional<u64> GetBootDOLOffset(const Volume& volume, const Partition& partition)
@@ -147,17 +141,7 @@ bool ExportDOL(const Volume& volume, const Partition& partition, const std::stri
   if (!dol_size)
     return false;
 
-  std::vector<u8> buffer(*dol_size);
-  if (volume.Read(*dol_offset, *dol_size, buffer.data(), partition))
-  {
-    const std::string export_name(export_folder + "/boot.dol");
-
-    File::IOFile dol_file(export_name, "wb");
-    if (dol_file.WriteBytes(buffer.data(), *dol_size))
-      return true;
-  }
-
-  return false;
+  return ExportData(volume, partition, *dol_offset, *dol_size, export_folder + "/boot.dol");
 }
 
 }  // namespace DiscIO
