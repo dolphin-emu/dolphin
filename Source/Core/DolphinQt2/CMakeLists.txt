@@ -50,7 +50,7 @@ set(SRCS
   GameList/ListProxyModel.cpp
   QtUtils/DoubleClickEventFilter.cpp
   QtUtils/ElidedButton.cpp
-  QtUtils/FocusEventFilter.cpp
+  QtUtils/WindowActivationEventFilter.cpp
   Settings/GeneralPane.cpp
   Settings/InterfacePane.cpp
   Settings/PathPane.cpp
