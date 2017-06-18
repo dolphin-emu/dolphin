@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <chrono>
 #include <map>
 #include <memory>
 #include <optional>
@@ -17,7 +18,7 @@ namespace Common
 class HttpRequest final
 {
 public:
-  HttpRequest(int timeout_ms = 3000);
+  explicit HttpRequest(std::chrono::milliseconds timeout_ms = std::chrono::milliseconds{3000});
   ~HttpRequest();
   bool IsValid() const;
 

@@ -4,6 +4,7 @@
 
 #include "Common/HttpRequest.h"
 
+#include <chrono>
 #include <cstddef>
 #include <curl/curl.h>
 
@@ -22,7 +23,7 @@ public:
     POST,
   };
 
-  Impl(int timeout_ms);
+  explicit Impl(std::chrono::milliseconds timeout_ms);
 
   bool IsValid() const;
   Response Fetch(const std::string& url, Method method, const Headers& headers, const u8* payload,
@@ -32,7 +33,8 @@ private:
   std::unique_ptr<CURL, decltype(&curl_easy_cleanup)> m_curl{curl_easy_init(), curl_easy_cleanup};
 };
 
-HttpRequest::HttpRequest(int timeout_ms) : m_impl(std::make_unique<Impl>(timeout_ms))
+HttpRequest::HttpRequest(std::chrono::milliseconds timeout_ms)
+    : m_impl(std::make_unique<Impl>(timeout_ms))
 {
 }
 
@@ -61,7 +63,7 @@ HttpRequest::Response HttpRequest::Post(const std::string& url, const std::strin
                        reinterpret_cast<const u8*>(payload.data()), payload.size());
 }
 
-HttpRequest::Impl::Impl(int timeout_ms)
+HttpRequest::Impl::Impl(std::chrono::milliseconds timeout_ms)
 {
   if (!m_curl)
     return;
@@ -69,7 +71,7 @@ HttpRequest::Impl::Impl(int timeout_ms)
   // libcurl may not have been built with async DNS support, so we disable
   // signal handlers to avoid a possible and likely crash if a resolve times out.
   curl_easy_setopt(m_curl.get(), CURLOPT_NOSIGNAL, true);
-  curl_easy_setopt(m_curl.get(), CURLOPT_TIMEOUT_MS, timeout_ms);
+  curl_easy_setopt(m_curl.get(), CURLOPT_TIMEOUT_MS, static_cast<long>(timeout_ms.count()));
 #ifdef _WIN32
   // ALPN support is enabled by default but requires Windows >= 8.1.
   curl_easy_setopt(m_curl.get(), CURLOPT_SSL_ENABLE_ALPN, false);
