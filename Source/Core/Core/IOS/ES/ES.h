@@ -55,35 +55,21 @@ public:
   ReturnCode Close(u32 fd) override;
   IPCCommandResult IOCtlV(const IOCtlVRequest& request) override;
 
-  struct OpenedContent
-  {
-    bool m_opened = false;
-    u64 m_title_id = 0;
-    IOS::ES::Content m_content;
-    u32 m_position = 0;
-    u32 m_uid = 0;
-  };
-
   struct TitleImportContext
   {
-    IOS::ES::TMDReader tmd;
-    u32 content_id = 0xFFFFFFFF;
-    std::vector<u8> content_buffer;
-  };
-
-  // TODO: merge this with TitleImportContext. Also reuse the global content table.
-  struct TitleExportContext
-  {
-    struct ExportContent
-    {
-      OpenedContent content;
-      std::array<u8, 16> iv{};
-    };
+    void DoState(PointerWrap& p);
 
     bool valid = false;
     IOS::ES::TMDReader tmd;
-    std::array<u8, 16> title_key;
-    std::map<u32, ExportContent> contents;
+    std::array<u8, 16> key{};
+    struct ContentContext
+    {
+      bool valid = false;
+      u32 id = 0;
+      std::array<u8, 16> iv{};
+      std::vector<u8> buffer;
+    };
+    ContentContext content;
   };
 
   struct Context
@@ -92,8 +78,8 @@ public:
 
     u16 gid = 0;
     u32 uid = 0;
+    // The same context is used for both title imports and exports.
     TitleImportContext title_import;
-    TitleExportContext title_export;
     bool active = false;
     // We use this to associate an IPC fd with an ES context.
     s32 ipc_fd = -1;
@@ -347,6 +333,16 @@ private:
   void FinishAllStaleImports();
 
   static const DiscIO::NANDContentLoader& AccessContentDevice(u64 title_id);
+
+  // TODO: reuse the FS code.
+  struct OpenedContent
+  {
+    bool m_opened = false;
+    u64 m_title_id = 0;
+    IOS::ES::Content m_content;
+    u32 m_position = 0;
+    u32 m_uid = 0;
+  };
 
   using ContentTable = std::array<OpenedContent, 16>;
   ContentTable m_content_table;
