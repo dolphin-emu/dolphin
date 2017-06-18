@@ -356,49 +356,16 @@ void FilesystemPanel::ExtractAllFiles(const wxString& output_folder)
 
 void FilesystemPanel::ExtractSingleFile(const wxString& output_file_path) const
 {
-  wxString selection_file_path = BuildFilePathFromSelection();
-
-  if (m_has_partitions)
-  {
-    const size_t slash_index = selection_file_path.find('/');
-    const wxString partition_label = selection_file_path.substr(0, slash_index);
-    const auto* const partition = FindWiiPartition(m_tree_ctrl, partition_label);
-
-    // Remove "Partition x/"
-    selection_file_path.erase(0, slash_index + 1);
-
-    DiscIO::ExportFile(*m_opened_iso, partition->filesystem->GetPartition(),
-                       partition->filesystem->FindFileInfo(WxStrToStr(selection_file_path)).get(),
-                       WxStrToStr(output_file_path));
-  }
-  else
-  {
-    DiscIO::ExportFile(*m_opened_iso, DiscIO::PARTITION_NONE,
-                       m_filesystem->FindFileInfo(WxStrToStr(selection_file_path)).get(),
-                       WxStrToStr(output_file_path));
-  }
+  const std::pair<wxString, const DiscIO::FileSystem&> path = BuildFilePathFromSelection();
+  DiscIO::ExportFile(*m_opened_iso, path.second.GetPartition(),
+                     path.second.FindFileInfo(WxStrToStr(path.first)).get(),
+                     WxStrToStr(output_file_path));
 }
 
 void FilesystemPanel::ExtractSingleDirectory(const wxString& output_folder)
 {
-  wxString directory_path = BuildDirectoryPathFromSelection();
-
-  if (m_has_partitions)
-  {
-    const size_t slash_index = directory_path.find('/');
-    const wxString partition_label = directory_path.substr(0, slash_index);
-    const auto* const partition = FindWiiPartition(m_tree_ctrl, partition_label);
-
-    // Remove "Partition x/"
-    directory_path.erase(0, slash_index + 1);
-
-    ExtractDirectories(WxStrToStr(directory_path), WxStrToStr(output_folder),
-                       *partition->filesystem);
-  }
-  else
-  {
-    ExtractDirectories(WxStrToStr(directory_path), WxStrToStr(output_folder), *m_filesystem);
-  }
+  const std::pair<wxString, const DiscIO::FileSystem&> path = BuildDirectoryPathFromSelection();
+  ExtractDirectories(WxStrToStr(path.first), WxStrToStr(output_folder), path.second);
 }
 
 static void ExtractDir(const std::string& full_path, const std::string& output_folder,
@@ -464,7 +431,7 @@ void FilesystemPanel::ExtractDirectories(const std::string& full_path,
       });
 }
 
-wxString FilesystemPanel::BuildFilePathFromSelection() const
+std::pair<wxString, const DiscIO::FileSystem&> FilesystemPanel::BuildFilePathFromSelection() const
 {
   wxString file_path = m_tree_ctrl->GetItemText(m_tree_ctrl->GetSelection());
 
@@ -477,12 +444,26 @@ wxString FilesystemPanel::BuildFilePathFromSelection() const
     node = m_tree_ctrl->GetItemParent(node);
   }
 
-  return file_path;
+  if (m_has_partitions)
+  {
+    const size_t slash_index = file_path.find('/');
+    const wxString partition_label = file_path.substr(0, slash_index);
+    const auto* const partition = FindWiiPartition(m_tree_ctrl, partition_label);
+
+    // Remove "Partition x/"
+    file_path.erase(0, slash_index + 1);
+
+    return {file_path, *partition->filesystem};
+  }
+  else
+  {
+    return {file_path, *m_filesystem};
+  }
 }
 
-wxString FilesystemPanel::BuildDirectoryPathFromSelection() const
+std::pair<wxString, const DiscIO::FileSystem&>
+FilesystemPanel::BuildDirectoryPathFromSelection() const
 {
-  wxString directory_path = BuildFilePathFromSelection();
-  directory_path += DIR_SEP_CHR;
-  return directory_path;
+  const std::pair<wxString, const DiscIO::FileSystem&> result = BuildFilePathFromSelection();
+  return {result.first + DIR_SEP_CHR, result.second};
 }
