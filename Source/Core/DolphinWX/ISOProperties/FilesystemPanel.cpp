@@ -6,7 +6,6 @@
 
 #include <array>
 #include <chrono>
-#include <functional>
 #include <future>
 #include <memory>
 #include <vector>
@@ -368,36 +367,6 @@ void FilesystemPanel::ExtractSingleDirectory(const wxString& output_folder)
   ExtractDirectories(WxStrToStr(path.first), WxStrToStr(output_folder), path.second);
 }
 
-static void ExtractDir(const std::string& full_path, const std::string& output_folder,
-                       const DiscIO::Volume& volume, const DiscIO::Partition partition,
-                       const DiscIO::FileInfo& directory,
-                       const std::function<bool(const std::string& path)>& update_progress)
-{
-  for (const DiscIO::FileInfo& file_info : directory)
-  {
-    const std::string path = full_path + file_info.GetName() + (file_info.IsDirectory() ? "/" : "");
-    const std::string output_path = output_folder + DIR_SEP_CHR + path;
-
-    if (update_progress(path))
-      return;
-
-    DEBUG_LOG(DISCIO, "%s", output_path.c_str());
-
-    if (file_info.IsDirectory())
-    {
-      File::CreateFullPath(output_path);
-      ExtractDir(path, output_folder, volume, partition, file_info, update_progress);
-    }
-    else
-    {
-      if (File::Exists(output_path))
-        NOTICE_LOG(DISCIO, "%s already exists", output_path.c_str());
-      else if (!DiscIO::ExportFile(volume, partition, &file_info, output_path))
-        ERROR_LOG(DISCIO, "Could not export %s", output_path.c_str());
-    }
-  }
-}
-
 void FilesystemPanel::ExtractDirectories(const std::string& full_path,
                                          const std::string& output_folder,
                                          const DiscIO::FileSystem& filesystem)
@@ -419,8 +388,8 @@ void FilesystemPanel::ExtractDirectories(const std::string& full_path,
                               wxPD_ESTIMATED_TIME | wxPD_REMAINING_TIME | wxPD_SMOOTH);
 
   File::CreateFullPath(output_folder + "/" + full_path);
-  ExtractDir(
-      full_path, output_folder, *m_opened_iso, filesystem.GetPartition(), *file_info,
+  DiscIO::ExportDirectory(
+      *m_opened_iso, filesystem.GetPartition(), *file_info, true, full_path, output_folder,
       [&](const std::string& path) {
         dialog.SetTitle(wxString::Format(
             "%s : %d%%", dialog_title.c_str(),
