@@ -90,7 +90,7 @@ IPCCommandResult ES::ImportTicket(const IOCtlVRequest& request)
   std::vector<u8> bytes(request.in_vectors[0].size);
   Memory::CopyFromEmu(bytes.data(), request.in_vectors[0].address, request.in_vectors[0].size);
   std::vector<u8> cert_chain(request.in_vectors[1].size);
-  Memory::CopyFromEmu(bytes.data(), request.in_vectors[1].address, request.in_vectors[1].size);
+  Memory::CopyFromEmu(cert_chain.data(), request.in_vectors[1].address, request.in_vectors[1].size);
   return GetDefaultReply(ImportTicket(bytes, cert_chain));
 }
 
