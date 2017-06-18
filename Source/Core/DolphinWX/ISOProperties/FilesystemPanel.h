@@ -6,6 +6,7 @@
 
 #include <memory>
 #include <string>
+#include <utility>
 #include <wx/panel.h>
 
 class GameListItem;
@@ -53,8 +54,8 @@ private:
   void ExtractDirectories(const std::string& full_path, const std::string& output_folder,
                           const DiscIO::FileSystem& filesystem);
 
-  wxString BuildFilePathFromSelection() const;
-  wxString BuildDirectoryPathFromSelection() const;
+  std::pair<wxString, const DiscIO::FileSystem&> BuildFilePathFromSelection() const;
+  std::pair<wxString, const DiscIO::FileSystem&> BuildDirectoryPathFromSelection() const;
 
   wxTreeCtrl* m_tree_ctrl;
 
