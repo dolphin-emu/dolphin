@@ -55,6 +55,15 @@ static HANDLE WINAPI HeapCreateLow4GB(_In_ DWORD flOptions, _In_ SIZE_T dwInitia
   return RtlCreateHeap(0, low_heap, 0, 0, nullptr, nullptr);
 }
 
+void WINAPI EnterCriticalSectionIntelVk(_Inout_ LPCRITICAL_SECTION lpCriticalSection)
+{
+  if (lpCriticalSection->DebugInfo == 0)
+  {
+    InitializeCriticalSection(lpCriticalSection);
+  }
+  EnterCriticalSection(lpCriticalSection);
+}
+
 static bool ModifyProtectedRegion(void* address, size_t size, std::function<void()> func)
 {
   DWORD old_protect;
@@ -249,6 +258,12 @@ void CompatPatchesInstall(LdrWatcher* watcher)
                       // Use MessageBox for maximal user annoyance
                       MessageBoxA(nullptr, msg.c_str(), "WARNING: BUGGY UCRT VERSION",
                                   MB_ICONEXCLAMATION);
+                    }});
+  watcher->Install({{L"igc64.dll"},
+                    [](const LdrDllLoadEvent& event) {
+                      auto patcher = ImportPatcher(event.base_address);
+                      patcher.PatchIAT("kernel32.dll", "EnterCriticalSection",
+                                       EnterCriticalSectionIntelVk);
                     }});
 }
 
