@@ -76,11 +76,13 @@ void ExportDirectory(const DiscIO::Volume& volume, const DiscIO::Partition parti
                      const std::string& filesystem_path, const std::string& export_folder,
                      const std::function<bool(const std::string& path)>& update_progress)
 {
+  File::CreateFullPath(export_folder + '/');
+
   for (const DiscIO::FileInfo& file_info : directory)
   {
-    const std::string path =
-        filesystem_path + file_info.GetName() + (file_info.IsDirectory() ? "/" : "");
-    const std::string export_path = export_folder + '/' + path;
+    const std::string name = file_info.GetName() + (file_info.IsDirectory() ? "/" : "");
+    const std::string path = filesystem_path + name;
+    const std::string export_path = export_folder + '/' + name;
 
     if (update_progress(path))
       return;
@@ -96,9 +98,7 @@ void ExportDirectory(const DiscIO::Volume& volume, const DiscIO::Partition parti
     }
     else if (recursive)
     {
-      File::CreateFullPath(export_path);
-      ExportDirectory(volume, partition, file_info, recursive, path, export_folder,
-                      update_progress);
+      ExportDirectory(volume, partition, file_info, recursive, path, export_path, update_progress);
     }
   }
 }
