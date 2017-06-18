@@ -387,7 +387,6 @@ void FilesystemPanel::ExtractDirectories(const std::string& full_path,
                           wxPD_APP_MODAL | wxPD_AUTO_HIDE | wxPD_CAN_ABORT | wxPD_ELAPSED_TIME |
                               wxPD_ESTIMATED_TIME | wxPD_REMAINING_TIME | wxPD_SMOOTH);
 
-  File::CreateFullPath(output_folder + "/" + full_path);
   DiscIO::ExportDirectory(
       *m_opened_iso, filesystem.GetPartition(), *file_info, true, full_path, output_folder,
       [&](const std::string& path) {
