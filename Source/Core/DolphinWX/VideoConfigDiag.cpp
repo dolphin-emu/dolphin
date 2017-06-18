@@ -371,11 +371,12 @@ static wxArrayString GetListOfResolutions()
 #endif
 
 VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
-    : wxDialog(parent, wxID_ANY, wxString::Format(_("Dolphin %s Graphics Configuration"),
-                                                  wxGetTranslation(StrToWxStr(title)))),
+    : wxDialog(parent, wxID_ANY,
+               wxString::Format(_("Dolphin %s Graphics Configuration"),
+                                wxGetTranslation(StrToWxStr(title)))),
       vconfig(g_Config)
 {
-  vconfig.Refresh();
+  RefreshVideoConfig();
 
   Bind(wxEVT_UPDATE_UI, &VideoConfigDiag::OnUpdateUI, this);
 

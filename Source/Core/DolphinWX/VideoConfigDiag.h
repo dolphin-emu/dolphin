@@ -174,7 +174,7 @@ protected:
                                                   // setting controls) to their description text
                                                   // objects
 
-  VideoConfig& vconfig;
+  const VideoConfig& vconfig;
 
   size_t m_msaa_modes;
 };
