@@ -260,7 +260,7 @@ std::unique_ptr<UCodeInterface> UCodeFactory(u32 crc, DSPHLE* dsphle, bool wii)
   case 0x6ca33a6d:  // Zelda TP GC - US
   case 0xd643001f:  // Super Mario Galaxy - US
   case 0x6ba3b3ea:  // GC IPL - PAL
-  case 0x24b22038:  // GC IPL - US
+  case 0x24b22038:  // GC IPL - NTSC
   case 0x2fcdf1ec:  // Zelda FSA - US
   case 0x4be6a5cb:  // Pikmin 1 GC - US
   case 0x267fd05a:  // Pikmin 1 GC - PAL
