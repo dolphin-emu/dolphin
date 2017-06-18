@@ -71,6 +71,38 @@ bool ExportFile(const Volume& volume, const Partition& partition, const FileInfo
                     export_filename);
 }
 
+void ExportDirectory(const Volume& volume, const Partition partition, const FileInfo& directory,
+                     bool recursive, const std::string& filesystem_path,
+                     const std::string& export_folder,
+                     const std::function<bool(const std::string& path)>& update_progress)
+{
+  for (const FileInfo& file_info : directory)
+  {
+    const std::string path =
+        filesystem_path + file_info.GetName() + (file_info.IsDirectory() ? "/" : "");
+    const std::string export_path = export_folder + '/' + path;
+
+    if (update_progress(path))
+      return;
+
+    DEBUG_LOG(DISCIO, "%s", export_path.c_str());
+
+    if (!file_info.IsDirectory())
+    {
+      if (File::Exists(export_path))
+        NOTICE_LOG(DISCIO, "%s already exists", export_path.c_str());
+      else if (!ExportFile(volume, partition, &file_info, export_path))
+        ERROR_LOG(DISCIO, "Could not export %s", export_path.c_str());
+    }
+    else if (recursive)
+    {
+      File::CreateFullPath(export_path);
+      ExportDirectory(volume, partition, file_info, recursive, path, export_folder,
+                      update_progress);
+    }
+  }
+}
+
 bool ExportApploader(const Volume& volume, const Partition& partition,
                      const std::string& export_filename)
 {

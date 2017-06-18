@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <functional>
 #include <optional>
 
 #include "Common/CommonTypes.h"
@@ -20,6 +21,15 @@ bool ExportData(const Volume& volume, const Partition& partition, u64 offset, u6
                 const std::string& export_filename);
 bool ExportFile(const Volume& volume, const Partition& partition, const FileInfo* file_info,
                 const std::string& export_filename);
+
+// update_progress is called once for each child (file or directory).
+// If update_progress returns true, the extraction gets cancelled.
+// filesystem_path is supposed to be the path corresponding to the directory argument.
+void ExportDirectory(const Volume& volume, const Partition partition, const FileInfo& directory,
+                     bool recursive, const std::string& filesystem_path,
+                     const std::string& export_folder,
+                     const std::function<bool(const std::string& path)>& update_progress);
+
 bool ExportApploader(const Volume& volume, const Partition& partition,
                      const std::string& export_filename);
 std::optional<u64> GetBootDOLOffset(const Volume& volume, const Partition& partition);
