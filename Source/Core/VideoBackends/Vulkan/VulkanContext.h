@@ -88,7 +88,7 @@ public:
   }
   VkDeviceSize GetTexelBufferAlignment() const
   {
-    return m_device_properties.limits.minUniformBufferOffsetAlignment;
+    return m_device_properties.limits.minTexelBufferOffsetAlignment;
   }
   VkDeviceSize GetBufferImageGranularity() const
   {
