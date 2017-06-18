@@ -23,6 +23,7 @@
 #include "VideoBackends/Vulkan/StreamBuffer.h"
 #include "VideoBackends/Vulkan/Texture2D.h"
 #include "VideoBackends/Vulkan/Util.h"
+#include "VideoBackends/Vulkan/VKTexture.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 
 #include "VideoCommon/TextureConversionShader.h"
@@ -162,8 +163,8 @@ TextureConverter::GetCommandBufferForTextureConversion(const TextureCache::TCach
   }
 }
 
-void TextureConverter::ConvertTexture(TextureCache::TCacheEntry* dst_entry,
-                                      TextureCache::TCacheEntry* src_entry,
+void TextureConverter::ConvertTexture(TextureCacheBase::TCacheEntry* dst_entry,
+                                      TextureCacheBase::TCacheEntry* src_entry,
                                       VkRenderPass render_pass, const void* palette,
                                       TlutFormat palette_format)
 {
@@ -174,8 +175,11 @@ void TextureConverter::ConvertTexture(TextureCache::TCacheEntry* dst_entry,
     int pad[2];
   };
 
+  VKTexture* source_texture = static_cast<VKTexture*>(src_entry->texture.get());
+  VKTexture* destination_texture = static_cast<VKTexture*>(dst_entry->texture.get());
+
   _assert_(static_cast<size_t>(palette_format) < NUM_PALETTE_CONVERSION_SHADERS);
-  _assert_(dst_entry->config.rendertarget);
+  _assert_(destination_texture->GetConfig().rendertarget);
 
   // We want to align to 2 bytes (R16) or the device's texel buffer alignment, whichever is greater.
   size_t palette_size = (src_entry->format & 0xF) == GX_TF_I4 ? 32 : 512;
@@ -188,10 +192,10 @@ void TextureConverter::ConvertTexture(TextureCache::TCacheEntry* dst_entry,
   m_texel_buffer->CommitMemory(palette_size);
 
   VkCommandBuffer command_buffer = GetCommandBufferForTextureConversion(src_entry);
-  src_entry->GetTexture()->TransitionToLayout(command_buffer,
-                                              VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-  dst_entry->GetTexture()->TransitionToLayout(command_buffer,
-                                              VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+  source_texture->GetRawTexIdentifier()->TransitionToLayout(
+      command_buffer, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+  destination_texture->GetRawTexIdentifier()->TransitionToLayout(
+      command_buffer, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
   // Bind and draw to the destination.
   UtilityShaderDraw draw(command_buffer,
@@ -199,16 +203,17 @@ void TextureConverter::ConvertTexture(TextureCache::TCacheEntry* dst_entry,
                          render_pass, g_object_cache->GetScreenQuadVertexShader(), VK_NULL_HANDLE,
                          m_palette_conversion_shaders[palette_format]);
 
-  VkRect2D region = {{0, 0}, {dst_entry->config.width, dst_entry->config.height}};
-  draw.BeginRenderPass(dst_entry->GetFramebuffer(), region);
+  VkRect2D region = {{0, 0}, {dst_entry->GetWidth(), dst_entry->GetHeight()}};
+  draw.BeginRenderPass(destination_texture->GetFramebuffer(), region);
 
   PSUniformBlock uniforms = {};
   uniforms.multiplier = (src_entry->format & 0xF) == GX_TF_I4 ? 15.0f : 255.0f;
   uniforms.texel_buffer_offset = static_cast<int>(palette_offset / sizeof(u16));
   draw.SetPushConstants(&uniforms, sizeof(uniforms));
-  draw.SetPSSampler(0, src_entry->GetTexture()->GetView(), g_object_cache->GetPointSampler());
+  draw.SetPSSampler(0, source_texture->GetRawTexIdentifier()->GetView(),
+                    g_object_cache->GetPointSampler());
   draw.SetPSTexelBuffer(m_texel_buffer_view_r16_uint);
-  draw.SetViewportAndScissor(0, 0, dst_entry->config.width, dst_entry->config.height);
+  draw.SetViewportAndScissor(0, 0, dst_entry->GetWidth(), dst_entry->GetHeight());
   draw.DrawWithoutVertexBuffer(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP, 4);
   draw.EndRenderPass();
 }
@@ -319,9 +324,8 @@ void TextureConverter::EncodeTextureToMemoryYUYV(void* dst_ptr, u32 dst_width, u
   m_encoding_download_texture->ReadTexels(0, 0, output_width, dst_height, dst_ptr, dst_stride);
 }
 
-void TextureConverter::DecodeYUYVTextureFromMemory(TextureCache::TCacheEntry* dst_texture,
-                                                   const void* src_ptr, u32 src_width,
-                                                   u32 src_stride, u32 src_height)
+void TextureConverter::DecodeYUYVTextureFromMemory(VKTexture* dst_texture, const void* src_ptr,
+                                                   u32 src_width, u32 src_stride, u32 src_height)
 {
   // Copies (and our decoding step) cannot be done inside a render pass.
   StateTracker::GetInstance()->EndRenderPass();
@@ -356,8 +360,8 @@ void TextureConverter::DecodeYUYVTextureFromMemory(TextureCache::TCacheEntry* ds
   VkDeviceSize texel_buffer_offset = m_texel_buffer->GetCurrentOffset();
   m_texel_buffer->CommitMemory(upload_size);
 
-  dst_texture->GetTexture()->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                                                VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+  dst_texture->GetRawTexIdentifier()->TransitionToLayout(
+      g_command_buffer_mgr->GetCurrentCommandBuffer(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
   // We divide the offset by 4 here because we're fetching RGBA8 elements.
   // The stride is in RGBA8 elements, so we divide by two because our data is two bytes per pixel.
@@ -422,6 +426,7 @@ void TextureConverter::DecodeTexture(VkCommandBuffer command_buffer,
                                      u32 width, u32 height, u32 aligned_width, u32 aligned_height,
                                      u32 row_stride, const u8* palette, TlutFormat palette_format)
 {
+  VKTexture* destination_texture = static_cast<VKTexture*>(entry->texture.get());
   auto key = std::make_pair(format, palette_format);
   auto iter = m_decoding_pipelines.find(key);
   if (iter == m_decoding_pipelines.end())
@@ -514,15 +519,16 @@ void TextureConverter::DecodeTexture(VkCommandBuffer command_buffer,
   dispatcher.Dispatch(groups.first, groups.second, 1);
 
   // Copy from temporary texture to final destination.
+  Texture2D* vulkan_tex_identifier = destination_texture->GetRawTexIdentifier();
   m_decoding_texture->TransitionToLayout(command_buffer, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-  entry->GetTexture()->TransitionToLayout(command_buffer, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+  vulkan_tex_identifier->TransitionToLayout(command_buffer, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
   VkImageCopy image_copy = {{VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1},
                             {0, 0, 0},
                             {VK_IMAGE_ASPECT_COLOR_BIT, dst_level, 0, 1},
                             {0, 0, 0},
                             {width, height, 1}};
   vkCmdCopyImage(command_buffer, m_decoding_texture->GetImage(),
-                 VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, entry->GetTexture()->GetImage(),
+                 VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, vulkan_tex_identifier->GetImage(),
                  VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &image_copy);
 }
 

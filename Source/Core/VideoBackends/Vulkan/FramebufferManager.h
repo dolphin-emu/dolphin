@@ -19,6 +19,7 @@ class StateTracker;
 class StreamBuffer;
 class Texture2D;
 class VertexFormat;
+class VKTexture;
 class XFBSource;
 
 class FramebufferManager : public FramebufferManagerBase
@@ -176,10 +177,10 @@ private:
 class XFBSource final : public XFBSourceBase
 {
 public:
-  explicit XFBSource(std::unique_ptr<TextureCache::TCacheEntry> texture);
+  explicit XFBSource(std::unique_ptr<AbstractTexture> texture);
   ~XFBSource();
 
-  TextureCache::TCacheEntry* GetTexture() const { return m_texture.get(); }
+  VKTexture* GetTexture() const;
   // Guest -> GPU EFB Textures
   void DecodeToTexture(u32 xfb_addr, u32 fb_width, u32 fb_height) override;
 
@@ -187,7 +188,7 @@ public:
   void CopyEFB(float gamma) override;
 
 private:
-  std::unique_ptr<TextureCache::TCacheEntry> m_texture;
+  std::unique_ptr<AbstractTexture> m_texture;
 };
 
 }  // namespace Vulkan

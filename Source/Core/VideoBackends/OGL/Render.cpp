@@ -27,6 +27,7 @@
 
 #include "VideoBackends/OGL/BoundingBox.h"
 #include "VideoBackends/OGL/FramebufferManager.h"
+#include "VideoBackends/OGL/OGLTexture.h"
 #include "VideoBackends/OGL/PostProcessing.h"
 #include "VideoBackends/OGL/ProgramShaderCache.h"
 #include "VideoBackends/OGL/RasterFont.h"
@@ -1691,7 +1692,7 @@ void Renderer::PrepareFrameDumpRenderTexture(u32 width, u32 height)
 
   m_frame_dump_render_texture_width = width;
   m_frame_dump_render_texture_height = height;
-  TextureCache::SetStage();
+  OGLTexture::SetStage();
 }
 
 void Renderer::DestroyFrameDumpResources()
@@ -1744,7 +1745,7 @@ void Renderer::RestoreAPIState()
   if (vm->m_last_vao)
     glBindVertexArray(vm->m_last_vao);
 
-  TextureCache::SetStage();
+  OGLTexture::SetStage();
 }
 
 void Renderer::SetGenerationMode()

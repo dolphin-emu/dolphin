@@ -6,6 +6,7 @@ set(SRCS
   Rasterizer.cpp
   SWOGLWindow.cpp
   SWRenderer.cpp
+  SWTexture.cpp
   SWVertexLoader.cpp
   SWmain.cpp
   SetupUnit.cpp

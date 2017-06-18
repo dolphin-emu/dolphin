@@ -47,7 +47,7 @@ struct SHADER
 
   void SetProgramVariables();
   void SetProgramBindings(bool is_compute);
-  void Bind();
+  void Bind() const;
 };
 
 class ProgramShaderCache

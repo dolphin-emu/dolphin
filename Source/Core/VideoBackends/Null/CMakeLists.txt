@@ -1,5 +1,6 @@
 set(SRCS
   NullBackend.cpp
+  NullTexture.cpp
   Render.cpp
   VertexManager.cpp
   ShaderCache.cpp

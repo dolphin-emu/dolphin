@@ -88,20 +88,20 @@ VkFormat GetLinearFormat(VkFormat format)
   }
 }
 
-VkFormat GetVkFormatForHostTextureFormat(HostTextureFormat format)
+VkFormat GetVkFormatForHostTextureFormat(AbstractTextureFormat format)
 {
   switch (format)
   {
-  case HostTextureFormat::DXT1:
+  case AbstractTextureFormat::DXT1:
     return VK_FORMAT_BC1_RGBA_UNORM_BLOCK;
 
-  case HostTextureFormat::DXT3:
+  case AbstractTextureFormat::DXT3:
     return VK_FORMAT_BC2_UNORM_BLOCK;
 
-  case HostTextureFormat::DXT5:
+  case AbstractTextureFormat::DXT5:
     return VK_FORMAT_BC3_UNORM_BLOCK;
 
-  case HostTextureFormat::RGBA8:
+  case AbstractTextureFormat::RGBA8:
   default:
     return VK_FORMAT_R8G8B8A8_UNORM;
   }
