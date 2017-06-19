@@ -33,7 +33,8 @@ public:
   enum
   {
     COLUMN_DUMMY = 0,
-    COLUMN_PLATFORM,
+    FIRST_COLUMN_WITH_CONTENT,
+    COLUMN_PLATFORM = FIRST_COLUMN_WITH_CONTENT,
     COLUMN_BANNER,
     COLUMN_TITLE,
     COLUMN_MAKER,
@@ -53,10 +54,9 @@ private:
 
   void ReloadList();
 
-  void ClearIsoFiles() { m_ISOFiles.clear(); }
   void InitBitmaps();
-  void UpdateItemAtColumn(long _Index, int column);
-  void InsertItemInReportView(long _Index);
+  void UpdateItemAtColumn(long index, int column);
+  void InsertItemInReportView(long index);
   void SetColors();
   void ScanForISOs();
 
@@ -90,14 +90,16 @@ private:
   static bool MultiCompressCB(const std::string& text, float percent, void* arg);
   static bool WiiCompressWarning();
 
-  std::vector<int> m_FlagImageIndex;
-  std::vector<int> m_PlatformImageIndex;
-  std::vector<int> m_utility_game_banners;
   std::vector<std::unique_ptr<GameListItem>> m_ISOFiles;
+  struct {
+    std::vector<int> flag;
+    std::vector<int> platform;
+    std::vector<int> utility_banner;
+  } m_image_indexes;
 
-  int last_column;
-  int last_sort;
-  wxSize lastpos;
+  int m_last_column;
+  int m_last_sort;
+  wxSize m_lastpos;
 
   std::vector<ColumnInfo> m_columns;
 };
