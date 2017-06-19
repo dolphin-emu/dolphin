@@ -171,8 +171,8 @@
       <Filter>Base</Filter>
     </ClCompile>
     <ClCompile Include="AbstractTexture.cpp">
-	  <Filter>Base</Filter>
-	</C1Compile>
+      <Filter>Base</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommandProcessor.h" />
