@@ -58,13 +58,13 @@ NetPlayServer* NetPlayDialog::netplay_server = nullptr;
 NetPlayClient* NetPlayDialog::netplay_client = nullptr;
 NetPlayDialog* NetPlayDialog::npd = nullptr;
 
-void NetPlayDialog::FillWithGameNames(wxListBox* game_lbox, const CGameListCtrl& game_list)
+void NetPlayDialog::FillWithGameNames(wxListBox* game_lbox, const GameListCtrl& game_list)
 {
   for (u32 i = 0; auto game = game_list.GetISO(i); ++i)
     game_lbox->Append(StrToWxStr(game->GetUniqueIdentifier()));
 }
 
-NetPlayDialog::NetPlayDialog(wxWindow* const parent, const CGameListCtrl* const game_list,
+NetPlayDialog::NetPlayDialog(wxWindow* const parent, const GameListCtrl* const game_list,
                              const std::string& game, const bool is_hosting)
     : wxFrame(parent, wxID_ANY, _("Dolphin NetPlay")), m_selected_game(game), m_start_btn(nullptr),
       m_host_label(nullptr), m_host_type_choice(nullptr), m_host_copy_btn(nullptr),

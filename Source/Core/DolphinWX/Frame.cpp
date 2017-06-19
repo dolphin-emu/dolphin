@@ -351,7 +351,7 @@ CFrame::CFrame(wxFrame* parent, wxWindowID id, const wxString& title, wxRect geo
   // This panel is the parent for rendering and it holds the gamelistctrl
   m_panel = new wxPanel(this, IDM_MPANEL, wxDefaultPosition, wxDefaultSize, 0);
 
-  m_game_list_ctrl = new CGameListCtrl(m_panel, wxID_ANY, wxDefaultPosition, wxDefaultSize,
+  m_game_list_ctrl = new GameListCtrl(m_panel, wxID_ANY, wxDefaultPosition, wxDefaultSize,
                                        wxLC_REPORT | wxSUNKEN_BORDER | wxLC_ALIGN_LEFT);
   m_game_list_ctrl->Bind(wxEVT_LIST_ITEM_ACTIVATED, &CFrame::OnGameListCtrlItemActivated, this);
 
@@ -876,7 +876,7 @@ void CFrame::OnGameListCtrlItemActivated(wxListEvent& WXUNUSED(event))
   // 1. Boot the selected iso
   // 2. Boot the default or last loaded iso.
   // 3. Call BrowseForDirectory if the gamelist is empty
-  if (!m_game_list_ctrl->GetISO(0) && CGameListCtrl::IsHidingItems())
+  if (!m_game_list_ctrl->GetISO(0) && GameListCtrl::IsHidingItems())
   {
     SConfig::GetInstance().m_ListGC = SConfig::GetInstance().m_ListWii =
         SConfig::GetInstance().m_ListWad = SConfig::GetInstance().m_ListElfDol =
