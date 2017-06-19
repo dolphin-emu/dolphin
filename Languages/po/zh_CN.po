@@ -18,8 +18,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-06-09 19:40+0200\n"
-"PO-Revision-Date: 2017-06-09 17:41+0000\n"
+"POT-Creation-Date: 2017-06-19 20:22+0200\n"
+"PO-Revision-Date: 2017-06-19 18:23+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Chinese (China) (http://www.transifex.com/delroth/dolphin-emu/"
 "language/zh_CN/)\n"
@@ -68,17 +68,17 @@ msgstr ""
 "\"%s\" 不存在。\n"
 "创建一个新的 16MB 存储卡?"
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:187
+#: Source/Core/DiscIO/CompressedBlob.cpp:188
 #, c-format
 msgid "\"%s\" failed to be scrubbed. Probably the image is corrupt."
 msgstr "清理 %s 失败。镜像可能已损坏。"
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:162
+#: Source/Core/DiscIO/CompressedBlob.cpp:163
 #, c-format
 msgid "\"%s\" is already compressed! Cannot compress it further."
 msgstr "%s 已经被压缩过! 无法对它进一步压缩。"
 
-#: Source/Core/Core/Boot/Boot.cpp:84
+#: Source/Core/Core/Boot/Boot.cpp:82
 #, c-format
 msgid "\"%s\" is an invalid GCM/ISO file, or is not a GC/Wii ISO."
 msgstr "\"%s\" 不是一个有效的 GCM/ISO 文件，或者不是一个 GC/Wii 镜像。"
@@ -88,7 +88,7 @@ msgstr "\"%s\" 不是一个有效的 GCM/ISO 文件，或者不是一个 GC/Wii 
 msgid "%1$sCopy%1$s"
 msgstr "%1$s复制%1$s"
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:239
+#: Source/Core/DiscIO/CompressedBlob.cpp:240
 #, c-format
 msgid "%i of %i blocks. Compression ratio %i%%"
 msgstr "区块 %i，共 %i，压缩率 %i%%"
@@ -103,7 +103,7 @@ msgstr "%i%%"
 msgid "%i%% (Normal Speed)"
 msgstr "%i%%（正常速度）"
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:64
+#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:65
 #, c-format
 msgid ""
 "%s\n"
@@ -116,7 +116,7 @@ msgstr ""
 "%s\n"
 "有相同的内部文件名"
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:86
+#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:87
 #, c-format
 msgid ""
 "%s\n"
@@ -128,7 +128,7 @@ msgstr ""
 "无法加载，因为不是一个有效的 GCI 文件。 \n"
 "文件大小 (0x%<PRIx64>) 与文件头里所记录的 (0x%x) 不匹配"
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:77
+#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:78
 #, c-format
 msgid ""
 "%s\n"
@@ -139,7 +139,7 @@ msgstr ""
 "无法加载，因为不是一个有效的 GCI 文件。 \n"
 "该文件中的区块数量是 %u。"
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:117
+#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:118
 #, c-format
 msgid ""
 "%s\n"
@@ -149,7 +149,7 @@ msgstr ""
 "%s \n"
 "无法加载，因为虚拟存储卡上空闲区块数不足。"
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:106
+#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:107
 #, c-format
 msgid ""
 "%s\n"
@@ -165,13 +165,13 @@ msgstr ""
 msgid "%s (Disc %i)"
 msgstr "%s (光盘 %i)"
 
-#: Source/Core/Core/Boot/Boot.cpp:278
+#: Source/Core/Core/Boot/Boot.cpp:276
 #, c-format
 msgid "%s IPL found in %s directory. The disc might not be recognized"
 msgstr "%s IPL 位于 %s 目录中，光盘可能无法识别。"
 
-#: Source/Core/Core/HW/WiiSaveCrypted.cpp:185
-#: Source/Core/Core/HW/WiiSaveCrypted.cpp:364
+#: Source/Core/Core/HW/WiiSaveCrypted.cpp:186
+#: Source/Core/Core/HW/WiiSaveCrypted.cpp:365
 #, c-format
 msgid "%s already exists, overwrite?"
 msgstr "%s 已经存在，是否覆盖?"
@@ -203,7 +203,7 @@ msgstr ""
 "无法将 %s 作为存储卡打开。 \n"
 "相对于有效的存储卡文件，该文件太小 (0x%x 字节)"
 
-#: Source/Core/Core/HW/EXI/EXI_DeviceMemoryCard.cpp:192
+#: Source/Core/Core/HW/EXI/EXI_DeviceMemoryCard.cpp:191
 #, c-format
 msgid ""
 "%s is not a directory, failed to move to *.original.\n"
@@ -212,7 +212,7 @@ msgstr ""
 "%s 不是一个目录，未能移动至 *.original.\n"
 "请重新确认你的写入请求或者将其移动至 Dolphin 之外。"
 
-#: Source/Core/Core/HW/EXI/EXI_DeviceMemoryCard.cpp:186
+#: Source/Core/Core/HW/EXI/EXI_DeviceMemoryCard.cpp:185
 #, c-format
 msgid "%s was not a directory, moved to *.original"
 msgstr "%s 不是一个目录，已移动至 *.original."
@@ -312,7 +312,7 @@ msgstr "控制器设置(&C)"
 
 #: Source/Core/DolphinWX/Debugger/CodeView.cpp:438
 msgid "&Copy address"
-msgstr ""
+msgstr "复制地址(&C)"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:473
 msgid "&Create Signature File..."
@@ -383,7 +383,7 @@ msgstr "热键设置(&H)"
 
 #: Source/Core/DolphinWX/Debugger/CodeView.cpp:451
 msgid "&Insert blr"
-msgstr ""
+msgstr "插入 blr(&I)"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:355
 msgid "&Interpreter Core"
@@ -529,7 +529,7 @@ msgstr "按文件重命名符号(&R)..."
 
 #: Source/Core/DolphinWX/Debugger/CodeView.cpp:444
 msgid "&Rename symbol"
-msgstr ""
+msgstr "重命名符号(&R)"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:121
 msgid "&Reset"
@@ -597,7 +597,7 @@ msgstr ""
 "(C) 2003-2015+ Dolphin 团队。“GameCube”和“Wii”是任天堂的商标。Dolphin 与任天"
 "堂没有任何形式的关联。"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:1296
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:1298
 msgid "(off)"
 msgstr "(关)"
 
@@ -605,7 +605,7 @@ msgstr "(关)"
 msgid "+ ADD"
 msgstr "+ 加"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:564
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:566
 msgid "1.5x Native (960x792)"
 msgstr "1.5x 原生 (960x792)"
 
@@ -613,11 +613,11 @@ msgstr "1.5x 原生 (960x792)"
 msgid "16-bit"
 msgstr "16位"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:566
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:568
 msgid "2.5x Native (1600x1320)"
 msgstr "2.5x 原生 (1600x1320)"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:565
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:567
 msgid "2x Native (1280x1056) for 720p"
 msgstr "2x 原生 (1280x1056) 适合 720p"
 
@@ -626,32 +626,32 @@ msgid "32-bit"
 msgstr "32位"
 
 #. i18n: Stereoscopic 3D
-#: Source/Core/Core/HotkeyManager.cpp:256
+#: Source/Core/Core/HotkeyManager.cpp:255
 #: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:123
 msgid "3D"
 msgstr "3D"
 
-#: Source/Core/Core/HotkeyManager.cpp:257
+#: Source/Core/Core/HotkeyManager.cpp:256
 msgid "3D depth"
 msgstr "3D 深度"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:567
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:569
 msgid "3x Native (1920x1584) for 1080p"
 msgstr "3x 原生 (1920x1584) 适合 1080p"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:568
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:570
 msgid "4x Native (2560x2112) for 1440p"
 msgstr "4x 原生 (2560x2112) 适合 1440p"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:569
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:571
 msgid "5x Native (3200x2640)"
 msgstr "5x 原生 (3200x2640)"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:570
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:572
 msgid "6x Native (3840x3168) for 4K"
 msgstr "6x 原生  (3840x3168) 适合 4K"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:571
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:573
 msgid "7x Native (4480x3696)"
 msgstr "7x 原生 (4480x3696)"
 
@@ -659,7 +659,7 @@ msgstr "7x 原生 (4480x3696)"
 msgid "8-bit"
 msgstr "8位"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:572
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:574
 msgid "8x Native (5120x4224) for 5K"
 msgstr "8x 原生 (5120x4224) 适合 5K"
 
@@ -667,7 +667,7 @@ msgstr "8x 原生 (5120x4224) 适合 5K"
 msgid "<Insert name here>"
 msgstr "<在这里插入名称>"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:439
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:441
 msgid "<No resolutions found>"
 msgstr "<未找到分辨率>"
 
@@ -679,11 +679,11 @@ msgstr "<无>"
 msgid "<System Language>"
 msgstr "<系统语言>"
 
-#: Source/Core/DolphinWX/NetPlay/NetPlayLauncher.cpp:22
+#: Source/Core/DolphinWX/NetPlay/NetPlayLauncher.cpp:21
 msgid "A NetPlay window is already open!"
 msgstr "已经打开了一个联机窗口！"
 
-#: Source/Core/Core/HW/DVD/DVDInterface.cpp:491
+#: Source/Core/Core/HW/DVD/DVDInterface.cpp:492
 msgid "A disc is already about to be inserted."
 msgstr "光盘已可插入。"
 
@@ -744,7 +744,7 @@ msgstr "AR 代码"
 msgid "About Dolphin"
 msgstr "关于 Dolphin"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:772
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:774
 msgid "Accuracy:"
 msgstr "精确度："
 
@@ -767,20 +767,20 @@ msgstr ""
 "错误代码:\n"
 "%s"
 
-#: Source/Core/Core/ActionReplay.cpp:494
+#: Source/Core/Core/ActionReplay.cpp:492
 #, c-format
 msgid ""
 "Action Replay Error: Invalid size (%08x : address = %08x) in Add Code (%s)"
 msgstr "Action Replay 错误: 无效大小 (%08x : 地址 = %08x) 于 添加代码 (%s)"
 
-#: Source/Core/Core/ActionReplay.cpp:584
+#: Source/Core/Core/ActionReplay.cpp:582
 #, c-format
 msgid ""
 "Action Replay Error: Invalid size (%08x : address = %08x) in Fill and Slide "
 "(%s)"
 msgstr "Action Replay 错误: 无效大小 (%08x : 地址 = %08x) 于 填充和滑动 (%s)"
 
-#: Source/Core/Core/ActionReplay.cpp:371
+#: Source/Core/Core/ActionReplay.cpp:369
 #, c-format
 msgid ""
 "Action Replay Error: Invalid size (%08x : address = %08x) in Ram Write And "
@@ -788,19 +788,19 @@ msgid ""
 msgstr ""
 "Action Replay 错误: 无效大小 (%08x : 地址 = %08x) 于 内存写入和填充 (%s)"
 
-#: Source/Core/Core/ActionReplay.cpp:431
+#: Source/Core/Core/ActionReplay.cpp:429
 #, c-format
 msgid ""
 "Action Replay Error: Invalid size (%08x : address = %08x) in Write To "
 "Pointer (%s)"
 msgstr "Action Replay 错误: 无效大小 (%08x : 地址 = %08x) 于 写入到指针 (%s)"
 
-#: Source/Core/Core/ActionReplay.cpp:632
+#: Source/Core/Core/ActionReplay.cpp:630
 #, c-format
 msgid "Action Replay Error: Invalid value (%08x) in Memory Copy (%s)"
 msgstr "Action Replay 错误: 无效数值 (%08x) 于 内存复制 (%s)"
 
-#: Source/Core/Core/ActionReplay.cpp:509
+#: Source/Core/Core/ActionReplay.cpp:507
 #, c-format
 msgid ""
 "Action Replay Error: Master Code and Write To CCXXXXXX not implemented (%s)\n"
@@ -809,27 +809,27 @@ msgstr ""
 "Action Replay 错误: 主代码与写入到 CCXXXXXX 尚未实现(%s)\n"
 "不需要主代码。请不要使用主代码。"
 
-#: Source/Core/Core/ActionReplay.cpp:217
+#: Source/Core/Core/ActionReplay.cpp:215
 #, c-format
 msgid "Action Replay Error: invalid AR code line: %s"
 msgstr "Action Replay 错误: 无效 AR 代码行: %s"
 
-#: Source/Core/Core/ActionReplay.cpp:743
+#: Source/Core/Core/ActionReplay.cpp:741
 #, c-format
 msgid "Action Replay: Conditional Code: Invalid Size %08x (%s)"
 msgstr "Action Replay: 条件代码: 无效大小 %08x (%s)"
 
-#: Source/Core/Core/ActionReplay.cpp:711
+#: Source/Core/Core/ActionReplay.cpp:709
 #, c-format
 msgid "Action Replay: Invalid Normal Code Type %08x (%s)"
 msgstr "Action Replay: 无效正常代码类型 %08x (%s)"
 
-#: Source/Core/Core/ActionReplay.cpp:767
+#: Source/Core/Core/ActionReplay.cpp:765
 #, c-format
 msgid "Action Replay: Normal Code %i: Invalid subtype %08x (%s)"
 msgstr "Action Replay: 正常代码 %i: 无效子类型 %08x (%s)"
 
-#: Source/Core/Core/ActionReplay.cpp:669
+#: Source/Core/Core/ActionReplay.cpp:667
 #, c-format
 msgid "Action Replay: Normal Code 0: Invalid Subtype %08x (%s)"
 msgstr "Action Replay: 正常代码 0: 无效子类型 %08x (%s)"
@@ -848,7 +848,7 @@ msgstr "检测到适配器"
 msgid "Adapter Not Detected"
 msgstr "未检测到适配器"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:425
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:427
 msgid "Adapter:"
 msgstr "适配器："
 
@@ -877,11 +877,11 @@ msgstr "添加新的 USB 设备"
 msgid "Add Patch"
 msgstr "添加补丁"
 
-#: Source/Core/Core/HotkeyManager.cpp:62
+#: Source/Core/Core/HotkeyManager.cpp:61
 msgid "Add a Breakpoint"
 msgstr "添加一个断点"
 
-#: Source/Core/Core/HotkeyManager.cpp:63
+#: Source/Core/Core/HotkeyManager.cpp:62
 #: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:21
 msgid "Add a Memory Breakpoint"
 msgstr "添加内存断点"
@@ -919,7 +919,7 @@ msgstr "添加..."
 msgid "Address"
 msgstr "地址"
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:444
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:445
 msgid "Address Out of Range"
 msgstr "地址超出范围"
 
@@ -932,7 +932,7 @@ msgid "Advance Game Port"
 msgstr "GBA 游戏端口"
 
 #: Source/Core/DolphinWX/Config/ConfigMain.cpp:90
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:863
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:865
 msgid "Advanced"
 msgstr "高级"
 
@@ -983,11 +983,11 @@ msgstr ""
 "\n"
 "忽略并继续？"
 
-#: Source/Core/Core/HW/DVD/DVDThread.cpp:163
+#: Source/Core/Core/HW/DVD/DVDThread.cpp:164
 msgid "An inserted disc was expected but not found."
 msgstr "光盘预计已插入但无法找到。"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:676
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:678
 msgid "Anaglyph"
 msgstr "色差式"
 
@@ -999,11 +999,11 @@ msgstr "分析"
 msgid "Angle"
 msgstr "角度"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:605
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:607
 msgid "Anisotropic Filtering:"
 msgstr "各向异性过滤："
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:591
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:593
 msgid "Anti-Aliasing:"
 msgstr "抗锯齿："
 
@@ -1019,11 +1019,11 @@ msgstr "附加到现有签名文件(&E)..."
 msgid "Apploader Date:"
 msgstr "应用载入器时间："
 
-#: Source/Core/DiscIO/VolumeDirectory.cpp:322
+#: Source/Core/DiscIO/VolumeDirectory.cpp:323
 msgid "Apploader is the wrong size...is it really an apploader?"
 msgstr "应用程序载入器 (apploader) 大小错误...这真的是一个应用程序载入器？"
 
-#: Source/Core/DiscIO/VolumeDirectory.cpp:315
+#: Source/Core/DiscIO/VolumeDirectory.cpp:316
 msgid "Apploader unable to load from file"
 msgstr "应用程序载入器不能从文件载入"
 
@@ -1068,7 +1068,7 @@ msgid "Are you trying to use the same file in both slots?"
 msgstr "你是否试图在两个插槽中使用相同的文件?"
 
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:96
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:464
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:466
 msgid "Aspect Ratio:"
 msgstr "宽高比："
 
@@ -1101,19 +1101,19 @@ msgid "Authors"
 msgstr "作者"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:315
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:461
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:463
 msgid "Auto"
 msgstr "自动"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:562
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:564
 msgid "Auto (Multiple of 640x528)"
 msgstr "自动（640x528 的倍数）"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:561
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:563
 msgid "Auto (Window Size)"
 msgstr "自动（窗口大小）"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:494
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:496
 msgid "Auto Adjust Window Size"
 msgstr "自动调整窗口大小"
 
@@ -1148,7 +1148,7 @@ msgstr ""
 "防止任意非自主性的 JIT 缓存清除，这可以避免塞尔达黄昏公主崩溃。\n"
 "[该选项必须在游戏开始前已勾选。]"
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:520
+#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:521
 msgid "BAT incorrect. Dolphin will now exit"
 msgstr "BAT 错误，模拟器即将退出"
 
@@ -1161,7 +1161,7 @@ msgid "Backend Settings"
 msgstr "后端设置"
 
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:60
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:395
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:397
 msgid "Backend:"
 msgstr "后端："
 
@@ -1194,7 +1194,7 @@ msgstr "标志："
 msgid "Bar"
 msgstr "摇把"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:520
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:522
 msgid "Basic"
 msgstr "基本"
 
@@ -1254,7 +1254,7 @@ msgstr "引导后暂停"
 msgid "BootMii NAND backup file (*.bin)"
 msgstr "BootMii NAND 备份文件 (*.bin)"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:953
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:955
 msgid "Borderless Fullscreen"
 msgstr "无边框全屏"
 
@@ -1281,7 +1281,7 @@ msgstr "中断"
 msgid "Break and log"
 msgstr "中断并记录"
 
-#: Source/Core/Core/HotkeyManager.cpp:251
+#: Source/Core/Core/HotkeyManager.cpp:250
 msgid "Breakpoint"
 msgstr "断点"
 
@@ -1396,7 +1396,7 @@ msgstr ""
 msgid "Callstack"
 msgstr "调用堆栈"
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTEmu.cpp:1785
+#: Source/Core/Core/IOS/USB/Bluetooth/BTEmu.cpp:1781
 #, c-format
 msgid "Can't find Wii Remote by connection handle %02x"
 msgstr "不能按照连接句柄 %02x 找到 Wii 控制器"
@@ -1405,17 +1405,17 @@ msgstr "不能按照连接句柄 %02x 找到 Wii 控制器"
 msgid "Cannot SingleStep the FIFO. Use Frame Advance instead."
 msgstr "无法单步执行 FIFO，使用帧步进代替。"
 
-#: Source/Core/Core/Boot/Boot.cpp:430
+#: Source/Core/Core/Boot/Boot.cpp:428
 msgid "Cannot find the GC IPL."
-msgstr ""
+msgstr "找不到 GC IPL。"
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:230
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:231
 msgid "Cannot set uninitialized memory."
 msgstr "无法设置未初始化的内存。"
 
-#: Source/Core/Core/Boot/Boot.cpp:428
+#: Source/Core/Core/Boot/Boot.cpp:426
 msgid "Cannot start the game, because the GC IPL could not be found."
-msgstr ""
+msgstr "找不到 GC IPL，无法启动游戏。"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:369
 #, c-format
@@ -1441,11 +1441,11 @@ msgstr "切换光盘(&D)"
 msgid "Change &Disc..."
 msgstr "切换光盘(&D)..."
 
-#: Source/Core/Core/HotkeyManager.cpp:26
+#: Source/Core/Core/HotkeyManager.cpp:25
 msgid "Change Disc"
 msgstr "切换光盘"
 
-#: Source/Core/Core/Movie.cpp:1291
+#: Source/Core/Core/Movie.cpp:1293
 #, c-format
 msgid "Change the disc to %s"
 msgstr "切换光盘至 %s"
@@ -1478,7 +1478,7 @@ msgstr "金手指管理"
 msgid "Cheat Search"
 msgstr "金手指搜索"
 
-#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:270
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:239
 msgid "Check Partition Integrity"
 msgstr "检查分区完整性"
 
@@ -1486,7 +1486,7 @@ msgstr "检查分区完整性"
 msgid "Check for updates: "
 msgstr "检查更新："
 
-#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:354
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:323
 msgid "Checking integrity..."
 msgstr "正在检查完整性..."
 
@@ -1502,7 +1502,7 @@ msgstr "选择一个 NAND 根目录:"
 msgid "Choose a default ISO:"
 msgstr "选择一个默认镜像:"
 
-#: Source/Core/DolphinWX/Config/PathConfigPane.cpp:164
+#: Source/Core/DolphinWX/Config/PathConfigPane.cpp:171
 msgid "Choose a directory to add"
 msgstr "选择一个要添加的目录"
 
@@ -1536,8 +1536,8 @@ msgstr "选择优先输入文件"
 msgid "Choose secondary input file"
 msgstr "选择次要输入文件"
 
-#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:294
-#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:313
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:263
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:282
 msgid "Choose the folder to extract to"
 msgstr "选择提取目标文件夹"
 
@@ -1586,7 +1586,7 @@ msgstr "复制并编辑代码(&E)..."
 #: Source/Core/DolphinWX/MemcardManager.cpp:233
 #: Source/Core/DolphinWX/PostProcessingConfigDiag.cpp:135
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:151
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:975
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:977
 msgid "Close"
 msgstr "关闭"
 
@@ -1665,7 +1665,7 @@ msgid "Computing: "
 msgstr "正在计算:"
 
 #: Source/Core/DolphinWX/MainToolBar.cpp:185
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:618
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:620
 msgid "Config"
 msgstr "设置"
 
@@ -1702,7 +1702,7 @@ msgstr "停止游戏时确认"
 msgid "Connect"
 msgstr "连接"
 
-#: Source/Core/Core/HotkeyManager.cpp:70
+#: Source/Core/Core/HotkeyManager.cpp:69
 #: Source/Core/DolphinWX/MainMenuBar.cpp:212
 msgid "Connect Balance Board"
 msgstr "连接平衡板"
@@ -1716,19 +1716,19 @@ msgstr "连接 USB 键盘"
 msgid "Connect Wii Remote %i"
 msgstr "连接 Wii 控制器 %i"
 
-#: Source/Core/Core/HotkeyManager.cpp:66
+#: Source/Core/Core/HotkeyManager.cpp:65
 msgid "Connect Wii Remote 1"
 msgstr "连接 Wii 控制器 1"
 
-#: Source/Core/Core/HotkeyManager.cpp:67
+#: Source/Core/Core/HotkeyManager.cpp:66
 msgid "Connect Wii Remote 2"
 msgstr "连接 Wii 控制器 2"
 
-#: Source/Core/Core/HotkeyManager.cpp:68
+#: Source/Core/Core/HotkeyManager.cpp:67
 msgid "Connect Wii Remote 3"
 msgstr "连接 Wii 控制器 3"
 
-#: Source/Core/Core/HotkeyManager.cpp:69
+#: Source/Core/Core/HotkeyManager.cpp:68
 msgid "Connect Wii Remote 4"
 msgstr "连接 Wii 控制器 4"
 
@@ -1736,7 +1736,7 @@ msgstr "连接 Wii 控制器 4"
 msgid "Connect Wii Remotes"
 msgstr "连接 Wii 控制器"
 
-#: Source/Core/DolphinWX/Main.cpp:475
+#: Source/Core/DolphinWX/Main.cpp:478
 msgid "Connecting..."
 msgstr "正在连接..."
 
@@ -1788,7 +1788,7 @@ msgstr ""
 "控制虚拟摄像机之间的分开距离。\n"
 "数值越高则深度感会越强，而数值越低观感会越舒适。"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:702
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:704
 msgid "Convergence:"
 msgstr "会聚："
 
@@ -1822,9 +1822,9 @@ msgstr "复制十六进制(&H)"
 
 #: Source/Core/DolphinWX/Debugger/CodeView.cpp:440
 msgid "Copy code &line"
-msgstr ""
+msgstr "复制代码行(&L)"
 
-#: Source/Core/Core/ConfigManager.cpp:1029
+#: Source/Core/Core/ConfigManager.cpp:1033
 msgid "Copy failed"
 msgstr "复制失败"
 
@@ -1842,7 +1842,7 @@ msgstr "核心"
 msgid "Cost"
 msgstr "开销"
 
-#: Source/Core/Core/IOS/ES/ES.cpp:217
+#: Source/Core/Core/IOS/ES/ES.cpp:261
 msgid ""
 "Could not launch the Wii Menu because it is missing from the NAND.\n"
 "The emulated software will likely hang now."
@@ -1850,7 +1850,7 @@ msgstr ""
 "无法启动 Wii 菜单，因为 NAND 中没有该内容。\n"
 "已模拟运行的软件将可能挂起。"
 
-#: Source/Core/Core/IOS/ES/ES.cpp:222
+#: Source/Core/Core/IOS/ES/ES.cpp:266
 #, c-format
 msgid ""
 "Could not launch title %016<PRIx64> because it is missing from the NAND.\n"
@@ -1859,7 +1859,7 @@ msgstr ""
 "无法启动游戏 %016<PRIx64> 因为 NAND 中没有该软件。\n"
 "已模拟运行的软件将可能挂起。"
 
-#: Source/Core/Core/Boot/Boot.cpp:76
+#: Source/Core/Core/Boot/Boot.cpp:74
 #, c-format
 msgid ""
 "Could not read \"%s\". There is no disc in the drive or it is not a GameCube/"
@@ -1869,17 +1869,17 @@ msgstr ""
 "无法读取 \"%s\"。驱动器里没有光盘或不是 GameCube/Wii 备份。请注意 Dolphin 不"
 "能直接从原始的 GameCube 与 Wii 光盘上运行游戏。"
 
-#: Source/Core/Core/Boot/Boot.cpp:103
+#: Source/Core/Core/Boot/Boot.cpp:101
 #, c-format
 msgid "Could not recognize file %s"
-msgstr ""
+msgstr "无法识别文件 %s"
 
 #: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:477
 #, c-format
 msgid "Could not save %s."
 msgstr "不能保存 %s."
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcardRaw.cpp:118
+#: Source/Core/Core/HW/GCMemcard/GCMemcardRaw.cpp:119
 #, c-format
 msgid ""
 "Could not write memory card file %s.\n"
@@ -1977,7 +1977,7 @@ msgstr "创建者："
 msgid "Critical"
 msgstr "错误"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:937
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:939
 msgid "Crop"
 msgstr "裁切"
 
@@ -2004,7 +2004,7 @@ msgstr "经过 wxFileSelector 之后当前目录从 %s 改变为 %s!"
 msgid "Current game"
 msgstr "当前游戏"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:573
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:575
 msgid "Custom"
 msgstr "自定义"
 
@@ -2055,7 +2055,7 @@ msgstr "跳舞毯"
 msgid "Data Size"
 msgstr "数据大小"
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:90
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:91
 msgid "Data Type"
 msgstr "数据类型"
 
@@ -2083,7 +2083,7 @@ msgstr "调试专用"
 
 #: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:166
 #: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:116
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:883
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:885
 msgid "Debugging"
 msgstr "调试"
 
@@ -2104,20 +2104,20 @@ msgstr "解压缩所选镜像..."
 msgid "Decompressing ISO"
 msgstr "正在解压缩镜像"
 
-#: Source/Core/Core/HotkeyManager.cpp:101
+#: Source/Core/Core/HotkeyManager.cpp:100
 msgid "Decrease Convergence"
 msgstr "减小会聚"
 
-#: Source/Core/Core/HotkeyManager.cpp:99
+#: Source/Core/Core/HotkeyManager.cpp:98
 msgid "Decrease Depth"
 msgstr "减小深度"
 
-#: Source/Core/Core/HotkeyManager.cpp:39
+#: Source/Core/Core/HotkeyManager.cpp:38
 msgid "Decrease Emulation Speed"
 msgstr "减小模拟速度"
 
 #. i18n: IR stands for internal resolution
-#: Source/Core/Core/HotkeyManager.cpp:82
+#: Source/Core/Core/HotkeyManager.cpp:81
 msgid "Decrease IR"
 msgstr "减小内部分辨率"
 
@@ -2142,7 +2142,7 @@ msgstr "删除"
 msgid "Delete Save"
 msgstr "删除存档"
 
-#: Source/Core/AudioCommon/WaveFile.cpp:32
+#: Source/Core/AudioCommon/WaveFile.cpp:34
 #: Source/Core/VideoCommon/AVIDump.cpp:110
 #, c-format
 msgid "Delete the existing file '%s'?"
@@ -2152,11 +2152,11 @@ msgstr "删除已经存在的文件 '%s' 吗?"
 msgid "Depth Percentage: "
 msgstr "深度百分比："
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:691
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:693
 msgid "Depth:"
 msgstr "深度："
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:1270
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:1272
 msgid "Description"
 msgstr "说明"
 
@@ -2211,11 +2211,11 @@ msgstr "直接连接"
 msgid "Directory checksum and directory backup checksum failed"
 msgstr "目录校检和目录备份校检全部失败"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:812
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:814
 msgid "Disable"
 msgstr "禁用"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:837
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:839
 msgid "Disable Bounding Box"
 msgstr "禁用边界框"
 
@@ -2223,11 +2223,11 @@ msgstr "禁用边界框"
 msgid "Disable Docking"
 msgstr "禁用对接"
 
-#: Source/Core/Core/HotkeyManager.cpp:41
+#: Source/Core/Core/HotkeyManager.cpp:40
 msgid "Disable Emulation Speed Limit"
 msgstr "禁用模拟速度限制"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:650
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:652
 msgid "Disable Fog"
 msgstr "禁用雾化"
 
@@ -2265,7 +2265,7 @@ msgstr ""
 msgid "Disassembly"
 msgstr "反汇编"
 
-#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:186
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:155
 msgid "Disc"
 msgstr "光盘"
 
@@ -2273,7 +2273,7 @@ msgstr "光盘"
 msgid "Disc Read Error"
 msgstr "光盘读取错误"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:525
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:527
 msgid "Display"
 msgstr "显示"
 
@@ -2387,7 +2387,7 @@ msgstr "Dolphin未能完成请求的操作。"
 msgid "Dolphin's cheat system is currently disabled."
 msgstr "Dolphin 的金手指系统当前已禁用。"
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:331
+#: Source/Core/DiscIO/CompressedBlob.cpp:332
 msgid "Done compressing disc image."
 msgstr "光盘镜像已压缩完成。"
 
@@ -2435,15 +2435,15 @@ msgstr "转储"
 msgid "Dump Audio"
 msgstr "转储音频"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:913
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:915
 msgid "Dump EFB Target"
 msgstr "转储 EFB 目标"
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:135
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:136
 msgid "Dump EXRAM"
 msgstr "转储扩展内存"
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:144
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:145
 msgid "Dump FakeVMEM"
 msgstr "转储伪显存"
 
@@ -2451,7 +2451,7 @@ msgstr "转储伪显存"
 msgid "Dump Frames"
 msgstr "转储帧"
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:132
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:133
 msgid "Dump MRAM"
 msgstr "转储主内存"
 
@@ -2472,7 +2472,7 @@ msgid "Dump Texture Fetches"
 msgstr "转储材质接收"
 
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:111
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:895
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:897
 msgid "Dump Textures"
 msgstr "转储材质"
 
@@ -2562,15 +2562,15 @@ msgid ""
 "Search settings."
 msgstr "从当前扫描结果中消除不匹配当前搜索设置的条目。"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:731
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:733
 msgid "Embedded Frame Buffer (EFB)"
 msgstr "内置帧缓冲 (EFB)"
 
-#: Source/Core/Core/State.cpp:462
+#: Source/Core/Core/State.cpp:464
 msgid "Empty"
 msgstr "空"
 
-#: Source/Core/Core/Core.cpp:231
+#: Source/Core/Core/Core.cpp:232
 msgid "Emu Thread already running"
 msgstr "模拟线程已经在运行"
 
@@ -2616,11 +2616,11 @@ msgstr "模拟 Wii 控制器"
 msgid "Emulation State: "
 msgstr "模拟状态："
 
-#: Source/Core/Core/HotkeyManager.cpp:246
+#: Source/Core/Core/HotkeyManager.cpp:245
 msgid "Emulation speed"
 msgstr "模拟速度"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:878
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:880
 msgid "Enable API Validation Layers"
 msgstr "启用 API 验证层"
 
@@ -2660,11 +2660,11 @@ msgstr "启用 FPRF"
 msgid "Enable MMU"
 msgstr "启用 MMU"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:513
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:515
 msgid "Enable Multi-threading"
 msgstr "启用多线程"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:942
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:944
 msgid "Enable Progressive Scan"
 msgstr "启用逐行扫描"
 
@@ -2684,7 +2684,7 @@ msgstr "启用使用情况统计报告"
 msgid "Enable WideScreen"
 msgstr "启用宽屏"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:870
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:872
 msgid "Enable Wireframe"
 msgstr "启用线框"
 
@@ -2837,7 +2837,7 @@ msgstr ""
 msgid "End"
 msgstr "结束"
 
-#: Source/Core/Core/NetPlayServer.cpp:76
+#: Source/Core/Core/NetPlayServer.cpp:74
 msgid "Enet Didn't Initialize"
 msgstr "Enet 没有初始化"
 
@@ -2847,8 +2847,8 @@ msgstr "Enet 没有初始化"
 msgid "English"
 msgstr "英语"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:551
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:658
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:553
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:660
 msgid "Enhancements"
 msgstr "增强"
 
@@ -2862,17 +2862,17 @@ msgstr "为新布局输入一个名字:"
 
 #: Source/Core/DolphinWX/Debugger/CodeView.cpp:315
 msgid "Enter instruction code:"
-msgstr ""
+msgstr "输入指令码:"
 
 #: Source/Core/DolphinWX/Debugger/CodeView.cpp:402
 #, c-format
 msgid "Enter symbol (%s) end address:"
-msgstr ""
+msgstr "输入符号 (%s) 终止地址:"
 
 #: Source/Core/DolphinWX/Debugger/CodeView.cpp:379
 #, c-format
 msgid "Enter symbol (%s) size:"
-msgstr ""
+msgstr "输入符号 (%s) 大小:"
 
 #: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:213
 msgid "Enter the RSO module address:"
@@ -2894,14 +2894,14 @@ msgstr "等于"
 
 #: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:67
 #: Source/Core/DolphinWX/LogConfigWindow.cpp:43
-#: Source/Core/DolphinWX/Main.cpp:314 Source/Core/DolphinWX/Main.cpp:322
+#: Source/Core/DolphinWX/Main.cpp:317 Source/Core/DolphinWX/Main.cpp:325
 #: Source/Core/DolphinWX/MemcardManager.cpp:554
 #: Source/Core/DolphinWX/PatchAddEdit.cpp:242
 #: Source/Core/DolphinWX/WxUtils.cpp:70
 msgid "Error"
 msgstr "错误"
 
-#: Source/Core/DolphinWX/Main.cpp:313
+#: Source/Core/DolphinWX/Main.cpp:316
 msgid "Error loading selected language. Falling back to system default."
 msgstr "加载选定语言错误。正在退回系统默认。"
 
@@ -2909,7 +2909,7 @@ msgstr "加载选定语言错误。正在退回系统默认。"
 msgid "Error saving file."
 msgstr "保存文件出错。"
 
-#: Source/Core/Common/ChunkFile.h:248
+#: Source/Core/Common/ChunkFile.h:249
 #, c-format
 msgid ""
 "Error: After \"%s\", found %d (0x%X) instead of save marker %d (0x%X). "
@@ -2918,7 +2918,7 @@ msgstr ""
 "错误: 在\"%s\"之后，发现了%d (0x%X)而非存档标记%d (0x%X)。正在中止读取即时存"
 "档..."
 
-#: Source/Core/Core/HW/EXI/EXI_DeviceIPL.cpp:396
+#: Source/Core/Core/HW/EXI/EXI_DeviceIPL.cpp:397
 msgid ""
 "Error: Trying to access Shift JIS fonts but they are not loaded. Games may "
 "not show fonts correctly, or crash."
@@ -2926,7 +2926,7 @@ msgstr ""
 "错误: 正在试图访问 Shift JIS 字体，但它们没有加载。游戏可能无法正确显示字体，"
 "或者崩溃。"
 
-#: Source/Core/Core/HW/EXI/EXI_DeviceIPL.cpp:391
+#: Source/Core/Core/HW/EXI/EXI_DeviceIPL.cpp:392
 msgid ""
 "Error: Trying to access Windows-1252 fonts but they are not loaded. Games "
 "may not show fonts correctly, or crash."
@@ -2943,7 +2943,7 @@ msgstr "Euphoria"
 msgid "Europe"
 msgstr "欧洲"
 
-#: Source/Core/Core/HotkeyManager.cpp:33
+#: Source/Core/Core/HotkeyManager.cpp:32
 msgid "Exit"
 msgstr "退出"
 
@@ -2951,7 +2951,7 @@ msgstr "退出"
 msgid "Export All Wii Saves"
 msgstr "导出所有 Wii 存档"
 
-#: Source/Core/Core/HotkeyManager.cpp:50
+#: Source/Core/Core/HotkeyManager.cpp:49
 msgid "Export Recording"
 msgstr "导出录制"
 
@@ -2971,7 +2971,7 @@ msgstr "导出 Wii 存档（实验性）"
 msgid "Export all saves"
 msgstr "导出所有存档"
 
-#: Source/Core/Core/HW/WiiSaveCrypted.cpp:54
+#: Source/Core/Core/HW/WiiSaveCrypted.cpp:55
 #: Source/Core/DolphinWX/MemcardManager.cpp:451
 msgid "Export failed"
 msgstr "导出失败"
@@ -2984,15 +2984,15 @@ msgstr "导出存档为..."
 msgid "Extension"
 msgstr "扩展"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:809
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:811
 msgid "External Frame Buffer (XFB)"
 msgstr "外部帧缓冲 (XFB)"
 
-#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:258
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:227
 msgid "Extract All Files..."
 msgstr "提取所有文件..."
 
-#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:263
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:232
 msgid "Extract Apploader..."
 msgstr "提取应用加载器..."
 
@@ -3000,40 +3000,40 @@ msgstr "提取应用加载器..."
 msgid "Extract Certificates from NAND"
 msgstr "从 NAND 中提取证书"
 
-#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:264
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:233
 msgid "Extract DOL..."
 msgstr "提取 DOL..."
 
-#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:251
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:220
 msgid "Extract Directory..."
 msgstr "提取目录..."
 
-#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:282
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:251
 msgid "Extract File"
 msgstr "提取文件"
 
-#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:255
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:224
 msgid "Extract File..."
 msgstr "提取文件..."
 
-#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:247
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:216
 msgid "Extract Partition..."
 msgstr "提取分区..."
 
-#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:498
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:475
 #, c-format
 msgid "Extracting %s"
 msgstr "正在提取 %s"
 
-#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:485
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:465
 msgid "Extracting All Files"
 msgstr "正在提取所有文件"
 
-#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:485
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:465
 msgid "Extracting Directory"
 msgstr "正在提取目录"
 
-#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:486
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:466
 msgid "Extracting..."
 msgstr "正在提取..."
 
@@ -3054,11 +3054,11 @@ msgstr "连接失败！"
 msgid "Failed to Connect!"
 msgstr "连接失败!"
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:588
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:586
 msgid "Failed to claim interface for BT passthrough"
 msgstr "索取蓝牙直通接口失败"
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:583
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:581
 #, c-format
 msgid "Failed to detach kernel driver for BT passthrough: %s"
 msgstr "分离蓝牙直通内核驱动失败: %s"
@@ -3067,12 +3067,12 @@ msgstr "分离蓝牙直通内核驱动失败: %s"
 msgid "Failed to download codes."
 msgstr "下载代码失败。"
 
-#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:343
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:312
 #, c-format
 msgid "Failed to extract to %s!"
 msgstr "提取到 %s 失败!"
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:571
+#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:572
 #, c-format
 msgid ""
 "Failed to find new filename.\n"
@@ -3083,7 +3083,7 @@ msgstr ""
 "%s \n"
 "将会被覆盖"
 
-#: Source/Core/DolphinWX/NetPlay/NetPlayLauncher.cpp:32
+#: Source/Core/DolphinWX/NetPlay/NetPlayLauncher.cpp:31
 msgid "Failed to listen. Is another instance of the NetPlay server running?"
 msgstr "监听失败。是否有另一个联机服务器的实例正在运行？"
 
@@ -3097,23 +3097,23 @@ msgid ""
 "mode."
 msgstr "载入 MIOS 失败，无法以 Wii 模式运行 GameCube 游戏。"
 
-#: Source/Core/Core/Boot/Boot.cpp:385
+#: Source/Core/Core/Boot/Boot.cpp:383
 msgid "Failed to load the executable to memory."
-msgstr ""
+msgstr "加载可执行文件到内存失败。"
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:576
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:574
 #, c-format
 msgid "Failed to open Bluetooth device: %s"
 msgstr "打开蓝牙设备失败: %s"
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:168
-#: Source/Core/DiscIO/CompressedBlob.cpp:353
+#: Source/Core/DiscIO/CompressedBlob.cpp:169
+#: Source/Core/DiscIO/CompressedBlob.cpp:354
 #, c-format
 msgid "Failed to open the input file \"%s\"."
 msgstr "无法打开输入文件“%s”。"
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:175
-#: Source/Core/DiscIO/CompressedBlob.cpp:360
+#: Source/Core/DiscIO/CompressedBlob.cpp:176
+#: Source/Core/DiscIO/CompressedBlob.cpp:361
 #, c-format
 msgid ""
 "Failed to open the output file \"%s\".\n"
@@ -3123,7 +3123,7 @@ msgstr ""
 "无法打开输出文件  \"%s\"。\n"
 "请检查是否有权限写入目标文件夹并且该媒体能够被写入。"
 
-#: Source/Core/Core/Movie.cpp:1031
+#: Source/Core/Core/Movie.cpp:1033
 #, c-format
 msgid "Failed to read %s"
 msgstr "读取 %s 失败"
@@ -3155,7 +3155,7 @@ msgstr ""
 "无法正确读取区块分配表\n"
 "(0x6000-0x7FFF)"
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:669
+#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:670
 #, c-format
 msgid "Failed to read data from GCI file %s"
 msgstr "从 GCI 文件 %s 读取数据失败"
@@ -3192,12 +3192,12 @@ msgstr "无法从光盘镜像读取独立 ID"
 msgid "Failed to remove this title from the NAND."
 msgstr "将该游戏从 NAND 中移除失败。"
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTEmu.cpp:88
+#: Source/Core/Core/IOS/USB/Bluetooth/BTEmu.cpp:85
 msgid "Failed to write BT.DINF to SYSCONF"
 msgstr "无法将 BT.DINF 写入 SYSCONF"
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:297
-#: Source/Core/DiscIO/CompressedBlob.cpp:391
+#: Source/Core/DiscIO/CompressedBlob.cpp:298
+#: Source/Core/DiscIO/CompressedBlob.cpp:392
 #, c-format
 msgid ""
 "Failed to write the output file \"%s\".\n"
@@ -3206,15 +3206,15 @@ msgstr ""
 "无法写入输出文件“%s”。\n"
 "请检查目标驱动器是否有足够多的可用空间。"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:778
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:780
 msgid "Fast"
 msgstr "快速"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:834
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:836
 msgid "Fast Depth Calculation"
 msgstr "快速深度计算"
 
-#: Source/Core/Core/Movie.cpp:1323
+#: Source/Core/Core/Movie.cpp:1325
 #, c-format
 msgid ""
 "Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s"
@@ -3266,7 +3266,7 @@ msgstr ""
 msgid "File is not recognized as a memory card"
 msgstr "文件不能识别为存储卡"
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:344
+#: Source/Core/DiscIO/CompressedBlob.cpp:345
 msgid "File not compressed"
 msgstr "文件未压缩"
 
@@ -3276,7 +3276,7 @@ msgstr "文件未压缩"
 msgid "File write failed"
 msgstr "文件写入失败"
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:199
+#: Source/Core/DiscIO/CompressedBlob.cpp:200
 msgid "Files opened, ready to compress."
 msgstr "文件已打开，准备压缩。"
 
@@ -3311,12 +3311,12 @@ msgstr ""
 msgid "Filter the symbol list by name. This is case-sensitive."
 msgstr "按名称过滤符号列表。 区分大小写。"
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:155
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:156
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:234
 msgid "Find Next"
 msgstr "查找下一个"
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:158
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:159
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:235
 msgid "Find Previous"
 msgstr "查找上一个"
@@ -3355,17 +3355,17 @@ msgstr "雾化命令"
 
 #: Source/Core/DolphinWX/Debugger/CodeView.cpp:434
 msgid "Follow &branch"
-msgstr ""
+msgstr "跟随分支(&B)"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:461
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:463
 msgid "Force 16:9"
 msgstr "强制 16:9"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:652
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:654
 msgid "Force 24-bit Color"
 msgstr "强制 24 位色"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:461
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:463
 msgid "Force 4:3"
 msgstr "强制 4:3"
 
@@ -3377,7 +3377,7 @@ msgstr "强制使用 NTSC-J"
 msgid "Force Listen Port:"
 msgstr "强制监听端口:"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:645
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:647
 msgid "Force Texture Filtering"
 msgstr "强制纹理过滤"
 
@@ -3450,7 +3450,7 @@ msgstr "转发端口(UPnP)"
 msgid "Found %u results for '"
 msgstr "找到了 %u 个结果 '"
 
-#: Source/Core/Core/HW/WiiSaveCrypted.cpp:87
+#: Source/Core/Core/HW/WiiSaveCrypted.cpp:88
 #, c-format
 msgid "Found %zu save files"
 msgstr "找到 %zu 个存档文件"
@@ -3469,19 +3469,19 @@ msgstr "帧 %u"
 msgid "Frame %zu"
 msgstr "帧 %zu"
 
-#: Source/Core/Core/HotkeyManager.cpp:43
+#: Source/Core/Core/HotkeyManager.cpp:42
 msgid "Frame Advance"
 msgstr "逐帧播放"
 
-#: Source/Core/Core/HotkeyManager.cpp:44
+#: Source/Core/Core/HotkeyManager.cpp:43
 msgid "Frame Advance Decrease Speed"
 msgstr "逐帧播放减小速度"
 
-#: Source/Core/Core/HotkeyManager.cpp:45
+#: Source/Core/Core/HotkeyManager.cpp:44
 msgid "Frame Advance Increase Speed"
 msgstr "逐帧播放增加速度"
 
-#: Source/Core/Core/HotkeyManager.cpp:46
+#: Source/Core/Core/HotkeyManager.cpp:45
 msgid "Frame Advance Reset Speed"
 msgstr "逐帧播放重置速度"
 
@@ -3489,7 +3489,7 @@ msgstr "逐帧播放重置速度"
 msgid "Frame Buffer"
 msgstr "帧缓冲"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:919
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:921
 msgid "Frame Dumps Use FFV1"
 msgstr "使用 FFV1 转储帧"
 
@@ -3501,7 +3501,7 @@ msgstr "帧信息"
 msgid "Frame Range"
 msgstr "帧范围"
 
-#: Source/Core/Core/HotkeyManager.cpp:247
+#: Source/Core/Core/HotkeyManager.cpp:246
 msgid "Frame advance"
 msgstr "逐帧播放"
 
@@ -3518,51 +3518,51 @@ msgstr "录制帧数"
 msgid "France"
 msgstr "法国"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:916
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:918
 msgid "Free Look"
 msgstr "自由视点"
 
-#: Source/Core/Core/HotkeyManager.cpp:255
+#: Source/Core/Core/HotkeyManager.cpp:254
 msgid "Freelook"
 msgstr "自由视点"
 
-#: Source/Core/Core/HotkeyManager.cpp:84
+#: Source/Core/Core/HotkeyManager.cpp:83
 msgid "Freelook Decrease Speed"
 msgstr "自由视点减小速度"
 
-#: Source/Core/Core/HotkeyManager.cpp:85
+#: Source/Core/Core/HotkeyManager.cpp:84
 msgid "Freelook Increase Speed"
 msgstr "自由视点增加速度"
 
-#: Source/Core/Core/HotkeyManager.cpp:88
+#: Source/Core/Core/HotkeyManager.cpp:87
 msgid "Freelook Move Down"
 msgstr "自由视点下移"
 
-#: Source/Core/Core/HotkeyManager.cpp:89
+#: Source/Core/Core/HotkeyManager.cpp:88
 msgid "Freelook Move Left"
 msgstr "自由视点左移"
 
-#: Source/Core/Core/HotkeyManager.cpp:90
+#: Source/Core/Core/HotkeyManager.cpp:89
 msgid "Freelook Move Right"
 msgstr "自由视点右移"
 
-#: Source/Core/Core/HotkeyManager.cpp:87
+#: Source/Core/Core/HotkeyManager.cpp:86
 msgid "Freelook Move Up"
 msgstr "自由视点上移"
 
-#: Source/Core/Core/HotkeyManager.cpp:93
+#: Source/Core/Core/HotkeyManager.cpp:92
 msgid "Freelook Reset"
 msgstr "自由视点重置"
 
-#: Source/Core/Core/HotkeyManager.cpp:86
+#: Source/Core/Core/HotkeyManager.cpp:85
 msgid "Freelook Reset Speed"
 msgstr "自由视点重置速度"
 
-#: Source/Core/Core/HotkeyManager.cpp:91
+#: Source/Core/Core/HotkeyManager.cpp:90
 msgid "Freelook Zoom In"
 msgstr "自由视点拉近"
 
-#: Source/Core/Core/HotkeyManager.cpp:92
+#: Source/Core/Core/HotkeyManager.cpp:91
 msgid "Freelook Zoom Out"
 msgstr "自由视点远离"
 
@@ -3574,14 +3574,14 @@ msgstr "法语"
 
 #: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:58
 msgid "Frets"
-msgstr "品丝"
+msgstr "品键"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:85
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:93
 msgid "From"
 msgstr "从"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:908
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:910
 msgid "Full Resolution Frame Dumps"
 msgstr "满分辨率帧转储"
 
@@ -3589,7 +3589,7 @@ msgstr "满分辨率帧转储"
 msgid "FullScr"
 msgstr "全屏"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:441
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:443
 msgid "Fullscreen Resolution:"
 msgstr "全屏分辨率："
 
@@ -3621,7 +3621,7 @@ msgstr "GCI 文件(*.gci)"
 msgid "GCI Folder"
 msgstr "GCI 文件夹"
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:54
+#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:55
 #, c-format
 msgid ""
 "GCI save file was not loaded because it is the wrong region for this memory "
@@ -3629,7 +3629,7 @@ msgid ""
 "%s"
 msgstr "未加载 GCI 存档文件，其地区对于存储卡 %s 不正确。"
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:351
+#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:352
 msgid "GCMemcardDirectory: ClearBlock called with invalid block address"
 msgstr "GCMemcardDirectory: ClearBlock 被用于无效的区块地址"
 
@@ -3660,7 +3660,7 @@ msgstr ""
 "进一步的错误信息将发送到视频后端日志中并且\n"
 "Dolphin 现在可能崩溃或挂起。请关闭。"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:784
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:786
 msgid "GPU Texture Decoding"
 msgstr "GPU 纹理解码"
 
@@ -3680,7 +3680,7 @@ msgstr "游戏 ID："
 msgid "Game is already running!"
 msgstr "游戏已经运行!"
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:419
+#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:420
 #, c-format
 msgid ""
 "Game overwrote with another games save. Data corruption ahead 0x%x, 0x%x"
@@ -3738,12 +3738,12 @@ msgstr "GameCube 存档文件 (*.gci;*.gcs;*.sav)"
 msgid "Gecko Codes"
 msgstr "Gecko 代码"
 
-#: Source/Core/Core/HotkeyManager.cpp:244
+#: Source/Core/Core/HotkeyManager.cpp:243
 #: Source/Core/DolphinWX/Config/ConfigMain.cpp:84
 #: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:108
 #: Source/Core/DolphinWX/PostProcessingConfigDiag.cpp:130
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:46
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:386
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:388
 msgid "General"
 msgstr "常规"
 
@@ -3787,7 +3787,7 @@ msgstr "图形"
 msgid "Graphics settings"
 msgstr "图形设置"
 
-#: Source/Core/Core/HotkeyManager.cpp:253
+#: Source/Core/Core/HotkeyManager.cpp:252
 msgid "Graphics toggles"
 msgstr "图形切换"
 
@@ -3831,11 +3831,11 @@ msgstr "吉他（吉他英雄）"
 msgid "Guitar Configuration"
 msgstr "吉他配置（吉他英雄）"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:726
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:728
 msgid "Hacks"
 msgstr "修正"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:793
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:795
 #, c-format
 msgid ""
 "Hash tap count is set to %d which is non-standard.\n"
@@ -3861,7 +3861,7 @@ msgid "Height"
 msgstr "高度"
 
 #: Source/Core/DolphinWX/Debugger/MemoryView.cpp:325
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:163
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:164
 msgid "Hex"
 msgstr "十六进制"
 
@@ -3873,7 +3873,7 @@ msgstr "十六进制"
 msgid "Hide"
 msgstr "隐藏"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:503
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:505
 msgid "Hide Mouse Cursor"
 msgstr "隐藏鼠标光标"
 
@@ -3924,7 +3924,7 @@ msgstr ""
 msgid "Host with Netplay"
 msgstr "建主机对战"
 
-#: Source/Core/Core/HotkeyManager.cpp:166
+#: Source/Core/Core/HotkeyManager.cpp:165
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:323
 msgid "Hotkeys"
 msgstr "热键"
@@ -3941,7 +3941,7 @@ msgstr "ID"
 msgid "IOS Version:"
 msgstr "IOS 版本:"
 
-#: Source/Core/Core/IOS/Network/SSL.cpp:123
+#: Source/Core/Core/IOS/Network/SSL.cpp:125
 #, c-format
 msgid ""
 "IOS: A file required for SSL services (%s) is invalid. Please refer to "
@@ -3951,7 +3951,7 @@ msgstr ""
 "IOS: SSL 服务所必需的一个文件 (%s) 无效。请参阅 https://dolphin-emu.org/docs/"
 "guides/wii-network-guide/ 了解如何设置 Wii 联网。"
 
-#: Source/Core/Core/IOS/Network/SSL.cpp:111
+#: Source/Core/Core/IOS/Network/SSL.cpp:113
 #, c-format
 msgid ""
 "IOS: Could not read a file required for SSL services (%s). Please refer to "
@@ -3969,7 +3969,7 @@ msgstr "IP 地址 :"
 msgid "IPL Settings"
 msgstr "IPL 设置"
 
-#: Source/Core/Core/Boot/Boot.cpp:271
+#: Source/Core/Core/Boot/Boot.cpp:269
 #, c-format
 msgid "IPL with unknown hash %x"
 msgstr "IPL 存在未知 Hash %x"
@@ -4001,7 +4001,7 @@ msgstr "图标"
 msgid "Identity generation"
 msgstr "身份标识生成"
 
-#: Source/Core/DolphinWX/Main.cpp:215
+#: Source/Core/DolphinWX/Main.cpp:218
 msgid ""
 "If authorized, Dolphin can collect data on its performance, feature usage, "
 "and configuration, as well as data on your system's hardware and operating "
@@ -4025,7 +4025,7 @@ msgstr ""
 "\n"
 "您是否要授权 Dolphin 向开发者报告这些信息？"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:738
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:740
 msgid "Ignore Format Changes"
 msgstr "忽略格式变化"
 
@@ -4090,7 +4090,7 @@ msgstr "导入存档"
 msgid "Import Wii Save..."
 msgstr "导入 Wii 存档..."
 
-#: Source/Core/Core/HW/WiiSaveCrypted.cpp:118
+#: Source/Core/Core/HW/WiiSaveCrypted.cpp:119
 msgid "Import failed"
 msgstr "导入失败"
 
@@ -4122,20 +4122,20 @@ msgstr "正在导入 NAND 备份"
 msgid "In Game"
 msgstr "进游戏"
 
-#: Source/Core/Core/HotkeyManager.cpp:102
+#: Source/Core/Core/HotkeyManager.cpp:101
 msgid "Increase Convergence"
 msgstr "增加会聚"
 
-#: Source/Core/Core/HotkeyManager.cpp:100
+#: Source/Core/Core/HotkeyManager.cpp:99
 msgid "Increase Depth"
 msgstr "增加深度"
 
-#: Source/Core/Core/HotkeyManager.cpp:40
+#: Source/Core/Core/HotkeyManager.cpp:39
 msgid "Increase Emulation Speed"
 msgstr "增加模拟速度"
 
 #. i18n: IR stands for internal resolution
-#: Source/Core/Core/HotkeyManager.cpp:80
+#: Source/Core/Core/HotkeyManager.cpp:79
 msgid "Increase IR"
 msgstr "增加内部分辨率"
 
@@ -4172,19 +4172,19 @@ msgstr "安装至 NAND"
 msgid "Installing WAD..."
 msgstr "正在安装 WAD..."
 
-#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:381
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:350
 msgid "Integrity Check Error"
 msgstr "完整性校验失败"
 
-#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:374
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:343
 msgid "Integrity check completed"
 msgstr "完整性校验完成"
 
-#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:373
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:342
 msgid "Integrity check completed. No errors have been found."
 msgstr "完整性校验完成。没有发现错误。"
 
-#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:378
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:347
 #, c-format
 msgid ""
 "Integrity check for %s failed. The disc image is most likely corrupted or "
@@ -4199,11 +4199,11 @@ msgstr "界面"
 msgid "Interface Settings"
 msgstr "界面设置"
 
-#: Source/Core/Core/State.cpp:377
+#: Source/Core/Core/State.cpp:379
 msgid "Internal LZO Error - compression failed"
 msgstr "内部 LZO 错误 - 压缩失败"
 
-#: Source/Core/Core/State.cpp:513
+#: Source/Core/Core/State.cpp:515
 #, c-format
 msgid ""
 "Internal LZO Error - decompression failed (%d) (%li, %li) \n"
@@ -4212,7 +4212,7 @@ msgstr ""
 "内部 LZO 错误 - 解压失败 (%d) (%li, %li) \n"
 "请尝试重新加载状态"
 
-#: Source/Core/Core/State.cpp:648
+#: Source/Core/Core/State.cpp:650
 msgid "Internal LZO Error - lzo_init() failed"
 msgstr "内部 LZO 错误 - lzo_init() 失败"
 
@@ -4220,11 +4220,11 @@ msgstr "内部 LZO 错误 - lzo_init() 失败"
 msgid "Internal Name:"
 msgstr "内部名称："
 
-#: Source/Core/Core/HotkeyManager.cpp:254
+#: Source/Core/Core/HotkeyManager.cpp:253
 msgid "Internal Resolution"
 msgstr "内部分辨率"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:583
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:585
 msgid "Internal Resolution:"
 msgstr "内部分辨率："
 
@@ -4236,11 +4236,11 @@ msgstr "解释器（最慢）"
 msgid "Intro"
 msgstr "片头"
 
-#: Source/Core/DolphinWX/Cheats/ARCodeAddEdit.cpp:157
+#: Source/Core/DolphinWX/Cheats/ARCodeAddEdit.cpp:156
 msgid "Invalid Mixed Code"
 msgstr "无效混合代码"
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:238
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:239
 #, c-format
 msgid "Invalid address: %s"
 msgstr "无效地址： %s"
@@ -4257,7 +4257,7 @@ msgstr "无效主机"
 msgid "Invalid index"
 msgstr "无效索引"
 
-#: Source/Core/Core/Movie.cpp:972
+#: Source/Core/Core/Movie.cpp:974
 msgid "Invalid recording file"
 msgstr "无效录制文件"
 
@@ -4277,7 +4277,7 @@ msgstr "无效的搜索字符串(仅支持相等长度的字符串)"
 msgid "Invalid value."
 msgstr "无效值。"
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:246
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:247
 #, c-format
 msgid "Invalid value: %s"
 msgstr "无效值： %s"
@@ -4319,7 +4319,7 @@ msgstr "日本"
 msgid "Japanese"
 msgstr "日语"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:500
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:502
 msgid "Keep Window on Top"
 msgstr "窗口置顶"
 
@@ -4468,107 +4468,107 @@ msgstr "载入损坏映射文件(&B)..."
 msgid "Load &Other Map File..."
 msgstr "载入其他映射文件(&O)..."
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:898
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:900
 msgid "Load Custom Textures"
 msgstr "加载自定义纹理"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:226
 msgid "Load GameCube Main Menu"
-msgstr ""
+msgstr "载入 GameCube 主菜单"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:221
 msgid "Load NTSC-J GameCube Main Menu from the JAP folder."
-msgstr ""
+msgstr "载入 JAP 文件夹中的 NTSC-J GameCube 主菜单"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:223
 msgid "Load NTSC-U GameCube Main Menu from the USA folder."
-msgstr ""
+msgstr "载入 USA 文件夹中的 NTSC-U GameCube 主菜单"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:225
 msgid "Load PAL GameCube Main Menu from the EUR folder."
-msgstr ""
+msgstr "载入 EUR 文件夹中的 PAL GameCube 主菜单"
 
-#: Source/Core/Core/HotkeyManager.cpp:154
+#: Source/Core/Core/HotkeyManager.cpp:153
 msgid "Load State"
 msgstr "载入状态"
 
-#: Source/Core/Core/HotkeyManager.cpp:139
+#: Source/Core/Core/HotkeyManager.cpp:138
 msgid "Load State Last 1"
 msgstr "载入最近状态 1"
 
-#: Source/Core/Core/HotkeyManager.cpp:148
+#: Source/Core/Core/HotkeyManager.cpp:147
 msgid "Load State Last 10"
 msgstr "载入最近状态 10"
 
-#: Source/Core/Core/HotkeyManager.cpp:140
+#: Source/Core/Core/HotkeyManager.cpp:139
 msgid "Load State Last 2"
 msgstr "载入最近状态 2"
 
-#: Source/Core/Core/HotkeyManager.cpp:141
+#: Source/Core/Core/HotkeyManager.cpp:140
 msgid "Load State Last 3"
 msgstr "载入最近状态 3"
 
-#: Source/Core/Core/HotkeyManager.cpp:142
+#: Source/Core/Core/HotkeyManager.cpp:141
 msgid "Load State Last 4"
 msgstr "载入最近状态 4"
 
-#: Source/Core/Core/HotkeyManager.cpp:143
+#: Source/Core/Core/HotkeyManager.cpp:142
 msgid "Load State Last 5"
 msgstr "载入最近状态 5"
 
-#: Source/Core/Core/HotkeyManager.cpp:144
+#: Source/Core/Core/HotkeyManager.cpp:143
 msgid "Load State Last 6"
 msgstr "载入最近状态 6"
 
-#: Source/Core/Core/HotkeyManager.cpp:145
+#: Source/Core/Core/HotkeyManager.cpp:144
 msgid "Load State Last 7"
 msgstr "载入最近状态 7"
 
-#: Source/Core/Core/HotkeyManager.cpp:146
+#: Source/Core/Core/HotkeyManager.cpp:145
 msgid "Load State Last 8"
 msgstr "载入最近状态 8"
 
-#: Source/Core/Core/HotkeyManager.cpp:147
+#: Source/Core/Core/HotkeyManager.cpp:146
 msgid "Load State Last 9"
 msgstr "载入最近状态 9"
 
-#: Source/Core/Core/HotkeyManager.cpp:104
+#: Source/Core/Core/HotkeyManager.cpp:103
 msgid "Load State Slot 1"
 msgstr "载入状态 1"
 
-#: Source/Core/Core/HotkeyManager.cpp:113
+#: Source/Core/Core/HotkeyManager.cpp:112
 msgid "Load State Slot 10"
 msgstr "载入状态 10"
 
-#: Source/Core/Core/HotkeyManager.cpp:105
+#: Source/Core/Core/HotkeyManager.cpp:104
 msgid "Load State Slot 2"
 msgstr "载入状态 2"
 
-#: Source/Core/Core/HotkeyManager.cpp:106
+#: Source/Core/Core/HotkeyManager.cpp:105
 msgid "Load State Slot 3"
 msgstr "载入状态 3"
 
-#: Source/Core/Core/HotkeyManager.cpp:107
+#: Source/Core/Core/HotkeyManager.cpp:106
 msgid "Load State Slot 4"
 msgstr "载入状态 4"
 
-#: Source/Core/Core/HotkeyManager.cpp:108
+#: Source/Core/Core/HotkeyManager.cpp:107
 msgid "Load State Slot 5"
 msgstr "载入状态 5"
 
-#: Source/Core/Core/HotkeyManager.cpp:109
+#: Source/Core/Core/HotkeyManager.cpp:108
 msgid "Load State Slot 6"
 msgstr "载入状态 6"
 
-#: Source/Core/Core/HotkeyManager.cpp:110
+#: Source/Core/Core/HotkeyManager.cpp:109
 msgid "Load State Slot 7"
 msgstr "载入状态 7"
 
-#: Source/Core/Core/HotkeyManager.cpp:111
+#: Source/Core/Core/HotkeyManager.cpp:110
 msgid "Load State Slot 8"
 msgstr "载入状态 8"
 
-#: Source/Core/Core/HotkeyManager.cpp:112
+#: Source/Core/Core/HotkeyManager.cpp:111
 msgid "Load State Slot 9"
 msgstr "载入状态 9"
 
@@ -4595,7 +4595,7 @@ msgstr "加载 Wii 系统菜单 %s"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:227
 msgid "Load a GameCube Main Menu located under Dolphin's GC folder."
-msgstr ""
+msgstr "从 Dolphin 的 GC 文件夹载入一个 GameCube 主菜单"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:455
 msgid ""
@@ -4617,11 +4617,11 @@ msgstr ""
 "\n"
 "如果不确定，请不要勾选此项。"
 
-#: Source/Core/Core/HotkeyManager.cpp:114
+#: Source/Core/Core/HotkeyManager.cpp:113
 msgid "Load from selected slot"
 msgstr "从选择的插槽中加载"
 
-#: Source/Core/Core/HotkeyManager.cpp:261
+#: Source/Core/Core/HotkeyManager.cpp:260
 msgid "Load last state"
 msgstr "载入最近状态"
 
@@ -4629,7 +4629,7 @@ msgstr "载入最近状态"
 msgid "Load map file"
 msgstr "载入映射文件"
 
-#: Source/Core/Core/HotkeyManager.cpp:258
+#: Source/Core/Core/HotkeyManager.cpp:257
 msgid "Load state"
 msgstr "载入状态"
 
@@ -4644,7 +4644,7 @@ msgid "Localhost"
 msgstr "本地主机"
 
 #: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:55
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:201
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:202
 #: Source/Core/DolphinWX/LogWindow.h:30
 msgid "Log"
 msgstr "日志"
@@ -4653,7 +4653,7 @@ msgstr "日志"
 msgid "Log Configuration"
 msgstr "记录设置"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:491
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:493
 msgid "Log Render Time to File"
 msgstr "记录渲染时间到文件"
 
@@ -4739,7 +4739,7 @@ msgstr ""
 "\n"
 "如果不确定，请不要勾选此项。"
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:465
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:466
 msgid "Match Found"
 msgstr "找到匹配"
 
@@ -4770,7 +4770,7 @@ msgstr "存储卡"
 msgid "Memory Card Manager"
 msgstr "存储卡管理器"
 
-#: Source/Core/Core/ConfigManager.cpp:1021
+#: Source/Core/Core/ConfigManager.cpp:1025
 #, c-format
 msgid ""
 "Memory Card filename in Slot %c is incorrect\n"
@@ -4787,11 +4787,11 @@ msgstr ""
 "%s\n"
 "你想复制旧文件到这个新位置吗?\n"
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:371
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:372
 msgid "Memory Not Ready"
 msgstr "内存未就绪"
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:206
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:207
 msgid "Memory breakpoint options"
 msgstr "内存断点选项"
 
@@ -4807,17 +4807,17 @@ msgstr "存储卡已经打开"
 msgid "Memory card file size does not match the header size"
 msgstr "存储卡文件大小与文件头大小不匹配"
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcardRaw.cpp:186
+#: Source/Core/Core/HW/GCMemcard/GCMemcardRaw.cpp:187
 #, c-format
 msgid "MemoryCard: ClearBlock called on invalid address (0x%x)"
 msgstr "MemoryCard: ClearBlock 在无效地址 (0x%x) 中调用"
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcardRaw.cpp:158
+#: Source/Core/Core/HW/GCMemcard/GCMemcardRaw.cpp:159
 #, c-format
 msgid "MemoryCard: Read called with invalid source address (0x%x)"
 msgstr "MemoryCard: 在无效源地址 (0x%x) 中读取调用"
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcardRaw.cpp:170
+#: Source/Core/Core/HW/GCMemcard/GCMemcardRaw.cpp:171
 #, c-format
 msgid "MemoryCard: Write called with invalid destination address (0x%x)"
 msgstr "MemoryCard: 在无效目标地址 (0x%x) 中写入调用"
@@ -4842,7 +4842,7 @@ msgstr "麦克风"
 msgid "Min"
 msgstr "最小"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:960
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:962
 msgid "Misc"
 msgstr "其它"
 
@@ -4893,7 +4893,7 @@ msgid ""
 "Move the mouse pointer over an option to display a detailed description."
 msgstr "将鼠标指针移至某一选项上以显示详细说明。"
 
-#: Source/Core/Core/HotkeyManager.cpp:248
+#: Source/Core/Core/HotkeyManager.cpp:247
 msgid "Movie"
 msgstr "影片"
 
@@ -4931,7 +4931,7 @@ msgstr "名称："
 msgid "Name: "
 msgstr "名称："
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:563
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:565
 msgid "Native (640x528)"
 msgstr "原生 (640x528)"
 
@@ -4973,11 +4973,11 @@ msgstr "下一扫描"
 msgid "Nickname:"
 msgstr "昵称："
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:474
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:475
 msgid "No Match"
 msgstr "无匹配"
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:416
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:417
 msgid "No Value Given"
 msgstr "无给定值"
 
@@ -5006,14 +5006,14 @@ msgstr "没有游戏在运行。"
 msgid "No recorded file"
 msgstr "没有已录制文件"
 
-#: Source/Core/Core/State.cpp:742
+#: Source/Core/Core/State.cpp:744
 msgid "No undo.dtm found, aborting undo load state to prevent movie desyncs"
 msgstr "未找到 undo.dtm 文件，为防止影片出现不同步撤销载入状态操作被取消。"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:51
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:313
 #: Source/Core/DolphinWX/NetPlay/PadMapDialog.cpp:27
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:1333
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:1335
 msgid "None"
 msgstr "无"
 
@@ -5027,7 +5027,7 @@ msgstr "不等于"
 msgid "Not Set"
 msgstr "未设置"
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:394
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:395
 msgid "Not Valid Hex"
 msgstr "无效的十六进制"
 
@@ -5035,7 +5035,7 @@ msgstr "无效的十六进制"
 msgid "Not all players have the game. Do you really want to start?"
 msgstr "并不是所有玩家都有该游戏。你真的要开始吗？"
 
-#: Source/Core/DolphinWX/Main.cpp:472
+#: Source/Core/DolphinWX/Main.cpp:475
 msgid "Not connected"
 msgstr "未连接"
 
@@ -5092,7 +5092,7 @@ msgstr "双节棍控制器方向"
 msgid "Nunchuk stick"
 msgstr "双节棍控制器"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:676
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:678
 msgid "Nvidia 3D Vision"
 msgstr "NVIDIA 3D Vision"
 
@@ -5105,7 +5105,7 @@ msgstr "对象 %zu"
 msgid "Object Range"
 msgstr "对象范围"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:675
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:677
 msgid "Off"
 msgstr "关"
 
@@ -5139,7 +5139,7 @@ msgstr ""
 msgid "Op?"
 msgstr "Op?"
 
-#: Source/Core/Core/HotkeyManager.cpp:25
+#: Source/Core/Core/HotkeyManager.cpp:24
 #: Source/Core/DolphinWX/MainToolBar.cpp:177
 msgid "Open"
 msgstr "打开"
@@ -5201,8 +5201,8 @@ msgstr ""
 msgid "Orientation"
 msgstr "方向"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:530
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:846
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:532
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:848
 msgid "Other"
 msgstr "其他"
 
@@ -5214,7 +5214,7 @@ msgstr "其他状态管理"
 msgid "Other game"
 msgstr "其他游戏"
 
-#: Source/Core/Core/HotkeyManager.cpp:262
+#: Source/Core/Core/HotkeyManager.cpp:261
 msgid "Other state hotkeys"
 msgstr "其他状态热键"
 
@@ -5254,11 +5254,11 @@ msgstr "手柄"
 msgid "Pads"
 msgstr "鼓垫"
 
-#: Source/Core/DolphinWX/Cheats/ARCodeAddEdit.cpp:140
+#: Source/Core/DolphinWX/Cheats/ARCodeAddEdit.cpp:139
 msgid "Parsing Error"
 msgstr "解析错误"
 
-#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:211
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:180
 #, c-format
 msgid "Partition %zu"
 msgstr "分区 %zu"
@@ -5298,7 +5298,7 @@ msgstr "窗口非活动时暂停"
 msgid "Pauses the emulator when focus is taken away from the emulation window."
 msgstr "在窗口失去输入焦点时模拟器暂停运行。"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:642
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:644
 msgid "Per-Pixel Lighting"
 msgstr "逐像素光照"
 
@@ -5340,7 +5340,7 @@ msgstr "平台"
 msgid "Play"
 msgstr "开始"
 
-#: Source/Core/Core/HotkeyManager.cpp:49
+#: Source/Core/Core/HotkeyManager.cpp:48
 msgid "Play Recording"
 msgstr "播放录制"
 
@@ -5378,30 +5378,30 @@ msgstr "端口 :"
 msgid "Post Processing Shader Configuration"
 msgstr "后处理着色器配置"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:625
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:627
 msgid "Post-Processing Effect:"
 msgstr "后处理效果："
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:901
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:903
 msgid "Prefetch Custom Textures"
 msgstr "预读取自定义材质"
 
-#: Source/Core/Core/Movie.cpp:1210
+#: Source/Core/Core/Movie.cpp:1212
 #, c-format
 msgid "Premature movie end in PlayController. %u + %zu > %u"
 msgstr "在 PlayController 中提前结束影片。 %u + %zu > %u"
 
-#: Source/Core/Core/Movie.cpp:1337
+#: Source/Core/Core/Movie.cpp:1339
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u + %d > %u"
 msgstr "在 PlayWiimote 中提前结束影片。%u + %d > %u"
 
-#: Source/Core/Core/Movie.cpp:1311
+#: Source/Core/Core/Movie.cpp:1313
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u > %u"
 msgstr "在PlayWiimote 中提前结束影片。%u > %u"
 
-#: Source/Core/Core/HotkeyManager.cpp:65
+#: Source/Core/Core/HotkeyManager.cpp:64
 msgid "Press Sync Button"
 msgstr "按下同步按钮"
 
@@ -5412,7 +5412,7 @@ msgstr "上一页"
 #: Source/Core/DolphinWX/Debugger/AssemblerEntryDialog.cpp:89
 #, c-format
 msgid "Preview: %s"
-msgstr ""
+msgstr "预览: %s"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:817
 msgid "Previous Page"
@@ -5422,11 +5422,11 @@ msgstr "上一页"
 msgid "Profile"
 msgstr "预设"
 
-#: Source/Core/Core/HotkeyManager.cpp:250
+#: Source/Core/Core/HotkeyManager.cpp:249
 msgid "Program Counter"
 msgstr "程序计数器"
 
-#: Source/Core/DolphinWX/ISOProperties/ISOProperties.h:55
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.h:56
 msgid "Properties"
 msgstr "属性"
 
@@ -5440,7 +5440,7 @@ msgstr "清除游戏列表缓存"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:79
 msgid "Put Main Menu roms in User/GC/{region}."
-msgstr ""
+msgstr "将主菜单 ROM 放至 User/GC/{地区}."
 
 #: Source/Core/Common/MsgHandler.cpp:66
 msgid "Question"
@@ -5476,13 +5476,13 @@ msgstr "范围"
 
 #: Source/Core/DolphinWX/Debugger/CodeView.cpp:453
 msgid "Re&place Instruction"
-msgstr ""
+msgstr "替换指令(&P)"
 
 #. i18n: This string is used for a radio button that represents the type of
 #. memory breakpoint that gets triggered when a read operation or write operation occurs.
 #. The string is not a command to read and write something or to allow reading and writing.
 #: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:53
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:185
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:186
 msgid "Read and write"
 msgstr "读取和写入"
 
@@ -5490,15 +5490,15 @@ msgstr "读取和写入"
 #. memory breakpoint that gets triggered when a read operation occurs.
 #. The string does not mean "read-only" in the sense that something cannot be written to.
 #: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:44
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:192
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:193
 msgid "Read only"
 msgstr "只读"
 
-#: Source/Core/Core/HotkeyManager.cpp:51
+#: Source/Core/Core/HotkeyManager.cpp:50
 msgid "Read-only mode"
 msgstr "只读模式"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:815
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:817
 msgid "Real"
 msgstr "真实"
 
@@ -5576,7 +5576,7 @@ msgstr ""
 msgid "Refresh"
 msgstr "刷新"
 
-#: Source/Core/Core/HotkeyManager.cpp:27
+#: Source/Core/Core/HotkeyManager.cpp:26
 msgid "Refresh List"
 msgstr "刷新列表"
 
@@ -5622,7 +5622,7 @@ msgstr ""
 "\n"
 "如果不确定，请不要勾选此项。"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:507
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:509
 msgid "Render to Main Window"
 msgstr "渲染到主窗口"
 
@@ -5630,12 +5630,12 @@ msgstr "渲染到主窗口"
 msgid "Rendering"
 msgstr "渲染"
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:331
+#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:332
 #, c-format
 msgid "Report: GCIFolder Writing to unallocated block 0x%x"
 msgstr "报告: GCIFolder 正在写入未分配的区块 0x%x"
 
-#: Source/Core/Core/HotkeyManager.cpp:30
+#: Source/Core/Core/HotkeyManager.cpp:29
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:290
 #: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1211
 msgid "Reset"
@@ -5719,7 +5719,7 @@ msgstr "运行"
 
 #: Source/Core/DolphinWX/Debugger/CodeView.cpp:448
 msgid "Run &To Here"
-msgstr ""
+msgstr "运行到此处(&T)"
 
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:111
 msgid "Russia"
@@ -5737,13 +5737,13 @@ msgstr "SD 卡"
 #: Source/Core/Core/HW/GCPadEmu.cpp:56
 #: Source/Core/DolphinWX/TASInputDlg.cpp:399
 msgid "START"
-msgstr ""
+msgstr "START"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:129
 msgid "Sa&ve State"
 msgstr "保存状态(&V)"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:775
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:777
 msgid "Safe"
 msgstr "安全"
 
@@ -5762,7 +5762,7 @@ msgstr "保存代码"
 msgid "Save GCI as..."
 msgstr "保存GCI为..."
 
-#: Source/Core/Core/HotkeyManager.cpp:150
+#: Source/Core/Core/HotkeyManager.cpp:149
 #: Source/Core/DolphinWX/MainMenuBar.cpp:101
 msgid "Save Oldest State"
 msgstr "保存最早状态"
@@ -5771,47 +5771,47 @@ msgstr "保存最早状态"
 msgid "Save Perspectives"
 msgstr "保存布局"
 
-#: Source/Core/Core/HotkeyManager.cpp:153
+#: Source/Core/Core/HotkeyManager.cpp:152
 msgid "Save State"
 msgstr "保存状态"
 
-#: Source/Core/Core/HotkeyManager.cpp:116
+#: Source/Core/Core/HotkeyManager.cpp:115
 msgid "Save State Slot 1"
 msgstr "保存状态 1"
 
-#: Source/Core/Core/HotkeyManager.cpp:125
+#: Source/Core/Core/HotkeyManager.cpp:124
 msgid "Save State Slot 10"
 msgstr "保存状态 10"
 
-#: Source/Core/Core/HotkeyManager.cpp:117
+#: Source/Core/Core/HotkeyManager.cpp:116
 msgid "Save State Slot 2"
 msgstr "保存状态 2"
 
-#: Source/Core/Core/HotkeyManager.cpp:118
+#: Source/Core/Core/HotkeyManager.cpp:117
 msgid "Save State Slot 3"
 msgstr "保存状态 3"
 
-#: Source/Core/Core/HotkeyManager.cpp:119
+#: Source/Core/Core/HotkeyManager.cpp:118
 msgid "Save State Slot 4"
 msgstr "保存状态 4"
 
-#: Source/Core/Core/HotkeyManager.cpp:120
+#: Source/Core/Core/HotkeyManager.cpp:119
 msgid "Save State Slot 5"
 msgstr "保存状态 5"
 
-#: Source/Core/Core/HotkeyManager.cpp:121
+#: Source/Core/Core/HotkeyManager.cpp:120
 msgid "Save State Slot 6"
 msgstr "保存状态 6"
 
-#: Source/Core/Core/HotkeyManager.cpp:122
+#: Source/Core/Core/HotkeyManager.cpp:121
 msgid "Save State Slot 7"
 msgstr "保存状态 7"
 
-#: Source/Core/Core/HotkeyManager.cpp:123
+#: Source/Core/Core/HotkeyManager.cpp:122
 msgid "Save State Slot 8"
 msgstr "保存状态 8"
 
-#: Source/Core/Core/HotkeyManager.cpp:124
+#: Source/Core/Core/HotkeyManager.cpp:123
 msgid "Save State Slot 9"
 msgstr "保存状态 9"
 
@@ -5860,7 +5860,7 @@ msgstr "将映射文件另存为"
 msgid "Save signature as"
 msgstr "将签名另存为"
 
-#: Source/Core/Core/HotkeyManager.cpp:259
+#: Source/Core/Core/HotkeyManager.cpp:258
 msgid "Save state"
 msgstr "保存状态"
 
@@ -5892,7 +5892,7 @@ msgstr ""
 "将每个地址的函数名称保存到你的用户设置 map 文件夹中的 .map 文件中，以游戏 ID "
 "命名。"
 
-#: Source/Core/Core/HotkeyManager.cpp:126
+#: Source/Core/Core/HotkeyManager.cpp:125
 msgid "Save to selected slot"
 msgstr "保存至所选插槽"
 
@@ -5908,12 +5908,12 @@ msgstr "只有在 Wii 游戏运行时保存的 Wii 控制器配对才能重置�
 msgid "Saved to /Wii/sd.raw (default size is 128mb)"
 msgstr "保存至 /Wii/sd.raw（默认大小是 128MB）"
 
-#: Source/Core/Core/Movie.cpp:1040
+#: Source/Core/Core/Movie.cpp:1042
 #, c-format
 msgid "Savestate movie %s is corrupted, movie recording stopping..."
 msgstr "即时存档影片 %s 被破坏, 影片录制停止..."
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:639
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:641
 msgid "Scaled EFB Copy"
 msgstr "缩放 EFB 副本"
 
@@ -5934,12 +5934,12 @@ msgstr "正在扫描..."
 msgid "ScrShot"
 msgstr "截图"
 
-#: Source/Core/VideoCommon/ImageWrite.cpp:53
+#: Source/Core/VideoCommon/ImageWrite.cpp:54
 #, c-format
 msgid "Screenshot failed: Could not open file \"%s\" (error %d)"
 msgstr "截图失败：无法打开文件“%s”（错误 %d）"
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:170
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:171
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:233
 msgid "Search"
 msgstr "搜索"
@@ -5949,7 +5949,7 @@ msgid "Search (clear to use previous value)"
 msgstr "搜索（清除以使用之前的值）"
 
 #: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:80
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:112
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:113
 msgid "Search Address"
 msgstr "搜索地址"
 
@@ -5964,12 +5964,6 @@ msgstr "搜索子目录"
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:226
 msgid "Search for Hex Value:"
 msgstr "搜索十六进制值："
-
-#: Source/Core/Common/SysConf.h:106 Source/Core/Common/SysConf.h:129
-#: Source/Core/Common/SysConf.h:149 Source/Core/Common/SysConf.h:170
-#, c-format
-msgid "Section %s not found in SYSCONF"
-msgstr "未在SYSCONF中找到部分 %s"
 
 #: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:752
 #: Source/Core/DolphinWX/NetPlay/ChangeGameDialog.cpp:23
@@ -5993,43 +5987,43 @@ msgstr "选择插槽 %u - %s"
 msgid "Select State Slot"
 msgstr "选择状态插槽"
 
-#: Source/Core/Core/HotkeyManager.cpp:128
+#: Source/Core/Core/HotkeyManager.cpp:127
 msgid "Select State Slot 1"
 msgstr "选择状态 1"
 
-#: Source/Core/Core/HotkeyManager.cpp:137
+#: Source/Core/Core/HotkeyManager.cpp:136
 msgid "Select State Slot 10"
 msgstr "选择状态 10"
 
-#: Source/Core/Core/HotkeyManager.cpp:129
+#: Source/Core/Core/HotkeyManager.cpp:128
 msgid "Select State Slot 2"
 msgstr "选择状态 2"
 
-#: Source/Core/Core/HotkeyManager.cpp:130
+#: Source/Core/Core/HotkeyManager.cpp:129
 msgid "Select State Slot 3"
 msgstr "选择状态 3"
 
-#: Source/Core/Core/HotkeyManager.cpp:131
+#: Source/Core/Core/HotkeyManager.cpp:130
 msgid "Select State Slot 4"
 msgstr "选择状态 4"
 
-#: Source/Core/Core/HotkeyManager.cpp:132
+#: Source/Core/Core/HotkeyManager.cpp:131
 msgid "Select State Slot 5"
 msgstr "选择状态 5"
 
-#: Source/Core/Core/HotkeyManager.cpp:133
+#: Source/Core/Core/HotkeyManager.cpp:132
 msgid "Select State Slot 6"
 msgstr "选择状态 6"
 
-#: Source/Core/Core/HotkeyManager.cpp:134
+#: Source/Core/Core/HotkeyManager.cpp:133
 msgid "Select State Slot 7"
 msgstr "选择状态 7"
 
-#: Source/Core/Core/HotkeyManager.cpp:135
+#: Source/Core/Core/HotkeyManager.cpp:134
 msgid "Select State Slot 8"
 msgstr "选择状态 8"
 
-#: Source/Core/Core/HotkeyManager.cpp:136
+#: Source/Core/Core/HotkeyManager.cpp:135
 msgid "Select State Slot 9"
 msgstr "选择状态 9"
 
@@ -6054,7 +6048,7 @@ msgstr "选择要导入的存档"
 msgid "Select floating windows"
 msgstr "选择浮动窗口"
 
-#: Source/Core/Core/HotkeyManager.cpp:260
+#: Source/Core/Core/HotkeyManager.cpp:259
 msgid "Select state"
 msgstr "选择状态"
 
@@ -6092,7 +6086,7 @@ msgstr ""
 "\n"
 "如果不确定，请选择“自动”。"
 
-#: Source/Core/Core/ConfigLoaders/GameConfigLoader.cpp:246
+#: Source/Core/Core/ConfigLoaders/GameConfigLoader.cpp:247
 #: Source/Core/InputCommon/InputConfig.cpp:63
 msgid "Selected controller profile does not exist"
 msgstr "所选控制器预设不存在"
@@ -6194,12 +6188,12 @@ msgid "Server rejected traversal attempt"
 msgstr "穿透尝试被服务器拒绝"
 
 #. i18n: Here, PC is an acronym for program counter, not personal computer.
-#: Source/Core/Core/HotkeyManager.cpp:59
+#: Source/Core/Core/HotkeyManager.cpp:58
 #: Source/Core/DolphinWX/MainToolBar.cpp:212
 msgid "Set PC"
 msgstr "设置 PC"
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:119
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:120
 msgid "Set Value"
 msgstr "设置值"
 
@@ -6214,11 +6208,11 @@ msgstr "设置为默认存储卡 %c"
 
 #: Source/Core/DolphinWX/Debugger/CodeView.cpp:446
 msgid "Set symbol &end address"
-msgstr ""
+msgstr "设置符号终止地址(&E)"
 
 #: Source/Core/DolphinWX/Debugger/CodeView.cpp:445
 msgid "Set symbol &size"
-msgstr ""
+msgstr "设置符号大小(&S)"
 
 #: Source/Core/DolphinWX/MainToolBar.cpp:212
 msgid "Set the current instruction"
@@ -6293,7 +6287,7 @@ msgstr "显示驱动器"
 msgid "Show ELF/DOL"
 msgstr "显示 ELF/DOL"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:486
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:488
 msgid "Show FPS"
 msgstr "显示 FPS"
 
@@ -6341,11 +6335,11 @@ msgstr "显示语言："
 msgid "Show Log &Configuration"
 msgstr "显示日志设置(&C)"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:497
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:499
 msgid "Show NetPlay Messages"
 msgstr "显示联机信息"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:488
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:490
 msgid "Show NetPlay Ping"
 msgstr "显示联机延迟"
 
@@ -6358,7 +6352,7 @@ msgid "Show PAL"
 msgstr "显示 PAL"
 
 #. i18n: Here, PC is an acronym for program counter, not personal computer.
-#: Source/Core/Core/HotkeyManager.cpp:58
+#: Source/Core/Core/HotkeyManager.cpp:57
 #: Source/Core/DolphinWX/Debugger/DSPDebugWindow.cpp:55
 #: Source/Core/DolphinWX/MainToolBar.cpp:209
 msgid "Show PC"
@@ -6380,7 +6374,7 @@ msgstr "显示俄罗斯"
 msgid "Show Spain"
 msgstr "显示西班牙"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:873
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:875
 msgid "Show Statistics"
 msgstr "显示统计数据"
 
@@ -6480,7 +6474,7 @@ msgstr ""
 "\n"
 "如果不确定，请不要勾选此项。"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:675
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:677
 msgid "Side-by-Side"
 msgstr "左右并排"
 
@@ -6515,7 +6509,7 @@ msgid ""
 "crackling."
 msgstr "伸缩缓冲区的大小，以毫秒计。数值过低可能导致噼啪声。"
 
-#: Source/Core/Core/HotkeyManager.cpp:56
+#: Source/Core/Core/HotkeyManager.cpp:55
 #: Source/Core/DolphinWX/MainToolBar.cpp:205
 msgid "Skip"
 msgstr "跳过"
@@ -6524,13 +6518,13 @@ msgstr "跳过"
 msgid "Skip DCBZ clearing"
 msgstr "跳过 DCBZ 清除"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:733
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:735
 msgid "Skip EFB Access from CPU"
 msgstr "跳过 CPU 对 EFB 访问"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:69
 msgid "Skip Main Menu"
-msgstr ""
+msgstr "跳过主菜单"
 
 #: Source/Core/DolphinWX/MainToolBar.cpp:206
 msgid "Skips the next instruction completely"
@@ -6538,7 +6532,7 @@ msgstr "完全跳过下一条指令"
 
 #: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:81
 msgid "Slider Bar"
-msgstr ""
+msgstr "滑品板"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:273
 msgid ""
@@ -6569,7 +6563,7 @@ msgstr "插槽 A"
 msgid "Slot B"
 msgstr "插槽 B"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:1007
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:1009
 msgid ""
 "Software rendering is an order of magnitude slower than using the other "
 "backends.\n"
@@ -6655,7 +6649,7 @@ msgstr "开始联机(&N)..."
 msgid "Start Re&cording Input"
 msgstr "开始录制输入(&C)"
 
-#: Source/Core/Core/HotkeyManager.cpp:48
+#: Source/Core/Core/HotkeyManager.cpp:47
 msgid "Start Recording"
 msgstr "开始录制"
 
@@ -6691,7 +6685,7 @@ msgstr "跳入(&I)"
 msgid "Step &Over"
 msgstr "跳过(&O)"
 
-#: Source/Core/Core/HotkeyManager.cpp:53
+#: Source/Core/Core/HotkeyManager.cpp:52
 msgid "Step Into"
 msgstr "跳入"
 
@@ -6701,14 +6695,14 @@ msgstr "跳出(&U)"
 
 #. i18n: Here, "Step" is a verb. This function is used for
 #. going through code step by step.
-#: Source/Core/Core/HotkeyManager.cpp:55
+#: Source/Core/Core/HotkeyManager.cpp:54
 #: Source/Core/DolphinWX/MainToolBar.cpp:203
 msgid "Step Out"
 msgstr "单步跳出"
 
 #. i18n: Here, "Step" is a verb. This function is used for
 #. going through code step by step.
-#: Source/Core/Core/HotkeyManager.cpp:54
+#: Source/Core/Core/HotkeyManager.cpp:53
 #: Source/Core/DolphinWX/MainToolBar.cpp:199
 msgid "Step Over"
 msgstr "单步跳过"
@@ -6741,16 +6735,16 @@ msgstr "单步跳过下一条指令"
 msgid "Step successful!"
 msgstr "单步成功！"
 
-#: Source/Core/Core/HotkeyManager.cpp:249
+#: Source/Core/Core/HotkeyManager.cpp:248
 msgid "Stepping"
 msgstr "步进"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:672
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:674
 msgid "Stereoscopic 3D Mode:"
 msgstr "立体 3D 模式："
 
 #: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:365
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:709
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:711
 msgid "Stereoscopy"
 msgstr "立体 3D"
 
@@ -6761,7 +6755,7 @@ msgstr "立体 3D"
 msgid "Stick"
 msgstr "摇杆"
 
-#: Source/Core/Core/HotkeyManager.cpp:29
+#: Source/Core/Core/HotkeyManager.cpp:28
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:414
 #: Source/Core/DolphinWX/MainToolBar.cpp:181
 msgid "Stop"
@@ -6781,7 +6775,7 @@ msgstr "停止播放/录制输入"
 msgid "Stop Recording Input"
 msgstr "停止录制输入"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:743
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:745
 msgid "Store EFB Copies to Texture Only"
 msgstr "仅存储 EFB 副本为纹理"
 
@@ -6803,7 +6797,7 @@ msgstr ""
 "\n"
 "如果不确定，请勾选此项。"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:462
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:464
 msgid "Stretch to Window"
 msgstr "拉伸到窗口大小"
 
@@ -6814,19 +6808,19 @@ msgstr "字符串"
 
 #: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:63
 msgid "Strum"
-msgstr "弹拨"
+msgstr "拨弦"
 
-#: Source/Core/Core/HW/WiiSaveCrypted.cpp:95
+#: Source/Core/Core/HW/WiiSaveCrypted.cpp:96
 #, c-format
 msgid "Successfully exported %u saves to %s"
 msgstr "成功导出 %u 个存档至 %s"
 
-#: Source/Core/Core/HW/WiiSaveCrypted.cpp:50
+#: Source/Core/Core/HW/WiiSaveCrypted.cpp:51
 #, c-format
 msgid "Successfully exported file to %s"
 msgstr "成功导出文件到 %s"
 
-#: Source/Core/Core/HW/WiiSaveCrypted.cpp:114
+#: Source/Core/Core/HW/WiiSaveCrypted.cpp:115
 msgid "Successfully imported save files"
 msgstr "成功导入存档文件"
 
@@ -6834,7 +6828,7 @@ msgstr "成功导入存档文件"
 msgid "Support"
 msgstr "支持"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:705
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:707
 msgid "Swap Eyes"
 msgstr "交换双眼"
 
@@ -6938,7 +6932,7 @@ msgstr "右唱盘"
 msgid "Taiwan"
 msgstr "台湾"
 
-#: Source/Core/Core/HotkeyManager.cpp:32
+#: Source/Core/Core/HotkeyManager.cpp:31
 #: Source/Core/DolphinWX/MainMenuBar.cpp:126
 msgid "Take Screenshot"
 msgstr "屏幕截图"
@@ -6955,7 +6949,7 @@ msgstr "测试"
 msgid "Texture"
 msgstr "材质"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:755
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:757
 msgid "Texture Cache"
 msgstr "纹理缓存"
 
@@ -6963,7 +6957,7 @@ msgstr "纹理缓存"
 msgid "Texture Cmd"
 msgstr "材质命令"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:875
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:877
 msgid "Texture Format Overlay"
 msgstr "显示纹理格式"
 
@@ -6989,7 +6983,7 @@ msgstr ""
 msgid "The address %s is invalid."
 msgstr "地址 %s 无效"
 
-#: Source/Core/Core/ActionReplay.cpp:220
+#: Source/Core/Core/ActionReplay.cpp:218
 msgid "The address is invalid"
 msgstr "地址无效"
 
@@ -6997,11 +6991,11 @@ msgstr "地址无效"
 msgid "The checksum was successfully fixed."
 msgstr "校检和成功修复。"
 
-#: Source/Core/DolphinWX/Config/PathConfigPane.cpp:171
+#: Source/Core/DolphinWX/Config/PathConfigPane.cpp:178
 msgid "The chosen directory is already in the list."
 msgstr "所选目录已经在列表中。"
 
-#: Source/Core/Core/Movie.cpp:409
+#: Source/Core/Core/Movie.cpp:411
 #, c-format
 msgid ""
 "The disc change to \"%s\" could not be saved in the .dtm file.\n"
@@ -7010,12 +7004,12 @@ msgstr ""
 "磁盘切换为 \"%s\" 无法保存至 .dtm 文件。\n"
 "磁盘镜像的文件名不能超过 40 个字符。"
 
-#: Source/Core/Core/HW/DVD/DVDThread.cpp:330
+#: Source/Core/Core/HW/DVD/DVDThread.cpp:331
 #, c-format
 msgid "The disc could not be read (at 0x%<PRIx64> - 0x%<PRIx64>)."
 msgstr "无法读取此光盘 (在 0x%<PRIx64> - 0x%<PRIx64>)。"
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:116
+#: Source/Core/DiscIO/CompressedBlob.cpp:117
 #, c-format
 msgid ""
 "The disc image \"%s\" is corrupt.\n"
@@ -7024,12 +7018,12 @@ msgstr ""
 "磁盘镜像“%s”已损坏。\n"
 "块 %<PRIu64> 的哈希值是 %08x 而非 %08x。"
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:107
+#: Source/Core/DiscIO/CompressedBlob.cpp:108
 #, c-format
 msgid "The disc image \"%s\" is truncated, some of the data is missing."
 msgstr "光盘镜像 \"%s\" 不完整，缺失某些数据。"
 
-#: Source/Core/Core/HW/DVD/DVDInterface.cpp:470
+#: Source/Core/Core/HW/DVD/DVDInterface.cpp:471
 msgid "The disc that was about to be inserted couldn't be found."
 msgstr "无法找到已可插入的光盘。"
 
@@ -7054,14 +7048,14 @@ msgstr ""
 "文件 %s 已经存在。\n"
 "是否替换?"
 
-#: Source/Core/AudioCommon/WaveFile.cpp:54
+#: Source/Core/AudioCommon/WaveFile.cpp:56
 #, c-format
 msgid ""
 "The file %s could not be opened for writing. Please check if it's already "
 "opened by another program."
 msgstr "文件%s无法以写入形式打开。请检查该文件是否已经被另一程序打开。"
 
-#: Source/Core/AudioCommon/WaveFile.cpp:46
+#: Source/Core/AudioCommon/WaveFile.cpp:48
 #, c-format
 msgid "The file %s was already open, the file header will not be written."
 msgstr "文件 %s 已经打开，文件头不会被写入。"
@@ -7074,12 +7068,12 @@ msgstr "名称不能为空"
 msgid "The name cannot contain the character ','"
 msgstr "名称不能包含字符 ','"
 
-#: Source/Core/Core/Movie.cpp:249
+#: Source/Core/Core/Movie.cpp:251
 #, c-format
 msgid "The recorded game (%s) is not the same as the selected game (%s)"
 msgstr "被录制的游戏 (%s) 与所选游戏 (%s) 不一致"
 
-#: Source/Core/DolphinWX/Cheats/ARCodeAddEdit.cpp:174
+#: Source/Core/DolphinWX/Cheats/ARCodeAddEdit.cpp:173
 msgid "The resulting decrypted AR code doesn't contain any lines."
 msgstr "产生的已解密 AR 代码不包含任何行。"
 
@@ -7087,7 +7081,7 @@ msgstr "产生的已解密 AR 代码不包含任何行。"
 msgid "The save you are trying to copy has an invalid file size."
 msgstr "您正在试图复制的存档文件大小不合法。"
 
-#: Source/Core/DolphinWX/Main.cpp:321
+#: Source/Core/DolphinWX/Main.cpp:324
 msgid ""
 "The selected language is not supported by your system. Falling back to "
 "system default."
@@ -7109,12 +7103,12 @@ msgstr "服务器回应: 游戏正在运行!"
 msgid "The server sent an unknown error message!"
 msgstr "服务器发送了一个未知错误消息!"
 
-#: Source/Core/Core/Boot/Boot.cpp:59
+#: Source/Core/Core/Boot/Boot.cpp:57
 #, c-format
 msgid "The specified file \"%s\" does not exist"
 msgstr "指定的文件 \"%s\" 不存在"
 
-#: Source/Core/Core/ActionReplay.cpp:223
+#: Source/Core/Core/ActionReplay.cpp:221
 msgid "The value is invalid"
 msgstr "这个值无效"
 
@@ -7122,7 +7116,7 @@ msgstr "这个值无效"
 msgid "Theme:"
 msgstr "主题："
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:165
+#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:166
 #, c-format
 msgid ""
 "There are too many GCI files in the folder\n"
@@ -7132,7 +7126,7 @@ msgstr ""
 "文件夹 %s 中 GCI 文件过多。\n"
 "只有前 127 个可用"
 
-#: Source/Core/Core/State.cpp:747
+#: Source/Core/Core/State.cpp:749
 msgid "There is nothing to undo!"
 msgstr "没有需要撤销的操作。"
 
@@ -7144,7 +7138,7 @@ msgstr ""
 "这些设置将覆盖核心 Dolphin 设置。\n"
 "未决设置将使用 Dolphin 的设置。"
 
-#: Source/Core/DolphinWX/Cheats/ARCodeAddEdit.cpp:154
+#: Source/Core/DolphinWX/Cheats/ARCodeAddEdit.cpp:153
 msgid ""
 "This Action Replay code contains both encrypted and unencrypted lines; you "
 "should check that you have entered it correctly.\n"
@@ -7159,11 +7153,15 @@ msgstr ""
 msgid "This USB device is already whitelisted."
 msgstr "此 USB 设备已列入白名单。"
 
+#: Source/Core/UICommon/WiiUtils.cpp:37
+msgid "This WAD has not been signed by Nintendo. Continue to import?"
+msgstr ""
+
 #: Source/Core/Core/Boot/Boot_WiiWAD.cpp:85
 msgid "This WAD is not bootable."
 msgstr "无法启动该 WAD"
 
-#: Source/Core/Core/ActionReplay.cpp:853
+#: Source/Core/Core/ActionReplay.cpp:851
 msgid ""
 "This action replay simulator does not support codes that modify Action "
 "Replay itself."
@@ -7189,7 +7187,7 @@ msgstr ""
 "\n"
 "如果不确定，请不要勾选此项。"
 
-#: Source/Core/DiscIO/NANDImporter.cpp:60
+#: Source/Core/DiscIO/NANDImporter.cpp:61
 #, c-format
 msgid ""
 "This file does not look like a BootMii NAND backup. (0x%<PRIx64> does not "
@@ -7225,7 +7223,7 @@ msgstr ""
 "\n"
 "如果不确定，请不要勾选此项。"
 
-#: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:297
+#: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:295
 #, c-format
 msgid ""
 "This title might be incompatible with DSP HLE emulation. Try using LLE if "
@@ -7237,7 +7235,7 @@ msgstr ""
 "\n"
 "DSP HLE: 未知 Ucode (CRC = %08x) - 强制 AX."
 
-#: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:289
+#: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:287
 #, c-format
 msgid ""
 "This title might be incompatible with DSP HLE emulation. Try using LLE if "
@@ -7298,19 +7296,19 @@ msgstr "切换全屏(&F)"
 msgid "Toggle &memory"
 msgstr "切换内存(&M)"
 
-#: Source/Core/Core/HotkeyManager.cpp:97
+#: Source/Core/Core/HotkeyManager.cpp:96
 msgid "Toggle 3D Anaglyph"
 msgstr "切换色差 3D"
 
-#: Source/Core/Core/HotkeyManager.cpp:95
+#: Source/Core/Core/HotkeyManager.cpp:94
 msgid "Toggle 3D Side-by-side"
 msgstr "切换左右 3D"
 
-#: Source/Core/Core/HotkeyManager.cpp:96
+#: Source/Core/Core/HotkeyManager.cpp:95
 msgid "Toggle 3D Top-bottom"
 msgstr "切换上下 3D"
 
-#: Source/Core/Core/HotkeyManager.cpp:98
+#: Source/Core/Core/HotkeyManager.cpp:97
 msgid "Toggle 3D Vision"
 msgstr "切换 3D Vision"
 
@@ -7318,39 +7316,39 @@ msgstr "切换 3D Vision"
 msgid "Toggle All Log Types"
 msgstr "全选/反选所有日志类型"
 
-#: Source/Core/Core/HotkeyManager.cpp:73
+#: Source/Core/Core/HotkeyManager.cpp:72
 msgid "Toggle Aspect Ratio"
 msgstr "切换宽高比"
 
-#: Source/Core/Core/HotkeyManager.cpp:61
+#: Source/Core/Core/HotkeyManager.cpp:60
 msgid "Toggle Breakpoint"
 msgstr "切换断点"
 
-#: Source/Core/Core/HotkeyManager.cpp:72
+#: Source/Core/Core/HotkeyManager.cpp:71
 msgid "Toggle Crop"
 msgstr "切换画面边界"
 
-#: Source/Core/Core/HotkeyManager.cpp:77
+#: Source/Core/Core/HotkeyManager.cpp:76
 msgid "Toggle Custom Textures"
 msgstr "切换自定义纹理"
 
-#: Source/Core/Core/HotkeyManager.cpp:74
+#: Source/Core/Core/HotkeyManager.cpp:73
 msgid "Toggle EFB Copies"
 msgstr "切换 EFB 副本"
 
-#: Source/Core/Core/HotkeyManager.cpp:75
+#: Source/Core/Core/HotkeyManager.cpp:74
 msgid "Toggle Fog"
 msgstr "切换雾"
 
-#: Source/Core/Core/HotkeyManager.cpp:31
+#: Source/Core/Core/HotkeyManager.cpp:30
 msgid "Toggle Fullscreen"
 msgstr "切换全屏"
 
-#: Source/Core/Core/HotkeyManager.cpp:28
+#: Source/Core/Core/HotkeyManager.cpp:27
 msgid "Toggle Pause"
 msgstr "切换暂停"
 
-#: Source/Core/Core/HotkeyManager.cpp:76
+#: Source/Core/Core/HotkeyManager.cpp:75
 msgid "Toggle Texture Dumping"
 msgstr "切换纹理转储"
 
@@ -7367,7 +7365,7 @@ msgstr "切换全屏"
 msgid "Top"
 msgstr "顶部"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:675
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:677
 msgid "Top-and-Bottom"
 msgstr "上下并排"
 
@@ -7405,18 +7403,6 @@ msgid ""
 "map files stored on the disc image yet."
 msgstr ""
 "尝试自动加载此游戏的函数名称 - 但不检测已存储在光盘镜像中的 .map 文件。"
-
-#: Source/Core/Common/SysConf.h:94 Source/Core/Common/SysConf.h:117
-msgid "Trying to read from invalid SYSCONF"
-msgstr "正在尝试从无效的 SYSCONF 中读取"
-
-#: Source/Core/Core/IOS/USB/Bluetooth/BTEmu.cpp:54
-msgid ""
-"Trying to read from invalid SYSCONF\n"
-"Wii Remote Bluetooth IDs are not available"
-msgstr ""
-"正在尝试从无效的 SYSCONF 中读取\n"
-"Wii 控制器蓝牙 ID 不可用"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:378
 msgid "Turn off all JIT functions, but still use the JIT core from Jit.cpp"
@@ -7456,7 +7442,7 @@ msgstr ""
 "无法从给出的值中创建补丁。\n"
 "项目未修正。"
 
-#: Source/Core/DiscIO/NANDImporter.cpp:197
+#: Source/Core/DiscIO/NANDImporter.cpp:198
 #, c-format
 msgid ""
 "Unable to open %s! Refer to https://dolphin-emu.org/docs/guides/wii-network-"
@@ -7465,7 +7451,7 @@ msgstr ""
 "无法打开 %s！设置证书请参阅 https://dolphin-emu.org/docs/guides/wii-network-"
 "guide/ 。"
 
-#: Source/Core/DolphinWX/Cheats/ARCodeAddEdit.cpp:136
+#: Source/Core/DolphinWX/Cheats/ARCodeAddEdit.cpp:135
 #, c-format
 msgid ""
 "Unable to parse line %u of the entered AR code as a valid encrypted or "
@@ -7478,18 +7464,18 @@ msgstr ""
 "\n"
 "是否要忽略此行继续分析？"
 
-#: Source/Core/DiscIO/NANDImporter.cpp:222
-#: Source/Core/DiscIO/NANDImporter.cpp:231
+#: Source/Core/DiscIO/NANDImporter.cpp:223
+#: Source/Core/DiscIO/NANDImporter.cpp:232
 #, c-format
 msgid "Unable to write to file %s"
 msgstr "无法写入文件 %s"
 
-#: Source/Core/Core/HotkeyManager.cpp:151
+#: Source/Core/Core/HotkeyManager.cpp:150
 #: Source/Core/DolphinWX/MainMenuBar.cpp:95
 msgid "Undo Load State"
 msgstr "撤销载入状态"
 
-#: Source/Core/Core/HotkeyManager.cpp:152
+#: Source/Core/Core/HotkeyManager.cpp:151
 #: Source/Core/DolphinWX/MainMenuBar.cpp:102
 msgid "Undo Save State"
 msgstr "撤销保存状态"
@@ -7510,22 +7496,17 @@ msgstr ""
 "卸载 WAD 会将该游戏的当前已安装版本从 NAND 中移除，而不会删除其存档。是否继"
 "续？"
 
-#: Source/Core/Core/State.cpp:466
+#: Source/Core/Core/State.cpp:468
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:107
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:86
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:126
 msgid "Unknown"
 msgstr "未知"
 
-#: Source/Core/Core/HW/DVD/DVDInterface.cpp:1059
+#: Source/Core/Core/HW/DVD/DVDInterface.cpp:1060
 #, c-format
 msgid "Unknown DVD command %08x - fatal error"
 msgstr "未知 DVD 命令 %08x - 致命错误"
-
-#: Source/Core/Common/SysConf.cpp:161
-#, c-format
-msgid "Unknown entry type %i in SYSCONF (%s@%x)!"
-msgstr "未知的项目类型 %i 在 SYSCONF (%s@%x)!"
 
 #: Source/Core/Core/NetPlayClient.cpp:939
 #, c-format
@@ -7542,7 +7523,7 @@ msgstr "未知存储卡错误。"
 msgid "Unknown message received with id : %d"
 msgstr "收到未知的消息，ID： %d"
 
-#: Source/Core/Core/NetPlayServer.cpp:716
+#: Source/Core/Core/NetPlayServer.cpp:714
 #, c-format
 msgid "Unknown message with id:%d received from player:%d Kicking player!"
 msgstr "收到未知的消息，ID：%d 来自玩家:%d 剔除玩家!"
@@ -7551,7 +7532,7 @@ msgstr "收到未知的消息，ID：%d 来自玩家:%d 剔除玩家!"
 msgid "Unlimited"
 msgstr "无限制"
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:380
+#: Source/Core/DiscIO/CompressedBlob.cpp:381
 msgid "Unpacking"
 msgstr "正在解包"
 
@@ -7586,7 +7567,7 @@ msgstr "直握 Wii 控制器"
 msgid "Usage Statistics Reporting Settings"
 msgstr "使用情况统计报告设置"
 
-#: Source/Core/DolphinWX/Main.cpp:226
+#: Source/Core/DolphinWX/Main.cpp:229
 msgid "Usage statistics reporting"
 msgstr "使用情况统计报告"
 
@@ -7599,7 +7580,7 @@ msgstr ""
 "使用情况统计报告为每台设备随机生成唯一的标识用于区分用户。该按钮可为本设备随"
 "机生成一个与之前无关的新标识。"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:476
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:478
 msgid "Use Fullscreen"
 msgstr "全屏显示"
 
@@ -7638,11 +7619,11 @@ msgid "Use generic zz_ names for functions."
 msgstr "对函数使用通用的 zz_文件名 格式。 "
 
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:103
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:924
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:926
 msgid "Utility"
 msgstr "实用功能"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:474
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:476
 msgid "V-Sync"
 msgstr "垂直同步"
 
@@ -7660,7 +7641,7 @@ msgstr "数值（双精度）"
 msgid "Value (float)"
 msgstr "数值（浮点）"
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:410
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:411
 msgid "Value Too Large"
 msgstr "值太大"
 
@@ -7700,7 +7681,7 @@ msgstr "顶点说明"
 msgid "Vertex Matrices"
 msgstr "顶点矩阵"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:841
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:843
 msgid "Vertex Rounding"
 msgstr "顶点取整"
 
@@ -7749,41 +7730,41 @@ msgstr "以有符号整数查看"
 msgid "View as unsigned integer"
 msgstr "以无符号整数查看"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:813
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:815
 msgid "Virtual"
 msgstr "虚拟"
 
-#: Source/Core/Core/HotkeyManager.cpp:245
+#: Source/Core/Core/HotkeyManager.cpp:244
 #: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:67
 msgid "Volume"
 msgstr "音量"
 
-#: Source/Core/Core/HotkeyManager.cpp:35
+#: Source/Core/Core/HotkeyManager.cpp:34
 msgid "Volume Down"
 msgstr "减小音量"
 
-#: Source/Core/Core/HotkeyManager.cpp:37
+#: Source/Core/Core/HotkeyManager.cpp:36
 msgid "Volume Toggle Mute"
 msgstr "静音切换"
 
-#: Source/Core/Core/HotkeyManager.cpp:36
+#: Source/Core/Core/HotkeyManager.cpp:35
 msgid "Volume Up"
 msgstr "增大音量"
 
-#: Source/Core/UICommon/WiiUtils.cpp:57
+#: Source/Core/UICommon/WiiUtils.cpp:69
 msgid "WAD installation failed: Could not finalise title import."
 msgstr "WAD 安装失败: 无法完成游戏导入。"
 
-#: Source/Core/UICommon/WiiUtils.cpp:47
+#: Source/Core/UICommon/WiiUtils.cpp:59
 #, c-format
 msgid "WAD installation failed: Could not import content %08x."
 msgstr "WAD 安装失败: 无法导入内容 %08x。"
 
-#: Source/Core/UICommon/WiiUtils.cpp:33
+#: Source/Core/UICommon/WiiUtils.cpp:44
 msgid "WAD installation failed: Could not initialise title import."
 msgstr "WAD 安装失败: 无法开始游戏导入。"
 
-#: Source/Core/UICommon/WiiUtils.cpp:21
+#: Source/Core/UICommon/WiiUtils.cpp:22
 msgid "WAD installation failed: The selected file is not a valid WAD."
 msgstr "WAD 安装失败: 所选文件不是有效的 WAD。"
 
@@ -7805,11 +7786,11 @@ msgstr ""
 #: Source/Core/DolphinWX/LogConfigWindow.cpp:44
 #: Source/Core/DolphinWX/MemcardManager.cpp:587
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:363
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:1010
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:1012
 msgid "Warning"
 msgstr "警告"
 
-#: Source/Core/Core/HW/WiiSaveCrypted.cpp:600
+#: Source/Core/Core/HW/WiiSaveCrypted.cpp:601
 #, c-format
 msgid ""
 "Warning! it is advised to backup all files in the folder:\n"
@@ -7820,7 +7801,7 @@ msgstr ""
 "%s\n"
 "现在继续吗?"
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:529
+#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:530
 #, c-format
 msgid ""
 "Warning: Number of blocks indicated by the BAT (%u) does not match that of "
@@ -7839,7 +7820,7 @@ msgstr ""
 "%s\n"
 "要继续吗?"
 
-#: Source/Core/Core/Movie.cpp:1089
+#: Source/Core/Core/Movie.cpp:1091
 #, c-format
 msgid ""
 "Warning: You loaded a save that's after the end of the current movie. (byte "
@@ -7849,7 +7830,7 @@ msgstr ""
 "警告: 您读取的存档在当前影片结束之后。 (字节 %u > %u) (输入 %u > %u) 。您需要"
 "读取另一个存档方可继续，或关闭只读模式再读取此状态存档。"
 
-#: Source/Core/Core/Movie.cpp:1063
+#: Source/Core/Core/Movie.cpp:1065
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie ends before the current frame in the "
@@ -7859,7 +7840,7 @@ msgstr ""
 "警告: 您读取的存档影片已结束在存档的当前帧之前(字节%u < %u) (帧%u < %u)。您需"
 "要读取另一个存档方可继续。"
 
-#: Source/Core/Core/Movie.cpp:1115
+#: Source/Core/Core/Movie.cpp:1117
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on byte %zu (0x%zX). You "
@@ -7869,7 +7850,7 @@ msgstr ""
 "警告: 您读取的存档在 %zu (0x%zX) 字节处与影片不匹配。您需要读取另一个存档方可"
 "继续，或关闭只读模式再读取此状态存档。否则将可能发生不同步。"
 
-#: Source/Core/Core/Movie.cpp:1130
+#: Source/Core/Core/Movie.cpp:1132
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on frame %td. You should "
@@ -7906,7 +7887,7 @@ msgstr ""
 msgid "Watch"
 msgstr "监视"
 
-#: Source/Core/AudioCommon/WaveFile.cpp:118
+#: Source/Core/AudioCommon/WaveFile.cpp:120
 msgid "WaveFileWriter - file not open."
 msgstr "波形文件写入器 - 文件未打开."
 
@@ -7929,7 +7910,7 @@ msgstr ""
 msgid "Whitelisted USB Passthrough Devices"
 msgstr "USB 直通设备白名单"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:648
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:650
 msgid "Widescreen Hack"
 msgstr "宽屏修正"
 
@@ -7937,7 +7918,7 @@ msgstr "宽屏修正"
 msgid "Width"
 msgstr "宽度"
 
-#: Source/Core/Core/HotkeyManager.cpp:252
+#: Source/Core/Core/HotkeyManager.cpp:251
 #: Source/Core/DolphinWX/Config/ConfigMain.cpp:88
 msgid "Wii"
 msgstr "Wii"
@@ -7966,7 +7947,7 @@ msgstr "Wii 控制器"
 msgid "Wii Remote %i"
 msgstr "Wii 控制器 %i"
 
-#: Source/Core/DolphinWX/Main.cpp:478
+#: Source/Core/DolphinWX/Main.cpp:481
 msgid "Wii Remote Connected"
 msgstr "Wii 控制器已连接"
 
@@ -8023,7 +8004,7 @@ msgstr "自动换行"
 #: Source/Core/DolphinWX/FrameTools.cpp:1292
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1257
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1376
-#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:354
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:323
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:330
 msgid "Working..."
 msgstr "工作中..."
@@ -8036,7 +8017,7 @@ msgstr "全球"
 #. memory breakpoint that gets triggered when a write operation occurs.
 #. The string does not mean "write-only" in the sense that something cannot be read from.
 #: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:49
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:198
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:199
 msgid "Write only"
 msgstr "只写"
 
@@ -8117,24 +8098,13 @@ msgstr ""
 "是否要现在停止以处理这个问题?\n"
 "如果选择“否”，声音可能会出现混乱。"
 
-#: Source/Core/Core/ConfigManager.cpp:980
+#: Source/Core/Core/ConfigManager.cpp:984
 msgid ""
 "Your GCM/ISO file seems to be invalid (invalid country).\n"
 "Continue with PAL region?"
 msgstr ""
 "您的 GCM/ISO 文件似乎是无效的 (无效的国家)。\n"
 "是否要使用 PAL 地区继续?"
-
-#: Source/Core/Common/SysConf.cpp:57
-#, c-format
-msgid ""
-"Your SYSCONF file is the wrong size.\n"
-"It should be 0x%04x (but is 0x%04<PRIx64>)\n"
-"Do you want to generate a new one?"
-msgstr ""
-"您的 SYSCONF 文件大小不正确。\n"
-"正确的大小为 0x%04x (但您的是 0x%04<PRIx64>)\n"
-"是否要生成一个新的？"
 
 #. i18n: Refers to a 3D axis (used when mapping motion controls)
 #: Source/Core/Core/HW/WiimoteEmu/Attachment/Nunchuk.cpp:54
@@ -8143,11 +8113,11 @@ msgstr ""
 msgid "Z"
 msgstr "Z"
 
-#: Source/Core/Core/ActionReplay.cpp:886
+#: Source/Core/Core/ActionReplay.cpp:884
 msgid "Zero 3 code not supported"
 msgstr "Zero 3 代码不支持"
 
-#: Source/Core/Core/ActionReplay.cpp:906
+#: Source/Core/Core/ActionReplay.cpp:904
 #, c-format
 msgid "Zero code unknown to Dolphin: %08x"
 msgstr "Dophin 未知的无地址代码: %08x"
