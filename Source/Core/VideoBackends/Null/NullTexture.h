@@ -7,7 +7,6 @@
 #include "Common/CommonTypes.h"
 
 #include "VideoCommon/AbstractTexture.h"
-#include "VideoCommon/VideoCommon.h"
 
 namespace Null
 {

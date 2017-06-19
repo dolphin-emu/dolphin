@@ -4,10 +4,12 @@
 
 #pragma once
 
+#include <cstddef>
+#include <string>
+
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
 #include "VideoCommon/TextureConfig.h"
-#include "VideoCommon/VideoCommon.h"
 
 class AbstractTexture
 {
@@ -26,7 +28,7 @@ public:
   static bool IsCompressedHostTextureFormat(AbstractTextureFormat format);
   static size_t CalculateHostTextureLevelPitch(AbstractTextureFormat format, u32 row_length);
 
-  const TextureConfig GetConfig() const;
+  const TextureConfig& GetConfig() const;
 
 protected:
   const TextureConfig m_config;
