@@ -28,7 +28,7 @@ public:
   static bool IsCompressedHostTextureFormat(AbstractTextureFormat format);
   static size_t CalculateHostTextureLevelPitch(AbstractTextureFormat format, u32 row_length);
 
-  const TextureConfig GetConfig() const;
+  const TextureConfig& GetConfig() const;
 
 protected:
   const TextureConfig m_config;
