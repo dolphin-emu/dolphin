@@ -8,7 +8,6 @@
 #include <vulkan/vulkan.h>
 
 #include "VideoCommon/AbstractTexture.h"
-#include "VideoCommon/VideoCommon.h"
 
 namespace Vulkan
 {
