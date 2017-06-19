@@ -4,6 +4,7 @@
 
 #include <algorithm>
 
+#include "VideoCommon/AbstractRawTexture.h"
 #include "VideoCommon/AbstractTexture.h"
 
 AbstractTexture::AbstractTexture(const TextureConfig& c) : m_config(c)
@@ -14,7 +15,19 @@ AbstractTexture::~AbstractTexture() = default;
 
 bool AbstractTexture::Save(const std::string& filename, unsigned int level)
 {
-  return false;
+  auto raw_texture = GetRawData(level);
+
+  if (raw_texture == nullptr)
+  {
+    return false;
+  }
+
+  return raw_texture->Save(filename);
+}
+
+std::unique_ptr<AbstractRawTexture> AbstractTexture::GetRawData(unsigned int level)
+{
+  return nullptr;
 }
 
 bool AbstractTexture::IsCompressedHostTextureFormat(AbstractTextureFormat format)

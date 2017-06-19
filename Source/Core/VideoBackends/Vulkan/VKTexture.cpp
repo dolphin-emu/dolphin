@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstring>
+#include <memory>
 
 #include "Common/Align.h"
 #include "Common/Assert.h"
@@ -19,9 +20,9 @@
 #include "VideoBackends/Vulkan/Texture2D.h"
 #include "VideoBackends/Vulkan/Util.h"
 #include "VideoBackends/Vulkan/VKTexture.h"
+#include "VideoBackends/Vulkan/VKTextureRaw.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 
-#include "VideoCommon/ImageWrite.h"
 #include "VideoCommon/TextureConfig.h"
 
 namespace Vulkan
@@ -113,7 +114,7 @@ void VKTexture::Bind(unsigned int stage)
   StateTracker::GetInstance()->SetTexture(stage, m_texture->GetView());
 }
 
-bool VKTexture::Save(const std::string& filename, unsigned int level)
+std::unique_ptr<AbstractRawTexture> VKTexture::GetRawData(unsigned int level)
 {
   _assert_(level < m_config.levels);
 
@@ -153,18 +154,12 @@ bool VKTexture::Save(const std::string& filename, unsigned int level)
   if (!staging_texture->Map())
   {
     PanicAlert("Failed to map staging texture");
-    return false;
+    return nullptr;
   }
 
-  // Write texture out to file.
-  // It's okay to throw this texture away immediately, since we're done with it, and
-  // we blocked until the copy completed on the GPU anyway.
-  bool result = TextureToPng(reinterpret_cast<u8*>(staging_texture->GetMapPointer()),
-                             static_cast<u32>(staging_texture->GetRowStride()), filename,
-                             level_width, level_height);
-
-  staging_texture->Unmap();
-  return result;
+  return std::make_unique<VKTextureRaw>(reinterpret_cast<u8*>(staging_texture->GetMapPointer()),
+                                        static_cast<u32>(staging_texture->GetRowStride()),
+                                        level_width, level_height, std::move(staging_texture));
 }
 
 void VKTexture::CopyTextureRectangle(const MathUtil::Rectangle<int>& dst_rect,

@@ -9,11 +9,11 @@
 
 #include "VideoBackends/OGL/FramebufferManager.h"
 #include "VideoBackends/OGL/OGLTexture.h"
+#include "VideoBackends/OGL/OGLTextureRaw.h"
 #include "VideoBackends/OGL/Render.h"
 #include "VideoBackends/OGL/SamplerCache.h"
 #include "VideoBackends/OGL/TextureCache.h"
 
-#include "VideoCommon/ImageWrite.h"
 #include "VideoCommon/TextureConfig.h"
 
 namespace OGL
@@ -64,20 +64,21 @@ GLenum GetGLTypeForTextureFormat(AbstractTextureFormat format)
 }
 }  // Anonymous namespace
 
-bool SaveTexture(const std::string& filename, u32 textarget, u32 tex, int virtual_width,
-                 int virtual_height, unsigned int level)
+std::unique_ptr<AbstractRawTexture> GetTextureData(u32 textarget, u32 tex, int virtual_width,
+                                                   int virtual_height, unsigned int level)
 {
   if (GLInterface->GetMode() != GLInterfaceMode::MODE_OPENGL)
-    return false;
+    return nullptr;
   int width = std::max(virtual_width >> level, 1);
   int height = std::max(virtual_height >> level, 1);
   std::vector<u8> data(width * height * 4);
   glActiveTexture(GL_TEXTURE9);
   glBindTexture(textarget, tex);
+
   glGetTexImage(textarget, level, GL_RGBA, GL_UNSIGNED_BYTE, data.data());
   OGLTexture::SetStage();
 
-  return TextureToPng(data.data(), width * 4, filename, width, height, true);
+  return std::make_unique<OGLTextureRaw>(width * 4, width, height, std::move(data));
 }
 
 OGLTexture::OGLTexture(const TextureConfig& tex_config) : AbstractTexture(tex_config)
@@ -162,15 +163,14 @@ void OGLTexture::Bind(unsigned int stage)
   }
 }
 
-bool OGLTexture::Save(const std::string& filename, unsigned int level)
+std::unique_ptr<AbstractRawTexture> OGLTexture::GetRawData(unsigned int level)
 {
   // We can't dump compressed textures currently (it would mean drawing them to a RGBA8
   // framebuffer, and saving that). TextureCache does not call Save for custom textures
   // anyway, so this is fine for now.
   _assert_(m_config.format == AbstractTextureFormat::RGBA8);
 
-  return SaveTexture(filename, GL_TEXTURE_2D_ARRAY, m_texId, m_config.width, m_config.height,
-                     level);
+  return GetTextureData(GL_TEXTURE_2D_ARRAY, m_texId, m_config.width, m_config.height, level);
 }
 
 void OGLTexture::CopyRectangleFromTexture(const AbstractTexture* source,

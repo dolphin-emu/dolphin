@@ -17,7 +17,7 @@ public:
   ~OGLTexture();
 
   void Bind(unsigned int stage) override;
-  bool Save(const std::string& filename, unsigned int level) override;
+  std::unique_ptr<AbstractRawTexture> GetRawData(unsigned int level) override;
 
   void CopyRectangleFromTexture(const AbstractTexture* source,
                                 const MathUtil::Rectangle<int>& srcrect,

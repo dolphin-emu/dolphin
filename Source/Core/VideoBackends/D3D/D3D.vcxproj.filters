@@ -70,6 +70,9 @@
     <ClCompile Include="DXTexture.cpp">
       <Filter>Render</Filter>
     </ClCompile>
+    <ClCompile Include="DXTextureRaw.cpp">
+      <Filter>Render</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="D3DBase.h">
@@ -128,6 +131,9 @@
       <Filter>Render</Filter>
     </ClInclude>
     <ClInclude Include="DXTexture.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="DXTextureRaw.h">
       <Filter>Render</Filter>
     </ClInclude>
   </ItemGroup>
