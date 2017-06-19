@@ -33,7 +33,7 @@
 struct BootParameters;
 
 // Class declarations
-class CGameListCtrl;
+class GameListCtrl;
 class CCodeWindow;
 class CConfigMain;
 class CLogWindow;
@@ -143,7 +143,7 @@ private:
     ADD_PANE_CENTER
   };
 
-  CGameListCtrl* m_game_list_ctrl = nullptr;
+  GameListCtrl* m_game_list_ctrl = nullptr;
   CConfigMain* m_main_config_dialog = nullptr;
   wxPanel* m_panel = nullptr;
   CRenderFrame* m_render_frame = nullptr;

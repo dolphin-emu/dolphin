@@ -8,7 +8,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/IniFile.h"
 
-class CGameListCtrl;
+class GameListCtrl;
 class wxRect;
 class wxWindow;
 
@@ -24,7 +24,7 @@ public:
   const wxRect window_defaults{wxDefaultCoord, wxDefaultCoord, 768, 768 - 128};
 
   std::string player_name;
-  const CGameListCtrl* game_list_ctrl;
+  const GameListCtrl* game_list_ctrl;
   wxWindow* parent_window;
   bool use_traversal;
   std::string traversal_host;

@@ -16,12 +16,12 @@
 
 wxDECLARE_EVENT(DOLPHIN_EVT_RELOAD_GAMELIST, wxCommandEvent);
 
-class CGameListCtrl : public wxListCtrl
+class GameListCtrl : public wxListCtrl
 {
 public:
-  CGameListCtrl(wxWindow* parent, const wxWindowID id, const wxPoint& pos, const wxSize& size,
+  GameListCtrl(wxWindow* parent, const wxWindowID id, const wxPoint& pos, const wxSize& size,
                 long style);
-  ~CGameListCtrl();
+  ~GameListCtrl() = default;
 
   void BrowseForDirectory();
   const GameListItem* GetISO(size_t index) const;
