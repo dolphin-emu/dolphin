@@ -1,6 +1,7 @@
 set(SRCS
   AbstractTexture.cpp
   AsyncRequests.cpp
+  AsyncShaderCompiler.cpp
   BoundingBox.cpp
   BPFunctions.cpp
   BPMemory.cpp
