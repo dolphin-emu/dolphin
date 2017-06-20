@@ -259,6 +259,13 @@ enum Bug
   // Ended version: -1
   // Seems to only occur when the top of the clear rect is non-zero.
   BUG_BROKEN_MSAA_VKCMDCLEARATTACHMENTS,
+  // BUG: Some vulkan implementations don't like the 'clear' loadop renderpass.
+  // For example, the ImgTec VK driver fails if you try to use a framebuffer with a different
+  // load/store op than that which it was created with, despite the spec saying they should be
+  // compatible.
+  // Started Version: 1.7
+  // Ended Version: 1.10
+  BUG_BROKEN_CLEAR_LOADOP_RENDERPASS,
 };
 
 // Initializes our internal vendor, device family, and driver version
