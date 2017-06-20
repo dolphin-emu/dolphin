@@ -350,7 +350,7 @@ IPCCommandResult ES::ImportContentEnd(Context& context, const IOCtlVRequest& req
 
 ReturnCode ES::ImportTitleDone(Context& context)
 {
-  if (!context.title_import.tmd.IsValid())
+  if (!context.title_import.tmd.IsValid() || context.title_import.content_id != 0xFFFFFFFF)
     return ES_EINVAL;
 
   if (!WriteImportTMD(context.title_import.tmd))
