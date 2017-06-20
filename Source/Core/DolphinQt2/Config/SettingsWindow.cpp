@@ -26,7 +26,6 @@ SettingsWindow::SettingsWindow(QWidget* parent) : QDialog(parent)
   // Main Layout
   QVBoxLayout* layout = new QVBoxLayout;
   QHBoxLayout* content = new QHBoxLayout;
-  QVBoxLayout* content_inner = new QVBoxLayout;
   // Content's widgets
   {
     // Category list
@@ -36,12 +35,7 @@ SettingsWindow::SettingsWindow(QWidget* parent) : QDialog(parent)
     // Actual Settings UI
     SetupSettingsWidget();
 
-    MakeUnfinishedWarning();
-
-    content_inner->addWidget(m_warning_group);
-    content_inner->addWidget(m_settings_outer);
-
-    content->addLayout(content_inner);
+    content->addWidget(m_settings_outer);
   }
 
   // Add content to layout before dialog buttons.
@@ -64,16 +58,6 @@ void SettingsWindow::SetupSettingsWidget()
   m_settings_outer->addWidget(new GeneralPane);
   m_settings_outer->addWidget(new InterfacePane);
   m_settings_outer->addWidget(new PathPane);
-}
-
-void SettingsWindow::MakeUnfinishedWarning()
-{
-  m_warning_group = new QGroupBox(tr("Warning"));
-  QHBoxLayout* m_warning_group_layout = new QHBoxLayout;
-  QLabel* warning_text = new QLabel(tr("Some categories and settings will not work.\n"
-                                       "This Settings Window is under active development."));
-  m_warning_group_layout->addWidget(warning_text);
-  m_warning_group->setLayout(m_warning_group_layout);
 }
 
 void SettingsWindow::AddCategoryToList(const QString& title, const std::string& icon_name)
