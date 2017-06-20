@@ -176,4 +176,13 @@ bool ExportDOL(const Volume& volume, const Partition& partition, const std::stri
   return ExportData(volume, partition, *dol_offset, *dol_size, export_filename);
 }
 
+bool ExportSystemData(const Volume& volume, const Partition& partition,
+                      const std::string& export_folder)
+{
+  bool success = true;
+  success &= ExportApploader(volume, partition, export_folder + "/apploader.img");
+  success &= ExportDOL(volume, partition, export_folder + "/boot.dol");
+  return success;
+}
+
 }  // namespace DiscIO

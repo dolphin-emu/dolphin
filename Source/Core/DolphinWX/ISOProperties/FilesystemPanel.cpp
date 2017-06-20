@@ -124,7 +124,7 @@ void FilesystemPanel::BindEvents()
   m_tree_ctrl->Bind(wxEVT_TREE_ITEM_RIGHT_CLICK, &FilesystemPanel::OnRightClickTree, this);
 
   Bind(wxEVT_MENU, &FilesystemPanel::OnExtractFile, this, ID_EXTRACT_FILE);
-  Bind(wxEVT_MENU, &FilesystemPanel::OnExtractDirectories, this, ID_EXTRACT_ALL);
+  Bind(wxEVT_MENU, &FilesystemPanel::OnExtractAll, this, ID_EXTRACT_ALL);
   Bind(wxEVT_MENU, &FilesystemPanel::OnExtractDirectories, this, ID_EXTRACT_DIR);
   Bind(wxEVT_MENU, &FilesystemPanel::OnExtractHeaderData, this, ID_EXTRACT_APPLOADER);
   Bind(wxEVT_MENU, &FilesystemPanel::OnExtractHeaderData, this, ID_EXTRACT_DOL);
@@ -190,36 +190,34 @@ void FilesystemPanel::OnRightClickTree(wxTreeEvent& event)
 
   wxMenu menu;
 
-  const auto selection = m_tree_ctrl->GetSelection();
-  const auto first_visible_item = m_tree_ctrl->GetFirstVisibleItem();
+  const wxTreeItemId selection = m_tree_ctrl->GetSelection();
+  const wxTreeItemId first_visible_item = m_tree_ctrl->GetFirstVisibleItem();
   const int image_type = m_tree_ctrl->GetItemImage(selection);
+  const bool is_parent_of_partitions = m_has_partitions && first_visible_item == selection;
 
-  if (image_type == ICON_DISC && first_visible_item != selection)
-  {
-    menu.Append(ID_EXTRACT_DIR, _("Extract Partition..."));
-  }
-  else if (image_type == ICON_FOLDER)
-  {
-    menu.Append(ID_EXTRACT_DIR, _("Extract Directory..."));
-  }
-  else if (image_type == ICON_FILE)
-  {
+  if (image_type == ICON_FILE)
     menu.Append(ID_EXTRACT_FILE, _("Extract File..."));
-  }
+  else if (!is_parent_of_partitions)
+    menu.Append(ID_EXTRACT_DIR, _("Extract Files..."));
 
-  menu.Append(ID_EXTRACT_ALL, _("Extract All Files..."));
-
-  if (!m_has_partitions || (image_type == ICON_DISC && first_visible_item != selection))
+  if (image_type == ICON_DISC)
   {
-    menu.AppendSeparator();
-    menu.Append(ID_EXTRACT_APPLOADER, _("Extract Apploader..."));
-    menu.Append(ID_EXTRACT_DOL, _("Extract DOL..."));
-  }
+    if (!is_parent_of_partitions)
+    {
+      menu.Append(ID_EXTRACT_APPLOADER, _("Extract Apploader..."));
+      menu.Append(ID_EXTRACT_DOL, _("Extract DOL..."));
+    }
 
-  if (image_type == ICON_DISC && first_visible_item != selection)
-  {
-    menu.AppendSeparator();
-    menu.Append(ID_CHECK_INTEGRITY, _("Check Partition Integrity"));
+    if (first_visible_item == selection)
+      menu.Append(ID_EXTRACT_ALL, _("Extract Entire Disc..."));
+    else
+      menu.Append(ID_EXTRACT_ALL, _("Extract Entire Partition..."));
+
+    if (first_visible_item != selection)
+    {
+      menu.AppendSeparator();
+      menu.Append(ID_CHECK_INTEGRITY, _("Check Partition Integrity"));
+    }
   }
 
   PopupMenu(&menu);
@@ -245,18 +243,8 @@ void FilesystemPanel::OnExtractDirectories(wxCommandEvent& event)
   const wxString selected_directory_label = m_tree_ctrl->GetItemText(m_tree_ctrl->GetSelection());
   const wxString extract_path = wxDirSelector(_("Choose the folder to extract to"));
 
-  if (extract_path.empty() || selected_directory_label.empty())
-    return;
-
-  switch (event.GetId())
-  {
-  case ID_EXTRACT_ALL:
-    ExtractAllFiles(extract_path);
-    break;
-  case ID_EXTRACT_DIR:
+  if (!extract_path.empty() && !selected_directory_label.empty())
     ExtractSingleDirectory(extract_path);
-    break;
-  }
 }
 
 void FilesystemPanel::OnExtractHeaderData(wxCommandEvent& event)
@@ -296,6 +284,41 @@ void FilesystemPanel::OnExtractHeaderData(wxCommandEvent& event)
   }
 }
 
+void FilesystemPanel::OnExtractAll(wxCommandEvent& event)
+{
+  const wxString extract_path = wxDirSelector(_("Choose the folder to extract to"));
+
+  if (extract_path.empty())
+    return;
+
+  const wxTreeItemId selection = m_tree_ctrl->GetSelection();
+  const bool first_item_selected = m_tree_ctrl->GetFirstVisibleItem() == selection;
+
+  if (m_has_partitions && first_item_selected)
+  {
+    const wxTreeItemId root = m_tree_ctrl->GetRootItem();
+
+    wxTreeItemIdValue cookie;
+    wxTreeItemId item = m_tree_ctrl->GetFirstChild(root, cookie);
+
+    while (item.IsOk())
+    {
+      const auto* const partition = static_cast<WiiPartition*>(m_tree_ctrl->GetItemData(item));
+      ExtractPartition(WxStrToStr(extract_path), *partition->filesystem);
+      item = m_tree_ctrl->GetNextChild(root, cookie);
+    }
+  }
+  else if (m_has_partitions && !first_item_selected)
+  {
+    const auto* const partition = static_cast<WiiPartition*>(m_tree_ctrl->GetItemData(selection));
+    ExtractPartition(WxStrToStr(extract_path), *partition->filesystem);
+  }
+  else
+  {
+    ExtractPartition(WxStrToStr(extract_path), *m_filesystem);
+  }
+}
+
 void FilesystemPanel::OnCheckPartitionIntegrity(wxCommandEvent& WXUNUSED(event))
 {
   // Normally we can't enter this function if we're analyzing a volume that
@@ -331,28 +354,6 @@ void FilesystemPanel::OnCheckPartitionIntegrity(wxCommandEvent& WXUNUSED(event))
   }
 }
 
-void FilesystemPanel::ExtractAllFiles(const wxString& output_folder)
-{
-  if (m_has_partitions)
-  {
-    const wxTreeItemId root = m_tree_ctrl->GetRootItem();
-
-    wxTreeItemIdValue cookie;
-    wxTreeItemId item = m_tree_ctrl->GetFirstChild(root, cookie);
-
-    while (item.IsOk())
-    {
-      const auto* const partition = static_cast<WiiPartition*>(m_tree_ctrl->GetItemData(item));
-      ExtractDirectories("", WxStrToStr(output_folder), *partition->filesystem);
-      item = m_tree_ctrl->GetNextChild(root, cookie);
-    }
-  }
-  else
-  {
-    ExtractDirectories("", WxStrToStr(output_folder), *m_filesystem);
-  }
-}
-
 void FilesystemPanel::ExtractSingleFile(const wxString& output_file_path) const
 {
   const std::pair<wxString, const DiscIO::FileSystem&> path = BuildFilePathFromSelection();
@@ -371,13 +372,6 @@ void FilesystemPanel::ExtractDirectories(const std::string& full_path,
                                          const std::string& output_folder,
                                          const DiscIO::FileSystem& filesystem)
 {
-  if (full_path.empty())  // Root
-  {
-    DiscIO::ExportApploader(*m_opened_iso, filesystem.GetPartition(),
-                            output_folder + "/apploader.img");
-    DiscIO::ExportDOL(*m_opened_iso, filesystem.GetPartition(), output_folder + "/boot.dol");
-  }
-
   std::unique_ptr<DiscIO::FileInfo> file_info = filesystem.FindFileInfo(full_path);
   u32 size = file_info->GetTotalChildren();
   u32 progress = 0;
@@ -397,6 +391,13 @@ void FilesystemPanel::ExtractDirectories(const std::string& full_path,
         ++progress;
         return dialog.WasCancelled();
       });
+}
+
+void FilesystemPanel::ExtractPartition(const std::string& output_folder,
+                                       const DiscIO::FileSystem& filesystem)
+{
+  ExtractDirectories("", output_folder, filesystem);
+  DiscIO::ExportSystemData(*m_opened_iso, filesystem.GetPartition(), output_folder);
 }
 
 std::pair<wxString, const DiscIO::FileSystem&> FilesystemPanel::BuildFilePathFromSelection() const

@@ -37,4 +37,7 @@ std::optional<u32> GetBootDOLSize(const Volume& volume, const Partition& partiti
 bool ExportDOL(const Volume& volume, const Partition& partition,
                const std::string& export_filename);
 
+bool ExportSystemData(const Volume& volume, const Partition& partition,
+                      const std::string& export_folder);
+
 }  // namespace DiscIO
