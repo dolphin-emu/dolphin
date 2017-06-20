@@ -483,10 +483,15 @@ void ZeldaUCode::RunPendingCommands()
         const_patterns[i] = Common::swap16(data_ptr[0x100 + i]);
       m_renderer.SetConstPatterns(std::move(const_patterns));
 
-      std::array<s16, 0x80> sine_table;
-      for (size_t i = 0; i < 0x80; ++i)
-        sine_table[i] = Common::swap16(data_ptr[0x200 + i]);
-      m_renderer.SetSineTable(std::move(sine_table));
+      // The sine table is only used for Dolby mixing
+      // which the light protocol doesn't support.
+      if ((m_flags & LIGHT_PROTOCOL) == 0)
+      {
+        std::array<s16, 0x80> sine_table;
+        for (size_t i = 0; i < 0x80; ++i)
+          sine_table[i] = Common::swap16(data_ptr[0x200 + i]);
+        m_renderer.SetSineTable(std::move(sine_table));
+      }
 
       u16* afc_coeffs_ptr = (u16*)HLEMemory_Get_Pointer(Read32());
       std::array<s16, 0x20> afc_coeffs;
