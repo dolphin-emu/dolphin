@@ -163,7 +163,7 @@ void PathConfigPane::OnRecursiveISOCheckBoxChanged(wxCommandEvent& event)
 {
   SConfig::GetInstance().m_RecursiveISOFolder = m_recursive_iso_paths_checkbox->IsChecked();
 
-  AddPendingEvent(wxCommandEvent(wxDOLPHIN_CFG_REFRESH_LIST));
+  AddPendingEvent(wxCommandEvent(wxDOLPHIN_CFG_RESCAN_LIST));
 }
 
 void PathConfigPane::OnAddISOPath(wxCommandEvent& event)
@@ -179,7 +179,7 @@ void PathConfigPane::OnAddISOPath(wxCommandEvent& event)
     }
     else
     {
-      AddPendingEvent(wxCommandEvent(wxDOLPHIN_CFG_REFRESH_LIST));
+      AddPendingEvent(wxCommandEvent(wxDOLPHIN_CFG_RESCAN_LIST));
       m_iso_paths_listbox->Append(dialog.GetPath());
     }
   }
@@ -189,7 +189,7 @@ void PathConfigPane::OnAddISOPath(wxCommandEvent& event)
 
 void PathConfigPane::OnRemoveISOPath(wxCommandEvent& event)
 {
-  AddPendingEvent(wxCommandEvent(wxDOLPHIN_CFG_REFRESH_LIST));
+  AddPendingEvent(wxCommandEvent(wxDOLPHIN_CFG_RESCAN_LIST));
   m_iso_paths_listbox->Delete(m_iso_paths_listbox->GetSelection());
 
 // This seems to not be activated on Windows when it should be. wxw bug?

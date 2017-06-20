@@ -24,21 +24,21 @@
 #include "DolphinWX/GameListCtrl.h"
 #include "DolphinWX/WxUtils.h"
 
-// Sent by child panes to signify that the game list should
-// be updated when this modal dialog closes.
 wxDEFINE_EVENT(wxDOLPHIN_CFG_REFRESH_LIST, wxCommandEvent);
+wxDEFINE_EVENT(wxDOLPHIN_CFG_RESCAN_LIST, wxCommandEvent);
 
 CConfigMain::CConfigMain(wxWindow* parent, wxWindowID id, const wxString& title,
                          const wxPoint& position, const wxSize& size, long style)
     : wxDialog(parent, id, title, position, size, style)
 {
-  // Control refreshing of the ISOs list
-  m_refresh_game_list_on_close = false;
+  // Control refreshing of the GameListCtrl
+  m_event_on_close = wxEVT_NULL;
 
   Bind(wxEVT_CLOSE_WINDOW, &CConfigMain::OnClose, this);
   Bind(wxEVT_BUTTON, &CConfigMain::OnCloseButton, this, wxID_CLOSE);
   Bind(wxEVT_SHOW, &CConfigMain::OnShow, this);
   Bind(wxDOLPHIN_CFG_REFRESH_LIST, &CConfigMain::OnSetRefreshGameListOnClose, this);
+  Bind(wxDOLPHIN_CFG_RESCAN_LIST, &CConfigMain::OnSetRescanGameListOnClose, this);
 
   wxDialog::SetExtraStyle(GetExtraStyle() & ~wxWS_EX_BLOCK_EVENTS);
 
@@ -115,8 +115,8 @@ void CConfigMain::OnClose(wxCloseEvent& WXUNUSED(event))
 
   SConfig::GetInstance().SaveSettings();
 
-  if (m_refresh_game_list_on_close)
-    AddPendingEvent(wxCommandEvent{DOLPHIN_EVT_RELOAD_GAMELIST});
+  if (m_event_on_close != wxEVT_NULL)
+    AddPendingEvent(wxCommandEvent{m_event_on_close});
 }
 
 void CConfigMain::OnShow(wxShowEvent& event)
@@ -132,5 +132,12 @@ void CConfigMain::OnCloseButton(wxCommandEvent& WXUNUSED(event))
 
 void CConfigMain::OnSetRefreshGameListOnClose(wxCommandEvent& WXUNUSED(event))
 {
-  m_refresh_game_list_on_close = true;
+  // Don't override a rescan
+  if (m_event_on_close == wxEVT_NULL)
+    m_event_on_close = DOLPHIN_EVT_REFRESH_GAMELIST;
+}
+
+void CConfigMain::OnSetRescanGameListOnClose(wxCommandEvent& WXUNUSED(event))
+{
+  m_event_on_close = DOLPHIN_EVT_RESCAN_GAMELIST;
 }

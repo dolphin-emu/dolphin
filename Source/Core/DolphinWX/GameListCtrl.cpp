@@ -44,6 +44,7 @@
 #include "Common/MathUtil.h"
 #include "Common/StringUtil.h"
 #include "Common/SysConf.h"
+#include "Common/Thread.h"
 #include "Core/Boot/Boot.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -155,36 +156,6 @@ static int CompareGameListItems(const GameListItem* iso1, const GameListItem* is
   return 0;
 }
 
-static std::vector<std::string> GetFileSearchExtensions()
-{
-  std::vector<std::string> extensions;
-
-  if (SConfig::GetInstance().m_ListGC)
-  {
-    extensions.push_back(".gcm");
-    extensions.push_back(".tgc");
-  }
-
-  if (SConfig::GetInstance().m_ListWii || SConfig::GetInstance().m_ListGC)
-  {
-    extensions.push_back(".iso");
-    extensions.push_back(".ciso");
-    extensions.push_back(".gcz");
-    extensions.push_back(".wbfs");
-  }
-
-  if (SConfig::GetInstance().m_ListWad)
-    extensions.push_back(".wad");
-
-  if (SConfig::GetInstance().m_ListElfDol)
-  {
-    extensions.push_back(".dol");
-    extensions.push_back(".elf");
-  }
-
-  return extensions;
-}
-
 static bool ShouldDisplayGameListItem(const GameListItem& item)
 {
   const bool show_platform = [&item] {
@@ -240,7 +211,8 @@ static bool ShouldDisplayGameListItem(const GameListItem& item)
   }
 }
 
-wxDEFINE_EVENT(DOLPHIN_EVT_RELOAD_GAMELIST, wxCommandEvent);
+wxDEFINE_EVENT(DOLPHIN_EVT_REFRESH_GAMELIST, wxCommandEvent);
+wxDEFINE_EVENT(DOLPHIN_EVT_RESCAN_GAMELIST, wxCommandEvent);
 
 struct GameListCtrl::ColumnInfo
 {
@@ -250,8 +222,8 @@ struct GameListCtrl::ColumnInfo
   bool& visible;
 };
 
-GameListCtrl::GameListCtrl(wxWindow* parent, const wxWindowID id, const wxPoint& pos,
-                             const wxSize& size, long style)
+GameListCtrl::GameListCtrl(bool disable_scanning, wxWindow* parent, const wxWindowID id,
+                           const wxPoint& pos, const wxSize& size, long style)
     : wxListCtrl(parent, id, pos, size, style), m_tooltip(nullptr),
       m_columns({// {COLUMN, {default_width (without platform padding), resizability, visibility}}
                  {COLUMN_PLATFORM, 32 + 1 /* icon padding */, false,
@@ -286,9 +258,57 @@ GameListCtrl::GameListCtrl(wxWindow* parent, const wxWindowID id, const wxPoint&
   Bind(wxEVT_MENU, &GameListCtrl::OnChangeDisc, this, IDM_LIST_CHANGE_DISC);
   Bind(wxEVT_MENU, &GameListCtrl::OnNetPlayHost, this, IDM_START_NETPLAY);
 
-  Bind(DOLPHIN_EVT_RELOAD_GAMELIST, &GameListCtrl::OnReloadGameList, this);
+  Bind(DOLPHIN_EVT_REFRESH_GAMELIST, &GameListCtrl::OnRefreshGameList, this);
+  Bind(DOLPHIN_EVT_RESCAN_GAMELIST, &GameListCtrl::OnRescanGameList, this);
 
   wxTheApp->Bind(DOLPHIN_EVT_LOCAL_INI_CHANGED, &GameListCtrl::OnLocalIniModified, this);
+
+  if (!disable_scanning)
+  {
+    m_scan_thread = std::thread([&] {
+      Common::SetCurrentThreadName("gamelist scanner");
+
+      if (SyncCacheFile(false))
+      {
+        // Account for changes outside the cache (just wii banners atm; could scan Ini here)
+        // Note this is on the initial load path. Further improvements could be made if updates
+        // from scan->ui threads described small changelists instead of updating the entire list
+        // at once.
+        bool cache_modified = false;
+        for (auto& file : m_cached_files)
+        {
+          if (file->ReloadBannerIfNeeded())
+            cache_modified = true;
+        }
+
+        QueueEvent(new wxCommandEvent(DOLPHIN_EVT_REFRESH_GAMELIST));
+
+        if (cache_modified)
+          SyncCacheFile(true);
+      }
+      else
+      {
+        RescanList();
+      }
+
+      m_scan_trigger.Wait();
+      while (!m_scan_exiting.IsSet())
+      {
+        RescanList();
+        m_scan_trigger.Wait();
+      }
+    });
+  }
+}
+
+GameListCtrl::~GameListCtrl()
+{
+  if (m_scan_thread.joinable())
+  {
+    m_scan_exiting.Set();
+    m_scan_trigger.Set();
+    m_scan_thread.join();
+  }
 }
 
 template <typename T>
@@ -345,8 +365,8 @@ void GameListCtrl::InitBitmaps()
 
   auto& platform_indexes = m_image_indexes.platform;
   platform_indexes.resize(static_cast<size_t>(DiscIO::Platform::NUMBER_OF_PLATFORMS));
-  InitBitmap(img_list, &platform_indexes, this, platform_bmp_size,
-             DiscIO::Platform::GAMECUBE_DISC, "Platform_Gamecube");
+  InitBitmap(img_list, &platform_indexes, this, platform_bmp_size, DiscIO::Platform::GAMECUBE_DISC,
+             "Platform_Gamecube");
   InitBitmap(img_list, &platform_indexes, this, platform_bmp_size, DiscIO::Platform::WII_DISC,
              "Platform_Wii");
   InitBitmap(img_list, &platform_indexes, this, platform_bmp_size, DiscIO::Platform::WII_WAD,
@@ -388,24 +408,42 @@ void GameListCtrl::BrowseForDirectory()
     {
       SConfig::GetInstance().m_ISOFolder.push_back(sPath);
       SConfig::GetInstance().SaveSettings();
-      ReloadList();
+      m_scan_trigger.Set();
     }
   }
 }
 
-void GameListCtrl::ReloadList()
+void GameListCtrl::RefreshList()
 {
   int scrollPos = wxWindow::GetScrollPos(wxVERTICAL);
   // Don't let the user refresh it while a game is running
   if (Core::GetState() != Core::State::Uninitialized)
     return;
 
-  ScanForISOs();
+  m_shown_files.clear();
+  for (auto& item : m_cached_files)
+  {
+    if (ShouldDisplayGameListItem(*item))
+      m_shown_files.push_back(item);
+  }
+
+  // Drives are not cached. Not sure if this is required, but better to err on the
+  // side of caution if cross-platform issues could come into play.
+  if (SConfig::GetInstance().m_ListDrives)
+  {
+    const Core::TitleDatabase title_database;
+    for (const auto& drive : cdio_get_devices())
+    {
+      auto file = std::make_shared<GameListItem>(drive, title_database);
+      if (file->IsValid())
+        m_shown_files.push_back(file);
+    }
+  }
 
   Freeze();
   ClearAll();
 
-  if (m_ISOFiles.size() != 0)
+  if (!m_shown_files.empty())
   {
     // Don't load bitmaps unless there are games to list
     InitBitmaps();
@@ -430,14 +468,13 @@ void GameListCtrl::ReloadList()
 #endif
     // set initial sizes for columns
     SetColumnWidth(COLUMN_DUMMY, 0);
-
     for (const auto& c : m_columns)
     {
       SetColumnWidth(c.id, c.visible ? FromDIP(c.default_width + platform_padding) : 0);
     }
 
     // add all items
-    for (int i = 0; i < (int)m_ISOFiles.size(); i++)
+    for (int i = 0; i < (int)m_shown_files.size(); i++)
       InsertItemInReportView(i);
     SetColors();
 
@@ -511,7 +548,7 @@ static wxString NiceSizeFormat(u64 size)
   return wxString::Format("%.2f %s", size / unit_size, unit_symbols[unit]);
 }
 
-// Update the column content of the item at _Index
+// Update the column content of the item at index
 void GameListCtrl::UpdateItemAtColumn(long index, int column)
 {
   const auto& iso_file = *GetISO(GetItemData(index));
@@ -521,7 +558,7 @@ void GameListCtrl::UpdateItemAtColumn(long index, int column)
   case COLUMN_PLATFORM:
   {
     SetItemColumnImage(index, COLUMN_PLATFORM,
-      m_image_indexes.platform[static_cast<size_t>(iso_file.GetPlatform())]);
+                       m_image_indexes.platform[static_cast<size_t>(iso_file.GetPlatform())]);
     break;
   }
   case COLUMN_BANNER:
@@ -565,7 +602,7 @@ void GameListCtrl::UpdateItemAtColumn(long index, int column)
     break;
   case COLUMN_COUNTRY:
     SetItemColumnImage(index, COLUMN_COUNTRY,
-      m_image_indexes.flag[static_cast<size_t>(iso_file.GetCountry())]);
+                       m_image_indexes.flag[static_cast<size_t>(iso_file.GetCountry())]);
     break;
   case COLUMN_SIZE:
     SetItem(index, COLUMN_SIZE, NiceSizeFormat(iso_file.GetFileSize()), -1);
@@ -631,96 +668,148 @@ void GameListCtrl::SetColors()
   }
 }
 
-void GameListCtrl::ScanForISOs()
+void GameListCtrl::DoState(PointerWrap* p, u32 size)
 {
-  m_ISOFiles.clear();
-
-  const Core::TitleDatabase title_database;
-  auto rFilenames =
-      Common::DoFileSearch(GetFileSearchExtensions(), SConfig::GetInstance().m_ISOFolder,
-                           SConfig::GetInstance().m_RecursiveISOFolder);
-
-  if (rFilenames.size() > 0)
+  struct
   {
-    wxProgressDialog dialog(
-        _("Scanning for ISOs"), _("Scanning..."), (int)rFilenames.size() - 1, this,
-        wxPD_APP_MODAL | wxPD_AUTO_HIDE | wxPD_CAN_ABORT | wxPD_ELAPSED_TIME | wxPD_ESTIMATED_TIME |
-            wxPD_REMAINING_TIME | wxPD_SMOOTH  // - makes updates as small as possible (down to 1px)
-        );
-
-    for (u32 i = 0; i < rFilenames.size(); i++)
+    u32 Revision;
+    u32 ExpectedSize;
+  } header = {CACHE_REVISION, size};
+  p->Do(header);
+  if (p->GetMode() == PointerWrap::MODE_READ)
+  {
+    if (header.Revision != CACHE_REVISION || header.ExpectedSize != size)
     {
-      std::string FileName;
-      SplitPath(rFilenames[i], nullptr, &FileName, nullptr);
-
-      // Update with the progress (i) and the message
-      dialog.Update(i, wxString::Format(_("Scanning %s"), StrToWxStr(FileName)));
-      if (dialog.WasCancelled())
-        break;
-
-      auto iso_file = std::make_unique<GameListItem>(rFilenames[i], title_database);
-
-      if (iso_file->IsValid() && ShouldDisplayGameListItem(*iso_file))
-      {
-        m_ISOFiles.push_back(std::move(iso_file));
-      }
+      p->SetMode(PointerWrap::MODE_MEASURE);
+      return;
     }
   }
-
-  if (SConfig::GetInstance().m_ListDrives)
-  {
-    const std::vector<std::string> drives = cdio_get_devices();
-
-    for (const auto& drive : drives)
+  p->DoEachElement(m_cached_files, [](PointerWrap& state, std::shared_ptr<GameListItem>& elem) {
+    if (state.GetMode() == PointerWrap::MODE_READ)
     {
-      auto gli = std::make_unique<GameListItem>(drive, title_database);
-
-      if (gli->IsValid())
-        m_ISOFiles.push_back(std::move(gli));
+      elem = std::make_shared<GameListItem>();
     }
-  }
-
-  std::sort(m_ISOFiles.begin(), m_ISOFiles.end());
+    elem->DoState(state);
+  });
 }
 
-void GameListCtrl::OnReloadGameList(wxCommandEvent& WXUNUSED(event))
+bool GameListCtrl::SyncCacheFile(bool write)
 {
-  ReloadList();
+  std::string filename(File::GetUserPath(D_CACHE_IDX) + "wx_gamelist.cache");
+  const char* open_mode = write ? "wb" : "rb";
+  File::IOFile f(filename, open_mode);
+  if (!f)
+    return false;
+  bool success = false;
+  if (write)
+  {
+    // Measure the size of the buffer.
+    u8* ptr = nullptr;
+    PointerWrap p(&ptr, PointerWrap::MODE_MEASURE);
+    DoState(&p);
+    const size_t buffer_size = reinterpret_cast<size_t>(ptr);
+
+    // Then actually do the write.
+    std::vector<u8> buffer(buffer_size);
+    ptr = &buffer[0];
+    p.SetMode(PointerWrap::MODE_WRITE);
+    DoState(&p, buffer_size);
+    if (f.WriteBytes(buffer.data(), buffer.size()))
+      success = true;
+  }
+  else
+  {
+    std::vector<u8> buffer(f.GetSize());
+    if (buffer.size() && f.ReadBytes(buffer.data(), buffer.size()))
+    {
+      u8* ptr = buffer.data();
+      PointerWrap p(&ptr, PointerWrap::MODE_READ);
+      DoState(&p, buffer.size());
+      if (p.GetMode() == PointerWrap::MODE_READ)
+        success = true;
+    }
+  }
+  if (!success)
+  {
+    // If some file operation failed, try to delete the probably-corrupted cache
+    f.Close();
+    File::Delete(filename);
+  }
+  return success;
+}
+
+void GameListCtrl::RescanList()
+{
+  const std::vector<std::string> search_extensions = {".gcm",  ".tgc", ".iso", ".ciso", ".gcz",
+                                                      ".wbfs", ".wad", ".dol", ".elf"};
+  // TODO This could process paths iteratively as they are found
+  auto search_results = Common::DoFileSearch(search_extensions, SConfig::GetInstance().m_ISOFolder,
+                                             SConfig::GetInstance().m_RecursiveISOFolder);
+
+  // TODO rethink some good algorithms to use here
+  std::vector<std::string> cached_paths;
+  for (const auto& file : m_cached_files)
+    cached_paths.emplace_back(file->GetFileName());
+  std::sort(cached_paths.begin(), cached_paths.end());
+
+  std::list<std::string> removed_paths;
+  std::set_difference(cached_paths.cbegin(), cached_paths.cend(), search_results.cbegin(),
+                      search_results.cend(), std::back_inserter(removed_paths));
+
+  std::vector<std::string> new_paths;
+  std::set_difference(search_results.cbegin(), search_results.cend(), cached_paths.cbegin(),
+                      cached_paths.cend(), std::back_inserter(new_paths));
+
+  const Core::TitleDatabase title_database;
+  // TODO we could store all paths and modification times to judge if file needs to be rescanned.
+  // If we cached paths that turned out to be invalid, this would save failing on them each time
+  // refresh is done.
+  // However if people e.g. set dolphin to recursively scan the root of their drive(s), then we
+  // would cache way too much data. Maybe just use an upper bound of invalid paths to cache?
+  // For now, only scan new_paths. This could cause false negatives (file actively being written),
+  // but otherwise
+  // should be fine.
+  for (const auto& path : removed_paths)
+  {
+    auto it = std::find_if(
+        m_cached_files.cbegin(), m_cached_files.cend(),
+        [&path](const std::shared_ptr<GameListItem>& file) { return file->GetFileName() == path; });
+    if (it != m_cached_files.cend())
+      m_cached_files.erase(it);
+  }
+  for (const auto& path : new_paths)
+  {
+    auto file = std::make_shared<GameListItem>(path, title_database);
+    if (file->IsValid())
+      m_cached_files.push_back(std::move(file));
+  }
+
+  for (auto& file : m_cached_files)
+    file->ReloadINI();
+
+  // Post UI event to update the displayed list
+  QueueEvent(new wxCommandEvent(DOLPHIN_EVT_REFRESH_GAMELIST));
+
+  SyncCacheFile(true);
+}
+
+void GameListCtrl::OnRefreshGameList(wxCommandEvent& WXUNUSED(event))
+{
+  RefreshList();
+}
+
+void GameListCtrl::OnRescanGameList(wxCommandEvent& WXUNUSED(event))
+{
+  m_scan_trigger.Set();
 }
 
 void GameListCtrl::OnLocalIniModified(wxCommandEvent& ev)
 {
   ev.Skip();
-  std::string game_id = WxStrToStr(ev.GetString());
-  // NOTE: The same game may occur multiple times if there are multiple
-  //   physical copies in the search paths.
-  for (std::size_t i = 0; i < m_ISOFiles.size(); ++i)
-  {
-    if (m_ISOFiles[i]->GetGameID() != game_id)
-      continue;
-    m_ISOFiles[i]->ReloadINI();
-
-    // The indexes in m_ISOFiles and the list do not line up.
-    // We need to find the corresponding item in the list (if it exists)
-    long item_id = 0;
-    for (; item_id < GetItemCount(); ++item_id)
-    {
-      if (i == static_cast<std::size_t>(GetItemData(item_id)))
-        break;
-    }
-    // If the item is not currently being displayed then we're done.
-    if (item_id == GetItemCount())
-      continue;
-
-    // Update all the columns
-    for (int j = FIRST_COLUMN_WITH_CONTENT; j < NUMBER_OF_COLUMN; ++j)
-    {
-      // NOTE: Banner is not modified by the INI and updating it will
-      //  duplicate it in memory which is not wanted.
-      if (j != COLUMN_BANNER && GetColumnWidth(j) != 0)
-        UpdateItemAtColumn(item_id, j);
-    }
-  }
+  // We need show any changes to the ini which could impact our columns. Currently only the
+  // EmuState/Issues settings can do that. We also need to persist the changes to the cache - so
+  // just trigger a rescan which will sync the cache and then display the new values.
+  m_scan_trigger.Set();
 }
 
 void GameListCtrl::OnColBeginDrag(wxListEvent& event)
@@ -733,8 +822,8 @@ void GameListCtrl::OnColBeginDrag(wxListEvent& event)
 
 const GameListItem* GameListCtrl::GetISO(size_t index) const
 {
-  if (index < m_ISOFiles.size())
-    return m_ISOFiles[index].get();
+  if (index < m_shown_files.size())
+    return m_shown_files[index].get();
 
   return nullptr;
 }
@@ -790,7 +879,7 @@ void GameListCtrl::OnKeyPress(wxListEvent& event)
   static int lastKey = 0, sLoop = 0;
   int Loop = 0;
 
-  for (int i = 0; i < (int)m_ISOFiles.size(); i++)
+  for (int i = 0; i < (int)m_shown_files.size(); i++)
   {
     // Easy way to get game string
     wxListItem bleh;
@@ -806,7 +895,7 @@ void GameListCtrl::OnKeyPress(wxListEvent& event)
       if (lastKey == event.GetKeyCode() && Loop < sLoop)
       {
         Loop++;
-        if (i + 1 == (int)m_ISOFiles.size())
+        if (i + 1 == (int)m_shown_files.size())
           i = -1;
         continue;
       }
@@ -827,7 +916,7 @@ void GameListCtrl::OnKeyPress(wxListEvent& event)
 
     // If we get past the last game in the list,
     // we'll have to go back to the first one.
-    if (i + 1 == (int)m_ISOFiles.size() && sLoop > 0 && Loop > 0)
+    if (i + 1 == (int)m_shown_files.size() && sLoop > 0 && Loop > 0)
       i = -1;
   }
 
@@ -900,7 +989,7 @@ void GameListCtrl::OnMouseMotion(wxMouseEvent& event)
       // Convert to screen coordinates
       ClientToScreen(&mx, &my);
       m_tooltip->SetBoundingRect(wxRect(mx - GetColumnWidth(COLUMN_EMULATION_STATE), my,
-                                      GetColumnWidth(COLUMN_EMULATION_STATE), Rect.GetHeight()));
+                                        GetColumnWidth(COLUMN_EMULATION_STATE), Rect.GetHeight()));
       m_tooltip->SetPosition(
           wxPoint(mx - GetColumnWidth(COLUMN_EMULATION_STATE), my - 5 + Rect.GetHeight()));
       lastItem = item;
@@ -1044,7 +1133,7 @@ void GameListCtrl::OnRightClick(wxMouseEvent& event)
 
 const GameListItem* GameListCtrl::GetSelectedISO() const
 {
-  if (m_ISOFiles.empty())
+  if (m_shown_files.empty())
     return nullptr;
 
   if (GetSelectedItemCount() == 0)
@@ -1143,7 +1232,7 @@ void GameListCtrl::OnDeleteISO(wxCommandEvent& WXUNUSED(event))
   {
     for (const GameListItem* iso : GetAllSelectedISOs())
       File::Delete(iso->GetFileName());
-    ReloadList();
+    m_scan_trigger.Set();
   }
 }
 
@@ -1315,7 +1404,7 @@ void GameListCtrl::CompressSelection(bool _compress)
   if (!all_good)
     WxUtils::ShowErrorDialog(_("Dolphin was unable to complete the requested action."));
 
-  ReloadList();
+  m_scan_trigger.Set();
 }
 
 bool GameListCtrl::CompressCB(const std::string& text, float percent, void* arg)
@@ -1388,7 +1477,7 @@ void GameListCtrl::OnCompressISO(wxCommandEvent& WXUNUSED(event))
   if (!all_good)
     WxUtils::ShowErrorDialog(_("Dolphin was unable to complete the requested action."));
 
-  ReloadList();
+  m_scan_trigger.Set();
 }
 
 void GameListCtrl::OnChangeDisc(wxCommandEvent& WXUNUSED(event))

@@ -38,8 +38,6 @@
 #include "DolphinWX/ISOFile.h"
 #include "DolphinWX/WxUtils.h"
 
-static const u32 CACHE_REVISION = 0x129;  // Last changed in PR 5102
-
 static std::string GetLanguageString(DiscIO::Language language,
                                      std::map<DiscIO::Language, std::string> strings)
 {
@@ -69,26 +67,8 @@ GameListItem::GameListItem(const std::string& _rFileName, const Core::TitleDatab
       m_Revision(0), m_Valid(false), m_ImageWidth(0), m_ImageHeight(0), m_disc_number(0),
       m_has_custom_name(false)
 {
-  if (LoadFromCache())
-  {
-    m_Valid = true;
-
-    // Wii banners can only be read if there is a savefile,
-    // so sometimes caches don't contain banners. Let's check
-    // if a banner has become available after the cache was made.
-    if (m_pImage.empty())
-    {
-      std::vector<u32> buffer =
-          DiscIO::Volume::GetWiiBanner(&m_ImageWidth, &m_ImageHeight, m_title_id);
-      ReadVolumeBanner(buffer, m_ImageWidth, m_ImageHeight);
-      if (!m_pImage.empty())
-        SaveToCache();
-    }
-  }
-  else
   {
     std::unique_ptr<DiscIO::Volume> volume(DiscIO::CreateVolumeFromFilename(_rFileName));
-
     if (volume != nullptr)
     {
       m_Platform = volume->GetVolumeType();
@@ -116,7 +96,6 @@ GameListItem::GameListItem(const std::string& _rFileName, const Core::TitleDatab
       ReadVolumeBanner(buffer, m_ImageWidth, m_ImageHeight);
 
       m_Valid = true;
-      SaveToCache();
     }
   }
 
@@ -138,35 +117,26 @@ GameListItem::GameListItem(const std::string& _rFileName, const Core::TitleDatab
     m_FileSize = File::GetSize(_rFileName);
     m_Platform = DiscIO::Platform::ELF_DOL;
     m_blob_type = DiscIO::BlobType::DIRECTORY;
+
+    std::string path, name;
+    SplitPath(m_FileName, &path, &name, nullptr);
+
+    // A bit like the Homebrew Channel icon, except there can be multiple files
+    // in a folder with their own icons. Useful for those who don't want to have
+    // a Homebrew Channel-style folder structure.
+    if (SetWxBannerFromPngFile(path + name + ".png"))
+      return;
+
+    // Homebrew Channel icon. Typical for DOLs and ELFs,
+    // but can be also used with volumes.
+    if (SetWxBannerFromPngFile(path + "icon.png"))
+      return;
   }
-
-  std::string path, name;
-  SplitPath(m_FileName, &path, &name, nullptr);
-
-  // A bit like the Homebrew Channel icon, except there can be multiple files
-  // in a folder with their own icons. Useful for those who don't want to have
-  // a Homebrew Channel-style folder structure.
-  if (ReadPNGBanner(path + name + ".png"))
-    return;
-
-  // Homebrew Channel icon. Typical for DOLs and ELFs,
-  // but can be also used with volumes.
-  if (ReadPNGBanner(path + "icon.png"))
-    return;
-
-  // Volume banner. Typical for everything that isn't a DOL or ELF.
-  if (!m_pImage.empty())
+  else
   {
-    // Need to make explicit copy as wxImage uses reference counting for copies combined with only
-    // taking a pointer, not the content, when given a buffer to its constructor.
-    m_image.Create(m_ImageWidth, m_ImageHeight, false);
-    std::memcpy(m_image.GetData(), m_pImage.data(), m_pImage.size());
-    return;
+    // Volume banner. Typical for everything that isn't a DOL or ELF.
+    SetWxBannerFromRaw();
   }
-}
-
-GameListItem::~GameListItem()
-{
 }
 
 bool GameListItem::IsValid() const
@@ -198,37 +168,35 @@ void GameListItem::ReloadINI()
   }
 }
 
-bool GameListItem::LoadFromCache()
-{
-  return CChunkFileReader::Load<GameListItem>(CreateCacheFilename(), CACHE_REVISION, *this);
-}
-
-void GameListItem::SaveToCache()
-{
-  if (!File::IsDirectory(File::GetUserPath(D_CACHE_IDX)))
-    File::CreateDir(File::GetUserPath(D_CACHE_IDX));
-
-  CChunkFileReader::Save<GameListItem>(CreateCacheFilename(), CACHE_REVISION, *this);
-}
-
 void GameListItem::DoState(PointerWrap& p)
 {
+  p.Do(m_FileName);
   p.Do(m_names);
   p.Do(m_descriptions);
   p.Do(m_company);
   p.Do(m_game_id);
   p.Do(m_title_id);
+  p.Do(m_issues);
+  p.Do(m_emu_state);
   p.Do(m_FileSize);
   p.Do(m_VolumeSize);
   p.Do(m_region);
   p.Do(m_Country);
+  p.Do(m_Platform);
   p.Do(m_blob_type);
+  p.Do(m_Revision);
   p.Do(m_pImage);
+  p.Do(m_Valid);
   p.Do(m_ImageWidth);
   p.Do(m_ImageHeight);
-  p.Do(m_Platform);
   p.Do(m_disc_number);
-  p.Do(m_Revision);
+  p.Do(m_custom_name_titles_txt);
+  p.Do(m_custom_name);
+  p.Do(m_has_custom_name);
+  if (p.GetMode() == PointerWrap::MODE_READ)
+  {
+    SetWxBannerFromRaw();
+  }
 }
 
 bool GameListItem::IsElfOrDol() const
@@ -241,27 +209,6 @@ bool GameListItem::IsElfOrDol() const
   return name_end == ".elf" || name_end == ".dol";
 }
 
-std::string GameListItem::CreateCacheFilename() const
-{
-  std::string Filename, LegalPathname, extension;
-  SplitPath(m_FileName, &LegalPathname, &Filename, &extension);
-
-  if (Filename.empty())
-    return Filename;  // Disc Drive
-
-  // Filename.extension_HashOfFolderPath_Size.cache
-  // Append hash to prevent ISO name-clashing in different folders.
-  Filename.append(
-      StringFromFormat("%s_%x_%" PRIx64 ".cache", extension.c_str(),
-                       HashFletcher((const u8*)LegalPathname.c_str(), LegalPathname.size()),
-                       File::GetSize(m_FileName)));
-
-  std::string fullname(File::GetUserPath(D_CACHE_IDX));
-  fullname += Filename;
-  return fullname;
-}
-
-// Outputs to m_pImage
 void GameListItem::ReadVolumeBanner(const std::vector<u32>& buffer, int width, int height)
 {
   m_pImage.resize(width * height * 3);
@@ -273,8 +220,7 @@ void GameListItem::ReadVolumeBanner(const std::vector<u32>& buffer, int width, i
   }
 }
 
-// Outputs to m_Bitmap
-bool GameListItem::ReadPNGBanner(const std::string& path)
+bool GameListItem::SetWxBannerFromPngFile(const std::string& path)
 {
   if (!File::Exists(path))
     return false;
@@ -285,6 +231,37 @@ bool GameListItem::ReadPNGBanner(const std::string& path)
 
   m_image = image;
   return true;
+}
+
+void GameListItem::SetWxBannerFromRaw()
+{
+  // Need to make explicit copy as wxImage uses reference counting for copies combined with only
+  // taking a pointer, not the content, when given a buffer to its constructor.
+  if (!m_pImage.empty())
+  {
+    m_image.Create(m_ImageWidth, m_ImageHeight, false);
+    std::memcpy(m_image.GetData(), m_pImage.data(), m_pImage.size());
+  }
+}
+
+bool GameListItem::ReloadBannerIfNeeded()
+{
+  // Wii banners can only be read if there is a savefile,
+  // so sometimes caches don't contain banners. Let's check
+  // if a banner has become available after the cache was made.
+  if ((m_Platform == DiscIO::Platform::WII_DISC || m_Platform == DiscIO::Platform::WII_WAD) &&
+      m_pImage.empty())
+  {
+    std::vector<u32> buffer =
+        DiscIO::Volume::GetWiiBanner(&m_ImageWidth, &m_ImageHeight, m_title_id);
+    if (buffer.size())
+    {
+      ReadVolumeBanner(buffer, m_ImageWidth, m_ImageHeight);
+      SetWxBannerFromRaw();
+      return true;
+    }
+  }
+  return false;
 }
 
 std::string GameListItem::GetDescription(DiscIO::Language language) const

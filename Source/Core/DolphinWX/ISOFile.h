@@ -32,8 +32,9 @@ class PointerWrap;
 class GameListItem
 {
 public:
+  GameListItem() = default;
   GameListItem(const std::string& file_name, const Core::TitleDatabase& title_database);
-  ~GameListItem();
+  ~GameListItem() = default;
 
   // Reload settings after INI changes
   void ReloadINI();
@@ -65,8 +66,20 @@ public:
   //   to display it
   const wxImage& GetBannerImage() const { return m_image; }
   void DoState(PointerWrap& p);
+  bool ReloadBannerIfNeeded();
 
 private:
+  bool IsElfOrDol() const;
+  // Outputs to m_pImage
+  void ReadVolumeBanner(const std::vector<u32>& buffer, int width, int height);
+  // Outputs to m_image
+  bool SetWxBannerFromPngFile(const std::string& path);
+  void SetWxBannerFromRaw();
+
+  // IMPORTANT: All data members must be save/restored in DoState.
+  // If anything is changed, make sure DoState handles it properly and
+  // GameListCtrl::CACHE_REVISION is incremented.
+
   std::string m_FileName;
 
   std::map<DiscIO::Language, std::string> m_names;
@@ -97,15 +110,4 @@ private:
   std::string m_custom_name_titles_txt;  // Custom title from titles.txt
   std::string m_custom_name;             // Custom title from INI or titles.txt
   bool m_has_custom_name;
-
-  bool LoadFromCache();
-  void SaveToCache();
-
-  bool IsElfOrDol() const;
-  std::string CreateCacheFilename() const;
-
-  // Outputs to m_pImage
-  void ReadVolumeBanner(const std::vector<u32>& buffer, int width, int height);
-  // Outputs to m_Bitmap
-  bool ReadPNGBanner(const std::string& path);
 };

@@ -12,6 +12,8 @@
 #include <wx/listctrl.h>
 #include <wx/tipwin.h>
 
+#include "Common/ChunkFile.h"
+#include "Common/Event.h"
 #include "DolphinWX/ISOFile.h"
 
 class wxEmuStateTip : public wxTipWindow
@@ -31,19 +33,19 @@ public:
   }
 };
 
-wxDECLARE_EVENT(DOLPHIN_EVT_RELOAD_GAMELIST, wxCommandEvent);
+wxDECLARE_EVENT(DOLPHIN_EVT_REFRESH_GAMELIST, wxCommandEvent);
+wxDECLARE_EVENT(DOLPHIN_EVT_RESCAN_GAMELIST, wxCommandEvent);
 
 class GameListCtrl : public wxListCtrl
 {
 public:
-  GameListCtrl(wxWindow* parent, const wxWindowID id, const wxPoint& pos, const wxSize& size,
-                long style);
-  ~GameListCtrl() = default;
+  GameListCtrl(bool disable_scanning, wxWindow* parent, const wxWindowID id, const wxPoint& pos,
+               const wxSize& size, long style);
+  ~GameListCtrl();
 
   void BrowseForDirectory();
   const GameListItem* GetISO(size_t index) const;
   const GameListItem* GetSelectedISO() const;
-  std::vector<const GameListItem*> GetAllSelectedISOs() const;
 
   static bool IsHidingItems();
 
@@ -70,16 +72,19 @@ public:
 private:
   struct ColumnInfo;
 
-  void ReloadList();
-
   void InitBitmaps();
   void UpdateItemAtColumn(long index, int column);
   void InsertItemInReportView(long index);
   void SetColors();
-  void ScanForISOs();
+  void RefreshList();
+  void RescanList();
+  void DoState(PointerWrap* p, u32 size = 0);
+  bool SyncCacheFile(bool write);
+  std::vector<const GameListItem*> GetAllSelectedISOs() const;
 
   // events
-  void OnReloadGameList(wxCommandEvent& event);
+  void OnRefreshGameList(wxCommandEvent& event);
+  void OnRescanGameList(wxCommandEvent& event);
   void OnLeftClick(wxMouseEvent& event);
   void OnRightClick(wxMouseEvent& event);
   void OnMouseMotion(wxMouseEvent& event);
@@ -109,13 +114,22 @@ private:
   static bool MultiCompressCB(const std::string& text, float percent, void* arg);
   static bool WiiCompressWarning();
 
-  std::vector<std::unique_ptr<GameListItem>> m_ISOFiles;
-  struct {
+  struct
+  {
     std::vector<int> flag;
     std::vector<int> platform;
     std::vector<int> utility_banner;
     std::vector<int> emu_state;
   } m_image_indexes;
+
+  // Actual backing GameListItems are maintained in a background thread and cached to file
+  static constexpr u32 CACHE_REVISION = 0;
+  std::list<std::shared_ptr<GameListItem>> m_cached_files;
+  std::thread m_scan_thread;
+  Common::Event m_scan_trigger;
+  Common::Flag m_scan_exiting;
+  // UI thread's view into the cache
+  std::vector<std::shared_ptr<GameListItem>> m_shown_files;
 
   int m_last_column;
   int m_last_sort;
