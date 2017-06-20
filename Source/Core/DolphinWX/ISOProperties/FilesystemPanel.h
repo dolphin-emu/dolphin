@@ -46,13 +46,14 @@ private:
   void OnExtractFile(wxCommandEvent&);
   void OnExtractDirectories(wxCommandEvent&);
   void OnExtractHeaderData(wxCommandEvent&);
+  void OnExtractAll(wxCommandEvent&);
   void OnCheckPartitionIntegrity(wxCommandEvent&);
 
-  void ExtractAllFiles(const wxString& output_folder);
   void ExtractSingleFile(const wxString& output_file_path) const;
   void ExtractSingleDirectory(const wxString& output_folder);
   void ExtractDirectories(const std::string& full_path, const std::string& output_folder,
                           const DiscIO::FileSystem& filesystem);
+  void ExtractPartition(const std::string& output_folder, const DiscIO::FileSystem& filesystem);
 
   std::pair<wxString, const DiscIO::FileSystem&> BuildFilePathFromSelection() const;
   std::pair<wxString, const DiscIO::FileSystem&> BuildDirectoryPathFromSelection() const;
