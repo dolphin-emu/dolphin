@@ -185,6 +185,9 @@ Vendor TranslatePCIVendorID(u32 vendor_id)
   case 0x5143:
     return VENDOR_QUALCOMM;
 
+  case 0x1010:
+    return VENDOR_IMGTEC;
+
   default:
     return VENDOR_UNKNOWN;
   }
