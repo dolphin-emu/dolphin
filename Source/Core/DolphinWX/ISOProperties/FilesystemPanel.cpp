@@ -401,15 +401,21 @@ void FilesystemPanel::ExtractDirectories(const std::string& full_path,
 
 std::pair<wxString, const DiscIO::FileSystem&> FilesystemPanel::BuildFilePathFromSelection() const
 {
-  wxString file_path = m_tree_ctrl->GetItemText(m_tree_ctrl->GetSelection());
+  const wxTreeItemId root_node = m_tree_ctrl->GetRootItem();
+  wxTreeItemId node = m_tree_ctrl->GetSelection();
 
-  const auto root_node = m_tree_ctrl->GetRootItem();
-  auto node = m_tree_ctrl->GetItemParent(m_tree_ctrl->GetSelection());
+  wxString file_path;
 
-  while (node != root_node)
+  if (node != root_node)
   {
-    file_path = m_tree_ctrl->GetItemText(node) + DIR_SEP_CHR + file_path;
+    file_path = m_tree_ctrl->GetItemText(node);
     node = m_tree_ctrl->GetItemParent(node);
+
+    while (node != root_node)
+    {
+      file_path = m_tree_ctrl->GetItemText(node) + DIR_SEP_CHR + file_path;
+      node = m_tree_ctrl->GetItemParent(node);
+    }
   }
 
   if (m_has_partitions)
