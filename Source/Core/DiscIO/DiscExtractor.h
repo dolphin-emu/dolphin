@@ -30,11 +30,33 @@ void ExportDirectory(const DiscIO::Volume& volume, const DiscIO::Partition parti
                      const std::string& filesystem_path, const std::string& export_folder,
                      const std::function<bool(const std::string& path)>& update_progress);
 
+// To export everything listed below, you can use ExportSystemData
+
+bool ExportWiiUnencryptedHeader(const Volume& volume, const std::string& export_filename);
+bool ExportWiiRegionData(const Volume& volume, const std::string& export_filename);
+
+bool ExportTicket(const Volume& volume, const Partition& partition,
+                  const std::string& export_filename);
+bool ExportTMD(const Volume& volume, const Partition& partition,
+               const std::string& export_filename);
+bool ExportCertificateChain(const Volume& volume, const Partition& partition,
+                            const std::string& export_filename);
+bool ExportH3Hashes(const Volume& volume, const Partition& partition,
+                    const std::string& export_filename);
+
+bool ExportHeader(const Volume& volume, const Partition& partition,
+                  const std::string& export_filename);
+bool ExportBI2Data(const Volume& volume, const Partition& partition,
+                   const std::string& export_filename);
 bool ExportApploader(const Volume& volume, const Partition& partition,
                      const std::string& export_filename);
 std::optional<u64> GetBootDOLOffset(const Volume& volume, const Partition& partition);
 std::optional<u32> GetBootDOLSize(const Volume& volume, const Partition& partition, u64 dol_offset);
 bool ExportDOL(const Volume& volume, const Partition& partition,
+               const std::string& export_filename);
+std::optional<u64> GetFSTOffset(const Volume& volume, const Partition& partition);
+std::optional<u64> GetFSTSize(const Volume& volume, const Partition& partition);
+bool ExportFST(const Volume& volume, const Partition& partition,
                const std::string& export_filename);
 
 bool ExportSystemData(const Volume& volume, const Partition& partition,

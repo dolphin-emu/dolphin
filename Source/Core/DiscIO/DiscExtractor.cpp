@@ -103,6 +103,92 @@ void ExportDirectory(const DiscIO::Volume& volume, const DiscIO::Partition parti
   }
 }
 
+bool ExportWiiUnencryptedHeader(const Volume& volume, const std::string& export_filename)
+{
+  if (volume.GetVolumeType() != Platform::WII_DISC)
+    return false;
+
+  return ExportData(volume, PARTITION_NONE, 0, 0x100, export_filename);
+}
+
+bool ExportWiiRegionData(const Volume& volume, const std::string& export_filename)
+{
+  if (volume.GetVolumeType() != Platform::WII_DISC)
+    return false;
+
+  return ExportData(volume, PARTITION_NONE, 0x4E000, 0x20, export_filename);
+}
+
+bool ExportTicket(const Volume& volume, const Partition& partition,
+                  const std::string& export_filename)
+{
+  if (volume.GetVolumeType() != Platform::WII_DISC)
+    return false;
+
+  return ExportData(volume, PARTITION_NONE, partition.offset, 0x2a4, export_filename);
+}
+
+bool ExportTMD(const Volume& volume, const Partition& partition, const std::string& export_filename)
+{
+  if (volume.GetVolumeType() != Platform::WII_DISC)
+    return false;
+
+  std::optional<u32> size = volume.ReadSwapped<u32>(partition.offset + 0x2a4, PARTITION_NONE);
+  std::optional<u32> offset = volume.ReadSwapped<u32>(partition.offset + 0x2a8, PARTITION_NONE);
+  if (!size || !offset)
+    return false;
+
+  const u64 actual_offset = partition.offset + (static_cast<u64>(*offset) << 2);
+  return ExportData(volume, PARTITION_NONE, actual_offset, *size, export_filename);
+}
+
+bool ExportCertificateChain(const Volume& volume, const Partition& partition,
+                            const std::string& export_filename)
+{
+  if (volume.GetVolumeType() != Platform::WII_DISC)
+    return false;
+
+  std::optional<u32> size = volume.ReadSwapped<u32>(partition.offset + 0x2ac, PARTITION_NONE);
+  std::optional<u32> offset = volume.ReadSwapped<u32>(partition.offset + 0x2b0, PARTITION_NONE);
+  if (!size || !offset)
+    return false;
+
+  const u64 actual_offset = partition.offset + (static_cast<u64>(*offset) << 2);
+  return ExportData(volume, PARTITION_NONE, actual_offset, *size, export_filename);
+}
+
+bool ExportH3Hashes(const Volume& volume, const Partition& partition,
+                    const std::string& export_filename)
+{
+  if (volume.GetVolumeType() != Platform::WII_DISC)
+    return false;
+
+  std::optional<u32> offset = volume.ReadSwapped<u32>(partition.offset + 0x2b4, PARTITION_NONE);
+  if (!offset)
+    return false;
+
+  const u64 actual_offset = partition.offset + (static_cast<u64>(*offset) << 2);
+  return ExportData(volume, PARTITION_NONE, actual_offset, 0x18000, export_filename);
+}
+
+bool ExportHeader(const Volume& volume, const Partition& partition,
+                  const std::string& export_filename)
+{
+  if (!IsDisc(volume.GetVolumeType()))
+    return false;
+
+  return ExportData(volume, partition, 0, 0x440, export_filename);
+}
+
+bool ExportBI2Data(const Volume& volume, const Partition& partition,
+                   const std::string& export_filename)
+{
+  if (!IsDisc(volume.GetVolumeType()))
+    return false;
+
+  return ExportData(volume, partition, 0x440, 0x2000, export_filename);
+}
+
 bool ExportApploader(const Volume& volume, const Partition& partition,
                      const std::string& export_filename)
 {
@@ -176,12 +262,65 @@ bool ExportDOL(const Volume& volume, const Partition& partition, const std::stri
   return ExportData(volume, partition, *dol_offset, *dol_size, export_filename);
 }
 
+std::optional<u64> GetFSTOffset(const Volume& volume, const Partition& partition)
+{
+  const DiscIO::Platform volume_type = volume.GetVolumeType();
+  if (!IsDisc(volume_type))
+    return {};
+
+  const std::optional<u32> offset = volume.ReadSwapped<u32>(0x424, partition);
+  const u8 offset_shift = volume_type == Platform::WII_DISC ? 2 : 0;
+  return offset ? static_cast<u64>(*offset) << offset_shift : std::optional<u64>();
+}
+
+std::optional<u64> GetFSTSize(const Volume& volume, const Partition& partition)
+{
+  const DiscIO::Platform volume_type = volume.GetVolumeType();
+  if (!IsDisc(volume_type))
+    return {};
+
+  const std::optional<u32> size = volume.ReadSwapped<u64>(0x428, partition);
+  const u8 offset_shift = volume_type == Platform::WII_DISC ? 2 : 0;
+  return size ? static_cast<u64>(*size) << offset_shift : std::optional<u64>();
+}
+
+bool ExportFST(const Volume& volume, const Partition& partition, const std::string& export_filename)
+{
+  if (!IsDisc(volume.GetVolumeType()))
+    return false;
+
+  const std::optional<u64> fst_offset = GetFSTOffset(volume, partition);
+  const std::optional<u64> fst_size = GetFSTSize(volume, partition);
+  if (!fst_offset || !fst_size)
+    return false;
+
+  return ExportData(volume, partition, *fst_offset, *fst_size, export_filename);
+}
+
 bool ExportSystemData(const Volume& volume, const Partition& partition,
                       const std::string& export_folder)
 {
   bool success = true;
-  success &= ExportApploader(volume, partition, export_folder + "/apploader.img");
-  success &= ExportDOL(volume, partition, export_folder + "/boot.dol");
+
+  File::CreateFullPath(export_folder + "/sys/");
+  success &= ExportHeader(volume, partition, export_folder + "/sys/boot.bin");
+  success &= ExportBI2Data(volume, partition, export_folder + "/sys/bi2.bin");
+  success &= ExportApploader(volume, partition, export_folder + "/sys/apploader.img");
+  success &= ExportDOL(volume, partition, export_folder + "/sys/main.dol");
+  success &= ExportFST(volume, partition, export_folder + "/sys/fst.bin");
+
+  if (volume.GetVolumeType() == Platform::WII_DISC)
+  {
+    File::CreateFullPath(export_folder + "/disc/");
+    success &= ExportWiiUnencryptedHeader(volume, export_folder + "/disc/header.bin");
+    success &= ExportWiiRegionData(volume, export_folder + "/disc/region.bin");
+
+    success &= ExportTicket(volume, partition, export_folder + "/ticket.bin");
+    success &= ExportTMD(volume, partition, export_folder + "/tmd.bin");
+    success &= ExportCertificateChain(volume, partition, export_folder + "/cert.bin");
+    success &= ExportH3Hashes(volume, partition, export_folder + "/h3.bin");
+  }
+
   return success;
 }
 
