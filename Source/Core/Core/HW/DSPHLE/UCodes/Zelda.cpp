@@ -78,7 +78,7 @@ static const std::map<u32, u32> UCODE_FLAGS = {
     {0x24B22038, LIGHT_PROTOCOL | FOUR_MIXING_DESTS | TINY_VPB | VOLUME_EXPLICIT_STEP | NO_CMD_0D |
                      WEIRD_CMD_0C},
     // GameCube IPL/BIOS, PAL.
-    {0x6BA3B3EA, LIGHT_PROTOCOL | FOUR_MIXING_DESTS | NO_CMD_0D | WEIRD_CMD_0C},
+    {0x6BA3B3EA, LIGHT_PROTOCOL | FOUR_MIXING_DESTS | NO_CMD_0D},
     // Pikmin 1 GC NTSC.
     // Animal Crossing.
     {0x4BE6A5CB, LIGHT_PROTOCOL | NO_CMD_0D | SUPPORTS_GBA_CRYPTO},
@@ -532,7 +532,7 @@ void ZeldaUCode::RunPendingCommands()
       return;
 
     // Command 0C: used for multiple purpose depending on the UCode version:
-    // * IPL NTSC/PAL, Luigi's Mansion: TODO (unknown as of now).
+    // * IPL NTSC, Luigi's Mansion: TODO (unknown as of now).
     // * Pikmin/AC: GBA crypto.
     // * SMS and onwards: NOP.
     case 0x0C:
