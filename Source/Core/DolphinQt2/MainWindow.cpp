@@ -52,6 +52,7 @@ MainWindow::MainWindow() : QMainWindow(nullptr)
   ConnectMenuBar();
 
   InitControllers();
+  InitCoreCallbacks();
 }
 
 MainWindow::~MainWindow()
@@ -86,6 +87,11 @@ void MainWindow::ShutdownControllers()
   HotkeyManagerEmu::Shutdown();
 
   m_hotkey_scheduler->deleteLater();
+}
+
+void MainWindow::InitCoreCallbacks()
+{
+  Core::SetOnStoppedCallback([this] { emit EmulationStopped(); });
 }
 
 static void InstallHotkeyFilter(QWidget* dialog)
@@ -291,7 +297,6 @@ void MainWindow::ForceStop()
 {
   BootManager::Stop();
   HideRenderWidget();
-  emit EmulationStopped();
 }
 
 void MainWindow::Reset()
