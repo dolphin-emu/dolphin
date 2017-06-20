@@ -18,6 +18,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
+#include "DiscIO/DiscExtractor.h"
 #include "DiscIO/FileSystemGCWii.h"
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
@@ -194,13 +195,11 @@ FileSystemGCWii::FileSystemGCWii(const Volume* volume, const Partition& partitio
   else
     return;
 
-  const std::optional<u32> fst_offset_unshifted = m_volume->ReadSwapped<u32>(0x424, m_partition);
-  const std::optional<u32> fst_size_unshifted = m_volume->ReadSwapped<u32>(0x428, m_partition);
-  if (!fst_offset_unshifted || !fst_size_unshifted)
+  const std::optional<u64> fst_offset = GetFSTOffset(*m_volume, m_partition);
+  const std::optional<u64> fst_size = GetFSTSize(*m_volume, m_partition);
+  if (!fst_offset || !fst_size)
     return;
-  const u64 fst_offset = static_cast<u64>(*fst_offset_unshifted) << m_offset_shift;
-  const u64 fst_size = static_cast<u64>(*fst_size_unshifted) << m_offset_shift;
-  if (fst_size < FST_ENTRY_SIZE)
+  if (*fst_size < FST_ENTRY_SIZE)
   {
     ERROR_LOG(DISCIO, "File system is too small");
     return;
@@ -209,7 +208,7 @@ FileSystemGCWii::FileSystemGCWii(const Volume* volume, const Partition& partitio
   // 128 MiB is more than the total amount of RAM in a Wii.
   // No file system should use anywhere near that much.
   static const u32 ARBITRARY_FILE_SYSTEM_SIZE_LIMIT = 128 * 1024 * 1024;
-  if (fst_size > ARBITRARY_FILE_SYSTEM_SIZE_LIMIT)
+  if (*fst_size > ARBITRARY_FILE_SYSTEM_SIZE_LIMIT)
   {
     // Without this check, Dolphin can crash by trying to allocate too much
     // memory when loading a disc image with an incorrect FST size.
@@ -219,8 +218,8 @@ FileSystemGCWii::FileSystemGCWii(const Volume* volume, const Partition& partitio
   }
 
   // Read the whole FST
-  m_file_system_table.resize(fst_size);
-  if (!m_volume->Read(fst_offset, fst_size, m_file_system_table.data(), m_partition))
+  m_file_system_table.resize(*fst_size);
+  if (!m_volume->Read(*fst_offset, *fst_size, m_file_system_table.data(), m_partition))
   {
     ERROR_LOG(DISCIO, "Couldn't read file system table");
     return;
@@ -234,20 +233,20 @@ FileSystemGCWii::FileSystemGCWii(const Volume* volume, const Partition& partitio
     return;
   }
 
-  if (FST_ENTRY_SIZE * m_root.GetSize() > fst_size)
+  if (FST_ENTRY_SIZE * m_root.GetSize() > *fst_size)
   {
     ERROR_LOG(DISCIO, "File system has too many entries for its size");
     return;
   }
 
-  // If the FST's final byte isn't 0, CFileInfoGCWii::GetName() can read past the end
-  if (m_file_system_table[fst_size - 1] != 0)
+  // If the FST's final byte isn't 0, FileInfoGCWii::GetName() can read past the end
+  if (m_file_system_table[*fst_size - 1] != 0)
   {
     ERROR_LOG(DISCIO, "File system does not end with a null byte");
     return;
   }
 
-  m_valid = m_root.IsValid(fst_size, m_root);
+  m_valid = m_root.IsValid(*fst_size, m_root);
 }
 
 FileSystemGCWii::~FileSystemGCWii() = default;
