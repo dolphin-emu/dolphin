@@ -32,8 +32,7 @@ private:
     ID_EXTRACT_DIR = 20000,
     ID_EXTRACT_ALL,
     ID_EXTRACT_FILE,
-    ID_EXTRACT_APPLOADER,
-    ID_EXTRACT_DOL,
+    ID_EXTRACT_SYSTEM_DATA,
     ID_CHECK_INTEGRITY,
   };
 
@@ -45,7 +44,7 @@ private:
   void OnRightClickTree(wxTreeEvent&);
   void OnExtractFile(wxCommandEvent&);
   void OnExtractDirectories(wxCommandEvent&);
-  void OnExtractHeaderData(wxCommandEvent&);
+  void OnExtractSystemData(wxCommandEvent&);
   void OnExtractAll(wxCommandEvent&);
   void OnCheckPartitionIntegrity(wxCommandEvent&);
 
