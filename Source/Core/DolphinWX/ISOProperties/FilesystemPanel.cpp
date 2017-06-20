@@ -126,8 +126,7 @@ void FilesystemPanel::BindEvents()
   Bind(wxEVT_MENU, &FilesystemPanel::OnExtractFile, this, ID_EXTRACT_FILE);
   Bind(wxEVT_MENU, &FilesystemPanel::OnExtractAll, this, ID_EXTRACT_ALL);
   Bind(wxEVT_MENU, &FilesystemPanel::OnExtractDirectories, this, ID_EXTRACT_DIR);
-  Bind(wxEVT_MENU, &FilesystemPanel::OnExtractHeaderData, this, ID_EXTRACT_APPLOADER);
-  Bind(wxEVT_MENU, &FilesystemPanel::OnExtractHeaderData, this, ID_EXTRACT_DOL);
+  Bind(wxEVT_MENU, &FilesystemPanel::OnExtractSystemData, this, ID_EXTRACT_SYSTEM_DATA);
   Bind(wxEVT_MENU, &FilesystemPanel::OnCheckPartitionIntegrity, this, ID_CHECK_INTEGRITY);
 }
 
@@ -203,10 +202,7 @@ void FilesystemPanel::OnRightClickTree(wxTreeEvent& event)
   if (image_type == ICON_DISC)
   {
     if (!is_parent_of_partitions)
-    {
-      menu.Append(ID_EXTRACT_APPLOADER, _("Extract Apploader..."));
-      menu.Append(ID_EXTRACT_DOL, _("Extract DOL..."));
-    }
+      menu.Append(ID_EXTRACT_SYSTEM_DATA, _("Extract System Data..."));
 
     if (first_visible_item == selection)
       menu.Append(ID_EXTRACT_ALL, _("Extract Entire Disc..."));
@@ -247,7 +243,7 @@ void FilesystemPanel::OnExtractDirectories(wxCommandEvent& event)
     ExtractSingleDirectory(extract_path);
 }
 
-void FilesystemPanel::OnExtractHeaderData(wxCommandEvent& event)
+void FilesystemPanel::OnExtractSystemData(wxCommandEvent& event)
 {
   const wxString path = wxDirSelector(_("Choose the folder to extract to"));
 
@@ -267,17 +263,7 @@ void FilesystemPanel::OnExtractHeaderData(wxCommandEvent& event)
     partition = DiscIO::PARTITION_NONE;
   }
 
-  bool ret = false;
-  if (event.GetId() == ID_EXTRACT_APPLOADER)
-  {
-    ret = DiscIO::ExportApploader(*m_opened_iso, partition, WxStrToStr(path) + "/apploader.img");
-  }
-  else if (event.GetId() == ID_EXTRACT_DOL)
-  {
-    ret = DiscIO::ExportDOL(*m_opened_iso, partition, WxStrToStr(path) + "/boot.dol");
-  }
-
-  if (!ret)
+  if (!DiscIO::ExportSystemData(*m_opened_iso, partition, WxStrToStr(path)))
   {
     WxUtils::ShowErrorDialog(
         wxString::Format(_("Failed to extract to %s!"), WxStrToStr(path).c_str()));
