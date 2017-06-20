@@ -10,7 +10,10 @@
 class wxNotebook;
 class wxPanel;
 
+// Fast refresh - can be fulfilled from cache
 wxDECLARE_EVENT(wxDOLPHIN_CFG_REFRESH_LIST, wxCommandEvent);
+// Rescan and refresh - modifies cache
+wxDECLARE_EVENT(wxDOLPHIN_CFG_RESCAN_LIST, wxCommandEvent);
 
 class CConfigMain : public wxDialog
 {
@@ -41,8 +44,8 @@ private:
   void OnCloseButton(wxCommandEvent& event);
   void OnShow(wxShowEvent& event);
   void OnSetRefreshGameListOnClose(wxCommandEvent& event);
+  void OnSetRescanGameListOnClose(wxCommandEvent& event);
 
   wxNotebook* Notebook;
-
-  bool m_refresh_game_list_on_close;
+  wxEventType m_event_on_close;
 };

@@ -98,7 +98,8 @@ public:
 
   void DoStop();
   void UpdateGUI();
-  void UpdateGameList();
+  void GameListRefresh();
+  void GameListRescan();
   void ToggleLogWindow(bool bShow);
   void ToggleLogConfigWindow(bool bShow);
   void StatusBarMessage(const char* Text, ...);
@@ -267,7 +268,8 @@ private:
   void OnHelp(wxCommandEvent& event);
 
   void OnReloadThemeBitmaps(wxCommandEvent& event);
-  void OnReloadGameList(wxCommandEvent& event);
+  void OnRefreshGameList(wxCommandEvent& event);
+  void OnRescanGameList(wxCommandEvent& event);
 
   void OnUpdateInterpreterMenuItem(wxUpdateUIEvent& event);
 

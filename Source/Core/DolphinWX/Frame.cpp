@@ -351,8 +351,9 @@ CFrame::CFrame(wxFrame* parent, wxWindowID id, const wxString& title, wxRect geo
   // This panel is the parent for rendering and it holds the gamelistctrl
   m_panel = new wxPanel(this, IDM_MPANEL, wxDefaultPosition, wxDefaultSize, 0);
 
-  m_game_list_ctrl = new GameListCtrl(m_panel, wxID_ANY, wxDefaultPosition, wxDefaultSize,
-                                       wxLC_REPORT | wxSUNKEN_BORDER | wxLC_ALIGN_LEFT);
+  m_game_list_ctrl =
+      new GameListCtrl(m_batch_mode, m_panel, wxID_ANY, wxDefaultPosition, wxDefaultSize,
+                       wxLC_REPORT | wxSUNKEN_BORDER | wxLC_ALIGN_LEFT);
   m_game_list_ctrl->Bind(wxEVT_LIST_ITEM_ACTIVATED, &CFrame::OnGameListCtrlItemActivated, this);
 
   wxBoxSizer* sizerPanel = new wxBoxSizer(wxHORIZONTAL);
@@ -490,7 +491,8 @@ void CFrame::BindEvents()
   BindMenuBarEvents();
 
   Bind(DOLPHIN_EVT_RELOAD_THEME_BITMAPS, &CFrame::OnReloadThemeBitmaps, this);
-  Bind(DOLPHIN_EVT_RELOAD_GAMELIST, &CFrame::OnReloadGameList, this);
+  Bind(DOLPHIN_EVT_REFRESH_GAMELIST, &CFrame::OnRefreshGameList, this);
+  Bind(DOLPHIN_EVT_RESCAN_GAMELIST, &CFrame::OnRescanGameList, this);
   Bind(DOLPHIN_EVT_UPDATE_LOAD_WII_MENU_ITEM, &CFrame::OnUpdateLoadWiiMenuItem, this);
   Bind(DOLPHIN_EVT_BOOT_SOFTWARE, &CFrame::OnPlay, this);
   Bind(DOLPHIN_EVT_STOP_SOFTWARE, &CFrame::OnStop, this);
@@ -909,7 +911,7 @@ void CFrame::OnGameListCtrlItemActivated(wxListEvent& WXUNUSED(event))
     GetMenuBar()->FindItem(IDM_LIST_WORLD)->Check(true);
     GetMenuBar()->FindItem(IDM_LIST_UNKNOWN)->Check(true);
 
-    UpdateGameList();
+    GameListRefresh();
   }
   else if (!m_game_list_ctrl->GetISO(0))
   {
