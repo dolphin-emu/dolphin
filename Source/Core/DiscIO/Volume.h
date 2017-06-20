@@ -53,6 +53,7 @@ public:
   }
   virtual std::vector<Partition> GetPartitions() const { return {}; }
   virtual Partition GetGamePartition() const { return PARTITION_NONE; }
+  virtual std::optional<u32> GetPartitionType(const Partition& partition) const { return {}; }
   std::optional<u64> GetTitleID() const { return GetTitleID(GetGamePartition()); }
   virtual std::optional<u64> GetTitleID(const Partition& partition) const { return {}; }
   virtual const IOS::ES::TicketReader& GetTicket(const Partition& partition) const

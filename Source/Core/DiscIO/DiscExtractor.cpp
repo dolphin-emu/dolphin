@@ -6,15 +6,42 @@
 
 #include <algorithm>
 #include <cinttypes>
+#include <locale>
 #include <optional>
 
 #include "Common/CommonTypes.h"
+#include "Common/StringUtil.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
 
 namespace DiscIO
 {
+std::string DirectoryNameForPartitionType(u32 partition_type)
+{
+  switch (partition_type)
+  {
+  case 0:
+    return "DATA";
+  case 1:
+    return "UPDATE";
+  case 2:
+    return "CHANNEL";
+  default:
+    const std::string type_as_game_id{static_cast<char>((partition_type >> 24) & 0xFF),
+                                      static_cast<char>((partition_type >> 16) & 0xFF),
+                                      static_cast<char>((partition_type >> 8) & 0xFF),
+                                      static_cast<char>(partition_type & 0xFF)};
+    if (std::all_of(type_as_game_id.cbegin(), type_as_game_id.cend(),
+                    [](char c) { return std::isprint(c, std::locale::classic()); }))
+    {
+      return "P-" + type_as_game_id;
+    }
+
+    return StringFromFormat("P%" PRIu32, partition_type);
+  }
+}
+
 u64 ReadFile(const Volume& volume, const Partition& partition, const FileInfo* file_info,
              u8* buffer, u64 max_buffer_size, u64 offset_in_file)
 {

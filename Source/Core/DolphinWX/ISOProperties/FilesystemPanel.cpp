@@ -277,6 +277,8 @@ void FilesystemPanel::OnExtractAll(wxCommandEvent& event)
   if (extract_path.empty())
     return;
 
+  const std::string std_extract_path = WxStrToStr(extract_path);
+
   const wxTreeItemId selection = m_tree_ctrl->GetSelection();
   const bool first_item_selected = m_tree_ctrl->GetFirstVisibleItem() == selection;
 
@@ -290,18 +292,24 @@ void FilesystemPanel::OnExtractAll(wxCommandEvent& event)
     while (item.IsOk())
     {
       const auto* const partition = static_cast<WiiPartition*>(m_tree_ctrl->GetItemData(item));
-      ExtractPartition(WxStrToStr(extract_path), *partition->filesystem);
+      const std::optional<u32> partition_type =
+          *m_opened_iso->GetPartitionType(partition->filesystem->GetPartition());
+      if (partition_type)
+      {
+        const std::string partition_name = DiscIO::DirectoryNameForPartitionType(*partition_type);
+        ExtractPartition(std_extract_path + '/' + partition_name, *partition->filesystem);
+      }
       item = m_tree_ctrl->GetNextChild(root, cookie);
     }
   }
   else if (m_has_partitions && !first_item_selected)
   {
     const auto* const partition = static_cast<WiiPartition*>(m_tree_ctrl->GetItemData(selection));
-    ExtractPartition(WxStrToStr(extract_path), *partition->filesystem);
+    ExtractPartition(std_extract_path, *partition->filesystem);
   }
   else
   {
-    ExtractPartition(WxStrToStr(extract_path), *m_filesystem);
+    ExtractPartition(std_extract_path, *m_filesystem);
   }
 }
 
