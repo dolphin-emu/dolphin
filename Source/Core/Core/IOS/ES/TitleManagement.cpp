@@ -353,13 +353,31 @@ ReturnCode ES::ImportTitleDone(Context& context)
   if (!context.title_import.tmd.IsValid() || context.title_import.content_id != 0xFFFFFFFF)
     return ES_EINVAL;
 
+  // Make sure all listed, non-optional contents have been imported.
+  const u64 title_id = context.title_import.tmd.GetTitleId();
+  const std::vector<IOS::ES::Content> contents = context.title_import.tmd.GetContents();
+  const IOS::ES::SharedContentMap shared_content_map{Common::FROM_SESSION_ROOT};
+  const bool has_all_required_contents =
+      std::all_of(contents.cbegin(), contents.cend(), [&](const IOS::ES::Content& content) {
+        if (content.IsOptional())
+          return true;
+
+        if (content.IsShared())
+          return shared_content_map.GetFilenameFromSHA1(content.sha1).has_value();
+
+        return File::Exists(Common::GetTitleContentPath(title_id, Common::FROM_SESSION_ROOT) +
+                            StringFromFormat("%08x.app", content.id));
+      });
+  if (!has_all_required_contents)
+    return ES_EINVAL;
+
   if (!WriteImportTMD(context.title_import.tmd))
     return ES_EIO;
 
   if (!FinishImport(context.title_import.tmd))
     return ES_EIO;
 
-  INFO_LOG(IOS_ES, "ImportTitleDone: title %016" PRIx64, context.title_import.tmd.GetTitleId());
+  INFO_LOG(IOS_ES, "ImportTitleDone: title %016" PRIx64, title_id);
   context.title_import.tmd.SetBytes({});
   return IPC_SUCCESS;
 }
