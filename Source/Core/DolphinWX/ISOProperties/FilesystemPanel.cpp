@@ -382,7 +382,7 @@ void FilesystemPanel::ExtractDirectories(const std::string& full_path,
 void FilesystemPanel::ExtractPartition(const std::string& output_folder,
                                        const DiscIO::FileSystem& filesystem)
 {
-  ExtractDirectories("", output_folder, filesystem);
+  ExtractDirectories("", output_folder + "/files", filesystem);
   DiscIO::ExportSystemData(*m_opened_iso, filesystem.GetPartition(), output_folder);
 }
 
