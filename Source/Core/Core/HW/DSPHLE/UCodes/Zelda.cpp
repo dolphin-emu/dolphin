@@ -1269,7 +1269,7 @@ void ZeldaAudioRenderer::AddVoice(u16 voice_id)
       // providing a target volume.
       s16 volume_delta;
       if (m_flags & VOLUME_EXPLICIT_STEP)
-        volume_delta = (vpb.channels[i].target_volume << 16);
+        volume_delta = vpb.channels[i].target_volume;
       else
         volume_delta = vpb.channels[i].target_volume - vpb.channels[i].current_volume;
 
