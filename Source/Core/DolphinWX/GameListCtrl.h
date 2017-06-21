@@ -7,6 +7,7 @@
 #include <cstddef>
 #include <memory>
 #include <string>
+#include <thread>
 #include <vector>
 
 #include <wx/listctrl.h>
@@ -14,6 +15,7 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/Event.h"
+#include "Common/Flag.h"
 #include "DolphinWX/ISOFile.h"
 
 wxDECLARE_EVENT(DOLPHIN_EVT_REFRESH_GAMELIST, wxCommandEvent);
