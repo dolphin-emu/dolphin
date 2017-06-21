@@ -159,17 +159,17 @@ void HotkeyScheduler::Run()
       if (IsHotkey(HK_EXIT))
         emit ExitHotkey();
 
+      auto& settings = Settings::Instance();
+
       // Volume
       if (IsHotkey(HK_VOLUME_DOWN))
-        AudioCommon::DecreaseVolume(3);
+        settings.DecreaseVolume(3);
 
       if (IsHotkey(HK_VOLUME_UP))
-        AudioCommon::IncreaseVolume(3);
+        settings.IncreaseVolume(3);
 
       if (IsHotkey(HK_VOLUME_TOGGLE_MUTE))
         AudioCommon::ToggleMuteVolume();
-
-      auto& settings = Settings::Instance();
 
       // Wiimote
       if (settings.IsBluetoothPassthroughEnabled())
