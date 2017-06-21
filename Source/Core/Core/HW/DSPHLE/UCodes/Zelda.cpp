@@ -427,8 +427,8 @@ void ZeldaUCode::RunPendingCommands()
     switch (command)
     {
     case 0x00:
-    case 0x0A:
-    case 0x0B:
+    case 0x0A:  // not a NOP in the NTSC IPL ucode but seems unused
+    case 0x0B:  // not a NOP in both IPL ucodes but seems unused
     case 0x0F:
       // NOP commands. Log anyway in case we encounter a new version
       // where these are not NOPs anymore.
@@ -595,6 +595,7 @@ void ZeldaUCode::SendCommandAck(CommandAck ack_type, u16 sync_value)
   {
     // The light protocol uses the address of the command handler in the
     // DSP code instead of the command id... go figure.
+    // FIXME: LLE returns a different value
     sync_value = 2 * ((sync_value >> 8) & 0x7F) + 0x62;
     m_mail_handler.PushMail(0x80000000 | sync_value);
   }
@@ -848,6 +849,7 @@ struct ZeldaAudioRenderer::VPB
     // Samples stored in MRAM at an arbitrary sample rate (resampling is
     // applied, unlike PCM16_FROM_MRAM_RAW).
     SRC_PCM16_FROM_MRAM = 33,
+    // TODO: 2, 6
   };
   u16 samples_source_type;
 
@@ -1437,8 +1439,8 @@ void ZeldaAudioRenderer::LoadInputSamples(MixingBuffer* buffer, VPB* vpb)
     u16 pattern_offset = pattern_info.idx * PATTERN_SIZE;
     s16* pattern = m_const_patterns.data() + pattern_offset;
 
-    u32 pos = vpb->current_pos_frac << 6;  // log2(PATTERN_SIZE)
-    u32 step = vpb->resampling_ratio << 5;
+    u32 pos = vpb->current_pos_frac << 6;   // log2(PATTERN_SIZE)
+    u32 step = vpb->resampling_ratio << 5;  // FIXME: ucode 24B22038 shifts by 6 (?)
 
     for (size_t i = 0; i < buffer->size(); ++i)
     {
