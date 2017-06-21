@@ -482,14 +482,13 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::Load(const u32 stage)
   const bool use_mipmaps = SamplerCommon::AreBpTexMode0MipmapsEnabled(tex.texMode0[id]);
   u32 tex_levels = use_mipmaps ? ((tex.texMode1[id].max_lod + 0xf) / 0x10 + 1) : 1;
   const bool from_tmem = tex.texImage1[id].image_type != 0;
-  
+
   const u32 tmem_address_even = from_tmem ? tex.texImage1[id].tmem_even * TMEM_LINE_SIZE : 0;
   const u32 tmem_address_odd = from_tmem ? tex.texImage2[id].tmem_odd * TMEM_LINE_SIZE : 0;
-  
+
   auto entry = GetTexture(address, width, height, texformat,
-                          tlutaddr, tlutfmt,
-                          use_mipmaps, tex_levels, from_tmem, tmem_address_even,
-                          tmem_address_odd);
+                          g_ActiveConfig.iSafeTextureCache_ColorSamples, tlutaddr, tlutfmt,
+                          use_mipmaps, tex_levels, from_tmem, tmem_address_even, tmem_address_odd);
   if (entry != nullptr)
   {
     entry->frameCount = FRAMECOUNT_INVALID;
@@ -500,17 +499,16 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::Load(const u32 stage)
     // re-loaded
     valid_bind_points.set(stage);
   }
-  
+
   return entry;
 }
 
-TextureCacheBase::TCacheEntry* TextureCacheBase::GetTexture(u32 address, u32 width, u32 height,
-  const int texformat,
-  u32 tlutaddr, u32 tlutfmt, bool use_mipmaps,
-  u32 tex_levels, bool from_tmem, u32 tmem_address_even,
-  u32 tmem_address_odd)
+TextureCacheBase::TCacheEntry*
+TextureCacheBase::GetTexture(u32 address, u32 width, u32 height, const int texformat,
+                             int textureCacheSafetyColorSampleSize, u32 tlutaddr, u32 tlutfmt,
+                             bool use_mipmaps, u32 tex_levels, bool from_tmem,
+                             u32 tmem_address_even, u32 tmem_address_odd)
 {
-
   // TexelSizeInNibbles(format) * width * height / 16;
   const unsigned int bsw = TexDecoder_GetBlockWidthInTexels(texformat);
   const unsigned int bsh = TexDecoder_GetBlockHeightInTexels(texformat);
@@ -582,13 +580,13 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::GetTexture(u32 address, u32 wid
 
   // TODO: This doesn't hash GB tiles for preloaded RGBA8 textures (instead, it's hashing more data
   // from the low tmem bank than it should)
-  base_hash = GetHash64(src_data, texture_size, g_ActiveConfig.iSafeTextureCache_ColorSamples);
+  base_hash = GetHash64(src_data, texture_size, textureCacheSafetyColorSampleSize);
   u32 palette_size = 0;
   if (isPaletteTexture)
   {
     palette_size = TexDecoder_GetPaletteSize(texformat);
-    full_hash = base_hash ^ GetHash64(&texMem[tlutaddr], palette_size,
-                                      g_ActiveConfig.iSafeTextureCache_ColorSamples);
+    full_hash =
+        base_hash ^ GetHash64(&texMem[tlutaddr], palette_size, textureCacheSafetyColorSampleSize);
   }
   else
   {
@@ -728,9 +726,8 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::GetTexture(u32 address, u32 wid
   // textures cause unnecessary slowdowns
   // Example: Tales of Symphonia (GC) uses over 500 small textures in menus, but only around 70
   // different ones
-  if (g_ActiveConfig.iSafeTextureCache_ColorSamples == 0 ||
-      std::max(texture_size, palette_size) <=
-          (u32)g_ActiveConfig.iSafeTextureCache_ColorSamples * 8)
+  if (textureCacheSafetyColorSampleSize == 0 ||
+      std::max(texture_size, palette_size) <= (u32)textureCacheSafetyColorSampleSize * 8)
   {
     auto hash_range = textures_by_hash.equal_range(full_hash);
     TexHashCache::iterator hash_iter = hash_range.first;
@@ -836,9 +833,8 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::GetTexture(u32 address, u32 wid
   }
 
   iter = textures_by_address.emplace(address, entry);
-  if (g_ActiveConfig.iSafeTextureCache_ColorSamples == 0 ||
-      std::max(texture_size, palette_size) <=
-          (u32)g_ActiveConfig.iSafeTextureCache_ColorSamples * 8)
+  if (textureCacheSafetyColorSampleSize == 0 ||
+      std::max(texture_size, palette_size) <= (u32)textureCacheSafetyColorSampleSize * 8)
   {
     entry->textures_by_hash_iter = textures_by_hash.emplace(full_hash, entry);
   }

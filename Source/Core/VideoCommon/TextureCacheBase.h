@@ -129,10 +129,9 @@ public:
   TCacheEntry* Load(const u32 stage);
   static void InvalidateAllBindPoints() { valid_bind_points.reset(); }
   static bool IsValidBindPoint(u32 i) { return valid_bind_points.test(i); }
-  TCacheEntry* GetTexture(u32 address, u32 width, u32 height,
-                          const int texformat,
-                          u32 tlutaddr, u32 tlutfmt, bool use_mipmaps,
-                          u32 tex_levels, bool from_tmem, u32 tmem_address_even,
+  TCacheEntry* GetTexture(u32 address, u32 width, u32 height, const int texformat,
+                          int textureCacheSafetyColorSampleSize, u32 tlutaddr, u32 tlutfmt,
+                          bool use_mipmaps, u32 tex_levels, bool from_tmem, u32 tmem_address_even,
                           u32 tmem_address_odd);
   void BindTextures();
   void CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat, u32 dstStride,
