@@ -33,6 +33,7 @@ void InterfacePane::CreateLayout()
   CreateUI();
   CreateInGame();
 
+  m_main_layout->setContentsMargins(0, 0, 0, 0);
   m_main_layout->addStretch(1);
   setLayout(m_main_layout);
 }
@@ -48,14 +49,12 @@ void InterfacePane::CreateUI()
   groupbox_layout->addLayout(combobox_layout);
 
   m_combobox_language = new QComboBox;
-  m_combobox_language->setMaximumWidth(300);
   // TODO: Support more languages other then English
   m_combobox_language->addItem(tr("English"));
   combobox_layout->addRow(tr("&Language:"), m_combobox_language);
 
   // Theme Combobox
   m_combobox_theme = new QComboBox;
-  m_combobox_theme->setMaximumWidth(300);
   combobox_layout->addRow(tr("&Theme:"), m_combobox_theme);
 
   // List avalable themes
