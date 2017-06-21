@@ -78,7 +78,7 @@ static const std::map<u32, u32> UCODE_FLAGS = {
     {0x24B22038, LIGHT_PROTOCOL | FOUR_MIXING_DESTS | TINY_VPB | VOLUME_EXPLICIT_STEP | NO_CMD_0D |
                      WEIRD_CMD_0C},
     // GameCube IPL/BIOS, PAL.
-    {0x6BA3B3EA, LIGHT_PROTOCOL | FOUR_MIXING_DESTS | NO_CMD_0D | WEIRD_CMD_0C},
+    {0x6BA3B3EA, LIGHT_PROTOCOL | FOUR_MIXING_DESTS | NO_CMD_0D},
     // Pikmin 1 GC NTSC.
     // Animal Crossing.
     {0x4BE6A5CB, LIGHT_PROTOCOL | NO_CMD_0D | SUPPORTS_GBA_CRYPTO},
@@ -427,8 +427,8 @@ void ZeldaUCode::RunPendingCommands()
     switch (command)
     {
     case 0x00:
-    case 0x0A:
-    case 0x0B:
+    case 0x0A:  // not a NOP in the NTSC IPL ucode but seems unused
+    case 0x0B:  // not a NOP in both IPL ucodes but seems unused
     case 0x0F:
       // NOP commands. Log anyway in case we encounter a new version
       // where these are not NOPs anymore.
@@ -483,10 +483,15 @@ void ZeldaUCode::RunPendingCommands()
         const_patterns[i] = Common::swap16(data_ptr[0x100 + i]);
       m_renderer.SetConstPatterns(std::move(const_patterns));
 
-      std::array<s16, 0x80> sine_table;
-      for (size_t i = 0; i < 0x80; ++i)
-        sine_table[i] = Common::swap16(data_ptr[0x200 + i]);
-      m_renderer.SetSineTable(std::move(sine_table));
+      // The sine table is only used for Dolby mixing
+      // which the light protocol doesn't support.
+      if ((m_flags & LIGHT_PROTOCOL) == 0)
+      {
+        std::array<s16, 0x80> sine_table;
+        for (size_t i = 0; i < 0x80; ++i)
+          sine_table[i] = Common::swap16(data_ptr[0x200 + i]);
+        m_renderer.SetSineTable(std::move(sine_table));
+      }
 
       u16* afc_coeffs_ptr = (u16*)HLEMemory_Get_Pointer(Read32());
       std::array<s16, 0x20> afc_coeffs;
@@ -532,7 +537,7 @@ void ZeldaUCode::RunPendingCommands()
       return;
 
     // Command 0C: used for multiple purpose depending on the UCode version:
-    // * IPL NTSC/PAL, Luigi's Mansion: TODO (unknown as of now).
+    // * IPL NTSC, Luigi's Mansion: TODO (unknown as of now).
     // * Pikmin/AC: GBA crypto.
     // * SMS and onwards: NOP.
     case 0x0C:
@@ -590,6 +595,7 @@ void ZeldaUCode::SendCommandAck(CommandAck ack_type, u16 sync_value)
   {
     // The light protocol uses the address of the command handler in the
     // DSP code instead of the command id... go figure.
+    // FIXME: LLE returns a different value
     sync_value = 2 * ((sync_value >> 8) & 0x7F) + 0x62;
     m_mail_handler.PushMail(0x80000000 | sync_value);
   }
@@ -843,6 +849,7 @@ struct ZeldaAudioRenderer::VPB
     // Samples stored in MRAM at an arbitrary sample rate (resampling is
     // applied, unlike PCM16_FROM_MRAM_RAW).
     SRC_PCM16_FROM_MRAM = 33,
+    // TODO: 2, 6
   };
   u16 samples_source_type;
 
@@ -1264,7 +1271,7 @@ void ZeldaAudioRenderer::AddVoice(u16 voice_id)
       // providing a target volume.
       s16 volume_delta;
       if (m_flags & VOLUME_EXPLICIT_STEP)
-        volume_delta = (vpb.channels[i].target_volume << 16);
+        volume_delta = vpb.channels[i].target_volume;
       else
         volume_delta = vpb.channels[i].target_volume - vpb.channels[i].current_volume;
 
@@ -1432,8 +1439,8 @@ void ZeldaAudioRenderer::LoadInputSamples(MixingBuffer* buffer, VPB* vpb)
     u16 pattern_offset = pattern_info.idx * PATTERN_SIZE;
     s16* pattern = m_const_patterns.data() + pattern_offset;
 
-    u32 pos = vpb->current_pos_frac << 6;  // log2(PATTERN_SIZE)
-    u32 step = vpb->resampling_ratio << 5;
+    u32 pos = vpb->current_pos_frac << 6;   // log2(PATTERN_SIZE)
+    u32 step = vpb->resampling_ratio << 5;  // FIXME: ucode 24B22038 shifts by 6 (?)
 
     for (size_t i = 0; i < buffer->size(); ++i)
     {
