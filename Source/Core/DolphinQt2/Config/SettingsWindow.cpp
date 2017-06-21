@@ -11,8 +11,10 @@
 #include <QVBoxLayout>
 
 #include "DolphinQt2/Config/SettingsWindow.h"
+#include "DolphinQt2/MainWindow.h"
 #include "DolphinQt2/Resources.h"
 #include "DolphinQt2/Settings.h"
+#include "DolphinQt2/Settings/AudioPane.h"
 #include "DolphinQt2/Settings/GeneralPane.h"
 #include "DolphinQt2/Settings/InterfacePane.h"
 #include "DolphinQt2/Settings/PathPane.h"
@@ -57,6 +59,14 @@ void SettingsWindow::SetupSettingsWidget()
   // Panes initalised here
   m_settings_outer->addWidget(new GeneralPane);
   m_settings_outer->addWidget(new InterfacePane);
+
+  auto* audio_pane = new AudioPane;
+  connect(this, &SettingsWindow::EmulationStarted,
+          [audio_pane] { audio_pane->OnEmulationStateChanged(true); });
+  connect(this, &SettingsWindow::EmulationStopped,
+          [audio_pane] { audio_pane->OnEmulationStateChanged(false); });
+  m_settings_outer->addWidget(audio_pane);
+
   m_settings_outer->addWidget(new PathPane);
 }
 
@@ -85,6 +95,7 @@ void SettingsWindow::MakeCategoryList()
 
   AddCategoryToList(tr("General"), "config");
   AddCategoryToList(tr("Interface"), "browse");
+  AddCategoryToList(tr("Audio"), "play");
   AddCategoryToList(tr("Paths"), "browse");
   connect(m_categories, &QListWidget::currentItemChanged, this, &SettingsWindow::changePage);
 }
