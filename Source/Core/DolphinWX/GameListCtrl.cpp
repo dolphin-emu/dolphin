@@ -743,10 +743,9 @@ void GameListCtrl::RescanList()
   const std::vector<std::string> search_extensions = {".gcm",  ".tgc", ".iso", ".ciso", ".gcz",
                                                       ".wbfs", ".wad", ".dol", ".elf"};
   // TODO This could process paths iteratively as they are found
-  auto search_results = Common::DoFileSearch(search_extensions, SConfig::GetInstance().m_ISOFolder,
+  auto search_results = Common::DoFileSearch(SConfig::GetInstance().m_ISOFolder, search_extensions,
                                              SConfig::GetInstance().m_RecursiveISOFolder);
 
-  // TODO rethink some good algorithms to use here
   std::vector<std::string> cached_paths;
   for (const auto& file : m_cached_files)
     cached_paths.emplace_back(file->GetFileName());
@@ -761,14 +760,8 @@ void GameListCtrl::RescanList()
                       cached_paths.cend(), std::back_inserter(new_paths));
 
   const Core::TitleDatabase title_database;
-  // TODO we could store all paths and modification times to judge if file needs to be rescanned.
-  // If we cached paths that turned out to be invalid, this would save failing on them each time
-  // refresh is done.
-  // However if people e.g. set dolphin to recursively scan the root of their drive(s), then we
-  // would cache way too much data. Maybe just use an upper bound of invalid paths to cache?
   // For now, only scan new_paths. This could cause false negatives (file actively being written),
-  // but otherwise
-  // should be fine.
+  // but otherwise should be fine.
   for (const auto& path : removed_paths)
   {
     auto it = std::find_if(

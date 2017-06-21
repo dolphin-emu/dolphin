@@ -59,9 +59,8 @@ void InterfacePane::CreateUI()
   combobox_layout->addRow(tr("&Theme:"), m_combobox_theme);
 
   // List avalable themes
-  auto file_search_results = Common::DoFileSearch(
-      {""}, {File::GetUserPath(D_THEMES_IDX), File::GetSysDirectory() + THEMES_DIR},
-      /*recursive*/ false);
+  auto file_search_results =
+      Common::DoFileSearch({File::GetUserPath(D_THEMES_IDX), File::GetSysDirectory() + THEMES_DIR});
   for (const std::string& filename : file_search_results)
   {
     std::string name, ext;
