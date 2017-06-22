@@ -7,7 +7,7 @@
 #include <string>
 
 #include "Common/Atomic.h"
-#include "Common/BitSet.h"
+#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 
 #include "Core/ConfigManager.h"
@@ -947,26 +947,17 @@ static void GenerateISIException(u32 _EffectiveAddress)
 void SDRUpdated()
 {
   u32 htabmask = SDR1_HTABMASK(PowerPC::ppcState.spr[SPR_SDR]);
-  u32 x = 1;
-  u32 xx = 0;
-  int n = 0;
-  while ((htabmask & x) && (n < 9))
-  {
-    n++;
-    xx |= x;
-    x <<= 1;
-  }
-  if (htabmask & ~xx)
+  if (!Common::IsValidLowMask(htabmask))
   {
     return;
   }
   u32 htaborg = SDR1_HTABORG(PowerPC::ppcState.spr[SPR_SDR]);
-  if (htaborg & xx)
+  if (htaborg & htabmask)
   {
     return;
   }
   PowerPC::ppcState.pagetable_base = htaborg << 16;
-  PowerPC::ppcState.pagetable_hashmask = ((xx << 10) | 0x3ff);
+  PowerPC::ppcState.pagetable_hashmask = ((htabmask << 10) | 0x3ff);
 }
 
 enum TLBLookupResult
@@ -1175,7 +1166,7 @@ static void UpdateBATs(BatTable& bat_table, u32 base_spr)
       // implemented this way for invalid BATs as well.
       WARN_LOG(POWERPC, "Bad BAT setup: BPRN overlaps BL");
     }
-    if (CountSetBits((u32)(batu.BL + 1)) != 1)
+    if (!Common::IsValidLowMask((u32)batu.BL))
     {
       // With a valid BAT, the simplest way of masking is
       // (input & ~BL_mask) for matching and (input & BL_mask) for
