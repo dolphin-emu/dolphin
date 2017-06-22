@@ -57,3 +57,35 @@ TEST(BitUtils, ExtractBits)
   // Ensure bit extraction with type overriding works as expected
   EXPECT_EQ((Common::ExtractBits<0, 31, s32, s32>(negative_one)), -1);
 }
+
+TEST(BitUtils, IsValidLowMask)
+{
+  EXPECT_TRUE(Common::IsValidLowMask(0b0u));
+  EXPECT_TRUE(Common::IsValidLowMask(0b1u));
+  EXPECT_FALSE(Common::IsValidLowMask(0b10u));
+  EXPECT_TRUE(Common::IsValidLowMask(0b11u));
+  EXPECT_FALSE(Common::IsValidLowMask(0b1110u));
+  EXPECT_TRUE(Common::IsValidLowMask(0b1111u));
+  EXPECT_FALSE(Common::IsValidLowMask(0b10000u));
+  EXPECT_FALSE(Common::IsValidLowMask(0b101111u));
+
+  EXPECT_TRUE(Common::IsValidLowMask((u8)~0b0));
+  EXPECT_FALSE(Common::IsValidLowMask((u8)(~0b0 - 1)));
+  EXPECT_FALSE(Common::IsValidLowMask((u8)~(0b10000)));
+  EXPECT_FALSE(Common::IsValidLowMask((u8)(~((u8)(~0b0) >> 1) | 0b1111)));
+
+  EXPECT_TRUE(Common::IsValidLowMask((u16)~0b0));
+  EXPECT_FALSE(Common::IsValidLowMask((u16)(~0b0 - 1)));
+  EXPECT_FALSE(Common::IsValidLowMask((u16)~(0b10000)));
+  EXPECT_FALSE(Common::IsValidLowMask((u16)(~((u16)(~0b0) >> 1) | 0b1111)));
+
+  EXPECT_TRUE(Common::IsValidLowMask((u32)~0b0));
+  EXPECT_FALSE(Common::IsValidLowMask((u32)(~0b0 - 1)));
+  EXPECT_FALSE(Common::IsValidLowMask((u32)~(0b10000)));
+  EXPECT_FALSE(Common::IsValidLowMask((u32)(~((u32)(~0b0) >> 1) | 0b1111)));
+
+  EXPECT_TRUE(Common::IsValidLowMask((u64)~0b0));
+  EXPECT_FALSE(Common::IsValidLowMask((u64)(~0b0 - 1)));
+  EXPECT_FALSE(Common::IsValidLowMask((u64)~(0b10000)));
+  EXPECT_FALSE(Common::IsValidLowMask((u64)(~((u64)(~0b0) >> 1) | 0b1111)));
+}
