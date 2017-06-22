@@ -61,6 +61,11 @@ bool Content::IsShared() const
   return (type & 0x8000) != 0;
 }
 
+bool Content::IsOptional() const
+{
+  return (type & 0x4000) != 0;
+}
+
 SignedBlobReader::SignedBlobReader(const std::vector<u8>& bytes) : m_bytes(bytes)
 {
 }
