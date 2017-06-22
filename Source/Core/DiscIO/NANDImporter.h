@@ -19,7 +19,7 @@ public:
   ~NANDImporter();
 
   void ImportNANDBin(const std::string& path_to_bin, std::function<void()> update_callback);
-  void ExtractCertificates(const std::string& nand_root);
+  bool ExtractCertificates(const std::string& nand_root);
 
 private:
 #pragma pack(push, 1)
