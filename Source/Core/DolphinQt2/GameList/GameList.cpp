@@ -16,6 +16,7 @@
 #include <QUrl>
 
 #include "Common/FileUtil.h"
+#include "Core/ConfigManager.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
 
@@ -71,16 +72,16 @@ void GameList::MakeTableView()
 
   connect(m_table, &QTableView::customContextMenuRequested, this, &GameList::ShowContextMenu);
 
-  auto& settings = Settings::Instance();
-  m_table->setColumnHidden(GameListModel::COL_PLATFORM, !settings.PlatformVisible());
-  m_table->setColumnHidden(GameListModel::COL_ID, !settings.IDVisible());
-  m_table->setColumnHidden(GameListModel::COL_BANNER, !settings.BannerVisible());
-  m_table->setColumnHidden(GameListModel::COL_TITLE, !settings.TitleVisible());
-  m_table->setColumnHidden(GameListModel::COL_DESCRIPTION, !settings.DescriptionVisible());
-  m_table->setColumnHidden(GameListModel::COL_MAKER, !settings.MakerVisible());
-  m_table->setColumnHidden(GameListModel::COL_SIZE, !settings.SizeVisible());
-  m_table->setColumnHidden(GameListModel::COL_COUNTRY, !settings.CountryVisible());
-  m_table->setColumnHidden(GameListModel::COL_RATING, !settings.StateVisible());
+  m_table->setColumnHidden(GameListModel::COL_PLATFORM, !SConfig::GetInstance().m_showSystemColumn);
+  m_table->setColumnHidden(GameListModel::COL_ID, !SConfig::GetInstance().m_showIDColumn);
+  m_table->setColumnHidden(GameListModel::COL_BANNER, !SConfig::GetInstance().m_showBannerColumn);
+  m_table->setColumnHidden(GameListModel::COL_TITLE, !SConfig::GetInstance().m_showTitleColumn);
+  m_table->setColumnHidden(GameListModel::COL_DESCRIPTION,
+                           !SConfig::GetInstance().m_showDescriptionColumn);
+  m_table->setColumnHidden(GameListModel::COL_MAKER, !SConfig::GetInstance().m_showMakerColumn);
+  m_table->setColumnHidden(GameListModel::COL_SIZE, !SConfig::GetInstance().m_showSizeColumn);
+  m_table->setColumnHidden(GameListModel::COL_COUNTRY, !SConfig::GetInstance().m_showRegionColumn);
+  m_table->setColumnHidden(GameListModel::COL_RATING, !SConfig::GetInstance().m_showStateColumn);
 
   QHeaderView* hor_header = m_table->horizontalHeader();
   hor_header->setSectionResizeMode(GameListModel::COL_PLATFORM, QHeaderView::ResizeToContents);
@@ -295,7 +296,7 @@ void GameList::UninstallWAD()
 
 void GameList::SetDefaultISO()
 {
-  Settings::Instance().SetDefaultGame(GetSelectedGame());
+  SConfig::GetInstance().m_strDefaultISO = GetSelectedGame().toStdString();
 }
 
 void GameList::OpenContainingFolder()

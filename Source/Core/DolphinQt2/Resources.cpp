@@ -10,6 +10,7 @@
 
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
+#include "Core/ConfigManager.h"
 #include "DolphinQt2/Resources.h"
 #include "DolphinQt2/Settings.h"
 
@@ -20,7 +21,7 @@ QList<QPixmap> Resources::m_misc;
 
 QIcon Resources::GetIcon(const QString& name, const QString& dir)
 {
-  QString base_path = dir + name;
+  QString base_path = dir + QStringLiteral("/") + name;
 
   const auto dpr = QGuiApplication::primaryScreen()->devicePixelRatio();
 
@@ -45,24 +46,34 @@ QPixmap Resources::GetPixmap(const QString& name, const QString& dir)
   return icon.pixmap(icon.availableSizes()[0]);
 }
 
+static QString GetCurrentThemeDir()
+{
+  return QString::fromStdString(File::GetThemeDir(SConfig::GetInstance().theme_name));
+}
+
+static QString GetResourcesDir()
+{
+  return QString::fromStdString(File::GetSysDirectory() + "Resources");
+}
+
 QIcon Resources::GetScaledIcon(const std::string& name)
 {
-  return GetIcon(QString::fromStdString(name), Settings::Instance().GetResourcesDir());
+  return GetIcon(QString::fromStdString(name), GetResourcesDir());
 }
 
 QIcon Resources::GetScaledThemeIcon(const std::string& name)
 {
-  return GetIcon(QString::fromStdString(name), Settings::Instance().GetThemeDir());
+  return GetIcon(QString::fromStdString(name), GetCurrentThemeDir());
 }
 
 QPixmap Resources::GetScaledPixmap(const std::string& name)
 {
-  return GetPixmap(QString::fromStdString(name), Settings::Instance().GetResourcesDir());
+  return GetPixmap(QString::fromStdString(name), GetResourcesDir());
 }
 
 QPixmap Resources::GetScaledThemePixmap(const std::string& name)
 {
-  return GetPixmap(QString::fromStdString(name), Settings::Instance().GetThemeDir());
+  return GetPixmap(QString::fromStdString(name), GetCurrentThemeDir());
 }
 
 void Resources::Init()

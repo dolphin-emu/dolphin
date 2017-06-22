@@ -10,6 +10,7 @@
 #include <QUrl>
 
 #include "Core/CommonTitles.h"
+#include "Core/ConfigManager.h"
 #include "Core/IOS/ES/ES.h"
 #include "Core/IOS/IOS.h"
 #include "Core/State.h"
@@ -235,16 +236,16 @@ void MenuBar::AddGameListTypeSection(QMenu* view_menu)
 
 void MenuBar::AddTableColumnsMenu(QMenu* view_menu)
 {
-  auto& settings = Settings::Instance();
-  static const QMap<QString, bool*> columns{{tr("Platform"), &settings.PlatformVisible()},
-                                            {tr("ID"), &settings.IDVisible()},
-                                            {tr("Banner"), &settings.BannerVisible()},
-                                            {tr("Title"), &settings.TitleVisible()},
-                                            {tr("Description"), &settings.DescriptionVisible()},
-                                            {tr("Maker"), &settings.MakerVisible()},
-                                            {tr("Size"), &settings.SizeVisible()},
-                                            {tr("Country"), &settings.CountryVisible()},
-                                            {tr("Quality"), &settings.StateVisible()}};
+  static const QMap<QString, bool*> columns{
+      {tr("Platform"), &SConfig::GetInstance().m_showSystemColumn},
+      {tr("ID"), &SConfig::GetInstance().m_showIDColumn},
+      {tr("Banner"), &SConfig::GetInstance().m_showBannerColumn},
+      {tr("Title"), &SConfig::GetInstance().m_showTitleColumn},
+      {tr("Description"), &SConfig::GetInstance().m_showDescriptionColumn},
+      {tr("Maker"), &SConfig::GetInstance().m_showMakerColumn},
+      {tr("Size"), &SConfig::GetInstance().m_showSizeColumn},
+      {tr("Country"), &SConfig::GetInstance().m_showRegionColumn},
+      {tr("Quality"), &SConfig::GetInstance().m_showStateColumn}};
 
   QActionGroup* column_group = new QActionGroup(this);
   QMenu* cols_menu = view_menu->addMenu(tr("Table Columns"));
@@ -258,7 +259,6 @@ void MenuBar::AddTableColumnsMenu(QMenu* view_menu)
     action->setChecked(*config);
     connect(action, &QAction::toggled, [this, config, key](bool value) {
       *config = value;
-      Settings::Instance().Save();
       emit ColumnVisibilityToggled(key, value);
     });
   }
@@ -266,7 +266,7 @@ void MenuBar::AddTableColumnsMenu(QMenu* view_menu)
 
 void MenuBar::UpdateToolsMenu(bool emulation_started)
 {
-  const bool enable_wii_tools = !emulation_started || !Settings::Instance().IsWiiGameRunning();
+  const bool enable_wii_tools = !emulation_started || !SConfig::GetInstance().bWii;
   m_perform_online_update_menu->setEnabled(enable_wii_tools);
   if (enable_wii_tools)
   {
