@@ -1133,18 +1133,16 @@ void CFrame::ClearStatusBar()
   }
 }
 
-void CFrame::StatusBarMessage(const char* Text, ...)
+void CFrame::StatusBarMessage(const char* format, ...)
 {
-  const int MAX_BYTES = 1024 * 10;
-  char Str[MAX_BYTES];
-  va_list ArgPtr;
-  va_start(ArgPtr, Text);
-  vsnprintf(Str, MAX_BYTES, Text, ArgPtr);
-  va_end(ArgPtr);
+  va_list args;
+  va_start(args, format);
+  std::string msg = StringFromFormatV(format, args);
+  va_end(args);
 
   if (this->GetStatusBar()->IsEnabled())
   {
-    this->GetStatusBar()->SetStatusText(StrToWxStr(Str), 0);
+    this->GetStatusBar()->SetStatusText(StrToWxStr(msg), 0);
   }
 }
 

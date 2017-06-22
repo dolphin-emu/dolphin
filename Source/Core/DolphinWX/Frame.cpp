@@ -337,7 +337,8 @@ CFrame::CFrame(wxFrame* parent, wxWindowID id, const wxString& title, wxRect geo
   wxFrame::CreateToolBar(wxTB_DEFAULT_STYLE | wxTB_TEXT | wxTB_FLAT)->Realize();
 
   // Give it a status bar
-  SetStatusBar(CreateStatusBar(2, wxST_SIZEGRIP, ID_STATUSBAR));
+  SetStatusBar(
+      CreateStatusBar(2, wxSTB_SIZEGRIP | wxSTB_ELLIPSIZE_END | wxSTB_SHOW_TIPS, ID_STATUSBAR));
   if (!SConfig::GetInstance().m_InterfaceStatusbar)
     GetStatusBar()->Hide();
 

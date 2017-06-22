@@ -102,7 +102,7 @@ public:
   void GameListRescan();
   void ToggleLogWindow(bool bShow);
   void ToggleLogConfigWindow(bool bShow);
-  void StatusBarMessage(const char* Text, ...);
+  void StatusBarMessage(const char* format, ...);
   void ClearStatusBar();
   void BootGame(const std::string& filename);
   bool RendererHasFocus();

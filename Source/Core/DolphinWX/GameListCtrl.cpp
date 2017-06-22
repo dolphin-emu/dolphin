@@ -740,6 +740,15 @@ bool GameListCtrl::SyncCacheFile(bool write)
 
 void GameListCtrl::RescanList()
 {
+  auto post_status = [&](const wxString& status) {
+    auto event = new wxCommandEvent(wxEVT_HOST_COMMAND, IDM_UPDATE_STATUS_BAR);
+    event->SetInt(0);
+    event->SetString(status);
+    QueueEvent(event);
+  };
+
+  post_status(_("Scanning..."));
+
   const std::vector<std::string> search_extensions = {".gcm",  ".tgc", ".iso", ".ciso", ".gcz",
                                                       ".wbfs", ".wad", ".dol", ".elf"};
   // TODO This could process paths iteratively as they are found
@@ -782,6 +791,8 @@ void GameListCtrl::RescanList()
 
   // Post UI event to update the displayed list
   QueueEvent(new wxCommandEvent(DOLPHIN_EVT_REFRESH_GAMELIST));
+
+  post_status(_("Scan complete!"));
 
   SyncCacheFile(true);
 }

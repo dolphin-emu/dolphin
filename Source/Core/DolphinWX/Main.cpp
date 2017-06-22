@@ -478,7 +478,7 @@ void Host_SetWiiMoteConnectionState(int _State)
     event.SetString(_("Wii Remote Connected"));
     break;
   }
-  // Update field 1 or 2
+  // The second field is used for auxiliary info such as this
   event.SetInt(1);
 
   NOTICE_LOG(WIIMOTE, "%s", static_cast<const char*>(event.GetString().c_str()));
