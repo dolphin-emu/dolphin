@@ -5,7 +5,9 @@
 #include "DolphinWX/ISOProperties/FilesystemPanel.h"
 
 #include <array>
+#include <chrono>
 #include <functional>
+#include <future>
 #include <memory>
 #include <vector>
 
@@ -39,25 +41,6 @@ public:
   }
 
   std::unique_ptr<DiscIO::FileSystem> filesystem;
-};
-
-class IntegrityCheckThread final : public wxThread
-{
-public:
-  explicit IntegrityCheckThread(const DiscIO::Volume* volume, DiscIO::Partition partition)
-      : wxThread{wxTHREAD_JOINABLE}, m_volume{volume}, m_partition{partition}
-  {
-    Create();
-  }
-
-  ExitCode Entry() override
-  {
-    return reinterpret_cast<ExitCode>(m_volume->CheckIntegrity(m_partition));
-  }
-
-private:
-  const DiscIO::Volume* const m_volume;
-  const DiscIO::Partition m_partition;
 };
 
 enum : int
@@ -326,18 +309,15 @@ void FilesystemPanel::OnCheckPartitionIntegrity(wxCommandEvent& WXUNUSED(event))
   const auto selection = m_tree_ctrl->GetSelection();
   WiiPartition* partition =
       static_cast<WiiPartition*>(m_tree_ctrl->GetItemData(m_tree_ctrl->GetSelection()));
-  IntegrityCheckThread thread(m_opened_iso.get(), partition->filesystem->GetPartition());
-  thread.Run();
+  std::future<bool> is_valid = std::async(std::launch::async, [&] {
+    return m_opened_iso->CheckIntegrity(partition->filesystem->GetPartition());
+  });
 
-  while (thread.IsAlive())
-  {
+  while (is_valid.wait_for(std::chrono::milliseconds(50)) != std::future_status::ready)
     dialog.Pulse();
-    wxThread::Sleep(50);
-  }
+  dialog.Hide();
 
-  dialog.Destroy();
-
-  if (thread.Wait())
+  if (is_valid.get())
   {
     wxMessageBox(_("Integrity check completed. No errors have been found."),
                  _("Integrity check completed"), wxOK | wxICON_INFORMATION, this);
