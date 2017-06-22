@@ -189,7 +189,7 @@ void CFrame::BindMenuBarEvents()
   Bind(wxEVT_MENU, &CFrame::OnToggleWindow, this, IDM_LOG_WINDOW, IDM_VIDEO_WINDOW);
   Bind(wxEVT_MENU, &CFrame::GameListChanged, this, IDM_LIST_WAD, IDM_LIST_DRIVES);
   Bind(wxEVT_MENU, &CFrame::GameListChanged, this, IDM_PURGE_GAME_LIST_CACHE);
-  Bind(wxEVT_MENU, &CFrame::OnChangeColumnsVisible, this, IDM_SHOW_SYSTEM, IDM_SHOW_STATE);
+  Bind(wxEVT_MENU, &CFrame::OnChangeColumnsVisible, this, IDM_SHOW_SYSTEM, IDM_SHOW_SIZE);
 
   // Help menu
   Bind(wxEVT_MENU, &CFrame::OnHelp, this, IDM_HELP_WEBSITE);
@@ -774,7 +774,7 @@ void CFrame::OnBootDrive(wxCommandEvent& event)
 
 void CFrame::OnRefresh(wxCommandEvent& WXUNUSED(event))
 {
-  UpdateGameList();
+  GameListRescan();
 }
 
 void CFrame::OnScreenshot(wxCommandEvent& WXUNUSED(event))
@@ -1097,12 +1097,17 @@ void CFrame::OnReloadThemeBitmaps(wxCommandEvent& WXUNUSED(event))
   reload_event.SetEventObject(this);
   wxPostEvent(GetToolBar(), reload_event);
 
-  UpdateGameList();
+  GameListRefresh();
 }
 
-void CFrame::OnReloadGameList(wxCommandEvent& WXUNUSED(event))
+void CFrame::OnRefreshGameList(wxCommandEvent& WXUNUSED(event))
 {
-  UpdateGameList();
+  GameListRefresh();
+}
+
+void CFrame::OnRescanGameList(wxCommandEvent& WXUNUSED(event))
+{
+  GameListRescan();
 }
 
 void CFrame::OnUpdateInterpreterMenuItem(wxUpdateUIEvent& event)
@@ -1605,9 +1610,16 @@ void CFrame::UpdateGUI()
   }
 }
 
-void CFrame::UpdateGameList()
+void CFrame::GameListRefresh()
 {
-  wxCommandEvent event{DOLPHIN_EVT_RELOAD_GAMELIST, GetId()};
+  wxCommandEvent event{DOLPHIN_EVT_REFRESH_GAMELIST, GetId()};
+  event.SetEventObject(this);
+  wxPostEvent(m_game_list_ctrl, event);
+}
+
+void CFrame::GameListRescan()
+{
+  wxCommandEvent event{DOLPHIN_EVT_RESCAN_GAMELIST, GetId()};
   event.SetEventObject(this);
   wxPostEvent(m_game_list_ctrl, event);
 }
@@ -1674,17 +1686,19 @@ void CFrame::GameListChanged(wxCommandEvent& event)
     SConfig::GetInstance().m_ListDrives = event.IsChecked();
     break;
   case IDM_PURGE_GAME_LIST_CACHE:
-    std::vector<std::string> rFilenames =
-        Common::DoFileSearch({".cache"}, {File::GetUserPath(D_CACHE_IDX)});
+    std::vector<std::string> filenames =
+        Common::DoFileSearch({File::GetUserPath(D_CACHE_IDX)}, {".cache"});
 
-    for (const std::string& rFilename : rFilenames)
+    for (const std::string& filename : filenames)
     {
-      File::Delete(rFilename);
+      File::Delete(filename);
     }
-    break;
+    // Do rescan after cache has been cleared
+    GameListRescan();
+    return;
   }
 
-  UpdateGameList();
+  GameListRefresh();
 }
 
 // Enable and disable the toolbar
@@ -1737,12 +1751,9 @@ void CFrame::OnChangeColumnsVisible(wxCommandEvent& event)
   case IDM_SHOW_SIZE:
     SConfig::GetInstance().m_showSizeColumn = !SConfig::GetInstance().m_showSizeColumn;
     break;
-  case IDM_SHOW_STATE:
-    SConfig::GetInstance().m_showStateColumn = !SConfig::GetInstance().m_showStateColumn;
-    break;
   default:
     return;
   }
-  UpdateGameList();
+  GameListRefresh();
   SConfig::GetInstance().SaveSettings();
 }

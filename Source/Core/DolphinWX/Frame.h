@@ -33,7 +33,7 @@
 struct BootParameters;
 
 // Class declarations
-class CGameListCtrl;
+class GameListCtrl;
 class CCodeWindow;
 class CConfigMain;
 class CLogWindow;
@@ -98,7 +98,8 @@ public:
 
   void DoStop();
   void UpdateGUI();
-  void UpdateGameList();
+  void GameListRefresh();
+  void GameListRescan();
   void ToggleLogWindow(bool bShow);
   void ToggleLogConfigWindow(bool bShow);
   void StatusBarMessage(const char* Text, ...);
@@ -143,7 +144,7 @@ private:
     ADD_PANE_CENTER
   };
 
-  CGameListCtrl* m_game_list_ctrl = nullptr;
+  GameListCtrl* m_game_list_ctrl = nullptr;
   CConfigMain* m_main_config_dialog = nullptr;
   wxPanel* m_panel = nullptr;
   CRenderFrame* m_render_frame = nullptr;
@@ -267,7 +268,8 @@ private:
   void OnHelp(wxCommandEvent& event);
 
   void OnReloadThemeBitmaps(wxCommandEvent& event);
-  void OnReloadGameList(wxCommandEvent& event);
+  void OnRefreshGameList(wxCommandEvent& event);
+  void OnRescanGameList(wxCommandEvent& event);
 
   void OnUpdateInterpreterMenuItem(wxUpdateUIEvent& event);
 
