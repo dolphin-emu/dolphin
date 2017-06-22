@@ -19,15 +19,28 @@
 #include "UICommon/CommandLineParse.h"
 #include "UICommon/UICommon.h"
 
+#ifdef _WIN32
+int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpCmdLine, int nCmdShow)
+#else
 int main(int argc, char* argv[])
+#endif
 {
   QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
   QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 
+#ifdef _WIN32
+  QApplication app(nCmdShow, &lpCmdLine);
+#else
   QApplication app(argc, argv);
+#endif
 
   auto parser = CommandLineParse::CreateParser(CommandLineParse::ParserOptions::IncludeGUIOptions);
+#ifdef _WIN32
+  const optparse::Values& options =
+      CommandLineParse::ParseArguments(parser.get(), nCmdShow, &lpCmdLine);
+#else
   const optparse::Values& options = CommandLineParse::ParseArguments(parser.get(), argc, argv);
+#endif
   const std::vector<std::string> args = parser->args();
 
   UICommon::SetUserDirectory(static_cast<const char*>(options.get("user")));
