@@ -1,6 +1,7 @@
 // Copyright 2010 Dolphin Emulator Project
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
+// Source code to the Gecko codehandler can be found at https://www.dropbox.com/s/6cwhjlpnrjagyxk/codehandler.s?dl=1
 
 #include "Core/GeckoCode.h"
 
