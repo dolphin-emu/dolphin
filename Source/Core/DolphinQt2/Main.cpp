@@ -19,6 +19,8 @@
 #include "UICommon/CommandLineParse.h"
 #include "UICommon/UICommon.h"
 
+// N.B. On Windows, this should be called from WinMain. Link against qtmain and specify
+// /SubSystem:Windows
 int main(int argc, char* argv[])
 {
   QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
