@@ -1,4 +1,6 @@
 .text
+#This is a modified version of codehandleronly.bin.
+#https://github.com/MP2E/Gecko-OS/blob/master/codehandler/codehandleronly.s is the original source code
 
 .set r0,0;   .set r1,1;   .set r2,2; .set r3,3;   .set r4,4
 .set r5,5;   .set r6,6;   .set r7,7;   .set r8,8;   .set r9,9
