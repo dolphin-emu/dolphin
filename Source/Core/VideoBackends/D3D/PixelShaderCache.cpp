@@ -498,18 +498,29 @@ void PixelShaderCache::Init()
   SETSTAT(stats.numPixelShadersAlive, 0);
 
   if (g_ActiveConfig.bShaderCache)
-  {
-    if (!File::Exists(File::GetUserPath(D_SHADERCACHE_IDX)))
-      File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX));
+    LoadShaderCache();
+}
 
-    std::string cache_filename =
-        StringFromFormat("%sdx11-%s-ps.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
-                         SConfig::GetInstance().GetGameID().c_str());
-    PixelShaderCacheInserter inserter;
-    g_ps_disk_cache.OpenAndRead(cache_filename, inserter);
-  }
+void PixelShaderCache::LoadShaderCache()
+{
+  if (!File::Exists(File::GetUserPath(D_SHADERCACHE_IDX)))
+    File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX));
 
-  last_entry = nullptr;
+  std::string cache_filename = StringFromFormat(
+      "%sdx11-%s-%s-ps.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
+      SConfig::GetInstance().GetGameID().c_str(), g_ActiveConfig.GetHostConfigFilename().c_str());
+  PixelShaderCacheInserter inserter;
+  g_ps_disk_cache.OpenAndRead(cache_filename, inserter);
+}
+
+void PixelShaderCache::Reload()
+{
+  g_ps_disk_cache.Sync();
+  g_ps_disk_cache.Close();
+  Clear();
+
+  if (g_ActiveConfig.bShaderCache)
+    LoadShaderCache();
 }
 
 // ONLY to be used during shutdown.
@@ -520,6 +531,7 @@ void PixelShaderCache::Clear()
   PixelShaders.clear();
 
   last_entry = nullptr;
+  last_uid = {};
 }
 
 // Used in Swap() when AA mode has changed

@@ -15,6 +15,7 @@ class GeometryShaderCache
 {
 public:
   static void Init();
+  static void Reload();
   static void Clear();
   static void Shutdown();
   static bool SetShader(u32 primitive_type);  // TODO: Should be renamed to LoadShader
@@ -37,6 +38,8 @@ private:
   };
 
   typedef std::map<GeometryShaderUid, GSCacheEntry> GSCache;
+
+  static void LoadShaderCache();
 
   static GSCache GeometryShaders;
   static const GSCacheEntry* last_entry;

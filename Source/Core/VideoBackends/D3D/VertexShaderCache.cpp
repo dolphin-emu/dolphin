@@ -159,18 +159,29 @@ void VertexShaderCache::Init()
   SETSTAT(stats.numVertexShadersAlive, 0);
 
   if (g_ActiveConfig.bShaderCache)
-  {
-    if (!File::Exists(File::GetUserPath(D_SHADERCACHE_IDX)))
-      File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX));
+    LoadShaderCache();
+}
 
-    std::string cache_filename =
-        StringFromFormat("%sdx11-%s-vs.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
-                         SConfig::GetInstance().GetGameID().c_str());
-    VertexShaderCacheInserter inserter;
-    g_vs_disk_cache.OpenAndRead(cache_filename, inserter);
-  }
+void VertexShaderCache::LoadShaderCache()
+{
+  if (!File::Exists(File::GetUserPath(D_SHADERCACHE_IDX)))
+    File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX));
 
-  last_entry = nullptr;
+  std::string cache_filename = StringFromFormat(
+      "%sdx11-%s-%s-vs.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
+      SConfig::GetInstance().GetGameID().c_str(), g_ActiveConfig.GetHostConfigFilename().c_str());
+  VertexShaderCacheInserter inserter;
+  g_vs_disk_cache.OpenAndRead(cache_filename, inserter);
+}
+
+void VertexShaderCache::Reload()
+{
+  g_vs_disk_cache.Sync();
+  g_vs_disk_cache.Close();
+  Clear();
+
+  if (g_ActiveConfig.bShaderCache)
+    LoadShaderCache();
 }
 
 void VertexShaderCache::Clear()
@@ -180,6 +191,7 @@ void VertexShaderCache::Clear()
   vshaders.clear();
 
   last_entry = nullptr;
+  last_uid = {};
 }
 
 void VertexShaderCache::Shutdown()
