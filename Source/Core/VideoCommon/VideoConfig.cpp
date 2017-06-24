@@ -5,6 +5,7 @@
 #include <algorithm>
 
 #include "Common/CommonTypes.h"
+#include "Common/StringUtil.h"
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/Core.h"
 #include "Core/Movie.h"
@@ -203,3 +204,60 @@ bool VideoConfig::IsSSAAEnabled() const
   return iMultisamples > 1 && bSSAA && backend_info.bSupportsSSAA;
 }
 
+union HostConfigBits
+{
+  u32 bits;
+
+  struct
+  {
+    u32 msaa : 1;
+    u32 ssaa : 1;
+    u32 stereo : 1;
+    u32 wireframe : 1;
+    u32 per_pixel_lighting : 1;
+    u32 vertex_rounding : 1;
+    u32 fast_depth_calc : 1;
+    u32 bounding_box : 1;
+    u32 backend_dual_source_blend : 1;
+    u32 backend_geometry_shaders : 1;
+    u32 backend_early_z : 1;
+    u32 backend_bbox : 1;
+    u32 backend_gs_instancing : 1;
+    u32 backend_clip_control : 1;
+    u32 backend_ssaa : 1;
+    u32 backend_atomics : 1;
+    u32 backend_depth_clamp : 1;
+    u32 backend_reversed_depth_range : 1;
+    u32 pad : 14;
+  };
+};
+
+u32 VideoConfig::GetHostConfigBits() const
+{
+  HostConfigBits bits = {};
+  bits.msaa = IsMSAAEnabled();
+  bits.ssaa = IsSSAAEnabled();
+  bits.stereo = IsStereoEnabled();
+  bits.wireframe = bWireFrame;
+  bits.per_pixel_lighting = bEnablePixelLighting;
+  bits.vertex_rounding = UseVertexRounding();
+  bits.fast_depth_calc = bFastDepthCalc;
+  bits.bounding_box = bBBoxEnable;
+  bits.backend_dual_source_blend = backend_info.bSupportsDualSourceBlend;
+  bits.backend_geometry_shaders = backend_info.bSupportsGeometryShaders;
+  bits.backend_early_z = backend_info.bSupportsEarlyZ;
+  bits.backend_bbox = backend_info.bSupportsBBox;
+  bits.backend_gs_instancing = backend_info.bSupportsGSInstancing;
+  bits.backend_clip_control = backend_info.bSupportsClipControl;
+  bits.backend_ssaa = backend_info.bSupportsSSAA;
+  bits.backend_atomics = backend_info.bSupportsFragmentStoresAndAtomics;
+  bits.backend_depth_clamp = backend_info.bSupportsDepthClamp;
+  bits.backend_reversed_depth_range = backend_info.bSupportsReversedDepthRange;
+  return bits.bits;
+}
+
+std::string VideoConfig::GetHostConfigFilename() const
+{
+  u32 bits = GetHostConfigBits();
+  return StringFromFormat("%08X", bits);
+}
