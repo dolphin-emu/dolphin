@@ -7,11 +7,15 @@
 #include <cstddef>
 #include <memory>
 #include <string>
+#include <thread>
 #include <vector>
 
 #include <wx/listctrl.h>
 #include <wx/tipwin.h>
 
+#include "Common/ChunkFile.h"
+#include "Common/Event.h"
+#include "Common/Flag.h"
 #include "DolphinWX/ISOFile.h"
 
 class wxEmuStateTip : public wxTipWindow
@@ -31,26 +35,27 @@ public:
   }
 };
 
-wxDECLARE_EVENT(DOLPHIN_EVT_RELOAD_GAMELIST, wxCommandEvent);
+wxDECLARE_EVENT(DOLPHIN_EVT_REFRESH_GAMELIST, wxCommandEvent);
+wxDECLARE_EVENT(DOLPHIN_EVT_RESCAN_GAMELIST, wxCommandEvent);
 
-class CGameListCtrl : public wxListCtrl
+class GameListCtrl : public wxListCtrl
 {
 public:
-  CGameListCtrl(wxWindow* parent, const wxWindowID id, const wxPoint& pos, const wxSize& size,
-                long style);
-  ~CGameListCtrl();
+  GameListCtrl(bool disable_scanning, wxWindow* parent, const wxWindowID id, const wxPoint& pos,
+               const wxSize& size, long style);
+  ~GameListCtrl();
 
   void BrowseForDirectory();
   const GameListItem* GetISO(size_t index) const;
   const GameListItem* GetSelectedISO() const;
-  std::vector<const GameListItem*> GetAllSelectedISOs() const;
 
   static bool IsHidingItems();
 
   enum
   {
     COLUMN_DUMMY = 0,
-    COLUMN_PLATFORM,
+    FIRST_COLUMN_WITH_CONTENT,
+    COLUMN_PLATFORM = FIRST_COLUMN_WITH_CONTENT,
     COLUMN_BANNER,
     COLUMN_TITLE,
     COLUMN_MAKER,
@@ -69,17 +74,19 @@ public:
 private:
   struct ColumnInfo;
 
-  void ReloadList();
-
-  void ClearIsoFiles() { m_ISOFiles.clear(); }
   void InitBitmaps();
-  void UpdateItemAtColumn(long _Index, int column);
-  void InsertItemInReportView(long _Index);
+  void UpdateItemAtColumn(long index, int column);
+  void InsertItemInReportView(long index);
   void SetColors();
-  void ScanForISOs();
+  void RefreshList();
+  void RescanList();
+  void DoState(PointerWrap* p, u32 size = 0);
+  bool SyncCacheFile(bool write);
+  std::vector<const GameListItem*> GetAllSelectedISOs() const;
 
   // events
-  void OnReloadGameList(wxCommandEvent& event);
+  void OnRefreshGameList(wxCommandEvent& event);
+  void OnRescanGameList(wxCommandEvent& event);
   void OnLeftClick(wxMouseEvent& event);
   void OnRightClick(wxMouseEvent& event);
   void OnMouseMotion(wxMouseEvent& event);
@@ -109,16 +116,27 @@ private:
   static bool MultiCompressCB(const std::string& text, float percent, void* arg);
   static bool WiiCompressWarning();
 
-  std::vector<int> m_FlagImageIndex;
-  std::vector<int> m_PlatformImageIndex;
-  std::vector<int> m_EmuStateImageIndex;
-  std::vector<int> m_utility_game_banners;
-  std::vector<std::unique_ptr<GameListItem>> m_ISOFiles;
+  struct
+  {
+    std::vector<int> flag;
+    std::vector<int> platform;
+    std::vector<int> utility_banner;
+    std::vector<int> emu_state;
+  } m_image_indexes;
 
-  int last_column;
-  int last_sort;
-  wxSize lastpos;
-  wxEmuStateTip* toolTip;
+  // Actual backing GameListItems are maintained in a background thread and cached to file
+  static constexpr u32 CACHE_REVISION = 0;
+  std::list<std::shared_ptr<GameListItem>> m_cached_files;
+  std::thread m_scan_thread;
+  Common::Event m_scan_trigger;
+  Common::Flag m_scan_exiting;
+  // UI thread's view into the cache
+  std::vector<std::shared_ptr<GameListItem>> m_shown_files;
+
+  int m_last_column;
+  int m_last_sort;
+  wxSize m_lastpos;
+  wxEmuStateTip* m_tooltip;
 
   std::vector<ColumnInfo> m_columns;
 };

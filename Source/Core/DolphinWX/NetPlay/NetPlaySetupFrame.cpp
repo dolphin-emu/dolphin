@@ -36,7 +36,7 @@ wxString GetTraversalLabelText(IniFile::Section& section)
 }
 }  // Anonymous namespace
 
-NetPlaySetupFrame::NetPlaySetupFrame(wxWindow* const parent, const CGameListCtrl* const game_list)
+NetPlaySetupFrame::NetPlaySetupFrame(wxWindow* const parent, const GameListCtrl* const game_list)
     : wxFrame(parent, wxID_ANY, _("Dolphin NetPlay Setup")), m_game_list(game_list)
 {
   IniFile inifile;

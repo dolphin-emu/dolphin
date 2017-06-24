@@ -774,7 +774,7 @@ void CFrame::OnBootDrive(wxCommandEvent& event)
 
 void CFrame::OnRefresh(wxCommandEvent& WXUNUSED(event))
 {
-  UpdateGameList();
+  GameListRescan();
 }
 
 void CFrame::OnScreenshot(wxCommandEvent& WXUNUSED(event))
@@ -1097,12 +1097,17 @@ void CFrame::OnReloadThemeBitmaps(wxCommandEvent& WXUNUSED(event))
   reload_event.SetEventObject(this);
   wxPostEvent(GetToolBar(), reload_event);
 
-  UpdateGameList();
+  GameListRefresh();
 }
 
-void CFrame::OnReloadGameList(wxCommandEvent& WXUNUSED(event))
+void CFrame::OnRefreshGameList(wxCommandEvent& WXUNUSED(event))
 {
-  UpdateGameList();
+  GameListRefresh();
+}
+
+void CFrame::OnRescanGameList(wxCommandEvent& WXUNUSED(event))
+{
+  GameListRescan();
 }
 
 void CFrame::OnUpdateInterpreterMenuItem(wxUpdateUIEvent& event)
@@ -1128,18 +1133,16 @@ void CFrame::ClearStatusBar()
   }
 }
 
-void CFrame::StatusBarMessage(const char* Text, ...)
+void CFrame::StatusBarMessage(const char* format, ...)
 {
-  const int MAX_BYTES = 1024 * 10;
-  char Str[MAX_BYTES];
-  va_list ArgPtr;
-  va_start(ArgPtr, Text);
-  vsnprintf(Str, MAX_BYTES, Text, ArgPtr);
-  va_end(ArgPtr);
+  va_list args;
+  va_start(args, format);
+  std::string msg = StringFromFormatV(format, args);
+  va_end(args);
 
   if (this->GetStatusBar()->IsEnabled())
   {
-    this->GetStatusBar()->SetStatusText(StrToWxStr(Str), 0);
+    this->GetStatusBar()->SetStatusText(StrToWxStr(msg), 0);
   }
 }
 
@@ -1605,9 +1608,16 @@ void CFrame::UpdateGUI()
   }
 }
 
-void CFrame::UpdateGameList()
+void CFrame::GameListRefresh()
 {
-  wxCommandEvent event{DOLPHIN_EVT_RELOAD_GAMELIST, GetId()};
+  wxCommandEvent event{DOLPHIN_EVT_REFRESH_GAMELIST, GetId()};
+  event.SetEventObject(this);
+  wxPostEvent(m_game_list_ctrl, event);
+}
+
+void CFrame::GameListRescan()
+{
+  wxCommandEvent event{DOLPHIN_EVT_RESCAN_GAMELIST, GetId()};
   event.SetEventObject(this);
   wxPostEvent(m_game_list_ctrl, event);
 }
@@ -1674,17 +1684,19 @@ void CFrame::GameListChanged(wxCommandEvent& event)
     SConfig::GetInstance().m_ListDrives = event.IsChecked();
     break;
   case IDM_PURGE_GAME_LIST_CACHE:
-    std::vector<std::string> rFilenames =
-        Common::DoFileSearch({".cache"}, {File::GetUserPath(D_CACHE_IDX)});
+    std::vector<std::string> filenames =
+        Common::DoFileSearch({File::GetUserPath(D_CACHE_IDX)}, {".cache"});
 
-    for (const std::string& rFilename : rFilenames)
+    for (const std::string& filename : filenames)
     {
-      File::Delete(rFilename);
+      File::Delete(filename);
     }
-    break;
+    // Do rescan after cache has been cleared
+    GameListRescan();
+    return;
   }
 
-  UpdateGameList();
+  GameListRefresh();
 }
 
 // Enable and disable the toolbar
@@ -1743,6 +1755,6 @@ void CFrame::OnChangeColumnsVisible(wxCommandEvent& event)
   default:
     return;
   }
-  UpdateGameList();
+  GameListRefresh();
   SConfig::GetInstance().SaveSettings();
 }
