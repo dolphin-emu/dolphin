@@ -49,9 +49,17 @@ bool ObjectCache::Initialize()
   if (!CreatePipelineLayouts())
     return false;
 
-  LoadShaderCaches();
-  if (!CreatePipelineCache(true))
-    return false;
+  if (g_ActiveConfig.bShaderCache)
+  {
+    LoadShaderCaches();
+    if (!LoadPipelineCache())
+      return false;
+  }
+  else
+  {
+    if (!CreatePipelineCache())
+      return false;
+  }
 
   if (!CreateUtilityShaderVertexFormat())
     return false;
@@ -465,26 +473,44 @@ public:
   void Read(const u32& key, const u8* value, u32 value_size) override {}
 };
 
-bool ObjectCache::CreatePipelineCache(bool load_from_disk)
+bool ObjectCache::CreatePipelineCache()
+{
+  m_pipeline_cache_filename = GetDiskCacheFileName("pipeline");
+
+  VkPipelineCacheCreateInfo info = {
+      VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO,  // VkStructureType            sType
+      nullptr,                                       // const void*                pNext
+      0,                                             // VkPipelineCacheCreateFlags flags
+      0,                                             // size_t                     initialDataSize
+      nullptr                                        // const void*                pInitialData
+  };
+
+  VkResult res =
+      vkCreatePipelineCache(g_vulkan_context->GetDevice(), &info, nullptr, &m_pipeline_cache);
+  if (res == VK_SUCCESS)
+    return true;
+
+  LOG_VULKAN_ERROR(res, "vkCreatePipelineCache failed: ");
+  return false;
+}
+
+bool ObjectCache::LoadPipelineCache()
 {
   // We have to keep the pipeline cache file name around since when we save it
   // we delete the old one, by which time the game's unique ID is already cleared.
   m_pipeline_cache_filename = GetDiskCacheFileName("pipeline");
 
   std::vector<u8> disk_data;
-  if (load_from_disk)
-  {
-    LinearDiskCache<u32, u8> disk_cache;
-    PipelineCacheReadCallback read_callback(&disk_data);
-    if (disk_cache.OpenAndRead(m_pipeline_cache_filename, read_callback) != 1)
-      disk_data.clear();
-  }
+  LinearDiskCache<u32, u8> disk_cache;
+  PipelineCacheReadCallback read_callback(&disk_data);
+  if (disk_cache.OpenAndRead(m_pipeline_cache_filename, read_callback) != 1)
+    disk_data.clear();
 
   if (!disk_data.empty() && !ValidatePipelineCache(disk_data.data(), disk_data.size()))
   {
     // Don't use this data. In fact, we should delete it to prevent it from being used next time.
     File::Delete(m_pipeline_cache_filename);
-    disk_data.clear();
+    return CreatePipelineCache();
   }
 
   VkPipelineCacheCreateInfo info = {
@@ -492,7 +518,7 @@ bool ObjectCache::CreatePipelineCache(bool load_from_disk)
       nullptr,                                       // const void*                pNext
       0,                                             // VkPipelineCacheCreateFlags flags
       disk_data.size(),                              // size_t                     initialDataSize
-      !disk_data.empty() ? disk_data.data() : nullptr,  // const void*                pInitialData
+      disk_data.data()                               // const void*                pInitialData
   };
 
   VkResult res =
@@ -502,14 +528,7 @@ bool ObjectCache::CreatePipelineCache(bool load_from_disk)
 
   // Failed to create pipeline cache, try with it empty.
   LOG_VULKAN_ERROR(res, "vkCreatePipelineCache failed, trying empty cache: ");
-  info.initialDataSize = 0;
-  info.pInitialData = nullptr;
-  res = vkCreatePipelineCache(g_vulkan_context->GetDevice(), &info, nullptr, &m_pipeline_cache);
-  if (res == VK_SUCCESS)
-    return true;
-
-  LOG_VULKAN_ERROR(res, "vkCreatePipelineCache failed: ");
-  return false;
+  return CreatePipelineCache();
 }
 
 // Based on Vulkan 1.0 specification,
@@ -644,19 +663,16 @@ struct ShaderCacheReader : public LinearDiskCacheReader<Uid, u32>
 
 void ObjectCache::LoadShaderCaches()
 {
-  if (g_ActiveConfig.bShaderCache)
+  ShaderCacheReader<VertexShaderUid> vs_reader(m_vs_cache.shader_map);
+  m_vs_cache.disk_cache.OpenAndRead(GetDiskCacheFileName("vs"), vs_reader);
+
+  ShaderCacheReader<PixelShaderUid> ps_reader(m_ps_cache.shader_map);
+  m_ps_cache.disk_cache.OpenAndRead(GetDiskCacheFileName("ps"), ps_reader);
+
+  if (g_vulkan_context->SupportsGeometryShaders())
   {
-    ShaderCacheReader<VertexShaderUid> vs_reader(m_vs_cache.shader_map);
-    m_vs_cache.disk_cache.OpenAndRead(GetDiskCacheFileName("vs"), vs_reader);
-
-    ShaderCacheReader<PixelShaderUid> ps_reader(m_ps_cache.shader_map);
-    m_ps_cache.disk_cache.OpenAndRead(GetDiskCacheFileName("ps"), ps_reader);
-
-    if (g_vulkan_context->SupportsGeometryShaders())
-    {
-      ShaderCacheReader<GeometryShaderUid> gs_reader(m_gs_cache.shader_map);
-      m_gs_cache.disk_cache.OpenAndRead(GetDiskCacheFileName("gs"), gs_reader);
-    }
+    ShaderCacheReader<GeometryShaderUid> gs_reader(m_gs_cache.shader_map);
+    m_gs_cache.disk_cache.OpenAndRead(GetDiskCacheFileName("gs"), gs_reader);
   }
 
   SETSTAT(stats.numPixelShadersCreated, static_cast<int>(m_ps_cache.shader_map.size()));
@@ -684,6 +700,11 @@ void ObjectCache::DestroyShaderCaches()
 
   if (g_vulkan_context->SupportsGeometryShaders())
     DestroyShaderCache(m_gs_cache);
+
+  SETSTAT(stats.numPixelShadersCreated, 0);
+  SETSTAT(stats.numPixelShadersAlive, 0);
+  SETSTAT(stats.numVertexShadersCreated, 0);
+  SETSTAT(stats.numVertexShadersAlive, 0);
 }
 
 VkShaderModule ObjectCache::GetVertexShaderForUid(const VertexShaderUid& uid)
