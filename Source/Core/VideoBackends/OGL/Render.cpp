@@ -688,6 +688,7 @@ Renderer::Renderer()
 
   s_last_stereo_mode = g_ActiveConfig.iStereoMode > 0;
   s_last_xfb_mode = g_ActiveConfig.bUseRealXFB;
+  m_last_host_config_bits = g_ActiveConfig.GetHostConfigBits();
 
   // Handle VSync on/off
   s_vsync = g_ActiveConfig.IsVSync();
@@ -1468,6 +1469,15 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
 
   UpdateActiveConfig();
   g_texture_cache->OnConfigChanged(g_ActiveConfig);
+
+  // Invalidate shader cache when the host config changes.
+  u32 new_host_config_bits = g_ActiveConfig.GetHostConfigBits();
+  if (new_host_config_bits != m_last_host_config_bits)
+  {
+    OSD::AddMessage("Video config changed, reloading shaders.", OSD::Duration::NORMAL);
+    ProgramShaderCache::Reload();
+    m_last_host_config_bits = new_host_config_bits;
+  }
 
   // For testing zbuffer targets.
   // Renderer::SetZBufferRender();
