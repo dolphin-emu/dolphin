@@ -223,6 +223,13 @@ struct VideoConfig final
   {
     return backend_info.bSupportsGPUTextureDecoding && bEnableGPUTextureDecoding;
   }
+  bool UseVertexRounding() const { return bVertexRounding && iEFBScale != SCALE_1X; }
+  bool IsStereoEnabled() const;
+  bool IsMSAAEnabled() const;
+  bool IsSSAAEnabled() const;
+  // Host config contains the settings which can influence generated shaders.
+  u32 GetHostConfigBits() const;
+  std::string GetHostConfigFilename() const;
 };
 
 extern VideoConfig g_Config;

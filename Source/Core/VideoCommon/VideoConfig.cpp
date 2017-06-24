@@ -187,3 +187,19 @@ bool VideoConfig::IsVSync()
 {
   return bVSync && !Core::GetIsThrottlerTempDisabled();
 }
+
+bool VideoConfig::IsStereoEnabled() const
+{
+  return iStereoMode > 0;
+}
+
+bool VideoConfig::IsMSAAEnabled() const
+{
+  return iMultisamples > 1;
+}
+
+bool VideoConfig::IsSSAAEnabled() const
+{
+  return iMultisamples > 1 && bSSAA && backend_info.bSupportsSSAA;
+}
+

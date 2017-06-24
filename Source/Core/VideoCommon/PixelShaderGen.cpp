@@ -170,7 +170,6 @@ PixelShaderUid GetPixelShaderUid()
   uid_data->genMode_numindstages = bpmem.genMode.numindstages;
   uid_data->genMode_numtevstages = bpmem.genMode.numtevstages;
   uid_data->genMode_numtexgens = bpmem.genMode.numtexgens;
-  uid_data->per_pixel_lighting = g_ActiveConfig.bEnablePixelLighting;
   uid_data->bounding_box = g_ActiveConfig.BBoxUseFragmentShaderImplementation() &&
                            g_ActiveConfig.bBBoxEnable && BoundingBox::active;
   uid_data->rgba6_format =
@@ -192,13 +191,9 @@ PixelShaderUid GetPixelShaderUid()
 
   uid_data->per_pixel_depth = per_pixel_depth;
   uid_data->forced_early_z = forced_early_z;
-  uid_data->fast_depth_calc = g_ActiveConfig.bFastDepthCalc;
-  uid_data->msaa = g_ActiveConfig.iMultisamples > 1;
-  uid_data->ssaa = g_ActiveConfig.iMultisamples > 1 && g_ActiveConfig.bSSAA;
-  uid_data->stereo = g_ActiveConfig.iStereoMode > 0;
 
   if (!uid_data->forced_early_z && bpmem.UseEarlyDepthTest() &&
-      (!uid_data->fast_depth_calc || bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED))
+      (!g_ActiveConfig.bFastDepthCalc || bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED))
   {
     static bool warn_once = true;
     if (warn_once)
@@ -209,7 +204,7 @@ PixelShaderUid GetPixelShaderUid()
     warn_once = false;
   }
 
-  if (uid_data->per_pixel_lighting)
+  if (g_ActiveConfig.bEnablePixelLighting)
   {
     // The lighting shader only needs the two color bits of the 23bit component bit array.
     uid_data->components =
@@ -297,7 +292,7 @@ PixelShaderUid GetPixelShaderUid()
   }
 
 #define MY_STRUCT_OFFSET(str, elem) ((u32)((u64) & (str).elem - (u64) & (str)))
-  uid_data->num_values = (uid_data->per_pixel_lighting) ?
+  uid_data->num_values = (g_ActiveConfig.bEnablePixelLighting) ?
                              sizeof(*uid_data) :
                              MY_STRUCT_OFFSET(*uid_data, stagehash[numStages]);
 
@@ -339,7 +334,7 @@ PixelShaderUid GetPixelShaderUid()
 }
 
 static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, int n,
-                       APIType ApiType);
+                       APIType ApiType, bool stereo);
 static void WriteTevRegular(ShaderCode& out, const char* components, int bias, int op, int clamp,
                             int shift, bool alpha);
 static void SampleTexture(ShaderCode& out, const char* texcoords, const char* texswap, int texmap,
@@ -354,7 +349,11 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const pixel_shader_uid_data*
 {
   ShaderCode out;
 
-  u32 numStages = uid_data->genMode_numtevstages + 1;
+  const bool per_pixel_lighting = g_ActiveConfig.bEnablePixelLighting;
+  const bool msaa = g_ActiveConfig.IsMSAAEnabled();
+  const bool ssaa = g_ActiveConfig.IsSSAAEnabled();
+  const bool stereo = g_ActiveConfig.IsStereoEnabled();
+  const u32 numStages = uid_data->genMode_numtevstages + 1;
 
   out.Write("//Pixel Shader for TEV stages\n");
   out.Write("//%i TEV stages, %i texgens, %i IND stages\n", numStages, uid_data->genMode_numtexgens,
@@ -422,7 +421,7 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const pixel_shader_uid_data*
             "\tfloat4 " I_EFBSCALE ";\n"
             "};\n");
 
-  if (uid_data->per_pixel_lighting)
+  if (per_pixel_lighting)
   {
     out.Write("%s", s_lighting_struct);
 
@@ -450,8 +449,7 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const pixel_shader_uid_data*
   }
 
   out.Write("struct VS_OUTPUT {\n");
-  GenerateVSOutputMembers(out, ApiType, uid_data->genMode_numtexgens, uid_data->per_pixel_lighting,
-                          "");
+  GenerateVSOutputMembers(out, ApiType, uid_data->genMode_numtexgens, per_pixel_lighting, "");
   out.Write("};\n");
 
   if (uid_data->forced_early_z)
@@ -534,36 +532,29 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const pixel_shader_uid_data*
     if (g_ActiveConfig.backend_info.bSupportsGeometryShaders || ApiType == APIType::Vulkan)
     {
       out.Write("VARYING_LOCATION(0) in VertexData {\n");
-      GenerateVSOutputMembers(
-          out, ApiType, uid_data->genMode_numtexgens, uid_data->per_pixel_lighting,
-          GetInterpolationQualifier(uid_data->msaa, uid_data->ssaa, true, true));
+      GenerateVSOutputMembers(out, ApiType, uid_data->genMode_numtexgens, per_pixel_lighting,
+                              GetInterpolationQualifier(msaa, ssaa, true, true));
 
-      if (uid_data->stereo)
+      if (stereo)
         out.Write("\tflat int layer;\n");
 
       out.Write("};\n");
     }
     else
     {
-      out.Write("%s in float4 colors_0;\n",
-                GetInterpolationQualifier(uid_data->msaa, uid_data->ssaa));
-      out.Write("%s in float4 colors_1;\n",
-                GetInterpolationQualifier(uid_data->msaa, uid_data->ssaa));
+      out.Write("%s in float4 colors_0;\n", GetInterpolationQualifier(msaa, ssaa));
+      out.Write("%s in float4 colors_1;\n", GetInterpolationQualifier(msaa, ssaa));
       // compute window position if needed because binding semantic WPOS is not widely supported
       // Let's set up attributes
       for (unsigned int i = 0; i < uid_data->genMode_numtexgens; ++i)
       {
-        out.Write("%s in float3 uv%d;\n", GetInterpolationQualifier(uid_data->msaa, uid_data->ssaa),
-                  i);
+        out.Write("%s in float3 uv%d;\n", GetInterpolationQualifier(msaa, ssaa), i);
       }
-      out.Write("%s in float4 clipPos;\n",
-                GetInterpolationQualifier(uid_data->msaa, uid_data->ssaa));
-      if (uid_data->per_pixel_lighting)
+      out.Write("%s in float4 clipPos;\n", GetInterpolationQualifier(msaa, ssaa));
+      if (per_pixel_lighting)
       {
-        out.Write("%s in float3 Normal;\n",
-                  GetInterpolationQualifier(uid_data->msaa, uid_data->ssaa));
-        out.Write("%s in float3 WorldPos;\n",
-                  GetInterpolationQualifier(uid_data->msaa, uid_data->ssaa));
+        out.Write("%s in float3 Normal;\n", GetInterpolationQualifier(msaa, ssaa));
+        out.Write("%s in float3 WorldPos;\n", GetInterpolationQualifier(msaa, ssaa));
       }
     }
 
@@ -585,30 +576,24 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const pixel_shader_uid_data*
               "  in float4 rawpos : SV_Position,\n",
               uid_data->per_pixel_depth ? "  out float depth : SV_Depth,\n" : "");
 
-    out.Write("  in %s float4 colors_0 : COLOR0,\n",
-              GetInterpolationQualifier(uid_data->msaa, uid_data->ssaa));
-    out.Write("  in %s float4 colors_1 : COLOR1\n",
-              GetInterpolationQualifier(uid_data->msaa, uid_data->ssaa));
+    out.Write("  in %s float4 colors_0 : COLOR0,\n", GetInterpolationQualifier(msaa, ssaa));
+    out.Write("  in %s float4 colors_1 : COLOR1\n", GetInterpolationQualifier(msaa, ssaa));
 
     // compute window position if needed because binding semantic WPOS is not widely supported
     for (unsigned int i = 0; i < uid_data->genMode_numtexgens; ++i)
-      out.Write(",\n  in %s float3 uv%d : TEXCOORD%d",
-                GetInterpolationQualifier(uid_data->msaa, uid_data->ssaa), i, i);
-    out.Write(",\n  in %s float4 clipPos : TEXCOORD%d",
-              GetInterpolationQualifier(uid_data->msaa, uid_data->ssaa),
+      out.Write(",\n  in %s float3 uv%d : TEXCOORD%d", GetInterpolationQualifier(msaa, ssaa), i, i);
+    out.Write(",\n  in %s float4 clipPos : TEXCOORD%d", GetInterpolationQualifier(msaa, ssaa),
               uid_data->genMode_numtexgens);
-    if (uid_data->per_pixel_lighting)
+    if (per_pixel_lighting)
     {
-      out.Write(",\n  in %s float3 Normal : TEXCOORD%d",
-                GetInterpolationQualifier(uid_data->msaa, uid_data->ssaa),
+      out.Write(",\n  in %s float3 Normal : TEXCOORD%d", GetInterpolationQualifier(msaa, ssaa),
                 uid_data->genMode_numtexgens + 1);
-      out.Write(",\n  in %s float3 WorldPos : TEXCOORD%d",
-                GetInterpolationQualifier(uid_data->msaa, uid_data->ssaa),
+      out.Write(",\n  in %s float3 WorldPos : TEXCOORD%d", GetInterpolationQualifier(msaa, ssaa),
                 uid_data->genMode_numtexgens + 2);
     }
     out.Write(",\n  in float clipDist0 : SV_ClipDistance0\n");
     out.Write(",\n  in float clipDist1 : SV_ClipDistance1\n");
-    if (uid_data->stereo)
+    if (stereo)
       out.Write(",\n  in uint layer : SV_RenderTargetArrayIndex\n");
     out.Write("        ) {\n");
   }
@@ -630,7 +615,7 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const pixel_shader_uid_data*
   out.Write("\tfloat4 col0 = colors_0;\n");
   out.Write("\tfloat4 col1 = colors_1;\n");
 
-  if (uid_data->per_pixel_lighting)
+  if (per_pixel_lighting)
   {
     out.Write("\tfloat3 _norm0 = normalize(Normal.xyz);\n\n");
     out.Write("\tfloat3 pos = WorldPos;\n");
@@ -682,12 +667,12 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const pixel_shader_uid_data*
         out.Write("\ttempcoord = int2(0, 0);\n");
 
       out.Write("\tint3 iindtex%d = ", i);
-      SampleTexture(out, "float2(tempcoord)", "abg", texmap, uid_data->stereo, ApiType);
+      SampleTexture(out, "float2(tempcoord)", "abg", texmap, stereo, ApiType);
     }
   }
 
   for (unsigned int i = 0; i < numStages; i++)
-    WriteStage(out, uid_data, i, ApiType);  // build the equation for this stage
+    WriteStage(out, uid_data, i, ApiType, stereo);  // build the equation for this stage
 
   {
     // The results of the last texenv stage are put onto the screen,
@@ -728,7 +713,7 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const pixel_shader_uid_data*
     out.Write("\tint zCoord = int(" I_ZSLOPE ".z + " I_ZSLOPE ".x * screenpos.x + " I_ZSLOPE
               ".y * screenpos.y);\n");
   }
-  else if (!uid_data->fast_depth_calc)
+  else if (!g_ActiveConfig.bFastDepthCalc)
   {
     // FastDepth means to trust the depth generated in perspective division.
     // It should be correct, but it seems not to be as accurate as required. TODO: Find out why!
@@ -814,7 +799,7 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const pixel_shader_uid_data*
 }
 
 static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, int n,
-                       APIType ApiType)
+                       APIType ApiType, bool stereo)
 {
   auto& stage = uid_data->stagehash[n];
   out.Write("\n\t// TEV stage %d\n", n);
@@ -1013,8 +998,7 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
         out.Write("\ttevcoord.xy = int2(0, 0);\n");
     }
     out.Write("\ttextemp = ");
-    SampleTexture(out, "float2(tevcoord.xy)", texswap, stage.tevorders_texmap, uid_data->stereo,
-                  ApiType);
+    SampleTexture(out, "float2(tevcoord.xy)", texswap, stage.tevorders_texmap, stereo, ApiType);
   }
   else
   {
