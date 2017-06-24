@@ -446,10 +446,14 @@ void ObjectCache::ClearPipelineCache()
   m_compute_pipeline_objects.clear();
 }
 
-std::string ObjectCache::GetDiskCacheFileName(const char* type)
+std::string ObjectCache::GetDiskCacheFileName(const char* type, bool include_gameid,
+                                              bool include_host_config)
 {
-  return StringFromFormat("%svulkan-%s-%s.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
-                          SConfig::GetInstance().GetGameID().c_str(), type);
+  return StringFromFormat(
+      "%svulkan-%s%s%s%s%s.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(), type,
+      include_gameid ? "-" : "", include_gameid ? SConfig::GetInstance().GetGameID().c_str() : "",
+      include_host_config ? "-" : "",
+      include_host_config ? g_ActiveConfig.GetHostConfigFilename().c_str() : "");
 }
 
 class PipelineCacheReadCallback : public LinearDiskCacheReader<u32, u8>
@@ -475,7 +479,10 @@ public:
 
 bool ObjectCache::CreatePipelineCache()
 {
-  m_pipeline_cache_filename = GetDiskCacheFileName("pipeline");
+  // Vulkan pipeline caches can be shared between games for shader compile time reduction.
+  // This assumes that drivers don't create all pipelines in the cache on load time, only
+  // when a lookup occurs that matches a pipeline (or pipeline data) in the cache.
+  m_pipeline_cache_filename = GetDiskCacheFileName("pipeline", false, true);
 
   VkPipelineCacheCreateInfo info = {
       VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO,  // VkStructureType            sType
@@ -498,7 +505,7 @@ bool ObjectCache::LoadPipelineCache()
 {
   // We have to keep the pipeline cache file name around since when we save it
   // we delete the old one, by which time the game's unique ID is already cleared.
-  m_pipeline_cache_filename = GetDiskCacheFileName("pipeline");
+  m_pipeline_cache_filename = GetDiskCacheFileName("pipeline", false, true);
 
   std::vector<u8> disk_data;
   LinearDiskCache<u32, u8> disk_cache;
@@ -664,15 +671,15 @@ struct ShaderCacheReader : public LinearDiskCacheReader<Uid, u32>
 void ObjectCache::LoadShaderCaches()
 {
   ShaderCacheReader<VertexShaderUid> vs_reader(m_vs_cache.shader_map);
-  m_vs_cache.disk_cache.OpenAndRead(GetDiskCacheFileName("vs"), vs_reader);
+  m_vs_cache.disk_cache.OpenAndRead(GetDiskCacheFileName("vs", true, true), vs_reader);
 
   ShaderCacheReader<PixelShaderUid> ps_reader(m_ps_cache.shader_map);
-  m_ps_cache.disk_cache.OpenAndRead(GetDiskCacheFileName("ps"), ps_reader);
+  m_ps_cache.disk_cache.OpenAndRead(GetDiskCacheFileName("ps", true, true), ps_reader);
 
   if (g_vulkan_context->SupportsGeometryShaders())
   {
     ShaderCacheReader<GeometryShaderUid> gs_reader(m_gs_cache.shader_map);
-    m_gs_cache.disk_cache.OpenAndRead(GetDiskCacheFileName("gs"), gs_reader);
+    m_gs_cache.disk_cache.OpenAndRead(GetDiskCacheFileName("gs", true, true), gs_reader);
   }
 
   SETSTAT(stats.numPixelShadersCreated, static_cast<int>(m_ps_cache.shader_map.size()));
@@ -684,6 +691,7 @@ void ObjectCache::LoadShaderCaches()
 template <typename T>
 static void DestroyShaderCache(T& cache)
 {
+  cache.disk_cache.Sync();
   cache.disk_cache.Close();
   for (const auto& it : cache.shader_map)
   {
@@ -823,6 +831,23 @@ void ObjectCache::RecompileSharedShaders()
   DestroySharedShaders();
   if (!CompileSharedShaders())
     PanicAlert("Failed to recompile shared shaders.");
+}
+
+void ObjectCache::ReloadShaderAndPipelineCaches()
+{
+  SavePipelineCache();
+  DestroyShaderCaches();
+  DestroyPipelineCache();
+
+  if (g_ActiveConfig.bShaderCache)
+  {
+    LoadShaderCaches();
+    LoadPipelineCache();
+  }
+  else
+  {
+    CreatePipelineCache();
+  }
 }
 
 bool ObjectCache::CreateDescriptorSetLayouts()

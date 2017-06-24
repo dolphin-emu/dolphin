@@ -115,7 +115,20 @@ bool StateTracker::Initialize()
   return true;
 }
 
-void StateTracker::LoadPipelineUIDCache()
+void StateTracker::InvalidateShaderPointers()
+{
+  // Clear UIDs, forcing a false match next time.
+  m_vs_uid = {};
+  m_gs_uid = {};
+  m_ps_uid = {};
+
+  // Invalidate shader pointers.
+  m_pipeline_state.vs = VK_NULL_HANDLE;
+  m_pipeline_state.gs = VK_NULL_HANDLE;
+  m_pipeline_state.ps = VK_NULL_HANDLE;
+}
+
+void StateTracker::ReloadPipelineUIDCache()
 {
   class PipelineInserter final : public LinearDiskCacheReader<SerializedPipelineUID, u32>
   {
@@ -130,7 +143,8 @@ void StateTracker::LoadPipelineUIDCache()
     StateTracker* this_ptr;
   };
 
-  std::string filename = g_object_cache->GetDiskCacheFileName("pipeline-uid");
+  // UID caches don't contain any host state, so use a single uid cache per gameid.
+  std::string filename = g_object_cache->GetDiskCacheFileName("pipeline-uid", true, false);
   PipelineInserter inserter(this);
 
   // OpenAndRead calls Close() first, which will flush all data to disk when reloading.
