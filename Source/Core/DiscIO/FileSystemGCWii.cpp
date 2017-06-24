@@ -285,7 +285,7 @@ std::unique_ptr<FileInfo> FileSystemGCWii::FindFileInfo(const std::string& path,
 
   for (const FileInfo& child : file_info)
   {
-    if (child.GetName() == searching_for)
+    if (!strcasecmp(child.GetName().c_str(), searching_for.c_str()))
     {
       // A match is found. The rest of the path is passed on to finish the search.
       std::unique_ptr<FileInfo> result = FindFileInfo(rest_of_path, child);
