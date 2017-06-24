@@ -38,6 +38,14 @@
   <PropertyGroup>
     <OutDir>$(BuildRootDir)</OutDir>
   </PropertyGroup>
+  <!--
+    DisableFastUpToDateCheck bypasses Visual Studio's build manager and forces MSBuild to be run
+    on the project. This allows our PreBuildEvent to be run by MSBuild even if VS thinks things
+    are up-to-date.
+   -->
+  <PropertyGroup>
+    <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
+  </PropertyGroup>
   <ItemDefinitionGroup>
     <PreBuildEvent>
       <Command>"$(CScript)" /nologo /E:JScript "make_scmrev.h.js"</Command>
@@ -47,8 +55,6 @@
     <None Include="make_scmrev.h.js" />
   </ItemGroup>
   <ItemGroup>
-    <!-- force_rebuild.h is a non-existent file used to "trick" msbuild into always re-running this project. -->
-    <ClInclude Include="force_rebuild.h" />
     <ClInclude Include="scmrev.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
