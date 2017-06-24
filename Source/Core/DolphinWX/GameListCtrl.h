@@ -125,7 +125,7 @@ private:
   } m_image_indexes;
 
   // Actual backing GameListItems are maintained in a background thread and cached to file
-  static constexpr u32 CACHE_REVISION = 0;
+  static constexpr u32 CACHE_REVISION = 1;  // Last changed in PR 5680
   std::list<std::shared_ptr<GameListItem>> m_cached_files;
   std::thread m_scan_thread;
   Common::Event m_scan_trigger;
