@@ -27,6 +27,8 @@ public:
   explicit MainWindow();
   ~MainWindow();
 
+  bool eventFilter(QObject* object, QEvent* event) override;
+
 signals:
   void EmulationStarted();
   void EmulationPaused();
@@ -86,6 +88,7 @@ private:
   GameList* m_game_list;
   RenderWidget* m_render_widget;
   bool m_rendering_to_main;
+  bool m_stop_requested = false;
   int m_state_slot = 1;
 
   HotkeyScheduler* m_hotkey_scheduler;
