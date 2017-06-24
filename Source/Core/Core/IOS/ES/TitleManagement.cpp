@@ -365,8 +365,10 @@ ReturnCode ES::ImportTitleDone(Context& context)
         if (content.IsShared())
           return shared_content_map.GetFilenameFromSHA1(content.sha1).has_value();
 
-        return File::Exists(Common::GetTitleContentPath(title_id, Common::FROM_SESSION_ROOT) +
-                            StringFromFormat("%08x.app", content.id));
+        // Note: the import hasn't been finalised yet, so the whole title directory
+        // is still in /import, not /title.
+        return File::Exists(Common::GetImportTitlePath(title_id, Common::FROM_SESSION_ROOT) +
+                            StringFromFormat("/content/%08x.app", content.id));
       });
   if (!has_all_required_contents)
     return ES_EINVAL;
