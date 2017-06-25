@@ -20,9 +20,9 @@ namespace Common
 {
 #ifndef HAS_STD_FILESYSTEM
 
-static std::vector<std::string>
-FileSearchWithTest(const std::vector<std::string>& directories, bool recursive,
-                   std::function<bool(const File::FSTEntry&)> callback)
+std::vector<std::string>
+DoFileSearch(const std::vector<std::string>& directories, bool recursive,
+             std::function<bool(const std::string& path, bool is_directory)> filter)
 {
   std::vector<std::string> result;
   for (const std::string& directory : directories)
@@ -31,7 +31,7 @@ FileSearchWithTest(const std::vector<std::string>& directories, bool recursive,
 
     std::function<void(File::FSTEntry&)> DoEntry;
     DoEntry = [&](File::FSTEntry& entry) {
-      if (callback(entry))
+      if (!filter || filter(entry.physicalName, entry.isDirectory))
         result.push_back(entry.physicalName);
       for (auto& child : entry.children)
         DoEntry(child);
@@ -45,57 +45,17 @@ FileSearchWithTest(const std::vector<std::string>& directories, bool recursive,
   return result;
 }
 
-static std::vector<std::string> DoFileSearchNoSTL(const std::vector<std::string>& directories,
-                                                  const std::vector<std::string>& exts,
-                                                  bool recursive)
-{
-  bool accept_all = exts.empty();
-  return FileSearchWithTest(directories, recursive, [&](const File::FSTEntry& entry) {
-    if (accept_all)
-      return true;
-    std::string name = entry.virtualName;
-    std::transform(name.begin(), name.end(), name.begin(), ::tolower);
-    return std::any_of(exts.begin(), exts.end(), [&](const std::string& ext) {
-      return name.length() >= ext.length() &&
-             name.compare(name.length() - ext.length(), ext.length(), ext) == 0;
-    });
-  });
-}
-
-std::vector<std::string> DoFileSearch(const std::vector<std::string>& directories,
-                                      const std::vector<std::string>& exts, bool recursive)
-{
-  return DoFileSearchNoSTL(directories, exts, recursive);
-}
-
 #else
 
-std::vector<std::string> DoFileSearch(const std::vector<std::string>& directories,
-                                      const std::vector<std::string>& exts, bool recursive)
+std::vector<std::string>
+DoFileSearch(const std::vector<std::string>& directories, bool recursive,
+             std::function<bool(const std::string& path, bool is_directory)> filter)
 {
-  bool accept_all = exts.empty();
-
-  std::vector<fs::path> native_exts;
-  for (const auto& ext : exts)
-    native_exts.push_back(ext);
-
-  // N.B. This avoids doing any copies
-  auto ext_matches = [&native_exts](const fs::path& path) {
-    const auto& native_path = path.native();
-    return std::any_of(native_exts.cbegin(), native_exts.cend(), [&native_path](const auto& ext) {
-      // TODO provide cross-platform compat for the comparison function, once more platforms
-      // support std::filesystem
-      return native_path.length() >= ext.native().length() &&
-             _wcsicmp(&native_path.c_str()[native_path.length() - ext.native().length()],
-                      ext.c_str()) == 0;
-    });
-  };
-
   std::vector<std::string> result;
   auto add_filtered = [&](const fs::directory_entry& entry) {
-    auto& path = entry.path();
-    if (accept_all || (ext_matches(path) && !fs::is_directory(path)))
-      result.emplace_back(path.u8string());
+    const std::string u8_path = entry.path().u8string();
+    if (!filter || filter(u8_path, fs::is_directory(entry.path())))
+      result.emplace_back(u8_path);
   };
   for (const auto& directory : directories)
   {
@@ -128,5 +88,23 @@ std::vector<std::string> DoFileSearch(const std::vector<std::string>& directorie
 }
 
 #endif
+
+std::vector<std::string>
+DoFileSearch(const std::vector<std::string>& directories, bool recursive,
+             const std::vector<std::string>& exts,
+             std::function<bool(const std::string& path, bool is_directory)> predicate)
+{
+  return DoFileSearch(directories, recursive, [&](const std::string& path, bool is_directory) {
+    if (is_directory)
+      return false;
+    std::string path_copy = path;
+    std::transform(path_copy.begin(), path_copy.end(), path_copy.begin(), ::tolower);
+    const bool ext_matches = std::any_of(exts.begin(), exts.end(), [&](const std::string& ext) {
+      return path_copy.length() >= ext.length() &&
+             path_copy.compare(path_copy.length() - ext.length(), ext.length(), ext) == 0;
+    });
+    return ext_matches && (!predicate || predicate(path, is_directory));
+  });
+}
 
 }  // namespace Common
