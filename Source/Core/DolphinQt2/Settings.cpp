@@ -146,28 +146,28 @@ QVector<QString> Settings::GetProfiles(const InputConfig* config) const
 
 bool Settings::IsLogVisible() const
 {
-  return SConfig::GetInstance().m_InterfaceLogWindow;
+  return QSettings().value(QStringLiteral("logging/logvisible")).toBool();
 }
 
 void Settings::SetLogVisible(bool visible)
 {
   if (IsLogVisible() != visible)
   {
-    SConfig::GetInstance().m_InterfaceLogWindow = visible;
+    QSettings().setValue(QStringLiteral("logging/logvisible"), visible);
     emit LogVisibilityChanged(visible);
   }
 }
 
 bool Settings::IsLogConfigVisible() const
 {
-  return SConfig::GetInstance().m_InterfaceLogConfigWindow;
+  return QSettings().value(QStringLiteral("logging/logconfigvisible")).toBool();
 }
 
 void Settings::SetLogConfigVisible(bool visible)
 {
   if (IsLogConfigVisible() != visible)
   {
-    SConfig::GetInstance().m_InterfaceLogConfigWindow = visible;
+    QSettings().setValue(QStringLiteral("logging/logconfigvisible"), visible);
     emit LogConfigVisibilityChanged(visible);
   }
 }
