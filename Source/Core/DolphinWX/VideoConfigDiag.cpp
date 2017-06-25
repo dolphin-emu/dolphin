@@ -622,8 +622,8 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
       szr_stereo->Add(new wxStaticText(page_enh, wxID_ANY, _("Stereoscopic 3D Mode:")), 0,
                       wxALIGN_CENTER_VERTICAL);
 
-      const wxString stereo_choices[] = {_("Off"), _("Side-by-Side"), _("Top-and-Bottom"),
-                                         _("Anaglyph"), _("Nvidia 3D Vision")};
+      const wxString stereo_choices[] = {_("Off"),      _("Side-by-Side"), _("Top-and-Bottom"),
+                                         _("Anaglyph"), _("Quad-Buffer"),  _("Nvidia 3D Vision")};
       wxChoice* stereo_choice =
           CreateChoice(page_enh, Config::GFX_STEREO_MODE, wxGetTranslation(stereo_3d_desc),
                        vconfig.backend_info.bSupports3DVision ? ArraySize(stereo_choices) :
