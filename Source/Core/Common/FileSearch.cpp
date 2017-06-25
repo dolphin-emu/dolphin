@@ -45,9 +45,8 @@ FileSearchWithTest(const std::vector<std::string>& directories, bool recursive,
   return result;
 }
 
-static std::vector<std::string> DoFileSearchNoSTL(const std::vector<std::string>& directories,
-                                                  const std::vector<std::string>& exts,
-                                                  bool recursive)
+std::vector<std::string> DoFileSearch(const std::vector<std::string>& directories,
+                                      const std::vector<std::string>& exts, bool recursive)
 {
   bool accept_all = exts.empty();
   return FileSearchWithTest(directories, recursive, [&](const File::FSTEntry& entry) {
@@ -60,12 +59,6 @@ static std::vector<std::string> DoFileSearchNoSTL(const std::vector<std::string>
              name.compare(name.length() - ext.length(), ext.length(), ext) == 0;
     });
   });
-}
-
-std::vector<std::string> DoFileSearch(const std::vector<std::string>& directories,
-                                      const std::vector<std::string>& exts, bool recursive)
-{
-  return DoFileSearchNoSTL(directories, exts, recursive);
 }
 
 #else
