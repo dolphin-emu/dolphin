@@ -4,14 +4,17 @@
 
 #pragma once
 
+#include <functional>
 #include <string>
 #include <vector>
 
 namespace Common
 {
-// Callers can pass empty "exts" to indicate they want all files + directories in results
-// Otherwise, only files matching the extensions are returned
-std::vector<std::string> DoFileSearch(const std::vector<std::string>& directories,
-                                      bool recursive = false,
-                                      const std::vector<std::string>& exts = {});
+std::vector<std::string>
+DoFileSearch(const std::vector<std::string>& directories, bool recursive = false,
+             std::function<bool(const std::string& path, bool is_directory)> predicate = {});
+std::vector<std::string>
+DoFileSearch(const std::vector<std::string>& directories, bool recursive,
+             const std::vector<std::string>& exts,
+             std::function<bool(const std::string& path, bool is_directory)> predicate = {});
 }  // namespace Common
