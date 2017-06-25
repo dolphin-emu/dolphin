@@ -97,7 +97,7 @@ void HiresTexture::Update()
   };
 
   std::vector<std::string> filenames =
-      Common::DoFileSearch({texture_directory}, extensions, /*recursive*/ true);
+      Common::DoFileSearch({texture_directory}, /*recursive*/ true, extensions);
 
   const std::string code = game_id + "_";
 

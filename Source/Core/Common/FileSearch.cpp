@@ -89,8 +89,8 @@ DoFileSearch(const std::vector<std::string>& directories, bool recursive,
 
 #endif
 
-std::vector<std::string> DoFileSearch(const std::vector<std::string>& directories,
-                                      const std::vector<std::string>& exts, bool recursive)
+std::vector<std::string> DoFileSearch(const std::vector<std::string>& directories, bool recursive,
+                                      const std::vector<std::string>& exts)
 {
   const bool accept_all = exts.empty();
   return DoFileSearch(directories, recursive, [&](const std::string& path, bool is_directory) {

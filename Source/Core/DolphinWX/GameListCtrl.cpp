@@ -752,8 +752,9 @@ void GameListCtrl::RescanList()
   const std::vector<std::string> search_extensions = {".gcm",  ".tgc", ".iso", ".ciso", ".gcz",
                                                       ".wbfs", ".wad", ".dol", ".elf"};
   // TODO This could process paths iteratively as they are found
-  auto search_results = Common::DoFileSearch(SConfig::GetInstance().m_ISOFolder, search_extensions,
-                                             SConfig::GetInstance().m_RecursiveISOFolder);
+  const std::vector<std::string> search_results =
+      Common::DoFileSearch(SConfig::GetInstance().m_ISOFolder,
+                           SConfig::GetInstance().m_RecursiveISOFolder, search_extensions);
 
   std::vector<std::string> cached_paths;
   for (const auto& file : m_cached_files)
