@@ -14,20 +14,20 @@
 #include "Common/Swap.h"
 #include "Core/ConfigManager.h"
 
-CMixer::CMixer(unsigned int BackendSampleRate)
+Mixer::Mixer(unsigned int BackendSampleRate)
     : m_sampleRate(BackendSampleRate), m_stretcher(BackendSampleRate)
 {
   INFO_LOG(AUDIO_INTERFACE, "Mixer is initialized");
   DPL2Reset();
 }
 
-CMixer::~CMixer()
+Mixer::~Mixer()
 {
 }
 
 // Executed from sound stream thread
-unsigned int CMixer::MixerFifo::Mix(short* samples, unsigned int numSamples,
-                                    bool consider_framelimit)
+unsigned int Mixer::MixerFifo::Mix(short* samples, unsigned int numSamples,
+                                   bool consider_framelimit)
 {
   unsigned int currentSample = 0;
 
@@ -117,7 +117,7 @@ unsigned int CMixer::MixerFifo::Mix(short* samples, unsigned int numSamples,
   return actual_sample_count;
 }
 
-unsigned int CMixer::Mix(short* samples, unsigned int num_samples)
+unsigned int Mixer::Mix(short* samples, unsigned int num_samples)
 {
   if (!samples)
     return 0;
@@ -154,7 +154,7 @@ unsigned int CMixer::Mix(short* samples, unsigned int num_samples)
   return num_samples;
 }
 
-unsigned int CMixer::MixSurround(float* samples, unsigned int num_samples)
+unsigned int Mixer::MixSurround(float* samples, unsigned int num_samples)
 {
   if (!num_samples)
     return 0;
@@ -175,7 +175,7 @@ unsigned int CMixer::MixSurround(float* samples, unsigned int num_samples)
   return available_samples;
 }
 
-void CMixer::MixerFifo::PushSamples(const short* samples, unsigned int num_samples)
+void Mixer::MixerFifo::PushSamples(const short* samples, unsigned int num_samples)
 {
   // Cache access in non-volatile variable
   // indexR isn't allowed to cache in the audio throttling loop as it
@@ -204,7 +204,7 @@ void CMixer::MixerFifo::PushSamples(const short* samples, unsigned int num_sampl
   m_indexW.fetch_add(num_samples * 2);
 }
 
-void CMixer::PushSamples(const short* samples, unsigned int num_samples)
+void Mixer::PushSamples(const short* samples, unsigned int num_samples)
 {
   m_dma_mixer.PushSamples(samples, num_samples);
   int sample_rate = m_dma_mixer.GetInputSampleRate();
@@ -212,7 +212,7 @@ void CMixer::PushSamples(const short* samples, unsigned int num_samples)
     m_wave_writer_dsp.AddStereoSamplesBE(samples, num_samples, sample_rate);
 }
 
-void CMixer::PushStreamingSamples(const short* samples, unsigned int num_samples)
+void Mixer::PushStreamingSamples(const short* samples, unsigned int num_samples)
 {
   m_streaming_mixer.PushSamples(samples, num_samples);
   int sample_rate = m_streaming_mixer.GetInputSampleRate();
@@ -220,8 +220,8 @@ void CMixer::PushStreamingSamples(const short* samples, unsigned int num_samples
     m_wave_writer_dtk.AddStereoSamplesBE(samples, num_samples, sample_rate);
 }
 
-void CMixer::PushWiimoteSpeakerSamples(const short* samples, unsigned int num_samples,
-                                       unsigned int sample_rate)
+void Mixer::PushWiimoteSpeakerSamples(const short* samples, unsigned int num_samples,
+                                      unsigned int sample_rate)
 {
   short samples_stereo[MAX_SAMPLES * 2];
 
@@ -239,27 +239,27 @@ void CMixer::PushWiimoteSpeakerSamples(const short* samples, unsigned int num_sa
   }
 }
 
-void CMixer::SetDMAInputSampleRate(unsigned int rate)
+void Mixer::SetDMAInputSampleRate(unsigned int rate)
 {
   m_dma_mixer.SetInputSampleRate(rate);
 }
 
-void CMixer::SetStreamInputSampleRate(unsigned int rate)
+void Mixer::SetStreamInputSampleRate(unsigned int rate)
 {
   m_streaming_mixer.SetInputSampleRate(rate);
 }
 
-void CMixer::SetStreamingVolume(unsigned int lvolume, unsigned int rvolume)
+void Mixer::SetStreamingVolume(unsigned int lvolume, unsigned int rvolume)
 {
   m_streaming_mixer.SetVolume(lvolume, rvolume);
 }
 
-void CMixer::SetWiimoteSpeakerVolume(unsigned int lvolume, unsigned int rvolume)
+void Mixer::SetWiimoteSpeakerVolume(unsigned int lvolume, unsigned int rvolume)
 {
   m_wiimote_speaker_mixer.SetVolume(lvolume, rvolume);
 }
 
-void CMixer::StartLogDTKAudio(const std::string& filename)
+void Mixer::StartLogDTKAudio(const std::string& filename)
 {
   if (!m_log_dtk_audio)
   {
@@ -282,7 +282,7 @@ void CMixer::StartLogDTKAudio(const std::string& filename)
   }
 }
 
-void CMixer::StopLogDTKAudio()
+void Mixer::StopLogDTKAudio()
 {
   if (m_log_dtk_audio)
   {
@@ -296,7 +296,7 @@ void CMixer::StopLogDTKAudio()
   }
 }
 
-void CMixer::StartLogDSPAudio(const std::string& filename)
+void Mixer::StartLogDSPAudio(const std::string& filename)
 {
   if (!m_log_dsp_audio)
   {
@@ -319,7 +319,7 @@ void CMixer::StartLogDSPAudio(const std::string& filename)
   }
 }
 
-void CMixer::StopLogDSPAudio()
+void Mixer::StopLogDSPAudio()
 {
   if (m_log_dsp_audio)
   {
@@ -333,26 +333,26 @@ void CMixer::StopLogDSPAudio()
   }
 }
 
-void CMixer::MixerFifo::SetInputSampleRate(unsigned int rate)
+void Mixer::MixerFifo::SetInputSampleRate(unsigned int rate)
 {
   m_input_sample_rate = rate;
 }
 
-unsigned int CMixer::MixerFifo::GetInputSampleRate() const
+unsigned int Mixer::MixerFifo::GetInputSampleRate() const
 {
   return m_input_sample_rate;
 }
 
-void CMixer::MixerFifo::SetVolume(unsigned int lvolume, unsigned int rvolume)
+void Mixer::MixerFifo::SetVolume(unsigned int lvolume, unsigned int rvolume)
 {
   m_LVolume.store(lvolume + (lvolume >> 7));
   m_RVolume.store(rvolume + (rvolume >> 7));
 }
 
-unsigned int CMixer::MixerFifo::AvailableSamples() const
+unsigned int Mixer::MixerFifo::AvailableSamples() const
 {
   unsigned int samples_in_fifo = ((m_indexW.load() - m_indexR.load()) & INDEX_MASK) / 2;
   if (samples_in_fifo <= 1)
-    return 0;  // CMixer::MixerFifo::Mix always keeps one sample in the buffer.
+    return 0;  // Mixer::MixerFifo::Mix always keeps one sample in the buffer.
   return (samples_in_fifo - 1) * m_mixer->m_sampleRate / m_input_sample_rate;
 }

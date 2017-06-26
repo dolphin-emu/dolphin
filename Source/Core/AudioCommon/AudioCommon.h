@@ -10,7 +10,7 @@
 
 #include "AudioCommon/SoundStream.h"
 
-class CMixer;
+class Mixer;
 
 extern std::unique_ptr<SoundStream> g_sound_stream;
 

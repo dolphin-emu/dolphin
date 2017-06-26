@@ -918,7 +918,7 @@ void UpdateTitle()
   // Update the audio timestretcher with the current speed
   if (g_sound_stream)
   {
-    CMixer* pMixer = g_sound_stream->GetMixer();
+    Mixer* pMixer = g_sound_stream->GetMixer();
     pMixer->UpdateSpeed((float)Speed / 100);
   }
 
