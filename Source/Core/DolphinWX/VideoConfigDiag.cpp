@@ -277,8 +277,9 @@ static wxString cache_efb_copies_desc =
 static wxString stereo_3d_desc =
     wxTRANSLATE("Selects the stereoscopic 3D mode. Stereoscopy allows you to get a better feeling "
                 "of depth if you have the necessary hardware.\nSide-by-Side and Top-and-Bottom are "
-                "used by most 3D TVs.\nAnaglyph is used for Red-Cyan colored glasses.\nHeavily "
-                "decreases emulation speed and sometimes causes issues.\n\nIf unsure, select Off.");
+                "used by most 3D TVs.\nAnaglyph is used for Red-Cyan colored glasses.\nHDMI 3D is "
+                "used when your monitor supports 3D display resolutions.\nHeavily decreases "
+                "emulation speed and sometimes causes issues.\n\nIf unsure, select Off.");
 static wxString stereo_depth_desc =
     wxTRANSLATE("Controls the separation distance between the virtual cameras.\nA higher value "
                 "creates a stronger feeling of depth while a lower value is more comfortable.");
@@ -623,7 +624,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
                       wxALIGN_CENTER_VERTICAL);
 
       const wxString stereo_choices[] = {_("Off"),      _("Side-by-Side"), _("Top-and-Bottom"),
-                                         _("Anaglyph"), _("Quad-Buffer"),  _("Nvidia 3D Vision")};
+                                         _("Anaglyph"), _("HDMI 3D"),      _("Nvidia 3D Vision")};
       wxChoice* stereo_choice =
           CreateChoice(page_enh, Config::GFX_STEREO_MODE, wxGetTranslation(stereo_3d_desc),
                        vconfig.backend_info.bSupports3DVision ? ArraySize(stereo_choices) :
