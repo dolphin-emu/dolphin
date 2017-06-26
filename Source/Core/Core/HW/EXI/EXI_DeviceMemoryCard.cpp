@@ -18,6 +18,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
+#include "Core/CommonTitles.h"
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/EXI/EXI.h"
@@ -160,7 +161,8 @@ void CEXIMemoryCard::SetupGciFolder(u16 sizeMb)
 
   const std::string& game_id = SConfig::GetInstance().GetGameID();
   u32 CurrentGameId = 0;
-  if (game_id.length() >= 4 && game_id != "00000000" && game_id != TITLEID_SYSMENU_STRING)
+  if (game_id.length() >= 4 && game_id != "00000000" &&
+      SConfig::GetInstance().GetTitleID() != Titles::SYSTEM_MENU)
     CurrentGameId = BE32((u8*)game_id.c_str());
 
   const bool shift_jis = region == DiscIO::Region::NTSC_J;

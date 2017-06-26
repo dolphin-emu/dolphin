@@ -521,6 +521,7 @@
     <ClInclude Include="PowerPC\PPCTables.h" />
     <ClInclude Include="PowerPC\Profiler.h" />
     <ClInclude Include="State.h" />
+    <ClInclude Include="Titles.h" />
     <ClInclude Include="TitleDatabase.h" />
     <ClInclude Include="WiiRoot.h" />
   </ItemGroup>

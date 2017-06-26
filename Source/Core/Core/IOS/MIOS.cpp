@@ -15,6 +15,7 @@
 #include "Common/NandPaths.h"
 #include "Common/Swap.h"
 #include "Core/Boot/ElfReader.h"
+#include "Core/CommonTitles.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/DSPEmulator.h"
@@ -34,8 +35,6 @@ namespace HLE
 {
 namespace MIOS
 {
-constexpr u64 MIOS_TITLE_ID = 0x0000000100000101;
-
 // Source: https://wiibrew.org/wiki/ARM_Binaries
 struct ARMBinary final
 {
@@ -92,7 +91,7 @@ u32 ARMBinary::GetElfSize() const
 static std::vector<u8> GetMIOSBinary()
 {
   const auto& loader =
-      DiscIO::NANDContentManager::Access().GetNANDLoader(MIOS_TITLE_ID, Common::FROM_SESSION_ROOT);
+      DiscIO::NANDContentManager::Access().GetNANDLoader(Titles::MIOS, Common::FROM_SESSION_ROOT);
   if (!loader.IsValid())
     return {};
 

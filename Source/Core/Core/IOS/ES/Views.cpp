@@ -12,6 +12,7 @@
 
 #include "Common/Logging/Log.h"
 #include "Common/NandPaths.h"
+#include "Core/CommonTitles.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/Memmap.h"
@@ -34,7 +35,8 @@ namespace Device
 //       booted from the game list, though.
 static bool ShouldReturnFakeViewsForIOSes(u64 title_id, const TitleContext& context)
 {
-  const bool ios = IsTitleType(title_id, IOS::ES::TitleType::System) && title_id != TITLEID_SYSMENU;
+  const bool ios =
+      IsTitleType(title_id, IOS::ES::TitleType::System) && title_id != Titles::SYSTEM_MENU;
   const bool disc_title = context.active && IOS::ES::IsDiscTitle(context.tmd.GetTitleId());
   return Core::WantsDeterminism() ||
          (ios && SConfig::GetInstance().m_disc_booted_from_game_list && disc_title);

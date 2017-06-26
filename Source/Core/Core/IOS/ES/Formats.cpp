@@ -24,6 +24,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
+#include "Core/CommonTitles.h"
 #include "Core/IOS/Device.h"
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/IOSC.h"
@@ -47,7 +48,7 @@ bool IsDiscTitle(u64 title_id)
 
 bool IsChannel(u64 title_id)
 {
-  if (title_id == TITLEID_SYSMENU)
+  if (title_id == Titles::SYSTEM_MENU)
     return true;
 
   return IsTitleType(title_id, TitleType::Channel) ||
@@ -233,7 +234,7 @@ u64 TMDReader::GetIOSId() const
 
 DiscIO::Region TMDReader::GetRegion() const
 {
-  if (GetTitleId() == 0x0000000100000002)
+  if (GetTitleId() == Titles::SYSTEM_MENU)
     return DiscIO::GetSysMenuRegion(GetTitleVersion());
 
   return DiscIO::RegionSwitchWii(static_cast<u8>(GetTitleId() & 0xff));
@@ -577,7 +578,7 @@ UIDSys::UIDSys(Common::FromWhichRoot root)
 
   if (m_entries.empty())
   {
-    GetOrInsertUIDForTitle(TITLEID_SYSMENU);
+    GetOrInsertUIDForTitle(Titles::SYSTEM_MENU);
   }
 }
 

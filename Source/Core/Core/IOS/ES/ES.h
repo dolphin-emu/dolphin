@@ -132,6 +132,8 @@ public:
   ReturnCode DeleteSharedContent(const std::array<u8, 20>& sha1) const;
   ReturnCode DeleteContent(u64 title_id, u32 content_id) const;
 
+  ReturnCode GetDeviceId(u32* device_id) const;
+
   // Views
   ReturnCode GetV0TicketFromView(const u8* ticket_view, u8* ticket) const;
   ReturnCode GetTicketFromView(const u8* ticket_view, u8* ticket, u32* ticket_size) const;
@@ -237,7 +239,7 @@ private:
   IPCCommandResult DeleteContent(const IOCtlVRequest& request);
 
   // Device identity and encryption
-  IPCCommandResult GetConsoleID(const IOCtlVRequest& request);
+  IPCCommandResult GetDeviceId(const IOCtlVRequest& request);
   IPCCommandResult GetDeviceCertificate(const IOCtlVRequest& request);
   IPCCommandResult CheckKoreaRegion(const IOCtlVRequest& request);
   IPCCommandResult Sign(const IOCtlVRequest& request);

@@ -32,6 +32,7 @@
 
 #include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
+#include "Core/CommonTitles.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/CPU.h"
@@ -1214,7 +1215,7 @@ void CFrame::OnShowCheatsWindow(wxCommandEvent& WXUNUSED(event))
 
 void CFrame::OnLoadWiiMenu(wxCommandEvent& WXUNUSED(event))
 {
-  BootGame(Common::GetTitleContentPath(TITLEID_SYSMENU, Common::FROM_CONFIGURED_ROOT));
+  BootGame(Common::GetTitleContentPath(Titles::SYSTEM_MENU, Common::FROM_CONFIGURED_ROOT));
 }
 
 void CFrame::OnInstallWAD(wxCommandEvent& event)
@@ -1272,7 +1273,7 @@ void CFrame::OnUninstallWAD(wxCommandEvent&)
     return;
   }
 
-  if (title_id == TITLEID_SYSMENU)
+  if (title_id == Titles::SYSTEM_MENU)
     UpdateLoadWiiMenuItem();
 }
 
@@ -1503,7 +1504,7 @@ void CFrame::UpdateGUI()
       ->FindItem(IDM_LOAD_GC_IPL_EUR)
       ->Enable(!Initialized && File::Exists(SConfig::GetInstance().GetBootROMPath(EUR_DIR)));
   if (DiscIO::NANDContentManager::Access()
-          .GetNANDLoader(TITLEID_SYSMENU, Common::FROM_CONFIGURED_ROOT)
+          .GetNANDLoader(Titles::SYSTEM_MENU, Common::FROM_CONFIGURED_ROOT)
           .IsValid())
     GetMenuBar()->FindItem(IDM_LOAD_WII_MENU)->Enable(!Initialized);
 

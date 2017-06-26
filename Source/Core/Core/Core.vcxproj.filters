@@ -895,6 +895,7 @@
     <ClInclude Include="NetPlayServer.h" />
     <ClInclude Include="PatchEngine.h" />
     <ClInclude Include="State.h" />
+    <ClInclude Include="Titles.h" />
     <ClInclude Include="TitleDatabase.h" />
     <ClInclude Include="WiiRoot.h" />
     <ClInclude Include="ActionReplay.h">

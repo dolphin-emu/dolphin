@@ -17,6 +17,7 @@
 #include "Common/SettingsHandler.h"
 
 #include "Core/Boot/Boot.h"
+#include "Core/CommonTitles.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HLE/HLE.h"
@@ -230,7 +231,7 @@ bool CBoot::SetupWiiMemory(const DiscIO::Volume* volume, u64 ios_title_id)
   SettingsHandler gen;
   std::string serno;
   const std::string settings_file_path(
-      Common::GetTitleDataPath(TITLEID_SYSMENU, Common::FROM_SESSION_ROOT) + WII_SETTING);
+      Common::GetTitleDataPath(Titles::SYSTEM_MENU, Common::FROM_SESSION_ROOT) + WII_SETTING);
   if (File::Exists(settings_file_path) && gen.Open(settings_file_path))
   {
     serno = gen.GetValue("SERNO");
