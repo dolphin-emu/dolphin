@@ -17,4 +17,6 @@ constexpr u64 SYSTEM_MENU_IOS = 0x0000000100000050;
 
 constexpr u64 BC = 0x0000000100000100;
 constexpr u64 MIOS = 0x0000000100000101;
+
+constexpr u64 SHOP = 0x0001000248414241;
 }  // namespace Titles

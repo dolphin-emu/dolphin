@@ -23,7 +23,6 @@
 #include "Common/Logging/Log.h"
 #include "Common/Swap.h"
 
-constexpr u32 default_NG_id = 0x0403AC68;
 constexpr u32 default_NG_key_id = 0x6AAB8C59;
 
 constexpr u8 default_NG_priv[] = {
@@ -65,7 +64,7 @@ void MakeNGCert(u8* ng_cert_out, u32 NG_id, u32 NG_key_id, const u8* NG_priv, co
   char name[64];
   if ((NG_id == 0) || (NG_key_id == 0) || (NG_priv == nullptr) || (NG_sig == nullptr))
   {
-    NG_id = default_NG_id;
+    NG_id = DEFAULT_WII_DEVICE_ID;
     NG_key_id = default_NG_key_id;
     NG_priv = default_NG_priv;
     NG_sig = default_NG_sig;
@@ -98,7 +97,7 @@ void MakeAPSigAndCert(u8* sig_out, u8* ap_cert_out, u64 title_id, u8* data, u32 
   if ((NG_id == 0) || (NG_priv == nullptr))
   {
     NG_priv = default_NG_priv;
-    NG_id = default_NG_id;
+    NG_id = DEFAULT_WII_DEVICE_ID;
   }
 
   memset(ap_priv, 0, 0x1e);
@@ -186,7 +185,7 @@ void EcWii::InitDefaults()
 {
   memset(&BootMiiKeysBin, 0, sizeof(BootMiiKeysBin));
 
-  BootMiiKeysBin.ng_id = Common::swap32(default_NG_id);
+  BootMiiKeysBin.ng_id = Common::swap32(DEFAULT_WII_DEVICE_ID);
   BootMiiKeysBin.ng_key_id = Common::swap32(default_NG_key_id);
 
   memcpy(BootMiiKeysBin.ng_priv, default_NG_priv, sizeof(BootMiiKeysBin.ng_priv));

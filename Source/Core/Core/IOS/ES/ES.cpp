@@ -26,6 +26,7 @@
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/IOSC.h"
+#include "Core/ec_wii.h"
 #include "DiscIO/NANDContentLoader.h"
 
 namespace IOS
@@ -241,6 +242,22 @@ bool ES::LaunchTitle(u64 title_id, bool skip_reload)
   // leaving them open through ES_Launch may cause hangs and other funky behavior
   // (supposedly when trying to re-open those files).
   DiscIO::NANDContentManager::Access().ClearCache();
+
+  u32 device_id;
+  if (title_id == Titles::SHOP &&
+      (GetDeviceId(&device_id) != IPC_SUCCESS || device_id == DEFAULT_WII_DEVICE_ID))
+  {
+    ERROR_LOG(IOS_ES, "Refusing to launch the shop channel with default device credentials");
+    CriticalAlertT("You cannot use the Wii Shop Channel without using your own device credentials."
+                   "\nPlease refer to the NAND usage guide for setup instructions: "
+                   "https://dolphin-emu.org/docs/guides/nand-usage-guide/");
+
+    // Send the user back to the system menu instead of returning an error, which would
+    // likely make the system menu crash. Doing this is okay as anyone who has the shop
+    // also has the system menu installed, and this behaviour is consistent with what
+    // ES does when its DRM system refuses the use of a particular title.
+    return LaunchTitle(Titles::SYSTEM_MENU);
+  }
 
   if (IsTitleType(title_id, IOS::ES::TitleType::System) && title_id != Titles::SYSTEM_MENU)
     return LaunchIOS(title_id);
