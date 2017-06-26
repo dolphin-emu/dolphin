@@ -100,7 +100,6 @@ endif()
 
 if(WIN32)
   list(APPEND SRCS
-    DolphinWX.manifest
     DolphinWX.rc
   )
 endif()
