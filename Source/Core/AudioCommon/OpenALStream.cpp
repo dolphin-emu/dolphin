@@ -9,7 +9,6 @@
 #include <thread>
 
 #include "AudioCommon/OpenALStream.h"
-#include "AudioCommon/aldlist.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/Thread.h"
@@ -24,21 +23,19 @@
 //
 bool OpenALStream::Start()
 {
-  ALDeviceList pDeviceList;
-  if (!pDeviceList.GetNumDevices())
+  if (!alcIsExtensionPresent(nullptr, "ALC_ENUMERATION_EXT"))
   {
     PanicAlertT("OpenAL: can't find sound devices");
     return false;
   }
 
-  char* defDevName = pDeviceList.GetDeviceName(pDeviceList.GetDefaultDevice());
+  const char* defaultDeviceName = alcGetString(nullptr, ALC_DEFAULT_DEVICE_SPECIFIER);
+  INFO_LOG(AUDIO, "Found OpenAL device %s", defaultDeviceName);
 
-  INFO_LOG(AUDIO, "Found OpenAL device %s", defDevName);
-
-  ALCdevice* pDevice = alcOpenDevice(defDevName);
+  ALCdevice* pDevice = alcOpenDevice(defaultDeviceName);
   if (!pDevice)
   {
-    PanicAlertT("OpenAL: can't open device %s", defDevName);
+    PanicAlertT("OpenAL: can't open device %s", defaultDeviceName);
     return false;
   }
 
@@ -46,7 +43,7 @@ bool OpenALStream::Start()
   if (!pContext)
   {
     alcCloseDevice(pDevice);
-    PanicAlertT("OpenAL: can't create context for device %s", defDevName);
+    PanicAlertT("OpenAL: can't create context for device %s", defaultDeviceName);
     return false;
   }
 
