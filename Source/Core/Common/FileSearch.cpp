@@ -46,14 +46,15 @@ FileSearchWithTest(const std::vector<std::string>& directories, bool recursive,
   return result;
 }
 
-static std::vector<std::string> DoFileSearchNoSTL(const std::vector<std::string>& directories,
-                                                  const std::vector<std::string>& exts,
-                                                  bool recursive)
+std::vector<std::string> DoFileSearch(const std::vector<std::string>& directories,
+                                      const std::vector<std::string>& exts, bool recursive)
 {
   bool accept_all = exts.empty();
   return FileSearchWithTest(directories, recursive, [&](const File::FSTEntry& entry) {
     if (accept_all)
       return true;
+    if (entry.isDirectory)
+      return false;
     std::string name = entry.virtualName;
     std::transform(name.begin(), name.end(), name.begin(), ::tolower);
     return std::any_of(exts.begin(), exts.end(), [&](const std::string& ext) {
@@ -61,12 +62,6 @@ static std::vector<std::string> DoFileSearchNoSTL(const std::vector<std::string>
              name.compare(name.length() - ext.length(), ext.length(), ext) == 0;
     });
   });
-}
-
-std::vector<std::string> DoFileSearch(const std::vector<std::string>& directories,
-                                      const std::vector<std::string>& exts, bool recursive)
-{
-  return DoFileSearchNoSTL(directories, exts, recursive);
 }
 
 #else
@@ -120,9 +115,11 @@ std::vector<std::string> DoFileSearch(const std::vector<std::string>& directorie
   std::sort(result.begin(), result.end());
   result.erase(std::unique(result.begin(), result.end()), result.end());
 
-  // Dolphin expects to be able to use "/" (DIR_SEP) everywhere. std::filesystem uses the OS
-  // separator.
-  if (fs::path::preferred_separator != DIR_SEP_CHR)
+  // Dolphin expects to be able to use "/" (DIR_SEP) everywhere.
+  // std::filesystem uses the OS separator.
+  constexpr fs::path::value_type os_separator = fs::path::preferred_separator;
+  static_assert(os_separator == DIR_SEP_CHR || os_separator == '\\', "Unsupported path separator");
+  if (os_separator != DIR_SEP_CHR)
     for (auto& path : result)
       std::replace(path.begin(), path.end(), '\\', DIR_SEP_CHR);
 
