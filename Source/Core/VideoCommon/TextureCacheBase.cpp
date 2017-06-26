@@ -158,7 +158,7 @@ void TextureCacheBase::Cleanup(int _frameCount)
     }
     else if (_frameCount > TEXTURE_KILL_THRESHOLD + iter->second->frameCount)
     {
-      if (iter->second->IsEfbCopy())
+      if (iter->second->IsCopy())
       {
         // Only remove EFB copies when they wouldn't be used anymore(changed hash), because EFB
         // copies living on the
@@ -243,7 +243,8 @@ TextureCacheBase::ApplyPaletteToEntry(TCacheEntry* entry, u8* palette, TLUTForma
   decoded_entry->SetDimensions(entry->native_width, entry->native_height, 1);
   decoded_entry->SetHashes(entry->base_hash, entry->hash);
   decoded_entry->frameCount = FRAMECOUNT_INVALID;
-  decoded_entry->is_efb_copy = false;
+  decoded_entry->should_force_safe_hashing = false;
+  decoded_entry->SetNotCopy();
   decoded_entry->may_have_overlapping_textures = entry->may_have_overlapping_textures;
 
   ConvertTexture(decoded_entry, entry, palette, tlutfmt);
@@ -307,7 +308,7 @@ TextureCacheBase::DoPartialTextureUpdates(TCacheEntry* entry_to_update, u8* pale
 
   // EFB copies are excluded from these updates, until there's an example where a game would
   // benefit from updating. This would require more work to be done.
-  if (entry_to_update->IsEfbCopy())
+  if (entry_to_update->IsCopy())
     return entry_to_update;
 
   u32 block_width = TexDecoder_GetBlockWidthInTexels(entry_to_update->format.texfmt);
@@ -321,7 +322,7 @@ TextureCacheBase::DoPartialTextureUpdates(TCacheEntry* entry_to_update, u8* pale
   while (iter.first != iter.second)
   {
     TCacheEntry* entry = iter.first->second;
-    if (entry != entry_to_update && entry->IsEfbCopy() && !entry->tmem_only &&
+    if (entry != entry_to_update && entry->IsCopy() && !entry->tmem_only &&
         entry->references.count(entry_to_update) == 0 &&
         entry->OverlapsMemoryRange(entry_to_update->addr, entry_to_update->size_in_bytes) &&
         entry->memory_stride == numBlocksX * block_size)
@@ -793,7 +794,7 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::GetTexture(u32 address, u32 wid
 
     // Do not load strided EFB copies, they are not meant to be used directly.
     // Also do not directly load EFB copies, which were partly overwritten.
-    if (entry->IsEfbCopy() && entry->native_width == nativeW && entry->native_height == nativeH &&
+    if (entry->IsCopy() && entry->native_width == nativeW && entry->native_height == nativeH &&
         entry->memory_stride == entry->BytesPerRow() && !entry->may_have_overlapping_textures)
     {
       // EFB copies have slightly different rules as EFB copy formats have different
@@ -828,7 +829,7 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::GetTexture(u32 address, u32 wid
     else
     {
       // For normal textures, all texture parameters need to match
-      if (!entry->IsEfbCopy() && entry->hash == full_hash && entry->format == full_format &&
+      if (!entry->IsCopy() &&  entry->hash == full_hash && entry->format == full_format &&
           entry->native_levels >= tex_levels && entry->native_width == nativeW &&
           entry->native_height == nativeH)
       {
@@ -844,7 +845,7 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::GetTexture(u32 address, u32 wid
     // Example: Sonic the Fighters (inside Sonic Gems Collection)
     // Skip EFB copies here, so they can be used for partial texture updates
     if (entry->frameCount != FRAMECOUNT_INVALID && entry->frameCount < temp_frameCount &&
-        !entry->IsEfbCopy() && !(isPaletteTexture && entry->base_hash == base_hash))
+        !entry->IsCopy() && !(isPaletteTexture && entry->base_hash == base_hash))
     {
       temp_frameCount = entry->frameCount;
       oldest_entry = iter;
@@ -1016,9 +1017,9 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::GetTexture(u32 address, u32 wid
   entry->SetGeneralParameters(address, texture_size, full_format, false);
   entry->SetDimensions(nativeW, nativeH, tex_levels);
   entry->SetHashes(base_hash, full_hash);
-  entry->is_efb_copy = false;
   entry->is_custom_tex = hires_tex != nullptr;
   entry->memory_stride = entry->BytesPerRow();
+  entry->SetNotCopy();
 
   std::string basename = "";
   if (g_ActiveConfig.bDumpTextures && !hires_tex)
@@ -1557,7 +1558,15 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstF
       entry->SetDimensions(tex_w, tex_h, 1);
 
       entry->frameCount = FRAMECOUNT_INVALID;
-      entry->SetEfbCopy(dstStride);
+      if (is_xfb_copy)
+      {
+        entry->should_force_safe_hashing = is_xfb_copy;
+        entry->SetXfbCopy(dstStride);
+      }
+      else
+      {
+        entry->SetEfbCopy(dstStride);
+      }
       entry->may_have_overlapping_textures = false;
       entry->is_custom_tex = false;
 
@@ -1727,14 +1736,32 @@ u32 TextureCacheBase::TCacheEntry::NumBlocksY() const
   return actualHeight / blockH;
 }
 
-void TextureCacheBase::TCacheEntry::SetEfbCopy(u32 stride)
+void TextureCacheBase::TCacheEntry::SetXfbCopy(u32 stride)
 {
-  is_efb_copy = true;
+  is_efb_copy = false;
+  is_xfb_copy = true;
   memory_stride = stride;
 
   _assert_msg_(VIDEO, memory_stride >= BytesPerRow(), "Memory stride is too small");
 
   size_in_bytes = memory_stride * NumBlocksY();
+}
+
+void TextureCacheBase::TCacheEntry::SetEfbCopy(u32 stride)
+{
+  is_efb_copy = true;
+  is_xfb_copy = false;
+  memory_stride = stride;
+
+  _assert_msg_(VIDEO, memory_stride >= BytesPerRow(), "Memory stride is too small");
+
+  size_in_bytes = memory_stride * NumBlocksY();
+}
+
+void TextureCacheBase::TCacheEntry::SetNotCopy()
+{
+  is_xfb_copy = false;
+  is_efb_copy = false;
 }
 
 int TextureCacheBase::TCacheEntry::HashSampleSize() const

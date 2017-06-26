@@ -150,7 +150,7 @@ TextureConverter::GetCommandBufferForTextureConversion(const TextureCache::TCach
   // EFB copies can be used as paletted textures as well. For these, we can't assume them to be
   // contain the correct data before the frame begins (when the init command buffer is executed),
   // so we must convert them at the appropriate time, during the drawing command buffer.
-  if (src_entry->IsEfbCopy())
+  if (src_entry->IsCopy())
   {
     StateTracker::GetInstance()->EndRenderPass();
     StateTracker::GetInstance()->SetPendingRebind();

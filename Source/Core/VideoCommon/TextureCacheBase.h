@@ -85,6 +85,7 @@ public:
     bool has_arbitrary_mips = false;  // indicates that the mips in this texture are arbitrary
                                       // content, aren't just downscaled
     bool should_force_safe_hashing = false;  // for XFB
+    bool is_xfb_copy = false;
 
     unsigned int native_width,
         native_height;  // Texture dimensions from the GameCube's point of view
@@ -137,11 +138,15 @@ public:
       other_entry->references.emplace(this);
     }
 
+    void SetXfbCopy(u32 stride);
     void SetEfbCopy(u32 stride);
+    void SetNotCopy();
 
     bool OverlapsMemoryRange(u32 range_address, u32 range_size) const;
 
     bool IsEfbCopy() const { return is_efb_copy; }
+    bool IsCopy() const { return is_xfb_copy || is_efb_copy; }
+
     u32 NumBlocksY() const;
     u32 BytesPerRow() const;
 
