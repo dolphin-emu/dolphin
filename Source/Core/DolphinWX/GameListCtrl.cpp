@@ -423,7 +423,13 @@ void GameListCtrl::RefreshList()
     {
       auto file = std::make_shared<GameListItem>(drive);
       if (file->IsValid())
+      {
+        if (file->EmuStateChanged())
+          file->EmuStateCommit();
+        if (file->CustomNameChanged(m_title_database))
+          file->CustomNameCommit();
         m_shown_files.push_back(file);
+      }
     }
   }
 
