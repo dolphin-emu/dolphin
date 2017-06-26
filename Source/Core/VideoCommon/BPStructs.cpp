@@ -12,8 +12,10 @@
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
 #include "Core/ConfigManager.h"
+#include "Core/FifoPlayer/FifoPlayer.h"
 #include "Core/FifoPlayer/FifoRecorder.h"
 #include "Core/HW/Memmap.h"
+#include "Core/HW/VideoInterface.h"
 
 #include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/BPMemory.h"
@@ -263,6 +265,11 @@ static void BPWritten(const BPCmd& bp)
 
       // This stays in to signal end of a "frame"
       g_renderer->RenderToXFB(destAddr, srcRect, destStride, height, s_gammaLUT[PE_copy.gamma]);
+
+      if (FifoPlayer::GetInstance().IsRunningWithFakeVideoInterfaceUpdates())
+      {
+        VideoInterface::FakeVIUpdate(destAddr, srcRect.GetWidth(), height);
+      }
     }
 
     // Clear the rectangular region after copying it.
