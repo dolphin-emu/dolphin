@@ -9,6 +9,7 @@
 #include "Common/FileSearch.h"
 
 #ifdef _MSC_VER
+#include <Windows.h>
 #include <experimental/filesystem>
 namespace fs = std::experimental::filesystem;
 #define HAS_STD_FILESYSTEM
@@ -85,9 +86,10 @@ std::vector<std::string> DoFileSearch(const std::vector<std::string>& directorie
     return std::any_of(native_exts.cbegin(), native_exts.cend(), [&native_path](const auto& ext) {
       // TODO provide cross-platform compat for the comparison function, once more platforms
       // support std::filesystem
-      return native_path.length() >= ext.native().length() &&
-             _wcsicmp(&native_path.c_str()[native_path.length() - ext.native().length()],
-                      ext.c_str()) == 0;
+      int compare_len = static_cast<int>(ext.native().length());
+      return native_path.length() >= compare_len &&
+             CompareStringOrdinal(&native_path.c_str()[native_path.length() - compare_len],
+                                  compare_len, ext.c_str(), compare_len, TRUE) == CSTR_EQUAL;
     });
   };
 
@@ -102,12 +104,12 @@ std::vector<std::string> DoFileSearch(const std::vector<std::string>& directorie
     if (recursive)
     {
       // TODO use fs::directory_options::follow_directory_symlink ?
-      for (auto& entry : fs::recursive_directory_iterator(fs::path(directory.c_str())))
+      for (auto& entry : fs::recursive_directory_iterator(fs::path(directory)))
         add_filtered(entry);
     }
     else
     {
-      for (auto& entry : fs::directory_iterator(fs::path(directory.c_str())))
+      for (auto& entry : fs::directory_iterator(fs::path(directory)))
         add_filtered(entry);
     }
   }
