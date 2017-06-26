@@ -610,9 +610,10 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::Load(const u32 stage)
   while (iter != iter_range.second)
   {
     TCacheEntry* entry = iter->second;
-    // Do not load strided EFB copies, they are not meant to be used directly
+    // Do not load strided EFB copies, they are not meant to be used directly.
+    // Also do not directly load EFB copies, which were partly overwritten.
     if (entry->IsEfbCopy() && entry->native_width == nativeW && entry->native_height == nativeH &&
-        entry->memory_stride == entry->BytesPerRow())
+        entry->memory_stride == entry->BytesPerRow() && !entry->may_have_overlapping_textures)
     {
       // EFB copies have slightly different rules as EFB copy formats have different
       // meanings from texture formats.
@@ -646,7 +647,7 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::Load(const u32 stage)
     else
     {
       // For normal textures, all texture parameters need to match
-      if (entry->hash == full_hash && entry->format == full_format &&
+      if (!entry->IsEfbCopy() && entry->hash == full_hash && entry->format == full_format &&
           entry->native_levels >= tex_levels && entry->native_width == nativeW &&
           entry->native_height == nativeH)
       {
@@ -1226,22 +1227,6 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
   unsigned int scaled_tex_h =
       g_ActiveConfig.bCopyEFBScaled ? g_renderer->EFBToScaledY(tex_h) : tex_h;
 
-  // Remove all texture cache entries at dstAddr
-  //   It's not possible to have two EFB copies at the same address, this makes sure any old efb
-  //   copies
-  //   (or normal textures) are removed from texture cache. They are also un-linked from any
-  //   partially
-  //   updated textures, which forces that partially updated texture to be updated.
-  // TODO: This also wipes out non-efb copies, which is counterproductive.
-  {
-    auto iter_range = textures_by_address.equal_range(dstAddr);
-    TexAddrCache::iterator iter = iter_range.first;
-    while (iter != iter_range.second)
-    {
-      iter = InvalidateTexture(iter);
-    }
-  }
-
   // Get the base (in memory) format of this efb copy.
   int baseFormat = TexDecoder_GetEfbCopyBaseFormat(dstFormat);
 
@@ -1310,18 +1295,21 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
     copy_to_vram = false;
   }
 
-  // Invalidate all textures that overlap the range of our efb copy.
-  // Unless our efb copy has a weird stride, then we mark them to check for partial texture updates.
-  // TODO: This also invalidates partial overlaps, which we currently don't have a better way
-  //       of dealing with.
-  bool invalidate_textures = dstStride == bytes_per_row || !copy_to_vram;
+  // Invalidate all efb copies that fully overlap the range of our efb copy, and mark
+  // non efb copies to be updated via DoPartialTextureUpdates().
+  // Efb copies, which don't fully overlap are also marked as having overlapping efb
+  // copies, so they are not loaded directly and are only used as partial updates.
+  // TODO: Invalidate parts of those overwritten efb copies, instead of applying all of
+  //       them as partial updates, in the order of their creation.
   auto iter = FindOverlappingTextures(dstAddr, covered_range);
   while (iter.first != iter.second)
   {
     TCacheEntry* entry = iter.first->second;
     if (entry->OverlapsMemoryRange(dstAddr, covered_range))
     {
-      if (invalidate_textures)
+      u32 overlap_range = std::min(entry->addr + entry->size_in_bytes, dstAddr + covered_range) -
+                          std::max(entry->addr, dstAddr);
+      if (entry->IsEfbCopy() && overlap_range == entry->size_in_bytes)
       {
         iter.first = InvalidateTexture(iter.first);
         continue;
@@ -1349,6 +1337,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
 
       entry->frameCount = FRAMECOUNT_INVALID;
       entry->SetEfbCopy(dstStride);
+      entry->may_have_overlapping_textures = false;
       entry->is_custom_tex = false;
 
       CopyEFBToCacheEntry(entry, is_depth_copy, srcRect, scaleByHalf, cbufid, colmat);
