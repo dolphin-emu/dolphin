@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <QCloseEvent>
 #include <QDir>
 #include <QFileDialog>
 #include <QIcon>
@@ -36,6 +37,8 @@
 #include "DolphinQt2/Settings.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
+
+#include "UICommon/UICommon.h"
 
 MainWindow::MainWindow() : QMainWindow(nullptr)
 {
@@ -92,6 +95,8 @@ void MainWindow::ShutdownControllers()
 void MainWindow::InitCoreCallbacks()
 {
   Core::SetOnStoppedCallback([this] { emit EmulationStopped(); });
+  installEventFilter(this);
+  m_render_widget->installEventFilter(this);
 }
 
 static void InstallHotkeyFilter(QWidget* dialog)
@@ -198,6 +203,11 @@ void MainWindow::ConnectToolBar()
   connect(this, &MainWindow::EmulationStarted, m_tool_bar, &ToolBar::EmulationStarted);
   connect(this, &MainWindow::EmulationPaused, m_tool_bar, &ToolBar::EmulationPaused);
   connect(this, &MainWindow::EmulationStopped, m_tool_bar, &ToolBar::EmulationStopped);
+
+  connect(this, &MainWindow::EmulationStopped, [this] {
+    m_stop_requested = false;
+    m_render_widget->hide();
+  });
 }
 
 void MainWindow::ConnectGameList()
@@ -272,25 +282,54 @@ void MainWindow::Pause()
 
 bool MainWindow::Stop()
 {
-  bool stop = true;
+  if (!Core::IsRunning())
+    return true;
+
   if (Settings::Instance().GetConfirmStop())
   {
-    // We could pause the game here and resume it if they say no.
+    const Core::State state = Core::GetState();
+    // Set to false when Netplay is running as a CPU thread
+    bool pause = true;
+
+    if (pause)
+      Core::SetState(Core::State::Paused);
+
     QMessageBox::StandardButton confirm;
-    confirm = QMessageBox::question(m_render_widget, tr("Confirm"), tr("Stop emulation?"));
-    stop = (confirm == QMessageBox::Yes);
+    confirm = QMessageBox::question(m_render_widget, tr("Confirm"),
+                                    m_stop_requested ?
+                                        tr("A shutdown is already in progress. Unsaved data "
+                                           "may be lost if you stop the current emulation "
+                                           "before it completes. Force stop?") :
+                                        tr("Do you want to stop the current emulation?"));
+    if (confirm != QMessageBox::Yes)
+      return false;
+
+    if (pause)
+      Core::SetState(state);
   }
 
-  if (stop)
+  // TODO: Add Movie shutdown
+  // TODO: Add Debugger shutdown
+
+  if (!m_stop_requested && UICommon::TriggerSTMPowerEvent())
   {
-    ForceStop();
+    m_stop_requested = true;
+
+    // Unpause because gracefully shutting down needs the game to actually request a shutdown.
+    // Do not unpause in debug mode to allow debugging until the complete shutdown.
+    if (Core::GetState() == Core::State::Paused)
+      Core::SetState(Core::State::Running);
+
+    return false;
+  }
+
+  ForceStop();
 
 #ifdef Q_OS_WIN
-    // Allow windows to idle or turn off display again
-    SetThreadExecutionState(ES_CONTINUOUS);
+  // Allow windows to idle or turn off display again
+  SetThreadExecutionState(ES_CONTINUOUS);
 #endif
-  }
-  return stop;
+  return true;
 }
 
 void MainWindow::ForceStop()
@@ -479,4 +518,15 @@ void MainWindow::SetStateSlot(int slot)
 {
   Settings::Instance().SetStateSlot(slot);
   m_state_slot = slot;
+}
+
+bool MainWindow::eventFilter(QObject* object, QEvent* event)
+{
+  if (event->type() == QEvent::Close && !Stop())
+  {
+    static_cast<QCloseEvent*>(event)->ignore();
+    return true;
+  }
+
+  return false;
 }

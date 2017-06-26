@@ -253,7 +253,6 @@ private:
   void DoFullscreen(bool enable_fullscreen);
   void DoExclusiveFullscreen(bool enable_fullscreen);
   void ToggleDisplayMode(bool bFullscreen);
-  bool TriggerSTMPowerEvent();
   void OnStopped();
   void OnRenderWindowSizeRequest(int width, int height);
   void UpdateTitle(const wxString& str);

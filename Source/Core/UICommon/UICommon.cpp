@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <memory>
 #ifdef _WIN32
 #include <shlobj.h>  // for SHGetFolderPath
 #endif
@@ -14,7 +15,11 @@
 
 #include "Core/ConfigLoaders/BaseConfigLoader.h"
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/Wiimote.h"
+#include "Core/IOS/IOS.h"
+#include "Core/IOS/STM/STM.h"
 
 #include "InputCommon/GCAdapter.h"
 
@@ -223,6 +228,22 @@ void SaveWiimoteSources()
   sec.Set("Source", (int)g_wiimote_sources[WIIMOTE_BALANCE_BOARD]);
 
   inifile.Save(ini_filename);
+}
+
+bool TriggerSTMPowerEvent()
+{
+  const auto ios = IOS::HLE::GetIOS();
+  if (!ios)
+    return false;
+
+  const auto stm = ios->GetDeviceByName("/dev/stm/eventhook");
+  if (!stm || !std::static_pointer_cast<IOS::HLE::Device::STMEventHook>(stm)->HasHookInstalled())
+    return false;
+
+  Core::DisplayMessage("Shutting down", 30000);
+  ProcessorInterface::PowerButton_Tap();
+
+  return true;
 }
 
 }  // namespace UICommon
