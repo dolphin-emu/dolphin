@@ -579,8 +579,11 @@ void EndFrame()
 
 void Present()
 {
+  UINT present_flags =
+      g_ActiveConfig.iStereoMode != STEREO_QUADBUFFER ? DXGI_PRESENT_STEREO_TEMPORARY_MONO : 0;
+
   // TODO: Is 1 the correct value for vsyncing?
-  swapchain->Present((UINT)g_ActiveConfig.IsVSync(), 0);
+  swapchain->Present((UINT)g_ActiveConfig.IsVSync(), present_flags);
 }
 
 HRESULT SetFullscreenState(bool enable_fullscreen)
