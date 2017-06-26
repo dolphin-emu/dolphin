@@ -72,6 +72,13 @@ FifoDataFile::FifoDataFile() = default;
 
 FifoDataFile::~FifoDataFile() = default;
 
+// Note: when Fifo properly supports VideoInterface commands this should be updated to take into
+// account any versions that didn't have support
+bool FifoDataFile::ShouldGenerateFakeVIUpdates() const
+{
+  return true;
+}
+
 bool FifoDataFile::HasBrokenEFBCopies() const
 {
   return m_Version < 2;
