@@ -21,8 +21,6 @@ private:
   void LoadSettings() override;
   void SaveSettings() override;
 
-  void OnXFBToggled();
-
   // EFB
   QCheckBox* m_skip_efb_cpu;
   QCheckBox* m_ignore_format_changes;
@@ -33,9 +31,7 @@ private:
   QCheckBox* m_gpu_texture_decoding;
 
   // External Framebuffer
-  QCheckBox* m_disable_xfb;
-  QRadioButton* m_virtual_xfb;
-  QRadioButton* m_real_xfb;
+  QCheckBox* m_store_xfb_copies;
 
   // Other
   QCheckBox* m_fast_depth_calculation;

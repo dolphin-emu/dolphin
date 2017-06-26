@@ -67,8 +67,6 @@ void VideoConfig::Refresh()
   else
     iAspectRatio = aspect_ratio;
   bCrop = Config::Get(Config::GFX_CROP);
-  bUseXFB = Config::Get(Config::GFX_USE_XFB);
-  bUseRealXFB = Config::Get(Config::GFX_USE_REAL_XFB);
   iSafeTextureCache_ColorSamples = Config::Get(Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES);
   bShowFPS = Config::Get(Config::GFX_SHOW_FPS);
   bShowNetPlayPing = Config::Get(Config::GFX_SHOW_NETPLAY_PING);
@@ -138,6 +136,7 @@ void VideoConfig::Refresh()
       Config::Get(Config::GFX_HACK_BBOX_PREFER_STENCIL_IMPLEMENTATION);
   bForceProgressive = Config::Get(Config::GFX_HACK_FORCE_PROGRESSIVE);
   bSkipEFBCopyToRam = Config::Get(Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM);
+  bSkipXFBCopyToRam = Config::Get(Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM);
   bCopyEFBScaled = Config::Get(Config::GFX_HACK_COPY_EFB_ENABLED);
   bEFBEmulateFormatChanges = Config::Get(Config::GFX_HACK_EFB_EMULATE_FORMAT_CHANGES);
   bVertexRounding = Config::Get(Config::GFX_HACK_VERTEX_ROUDING);
@@ -169,13 +168,6 @@ void VideoConfig::VerifyValidity()
       OSD::AddMessage(
           "Stereoscopic 3D isn't supported by your GPU, support for OpenGL 3.2 is required.",
           10000);
-      iStereoMode = 0;
-    }
-
-    if (bUseXFB && bUseRealXFB)
-    {
-      OSD::AddMessage("Stereoscopic 3D isn't supported with Real XFB, turning off stereoscopy.",
-                      10000);
       iStereoMode = 0;
     }
   }

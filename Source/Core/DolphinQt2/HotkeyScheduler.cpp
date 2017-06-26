@@ -224,6 +224,8 @@ void HotkeyScheduler::Run()
         g_Config.iAspectRatio = (g_Config.iAspectRatio + 1) & 3;
       if (IsHotkey(HK_TOGGLE_EFBCOPIES))
         g_Config.bSkipEFBCopyToRam = !g_Config.bSkipEFBCopyToRam;
+      if (IsHotkey(HK_TOGGLE_XFBCOPIES))
+        g_Config.bSkipXFBCopyToRam = !g_Config.bSkipXFBCopyToRam;
       if (IsHotkey(HK_TOGGLE_FOG))
         g_Config.bDisableFog = !g_Config.bDisableFog;
       if (IsHotkey(HK_TOGGLE_DUMPTEXTURES))

@@ -87,10 +87,9 @@ struct DTMHeader
   bool bEFBAccessEnable;
   bool bEFBCopyEnable;
   bool bSkipEFBCopyToRam;
+  bool bSkipXFBCopyToRam;
   bool bEFBCopyCacheEnable;
   bool bEFBEmulateFormatChanges;
-  bool bUseXFB;
-  bool bUseRealXFB;
   u8 memcards;      // Memcards inserted (from least to most significant, the bits are slot A and B)
   bool bClearSave;  // Create a new memory card when playing back a movie if true
   u8 bongos;        // Bongos plugged in (from least to most significant, the bits are ports 1-4)
@@ -98,7 +97,7 @@ struct DTMHeader
   bool bNetPlay;
   bool bPAL60;
   u8 language;
-  u8 reserved[11];    // Padding for any new config options
+  u8 reserved[12];    // Padding for any new config options
   u8 discChange[40];  // Name of iso file to switch to, for two disc games.
   u8 revision[20];    // Git hash
   u32 DSPiromHash;

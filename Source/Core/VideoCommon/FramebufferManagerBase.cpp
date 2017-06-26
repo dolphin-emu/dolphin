@@ -40,15 +40,6 @@ FramebufferManagerBase::~FramebufferManagerBase()
 void FramebufferManagerBase::CopyToXFB(u32 xfbAddr, u32 fbStride, u32 fbHeight,
                                        const EFBRectangle& sourceRc, float Gamma)
 {
-  if (g_ActiveConfig.bUseRealXFB)
-  {
-    if (g_framebuffer_manager)
-      g_framebuffer_manager->CopyToRealXFB(xfbAddr, fbStride, fbHeight, sourceRc, Gamma);
-  }
-  else
-  {
-    CopyToVirtualXFB(xfbAddr, fbStride, fbHeight, sourceRc, Gamma);
-  }
 }
 
 void FramebufferManagerBase::CopyToVirtualXFB(u32 xfbAddr, u32 fbStride, u32 fbHeight,

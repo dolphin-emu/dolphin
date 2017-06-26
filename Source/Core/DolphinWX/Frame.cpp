@@ -1484,6 +1484,13 @@ void CFrame::ParseHotkeys()
     Config::SetCurrent(Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM,
                        !Config::Get(Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM));
   }
+  if (IsHotkey(HK_TOGGLE_XFBCOPIES))
+  {
+    OSDChoice = 6;
+    // Toggle XFB copies between XFB2RAM and XFB2Texture
+    Config::SetCurrent(Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM,
+                       !Config::Get(Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM));
+  }
   if (IsHotkey(HK_TOGGLE_FOG))
   {
     OSDChoice = 4;

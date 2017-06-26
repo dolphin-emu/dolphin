@@ -327,6 +327,7 @@ void Renderer::DrawDebugText()
     }
 
     const char* const efbcopy_text = g_ActiveConfig.bSkipEFBCopyToRam ? "to Texture" : "to RAM";
+    const char* const xfbcopy_text = g_ActiveConfig.bSkipXFBCopyToRam ? "to Texture" : "to RAM";
 
     // The rows
     const std::string lines[] = {
@@ -338,6 +339,7 @@ void Renderer::DrawDebugText()
             "Speed Limit: Unlimited" :
             StringFromFormat("Speed Limit: %li%%",
                              std::lround(SConfig::GetInstance().m_EmulationSpeed * 100.f)),
+        std::string("Copy XFB: ") + xfbcopy_text,
     };
 
     enum
@@ -688,8 +690,7 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
   // New frame
   stats.ResetFrame();
 
-  Core::Callback_VideoCopiedToXFB(m_xfb_written ||
-                                  (g_ActiveConfig.bUseXFB && g_ActiveConfig.bUseRealXFB));
+  Core::Callback_VideoCopiedToXFB(m_xfb_written || !g_ActiveConfig.bSkipXFBCopyToRam);
   m_xfb_written = false;
 }
 

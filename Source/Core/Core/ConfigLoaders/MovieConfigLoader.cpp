@@ -39,10 +39,10 @@ static void LoadFromDTM(Config::Layer* config_layer, Movie::DTMHeader* dtm)
   else
     config_layer->Set(Config::MAIN_GC_LANGUAGE, static_cast<int>(dtm->language));
 
-  config_layer->Set(Config::GFX_USE_XFB, dtm->bUseXFB);
-  config_layer->Set(Config::GFX_USE_REAL_XFB, dtm->bUseRealXFB);
+
   config_layer->Set(Config::GFX_HACK_EFB_ACCESS_ENABLE, dtm->bEFBAccessEnable);
   config_layer->Set(Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM, dtm->bSkipEFBCopyToRam);
+  config_layer->Set(Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM, dtm->bSkipXFBCopyToRam);
   config_layer->Set(Config::GFX_HACK_EFB_EMULATE_FORMAT_CHANGES, dtm->bEFBEmulateFormatChanges);
 }
 
@@ -62,10 +62,9 @@ void SaveToDTM(Movie::DTMHeader* dtm)
   else
     dtm->language = Config::Get(Config::MAIN_GC_LANGUAGE);
 
-  dtm->bUseXFB = Config::Get(Config::GFX_USE_XFB);
-  dtm->bUseRealXFB = Config::Get(Config::GFX_USE_REAL_XFB);
   dtm->bEFBAccessEnable = Config::Get(Config::GFX_HACK_EFB_ACCESS_ENABLE);
   dtm->bSkipEFBCopyToRam = Config::Get(Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM);
+  dtm->bSkipXFBCopyToRam = Config::Get(Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM);
   dtm->bEFBEmulateFormatChanges = Config::Get(Config::GFX_HACK_EFB_EMULATE_FORMAT_CHANGES);
 
   // This never used the regular config

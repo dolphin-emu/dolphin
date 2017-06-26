@@ -72,6 +72,7 @@ const std::string hotkey_labels[] = {
     _trans("Toggle Crop"),
     _trans("Toggle Aspect Ratio"),
     _trans("Toggle EFB Copies"),
+    _trans("Toggle XFB Copies"),
     _trans("Toggle Fog"),
     _trans("Toggle Texture Dumping"),
     _trans("Toggle Custom Textures"),

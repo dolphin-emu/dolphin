@@ -28,7 +28,7 @@ bool IsSettingSaveable(const Config::ConfigLocation& config_location)
       // Graphics.Settings
 
       Config::GFX_WIDESCREEN_HACK.location, Config::GFX_ASPECT_RATIO.location,
-      Config::GFX_CROP.location, Config::GFX_USE_XFB.location, Config::GFX_USE_REAL_XFB.location,
+      Config::GFX_CROP.location,
       Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES.location, Config::GFX_SHOW_FPS.location,
       Config::GFX_SHOW_NETPLAY_PING.location, Config::GFX_SHOW_NETPLAY_MESSAGES.location,
       Config::GFX_LOG_RENDER_TIME_TO_FILE.location, Config::GFX_OVERLAY_STATS.location,
@@ -73,6 +73,7 @@ bool IsSettingSaveable(const Config::ConfigLocation& config_location)
       Config::GFX_HACK_EFB_ACCESS_ENABLE.location, Config::GFX_HACK_BBOX_ENABLE.location,
       Config::GFX_HACK_BBOX_PREFER_STENCIL_IMPLEMENTATION.location,
       Config::GFX_HACK_FORCE_PROGRESSIVE.location, Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM.location,
+      Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM.location,
       Config::GFX_HACK_COPY_EFB_ENABLED.location,
       Config::GFX_HACK_EFB_EMULATE_FORMAT_CHANGES.location,
       Config::GFX_HACK_VERTEX_ROUDING.location,
