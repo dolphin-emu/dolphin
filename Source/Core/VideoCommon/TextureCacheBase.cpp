@@ -237,7 +237,7 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::ApplyPaletteToEntry(TCacheEntry
   if (!decoded_entry)
     return nullptr;
 
-  decoded_entry->SetGeneralParameters(entry->addr, entry->size_in_bytes, entry->format);
+  decoded_entry->SetGeneralParameters(entry->addr, entry->size_in_bytes, entry->FullFormat());
   decoded_entry->SetDimensions(entry->native_width, entry->native_height, 1);
   decoded_entry->SetHashes(entry->base_hash, entry->hash);
   decoded_entry->frameCount = FRAMECOUNT_INVALID;
@@ -299,19 +299,19 @@ TextureCacheBase::DoPartialTextureUpdates(TCacheEntry* entry_to_update, u8* pale
     return entry_to_update;
   entry_to_update->may_have_overlapping_textures = false;
 
-  const bool isPaletteTexture =
-      (entry_to_update->format == GX_TF_C4 || entry_to_update->format == GX_TF_C8 ||
-       entry_to_update->format == GX_TF_C14X2 || entry_to_update->format >= 0x10000);
+  const bool isPaletteTexture = (entry_to_update->TextureFormat() == GX_TF_C4 ||
+                                 entry_to_update->TextureFormat() == GX_TF_C8 ||
+                                 entry_to_update->TextureFormat() == GX_TF_C14X2);
 
   // EFB copies are excluded from these updates, until there's an example where a game would
   // benefit from updating. This would require more work to be done.
   if (entry_to_update->IsEfbCopy())
     return entry_to_update;
 
-  u32 block_width = TexDecoder_GetBlockWidthInTexels(entry_to_update->format & 0xf);
-  u32 block_height = TexDecoder_GetBlockHeightInTexels(entry_to_update->format & 0xf);
+  u32 block_width = TexDecoder_GetBlockWidthInTexels(entry_to_update->TextureFormat());
+  u32 block_height = TexDecoder_GetBlockHeightInTexels(entry_to_update->TextureFormat());
   u32 block_size = block_width * block_height *
-                   TexDecoder_GetTexelSizeInNibbles(entry_to_update->format & 0xf) / 2;
+                   TexDecoder_GetTexelSizeInNibbles(entry_to_update->TextureFormat()) / 2;
 
   u32 numBlocksX = (entry_to_update->native_width + block_width - 1) / block_width;
 
@@ -670,7 +670,7 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::Load(const u32 stage)
     else
     {
       // For normal textures, all texture parameters need to match
-      if (entry->hash == full_hash && entry->format == full_format &&
+      if (entry->hash == full_hash && entry->FullFormat() == full_format &&
           entry->native_levels >= tex_levels && entry->native_width == nativeW &&
           entry->native_height == nativeH)
       {
@@ -721,7 +721,7 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::Load(const u32 stage)
     {
       TCacheEntry* entry = hash_iter->second;
       // All parameters, except the address, need to match here
-      if (entry->format == full_format && entry->native_levels >= tex_levels &&
+      if (entry->FullFormat() == full_format && entry->native_levels >= tex_levels &&
           entry->native_width == nativeW && entry->native_height == nativeH)
       {
         entry = DoPartialTextureUpdates(hash_iter->second, &texMem[tlutaddr], tlutfmt);
@@ -1510,7 +1510,7 @@ TextureCacheBase::InvalidateTexture(TexAddrCache::iterator iter)
 
 u32 TextureCacheBase::TCacheEntry::BytesPerRow() const
 {
-  const u32 blockW = TexDecoder_GetBlockWidthInTexels(format);
+  const u32 blockW = TexDecoder_GetBlockWidthInTexels(TextureFormat());
 
   // Round up source height to multiple of block size
   const u32 actualWidth = Common::AlignUp(native_width, blockW);
@@ -1518,14 +1518,14 @@ u32 TextureCacheBase::TCacheEntry::BytesPerRow() const
   const u32 numBlocksX = actualWidth / blockW;
 
   // RGBA takes two cache lines per block; all others take one
-  const u32 bytes_per_block = format == GX_TF_RGBA8 ? 64 : 32;
+  const u32 bytes_per_block = TextureFormat() == GX_TF_RGBA8 ? 64 : 32;
 
   return numBlocksX * bytes_per_block;
 }
 
 u32 TextureCacheBase::TCacheEntry::NumBlocksY() const
 {
-  u32 blockH = TexDecoder_GetBlockHeightInTexels(format);
+  u32 blockH = TexDecoder_GetBlockHeightInTexels(TextureFormat());
   // Round up source height to multiple of block size
   u32 actualHeight = Common::AlignUp(native_height, blockH);
 

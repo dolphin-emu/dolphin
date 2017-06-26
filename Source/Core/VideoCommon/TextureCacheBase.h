@@ -34,8 +34,7 @@ public:
     u32 addr;
     u32 size_in_bytes;
     u64 base_hash;
-    u64 hash;    // for paletted textures, hash = base_hash ^ palette_hash
-    u32 format;  // bits 0-3 will contain the in-memory format.
+    u64 hash;  // for paletted textures, hash = base_hash ^ palette_hash
     u32 memory_stride;
     bool is_efb_copy;
     bool is_custom_tex;
@@ -107,6 +106,10 @@ public:
     u32 GetNumLevels() const { return texture->GetConfig().levels; }
     u32 GetNumLayers() const { return texture->GetConfig().layers; }
     AbstractTextureFormat GetFormat() const { return texture->GetConfig().format; }
+    u32 TextureFormat() const { return format & 0xf; }
+    u32 FullFormat() const { return format; }
+  private:
+    u32 format;  // bits 0-3 will contain the in-memory format.
   };
 
   virtual ~TextureCacheBase();  // needs virtual for DX11 dtor
