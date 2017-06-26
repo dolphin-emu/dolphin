@@ -1615,10 +1615,11 @@ void CFrame::GameListRefresh()
   wxPostEvent(m_game_list_ctrl, event);
 }
 
-void CFrame::GameListRescan()
+void CFrame::GameListRescan(bool purge_cache)
 {
   wxCommandEvent event{DOLPHIN_EVT_RESCAN_GAMELIST, GetId()};
   event.SetEventObject(this);
+  event.SetInt(purge_cache ? 1 : 0);
   wxPostEvent(m_game_list_ctrl, event);
 }
 
@@ -1692,7 +1693,7 @@ void CFrame::GameListChanged(wxCommandEvent& event)
       File::Delete(filename);
     }
     // Do rescan after cache has been cleared
-    GameListRescan();
+    GameListRescan(true);
     return;
   }
 

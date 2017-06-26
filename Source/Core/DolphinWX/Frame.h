@@ -99,7 +99,7 @@ public:
   void DoStop();
   void UpdateGUI();
   void GameListRefresh();
-  void GameListRescan();
+  void GameListRescan(bool purge_cache = false);
   void ToggleLogWindow(bool bShow);
   void ToggleLogConfigWindow(bool bShow);
   void StatusBarMessage(const char* format, ...);
