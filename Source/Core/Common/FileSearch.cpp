@@ -52,6 +52,8 @@ std::vector<std::string> DoFileSearch(const std::vector<std::string>& directorie
   return FileSearchWithTest(directories, recursive, [&](const File::FSTEntry& entry) {
     if (accept_all)
       return true;
+    if (entry.isDirectory)
+      return false;
     std::string name = entry.virtualName;
     std::transform(name.begin(), name.end(), name.begin(), ::tolower);
     return std::any_of(exts.begin(), exts.end(), [&](const std::string& ext) {
