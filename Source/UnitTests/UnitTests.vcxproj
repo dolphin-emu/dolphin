@@ -45,7 +45,7 @@
         The following libs are needed since we pull in pretty much the entire
         dolphin codebase.
         -->
-      <AdditionalLibraryDirectories>$(ExternalsDir)OpenAL\lib;$(ExternalsDir)ffmpeg\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ExternalsDir)ffmpeg\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>avrt.lib;iphlpapi.lib;winmm.lib;setupapi.lib;opengl32.lib;glu32.lib;rpcrt4.lib;comctl32.lib;avcodec.lib;avformat.lib;avutil.lib;swresample.lib;swscale.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
     </Link>
@@ -88,25 +88,6 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
-  <!--
-    This project is always built, but the outputs are conditionally executed.
-    The tests will either be run by VS' test runner (requires a plugin to adapt
-    to gtest - developers will mostly use this method), or via msbuild (the
-    buildbot does it this way). The gtest adapter has the restriction that it
-    can only scan for tests on binaries it knows about (e.g. from projects' OutDir),
-    and it doesn't allow changing the working directory for running the tests.
-    Essentially this requires all runtime dependencies to be findable from the
-    context of the tests running with working directory set to OutDir. So...
-    that was the long-winded explanation of why we copy external things to the
-    OutDir :)
-    -->
-  <ItemGroup>
-    <ExternalDlls Include="$(ExternalsDir)OpenAL\lib\*.dll" />
-  </ItemGroup>
-  <!--Either method of running requires the runtime deps to be copied to pwd-->
-  <Target Name="CopyDeps" AfterTargets="AfterBuild" Inputs="@(ExternalDlls)" Outputs="@(ExternalDlls -> '$(OutDir)%(RecursiveDir)%(Filename)%(Extension)')">
-    <Copy SourceFiles="@(ExternalDlls)" DestinationFolder="$(OutDir)" Condition="!Exists('$(OutDir)%(RecursiveDir)%(Filename)%(ExternalDlls.Extension)') OR $([System.DateTime]::Parse('%(ModifiedTime)').Ticks) &gt; $([System.IO.File]::GetLastWriteTime('$(OutDir)%(RecursiveDir)%(Filename)%(ExternalDlls.Extension)').Ticks)" />
-  </Target>
   <Target Name="ExecUnitTests" AfterTargets="AfterBuild;CopyDeps" Condition="'$(RunUnitTests)'=='true'">
     <!--This is only executed via msbuild, VS test runner automatically does this-->
     <Exec Command="$(TargetPath)" />

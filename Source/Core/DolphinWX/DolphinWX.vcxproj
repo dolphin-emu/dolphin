@@ -38,7 +38,7 @@
   <PropertyGroup Label="UserMacros" />
   <ItemDefinitionGroup>
     <Link>
-      <AdditionalLibraryDirectories>$(ExternalsDir)ffmpeg\lib;$(ExternalsDir)OpenAL\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ExternalsDir)ffmpeg\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>avrt.lib;iphlpapi.lib;winmm.lib;setupapi.lib;opengl32.lib;glu32.lib;rpcrt4.lib;comctl32.lib;avcodec.lib;avformat.lib;avutil.lib;swresample.lib;swscale.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <ResourceCompile>
@@ -287,16 +287,13 @@
   <ItemGroup>
     <DataSysFiles Include="$(DolphinRootDir)Data\**\Sys\**\*.*" />
     <DataTxtFiles Include="$(DolphinRootDir)Data\license.txt" />
-    <ExternalDlls Include="$(ExternalsDir)OpenAL\lib\*.dll" />
     <BinaryFiles Include="$(TargetPath)" />
-    <AllInputFiles Include="@(DataSysFiles);@(DataTxtFiles);@(ExternalDlls);@(BinaryFiles)" />
+    <AllInputFiles Include="@(DataSysFiles);@(DataTxtFiles);@(BinaryFiles)" />
   </ItemGroup>
   <Target Name="AfterBuild" Inputs="@(AllInputFiles)" Outputs="@(AllInputFiles -> '$(BinaryOutputDir)%(RecursiveDir)%(Filename)%(Extension)')">
     <Message Text="Copying Data directory..." Importance="High" />
     <Copy SourceFiles="@(DataSysFiles)" DestinationFolder="$(BinaryOutputDir)%(RecursiveDir)" Condition="!Exists('$(BinaryOutputDir)%(RecursiveDir)%(Filename)%(DataSysFiles.Extension)') OR $([System.DateTime]::Parse('%(ModifiedTime)').Ticks) &gt; $([System.IO.File]::GetLastWriteTime('$(BinaryOutputDir)%(RecursiveDir)%(Filename)%(DataSysFiles.Extension)').Ticks)" />
     <Copy SourceFiles="@(DataTxtFiles)" DestinationFolder="$(BinaryOutputDir)" Condition="!Exists('$(BinaryOutputDir)%(Filename)%(DataTxtFiles.Extension)') OR $([System.DateTime]::Parse('%(ModifiedTime)').Ticks) &gt; $([System.IO.File]::GetLastWriteTime('$(BinaryOutputDir)%(RecursiveDir)%(Filename)%(DataTxtFiles.Extension)').Ticks)" />
-    <Message Text="Copying External .dlls" Importance="High" />
-    <Copy SourceFiles="@(ExternalDlls)" DestinationFolder="$(BinaryOutputDir)" Condition="!Exists('$(BinaryOutputDir)%(RecursiveDir)%(Filename)%(ExternalDlls.Extension)') OR $([System.DateTime]::Parse('%(ModifiedTime)').Ticks) &gt; $([System.IO.File]::GetLastWriteTime('$(BinaryOutputDir)%(RecursiveDir)%(Filename)%(ExternalDlls.Extension)').Ticks)" />
     <Message Text="Copy: @(BinaryFiles) -&gt; $(BinaryOutputDir)" Importance="High" />
     <Copy SourceFiles="@(BinaryFiles)" DestinationFolder="$(BinaryOutputDir)" />
   </Target>
