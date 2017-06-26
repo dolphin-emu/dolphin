@@ -64,7 +64,8 @@ public:
   void Clear(bool mute) override;
   void Update() override;
 
-  static bool isValid() { return true; }
+  static bool isValid();
+
 private:
   std::thread thread;
   Common::Flag m_run_thread;

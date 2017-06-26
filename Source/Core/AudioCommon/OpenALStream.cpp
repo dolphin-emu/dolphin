@@ -4,6 +4,7 @@
 
 #ifdef _WIN32
 
+#include <windows.h>
 #include <climits>
 #include <cstring>
 #include <thread>
@@ -14,45 +15,115 @@
 #include "Common/Thread.h"
 #include "Core/ConfigManager.h"
 
-#ifdef _WIN32
-#pragma comment(lib, "openal32.lib")
-#endif
+static HMODULE s_openal_dll = nullptr;
+
+#define OPENAL_API_VISIT(X)                                                                        \
+  X(alBufferData)                                                                                  \
+  X(alcCloseDevice)                                                                                \
+  X(alcCreateContext)                                                                              \
+  X(alcDestroyContext)                                                                             \
+  X(alcGetContextsDevice)                                                                          \
+  X(alcGetCurrentContext)                                                                          \
+  X(alcGetString)                                                                                  \
+  X(alcIsExtensionPresent)                                                                         \
+  X(alcMakeContextCurrent)                                                                         \
+  X(alcOpenDevice)                                                                                 \
+  X(alDeleteBuffers)                                                                               \
+  X(alDeleteSources)                                                                               \
+  X(alGenBuffers)                                                                                  \
+  X(alGenSources)                                                                                  \
+  X(alGetError)                                                                                    \
+  X(alGetSourcei)                                                                                  \
+  X(alGetString)                                                                                   \
+  X(alIsExtensionPresent)                                                                          \
+  X(alSourcef)                                                                                     \
+  X(alSourcei)                                                                                     \
+  X(alSourcePlay)                                                                                  \
+  X(alSourceQueueBuffers)                                                                          \
+  X(alSourceStop)                                                                                  \
+  X(alSourceUnqueueBuffers)
+
+// Create func_t function pointer type and declare a nullptr-initialized static variable of that
+// type named "pfunc".
+#define DYN_FUNC_DECLARE(func)                                                                     \
+  typedef decltype(&func) func##_t;                                                                \
+  static func##_t p##func = nullptr;
+
+// Attempt to load the function from the given module handle.
+#define OPENAL_FUNC_LOAD(func)                                                                     \
+  p##func = (func##_t)::GetProcAddress(s_openal_dll, #func);                                       \
+  if (!p##func)                                                                                    \
+  {                                                                                                \
+    return false;                                                                                  \
+  }
+
+OPENAL_API_VISIT(DYN_FUNC_DECLARE);
+
+static bool InitFunctions()
+{
+  OPENAL_API_VISIT(OPENAL_FUNC_LOAD);
+  return true;
+}
+
+static bool InitLibrary()
+{
+  if (s_openal_dll)
+    return true;
+
+  s_openal_dll = ::LoadLibrary(TEXT("openal32.dll"));
+  if (!s_openal_dll)
+    return false;
+
+  if (!InitFunctions())
+  {
+    ::FreeLibrary(s_openal_dll);
+    s_openal_dll = nullptr;
+    return false;
+  }
+
+  return true;
+}
+
+bool OpenALStream::isValid()
+{
+  return InitLibrary();
+}
 
 //
 // AyuanX: Spec says OpenAL1.1 is thread safe already
 //
 bool OpenALStream::Start()
 {
-  if (!alcIsExtensionPresent(nullptr, "ALC_ENUMERATION_EXT"))
+  if (!palcIsExtensionPresent(nullptr, "ALC_ENUMERATION_EXT"))
   {
     PanicAlertT("OpenAL: can't find sound devices");
     return false;
   }
 
-  const char* defaultDeviceName = alcGetString(nullptr, ALC_DEFAULT_DEVICE_SPECIFIER);
+  const char* defaultDeviceName = palcGetString(nullptr, ALC_DEFAULT_DEVICE_SPECIFIER);
   INFO_LOG(AUDIO, "Found OpenAL device %s", defaultDeviceName);
 
-  ALCdevice* pDevice = alcOpenDevice(defaultDeviceName);
+  ALCdevice* pDevice = palcOpenDevice(defaultDeviceName);
   if (!pDevice)
   {
     PanicAlertT("OpenAL: can't open device %s", defaultDeviceName);
     return false;
   }
 
-  ALCcontext* pContext = alcCreateContext(pDevice, nullptr);
+  ALCcontext* pContext = palcCreateContext(pDevice, nullptr);
   if (!pContext)
   {
-    alcCloseDevice(pDevice);
+    palcCloseDevice(pDevice);
     PanicAlertT("OpenAL: can't create context for device %s", defaultDeviceName);
     return false;
   }
 
   // Used to determine an appropriate period size (2x period = total buffer size)
   // ALCint refresh;
-  // alcGetIntegerv(pDevice, ALC_REFRESH, 1, &refresh);
+  // palcGetIntegerv(pDevice, ALC_REFRESH, 1, &refresh);
   // period_size_in_millisec = 1000 / refresh;
 
-  alcMakeContextCurrent(pContext);
+  palcMakeContextCurrent(pContext);
   m_run_thread.Set();
   thread = std::thread(&OpenALStream::SoundLoop, this);
   return true;
@@ -66,20 +137,20 @@ void OpenALStream::Stop()
 
   thread.join();
 
-  alSourceStop(uiSource);
-  alSourcei(uiSource, AL_BUFFER, 0);
+  palSourceStop(uiSource);
+  palSourcei(uiSource, AL_BUFFER, 0);
 
   // Clean up buffers and sources
-  alDeleteSources(1, &uiSource);
+  palDeleteSources(1, &uiSource);
   uiSource = 0;
-  alDeleteBuffers(numBuffers, uiBuffers);
+  palDeleteBuffers(numBuffers, uiBuffers);
 
-  ALCcontext* pContext = alcGetCurrentContext();
-  ALCdevice* pDevice = alcGetContextsDevice(pContext);
+  ALCcontext* pContext = palcGetCurrentContext();
+  ALCdevice* pDevice = palcGetContextsDevice(pContext);
 
-  alcMakeContextCurrent(nullptr);
-  alcDestroyContext(pContext);
-  alcCloseDevice(pDevice);
+  palcMakeContextCurrent(nullptr);
+  palcDestroyContext(pContext);
+  palcCloseDevice(pDevice);
 }
 
 void OpenALStream::SetVolume(int volume)
@@ -87,7 +158,7 @@ void OpenALStream::SetVolume(int volume)
   fVolume = (float)volume / 100.0f;
 
   if (uiSource)
-    alSourcef(uiSource, AL_GAIN, fVolume);
+    palSourcef(uiSource, AL_GAIN, fVolume);
 }
 
 void OpenALStream::Update()
@@ -101,17 +172,17 @@ void OpenALStream::Clear(bool mute)
 
   if (m_muted)
   {
-    alSourceStop(uiSource);
+    palSourceStop(uiSource);
   }
   else
   {
-    alSourcePlay(uiSource);
+    palSourcePlay(uiSource);
   }
 }
 
 static ALenum CheckALError(const char* desc)
 {
-  ALenum err = alGetError();
+  ALenum err = palGetError();
 
   if (err != AL_NO_ERROR)
   {
@@ -147,15 +218,15 @@ static ALenum CheckALError(const char* desc)
 
 static bool IsCreativeXFi()
 {
-  return strstr(alGetString(AL_RENDERER), "X-Fi") != nullptr;
+  return strstr(palGetString(AL_RENDERER), "X-Fi") != nullptr;
 }
 
 void OpenALStream::SoundLoop()
 {
   Common::SetCurrentThreadName("Audio thread - openal");
 
-  bool float32_capable = alIsExtensionPresent("AL_EXT_float32") != 0;
-  bool surround_capable = alIsExtensionPresent("AL_EXT_MCFORMATS") || IsCreativeXFi();
+  bool float32_capable = palIsExtensionPresent("AL_EXT_float32") != 0;
+  bool surround_capable = palIsExtensionPresent("AL_EXT_MCFORMATS") || IsCreativeXFi();
   bool use_surround = SConfig::GetInstance().bDPL2Decoder && surround_capable;
 
   // As there is no extension to check for 32-bit fixed point support
@@ -170,18 +241,18 @@ void OpenALStream::SoundLoop()
   uiSource = 0;
 
   // Clear error state before querying or else we get false positives.
-  ALenum err = alGetError();
+  ALenum err = palGetError();
 
   // Generate some AL Buffers for streaming
-  alGenBuffers(numBuffers, (ALuint*)uiBuffers);
+  palGenBuffers(numBuffers, (ALuint*)uiBuffers);
   err = CheckALError("generating buffers");
 
   // Generate a Source to playback the Buffers
-  alGenSources(1, &uiSource);
+  palGenSources(1, &uiSource);
   err = CheckALError("generating sources");
 
   // Set the default sound volume as saved in the config file.
-  alSourcef(uiSource, AL_GAIN, fVolume);
+  palSourcef(uiSource, AL_GAIN, fVolume);
 
   // TODO: Error handling
   // ALenum err = alGetError();
@@ -194,7 +265,7 @@ void OpenALStream::SoundLoop()
   {
     // Block until we have a free buffer
     int numBuffersProcessed;
-    alGetSourcei(uiSource, AL_BUFFERS_PROCESSED, &numBuffersProcessed);
+    palGetSourcei(uiSource, AL_BUFFERS_PROCESSED, &numBuffersProcessed);
     if (numBuffers == numBuffersQueued && !numBuffersProcessed)
     {
       soundSyncEvent.Wait();
@@ -205,7 +276,7 @@ void OpenALStream::SoundLoop()
     if (numBuffersProcessed)
     {
       ALuint unqueuedBufferIds[OAL_MAX_BUFFERS];
-      alSourceUnqueueBuffers(uiSource, numBuffersProcessed, unqueuedBufferIds);
+      palSourceUnqueueBuffers(uiSource, numBuffersProcessed, unqueuedBufferIds);
       err = CheckALError("unqueuing buffers");
 
       numBuffersQueued -= numBuffersProcessed;
@@ -235,8 +306,8 @@ void OpenALStream::SoundLoop()
 
       if (float32_capable)
       {
-        alBufferData(uiBuffers[nextBuffer], AL_FORMAT_51CHN32, dpl2,
-                     numSamples * FRAME_SURROUND_FLOAT, ulFrequency);
+        palBufferData(uiBuffers[nextBuffer], AL_FORMAT_51CHN32, dpl2,
+                      numSamples * FRAME_SURROUND_FLOAT, ulFrequency);
       }
       else if (fixed32_capable)
       {
@@ -256,8 +327,8 @@ void OpenALStream::SoundLoop()
             surround_int32[i] = (int)dpl2[i];
         }
 
-        alBufferData(uiBuffers[nextBuffer], AL_FORMAT_51CHN32, surround_int32,
-                     numSamples * FRAME_SURROUND_INT32, ulFrequency);
+        palBufferData(uiBuffers[nextBuffer], AL_FORMAT_51CHN32, surround_int32,
+                      numSamples * FRAME_SURROUND_INT32, ulFrequency);
       }
       else
       {
@@ -274,8 +345,8 @@ void OpenALStream::SoundLoop()
             surround_short[i] = (int)dpl2[i];
         }
 
-        alBufferData(uiBuffers[nextBuffer], AL_FORMAT_51CHN16, surround_short,
-                     numSamples * FRAME_SURROUND_SHORT, ulFrequency);
+        palBufferData(uiBuffers[nextBuffer], AL_FORMAT_51CHN16, surround_short,
+                      numSamples * FRAME_SURROUND_SHORT, ulFrequency);
       }
 
       err = CheckALError("buffering data");
@@ -300,8 +371,8 @@ void OpenALStream::SoundLoop()
 
       if (float32_capable)
       {
-        alBufferData(uiBuffers[nextBuffer], AL_FORMAT_STEREO_FLOAT32, sampleBuffer,
-                     numSamples * FRAME_STEREO_FLOAT, ulFrequency);
+        palBufferData(uiBuffers[nextBuffer], AL_FORMAT_STEREO_FLOAT32, sampleBuffer,
+                      numSamples * FRAME_STEREO_FLOAT, ulFrequency);
 
         err = CheckALError("buffering float32 data");
         if (err == AL_INVALID_ENUM)
@@ -316,8 +387,8 @@ void OpenALStream::SoundLoop()
         for (u32 i = 0; i < numSamples * STEREO_CHANNELS; ++i)
           stereo_int32[i] = (int)((float)sampleBuffer[i] * (INT64_C(1) << 31));
 
-        alBufferData(uiBuffers[nextBuffer], AL_FORMAT_STEREO32, stereo_int32,
-                     numSamples * FRAME_STEREO_INT32, ulFrequency);
+        palBufferData(uiBuffers[nextBuffer], AL_FORMAT_STEREO32, stereo_int32,
+                      numSamples * FRAME_STEREO_INT32, ulFrequency);
       }
       else
       {
@@ -326,22 +397,22 @@ void OpenALStream::SoundLoop()
         for (u32 i = 0; i < numSamples * STEREO_CHANNELS; ++i)
           stereo[i] = (short)((float)sampleBuffer[i] * (1 << 15));
 
-        alBufferData(uiBuffers[nextBuffer], AL_FORMAT_STEREO16, stereo,
-                     numSamples * FRAME_STEREO_SHORT, ulFrequency);
+        palBufferData(uiBuffers[nextBuffer], AL_FORMAT_STEREO16, stereo,
+                      numSamples * FRAME_STEREO_SHORT, ulFrequency);
       }
     }
 
-    alSourceQueueBuffers(uiSource, 1, &uiBuffers[nextBuffer]);
+    palSourceQueueBuffers(uiSource, 1, &uiBuffers[nextBuffer]);
     err = CheckALError("queuing buffers");
 
     numBuffersQueued++;
     nextBuffer = (nextBuffer + 1) % numBuffers;
 
-    alGetSourcei(uiSource, AL_SOURCE_STATE, &iState);
+    palGetSourcei(uiSource, AL_SOURCE_STATE, &iState);
     if (iState != AL_PLAYING)
     {
       // Buffer underrun occurred, resume playback
-      alSourcePlay(uiSource);
+      palSourcePlay(uiSource);
       err = CheckALError("occurred resuming playback");
     }
   }
