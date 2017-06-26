@@ -76,8 +76,9 @@ static bool LoadMap(const std::string& file_path, Map& map,
   return true;
 }
 
-// This should only be used with the standard game ID format (used by WiiTDBs), not Dolphin's.
-// The main difference is that Dolphin uses 6 characters for non-disc titles (instead of 4).
+// This should only be used with the common game ID format (used by WiiTDBs), not Dolphin's.
+// Otherwise, TurboGrafx-16 VC games (with the system ID P) will be misdetected as GameCube titles.
+// The formats differ in that Dolphin's uses 6 characters for non-disc titles instead of 4.
 static bool IsGCTitle(const std::string& game_id)
 {
   const char system_id = game_id[0];
