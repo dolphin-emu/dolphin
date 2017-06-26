@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#if defined HAVE_OPENAL && HAVE_OPENAL
+
 #include <climits>
 #include <cstring>
 #include <thread>
@@ -12,8 +14,6 @@
 #include "Common/MsgHandler.h"
 #include "Common/Thread.h"
 #include "Core/ConfigManager.h"
-
-#if defined HAVE_OPENAL && HAVE_OPENAL
 
 #ifdef _WIN32
 #pragma comment(lib, "openal32.lib")
