@@ -24,48 +24,41 @@
 //
 bool OpenALStream::Start()
 {
-  m_run_thread.Set();
-  bool bReturn = false;
-
   ALDeviceList pDeviceList;
-  if (pDeviceList.GetNumDevices())
-  {
-    char* defDevName = pDeviceList.GetDeviceName(pDeviceList.GetDefaultDevice());
-
-    INFO_LOG(AUDIO, "Found OpenAL device %s", defDevName);
-
-    ALCdevice* pDevice = alcOpenDevice(defDevName);
-    if (pDevice)
-    {
-      ALCcontext* pContext = alcCreateContext(pDevice, nullptr);
-      if (pContext)
-      {
-        // Used to determine an appropriate period size (2x period = total buffer size)
-        // ALCint refresh;
-        // alcGetIntegerv(pDevice, ALC_REFRESH, 1, &refresh);
-        // period_size_in_millisec = 1000 / refresh;
-
-        alcMakeContextCurrent(pContext);
-        thread = std::thread(&OpenALStream::SoundLoop, this);
-        bReturn = true;
-      }
-      else
-      {
-        alcCloseDevice(pDevice);
-        PanicAlertT("OpenAL: can't create context for device %s", defDevName);
-      }
-    }
-    else
-    {
-      PanicAlertT("OpenAL: can't open device %s", defDevName);
-    }
-  }
-  else
+  if (!pDeviceList.GetNumDevices())
   {
     PanicAlertT("OpenAL: can't find sound devices");
+    return false;
   }
 
-  return bReturn;
+  char* defDevName = pDeviceList.GetDeviceName(pDeviceList.GetDefaultDevice());
+
+  INFO_LOG(AUDIO, "Found OpenAL device %s", defDevName);
+
+  ALCdevice* pDevice = alcOpenDevice(defDevName);
+  if (!pDevice)
+  {
+    PanicAlertT("OpenAL: can't open device %s", defDevName);
+    return false;
+  }
+
+  ALCcontext* pContext = alcCreateContext(pDevice, nullptr);
+  if (!pContext)
+  {
+    alcCloseDevice(pDevice);
+    PanicAlertT("OpenAL: can't create context for device %s", defDevName);
+    return false;
+  }
+
+  // Used to determine an appropriate period size (2x period = total buffer size)
+  // ALCint refresh;
+  // alcGetIntegerv(pDevice, ALC_REFRESH, 1, &refresh);
+  // period_size_in_millisec = 1000 / refresh;
+
+  alcMakeContextCurrent(pContext);
+  m_run_thread.Set();
+  thread = std::thread(&OpenALStream::SoundLoop, this);
+  return true;
 }
 
 void OpenALStream::Stop()
