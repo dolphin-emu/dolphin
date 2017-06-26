@@ -33,7 +33,7 @@ class GameListItem
 {
 public:
   GameListItem() = default;
-  GameListItem(const std::string& file_name, const Core::TitleDatabase& title_database);
+  explicit GameListItem(const std::string& file_name);
   ~GameListItem() = default;
 
   bool IsValid() const;
@@ -67,6 +67,8 @@ public:
   void BannerCommit();
   bool EmuStateChanged();
   void EmuStateCommit();
+  bool CustomNameChanged(const Core::TitleDatabase& title_database);
+  void CustomNameCommit();
 
 private:
   struct EmuState
@@ -132,5 +134,6 @@ private:
   {
     EmuState emu_state;
     Banner banner;
+    std::string custom_name;
   } m_pending{};
 };
