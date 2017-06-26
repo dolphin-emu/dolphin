@@ -13,7 +13,7 @@ void cInterfaceBGL::Swap()
   m_gl->SwapBuffers();
 }
 
-bool cInterfaceBGL::Create(void* window_handle, bool core)
+bool cInterfaceBGL::Create(void* window_handle, bool stereo, bool core)
 {
   m_window = static_cast<BWindow*>(window_handle);
 

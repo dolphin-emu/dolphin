@@ -51,12 +51,15 @@ void cInterfaceAGL::Swap()
 
 // Create rendering window.
 // Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
-bool cInterfaceAGL::Create(void* window_handle, bool core)
+bool cInterfaceAGL::Create(void* window_handle, bool stereo, bool core)
 {
-  NSOpenGLPixelFormatAttribute attr[] = {NSOpenGLPFADoubleBuffer, NSOpenGLPFAOpenGLProfile,
-                                         core ? NSOpenGLProfileVersion3_2Core :
-                                                NSOpenGLProfileVersionLegacy,
-                                         NSOpenGLPFAAccelerated, 0};
+  NSOpenGLPixelFormatAttribute attr[] = {
+      NSOpenGLPFADoubleBuffer,
+      NSOpenGLPFAOpenGLProfile,
+      core ? NSOpenGLProfileVersion3_2Core : NSOpenGLProfileVersionLegacy,
+      NSOpenGLPFAAccelerated,
+      stereo ? NSOpenGLPFAStereo : static_cast<NSOpenGLPixelFormatAttribute>(0),
+      0};
   NSOpenGLPixelFormat* fmt = [[NSOpenGLPixelFormat alloc] initWithAttributes:attr];
   if (fmt == nil)
   {

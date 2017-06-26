@@ -38,7 +38,7 @@ public:
   void SwapInterval(int interval) override;
   void SetMode(GLInterfaceMode mode) override { s_opengl_mode = mode; }
   void* GetFuncAddress(const std::string& name) override;
-  bool Create(void* window_handle, bool core) override;
+  bool Create(void* window_handle, bool stereo, bool core) override;
   bool Create(cInterfaceBase* main_context) override;
   bool MakeCurrent() override;
   bool ClearCurrent() override;
