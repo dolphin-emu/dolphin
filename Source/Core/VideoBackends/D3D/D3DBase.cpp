@@ -303,7 +303,10 @@ HRESULT Create(HWND wnd)
   swap_chain_desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
   swap_chain_desc.Width = xres;
   swap_chain_desc.Height = yres;
-  swap_chain_desc.Stereo = g_ActiveConfig.iStereoMode == STEREO_QUADBUFFER;
+
+  // By always creating a stereo swapchain we can toggle Quad-Buffered stereoscopy
+  // while the game is running.
+  swap_chain_desc.Stereo = TRUE;
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
   // Creating debug devices can sometimes fail if the user doesn't have the correct
