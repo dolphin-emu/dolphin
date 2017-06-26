@@ -113,9 +113,11 @@ std::vector<std::string> DoFileSearch(const std::vector<std::string>& directorie
   std::sort(result.begin(), result.end());
   result.erase(std::unique(result.begin(), result.end()), result.end());
 
-  // Dolphin expects to be able to use "/" (DIR_SEP) everywhere. std::filesystem uses the OS
-  // separator.
-  if (fs::path::preferred_separator != DIR_SEP_CHR)
+  // Dolphin expects to be able to use "/" (DIR_SEP) everywhere.
+  // std::filesystem uses the OS separator.
+  constexpr fs::path::value_type os_separator = fs::path::preferred_separator;
+  static_assert(os_separator == DIR_SEP_CHR || os_separator == '\\', "Unsupported path separator");
+  if (os_separator != DIR_SEP_CHR)
     for (auto& path : result)
       std::replace(path.begin(), path.end(), '\\', DIR_SEP_CHR);
 
