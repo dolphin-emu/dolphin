@@ -5,6 +5,7 @@
 #include "DiscIO/VolumeWii.h"
 
 #include <algorithm>
+#include <array>
 #include <cstddef>
 #include <cstring>
 #include <map>
@@ -97,9 +98,7 @@ VolumeWii::VolumeWii(std::unique_ptr<BlobReader> reader)
       IOS::ES::TMDReader tmd{std::move(tmd_buffer)};
 
       // Get the decryption key
-      const std::vector<u8> key = ticket.GetTitleKey();
-      if (key.size() != 16)
-        continue;
+      const std::array<u8, 16> key = ticket.GetTitleKey();
       std::unique_ptr<mbedtls_aes_context> aes_context = std::make_unique<mbedtls_aes_context>();
       mbedtls_aes_setkey_dec(aes_context.get(), key.data(), 128);
 

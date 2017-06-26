@@ -380,7 +380,7 @@ u64 TicketReader::GetTitleId() const
   return Common::swap64(m_bytes.data() + offsetof(Ticket, title_id));
 }
 
-std::vector<u8> TicketReader::GetTitleKey() const
+std::array<u8, 16> TicketReader::GetTitleKey() const
 {
   u8 iv[16] = {};
   std::copy_n(&m_bytes[offsetof(Ticket, title_id)], sizeof(Ticket::title_id), iv);
@@ -398,7 +398,7 @@ std::vector<u8> TicketReader::GetTitleKey() const
   const HLE::IOSC::ConsoleType console_type =
       is_rvt ? HLE::IOSC::ConsoleType::RVT : HLE::IOSC::ConsoleType::Retail;
 
-  std::vector<u8> key(16);
+  std::array<u8, 16> key;
   HLE::IOSC iosc(console_type);
   iosc.Decrypt(common_key_handle, iv, &m_bytes[offsetof(Ticket, title_key)], 16, key.data(),
                HLE::PID_ES);

@@ -222,7 +222,7 @@ public:
 
   u32 GetDeviceId() const;
   u64 GetTitleId() const;
-  std::vector<u8> GetTitleKey() const;
+  std::array<u8, 16> GetTitleKey() const;
 
   // Deletes a ticket with the given ticket ID from the internal buffer.
   void DeleteTicket(u64 ticket_id);

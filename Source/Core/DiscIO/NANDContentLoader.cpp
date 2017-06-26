@@ -186,7 +186,7 @@ void NANDContentLoader::InitializeContentEntries(const std::vector<u8>& data_app
   m_Content.resize(contents.size());
 
   u32 data_app_offset = 0;
-  const std::vector<u8> title_key = m_ticket.GetTitleKey();
+  const std::array<u8, 16> title_key = m_ticket.GetTitleKey();
   IOS::ES::SharedContentMap shared_content{m_root};
 
   for (size_t i = 0; i < contents.size(); ++i)
