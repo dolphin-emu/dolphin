@@ -2,7 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#if defined HAVE_OPENAL && HAVE_OPENAL
+#ifdef _WIN32
 
 #include <climits>
 #include <cstring>
@@ -347,4 +347,4 @@ void OpenALStream::SoundLoop()
   }
 }
 
-#endif  // HAVE_OPENAL
+#endif  // _WIN32

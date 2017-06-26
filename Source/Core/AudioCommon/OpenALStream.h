@@ -12,19 +12,10 @@
 #include "Core/HW/AudioInterface.h"
 #include "Core/HW/SystemTimers.h"
 
-#if defined HAVE_OPENAL && HAVE_OPENAL
 #ifdef _WIN32
 #include <OpenAL/include/al.h>
 #include <OpenAL/include/alc.h>
 #include <OpenAL/include/alext.h>
-#elif defined __APPLE__
-#include <OpenAL/al.h>
-#include <OpenAL/alc.h>
-#else
-#include <AL/al.h>
-#include <AL/alc.h>
-#include <AL/alext.h>
-#endif
 
 #define SFX_MAX_SOURCE 1
 #define OAL_MAX_BUFFERS 32
@@ -40,7 +31,7 @@
 #define FRAME_SURROUND_FLOAT SURROUND_CHANNELS* SIZE_FLOAT
 #define FRAME_SURROUND_SHORT SURROUND_CHANNELS* SIZE_SHORT
 #define FRAME_SURROUND_INT32 SURROUND_CHANNELS* SIZE_INT32
-#endif
+#endif  // _WIN32
 
 // From AL_EXT_float32
 #ifndef AL_FORMAT_STEREO_FLOAT32
@@ -63,7 +54,7 @@
 
 class OpenALStream final : public SoundStream
 {
-#if defined HAVE_OPENAL && HAVE_OPENAL
+#ifdef _WIN32
 public:
   OpenALStream() : uiSource(0) {}
   bool Start() override;
@@ -87,5 +78,5 @@ private:
   ALfloat fVolume;
 
   u8 numBuffers;
-#endif  // HAVE_OPENAL
+#endif  // _WIN32
 };
