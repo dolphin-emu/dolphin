@@ -17,17 +17,15 @@
 #include <OpenAL/include/alc.h>
 #include <OpenAL/include/alext.h>
 
-#define SFX_MAX_SOURCE 1
-#define OAL_MAX_BUFFERS 32
-#define OAL_MAX_SAMPLES 256
+// OpenAL requires a minimum of two buffers, three or more recommended
+#define OAL_BUFFERS 3
+#define OAL_MAX_FRAMES 4096
 #define STEREO_CHANNELS 2
 #define SURROUND_CHANNELS 6  // number of channels in surround mode
 #define SIZE_SHORT 2
 #define SIZE_INT32 4
 #define SIZE_FLOAT 4  // size of a float in bytes
 #define FRAME_STEREO_SHORT STEREO_CHANNELS* SIZE_SHORT
-#define FRAME_STEREO_FLOAT STEREO_CHANNELS* SIZE_FLOAT
-#define FRAME_STEREO_INT32 STEREO_CHANNELS* SIZE_INT32
 #define FRAME_SURROUND_FLOAT SURROUND_CHANNELS* SIZE_FLOAT
 #define FRAME_SURROUND_SHORT SURROUND_CHANNELS* SIZE_SHORT
 #define FRAME_SURROUND_INT32 SURROUND_CHANNELS* SIZE_INT32
@@ -56,7 +54,7 @@ class OpenALStream final : public SoundStream
 {
 #ifdef _WIN32
 public:
-  OpenALStream() : uiSource(0) {}
+  OpenALStream() : m_source(0) {}
   bool Start() override;
   void SoundLoop() override;
   void SetVolume(int volume) override;
@@ -67,17 +65,15 @@ public:
   static bool isValid();
 
 private:
-  std::thread thread;
+  std::thread m_thread;
   Common::Flag m_run_thread;
 
-  Common::Event soundSyncEvent;
+  Common::Event m_sound_sync_event;
 
-  short realtimeBuffer[OAL_MAX_SAMPLES * STEREO_CHANNELS];
-  float sampleBuffer[OAL_MAX_SAMPLES * SURROUND_CHANNELS * OAL_MAX_BUFFERS];
-  ALuint uiBuffers[OAL_MAX_BUFFERS];
-  ALuint uiSource;
-  ALfloat fVolume;
+  std::vector<short> m_realtime_buffer;
+  std::array<ALuint, OAL_BUFFERS> m_buffers;
+  ALuint m_source;
+  ALfloat m_volume;
 
-  u8 numBuffers;
 #endif  // _WIN32
 };
