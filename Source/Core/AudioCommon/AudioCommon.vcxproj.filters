@@ -6,7 +6,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="aldlist.cpp" />
     <ClCompile Include="AudioCommon.cpp" />
     <ClCompile Include="AudioStretcher.cpp" />
     <ClCompile Include="CubebUtils.cpp" />
@@ -30,7 +29,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="aldlist.h" />
     <ClInclude Include="AudioCommon.h" />
     <ClInclude Include="AudioStretcher.h" />
     <ClInclude Include="CubebUtils.h" />

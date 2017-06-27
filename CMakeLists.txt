@@ -21,7 +21,6 @@ option(ENABLE_GENERIC "Enables generic build that should run on any little-endia
 option(ENABLE_HEADLESS "Enables running Dolphin as a headless variant" OFF)
 option(ENABLE_ALSA "Enables ALSA sound backend" ON)
 option(ENABLE_PULSEAUDIO "Enables PulseAudio sound backend" ON)
-option(ENABLE_OPENAL "Enables OpenAL sound backend" ON)
 option(ENABLE_LLVM "Enables LLVM support, for disassembly" ON)
 
 # Maintainers: if you consider blanket disabling this for your users, please
@@ -625,8 +624,6 @@ else()
   include_directories(Externals/libpng)
   set(PNG png)
 endif()
-
-find_package(OpenAL)
 
 # Using static soundtouch from Externals
 # Unable to use system soundtouch library: We require shorts, not floats.
