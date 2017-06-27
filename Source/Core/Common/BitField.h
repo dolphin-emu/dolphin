@@ -141,6 +141,8 @@ public:
 
   constexpr T Value() const { return Value(std::is_signed<T>()); }
   constexpr operator T() const { return Value(); }
+  constexpr std::size_t StartBit() const { return position; }
+  constexpr std::size_t NumBits() const { return bits; }
 private:
   // StorageType is T for non-enum types and the underlying type of T if
   // T is an enumeration. Note that T is wrapped within an enable_if in the
