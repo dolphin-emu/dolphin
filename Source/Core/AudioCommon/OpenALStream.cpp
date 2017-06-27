@@ -118,11 +118,6 @@ bool OpenALStream::Start()
     return false;
   }
 
-  // Used to determine an appropriate period size (2x period = total buffer size)
-  // ALCint refresh;
-  // palcGetIntegerv(pDevice, ALC_REFRESH, 1, &refresh);
-  // period_size_in_millisec = 1000 / refresh;
-
   palcMakeContextCurrent(pContext);
   m_run_thread.Set();
   thread = std::thread(&OpenALStream::SoundLoop, this);
