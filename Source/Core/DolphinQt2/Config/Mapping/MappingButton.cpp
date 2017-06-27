@@ -33,21 +33,20 @@ void MappingButton::Connect()
 
 void MappingButton::OnButtonPressed()
 {
-  if (m_block || m_parent->GetDevice() == nullptr || !m_reference->IsInput())
+  if (m_parent->GetDevice() == nullptr || !m_reference->IsInput())
     return;
+
+  if (!m_block.TestAndSet())
+    return;
+
+  grabKeyboard();
+  grabMouse();
 
   // Make sure that we don't block event handling
   std::thread([this] {
     const auto dev = m_parent->GetDevice();
 
     setText(QStringLiteral("..."));
-
-    Common::SleepCurrentThread(100);
-
-    SetBlockInputs(true);
-
-    if (m_parent->GetFirstButtonPress())
-      m_reference->Detect(10, dev.get());
 
     // Avoid that the button press itself is registered as an event
     Common::SleepCurrentThread(100);
@@ -56,7 +55,10 @@ void MappingButton::OnButtonPressed()
                                                       m_parent->GetParent()->GetDeviceQualifier(),
                                                       m_parent->GetController()->default_device);
 
-    SetBlockInputs(false);
+    releaseMouse();
+    releaseKeyboard();
+    m_block.Clear();
+
     if (!expr.isEmpty())
     {
       m_reference->expression = expr.toStdString();
@@ -89,25 +91,20 @@ void MappingButton::Update()
   m_parent->SaveSettings();
 }
 
-void MappingButton::SetBlockInputs(const bool block)
-{
-  m_parent->SetBlockInputs(block);
-  m_block = block;
-}
-
-void MappingWindow::OnDefaultFieldsPressed()
-{
-  if (m_controller == nullptr)
-    return;
-
-  m_controller->LoadDefaults(g_controller_interface);
-  m_controller->UpdateReferences(g_controller_interface);
-  emit Update();
-}
-
 bool MappingButton::event(QEvent* event)
 {
-  return !m_block ? QPushButton::event(event) : true;
+  const QEvent::Type event_type = event->type();
+  // Returning 'true' means "yes, this event has been handled, don't propagate it to parent
+  // widgets".
+  if (m_block.IsSet() &&
+      (event_type == QEvent::KeyPress || event_type == QEvent::KeyRelease ||
+       event_type == QEvent::MouseButtonPress || event_type == QEvent::MouseButtonRelease ||
+       event_type == QEvent::MouseButtonDblClick))
+  {
+    return true;
+  }
+
+  return QPushButton::event(event);
 }
 
 void MappingButton::mouseReleaseEvent(QMouseEvent* event)
