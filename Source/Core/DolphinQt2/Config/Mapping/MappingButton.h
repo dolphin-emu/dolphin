@@ -25,7 +25,6 @@ signals:
   void AdvancedPressed();
 
 private:
-  bool event(QEvent* event) override;
   void mouseReleaseEvent(QMouseEvent* event) override;
 
   void OnButtonPressed();
@@ -34,5 +33,4 @@ private:
 
   MappingWidget* m_parent;
   ControlReference* m_reference;
-  Common::Flag m_block;
 };
