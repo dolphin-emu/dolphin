@@ -126,6 +126,11 @@ void MainWindow::CreateComponents()
   m_settings_window = new SettingsWindow(this);
   m_hotkey_window = new MappingWindow(this, 0);
 
+  connect(this, &MainWindow::EmulationStarted, m_settings_window,
+          &SettingsWindow::EmulationStarted);
+  connect(this, &MainWindow::EmulationStopped, m_settings_window,
+          &SettingsWindow::EmulationStopped);
+
   InstallHotkeyFilter(m_hotkey_window);
   InstallHotkeyFilter(m_controllers_window);
   InstallHotkeyFilter(m_settings_window);

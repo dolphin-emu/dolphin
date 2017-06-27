@@ -78,6 +78,7 @@
     <QtMoc Include="HotkeyScheduler.h" />
     <QtMoc Include="InDevelopmentWarning.h" />
     <QtMoc Include="Settings\InterfacePane.h" />
+    <QtMoc Include="Settings\AudioPane.h" />
     <QtMoc Include="MainWindow.h" />
     <QtMoc Include="MenuBar.h" />
     <QtMoc Include="QtUtils\DoubleClickEventFilter.h" />
@@ -90,6 +91,7 @@
   <!--TODO figure out how to get QtMoc to add outputs to ClCompile's inputs...-->
   <ItemGroup>
     <ClCompile Include="$(QtMocOutPrefix)AboutDialog.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)AudioPane.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)ControllersWindow.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)FilesystemWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)WindowActivationEventFilter.cpp" />
@@ -157,6 +159,7 @@
     <ClCompile Include="RenderWidget.cpp" />
     <ClCompile Include="Resources.cpp" />
     <ClCompile Include="Settings.cpp" />
+    <ClCompile Include="Settings\AudioPane.cpp" />
     <ClCompile Include="Settings\GeneralPane.cpp" />
     <ClCompile Include="Settings\InterfacePane.cpp" />
     <ClCompile Include="Settings\PathPane.cpp" />
