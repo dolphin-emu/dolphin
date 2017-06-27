@@ -116,8 +116,7 @@ GameListItem::GameListItem(const std::string& filename)
     if (SetWxBannerFromPNGFile(path + name + ".png"))
       return;
 
-    // Homebrew Channel icon. Typical for DOLs and ELFs,
-    // but can be also used with volumes.
+    // Homebrew Channel icon. The most typical icon format for DOLs and ELFs.
     if (SetWxBannerFromPNGFile(path + "icon.png"))
       return;
   }
