@@ -94,7 +94,7 @@ private:
   void ReadVolumeBanner(std::vector<u8>* image, const std::vector<u32>& buffer, int width,
                         int height);
   // Outputs to m_banner_wx
-  bool SetWxBannerFromPngFile(const std::string& path);
+  bool SetWxBannerFromPNGFile(const std::string& path);
   void SetWxBannerFromRaw(const Banner& banner);
 
   // IMPORTANT: Nearly all data members must be save/restored in DoState.

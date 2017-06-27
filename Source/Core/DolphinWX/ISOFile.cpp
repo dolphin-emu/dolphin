@@ -113,12 +113,12 @@ GameListItem::GameListItem(const std::string& filename)
     // A bit like the Homebrew Channel icon, except there can be multiple files
     // in a folder with their own icons. Useful for those who don't want to have
     // a Homebrew Channel-style folder structure.
-    if (SetWxBannerFromPngFile(path + name + ".png"))
+    if (SetWxBannerFromPNGFile(path + name + ".png"))
       return;
 
     // Homebrew Channel icon. Typical for DOLs and ELFs,
     // but can be also used with volumes.
-    if (SetWxBannerFromPngFile(path + "icon.png"))
+    if (SetWxBannerFromPNGFile(path + "icon.png"))
       return;
   }
   else
@@ -227,7 +227,7 @@ void GameListItem::ReadVolumeBanner(std::vector<u8>* image, const std::vector<u3
   }
 }
 
-bool GameListItem::SetWxBannerFromPngFile(const std::string& path)
+bool GameListItem::SetWxBannerFromPNGFile(const std::string& path)
 {
   if (!File::Exists(path))
     return false;
