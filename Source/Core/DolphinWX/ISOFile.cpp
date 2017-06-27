@@ -90,8 +90,9 @@ GameListItem::GameListItem(const std::string& filename)
       m_disc_number = volume->GetDiscNumber().value_or(0);
       m_revision = volume->GetRevision().value_or(0);
 
-      std::vector<u32> buffer = volume->GetBanner(&m_banner.width, &m_banner.height);
-      ReadVolumeBanner(&m_banner.buffer, buffer, m_banner.width, m_banner.height);
+      auto& banner = m_volume_banner;
+      std::vector<u32> buffer = volume->GetBanner(&banner.width, &banner.height);
+      ReadVolumeBanner(&banner.buffer, buffer, banner.width, banner.height);
 
       m_valid = true;
     }
@@ -123,7 +124,7 @@ GameListItem::GameListItem(const std::string& filename)
   else
   {
     // Volume banner. Typical for everything that isn't a DOL or ELF.
-    SetWxBannerFromRaw(m_banner);
+    SetWxBannerFromRaw(m_volume_banner);
   }
 }
 
@@ -195,12 +196,12 @@ void GameListItem::DoState(PointerWrap& p)
   p.Do(m_blob_type);
   p.Do(m_revision);
   p.Do(m_disc_number);
-  m_banner.DoState(p);
+  m_volume_banner.DoState(p);
   m_emu_state.DoState(p);
   p.Do(m_custom_name);
   if (p.GetMode() == PointerWrap::MODE_READ)
   {
-    SetWxBannerFromRaw(m_banner);
+    SetWxBannerFromRaw(m_volume_banner);
   }
 }
 
@@ -256,26 +257,26 @@ bool GameListItem::BannerChanged()
   // so sometimes caches don't contain banners. Let's check
   // if a banner has become available after the cache was made.
 
-  if (!m_banner.empty())
+  if (!m_volume_banner.empty())
     return false;
   if (m_platform != DiscIO::Platform::WII_DISC && m_platform != DiscIO::Platform::WII_WAD)
     return false;
 
-  auto& banner = m_pending.banner;
+  auto& banner = m_pending.volume_banner;
   std::vector<u32> buffer = DiscIO::Volume::GetWiiBanner(&banner.width, &banner.height, m_title_id);
   if (!buffer.size())
     return false;
 
   ReadVolumeBanner(&banner.buffer, buffer, banner.width, banner.height);
-  // We only reach here if m_banner was empty, so we don't need to explicitly
+  // We only reach here if m_volume_banner was empty, so we don't need to explicitly
   // compare to see if they are different
   return true;
 }
 
 void GameListItem::BannerCommit()
 {
-  m_banner = std::move(m_pending.banner);
-  SetWxBannerFromRaw(m_banner);
+  m_volume_banner = std::move(m_pending.volume_banner);
+  SetWxBannerFromRaw(m_volume_banner);
 }
 
 std::string GameListItem::GetDescription(DiscIO::Language language) const
