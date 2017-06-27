@@ -97,7 +97,7 @@ void FramebufferManager::BindLayeredTexture(GLuint texture, const std::vector<GL
   // Bind all the other layers as separate FBOs for blitting.
   for (unsigned int i = 1; i < m_EFBLayers; i++)
   {
-    glBindFramebuffer(GL_FRAMEBUFFER, m_resolvedFramebuffer[i]);
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffers[i]);
     glFramebufferTextureLayer(GL_FRAMEBUFFER, attachment, texture, 0, i);
   }
 }
