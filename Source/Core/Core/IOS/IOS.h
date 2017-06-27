@@ -133,6 +133,7 @@ protected:
   s32 GetFreeDeviceID();
   s32 OpenDevice(OpenRequest& request);
 
+  bool m_is_responsible_for_nand_root = false;
   u64 m_title_id = 0;
   static constexpr u8 IPC_MAX_FDS = 0x18;
   std::map<std::string, std::shared_ptr<Device::Device>> m_device_map;
