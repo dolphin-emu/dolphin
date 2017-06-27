@@ -18,6 +18,7 @@ class HotkeyScheduler;
 class MappingWindow;
 class SettingsWindow;
 class ControllersWindow;
+class DragEnterEvent;
 
 class MainWindow final : public QMainWindow
 {
@@ -81,6 +82,9 @@ private:
   void ShowControllersWindow();
   void ShowAboutDialog();
   void ShowHotkeyDialog();
+
+  void dragEnterEvent(QDragEnterEvent* event) override;
+  void dropEvent(QDropEvent* event) override;
 
   QStackedWidget* m_stack;
   ToolBar* m_tool_bar;

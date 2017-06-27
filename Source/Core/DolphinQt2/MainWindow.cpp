@@ -4,9 +4,13 @@
 
 #include <QCloseEvent>
 #include <QDir>
+#include <QDragEnterEvent>
+#include <QDropEvent>
 #include <QFileDialog>
+#include <QFileInfo>
 #include <QIcon>
 #include <QMessageBox>
+#include <QMimeData>
 
 #include "Common/Common.h"
 
@@ -45,6 +49,7 @@ MainWindow::MainWindow() : QMainWindow(nullptr)
   setWindowTitle(QString::fromStdString(scm_rev_str));
   setWindowIcon(QIcon(Resources::GetMisc(Resources::LOGO_SMALL)));
   setUnifiedTitleAndToolBarOnMac(true);
+  setAcceptDrops(true);
 
   CreateComponents();
 
@@ -529,4 +534,47 @@ bool MainWindow::eventFilter(QObject* object, QEvent* event)
   }
 
   return false;
+}
+
+void MainWindow::dragEnterEvent(QDragEnterEvent* event)
+{
+  if (event->mimeData()->hasUrls() && event->mimeData()->urls().size() == 1)
+    event->acceptProposedAction();
+}
+
+void MainWindow::dropEvent(QDropEvent* event)
+{
+  const auto& urls = event->mimeData()->urls();
+  if (urls.empty())
+    return;
+
+  const auto& url = urls[0];
+  QFileInfo file_info(url.toLocalFile());
+
+  auto path = file_info.filePath();
+
+  if (!file_info.exists() || !file_info.isReadable())
+  {
+    QMessageBox::critical(this, tr("Error"), tr("Failed to open '%1'").arg(path));
+    return;
+  }
+
+  if (file_info.isFile())
+  {
+    StartGame(path);
+  }
+  else
+  {
+    auto& settings = Settings::Instance();
+
+    if (settings.GetPaths().size() != 0)
+    {
+      if (QMessageBox::question(
+              this, tr("Confirm"),
+              tr("Do you want to add \"%1\" to the list of Game Paths?").arg(path)) !=
+          QMessageBox::Yes)
+        return;
+    }
+    settings.AddPath(path);
+  }
 }
