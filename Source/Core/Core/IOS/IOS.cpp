@@ -212,8 +212,6 @@ EmulationKernel::EmulationKernel(u64 title_id) : Kernel(title_id)
   if (!SetupMemory(title_id, MemorySetupType::IOSReload))
     WARN_LOG(IOS, "No information about this IOS -- cannot set up memory values");
 
-  Core::InitializeWiiRoot(Core::WantsDeterminism());
-
   if (title_id == Titles::MIOS)
   {
     MIOS::Load();
