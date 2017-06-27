@@ -15,6 +15,7 @@
 #include <sys/select.h>
 #endif
 
+#include "Common/CommonFuncs.h"
 #include "Common/File.h"
 #include "Common/FileUtil.h"
 #include "Core/ConfigManager.h"
@@ -36,23 +37,6 @@ namespace IOS
 namespace HLE
 {
 constexpr int WII_SOCKET_FD_MAX = 24;
-
-char* WiiSockMan::DecodeError(s32 ErrorCode)
-{
-#ifdef _WIN32
-  // NOT THREAD SAFE
-  static char Message[1024];
-
-  FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS |
-                     FORMAT_MESSAGE_MAX_WIDTH_MASK,
-                 nullptr, ErrorCode, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), Message,
-                 sizeof(Message), nullptr);
-
-  return Message;
-#else
-  return strerror(ErrorCode);
-#endif
-}
 
 static s32 TranslateErrorCode(s32 native_error, bool isRW)
 {
@@ -118,7 +102,7 @@ s32 WiiSockMan::GetNetErrorCode(s32 ret, const char* caller, bool isRW)
   }
 
   ERROR_LOG(IOS_NET, "%s failed with error %d: %s, ret= %d", caller, errorCode,
-            DecodeError(errorCode), ret);
+            GetErrorMessage(errorCode).c_str(), ret);
 
   s32 ReturnValue = TranslateErrorCode(errorCode, isRW);
   WiiSockMan::GetInstance().SetLastNetError(ReturnValue);

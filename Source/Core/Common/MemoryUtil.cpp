@@ -101,7 +101,7 @@ void FreeMemoryPages(void* ptr, size_t size)
 #endif
 
     if (error_occurred)
-      PanicAlert("FreeMemoryPages failed!\n%s", GetLastErrorMsg().c_str());
+      PanicAlert("FreeMemoryPages failed!\n%s", GetLastErrorMessage().c_str());
   }
 }
 
@@ -133,7 +133,7 @@ void ReadProtectMemory(void* ptr, size_t size)
 #endif
 
   if (error_occurred)
-    PanicAlert("ReadProtectMemory failed!\n%s", GetLastErrorMsg().c_str());
+    PanicAlert("ReadProtectMemory failed!\n%s", GetLastErrorMessage().c_str());
 }
 
 void WriteProtectMemory(void* ptr, size_t size, bool allowExecute)
@@ -152,7 +152,7 @@ void WriteProtectMemory(void* ptr, size_t size, bool allowExecute)
 #endif
 
   if (error_occurred)
-    PanicAlert("WriteProtectMemory failed!\n%s", GetLastErrorMsg().c_str());
+    PanicAlert("WriteProtectMemory failed!\n%s", GetLastErrorMessage().c_str());
 }
 
 void UnWriteProtectMemory(void* ptr, size_t size, bool allowExecute)
@@ -172,7 +172,7 @@ void UnWriteProtectMemory(void* ptr, size_t size, bool allowExecute)
 #endif
 
   if (error_occurred)
-    PanicAlert("UnWriteProtectMemory failed!\n%s", GetLastErrorMsg().c_str());
+    PanicAlert("UnWriteProtectMemory failed!\n%s", GetLastErrorMessage().c_str());
 }
 
 size_t MemPhysical()

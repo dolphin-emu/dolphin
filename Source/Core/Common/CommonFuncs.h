@@ -6,6 +6,7 @@
 
 #include <cstddef>
 #include <string>
+
 #include "Common/CommonTypes.h"
 
 // Will fail to compile on a non-array:
@@ -86,7 +87,10 @@ __declspec(dllimport) void __stdcall DebugBreak(void);
   }
 #endif  // WIN32 ndef
 
-// Generic function to get last error message.
-// Call directly after the command or use the error num.
-// This function might change the error code.
-std::string GetLastErrorMsg();
+int GetLastErrorCode();
+
+std::string GetErrorMessage(int error_code);
+
+// Returns the last error message. Call directly after the command that
+// caused the error. This function might change the error code.
+std::string GetLastErrorMessage();

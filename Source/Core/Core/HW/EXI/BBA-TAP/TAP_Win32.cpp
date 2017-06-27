@@ -4,6 +4,7 @@
 
 #include "Core/HW/EXI/BBA-TAP/TAP_Win32.h"
 #include "Common/Assert.h"
+#include "Common/CommonFuncs.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
@@ -279,21 +280,23 @@ static void ReadThreadHandler(CEXIETHERNET* self)
     else
     {
       // IO should be pending.
-      if (GetLastError() != ERROR_IO_PENDING)
+      int error = GetLastError();
+      if (error != ERROR_IO_PENDING)
       {
-        ERROR_LOG(SP1, "ReadFile failed (err=0x%X)", GetLastError());
+        ERROR_LOG(SP1, "ReadFile failed: %s", GetErrorMessage(error).c_str());
         continue;
       }
 
       // Block until the read completes.
       if (!GetOverlappedResult(self->mHAdapter, &self->mReadOverlapped, &transferred, TRUE))
       {
+        error = GetLastError();
         // If CancelIO was called, we should exit (the flag will be set).
-        if (GetLastError() == ERROR_OPERATION_ABORTED)
+        if (error == ERROR_OPERATION_ABORTED)
           continue;
 
         // Something else went wrong.
-        ERROR_LOG(SP1, "GetOverlappedResult failed (err=0x%X)", GetLastError());
+        ERROR_LOG(SP1, "GetOverlappedResult failed: %s", GetErrorMessage(error).c_str());
         continue;
       }
     }
@@ -319,7 +322,7 @@ bool CEXIETHERNET::SendFrame(const u8* frame, u32 size)
   {
     // Wait for previous write to complete.
     if (!GetOverlappedResult(mHAdapter, &mWriteOverlapped, &transferred, TRUE))
-      ERROR_LOG(SP1, "GetOverlappedResult failed (err=0x%X)", GetLastError());
+      ERROR_LOG(SP1, "GetOverlappedResult failed: %s", GetLastErrorMessage().c_str());
   }
 
   // Copy to write buffer.
@@ -335,9 +338,10 @@ bool CEXIETHERNET::SendFrame(const u8* frame, u32 size)
   else
   {
     // IO should be pending.
-    if (GetLastError() != ERROR_IO_PENDING)
+    int error = GetLastError();
+    if (error != ERROR_IO_PENDING)
     {
-      ERROR_LOG(SP1, "WriteFile failed (err=0x%X)", GetLastError());
+      ERROR_LOG(SP1, "WriteFile failed: %s", GetErrorMessage(error).c_str());
       ResetEvent(mWriteOverlapped.hEvent);
       mWritePending = false;
       return false;
