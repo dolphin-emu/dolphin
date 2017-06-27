@@ -94,7 +94,8 @@ private:
   void ReadVolumeBanner(std::vector<u8>* image, const std::vector<u32>& buffer, int width,
                         int height);
   // Outputs to m_banner_wx
-  bool SetWxBannerFromPngFile(const std::string& path);
+  bool SetWxBannerFromPNGFile(const std::string& path);
+  // Outputs to m_banner_wx
   void SetWxBannerFromRaw(const Banner& banner);
 
   // IMPORTANT: Nearly all data members must be save/restored in DoState.
@@ -120,7 +121,7 @@ private:
   u16 m_revision{};
   u8 m_disc_number{};
 
-  Banner m_banner{};
+  Banner m_volume_banner{};
   EmuState m_emu_state{};
   // Overridden name from TitleDatabase
   std::string m_custom_name{};
@@ -133,7 +134,7 @@ private:
   struct
   {
     EmuState emu_state;
-    Banner banner;
+    Banner volume_banner;
     std::string custom_name;
   } m_pending{};
 };

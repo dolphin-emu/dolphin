@@ -16,7 +16,7 @@ bool IsNTSC(Region region)
   return region == Region::NTSC_J || region == Region::NTSC_U || region == Region::NTSC_K;
 }
 
-// Increment CACHE_REVISION (ISOFile.cpp & GameFile.cpp) if the code below is modified
+// Increment CACHE_REVISION (GameListCtrl.cpp) if the code below is modified
 
 Country TypicalCountryForRegion(Region region)
 {

@@ -14,6 +14,8 @@
 namespace fs = std::experimental::filesystem;
 #define HAS_STD_FILESYSTEM
 #else
+#include <cstring>
+#include "Common/CommonFuncs.h"
 #include "Common/FileUtil.h"
 #endif
 
@@ -55,11 +57,10 @@ std::vector<std::string> DoFileSearch(const std::vector<std::string>& directorie
       return true;
     if (entry.isDirectory)
       return false;
-    std::string name = entry.virtualName;
-    std::transform(name.begin(), name.end(), name.begin(), ::tolower);
     return std::any_of(exts.begin(), exts.end(), [&](const std::string& ext) {
+      const std::string& name = entry.virtualName;
       return name.length() >= ext.length() &&
-             name.compare(name.length() - ext.length(), ext.length(), ext) == 0;
+             strcasecmp(name.c_str() + name.length() - ext.length(), ext.c_str()) == 0;
     });
   });
 }
