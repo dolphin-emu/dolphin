@@ -241,13 +241,13 @@ bool GameListItem::SetWxBannerFromPNGFile(const std::string& path)
 
 void GameListItem::SetWxBannerFromRaw(const Banner& banner)
 {
+  if (banner.empty())
+    return;
+
   // Need to make explicit copy as wxImage uses reference counting for copies combined with only
   // taking a pointer, not the content, when given a buffer to its constructor.
-  if (!banner.empty())
-  {
-    m_banner_wx.Create(banner.width, banner.height, false);
-    std::memcpy(m_banner_wx.GetData(), banner.buffer.data(), banner.buffer.size());
-  }
+  m_banner_wx.Create(banner.width, banner.height, false);
+  std::memcpy(m_banner_wx.GetData(), banner.buffer.data(), banner.buffer.size());
 }
 
 bool GameListItem::BannerChanged()
@@ -255,21 +255,21 @@ bool GameListItem::BannerChanged()
   // Wii banners can only be read if there is a savefile,
   // so sometimes caches don't contain banners. Let's check
   // if a banner has become available after the cache was made.
-  if ((m_platform == DiscIO::Platform::WII_DISC || m_platform == DiscIO::Platform::WII_WAD) &&
-      m_banner.empty())
-  {
-    auto& banner = m_pending.banner;
-    std::vector<u32> buffer =
-        DiscIO::Volume::GetWiiBanner(&banner.width, &banner.height, m_title_id);
-    if (buffer.size())
-    {
-      ReadVolumeBanner(&banner.buffer, buffer, banner.width, banner.height);
-      // Only reach here if m_banner was empty, so don't need to explicitly compare to see if
-      // different
-      return true;
-    }
-  }
-  return false;
+
+  if (!m_banner.empty())
+    return false;
+  if (m_platform != DiscIO::Platform::WII_DISC && m_platform != DiscIO::Platform::WII_WAD)
+    return false;
+
+  auto& banner = m_pending.banner;
+  std::vector<u32> buffer = DiscIO::Volume::GetWiiBanner(&banner.width, &banner.height, m_title_id);
+  if (!buffer.size())
+    return false;
+
+  ReadVolumeBanner(&banner.buffer, buffer, banner.width, banner.height);
+  // We only reach here if m_banner was empty, so we don't need to explicitly
+  // compare to see if they are different
+  return true;
 }
 
 void GameListItem::BannerCommit()
