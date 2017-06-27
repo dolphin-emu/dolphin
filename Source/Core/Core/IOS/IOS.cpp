@@ -180,6 +180,7 @@ Kernel::Kernel()
   // using more than one IOS instance at a time is not supported.
   _assert_(GetIOS() == nullptr);
   Core::InitializeWiiRoot(false);
+  m_is_responsible_for_nand_root = true;
   AddCoreDevices();
 }
 
@@ -198,7 +199,8 @@ Kernel::~Kernel()
     m_device_map.clear();
   }
 
-  Core::ShutdownWiiRoot();
+  if (m_is_responsible_for_nand_root)
+    Core::ShutdownWiiRoot();
 }
 
 Kernel::Kernel(u64 title_id) : m_title_id(title_id)
