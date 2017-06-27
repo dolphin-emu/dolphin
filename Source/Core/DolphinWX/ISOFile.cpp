@@ -150,7 +150,7 @@ bool GameListItem::CustomNameChanged(const Core::TitleDatabase& title_database)
 
 void GameListItem::CustomNameCommit()
 {
-  m_custom_name = m_pending.custom_name;
+  m_custom_name = std::move(m_pending.custom_name);
 }
 
 bool GameListItem::EmuStateChanged()
@@ -163,7 +163,7 @@ bool GameListItem::EmuStateChanged()
 
 void GameListItem::EmuStateCommit()
 {
-  m_emu_state = m_pending.emu_state;
+  m_emu_state = std::move(m_pending.emu_state);
 }
 
 void GameListItem::EmuState::DoState(PointerWrap& p)
