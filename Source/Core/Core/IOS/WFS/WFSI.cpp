@@ -117,7 +117,7 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
       break;
     }
 
-    memcpy(m_aes_key, ticket.GetTitleKey().data(), sizeof(m_aes_key));
+    memcpy(m_aes_key, ticket.GetTitleKey(m_ios.GetIOSC()).data(), sizeof(m_aes_key));
     mbedtls_aes_setkey_dec(&m_aes_ctx, m_aes_key, 128);
 
     break;

@@ -80,7 +80,7 @@ public:
 
     bool valid = false;
     IOS::ES::TMDReader tmd;
-    std::vector<u8> title_key;
+    std::array<u8, 16> title_key;
     std::map<u32, ExportContent> contents;
   };
 
