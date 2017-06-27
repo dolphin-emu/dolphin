@@ -80,7 +80,6 @@ void GameList::MakeTableView()
   m_table->setColumnHidden(GameListModel::COL_MAKER, !settings.MakerVisible());
   m_table->setColumnHidden(GameListModel::COL_SIZE, !settings.SizeVisible());
   m_table->setColumnHidden(GameListModel::COL_COUNTRY, !settings.CountryVisible());
-  m_table->setColumnHidden(GameListModel::COL_RATING, !settings.StateVisible());
 
   QHeaderView* hor_header = m_table->horizontalHeader();
   hor_header->setSectionResizeMode(GameListModel::COL_PLATFORM, QHeaderView::ResizeToContents);
@@ -91,7 +90,6 @@ void GameList::MakeTableView()
   hor_header->setSectionResizeMode(GameListModel::COL_MAKER, QHeaderView::Stretch);
   hor_header->setSectionResizeMode(GameListModel::COL_SIZE, QHeaderView::ResizeToContents);
   hor_header->setSectionResizeMode(GameListModel::COL_DESCRIPTION, QHeaderView::Stretch);
-  hor_header->setSectionResizeMode(GameListModel::COL_RATING, QHeaderView::ResizeToContents);
 
   m_table->verticalHeader()->hide();
 }
@@ -411,8 +409,7 @@ void GameList::OnColumnVisibilityToggled(const QString& row, bool visible)
       {tr("Maker"), GameListModel::COL_MAKER},
       {tr("Platform"), GameListModel::COL_PLATFORM},
       {tr("Size"), GameListModel::COL_SIZE},
-      {tr("Title"), GameListModel::COL_TITLE},
-      {tr("Quality"), GameListModel::COL_RATING}};
+      {tr("Title"), GameListModel::COL_TITLE}};
 
   m_table->setColumnHidden(rowname_to_col_index[row], !visible);
 }

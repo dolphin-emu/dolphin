@@ -138,19 +138,6 @@ static int CompareGameListItems(const GameListItem* iso1, const GameListItem* is
     if (iso1->GetPlatform() < iso2->GetPlatform())
       return -1 * t;
     return 0;
-
-  case GameListCtrl::COLUMN_EMULATION_STATE:
-  {
-    const int nState1 = iso1->GetEmuState(), nState2 = iso2->GetEmuState();
-
-    if (nState1 > nState2)
-      return 1 * t;
-    if (nState1 < nState2)
-      return -1 * t;
-    else
-      return 0;
-  }
-  break;
   }
 
   return 0;
@@ -224,7 +211,7 @@ struct GameListCtrl::ColumnInfo
 
 GameListCtrl::GameListCtrl(bool disable_scanning, wxWindow* parent, const wxWindowID id,
                            const wxPoint& pos, const wxSize& size, long style)
-    : wxListCtrl(parent, id, pos, size, style), m_tooltip(nullptr),
+    : wxListCtrl(parent, id, pos, size, style),
       m_columns({// {COLUMN, {default_width (without platform padding), resizability, visibility}}
                  {COLUMN_PLATFORM, 32 + 1 /* icon padding */, false,
                   SConfig::GetInstance().m_showSystemColumn},
@@ -234,13 +221,11 @@ GameListCtrl::GameListCtrl(bool disable_scanning, wxWindow* parent, const wxWind
                  {COLUMN_FILENAME, 100, true, SConfig::GetInstance().m_showFileNameColumn},
                  {COLUMN_ID, 75, false, SConfig::GetInstance().m_showIDColumn},
                  {COLUMN_COUNTRY, 32, false, SConfig::GetInstance().m_showRegionColumn},
-                 {COLUMN_EMULATION_STATE, 48, false, SConfig::GetInstance().m_showStateColumn},
                  {COLUMN_SIZE, wxLIST_AUTOSIZE, false, SConfig::GetInstance().m_showSizeColumn}})
 {
   Bind(wxEVT_SIZE, &GameListCtrl::OnSize, this);
   Bind(wxEVT_RIGHT_DOWN, &GameListCtrl::OnRightClick, this);
   Bind(wxEVT_LEFT_DOWN, &GameListCtrl::OnLeftClick, this);
-  Bind(wxEVT_MOTION, &GameListCtrl::OnMouseMotion, this);
   Bind(wxEVT_LIST_KEY_DOWN, &GameListCtrl::OnKeyPress, this);
   Bind(wxEVT_LIST_COL_BEGIN_DRAG, &GameListCtrl::OnColBeginDrag, this);
   Bind(wxEVT_LIST_COL_CLICK, &GameListCtrl::OnColumnClick, this);
@@ -312,7 +297,6 @@ void GameListCtrl::InitBitmaps()
   const wxSize size = FromDIP(wxSize(96, 32));
   const wxSize flag_bmp_size = FromDIP(wxSize(32, 32));
   const wxSize platform_bmp_size = flag_bmp_size;
-  const wxSize rating_bmp_size = FromDIP(wxSize(48, 32));
   wxImageList* img_list = new wxImageList(size.GetWidth(), size.GetHeight());
   AssignImageList(img_list, wxIMAGE_LIST_SMALL);
 
@@ -357,15 +341,6 @@ void GameListCtrl::InitBitmaps()
              "Platform_Wad");
   InitBitmap(img_list, &platform_indexes, this, platform_bmp_size, DiscIO::Platform::ELF_DOL,
              "Platform_File");
-
-  auto& emu_state_indexes = m_image_indexes.emu_state;
-  emu_state_indexes.resize(6);
-  InitBitmap(img_list, &emu_state_indexes, this, rating_bmp_size, 0, "rating0", true);
-  InitBitmap(img_list, &emu_state_indexes, this, rating_bmp_size, 1, "rating1", true);
-  InitBitmap(img_list, &emu_state_indexes, this, rating_bmp_size, 2, "rating2", true);
-  InitBitmap(img_list, &emu_state_indexes, this, rating_bmp_size, 3, "rating3", true);
-  InitBitmap(img_list, &emu_state_indexes, this, rating_bmp_size, 4, "rating4", true);
-  InitBitmap(img_list, &emu_state_indexes, this, rating_bmp_size, 5, "rating5", true);
 
   auto& utility_banner_indexes = m_image_indexes.utility_banner;
   utility_banner_indexes.resize(1);
@@ -446,7 +421,6 @@ void GameListCtrl::RefreshList()
     InsertColumn(COLUMN_ID, _("ID"));
     InsertColumn(COLUMN_COUNTRY, "");
     InsertColumn(COLUMN_SIZE, _("Size"));
-    InsertColumn(COLUMN_EMULATION_STATE, _("State"));
 
 #ifdef __WXMSW__
     const int platform_padding = 0;
@@ -582,10 +556,6 @@ void GameListCtrl::UpdateItemAtColumn(long index, int column)
     break;
   case COLUMN_FILENAME:
     SetItem(index, COLUMN_FILENAME, wxFileNameFromPath(StrToWxStr(iso_file.GetFileName())), -1);
-    break;
-  case COLUMN_EMULATION_STATE:
-    SetItemColumnImage(index, COLUMN_EMULATION_STATE,
-                       m_image_indexes.emu_state[iso_file.GetEmuState()]);
     break;
   case COLUMN_COUNTRY:
     SetItemColumnImage(index, COLUMN_COUNTRY,
@@ -802,14 +772,11 @@ void GameListCtrl::RescanList()
     std::unique_lock<std::mutex> lk(m_cache_mutex);
     for (auto& file : m_cached_files)
     {
-      bool emu_state_changed = file->EmuStateChanged();
       bool banner_changed = file->BannerChanged();
-      if (emu_state_changed || banner_changed)
+      if (banner_changed)
       {
         cache_changed = refresh_needed = true;
         auto copy = std::make_shared<GameListItem>(*file);
-        if (emu_state_changed)
-          copy->EmuStateCommit();
         if (banner_changed)
           copy->BannerCommit();
         file = std::move(copy);
@@ -958,84 +925,6 @@ void GameListCtrl::OnKeyPress(wxListEvent& event)
     if (i + 1 == (int)m_shown_files.size() && sLoop > 0 && Loop > 0)
       i = -1;
   }
-
-  event.Skip();
-}
-
-// This shows a little tooltip with the current Game's emulation state
-void GameListCtrl::OnMouseMotion(wxMouseEvent& event)
-{
-  int flags;
-  long subitem = 0;
-  const long item = HitTest(event.GetPosition(), flags, &subitem);
-  static int lastItem = -1;
-
-  if (GetColumnCount() <= 1)
-    return;
-
-  if (item != wxNOT_FOUND)
-  {
-    wxRect Rect;
-#ifdef __WXMSW__
-    if (subitem == COLUMN_EMULATION_STATE)
-#else
-    // The subitem parameter of HitTest is only implemented for wxMSW.  On
-    // all other platforms it will always be -1.  Check the x position
-    // instead.
-    GetItemRect(item, Rect);
-    if (Rect.GetX() + Rect.GetWidth() - GetColumnWidth(COLUMN_EMULATION_STATE) < event.GetX())
-#endif
-    {
-      if (m_tooltip || lastItem == item || this != FindFocus())
-      {
-        if (lastItem != item)
-          lastItem = -1;
-        event.Skip();
-        return;
-      }
-
-      // Emulation status
-      static const char* const emuState[] = {"Broken", "Intro", "In-Game", "Playable", "Perfect"};
-
-      const GameListItem* iso = GetISO(GetItemData(item));
-
-      const int emu_state = iso->GetEmuState();
-      const std::string& issues = iso->GetIssues();
-
-      // Show a tooltip containing the EmuState and the state description
-      if (emu_state > 0 && emu_state < 6)
-      {
-        char temp[2048];
-        sprintf(temp, "^ %s%s%s", emuState[emu_state - 1], issues.size() > 0 ? " :\n" : "",
-                issues.c_str());
-        m_tooltip = new wxEmuStateTip(this, StrToWxStr(temp), &m_tooltip);
-      }
-      else
-      {
-        m_tooltip = new wxEmuStateTip(this, _("Not Set"), &m_tooltip);
-      }
-
-      // Get item Coords
-      GetItemRect(item, Rect);
-      int mx = Rect.GetWidth();
-      int my = Rect.GetY();
-#if !defined(__WXMSW__) && !defined(__WXOSX__)
-      // For some reason the y position does not account for the header
-      // row, so subtract the y position of the first visible item.
-      GetItemRect(GetTopItem(), Rect);
-      my -= Rect.GetY();
-#endif
-      // Convert to screen coordinates
-      ClientToScreen(&mx, &my);
-      m_tooltip->SetBoundingRect(wxRect(mx - GetColumnWidth(COLUMN_EMULATION_STATE), my,
-                                        GetColumnWidth(COLUMN_EMULATION_STATE), Rect.GetHeight()));
-      m_tooltip->SetPosition(
-          wxPoint(mx - GetColumnWidth(COLUMN_EMULATION_STATE), my - 5 + Rect.GetHeight()));
-      lastItem = item;
-    }
-  }
-  if (!m_tooltip)
-    lastItem = -1;
 
   event.Skip();
 }

@@ -22,7 +22,6 @@
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Hash.h"
-#include "Common/IniFile.h"
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
 
@@ -147,25 +146,6 @@ bool GameListItem::IsValid() const
   return true;
 }
 
-bool GameListItem::EmuStateChanged()
-{
-  IniFile ini = SConfig::LoadGameIni(m_game_id, m_revision);
-  ini.GetIfExists("EmuState", "EmulationStateId", &m_pending.emu_state.rating, 0);
-  ini.GetIfExists("EmuState", "EmulationIssues", &m_pending.emu_state.issues, std::string());
-  return m_emu_state != m_pending.emu_state;
-}
-
-void GameListItem::EmuStateCommit()
-{
-  m_emu_state = m_pending.emu_state;
-}
-
-void GameListItem::EmuState::DoState(PointerWrap& p)
-{
-  p.Do(rating);
-  p.Do(issues);
-}
-
 void GameListItem::Banner::DoState(PointerWrap& p)
 {
   p.Do(buffer);
@@ -191,7 +171,6 @@ void GameListItem::DoState(PointerWrap& p)
   p.Do(m_revision);
   p.Do(m_disc_number);
   m_banner.DoState(p);
-  m_emu_state.DoState(p);
   p.Do(m_custom_name);
   if (p.GetMode() == PointerWrap::MODE_READ)
   {

@@ -227,8 +227,7 @@ void MenuBar::AddTableColumnsMenu(QMenu* view_menu)
                                             {tr("Description"), &settings.DescriptionVisible()},
                                             {tr("Maker"), &settings.MakerVisible()},
                                             {tr("Size"), &settings.SizeVisible()},
-                                            {tr("Country"), &settings.CountryVisible()},
-                                            {tr("Quality"), &settings.StateVisible()}};
+                                            {tr("Country"), &settings.CountryVisible()}};
 
   QActionGroup* column_group = new QActionGroup(this);
   QMenu* cols_menu = view_menu->addMenu(tr("Table Columns"));

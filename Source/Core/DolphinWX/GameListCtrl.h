@@ -18,23 +18,6 @@
 #include "Common/Flag.h"
 #include "DolphinWX/ISOFile.h"
 
-class wxEmuStateTip : public wxTipWindow
-{
-public:
-  wxEmuStateTip(wxWindow* parent, const wxString& text, wxEmuStateTip** windowPtr)
-      : wxTipWindow(parent, text, 70, (wxTipWindow**)windowPtr)
-  {
-    Bind(wxEVT_KEY_DOWN, &wxEmuStateTip::OnKeyDown, this);
-  }
-
-  // wxTipWindow doesn't correctly handle KeyEvents and crashes... we must overload that.
-  void OnKeyDown(wxKeyEvent& event)
-  {
-    event.StopPropagation();
-    Close();
-  }
-};
-
 wxDECLARE_EVENT(DOLPHIN_EVT_REFRESH_GAMELIST, wxCommandEvent);
 wxDECLARE_EVENT(DOLPHIN_EVT_RESCAN_GAMELIST, wxCommandEvent);
 
@@ -63,7 +46,6 @@ public:
     COLUMN_ID,
     COLUMN_COUNTRY,
     COLUMN_SIZE,
-    COLUMN_EMULATION_STATE,
     NUMBER_OF_COLUMN
   };
 
@@ -89,7 +71,6 @@ private:
   void OnRescanGameList(wxCommandEvent& event);
   void OnLeftClick(wxMouseEvent& event);
   void OnRightClick(wxMouseEvent& event);
-  void OnMouseMotion(wxMouseEvent& event);
   void OnColumnClick(wxListEvent& event);
   void OnColBeginDrag(wxListEvent& event);
   void OnKeyPress(wxListEvent& event);
@@ -121,7 +102,6 @@ private:
     std::vector<int> flag;
     std::vector<int> platform;
     std::vector<int> utility_banner;
-    std::vector<int> emu_state;
   } m_image_indexes;
 
   // Actual backing GameListItems are maintained in a background thread and cached to file
@@ -140,7 +120,6 @@ private:
   int m_last_column;
   int m_last_sort;
   wxSize m_lastpos;
-  wxEmuStateTip* m_tooltip;
 
   std::vector<ColumnInfo> m_columns;
 };

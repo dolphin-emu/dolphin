@@ -48,12 +48,6 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
     if (role == Qt::InitialSortOrderRole)
       return static_cast<int>(game->GetCountryID());
     break;
-  case COL_RATING:
-    if (role == Qt::DecorationRole)
-      return Resources::GetRating(game->GetRating());
-    if (role == Qt::InitialSortOrderRole)
-      return game->GetRating();
-    break;
   case COL_BANNER:
     if (role == Qt::DecorationRole)
     {
@@ -120,8 +114,6 @@ QVariant GameListModel::headerData(int section, Qt::Orientation orientation, int
     return tr("Maker");
   case COL_SIZE:
     return tr("Size");
-  case COL_RATING:
-    return tr("Quality");
   }
   return QVariant();
 }
