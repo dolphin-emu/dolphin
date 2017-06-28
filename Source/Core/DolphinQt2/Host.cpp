@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <wobjectimpl.h>
 #include <QAbstractEventDispatcher>
 #include <QApplication>
 #include <QMutexLocker>
@@ -10,6 +11,8 @@
 #include "Core/Host.h"
 #include "DolphinQt2/Host.h"
 #include "DolphinQt2/MainWindow.h"
+
+W_OBJECT_IMPL(Host)
 
 Host* Host::m_instance = nullptr;
 

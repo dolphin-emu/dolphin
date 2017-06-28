@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <wobjectdefs.h>
 #include <string>
 
 #include <QDialog>
@@ -16,15 +17,14 @@ class QStackedWidget;
 
 class SettingsWindow final : public QDialog
 {
-  Q_OBJECT
+  W_OBJECT(SettingsWindow)
 public:
   explicit SettingsWindow(QWidget* parent = nullptr);
-signals:
-  void EmulationStarted();
-  void EmulationStopped();
+  void EmulationStarted() W_SIGNAL(EmulationStarted);
+  void EmulationStopped() W_SIGNAL(EmulationStopped);
 
-public slots:
-  void changePage(QListWidgetItem* current, QListWidgetItem* previous);
+public:
+  void changePage(QListWidgetItem* current, QListWidgetItem* previous); W_SLOT(changePage, (QListWidgetItem*, QListWidgetItem*));
 
 private:
   void MakeCategoryList();

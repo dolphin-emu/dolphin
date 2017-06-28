@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <wobjectdefs.h>
 #include <QWidget>
 
 #include "DolphinQt2/GameList/GameFile.h"
@@ -15,14 +16,14 @@ class QLineEdit;
 
 class InfoWidget final : public QWidget
 {
-  Q_OBJECT
+  W_OBJECT(InfoWidget)
 public:
   explicit InfoWidget(const GameFile& game);
 
-private slots:
-  void ComputeChecksum();
-  void ChangeLanguage();
-  void SaveBanner();
+private:
+  void ComputeChecksum(); W_SLOT(ComputeChecksum, W_Access::Private);
+  void ChangeLanguage(); W_SLOT(ChangeLanguage, W_Access::Private);
+  void SaveBanner(); W_SLOT(SaveBanner, W_Access::Private);
 
 private:
   QGroupBox* CreateBannerDetails();

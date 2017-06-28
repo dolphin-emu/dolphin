@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <wobjectdefs.h>
 #include <QDialog>
 #include <QHash>
 
@@ -25,16 +26,16 @@ class XRRConfiguration;
 
 class GraphicsWindow final : public QDialog
 {
-  Q_OBJECT
+  W_OBJECT(GraphicsWindow)
 public:
   explicit GraphicsWindow(X11Utils::XRRConfiguration* xrr_config, MainWindow* parent);
 
   void RegisterWidget(GraphicsWidget* widget);
   bool eventFilter(QObject* object, QEvent* event) override;
-signals:
-  void BackendChanged(const QString& backend);
-  void EmulationStarted();
-  void EmulationStopped();
+
+  void BackendChanged(const QString& backend) W_SIGNAL(BackendChanged, (const QString&), backend);
+  void EmulationStarted() W_SIGNAL(EmulationStarted);
+  void EmulationStopped() W_SIGNAL(EmulationStopped);
 
 private:
   void CreateMainLayout();

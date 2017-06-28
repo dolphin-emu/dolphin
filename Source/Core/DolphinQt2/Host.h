@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <wobjectdefs.h>
 #include <QMutex>
 #include <QObject>
 #include <QSize>
@@ -15,7 +16,7 @@
 // Many of the Host_* functions are ignored, and some shouldn't exist.
 class Host final : public QObject
 {
-  Q_OBJECT
+  W_OBJECT(Host)
 
 public:
   static Host* GetInstance();
@@ -24,15 +25,14 @@ public:
   bool GetRenderFocus();
   bool GetRenderFullscreen();
 
-public slots:
-  void SetRenderHandle(void* handle);
-  void SetRenderFocus(bool focus);
-  void SetRenderFullscreen(bool fullscreen);
+public:
+  void SetRenderHandle(void* handle); W_SLOT(SetRenderHandle, (void*));
+  void SetRenderFocus(bool focus); W_SLOT(SetRenderFocus, (bool));
+  void SetRenderFullscreen(bool fullscreen); W_SLOT(SetRenderFullscreen, (bool));
 
-signals:
-  void RequestTitle(const QString& title);
-  void RequestStop();
-  void RequestRenderSize(int w, int h);
+  void RequestTitle(const QString& title) W_SIGNAL(RequestTitle, (const QString&), title);
+  void RequestStop() W_SIGNAL(RequestStop);
+  void RequestRenderSize(int w, int h) W_SIGNAL(RequestRenderSize, (int, int), w, h);
 
 private:
   Host() {}

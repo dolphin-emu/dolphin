@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <wobjectdefs.h>
 #include <QLabel>
 #include <QListView>
 #include <QSortFilterProxyModel>
@@ -15,33 +16,32 @@
 
 class GameList final : public QStackedWidget
 {
-  Q_OBJECT
+  W_OBJECT(GameList)
 
 public:
   explicit GameList(QWidget* parent = nullptr);
   QString GetSelectedGame() const;
 
-public slots:
-  void SetTableView() { SetPreferredView(true); }
-  void SetListView() { SetPreferredView(false); }
-  void SetViewColumn(int col, bool view) { m_table->setColumnHidden(col, !view); }
-  void OnColumnVisibilityToggled(const QString& row, bool visible);
+  void SetTableView() { SetPreferredView(true); } W_SLOT(SetTableView);
+  void SetListView() { SetPreferredView(false); } W_SLOT(SetListView);
+  void SetViewColumn(int col, bool view) { m_table->setColumnHidden(col, !view); } W_SLOT(SetViewColumn, (int, bool));
+  void OnColumnVisibilityToggled(const QString& row, bool visible); W_SLOT(OnColumnVisibilityToggled, (const QString&, bool));
 
-private slots:
-  void ShowContextMenu(const QPoint&);
-  void OpenContainingFolder();
-  void OpenProperties();
-  void OpenSaveFolder();
-  void OpenWiki();
-  void SetDefaultISO();
-  void DeleteFile();
-  void InstallWAD();
-  void UninstallWAD();
-  void ExportWiiSave();
-  void CompressISO();
+private:
+  void ShowContextMenu(const QPoint&); W_SLOT(ShowContextMenu, (const QPoint&), W_Access::Private);
+  void OpenContainingFolder(); W_SLOT(OpenContainingFolder, W_Access::Private);
+  void OpenProperties(); W_SLOT(OpenProperties, W_Access::Private);
+  void OpenSaveFolder(); W_SLOT(OpenSaveFolder, W_Access::Private);
+  void OpenWiki(); W_SLOT(OpenWiki, W_Access::Private);
+  void SetDefaultISO(); W_SLOT(SetDefaultISO, W_Access::Private);
+  void DeleteFile(); W_SLOT(DeleteFile, W_Access::Private);
+  void InstallWAD(); W_SLOT(InstallWAD, W_Access::Private);
+  void UninstallWAD(); W_SLOT(UninstallWAD, W_Access::Private);
+  void ExportWiiSave(); W_SLOT(ExportWiiSave, W_Access::Private);
+  void CompressISO(); W_SLOT(CompressISO, W_Access::Private);
 
-signals:
-  void GameSelected();
+public:
+  void GameSelected() W_SIGNAL(GameSelected);
 
 private:
   void MakeTableView();

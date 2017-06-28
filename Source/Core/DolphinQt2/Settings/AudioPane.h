@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <wobjectdefs.h>
 #include <QWidget>
 
 class QCheckBox;
@@ -17,7 +18,7 @@ class SettingsWindow;
 
 class AudioPane final : public QWidget
 {
-  Q_OBJECT
+  W_OBJECT(AudioPane)
 public:
   explicit AudioPane();
 

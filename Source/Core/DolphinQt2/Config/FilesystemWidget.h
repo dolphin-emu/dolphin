@@ -4,13 +4,14 @@
 
 #pragma once
 
+#include <wobjectdefs.h>
 #include <QDialog>
 
 #include "DolphinQt2/GameList/GameFile.h"
 
 class FilesystemWidget final : public QWidget
 {
-  Q_OBJECT
+  W_OBJECT(FilesystemWidget)
 public:
   explicit FilesystemWidget(const GameFile& game);
 

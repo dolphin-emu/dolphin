@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <wobjectimpl.h>
 #include <QApplication>
 #include <QCloseEvent>
 #include <QDir>
@@ -46,6 +47,8 @@
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 #include "UICommon/UICommon.h"
+
+W_OBJECT_IMPL(MainWindow)
 
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
 #include <qpa/qplatformnativeinterface.h>

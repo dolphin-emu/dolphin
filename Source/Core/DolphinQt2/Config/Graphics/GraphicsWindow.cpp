@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <wobjectimpl.h>
 #include "DolphinQt2/Config/Graphics/GraphicsWindow.h"
 
 #include <QDialogButtonBox>
@@ -18,6 +19,8 @@
 #include "DolphinQt2/Config/Graphics/HacksWidget.h"
 #include "DolphinQt2/Config/Graphics/SoftwareRendererWidget.h"
 #include "DolphinQt2/MainWindow.h"
+
+W_OBJECT_IMPL(GraphicsWindow)
 
 GraphicsWindow::GraphicsWindow(X11Utils::XRRConfiguration* xrr_config, MainWindow* parent)
     : QDialog(parent), m_xrr_config(xrr_config)

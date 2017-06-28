@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <wobjectimpl.h>
 #include <QAction>
 #include <QDesktopServices>
 #include <QFileDialog>
@@ -17,6 +18,8 @@
 #include "DolphinQt2/GameList/GameFile.h"
 #include "DolphinQt2/MenuBar.h"
 #include "DolphinQt2/Settings.h"
+
+W_OBJECT_IMPL(MenuBar)
 
 MenuBar::MenuBar(QWidget* parent) : QMenuBar(parent)
 {

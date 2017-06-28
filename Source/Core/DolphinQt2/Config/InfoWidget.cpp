@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <wobjectimpl.h>
 #include <QComboBox>
 #include <QCryptographicHash>
 #include <QFileDialog>
@@ -16,6 +17,8 @@
 #include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
 #include "DolphinQt2/Config/InfoWidget.h"
+
+W_OBJECT_IMPL(InfoWidget)
 
 InfoWidget::InfoWidget(const GameFile& game) : m_game(game)
 {

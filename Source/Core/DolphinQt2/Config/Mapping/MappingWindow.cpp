@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <wobjectimpl.h>
 #include <QComboBox>
 #include <QDialogButtonBox>
 #include <QGroupBox>
@@ -35,6 +36,8 @@
 #include "InputCommon/InputConfig.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
+
+W_OBJECT_IMPL(MappingWindow)
 
 MappingWindow::MappingWindow(QWidget* parent, int port_num) : QDialog(parent), m_port(port_num)
 {

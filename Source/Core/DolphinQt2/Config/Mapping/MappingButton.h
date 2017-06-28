@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <wobjectdefs.h>
 #include "Common/Flag.h"
 #include "DolphinQt2/QtUtils/ElidedButton.h"
 
@@ -14,15 +15,14 @@ class QMouseEvent;
 
 class MappingButton : public ElidedButton
 {
-  Q_OBJECT
+  W_OBJECT(MappingButton)
 public:
   MappingButton(MappingWidget* widget, ControlReference* ref);
 
   void Clear();
   void Update();
 
-signals:
-  void AdvancedPressed();
+  void AdvancedPressed() W_SIGNAL(AdvancedPressed);
 
 private:
   bool event(QEvent* event) override;

@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <wobjectdefs.h>
 #include <QSettings>
 #include <QVector>
 
@@ -20,7 +21,7 @@ class InputConfig;
 // UI settings to be stored in the config directory.
 class Settings final : public QSettings, NonCopyable
 {
-  Q_OBJECT
+  W_OBJECT(Settings)
 
 public:
   static Settings& Instance();
@@ -117,12 +118,11 @@ public:
 
   void Save();
 
-signals:
-  void ThemeChanged();
-  void PathAdded(const QString&);
-  void PathRemoved(const QString&);
-  void HideCursorChanged();
-  void VolumeChanged(int volume);
+  void ThemeChanged() W_SIGNAL(ThemeChanged);
+  void PathAdded(const QString& path) W_SIGNAL(PathAdded, (const QString&), path);
+  void PathRemoved(const QString& path) W_SIGNAL(PathRemoved, (const QString&), path);
+  void HideCursorChanged() W_SIGNAL(HideCursorChanged);
+  void VolumeChanged(int volume) W_SIGNAL(VolumeChanged, (int), volume);
 
 private:
   Settings();

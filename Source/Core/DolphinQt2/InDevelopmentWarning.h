@@ -4,11 +4,12 @@
 
 #pragma once
 
+#include <wobjectdefs.h>
 #include <QDialog>
 
 class InDevelopmentWarning final : public QDialog
 {
-  Q_OBJECT
+  W_OBJECT(InDevelopmentWarning)
 
 public:
   explicit InDevelopmentWarning(QWidget* parent = nullptr);

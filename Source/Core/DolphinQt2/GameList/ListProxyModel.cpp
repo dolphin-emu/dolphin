@@ -2,10 +2,13 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <wobjectimpl.h>
 #include <QSize>
 
 #include "DolphinQt2/GameList/GameListModel.h"
 #include "DolphinQt2/GameList/ListProxyModel.h"
+
+W_OBJECT_IMPL(ListProxyModel)
 
 const QSize LARGE_BANNER_SIZE(144, 48);
 

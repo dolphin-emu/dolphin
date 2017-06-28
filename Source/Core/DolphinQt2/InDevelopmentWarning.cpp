@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <wobjectimpl.h>
 #include <QApplication>
 #include <QBoxLayout>
 #include <QCommandLinkButton>
@@ -14,6 +15,8 @@
 
 #include "DolphinQt2/InDevelopmentWarning.h"
 #include "DolphinQt2/Resources.h"
+
+W_OBJECT_IMPL(InDevelopmentWarning)
 
 static bool LaunchDolphinWX()
 {

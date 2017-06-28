@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <wobjectdefs.h>
 #include <QDialog>
 #include <QString>
 
@@ -29,7 +30,7 @@ class EmulatedController;
 
 class IOWindow final : public QDialog
 {
-  Q_OBJECT
+  W_OBJECT(IOWindow)
 public:
   enum class Type
   {

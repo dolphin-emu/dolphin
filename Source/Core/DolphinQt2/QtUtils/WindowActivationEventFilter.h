@@ -4,14 +4,16 @@
 
 #pragma once
 
+#include <wobjectdefs.h>
 #include <QObject>
 
 class WindowActivationEventFilter : public QObject
 {
-  Q_OBJECT
-signals:
-  void windowActivated();
-  void windowDeactivated();
+  W_OBJECT(WindowActivationEventFilter)
+
+public:
+  void windowActivated() W_SIGNAL(windowActivated);
+  void windowDeactivated() W_SIGNAL(windowDeactivated);
 
 private:
   bool eventFilter(QObject* object, QEvent* event) override;

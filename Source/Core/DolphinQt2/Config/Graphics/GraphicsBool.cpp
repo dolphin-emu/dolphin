@@ -2,11 +2,14 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <wobjectimpl.h>
 #include "DolphinQt2/Config/Graphics/GraphicsBool.h"
 
 #include "Core/Config/Config.h"
 
 #include <QFont>
+
+W_OBJECT_IMPL(GraphicsBool)
 
 GraphicsBool::GraphicsBool(const QString& label, const Config::ConfigInfo<bool>& setting,
                            bool reverse)
@@ -27,6 +30,8 @@ void GraphicsBool::Update()
 {
   Config::SetBaseOrCurrent(m_setting, static_cast<bool>(isChecked() ^ m_reverse));
 }
+
+W_OBJECT_IMPL(GraphicsBoolEx)
 
 GraphicsBoolEx::GraphicsBoolEx(const QString& label, const Config::ConfigInfo<bool>& setting,
                                bool reverse)

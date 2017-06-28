@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <wobjectimpl.h>
 #include <QFormLayout>
 #include <QGroupBox>
 #include <QPushButton>
@@ -18,6 +19,8 @@
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/Setting/BooleanSetting.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
+
+W_OBJECT_IMPL(MappingWidget)
 
 MappingWidget::MappingWidget(MappingWindow* window) : m_parent(window)
 {

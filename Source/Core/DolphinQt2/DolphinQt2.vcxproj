@@ -53,102 +53,19 @@
       <AdditionalManifestFiles>DolphinQt2.manifest;%(AdditionalManifestFiles)</AdditionalManifestFiles>
     </Manifest>
   </ItemDefinitionGroup>
-  <!--
-  MOC files need to be listed. Put headers here ONLY if they use Q_OBJECT. Otherwise, put them
-  in the ItemGroup for ClInclude.
-  -->
-  <!--NOTE: When adding moc'd files, you must list outputs in the ClCompile ItemGroup too!-->
   <ItemGroup>
-    <QtMoc Include="AboutDialog.h" />
-    <QtMoc Include="Config\ControllersWindow.h" />
-    <QtMoc Include="Config\FilesystemWidget.h" />
-    <QtMoc Include="Config\Mapping\IOWindow.h" />
-    <QtMoc Include="Config\Mapping\MappingButton.h" />
-    <QtMoc Include="Config\Mapping\MappingWidget.h" />
-    <QtMoc Include="Config\Mapping\MappingWindow.h" />
-    <QtMoc Include="Config\Graphics\AdvancedWidget.h" />
-    <QtMoc Include="Config\Graphics\EnhancementsWidget.h" />
-    <QtMoc Include="Config\Graphics\GeneralWidget.h" />
-    <QtMoc Include="Config\Graphics\GraphicsBool.h" />
-    <QtMoc Include="Config\Graphics\GraphicsChoice.h" />
-    <QtMoc Include="Config\Graphics\GraphicsSlider.h" />
-    <QtMoc Include="Config\Graphics\GraphicsWidget.h" />
-    <QtMoc Include="Config\Graphics\GraphicsWindow.h" />
-    <QtMoc Include="Config\Graphics\HacksWidget.h" />
-    <QtMoc Include="Config\Graphics\SoftwareRendererWidget.h" />
-    <QtMoc Include="Config\InfoWidget.h" />
-    <QtMoc Include="Config\PropertiesDialog.h" />
-    <QtMoc Include="Config\SettingsWindow.h" />
-    <QtMoc Include="GameList\GameFile.h" />
-    <QtMoc Include="GameList\GameList.h" />
-    <QtMoc Include="GameList\GameListModel.h" />
-    <QtMoc Include="GameList\GameTracker.h" />
-    <QtMoc Include="GameList\ListProxyModel.h" />
-    <QtMoc Include="Host.h" />
-    <QtMoc Include="HotkeyScheduler.h" />
-    <QtMoc Include="InDevelopmentWarning.h" />
-    <QtMoc Include="Settings\InterfacePane.h" />
-    <QtMoc Include="Settings\AudioPane.h" />
-    <QtMoc Include="MainWindow.h" />
-    <QtMoc Include="MenuBar.h" />
-    <QtMoc Include="QtUtils\DoubleClickEventFilter.h" />
-    <QtMoc Include="QtUtils\WindowActivationEventFilter.h" />
-    <QtMoc Include="RenderWidget.h" />
-    <QtMoc Include="Settings.h" />
-    <QtMoc Include="Settings\GeneralPane.h" />
-    <QtMoc Include="ToolBar.h" />
-  </ItemGroup>
-  <!--TODO figure out how to get QtMoc to add outputs to ClCompile's inputs...-->
-  <ItemGroup>
-    <ClCompile Include="$(QtMocOutPrefix)AboutDialog.cpp" />
-    <ClCompile Include="$(QtMocOutPrefix)AudioPane.cpp" />
-    <ClCompile Include="$(QtMocOutPrefix)AdvancedWidget.cpp" />
-    <ClCompile Include="$(QtMocOutPrefix)EnhancementsWidget.cpp" />
-    <ClCompile Include="$(QtMocOutPrefix)ControllersWindow.cpp" />
-    <ClCompile Include="$(QtMocOutPrefix)FilesystemWidget.cpp" />
-    <ClCompile Include="$(QtMocOutPrefix)WindowActivationEventFilter.cpp" />
-    <ClCompile Include="$(QtMocOutPrefix)GameList.cpp" />
-    <ClCompile Include="$(QtMocOutPrefix)GameListModel.cpp" />
-    <ClCompile Include="$(QtMocOutPrefix)GameTracker.cpp" />
-    <ClCompile Include="$(QtMocOutPrefix)GeneralPane.cpp" />
-    <ClCompile Include="$(QtMocOutPrefix)GeneralWidget.cpp" />
-    <ClCompile Include="$(QtMocOutPrefix)GraphicsBool.cpp" />
-    <ClCompile Include="$(QtMocOutPrefix)GraphicsChoice.cpp" />
-    <ClCompile Include="$(QtMocOutPrefix)GraphicsSlider.cpp" />
-    <ClCompile Include="$(QtMocOutPrefix)GraphicsWidget.cpp" />
-    <ClCompile Include="$(QtMocOutPrefix)GraphicsWindow.cpp" />
-    <ClCompile Include="$(QtMocOutPrefix)HacksWidget.cpp" />
-    <ClCompile Include="$(QtMocOutPrefix)Host.cpp" />
-    <ClCompile Include="$(QtMocOutPrefix)HotkeyScheduler.cpp" />
-    <ClCompile Include="$(QtMocOutPrefix)InDevelopmentWarning.cpp" />
-    <ClCompile Include="$(QtMocOutPrefix)InfoWidget.cpp" />
-    <ClCompile Include="$(QtMocOutPrefix)InterfacePane.cpp" />
-    <ClCompile Include="$(QtMocOutPrefix)IOWindow.cpp" />
-    <ClCompile Include="$(QtMocOutPrefix)ListProxyModel.cpp" />
-    <ClCompile Include="$(QtMocOutPrefix)MainWindow.cpp" />
-    <ClCompile Include="$(QtMocOutPrefix)MappingButton.cpp" />
-    <ClCompile Include="$(QtMocOutPrefix)MappingWidget.cpp" />
-    <ClCompile Include="$(QtMocOutPrefix)MappingWindow.cpp" />
-    <ClCompile Include="$(QtMocOutPrefix)MenuBar.cpp" />
-    <ClCompile Include="$(QtMocOutPrefix)PropertiesDialog.cpp" />
-    <ClCompile Include="$(QtMocOutPrefix)DoubleClickEventFilter.cpp" />
-    <ClCompile Include="$(QtMocOutPrefix)RenderWidget.cpp" />
-    <ClCompile Include="$(QtMocOutPrefix)Settings.cpp" />
-    <ClCompile Include="$(QtMocOutPrefix)SettingsWindow.cpp" />
-    <ClCompile Include="$(QtMocOutPrefix)SoftwareRendererWidget.cpp" />
-    <ClCompile Include="$(QtMocOutPrefix)ToolBar.cpp" />
     <ClCompile Include="AboutDialog.cpp" />
     <ClCompile Include="Config\ControllersWindow.cpp" />
     <ClCompile Include="Config\FilesystemWidget.cpp" />
     <ClCompile Include="Config\Graphics\AdvancedWidget.cpp" />
     <ClCompile Include="Config\Graphics\EnhancementsWidget.cpp" />
-    <ClCompile Include="Config\Graphics\HacksWidget.cpp" />
     <ClCompile Include="Config\Graphics\GeneralWidget.cpp" />
     <ClCompile Include="Config\Graphics\GraphicsBool.cpp" />
     <ClCompile Include="Config\Graphics\GraphicsChoice.cpp" />
     <ClCompile Include="Config\Graphics\GraphicsSlider.cpp" />
     <ClCompile Include="Config\Graphics\GraphicsWidget.cpp" />
     <ClCompile Include="Config\Graphics\GraphicsWindow.cpp" />
+    <ClCompile Include="Config\Graphics\HacksWidget.cpp" />
     <ClCompile Include="Config\Graphics\SoftwareRendererWidget.cpp" />
     <ClCompile Include="Config\InfoWidget.cpp" />
     <ClCompile Include="Config\Mapping\GCKeyboardEmu.cpp" />
@@ -177,8 +94,8 @@
     <ClCompile Include="GameList\GameListModel.cpp" />
     <ClCompile Include="GameList\GameTracker.cpp" />
     <ClCompile Include="GameList\ListProxyModel.cpp" />
-    <ClCompile Include="HotkeyScheduler.cpp" />
     <ClCompile Include="Host.cpp" />
+    <ClCompile Include="HotkeyScheduler.cpp" />
     <ClCompile Include="InDevelopmentWarning.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MainWindow.cpp" />
@@ -196,8 +113,23 @@
     <ClCompile Include="ToolBar.cpp" />
     <ClCompile Include="WiiUpdate.cpp" />
   </ItemGroup>
-  <!--Put standard C/C++ headers here-->
   <ItemGroup>
+    <ClInclude Include="..\..\..\Externals\verdigris\wobjectdefs.h" />
+    <ClInclude Include="..\..\..\Externals\verdigris\wobjectimpl.h" />
+    <ClInclude Include="AboutDialog.h" />
+    <ClInclude Include="Config\ControllersWindow.h" />
+    <ClInclude Include="Config\FilesystemWidget.h" />
+    <ClInclude Include="Config\Graphics\AdvancedWidget.h" />
+    <ClInclude Include="Config\Graphics\EnhancementsWidget.h" />
+    <ClInclude Include="Config\Graphics\GeneralWidget.h" />
+    <ClInclude Include="Config\Graphics\GraphicsBool.h" />
+    <ClInclude Include="Config\Graphics\GraphicsChoice.h" />
+    <ClInclude Include="Config\Graphics\GraphicsSlider.h" />
+    <ClInclude Include="Config\Graphics\GraphicsWidget.h" />
+    <ClInclude Include="Config\Graphics\GraphicsWindow.h" />
+    <ClInclude Include="Config\Graphics\HacksWidget.h" />
+    <ClInclude Include="Config\Graphics\SoftwareRendererWidget.h" />
+    <ClInclude Include="Config\InfoWidget.h" />
     <ClInclude Include="Config\Mapping\GCKeyboardEmu.h" />
     <ClInclude Include="Config\Mapping\GCPadEmu.h" />
     <ClInclude Include="Config\Mapping\GCPadWiiU.h" />
@@ -207,15 +139,39 @@
     <ClInclude Include="Config\Mapping\HotkeyStates.h" />
     <ClInclude Include="Config\Mapping\HotkeyTAS.h" />
     <ClInclude Include="Config\Mapping\HotkeyWii.h" />
+    <ClInclude Include="Config\Mapping\IOWindow.h" />
     <ClInclude Include="Config\Mapping\MappingBool.h" />
+    <ClInclude Include="Config\Mapping\MappingButton.h" />
     <ClInclude Include="Config\Mapping\MappingCommon.h" />
     <ClInclude Include="Config\Mapping\MappingNumeric.h" />
+    <ClInclude Include="Config\Mapping\MappingWidget.h" />
+    <ClInclude Include="Config\Mapping\MappingWindow.h" />
     <ClInclude Include="Config\Mapping\WiimoteEmuExtension.h" />
     <ClInclude Include="Config\Mapping\WiimoteEmuGeneral.h" />
     <ClInclude Include="Config\Mapping\WiimoteEmuMotionControl.h" />
+    <ClInclude Include="Config\PropertiesDialog.h" />
+    <ClInclude Include="Config\SettingsWindow.h" />
+    <ClInclude Include="GameList\GameFile.h" />
+    <ClInclude Include="GameList\GameList.h" />
+    <ClInclude Include="GameList\GameListModel.h" />
+    <ClInclude Include="GameList\GameTracker.h" />
+    <ClInclude Include="GameList\ListProxyModel.h" />
+    <ClInclude Include="Host.h" />
+    <ClInclude Include="HotkeyScheduler.h" />
+    <ClInclude Include="InDevelopmentWarning.h" />
+    <ClInclude Include="MainWindow.h" />
+    <ClInclude Include="MenuBar.h" />
+    <ClInclude Include="QtUtils\DoubleClickEventFilter.h" />
     <ClInclude Include="QtUtils\ElidedButton.h" />
+    <ClInclude Include="QtUtils\WindowActivationEventFilter.h" />
+    <ClInclude Include="RenderWidget.h" />
     <ClInclude Include="Resources.h" />
+    <ClInclude Include="Settings.h" />
+    <ClInclude Include="Settings\AudioPane.h" />
+    <ClInclude Include="Settings\GeneralPane.h" />
+    <ClInclude Include="Settings\InterfacePane.h" />
     <ClInclude Include="Settings\PathPane.h" />
+    <ClInclude Include="ToolBar.h" />
     <ClInclude Include="WiiUpdate.h" />
   </ItemGroup>
   <ItemGroup>
@@ -281,9 +237,7 @@
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-  <ImportGroup Label="ExtensionTargets">
-    <Import Project="..\..\VSProps\QtCompile.targets" />
-  </ImportGroup>
+  <ImportGroup Label="ExtensionTargets" />
   <!--Copy Exe, Data directory and DLLs which should be located in the executable directory-->
   <ItemGroup>
     <DataSysFiles Include="$(DolphinRootDir)Data\**\Sys\**\*.*" />

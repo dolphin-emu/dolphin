@@ -2,11 +2,14 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <wobjectimpl.h>
 #include <QKeyEvent>
 
 #include "DolphinQt2/Host.h"
 #include "DolphinQt2/RenderWidget.h"
 #include "DolphinQt2/Settings.h"
+
+W_OBJECT_IMPL(RenderWidget)
 
 RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
 {

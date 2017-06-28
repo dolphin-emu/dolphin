@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <wobjectimpl.h>
 #include "DolphinQt2/Config/Graphics/EnhancementsWidget.h"
 
 #include <cmath>
@@ -22,6 +23,8 @@
 #include "UICommon/VideoUtils.h"
 #include "VideoCommon/PostProcessing.h"
 #include "VideoCommon/VideoConfig.h"
+
+W_OBJECT_IMPL(EnhancementsWidget)
 
 EnhancementsWidget::EnhancementsWidget(GraphicsWindow* parent)
     : GraphicsWidget(parent), m_block_save(false)

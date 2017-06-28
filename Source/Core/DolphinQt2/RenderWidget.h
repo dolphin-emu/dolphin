@@ -4,24 +4,24 @@
 
 #pragma once
 
+#include <wobjectdefs.h>
 #include <QEvent>
 #include <QWidget>
 
 class RenderWidget final : public QWidget
 {
-  Q_OBJECT
+  W_OBJECT(RenderWidget)
 
 public:
   explicit RenderWidget(QWidget* parent = nullptr);
 
   bool event(QEvent* event);
 
-signals:
-  void EscapePressed();
-  void Closed();
-  void HandleChanged(void* handle);
-  void FocusChanged(bool focus);
-  void StateChanged(bool fullscreen);
+  void EscapePressed() W_SIGNAL(EscapePressed);
+  void Closed() W_SIGNAL(Closed);
+  void HandleChanged(void* handle) W_SIGNAL(HandleChanged, (void*), handle);
+  void FocusChanged(bool focus) W_SIGNAL(FocusChanged, (bool), focus);
+  void StateChanged(bool fullscreen) W_SIGNAL(StateChanged, (bool), fullscreen);
 
 private:
   void OnHideCursorChanged();

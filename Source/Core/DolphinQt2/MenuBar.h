@@ -4,63 +4,65 @@
 
 #pragma once
 
+#include <wobjectdefs.h>
 #include <string>
 
 #include <QMenu>
 #include <QMenuBar>
 
+W_REGISTER_ARGTYPE(std::string)
+
 class MenuBar final : public QMenuBar
 {
-  Q_OBJECT
+  W_OBJECT(MenuBar)
 
 public:
   explicit MenuBar(QWidget* parent = nullptr);
 
-signals:
   // File
-  void Open();
-  void Exit();
+  void Open() W_SIGNAL(Open);
+  void Exit() W_SIGNAL(Exit);
 
   // Emulation
-  void Play();
-  void Pause();
-  void Stop();
-  void Reset();
-  void Fullscreen();
-  void FrameAdvance();
-  void Screenshot();
-  void StateLoad();
-  void StateSave();
-  void StateLoadSlot();
-  void StateSaveSlot();
-  void StateLoadSlotAt(int slot);
-  void StateSaveSlotAt(int slot);
-  void StateLoadUndo();
-  void StateSaveUndo();
-  void StateSaveOldest();
-  void SetStateSlot(int slot);
+  void Play() W_SIGNAL(Play);
+  void Pause() W_SIGNAL(Pause);
+  void Stop() W_SIGNAL(Stop);
+  void Reset() W_SIGNAL(Reset);
+  void Fullscreen() W_SIGNAL(Fullscreen);
+  void FrameAdvance() W_SIGNAL(FrameAdvance);
+  void Screenshot() W_SIGNAL(Screenshot);
+  void StateLoad() W_SIGNAL(StateLoad);
+  void StateSave() W_SIGNAL(StateSave);
+  void StateLoadSlot() W_SIGNAL(StateLoadSlot);
+  void StateSaveSlot() W_SIGNAL(StateSaveSlot);
+  void StateLoadSlotAt(int slot) W_SIGNAL(StateLoadSlotAt, (int), slot);
+  void StateSaveSlotAt(int slot) W_SIGNAL(StateSaveSlotAt, (int), slot);
+  void StateLoadUndo() W_SIGNAL(StateLoadUndo);
+  void StateSaveUndo() W_SIGNAL(StateSaveUndo);
+  void StateSaveOldest() W_SIGNAL(StateSaveOldest);
+  void SetStateSlot(int slot) W_SIGNAL(SetStateSlot, (int), slot);
 
-  void PerformOnlineUpdate(const std::string& region);
+  void PerformOnlineUpdate(const std::string& region) W_SIGNAL(PerformOnlineUpdate, (const std::string&), region);
 
   // Options
-  void ConfigureHotkeys();
+  void ConfigureHotkeys() W_SIGNAL(ConfigureHotkeys);
 
   // View
-  void ShowTable();
-  void ShowList();
-  void ColumnVisibilityToggled(const QString& row, bool visible);
+  void ShowTable() W_SIGNAL(ShowTable);
+  void ShowList() W_SIGNAL(ShowList);
+  void ColumnVisibilityToggled(const QString& row, bool visible) W_SIGNAL(ColumnVisibilityToggled, (const QString&, bool), row, visible);
 
-  void ShowAboutDialog();
+  void ShowAboutDialog() W_SIGNAL(ShowAboutDialog);
 
-public slots:
-  void EmulationStarted();
-  void EmulationPaused();
-  void EmulationStopped();
-  void UpdateStateSlotMenu();
-  void UpdateToolsMenu(bool emulation_started);
+public:
+  void EmulationStarted(); W_SLOT(EmulationStarted);
+  void EmulationPaused(); W_SLOT(EmulationPaused);
+  void EmulationStopped(); W_SLOT(EmulationStopped);
+  void UpdateStateSlotMenu(); W_SLOT(UpdateStateSlotMenu);
+  void UpdateToolsMenu(bool emulation_started); W_SLOT(UpdateToolsMenu, (bool));
 
   // Tools
-  void InstallWAD();
+  void InstallWAD(); W_SLOT(InstallWAD);
 
 private:
   void AddFileMenu();

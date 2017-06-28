@@ -4,13 +4,14 @@
 
 #pragma once
 
+#include <wobjectdefs.h>
 #include <QDialog>
 
 #include "DolphinQt2/GameList/GameFile.h"
 
 class PropertiesDialog final : public QDialog
 {
-  Q_OBJECT
+  W_OBJECT(PropertiesDialog)
 public:
   explicit PropertiesDialog(QWidget* parent, const GameFile& game);
 };

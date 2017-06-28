@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <wobjectdefs.h>
 #include <QWidget>
 
 class GraphicsWindow;
@@ -13,12 +14,11 @@ class QLabel;
 
 class GraphicsWidget : public QWidget
 {
-  Q_OBJECT
+  W_OBJECT(GraphicsWidget)
 public:
   explicit GraphicsWidget(GraphicsWindow* parent);
 
-signals:
-  void DescriptionAdded(QWidget* widget, const char* description);
+  void DescriptionAdded(QWidget* widget, const char* description) W_SIGNAL(DescriptionAdded, (QWidget*, const char*), widget, description);
 
 protected:
   void AddWidget(const QString& name, QWidget* widget);

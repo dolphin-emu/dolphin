@@ -2,11 +2,14 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <wobjectimpl.h>
 #include <QIcon>
 
 #include "DolphinQt2/Resources.h"
 #include "DolphinQt2/Settings.h"
 #include "DolphinQt2/ToolBar.h"
+
+W_OBJECT_IMPL(ToolBar)
 
 static QSize ICON_SIZE(32, 32);
 

@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <wobjectimpl.h>
 #include "DolphinQt2/Config/Graphics/AdvancedWidget.h"
 
 #include <QCheckBox>
@@ -15,6 +16,8 @@
 #include "DolphinQt2/Config/Graphics/GraphicsChoice.h"
 #include "DolphinQt2/Config/Graphics/GraphicsWindow.h"
 #include "VideoCommon/VideoConfig.h"
+
+W_OBJECT_IMPL(AdvancedWidget)
 
 AdvancedWidget::AdvancedWidget(GraphicsWindow* parent) : GraphicsWidget(parent)
 {

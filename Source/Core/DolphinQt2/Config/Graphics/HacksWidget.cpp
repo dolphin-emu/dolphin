@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <wobjectimpl.h>
 #include "DolphinQt2/Config/Graphics/HacksWidget.h"
 
 #include <QGridLayout>
@@ -14,6 +15,8 @@
 #include "DolphinQt2/Config/Graphics/GraphicsBool.h"
 #include "DolphinQt2/Config/Graphics/GraphicsSlider.h"
 #include "VideoCommon/VideoConfig.h"
+
+W_OBJECT_IMPL(HacksWidget)
 
 HacksWidget::HacksWidget(GraphicsWindow* parent) : GraphicsWidget(parent)
 {

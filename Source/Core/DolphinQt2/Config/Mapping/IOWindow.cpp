@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <wobjectimpl.h>
 #include "DolphinQt2/Config/Mapping/IOWindow.h"
 
 #include <thread>
@@ -25,6 +26,8 @@
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
+
+W_OBJECT_IMPL(IOWindow)
 
 constexpr int SLIDER_TICK_COUNT = 100;
 

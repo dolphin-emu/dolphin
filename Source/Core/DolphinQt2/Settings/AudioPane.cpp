@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <wobjectimpl.h>
 #include "DolphinQt2/Settings/AudioPane.h"
 
 #include <QCheckBox>
@@ -20,6 +21,8 @@
 #include "Core/ConfigManager.h"
 #include "DolphinQt2/Config/SettingsWindow.h"
 #include "DolphinQt2/Settings.h"
+
+W_OBJECT_IMPL(AudioPane)
 
 AudioPane::AudioPane()
 {

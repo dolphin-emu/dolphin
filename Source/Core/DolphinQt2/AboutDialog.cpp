@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <wobjectimpl.h>
 #include <QLabel>
 #include <QTextEdit>
 #include <QVBoxLayout>
@@ -9,6 +10,8 @@
 #include "Common/Common.h"
 #include "DolphinQt2/AboutDialog.h"
 #include "DolphinQt2/Resources.h"
+
+W_OBJECT_IMPL(AboutDialog)
 
 AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent)
 {

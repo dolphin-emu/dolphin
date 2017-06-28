@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <wobjectimpl.h>
 #include <QDir>
 #include <QSize>
 
@@ -12,6 +13,8 @@
 #include "Core/ConfigManager.h"
 #include "DolphinQt2/Settings.h"
 #include "InputCommon/InputConfig.h"
+
+W_OBJECT_IMPL(Settings)
 
 static QString GetSettingsPath()
 {

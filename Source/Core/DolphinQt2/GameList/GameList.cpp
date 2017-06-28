@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <wobjectimpl.h>
 #include <QDesktopServices>
 #include <QDir>
 #include <QErrorMessage>
@@ -24,6 +25,8 @@
 #include "DolphinQt2/GameList/ListProxyModel.h"
 #include "DolphinQt2/QtUtils/DoubleClickEventFilter.h"
 #include "DolphinQt2/Settings.h"
+
+W_OBJECT_IMPL(GameList)
 
 static bool CompressCB(const std::string&, float, void*);
 

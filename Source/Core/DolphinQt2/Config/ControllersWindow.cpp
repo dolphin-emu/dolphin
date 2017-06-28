@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <wobjectimpl.h>
 #include <QApplication>
 #include <QBoxLayout>
 #include <QCheckBox>
@@ -32,6 +33,8 @@
 #include "UICommon/UICommon.h"
 
 #include "DolphinQt2/Config/ControllersWindow.h"
+
+W_OBJECT_IMPL(ControllersWindow)
 
 static const std::unordered_map<SerialInterface::SIDevices, int> s_gc_types = {
     {SerialInterface::SIDEVICE_NONE, 0},         {SerialInterface::SIDEVICE_GC_CONTROLLER, 1},

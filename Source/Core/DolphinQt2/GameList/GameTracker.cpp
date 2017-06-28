@@ -2,12 +2,16 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <wobjectimpl.h>
 #include <QDir>
 #include <QDirIterator>
 #include <QFile>
 
 #include "DolphinQt2/GameList/GameTracker.h"
 #include "DolphinQt2/Settings.h"
+
+W_OBJECT_IMPL(GameTracker)
+W_OBJECT_IMPL(GameLoader)
 
 static const QStringList game_filters{
     QStringLiteral("*.gcm"),  QStringLiteral("*.iso"), QStringLiteral("*.tgc"),
