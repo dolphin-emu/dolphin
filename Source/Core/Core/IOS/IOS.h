@@ -148,7 +148,6 @@ protected:
   IPCMsgQueue m_request_queue;  // ppc -> arm
   IPCMsgQueue m_reply_queue;    // arm -> ppc
   IPCMsgQueue m_ack_queue;      // arm -> ppc
-  u64 m_last_reply_time = 0;
 
   IOSC m_iosc;
 };

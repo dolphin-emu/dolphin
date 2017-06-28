@@ -475,12 +475,6 @@ void Kernel::ExecuteIPCCommand(const u32 address)
   if (!result.send_reply)
     return;
 
-  // Ensure replies happen in order
-  const s64 ticks_until_last_reply = m_last_reply_time - CoreTiming::GetTicks();
-  if (ticks_until_last_reply > 0)
-    result.reply_delay_ticks += ticks_until_last_reply;
-  m_last_reply_time = CoreTiming::GetTicks() + result.reply_delay_ticks;
-
   EnqueueIPCReply(request, result.return_value, static_cast<int>(result.reply_delay_ticks));
 }
 
@@ -584,7 +578,6 @@ void Kernel::DoState(PointerWrap& p)
 {
   p.Do(m_request_queue);
   p.Do(m_reply_queue);
-  p.Do(m_last_reply_time);
   p.Do(m_title_id);
   p.Do(m_ppc_uid);
   p.Do(m_ppc_gid);
