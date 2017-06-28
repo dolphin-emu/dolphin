@@ -140,7 +140,7 @@ bool WiimoteLinux::ConnectInternal()
 
   // Output channel
   addr.l2_psm = htobs(WC_OUTPUT);
-  if (m_cmd_sock = socket(AF_BLUETOOTH, SOCK_SEQPACKET, BTPROTO_L2CAP))
+  if ((m_cmd_sock = socket(AF_BLUETOOTH, SOCK_SEQPACKET, BTPROTO_L2CAP)))
   {
     int retry = 0;
     while (connect(m_cmd_sock, (sockaddr*)&addr, sizeof(addr)) < 0)
@@ -165,7 +165,7 @@ bool WiimoteLinux::ConnectInternal()
 
   // Input channel
   addr.l2_psm = htobs(WC_INPUT);
-  if (m_int_sock = socket(AF_BLUETOOTH, SOCK_SEQPACKET, BTPROTO_L2CAP))
+  if ((m_int_sock = socket(AF_BLUETOOTH, SOCK_SEQPACKET, BTPROTO_L2CAP)))
   {
     int retry = 0;
     while (connect(m_int_sock, (sockaddr*)&addr, sizeof(addr)) < 0)
