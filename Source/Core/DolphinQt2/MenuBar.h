@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <string>
+
 #include <QMenu>
 #include <QMenuBar>
 
@@ -38,6 +40,8 @@ signals:
   void StateSaveOldest();
   void SetStateSlot(int slot);
 
+  void PerformOnlineUpdate(const std::string& region);
+
   // Options
   void ConfigureHotkeys();
 
@@ -53,6 +57,7 @@ public slots:
   void EmulationPaused();
   void EmulationStopped();
   void UpdateStateSlotMenu();
+  void UpdateToolsMenu(bool emulation_started);
 
   // Tools
   void InstallWAD();
@@ -79,6 +84,8 @@ private:
 
   // Tools
   QAction* m_wad_install_action;
+  QMenu* m_perform_online_update_menu;
+  QAction* m_perform_online_update_for_current_region;
 
   // Emulation
   QAction* m_play_action;

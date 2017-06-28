@@ -6,9 +6,9 @@
 
 #include <string>
 
-// Small utility functions for common Wii related tasks.
+class QWidget;
 
-namespace WiiUtils
+namespace WiiUpdate
 {
-bool InstallWAD(const std::string& wad_path);
-}
+void PerformOnlineUpdate(const std::string& region, QWidget* parent = nullptr);
+};  // namespace WiiUpdate
