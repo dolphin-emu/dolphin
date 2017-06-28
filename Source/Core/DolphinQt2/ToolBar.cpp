@@ -83,6 +83,9 @@ void ToolBar::MakeActions()
   m_config_action = addAction(tr("Settings"), this, SIGNAL(SettingsPressed()));
   widgetForAction(m_config_action)->setMinimumWidth(button_width);
 
+  m_graphics_action = addAction(tr("Graphics"), this, SIGNAL(GraphicsPressed()));
+  widgetForAction(m_graphics_action)->setMinimumWidth(button_width);
+
   m_controllers_action = addAction(tr("Controllers"), this, SIGNAL(ControllersPressed()));
   widgetForAction(m_controllers_action)->setMinimumWidth(button_width);
   m_controllers_action->setEnabled(true);
@@ -98,4 +101,5 @@ void ToolBar::UpdateIcons()
   m_screenshot_action->setIcon(Resources::GetScaledThemeIcon("screenshot"));
   m_config_action->setIcon(Resources::GetScaledThemeIcon("config"));
   m_controllers_action->setIcon(Resources::GetScaledThemeIcon("classic"));
+  m_graphics_action->setIcon(Resources::GetScaledThemeIcon("graphics"));
 }

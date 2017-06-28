@@ -19,6 +19,7 @@ class MappingWindow;
 class SettingsWindow;
 class ControllersWindow;
 class DragEnterEvent;
+class GraphicsWindow;
 
 class MainWindow final : public QMainWindow
 {
@@ -82,6 +83,7 @@ private:
 
   void ShowSettingsWindow();
   void ShowControllersWindow();
+  void ShowGraphicsWindow();
   void ShowAboutDialog();
   void ShowHotkeyDialog();
 
@@ -101,4 +103,5 @@ private:
   ControllersWindow* m_controllers_window;
   SettingsWindow* m_settings_window;
   MappingWindow* m_hotkey_window;
+  GraphicsWindow* m_graphics_window;
 };

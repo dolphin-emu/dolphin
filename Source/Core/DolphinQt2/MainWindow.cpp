@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <QApplication>
 #include <QCloseEvent>
 #include <QDir>
 #include <QDragEnterEvent>
@@ -30,6 +31,8 @@
 
 #include "DolphinQt2/AboutDialog.h"
 #include "DolphinQt2/Config/ControllersWindow.h"
+
+#include "DolphinQt2/Config/Graphics/GraphicsWindow.h"
 #include "DolphinQt2/Config/Mapping/MappingWindow.h"
 #include "DolphinQt2/Config/SettingsWindow.h"
 #include "DolphinQt2/Host.h"
@@ -43,6 +46,11 @@
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 #include "UICommon/UICommon.h"
+
+#if defined(HAVE_XRANDR) && HAVE_XRANDR
+#include <qpa/qplatformnativeinterface.h>
+#include "UICommon/X11Utils.h"
+#endif
 
 MainWindow::MainWindow() : QMainWindow(nullptr)
 {
@@ -131,9 +139,21 @@ void MainWindow::CreateComponents()
   connect(this, &MainWindow::EmulationStopped, m_settings_window,
           &SettingsWindow::EmulationStopped);
 
+#if defined(HAVE_XRANDR) && HAVE_XRANDR
+  m_graphics_window = new GraphicsWindow(
+      new X11Utils::XRRConfiguration(
+          static_cast<Display*>(QGuiApplication::platformNativeInterface()->nativeResourceForWindow(
+              "display", windowHandle())),
+          winId()),
+      this);
+#else
+  m_graphics_window = new GraphicsWindow(nullptr, this);
+#endif
+
   InstallHotkeyFilter(m_hotkey_window);
   InstallHotkeyFilter(m_controllers_window);
   InstallHotkeyFilter(m_settings_window);
+  InstallHotkeyFilter(m_graphics_window);
 }
 
 void MainWindow::ConnectMenuBar()
@@ -212,6 +232,7 @@ void MainWindow::ConnectToolBar()
   connect(m_tool_bar, &ToolBar::ScreenShotPressed, this, &MainWindow::ScreenShot);
   connect(m_tool_bar, &ToolBar::SettingsPressed, this, &MainWindow::ShowSettingsWindow);
   connect(m_tool_bar, &ToolBar::ControllersPressed, this, &MainWindow::ShowControllersWindow);
+  connect(m_tool_bar, &ToolBar::GraphicsPressed, this, &MainWindow::ShowGraphicsWindow);
 
   connect(this, &MainWindow::EmulationStarted, m_tool_bar, &ToolBar::EmulationStarted);
   connect(this, &MainWindow::EmulationPaused, m_tool_bar, &ToolBar::EmulationPaused);
@@ -474,6 +495,13 @@ void MainWindow::ShowHotkeyDialog()
   m_hotkey_window->show();
   m_hotkey_window->raise();
   m_hotkey_window->activateWindow();
+}
+
+void MainWindow::ShowGraphicsWindow()
+{
+  m_graphics_window->show();
+  m_graphics_window->raise();
+  m_graphics_window->activateWindow();
 }
 
 void MainWindow::StateLoad()
