@@ -823,6 +823,7 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::Load(const u32 stage)
   entry->SetHashes(base_hash, full_hash);
   entry->is_efb_copy = false;
   entry->is_custom_tex = hires_tex != nullptr;
+  entry->memory_stride = entry->BytesPerRow();
 
   std::string basename = "";
   if (g_ActiveConfig.bDumpTextures && !hires_tex)
