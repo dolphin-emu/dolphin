@@ -26,6 +26,7 @@ private:
   void BindEvents();
 
   void PopulateBackendChoiceBox();
+  void CheckNeedForLatencyControl();
   void ToggleBackendSpecificControls(const std::string& backend);
 
   void OnDSPEngineRadioBoxChanged(wxCommandEvent&);
@@ -50,4 +51,6 @@ private:
   wxStaticText* m_stretch_label;
   DolphinSlider* m_stretch_slider;
   wxStaticText* m_stretch_text;
+
+  bool m_latency_control_supported;
 };
