@@ -7018,7 +7018,7 @@ msgstr "Símbolos"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:284
 msgid "Sync"
-msgstr "Sincroizar"
+msgstr "Sincronizar"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:551
 msgid "Sync Wii Remotes"
