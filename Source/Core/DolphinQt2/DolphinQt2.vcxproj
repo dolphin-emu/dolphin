@@ -103,12 +103,14 @@
     <QtMoc Include="QtUtils\WindowActivationEventFilter.h" />
     <QtMoc Include="RenderWidget.h" />
     <QtMoc Include="Settings.h" />
+    <QtMoc Include="Settings\AdvancedPane.h" />
     <QtMoc Include="Settings\GeneralPane.h" />
     <QtMoc Include="ToolBar.h" />
   </ItemGroup>
   <!--TODO figure out how to get QtMoc to add outputs to ClCompile's inputs...-->
   <ItemGroup>
     <ClCompile Include="$(QtMocOutPrefix)AboutDialog.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)AdvancedPane.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)AudioPane.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)AdvancedWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)EnhancementsWidget.cpp" />
@@ -216,6 +218,7 @@
     <ClCompile Include="RenderWidget.cpp" />
     <ClCompile Include="Resources.cpp" />
     <ClCompile Include="Settings.cpp" />
+    <ClCompile Include="Settings\AdvancedPane.cpp" />
     <ClCompile Include="Settings\AudioPane.cpp" />
     <ClCompile Include="Settings\GeneralPane.cpp" />
     <ClCompile Include="Settings\InterfacePane.cpp" />
