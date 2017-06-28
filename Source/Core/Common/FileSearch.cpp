@@ -100,12 +100,12 @@ std::vector<std::string> DoFileSearch(const std::vector<std::string>& directorie
     if (recursive)
     {
       // TODO use fs::directory_options::follow_directory_symlink ?
-      for (auto& entry : fs::recursive_directory_iterator(fs::path(directory)))
+      for (auto& entry : fs::recursive_directory_iterator(fs::u8path(directory)))
         add_filtered(entry);
     }
     else
     {
-      for (auto& entry : fs::directory_iterator(fs::path(directory)))
+      for (auto& entry : fs::directory_iterator(fs::u8path(directory)))
         add_filtered(entry);
     }
   }
