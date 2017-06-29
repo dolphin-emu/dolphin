@@ -12,6 +12,7 @@ class DebugInterface
 {
 protected:
   virtual ~DebugInterface() {}
+
 public:
   virtual std::string Disassemble(unsigned int /*address*/) { return "NODEBUGGER"; }
   virtual std::string GetRawMemoryString(int /*memory*/, unsigned int /*address*/)

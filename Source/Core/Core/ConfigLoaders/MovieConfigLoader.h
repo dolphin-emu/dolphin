@@ -27,6 +27,7 @@ public:
   void Save(Config::Layer* config_layer) override;
 
   void ChangeDTMHeader(Movie::DTMHeader* header) { m_header = header; }
+
 private:
   Movie::DTMHeader* m_header;
 };

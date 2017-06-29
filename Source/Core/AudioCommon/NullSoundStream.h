@@ -18,6 +18,7 @@ public:
   void Update() override;
 
   static bool isValid() { return true; }
+
 private:
   static constexpr size_t BUFFER_SIZE = 48000 * 4 / 32;
 

@@ -34,6 +34,7 @@ public:
   void Write16(u32 offset, u16 data) { *(u16*)&m_pBuffer[offset] = Common::swap16(data); }
   void Write32(u32 offset, u32 data) { *(u32*)&m_pBuffer[offset] = Common::swap32(data); }
   u8* GetPointer(u32 offset) { return &m_pBuffer[offset]; }
+
 private:
   u8* m_pBuffer;
 };
@@ -69,6 +70,7 @@ public:
   u16 GetLMPSubVersion() const { return lmp_subversion; }
   u16 GetManufactorID() const { return 0x000F; }  // Broadcom Corporation
   const u8* GetLinkKey() const { return m_LinkKey; }
+
 private:
   enum ConnectionState
   {

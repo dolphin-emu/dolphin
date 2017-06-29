@@ -63,6 +63,7 @@ public:
 
   std::string GetErrorString() const { return last_error_str; }
   err_t GetError() const { return last_error; }
+
 private:
   struct param_t
   {

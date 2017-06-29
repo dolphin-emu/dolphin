@@ -36,6 +36,7 @@ public:
   ~LibusbConfigDescriptor();
   libusb_config_descriptor* Get() const { return m_descriptor; }
   bool IsValid() const { return m_descriptor != nullptr; }
+
 private:
   libusb_config_descriptor* m_descriptor = nullptr;
 };

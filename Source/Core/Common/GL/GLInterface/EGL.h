@@ -33,6 +33,7 @@ protected:
     return (EGLNativeWindowType)EGL_DEFAULT_DISPLAY;
   }
   virtual void ShutdownPlatform() {}
+
 public:
   void Swap() override;
   void SwapInterval(int interval) override;

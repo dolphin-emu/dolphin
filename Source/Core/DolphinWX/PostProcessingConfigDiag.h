@@ -35,6 +35,7 @@ private:
   public:
     UserEventData(const std::string& data) : m_data(data) {}
     const std::string& GetData() { return m_data; }
+
   private:
     const std::string m_data;
   };

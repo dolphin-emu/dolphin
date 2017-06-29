@@ -57,6 +57,7 @@ public:
   SectionID GetSectionByName(const char* name, int firstSection = 0) const;  //-1 for not found
 
   bool DidRelocate() const { return bRelocate; }
+
 private:
   void Initialize(u8* bytes);
 

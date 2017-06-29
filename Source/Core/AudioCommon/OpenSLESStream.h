@@ -16,6 +16,7 @@ public:
   bool Start() override;
   void Stop() override;
   static bool isValid() { return true; }
+
 private:
   std::thread thread;
   Common::Event soundSyncEvent;

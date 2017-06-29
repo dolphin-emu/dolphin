@@ -46,6 +46,7 @@ public:
   bool IsEnabled() const { return m_enable; }
   void SetEnable(bool enable) { m_enable = enable; }
   const char* GetName() const { return "file"; }
+
 private:
   std::mutex m_log_lock;
   std::ofstream m_logfile;
@@ -71,6 +72,7 @@ public:
   typedef class BitSet32::Iterator iterator;
   iterator begin() const { return m_listener_ids.begin(); }
   iterator end() const { return m_listener_ids.end(); }
+
 private:
   std::string m_fullName;
   std::string m_shortName;

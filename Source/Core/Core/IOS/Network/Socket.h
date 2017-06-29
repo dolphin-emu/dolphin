@@ -201,6 +201,7 @@ private:
   void DoSock(Request request, SSL_IOCTL type);
   void Update(bool read, bool write, bool except);
   bool IsValid() const { return fd >= 0; }
+
 public:
   WiiSocket() : fd(-1), nonBlock(false) {}
   ~WiiSocket();
