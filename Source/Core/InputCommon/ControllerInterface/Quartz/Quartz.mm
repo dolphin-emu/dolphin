@@ -6,20 +6,15 @@
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/Quartz/QuartzKeyboardAndMouse.h"
 
-namespace ciface
-{
-namespace Quartz
-{
-void PopulateDevices(void* window)
-{
+namespace ciface {
+namespace Quartz {
+void PopulateDevices(void *window) {
   if (!window)
     return;
 
   g_controller_interface.AddDevice(std::make_shared<KeyboardAndMouse>(window));
 }
 
-void DeInit()
-{
-}
-}  // namespace Quartz
-}  // namespace ciface
+void DeInit() {}
+} // namespace Quartz
+} // namespace ciface

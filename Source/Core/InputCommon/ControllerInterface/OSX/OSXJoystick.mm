@@ -10,26 +10,21 @@
 #include "Common/StringUtil.h"
 #include "InputCommon/ControllerInterface/OSX/OSXJoystick.h"
 
-namespace ciface
-{
-namespace OSX
-{
+namespace ciface {
+namespace OSX {
 Joystick::Joystick(IOHIDDeviceRef device, std::string name)
-    : m_device(device), m_device_name(name), m_ff_device(nullptr)
-{
+    : m_device(device), m_device_name(name), m_ff_device(nullptr) {
   // Buttons
-  NSDictionary* buttonDict = @{
+  NSDictionary *buttonDict = @{
     @kIOHIDElementTypeKey : @(kIOHIDElementTypeInput_Button),
     @kIOHIDElementUsagePageKey : @(kHIDPage_Button)
   };
 
-  CFArrayRef buttons =
-      IOHIDDeviceCopyMatchingElements(m_device, (CFDictionaryRef)buttonDict, kIOHIDOptionsTypeNone);
+  CFArrayRef buttons = IOHIDDeviceCopyMatchingElements(
+      m_device, (CFDictionaryRef)buttonDict, kIOHIDOptionsTypeNone);
 
-  if (buttons)
-  {
-    for (int i = 0; i < CFArrayGetCount(buttons); i++)
-    {
+  if (buttons) {
+    for (int i = 0; i < CFArrayGetCount(buttons); i++) {
       IOHIDElementRef e = (IOHIDElementRef)CFArrayGetValueAtIndex(buttons, i);
       // DeviceElementDebugPrint(e, nullptr);
 
@@ -39,27 +34,23 @@ Joystick::Joystick(IOHIDDeviceRef device, std::string name)
   }
 
   // Axes
-  NSDictionary* axisDict = @{ @kIOHIDElementTypeKey : @(kIOHIDElementTypeInput_Misc) };
+  NSDictionary *axisDict =
+      @{ @kIOHIDElementTypeKey : @(kIOHIDElementTypeInput_Misc) };
 
-  CFArrayRef axes =
-      IOHIDDeviceCopyMatchingElements(m_device, (CFDictionaryRef)axisDict, kIOHIDOptionsTypeNone);
+  CFArrayRef axes = IOHIDDeviceCopyMatchingElements(
+      m_device, (CFDictionaryRef)axisDict, kIOHIDOptionsTypeNone);
 
-  if (axes)
-  {
-    for (int i = 0; i < CFArrayGetCount(axes); i++)
-    {
+  if (axes) {
+    for (int i = 0; i < CFArrayGetCount(axes); i++) {
       IOHIDElementRef e = (IOHIDElementRef)CFArrayGetValueAtIndex(axes, i);
       // DeviceElementDebugPrint(e, nullptr);
 
-      if (IOHIDElementGetUsage(e) == kHIDUsage_GD_Hatswitch)
-      {
+      if (IOHIDElementGetUsage(e) == kHIDUsage_GD_Hatswitch) {
         AddInput(new Hat(e, m_device, Hat::up));
         AddInput(new Hat(e, m_device, Hat::right));
         AddInput(new Hat(e, m_device, Hat::down));
         AddInput(new Hat(e, m_device, Hat::left));
-      }
-      else
-      {
+      } else {
         AddAnalogInputs(new Axis(e, m_device, Axis::negative),
                         new Axis(e, m_device, Axis::positive));
       }
@@ -69,32 +60,24 @@ Joystick::Joystick(IOHIDDeviceRef device, std::string name)
 
   // Force Feedback
   FFCAPABILITIES ff_caps;
-  if (SUCCEEDED(
-          ForceFeedback::FFDeviceAdapter::Create(IOHIDDeviceGetService(m_device), &m_ff_device)) &&
-      SUCCEEDED(FFDeviceGetForceFeedbackCapabilities(m_ff_device->m_device, &ff_caps)))
-  {
+  if (SUCCEEDED(ForceFeedback::FFDeviceAdapter::Create(
+          IOHIDDeviceGetService(m_device), &m_ff_device)) &&
+      SUCCEEDED(FFDeviceGetForceFeedbackCapabilities(m_ff_device->m_device,
+                                                     &ff_caps))) {
     InitForceFeedback(m_ff_device, ff_caps.numFfAxes);
   }
 }
 
-Joystick::~Joystick()
-{
+Joystick::~Joystick() {
   if (m_ff_device)
     m_ff_device->Release();
 }
 
-std::string Joystick::GetName() const
-{
-  return m_device_name;
-}
+std::string Joystick::GetName() const { return m_device_name; }
 
-std::string Joystick::GetSource() const
-{
-  return "Input";
-}
+std::string Joystick::GetSource() const { return "Input"; }
 
-ControlState Joystick::Button::GetState() const
-{
+ControlState Joystick::Button::GetState() const {
   IOHIDValueRef value;
   if (IOHIDDeviceGetValue(m_device, m_element, &value) == kIOReturnSuccess)
     return IOHIDValueGetIntegerValue(value);
@@ -102,22 +85,20 @@ ControlState Joystick::Button::GetState() const
     return 0;
 }
 
-std::string Joystick::Button::GetName() const
-{
+std::string Joystick::Button::GetName() const {
   std::ostringstream s;
   s << IOHIDElementGetUsage(m_element);
   return std::string("Button ") + StripSpaces(s.str());
 }
 
-Joystick::Axis::Axis(IOHIDElementRef element, IOHIDDeviceRef device, direction dir)
-    : m_element(element), m_device(device), m_direction(dir)
-{
+Joystick::Axis::Axis(IOHIDElementRef element, IOHIDDeviceRef device,
+                     direction dir)
+    : m_element(element), m_device(device), m_direction(dir) {
   // Need to parse the element a bit first
   std::string description("unk");
 
   int const usage = IOHIDElementGetUsage(m_element);
-  switch (usage)
-  {
+  switch (usage) {
   case kHIDUsage_GD_X:
     description = "X";
     break;
@@ -142,8 +123,7 @@ Joystick::Axis::Axis(IOHIDElementRef element, IOHIDDeviceRef device, direction d
   case kHIDUsage_Csmr_ACPan:
     description = "Pan";
     break;
-  default:
-  {
+  default: {
     IOHIDElementCookie elementCookie = IOHIDElementGetCookie(m_element);
     // This axis isn't a 'well-known' one so cook a descriptive and uniquely
     // identifiable name. macOS provides a 'cookie' for each element that
@@ -160,16 +140,16 @@ Joystick::Axis::Axis(IOHIDElementRef element, IOHIDDeviceRef device, direction d
   m_name = std::string("Axis ") + description;
   m_name.append((m_direction == positive) ? "+" : "-");
 
-  m_neutral = (IOHIDElementGetLogicalMax(m_element) + IOHIDElementGetLogicalMin(m_element)) / 2.;
+  m_neutral = (IOHIDElementGetLogicalMax(m_element) +
+               IOHIDElementGetLogicalMin(m_element)) /
+              2.;
   m_scale = 1 / fabs(IOHIDElementGetLogicalMax(m_element) - m_neutral);
 }
 
-ControlState Joystick::Axis::GetState() const
-{
+ControlState Joystick::Axis::GetState() const {
   IOHIDValueRef value;
 
-  if (IOHIDDeviceGetValue(m_device, m_element, &value) == kIOReturnSuccess)
-  {
+  if (IOHIDDeviceGetValue(m_device, m_element, &value) == kIOReturnSuccess) {
     // IOHIDValueGetIntegerValue() crashes when trying
     // to convert unusually large element values.
     if (IOHIDValueGetLength(value) > 2)
@@ -186,16 +166,12 @@ ControlState Joystick::Axis::GetState() const
   return 0;
 }
 
-std::string Joystick::Axis::GetName() const
-{
-  return m_name;
-}
+std::string Joystick::Axis::GetName() const { return m_name; }
 
-Joystick::Hat::Hat(IOHIDElementRef element, IOHIDDeviceRef device, direction dir)
-    : m_element(element), m_device(device), m_direction(dir)
-{
-  switch (dir)
-  {
+Joystick::Hat::Hat(IOHIDElementRef element, IOHIDDeviceRef device,
+                   direction dir)
+    : m_element(element), m_device(device), m_direction(dir) {
+  switch (dir) {
   case up:
     m_name = "Up";
     break;
@@ -213,27 +189,24 @@ Joystick::Hat::Hat(IOHIDElementRef element, IOHIDDeviceRef device, direction dir
   }
 }
 
-ControlState Joystick::Hat::GetState() const
-{
+ControlState Joystick::Hat::GetState() const {
   IOHIDValueRef value;
 
-  if (IOHIDDeviceGetValue(m_device, m_element, &value) == kIOReturnSuccess)
-  {
+  if (IOHIDDeviceGetValue(m_device, m_element, &value) == kIOReturnSuccess) {
     int position = IOHIDValueGetIntegerValue(value);
     int min = IOHIDElementGetLogicalMin(m_element);
     int max = IOHIDElementGetLogicalMax(m_element);
 
-    // if the position is outside the min or max, don't register it as a valid button press
-    if (position < min || position > max)
-    {
+    // if the position is outside the min or max, don't register it as a valid
+    // button press
+    if (position < min || position > max) {
       return 0;
     }
 
     // normalize the position so that its lowest value is 0
     position -= min;
 
-    switch (position)
-    {
+    switch (position) {
     case 0:
       if (m_direction == up)
         return 1;
@@ -272,13 +245,9 @@ ControlState Joystick::Hat::GetState() const
   return 0;
 }
 
-std::string Joystick::Hat::GetName() const
-{
-  return m_name;
-}
+std::string Joystick::Hat::GetName() const { return m_name; }
 
-bool Joystick::IsSameDevice(const IOHIDDeviceRef other_device) const
-{
+bool Joystick::IsSameDevice(const IOHIDDeviceRef other_device) const {
   return m_device == other_device;
 }
 }
