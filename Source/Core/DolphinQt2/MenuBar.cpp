@@ -188,6 +188,25 @@ void MenuBar::UpdateStateSlotMenu()
 void MenuBar::AddViewMenu()
 {
   QMenu* view_menu = addMenu(tr("&View"));
+  QAction* show_log = view_menu->addAction(tr("Show Log"));
+  show_log->setCheckable(true);
+  show_log->setChecked(Settings::Instance().IsLogVisible());
+
+  connect(show_log, &QAction::toggled, &Settings::Instance(), &Settings::SetLogVisible);
+
+  QAction* show_log_config = view_menu->addAction(tr("Show Log Configuration"));
+  show_log_config->setCheckable(true);
+  show_log_config->setChecked(Settings::Instance().IsLogConfigVisible());
+
+  connect(show_log_config, &QAction::toggled, &Settings::Instance(),
+          &Settings::SetLogConfigVisible);
+
+  connect(&Settings::Instance(), &Settings::LogVisibilityChanged, show_log, &QAction::setChecked);
+  connect(&Settings::Instance(), &Settings::LogConfigVisibilityChanged, show_log_config,
+          &QAction::setChecked);
+
+  view_menu->addSeparator();
+
   AddGameListTypeSection(view_menu);
   view_menu->addSeparator();
   AddTableColumnsMenu(view_menu);
