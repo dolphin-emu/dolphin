@@ -23,7 +23,7 @@ This guide is for developers who wish to contribute to the Dolphin codebase. It 
 
 Following this guide and formatting your code as detailed will likely get your pull request merged much faster than if you don't (assuming the written code has no mistakes in itself).
 
-This project uses clang-format (stable branch) to check for common style issues. In case of conflicts between this guide and clang-format rules, the latter should be followed instead of this guide.
+This project uses clang-format (version 4.0) to check for common style issues. In case of conflicts between this guide and clang-format rules, the latter should be followed instead of this guide.
 
 
 ## <a name="intro-formatting-issues"></a>Checking and fixing formatting issues
