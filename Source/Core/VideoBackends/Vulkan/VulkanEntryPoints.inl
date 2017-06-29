@@ -16,7 +16,7 @@ VULKAN_MODULE_ENTRY_POINT(vkGetDeviceProcAddr, true)
 VULKAN_MODULE_ENTRY_POINT(vkEnumerateInstanceExtensionProperties, true)
 VULKAN_MODULE_ENTRY_POINT(vkEnumerateInstanceLayerProperties, true)
 
-#endif		// VULKAN_MODULE_ENTRY_POINT
+#endif  // VULKAN_MODULE_ENTRY_POINT
 
 #ifdef VULKAN_INSTANCE_ENTRY_POINT
 
@@ -184,7 +184,7 @@ VULKAN_INSTANCE_ENTRY_POINT(vkCreateDebugReportCallbackEXT, false)
 VULKAN_INSTANCE_ENTRY_POINT(vkDestroyDebugReportCallbackEXT, false)
 VULKAN_INSTANCE_ENTRY_POINT(vkDebugReportMessageEXT, false)
 
-#endif		// VULKAN_INSTANCE_ENTRY_POINT
+#endif  // VULKAN_INSTANCE_ENTRY_POINT
 
 #ifdef VULKAN_DEVICE_ENTRY_POINT
 
@@ -194,4 +194,4 @@ VULKAN_DEVICE_ENTRY_POINT(vkGetSwapchainImagesKHR, false)
 VULKAN_DEVICE_ENTRY_POINT(vkAcquireNextImageKHR, false)
 VULKAN_DEVICE_ENTRY_POINT(vkQueuePresentKHR, false)
 
-#endif		// VULKAN_DEVICE_ENTRY_POINT
+#endif  // VULKAN_DEVICE_ENTRY_POINT
