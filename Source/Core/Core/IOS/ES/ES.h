@@ -113,6 +113,12 @@ public:
   u32 GetSharedContentsCount() const;
   std::vector<std::array<u8, 20>> GetSharedContents() const;
 
+  // Title contents
+  s32 OpenContent(const IOS::ES::TMDReader& tmd, u16 content_index, u32 uid);
+  ReturnCode CloseContent(u32 cfd, u32 uid);
+  s32 ReadContent(u32 cfd, u8* buffer, u32 size, u32 uid);
+  s32 SeekContent(u32 cfd, u32 offset, SeekMode mode, u32 uid);
+
   // Title management
   ReturnCode ImportTicket(const std::vector<u8>& ticket_bytes, const std::vector<u8>& cert_chain);
   ReturnCode ImportTmd(Context& context, const std::vector<u8>& tmd_bytes);
@@ -341,8 +347,6 @@ private:
   void FinishAllStaleImports();
 
   static const DiscIO::NANDContentLoader& AccessContentDevice(u64 title_id);
-
-  s32 OpenContent(const IOS::ES::TMDReader& tmd, u16 content_index, u32 uid);
 
   using ContentTable = std::array<OpenedContent, 16>;
   ContentTable m_content_table;
