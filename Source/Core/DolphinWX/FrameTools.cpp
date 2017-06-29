@@ -849,10 +849,11 @@ void CFrame::DoStop()
       }
 
       wxMessageDialog m_StopDlg(
-          this, !m_tried_graceful_shutdown ? _("Do you want to stop the current emulation?") :
-                                             _("A shutdown is already in progress. Unsaved data "
-                                               "may be lost if you stop the current emulation "
-                                               "before it completes. Force stop?"),
+          this,
+          !m_tried_graceful_shutdown ? _("Do you want to stop the current emulation?") :
+                                       _("A shutdown is already in progress. Unsaved data "
+                                         "may be lost if you stop the current emulation "
+                                         "before it completes. Force stop?"),
           _("Please confirm..."), wxYES_NO | wxSTAY_ON_TOP | wxICON_EXCLAMATION, wxDefaultPosition);
 
       HotkeyManagerEmu::Enable(false);

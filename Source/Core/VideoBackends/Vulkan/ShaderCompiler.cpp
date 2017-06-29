@@ -322,7 +322,8 @@ const TBuiltInResource* GetCompilerResourceLimits()
                                           /* .MaxCullDistances = */ 8,
                                           /* .MaxCombinedClipAndCullDistances = */ 8,
                                           /* .MaxSamples = */ 4,
-                                          /* .limits = */ {
+                                          /* .limits = */
+                                          {
                                               /* .nonInductiveForLoops = */ 1,
                                               /* .whileLoops = */ 1,
                                               /* .doWhileLoops = */ 1,

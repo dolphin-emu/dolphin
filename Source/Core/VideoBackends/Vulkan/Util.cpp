@@ -601,12 +601,18 @@ void UtilityShaderDraw::BindDescriptors()
     if (set == VK_NULL_HANDLE)
       PanicAlert("Failed to allocate descriptor set for utility draw");
 
-    set_writes[num_set_writes++] = {
-        VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET, nullptr, set, UBO_DESCRIPTOR_SET_BINDING_VS, 0, 1,
-        VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, nullptr,
-        (m_vs_uniform_buffer.buffer != VK_NULL_HANDLE) ? &m_vs_uniform_buffer :
-                                                         &dummy_uniform_buffer,
-        nullptr};
+    set_writes[num_set_writes++] = {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                                    nullptr,
+                                    set,
+                                    UBO_DESCRIPTOR_SET_BINDING_VS,
+                                    0,
+                                    1,
+                                    VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,
+                                    nullptr,
+                                    (m_vs_uniform_buffer.buffer != VK_NULL_HANDLE) ?
+                                        &m_vs_uniform_buffer :
+                                        &dummy_uniform_buffer,
+                                    nullptr};
 
     set_writes[num_set_writes++] = {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
                                     nullptr,
@@ -619,12 +625,18 @@ void UtilityShaderDraw::BindDescriptors()
                                     &dummy_uniform_buffer,
                                     nullptr};
 
-    set_writes[num_set_writes++] = {
-        VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET, nullptr, set, UBO_DESCRIPTOR_SET_BINDING_PS, 0, 1,
-        VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, nullptr,
-        (m_ps_uniform_buffer.buffer != VK_NULL_HANDLE) ? &m_ps_uniform_buffer :
-                                                         &dummy_uniform_buffer,
-        nullptr};
+    set_writes[num_set_writes++] = {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                                    nullptr,
+                                    set,
+                                    UBO_DESCRIPTOR_SET_BINDING_PS,
+                                    0,
+                                    1,
+                                    VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,
+                                    nullptr,
+                                    (m_ps_uniform_buffer.buffer != VK_NULL_HANDLE) ?
+                                        &m_ps_uniform_buffer :
+                                        &dummy_uniform_buffer,
+                                    nullptr};
 
     bind_descriptor_sets[DESCRIPTOR_SET_LAYOUT_UNIFORM_BUFFERS] = set;
   }

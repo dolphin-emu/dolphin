@@ -86,8 +86,9 @@ void CLogWindow::CreateGUIControls()
   m_WrapLine->SetValue(wrap_lines);
 
   // Log viewer
-  m_Log = CreateTextCtrl(this, wxID_ANY, wxTE_RICH | wxTE_MULTILINE | wxTE_READONLY |
-                                             (wrap_lines ? wxTE_WORDWRAP : wxTE_DONTWRAP));
+  m_Log = CreateTextCtrl(this, wxID_ANY,
+                         wxTE_RICH | wxTE_MULTILINE | wxTE_READONLY |
+                             (wrap_lines ? wxTE_WORDWRAP : wxTE_DONTWRAP));
 
   // submit row
   m_cmdline = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize,

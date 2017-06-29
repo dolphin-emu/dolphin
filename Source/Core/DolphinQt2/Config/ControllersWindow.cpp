@@ -167,8 +167,8 @@ void ControllersWindow::CreateWiimoteLayout()
   m_wiimote_speaker_data = new QCheckBox(tr("Enable Speaker Data"));
 
   m_wiimote_layout->setVerticalSpacing(7);
-  m_wiimote_layout->setColumnMinimumWidth(0, GetRadioButtonIndicatorWidth() -
-                                                 GetLayoutHorizontalSpacing(m_wiimote_layout));
+  m_wiimote_layout->setColumnMinimumWidth(
+      0, GetRadioButtonIndicatorWidth() - GetLayoutHorizontalSpacing(m_wiimote_layout));
   m_wiimote_layout->setColumnStretch(2, 1);
 
   // Passthrough BT

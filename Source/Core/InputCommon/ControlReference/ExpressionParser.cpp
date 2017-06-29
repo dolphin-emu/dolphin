@@ -245,6 +245,7 @@ public:
   void SetValue(ControlState value) override { control->ToOutput()->SetState(value); }
   int CountNumControls() const override { return 1; }
   operator std::string() const override { return "`" + (std::string)qualifier + "`"; }
+
 private:
   std::shared_ptr<Device> m_device;
 };

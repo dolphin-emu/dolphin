@@ -963,27 +963,28 @@ void GetBPRegInfo(const u8* data, std::string* name, std::string* desc)
     SetRegName(BPMEM_TRIGGER_EFB_COPY);
     UPE_Copy copy;
     copy.Hex = cmddata;
-    *desc = StringFromFormat("Clamping: %s\n"
-                             "Converting from RGB to YUV: %s\n"
-                             "Target pixel format: 0x%X\n"
-                             "Gamma correction: %s\n"
-                             "Mipmap filter: %s\n"
-                             "Vertical scaling: %s\n"
-                             "Clear: %s\n"
-                             "Frame to field: 0x%01X\n"
-                             "Copy to XFB: %s\n"
-                             "Intensity format: %s\n"
-                             "Automatic color conversion: %s",
-                             (copy.clamp0 && copy.clamp1) ? "Top and Bottom" : (copy.clamp0) ?
-                                                            "Top only" :
-                                                            (copy.clamp1) ? "Bottom only" : "None",
-                             no_yes[copy.yuv], copy.tp_realFormat(),
-                             (copy.gamma == 0) ? "1.0" : (copy.gamma == 1) ?
-                                                 "1.7" :
-                                                 (copy.gamma == 2) ? "2.2" : "Invalid value 0x3?",
-                             no_yes[copy.half_scale], no_yes[copy.scale_invert], no_yes[copy.clear],
-                             (u32)copy.frame_to_field, no_yes[copy.copy_to_xfb],
-                             no_yes[copy.intensity_fmt], no_yes[copy.auto_conv]);
+    *desc = StringFromFormat(
+        "Clamping: %s\n"
+        "Converting from RGB to YUV: %s\n"
+        "Target pixel format: 0x%X\n"
+        "Gamma correction: %s\n"
+        "Mipmap filter: %s\n"
+        "Vertical scaling: %s\n"
+        "Clear: %s\n"
+        "Frame to field: 0x%01X\n"
+        "Copy to XFB: %s\n"
+        "Intensity format: %s\n"
+        "Automatic color conversion: %s",
+        (copy.clamp0 && copy.clamp1) ?
+            "Top and Bottom" :
+            (copy.clamp0) ? "Top only" : (copy.clamp1) ? "Bottom only" : "None",
+        no_yes[copy.yuv], copy.tp_realFormat(),
+        (copy.gamma == 0) ?
+            "1.0" :
+            (copy.gamma == 1) ? "1.7" : (copy.gamma == 2) ? "2.2" : "Invalid value 0x3?",
+        no_yes[copy.half_scale], no_yes[copy.scale_invert], no_yes[copy.clear],
+        (u32)copy.frame_to_field, no_yes[copy.copy_to_xfb], no_yes[copy.intensity_fmt],
+        no_yes[copy.auto_conv]);
   }
   break;
 

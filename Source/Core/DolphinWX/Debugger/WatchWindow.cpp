@@ -64,13 +64,14 @@ CWatchWindow::CWatchWindow(wxWindow* parent, wxWindowID id, const wxPoint& posit
 
   m_GPRGridView = new CWatchView(this);
 
-  m_mgr.AddPane(new CWatchToolbar(this, wxID_ANY), wxAuiPaneInfo()
-                                                       .ToolbarPane()
-                                                       .Top()
-                                                       .LeftDockable(true)
-                                                       .RightDockable(true)
-                                                       .BottomDockable(false)
-                                                       .Floatable(false));
+  m_mgr.AddPane(new CWatchToolbar(this, wxID_ANY),
+                wxAuiPaneInfo()
+                    .ToolbarPane()
+                    .Top()
+                    .LeftDockable(true)
+                    .RightDockable(true)
+                    .BottomDockable(false)
+                    .Floatable(false));
   m_mgr.AddPane(m_GPRGridView, wxAuiPaneInfo().CenterPane());
   m_mgr.Update();
 }

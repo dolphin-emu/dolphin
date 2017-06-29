@@ -63,8 +63,9 @@ HostDisassemblerLLVM::HostDisassemblerLLVM(const std::string& host_disasm, int i
   if (!m_llvm_context)
     return;
 
-  LLVMSetDisasmOptions(m_llvm_context, LLVMDisassembler_Option_AsmPrinterVariant |
-                                           LLVMDisassembler_Option_PrintLatency);
+  LLVMSetDisasmOptions(m_llvm_context,
+                       LLVMDisassembler_Option_AsmPrinterVariant |
+                           LLVMDisassembler_Option_PrintLatency);
 
   m_can_disasm = true;
 }

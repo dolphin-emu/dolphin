@@ -68,10 +68,11 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
   case COL_TITLE:
     if (role == Qt::DisplayRole || role == Qt::InitialSortOrderRole)
     {
-      QString display_name = QString::fromStdString(m_title_database.GetTitleName(
-          game->GetGameID().toStdString(), game->GetPlatformID() == DiscIO::Platform::WII_WAD ?
-                                               Core::TitleDatabase::TitleType::Channel :
-                                               Core::TitleDatabase::TitleType::Other));
+      QString display_name = QString::fromStdString(
+          m_title_database.GetTitleName(game->GetGameID().toStdString(),
+                                        game->GetPlatformID() == DiscIO::Platform::WII_WAD ?
+                                            Core::TitleDatabase::TitleType::Channel :
+                                            Core::TitleDatabase::TitleType::Other));
       if (display_name.isEmpty())
         return game->GetLongName();
 

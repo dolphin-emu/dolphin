@@ -77,9 +77,9 @@ void wxCheatsWindow::CreateGUI()
   // Cheats List Tab
   wxPanel* tab_cheats = new wxPanel(m_notebook_main, wxID_ANY);
 
-  m_ar_codes_panel =
-      new ActionReplayCodesPanel(tab_cheats, ActionReplayCodesPanel::STYLE_SIDE_PANEL |
-                                                 ActionReplayCodesPanel::STYLE_MODIFY_BUTTONS);
+  m_ar_codes_panel = new ActionReplayCodesPanel(tab_cheats,
+                                                ActionReplayCodesPanel::STYLE_SIDE_PANEL |
+                                                    ActionReplayCodesPanel::STYLE_MODIFY_BUTTONS);
 
   wxBoxSizer* sizer_tab_cheats = new wxBoxSizer(wxVERTICAL);
   sizer_tab_cheats->AddSpacer(space5);

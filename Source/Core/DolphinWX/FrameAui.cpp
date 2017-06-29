@@ -707,13 +707,14 @@ void CFrame::ReloadPanes()
   for (u32 i = 0; i < m_perspectives[m_active_perspective].width.size() - 1; i++)
   {
     wxString PaneName = wxString::Format("Pane %i", i + 1);
-    m_mgr->AddPane(CreateEmptyNotebook(), wxAuiPaneInfo()
-                                              .Hide()
-                                              .CaptionVisible(m_editing_perspectives)
-                                              .Dockable(!m_no_panel_docking)
-                                              .Position(i)
-                                              .Name(PaneName)
-                                              .Caption(PaneName));
+    m_mgr->AddPane(CreateEmptyNotebook(),
+                   wxAuiPaneInfo()
+                       .Hide()
+                       .CaptionVisible(m_editing_perspectives)
+                       .Dockable(!m_no_panel_docking)
+                       .Position(i)
+                       .Name(PaneName)
+                       .Caption(PaneName));
   }
 
   // Perspectives

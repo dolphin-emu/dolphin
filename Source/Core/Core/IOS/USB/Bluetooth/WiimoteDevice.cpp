@@ -427,8 +427,9 @@ void WiimoteDevice::ReceiveConfigurationReq(u8 _Ident, u8* _pData, u32 _Size)
   u32 Offset = 0;
   l2cap_cfg_req_cp* pCommandConfigReq = (l2cap_cfg_req_cp*)_pData;
 
-  _dbg_assert_(IOS_WIIMOTE, pCommandConfigReq->flags ==
-                                0x00);  // 1 means that the options are send in multi-packets
+  _dbg_assert_(IOS_WIIMOTE,
+               pCommandConfigReq->flags ==
+                   0x00);  // 1 means that the options are send in multi-packets
   _dbg_assert_(IOS_WIIMOTE, DoesChannelExist(pCommandConfigReq->dcid));
 
   SChannel& rChannel = m_Channel[pCommandConfigReq->dcid];

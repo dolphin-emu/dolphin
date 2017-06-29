@@ -252,8 +252,9 @@ void TextureConverter::EncodeTextureToMemory(VkImageView src_texture, u8* dest_p
   // TODO: This only produces perfect downsampling for 1.5x and 2x IR, other resolution will
   //       need more complex down filtering to average all pixels and produce the correct result.
   bool linear_filter = (scale_by_half && !is_depth_copy) || g_ActiveConfig.iEFBScale != SCALE_1X;
-  draw.SetPSSampler(0, src_texture, linear_filter ? g_object_cache->GetLinearSampler() :
-                                                    g_object_cache->GetPointSampler());
+  draw.SetPSSampler(0, src_texture,
+                    linear_filter ? g_object_cache->GetLinearSampler() :
+                                    g_object_cache->GetPointSampler());
 
   u32 render_width = bytes_per_row / sizeof(u32);
   u32 render_height = num_blocks_y;
