@@ -39,12 +39,15 @@ void JitArm64::DynaRunTable63(UGeckoInstruction inst)
   (this->*dynaOpTable63[inst.SUBOP10])(inst);
 }
 
+namespace
+{
 struct GekkoOPTemplate
 {
   int opcode;
   _Instruction Inst;
   // GekkoOPInfo opinfo; // Doesn't need opinfo, Interpreter fills it out
 };
+}
 
 constexpr GekkoOPTemplate primarytable[] = {
     {4, &JitArm64::DynaRunTable4},    // RunTable4
