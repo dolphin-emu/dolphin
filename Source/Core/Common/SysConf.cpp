@@ -56,8 +56,7 @@ void SysConf::Load()
 {
   Clear();
 
-  if (!File::Exists(m_file_name) || File::GetSize(m_file_name) != SYSCONF_SIZE ||
-      !LoadFromFile(m_file_name))
+  if (File::GetSize(m_file_name) != SYSCONF_SIZE || !LoadFromFile(m_file_name))
   {
     WARN_LOG(CORE, "No valid SYSCONF detected. Creating a new one.");
     InsertDefaultEntries();

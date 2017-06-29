@@ -856,11 +856,9 @@ void InputConfigDialog::LoadProfile(wxCommandEvent&)
   std::string fname;
   InputConfigDialog::GetProfilePath(fname);
 
-  if (!File::Exists(fname))
-    return;
-
   IniFile inifile;
-  inifile.Load(fname);
+  if (!inifile.Load(fname))
+    return;
 
   controller->LoadConfig(inifile.GetOrCreateSection("Profile"));
   controller->UpdateReferences(g_controller_interface);

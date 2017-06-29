@@ -960,20 +960,13 @@ bool PlayInput(const std::string& filename)
   if (s_playMode != MODE_NONE)
     return false;
 
-  if (!File::Exists(filename))
+  File::IOFile recording_file(filename, "rb");
+  if (!recording_file.ReadArray(&tmpHeader, 1))
     return false;
-
-  File::IOFile g_recordfd;
-
-  if (!g_recordfd.Open(filename, "rb"))
-    return false;
-
-  g_recordfd.ReadArray(&tmpHeader, 1);
 
   if (!IsMovieHeader(tmpHeader.filetype))
   {
     PanicAlertT("Invalid recording file");
-    g_recordfd.Close();
     return false;
   }
 
@@ -993,11 +986,11 @@ bool PlayInput(const std::string& filename)
 
   Core::UpdateWantDeterminism();
 
-  s_totalBytes = g_recordfd.GetSize() - 256;
+  s_totalBytes = recording_file.GetSize() - 256;
   EnsureTmpInputSize((size_t)s_totalBytes);
-  g_recordfd.ReadArray(tmpInput, (size_t)s_totalBytes);
+  recording_file.ReadArray(tmpInput, (size_t)s_totalBytes);
   s_currentByte = 0;
-  g_recordfd.Close();
+  recording_file.Close();
 
   // Load savestate (and skip to frame data)
   if (tmpHeader.bFromSaveState)
