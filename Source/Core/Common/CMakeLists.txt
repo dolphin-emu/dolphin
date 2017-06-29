@@ -11,6 +11,7 @@ add_library(common
   Crypto/ec.cpp
   Debug/MemoryPatches.cpp
   Debug/Watches.cpp
+  DirectoryIterator.cpp
   ENetUtil.cpp
   File.cpp
   FileSearch.cpp

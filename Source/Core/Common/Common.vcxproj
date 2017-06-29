@@ -63,6 +63,7 @@
     <ClInclude Include="DebugInterface.h" />
     <ClInclude Include="Debug\MemoryPatches.h" />
     <ClInclude Include="Debug\Watches.h" />
+    <ClInclude Include="DirectoryIterator.h" />
     <ClInclude Include="ENetUtil.h" />
     <ClInclude Include="Event.h" />
     <ClInclude Include="File.h" />
@@ -181,6 +182,7 @@
     <ClCompile Include="Config\Layer.cpp" />
     <ClCompile Include="Debug\MemoryPatches.cpp" />
     <ClCompile Include="Debug\Watches.cpp" />
+    <ClCompile Include="DirectoryIterator.cpp" />
     <ClCompile Include="ENetUtil.cpp" />
     <ClCompile Include="File.cpp" />
     <ClCompile Include="FileSearch.cpp" />

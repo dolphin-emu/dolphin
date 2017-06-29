@@ -18,6 +18,7 @@
 #include "Common/CommonFuncs.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
+#include "Common/DirectoryIterator.h"
 #include "Common/File.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
@@ -403,36 +404,13 @@ FSTEntry ScanDirectoryTree(const std::string& directory, bool recursive)
   parent_entry.physicalName = directory;
   parent_entry.isDirectory = true;
   parent_entry.size = 0;
-#ifdef _WIN32
-  // Find the first file in the directory.
-  WIN32_FIND_DATA ffd;
 
-  HANDLE hFind = FindFirstFile(UTF8ToTStr(directory + "\\*").c_str(), &ffd);
-  if (hFind == INVALID_HANDLE_VALUE)
+  for (const auto& dir_entry : Common::Directory<std::string>(directory))
   {
-    FindClose(hFind);
-    return parent_entry;
-  }
-  // Windows loop
-  do
-  {
-    const std::string virtual_name(TStrToUTF8(ffd.cFileName));
-#else
-  DIR* dirp = opendir(directory.c_str());
-  if (!dirp)
-    return parent_entry;
-
-  // non Windows loop
-  while (dirent* result = readdir(dirp))
-  {
-    const std::string virtual_name(result->d_name);
-#endif
-    if (virtual_name == "." || virtual_name == "..")
-      continue;
-    auto physical_name = directory + DIR_SEP + virtual_name;
+    const std::string virtual_name = Common::ToUTF8(dir_entry.GetName());
+    const std::string physical_name = directory + DIR_SEP + virtual_name;
     FSTEntry entry;
-    const FileInfo file_info(physical_name);
-    entry.isDirectory = file_info.IsDirectory();
+    entry.isDirectory = dir_entry.IsDirectory();
     if (entry.isDirectory)
     {
       if (recursive)
@@ -443,7 +421,7 @@ FSTEntry ScanDirectoryTree(const std::string& directory, bool recursive)
     }
     else
     {
-      entry.size = file_info.GetSize();
+      entry.size = dir_entry.GetSize();
     }
     entry.virtualName = virtual_name;
     entry.physicalName = physical_name;
@@ -451,13 +429,7 @@ FSTEntry ScanDirectoryTree(const std::string& directory, bool recursive)
     ++parent_entry.size;
     // Push into the tree
     parent_entry.children.push_back(entry);
-#ifdef _WIN32
-  } while (FindNextFile(hFind, &ffd) != 0);
-  FindClose(hFind);
-#else
   }
-  closedir(dirp);
-#endif
 
   return parent_entry;
 }
@@ -466,68 +438,25 @@ FSTEntry ScanDirectoryTree(const std::string& directory, bool recursive)
 bool DeleteDirRecursively(const std::string& directory)
 {
   INFO_LOG(COMMON, "DeleteDirRecursively: %s", directory.c_str());
-  bool success = true;
 
-#ifdef _WIN32
-  // Find the first file in the directory.
-  WIN32_FIND_DATA ffd;
-  HANDLE hFind = FindFirstFile(UTF8ToTStr(directory + "\\*").c_str(), &ffd);
-
-  if (hFind == INVALID_HANDLE_VALUE)
+  for (const auto& entry : Common::Directory<std::string>(directory))
   {
-    FindClose(hFind);
-    return false;
-  }
-
-  // Windows loop
-  do
-  {
-    const std::string virtualName(TStrToUTF8(ffd.cFileName));
-#else
-  DIR* dirp = opendir(directory.c_str());
-  if (!dirp)
-    return false;
-
-  // non Windows loop
-  while (dirent* result = readdir(dirp))
-  {
-    const std::string virtualName = result->d_name;
-#endif
-
-    // check for "." and ".."
-    if (((virtualName[0] == '.') && (virtualName[1] == '\0')) ||
-        ((virtualName[0] == '.') && (virtualName[1] == '.') && (virtualName[2] == '\0')))
-      continue;
-
-    std::string newPath = directory + DIR_SEP_CHR + virtualName;
-    if (IsDirectory(newPath))
+    const std::string virtualName = Common::ToUTF8(entry.GetName());
+    const std::string newPath = directory + DIR_SEP_CHR + virtualName;
+    if (entry.IsDirectory())
     {
       if (!DeleteDirRecursively(newPath))
-      {
-        success = false;
-        break;
-      }
+        return false;
     }
     else
     {
       if (!File::Delete(newPath))
-      {
-        success = false;
-        break;
-      }
+        return false;
     }
-
-#ifdef _WIN32
-  } while (FindNextFile(hFind, &ffd) != 0);
-  FindClose(hFind);
-#else
   }
-  closedir(dirp);
-#endif
-  if (success)
-    File::DeleteDir(directory);
 
-  return success;
+  File::DeleteDir(directory);
+  return true;
 }
 
 // Create directory and copy contents (does not overwrite existing files)
@@ -540,35 +469,12 @@ void CopyDir(const std::string& source_path, const std::string& dest_path, bool 
   if (!Exists(dest_path))
     File::CreateFullPath(dest_path);
 
-#ifdef _WIN32
-  WIN32_FIND_DATA ffd;
-  HANDLE hFind = FindFirstFile(UTF8ToTStr(source_path + "\\*").c_str(), &ffd);
-
-  if (hFind == INVALID_HANDLE_VALUE)
+  for (const auto& entry : Common::Directory<std::string>(source_path))
   {
-    FindClose(hFind);
-    return;
-  }
-
-  do
-  {
-    const std::string virtualName(TStrToUTF8(ffd.cFileName));
-#else
-  DIR* dirp = opendir(source_path.c_str());
-  if (!dirp)
-    return;
-
-  while (dirent* result = readdir(dirp))
-  {
-    const std::string virtualName(result->d_name);
-#endif
-    // check for "." and ".."
-    if (virtualName == "." || virtualName == "..")
-      continue;
-
+    const std::string virtualName = Common::ToUTF8(entry.GetName());
     std::string source = source_path + DIR_SEP + virtualName;
     std::string dest = dest_path + DIR_SEP + virtualName;
-    if (IsDirectory(source))
+    if (entry.IsDirectory())
     {
       if (!Exists(dest))
         File::CreateFullPath(dest + DIR_SEP);
@@ -582,13 +488,7 @@ void CopyDir(const std::string& source_path, const std::string& dest_path, bool 
     {
       Rename(source, dest);
     }
-#ifdef _WIN32
-  } while (FindNextFile(hFind, &ffd) != 0);
-  FindClose(hFind);
-#else
   }
-  closedir(dirp);
-#endif
 }
 
 // Returns the current directory

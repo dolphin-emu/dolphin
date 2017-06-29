@@ -274,6 +274,7 @@
     <ClInclude Include="Debug\MemoryPatches.h">
       <Filter>Debug</Filter>
     </ClInclude>
+    <ClInclude Include="DirectoryIterator.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CDUtils.cpp" />
@@ -353,6 +354,7 @@
     <ClCompile Include="Debug\MemoryPatches.cpp">
       <Filter>Debug</Filter>
     </ClCompile>
+    <ClCompile Include="DirectoryIterator.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />
