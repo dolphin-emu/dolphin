@@ -5,6 +5,7 @@
 #pragma once
 
 #include <array>
+#include <bitset>
 #include <map>
 #include <memory>
 #include <tuple>
@@ -39,6 +40,7 @@ public:
     bool is_efb_copy;
     bool is_custom_tex;
     bool may_have_overlapping_textures = true;
+    bool tmem_only = false;  // indicates that this texture only exists in the tmem cache
 
     unsigned int native_width,
         native_height;  // Texture dimensions from the GameCube's point of view
@@ -125,8 +127,9 @@ public:
   virtual void DeleteShaders() = 0;
 
   TCacheEntry* Load(const u32 stage);
-  void UnbindTextures();
-  virtual void BindTextures();
+  static void InvalidateAllBindPoints() { valid_bind_points.reset(); }
+  static bool IsValidBindPoint(u32 i) { return valid_bind_points.test(i); }
+  void BindTextures();
   void CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat, u32 dstStride,
                                  bool is_depth_copy, const EFBRectangle& srcRect, bool isIntensity,
                                  bool scaleByHalf);
@@ -158,6 +161,7 @@ protected:
   size_t temp_size = 0;
 
   std::array<TCacheEntry*, 8> bound_textures{};
+  static std::bitset<8> valid_bind_points;
 
 private:
   // Minimal version of TCacheEntry just for TexPool
