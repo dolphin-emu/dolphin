@@ -243,7 +243,6 @@ void VertexManagerBase::Flush()
         if (bpmem.tevind[i].IsActive() && bpmem.tevind[i].bt < bpmem.genMode.numindstages)
           usedtextures[bpmem.tevindref.getTexMap(bpmem.tevind[i].bt)] = true;
 
-    g_texture_cache->UnbindTextures();
     for (unsigned int i : usedtextures)
     {
       const auto* tentry = g_texture_cache->Load(i);

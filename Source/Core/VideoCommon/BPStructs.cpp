@@ -285,6 +285,8 @@ static void BPWritten(const BPCmd& bp)
     if (g_bRecordFifoData)
       FifoRecorder::GetInstance().UseMemory(addr, tlutXferCount, MemoryUpdate::TMEM);
 
+    TextureCacheBase::InvalidateAllBindPoints();
+
     return;
   }
   case BPMEM_FOGRANGE:  // Fog Settings Control
@@ -397,6 +399,7 @@ static void BPWritten(const BPCmd& bp)
     return;
   case BPMEM_TEXINVALIDATE:
     // TODO: Needs some restructuring in TextureCacheBase.
+    TextureCacheBase::InvalidateAllBindPoints();
     return;
 
   case BPMEM_ZCOMPARE:  // Set the Z-Compare and EFB pixel format
@@ -499,6 +502,8 @@ static void BPWritten(const BPCmd& bp)
 
       if (g_bRecordFifoData)
         FifoRecorder::GetInstance().UseMemory(src_addr, bytes_read, MemoryUpdate::TMEM);
+
+      TextureCacheBase::InvalidateAllBindPoints();
     }
     return;
 
@@ -582,10 +587,12 @@ static void BPWritten(const BPCmd& bp)
   // ------------------------
   case BPMEM_TX_SETMODE0:  // (0x90 for linear)
   case BPMEM_TX_SETMODE0_4:
+    TextureCacheBase::InvalidateAllBindPoints();
     return;
 
   case BPMEM_TX_SETMODE1:
   case BPMEM_TX_SETMODE1_4:
+    TextureCacheBase::InvalidateAllBindPoints();
     return;
   // --------------------------------------------
   // BPMEM_TX_SETIMAGE0 - Texture width, height, format
@@ -602,6 +609,7 @@ static void BPWritten(const BPCmd& bp)
   case BPMEM_TX_SETIMAGE2_4:
   case BPMEM_TX_SETIMAGE3:
   case BPMEM_TX_SETIMAGE3_4:
+    TextureCacheBase::InvalidateAllBindPoints();
     return;
   // -------------------------------
   // Set a TLUT
@@ -609,6 +617,7 @@ static void BPWritten(const BPCmd& bp)
   // -------------------------------
   case BPMEM_TX_SETTLUT:
   case BPMEM_TX_SETTLUT_4:
+    TextureCacheBase::InvalidateAllBindPoints();
     return;
 
   default:

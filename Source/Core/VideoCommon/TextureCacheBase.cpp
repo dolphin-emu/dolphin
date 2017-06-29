@@ -42,6 +42,8 @@ static const int TEXTURE_POOL_KILL_THRESHOLD = 3;
 
 std::unique_ptr<TextureCacheBase> g_texture_cache;
 
+std::bitset<8> TextureCacheBase::valid_bind_points;
+
 TextureCacheBase::TCacheEntry::TCacheEntry(std::unique_ptr<AbstractTexture> tex)
     : texture(std::move(tex))
 {
@@ -76,11 +78,17 @@ TextureCacheBase::TextureCacheBase()
   HiresTexture::Init();
 
   SetHash64Function();
+
+  InvalidateAllBindPoints();
 }
 
 void TextureCacheBase::Invalidate()
 {
-  UnbindTextures();
+  InvalidateAllBindPoints();
+  for (size_t i = 0; i < bound_textures.size(); ++i)
+  {
+    bound_textures[i] = nullptr;
+  }
 
   for (auto& tex : textures_by_address)
   {
@@ -138,7 +146,11 @@ void TextureCacheBase::Cleanup(int _frameCount)
   TexAddrCache::iterator tcend = textures_by_address.end();
   while (iter != tcend)
   {
-    if (iter->second->frameCount == FRAMECOUNT_INVALID)
+    if (iter->second->tmem_only)
+    {
+      iter = InvalidateTexture(iter);
+    }
+    else if (iter->second->frameCount == FRAMECOUNT_INVALID)
     {
       iter->second->frameCount = _frameCount;
       ++iter;
@@ -307,7 +319,7 @@ TextureCacheBase::DoPartialTextureUpdates(TCacheEntry* entry_to_update, u8* pale
   while (iter.first != iter.second)
   {
     TCacheEntry* entry = iter.first->second;
-    if (entry != entry_to_update && entry->IsEfbCopy() &&
+    if (entry != entry_to_update && entry->IsEfbCopy() && !entry->tmem_only &&
         entry->references.count(entry_to_update) == 0 &&
         entry->OverlapsMemoryRange(entry_to_update->addr, entry_to_update->size_in_bytes) &&
         entry->memory_stride == numBlocksX * block_size)
@@ -450,6 +462,9 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::ReturnEntry(unsigned int stage,
 
   GFX_DEBUGGER_PAUSE_AT(NEXT_TEXTURE_CHANGE, true);
 
+  // We need to keep track of invalided textures until they have actually been replaced or re-loaded
+  valid_bind_points.set(stage);
+
   return entry;
 }
 
@@ -457,18 +472,19 @@ void TextureCacheBase::BindTextures()
 {
   for (size_t i = 0; i < bound_textures.size(); ++i)
   {
-    if (bound_textures[i])
+    if (IsValidBindPoint(static_cast<u32>(i)) && bound_textures[i])
       bound_textures[i]->texture->Bind(static_cast<u32>(i));
   }
 }
 
-void TextureCacheBase::UnbindTextures()
-{
-  bound_textures.fill(nullptr);
-}
-
 TextureCacheBase::TCacheEntry* TextureCacheBase::Load(const u32 stage)
 {
+  // if this stage was not invalidated by changes to texture registers, keep the current texture
+  if (IsValidBindPoint(stage) && bound_textures[stage])
+  {
+    return ReturnEntry(stage, bound_textures[stage]);
+  }
+
   const FourTexUnits& tex = bpmem.tex[stage >> 2];
   const u32 id = stage & 3;
   const u32 address = (tex.texImage3[id].image_base /* & 0x1FFFFF*/) << 5;
@@ -610,6 +626,14 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::Load(const u32 stage)
   while (iter != iter_range.second)
   {
     TCacheEntry* entry = iter->second;
+
+    // Skip entries that are only left in our texture cache for the tmem cache emulation
+    if (entry->tmem_only)
+    {
+      ++iter;
+      continue;
+    }
+
     // Do not load strided EFB copies, they are not meant to be used directly
     if (entry->IsEfbCopy() && entry->native_width == nativeW && entry->native_height == nativeH &&
         entry->memory_stride == entry->BytesPerRow())
@@ -1464,6 +1488,18 @@ TextureCacheBase::InvalidateTexture(TexAddrCache::iterator iter)
   {
     textures_by_hash.erase(entry->textures_by_hash_iter);
     entry->textures_by_hash_iter = textures_by_hash.end();
+  }
+
+  for (size_t i = 0; i < bound_textures.size(); ++i)
+  {
+    // If the entry is currently bound and not invalidated, keep it, but mark it as invalidated.
+    // This way it can still be used via tmem cache emulation, but nothing else.
+    // Spyro: A Hero's Tail is known for using such overwritten textures.
+    if (bound_textures[i] == entry && IsValidBindPoint(static_cast<u32>(i)))
+    {
+      bound_textures[i]->tmem_only = true;
+      return ++iter;
+    }
   }
 
   auto config = entry->texture->GetConfig();
