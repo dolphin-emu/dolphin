@@ -197,7 +197,9 @@ u16 DSPHLE::DSP_WriteControlRegister(u16 value)
     SetUCode(UCODE_ROM);
     temp.DSPReset = 0;
   }
-  if (temp.DSPInit == 0)
+
+  u32 crc = UCodeInterface::GetCRC(m_ucode.get());
+  if (crc == UCODE_ROM && temp.DSPInit == 0)
   {
     // copy 128 byte from ARAM 0x000000 to IMEM
     SetUCode(UCODE_INIT_AUDIO_SYSTEM);
@@ -205,11 +207,21 @@ u16 DSPHLE::DSP_WriteControlRegister(u16 value)
   }
 
   m_dsp_control.Hex = temp.Hex;
-  return m_dsp_control.Hex;
+  return DSP_ReadControlRegister();
 }
 
 u16 DSPHLE::DSP_ReadControlRegister()
 {
+  // Matches DSP::Interpreter::ReadCR
+  u32 crc = UCodeInterface::GetCRC(m_ucode.get());
+  if (crc == UCODE_ROM || crc == UCODE_INIT_AUDIO_SYSTEM)
+  {
+    m_dsp_control.Hex |= 0x800;
+  }
+  else
+  {
+    m_dsp_control.Hex &= ~0x800;
+  }
   return m_dsp_control.Hex;
 }
 
