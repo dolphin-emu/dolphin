@@ -8,12 +8,15 @@
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/PPCTables.h"
 
+namespace
+{
 struct GekkoOPTemplate
 {
   int opcode;
   Interpreter::Instruction Inst;
   GekkoOPInfo opinfo;
 };
+}
 
 // clang-format off
 static GekkoOPInfo unknownopinfo = { "unknown_instruction", OPTYPE_UNKNOWN, FL_ENDBLOCK, 0, 0, 0, 0 };

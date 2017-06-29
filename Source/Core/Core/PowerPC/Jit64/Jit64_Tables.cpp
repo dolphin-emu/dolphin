@@ -32,11 +32,14 @@ void Jit64::DynaRunTable63(UGeckoInstruction _inst)
   (this->*dynaOpTable63[_inst.SUBOP10])(_inst);
 }
 
+namespace
+{
 struct GekkoOPTemplate
 {
   int opcode;
   Jit64::Instruction Inst;
 };
+}
 
 const GekkoOPTemplate primarytable[] = {
     {4, &Jit64::DynaRunTable4},    // RunTable4
