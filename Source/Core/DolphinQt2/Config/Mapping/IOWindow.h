@@ -4,9 +4,9 @@
 
 #pragma once
 
-#include <wobjectdefs.h>
 #include <QDialog>
 #include <QString>
+#include <wobjectdefs.h>
 
 #include "Common/Flag.h"
 #include "InputCommon/ControllerInterface/Device.h"

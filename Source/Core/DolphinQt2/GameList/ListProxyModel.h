@@ -2,8 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <wobjectdefs.h>
 #include <QSortFilterProxyModel>
+#include <wobjectdefs.h>
 
 // This subclass of QSortFilterProxyModel transforms the raw data into a
 // single-column large icon + name to be displayed in a QListView.

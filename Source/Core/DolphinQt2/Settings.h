@@ -4,9 +4,9 @@
 
 #pragma once
 
-#include <wobjectdefs.h>
 #include <QSettings>
 #include <QVector>
+#include <wobjectdefs.h>
 
 #include "Common/NonCopyable.h"
 #include "Core/HW/SI/SI.h"

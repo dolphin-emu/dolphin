@@ -2,8 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <wobjectimpl.h>
 #include <thread>
+#include <wobjectimpl.h>
 
 #include <QMouseEvent>
 #include <QRegExp>

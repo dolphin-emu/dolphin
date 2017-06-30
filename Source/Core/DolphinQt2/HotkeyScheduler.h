@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include <wobjectdefs.h>
 #include <thread>
+#include <wobjectdefs.h>
 
 #include <QObject>
 

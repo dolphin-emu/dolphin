@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include <wobjectdefs.h>
 #include <QFileSystemWatcher>
 #include <QMap>
 #include <QSet>
@@ -12,6 +11,7 @@
 #include <QString>
 #include <QStringList>
 #include <QThread>
+#include <wobjectdefs.h>
 
 #include "DolphinQt2/GameList/GameFile.h"
 
@@ -31,10 +31,13 @@ public:
   ~GameTracker();
 
 public:
-  void AddDirectory(const QString& dir); W_SLOT(AddDirectory, (const QString&));
-  void RemoveDirectory(const QString& dir); W_SLOT(RemoveDirectory, (const QString&));
+  void AddDirectory(const QString& dir);
+  W_SLOT(AddDirectory, (const QString&));
+  void RemoveDirectory(const QString& dir);
+  W_SLOT(RemoveDirectory, (const QString&));
 
-  void GameLoaded(QSharedPointer<GameFile> game) W_SIGNAL(GameLoaded, (QSharedPointer<GameFile>), game);
+  void GameLoaded(QSharedPointer<GameFile> game)
+      W_SIGNAL(GameLoaded, (QSharedPointer<GameFile>), game);
   void GameRemoved(const QString& path) W_SIGNAL(GameRemoved, (const QString&), path);
 
   void PathChanged(const QString& path) W_SIGNAL(PathChanged, (const QString&), path);
@@ -63,7 +66,8 @@ public:
   }
   W_SLOT(LoadGame, (const QString&));
 
-  void GameLoaded(QSharedPointer<GameFile> game) W_SIGNAL(GameLoaded, (QSharedPointer<GameFile>), game);
+  void GameLoaded(QSharedPointer<GameFile> game)
+      W_SIGNAL(GameLoaded, (QSharedPointer<GameFile>), game);
 };
 
 Q_DECLARE_METATYPE(QSharedPointer<GameFile>)

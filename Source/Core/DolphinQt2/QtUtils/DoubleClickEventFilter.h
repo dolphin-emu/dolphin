@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include <wobjectdefs.h>
 #include <QObject>
+#include <wobjectdefs.h>
 
 class DoubleClickEventFilter : public QObject
 {

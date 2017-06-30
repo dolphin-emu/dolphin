@@ -2,10 +2,10 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <wobjectimpl.h>
 #include <QDir>
 #include <QDirIterator>
 #include <QFile>
+#include <wobjectimpl.h>
 
 #include "DolphinQt2/GameList/GameTracker.h"
 #include "DolphinQt2/Settings.h"

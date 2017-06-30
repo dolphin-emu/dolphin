@@ -4,10 +4,10 @@
 
 #pragma once
 
-#include <wobjectdefs.h>
 #include <QAction>
 #include <QLineEdit>
 #include <QToolBar>
+#include <wobjectdefs.h>
 
 class ToolBar final : public QToolBar
 {
@@ -17,9 +17,12 @@ public:
   explicit ToolBar(QWidget* parent = nullptr);
 
 public:
-  void EmulationStarted(); W_SLOT(EmulationStarted);
-  void EmulationPaused(); W_SLOT(EmulationPaused);
-  void EmulationStopped(); W_SLOT(EmulationStopped);
+  void EmulationStarted();
+  W_SLOT(EmulationStarted);
+  void EmulationPaused();
+  W_SLOT(EmulationPaused);
+  void EmulationStopped();
+  W_SLOT(EmulationStopped);
 
   void OpenPressed() W_SIGNAL(OpenPressed);
   void PlayPressed() W_SIGNAL(PlayPressed);

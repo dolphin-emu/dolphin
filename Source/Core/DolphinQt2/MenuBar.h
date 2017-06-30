@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include <wobjectdefs.h>
 #include <string>
+#include <wobjectdefs.h>
 
 #include <QMenu>
 #include <QMenuBar>
@@ -42,7 +42,8 @@ public:
   void StateSaveOldest() W_SIGNAL(StateSaveOldest);
   void SetStateSlot(int slot) W_SIGNAL(SetStateSlot, (int), slot);
 
-  void PerformOnlineUpdate(const std::string& region) W_SIGNAL(PerformOnlineUpdate, (const std::string&), region);
+  void PerformOnlineUpdate(const std::string& region)
+      W_SIGNAL(PerformOnlineUpdate, (const std::string&), region);
 
   // Options
   void ConfigureHotkeys() W_SIGNAL(ConfigureHotkeys);
@@ -50,19 +51,26 @@ public:
   // View
   void ShowTable() W_SIGNAL(ShowTable);
   void ShowList() W_SIGNAL(ShowList);
-  void ColumnVisibilityToggled(const QString& row, bool visible) W_SIGNAL(ColumnVisibilityToggled, (const QString&, bool), row, visible);
+  void ColumnVisibilityToggled(const QString& row, bool visible)
+      W_SIGNAL(ColumnVisibilityToggled, (const QString&, bool), row, visible);
 
   void ShowAboutDialog() W_SIGNAL(ShowAboutDialog);
 
 public:
-  void EmulationStarted(); W_SLOT(EmulationStarted);
-  void EmulationPaused(); W_SLOT(EmulationPaused);
-  void EmulationStopped(); W_SLOT(EmulationStopped);
-  void UpdateStateSlotMenu(); W_SLOT(UpdateStateSlotMenu);
-  void UpdateToolsMenu(bool emulation_started); W_SLOT(UpdateToolsMenu, (bool));
+  void EmulationStarted();
+  W_SLOT(EmulationStarted);
+  void EmulationPaused();
+  W_SLOT(EmulationPaused);
+  void EmulationStopped();
+  W_SLOT(EmulationStopped);
+  void UpdateStateSlotMenu();
+  W_SLOT(UpdateStateSlotMenu);
+  void UpdateToolsMenu(bool emulation_started);
+  W_SLOT(UpdateToolsMenu, (bool));
 
   // Tools
-  void InstallWAD(); W_SLOT(InstallWAD);
+  void InstallWAD();
+  W_SLOT(InstallWAD);
 
 private:
   void AddFileMenu();

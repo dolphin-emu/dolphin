@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include <wobjectdefs.h>
 #include <QDialog>
+#include <wobjectdefs.h>
 
 class InDevelopmentWarning final : public QDialog
 {

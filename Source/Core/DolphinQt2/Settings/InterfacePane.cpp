@@ -2,8 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <wobjectimpl.h>
 #include "DolphinQt2/Settings/InterfacePane.h"
+#include <wobjectimpl.h>
 
 #include <QCheckBox>
 #include <QComboBox>

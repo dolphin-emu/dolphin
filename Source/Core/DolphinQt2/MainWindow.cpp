@@ -2,7 +2,6 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <wobjectimpl.h>
 #include <QApplication>
 #include <QCloseEvent>
 #include <QDir>
@@ -13,6 +12,7 @@
 #include <QIcon>
 #include <QMessageBox>
 #include <QMimeData>
+#include <wobjectimpl.h>
 
 #include "Common/Common.h"
 

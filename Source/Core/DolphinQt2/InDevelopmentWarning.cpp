@@ -2,7 +2,6 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <wobjectimpl.h>
 #include <QApplication>
 #include <QBoxLayout>
 #include <QCommandLinkButton>
@@ -12,6 +11,7 @@
 #include <QMessageBox>
 #include <QProcess>
 #include <QStyle>
+#include <wobjectimpl.h>
 
 #include "DolphinQt2/InDevelopmentWarning.h"
 #include "DolphinQt2/Resources.h"

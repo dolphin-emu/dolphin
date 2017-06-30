@@ -2,13 +2,13 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <wobjectimpl.h>
 #include <QAction>
 #include <QDesktopServices>
 #include <QFileDialog>
 #include <QMap>
 #include <QMessageBox>
 #include <QUrl>
+#include <wobjectimpl.h>
 
 #include "Core/CommonTitles.h"
 #include "Core/IOS/ES/ES.h"

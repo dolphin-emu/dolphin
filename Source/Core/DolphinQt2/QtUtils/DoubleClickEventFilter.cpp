@@ -2,8 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <wobjectimpl.h>
 #include <QEvent>
+#include <wobjectimpl.h>
 
 #include "DolphinQt2/QtUtils/DoubleClickEventFilter.h"
 

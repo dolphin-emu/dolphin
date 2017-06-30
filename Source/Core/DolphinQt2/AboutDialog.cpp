@@ -2,10 +2,10 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <wobjectimpl.h>
 #include <QLabel>
 #include <QTextEdit>
 #include <QVBoxLayout>
+#include <wobjectimpl.h>
 
 #include "Common/Common.h"
 #include "DolphinQt2/AboutDialog.h"

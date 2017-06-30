@@ -2,7 +2,6 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <wobjectimpl.h>
 #include <QComboBox>
 #include <QCryptographicHash>
 #include <QFileDialog>
@@ -13,6 +12,7 @@
 #include <QProgressDialog>
 #include <QPushButton>
 #include <QTextEdit>
+#include <wobjectimpl.h>
 
 #include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"

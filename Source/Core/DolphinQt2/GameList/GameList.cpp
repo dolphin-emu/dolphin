@@ -2,7 +2,6 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <wobjectimpl.h>
 #include <QDesktopServices>
 #include <QDir>
 #include <QErrorMessage>
@@ -15,6 +14,7 @@
 #include <QMessageBox>
 #include <QProgressDialog>
 #include <QUrl>
+#include <wobjectimpl.h>
 
 #include "Common/FileUtil.h"
 #include "DiscIO/Blob.h"

@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include <wobjectdefs.h>
 #include <QDialog>
+#include <wobjectdefs.h>
 
 class AboutDialog final : public QDialog
 {

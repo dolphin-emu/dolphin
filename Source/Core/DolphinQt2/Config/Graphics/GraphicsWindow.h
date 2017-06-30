@@ -4,9 +4,9 @@
 
 #pragma once
 
-#include <wobjectdefs.h>
 #include <QDialog>
 #include <QHash>
+#include <wobjectdefs.h>
 
 class AdvancedWidget;
 class EnhancementsWidget;

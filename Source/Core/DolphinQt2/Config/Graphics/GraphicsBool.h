@@ -4,9 +4,9 @@
 
 #pragma once
 
-#include <wobjectdefs.h>
 #include <QCheckBox>
 #include <QRadioButton>
+#include <wobjectdefs.h>
 
 namespace Config
 {

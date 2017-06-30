@@ -4,9 +4,9 @@
 
 #pragma once
 
-#include <wobjectdefs.h>
 #include <memory>
 #include <vector>
+#include <wobjectdefs.h>
 
 #include <QString>
 #include <QWidget>

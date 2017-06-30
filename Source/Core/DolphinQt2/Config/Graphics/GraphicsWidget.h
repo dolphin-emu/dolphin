@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include <wobjectdefs.h>
 #include <QWidget>
+#include <wobjectdefs.h>
 
 class GraphicsWindow;
 class QFormLayout;
@@ -18,7 +18,8 @@ class GraphicsWidget : public QWidget
 public:
   explicit GraphicsWidget(GraphicsWindow* parent);
 
-  void DescriptionAdded(QWidget* widget, const char* description) W_SIGNAL(DescriptionAdded, (QWidget*, const char*), widget, description);
+  void DescriptionAdded(QWidget* widget, const char* description)
+      W_SIGNAL(DescriptionAdded, (QWidget*, const char*), widget, description);
 
 protected:
   void AddWidget(const QString& name, QWidget* widget);

@@ -2,7 +2,6 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <wobjectimpl.h>
 #include <QApplication>
 #include <QBoxLayout>
 #include <QCheckBox>
@@ -18,6 +17,7 @@
 #include <QRadioButton>
 #include <QScreen>
 #include <QVBoxLayout>
+#include <wobjectimpl.h>
 
 #include <unordered_map>
 

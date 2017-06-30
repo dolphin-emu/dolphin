@@ -2,8 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <wobjectimpl.h>
 #include "DolphinQt2/Config/Graphics/SoftwareRendererWidget.h"
+#include <wobjectimpl.h>
 
 #include <QComboBox>
 #include <QGridLayout>

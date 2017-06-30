@@ -2,10 +2,10 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <wobjectimpl.h>
 #include <QDialogButtonBox>
 #include <QTabWidget>
 #include <QVBoxLayout>
+#include <wobjectimpl.h>
 
 #include "DolphinQt2/Config/FilesystemWidget.h"
 #include "DolphinQt2/Config/InfoWidget.h"

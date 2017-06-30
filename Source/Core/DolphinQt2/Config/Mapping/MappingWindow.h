@@ -4,10 +4,10 @@
 
 #pragma once
 
-#include <wobjectdefs.h>
 #include <QDialog>
 #include <QString>
 #include <memory>
+#include <wobjectdefs.h>
 
 #include "InputCommon/ControllerInterface/Device.h"
 

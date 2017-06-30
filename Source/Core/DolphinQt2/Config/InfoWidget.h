@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include <wobjectdefs.h>
 #include <QWidget>
+#include <wobjectdefs.h>
 
 #include "DolphinQt2/GameList/GameFile.h"
 
@@ -21,9 +21,12 @@ public:
   explicit InfoWidget(const GameFile& game);
 
 private:
-  void ComputeChecksum(); W_SLOT(ComputeChecksum, W_Access::Private);
-  void ChangeLanguage(); W_SLOT(ChangeLanguage, W_Access::Private);
-  void SaveBanner(); W_SLOT(SaveBanner, W_Access::Private);
+  void ComputeChecksum();
+  W_SLOT(ComputeChecksum, W_Access::Private);
+  void ChangeLanguage();
+  W_SLOT(ChangeLanguage, W_Access::Private);
+  void SaveBanner();
+  W_SLOT(SaveBanner, W_Access::Private);
 
 private:
   QGroupBox* CreateBannerDetails();

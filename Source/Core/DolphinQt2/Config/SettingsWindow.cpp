@@ -2,7 +2,6 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <wobjectimpl.h>
 #include <QDialogButtonBox>
 #include <QGroupBox>
 #include <QHBoxLayout>
@@ -10,6 +9,7 @@
 #include <QListWidget>
 #include <QStackedWidget>
 #include <QVBoxLayout>
+#include <wobjectimpl.h>
 
 #include "DolphinQt2/Config/SettingsWindow.h"
 #include "DolphinQt2/MainWindow.h"

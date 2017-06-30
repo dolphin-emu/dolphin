@@ -2,9 +2,9 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <wobjectimpl.h>
 #include <QDir>
 #include <QSize>
+#include <wobjectimpl.h>
 
 #include "AudioCommon/AudioCommon.h"
 #include "Common/FileSearch.h"

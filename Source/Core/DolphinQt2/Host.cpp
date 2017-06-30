@@ -2,10 +2,10 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <wobjectimpl.h>
 #include <QAbstractEventDispatcher>
 #include <QApplication>
 #include <QMutexLocker>
+#include <wobjectimpl.h>
 
 #include "Common/Common.h"
 #include "Core/Host.h"

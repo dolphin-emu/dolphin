@@ -4,9 +4,9 @@
 
 #pragma once
 
-#include <wobjectdefs.h>
 #include <QAbstractTableModel>
 #include <QString>
+#include <wobjectdefs.h>
 
 #include "Core/TitleDatabase.h"
 #include "DolphinQt2/GameList/GameFile.h"
@@ -43,8 +43,10 @@ public:
   };
 
 public:
-  void UpdateGame(QSharedPointer<GameFile> game); W_SLOT(UpdateGame, (QSharedPointer<GameFile>));
-  void RemoveGame(const QString& path); W_SLOT(RemoveGame, (const QString&));
+  void UpdateGame(QSharedPointer<GameFile> game);
+  W_SLOT(UpdateGame, (QSharedPointer<GameFile>));
+  void RemoveGame(const QString& path);
+  W_SLOT(RemoveGame, (const QString&));
 
   void DirectoryAdded(const QString& dir) W_SIGNAL(DirectoryAdded, (const QString&), dir);
   void DirectoryRemoved(const QString& dir) W_SIGNAL(DirectoryRemoved, (const QString&), dir);

@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include <wobjectdefs.h>
 #include <QWidget>
+#include <wobjectdefs.h>
 
 class QCheckBox;
 class QComboBox;

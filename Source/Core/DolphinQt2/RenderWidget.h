@@ -4,9 +4,9 @@
 
 #pragma once
 
-#include <wobjectdefs.h>
 #include <QEvent>
 #include <QWidget>
+#include <wobjectdefs.h>
 
 class RenderWidget final : public QWidget
 {

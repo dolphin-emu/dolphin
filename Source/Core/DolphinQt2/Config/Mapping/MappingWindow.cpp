@@ -2,7 +2,6 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <wobjectimpl.h>
 #include <QComboBox>
 #include <QDialogButtonBox>
 #include <QGroupBox>
@@ -11,6 +10,7 @@
 #include <QPushButton>
 #include <QTabWidget>
 #include <QVBoxLayout>
+#include <wobjectimpl.h>
 
 #include "DolphinQt2/Config/Mapping/MappingWindow.h"
 

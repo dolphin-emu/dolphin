@@ -4,10 +4,10 @@
 
 #pragma once
 
-#include <wobjectdefs.h>
 #include <QMutex>
 #include <QObject>
 #include <QSize>
+#include <wobjectdefs.h>
 
 // Singleton that talks to the Core via the interface defined in Core/Host.h.
 // Because Host_* calls might come from different threads than the MainWindow,
@@ -26,9 +26,12 @@ public:
   bool GetRenderFullscreen();
 
 public:
-  void SetRenderHandle(void* handle); W_SLOT(SetRenderHandle, (void*));
-  void SetRenderFocus(bool focus); W_SLOT(SetRenderFocus, (bool));
-  void SetRenderFullscreen(bool fullscreen); W_SLOT(SetRenderFullscreen, (bool));
+  void SetRenderHandle(void* handle);
+  W_SLOT(SetRenderHandle, (void*));
+  void SetRenderFocus(bool focus);
+  W_SLOT(SetRenderFocus, (bool));
+  void SetRenderFullscreen(bool fullscreen);
+  W_SLOT(SetRenderFullscreen, (bool));
 
   void RequestTitle(const QString& title) W_SIGNAL(RequestTitle, (const QString&), title);
   void RequestStop() W_SIGNAL(RequestStop);

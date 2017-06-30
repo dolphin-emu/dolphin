@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include <wobjectdefs.h>
 #include <string>
+#include <wobjectdefs.h>
 
 #include <QDialog>
 
@@ -24,7 +24,8 @@ public:
   void EmulationStopped() W_SIGNAL(EmulationStopped);
 
 public:
-  void changePage(QListWidgetItem* current, QListWidgetItem* previous); W_SLOT(changePage, (QListWidgetItem*, QListWidgetItem*));
+  void changePage(QListWidgetItem* current, QListWidgetItem* previous);
+  W_SLOT(changePage, (QListWidgetItem*, QListWidgetItem*));
 
 private:
   void MakeCategoryList();
