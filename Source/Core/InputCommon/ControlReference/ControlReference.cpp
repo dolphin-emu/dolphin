@@ -17,7 +17,7 @@ constexpr ControlState INPUT_DETECT_THRESHOLD = 0.55;
 
 bool ControlReference::InputGateOn()
 {
-  return SConfig::GetInstance().m_BackgroundInput || Host_RendererHasFocus() || Host_UIHasFocus();
+  return SConfig::GetInstance().m_BackgroundInput || Host_RendererHasFocus();
 }
 
 //
