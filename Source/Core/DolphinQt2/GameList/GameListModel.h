@@ -41,7 +41,6 @@ public:
     NUM_COLS
   };
 
-public slots:
   void UpdateGame(QSharedPointer<GameFile> game);
   void RemoveGame(const QString& path);
 

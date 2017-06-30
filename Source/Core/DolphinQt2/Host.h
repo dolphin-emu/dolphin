@@ -23,7 +23,6 @@ public:
   bool GetRenderFocus();
   bool GetRenderFullscreen();
 
-public slots:
   void SetRenderHandle(void* handle);
   void SetRenderFocus(bool focus);
   void SetRenderFullscreen(bool fullscreen);
