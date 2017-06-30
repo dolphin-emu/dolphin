@@ -27,6 +27,12 @@ DSPDisassembler::DSPDisassembler(const AssemblerSettings& settings) : settings_(
 
 bool DSPDisassembler::Disassemble(const std::vector<u16>& code, std::string& text)
 {
+  if (code.size() > std::numeric_limits<u16>::max())
+  {
+    text.append("; code too large for 16-bit addressing\n");
+    return false;
+  }
+
   for (u16 pc = 0; pc < code.size();)
   {
     if (!DisassembleOpcode(code.data(), &pc, text))
