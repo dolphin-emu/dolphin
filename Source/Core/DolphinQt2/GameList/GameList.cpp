@@ -157,7 +157,7 @@ void GameList::ShowContextMenu(const QPoint&)
     const auto blob_type = GameFile(game).GetBlobType();
 
     if (blob_type == DiscIO::BlobType::GCZ)
-      menu->addAction(tr("Decompress ISO"), this, SLOT(DecompressISO()));
+      menu->addAction(tr("Decompress ISO"), this, SLOT(CompressISO()));
     else if (blob_type == DiscIO::BlobType::PLAIN)
       menu->addAction(tr("Compress ISO"), this, SLOT(CompressISO()));
 
