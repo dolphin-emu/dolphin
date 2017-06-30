@@ -143,13 +143,16 @@ void StateTracker::ReloadPipelineUIDCache()
     StateTracker* this_ptr;
   };
 
+  m_uid_cache.Sync();
+  m_uid_cache.Close();
+
   // UID caches don't contain any host state, so use a single uid cache per gameid.
   std::string filename = g_object_cache->GetDiskCacheFileName("pipeline-uid", true, false);
-  PipelineInserter inserter(this);
-
-  // OpenAndRead calls Close() first, which will flush all data to disk when reloading.
-  // This assertion must hold true, otherwise data corruption will result.
-  m_uid_cache.OpenAndRead(filename, inserter);
+  if (g_ActiveConfig.bShaderCache)
+  {
+    PipelineInserter inserter(this);
+    m_uid_cache.OpenAndRead(filename, inserter);
+  }
 }
 
 void StateTracker::AppendToPipelineUIDCache(const PipelineInfo& info)
@@ -887,7 +890,7 @@ VkPipeline StateTracker::GetPipelineAndCacheUID(const PipelineInfo& info)
   auto result = g_object_cache->GetPipelineWithCacheResult(info);
 
   // Add to the UID cache if it is a new pipeline.
-  if (!result.second)
+  if (!result.second && g_ActiveConfig.bShaderCache)
     AppendToPipelineUIDCache(info);
 
   return result.first;
