@@ -98,7 +98,7 @@ static Common::Flag s_is_booting;
 static void* s_window_handle = nullptr;
 static std::string s_state_filename;
 static std::thread s_emu_thread;
-static StoppedCallbackFunc s_on_stopped_callback;
+Subscribable<State> g_on_state_changed;
 
 static std::thread s_cpu_thread;
 static bool s_request_refresh_info = false;
@@ -454,13 +454,13 @@ static void EmuThread(std::unique_ptr<BootParameters> boot)
 {
   const SConfig& core_parameter = SConfig::GetInstance();
   s_is_booting.Set();
+  g_on_state_changed.Send(State::Starting);
   Common::ScopeGuard flag_guard{[] {
     s_is_booting.Clear();
     s_is_started = false;
     s_is_stopping = false;
 
-    if (s_on_stopped_callback)
-      s_on_stopped_callback();
+    g_on_state_changed.Send(State::Uninitialized);
 
     INFO_LOG(CONSOLE, "Stop\t\t---- Shutdown complete ----");
   }};
@@ -682,6 +682,8 @@ void SetState(State state)
     PanicAlert("Invalid state");
     break;
   }
+
+  g_on_state_changed.Send(GetState());
 }
 
 State GetState()
@@ -858,6 +860,7 @@ void Callback_VideoCopiedToXFB(bool video_update)
   {
     s_bFrameStep = false;
     CPU::Break();
+    g_on_state_changed.Send(Core::GetState());
   }
 }
 
@@ -949,11 +952,6 @@ void Shutdown()
 
   // Make sure there's nothing left over in case we're about to exit.
   HostDispatchJobs();
-}
-
-void SetOnStoppedCallback(StoppedCallbackFunc callback)
-{
-  s_on_stopped_callback = std::move(callback);
 }
 
 void UpdateWantDeterminism(bool initial)
