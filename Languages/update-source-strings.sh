@@ -1,6 +1,9 @@
 #!/bin/bash
 
-cd ${0/gettextize/}/..
+# This script updates the dolphin-emu.pot file to match the strings in
+# the source code.
+
+cd ${0/update-source-strings.sh/}/..
 SRCDIR=Source
 find $SRCDIR -name '*.cpp' -o -name '*.h' -o -name '*.c' | \
 	xgettext -d dolphin-emu -s --keyword=_ --keyword=wxTRANSLATE --keyword=SuccessAlertT \
@@ -11,11 +14,3 @@ find $SRCDIR -name '*.cpp' -o -name '*.h' -o -name '*.c' | \
 sed -i "s/SOME DESCRIPTIVE TITLE\./Translation of dolphin-emu.pot to LANGUAGE/" Languages/po/dolphin-emu.pot
 sed -i "s/YEAR THE PACKAGE'S COPYRIGHT HOLDER/2003-2013/" Languages/po/dolphin-emu.pot
 sed -i "s/license as the PACKAGE package/license as the dolphin-emu package/" Languages/po/dolphin-emu.pot
-
-# XXX: Disabled now that we use Transifex (the tool will handle this automatically).
-#POTFILE=./Languages/po/dolphin-emu.pot
-#PO_FILES=$(find ./Languages/po -name '*.po')
-#for PO in $PO_FILES
-#do
-#	msgmerge --quiet --update --backup=none -s $PO $POTFILE
-#done
