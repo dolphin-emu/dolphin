@@ -450,7 +450,7 @@ void MainWindow::Reset()
 
 void MainWindow::FrameAdvance()
 {
-  Movie::DoFrameStep();
+  Core::DoFrameStep();
   EmulationPaused();
 }
 

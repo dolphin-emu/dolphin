@@ -446,7 +446,7 @@ void CFrame::OnFrameStep(wxCommandEvent& event)
 {
   bool wasPaused = Core::GetState() == Core::State::Paused;
 
-  Movie::DoFrameStep();
+  Core::DoFrameStep();
 
   bool isPaused = Core::GetState() == Core::State::Paused;
   if (isPaused && !wasPaused)  // don't update on unpause, otherwise the status would be wrong when
