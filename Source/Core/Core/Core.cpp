@@ -98,7 +98,6 @@ static Common::Flag s_is_booting;
 static void* s_window_handle = nullptr;
 static std::string s_state_filename;
 static std::thread s_emu_thread;
-static StoppedCallbackFunc s_on_stopped_callback;
 
 static std::thread s_cpu_thread;
 static bool s_request_refresh_info = false;
@@ -455,14 +454,14 @@ static void EmuThread(std::unique_ptr<BootParameters> boot)
 {
   const SConfig& core_parameter = SConfig::GetInstance();
   s_is_booting.Set();
+  OnStateChanged().Send(State::Starting);
   Common::ScopeGuard flag_guard{[] {
     s_is_booting.Clear();
     s_is_started = false;
     s_is_stopping = false;
     s_wants_determinism = false;
 
-    if (s_on_stopped_callback)
-      s_on_stopped_callback();
+    OnStateChanged().Send(State::Uninitialized);
 
     INFO_LOG(CONSOLE, "Stop\t\t---- Shutdown complete ----");
   }};
@@ -685,6 +684,8 @@ void SetState(State state)
     PanicAlert("Invalid state");
     break;
   }
+
+  OnStateChanged().Send(GetState());
 }
 
 State GetState()
@@ -869,6 +870,7 @@ void Callback_VideoCopiedToXFB(bool video_update)
   {
     s_frame_step = false;
     CPU::Break();
+    OnStateChanged().Send(Core::GetState());
   }
 }
 
@@ -962,9 +964,10 @@ void Shutdown()
   HostDispatchJobs();
 }
 
-void SetOnStoppedCallback(StoppedCallbackFunc callback)
+Subscribable<State>& OnStateChanged()
 {
-  s_on_stopped_callback = std::move(callback);
+  static Subscribable<State> s_on_state_changed;
+  return s_on_state_changed;
 }
 
 void UpdateWantDeterminism(bool initial)

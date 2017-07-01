@@ -9,10 +9,16 @@
 #include <QString>
 #include <QToolBar>
 
+#include "Common/Subscribable.h"
 #include "DolphinQt2/GameList/GameList.h"
 #include "DolphinQt2/MenuBar.h"
 #include "DolphinQt2/RenderWidget.h"
 #include "DolphinQt2/ToolBar.h"
+
+namespace Core
+{
+enum class State;
+}
 
 class HotkeyScheduler;
 class LoggerWidget;
@@ -114,6 +120,7 @@ private:
   bool m_exit_requested = false;
   int m_state_slot = 1;
   QString m_pending_boot;
+  Subscribable<Core::State>::Subscription m_on_state_changed_subscription;
 
   HotkeyScheduler* m_hotkey_scheduler;
   ControllersWindow* m_controllers_window;

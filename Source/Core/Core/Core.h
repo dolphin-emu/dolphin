@@ -16,6 +16,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Common/Subscribable.h"
 
 struct BootParameters;
 
@@ -85,8 +86,7 @@ void UpdateTitle();
 void RunAsCPUThread(std::function<void()> function);
 
 // for calling back into UI code without introducing a dependency on it in core
-using StoppedCallbackFunc = std::function<void()>;
-void SetOnStoppedCallback(StoppedCallbackFunc callback);
+Subscribable<State>& OnStateChanged();
 
 // Run on the Host thread when the factors change. [NOT THREADSAFE]
 void UpdateWantDeterminism(bool initial = false);

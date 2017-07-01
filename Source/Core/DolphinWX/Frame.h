@@ -19,6 +19,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
+#include "Common/Subscribable.h"
 #include "Core/ConfigManager.h"
 #include "DolphinWX/Globals.h"
 
@@ -29,6 +30,11 @@
 #ifdef __APPLE__
 #include <IOKit/pwr_mgt/IOPMLib.h>
 #endif
+
+namespace Core
+{
+enum class State;
+}
 
 struct BootParameters;
 
@@ -177,6 +183,8 @@ private:
 
   wxString m_aui_fullscreen_perspective;
   wxString m_aui_current_perspective;
+
+  Subscribable<Core::State>::Subscription m_on_state_changed_subscription;
 
 #ifdef __WXGTK__
   std::recursive_mutex m_keystate_lock;

@@ -529,8 +529,9 @@ void CFrame::InitializeCoreCallbacks()
   });
 
   // Warning: this gets called from the EmuThread
-  Core::SetOnStoppedCallback([this] {
-    AddPendingEvent(wxCommandEvent{wxEVT_HOST_COMMAND, IDM_STOPPED});
+  m_on_state_changed_subscription = Core::OnStateChanged().Subscribe([this](Core::State state) {
+    if (state == Core::State::Uninitialized)
+      AddPendingEvent(wxCommandEvent{wxEVT_HOST_COMMAND, IDM_STOPPED});
   });
 }
 
