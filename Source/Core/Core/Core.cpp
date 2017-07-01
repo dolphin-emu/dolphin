@@ -697,6 +697,9 @@ State GetState()
     return State::Running;
   }
 
+  if (s_is_booting.IsSet())
+    return State::Starting;
+
   return State::Uninitialized;
 }
 
