@@ -31,7 +31,8 @@ enum class State
   Uninitialized,
   Paused,
   Running,
-  Stopping
+  Stopping,
+  Starting,
 };
 
 bool Init(std::unique_ptr<BootParameters> boot);
