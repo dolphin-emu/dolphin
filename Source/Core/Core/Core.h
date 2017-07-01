@@ -105,4 +105,6 @@ void QueueHostJob(std::function<void()> job, bool run_during_stop = false);
 // WM_USER_JOB_DISPATCH will be sent when something is added to the queue.
 void HostDispatchJobs();
 
+void DoFrameStep();
+
 }  // namespace
