@@ -324,7 +324,7 @@ std::string HiresTexture::GenBaseName(const u8* texture, size_t texture_size, co
           }
           else
           {
-            ERROR_LOG(VIDEO, "rename failed");
+            ERROR_LOG(CUSTOMTEXTURES, "rename failed");
           }
           break;
         }
@@ -346,7 +346,7 @@ std::string HiresTexture::GenBaseName(const u8* texture, size_t texture_size, co
             }
             else
             {
-              ERROR_LOG(VIDEO, "delete failed");
+              ERROR_LOG(CUSTOMTEXTURES, "delete failed");
             }
             break;
           }
@@ -446,7 +446,7 @@ std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filenam
       file.ReadBytes(buffer.data(), file.GetSize());
       if (!LoadTexture(level, buffer))
       {
-        ERROR_LOG(VIDEO, "Custom texture %s failed to load", filename.c_str());
+        ERROR_LOG(CUSTOMTEXTURES, "Custom texture %s failed to load", filename.c_str());
         break;
       }
     }
@@ -462,16 +462,18 @@ std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filenam
   const Level& first_mip = ret->m_levels[0];
   if (first_mip.width * height != first_mip.height * width)
   {
-    ERROR_LOG(VIDEO, "Invalid custom texture size %ux%u for texture %s. The aspect differs "
-                     "from the native size %ux%u.",
+    ERROR_LOG(CUSTOMTEXTURES,
+              "Invalid custom texture size %ux%u for texture %s. The aspect differs "
+              "from the native size %ux%u.",
               first_mip.width, first_mip.height, first_mip_filename.c_str(), width, height);
   }
 
   // Same deal if the custom texture isn't a multiple of the native size.
   if (width != 0 && height != 0 && (first_mip.width % width || first_mip.height % height))
   {
-    ERROR_LOG(VIDEO, "Invalid custom texture size %ux%u for texture %s. Please use an integer "
-                     "upscaling factor based on the native size %ux%u.",
+    ERROR_LOG(CUSTOMTEXTURES,
+              "Invalid custom texture size %ux%u for texture %s. Please use an integer "
+              "upscaling factor based on the native size %ux%u.",
               first_mip.width, first_mip.height, first_mip_filename.c_str(), width, height);
   }
 
@@ -489,7 +491,7 @@ std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filenam
       if (current_mip_width == level.width && current_mip_height == level.height)
         continue;
 
-      ERROR_LOG(VIDEO,
+      ERROR_LOG(CUSTOMTEXTURES,
                 "Invalid custom texture size %dx%d for texture %s. Mipmap level %u must be %dx%d.",
                 level.width, level.height, first_mip_filename.c_str(), mip_level, current_mip_width,
                 current_mip_height);
@@ -497,7 +499,8 @@ std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filenam
     else
     {
       // It is invalid to have more than a single 1x1 mipmap.
-      ERROR_LOG(VIDEO, "Custom texture %s has too many 1x1 mipmaps. Skipping extra levels.",
+      ERROR_LOG(CUSTOMTEXTURES,
+                "Custom texture %s has too many 1x1 mipmaps. Skipping extra levels.",
                 first_mip_filename.c_str());
     }
 
@@ -510,7 +513,7 @@ std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filenam
   if (std::any_of(ret->m_levels.begin(), ret->m_levels.end(),
                   [&ret](const Level& l) { return l.format != ret->m_levels[0].format; }))
   {
-    ERROR_LOG(VIDEO, "Custom texture %s has inconsistent formats across mip levels.",
+    ERROR_LOG(CUSTOMTEXTURES, "Custom texture %s has inconsistent formats across mip levels.",
               first_mip_filename.c_str());
 
     return nullptr;
