@@ -19,9 +19,6 @@ class SettingsWindow final : public QDialog
   Q_OBJECT
 public:
   explicit SettingsWindow(QWidget* parent = nullptr);
-signals:
-  void EmulationStarted();
-  void EmulationStopped();
 
 public slots:
   void changePage(QListWidgetItem* current, QListWidgetItem* previous);

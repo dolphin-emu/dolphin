@@ -15,9 +15,11 @@
 
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "DolphinQt2/Config/Graphics/GraphicsBool.h"
 #include "DolphinQt2/Config/Graphics/GraphicsChoice.h"
 #include "DolphinQt2/Config/Graphics/GraphicsWindow.h"
+#include "DolphinQt2/QtUtils/ConnectToSubscribable.h"
 #include "UICommon/VideoUtils.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
@@ -32,8 +34,9 @@ GeneralWidget::GeneralWidget(X11Utils::XRRConfiguration* xrr_config, GraphicsWin
   emit BackendChanged(QString::fromStdString(SConfig::GetInstance().m_strVideoBackend));
 
   connect(parent, &GraphicsWindow::BackendChanged, this, &GeneralWidget::OnBackendChanged);
-  connect(parent, &GraphicsWindow::EmulationStarted, [this] { OnEmulationStateChanged(true); });
-  connect(parent, &GraphicsWindow::EmulationStopped, [this] { OnEmulationStateChanged(false); });
+  ConnectToSubscribable(Core::g_on_state_changed, this, [=](Core::State state) {
+    OnEmulationStateChanged(state != Core::State::Uninitialized);
+  });
 }
 
 void GeneralWidget::CreateWidgets()

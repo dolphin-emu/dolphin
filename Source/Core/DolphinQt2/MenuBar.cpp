@@ -11,12 +11,14 @@
 
 #include "Core/CommonTitles.h"
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "Core/IOS/ES/ES.h"
 #include "Core/IOS/IOS.h"
 #include "Core/State.h"
 #include "DolphinQt2/AboutDialog.h"
 #include "DolphinQt2/GameList/GameFile.h"
 #include "DolphinQt2/MenuBar.h"
+#include "DolphinQt2/QtUtils/ConnectToSubscribable.h"
 #include "DolphinQt2/Settings.h"
 
 MenuBar::MenuBar(QWidget* parent) : QMenuBar(parent)
@@ -29,49 +31,30 @@ MenuBar::MenuBar(QWidget* parent) : QMenuBar(parent)
   AddViewMenu();
   AddHelpMenu();
 
-  EmulationStopped();
+  ConnectToSubscribable(Core::g_on_state_changed, this,
+                        [=](Core::State state) { OnEmulationStateChanged(state); });
+  OnEmulationStateChanged(Core::GetState());
 }
 
-void MenuBar::EmulationStarted()
+void MenuBar::OnEmulationStateChanged(Core::State state)
 {
-  // Emulation
-  m_play_action->setEnabled(false);
-  m_play_action->setVisible(false);
-  m_pause_action->setEnabled(true);
-  m_pause_action->setVisible(true);
-  m_stop_action->setEnabled(true);
-  m_reset_action->setEnabled(true);
-  m_fullscreen_action->setEnabled(true);
-  m_frame_advance_action->setEnabled(true);
-  m_screenshot_action->setEnabled(true);
-  m_state_load_menu->setEnabled(true);
-  m_state_save_menu->setEnabled(true);
+  bool running = state != Core::State::Uninitialized;
+  m_stop_action->setEnabled(running);
+  m_stop_action->setVisible(running);
+  m_reset_action->setEnabled(running);
+  m_fullscreen_action->setEnabled(running);
+  m_frame_advance_action->setEnabled(running);
+  m_screenshot_action->setEnabled(running);
+  m_state_load_menu->setEnabled(running);
+  m_state_save_menu->setEnabled(running);
   UpdateStateSlotMenu();
-  UpdateToolsMenu(true);
-}
-void MenuBar::EmulationPaused()
-{
-  m_play_action->setEnabled(true);
-  m_play_action->setVisible(true);
-  m_pause_action->setEnabled(false);
-  m_pause_action->setVisible(false);
-}
-void MenuBar::EmulationStopped()
-{
-  // Emulation
-  m_play_action->setEnabled(true);
-  m_play_action->setVisible(true);
-  m_pause_action->setEnabled(false);
-  m_pause_action->setVisible(false);
-  m_stop_action->setEnabled(false);
-  m_reset_action->setEnabled(false);
-  m_fullscreen_action->setEnabled(false);
-  m_frame_advance_action->setEnabled(false);
-  m_screenshot_action->setEnabled(false);
-  m_state_load_menu->setEnabled(false);
-  m_state_save_menu->setEnabled(false);
-  UpdateStateSlotMenu();
-  UpdateToolsMenu(false);
+  UpdateToolsMenu(running);
+
+  bool playing = running && state != Core::State::Paused;
+  m_play_action->setEnabled(!playing);
+  m_play_action->setVisible(!playing);
+  m_pause_action->setEnabled(playing);
+  m_pause_action->setVisible(playing);
 }
 
 void MenuBar::AddFileMenu()

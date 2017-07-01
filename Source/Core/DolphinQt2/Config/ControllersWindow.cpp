@@ -21,6 +21,7 @@
 #include <unordered_map>
 
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "Core/HW/SI/SI.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
@@ -28,6 +29,7 @@
 #include "Core/IOS/USB/Bluetooth/BTReal.h"
 #include "Core/NetPlayProto.h"
 #include "DolphinQt2/Config/Mapping/MappingWindow.h"
+#include "DolphinQt2/QtUtils/ConnectToSubscribable.h"
 #include "DolphinQt2/Settings.h"
 #include "UICommon/UICommon.h"
 
@@ -237,6 +239,10 @@ void ControllersWindow::CreateMainLayout()
 
 void ControllersWindow::ConnectWidgets()
 {
+  ConnectToSubscribable(Core::g_on_state_changed, this, [=](Core::State state) {
+    OnEmulationStateChanged(state != Core::State::Uninitialized);
+  });
+
   connect(m_wiimote_passthrough, &QRadioButton::toggled, this,
           &ControllersWindow::OnWiimoteModeChanged);
 

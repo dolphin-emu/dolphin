@@ -38,6 +38,7 @@
 #include "DolphinQt2/Host.h"
 #include "DolphinQt2/HotkeyScheduler.h"
 #include "DolphinQt2/MainWindow.h"
+#include "DolphinQt2/QtUtils/ConnectToSubscribable.h"
 #include "DolphinQt2/QtUtils/WindowActivationEventFilter.h"
 #include "DolphinQt2/Resources.h"
 #include "DolphinQt2/Settings.h"
@@ -107,9 +108,12 @@ void MainWindow::ShutdownControllers()
 
 void MainWindow::InitCoreCallbacks()
 {
-  Core::g_on_state_changed.Subscribe([=](Core::State state) {
+  ConnectToSubscribable(Core::g_on_state_changed, this, [=](Core::State state) {
     if (state == Core::State::Uninitialized)
-      emit EmulationStopped();
+    {
+      m_stop_requested = false;
+      m_render_widget->hide();
+    }
   });
   installEventFilter(this);
   m_render_widget->installEventFilter(this);
@@ -136,11 +140,6 @@ void MainWindow::CreateComponents()
   m_controllers_window = new ControllersWindow(this);
   m_settings_window = new SettingsWindow(this);
   m_hotkey_window = new MappingWindow(this, 0);
-
-  connect(this, &MainWindow::EmulationStarted, m_settings_window,
-          &SettingsWindow::EmulationStarted);
-  connect(this, &MainWindow::EmulationStopped, m_settings_window,
-          &SettingsWindow::EmulationStopped);
 
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
   m_graphics_window = new GraphicsWindow(
@@ -197,15 +196,6 @@ void MainWindow::ConnectMenuBar()
   connect(m_menu_bar, &MenuBar::ColumnVisibilityToggled, m_game_list,
           &GameList::OnColumnVisibilityToggled);
   connect(m_menu_bar, &MenuBar::ShowAboutDialog, this, &MainWindow::ShowAboutDialog);
-
-  connect(this, &MainWindow::EmulationStarted, m_menu_bar, &MenuBar::EmulationStarted);
-  connect(this, &MainWindow::EmulationPaused, m_menu_bar, &MenuBar::EmulationPaused);
-  connect(this, &MainWindow::EmulationStopped, m_menu_bar, &MenuBar::EmulationStopped);
-
-  connect(this, &MainWindow::EmulationStarted, this,
-          [=]() { m_controllers_window->OnEmulationStateChanged(true); });
-  connect(this, &MainWindow::EmulationStopped, this,
-          [=]() { m_controllers_window->OnEmulationStateChanged(false); });
 }
 
 void MainWindow::ConnectHotkeys()
@@ -236,15 +226,6 @@ void MainWindow::ConnectToolBar()
   connect(m_tool_bar, &ToolBar::SettingsPressed, this, &MainWindow::ShowSettingsWindow);
   connect(m_tool_bar, &ToolBar::ControllersPressed, this, &MainWindow::ShowControllersWindow);
   connect(m_tool_bar, &ToolBar::GraphicsPressed, this, &MainWindow::ShowGraphicsWindow);
-
-  connect(this, &MainWindow::EmulationStarted, m_tool_bar, &ToolBar::EmulationStarted);
-  connect(this, &MainWindow::EmulationPaused, m_tool_bar, &ToolBar::EmulationPaused);
-  connect(this, &MainWindow::EmulationStopped, m_tool_bar, &ToolBar::EmulationStopped);
-
-  connect(this, &MainWindow::EmulationStopped, [this] {
-    m_stop_requested = false;
-    m_render_widget->hide();
-  });
 }
 
 void MainWindow::ConnectGameList()
@@ -286,7 +267,6 @@ void MainWindow::Play()
   if (Core::GetState() == Core::State::Paused)
   {
     Core::SetState(Core::State::Running);
-    emit EmulationStarted();
   }
   else
   {
@@ -313,7 +293,6 @@ void MainWindow::Play()
 void MainWindow::Pause()
 {
   Core::SetState(Core::State::Paused);
-  emit EmulationPaused();
 }
 
 bool MainWindow::Stop()
@@ -384,7 +363,6 @@ void MainWindow::Reset()
 void MainWindow::FrameAdvance()
 {
   Core::DoFrameStep();
-  EmulationPaused();
 }
 
 void MainWindow::FullScreen()
@@ -420,7 +398,6 @@ void MainWindow::StartGame(const QString& path)
     return;
   }
   ShowRenderWidget();
-  emit EmulationStarted();
 
 #ifdef Q_OS_WIN
   // Prevents Windows from sleeping, turning off the display, or idling
