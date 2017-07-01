@@ -18,6 +18,7 @@
 #include "Core/Core.h"
 #include "Core/WiiUtils.h"
 #include "DiscIO/NANDImporter.h"
+#include "DolphinQt2/QtUtils/QueueOnObject.h"
 
 namespace WiiUpdate
 {
@@ -61,21 +62,19 @@ void PerformOnlineUpdate(const std::string& region, QWidget* parent)
   std::future<WiiUtils::UpdateResult> result = std::async(std::launch::async, [&] {
     const WiiUtils::UpdateResult res = WiiUtils::DoOnlineUpdate(
         [&](size_t processed, size_t total, u64 title_id) {
-          Core::QueueHostJob(
-              [&dialog, &was_cancelled, processed, total, title_id]() {
-                if (was_cancelled.IsSet())
-                  return;
+          QueueOnObject(&dialog, [&dialog, &was_cancelled, processed, total, title_id]() {
+            if (was_cancelled.IsSet())
+              return;
 
-                dialog.setRange(0, static_cast<int>(total));
-                dialog.setValue(static_cast<int>(processed));
-                dialog.setLabelText(QObject::tr("Updating title %1...\nThis can take a while.")
-                                        .arg(title_id, 16, 16, QLatin1Char('0')));
-              },
-              true);
+            dialog.setRange(0, static_cast<int>(total));
+            dialog.setValue(static_cast<int>(processed));
+            dialog.setLabelText(QObject::tr("Updating title %1...\nThis can take a while.")
+                                    .arg(title_id, 16, 16, QLatin1Char('0')));
+          });
           return !was_cancelled.IsSet();
         },
         region);
-    Core::QueueHostJob([&dialog] { dialog.close(); }, true);
+    QueueOnObject(&dialog, [&dialog] { dialog.close(); });
     return res;
   });
 
