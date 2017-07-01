@@ -104,6 +104,7 @@ static std::thread s_cpu_thread;
 static bool s_request_refresh_info = false;
 static int s_pause_and_lock_depth = 0;
 static bool s_is_throttler_temp_disabled = false;
+static bool s_bFrameStep = false;
 
 struct HostJob
 {
@@ -471,6 +472,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot)
 
   // For a time this acts as the CPU thread...
   DeclareAsCPUThread();
+  s_bFrameStep = false;
 
   Movie::Init(*boot);
   Common::ScopeGuard movie_guard{Movie::Shutdown};
@@ -848,6 +850,12 @@ void Callback_VideoCopiedToXFB(bool video_update)
     s_drawn_frame++;
 
   Movie::FrameUpdate();
+
+  if (s_bFrameStep)
+  {
+    s_bFrameStep = false;
+    CPU::Break();
+  }
 }
 
 void UpdateTitle()
@@ -1012,6 +1020,23 @@ void HostDispatchJobs()
     guard.unlock();
     job.job();
     guard.lock();
+  }
+}
+
+// NOTE: Host Thread
+void DoFrameStep()
+{
+  if (GetState() == State::Paused)
+  {
+    // if already paused, frame advance for 1 frame
+    s_bFrameStep = true;
+    RequestRefreshInfo();
+    SetState(State::Running);
+  }
+  else if (!s_bFrameStep)
+  {
+    // if not paused yet, pause immediately instead
+    SetState(State::Paused);
   }
 }
 
