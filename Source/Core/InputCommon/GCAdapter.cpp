@@ -179,7 +179,7 @@ void Init()
   if (s_handle != nullptr)
     return;
 
-  if (Core::GetState() != Core::State::Uninitialized)
+  if (Core::GetState() != Core::State::Uninitialized && Core::GetState() != Core::State::Starting)
   {
     if ((CoreTiming::GetTicks() - s_last_init) < SystemTimers::GetTicksPerSecond())
       return;
