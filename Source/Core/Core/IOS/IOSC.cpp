@@ -430,8 +430,9 @@ void IOSC::LoadDefaultEntries(ConsoleType console_type)
     break;
   }
 
-  // Unimplemented.
-  m_key_entries[HANDLE_PRNG_KEY] = {TYPE_SECRET_KEY, SUBTYPE_AES128, std::vector<u8>(16), 3};
+  m_key_entries[HANDLE_PRNG_KEY] = {
+      TYPE_SECRET_KEY, SUBTYPE_AES128,
+      std::vector<u8>(ec.GetBackupKey(), ec.GetBackupKey() + AES128_KEY_SIZE), 3};
 
   m_key_entries[HANDLE_SD_KEY] = {TYPE_SECRET_KEY,
                                   SUBTYPE_AES128,
