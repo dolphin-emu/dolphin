@@ -7,6 +7,7 @@
 #include <string>
 
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
+#include "InputCommon/GCPadStatus.h"
 
 struct GCPadStatus;
 

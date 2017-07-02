@@ -17,8 +17,9 @@
 #include "BootManager.h"
 #include "Core/HW/DVDInterface.h"
 #include "Core/Host.h"
+#include "Core/ConfigManager.h"
 
-#include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"
+//#include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"
 //#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
 
 namespace DolphinWatch {
@@ -126,7 +127,7 @@ namespace DolphinWatch {
 	}
 
 	void CheckHijacks() {
-		if (!Core::IsRunning() || Core::GetState() != Core::CORE_RUN) {
+		if (!Core::IsRunning() || Core::GetState() != Core::State::Running) {
 			return;
 		}
 		for (int i = 0; i < NUM_WIIMOTES; ++i) {
@@ -452,14 +453,14 @@ namespace DolphinWatch {
 				ERROR_LOG(DOLPHINWATCH, "Core not running, can't pause: %s", line.c_str());
 				return;
 			}
-			Core::SetState(Core::CORE_PAUSE);
+			Core::SetState(Core::State::Paused);
 		}
 		else if (cmd == "RESUME") {
 			if (!Core::IsRunning()) {
 				ERROR_LOG(DOLPHINWATCH, "Core not running, can't resume: %s", line.c_str());
 				return;
 			}
-			Core::SetState(Core::CORE_RUN);
+			Core::SetState(Core::State::Running);
 		}
 		else if (cmd == "RESET") {
 			if (!Core::IsRunning()) {
@@ -563,12 +564,22 @@ namespace DolphinWatch {
 	}
 
 	void CheckSubs(Client& client) {
+		const size_t check_itercount = 5;
 		if (!Memory::IsInitialized()) return;
 		for (Subscription& sub : client.subs) {
 			u32 val = 0;
-			if (sub.mode == 8) val = PowerPC::HostRead_U8(sub.addr);
-			else if (sub.mode == 16) val = PowerPC::HostRead_U16(sub.addr);
-			else if (sub.mode == 32) val = PowerPC::HostRead_U32(sub.addr);
+			// read multiple times as some sort of debouncing
+			for (size_t check_i = 0; check_i < check_itercount; check_i++) {
+				u32 prevval = val;
+				if (sub.mode == 8) val = PowerPC::HostRead_U8(sub.addr);
+				else if (sub.mode == 16) val = PowerPC::HostRead_U16(sub.addr);
+				else if (sub.mode == 32) val = PowerPC::HostRead_U32(sub.addr);
+				if (check_i > 0 && prevval != val) {
+					// distortion! abort!
+					val = sub.prev;
+					break;
+				}
+			}
 			if (val != sub.prev) {
 				sub.prev = val;
 				std::ostringstream message;
@@ -579,8 +590,17 @@ namespace DolphinWatch {
 		}
 		for (SubscriptionMulti& sub : client.subsMulti) {
 			std::vector<u32> val(sub.size, 0);
-			for (u32 i = 0; i < sub.size; ++i) {
-				val.at(i) = PowerPC::HostRead_U8(sub.addr + i);
+			// read multiple times as some sort of debouncing
+			for (size_t check_i = 0; check_i < check_itercount; check_i++) {
+				std::vector<u32> prevval = val;
+				for (u32 i = 0; i < sub.size; ++i) {
+					val.at(i) = PowerPC::HostRead_U8(sub.addr + i);
+				}
+				if (check_i > 0 && prevval != val) {
+					// distortion! abort!
+					val = sub.prev;
+					break;
+				}
 			}
 			if (val != sub.prev) {
 				sub.prev = val;
