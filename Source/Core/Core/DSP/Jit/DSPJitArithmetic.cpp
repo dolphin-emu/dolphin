@@ -1382,7 +1382,7 @@ void DSPEmitter::lsrn(const UDSPInstruction opc)
   //	Update_SR_Register64(dsp_get_long_acc(0));
   if (FlagsNeeded())
   {
-    Update_SR_Register64(RDX);
+    Update_SR_Register64(RDX, RCX);
   }
 }
 
@@ -1439,7 +1439,7 @@ void DSPEmitter::asrn(const UDSPInstruction opc)
   SetJumpTarget(zero);
   if (FlagsNeeded())
   {
-    Update_SR_Register64(RDX);
+    Update_SR_Register64(RDX, RCX);
   }
 }
 
@@ -1502,7 +1502,7 @@ void DSPEmitter::lsrnrx(const UDSPInstruction opc)
   SetJumpTarget(zero);
   if (FlagsNeeded())
   {
-    Update_SR_Register64(RDX);
+    Update_SR_Register64(RDX, RCX);
   }
 }
 
@@ -1559,7 +1559,7 @@ void DSPEmitter::asrnrx(const UDSPInstruction opc)
   //	Update_SR_Register64(dsp_get_long_acc(dreg));
   if (FlagsNeeded())
   {
-    Update_SR_Register64(RDX);
+    Update_SR_Register64(RDX, RCX);
   }
 }
 
@@ -1617,7 +1617,7 @@ void DSPEmitter::lsrnr(const UDSPInstruction opc)
   //	Update_SR_Register64(dsp_get_long_acc(dreg));
   if (FlagsNeeded())
   {
-    Update_SR_Register64(RDX);
+    Update_SR_Register64(RDX, RCX);
   }
 }
 
@@ -1672,7 +1672,7 @@ void DSPEmitter::asrnr(const UDSPInstruction opc)
   //	Update_SR_Register64(dsp_get_long_acc(dreg));
   if (FlagsNeeded())
   {
-    Update_SR_Register64(RDX);
+    Update_SR_Register64(RDX, RCX);
   }
 }
 

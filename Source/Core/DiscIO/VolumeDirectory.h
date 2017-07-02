@@ -6,6 +6,7 @@
 
 #include <map>
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -29,36 +30,39 @@ enum class Language;
 enum class Region;
 enum class Platform;
 
-class CVolumeDirectory : public IVolume
+class VolumeDirectory : public Volume
 {
 public:
-  CVolumeDirectory(const std::string& directory, bool is_wii, const std::string& apploader = "",
-                   const std::string& dol = "");
+  VolumeDirectory(const std::string& directory, bool is_wii, const std::string& apploader = "",
+                  const std::string& dol = "");
 
-  ~CVolumeDirectory();
+  ~VolumeDirectory();
 
   static bool IsValidDirectory(const std::string& directory);
 
-  bool Read(u64 offset, u64 length, u8* buffer, bool decrypt) const override;
+  bool Read(u64 offset, u64 length, u8* buffer, const Partition& partition) const override;
+  std::vector<Partition> GetPartitions() const override;
+  Partition GetGamePartition() const override;
 
-  std::string GetGameID() const override;
+  std::string GetGameID(const Partition& partition = PARTITION_NONE) const override;
   void SetGameID(const std::string& id);
 
-  std::string GetMakerID() const override;
+  std::string GetMakerID(const Partition& partition = PARTITION_NONE) const override;
 
-  u16 GetRevision() const override { return 0; }
-  std::string GetInternalName() const override;
+  std::optional<u16> GetRevision(const Partition& partition = PARTITION_NONE) const override
+  {
+    return {};
+  }
+  std::string GetInternalName(const Partition& partition = PARTITION_NONE) const override;
   std::map<Language, std::string> GetLongNames() const override;
   std::vector<u32> GetBanner(int* width, int* height) const override;
   void SetName(const std::string&);
 
-  u64 GetFSTSize() const override;
-
-  std::string GetApploaderDate() const override;
+  std::string GetApploaderDate(const Partition& partition = PARTITION_NONE) const override;
   Platform GetVolumeType() const override;
 
   Region GetRegion() const override;
-  Country GetCountry() const override;
+  Country GetCountry(const Partition& partition = PARTITION_NONE) const override;
 
   BlobType GetBlobType() const override;
   u64 GetSize() const override;
@@ -85,7 +89,8 @@ private:
   void Write32(u32 data, u32 offset, std::vector<u8>* const buffer);
 
   // FST creation
-  void WriteEntryData(u32* entry_offset, u8 type, u32 name_offset, u64 data_offset, u64 length);
+  void WriteEntryData(u32* entry_offset, u8 type, u32 name_offset, u64 data_offset, u64 length,
+                      u32 address_shift);
   void WriteEntryName(u32* name_offset, const std::string& name);
   void WriteDirectory(const File::FSTEntry& parent_entry, u32* fst_offset, u32* name_offset,
                       u64* data_offset, u32 parent_entry_index);

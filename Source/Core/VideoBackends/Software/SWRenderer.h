@@ -13,6 +13,7 @@
 class SWRenderer : public Renderer
 {
 public:
+  SWRenderer();
   ~SWRenderer() override;
 
   static void Init();
@@ -30,7 +31,6 @@ public:
   u16 BBoxRead(int index) override;
   void BBoxWrite(int index, u16 value) override;
 
-  u32 GetMaxTextureSize() override { return 16 * 1024; };
   TargetRectangle ConvertEFBRectangle(const EFBRectangle& rc) override;
 
   void SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const EFBRectangle& rc,

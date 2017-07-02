@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/IOS/FS/FileIO.h"
+
 #include <cinttypes>
 #include <cstdio>
 #include <map>
@@ -11,11 +13,12 @@
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+#include "Common/File.h"
 #include "Common/FileUtil.h"
 #include "Common/NandPaths.h"
+#include "Core/CommonTitles.h"
 #include "Core/HW/Memmap.h"
-#include "Core/IOS/FS/FileIO.h"
-#include "Core/IOS/IPC.h"
+#include "Core/IOS/IOS.h"
 
 namespace IOS
 {
@@ -38,7 +41,7 @@ void CreateVirtualFATFilesystem()
 {
   const int cdbSize = 0x01400000;
   const std::string cdbPath =
-      Common::GetTitleDataPath(TITLEID_SYSMENU, Common::FROM_SESSION_ROOT) + "cdb.vff";
+      Common::GetTitleDataPath(Titles::SYSTEM_MENU, Common::FROM_SESSION_ROOT) + "cdb.vff";
   if ((int)File::GetSize(cdbPath) < cdbSize)
   {
     // cdb.vff is a virtual Fat filesystem created on first launch of sysmenu
@@ -71,14 +74,14 @@ void CreateVirtualFATFilesystem()
 
 namespace Device
 {
-FileIO::FileIO(u32 device_id, const std::string& device_name)
-    : Device(device_id, device_name, DeviceType::FileIO)
+FileIO::FileIO(Kernel& ios, const std::string& device_name)
+    : Device(ios, device_name, DeviceType::FileIO)
 {
 }
 
-void FileIO::Close()
+ReturnCode FileIO::Close(u32 fd)
 {
-  INFO_LOG(IOS_FILEIO, "FileIO: Close %s (DeviceID=%08x)", m_name.c_str(), m_device_id);
+  INFO_LOG(IOS_FILEIO, "FileIO: Close %s", m_name.c_str());
   m_Mode = 0;
 
   // Let go of our pointer to the file, it will automatically close if we are the last handle
@@ -86,6 +89,7 @@ void FileIO::Close()
   m_file.reset();
 
   m_is_active = false;
+  return IPC_SUCCESS;
 }
 
 ReturnCode FileIO::Open(const OpenRequest& request)
@@ -168,15 +172,15 @@ IPCCommandResult FileIO::Seek(const SeekRequest& request)
   u32 new_position = 0;
   switch (request.mode)
   {
-  case SeekRequest::IOS_SEEK_SET:
+  case IOS_SEEK_SET:
     new_position = request.offset;
     break;
 
-  case SeekRequest::IOS_SEEK_CUR:
+  case IOS_SEEK_CUR:
     new_position = m_SeekPos + request.offset;
     break;
 
-  case SeekRequest::IOS_SEEK_END:
+  case IOS_SEEK_END:
     new_position = file_size + request.offset;
     break;
 
@@ -193,40 +197,40 @@ IPCCommandResult FileIO::Seek(const SeekRequest& request)
 
 IPCCommandResult FileIO::Read(const ReadWriteRequest& request)
 {
-  s32 return_value = FS_EACCESS;
-  if (m_file->IsOpen())
+  if (!m_file->IsOpen())
   {
-    if (m_Mode == IOS_OPEN_WRITE)
-    {
-      WARN_LOG(IOS_FILEIO, "FileIO: Attempted to read 0x%x bytes to 0x%08x on a write-only file %s",
-               request.size, request.buffer, m_name.c_str());
-    }
-    else
-    {
-      DEBUG_LOG(IOS_FILEIO, "FileIO: Read 0x%x bytes to 0x%08x from %s", request.size,
-                request.buffer, m_name.c_str());
-      m_file->Seek(m_SeekPos, SEEK_SET);  // File might be opened twice, need to seek before we read
-      return_value = static_cast<u32>(
-          fread(Memory::GetPointer(request.buffer), 1, request.size, m_file->GetHandle()));
-      if (static_cast<u32>(return_value) != request.size && ferror(m_file->GetHandle()))
-      {
-        return_value = FS_EACCESS;
-      }
-      else
-      {
-        m_SeekPos += request.size;
-      }
-    }
-  }
-  else
-  {
-    ERROR_LOG(IOS_FILEIO, "FileIO: Failed to read from %s (Addr=0x%08x Size=0x%x) - file could "
+    ERROR_LOG(IOS_FILEIO, "Failed to read from %s (Addr=0x%08x Size=0x%x) - file could "
                           "not be opened or does not exist",
               m_name.c_str(), request.buffer, request.size);
-    return_value = FS_ENOENT;
+    return GetDefaultReply(FS_ENOENT);
   }
 
-  return GetDefaultReply(return_value);
+  if (m_Mode == IOS_OPEN_WRITE)
+  {
+    WARN_LOG(IOS_FILEIO, "Attempted to read 0x%x bytes to 0x%08x on a write-only file %s",
+             request.size, request.buffer, m_name.c_str());
+    return GetDefaultReply(FS_EACCESS);
+  }
+
+  u32 requested_read_length = request.size;
+  const u32 file_size = static_cast<u32>(m_file->GetSize());
+  // IOS has this check in the read request handler.
+  if (requested_read_length + m_SeekPos > file_size)
+    requested_read_length = file_size - m_SeekPos;
+
+  DEBUG_LOG(IOS_FILEIO, "Read 0x%x bytes to 0x%08x from %s", request.size, request.buffer,
+            m_name.c_str());
+  m_file->Seek(m_SeekPos, SEEK_SET);  // File might be opened twice, need to seek before we read
+  const u32 number_of_bytes_read = static_cast<u32>(
+      fread(Memory::GetPointer(request.buffer), 1, requested_read_length, m_file->GetHandle()));
+
+  if (number_of_bytes_read != requested_read_length && ferror(m_file->GetHandle()))
+    return GetDefaultReply(FS_EACCESS);
+
+  // IOS returns the number of bytes read and adds that value to the seek position,
+  // instead of adding the *requested* read length.
+  m_SeekPos += number_of_bytes_read;
+  return GetDefaultReply(number_of_bytes_read);
 }
 
 IPCCommandResult FileIO::Write(const ReadWriteRequest& request)

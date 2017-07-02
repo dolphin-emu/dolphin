@@ -1,6 +1,8 @@
 set(SRCS
   AudioCommon.cpp
-  AudioDevice.cpp
+  AudioStretcher.cpp
+  CubebStream.cpp
+  CubebUtils.cpp
   DPL2Decoder.cpp
   Mixer.cpp
   WaveFile.cpp
@@ -30,37 +32,6 @@ else()
   message(STATUS "ALSA explicitly disabled, disabling ALSA sound backend")
 endif()
 
-if(ENABLE_AO)
-  find_package(AO)
-  if(AO_FOUND)
-    message(STATUS "ao found, enabling ao sound backend")
-    target_sources(audiocommon PRIVATE AOSoundStream.cpp)
-    target_link_libraries(audiocommon PRIVATE AO::AO)
-    target_compile_definitions(audiocommon PRIVATE HAVE_AO=1)
-  else()
-    message(STATUS "ao NOT found, disabling ao sound backend")
-  endif()
-else()
-  message(STATUS "ao explicitly disabled, disabling ao sound backend")
-endif()
-
-if(ENABLE_OPENAL)
-  if(WIN32)
-    set(ENV{OPENALDIR} ${PROJECT_SOURCE_DIR}/Externals/OpenAL)
-  endif()
-  find_package(OpenAL)
-  if(OPENAL_FOUND)
-    message(STATUS "OpenAL found, enabling OpenAL sound backend")
-    target_sources(audiocommon PRIVATE OpenALStream.cpp aldlist.cpp)
-    target_link_libraries(audiocommon PRIVATE OpenAL::OpenAL SoundTouch)
-    target_compile_definitions(audiocommon PRIVATE HAVE_OPENAL=1)
-  else()
-    message(STATUS "OpenAL NOT found, disabling OpenAL sound backend")
-  endif()
-else()
-  message(STATUS "OpenAL explicitly disabled, disabling OpenAL sound backend")
-endif()
-
 if(ENABLE_PULSEAUDIO)
   # PulseAudio ships with a PulseAudioConfig.cmake with no imported target
   # So we use our own FindPulseAudio instead with "MODULE"
@@ -87,8 +58,18 @@ if(WIN32)
   )
   target_link_libraries(audiocommon PRIVATE audiocommon_xaudio27)
 
+  set(ENV{OPENALDIR} ${PROJECT_SOURCE_DIR}/Externals/OpenAL)
+  find_package(OpenAL)
+  if(OPENAL_FOUND)
+    message(STATUS "OpenAL found, enabling OpenAL sound backend")
+    target_sources(audiocommon PRIVATE OpenALStream.cpp)
+    target_link_libraries(audiocommon PRIVATE OpenAL::OpenAL)
+  else()
+    message(FATAL_ERROR "OpenAL NOT found in Externals")
+  endif()
+
 elseif(APPLE)
   target_sources(audiocommon PRIVATE CoreAudioSoundStream.cpp)
 endif()
 
-
+target_link_libraries(audiocommon PRIVATE cubeb SoundTouch)

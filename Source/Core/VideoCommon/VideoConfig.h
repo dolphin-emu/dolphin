@@ -50,28 +50,35 @@ enum StereoMode
   STEREO_3DVISION
 };
 
+struct ProjectionHackConfig final
+{
+  bool m_enable;
+  bool m_sznear;
+  bool m_szfar;
+  std::string m_znear;
+  std::string m_zfar;
+};
+
 // NEVER inherit from this class.
 struct VideoConfig final
 {
   VideoConfig();
-  void Load(const std::string& ini_file);
-  void GameIniLoad();
+  void Refresh();
   void VerifyValidity();
-  void Save(const std::string& ini_file);
   void UpdateProjectionHack();
   bool IsVSync();
 
   // General
   bool bVSync;
-  bool bRunning;
   bool bWidescreenHack;
   int iAspectRatio;
   bool bCrop;  // Aspect ratio controls.
   bool bUseXFB;
   bool bUseRealXFB;
+  bool bShaderCache;
 
   // Enhancements
-  int iMultisamples;
+  u32 iMultisamples;
   bool bSSAA;
   int iEFBScale;
   bool bForceFiltering;
@@ -101,25 +108,31 @@ struct VideoConfig final
   bool bDumpEFBTarget;
   bool bDumpFramesAsImages;
   bool bUseFFV1;
+  std::string sDumpCodec;
+  std::string sDumpFormat;
+  std::string sDumpPath;
   bool bInternalResolutionFrameDumps;
   bool bFreeLook;
   bool bBorderlessFullscreen;
+  bool bEnableGPUTextureDecoding;
+  int iBitrateKbps;
 
   // Hacks
   bool bEFBAccessEnable;
   bool bPerfQueriesEnable;
   bool bBBoxEnable;
+  bool bBBoxPreferStencilImplementation;  // OpenGL-only, to see how slow it is compared to SSBOs
   bool bForceProgressive;
 
   bool bEFBEmulateFormatChanges;
   bool bSkipEFBCopyToRam;
   bool bCopyEFBScaled;
   int iSafeTextureCache_ColorSamples;
-  int iPhackvalue[3];
-  std::string sPhackvalue[2];
+  ProjectionHackConfig phack;
   float fAspectRatioHackW, fAspectRatioHackH;
   bool bEnablePixelLighting;
   bool bFastDepthCalc;
+  bool bVertexRounding;
   int iLog;           // CONF_ bits
   int iSaveTargetId;  // TODO: Should be dropped
 
@@ -161,18 +174,19 @@ struct VideoConfig final
     APIType api_type;
 
     std::vector<std::string> Adapters;  // for D3D
-    std::vector<int> AAModes;
-    std::vector<std::string> PPShaders;        // post-processing shaders
-    std::vector<std::string> AnaglyphShaders;  // anaglyph shaders
+    std::vector<u32> AAModes;
 
     // TODO: merge AdapterName and Adapters array
     std::string AdapterName;  // for OpenGL
+
+    u32 MaxTextureSize;
 
     bool bSupportsExclusiveFullscreen;
     bool bSupportsDualSourceBlend;
     bool bSupportsPrimitiveRestart;
     bool bSupportsOversizedViewports;
     bool bSupportsGeometryShaders;
+    bool bSupportsComputeShaders;
     bool bSupports3DVision;
     bool bSupportsEarlyZ;         // needed by PixelShaderGen, so must stay in VideoCommon
     bool bSupportsBindingLayout;  // Needed by ShaderGen, so must stay in VideoCommon
@@ -182,10 +196,13 @@ struct VideoConfig final
     bool bSupportsPaletteConversion;
     bool bSupportsClipControl;  // Needed by VertexShaderGen, so must stay in VideoCommon
     bool bSupportsSSAA;
+    bool bSupportsFragmentStoresAndAtomics;  // a.k.a. OpenGL SSBOs a.k.a. Direct3D UAVs
     bool bSupportsDepthClamp;  // Needed by VertexShaderGen, so must stay in VideoCommon
     bool bSupportsReversedDepthRange;
     bool bSupportsMultithreading;
     bool bSupportsInternalResolutionFrameDumps;
+    bool bSupportsGPUTextureDecoding;
+    bool bSupportsST3CTextures;
   } backend_info;
 
   // Utility
@@ -194,6 +211,16 @@ struct VideoConfig final
   bool ExclusiveFullscreenEnabled() const
   {
     return backend_info.bSupportsExclusiveFullscreen && !bBorderlessFullscreen;
+  }
+  bool BBoxUseFragmentShaderImplementation() const
+  {
+    if (backend_info.api_type == APIType::OpenGL && bBBoxPreferStencilImplementation)
+      return false;
+    return backend_info.bSupportsBBox && backend_info.bSupportsFragmentStoresAndAtomics;
+  }
+  bool UseGPUTextureDecoding() const
+  {
+    return backend_info.bSupportsGPUTextureDecoding && bEnableGPUTextureDecoding;
   }
 };
 

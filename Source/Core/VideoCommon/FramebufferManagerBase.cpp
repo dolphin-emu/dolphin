@@ -248,20 +248,18 @@ void FramebufferManagerBase::ReplaceVirtualXFB()
   }
 }
 
-int FramebufferManagerBase::ScaleToVirtualXfbWidth(int x)
+int FramebufferManagerBase::ScaleToVirtualXfbWidth(int x, const TargetRectangle& target_rectangle)
 {
   if (g_ActiveConfig.RealXFBEnabled())
     return x;
 
-  return x * (int)Renderer::GetTargetRectangle().GetWidth() /
-         (int)FramebufferManagerBase::LastXfbWidth();
+  return x * target_rectangle.GetWidth() / s_last_xfb_width;
 }
 
-int FramebufferManagerBase::ScaleToVirtualXfbHeight(int y)
+int FramebufferManagerBase::ScaleToVirtualXfbHeight(int y, const TargetRectangle& target_rectangle)
 {
   if (g_ActiveConfig.RealXFBEnabled())
     return y;
 
-  return y * (int)Renderer::GetTargetRectangle().GetHeight() /
-         (int)FramebufferManagerBase::LastXfbHeight();
+  return y * target_rectangle.GetHeight() / s_last_xfb_height;
 }

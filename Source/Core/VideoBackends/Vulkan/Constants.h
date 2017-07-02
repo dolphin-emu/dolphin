@@ -30,6 +30,7 @@ enum DESCRIPTOR_SET_LAYOUT
   DESCRIPTOR_SET_LAYOUT_PIXEL_SHADER_SAMPLERS,
   DESCRIPTOR_SET_LAYOUT_SHADER_STORAGE_BUFFERS,
   DESCRIPTOR_SET_LAYOUT_TEXEL_BUFFERS,
+  DESCRIPTOR_SET_LAYOUT_COMPUTE,
   NUM_DESCRIPTOR_SET_LAYOUTS
 };
 
@@ -52,6 +53,12 @@ enum DESCRIPTOR_SET_BIND_POINT
 //       - Same as standard, plus 128 bytes of push constants, accessible from all stages.
 //   - Texture Decoding
 //       - Same as push constant, plus a single texel buffer accessible from PS.
+//   - Compute
+//       - 1 uniform buffer [set=0, binding=0]
+//       - 4 combined image samplers [set=0, binding=1-4]
+//       - 1 texel buffer [set=0, binding=5]
+//       - 1 storage image [set=0, binding=6]
+//       - 128 bytes of push constants
 //
 // All four pipeline layout share the first two descriptor sets (uniform buffers, PS samplers).
 // The third descriptor set (see bind points above) is used for storage or texel buffers.
@@ -62,6 +69,7 @@ enum PIPELINE_LAYOUT
   PIPELINE_LAYOUT_BBOX,
   PIPELINE_LAYOUT_PUSH_CONSTANT,
   PIPELINE_LAYOUT_TEXTURE_CONVERSION,
+  PIPELINE_LAYOUT_COMPUTE,
   NUM_PIPELINE_LAYOUTS
 };
 
@@ -101,7 +109,7 @@ constexpr size_t MAXIMUM_TEXTURE_UPLOAD_BUFFER_SIZE = 64 * 1024 * 1024;
 // streaming buffer and be blocking frequently. Games are unlikely to have textures this
 // large anyway, so it's only really an issue for HD texture packs, and memory is not
 // a limiting factor in these scenarios anyway.
-constexpr size_t STAGING_TEXTURE_UPLOAD_THRESHOLD = 1024 * 1024 * 4;
+constexpr size_t STAGING_TEXTURE_UPLOAD_THRESHOLD = 1024 * 1024 * 8;
 
 // Streaming uniform buffer size
 constexpr size_t INITIAL_UNIFORM_STREAM_BUFFER_SIZE = 16 * 1024 * 1024;
@@ -135,34 +143,6 @@ union DepthStencilState
   BitField<2, 3, VkCompareOp> compare_op;
 
   u32 bits;
-};
-
-// Blend state info
-union BlendState
-{
-  struct
-  {
-    union
-    {
-      BitField<0, 1, VkBool32> blend_enable;
-      BitField<1, 3, VkBlendOp> blend_op;
-      BitField<4, 5, VkBlendFactor> src_blend;
-      BitField<9, 5, VkBlendFactor> dst_blend;
-      BitField<14, 3, VkBlendOp> alpha_blend_op;
-      BitField<17, 5, VkBlendFactor> src_alpha_blend;
-      BitField<22, 5, VkBlendFactor> dst_alpha_blend;
-      BitField<27, 4, VkColorComponentFlags> write_mask;
-      u32 low_bits;
-    };
-    union
-    {
-      BitField<0, 1, VkBool32> logic_op_enable;
-      BitField<1, 4, VkLogicOp> logic_op;
-      u32 high_bits;
-    };
-  };
-
-  u64 bits;
 };
 
 // Sampler info

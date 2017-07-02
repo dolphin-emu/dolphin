@@ -13,10 +13,11 @@
 #include "InputCommon/ControllerEmu/Control/Control.h"
 #include "InputCommon/ControllerEmu/Control/Input.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
+#include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 
 namespace ControllerEmu
 {
-Slider::Slider(const std::string& name_) : ControlGroup(name_, GROUP_TYPE_SLIDER)
+Slider::Slider(const std::string& name_) : ControlGroup(name_, GroupType::Slider)
 {
   controls.emplace_back(std::make_unique<Input>("Left"));
   controls.emplace_back(std::make_unique<Input>("Right"));

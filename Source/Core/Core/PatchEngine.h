@@ -45,6 +45,7 @@ void LoadPatchSection(const std::string& section, std::vector<Patch>& patches, I
 void LoadPatches();
 bool ApplyFramePatches();
 void Shutdown();
+void Reload();
 
 inline int GetPatchTypeCharLength(PatchType type)
 {

@@ -5,7 +5,6 @@
 #pragma once
 
 #include <QList>
-#include <QPixmap>
 
 // Store for various QPixmaps that will be used repeatedly.
 class Resources final
@@ -26,8 +25,18 @@ public:
     LOGO_SMALL
   };
 
+  static QIcon GetScaledIcon(const std::string& name);
+  static QIcon GetScaledThemeIcon(const std::string& name);
+
+  static QPixmap GetScaledPixmap(const std::string& name);
+  static QPixmap GetScaledThemePixmap(const std::string& name);
+
 private:
   Resources() {}
+  static void InitThemeIcons();
+  static QIcon GetIcon(const QString& name, const QString& dir);
+  static QPixmap GetPixmap(const QString& name, const QString& dir);
+
   static QList<QPixmap> m_platforms;
   static QList<QPixmap> m_countries;
   static QList<QPixmap> m_ratings;

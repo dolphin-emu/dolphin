@@ -14,6 +14,7 @@
 #include "InputCommon/ControllerEmu/Control/Control.h"
 #include "InputCommon/ControllerEmu/Control/Input.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
+#include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 
 namespace ControllerEmu
 {
@@ -24,7 +25,7 @@ AnalogStick::AnalogStick(const char* const name_, ControlState default_radius)
 
 AnalogStick::AnalogStick(const char* const name_, const char* const ui_name_,
                          ControlState default_radius)
-    : ControlGroup(name_, ui_name_, GROUP_TYPE_STICK)
+    : ControlGroup(name_, ui_name_, GroupType::Stick)
 {
   for (auto& named_direction : named_directions)
     controls.emplace_back(std::make_unique<Input>(named_direction));

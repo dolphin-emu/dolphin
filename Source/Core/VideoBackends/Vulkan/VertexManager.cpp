@@ -63,10 +63,10 @@ bool VertexManager::Initialize()
   return true;
 }
 
-NativeVertexFormat*
+std::unique_ptr<NativeVertexFormat>
 VertexManager::CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl)
 {
-  return new VertexFormat(vtx_decl);
+  return std::make_unique<VertexFormat>(vtx_decl);
 }
 
 void VertexManager::PrepareDrawBuffers(u32 stride)
@@ -153,7 +153,10 @@ void VertexManager::vFlush()
     break;
 
   case PRIMITIVE_TRIANGLES:
-    StateTracker::GetInstance()->SetPrimitiveTopology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP);
+    StateTracker::GetInstance()->SetPrimitiveTopology(
+        g_ActiveConfig.backend_info.bSupportsPrimitiveRestart ?
+            VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP :
+            VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
     g_renderer->SetGenerationMode();
     break;
   }

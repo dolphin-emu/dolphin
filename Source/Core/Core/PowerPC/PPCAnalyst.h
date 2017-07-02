@@ -176,7 +176,7 @@ private:
 
   void ReorderInstructionsCore(u32 instructions, CodeOp* code, bool reverse, ReorderType type);
   void ReorderInstructions(u32 instructions, CodeOp* code);
-  void SetInstructionStats(CodeBlock* block, CodeOp* code, GekkoOPInfo* opinfo, u32 index);
+  void SetInstructionStats(CodeBlock* block, CodeOp* code, const GekkoOPInfo* opinfo, u32 index);
 
   // Options
   u32 m_options;
@@ -231,5 +231,6 @@ public:
 void LogFunctionCall(u32 addr);
 void FindFunctions(u32 startAddr, u32 endAddr, PPCSymbolDB* func_db);
 bool AnalyzeFunction(u32 startAddr, Symbol& func, int max_size = 0);
+bool ReanalyzeFunction(u32 start_addr, Symbol& func, int max_size = 0);
 
 }  // namespace

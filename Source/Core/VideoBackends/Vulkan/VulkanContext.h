@@ -35,6 +35,7 @@ public:
   static void PopulateBackendInfo(VideoConfig* config);
   static void PopulateBackendInfoAdapters(VideoConfig* config, const GPUList& gpu_list);
   static void PopulateBackendInfoFeatures(VideoConfig* config, VkPhysicalDevice gpu,
+                                          const VkPhysicalDeviceProperties& properties,
                                           const VkPhysicalDeviceFeatures& features);
   static void PopulateBackendInfoMultisampleModes(VideoConfig* config, VkPhysicalDevice gpu,
                                                   const VkPhysicalDeviceProperties& properties);

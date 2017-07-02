@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <memory>
+
 #include "Common/CommonTypes.h"
 #include "Core/DSPEmulator.h"
 #include "Core/HW/DSP.h"
@@ -21,6 +23,7 @@ class DSPHLE : public DSPEmulator
 {
 public:
   DSPHLE();
+  ~DSPHLE();
 
   bool Initialize(bool wii, bool dsp_thread) override;
   void Shutdown() override;
@@ -39,8 +42,6 @@ public:
   u32 DSP_UpdateRate() override;
 
   CMailHandler& AccessMailHandler() { return m_mail_handler; }
-  // Formerly DSPHandler
-  UCodeInterface* GetUCode();
   void SetUCode(u32 crc);
   void SwapUCode(u32 crc);
 
@@ -63,8 +64,8 @@ private:
   };
   DSPState m_dsp_state;
 
-  UCodeInterface* m_ucode;
-  UCodeInterface* m_last_ucode;
+  std::unique_ptr<UCodeInterface> m_ucode;
+  std::unique_ptr<UCodeInterface> m_last_ucode;
 
   DSP::UDSPControl m_dsp_control;
   CMailHandler m_mail_handler;

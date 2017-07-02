@@ -2,7 +2,6 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <SFML/Network/Http.hpp>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -103,7 +102,7 @@ void CodeConfigPanel::LoadCodes(const IniFile& globalIni, const IniFile& localIn
 
   m_gcodes.clear();
   if (!checkRunning || Core::IsRunning())
-    Gecko::LoadCodes(globalIni, localIni, m_gcodes);
+    m_gcodes = Gecko::LoadCodes(globalIni, localIni);
 
   UpdateCodeList(checkRunning);
 }
@@ -160,154 +159,47 @@ void CodeConfigPanel::DownloadCodes(wxCommandEvent&)
   if (m_gameid.empty())
     return;
 
-  std::string gameid = m_gameid;
-
-  switch (m_gameid[0])
-  {
-  case 'R':
-  case 'S':
-  case 'G':
-    break;
-  default:
-    // All channels (WiiWare, VirtualConsole, etc) are identified by their first four characters
-    gameid = m_gameid.substr(0, 4);
-    break;
-  }
-
-  sf::Http::Request req;
-  req.setUri("/txt.php?txt=" + gameid);
-
-  sf::Http http;
-  http.setHost("geckocodes.org");
-
-  const sf::Http::Response resp = http.sendRequest(req, sf::seconds(5));
-
-  if (sf::Http::Response::Ok == resp.getStatus())
-  {
-    // temp vector containing parsed codes
-    std::vector<GeckoCode> gcodes;
-
-    // parse the codes
-    std::istringstream ss(resp.getBody());
-
-    std::string line;
-
-    // seek past the header, get to the first code
-    std::getline(ss, line);
-    std::getline(ss, line);
-    std::getline(ss, line);
-
-    int read_state = 0;
-    GeckoCode gcode;
-
-    while ((std::getline(ss, line).good()))
-    {
-      // Remove \r at the end of the line for files using windows line endings, std::getline only
-      // removes \n
-      line = StripSpaces(line);
-
-      if (line.empty())
-      {
-        // add the code
-        if (gcode.codes.size())
-          gcodes.push_back(gcode);
-        gcode = GeckoCode();
-        read_state = 0;
-        continue;
-      }
-
-      switch (read_state)
-      {
-      // read new code
-      case 0:
-      {
-        std::istringstream ssline(line);
-        // stop at [ character (beginning of contributor name)
-        std::getline(ssline, gcode.name, '[');
-        gcode.name = StripSpaces(gcode.name);
-        gcode.user_defined = true;
-        // read the code creator name
-        std::getline(ssline, gcode.creator, ']');
-        read_state = 1;
-      }
-      break;
-
-      // read code lines
-      case 1:
-      {
-        std::istringstream ssline(line);
-        std::string addr, data;
-        ssline >> addr >> data;
-        ssline.seekg(0);
-
-        // check if this line a code, silly, but the dumb txt file comment lines can start with
-        // valid hex chars :/
-        if (8 == addr.length() && 8 == data.length())
-        {
-          GeckoCode::Code new_code;
-          new_code.original_line = line;
-          ssline >> std::hex >> new_code.address >> new_code.data;
-          gcode.codes.push_back(new_code);
-        }
-        else
-        {
-          gcode.notes.push_back(line);
-          read_state = 2;  // start reading comments
-        }
-      }
-      break;
-
-      // read comment lines
-      case 2:
-        // append comment line
-        gcode.notes.push_back(line);
-        break;
-      }
-    }
-
-    // add the last code
-    if (gcode.codes.size())
-      gcodes.push_back(gcode);
-
-    if (gcodes.size())
-    {
-      unsigned long added_count = 0;
-
-      // append the codes to the code list
-      for (const GeckoCode& code : gcodes)
-      {
-        // only add codes which do not already exist
-        auto existing_gcodes_iter = m_gcodes.begin();
-        auto existing_gcodes_end = m_gcodes.end();
-        for (;; ++existing_gcodes_iter)
-        {
-          if (existing_gcodes_end == existing_gcodes_iter)
-          {
-            m_gcodes.push_back(code);
-            ++added_count;
-            break;
-          }
-
-          // code exists
-          if (*existing_gcodes_iter == code)
-            break;
-        }
-      }
-
-      wxMessageBox(wxString::Format(_("Downloaded %lu codes. (added %lu)"),
-                                    (unsigned long)gcodes.size(), added_count));
-
-      // refresh the list
-      UpdateCodeList();
-    }
-    else
-    {
-      wxMessageBox(_("File contained no codes."));
-    }
-  }
-  else
+  bool succeeded;
+  std::vector<GeckoCode> gcodes = Gecko::DownloadCodes(m_gameid, &succeeded);
+  if (!succeeded)
   {
     WxUtils::ShowErrorDialog(_("Failed to download codes."));
+    return;
   }
+
+  if (!gcodes.size())
+  {
+    wxMessageBox(_("File contained no codes."));
+    return;
+  }
+
+  unsigned long added_count = 0;
+
+  // append the codes to the code list
+  for (const GeckoCode& code : gcodes)
+  {
+    // only add codes which do not already exist
+    auto existing_gcodes_iter = m_gcodes.begin();
+    auto existing_gcodes_end = m_gcodes.end();
+    for (;; ++existing_gcodes_iter)
+    {
+      if (existing_gcodes_end == existing_gcodes_iter)
+      {
+        m_gcodes.push_back(code);
+        ++added_count;
+        break;
+      }
+
+      // code exists
+      if (*existing_gcodes_iter == code)
+        break;
+    }
+  }
+
+  wxMessageBox(wxString::Format(_("Downloaded %lu codes. (added %lu)"),
+                                (unsigned long)gcodes.size(), added_count));
+
+  // refresh the list
+  UpdateCodeList();
 }
 }

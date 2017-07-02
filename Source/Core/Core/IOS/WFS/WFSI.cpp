@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Common/File.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Core/HW/Memmap.h"
@@ -80,13 +81,13 @@ void ARCUnpacker::Extract(const WriteCallback& callback)
 
 namespace Device
 {
-WFSI::WFSI(u32 device_id, const std::string& device_name) : Device(device_id, device_name)
+WFSI::WFSI(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
 {
 }
 
 IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
 {
-  u32 return_error_code = IPC_SUCCESS;
+  s32 return_error_code = IPC_SUCCESS;
 
   switch (request.request)
   {
@@ -109,14 +110,14 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
     Memory::CopyFromEmu(tmd_bytes.data(), tmd_addr, tmd_size);
     m_tmd.SetBytes(std::move(tmd_bytes));
 
-    std::vector<u8> ticket = DiscIO::FindSignedTicket(m_tmd.GetTitleId());
-    if (ticket.size() == 0)
+    IOS::ES::TicketReader ticket = DiscIO::FindSignedTicket(m_tmd.GetTitleId());
+    if (!ticket.IsValid())
     {
       return_error_code = -11028;
       break;
     }
 
-    memcpy(m_aes_key, DiscIO::GetKeyFromTicket(ticket).data(), sizeof(m_aes_key));
+    memcpy(m_aes_key, ticket.GetTitleKey(m_ios.GetIOSC()).data(), sizeof(m_aes_key));
     mbedtls_aes_setkey_dec(&m_aes_ctx, m_aes_key, 128);
 
     break;
@@ -134,7 +135,7 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
 
     // Initializes the IV from the index of the content in the TMD contents.
     u32 content_id = Memory::Read_U32(request.buffer_in + 8);
-    TMDReader::Content content_info;
+    IOS::ES::Content content_info;
     if (!m_tmd.FindContentById(content_id, &content_info))
     {
       WARN_LOG(IOS, "%s: Content id %08x not found", ioctl_name, content_id);
@@ -162,8 +163,8 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
     u32 content_id = Memory::Read_U32(request.buffer_in + 0xC);
     u32 input_ptr = Memory::Read_U32(request.buffer_in + 0x10);
     u32 input_size = Memory::Read_U32(request.buffer_in + 0x14);
-    INFO_LOG(IOS, "%s: %08x bytes of data at %08x from content id %d", ioctl_name, content_id,
-             input_ptr, input_size);
+    INFO_LOG(IOS, "%s: %08x bytes of data at %08x from content id %d", ioctl_name, input_size,
+             input_ptr, content_id);
 
     std::vector<u8> decrypted(input_size);
     mbedtls_aes_crypt_cbc(&m_aes_ctx, MBEDTLS_AES_DECRYPT, input_size, m_aes_iv,

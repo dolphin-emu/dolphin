@@ -2,45 +2,54 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/Movie.h"
+
 #include <algorithm>
 #include <array>
 #include <cctype>
+#include <iomanip>
 #include <iterator>
 #include <mbedtls/config.h>
 #include <mbedtls/md.h>
 #include <mutex>
+#include <sstream>
 #include <thread>
+#include <utility>
+#include <variant>
 #include <vector>
 
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonPaths.h"
+#include "Common/File.h"
 #include "Common/FileUtil.h"
 #include "Common/Hash.h"
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
 #include "Common/Timer.h"
+
+#include "Core/Boot/Boot.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/DSP/DSPCore.h"
 #include "Core/HW/CPU.h"
-#include "Core/HW/DVDInterface.h"
+#include "Core/HW/DVD/DVDInterface.h"
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/SI/SI.h"
 #include "Core/HW/Wiimote.h"
+#include "Core/HW/WiimoteCommon/WiimoteReport.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
-#include "Core/HW/WiimoteEmu/WiimoteHid.h"
 #include "Core/IOS/USB/Bluetooth/BTEmu.h"
 #include "Core/IOS/USB/Bluetooth/WiimoteDevice.h"
-#include "Core/Movie.h"
 #include "Core/NetPlayProto.h"
-#include "Core/PowerPC/PowerPC.h"
 #include "Core/State.h"
+
 #include "DiscIO/Enums.h"
+
 #include "InputCommon/GCPadStatus.h"
-#include "VideoCommon/Fifo.h"
+
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -91,8 +100,10 @@ static bool s_bPolled = false;
 static std::mutex s_input_display_lock;
 static std::string s_InputDisplay[8];
 
-static GCManipFunction gcmfunc = nullptr;
-static WiiManipFunction wiimfunc = nullptr;
+static GCManipFunction s_gc_manip_func;
+static WiiManipFunction s_wii_manip_func;
+
+static std::string s_current_file_name;
 
 // NOTE: Host / CPU Thread
 static void EnsureTmpInputSize(size_t bound)
@@ -158,7 +169,7 @@ std::string GetInputDisplay()
     s_controllers = 0;
     for (int i = 0; i < 4; ++i)
     {
-      if (SerialInterface::GetDeviceType(i) != SIDEVICE_NONE)
+      if (SerialInterface::GetDeviceType(i) != SerialInterface::SIDEVICE_NONE)
         s_controllers |= (1 << i);
       if (g_wiimote_sources[i] != WIIMOTE_SRC_NONE)
         s_controllers |= (1 << (i + 4));
@@ -180,12 +191,13 @@ std::string GetInputDisplay()
 // NOTE: GPU Thread
 std::string GetRTCDisplay()
 {
-  time_t current_time = CEXIIPL::GetEmulatedTime(CEXIIPL::UNIX_EPOCH);
-  tm* gm_time = gmtime(&current_time);
-  char buffer[256];
-  strftime(buffer, sizeof(buffer), "Date/Time: %c\n", gm_time);
+  using ExpansionInterface::CEXIIPL;
+
+  const time_t current_time = CEXIIPL::GetEmulatedTime(CEXIIPL::UNIX_EPOCH);
+  const tm* const gm_time = gmtime(&current_time);
+
   std::stringstream format_time;
-  format_time << buffer;
+  format_time << std::put_time(gm_time, "Date/Time: %c\n");
   return format_time.str();
 }
 
@@ -212,11 +224,19 @@ void FrameUpdate()
   s_bPolled = false;
 }
 
+static void CheckMD5();
+static void GetMD5();
+
 // called when game is booting up, even if no movie is active,
 // but potentially after BeginRecordingInput or PlayInput has been called.
 // NOTE: EmuThread
-void Init()
+void Init(const BootParameters& boot)
 {
+  if (std::holds_alternative<BootParameters::Disc>(boot.parameters))
+    s_current_file_name = std::get<BootParameters::Disc>(boot.parameters).path;
+  else
+    s_current_file_name.clear();
+
   s_bPolled = false;
   s_bFrameStep = false;
   s_bSaveConfig = false;
@@ -465,6 +485,7 @@ bool IsUsingMemcard(int memcard)
 {
   return (s_memcards & (1 << memcard)) != 0;
 }
+
 bool IsSyncGPU()
 {
   return s_bSyncGPU;
@@ -483,22 +504,29 @@ void ChangePads(bool instantly)
 
   int controllers = 0;
 
-  for (int i = 0; i < MAX_SI_CHANNELS; ++i)
-    if (SIDevice_IsGCController(SConfig::GetInstance().m_SIDevice[i]))
+  for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
+  {
+    if (SerialInterface::SIDevice_IsGCController(SConfig::GetInstance().m_SIDevice[i]))
       controllers |= (1 << i);
+  }
 
   if (instantly && (s_controllers & 0x0F) == controllers)
     return;
 
-  for (int i = 0; i < MAX_SI_CHANNELS; ++i)
+  for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
   {
-    SIDevices device = SIDEVICE_NONE;
+    SerialInterface::SIDevices device = SerialInterface::SIDEVICE_NONE;
     if (IsUsingPad(i))
     {
-      if (SIDevice_IsGCController(SConfig::GetInstance().m_SIDevice[i]))
+      if (SerialInterface::SIDevice_IsGCController(SConfig::GetInstance().m_SIDevice[i]))
+      {
         device = SConfig::GetInstance().m_SIDevice[i];
+      }
       else
-        device = IsUsingBongo(i) ? SIDEVICE_GC_TARUKONGA : SIDEVICE_GC_CONTROLLER;
+      {
+        device = IsUsingBongo(i) ? SerialInterface::SIDEVICE_GC_TARUKONGA :
+                                   SerialInterface::SIDEVICE_GC_CONTROLLER;
+      }
     }
 
     if (instantly)  // Changes from savestates need to be instantaneous
@@ -521,8 +549,10 @@ void ChangeWiiPads(bool instantly)
   if (instantly && (s_controllers >> 4) == controllers)
     return;
 
-  const auto bt = std::static_pointer_cast<IOS::HLE::Device::BluetoothEmu>(
-      IOS::HLE::GetDeviceByName("/dev/usb/oh1/57e/305"));
+  const auto ios = IOS::HLE::GetIOS();
+  const auto bt = ios ? std::static_pointer_cast<IOS::HLE::Device::BluetoothEmu>(
+                            ios->GetDeviceByName("/dev/usb/oh1/57e/305")) :
+                        nullptr;
   for (int i = 0; i < MAX_WIIMOTES; ++i)
   {
     g_wiimote_sources[i] = IsUsingWiimote(i) ? WIIMOTE_SRC_EMU : WIIMOTE_SRC_NONE;
@@ -549,7 +579,7 @@ bool BeginRecordingInput(int controllers)
   if (NetPlay::IsNetPlayRunning())
   {
     s_bNetPlay = true;
-    s_recordingStartTime = CEXIIPL::NetPlay_GetEmulatedTime();
+    s_recordingStartTime = ExpansionInterface::CEXIIPL::NetPlay_GetEmulatedTime();
   }
   else if (SConfig::GetInstance().bEnableCustomRTC)
   {
@@ -562,9 +592,11 @@ bool BeginRecordingInput(int controllers)
 
   s_rerecords = 0;
 
-  for (int i = 0; i < MAX_SI_CHANNELS; ++i)
-    if (SConfig::GetInstance().m_SIDevice[i] == SIDEVICE_GC_TARUKONGA)
+  for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
+  {
+    if (SConfig::GetInstance().m_SIDevice[i] == SerialInterface::SIDEVICE_GC_TARUKONGA)
       s_bongos |= (1 << i);
+  }
 
   if (Core::IsRunningAndStarted())
   {
@@ -593,7 +625,8 @@ bool BeginRecordingInput(int controllers)
 
   s_currentByte = s_totalBytes = 0;
 
-  Core::UpdateWantDeterminism();
+  if (Core::IsRunning())
+    Core::UpdateWantDeterminism();
 
   Core::PauseAndLock(false, was_unpaused);
 
@@ -1332,7 +1365,7 @@ void EndPlayInput(bool cont)
   }
   else if (s_playMode != MODE_NONE)
   {
-    // We can be called by EmuThread during boot (CPU_POWERDOWN)
+    // We can be called by EmuThread during boot (CPU::State::PowerDown)
     bool was_running = Core::IsRunningAndStarted() && !CPU::IsStepping();
     if (was_running)
       CPU::Break();
@@ -1430,25 +1463,25 @@ void SaveRecording(const std::string& filename)
 
 void SetGCInputManip(GCManipFunction func)
 {
-  gcmfunc = func;
+  s_gc_manip_func = std::move(func);
 }
 void SetWiiInputManip(WiiManipFunction func)
 {
-  wiimfunc = func;
+  s_wii_manip_func = std::move(func);
 }
 
 // NOTE: CPU Thread
 void CallGCInputManip(GCPadStatus* PadStatus, int controllerID)
 {
-  if (gcmfunc)
-    (*gcmfunc)(PadStatus, controllerID);
+  if (s_gc_manip_func)
+    s_gc_manip_func(PadStatus, controllerID);
 }
 // NOTE: CPU Thread
 void CallWiiInputManip(u8* data, WiimoteEmu::ReportFeatures rptf, int controllerID, int ext,
                        const wiimote_key key)
 {
-  if (wiimfunc)
-    (*wiimfunc)(data, rptf, controllerID, ext, key);
+  if (s_wii_manip_func)
+    s_wii_manip_func(data, rptf, controllerID, ext, key);
 }
 
 // NOTE: GPU Thread
@@ -1476,7 +1509,7 @@ void GetSettings()
   s_bNetPlay = NetPlay::IsNetPlayRunning();
   if (SConfig::GetInstance().bWii)
   {
-    u64 title_id = SConfig::GetInstance().m_title_id;
+    u64 title_id = SConfig::GetInstance().GetTitleID();
     s_bClearSave =
         !File::Exists(Common::GetTitleDataPath(title_id, Common::FROM_SESSION_ROOT) + "banner.bin");
     s_language = SConfig::GetInstance().m_wii_language;
@@ -1486,8 +1519,14 @@ void GetSettings()
     s_bClearSave = !File::Exists(SConfig::GetInstance().m_strMemoryCardA);
     s_language = SConfig::GetInstance().SelectedLanguage;
   }
-  s_memcards |= (SConfig::GetInstance().m_EXIDevice[0] == EXIDEVICE_MEMORYCARD) << 0;
-  s_memcards |= (SConfig::GetInstance().m_EXIDevice[1] == EXIDEVICE_MEMORYCARD) << 1;
+  s_memcards |=
+      (SConfig::GetInstance().m_EXIDevice[0] == ExpansionInterface::EXIDEVICE_MEMORYCARD ||
+       SConfig::GetInstance().m_EXIDevice[0] == ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER)
+      << 0;
+  s_memcards |=
+      (SConfig::GetInstance().m_EXIDevice[1] == ExpansionInterface::EXIDEVICE_MEMORYCARD ||
+       SConfig::GetInstance().m_EXIDevice[1] == ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER)
+      << 1;
 
   std::array<u8, 20> revision = ConvertGitRevisionToBytes(scm_rev_git_str);
   std::copy(std::begin(revision), std::end(revision), std::begin(s_revision));
@@ -1529,8 +1568,11 @@ void GetSettings()
 static const mbedtls_md_info_t* s_md5_info = mbedtls_md_info_from_type(MBEDTLS_MD_MD5);
 
 // NOTE: Entrypoint for own thread
-void CheckMD5()
+static void CheckMD5()
 {
+  if (s_current_file_name.empty())
+    return;
+
   for (int i = 0, n = 0; i < 16; ++i)
   {
     if (tmpHeader.md5[i] != 0)
@@ -1542,7 +1584,7 @@ void CheckMD5()
   Core::DisplayMessage("Verifying checksum...", 2000);
 
   unsigned char gameMD5[16];
-  mbedtls_md_file(s_md5_info, SConfig::GetInstance().m_strFilename.c_str(), gameMD5);
+  mbedtls_md_file(s_md5_info, s_current_file_name.c_str(), gameMD5);
 
   if (memcmp(gameMD5, s_MD5, 16) == 0)
     Core::DisplayMessage("Checksum of current game matches the recorded game.", 2000);
@@ -1551,11 +1593,14 @@ void CheckMD5()
 }
 
 // NOTE: Entrypoint for own thread
-void GetMD5()
+static void GetMD5()
 {
+  if (s_current_file_name.empty())
+    return;
+
   Core::DisplayMessage("Calculating checksum of game file...", 2000);
   memset(s_MD5, 0, sizeof(s_MD5));
-  mbedtls_md_file(s_md5_info, SConfig::GetInstance().m_strFilename.c_str(), s_MD5);
+  mbedtls_md_file(s_md5_info, s_current_file_name.c_str(), s_MD5);
   Core::DisplayMessage("Finished calculating checksum.", 2000);
 }
 

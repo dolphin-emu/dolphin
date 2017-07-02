@@ -8,7 +8,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Core/IOS/Device.h"
-#include "Core/IOS/IPC.h"
+#include "Core/IOS/IOS.h"
 
 namespace IOS
 {
@@ -19,10 +19,9 @@ namespace Device
 class Stub final : public Device
 {
 public:
-  Stub(u32 device_id, const std::string& device_name);
-
+  // Inherit the constructor from the Device class, since we don't need to do anything special.
+  using Device::Device;
   ReturnCode Open(const OpenRequest& request) override;
-  void Close() override;
   IPCCommandResult IOCtl(const IOCtlRequest& request) override;
   IPCCommandResult IOCtlV(const IOCtlVRequest& request) override;
 };

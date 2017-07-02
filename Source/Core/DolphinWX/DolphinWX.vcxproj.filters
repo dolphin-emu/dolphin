@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="GUI">
       <UniqueIdentifier>{0c0288ac-1168-4534-b3d3-051b9981f842}</UniqueIdentifier>
@@ -39,7 +39,6 @@
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MainNoGUI.cpp" />
     <ClCompile Include="WxEventUtils.cpp" />
-    <ClCompile Include="WXInputBase.cpp" />
     <ClCompile Include="WxUtils.cpp" />
     <ClCompile Include="Cheats\CheatsWindow.cpp">
       <Filter>GUI\Cheats</Filter>
@@ -52,6 +51,9 @@
     </ClCompile>
     <ClCompile Include="Cheats\GeckoCodeDiag.cpp">
       <Filter>GUI\Cheats</Filter>
+    </ClCompile>
+    <ClCompile Include="Debugger\AssemblerEntryDialog.cpp">
+      <Filter>GUI\Debugger</Filter>
     </ClCompile>
     <ClCompile Include="Debugger\BreakpointDlg.cpp">
       <Filter>GUI\Debugger</Filter>
@@ -267,7 +269,6 @@
   <ItemGroup>
     <ClInclude Include="Main.h" />
     <ClInclude Include="WxEventUtils.h" />
-    <ClInclude Include="WXInputBase.h" />
     <ClInclude Include="WxUtils.h" />
     <ClInclude Include="Cheats\CheatSearchTab.h">
       <Filter>GUI\Cheats</Filter>
@@ -280,6 +281,9 @@
     </ClInclude>
     <ClInclude Include="Cheats\GeckoCodeDiag.h">
       <Filter>GUI\Cheats</Filter>
+    </ClInclude>
+    <ClInclude Include="Debugger\AssemblerEntryDialog.h">
+      <Filter>GUI\Debugger</Filter>
     </ClInclude>
     <ClInclude Include="Debugger\BreakpointDlg.h">
       <Filter>GUI\Debugger</Filter>
@@ -446,9 +450,9 @@
     <ClInclude Include="Config\PathConfigPane.h">
       <Filter>GUI\Config</Filter>
     </ClInclude>
-    <ClCompile Include="Config\AddUSBDeviceDiag.h">
+    <ClInclude Include="Config\AddUSBDeviceDiag.h">
       <Filter>GUI\Config</Filter>
-    </ClCompile>
+    </ClInclude>
     <ClInclude Include="Config\AdvancedConfigPane.h">
       <Filter>GUI\Config</Filter>
     </ClInclude>

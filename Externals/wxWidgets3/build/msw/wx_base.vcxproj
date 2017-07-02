@@ -1,5 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
       <Configuration>Debug</Configuration>
@@ -807,9 +807,13 @@
     </ClCompile>
     <ClCompile Include="..\..\src\common\fs_arc.cpp" />
     <ClCompile Include="..\..\src\common\fs_filter.cpp" />
-    <ClCompile Include="..\..\src\common\fs_inet.cpp" />
+    <ClCompile Include="..\..\src\common\fs_inet.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\src\common\fs_mem.cpp" />
-    <ClCompile Include="..\..\src\common\ftp.cpp" />
+    <ClCompile Include="..\..\src\common\ftp.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\src\common\gaugecmn.cpp" />
     <ClCompile Include="..\..\src\common\gbsizer.cpp" />
     <ClCompile Include="..\..\src\common\gdicmn.cpp" />
@@ -825,7 +829,9 @@
     <ClCompile Include="..\..\src\common\headercolcmn.cpp" />
     <ClCompile Include="..\..\src\common\headerctrlcmn.cpp" />
     <ClCompile Include="..\..\src\common\helpbase.cpp" />
-    <ClCompile Include="..\..\src\common\http.cpp" />
+    <ClCompile Include="..\..\src\common\http.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\src\common\hyperlnkcmn.cpp" />
     <ClCompile Include="..\..\src\common\iconbndl.cpp" />
     <ClCompile Include="..\..\src\common\imagall.cpp" />
@@ -907,7 +913,9 @@
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="..\..\src\common\process.cpp" />
-    <ClCompile Include="..\..\src\common\protocol.cpp" />
+    <ClCompile Include="..\..\src\common\protocol.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\src\common\quantize.cpp" />
     <ClCompile Include="..\..\src\common\radiobtncmn.cpp" />
     <ClCompile Include="..\..\src\common\radiocmn.cpp" />
@@ -918,10 +926,18 @@
     <ClCompile Include="..\..\src\common\rendcmn.cpp" />
     <ClCompile Include="..\..\src\common\rgncmn.cpp" />
     <ClCompile Include="..\..\src\common\richtooltipcmn.cpp" />
-    <ClCompile Include="..\..\src\common\sckaddr.cpp" />
-    <ClCompile Include="..\..\src\common\sckfile.cpp" />
-    <ClCompile Include="..\..\src\common\sckipc.cpp" />
-    <ClCompile Include="..\..\src\common\sckstrm.cpp" />
+    <ClCompile Include="..\..\src\common\sckaddr.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\src\common\sckfile.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\src\common\sckipc.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\src\common\sckstrm.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\src\common\scrolbarcmn.cpp" />
     <ClCompile Include="..\..\src\common\selectdispatcher.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
@@ -929,7 +945,9 @@
     <ClCompile Include="..\..\src\common\settcmn.cpp" />
     <ClCompile Include="..\..\src\common\sizer.cpp" />
     <ClCompile Include="..\..\src\common\slidercmn.cpp" />
-    <ClCompile Include="..\..\src\common\socket.cpp" />
+    <ClCompile Include="..\..\src\common\socket.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\src\common\socketiohandler.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
@@ -975,7 +993,9 @@
     <ClCompile Include="..\..\src\common\uiactioncmn.cpp" />
     <ClCompile Include="..\..\src\common\unichar.cpp" />
     <ClCompile Include="..\..\src\common\uri.cpp" />
-    <ClCompile Include="..\..\src\common\url.cpp" />
+    <ClCompile Include="..\..\src\common\url.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\src\common\ustring.cpp" />
     <ClCompile Include="..\..\src\common\utilscmn.cpp" />
     <ClCompile Include="..\..\src\common\valgen.cpp" />
@@ -1166,7 +1186,9 @@
     </ClCompile>
     <ClCompile Include="..\..\src\msw\dcscreen.cpp" />
     <ClCompile Include="..\..\src\msw\dde.cpp" />
-    <ClCompile Include="..\..\src\msw\debughlp.cpp" />
+    <ClCompile Include="..\..\src\msw\debughlp.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\src\msw\dialog.cpp" />
     <ClCompile Include="..\..\src\msw\dialup.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
@@ -1288,7 +1310,9 @@
     <ClCompile Include="..\..\src\msw\settings.cpp" />
     <ClCompile Include="..\..\src\msw\slider.cpp" />
     <ClCompile Include="..\..\src\msw\snglinst.cpp" />
-    <ClCompile Include="..\..\src\msw\sockmsw.cpp" />
+    <ClCompile Include="..\..\src\msw\sockmsw.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\src\msw\sound.cpp" />
     <ClCompile Include="..\..\src\msw\spinbutt.cpp" />
     <ClCompile Include="..\..\src\msw\spinctrl.cpp" />
@@ -1343,11 +1367,12 @@
   <PropertyGroup Label="Globals">
     <ProjectName>wxWidgets</ProjectName>
     <ProjectGuid>{1C8436C9-DBAF-42BE-83BC-CF3EC9175ABE}</ProjectGuid>
+    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration">
@@ -1370,16 +1395,13 @@
     <ClCompile>
       <PreprocessorDefinitions>__WXDEBUG__;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
-    <Lib>
-      <AdditionalOptions>/ignore:4221</AdditionalOptions>
-    </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ProjectReference Include="$(ExternalsDir)libpng\png\png.vcxproj">
-      <Project>{01573c36-ac6e-49f6-94ba-572517eb9740}</Project>
+      <Project>{4C9F135B-A85E-430C-BAD4-4C67EF5FC12C}</Project>
     </ProjectReference>
     <ProjectReference Include="$(ExternalsDir)zlib\zlib.vcxproj">
-      <Project>{3e1339f5-9311-4122-9442-369702e8fcad}</Project>
+      <Project>{ff213b23-2c26-4214-9f88-85271e557e87}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -44,7 +44,8 @@ static VertexLoaderMap s_vertex_loader_map;
 
 u8* cached_arraybases[12];
 
-// Used in D3D12 backend, to populate input layouts used by cached-to-disk PSOs.
+// Used in the Vulkan backend
+
 NativeVertexFormatMap* GetNativeVertexFormatMap()
 {
   return &s_native_vertex_map;
@@ -98,7 +99,7 @@ struct entry
 };
 }
 
-void AppendListToString(std::string* dest)
+std::string VertexLoadersToString()
 {
   std::lock_guard<std::mutex> lk(s_vertex_loader_map_lock);
   std::vector<entry> entries;
@@ -106,19 +107,24 @@ void AppendListToString(std::string* dest)
   size_t total_size = 0;
   for (const auto& map_entry : s_vertex_loader_map)
   {
-    entry e;
-    map_entry.second->AppendToString(&e.text);
-    e.num_verts = map_entry.second->m_numLoadedVertices;
-    entries.push_back(e);
+    entry e = {map_entry.second->ToString(),
+               static_cast<u64>(map_entry.second->m_numLoadedVertices)};
+
     total_size += e.text.size() + 1;
+    entries.push_back(std::move(e));
   }
+
   sort(entries.begin(), entries.end());
-  dest->reserve(dest->size() + total_size);
+
+  std::string dest;
+  dest.reserve(total_size);
   for (const entry& entry : entries)
   {
-    *dest += entry.text;
-    *dest += '\n';
+    dest += entry.text;
+    dest += '\n';
   }
+
+  return dest;
 }
 
 void MarkAllDirty()
@@ -161,7 +167,7 @@ static VertexLoaderBase* RefreshLoader(int vtx_attr_group, bool preprocess = fal
       std::unique_ptr<NativeVertexFormat>& native = s_native_vertex_map[format];
       if (!native)
       {
-        native.reset(g_vertex_manager->CreateNativeVertexFormat(format));
+        native = g_vertex_manager->CreateNativeVertexFormat(format);
       }
       loader->m_native_vertex_format = native.get();
     }

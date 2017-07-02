@@ -3,7 +3,12 @@
 // Refer to the license.txt file included.
 
 #include "DolphinQt2/GameList/GameListModel.h"
+
+#include "DiscIO/Enums.h"
 #include "DolphinQt2/Resources.h"
+#include "DolphinQt2/Settings.h"
+
+const QSize GAMECUBE_BANNER_SIZE(96, 32);
 
 GameListModel::GameListModel(QObject* parent) : QAbstractTableModel(parent)
 {
@@ -11,6 +16,15 @@ GameListModel::GameListModel(QObject* parent) : QAbstractTableModel(parent)
   connect(&m_tracker, &GameTracker::GameRemoved, this, &GameListModel::RemoveGame);
   connect(this, &GameListModel::DirectoryAdded, &m_tracker, &GameTracker::AddDirectory);
   connect(this, &GameListModel::DirectoryRemoved, &m_tracker, &GameTracker::RemoveDirectory);
+
+  connect(&Settings::Instance(), &Settings::ThemeChanged, [this] {
+    // Tell the view to repaint. The signal 'dataChanged' also seems like it would work here, but
+    // unfortunately it won't cause a repaint until the view is focused.
+    emit layoutAboutToBeChanged();
+    emit layoutChanged();
+  });
+
+  // TODO: Reload m_title_database when the language changes
 }
 
 QVariant GameListModel::data(const QModelIndex& index, int role) const
@@ -19,30 +33,71 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
     return QVariant();
 
   QSharedPointer<GameFile> game = m_games[index.row()];
-  if (role == Qt::DisplayRole)
+
+  switch (index.column())
   {
-    switch (index.column())
-    {
-    case COL_PLATFORM:
-      return game->GetPlatform();
-    case COL_BANNER:
-      return game->GetBanner();
-    case COL_TITLE:
-      return game->GetLongName();
-    case COL_ID:
-      return game->GetGameID();
-    case COL_DESCRIPTION:
-      return game->GetDescription();
-    case COL_MAKER:
-      return game->GetMaker();
-    case COL_SIZE:
-      return game->GetFileSize();
-    case COL_COUNTRY:
+  case COL_PLATFORM:
+    if (role == Qt::DecorationRole)
+      return Resources::GetPlatform(static_cast<int>(game->GetPlatformID()));
+    if (role == Qt::InitialSortOrderRole)
+      return static_cast<int>(game->GetPlatformID());
+    break;
+  case COL_COUNTRY:
+    if (role == Qt::DecorationRole)
+      return Resources::GetCountry(static_cast<int>(game->GetCountryID()));
+    if (role == Qt::InitialSortOrderRole)
       return static_cast<int>(game->GetCountryID());
-    case COL_RATING:
+    break;
+  case COL_RATING:
+    if (role == Qt::DecorationRole)
+      return Resources::GetRating(game->GetRating());
+    if (role == Qt::InitialSortOrderRole)
       return game->GetRating();
+    break;
+  case COL_BANNER:
+    if (role == Qt::DecorationRole)
+    {
+      // GameCube banners are 96x32, but Wii banners are 192x64.
+      // TODO: use custom banners from rom directory like DolphinWX?
+      QPixmap banner = game->GetBanner();
+      banner.setDevicePixelRatio(std::max(banner.width() / GAMECUBE_BANNER_SIZE.width(),
+                                          banner.height() / GAMECUBE_BANNER_SIZE.height()));
+      return banner;
     }
+    break;
+  case COL_TITLE:
+    if (role == Qt::DisplayRole || role == Qt::InitialSortOrderRole)
+    {
+      QString display_name = QString::fromStdString(m_title_database.GetTitleName(
+          game->GetGameID().toStdString(), game->GetPlatformID() == DiscIO::Platform::WII_WAD ?
+                                               Core::TitleDatabase::TitleType::Channel :
+                                               Core::TitleDatabase::TitleType::Other));
+      if (display_name.isEmpty())
+        return game->GetLongName();
+
+      return display_name;
+    }
+    break;
+  case COL_ID:
+    if (role == Qt::DisplayRole || role == Qt::InitialSortOrderRole)
+      return game->GetGameID();
+    break;
+  case COL_DESCRIPTION:
+    if (role == Qt::DisplayRole || role == Qt::InitialSortOrderRole)
+      return game->GetDescription();
+    break;
+  case COL_MAKER:
+    if (role == Qt::DisplayRole || role == Qt::InitialSortOrderRole)
+      return game->GetMaker();
+    break;
+  case COL_SIZE:
+    if (role == Qt::DisplayRole)
+      return FormatSize(game->GetFileSize());
+    if (role == Qt::InitialSortOrderRole)
+      return game->GetFileSize();
+    break;
   }
+
   return QVariant();
 }
 
@@ -90,6 +145,8 @@ void GameListModel::UpdateGame(QSharedPointer<GameFile> game)
   int entry = FindGame(path);
   if (entry < 0)
     entry = m_games.size();
+  else
+    return;
 
   beginInsertRows(QModelIndex(), entry, entry);
   m_games.insert(entry, game);

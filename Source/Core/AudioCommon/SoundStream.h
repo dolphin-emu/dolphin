@@ -8,20 +8,19 @@
 
 #include "AudioCommon/Mixer.h"
 #include "AudioCommon/WaveFile.h"
-#include "AudioCommon/AudioDevice.h"
 #include "Common/CommonTypes.h"
 
 class SoundStream
 {
 protected:
-  std::unique_ptr<CMixer> m_mixer;
+  std::unique_ptr<Mixer> m_mixer;
   bool m_muted;
 
 public:
-  SoundStream() : m_mixer(new CMixer(48000)), m_muted(false) {}
+  SoundStream() : m_mixer(new Mixer(48000)), m_muted(false) {}
   virtual ~SoundStream() {}
   static bool isValid() { return false; }
-  CMixer* GetMixer() const { return m_mixer.get(); }
+  Mixer* GetMixer() const { return m_mixer.get(); }
   virtual bool Start() { return false; }
   virtual void SetVolume(int) {}
   virtual void SoundLoop() {}

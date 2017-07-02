@@ -9,6 +9,8 @@
 
 class PointerWrap;
 
+namespace SerialInterface
+{
 // Devices can reply with these
 enum
 {
@@ -100,3 +102,4 @@ protected:
 bool SIDevice_IsGCController(SIDevices type);
 
 std::unique_ptr<ISIDevice> SIDevice_Create(SIDevices device, int port_number);
+}  // namespace SerialInterface

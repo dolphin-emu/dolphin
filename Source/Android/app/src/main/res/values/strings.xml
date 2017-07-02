@@ -56,7 +56,7 @@
     <!-- GameCube buttons (May be shared with other stuff too) -->
     <string name="button_a">A</string>
     <string name="button_b">B</string>
-    <string name="button_start">Start</string>
+    <string name="button_start">START</string>
     <string name="button_x">X</string>
     <string name="button_y">Y</string>
     <string name="button_z">Z</string>
@@ -68,7 +68,7 @@
     <string name="button_two">2</string>
     <string name="button_minus">-</string>
     <string name="button_plus">+</string>
-    <string name="button_home">Home</string>
+    <string name="button_home">HOME</string>
     <string name="ir_hide">Hide</string>
     <string name="tilt_modifier">Modifier</string>
     <string name="shake_x">X</string>
@@ -121,7 +121,8 @@
     <string name="wiimote_scanning_description">Leave this on if you are using a DolphinBar for real Wiimote support.</string>
     <string name="wiimote_speaker">Wii Remote Speaker</string>
     <string name="wiimote_speaker_description">Enable sound output through the speaker on a real Wiimote (DolphinBar required).</string>
-
+    <string name="audio_stretch">Audio Stretching</string>
+    <string name="audio_stretch_description">Stretches audio to reduce stuttering. Increases latency.</string>
 
     <!-- Video Preference Fragment -->
     <string name="video_backend">Video Backend</string>
@@ -152,10 +153,10 @@
     <string name="stereoscopy_mode_descrip">Select the stereoscopic 3D mode.</string>
     <string name="sterescopy_depth">Depth</string>
     <string name="sterescopy_depth_descrip">Control the distance between the virtual cameras.\nA higher value creates a stronger feeling of depth while a lower value is more comfortable.</string>
-    <string name="convergence">Convergence</string>
-    <string name="convergence_descrip">Control the distance of the convergence plane, this is the distance at which objects will appear to be in front of the screen.\nA higher value creates stronger out-of-screen effects while a lower value is more comfortable.</string>
-    <string name="swap_eyes">Swap Eyes</string>
-    <string name="swap_eyes_descrip">Swap the left and right eye, mostly useful if you want to view side-by-side cross-eyed.</string>
+    <string name="sterescopy_convergence">Convergence</string>
+    <string name="sterescopy_convergence_descrip">Control the distance of the convergence plane, this is the distance at which objects will appear to be in front of the screen.\nA higher value creates stronger out-of-screen effects while a lower value is more comfortable.</string>
+    <string name="sterescopy_swap_eyes">Swap Eyes</string>
+    <string name="sterescopy_swap_eyes_descrip">Swap the left and right eye, mostly useful if you want to view side-by-side cross-eyed.</string>
 
     <string name="hacks">Hacks</string>
     <string name="embedded_frame_buffer">Embedded Frame Buffer</string>
@@ -168,6 +169,8 @@
     <string name="texture_cache">Texture Cache</string>
     <string name="texture_cache_accuracy">Texture Cache Accuracy</string>
     <string name="texture_cache_accuracy_descrip">The safer the selection, the less likely the emulator will be missing any texture updates from RAM.</string>
+    <string name="gpu_texture_decoding">GPU Texture Decoding</string>
+    <string name="gpu_texture_decoding_descrip">Decodes textures on the GPU using compute shaders where supported. May improve performance in some scenarios.</string>
     <string name="external_frame_buffer">External Frame Buffer</string>
     <string name="external_frame_buffer_descrip">Determines how the XFB will be emulated.</string>
     <string name="disable_destination_alpha">Disable Destination Alpha</string>
@@ -236,6 +239,5 @@
     <string name="header_wiimote_general">General</string>
     <string name="header_controllers">Controllers</string>
 
-    <!-- Package Names-->
-    <string name="application_id">org.dolphinemu.dolphinemu</string>
+    <string name="write_permission_needed">You need to allow write access to external storage for the emulator to work</string>
 </resources>

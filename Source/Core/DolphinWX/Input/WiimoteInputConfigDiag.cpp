@@ -10,6 +10,9 @@
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
+#include "InputCommon/ControllerEmu/Setting/BooleanSetting.h"
+#include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
+
 WiimoteInputConfigDialog::WiimoteInputConfigDialog(wxWindow* const parent, InputConfig& config,
                                                    const wxString& name, const int port_num)
     : InputConfigDialog(parent, config, name, port_num)
@@ -95,6 +98,7 @@ WiimoteInputConfigDialog::WiimoteInputConfigDialog(wxWindow* const parent, Input
 
   tab_motion_controls_ir->SetSizerAndFit(motion_controls_ir_sizer);
 
+  // i18n: IR stands for infrared and refers to the pointer functionality of Wii Remotes
   notebook->AddPage(tab_motion_controls_ir, _("Motion Controls and IR"));
 
   notebook->SetSelection(0);

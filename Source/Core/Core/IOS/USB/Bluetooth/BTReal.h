@@ -16,7 +16,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Flag.h"
 #include "Common/Timer.h"
-#include "Core/IOS/IPC.h"
+#include "Core/IOS/IOS.h"
 #include "Core/IOS/USB/Bluetooth/BTBase.h"
 #include "Core/IOS/USB/USBV0.h"
 
@@ -48,11 +48,11 @@ namespace Device
 class BluetoothReal final : public BluetoothBase
 {
 public:
-  BluetoothReal(u32 device_id, const std::string& device_name);
+  BluetoothReal(Kernel& ios, const std::string& device_name);
   ~BluetoothReal() override;
 
   ReturnCode Open(const OpenRequest& request) override;
-  void Close() override;
+  ReturnCode Close(u32 fd) override;
   IPCCommandResult IOCtlV(const IOCtlVRequest& request) override;
 
   void DoState(PointerWrap& p) override;
@@ -76,7 +76,7 @@ private:
 
   libusb_device* m_device = nullptr;
   libusb_device_handle* m_handle = nullptr;
-  std::shared_ptr<libusb_context> m_libusb_context;
+  libusb_context* m_libusb_context = nullptr;
 
   Common::Flag m_thread_running;
   std::thread m_thread;

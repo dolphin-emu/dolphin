@@ -6,8 +6,12 @@
 // GCNcrypt - GameCube AR Crypto Program
 // Copyright (C) 2003-2004 Parasyte
 
+#include "Core/ARDecrypt.h"
+
 #include <algorithm>
 #include <cstring>
+#include <string>
+#include <vector>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -16,7 +20,7 @@
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
-#include "Core/ARDecrypt.h"
+#include "Common/Swap.h"
 
 namespace ActionReplay
 {
@@ -207,7 +211,7 @@ static void buildseeds()
   generateseeds(genseeds, gensubtable, 0);
 }
 
-static void getcode(u32* src, u32* addr, u32* val)
+static void getcode(const u32* src, u32* addr, u32* val)
 {
   *addr = Common::swap32(src[0]);
   *val = Common::swap32(src[1]);
@@ -219,7 +223,7 @@ static void setcode(u32* dst, u32 addr, u32 val)
   dst[1] = Common::swap32(val);
 }
 
-static u16 gencrc16(u32* codes, u16 size)
+static u16 gencrc16(const u32* codes, u16 size)
 {
   u16 ret = 0;
 
@@ -237,7 +241,7 @@ static u16 gencrc16(u32* codes, u16 size)
   return ret;
 }
 
-static u8 verifycode(u32* codes, u16 size)
+static u8 verifycode(const u32* codes, u16 size)
 {
   u16 tmp = gencrc16(codes, size);
   return (((tmp >> 12) ^ (tmp >> 8) ^ (tmp >> 4) ^ tmp) & 0x0F);
@@ -297,7 +301,7 @@ static void unscramble2(u32* addr, u32* val)
   *addr = _rotr((*addr ^ tmp), 4);
 }
 
-static void decryptcode(u32* seeds, u32* code)
+static void decryptcode(const u32* seeds, u32* code)
 {
   u32 addr, val;
   u32 tmp, tmp2;
@@ -467,7 +471,8 @@ void DecryptARCode(std::vector<std::string> vCodes, std::vector<AREntry>* ops)
     std::transform(s.begin(), s.end(), s.begin(), toupper);
   }
 
-  if ((ret = alphatobin(uCodes, vCodes, (int)vCodes.size())))
+  ret = alphatobin(uCodes, vCodes, (int)vCodes.size());
+  if (ret)
   {
     // Return value is index + 1, 0 being the success flag value.
     PanicAlertT("Action Replay Code Decryption Error:\nParity Check Failed\n\nCulprit Code:\n%s",

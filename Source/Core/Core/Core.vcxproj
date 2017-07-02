@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
       <Configuration>Debug</Configuration>
@@ -12,11 +12,12 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{E54CF649-140E-4255-81A5-30A673C1FB36}</ProjectGuid>
+    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration">
@@ -41,10 +42,16 @@
     <ClCompile Include="BootManager.cpp" />
     <ClCompile Include="Boot\Boot.cpp" />
     <ClCompile Include="Boot\Boot_BS2Emu.cpp" />
-    <ClCompile Include="Boot\Boot_DOL.cpp" />
-    <ClCompile Include="Boot\Boot_ELF.cpp" />
     <ClCompile Include="Boot\Boot_WiiWAD.cpp" />
+    <ClCompile Include="Boot\DolReader.cpp" />
     <ClCompile Include="Boot\ElfReader.cpp" />
+    <ClCompile Include="Config\Config.cpp" />
+    <ClCompile Include="Config\GraphicsSettings.cpp" />
+    <ClCompile Include="ConfigLoaders\BaseConfigLoader.cpp" />
+    <ClCompile Include="ConfigLoaders\GameConfigLoader.cpp" />
+    <ClCompile Include="ConfigLoaders\IsSettingSaveable.cpp" />
+    <ClCompile Include="ConfigLoaders\MovieConfigLoader.cpp" />
+    <ClCompile Include="ConfigLoaders\NetPlayConfigLoader.cpp" />
     <ClCompile Include="ConfigManager.cpp" />
     <ClCompile Include="Core.cpp" />
     <ClCompile Include="CoreTiming.cpp" />
@@ -52,6 +59,7 @@
     <ClCompile Include="Debugger\Dump.cpp" />
     <ClCompile Include="Debugger\PPCDebugInterface.cpp" />
     <ClCompile Include="DolphinWatch.cpp" />
+    <ClCompile Include="Debugger\RSO.cpp" />
     <ClCompile Include="DSPEmulator.cpp" />
     <ClCompile Include="DSP\DSPAssembler.cpp" />
     <ClCompile Include="DSP\DSPDisassembler.cpp" />
@@ -95,6 +103,7 @@
     <ClCompile Include="HLE\HLE.cpp" />
     <ClCompile Include="HLE\HLE_Misc.cpp" />
     <ClCompile Include="HLE\HLE_OS.cpp" />
+    <ClCompile Include="HLE\HLE_VarArgs.cpp" />
     <ClCompile Include="HotkeyManager.cpp" />
     <ClCompile Include="HW\AudioInterface.cpp" />
     <ClCompile Include="HW\CPU.cpp" />
@@ -113,10 +122,11 @@
     <ClCompile Include="HW\DSPLLE\DSPHost.cpp" />
     <ClCompile Include="HW\DSPLLE\DSPLLE.cpp" />
     <ClCompile Include="HW\DSPLLE\DSPLLEGlobals.cpp" />
-    <ClCompile Include="HW\DSPLLE\DSPLLETools.cpp" />
     <ClCompile Include="HW\DSPLLE\DSPSymbols.cpp" />
-    <ClCompile Include="HW\DVDInterface.cpp" />
-    <ClCompile Include="HW\DVDThread.cpp" />
+    <ClCompile Include="HW\DVD\DVDInterface.cpp" />
+    <ClCompile Include="HW\DVD\DVDMath.cpp" />
+    <ClCompile Include="HW\DVD\DVDThread.cpp" />
+    <ClCompile Include="HW\DVD\FileMonitor.cpp" />
     <ClCompile Include="HW\EXI\BBA-TAP\TAP_Win32.cpp" />
     <ClCompile Include="HW\EXI\EXI.cpp" />
     <ClCompile Include="HW\EXI\EXI_Channel.cpp" />
@@ -131,9 +141,9 @@
     <ClCompile Include="HW\EXI\EXI_DeviceMic.cpp" />
     <ClCompile Include="HW\GCKeyboard.cpp" />
     <ClCompile Include="HW\GCKeyboardEmu.cpp" />
-    <ClCompile Include="HW\GCMemcard.cpp" />
-    <ClCompile Include="HW\GCMemcardDirectory.cpp" />
-    <ClCompile Include="HW\GCMemcardRaw.cpp" />
+    <ClCompile Include="HW\GCMemcard\GCMemcard.cpp" />
+    <ClCompile Include="HW\GCMemcard\GCMemcardDirectory.cpp" />
+    <ClCompile Include="HW\GCMemcard\GCMemcardRaw.cpp" />
     <ClCompile Include="HW\GCPad.cpp" />
     <ClCompile Include="HW\GCPadEmu.cpp" />
     <ClCompile Include="HW\GPFifo.cpp" />
@@ -172,21 +182,32 @@
     <ClCompile Include="HW\WiiSaveCrypted.cpp" />
     <ClCompile Include="IOS\Device.cpp" />
     <ClCompile Include="IOS\DeviceStub.cpp" />
-    <ClCompile Include="IOS\IPC.cpp" />
+    <ClCompile Include="IOS\IOS.cpp" />
+    <ClCompile Include="IOS\IOSC.cpp" />
+    <ClCompile Include="IOS\MemoryValues.cpp" />
     <ClCompile Include="IOS\MIOS.cpp" />
     <ClCompile Include="IOS\DI\DI.cpp" />
     <ClCompile Include="IOS\ES\ES.cpp" />
     <ClCompile Include="IOS\ES\Formats.cpp" />
+    <ClCompile Include="IOS\ES\Identity.cpp" />
+    <ClCompile Include="IOS\ES\NandUtils.cpp" />
+    <ClCompile Include="IOS\ES\TitleContents.cpp" />
+    <ClCompile Include="IOS\ES\TitleInformation.cpp" />
+    <ClCompile Include="IOS\ES\TitleManagement.cpp" />
+    <ClCompile Include="IOS\ES\Views.cpp" />
     <ClCompile Include="IOS\FS\FileIO.cpp" />
     <ClCompile Include="IOS\FS\FS.cpp" />
-    <ClCompile Include="IOS\Network\Config.cpp" />
     <ClCompile Include="IOS\Network\ICMPLin.cpp" />
+    <ClCompile Include="IOS\Network\MACUtils.cpp" />
     <ClCompile Include="IOS\Network\Socket.cpp" />
-    <ClCompile Include="IOS\Network\Net.cpp" />
     <ClCompile Include="IOS\Network\SSL.cpp" />
+    <ClCompile Include="IOS\Network\IP\Top.cpp" />
     <ClCompile Include="IOS\Network\KD\NetKDRequest.cpp" />
     <ClCompile Include="IOS\Network\KD\NetKDTime.cpp" />
     <ClCompile Include="IOS\Network\KD\NWC24Config.cpp" />
+    <ClCompile Include="IOS\Network\NCD\WiiNetConfig.cpp" />
+    <ClCompile Include="IOS\Network\NCD\Manage.cpp" />
+    <ClCompile Include="IOS\Network\WD\Command.cpp" />
     <ClCompile Include="IOS\SDIO\SDIOSlot0.cpp" />
     <ClCompile Include="IOS\STM\STM.cpp" />
     <ClCompile Include="IOS\USB\Common.cpp" />
@@ -231,18 +252,7 @@
     <ClCompile Include="PowerPC\Interpreter\Interpreter_Paired.cpp" />
     <ClCompile Include="PowerPC\Interpreter\Interpreter_SystemRegisters.cpp" />
     <ClCompile Include="PowerPC\Interpreter\Interpreter_Tables.cpp" />
-    <ClCompile Include="PowerPC\JitILCommon\IR.cpp" />
-    <ClCompile Include="PowerPC\JitILCommon\JitILBase_Branch.cpp" />
-    <ClCompile Include="PowerPC\JitILCommon\JitILBase_FloatingPoint.cpp" />
-    <ClCompile Include="PowerPC\JitILCommon\JitILBase_Integer.cpp" />
-    <ClCompile Include="PowerPC\JitILCommon\JitILBase_LoadStore.cpp" />
-    <ClCompile Include="PowerPC\JitILCommon\JitILBase_LoadStoreFloating.cpp" />
-    <ClCompile Include="PowerPC\JitILCommon\JitILBase_LoadStorePaired.cpp" />
-    <ClCompile Include="PowerPC\JitILCommon\JitILBase_Paired.cpp" />
-    <ClCompile Include="PowerPC\JitILCommon\JitILBase_SystemRegisters.cpp" />
-    <ClCompile Include="PowerPC\Jit64IL\IR_X86.cpp" />
-    <ClCompile Include="PowerPC\Jit64IL\JitIL.cpp" />
-    <ClCompile Include="PowerPC\Jit64IL\JitIL_Tables.cpp" />
+    <ClCompile Include="PowerPC\Jit64Common\ConstantPool.cpp" />
     <ClCompile Include="PowerPC\Jit64\FPURegCache.cpp" />
     <ClCompile Include="PowerPC\Jit64\GPRRegCache.cpp" />
     <ClCompile Include="PowerPC\Jit64\Jit.cpp" />
@@ -268,6 +278,7 @@
     <ClCompile Include="PowerPC\JitCommon\JitCache.cpp" />
     <ClCompile Include="PowerPC\SignatureDB\CSVSignatureDB.cpp" />
     <ClCompile Include="PowerPC\SignatureDB\DSYSignatureDB.cpp" />
+    <ClCompile Include="PowerPC\SignatureDB\MEGASignatureDB.cpp" />
     <ClCompile Include="PowerPC\SignatureDB\SignatureDB.cpp" />
     <ClCompile Include="PowerPC\JitInterface.cpp" />
     <ClCompile Include="PowerPC\MMU.cpp" />
@@ -278,7 +289,9 @@
     <ClCompile Include="PowerPC\PPCTables.cpp" />
     <ClCompile Include="PowerPC\Profiler.cpp" />
     <ClCompile Include="State.cpp" />
+    <ClCompile Include="TitleDatabase.cpp" />
     <ClCompile Include="WiiRoot.cpp" />
+    <ClCompile Include="WiiUtils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ActionReplay.h" />
@@ -286,9 +299,16 @@
     <ClInclude Include="ARDecrypt.h" />
     <ClInclude Include="BootManager.h" />
     <ClInclude Include="Boot\Boot.h" />
-    <ClInclude Include="Boot\Boot_DOL.h" />
+    <ClInclude Include="Boot\DolReader.h" />
     <ClInclude Include="Boot\ElfReader.h" />
     <ClInclude Include="Boot\ElfTypes.h" />
+    <ClInclude Include="Config\Config.h" />
+    <ClInclude Include="Config\GraphicsSettings.h" />
+    <ClInclude Include="ConfigLoaders\BaseConfigLoader.h" />
+    <ClInclude Include="ConfigLoaders\GameConfigLoader.h" />
+    <ClInclude Include="ConfigLoaders\IsSettingSaveable.h" />
+    <ClInclude Include="ConfigLoaders\MovieConfigLoader.h" />
+    <ClInclude Include="ConfigLoaders\NetPlayConfigLoader.h" />
     <ClInclude Include="ConfigManager.h" />
     <ClInclude Include="Core.h" />
     <ClInclude Include="CoreTiming.h" />
@@ -297,6 +317,7 @@
     <ClInclude Include="Debugger\GCELF.h" />
     <ClInclude Include="Debugger\PPCDebugInterface.h" />
     <ClInclude Include="DolphinWatch.h" />
+    <ClInclude Include="Debugger\RSO.h" />
     <ClInclude Include="DSPEmulator.h" />
     <ClInclude Include="DSP\DSPAssembler.h" />
     <ClInclude Include="DSP\DSPDisassembler.h" />
@@ -322,7 +343,6 @@
     <ClInclude Include="ec_wii.h" />
     <ClInclude Include="FifoPlayer\FifoAnalyzer.h" />
     <ClInclude Include="FifoPlayer\FifoDataFile.h" />
-    <ClInclude Include="FifoPlayer\FifoFileStruct.h" />
     <ClInclude Include="FifoPlayer\FifoPlaybackAnalyzer.h" />
     <ClInclude Include="FifoPlayer\FifoPlayer.h" />
     <ClInclude Include="FifoPlayer\FifoRecordAnalyzer.h" />
@@ -332,6 +352,7 @@
     <ClInclude Include="HLE\HLE.h" />
     <ClInclude Include="HLE\HLE_Misc.h" />
     <ClInclude Include="HLE\HLE_OS.h" />
+    <ClInclude Include="HLE\HLE_VarArgs.h" />
     <ClInclude Include="Host.h" />
     <ClInclude Include="HotkeyManager.h" />
     <ClInclude Include="HW\AudioInterface.h" />
@@ -352,10 +373,11 @@
     <ClInclude Include="HW\DSPLLE\DSPDebugInterface.h" />
     <ClInclude Include="HW\DSPLLE\DSPLLE.h" />
     <ClInclude Include="HW\DSPLLE\DSPLLEGlobals.h" />
-    <ClInclude Include="HW\DSPLLE\DSPLLETools.h" />
     <ClInclude Include="HW\DSPLLE\DSPSymbols.h" />
-    <ClInclude Include="HW\DVDInterface.h" />
-    <ClInclude Include="HW\DVDThread.h" />
+    <ClInclude Include="HW\DVD\DVDInterface.h" />
+    <ClInclude Include="HW\DVD\DVDMath.h" />
+    <ClInclude Include="HW\DVD\DVDThread.h" />
+    <ClInclude Include="HW\DVD\FileMonitor.h" />
     <ClInclude Include="HW\EXI\BBA-TAP\TAP_Win32.h" />
     <ClInclude Include="HW\EXI\EXI.h" />
     <ClInclude Include="HW\EXI\EXI_Channel.h" />
@@ -370,9 +392,9 @@
     <ClInclude Include="HW\EXI\EXI_DeviceMic.h" />
     <ClInclude Include="HW\GCKeyboard.h" />
     <ClInclude Include="HW\GCKeyboardEmu.h" />
-    <ClInclude Include="HW\GCMemcard.h" />
-    <ClInclude Include="HW\GCMemcardDirectory.h" />
-    <ClInclude Include="HW\GCMemcardRaw.h" />
+    <ClInclude Include="HW\GCMemcard\GCMemcard.h" />
+    <ClInclude Include="HW\GCMemcard\GCMemcardDirectory.h" />
+    <ClInclude Include="HW\GCMemcard\GCMemcardRaw.h" />
     <ClInclude Include="HW\GCPad.h" />
     <ClInclude Include="HW\GCPadEmu.h" />
     <ClInclude Include="HW\GPFifo.h" />
@@ -396,6 +418,9 @@
     <ClInclude Include="HW\SystemTimers.h" />
     <ClInclude Include="HW\VideoInterface.h" />
     <ClInclude Include="HW\Wiimote.h" />
+    <ClInclude Include="HW\WiimoteCommon\WiimoteConstants.h" />
+    <ClInclude Include="HW\WiimoteCommon\WiimoteHid.h" />
+    <ClInclude Include="HW\WiimoteCommon\WiimoteReport.h" />
     <ClInclude Include="HW\WiimoteEmu\Attachment\Attachment.h" />
     <ClInclude Include="HW\WiimoteEmu\Attachment\Classic.h" />
     <ClInclude Include="HW\WiimoteEmu\Attachment\Drums.h" />
@@ -412,22 +437,27 @@
     <ClInclude Include="HW\WII_IPC.h" />
     <ClInclude Include="IOS\Device.h" />
     <ClInclude Include="IOS\DeviceStub.h" />
-    <ClInclude Include="IOS\IPC.h" />
+    <ClInclude Include="IOS\IOS.h" />
+    <ClInclude Include="IOS\IOSC.h" />
+    <ClInclude Include="IOS\MemoryValues.h" />
     <ClInclude Include="IOS\MIOS.h" />
     <ClInclude Include="IOS\DI\DI.h" />
     <ClInclude Include="IOS\ES\ES.h" />
     <ClInclude Include="IOS\ES\Formats.h" />
     <ClInclude Include="IOS\FS\FileIO.h" />
     <ClInclude Include="IOS\FS\FS.h" />
-    <ClInclude Include="IOS\Network\Config.h" />
     <ClInclude Include="IOS\Network\ICMPLin.h" />
     <ClInclude Include="IOS\Network\ICMP.h" />
+    <ClInclude Include="IOS\Network\MACUtils.h" />
     <ClInclude Include="IOS\Network\Socket.h" />
-    <ClInclude Include="IOS\Network\Net.h" />
     <ClInclude Include="IOS\Network\SSL.h" />
+    <ClInclude Include="IOS\Network\IP\Top.h" />
     <ClInclude Include="IOS\Network\KD\NetKDRequest.h" />
     <ClInclude Include="IOS\Network\KD\NetKDTime.h" />
     <ClInclude Include="IOS\Network\KD\NWC24Config.h" />
+    <ClInclude Include="IOS\Network\NCD\WiiNetConfig.h" />
+    <ClInclude Include="IOS\Network\NCD\Manage.h" />
+    <ClInclude Include="IOS\Network\WD\Command.h" />
     <ClInclude Include="IOS\SDIO\SDIOSlot0.h" />
     <ClInclude Include="IOS\STM\STM.h" />
     <ClInclude Include="IOS\USB\Common.h" />
@@ -465,14 +495,12 @@
     <ClInclude Include="PowerPC\CachedInterpreter\InterpreterBlockCache.h" />
     <ClInclude Include="PowerPC\Interpreter\Interpreter.h" />
     <ClInclude Include="PowerPC\Interpreter\Interpreter_FPUtils.h" />
-    <ClInclude Include="PowerPC\Jit64IL\JitIL.h" />
+    <ClInclude Include="PowerPC\Jit64Common\ConstantPool.h" />
     <ClInclude Include="PowerPC\Jit64\FPURegCache.h" />
     <ClInclude Include="PowerPC\Jit64\GPRRegCache.h" />
     <ClInclude Include="PowerPC\Jit64\Jit.h" />
     <ClInclude Include="PowerPC\Jit64\JitAsm.h" />
     <ClInclude Include="PowerPC\Jit64\JitRegCache.h" />
-    <ClInclude Include="PowerPC\JitILCommon\IR.h" />
-    <ClInclude Include="PowerPC\JitILCommon\JitILBase.h" />
     <ClInclude Include="PowerPC\Jit64Common\BlockCache.h" />
     <ClInclude Include="PowerPC\Jit64Common\EmuCodeBlock.h" />
     <ClInclude Include="PowerPC\Jit64Common\FarCodeCache.h" />
@@ -486,6 +514,7 @@
     <ClInclude Include="PowerPC\JitCommon\JitCache.h" />
     <ClInclude Include="PowerPC\SignatureDB\CSVSignatureDB.h" />
     <ClInclude Include="PowerPC\SignatureDB\DSYSignatureDB.h" />
+    <ClInclude Include="PowerPC\SignatureDB\MEGASignatureDB.h" />
     <ClInclude Include="PowerPC\SignatureDB\SignatureDB.h" />
     <ClInclude Include="PowerPC\JitInterface.h" />
     <ClInclude Include="PowerPC\PowerPC.h" />
@@ -495,7 +524,10 @@
     <ClInclude Include="PowerPC\PPCTables.h" />
     <ClInclude Include="PowerPC\Profiler.h" />
     <ClInclude Include="State.h" />
+    <ClInclude Include="Titles.h" />
+    <ClInclude Include="TitleDatabase.h" />
     <ClInclude Include="WiiRoot.h" />
+    <ClInclude Include="WiiUtils.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />
@@ -519,9 +551,6 @@
     <ProjectReference Include="$(ExternalsDir)mbedtls\mbedTLS.vcxproj">
       <Project>{bdb6578b-0691-4e80-a46c-df21639fd3b8}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(ExternalsDir)portaudio\build\portaudio.vcxproj">
-      <Project>{0a18a071-125e-442f-aff7-a3f68abecf99}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(ExternalsDir)SFML\build\vc2010\SFML_Network.vcxproj">
       <Project>{93d73454-2512-424e-9cda-4bb357fe13dd}</Project>
     </ProjectReference>
@@ -542,6 +571,12 @@
     </ProjectReference>
     <ProjectReference Include="$(CoreDir)VideoCommon\VideoCommon.vcxproj">
       <Project>{3de9ee35-3e91-4f27-a014-2866ad8c3fe3}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)cubeb\msvc\cubeb.vcxproj">
+      <Project>{8ea11166-6512-44fc-b7a5-a4d1ecc81170}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)pugixml\pugixml.vcxproj">
+      <Project>{38fee76f-f347-484b-949c-b4649381cffb}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

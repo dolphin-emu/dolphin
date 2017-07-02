@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/State.h"
+
 #include <lzo/lzo1x.h>
 #include <map>
 #include <mutex>
@@ -13,6 +15,7 @@
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
+#include "Common/File.h"
 #include "Common/FileUtil.h"
 #include "Common/MsgHandler.h"
 #include "Common/ScopeGuard.h"
@@ -30,7 +33,6 @@
 #include "Core/Movie.h"
 #include "Core/NetPlayClient.h"
 #include "Core/PowerPC/PowerPC.h"
-#include "Core/State.h"
 
 #include "VideoCommon/AVIDump.h"
 #include "VideoCommon/OnScreenDisplay.h"
@@ -57,7 +59,7 @@ static HEAP_ALLOC(wrkmem, LZO1X_1_MEM_COMPRESS);
 
 static std::string g_last_filename;
 
-static CallbackFunc g_onAfterLoadCb = nullptr;
+static AfterLoadCallbackFunc s_on_after_load_callback;
 
 // Temporary undo state buffer
 static std::vector<u8> g_undo_load_buffer;
@@ -71,7 +73,7 @@ static Common::Event g_compressAndDumpStateSyncEvent;
 static std::thread g_save_thread;
 
 // Don't forget to increase this after doing changes on the savestate system
-static const u32 STATE_VERSION = 77;  // Last changed in PR 4784
+static const u32 STATE_VERSION = 87;  // Last changed in PR 5707
 
 // Maps savestate versions to Dolphin versions.
 // Versions after 42 don't need to be added to this list,
@@ -156,8 +158,7 @@ static std::string DoState(PointerWrap& p)
     return version_created_by;
   }
 
-  bool is_wii =
-      SConfig::GetInstance().bWii || SConfig::GetInstance().m_BootType == SConfig::BOOT_MIOS;
+  bool is_wii = SConfig::GetInstance().bWii || SConfig::GetInstance().m_is_mios;
   const bool is_wii_currently = is_wii;
   p.Do(is_wii);
   if (is_wii != is_wii_currently)
@@ -191,7 +192,7 @@ static std::string DoState(PointerWrap& p)
   Gecko::DoState(p);
   p.DoMarker("Gecko");
 
-#if defined(HAVE_LIBAV) || defined(_WIN32)
+#if defined(HAVE_FFMPEG)
   AVIDump::DoState();
 #endif
 
@@ -607,8 +608,8 @@ bool LoadAs(const std::string& filename)
     }
   }
 
-  if (g_onAfterLoadCb)
-    g_onAfterLoadCb();
+  if (s_on_after_load_callback)
+    s_on_after_load_callback();
 
   g_loadDepth--;
 
@@ -618,9 +619,9 @@ bool LoadAs(const std::string& filename)
   return loadedSuccessfully;
 }
 
-void SetOnAfterLoadCallback(CallbackFunc callback)
+void SetOnAfterLoadCallback(AfterLoadCallbackFunc callback)
 {
-  g_onAfterLoadCb = callback;
+  s_on_after_load_callback = std::move(callback);
 }
 
 void VerifyAt(const std::string& filename)

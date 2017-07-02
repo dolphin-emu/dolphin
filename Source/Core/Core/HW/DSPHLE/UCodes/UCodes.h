@@ -5,6 +5,7 @@
 #pragma once
 
 #include <cstring>
+#include <memory>
 
 #include "Common/CommonTypes.h"
 
@@ -62,7 +63,7 @@ protected:
 
   CMailHandler& m_mail_handler;
 
-  enum EDSP_Codes
+  enum EDSP_Codes : u32
   {
     DSP_INIT = 0xDCD10000,
     DSP_RESUME = 0xDCD10001,
@@ -103,6 +104,6 @@ private:
   bool m_needs_resume_mail = false;
 };
 
-UCodeInterface* UCodeFactory(u32 crc, DSPHLE* dsphle, bool wii);
+std::unique_ptr<UCodeInterface> UCodeFactory(u32 crc, DSPHLE* dsphle, bool wii);
 }  // namespace HLE
 }  // namespace DSP

@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <array>
 #include <limits>
 #include <vector>
 
@@ -50,9 +51,9 @@ void Jit64::GenerateOverflow()
   // We need to do this without modifying flags so as not to break stuff that assumes flags
   // aren't clobbered (carry, branch merging): speed doesn't really matter here (this is really
   // rare).
-  static const u8 ovtable[4] = {0, 0, XER_SO_MASK, XER_SO_MASK};
+  static const std::array<u8, 4> ovtable = {{0, 0, XER_SO_MASK, XER_SO_MASK}};
   MOVZX(32, 8, RSCRATCH, PPCSTATE(xer_so_ov));
-  MOV(64, R(RSCRATCH2), ImmPtr(ovtable));
+  LEA(64, RSCRATCH2, MConst(ovtable));
   MOV(8, R(RSCRATCH), MRegSum(RSCRATCH, RSCRATCH2));
   MOV(8, PPCSTATE(xer_so_ov), R(RSCRATCH));
   SetJumpTarget(exit);
@@ -66,7 +67,7 @@ void Jit64::FinalizeCarry(CCFlags cond)
   {
     // Not actually merging instructions, but the effect is equivalent (we can't have
     // breakpoints/etc in between).
-    if (MergeAllowedNextInstructions(1) && js.op[1].wantsCAInFlags)
+    if (CanMergeNextInstructions(1) && js.op[1].wantsCAInFlags)
     {
       if (cond == CC_C || cond == CC_NC)
       {
@@ -95,7 +96,7 @@ void Jit64::FinalizeCarry(bool ca)
   js.carryFlagInverted = false;
   if (js.op->wantsCA)
   {
-    if (MergeAllowedNextInstructions(1) && js.op[1].wantsCAInFlags)
+    if (CanMergeNextInstructions(1) && js.op[1].wantsCAInFlags)
     {
       if (ca)
         STC();
@@ -338,12 +339,12 @@ void Jit64::reg_imm(UGeckoInstruction inst)
   }
 }
 
-bool Jit64::CheckMergedBranch(int crf)
+bool Jit64::CheckMergedBranch(u32 crf)
 {
   if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_BRANCH_MERGE))
     return false;
 
-  if (!MergeAllowedNextInstructions(1))
+  if (!CanMergeNextInstructions(1))
     return false;
 
   const UGeckoInstruction& next = js.op[1].inst;
@@ -472,7 +473,7 @@ void Jit64::cmpXX(UGeckoInstruction inst)
   JITDISABLE(bJITIntegerOff);
   int a = inst.RA;
   int b = inst.RB;
-  int crf = inst.CRFD;
+  u32 crf = inst.CRFD;
   bool merge_branch = CheckMergedBranch(crf);
 
   OpArg comparand;

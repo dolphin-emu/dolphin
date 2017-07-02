@@ -108,7 +108,7 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm_out, X64Reg xmm, X64Re
       UCOMISD(xmm, R(xmm));
       fixups.push_back(J_CC(CC_P));
     }
-    MOVDDUP(xmm, M(psGeneratedQNaN));
+    MOVDDUP(xmm, MConst(psGeneratedQNaN));
     for (FixupBranch fixup : fixups)
       SetJumpTarget(fixup);
     FixupBranch done = J(true);
@@ -127,7 +127,7 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm_out, X64Reg xmm, X64Re
       SwitchToFarCode();
       SetJumpTarget(handle_nan);
       _assert_msg_(DYNA_REC, clobber == XMM0, "BLENDVPD implicitly uses XMM0");
-      BLENDVPD(xmm, M(psGeneratedQNaN));
+      BLENDVPD(xmm, MConst(psGeneratedQNaN));
       for (u32 x : inputs)
       {
         avx_op(&XEmitter::VCMPPD, &XEmitter::CMPPD, clobber, fpr.R(x), fpr.R(x), CMP_UNORD);
@@ -151,7 +151,7 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm_out, X64Reg xmm, X64Re
       SetJumpTarget(handle_nan);
       MOVAPD(tmp, R(clobber));
       ANDNPD(clobber, R(xmm));
-      ANDPD(tmp, M(psGeneratedQNaN));
+      ANDPD(tmp, MConst(psGeneratedQNaN));
       ORPD(tmp, R(clobber));
       MOVAPD(xmm, R(tmp));
       for (u32 x : inputs)
@@ -260,7 +260,7 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
       Force25BitPrecision(XMM1, R(XMM1), XMM0);
     break;
   default:
-    bool special = inst.SUBOP5 == 30 && (!cpu_info.bFMA || Core::g_want_determinism);
+    bool special = inst.SUBOP5 == 30 && (!cpu_info.bFMA || Core::WantsDeterminism());
     X64Reg tmp1 = special ? XMM0 : XMM1;
     X64Reg tmp2 = special ? XMM1 : XMM0;
     if (single && round_input)
@@ -276,7 +276,7 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
   // Note that FMA isn't necessarily less correct (it may actually be closer to correct) compared
   // to what the Gekko does here; in deterministic mode, the important thing is multiple Dolphin
   // instances on different computers giving identical results.
-  if (cpu_info.bFMA && !Core::g_want_determinism)
+  if (cpu_info.bFMA && !Core::WantsDeterminism())
   {
     // Statistics suggests b is a lot less likely to be unbound in practice, so
     // if we have to pick one of a or b to bind, let's make it b.
@@ -350,7 +350,7 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
         ADDSD(XMM1, fpr.R(b));
     }
     if (inst.SUBOP5 == 31)  // nmadd
-      XORPD(XMM1, M(packed ? psSignBits2 : psSignBits));
+      XORPD(XMM1, MConst(packed ? psSignBits2 : psSignBits));
   }
   fpr.BindToRegister(d, !single);
   if (single)
@@ -385,15 +385,15 @@ void Jit64::fsign(UGeckoInstruction inst)
   {
   case 40:  // neg
     avx_op(&XEmitter::VXORPD, &XEmitter::XORPD, fpr.RX(d), src,
-           M(packed ? psSignBits2 : psSignBits), packed);
+           MConst(packed ? psSignBits2 : psSignBits), packed);
     break;
   case 136:  // nabs
-    avx_op(&XEmitter::VORPD, &XEmitter::ORPD, fpr.RX(d), src, M(packed ? psSignBits2 : psSignBits),
-           packed);
+    avx_op(&XEmitter::VORPD, &XEmitter::ORPD, fpr.RX(d), src,
+           MConst(packed ? psSignBits2 : psSignBits), packed);
     break;
   case 264:  // abs
-    avx_op(&XEmitter::VANDPD, &XEmitter::ANDPD, fpr.RX(d), src, M(packed ? psAbsMask2 : psAbsMask),
-           packed);
+    avx_op(&XEmitter::VANDPD, &XEmitter::ANDPD, fpr.RX(d), src,
+           MConst(packed ? psAbsMask2 : psAbsMask), packed);
     break;
   default:
     PanicAlert("fsign bleh");
@@ -486,13 +486,13 @@ void Jit64::FloatCompare(UGeckoInstruction inst, bool upper)
   // bool ordered = !!(inst.SUBOP10 & 32);
   int a = inst.FA;
   int b = inst.FB;
-  int crf = inst.CRFD;
+  u32 crf = inst.CRFD;
   int output[4] = {CR_SO, CR_EQ, CR_GT, CR_LT};
 
   // Merge neighboring fcmp and cror (the primary use of cror).
   UGeckoInstruction next = js.op[1].inst;
   if (analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CROR_MERGE) &&
-      MergeAllowedNextInstructions(1) && next.OPCD == 19 && next.SUBOP10 == 449 &&
+      CanMergeNextInstructions(1) && next.OPCD == 19 && next.SUBOP10 == 449 &&
       (next.CRBA >> 2) == crf && (next.CRBB >> 2) == crf && (next.CRBD >> 2) == crf)
   {
     js.skipInstructions = 1;
@@ -608,7 +608,7 @@ void Jit64::fctiwx(UGeckoInstruction inst)
   // The upper 32 bits of the result are set to 0xfff80000,
   // except for -0.0 where they are set to 0xfff80001 (TODO).
 
-  MOVAPD(XMM0, M(half_qnan_and_s32_max));
+  MOVAPD(XMM0, MConst(half_qnan_and_s32_max));
   MINSD(XMM0, fpr.R(b));
   switch (inst.SUBOP10)
   {

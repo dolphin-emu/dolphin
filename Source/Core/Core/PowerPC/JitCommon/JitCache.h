@@ -125,7 +125,6 @@ public:
   void Shutdown();
   void Clear();
   void Reset();
-  void SchedulateClearCacheThreadSafe();
 
   // Code Cache
   JitBlock** GetFastBlockMap();

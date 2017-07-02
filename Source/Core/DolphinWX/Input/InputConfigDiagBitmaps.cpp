@@ -139,7 +139,7 @@ static void DrawButton(const std::vector<unsigned int>& bitmasks, unsigned int b
   gc->DrawRectangle(n * 12, (row == 0) ? 0 : (row * 11), 14, 12);
 
   // text
-  const std::string name = g->control_group->controls[(row * 8) + n]->name;
+  const std::string name = g->control_group->controls[(row * 8) + n]->ui_name;
   // Matrix transformation needs to be disabled so we don't draw scaled/zoomed text.
   wxGraphicsMatrix old_matrix = gc->GetTransform();
   gc->SetTransform(null_matrix);
@@ -159,9 +159,9 @@ static void DrawControlGroupBox(wxGraphicsContext* gc, ControlGroupBox* g)
 
   switch (g->control_group->type)
   {
-  case ControllerEmu::GROUP_TYPE_TILT:
-  case ControllerEmu::GROUP_TYPE_STICK:
-  case ControllerEmu::GROUP_TYPE_CURSOR:
+  case ControllerEmu::GroupType::Tilt:
+  case ControllerEmu::GroupType::Stick:
+  case ControllerEmu::GroupType::Cursor:
   {
     // this is starting to be a mess combining all these in one case
 
@@ -169,19 +169,27 @@ static void DrawControlGroupBox(wxGraphicsContext* gc, ControlGroupBox* g)
 
     switch (g->control_group->type)
     {
-    case ControllerEmu::GROUP_TYPE_STICK:
+    case ControllerEmu::GroupType::Stick:
       ((ControllerEmu::AnalogStick*)g->control_group)->GetState(&x, &y);
       break;
-    case ControllerEmu::GROUP_TYPE_TILT:
+    case ControllerEmu::GroupType::Tilt:
       ((ControllerEmu::Tilt*)g->control_group)->GetState(&x, &y);
       break;
-    case ControllerEmu::GROUP_TYPE_CURSOR:
+    case ControllerEmu::GroupType::Cursor:
       ((ControllerEmu::Cursor*)g->control_group)->GetState(&x, &y, &z);
+      break;
+    case ControllerEmu::GroupType::Other:
+    case ControllerEmu::GroupType::MixedTriggers:
+    case ControllerEmu::GroupType::Buttons:
+    case ControllerEmu::GroupType::Force:
+    case ControllerEmu::GroupType::Extension:
+    case ControllerEmu::GroupType::Triggers:
+    case ControllerEmu::GroupType::Slider:
       break;
     }
 
     // ir cursor forward movement
-    if (ControllerEmu::GROUP_TYPE_CURSOR == g->control_group->type)
+    if (g->control_group->type == ControllerEmu::GroupType::Cursor)
     {
       gc->SetBrush(z ? *wxRED_BRUSH : *wxGREY_BRUSH);
       wxGraphicsPath path = gc->CreatePath();
@@ -191,7 +199,7 @@ static void DrawControlGroupBox(wxGraphicsContext* gc, ControlGroupBox* g)
 
     // input zone
     gc->SetPen(*wxLIGHT_GREY_PEN);
-    if (ControllerEmu::GROUP_TYPE_STICK == g->control_group->type)
+    if (g->control_group->type == ControllerEmu::GroupType::Stick)
     {
       gc->SetBrush(wxColour(0xDDDDDD));  // Light Gray
 
@@ -231,9 +239,9 @@ static void DrawControlGroupBox(wxGraphicsContext* gc, ControlGroupBox* g)
       gc->DrawRectangle(16, 16, 32, 32);
     }
 
-    if (ControllerEmu::GROUP_TYPE_CURSOR != g->control_group->type)
+    if (g->control_group->type != ControllerEmu::GroupType::Cursor)
     {
-      const int deadzone_idx = g->control_group->type == ControllerEmu::GROUP_TYPE_STICK ?
+      const int deadzone_idx = g->control_group->type == ControllerEmu::GroupType::Stick ?
                                    ControllerEmu::AnalogStick::SETTING_DEADZONE :
                                    0;
 
@@ -267,7 +275,7 @@ static void DrawControlGroupBox(wxGraphicsContext* gc, ControlGroupBox* g)
   }
   break;
 
-  case ControllerEmu::GROUP_TYPE_FORCE:
+  case ControllerEmu::GroupType::Force:
   {
     ControlState raw_dot[3];
     ControlState adj_dot[3];
@@ -332,7 +340,7 @@ static void DrawControlGroupBox(wxGraphicsContext* gc, ControlGroupBox* g)
   }
   break;
 
-  case ControllerEmu::GROUP_TYPE_BUTTONS:
+  case ControllerEmu::GroupType::Buttons:
   {
     const unsigned int button_count = static_cast<unsigned int>(g->control_group->controls.size());
     std::vector<unsigned int> bitmasks(button_count);
@@ -361,7 +369,7 @@ static void DrawControlGroupBox(wxGraphicsContext* gc, ControlGroupBox* g)
   }
   break;
 
-  case ControllerEmu::GROUP_TYPE_TRIGGERS:
+  case ControllerEmu::GroupType::Triggers:
   {
     const unsigned int trigger_count = static_cast<unsigned int>(g->control_group->controls.size());
     std::vector<ControlState> trigs(trigger_count);
@@ -391,7 +399,7 @@ static void DrawControlGroupBox(wxGraphicsContext* gc, ControlGroupBox* g)
       // text
       // We don't want the text to be scaled/zoomed
       gc->SetTransform(null_matrix);
-      gc->DrawText(StrToWxStr(g->control_group->controls[n]->name), 3 * g->m_scale,
+      gc->DrawText(StrToWxStr(g->control_group->controls[n]->ui_name), 3 * g->m_scale,
                    (n * 12 + 1) * g->m_scale);
       gc->SetTransform(scale_matrix);
     }
@@ -403,7 +411,7 @@ static void DrawControlGroupBox(wxGraphicsContext* gc, ControlGroupBox* g)
   }
   break;
 
-  case ControllerEmu::GROUP_TYPE_MIXED_TRIGGERS:
+  case ControllerEmu::GroupType::MixedTriggers:
   {
     const unsigned int trigger_count = ((unsigned int)(g->control_group->controls.size() / 2));
 
@@ -429,9 +437,9 @@ static void DrawControlGroupBox(wxGraphicsContext* gc, ControlGroupBox* g)
       // text
       // We don't want the text to be scaled/zoomed
       gc->SetTransform(null_matrix);
-      gc->DrawText(StrToWxStr(g->control_group->controls[n + trigger_count]->name), 3 * g->m_scale,
-                   (n * 12 + 1) * g->m_scale);
-      gc->DrawText(StrToWxStr(std::string(1, g->control_group->controls[n]->name[0])),
+      gc->DrawText(StrToWxStr(g->control_group->controls[n + trigger_count]->ui_name),
+                   3 * g->m_scale, (n * 12 + 1) * g->m_scale);
+      gc->DrawText(StrToWxStr(std::string(1, g->control_group->controls[n]->ui_name[0])),
                    (64 + 3) * g->m_scale, (n * 12 + 1) * g->m_scale);
       gc->SetTransform(scale_matrix);
     }
@@ -443,7 +451,7 @@ static void DrawControlGroupBox(wxGraphicsContext* gc, ControlGroupBox* g)
   }
   break;
 
-  case ControllerEmu::GROUP_TYPE_SLIDER:
+  case ControllerEmu::GroupType::Slider:
   {
     const ControlState deadzone = g->control_group->numeric_settings[0]->GetValue();
 

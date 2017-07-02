@@ -2,32 +2,32 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/IOS/MIOS.h"
+
 #include <cstring>
 #include <utility>
 #include <vector>
 
-#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/NandPaths.h"
-#include "Core/Boot/Boot.h"
+#include "Common/Swap.h"
 #include "Core/Boot/ElfReader.h"
+#include "Core/CommonTitles.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/DSPEmulator.h"
 #include "Core/HLE/HLE.h"
 #include "Core/HW/DSP.h"
-#include "Core/HW/DVDInterface.h"
-#include "Core/HW/DVDThread.h"
+#include "Core/HW/DVD/DVDInterface.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/SystemTimers.h"
-#include "Core/IOS/MIOS.h"
+#include "Core/IOS/ES/Formats.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "DiscIO/NANDContentLoader.h"
-#include "DiscIO/Volume.h"
 
 namespace IOS
 {
@@ -35,8 +35,6 @@ namespace HLE
 {
 namespace MIOS
 {
-constexpr u64 MIOS_TITLE_ID = 0x0000000100000101;
-
 // Source: https://wiibrew.org/wiki/ARM_Binaries
 struct ARMBinary final
 {
@@ -93,11 +91,11 @@ u32 ARMBinary::GetElfSize() const
 static std::vector<u8> GetMIOSBinary()
 {
   const auto& loader =
-      DiscIO::CNANDContentManager::Access().GetNANDLoader(MIOS_TITLE_ID, Common::FROM_SESSION_ROOT);
+      DiscIO::NANDContentManager::Access().GetNANDLoader(Titles::MIOS, Common::FROM_SESSION_ROOT);
   if (!loader.IsValid())
     return {};
 
-  const auto* content = loader.GetContentByIndex(loader.GetBootIndex());
+  const auto* content = loader.GetContentByIndex(loader.GetTMD().GetBootIndex());
   if (!content)
     return {};
 
@@ -120,24 +118,6 @@ static void ReinitHardware()
   SystemTimers::ChangePPCClock(SystemTimers::Mode::GC);
 }
 
-static void UpdateRunningGame()
-{
-  DVDThread::WaitUntilIdle();
-  const DiscIO::IVolume& volume = DVDInterface::GetVolume();
-  SConfig::GetInstance().m_BootType = SConfig::BOOT_MIOS;
-  SConfig::GetInstance().m_strName = volume.GetInternalName();
-  SConfig::GetInstance().m_strGameID = volume.GetGameID();
-  SConfig::GetInstance().m_revision = volume.GetRevision();
-
-  g_symbolDB.Clear();
-  CBoot::LoadMapFromFilename();
-  ::HLE::Clear();
-  ::HLE::PatchFunctions();
-
-  NOTICE_LOG(IOS, "Running game: %s (%s)", SConfig::GetInstance().m_strName.c_str(),
-             SConfig::GetInstance().m_strGameID.c_str());
-}
-
 constexpr u32 ADDRESS_INIT_SEMAPHORE = 0x30f8;
 
 bool Load()
@@ -153,8 +133,7 @@ bool Load()
     return false;
   }
 
-  std::vector<u8> elf_bytes = mios.GetElf();
-  ElfReader elf{elf_bytes.data()};
+  ElfReader elf{mios.GetElf()};
   if (!elf.LoadIntoMemory(true))
   {
     PanicAlertT("Failed to load MIOS ELF into memory.");
@@ -187,7 +166,8 @@ bool Load()
 
   Memory::Write_U32(0x00000000, ADDRESS_INIT_SEMAPHORE);
   NOTICE_LOG(IOS, "IPL ready.");
-  UpdateRunningGame();
+  SConfig::GetInstance().m_is_mios = true;
+  DVDInterface::UpdateRunningGameMetadata();
   return true;
 }
 }  // namespace MIOS

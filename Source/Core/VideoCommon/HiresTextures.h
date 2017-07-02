@@ -9,11 +9,12 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "VideoCommon/TextureConfig.h"
 
 class HiresTexture
 {
 public:
-  using SOILPointer = std::unique_ptr<u8, void (*)(unsigned char*)>;
+  using ImageDataPointer = std::unique_ptr<u8, void (*)(unsigned char*)>;
 
   static void Init();
   static void Update();
@@ -27,22 +28,30 @@ public:
                                  size_t tlut_size, u32 width, u32 height, int format,
                                  bool has_mipmaps, bool dump = false);
 
+  static u32 CalculateMipCount(u32 width, u32 height);
+
   ~HiresTexture();
 
+  AbstractTextureFormat GetFormat() const;
   struct Level
   {
     Level();
 
-    SOILPointer data;
-    size_t data_size = 0;
+    ImageDataPointer data;
+    AbstractTextureFormat format = AbstractTextureFormat::RGBA8;
     u32 width = 0;
     u32 height = 0;
+    u32 row_length = 0;
+    size_t data_size = 0;
   };
   std::vector<Level> m_levels;
 
 private:
   static std::unique_ptr<HiresTexture> Load(const std::string& base_filename, u32 width,
                                             u32 height);
+  static bool LoadDDSTexture(HiresTexture* tex, const std::string& filename);
+  static bool LoadDDSTexture(Level& level, const std::string& filename);
+  static bool LoadTexture(Level& level, const std::vector<u8>& buffer);
   static void Prefetch();
 
   static std::string GetTextureDirectory(const std::string& game_id);

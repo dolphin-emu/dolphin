@@ -9,6 +9,8 @@
 
 class PointerWrap;
 
+namespace ExpansionInterface
+{
 enum TEXIDevices : int
 {
   EXIDEVICE_DUMMY,
@@ -64,3 +66,4 @@ private:
 };
 
 std::unique_ptr<IEXIDevice> EXIDevice_Create(TEXIDevices device_type, int channel_num);
+}  // namespace ExpansionInterface

@@ -20,6 +20,7 @@ import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * Contains static methods for interacting with .ini files in which settings are stored.
@@ -52,6 +53,7 @@ public final class SettingsFile
 	public static final String KEY_OVERCLOCK_ENABLE = "OverclockEnable";
 	public static final String KEY_OVERCLOCK_PERCENT = "Overclock";
 	public static final String KEY_VIDEO_BACKEND = "GFXBackend";
+	public static final String KEY_AUDIO_STRETCH = "AudioStretch";
 
 	public static final String KEY_SHOW_FPS = "ShowFPS";
 	public static final String KEY_INTERNAL_RES = "EFBScale";
@@ -72,6 +74,7 @@ public final class SettingsFile
 	public static final String KEY_IGNORE_FORMAT = "EFBEmulateFormatChanges";
 	public static final String KEY_EFB_TEXTURE = "EFBToTextureEnable";
 	public static final String KEY_TEXCACHE_ACCURACY = "SafeTextureCacheColorSamples";
+	public static final String KEY_GPU_TEXTURE_DECODING = "EnableGPUTextureDecoding";
 	public static final String KEY_XFB = "UseXFB";
 	public static final String KEY_XFB_REAL = "UseRealXFB";
 	public static final String KEY_FAST_DEPTH = "FastDepthCalc";
@@ -322,8 +325,9 @@ public final class SettingsFile
 			writer = new PrintWriter(ini, "UTF-8");
 
 			Set<String> keySet = sections.keySet();
+			Set<String> sortedKeySet = new TreeSet<>(keySet);
 
-			for (String key : keySet)
+			for (String key : sortedKeySet)
 			{
 				SettingSection section = sections.get(key);
 				writeSection(writer, section);
@@ -437,8 +441,9 @@ public final class SettingsFile
 		// Write this section's values.
 		HashMap<String, Setting> settings = section.getSettings();
 		Set<String> keySet = settings.keySet();
+		Set<String> sortedKeySet = new TreeSet<>(keySet);
 
-		for (String key : keySet)
+		for (String key : sortedKeySet)
 		{
 			Setting setting = settings.get(key);
 			String settingString = settingAsString(setting);

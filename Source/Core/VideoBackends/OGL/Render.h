@@ -22,7 +22,8 @@ enum GLSL_VERSION
   GLSL_140,
   GLSL_150,
   GLSL_330,
-  GLSL_400,    // and above
+  GLSL_400,  // and above
+  GLSL_430,
   GLSLES_300,  // GLES 3.0
   GLSLES_310,  // GLES 3.1
   GLSLES_320,  // GLES 3.2
@@ -51,10 +52,11 @@ struct VideoConfig
   bool bSupportsCopySubImage;
   u8 SupportedESPointSize;
   ES_TEXBUF_TYPE SupportedESTextureBuffer;
-  bool bSupports2DTextureStorage;
-  bool bSupports3DTextureStorage;
-  bool bSupportsEarlyFragmentTests;
+  bool bSupportsTextureStorage;
+  bool bSupports2DTextureStorageMultisample;
+  bool bSupports3DTextureStorageMultisample;
   bool bSupportsConservativeDepth;
+  bool bSupportsImageLoadStore;
   bool bSupportsAniso;
 
   const char* gl_vendor;
@@ -69,10 +71,10 @@ class Renderer : public ::Renderer
 {
 public:
   Renderer();
-  ~Renderer();
+  ~Renderer() override;
 
-  static void Init();
-  static void Shutdown();
+  void Init();
+  void Shutdown();
 
   void SetBlendMode(bool forceUpdate) override;
   void SetScissorRect(const EFBRectangle& rc) override;
@@ -102,8 +104,6 @@ public:
                    u32 color, u32 z) override;
 
   void ReinterpretPixelData(unsigned int convtype) override;
-
-  u32 GetMaxTextureSize() override;
 
   void ChangeSurface(void* new_surface_handle) override;
 

@@ -4,15 +4,20 @@
 
 #include "Core/HW/EXI/EXI_DeviceAGP.h"
 
+#include <algorithm>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
-#include "Common/FileUtil.h"
+#include "Common/File.h"
 #include "Common/Logging/Log.h"
+#include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
 
+namespace ExpansionInterface
+{
 CEXIAgp::CEXIAgp(int index)
 {
   m_slot = index;
@@ -380,3 +385,4 @@ void CEXIAgp::DoState(PointerWrap& p)
   p.Do(m_rom_size);
   p.Do(m_rw_offset);
 }
+}  // namespace ExpansionInterface

@@ -10,6 +10,7 @@
 #include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
+#include "InputCommon/ControllerEmu/Setting/BooleanSetting.h"
 #include "InputCommon/KeyboardStatus.h"
 
 static const u16 keys0_bitmasks[] = {KEYMASK_HOME,       KEYMASK_END, KEYMASK_PGUP, KEYMASK_PGDN,
@@ -79,12 +80,8 @@ GCKeyboard::GCKeyboard(const unsigned int index) : m_index(index)
 
   // options
   groups.emplace_back(m_options = new ControllerEmu::ControlGroup(_trans("Options")));
-  m_options->boolean_settings.emplace_back(
-      std::make_unique<ControllerEmu::ControlGroup::BackgroundInputSetting>(
-          _trans("Background Input")));
-  m_options->boolean_settings.emplace_back(
-      std::make_unique<ControllerEmu::ControlGroup::BooleanSetting>(
-          _trans("Iterative Input"), false, ControllerEmu::ControlGroup::SettingType::VIRTUAL));
+  m_options->boolean_settings.emplace_back(std::make_unique<ControllerEmu::BooleanSetting>(
+      _trans("Iterative Input"), false, ControllerEmu::SettingType::VIRTUAL));
 }
 
 std::string GCKeyboard::GetName() const

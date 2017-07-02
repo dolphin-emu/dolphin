@@ -6,10 +6,10 @@
 
 #include "Core/PowerPC/SignatureDB/SignatureDB.h"
 
-class CSVSignatureDB final : public SignatureDBFormatHandler
+class CSVSignatureDB final : public HashSignatureDB
 {
 public:
   ~CSVSignatureDB() = default;
-  bool Load(const std::string& file_path, SignatureDB::FuncDB& database) const override;
-  bool Save(const std::string& file_path, const SignatureDB::FuncDB& database) const override;
+  bool Load(const std::string& file_path) override;
+  bool Save(const std::string& file_path) const override;
 };

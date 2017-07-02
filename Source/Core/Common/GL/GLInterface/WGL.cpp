@@ -2,9 +2,9 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <windows.h>
 #include <array>
 #include <string>
-#include <windows.h>
 
 #include "Common/GL/GLInterface/WGL.h"
 #include "Common/Logging/Log.h"
@@ -248,8 +248,8 @@ bool cInterfaceWGL::Create(void* window_handle, bool core)
     return false;
   }
 
-  int pixel_format;
-  if (!(pixel_format = ChoosePixelFormat(m_dc, &pfd)))
+  int pixel_format = ChoosePixelFormat(m_dc, &pfd);
+  if (!pixel_format)
   {
     PanicAlert("(2) Can't find a suitable PixelFormat.");
     return false;
@@ -261,7 +261,8 @@ bool cInterfaceWGL::Create(void* window_handle, bool core)
     return false;
   }
 
-  if (!(m_rc = wglCreateContext(m_dc)))
+  m_rc = wglCreateContext(m_dc);
+  if (!m_rc)
   {
     PanicAlert("(4) Can't create an OpenGL rendering context.");
     return false;

@@ -5,15 +5,18 @@
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
 
 #include <cstring>
+#include <string>
 
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
+#include "Common/File.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MemoryUtil.h"
 #include "Common/StringUtil.h"
+#include "Common/Swap.h"
 #include "Common/Timer.h"
 
 #include "Core/ConfigManager.h"
@@ -26,6 +29,8 @@
 
 #include "DiscIO/Enums.h"
 
+namespace ExpansionInterface
+{
 // We should provide an option to choose from the above, or figure out the checksum (the algo in
 // yagcd seems wrong)
 // so that people can change default language.
@@ -95,8 +100,18 @@ CEXIIPL::CEXIIPL() : m_uPosition(0), m_uAddress(0), m_uRWOffset(0), m_FontsLoade
   // Create the IPL
   m_pIPL = static_cast<u8*>(Common::AllocateMemoryPages(ROM_SIZE));
 
-  if (SConfig::GetInstance().bHLE_BS2)
+  // Load whole ROM dump
+  // Note: The Wii doesn't have a copy of the IPL, only fonts.
+  if (!SConfig::GetInstance().bWii && LoadFileToIPL(SConfig::GetInstance().m_strBootROM, 0))
   {
+    // Descramble the encrypted section (contains BS1 and BS2)
+    Descrambler(m_pIPL + 0x100, 0x1afe00);
+    INFO_LOG(BOOT, "Loaded bootrom: %s", m_pIPL);  // yay for null-terminated strings ;p
+  }
+  else
+  {
+    // If we are in Wii mode or if loading the GC IPL fails, we should still try to load fonts.
+
     // Copy header
     if (DiscIO::IsNTSC(SConfig::GetInstance().m_region))
       memcpy(m_pIPL, iplverNTSC, sizeof(iplverNTSC));
@@ -106,14 +121,6 @@ CEXIIPL::CEXIIPL() : m_uPosition(0), m_uAddress(0), m_uRWOffset(0), m_FontsLoade
     // Load fonts
     LoadFontFile((File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + FONT_SHIFT_JIS), 0x1aff00);
     LoadFontFile((File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + FONT_WINDOWS_1252), 0x1fcf00);
-  }
-  else
-  {
-    // Load whole ROM dump
-    LoadFileToIPL(SConfig::GetInstance().m_strBootROM, 0);
-    // Descramble the encrypted section (contains BS1 and BS2)
-    Descrambler(m_pIPL + 0x100, 0x1afe00);
-    INFO_LOG(BOOT, "Loaded bootrom: %s", m_pIPL);  // yay for null-terminated strings ;p
   }
 
   // Clear RTC
@@ -154,17 +161,19 @@ void CEXIIPL::DoState(PointerWrap& p)
   p.Do(m_FontsLoaded);
 }
 
-void CEXIIPL::LoadFileToIPL(const std::string& filename, u32 offset)
+bool CEXIIPL::LoadFileToIPL(const std::string& filename, u32 offset)
 {
   File::IOFile stream(filename, "rb");
   if (!stream)
-    return;
+    return false;
 
   u64 filesize = stream.GetSize();
 
-  stream.ReadBytes(m_pIPL + offset, filesize);
+  if (!stream.ReadBytes(m_pIPL + offset, filesize))
+    return false;
 
   m_FontsLoaded = true;
+  return true;
 }
 
 std::string CEXIIPL::FindIPLDump(const std::string& path_prefix)
@@ -233,9 +242,7 @@ void CEXIIPL::SetCS(int _iCS)
 void CEXIIPL::UpdateRTC()
 {
   u32 epoch =
-      (SConfig::GetInstance().bWii || SConfig::GetInstance().m_BootType == SConfig::BOOT_MIOS) ?
-          WII_EPOCH :
-          GC_EPOCH;
+      (SConfig::GetInstance().bWii || SConfig::GetInstance().m_is_mios) ? WII_EPOCH : GC_EPOCH;
   u32 rtc = Common::swap32(GetEmulatedTime(epoch));
   std::memcpy(m_RTC, &rtc, sizeof(u32));
 }
@@ -428,9 +435,10 @@ u32 CEXIIPL::GetEmulatedTime(u32 epoch)
   }
   else
   {
-    _assert_(!Core::g_want_determinism);
+    _assert_(!Core::WantsDeterminism());
     ltime = Common::Timer::GetLocalTimeSinceJan1970() - SystemTimers::GetLocalTimeRTCOffset();
   }
 
   return static_cast<u32>(ltime) - epoch;
 }
+}  // namespace ExpansionInterface

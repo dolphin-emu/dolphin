@@ -2,24 +2,75 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/FifoPlayer/FifoDataFile.h"
+
 #include <algorithm>
 #include <cstring>
+#include <memory>
 #include <string>
+#include <vector>
 
-#include "Common/FileUtil.h"
+#include "Common/File.h"
 
-#include "Core/FifoPlayer/FifoDataFile.h"
-#include "Core/FifoPlayer/FifoFileStruct.h"
-
-using namespace FifoFileStruct;
-
-FifoDataFile::FifoDataFile() : m_Flags(0)
+enum
 {
-}
+  FILE_ID = 0x0d01f1f0,
+  VERSION_NUMBER = 4,
+  MIN_LOADER_VERSION = 1,
+};
 
-FifoDataFile::~FifoDataFile()
+#pragma pack(push, 1)
+
+struct FileHeader
 {
-}
+  u32 fileId;
+  u32 file_version;
+  u32 min_loader_version;
+  u64 bpMemOffset;
+  u32 bpMemSize;
+  u64 cpMemOffset;
+  u32 cpMemSize;
+  u64 xfMemOffset;
+  u32 xfMemSize;
+  u64 xfRegsOffset;
+  u32 xfRegsSize;
+  u64 frameListOffset;
+  u32 frameCount;
+  u32 flags;
+  u64 texMemOffset;
+  u32 texMemSize;
+  u8 reserved[40];
+};
+static_assert(sizeof(FileHeader) == 128, "FileHeader should be 128 bytes");
+
+struct FileFrameInfo
+{
+  u64 fifoDataOffset;
+  u32 fifoDataSize;
+  u32 fifoStart;
+  u32 fifoEnd;
+  u64 memoryUpdatesOffset;
+  u32 numMemoryUpdates;
+  u8 reserved[32];
+};
+static_assert(sizeof(FileFrameInfo) == 64, "FileFrameInfo should be 64 bytes");
+
+struct FileMemoryUpdate
+{
+  u32 fifoPosition;
+  u32 address;
+  u64 dataOffset;
+  u32 dataSize;
+  u8 type;
+  u8 reserved[3];
+};
+static_assert(sizeof(FileMemoryUpdate) == 24, "FileMemoryUpdate should be 24 bytes");
+
+#pragma pack(pop)
+
+FifoDataFile::FifoDataFile() = default;
+
+FifoDataFile::~FifoDataFile() = default;
 
 bool FifoDataFile::HasBrokenEFBCopies() const
 {

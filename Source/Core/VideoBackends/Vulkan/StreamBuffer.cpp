@@ -316,7 +316,7 @@ bool StreamBuffer::WaitForClearSpace(size_t num_bytes)
       // We're currently allocating behind the GPU. This would give us between the current
       // offset and the GPU position worth of space to work with. Again, > because we can't
       // align the GPU position with the buffer offset.
-      size_t available_space_inbetween = m_current_offset - gpu_position;
+      size_t available_space_inbetween = gpu_position - m_current_offset;
       if (available_space_inbetween > num_bytes)
       {
         // Leave the offset as-is, but update the GPU position.

@@ -234,14 +234,18 @@ void VulkanContext::PopulateBackendInfo(VideoConfig* config)
   config->backend_info.bSupportsPaletteConversion = true;     // Assumed support.
   config->backend_info.bSupportsClipControl = true;           // Assumed support.
   config->backend_info.bSupportsMultithreading = true;        // Assumed support.
+  config->backend_info.bSupportsComputeShaders = true;        // Assumed support.
+  config->backend_info.bSupportsGPUTextureDecoding = true;    // Assumed support.
   config->backend_info.bSupportsInternalResolutionFrameDumps = true;  // Assumed support.
-  config->backend_info.bSupportsPostProcessing = false;               // No support yet.
+  config->backend_info.bSupportsPostProcessing = true;                // Assumed support.
   config->backend_info.bSupportsDualSourceBlend = false;              // Dependent on features.
   config->backend_info.bSupportsGeometryShaders = false;              // Dependent on features.
   config->backend_info.bSupportsGSInstancing = false;                 // Dependent on features.
   config->backend_info.bSupportsBBox = false;                         // Dependent on features.
+  config->backend_info.bSupportsFragmentStoresAndAtomics = false;     // Dependent on features.
   config->backend_info.bSupportsSSAA = false;                         // Dependent on features.
   config->backend_info.bSupportsDepthClamp = false;                   // Dependent on features.
+  config->backend_info.bSupportsST3CTextures = false;                 // Dependent on features.
   config->backend_info.bSupportsReversedDepthRange = false;  // No support yet due to driver bugs.
 }
 
@@ -257,12 +261,15 @@ void VulkanContext::PopulateBackendInfoAdapters(VideoConfig* config, const GPULi
 }
 
 void VulkanContext::PopulateBackendInfoFeatures(VideoConfig* config, VkPhysicalDevice gpu,
+                                                const VkPhysicalDeviceProperties& properties,
                                                 const VkPhysicalDeviceFeatures& features)
 {
+  config->backend_info.MaxTextureSize = properties.limits.maxImageDimension2D;
   config->backend_info.bSupportsDualSourceBlend = (features.dualSrcBlend == VK_TRUE);
   config->backend_info.bSupportsGeometryShaders = (features.geometryShader == VK_TRUE);
   config->backend_info.bSupportsGSInstancing = (features.geometryShader == VK_TRUE);
-  config->backend_info.bSupportsBBox = (features.fragmentStoresAndAtomics == VK_TRUE);
+  config->backend_info.bSupportsBBox = config->backend_info.bSupportsFragmentStoresAndAtomics =
+      (features.fragmentStoresAndAtomics == VK_TRUE);
   config->backend_info.bSupportsSSAA = (features.sampleRateShading == VK_TRUE);
 
   // Disable geometry shader when shaderTessellationAndGeometryPointSize is not supported.
@@ -276,6 +283,14 @@ void VulkanContext::PopulateBackendInfoFeatures(VideoConfig* config, VkPhysicalD
   // Depth clamping implies shaderClipDistance and depthClamp
   config->backend_info.bSupportsDepthClamp =
       (features.depthClamp == VK_TRUE && features.shaderClipDistance == VK_TRUE);
+
+  // textureCompressionBC implies BC1 through BC7, which is a superset of DXT1/3/5, which we need.
+  config->backend_info.bSupportsST3CTextures = features.textureCompressionBC == VK_TRUE;
+
+  // Our usage of primitive restart appears to be broken on AMD's binary drivers.
+  // Seems to be fine on GCN Gen 1-2, unconfirmed on GCN Gen 3, causes driver resets on GCN Gen 4.
+  if (DriverDetails::HasBug(DriverDetails::BUG_PRIMITIVE_RESTART))
+    config->backend_info.bSupportsPrimitiveRestart = false;
 }
 
 void VulkanContext::PopulateBackendInfoMultisampleModes(
@@ -448,6 +463,7 @@ bool VulkanContext::SelectDeviceFeatures()
   m_device_features.occlusionQueryPrecise = available_features.occlusionQueryPrecise;
   m_device_features.shaderClipDistance = available_features.shaderClipDistance;
   m_device_features.depthClamp = available_features.depthClamp;
+  m_device_features.textureCompressionBC = available_features.textureCompressionBC;
   return true;
 }
 

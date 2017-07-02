@@ -1,0 +1,208 @@
+// Copyright 2017 Dolphin Emulator Project
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
+
+#include "Core/IOS/ES/ES.h"
+
+#include <cinttypes>
+#include <utility>
+#include <vector>
+
+#include "Common/Logging/Log.h"
+#include "Common/MsgHandler.h"
+#include "Core/HW/Memmap.h"
+#include "Core/IOS/ES/Formats.h"
+#include "DiscIO/NANDContentLoader.h"
+
+namespace IOS
+{
+namespace HLE
+{
+namespace Device
+{
+s32 ES::OpenContent(const IOS::ES::TMDReader& tmd, u16 content_index, u32 uid)
+{
+  const u64 title_id = tmd.GetTitleId();
+  const DiscIO::NANDContentLoader& loader = AccessContentDevice(title_id);
+
+  if (!loader.IsValid())
+    return FS_ENOENT;
+
+  const DiscIO::NANDContent* content = loader.GetContentByIndex(content_index);
+  if (!content)
+    return FS_ENOENT;
+
+  for (size_t i = 0; i < m_content_table.size(); ++i)
+  {
+    OpenedContent& entry = m_content_table[i];
+    if (entry.m_opened)
+      continue;
+
+    entry.m_opened = true;
+    entry.m_position = 0;
+    entry.m_content = content->m_metadata;
+    entry.m_title_id = title_id;
+    entry.m_uid = uid;
+    INFO_LOG(IOS_ES, "OpenContent: title ID %016" PRIx64 ", UID 0x%x, CFD %zu", title_id, uid, i);
+    return static_cast<s32>(i);
+  }
+
+  return FS_EFDEXHAUSTED;
+}
+
+IPCCommandResult ES::OpenContent(u32 uid, const IOCtlVRequest& request)
+{
+  if (!request.HasNumberOfValidVectors(3, 0) || request.in_vectors[0].size != sizeof(u64) ||
+      request.in_vectors[1].size != sizeof(IOS::ES::TicketView) ||
+      request.in_vectors[2].size != sizeof(u32))
+  {
+    return GetDefaultReply(ES_EINVAL);
+  }
+
+  const u64 title_id = Memory::Read_U64(request.in_vectors[0].address);
+  const u32 content_index = Memory::Read_U32(request.in_vectors[2].address);
+  // TODO: check the ticket view, check permissions.
+
+  const auto tmd = FindInstalledTMD(title_id);
+  if (!tmd.IsValid())
+    return GetDefaultReply(FS_ENOENT);
+
+  return GetDefaultReply(OpenContent(tmd, content_index, uid));
+}
+
+IPCCommandResult ES::OpenActiveTitleContent(u32 caller_uid, const IOCtlVRequest& request)
+{
+  if (!request.HasNumberOfValidVectors(1, 0) || request.in_vectors[0].size != sizeof(u32))
+    return GetDefaultReply(ES_EINVAL);
+
+  const u32 content_index = Memory::Read_U32(request.in_vectors[0].address);
+
+  if (!GetTitleContext().active)
+    return GetDefaultReply(ES_EINVAL);
+
+  IOS::ES::UIDSys uid_map{Common::FROM_SESSION_ROOT};
+  const u32 uid = uid_map.GetOrInsertUIDForTitle(GetTitleContext().tmd.GetTitleId());
+  if (caller_uid != 0 && caller_uid != uid)
+    return GetDefaultReply(ES_EACCES);
+
+  return GetDefaultReply(OpenContent(GetTitleContext().tmd, content_index, caller_uid));
+}
+
+IPCCommandResult ES::ReadContent(u32 uid, const IOCtlVRequest& request)
+{
+  if (!request.HasNumberOfValidVectors(1, 1) || request.in_vectors[0].size != sizeof(u32))
+    return GetDefaultReply(ES_EINVAL);
+
+  const u32 cfd = Memory::Read_U32(request.in_vectors[0].address);
+  u32 size = request.io_vectors[0].size;
+  const u32 addr = request.io_vectors[0].address;
+
+  if (cfd >= m_content_table.size())
+    return GetDefaultReply(ES_EINVAL);
+  OpenedContent& entry = m_content_table[cfd];
+
+  if (entry.m_uid != uid)
+    return GetDefaultReply(ES_EACCES);
+  if (!entry.m_opened)
+    return GetDefaultReply(IPC_EINVAL);
+
+  // XXX: make this reuse the FS code... ES just does a simple "IOS_Read" call here
+  //      instead of all this duplicated filesystem logic.
+
+  if (entry.m_position + size > entry.m_content.size)
+    size = static_cast<u32>(entry.m_content.size) - entry.m_position;
+
+  if (size > 0)
+  {
+    if (addr)
+    {
+      const DiscIO::NANDContentLoader& ContentLoader = AccessContentDevice(entry.m_title_id);
+      // ContentLoader should never be invalid; rContent has been created by it.
+      if (ContentLoader.IsValid() && ContentLoader.GetTicket().IsValid())
+      {
+        const DiscIO::NANDContent* pContent =
+            ContentLoader.GetContentByIndex(entry.m_content.index);
+        pContent->m_Data->Open();
+        if (!pContent->m_Data->GetRange(entry.m_position, size, Memory::GetPointer(addr)))
+          ERROR_LOG(IOS_ES, "ES: failed to read %u bytes from %u!", size, entry.m_position);
+      }
+
+      entry.m_position += size;
+    }
+    else
+    {
+      PanicAlert("IOCTL_ES_READCONTENT - bad destination");
+    }
+  }
+
+  return GetDefaultReply(size);
+}
+
+IPCCommandResult ES::CloseContent(u32 uid, const IOCtlVRequest& request)
+{
+  if (!request.HasNumberOfValidVectors(1, 0) || request.in_vectors[0].size != sizeof(u32))
+    return GetDefaultReply(ES_EINVAL);
+
+  const u32 cfd = Memory::Read_U32(request.in_vectors[0].address);
+  if (cfd >= m_content_table.size())
+    return GetDefaultReply(ES_EINVAL);
+
+  OpenedContent& entry = m_content_table[cfd];
+  if (entry.m_uid != uid)
+    return GetDefaultReply(ES_EACCES);
+  if (!entry.m_opened)
+    return GetDefaultReply(IPC_EINVAL);
+
+  // XXX: again, this should be a simple IOS_Close.
+  const DiscIO::NANDContentLoader& ContentLoader = AccessContentDevice(entry.m_title_id);
+  // ContentLoader should never be invalid; we shouldn't be here if ES_OPENCONTENT failed before.
+  if (ContentLoader.IsValid())
+  {
+    const DiscIO::NANDContent* content = ContentLoader.GetContentByIndex(entry.m_content.index);
+    content->m_Data->Close();
+  }
+
+  entry = {};
+  INFO_LOG(IOS_ES, "CloseContent: CFD %u", cfd);
+  return GetDefaultReply(IPC_SUCCESS);
+}
+
+IPCCommandResult ES::SeekContent(u32 uid, const IOCtlVRequest& request)
+{
+  if (!request.HasNumberOfValidVectors(3, 0))
+    return GetDefaultReply(ES_EINVAL);
+
+  const u32 cfd = Memory::Read_U32(request.in_vectors[0].address);
+  if (cfd >= m_content_table.size())
+    return GetDefaultReply(ES_EINVAL);
+
+  OpenedContent& entry = m_content_table[cfd];
+  if (entry.m_uid != uid)
+    return GetDefaultReply(ES_EACCES);
+  if (!entry.m_opened)
+    return GetDefaultReply(IPC_EINVAL);
+
+  u32 Addr = Memory::Read_U32(request.in_vectors[1].address);
+  u32 Mode = Memory::Read_U32(request.in_vectors[2].address);
+
+  // XXX: This should be a simple IOS_Seek.
+  switch (Mode)
+  {
+  case 0:  // SET
+    entry.m_position = Addr;
+    break;
+
+  case 1:  // CUR
+    entry.m_position += Addr;
+    break;
+
+  case 2:  // END
+    entry.m_position = static_cast<u32>(entry.m_content.size) + Addr;
+    break;
+  }
+
+  return GetDefaultReply(entry.m_position);
+}
+}  // namespace Device
+}  // namespace HLE
+}  // namespace IOS

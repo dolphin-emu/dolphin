@@ -5,10 +5,12 @@
 #include <cstddef>
 #include <map>
 #include <memory>
+#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
 
+#include "Common/Assert.h"
 #include "Common/ColorUtil.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
@@ -16,43 +18,36 @@
 #include "Common/StringUtil.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
-#include "DiscIO/FileMonitor.h"
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeGC.h"
 
 namespace DiscIO
 {
-CVolumeGC::CVolumeGC(std::unique_ptr<IBlobReader> reader) : m_pReader(std::move(reader))
+VolumeGC::VolumeGC(std::unique_ptr<BlobReader> reader) : m_pReader(std::move(reader))
+{
+  _assert_(m_pReader);
+}
+
+VolumeGC::~VolumeGC()
 {
 }
 
-CVolumeGC::~CVolumeGC()
+bool VolumeGC::Read(u64 _Offset, u64 _Length, u8* _pBuffer, const Partition& partition) const
 {
-}
-
-bool CVolumeGC::Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt) const
-{
-  if (decrypt)
-    PanicAlertT("Tried to decrypt data from a non-Wii volume");
-
-  if (m_pReader == nullptr)
+  if (partition != PARTITION_NONE)
     return false;
-
-  FileMon::FindFilename(_Offset);
 
   return m_pReader->Read(_Offset, _Length, _pBuffer);
 }
 
-std::string CVolumeGC::GetGameID() const
+std::string VolumeGC::GetGameID(const Partition& partition) const
 {
   static const std::string NO_UID("NO_UID");
-  if (m_pReader == nullptr)
-    return NO_UID;
 
   char ID[6];
 
-  if (!Read(0, sizeof(ID), reinterpret_cast<u8*>(ID)))
+  if (!Read(0, sizeof(ID), reinterpret_cast<u8*>(ID), partition))
   {
     PanicAlertT("Failed to read unique ID from disc image");
     return NO_UID;
@@ -61,88 +56,73 @@ std::string CVolumeGC::GetGameID() const
   return DecodeString(ID);
 }
 
-Region CVolumeGC::GetRegion() const
+Region VolumeGC::GetRegion() const
 {
-  u8 country_code;
-  if (!m_pReader->Read(3, 1, &country_code))
-    return Region::UNKNOWN_REGION;
-
-  return RegionSwitchGC(country_code);
+  const std::optional<u8> country_code = ReadSwapped<u8>(3, PARTITION_NONE);
+  return country_code ? RegionSwitchGC(*country_code) : Region::UNKNOWN_REGION;
 }
 
-Country CVolumeGC::GetCountry() const
+Country VolumeGC::GetCountry(const Partition& partition) const
 {
-  u8 country_code;
-  if (!m_pReader->Read(3, 1, &country_code))
-    return Country::COUNTRY_UNKNOWN;
-
-  return CountrySwitch(country_code);
+  const std::optional<u8> country_code = ReadSwapped<u8>(3, partition);
+  return country_code ? CountrySwitch(*country_code) : Country::COUNTRY_UNKNOWN;
 }
 
-std::string CVolumeGC::GetMakerID() const
+std::string VolumeGC::GetMakerID(const Partition& partition) const
 {
-  if (m_pReader == nullptr)
-    return std::string();
-
   char makerID[2];
-  if (!Read(0x4, 0x2, (u8*)&makerID))
+  if (!Read(0x4, 0x2, (u8*)&makerID, partition))
     return std::string();
 
   return DecodeString(makerID);
 }
 
-u16 CVolumeGC::GetRevision() const
+std::optional<u16> VolumeGC::GetRevision(const Partition& partition) const
 {
-  if (!m_pReader)
-    return 0;
-
-  u8 revision;
-  if (!Read(7, 1, &revision))
-    return 0;
-
-  return revision;
+  std::optional<u8> revision = ReadSwapped<u8>(7, partition);
+  return revision ? *revision : std::optional<u16>();
 }
 
-std::string CVolumeGC::GetInternalName() const
+std::string VolumeGC::GetInternalName(const Partition& partition) const
 {
   char name[0x60];
-  if (m_pReader != nullptr && Read(0x20, 0x60, (u8*)name))
+  if (Read(0x20, 0x60, (u8*)name, partition))
     return DecodeString(name);
 
   return "";
 }
 
-std::map<Language, std::string> CVolumeGC::GetShortNames() const
+std::map<Language, std::string> VolumeGC::GetShortNames() const
 {
   LoadBannerFile();
   return m_short_names;
 }
 
-std::map<Language, std::string> CVolumeGC::GetLongNames() const
+std::map<Language, std::string> VolumeGC::GetLongNames() const
 {
   LoadBannerFile();
   return m_long_names;
 }
 
-std::map<Language, std::string> CVolumeGC::GetShortMakers() const
+std::map<Language, std::string> VolumeGC::GetShortMakers() const
 {
   LoadBannerFile();
   return m_short_makers;
 }
 
-std::map<Language, std::string> CVolumeGC::GetLongMakers() const
+std::map<Language, std::string> VolumeGC::GetLongMakers() const
 {
   LoadBannerFile();
   return m_long_makers;
 }
 
-std::map<Language, std::string> CVolumeGC::GetDescriptions() const
+std::map<Language, std::string> VolumeGC::GetDescriptions() const
 {
   LoadBannerFile();
   return m_descriptions;
 }
 
-std::vector<u32> CVolumeGC::GetBanner(int* width, int* height) const
+std::vector<u32> VolumeGC::GetBanner(int* width, int* height) const
 {
   LoadBannerFile();
   *width = m_image_width;
@@ -150,64 +130,41 @@ std::vector<u32> CVolumeGC::GetBanner(int* width, int* height) const
   return m_image_buffer;
 }
 
-u64 CVolumeGC::GetFSTSize() const
+std::string VolumeGC::GetApploaderDate(const Partition& partition) const
 {
-  if (m_pReader == nullptr)
-    return 0;
-
-  u32 size;
-  if (!Read(0x428, 0x4, (u8*)&size))
-    return 0;
-
-  return Common::swap32(size);
-}
-
-std::string CVolumeGC::GetApploaderDate() const
-{
-  if (m_pReader == nullptr)
-    return std::string();
-
   char date[16];
-  if (!Read(0x2440, 0x10, (u8*)&date))
+  if (!Read(0x2440, 0x10, (u8*)&date, partition))
     return std::string();
 
   return DecodeString(date);
 }
 
-BlobType CVolumeGC::GetBlobType() const
+BlobType VolumeGC::GetBlobType() const
 {
-  return m_pReader ? m_pReader->GetBlobType() : BlobType::PLAIN;
+  return m_pReader->GetBlobType();
 }
 
-u64 CVolumeGC::GetSize() const
+u64 VolumeGC::GetSize() const
 {
-  if (m_pReader)
-    return m_pReader->GetDataSize();
-  else
-    return 0;
+  return m_pReader->GetDataSize();
 }
 
-u64 CVolumeGC::GetRawSize() const
+u64 VolumeGC::GetRawSize() const
 {
-  if (m_pReader)
-    return m_pReader->GetRawSize();
-  else
-    return 0;
+  return m_pReader->GetRawSize();
 }
 
-u8 CVolumeGC::GetDiscNumber() const
+std::optional<u8> VolumeGC::GetDiscNumber(const Partition& partition) const
 {
-  u8 disc_number;
-  Read(6, 1, &disc_number);
-  return disc_number;
+  return ReadSwapped<u8>(6, partition);
 }
 
-Platform CVolumeGC::GetVolumeType() const
+Platform VolumeGC::GetVolumeType() const
 {
   return Platform::GAMECUBE_DISC;
 }
 
-void CVolumeGC::LoadBannerFile() const
+void VolumeGC::LoadBannerFile() const
 {
   // If opening.bnr has been loaded already, return immediately
   if (m_banner_loaded)
@@ -216,9 +173,15 @@ void CVolumeGC::LoadBannerFile() const
   m_banner_loaded = true;
 
   GCBanner banner_file;
-  std::unique_ptr<IFileSystem> file_system(CreateFileSystem(this));
-  size_t file_size = (size_t)file_system->GetFileSize("opening.bnr");
+  std::unique_ptr<FileSystem> file_system(CreateFileSystem(this, PARTITION_NONE));
+  if (!file_system)
+    return;
 
+  std::unique_ptr<FileInfo> file_info = file_system->FindFileInfo("opening.bnr");
+  if (!file_info)
+    return;
+
+  size_t file_size = static_cast<size_t>(file_info->GetSize());
   constexpr int BNR1_MAGIC = 0x31524e42;
   constexpr int BNR2_MAGIC = 0x32524e42;
   if (file_size != BNR1_SIZE && file_size != BNR2_SIZE)
@@ -227,7 +190,12 @@ void CVolumeGC::LoadBannerFile() const
     return;
   }
 
-  file_system->ReadFile("opening.bnr", reinterpret_cast<u8*>(&banner_file), file_size);
+  if (file_size !=
+      file_system->ReadFile(file_info.get(), reinterpret_cast<u8*>(&banner_file), file_size))
+  {
+    WARN_LOG(DISCIO, "Could not read opening.bnr.");
+    return;
+  }
 
   bool is_bnr1;
   if (banner_file.id == BNR1_MAGIC && file_size == BNR1_SIZE)
@@ -247,7 +215,7 @@ void CVolumeGC::LoadBannerFile() const
   ExtractBannerInformation(banner_file, is_bnr1);
 }
 
-void CVolumeGC::ExtractBannerInformation(const GCBanner& banner_file, bool is_bnr1) const
+void VolumeGC::ExtractBannerInformation(const GCBanner& banner_file, bool is_bnr1) const
 {
   u32 number_of_languages = 0;
   Language start_language = Language::LANGUAGE_UNKNOWN;

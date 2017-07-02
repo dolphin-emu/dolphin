@@ -7,7 +7,6 @@
 #include <functional>
 #include <memory>
 
-#include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/Logging/Log.h"
 #include "Core/Core.h"
@@ -39,7 +38,7 @@ IPCCommandResult STMImmediate::IOCtl(const IOCtlRequest& request)
       break;
     }
     Memory::Write_U32(0, s_event_hook_request->buffer_out);
-    EnqueueReply(*s_event_hook_request, IPC_SUCCESS);
+    m_ios.EnqueueIPCReply(*s_event_hook_request, IPC_SUCCESS);
     s_event_hook_request.reset();
     break;
 
@@ -67,10 +66,10 @@ IPCCommandResult STMImmediate::IOCtl(const IOCtlRequest& request)
   return GetDefaultReply(return_value);
 }
 
-void STMEventHook::Close()
+ReturnCode STMEventHook::Close(u32 fd)
 {
   s_event_hook_request.reset();
-  m_is_active = false;
+  return Device::Close(fd);
 }
 
 IPCCommandResult STMEventHook::IOCtl(const IOCtlRequest& request)
@@ -109,7 +108,7 @@ void STMEventHook::TriggerEvent(const u32 event) const
     return;
 
   Memory::Write_U32(event, s_event_hook_request->buffer_out);
-  EnqueueReply(*s_event_hook_request, IPC_SUCCESS);
+  m_ios.EnqueueIPCReply(*s_event_hook_request, IPC_SUCCESS);
   s_event_hook_request.reset();
 }
 

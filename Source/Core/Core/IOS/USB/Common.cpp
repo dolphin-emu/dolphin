@@ -2,15 +2,16 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/IOS/USB/Common.h"
+
 #include <algorithm>
 
 #include "Common/Align.h"
 #include "Common/Assert.h"
-#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
+#include "Common/Swap.h"
 #include "Core/HW/Memmap.h"
-#include "Core/IOS/USB/Common.h"
 
 namespace IOS
 {
@@ -30,6 +31,11 @@ void TransferCommand::FillBuffer(const u8* src, const size_t size) const
 {
   _assert_msg_(IOS_USB, size == 0 || data_address != 0, "Invalid data_address");
   Memory::CopyToEmu(data_address, src, size);
+}
+
+void TransferCommand::OnTransferComplete(s32 return_value) const
+{
+  m_ios.EnqueueIPCReply(ios_request, return_value, 0, CoreTiming::FromThread::NON_CPU);
 }
 
 void IsoMessage::SetPacketReturnValue(const size_t packet_num, const u16 return_value) const

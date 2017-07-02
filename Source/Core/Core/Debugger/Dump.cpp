@@ -2,13 +2,13 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/Debugger/Dump.h"
+
 #include <cstdio>
 #include <string>
 
 #include "Common/CommonTypes.h"
-#include "Common/FileUtil.h"
-
-#include "Core/Debugger/Dump.h"
+#include "Common/File.h"
 
 CDump::CDump(const std::string& filename) : m_pData(nullptr)
 {
@@ -42,7 +42,7 @@ u32 CDump::GetGPR(int _step, int _gpr)
   u32 offset = _step * STRUCTUR_SIZE;
 
   if (offset >= m_size)
-    return -1;
+    return UINT32_MAX;
 
   return Read32(offset + OFFSET_GPR + (_gpr * 4));
 }
@@ -52,7 +52,7 @@ u32 CDump::GetPC(int _step)
   u32 offset = _step * STRUCTUR_SIZE;
 
   if (offset >= m_size)
-    return -1;
+    return UINT32_MAX;
 
   return Read32(offset + OFFSET_PC);
 }

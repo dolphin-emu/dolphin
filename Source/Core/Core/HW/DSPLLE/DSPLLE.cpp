@@ -176,7 +176,7 @@ bool DSPLLE::Initialize(bool wii, bool dsp_thread)
     return false;
 
   // needs to be after DSPCore_Init for the dspjit ptr
-  if (Core::g_want_determinism || !g_dsp_jit)
+  if (Core::WantsDeterminism() || !g_dsp_jit)
     dsp_thread = false;
 
   m_wii = wii;
@@ -297,28 +297,10 @@ void DSPLLE::DSP_Update(int cycles)
 
   if (dsp_cycles <= 0)
     return;
-  // Sound stream update job has been handled by AudioDMA routine, which is more efficient
-  /*
-    // This gets called VERY OFTEN. The soundstream update might be expensive so only do it 200
-    times per second or something.
-    int cycles_between_ss_update;
 
-    if (g_dspInitialize.bWii)
-      cycles_between_ss_update = 121500000 / 200;
-    else
-      cycles_between_ss_update = 81000000 / 200;
-
-    m_cycle_count += cycles;
-    if (m_cycle_count > cycles_between_ss_update)
-    {
-      while (m_cycle_count > cycles_between_ss_update)
-        m_cycle_count -= cycles_between_ss_update;
-      soundStream->Update();
-    }
-  */
   if (m_is_dsp_on_thread)
   {
-    if (s_request_disable_thread || Core::g_want_determinism)
+    if (s_request_disable_thread || Core::WantsDeterminism())
     {
       DSP_StopSoundStream();
       m_is_dsp_on_thread = false;

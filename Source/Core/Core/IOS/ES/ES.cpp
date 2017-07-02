@@ -2,63 +2,32 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-// =======================================================
-// File description
-// -------------
-/*  Here we handle /dev/es requests. We have cases for these functions, the exact
-  DevKitPro/libogc name is in parenthesis:
-
-  0x20 GetTitleID (ES_GetTitleID) (Input: none, Output: 8 bytes)
-  0x1d GetDataDir (ES_GetDataDir) (Input: 8 bytes, Output: 30 bytes)
-
-  0x1b DiGetTicketView (Input: none, Output: 216 bytes)
-  0x16 GetConsumption (Input: 8 bytes, Output: 0 bytes, 4 bytes) // there are two output buffers
-
-  0x12 GetNumTicketViews (ES_GetNumTicketViews) (Input: 8 bytes, Output: 4 bytes)
-  0x14 GetTMDViewSize (ES_GetTMDViewSize) (Input: ?, Output: ?) // I don't get this anymore,
-    it used to come after 0x12
-
-  but only the first two are correctly supported. For the other four we ignore any potential
-  input and only write zero to the out buffer. However, most games only use first two,
-  but some Nintendo developed games use the other ones to:
-
-  0x1b: Mario Galaxy, Mario Kart, SSBB
-  0x16: Mario Galaxy, Mario Kart, SSBB
-  0x12: Mario Kart
-  0x14: Mario Kart: But only if we don't return a zeroed out buffer for the 0x12 question,
-    and instead answer for example 1 will this question appear.
-
-*/
-// =============
+#include "Core/IOS/ES/ES.h"
 
 #include <algorithm>
 #include <cinttypes>
 #include <cstdio>
-#include <cstring>
 #include <memory>
 #include <utility>
 #include <vector>
 
-#include <mbedtls/aes.h>
+#include <mbedtls/sha1.h>
 
-#include "Common/Assert.h"
 #include "Common/ChunkFile.h"
-#include "Common/CommonFuncs.h"
+#include "Common/File.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/NandPaths.h"
-#include "Core/Boot/Boot_DOL.h"
+#include "Common/ScopeGuard.h"
+#include "Common/StringUtil.h"
+#include "Core/CommonTitles.h"
 #include "Core/ConfigManager.h"
-#include "Core/HW/DVDInterface.h"
 #include "Core/HW/Memmap.h"
-#include "Core/IOS/ES/ES.h"
 #include "Core/IOS/ES/Formats.h"
-#include "Core/PowerPC/PowerPC.h"
-#include "Core/WiiRoot.h"
+#include "Core/IOS/IOSC.h"
 #include "Core/ec_wii.h"
 #include "DiscIO/NANDContentLoader.h"
-#include "DiscIO/Volume.h"
 
 namespace IOS
 {
@@ -66,642 +35,126 @@ namespace HLE
 {
 namespace Device
 {
-std::string ES::m_ContentFile;
+// TODO: drop this and convert the title context into a member once the WAD launch hack is gone.
+static std::string s_content_file;
+static TitleContext s_title_context;
 
-constexpr u8 s_key_sd[0x10] = {0xab, 0x01, 0xb9, 0xd8, 0xe1, 0x62, 0x2b, 0x08,
-                               0xaf, 0xba, 0xd8, 0x4d, 0xbf, 0xc2, 0xa5, 0x5d};
-constexpr u8 s_key_ecc[0x1e] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01};
-constexpr u8 s_key_empty[0x10] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+// Title to launch after IOS has been reset and reloaded (similar to /sys/launch.sys).
+static u64 s_title_to_launch;
 
-// default key table
-constexpr const u8* s_key_table[11] = {
-    s_key_ecc,    // ECC Private Key
-    s_key_empty,  // Console ID
-    s_key_empty,  // NAND AES Key
-    s_key_empty,  // NAND HMAC
-    s_key_empty,  // Common Key
-    s_key_empty,  // PRNG seed
-    s_key_sd,     // SD Key
-    s_key_empty,  // Unknown
-    s_key_empty,  // Unknown
-    s_key_empty,  // Unknown
-    s_key_empty,  // Unknown
+struct DirectoryToCreate
+{
+  const char* path;
+  u32 attributes;
+  OpenMode owner_perm;
+  OpenMode group_perm;
+  OpenMode other_perm;
 };
 
-ES::ES(u32 device_id, const std::string& device_name) : Device(device_id, device_name)
+constexpr std::array<DirectoryToCreate, 9> s_directories_to_create = {{
+    {"/sys", 0, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_NONE},
+    {"/ticket", 0, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_NONE},
+    {"/title", 0, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_READ},
+    {"/shared1", 0, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_NONE},
+    {"/shared2", 0, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_RW},
+    {"/tmp", 0, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_RW},
+    {"/import", 0, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_NONE},
+    {"/meta", 0, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_RW},
+    {"/wfs", 0, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_NONE, OpenMode::IOS_OPEN_NONE},
+}};
+
+ES::ES(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
 {
+  for (const auto& directory : s_directories_to_create)
+  {
+    const std::string path = Common::RootUserPath(Common::FROM_SESSION_ROOT) + directory.path;
+
+    // Create the directory if it does not exist.
+    if (File::IsDirectory(path))
+      continue;
+
+    File::CreateFullPath(path);
+    if (File::CreateDir(path))
+      INFO_LOG(IOS_ES, "Created %s (at %s)", directory.path, path.c_str());
+    else
+      ERROR_LOG(IOS_ES, "Failed to create %s (at %s)", directory.path, path.c_str());
+
+    // TODO: Set permissions.
+  }
+
+  FinishAllStaleImports();
+
+  s_content_file = "";
+  s_title_context = TitleContext{};
+
+  if (s_title_to_launch != 0)
+  {
+    NOTICE_LOG(IOS, "Re-launching title after IOS reload.");
+    LaunchTitle(s_title_to_launch, true);
+    s_title_to_launch = 0;
+  }
+}
+
+TitleContext& ES::GetTitleContext()
+{
+  return s_title_context;
+}
+
+void TitleContext::Clear()
+{
+  ticket.SetBytes({});
+  tmd.SetBytes({});
+  active = false;
+}
+
+void TitleContext::DoState(PointerWrap& p)
+{
+  ticket.DoState(p);
+  tmd.DoState(p);
+  p.Do(active);
+}
+
+void TitleContext::Update(const DiscIO::NANDContentLoader& content_loader)
+{
+  if (!content_loader.IsValid())
+    return;
+  Update(content_loader.GetTMD(), content_loader.GetTicket());
+}
+
+void TitleContext::Update(const IOS::ES::TMDReader& tmd_, const IOS::ES::TicketReader& ticket_)
+{
+  if (!tmd_.IsValid() || !ticket_.IsValid())
+  {
+    ERROR_LOG(IOS_ES, "TMD or ticket is not valid -- refusing to update title context");
+    return;
+  }
+
+  ticket = ticket_;
+  tmd = tmd_;
+  active = true;
+
+  // Interesting title changes (channel or disc game launch) always happen after an IOS reload.
+  if (first_change)
+  {
+    SConfig::GetInstance().SetRunningGameMetadata(tmd);
+    first_change = false;
+  }
 }
 
 void ES::LoadWAD(const std::string& _rContentFile)
 {
-  m_ContentFile = _rContentFile;
-}
-
-void ES::DecryptContent(u32 key_index, u8* iv, u8* input, u32 size, u8* new_iv, u8* output)
-{
-  mbedtls_aes_context AES_ctx;
-  mbedtls_aes_setkey_dec(&AES_ctx, s_key_table[key_index], 128);
-  memcpy(new_iv, iv, 16);
-  mbedtls_aes_crypt_cbc(&AES_ctx, MBEDTLS_AES_DECRYPT, size, new_iv, input, output);
-}
-
-void ES::OpenInternal()
-{
-  auto& contentLoader = DiscIO::CNANDContentManager::Access().GetNANDLoader(m_ContentFile);
-
-  // check for cd ...
-  if (contentLoader.IsValid())
-  {
-    m_TitleID = contentLoader.GetTitleID();
-
-    m_TitleIDs.clear();
-    DiscIO::cUIDsys uid_sys{Common::FromWhichRoot::FROM_SESSION_ROOT};
-    uid_sys.GetTitleIDs(m_TitleIDs);
-    // uncomment if  ES_GetOwnedTitlesCount / ES_GetOwnedTitles is implemented
-    // m_TitleIDsOwned.clear();
-    // DiscIO::cUIDsys::AccessInstance().GetTitleIDs(m_TitleIDsOwned, true);
-  }
-  else if (DVDInterface::VolumeIsValid())
-  {
-    // blindly grab the titleID from the disc - it's unencrypted at:
-    // offset 0x0F8001DC and 0x0F80044C
-    DVDInterface::GetVolume().GetTitleID(&m_TitleID);
-  }
-  else
-  {
-    m_TitleID = ((u64)0x00010000 << 32) | 0xF00DBEEF;
-  }
-
-  INFO_LOG(IOS_ES, "Set default title to %08x/%08x", (u32)(m_TitleID >> 32), (u32)m_TitleID);
-}
-
-void ES::DoState(PointerWrap& p)
-{
-  Device::DoState(p);
-  p.Do(m_ContentFile);
-  OpenInternal();
-  p.Do(m_AccessIdentID);
-  p.Do(m_TitleIDs);
-
-  m_addtitle_tmd.DoState(p);
-  p.Do(m_addtitle_content_id);
-  p.Do(m_addtitle_content_buffer);
-
-  u32 Count = (u32)(m_ContentAccessMap.size());
-  p.Do(Count);
-
-  u32 CFD = 0;
-  u32 Position = 0;
-  u64 TitleID = 0;
-  u16 Index = 0;
-  if (p.GetMode() == PointerWrap::MODE_READ)
-  {
-    for (u32 i = 0; i < Count; i++)
-    {
-      p.Do(CFD);
-      p.Do(Position);
-      p.Do(TitleID);
-      p.Do(Index);
-      CFD = OpenTitleContent(CFD, TitleID, Index);
-      if (CFD != 0xffffffff)
-      {
-        m_ContentAccessMap[CFD].m_Position = Position;
-      }
-    }
-  }
-  else
-  {
-    for (auto& pair : m_ContentAccessMap)
-    {
-      CFD = pair.first;
-      SContentAccess& Access = pair.second;
-      Position = Access.m_Position;
-      TitleID = Access.m_TitleID;
-      Index = Access.m_Index;
-      p.Do(CFD);
-      p.Do(Position);
-      p.Do(TitleID);
-      p.Do(Index);
-    }
-  }
-}
-
-ReturnCode ES::Open(const OpenRequest& request)
-{
-  OpenInternal();
-
-  if (m_is_active)
-    INFO_LOG(IOS_ES, "Device was re-opened.");
-  return Device::Open(request);
-}
-
-void ES::Close()
-{
-  m_ContentAccessMap.clear();
-  m_TitleIDs.clear();
-  m_TitleID = -1;
-  m_AccessIdentID = 0x6000000;
-
-  INFO_LOG(IOS_ES, "ES: Close");
-  m_is_active = false;
-  // clear the NAND content cache to make sure nothing remains open.
-  DiscIO::CNANDContentManager::Access().ClearCache();
-}
-
-u32 ES::OpenTitleContent(u32 CFD, u64 TitleID, u16 Index)
-{
-  const DiscIO::CNANDContentLoader& Loader = AccessContentDevice(TitleID);
-
-  if (!Loader.IsValid())
-  {
-    WARN_LOG(IOS_ES, "ES: loader not valid for %" PRIx64, TitleID);
-    return 0xffffffff;
-  }
-
-  const DiscIO::SNANDContent* pContent = Loader.GetContentByIndex(Index);
-
-  if (pContent == nullptr)
-  {
-    return 0xffffffff;  // TODO: what is the correct error value here?
-  }
-
-  SContentAccess Access;
-  Access.m_Position = 0;
-  Access.m_Index = pContent->m_Index;
-  Access.m_Size = pContent->m_Size;
-  Access.m_TitleID = TitleID;
-
-  pContent->m_Data->Open();
-
-  m_ContentAccessMap[CFD] = Access;
-  return CFD;
-}
-
-IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
-{
-  DEBUG_LOG(IOS_ES, "%s (0x%x)", GetDeviceName().c_str(), request.request);
-
-  // Clear the IO buffers. Note that this is unsafe for other ioctlvs.
-  for (const auto& io_vector : request.io_vectors)
-  {
-    if (!request.HasInputVectorWithAddress(io_vector.address))
-      Memory::Memset(io_vector.address, 0, io_vector.size);
-  }
-
-  switch (request.request)
-  {
-  case IOCTL_ES_ADDTICKET:
-    return AddTicket(request);
-  case IOCTL_ES_ADDTITLESTART:
-    return AddTitleStart(request);
-  case IOCTL_ES_ADDCONTENTSTART:
-    return AddContentStart(request);
-  case IOCTL_ES_ADDCONTENTDATA:
-    return AddContentData(request);
-  case IOCTL_ES_ADDCONTENTFINISH:
-    return AddContentFinish(request);
-  case IOCTL_ES_ADDTITLEFINISH:
-    return AddTitleFinish(request);
-  case IOCTL_ES_GETDEVICEID:
-    return ESGetDeviceID(request);
-  case IOCTL_ES_GETTITLECONTENTSCNT:
-    return GetTitleContentsCount(request);
-  case IOCTL_ES_GETTITLECONTENTS:
-    return GetTitleContents(request);
-  case IOCTL_ES_OPENTITLECONTENT:
-    return OpenTitleContent(request);
-  case IOCTL_ES_OPENCONTENT:
-    return OpenContent(request);
-  case IOCTL_ES_READCONTENT:
-    return ReadContent(request);
-  case IOCTL_ES_CLOSECONTENT:
-    return CloseContent(request);
-  case IOCTL_ES_SEEKCONTENT:
-    return SeekContent(request);
-  case IOCTL_ES_GETTITLEDIR:
-    return GetTitleDirectory(request);
-  case IOCTL_ES_GETTITLEID:
-    return GetTitleID(request);
-  case IOCTL_ES_SETUID:
-    return SetUID(request);
-  case IOCTL_ES_GETTITLECNT:
-    return GetTitleCount(request);
-  case IOCTL_ES_GETTITLES:
-    return GetTitles(request);
-  case IOCTL_ES_GETVIEWCNT:
-    return GetViewCount(request);
-  case IOCTL_ES_GETVIEWS:
-    return GetViews(request);
-  case IOCTL_ES_GETTMDVIEWCNT:
-    return GetTMDViewCount(request);
-  case IOCTL_ES_GETTMDVIEWS:
-    return GetTMDViews(request);
-  case IOCTL_ES_GETCONSUMPTION:
-    return GetConsumption(request);
-  case IOCTL_ES_DELETETICKET:
-    return DeleteTicket(request);
-  case IOCTL_ES_DELETETITLECONTENT:
-    return DeleteTitleContent(request);
-  case IOCTL_ES_GETSTOREDTMDSIZE:
-    return GetStoredTMDSize(request);
-  case IOCTL_ES_GETSTOREDTMD:
-    return GetStoredTMD(request);
-  case IOCTL_ES_ENCRYPT:
-    return Encrypt(request);
-  case IOCTL_ES_DECRYPT:
-    return Decrypt(request);
-  case IOCTL_ES_LAUNCH:
-    return Launch(request);
-  case IOCTL_ES_LAUNCHBC:
-    return LaunchBC(request);
-  case IOCTL_ES_CHECKKOREAREGION:
-    return CheckKoreaRegion(request);
-  case IOCTL_ES_GETDEVICECERT:
-    return GetDeviceCertificate(request);
-  case IOCTL_ES_SIGN:
-    return Sign(request);
-  case IOCTL_ES_GETBOOT2VERSION:
-    return GetBoot2Version(request);
-
-  // Unsupported functions
-  case IOCTL_ES_DIGETTICKETVIEW:
-    return DIGetTicketView(request);
-  case IOCTL_ES_GETOWNEDTITLECNT:
-    return GetOwnedTitleCount(request);
-  default:
-    request.DumpUnknown(GetDeviceName(), LogTypes::IOS);
-    break;
-  }
-
-  return GetDefaultReply(IPC_SUCCESS);
-}
-
-IPCCommandResult ES::AddTicket(const IOCtlVRequest& request)
-{
-  _dbg_assert_msg_(IOS_ES, request.in_vectors.size() == 3,
-                   "IOCTL_ES_ADDTICKET wrong number of inputs");
-
-  INFO_LOG(IOS_ES, "IOCTL_ES_ADDTICKET");
-  std::vector<u8> ticket(request.in_vectors[0].size);
-  Memory::CopyFromEmu(ticket.data(), request.in_vectors[0].address, request.in_vectors[0].size);
-  DiscIO::AddTicket(ticket);
-
-  return GetDefaultReply(IPC_SUCCESS);
-}
-
-IPCCommandResult ES::AddTitleStart(const IOCtlVRequest& request)
-{
-  _dbg_assert_msg_(IOS_ES, request.in_vectors.size() == 4,
-                   "IOCTL_ES_ADDTITLESTART wrong number of inputs");
-
-  INFO_LOG(IOS_ES, "IOCTL_ES_ADDTITLESTART");
-  std::vector<u8> tmd(request.in_vectors[0].size);
-  Memory::CopyFromEmu(tmd.data(), request.in_vectors[0].address, request.in_vectors[0].size);
-
-  m_addtitle_tmd.SetBytes(tmd);
-  if (!m_addtitle_tmd.IsValid())
-  {
-    ERROR_LOG(IOS_ES, "Invalid TMD while adding title (size = %zd)", tmd.size());
-    return GetDefaultReply(ES_INVALID_TMD);
-  }
-
-  // Write the TMD to title storage.
-  std::string tmd_path =
-      Common::GetTMDFileName(m_addtitle_tmd.GetTitleId(), Common::FROM_SESSION_ROOT);
-  File::CreateFullPath(tmd_path);
-
-  File::IOFile fp(tmd_path, "wb");
-  fp.WriteBytes(tmd.data(), tmd.size());
-
-  return GetDefaultReply(IPC_SUCCESS);
-}
-
-IPCCommandResult ES::AddContentStart(const IOCtlVRequest& request)
-{
-  _dbg_assert_msg_(IOS_ES, request.in_vectors.size() == 2,
-                   "IOCTL_ES_ADDCONTENTSTART wrong number of inputs");
-
-  u64 title_id = Memory::Read_U64(request.in_vectors[0].address);
-  u32 content_id = Memory::Read_U32(request.in_vectors[1].address);
-
-  if (m_addtitle_content_id != 0xFFFFFFFF)
-  {
-    ERROR_LOG(IOS_ES, "Trying to add content when we haven't finished adding "
-                      "another content. Unsupported.");
-    return GetDefaultReply(ES_WRITE_FAILURE);
-  }
-  m_addtitle_content_id = content_id;
-
-  m_addtitle_content_buffer.clear();
-
-  INFO_LOG(IOS_ES, "IOCTL_ES_ADDCONTENTSTART: title id %016" PRIx64 ", "
-                   "content id %08x",
-           title_id, m_addtitle_content_id);
-
-  if (title_id != m_addtitle_tmd.GetTitleId())
-  {
-    ERROR_LOG(IOS_ES, "IOCTL_ES_ADDCONTENTSTART: title id %016" PRIx64 " != "
-                      "TMD title id %016" PRIx64 ", ignoring",
-              title_id, m_addtitle_tmd.GetTitleId());
-  }
-
-  // We're supposed to return a "content file descriptor" here, which is
-  // passed to further AddContentData / AddContentFinish. But so far there is
-  // no known content installer which performs content addition concurrently.
-  // Instead we just log an error (see above) if this condition is detected.
-  s32 content_fd = 0;
-  return GetDefaultReply(content_fd);
-}
-
-IPCCommandResult ES::AddContentData(const IOCtlVRequest& request)
-{
-  _dbg_assert_msg_(IOS_ES, request.in_vectors.size() == 2,
-                   "IOCTL_ES_ADDCONTENTDATA wrong number of inputs");
-
-  u32 content_fd = Memory::Read_U32(request.in_vectors[0].address);
-  INFO_LOG(IOS_ES, "IOCTL_ES_ADDCONTENTDATA: content fd %08x, "
-                   "size %d",
-           content_fd, request.in_vectors[1].size);
-
-  u8* data_start = Memory::GetPointer(request.in_vectors[1].address);
-  u8* data_end = data_start + request.in_vectors[1].size;
-  m_addtitle_content_buffer.insert(m_addtitle_content_buffer.end(), data_start, data_end);
-  return GetDefaultReply(IPC_SUCCESS);
-}
-
-IPCCommandResult ES::AddContentFinish(const IOCtlVRequest& request)
-{
-  _dbg_assert_msg_(IOS_ES, request.in_vectors.size() == 1,
-                   "IOCTL_ES_ADDCONTENTFINISH wrong number of inputs");
-
-  u32 content_fd = Memory::Read_U32(request.in_vectors[0].address);
-  INFO_LOG(IOS_ES, "IOCTL_ES_ADDCONTENTFINISH: content fd %08x", content_fd);
-
-  // Try to find the title key from a pre-installed ticket.
-  std::vector<u8> ticket = DiscIO::FindSignedTicket(m_addtitle_tmd.GetTitleId());
-  if (ticket.size() == 0)
-  {
-    return GetDefaultReply(ES_NO_TICKET_INSTALLED);
-  }
-
-  mbedtls_aes_context aes_ctx;
-  mbedtls_aes_setkey_dec(&aes_ctx, DiscIO::GetKeyFromTicket(ticket).data(), 128);
-
-  // The IV for title content decryption is the lower two bytes of the
-  // content index, zero extended.
-  TMDReader::Content content_info;
-  if (!m_addtitle_tmd.FindContentById(m_addtitle_content_id, &content_info))
-  {
-    return GetDefaultReply(ES_INVALID_TMD);
-  }
-  u8 iv[16] = {0};
-  iv[0] = (content_info.index >> 8) & 0xFF;
-  iv[1] = content_info.index & 0xFF;
-  std::vector<u8> decrypted_data(m_addtitle_content_buffer.size());
-  mbedtls_aes_crypt_cbc(&aes_ctx, MBEDTLS_AES_DECRYPT, m_addtitle_content_buffer.size(), iv,
-                        m_addtitle_content_buffer.data(), decrypted_data.data());
-
-  std::string path = StringFromFormat(
-      "%s%08x.app",
-      Common::GetTitleContentPath(m_addtitle_tmd.GetTitleId(), Common::FROM_SESSION_ROOT).c_str(),
-      m_addtitle_content_id);
-
-  File::IOFile fp(path, "wb");
-  fp.WriteBytes(decrypted_data.data(), decrypted_data.size());
-
-  m_addtitle_content_id = 0xFFFFFFFF;
-  return GetDefaultReply(IPC_SUCCESS);
-}
-
-IPCCommandResult ES::AddTitleFinish(const IOCtlVRequest& request)
-{
-  INFO_LOG(IOS_ES, "IOCTL_ES_ADDTITLEFINISH");
-  return GetDefaultReply(IPC_SUCCESS);
-}
-
-IPCCommandResult ES::ESGetDeviceID(const IOCtlVRequest& request)
-{
-  _dbg_assert_msg_(IOS_ES, request.io_vectors.size() == 1, "IOCTL_ES_GETDEVICEID no io vectors");
-
-  const EcWii& ec = EcWii::GetInstance();
-  INFO_LOG(IOS_ES, "IOCTL_ES_GETDEVICEID %08X", ec.GetNGID());
-  Memory::Write_U32(ec.GetNGID(), request.io_vectors[0].address);
-  return GetDefaultReply(IPC_SUCCESS);
-}
-
-IPCCommandResult ES::GetTitleContentsCount(const IOCtlVRequest& request)
-{
-  _dbg_assert_(IOS_ES, request.in_vectors.size() == 1);
-  _dbg_assert_(IOS_ES, request.io_vectors.size() == 1);
-
-  u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
-
-  const DiscIO::CNANDContentLoader& rNANDContent = AccessContentDevice(TitleID);
-  u16 NumberOfPrivateContent = 0;
-  s32 return_value = IPC_SUCCESS;
-  if (rNANDContent.IsValid())  // Not sure if dolphin will ever fail this check
-  {
-    NumberOfPrivateContent = rNANDContent.GetNumEntries();
-
-    if ((u32)(TitleID >> 32) == 0x00010000)
-      Memory::Write_U32(0, request.io_vectors[0].address);
-    else
-      Memory::Write_U32(NumberOfPrivateContent, request.io_vectors[0].address);
-  }
-  else
-  {
-    return_value = static_cast<s32>(rNANDContent.GetContentSize());
-  }
-
-  INFO_LOG(IOS_ES, "IOCTL_ES_GETTITLECONTENTSCNT: TitleID: %08x/%08x  content count %i",
-           (u32)(TitleID >> 32), (u32)TitleID,
-           rNANDContent.IsValid() ? NumberOfPrivateContent : (u32)rNANDContent.GetContentSize());
-
-  return GetDefaultReply(return_value);
-}
-
-IPCCommandResult ES::GetTitleContents(const IOCtlVRequest& request)
-{
-  _dbg_assert_msg_(IOS_ES, request.in_vectors.size() == 2,
-                   "IOCTL_ES_GETTITLECONTENTS bad in buffer");
-  _dbg_assert_msg_(IOS_ES, request.io_vectors.size() == 1,
-                   "IOCTL_ES_GETTITLECONTENTS bad out buffer");
-
-  u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
-
-  const DiscIO::CNANDContentLoader& rNANDContent = AccessContentDevice(TitleID);
-  s32 return_value = IPC_SUCCESS;
-  if (rNANDContent.IsValid())  // Not sure if dolphin will ever fail this check
-  {
-    for (u16 i = 0; i < rNANDContent.GetNumEntries(); i++)
-    {
-      Memory::Write_U32(rNANDContent.GetContentByIndex(i)->m_ContentID,
-                        request.io_vectors[0].address + i * 4);
-      INFO_LOG(IOS_ES, "IOCTL_ES_GETTITLECONTENTS: Index %d: %08x", i,
-               rNANDContent.GetContentByIndex(i)->m_ContentID);
-    }
-  }
-  else
-  {
-    return_value = static_cast<s32>(rNANDContent.GetContentSize());
-    ERROR_LOG(IOS_ES, "IOCTL_ES_GETTITLECONTENTS: Unable to open content %zu",
-              rNANDContent.GetContentSize());
-  }
-
-  return GetDefaultReply(return_value);
-}
-
-IPCCommandResult ES::OpenTitleContent(const IOCtlVRequest& request)
-{
-  _dbg_assert_(IOS_ES, request.in_vectors.size() == 3);
-  _dbg_assert_(IOS_ES, request.io_vectors.size() == 0);
-
-  u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
-  u32 Index = Memory::Read_U32(request.in_vectors[2].address);
-
-  s32 CFD = OpenTitleContent(m_AccessIdentID++, TitleID, Index);
-
-  INFO_LOG(IOS_ES, "IOCTL_ES_OPENTITLECONTENT: TitleID: %08x/%08x  Index %i -> got CFD %x",
-           (u32)(TitleID >> 32), (u32)TitleID, Index, CFD);
-
-  return GetDefaultReply(CFD);
-}
-
-IPCCommandResult ES::OpenContent(const IOCtlVRequest& request)
-{
-  _dbg_assert_(IOS_ES, request.in_vectors.size() == 1);
-  _dbg_assert_(IOS_ES, request.io_vectors.size() == 0);
-  u32 Index = Memory::Read_U32(request.in_vectors[0].address);
-
-  s32 CFD = OpenTitleContent(m_AccessIdentID++, m_TitleID, Index);
-  INFO_LOG(IOS_ES, "IOCTL_ES_OPENCONTENT: Index %i -> got CFD %x", Index, CFD);
-
-  return GetDefaultReply(CFD);
-}
-
-IPCCommandResult ES::ReadContent(const IOCtlVRequest& request)
-{
-  _dbg_assert_(IOS_ES, request.in_vectors.size() == 1);
-  _dbg_assert_(IOS_ES, request.io_vectors.size() == 1);
-
-  u32 CFD = Memory::Read_U32(request.in_vectors[0].address);
-  u32 Size = request.io_vectors[0].size;
-  u32 Addr = request.io_vectors[0].address;
-
-  auto itr = m_ContentAccessMap.find(CFD);
-  if (itr == m_ContentAccessMap.end())
-  {
-    return GetDefaultReply(-1);
-  }
-  SContentAccess& rContent = itr->second;
-
-  u8* pDest = Memory::GetPointer(Addr);
-
-  if (rContent.m_Position + Size > rContent.m_Size)
-  {
-    Size = rContent.m_Size - rContent.m_Position;
-  }
-
-  if (Size > 0)
-  {
-    if (pDest)
-    {
-      const DiscIO::CNANDContentLoader& ContentLoader = AccessContentDevice(rContent.m_TitleID);
-      // ContentLoader should never be invalid; rContent has been created by it.
-      if (ContentLoader.IsValid())
-      {
-        const DiscIO::SNANDContent* pContent = ContentLoader.GetContentByIndex(rContent.m_Index);
-        if (!pContent->m_Data->GetRange(rContent.m_Position, Size, pDest))
-          ERROR_LOG(IOS_ES, "ES: failed to read %u bytes from %u!", Size, rContent.m_Position);
-      }
-
-      rContent.m_Position += Size;
-    }
-    else
-    {
-      PanicAlert("IOCTL_ES_READCONTENT - bad destination");
-    }
-  }
-
-  DEBUG_LOG(IOS_ES,
-            "IOCTL_ES_READCONTENT: CFD %x, Address 0x%x, Size %i -> stream pos %i (Index %i)", CFD,
-            Addr, Size, rContent.m_Position, rContent.m_Index);
-
-  return GetDefaultReply(Size);
-}
-
-IPCCommandResult ES::CloseContent(const IOCtlVRequest& request)
-{
-  _dbg_assert_(IOS_ES, request.in_vectors.size() == 1);
-  _dbg_assert_(IOS_ES, request.io_vectors.size() == 0);
-
-  u32 CFD = Memory::Read_U32(request.in_vectors[0].address);
-
-  INFO_LOG(IOS_ES, "IOCTL_ES_CLOSECONTENT: CFD %x", CFD);
-
-  auto itr = m_ContentAccessMap.find(CFD);
-  if (itr == m_ContentAccessMap.end())
-  {
-    return GetDefaultReply(-1);
-  }
-
-  const DiscIO::CNANDContentLoader& ContentLoader = AccessContentDevice(itr->second.m_TitleID);
-  // ContentLoader should never be invalid; we shouldn't be here if ES_OPENCONTENT failed before.
-  if (ContentLoader.IsValid())
-  {
-    const DiscIO::SNANDContent* pContent = ContentLoader.GetContentByIndex(itr->second.m_Index);
-    pContent->m_Data->Close();
-  }
-
-  m_ContentAccessMap.erase(itr);
-
-  return GetDefaultReply(IPC_SUCCESS);
-}
-
-IPCCommandResult ES::SeekContent(const IOCtlVRequest& request)
-{
-  _dbg_assert_(IOS_ES, request.in_vectors.size() == 3);
-  _dbg_assert_(IOS_ES, request.io_vectors.size() == 0);
-
-  u32 CFD = Memory::Read_U32(request.in_vectors[0].address);
-  u32 Addr = Memory::Read_U32(request.in_vectors[1].address);
-  u32 Mode = Memory::Read_U32(request.in_vectors[2].address);
-
-  auto itr = m_ContentAccessMap.find(CFD);
-  if (itr == m_ContentAccessMap.end())
-  {
-    return GetDefaultReply(-1);
-  }
-  SContentAccess& rContent = itr->second;
-
-  switch (Mode)
-  {
-  case 0:  // SET
-    rContent.m_Position = Addr;
-    break;
-
-  case 1:  // CUR
-    rContent.m_Position += Addr;
-    break;
-
-  case 2:  // END
-    rContent.m_Position = rContent.m_Size + Addr;
-    break;
-  }
-
-  DEBUG_LOG(IOS_ES, "IOCTL_ES_SEEKCONTENT: CFD %x, Address 0x%x, Mode %i -> Pos %i", CFD, Addr,
-            Mode, rContent.m_Position);
-
-  return GetDefaultReply(rContent.m_Position);
+  s_content_file = _rContentFile;
+  // XXX: Ideally, this should be done during a launch, but because we support launching WADs
+  // without installing them (which is a bit of a hack), we have to do this manually here.
+  const auto& content_loader = DiscIO::NANDContentManager::Access().GetNANDLoader(s_content_file);
+  s_title_context.Update(content_loader);
+  INFO_LOG(IOS_ES, "LoadWAD: Title context changed: %016" PRIx64, s_title_context.tmd.GetTitleId());
 }
 
 IPCCommandResult ES::GetTitleDirectory(const IOCtlVRequest& request)
 {
-  _dbg_assert_(IOS_ES, request.in_vectors.size() == 1);
-  _dbg_assert_(IOS_ES, request.io_vectors.size() == 1);
+  if (!request.HasNumberOfValidVectors(1, 1))
+    return GetDefaultReply(ES_EINVAL);
 
   u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
 
@@ -714,395 +167,403 @@ IPCCommandResult ES::GetTitleDirectory(const IOCtlVRequest& request)
 
 IPCCommandResult ES::GetTitleID(const IOCtlVRequest& request)
 {
-  _dbg_assert_(IOS_ES, request.in_vectors.size() == 0);
-  _dbg_assert_msg_(IOS_ES, request.io_vectors.size() == 1, "IOCTL_ES_GETTITLEID no out buffer");
+  if (!request.HasNumberOfValidVectors(0, 1))
+    return GetDefaultReply(ES_EINVAL);
 
-  Memory::Write_U64(m_TitleID, request.io_vectors[0].address);
-  INFO_LOG(IOS_ES, "IOCTL_ES_GETTITLEID: %08x/%08x", (u32)(m_TitleID >> 32), (u32)m_TitleID);
+  if (!s_title_context.active)
+    return GetDefaultReply(ES_EINVAL);
+
+  const u64 title_id = s_title_context.tmd.GetTitleId();
+  Memory::Write_U64(title_id, request.io_vectors[0].address);
+  INFO_LOG(IOS_ES, "IOCTL_ES_GETTITLEID: %08x/%08x", static_cast<u32>(title_id >> 32),
+           static_cast<u32>(title_id));
   return GetDefaultReply(IPC_SUCCESS);
 }
 
-IPCCommandResult ES::SetUID(const IOCtlVRequest& request)
+static bool UpdateUIDAndGID(Kernel& kernel, const IOS::ES::TMDReader& tmd)
 {
-  _dbg_assert_msg_(IOS_ES, request.in_vectors.size() == 1, "IOCTL_ES_SETUID no in buffer");
-  _dbg_assert_msg_(IOS_ES, request.io_vectors.size() == 0,
-                   "IOCTL_ES_SETUID has a payload, it shouldn't");
-
-  // TODO: fs permissions based on this
-  u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
-  INFO_LOG(IOS_ES, "IOCTL_ES_SETUID titleID: %08x/%08x", (u32)(TitleID >> 32), (u32)TitleID);
-  return GetDefaultReply(IPC_SUCCESS);
-}
-
-IPCCommandResult ES::GetTitleCount(const IOCtlVRequest& request)
-{
-  _dbg_assert_msg_(IOS_ES, request.in_vectors.size() == 0, "IOCTL_ES_GETTITLECNT has an in buffer");
-  _dbg_assert_msg_(IOS_ES, request.io_vectors.size() == 1,
-                   "IOCTL_ES_GETTITLECNT has no out buffer");
-  _dbg_assert_msg_(IOS_ES, request.io_vectors[0].size == 4,
-                   "IOCTL_ES_GETTITLECNT payload[0].size != 4");
-
-  Memory::Write_U32((u32)m_TitleIDs.size(), request.io_vectors[0].address);
-
-  INFO_LOG(IOS_ES, "IOCTL_ES_GETTITLECNT: Number of Titles %zu", m_TitleIDs.size());
-
-  return GetDefaultReply(IPC_SUCCESS);
-}
-
-IPCCommandResult ES::GetTitles(const IOCtlVRequest& request)
-{
-  _dbg_assert_msg_(IOS_ES, request.in_vectors.size() == 1, "IOCTL_ES_GETTITLES has an in buffer");
-  _dbg_assert_msg_(IOS_ES, request.io_vectors.size() == 1, "IOCTL_ES_GETTITLES has no out buffer");
-
-  u32 MaxCount = Memory::Read_U32(request.in_vectors[0].address);
-  u32 Count = 0;
-  for (int i = 0; i < (int)m_TitleIDs.size(); i++)
+  IOS::ES::UIDSys uid_sys{Common::FromWhichRoot::FROM_SESSION_ROOT};
+  const u64 title_id = tmd.GetTitleId();
+  const u32 uid = uid_sys.GetOrInsertUIDForTitle(title_id);
+  if (!uid)
   {
-    Memory::Write_U64(m_TitleIDs[i], request.io_vectors[0].address + i * 8);
-    INFO_LOG(IOS_ES, "IOCTL_ES_GETTITLES: %08x/%08x", (u32)(m_TitleIDs[i] >> 32),
-             (u32)m_TitleIDs[i]);
-    Count++;
-    if (Count >= MaxCount)
-      break;
+    ERROR_LOG(IOS_ES, "Failed to get UID for title %016" PRIx64, title_id);
+    return false;
+  }
+  kernel.SetUidForPPC(uid);
+  kernel.SetGidForPPC(tmd.GetGroupId());
+  return true;
+}
+
+static ReturnCode CheckIsAllowedToSetUID(const u32 caller_uid)
+{
+  IOS::ES::UIDSys uid_map{Common::FromWhichRoot::FROM_SESSION_ROOT};
+  const u32 system_menu_uid = uid_map.GetOrInsertUIDForTitle(Titles::SYSTEM_MENU);
+  if (!system_menu_uid)
+    return ES_SHORT_READ;
+  return caller_uid == system_menu_uid ? IPC_SUCCESS : ES_EINVAL;
+}
+
+IPCCommandResult ES::SetUID(u32 uid, const IOCtlVRequest& request)
+{
+  if (!request.HasNumberOfValidVectors(1, 0) || request.in_vectors[0].size != 8)
+    return GetDefaultReply(ES_EINVAL);
+
+  const u64 title_id = Memory::Read_U64(request.in_vectors[0].address);
+
+  const s32 ret = CheckIsAllowedToSetUID(uid);
+  if (ret < 0)
+  {
+    ERROR_LOG(IOS_ES, "SetUID: Permission check failed with error %d", ret);
+    return GetDefaultReply(ret);
   }
 
-  INFO_LOG(IOS_ES, "IOCTL_ES_GETTITLES: Number of titles returned %i", Count);
+  const auto tmd = FindInstalledTMD(title_id);
+  if (!tmd.IsValid())
+    return GetDefaultReply(FS_ENOENT);
+
+  if (!UpdateUIDAndGID(m_ios, tmd))
+  {
+    ERROR_LOG(IOS_ES, "SetUID: Failed to get UID for title %016" PRIx64, title_id);
+    return GetDefaultReply(ES_SHORT_READ);
+  }
+
   return GetDefaultReply(IPC_SUCCESS);
 }
 
-IPCCommandResult ES::GetViewCount(const IOCtlVRequest& request)
+bool ES::LaunchTitle(u64 title_id, bool skip_reload)
 {
-  _dbg_assert_msg_(IOS_ES, request.in_vectors.size() == 1, "IOCTL_ES_GETVIEWCNT no in buffer");
-  _dbg_assert_msg_(IOS_ES, request.io_vectors.size() == 1, "IOCTL_ES_GETVIEWCNT no out buffer");
+  s_title_context.Clear();
+  INFO_LOG(IOS_ES, "ES_Launch: Title context changed: (none)");
 
-  u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
+  NOTICE_LOG(IOS_ES, "Launching title %016" PRIx64 "...", title_id);
 
-  u32 retVal = 0;
-  const DiscIO::CNANDContentLoader& Loader = AccessContentDevice(TitleID);
-  u32 ViewCount =
-      static_cast<u32>(Loader.GetTicket().size()) / DiscIO::CNANDContentLoader::TICKET_SIZE;
+  // ES_Launch should probably reset the whole state, which at least means closing all open files.
+  // leaving them open through ES_Launch may cause hangs and other funky behavior
+  // (supposedly when trying to re-open those files).
+  DiscIO::NANDContentManager::Access().ClearCache();
 
-  if (!ViewCount)
+  u32 device_id;
+  if (title_id == Titles::SHOP &&
+      (GetDeviceId(&device_id) != IPC_SUCCESS || device_id == DEFAULT_WII_DEVICE_ID))
   {
-    std::string TicketFilename = Common::GetTicketFileName(TitleID, Common::FROM_SESSION_ROOT);
-    if (File::Exists(TicketFilename))
-    {
-      u32 FileSize = (u32)File::GetSize(TicketFilename);
-      _dbg_assert_msg_(IOS_ES, (FileSize % DiscIO::CNANDContentLoader::TICKET_SIZE) == 0,
-                       "IOCTL_ES_GETVIEWCNT ticket file size seems to be wrong");
+    ERROR_LOG(IOS_ES, "Refusing to launch the shop channel with default device credentials");
+    CriticalAlertT("You cannot use the Wii Shop Channel without using your own device credentials."
+                   "\nPlease refer to the NAND usage guide for setup instructions: "
+                   "https://dolphin-emu.org/docs/guides/nand-usage-guide/");
 
-      ViewCount = FileSize / DiscIO::CNANDContentLoader::TICKET_SIZE;
-      _dbg_assert_msg_(IOS_ES, (ViewCount > 0) && (ViewCount <= 4),
-                       "IOCTL_ES_GETVIEWCNT ticket count seems to be wrong");
-    }
-    else if (TitleID >> 32 == 0x00000001)
+    // Send the user back to the system menu instead of returning an error, which would
+    // likely make the system menu crash. Doing this is okay as anyone who has the shop
+    // also has the system menu installed, and this behaviour is consistent with what
+    // ES does when its DRM system refuses the use of a particular title.
+    return LaunchTitle(Titles::SYSTEM_MENU);
+  }
+
+  if (IsTitleType(title_id, IOS::ES::TitleType::System) && title_id != Titles::SYSTEM_MENU)
+    return LaunchIOS(title_id);
+  return LaunchPPCTitle(title_id, skip_reload);
+}
+
+bool ES::LaunchIOS(u64 ios_title_id)
+{
+  return m_ios.BootIOS(ios_title_id);
+}
+
+bool ES::LaunchPPCTitle(u64 title_id, bool skip_reload)
+{
+  const DiscIO::NANDContentLoader& content_loader = AccessContentDevice(title_id);
+  if (!content_loader.IsValid())
+  {
+    if (title_id == Titles::SYSTEM_MENU)
     {
-      // Fake a ticket view to make IOS reload work.
-      ViewCount = 1;
+      PanicAlertT("Could not launch the Wii Menu because it is missing from the NAND.\n"
+                  "The emulated software will likely hang now.");
     }
     else
     {
-      ViewCount = 0;
-      if (TitleID == TITLEID_SYSMENU)
-      {
-        PanicAlertT("There must be a ticket for 00000001/00000002. Your NAND dump is probably "
-                    "incomplete.");
-      }
-      // retVal = ES_NO_TICKET_INSTALLED;
+      PanicAlertT("Could not launch title %016" PRIx64 " because it is missing from the NAND.\n"
+                  "The emulated software will likely hang now.",
+                  title_id);
     }
+    return false;
   }
 
-  INFO_LOG(IOS_ES, "IOCTL_ES_GETVIEWCNT for titleID: %08x/%08x (View Count = %i)",
-           (u32)(TitleID >> 32), (u32)TitleID, ViewCount);
+  if (!content_loader.GetTMD().IsValid() || !content_loader.GetTicket().IsValid())
+    return false;
 
-  Memory::Write_U32(ViewCount, request.io_vectors[0].address);
-  return GetDefaultReply(retVal);
+  // Before launching a title, IOS first reads the TMD and reloads into the specified IOS version,
+  // even when that version is already running. After it has reloaded, ES_Launch will be called
+  // again with the reload skipped, and the PPC will be bootstrapped then.
+  if (!skip_reload)
+  {
+    s_title_to_launch = title_id;
+    const u64 required_ios = content_loader.GetTMD().GetIOSId();
+    return LaunchTitle(required_ios);
+  }
+
+  s_title_context.Update(content_loader);
+  INFO_LOG(IOS_ES, "LaunchPPCTitle: Title context changed: %016" PRIx64,
+           s_title_context.tmd.GetTitleId());
+
+  // Note: the UID/GID is also updated for IOS titles, but since we have no guarantee IOS titles
+  // are installed, we can only do this for PPC titles.
+  if (!UpdateUIDAndGID(m_ios, s_title_context.tmd))
+  {
+    s_title_context.Clear();
+    INFO_LOG(IOS_ES, "LaunchPPCTitle: Title context changed: (none)");
+    return false;
+  }
+
+  return m_ios.BootstrapPPC(content_loader);
 }
 
-IPCCommandResult ES::GetViews(const IOCtlVRequest& request)
+void ES::Context::DoState(PointerWrap& p)
 {
-  _dbg_assert_msg_(IOS_ES, request.in_vectors.size() == 2, "IOCTL_ES_GETVIEWS no in buffer");
-  _dbg_assert_msg_(IOS_ES, request.io_vectors.size() == 1, "IOCTL_ES_GETVIEWS no out buffer");
+  p.Do(uid);
+  p.Do(gid);
 
-  u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
-  u32 maxViews = Memory::Read_U32(request.in_vectors[1].address);
-  u32 retVal = 0;
+  title_import.tmd.DoState(p);
+  p.Do(title_import.content_id);
+  p.Do(title_import.content_buffer);
 
-  const DiscIO::CNANDContentLoader& Loader = AccessContentDevice(TitleID);
+  p.Do(title_export.valid);
+  title_export.tmd.DoState(p);
+  p.Do(title_export.title_key);
+  p.Do(title_export.contents);
 
-  const std::vector<u8>& ticket = Loader.GetTicket();
-
-  if (ticket.empty())
-  {
-    std::string TicketFilename = Common::GetTicketFileName(TitleID, Common::FROM_SESSION_ROOT);
-    if (File::Exists(TicketFilename))
-    {
-      File::IOFile pFile(TicketFilename, "rb");
-      if (pFile)
-      {
-        u8 FileTicket[DiscIO::CNANDContentLoader::TICKET_SIZE];
-        for (unsigned int View = 0;
-             View != maxViews &&
-             pFile.ReadBytes(FileTicket, DiscIO::CNANDContentLoader::TICKET_SIZE);
-             ++View)
-        {
-          Memory::Write_U32(View, request.io_vectors[0].address + View * 0xD8);
-          Memory::CopyToEmu(request.io_vectors[0].address + 4 + View * 0xD8, FileTicket + 0x1D0,
-                            212);
-        }
-      }
-    }
-    else if (TitleID >> 32 == 0x00000001)
-    {
-      // For IOS titles, the ticket view isn't normally parsed by either the
-      // SDK or libogc, just passed to LaunchTitle, so this
-      // shouldn't matter at all.  Just fill out some fields just
-      // to be on the safe side.
-      u32 Address = request.io_vectors[0].address;
-      Memory::Memset(Address, 0, 0xD8);
-      Memory::Write_U64(TitleID, Address + 4 + (0x1dc - 0x1d0));  // title ID
-      Memory::Write_U16(0xffff, Address + 4 + (0x1e4 - 0x1d0));   // unnnown
-      Memory::Write_U32(0xff00, Address + 4 + (0x1ec - 0x1d0));   // access mask
-      Memory::Memset(Address + 4 + (0x222 - 0x1d0), 0xff, 0x20);  // content permissions
-    }
-    else
-    {
-      // retVal = ES_NO_TICKET_INSTALLED;
-      PanicAlertT("IOCTL_ES_GETVIEWS: Tried to get data from an unknown ticket: %08x/%08x",
-                  (u32)(TitleID >> 32), (u32)TitleID);
-    }
-  }
-  else
-  {
-    u32 view_count =
-        static_cast<u32>(Loader.GetTicket().size()) / DiscIO::CNANDContentLoader::TICKET_SIZE;
-    for (unsigned int view = 0; view != maxViews && view < view_count; ++view)
-    {
-      Memory::Write_U32(view, request.io_vectors[0].address + view * 0xD8);
-      Memory::CopyToEmu(request.io_vectors[0].address + 4 + view * 0xD8,
-                        &ticket[0x1D0 + (view * DiscIO::CNANDContentLoader::TICKET_SIZE)], 212);
-    }
-  }
-
-  INFO_LOG(IOS_ES, "IOCTL_ES_GETVIEWS for titleID: %08x/%08x (MaxViews = %i)", (u32)(TitleID >> 32),
-           (u32)TitleID, maxViews);
-
-  return GetDefaultReply(retVal);
+  p.Do(active);
+  p.Do(ipc_fd);
 }
 
-IPCCommandResult ES::GetTMDViewCount(const IOCtlVRequest& request)
+void ES::DoState(PointerWrap& p)
 {
-  _dbg_assert_msg_(IOS_ES, request.in_vectors.size() == 1, "IOCTL_ES_GETTMDVIEWCNT no in buffer");
-  _dbg_assert_msg_(IOS_ES, request.io_vectors.size() == 1, "IOCTL_ES_GETTMDVIEWCNT no out buffer");
+  Device::DoState(p);
+  p.Do(s_content_file);
+  p.Do(m_content_table);
+  s_title_context.DoState(p);
 
-  u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
-
-  const DiscIO::CNANDContentLoader& Loader = AccessContentDevice(TitleID);
-
-  u32 TMDViewCnt = 0;
-  if (Loader.IsValid())
-  {
-    TMDViewCnt += DiscIO::CNANDContentLoader::TMD_VIEW_SIZE;
-    TMDViewCnt += 2;                                               // title version
-    TMDViewCnt += 2;                                               // num entries
-    TMDViewCnt += (u32)Loader.GetContentSize() * (4 + 2 + 2 + 8);  // content id, index, type, size
-  }
-  Memory::Write_U32(TMDViewCnt, request.io_vectors[0].address);
-
-  INFO_LOG(IOS_ES, "IOCTL_ES_GETTMDVIEWCNT: title: %08x/%08x (view size %i)", (u32)(TitleID >> 32),
-           (u32)TitleID, TMDViewCnt);
-  return GetDefaultReply(IPC_SUCCESS);
+  for (auto& context : m_contexts)
+    context.DoState(p);
 }
 
-IPCCommandResult ES::GetTMDViews(const IOCtlVRequest& request)
+ES::ContextArray::iterator ES::FindActiveContext(s32 fd)
 {
-  _dbg_assert_msg_(IOS_ES, request.in_vectors.size() == 2, "IOCTL_ES_GETTMDVIEWCNT no in buffer");
-  _dbg_assert_msg_(IOS_ES, request.io_vectors.size() == 1, "IOCTL_ES_GETTMDVIEWCNT no out buffer");
+  return std::find_if(m_contexts.begin(), m_contexts.end(),
+                      [fd](const auto& context) { return context.ipc_fd == fd && context.active; });
+}
 
-  u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
-  u32 MaxCount = Memory::Read_U32(request.in_vectors[1].address);
+ES::ContextArray::iterator ES::FindInactiveContext()
+{
+  return std::find_if(m_contexts.begin(), m_contexts.end(),
+                      [](const auto& context) { return !context.active; });
+}
 
-  const DiscIO::CNANDContentLoader& Loader = AccessContentDevice(TitleID);
+ReturnCode ES::Open(const OpenRequest& request)
+{
+  auto context = FindInactiveContext();
+  if (context == m_contexts.end())
+    return ES_FD_EXHAUSTED;
 
-  INFO_LOG(IOS_ES, "IOCTL_ES_GETTMDVIEWCNT: title: %08x/%08x   buffer size: %i",
-           (u32)(TitleID >> 32), (u32)TitleID, MaxCount);
+  context->active = true;
+  context->uid = request.uid;
+  context->gid = request.gid;
+  context->ipc_fd = request.fd;
+  return Device::Open(request);
+}
 
-  if (Loader.IsValid())
+ReturnCode ES::Close(u32 fd)
+{
+  auto context = FindActiveContext(fd);
+  if (context == m_contexts.end())
+    return ES_EINVAL;
+
+  context->active = false;
+  context->ipc_fd = -1;
+
+  INFO_LOG(IOS_ES, "ES: Close");
+  m_is_active = false;
+  // clear the NAND content cache to make sure nothing remains open.
+  DiscIO::NANDContentManager::Access().ClearCache();
+  return IPC_SUCCESS;
+}
+
+IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
+{
+  DEBUG_LOG(IOS_ES, "%s (0x%x)", GetDeviceName().c_str(), request.request);
+  auto context = FindActiveContext(request.fd);
+  if (context == m_contexts.end())
+    return GetDefaultReply(ES_EINVAL);
+
+  switch (request.request)
   {
-    u32 Address = request.io_vectors[0].address;
+  case IOCTL_ES_ADDTICKET:
+    return ImportTicket(request);
+  case IOCTL_ES_ADDTMD:
+    return ImportTmd(*context, request);
+  case IOCTL_ES_ADDTITLESTART:
+    return ImportTitleInit(*context, request);
+  case IOCTL_ES_ADDCONTENTSTART:
+    return ImportContentBegin(*context, request);
+  case IOCTL_ES_ADDCONTENTDATA:
+    return ImportContentData(*context, request);
+  case IOCTL_ES_ADDCONTENTFINISH:
+    return ImportContentEnd(*context, request);
+  case IOCTL_ES_ADDTITLEFINISH:
+    return ImportTitleDone(*context, request);
+  case IOCTL_ES_ADDTITLECANCEL:
+    return ImportTitleCancel(*context, request);
+  case IOCTL_ES_GETDEVICEID:
+    return GetDeviceId(request);
 
-    Memory::CopyToEmu(Address, Loader.GetTMDView(), DiscIO::CNANDContentLoader::TMD_VIEW_SIZE);
-    Address += DiscIO::CNANDContentLoader::TMD_VIEW_SIZE;
+  case IOCTL_ES_OPENCONTENT:
+    return OpenContent(context->uid, request);
+  case IOCTL_ES_OPEN_ACTIVE_TITLE_CONTENT:
+    return OpenActiveTitleContent(context->uid, request);
+  case IOCTL_ES_READCONTENT:
+    return ReadContent(context->uid, request);
+  case IOCTL_ES_CLOSECONTENT:
+    return CloseContent(context->uid, request);
+  case IOCTL_ES_SEEKCONTENT:
+    return SeekContent(context->uid, request);
 
-    Memory::Write_U16(Loader.GetTitleVersion(), Address);
-    Address += 2;
-    Memory::Write_U16(Loader.GetNumEntries(), Address);
-    Address += 2;
+  case IOCTL_ES_GETTITLEDIR:
+    return GetTitleDirectory(request);
+  case IOCTL_ES_GETTITLEID:
+    return GetTitleID(request);
+  case IOCTL_ES_SETUID:
+    return SetUID(context->uid, request);
+  case IOCTL_ES_DIVERIFY:
+  case IOCTL_ES_DIVERIFY_WITH_VIEW:
+    return DIVerify(request);
 
-    const std::vector<DiscIO::SNANDContent>& rContent = Loader.GetContent();
-    for (size_t i = 0; i < Loader.GetContentSize(); i++)
-    {
-      Memory::Write_U32(rContent[i].m_ContentID, Address);
-      Address += 4;
-      Memory::Write_U16(rContent[i].m_Index, Address);
-      Address += 2;
-      Memory::Write_U16(rContent[i].m_Type, Address);
-      Address += 2;
-      Memory::Write_U64(rContent[i].m_Size, Address);
-      Address += 8;
-    }
+  case IOCTL_ES_GETOWNEDTITLECNT:
+    return GetOwnedTitleCount(request);
+  case IOCTL_ES_GETOWNEDTITLES:
+    return GetOwnedTitles(request);
+  case IOCTL_ES_GETTITLECNT:
+    return GetTitleCount(request);
+  case IOCTL_ES_GETTITLES:
+    return GetTitles(request);
 
-    _dbg_assert_(IOS_ES, (Address - request.io_vectors[0].address) == request.io_vectors[0].size);
+  case IOCTL_ES_GETTITLECONTENTSCNT:
+    return GetStoredContentsCount(request);
+  case IOCTL_ES_GETTITLECONTENTS:
+    return GetStoredContents(request);
+  case IOCTL_ES_GETSTOREDCONTENTCNT:
+    return GetTMDStoredContentsCount(request);
+  case IOCTL_ES_GETSTOREDCONTENTS:
+    return GetTMDStoredContents(request);
+
+  case IOCTL_ES_GETSHAREDCONTENTCNT:
+    return GetSharedContentsCount(request);
+  case IOCTL_ES_GETSHAREDCONTENTS:
+    return GetSharedContents(request);
+
+  case IOCTL_ES_GETVIEWCNT:
+    return GetTicketViewCount(request);
+  case IOCTL_ES_GETVIEWS:
+    return GetTicketViews(request);
+  case IOCTL_ES_DIGETTICKETVIEW:
+    return DIGetTicketView(request);
+
+  case IOCTL_ES_GETTMDVIEWCNT:
+    return GetTMDViewSize(request);
+  case IOCTL_ES_GETTMDVIEWS:
+    return GetTMDViews(request);
+
+  case IOCTL_ES_DIGETTMDVIEWSIZE:
+    return DIGetTMDViewSize(request);
+  case IOCTL_ES_DIGETTMDVIEW:
+    return DIGetTMDView(request);
+  case IOCTL_ES_DIGETTMDSIZE:
+    return DIGetTMDSize(request);
+  case IOCTL_ES_DIGETTMD:
+    return DIGetTMD(request);
+
+  case IOCTL_ES_GETCONSUMPTION:
+    return GetConsumption(request);
+  case IOCTL_ES_DELETETITLE:
+    return DeleteTitle(request);
+  case IOCTL_ES_DELETETICKET:
+    return DeleteTicket(request);
+  case IOCTL_ES_DELETETITLECONTENT:
+    return DeleteTitleContent(request);
+  case IOCTL_ES_DELETESHAREDCONTENT:
+    return DeleteSharedContent(request);
+  case IOCTL_ES_DELETE_CONTENT:
+    return DeleteContent(request);
+  case IOCTL_ES_GETSTOREDTMDSIZE:
+    return GetStoredTMDSize(request);
+  case IOCTL_ES_GETSTOREDTMD:
+    return GetStoredTMD(request);
+  case IOCTL_ES_ENCRYPT:
+    return Encrypt(context->uid, request);
+  case IOCTL_ES_DECRYPT:
+    return Decrypt(context->uid, request);
+  case IOCTL_ES_LAUNCH:
+    return Launch(request);
+  case IOCTL_ES_LAUNCHBC:
+    return LaunchBC(request);
+  case IOCTL_ES_EXPORTTITLEINIT:
+    return ExportTitleInit(*context, request);
+  case IOCTL_ES_EXPORTCONTENTBEGIN:
+    return ExportContentBegin(*context, request);
+  case IOCTL_ES_EXPORTCONTENTDATA:
+    return ExportContentData(*context, request);
+  case IOCTL_ES_EXPORTCONTENTEND:
+    return ExportContentEnd(*context, request);
+  case IOCTL_ES_EXPORTTITLEDONE:
+    return ExportTitleDone(*context, request);
+  case IOCTL_ES_CHECKKOREAREGION:
+    return CheckKoreaRegion(request);
+  case IOCTL_ES_GETDEVICECERT:
+    return GetDeviceCertificate(request);
+  case IOCTL_ES_SIGN:
+    return Sign(request);
+  case IOCTL_ES_GETBOOT2VERSION:
+    return GetBoot2Version(request);
+
+  case IOCTL_ES_GET_V0_TICKET_FROM_VIEW:
+    return GetV0TicketFromView(request);
+  case IOCTL_ES_GET_TICKET_SIZE_FROM_VIEW:
+    return GetTicketSizeFromView(request);
+  case IOCTL_ES_GET_TICKET_FROM_VIEW:
+    return GetTicketFromView(request);
+
+  case IOCTL_ES_SET_UP_STREAM_KEY:
+    return SetUpStreamKey(*context, request);
+  case IOCTL_ES_DELETE_STREAM_KEY:
+    return DeleteStreamKey(request);
+
+  case IOCTL_ES_VERIFYSIGN:
+  case IOCTL_ES_UNKNOWN_41:
+  case IOCTL_ES_UNKNOWN_42:
+    PanicAlert("IOS-ES: Unimplemented ioctlv 0x%x (%zu in vectors, %zu io vectors)",
+               request.request, request.in_vectors.size(), request.io_vectors.size());
+    request.DumpUnknown(GetDeviceName(), LogTypes::IOS_ES, LogTypes::LERROR);
+    return GetDefaultReply(IPC_EINVAL);
+
+  case IOCTL_ES_INVALID_3F:
+  default:
+    return GetDefaultReply(IPC_EINVAL);
   }
-
-  INFO_LOG(IOS_ES, "IOCTL_ES_GETTMDVIEWS: title: %08x/%08x (buffer size: %i)", (u32)(TitleID >> 32),
-           (u32)TitleID, MaxCount);
-  return GetDefaultReply(IPC_SUCCESS);
 }
 
 IPCCommandResult ES::GetConsumption(const IOCtlVRequest& request)
 {
+  if (!request.HasNumberOfValidVectors(1, 2))
+    return GetDefaultReply(ES_EINVAL);
+
   // This is at least what crediar's ES module does
   Memory::Write_U32(0, request.io_vectors[1].address);
   INFO_LOG(IOS_ES, "IOCTL_ES_GETCONSUMPTION");
   return GetDefaultReply(IPC_SUCCESS);
 }
 
-IPCCommandResult ES::DeleteTicket(const IOCtlVRequest& request)
-{
-  u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
-  INFO_LOG(IOS_ES, "IOCTL_ES_DELETETICKET: title: %08x/%08x", (u32)(TitleID >> 32), (u32)TitleID);
-
-  // Presumably return -1017 when delete fails
-  if (!File::Delete(Common::GetTicketFileName(TitleID, Common::FROM_SESSION_ROOT)))
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
-
-  return GetDefaultReply(IPC_SUCCESS);
-}
-
-IPCCommandResult ES::DeleteTitleContent(const IOCtlVRequest& request)
-{
-  u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
-  INFO_LOG(IOS_ES, "IOCTL_ES_DELETETITLECONTENT: title: %08x/%08x", (u32)(TitleID >> 32),
-           (u32)TitleID);
-
-  // Presumably return -1017 when title not installed TODO verify
-  if (!DiscIO::CNANDContentManager::Access().RemoveTitle(TitleID, Common::FROM_SESSION_ROOT))
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
-
-  return GetDefaultReply(IPC_SUCCESS);
-}
-
-IPCCommandResult ES::GetStoredTMDSize(const IOCtlVRequest& request)
-{
-  _dbg_assert_msg_(IOS_ES, request.in_vectors.size() == 1,
-                   "IOCTL_ES_GETSTOREDTMDSIZE no in buffer");
-  // _dbg_assert_msg_(IOS_ES, request.io_vectors.size() == 1,
-  //                  "IOCTL_ES_ES_GETSTOREDTMDSIZE no out buffer");
-
-  u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
-  const DiscIO::CNANDContentLoader& Loader = AccessContentDevice(TitleID);
-
-  _dbg_assert_(IOS_ES, Loader.IsValid());
-  u32 TMDCnt = 0;
-  if (Loader.IsValid())
-  {
-    TMDCnt += DiscIO::CNANDContentLoader::TMD_HEADER_SIZE;
-    TMDCnt += (u32)Loader.GetContentSize() * DiscIO::CNANDContentLoader::CONTENT_HEADER_SIZE;
-  }
-
-  if (request.io_vectors.size())
-    Memory::Write_U32(TMDCnt, request.io_vectors[0].address);
-
-  INFO_LOG(IOS_ES, "IOCTL_ES_GETSTOREDTMDSIZE: title: %08x/%08x (view size %i)",
-           (u32)(TitleID >> 32), (u32)TitleID, TMDCnt);
-
-  return GetDefaultReply(IPC_SUCCESS);
-}
-
-IPCCommandResult ES::GetStoredTMD(const IOCtlVRequest& request)
-{
-  _dbg_assert_msg_(IOS_ES, request.in_vectors.size() > 0, "IOCTL_ES_GETSTOREDTMD no in buffer");
-  // requires 1 inbuffer and no outbuffer, presumably outbuffer required when second inbuffer is
-  // used for maxcount (allocated mem?)
-  // called with 1 inbuffer after deleting a titleid
-  //_dbg_assert_msg_(IOS_ES, request.io_vectors.size() == 1,
-  //                 "IOCTL_ES_GETSTOREDTMD no out buffer");
-
-  u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
-  u32 MaxCount = 0;
-  if (request.in_vectors.size() > 1)
-  {
-    // TODO: actually use this param in when writing to the outbuffer :/
-    MaxCount = Memory::Read_U32(request.in_vectors[1].address);
-  }
-  const DiscIO::CNANDContentLoader& Loader = AccessContentDevice(TitleID);
-
-  INFO_LOG(IOS_ES, "IOCTL_ES_GETSTOREDTMD: title: %08x/%08x   buffer size: %i",
-           (u32)(TitleID >> 32), (u32)TitleID, MaxCount);
-
-  if (Loader.IsValid() && request.io_vectors.size())
-  {
-    u32 Address = request.io_vectors[0].address;
-
-    Memory::CopyToEmu(Address, Loader.GetTMDHeader(), DiscIO::CNANDContentLoader::TMD_HEADER_SIZE);
-    Address += DiscIO::CNANDContentLoader::TMD_HEADER_SIZE;
-
-    const std::vector<DiscIO::SNANDContent>& rContent = Loader.GetContent();
-    for (size_t i = 0; i < Loader.GetContentSize(); i++)
-    {
-      Memory::CopyToEmu(Address, rContent[i].m_Header,
-                        DiscIO::CNANDContentLoader::CONTENT_HEADER_SIZE);
-      Address += DiscIO::CNANDContentLoader::CONTENT_HEADER_SIZE;
-    }
-
-    _dbg_assert_(IOS_ES, (Address - request.io_vectors[0].address) == request.io_vectors[0].size);
-  }
-
-  INFO_LOG(IOS_ES, "IOCTL_ES_GETSTOREDTMD: title: %08x/%08x (buffer size: %i)",
-           (u32)(TitleID >> 32), (u32)TitleID, MaxCount);
-  return GetDefaultReply(IPC_SUCCESS);
-}
-
-IPCCommandResult ES::Encrypt(const IOCtlVRequest& request)
-{
-  u32 keyIndex = Memory::Read_U32(request.in_vectors[0].address);
-  u8* IV = Memory::GetPointer(request.in_vectors[1].address);
-  u8* source = Memory::GetPointer(request.in_vectors[2].address);
-  u32 size = request.in_vectors[2].size;
-  u8* newIV = Memory::GetPointer(request.io_vectors[0].address);
-  u8* destination = Memory::GetPointer(request.io_vectors[1].address);
-
-  mbedtls_aes_context AES_ctx;
-  mbedtls_aes_setkey_enc(&AES_ctx, s_key_table[keyIndex], 128);
-  memcpy(newIV, IV, 16);
-  mbedtls_aes_crypt_cbc(&AES_ctx, MBEDTLS_AES_ENCRYPT, size, newIV, source, destination);
-
-  _dbg_assert_msg_(IOS_ES, keyIndex == 6,
-                   "IOCTL_ES_ENCRYPT: Key type is not SD, data will be crap");
-  return GetDefaultReply(IPC_SUCCESS);
-}
-
-IPCCommandResult ES::Decrypt(const IOCtlVRequest& request)
-{
-  u32 keyIndex = Memory::Read_U32(request.in_vectors[0].address);
-  u8* IV = Memory::GetPointer(request.in_vectors[1].address);
-  u8* source = Memory::GetPointer(request.in_vectors[2].address);
-  u32 size = request.in_vectors[2].size;
-  u8* newIV = Memory::GetPointer(request.io_vectors[0].address);
-  u8* destination = Memory::GetPointer(request.io_vectors[1].address);
-
-  DecryptContent(keyIndex, IV, source, size, newIV, destination);
-
-  _dbg_assert_msg_(IOS_ES, keyIndex == 6,
-                   "IOCTL_ES_DECRYPT: Key type is not SD, data will be crap");
-  return GetDefaultReply(IPC_SUCCESS);
-}
-
 IPCCommandResult ES::Launch(const IOCtlVRequest& request)
 {
-  _dbg_assert_(IOS_ES, request.in_vectors.size() == 2);
-  bool bSuccess = false;
+  if (!request.HasNumberOfValidVectors(2, 0))
+    return GetDefaultReply(ES_EINVAL);
 
   u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
   u32 view = Memory::Read_U32(request.in_vectors[1].address);
@@ -1111,196 +572,381 @@ IPCCommandResult ES::Launch(const IOCtlVRequest& request)
   u64 titleid = Memory::Read_U64(request.in_vectors[1].address + 16);
   u16 access = Memory::Read_U16(request.in_vectors[1].address + 24);
 
-  NOTICE_LOG(IOS_ES, "IOCTL_ES_LAUNCH %016" PRIx64 " %08x %016" PRIx64 " %08x %016" PRIx64 " %04x",
-             TitleID, view, ticketid, devicetype, titleid, access);
+  INFO_LOG(IOS_ES, "IOCTL_ES_LAUNCH %016" PRIx64 " %08x %016" PRIx64 " %08x %016" PRIx64 " %04x",
+           TitleID, view, ticketid, devicetype, titleid, access);
 
-  // ES_LAUNCH should probably reset thw whole state, which at least means closing all open files.
-  // leaving them open through ES_LAUNCH may cause hangs and other funky behavior
-  // (supposedly when trying to re-open those files).
-  DiscIO::CNANDContentManager::Access().ClearCache();
+  // IOS replies to the request through the mailbox on failure, and acks if the launch succeeds.
+  // Note: Launch will potentially reset the whole IOS state -- including this ES instance.
+  if (!LaunchTitle(TitleID))
+    return GetDefaultReply(FS_ENOENT);
 
-  u64 ios_to_load = 0;
-  std::string tContentFile;
-  if ((u32)(TitleID >> 32) == 0x00000001 && TitleID != TITLEID_SYSMENU)
-  {
-    ios_to_load = TitleID;
-    bSuccess = true;
-  }
-  else
-  {
-    const DiscIO::CNANDContentLoader& ContentLoader = AccessContentDevice(TitleID);
-    if (ContentLoader.IsValid())
-    {
-      ios_to_load = 0x0000000100000000ULL | ContentLoader.GetIosVersion();
-
-      u32 bootInd = ContentLoader.GetBootIndex();
-      const DiscIO::SNANDContent* pContent = ContentLoader.GetContentByIndex(bootInd);
-      if (pContent)
-      {
-        tContentFile = Common::GetTitleContentPath(TitleID, Common::FROM_SESSION_ROOT);
-        std::unique_ptr<CDolLoader> pDolLoader =
-            std::make_unique<CDolLoader>(pContent->m_Data->Get());
-
-        if (pDolLoader->IsValid())
-        {
-          pDolLoader->Load();
-          // TODO: Check why sysmenu does not load the DOL correctly
-          // NAND titles start with address translation off at 0x3400 (via the PPC bootstub)
-          //
-          // The state of other CPU registers (like the BAT registers) doesn't matter much
-          // because the realmode code at 0x3400 initializes everything itself anyway.
-          MSR = 0;
-          PC = 0x3400;
-          bSuccess = true;
-        }
-        else
-        {
-          PanicAlertT("IOCTL_ES_LAUNCH: The DOL file is invalid!");
-        }
-      }
-    }
-  }
-
-  if (!bSuccess)
-  {
-    PanicAlertT(
-        "IOCTL_ES_LAUNCH: Game tried to reload a title that is not available in your NAND dump\n"
-        "TitleID %016" PRIx64 ".\n Dolphin will likely hang now.",
-        TitleID);
-  }
-  else
-  {
-    ResetAfterLaunch(ios_to_load);
-    SetDefaultContentFile(tContentFile);
-  }
-
-  // Generate a "reply" to the IPC command.  ES_LAUNCH is unique because it
-  // involves restarting IOS; IOS generates two acknowledgements in a row.
-  // Note: If we just reset the PPC, don't write anything to the command buffer. This
-  // could clobber the DOL we just loaded.
-  EnqueueCommandAcknowledgement(request.address, 0);
+  // ES_LAUNCH involves restarting IOS, which results in two acknowledgements in a row
+  // (one from the previous IOS for this IPC request, and one from the new one as it boots).
+  // Nothing should be written to the command buffer if the launch succeeded for obvious reasons.
   return GetNoReply();
 }
 
 IPCCommandResult ES::LaunchBC(const IOCtlVRequest& request)
 {
-  if (request.in_vectors.size() != 0 || request.io_vectors.size() != 0)
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+  if (!request.HasNumberOfValidVectors(0, 0))
+    return GetDefaultReply(ES_EINVAL);
 
   // Here, IOS checks the clock speed and prevents ioctlv 0x25 from being used in GC mode.
   // An alternative way to do this is to check whether the current active IOS is MIOS.
-  if (GetVersion() == 0x101)
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+  if (m_ios.GetVersion() == 0x101)
+    return GetDefaultReply(ES_EINVAL);
 
-  ResetAfterLaunch(0x0000000100000100);
-  EnqueueCommandAcknowledgement(request.address, 0);
+  if (!LaunchTitle(0x0000000100000100))
+    return GetDefaultReply(FS_ENOENT);
+
   return GetNoReply();
 }
 
-void ES::ResetAfterLaunch(const u64 ios_to_load) const
+const DiscIO::NANDContentLoader& ES::AccessContentDevice(u64 title_id)
 {
-  Reload(ios_to_load);
+  // for WADs, the passed title id and the stored title id match; along with s_content_file
+  // being set to the actual WAD file name. We cannot simply get a NAND Loader for the title id
+  // in those cases, since the WAD need not be installed in the NAND, but it could be opened
+  // directly from a WAD file anywhere on disk.
+  if (s_title_context.active && s_title_context.tmd.GetTitleId() == title_id &&
+      !s_content_file.empty())
+  {
+    return DiscIO::NANDContentManager::Access().GetNANDLoader(s_content_file);
+  }
+
+  return DiscIO::NANDContentManager::Access().GetNANDLoader(title_id, Common::FROM_SESSION_ROOT);
 }
 
-IPCCommandResult ES::CheckKoreaRegion(const IOCtlVRequest& request)
+// This is technically an ioctlv in IOS's ES, but it is an internal API which cannot be
+// used from the PowerPC (for unpatched and up-to-date IOSes anyway).
+// So we block access to it from the IPC interface.
+IPCCommandResult ES::DIVerify(const IOCtlVRequest& request)
 {
-  // note by DacoTaco : name is unknown, I just tried to name it SOMETHING.
-  // IOS70 has this to let system menu 4.2 check if the console is region changed. it returns
-  // -1017
-  // if the IOS didn't find the Korean keys and 0 if it does. 0 leads to a error 003
-  INFO_LOG(IOS_ES, "IOCTL_ES_CHECKKOREAREGION: Title checked for Korean keys.");
-  return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+  return GetDefaultReply(ES_EINVAL);
 }
 
-IPCCommandResult ES::GetDeviceCertificate(const IOCtlVRequest& request)
+s32 ES::DIVerify(const IOS::ES::TMDReader& tmd, const IOS::ES::TicketReader& ticket)
 {
-  // (Input: none, Output: 384 bytes)
-  INFO_LOG(IOS_ES, "IOCTL_ES_GETDEVICECERT");
-  _dbg_assert_(IOS_ES, request.io_vectors.size() == 1);
-  u8* destination = Memory::GetPointer(request.io_vectors[0].address);
+  s_title_context.Clear();
+  INFO_LOG(IOS_ES, "ES_DIVerify: Title context changed: (none)");
 
-  const EcWii& ec = EcWii::GetInstance();
-  MakeNGCert(destination, ec.GetNGID(), ec.GetNGKeyID(), ec.GetNGPriv(), ec.GetNGSig());
-  return GetDefaultReply(IPC_SUCCESS);
-}
+  if (!tmd.IsValid() || !ticket.IsValid())
+    return ES_EINVAL;
 
-IPCCommandResult ES::Sign(const IOCtlVRequest& request)
-{
-  INFO_LOG(IOS_ES, "IOCTL_ES_SIGN");
-  u8* ap_cert_out = Memory::GetPointer(request.io_vectors[1].address);
-  u8* data = Memory::GetPointer(request.in_vectors[0].address);
-  u32 data_size = request.in_vectors[0].size;
-  u8* sig_out = Memory::GetPointer(request.io_vectors[0].address);
+  if (tmd.GetTitleId() != ticket.GetTitleId())
+    return ES_EINVAL;
 
-  const EcWii& ec = EcWii::GetInstance();
-  MakeAPSigAndCert(sig_out, ap_cert_out, m_TitleID, data, data_size, ec.GetNGPriv(), ec.GetNGID());
+  s_title_context.Update(tmd, ticket);
+  INFO_LOG(IOS_ES, "ES_DIVerify: Title context changed: %016" PRIx64, tmd.GetTitleId());
 
-  return GetDefaultReply(IPC_SUCCESS);
-}
-
-IPCCommandResult ES::GetBoot2Version(const IOCtlVRequest& request)
-{
-  INFO_LOG(IOS_ES, "IOCTL_ES_GETBOOT2VERSION");
-
-  // as of 26/02/2012, this was latest bootmii version
-  Memory::Write_U32(4, request.io_vectors[0].address);
-  return GetDefaultReply(IPC_SUCCESS);
-}
-
-IPCCommandResult ES::DIGetTicketView(const IOCtlVRequest& request)
-{
-  // (Input: none, Output: 216 bytes) bug crediar :D
-  WARN_LOG(IOS_ES, "IOCTL_ES_DIGETTICKETVIEW: this looks really wrong...");
-  return GetDefaultReply(IPC_SUCCESS);
-}
-
-IPCCommandResult ES::GetOwnedTitleCount(const IOCtlVRequest& request)
-{
-  INFO_LOG(IOS_ES, "IOCTL_ES_GETOWNEDTITLECNT");
-  Memory::Write_U32(0, request.io_vectors[0].address);
-  return GetDefaultReply(IPC_SUCCESS);
-}
-
-const DiscIO::CNANDContentLoader& ES::AccessContentDevice(u64 title_id)
-{
-  // for WADs, the passed title id and the stored title id match; along with m_ContentFile being set
-  // to the
-  // actual WAD file name. We cannot simply get a NAND Loader for the title id in those cases, since
-  // the WAD
-  // need not be installed in the NAND, but it could be opened directly from a WAD file anywhere on
-  // disk.
-  if (m_TitleID == title_id && !m_ContentFile.empty())
-    return DiscIO::CNANDContentManager::Access().GetNANDLoader(m_ContentFile);
-
-  return DiscIO::CNANDContentManager::Access().GetNANDLoader(title_id, Common::FROM_SESSION_ROOT);
-}
-
-u32 ES::ES_DIVerify(const std::vector<u8>& tmd)
-{
-  u64 title_id = 0xDEADBEEFDEADBEEFull;
-  u64 tmd_title_id = Common::swap64(&tmd[0x18C]);
-
-  DVDInterface::GetVolume().GetTitleID(&title_id);
-  if (title_id != tmd_title_id)
-    return -1;
-
-  std::string tmd_path = Common::GetTMDFileName(tmd_title_id, Common::FROM_SESSION_ROOT);
+  std::string tmd_path = Common::GetTMDFileName(tmd.GetTitleId(), Common::FROM_SESSION_ROOT);
 
   File::CreateFullPath(tmd_path);
-  File::CreateFullPath(Common::GetTitleDataPath(tmd_title_id, Common::FROM_SESSION_ROOT));
+  File::CreateFullPath(Common::GetTitleDataPath(tmd.GetTitleId(), Common::FROM_SESSION_ROOT));
 
   if (!File::Exists(tmd_path))
   {
+    // XXX: We are supposed to verify the TMD and ticket here, but cannot because
+    // this may cause issues with custom/patched games.
+
     File::IOFile tmd_file(tmd_path, "wb");
-    if (!tmd_file.WriteBytes(tmd.data(), tmd.size()))
+    const std::vector<u8>& tmd_bytes = tmd.GetBytes();
+    if (!tmd_file.WriteBytes(tmd_bytes.data(), tmd_bytes.size()))
       ERROR_LOG(IOS_ES, "DIVerify failed to write disc TMD to NAND.");
   }
-  DiscIO::cUIDsys uid_sys{Common::FromWhichRoot::FROM_SESSION_ROOT};
-  uid_sys.AddTitle(tmd_title_id);
   // DI_VERIFY writes to title.tmd, which is read and cached inside the NAND Content Manager.
   // clear the cache to avoid content access mismatches.
-  DiscIO::CNANDContentManager::Access().ClearCache();
-  return 0;
+  DiscIO::NANDContentManager::Access().ClearCache();
+
+  if (!UpdateUIDAndGID(*GetIOS(), s_title_context.tmd))
+  {
+    return ES_SHORT_READ;
+  }
+
+  return IPC_SUCCESS;
+}
+
+constexpr u32 FIRST_PPC_UID = 0x1000;
+
+ReturnCode ES::CheckStreamKeyPermissions(const u32 uid, const u8* ticket_view,
+                                         const IOS::ES::TMDReader& tmd) const
+{
+  const u32 title_flags = tmd.GetTitleFlags();
+  // Only allow using this function with some titles (WFS titles).
+  // The following is the exact check from IOS. Unfortunately, other than knowing that the
+  // title type is what IOS checks, we don't know much about the constants used here.
+  constexpr u32 WFS_AND_0x4_FLAG = IOS::ES::TITLE_TYPE_0x4 | IOS::ES::TITLE_TYPE_WFS_MAYBE;
+  if ((!(title_flags & IOS::ES::TITLE_TYPE_0x4) && ~(title_flags >> 5) & 1) ||
+      (title_flags & WFS_AND_0x4_FLAG) == WFS_AND_0x4_FLAG)
+  {
+    return ES_EINVAL;
+  }
+
+  // This function can only be used by specific UIDs, depending on the title type.
+  // It cannot be used at all internally, unless the request comes from the WFS process.
+  // It can only be used from the PPC for some title types.
+  // Note: PID 0x19 is used by the WFS modules.
+  if (uid < FIRST_PPC_UID && uid != PID_UNKNOWN)
+    return ES_EINVAL;
+
+  // If the title type is of this specific type, then this function is limited to WFS.
+  if (title_flags & IOS::ES::TITLE_TYPE_WFS_MAYBE && uid != PID_UNKNOWN)
+    return ES_EINVAL;
+
+  const u64 view_title_id = Common::swap64(ticket_view + offsetof(IOS::ES::TicketView, title_id));
+  if (view_title_id != tmd.GetTitleId())
+    return ES_EINVAL;
+
+  // More permission checks.
+  const u32 permitted_title_mask =
+      Common::swap32(ticket_view + offsetof(IOS::ES::TicketView, permitted_title_mask));
+  const u32 permitted_title_id =
+      Common::swap32(ticket_view + offsetof(IOS::ES::TicketView, permitted_title_id));
+  if ((uid == PID_UNKNOWN && (~permitted_title_mask & 0x13) != permitted_title_id) ||
+      !IsActiveTitlePermittedByTicket(ticket_view))
+  {
+    return ES_EACCES;
+  }
+
+  return IPC_SUCCESS;
+}
+
+ReturnCode ES::SetUpStreamKey(const u32 uid, const u8* ticket_view, const IOS::ES::TMDReader& tmd,
+                              u32* handle)
+{
+  ReturnCode ret = CheckStreamKeyPermissions(uid, ticket_view, tmd);
+  if (ret != IPC_SUCCESS)
+    return ret;
+
+  // TODO (for the future): signature checks.
+
+  // Find a signed ticket from the view.
+  const u64 ticket_id = Common::swap64(&ticket_view[offsetof(IOS::ES::TicketView, ticket_id)]);
+  const u64 title_id = Common::swap64(&ticket_view[offsetof(IOS::ES::TicketView, title_id)]);
+  const IOS::ES::TicketReader installed_ticket = DiscIO::FindSignedTicket(title_id);
+  // Unlike the other "get ticket from view" function, this returns a FS error, not ES_NO_TICKET.
+  if (!installed_ticket.IsValid())
+    return FS_ENOENT;
+  const std::vector<u8> ticket_bytes = installed_ticket.GetRawTicket(ticket_id);
+  if (ticket_bytes.empty())
+    return ES_NO_TICKET;
+
+  std::vector<u8> cert_store;
+  ret = ReadCertStore(&cert_store);
+  if (ret != IPC_SUCCESS)
+    return ret;
+
+  ret = VerifyContainer(VerifyContainerType::TMD, VerifyMode::UpdateCertStore, tmd, cert_store);
+  if (ret != IPC_SUCCESS)
+    return ret;
+  ret = VerifyContainer(VerifyContainerType::Ticket, VerifyMode::UpdateCertStore, installed_ticket,
+                        cert_store);
+  if (ret != IPC_SUCCESS)
+    return ret;
+
+  // Create the handle and return it.
+  std::array<u8, 16> iv{};
+  std::memcpy(iv.data(), &title_id, sizeof(title_id));
+  ret = m_ios.GetIOSC().CreateObject(handle, IOSC::ObjectType::TYPE_SECRET_KEY,
+                                     IOSC::ObjectSubType::SUBTYPE_AES128, PID_ES);
+  if (ret != IPC_SUCCESS)
+    return ret;
+
+  const u32 owner_uid = uid >= FIRST_PPC_UID ? PID_PPCBOOT : uid;
+  ret = m_ios.GetIOSC().SetOwnership(*handle, 1 << owner_uid, PID_ES);
+  if (ret != IPC_SUCCESS)
+    return ret;
+
+  const u8 index = ticket_bytes[offsetof(IOS::ES::Ticket, common_key_index)];
+  if (index > 1)
+    return ES_INVALID_TICKET;
+
+  auto common_key_handle = index == 0 ? IOSC::HANDLE_COMMON_KEY : IOSC::HANDLE_NEW_COMMON_KEY;
+  return m_ios.GetIOSC().ImportSecretKey(*handle, common_key_handle, iv.data(),
+                                         &ticket_bytes[offsetof(IOS::ES::Ticket, title_key)],
+                                         PID_ES);
+}
+
+IPCCommandResult ES::SetUpStreamKey(const Context& context, const IOCtlVRequest& request)
+{
+  if (!request.HasNumberOfValidVectors(2, 1) ||
+      request.in_vectors[0].size != sizeof(IOS::ES::TicketView) ||
+      !IOS::ES::IsValidTMDSize(request.in_vectors[1].size) ||
+      request.io_vectors[0].size != sizeof(u32))
+  {
+    return GetDefaultReply(ES_EINVAL);
+  }
+
+  std::vector<u8> tmd_bytes(request.in_vectors[1].size);
+  Memory::CopyFromEmu(tmd_bytes.data(), request.in_vectors[1].address, tmd_bytes.size());
+  const IOS::ES::TMDReader tmd{std::move(tmd_bytes)};
+
+  if (!tmd.IsValid())
+    return GetDefaultReply(ES_EINVAL);
+
+  u32 handle;
+  const ReturnCode ret =
+      SetUpStreamKey(context.uid, Memory::GetPointer(request.in_vectors[0].address), tmd, &handle);
+  Memory::Write_U32(handle, request.io_vectors[0].address);
+  return GetDefaultReply(ret);
+}
+
+IPCCommandResult ES::DeleteStreamKey(const IOCtlVRequest& request)
+{
+  if (!request.HasNumberOfValidVectors(1, 0) || request.in_vectors[0].size != sizeof(u32))
+    return GetDefaultReply(ES_EINVAL);
+
+  const u32 handle = Memory::Read_U32(request.in_vectors[0].address);
+  return GetDefaultReply(m_ios.GetIOSC().DeleteObject(handle, PID_ES));
+}
+
+bool ES::IsActiveTitlePermittedByTicket(const u8* ticket_view) const
+{
+  if (!GetTitleContext().active)
+    return false;
+
+  const u32 title_identifier = static_cast<u32>(GetTitleContext().tmd.GetTitleId());
+  const u32 permitted_title_mask =
+      Common::swap32(ticket_view + offsetof(IOS::ES::TicketView, permitted_title_mask));
+  const u32 permitted_title_id =
+      Common::swap32(ticket_view + offsetof(IOS::ES::TicketView, permitted_title_id));
+  return title_identifier && (title_identifier & ~permitted_title_mask) == permitted_title_id;
+}
+
+bool ES::IsIssuerCorrect(VerifyContainerType type, const IOS::ES::CertReader& issuer_cert) const
+{
+  switch (type)
+  {
+  case VerifyContainerType::TMD:
+    return issuer_cert.GetName().compare(0, 2, "CP") == 0;
+  case VerifyContainerType::Ticket:
+    return issuer_cert.GetName().compare(0, 2, "XS") == 0;
+  case VerifyContainerType::Device:
+    return issuer_cert.GetName().compare(0, 2, "MS") == 0;
+  default:
+    return false;
+  }
+}
+
+ReturnCode ES::ReadCertStore(std::vector<u8>* buffer) const
+{
+  const std::string store_path = Common::RootUserPath(Common::FROM_SESSION_ROOT) + "/sys/cert.sys";
+  File::IOFile store_file{store_path, "rb"};
+  if (!store_file)
+    return FS_ENOENT;
+
+  buffer->resize(store_file.GetSize());
+  if (!store_file.ReadBytes(buffer->data(), buffer->size()))
+    return ES_SHORT_READ;
+  return IPC_SUCCESS;
+}
+
+ReturnCode ES::WriteNewCertToStore(const IOS::ES::CertReader& cert)
+{
+  // Read the current store to determine if the new cert needs to be written.
+  std::vector<u8> current_store;
+  const ReturnCode ret = ReadCertStore(&current_store);
+  if (ret == IPC_SUCCESS)
+  {
+    const std::map<std::string, IOS::ES::CertReader> certs = IOS::ES::ParseCertChain(current_store);
+    // The cert is already present in the store. Nothing to do.
+    if (certs.find(cert.GetName()) != certs.end())
+      return IPC_SUCCESS;
+  }
+
+  // Otherwise, write the new cert at the end of the store.
+  const std::string store_path = Common::RootUserPath(Common::FROM_SESSION_ROOT) + "/sys/cert.sys";
+  File::IOFile store_file{store_path, "ab"};
+  if (!store_file || !store_file.WriteBytes(cert.GetBytes().data(), cert.GetBytes().size()))
+    return ES_EIO;
+  return IPC_SUCCESS;
+}
+
+ReturnCode ES::VerifyContainer(VerifyContainerType type, VerifyMode mode,
+                               const IOS::ES::SignedBlobReader& signed_blob,
+                               const std::vector<u8>& cert_chain, u32 iosc_handle)
+{
+  if (!SConfig::GetInstance().m_enable_signature_checks)
+    return IPC_SUCCESS;
+
+  if (!signed_blob.IsSignatureValid())
+    return ES_EINVAL;
+
+  // A blob should have exactly 3 parent issuers.
+  // Example for a ticket: "Root-CA00000001-XS00000003" => {"Root", "CA00000001", "XS00000003"}
+  const std::string issuer = signed_blob.GetIssuer();
+  const std::vector<std::string> parents = SplitString(issuer, '-');
+  if (parents.size() != 3)
+    return ES_EINVAL;
+
+  // Find the direct issuer and the CA certificates for the blob.
+  const std::map<std::string, IOS::ES::CertReader> certs = IOS::ES::ParseCertChain(cert_chain);
+  const auto issuer_cert_iterator = certs.find(parents[2]);
+  const auto ca_cert_iterator = certs.find(parents[1]);
+  if (issuer_cert_iterator == certs.end() || ca_cert_iterator == certs.end())
+    return ES_UNKNOWN_ISSUER;
+  const IOS::ES::CertReader& issuer_cert = issuer_cert_iterator->second;
+  const IOS::ES::CertReader& ca_cert = ca_cert_iterator->second;
+
+  // Some blobs can only be signed by specific certificates.
+  if (!IsIssuerCorrect(type, issuer_cert))
+    return ES_EINVAL;
+
+  // Verify the whole cert chain using IOSC.
+  // IOS assumes that the CA cert will always be signed by the root certificate,
+  // and that the issuer is signed by the CA.
+  IOSC& iosc = m_ios.GetIOSC();
+  IOSC::Handle handle;
+
+  // Create and initialise a handle for the CA cert and the issuer cert.
+  ReturnCode ret = iosc.CreateObject(&handle, IOSC::TYPE_PUBLIC_KEY, IOSC::SUBTYPE_RSA2048, PID_ES);
+  if (ret != IPC_SUCCESS)
+    return ret;
+  Common::ScopeGuard ca_guard{[&] { iosc.DeleteObject(handle, PID_ES); }};
+  ret = iosc.ImportCertificate(ca_cert.GetBytes().data(), IOSC::HANDLE_ROOT_KEY, handle, PID_ES);
+  if (ret != IPC_SUCCESS)
+    return ret;
+
+  IOSC::Handle issuer_handle;
+  const IOSC::ObjectSubType subtype =
+      type == VerifyContainerType::Device ? IOSC::SUBTYPE_ECC233 : IOSC::SUBTYPE_RSA2048;
+  ret = iosc.CreateObject(&issuer_handle, IOSC::TYPE_PUBLIC_KEY, subtype, PID_ES);
+  if (ret != IPC_SUCCESS)
+    return ret;
+  Common::ScopeGuard issuer_guard{[&] { iosc.DeleteObject(issuer_handle, PID_ES); }};
+  ret = iosc.ImportCertificate(issuer_cert.GetBytes().data(), handle, issuer_handle, PID_ES);
+  if (ret != IPC_SUCCESS)
+    return ret;
+
+  // Calculate the SHA1 of the signed blob.
+  const size_t skip = type == VerifyContainerType::Device ? offsetof(SignatureECC, issuer) :
+                                                            offsetof(SignatureRSA2048, issuer);
+  std::array<u8, 20> sha1;
+  mbedtls_sha1(signed_blob.GetBytes().data() + skip, signed_blob.GetBytes().size() - skip,
+               sha1.data());
+
+  // Verify the signature.
+  const std::vector<u8> signature = signed_blob.GetSignatureData();
+  ret = iosc.VerifyPublicKeySign(sha1, issuer_handle, signature.data(), PID_ES);
+  if (ret != IPC_SUCCESS)
+    return ret;
+
+  if (mode == VerifyMode::UpdateCertStore)
+  {
+    ret = WriteNewCertToStore(issuer_cert);
+    if (ret != IPC_SUCCESS)
+      ERROR_LOG(IOS_ES, "VerifyContainer: Writing the issuer cert failed with return code %d", ret);
+
+    ret = WriteNewCertToStore(ca_cert);
+    if (ret != IPC_SUCCESS)
+      ERROR_LOG(IOS_ES, "VerifyContainer: Writing the CA cert failed with return code %d", ret);
+  }
+
+  // Import the signed blob to iosc_handle (if a handle was passed to us).
+  if (ret == IPC_SUCCESS && iosc_handle)
+    ret = iosc.ImportCertificate(signed_blob.GetBytes().data(), issuer_handle, iosc_handle, PID_ES);
+
+  return ret;
 }
 }  // namespace Device
 }  // namespace HLE

@@ -7,17 +7,19 @@
 #include <array>
 #include <atomic>
 
+#include "AudioCommon/AudioStretcher.h"
 #include "AudioCommon/WaveFile.h"
 #include "Common/CommonTypes.h"
 
-class CMixer final
+class Mixer final
 {
 public:
-  explicit CMixer(unsigned int BackendSampleRate);
-  ~CMixer();
+  explicit Mixer(unsigned int BackendSampleRate);
+  ~Mixer();
 
   // Called from audio threads
-  unsigned int Mix(short* samples, unsigned int numSamples, bool consider_framelimit = true);
+  unsigned int Mix(short* samples, unsigned int numSamples);
+  unsigned int MixSurround(float* samples, unsigned int num_samples);
 
   // Called from main thread
   void PushSamples(const short* samples, unsigned int num_samples);
@@ -48,8 +50,7 @@ private:
   class MixerFifo final
   {
   public:
-    MixerFifo(CMixer* mixer, unsigned sample_rate)
-        : m_mixer(mixer), m_input_sample_rate(sample_rate)
+    MixerFifo(Mixer* mixer, unsigned sample_rate) : m_mixer(mixer), m_input_sample_rate(sample_rate)
     {
     }
     void PushSamples(const short* samples, unsigned int num_samples);
@@ -57,9 +58,10 @@ private:
     void SetInputSampleRate(unsigned int rate);
     unsigned int GetInputSampleRate() const;
     void SetVolume(unsigned int lvolume, unsigned int rvolume);
+    unsigned int AvailableSamples() const;
 
   private:
-    CMixer* m_mixer;
+    Mixer* m_mixer;
     unsigned m_input_sample_rate;
     std::array<short, MAX_SAMPLES * 2> m_buffer{};
     std::atomic<u32> m_indexW{0};
@@ -70,10 +72,16 @@ private:
     float m_numLeftI = 0.0f;
     u32 m_frac = 0;
   };
+
   MixerFifo m_dma_mixer{this, 32000};
   MixerFifo m_streaming_mixer{this, 48000};
   MixerFifo m_wiimote_speaker_mixer{this, 3000};
   unsigned int m_sampleRate;
+
+  bool m_is_stretching = false;
+  AudioCommon::AudioStretcher m_stretcher;
+  std::array<short, MAX_SAMPLES * 2> m_scratch_buffer;
+  std::array<float, MAX_SAMPLES * 2> m_float_conversion_buffer;
 
   WaveFileWriter m_wave_writer_dtk;
   WaveFileWriter m_wave_writer_dsp;

@@ -9,17 +9,20 @@
 
 #include "Core/ec_wii.h"
 
+#include <cinttypes>
 #include <cstdio>
-#include <string.h>
+#include <cstring>
+#include <string>
 
 #include <mbedtls/sha1.h>
 
-#include "Common/CommonFuncs.h"
+#include "Common/CommonTypes.h"
 #include "Common/Crypto/ec.h"
+#include "Common/File.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
+#include "Common/Swap.h"
 
-constexpr u32 default_NG_id = 0x0403AC68;
 constexpr u32 default_NG_key_id = 0x6AAB8C59;
 
 constexpr u8 default_NG_priv[] = {
@@ -61,7 +64,7 @@ void MakeNGCert(u8* ng_cert_out, u32 NG_id, u32 NG_key_id, const u8* NG_priv, co
   char name[64];
   if ((NG_id == 0) || (NG_key_id == 0) || (NG_priv == nullptr) || (NG_sig == nullptr))
   {
-    NG_id = default_NG_id;
+    NG_id = DEFAULT_WII_DEVICE_ID;
     NG_key_id = default_NG_key_id;
     NG_priv = default_NG_priv;
     NG_sig = default_NG_sig;
@@ -94,7 +97,7 @@ void MakeAPSigAndCert(u8* sig_out, u8* ap_cert_out, u64 title_id, u8* data, u32 
   if ((NG_id == 0) || (NG_priv == nullptr))
   {
     NG_priv = default_NG_priv;
-    NG_id = default_NG_id;
+    NG_id = DEFAULT_WII_DEVICE_ID;
   }
 
   memset(ap_priv, 0, 0x1e);
@@ -106,7 +109,7 @@ void MakeAPSigAndCert(u8* sig_out, u8* ap_cert_out, u64 title_id, u8* data, u32 
   memset(ap_cert_out + 4, 0, 60);
 
   sprintf(signer, "Root-CA00000001-MS00000002-NG%08x", NG_id);
-  sprintf(name, "AP%08x%08x", (u32)(title_id >> 32), (u32)(title_id & 0xffffffff));
+  sprintf(name, "AP%016" PRIx64, title_id);
   MakeBlankSigECCert(ap_cert_out, signer, name, ap_priv, 0);
 
   mbedtls_sha1(ap_cert_out + 0x80, 0x100, hash);
@@ -182,7 +185,7 @@ void EcWii::InitDefaults()
 {
   memset(&BootMiiKeysBin, 0, sizeof(BootMiiKeysBin));
 
-  BootMiiKeysBin.ng_id = Common::swap32(default_NG_id);
+  BootMiiKeysBin.ng_id = Common::swap32(DEFAULT_WII_DEVICE_ID);
   BootMiiKeysBin.ng_key_id = Common::swap32(default_NG_key_id);
 
   memcpy(BootMiiKeysBin.ng_priv, default_NG_priv, sizeof(BootMiiKeysBin.ng_priv));

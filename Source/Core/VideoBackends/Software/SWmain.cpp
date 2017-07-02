@@ -15,6 +15,7 @@
 #include "VideoBackends/Software/Rasterizer.h"
 #include "VideoBackends/Software/SWOGLWindow.h"
 #include "VideoBackends/Software/SWRenderer.h"
+#include "VideoBackends/Software/SWTexture.h"
 #include "VideoBackends/Software/SWVertexLoader.h"
 #include "VideoBackends/Software/VideoBackend.h"
 
@@ -49,42 +50,27 @@ class TextureCache : public TextureCacheBase
 public:
   bool CompileShaders() override { return true; }
   void DeleteShaders() override {}
-  void ConvertTexture(TCacheEntryBase* entry, TCacheEntryBase* unconverted, void* palette,
+  void ConvertTexture(TCacheEntry* entry, TCacheEntry* unconverted, void* palette,
                       TlutFormat format) override
   {
   }
-  void CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_row, u32 num_blocks_y,
-               u32 memory_stride, bool is_depth_copy, const EFBRectangle& srcRect, bool isIntensity,
-               bool scaleByHalf) override
+  void CopyEFB(u8* dst, const EFBCopyFormat& format, u32 native_width, u32 bytes_per_row,
+               u32 num_blocks_y, u32 memory_stride, bool is_depth_copy,
+               const EFBRectangle& src_rect, bool scale_by_half) override
   {
     EfbCopy::CopyEfb();
   }
 
 private:
-  struct TCacheEntry : TCacheEntryBase
+  std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config) override
   {
-    TCacheEntry(const TCacheEntryConfig& _config) : TCacheEntryBase(_config) {}
-    ~TCacheEntry() {}
-    void Load(const u8* buffer, u32 width, u32 height, u32 expanded_width, u32 level) override {}
-    void FromRenderTarget(bool is_depth_copy, const EFBRectangle& srcRect, bool scaleByHalf,
-                          unsigned int cbufid, const float* colmat) override
-    {
-      EfbCopy::CopyEfb();
-    }
+    return std::make_unique<SWTexture>(config);
+  }
 
-    void CopyRectangleFromTexture(const TCacheEntryBase* source,
-                                  const MathUtil::Rectangle<int>& srcrect,
-                                  const MathUtil::Rectangle<int>& dstrect) override
-    {
-    }
-
-    void Bind(unsigned int stage) override {}
-    bool Save(const std::string& filename, unsigned int level) override { return false; }
-  };
-
-  TCacheEntryBase* CreateTexture(const TCacheEntryConfig& config) override
+  void CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy, const EFBRectangle& src_rect,
+                           bool scale_by_half, unsigned int cbuf_id, const float* colmat) override
   {
-    return new TCacheEntry(config);
+    EfbCopy::CopyEfb();
   }
 };
 
@@ -124,13 +110,17 @@ std::string VideoSoftware::GetDisplayName() const
 void VideoSoftware::InitBackendInfo()
 {
   g_Config.backend_info.api_type = APIType::Nothing;
+  g_Config.backend_info.MaxTextureSize = 16384;
   g_Config.backend_info.bSupports3DVision = false;
   g_Config.backend_info.bSupportsDualSourceBlend = true;
   g_Config.backend_info.bSupportsEarlyZ = true;
   g_Config.backend_info.bSupportsOversizedViewports = true;
   g_Config.backend_info.bSupportsPrimitiveRestart = false;
   g_Config.backend_info.bSupportsMultithreading = false;
+  g_Config.backend_info.bSupportsComputeShaders = false;
   g_Config.backend_info.bSupportsInternalResolutionFrameDumps = false;
+  g_Config.backend_info.bSupportsGPUTextureDecoding = false;
+  g_Config.backend_info.bSupportsST3CTextures = false;
 
   // aamodes
   g_Config.backend_info.AAModes = {1};

@@ -1,54 +1,60 @@
 set(SRCS InputConfig.cpp
-         ControllerEmu/ControllerEmu.cpp
-         ControllerEmu/Control/Control.cpp
-         ControllerEmu/Control/Input.cpp
-         ControllerEmu/Control/Output.cpp
-         ControllerEmu/ControlGroup/AnalogStick.cpp
-         ControllerEmu/ControlGroup/Buttons.cpp
-         ControllerEmu/ControlGroup/ControlGroup.cpp
-         ControllerEmu/ControlGroup/Cursor.cpp
-         ControllerEmu/ControlGroup/Extension.cpp
-         ControllerEmu/ControlGroup/Force.cpp
-         ControllerEmu/ControlGroup/MixedTriggers.cpp
-         ControllerEmu/ControlGroup/ModifySettingsButton.cpp
-         ControllerEmu/ControlGroup/Slider.cpp
-         ControllerEmu/ControlGroup/Tilt.cpp
-         ControllerEmu/ControlGroup/Triggers.cpp
-         ControllerInterface/ControllerInterface.cpp
-         ControllerInterface/Device.cpp
-         ControlReference/ControlReference.cpp
-         ControlReference/ExpressionParser.cpp
+  ControllerEmu/ControllerEmu.cpp
+  ControllerEmu/Control/Control.cpp
+  ControllerEmu/Control/Input.cpp
+  ControllerEmu/Control/Output.cpp
+  ControllerEmu/ControlGroup/AnalogStick.cpp
+  ControllerEmu/ControlGroup/Buttons.cpp
+  ControllerEmu/ControlGroup/ControlGroup.cpp
+  ControllerEmu/ControlGroup/Cursor.cpp
+  ControllerEmu/ControlGroup/Extension.cpp
+  ControllerEmu/ControlGroup/Force.cpp
+  ControllerEmu/ControlGroup/MixedTriggers.cpp
+  ControllerEmu/ControlGroup/ModifySettingsButton.cpp
+  ControllerEmu/ControlGroup/Slider.cpp
+  ControllerEmu/ControlGroup/Tilt.cpp
+  ControllerEmu/ControlGroup/Triggers.cpp
+  ControllerEmu/Setting/BooleanSetting.cpp
+  ControllerEmu/Setting/NumericSetting.cpp
+  ControllerInterface/ControllerInterface.cpp
+  ControllerInterface/Device.cpp
+  ControlReference/ControlReference.cpp
+  ControlReference/ExpressionParser.cpp
 )
 set(LIBS common)
 
 if(WIN32)
   set(SRCS ${SRCS}
-           ControllerInterface/DInput/DInput.cpp
-           ControllerInterface/DInput/DInputJoystick.cpp
-           ControllerInterface/DInput/DInputKeyboardMouse.cpp
-           ControllerInterface/DInput/XInputFilter.cpp
-           ControllerInterface/XInput/XInput.cpp
-           ControllerInterface/ForceFeedback/ForceFeedbackDevice.cpp)
+    ControllerInterface/DInput/DInput.cpp
+    ControllerInterface/DInput/DInputJoystick.cpp
+    ControllerInterface/DInput/DInputKeyboardMouse.cpp
+    ControllerInterface/DInput/XInputFilter.cpp
+    ControllerInterface/XInput/XInput.cpp
+    ControllerInterface/ForceFeedback/ForceFeedbackDevice.cpp
+  )
 elseif(APPLE)
   find_library(COREFOUNDATION_LIBRARY CoreFoundation)
   find_library(CARBON_LIBRARY Carbon)
   find_library(COCOA_LIBRARY Cocoa)
   set(SRCS ${SRCS}
-           ControllerInterface/OSX/OSX.mm
-           ControllerInterface/OSX/OSXKeyboard.mm
-           ControllerInterface/OSX/OSXJoystick.mm
-           ControllerInterface/Quartz/Quartz.mm
-           ControllerInterface/Quartz/QuartzKeyboardAndMouse.mm
-           ControllerInterface/ForceFeedback/ForceFeedbackDevice.cpp)
+    ControllerInterface/OSX/OSX.mm
+    ControllerInterface/OSX/OSXKeyboard.mm
+    ControllerInterface/OSX/OSXJoystick.mm
+    ControllerInterface/Quartz/Quartz.mm
+    ControllerInterface/Quartz/QuartzKeyboardAndMouse.mm
+    ControllerInterface/ForceFeedback/ForceFeedbackDevice.cpp
+  )
   set(LIBS ${LIBS} ${COREFOUNDATION_LIBRARY} ${CARBON_LIBRARY} ${COCOA_LIBRARY})
 elseif(X11_FOUND)
   set(SRCS ${SRCS}
-           ControllerInterface/Xlib/XInput2.cpp)
+    ControllerInterface/Xlib/XInput2.cpp
+  )
   set(LIBS ${LIBS} ${X11_LIBRARIES} ${X11_INPUT_LIBRARIES})
 elseif(ANDROID)
   add_definitions(-DCIFACE_USE_ANDROID)
   set(SRCS ${SRCS}
-           ControllerInterface/Android/Android.cpp)
+    ControllerInterface/Android/Android.cpp
+  )
 endif()
 
 if(ANDROID)

@@ -4,6 +4,7 @@
 
 #include <QIcon>
 
+#include "DolphinQt2/Resources.h"
 #include "DolphinQt2/Settings.h"
 #include "DolphinQt2/ToolBar.h"
 
@@ -17,6 +18,7 @@ ToolBar::ToolBar(QWidget* parent) : QToolBar(parent)
   setIconSize(ICON_SIZE);
 
   MakeActions();
+  connect(&Settings::Instance(), &Settings::ThemeChanged, this, &ToolBar::UpdateIcons);
   UpdateIcons();
 
   EmulationStopped();
@@ -78,28 +80,26 @@ void ToolBar::MakeActions()
 
   addSeparator();
 
-  m_paths_action = addAction(tr("Paths"), this, SIGNAL(PathsPressed()));
-  widgetForAction(m_paths_action)->setMinimumWidth(button_width);
-
   m_config_action = addAction(tr("Settings"), this, SIGNAL(SettingsPressed()));
   widgetForAction(m_config_action)->setMinimumWidth(button_width);
 
-  m_controllers_action = addAction(tr("Controllers"));
+  m_graphics_action = addAction(tr("Graphics"), this, SIGNAL(GraphicsPressed()));
+  widgetForAction(m_graphics_action)->setMinimumWidth(button_width);
+
+  m_controllers_action = addAction(tr("Controllers"), this, SIGNAL(ControllersPressed()));
   widgetForAction(m_controllers_action)->setMinimumWidth(button_width);
-  m_controllers_action->setEnabled(false);
+  m_controllers_action->setEnabled(true);
 }
 
 void ToolBar::UpdateIcons()
 {
-  QString dir = Settings().GetThemeDir();
-
-  m_open_action->setIcon(QIcon(QStringLiteral("open.png").prepend(dir)));
-  m_paths_action->setIcon(QIcon(QStringLiteral("browse.png").prepend(dir)));
-  m_play_action->setIcon(QIcon(QStringLiteral("play.png").prepend(dir)));
-  m_pause_action->setIcon(QIcon(QStringLiteral("pause.png").prepend(dir)));
-  m_stop_action->setIcon(QIcon(QStringLiteral("stop.png").prepend(dir)));
-  m_fullscreen_action->setIcon(QIcon(QStringLiteral("fullscreen.png").prepend(dir)));
-  m_screenshot_action->setIcon(QIcon(QStringLiteral("screenshot.png").prepend(dir)));
-  m_config_action->setIcon(QIcon(QStringLiteral("config.png").prepend(dir)));
-  m_controllers_action->setIcon(QIcon(QStringLiteral("classic.png").prepend(dir)));
+  m_open_action->setIcon(Resources::GetScaledThemeIcon("open"));
+  m_play_action->setIcon(Resources::GetScaledThemeIcon("play"));
+  m_pause_action->setIcon(Resources::GetScaledThemeIcon("pause"));
+  m_stop_action->setIcon(Resources::GetScaledThemeIcon("stop"));
+  m_fullscreen_action->setIcon(Resources::GetScaledThemeIcon("fullscreen"));
+  m_screenshot_action->setIcon(Resources::GetScaledThemeIcon("screenshot"));
+  m_config_action->setIcon(Resources::GetScaledThemeIcon("config"));
+  m_controllers_action->setIcon(Resources::GetScaledThemeIcon("classic"));
+  m_graphics_action->setIcon(Resources::GetScaledThemeIcon("graphics"));
 }

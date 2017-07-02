@@ -6,6 +6,7 @@
 
 #include <array>
 #include <cstring>
+#include <functional>
 #include <memory>
 #include <string>
 
@@ -17,21 +18,23 @@
 #include "Common/Logging/Log.h"
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
+#include "Core/CommonTitles.h"
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/EXI/EXI.h"
 #include "Core/HW/EXI/EXI_Channel.h"
 #include "Core/HW/EXI/EXI_Device.h"
-#include "Core/HW/GCMemcard.h"
-#include "Core/HW/GCMemcardDirectory.h"
-#include "Core/HW/GCMemcardRaw.h"
+#include "Core/HW/GCMemcard/GCMemcard.h"
+#include "Core/HW/GCMemcard/GCMemcardDirectory.h"
+#include "Core/HW/GCMemcard/GCMemcardRaw.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/Sram.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/Movie.h"
 #include "DiscIO/Enums.h"
-#include "DiscIO/NANDContentLoader.h"
 
+namespace ExpansionInterface
+{
 #define MC_STATUS_BUSY 0x80
 #define MC_STATUS_UNLOCKED 0x40
 #define MC_STATUS_SLEEP 0x20
@@ -130,6 +133,7 @@ CEXIMemoryCard::CEXIMemoryCard(const int index, bool gciFolder) : card_index(ind
   // WTA Tour Tennis GWTEA4 GWTJA4 GWTPA4
   // Disney Sports : Skate Boarding GDXEA4 GDXPA4 GDXJA4
   // Disney Sports : Soccer GDKEA4
+  // Wallace and Gromit in Pet Zoo GWLE6L GWLX6L
   // Use a 16Mb (251 block) memory card for these games
   bool useMC251;
   IniFile gameIni = SConfig::GetInstance().LoadGameIni();
@@ -155,16 +159,22 @@ void CEXIMemoryCard::SetupGciFolder(u16 sizeMb)
 {
   DiscIO::Region region = SConfig::GetInstance().m_region;
 
-  std::string game_id = SConfig::GetInstance().m_strGameID;
+  const std::string& game_id = SConfig::GetInstance().GetGameID();
   u32 CurrentGameId = 0;
-  if (game_id.length() >= 4 && game_id != "00000000" && game_id != TITLEID_SYSMENU_STRING)
+  if (game_id.length() >= 4 && game_id != "00000000" &&
+      SConfig::GetInstance().GetTitleID() != Titles::SYSTEM_MENU)
     CurrentGameId = BE32((u8*)game_id.c_str());
 
   const bool shift_jis = region == DiscIO::Region::NTSC_J;
 
-  std::string strDirectoryName = File::GetUserPath(D_GCUSER_IDX) +
-                                 SConfig::GetDirectoryForRegion(region) + DIR_SEP +
-                                 StringFromFormat("Card %c", 'A' + card_index);
+  std::string strDirectoryName = File::GetUserPath(D_GCUSER_IDX);
+
+  if (Movie::IsPlayingInput() && Movie::IsConfigSaved() && Movie::IsUsingMemcard(card_index) &&
+      Movie::IsStartingFromClearSave())
+    strDirectoryName += "Movie" DIR_SEP;
+
+  strDirectoryName = strDirectoryName + SConfig::GetDirectoryForRegion(region) + DIR_SEP +
+                     StringFromFormat("Card %c", 'A' + card_index);
 
   if (!File::Exists(strDirectoryName))  // first use of memcard folder, migrate automatically
   {
@@ -526,3 +536,4 @@ void CEXIMemoryCard::DMAWrite(u32 _uAddr, u32 _uSize)
   CoreTiming::ScheduleEvent(_uSize * (SystemTimers::GetTicksPerSecond() / MC_TRANSFER_RATE_WRITE),
                             s_et_transfer_complete[card_index], (u64)card_index);
 }
+}  // namespace ExpansionInterface

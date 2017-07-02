@@ -1,24 +1,23 @@
-# Dolphin Coding Style & Licensing
+# <a name="main-heading"></a>Dolphin Coding Style & Licensing
 
 If you make any contributions to Dolphin after December 1st, 2014, you are agreeing that any code you have contributed will be licensed under the GNU GPL version 2 (or any later version).
 
-## Coding Style
+# <a name="main-section-overview"></a>Main sections
 
-- [Introduction] (#introduction)
-- [Styling and formatting] (#styling-and-formatting)
-  - [General] (#general)
-  - [Naming] (#naming)
-  - [Conditionals] (#conditionals)
-  - [Classes and Structs] (#classes-and-structs)
-- [Code specific] (#code-specific)
-  - [General] (#general-1)
-  - [Headers] (#headers)
-  - [Loops] (#loops)
-  - [Functions] (#functions)
-  - [Classes and Structs] (#classes-and-structs-1)
+- [Introduction](#introduction)
+- [C++ coding style and formatting](#cpp-coding-style-and-formatting)
+- [C++ code-specific guidelines](#cpp-code-specific-guidelines)
+- [Android and Java](#android-and-java)
 
 
-## Introduction
+# <a name="introduction"></a>Introduction
+
+Summary:
+
+- [Aims](#intro-aims)
+- [Checking and fixing formatting issues](#intro-formatting-issues)
+
+## <a name="intro-aims"></a>Aims
 
 This guide is for developers who wish to contribute to the Dolphin codebase. It will detail how to properly style and format code to fit this project. This guide also offers suggestions on specific functions and other varia that may be used in code.
 
@@ -27,7 +26,7 @@ Following this guide and formatting your code as detailed will likely get your p
 This project uses clang-format (stable branch) to check for common style issues. In case of conflicts between this guide and clang-format rules, the latter should be followed instead of this guide.
 
 
-### Checking and fixing formatting issues
+## <a name="intro-formatting-issues"></a>Checking and fixing formatting issues
 
 In most cases, clang-format can and **should** be used to automatically reformat code and solve most formatting issues.
 
@@ -50,9 +49,16 @@ In most cases, clang-format can and **should** be used to automatically reformat
   echo '/Source/Core/**/*.mm filter=clang_format' >> .git/info/attributes
   ```
 
-## Styling and formatting
+# <a name="cpp-coding-style-and-formatting"></a>C++ coding style and formatting
 
-### General
+Summary:
+
+- [General](#cpp-style-general)
+- [Naming](#cpp-style-naming)
+- [Conditionals](#cpp-style-conditionals)
+- [Classes and structs](#cpp-style-classes-and-structs)
+
+## <a name="cpp-style-general"></a>General
 - Try to limit lines of code to a maximum of 100 characters.
     - Note that this does not mean you should try and use all 100 characters every time you have the chance. Typically with well formatted code, you normally shouldn't hit a line count of anything over 80 or 90 characters.
 - The indentation style we use is 2 spaces per level.
@@ -78,13 +84,13 @@ In most cases, clang-format can and **should** be used to automatically reformat
     while (var != 0) var--;
     ```
 
-### Naming
+## <a name="cpp-style-naming"></a>Naming
 - All class, enum, function, and struct names should be in upper CamelCase. If the name contains an abbreviation uppercase it.
   - `class SomeClassName`
   - `enum IPCCommandType`
 - All compile time constants should be fully uppercased. With constants that have more than one word in them, use an underscore to separate them.
-  - `const double PI = 3.14159;`
-  - `const int MAX_PATH = 260;`
+  - `constexpr double PI = 3.14159;`
+  - `constexpr int MAX_PATH = 260;`
 - All variables should be lowercase with underscores separating the individual words in the name.
   - `int this_variable_name;`
 - Please do not use [Hungarian notation](http://en.wikipedia.org/wiki/Hungarian_notation) prefixes with variables. The only exceptions to this are the variable prefixes below.
@@ -92,7 +98,7 @@ In most cases, clang-format can and **should** be used to automatically reformat
   - Class variables – `m_`
   - Static variables – `s_`
 
-### Conditionals
+## <a name="cpp-style-conditionals"></a>Conditionals
 - Do not leave `else` or `else if` conditions dangling unless the `if` condition lacks braces.
   - Yes:
 
@@ -126,7 +132,7 @@ In most cases, clang-format can and **should** be used to automatically reformat
     ```
 
 
-### Classes and Structs
+## <a name="cpp-style-classes-and-structs"></a>Classes and structs
 - If making a [POD](http://en.wikipedia.org/wiki/Plain_Old_Data_Structures) type, use a `struct` for this. Use a `class` otherwise.
 - Class layout should be in the order, `public`, `protected`, and then `private`.
   - If one or more of these sections are not needed, then simply don't include them.
@@ -152,10 +158,18 @@ private:
 };
 ```
 
-## Code Specific
+# <a name="cpp-code-specific-guidelines"></a>C++ code-specific guidelines
 
-### General
-- Using C++11 features is OK and recommended.
+Summary:
+
+- [General](#cpp-code-general)
+- [Headers](#cpp-code-headers)
+- [Loops](#cpp-code-loops)
+- [Functions](#cpp-code-functions)
+- [Classes and Structs](#cpp-code-classes-and-structs)
+
+## <a name="cpp-code-general"></a>General
+- The codebase currently uses C++14.
 - Use the [nullptr](http://en.cppreference.com/w/cpp/language/nullptr) type over the macro `NULL`.
 - If a [range-based for loop](http://en.cppreference.com/w/cpp/language/range-for) can be used instead of container iterators, use it.
 - Obviously, try not to use `goto` unless you have a *really* good reason for it.
@@ -165,7 +179,7 @@ private:
 - Do not use `using namespace [x];` in headers. Try not to use it at all if you can.
 - The preferred form of the increment and decrement operator in for-loops is prefix-form (e.g. `++var`).
 
-### Headers
+## <a name="cpp-code-headers"></a>Headers
 - If a header is not necessary in a certain source file, remove them.
 - If you find duplicate includes of a certain header, remove it.
 - When declaring includes in a source file, make sure they follow the given pattern:
@@ -177,7 +191,7 @@ private:
 - Project source file headers should be included in a way that is relative to the `[Dolphin Root]/Source/Core` directory.
 - This project uses `#pragma once` as header guards.
 
-### Loops
+## <a name="cpp-code-loops"></a>Loops
 - If an infinite loop is required, do not use `for (;;)`, use `while (true)`.
 - Empty-bodied loops should use braces after their header, not a semicolon.
   - Yes: `while (condition) {}`
@@ -190,7 +204,7 @@ private:
   } while (false);
   ```
 
-### Functions
+## <a name="cpp-code-functions"></a>Functions
 - If a function parameter is a pointer or reference and its value or data isn't intended to be changed, please mark that parameter as `const`.
 - Functions that specifically modify their parameters should have the respective parameter(s) marked as a pointer so that the variables being modified are syntaxically obvious.
   - What not to do:
@@ -243,7 +257,7 @@ private:
   };
   ```
 
-### Classes and Structs
+## <a name="cpp-code-classes-and-structs"></a>Classes and structs
 - Classes and structs that are not intended to be extended through inheritance should be marked with the `final` specifier.
 
   ```c++
@@ -253,6 +267,6 @@ private:
   };
   ```
 
-## Java
+# <a name="android-and-java"></a>Android and Java
 
 The Android project is currently written in Java. If you are using Android Studio to contribute, you can import the project's code style from `code-style-java.jar`, located in `[Dolphin Root]/Source/Android`. Please organize imports before committing.

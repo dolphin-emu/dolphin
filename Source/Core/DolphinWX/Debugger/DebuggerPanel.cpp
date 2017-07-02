@@ -70,20 +70,16 @@ void GFXDebuggerPanel::CreateGUIControls()
 
   const int space3 = FromDIP(3);
 
-  m_pButtonPause = new wxButton(this, wxID_ANY, _("Pause"), wxDefaultPosition, wxDefaultSize, 0,
-                                wxDefaultValidator, _("Pause"));
+  m_pButtonPause = new wxButton(this, wxID_ANY, _("Pause"));
   m_pButtonPause->Bind(wxEVT_BUTTON, &GFXDebuggerPanel::OnPauseButton, this);
 
-  m_pButtonPauseAtNext = new wxButton(this, wxID_ANY, _("Pause After"), wxDefaultPosition,
-                                      wxDefaultSize, 0, wxDefaultValidator, _("Pause At Next"));
+  m_pButtonPauseAtNext = new wxButton(this, wxID_ANY, _("Pause After"));
   m_pButtonPauseAtNext->Bind(wxEVT_BUTTON, &GFXDebuggerPanel::OnPauseAtNextButton, this);
 
-  m_pButtonPauseAtNextFrame = new wxButton(this, wxID_ANY, _("Go to Next Frame"), wxDefaultPosition,
-                                           wxDefaultSize, 0, wxDefaultValidator, _("Next Frame"));
+  m_pButtonPauseAtNextFrame = new wxButton(this, wxID_ANY, _("Go to Next Frame"));
   m_pButtonPauseAtNextFrame->Bind(wxEVT_BUTTON, &GFXDebuggerPanel::OnPauseAtNextFrameButton, this);
 
-  m_pButtonCont = new wxButton(this, wxID_ANY, _("Continue"), wxDefaultPosition, wxDefaultSize, 0,
-                               wxDefaultValidator, _("Continue"));
+  m_pButtonCont = new wxButton(this, wxID_ANY, _("Continue"));
   m_pButtonCont->Bind(wxEVT_BUTTON, &GFXDebuggerPanel::OnContButton, this);
 
   m_pCount = new wxTextCtrl(this, wxID_ANY, "1", wxDefaultPosition, wxDefaultSize, wxTE_RIGHT,
@@ -97,21 +93,16 @@ void GFXDebuggerPanel::CreateGUIControls()
   }
   m_pPauseAtList->SetSelection(0);
 
-  m_pButtonDump = new wxButton(this, wxID_ANY, _("Dump"), wxDefaultPosition, wxDefaultSize, 0,
-                               wxDefaultValidator, _("Dump"));
+  m_pButtonDump = new wxButton(this, wxID_ANY, _("Dump"));
   m_pButtonDump->Bind(wxEVT_BUTTON, &GFXDebuggerPanel::OnDumpButton, this);
 
-  m_pButtonUpdateScreen = new wxButton(this, wxID_ANY, _("Update Screen"), wxDefaultPosition,
-                                       wxDefaultSize, 0, wxDefaultValidator, _("Update Screen"));
+  m_pButtonUpdateScreen = new wxButton(this, wxID_ANY, _("Update Screen"));
   m_pButtonUpdateScreen->Bind(wxEVT_BUTTON, &GFXDebuggerPanel::OnUpdateScreenButton, this);
 
-  m_pButtonClearScreen = new wxButton(this, wxID_ANY, _("Clear Screen"), wxDefaultPosition,
-                                      wxDefaultSize, 0, wxDefaultValidator, _("Clear Screen"));
+  m_pButtonClearScreen = new wxButton(this, wxID_ANY, _("Clear Screen"));
   m_pButtonClearScreen->Bind(wxEVT_BUTTON, &GFXDebuggerPanel::OnClearScreenButton, this);
 
-  m_pButtonClearTextureCache =
-      new wxButton(this, wxID_ANY, _("Clear Textures"), wxDefaultPosition, wxDefaultSize, 0,
-                   wxDefaultValidator, _("Clear Textures"));
+  m_pButtonClearTextureCache = new wxButton(this, wxID_ANY, _("Clear Textures"));
   m_pButtonClearTextureCache->Bind(wxEVT_BUTTON, &GFXDebuggerPanel::OnClearTextureCacheButton,
                                    this);
 
@@ -232,7 +223,7 @@ void GFXDebuggerPanel::OnPauseAtNextFrameButton(wxCommandEvent& event)
 void GFXDebuggerPanel::OnDumpButton(wxCommandEvent& event)
 {
   std::string dump_path =
-      File::GetUserPath(D_DUMP_IDX) + "Debug/" + SConfig::GetInstance().m_strGameID + "/";
+      File::GetUserPath(D_DUMP_IDX) + "Debug/" + SConfig::GetInstance().GetGameID() + "/";
   if (!File::CreateFullPath(dump_path))
     return;
 

@@ -22,10 +22,12 @@
 #include "VideoBackends/Vulkan/Texture2D.h"
 #include "VideoBackends/Vulkan/TextureConverter.h"
 #include "VideoBackends/Vulkan/Util.h"
+#include "VideoBackends/Vulkan/VKTexture.h"
 #include "VideoBackends/Vulkan/VertexFormat.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 
 #include "VideoCommon/RenderBase.h"
+#include "VideoCommon/TextureConfig.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace Vulkan
@@ -226,8 +228,8 @@ void FramebufferManager::DestroyEFBRenderPass()
 
 bool FramebufferManager::CreateEFBFramebuffer()
 {
-  m_efb_width = static_cast<u32>(std::max(Renderer::GetTargetWidth(), 1));
-  m_efb_height = static_cast<u32>(std::max(Renderer::GetTargetHeight(), 1));
+  m_efb_width = static_cast<u32>(std::max(g_renderer->GetTargetWidth(), 1));
+  m_efb_height = static_cast<u32>(std::max(g_renderer->GetTargetHeight(), 1));
   m_efb_layers = (g_ActiveConfig.iStereoMode != STEREO_OFF) ? 2 : 1;
   INFO_LOG(VIDEO, "EFB size: %ux%ux%u", m_efb_width, m_efb_height, m_efb_layers);
 
@@ -461,6 +463,12 @@ Texture2D* FramebufferManager::ResolveEFBColorTexture(const VkRect2D& region)
 
   // Can't resolve within a render pass.
   StateTracker::GetInstance()->EndRenderPass();
+
+  // It's not valid to resolve out-of-bounds coordinates.
+  // Ensuring the region is within the image is the caller's responsibility.
+  _assert_(region.offset.x >= 0 && region.offset.y >= 0 &&
+           (static_cast<u32>(region.offset.x) + region.extent.width) <= m_efb_width &&
+           (static_cast<u32>(region.offset.y) + region.extent.height) <= m_efb_height);
 
   // Resolving is considered to be a transfer operation.
   m_efb_color_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
@@ -1157,14 +1165,10 @@ void FramebufferManager::DrawPokeVertices(const EFBPokeVertex* vertices, size_t 
   pipeline_info.rasterization_state.bits = Util::GetNoCullRasterizationState().bits;
   pipeline_info.rasterization_state.samples = m_efb_samples;
   pipeline_info.depth_stencil_state.bits = Util::GetNoDepthTestingDepthStencilState().bits;
-  pipeline_info.blend_state.bits = Util::GetNoBlendingBlendState().bits;
-  pipeline_info.blend_state.write_mask = 0;
+  pipeline_info.blend_state.hex = Util::GetNoBlendingBlendState().hex;
+  pipeline_info.blend_state.colorupdate = write_color;
+  pipeline_info.blend_state.alphaupdate = write_color;
   pipeline_info.primitive_topology = m_poke_primitive_topology;
-  if (write_color)
-  {
-    pipeline_info.blend_state.write_mask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
-                                           VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-  }
   if (write_depth)
   {
     pipeline_info.depth_stencil_state.test_enable = VK_TRUE;
@@ -1352,20 +1356,19 @@ std::unique_ptr<XFBSourceBase> FramebufferManager::CreateXFBSource(unsigned int 
                                                                    unsigned int target_height,
                                                                    unsigned int layers)
 {
-  TextureCacheBase::TCacheEntryConfig config;
+  TextureConfig config;
   config.width = target_width;
   config.height = target_height;
   config.layers = layers;
   config.rendertarget = true;
-  auto* base_texture = TextureCache::GetInstance()->CreateTexture(config);
-  auto* texture = static_cast<TextureCache::TCacheEntry*>(base_texture);
+  auto texture = TextureCache::GetInstance()->CreateTexture(config);
   if (!texture)
   {
     PanicAlert("Failed to create texture for XFB source");
     return nullptr;
   }
 
-  return std::make_unique<XFBSource>(std::unique_ptr<TextureCache::TCacheEntry>(texture));
+  return std::make_unique<XFBSource>(std::move(texture));
 }
 
 void FramebufferManager::CopyToRealXFB(u32 xfb_addr, u32 fb_stride, u32 fb_height,
@@ -1403,7 +1406,7 @@ void FramebufferManager::CopyToRealXFB(u32 xfb_addr, u32 fb_stride, u32 fb_heigh
   }
 }
 
-XFBSource::XFBSource(std::unique_ptr<TextureCache::TCacheEntry> texture)
+XFBSource::XFBSource(std::unique_ptr<AbstractTexture> texture)
     : XFBSourceBase(), m_texture(std::move(texture))
 {
 }
@@ -1412,13 +1415,18 @@ XFBSource::~XFBSource()
 {
 }
 
+VKTexture* XFBSource::GetTexture() const
+{
+  return static_cast<VKTexture*>(m_texture.get());
+}
+
 void XFBSource::DecodeToTexture(u32 xfb_addr, u32 fb_width, u32 fb_height)
 {
   // Guest memory -> GPU EFB Textures
   const u8* src_ptr = Memory::GetPointer(xfb_addr);
   _assert_(src_ptr);
   TextureCache::GetInstance()->GetTextureConverter()->DecodeYUYVTextureFromMemory(
-      m_texture.get(), src_ptr, fb_width, fb_width * 2, fb_height);
+      static_cast<VKTexture*>(m_texture.get()), src_ptr, fb_width, fb_width * 2, fb_height);
 }
 
 void XFBSource::CopyEFB(float gamma)
@@ -1432,7 +1440,7 @@ void XFBSource::CopyEFB(float gamma)
                       {static_cast<u32>(rect.GetWidth()), static_cast<u32>(rect.GetHeight())}};
 
   Texture2D* src_texture = FramebufferManager::GetInstance()->ResolveEFBColorTexture(vk_rect);
-  TextureCache::GetInstance()->CopyRectangleFromTexture(m_texture.get(), rect, src_texture, rect);
+  static_cast<VKTexture*>(m_texture.get())->CopyRectangleFromTexture(src_texture, rect, rect);
 
   // If we sourced directly from the EFB framebuffer, restore it to a color attachment.
   if (src_texture == FramebufferManager::GetInstance()->GetEFBColorTexture())

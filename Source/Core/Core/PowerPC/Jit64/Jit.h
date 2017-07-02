@@ -87,7 +87,7 @@ public:
   // Use to extract bytes from a register using the regcache. offset is in bytes.
   Gen::OpArg ExtractFromReg(int reg, int offset);
   void AndWithMask(Gen::X64Reg reg, u32 mask);
-  bool CheckMergedBranch(int crf);
+  bool CheckMergedBranch(u32 crf);
   void DoMergedBranch();
   void DoMergedBranchCondition();
   void DoMergedBranchImmediate(s64 val);

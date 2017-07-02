@@ -6,8 +6,17 @@
 
 #include "Core/HW/SI/SI_DeviceGCController.h"
 
+namespace SerialInterface
+{
 class CSIDevice_GCSteeringWheel : public CSIDevice_GCController
 {
+public:
+  CSIDevice_GCSteeringWheel(SIDevices device, int device_number);
+
+  int RunBuffer(u8* buffer, int length) override;
+  bool GetData(u32& hi, u32& low) override;
+  void SendCommand(u32 command, u8 poll) override;
+
 private:
   // Commands
   enum EBufferCommands
@@ -23,11 +32,5 @@ private:
     CMD_FORCE = 0x30,
     CMD_WRITE = 0x40
   };
-
-public:
-  CSIDevice_GCSteeringWheel(SIDevices device, int _iDeviceNumber);
-
-  int RunBuffer(u8* _pBuffer, int _iLength) override;
-  bool GetData(u32& _Hi, u32& _Low) override;
-  void SendCommand(u32 _Cmd, u8 _Poll) override;
 };
+}  // namespace SerialInterface

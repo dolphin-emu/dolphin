@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/IOS/USB/OH0/OH0.h"
+
 #include <algorithm>
 #include <cstring>
 #include <istream>
@@ -9,15 +11,12 @@
 #include <tuple>
 #include <utility>
 
-#include "Common/Assert.h"
 #include "Common/ChunkFile.h"
-#include "Common/CommonFuncs.h"
 #include "Common/Logging/Log.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/USB/Common.h"
-#include "Core/IOS/USB/OH0/OH0.h"
 #include "Core/IOS/USB/USBV0.h"
 
 namespace IOS
@@ -26,7 +25,7 @@ namespace HLE
 {
 namespace Device
 {
-OH0::OH0(u32 device_id, const std::string& device_name) : USBHost(device_id, device_name)
+OH0::OH0(Kernel& ios, const std::string& device_name) : USBHost(ios, device_name)
 {
 }
 
@@ -37,7 +36,7 @@ OH0::~OH0()
 
 ReturnCode OH0::Open(const OpenRequest& request)
 {
-  const u32 ios_major_version = GetVersion();
+  const u32 ios_major_version = m_ios.GetVersion();
   if (ios_major_version == 57 || ios_major_version == 58 || ios_major_version == 59)
     return IPC_EACCES;
   return USBHost::Open(request);
@@ -241,7 +240,7 @@ void OH0::TriggerHook(std::map<T, u32>& hooks, T value, const ReturnCode return_
   const auto hook = hooks.find(value);
   if (hook == hooks.end())
     return;
-  EnqueueReply(Request{hook->second}, return_value, 0, CoreTiming::FromThread::ANY);
+  m_ios.EnqueueIPCReply(Request{hook->second}, return_value, 0, CoreTiming::FromThread::ANY);
   hooks.erase(hook);
 }
 
@@ -326,26 +325,26 @@ s32 OH0::SubmitTransfer(USB::Device& device, const IOCtlVRequest& ioctlv)
     if (!ioctlv.HasNumberOfValidVectors(6, 1) ||
         Common::swap16(Memory::Read_U16(ioctlv.in_vectors[4].address)) != ioctlv.io_vectors[0].size)
       return IPC_EINVAL;
-    return device.SubmitTransfer(std::make_unique<USB::V0CtrlMessage>(ioctlv));
+    return device.SubmitTransfer(std::make_unique<USB::V0CtrlMessage>(m_ios, ioctlv));
 
   case USB::IOCTLV_USBV0_BLKMSG:
   case USB::IOCTLV_USBV0_LBLKMSG:
     if (!ioctlv.HasNumberOfValidVectors(2, 1) ||
         Memory::Read_U16(ioctlv.in_vectors[1].address) != ioctlv.io_vectors[0].size)
       return IPC_EINVAL;
-    return device.SubmitTransfer(
-        std::make_unique<USB::V0BulkMessage>(ioctlv, ioctlv.request == USB::IOCTLV_USBV0_LBLKMSG));
+    return device.SubmitTransfer(std::make_unique<USB::V0BulkMessage>(
+        m_ios, ioctlv, ioctlv.request == USB::IOCTLV_USBV0_LBLKMSG));
 
   case USB::IOCTLV_USBV0_INTRMSG:
     if (!ioctlv.HasNumberOfValidVectors(2, 1) ||
         Memory::Read_U16(ioctlv.in_vectors[1].address) != ioctlv.io_vectors[0].size)
       return IPC_EINVAL;
-    return device.SubmitTransfer(std::make_unique<USB::V0IntrMessage>(ioctlv));
+    return device.SubmitTransfer(std::make_unique<USB::V0IntrMessage>(m_ios, ioctlv));
 
   case USB::IOCTLV_USBV0_ISOMSG:
     if (!ioctlv.HasNumberOfValidVectors(3, 2))
       return IPC_EINVAL;
-    return device.SubmitTransfer(std::make_unique<USB::V0IsoMessage>(ioctlv));
+    return device.SubmitTransfer(std::make_unique<USB::V0IsoMessage>(m_ios, ioctlv));
 
   default:
     return IPC_EINVAL;

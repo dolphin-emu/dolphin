@@ -14,7 +14,6 @@
 
 #ifdef _WIN32
 #include <windows.h>
-#include <psapi.h>
 #include "Common/StringUtil.h"
 #else
 #include <stdio.h>
@@ -22,79 +21,32 @@
 #include <sys/types.h>
 #if defined __APPLE__ || defined __FreeBSD__ || defined __OpenBSD__
 #include <sys/sysctl.h>
+#elif defined __HAIKU__
+#include <OS.h>
 #else
 #include <sys/sysinfo.h>
 #endif
 #endif
 
-// Valgrind doesn't support MAP_32BIT.
-// Uncomment the following line to be able to run Dolphin in Valgrind.
-//#undef MAP_32BIT
-
 namespace Common
 {
-#if !defined(_WIN32) && defined(_M_X86_64) && !defined(MAP_32BIT)
-#include <unistd.h>
-static uintptr_t RoundPage(uintptr_t addr)
-{
-  uintptr_t mask = getpagesize() - 1;
-  return (addr + mask) & ~mask;
-}
-#endif
-
 // This is purposely not a full wrapper for virtualalloc/mmap, but it
 // provides exactly the primitive operations that Dolphin needs.
 
-void* AllocateExecutableMemory(size_t size, bool low)
+void* AllocateExecutableMemory(size_t size)
 {
 #if defined(_WIN32)
-  void* ptr = VirtualAlloc(0, size, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+  void* ptr = VirtualAlloc(nullptr, size, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
 #else
-  static char* map_hint = nullptr;
-#if defined(_M_X86_64) && !defined(MAP_32BIT)
-  // This OS has no flag to enforce allocation below the 4 GB boundary,
-  // but if we hint that we want a low address it is very likely we will
-  // get one.
-  // An older version of this code used MAP_FIXED, but that has the side
-  // effect of discarding already mapped pages that happen to be in the
-  // requested virtual memory range (such as the emulated RAM, sometimes).
-  if (low && (!map_hint))
-    map_hint = (char*)RoundPage(512 * 1024 * 1024); /* 0.5 GB rounded up to the next page */
-#endif
-  void* ptr = mmap(map_hint, size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_ANON | MAP_PRIVATE
-#if defined(_M_X86_64) && defined(MAP_32BIT)
-                                                                           | (low ? MAP_32BIT : 0)
-#endif
-                                                                           ,
-                   -1, 0);
-#endif /* defined(_WIN32) */
+  void* ptr =
+      mmap(nullptr, size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_ANON | MAP_PRIVATE, -1, 0);
 
-#ifdef _WIN32
-  if (ptr == nullptr)
-  {
-#else
   if (ptr == MAP_FAILED)
-  {
     ptr = nullptr;
 #endif
-    PanicAlert("Failed to allocate executable memory. If you are running Dolphin in Valgrind, try "
-               "'#undef MAP_32BIT'.");
-  }
-#if !defined(_WIN32) && defined(_M_X86_64) && !defined(MAP_32BIT)
-  else
-  {
-    if (low)
-    {
-      map_hint += size;
-      map_hint = (char*)RoundPage((uintptr_t)map_hint); /* round up to the next page */
-    }
-  }
-#endif
 
-#if _M_X86_64
-  if ((u64)ptr >= 0x80000000 && low == true)
-    PanicAlert("Executable memory ended up above 2GB!");
-#endif
+  if (ptr == nullptr)
+    PanicAlert("Failed to allocate executable memory");
 
   return ptr;
 }
@@ -102,7 +54,7 @@ void* AllocateExecutableMemory(size_t size, bool low)
 void* AllocateMemoryPages(size_t size)
 {
 #ifdef _WIN32
-  void* ptr = VirtualAlloc(0, size, MEM_COMMIT, PAGE_READWRITE);
+  void* ptr = VirtualAlloc(nullptr, size, MEM_COMMIT, PAGE_READWRITE);
 #else
   void* ptr = mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE, -1, 0);
 
@@ -223,31 +175,6 @@ void UnWriteProtectMemory(void* ptr, size_t size, bool allowExecute)
     PanicAlert("UnWriteProtectMemory failed!\n%s", GetLastErrorMsg().c_str());
 }
 
-std::string MemUsage()
-{
-#ifdef _WIN32
-#pragma comment(lib, "psapi")
-  DWORD processID = GetCurrentProcessId();
-  HANDLE hProcess;
-  PROCESS_MEMORY_COUNTERS pmc;
-  std::string Ret;
-
-  // Print information about the memory usage of the process.
-
-  hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, processID);
-  if (nullptr == hProcess)
-    return "MemUsage Error";
-
-  if (GetProcessMemoryInfo(hProcess, &pmc, sizeof(pmc)))
-    Ret = StringFromFormat("%s K", ThousandSeparate(pmc.WorkingSetSize / 1024, 7).c_str());
-
-  CloseHandle(hProcess);
-  return Ret;
-#else
-  return "";
-#endif
-}
-
 size_t MemPhysical()
 {
 #ifdef _WIN32
@@ -269,6 +196,10 @@ size_t MemPhysical()
   size_t length = sizeof(size_t);
   sysctl(mib, 2, &physical_memory, &length, NULL, 0);
   return physical_memory;
+#elif defined __HAIKU__
+  system_info sysinfo;
+  get_system_info(&sysinfo);
+  return static_cast<size_t>(sysinfo.max_pages * B_PAGE_SIZE);
 #else
   struct sysinfo memInfo;
   sysinfo(&memInfo);

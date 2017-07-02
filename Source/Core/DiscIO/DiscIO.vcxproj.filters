@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="DiscScrubber">
       <UniqueIdentifier>{3873659a-9a30-4a58-af9e-8dad7d7eb627}</UniqueIdentifier>
@@ -33,6 +33,9 @@
     <ClCompile Include="NANDContentLoader.cpp">
       <Filter>NAND</Filter>
     </ClCompile>
+    <ClCompile Include="NANDImporter.cpp">
+      <Filter>NAND</Filter>
+    </ClCompile>
     <ClCompile Include="Blob.cpp">
       <Filter>Volume\Blob</Filter>
     </ClCompile>
@@ -51,12 +54,6 @@
     <ClCompile Include="WbfsBlob.cpp">
       <Filter>Volume\Blob</Filter>
     </ClCompile>
-    <ClCompile Include="FileMonitor.cpp">
-      <Filter>Volume</Filter>
-    </ClCompile>
-    <ClCompile Include="VolumeCreator.cpp">
-      <Filter>Volume</Filter>
-    </ClCompile>
     <ClCompile Include="VolumeDirectory.cpp">
       <Filter>Volume</Filter>
     </ClCompile>
@@ -66,10 +63,10 @@
     <ClCompile Include="VolumeWad.cpp">
       <Filter>Volume</Filter>
     </ClCompile>
-    <ClCompile Include="VolumeWiiCrypted.cpp">
+    <ClCompile Include="Enums.cpp">
       <Filter>Volume</Filter>
     </ClCompile>
-    <ClCompile Include="Enums.cpp">
+    <ClCompile Include="VolumeWii.cpp">
       <Filter>Volume</Filter>
     </ClCompile>
     <ClCompile Include="Volume.cpp">
@@ -95,6 +92,9 @@
     <ClInclude Include="NANDContentLoader.h">
       <Filter>NAND</Filter>
     </ClInclude>
+    <ClInclude Include="NANDImporter.h">
+      <Filter>NAND</Filter>
+    </ClInclude>
     <ClInclude Include="Blob.h">
       <Filter>Volume\Blob</Filter>
     </ClInclude>
@@ -113,13 +113,7 @@
     <ClInclude Include="WbfsBlob.h">
       <Filter>Volume\Blob</Filter>
     </ClInclude>
-    <ClInclude Include="FileMonitor.h">
-      <Filter>Volume</Filter>
-    </ClInclude>
     <ClInclude Include="Volume.h">
-      <Filter>Volume</Filter>
-    </ClInclude>
-    <ClInclude Include="VolumeCreator.h">
       <Filter>Volume</Filter>
     </ClInclude>
     <ClInclude Include="VolumeDirectory.h">
@@ -131,15 +125,15 @@
     <ClInclude Include="VolumeWad.h">
       <Filter>Volume</Filter>
     </ClInclude>
-    <ClInclude Include="VolumeWiiCrypted.h">
+    <ClInclude Include="VolumeWii.h">
       <Filter>Volume</Filter>
     </ClInclude>
     <ClInclude Include="Enums.h">
       <Filter>Volume</Filter>
     </ClInclude>
-    <ClCompile Include="TGCBlob.h">
+    <ClInclude Include="TGCBlob.h">
       <Filter>Volume\Blob</Filter>
-    </ClCompile>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

@@ -11,8 +11,8 @@ TEST(BitSet, Basics)
   BitSet32 bs;
   BitSet64 bs2(1);
   BitSet64 bs3(2);
-  EXPECT_EQ(true, !!bs2);
-  EXPECT_EQ(false, !!bs);
+  EXPECT_TRUE(!!bs2);
+  EXPECT_FALSE(!!bs);
   EXPECT_EQ(bs2, bs2);
   EXPECT_NE(bs2, bs3);
   EXPECT_EQ(BitSet32(0xfff), BitSet32::AllTrue(12));
@@ -23,8 +23,8 @@ TEST(BitSet, BitGetSet)
 {
   BitSet32 bs;
   bs[3] = bs[8] = bs[11] = true;
-  EXPECT_EQ(true, bs[3]);
-  EXPECT_EQ(false, bs[4]);
+  EXPECT_TRUE(bs[3]);
+  EXPECT_FALSE(bs[4]);
   EXPECT_EQ((u32)((1 << 3) | (1 << 8) | (1 << 11)), bs.m_val);
 }
 

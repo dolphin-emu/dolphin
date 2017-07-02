@@ -13,6 +13,7 @@
 #include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/ControlGroup/MixedTriggers.h"
+#include "InputCommon/ControllerEmu/Setting/BooleanSetting.h"
 #include "InputCommon/GCPadStatus.h"
 
 static const u16 button_bitmasks[] = {
@@ -32,7 +33,7 @@ static const u16 trigger_bitmasks[] = {
 static const u16 dpad_bitmasks[] = {PAD_BUTTON_UP, PAD_BUTTON_DOWN, PAD_BUTTON_LEFT,
                                     PAD_BUTTON_RIGHT};
 
-static const char* const named_buttons[] = {"A", "B", "X", "Y", "Z", _trans("Start")};
+static const char* const named_buttons[] = {"A", "B", "X", "Y", "Z", "Start"};
 
 static const char* const named_triggers[] = {
     // i18n: The left trigger button (labeled L on real controllers)
@@ -48,8 +49,13 @@ GCPad::GCPad(const unsigned int index) : m_index(index)
 {
   // buttons
   groups.emplace_back(m_buttons = new ControllerEmu::Buttons(_trans("Buttons")));
-  for (unsigned int i = 0; i < sizeof(named_buttons) / sizeof(*named_buttons); ++i)
-    m_buttons->controls.emplace_back(new ControllerEmu::Input(named_buttons[i]));
+  for (const char* named_button : named_buttons)
+  {
+    const std::string& ui_name =
+        // i18n: The START/PAUSE button on GameCube controllers
+        (named_button == std::string("Start")) ? _trans("START") : named_button;
+    m_buttons->controls.emplace_back(new ControllerEmu::Input(named_button, ui_name));
+  }
 
   // sticks
   groups.emplace_back(m_main_stick = new ControllerEmu::AnalogStick(
@@ -59,7 +65,7 @@ GCPad::GCPad(const unsigned int index) : m_index(index)
 
   // triggers
   groups.emplace_back(m_triggers = new ControllerEmu::MixedTriggers(_trans("Triggers")));
-  for (auto& named_trigger : named_triggers)
+  for (const char* named_trigger : named_triggers)
     m_triggers->controls.emplace_back(new ControllerEmu::Input(named_trigger));
 
   // rumble
@@ -72,18 +78,13 @@ GCPad::GCPad(const unsigned int index) : m_index(index)
 
   // dpad
   groups.emplace_back(m_dpad = new ControllerEmu::Buttons(_trans("D-Pad")));
-  for (auto& named_direction : named_directions)
+  for (const char* named_direction : named_directions)
     m_dpad->controls.emplace_back(new ControllerEmu::Input(named_direction));
 
   // options
   groups.emplace_back(m_options = new ControllerEmu::ControlGroup(_trans("Options")));
-  m_options->boolean_settings.emplace_back(
-      std::make_unique<ControllerEmu::ControlGroup::BackgroundInputSetting>(
-          _trans("Background Input")));
-  m_options->boolean_settings.emplace_back(
-      std::make_unique<ControllerEmu::ControlGroup::BooleanSetting>(
-          _trans("Iterative Input"), false, ControllerEmu::ControlGroup::SettingType::VIRTUAL));
-          
+  m_options->boolean_settings.emplace_back(std::make_unique<ControllerEmu::BooleanSetting>(
+      _trans("Iterative Input"), false, ControllerEmu::SettingType::VIRTUAL));
   // no forced input initially
   m_forced_input.err = PadError::PAD_ERR_NO_CONTROLLER;
 }

@@ -139,23 +139,53 @@ bool WiimoteLinux::ConnectInternal()
   addr.l2_cid = 0;
 
   // Output channel
-  addr.l2_psm = htobs(WM_OUTPUT_CHANNEL);
-  if ((m_cmd_sock = socket(AF_BLUETOOTH, SOCK_SEQPACKET, BTPROTO_L2CAP)) == -1 ||
-      connect(m_cmd_sock, (sockaddr*)&addr, sizeof(addr)) < 0)
+  addr.l2_psm = htobs(WC_OUTPUT);
+  if ((m_cmd_sock = socket(AF_BLUETOOTH, SOCK_SEQPACKET, BTPROTO_L2CAP)))
+  {
+    int retry = 0;
+    while (connect(m_cmd_sock, (sockaddr*)&addr, sizeof(addr)) < 0)
+    {
+      // If opening channel fails sleep and try again
+      if (retry == 3)
+      {
+        WARN_LOG(WIIMOTE, "Unable to connect output channel to Wiimote: %s", strerror(errno));
+        close(m_cmd_sock);
+        m_cmd_sock = -1;
+        return false;
+      }
+      retry++;
+      sleep(1);
+    }
+  }
+  else
   {
     WARN_LOG(WIIMOTE, "Unable to open output socket to Wiimote: %s", strerror(errno));
-    close(m_cmd_sock);
-    m_cmd_sock = -1;
     return false;
   }
 
   // Input channel
-  addr.l2_psm = htobs(WM_INPUT_CHANNEL);
-  if ((m_int_sock = socket(AF_BLUETOOTH, SOCK_SEQPACKET, BTPROTO_L2CAP)) == -1 ||
-      connect(m_int_sock, (sockaddr*)&addr, sizeof(addr)) < 0)
+  addr.l2_psm = htobs(WC_INPUT);
+  if ((m_int_sock = socket(AF_BLUETOOTH, SOCK_SEQPACKET, BTPROTO_L2CAP)))
+  {
+    int retry = 0;
+    while (connect(m_int_sock, (sockaddr*)&addr, sizeof(addr)) < 0)
+    {
+      // If opening channel fails sleep and try again
+      if (retry == 3)
+      {
+        WARN_LOG(WIIMOTE, "Unable to connect input channel to Wiimote: %s", strerror(errno));
+        close(m_int_sock);
+        close(m_cmd_sock);
+        m_int_sock = m_cmd_sock = -1;
+        return false;
+      }
+      retry++;
+      sleep(1);
+    }
+  }
+  else
   {
     WARN_LOG(WIIMOTE, "Unable to open input socket from Wiimote: %s", strerror(errno));
-    close(m_int_sock);
     close(m_cmd_sock);
     m_int_sock = m_cmd_sock = -1;
     return false;

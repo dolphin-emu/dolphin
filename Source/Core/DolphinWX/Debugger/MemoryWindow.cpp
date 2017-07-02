@@ -22,6 +22,7 @@
 #include <wx/utils.h>
 
 #include "Common/CommonTypes.h"
+#include "Common/File.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/StringUtil.h"
@@ -40,73 +41,47 @@
 
 enum
 {
-  IDM_MEM_ADDRBOX,
-  IDM_SYMBOLLIST,
-  IDM_SETVALBUTTON,
+  IDM_ADDRESS_SEARCH_CTRL,
+  IDM_SYMBOL_LIST,
+  IDM_SET_VALUE_BUTTON,
   IDM_DUMP_MEMORY,
   IDM_DUMP_MEM2,
   IDM_DUMP_FAKEVMEM,
-  IDM_VALBOX,
+  IDM_VALUE_TEXT_CTRL,
   IDM_DATA_TYPE_RBOX,
-  IDM_SEARCH,
+  IDM_FIND_NEXT,
+  IDM_FIND_PREVIOUS,
   IDM_ASCII,
   IDM_HEX,
   IDM_MEMCHECK_OPTIONS_CHANGE
 };
 
-BEGIN_EVENT_TABLE(CMemoryWindow, wxPanel)
-EVT_BUTTON(IDM_SETVALBUTTON, CMemoryWindow::SetMemoryValue)
-EVT_BUTTON(IDM_DUMP_MEMORY, CMemoryWindow::OnDumpMemory)
-EVT_BUTTON(IDM_DUMP_MEM2, CMemoryWindow::OnDumpMem2)
-EVT_BUTTON(IDM_DUMP_FAKEVMEM, CMemoryWindow::OnDumpFakeVMEM)
-EVT_RADIOBOX(IDM_DATA_TYPE_RBOX, CMemoryWindow::OnDataTypeChanged)
-EVT_BUTTON(IDM_SEARCH, CMemoryWindow::OnSearch)
-EVT_RADIOBUTTON(IDM_MEMCHECK_OPTIONS_CHANGE, CMemoryWindow::OnMemCheckOptionChange)
-EVT_CHECKBOX(IDM_MEMCHECK_OPTIONS_CHANGE, CMemoryWindow::OnMemCheckOptionChange)
-END_EVENT_TABLE()
-
 CMemoryWindow::CMemoryWindow(wxWindow* parent, wxWindowID id, const wxPoint& pos,
                              const wxSize& size, long style, const wxString& name)
     : wxPanel(parent, id, pos, size, style, name)
 {
-  DebugInterface* di = &PowerPC::debug_interface;
+  CreateGUI();
+}
 
-  memview = new CMemoryView(di, this);
-  memview->Bind(DOLPHIN_EVT_MEMORY_VIEW_DATA_TYPE_CHANGED, &CMemoryWindow::OnDataTypeChanged, this);
-
-  addrbox = new wxSearchCtrl(this, IDM_MEM_ADDRBOX);
-  addrbox->Bind(wxEVT_TEXT, &CMemoryWindow::OnAddrBoxChange, this);
-  addrbox->SetDescriptiveText(_("Search Address"));
-
-  valbox =
-      new wxTextCtrl(this, IDM_VALBOX, "", wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
-  valbox->Bind(wxEVT_TEXT_ENTER, &CMemoryWindow::SetMemoryValueFromValBox, this);
-  valbox->Bind(wxEVT_TEXT, &CMemoryWindow::OnValueChanged, this);
+void CMemoryWindow::CreateGUI()
+{
+  m_memory_view = new CMemoryView(&PowerPC::debug_interface, this);
+  m_memory_view->Bind(DOLPHIN_EVT_MEMORY_VIEW_DATA_TYPE_CHANGED, &CMemoryWindow::OnDataTypeChanged,
+                      this);
 
   const int space3 = FromDIP(3);
-  const int space5 = FromDIP(5);
 
-  wxBoxSizer* const search_sizer = new wxBoxSizer(wxVERTICAL);
-  search_sizer->Add(addrbox, 0, wxEXPAND);
-  search_sizer->Add(valbox, 0, wxEXPAND);
-  search_sizer->Add(new wxButton(this, IDM_SETVALBUTTON, _("Set Value")));
+  wxBoxSizer* const main_sizer = new wxBoxSizer(wxHORIZONTAL);
+  main_sizer->Add(m_memory_view, 20, wxEXPAND);
+  main_sizer->AddSpacer(space3);
+  main_sizer->Add(CreateRightHandSideSizer(), 0, wxEXPAND | wxTOP | wxBOTTOM, space3);
+  main_sizer->AddSpacer(space3);
 
-  wxBoxSizer* const dump_sizer = new wxBoxSizer(wxVERTICAL);
-  dump_sizer->Add(new wxButton(this, IDM_DUMP_MEMORY, _("Dump MRAM")), 0, wxEXPAND);
-  dump_sizer->Add(new wxButton(this, IDM_DUMP_MEM2, _("Dump EXRAM")), 0, wxEXPAND);
-  if (!SConfig::GetInstance().bMMU)
-    dump_sizer->Add(new wxButton(this, IDM_DUMP_FAKEVMEM, _("Dump FakeVMEM")), 0, wxEXPAND);
+  SetSizerAndFit(main_sizer);
+}
 
-  wxStaticBoxSizer* const sizerSearchType = new wxStaticBoxSizer(wxVERTICAL, this, _("Search"));
-  sizerSearchType->Add(btnSearch = new wxButton(this, IDM_SEARCH, _("Search")));
-  sizerSearchType->Add(m_rb_ascii = new wxRadioButton(this, IDM_ASCII, "Ascii", wxDefaultPosition,
-                                                      wxDefaultSize, wxRB_GROUP));
-  sizerSearchType->Add(m_rb_hex = new wxRadioButton(this, IDM_HEX, _("Hex")));
-  m_search_result_msg =
-      new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize,
-                       wxST_NO_AUTORESIZE | wxALIGN_CENTER_HORIZONTAL);
-  sizerSearchType->Add(m_search_result_msg, 0, wxEXPAND);
-
+wxSizer* CMemoryWindow::CreateRightHandSideSizer()
+{
   wxArrayString data_type_options;
   data_type_options.Add("U8");
   data_type_options.Add("U16");
@@ -115,53 +90,141 @@ CMemoryWindow::CMemoryWindow(wxWindow* parent, wxWindowID id, const wxPoint& pos
   data_type_options.Add("Float32");
   m_rbox_data_type = new wxRadioBox(this, IDM_DATA_TYPE_RBOX, _("Data Type"), wxDefaultPosition,
                                     wxDefaultSize, data_type_options, 1);
+  m_rbox_data_type->Bind(wxEVT_RADIOBOX, &CMemoryWindow::OnDataTypeChanged, this);
+  m_rbox_data_type->SetSelection(static_cast<int>(m_memory_view->GetDataType()));
 
-  wxStaticBoxSizer* const memcheck_options_sizer =
-      new wxStaticBoxSizer(wxVERTICAL, this, "Memory breakpoint options");
-  memcheck_options_sizer->Add(rdbReadWrite = new wxRadioButton(this, IDM_MEMCHECK_OPTIONS_CHANGE,
-                                                               "Read and Write", wxDefaultPosition,
-                                                               wxDefaultSize, wxRB_GROUP));
-  memcheck_options_sizer->Add(
-      rdbRead = new wxRadioButton(this, IDM_MEMCHECK_OPTIONS_CHANGE, "Read only"));
-  memcheck_options_sizer->Add(
-      rdbWrite = new wxRadioButton(this, IDM_MEMCHECK_OPTIONS_CHANGE, "Write only"));
-  memcheck_options_sizer->Add(chkLog = new wxCheckBox(this, IDM_MEMCHECK_OPTIONS_CHANGE, "Log"));
+  const int space5 = FromDIP(5);
 
-  wxBoxSizer* const sizerRight = new wxBoxSizer(wxVERTICAL);
-  sizerRight->Add(search_sizer);
-  sizerRight->AddSpacer(space5);
-  sizerRight->Add(dump_sizer, 0, wxEXPAND);
-  sizerRight->Add(sizerSearchType, 0, wxEXPAND);
-  sizerRight->Add(m_rbox_data_type, 0, wxEXPAND);
-  sizerRight->Add(memcheck_options_sizer, 0, wxEXPAND);
+  auto* const right_sizer = new wxBoxSizer(wxVERTICAL);
+  right_sizer->Add(CreateSearchSizer(), 0, wxEXPAND);
+  right_sizer->AddSpacer(space5);
+  right_sizer->Add(CreateDumpSizer(), 0, wxEXPAND);
+  right_sizer->Add(CreateSearchTypeSizer(), 0, wxEXPAND);
+  right_sizer->Add(m_rbox_data_type, 0, wxEXPAND);
+  right_sizer->Add(CreateMemcheckOptionSizer(), 0, wxEXPAND);
 
-  wxBoxSizer* const sizerBig = new wxBoxSizer(wxHORIZONTAL);
-  sizerBig->Add(memview, 20, wxEXPAND);
-  sizerBig->AddSpacer(space3);
-  sizerBig->Add(sizerRight, 0, wxEXPAND | wxTOP | wxBOTTOM, space3);
-  sizerBig->AddSpacer(space3);
-
-  SetSizer(sizerBig);
-  m_rb_hex->SetValue(true);  // Set defaults
-  chkLog->SetValue(true);
-  m_rbox_data_type->SetSelection(static_cast<int>(memview->GetDataType()));
-
-  sizerRight->Fit(this);
-  sizerBig->Fit(this);
+  return right_sizer;
 }
 
-void CMemoryWindow::JumpToAddress(u32 _Address)
+wxSizer* CMemoryWindow::CreateSearchSizer()
 {
-  memview->Center(_Address);
+  m_address_search_ctrl = new wxSearchCtrl(this, IDM_ADDRESS_SEARCH_CTRL);
+  m_address_search_ctrl->Bind(wxEVT_TEXT, &CMemoryWindow::OnSearchAddressChanged, this);
+  m_address_search_ctrl->SetDescriptiveText(_("Search Address"));
+
+  m_value_text_ctrl = new wxTextCtrl(this, IDM_VALUE_TEXT_CTRL, "", wxDefaultPosition,
+                                     wxDefaultSize, wxTE_PROCESS_ENTER);
+  m_value_text_ctrl->Bind(wxEVT_TEXT_ENTER, &CMemoryWindow::OnSetMemoryValueFromValBox, this);
+  m_value_text_ctrl->Bind(wxEVT_TEXT, &CMemoryWindow::OnValueChanged, this);
+
+  auto* const set_value_button = new wxButton(this, IDM_SET_VALUE_BUTTON, _("Set Value"));
+  set_value_button->Bind(wxEVT_BUTTON, &CMemoryWindow::OnSetMemoryValue, this);
+
+  auto* const search_sizer = new wxBoxSizer(wxVERTICAL);
+  search_sizer->Add(m_address_search_ctrl, 0, wxEXPAND);
+  search_sizer->Add(m_value_text_ctrl, 0, wxEXPAND);
+  search_sizer->Add(set_value_button);
+
+  return search_sizer;
 }
 
-void CMemoryWindow::SetMemoryValueFromValBox(wxCommandEvent& event)
+wxSizer* CMemoryWindow::CreateDumpSizer()
 {
-  SetMemoryValue(event);
-  valbox->SetFocus();
+  auto* const dump_mram_button = new wxButton(this, IDM_DUMP_MEMORY, _("Dump MRAM"));
+  dump_mram_button->Bind(wxEVT_BUTTON, &CMemoryWindow::OnDumpMemory, this);
+
+  auto* const dump_exram_button = new wxButton(this, IDM_DUMP_MEM2, _("Dump EXRAM"));
+  dump_exram_button->Bind(wxEVT_BUTTON, &CMemoryWindow::OnDumpMem2, this);
+
+  auto* const dump_sizer = new wxBoxSizer(wxVERTICAL);
+  dump_sizer->Add(dump_mram_button, 0, wxEXPAND);
+  dump_sizer->Add(dump_exram_button, 0, wxEXPAND);
+
+  if (!SConfig::GetInstance().bMMU)
+  {
+    auto* const dump_fake_vmem_button = new wxButton(this, IDM_DUMP_FAKEVMEM, _("Dump FakeVMEM"));
+    dump_fake_vmem_button->Bind(wxEVT_BUTTON, &CMemoryWindow::OnDumpFakeVMEM, this);
+
+    dump_sizer->Add(dump_fake_vmem_button, 0, wxEXPAND);
+  }
+
+  return dump_sizer;
 }
 
-void CMemoryWindow::SetMemoryValue(wxCommandEvent& event)
+wxSizer* CMemoryWindow::CreateSearchTypeSizer()
+{
+  m_btn_find_next = new wxButton(this, IDM_FIND_NEXT, _("Find Next"));
+  m_btn_find_next->Bind(wxEVT_BUTTON, &CMemoryWindow::OnFindNext, this);
+
+  m_btn_find_previous = new wxButton(this, IDM_FIND_PREVIOUS, _("Find Previous"));
+  m_btn_find_previous->Bind(wxEVT_BUTTON, &CMemoryWindow::OnFindPrevious, this);
+
+  m_rb_ascii =
+      new wxRadioButton(this, IDM_ASCII, "Ascii", wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
+  m_rb_hex = new wxRadioButton(this, IDM_HEX, _("Hex"));
+  m_rb_hex->SetValue(true);
+
+  m_search_result_msg =
+      new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize,
+                       wxST_NO_AUTORESIZE | wxALIGN_CENTER_HORIZONTAL);
+
+  auto* const search_type_sizer = new wxStaticBoxSizer(wxVERTICAL, this, _("Search"));
+  search_type_sizer->Add(m_btn_find_next);
+  search_type_sizer->Add(m_btn_find_previous);
+  search_type_sizer->Add(m_rb_ascii);
+  search_type_sizer->Add(m_rb_hex);
+  search_type_sizer->Add(m_search_result_msg, 0, wxEXPAND);
+
+  return search_type_sizer;
+}
+
+wxSizer* CMemoryWindow::CreateMemcheckOptionSizer()
+{
+  // i18n: This string is used for a radio button that represents the type of
+  // memory breakpoint that gets triggered when a read operation or write operation occurs.
+  // The string is not a command to read and write something or to allow reading and writing.
+  m_read_write_radio_btn = new wxRadioButton(this, IDM_MEMCHECK_OPTIONS_CHANGE, _("Read and write"),
+                                             wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
+  m_read_write_radio_btn->Bind(wxEVT_RADIOBUTTON, &CMemoryWindow::OnMemCheckOptionChange, this);
+
+  // i18n: This string is used for a radio button that represents the type of
+  // memory breakpoint that gets triggered when a read operation occurs.
+  // The string does not mean "read-only" in the sense that something cannot be written to.
+  m_read_radio_btn = new wxRadioButton(this, IDM_MEMCHECK_OPTIONS_CHANGE, _("Read only"));
+  m_read_radio_btn->Bind(wxEVT_RADIOBUTTON, &CMemoryWindow::OnMemCheckOptionChange, this);
+
+  // i18n: This string is used for a radio button that represents the type of
+  // memory breakpoint that gets triggered when a write operation occurs.
+  // The string does not mean "write-only" in the sense that something cannot be read from.
+  m_write_radio_btn = new wxRadioButton(this, IDM_MEMCHECK_OPTIONS_CHANGE, _("Write only"));
+  m_write_radio_btn->Bind(wxEVT_RADIOBUTTON, &CMemoryWindow::OnMemCheckOptionChange, this);
+
+  m_log_checkbox = new wxCheckBox(this, IDM_MEMCHECK_OPTIONS_CHANGE, _("Log"));
+  m_log_checkbox->Bind(wxEVT_CHECKBOX, &CMemoryWindow::OnMemCheckOptionChange, this);
+  m_log_checkbox->SetValue(true);
+
+  auto* const memcheck_options_sizer =
+      new wxStaticBoxSizer(wxVERTICAL, this, _("Memory breakpoint options"));
+  memcheck_options_sizer->Add(m_read_write_radio_btn);
+  memcheck_options_sizer->Add(m_read_radio_btn);
+  memcheck_options_sizer->Add(m_write_radio_btn);
+  memcheck_options_sizer->Add(m_log_checkbox);
+
+  return memcheck_options_sizer;
+}
+
+void CMemoryWindow::JumpToAddress(u32 address)
+{
+  m_memory_view->Center(address);
+}
+
+void CMemoryWindow::OnSetMemoryValueFromValBox(wxCommandEvent& event)
+{
+  OnSetMemoryValue(event);
+  m_value_text_ctrl->SetFocus();
+}
+
+void CMemoryWindow::OnSetMemoryValue(wxCommandEvent& event)
 {
   if (!Memory::IsInitialized())
   {
@@ -169,35 +232,34 @@ void CMemoryWindow::SetMemoryValue(wxCommandEvent& event)
     return;
   }
 
-  std::string str_addr = WxStrToStr(addrbox->GetValue());
-  std::string str_val = WxStrToStr(valbox->GetValue());
+  std::string str_addr = WxStrToStr(m_address_search_ctrl->GetValue());
   u32 addr;
-  u32 val;
-
-  if (!TryParse(std::string("0x") + str_addr, &addr))
+  if (!TryParse("0x" + str_addr, &addr))
   {
     WxUtils::ShowErrorDialog(wxString::Format(_("Invalid address: %s"), str_addr.c_str()));
     return;
   }
 
-  if (!TryParse(std::string("0x") + str_val, &val))
+  std::string str_val = WxStrToStr(m_value_text_ctrl->GetValue());
+  u32 val;
+  if (!TryParse("0x" + str_val, &val))
   {
     WxUtils::ShowErrorDialog(wxString::Format(_("Invalid value: %s"), str_val.c_str()));
     return;
   }
 
   PowerPC::HostWrite_U32(val, addr);
-  memview->Refresh();
+  m_memory_view->Refresh();
 }
 
-void CMemoryWindow::OnAddrBoxChange(wxCommandEvent& event)
+void CMemoryWindow::OnSearchAddressChanged(wxCommandEvent& event)
 {
-  wxString txt = addrbox->GetValue();
+  wxString txt = m_address_search_ctrl->GetValue();
   if (txt.size())
   {
     u32 addr;
     sscanf(WxStrToStr(txt).c_str(), "%08x", &addr);
-    memview->Center(addr & ~3);
+    m_memory_view->Center(addr & ~3);
   }
 
   event.Skip();
@@ -205,7 +267,7 @@ void CMemoryWindow::OnAddrBoxChange(wxCommandEvent& event)
 
 void CMemoryWindow::Repopulate()
 {
-  memview->Center(PC);
+  m_memory_view->Center(PC);
 }
 
 void CMemoryWindow::OnValueChanged(wxCommandEvent&)
@@ -254,7 +316,7 @@ void CMemoryWindow::OnDataTypeChanged(wxCommandEvent& ev)
                                                       MemoryDataType::FloatingPoint}};
   if (ev.GetId() == IDM_DATA_TYPE_RBOX)
   {
-    memview->SetDataType(map.at(ev.GetSelection()));
+    m_memory_view->SetDataType(map.at(ev.GetSelection()));
   }
   else
   {
@@ -267,13 +329,24 @@ void CMemoryWindow::OnDataTypeChanged(wxCommandEvent& ev)
   }
 }
 
-void CMemoryWindow::OnSearch(wxCommandEvent& event)
+void CMemoryWindow::OnFindNext(wxCommandEvent& event)
 {
   wxBusyCursor hourglass_cursor;
+  Search(SearchType::FindNext);
+}
+
+void CMemoryWindow::OnFindPrevious(wxCommandEvent& event)
+{
+  wxBusyCursor hourglass_cursor;
+  Search(SearchType::FindPrevious);
+}
+
+void CMemoryWindow::Search(SearchType search_type)
+{
   u8* ram_ptr = nullptr;
-  u32 ram_size = 0;
+  std::size_t ram_size = 0;
   // NOTE: We're assuming the base address is zero.
-  switch (memview->GetMemoryType())
+  switch (m_memory_view->GetMemoryType())
   {
   case 0:
   default:
@@ -301,7 +374,7 @@ void CMemoryWindow::OnSearch(wxCommandEvent& event)
   }
 
   std::vector<u8> search_bytes;
-  wxString search_val = valbox->GetValue();
+  wxString search_val = m_value_text_ctrl->GetValue();
 
   if (m_rb_hex->GetValue())
   {
@@ -348,7 +421,7 @@ void CMemoryWindow::OnSearch(wxCommandEvent& event)
   // Search starting from specified address if there is one.
   u32 addr = 0;  // Base address
   {
-    wxString addr_val = addrbox->GetValue();
+    wxString addr_val = m_address_search_ctrl->GetValue();
     addr_val.Trim(true).Trim(false);
     if (!addr_val.empty())
     {
@@ -357,8 +430,11 @@ void CMemoryWindow::OnSearch(wxCommandEvent& event)
       {
         addr = static_cast<u32>(addr_ul);
         // Don't find the result we're already looking at
-        if (m_continue_search && addr == m_last_search_address)
+        if (m_continue_search && addr == m_last_search_address &&
+            search_type == SearchType::FindNext)
+        {
           addr += 1;
+        }
       }
     }
   }
@@ -370,36 +446,44 @@ void CMemoryWindow::OnSearch(wxCommandEvent& event)
     return;
   }
 
-  u8* end = &ram_ptr[ram_size - search_bytes.size() + 1];
-  u8* ptr = &ram_ptr[addr];
-  while (true)
+  const u8* ptr;
+  const u8* end;
+  if (search_type == SearchType::FindNext)
   {
-    ptr = std::find(ptr, end, search_bytes[0]);
-    if (ptr == end)
-    {
-      m_search_result_msg->SetLabel(_("No Match"));
-      break;
-    }
-
-    if (std::equal(search_bytes.begin(), search_bytes.end(), ptr))
-    {
-      m_search_result_msg->SetLabel(_("Match Found"));
-      u32 offset = static_cast<u32>(ptr - ram_ptr);
-      // NOTE: SetValue() generates a synthetic wxEVT_TEXT
-      addrbox->SetValue(wxString::Format("%08x", offset));
-      m_last_search_address = offset;
-      m_continue_search = true;
-      break;
-    }
-
-    ++ptr;
+    const u8* begin = &ram_ptr[addr];
+    end = &ram_ptr[ram_size - search_bytes.size() + 1];
+    ptr = std::search(begin, end, search_bytes.begin(), search_bytes.end());
   }
+  else
+  {
+    const u8* begin = ram_ptr;
+    end = &ram_ptr[addr + search_bytes.size() - 1];
+    ptr = std::find_end(begin, end, search_bytes.begin(), search_bytes.end());
+  }
+
+  if (ptr != end)
+  {
+    m_search_result_msg->SetLabel(_("Match Found"));
+    u32 offset = static_cast<u32>(ptr - ram_ptr);
+    // NOTE: SetValue() generates a synthetic wxEVT_TEXT
+    m_address_search_ctrl->SetValue(wxString::Format("%08x", offset));
+    m_last_search_address = offset;
+    m_continue_search = true;
+    return;
+  }
+
+  m_search_result_msg->SetLabel(_("No Match"));
 }
 
 void CMemoryWindow::OnMemCheckOptionChange(wxCommandEvent& event)
 {
-  if (rdbReadWrite->GetValue())
-    memview->SetMemCheckOptions(true, true, chkLog->GetValue());
+  if (m_read_write_radio_btn->GetValue())
+  {
+    m_memory_view->SetMemCheckOptions(true, true, m_log_checkbox->GetValue());
+  }
   else
-    memview->SetMemCheckOptions(rdbRead->GetValue(), rdbWrite->GetValue(), chkLog->GetValue());
+  {
+    m_memory_view->SetMemCheckOptions(m_read_radio_btn->GetValue(), m_write_radio_btn->GetValue(),
+                                      m_log_checkbox->GetValue());
+  }
 }

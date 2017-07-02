@@ -28,7 +28,7 @@ GameTracker::GameTracker(QObject* parent) : QFileSystemWatcher(parent)
 
   m_loader_thread.start();
 
-  for (QString dir : Settings().GetPaths())
+  for (QString dir : Settings::Instance().GetPaths())
     AddDirectory(dir);
 }
 
@@ -55,8 +55,8 @@ void GameTracker::RemoveDirectory(const QString& dir)
     QString path = QFileInfo(it.next()).canonicalFilePath();
     if (m_tracked_files.contains(path))
     {
-      m_tracked_files[path]--;
-      if (m_tracked_files[path] == 0)
+      m_tracked_files[path].remove(dir);
+      if (m_tracked_files[path].empty())
       {
         removePath(path);
         m_tracked_files.remove(path);
@@ -72,23 +72,63 @@ void GameTracker::UpdateDirectory(const QString& dir)
   while (it.hasNext())
   {
     QString path = QFileInfo(it.next()).canonicalFilePath();
+
     if (m_tracked_files.contains(path))
     {
-      m_tracked_files[path]++;
+      auto& tracked_file = m_tracked_files[path];
+      if (!tracked_file.contains(dir))
+        tracked_file.insert(dir);
     }
     else
     {
       addPath(path);
-      m_tracked_files[path] = 1;
+      m_tracked_files[path] = QSet<QString>{dir};
       emit PathChanged(path);
     }
   }
+
+  for (const auto& missing : FindMissingFiles(dir))
+  {
+    auto& tracked_file = m_tracked_files[missing];
+
+    tracked_file.remove(dir);
+    if (tracked_file.empty())
+    {
+      m_tracked_files.remove(missing);
+      GameRemoved(missing);
+    }
+  }
+}
+
+QSet<QString> GameTracker::FindMissingFiles(const QString& dir)
+{
+  QDirIterator it(dir, game_filters, QDir::NoFilter, QDirIterator::Subdirectories);
+
+  QSet<QString> missing_files;
+
+  for (const auto& key : m_tracked_files.keys())
+  {
+    if (m_tracked_files[key].contains(dir))
+      missing_files.insert(key);
+  }
+
+  while (it.hasNext())
+  {
+    QString path = QFileInfo(it.next()).canonicalFilePath();
+    if (m_tracked_files.contains(path))
+      missing_files.remove(path);
+  }
+
+  return missing_files;
 }
 
 void GameTracker::UpdateFile(const QString& file)
 {
   if (QFileInfo(file).exists())
   {
+    GameRemoved(file);
+    addPath(file);
+
     emit PathChanged(file);
   }
   else if (removePath(file))

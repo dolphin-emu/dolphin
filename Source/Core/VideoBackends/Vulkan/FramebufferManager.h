@@ -19,6 +19,7 @@ class StateTracker;
 class StreamBuffer;
 class Texture2D;
 class VertexFormat;
+class VKTexture;
 class XFBSource;
 
 class FramebufferManager : public FramebufferManagerBase
@@ -67,6 +68,9 @@ public:
   Texture2D* ResolveEFBColorTexture(const VkRect2D& region);
   Texture2D* ResolveEFBDepthTexture(const VkRect2D& region);
 
+  // Returns the texture that the EFB color texture is resolved to when multisampling is enabled.
+  // Ensure ResolveEFBColorTexture is called before this method.
+  Texture2D* GetResolvedEFBColorTexture() const { return m_efb_resolve_color_texture.get(); }
   // Reads a framebuffer value back from the GPU. This may block if the cache is not current.
   u32 PeekEFBColor(u32 x, u32 y);
   float PeekEFBDepth(u32 x, u32 y);
@@ -173,10 +177,10 @@ private:
 class XFBSource final : public XFBSourceBase
 {
 public:
-  explicit XFBSource(std::unique_ptr<TextureCache::TCacheEntry> texture);
+  explicit XFBSource(std::unique_ptr<AbstractTexture> texture);
   ~XFBSource();
 
-  TextureCache::TCacheEntry* GetTexture() const { return m_texture.get(); }
+  VKTexture* GetTexture() const;
   // Guest -> GPU EFB Textures
   void DecodeToTexture(u32 xfb_addr, u32 fb_width, u32 fb_height) override;
 
@@ -184,7 +188,7 @@ public:
   void CopyEFB(float gamma) override;
 
 private:
-  std::unique_ptr<TextureCache::TCacheEntry> m_texture;
+  std::unique_ptr<AbstractTexture> m_texture;
 };
 
 }  // namespace Vulkan

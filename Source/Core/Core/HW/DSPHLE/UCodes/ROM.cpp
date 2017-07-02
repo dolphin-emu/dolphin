@@ -12,11 +12,10 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
-#include "Common/FileUtil.h"
 #include "Common/Hash.h"
 #include "Common/Logging/Log.h"
-#include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
+#include "Core/DSP/DSPCodeUtil.h"
 #include "Core/HW/DSPHLE/DSPHLE.h"
 #include "Core/HW/DSPHLE/MailHandler.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
@@ -107,15 +106,8 @@ void ROMUCode::BootUCode()
 
   if (SConfig::GetInstance().m_DumpUCode)
   {
-    std::string ucode_dump_path =
-        StringFromFormat("%sDSP_UC_%08X.bin", File::GetUserPath(D_DUMPDSP_IDX).c_str(), ector_crc);
-
-    File::IOFile fp(ucode_dump_path, "wb");
-    if (fp)
-    {
-      fp.WriteArray((u8*)HLEMemory_Get_Pointer(m_current_ucode.m_ram_address),
-                    m_current_ucode.m_length);
-    }
+    DSP::DumpDSPCode(static_cast<u8*>(HLEMemory_Get_Pointer(m_current_ucode.m_ram_address)),
+                     m_current_ucode.m_length, ector_crc);
   }
 
   INFO_LOG(DSPHLE, "CurrentUCode SOURCE Addr: 0x%08x", m_current_ucode.m_ram_address);

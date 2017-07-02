@@ -5,11 +5,12 @@
 #include "Core/HW/DSPHLE/UCodes/AX.h"
 
 #include "Common/ChunkFile.h"
-#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
+#include "Common/File.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
+#include "Common/Swap.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/DSPHLE/DSPHLE.h"
 #include "Core/HW/DSPHLE/MailHandler.h"
@@ -77,7 +78,22 @@ void AXUCode::LoadResamplingCoefficients()
 void AXUCode::SignalWorkEnd()
 {
   // Signal end of processing
-  m_mail_handler.PushMail(DSP_YIELD, true);
+  // TODO: figure out how many cycles this is actually supposed to take
+
+  // The Clone Wars hangs upon initial boot if this interrupt happens too quickly after submitting a
+  // command list. When played in DSP-LLE, the interrupt lags by about 160,000 cycles, though any
+  // value greater than or equal to 814 will work here. In other games, the lag can be as small as
+  // 50,000 cycles (in Metroid Prime) and as large as 718,092 cycles (in Tales of Symphonia!).
+
+  // On the PowerPC side, hthh_ discovered that The Clone Wars tracks a "AXCommandListCycles"
+  // variable which matches the aforementioned 160,000 cycles. It's initialized to ~2500 cycles for
+  // a minimal, empty command list, so that should be a safe number for pretty much anything a game
+  // does.
+
+  // For more information, see https://bugs.dolphin-emu.org/issues/10265.
+  constexpr int AX_EMPTY_COMMAND_LIST_CYCLES = 2500;
+
+  m_mail_handler.PushMail(DSP_YIELD, true, AX_EMPTY_COMMAND_LIST_CYCLES);
 }
 
 void AXUCode::HandleCommandList()
@@ -422,7 +438,7 @@ void AXUCode::ProcessPBList(u32 pb_addr)
                           m_samples_auxA_right, m_samples_auxA_surround, m_samples_auxB_left,
                           m_samples_auxB_right, m_samples_auxB_surround}};
 
-    ReadPB(pb_addr, pb);
+    ReadPB(pb_addr, pb, m_crc);
 
     u32 updates_addr = HILO_TO_32(pb.updates.data);
     u16* updates = (u16*)HLEMemory_Get_Pointer(updates_addr);
@@ -439,7 +455,7 @@ void AXUCode::ProcessPBList(u32 pb_addr)
         buffers.ptrs[i] += spms;
     }
 
-    WritePB(pb_addr, pb);
+    WritePB(pb_addr, pb, m_crc);
     pb_addr = HILO_TO_32(pb.next_pb);
   }
 }

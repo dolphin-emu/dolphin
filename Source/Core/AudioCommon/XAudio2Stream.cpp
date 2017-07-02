@@ -7,12 +7,6 @@
 #include "AudioCommon/AudioCommon.h"
 #include "Common/Event.h"
 #include "Common/Logging/Log.h"
-#include "Common/StringUtil.h"
-
-//#include <initguid.h> // For the pkey defines to be properly instantiated.
-#include <Mmdeviceapi.h>
-#include <Functiondiscoverykeys_devpkey.h>
-//DEFINE_PROPERTYKEY(PKEY_AudioEndpoint_Path, 0x9c119480, 0xddc2, 0x4954, 0xa1, 0x50, 0x5b, 0xd2, 0x40, 0xd4, 0x54, 0xad, 1);
 #include "Common/MsgHandler.h"
 
 #ifndef XAUDIO2_DLL
@@ -22,7 +16,7 @@
 struct StreamingVoiceContext : public IXAudio2VoiceCallback
 {
 private:
-  CMixer* const m_mixer;
+  Mixer* const m_mixer;
   Common::Event& m_sound_sync_event;
   IXAudio2SourceVoice* m_source_voice;
   std::unique_ptr<BYTE[]> xaudio_buffer;
@@ -30,12 +24,11 @@ private:
   void SubmitBuffer(PBYTE buf_data);
 
 public:
-  StreamingVoiceContext(IXAudio2* pXAudio2, CMixer* pMixer, Common::Event& pSyncEvent);
+  StreamingVoiceContext(IXAudio2* pXAudio2, Mixer* pMixer, Common::Event& pSyncEvent);
+  virtual ~StreamingVoiceContext();
 
-  ~StreamingVoiceContext();
-
-  void StreamingVoiceContext::Stop();
-  void StreamingVoiceContext::Play();
+  void Stop();
+  void Play();
 
   STDMETHOD_(void, OnVoiceError)(THIS_ void* pBufferContext, HRESULT Error) {}
   STDMETHOD_(void, OnVoiceProcessingPassStart)(UINT32) {}
@@ -63,7 +56,7 @@ void StreamingVoiceContext::SubmitBuffer(PBYTE buf_data)
   m_source_voice->SubmitSourceBuffer(&buf);
 }
 
-StreamingVoiceContext::StreamingVoiceContext(IXAudio2* pXAudio2, CMixer* pMixer,
+StreamingVoiceContext::StreamingVoiceContext(IXAudio2* pXAudio2, Mixer* pMixer,
                                              Common::Event& pSyncEvent)
     : m_mixer(pMixer), m_sound_sync_event(pSyncEvent),
       xaudio_buffer(new BYTE[NUM_BUFFERS * BUFFER_SIZE_BYTES]())
@@ -189,19 +182,10 @@ bool XAudio2::Start()
     return false;
   }
   m_xaudio2 = std::unique_ptr<IXAudio2, Releaser>(xaudptr);
-
-  AudioDevice audioDevice = AudioDevice::GetSelectedDevice();
-  NOTICE_LOG(AUDIO, "Using Audio Device: %s", audioDevice.name.c_str());
-  LPCWSTR path = NULL;
-  std::wstring device_path;
-  if (audioDevice != AudioDevice::DEFAULT) {
-    device_path = UTF8ToTStr(audioDevice.path);
-    path = device_path.c_str();
-  }
     
   // XAudio2 master voice
   // XAUDIO2_DEFAULT_CHANNELS instead of 2 for expansion?
-  if (FAILED(hr = m_xaudio2->CreateMasteringVoice(&m_mastering_voice, 2, m_mixer->GetSampleRate(), 0, path)))
+  if (FAILED(hr = m_xaudio2->CreateMasteringVoice(&m_mastering_voice, 2, m_mixer->GetSampleRate())))
   {
     PanicAlert("XAudio2 master voice creation failed: %#X", hr);
     Stop();

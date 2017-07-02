@@ -14,8 +14,12 @@
 #include "DolphinQt2/RenderWidget.h"
 #include "DolphinQt2/ToolBar.h"
 
-class PathDialog;
+class HotkeyScheduler;
+class MappingWindow;
 class SettingsWindow;
+class ControllersWindow;
+class DragEnterEvent;
+class GraphicsWindow;
 
 class MainWindow final : public QMainWindow
 {
@@ -24,6 +28,8 @@ class MainWindow final : public QMainWindow
 public:
   explicit MainWindow();
   ~MainWindow();
+
+  bool eventFilter(QObject* object, QEvent* event) override;
 
 signals:
   void EmulationStarted();
@@ -51,6 +57,8 @@ private slots:
   void StateSaveOldest();
   void SetStateSlot(int slot);
 
+  void PerformOnlineUpdate(const std::string& region);
+
   void FullScreen();
   void ScreenShot();
 
@@ -58,19 +66,29 @@ private:
   void CreateComponents();
 
   void ConnectGameList();
+  void ConnectHotkeys();
   void ConnectMenuBar();
   void ConnectRenderWidget();
   void ConnectStack();
   void ConnectToolBar();
-  void ConnectPathsDialog();
+
+  void InitControllers();
+  void ShutdownControllers();
+
+  void InitCoreCallbacks();
 
   void StartGame(const QString& path);
   void ShowRenderWidget();
   void HideRenderWidget();
 
-  void ShowPathsDialog();
   void ShowSettingsWindow();
+  void ShowControllersWindow();
+  void ShowGraphicsWindow();
   void ShowAboutDialog();
+  void ShowHotkeyDialog();
+
+  void dragEnterEvent(QDragEnterEvent* event) override;
+  void dropEvent(QDropEvent* event) override;
 
   QStackedWidget* m_stack;
   ToolBar* m_tool_bar;
@@ -78,8 +96,12 @@ private:
   GameList* m_game_list;
   RenderWidget* m_render_widget;
   bool m_rendering_to_main;
+  bool m_stop_requested = false;
   int m_state_slot = 1;
 
-  PathDialog* m_paths_dialog;
+  HotkeyScheduler* m_hotkey_scheduler;
+  ControllersWindow* m_controllers_window;
   SettingsWindow* m_settings_window;
+  MappingWindow* m_hotkey_window;
+  GraphicsWindow* m_graphics_window;
 };

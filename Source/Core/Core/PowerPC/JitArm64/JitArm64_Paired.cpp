@@ -152,28 +152,6 @@ void JitArm64::ps_maddXX(UGeckoInstruction inst)
   fpr.Unlock(V0Q);
 }
 
-void JitArm64::ps_res(UGeckoInstruction inst)
-{
-  INSTRUCTION_START
-  JITDISABLE(bJITPairedOff);
-  FALLBACK_IF(inst.Rc);
-  FALLBACK_IF(SConfig::GetInstance().bFPRF && js.op->wantsFPRF);
-
-  u32 b = inst.FB, d = inst.FD;
-
-  bool singles = fpr.IsSingle(b);
-  RegType type = singles ? REG_REG_SINGLE : REG_REG;
-  u8 size = singles ? 32 : 64;
-  ARM64Reg (*reg_encoder)(ARM64Reg) = singles ? EncodeRegToDouble : EncodeRegToQuad;
-
-  ARM64Reg VB = fpr.R(b, type);
-  ARM64Reg VD = fpr.RW(d, type);
-
-  m_float_emit.FRSQRTE(size, reg_encoder(VD), reg_encoder(VB));
-
-  fpr.FixSinglePrecision(d);
-}
-
 void JitArm64::ps_sel(UGeckoInstruction inst)
 {
   INSTRUCTION_START

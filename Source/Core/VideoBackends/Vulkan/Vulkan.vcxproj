@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
       <Configuration>Debug</Configuration>
@@ -12,11 +12,12 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{29F29A19-F141-45AD-9679-5A2923B49DA3}</ProjectGuid>
+    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration">
@@ -34,25 +35,12 @@
     <Import Project="..\..\..\VSProps\PCHUse.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <ClCompile>
-      <AdditionalIncludeDirectories>$(ExternalsDir)Vulkan\include;$(ExternalsDir)glslang\glslang\Public;$(ExternalsDir)glslang\SPIRV;$(ExternalsDir)zlib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
-    <Lib />
-    <Lib />
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <ClCompile>
-      <AdditionalIncludeDirectories>$(ExternalsDir)Vulkan\include;$(ExternalsDir)glslang\glslang\Public;$(ExternalsDir)glslang\SPIRV;$(ExternalsDir)zlib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
-    <Lib />
-    <Lib />
-  </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="BoundingBox.cpp" />
     <ClCompile Include="CommandBufferManager.cpp" />
     <ClCompile Include="FramebufferManager.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="PostProcessing.cpp" />
     <ClCompile Include="TextureConverter.cpp" />
     <ClCompile Include="PerfQuery.cpp" />
     <ClCompile Include="RasterFont.cpp" />
@@ -69,6 +57,7 @@
     <ClCompile Include="Texture2D.cpp" />
     <ClCompile Include="TextureCache.cpp" />
     <ClCompile Include="VertexManager.cpp" />
+    <ClCompile Include="VKTexture.cpp" />
     <ClCompile Include="VulkanContext.cpp" />
     <ClCompile Include="VulkanLoader.cpp" />
   </ItemGroup>
@@ -77,6 +66,7 @@
     <ClInclude Include="CommandBufferManager.h" />
     <ClInclude Include="FramebufferManager.h" />
     <ClInclude Include="Constants.h" />
+    <ClInclude Include="PostProcessing.h" />
     <ClInclude Include="TextureConverter.h" />
     <ClInclude Include="RasterFont.h" />
     <ClInclude Include="StagingBuffer.h" />
@@ -94,6 +84,7 @@
     <ClInclude Include="TextureCache.h" />
     <ClInclude Include="VertexManager.h" />
     <ClInclude Include="VideoBackend.h" />
+    <ClInclude Include="VKTexture.h" />
     <ClInclude Include="VulkanContext.h" />
     <ClInclude Include="VulkanLoader.h" />
   </ItemGroup>

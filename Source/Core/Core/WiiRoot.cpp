@@ -2,21 +2,19 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/WiiRoot.h"
+
 #include <string>
 
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/NandPaths.h"
+#include "Common/StringUtil.h"
 #include "Common/SysConf.h"
 #include "Core/ConfigManager.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayClient.h"
-#include "Core/WiiRoot.h"
-
-#ifdef _WIN32
-#include <Windows.h>
-#endif
 
 namespace Core
 {
@@ -25,9 +23,9 @@ static std::string s_temp_wii_root;
 static void InitializeDeterministicWiiSaves()
 {
   std::string save_path =
-      Common::GetTitleDataPath(SConfig::GetInstance().m_title_id, Common::FROM_SESSION_ROOT);
+      Common::GetTitleDataPath(SConfig::GetInstance().GetTitleID(), Common::FROM_SESSION_ROOT);
   std::string user_save_path =
-      Common::GetTitleDataPath(SConfig::GetInstance().m_title_id, Common::FROM_CONFIGURED_ROOT);
+      Common::GetTitleDataPath(SConfig::GetInstance().GetTitleID(), Common::FROM_CONFIGURED_ROOT);
   if (Movie::IsRecordingInput())
   {
     if (NetPlay::IsNetPlayRunning() && !SConfig::GetInstance().bCopyWiiSaveNetplay)
@@ -54,8 +52,6 @@ static void InitializeDeterministicWiiSaves()
 
 void InitializeWiiRoot(bool use_temporary)
 {
-  ShutdownWiiRoot();
-
   if (use_temporary)
   {
     s_temp_wii_root = File::CreateTempDir();
@@ -67,37 +63,29 @@ void InitializeWiiRoot(bool use_temporary)
     File::CopyDir(File::GetSysDirectory() + WII_USER_DIR, s_temp_wii_root);
     WARN_LOG(IOS_FILEIO, "Using temporary directory %s for minimal Wii FS",
              s_temp_wii_root.c_str());
-    static bool s_registered;
-    if (!s_registered)
-    {
-      s_registered = true;
-      atexit(ShutdownWiiRoot);
-    }
     File::SetUserPath(D_SESSION_WIIROOT_IDX, s_temp_wii_root);
     // Generate a SYSCONF with default settings for the temporary Wii NAND.
     SysConf sysconf{Common::FromWhichRoot::FROM_SESSION_ROOT};
     sysconf.Save();
+
+    InitializeDeterministicWiiSaves();
   }
   else
   {
     File::SetUserPath(D_SESSION_WIIROOT_IDX, File::GetUserPath(D_WIIROOT_IDX));
   }
-
-  InitializeDeterministicWiiSaves();
 }
 
 void ShutdownWiiRoot()
 {
   if (!s_temp_wii_root.empty())
   {
-    std::string save_path =
-        Common::GetTitleDataPath(SConfig::GetInstance().m_title_id, Common::FROM_SESSION_ROOT);
-    std::string user_save_path =
-        Common::GetTitleDataPath(SConfig::GetInstance().m_title_id, Common::FROM_CONFIGURED_ROOT);
-    std::string user_backup_path =
-        File::GetUserPath(D_BACKUP_IDX) +
-        StringFromFormat("%08x/%08x/", static_cast<u32>(SConfig::GetInstance().m_title_id >> 32),
-                         static_cast<u32>(SConfig::GetInstance().m_title_id));
+    const u64 title_id = SConfig::GetInstance().GetTitleID();
+    std::string save_path = Common::GetTitleDataPath(title_id, Common::FROM_SESSION_ROOT);
+    std::string user_save_path = Common::GetTitleDataPath(title_id, Common::FROM_CONFIGURED_ROOT);
+    std::string user_backup_path = File::GetUserPath(D_BACKUP_IDX) +
+                                   StringFromFormat("%08x/%08x/", static_cast<u32>(title_id >> 32),
+                                                    static_cast<u32>(title_id));
     if (File::Exists(save_path + "banner.bin") && SConfig::GetInstance().bEnableMemcardSdWriting)
     {
       // Backup the existing save just in case it's still needed.

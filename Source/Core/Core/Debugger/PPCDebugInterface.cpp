@@ -4,6 +4,7 @@
 
 #include "Core/Debugger/PPCDebugInterface.h"
 
+#include <cstddef>
 #include <string>
 
 #include "Common/GekkoDisassembler.h"
@@ -11,7 +12,6 @@
 
 #include "Core/Core.h"
 #include "Core/HW/DSP.h"
-#include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
 
@@ -129,9 +129,9 @@ void PPCDebugInterface::ClearAllMemChecks()
   PowerPC::memchecks.Clear();
 }
 
-bool PPCDebugInterface::IsMemCheck(unsigned int address)
+bool PPCDebugInterface::IsMemCheck(unsigned int address, size_t size)
 {
-  return PowerPC::memchecks.GetMemCheck(address) != nullptr;
+  return PowerPC::memchecks.GetMemCheck(address, size) != nullptr;
 }
 
 void PPCDebugInterface::ToggleMemCheck(unsigned int address, bool read, bool write, bool log)

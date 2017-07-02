@@ -9,11 +9,9 @@
 #include <array>
 #include <memory>
 
-#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
 #include "Common/Hash.h"
-#include "Common/Logging/Log.h"
 #include "Common/MemoryUtil.h"
 #include "Common/MsgHandler.h"
 
@@ -43,7 +41,7 @@ static bool VerifyRoms()
     u32 hash_drom;  // dsp_coef.bin
   };
 
-  static const std::array<DspRomHashes, 4> known_roms = {
+  static const std::array<DspRomHashes, 5> known_roms = {
       {// Official Nintendo ROM
        {0x66f334fe, 0xf3b93527},
 
@@ -55,7 +53,10 @@ static bool VerifyRoms()
        {0xd9907f71, 0xb019c2fb},
 
        // above with improved resampling coefficients
-       {0xd9907f71, 0xdb6880c1}}};
+       {0xd9907f71, 0xdb6880c1},
+
+       // above with support for GBA ucode
+       {0x3aa4a793, 0xa4a575f5}}};
 
   u32 hash_irom = HashAdler32((u8*)g_dsp.irom, DSP_IROM_BYTE_SIZE);
   u32 hash_drom = HashAdler32((u8*)g_dsp.coef, DSP_COEF_BYTE_SIZE);
@@ -84,8 +85,14 @@ static bool VerifyRoms()
   else if (rom_idx == 2 || rom_idx == 3)
   {
     Host::OSD_AddMessage("You are using a free DSP ROM made by the Dolphin Team.", 8000);
-    Host::OSD_AddMessage("All Wii games will work correctly, and most GC games should ", 8000);
-    Host::OSD_AddMessage("also work fine, but the GBA/IPL/CARD UCodes will not work.", 8000);
+    Host::OSD_AddMessage("All Wii games will work correctly, and most GameCube games", 8000);
+    Host::OSD_AddMessage("should also work fine, but the GBA/CARD UCodes will not work.", 8000);
+  }
+  else if (rom_idx == 4)
+  {
+    Host::OSD_AddMessage("You are using a free DSP ROM made by the Dolphin Team.", 8000);
+    Host::OSD_AddMessage("All Wii games will work correctly, and most GameCube games", 8000);
+    Host::OSD_AddMessage("should also work fine, but the CARD UCode will not work.", 8000);
   }
 
   return true;

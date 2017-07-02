@@ -325,20 +325,10 @@ void JitArm64::WriteExit(u32 destination, bool LK, u32 exit_address_after_return
   linkData.call = LK;
   b->linkData.push_back(linkData);
 
-  MOVI2R(DISPATCHER_PC, destination);
+  blocks.WriteLinkBlock(*this, linkData);
 
-  if (!LK)
+  if (LK)
   {
-    B(dispatcher);
-  }
-  else
-  {
-    BL(dispatcher);
-
-    // MOVI2R might only require one instruction. So the const offset of 20 bytes
-    // might be wrong. Be sure and just add a NOP here.
-    HINT(HINT_NOP);
-
     // Write the regular exit node after the return.
     linkData.exitAddress = exit_address_after_return;
     linkData.exitPtrs = GetWritableCodePtr();
@@ -346,8 +336,7 @@ void JitArm64::WriteExit(u32 destination, bool LK, u32 exit_address_after_return
     linkData.call = false;
     b->linkData.push_back(linkData);
 
-    MOVI2R(DISPATCHER_PC, exit_address_after_return);
-    B(dispatcher);
+    blocks.WriteLinkBlock(*this, linkData);
   }
 }
 
@@ -387,8 +376,7 @@ void JitArm64::WriteExit(Arm64Gen::ARM64Reg dest, bool LK, u32 exit_address_afte
     linkData.call = false;
     b->linkData.push_back(linkData);
 
-    MOVI2R(DISPATCHER_PC, exit_address_after_return);
-    B(dispatcher);
+    blocks.WriteLinkBlock(*this, linkData);
   }
 }
 
@@ -417,8 +405,7 @@ void JitArm64::FakeLKExit(u32 exit_address_after_return)
   linkData.call = false;
   b->linkData.push_back(linkData);
 
-  MOVI2R(DISPATCHER_PC, exit_address_after_return);
-  B(dispatcher);
+  blocks.WriteLinkBlock(*this, linkData);
 
   SetJumpTarget(skip_exit);
 }
@@ -712,7 +699,7 @@ void JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBlock*
       SetJumpTarget(fail);
       MOVI2R(DISPATCHER_PC, js.blockStart);
       STR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
-      MOVI2R(W0, (u32)JitInterface::ExceptionType::EXCEPTIONS_PAIRED_QUANTIZE);
+      MOVI2R(W0, static_cast<u32>(JitInterface::ExceptionType::PairedQuantize));
       MOVP2R(X1, &JitInterface::CompileExceptionCheck);
       BLR(X1);
       B(dispatcher);
@@ -725,9 +712,6 @@ void JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBlock*
   gpr.Start(js.gpa);
   fpr.Start(js.fpa);
 
-  if (!SConfig::GetInstance().bEnableDebugging)
-    js.downcountAmount += PatchEngine::GetSpeedhackCycles(em_address);
-
   // Translate instructions
   for (u32 i = 0; i < code_block.m_num_instructions; i++)
   {
@@ -737,12 +721,10 @@ void JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBlock*
     js.instructionsLeft = (code_block.m_num_instructions - 1) - i;
     const GekkoOPInfo* opinfo = ops[i].opinfo;
     js.downcountAmount += opinfo->numCycles;
+    js.isLastInstruction = i == (code_block.m_num_instructions - 1);
 
-    if (i == (code_block.m_num_instructions - 1))
-    {
-      // WARNING - cmp->branch merging will screw this up.
-      js.isLastInstruction = true;
-    }
+    if (!SConfig::GetInstance().bEnableDebugging)
+      js.downcountAmount += PatchEngine::GetSpeedhackCycles(js.compilerPC);
 
     // Gather pipe writes using a non-immediate address are discovered by profiling.
     bool gatherPipeIntCheck =
@@ -852,7 +834,7 @@ void JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBlock*
       }
 
       CompileInstruction(ops[i]);
-      if (!MergeAllowedNextInstructions(1) || js.op[1].opinfo->type != OPTYPE_INTEGER)
+      if (!CanMergeNextInstructions(1) || js.op[1].opinfo->type != OPTYPE_INTEGER)
         FlushCarry();
 
       // If we have a register that will never be used again, flush it.

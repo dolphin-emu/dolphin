@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="D3D">
       <UniqueIdentifier>{ae700f7e-33c8-45b5-b7ee-a0ded3630549}</UniqueIdentifier>
@@ -67,6 +67,9 @@
     <ClCompile Include="BoundingBox.cpp">
       <Filter>Render</Filter>
     </ClCompile>
+    <ClCompile Include="DXTexture.cpp">
+      <Filter>Render</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="D3DBase.h">
@@ -111,9 +114,6 @@
     <ClInclude Include="TextureCache.h">
       <Filter>Render</Filter>
     </ClInclude>
-    <ClInclude Include="TextureEncoder.h">
-      <Filter>Render</Filter>
-    </ClInclude>
     <ClInclude Include="VertexManager.h">
       <Filter>Render</Filter>
     </ClInclude>
@@ -125,6 +125,9 @@
     </ClInclude>
     <ClInclude Include="VideoBackend.h" />
     <ClInclude Include="BoundingBox.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="DXTexture.h">
       <Filter>Render</Filter>
     </ClInclude>
   </ItemGroup>

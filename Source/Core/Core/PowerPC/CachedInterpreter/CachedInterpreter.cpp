@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "Core/PowerPC/CachedInterpreter/CachedInterpreter.h"
+
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
@@ -13,6 +14,42 @@
 #include "Core/PowerPC/Jit64Common/Jit64Base.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PowerPC.h"
+
+struct CachedInterpreter::Instruction
+{
+  typedef void (*CommonCallback)(UGeckoInstruction);
+  typedef bool (*ConditionalCallback)(u32 data);
+
+  Instruction() : type(INSTRUCTION_ABORT) {}
+  Instruction(const CommonCallback c, UGeckoInstruction i)
+      : common_callback(c), data(i.hex), type(INSTRUCTION_TYPE_COMMON)
+  {
+  }
+
+  Instruction(const ConditionalCallback c, u32 d)
+      : conditional_callback(c), data(d), type(INSTRUCTION_TYPE_CONDITIONAL)
+  {
+  }
+
+  union
+  {
+    const CommonCallback common_callback;
+    const ConditionalCallback conditional_callback;
+  };
+  u32 data;
+  enum
+  {
+    INSTRUCTION_ABORT,
+    INSTRUCTION_TYPE_COMMON,
+    INSTRUCTION_TYPE_CONDITIONAL,
+  } type;
+};
+
+CachedInterpreter::CachedInterpreter() : code_buffer(32000)
+{
+}
+
+CachedInterpreter::~CachedInterpreter() = default;
 
 void CachedInterpreter::Init()
 {
@@ -31,6 +68,11 @@ void CachedInterpreter::Init()
 void CachedInterpreter::Shutdown()
 {
   m_block_cache.Shutdown();
+}
+
+const u8* CachedInterpreter::GetCodePtr() const
+{
+  return reinterpret_cast<const u8*>(m_code.data() + m_code.size());
 }
 
 void CachedInterpreter::ExecuteOneBlock()
@@ -66,7 +108,7 @@ void CachedInterpreter::ExecuteOneBlock()
 
 void CachedInterpreter::Run()
 {
-  while (CPU::GetState() == CPU::CPU_RUNNING)
+  while (CPU::GetState() == CPU::State::Running)
   {
     // Start new timing slice
     // NOTE: Exceptions may change PC
@@ -105,7 +147,7 @@ static void WriteBrokenBlockNPC(UGeckoInstruction data)
 
 static bool CheckFPU(u32 data)
 {
-  UReg_MSR& msr = (UReg_MSR&)MSR;
+  UReg_MSR msr{MSR};
   if (!msr.FP)
   {
     PowerPC::ppcState.Exceptions |= EXCEPTION_FPU_UNAVAILABLE;
@@ -164,7 +206,7 @@ void CachedInterpreter::Jit(u32 address)
   {
     js.downcountAmount += ops[i].opinfo->numCycles;
 
-    u32 function = HLE::GetFunctionIndex(ops[i].address);
+    u32 function = HLE::GetFirstFunctionIndex(ops[i].address);
     if (function != 0)
     {
       int type = HLE::GetFunctionTypeByIndex(function);
@@ -174,7 +216,7 @@ void CachedInterpreter::Jit(u32 address)
         if (HLE::IsEnabled(flags))
         {
           m_code.emplace_back(WritePC, ops[i].address);
-          m_code.emplace_back(Interpreter::HLEFunction, ops[i].inst);
+          m_code.emplace_back(Interpreter::HLEFunction, function);
           if (type == HLE::HLE_HOOK_REPLACE)
           {
             m_code.emplace_back(EndBlock, js.downcountAmount);

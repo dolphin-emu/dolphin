@@ -23,12 +23,12 @@
 #include <wx/spinctrl.h>
 #include <wx/timer.h>
 
-#include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerInterface/Device.h"
 
 class ControlReference;
 class DolphinSlider;
 class InputConfig;
+class InputConfigDialog;
 class wxComboBox;
 class wxListBox;
 class wxStaticBitmap;
@@ -37,8 +37,11 @@ class wxTextCtrl;
 
 namespace ControllerEmu
 {
+class BooleanSetting;
+class ControlGroup;
 class EmulatedController;
 class Extension;
+class NumericSetting;
 }
 
 class PadSetting
@@ -67,23 +70,21 @@ public:
 class PadSettingSpin : public PadSetting
 {
 public:
-  PadSettingSpin(wxWindow* const parent,
-                 ControllerEmu::ControlGroup::NumericSetting* const setting);
+  PadSettingSpin(wxWindow* const parent, ControllerEmu::NumericSetting* const setting);
   void UpdateGUI() override;
   void UpdateValue() override;
 
-  ControllerEmu::ControlGroup::NumericSetting* const setting;
+  ControllerEmu::NumericSetting* const setting;
 };
 
 class PadSettingCheckBox : public PadSetting
 {
 public:
-  PadSettingCheckBox(wxWindow* const parent,
-                     ControllerEmu::ControlGroup::BooleanSetting* const setting);
+  PadSettingCheckBox(wxWindow* const parent, ControllerEmu::BooleanSetting* const setting);
   void UpdateGUI() override;
   void UpdateValue() override;
 
-  ControllerEmu::ControlGroup::BooleanSetting* const setting;
+  ControllerEmu::BooleanSetting* const setting;
 };
 
 class InputEventFilter : public wxEventFilter
@@ -100,8 +101,6 @@ private:
 
   bool m_block = false;
 };
-
-class InputConfigDialog;
 
 class ControlDialog : public wxDialog
 {
@@ -242,6 +241,7 @@ protected:
 
   ControllerEmu::EmulatedController* const controller;
 
+  bool m_iterate = false;
   wxTimer m_update_timer;
 
 private:
@@ -251,5 +251,4 @@ private:
   InputEventFilter m_event_filter;
 
   bool DetectButton(ControlButton* button);
-  bool m_iterate = false;
 };

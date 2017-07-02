@@ -16,8 +16,8 @@ class D3DTexture2D;
 class Renderer : public ::Renderer
 {
 public:
-  Renderer(void*& window_handle);
-  ~Renderer();
+  Renderer();
+  ~Renderer() override;
 
   void SetColorMask() override;
   void SetBlendMode(bool forceUpdate) override;
@@ -25,7 +25,6 @@ public:
   void SetGenerationMode() override;
   void SetDepthMode() override;
   void SetLogicOpMode() override;
-  void SetDitherMode() override;
   void SetSamplerState(int stage, int texindex, bool custom_tex) override;
   void SetInterlacingMode() override;
   void SetViewport() override;
@@ -60,9 +59,7 @@ public:
 
   void ReinterpretPixelData(unsigned int convtype) override;
 
-  static bool CheckForResize();
-
-  u32 GetMaxTextureSize() override;
+  bool CheckForResize();
 
 private:
   void BlitScreen(TargetRectangle src, TargetRectangle dst, D3DTexture2D* src_texture,

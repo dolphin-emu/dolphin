@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Base">
       <UniqueIdentifier>{23908fac-d3fd-4fa5-a9b4-87b3bafc7bd9}</UniqueIdentifier>
@@ -164,6 +164,15 @@
     <ClCompile Include="LightingShaderGen.cpp">
       <Filter>Shader Generators</Filter>
     </ClCompile>
+    <ClCompile Include="HiresTextures_DDSLoader.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureConfig.cpp">
+      <Filter>Base</Filter>
+    </ClCompile>
+    <ClCompile Include="AbstractTexture.cpp">
+      <Filter>Base</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommandProcessor.h" />
@@ -201,9 +210,6 @@
       <Filter>Decoding</Filter>
     </ClInclude>
     <ClInclude Include="TextureDecoder.h">
-      <Filter>Decoding</Filter>
-    </ClInclude>
-    <ClInclude Include="TextureDecoder_Util.h">
       <Filter>Decoding</Filter>
     </ClInclude>
     <ClInclude Include="BPFunctions.h">
@@ -316,6 +322,12 @@
     </ClInclude>
     <ClInclude Include="SamplerCommon.h">
       <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureConfig.h">
+      <Filter>Base</Filter>
+    </ClInclude>
+    <ClInclude Include="AbstractTexture.h">
+      <Filter>Base</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

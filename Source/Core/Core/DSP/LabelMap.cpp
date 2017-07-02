@@ -3,6 +3,10 @@
 // Refer to the license.txt file included.
 
 #include "Core/DSP/LabelMap.h"
+
+#include <string>
+#include <vector>
+
 #include "Core/DSP/DSPTables.h"
 
 namespace DSP

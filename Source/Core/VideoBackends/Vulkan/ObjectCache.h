@@ -18,6 +18,7 @@
 
 #include "VideoCommon/GeometryShaderGen.h"
 #include "VideoCommon/PixelShaderGen.h"
+#include "VideoCommon/RenderState.h"
 #include "VideoCommon/VertexShaderGen.h"
 
 namespace Vulkan
@@ -36,7 +37,7 @@ struct PipelineInfo
   VkShaderModule gs;
   VkShaderModule ps;
   VkRenderPass render_pass;
-  BlendState blend_state;
+  BlendingState blend_state;
   RasterizationState rasterization_state;
   DepthStencilState depth_stencil_state;
   VkPrimitiveTopology primitive_topology;
@@ -55,6 +56,22 @@ bool operator==(const SamplerState& lhs, const SamplerState& rhs);
 bool operator!=(const SamplerState& lhs, const SamplerState& rhs);
 bool operator>(const SamplerState& lhs, const SamplerState& rhs);
 bool operator<(const SamplerState& lhs, const SamplerState& rhs);
+
+struct ComputePipelineInfo
+{
+  VkPipelineLayout pipeline_layout;
+  VkShaderModule cs;
+};
+
+struct ComputePipelineInfoHash
+{
+  std::size_t operator()(const ComputePipelineInfo& key) const;
+};
+
+bool operator==(const ComputePipelineInfo& lhs, const ComputePipelineInfo& rhs);
+bool operator!=(const ComputePipelineInfo& lhs, const ComputePipelineInfo& rhs);
+bool operator<(const ComputePipelineInfo& lhs, const ComputePipelineInfo& rhs);
+bool operator>(const ComputePipelineInfo& lhs, const ComputePipelineInfo& rhs);
 
 class ObjectCache
 {
@@ -114,6 +131,19 @@ public:
   // otherwise for a cache hit it will be true.
   std::pair<VkPipeline, bool> GetPipelineWithCacheResult(const PipelineInfo& info);
 
+  // Creates a compute pipeline, and does not track the handle.
+  VkPipeline CreateComputePipeline(const ComputePipelineInfo& info);
+
+  // Find a pipeline by the specified description, if not found, attempts to create it
+  VkPipeline GetComputePipeline(const ComputePipelineInfo& info);
+
+  // Clears our pipeline cache of all objects. This is necessary when recompiling shaders,
+  // as drivers are free to return the same pointer again, which means that we may end up using
+  // and old pipeline object if they are not cleared first. Some stutter may be experienced
+  // while our cache is rebuilt on use, but the pipeline cache object should mitigate this.
+  // NOTE: Ensure that none of these objects are in use before calling.
+  void ClearPipelineCache();
+
   // Saves the pipeline cache to disk. Call when shutting down.
   void SavePipelineCache();
 
@@ -166,6 +196,8 @@ private:
   ShaderCache<PixelShaderUid> m_ps_cache;
 
   std::unordered_map<PipelineInfo, VkPipeline, PipelineInfoHash> m_pipeline_objects;
+  std::unordered_map<ComputePipelineInfo, VkPipeline, ComputePipelineInfoHash>
+      m_compute_pipeline_objects;
   VkPipelineCache m_pipeline_cache = VK_NULL_HANDLE;
   std::string m_pipeline_cache_filename;
 

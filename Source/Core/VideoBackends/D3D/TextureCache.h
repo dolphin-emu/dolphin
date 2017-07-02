@@ -7,6 +7,9 @@
 #include "VideoBackends/D3D/D3DTexture.h"
 #include "VideoCommon/TextureCacheBase.h"
 
+class AbstractTexture;
+struct TextureConfig;
+
 namespace DX11
 {
 class TextureCache : public TextureCacheBase
@@ -16,32 +19,7 @@ public:
   ~TextureCache();
 
 private:
-  struct TCacheEntry : TCacheEntryBase
-  {
-    D3DTexture2D* const texture;
-
-    D3D11_USAGE usage;
-
-    TCacheEntry(const TCacheEntryConfig& config, D3DTexture2D* _tex)
-        : TCacheEntryBase(config), texture(_tex)
-    {
-    }
-    ~TCacheEntry();
-
-    void CopyRectangleFromTexture(const TCacheEntryBase* source,
-                                  const MathUtil::Rectangle<int>& srcrect,
-                                  const MathUtil::Rectangle<int>& dstrect) override;
-
-    void Load(const u8* buffer, u32 width, u32 height, u32 expanded_width, u32 levels) override;
-
-    void FromRenderTarget(bool is_depth_copy, const EFBRectangle& srcRect, bool scaleByHalf,
-                          unsigned int cbufid, const float* colmat) override;
-
-    void Bind(unsigned int stage) override;
-    bool Save(const std::string& filename, unsigned int level) override;
-  };
-
-  TCacheEntryBase* CreateTexture(const TCacheEntryConfig& config) override;
+  std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config) override;
 
   u64 EncodeToRamFromTexture(u32 address, void* source_texture, u32 SourceW, u32 SourceH,
                              bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, int bScaleByHalf,
@@ -50,12 +28,15 @@ private:
     return 0;
   };
 
-  void ConvertTexture(TCacheEntryBase* entry, TCacheEntryBase* unconverted, void* palette,
+  void ConvertTexture(TCacheEntry* destination, TCacheEntry* source, void* palette,
                       TlutFormat format) override;
 
-  void CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_row, u32 num_blocks_y,
-               u32 memory_stride, bool is_depth_copy, const EFBRectangle& srcRect, bool isIntensity,
-               bool scaleByHalf) override;
+  void CopyEFB(u8* dst, const EFBCopyFormat& format, u32 native_width, u32 bytes_per_row,
+               u32 num_blocks_y, u32 memory_stride, bool is_depth_copy,
+               const EFBRectangle& src_rect, bool scale_by_half) override;
+
+  void CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy, const EFBRectangle& src_rect,
+                           bool scale_by_half, unsigned int cbuf_id, const float* colmat) override;
 
   bool CompileShaders() override { return true; }
   void DeleteShaders() override {}

@@ -5,9 +5,9 @@
 #include "DolphinWX/Debugger/MemoryView.h"
 
 #include <algorithm>
-#include <cctype>
 #include <cmath>
 #include <cstring>
+#include <locale>
 #include <string>
 #include <wx/brush.h>
 #include <wx/clipbrd.h>
@@ -123,9 +123,9 @@ wxString CMemoryView::ReadMemoryAsString(u32 address) const
     str.reserve(4);
     for (unsigned int i = 0; i < 4; ++i)
     {
-      u8 byte = static_cast<u8>(mem_data >> (24 - i * 8));
-      if (std::isprint(byte))
-        str += static_cast<char>(byte);
+      char byte = static_cast<char>(mem_data >> (24 - i * 8) & 0xFF);
+      if (std::isprint(byte, std::locale::classic()))
+        str += byte;
       else
         str += ' ';
     }
@@ -161,7 +161,8 @@ wxString CMemoryView::ReadMemoryAsString(u32 address) const
     }
   }
 
-  return StrToWxStr(str);
+  // Not a UTF-8 string
+  return wxString(str.c_str(), wxCSConv(wxFONTENCODING_CP1252), str.size());
 }
 
 void CMemoryView::OnMouseDownL(wxMouseEvent& event)
@@ -250,7 +251,7 @@ void CMemoryView::OnPopupMenu(wxCommandEvent& event)
 {
   // FIXME: This is terrible. Generate events instead.
   CFrame* cframe = wxGetApp().GetCFrame();
-  CCodeWindow* code_window = cframe->g_pCodeWindow;
+  CCodeWindow* code_window = cframe->m_code_window;
   CWatchWindow* watch_window = code_window->GetPanel<CWatchWindow>();
 
   switch (event.GetId())
@@ -418,7 +419,7 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
       draw_text(StrToWxStr(desc), 2);
 
     // Show blue memory check dot
-    if (debugger->IsMemCheck(address))
+    if (debugger->IsMemCheck(address, sizeof(u8)))
     {
       dc.SetPen(*wxTRANSPARENT_PEN);
       dc.SetBrush(mc_brush);

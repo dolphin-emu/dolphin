@@ -6,11 +6,15 @@
 
 #include <array>
 #include <bitset>
+#include <string>
 
+#include "Common/FileUtil.h"
+#include "Core/Config/Config.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "UICommon/UICommon.h"
 
 // Numbers are chosen randomly to make sure the correct one is given.
 static constexpr std::array<u64, 5> CB_IDS{{42, 144, 93, 1026, UINT64_C(0xFFFF7FFFF7FFFF)}};
@@ -33,9 +37,11 @@ void CallbackTemplate(u64 userdata, s64 lateness)
 class ScopeInit final
 {
 public:
-  ScopeInit()
+  ScopeInit() : m_profile_path(File::CreateTempDir())
   {
     Core::DeclareAsCPUThread();
+    UICommon::SetUserDirectory(m_profile_path);
+    Config::Init();
     SConfig::Init();
     PowerPC::Init(PowerPC::CORE_INTERPRETER);
     CoreTiming::Init();
@@ -45,11 +51,16 @@ public:
     CoreTiming::Shutdown();
     PowerPC::Shutdown();
     SConfig::Shutdown();
+    Config::Shutdown();
     Core::UndeclareAsCPUThread();
+    File::DeleteDirRecursively(m_profile_path);
   }
+private:
+  std::string m_profile_path;
 };
 
-void AdvanceAndCheck(u32 idx, int downcount, int expected_lateness = 0, int cpu_downcount = 0)
+static void AdvanceAndCheck(u32 idx, int downcount, int expected_lateness = 0,
+                            int cpu_downcount = 0)
 {
   s_callbacks_ran_flags = 0;
   s_expected_callback = CB_IDS[idx];
@@ -253,9 +264,9 @@ TEST(CoreTiming, ScheduleIntoPast)
   // the stale value, i.e. effectively half-way through the previous slice.
   // NOTE: We're only testing that the scheduler doesn't break, not whether this makes sense.
   Core::UndeclareAsCPUThread();
-  CoreTiming::g_global_timer -= 1000;
+  CoreTiming::g.global_timer -= 1000;
   CoreTiming::ScheduleEvent(0, cb_b, CB_IDS[1], CoreTiming::FromThread::NON_CPU);
-  CoreTiming::g_global_timer += 1000;
+  CoreTiming::g.global_timer += 1000;
   Core::DeclareAsCPUThread();
   AdvanceAndCheck(1, MAX_SLICE_LENGTH, MAX_SLICE_LENGTH + 1000);
 

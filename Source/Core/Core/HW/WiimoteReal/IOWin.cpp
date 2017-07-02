@@ -26,6 +26,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/Thread.h"
+#include "Core/HW/WiimoteCommon/WiimoteConstants.h"
 #include "Core/HW/WiimoteReal/IOWin.h"
 
 // Create func_t function pointer type and declare a nullptr-initialized static variable of that
@@ -187,7 +188,7 @@ int IOWrite(HANDLE& dev_handle, OVERLAPPED& hid_overlap_write, enum WinWriteMeth
 int IORead(HANDLE& dev_handle, OVERLAPPED& hid_overlap_read, u8* buf, int index);
 
 template <typename T>
-void ProcessWiimotes(bool new_scan, T& callback);
+void ProcessWiimotes(bool new_scan, const T& callback);
 
 bool AttachWiimote(HANDLE hRadio, const BLUETOOTH_RADIO_INFO&, BLUETOOTH_DEVICE_INFO_STRUCT&);
 void RemoveWiimote(BLUETOOTH_DEVICE_INFO_STRUCT&);
@@ -366,7 +367,7 @@ static bool IsWiimote(const std::basic_string<TCHAR>& device_path, WinWriteMetho
     return false;
 
   u8 buf[MAX_PAYLOAD];
-  u8 const req_status_report[] = {WM_SET_REPORT | WM_BT_OUTPUT, WM_REQUEST_STATUS, 0};
+  u8 const req_status_report[] = {WR_SET_REPORT | BT_OUTPUT, RT_REQUEST_STATUS, 0};
   int invalid_report_count = 0;
   int rc = WriteToHandle(dev_handle, method, req_status_report, sizeof(req_status_report));
   while (rc > 0)
@@ -377,7 +378,7 @@ static bool IsWiimote(const std::basic_string<TCHAR>& device_path, WinWriteMetho
 
     switch (buf[1])
     {
-    case WM_STATUS_REPORT:
+    case RT_STATUS_REPORT:
       return true;
     default:
       WARN_LOG(WIIMOTE, "IsWiimote(): Received unexpected report %02x", buf[1]);
@@ -475,6 +476,7 @@ bool WiimoteScannerWindows::IsReady() const
 
   if (nullptr != hFindRadio)
   {
+    CloseHandle(hRadio);
     pBluetoothFindRadioClose(hFindRadio);
     return true;
   }
@@ -576,6 +578,38 @@ bool WiimoteWindows::IsConnected() const
   return m_dev_handle != nullptr;
 }
 
+// See http://wiibrew.org/wiki/Wiimote for the Report IDs and its sizes
+size_t GetReportSize(u8 report_id)
+{
+  switch (report_id)
+  {
+  case RT_STATUS_REPORT:
+    return sizeof(wm_status_report);
+  case RT_READ_DATA_REPLY:
+    return sizeof(wm_read_data_reply);
+  case RT_ACK_DATA:
+    return sizeof(wm_acknowledge);
+  case RT_REPORT_CORE:
+    return sizeof(wm_report_core);
+  case RT_REPORT_CORE_ACCEL:
+    return sizeof(wm_report_core_accel);
+  case RT_REPORT_CORE_EXT8:
+    return sizeof(wm_report_core_ext8);
+  case RT_REPORT_CORE_ACCEL_IR12:
+    return sizeof(wm_report_core_accel_ir12);
+  case RT_REPORT_CORE_EXT19:
+  case RT_REPORT_CORE_ACCEL_EXT16:
+  case RT_REPORT_CORE_IR10_EXT9:
+  case RT_REPORT_CORE_ACCEL_IR10_EXT6:
+  case RT_REPORT_EXT21:
+  case RT_REPORT_INTERLEAVE1:
+  case RT_REPORT_INTERLEAVE2:
+    return sizeof(wm_report_ext21);
+  default:
+    return 0;
+  }
+}
+
 // positive = read packet
 // negative = didn't read packet
 // zero = error
@@ -623,7 +657,17 @@ int IORead(HANDLE& dev_handle, OVERLAPPED& hid_overlap_read, u8* buf, int index)
     }
   }
 
-  return bytes + 1;
+  // ReadFile will always return 22 bytes read.
+  // So we need to calculate the actual report size by its report ID
+  DWORD report_size = static_cast<DWORD>(GetReportSize(buf[1]));
+  if (report_size == 0)
+  {
+    WARN_LOG(WIIMOTE, "Received unsupported report %d in Wii Remote %i", buf[1], index + 1);
+    return -1;
+  }
+
+  // 1 Byte for the Data Report Byte, another for the Report ID and the actual report size
+  return 1 + 1 + report_size;
 }
 
 void WiimoteWindows::IOWakeup()
@@ -645,15 +689,15 @@ static int IOWritePerSetOutputReport(HANDLE& dev_handle, const u8* buf, size_t l
   if (!result)
   {
     DWORD err = GetLastError();
-    if (err == 121)
+    if (err == ERROR_SEM_TIMEOUT)
     {
-      // Semaphore timeout
       NOTICE_LOG(WIIMOTE, "IOWrite[WWM_SET_OUTPUT_REPORT]: Unable to send data to the Wiimote");
     }
-    else if (err != 0x1F)  // Some third-party adapters (DolphinBar) use this
-                           // error code to signal the absence of a Wiimote
-                           // linked to the HID device.
+    else if (err != ERROR_GEN_FAILURE)
     {
+      // Some third-party adapters (DolphinBar) use this
+      // error code to signal the absence of a Wiimote
+      // linked to the HID device.
       WARN_LOG(WIIMOTE, "IOWrite[WWM_SET_OUTPUT_REPORT]: Error: %08x", err);
     }
   }
@@ -795,7 +839,7 @@ int WiimoteWindows::IOWrite(const u8* buf, size_t len)
 
 // invokes callback for each found Wiimote Bluetooth device
 template <typename T>
-void ProcessWiimotes(bool new_scan, T& callback)
+void ProcessWiimotes(bool new_scan, const T& callback)
 {
   BLUETOOTH_DEVICE_SEARCH_PARAMS srch;
   srch.dwSize = sizeof(srch);
@@ -854,6 +898,7 @@ void ProcessWiimotes(bool new_scan, T& callback)
 
     if (false == pBluetoothFindNextRadio(hFindRadio, &hRadio))
     {
+      CloseHandle(hRadio);
       pBluetoothFindRadioClose(hFindRadio);
       hFindRadio = nullptr;
     }

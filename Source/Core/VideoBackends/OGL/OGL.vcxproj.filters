@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Decoder">
       <UniqueIdentifier>{f29f8e7f-21ba-49da-8044-e5279a091c8f}</UniqueIdentifier>
@@ -53,6 +53,9 @@
     </ClCompile>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="SamplerCache.cpp" />
+    <ClCompile Include="OGLTexture.cpp">
+      <Filter>Render</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="VertexManager.h">
@@ -90,6 +93,12 @@
     </ClInclude>
     <ClInclude Include="SamplerCache.h" />
     <ClInclude Include="VideoBackend.h" />
+    <ClInclude Include="GPUTimer.h">
+      <Filter>GLUtil</Filter>
+    </ClInclude>
+    <ClInclude Include="OGLTexture.h">
+      <Filter>Render</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

@@ -13,8 +13,6 @@
 #include "DolphinQt2/GameList/GameFile.h"
 #include "DolphinQt2/GameList/GameListModel.h"
 
-class TableDelegate;
-
 class GameList final : public QStackedWidget
 {
   Q_OBJECT
@@ -27,16 +25,23 @@ public slots:
   void SetTableView() { SetPreferredView(true); }
   void SetListView() { SetPreferredView(false); }
   void SetViewColumn(int col, bool view) { m_table->setColumnHidden(col, !view); }
+  void OnColumnVisibilityToggled(const QString& row, bool visible);
+
 private slots:
   void ShowContextMenu(const QPoint&);
+  void OpenContainingFolder();
   void OpenProperties();
+  void OpenSaveFolder();
   void OpenWiki();
   void SetDefaultISO();
+  void DeleteFile();
+  void InstallWAD();
+  void UninstallWAD();
+  void ExportWiiSave();
+  void CompressISO();
 
 signals:
   void GameSelected();
-  void DirectoryAdded(const QString& dir);
-  void DirectoryRemoved(const QString& dir);
 
 private:
   void MakeTableView();
@@ -47,7 +52,6 @@ private:
   void ConsiderViewChange();
 
   GameListModel* m_model;
-  TableDelegate* m_delegate;
   QSortFilterProxyModel* m_table_proxy;
   QSortFilterProxyModel* m_list_proxy;
 

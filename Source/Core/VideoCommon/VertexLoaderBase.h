@@ -36,7 +36,7 @@ public:
 private:
   size_t CalculateHash() const
   {
-    size_t h = -1;
+    size_t h = SIZE_MAX;
 
     for (auto word : vid)
     {
@@ -67,18 +67,18 @@ public:
   virtual bool IsInitialized() = 0;
 
   // For debugging / profiling
-  void AppendToString(std::string* dest) const;
+  std::string ToString() const;
 
   virtual std::string GetName() const = 0;
 
   // per loader public state
-  int m_VertexSize;  // number of bytes of a raw GC vertex
-  PortableVertexDeclaration m_native_vtx_decl;
-  u32 m_native_components;
+  int m_VertexSize = 0;  // number of bytes of a raw GC vertex
+  PortableVertexDeclaration m_native_vtx_decl{};
+  u32 m_native_components = 0;
 
   // used by VertexLoaderManager
-  NativeVertexFormat* m_native_vertex_format;
-  int m_numLoadedVertices;
+  NativeVertexFormat* m_native_vertex_format = nullptr;
+  int m_numLoadedVertices = 0;
 
 protected:
   VertexLoaderBase(const TVtxDesc& vtx_desc, const VAT& vtx_attr);

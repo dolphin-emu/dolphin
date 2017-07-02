@@ -56,10 +56,12 @@ public:
 
   void Flush();
 
-  virtual NativeVertexFormat*
+  virtual std::unique_ptr<NativeVertexFormat>
   CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl) = 0;
 
   void DoState(PointerWrap& p);
+
+  std::pair<size_t, size_t> ResetFlushAspectRatioCount();
 
 protected:
   virtual void vDoState(PointerWrap& p) {}
@@ -81,6 +83,8 @@ protected:
 
 private:
   bool m_is_flushed = true;
+  size_t m_flush_count_4_3 = 0;
+  size_t m_flush_count_anamorphic = 0;
 
   virtual void vFlush() = 0;
 

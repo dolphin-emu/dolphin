@@ -9,12 +9,12 @@
 #include <string>
 
 #include "Common/CommonTypes.h"
-#include "Common/FileUtil.h"
+#include "Common/File.h"
 #include "DiscIO/Blob.h"
 
 namespace DiscIO
 {
-class PlainFileReader : public IBlobReader
+class PlainFileReader : public BlobReader
 {
 public:
   static std::unique_ptr<PlainFileReader> Create(File::IOFile file);

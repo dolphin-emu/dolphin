@@ -9,7 +9,7 @@
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Core/IOS/Device.h"
-#include "Core/IOS/IPC.h"
+#include "Core/IOS/IOS.h"
 
 class PointerWrap;
 
@@ -30,9 +30,9 @@ namespace Device
 class FileIO : public Device
 {
 public:
-  FileIO(u32 device_id, const std::string& device_name);
+  FileIO(Kernel& ios, const std::string& device_name);
 
-  void Close() override;
+  ReturnCode Close(u32 fd) override;
   ReturnCode Open(const OpenRequest& request) override;
   IPCCommandResult Seek(const SeekRequest& request) override;
   IPCCommandResult Read(const ReadWriteRequest& request) override;

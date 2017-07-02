@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/IOS/Device.h"
+
 #include <algorithm>
 #include <map>
 
@@ -9,8 +11,7 @@
 #include "Common/StringUtil.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/SystemTimers.h"
-#include "Core/IOS/Device.h"
-#include "Core/IOS/IPC.h"
+#include "Core/IOS/IOS.h"
 
 namespace IOS
 {
@@ -26,6 +27,12 @@ OpenRequest::OpenRequest(const u32 address_) : Request(address_)
 {
   path = Memory::GetString(Memory::Read_U32(address + 0xc));
   flags = static_cast<OpenMode>(Memory::Read_U32(address + 0x10));
+  const Kernel* ios = GetIOS();
+  if (ios)
+  {
+    uid = ios->GetUidForPPC();
+    gid = ios->GetGidForPPC();
+  }
 }
 
 ReadWriteRequest::ReadWriteRequest(const u32 address_) : Request(address_)
@@ -68,12 +75,6 @@ IOCtlVRequest::IOCtlVRequest(const u32 address_) : Request(address_)
     else
       io_vectors.emplace_back(vector);
   }
-}
-
-bool IOCtlVRequest::HasInputVectorWithAddress(const u32 vector_address) const
-{
-  return std::any_of(in_vectors.begin(), in_vectors.end(),
-                     [&](const auto& in_vector) { return in_vector.address == vector_address; });
 }
 
 bool IOCtlVRequest::HasNumberOfValidVectors(const size_t in_count, const size_t io_count) const
@@ -133,8 +134,8 @@ void IOCtlVRequest::DumpUnknown(const std::string& description, LogTypes::LOG_TY
 
 namespace Device
 {
-Device::Device(const u32 device_id, const std::string& device_name, const DeviceType type)
-    : m_name(device_name), m_device_id(device_id), m_device_type(type)
+Device::Device(Kernel& ios, const std::string& device_name, const DeviceType type)
+    : m_ios(ios), m_name(device_name), m_device_type(type)
 {
 }
 
@@ -147,7 +148,6 @@ void Device::DoState(PointerWrap& p)
 void Device::DoStateShared(PointerWrap& p)
 {
   p.Do(m_name);
-  p.Do(m_device_id);
   p.Do(m_device_type);
   p.Do(m_is_active);
 }
@@ -158,9 +158,10 @@ ReturnCode Device::Open(const OpenRequest& request)
   return IPC_SUCCESS;
 }
 
-void Device::Close()
+ReturnCode Device::Close(u32 fd)
 {
   m_is_active = false;
+  return IPC_SUCCESS;
 }
 
 IPCCommandResult Device::Unsupported(const Request& request)

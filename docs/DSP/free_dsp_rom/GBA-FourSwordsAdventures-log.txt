@@ -1,0 +1,457 @@
+// Initial ucode load
+STARTED 80b5 -> 80b5
+== Registers ==
+AR0:   0000     AR1:   0000     AR2:   0000     AR3:   0000
+IX0:   8049     IX1:   36a0     IX2:   0000     IX3:   1d20
+AX0.H: 0000     AX0.L: 0000     AX1.H: 0000     AX1.L: 0000
+AC0.H: 0000     AC0.M: 0000     AC0.L: 0000
+AC1.H: 0000     AC1.M: d001     AC1.L: 0000
+PROD: 0000000000000000
+SR: 2064
+80d5 : dsp dmem write ffce = 8049
+80d7 : dsp dmem write ffcf = 36a0
+80db : dsp dmem write ffc9 = 0002
+80dd : dsp dmem write ffcd = 0000
+80df : dsp dmem write ffcb = 1d20
+DMA pc: 80df, Control: 0006, Address: 804936a0, DSP Address: 0000, Size: 1d20
+Core/HW/DSPLLE/DSPHost.cpp:70 N[DSPLLE]: g_dsp.iram_crc: 2fcdf1ec
+Core/DSP/DSPHWInterface.cpp:264 N[DSPLLE]: *** Copy new UCode from 0x804936a0 to 0x0000
+80e1 : dsp dmem read ffc9 = 0002
+STOPPED: 80e5 -> 0000
+== Registers ==
+AR0:   0000     AR1:   0000     AR2:   0000     AR3:   0000
+IX0:   8049     IX1:   36a0     IX2:   0000     IX3:   1d20
+AX0.H: 0000     AX0.L: 0000     AX1.H: 0000     AX1.L: 0000
+AC0.H: 0000     AC0.M: 0002     AC0.L: 0000
+AC1.H: 0000     AC1.M: 1d20     AC1.L: 0000
+PROD: 0000000000000000
+SR: 2060
+
+// GBA ucode load
+// - jumps to AR0
+STARTED 80b5 -> 80b5
+== Registers ==
+AR0:   0010     AR1:   0393     AR2:   0420     AR3:   0618
+IX0:   8049     IX1:   85d0     IX2:   0000     IX3:   0380
+AX0.H: 8000     AX0.L: 0000     AX1.H: 0000     AX1.L: 0000
+AC0.H: 0000     AC0.M: 0001     AC0.L: 0000
+AC1.H: 0000     AC1.M: 8000     AC1.L: 0000
+PROD: 0000000000000000
+SR: 2064
+80d5 : dsp dmem write ffce = 8049
+80d7 : dsp dmem write ffcf = 85d0
+80db : dsp dmem write ffc9 = 0002
+80dd : dsp dmem write ffcd = 0000
+80df : dsp dmem write ffcb = 0380
+DMA pc: 80df, Control: 0006, Address: 804985d0, DSP Address: 0000, Size: 0380
+Core/HW/DSPLLE/DSPHost.cpp:70 N[DSPLLE]: g_dsp.iram_crc: dd7e72d5
+Core/HW/DSPLLE/DSPSymbols.cpp:84 E[DSPLLE]: Bah! ReadAnnotatedAssembly couldn't find the file ../../docs/DSP/DSP_UC_GBA.txt
+Core/DSP/DSPHWInterface.cpp:264 N[DSPLLE]: *** Copy new UCode from 0x804985d0 to 0x0000 (crc: dd7e72d5)
+80e1 : dsp dmem read ffc9 = 0002
+STOPPED: 80e5 -> 0010
+== Registers ==
+AR0:   0010     AR1:   0393     AR2:   0420     AR3:   0618
+IX0:   8049     IX1:   85d0     IX2:   0000     IX3:   0380
+AX0.H: 8000     AX0.L: 0000     AX1.H: 0000     AX1.L: 0000
+AC0.H: 0000     AC0.M: 0002     AC0.L: 0000
+AC1.H: 0000     AC1.M: 0380     AC1.L: 0000
+PROD: 0000000000000000
+SR: 2060
+
+// skip some boring stuff
+
+dsp dmem write 0010 = 0000
+dsp dmem write 0011 = 0000
+dsp dmem write 0012 = 0000
+dsp dmem write 0013 = 0000
+dsp dmem write 0014 = 0000
+dsp dmem write 0015 = 0000
+dsp dmem write 0016 = 0000
+dsp dmem write 0017 = 0000
+dsp dmem write 0018 = 0000
+dsp dmem write 0019 = 0000
+dsp dmem write 001a = 0000
+dsp dmem write 001b = 0000
+dsp dmem write 001c = 0000
+dsp dmem write 001d = 0000
+dsp dmem write 001e = 0000
+dsp dmem write 001f = 0000
+dsp dmem write 0020 = 0000
+dsp dmem write 0021 = 0000
+dsp dmem write 0022 = 0000
+dsp dmem write 0023 = 0000
+dsp dmem write 0024 = 0000
+dsp dmem write 0025 = 0000
+dsp dmem write 0026 = 0000
+dsp dmem write 0027 = 0000
+dsp dmem write 0028 = 0000
+dsp dmem write 0029 = 0000
+dsp dmem write 002a = 0000
+dsp dmem write 002b = 0000
+dsp dmem write 002c = 0000
+dsp dmem write 002d = 0000
+dsp dmem write 002e = 0000
+dsp dmem write 002f = 0000
+Coefficient Read @ 1456 = 102f
+dsp dmem read 1456 = 102f
+Coefficient Read @ 15f6 = 7f65
+dsp dmem read 15f6 = 7f65
+Coefficient Read @ 1766 = 0273
+dsp dmem read 1766 = 0273
+call at 00a5 -> 88e5
+STARTED 00a4 -> 88e5
+== Registers ==
+AR0:   0000     AR1:   0030     AR2:   001f     AR3:   0618
+IX0:   8049     IX1:   85d0     IX2:   0000     IX3:   0000
+AX0.H: 0073     AX0.L: 9b60     AX1.H: 0000     AX1.L: 1000
+AC0.H: 007f     AC0.M: 6500     AC0.L: 0000
+AC1.H: 0000     AC1.M: 0073     AC1.L: 0000
+PROD: 001000fffff00000
+SR: 3860
+dsp dmem read 001f = 0000
+dsp dmem read 0020 = 0000
+dsp dmem write 001f = 6573
+dsp dmem write 0020 = 0000
+STOPPED: 00a6
+== Registers ==
+AR0:   0000     AR1:   002f     AR2:   0020     AR3:   0618
+IX0:   8049     IX1:   85d0     IX2:   0000     IX3:   0000
+AX0.H: 0073     AX0.L: 9b60     AX1.H: 0000     AX1.L: 1000
+AC0.H: 007f     AC0.M: 6573     AC0.L: 0000
+AC1.H: 0000     AC1.M: 0000     AC1.L: 0000
+PROD: 001000fffff00000
+SR: 3850
+dsp dmem read 0000 = c3cf
+call at 00ad -> 8809
+STARTED 00ac -> 8809
+== Registers ==
+AR0:   0001     AR1:   002f     AR2:   0020     AR3:   0618
+IX0:   8049     IX1:   85d0     IX2:   0000     IX3:   0000
+AX0.H: 00c3     AX0.L: 0000     AX1.H: 6573     AX1.L: 1000
+AC0.H: 0000     AC0.M: 00c3     AC0.L: cf00
+AC1.H: 0000     AC1.M: cf00     AC1.L: 0000
+PROD: 001000fffff00000
+SR: 3860
+dsp dmem write 0020 = 0000
+dsp dmem write 0020 = cfc3
+STOPPED: 00ae
+== Registers ==
+AR0:   0001     AR1:   002f     AR2:   0021     AR3:   0618
+IX0:   8049     IX1:   85d0     IX2:   0000     IX3:   0000
+AX0.H: 00c3     AX0.L: 0000     AX1.H: 6573     AX1.L: 1000
+AC0.H: 0000     AC0.M: 00c3     AC0.L: cf00
+AC1.H: 0000     AC1.M: cfc3     AC1.L: 0000
+PROD: 001000fffff00000
+SR: 3878
+call at 00af -> 8723
+STARTED 00ae -> 8723
+== Registers ==
+AR0:   0001     AR1:   002f     AR2:   0021     AR3:   0618
+IX0:   8049     IX1:   85d0     IX2:   0000     IX3:   0000
+AX0.H: 00c3     AX0.L: 0000     AX1.H: 6573     AX1.L: 1000
+AC0.H: 0000     AC0.M: 00c3     AC0.L: cf00
+AC1.H: 0000     AC1.M: cfc3     AC1.L: 0000
+PROD: 001000fffff00000
+SR: 3878
+dsp dmem write 0021 = aab0
+STOPPED: 00b0
+== Registers ==
+AR0:   0001     AR1:   002f     AR2:   0020     AR3:   0618
+IX0:   8049     IX1:   85d0     IX2:   0000     IX3:   0000
+AX0.H: 00c3     AX0.L: 0000     AX1.H: 6573     AX1.L: 1000
+AC0.H: 0000     AC0.M: 00c3     AC0.L: cf00
+AC1.H: 0000     AC1.M: aab0     AC1.L: 0000
+PROD: 001000fffff00000
+SR: 3858
+Coefficient Read @ 166c = 06f2
+dsp dmem read 166c = 06f2
+Coefficient Read @ 1231 = 64fc
+dsp dmem read 1231 = 64fc
+call at 00be -> 88e5
+STARTED 00bd -> 88e5
+== Registers ==
+AR0:   0001     AR1:   002f     AR2:   001e     AR3:   0618
+IX0:   8049     IX1:   85d0     IX2:   0000     IX3:   0000
+AX0.H: 0064     AX0.L: 0000     AX1.H: 6573     AX1.L: 1000
+AC0.H: 0000     AC0.M: 6f00     AC0.L: 0000
+AC1.H: 0000     AC1.M: 0064     AC1.L: fc00
+PROD: 001000fffff00000
+SR: 3860
+dsp dmem read 001e = 0000
+dsp dmem read 001f = 6573
+dsp dmem write 001e = 6f64
+dsp dmem write 001f = 6573
+STOPPED: 00bf
+== Registers ==
+AR0:   0001     AR1:   002e     AR2:   001f     AR3:   0618
+IX0:   8049     IX1:   85d0     IX2:   0000     IX3:   0000
+AX0.H: 0064     AX0.L: 0000     AX1.H: 6573     AX1.L: 1000
+AC0.H: 0000     AC0.M: 6f64     AC0.L: 6573
+AC1.H: 0000     AC1.M: 0000     AC1.L: 6573
+PROD: 001000fffff00000
+SR: 3840
+dsp dmem read 0001 = a4b2
+call at 00c6 -> 8809
+STARTED 00c5 -> 8809
+== Registers ==
+AR0:   0002     AR1:   002e     AR2:   001f     AR3:   0618
+IX0:   8049     IX1:   85d0     IX2:   0000     IX3:   0000
+AX0.H: 00a4     AX0.L: 6573     AX1.H: 6f64     AX1.L: 1000
+AC0.H: 0000     AC0.M: 00a4     AC0.L: b200
+AC1.H: 0000     AC1.M: b200     AC1.L: 6573
+PROD: 001000fffff00000
+SR: 3860
+dsp dmem write 001f = 6573
+dsp dmem write 001f = b2a4
+STOPPED: 00c7
+== Registers ==
+AR0:   0002     AR1:   002e     AR2:   0020     AR3:   0618
+IX0:   8049     IX1:   85d0     IX2:   0000     IX3:   0000
+AX0.H: 00a4     AX0.L: 6573     AX1.H: 6f64     AX1.L: 1000
+AC0.H: 0000     AC0.M: 00a4     AC0.L: b200
+AC1.H: 0000     AC1.M: b2a4     AC1.L: 6573
+PROD: 001000fffff00000
+SR: 3858
+call at 00c8 -> 8723
+STARTED 00c7 -> 8723
+== Registers ==
+AR0:   0002     AR1:   002e     AR2:   0020     AR3:   0618
+IX0:   8049     IX1:   85d0     IX2:   0000     IX3:   0000
+AX0.H: 00a4     AX0.L: 6573     AX1.H: 6f64     AX1.L: 1000
+AC0.H: 0000     AC0.M: 00a4     AC0.L: b200
+AC1.H: 0000     AC1.M: b2a4     AC1.L: 6573
+PROD: 001000fffff00000
+SR: 3858
+dsp dmem write 0020 = ddc0
+STOPPED: 00c9
+== Registers ==
+AR0:   0002     AR1:   002e     AR2:   001f     AR3:   0618
+IX0:   8049     IX1:   85d0     IX2:   0000     IX3:   0000
+AX0.H: 00a4     AX0.L: 6573     AX1.H: 6f64     AX1.L: 1000
+AC0.H: 0000     AC0.M: 00a4     AC0.L: b200
+AC1.H: 0000     AC1.M: ddc0     AC1.L: 6573
+PROD: 001000fffff00000
+SR: 3878
+dsp dmem read 0005 = 0002
+Coefficient Read @ 1285 = 5aff
+dsp dmem read 1285 = 5aff
+dsp dmem read 0003 = 0006
+call at 0101 -> 8809
+STARTED 0100 -> 8809
+== Registers ==
+AR0:   0002     AR1:   002e     AR2:   0010     AR3:   0618
+IX0:   8049     IX1:   85d0     IX2:   0001     IX3:   0000
+AX0.H: 0060     AX0.L: 6573     AX1.H: 6f64     AX1.L: 1000
+AC0.H: fff0     AC0.M: 0060     AC0.L: 0000
+AC1.H: 0000     AC1.M: 0002     AC1.L: 0000
+PROD: 001000fffff00000
+SR: 3878
+dsp dmem write 0010 = 0000
+dsp dmem write 0011 = 0062
+STOPPED: 0102
+== Registers ==
+AR0:   0002     AR1:   002e     AR2:   0012     AR3:   0618
+IX0:   8049     IX1:   85d0     IX2:   0001     IX3:   0000
+AX0.H: 0060     AX0.L: 6573     AX1.H: 6f64     AX1.L: 1000
+AC0.H: fff0     AC0.M: 0060     AC0.L: 0000
+AC1.H: 0000     AC1.M: 0062     AC1.L: 0000
+PROD: 001000fffff00000
+SR: 3860
+dsp dmem write 0013 = 0060
+dsp dmem write 0014 = 0000
+dsp dmem read 0007 = 829c
+Coefficient Read @ 11b8 = 007f
+dsp dmem read 11b8 = 007f
+call at 0110 -> 81f4
+STARTED 010f -> 81f4
+== Registers ==
+AR0:   0002     AR1:   002e     AR2:   0012     AR3:   0013
+IX0:   8049     IX1:   85d0     IX2:   0001     IX3:   0000
+AX0.H: 0070     AX0.L: 6573     AX1.H: 6f64     AX1.L: 1000
+AC0.H: fff0     AC0.M: 0070     AC0.L: 0000
+AC1.H: 0000     AC1.M: 829c     AC1.L: 0000
+PROD: 001000fffff00000
+SR: 3870
+dsp dmem write 0013 = 0000
+dsp dmem write 0014 = 829c
+STOPPED: 0111
+== Registers ==
+AR0:   0002     AR1:   002f     AR2:   0012     AR3:   0015
+IX0:   8049     IX1:   85d0     IX2:   0001     IX3:   0000
+AX0.H: 0070     AX0.L: 6573     AX1.H: 0070     AX1.L: 1000
+AC0.H: 0000     AC0.M: 0000     AC0.L: 0000
+AC1.H: 0000     AC1.M: 0000     AC1.L: 829c
+PROD: 0000000000070000
+SR: 3864
+call at 0113 -> 8458
+STARTED 0112 -> 8458
+== Registers ==
+AR0:   0002     AR1:   002f     AR2:   0012     AR3:   0015
+IX0:   8049     IX1:   85d0     IX2:   0001     IX3:   0000
+AX0.H: 0070     AX0.L: 6573     AX1.H: 0070     AX1.L: 1000
+AC0.H: 0000     AC0.M: 0000     AC0.L: 0000
+AC1.H: 0000     AC1.M: 829c     AC1.L: 0000
+PROD: 0000000000070000
+SR: 3850
+dsp dmem write 0015 = 0000
+dsp dmem write 0016 = 82a3
+STOPPED: 0114
+== Registers ==
+AR0:   0002     AR1:   002f     AR2:   0012     AR3:   0017
+IX0:   8049     IX1:   85d0     IX2:   0001     IX3:   0000
+AX0.H: 0070     AX0.L: 6573     AX1.H: 0000     AX1.L: 1000
+AC0.H: 0000     AC0.M: 0000     AC0.L: 0000
+AC1.H: 0000     AC1.M: 0000     AC1.L: 82a3
+PROD: 0000000000070000
+SR: 3864
+dsp dmem read 0006 = 0000
+Coefficient Read @ 165b = 0000
+dsp dmem read 165b = 0000
+call at 011c -> 88e5
+STARTED 011b -> 88e5
+== Registers ==
+AR0:   0002     AR1:   002f     AR2:   0015     AR3:   0017
+IX0:   8049     IX1:   85d0     IX2:   0001     IX3:   0000
+AX0.H: 0000     AX0.L: 6573     AX1.H: 0000     AX1.L: 1000
+AC0.H: 0000     AC0.M: 0000     AC0.L: 0000
+AC1.H: 0000     AC1.M: 0000     AC1.L: 82a3
+PROD: 0000000000070000
+SR: 7864
+dsp dmem read 0015 = 0000
+dsp dmem read 0016 = 82a3
+dsp dmem write 0015 = 0000
+dsp dmem write 0016 = 82a3
+STOPPED: 011d
+== Registers ==
+AR0:   0002     AR1:   002e     AR2:   0016     AR3:   0017
+IX0:   8049     IX1:   85d0     IX2:   0001     IX3:   0000
+AX0.H: 0000     AX0.L: 6573     AX1.H: 0000     AX1.L: 1000
+AC0.H: 0000     AC0.M: 0000     AC0.L: 82a3
+AC1.H: 0000     AC1.M: 0000     AC1.L: 82a3
+PROD: 0000000000070000
+SR: 7860
+dsp dmem write 0016 = 0000
+dsp dmem write 0017 = 82a0
+Coefficient Read @ 1723 = ffe0
+dsp dmem read 1723 = ffe0
+Coefficient Read @ 166b = 0000
+dsp dmem read 166b = 0000
+call at 0129 -> 88e5
+STARTED 0128 -> 88e5
+== Registers ==
+AR0:   0002     AR1:   002e     AR2:   0016     AR3:   0017
+IX0:   8049     IX1:   85d0     IX2:   0001     IX3:   0000
+AX0.H: 0000     AX0.L: 6573     AX1.H: 0000     AX1.L: 1000
+AC0.H: ffff     AC0.M: ffff     AC0.L: fe00
+AC1.H: 0000     AC1.M: 0000     AC1.L: 82a3
+PROD: 0000000000070000
+SR: 7868
+dsp dmem read 0016 = 0000
+dsp dmem read 0017 = 82a0
+dsp dmem write 0016 = 0000
+dsp dmem write 0017 = 80a0
+STOPPED: 012a
+== Registers ==
+AR0:   0002     AR1:   002d     AR2:   0017     AR3:   0017
+IX0:   8049     IX1:   85d0     IX2:   0001     IX3:   0000
+AX0.H: 0000     AX0.L: 6573     AX1.H: 0000     AX1.L: 1000
+AC0.H: 0000     AC0.M: 0000     AC0.L: 80a0
+AC1.H: 0000     AC1.M: 0000     AC1.L: 82a0
+PROD: 0000000000070000
+SR: 7861
+Coefficient Read @ 1491 = 6a0f
+dsp dmem read 1491 = 6a0f
+Coefficient Read @ 1468 = f808
+dsp dmem read 1468 = f808
+Coefficient Read @ 11fc = 0003
+dsp dmem read 11fc = 0003
+Coefficient Read @ 11b8 = 007f
+dsp dmem read 11b8 = 007f
+dsp dmem read 0012 = 0000
+dsp dmem write 0012 = 2014
+dsp dmem read 0011 = 0062
+dsp dmem write 0011 = 0062
+dsp dmem read 0011 = 0062
+dsp dmem read 0012 = 2014
+dsp dmem read 0012 = 2014
+dsp dmem read 0011 = 0062
+dsp dmem read 0012 = 2014
+Coefficient Read @ 15f1 = 0200
+dsp dmem read 15f1 = 0200
+Coefficient Read @ 10ca = 3461
+dsp dmem read 10ca = 3461
+Coefficient Read @ 1043 = 0076
+dsp dmem read 1043 = 0076
+dsp dmem write 0022 = f795
+Coefficient Read @ 1259 = 6143
+dsp dmem read 1259 = 6143
+Coefficient Read @ 16fe = 0008
+dsp dmem read 16fe = 0008
+dsp dmem write 0023 = c1df
+dsp dmem read 0008 = 804b
+dsp dmem read 0009 = 9b80
+call at 01b2 -> 808b
+STARTED 01b1 -> 808b
+== Registers ==
+AR0:   0002     AR1:   002d     AR2:   0017     AR3:   0017
+IX0:   8049     IX1:   a094     IX2:   3f80     IX3:   0000
+AX0.H: 804b     AX0.L: 9b80     AX1.H: 0020     AX1.L: 0008
+AC0.H: 590c     AC0.M: c1df     AC0.L: 0000
+AC1.H: 0034     AC1.M: a094     AC1.L: 0008
+PROD: 0000000000070000
+SR: 3878
+dsp dmem write ffce = 804b
+dsp dmem write ffcf = 9b80
+dsp dmem write ffc9 = 0001
+dsp dmem write ffcd = 0020
+dsp dmem write ffcb = 0008
+dsp dmem read ffc9 = 0001
+STOPPED: 01b3
+== Registers ==
+AR0:   0002     AR1:   002d     AR2:   0017     AR3:   0017
+IX0:   8049     IX1:   a094     IX2:   3f80     IX3:   0000
+AX0.H: 804b     AX0.L: 9b80     AX1.H: 0020     AX1.L: 0008
+AC0.H: 0000     AC0.M: 0000     AC0.L: 0000
+AC1.H: 0034     AC1.M: a094     AC1.L: 0008
+PROD: 0000000000070000
+SR: 3864
+
+// skip more boring stuff
+
+// back to original ucode
+// runs two DMAs!
+STARTED 80b5 -> 80b5
+== Registers ==
+AR0:   0010     AR1:   002d     AR2:   0017     AR3:   0017
+IX0:   0049     IX1:   36a0     IX2:   0000     IX3:   1d20
+AX0.H: 004b     AX0.L: 2a00     AX1.H: 0000     AX1.L: 2000
+AC0.H: 0000     AC0.M: 8000     AC0.L: 0000
+AC1.H: 0034     AC1.M: a094     AC1.L: 0008
+PROD: 0000000000070000
+SR: 2060
+80be : dsp dmem write ffce = 004b
+80c0 : dsp dmem write ffcf = 2a00
+80c4 : dsp dmem write ffc9 = 0000
+80c6 : dsp dmem write ffcd = 0000
+80c8 : dsp dmem write ffcb = 2000
+DMA pc: 80c8, Control: 0004, Address: 004b2a00, DSP Address: 0000, Size: 2000
+*** ddma_in RAM (0x004b2a00) -> DRAM_DSP (0x0000) : size (0x00002000)
+80ca : dsp dmem read ffc9 = 0000
+80d5 : dsp dmem write ffce = 0049
+80d7 : dsp dmem write ffcf = 36a0
+80db : dsp dmem write ffc9 = 0002
+80dd : dsp dmem write ffcd = 0000
+80df : dsp dmem write ffcb = 1d20
+DMA pc: 80df, Control: 0006, Address: 004936a0, DSP Address: 0000, Size: 1d20
+23:17:191 Core/HW/DSPLLE/DSPHost.cpp:70 N[DSPLLE]: g_dsp.iram_crc: 2fcdf1ec
+23:17:213 Core/DSP/DSPHWInterface.cpp:264 N[DSPLLE]: *** Copy new UCode from 0x004936a0 to 0x0000 (crc: 2fcdf1ec)
+80e1 : dsp dmem read ffc9 = 0002
+STOPPED: 80e5 -> 0010
+== Registers ==
+AR0:   0010     AR1:   002d     AR2:   0017     AR3:   0017
+IX0:   0049     IX1:   36a0     IX2:   0000     IX3:   1d20
+AX0.H: 004b     AX0.L: 2a00     AX1.H: 0000     AX1.L: 2000
+AC0.H: 0000     AC0.M: 0002     AC0.L: 0000
+AC1.H: 0000     AC1.M: 1d20     AC1.L: 0000
+PROD: 0000000000070000
+SR: 2060

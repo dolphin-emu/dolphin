@@ -9,7 +9,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Core/IOS/Device.h"
-#include "Core/IOS/IPC.h"
+#include "Core/IOS/IOS.h"
 
 class PointerWrap;
 
@@ -27,7 +27,7 @@ namespace Device
 class DI : public Device
 {
 public:
-  DI(u32 device_id, const std::string& device_name);
+  DI(Kernel& ios, const std::string& device_name);
 
   void DoState(PointerWrap& p) override;
 

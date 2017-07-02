@@ -2,152 +2,57 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "DiscIO/NANDContentLoader.h"
+
 #include <algorithm>
 #include <array>
+#include <cinttypes>
 #include <cstddef>
 #include <cstdio>
 #include <cstring>
 #include <functional>
 #include <map>
-#include <mbedtls/aes.h>
 #include <string>
 #include <utility>
 #include <vector>
 
 #include "Common/Align.h"
-#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
+#include "Common/Crypto/AES.h"
+#include "Common/File.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
+#include "Common/Swap.h"
+// TODO: kill this dependency.
+#include "Core/IOS/ES/Formats.h"
 
-#include "DiscIO/Enums.h"
-#include "DiscIO/NANDContentLoader.h"
 #include "DiscIO/WiiWad.h"
 
 namespace DiscIO
 {
-namespace
-{
-// Strips the signature part of a ticket, which has variable size based on
-// signature type. Returns a new vector which has only the ticket structure
-// itself.
-std::vector<u8> SignedTicketToTicket(const std::vector<u8>& signed_ticket)
-{
-  u32 signature_type = Common::swap32(signed_ticket.data());
-  u32 entry_offset;
-  if (signature_type == 0x10000)  // RSA4096
-  {
-    entry_offset = 576;
-  }
-  else if (signature_type == 0x10001)  // RSA2048
-  {
-    entry_offset = 320;
-  }
-  else if (signature_type == 0x10002)  // ECDSA
-  {
-    entry_offset = 128;
-  }
-  else
-  {
-    ERROR_LOG(DISCIO, "Invalid ticket signature type: %08x", signature_type);
-    return std::vector<u8>();
-  }
+NANDContentData::~NANDContentData() = default;
 
-  std::vector<u8> ticket(signed_ticket.size() - entry_offset);
-  std::copy(signed_ticket.begin() + entry_offset, signed_ticket.end(), ticket.begin());
-  return ticket;
-}
-
-std::vector<u8> AESDecode(const u8* key, u8* iv, const u8* src, u32 size)
-{
-  mbedtls_aes_context aes_ctx;
-  std::vector<u8> buffer(size);
-
-  mbedtls_aes_setkey_dec(&aes_ctx, key, 128);
-  mbedtls_aes_crypt_cbc(&aes_ctx, MBEDTLS_AES_DECRYPT, size, iv, src, buffer.data());
-
-  return buffer;
-}
-}
-
-CNANDContentData::~CNANDContentData() = default;
-
-CSharedContent::CSharedContent(Common::FromWhichRoot root) : m_root(root)
-{
-  m_Elements.clear();
-  m_LastID = 0;
-  m_ContentMap = Common::RootUserPath(root) + "/shared1/content.map";
-
-  File::IOFile pFile(m_ContentMap, "rb");
-  SElement Element;
-  while (pFile.ReadArray(&Element, 1))
-  {
-    m_Elements.push_back(Element);
-    m_LastID++;
-  }
-}
-
-std::string CSharedContent::GetFilenameFromSHA1(const u8* hash) const
-{
-  for (const auto& Element : m_Elements)
-  {
-    if (memcmp(hash, Element.SHA1Hash, 20) == 0)
-    {
-      return StringFromFormat(
-          "%s/shared1/%c%c%c%c%c%c%c%c.app", Common::RootUserPath(m_root).c_str(),
-          Element.FileName[0], Element.FileName[1], Element.FileName[2], Element.FileName[3],
-          Element.FileName[4], Element.FileName[5], Element.FileName[6], Element.FileName[7]);
-    }
-  }
-  return "unk";
-}
-
-std::string CSharedContent::AddSharedContent(const u8* hash)
-{
-  std::string filename = GetFilenameFromSHA1(hash);
-
-  if (strcasecmp(filename.c_str(), "unk") == 0)
-  {
-    std::string id = StringFromFormat("%08x", m_LastID);
-    SElement Element;
-    memcpy(Element.FileName, id.c_str(), 8);
-    memcpy(Element.SHA1Hash, hash, 20);
-    m_Elements.push_back(Element);
-
-    File::CreateFullPath(m_ContentMap);
-
-    File::IOFile pFile(m_ContentMap, "ab");
-    pFile.WriteArray(&Element, 1);
-
-    filename =
-        StringFromFormat("%s/shared1/%s.app", Common::RootUserPath(m_root).c_str(), id.c_str());
-    m_LastID++;
-  }
-
-  return filename;
-}
-
-CNANDContentDataFile::CNANDContentDataFile(const std::string& filename) : m_filename{filename}
+NANDContentDataFile::NANDContentDataFile(const std::string& filename) : m_filename{filename}
 {
 }
 
-CNANDContentDataFile::~CNANDContentDataFile() = default;
+NANDContentDataFile::~NANDContentDataFile() = default;
 
-void CNANDContentDataFile::EnsureOpen()
+void NANDContentDataFile::EnsureOpen()
 {
   if (!m_file)
     m_file = std::make_unique<File::IOFile>(m_filename, "rb");
   else if (!m_file->IsOpen())
     m_file->Open(m_filename, "rb");
 }
-void CNANDContentDataFile::Open()
+void NANDContentDataFile::Open()
 {
   EnsureOpen();
 }
-std::vector<u8> CNANDContentDataFile::Get()
+std::vector<u8> NANDContentDataFile::Get()
 {
   EnsureOpen();
 
@@ -164,7 +69,7 @@ std::vector<u8> CNANDContentDataFile::Get()
   return result;
 }
 
-bool CNANDContentDataFile::GetRange(u32 start, u32 size, u8* buffer)
+bool NANDContentDataFile::GetRange(u32 start, u32 size, u8* buffer)
 {
   EnsureOpen();
   if (!m_file->IsGood())
@@ -175,13 +80,13 @@ bool CNANDContentDataFile::GetRange(u32 start, u32 size, u8* buffer)
 
   return m_file->ReadBytes(buffer, static_cast<size_t>(size));
 }
-void CNANDContentDataFile::Close()
+void NANDContentDataFile::Close()
 {
   if (m_file && m_file->IsOpen())
     m_file->Close();
 }
 
-bool CNANDContentDataBuffer::GetRange(u32 start, u32 size, u8* buffer)
+bool NANDContentDataBuffer::GetRange(u32 start, u32 size, u8* buffer)
 {
   if (start + size > m_buffer.size())
     return false;
@@ -190,21 +95,34 @@ bool CNANDContentDataBuffer::GetRange(u32 start, u32 size, u8* buffer)
   return true;
 }
 
-CNANDContentLoader::CNANDContentLoader(const std::string& content_name)
-    : m_Valid(false), m_IsWAD(false), m_TitleID(-1), m_IosVersion(0x09), m_BootIndex(-1)
+NANDContentLoader::NANDContentLoader(const std::string& content_name, Common::FromWhichRoot from)
+    : m_root(from)
 {
   m_Valid = Initialize(content_name);
 }
 
-CNANDContentLoader::~CNANDContentLoader()
+NANDContentLoader::~NANDContentLoader()
 {
 }
 
-const SNANDContent* CNANDContentLoader::GetContentByIndex(int index) const
+bool NANDContentLoader::IsValid() const
+{
+  return m_Valid;
+}
+
+const NANDContent* NANDContentLoader::GetContentByID(u32 id) const
+{
+  const auto iterator = std::find_if(m_Content.begin(), m_Content.end(), [id](const auto& content) {
+    return content.m_metadata.id == id;
+  });
+  return iterator != m_Content.end() ? &*iterator : nullptr;
+}
+
+const NANDContent* NANDContentLoader::GetContentByIndex(int index) const
 {
   for (auto& Content : m_Content)
   {
-    if (Content.m_Index == index)
+    if (Content.m_metadata.index == index)
     {
       return &Content;
     }
@@ -212,7 +130,7 @@ const SNANDContent* CNANDContentLoader::GetContentByIndex(int index) const
   return nullptr;
 }
 
-bool CNANDContentLoader::Initialize(const std::string& name)
+bool NANDContentLoader::Initialize(const std::string& name)
 {
   if (name.empty())
     return false;
@@ -221,15 +139,12 @@ bool CNANDContentLoader::Initialize(const std::string& name)
 
   WiiWAD wad(name);
   std::vector<u8> data_app;
-  std::vector<u8> tmd;
-  std::vector<u8> decrypted_title_key;
 
   if (wad.IsValid())
   {
     m_IsWAD = true;
-    m_Ticket = wad.GetTicket();
-    decrypted_title_key = GetKeyFromTicket(m_Ticket);
-    tmd = wad.GetTMD();
+    m_ticket = wad.GetTicket();
+    m_tmd = wad.GetTMD();
     data_app = wad.GetDataApp();
   }
   else
@@ -248,347 +163,106 @@ bool CNANDContentLoader::Initialize(const std::string& name)
       return false;
     }
 
-    tmd.resize(static_cast<size_t>(File::GetSize(tmd_filename)));
-    tmd_file.ReadBytes(tmd.data(), tmd.size());
+    std::vector<u8> bytes(File::GetSize(tmd_filename));
+    tmd_file.ReadBytes(bytes.data(), bytes.size());
+    m_tmd.SetBytes(std::move(bytes));
+
+    m_ticket = FindSignedTicket(m_tmd.GetTitleId());
   }
 
-  std::copy(&tmd[0], &tmd[TMD_HEADER_SIZE], m_TMDHeader);
-  std::copy(&tmd[0x180], &tmd[0x180 + TMD_VIEW_SIZE], m_TMDView);
-
-  m_TitleVersion = Common::swap16(&tmd[0x01DC]);
-  m_NumEntries = Common::swap16(&tmd[0x01DE]);
-  m_BootIndex = Common::swap16(&tmd[0x01E0]);
-  m_TitleID = Common::swap64(&tmd[0x018C]);
-  m_IosVersion = Common::swap16(&tmd[0x018A]);
-  m_Country = static_cast<u8>(m_TitleID & 0xFF);
-
-  if (m_Country == 2)  // SYSMENU
-    m_Country = GetSysMenuRegion(m_TitleVersion);
-
-  InitializeContentEntries(tmd, decrypted_title_key, data_app);
+  InitializeContentEntries(data_app);
   return true;
 }
 
-void CNANDContentLoader::InitializeContentEntries(const std::vector<u8>& tmd,
-                                                  const std::vector<u8>& decrypted_title_key,
-                                                  const std::vector<u8>& data_app)
+void NANDContentLoader::InitializeContentEntries(const std::vector<u8>& data_app)
 {
-  m_Content.resize(m_NumEntries);
-
-  std::array<u8, 16> iv;
-  u32 data_app_offset = 0;
-
-  CSharedContent shared_content{Common::FromWhichRoot::FROM_SESSION_ROOT};
-
-  for (u32 i = 0; i < m_NumEntries; i++)
+  if (!m_ticket.IsValid())
   {
-    const u32 entry_offset = 0x24 * i;
+    ERROR_LOG(IOS_ES, "No valid ticket for title %016" PRIx64, m_tmd.GetTitleId());
+    return;
+  }
 
-    SNANDContent& content = m_Content[i];
-    content.m_ContentID = Common::swap32(&tmd[entry_offset + 0x01E4]);
-    content.m_Index = Common::swap16(&tmd[entry_offset + 0x01E8]);
-    content.m_Type = Common::swap16(&tmd[entry_offset + 0x01EA]);
-    content.m_Size = static_cast<u32>(Common::swap64(&tmd[entry_offset + 0x01EC]));
+  const std::vector<IOS::ES::Content> contents = m_tmd.GetContents();
+  m_Content.resize(contents.size());
 
-    const auto header_begin = std::next(tmd.begin(), entry_offset + 0x01E4);
-    const auto header_end = std::next(header_begin, ArraySize(content.m_Header));
-    std::copy(header_begin, header_end, content.m_Header);
+  u32 data_app_offset = 0;
+  const std::array<u8, 16> title_key = m_ticket.GetTitleKey();
+  IOS::ES::SharedContentMap shared_content{m_root};
 
-    const auto hash_begin = std::next(tmd.begin(), entry_offset + 0x01F4);
-    const auto hash_end = std::next(hash_begin, ArraySize(content.m_SHA1Hash));
-    std::copy(hash_begin, hash_end, content.m_SHA1Hash);
+  for (size_t i = 0; i < contents.size(); ++i)
+  {
+    const auto& content = contents.at(i);
 
     if (m_IsWAD)
     {
-      u32 rounded_size = Common::AlignUp(content.m_Size, 0x40);
+      // The content index is used as IV (2 bytes); the remaining 14 bytes are zeroes.
+      std::array<u8, 16> iv{};
+      iv[0] = static_cast<u8>(content.index >> 8) & 0xFF;
+      iv[1] = static_cast<u8>(content.index) & 0xFF;
 
-      iv.fill(0);
-      std::copy(&tmd[entry_offset + 0x01E8], &tmd[entry_offset + 0x01E8 + 2], iv.begin());
+      u32 rounded_size = Common::AlignUp(static_cast<u32>(content.size), 0x40);
 
-      content.m_Data = std::make_unique<CNANDContentDataBuffer>(AESDecode(
-          decrypted_title_key.data(), iv.data(), &data_app[data_app_offset], rounded_size));
-
+      m_Content[i].m_Data = std::make_unique<NANDContentDataBuffer>(Common::AES::Decrypt(
+          title_key.data(), iv.data(), &data_app[data_app_offset], rounded_size));
       data_app_offset += rounded_size;
-      continue;
+    }
+    else
+    {
+      std::string filename;
+      if (content.IsShared())
+        filename = *shared_content.GetFilenameFromSHA1(content.sha1);
+      else
+        filename = StringFromFormat("%s/%08x.app", m_Path.c_str(), content.id);
+
+      m_Content[i].m_Data = std::make_unique<NANDContentDataFile>(filename);
     }
 
-    std::string filename;
-    if (content.m_Type & 0x8000)  // shared app
-      filename = shared_content.GetFilenameFromSHA1(content.m_SHA1Hash);
-    else
-      filename = StringFromFormat("%s/%08x.app", m_Path.c_str(), content.m_ContentID);
-
-    content.m_Data = std::make_unique<CNANDContentDataFile>(filename);
-
-    // Be graceful about incorrect TMDs.
-    if (File::Exists(filename))
-      content.m_Size = static_cast<u32>(File::GetSize(filename));
+    m_Content[i].m_metadata = std::move(content);
   }
 }
 
-DiscIO::Region CNANDContentLoader::GetRegion() const
-{
-  if (!IsValid())
-    return DiscIO::Region::UNKNOWN_REGION;
-
-  return RegionSwitchWii(m_Country);
-}
-
-CNANDContentManager::~CNANDContentManager()
+NANDContentManager::~NANDContentManager()
 {
 }
 
-const CNANDContentLoader& CNANDContentManager::GetNANDLoader(const std::string& content_path)
+const NANDContentLoader& NANDContentManager::GetNANDLoader(const std::string& content_path,
+                                                           Common::FromWhichRoot from)
 {
   auto it = m_map.find(content_path);
   if (it != m_map.end())
     return *it->second;
   return *m_map
-              .emplace_hint(it, std::make_pair(content_path,
-                                               std::make_unique<CNANDContentLoader>(content_path)))
+              .emplace_hint(it, std::make_pair(content_path, std::make_unique<NANDContentLoader>(
+                                                                 content_path, from)))
               ->second;
 }
 
-const CNANDContentLoader& CNANDContentManager::GetNANDLoader(u64 title_id,
-                                                             Common::FromWhichRoot from)
+const NANDContentLoader& NANDContentManager::GetNANDLoader(u64 title_id, Common::FromWhichRoot from)
 {
   std::string path = Common::GetTitleContentPath(title_id, from);
-  return GetNANDLoader(path);
+  return GetNANDLoader(path, from);
 }
 
-bool CNANDContentManager::RemoveTitle(u64 title_id, Common::FromWhichRoot from)
-{
-  auto& loader = GetNANDLoader(title_id, from);
-  if (!loader.IsValid())
-    return false;
-  loader.RemoveTitle();
-  return GetNANDLoader(title_id, from).IsValid();
-}
-
-void CNANDContentManager::ClearCache()
+void NANDContentManager::ClearCache()
 {
   m_map.clear();
 }
 
-void CNANDContentLoader::RemoveTitle() const
-{
-  INFO_LOG(DISCIO, "RemoveTitle %08x/%08x", (u32)(m_TitleID >> 32), (u32)m_TitleID);
-  if (IsValid())
-  {
-    // remove TMD?
-    for (u32 i = 0; i < m_NumEntries; i++)
-    {
-      if (!(m_Content[i].m_Type & 0x8000))  // skip shared apps
-      {
-        std::string filename =
-            StringFromFormat("%s/%08x.app", m_Path.c_str(), m_Content[i].m_ContentID);
-        INFO_LOG(DISCIO, "Delete %s", filename.c_str());
-        File::Delete(filename);
-      }
-    }
-    CNANDContentManager::Access().ClearCache();  // deletes 'this'
-  }
-}
-
-cUIDsys::cUIDsys(Common::FromWhichRoot root)
-{
-  m_Elements.clear();
-  m_LastUID = 0x00001000;
-  m_UidSys = Common::RootUserPath(root) + "/sys/uid.sys";
-
-  File::IOFile pFile(m_UidSys, "rb");
-  SElement Element;
-  while (pFile.ReadArray(&Element, 1))
-  {
-    *(u32*)&(Element.UID) = Common::swap32(m_LastUID++);
-    m_Elements.push_back(Element);
-  }
-  pFile.Close();
-
-  if (m_Elements.empty())
-  {
-    *(u64*)&(Element.titleID) = Common::swap64(TITLEID_SYSMENU);
-    *(u32*)&(Element.UID) = Common::swap32(m_LastUID++);
-
-    File::CreateFullPath(m_UidSys);
-    pFile.Open(m_UidSys, "wb");
-    if (!pFile.WriteArray(&Element, 1))
-      ERROR_LOG(DISCIO, "Failed to write to %s", m_UidSys.c_str());
-  }
-}
-
-u32 cUIDsys::GetUIDFromTitle(u64 title_id)
-{
-  for (auto& Element : m_Elements)
-  {
-    if (Common::swap64(title_id) == *(u64*)&(Element.titleID))
-    {
-      return Common::swap32(Element.UID);
-    }
-  }
-  return 0;
-}
-
-void cUIDsys::AddTitle(u64 title_id)
-{
-  if (GetUIDFromTitle(title_id))
-  {
-    INFO_LOG(DISCIO, "Title %08x%08x, already exists in uid.sys", (u32)(title_id >> 32),
-             (u32)title_id);
-    return;
-  }
-
-  SElement Element;
-  *(u64*)&(Element.titleID) = Common::swap64(title_id);
-  *(u32*)&(Element.UID) = Common::swap32(m_LastUID++);
-  m_Elements.push_back(Element);
-
-  File::CreateFullPath(m_UidSys);
-  File::IOFile pFile(m_UidSys, "ab");
-
-  if (!pFile.WriteArray(&Element, 1))
-    ERROR_LOG(DISCIO, "fwrite failed");
-}
-
-void cUIDsys::GetTitleIDs(std::vector<u64>& title_ids, bool owned)
-{
-  for (auto& Element : m_Elements)
-  {
-    if ((owned &&
-         Common::CheckTitleTIK(Common::swap64(Element.titleID), Common::FROM_SESSION_ROOT)) ||
-        (!owned &&
-         Common::CheckTitleTMD(Common::swap64(Element.titleID), Common::FROM_SESSION_ROOT)))
-      title_ids.push_back(Common::swap64(Element.titleID));
-  }
-}
-
-u64 CNANDContentManager::Install_WiiWAD(const std::string& filename)
-{
-  if (filename.find(".wad") == std::string::npos)
-    return 0;
-  const CNANDContentLoader& content_loader = GetNANDLoader(filename);
-  if (content_loader.IsValid() == false)
-    return 0;
-
-  u64 title_id = content_loader.GetTitleID();
-
-  // copy WAD's TMD header and contents to content directory
-
-  std::string content_path(Common::GetTitleContentPath(title_id, Common::FROM_CONFIGURED_ROOT));
-  std::string tmd_filename(Common::GetTMDFileName(title_id, Common::FROM_CONFIGURED_ROOT));
-  File::CreateFullPath(tmd_filename);
-
-  File::IOFile tmd_file(tmd_filename, "wb");
-  if (!tmd_file)
-  {
-    PanicAlertT("WAD installation failed: error creating %s", tmd_filename.c_str());
-    return 0;
-  }
-
-  tmd_file.WriteBytes(content_loader.GetTMDHeader(), CNANDContentLoader::TMD_HEADER_SIZE);
-
-  CSharedContent shared_content{Common::FromWhichRoot::FROM_CONFIGURED_ROOT};
-  for (u32 i = 0; i < content_loader.GetContentSize(); i++)
-  {
-    const SNANDContent& content = content_loader.GetContent()[i];
-
-    tmd_file.WriteBytes(content.m_Header, CNANDContentLoader::CONTENT_HEADER_SIZE);
-
-    std::string app_filename;
-    if (content.m_Type & 0x8000)  // shared
-      app_filename = shared_content.AddSharedContent(content.m_SHA1Hash);
-    else
-      app_filename = StringFromFormat("%s%08x.app", content_path.c_str(), content.m_ContentID);
-
-    if (!File::Exists(app_filename))
-    {
-      File::CreateFullPath(app_filename);
-      File::IOFile app_file(app_filename, "wb");
-      if (!app_file)
-      {
-        PanicAlertT("WAD installation failed: error creating %s", app_filename.c_str());
-        return 0;
-      }
-
-      app_file.WriteBytes(content.m_Data->Get().data(), content.m_Size);
-    }
-    else
-    {
-      INFO_LOG(DISCIO, "Content %s already exists.", app_filename.c_str());
-    }
-  }
-
-  // Extract and copy WAD's ticket to ticket directory
-  if (!AddTicket(content_loader.GetTicket()))
-  {
-    PanicAlertT("WAD installation failed: error creating ticket");
-    return 0;
-  }
-
-  cUIDsys uid_sys{Common::FromWhichRoot::FROM_CONFIGURED_ROOT};
-  uid_sys.AddTitle(title_id);
-
-  ClearCache();
-
-  return title_id;
-}
-
-bool AddTicket(const std::vector<u8>& signed_ticket)
-{
-  std::vector<u8> ticket = SignedTicketToTicket(signed_ticket);
-  if (ticket.empty())
-  {
-    return false;
-  }
-  u64 title_id = Common::swap64(ticket.data() + 0x9c);
-
-  std::string ticket_filename = Common::GetTicketFileName(title_id, Common::FROM_CONFIGURED_ROOT);
-  File::CreateFullPath(ticket_filename);
-
-  File::IOFile ticket_file(ticket_filename, "wb");
-  if (!ticket_file)
-    return false;
-
-  return ticket_file.WriteBytes(signed_ticket.data(), signed_ticket.size());
-}
-
-std::vector<u8> FindSignedTicket(u64 title_id)
+IOS::ES::TicketReader FindSignedTicket(u64 title_id)
 {
   std::string ticket_filename = Common::GetTicketFileName(title_id, Common::FROM_CONFIGURED_ROOT);
   File::IOFile ticket_file(ticket_filename, "rb");
   if (!ticket_file)
   {
-    return std::vector<u8>();
+    return IOS::ES::TicketReader{};
   }
 
   std::vector<u8> signed_ticket(ticket_file.GetSize());
   if (!ticket_file.ReadBytes(signed_ticket.data(), signed_ticket.size()))
   {
-    return std::vector<u8>();
+    return IOS::ES::TicketReader{};
   }
 
-  return signed_ticket;
+  return IOS::ES::TicketReader{std::move(signed_ticket)};
 }
-
-std::vector<u8> FindTicket(u64 title_id)
-{
-  std::vector<u8> signed_ticket = FindSignedTicket(title_id);
-  if (signed_ticket.empty())
-  {
-    return std::vector<u8>();
-  }
-
-  return SignedTicketToTicket(signed_ticket);
-}
-
-std::vector<u8> GetKeyFromTicket(const std::vector<u8>& signed_ticket)
-{
-  const u8 common_key[16] = {0xeb, 0xe4, 0x2a, 0x22, 0x5e, 0x85, 0x93, 0xe4,
-                             0x48, 0xd9, 0xc5, 0x45, 0x73, 0x81, 0xaa, 0xf7};
-  u8 iv[16] = {};
-
-  std::copy(&signed_ticket[0x01DC], &signed_ticket[0x01DC + 8], iv);
-  return AESDecode(common_key, iv, &signed_ticket[0x01BF], 16);
-}
-
 }  // namespace end

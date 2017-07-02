@@ -8,13 +8,17 @@
 #include <memory>
 #include "Common/CommonTypes.h"
 
-class IEXIDevice;
 class PointerWrap;
-enum TEXIDevices : int;
+
 namespace MMIO
 {
 class Mapping;
 }
+
+namespace ExpansionInterface
+{
+class IEXIDevice;
+enum TEXIDevices : int;
 
 class CEXIChannel
 {
@@ -113,3 +117,4 @@ private:
   // Since channels operate a bit differently from each other
   u32 m_channel_id;
 };
+}  // namespace ExpansionInterface

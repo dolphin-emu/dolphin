@@ -72,6 +72,14 @@ bool ObjectCache::Initialize()
   return true;
 }
 
+static bool IsStripPrimitiveTopology(VkPrimitiveTopology topology)
+{
+  return topology == VK_PRIMITIVE_TOPOLOGY_LINE_STRIP ||
+         topology == VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP ||
+         topology == VK_PRIMITIVE_TOPOLOGY_LINE_STRIP_WITH_ADJACENCY ||
+         topology == VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP_WITH_ADJACENCY;
+}
+
 static VkPipelineRasterizationStateCreateInfo
 GetVulkanRasterizationState(const RasterizationState& state)
 {
@@ -127,33 +135,95 @@ GetVulkanDepthStencilState(const DepthStencilState& state)
   };
 }
 
-static VkPipelineColorBlendAttachmentState GetVulkanAttachmentBlendState(const BlendState& state)
+static VkPipelineColorBlendAttachmentState GetVulkanAttachmentBlendState(const BlendingState& state)
 {
-  VkPipelineColorBlendAttachmentState vk_state = {
-      state.blend_enable,     // VkBool32                                  blendEnable
-      state.src_blend,        // VkBlendFactor                             srcColorBlendFactor
-      state.dst_blend,        // VkBlendFactor                             dstColorBlendFactor
-      state.blend_op,         // VkBlendOp                                 colorBlendOp
-      state.src_alpha_blend,  // VkBlendFactor                             srcAlphaBlendFactor
-      state.dst_alpha_blend,  // VkBlendFactor                             dstAlphaBlendFactor
-      state.alpha_blend_op,   // VkBlendOp                                 alphaBlendOp
-      state.write_mask        // VkColorComponentFlags                     colorWriteMask
-  };
+  VkPipelineColorBlendAttachmentState vk_state = {};
+  vk_state.blendEnable = static_cast<VkBool32>(state.blendenable);
+  vk_state.colorBlendOp = state.subtract ? VK_BLEND_OP_REVERSE_SUBTRACT : VK_BLEND_OP_ADD;
+  vk_state.alphaBlendOp = state.subtractAlpha ? VK_BLEND_OP_REVERSE_SUBTRACT : VK_BLEND_OP_ADD;
+
+  if (state.usedualsrc && g_vulkan_context->SupportsDualSourceBlend())
+  {
+    static constexpr std::array<VkBlendFactor, 8> src_factors = {
+        {VK_BLEND_FACTOR_ZERO, VK_BLEND_FACTOR_ONE, VK_BLEND_FACTOR_DST_COLOR,
+         VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR, VK_BLEND_FACTOR_SRC1_ALPHA,
+         VK_BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA, VK_BLEND_FACTOR_DST_ALPHA,
+         VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA}};
+    static constexpr std::array<VkBlendFactor, 8> dst_factors = {
+        {VK_BLEND_FACTOR_ZERO, VK_BLEND_FACTOR_ONE, VK_BLEND_FACTOR_SRC_COLOR,
+         VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR, VK_BLEND_FACTOR_SRC1_ALPHA,
+         VK_BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA, VK_BLEND_FACTOR_DST_ALPHA,
+         VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA}};
+
+    vk_state.srcColorBlendFactor = src_factors[state.srcfactor];
+    vk_state.srcAlphaBlendFactor = src_factors[state.srcfactoralpha];
+    vk_state.dstColorBlendFactor = dst_factors[state.dstfactor];
+    vk_state.dstAlphaBlendFactor = dst_factors[state.dstfactoralpha];
+  }
+  else
+  {
+    static constexpr std::array<VkBlendFactor, 8> src_factors = {
+        {VK_BLEND_FACTOR_ZERO, VK_BLEND_FACTOR_ONE, VK_BLEND_FACTOR_DST_COLOR,
+         VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR, VK_BLEND_FACTOR_SRC_ALPHA,
+         VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA, VK_BLEND_FACTOR_DST_ALPHA,
+         VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA}};
+
+    static constexpr std::array<VkBlendFactor, 8> dst_factors = {
+        {VK_BLEND_FACTOR_ZERO, VK_BLEND_FACTOR_ONE, VK_BLEND_FACTOR_SRC_COLOR,
+         VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR, VK_BLEND_FACTOR_SRC_ALPHA,
+         VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA, VK_BLEND_FACTOR_DST_ALPHA,
+         VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA}};
+
+    vk_state.srcColorBlendFactor = src_factors[state.srcfactor];
+    vk_state.srcAlphaBlendFactor = src_factors[state.srcfactoralpha];
+    vk_state.dstColorBlendFactor = dst_factors[state.dstfactor];
+    vk_state.dstAlphaBlendFactor = dst_factors[state.dstfactoralpha];
+  }
+
+  if (state.colorupdate)
+  {
+    vk_state.colorWriteMask =
+        VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT;
+  }
+  else
+  {
+    vk_state.colorWriteMask = 0;
+  }
+
+  if (state.alphaupdate)
+    vk_state.colorWriteMask |= VK_COLOR_COMPONENT_A_BIT;
 
   return vk_state;
 }
 
 static VkPipelineColorBlendStateCreateInfo
-GetVulkanColorBlendState(const BlendState& state,
+GetVulkanColorBlendState(const BlendingState& state,
                          const VkPipelineColorBlendAttachmentState* attachments,
                          uint32_t num_attachments)
 {
+  static constexpr std::array<VkLogicOp, 16> vk_logic_ops = {
+      {VK_LOGIC_OP_CLEAR, VK_LOGIC_OP_AND, VK_LOGIC_OP_AND_REVERSE, VK_LOGIC_OP_COPY,
+       VK_LOGIC_OP_AND_INVERTED, VK_LOGIC_OP_NO_OP, VK_LOGIC_OP_XOR, VK_LOGIC_OP_OR,
+       VK_LOGIC_OP_NOR, VK_LOGIC_OP_EQUIVALENT, VK_LOGIC_OP_INVERT, VK_LOGIC_OP_OR_REVERSE,
+       VK_LOGIC_OP_COPY_INVERTED, VK_LOGIC_OP_OR_INVERTED, VK_LOGIC_OP_NAND, VK_LOGIC_OP_SET}};
+
+  VkBool32 vk_logic_op_enable = static_cast<VkBool32>(state.logicopenable);
+  if (vk_logic_op_enable && !g_vulkan_context->SupportsLogicOps())
+  {
+    // At the time of writing, Adreno and Mali drivers didn't support logic ops.
+    // The "emulation" through blending path has been removed, so just disable it completely.
+    // These drivers don't support dual-source blend either, so issues are to be expected.
+    vk_logic_op_enable = VK_FALSE;
+  }
+
+  VkLogicOp vk_logic_op = vk_logic_op_enable ? vk_logic_ops[state.logicmode] : VK_LOGIC_OP_CLEAR;
+
   VkPipelineColorBlendStateCreateInfo vk_state = {
       VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,  // VkStructureType sType
       nullptr,                  // const void*                                   pNext
       0,                        // VkPipelineColorBlendStateCreateFlags          flags
-      state.logic_op_enable,    // VkBool32                                      logicOpEnable
-      state.logic_op,           // VkLogicOp                                     logicOp
+      vk_logic_op_enable,       // VkBool32                                      logicOpEnable
+      vk_logic_op,              // VkLogicOp                                     logicOp
       num_attachments,          // uint32_t                                      attachmentCount
       attachments,              // const VkPipelineColorBlendAttachmentState*    pAttachments
       {1.0f, 1.0f, 1.0f, 1.0f}  // float                                         blendConstants[4]
@@ -185,8 +255,19 @@ VkPipeline ObjectCache::CreatePipeline(const PipelineInfo& info)
       nullptr,                  // const void*                                pNext
       0,                        // VkPipelineInputAssemblyStateCreateFlags    flags
       info.primitive_topology,  // VkPrimitiveTopology                        topology
-      VK_TRUE                   // VkBool32                                   primitiveRestartEnable
+      VK_FALSE                  // VkBool32                                   primitiveRestartEnable
   };
+
+  // See Vulkan spec, section 19:
+  // If topology is VK_PRIMITIVE_TOPOLOGY_POINT_LIST, VK_PRIMITIVE_TOPOLOGY_LINE_LIST,
+  // VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, VK_PRIMITIVE_TOPOLOGY_LINE_LIST_WITH_ADJACENCY,
+  // VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST_WITH_ADJACENCY or VK_PRIMITIVE_TOPOLOGY_PATCH_LIST,
+  // primitiveRestartEnable must be VK_FALSE
+  if (g_ActiveConfig.backend_info.bSupportsPrimitiveRestart &&
+      IsStripPrimitiveTopology(info.primitive_topology))
+  {
+    input_assembly_state.primitiveRestartEnable = VK_TRUE;
+  }
 
   // Shaders to stages
   VkPipelineShaderStageCreateInfo shader_stages[3];
@@ -305,10 +386,62 @@ std::pair<VkPipeline, bool> ObjectCache::GetPipelineWithCacheResult(const Pipeli
   return {pipeline, false};
 }
 
+VkPipeline ObjectCache::CreateComputePipeline(const ComputePipelineInfo& info)
+{
+  VkComputePipelineCreateInfo pipeline_info = {VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
+                                               nullptr,
+                                               0,
+                                               {VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+                                                nullptr, 0, VK_SHADER_STAGE_COMPUTE_BIT, info.cs,
+                                                "main", nullptr},
+                                               info.pipeline_layout,
+                                               VK_NULL_HANDLE,
+                                               -1};
+
+  VkPipeline pipeline;
+  VkResult res = vkCreateComputePipelines(g_vulkan_context->GetDevice(), VK_NULL_HANDLE, 1,
+                                          &pipeline_info, nullptr, &pipeline);
+  if (res != VK_SUCCESS)
+  {
+    LOG_VULKAN_ERROR(res, "vkCreateComputePipelines failed: ");
+    return VK_NULL_HANDLE;
+  }
+
+  return pipeline;
+}
+
+VkPipeline ObjectCache::GetComputePipeline(const ComputePipelineInfo& info)
+{
+  auto iter = m_compute_pipeline_objects.find(info);
+  if (iter != m_compute_pipeline_objects.end())
+    return iter->second;
+
+  VkPipeline pipeline = CreateComputePipeline(info);
+  m_compute_pipeline_objects.emplace(info, pipeline);
+  return pipeline;
+}
+
+void ObjectCache::ClearPipelineCache()
+{
+  for (const auto& it : m_pipeline_objects)
+  {
+    if (it.second != VK_NULL_HANDLE)
+      vkDestroyPipeline(g_vulkan_context->GetDevice(), it.second, nullptr);
+  }
+  m_pipeline_objects.clear();
+
+  for (const auto& it : m_compute_pipeline_objects)
+  {
+    if (it.second != VK_NULL_HANDLE)
+      vkDestroyPipeline(g_vulkan_context->GetDevice(), it.second, nullptr);
+  }
+  m_compute_pipeline_objects.clear();
+}
+
 std::string ObjectCache::GetDiskCacheFileName(const char* type)
 {
   return StringFromFormat("%svulkan-%s-%s.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
-                          SConfig::GetInstance().m_strGameID.c_str(), type);
+                          SConfig::GetInstance().GetGameID().c_str(), type);
 }
 
 class PipelineCacheReadCallback : public LinearDiskCacheReader<u32, u8>
@@ -451,13 +584,7 @@ bool ObjectCache::ValidatePipelineCache(const u8* data, size_t data_length)
 
 void ObjectCache::DestroyPipelineCache()
 {
-  for (const auto& it : m_pipeline_objects)
-  {
-    if (it.second != VK_NULL_HANDLE)
-      vkDestroyPipeline(g_vulkan_context->GetDevice(), it.second, nullptr);
-  }
-  m_pipeline_objects.clear();
-
+  ClearPipelineCache();
   vkDestroyPipelineCache(g_vulkan_context->GetDevice(), m_pipeline_cache, nullptr);
   m_pipeline_cache = VK_NULL_HANDLE;
 }
@@ -517,21 +644,25 @@ struct ShaderCacheReader : public LinearDiskCacheReader<Uid, u32>
 
 void ObjectCache::LoadShaderCaches()
 {
-  ShaderCacheReader<VertexShaderUid> vs_reader(m_vs_cache.shader_map);
-  m_vs_cache.disk_cache.OpenAndRead(GetDiskCacheFileName("vs"), vs_reader);
-  SETSTAT(stats.numVertexShadersCreated, static_cast<int>(m_vs_cache.shader_map.size()));
-  SETSTAT(stats.numVertexShadersAlive, static_cast<int>(m_vs_cache.shader_map.size()));
+  if (g_ActiveConfig.bShaderCache)
+  {
+    ShaderCacheReader<VertexShaderUid> vs_reader(m_vs_cache.shader_map);
+    m_vs_cache.disk_cache.OpenAndRead(GetDiskCacheFileName("vs"), vs_reader);
 
-  ShaderCacheReader<PixelShaderUid> ps_reader(m_ps_cache.shader_map);
-  m_ps_cache.disk_cache.OpenAndRead(GetDiskCacheFileName("ps"), ps_reader);
+    ShaderCacheReader<PixelShaderUid> ps_reader(m_ps_cache.shader_map);
+    m_ps_cache.disk_cache.OpenAndRead(GetDiskCacheFileName("ps"), ps_reader);
+
+    if (g_vulkan_context->SupportsGeometryShaders())
+    {
+      ShaderCacheReader<GeometryShaderUid> gs_reader(m_gs_cache.shader_map);
+      m_gs_cache.disk_cache.OpenAndRead(GetDiskCacheFileName("gs"), gs_reader);
+    }
+  }
+
   SETSTAT(stats.numPixelShadersCreated, static_cast<int>(m_ps_cache.shader_map.size()));
   SETSTAT(stats.numPixelShadersAlive, static_cast<int>(m_ps_cache.shader_map.size()));
-
-  if (g_vulkan_context->SupportsGeometryShaders())
-  {
-    ShaderCacheReader<GeometryShaderUid> gs_reader(m_gs_cache.shader_map);
-    m_gs_cache.disk_cache.OpenAndRead(GetDiskCacheFileName("gs"), gs_reader);
-  }
+  SETSTAT(stats.numVertexShadersCreated, static_cast<int>(m_vs_cache.shader_map.size()));
+  SETSTAT(stats.numVertexShadersAlive, static_cast<int>(m_vs_cache.shader_map.size()));
 }
 
 template <typename T>
@@ -702,6 +833,17 @@ bool ObjectCache::CreateDescriptorSetLayouts()
       {0, VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1, VK_SHADER_STAGE_FRAGMENT_BIT},
   };
 
+  static const VkDescriptorSetLayoutBinding compute_set_bindings[] = {
+      {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1, VK_SHADER_STAGE_COMPUTE_BIT},
+      {1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_COMPUTE_BIT},
+      {2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_COMPUTE_BIT},
+      {3, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_COMPUTE_BIT},
+      {4, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_COMPUTE_BIT},
+      {5, VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1, VK_SHADER_STAGE_COMPUTE_BIT},
+      {6, VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1, VK_SHADER_STAGE_COMPUTE_BIT},
+      {7, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1, VK_SHADER_STAGE_COMPUTE_BIT},
+  };
+
   static const VkDescriptorSetLayoutCreateInfo create_infos[NUM_DESCRIPTOR_SET_LAYOUTS] = {
       {VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, nullptr, 0,
        static_cast<u32>(ArraySize(ubo_set_bindings)), ubo_set_bindings},
@@ -710,7 +852,9 @@ bool ObjectCache::CreateDescriptorSetLayouts()
       {VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, nullptr, 0,
        static_cast<u32>(ArraySize(ssbo_set_bindings)), ssbo_set_bindings},
       {VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, nullptr, 0,
-       static_cast<u32>(ArraySize(texel_buffer_set_bindings)), texel_buffer_set_bindings}};
+       static_cast<u32>(ArraySize(texel_buffer_set_bindings)), texel_buffer_set_bindings},
+      {VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, nullptr, 0,
+       static_cast<u32>(ArraySize(compute_set_bindings)), compute_set_bindings}};
 
   for (size_t i = 0; i < NUM_DESCRIPTOR_SET_LAYOUTS; i++)
   {
@@ -751,8 +895,11 @@ bool ObjectCache::CreatePipelineLayouts()
       m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_UNIFORM_BUFFERS],
       m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_PIXEL_SHADER_SAMPLERS],
       m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_TEXEL_BUFFERS]};
+  VkDescriptorSetLayout compute_sets[] = {m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_COMPUTE]};
   VkPushConstantRange push_constant_range = {
       VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, PUSH_CONSTANT_BUFFER_SIZE};
+  VkPushConstantRange compute_push_constant_range = {VK_SHADER_STAGE_COMPUTE_BIT, 0,
+                                                     PUSH_CONSTANT_BUFFER_SIZE};
 
   // Info for each pipeline layout
   VkPipelineLayoutCreateInfo pipeline_layout_info[NUM_PIPELINE_LAYOUTS] = {
@@ -771,7 +918,11 @@ bool ObjectCache::CreatePipelineLayouts()
       // Texture Conversion
       {VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO, nullptr, 0,
        static_cast<u32>(ArraySize(texture_conversion_sets)), texture_conversion_sets, 1,
-       &push_constant_range}};
+       &push_constant_range},
+
+      // Compute
+      {VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO, nullptr, 0,
+       static_cast<u32>(ArraySize(compute_sets)), compute_sets, 1, &compute_push_constant_range}};
 
   for (size_t i = 0; i < NUM_PIPELINE_LAYOUTS; i++)
   {
@@ -982,6 +1133,31 @@ bool operator>(const SamplerState& lhs, const SamplerState& rhs)
 bool operator<(const SamplerState& lhs, const SamplerState& rhs)
 {
   return lhs.bits < rhs.bits;
+}
+
+std::size_t ComputePipelineInfoHash::operator()(const ComputePipelineInfo& key) const
+{
+  return static_cast<std::size_t>(XXH64(&key, sizeof(key), 0));
+}
+
+bool operator==(const ComputePipelineInfo& lhs, const ComputePipelineInfo& rhs)
+{
+  return std::memcmp(&lhs, &rhs, sizeof(lhs)) == 0;
+}
+
+bool operator!=(const ComputePipelineInfo& lhs, const ComputePipelineInfo& rhs)
+{
+  return !operator==(lhs, rhs);
+}
+
+bool operator<(const ComputePipelineInfo& lhs, const ComputePipelineInfo& rhs)
+{
+  return std::memcmp(&lhs, &rhs, sizeof(lhs)) < 0;
+}
+
+bool operator>(const ComputePipelineInfo& lhs, const ComputePipelineInfo& rhs)
+{
+  return std::memcmp(&lhs, &rhs, sizeof(lhs)) > 0;
 }
 
 bool ObjectCache::CompileSharedShaders()

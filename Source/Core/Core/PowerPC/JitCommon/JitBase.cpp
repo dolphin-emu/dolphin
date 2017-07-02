@@ -23,9 +23,13 @@ u32 Helper_Mask(u8 mb, u8 me)
   return mb > me ? ~mask : mask;
 }
 
-bool JitBase::MergeAllowedNextInstructions(int count)
+JitBase::JitBase() = default;
+
+JitBase::~JitBase() = default;
+
+bool JitBase::CanMergeNextInstructions(int count) const
 {
-  if (CPU::GetState() == CPU::CPU_STEPPING || js.instructionsLeft < count)
+  if (CPU::IsStepping() || js.instructionsLeft < count)
     return false;
   // Be careful: a breakpoint kills flags in between instructions
   for (int i = 1; i <= count; i++)
@@ -42,7 +46,6 @@ bool JitBase::MergeAllowedNextInstructions(int count)
 void JitBase::UpdateMemoryOptions()
 {
   bool any_watchpoints = PowerPC::memchecks.HasAny();
-  jo.fastmem = SConfig::GetInstance().bFastmem && !any_watchpoints;
+  jo.fastmem = SConfig::GetInstance().bFastmem && (UReg_MSR(MSR).DR || !any_watchpoints);
   jo.memcheck = SConfig::GetInstance().bMMU || any_watchpoints;
-  jo.alwaysUseMemFuncs = any_watchpoints;
 }

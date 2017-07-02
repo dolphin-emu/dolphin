@@ -13,6 +13,8 @@ set(SRCS
   D3DTexture.h
   D3DUtil.cpp
   D3DUtil.h
+  DXTexture.cpp
+  DXTexture.h
   FramebufferManager.cpp
   FramebufferManager.h
   GeometryShaderCache.cpp
@@ -31,7 +33,6 @@ set(SRCS
   Television.h
   TextureCache.cpp
   TextureCache.h
-  TextureEncoder.h
   VertexManager.cpp
   VertexManager.h
   VertexShaderCache.cpp

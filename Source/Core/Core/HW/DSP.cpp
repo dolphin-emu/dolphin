@@ -22,19 +22,21 @@
 // the just used buffer through the AXList (or whatever it might be called in
 // Nintendo games).
 
+#include "Core/HW/DSP.h"
+
 #include <memory>
 
 #include "AudioCommon/AudioCommon.h"
+#include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/MemoryUtil.h"
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
 #include "Core/DSPEmulator.h"
-#include "Core/HW/DSP.h"
+
 #include "Core/HW/MMIO.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/ProcessorInterface.h"
-#include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
 
 namespace DSP
@@ -407,15 +409,14 @@ static void GenerateDSPInterrupt(u64 DSPIntType, s64 cyclesLate)
   // DSP_CONTROL - we mask by (INT_DSP | INT_ARAM | INT_AID) just to ensure people
   // don't call this with bogus values.
   s_dspState.Hex |= (DSPIntType & (INT_DSP | INT_ARAM | INT_AID));
-
   UpdateInterrupts();
 }
 
 // CALLED FROM DSP EMULATOR, POSSIBLY THREADED
-void GenerateDSPInterruptFromDSPEmu(DSPInterruptType type)
+void GenerateDSPInterruptFromDSPEmu(DSPInterruptType type, int cycles_into_future)
 {
-  // TODO: Maybe rethink this? The timing is unpredictable.
-  CoreTiming::ScheduleEvent(0, s_et_GenerateDSPInterrupt, type, CoreTiming::FromThread::ANY);
+  CoreTiming::ScheduleEvent(cycles_into_future, s_et_GenerateDSPInterrupt, type,
+                            CoreTiming::FromThread::ANY);
 }
 
 // called whenever SystemTimers thinks the DSP deserves a few more cycles
@@ -581,27 +582,25 @@ static void Do_ARAM_DMA()
 // (shuffle2) I still don't believe that this hack is actually needed... :(
 // Maybe the Wii Sports ucode is processed incorrectly?
 // (LM) It just means that DSP reads via '0xffdd' on Wii can end up in EXRAM or main RAM
-u8 ReadARAM(u32 _iAddress)
+u8 ReadARAM(u32 address)
 {
-  // NOTICE_LOG(DSPINTERFACE, "ReadARAM 0x%08x", _iAddress);
   if (s_ARAM.wii_mode)
   {
-    if (_iAddress & 0x10000000)
-      return s_ARAM.ptr[_iAddress & s_ARAM.mask];
+    if (address & 0x10000000)
+      return s_ARAM.ptr[address & s_ARAM.mask];
     else
-      return Memory::Read_U8(_iAddress & Memory::RAM_MASK);
+      return Memory::Read_U8(address & Memory::RAM_MASK);
   }
   else
   {
-    return s_ARAM.ptr[_iAddress & s_ARAM.mask];
+    return s_ARAM.ptr[address & s_ARAM.mask];
   }
 }
 
-void WriteARAM(u8 value, u32 _uAddress)
+void WriteARAM(u8 value, u32 address)
 {
-  // NOTICE_LOG(DSPINTERFACE, "WriteARAM 0x%08x", _uAddress);
   // TODO: verify this on Wii
-  s_ARAM.ptr[_uAddress & s_ARAM.mask] = value;
+  s_ARAM.ptr[address & s_ARAM.mask] = value;
 }
 
 u8* GetARAMPtr()

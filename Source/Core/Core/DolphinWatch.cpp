@@ -15,7 +15,7 @@
 #include "HW/ProcessorInterface.h"
 #include "InputCommon/GCPadStatus.h"
 #include "BootManager.h"
-#include "Core/HW/DVDInterface.h"
+//#include "Core/HW/DVDInterface.h"
 #include "Core/Host.h"
 #include "Core/ConfigManager.h"
 

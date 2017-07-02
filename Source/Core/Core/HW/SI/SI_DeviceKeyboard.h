@@ -9,8 +9,29 @@
 class PointerWrap;
 struct KeyboardStatus;
 
+namespace SerialInterface
+{
 class CSIDevice_Keyboard : public ISIDevice
 {
+public:
+  // Constructor
+  CSIDevice_Keyboard(SIDevices device, int device_number);
+
+  // Run the SI Buffer
+  int RunBuffer(u8* buffer, int length) override;
+
+  // Return true on new data
+  bool GetData(u32& hi, u32& low) override;
+
+  KeyboardStatus GetKeyboardStatus() const;
+  void MapKeys(const KeyboardStatus& key_status, u8* key);
+
+  // Send a command directly
+  void SendCommand(u32 command, u8 poll) override;
+
+  // Savestate support
+  void DoState(PointerWrap& p) override;
+
 protected:
   // Commands
   enum EBufferCommands
@@ -28,40 +49,22 @@ protected:
 
   union UCommand
   {
-    u32 Hex;
+    u32 hex = 0;
     struct
     {
-      u32 Parameter1 : 8;
-      u32 Parameter2 : 8;
-      u32 Command : 8;
+      u32 parameter1 : 8;
+      u32 parameter2 : 8;
+      u32 command : 8;
       u32 : 8;
     };
-    UCommand() { Hex = 0; }
-    UCommand(u32 _iValue) { Hex = _iValue; }
+    UCommand() = default;
+    UCommand(u32 value) : hex{value} {}
   };
 
   // PADAnalogMode
-  u8 m_Mode;
+  u8 m_mode = 0;
 
   // Internal counter synchonizing GC and keyboard
-  u8 m_Counter;
-
-public:
-  // Constructor
-  CSIDevice_Keyboard(SIDevices device, int _iDeviceNumber);
-
-  // Run the SI Buffer
-  int RunBuffer(u8* _pBuffer, int _iLength) override;
-
-  // Return true on new data
-  bool GetData(u32& _Hi, u32& _Low) override;
-
-  KeyboardStatus GetKeyboardStatus() const;
-  void MapKeys(const KeyboardStatus& KeyStatus, u8* key);
-
-  // Send a command directly
-  void SendCommand(u32 _Cmd, u8 _Poll) override;
-
-  // Savestate support
-  void DoState(PointerWrap& p) override;
+  u8 m_counter = 0;
 };
+}  // namespace SerialInterface

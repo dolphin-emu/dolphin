@@ -61,40 +61,6 @@ void CLogWindow::CreateGUIControls()
   log_window->Get("y", &y, Parent->GetSize().GetY());
   log_window->Get("pos", &winpos, wxAUI_DOCK_RIGHT);
 
-  // Set up log listeners
-  int verbosity;
-  options->Get("Verbosity", &verbosity, 0);
-
-  // Ensure the verbosity level is valid
-  if (verbosity < 1)
-    verbosity = 1;
-  if (verbosity > MAX_LOGLEVEL)
-    verbosity = MAX_LOGLEVEL;
-
-  // Get the logger output settings from the config ini file.
-  options->Get("WriteToFile", &m_writeFile, false);
-  options->Get("WriteToWindow", &m_writeWindow, true);
-
-  IniFile::Section* logs = ini.GetOrCreateSection("Logs");
-  for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
-  {
-    bool enable;
-    logs->Get(m_LogManager->GetShortName((LogTypes::LOG_TYPE)i), &enable, false);
-
-    if (m_writeWindow && enable)
-      m_LogManager->AddListener((LogTypes::LOG_TYPE)i, LogListener::LOG_WINDOW_LISTENER);
-    else
-      m_LogManager->RemoveListener((LogTypes::LOG_TYPE)i, LogListener::LOG_WINDOW_LISTENER);
-
-    if (m_writeFile && enable)
-      m_LogManager->AddListener((LogTypes::LOG_TYPE)i, LogListener::FILE_LISTENER);
-    else
-      m_LogManager->RemoveListener((LogTypes::LOG_TYPE)i, LogListener::FILE_LISTENER);
-
-    m_LogManager->SetLogLevel((LogTypes::LOG_TYPE)i, (LogTypes::LOG_LEVELS)(verbosity));
-  }
-  m_has_listeners = true;
-
   // Font
   m_FontChoice = new wxChoice(this, wxID_ANY);
   m_FontChoice->Bind(wxEVT_CHOICE, &CLogWindow::OnFontChange, this);
@@ -103,7 +69,12 @@ void CLogWindow::CreateGUIControls()
   m_FontChoice->Append(_("Selected font"));
 
   DefaultFont = GetFont();
-  MonoSpaceFont.SetNativeFontInfoUserDesc("lucida console windows-1252");
+  MonoSpaceFont.SetFamily(wxFONTFAMILY_TELETYPE);
+#ifdef _WIN32
+  // Windows uses Courier New for monospace even though there are better fonts.
+  MonoSpaceFont.SetFaceName("Consolas");
+#endif
+  MonoSpaceFont.SetPointSize(DefaultFont.GetPointSize());
   LogFont.push_back(DefaultFont);
   LogFont.push_back(MonoSpaceFont);
   LogFont.push_back(DebuggerFont);
@@ -174,7 +145,7 @@ void CLogWindow::SaveSettings()
   IniFile ini;
   ini.Load(File::GetUserPath(F_LOGGERCONFIG_IDX));
 
-  if (!Parent->g_pCodeWindow)
+  if (!Parent->m_code_window)
   {
     IniFile::Section* log_window = ini.GetOrCreateSection("LogWindow");
     log_window->Set("x", x);

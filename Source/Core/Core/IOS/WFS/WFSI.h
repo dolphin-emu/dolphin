@@ -13,7 +13,7 @@
 #include "Common/CommonTypes.h"
 #include "Core/IOS/Device.h"
 #include "Core/IOS/ES/Formats.h"
-#include "Core/IOS/IPC.h"
+#include "Core/IOS/IOS.h"
 
 namespace IOS
 {
@@ -39,7 +39,7 @@ namespace Device
 class WFSI : public Device
 {
 public:
-  WFSI(u32 device_id, const std::string& device_name);
+  WFSI(Kernel& ios, const std::string& device_name);
 
   IPCCommandResult IOCtl(const IOCtlRequest& request) override;
 
@@ -50,7 +50,7 @@ private:
   u8 m_aes_key[0x10] = {};
   u8 m_aes_iv[0x10] = {};
 
-  TMDReader m_tmd;
+  IOS::ES::TMDReader m_tmd;
   std::string m_base_extract_path;
 
   ARCUnpacker m_arc_unpacker;

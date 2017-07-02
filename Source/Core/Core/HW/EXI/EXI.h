@@ -6,10 +6,8 @@
 
 #include "Common/CommonTypes.h"
 
-class CEXIChannel;
-class IEXIDevice;
 class PointerWrap;
-enum TEXIDevices : int;
+
 namespace CoreTiming
 {
 enum class FromThread;
@@ -19,13 +17,18 @@ namespace MMIO
 class Mapping;
 }
 
+namespace ExpansionInterface
+{
+class CEXIChannel;
+class IEXIDevice;
+enum TEXIDevices : int;
+
 enum
 {
+  MAX_MEMORYCARD_SLOTS = 2,
   MAX_EXI_CHANNELS = 3
 };
 
-namespace ExpansionInterface
-{
 void Init();
 void Shutdown();
 void DoState(PointerWrap& p);

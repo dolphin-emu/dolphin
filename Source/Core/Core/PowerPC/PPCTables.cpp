@@ -8,14 +8,17 @@
 #include <array>
 #include <cinttypes>
 #include <cstddef>
+#include <cstdio>
 #include <vector>
 
+#include "Common/Assert.h"
 #include "Common/CommonTypes.h"
+#include "Common/File.h"
 #include "Common/FileUtil.h"
+#include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 
 #include "Core/PowerPC/Interpreter/Interpreter.h"
-#include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
 
 std::array<GekkoOPInfo*, 64> m_infoTable;
@@ -128,7 +131,7 @@ const char* GetInstructionName(UGeckoInstruction _inst)
 bool IsValidInstruction(UGeckoInstruction _inst)
 {
   const GekkoOPInfo* info = GetOpInfo(_inst);
-  return info != nullptr;
+  return info != nullptr && info->type != OPTYPE_UNKNOWN;
 }
 
 void CountInstruction(UGeckoInstruction _inst)

@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <cinttypes>
 #include <string>
 
 #include "Common/BitSet.h"
@@ -9,6 +10,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
+#include "Common/Swap.h"
 
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/JitArm64/Jit.h"
@@ -37,7 +39,7 @@ void JitArm64::DoBacktrace(uintptr_t access_address, SContext* ctx)
                                   Common::swap32(*(u32*)(pc + 4)), Common::swap32(*(u32*)(pc + 8)),
                                   Common::swap32(*(u32*)(pc + 12)));
 
-    ERROR_LOG(DYNA_REC, "0x%016lx: %08x %08x %08x %08x", pc, *(u32*)pc, *(u32*)(pc + 4),
+    ERROR_LOG(DYNA_REC, "0x%016" PRIx64 ": %08x %08x %08x %08x", pc, *(u32*)pc, *(u32*)(pc + 4),
               *(u32*)(pc + 8), *(u32*)(pc + 12));
   }
 

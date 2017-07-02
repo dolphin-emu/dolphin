@@ -49,6 +49,7 @@ LogManager::LogManager()
   m_Log[LogTypes::COMMANDPROCESSOR] = new LogContainer("CP", "CommandProc");
   m_Log[LogTypes::COMMON] = new LogContainer("COMMON", "Common");
   m_Log[LogTypes::CONSOLE] = new LogContainer("CONSOLE", "Dolphin Console");
+  m_Log[LogTypes::CORE] = new LogContainer("CORE", "Core");
   m_Log[LogTypes::DISCIO] = new LogContainer("DIO", "Disc IO");
   m_Log[LogTypes::DOLPHINWATCH] = new LogContainer("DW", "DolphinWatch");
   m_Log[LogTypes::DSPHLE] = new LogContainer("DSPHLE", "DSP HLE");
@@ -100,18 +101,33 @@ LogManager::LogManager()
   IniFile::Section* options = ini.GetOrCreateSection("Options");
   bool write_file;
   bool write_console;
+  bool write_window;
   options->Get("WriteToFile", &write_file, false);
   options->Get("WriteToConsole", &write_console, true);
+  options->Get("WriteToWindow", &write_window, true);
+
+  // Set up log listeners
+  int verbosity;
+  options->Get("Verbosity", &verbosity, 0);
+
+  // Ensure the verbosity level is valid
+  if (verbosity < 1)
+    verbosity = 1;
+  if (verbosity > MAX_LOGLEVEL)
+    verbosity = MAX_LOGLEVEL;
 
   for (LogContainer* container : m_Log)
   {
     bool enable;
     logs->Get(container->GetShortName(), &enable, false);
     container->SetEnable(enable);
+    container->SetLevel(static_cast<LogTypes::LOG_LEVELS>(verbosity));
     if (enable && write_file)
       container->AddListener(LogListener::FILE_LISTENER);
     if (enable && write_console)
       container->AddListener(LogListener::CONSOLE_LISTENER);
+    if (enable && write_window)
+      container->AddListener(LogListener::LOG_WINDOW_LISTENER);
   }
 
   m_path_cutoff_point = DeterminePathCutOffPoint();
@@ -130,6 +146,12 @@ LogManager::~LogManager()
 void LogManager::Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, const char* file,
                      int line, const char* format, va_list args)
 {
+  return LogWithFullPath(level, type, file + m_path_cutoff_point, line, format, args);
+}
+
+void LogManager::LogWithFullPath(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
+                                 const char* file, int line, const char* format, va_list args)
+{
   char temp[MAX_MSGLEN];
   LogContainer* log = m_Log[type];
 
@@ -138,14 +160,13 @@ void LogManager::Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, const 
 
   CharArrayFromFormatV(temp, MAX_MSGLEN, format, args);
 
-  const char* path_to_print = file + m_path_cutoff_point;
-
   std::string msg = StringFromFormat(
-      "%s %s:%u %c[%s]: %s\n", Common::Timer::GetTimeFormatted().c_str(), path_to_print, line,
+      "%s %s:%u %c[%s]: %s\n", Common::Timer::GetTimeFormatted().c_str(), file, line,
       LogTypes::LOG_LEVEL_TO_CHAR[(int)level], log->GetShortName().c_str(), temp);
 
   for (auto listener_id : *log)
-    m_listeners[listener_id]->Log(level, msg.c_str());
+    if (m_listeners[listener_id])
+      m_listeners[listener_id]->Log(level, msg.c_str());
 }
 
 void LogManager::Init()
@@ -166,7 +187,7 @@ LogContainer::LogContainer(const std::string& shortName, const std::string& full
 
 FileLogListener::FileLogListener(const std::string& filename)
 {
-  OpenFStream(m_logfile, filename, std::ios::app);
+  File::OpenFStream(m_logfile, filename, std::ios::app);
   SetEnable(true);
 }
 

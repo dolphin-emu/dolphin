@@ -7,6 +7,7 @@
 
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
+#include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/Logging/Log.h"
@@ -25,6 +26,41 @@ PostProcessingShaderImplementation::PostProcessingShaderImplementation()
 PostProcessingShaderImplementation::~PostProcessingShaderImplementation()
 {
   m_timer.Stop();
+}
+
+static std::vector<std::string> GetShaders(const std::string& sub_dir = "")
+{
+  std::vector<std::string> paths =
+      Common::DoFileSearch({File::GetUserPath(D_SHADERS_IDX) + sub_dir,
+                            File::GetSysDirectory() + SHADERS_DIR DIR_SEP + sub_dir},
+                           {".glsl"});
+  std::vector<std::string> result;
+  for (std::string path : paths)
+  {
+    std::string name;
+    SplitPath(path, nullptr, &name, nullptr);
+    result.push_back(name);
+  }
+  return result;
+}
+
+std::vector<std::string> PostProcessingShaderImplementation::GetShaderList(APIType api_type)
+{
+  // Currently there is no differentiation between API types and shader languages.
+  // This could change in the future, hence the api_type parameter, but ideally,
+  // shaders should be compatible across backends.
+  if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
+    return GetShaders();
+
+  return {};
+}
+
+std::vector<std::string> PostProcessingShaderImplementation::GetAnaglyphShaderList(APIType api_type)
+{
+  if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
+    return GetShaders(ANAGLYPH_DIR DIR_SEP);
+
+  return {};
 }
 
 std::string PostProcessingShaderConfiguration::LoadShader(std::string shader)

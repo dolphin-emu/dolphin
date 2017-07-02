@@ -9,7 +9,7 @@
 #include <string>
 
 #include "Common/CommonTypes.h"
-#include "Common/FileUtil.h"
+#include "Common/File.h"
 #include "DiscIO/Blob.h"
 
 namespace DiscIO
@@ -31,7 +31,7 @@ struct CISOHeader
   u8 map[CISO_MAP_SIZE];
 };
 
-class CISOFileReader : public IBlobReader
+class CISOFileReader : public BlobReader
 {
 public:
   static std::unique_ptr<CISOFileReader> Create(File::IOFile file);
@@ -48,7 +48,7 @@ private:
   CISOFileReader(File::IOFile file);
 
   typedef u16 MapType;
-  static const MapType UNUSED_BLOCK_ID = -1;
+  static const MapType UNUSED_BLOCK_ID = UINT16_MAX;
 
   File::IOFile m_file;
   u64 m_size;

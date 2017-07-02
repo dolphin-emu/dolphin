@@ -2,14 +2,15 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/PowerPC/SignatureDB/DSYSignatureDB.h"
+
 #include <cstddef>
 #include <cstring>
+#include <string>
 
 #include "Common/CommonTypes.h"
-#include "Common/FileUtil.h"
+#include "Common/File.h"
 #include "Common/Logging/Log.h"
-
-#include "Core/PowerPC/SignatureDB/DSYSignatureDB.h"
 
 namespace
 {
@@ -22,7 +23,7 @@ struct FuncDesc
 };
 }  // namespace
 
-bool DSYSignatureDB::Load(const std::string& file_path, SignatureDB::FuncDB& database) const
+bool DSYSignatureDB::Load(const std::string& file_path)
 {
   File::IOFile f(file_path, "rb");
 
@@ -38,16 +39,16 @@ bool DSYSignatureDB::Load(const std::string& file_path, SignatureDB::FuncDB& dat
     f.ReadArray(&temp, 1);
     temp.name[sizeof(temp.name) - 1] = 0;
 
-    SignatureDB::DBFunc func;
+    HashSignatureDB::DBFunc func;
     func.name = temp.name;
     func.size = temp.size;
-    database[temp.checksum] = func;
+    m_database[temp.checksum] = func;
   }
 
   return true;
 }
 
-bool DSYSignatureDB::Save(const std::string& file_path, const SignatureDB::FuncDB& database) const
+bool DSYSignatureDB::Save(const std::string& file_path) const
 {
   File::IOFile f(file_path, "wb");
 
@@ -56,9 +57,9 @@ bool DSYSignatureDB::Save(const std::string& file_path, const SignatureDB::FuncD
     ERROR_LOG(OSHLE, "Database save failed");
     return false;
   }
-  u32 fcount = static_cast<u32>(database.size());
+  u32 fcount = static_cast<u32>(m_database.size());
   f.WriteArray(&fcount, 1);
-  for (const auto& entry : database)
+  for (const auto& entry : m_database)
   {
     FuncDesc temp;
     memset(&temp, 0, sizeof(temp));

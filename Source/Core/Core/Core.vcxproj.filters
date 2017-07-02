@@ -1,11 +1,14 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="ActionReplay">
       <UniqueIdentifier>{e0d231ab-7a66-45ce-a8e4-c0225308f763}</UniqueIdentifier>
     </Filter>
     <Filter Include="Boot">
       <UniqueIdentifier>{2472fb36-5473-4d49-ad2d-3699b78ab6e2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ConfigLoader">
+      <UniqueIdentifier>{259a11eb-ca07-4b31-b849-7286dbd4550a}</UniqueIdentifier>
     </Filter>
     <Filter Include="Debugger">
       <UniqueIdentifier>{ed683a12-55f0-49cb-918b-c7edbcf57268}</UniqueIdentifier>
@@ -39,9 +42,6 @@
     </Filter>
     <Filter Include="PowerPC\JitCommon">
       <UniqueIdentifier>{c88ec388-371f-4401-851c-a32dcdc0b88b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="PowerPC\JitIL">
-      <UniqueIdentifier>{f26d3866-92d1-4623-9445-caf9a065ed74}</UniqueIdentifier>
     </Filter>
     <Filter Include="DSPCore\Interpreter">
       <UniqueIdentifier>{6204f663-bbd0-4eb5-bc15-e3778d8b6091}</UniqueIdentifier>
@@ -109,9 +109,6 @@
     <Filter Include="HW %28Flipper/Hollywood%29\Wii IPC">
       <UniqueIdentifier>{2b41ab45-ba8c-45dc-92cc-9107c1fa3e36}</UniqueIdentifier>
     </Filter>
-    <Filter Include="PowerPC\JitILCommon">
-      <UniqueIdentifier>{827afa93-1a80-4835-93ae-b5516d95867f}</UniqueIdentifier>
-    </Filter>
     <Filter Include="PowerPC\Jit64Common">
       <UniqueIdentifier>{81956f71-d9fe-454f-96a6-855195d611c4}</UniqueIdentifier>
     </Filter>
@@ -127,8 +124,17 @@
     <Filter Include="IOS\Network">
       <UniqueIdentifier>{ab9cdd90-54d7-4f42-9248-d7903ce52cc8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="IOS\Network\IP">
+      <UniqueIdentifier>{f20fc3ea-846b-4629-b86c-fd7860f73ee9}</UniqueIdentifier>
+    </Filter>
     <Filter Include="IOS\Network\KD">
       <UniqueIdentifier>{165768ae-ee50-4789-8051-5c5b7023fa4b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="IOS\Network\NCD">
+      <UniqueIdentifier>{a749993a-d2cf-46b6-9f7f-f76294e9ad02}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="IOS\Network\WD">
+      <UniqueIdentifier>{fc3080d6-d99a-44c6-bdd4-140cec1c6bf0}</UniqueIdentifier>
     </Filter>
     <Filter Include="IOS\DI">
       <UniqueIdentifier>{3db8c364-1d72-4660-9179-86d1c46904b9}</UniqueIdentifier>
@@ -150,6 +156,14 @@
     </Filter>
     <Filter Include="DolphinWatch">
       <UniqueIdentifier>{771997b5-22b9-4936-831a-6bfc16b814d1}</UniqueIdentifier>
+    <Filter Include="Config">
+      <UniqueIdentifier>{a3d4778e-1891-458e-9bd1-009c2f5e8ed9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="PowerPC\SignatureDB">
+      <UniqueIdentifier>{f0b52c84-49f4-470a-b037-edeea5634b9e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="HW %28Flipper/Hollywood%29\WiimoteCommon">
+      <UniqueIdentifier>{ee6645da-3ad9-4fe7-809f-e4646d0b0ca5}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -165,7 +179,9 @@
     <ClCompile Include="NetPlayServer.cpp" />
     <ClCompile Include="PatchEngine.cpp" />
     <ClCompile Include="State.cpp" />
+    <ClCompile Include="TitleDatabase.cpp" />
     <ClCompile Include="WiiRoot.cpp" />
+    <ClCompile Include="WiiUtils.cpp" />
     <ClCompile Include="ActionReplay.cpp">
       <Filter>ActionReplay</Filter>
     </ClCompile>
@@ -178,13 +194,10 @@
     <ClCompile Include="Boot\Boot_BS2Emu.cpp">
       <Filter>Boot</Filter>
     </ClCompile>
-    <ClCompile Include="Boot\Boot_DOL.cpp">
-      <Filter>Boot</Filter>
-    </ClCompile>
-    <ClCompile Include="Boot\Boot_ELF.cpp">
-      <Filter>Boot</Filter>
-    </ClCompile>
     <ClCompile Include="Boot\Boot_WiiWAD.cpp">
+      <Filter>Boot</Filter>
+    </ClCompile>
+    <ClCompile Include="Boot\DolReader.cpp">
       <Filter>Boot</Filter>
     </ClCompile>
     <ClCompile Include="Boot\ElfReader.cpp">
@@ -197,6 +210,9 @@
       <Filter>Debugger</Filter>
     </ClCompile>
     <ClCompile Include="Debugger\PPCDebugInterface.cpp">
+      <Filter>Debugger</Filter>
+    </ClCompile>
+    <ClCompile Include="Debugger\RSO.cpp">
       <Filter>Debugger</Filter>
     </ClCompile>
     <ClCompile Include="DSP\Interpreter\DSPIntArithmetic.cpp">
@@ -286,6 +302,9 @@
     <ClCompile Include="HLE\HLE_OS.cpp">
       <Filter>HLE</Filter>
     </ClCompile>
+    <ClCompile Include="HLE\HLE_VarArgs.cpp">
+      <Filter>HLE</Filter>
+    </ClCompile>
     <ClCompile Include="PowerPC\BreakPoints.cpp">
       <Filter>PowerPC</Filter>
     </ClCompile>
@@ -334,10 +353,16 @@
     <ClCompile Include="HW\StreamADPCM.cpp">
       <Filter>HW %28Flipper/Hollywood%29\AI - Audio Interface</Filter>
     </ClCompile>
-    <ClCompile Include="HW\DVDInterface.cpp">
+    <ClCompile Include="HW\DVD\DVDInterface.cpp">
       <Filter>HW %28Flipper/Hollywood%29\DI - Drive Interface</Filter>
     </ClCompile>
-    <ClCompile Include="HW\DVDThread.cpp">
+    <ClCompile Include="HW\DVD\DVDMath.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\DI - Drive Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\DVD\DVDThread.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\DI - Drive Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\DVD\FileMonitor.cpp">
       <Filter>HW %28Flipper/Hollywood%29\DI - Drive Interface</Filter>
     </ClCompile>
     <ClCompile Include="HW\DSPHLE\UCodes\AX.cpp">
@@ -380,9 +405,6 @@
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\LLE</Filter>
     </ClCompile>
     <ClCompile Include="HW\DSPLLE\DSPLLEGlobals.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\LLE</Filter>
-    </ClCompile>
-    <ClCompile Include="HW\DSPLLE\DSPLLETools.cpp">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\LLE</Filter>
     </ClCompile>
     <ClCompile Include="HW\DSPLLE\DSPSymbols.cpp">
@@ -430,13 +452,13 @@
     <ClCompile Include="HW\Sram.cpp">
       <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
     </ClCompile>
-    <ClCompile Include="HW\GCMemcard.cpp">
+    <ClCompile Include="HW\GCMemcard\GCMemcard.cpp">
       <Filter>HW %28Flipper/Hollywood%29\GCMemcard</Filter>
     </ClCompile>
-    <ClCompile Include="HW\GCMemcardDirectory.cpp">
+    <ClCompile Include="HW\GCMemcard\GCMemcardDirectory.cpp">
       <Filter>HW %28Flipper/Hollywood%29\GCMemcard</Filter>
     </ClCompile>
-    <ClCompile Include="HW\GCMemcardRaw.cpp">
+    <ClCompile Include="HW\GCMemcard\GCMemcardRaw.cpp">
       <Filter>HW %28Flipper/Hollywood%29\GCMemcard</Filter>
     </ClCompile>
     <ClCompile Include="HW\GCPad.cpp">
@@ -613,15 +635,6 @@
     <ClCompile Include="PowerPC\JitCommon\JitCache.cpp">
       <Filter>PowerPC\JitCommon</Filter>
     </ClCompile>
-    <ClCompile Include="PowerPC\Jit64IL\IR_X86.cpp">
-      <Filter>PowerPC\JitIL</Filter>
-    </ClCompile>
-    <ClCompile Include="PowerPC\Jit64IL\JitIL.cpp">
-      <Filter>PowerPC\JitIL</Filter>
-    </ClCompile>
-    <ClCompile Include="PowerPC\Jit64IL\JitIL_Tables.cpp">
-      <Filter>PowerPC\JitIL</Filter>
-    </ClCompile>
     <ClCompile Include="PowerPC\Jit64\FPURegCache.cpp">
       <Filter>PowerPC\Jit64</Filter>
     </ClCompile>
@@ -658,33 +671,6 @@
     <ClCompile Include="PowerPC\Jit64\JitRegCache.cpp">
       <Filter>PowerPC\Jit64</Filter>
     </ClCompile>
-    <ClCompile Include="PowerPC\JitILCommon\JitILBase_Branch.cpp">
-      <Filter>PowerPC\JitILCommon</Filter>
-    </ClCompile>
-    <ClCompile Include="PowerPC\JitILCommon\JitILBase_FloatingPoint.cpp">
-      <Filter>PowerPC\JitILCommon</Filter>
-    </ClCompile>
-    <ClCompile Include="PowerPC\JitILCommon\JitILBase_Integer.cpp">
-      <Filter>PowerPC\JitILCommon</Filter>
-    </ClCompile>
-    <ClCompile Include="PowerPC\JitILCommon\JitILBase_LoadStore.cpp">
-      <Filter>PowerPC\JitILCommon</Filter>
-    </ClCompile>
-    <ClCompile Include="PowerPC\JitILCommon\JitILBase_LoadStoreFloating.cpp">
-      <Filter>PowerPC\JitILCommon</Filter>
-    </ClCompile>
-    <ClCompile Include="PowerPC\JitILCommon\JitILBase_LoadStorePaired.cpp">
-      <Filter>PowerPC\JitILCommon</Filter>
-    </ClCompile>
-    <ClCompile Include="PowerPC\JitILCommon\JitILBase_Paired.cpp">
-      <Filter>PowerPC\JitILCommon</Filter>
-    </ClCompile>
-    <ClCompile Include="PowerPC\JitILCommon\JitILBase_SystemRegisters.cpp">
-      <Filter>PowerPC\JitILCommon</Filter>
-    </ClCompile>
-    <ClCompile Include="PowerPC\JitILCommon\IR.cpp">
-      <Filter>PowerPC\JitILCommon</Filter>
-    </ClCompile>
     <ClCompile Include="HW\GCKeyboardEmu.cpp">
       <Filter>HW %28Flipper/Hollywood%29\GCKeyboard</Filter>
     </ClCompile>
@@ -716,9 +702,18 @@
       <Filter>PowerPC\Jit64Common</Filter>
     </ClCompile>
     <ClCompile Include="Analytics.cpp" />
-    <ClCompile Include="PowerPC\SignatureDB\CSVSignatureDB.cpp" />
-    <ClCompile Include="PowerPC\SignatureDB\DSYSignatureDB.cpp" />
-    <ClCompile Include="PowerPC\SignatureDB\SignatureDB.cpp" />
+    <ClCompile Include="PowerPC\SignatureDB\CSVSignatureDB.cpp">
+      <Filter>PowerPC\SignatureDB</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\SignatureDB\DSYSignatureDB.cpp">
+      <Filter>PowerPC\SignatureDB</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\SignatureDB\MEGASignatureDB.cpp">
+      <Filter>PowerPC\SignatureDB</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\SignatureDB\SignatureDB.cpp">
+      <Filter>PowerPC\SignatureDB</Filter>
+    </ClCompile>
     <ClCompile Include="IOS\USB\Bluetooth\BTBase.cpp">
       <Filter>IOS\USB\Bluetooth</Filter>
     </ClCompile>
@@ -730,9 +725,6 @@
     </ClCompile>
     <ClCompile Include="IOS\USB\Bluetooth\BTStub.cpp">
       <Filter>IOS\USB\Bluetooth</Filter>
-    </ClCompile>
-    <ClCompile Include="IOS\Network\Config.cpp">
-      <Filter>IOS\Network</Filter>
     </ClCompile>
     <ClCompile Include="IOS\Device.cpp">
       <Filter>IOS</Filter>
@@ -752,19 +744,43 @@
     <ClCompile Include="IOS\ES\Formats.cpp">
       <Filter>IOS\ES</Filter>
     </ClCompile>
+    <ClCompile Include="IOS\ES\Identity.cpp">
+      <Filter>IOS\ES</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\ES\NandUtils.cpp">
+      <Filter>IOS\ES</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\ES\TitleContents.cpp">
+      <Filter>IOS\ES</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\ES\TitleInformation.cpp">
+      <Filter>IOS\ES</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\ES\TitleManagement.cpp">
+      <Filter>IOS\ES</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\ES\Views.cpp">
+      <Filter>IOS\ES</Filter>
+    </ClCompile>
     <ClCompile Include="IOS\FS\FS.cpp">
       <Filter>IOS\FS</Filter>
     </ClCompile>
     <ClCompile Include="IOS\Network\ICMPLin.cpp">
       <Filter>IOS\Network</Filter>
     </ClCompile>
-    <ClCompile Include="IOS\IPC.cpp">
+    <ClCompile Include="IOS\IOS.cpp">
+      <Filter>IOS</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\IOSC.cpp">
+      <Filter>IOS</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\MemoryValues.cpp">
       <Filter>IOS</Filter>
     </ClCompile>
     <ClCompile Include="IOS\MIOS.cpp">
       <Filter>IOS</Filter>
     </ClCompile>
-    <ClCompile Include="IOS\Network\Net.cpp">
+    <ClCompile Include="IOS\Network\MACUtils.cpp">
       <Filter>IOS\Network</Filter>
     </ClCompile>
     <ClCompile Include="IOS\Network\Socket.cpp">
@@ -772,6 +788,9 @@
     </ClCompile>
     <ClCompile Include="IOS\Network\SSL.cpp">
       <Filter>IOS\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\Network\IP\Top.cpp">
+      <Filter>IOS\Network\IP</Filter>
     </ClCompile>
     <ClCompile Include="IOS\Network\KD\NetKDRequest.cpp">
       <Filter>IOS\Network\KD</Filter>
@@ -781,6 +800,12 @@
     </ClCompile>
     <ClCompile Include="IOS\Network\KD\NWC24Config.cpp">
       <Filter>IOS\Network\KD</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\Network\NCD\Manage.cpp">
+      <Filter>IOS\Network\NCD</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\Network\WD\Command.cpp">
+      <Filter>IOS\Network\WD</Filter>
     </ClCompile>
     <ClCompile Include="IOS\SDIO\SDIOSlot0.cpp">
       <Filter>IOS\SDIO</Filter>
@@ -833,6 +858,33 @@
     <ClCompile Include="IOS\USB\Bluetooth\WiimoteHIDAttr.cpp">
       <Filter>IOS\USB\Bluetooth</Filter>
     </ClCompile>
+    <ClCompile Include="PowerPC\Jit64Common\ConstantPool.cpp">
+      <Filter>PowerPC\Jit64Common</Filter>
+    </ClCompile>
+    <ClCompile Include="ConfigLoaders\BaseConfigLoader.cpp">
+      <Filter>ConfigLoader</Filter>
+    </ClCompile>
+    <ClCompile Include="ConfigLoaders\GameConfigLoader.cpp">
+      <Filter>ConfigLoader</Filter>
+    </ClCompile>
+    <ClCompile Include="ConfigLoaders\MovieConfigLoader.cpp">
+      <Filter>ConfigLoader</Filter>
+    </ClCompile>
+    <ClCompile Include="ConfigLoaders\NetPlayConfigLoader.cpp">
+      <Filter>ConfigLoader</Filter>
+    </ClCompile>
+    <ClCompile Include="ConfigLoaders\IsSettingSaveable.cpp">
+      <Filter>ConfigLoader</Filter>
+    </ClCompile>
+    <ClCompile Include="Config\Config.cpp">
+      <Filter>Config</Filter>
+    </ClCompile>
+    <ClCompile Include="Config\GraphicsSettings.cpp">
+      <Filter>Config</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\Network\NCD\WiiNetConfig.cpp">
+      <Filter>IOS\Network\NCD</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BootManager.h" />
@@ -849,7 +901,10 @@
     <ClInclude Include="NetPlayServer.h" />
     <ClInclude Include="PatchEngine.h" />
     <ClInclude Include="State.h" />
+    <ClInclude Include="Titles.h" />
+    <ClInclude Include="TitleDatabase.h" />
     <ClInclude Include="WiiRoot.h" />
+    <ClInclude Include="WiiUtils.h" />
     <ClInclude Include="ActionReplay.h">
       <Filter>ActionReplay</Filter>
     </ClInclude>
@@ -859,7 +914,7 @@
     <ClInclude Include="Boot\Boot.h">
       <Filter>Boot</Filter>
     </ClInclude>
-    <ClInclude Include="Boot\Boot_DOL.h">
+    <ClInclude Include="Boot\DolReader.h">
       <Filter>Boot</Filter>
     </ClInclude>
     <ClInclude Include="Boot\ElfReader.h">
@@ -878,6 +933,9 @@
       <Filter>Debugger</Filter>
     </ClInclude>
     <ClInclude Include="Debugger\PPCDebugInterface.h">
+      <Filter>Debugger</Filter>
+    </ClInclude>
+    <ClInclude Include="Debugger\RSO.h">
       <Filter>Debugger</Filter>
     </ClInclude>
     <ClInclude Include="DSP\Interpreter\DSPIntCCUtil.h">
@@ -902,9 +960,6 @@
       <Filter>FifoPlayer</Filter>
     </ClInclude>
     <ClInclude Include="FifoPlayer\FifoDataFile.h">
-      <Filter>FifoPlayer</Filter>
-    </ClInclude>
-    <ClInclude Include="FifoPlayer\FifoFileStruct.h">
       <Filter>FifoPlayer</Filter>
     </ClInclude>
     <ClInclude Include="FifoPlayer\FifoPlaybackAnalyzer.h">
@@ -934,6 +989,9 @@
     <ClInclude Include="HLE\HLE_OS.h">
       <Filter>HLE</Filter>
     </ClInclude>
+    <ClInclude Include="HLE\HLE_VarArgs.h">
+      <Filter>HLE</Filter>
+    </ClInclude>
     <ClInclude Include="PowerPC\CachedInterpreter\CachedInterpreter.h">
       <Filter>PowerPC\Cached Interpreter</Filter>
     </ClInclude>
@@ -955,10 +1013,16 @@
     <ClInclude Include="HW\StreamADPCM.h">
       <Filter>HW %28Flipper/Hollywood%29\AI - Audio Interface</Filter>
     </ClInclude>
-    <ClInclude Include="HW\DVDInterface.h">
+    <ClInclude Include="HW\DVD\DVDInterface.h">
       <Filter>HW %28Flipper/Hollywood%29\DI - Drive Interface</Filter>
     </ClInclude>
-    <ClInclude Include="HW\DVDThread.h">
+    <ClInclude Include="HW\DVD\DVDMath.h">
+      <Filter>HW %28Flipper/Hollywood%29\DI - Drive Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\DVD\DVDThread.h">
+      <Filter>HW %28Flipper/Hollywood%29\DI - Drive Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\DVD\FileMonitor.h">
       <Filter>HW %28Flipper/Hollywood%29\DI - Drive Interface</Filter>
     </ClInclude>
     <ClInclude Include="HW\DSPHLE\UCodes\AX.h">
@@ -1009,9 +1073,6 @@
     <ClInclude Include="HW\DSPLLE\DSPLLEGlobals.h">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\LLE</Filter>
     </ClInclude>
-    <ClInclude Include="HW\DSPLLE\DSPLLETools.h">
-      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\LLE</Filter>
-    </ClInclude>
     <ClInclude Include="HW\DSPLLE\DSPSymbols.h">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\LLE</Filter>
     </ClInclude>
@@ -1057,13 +1118,13 @@
     <ClInclude Include="HW\Sram.h">
       <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
     </ClInclude>
-    <ClInclude Include="HW\GCMemcard.h">
+    <ClInclude Include="HW\GCMemcard\GCMemcard.h">
       <Filter>HW %28Flipper/Hollywood%29\GCMemcard</Filter>
     </ClInclude>
-    <ClInclude Include="HW\GCMemcardDirectory.h">
+    <ClInclude Include="HW\GCMemcard\GCMemcardDirectory.h">
       <Filter>HW %28Flipper/Hollywood%29\GCMemcard</Filter>
     </ClInclude>
-    <ClInclude Include="HW\GCMemcardRaw.h">
+    <ClInclude Include="HW\GCMemcard\GCMemcardRaw.h">
       <Filter>HW %28Flipper/Hollywood%29\GCMemcard</Filter>
     </ClInclude>
     <ClInclude Include="HW\GCPadEmu.h">
@@ -1258,9 +1319,6 @@
     <ClInclude Include="PowerPC\JitCommon\JitCache.h">
       <Filter>PowerPC\JitCommon</Filter>
     </ClInclude>
-    <ClInclude Include="PowerPC\Jit64IL\JitIL.h">
-      <Filter>PowerPC\JitIL</Filter>
-    </ClInclude>
     <ClInclude Include="PowerPC\Jit64\FPURegCache.h">
       <Filter>PowerPC\Jit64</Filter>
     </ClInclude>
@@ -1272,12 +1330,6 @@
     </ClInclude>
     <ClInclude Include="PowerPC\Jit64\JitAsm.h">
       <Filter>PowerPC\Jit64</Filter>
-    </ClInclude>
-    <ClInclude Include="PowerPC\JitILCommon\JitILBase.h">
-      <Filter>PowerPC\JitILCommon</Filter>
-    </ClInclude>
-    <ClInclude Include="PowerPC\JitILCommon\IR.h">
-      <Filter>PowerPC\JitILCommon</Filter>
     </ClInclude>
     <ClInclude Include="MachineContext.h" />
     <ClInclude Include="HW\GCKeyboardEmu.h">
@@ -1317,9 +1369,18 @@
       <Filter>PowerPC\Jit64Common</Filter>
     </ClInclude>
     <ClInclude Include="Analytics.h" />
-    <ClInclude Include="PowerPC\SignatureDB\CSVSignatureDB.h" />
-    <ClInclude Include="PowerPC\SignatureDB\DSYSignatureDB.h" />
-    <ClInclude Include="PowerPC\SignatureDB\SignatureDB.h" />
+    <ClInclude Include="PowerPC\SignatureDB\CSVSignatureDB.h">
+      <Filter>PowerPC\SignatureDB</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\SignatureDB\DSYSignatureDB.h">
+      <Filter>PowerPC\SignatureDB</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\SignatureDB\MEGASignatureDB.h">
+      <Filter>PowerPC\SignatureDB</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\SignatureDB\SignatureDB.h">
+      <Filter>PowerPC\SignatureDB</Filter>
+    </ClInclude>
     <ClInclude Include="IOS\USB\Bluetooth\BTBase.h">
       <Filter>IOS\USB\Bluetooth</Filter>
     </ClInclude>
@@ -1331,9 +1392,6 @@
     </ClInclude>
     <ClInclude Include="IOS\USB\Bluetooth\BTStub.h">
       <Filter>IOS\USB\Bluetooth</Filter>
-    </ClInclude>
-    <ClInclude Include="IOS\Network\Config.h">
-      <Filter>IOS\Network</Filter>
     </ClInclude>
     <ClInclude Include="IOS\DeviceStub.h">
       <Filter>IOS</Filter>
@@ -1365,7 +1423,7 @@
     <ClInclude Include="IOS\Network\ICMPLin.h">
       <Filter>IOS\Network</Filter>
     </ClInclude>
-    <ClInclude Include="IOS\Network\Net.h">
+    <ClInclude Include="IOS\Network\MACUtils.h">
       <Filter>IOS\Network</Filter>
     </ClInclude>
     <ClInclude Include="IOS\Network\Socket.h">
@@ -1373,6 +1431,9 @@
     </ClInclude>
     <ClInclude Include="IOS\Network\SSL.h">
       <Filter>IOS\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\Network\IP\Top.h">
+      <Filter>IOS\Network\IP</Filter>
     </ClInclude>
     <ClInclude Include="IOS\Network\KD\NetKDRequest.h">
       <Filter>IOS\Network\KD</Filter>
@@ -1382,6 +1443,12 @@
     </ClInclude>
     <ClInclude Include="IOS\Network\KD\NWC24Config.h">
       <Filter>IOS\Network\KD</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\Network\NCD\Manage.h">
+      <Filter>IOS\Network\NCD</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\Network\WD\Command.h">
+      <Filter>IOS\Network\WD</Filter>
     </ClInclude>
     <ClInclude Include="IOS\SDIO\SDIOSlot0.h">
       <Filter>IOS\SDIO</Filter>
@@ -1437,11 +1504,53 @@
     <ClInclude Include="IOS\Device.h">
       <Filter>IOS</Filter>
     </ClInclude>
-    <ClInclude Include="IOS\IPC.h">
+    <ClInclude Include="IOS\IOS.h">
+      <Filter>IOS</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\IOSC.h">
+      <Filter>IOS</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\MemoryValues.h">
       <Filter>IOS</Filter>
     </ClInclude>
     <ClInclude Include="IOS\MIOS.h">
       <Filter>IOS</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\Jit64Common\ConstantPool.h">
+      <Filter>PowerPC\Jit64Common</Filter>
+    </ClInclude>
+    <ClInclude Include="ConfigLoaders\BaseConfigLoader.h">
+      <Filter>ConfigLoader</Filter>
+    </ClInclude>
+    <ClInclude Include="ConfigLoaders\GameConfigLoader.h">
+      <Filter>ConfigLoader</Filter>
+    </ClInclude>
+    <ClInclude Include="ConfigLoaders\MovieConfigLoader.h">
+      <Filter>ConfigLoader</Filter>
+    </ClInclude>
+    <ClInclude Include="ConfigLoaders\NetPlayConfigLoader.h">
+      <Filter>ConfigLoader</Filter>
+    </ClInclude>
+    <ClInclude Include="ConfigLoaders\IsSettingSaveable.h">
+      <Filter>ConfigLoader</Filter>
+    </ClInclude>
+    <ClInclude Include="Config\Config.h">
+      <Filter>Config</Filter>
+    </ClInclude>
+    <ClInclude Include="Config\GraphicsSettings.h">
+      <Filter>Config</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\Network\NCD\WiiNetConfig.h">
+      <Filter>IOS\Network\NCD</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\WiimoteCommon\WiimoteConstants.h">
+      <Filter>HW %28Flipper/Hollywood%29\WiimoteCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\WiimoteCommon\WiimoteHid.h">
+      <Filter>HW %28Flipper/Hollywood%29\WiimoteCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\WiimoteCommon\WiimoteReport.h">
+      <Filter>HW %28Flipper/Hollywood%29\WiimoteCommon</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

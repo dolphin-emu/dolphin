@@ -13,6 +13,8 @@
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/Control/Control.h"
 #include "InputCommon/ControllerEmu/Control/Input.h"
+#include "InputCommon/ControllerEmu/Setting/BooleanSetting.h"
+#include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 #include "VideoCommon/OnScreenDisplay.h"
 
 namespace ControllerEmu
@@ -52,9 +54,9 @@ void ModifySettingsButton::GetState()
         associated_settings[i] = !associated_settings[i];
 
         if (associated_settings[i])
-          OSD::AddMessage(controls[i]->name + ": " + _trans("on"));
+          OSD::AddMessage(controls[i]->ui_name + ": on");
         else
-          OSD::AddMessage(controls[i]->name + ": " + _trans("off"));
+          OSD::AddMessage(controls[i]->ui_name + ": off");
 
         threshold_exceeded[i] = true;
       }

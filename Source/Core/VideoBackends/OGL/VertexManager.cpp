@@ -14,9 +14,11 @@
 #include "Common/GL/GLExtensions/GLExtensions.h"
 #include "Common/StringUtil.h"
 
+#include "VideoBackends/OGL/BoundingBox.h"
 #include "VideoBackends/OGL/ProgramShaderCache.h"
 #include "VideoBackends/OGL/Render.h"
 #include "VideoBackends/OGL/StreamBuffer.h"
+#include "VideoCommon/BoundingBox.h"
 
 #include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/Statistics.h"
@@ -156,7 +158,18 @@ void VertexManager::vFlush()
   // setup the pointers
   nativeVertexFmt->SetupVertexPointers();
 
+  if (::BoundingBox::active && !g_Config.BBoxUseFragmentShaderImplementation())
+  {
+    glEnable(GL_STENCIL_TEST);
+  }
+
   Draw(stride);
+
+  if (::BoundingBox::active && !g_Config.BBoxUseFragmentShaderImplementation())
+  {
+    OGL::BoundingBox::StencilWasUpdated();
+    glDisable(GL_STENCIL_TEST);
+  }
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
   if (g_ActiveConfig.iLog & CONF_SAVESHADERS)
@@ -166,18 +179,17 @@ void VertexManager::vFlush()
     std::string filename = StringFromFormat(
         "%sps%.3d.txt", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), g_ActiveConfig.iSaveTargetId);
     std::ofstream fps;
-    OpenFStream(fps, filename, std::ios_base::out);
+    File::OpenFStream(fps, filename, std::ios_base::out);
     fps << prog.shader.strpprog;
 
     filename = StringFromFormat("%svs%.3d.txt", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(),
                                 g_ActiveConfig.iSaveTargetId);
     std::ofstream fvs;
-    OpenFStream(fvs, filename, std::ios_base::out);
+    File::OpenFStream(fvs, filename, std::ios_base::out);
     fvs << prog.shader.strvprog;
   }
 #endif
   g_Config.iSaveTargetId++;
-
   ClearEFBCache();
 }
 

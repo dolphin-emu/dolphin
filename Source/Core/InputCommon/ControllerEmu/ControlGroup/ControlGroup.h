@@ -10,93 +10,33 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/IniFile.h"
-#include "Core/ConfigManager.h"
-#include "InputCommon/ControllerInterface/Device.h"
 
 namespace ControllerEmu
 {
+class BooleanSetting;
 class Control;
+class NumericSetting;
 
-enum
+enum class GroupType
 {
-  GROUP_TYPE_OTHER,
-  GROUP_TYPE_STICK,
-  GROUP_TYPE_MIXED_TRIGGERS,
-  GROUP_TYPE_BUTTONS,
-  GROUP_TYPE_FORCE,
-  GROUP_TYPE_EXTENSION,
-  GROUP_TYPE_TILT,
-  GROUP_TYPE_CURSOR,
-  GROUP_TYPE_TRIGGERS,
-  GROUP_TYPE_SLIDER
+  Other,
+  Stick,
+  MixedTriggers,
+  Buttons,
+  Force,
+  Extension,
+  Tilt,
+  Cursor,
+  Triggers,
+  Slider
 };
 
 class ControlGroup
 {
 public:
-  enum class SettingType
-  {
-    NORMAL,   // normal settings are saved to configuration files
-    VIRTUAL,  // virtual settings are not saved at all
-  };
-
-  class NumericSetting
-  {
-  public:
-    NumericSetting(const std::string& setting_name, const ControlState default_value,
-                   const u32 low = 0, const u32 high = 100,
-                   const SettingType setting_type = SettingType::NORMAL)
-        : m_type(setting_type), m_name(setting_name), m_default_value(default_value), m_low(low),
-          m_high(high)
-    {
-    }
-
-    ControlState GetValue() const { return m_value; }
-    void SetValue(ControlState value) { m_value = value; }
-    const SettingType m_type;
-    const std::string m_name;
-    const ControlState m_default_value;
-    const u32 m_low;
-    const u32 m_high;
-    ControlState m_value;
-  };
-
-  class BooleanSetting
-  {
-  public:
-    BooleanSetting(const std::string& setting_name, const bool default_value,
-                   const SettingType setting_type = SettingType::NORMAL)
-        : m_type(setting_type), m_name(setting_name), m_default_value(default_value)
-    {
-    }
-    virtual ~BooleanSetting();
-
-    virtual bool GetValue() const { return m_value; }
-    virtual void SetValue(bool value) { m_value = value; }
-    const SettingType m_type;
-    const std::string m_name;
-    const bool m_default_value;
-    bool m_value;
-  };
-
-  class BackgroundInputSetting : public BooleanSetting
-  {
-  public:
-    BackgroundInputSetting(const std::string& setting_name)
-        : BooleanSetting(setting_name, false, SettingType::VIRTUAL)
-    {
-    }
-
-    bool GetValue() const override { return SConfig::GetInstance().m_BackgroundInput; }
-    void SetValue(bool value) override
-    {
-      m_value = value;
-      SConfig::GetInstance().m_BackgroundInput = value;
-    }
-  };
-
-  explicit ControlGroup(const std::string& name, u32 type = GROUP_TYPE_OTHER);
-  ControlGroup(const std::string& name, const std::string& ui_name, u32 type = GROUP_TYPE_OTHER);
+  explicit ControlGroup(const std::string& name, GroupType type = GroupType::Other);
+  ControlGroup(const std::string& name, const std::string& ui_name,
+               GroupType type = GroupType::Other);
   virtual ~ControlGroup();
 
   virtual void LoadConfig(IniFile::Section* sec, const std::string& defdev = "",
@@ -108,7 +48,7 @@ public:
 
   const std::string name;
   const std::string ui_name;
-  const u32 type;
+  const GroupType type;
 
   std::vector<std::unique_ptr<Control>> controls;
   std::vector<std::unique_ptr<NumericSetting>> numeric_settings;

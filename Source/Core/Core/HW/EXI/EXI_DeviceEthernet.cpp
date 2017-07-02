@@ -4,6 +4,7 @@
 
 #include "Core/HW/EXI/EXI_DeviceEthernet.h"
 
+#include <memory>
 #include <string>
 
 #include "Common/ChunkFile.h"
@@ -15,6 +16,8 @@
 #include "Core/HW/EXI/EXI.h"
 #include "Core/HW/Memmap.h"
 
+namespace ExpansionInterface
+{
 // XXX: The BBA stores multi-byte elements as little endian.
 // Multiple parts of this implementation depend on Dolphin
 // being compiled for a little endian host.
@@ -589,3 +592,4 @@ wait_for_next:
 
   return true;
 }
+}  // namespace ExpansionInterface

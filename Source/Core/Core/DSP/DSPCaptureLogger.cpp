@@ -2,14 +2,15 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/DSP/DSPCaptureLogger.h"
+
 #include <cstring>
 #include <memory>
+#include <string>
 
 #include "Common/CommonTypes.h"
-#include "Common/FileUtil.h"
+#include "Common/File.h"
 #include "Common/PcapFile.h"
-
-#include "Core/DSP/DSPCaptureLogger.h"
 
 namespace DSP
 {

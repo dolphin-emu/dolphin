@@ -3,6 +3,7 @@ package org.dolphinemu.dolphinemu.fragments;
 import android.app.Fragment;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.util.SparseIntArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,6 +18,16 @@ public final class LoadStateFragment extends Fragment implements View.OnClickLis
 {
 	public static final String FRAGMENT_TAG = BuildConfig.APPLICATION_ID + ".load_state";
 	public static final int FRAGMENT_ID = R.layout.fragment_state_load;
+
+	private static SparseIntArray buttonsActionsMap = new SparseIntArray();
+	static {
+		buttonsActionsMap.append(R.id.menu_emulation_load_1, EmulationActivity.MENU_ACTION_LOAD_SLOT1);
+		buttonsActionsMap.append(R.id.menu_emulation_load_2, EmulationActivity.MENU_ACTION_LOAD_SLOT2);
+		buttonsActionsMap.append(R.id.menu_emulation_load_3, EmulationActivity.MENU_ACTION_LOAD_SLOT3);
+		buttonsActionsMap.append(R.id.menu_emulation_load_4, EmulationActivity.MENU_ACTION_LOAD_SLOT4);
+		buttonsActionsMap.append(R.id.menu_emulation_load_5, EmulationActivity.MENU_ACTION_LOAD_SLOT5);
+		buttonsActionsMap.append(R.id.menu_emulation_load_6, EmulationActivity.MENU_ACTION_LOAD_SLOT6);
+	}
 
 	public static LoadStateFragment newInstance()
 	{
@@ -47,9 +58,14 @@ public final class LoadStateFragment extends Fragment implements View.OnClickLis
 		return rootView;
 	}
 
+	@SuppressWarnings("WrongConstant")
 	@Override
 	public void onClick(View button)
 	{
-		((EmulationActivity) getActivity()).onMenuItemClicked(button.getId());
+		int action = buttonsActionsMap.get(button.getId(), -1);
+		if (action >= 0)
+		{
+			((EmulationActivity) getActivity()).handleMenuAction(action);
+		}
 	}
 }

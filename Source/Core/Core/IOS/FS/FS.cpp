@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/IOS/FS/FS.h"
+
 #include <algorithm>
 #include <cstring>
 #include <deque>
@@ -12,14 +14,13 @@
 #include "Common/ChunkFile.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
+#include "Common/File.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/NandPaths.h"
-#include "Common/StringUtil.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/SystemTimers.h"
-#include "Core/IOS/FS/FS.h"
 #include "Core/IOS/FS/FileIO.h"
 
 namespace IOS
@@ -33,8 +34,11 @@ static bool IsValidWiiPath(const std::string& path)
 
 namespace Device
 {
-FS::FS(u32 device_id, const std::string& device_name) : Device(device_id, device_name)
+FS::FS(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
 {
+  const std::string tmp_dir = BuildFilename("/tmp");
+  File::DeleteDirRecursively(tmp_dir);
+  File::CreateDir(tmp_dir);
 }
 
 void FS::DoState(PointerWrap& p)
@@ -134,13 +138,6 @@ void FS::DoState(PointerWrap& p)
 
 ReturnCode FS::Open(const OpenRequest& request)
 {
-  // clear tmp folder
-  {
-    std::string Path = BuildFilename("/tmp");
-    File::DeleteDirRecursively(Path);
-    File::CreateDir(Path);
-  }
-
   m_is_active = true;
   return IPC_SUCCESS;
 }

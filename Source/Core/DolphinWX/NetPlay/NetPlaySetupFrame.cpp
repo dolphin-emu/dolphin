@@ -36,7 +36,7 @@ wxString GetTraversalLabelText(IniFile::Section& section)
 }
 }  // Anonymous namespace
 
-NetPlaySetupFrame::NetPlaySetupFrame(wxWindow* const parent, const CGameListCtrl* const game_list)
+NetPlaySetupFrame::NetPlaySetupFrame(wxWindow* const parent, const GameListCtrl* const game_list)
     : wxFrame(parent, wxID_ANY, _("Dolphin NetPlay Setup")), m_game_list(game_list)
 {
   IniFile inifile;
@@ -174,15 +174,16 @@ wxNotebook* NetPlaySetupFrame::CreateNotebookGUI(wxWindow* parent)
 
   // connect tab
   {
-    m_ip_lbl = new wxStaticText(connect_tab, wxID_ANY, _("Host Code :"));
-    m_connect_ip_text = new wxTextCtrl(connect_tab, wxID_ANY, "127.0.0.1");
-    m_connect_hashcode_text = new wxTextCtrl(connect_tab, wxID_ANY, "00000000");
+    // The text of these three controls will be set by OnDirectTraversalChoice
+    m_ip_lbl = new wxStaticText(connect_tab, wxID_ANY, "");
+    m_connect_ip_text = new wxTextCtrl(connect_tab, wxID_ANY);
+    m_connect_hashcode_text = new wxTextCtrl(connect_tab, wxID_ANY);
 
     // Will be overridden by OnDirectTraversalChoice, but is necessary
     // so that both inputs do not take up space
     m_connect_hashcode_text->Hide();
 
-    m_client_port_lbl = new wxStaticText(connect_tab, wxID_ANY, _("Port :"));
+    m_client_port_lbl = new wxStaticText(connect_tab, wxID_ANY, _("Port:"));
     m_connect_port_text = new wxTextCtrl(connect_tab, wxID_ANY,
                                          std::to_string(NetPlayHostConfig::DEFAULT_LISTEN_PORT));
 
@@ -222,11 +223,11 @@ wxNotebook* NetPlaySetupFrame::CreateNotebookGUI(wxWindow* parent)
 
   // host tab
   {
-    m_host_port_lbl = new wxStaticText(host_tab, wxID_ANY, _("Port :"));
+    m_host_port_lbl = new wxStaticText(host_tab, wxID_ANY, _("Port:"));
     m_host_port_text =
         new wxTextCtrl(host_tab, wxID_ANY, std::to_string(NetPlayHostConfig::DEFAULT_LISTEN_PORT));
 
-    m_traversal_listen_port_enabled = new wxCheckBox(host_tab, wxID_ANY, _("Force Listen Port: "));
+    m_traversal_listen_port_enabled = new wxCheckBox(host_tab, wxID_ANY, _("Force Listen Port:"));
     m_traversal_listen_port = new wxSpinCtrl(host_tab, wxID_ANY, "", wxDefaultPosition,
                                              wxDefaultSize, wxSP_ARROW_KEYS, 1, 65535);
     m_traversal_listen_port->SetMinSize(WxUtils::GetTextWidgetMinSize(m_traversal_listen_port));
@@ -311,7 +312,7 @@ NetPlaySetupFrame::~NetPlaySetupFrame()
 #endif
 
   inifile.Save(dolphin_ini);
-  main_frame->g_NetPlaySetupDiag = nullptr;
+  main_frame->m_netplay_setup_frame = nullptr;
 }
 
 void NetPlaySetupFrame::OnHost(wxCommandEvent&)
@@ -436,7 +437,7 @@ void NetPlaySetupFrame::OnDirectTraversalChoice(wxCommandEvent& event)
     // Traversal
     // client tab
     {
-      m_ip_lbl->SetLabelText("Host Code: ");
+      m_ip_lbl->SetLabelText(_("Host Code:"));
       m_client_port_lbl->Hide();
       m_connect_port_text->Hide();
     }
@@ -461,7 +462,7 @@ void NetPlaySetupFrame::OnDirectTraversalChoice(wxCommandEvent& event)
     // Direct
     // Client tab
     {
-      m_ip_lbl->SetLabelText("IP Address :");
+      m_ip_lbl->SetLabelText(_("IP Address:"));
 
       std::string address;
       netplay_section.Get("Address", &address, "127.0.0.1");

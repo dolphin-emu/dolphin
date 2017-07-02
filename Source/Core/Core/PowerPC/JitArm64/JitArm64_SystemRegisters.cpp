@@ -14,35 +14,23 @@
 
 FixupBranch JitArm64::JumpIfCRFieldBit(int field, int bit, bool jump_if_set)
 {
-  ARM64Reg WA = gpr.GetReg();
-  ARM64Reg XA = EncodeRegTo64(WA);
+  ARM64Reg XA = gpr.CR(field);
+  ARM64Reg WA = DecodeReg(XA);
 
-  FixupBranch branch;
   switch (bit)
   {
   case CR_SO_BIT:  // check bit 61 set
-    LDR(INDEX_UNSIGNED, XA, PPC_REG, PPCSTATE_OFF(cr_val[field]));
-    branch = jump_if_set ? TBNZ(XA, 61) : TBZ(XA, 61);
-    break;
+    return jump_if_set ? TBNZ(XA, 61) : TBZ(XA, 61);
   case CR_EQ_BIT:  // check bits 31-0 == 0
-    LDR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(cr_val[field]));
-    branch = jump_if_set ? CBZ(WA) : CBNZ(WA);
-    break;
+    return jump_if_set ? CBZ(WA) : CBNZ(WA);
   case CR_GT_BIT:  // check val > 0
-    LDR(INDEX_UNSIGNED, XA, PPC_REG, PPCSTATE_OFF(cr_val[field]));
     CMP(XA, SP);
-    branch = B(jump_if_set ? CC_GT : CC_LE);
-    break;
+    return B(jump_if_set ? CC_GT : CC_LE);
   case CR_LT_BIT:  // check bit 62 set
-    LDR(INDEX_UNSIGNED, XA, PPC_REG, PPCSTATE_OFF(cr_val[field]));
-    branch = jump_if_set ? TBNZ(XA, 62) : TBZ(XA, 62);
-    break;
+    return jump_if_set ? TBNZ(XA, 62) : TBZ(XA, 62);
   default:
     _assert_msg_(DYNA_REC, false, "Invalid CR bit");
   }
-
-  gpr.Unlock(WA);
-  return branch;
 }
 
 void JitArm64::mtmsr(UGeckoInstruction inst)
@@ -79,11 +67,8 @@ void JitArm64::mcrf(UGeckoInstruction inst)
 
   if (inst.CRFS != inst.CRFD)
   {
-    ARM64Reg WA = gpr.GetReg();
-    ARM64Reg XA = EncodeRegTo64(WA);
-    LDR(INDEX_UNSIGNED, XA, PPC_REG, PPCSTATE_OFF(cr_val[inst.CRFS]));
-    STR(INDEX_UNSIGNED, XA, PPC_REG, PPCSTATE_OFF(cr_val[inst.CRFD]));
-    gpr.Unlock(WA);
+    gpr.BindCRToRegister(inst.CRFD, false);
+    MOV(gpr.CR(inst.CRFD), gpr.CR(inst.CRFS));
   }
 }
 
@@ -92,10 +77,11 @@ void JitArm64::mcrxr(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
 
+  gpr.BindCRToRegister(inst.CRFD, false);
   ARM64Reg WA = gpr.GetReg();
   ARM64Reg XA = EncodeRegTo64(WA);
-  ARM64Reg WB = gpr.GetReg();
-  ARM64Reg XB = EncodeRegTo64(WB);
+  ARM64Reg XB = gpr.CR(inst.CRFD);
+  ARM64Reg WB = DecodeReg(XB);
 
   // Copy XER[0-3] into CR[inst.CRFD]
   LDRB(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(xer_ca));
@@ -108,13 +94,12 @@ void JitArm64::mcrxr(UGeckoInstruction inst)
 
   MOVP2R(XB, m_crTable.data());
   LDR(XB, XB, XA);
-  STR(INDEX_UNSIGNED, XB, PPC_REG, PPCSTATE_OFF(cr_val[inst.CRFD]));
 
   // Clear XER[0-3]
   STRB(INDEX_UNSIGNED, WZR, PPC_REG, PPCSTATE_OFF(xer_ca));
   STRB(INDEX_UNSIGNED, WZR, PPC_REG, PPCSTATE_OFF(xer_so_ov));
 
-  gpr.Unlock(WA, WB);
+  gpr.Unlock(WA);
 }
 
 void JitArm64::mfsr(UGeckoInstruction inst)
@@ -247,43 +232,57 @@ void JitArm64::mfspr(UGeckoInstruction inst)
   case SPR_TL:
   case SPR_TU:
   {
-    // The inline implementation here is inaccurate and out of date as of PR3601
-    FALLBACK_IF(true);  // Fallback to interpreted version.
+    ARM64Reg Wg = gpr.GetReg();
+    ARM64Reg Xg = EncodeRegTo64(Wg);
 
-    /*
+    ARM64Reg Wresult = gpr.GetReg();
+    ARM64Reg Xresult = EncodeRegTo64(Wresult);
+
     ARM64Reg WA = gpr.GetReg();
     ARM64Reg WB = gpr.GetReg();
     ARM64Reg XA = EncodeRegTo64(WA);
     ARM64Reg XB = EncodeRegTo64(WB);
 
+    ARM64Reg VC = fpr.GetReg();
+    ARM64Reg VD = fpr.GetReg();
+    ARM64Reg SC = EncodeRegToSingle(VC);
+    ARM64Reg SD = EncodeRegToSingle(VD);
+
     // An inline implementation of CoreTiming::GetFakeTimeBase, since in timer-heavy games the
     // cost of calling out to C for this is actually significant.
-    MOVI2R(XA, (u64)&CoreTiming::g_global_timer);
-    LDR(INDEX_UNSIGNED, XA, XA, 0);
-    MOVI2R(XB, (u64)&CoreTiming::g_fake_TB_start_ticks);
-    LDR(INDEX_UNSIGNED, XB, XB, 0);
-    SUB(XA, XA, XB);
+
+    MOVP2R(Xg, &CoreTiming::g);
+
+    LDR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(downcount));
+    m_float_emit.SCVTF(SC, WA);
+    m_float_emit.LDR(32, INDEX_UNSIGNED, SD, Xg,
+                     offsetof(CoreTiming::Globals, last_OC_factor_inverted));
+    m_float_emit.FMUL(SC, SC, SD);
+    m_float_emit.FCVTS(Xresult, SC, ROUND_Z);
+
+    LDP(INDEX_SIGNED, XA, XB, Xg, offsetof(CoreTiming::Globals, global_timer));
+    SXTW(XB, WB);
+    SUB(Xresult, XB, Xresult);
+    ADD(Xresult, Xresult, XA);
 
     // It might seem convenient to correct the timer for the block position here for even more
-    accurate
-    // timing, but as of currently, this can break games. If we end up reading a time *after* the
-    time
-    // at which an interrupt was supposed to occur, e.g. because we're 100 cycles into a block with
-    only
-    // 50 downcount remaining, some games don't function correctly, such as Karaoke Party
-    Revolution,
-    // which won't get past the loading screen.
+    // accurate timing, but as of currently, this can break games. If we end up reading a time
+    // *after* the time at which an interrupt was supposed to occur, e.g. because we're 100 cycles
+    // into a block with only 50 downcount remaining, some games don't function correctly, such as
+    // Karaoke Party Revolution, which won't get past the loading screen.
+
+    LDP(INDEX_SIGNED, XA, XB, Xg, offsetof(CoreTiming::Globals, fake_TB_start_value));
+    SUB(Xresult, Xresult, XB);
+
     // a / 12 = (a * 0xAAAAAAAAAAAAAAAB) >> 67
-    ORR(XB, SP, 1, 60);
+    ORRI2R(XB, ZR, 0xAAAAAAAAAAAAAAAA);
     ADD(XB, XB, 1);
-    UMULH(XA, XA, XB);
+    UMULH(Xresult, Xresult, XB);
 
-    MOVI2R(XB, (u64)&CoreTiming::g_fake_TB_start_value);
-    LDR(INDEX_UNSIGNED, XB, XB, 0);
-    ADD(XA, XB, XA, ArithOption(XA, ST_LSR, 3));
-    STR(INDEX_UNSIGNED, XA, PPC_REG, PPCSTATE_OFF(spr[SPR_TL]));
+    ADD(Xresult, XA, Xresult, ArithOption(Xresult, ST_LSR, 3));
+    STR(INDEX_UNSIGNED, Xresult, PPC_REG, PPCSTATE_OFF(spr[SPR_TL]));
 
-    if (MergeAllowedNextInstructions(1))
+    if (CanMergeNextInstructions(1))
     {
       const UGeckoInstruction& next = js.op[1].inst;
       // Two calls of TU/TL next to each other are extremely common in typical usage, so merge them
@@ -292,32 +291,35 @@ void JitArm64::mfspr(UGeckoInstruction inst)
       // Be careful; the actual opcode is for mftb (371), not mfspr (339)
       int n = next.RD;
       if (next.OPCD == 31 && next.SUBOP10 == 371 && (nextIndex == SPR_TU || nextIndex == SPR_TL) &&
-    n != d)
+          n != d)
       {
         js.downcountAmount++;
         js.skipInstructions = 1;
         gpr.BindToRegister(d, false);
         gpr.BindToRegister(n, false);
         if (iIndex == SPR_TL)
-          MOV(gpr.R(d), WA);
+          MOV(gpr.R(d), Wresult);
         else
-          ORR(EncodeRegTo64(gpr.R(d)), SP, XA, ArithOption(XA, ST_LSR, 32));
+          ORR(EncodeRegTo64(gpr.R(d)), ZR, Xresult, ArithOption(Xresult, ST_LSR, 32));
 
         if (nextIndex == SPR_TL)
-          MOV(gpr.R(n), WA);
+          MOV(gpr.R(n), Wresult);
         else
-          ORR(EncodeRegTo64(gpr.R(n)), SP, XA, ArithOption(XA, ST_LSR, 32));
+          ORR(EncodeRegTo64(gpr.R(n)), ZR, Xresult, ArithOption(Xresult, ST_LSR, 32));
 
-        gpr.Unlock(WA, WB);
+        gpr.Unlock(Wg, Wresult, WA, WB);
+        fpr.Unlock(VC, VD);
         break;
       }
     }
     gpr.BindToRegister(d, false);
     if (iIndex == SPR_TU)
-      ORR(EncodeRegTo64(gpr.R(d)), SP, XA, ArithOption(XA, ST_LSR, 32));
+      ORR(EncodeRegTo64(gpr.R(d)), ZR, Xresult, ArithOption(Xresult, ST_LSR, 32));
     else
-      MOV(gpr.R(d), WA);
-    gpr.Unlock(WA, WB);*/
+      MOV(gpr.R(d), Wresult);
+
+    gpr.Unlock(Wg, Wresult, WA, WB);
+    fpr.Unlock(VC, VD);
   }
   break;
   case SPR_XER:
@@ -418,9 +420,8 @@ void JitArm64::crXXX(UGeckoInstruction inst)
     int field = inst.CRBD >> 2;
     int bit = 3 - (inst.CRBD & 3);
 
-    ARM64Reg WA = gpr.GetReg();
-    ARM64Reg XA = EncodeRegTo64(WA);
-    LDR(INDEX_UNSIGNED, XA, PPC_REG, PPCSTATE_OFF(cr_val[field]));
+    gpr.BindCRToRegister(field, true);
+    ARM64Reg XA = gpr.CR(field);
     switch (bit)
     {
     case CR_SO_BIT:
@@ -439,8 +440,6 @@ void JitArm64::crXXX(UGeckoInstruction inst)
       AND(XA, XA, 64 - 63, 62, true);  // XA & ~(1<<62)
       break;
     }
-    STR(INDEX_UNSIGNED, XA, PPC_REG, PPCSTATE_OFF(cr_val[field]));
-    gpr.Unlock(WA);
     return;
   }
 
@@ -451,9 +450,8 @@ void JitArm64::crXXX(UGeckoInstruction inst)
     int field = inst.CRBD >> 2;
     int bit = 3 - (inst.CRBD & 3);
 
-    ARM64Reg WA = gpr.GetReg();
-    ARM64Reg XA = EncodeRegTo64(WA);
-    LDR(INDEX_UNSIGNED, XA, PPC_REG, PPCSTATE_OFF(cr_val[field]));
+    gpr.BindCRToRegister(field, true);
+    ARM64Reg XA = gpr.CR(field);
 
     if (bit != CR_GT_BIT)
     {
@@ -485,9 +483,6 @@ void JitArm64::crXXX(UGeckoInstruction inst)
     }
 
     ORR(XA, XA, 32, 0, true);  // XA | 1<<32
-
-    STR(INDEX_UNSIGNED, XA, PPC_REG, PPCSTATE_OFF(cr_val[field]));
-    gpr.Unlock(WA);
     return;
   }
 
@@ -510,9 +505,8 @@ void JitArm64::crXXX(UGeckoInstruction inst)
     ARM64Reg out = i ? XB : XA;
     bool negate = i ? negateB : negateA;
 
-    ARM64Reg WC = gpr.GetReg();
-    ARM64Reg XC = EncodeRegTo64(WC);
-    LDR(INDEX_UNSIGNED, XC, PPC_REG, PPCSTATE_OFF(cr_val[field]));
+    ARM64Reg XC = gpr.CR(field);
+    ARM64Reg WC = DecodeReg(XC);
     switch (bit)
     {
     case CR_SO_BIT:  // check bit 61 set
@@ -540,7 +534,6 @@ void JitArm64::crXXX(UGeckoInstruction inst)
     default:
       _assert_msg_(DYNA_REC, false, "Invalid CR bit");
     }
-    gpr.Unlock(WC);
   }
 
   // Compute combined bit
@@ -568,7 +561,10 @@ void JitArm64::crXXX(UGeckoInstruction inst)
   int field = inst.CRBD >> 2;
   int bit = 3 - (inst.CRBD & 3);
 
-  LDR(INDEX_UNSIGNED, XB, PPC_REG, PPCSTATE_OFF(cr_val[field]));
+  gpr.Unlock(WB);
+  WB = INVALID_REG;
+  gpr.BindCRToRegister(field, true);
+  XB = gpr.CR(field);
 
   // Gross but necessary; if the input is totally zero and we set SO or LT,
   // or even just add the (1<<32), GT will suddenly end up set without us
@@ -605,11 +601,9 @@ void JitArm64::crXXX(UGeckoInstruction inst)
     break;
   }
 
-  ORR(XA, XA, 32, 0, true);  // XA | 1<<32
-  STR(INDEX_UNSIGNED, XB, PPC_REG, PPCSTATE_OFF(cr_val[field]));
+  ORR(XB, XB, 32, 0, true);  // XB | 1<<32
 
   gpr.Unlock(WA);
-  gpr.Unlock(WB);
 }
 
 void JitArm64::mfcr(UGeckoInstruction inst)
@@ -617,14 +611,44 @@ void JitArm64::mfcr(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
 
-  gpr.Lock(W0, W1, W2, W30);
-  BL(GetAsmRoutines()->mfcr);
-  gpr.Unlock(W1, W2, W30);
-
   gpr.BindToRegister(inst.RD, false);
-  MOV(gpr.R(inst.RD), W0);
+  ARM64Reg WA = gpr.R(inst.RD);
+  ARM64Reg WC = gpr.GetReg();
+  ARM64Reg XA = EncodeRegTo64(WA);
+  ARM64Reg XC = EncodeRegTo64(WC);
 
-  gpr.Unlock(W0);
+  for (int i = 0; i < 8; i++)
+  {
+    ARM64Reg CR = gpr.CR(i);
+    ARM64Reg WCR = DecodeReg(CR);
+
+    // SO
+    if (i == 0)
+    {
+      UBFX(XA, CR, 61, 1);
+    }
+    else
+    {
+      UBFX(XC, CR, 61, 1);
+      ORR(XA, XC, XA, ArithOption(XA, ST_LSL, 4));
+    }
+
+    // EQ
+    ORR(WC, WA, 32 - 1, 0);  // WA | 1<<1
+    CMP(WCR, WZR);
+    CSEL(WA, WC, WA, CC_EQ);
+
+    // GT
+    ORR(WC, WA, 32 - 2, 0);  // WA | 1<<2
+    CMP(CR, ZR);
+    CSEL(WA, WC, WA, CC_GT);
+
+    // LT
+    UBFX(XC, CR, 62, 1);
+    ORR(WA, WA, WC, ArithOption(WC, ST_LSL, 3));
+  }
+
+  gpr.Unlock(WC);
 }
 
 void JitArm64::mtcrf(UGeckoInstruction inst)
@@ -636,8 +660,6 @@ void JitArm64::mtcrf(UGeckoInstruction inst)
   if (crm != 0)
   {
     ARM64Reg RS = gpr.R(inst.RS);
-    ARM64Reg WA = gpr.GetReg();
-    ARM64Reg XA = EncodeRegTo64(WA);
     ARM64Reg WB = gpr.GetReg();
     ARM64Reg XB = EncodeRegTo64(WB);
     MOVP2R(XB, m_crTable.data());
@@ -645,20 +667,23 @@ void JitArm64::mtcrf(UGeckoInstruction inst)
     {
       if ((crm & (0x80 >> i)) != 0)
       {
+        gpr.BindCRToRegister(i, false);
+        ARM64Reg CR = gpr.CR(i);
+        ARM64Reg WCR = DecodeReg(CR);
+
         if (i != 7)
-          LSR(WA, RS, 28 - i * 4);
+          LSR(WCR, RS, 28 - i * 4);
         if (i != 0)
         {
           if (i != 7)
-            UBFX(WA, WA, 0, 4);
+            UBFX(WCR, WCR, 0, 4);
           else
-            UBFX(WA, RS, 0, 4);
+            UBFX(WCR, RS, 0, 4);
         }
 
-        LDR(XA, XB, ArithOption(XA, true));
-        STR(INDEX_UNSIGNED, XA, PPC_REG, PPCSTATE_OFF(cr_val[i]));
+        LDR(CR, XB, ArithOption(CR, true));
       }
     }
-    gpr.Unlock(WA, WB);
+    gpr.Unlock(WB);
   }
 }

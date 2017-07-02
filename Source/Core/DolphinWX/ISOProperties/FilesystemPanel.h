@@ -14,15 +14,15 @@ class wxTreeEvent;
 
 namespace DiscIO
 {
-class IFileSystem;
-class IVolume;
+class FileSystem;
+class Volume;
 }
 
 class FilesystemPanel final : public wxPanel
 {
 public:
-  explicit FilesystemPanel(wxWindow* parent, wxWindowID id, const GameListItem& item,
-                           const std::unique_ptr<DiscIO::IVolume>& opened_iso);
+  explicit FilesystemPanel(wxWindow* parent, wxWindowID id,
+                           const std::unique_ptr<DiscIO::Volume>& opened_iso);
   ~FilesystemPanel();
 
 private:
@@ -39,9 +39,7 @@ private:
   void CreateGUI();
   void BindEvents();
 
-  void PopulateFileSystemTree();
-  void PopulateFileSystemTreeGC();
-  void PopulateFileSystemTreeWii() const;
+  bool PopulateFileSystemTree();
 
   void OnRightClickTree(wxTreeEvent&);
   void OnExtractFile(wxCommandEvent&);
@@ -50,27 +48,18 @@ private:
   void OnCheckPartitionIntegrity(wxCommandEvent&);
 
   void ExtractAllFiles(const wxString& output_folder);
-  void ExtractAllFilesGC(const wxString& output_folder);
-  void ExtractAllFilesWii(const wxString& output_folder);
-
   void ExtractSingleFile(const wxString& output_file_path) const;
-  void ExtractSingleFileGC(const wxString& file_path, const wxString& output_file_path) const;
-  void ExtractSingleFileWii(wxString file_path, const wxString& output_file_path) const;
-
   void ExtractSingleDirectory(const wxString& output_folder);
-  void ExtractSingleDirectoryGC(const wxString& directory_path, const wxString& output_folder);
-  void ExtractSingleDirectoryWii(wxString directory_path, const wxString& output_folder);
-
   void ExtractDirectories(const std::string& full_path, const std::string& output_folder,
-                          DiscIO::IFileSystem* filesystem);
+                          const DiscIO::FileSystem& filesystem);
 
   wxString BuildFilePathFromSelection() const;
   wxString BuildDirectoryPathFromSelection() const;
 
   wxTreeCtrl* m_tree_ctrl;
 
-  const GameListItem& m_game_list_item;
-  const std::unique_ptr<DiscIO::IVolume>& m_opened_iso;
+  const std::unique_ptr<DiscIO::Volume>& m_opened_iso;
 
-  std::unique_ptr<DiscIO::IFileSystem> m_filesystem;
+  std::unique_ptr<DiscIO::FileSystem> m_filesystem;
+  bool m_has_partitions;
 };

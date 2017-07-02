@@ -2,15 +2,15 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/HLE/HLE.h"
+
 #include <algorithm>
 #include <map>
 
 #include "Common/CommonTypes.h"
 
 #include "Core/ConfigManager.h"
-#include "Core/Core.h"
-#include "Core/Debugger/Debugger_SymbolMap.h"
-#include "Core/HLE/HLE.h"
+#include "Core/GeckoCode.h"
 #include "Core/HLE/HLE_Misc.h"
 #include "Core/HLE/HLE_OS.h"
 #include "Core/HW/Memmap.h"
@@ -54,20 +54,25 @@ static const SPatch OSPatches[] = {
     {"OSPanic",                      HLE_OS::HLE_OSPanic,                   HLE_HOOK_REPLACE, HLE_TYPE_DEBUG},
 
     // This needs to be put before vprintf (because vprintf is called indirectly by this)
-    {"JUTWarningConsole_f",          HLE_OS::HLE_GeneralDebugPrint,         HLE_HOOK_REPLACE, HLE_TYPE_DEBUG},
+    {"JUTWarningConsole_f",          HLE_OS::HLE_GeneralDebugPrint,         HLE_HOOK_START,   HLE_TYPE_DEBUG},
 
-    {"OSReport",                     HLE_OS::HLE_GeneralDebugPrint,         HLE_HOOK_REPLACE, HLE_TYPE_DEBUG},
-    {"DEBUGPrint",                   HLE_OS::HLE_GeneralDebugPrint,         HLE_HOOK_REPLACE, HLE_TYPE_DEBUG},
-    {"WUD_DEBUGPrint",               HLE_OS::HLE_GeneralDebugPrint,         HLE_HOOK_REPLACE, HLE_TYPE_DEBUG},
-    {"vprintf",                      HLE_OS::HLE_GeneralDebugPrint,         HLE_HOOK_REPLACE, HLE_TYPE_DEBUG},
-    {"printf",                       HLE_OS::HLE_GeneralDebugPrint,         HLE_HOOK_REPLACE, HLE_TYPE_DEBUG},
-    {"nlPrintf",                     HLE_OS::HLE_GeneralDebugPrint,         HLE_HOOK_REPLACE, HLE_TYPE_DEBUG},
-    {"puts",                         HLE_OS::HLE_GeneralDebugPrint,         HLE_HOOK_REPLACE, HLE_TYPE_DEBUG}, // gcc-optimized printf?
-    {"___blank",                     HLE_OS::HLE_GeneralDebugPrint,         HLE_HOOK_REPLACE, HLE_TYPE_DEBUG}, // used for early init things (normally)
-    {"__write_console",              HLE_OS::HLE_write_console,             HLE_HOOK_REPLACE, HLE_TYPE_DEBUG}, // used by sysmenu (+more?)
+    {"OSReport",                     HLE_OS::HLE_GeneralDebugPrint,         HLE_HOOK_START,   HLE_TYPE_DEBUG},
+    {"DEBUGPrint",                   HLE_OS::HLE_GeneralDebugPrint,         HLE_HOOK_START,   HLE_TYPE_DEBUG},
+    {"WUD_DEBUGPrint",               HLE_OS::HLE_GeneralDebugPrint,         HLE_HOOK_START,   HLE_TYPE_DEBUG},
+    {"vprintf",                      HLE_OS::HLE_GeneralDebugVPrint,        HLE_HOOK_START,   HLE_TYPE_DEBUG},
+    {"printf",                       HLE_OS::HLE_GeneralDebugPrint,         HLE_HOOK_START,   HLE_TYPE_DEBUG},
+    {"vdprintf",                     HLE_OS::HLE_LogVDPrint,                HLE_HOOK_START,   HLE_TYPE_DEBUG},
+    {"dprintf",                      HLE_OS::HLE_LogDPrint,                 HLE_HOOK_START,   HLE_TYPE_DEBUG},
+    {"vfprintf",                     HLE_OS::HLE_LogVFPrint,                HLE_HOOK_START,   HLE_TYPE_DEBUG},
+    {"fprintf",                      HLE_OS::HLE_LogFPrint,                 HLE_HOOK_START,   HLE_TYPE_DEBUG},
+    {"nlPrintf",                     HLE_OS::HLE_GeneralDebugPrint,         HLE_HOOK_START,   HLE_TYPE_DEBUG},
+    {"puts",                         HLE_OS::HLE_GeneralDebugPrint,         HLE_HOOK_START,   HLE_TYPE_DEBUG}, // gcc-optimized printf?
+    {"___blank",                     HLE_OS::HLE_GeneralDebugPrint,         HLE_HOOK_START,   HLE_TYPE_DEBUG}, // used for early init things (normally)
+    {"__write_console",              HLE_OS::HLE_write_console,             HLE_HOOK_START,   HLE_TYPE_DEBUG}, // used by sysmenu (+more?)
 
     {"GeckoCodehandler",             HLE_Misc::GeckoCodeHandlerICacheFlush, HLE_HOOK_START,   HLE_TYPE_FIXED},
     {"GeckoHandlerReturnTrampoline", HLE_Misc::GeckoReturnTrampoline,       HLE_HOOK_REPLACE, HLE_TYPE_FIXED},
+    {"AppLoaderReport",              HLE_OS::HLE_GeneralDebugPrint,         HLE_HOOK_REPLACE, HLE_TYPE_FIXED} // apploader needs OSReport-like function
 };
 
 static const SPatch OSBreakPoints[] = {
@@ -86,6 +91,24 @@ void Patch(u32 addr, const char* hle_func_name)
       return;
     }
   }
+}
+
+void PatchFixedFunctions()
+{
+  // HLE jump to loader (homebrew).  Disabled when Gecko is active as it interferes with the code
+  // handler
+  if (!SConfig::GetInstance().bEnableCheats)
+  {
+    Patch(0x80001800, "HBReload");
+    Memory::CopyToEmu(0x00001804, "STUBHAXX", 8);
+  }
+
+  // Not part of the binary itself, but either we or Gecko OS might insert
+  // this, and it doesn't clear the icache properly.
+  Patch(Gecko::ENTRY_POINT, "GeckoCodehandler");
+  // This has to always be installed even if cheats are not enabled because of the possiblity of
+  // loading a savestate where PC is inside the code handler while cheats are disabled.
+  Patch(Gecko::HLE_TRAMPOLINE_ADDRESS, "GeckoHandlerReturnTrampoline");
 }
 
 void PatchFunctions()
@@ -141,6 +164,13 @@ void Clear()
   s_original_instructions.clear();
 }
 
+void Reload()
+{
+  Clear();
+  PatchFixedFunctions();
+  PatchFunctions();
+}
+
 void Execute(u32 _CurrentPC, u32 _Instruction)
 {
   unsigned int FunctionIndex = _Instruction & 0xFFFFF;
@@ -157,10 +187,19 @@ void Execute(u32 _CurrentPC, u32 _Instruction)
   // OSPatches[pos].m_szPatchName);
 }
 
-u32 GetFunctionIndex(u32 addr)
+u32 GetFunctionIndex(u32 address)
 {
-  auto iter = s_original_instructions.find(addr);
+  auto iter = s_original_instructions.find(address);
   return (iter != s_original_instructions.end()) ? iter->second : 0;
+}
+
+u32 GetFirstFunctionIndex(u32 address)
+{
+  u32 index = GetFunctionIndex(address);
+  auto first = std::find_if(
+      s_original_instructions.begin(), s_original_instructions.end(),
+      [=](const auto& entry) { return entry.second == index && entry.first < address; });
+  return first == std::end(s_original_instructions) ? index : 0;
 }
 
 int GetFunctionTypeByIndex(u32 index)
@@ -207,8 +246,10 @@ u32 UnPatch(const std::string& patch_name)
     return addr;
   }
 
-  for (const auto& symbol : g_symbolDB.GetSymbolsFromName(patch_name))
+  const auto& symbols = g_symbolDB.GetSymbolsFromName(patch_name);
+  if (symbols.size())
   {
+    const auto& symbol = symbols[0];
     for (u32 addr = symbol->address; addr < symbol->address + symbol->size; addr += 4)
     {
       s_original_instructions.erase(addr);

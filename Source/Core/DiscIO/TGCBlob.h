@@ -9,7 +9,7 @@
 #include <utility>
 
 #include "Common/CommonTypes.h"
-#include "Common/FileUtil.h"
+#include "Common/File.h"
 #include "DiscIO/Blob.h"
 
 namespace DiscIO
@@ -37,7 +37,7 @@ struct TGCHeader
   u32 unknown_important_2;
 };
 
-class TGCFileReader final : public IBlobReader
+class TGCFileReader final : public BlobReader
 {
 public:
   static std::unique_ptr<TGCFileReader> Create(File::IOFile file);

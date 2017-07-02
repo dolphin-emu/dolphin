@@ -2,191 +2,92 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+// Utilities to parse and modify a Wii SYSCONF file and its sections.
+
 #pragma once
 
-#include <algorithm>
-#include <cstdio>
 #include <cstring>
 #include <string>
 #include <vector>
 
+#include "Common/Assert.h"
 #include "Common/CommonTypes.h"
-#include "Common/Logging/Log.h"
-#include "Common/MsgHandler.h"
 #include "Common/NandPaths.h"
 
-namespace File
-{
-class IOFile;
-}
-
-// This class is meant to edit the values in a given Wii SYSCONF file
-// It currently does not add/remove/rearrange sections,
-// instead only modifies exiting sections' data
-
-#define SYSCONF_SIZE 0x4000
-
-enum SysconfType
-{
-  Type_BigArray = 1,
-  Type_SmallArray,
-  Type_Byte,
-  Type_Short,
-  Type_Long,
-  Type_LongLong,
-  Type_Bool
-};
-
-struct SSysConfHeader
-{
-  char version[4];
-  u16 numEntries;
-};
-
-struct SSysConfEntry
-{
-  u16 offset;
-  SysconfType type;
-  u8 nameLength;
-  char name[32];
-  u16 dataLength;
-  u8* data;
-
-  template <class T>
-  T GetData()
-  {
-    return *(T*)data;
-  }
-  bool GetArrayData(u8* dest, u16 destSize)
-  {
-    if (dest && destSize >= dataLength)
-    {
-      memcpy(dest, data, dataLength);
-      return true;
-    }
-    return false;
-  }
-  bool SetArrayData(u8* buffer, u16 bufferSize)
-  {
-    if (buffer)
-    {
-      memcpy(data, buffer, std::min<u16>(bufferSize, dataLength));
-      return true;
-    }
-    return false;
-  }
-};
-
-class SysConf
+class SysConf final
 {
 public:
   SysConf(Common::FromWhichRoot root_type);
   ~SysConf();
 
-  bool IsValid() { return m_IsValid; }
-  template <class T>
-  T GetData(const char* sectionName)
+  void Clear();
+  void Load();
+  bool Save() const;
+
+  struct Entry
   {
-    if (!m_IsValid)
+    enum Type : u8
     {
-      PanicAlertT("Trying to read from invalid SYSCONF");
-      return 0;
+      BigArray = 1,
+      SmallArray = 2,
+      Byte = 3,
+      Short = 4,
+      Long = 5,
+      LongLong = 6,
+      // Should really be named Bool, but this conflicts with some random macro. :/
+      ByteBool = 7,
+    };
+
+    Entry(Type type_, const std::string& name_);
+    Entry(Type type_, const std::string& name_, const std::vector<u8>& bytes_);
+    Entry(Type type_, const std::string& name_, std::vector<u8>&& bytes_);
+
+    // Intended for use with the non array types.
+    template <typename T>
+    T GetData(T default_value) const
+    {
+      if (bytes.size() != sizeof(T))
+        return default_value;
+      T value;
+      std::memcpy(&value, bytes.data(), bytes.size());
+      return value;
+    }
+    template <typename T>
+    void SetData(T value)
+    {
+      _assert_(sizeof(value) == bytes.size());
+      std::memcpy(bytes.data(), &value, bytes.size());
     }
 
-    std::vector<SSysConfEntry>::iterator index = m_Entries.begin();
-    for (; index < m_Entries.end() - 1; ++index)
-    {
-      if (strcmp(index->name, sectionName) == 0)
-        break;
-    }
-    if (index == m_Entries.end() - 1)
-    {
-      PanicAlertT("Section %s not found in SYSCONF", sectionName);
-      return 0;
-    }
+    Type type;
+    std::string name;
+    std::vector<u8> bytes;
+  };
 
-    return index->GetData<T>();
-  }
+  void AddEntry(Entry&& entry);
+  Entry* GetEntry(const std::string& key);
+  const Entry* GetEntry(const std::string& key) const;
+  Entry* GetOrAddEntry(const std::string& key, Entry::Type type);
+  void RemoveEntry(const std::string& key);
 
-  bool GetArrayData(const char* sectionName, u8* dest, u16 destSize)
+  // Intended for use with the non array types.
+  template <typename T>
+  T GetData(const std::string& key, T default_value) const
   {
-    if (!m_IsValid)
-    {
-      PanicAlertT("Trying to read from invalid SYSCONF");
-      return 0;
-    }
-
-    std::vector<SSysConfEntry>::iterator index = m_Entries.begin();
-    for (; index < m_Entries.end() - 1; ++index)
-    {
-      if (strcmp(index->name, sectionName) == 0)
-        break;
-    }
-    if (index == m_Entries.end() - 1)
-    {
-      PanicAlertT("Section %s not found in SYSCONF", sectionName);
-      return 0;
-    }
-
-    return index->GetArrayData(dest, destSize);
+    const Entry* entry = GetEntry(key);
+    return entry ? entry->GetData(default_value) : default_value;
   }
-
-  bool SetArrayData(const char* sectionName, u8* buffer, u16 bufferSize)
+  template <typename T>
+  void SetData(const std::string& key, Entry::Type type, T value)
   {
-    if (!m_IsValid)
-      return false;
-
-    std::vector<SSysConfEntry>::iterator index = m_Entries.begin();
-    for (; index < m_Entries.end() - 1; ++index)
-    {
-      if (strcmp(index->name, sectionName) == 0)
-        break;
-    }
-    if (index == m_Entries.end() - 1)
-    {
-      PanicAlertT("Section %s not found in SYSCONF", sectionName);
-      return false;
-    }
-
-    return index->SetArrayData(buffer, bufferSize);
+    GetOrAddEntry(key, type)->SetData(value);
   }
-
-  template <class T>
-  bool SetData(const char* sectionName, T newValue)
-  {
-    if (!m_IsValid)
-      return false;
-
-    std::vector<SSysConfEntry>::iterator index = m_Entries.begin();
-    for (; index < m_Entries.end() - 1; ++index)
-    {
-      if (strcmp(index->name, sectionName) == 0)
-        break;
-    }
-    if (index == m_Entries.end() - 1)
-    {
-      PanicAlertT("Section %s not found in SYSCONF", sectionName);
-      return false;
-    }
-
-    *(T*)index->data = newValue;
-    return true;
-  }
-
-  bool Save();
-  bool SaveToFile(const std::string& filename);
-  bool LoadFromFile(const std::string& filename);
-  bool Reload();
-  void UpdateLocation(Common::FromWhichRoot root_type);
 
 private:
-  bool LoadFromFileInternal(File::IOFile&& file);
-  void GenerateSysConf();
-  void Clear();
   void ApplySettingsFromMovie();
+  void InsertDefaultEntries();
+  bool LoadFromFile(const std::string& file_name);
 
-  std::string m_Filename;
-  std::string m_FilenameDefault;
-  std::vector<SSysConfEntry> m_Entries;
-  bool m_IsValid = false;
+  std::string m_file_name;
+  std::vector<Entry> m_entries;
 };

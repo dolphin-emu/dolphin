@@ -17,15 +17,9 @@ public final class StartupHandler
 	{
 		NativeLibrary.SetUserDirectory(""); // Auto-Detect
 
-		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(parent);
-		boolean assetsCopied = preferences.getBoolean("assetsCopied", false);
-
 		// Only perform these extensive copy operations once.
-		if (!assetsCopied)
-		{
-			// Copy assets into appropriate locations.
-			Intent copyAssets = new Intent(parent, AssetCopyService.class);
-			parent.startService(copyAssets);
+		if (PermissionsHandler.checkWritePermission(parent)) {
+			copyAssetsIfNeeded(parent);
 		}
 
 		Intent intent = parent.getIntent();
@@ -50,5 +44,17 @@ public final class StartupHandler
 			}
 		}
 		return false;
+	}
+
+	public static void copyAssetsIfNeeded(Activity parent) {
+		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(parent);
+		boolean assetsCopied = preferences.getBoolean("assetsCopied", false);
+
+		if (!assetsCopied)
+		{
+			// Copy assets into appropriate locations.
+			Intent copyAssets = new Intent(parent, AssetCopyService.class);
+			parent.startService(copyAssets);
+		}
 	}
 }

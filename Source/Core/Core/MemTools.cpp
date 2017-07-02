@@ -2,21 +2,21 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/MemTools.h"
+
 #include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <vector>
 
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
+#include "Common/MsgHandler.h"
 #include "Common/Thread.h"
 
-#include "Core/HW/Memmap.h"
 #include "Core/MachineContext.h"
-#include "Core/MemTools.h"
 #include "Core/PowerPC/JitInterface.h"
-#include "Core/PowerPC/PowerPC.h"
-#ifndef _M_GENERIC
-#include "Core/PowerPC/JitCommon/JitBase.h"
-#endif
+
 #ifdef __FreeBSD__
 #include <signal.h>
 #endif

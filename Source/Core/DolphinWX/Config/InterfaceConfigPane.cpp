@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "DolphinWX/Config/InterfaceConfigPane.h"
+
 #include <array>
 #include <limits>
 #include <string>
@@ -15,20 +17,20 @@
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 
-#include "Common/CommonFuncs.h"
 #include "Common/CommonPaths.h"
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 #include "Common/MsgHandler.h"
+#include "Common/StringUtil.h"
+
 #include "Core/ConfigManager.h"
-#include "Core/HotkeyManager.h"
-#include "DolphinWX/Config/InterfaceConfigPane.h"
+
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/Input/InputConfigDiag.h"
 #include "DolphinWX/WxUtils.h"
 
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
-#include "DolphinWX/X11Utils.h"
+#include "UICommon/X11Utils.h"
 #endif
 
 static const std::array<std::string, 29> language_ids{{
@@ -87,6 +89,8 @@ void InterfaceConfigPane::InitializeGUI()
   m_panic_handlers_checkbox = new wxCheckBox(this, wxID_ANY, _("Use Panic Handlers"));
   m_osd_messages_checkbox = new wxCheckBox(this, wxID_ANY, _("On-Screen Display Messages"));
   m_simple_title_checkbox = new wxCheckBox(this, wxID_ANY, _("Use simpler window title for emulation window"));
+  m_show_active_title_checkbox =
+      new wxCheckBox(this, wxID_ANY, _("Show Active Title in Window Title"));
   m_pause_focus_lost_checkbox = new wxCheckBox(this, wxID_ANY, _("Pause on Focus Lost"));
   m_interface_lang_choice =
       new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_interface_lang_strings);
@@ -99,6 +103,8 @@ void InterfaceConfigPane::InitializeGUI()
   m_osd_messages_checkbox->Bind(wxEVT_CHECKBOX, &InterfaceConfigPane::OnOSDMessagesCheckBoxChanged,
                                 this);
   m_simple_title_checkbox->Bind(wxEVT_CHECKBOX, &InterfaceConfigPane::OnSimpleTitleCheckBoxChanged, this);
+  m_show_active_title_checkbox->Bind(wxEVT_CHECKBOX,
+                                     &InterfaceConfigPane::OnShowActiveTitleCheckBoxChanged, this);
   m_pause_focus_lost_checkbox->Bind(wxEVT_CHECKBOX,
                                     &InterfaceConfigPane::OnPauseOnFocusLostCheckBoxChanged, this);
   m_interface_lang_choice->Bind(wxEVT_CHOICE,
@@ -114,6 +120,8 @@ void InterfaceConfigPane::InitializeGUI()
       _("Display messages over the emulation screen area.\nThese messages include memory card "
         "writes, video backend and CPU information, and JIT cache clearing."));
   m_simple_title_checkbox->SetToolTip(_("Makes the emulation window use a simple, constant window title. Fixes some issues with applications that track windows by their names."));
+  m_show_active_title_checkbox->SetToolTip(
+      _("Show the active title name in the emulation window title."));
   m_pause_focus_lost_checkbox->SetToolTip(
       _("Pauses the emulator when focus is taken away from the emulation window."));
   m_interface_lang_choice->SetToolTip(
@@ -141,6 +149,7 @@ void InterfaceConfigPane::InitializeGUI()
   main_static_box_sizer->Add(m_osd_messages_checkbox, 0, wxLEFT | wxRIGHT, space5);
   main_static_box_sizer->AddSpacer(space5);
   main_static_box_sizer->Add(m_simple_title_checkbox, 0, wxLEFT | wxRIGHT, space5);
+  main_static_box_sizer->Add(m_show_active_title_checkbox, 0, wxLEFT | wxRIGHT, space5);
   main_static_box_sizer->AddSpacer(space5);
   main_static_box_sizer->Add(m_pause_focus_lost_checkbox, 0, wxLEFT | wxRIGHT, space5);
   main_static_box_sizer->AddSpacer(space5);
@@ -163,6 +172,7 @@ void InterfaceConfigPane::LoadGUIValues()
   m_panic_handlers_checkbox->SetValue(startup_params.bUsePanicHandlers);
   m_osd_messages_checkbox->SetValue(startup_params.bOnScreenDisplayMessages);
   m_simple_title_checkbox->SetValue(startup_params.bSimpleWindowTitle);
+  m_show_active_title_checkbox->SetValue(startup_params.m_show_active_title);
   m_pause_focus_lost_checkbox->SetValue(SConfig::GetInstance().m_PauseOnFocusLost);
 
   const std::string exact_language = SConfig::GetInstance().m_InterfaceLanguage;
@@ -192,8 +202,7 @@ void InterfaceConfigPane::LoadGUIValues()
 void InterfaceConfigPane::LoadThemes()
 {
   auto sv =
-      DoFileSearch({""}, {File::GetUserPath(D_THEMES_IDX), File::GetSysDirectory() + THEMES_DIR},
-                   /*recursive*/ false);
+      Common::DoFileSearch({File::GetUserPath(D_THEMES_IDX), File::GetSysDirectory() + THEMES_DIR});
   for (const std::string& filename : sv)
   {
     std::string name, ext;
@@ -226,7 +235,12 @@ void InterfaceConfigPane::OnOSDMessagesCheckBoxChanged(wxCommandEvent& event)
 
 void InterfaceConfigPane::OnSimpleTitleCheckBoxChanged(wxCommandEvent& event)
 {
-	SConfig::GetInstance().bSimpleWindowTitle = m_simple_title_checkbox->IsChecked();
+  SConfig::GetInstance().bSimpleWindowTitle = m_simple_title_checkbox->IsChecked();
+}
+
+void InterfaceConfigPane::OnShowActiveTitleCheckBoxChanged(wxCommandEvent&)
+{
+  SConfig::GetInstance().m_show_active_title = m_show_active_title_checkbox->IsChecked();
 }
 
 void InterfaceConfigPane::OnInterfaceLanguageChoiceChanged(wxCommandEvent& event)

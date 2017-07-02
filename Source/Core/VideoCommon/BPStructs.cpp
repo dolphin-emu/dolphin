@@ -152,10 +152,6 @@ static void BPWritten(const BPCmd& bp)
       if (bp.changes & 0xF002)  // logicopenable | logicmode
         SetLogicOpMode();
 
-      // Set Dithering Mode
-      if (bp.changes & 4)  // dither
-        SetDitherMode();
-
       // Set Color Mask
       if (bp.changes & 0x18)  // colorupdate | alphaupdate
         SetColorMask();
@@ -261,7 +257,7 @@ static void BPWritten(const BPCmd& bp)
                        "fbStride: %u | fbHeight: %u",
                 destAddr, srcRect.left, srcRect.top, srcRect.right, srcRect.bottom,
                 bpmem.copyTexSrcWH.x + 1, destStride, height);
-      Renderer::RenderToXFB(destAddr, srcRect, destStride, height, s_gammaLUT[PE_copy.gamma]);
+      g_renderer->RenderToXFB(destAddr, srcRect, destStride, height, s_gammaLUT[PE_copy.gamma]);
     }
 
     // Clear the rectangular region after copying it.
@@ -332,6 +328,8 @@ static void BPWritten(const BPCmd& bp)
   {
     if (bp.changes & 3)
       PixelShaderManager::SetZTextureTypeChanged();
+    if (bp.changes & 12)
+      VertexShaderManager::SetViewportChanged();
 #if defined(_DEBUG) || defined(DEBUGFAST)
     const char* pzop[] = {"DISABLE", "ADD", "REPLACE", "?"};
     const char* pztype[] = {"Z8", "Z16", "Z24", "?"};
@@ -1381,7 +1379,6 @@ void BPReload()
   SetScissor();
   SetDepthMode();
   SetLogicOpMode();
-  SetDitherMode();
   SetBlendMode();
   SetColorMask();
   OnPixelFormatChange();

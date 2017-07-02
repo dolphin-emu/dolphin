@@ -38,10 +38,9 @@ Make AA apply instantly during gameplay if possible
 #include <string>
 #include <vector>
 
-#include "Common/CommonPaths.h"
-#include "Common/FileSearch.h"
 #include "Common/GL/GLInterfaceBase.h"
 #include "Common/GL/GLUtil.h"
+#include "Common/MsgHandler.h"
 
 #include "VideoBackends/OGL/BoundingBox.h"
 #include "VideoBackends/OGL/PerfQuery.h"
@@ -78,27 +77,14 @@ std::string VideoBackend::GetDisplayName() const
     return "OpenGL";
 }
 
-static std::vector<std::string> GetShaders(const std::string& sub_dir = "")
-{
-  std::vector<std::string> paths =
-      DoFileSearch({".glsl"}, {File::GetUserPath(D_SHADERS_IDX) + sub_dir,
-                               File::GetSysDirectory() + SHADERS_DIR DIR_SEP + sub_dir});
-  std::vector<std::string> result;
-  for (std::string path : paths)
-  {
-    std::string name;
-    SplitPath(path, nullptr, &name, nullptr);
-    result.push_back(name);
-  }
-  return result;
-}
-
 void VideoBackend::InitBackendInfo()
 {
   g_Config.backend_info.api_type = APIType::OpenGL;
+  g_Config.backend_info.MaxTextureSize = 16384;
   g_Config.backend_info.bSupportsExclusiveFullscreen = false;
   g_Config.backend_info.bSupportsOversizedViewports = true;
   g_Config.backend_info.bSupportsGeometryShaders = true;
+  g_Config.backend_info.bSupportsComputeShaders = false;
   g_Config.backend_info.bSupports3DVision = false;
   g_Config.backend_info.bSupportsPostProcessing = true;
   g_Config.backend_info.bSupportsSSAA = true;
@@ -106,21 +92,72 @@ void VideoBackend::InitBackendInfo()
   g_Config.backend_info.bSupportsMultithreading = false;
   g_Config.backend_info.bSupportsInternalResolutionFrameDumps = true;
 
+  // TODO: There is a bug here, if texel buffers are not supported the graphics options
+  // will show the option when it is not supported. The only way around this would be
+  // creating a context when calling this function to determine what is available.
+  g_Config.backend_info.bSupportsGPUTextureDecoding = true;
+
   // Overwritten in Render.cpp later
   g_Config.backend_info.bSupportsDualSourceBlend = true;
   g_Config.backend_info.bSupportsPrimitiveRestart = true;
   g_Config.backend_info.bSupportsPaletteConversion = true;
   g_Config.backend_info.bSupportsClipControl = true;
   g_Config.backend_info.bSupportsDepthClamp = true;
+  g_Config.backend_info.bSupportsST3CTextures = false;
 
   g_Config.backend_info.Adapters.clear();
 
   // aamodes - 1 is to stay consistent with D3D (means no AA)
   g_Config.backend_info.AAModes = {1, 2, 4, 8};
+}
 
-  // pp shaders
-  g_Config.backend_info.PPShaders = GetShaders("");
-  g_Config.backend_info.AnaglyphShaders = GetShaders(ANAGLYPH_DIR DIR_SEP);
+bool VideoBackend::InitializeGLExtensions()
+{
+  // Init extension support.
+  if (!GLExtensions::Init())
+  {
+    // OpenGL 2.0 is required for all shader based drawings. There is no way to get this by
+    // extensions
+    PanicAlert("GPU: OGL ERROR: Does your video card support OpenGL 2.0?");
+    return false;
+  }
+
+  if (GLExtensions::Version() < 300)
+  {
+    // integer vertex attributes require a gl3 only function
+    PanicAlert("GPU: OGL ERROR: Need OpenGL version 3.\n"
+               "GPU: Does your video card support OpenGL 3?");
+    return false;
+  }
+
+  return true;
+}
+
+bool VideoBackend::FillBackendInfo()
+{
+  // check for the max vertex attributes
+  GLint numvertexattribs = 0;
+  glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &numvertexattribs);
+  if (numvertexattribs < 16)
+  {
+    PanicAlert("GPU: OGL ERROR: Number of attributes %d not enough.\n"
+               "GPU: Does your video card support OpenGL 2.x?",
+               numvertexattribs);
+    return false;
+  }
+
+  // check the max texture width and height
+  GLint max_texture_size = 0;
+  glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max_texture_size);
+  g_Config.backend_info.MaxTextureSize = static_cast<u32>(max_texture_size);
+  if (max_texture_size < 1024)
+  {
+    PanicAlert("GL_MAX_TEXTURE_SIZE too small at %i - must be at least 1024.", max_texture_size);
+    return false;
+  }
+
+  // TODO: Move the remaining fields from the Renderer constructor here.
+  return true;
 }
 
 bool VideoBackend::Initialize(void* window_handle)
@@ -141,6 +178,12 @@ bool VideoBackend::Initialize(void* window_handle)
 void VideoBackend::Video_Prepare()
 {
   GLInterface->MakeCurrent();
+  if (!InitializeGLExtensions() || !FillBackendInfo())
+  {
+    // TODO: Handle this better. We'll likely end up crashing anyway, but this method doesn't
+    // return anything, so we can't inform the caller that startup failed.
+    return;
+  }
 
   g_renderer = std::make_unique<Renderer>();
 
@@ -149,9 +192,9 @@ void VideoBackend::Video_Prepare()
   ProgramShaderCache::Init();
   g_texture_cache = std::make_unique<TextureCache>();
   g_sampler_cache = std::make_unique<SamplerCache>();
-  Renderer::Init();
+  static_cast<Renderer*>(g_renderer.get())->Init();
   TextureConverter::Init();
-  BoundingBox::Init();
+  BoundingBox::Init(g_renderer->GetTargetWidth(), g_renderer->GetTargetHeight());
 }
 
 void VideoBackend::Shutdown()
@@ -166,7 +209,7 @@ void VideoBackend::Video_Cleanup()
   // The following calls are NOT Thread Safe
   // And need to be called from the video thread
   CleanupShared();
-  Renderer::Shutdown();
+  static_cast<Renderer*>(g_renderer.get())->Shutdown();
   BoundingBox::Shutdown();
   TextureConverter::Shutdown();
   g_sampler_cache.reset();

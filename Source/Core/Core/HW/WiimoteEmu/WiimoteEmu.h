@@ -7,8 +7,9 @@
 #include <queue>
 #include <string>
 
+#include "Core/HW/WiimoteCommon/WiimoteHid.h"
+#include "Core/HW/WiimoteCommon/WiimoteReport.h"
 #include "Core/HW/WiimoteEmu/Encryption.h"
-#include "Core/HW/WiimoteEmu/WiimoteHid.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 
 // Registry sizes
@@ -22,12 +23,15 @@ class PointerWrap;
 
 namespace ControllerEmu
 {
+class BooleanSetting;
 class Buttons;
 class ControlGroup;
 class Cursor;
 class Extension;
 class Force;
 class ModifySettingsButton;
+class NumericSetting;
+class Output;
 class Tilt;
 }
 
@@ -87,7 +91,8 @@ enum class GuitarGroup
   Frets,
   Strum,
   Whammy,
-  Stick
+  Stick,
+  SliderBar
 };
 
 enum class DrumsGroup
@@ -194,8 +199,8 @@ public:
   ControllerEmu::ControlGroup* GetTurntableGroup(TurntableGroup group);
 
   void Update();
-  void InterruptChannel(const u16 _channelID, const void* _pData, u32 _Size);
-  void ControlChannel(const u16 _channelID, const void* _pData, u32 _Size);
+  void InterruptChannel(const u16 channel_id, const void* data, u32 size);
+  void ControlChannel(const u16 channel_id, const void* data, u32 size);
   void ConnectOnInput();
   void Reset();
 
@@ -232,12 +237,12 @@ private:
   };
 
   void ReportMode(const wm_report_mode* const dr);
-  void SendAck(const u8 _reportID);
+  void SendAck(const u8 report_id);
   void RequestStatus(const wm_request_status* const rs = nullptr);
   void ReadData(const wm_read_data* const rd);
   void WriteData(const wm_write_data* const wd);
-  void SendReadDataReply(ReadRequest& _request);
-  void SpeakerData(wm_speaker_data* sd);
+  void SendReadDataReply(ReadRequest& request);
+  void SpeakerData(const wm_speaker_data* sd);
   bool NetPlay_GetWiimoteData(int wiimote, u8* data, u8 size, u8 reporting_mode);
 
   // control groups
@@ -248,8 +253,13 @@ private:
   ControllerEmu::Tilt* m_tilt;
   ControllerEmu::Force* m_swing;
   ControllerEmu::ControlGroup* m_rumble;
+  ControllerEmu::Output* m_motor;
   ControllerEmu::Extension* m_extension;
+  ControllerEmu::BooleanSetting* m_motion_plus_setting;
   ControllerEmu::ControlGroup* m_options;
+  ControllerEmu::BooleanSetting* m_sideways_setting;
+  ControllerEmu::BooleanSetting* m_upright_setting;
+  ControllerEmu::NumericSetting* m_battery_setting;
   ControllerEmu::ModifySettingsButton* m_hotkeys;
 
   // Wiimote accel data

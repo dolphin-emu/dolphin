@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Common/File.h"
 #include "Common/FileUtil.h"
 #include "Common/MsgHandler.h"
 #include "VideoCommon/ImageWrite.h"
@@ -15,11 +16,16 @@
 bool SaveData(const std::string& filename, const std::string& data)
 {
   std::ofstream f;
-  OpenFStream(f, filename, std::ios::binary);
+  File::OpenFStream(f, filename, std::ios::binary);
   f << data;
 
   return true;
 }
+
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable : 4611)
+#endif
 
 /*
 TextureToPng
@@ -31,19 +37,15 @@ row_stride: Determines the amount of bytes per row of pixels.
 bool TextureToPng(const u8* data, int row_stride, const std::string& filename, int width,
                   int height, bool saveAlpha)
 {
-  bool success = false;
-
   if (!data)
     return false;
 
+  bool success = false;
   char title[] = "Dolphin Screenshot";
   char title_key[] = "Title";
   png_structp png_ptr = nullptr;
   png_infop info_ptr = nullptr;
   std::vector<u8> buffer;
-
-  if (!saveAlpha)
-    buffer.resize(width * 4);
 
   // Open file for writing (binary mode)
   File::IOFile fp(filename, "wb");
@@ -70,12 +72,21 @@ bool TextureToPng(const u8* data, int row_stride, const std::string& filename, i
     goto finalise;
   }
 
-  // Setup Exception handling
+  // Classical libpng error handling uses longjmp to do C-style unwind.
+  // Modern libpng does support a user callback, but it's required to operate
+  // in the same way (just gives a chance to do stuff before the longjmp).
+  // Instead of futzing with it, we use gotos specifically so the compiler
+  // will still generate proper destructor calls for us (hopefully).
+  // We also do not use any local variables outside the region longjmp may
+  // have been called from if they were modified inside that region (they
+  // would need to be volatile).
   if (setjmp(png_jmpbuf(png_ptr)))
   {
     PanicAlert("Screenshot failed: Error during PNG creation");
     goto finalise;
   }
+
+  // Begin region which may call longjmp
 
   png_init_io(png_ptr, fp.GetHandle());
 
@@ -90,6 +101,9 @@ bool TextureToPng(const u8* data, int row_stride, const std::string& filename, i
   png_set_text(png_ptr, info_ptr, &title_text, 1);
 
   png_write_info(png_ptr, info_ptr);
+
+  if (!saveAlpha)
+    buffer.resize(width * 4);
 
   // Write image data
   for (auto y = 0; y < height; ++y)
@@ -114,6 +128,8 @@ bool TextureToPng(const u8* data, int row_stride, const std::string& filename, i
   // End write
   png_write_end(png_ptr, nullptr);
 
+  // End region which may call longjmp
+
   success = true;
 
 finalise:
@@ -124,3 +140,7 @@ finalise:
 
   return success;
 }
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif

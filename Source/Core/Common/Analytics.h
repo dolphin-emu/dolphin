@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <chrono>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -11,12 +12,11 @@
 #include <utility>
 #include <vector>
 
-#include <curl/curl.h>
-
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
 #include "Common/FifoQueue.h"
 #include "Common/Flag.h"
+#include "Common/HttpRequest.h"
 
 // Utilities for analytics reporting in Dolphin. This reporting is designed to
 // provide anonymous data about how well Dolphin performs in the wild. It also
@@ -179,7 +179,8 @@ public:
   void Send(std::string report) override;
 
 protected:
-  CURL* m_curl = nullptr;
+  std::string m_endpoint;
+  HttpRequest m_http{std::chrono::seconds{5}};
 };
 
 }  // namespace Common

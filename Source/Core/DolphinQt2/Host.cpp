@@ -113,9 +113,6 @@ void Host_NotifyMapLoaded()
 void Host_UpdateDisasmDialog()
 {
 }
-void Host_SetStartupDebuggingParameters()
-{
-}
 void Host_SetWiiMoteConnectionState(int state)
 {
 }

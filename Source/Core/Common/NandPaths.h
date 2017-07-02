@@ -10,9 +10,6 @@
 
 #include "Common/CommonTypes.h"
 
-static const u64 TITLEID_SYSMENU = 0x0000000100000002;
-static const std::string TITLEID_SYSMENU_STRING = "0000000100000002";
-
 namespace Common
 {
 enum FromWhichRoot
@@ -22,12 +19,15 @@ enum FromWhichRoot
 };
 
 std::string RootUserPath(FromWhichRoot from);
+
+// Returns /import/%08x/%08x. Intended for use by ES.
+std::string GetImportTitlePath(u64 title_id, FromWhichRoot from = FROM_SESSION_ROOT);
+
 std::string GetTicketFileName(u64 _titleID, FromWhichRoot from);
-std::string GetTMDFileName(u64 _titleID, FromWhichRoot from);
+std::string GetTitlePath(u64 title_id, FromWhichRoot from);
 std::string GetTitleDataPath(u64 _titleID, FromWhichRoot from);
 std::string GetTitleContentPath(u64 _titleID, FromWhichRoot from);
-bool CheckTitleTMD(u64 _titleID, FromWhichRoot from);
-bool CheckTitleTIK(u64 _titleID, FromWhichRoot from);
+std::string GetTMDFileName(u64 _titleID, FromWhichRoot from);
 
 // Escapes characters that are invalid or have special meanings in the host file system
 std::string EscapeFileName(const std::string& filename);

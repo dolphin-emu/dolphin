@@ -5,6 +5,7 @@
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
 #include <cstring>
+#include <memory>
 #include <string>
 
 #ifdef _WIN32
@@ -12,13 +13,12 @@
 #endif
 
 #include "Common/ChunkFile.h"
-#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
-#include "Common/FileUtil.h"
 #include "Common/Hash.h"
 #include "Common/Logging/Log.h"
-#include "Common/StringUtil.h"
+#include "Common/Swap.h"
 #include "Core/ConfigManager.h"
+#include "Core/DSP/DSPCodeUtil.h"
 #include "Core/HW/DSPHLE/DSPHLE.h"
 #include "Core/HW/DSPHLE/UCodes/AX.h"
 #include "Core/HW/DSPHLE/UCodes/AXWii.h"
@@ -187,14 +187,8 @@ void UCodeInterface::PrepareBootUCode(u32 mail)
 
     if (SConfig::GetInstance().m_DumpUCode)
     {
-      std::string ucode_dump_path = StringFromFormat(
-          "%sDSP_UC_%08X.bin", File::GetUserPath(D_DUMPDSP_IDX).c_str(), ector_crc);
-
-      File::IOFile fp(ucode_dump_path, "wb");
-      if (fp)
-      {
-        fp.WriteArray((u8*)Memory::GetPointer(m_next_ucode.iram_mram_addr), m_next_ucode.iram_size);
-      }
+      DSP::DumpDSPCode(static_cast<u8*>(Memory::GetPointer(m_next_ucode.iram_mram_addr)),
+                       m_next_ucode.iram_size, ector_crc);
     }
 
     DEBUG_LOG(DSPHLE, "PrepareBootUCode 0x%08x", ector_crc);
@@ -227,25 +221,25 @@ void UCodeInterface::DoStateShared(PointerWrap& p)
   p.Do(m_needs_resume_mail);
 }
 
-UCodeInterface* UCodeFactory(u32 crc, DSPHLE* dsphle, bool wii)
+std::unique_ptr<UCodeInterface> UCodeFactory(u32 crc, DSPHLE* dsphle, bool wii)
 {
   switch (crc)
   {
   case UCODE_ROM:
     INFO_LOG(DSPHLE, "Switching to ROM ucode");
-    return new ROMUCode(dsphle, crc);
+    return std::make_unique<ROMUCode>(dsphle, crc);
 
   case UCODE_INIT_AUDIO_SYSTEM:
     INFO_LOG(DSPHLE, "Switching to INIT ucode");
-    return new INITUCode(dsphle, crc);
+    return std::make_unique<INITUCode>(dsphle, crc);
 
   case 0x65d6cc6f:  // CARD
     INFO_LOG(DSPHLE, "Switching to CARD ucode");
-    return new CARDUCode(dsphle, crc);
+    return std::make_unique<CARDUCode>(dsphle, crc);
 
   case 0xdd7e72d5:
     INFO_LOG(DSPHLE, "Switching to GBA ucode");
-    return new GBAUCode(dsphle, crc);
+    return std::make_unique<GBAUCode>(dsphle, crc);
 
   case 0x3ad3b7ac:  // Naruto 3, Paper Mario - The Thousand Year Door
   case 0x3daf59b9:  // Alien Hominid
@@ -260,13 +254,13 @@ UCodeInterface* UCodeFactory(u32 crc, DSPHLE* dsphle, bool wii)
   case 0xe2136399:  // Billy Hatcher, Dragon Ball Z, Mario Party 5, TMNT, 1080° Avalanche
   case 0x3389a79e:  // MP1/MP2 Wii (Metroid Prime Trilogy)
     INFO_LOG(DSPHLE, "CRC %08x: AX ucode chosen", crc);
-    return new AXUCode(dsphle, crc);
+    return std::make_unique<AXUCode>(dsphle, crc);
 
   case 0x86840740:  // Zelda WW - US
   case 0x6ca33a6d:  // Zelda TP GC - US
   case 0xd643001f:  // Super Mario Galaxy - US
   case 0x6ba3b3ea:  // GC IPL - PAL
-  case 0x24b22038:  // GC IPL - US
+  case 0x24b22038:  // GC IPL - NTSC
   case 0x2fcdf1ec:  // Zelda FSA - US
   case 0x4be6a5cb:  // Pikmin 1 GC - US
   case 0x267fd05a:  // Pikmin 1 GC - PAL
@@ -275,7 +269,7 @@ UCodeInterface* UCodeFactory(u32 crc, DSPHLE* dsphle, bool wii)
   case 0x6c3f6f94:  // Zelda TP Wii - US
   case 0xb7eb9a9c:  // Pikmin 1 New Play Control Wii - US
   case 0xeaeb38cc:  // Pikmin 2 New Play Control Wii - US
-    return new ZeldaUCode(dsphle, crc);
+    return std::make_unique<ZeldaUCode>(dsphle, crc);
 
   case 0x2ea36ce6:  // Some Wii demos
   case 0x5ef56da3:  // AX demo
@@ -285,7 +279,7 @@ UCodeInterface* UCodeFactory(u32 crc, DSPHLE* dsphle, bool wii)
   case 0x4cc52064:  // Bleach: Versus Crusade
   case 0xd9c4bf34:  // WiiMenu
     INFO_LOG(DSPHLE, "CRC %08x: Wii - AXWii chosen", crc);
-    return new AXWiiUCode(dsphle, crc);
+    return std::make_unique<AXWiiUCode>(dsphle, crc);
 
   default:
     if (wii)
@@ -294,7 +288,7 @@ UCodeInterface* UCodeFactory(u32 crc, DSPHLE* dsphle, bool wii)
                   "is homebrew.\n\n"
                   "Unknown ucode (CRC = %08x) - forcing AXWii.",
                   crc);
-      return new AXWiiUCode(dsphle, crc);
+      return std::make_unique<AXWiiUCode>(dsphle, crc);
     }
     else
     {
@@ -302,7 +296,7 @@ UCodeInterface* UCodeFactory(u32 crc, DSPHLE* dsphle, bool wii)
                   "is homebrew.\n\n"
                   "DSPHLE: Unknown ucode (CRC = %08x) - forcing AX.",
                   crc);
-      return new AXUCode(dsphle, crc);
+      return std::make_unique<AXUCode>(dsphle, crc);
     }
 
   case UCODE_NULL:

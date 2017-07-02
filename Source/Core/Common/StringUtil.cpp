@@ -12,6 +12,7 @@
 #include <istream>
 #include <iterator>
 #include <limits.h>
+#include <locale>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -24,13 +25,15 @@
 
 #ifdef _WIN32
 #include <Windows.h>
+constexpr u32 CODEPAGE_SHIFT_JIS = 932;
+constexpr u32 CODEPAGE_WINDOWS_1252 = 1252;
 #else
 #include <errno.h>
 #include <iconv.h>
 #include <locale.h>
 #endif
 
-#if !defined(_WIN32) && !defined(ANDROID) && !defined(__OpenBSD__)
+#if !defined(_WIN32) && !defined(ANDROID) && !defined(__HAIKU__) && !defined(__OpenBSD__)
 static locale_t GetCLocale()
 {
   static locale_t c_locale = newlocale(LC_ALL_MASK, "C", nullptr);
@@ -63,7 +66,7 @@ std::string HexDump(const u8* data, size_t size)
       if (row_start + i < size)
       {
         char c = static_cast<char>(data[row_start + i]);
-        out += StringFromFormat("%c", isprint(c) ? c : '.');
+        out += std::isprint(c, std::locale::classic()) ? c : '.';
       }
     }
     out += "\n";
@@ -123,11 +126,11 @@ bool CharArrayFromFormatV(char* out, int outsize, const char* format, va_list ar
     c_locale = _create_locale(LC_ALL, "C");
   writtenCount = _vsnprintf_l(out, outsize, format, c_locale, args);
 #else
-#if !defined(ANDROID) && !defined(__OpenBSD__)
+#if !defined(ANDROID) && !defined(__HAIKU__) && !defined(__OpenBSD__)
   locale_t previousLocale = uselocale(GetCLocale());
 #endif
   writtenCount = vsnprintf(out, outsize, format, args);
-#if !defined(ANDROID) && !defined(__OpenBSD__)
+#if !defined(ANDROID) && !defined(__HAIKU__) && !defined(__OpenBSD__)
   uselocale(previousLocale);
 #endif
 #endif
@@ -164,12 +167,12 @@ std::string StringFromFormatV(const char* format, va_list args)
   std::string temp = buf;
   delete[] buf;
 #else
-#if !defined(ANDROID) && !defined(__OpenBSD__)
+#if !defined(ANDROID) && !defined(__HAIKU__) && !defined(__OpenBSD__)
   locale_t previousLocale = uselocale(GetCLocale());
 #endif
   if (vasprintf(&buf, format, args) < 0)
     ERROR_LOG(COMMON, "Unable to allocate memory for string");
-#if !defined(ANDROID) && !defined(__OpenBSD__)
+#if !defined(ANDROID) && !defined(__HAIKU__) && !defined(__OpenBSD__)
   uselocale(previousLocale);
 #endif
 
@@ -187,7 +190,7 @@ std::string ArrayToString(const u8* data, u32 size, int line_len, bool spaces)
 
   for (int line = 0; size; ++data, --size)
   {
-    oss << std::setw(2) << (int)*data;
+    oss << std::setw(2) << static_cast<int>(*data);
 
     if (line_len == ++line)
     {
@@ -244,6 +247,25 @@ bool TryParse(const std::string& str, u32* const output)
 #endif
 
   *output = static_cast<u32>(value);
+  return true;
+}
+
+bool TryParse(const std::string& str, u64* const output)
+{
+  char* end_ptr = nullptr;
+
+  // Set errno to a clean slate
+  errno = 0;
+
+  u64 value = strtoull(str.c_str(), &end_ptr, 0);
+
+  if (end_ptr == nullptr || *end_ptr != '\0')
+    return false;
+
+  if (errno == ERANGE)
+    return false;
+
+  *output = value;
   return true;
 }
 
@@ -319,15 +341,16 @@ void BuildCompleteFilename(std::string& _CompleteFilename, const std::string& _P
   _CompleteFilename += _Filename;
 }
 
-void SplitString(const std::string& str, const char delim, std::vector<std::string>& output)
+std::vector<std::string> SplitString(const std::string& str, const char delim)
 {
   std::istringstream iss(str);
-  output.resize(1);
+  std::vector<std::string> output(1);
 
   while (std::getline(iss, *output.rbegin(), delim))
     output.push_back("");
 
   output.pop_back();
+  return output;
 }
 
 std::string JoinStrings(const std::vector<std::string>& strings, const std::string& delimiter)
@@ -383,19 +406,25 @@ bool StringEndsWith(const std::string& str, const std::string& end)
   return str.size() >= end.size() && std::equal(end.rbegin(), end.rend(), str.rbegin());
 }
 
+void StringPopBackIf(std::string* s, char c)
+{
+  if (!s->empty() && s->back() == c)
+    s->pop_back();
+}
+
 #ifdef _WIN32
 
 std::string UTF16ToUTF8(const std::wstring& input)
 {
-  auto const size = WideCharToMultiByte(CP_UTF8, 0, input.data(), (int)input.size(), nullptr, 0,
-                                        nullptr, nullptr);
+  auto const size = WideCharToMultiByte(CP_UTF8, 0, input.data(), static_cast<int>(input.size()),
+                                        nullptr, 0, nullptr, nullptr);
 
   std::string output;
   output.resize(size);
 
   if (size == 0 ||
-      size != WideCharToMultiByte(CP_UTF8, 0, input.data(), (int)input.size(), &output[0],
-                                  (int)output.size(), nullptr, nullptr))
+      size != WideCharToMultiByte(CP_UTF8, 0, input.data(), static_cast<int>(input.size()),
+                                  &output[0], static_cast<int>(output.size()), nullptr, nullptr))
   {
     output.clear();
   }
@@ -405,18 +434,38 @@ std::string UTF16ToUTF8(const std::wstring& input)
 
 std::wstring CPToUTF16(u32 code_page, const std::string& input)
 {
-  auto const size = MultiByteToWideChar(code_page, 0, input.data(), (int)input.size(), nullptr, 0);
+  auto const size =
+      MultiByteToWideChar(code_page, 0, input.data(), static_cast<int>(input.size()), nullptr, 0);
 
   std::wstring output;
   output.resize(size);
 
   if (size == 0 ||
-      size != MultiByteToWideChar(code_page, 0, input.data(), (int)input.size(), &output[0],
-                                  (int)output.size()))
+      size != MultiByteToWideChar(code_page, 0, input.data(), static_cast<int>(input.size()),
+                                  &output[0], static_cast<int>(output.size())))
   {
     output.clear();
   }
 
+  return output;
+}
+
+std::string UTF16ToCP(u32 code_page, const std::wstring& input)
+{
+  auto const size = WideCharToMultiByte(code_page, 0, input.data(), static_cast<int>(input.size()),
+                                        nullptr, 0, nullptr, false);
+
+  std::string output;
+  output.resize(size);
+
+  if (size == 0 ||
+      size != WideCharToMultiByte(code_page, 0, input.data(), static_cast<int>(input.size()),
+                                  &output[0], static_cast<int>(output.size()), nullptr, false))
+  {
+    const DWORD error_code = GetLastError();
+    ERROR_LOG(COMMON, "WideCharToMultiByte Error in String '%s': %lu", input.c_str(), error_code);
+    output.clear();
+  }
   return output;
 }
 
@@ -427,22 +476,27 @@ std::wstring UTF8ToUTF16(const std::string& input)
 
 std::string SHIFTJISToUTF8(const std::string& input)
 {
-  return UTF16ToUTF8(CPToUTF16(932, input));
+  return UTF16ToUTF8(CPToUTF16(CODEPAGE_SHIFT_JIS, input));
+}
+
+std::string UTF8ToSHIFTJIS(const std::string& input)
+{
+  return UTF16ToCP(CODEPAGE_SHIFT_JIS, UTF8ToUTF16(input));
 }
 
 std::string CP1252ToUTF8(const std::string& input)
 {
-  return UTF16ToUTF8(CPToUTF16(1252, input));
+  return UTF16ToUTF8(CPToUTF16(CODEPAGE_WINDOWS_1252, input));
 }
 
 #else
 
 template <typename T>
-std::string CodeToUTF8(const char* fromcode, const std::basic_string<T>& input)
+std::string CodeTo(const char* tocode, const char* fromcode, const std::basic_string<T>& input)
 {
   std::string result;
 
-  iconv_t const conv_desc = iconv_open("UTF-8", fromcode);
+  iconv_t const conv_desc = iconv_open(tocode, fromcode);
   if ((iconv_t)-1 == conv_desc)
   {
     ERROR_LOG(COMMON, "Iconv initialization failure [%s]: %s", fromcode, strerror(errno));
@@ -493,6 +547,12 @@ std::string CodeToUTF8(const char* fromcode, const std::basic_string<T>& input)
   return result;
 }
 
+template <typename T>
+std::string CodeToUTF8(const char* fromcode, const std::basic_string<T>& input)
+{
+  return CodeTo("UTF-8", fromcode, input);
+}
+
 std::string CP1252ToUTF8(const std::string& input)
 {
   // return CodeToUTF8("CP1252//TRANSLIT", input);
@@ -504,6 +564,11 @@ std::string SHIFTJISToUTF8(const std::string& input)
 {
   // return CodeToUTF8("CP932", input);
   return CodeToUTF8("SJIS", input);
+}
+
+std::string UTF8ToSHIFTJIS(const std::string& input)
+{
+  return CodeTo("SJIS", "UTF-8", input);
 }
 
 std::string UTF16ToUTF8(const std::wstring& input)

@@ -7,21 +7,23 @@
 // However, if a JITed instruction (for example lwz) wants to access a bad memory area that call
 // may be redirected here (for example to Read_U32()).
 
+#include "Core/HW/Memmap.h"
+
+#include <algorithm>
 #include <cstring>
 #include <memory>
 
 #include "Common/ChunkFile.h"
-#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MemArena.h"
+#include "Common/Swap.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/AudioInterface.h"
 #include "Core/HW/DSP.h"
-#include "Core/HW/DVDInterface.h"
+#include "Core/HW/DVD/DVDInterface.h"
 #include "Core/HW/EXI/EXI.h"
 #include "Core/HW/MMIO.h"
-#include "Core/HW/Memmap.h"
 #include "Core/HW/MemoryInterface.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/SI/SI.h"
@@ -98,7 +100,7 @@ struct PhysicalMemoryRegion
   u8** out_pointer;
   u32 physical_address;
   u32 size;
-  enum
+  enum : u32
   {
     ALWAYS = 0,
     FAKE_VMEM = 1,
@@ -227,14 +229,14 @@ void UpdateLogicalMemory(const PowerPC::BatTable& dbat_table)
     g_arena.ReleaseView(entry.mapped_pointer, entry.mapped_size);
   }
   logical_mapped_entries.clear();
-  for (u32 i = 0; i < (1 << (32 - PowerPC::BAT_INDEX_SHIFT)); ++i)
+  for (u32 i = 0; i < dbat_table.size(); ++i)
   {
-    if (dbat_table[i] & 1)
+    if (dbat_table[i] & PowerPC::BAT_PHYSICAL_BIT)
     {
       u32 logical_address = i << PowerPC::BAT_INDEX_SHIFT;
       // TODO: Merge adjacent mappings to make this faster.
-      u32 logical_size = 1 << PowerPC::BAT_INDEX_SHIFT;
-      u32 translated_address = dbat_table[i] & ~3;
+      u32 logical_size = PowerPC::BAT_PAGE_SIZE;
+      u32 translated_address = dbat_table[i] & PowerPC::BAT_RESULT_MASK;
       for (const auto& physical_region : physical_regions)
       {
         u32 mapping_address = physical_region.physical_address;
@@ -288,7 +290,7 @@ void Shutdown()
     if ((flags & region.flags) != region.flags)
       continue;
     g_arena.ReleaseView(*region.out_pointer, region.size);
-    *region.out_pointer = 0;
+    *region.out_pointer = nullptr;
   }
   for (auto& entry : logical_mapped_entries)
   {

@@ -144,7 +144,14 @@ void PathConfigPane::BindEvents()
   m_wii_sdcard_filepicker->Bind(wxEVT_FILEPICKER_CHANGED, &PathConfigPane::OnSdCardPathChanged,
                                 this);
 
-  Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreNotRunning);
+  Bind(wxEVT_UPDATE_UI, &PathConfigPane::OnEnableIfCoreNotRunning, this);
+}
+
+void PathConfigPane::OnEnableIfCoreNotRunning(wxUpdateUIEvent& event)
+{
+  // Prevent the Remove button from being enabled via wxUpdateUIEvent
+  if (event.GetId() != m_remove_iso_path_button->GetId())
+    WxEventUtils::OnEnableIfCoreNotRunning(event);
 }
 
 void PathConfigPane::OnISOPathSelectionChanged(wxCommandEvent& event)
@@ -156,7 +163,7 @@ void PathConfigPane::OnRecursiveISOCheckBoxChanged(wxCommandEvent& event)
 {
   SConfig::GetInstance().m_RecursiveISOFolder = m_recursive_iso_paths_checkbox->IsChecked();
 
-  AddPendingEvent(wxCommandEvent(wxDOLPHIN_CFG_REFRESH_LIST));
+  AddPendingEvent(wxCommandEvent(wxDOLPHIN_CFG_RESCAN_LIST));
 }
 
 void PathConfigPane::OnAddISOPath(wxCommandEvent& event)
@@ -172,7 +179,7 @@ void PathConfigPane::OnAddISOPath(wxCommandEvent& event)
     }
     else
     {
-      AddPendingEvent(wxCommandEvent(wxDOLPHIN_CFG_REFRESH_LIST));
+      AddPendingEvent(wxCommandEvent(wxDOLPHIN_CFG_RESCAN_LIST));
       m_iso_paths_listbox->Append(dialog.GetPath());
     }
   }
@@ -182,12 +189,13 @@ void PathConfigPane::OnAddISOPath(wxCommandEvent& event)
 
 void PathConfigPane::OnRemoveISOPath(wxCommandEvent& event)
 {
-  AddPendingEvent(wxCommandEvent(wxDOLPHIN_CFG_REFRESH_LIST));
+  AddPendingEvent(wxCommandEvent(wxDOLPHIN_CFG_RESCAN_LIST));
   m_iso_paths_listbox->Delete(m_iso_paths_listbox->GetSelection());
 
 // This seems to not be activated on Windows when it should be. wxw bug?
 #ifdef _WIN32
-  OnISOPathSelectionChanged(wxCommandEvent());
+  wxCommandEvent dummy_event{};
+  OnISOPathSelectionChanged(dummy_event);
 #endif
 
   SaveISOPathChanges();
@@ -223,7 +231,7 @@ void PathConfigPane::OnNANDRootChanged(wxCommandEvent& event)
   File::SetUserPath(D_WIIROOT_IDX, nand_path);
   m_nand_root_dirpicker->SetPath(StrToWxStr(nand_path));
 
-  DiscIO::CNANDContentManager::Access().ClearCache();
+  DiscIO::NANDContentManager::Access().ClearCache();
 
   wxCommandEvent update_event{DOLPHIN_EVT_UPDATE_LOAD_WII_MENU_ITEM, GetId()};
   update_event.SetEventObject(this);

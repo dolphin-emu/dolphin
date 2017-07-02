@@ -40,6 +40,7 @@
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/MsgHandler.h"
+#include "Common/StringUtil.h"
 
 #include "Core/Core.h"
 #include "Core/HW/GCKeyboard.h"
@@ -62,6 +63,8 @@
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Extension.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
+#include "InputCommon/ControllerEmu/Setting/BooleanSetting.h"
+#include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/Device.h"
 #include "InputCommon/InputConfig.h"
@@ -143,8 +146,9 @@ void PadSettingExtension::UpdateValue()
 }
 
 PadSettingCheckBox::PadSettingCheckBox(wxWindow* const parent,
-                                       ControllerEmu::ControlGroup::BooleanSetting* const _setting)
-    : PadSetting(new wxCheckBox(parent, wxID_ANY, wxGetTranslation(StrToWxStr(_setting->m_name)))),
+                                       ControllerEmu::BooleanSetting* const _setting)
+    : PadSetting(
+          new wxCheckBox(parent, wxID_ANY, wxGetTranslation(StrToWxStr(_setting->m_ui_name)))),
       setting(_setting)
 {
   UpdateGUI();
@@ -165,7 +169,7 @@ void PadSettingCheckBox::UpdateValue()
 }
 
 PadSettingSpin::PadSettingSpin(wxWindow* const parent,
-                               ControllerEmu::ControlGroup::NumericSetting* const settings)
+                               ControllerEmu::NumericSetting* const settings)
     : PadSetting(new wxSpinCtrl(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize,
                                 wxSP_ARROW_KEYS, settings->m_low, settings->m_high,
                                 (int)(settings->m_value * 100))),
@@ -260,7 +264,7 @@ void InputConfigDialog::UpdateProfileComboBox()
   pname += PROFILES_PATH;
   pname += m_config.GetProfileName();
 
-  std::vector<std::string> sv = DoFileSearch({".ini"}, {pname});
+  std::vector<std::string> sv = Common::DoFileSearch({pname}, {".ini"});
 
   wxArrayString strs;
   for (const std::string& filename : sv)
@@ -339,10 +343,10 @@ void ControlDialog::UpdateGUI()
 
   switch (control_reference->GetParseStatus())
   {
-  case EXPRESSION_PARSE_SYNTAX_ERROR:
+  case ParseStatus::SyntaxError:
     m_error_label->SetLabel(_("Syntax error"));
     break;
-  case EXPRESSION_PARSE_NO_DEVICE:
+  case ParseStatus::NoDevice:
     m_error_label->SetLabel(_("Device not found"));
     break;
   default:
@@ -402,8 +406,8 @@ bool ControlDialog::Validate()
 
   UpdateGUI();
 
-  return (control_reference->GetParseStatus() == EXPRESSION_PARSE_SUCCESS ||
-          control_reference->GetParseStatus() == EXPRESSION_PARSE_NO_DEVICE);
+  const auto parse_status = control_reference->GetParseStatus();
+  return parse_status == ParseStatus::Successful || parse_status == ParseStatus::NoDevice;
 }
 
 void InputConfigDialog::SetDevice(wxCommandEvent&)
@@ -941,10 +945,10 @@ ControlGroupBox::~ControlGroupBox()
 
 bool ControlGroupBox::HasBitmapHeading() const
 {
-  return control_group->type == ControllerEmu::GROUP_TYPE_STICK ||
-         control_group->type == ControllerEmu::GROUP_TYPE_TILT ||
-         control_group->type == ControllerEmu::GROUP_TYPE_CURSOR ||
-         control_group->type == ControllerEmu::GROUP_TYPE_FORCE;
+  return control_group->type == ControllerEmu::GroupType::Stick ||
+         control_group->type == ControllerEmu::GroupType::Tilt ||
+         control_group->type == ControllerEmu::GroupType::Cursor ||
+         control_group->type == ControllerEmu::GroupType::Force;
 }
 
 ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWindow* const parent,
@@ -964,16 +968,16 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
   for (const auto& control : group->controls)
   {
     wxStaticText* const label =
-        new wxStaticText(parent, wxID_ANY, wxGetTranslation(StrToWxStr(control->name)));
+        new wxStaticText(parent, wxID_ANY, wxGetTranslation(StrToWxStr(control->ui_name)));
 
     ControlButton* const control_button =
-        new ControlButton(parent, control->control_ref.get(), control->name, 80);
+        new ControlButton(parent, control->control_ref.get(), control->ui_name, 80);
     control_button->SetFont(small_font);
 
     control_buttons.push_back(control_button);
     if (std::find(exclude_groups.begin(), exclude_groups.end(), control_group->name) ==
             exclude_groups.end() &&
-        std::find(exclude_buttons.begin(), exclude_buttons.end(), control->name) ==
+        std::find(exclude_buttons.begin(), exclude_buttons.end(), control->ui_name) ==
             exclude_buttons.end())
       eventsink->control_buttons.push_back(control_button);
 
@@ -999,10 +1003,10 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
 
   switch (group->type)
   {
-  case ControllerEmu::GROUP_TYPE_STICK:
-  case ControllerEmu::GROUP_TYPE_TILT:
-  case ControllerEmu::GROUP_TYPE_CURSOR:
-  case ControllerEmu::GROUP_TYPE_FORCE:
+  case ControllerEmu::GroupType::Stick:
+  case ControllerEmu::GroupType::Tilt:
+  case ControllerEmu::GroupType::Cursor:
+  case ControllerEmu::GroupType::Force:
   {
     wxSize bitmap_size = parent->FromDIP(wxSize(64, 64));
     m_scale = bitmap_size.GetWidth() / 64.0;
@@ -1044,7 +1048,7 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
     Add(h_szr, 0, wxEXPAND | wxLEFT | wxRIGHT, space3);
   }
   break;
-  case ControllerEmu::GROUP_TYPE_BUTTONS:
+  case ControllerEmu::GroupType::Buttons:
   {
     // Draw buttons in rows of 8
     unsigned int button_cols = group->controls.size() > 8 ? 8 : group->controls.size();
@@ -1082,17 +1086,17 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
     Add(static_bitmap, 0, wxALIGN_CENTER_HORIZONTAL | wxLEFT | wxRIGHT, space3);
   }
   break;
-  case ControllerEmu::GROUP_TYPE_MIXED_TRIGGERS:
-  case ControllerEmu::GROUP_TYPE_TRIGGERS:
-  case ControllerEmu::GROUP_TYPE_SLIDER:
+  case ControllerEmu::GroupType::MixedTriggers:
+  case ControllerEmu::GroupType::Triggers:
+  case ControllerEmu::GroupType::Slider:
   {
     int height = (int)(12 * group->controls.size());
     int width = 64;
 
-    if (ControllerEmu::GROUP_TYPE_MIXED_TRIGGERS == group->type)
+    if (group->type == ControllerEmu::GroupType::MixedTriggers)
       width = 64 + 12 + 1;
 
-    if (ControllerEmu::GROUP_TYPE_TRIGGERS != group->type)
+    if (group->type != ControllerEmu::GroupType::Triggers)
       height /= 2;
     height += 1;
 
@@ -1126,7 +1130,7 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
     Add(static_bitmap, 0, wxALIGN_CENTER_HORIZONTAL | wxLEFT | wxRIGHT, space3);
   }
   break;
-  case ControllerEmu::GROUP_TYPE_EXTENSION:
+  case ControllerEmu::GroupType::Extension:
   {
     PadSettingExtension* const attachments =
         new PadSettingExtension(parent, (ControllerEmu::Extension*)group);

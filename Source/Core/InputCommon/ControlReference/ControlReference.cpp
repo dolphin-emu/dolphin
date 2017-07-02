@@ -17,7 +17,7 @@ constexpr ControlState INPUT_DETECT_THRESHOLD = 0.55;
 
 bool ControlReference::InputGateOn()
 {
-  return SConfig::GetInstance().m_BackgroundInput || Host_RendererHasFocus() || Host_UIHasFocus();
+  return SConfig::GetInstance().m_BackgroundInput || Host_RendererHasFocus();
 }
 
 //
@@ -43,7 +43,7 @@ int ControlReference::BoundCount() const
     return 0;
 }
 
-ExpressionParseStatus ControlReference::GetParseStatus() const
+ParseStatus ControlReference::GetParseStatus() const
 {
   return m_parse_status;
 }

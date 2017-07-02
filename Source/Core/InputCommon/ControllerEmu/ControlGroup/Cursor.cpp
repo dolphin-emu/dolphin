@@ -16,18 +16,20 @@
 #include "InputCommon/ControllerEmu/Control/Control.h"
 #include "InputCommon/ControllerEmu/Control/Input.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
+#include "InputCommon/ControllerEmu/Setting/BooleanSetting.h"
+#include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 
 namespace ControllerEmu
 {
-Cursor::Cursor(const std::string& name_) : ControlGroup(name_, GROUP_TYPE_CURSOR)
+Cursor::Cursor(const std::string& name_) : ControlGroup(name_, GroupType::Cursor)
 {
   for (auto& named_direction : named_directions)
     controls.emplace_back(std::make_unique<Input>(named_direction));
 
-  controls.emplace_back(std::make_unique<Input>("Forward"));
-  controls.emplace_back(std::make_unique<Input>("Backward"));
+  controls.emplace_back(std::make_unique<Input>(_trans("Forward")));
+  controls.emplace_back(std::make_unique<Input>(_trans("Backward")));
   controls.emplace_back(std::make_unique<Input>(_trans("Hide")));
-  controls.emplace_back(std::make_unique<Input>("Recenter"));
+  controls.emplace_back(std::make_unique<Input>(_trans("Recenter")));
 
   numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Center"), 0.5));
   numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Width"), 0.5));

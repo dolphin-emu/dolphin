@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/IOS/DI/DI.h"
+
 #include <cinttypes>
 #include <memory>
 #include <vector>
@@ -11,10 +13,11 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
-#include "Core/HW/DVDInterface.h"
+#include "Core/HW/DVD/DVDInterface.h"
+#include "Core/HW/DVD/DVDThread.h"
 #include "Core/HW/Memmap.h"
-#include "Core/IOS/DI/DI.h"
-#include "Core/IOS/IPC.h"
+#include "Core/IOS/ES/ES.h"
+#include "Core/IOS/ES/Formats.h"
 #include "DiscIO/Volume.h"
 
 namespace IOS
@@ -23,7 +26,7 @@ namespace HLE
 {
 namespace Device
 {
-DI::DI(u32 device_id, const std::string& device_name) : Device(device_id, device_name)
+DI::DI(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
 {
 }
 
@@ -75,7 +78,7 @@ void DI::FinishIOCtl(DVDInterface::DIInterruptType interrupt_type)
   // This command has been executed, so it's removed from the queue
   u32 command_address = m_commands_to_execute.front();
   m_commands_to_execute.pop_front();
-  EnqueueReply(IOCtlRequest{command_address}, interrupt_type);
+  m_ios.EnqueueIPCReply(IOCtlRequest{command_address}, interrupt_type);
 
   // DVDInterface is now ready to execute another command,
   // so we start executing a command from the queue if there is one
@@ -99,15 +102,18 @@ IPCCommandResult DI::IOCtlV(const IOCtlVRequest& request)
     _dbg_assert_msg_(IOS_DI, request.in_vectors[2].address == 0,
                      "DVDLowOpenPartition with cert chain");
 
-    u64 const partition_offset = ((u64)Memory::Read_U32(request.in_vectors[0].address + 4) << 2);
-    DVDInterface::ChangePartition(partition_offset);
+    const u64 partition_offset =
+        static_cast<u64>(Memory::Read_U32(request.in_vectors[0].address + 4)) << 2;
+    const DiscIO::Partition partition(partition_offset);
+    DVDInterface::ChangePartition(partition);
 
     INFO_LOG(IOS_DI, "DVDLowOpenPartition: partition_offset 0x%016" PRIx64, partition_offset);
 
     // Read TMD to the buffer
-    std::vector<u8> tmd_buffer = DVDInterface::GetVolume().GetTMD();
-    Memory::CopyToEmu(request.io_vectors[0].address, tmd_buffer.data(), tmd_buffer.size());
-    ES_DIVerify(tmd_buffer);
+    const IOS::ES::TMDReader tmd = DVDThread::GetTMD(partition);
+    const std::vector<u8>& raw_tmd = tmd.GetBytes();
+    Memory::CopyToEmu(request.io_vectors[0].address, raw_tmd.data(), raw_tmd.size());
+    ES::DIVerify(tmd, DVDThread::GetTicket(partition));
 
     return_value = 1;
     break;

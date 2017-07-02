@@ -10,6 +10,7 @@
 #include <mutex>
 #include <queue>
 #include <utility>
+#include <variant>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -20,10 +21,12 @@
 #include "Common/CPUDetect.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
+#include "Common/FileUtil.h"
 #include "Common/Flag.h"
 #include "Common/Logging/LogManager.h"
-#include "Common/MathUtil.h"
 #include "Common/MemoryUtil.h"
+#include "Common/MsgHandler.h"
+#include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
 #include "Common/Timer.h"
@@ -41,20 +44,16 @@
 #include "Core/Boot/Boot.h"
 #include "Core/FifoPlayer/FifoPlayer.h"
 #include "Core/HLE/HLE.h"
-#include "Core/HW/AudioInterface.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/EXI/EXI.h"
 #include "Core/HW/GCKeyboard.h"
 #include "Core/HW/GCPad.h"
-#include "Core/HW/GPFifo.h"
 #include "Core/HW/HW.h"
-#include "Core/HW/Memmap.h"
-#include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/HW/VideoInterface.h"
 #include "Core/HW/Wiimote.h"
-#include "Core/IOS/IPC.h"
+#include "Core/IOS/IOS.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayClient.h"
 #include "Core/NetPlayProto.h"
@@ -68,9 +67,9 @@
 #include "Core/PowerPC/GDBStub.h"
 #endif
 
-#include "DiscIO/FileMonitor.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/GCAdapter.h"
+
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/RenderBase.h"
@@ -85,21 +84,12 @@
 
 namespace Core
 {
-// TODO: ugly, remove
-bool g_aspect_wide;
-
-bool g_want_determinism;
+static bool s_wants_determinism;
 
 // Declarations and definitions
 static Common::Timer s_timer;
 static std::atomic<u32> s_drawn_frame;
 static std::atomic<u32> s_drawn_video;
-
-// Function forwarding
-void Callback_WiimoteInterruptChannel(int _number, u16 _channelID, const void* _pData, u32 _Size);
-
-// Function declarations
-void EmuThread();
 
 static bool s_is_stopping = false;
 static bool s_hardware_initialized = false;
@@ -108,7 +98,7 @@ static Common::Flag s_is_booting;
 static void* s_window_handle = nullptr;
 static std::string s_state_filename;
 static std::thread s_emu_thread;
-static StoppedCallbackFunc s_on_stopped_callback = nullptr;
+static StoppedCallbackFunc s_on_stopped_callback;
 
 static std::thread s_cpu_thread;
 static bool s_request_refresh_info = false;
@@ -133,6 +123,8 @@ static void InitIsCPUKey()
   pthread_key_create(&s_tls_is_cpu_key, nullptr);
 }
 #endif
+
+static void EmuThread(std::unique_ptr<BootParameters> boot);
 
 bool GetIsThrottlerTempDisabled()
 {
@@ -164,8 +156,8 @@ void FrameUpdateOnCPUThread()
 // Formatted stop message
 std::string StopMessage(bool main_thread, const std::string& message)
 {
-  return StringFromFormat("Stop [%s %i]\t%s\t%s", main_thread ? "Main Thread" : "Video Thread",
-                          Common::CurrentThreadId(), Common::MemUsage().c_str(), message.c_str());
+  return StringFromFormat("Stop [%s %i]\t%s", main_thread ? "Main Thread" : "Video Thread",
+                          Common::CurrentThreadId(), message.c_str());
 }
 
 void DisplayMessage(const std::string& message, int time_in_ms)
@@ -224,9 +216,14 @@ bool IsGPUThread()
   }
 }
 
+bool WantsDeterminism()
+{
+  return s_wants_determinism;
+}
+
 // This is called from the GUI thread. See the booting call schedule in
 // BootManager.cpp
-bool Init()
+bool Init(std::unique_ptr<BootParameters> boot)
 {
   if (s_emu_thread.joinable())
   {
@@ -253,7 +250,7 @@ bool Init()
   s_window_handle = Host_GetRenderHandle();
 
   // Start the emu thread
-  s_emu_thread = std::thread(EmuThread);
+  s_emu_thread = std::thread(EmuThread, std::move(boot));
 
   return true;
 }
@@ -356,7 +353,7 @@ static void CpuThread()
   if (!s_state_filename.empty())
   {
     // Needs to PauseAndLock the Core
-    // NOTE: EmuThread should have left us in CPU_STEPPING so nothing will happen
+    // NOTE: EmuThread should have left us in State::Stepping so nothing will happen
     //   until after the job is serviced.
     QueueHostJob([] {
       // Recheck in case Movie cleared it since.
@@ -417,29 +414,26 @@ static void FifoPlayerThread()
   }
 
   // Enter CPU run loop. When we leave it - we are done.
-  if (FifoPlayer::GetInstance().Open(_CoreParameter.m_strFilename))
+  if (auto cpu_core = FifoPlayer::GetInstance().GetCPUCore())
   {
-    if (auto cpu_core = FifoPlayer::GetInstance().GetCPUCore())
-    {
-      PowerPC::InjectExternalCPUCore(cpu_core.get());
-      s_is_started = true;
+    PowerPC::InjectExternalCPUCore(cpu_core.get());
+    s_is_started = true;
 
-      CPUSetInitialExecutionState();
-      CPU::Run();
+    CPUSetInitialExecutionState();
+    CPU::Run();
 
-      s_is_started = false;
-      PowerPC::InjectExternalCPUCore(nullptr);
-    }
-    FifoPlayer::GetInstance().Close();
+    s_is_started = false;
+    PowerPC::InjectExternalCPUCore(nullptr);
   }
+  FifoPlayer::GetInstance().Close();
 
   // If we did not enter the CPU Run Loop above then run a fake one instead.
   // We need to be IsRunningAndStarted() for DolphinWX to stop us.
-  if (CPU::GetState() != CPU::CPU_POWERDOWN)
+  if (CPU::GetState() != CPU::State::PowerDown)
   {
     s_is_started = true;
     Host_Message(WM_USER_STOP);
-    while (CPU::GetState() != CPU::CPU_POWERDOWN)
+    while (CPU::GetState() != CPU::State::PowerDown)
     {
       if (!_CoreParameter.bCPUThread)
         g_video_backend->PeekMessages();
@@ -455,33 +449,57 @@ static void FifoPlayerThread()
 // Initialize and create emulation thread
 // Call browser: Init():s_emu_thread().
 // See the BootManager.cpp file description for a complete call schedule.
-void EmuThread()
+static void EmuThread(std::unique_ptr<BootParameters> boot)
 {
   const SConfig& core_parameter = SConfig::GetInstance();
   s_is_booting.Set();
+  Common::ScopeGuard flag_guard{[] {
+    s_is_booting.Clear();
+    s_is_started = false;
+    s_is_stopping = false;
+
+    if (s_on_stopped_callback)
+      s_on_stopped_callback();
+
+    INFO_LOG(CONSOLE, "Stop\t\t---- Shutdown complete ----");
+  }};
+
+  // Prevent the UI from getting stuck whenever an error occurs.
+  Common::ScopeGuard stop_message_guard{[] { Host_Message(WM_USER_STOP); }};
 
   Common::SetCurrentThreadName("Emuthread - Starting");
-
-  if (SConfig::GetInstance().m_OCEnable)
-    DisplayMessage("WARNING: running at non-native CPU clock! Game may not be stable.", 8000);
-  DisplayMessage(cpu_info.brand_string, 8000);
-  DisplayMessage(cpu_info.Summarize(), 8000);
-  DisplayMessage(core_parameter.m_strFilename, 3000);
 
   // For a time this acts as the CPU thread...
   DeclareAsCPUThread();
 
-  Movie::Init();
+  Movie::Init(*boot);
+  Common::ScopeGuard movie_guard{Movie::Shutdown};
 
   HW::Init();
+  Common::ScopeGuard hw_guard{[] {
+    // We must set up this flag before executing HW::Shutdown()
+    s_hardware_initialized = false;
+    INFO_LOG(CONSOLE, "%s", StopMessage(false, "Shutting down HW").c_str());
+    HW::Shutdown();
+    INFO_LOG(CONSOLE, "%s", StopMessage(false, "HW shutdown").c_str());
+
+    // Clear on screen messages that haven't expired
+    OSD::ClearMessages();
+
+    // The config must be restored only after the whole HW has shut down,
+    // not when it is still running.
+    BootManager::RestoreConfig();
+
+    PatchEngine::Shutdown();
+    HLE::Clear();
+  }};
 
   if (!g_video_backend->Initialize(s_window_handle))
   {
-    s_is_booting.Clear();
     PanicAlert("Failed to initialize video backend!");
-    Host_Message(WM_USER_STOP);
     return;
   }
+  Common::ScopeGuard video_guard{[] { g_video_backend->Shutdown(); }};
 
   OSD::AddMessage("Dolphin " + g_video_backend->GetName() + " Video Backend.", 5000);
 
@@ -492,11 +510,7 @@ void EmuThread()
 
   if (!DSP::GetDSPEmulator()->Initialize(core_parameter.bWii, core_parameter.bDSPThread))
   {
-    s_is_booting.Clear();
-    HW::Shutdown();
-    g_video_backend->Shutdown();
     PanicAlert("Failed to initialize DSP emulation!");
-    Host_Message(WM_USER_STOP);
     return;
   }
 
@@ -526,7 +540,18 @@ void EmuThread()
       Wiimote::LoadConfig();
   }
 
+  Common::ScopeGuard controller_guard{[init_controllers] {
+    if (!init_controllers)
+      return;
+
+    Wiimote::Shutdown();
+    Keyboard::Shutdown();
+    Pad::Shutdown();
+    g_controller_interface.Shutdown();
+  }};
+
   AudioCommon::InitSoundStream();
+  Common::ScopeGuard audio_guard{AudioCommon::ShutdownSoundStream};
 
   // The hardware is initialized.
   s_hardware_initialized = true;
@@ -538,7 +563,15 @@ void EmuThread()
   // Load GCM/DOL/ELF whatever ... we boot with the interpreter core
   PowerPC::SetMode(PowerPC::CoreMode::Interpreter);
 
-  CBoot::BootUp();
+  // Determine the CPU thread function
+  void (*cpuThreadFunc)();
+  if (std::holds_alternative<BootParameters::DFF>(boot->parameters))
+    cpuThreadFunc = FifoPlayerThread;
+  else
+    cpuThreadFunc = CpuThread;
+
+  if (!CBoot::BootUp(std::move(boot)))
+    return;
 
   // This adds the SyncGPU handler to CoreTiming, so now CoreTiming::Advance might block.
   Fifo::Prepare();
@@ -560,13 +593,6 @@ void EmuThread()
   // Update the window again because all stuff is initialized
   Host_UpdateDisasmDialog();
   Host_UpdateMainFrame();
-
-  // Determine the CPU thread function
-  void (*cpuThreadFunc)(void);
-  if (core_parameter.m_BootType == SConfig::BOOT_DFF)
-    cpuThreadFunc = FifoPlayerThread;
-  else
-    cpuThreadFunc = CpuThread;
 
   // ENTER THE VIDEO THREAD LOOP
   if (core_parameter.bCPUThread)
@@ -598,7 +624,7 @@ void EmuThread()
     // Spawn the CPU+GPU thread
     s_cpu_thread = std::thread(cpuThreadFunc);
 
-    while (CPU::GetState() != CPU::CPU_POWERDOWN)
+    while (CPU::GetState() != CPU::State::PowerDown)
     {
       g_video_backend->PeekMessages();
       Common::SleepCurrentThread(20);
@@ -623,42 +649,8 @@ void EmuThread()
   if (core_parameter.bCPUThread)
     g_video_backend->Video_Cleanup();
 
-  FileMon::Close();
-
-  // We must set up this flag before executing HW::Shutdown()
-  s_hardware_initialized = false;
-  INFO_LOG(CONSOLE, "%s", StopMessage(false, "Shutting down HW").c_str());
-  HW::Shutdown();
-  INFO_LOG(CONSOLE, "%s", StopMessage(false, "HW shutdown").c_str());
-
-  if (init_controllers)
-  {
-    Wiimote::Shutdown();
-    Keyboard::Shutdown();
-    Pad::Shutdown();
-    g_controller_interface.Shutdown();
-    init_controllers = false;
-  }
-
-  g_video_backend->Shutdown();
-  AudioCommon::ShutdownSoundStream();
-
-  INFO_LOG(CONSOLE, "%s", StopMessage(true, "Main Emu thread stopped").c_str());
-
-  // Clear on screen messages that haven't expired
-  OSD::ClearMessages();
-
-  BootManager::RestoreConfig();
-
-  INFO_LOG(CONSOLE, "Stop [Video Thread]\t\t---- Shutdown complete ----");
-  Movie::Shutdown();
-  PatchEngine::Shutdown();
-  HLE::Clear();
-
-  s_is_stopping = false;
-
-  if (s_on_stopped_callback)
-    s_on_stopped_callback();
+  // If we shut down normally, the stop message does not need to be triggered.
+  stop_message_guard.Dismiss();
 }
 
 // Set or get the running state
@@ -736,19 +728,19 @@ static std::string GenerateScreenshotName()
   return name;
 }
 
-void SaveScreenShot()
+void SaveScreenShot(bool wait_for_completion)
 {
   const bool bPaused = GetState() == State::Paused;
 
   SetState(State::Paused);
 
-  Renderer::SetScreenshot(GenerateScreenshotName());
+  g_renderer->SaveScreenshot(GenerateScreenshotName(), wait_for_completion);
 
   if (!bPaused)
     SetState(State::Running);
 }
 
-void SaveScreenShot(const std::string& name)
+void SaveScreenShot(const std::string& name, bool wait_for_completion)
 {
   const bool bPaused = GetState() == State::Paused;
 
@@ -756,7 +748,7 @@ void SaveScreenShot(const std::string& name)
 
   std::string filePath = GenerateScreenshotFolderPath() + name + ".png";
 
-  Renderer::SetScreenshot(filePath);
+  g_renderer->SaveScreenshot(filePath, wait_for_completion);
 
   if (!bPaused)
     SetState(State::Running);
@@ -914,17 +906,23 @@ void UpdateTitle()
                                SystemTimers::GetTicksPerSecond() / 1000000, TicksPercentage);
     }
   }
-  // This is our final "frame counter" string
-  std::string SMessage = StringFromFormat("%s | %s", SSettings.c_str(), SFPS.c_str());
+
+  std::string message = StringFromFormat("%s | %s", SSettings.c_str(), SFPS.c_str());
+  if (SConfig::GetInstance().m_show_active_title)
+  {
+    const std::string& title = SConfig::GetInstance().GetTitleDescription();
+    if (!title.empty())
+      message += " | " + title;
+  }
 
   // Update the audio timestretcher with the current speed
   if (g_sound_stream)
   {
-    CMixer* pMixer = g_sound_stream->GetMixer();
+    Mixer* pMixer = g_sound_stream->GetMixer();
     pMixer->UpdateSpeed((float)Speed / 100);
   }
 
-  Host_UpdateTitle(SMessage);
+  Host_UpdateTitle(message);
 }
 
 void Shutdown()
@@ -944,7 +942,7 @@ void Shutdown()
 
 void SetOnStoppedCallback(StoppedCallbackFunc callback)
 {
-  s_on_stopped_callback = callback;
+  s_on_stopped_callback = std::move(callback);
 }
 
 void UpdateWantDeterminism(bool initial)
@@ -953,19 +951,24 @@ void UpdateWantDeterminism(bool initial)
   // settings that depend on it, such as GPU determinism mode. should have
   // override options for testing,
   bool new_want_determinism = Movie::IsMovieActive() || NetPlay::IsNetPlayRunning();
-  if (new_want_determinism != g_want_determinism || initial)
+  if (new_want_determinism != s_wants_determinism || initial)
   {
     NOTICE_LOG(COMMON, "Want determinism <- %s", new_want_determinism ? "true" : "false");
 
     bool was_unpaused = Core::PauseAndLock(true);
 
-    g_want_determinism = new_want_determinism;
-    IOS::HLE::UpdateWantDeterminism(new_want_determinism);
+    s_wants_determinism = new_want_determinism;
+    const auto ios = IOS::HLE::GetIOS();
+    if (ios)
+      ios->UpdateWantDeterminism(new_want_determinism);
     Fifo::UpdateWantDeterminism(new_want_determinism);
     // We need to clear the cache because some parts of the JIT depend on want_determinism, e.g. use
     // of FMA.
     JitInterface::ClearCache();
-    Core::InitializeWiiRoot(g_want_determinism);
+
+    // Don't call InitializeWiiRoot during boot, because IOS already does it.
+    if (!initial)
+      Core::InitializeWiiRoot(s_wants_determinism);
 
     Core::PauseAndLock(false, was_unpaused);
   }

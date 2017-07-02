@@ -8,6 +8,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
+#include "Core/Config/GraphicsSettings.h"
 #include "Core/ConfigManager.h"
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DState.h"
@@ -239,6 +240,19 @@ D3D_FEATURE_LEVEL GetFeatureLevel(IDXGIAdapter* adapter)
   return feat_level;
 }
 
+static bool SupportsS3TCTextures(ID3D11Device* dev)
+{
+  UINT bc1_support, bc2_support, bc3_support;
+  if (FAILED(dev->CheckFormatSupport(DXGI_FORMAT_BC1_UNORM, &bc1_support)) ||
+      FAILED(dev->CheckFormatSupport(DXGI_FORMAT_BC2_UNORM, &bc2_support)) ||
+      FAILED(dev->CheckFormatSupport(DXGI_FORMAT_BC3_UNORM, &bc3_support)))
+  {
+    return false;
+  }
+
+  return ((bc1_support & bc2_support & bc3_support) & D3D11_FORMAT_SUPPORT_TEXTURE2D) != 0;
+}
+
 HRESULT Create(HWND wnd)
 {
   hWnd = wnd;
@@ -306,7 +320,7 @@ HRESULT Create(HWND wnd)
         return desc.Count == g_Config.iMultisamples;
       }) == aa_modes.end())
   {
-    g_Config.iMultisamples = 1;
+    Config::SetCurrent(Config::GFX_MSAA, UINT32_C(1));
     UpdateActiveConfig();
   }
 
@@ -427,6 +441,7 @@ HRESULT Create(HWND wnd)
   UINT format_support;
   device->CheckFormatSupport(DXGI_FORMAT_B8G8R8A8_UNORM, &format_support);
   bgra_textures_supported = (format_support & D3D11_FORMAT_SUPPORT_TEXTURE2D) != 0;
+  g_Config.backend_info.bSupportsST3CTextures = SupportsS3TCTextures(device);
 
   stateman = new StateManager;
   return S_OK;
@@ -526,9 +541,9 @@ bool BGRATexturesSupported()
 
 // Returns the maximum width/height of a texture. This value only depends upon the feature level in
 // DX11
-unsigned int GetMaxTextureSize()
+u32 GetMaxTextureSize(D3D_FEATURE_LEVEL feature_level)
 {
-  switch (featlevel)
+  switch (feature_level)
   {
   case D3D_FEATURE_LEVEL_11_0:
     return D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION;

@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "DolphinWX/Cheats/CheatsWindow.h"
+
 #include <climits>
 #include <cstddef>
 #include <cstdio>
@@ -9,19 +11,16 @@
 #include <string>
 #include <utility>
 #include <vector>
+
 #include <wx/app.h>
 #include <wx/button.h>
 #include <wx/checkbox.h>
-#include <wx/checklst.h>
 #include <wx/dialog.h>
-#include <wx/listbox.h>
-#include <wx/msgdlg.h>
 #include <wx/notebook.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>
-#include <wx/statbox.h>
-#include <wx/stattext.h>
 #include <wx/textctrl.h>
+#include <wx/utils.h>
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
@@ -34,12 +33,9 @@
 #include "Core/GeckoCodeConfig.h"
 #include "DolphinWX/Cheats/ActionReplayCodesPanel.h"
 #include "DolphinWX/Cheats/CheatSearchTab.h"
-#include "DolphinWX/Cheats/CheatsWindow.h"
-#include "DolphinWX/Cheats/CreateCodeDialog.h"
 #include "DolphinWX/Cheats/GeckoCodeDiag.h"
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/Globals.h"
-#include "DolphinWX/Main.h"
 #include "DolphinWX/WxUtils.h"
 
 wxDEFINE_EVENT(DOLPHIN_EVT_ADD_NEW_ACTION_REPLAY_CODE, wxCommandEvent);
@@ -65,13 +61,9 @@ wxCheatsWindow::wxCheatsWindow(wxWindow* const parent)
   SetLayoutAdaptationMode(wxDIALOG_ADAPTATION_MODE_ENABLED);
   SetLayoutAdaptationLevel(wxDIALOG_ADAPTATION_STANDARD_SIZER);
   Center();
-  Show();
 }
 
-wxCheatsWindow::~wxCheatsWindow()
-{
-  main_frame->g_CheatsWindow = nullptr;
-}
+wxCheatsWindow::~wxCheatsWindow() = default;
 
 void wxCheatsWindow::CreateGUI()
 {
@@ -139,8 +131,7 @@ void wxCheatsWindow::CreateGUI()
   m_notebook_main->AddPage(m_tab_log, _("Logging"));
 
   Bind(wxEVT_BUTTON, &wxCheatsWindow::OnEvent_ApplyChanges_Press, this, wxID_APPLY);
-  Bind(wxEVT_BUTTON, &wxCheatsWindow::OnEvent_ButtonClose_Press, this, wxID_CANCEL);
-  Bind(wxEVT_CLOSE_WINDOW, &wxCheatsWindow::OnEvent_Close, this);
+  Bind(wxEVT_CLOSE_WINDOW, &wxCheatsWindow::OnClose, this);
   Bind(DOLPHIN_EVT_ADD_NEW_ACTION_REPLAY_CODE, &wxCheatsWindow::OnNewARCodeCreated, this);
 
   wxStdDialogButtonSizer* const sButtons = CreateStdDialogButtonSizer(wxAPPLY | wxCANCEL);
@@ -158,15 +149,9 @@ void wxCheatsWindow::CreateGUI()
   SetSizerAndFit(sMain);
 }
 
-void wxCheatsWindow::OnEvent_ButtonClose_Press(wxCommandEvent&)
+void wxCheatsWindow::OnClose(wxCloseEvent&)
 {
-  Close();
-}
-
-void wxCheatsWindow::OnEvent_Close(wxCloseEvent&)
-{
-  // This dialog is created on the heap instead of the stack so we have to destroy ourself.
-  Destroy();
+  Hide();
 }
 
 // load codes for a new ISO ID
@@ -177,7 +162,7 @@ void wxCheatsWindow::UpdateGUI()
   m_gameini_default = parameters.LoadDefaultGameIni();
   m_gameini_local = parameters.LoadLocalGameIni();
   m_game_id = parameters.GetGameID();
-  m_game_revision = parameters.m_revision;
+  m_game_revision = parameters.GetRevision();
   m_gameini_local_path = File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini";
   Load_ARCodes();
   Load_GeckoCodes();
@@ -190,7 +175,7 @@ void wxCheatsWindow::UpdateGUI()
 
   // write the ISO name in the title
   if (Core::IsRunning())
-    SetTitle(title + StrToWxStr(": " + m_game_id + " - " + parameters.m_strName));
+    SetTitle(title + StrToWxStr(": " + m_game_id));
   else
     SetTitle(title);
 }

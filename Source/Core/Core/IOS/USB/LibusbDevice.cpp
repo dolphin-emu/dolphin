@@ -2,21 +2,25 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/IOS/USB/LibusbDevice.h"
+
 #include <algorithm>
 #include <cstddef>
 #include <cstring>
+#include <functional>
 #include <map>
+#include <memory>
+#include <mutex>
 #include <utility>
+#include <vector>
 
 #include <libusb.h>
 
 #include "Common/Assert.h"
 #include "Common/Logging/Log.h"
-#include "Core/CoreTiming.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/Device.h"
-#include "Core/IOS/IPC.h"
-#include "Core/IOS/USB/LibusbDevice.h"
+#include "Core/IOS/IOS.h"
 
 namespace IOS
 {
@@ -24,8 +28,9 @@ namespace HLE
 {
 namespace USB
 {
-LibusbDevice::LibusbDevice(libusb_device* device, const libusb_device_descriptor& descriptor)
-    : m_device(device)
+LibusbDevice::LibusbDevice(Kernel& ios, libusb_device* device,
+                           const libusb_device_descriptor& descriptor)
+    : m_ios(ios), m_device(device)
 {
   libusb_ref_device(m_device);
   m_vid = descriptor.idVendor;
@@ -200,14 +205,14 @@ int LibusbDevice::SubmitTransfer(std::unique_ptr<CtrlMessage> cmd)
     }
     const int ret = SetAltSetting(static_cast<u8>(cmd->value));
     if (ret == 0)
-      EnqueueReply(cmd->ios_request, cmd->length);
+      m_ios.EnqueueIPCReply(cmd->ios_request, cmd->length);
     return ret;
   }
   case USBHDR(DIR_HOST2DEVICE, TYPE_STANDARD, REC_DEVICE, REQUEST_SET_CONFIGURATION):
   {
     const int ret = libusb_set_configuration(m_handle, cmd->value);
     if (ret == 0)
-      EnqueueReply(cmd->ios_request, cmd->length);
+      m_ios.EnqueueIPCReply(cmd->ios_request, cmd->length);
     return ret;
   }
   }
@@ -355,8 +360,7 @@ void LibusbDevice::TransferEndpoint::HandleTransfer(libusb_transfer* transfer,
     return_value = IPC_ENOENT;
     break;
   }
-  cmd.OnTransferComplete();
-  EnqueueReply(cmd.ios_request, return_value, 0, CoreTiming::FromThread::NON_CPU);
+  cmd.OnTransferComplete(return_value);
   m_transfers.erase(transfer);
 }
 

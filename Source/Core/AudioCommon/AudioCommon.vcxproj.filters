@@ -1,13 +1,14 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="SoundStreams">
       <UniqueIdentifier>{25ec8f16-fc60-4a63-bc3e-ad0272fd5942}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="aldlist.cpp" />
     <ClCompile Include="AudioCommon.cpp" />
+    <ClCompile Include="AudioStretcher.cpp" />
+    <ClCompile Include="CubebUtils.cpp" />
     <ClCompile Include="DPL2Decoder.cpp" />
     <ClCompile Include="Mixer.cpp" />
     <ClCompile Include="WaveFile.cpp" />
@@ -23,19 +24,17 @@
     <ClCompile Include="XAudio2_7Stream.cpp">
       <Filter>SoundStreams</Filter>
     </ClCompile>
-    <ClCompile Include="AudioDevice.cpp">
+    <ClCompile Include="CubebStream.cpp">
       <Filter>SoundStreams</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="aldlist.h" />
     <ClInclude Include="AudioCommon.h" />
+    <ClInclude Include="AudioStretcher.h" />
+    <ClInclude Include="CubebUtils.h" />
     <ClInclude Include="DPL2Decoder.h" />
     <ClInclude Include="Mixer.h" />
     <ClInclude Include="WaveFile.h" />
-    <ClInclude Include="AOSoundStream.h">
-      <Filter>SoundStreams</Filter>
-    </ClInclude>
     <ClInclude Include="NullSoundStream.h">
       <Filter>SoundStreams</Filter>
     </ClInclude>
@@ -63,7 +62,7 @@
     <ClInclude Include="SoundStream.h">
       <Filter>SoundStreams</Filter>
     </ClInclude>
-    <ClInclude Include="AudioDevice.h">
+    <ClInclude Include="CubebStream.h">
       <Filter>SoundStreams</Filter>
     </ClInclude>
   </ItemGroup>

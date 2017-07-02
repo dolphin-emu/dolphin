@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="ControllerInterface">
       <UniqueIdentifier>{3a755a86-0efa-4396-bf79-bb3a1910764d}</UniqueIdentifier>
@@ -21,6 +21,9 @@
     </Filter>
     <Filter Include="ControllerEmu\ControlGroup">
       <UniqueIdentifier>{e805231c-dc4e-4540-8bf8-8c567f3d00ae}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ControllerEmu\Setting">
+      <UniqueIdentifier>{ce661cb4-f23f-4ab2-952d-402d381735e5}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -70,6 +73,12 @@
     </ClCompile>
     <ClCompile Include="ControllerEmu\ControlGroup\Triggers.cpp">
       <Filter>ControllerEmu\ControlGroup</Filter>
+    </ClCompile>
+    <ClCompile Include="ControllerEmu\Setting\BooleanSetting.cpp">
+      <Filter>ControllerEmu\Setting</Filter>
+    </ClCompile>
+    <ClCompile Include="ControllerEmu\Setting\NumericSetting.cpp">
+      <Filter>ControllerEmu\Setting</Filter>
     </ClCompile>
     <ClCompile Include="ControllerInterface\DInput\DInput.cpp">
       <Filter>ControllerInterface\DInput</Filter>
@@ -150,6 +159,15 @@
     </ClInclude>
     <ClInclude Include="ControllerEmu\ControlGroup\Triggers.h">
       <Filter>ControllerEmu\ControlGroup</Filter>
+    </ClInclude>
+    <ClInclude Include="ControllerEmu\Setting\BooleanSetting.h">
+      <Filter>ControllerEmu\Setting</Filter>
+    </ClInclude>
+    <ClInclude Include="ControllerEmu\Setting\NumericSetting.h">
+      <Filter>ControllerEmu\Setting</Filter>
+    </ClInclude>
+    <ClInclude Include="ControllerEmu\Setting\Setting.h">
+      <Filter>ControllerEmu\Setting</Filter>
     </ClInclude>
     <ClInclude Include="ControllerInterface\DInput\DInput.h">
       <Filter>ControllerInterface\DInput</Filter>

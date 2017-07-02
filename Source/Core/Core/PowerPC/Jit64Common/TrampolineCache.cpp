@@ -14,7 +14,6 @@
 #include "Core/PowerPC/Jit64Common/Jit64Base.h"
 #include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
 #include "Core/PowerPC/Jit64Common/TrampolineInfo.h"
-#include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/PowerPC.h"
 
 #ifdef _WIN32
@@ -23,19 +22,9 @@
 
 using namespace Gen;
 
-void TrampolineCache::Init(size_t size)
-{
-  AllocCodeSpace(size);
-}
-
 void TrampolineCache::ClearCodeSpace()
 {
   X64CodeBlock::ClearCodeSpace();
-}
-
-void TrampolineCache::Shutdown()
-{
-  FreeCodeSpace();
 }
 
 const u8* TrampolineCache::GenerateTrampoline(const TrampolineInfo& info)

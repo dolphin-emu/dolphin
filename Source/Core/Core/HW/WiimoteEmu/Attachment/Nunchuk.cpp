@@ -30,32 +30,35 @@ constexpr std::array<u8, 2> nunchuk_button_bitmasks{{
 Nunchuk::Nunchuk(ExtensionReg& reg) : Attachment(_trans("Nunchuk"), reg)
 {
   // buttons
-  groups.emplace_back(m_buttons = new ControllerEmu::Buttons("Buttons"));
+  groups.emplace_back(m_buttons = new ControllerEmu::Buttons(_trans("Buttons")));
   m_buttons->controls.emplace_back(new ControllerEmu::Input("C"));
   m_buttons->controls.emplace_back(new ControllerEmu::Input("Z"));
 
   // stick
-  groups.emplace_back(m_stick =
-                          new ControllerEmu::AnalogStick("Stick", DEFAULT_ATTACHMENT_STICK_RADIUS));
+  groups.emplace_back(
+      m_stick = new ControllerEmu::AnalogStick(_trans("Stick"), DEFAULT_ATTACHMENT_STICK_RADIUS));
 
   // swing
-  groups.emplace_back(m_swing = new ControllerEmu::Force("Swing"));
+  groups.emplace_back(m_swing = new ControllerEmu::Force(_trans("Swing")));
 
   // tilt
-  groups.emplace_back(m_tilt = new ControllerEmu::Tilt("Tilt"));
+  groups.emplace_back(m_tilt = new ControllerEmu::Tilt(_trans("Tilt")));
 
   // shake
-  groups.emplace_back(m_shake = new ControllerEmu::Buttons("Shake"));
-  m_shake->controls.emplace_back(new ControllerEmu::Input("X"));
-  m_shake->controls.emplace_back(new ControllerEmu::Input("Y"));
-  m_shake->controls.emplace_back(new ControllerEmu::Input("Z"));
+  groups.emplace_back(m_shake = new ControllerEmu::Buttons(_trans("Shake")));
+  // i18n: Refers to a 3D axis (used when mapping motion controls)
+  m_shake->controls.emplace_back(new ControllerEmu::Input(_trans("X")));
+  // i18n: Refers to a 3D axis (used when mapping motion controls)
+  m_shake->controls.emplace_back(new ControllerEmu::Input(_trans("Y")));
+  // i18n: Refers to a 3D axis (used when mapping motion controls)
+  m_shake->controls.emplace_back(new ControllerEmu::Input(_trans("Z")));
 
   m_id = nunchuk_id;
 }
 
 void Nunchuk::GetState(u8* const data)
 {
-  wm_nc* const ncdata = (wm_nc*)data;
+  wm_nc* const ncdata = reinterpret_cast<wm_nc* const>(data);
   ncdata->bt.hex = 0;
 
   // stick

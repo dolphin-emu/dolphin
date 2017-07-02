@@ -190,8 +190,7 @@ void VideoBackendBase::InitializeShared()
   GeometryShaderManager::Init();
   PixelShaderManager::Init();
 
-  g_Config.Load(File::GetUserPath(D_CONFIG_IDX) + "GFX.ini");
-  g_Config.GameIniLoad();
+  g_Config.Refresh();
   g_Config.UpdateProjectionHack();
   g_Config.VerifyValidity();
   UpdateActiveConfig();

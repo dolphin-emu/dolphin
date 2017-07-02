@@ -15,6 +15,11 @@
 #include "Common/Crypto/bn.h"
 #include "Common/Crypto/ec.h"
 
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable : 4505)
+#endif
+
 // y**2 + x*y = x**3 + x + b
 UNUSED static const u8 ec_b[30] = {0x00, 0x66, 0x64, 0x7e, 0xde, 0x6c, 0x33, 0x2c, 0x7f, 0x8c,
                                    0x09, 0x23, 0xbb, 0x58, 0x21, 0x3b, 0x33, 0x3b, 0x20, 0xe9,
@@ -308,7 +313,7 @@ static void point_add(u8* r, const u8* p, const u8* q)
   elt_add(ry, s, rx);
 }
 
-static void point_mul(u8* d, const u8* a, const u8* b)  // a is bignum
+void point_mul(u8* d, const u8* a, const u8* b)  // a is bignum
 {
   u32 i;
   u8 mask;
@@ -404,3 +409,7 @@ void ec_priv_to_pub(const u8* k, u8* Q)
 {
   point_mul(Q, k, ec_G);
 }
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif

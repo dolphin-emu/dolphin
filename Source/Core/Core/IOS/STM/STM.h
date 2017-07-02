@@ -8,7 +8,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Core/IOS/Device.h"
-#include "Core/IOS/IPC.h"
+#include "Core/IOS/IOS.h"
 
 class PointerWrap;
 
@@ -46,7 +46,7 @@ namespace Device
 class STMImmediate final : public Device
 {
 public:
-  STMImmediate(u32 device_id, const std::string& device_name) : Device(device_id, device_name) {}
+  using Device::Device;
   IPCCommandResult IOCtl(const IOCtlRequest& request) override;
 };
 
@@ -54,8 +54,8 @@ public:
 class STMEventHook final : public Device
 {
 public:
-  STMEventHook(u32 device_id, const std::string& device_name) : Device(device_id, device_name) {}
-  void Close() override;
+  using Device::Device;
+  ReturnCode Close(u32 fd) override;
   IPCCommandResult IOCtl(const IOCtlRequest& request) override;
   void DoState(PointerWrap& p) override;
 

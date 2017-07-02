@@ -2,13 +2,12 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <iostream>
+#include "Core/HW/DSPHLE/DSPHLE.h"
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
 #include "Core/Core.h"
-#include "Core/HW/DSPHLE/DSPHLE.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 #include "Core/HW/SystemTimers.h"
 
@@ -16,9 +15,9 @@ namespace DSP
 {
 namespace HLE
 {
-DSPHLE::DSPHLE()
-{
-}
+DSPHLE::DSPHLE() = default;
+
+DSPHLE::~DSPHLE() = default;
 
 bool DSPHLE::Initialize(bool wii, bool dsp_thread)
 {
@@ -43,7 +42,6 @@ void DSPHLE::DSP_StopSoundStream()
 
 void DSPHLE::Shutdown()
 {
-  delete m_ucode;
   m_ucode = nullptr;
 }
 
@@ -69,16 +67,8 @@ void DSPHLE::SendMailToDSP(u32 mail)
   }
 }
 
-UCodeInterface* DSPHLE::GetUCode()
-{
-  return m_ucode;
-}
-
 void DSPHLE::SetUCode(u32 crc)
 {
-  delete m_ucode;
-
-  m_ucode = nullptr;
   m_mail_handler.Clear();
   m_ucode = UCodeFactory(crc, this, m_wii);
   m_ucode->Initialize();
@@ -93,15 +83,13 @@ void DSPHLE::SwapUCode(u32 crc)
 
   if (m_last_ucode == nullptr)
   {
-    m_last_ucode = m_ucode;
+    m_last_ucode = std::move(m_ucode);
     m_ucode = UCodeFactory(crc, this, m_wii);
     m_ucode->Initialize();
   }
   else
   {
-    delete m_ucode;
-    m_ucode = m_last_ucode;
-    m_last_ucode = nullptr;
+    m_ucode = std::move(m_last_ucode);
   }
 }
 
@@ -120,9 +108,9 @@ void DSPHLE::DoState(PointerWrap& p)
   p.DoPOD(m_dsp_control);
   p.DoPOD(m_dsp_state);
 
-  int ucode_crc = UCodeInterface::GetCRC(m_ucode);
-  int ucode_crc_beforeLoad = ucode_crc;
-  int last_ucode_crc = UCodeInterface::GetCRC(m_last_ucode);
+  int ucode_crc = UCodeInterface::GetCRC(m_ucode.get());
+  int ucode_crc_before_load = ucode_crc;
+  int last_ucode_crc = UCodeInterface::GetCRC(m_last_ucode.get());
   int last_ucode_crc_before_load = last_ucode_crc;
 
   p.Do(ucode_crc);
@@ -130,43 +118,19 @@ void DSPHLE::DoState(PointerWrap& p)
 
   // if a different type of ucode was being used when the savestate was created,
   // we have to reconstruct the old type of ucode so that we have a valid thing to call DoState on.
-  UCodeInterface* ucode =
-      (ucode_crc == ucode_crc_beforeLoad) ? m_ucode : UCodeFactory(ucode_crc, this, m_wii);
-  UCodeInterface* last_ucode = (last_ucode_crc != last_ucode_crc_before_load) ?
-                                   m_last_ucode :
-                                   UCodeFactory(last_ucode_crc, this, m_wii);
+  const bool same_ucode = ucode_crc == ucode_crc_before_load;
+  const bool same_last_ucode = last_ucode_crc == last_ucode_crc_before_load;
+  auto ucode = same_ucode ? std::move(m_ucode) : UCodeFactory(ucode_crc, this, m_wii);
+  auto last_ucode =
+      same_last_ucode ? std::move(m_last_ucode) : UCodeFactory(last_ucode_crc, this, m_wii);
 
   if (ucode)
     ucode->DoState(p);
   if (last_ucode)
     last_ucode->DoState(p);
 
-  // if a different type of ucode was being used when the savestate was created,
-  // discard it if we're not loading, otherwise discard the old one and keep the new one.
-  if (ucode != m_ucode)
-  {
-    if (p.GetMode() != PointerWrap::MODE_READ)
-    {
-      delete ucode;
-    }
-    else
-    {
-      delete m_ucode;
-      m_ucode = ucode;
-    }
-  }
-  if (last_ucode != m_last_ucode)
-  {
-    if (p.GetMode() != PointerWrap::MODE_READ)
-    {
-      delete last_ucode;
-    }
-    else
-    {
-      delete m_last_ucode;
-      m_last_ucode = last_ucode;
-    }
-  }
+  m_ucode = std::move(ucode);
+  m_last_ucode = std::move(last_ucode);
 
   m_mail_handler.DoState(p);
 }

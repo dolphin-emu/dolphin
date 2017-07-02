@@ -4,7 +4,12 @@
 
 #pragma once
 
+#include <memory>
+
+#include "VideoBackends/Null/NullTexture.h"
+
 #include "VideoCommon/TextureCacheBase.h"
+#include "VideoCommon/TextureConfig.h"
 
 namespace Null
 {
@@ -15,41 +20,26 @@ public:
   ~TextureCache() {}
   bool CompileShaders() override { return true; }
   void DeleteShaders() override {}
-  void ConvertTexture(TCacheEntryBase* entry, TCacheEntryBase* unconverted, void* palette,
+  void ConvertTexture(TCacheEntry* entry, TCacheEntry* unconverted, void* palette,
                       TlutFormat format) override
   {
   }
 
-  void CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_row, u32 num_blocks_y,
-               u32 memory_stride, bool is_depth_copy, const EFBRectangle& src_rect,
-               bool is_intensity, bool scale_by_half) override
+  void CopyEFB(u8* dst, const EFBCopyFormat& format, u32 native_width, u32 bytes_per_row,
+               u32 num_blocks_y, u32 memory_stride, bool is_depth_copy,
+               const EFBRectangle& src_rect, bool scale_by_half) override
+  {
+  }
+
+  void CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy, const EFBRectangle& src_rect,
+                           bool scale_by_half, unsigned int cbuf_id, const float* colmat) override
   {
   }
 
 private:
-  struct TCacheEntry : TCacheEntryBase
+  std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config) override
   {
-    TCacheEntry(const TCacheEntryConfig& _config) : TCacheEntryBase(_config) {}
-    ~TCacheEntry() {}
-    void Load(const u8* buffer, u32 width, u32 height, u32 expanded_width, u32 level) override {}
-    void FromRenderTarget(bool is_depth_copy, const EFBRectangle& src_rect, bool scale_by_half,
-                          unsigned int cbufid, const float* colmat) override
-    {
-    }
-
-    void CopyRectangleFromTexture(const TCacheEntryBase* source,
-                                  const MathUtil::Rectangle<int>& srcrect,
-                                  const MathUtil::Rectangle<int>& dstrect) override
-    {
-    }
-
-    void Bind(unsigned int stage) override {}
-    bool Save(const std::string& filename, unsigned int level) override { return false; }
-  };
-
-  TCacheEntryBase* CreateTexture(const TCacheEntryConfig& config) override
-  {
-    return new TCacheEntry(config);
+    return std::make_unique<NullTexture>(config);
   }
 };
 

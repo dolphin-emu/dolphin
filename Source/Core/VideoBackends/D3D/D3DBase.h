@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
 
 namespace DX11
@@ -72,7 +73,7 @@ const char* GeometryShaderVersionString();
 const char* VertexShaderVersionString();
 bool BGRATexturesSupported();
 
-unsigned int GetMaxTextureSize();
+u32 GetMaxTextureSize(D3D_FEATURE_LEVEL feature_level);
 
 HRESULT SetFullscreenState(bool enable_fullscreen);
 bool GetFullscreenState();

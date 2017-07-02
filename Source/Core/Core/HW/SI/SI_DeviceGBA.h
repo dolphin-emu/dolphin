@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <array>
 #include <memory>
 
 #include <SFML/Network.hpp>
@@ -13,6 +14,8 @@
 
 // GameBoy Advance "Link Cable"
 
+namespace SerialInterface
+{
 u8 GetNumConnected();
 int GetTransferTime(u8 cmd);
 void GBAConnectionWaiter_Shutdown();
@@ -20,7 +23,7 @@ void GBAConnectionWaiter_Shutdown();
 class GBASockServer
 {
 public:
-  GBASockServer(int _iDeviceNumber);
+  explicit GBASockServer(int device_number);
   ~GBASockServer();
 
   void Disconnect();
@@ -31,32 +34,33 @@ public:
   int Receive(u8* si_buffer);
 
 private:
-  std::unique_ptr<sf::TcpSocket> client;
-  std::unique_ptr<sf::TcpSocket> clock_sync;
-  char send_data[5];
-  char recv_data[5];
+  std::unique_ptr<sf::TcpSocket> m_client;
+  std::unique_ptr<sf::TcpSocket> m_clock_sync;
+  std::array<char, 5> m_send_data{};
+  std::array<char, 5> m_recv_data{};
 
-  u64 time_cmd_sent;
-  u64 last_time_slice;
-  u8 device_number;
-  u8 cmd;
-  bool booted;
+  u64 m_time_cmd_sent = 0;
+  u64 m_last_time_slice = 0;
+  int m_device_number;
+  u8 m_cmd = 0;
+  bool m_booted = false;
 };
 
 class CSIDevice_GBA : public ISIDevice, private GBASockServer
 {
 public:
-  CSIDevice_GBA(SIDevices device, int _iDeviceNumber);
+  CSIDevice_GBA(SIDevices device, int device_number);
   ~CSIDevice_GBA();
 
-  int RunBuffer(u8* _pBuffer, int _iLength) override;
+  int RunBuffer(u8* buffer, int length) override;
   int TransferInterval() override;
+  bool GetData(u32& hi, u32& low) override;
+  void SendCommand(u32 command, u8 poll) override;
 
-  bool GetData(u32& _Hi, u32& _Low) override { return false; }
-  void SendCommand(u32 _Cmd, u8 _Poll) override {}
 private:
-  u8 send_data[5];
-  int num_data_received;
-  u64 timestamp_sent;
-  bool waiting_for_response;
+  std::array<u8, 5> m_send_data{};
+  int m_num_data_received = 0;
+  u64 m_timestamp_sent = 0;
+  bool m_waiting_for_response = false;
 };
+}  // namespace SerialInterface

@@ -13,11 +13,12 @@
 
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/Control/Control.h"
+#include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 
 namespace ControllerEmu
 {
 MixedTriggers::MixedTriggers(const std::string& name_)
-    : ControlGroup(name_, GROUP_TYPE_MIXED_TRIGGERS)
+    : ControlGroup(name_, GroupType::MixedTriggers)
 {
   numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Threshold"), 0.9));
 }

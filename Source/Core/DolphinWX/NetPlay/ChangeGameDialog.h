@@ -6,13 +6,13 @@
 
 #include <wx/dialog.h>
 
-class CGameListCtrl;
+class GameListCtrl;
 class wxListBox;
 
 class ChangeGameDialog final : public wxDialog
 {
 public:
-  ChangeGameDialog(wxWindow* parent, const CGameListCtrl* const game_list);
+  ChangeGameDialog(wxWindow* parent, const GameListCtrl* const game_list);
 
   wxString GetChosenGameName() const;
 

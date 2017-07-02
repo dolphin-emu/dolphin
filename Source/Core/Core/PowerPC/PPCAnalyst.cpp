@@ -2,16 +2,19 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/PowerPC/PPCAnalyst.h"
+
 #include <algorithm>
+#include <map>
 #include <queue>
 #include <string>
+#include <vector>
 
+#include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
-#include "Core/PowerPC/JitCommon/JitCache.h"
-#include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PPCTables.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -53,7 +56,15 @@ static u32 EvaluateBranchTarget(UGeckoInstruction instr, u32 pc)
 {
   switch (instr.OPCD)
   {
-  case 18:  // branch instruction
+  case 16:  // bcx - Branch Conditional instructions
+  {
+    u32 target = SignExt16(instr.BD << 2);
+    if (!instr.AA)
+      target += pc;
+
+    return target;
+  }
+  case 18:  // bx - Branch instructions
   {
     u32 target = SignExt26(instr.LI << 2);
     if (!instr.AA)
@@ -67,16 +78,15 @@ static u32 EvaluateBranchTarget(UGeckoInstruction instr, u32 pc)
 }
 
 // To find the size of each found function, scan
-// forward until we hit blr. In the meantime, collect information
+// forward until we hit blr or rfi. In the meantime, collect information
 // about which functions this function calls.
-// Also collect which internal branch goes the farthest
-// If any one goes farther than the blr, assume that there is more than
-// one blr, and keep scanning.
-
+// Also collect which internal branch goes the farthest.
+// If any one goes farther than the blr or rfi, assume that there is more than
+// one blr or rfi, and keep scanning.
 bool AnalyzeFunction(u32 startAddr, Symbol& func, int max_size)
 {
   if (!func.name.size())
-    func.name = StringFromFormat("zz_%07x_", startAddr & 0x0FFFFFF);
+    func.name = StringFromFormat("zz_%07x_", startAddr & 0x0FFFFFFF);
   if (func.analyzed)
     return true;  // No error, just already did it.
 
@@ -84,47 +94,46 @@ bool AnalyzeFunction(u32 startAddr, Symbol& func, int max_size)
   func.callers.clear();
   func.size = 0;
   func.flags = FFLAG_LEAF;
-  u32 addr = startAddr;
 
   u32 farthestInternalBranchTarget = startAddr;
   int numInternalBranches = 0;
-  while (true)
+  for (u32 addr = startAddr; true; addr += 4)
   {
     func.size += 4;
-    if (func.size >= CODEBUFFER_SIZE * 4)  // weird
+    if (func.size >= CODEBUFFER_SIZE * 4 || !PowerPC::HostIsInstructionRAMAddress(addr))  // weird
       return false;
 
-    const UGeckoInstruction instr = PowerPC::HostRead_Instruction(addr);
     if (max_size && func.size > max_size)
     {
       func.address = startAddr;
       func.analyzed = true;
-      func.hash = SignatureDB::ComputeCodeChecksum(startAddr, addr);
+      func.size -= 4;
+      func.hash = HashSignatureDB::ComputeCodeChecksum(startAddr, addr - 4);
       if (numInternalBranches == 0)
         func.flags |= FFLAG_STRAIGHT;
       return true;
     }
-    if (PPCTables::IsValidInstruction(instr))
+    const PowerPC::TryReadInstResult read_result = PowerPC::TryReadInstruction(addr);
+    const UGeckoInstruction instr = read_result.hex;
+    if (read_result.valid && PPCTables::IsValidInstruction(instr))
     {
-      if (instr.hex == 0x4e800020)  // 4e800021 is blrl, not the end of a function
+      // BLR or RFI
+      // 4e800021 is blrl, not the end of a function
+      if (instr.hex == 0x4e800020 || instr.hex == 0x4C000064)
       {
-        // BLR
+        // Not this one, continue..
         if (farthestInternalBranchTarget > addr)
-        {
-          // bah, not this one, continue..
-        }
-        else
-        {
-          // a final blr!
-          // We're done! Looks like we have a neat valid function. Perfect.
-          // Let's calc the checksum and get outta here
-          func.address = startAddr;
-          func.analyzed = true;
-          func.hash = SignatureDB::ComputeCodeChecksum(startAddr, addr);
-          if (numInternalBranches == 0)
-            func.flags |= FFLAG_STRAIGHT;
-          return true;
-        }
+          continue;
+
+        // A final blr!
+        // We're done! Looks like we have a neat valid function. Perfect.
+        // Let's calc the checksum and get outta here
+        func.address = startAddr;
+        func.analyzed = true;
+        func.hash = HashSignatureDB::ComputeCodeChecksum(startAddr, addr);
+        if (numInternalBranches == 0)
+          func.flags |= FFLAG_STRAIGHT;
+        return true;
       }
       /*
       else if ((instr.hex & 0xFC000000) == (0x4b000000 & 0xFC000000) && !instr.LK)
@@ -136,7 +145,7 @@ bool AnalyzeFunction(u32 startAddr, Symbol& func, int max_size)
           func.size *= 4; // into bytes
           func.address = startAddr;
           func.analyzed = 1;
-          func.hash = SignatureDB::ComputeCodeChecksum(startAddr, addr);
+          func.hash = HashSignatureDB::ComputeCodeChecksum(startAddr, addr);
           if (numInternalBranches == 0)
             func.flags |= FFLAG_STRAIGHT;
           return true;
@@ -154,28 +163,25 @@ bool AnalyzeFunction(u32 startAddr, Symbol& func, int max_size)
       }
       else
       {
-        if (instr.OPCD == 16)
+        u32 target = EvaluateBranchTarget(instr, addr);
+        if (target == INVALID_BRANCH_TARGET)
+          continue;
+
+        const bool is_external = target < startAddr || (max_size && target >= startAddr + max_size);
+        if (instr.LK || is_external)
         {
-          u32 target = SignExt16(instr.BD << 2);
-
-          if (!instr.AA)
-            target += addr;
-
-          if (target > farthestInternalBranchTarget && !instr.LK)
+          // Found a function call
+          func.calls.emplace_back(target, addr);
+          func.flags &= ~FFLAG_LEAF;
+        }
+        else if (instr.OPCD == 16)
+        {
+          // Found a conditional branch
+          if (target > farthestInternalBranchTarget)
           {
             farthestInternalBranchTarget = target;
           }
           numInternalBranches++;
-        }
-        else
-        {
-          u32 target = EvaluateBranchTarget(instr, addr);
-          if (target != INVALID_BRANCH_TARGET && instr.LK)
-          {
-            // we found a branch-n-link!
-            func.calls.emplace_back(target, addr);
-            func.flags &= ~FFLAG_LEAF;
-          }
         }
       }
     }
@@ -183,8 +189,15 @@ bool AnalyzeFunction(u32 startAddr, Symbol& func, int max_size)
     {
       return false;
     }
-    addr += 4;
   }
+}
+
+bool ReanalyzeFunction(u32 start_addr, Symbol& func, int max_size)
+{
+  _assert_msg_(OSHLE, func.analyzed, "The function wasn't previously analyzed!");
+
+  func.analyzed = false;
+  return AnalyzeFunction(start_addr, func, max_size);
 }
 
 // Second pass analysis, done after the first pass is done for all functions
@@ -271,9 +284,10 @@ static void FindFunctionsFromBranches(u32 startAddr, u32 endAddr, SymbolDB* func
 {
   for (u32 addr = startAddr; addr < endAddr; addr += 4)
   {
-    const UGeckoInstruction instr = PowerPC::HostRead_Instruction(addr);
+    const PowerPC::TryReadInstResult read_result = PowerPC::TryReadInstruction(addr);
+    const UGeckoInstruction instr = read_result.hex;
 
-    if (PPCTables::IsValidInstruction(instr))
+    if (read_result.valid && PPCTables::IsValidInstruction(instr))
     {
       switch (instr.OPCD)
       {
@@ -298,7 +312,41 @@ static void FindFunctionsFromBranches(u32 startAddr, u32 endAddr, SymbolDB* func
   }
 }
 
-static void FindFunctionsAfterBLR(PPCSymbolDB* func_db)
+static void FindFunctionsFromHandlers(PPCSymbolDB* func_db)
+{
+  static const std::map<u32, const char* const> handlers = {
+      {0x80000100, "system_reset_exception_handler"},
+      {0x80000200, "machine_check_exception_handler"},
+      {0x80000300, "dsi_exception_handler"},
+      {0x80000400, "isi_exception_handler"},
+      {0x80000500, "external_interrupt_exception_handler"},
+      {0x80000600, "alignment_exception_handler"},
+      {0x80000700, "program_exception_handler"},
+      {0x80000800, "floating_point_unavailable_exception_handler"},
+      {0x80000900, "decrementer_exception_handler"},
+      {0x80000C00, "system_call_exception_handler"},
+      {0x80000D00, "trace_exception_handler"},
+      {0x80000E00, "floating_point_assist_exception_handler"},
+      {0x80000F00, "performance_monitor_interrupt_handler"},
+      {0x80001300, "instruction_address_breakpoint_exception_handler"},
+      {0x80001400, "system_management_interrupt_handler"},
+      {0x80001700, "thermal_management_interrupt_exception_handler"}};
+
+  for (const auto& entry : handlers)
+  {
+    const PowerPC::TryReadInstResult read_result = PowerPC::TryReadInstruction(entry.first);
+    if (read_result.valid && PPCTables::IsValidInstruction(read_result.hex))
+    {
+      // Check if this function is already mapped
+      Symbol* f = func_db->AddFunction(entry.first);
+      if (!f)
+        continue;
+      f->name = entry.second;
+    }
+  }
+}
+
+static void FindFunctionsAfterReturnInstruction(PPCSymbolDB* func_db)
 {
   std::vector<u32> funcAddrs;
 
@@ -309,11 +357,17 @@ static void FindFunctionsAfterBLR(PPCSymbolDB* func_db)
   {
     while (true)
     {
-      // skip zeroes that sometimes pad function to 16 byte boundary (e.g. Donkey Kong Country
-      // Returns)
-      while (PowerPC::HostRead_Instruction(location) == 0 && ((location & 0xf) != 0))
+      // Skip zeroes (e.g. Donkey Kong Country Returns) and nop (e.g. libogc)
+      // that sometimes pad function to 16 byte boundary.
+      PowerPC::TryReadInstResult read_result = PowerPC::TryReadInstruction(location);
+      while (read_result.valid && (location & 0xf) != 0)
+      {
+        if (read_result.hex != 0 && read_result.hex != 0x60000000)
+          break;
         location += 4;
-      if (PPCTables::IsValidInstruction(PowerPC::HostRead_Instruction(location)))
+        read_result = PowerPC::TryReadInstruction(location);
+      }
+      if (read_result.valid && PPCTables::IsValidInstruction(read_result.hex))
       {
         // check if this function is already mapped
         Symbol* f = func_db->AddFunction(location);
@@ -332,7 +386,8 @@ void FindFunctions(u32 startAddr, u32 endAddr, PPCSymbolDB* func_db)
 {
   // Step 1: Find all functions
   FindFunctionsFromBranches(startAddr, endAddr, func_db);
-  FindFunctionsAfterBLR(func_db);
+  FindFunctionsFromHandlers(func_db);
+  FindFunctionsAfterReturnInstruction(func_db);
 
   // Step 2:
   func_db->FillInCallers();
@@ -486,7 +541,7 @@ void PPCAnalyzer::ReorderInstructions(u32 instructions, CodeOp* code)
     ReorderInstructionsCore(instructions, code, false, REORDER_CMP);
 }
 
-void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code, GekkoOPInfo* opinfo,
+void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code, const GekkoOPInfo* opinfo,
                                       u32 index)
 {
   code->wantsCR0 = false;
@@ -675,8 +730,8 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, u32 
     code[i].opinfo = opinfo;
     code[i].address = address;
     code[i].inst = inst;
-    code[i].branchTo = -1;
-    code[i].branchToIndex = -1;
+    code[i].branchTo = UINT32_MAX;
+    code[i].branchToIndex = UINT32_MAX;
     code[i].skip = false;
     block->m_stats->numCycles += opinfo->numCycles;
     block->m_physical_addresses.insert(result.physical_address);

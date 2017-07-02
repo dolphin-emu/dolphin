@@ -19,8 +19,11 @@
 // copy, etc
 // -------------------------------------------------------------------------------------------------------------
 
+#include "Core/ActionReplay.h"
+
 #include <algorithm>
 #include <atomic>
+#include <cstdarg>
 #include <iterator>
 #include <mutex>
 #include <string>
@@ -35,9 +38,7 @@
 #include "Common/StringUtil.h"
 
 #include "Core/ARDecrypt.h"
-#include "Core/ActionReplay.h"
 #include "Core/ConfigManager.h"
-#include "Core/Core.h"
 #include "Core/PowerPC/PowerPC.h"
 
 namespace ActionReplay
@@ -174,8 +175,6 @@ std::vector<ARCode> LoadCodes(const IniFile& global_ini, const IniFile& local_in
         continue;
       }
 
-      std::vector<std::string> pieces;
-
       // Check if the line is a name of the code
       if (line[0] == '$')
       {
@@ -198,7 +197,7 @@ std::vector<ARCode> LoadCodes(const IniFile& global_ini, const IniFile& local_in
       }
       else
       {
-        SplitString(line, ' ', pieces);
+        std::vector<std::string> pieces = SplitString(line, ' ');
 
         // Check if the AR code is decrypted
         if (pieces.size() == 2 && pieces[0].size() == 8 && pieces[1].size() == 8)
@@ -224,7 +223,7 @@ std::vector<ARCode> LoadCodes(const IniFile& global_ini, const IniFile& local_in
         }
         else
         {
-          SplitString(line, '-', pieces);
+          pieces = SplitString(line, '-');
           if (pieces.size() == 3 && pieces[0].size() == 4 && pieces[1].size() == 4 &&
               pieces[2].size() == 5)
           {

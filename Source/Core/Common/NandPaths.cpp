@@ -3,20 +3,18 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
-#include <cstdio>
-#include <fstream>
-#include <stdlib.h>
 #include <string>
 #include <unordered_set>
 #include <utility>
+#include <vector>
 
-#include "Common/CommonFuncs.h"
-#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
+#include "Common/File.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
+#include "Common/Swap.h"
 
 namespace Common
 {
@@ -26,58 +24,38 @@ std::string RootUserPath(FromWhichRoot from)
   return File::GetUserPath(idx);
 }
 
+std::string GetImportTitlePath(u64 title_id, FromWhichRoot from)
+{
+  return RootUserPath(from) + StringFromFormat("/import/%08x/%08x",
+                                               static_cast<u32>(title_id >> 32),
+                                               static_cast<u32>(title_id));
+}
+
 std::string GetTicketFileName(u64 _titleID, FromWhichRoot from)
 {
   return StringFromFormat("%s/ticket/%08x/%08x.tik", RootUserPath(from).c_str(),
                           (u32)(_titleID >> 32), (u32)_titleID);
 }
 
+std::string GetTitlePath(u64 title_id, FromWhichRoot from)
+{
+  return StringFromFormat("%s/title/%08x/%08x/", RootUserPath(from).c_str(),
+                          static_cast<u32>(title_id >> 32), static_cast<u32>(title_id));
+}
+
 std::string GetTitleDataPath(u64 _titleID, FromWhichRoot from)
 {
-  return StringFromFormat("%s/title/%08x/%08x/data/", RootUserPath(from).c_str(),
-                          (u32)(_titleID >> 32), (u32)_titleID);
+  return GetTitlePath(_titleID, from) + "data/";
+}
+
+std::string GetTitleContentPath(u64 _titleID, FromWhichRoot from)
+{
+  return GetTitlePath(_titleID, from) + "content/";
 }
 
 std::string GetTMDFileName(u64 _titleID, FromWhichRoot from)
 {
   return GetTitleContentPath(_titleID, from) + "title.tmd";
-}
-std::string GetTitleContentPath(u64 _titleID, FromWhichRoot from)
-{
-  return StringFromFormat("%s/title/%08x/%08x/content/", RootUserPath(from).c_str(),
-                          (u32)(_titleID >> 32), (u32)_titleID);
-}
-
-bool CheckTitleTMD(u64 _titleID, FromWhichRoot from)
-{
-  const std::string TitlePath = GetTMDFileName(_titleID, from);
-  if (File::Exists(TitlePath))
-  {
-    File::IOFile pTMDFile(TitlePath, "rb");
-    u64 TitleID = 0;
-    pTMDFile.Seek(0x18C, SEEK_SET);
-    if (pTMDFile.ReadArray(&TitleID, 1) && _titleID == Common::swap64(TitleID))
-      return true;
-  }
-  INFO_LOG(DISCIO, "Invalid or no tmd for title %08x %08x", (u32)(_titleID >> 32),
-           (u32)(_titleID & 0xFFFFFFFF));
-  return false;
-}
-
-bool CheckTitleTIK(u64 _titleID, FromWhichRoot from)
-{
-  const std::string ticketFileName = Common::GetTicketFileName(_titleID, from);
-  if (File::Exists(ticketFileName))
-  {
-    File::IOFile pTIKFile(ticketFileName, "rb");
-    u64 TitleID = 0;
-    pTIKFile.Seek(0x1dC, SEEK_SET);
-    if (pTIKFile.ReadArray(&TitleID, 1) && _titleID == Common::swap64(TitleID))
-      return true;
-  }
-  INFO_LOG(DISCIO, "Invalid or no tik for title %08x %08x", (u32)(_titleID >> 32),
-           (u32)(_titleID & 0xFFFFFFFF));
-  return false;
 }
 
 std::string EscapeFileName(const std::string& filename)
@@ -107,8 +85,7 @@ std::string EscapeFileName(const std::string& filename)
 
 std::string EscapePath(const std::string& path)
 {
-  std::vector<std::string> split_strings;
-  SplitString(path, '/', split_strings);
+  const std::vector<std::string> split_strings = SplitString(path, '/');
 
   std::vector<std::string> escaped_split_strings;
   escaped_split_strings.reserve(split_strings.size());

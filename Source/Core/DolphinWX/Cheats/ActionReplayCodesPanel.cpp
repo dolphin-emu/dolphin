@@ -288,4 +288,6 @@ void ActionReplayCodesPanel::OnRemoveCodeClick(wxCommandEvent&)
   m_codes.erase(m_codes.begin() + idx);
   m_checklist_cheats->Delete(idx);
   m_was_modified = true;
+
+  UpdateModifyButtons();
 }

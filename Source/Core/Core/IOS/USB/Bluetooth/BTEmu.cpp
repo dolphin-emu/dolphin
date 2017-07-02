@@ -2,14 +2,15 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/IOS/USB/Bluetooth/BTEmu.h"
+
 #include <algorithm>
 #include <cstdint>
 #include <cstring>
 #include <memory>
+#include <string>
 
 #include "Common/Assert.h"
-#include "Common/CommonPaths.h"
-#include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/NandPaths.h"
@@ -23,8 +24,7 @@
 #include "Core/HW/Wiimote.h"
 #include "Core/Host.h"
 #include "Core/IOS/Device.h"
-#include "Core/IOS/IPC.h"
-#include "Core/IOS/USB/Bluetooth/BTEmu.h"
+#include "Core/IOS/IOS.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 namespace IOS
@@ -39,53 +39,50 @@ SQueuedEvent::SQueuedEvent(u32 size, u16 handle) : m_size(size), m_connectionHan
 
 namespace Device
 {
-BluetoothEmu::BluetoothEmu(u32 device_id, const std::string& device_name)
-    : BluetoothBase(device_id, device_name)
+BluetoothEmu::BluetoothEmu(Kernel& ios, const std::string& device_name)
+    : BluetoothBase(ios, device_name)
 {
-  SysConf sysconf{Core::g_want_determinism ? Common::FromWhichRoot::FROM_SESSION_ROOT :
+  SysConf sysconf{Core::WantsDeterminism() ? Common::FromWhichRoot::FROM_SESSION_ROOT :
                                              Common::FromWhichRoot::FROM_CONFIGURED_ROOT};
-  if (!Core::g_want_determinism)
+  if (!Core::WantsDeterminism())
     BackUpBTInfoSection(&sysconf);
 
   _conf_pads BT_DINF;
-  if (!sysconf.GetArrayData("BT.DINF", (u8*)&BT_DINF, sizeof(_conf_pads)))
+  bdaddr_t tmpBD = BDADDR_ANY;
+  u8 i = 0;
+  while (i < MAX_BBMOTES)
   {
-    PanicAlertT("Trying to read from invalid SYSCONF\nWii Remote Bluetooth IDs are not available");
+    // Previous records can be safely overwritten, since they are backed up
+    tmpBD.b[5] = BT_DINF.active[i].bdaddr[0] = BT_DINF.registered[i].bdaddr[0] = i;
+    tmpBD.b[4] = BT_DINF.active[i].bdaddr[1] = BT_DINF.registered[i].bdaddr[1] = 0;
+    tmpBD.b[3] = BT_DINF.active[i].bdaddr[2] = BT_DINF.registered[i].bdaddr[2] = 0x79;
+    tmpBD.b[2] = BT_DINF.active[i].bdaddr[3] = BT_DINF.registered[i].bdaddr[3] = 0x19;
+    tmpBD.b[1] = BT_DINF.active[i].bdaddr[4] = BT_DINF.registered[i].bdaddr[4] = 2;
+    tmpBD.b[0] = BT_DINF.active[i].bdaddr[5] = BT_DINF.registered[i].bdaddr[5] = 0x11;
+
+    const char* wmName;
+    if (i == WIIMOTE_BALANCE_BOARD)
+      wmName = "Nintendo RVL-WBC-01";
+    else
+      wmName = "Nintendo RVL-CNT-01";
+    memcpy(BT_DINF.registered[i].name, wmName, 20);
+    memcpy(BT_DINF.active[i].name, wmName, 20);
+
+    DEBUG_LOG(IOS_WIIMOTE, "Wii Remote %d BT ID %x,%x,%x,%x,%x,%x", i, tmpBD.b[0], tmpBD.b[1],
+              tmpBD.b[2], tmpBD.b[3], tmpBD.b[4], tmpBD.b[5]);
+    m_WiiMotes.emplace_back(this, i, tmpBD, g_wiimote_sources[i] != WIIMOTE_SRC_NONE);
+    i++;
   }
-  else
-  {
-    bdaddr_t tmpBD = BDADDR_ANY;
-    u8 i = 0;
-    while (i < MAX_BBMOTES)
-    {
-      // Previous records can be safely overwritten, since they are backed up
-      tmpBD.b[5] = BT_DINF.active[i].bdaddr[0] = BT_DINF.registered[i].bdaddr[0] = i;
-      tmpBD.b[4] = BT_DINF.active[i].bdaddr[1] = BT_DINF.registered[i].bdaddr[1] = 0;
-      tmpBD.b[3] = BT_DINF.active[i].bdaddr[2] = BT_DINF.registered[i].bdaddr[2] = 0x79;
-      tmpBD.b[2] = BT_DINF.active[i].bdaddr[3] = BT_DINF.registered[i].bdaddr[3] = 0x19;
-      tmpBD.b[1] = BT_DINF.active[i].bdaddr[4] = BT_DINF.registered[i].bdaddr[4] = 2;
-      tmpBD.b[0] = BT_DINF.active[i].bdaddr[5] = BT_DINF.registered[i].bdaddr[5] = 0x11;
 
-      const char* wmName;
-      if (i == WIIMOTE_BALANCE_BOARD)
-        wmName = "Nintendo RVL-WBC-01";
-      else
-        wmName = "Nintendo RVL-CNT-01";
-      memcpy(BT_DINF.registered[i].name, wmName, 20);
-      memcpy(BT_DINF.active[i].name, wmName, 20);
+  BT_DINF.num_registered = MAX_BBMOTES;
 
-      DEBUG_LOG(IOS_WIIMOTE, "Wii Remote %d BT ID %x,%x,%x,%x,%x,%x", i, tmpBD.b[0], tmpBD.b[1],
-                tmpBD.b[2], tmpBD.b[3], tmpBD.b[4], tmpBD.b[5]);
-      m_WiiMotes.emplace_back(this, i, tmpBD, g_wiimote_sources[i] != WIIMOTE_SRC_NONE);
-      i++;
-    }
-
-    BT_DINF.num_registered = MAX_BBMOTES;
-    // save now so that when games load sysconf file it includes the new Wii Remotes
-    // and the correct order for connected Wii Remotes
-    if (!sysconf.SetArrayData("BT.DINF", (u8*)&BT_DINF, sizeof(_conf_pads)) || !sysconf.Save())
-      PanicAlertT("Failed to write BT.DINF to SYSCONF");
-  }
+  // save now so that when games load sysconf file it includes the new Wii Remotes
+  // and the correct order for connected Wii Remotes
+  std::vector<u8> data(sizeof(_conf_pads));
+  std::memcpy(data.data(), &BT_DINF, data.size());
+  sysconf.GetOrAddEntry("BT.DINF", SysConf::Entry::Type::BigArray)->bytes = std::move(data);
+  if (!sysconf.Save())
+    PanicAlertT("Failed to write BT.DINF to SYSCONF");
 
   // The BCM2045's btaddr:
   m_ControllerBD.b[0] = 0x11;
@@ -105,14 +102,14 @@ BluetoothEmu::~BluetoothEmu()
 }
 
 template <typename T>
-static void DoStateForMessage(PointerWrap& p, std::unique_ptr<T>& message)
+static void DoStateForMessage(Kernel& ios, PointerWrap& p, std::unique_ptr<T>& message)
 {
   u32 request_address = (message != nullptr) ? message->ios_request.address : 0;
   p.Do(request_address);
   if (request_address != 0)
   {
     IOCtlVRequest request{request_address};
-    message = std::make_unique<T>(request);
+    message = std::make_unique<T>(ios, request);
   }
 }
 
@@ -129,9 +126,9 @@ void BluetoothEmu::DoState(PointerWrap& p)
 
   p.Do(m_is_active);
   p.Do(m_ControllerBD);
-  DoStateForMessage(p, m_CtrlSetup);
-  DoStateForMessage(p, m_HCIEndpoint);
-  DoStateForMessage(p, m_ACLEndpoint);
+  DoStateForMessage(m_ios, p, m_CtrlSetup);
+  DoStateForMessage(m_ios, p, m_HCIEndpoint);
+  DoStateForMessage(m_ios, p, m_ACLEndpoint);
   p.Do(m_last_ticks);
   p.DoArray(m_PacketCount);
   p.Do(m_ScanEnable);
@@ -147,7 +144,7 @@ bool BluetoothEmu::RemoteDisconnect(u16 _connectionHandle)
   return SendEventDisconnect(_connectionHandle, 0x13);
 }
 
-void BluetoothEmu::Close()
+ReturnCode BluetoothEmu::Close(u32 fd)
 {
   // Clean up state
   m_ScanEnable = 0;
@@ -156,7 +153,7 @@ void BluetoothEmu::Close()
   m_HCIEndpoint.reset();
   m_ACLEndpoint.reset();
 
-  m_is_active = false;
+  return Device::Close(fd);
 }
 
 IPCCommandResult BluetoothEmu::IOCtlV(const IOCtlVRequest& request)
@@ -166,7 +163,7 @@ IPCCommandResult BluetoothEmu::IOCtlV(const IOCtlVRequest& request)
   {
   case USB::IOCTLV_USBV0_CTRLMSG:  // HCI command is received from the stack
   {
-    m_CtrlSetup = std::make_unique<USB::V0CtrlMessage>(request);
+    m_CtrlSetup = std::make_unique<USB::V0CtrlMessage>(m_ios, request);
     // Replies are generated inside
     ExecuteHCICommandMessage(*m_CtrlSetup);
     m_CtrlSetup.reset();
@@ -176,7 +173,7 @@ IPCCommandResult BluetoothEmu::IOCtlV(const IOCtlVRequest& request)
 
   case USB::IOCTLV_USBV0_BLKMSG:
   {
-    const USB::V0BulkMessage ctrl{request};
+    const USB::V0BulkMessage ctrl{m_ios, request};
     switch (ctrl.endpoint)
     {
     case ACL_DATA_OUT:  // ACL data is received from the stack
@@ -195,7 +192,7 @@ IPCCommandResult BluetoothEmu::IOCtlV(const IOCtlVRequest& request)
     }
     case ACL_DATA_IN:  // We are given an ACL buffer to fill
     {
-      m_ACLEndpoint = std::make_unique<USB::V0BulkMessage>(request);
+      m_ACLEndpoint = std::make_unique<USB::V0BulkMessage>(m_ios, request);
       DEBUG_LOG(IOS_WIIMOTE, "ACL_DATA_IN: 0x%08x ", request.address);
       send_reply = false;
       break;
@@ -208,10 +205,10 @@ IPCCommandResult BluetoothEmu::IOCtlV(const IOCtlVRequest& request)
 
   case USB::IOCTLV_USBV0_INTRMSG:
   {
-    const USB::V0IntrMessage ctrl{request};
+    const USB::V0IntrMessage ctrl{m_ios, request};
     if (ctrl.endpoint == HCI_EVENT)  // We are given a HCI buffer to fill
     {
-      m_HCIEndpoint = std::make_unique<USB::V0IntrMessage>(request);
+      m_HCIEndpoint = std::make_unique<USB::V0IntrMessage>(m_ios, request);
       DEBUG_LOG(IOS_WIIMOTE, "HCI_EVENT: 0x%08x ", request.address);
       send_reply = false;
     }
@@ -265,7 +262,7 @@ void BluetoothEmu::SendACLPacket(u16 connection_handle, const u8* data, u32 size
     // Write the packet to the buffer
     memcpy(reinterpret_cast<u8*>(header) + sizeof(hci_acldata_hdr_t), data, header->length);
 
-    EnqueueReply(m_ACLEndpoint->ios_request, sizeof(hci_acldata_hdr_t) + size);
+    m_ios.EnqueueIPCReply(m_ACLEndpoint->ios_request, sizeof(hci_acldata_hdr_t) + size);
     m_ACLEndpoint.reset();
   }
   else
@@ -293,7 +290,7 @@ void BluetoothEmu::AddEventToQueue(const SQueuedEvent& _event)
       m_HCIEndpoint->FillBuffer(_event.m_buffer, _event.m_size);
 
       // Send a reply to indicate HCI buffer is filled
-      EnqueueReply(m_HCIEndpoint->ios_request, _event.m_size);
+      m_ios.EnqueueIPCReply(m_HCIEndpoint->ios_request, _event.m_size);
       m_HCIEndpoint.reset();
     }
     else  // push new one, pop oldest
@@ -309,7 +306,7 @@ void BluetoothEmu::AddEventToQueue(const SQueuedEvent& _event)
       m_HCIEndpoint->FillBuffer(event.m_buffer, event.m_size);
 
       // Send a reply to indicate HCI buffer is filled
-      EnqueueReply(m_HCIEndpoint->ios_request, event.m_size);
+      m_ios.EnqueueIPCReply(m_HCIEndpoint->ios_request, event.m_size);
       m_HCIEndpoint.reset();
       m_EventQueue.pop_front();
     }
@@ -335,7 +332,7 @@ void BluetoothEmu::Update()
     m_HCIEndpoint->FillBuffer(event.m_buffer, event.m_size);
 
     // Send a reply to indicate HCI buffer is filled
-    EnqueueReply(m_HCIEndpoint->ios_request, event.m_size);
+    m_ios.EnqueueIPCReply(m_HCIEndpoint->ios_request, event.m_size);
     m_HCIEndpoint.reset();
     m_EventQueue.pop_front();
   }
@@ -430,7 +427,7 @@ void BluetoothEmu::ACLPool::WriteToEndpoint(USB::V0BulkMessage& endpoint)
 
   m_queue.pop_front();
 
-  EnqueueReply(endpoint.ios_request, sizeof(hci_acldata_hdr_t) + size);
+  m_ios.EnqueueIPCReply(endpoint.ios_request, sizeof(hci_acldata_hdr_t) + size);
 }
 
 bool BluetoothEmu::SendEventInquiryComplete()
@@ -1141,7 +1138,7 @@ void BluetoothEmu::ExecuteHCICommandMessage(const USB::V0CtrlMessage& ctrl_messa
   }
 
   // HCI command is finished, send a reply to command
-  EnqueueReply(ctrl_message.ios_request, ctrl_message.length);
+  m_ios.EnqueueIPCReply(ctrl_message.ios_request, ctrl_message.length);
 }
 
 //

@@ -2,17 +2,23 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/IOS/USB/USB_VEN/VEN.h"
+
+#include <cstddef>
 #include <cstring>
+#include <memory>
+#include <mutex>
+#include <string>
 
 #include "Common/ChunkFile.h"
-#include "Common/CommonFuncs.h"
 #include "Common/Logging/Log.h"
+#include "Common/Swap.h"
+
 #include "Core/CoreTiming.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/Device.h"
 #include "Core/IOS/USB/Common.h"
 #include "Core/IOS/USB/USBV5.h"
-#include "Core/IOS/USB/USB_VEN/VEN.h"
 
 namespace IOS
 {
@@ -20,7 +26,7 @@ namespace HLE
 {
 namespace Device
 {
-USB_VEN::USB_VEN(u32 device_id, const std::string& device_name) : USBHost(device_id, device_name)
+USB_VEN::USB_VEN(Kernel& ios, const std::string& device_name) : USBHost(ios, device_name)
 {
 }
 
@@ -31,7 +37,7 @@ USB_VEN::~USB_VEN()
 
 ReturnCode USB_VEN::Open(const OpenRequest& request)
 {
-  const u32 ios_major_version = GetVersion();
+  const u32 ios_major_version = m_ios.GetVersion();
   if (ios_major_version != 57 && ios_major_version != 58 && ios_major_version != 59)
     return IPC_ENOENT;
   return USBHost::Open(request);
@@ -195,7 +201,7 @@ IPCCommandResult USB_VEN::Shutdown(const IOCtlRequest& request)
   std::lock_guard<std::mutex> lk{m_devicechange_hook_address_mutex};
   if (m_devicechange_hook_request)
   {
-    EnqueueReply(*m_devicechange_hook_request, IPC_SUCCESS);
+    m_ios.EnqueueIPCReply(*m_devicechange_hook_request, IPC_SUCCESS);
     m_devicechange_hook_request.reset();
   }
   return GetDefaultReply(IPC_SUCCESS);
@@ -218,13 +224,13 @@ s32 USB_VEN::SubmitTransfer(USB::Device& device, const IOCtlVRequest& ioctlv)
   switch (ioctlv.request)
   {
   case USB::IOCTLV_USBV5_CTRLMSG:
-    return device.SubmitTransfer(std::make_unique<USB::V5CtrlMessage>(ioctlv));
+    return device.SubmitTransfer(std::make_unique<USB::V5CtrlMessage>(m_ios, ioctlv));
   case USB::IOCTLV_USBV5_INTRMSG:
-    return device.SubmitTransfer(std::make_unique<USB::V5IntrMessage>(ioctlv));
+    return device.SubmitTransfer(std::make_unique<USB::V5IntrMessage>(m_ios, ioctlv));
   case USB::IOCTLV_USBV5_BULKMSG:
-    return device.SubmitTransfer(std::make_unique<USB::V5BulkMessage>(ioctlv));
+    return device.SubmitTransfer(std::make_unique<USB::V5BulkMessage>(m_ios, ioctlv));
   case USB::IOCTLV_USBV5_ISOMSG:
-    return device.SubmitTransfer(std::make_unique<USB::V5IsoMessage>(ioctlv));
+    return device.SubmitTransfer(std::make_unique<USB::V5IsoMessage>(m_ios, ioctlv));
   default:
     return IPC_EINVAL;
   }
@@ -324,7 +330,7 @@ void USB_VEN::TriggerDeviceChangeReply()
                       &entry, sizeof(entry));
   }
 
-  EnqueueReply(*m_devicechange_hook_request, num_devices, 0, CoreTiming::FromThread::ANY);
+  m_ios.EnqueueIPCReply(*m_devicechange_hook_request, num_devices, 0, CoreTiming::FromThread::ANY);
   m_devicechange_hook_request.reset();
   INFO_LOG(IOS_USB, "%d device(s), including interfaces", num_devices);
 }

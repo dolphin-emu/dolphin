@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <OptionParser.h>
 #include <cstdio>
 #include <cstring>
 #include <mutex>
@@ -15,6 +16,7 @@
 #include <wx/imagpng.h>
 #include <wx/intl.h>
 #include <wx/language.h>
+#include <wx/menu.h>
 #include <wx/msgdlg.h>
 #include <wx/thread.h>
 #include <wx/timer.h>
@@ -28,6 +30,7 @@
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/Logging/LogManager.h"
+#include "Common/MsgHandler.h"
 #include "Common/Thread.h"
 
 #include "Core/Analytics.h"
@@ -47,6 +50,7 @@
 #include "DolphinWX/VideoConfigDiag.h"
 #include "DolphinWX/WxUtils.h"
 
+#include "UICommon/CommandLineParse.h"
 #include "UICommon/UICommon.h"
 
 #include "VideoCommon/VideoBackendBase.h"
@@ -79,9 +83,18 @@ bool DolphinApp::Initialize(int& c, wxChar** v)
 
 // The 'main program' equivalent that creates the main window and return the main frame
 
+void DolphinApp::OnInitCmdLine(wxCmdLineParser& parser)
+{
+  parser.SetCmdLine("");
+}
+
+bool DolphinApp::OnCmdLineParsed(wxCmdLineParser& parser)
+{
+  return true;
+}
+
 bool DolphinApp::OnInit()
 {
-  std::lock_guard<std::mutex> lk(s_init_mutex);
   if (!wxApp::OnInit())
     return false;
 
@@ -97,6 +110,20 @@ bool DolphinApp::OnInit()
 #if wxUSE_ON_FATAL_EXCEPTION
   wxHandleFatalExceptions(true);
 #endif
+
+#ifdef _WIN32
+  const bool console_attached = AttachConsole(ATTACH_PARENT_PROCESS) != FALSE;
+  HANDLE stdout_handle = ::GetStdHandle(STD_OUTPUT_HANDLE);
+  if (console_attached && stdout_handle)
+  {
+    freopen("CONOUT$", "w", stdout);
+    freopen("CONOUT$", "w", stderr);
+  }
+#endif
+
+  ParseCommandLine();
+
+  std::lock_guard<std::mutex> lk(s_init_mutex);
 
   UICommon::SetUserDirectory(m_user_path.ToStdString());
   UICommon::CreateDirectories();
@@ -118,6 +145,9 @@ bool DolphinApp::OnInit()
   // Enable the PNG image handler for screenshots
   wxImage::AddHandler(new wxPNGHandler);
 
+  // Silent PNG warnings from some homebrew banners: "iCCP: known incorrect sRGB profile"
+  wxImage::SetDefaultLoadFlags(wxImage::GetDefaultLoadFlags() & ~wxImage::Load_Verbose);
+
   // We have to copy the size and position out of SConfig now because CFrame's OnMove
   // handler will corrupt them during window creation (various APIs like SetMenuBar cause
   // event dispatch including WM_MOVE/WM_SIZE)
@@ -132,63 +162,41 @@ bool DolphinApp::OnInit()
   return true;
 }
 
-void DolphinApp::OnInitCmdLine(wxCmdLineParser& parser)
+void DolphinApp::ParseCommandLine()
 {
-  static const wxCmdLineEntryDesc desc[] = {
-      {wxCMD_LINE_SWITCH, "h", "help", "Show this help message", wxCMD_LINE_VAL_NONE,
-       wxCMD_LINE_OPTION_HELP},
-      {wxCMD_LINE_SWITCH, "d", "debugger", "Opens the debugger", wxCMD_LINE_VAL_NONE,
-       wxCMD_LINE_PARAM_OPTIONAL},
-      {wxCMD_LINE_SWITCH, "l", "logger", "Opens the logger", wxCMD_LINE_VAL_NONE,
-       wxCMD_LINE_PARAM_OPTIONAL},
-      {wxCMD_LINE_OPTION, "e", "exec",
-       "Loads the specified file (ELF, DOL, GCM, ISO, TGC, WBFS, CISO, GCZ, WAD)",
-       wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL},
-      {wxCMD_LINE_SWITCH, "b", "batch", "Exit Dolphin with emulator", wxCMD_LINE_VAL_NONE,
-       wxCMD_LINE_PARAM_OPTIONAL},
-      {wxCMD_LINE_OPTION, "c", "confirm", "Set Confirm on Stop", wxCMD_LINE_VAL_STRING,
-       wxCMD_LINE_PARAM_OPTIONAL},
-      {wxCMD_LINE_OPTION, "v", "video_backend", "Specify a video backend", wxCMD_LINE_VAL_STRING,
-       wxCMD_LINE_PARAM_OPTIONAL},
-      {wxCMD_LINE_OPTION, "a", "audio_emulation", "Low level (LLE) or high level (HLE) audio",
-       wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL},
-      {wxCMD_LINE_OPTION, "m", "movie", "Play a movie file", wxCMD_LINE_VAL_STRING,
-       wxCMD_LINE_PARAM_OPTIONAL},
-      {wxCMD_LINE_OPTION, "u", "user", "User folder path", wxCMD_LINE_VAL_STRING,
-       wxCMD_LINE_PARAM_OPTIONAL},
-      {wxCMD_LINE_OPTION, "w", "watch", "port for starting a dolphinWatch server",
-       wxCMD_LINE_VAL_NUMBER, wxCMD_LINE_PARAM_OPTIONAL},
-      {wxCMD_LINE_NONE, nullptr, nullptr, nullptr, wxCMD_LINE_VAL_NONE, 0}};
+  auto parser = CommandLineParse::CreateParser(CommandLineParse::ParserOptions::IncludeGUIOptions);
+  optparse::Values& options = CommandLineParse::ParseArguments(parser.get(), argc, argv);
+  std::vector<std::string> args = parser->args();
 
-  parser.SetDesc(desc);
-}
-
-bool DolphinApp::OnCmdLineParsed(wxCmdLineParser& parser)
-{
-  if (argc == 2 && File::Exists(argv[1].ToUTF8().data()))
+  if (options.is_set("exec"))
   {
     m_load_file = true;
-    m_file_to_load = argv[1];
+    m_file_to_load = static_cast<const char*>(options.get("exec"));
   }
-  else if (parser.Parse() != 0)
+  else if (args.size())
   {
-    return false;
+    m_load_file = true;
+    m_file_to_load = args.front();
+    args.erase(args.begin());
   }
 
-  if (!m_load_file)
-    m_load_file = parser.Found("exec", &m_file_to_load);
+  m_use_debugger = options.is_set("debugger");
+  m_use_logger = options.is_set("logger");
+  m_batch_mode = options.is_set("batch");
 
-  m_use_debugger = parser.Found("debugger");
-  m_use_logger = parser.Found("logger");
-  m_batch_mode = parser.Found("batch");
-  m_confirm_stop = parser.Found("confirm", &m_confirm_setting);
-  m_select_video_backend = parser.Found("video_backend", &m_video_backend_name);
-  m_select_audio_emulation = parser.Found("audio_emulation", &m_audio_emulation_name);
-  m_play_movie = parser.Found("movie", &m_movie_file);
-  parser.Found("user", &m_user_path);
-  m_watch_server = parser.Found("watch", &m_watch_server_port);
+  m_select_video_backend = options.is_set("video_backend");
+  m_video_backend_name = static_cast<const char*>(options.get("video_backend"));
 
-  return true;
+  m_select_audio_emulation = options.is_set("audio_emulation");
+  m_audio_emulation_name = static_cast<const char*>(options.get("audio_emulation"));
+
+  m_play_movie = options.is_set("movie");
+  m_movie_file = static_cast<const char*>(options.get("movie"));
+
+  m_user_path = static_cast<const char*>(options.get("user"));
+
+  m_watch_server = options.is_set("watch");
+  m_watch_server_port = options.get("watch");
 }
 
 #ifdef __APPLE__
@@ -202,12 +210,11 @@ void DolphinApp::MacOpenFile(const wxString& fileName)
 
 void DolphinApp::AfterInit()
 {
+  NOTICE_LOG(DOLPHINWATCH, "watch server: %s on port %d", m_watch_server ? "true" : "false", m_watch_server_port);
   if (m_watch_server)
     DolphinWatch::Init(m_watch_server_port);
 
-  if (!m_batch_mode)
-    main_frame->UpdateGameList();
-
+#if defined(USE_ANALYTICS) && USE_ANALYTICS
   if (!SConfig::GetInstance().m_analytics_permission_asked)
   {
     int answer =
@@ -230,14 +237,10 @@ void DolphinApp::AfterInit()
 
     DolphinAnalytics::Instance()->ReloadConfig();
   }
+#endif
 
   if (m_confirm_stop)
-  {
-    if (m_confirm_setting.Upper() == "TRUE")
-      SConfig::GetInstance().bConfirmStop = true;
-    else if (m_confirm_setting.Upper() == "FALSE")
-      SConfig::GetInstance().bConfirmStop = false;
-  }
+    SConfig::GetInstance().bConfirmStop = m_confirm_setting;
 
   if (m_play_movie && !m_movie_file.empty())
   {
@@ -260,9 +263,9 @@ void DolphinApp::AfterInit()
   }
   // If we have selected Automatic Start, start the default ISO,
   // or if no default ISO exists, start the last loaded ISO
-  else if (main_frame->g_pCodeWindow)
+  else if (m_use_debugger)
   {
-    if (main_frame->g_pCodeWindow->AutomaticStart())
+    if (main_frame->GetMenuBar()->IsChecked(IDM_AUTOMATIC_START))
     {
       main_frame->BootGame("");
     }
@@ -381,8 +384,8 @@ bool wxMsgAlert(const char* caption, const char* text, bool yes_no, int /*Style*
     event.SetString(StrToWxStr(caption) + ":" + StrToWxStr(text));
     event.SetInt(yes_no);
     main_frame->GetEventHandler()->AddPendingEvent(event);
-    main_frame->panic_event.Wait();
-    return main_frame->bPanicResult;
+    main_frame->m_panic_event.Wait();
+    return main_frame->m_panic_result;
   }
 }
 
@@ -421,9 +424,9 @@ void Host_NotifyMapLoaded()
   wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_NOTIFY_MAP_LOADED);
   main_frame->GetEventHandler()->AddPendingEvent(event);
 
-  if (main_frame->g_pCodeWindow)
+  if (main_frame->m_code_window)
   {
-    main_frame->g_pCodeWindow->GetEventHandler()->AddPendingEvent(event);
+    main_frame->m_code_window->GetEventHandler()->AddPendingEvent(event);
   }
 }
 
@@ -432,9 +435,9 @@ void Host_UpdateDisasmDialog()
   wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATE_DISASM_DIALOG);
   main_frame->GetEventHandler()->AddPendingEvent(event);
 
-  if (main_frame->g_pCodeWindow)
+  if (main_frame->m_code_window)
   {
-    main_frame->g_pCodeWindow->GetEventHandler()->AddPendingEvent(event);
+    main_frame->m_code_window->GetEventHandler()->AddPendingEvent(event);
   }
 }
 
@@ -443,9 +446,9 @@ void Host_UpdateMainFrame()
   wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATE_GUI);
   main_frame->GetEventHandler()->AddPendingEvent(event);
 
-  if (main_frame->g_pCodeWindow)
+  if (main_frame->m_code_window)
   {
-    main_frame->g_pCodeWindow->GetEventHandler()->AddPendingEvent(event);
+    main_frame->m_code_window->GetEventHandler()->AddPendingEvent(event);
   }
 }
 
@@ -461,23 +464,6 @@ void Host_RequestRenderWindowSize(int width, int height)
   wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_WINDOW_SIZE_REQUEST);
   event.SetClientData(new std::pair<int, int>(width, height));
   main_frame->GetEventHandler()->AddPendingEvent(event);
-}
-
-void Host_SetStartupDebuggingParameters()
-{
-  SConfig& StartUp = SConfig::GetInstance();
-  if (main_frame->g_pCodeWindow)
-  {
-    StartUp.bBootToPause = main_frame->g_pCodeWindow->BootToPause();
-    StartUp.bAutomaticStart = main_frame->g_pCodeWindow->AutomaticStart();
-    StartUp.bJITNoBlockCache = main_frame->g_pCodeWindow->JITNoBlockCache();
-    StartUp.bJITNoBlockLinking = main_frame->g_pCodeWindow->JITNoBlockLinking();
-  }
-  else
-  {
-    StartUp.bBootToPause = false;
-  }
-  StartUp.bEnableDebugging = main_frame->g_pCodeWindow ? true : false;  // RUNNING_DEBUG
 }
 
 void Host_SetWiiMoteConnectionState(int _State)
@@ -501,7 +487,7 @@ void Host_SetWiiMoteConnectionState(int _State)
     event.SetString(_("Wii Remote Connected"));
     break;
   }
-  // Update field 1 or 2
+  // The second field is used for auxiliary info such as this
   event.SetInt(1);
 
   NOTICE_LOG(WIIMOTE, "%s", static_cast<const char*>(event.GetString().c_str()));
@@ -541,14 +527,16 @@ void Host_ConnectWiimote(int wm_idx, bool connect)
 
 void Host_ShowVideoConfig(void* parent, const std::string& backend_name)
 {
+  wxWindow* const parent_window = static_cast<wxWindow*>(parent);
+
   if (backend_name == "Software Renderer")
   {
-    SoftwareVideoConfigDialog diag((wxWindow*)parent, backend_name);
+    SoftwareVideoConfigDialog diag(parent_window, backend_name);
     diag.ShowModal();
   }
   else
   {
-    VideoConfigDiag diag((wxWindow*)parent, backend_name);
+    VideoConfigDiag diag(parent_window, backend_name);
     diag.ShowModal();
   }
 }

@@ -10,7 +10,7 @@
 
 namespace ControllerEmu
 {
-Extension::Extension(const std::string& name_) : ControlGroup(name_, GROUP_TYPE_EXTENSION)
+Extension::Extension(const std::string& name_) : ControlGroup(name_, GroupType::Extension)
 {
 }
 }  // namespace ControllerEmu

@@ -9,7 +9,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Core/IOS/Device.h"
-#include "Core/IOS/IPC.h"
+#include "Core/IOS/IOS.h"
 
 class PointerWrap;
 class SysConf;
@@ -18,7 +18,7 @@ namespace IOS
 {
 namespace HLE
 {
-void BackUpBTInfoSection(SysConf* sysconf);
+void BackUpBTInfoSection(const SysConf* sysconf);
 void RestoreBTInfoSection(SysConf* sysconf);
 
 namespace Device
@@ -26,7 +26,7 @@ namespace Device
 class BluetoothBase : public Device
 {
 public:
-  BluetoothBase(u32 device_id, const std::string& device_name) : Device(device_id, device_name) {}
+  using Device::Device;
   virtual void UpdateSyncButtonState(bool is_held) {}
   virtual void TriggerSyncButtonPressedEvent() {}
   virtual void TriggerSyncButtonHeldEvent() {}

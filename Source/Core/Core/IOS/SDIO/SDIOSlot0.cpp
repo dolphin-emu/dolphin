@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/IOS/SDIO/SDIOSlot0.h"
+
 #include <cstdio>
 #include <cstring>
 #include <memory>
@@ -9,13 +11,13 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+#include "Common/File.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/SDCardUtil.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/Memmap.h"
-#include "Core/IOS/IPC.h"
-#include "Core/IOS/SDIO/SDIOSlot0.h"
+#include "Core/IOS/IOS.h"
 
 namespace IOS
 {
@@ -23,7 +25,7 @@ namespace HLE
 {
 namespace Device
 {
-SDIOSlot0::SDIOSlot0(u32 device_id, const std::string& device_name) : Device(device_id, device_name)
+SDIOSlot0::SDIOSlot0(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
 {
 }
 
@@ -49,7 +51,7 @@ void SDIOSlot0::EventNotify()
   if ((SConfig::GetInstance().m_WiiSDCard && m_event->type == EVENT_INSERT) ||
       (!SConfig::GetInstance().m_WiiSDCard && m_event->type == EVENT_REMOVE))
   {
-    EnqueueReply(m_event->request, m_event->type);
+    m_ios.EnqueueIPCReply(m_event->request, m_event->type);
     m_event.reset();
   }
 }
@@ -83,149 +85,58 @@ ReturnCode SDIOSlot0::Open(const OpenRequest& request)
   return IPC_SUCCESS;
 }
 
-void SDIOSlot0::Close()
+ReturnCode SDIOSlot0::Close(u32 fd)
 {
   m_Card.Close();
   m_BlockLength = 0;
   m_BusWidth = 0;
 
-  m_is_active = false;
+  return Device::Close(fd);
 }
 
-// The front SD slot
 IPCCommandResult SDIOSlot0::IOCtl(const IOCtlRequest& request)
 {
   Memory::Memset(request.buffer_out, 0, request.buffer_out_size);
-  s32 return_value = IPC_SUCCESS;
+
   switch (request.request)
   {
   case IOCTL_WRITEHCR:
-  {
-    u32 reg = Memory::Read_U32(request.buffer_in);
-    u32 val = Memory::Read_U32(request.buffer_in + 16);
-
-    INFO_LOG(IOS_SD, "IOCTL_WRITEHCR 0x%08x - 0x%08x", reg, val);
-
-    if (reg >= m_registers.size())
-    {
-      WARN_LOG(IOS_SD, "IOCTL_WRITEHCR out of range");
-      break;
-    }
-
-    if ((reg == HCR_CLOCKCONTROL) && (val & 1))
-    {
-      // Clock is set to oscillate, enable bit 1 to say it's stable
-      m_registers[reg] = val | 2;
-    }
-    else if ((reg == HCR_SOFTWARERESET) && val)
-    {
-      // When a reset is specified, the register gets cleared
-      m_registers[reg] = 0;
-    }
-    else
-    {
-      // Default to just storing the new value
-      m_registers[reg] = val;
-    }
-  }
-  break;
-
+    return WriteHCRegister(request);
   case IOCTL_READHCR:
-  {
-    u32 reg = Memory::Read_U32(request.buffer_in);
-
-    if (reg >= m_registers.size())
-    {
-      WARN_LOG(IOS_SD, "IOCTL_READHCR out of range");
-      break;
-    }
-
-    u32 val = m_registers[reg];
-    INFO_LOG(IOS_SD, "IOCTL_READHCR 0x%08x - 0x%08x", reg, val);
-
-    // Just reading the register
-    Memory::Write_U32(val, request.buffer_out);
-  }
-  break;
-
+    return ReadHCRegister(request);
   case IOCTL_RESETCARD:
-    INFO_LOG(IOS_SD, "IOCTL_RESETCARD");
-    if (m_Card)
-      m_Status |= CARD_INITIALIZED;
-    // Returns 16bit RCA and 16bit 0s (meaning success)
-    Memory::Write_U32(0x9f620000, request.buffer_out);
-    break;
-
+    return ResetCard(request);
   case IOCTL_SETCLK:
-  {
-    INFO_LOG(IOS_SD, "IOCTL_SETCLK");
-    // libogc only sets it to 1 and makes sure the return isn't negative...
-    // one half of the sdclk divisor: a power of two or zero.
-    u32 clock = Memory::Read_U32(request.buffer_in);
-    if (clock != 1)
-      INFO_LOG(IOS_SD, "Setting to %i, interesting", clock);
-  }
-  break;
-
+    return SetClk(request);
   case IOCTL_SENDCMD:
-    INFO_LOG(IOS_SD, "IOCTL_SENDCMD %x IPC:%08x", Memory::Read_U32(request.buffer_in),
-             request.address);
-    return_value = ExecuteCommand(request, request.buffer_in, request.buffer_in_size, 0, 0,
-                                  request.buffer_out, request.buffer_out_size);
-    break;
-
+    return SendCommand(request);
   case IOCTL_GETSTATUS:
-    if (SConfig::GetInstance().m_WiiSDCard)
-      m_Status |= CARD_INSERTED;
-    else
-      m_Status = CARD_NOT_EXIST;
-    INFO_LOG(IOS_SD, "IOCTL_GETSTATUS. Replying that SD card is %s%s",
-             (m_Status & CARD_INSERTED) ? "inserted" : "not present",
-             (m_Status & CARD_INITIALIZED) ? " and initialized" : "");
-    Memory::Write_U32(m_Status, request.buffer_out);
-    break;
-
+    return GetStatus(request);
   case IOCTL_GETOCR:
-    INFO_LOG(IOS_SD, "IOCTL_GETOCR");
-    Memory::Write_U32(0x80ff8000, request.buffer_out);
-    break;
-
+    return GetOCRegister(request);
   default:
     ERROR_LOG(IOS_SD, "Unknown SD IOCtl command (0x%08x)", request.request);
     break;
   }
 
-  if (return_value == RET_EVENT_REGISTER)
-  {
-    // Check if the condition is already true
-    EventNotify();
-    return GetNoReply();
-  }
-  return GetDefaultReply(return_value);
+  return GetDefaultReply(IPC_SUCCESS);
 }
 
 IPCCommandResult SDIOSlot0::IOCtlV(const IOCtlVRequest& request)
 {
-  s32 return_value = IPC_SUCCESS;
   switch (request.request)
   {
   case IOCTLV_SENDCMD:
-    DEBUG_LOG(IOS_SD, "IOCTLV_SENDCMD 0x%08x", Memory::Read_U32(request.in_vectors[0].address));
-    Memory::Memset(request.io_vectors[0].address, 0, request.io_vectors[0].size);
-    return_value =
-        ExecuteCommand(request, request.in_vectors[0].address, request.in_vectors[0].size,
-                       request.in_vectors[1].address, request.in_vectors[1].size,
-                       request.io_vectors[0].address, request.io_vectors[0].size);
-    break;
-
+    return SendCommand(request);
   default:
     ERROR_LOG(IOS_SD, "Unknown SD IOCtlV command 0x%08x", request.request);
+    break;
   }
 
-  return GetDefaultReply(return_value);
+  return GetDefaultReply(IPC_SUCCESS);
 }
 
-u32 SDIOSlot0::ExecuteCommand(const Request& request, u32 _BufferIn, u32 _BufferInSize,
+s32 SDIOSlot0::ExecuteCommand(const Request& request, u32 _BufferIn, u32 _BufferInSize,
                               u32 _rwBuffer, u32 _rwBufferSize, u32 _BufferOut, u32 _BufferOutSize)
 {
   // The game will send us a SendCMD with this information. To be able to read and write
@@ -255,7 +166,7 @@ u32 SDIOSlot0::ExecuteCommand(const Request& request, u32 _BufferIn, u32 _Buffer
 
   // Note: req.addr is the virtual address of _rwBuffer
 
-  u32 ret = RET_OK;
+  s32 ret = RET_OK;
 
   switch (req.command)
   {
@@ -393,7 +304,7 @@ u32 SDIOSlot0::ExecuteCommand(const Request& request, u32 _BufferIn, u32 _Buffer
     // release returns 0
     // unknown sd int
     // technically we do it out of order, oh well
-    EnqueueReply(m_event->request, EVENT_INVALID);
+    m_ios.EnqueueIPCReply(m_event->request, EVENT_INVALID);
     m_event.reset();
     break;
   }
@@ -404,6 +315,134 @@ u32 SDIOSlot0::ExecuteCommand(const Request& request, u32 _BufferIn, u32 _Buffer
   }
 
   return ret;
+}
+
+IPCCommandResult SDIOSlot0::WriteHCRegister(const IOCtlRequest& request)
+{
+  u32 reg = Memory::Read_U32(request.buffer_in);
+  u32 val = Memory::Read_U32(request.buffer_in + 16);
+
+  INFO_LOG(IOS_SD, "IOCTL_WRITEHCR 0x%08x - 0x%08x", reg, val);
+
+  if (reg >= m_registers.size())
+  {
+    WARN_LOG(IOS_SD, "IOCTL_WRITEHCR out of range");
+    return GetDefaultReply(IPC_SUCCESS);
+  }
+
+  if ((reg == HCR_CLOCKCONTROL) && (val & 1))
+  {
+    // Clock is set to oscillate, enable bit 1 to say it's stable
+    m_registers[reg] = val | 2;
+  }
+  else if ((reg == HCR_SOFTWARERESET) && val)
+  {
+    // When a reset is specified, the register gets cleared
+    m_registers[reg] = 0;
+  }
+  else
+  {
+    // Default to just storing the new value
+    m_registers[reg] = val;
+  }
+
+  return GetDefaultReply(IPC_SUCCESS);
+}
+
+IPCCommandResult SDIOSlot0::ReadHCRegister(const IOCtlRequest& request)
+{
+  u32 reg = Memory::Read_U32(request.buffer_in);
+
+  if (reg >= m_registers.size())
+  {
+    WARN_LOG(IOS_SD, "IOCTL_READHCR out of range");
+    return GetDefaultReply(IPC_SUCCESS);
+  }
+
+  u32 val = m_registers[reg];
+  INFO_LOG(IOS_SD, "IOCTL_READHCR 0x%08x - 0x%08x", reg, val);
+
+  // Just reading the register
+  Memory::Write_U32(val, request.buffer_out);
+  return GetDefaultReply(IPC_SUCCESS);
+}
+
+IPCCommandResult SDIOSlot0::ResetCard(const IOCtlRequest& request)
+{
+  INFO_LOG(IOS_SD, "IOCTL_RESETCARD");
+
+  if (m_Card)
+    m_Status |= CARD_INITIALIZED;
+
+  // Returns 16bit RCA and 16bit 0s (meaning success)
+  Memory::Write_U32(0x9f620000, request.buffer_out);
+  return GetDefaultReply(IPC_SUCCESS);
+}
+
+IPCCommandResult SDIOSlot0::SetClk(const IOCtlRequest& request)
+{
+  INFO_LOG(IOS_SD, "IOCTL_SETCLK");
+
+  // libogc only sets it to 1 and makes sure the return isn't negative...
+  // one half of the sdclk divisor: a power of two or zero.
+  u32 clock = Memory::Read_U32(request.buffer_in);
+  if (clock != 1)
+    INFO_LOG(IOS_SD, "Setting to %i, interesting", clock);
+
+  return GetDefaultReply(IPC_SUCCESS);
+}
+
+IPCCommandResult SDIOSlot0::SendCommand(const IOCtlRequest& request)
+{
+  INFO_LOG(IOS_SD, "IOCTL_SENDCMD %x IPC:%08x", Memory::Read_U32(request.buffer_in),
+           request.address);
+
+  const s32 return_value = ExecuteCommand(request, request.buffer_in, request.buffer_in_size, 0, 0,
+                                          request.buffer_out, request.buffer_out_size);
+
+  if (return_value == RET_EVENT_REGISTER)
+  {
+    // Check if the condition is already true
+    EventNotify();
+    return GetNoReply();
+  }
+
+  return GetDefaultReply(IPC_SUCCESS);
+}
+
+IPCCommandResult SDIOSlot0::GetStatus(const IOCtlRequest& request)
+{
+  if (SConfig::GetInstance().m_WiiSDCard)
+    m_Status |= CARD_INSERTED;
+  else
+    m_Status = CARD_NOT_EXIST;
+
+  INFO_LOG(IOS_SD, "IOCTL_GETSTATUS. Replying that SD card is %s%s",
+           (m_Status & CARD_INSERTED) ? "inserted" : "not present",
+           (m_Status & CARD_INITIALIZED) ? " and initialized" : "");
+
+  Memory::Write_U32(m_Status, request.buffer_out);
+  return GetDefaultReply(IPC_SUCCESS);
+}
+
+IPCCommandResult SDIOSlot0::GetOCRegister(const IOCtlRequest& request)
+{
+  INFO_LOG(IOS_SD, "IOCTL_GETOCR");
+  Memory::Write_U32(0x80ff8000, request.buffer_out);
+  return GetDefaultReply(IPC_SUCCESS);
+}
+
+IPCCommandResult SDIOSlot0::SendCommand(const IOCtlVRequest& request)
+{
+  DEBUG_LOG(IOS_SD, "IOCTLV_SENDCMD 0x%08x", Memory::Read_U32(request.in_vectors[0].address));
+  Memory::Memset(request.io_vectors[0].address, 0, request.io_vectors[0].size);
+
+  const s32 return_value =
+      ExecuteCommand(request, request.in_vectors[0].address, request.in_vectors[0].size,
+                     request.in_vectors[1].address, request.in_vectors[1].size,
+                     request.io_vectors[0].address, request.io_vectors[0].size);
+
+  return GetDefaultReply(return_value);
 }
 }  // namespace Device
 }  // namespace HLE

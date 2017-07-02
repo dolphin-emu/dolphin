@@ -4,11 +4,9 @@
 
 #include <algorithm>
 #include <libusb.h>
-#include <memory>
 #include <mutex>
 
 #include "Common/Flag.h"
-#include "Common/LibusbContext.h"
 #include "Common/Logging/Log.h"
 #include "Common/Thread.h"
 #include "Core/ConfigManager.h"
@@ -31,7 +29,7 @@ static void Setup();
 
 static bool s_detected = false;
 static libusb_device_handle* s_handle = nullptr;
-static u8 s_controller_type[MAX_SI_CHANNELS] = {
+static u8 s_controller_type[SerialInterface::MAX_SI_CHANNELS] = {
     ControllerTypes::CONTROLLER_NONE, ControllerTypes::CONTROLLER_NONE,
     ControllerTypes::CONTROLLER_NONE, ControllerTypes::CONTROLLER_NONE};
 static u8 s_controller_rumble[4];
@@ -52,7 +50,7 @@ static Common::Flag s_adapter_detect_thread_running;
 static std::function<void(void)> s_detect_callback;
 
 static bool s_libusb_driver_not_supported = false;
-static std::shared_ptr<libusb_context> s_libusb_context;
+static libusb_context* s_libusb_context;
 #if defined(__FreeBSD__) && __FreeBSD__ >= 11
 static bool s_libusb_hotplug_enabled = true;
 #else
@@ -118,8 +116,8 @@ static void ScanThreadFunc()
   if (s_libusb_hotplug_enabled)
   {
     if (libusb_hotplug_register_callback(
-            s_libusb_context.get(), (libusb_hotplug_event)(LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED |
-                                                           LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT),
+            s_libusb_context, (libusb_hotplug_event)(LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED |
+                                                     LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT),
             LIBUSB_HOTPLUG_ENUMERATE, 0x057e, 0x0337, LIBUSB_HOTPLUG_MATCH_ANY, HotplugCallback,
             nullptr, &s_hotplug_handle) != LIBUSB_SUCCESS)
       s_libusb_hotplug_enabled = false;
@@ -133,7 +131,7 @@ static void ScanThreadFunc()
     if (s_libusb_hotplug_enabled)
     {
       static timeval tv = {0, 500000};
-      libusb_handle_events_timeout(s_libusb_context.get(), &tv);
+      libusb_handle_events_timeout(s_libusb_context, &tv);
     }
     else
     {
@@ -179,9 +177,12 @@ void StartScanThread()
   if (s_adapter_detect_thread_running.IsSet())
     return;
 
-  s_libusb_context = LibusbContext::Get();
-  if (!s_libusb_context)
+  const int ret = libusb_init(&s_libusb_context);
+  if (ret < 0)
+  {
+    ERROR_LOG(SERIALINTERFACE, "libusb_init failed with error: %d", ret);
     return;
+  }
   s_adapter_detect_thread_running.Set(true);
   s_adapter_detect_thread = std::thread(ScanThreadFunc);
 }
@@ -197,9 +198,9 @@ void StopScanThread()
 static void Setup()
 {
   libusb_device** list;
-  ssize_t cnt = libusb_get_device_list(s_libusb_context.get(), &list);
+  ssize_t cnt = libusb_get_device_list(s_libusb_context, &list);
 
-  for (int i = 0; i < MAX_SI_CHANNELS; i++)
+  for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; i++)
   {
     s_controller_type[i] = ControllerTypes::CONTROLLER_NONE;
     s_controller_rumble[i] = 0;
@@ -265,27 +266,26 @@ static bool CheckDeviceAccess(libusb_device* device)
       }
       return false;
     }
-    else if ((ret = libusb_kernel_driver_active(s_handle, 0)) == 1)
+    else
     {
-      if ((ret = libusb_detach_kernel_driver(s_handle, 0)) && ret != LIBUSB_ERROR_NOT_SUPPORTED)
+      ret = libusb_kernel_driver_active(s_handle, 0);
+      if (ret == 1)
       {
-        ERROR_LOG(SERIALINTERFACE, "libusb_detach_kernel_driver failed with error: %d", ret);
+        ret = libusb_detach_kernel_driver(s_handle, 0);
+        if (ret != 0 && ret != LIBUSB_ERROR_NOT_SUPPORTED)
+          ERROR_LOG(SERIALINTERFACE, "libusb_detach_kernel_driver failed with error: %d", ret);
       }
     }
     // this split is needed so that we don't avoid claiming the interface when
     // detaching the kernel driver is successful
     if (ret != 0 && ret != LIBUSB_ERROR_NOT_SUPPORTED)
-    {
       return false;
-    }
-    else if ((ret = libusb_claim_interface(s_handle, 0)))
-    {
+
+    ret = libusb_claim_interface(s_handle, 0);
+    if (ret)
       ERROR_LOG(SERIALINTERFACE, "libusb_claim_interface failed with error: %d", ret);
-    }
     else
-    {
       return true;
-    }
   }
   return false;
 }
@@ -329,11 +329,15 @@ void Shutdown()
   StopScanThread();
 #if defined(LIBUSB_API_VERSION) && LIBUSB_API_VERSION >= 0x01000102
   if (s_libusb_context && s_libusb_hotplug_enabled)
-    libusb_hotplug_deregister_callback(s_libusb_context.get(), s_hotplug_handle);
+    libusb_hotplug_deregister_callback(s_libusb_context, s_hotplug_handle);
 #endif
   Reset();
 
-  s_libusb_context.reset();
+  if (s_libusb_context)
+  {
+    libusb_exit(s_libusb_context);
+    s_libusb_context = nullptr;
+  }
   s_libusb_driver_not_supported = false;
 }
 
@@ -350,7 +354,7 @@ static void Reset()
     s_adapter_thread.join();
   }
 
-  for (int i = 0; i < MAX_SI_CHANNELS; i++)
+  for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; i++)
     s_controller_type[i] = ControllerTypes::CONTROLLER_NONE;
 
   s_detected = false;
@@ -448,7 +452,7 @@ GCPadStatus Input(int chan)
       pad.triggerLeft = controller_payload_copy[1 + (9 * chan) + 7];
       pad.triggerRight = controller_payload_copy[1 + (9 * chan) + 8];
     }
-    else if (!Core::g_want_determinism)
+    else if (!Core::WantsDeterminism())
     {
       // This is a hack to prevent a desync due to SI devices
       // being different and returning different values.
@@ -467,10 +471,11 @@ bool DeviceConnected(int chan)
 
 bool UseAdapter()
 {
-  return SConfig::GetInstance().m_SIDevice[0] == SIDEVICE_WIIU_ADAPTER ||
-         SConfig::GetInstance().m_SIDevice[1] == SIDEVICE_WIIU_ADAPTER ||
-         SConfig::GetInstance().m_SIDevice[2] == SIDEVICE_WIIU_ADAPTER ||
-         SConfig::GetInstance().m_SIDevice[3] == SIDEVICE_WIIU_ADAPTER;
+  const auto& si_devices = SConfig::GetInstance().m_SIDevice;
+
+  return std::any_of(std::begin(si_devices), std::end(si_devices), [](const auto device_type) {
+    return device_type == SerialInterface::SIDEVICE_WIIU_ADAPTER;
+  });
 }
 
 void ResetRumble()

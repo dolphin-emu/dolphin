@@ -16,11 +16,11 @@
 #include "Common/Flag.h"
 #include "Common/NonCopyable.h"
 #include "Core/HW/Wiimote.h"
-#include "Core/HW/WiimoteReal/WiimoteRealBase.h"
+#include "Core/HW/WiimoteCommon/WiimoteConstants.h"
+#include "Core/HW/WiimoteCommon/WiimoteHid.h"
+#include "Core/HW/WiimoteCommon/WiimoteReport.h"
 
 class PointerWrap;
-
-typedef std::vector<u8> Report;
 
 namespace WiimoteReal
 {
@@ -38,7 +38,7 @@ public:
   void Update();
   void ConnectOnInput();
 
-  const Report& ProcessReadQueue();
+  Report& ProcessReadQueue();
 
   void Read();
   bool Write();
@@ -138,30 +138,29 @@ public:
   void StopThread();
   void SetScanMode(WiimoteScanMode scan_mode);
 
-  void AddScannerBackend(std::unique_ptr<WiimoteScannerBackend> backend);
   bool IsReady() const;
 
 private:
   void ThreadFunc();
+
+  std::vector<std::unique_ptr<WiimoteScannerBackend>> m_backends;
+  mutable std::mutex m_backends_mutex;
+
   std::thread m_scan_thread;
   Common::Flag m_scan_thread_running;
-
   Common::Event m_scan_mode_changed_event;
   std::atomic<WiimoteScanMode> m_scan_mode{WiimoteScanMode::DO_NOT_SCAN};
-
-  std::vector<std::unique_ptr<WiimoteScannerBackend>> m_scanner_backends;
 };
 
 extern std::mutex g_wiimotes_mutex;
 extern WiimoteScanner g_wiimote_scanner;
 extern Wiimote* g_wiimotes[MAX_BBMOTES];
 
-void InterruptChannel(int _WiimoteNumber, u16 _channelID, const void* _pData, u32 _Size);
-void ControlChannel(int _WiimoteNumber, u16 _channelID, const void* _pData, u32 _Size);
-void Update(int _WiimoteNumber);
-void ConnectOnInput(int _WiimoteNumber);
+void InterruptChannel(int wiimote_number, u16 channel_id, const void* data, u32 size);
+void ControlChannel(int wiimote_number, u16 channel_id, const void* data, u32 size);
+void Update(int wiimote_number);
+void ConnectOnInput(int wiimote_number);
 
-void StateChange(EMUSTATE_CHANGE newState);
 void ChangeWiimoteSource(unsigned int index, int source);
 
 bool IsValidDeviceName(const std::string& name);

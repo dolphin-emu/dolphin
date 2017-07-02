@@ -46,7 +46,6 @@
 #include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
-#include "DiscIO/VolumeCreator.h"
 #include "DolphinWX/Cheats/ActionReplayCodesPanel.h"
 #include "DolphinWX/Cheats/GeckoCodeDiag.h"
 #include "DolphinWX/Config/ConfigMain.h"
@@ -433,9 +432,8 @@ void CISOProperties::CreateGUIControls()
 
   if (m_open_iso->GetVolumeType() != DiscIO::Platform::WII_WAD)
   {
-    m_Notebook->AddPage(
-        new FilesystemPanel(m_Notebook, ID_FILESYSTEM, OpenGameListItem, m_open_iso),
-        _("Filesystem"));
+    m_Notebook->AddPage(new FilesystemPanel(m_Notebook, ID_FILESYSTEM, m_open_iso),
+                        _("Filesystem"));
   }
 
   wxStdDialogButtonSizer* sButtons = CreateStdDialogButtonSizer(wxOK | wxNO_DEFAULT);

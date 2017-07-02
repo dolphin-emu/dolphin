@@ -11,22 +11,23 @@
 #include "InputCommon/ControllerEmu/Control/Control.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Extension.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
+#include "InputCommon/ControllerEmu/Setting/BooleanSetting.h"
+#include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 
 namespace ControllerEmu
 {
-ControlGroup::ControlGroup(const std::string& name_, const u32 type_)
+ControlGroup::ControlGroup(const std::string& name_, const GroupType type_)
     : name(name_), ui_name(name_), type(type_)
 {
 }
 
-ControlGroup::ControlGroup(const std::string& name_, const std::string& ui_name_, const u32 type_)
+ControlGroup::ControlGroup(const std::string& name_, const std::string& ui_name_,
+                           const GroupType type_)
     : name(name_), ui_name(ui_name_), type(type_)
 {
 }
 
 ControlGroup::~ControlGroup() = default;
-
-ControlGroup::BooleanSetting::~BooleanSetting() = default;
 
 void ControlGroup::LoadConfig(IniFile::Section* sec, const std::string& defdev,
                               const std::string& base)
@@ -62,7 +63,7 @@ void ControlGroup::LoadConfig(IniFile::Section* sec, const std::string& defdev,
   }
 
   // extensions
-  if (type == GROUP_TYPE_EXTENSION)
+  if (type == GroupType::Extension)
   {
     Extension* const ext = (Extension*)this;
 
@@ -115,7 +116,7 @@ void ControlGroup::SaveConfig(IniFile::Section* sec, const std::string& defdev,
   }
 
   // extensions
-  if (type == GROUP_TYPE_EXTENSION)
+  if (type == GroupType::Extension)
   {
     Extension* const ext = (Extension*)this;
     sec->Set(base + name, ext->attachments[ext->switch_extension]->GetName(), "None");

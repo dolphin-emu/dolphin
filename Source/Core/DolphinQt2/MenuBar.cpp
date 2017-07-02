@@ -4,10 +4,17 @@
 
 #include <QAction>
 #include <QDesktopServices>
+#include <QFileDialog>
+#include <QMap>
+#include <QMessageBox>
 #include <QUrl>
 
+#include "Core/CommonTitles.h"
+#include "Core/IOS/ES/ES.h"
+#include "Core/IOS/IOS.h"
 #include "Core/State.h"
 #include "DolphinQt2/AboutDialog.h"
+#include "DolphinQt2/GameList/GameFile.h"
 #include "DolphinQt2/MenuBar.h"
 #include "DolphinQt2/Settings.h"
 
@@ -16,8 +23,8 @@ MenuBar::MenuBar(QWidget* parent) : QMenuBar(parent)
   AddFileMenu();
   AddEmulationMenu();
   addMenu(tr("Movie"));
-  addMenu(tr("Options"));
-  addMenu(tr("Tools"));
+  AddOptionsMenu();
+  AddToolsMenu();
   AddViewMenu();
   AddHelpMenu();
 
@@ -39,6 +46,7 @@ void MenuBar::EmulationStarted()
   m_state_load_menu->setEnabled(true);
   m_state_save_menu->setEnabled(true);
   UpdateStateSlotMenu();
+  UpdateToolsMenu(true);
 }
 void MenuBar::EmulationPaused()
 {
@@ -62,6 +70,7 @@ void MenuBar::EmulationStopped()
   m_state_load_menu->setEnabled(false);
   m_state_save_menu->setEnabled(false);
   UpdateStateSlotMenu();
+  UpdateToolsMenu(false);
 }
 
 void MenuBar::AddFileMenu()
@@ -69,6 +78,23 @@ void MenuBar::AddFileMenu()
   QMenu* file_menu = addMenu(tr("File"));
   m_open_action = file_menu->addAction(tr("Open"), this, SIGNAL(Open()));
   m_exit_action = file_menu->addAction(tr("Exit"), this, SIGNAL(Exit()));
+}
+
+void MenuBar::AddToolsMenu()
+{
+  QMenu* tools_menu = addMenu(tr("Tools"));
+  m_wad_install_action = tools_menu->addAction(tr("Install WAD..."), this, SLOT(InstallWAD()));
+
+  m_perform_online_update_menu = tools_menu->addMenu(tr("Perform Online System Update"));
+  m_perform_online_update_for_current_region = m_perform_online_update_menu->addAction(
+      tr("Current Region"), [this] { emit PerformOnlineUpdate(""); });
+  m_perform_online_update_menu->addSeparator();
+  m_perform_online_update_menu->addAction(tr("Europe"),
+                                          [this] { emit PerformOnlineUpdate("EUR"); });
+  m_perform_online_update_menu->addAction(tr("Japan"), [this] { emit PerformOnlineUpdate("JPN"); });
+  m_perform_online_update_menu->addAction(tr("Korea"), [this] { emit PerformOnlineUpdate("KOR"); });
+  m_perform_online_update_menu->addAction(tr("United States"),
+                                          [this] { emit PerformOnlineUpdate("USA"); });
 }
 
 void MenuBar::AddEmulationMenu()
@@ -130,7 +156,7 @@ void MenuBar::AddStateSlotMenu(QMenu* emu_menu)
     QAction* action = m_state_slot_menu->addAction(QStringLiteral(""));
     action->setCheckable(true);
     action->setActionGroup(m_state_slots);
-    if (Settings().GetStateSlot() == i)
+    if (Settings::Instance().GetStateSlot() == i)
       action->setChecked(true);
 
     connect(action, &QAction::triggered, this, [=]() { emit SetStateSlot(i); });
@@ -161,13 +187,29 @@ void MenuBar::AddViewMenu()
   AddTableColumnsMenu(view_menu);
 }
 
+void MenuBar::AddOptionsMenu()
+{
+  QMenu* options_menu = addMenu(tr("Options"));
+  options_menu->addAction(tr("Hotkey Settings"), this, &MenuBar::ConfigureHotkeys);
+}
+
 void MenuBar::AddHelpMenu()
 {
   QMenu* help_menu = addMenu(tr("Help"));
+  QAction* website = help_menu->addAction(tr("Website"));
+  connect(website, &QAction::triggered, this,
+          []() { QDesktopServices::openUrl(QUrl(QStringLiteral("https://dolphin-emu.org/"))); });
   QAction* documentation = help_menu->addAction(tr("Online Documentation"));
-  connect(documentation, &QAction::triggered, this, [=]() {
+  connect(documentation, &QAction::triggered, this, []() {
     QDesktopServices::openUrl(QUrl(QStringLiteral("https://dolphin-emu.org/docs/guides")));
   });
+  QAction* github = help_menu->addAction(tr("GitHub Repository"));
+  connect(github, &QAction::triggered, this, []() {
+    QDesktopServices::openUrl(QUrl(QStringLiteral("https://github.com/dolphin-emu/dolphin")));
+  });
+
+  help_menu->addSeparator();
+
   help_menu->addAction(tr("About"), this, SIGNAL(ShowAboutDialog()));
 }
 
@@ -183,7 +225,7 @@ void MenuBar::AddGameListTypeSection(QMenu* view_menu)
   list_group->addAction(table_view);
   list_group->addAction(list_view);
 
-  bool prefer_table = Settings().GetPreferredView();
+  bool prefer_table = Settings::Instance().GetPreferredView();
   table_view->setChecked(prefer_table);
   list_view->setChecked(!prefer_table);
 
@@ -191,18 +233,71 @@ void MenuBar::AddGameListTypeSection(QMenu* view_menu)
   connect(list_view, &QAction::triggered, this, &MenuBar::ShowList);
 }
 
-// TODO implement this
 void MenuBar::AddTableColumnsMenu(QMenu* view_menu)
 {
+  auto& settings = Settings::Instance();
+  static const QMap<QString, bool*> columns{{tr("Platform"), &settings.PlatformVisible()},
+                                            {tr("ID"), &settings.IDVisible()},
+                                            {tr("Banner"), &settings.BannerVisible()},
+                                            {tr("Title"), &settings.TitleVisible()},
+                                            {tr("Description"), &settings.DescriptionVisible()},
+                                            {tr("Maker"), &settings.MakerVisible()},
+                                            {tr("Size"), &settings.SizeVisible()},
+                                            {tr("Country"), &settings.CountryVisible()},
+                                            {tr("Quality"), &settings.StateVisible()}};
+
   QActionGroup* column_group = new QActionGroup(this);
   QMenu* cols_menu = view_menu->addMenu(tr("Table Columns"));
   column_group->setExclusive(false);
 
-  QStringList col_names{tr("Platform"), tr("ID"),   tr("Banner"),  tr("Title"),  tr("Description"),
-                        tr("Maker"),    tr("Size"), tr("Country"), tr("Quality")};
-  for (int i = 0; i < col_names.count(); i++)
+  for (const auto& key : columns.keys())
   {
-    QAction* action = column_group->addAction(cols_menu->addAction(col_names[i]));
+    bool* config = columns[key];
+    QAction* action = column_group->addAction(cols_menu->addAction(key));
     action->setCheckable(true);
+    action->setChecked(*config);
+    connect(action, &QAction::toggled, [this, config, key](bool value) {
+      *config = value;
+      Settings::Instance().Save();
+      emit ColumnVisibilityToggled(key, value);
+    });
   }
+}
+
+void MenuBar::UpdateToolsMenu(bool emulation_started)
+{
+  const bool enable_wii_tools = !emulation_started || !Settings::Instance().IsWiiGameRunning();
+  m_perform_online_update_menu->setEnabled(enable_wii_tools);
+  if (enable_wii_tools)
+  {
+    IOS::HLE::Kernel ios;
+    const auto tmd = ios.GetES()->FindInstalledTMD(Titles::SYSTEM_MENU);
+    for (QAction* action : m_perform_online_update_menu->actions())
+      action->setEnabled(!tmd.IsValid());
+    m_perform_online_update_for_current_region->setEnabled(tmd.IsValid());
+  }
+}
+
+void MenuBar::InstallWAD()
+{
+  QString wad_file = QFileDialog::getOpenFileName(this, tr("Select a title to install to NAND"),
+                                                  QString(), tr("WAD files (*.wad)"));
+
+  if (wad_file.isEmpty())
+    return;
+
+  QMessageBox result_dialog(this);
+
+  if (GameFile(wad_file).Install())
+  {
+    result_dialog.setIcon(QMessageBox::Information);
+    result_dialog.setText(tr("Successfully installed title to the NAND"));
+  }
+  else
+  {
+    result_dialog.setIcon(QMessageBox::Critical);
+    result_dialog.setText(tr("Failed to install title to the NAND!"));
+  }
+
+  result_dialog.exec();
 }

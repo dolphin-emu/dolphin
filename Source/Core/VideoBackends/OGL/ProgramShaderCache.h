@@ -46,8 +46,8 @@ struct SHADER
   std::string strvprog, strpprog, strgprog;
 
   void SetProgramVariables();
-  void SetProgramBindings();
-  void Bind();
+  void SetProgramBindings(bool is_compute);
+  void Bind() const;
 };
 
 class ProgramShaderCache
@@ -67,6 +67,7 @@ public:
 
   static bool CompileShader(SHADER& shader, const std::string& vcode, const std::string& pcode,
                             const std::string& gcode = "");
+  static bool CompileComputeShader(SHADER& shader, const std::string& code);
   static GLuint CompileSingleShader(GLuint type, const std::string& code);
   static void UploadConstants();
 

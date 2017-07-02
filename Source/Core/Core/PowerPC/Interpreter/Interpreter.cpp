@@ -2,7 +2,10 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <assert.h>
+#include "Core/PowerPC/Interpreter/Interpreter.h"
+
+#include <array>
+#include <cassert>
 #include <cinttypes>
 #include <string>
 
@@ -17,7 +20,6 @@
 #include "Core/HLE/HLE.h"
 #include "Core/HW/CPU.h"
 #include "Core/Host.h"
-#include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/PPCTables.h"
 #include "Core/PowerPC/PowerPC.h"
 
@@ -100,7 +102,7 @@ static void Trace(UGeckoInstruction& inst)
 int Interpreter::SingleStepInner()
 {
   static UGeckoInstruction instCode;
-  u32 function = HLE::GetFunctionIndex(PC);
+  u32 function = HLE::GetFirstFunctionIndex(PC);
   if (function != 0)
   {
     int type = HLE::GetFunctionTypeByIndex(function);
@@ -203,7 +205,7 @@ void Interpreter::SingleStep()
   SingleStepInner();
 
   // The interpreter ignores instruction timing information outside the 'fast runloop'.
-  CoreTiming::g_slice_length = 1;
+  CoreTiming::g.slice_length = 1;
   PowerPC::ppcState.downcount = 0;
 
   if (PowerPC::ppcState.Exceptions)
@@ -224,7 +226,7 @@ int ShowSteps = 300;
 // FastRun - inspired by GCemu (to imitate the JIT so that they can be compared).
 void Interpreter::Run()
 {
-  while (!CPU::GetState())
+  while (CPU::GetState() == CPU::State::Running)
   {
     // CoreTiming Advance() ends the previous slice and declares the start of the next
     // one so it must always be called at the start. At boot, we are in slice -1 and must

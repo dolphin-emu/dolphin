@@ -5,6 +5,7 @@
 #include "Core/DSP/Jit/DSPJitRegCache.h"
 
 #include <cinttypes>
+#include <cstddef>
 
 #include "Common/Assert.h"
 #include "Common/Logging/Log.h"
@@ -26,7 +27,7 @@ namespace x86
 constexpr std::array<X64Reg, 15> s_allocation_order = {
     {R8, R9, R10, R11, R12, R13, R14, R15, RSI, RDI, RBX, RCX, RDX, RAX, RBP}};
 
-static void* GetRegisterPointer(size_t reg)
+static Gen::OpArg GetRegisterPointer(size_t reg)
 {
   switch (reg)
   {
@@ -34,60 +35,60 @@ static void* GetRegisterPointer(size_t reg)
   case DSP_REG_AR1:
   case DSP_REG_AR2:
   case DSP_REG_AR3:
-    return &g_dsp.r.ar[reg - DSP_REG_AR0];
+    return MDisp(R15, static_cast<int>(offsetof(SDSP, r.ar[reg - DSP_REG_AR0])));
   case DSP_REG_IX0:
   case DSP_REG_IX1:
   case DSP_REG_IX2:
   case DSP_REG_IX3:
-    return &g_dsp.r.ix[reg - DSP_REG_IX0];
+    return MDisp(R15, static_cast<int>(offsetof(SDSP, r.ix[reg - DSP_REG_IX0])));
   case DSP_REG_WR0:
   case DSP_REG_WR1:
   case DSP_REG_WR2:
   case DSP_REG_WR3:
-    return &g_dsp.r.wr[reg - DSP_REG_WR0];
+    return MDisp(R15, static_cast<int>(offsetof(SDSP, r.wr[reg - DSP_REG_WR0])));
   case DSP_REG_ST0:
   case DSP_REG_ST1:
   case DSP_REG_ST2:
   case DSP_REG_ST3:
-    return &g_dsp.r.st[reg - DSP_REG_ST0];
+    return MDisp(R15, static_cast<int>(offsetof(SDSP, r.st[reg - DSP_REG_ST0])));
   case DSP_REG_ACH0:
   case DSP_REG_ACH1:
-    return &g_dsp.r.ac[reg - DSP_REG_ACH0].h;
+    return MDisp(R15, static_cast<int>(offsetof(SDSP, r.ac[reg - DSP_REG_ACH0].h)));
   case DSP_REG_CR:
-    return &g_dsp.r.cr;
+    return MDisp(R15, static_cast<int>(offsetof(SDSP, r.cr)));
   case DSP_REG_SR:
-    return &g_dsp.r.sr;
+    return MDisp(R15, static_cast<int>(offsetof(SDSP, r.sr)));
   case DSP_REG_PRODL:
-    return &g_dsp.r.prod.l;
+    return MDisp(R15, static_cast<int>(offsetof(SDSP, r.prod.l)));
   case DSP_REG_PRODM:
-    return &g_dsp.r.prod.m;
+    return MDisp(R15, static_cast<int>(offsetof(SDSP, r.prod.m)));
   case DSP_REG_PRODH:
-    return &g_dsp.r.prod.h;
+    return MDisp(R15, static_cast<int>(offsetof(SDSP, r.prod.h)));
   case DSP_REG_PRODM2:
-    return &g_dsp.r.prod.m2;
+    return MDisp(R15, static_cast<int>(offsetof(SDSP, r.prod.m2)));
   case DSP_REG_AXL0:
   case DSP_REG_AXL1:
-    return &g_dsp.r.ax[reg - DSP_REG_AXL0].l;
+    return MDisp(R15, static_cast<int>(offsetof(SDSP, r.ax[reg - DSP_REG_AXL0].l)));
   case DSP_REG_AXH0:
   case DSP_REG_AXH1:
-    return &g_dsp.r.ax[reg - DSP_REG_AXH0].h;
+    return MDisp(R15, static_cast<int>(offsetof(SDSP, r.ax[reg - DSP_REG_AXH0].h)));
   case DSP_REG_ACL0:
   case DSP_REG_ACL1:
-    return &g_dsp.r.ac[reg - DSP_REG_ACL0].l;
+    return MDisp(R15, static_cast<int>(offsetof(SDSP, r.ac[reg - DSP_REG_ACL0].l)));
   case DSP_REG_ACM0:
   case DSP_REG_ACM1:
-    return &g_dsp.r.ac[reg - DSP_REG_ACM0].m;
+    return MDisp(R15, static_cast<int>(offsetof(SDSP, r.ac[reg - DSP_REG_ACM0].m)));
   case DSP_REG_AX0_32:
   case DSP_REG_AX1_32:
-    return &g_dsp.r.ax[reg - DSP_REG_AX0_32].val;
+    return MDisp(R15, static_cast<int>(offsetof(SDSP, r.ax[reg - DSP_REG_AX0_32].val)));
   case DSP_REG_ACC0_64:
   case DSP_REG_ACC1_64:
-    return &g_dsp.r.ac[reg - DSP_REG_ACC0_64].val;
+    return MDisp(R15, static_cast<int>(offsetof(SDSP, r.ac[reg - DSP_REG_ACC0_64].val)));
   case DSP_REG_PROD_64:
-    return &g_dsp.r.prod.val;
+    return MDisp(R15, static_cast<int>(offsetof(SDSP, r.prod.val)));
   default:
     _assert_msg_(DSPLLE, 0, "cannot happen");
-    return nullptr;
+    return M(static_cast<void*>(nullptr));
   }
 }
 
@@ -129,7 +130,7 @@ DSPJitRegCache::DSPJitRegCache(DSPEmitter& emitter)
   m_xregs[R12].guest_reg = DSP_REG_NONE;
   m_xregs[R13].guest_reg = DSP_REG_NONE;
   m_xregs[R14].guest_reg = DSP_REG_NONE;
-  m_xregs[R15].guest_reg = DSP_REG_NONE;
+  m_xregs[R15].guest_reg = DSP_REG_STATIC;  // reserved for SDSP pointer
 
   for (size_t i = 0; i < m_regs.size(); i++)
   {
@@ -141,7 +142,7 @@ DSPJitRegCache::DSPJitRegCache(DSPEmitter& emitter)
     m_regs[i].parentReg = DSP_REG_NONE;
     m_regs[i].shift = 0;
     m_regs[i].host_reg = INVALID_REG;
-    m_regs[i].loc = M(m_regs[i].mem);
+    m_regs[i].loc = m_regs[i].mem;
   }
 
   for (unsigned int i = 0; i < 32; i++)
@@ -374,12 +375,10 @@ void DSPJitRegCache::FlushRegs()
   _assert_msg_(DSPLLE, m_xregs[R12].guest_reg == DSP_REG_NONE, "wrong xreg state for %d", R12);
   _assert_msg_(DSPLLE, m_xregs[R13].guest_reg == DSP_REG_NONE, "wrong xreg state for %d", R13);
   _assert_msg_(DSPLLE, m_xregs[R14].guest_reg == DSP_REG_NONE, "wrong xreg state for %d", R14);
-  _assert_msg_(DSPLLE, m_xregs[R15].guest_reg == DSP_REG_NONE, "wrong xreg state for %d", R15);
+  _assert_msg_(DSPLLE, m_xregs[R15].guest_reg == DSP_REG_STATIC, "wrong xreg state for %d", R15);
 
   m_use_ctr = 0;
 }
-
-static u64 ebp_store;
 
 void DSPJitRegCache::LoadRegs(bool emit)
 {
@@ -389,11 +388,6 @@ void DSPJitRegCache::LoadRegs(bool emit)
     {
       MovToHostReg(i, m_regs[i].host_reg, emit);
     }
-  }
-
-  if (emit)
-  {
-    m_emitter.MOV(64, M(&ebp_store), R(RBP));
   }
 }
 
@@ -410,8 +404,6 @@ void DSPJitRegCache::SaveRegs()
 
     _assert_msg_(DSPLLE, !m_regs[i].loc.IsSimpleReg(), "register %zu is still a simple reg", i);
   }
-
-  m_emitter.MOV(64, R(RBP), M(&ebp_store));
 }
 
 void DSPJitRegCache::PushRegs()
@@ -454,14 +446,10 @@ void DSPJitRegCache::PushRegs()
                  m_xregs[i].guest_reg == DSP_REG_NONE || m_xregs[i].guest_reg == DSP_REG_STATIC,
                  "register %zu is still used", i);
   }
-
-  m_emitter.MOV(64, R(RBP), M(&ebp_store));
 }
 
 void DSPJitRegCache::PopRegs()
 {
-  m_emitter.MOV(64, M(&ebp_store), R(RBP));
-
   int push_count = 0;
   for (int i = static_cast<int>(m_xregs.size() - 1); i >= 0; i--)
   {
@@ -492,22 +480,7 @@ void DSPJitRegCache::PopRegs()
 
 X64Reg DSPJitRegCache::MakeABICallSafe(X64Reg reg)
 {
-  if (reg != RBP)
-  {
-    return reg;
-  }
-
-  size_t rbp_guest = m_xregs[RBP].guest_reg;
-  m_xregs[RBP].guest_reg = DSP_REG_USED;
-  X64Reg safe = FindSpillFreeXReg();
-  _assert_msg_(DSPLLE, safe != INVALID_REG, "could not find register");
-  if (safe == INVALID_REG)
-  {
-    m_emitter.INT3();
-  }
-  m_xregs[RBP].guest_reg = rbp_guest;
-  m_emitter.MOV(64, R(safe), R(reg));
-  return safe;
+  return reg;
 }
 
 void DSPJitRegCache::MovToHostReg(size_t reg, X64Reg host_reg, bool load)
@@ -654,7 +627,7 @@ void DSPJitRegCache::MovToMemory(size_t reg)
   _assert_msg_(DSPLLE, m_regs[reg].shift == 0, "still shifted??");
 
   // move to mem
-  OpArg tmp = M(m_regs[reg].mem);
+  OpArg tmp = m_regs[reg].mem;
 
   if (m_regs[reg].dirty)
   {

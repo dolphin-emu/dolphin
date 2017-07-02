@@ -7,6 +7,11 @@
 #include "Common/CommonTypes.h"
 #include "Core/PowerPC/Jit64Common/Jit64AsmCommon.h"
 
+namespace Gen
+{
+class X64CodeBlock;
+}
+
 // In Dolphin, we don't use inline assembly. Instead, we generate all machine-near
 // code at runtime. In the case of fixed code like this, after writing it, we write
 // protect the memory, essentially making it work just like precompiled code.
@@ -29,16 +34,11 @@ private:
   u8* m_stack_top;
 
 public:
-  void Init(u8* stack_top)
-  {
-    m_stack_top = stack_top;
-    // NOTE: When making large additions to the AsmCommon code, you might
-    // want to ensure this number is big enough.
-    AllocCodeSpace(16384);
-    Generate();
-    WriteProtect();
-  }
+  // NOTE: When making large additions to the AsmCommon code, you might
+  // want to ensure this number is big enough.
+  static constexpr size_t CODE_SIZE = 16384;
 
-  void Shutdown() { FreeCodeSpace(); }
-  void ResetStack(X64CodeBlock& emitter);
+  void Init(u8* stack_top);
+
+  void ResetStack(Gen::X64CodeBlock& emitter);
 };

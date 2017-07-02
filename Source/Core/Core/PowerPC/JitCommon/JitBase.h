@@ -52,7 +52,6 @@ protected:
     bool accurateSinglePrecision;
     bool fastmem;
     bool memcheck;
-    bool alwaysUseMemFuncs;
   };
   struct JitState
   {
@@ -105,7 +104,7 @@ protected:
   PPCAnalyst::CodeBlock code_block;
   PPCAnalyst::PPCAnalyzer analyzer;
 
-  bool MergeAllowedNextInstructions(int count);
+  bool CanMergeNextInstructions(int count) const;
 
   void UpdateMemoryOptions();
 
@@ -113,6 +112,9 @@ public:
   // This should probably be removed from public:
   JitOptions jo;
   JitState js;
+
+  JitBase();
+  ~JitBase() override;
 
   static const u8* Dispatch() { return g_jit->GetBlockCache()->Dispatch(); };
   virtual JitBaseBlockCache* GetBlockCache() = 0;

@@ -2,16 +2,18 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/HW/ProcessorInterface.h"
+
 #include <cstdio>
+#include <memory>
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/MMIO.h"
-#include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/SystemTimers.h"
-#include "Core/IOS/IPC.h"
+#include "Core/IOS/IOS.h"
 #include "Core/IOS/STM/STM.h"
 #include "Core/PowerPC/PowerPC.h"
 
@@ -210,22 +212,24 @@ static void ToggleResetButtonCallback(u64 userdata, s64 cyclesLate)
 
 static void IOSNotifyResetButtonCallback(u64 userdata, s64 cyclesLate)
 {
-  if (SConfig::GetInstance().bWii)
-  {
-    auto stm = IOS::HLE::GetDeviceByName("/dev/stm/eventhook");
-    if (stm)
-      std::static_pointer_cast<IOS::HLE::Device::STMEventHook>(stm)->ResetButton();
-  }
+  const auto ios = IOS::HLE::GetIOS();
+  if (!ios)
+    return;
+
+  auto stm = ios->GetDeviceByName("/dev/stm/eventhook");
+  if (stm)
+    std::static_pointer_cast<IOS::HLE::Device::STMEventHook>(stm)->ResetButton();
 }
 
 static void IOSNotifyPowerButtonCallback(u64 userdata, s64 cyclesLate)
 {
-  if (SConfig::GetInstance().bWii)
-  {
-    auto stm = IOS::HLE::GetDeviceByName("/dev/stm/eventhook");
-    if (stm)
-      std::static_pointer_cast<IOS::HLE::Device::STMEventHook>(stm)->PowerButton();
-  }
+  const auto ios = IOS::HLE::GetIOS();
+  if (!ios)
+    return;
+
+  auto stm = ios->GetDeviceByName("/dev/stm/eventhook");
+  if (stm)
+    std::static_pointer_cast<IOS::HLE::Device::STMEventHook>(stm)->PowerButton();
 }
 
 void ResetButton_Tap()

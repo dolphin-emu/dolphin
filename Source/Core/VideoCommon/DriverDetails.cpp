@@ -35,6 +35,8 @@ const u32 m_os = OS_ALL | OS_LINUX;
 const u32 m_os = OS_ALL | OS_FREEBSD;
 #elif __OpenBSD__
 const u32 m_os = OS_ALL | OS_OPENBSD;
+#elif __HAIKU__
+const u32 m_os = OS_ALL | OS_HAIKU;
 #endif
 
 static API m_api = API_OPENGL;
@@ -70,6 +72,8 @@ static BugInfo m_known_bugs[] = {
      1064.0, true},
     {API_OPENGL, OS_LINUX, VENDOR_ATI, DRIVER_ATI, Family::UNKNOWN, BUG_BROKEN_PINNED_MEMORY, -1.0,
      -1.0, true},
+    {API_OPENGL, OS_ALL, VENDOR_MESA, DRIVER_R600, Family::UNKNOWN, BUG_BROKEN_PINNED_MEMORY, -1.0,
+     -1.0, true},
     {API_OPENGL, OS_LINUX, VENDOR_NVIDIA, DRIVER_NVIDIA, Family::UNKNOWN, BUG_BROKEN_BUFFER_STORAGE,
      -1.0, 33138.0, true},
     {API_OPENGL, OS_OSX, VENDOR_INTEL, DRIVER_INTEL, Family::INTEL_SANDY, BUG_PRIMITIVE_RESTART,
@@ -90,6 +94,10 @@ static BugInfo m_known_bugs[] = {
      BUG_BROKEN_DUAL_SOURCE_BLENDING, -1.0, -1.0, true},
     {API_OPENGL, OS_OSX, VENDOR_INTEL, DRIVER_INTEL, Family::UNKNOWN,
      BUG_BROKEN_DUAL_SOURCE_BLENDING, -1.0, -1.0, true},
+    {API_OPENGL, OS_ALL, VENDOR_IMGTEC, DRIVER_IMGTEC, Family::UNKNOWN,
+     BUG_BROKEN_BITWISE_OP_NEGATION, -1.0, -1.0, true},
+    {API_VULKAN, OS_ALL, VENDOR_ATI, DRIVER_ATI, Family::UNKNOWN, BUG_PRIMITIVE_RESTART, -1.0, -1.0,
+     true},
 };
 
 static std::map<Bug, BugInfo> m_bugs;

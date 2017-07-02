@@ -87,7 +87,7 @@ class LogManager : NonCopyable
 private:
   LogContainer* m_Log[LogTypes::NUMBER_OF_LOGS];
   static LogManager* m_logManager;  // Singleton. Ugh.
-  std::array<LogListener*, LogListener::NUMBER_OF_LISTENERS> m_listeners;
+  std::array<LogListener*, LogListener::NUMBER_OF_LISTENERS> m_listeners{};
   size_t m_path_cutoff_point = 0;
 
   LogManager();
@@ -97,6 +97,8 @@ public:
   static u32 GetMaxLevel() { return MAX_LOGLEVEL; }
   void Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, const char* file, int line,
            const char* fmt, va_list args);
+  void LogWithFullPath(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, const char* file,
+                       int line, const char* fmt, va_list args);
 
   void SetLogLevel(LogTypes::LOG_TYPE type, LogTypes::LOG_LEVELS level)
   {
