@@ -20,8 +20,6 @@ public:
   GLVertexFormat(const PortableVertexDeclaration& vtx_decl);
   ~GLVertexFormat();
 
-  void SetupVertexPointers() override;
-
   GLuint VAO;
 };
 

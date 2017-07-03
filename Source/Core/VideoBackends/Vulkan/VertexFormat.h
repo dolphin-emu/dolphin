@@ -23,9 +23,6 @@ public:
   void MapAttributes();
   void SetupInputState();
 
-  // Not used in the Vulkan backend.
-  void SetupVertexPointers() override;
-
 private:
   void AddAttribute(uint32_t location, uint32_t binding, VkFormat format, uint32_t offset);
 

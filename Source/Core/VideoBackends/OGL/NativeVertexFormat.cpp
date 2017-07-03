@@ -81,8 +81,4 @@ GLVertexFormat::~GLVertexFormat()
 {
   glDeleteVertexArrays(1, &VAO);
 }
-
-void GLVertexFormat::SetupVertexPointers()
-{
-}
 }

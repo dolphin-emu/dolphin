@@ -128,9 +128,4 @@ void VertexFormat::AddAttribute(uint32_t location, uint32_t binding, VkFormat fo
   m_attribute_descriptions[m_num_attributes].offset = offset;
   m_num_attributes++;
 }
-
-void VertexFormat::SetupVertexPointers()
-{
-}
-
 }  // namespace Vulkan

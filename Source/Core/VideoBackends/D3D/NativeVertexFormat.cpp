@@ -119,10 +119,6 @@ D3DVertexFormat::~D3DVertexFormat()
   SAFE_RELEASE(m_layout);
 }
 
-void D3DVertexFormat::SetupVertexPointers()
-{
-}
-
 void D3DVertexFormat::SetInputLayout(D3DBlob* vs_bytecode)
 {
   if (!m_layout)

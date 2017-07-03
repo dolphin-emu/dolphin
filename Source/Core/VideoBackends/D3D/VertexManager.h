@@ -19,7 +19,6 @@ class D3DVertexFormat : public NativeVertexFormat
 public:
   D3DVertexFormat(const PortableVertexDeclaration& vtx_decl);
   ~D3DVertexFormat();
-  void SetupVertexPointers() override;
   void SetInputLayout(D3DBlob* vs_bytecode);
 
 private:
