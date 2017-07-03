@@ -376,7 +376,7 @@ TextureCacheBase::DoPartialTextureUpdates(TCacheEntry* entry_to_update, u8* pale
         u32 copy_width =
             std::min(entry->native_width - src_x, entry_to_update->native_width - dst_x);
         u32 copy_height =
-            std::min(entry->native_height - src_y, entry_to_update->native_height - dst_y);
+            std::min((entry->native_height * entry->y_scale) - src_y, (entry_to_update->native_height * entry_to_update->y_scale) - dst_y);
 
         // If one of the textures is scaled, scale both with the current efb scaling factor
         if (entry_to_update->native_width != entry_to_update->GetWidth() ||
@@ -385,9 +385,9 @@ TextureCacheBase::DoPartialTextureUpdates(TCacheEntry* entry_to_update, u8* pale
         {
           ScaleTextureCacheEntryTo(entry_to_update,
                                    g_renderer->EFBToScaledX(entry_to_update->native_width),
-                                   g_renderer->EFBToScaledY(entry_to_update->native_height));
+                                   g_renderer->EFBToScaledY(entry_to_update->native_height * entry_to_update->y_scale));
           ScaleTextureCacheEntryTo(entry, g_renderer->EFBToScaledX(entry->native_width),
-                                   g_renderer->EFBToScaledY(entry->native_height));
+                                   g_renderer->EFBToScaledY(entry->native_height * entry->y_scale));
 
           src_x = g_renderer->EFBToScaledX(src_x);
           src_y = g_renderer->EFBToScaledY(src_y);
@@ -794,7 +794,7 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::GetTexture(u32 address, u32 wid
 
     // Do not load strided EFB copies, they are not meant to be used directly.
     // Also do not directly load EFB copies, which were partly overwritten.
-    if (entry->IsCopy() && entry->native_width == nativeW && entry->native_height == nativeH &&
+    if (entry->IsCopy() && entry->native_width == nativeW && static_cast<unsigned int>(entry->native_height * entry->y_scale) == nativeH &&
         entry->memory_stride == entry->BytesPerRow() && !entry->may_have_overlapping_textures)
     {
       // EFB copies have slightly different rules as EFB copy formats have different
@@ -881,7 +881,8 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::GetTexture(u32 address, u32 wid
       TCacheEntry* entry = hash_iter->second;
       // All parameters, except the address, need to match here
       if (entry->format == full_format && entry->native_levels >= tex_levels &&
-          entry->native_width == nativeW && entry->native_height == nativeH)
+          entry->native_width == nativeW &&
+          static_cast<unsigned int>(entry->native_height * entry->y_scale) == nativeH)
       {
         entry = DoPartialTextureUpdates(hash_iter->second, &texMem[tlutaddr], tlutfmt);
 
@@ -1107,7 +1108,7 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::GetTexture(u32 address, u32 wid
 void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstFormat,
                                                  u32 dstStride, bool is_depth_copy,
                                                  const EFBRectangle& srcRect, bool isIntensity,
-                                                 bool scaleByHalf)
+                                                 bool scaleByHalf, float y_scale)
 {
   // Emulation methods:
   //
@@ -1451,7 +1452,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstF
   const u32 blockW = TexDecoder_GetBlockWidthInTexels(baseFormat);
 
   // Round up source height to multiple of block size
-  u32 actualHeight = Common::AlignUp(tex_h, blockH);
+  u32 actualHeight = Common::AlignUp(static_cast<unsigned int>(tex_h * y_scale), blockH);
   const u32 actualWidth = Common::AlignUp(tex_w, blockW);
 
   u32 num_blocks_y = actualHeight / blockH;
@@ -1465,7 +1466,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstF
 
   if (copy_to_ram)
   {
-    EFBCopyParams format(srcFormat, dstFormat, is_depth_copy, isIntensity);
+    EFBCopyParams format(srcFormat, dstFormat, is_depth_copy, isIntensity, y_scale);
     CopyEFB(dst, format, tex_w, bytes_per_row, num_blocks_y, dstStride, srcRect, scaleByHalf);
   }
   else
@@ -1556,6 +1557,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstF
     {
       entry->SetGeneralParameters(dstAddr, 0, baseFormat, is_xfb_copy);
       entry->SetDimensions(tex_w, tex_h, 1);
+      entry->y_scale = y_scale;
 
       entry->frameCount = FRAMECOUNT_INVALID;
       if (is_xfb_copy)
@@ -1731,7 +1733,7 @@ u32 TextureCacheBase::TCacheEntry::NumBlocksY() const
 {
   u32 blockH = TexDecoder_GetBlockHeightInTexels(format.texfmt);
   // Round up source height to multiple of block size
-  u32 actualHeight = Common::AlignUp(native_height, blockH);
+  u32 actualHeight = Common::AlignUp(static_cast<unsigned int>(native_height * y_scale), blockH);
 
   return actualHeight / blockH;
 }

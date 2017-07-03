@@ -64,9 +64,12 @@ static void WriteSwizzler(char*& p, EFBCopyFormat format, APIType ApiType)
   // left, top, of source rectangle within source texture
   // width of the destination rectangle, scale_factor (1 or 2)
   if (ApiType == APIType::Vulkan)
-    WRITE(p, "layout(std140, push_constant) uniform PCBlock { int4 position; } PC;\n");
+    WRITE(p, "layout(std140, push_constant) uniform PCBlock { int4 position; float y_scale; } PC;\n");
   else
+  {
     WRITE(p, "uniform int4 position;\n");
+    WRITE(p, "uniform float y_scale;\n");
+  }
 
   // Alpha channel in the copy is set to 1 the EFB format does not have an alpha channel.
   WRITE(p, "float4 RGBA8ToRGB8(float4 src)\n");
@@ -111,7 +114,8 @@ static void WriteSwizzler(char*& p, EFBCopyFormat format, APIType ApiType)
     WRITE(p, "{\n"
              "  int2 sampleUv;\n"
              "  int2 uv1 = int2(gl_FragCoord.xy);\n"
-             "  int4 position = PC.position;\n");
+             "  int4 position = PC.position;\n"
+             "  float y_scale = PC.y_scale;\n");
   }
   else  // D3D
   {
@@ -150,6 +154,7 @@ static void WriteSwizzler(char*& p, EFBCopyFormat format, APIType ApiType)
                                               // pixel)
   WRITE(p, "  uv0 += float2(position.xy);\n");                    // move to copied rect
   WRITE(p, "  uv0 /= float2(%d, %d);\n", EFB_WIDTH, EFB_HEIGHT);  // normalize to [0:1]
+  WRITE(p, "  uv0 /= float2(1, y_scale);\n");                 // apply the y scaling
   if (ApiType == APIType::OpenGL)                                 // ogl has to flip up and down
   {
     WRITE(p, "  uv0.y = 1.0-uv0.y;\n");

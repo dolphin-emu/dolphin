@@ -232,7 +232,7 @@ static void BPWritten(const BPCmd& bp)
       bool is_depth_copy = bpmem.zcontrol.pixel_format == PEControl::Z24;
       g_texture_cache->CopyRenderTargetToTexture(destAddr, PE_copy.tp_realFormat(), destStride,
                                                  is_depth_copy, srcRect, !!PE_copy.intensity_fmt,
-                                                 !!PE_copy.half_scale);
+                                                 !!PE_copy.half_scale, 1.0f);
     }
     else
     {
@@ -261,7 +261,7 @@ static void BPWritten(const BPCmd& bp)
       bool is_depth_copy = bpmem.zcontrol.pixel_format == PEControl::Z24;
       g_texture_cache->CopyRenderTargetToTexture(destAddr, EFBCopyFormat::XFB, destStride,
                                                  is_depth_copy, srcRect, false,
-                                                 false);
+                                                 false, yScale);
 
       // This stays in to signal end of a "frame"
       g_renderer->RenderToXFB(destAddr, srcRect, destStride, height, s_gammaLUT[PE_copy.gamma]);

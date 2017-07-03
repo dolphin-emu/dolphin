@@ -5,6 +5,7 @@
 #include "VideoBackends/Vulkan/TextureConverter.h"
 
 #include <algorithm>
+#include <array>
 #include <cstddef>
 #include <cstring>
 #include <string>
@@ -32,6 +33,14 @@
 
 namespace Vulkan
 {
+  namespace
+  {
+    struct EFBEncodeParams
+    {
+      std::array<s32, 4> position_uniform;
+      float y_scale;
+    };
+  }
 TextureConverter::TextureConverter()
 {
 }
@@ -243,14 +252,19 @@ void TextureConverter::EncodeTextureToMemory(VkImageView src_texture, u8* dest_p
                          VK_NULL_HANDLE, shader);
 
   // Uniform - int4 of left,top,native_width,scale
-  s32 position_uniform[4] = {src_rect.left, src_rect.top, static_cast<s32>(native_width),
-                             scale_by_half ? 2 : 1};
-  draw.SetPushConstants(position_uniform, sizeof(position_uniform));
+  EFBEncodeParams encoder_params;
+  encoder_params.position_uniform[0] = src_rect.left;
+  encoder_params.position_uniform[1] = src_rect.top;
+  encoder_params.position_uniform[2] = static_cast<s32>(native_width);
+  encoder_params.position_uniform[3] = scale_by_half ? 2 : 1;
+  encoder_params.y_scale = params.y_scale;
+  draw.SetPushConstants(&encoder_params, sizeof(encoder_params));
 
   // We also linear filtering for both box filtering and downsampling higher resolutions to 1x
   // TODO: This only produces perfect downsampling for 2x IR, other resolutions will need more
   //       complex down filtering to average all pixels and produce the correct result.
-  bool linear_filter = (scale_by_half && !params.depth) || g_renderer->GetEFBScale() != 1;
+  bool linear_filter = (scale_by_half && !params.depth) || g_renderer->GetEFBScale() != 1 ||
+                       params.y_scale > 1.0f;
   draw.SetPSSampler(0, src_texture, linear_filter ? g_object_cache->GetLinearSampler() :
                                                     g_object_cache->GetPointSampler());
 

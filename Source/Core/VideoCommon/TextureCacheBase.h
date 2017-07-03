@@ -45,21 +45,22 @@ struct TextureAndTLUTFormat
 struct EFBCopyParams
 {
   EFBCopyParams(PEControl::PixelFormat efb_format_, EFBCopyFormat copy_format_, bool depth_,
-                bool yuv_)
-      : efb_format(efb_format_), copy_format(copy_format_), depth(depth_), yuv(yuv_)
+                bool yuv_, float y_scale_)
+      : efb_format(efb_format_), copy_format(copy_format_), depth(depth_), yuv(yuv_), y_scale(y_scale_)
   {
   }
 
   bool operator<(const EFBCopyParams& rhs) const
   {
-    return std::tie(efb_format, copy_format, depth, yuv) <
-           std::tie(rhs.efb_format, rhs.copy_format, rhs.depth, rhs.yuv);
+    return std::tie(efb_format, copy_format, depth, yuv, y_scale) <
+           std::tie(rhs.efb_format, rhs.copy_format, rhs.depth, rhs.yuv, rhs.y_scale);
   }
 
   PEControl::PixelFormat efb_format;
   EFBCopyFormat copy_format;
   bool depth;
   bool yuv;
+  float y_scale;
 };
 
 class TextureCacheBase
@@ -86,6 +87,7 @@ public:
                                       // content, aren't just downscaled
     bool should_force_safe_hashing = false;  // for XFB
     bool is_xfb_copy = false;
+    float y_scale = 1.0f;
 
     unsigned int native_width,
         native_height;  // Texture dimensions from the GameCube's point of view
@@ -188,7 +190,7 @@ public:
   virtual void BindTextures();
   void CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstFormat, u32 dstStride,
                                  bool is_depth_copy, const EFBRectangle& srcRect, bool isIntensity,
-                                 bool scaleByHalf);
+                                 bool scaleByHalf, float y_scale);
 
   virtual void ConvertTexture(TCacheEntry* entry, TCacheEntry* unconverted, const void* palette,
                               TLUTFormat format) = 0;
@@ -209,6 +211,8 @@ public:
                                   const u8* palette, TLUTFormat palette_format)
   {
   }
+
+  void ScaleTextureCacheEntryTo(TCacheEntry* entry, u32 new_width, u32 new_height);
 
 protected:
   TextureCacheBase();
@@ -235,7 +239,6 @@ private:
 
   TCacheEntry* ApplyPaletteToEntry(TCacheEntry* entry, u8* palette, TLUTFormat tlutfmt);
 
-  void ScaleTextureCacheEntryTo(TCacheEntry* entry, u32 new_width, u32 new_height);
   TCacheEntry* DoPartialTextureUpdates(TCacheEntry* entry_to_update, u8* palette,
                                        TLUTFormat tlutfmt);
 

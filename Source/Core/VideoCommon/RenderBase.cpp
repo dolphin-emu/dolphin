@@ -668,15 +668,16 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
     // Get the current XFB from texture cache
     auto* xfb_entry = g_texture_cache->GetTexture(xfbAddr, fbWidth, fbHeight, TextureFormat::XFB,
                                                   force_safe_texture_cache_hash);
-    
-    // TODO, check if xfb_entry is a duplicate of the previous frame and skip SwapImpl
 
-	m_previous_xfb_texture = xfb_entry->texture.get();
+    if (xfb_entry)
+    {
+      // TODO, check if xfb_entry is a duplicate of the previous frame and skip SwapImpl
 
       m_last_xfb_texture = xfb_entry->texture.get();
 
-    // TODO: merge more generic parts into VideoCommon
-    g_renderer->SwapImpl(xfb_entry->texture.get(), rc, ticks, Gamma);
+      // TODO: merge more generic parts into VideoCommon
+      g_renderer->SwapImpl(xfb_entry->texture.get(), rc, ticks, Gamma);
+    }
   }
 
   if (m_xfb_written)
