@@ -207,7 +207,7 @@ void HotkeyScheduler::Run()
       if (IsHotkey(HK_INCREASE_IR))
         ++g_Config.iEFBScale;
       if (IsHotkey(HK_DECREASE_IR))
-        g_Config.iEFBScale = std::max(g_Config.iEFBScale - 1, static_cast<int>(SCALE_AUTO));
+        g_Config.iEFBScale = std::max(g_Config.iEFBScale - 1, EFB_SCALE_AUTO_INTEGRAL);
       if (IsHotkey(HK_TOGGLE_CROP))
         g_Config.bCrop = !g_Config.bCrop;
       if (IsHotkey(HK_TOGGLE_AR))

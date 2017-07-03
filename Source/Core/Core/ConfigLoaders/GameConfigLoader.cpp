@@ -84,7 +84,7 @@ static const INIToLocationMap& GetINIToLocationMap()
       {{"Video_Settings", "MSAA"}, {Config::GFX_MSAA.location}},
       {{"Video_Settings", "SSAA"}, {Config::GFX_SSAA.location}},
       {{"Video_Settings", "ForceTrueColor"}, {Config::GFX_ENHANCE_FORCE_TRUE_COLOR.location}},
-      {{"Video_Settings", "EFBScale"}, {Config::GFX_EFB_SCALE.location}},
+      {{"Video_Settings", "InternalResolution"}, {Config::GFX_EFB_SCALE.location}},
       {{"Video_Settings", "DisableFog"}, {Config::GFX_DISABLE_FOG.location}},
       {{"Video_Settings", "BackendMultithreading"}, {Config::GFX_BACKEND_MULTITHREADING.location}},
       {{"Video_Settings", "CommandBufferExecuteInterval"},

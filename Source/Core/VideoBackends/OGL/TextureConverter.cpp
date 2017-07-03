@@ -230,10 +230,10 @@ static void EncodeToRamUsingShader(GLuint srcTexture, u8* destAddr, u32 dst_line
   glBindTexture(GL_TEXTURE_2D_ARRAY, srcTexture);
 
   // We also linear filtering for both box filtering and downsampling higher resolutions to 1x
-  // TODO: This only produces perfect downsampling for 1.5x and 2x IR, other resolution will
-  //       need more complex down filtering to average all pixels and produce the correct result.
+  // TODO: This only produces perfect downsampling for 2x IR, other resolutions will need more
+  //       complex down filtering to average all pixels and produce the correct result.
   // Also, box filtering won't be correct for anything other than 1x IR
-  if (linearFilter || g_ActiveConfig.iEFBScale != SCALE_1X)
+  if (linearFilter || g_ActiveConfig.iEFBScale != 1)
     g_sampler_cache->BindLinearSampler(9);
   else
     g_sampler_cache->BindNearestSampler(9);
