@@ -42,7 +42,7 @@ private slots:
   void Pause();
 
   // May ask for confirmation. Returns whether or not it actually stopped.
-  bool Stop();
+  bool RequestStop();
   void ForceStop();
   void Reset();
   void FrameAdvance();
@@ -88,6 +88,7 @@ private:
   void ShowAboutDialog();
   void ShowHotkeyDialog();
 
+  void OnStopComplete();
   void dragEnterEvent(QDragEnterEvent* event) override;
   void dropEvent(QDropEvent* event) override;
   QSize sizeHint() const override;
@@ -99,7 +100,9 @@ private:
   RenderWidget* m_render_widget;
   bool m_rendering_to_main;
   bool m_stop_requested = false;
+  bool m_exit_requested = false;
   int m_state_slot = 1;
+  QString m_pending_boot;
 
   HotkeyScheduler* m_hotkey_scheduler;
   ControllersWindow* m_controllers_window;
