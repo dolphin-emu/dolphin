@@ -4,13 +4,48 @@
 
 #include "Core/Config/GraphicsSettings.h"
 
+#include <optional>
 #include <string>
 
 #include "Common/Config/Config.h"
+#include "Common/StringUtil.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace Config
 {
+std::optional<int> ConvertFromLegacyEFBScale(int efb_scale)
+{
+  // In game INIs, -1 was used as a special value meaning
+  // "use the value from the base layer but round it to an integer scale".
+  // We only support integer scales nowadays, so we can simply ignore -1
+  // in game INIs in order to automatically use a previous layer's value.
+  if (efb_scale < 0)
+    return {};
+
+  return efb_scale - (efb_scale > 0) - (efb_scale > 2) - (efb_scale > 4);
+}
+
+std::optional<int> ConvertFromLegacyEFBScale(const std::string& efb_scale)
+{
+  int efb_scale_int;
+  if (!TryParse(efb_scale, &efb_scale_int))
+    return {};
+  return ConvertFromLegacyEFBScale(efb_scale_int);
+}
+
+int ConvertToLegacyEFBScale(int efb_scale)
+{
+  return efb_scale + (efb_scale >= 0) + (efb_scale > 1) + (efb_scale > 2);
+}
+
+std::optional<int> ConvertToLegacyEFBScale(const std::string& efb_scale)
+{
+  int efb_scale_int;
+  if (!TryParse(efb_scale, &efb_scale_int))
+    return {};
+  return ConvertToLegacyEFBScale(efb_scale_int);
+}
+
 // Configuration Information
 
 // Graphics.Hardware
@@ -60,7 +95,7 @@ const ConfigInfo<bool> GFX_ENABLE_PIXEL_LIGHTING{{System::GFX, "Settings", "Enab
 const ConfigInfo<bool> GFX_FAST_DEPTH_CALC{{System::GFX, "Settings", "FastDepthCalc"}, true};
 const ConfigInfo<u32> GFX_MSAA{{System::GFX, "Settings", "MSAA"}, 1};
 const ConfigInfo<bool> GFX_SSAA{{System::GFX, "Settings", "SSAA"}, false};
-const ConfigInfo<int> GFX_EFB_SCALE{{System::GFX, "Settings", "InternalResolution"}, 1};
+const ConfigInfo<int> GFX_EFB_SCALE{{System::GFX, "Settings", "EFBScale"}, 1};
 const ConfigInfo<bool> GFX_TEXFMT_OVERLAY_ENABLE{{System::GFX, "Settings", "TexFmtOverlayEnable"},
                                                  false};
 const ConfigInfo<bool> GFX_TEXFMT_OVERLAY_CENTER{{System::GFX, "Settings", "TexFmtOverlayCenter"},
