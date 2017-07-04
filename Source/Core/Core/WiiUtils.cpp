@@ -38,9 +38,8 @@
 
 namespace WiiUtils
 {
-bool InstallWAD(const std::string& wad_path)
+bool InstallWAD(IOS::HLE::Kernel& ios, const DiscIO::WiiWAD& wad)
 {
-  const DiscIO::WiiWAD wad{wad_path};
   if (!wad.IsValid())
   {
     PanicAlertT("WAD installation failed: The selected file is not a valid WAD.");
@@ -48,7 +47,6 @@ bool InstallWAD(const std::string& wad_path)
   }
 
   const auto tmd = wad.GetTMD();
-  IOS::HLE::Kernel ios;
   const auto es = ios.GetES();
 
   IOS::HLE::Device::ES::Context context;
@@ -99,8 +97,17 @@ bool InstallWAD(const std::string& wad_path)
     return false;
   }
 
-  DiscIO::NANDContentManager::Access().ClearCache();
   return true;
+}
+
+bool InstallWAD(const std::string& wad_path)
+{
+  IOS::HLE::Kernel ios;
+  const DiscIO::WiiWAD wad{wad_path};
+  const bool result = InstallWAD(ios, wad);
+
+  DiscIO::NANDContentManager::Access().ClearCache();
+  return result;
 }
 
 // Common functionality for system updaters.
