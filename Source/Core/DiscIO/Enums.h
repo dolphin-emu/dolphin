@@ -68,6 +68,8 @@ enum class Language
   LANGUAGE_UNKNOWN
 };
 
+bool IsDisc(Platform volume_type);
+bool IsWii(Platform volume_type);
 bool IsNTSC(Region region);
 Country TypicalCountryForRegion(Region region);
 Region RegionSwitchGC(u8 country_code);

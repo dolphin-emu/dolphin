@@ -24,6 +24,7 @@
 #include "Common/Swap.h"
 
 #include "DiscIO/Blob.h"
+#include "DiscIO/DiscExtractor.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
@@ -66,10 +67,11 @@ VolumeWii::VolumeWii(std::unique_ptr<BlobReader> reader)
         continue;
       const u64 partition_offset = static_cast<u64>(*read_buffer) << 2;
 
-      // Check if this is the game partition
-      const bool is_game_partition =
-          m_game_partition == PARTITION_NONE &&
-          m_pReader->ReadSwapped<u32>(partition_table_offset + (i * 8) + 4) == u32(0);
+      // Read the partition type
+      const std::optional<u32> partition_type =
+          m_pReader->ReadSwapped<u32>(partition_table_offset + (i * 8) + 4);
+      if (!partition_type)
+        continue;
 
       // Read ticket
       std::vector<u8> ticket_buffer(sizeof(IOS::ES::Ticket));
@@ -105,10 +107,11 @@ VolumeWii::VolumeWii(std::unique_ptr<BlobReader> reader)
       // We've read everything. Time to store it! (The reason we don't store anything
       // earlier is because we want to be able to skip adding the partition if an error occurs.)
       const Partition partition(partition_offset);
+      m_partition_types[partition] = *partition_type;
       m_partition_keys[partition] = std::move(aes_context);
       m_partition_tickets[partition] = std::move(ticket);
       m_partition_tmds[partition] = std::move(tmd);
-      if (is_game_partition)
+      if (m_game_partition == PARTITION_NONE && *partition_type == 0)
         m_game_partition = partition;
     }
   }
@@ -182,6 +185,12 @@ std::vector<Partition> VolumeWii::GetPartitions() const
 Partition VolumeWii::GetGamePartition() const
 {
   return m_game_partition;
+}
+
+std::optional<u32> VolumeWii::GetPartitionType(const Partition& partition) const
+{
+  auto it = m_partition_types.find(partition);
+  return it != m_partition_types.end() ? it->second : std::optional<u32>();
 }
 
 std::optional<u64> VolumeWii::GetTitleID(const Partition& partition) const
@@ -274,8 +283,8 @@ std::map<Language, std::string> VolumeWii::GetLongNames() const
 
   std::vector<u8> opening_bnr(NAMES_TOTAL_BYTES);
   std::unique_ptr<FileInfo> file_info = file_system->FindFileInfo("opening.bnr");
-  opening_bnr.resize(
-      file_system->ReadFile(file_info.get(), opening_bnr.data(), opening_bnr.size(), 0x5C));
+  opening_bnr.resize(ReadFile(*this, GetGamePartition(), file_info.get(), opening_bnr.data(),
+                              opening_bnr.size(), 0x5C));
   return ReadWiiNames(opening_bnr);
 }
 
