@@ -89,6 +89,7 @@ private:
 
   void dragEnterEvent(QDragEnterEvent* event) override;
   void dropEvent(QDropEvent* event) override;
+  QSize sizeHint() const override;
 
   QStackedWidget* m_stack;
   ToolBar* m_tool_bar;
