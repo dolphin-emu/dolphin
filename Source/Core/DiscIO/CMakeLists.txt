@@ -15,6 +15,7 @@ set(SRCS
   NANDImporter.cpp
   TGCBlob.cpp
   Volume.cpp
+  VolumeFileBlobReader.cpp
   VolumeGC.cpp
   VolumeWad.cpp
   VolumeWii.cpp
