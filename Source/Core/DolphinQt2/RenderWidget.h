@@ -7,6 +7,8 @@
 #include <QEvent>
 #include <QWidget>
 
+class QTimer;
+
 class RenderWidget final : public QWidget
 {
   Q_OBJECT
@@ -24,5 +26,9 @@ signals:
   void StateChanged(bool fullscreen);
 
 private:
+  void HandleCursorTimer();
   void OnHideCursorChanged();
+
+  static constexpr int MOUSE_HIDE_DELAY = 3000;
+  QTimer* m_mouse_timer;
 };
