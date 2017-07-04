@@ -29,6 +29,7 @@
 #include "DolphinQt2/GameList/ListProxyModel.h"
 #include "DolphinQt2/QtUtils/DoubleClickEventFilter.h"
 #include "DolphinQt2/Settings.h"
+#include "DolphinQt2/WiiUpdate.h"
 
 static bool CompressCB(const std::string&, float, void*);
 
@@ -164,6 +165,15 @@ void GameList::ShowContextMenu(const QPoint&)
 
     menu->addSeparator();
   }
+
+  if (platform == DiscIO::Platform::WII_DISC)
+  {
+    menu->addAction(tr("Perform System Update"), [this] {
+      WiiUpdate::PerformDiscUpdate(GetSelectedGame().toStdString(), this);
+    });
+    menu->setEnabled(!Core::IsRunning() || !SConfig::GetInstance().bWii);
+  }
+
   if (platform == DiscIO::Platform::WII_WAD)
   {
     QAction* wad_install_action = new QAction(tr("Install to the NAND"), menu);

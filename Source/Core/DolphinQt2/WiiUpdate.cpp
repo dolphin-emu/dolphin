@@ -139,4 +139,10 @@ void PerformOnlineUpdate(const std::string& region, QWidget* parent)
   const WiiUtils::UpdateResult result = ShowProgress(parent, WiiUtils::DoOnlineUpdate, region);
   ShowResult(parent, result);
 }
+
+void PerformDiscUpdate(const std::string& file_path, QWidget* parent)
+{
+  const WiiUtils::UpdateResult result = ShowProgress(parent, WiiUtils::DoDiscUpdate, file_path);
+  ShowResult(parent, result);
+}
 }  // namespace WiiUpdate
