@@ -99,6 +99,7 @@ void VideoBackend::InitBackendInfo()
 
   // Overwritten in Render.cpp later
   g_Config.backend_info.bSupportsDualSourceBlend = true;
+  g_Config.backend_info.bSupportsFramebufferFetch = true;
   g_Config.backend_info.bSupportsPrimitiveRestart = true;
   g_Config.backend_info.bSupportsPaletteConversion = true;
   g_Config.backend_info.bSupportsClipControl = true;
