@@ -26,9 +26,6 @@ private:
   void CreateBasic();
   void CreateAdvanced();
 
-  void LoadConfig();
-  void OnSaveConfig();
-
   // Widgets
   QVBoxLayout* m_main_layout;
   QComboBox* m_combobox_speedlimit;

@@ -4,6 +4,7 @@
 
 #include "DolphinQt2/Settings/GeneralPane.h"
 
+#include <QButtonGroup>
 #include <QCheckBox>
 #include <QComboBox>
 #include <QFormLayout>
@@ -19,14 +20,13 @@
 #include "Core/Analytics.h"
 #include "Core/ConfigManager.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "DolphinQt2/QtUtils/Bind.h"
 #include "DolphinQt2/Settings.h"
 
 GeneralPane::GeneralPane(QWidget* parent) : QWidget(parent)
 {
   CreateLayout();
   ConnectLayout();
-
-  LoadConfig();
 }
 
 void GeneralPane::CreateLayout()
@@ -44,19 +44,26 @@ void GeneralPane::CreateLayout()
 
 void GeneralPane::ConnectLayout()
 {
-  connect(m_checkbox_dualcore, &QCheckBox::clicked, this, &GeneralPane::OnSaveConfig);
-  connect(m_checkbox_cheats, &QCheckBox::clicked, this, &GeneralPane::OnSaveConfig);
-  // Advanced
-  connect(m_checkbox_force_ntsc, &QCheckBox::clicked, this, &GeneralPane::OnSaveConfig);
-  connect(m_combobox_speedlimit,
-          static_cast<void (QComboBox::*)(const QString&)>(&QComboBox::activated),
-          [this](const QString& text) { OnSaveConfig(); });
-  connect(m_radio_interpreter, &QRadioButton::clicked, this, &GeneralPane::OnSaveConfig);
-  connect(m_radio_cached_interpreter, &QRadioButton::clicked, this, &GeneralPane::OnSaveConfig);
-  connect(m_radio_jit, &QRadioButton::clicked, this, &GeneralPane::OnSaveConfig);
+  // Basic
+  BindControlToValue(m_checkbox_dualcore, SConfig::GetInstance().bCPUThread);
+  BindControlToValue(m_checkbox_cheats, SConfig::GetInstance().bEnableCheats);
+  BindControlToValue(m_combobox_speedlimit, SConfig::GetInstance().m_EmulationSpeed,
+                     [](float speedlimit) { return static_cast<int>(std::round(speedlimit * 10)); },
+                     [](int index) { return index * 0.1f; });
 
+  // Advanced
+  auto* cpu_emulator_engine = new QButtonGroup(this);
+  cpu_emulator_engine->addButton(m_radio_interpreter, PowerPC::CPUCore::CORE_INTERPRETER);
+  cpu_emulator_engine->addButton(m_radio_cached_interpreter,
+                                 PowerPC::CPUCore::CORE_CACHEDINTERPRETER);
+  cpu_emulator_engine->addButton(m_radio_jit, PowerPC::CPUCore::CORE_JIT64);
+  // TODO: Implement JITARM
+  BindControlToValue(cpu_emulator_engine, SConfig::GetInstance().iCPUCore);
+  BindControlToValue(m_checkbox_force_ntsc, SConfig::GetInstance().bForceNTSCJ);
+
+// Analytics
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
-  connect(m_checkbox_enable_analytics, &QCheckBox::clicked, this, &GeneralPane::OnSaveConfig);
+  BindControlToValue(m_checkbox_enable_analytics, SConfig::GetInstance().m_analytics_enabled);
   connect(m_button_generate_new_identity, &QPushButton::clicked, this,
           &GeneralPane::GenerateNewIdentity);
 #endif
@@ -136,62 +143,6 @@ void GeneralPane::CreateAdvanced()
   // NTSC-J
   m_checkbox_force_ntsc = new QCheckBox(tr("Force Console as NTSC-J"));
   advanced_group_layout->addWidget(m_checkbox_force_ntsc);
-}
-
-void GeneralPane::LoadConfig()
-{
-  auto& settings = Settings::Instance();
-  m_checkbox_force_ntsc->setChecked(settings.GetForceNTSCJ());
-#if defined(USE_ANALYTICS) && USE_ANALYTICS
-  m_checkbox_enable_analytics->setChecked(settings.GetAnalyticsEnabled());
-#endif
-  m_checkbox_dualcore->setChecked(SConfig::GetInstance().bCPUThread);
-  m_checkbox_cheats->setChecked(SConfig::GetInstance().bEnableCheats);
-  int selection = qRound(settings.GetEmulationSpeed() * 10);
-  if (selection < m_combobox_speedlimit->count())
-    m_combobox_speedlimit->setCurrentIndex(selection);
-  m_checkbox_dualcore->setChecked(SConfig::GetInstance().bCPUThread);
-
-  switch (SConfig::GetInstance().iCPUCore)
-  {
-  case PowerPC::CPUCore::CORE_INTERPRETER:
-    m_radio_interpreter->setChecked(true);
-    break;
-  case PowerPC::CPUCore::CORE_CACHEDINTERPRETER:
-    m_radio_cached_interpreter->setChecked(true);
-    break;
-  case PowerPC::CPUCore::CORE_JIT64:
-    m_radio_jit->setChecked(true);
-    break;
-  case PowerPC::CPUCore::CORE_JITARM64:
-    // TODO: Implement JITARM
-    break;
-  default:
-    break;
-  }
-}
-
-void GeneralPane::OnSaveConfig()
-{
-  auto& settings = Settings::Instance();
-  settings.SetForceNTSCJ(m_checkbox_force_ntsc->isChecked());
-#if defined(USE_ANALYTICS) && USE_ANALYTICS
-  settings.SetAnalyticsEnabled(m_checkbox_enable_analytics->isChecked());
-#endif
-  SConfig::GetInstance().bCPUThread = m_checkbox_dualcore->isChecked();
-  SConfig::GetInstance().bEnableCheats = m_checkbox_cheats->isChecked();
-  SConfig::GetInstance().m_EmulationSpeed = m_combobox_speedlimit->currentIndex() * 0.1f;
-  int engine_value = 0;
-  if (m_radio_interpreter->isChecked())
-    engine_value = PowerPC::CPUCore::CORE_INTERPRETER;
-  else if (m_radio_cached_interpreter->isChecked())
-    engine_value = PowerPC::CPUCore::CORE_CACHEDINTERPRETER;
-  else if (m_radio_jit->isChecked())
-    engine_value = PowerPC::CPUCore::CORE_JIT64;
-  else
-    engine_value = PowerPC::CPUCore::CORE_JIT64;
-
-  SConfig::GetInstance().iCPUCore = engine_value;
 }
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
