@@ -19,10 +19,11 @@
 //        ABCD
 //    Output: Two lines. The first is the address from the
 //      input file, and the second is the new value in hex.
-// 2: Read four bytes, followed at pointer
+// 2: Read four bytes, following list of pointers
 //    ex:
-//        ABCD EF
-//        ^ will watch the address at (*0xABCD) + 0xEF.
+//        ABCD EF [XY] ..
+//        ^ will watch the address at *((*0xABCD) + 0xEF) + 0xXY
+//          continuing on following pointers for as many offsets are given
 //    Output: Two lines. The first is the address from the
 //      input file, and the second is the new value in hex.
 // 3: Read linked list structure, with data in pointers
