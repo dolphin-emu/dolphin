@@ -78,9 +78,9 @@ BluetoothEmu::BluetoothEmu(Kernel& ios, const std::string& device_name)
 
   // save now so that when games load sysconf file it includes the new Wii Remotes
   // and the correct order for connected Wii Remotes
-  std::vector<u8> data(sizeof(_conf_pads));
-  std::memcpy(data.data(), &BT_DINF, data.size());
-  sysconf.GetOrAddEntry("BT.DINF", SysConf::Entry::Type::BigArray)->bytes = std::move(data);
+  auto& section = sysconf.GetOrAddEntry("BT.DINF", SysConf::Entry::Type::BigArray)->bytes;
+  section.resize(sizeof(_conf_pads) + 1);
+  std::memcpy(section.data(), &BT_DINF, sizeof(_conf_pads));
   if (!sysconf.Save())
     PanicAlertT("Failed to write BT.DINF to SYSCONF");
 }

@@ -100,14 +100,15 @@ bool SysConf::LoadFromFile(const std::string& file_name)
     {
       u16 data_length = 0;
       file.ReadBytes(&data_length, sizeof(data_length));
-      data.resize(Common::swap16(data_length));
+      // The stored u16 is length - 1, not length.
+      data.resize(Common::swap16(data_length) + 1);
       break;
     }
     case Entry::Type::SmallArray:
     {
       u8 data_length = 0;
       file.ReadBytes(&data_length, sizeof(data_length));
-      data.resize(data_length);
+      data.resize(data_length + 1);
       break;
     }
     case Entry::Type::Byte:
@@ -165,20 +166,17 @@ bool SysConf::Save() const
     case Entry::Type::BigArray:
     {
       const u16 data_size = static_cast<u16>(item.bytes.size());
-      AppendToBuffer<u16>(&entries, data_size);
+      // length - 1 is stored, not length.
+      AppendToBuffer<u16>(&entries, data_size - 1);
       entries.insert(entries.end(), item.bytes.cbegin(), item.bytes.cbegin() + data_size);
-      // Unused byte.
-      entries.insert(entries.end(), '\0');
       break;
     }
 
     case Entry::Type::SmallArray:
     {
       const u8 data_size = static_cast<u8>(item.bytes.size());
-      AppendToBuffer<u8>(&entries, data_size);
+      AppendToBuffer<u8>(&entries, data_size - 1);
       entries.insert(entries.end(), item.bytes.cbegin(), item.bytes.cbegin() + data_size);
-      // Unused byte.
-      entries.insert(entries.end(), '\0');
       break;
     }
 
@@ -272,22 +270,26 @@ void SysConf::ApplySettingsFromMovie()
 
 void SysConf::InsertDefaultEntries()
 {
-  AddEntry({Entry::Type::BigArray, "BT.DINF", std::vector<u8>(0x460)});
-  AddEntry({Entry::Type::BigArray, "BT.CDIF", std::vector<u8>(0x204)});
+  AddEntry({Entry::Type::BigArray, "BT.DINF", std::vector<u8>(0x460 + 1)});
+  AddEntry({Entry::Type::BigArray, "BT.CDIF", std::vector<u8>(0x204 + 1)});
   AddEntry({Entry::Type::Long, "BT.SENS", {0, 0, 0, 3}});
   AddEntry({Entry::Type::Byte, "BT.BAR", {1}});
   AddEntry({Entry::Type::Byte, "BT.SPKV", {0x58}});
   AddEntry({Entry::Type::Byte, "BT.MOT", {1}});
 
-  const std::vector<u8> console_nick = {0, 'd', 0, 'o', 0, 'l', 0, 'p', 0, 'h', 0, 'i', 0, 'n'};
+  std::vector<u8> console_nick = {0, 'd', 0, 'o', 0, 'l', 0, 'p', 0, 'h', 0, 'i', 0, 'n'};
+  // 22 bytes: 2 bytes per character (10 characters maximum),
+  // 1 for a null terminating character, 1 for the string length
+  console_nick.resize(22);
+  console_nick[21] = static_cast<u8>(strlen("dolphin"));
   AddEntry({Entry::Type::SmallArray, "IPL.NIK", std::move(console_nick)});
 
   AddEntry({Entry::Type::Byte, "IPL.LNG", {1}});
-  std::vector<u8> ipl_sadr(0x1007);
+  std::vector<u8> ipl_sadr(0x1007 + 1);
   ipl_sadr[0] = 0x6c;
   AddEntry({Entry::Type::BigArray, "IPL.SADR", std::move(ipl_sadr)});
 
-  std::vector<u8> ipl_pc(0x50);
+  std::vector<u8> ipl_pc(0x49 + 1);
   ipl_pc[1] = 0x04;
   ipl_pc[2] = 0x14;
   AddEntry({Entry::Type::SmallArray, "IPL.PC", std::move(ipl_pc)});
@@ -305,7 +307,7 @@ void SysConf::InsertDefaultEntries()
   AddEntry({Entry::Type::Byte, "IPL.DH", {0}});
   AddEntry({Entry::Type::Long, "IPL.INC", {0, 0, 0, 8}});
   AddEntry({Entry::Type::Long, "IPL.FRC", {0, 0, 0, 0x28}});
-  AddEntry({Entry::Type::SmallArray, "IPL.IDL", {0}});
+  AddEntry({Entry::Type::SmallArray, "IPL.IDL", {0, 1}});
 
   AddEntry({Entry::Type::Long, "NET.WCFG", {0, 0, 0, 1}});
   AddEntry({Entry::Type::Long, "NET.CTPC", std::vector<u8>(4)});
