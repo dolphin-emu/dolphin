@@ -1173,6 +1173,13 @@ void GameListCtrl::OnRightClick(wxMouseEvent& event)
         changeDiscItem->Enable(Core::IsRunning());
       }
 
+      if (platform == DiscIO::Platform::WII_DISC)
+      {
+        auto* const perform_update_item =
+            popupMenu.Append(IDM_LIST_PERFORM_DISC_UPDATE, _("Perform System Update"));
+        perform_update_item->Enable(!Core::IsRunning() || !SConfig::GetInstance().bWii);
+      }
+
       if (platform == DiscIO::Platform::WII_WAD)
       {
         auto* const install_wad_item =

@@ -1411,6 +1411,19 @@ void CFrame::OnPerformOnlineWiiUpdate(wxCommandEvent& event)
   UpdateLoadWiiMenuItem();
 }
 
+void CFrame::OnPerformDiscWiiUpdate(wxCommandEvent&)
+{
+  const GameListItem* iso = m_game_list_ctrl->GetSelectedISO();
+  if (!iso)
+    return;
+
+  const std::string file_name = iso->GetFileName();
+
+  const WiiUtils::UpdateResult result = ShowUpdateProgress(this, WiiUtils::DoDiscUpdate, file_name);
+  ShowUpdateResult(result);
+  UpdateLoadWiiMenuItem();
+}
+
 void CFrame::UpdateLoadWiiMenuItem() const
 {
   GetMenuBar()->Refresh(true, nullptr);
