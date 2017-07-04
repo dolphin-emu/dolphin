@@ -118,7 +118,6 @@ protected:
 
   std::string GetDeviceRegion();
   std::string GetDeviceId();
-  bool ShouldInstallTitle(const TitleInfo& title);
 
   IOS::HLE::Kernel m_ios;
 };
@@ -149,14 +148,6 @@ std::string SystemUpdater::GetDeviceId()
   return StringFromFormat("%" PRIu64, (u64(1) << 32) | ios_device_id);
 }
 
-bool SystemUpdater::ShouldInstallTitle(const TitleInfo& title)
-{
-  const auto es = m_ios.GetES();
-  const auto installed_tmd = es->FindInstalledTMD(title.id);
-  return !(installed_tmd.IsValid() && installed_tmd.GetTitleVersion() >= title.version &&
-           es->GetStoredContentsFromTMD(installed_tmd).size() == installed_tmd.GetNumContents());
-}
-
 class OnlineSystemUpdater final : public SystemUpdater
 {
 public:
@@ -172,6 +163,7 @@ private:
 
   Response GetSystemTitles();
   Response ParseTitlesResponse(const std::vector<u8>& response) const;
+  bool ShouldInstallTitle(const TitleInfo& title);
 
   UpdateResult InstallTitleFromNUS(const std::string& prefix_url, const TitleInfo& title,
                                    std::unordered_set<u64>* updated_titles);
@@ -239,6 +231,14 @@ OnlineSystemUpdater::ParseTitlesResponse(const std::vector<u8>& response) const
     info.titles.push_back({title_id, title_version});
   }
   return info;
+}
+
+bool OnlineSystemUpdater::ShouldInstallTitle(const TitleInfo& title)
+{
+  const auto es = m_ios.GetES();
+  const auto installed_tmd = es->FindInstalledTMD(title.id);
+  return !(installed_tmd.IsValid() && installed_tmd.GetTitleVersion() >= title.version &&
+           es->GetStoredContentsFromTMD(installed_tmd).size() == installed_tmd.GetNumContents());
 }
 
 constexpr const char* GET_SYSTEM_TITLES_REQUEST_PAYLOAD = R"(<?xml version="1.0" encoding="UTF-8"?>
