@@ -5,7 +5,10 @@
 #include "Core/WiiUtils.h"
 
 #include <algorithm>
+#include <bitset>
 #include <cinttypes>
+#include <cstddef>
+#include <cstring>
 #include <map>
 #include <memory>
 #include <optional>
@@ -32,8 +35,13 @@
 #include "Core/IOS/ES/ES.h"
 #include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/IOS.h"
+#include "DiscIO/DiscExtractor.h"
 #include "DiscIO/Enums.h"
+#include "DiscIO/Filesystem.h"
 #include "DiscIO/NANDContentLoader.h"
+#include "DiscIO/Volume.h"
+#include "DiscIO/VolumeFileBlobReader.h"
+#include "DiscIO/VolumeWii.h"
 #include "DiscIO/WiiWad.h"
 
 namespace WiiUtils
@@ -500,10 +508,175 @@ std::optional<std::vector<u8>> OnlineSystemUpdater::DownloadContent(const std::s
   return m_http.Get(url);
 }
 
+class DiscSystemUpdater final : public SystemUpdater
+{
+public:
+  DiscSystemUpdater(UpdateCallback update_callback, const std::string& image_path)
+      : m_update_callback{std::move(update_callback)},
+        m_volume{DiscIO::CreateVolumeFromFilename(image_path)}
+  {
+  }
+  UpdateResult DoDiscUpdate();
+
+private:
+#pragma pack(push, 8)
+  struct ManifestHeader
+  {
+    char timestamp[0x10];  // YYYY/MM/DD
+    // There is a u32 in newer info files to indicate the number of entries,
+    // but it's not used in older files, and it's not always at the same offset.
+    // Too unreliable to use it.
+    u32 padding[4];
+  };
+  static_assert(sizeof(ManifestHeader) == 32, "Wrong size");
+
+  struct Entry
+  {
+    u32 type;
+    u32 attribute;
+    u32 unknown1;
+    u32 unknown2;
+    char path[0x40];
+    u64 title_id;
+    u16 title_version;
+    char name[0x40];
+    char info[0x40];
+    u8 unused[0x120];
+  };
+  static_assert(sizeof(Entry) == 512, "Wrong size");
+#pragma pack(pop)
+
+  UpdateResult UpdateFromManifest(const std::string& manifest_name);
+  UpdateResult ProcessEntry(u32 type, std::bitset<32> attrs, const TitleInfo& title,
+                            const std::string& path);
+
+  UpdateCallback m_update_callback;
+  std::unique_ptr<DiscIO::Volume> m_volume;
+  std::unique_ptr<DiscIO::FileSystem> m_disc_fs;
+};
+
+UpdateResult DiscSystemUpdater::DoDiscUpdate()
+{
+  if (!m_volume)
+    return UpdateResult::DiscReadFailed;
+
+  // Do not allow mismatched regions, because installing an update will automatically change
+  // the Wii's region and may result in semi/full system menu bricks.
+  const IOS::ES::TMDReader system_menu_tmd = m_ios.GetES()->FindInstalledTMD(Titles::SYSTEM_MENU);
+  if (system_menu_tmd.IsValid() && m_volume->GetRegion() != system_menu_tmd.GetRegion())
+    return UpdateResult::RegionMismatch;
+
+  const auto partitions = m_volume->GetPartitions();
+  const auto update_partition =
+      std::find_if(partitions.cbegin(), partitions.cend(), [&](const DiscIO::Partition& partition) {
+        return m_volume->GetPartitionType(partition) == 1u;
+      });
+
+  if (update_partition == partitions.cend())
+  {
+    ERROR_LOG(CORE, "Could not find any update partition");
+    return UpdateResult::MissingUpdatePartition;
+  }
+
+  m_disc_fs = DiscIO::CreateFileSystem(m_volume.get(), *update_partition);
+  if (!m_disc_fs || !m_disc_fs->IsValid())
+    return UpdateResult::DiscReadFailed;
+
+  return UpdateFromManifest("__update.inf");
+}
+
+UpdateResult DiscSystemUpdater::UpdateFromManifest(const std::string& manifest_name)
+{
+  const std::unique_ptr<DiscIO::FileInfo> update_manifest = m_disc_fs->FindFileInfo(manifest_name);
+  if (!update_manifest ||
+      (update_manifest->GetSize() - sizeof(ManifestHeader)) % sizeof(Entry) != 0)
+  {
+    ERROR_LOG(CORE, "Invalid or missing update manifest");
+    return UpdateResult::DiscReadFailed;
+  }
+
+  const u32 num_entries = (update_manifest->GetSize() - sizeof(ManifestHeader)) / sizeof(Entry);
+  if (num_entries > 200)
+    return UpdateResult::DiscReadFailed;
+
+  std::vector<u8> entry(sizeof(Entry));
+  size_t updates_installed = 0;
+  for (u32 i = 0; i < num_entries; ++i)
+  {
+    const u32 offset = sizeof(ManifestHeader) + sizeof(Entry) * i;
+    if (entry.size() != DiscIO::ReadFile(*m_volume, m_disc_fs->GetPartition(),
+                                         update_manifest.get(), entry.data(), entry.size(), offset))
+    {
+      ERROR_LOG(CORE, "Failed to read update information from update manifest");
+      return UpdateResult::DiscReadFailed;
+    }
+
+    const u32 type = Common::swap32(entry.data() + offsetof(Entry, type));
+    const std::bitset<32> attrs = Common::swap32(entry.data() + offsetof(Entry, attribute));
+    const u64 title_id = Common::swap64(entry.data() + offsetof(Entry, title_id));
+    const u16 title_version = Common::swap16(entry.data() + offsetof(Entry, title_version));
+    const char* path_pointer = reinterpret_cast<const char*>(entry.data() + offsetof(Entry, path));
+    const std::string path{path_pointer, strnlen(path_pointer, sizeof(Entry::path))};
+
+    if (!m_update_callback(i, num_entries, title_id))
+      return UpdateResult::Cancelled;
+
+    const UpdateResult res = ProcessEntry(type, attrs, {title_id, title_version}, path);
+    if (res != UpdateResult::Succeeded && res != UpdateResult::AlreadyUpToDate)
+    {
+      ERROR_LOG(CORE, "Failed to update %016" PRIx64 " -- aborting update", title_id);
+      return res;
+    }
+
+    if (res == UpdateResult::Succeeded)
+      ++updates_installed;
+  }
+  return updates_installed == 0 ? UpdateResult::AlreadyUpToDate : UpdateResult::Succeeded;
+}
+
+UpdateResult DiscSystemUpdater::ProcessEntry(u32 type, std::bitset<32> attrs,
+                                             const TitleInfo& title, const std::string& path)
+{
+  // Skip any unknown type and boot2 updates (for now).
+  if (type != 2 && type != 3 && type != 6 && type != 7)
+    return UpdateResult::AlreadyUpToDate;
+
+  const IOS::ES::TMDReader tmd = m_ios.GetES()->FindInstalledTMD(title.id);
+  const IOS::ES::TicketReader ticket = DiscIO::FindSignedTicket(title.id);
+
+  // Optional titles can be skipped if the ticket is present, even when the title isn't installed.
+  if (attrs.test(16) && ticket.IsValid())
+    return UpdateResult::AlreadyUpToDate;
+
+  // Otherwise, the title is only skipped if it is installed, its ticket is imported,
+  // and the installed version is new enough. No further checks unlike the online updater.
+  if (tmd.IsValid() && tmd.GetTitleVersion() >= title.version)
+    return UpdateResult::AlreadyUpToDate;
+
+  // Import the WAD.
+  const std::unique_ptr<DiscIO::FileInfo> wad_file = m_disc_fs->FindFileInfo(path);
+  if (!wad_file)
+  {
+    ERROR_LOG(CORE, "Failed to get info for %s", path.c_str());
+    return UpdateResult::DiscReadFailed;
+  }
+
+  const DiscIO::WiiWAD wad{DiscIO::VolumeFileBlobReader::Create(*m_volume, *m_disc_fs, path)};
+  return InstallWAD(m_ios, wad) ? UpdateResult::Succeeded : UpdateResult::ImportFailed;
+}
+
 UpdateResult DoOnlineUpdate(UpdateCallback update_callback, const std::string& region)
 {
   OnlineSystemUpdater updater{std::move(update_callback), region};
   const UpdateResult result = updater.DoOnlineUpdate();
+  DiscIO::NANDContentManager::Access().ClearCache();
+  return result;
+}
+
+UpdateResult DoDiscUpdate(UpdateCallback update_callback, const std::string& image_path)
+{
+  DiscSystemUpdater updater{std::move(update_callback), image_path};
+  const UpdateResult result = updater.DoDiscUpdate();
   DiscIO::NANDContentManager::Access().ClearCache();
   return result;
 }
