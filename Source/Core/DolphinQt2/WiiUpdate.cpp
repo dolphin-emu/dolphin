@@ -98,7 +98,7 @@ static WiiUtils::UpdateResult ShowProgress(QWidget* parent, Callable function, A
   auto* cancel_button = new QPushButton(QObject::tr("&Cancel"), parent);
   dialog.setCancelButton(cancel_button);
   Common::Flag was_cancelled;
-  QObject::disconnect(&dialog, &QProgressDialog::canceled, &dialog, &QProgressDialog::cancel);
+  QObject::disconnect(&dialog, &QProgressDialog::canceled, nullptr, nullptr);
   QObject::connect(&dialog, &QProgressDialog::canceled, [&] {
     dialog.setLabelText(QObject::tr("Finishing the update...\nThis can take a while."));
     cancel_button->setEnabled(false);
@@ -120,7 +120,7 @@ static WiiUtils::UpdateResult ShowProgress(QWidget* parent, Callable function, A
           return !was_cancelled.IsSet();
         },
         std::forward<Args>(args)...);
-    QueueOnObject(&dialog, [&dialog] { dialog.close(); });
+    QueueOnObject(&dialog, [&dialog] { dialog.done(0); });
     return res;
   });
 
