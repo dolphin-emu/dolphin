@@ -5,6 +5,7 @@
 #include <QFormLayout>
 #include <QGroupBox>
 #include <QPushButton>
+#include <wobjectimpl.h>
 
 #include "DolphinQt2/Config/Mapping/MappingWidget.h"
 
@@ -18,6 +19,8 @@
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/Setting/BooleanSetting.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
+
+W_OBJECT_IMPL(MappingWidget)
 
 MappingWidget::MappingWidget(MappingWindow* window) : m_parent(window)
 {

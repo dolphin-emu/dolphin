@@ -6,6 +6,7 @@
 
 #include <QAbstractTableModel>
 #include <QString>
+#include <wobjectdefs.h>
 
 #include "Core/TitleDatabase.h"
 #include "DolphinQt2/GameList/GameFile.h"
@@ -13,7 +14,7 @@
 
 class GameListModel final : public QAbstractTableModel
 {
-  Q_OBJECT
+  W_OBJECT(GameListModel)
 
 public:
   explicit GameListModel(QObject* parent = nullptr);
@@ -41,13 +42,14 @@ public:
     NUM_COLS
   };
 
-public slots:
+public:
   void UpdateGame(QSharedPointer<GameFile> game);
+  W_SLOT(UpdateGame, (QSharedPointer<GameFile>));
   void RemoveGame(const QString& path);
+  W_SLOT(RemoveGame, (const QString&));
 
-signals:
-  void DirectoryAdded(const QString& dir);
-  void DirectoryRemoved(const QString& dir);
+  void DirectoryAdded(const QString& dir) W_SIGNAL(DirectoryAdded, (const QString&), dir);
+  void DirectoryRemoved(const QString& dir) W_SIGNAL(DirectoryRemoved, (const QString&), dir);
 
 private:
   // Index in m_games, or -1 if it isn't found

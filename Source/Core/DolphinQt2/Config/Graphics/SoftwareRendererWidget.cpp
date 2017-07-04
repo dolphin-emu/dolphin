@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "DolphinQt2/Config/Graphics/SoftwareRendererWidget.h"
+#include <wobjectimpl.h>
 
 #include <QComboBox>
 #include <QGridLayout>
@@ -19,6 +20,8 @@
 #include "UICommon/VideoUtils.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
+
+W_OBJECT_IMPL(SoftwareRendererWidget)
 
 SoftwareRendererWidget::SoftwareRendererWidget(GraphicsWindow* parent) : GraphicsWidget(parent)
 {

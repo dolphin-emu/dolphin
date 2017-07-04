@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <wobjectdefs.h>
 #include "DolphinQt2/Config/Graphics/GraphicsWidget.h"
 
 class GraphicsWindow;
@@ -18,11 +19,11 @@ class XRRConfiguration;
 
 class GeneralWidget final : public GraphicsWidget
 {
-  Q_OBJECT
+  W_OBJECT(GeneralWidget)
 public:
   explicit GeneralWidget(X11Utils::XRRConfiguration* xrr_config, GraphicsWindow* parent);
-signals:
-  void BackendChanged(const QString& backend);
+
+  void BackendChanged(const QString& backend) W_SIGNAL(BackendChanged, (const QString&), backend);
 
 private:
   void LoadSettings() override;

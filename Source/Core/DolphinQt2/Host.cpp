@@ -5,11 +5,14 @@
 #include <QAbstractEventDispatcher>
 #include <QApplication>
 #include <QMutexLocker>
+#include <wobjectimpl.h>
 
 #include "Common/Common.h"
 #include "Core/Host.h"
 #include "DolphinQt2/Host.h"
 #include "DolphinQt2/MainWindow.h"
+
+W_OBJECT_IMPL(Host)
 
 Host* Host::m_instance = nullptr;
 

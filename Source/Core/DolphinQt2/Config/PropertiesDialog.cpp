@@ -5,10 +5,13 @@
 #include <QDialogButtonBox>
 #include <QTabWidget>
 #include <QVBoxLayout>
+#include <wobjectimpl.h>
 
 #include "DolphinQt2/Config/FilesystemWidget.h"
 #include "DolphinQt2/Config/InfoWidget.h"
 #include "DolphinQt2/Config/PropertiesDialog.h"
+
+W_OBJECT_IMPL(PropertiesDialog)
 
 PropertiesDialog::PropertiesDialog(QWidget* parent, const GameFile& game) : QDialog(parent)
 {

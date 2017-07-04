@@ -6,6 +6,7 @@
 
 #include <QCheckBox>
 #include <QRadioButton>
+#include <wobjectdefs.h>
 
 namespace Config
 {
@@ -15,7 +16,7 @@ struct ConfigInfo;
 
 class GraphicsBool : public QCheckBox
 {
-  Q_OBJECT
+  W_OBJECT(GraphicsBool)
 public:
   GraphicsBool(const QString& label, const Config::ConfigInfo<bool>& setting, bool reverse = false);
 
@@ -28,7 +29,7 @@ private:
 
 class GraphicsBoolEx : public QRadioButton
 {
-  Q_OBJECT
+  W_OBJECT(GraphicsBoolEx)
 public:
   GraphicsBoolEx(const QString& label, const Config::ConfigInfo<bool>& setting,
                  bool reverse = false);

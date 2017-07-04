@@ -5,12 +5,13 @@
 #pragma once
 
 #include <QDialog>
+#include <wobjectdefs.h>
 
 #include "DolphinQt2/GameList/GameFile.h"
 
 class FilesystemWidget final : public QWidget
 {
-  Q_OBJECT
+  W_OBJECT(FilesystemWidget)
 public:
   explicit FilesystemWidget(const GameFile& game);
 

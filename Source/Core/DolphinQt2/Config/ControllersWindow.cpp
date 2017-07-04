@@ -17,6 +17,7 @@
 #include <QRadioButton>
 #include <QScreen>
 #include <QVBoxLayout>
+#include <wobjectimpl.h>
 
 #include <unordered_map>
 
@@ -32,6 +33,8 @@
 #include "UICommon/UICommon.h"
 
 #include "DolphinQt2/Config/ControllersWindow.h"
+
+W_OBJECT_IMPL(ControllersWindow)
 
 static const std::unordered_map<SerialInterface::SIDevices, int> s_gc_types = {
     {SerialInterface::SIDEVICE_NONE, 0},         {SerialInterface::SIDEVICE_GC_CONTROLLER, 1},

@@ -3,12 +3,13 @@
 // Refer to the license.txt file included.
 
 #include <QSortFilterProxyModel>
+#include <wobjectdefs.h>
 
 // This subclass of QSortFilterProxyModel transforms the raw data into a
 // single-column large icon + name to be displayed in a QListView.
 class ListProxyModel final : public QSortFilterProxyModel
 {
-  Q_OBJECT
+  W_OBJECT(ListProxyModel)
 
 public:
   explicit ListProxyModel(QObject* parent = nullptr);

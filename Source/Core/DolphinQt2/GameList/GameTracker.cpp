@@ -5,9 +5,13 @@
 #include <QDir>
 #include <QDirIterator>
 #include <QFile>
+#include <wobjectimpl.h>
 
 #include "DolphinQt2/GameList/GameTracker.h"
 #include "DolphinQt2/Settings.h"
+
+W_OBJECT_IMPL(GameTracker)
+W_OBJECT_IMPL(GameLoader)
 
 static const QStringList game_filters{
     QStringLiteral("*.gcm"),  QStringLiteral("*.iso"), QStringLiteral("*.tgc"),

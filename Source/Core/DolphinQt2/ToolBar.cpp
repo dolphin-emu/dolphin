@@ -3,10 +3,13 @@
 // Refer to the license.txt file included.
 
 #include <QIcon>
+#include <wobjectimpl.h>
 
 #include "DolphinQt2/Resources.h"
 #include "DolphinQt2/Settings.h"
 #include "DolphinQt2/ToolBar.h"
+
+W_OBJECT_IMPL(ToolBar)
 
 static QSize ICON_SIZE(32, 32);
 

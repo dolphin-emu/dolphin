@@ -3,10 +3,13 @@
 // Refer to the license.txt file included.
 
 #include "DolphinQt2/GameList/GameListModel.h"
+#include <wobjectimpl.h>
 
 #include "DiscIO/Enums.h"
 #include "DolphinQt2/Resources.h"
 #include "DolphinQt2/Settings.h"
+
+W_OBJECT_IMPL(GameListModel)
 
 const QSize GAMECUBE_BANNER_SIZE(96, 32);
 

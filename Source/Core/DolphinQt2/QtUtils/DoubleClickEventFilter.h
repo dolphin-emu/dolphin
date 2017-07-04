@@ -5,12 +5,14 @@
 #pragma once
 
 #include <QObject>
+#include <wobjectdefs.h>
 
 class DoubleClickEventFilter : public QObject
 {
-  Q_OBJECT
-signals:
-  void doubleClicked();
+  W_OBJECT(DoubleClickEventFilter)
+
+public:
+  void doubleClicked() W_SIGNAL(doubleClicked);
 
 private:
   bool eventFilter(QObject* object, QEvent* event) override;

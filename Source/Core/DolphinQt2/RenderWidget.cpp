@@ -3,10 +3,13 @@
 // Refer to the license.txt file included.
 
 #include <QKeyEvent>
+#include <wobjectimpl.h>
 
 #include "DolphinQt2/Host.h"
 #include "DolphinQt2/RenderWidget.h"
 #include "DolphinQt2/Settings.h"
+
+W_OBJECT_IMPL(RenderWidget)
 
 RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
 {

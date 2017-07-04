@@ -12,6 +12,7 @@
 #include <QIcon>
 #include <QMessageBox>
 #include <QMimeData>
+#include <wobjectimpl.h>
 
 #include "Common/Common.h"
 
@@ -46,6 +47,8 @@
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 #include "UICommon/UICommon.h"
+
+W_OBJECT_IMPL(MainWindow)
 
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
 #include <qpa/qplatformnativeinterface.h>

@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <wobjectdefs.h>
 #include "DolphinQt2/Config/Graphics/GraphicsWidget.h"
 
 class GraphicsWindow;
@@ -13,12 +14,11 @@ class QSpinBox;
 
 class SoftwareRendererWidget final : public GraphicsWidget
 {
-  Q_OBJECT
+  W_OBJECT(SoftwareRendererWidget)
 public:
   explicit SoftwareRendererWidget(GraphicsWindow* parent);
 
-signals:
-  void BackendChanged(const QString& backend);
+  void BackendChanged(const QString& backend) W_SIGNAL(BackendChanged, (const QString&), backend);
 
 private:
   void LoadSettings() override;

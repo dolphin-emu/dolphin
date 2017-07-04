@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "DolphinQt2/Settings/GeneralPane.h"
+#include <wobjectimpl.h>
 
 #include <QCheckBox>
 #include <QComboBox>
@@ -20,6 +21,8 @@
 #include "Core/ConfigManager.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "DolphinQt2/Settings.h"
+
+W_OBJECT_IMPL(GeneralPane)
 
 GeneralPane::GeneralPane(QWidget* parent) : QWidget(parent)
 {

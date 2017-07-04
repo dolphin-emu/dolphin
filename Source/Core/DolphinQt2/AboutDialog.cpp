@@ -5,10 +5,13 @@
 #include <QLabel>
 #include <QTextEdit>
 #include <QVBoxLayout>
+#include <wobjectimpl.h>
 
 #include "Common/Common.h"
 #include "DolphinQt2/AboutDialog.h"
 #include "DolphinQt2/Resources.h"
+
+W_OBJECT_IMPL(AboutDialog)
 
 AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent)
 {

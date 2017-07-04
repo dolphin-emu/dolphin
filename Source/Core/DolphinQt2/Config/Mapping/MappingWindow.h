@@ -7,6 +7,7 @@
 #include <QDialog>
 #include <QString>
 #include <memory>
+#include <wobjectdefs.h>
 
 #include "InputCommon/ControllerInterface/Device.h"
 
@@ -28,7 +29,7 @@ class QWidget;
 
 class MappingWindow final : public QDialog
 {
-  Q_OBJECT
+  W_OBJECT(MappingWindow)
 public:
   enum class Type
   {
@@ -54,9 +55,9 @@ public:
   std::shared_ptr<ciface::Core::Device> GetDevice() const;
 
   ControllerEmu::EmulatedController* GetController() const;
-signals:
-  void Update();
-  void ClearFields();
+
+  void Update() W_SIGNAL(Update);
+  void ClearFields() W_SIGNAL(ClearFields);
 
 private:
   void CreateDevicesLayout();

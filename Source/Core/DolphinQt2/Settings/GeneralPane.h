@@ -5,6 +5,7 @@
 #pragma once
 
 #include <QWidget>
+#include <wobjectdefs.h>
 
 class QCheckBox;
 class QComboBox;
@@ -16,7 +17,7 @@ class QVBoxLayout;
 
 class GeneralPane final : public QWidget
 {
-  Q_OBJECT
+  W_OBJECT(GeneralPane)
 public:
   explicit GeneralPane(QWidget* parent = nullptr);
 

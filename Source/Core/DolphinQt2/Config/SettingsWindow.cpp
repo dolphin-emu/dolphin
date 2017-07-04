@@ -9,6 +9,7 @@
 #include <QListWidget>
 #include <QStackedWidget>
 #include <QVBoxLayout>
+#include <wobjectimpl.h>
 
 #include "DolphinQt2/Config/SettingsWindow.h"
 #include "DolphinQt2/MainWindow.h"
@@ -18,6 +19,8 @@
 #include "DolphinQt2/Settings/GeneralPane.h"
 #include "DolphinQt2/Settings/InterfacePane.h"
 #include "DolphinQt2/Settings/PathPane.h"
+
+W_OBJECT_IMPL(SettingsWindow)
 
 SettingsWindow::SettingsWindow(QWidget* parent) : QDialog(parent)
 {

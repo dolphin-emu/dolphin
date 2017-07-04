@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "DolphinQt2/Config/Graphics/GeneralWidget.h"
+#include <wobjectimpl.h>
 
 #include <QCheckBox>
 #include <QComboBox>
@@ -21,6 +22,8 @@
 #include "UICommon/VideoUtils.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
+
+W_OBJECT_IMPL(GeneralWidget)
 
 GeneralWidget::GeneralWidget(X11Utils::XRRConfiguration* xrr_config, GraphicsWindow* parent)
     : GraphicsWidget(parent), m_xrr_config(xrr_config)

@@ -12,10 +12,13 @@
 #include <QProgressDialog>
 #include <QPushButton>
 #include <QTextEdit>
+#include <wobjectimpl.h>
 
 #include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
 #include "DolphinQt2/Config/InfoWidget.h"
+
+W_OBJECT_IMPL(InfoWidget)
 
 InfoWidget::InfoWidget(const GameFile& game) : m_game(game)
 {

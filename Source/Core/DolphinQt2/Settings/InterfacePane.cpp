@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "DolphinQt2/Settings/InterfacePane.h"
+#include <wobjectimpl.h>
 
 #include <QCheckBox>
 #include <QComboBox>
@@ -18,6 +19,8 @@
 #include "Core/ConfigManager.h"
 
 #include "DolphinQt2/Settings.h"
+
+W_OBJECT_IMPL(InterfacePane)
 
 InterfacePane::InterfacePane(QWidget* parent) : QWidget(parent)
 {

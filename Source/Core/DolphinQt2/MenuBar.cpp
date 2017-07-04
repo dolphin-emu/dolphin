@@ -8,6 +8,7 @@
 #include <QMap>
 #include <QMessageBox>
 #include <QUrl>
+#include <wobjectimpl.h>
 
 #include "Core/CommonTitles.h"
 #include "Core/IOS/ES/ES.h"
@@ -17,6 +18,8 @@
 #include "DolphinQt2/GameList/GameFile.h"
 #include "DolphinQt2/MenuBar.h"
 #include "DolphinQt2/Settings.h"
+
+W_OBJECT_IMPL(MenuBar)
 
 MenuBar::MenuBar(QWidget* parent) : QMenuBar(parent)
 {

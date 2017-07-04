@@ -4,6 +4,7 @@
 
 #include <QDir>
 #include <QSize>
+#include <wobjectimpl.h>
 
 #include "AudioCommon/AudioCommon.h"
 #include "Common/FileSearch.h"
@@ -12,6 +13,8 @@
 #include "Core/ConfigManager.h"
 #include "DolphinQt2/Settings.h"
 #include "InputCommon/InputConfig.h"
+
+W_OBJECT_IMPL(Settings)
 
 static QString GetSettingsPath()
 {

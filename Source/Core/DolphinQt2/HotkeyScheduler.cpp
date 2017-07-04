@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "DolphinQt2/HotkeyScheduler.h"
+#include <wobjectimpl.h>
 
 #include <algorithm>
 #include <thread>
@@ -21,6 +22,8 @@
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
+
+W_OBJECT_IMPL(HotkeyScheduler)
 
 constexpr const char* DUBOIS_ALGORITHM_SHADER = "dubois";
 

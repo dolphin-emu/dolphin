@@ -4,8 +4,11 @@
 
 #include <QEvent>
 #include <QObject>
+#include <wobjectimpl.h>
 
 #include "DolphinQt2/QtUtils/WindowActivationEventFilter.h"
+
+W_OBJECT_IMPL(WindowActivationEventFilter)
 
 bool WindowActivationEventFilter::eventFilter(QObject* object, QEvent* event)
 {

@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <wobjectdefs.h>
 #include "DolphinQt2/Config/Graphics/GraphicsWidget.h"
 
 class GraphicsWindow;
@@ -14,7 +15,7 @@ class QSlider;
 
 class EnhancementsWidget final : public GraphicsWidget
 {
-  Q_OBJECT
+  W_OBJECT(EnhancementsWidget)
 public:
   explicit EnhancementsWidget(GraphicsWindow* parent);
 

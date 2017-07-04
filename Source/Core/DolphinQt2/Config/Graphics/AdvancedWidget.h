@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <wobjectdefs.h>
 #include "DolphinQt2/Config/Graphics/GraphicsWidget.h"
 
 class GraphicsWindow;
@@ -11,7 +12,7 @@ class QCheckBox;
 
 class AdvancedWidget final : public GraphicsWidget
 {
-  Q_OBJECT
+  W_OBJECT(AdvancedWidget)
 public:
   explicit AdvancedWidget(GraphicsWindow* parent);
 

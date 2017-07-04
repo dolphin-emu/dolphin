@@ -7,30 +7,33 @@
 #include <QAction>
 #include <QLineEdit>
 #include <QToolBar>
+#include <wobjectdefs.h>
 
 class ToolBar final : public QToolBar
 {
-  Q_OBJECT
+  W_OBJECT(ToolBar)
 
 public:
   explicit ToolBar(QWidget* parent = nullptr);
 
-public slots:
+public:
   void EmulationStarted();
+  W_SLOT(EmulationStarted);
   void EmulationPaused();
+  W_SLOT(EmulationPaused);
   void EmulationStopped();
+  W_SLOT(EmulationStopped);
 
-signals:
-  void OpenPressed();
-  void PlayPressed();
-  void PausePressed();
-  void StopPressed();
-  void FullScreenPressed();
-  void ScreenShotPressed();
+  void OpenPressed() W_SIGNAL(OpenPressed);
+  void PlayPressed() W_SIGNAL(PlayPressed);
+  void PausePressed() W_SIGNAL(PausePressed);
+  void StopPressed() W_SIGNAL(StopPressed);
+  void FullScreenPressed() W_SIGNAL(FullScreenPressed);
+  void ScreenShotPressed() W_SIGNAL(ScreenShotPressed);
 
-  void SettingsPressed();
-  void ControllersPressed();
-  void GraphicsPressed();
+  void SettingsPressed() W_SIGNAL(SettingsPressed);
+  void ControllersPressed() W_SIGNAL(ControllersPressed);
+  void GraphicsPressed() W_SIGNAL(GraphicsPressed);
 
 private:
   void MakeActions();

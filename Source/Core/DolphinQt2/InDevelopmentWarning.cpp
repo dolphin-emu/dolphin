@@ -11,9 +11,12 @@
 #include <QMessageBox>
 #include <QProcess>
 #include <QStyle>
+#include <wobjectimpl.h>
 
 #include "DolphinQt2/InDevelopmentWarning.h"
 #include "DolphinQt2/Resources.h"
+
+W_OBJECT_IMPL(InDevelopmentWarning)
 
 static bool LaunchDolphinWX()
 {

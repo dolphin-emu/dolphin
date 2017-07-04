@@ -6,6 +6,7 @@
 
 #include <QDialog>
 #include <QString>
+#include <wobjectdefs.h>
 
 #include "Common/Flag.h"
 #include "InputCommon/ControllerInterface/Device.h"
@@ -29,7 +30,7 @@ class EmulatedController;
 
 class IOWindow final : public QDialog
 {
-  Q_OBJECT
+  W_OBJECT(IOWindow)
 public:
   enum class Type
   {

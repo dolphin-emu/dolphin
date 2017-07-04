@@ -6,6 +6,7 @@
 
 #include <memory>
 #include <vector>
+#include <wobjectdefs.h>
 
 #include <QString>
 #include <QWidget>
@@ -36,7 +37,7 @@ class Device;
 
 class MappingWidget : public QWidget
 {
-  Q_OBJECT
+  W_OBJECT(MappingWidget)
 public:
   explicit MappingWidget(MappingWindow* window);
 

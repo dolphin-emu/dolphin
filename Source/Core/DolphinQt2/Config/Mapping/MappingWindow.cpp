@@ -10,6 +10,7 @@
 #include <QPushButton>
 #include <QTabWidget>
 #include <QVBoxLayout>
+#include <wobjectimpl.h>
 
 #include "DolphinQt2/Config/Mapping/MappingWindow.h"
 
@@ -35,6 +36,8 @@
 #include "InputCommon/InputConfig.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
+
+W_OBJECT_IMPL(MappingWindow)
 
 MappingWindow::MappingWindow(QWidget* parent, int port_num) : QDialog(parent), m_port(port_num)
 {

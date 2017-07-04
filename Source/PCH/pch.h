@@ -72,6 +72,7 @@
 #endif
 
 #include <Windows.h>
+#include "Common/msvc_sd6_compat.h"
 
 #endif
 

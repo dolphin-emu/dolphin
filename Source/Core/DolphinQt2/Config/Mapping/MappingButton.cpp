@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <thread>
+#include <wobjectimpl.h>
 
 #include <QMouseEvent>
 #include <QRegExp>
@@ -19,6 +20,8 @@
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/Device.h"
+
+W_OBJECT_IMPL(MappingButton)
 
 MappingButton::MappingButton(MappingWidget* widget, ControlReference* ref)
     : ElidedButton(QString::fromStdString(ref->expression)), m_parent(widget), m_reference(ref)

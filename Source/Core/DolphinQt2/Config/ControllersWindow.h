@@ -5,6 +5,7 @@
 #pragma once
 
 #include <QDialog>
+#include <wobjectdefs.h>
 
 #include <array>
 
@@ -22,7 +23,7 @@ class QRadioButton;
 
 class ControllersWindow final : public QDialog
 {
-  Q_OBJECT
+  W_OBJECT(ControllersWindow)
 public:
   explicit ControllersWindow(QWidget* parent);
   void OnEmulationStateChanged(bool running);

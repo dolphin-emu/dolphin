@@ -15,6 +15,7 @@
 #include <QMessageBox>
 #include <QProgressDialog>
 #include <QUrl>
+#include <wobjectimpl.h>
 
 #include "Common/FileUtil.h"
 #include "DiscIO/Blob.h"
@@ -25,6 +26,8 @@
 #include "DolphinQt2/GameList/ListProxyModel.h"
 #include "DolphinQt2/QtUtils/DoubleClickEventFilter.h"
 #include "DolphinQt2/Settings.h"
+
+W_OBJECT_IMPL(GameList)
 
 static bool CompressCB(const std::string&, float, void*);
 

@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "DolphinQt2/Config/Graphics/GraphicsWidget.h"
+#include <wobjectimpl.h>
 
 #include <QEvent>
 #include <QFormLayout>
@@ -11,6 +12,8 @@
 #include <QVBoxLayout>
 
 #include "DolphinQt2/Config/Graphics/GraphicsWindow.h"
+
+W_OBJECT_IMPL(GraphicsWidget)
 
 GraphicsWidget::GraphicsWidget(GraphicsWindow* parent)
 {

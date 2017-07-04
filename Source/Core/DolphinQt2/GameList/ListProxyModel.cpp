@@ -3,9 +3,12 @@
 // Refer to the license.txt file included.
 
 #include <QSize>
+#include <wobjectimpl.h>
 
 #include "DolphinQt2/GameList/GameListModel.h"
 #include "DolphinQt2/GameList/ListProxyModel.h"
+
+W_OBJECT_IMPL(ListProxyModel)
 
 const QSize LARGE_BANNER_SIZE(144, 48);
 

@@ -5,6 +5,7 @@
 #pragma once
 
 #include <thread>
+#include <wobjectdefs.h>
 
 #include <QObject>
 
@@ -12,22 +13,22 @@
 
 class HotkeyScheduler : public QObject
 {
-  Q_OBJECT
+  W_OBJECT(HotkeyScheduler)
 public:
   explicit HotkeyScheduler();
   ~HotkeyScheduler();
 
   void Start();
   void Stop();
-signals:
-  void ExitHotkey();
-  void FullScreenHotkey();
-  void StopHotkey();
-  void PauseHotkey();
-  void ScreenShotHotkey();
-  void SetStateSlotHotkey(int slot);
-  void StateLoadSlotHotkey();
-  void StateSaveSlotHotkey();
+
+  void ExitHotkey() W_SIGNAL(ExitHotkey);
+  void FullScreenHotkey() W_SIGNAL(FullScreenHotkey);
+  void StopHotkey() W_SIGNAL(StopHotkey);
+  void PauseHotkey() W_SIGNAL(PauseHotkey);
+  void ScreenShotHotkey() W_SIGNAL(ScreenShotHotkey);
+  void SetStateSlotHotkey(int slot) W_SIGNAL(SetStateSlotHotkey, (int), slot);
+  void StateLoadSlotHotkey() W_SIGNAL(StateLoadSlotHotkey);
+  void StateSaveSlotHotkey() W_SIGNAL(StateSaveSlotHotkey);
 
 private:
   void Run();

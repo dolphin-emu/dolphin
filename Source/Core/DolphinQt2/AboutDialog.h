@@ -5,10 +5,11 @@
 #pragma once
 
 #include <QDialog>
+#include <wobjectdefs.h>
 
 class AboutDialog final : public QDialog
 {
-  Q_OBJECT
+  W_OBJECT(AboutDialog)
 public:
   explicit AboutDialog(QWidget* parent = nullptr);
 };
