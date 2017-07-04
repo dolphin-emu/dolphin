@@ -72,7 +72,6 @@ void SettingsWindow::SetupSettingsWidget()
 
 void SettingsWindow::AddCategoryToList(const QString& title, const std::string& icon_name)
 {
-  QString dir = Settings::Instance().GetThemeDir();
   QListWidgetItem* button = new QListWidgetItem();
   button->setText(title);
   button->setTextAlignment(Qt::AlignVCenter);

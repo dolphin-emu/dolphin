@@ -8,7 +8,7 @@
 
 #include "DolphinQt2/Config/Mapping/GCPadWiiU.h"
 
-#include "DolphinQt2/Settings.h"
+#include "Core/ConfigManager.h"
 #include "InputCommon/GCAdapter.h"
 
 GCPadWiiU::GCPadWiiU(MappingWindow* window) : MappingWidget(window)
@@ -48,14 +48,14 @@ void GCPadWiiU::ConnectWidgets()
 
 void GCPadWiiU::LoadSettings()
 {
-  m_rumble->setChecked(Settings::Instance().IsGCAdapterRumbleEnabled(GetPort()));
-  m_simulate_bongos->setChecked(Settings::Instance().IsGCAdapterSimulatingDKBongos(GetPort()));
+  m_rumble->setChecked(SConfig::GetInstance().m_AdapterRumble[GetPort()]);
+  m_simulate_bongos->setChecked(SConfig::GetInstance().m_AdapterKonga[GetPort()]);
 }
 
 void GCPadWiiU::SaveSettings()
 {
-  Settings::Instance().SetGCAdapterRumbleEnabled(GetPort(), m_rumble->isChecked());
-  Settings::Instance().SetGCAdapterSimulatingDKBongos(GetPort(), m_simulate_bongos->isChecked());
+  SConfig::GetInstance().m_AdapterRumble[GetPort()] = m_rumble->isChecked();
+  SConfig::GetInstance().m_AdapterKonga[GetPort()] = m_simulate_bongos->isChecked();
 }
 
 InputConfig* GCPadWiiU::GetConfig()
