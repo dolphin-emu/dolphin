@@ -38,6 +38,7 @@ public:
   static void SetFogColorChanged();
   static void SetFogParamChanged();
   static void SetFogRangeAdjustChanged();
+  static void SetBlendMode();
 
   static PixelShaderConstants constants;
   static bool dirty;

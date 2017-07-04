@@ -349,6 +349,7 @@ static void WriteAlphaTest(ShaderCode& out, const pixel_shader_uid_data* uid_dat
 static void WriteFog(ShaderCode& out, const pixel_shader_uid_data* uid_data);
 static void WriteColor(ShaderCode& out, const pixel_shader_uid_data* uid_data,
                        bool use_dual_source);
+static void WriteBlend(ShaderCode& out);
 
 ShaderCode GeneratePixelShaderCode(APIType ApiType, const pixel_shader_uid_data* uid_data)
 {
@@ -420,6 +421,14 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const pixel_shader_uid_data*
             "\tfloat4 " I_FOGF "[2];\n"
             "\tfloat4 " I_ZSLOPE ";\n"
             "\tfloat4 " I_EFBSCALE ";\n"
+            "\tuint " I_BLEND_ENABLE ";\n"
+            "\tuint " I_BLEND_DSTALPHA ";\n"
+            "\tuint " I_BLEND_SUBTRACT ";\n"
+            "\tuint " I_BLEND_SUBTRACTALPHA ";\n"
+            "\tuint " I_BLEND_DSTFACTOR ";\n"
+            "\tuint " I_BLEND_SRCFACTOR ";\n"
+            "\tuint " I_BLEND_DSTFACTORALPHA ";\n"
+            "\tuint " I_BLEND_SRCFACTORALPHA ";\n"
             "};\n");
 
   if (uid_data->per_pixel_lighting)
@@ -502,14 +511,22 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const pixel_shader_uid_data*
   }
 
   // Only use dual-source blending when required on drivers that don't support it very well.
-  const bool use_dual_source =
+  const bool use_dual_source_fixedfunction =
       g_ActiveConfig.backend_info.bSupportsDualSourceBlend &&
       (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING) ||
        uid_data->useDstAlpha);
 
+  // Framebuffer-fetch is nearly always slower than dedicated blend blocks, so don't use that unless
+  // dual-source blending is not supported
+  const bool use_framebuffer_fetch_blend =
+      !use_dual_source_fixedfunction && g_ActiveConfig.backend_info.bSupportsFramebufferFetch;
+
+  // Enabled if either dual-source blend mode is available
+  const bool use_dual_source = use_dual_source_fixedfunction || use_framebuffer_fetch_blend;
+
   if (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan)
   {
-    if (use_dual_source)
+    if (use_dual_source_fixedfunction)
     {
       if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_FRAGMENT_SHADER_INDEX_DECORATION))
       {
@@ -521,6 +538,10 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const pixel_shader_uid_data*
         out.Write("FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 0) out vec4 ocol0;\n");
         out.Write("FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 1) out vec4 ocol1;\n");
       }
+    }
+    else if (use_framebuffer_fetch_blend)
+    {
+      out.Write("FRAGMENT_OUTPUT_LOCATION(0) inout vec4 fb_ocol;\n");
     }
     else
     {
@@ -568,6 +589,14 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const pixel_shader_uid_data*
     }
 
     out.Write("void main()\n{\n");
+
+    // Store off the current framebuffer value for blend at the end
+    if (use_framebuffer_fetch_blend)
+    {
+      out.Write("\tfloat4 initial_fb_value = fb_ocol;\n");
+      out.Write("\tfloat4 ocol0 = float4(0, 0, 0, 0);\n");
+      out.Write("\tfloat4 ocol1 = float4(0, 0, 0, 0);\n");
+    }
 
     if (g_ActiveConfig.backend_info.bSupportsGeometryShaders || ApiType == APIType::Vulkan)
     {
@@ -796,6 +825,11 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const pixel_shader_uid_data*
 
   // Write the color and alpha values to the framebuffer
   WriteColor(out, uid_data, use_dual_source);
+
+  if (use_framebuffer_fetch_blend)
+  {
+    WriteBlend(out);
+  }
 
   if (uid_data->bounding_box)
   {
@@ -1353,4 +1387,75 @@ static void WriteColor(ShaderCode& out, const pixel_shader_uid_data* uid_data, b
         out.Write("\tocol1.a = float(" I_ALPHA ".a) / 255.0;\n");
     }
   }
+}
+
+static void WriteBlend(ShaderCode& out)
+{
+  out.Write(
+      "\tif (" I_BLEND_ENABLE " == 1u) {\n"
+      "\t\tfloat4 blendsrc;\n"
+      "\t\tfloat4 blenddst;\n"
+      "\t\tswitch (" I_BLEND_DSTFACTOR ") {\n"
+      "\t\t\tcase BLEND_ZERO: blenddst.rgb = float3(0,0,0); break;\n"
+      "\t\t\tcase BLEND_ONE: blenddst.rgb = float3(1,1,1); break;\n"
+      "\t\t\tcase BLEND_CLR: blenddst.rgb = initial_fb_value.rgb; break;\n"
+      "\t\t\tcase BLEND_INVCLR: blenddst.rgb = float3(1,1,1) - initial_fb_value.rgb; break;\n"
+      "\t\t\tcase BLEND_SRCALPHA: blenddst.rgb = ocol1.aaa; break;\n"
+      "\t\t\tcase BLEND_INVSRCALPHA: blenddst.rgb = float3(1,1,1) - ocol1.aaa; break;\n"
+      "\t\t\tcase BLEND_DSTALPHA: blenddst.rgb = initial_fb_value.aaa; break;\n"
+      "\t\t\tcase BLEND_INVDSTALPHA: blenddst.rgb = float3(1,1,1) - initial_fb_value.aaa; break;\n"
+      "\t\t}\n"
+
+      "\t\tswitch (" I_BLEND_DSTFACTORALPHA ") {\n"
+      "\t\t\tcase BLEND_ZERO: blenddst.a = 0.0; break;\n"
+      "\t\t\tcase BLEND_ONE: blenddst.a = 1.0; break;\n"
+      "\t\t\tcase BLEND_CLR: blenddst.a = initial_fb_value.a; break;\n"
+      "\t\t\tcase BLEND_INVCLR: blenddst.a = 1.0 - initial_fb_value.a; break;\n"
+      "\t\t\tcase BLEND_SRCALPHA: blenddst.a = ocol1.a; break;\n"
+      "\t\t\tcase BLEND_INVSRCALPHA: blenddst.a = 1.0 - ocol1.a; break;\n"
+      "\t\t\tcase BLEND_DSTALPHA: blenddst.a = initial_fb_value.a; break;\n"
+      "\t\t\tcase BLEND_INVDSTALPHA: blenddst.a = 1.0 - initial_fb_value.a; break;\n"
+      "\t\t}\n"
+
+      "\t\tswitch (" I_BLEND_SRCFACTOR ") {\n"
+      "\t\t\tcase BLEND_ZERO: blendsrc.rgb = float3(0,0,0); break;\n"
+      "\t\t\tcase BLEND_ONE: blendsrc.rgb = float3(1,1,1); break;\n"
+      "\t\t\tcase BLEND_CLR: blendsrc.rgb = initial_fb_value.rgb; break;\n"
+      "\t\t\tcase BLEND_INVCLR: blendsrc.rgb = float3(1,1,1) - initial_fb_value.rgb; break;\n"
+      "\t\t\tcase BLEND_SRCALPHA: blendsrc.rgb = ocol1.aaa; break;\n"
+      "\t\t\tcase BLEND_INVSRCALPHA: blendsrc.rgb = float3(1,1,1) - ocol1.aaa; break;\n"
+      "\t\t\tcase BLEND_DSTALPHA: blendsrc.rgb = initial_fb_value.aaa; break;\n"
+      "\t\t\tcase BLEND_INVDSTALPHA: blendsrc.rgb = float3(1,1,1) - initial_fb_value.aaa; break;\n"
+      "\t\t}\n"
+
+      "\t\tswitch (" I_BLEND_SRCFACTORALPHA ") {\n"
+      "\t\t\tcase BLEND_ZERO: blendsrc.a = 0.0; break;\n"
+      "\t\t\tcase BLEND_ONE: blendsrc.a = 1.0; break;\n"
+      "\t\t\tcase BLEND_CLR: blendsrc.a = initial_fb_value.a; break;\n"
+      "\t\t\tcase BLEND_INVCLR: blendsrc.a = 1.0 - initial_fb_value.a; break;\n"
+      "\t\t\tcase BLEND_SRCALPHA: blendsrc.a = ocol1.a; break;\n"
+      "\t\t\tcase BLEND_INVSRCALPHA: blendsrc.a = 1.0 - ocol1.a; break;\n"
+      "\t\t\tcase BLEND_DSTALPHA: blendsrc.a = initial_fb_value.a; break;\n"
+      "\t\t\tcase BLEND_INVDSTALPHA: blendsrc.a = 1.0 - initial_fb_value.a; break;\n"
+      "\t\t}\n"
+
+      "\t\tfloat4 blend_result;\n"
+      "\t\tif (" I_BLEND_SUBTRACT " == 1u) {\n"
+      "\t\t\tblend_result.rgb = initial_fb_value.rgb * blenddst.rgb - ocol0.rgb * blendsrc.rgb;\n"
+      "\t\t} else {\n"
+      "\t\t\tblend_result.rgb = ocol0.rgb * blendsrc.rgb + initial_fb_value.rgb * blenddst.rgb;\n"
+      "\t\t}\n"
+      "\t\tif (" I_BLEND_SUBTRACTALPHA " == 1u) {\n"
+      "\t\t\tblend_result.a = initial_fb_value.a * blenddst.a - ocol0.a * blendsrc.a;\n"
+      "\t\t} else {\n"
+      "\t\t\tblend_result.a = ocol0.a * blendsrc.a + initial_fb_value.a * blenddst.a;\n"
+      "\t\t}\n"
+
+      // Write output color
+      "\t\tfb_ocol = blend_result;\n"
+
+      // Blend-disabled
+      "\t} else {\n"
+      "\t\tfb_ocol = ocol0;\n"
+      "\t}\n");
 }

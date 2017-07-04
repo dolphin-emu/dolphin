@@ -9,6 +9,7 @@
 #include "Common/CommonTypes.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/RenderBase.h"
+#include "VideoCommon/RenderState.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
@@ -279,6 +280,29 @@ void PixelShaderManager::SetFogRangeAdjustChanged()
     return;
 
   s_bFogRangeAdjustChanged = true;
+}
+
+void PixelShaderManager::SetBlendMode()
+{
+  if (g_ActiveConfig.backend_info.bSupportsFramebufferFetch)
+  {
+    BlendingState state;
+    state.Generate(bpmem);
+    constants.blend_enable = state.blendenable;
+    constants.blend_dstalpha = state.dstalpha;
+    constants.blend_subtract = state.subtract;
+    constants.blend_subtractalpha = state.subtractAlpha;
+    constants.blend_dstfactor = state.dstfactor;
+    constants.blend_srcfactor = state.srcfactor;
+    constants.blend_dstfactoralpha = state.dstfactoralpha;
+    constants.blend_srcfactoralpha = state.srcfactoralpha;
+
+    dirty = true;
+  }
+  else
+  {
+    // NOP
+  }
 }
 
 void PixelShaderManager::DoState(PointerWrap& p)
