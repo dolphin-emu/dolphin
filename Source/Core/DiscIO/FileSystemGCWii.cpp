@@ -277,10 +277,6 @@ std::unique_ptr<FileInfo> FileSystemGCWii::FindFileInfo(const std::string& path,
   if (name_start == path.size())
     return file_info.clone();  // We're done
 
-  // It's only possible to search in directories. Searching in a file is an error
-  if (!file_info.IsDirectory())
-    return nullptr;
-
   const size_t name_end = path.find('/', name_start);
   const std::string name = path.substr(name_start, name_end - name_start);
   const std::string rest_of_path = (name_end != std::string::npos) ? path.substr(name_end + 1) : "";
