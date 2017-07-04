@@ -7,6 +7,7 @@
 #include <QErrorMessage>
 #include <QFileDialog>
 #include <QFileInfo>
+#include <QFrame>
 #include <QHeaderView>
 #include <QKeyEvent>
 #include <QMap>
@@ -94,6 +95,7 @@ void GameList::MakeTableView()
   hor_header->setSectionResizeMode(GameListModel::COL_RATING, QHeaderView::ResizeToContents);
 
   m_table->verticalHeader()->hide();
+  m_table->setFrameStyle(QFrame::NoFrame);
 }
 
 void GameList::MakeEmptyView()
@@ -121,6 +123,7 @@ void GameList::MakeListView()
   m_list->setResizeMode(QListView::Adjust);
   m_list->setUniformItemSizes(true);
   m_list->setContextMenuPolicy(Qt::CustomContextMenu);
+  m_list->setFrameStyle(QFrame::NoFrame);
   connect(m_list, &QTableView::customContextMenuRequested, this, &GameList::ShowContextMenu);
 }
 
