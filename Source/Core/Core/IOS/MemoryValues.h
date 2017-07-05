@@ -36,6 +36,6 @@ struct MemoryValues
   u32 sysmenu_sync;
 };
 
-const std::array<MemoryValues, 40>& GetMemoryValues();
+const std::array<MemoryValues, 41>& GetMemoryValues();
 }
 }
