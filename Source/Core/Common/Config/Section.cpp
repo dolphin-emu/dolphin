@@ -71,7 +71,7 @@ void Section::Set(const std::string& key, double newValue)
 
 void Section::Set(const std::string& key, int newValue)
 {
-  Section::Set(key, StringFromInt(newValue));
+  Section::Set(key, std::to_string(newValue));
 }
 
 void Section::Set(const std::string& key, bool newValue)
