@@ -111,7 +111,7 @@ void cInterfaceEGL::DetectMode()
 
 // Create rendering window.
 // Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
-bool cInterfaceEGL::Create(void* window_handle, bool core)
+bool cInterfaceEGL::Create(void* window_handle, bool stereo, bool core)
 {
   EGLint egl_major, egl_minor;
   bool supports_core_profile = false;

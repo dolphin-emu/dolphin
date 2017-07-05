@@ -1196,6 +1196,16 @@ void Renderer::BlitScreen(TargetRectangle src, TargetRectangle dst, GLuint src_t
     post_processor->BlitFromTexture(src, leftRc, src_texture, src_width, src_height, 0);
     post_processor->BlitFromTexture(src, rightRc, src_texture, src_width, src_height, 1);
   }
+  else if (g_ActiveConfig.iStereoMode == STEREO_QUADBUFFER)
+  {
+    glDrawBuffer(GL_BACK_LEFT);
+    post_processor->BlitFromTexture(src, dst, src_texture, src_width, src_height, 0);
+
+    glDrawBuffer(GL_BACK_RIGHT);
+    post_processor->BlitFromTexture(src, dst, src_texture, src_width, src_height, 1);
+
+    glDrawBuffer(GL_BACK);
+  }
   else
   {
     post_processor->BlitFromTexture(src, dst, src_texture, src_width, src_height, 0);

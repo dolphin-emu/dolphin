@@ -949,6 +949,10 @@ void Renderer::BlitScreen(VkRenderPass render_pass, const TargetRectangle& dst_r
     post_processor->BlitFromTexture(left_rect, src_rect, src_tex, 0, render_pass);
     post_processor->BlitFromTexture(right_rect, src_rect, src_tex, 1, render_pass);
   }
+  else if (g_ActiveConfig.iStereoMode == STEREO_QUADBUFFER)
+  {
+    post_processor->BlitFromTexture(dst_rect, src_rect, src_tex, -1, render_pass);
+  }
   else
   {
     post_processor->BlitFromTexture(dst_rect, src_rect, src_tex, 0, render_pass);
@@ -1185,6 +1189,11 @@ void Renderer::CheckForConfigChanges()
     g_command_buffer_mgr->WaitForGPUIdle();
     m_swap_chain->SetVSync(g_ActiveConfig.IsVSync());
   }
+
+  // For quad-buffered stereo we need to change the layer count, so recreate the swap chain.
+  if (m_swap_chain &&
+      (g_ActiveConfig.iStereoMode == STEREO_QUADBUFFER) != m_swap_chain->IsStereoEnabled())
+    ResizeSwapChain();
 
   // Wipe sampler cache if force texture filtering or anisotropy changes.
   if (anisotropy_changed || force_texture_filtering_changed)

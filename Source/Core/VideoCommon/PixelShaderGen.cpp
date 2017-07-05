@@ -606,6 +606,8 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const pixel_shader_uid_data*
                 GetInterpolationQualifier(uid_data->msaa, uid_data->ssaa),
                 uid_data->genMode_numtexgens + 2);
     }
+    out.Write(",\n  in float clipDist0 : SV_ClipDistance0\n");
+    out.Write(",\n  in float clipDist1 : SV_ClipDistance1\n");
     if (uid_data->stereo)
       out.Write(",\n  in uint layer : SV_RenderTargetArrayIndex\n");
     out.Write("        ) {\n");

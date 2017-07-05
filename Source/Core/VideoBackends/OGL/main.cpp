@@ -167,7 +167,7 @@ bool VideoBackend::Initialize(void* window_handle)
 
   InitInterface();
   GLInterface->SetMode(GLInterfaceMode::MODE_DETECT);
-  if (!GLInterface->Create(window_handle))
+  if (!GLInterface->Create(window_handle, g_ActiveConfig.iStereoMode == STEREO_QUADBUFFER))
     return false;
 
   return true;

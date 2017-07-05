@@ -43,7 +43,7 @@ void cInterfaceGLX::Swap()
 
 // Create rendering window.
 // Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
-bool cInterfaceGLX::Create(void* window_handle, bool core)
+bool cInterfaceGLX::Create(void* window_handle, bool stereo, bool core)
 {
   dpy = XOpenDisplay(nullptr);
   int screen = DefaultScreen(dpy);
@@ -87,6 +87,8 @@ bool cInterfaceGLX::Create(void* window_handle, bool core)
                           0,
                           GLX_DOUBLEBUFFER,
                           True,
+                          GLX_STEREO,
+                          stereo ? True : False,
                           None};
   int fbcount = 0;
   GLXFBConfig* fbc = glXChooseFBConfig(dpy, screen, visual_attribs, &fbcount);
