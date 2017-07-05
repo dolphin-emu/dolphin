@@ -151,10 +151,9 @@ void PSTextureEncoder::Encode(u8* dst, const EFBCopyFormat& format, u32 native_w
     CHECK(SUCCEEDED(hr), "map staging buffer (0x%x)", hr);
 
     u8* src = (u8*)map.pData;
-    u32 readStride = std::min(bytes_per_row, map.RowPitch);
     for (unsigned int y = 0; y < num_blocks_y; ++y)
     {
-      memcpy(dst, src, readStride);
+      memcpy(dst, src, bytes_per_row);
       dst += memory_stride;
       src += map.RowPitch;
     }
