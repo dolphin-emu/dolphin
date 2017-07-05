@@ -881,12 +881,7 @@ struct SetGameMetadata
 
     config->bWii = executable.reader->IsWii();
 
-    // TODO: Right now GC homebrew boots in NTSC and Wii homebrew in PAL.
-    // This is intentional so that Wii homebrew can boot in both 50Hz and 60Hz,
-    // without forcing all GC homebrew to 50Hz.
-    // In the future, it probably makes sense to add a Region setting for homebrew somewhere in
-    // the emulator config.
-    *region = config->bWii ? DiscIO::Region::PAL : DiscIO::Region::NTSC_U;
+    *region = DiscIO::Region::UNKNOWN_REGION;
 
     // Strip the .elf/.dol file extension and directories before the name
     SplitPath(executable.path, nullptr, &config->m_debugger_game_id, nullptr);
