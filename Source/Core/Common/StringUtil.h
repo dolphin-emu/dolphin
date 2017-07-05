@@ -56,7 +56,6 @@ std::string ThousandSeparate(I value, int spaces = 0)
   return oss.str();
 }
 
-std::string StringFromInt(int value);
 std::string StringFromBool(bool value);
 
 bool TryParse(const std::string& str, bool* output);
