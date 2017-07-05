@@ -38,6 +38,7 @@ public:
   }
 
   void SetPlain() { m_plain = true; }
+
 private:
   void OnPaint(wxPaintEvent& event);
   void OnScrollWheel(wxMouseEvent& event);

@@ -79,6 +79,7 @@ public:
   void SetPassthrough(bool enable);
 
   static AsyncRequests* GetInstance() { return &s_singleton; }
+
 private:
   void PullEventsInternal();
   void HandleEvent(const Event& e);

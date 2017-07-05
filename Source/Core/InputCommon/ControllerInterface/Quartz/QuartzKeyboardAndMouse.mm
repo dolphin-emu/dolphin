@@ -9,12 +9,9 @@
 #include <Carbon/Carbon.h>
 #include <Cocoa/Cocoa.h>
 
-namespace ciface
-{
-namespace Quartz
-{
-std::string KeycodeToName(const CGKeyCode keycode)
-{
+namespace ciface {
+namespace Quartz {
+std::string KeycodeToName(const CGKeyCode keycode) {
   static const std::map<CGKeyCode, std::string> named_keys = {
       {kVK_ANSI_A, "A"},
       {kVK_ANSI_B, "B"},
@@ -122,28 +119,23 @@ std::string KeycodeToName(const CGKeyCode keycode)
     return "Key " + std::to_string(keycode);
 }
 
-KeyboardAndMouse::Key::Key(CGKeyCode keycode) : m_keycode(keycode), m_name(KeycodeToName(keycode))
-{
+KeyboardAndMouse::Key::Key(CGKeyCode keycode)
+    : m_keycode(keycode), m_name(KeycodeToName(keycode)) {}
+
+ControlState KeyboardAndMouse::Key::GetState() const {
+  return CGEventSourceKeyState(kCGEventSourceStateHIDSystemState, m_keycode) !=
+         0;
 }
 
-ControlState KeyboardAndMouse::Key::GetState() const
-{
-  return CGEventSourceKeyState(kCGEventSourceStateHIDSystemState, m_keycode) != 0;
-}
+std::string KeyboardAndMouse::Key::GetName() const { return m_name; }
 
-std::string KeyboardAndMouse::Key::GetName() const
-{
-  return m_name;
-}
-
-KeyboardAndMouse::KeyboardAndMouse(void* window)
-{
+KeyboardAndMouse::KeyboardAndMouse(void *window) {
   // All keycodes in <HIToolbox/Events.h> are 0x7e or lower. If you notice
   // keys that aren't being recognized, bump this number up!
   for (int keycode = 0; keycode < 0x80; ++keycode)
     AddInput(new Key(keycode));
 
-  m_windowid = [[reinterpret_cast<NSView*>(window) window] windowNumber];
+  m_windowid = [[reinterpret_cast<NSView *>(window) window] windowNumber];
 
   // cursor, with a hax for-loop
   for (unsigned int i = 0; i < 4; ++i)
@@ -154,19 +146,19 @@ KeyboardAndMouse::KeyboardAndMouse(void* window)
   AddInput(new Button(kCGMouseButtonCenter));
 }
 
-void KeyboardAndMouse::UpdateInput()
-{
+void KeyboardAndMouse::UpdateInput() {
   CGRect bounds = CGRectZero;
   CGWindowID windowid[1] = {m_windowid};
-  CFArrayRef windowArray = CFArrayCreate(nullptr, (const void**)windowid, 1, nullptr);
-  CFArrayRef windowDescriptions = CGWindowListCreateDescriptionFromArray(windowArray);
-  CFDictionaryRef windowDescription =
-      static_cast<CFDictionaryRef>(CFArrayGetValueAtIndex(windowDescriptions, 0));
+  CFArrayRef windowArray =
+      CFArrayCreate(nullptr, (const void **)windowid, 1, nullptr);
+  CFArrayRef windowDescriptions =
+      CGWindowListCreateDescriptionFromArray(windowArray);
+  CFDictionaryRef windowDescription = static_cast<CFDictionaryRef>(
+      CFArrayGetValueAtIndex(windowDescriptions, 0));
 
-  if (CFDictionaryContainsKey(windowDescription, kCGWindowBounds))
-  {
-    CFDictionaryRef boundsDictionary =
-        static_cast<CFDictionaryRef>(CFDictionaryGetValue(windowDescription, kCGWindowBounds));
+  if (CFDictionaryContainsKey(windowDescription, kCGWindowBounds)) {
+    CFDictionaryRef boundsDictionary = static_cast<CFDictionaryRef>(
+        CFDictionaryGetValue(windowDescription, kCGWindowBounds));
 
     if (boundsDictionary != nullptr)
       CGRectMakeWithDictionaryRepresentation(boundsDictionary, &bounds);
@@ -185,36 +177,27 @@ void KeyboardAndMouse::UpdateInput()
   m_cursor.y = loc.y / bounds.size.height * 2 - 1.0;
 }
 
-std::string KeyboardAndMouse::GetName() const
-{
-  return "Keyboard & Mouse";
-}
+std::string KeyboardAndMouse::GetName() const { return "Keyboard & Mouse"; }
 
-std::string KeyboardAndMouse::GetSource() const
-{
-  return "Quartz";
-}
+std::string KeyboardAndMouse::GetSource() const { return "Quartz"; }
 
-ControlState KeyboardAndMouse::Cursor::GetState() const
-{
+ControlState KeyboardAndMouse::Cursor::GetState() const {
   return std::max(0.0, ControlState(m_axis) / (m_positive ? 1.0 : -1.0));
 }
 
-ControlState KeyboardAndMouse::Button::GetState() const
-{
-  return CGEventSourceButtonState(kCGEventSourceStateHIDSystemState, m_button) != 0;
+ControlState KeyboardAndMouse::Button::GetState() const {
+  return CGEventSourceButtonState(kCGEventSourceStateHIDSystemState,
+                                  m_button) != 0;
 }
 
-std::string KeyboardAndMouse::Cursor::GetName() const
-{
+std::string KeyboardAndMouse::Cursor::GetName() const {
   static char tmpstr[] = "Cursor ..";
   tmpstr[7] = (char)('X' + m_index);
   tmpstr[8] = (m_positive ? '+' : '-');
   return tmpstr;
 }
 
-std::string KeyboardAndMouse::Button::GetName() const
-{
+std::string KeyboardAndMouse::Button::GetName() const {
   if (m_button == kCGMouseButtonLeft)
     return "Left Click";
   if (m_button == kCGMouseButtonCenter)
@@ -223,5 +206,5 @@ std::string KeyboardAndMouse::Button::GetName() const
     return "Right Click";
   return std::string("Click ") + char('0' + m_button);
 }
-}  // namespace Quartz
-}  // namespace ciface
+} // namespace Quartz
+} // namespace ciface

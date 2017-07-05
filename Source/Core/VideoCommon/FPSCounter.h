@@ -18,6 +18,7 @@ public:
   void Update();
 
   unsigned int GetFPS() const { return m_fps; }
+
 private:
   unsigned int m_fps = 0;
   unsigned int m_counter = 0;

@@ -451,9 +451,10 @@ bool BluetoothEmu::SendEventInquiryResponse()
   if (m_WiiMotes.empty())
     return false;
 
-  _dbg_assert_(IOS_WIIMOTE, sizeof(SHCIEventInquiryResult) - 2 +
-                                    (m_WiiMotes.size() * sizeof(hci_inquiry_response)) <
-                                256);
+  _dbg_assert_(IOS_WIIMOTE,
+               sizeof(SHCIEventInquiryResult) - 2 +
+                       (m_WiiMotes.size() * sizeof(hci_inquiry_response)) <
+                   256);
 
   SQueuedEvent Event(static_cast<u32>(sizeof(SHCIEventInquiryResult) +
                                       m_WiiMotes.size() * sizeof(hci_inquiry_response)),

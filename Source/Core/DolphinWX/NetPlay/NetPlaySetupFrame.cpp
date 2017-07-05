@@ -303,9 +303,9 @@ NetPlaySetupFrame::~NetPlaySetupFrame()
 
   netplay_section.Set("ConnectPort", WxStrToStr(m_connect_port_text->GetValue()));
   netplay_section.Set("HostPort", WxStrToStr(m_host_port_text->GetValue()));
-  netplay_section.Set("ListenPort", m_traversal_listen_port_enabled->IsChecked() ?
-                                        m_traversal_listen_port->GetValue() :
-                                        0);
+  netplay_section.Set(
+      "ListenPort",
+      m_traversal_listen_port_enabled->IsChecked() ? m_traversal_listen_port->GetValue() : 0);
 
 #ifdef USE_UPNP
   netplay_section.Set("UseUPNP", m_upnp_chk->GetValue(), false);

@@ -461,9 +461,9 @@ void VertexLoaderARM64::GenerateVertexLoader()
         int elem_size = 1 << (m_VtxAttr.NormalFormat / 2);
 
         int load_bytes = elem_size * 3;
-        int load_size = load_bytes == 1 ? 1 : load_bytes <= 2 ? 2 : load_bytes <= 4 ?
-                                                                4 :
-                                                                load_bytes <= 8 ? 8 : 16;
+        int load_size = load_bytes == 1 ?
+                            1 :
+                            load_bytes <= 2 ? 2 : load_bytes <= 4 ? 4 : load_bytes <= 8 ? 8 : 16;
 
         offset = GetAddressImm(ARRAY_NORMAL, m_VtxDesc.Normal, EncodeRegTo64(scratch1_reg),
                                load_size << 3);
@@ -525,9 +525,9 @@ void VertexLoaderARM64::GenerateVertexLoader()
 
       int elem_size = 1 << (m_VtxAttr.texCoord[i].Format / 2);
       int load_bytes = elem_size * (elements + 2);
-      int load_size = load_bytes == 1 ? 1 : load_bytes <= 2 ? 2 : load_bytes <= 4 ?
-                                                              4 :
-                                                              load_bytes <= 8 ? 8 : 16;
+      int load_size = load_bytes == 1 ?
+                          1 :
+                          load_bytes <= 2 ? 2 : load_bytes <= 4 ? 4 : load_bytes <= 8 ? 8 : 16;
       load_size <<= 3;
 
       s32 offset =
@@ -611,6 +611,6 @@ void VertexLoaderARM64::GenerateVertexLoader()
 int VertexLoaderARM64::RunVertices(DataReader src, DataReader dst, int count)
 {
   m_numLoadedVertices += count;
-  return ((int (*)(u8 * src, u8 * dst, int count))region)(src.GetPointer(), dst.GetPointer(),
-                                                          count);
+  return ((int (*)(u8 * src, u8 * dst, int count)) region)(src.GetPointer(), dst.GetPointer(),
+                                                           count);
 }

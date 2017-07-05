@@ -31,6 +31,7 @@ public:
   JitBaseBlockCache* GetBlockCache() override { return &m_block_cache; }
   const char* GetName() override { return "Cached Interpreter"; }
   const CommonAsmRoutinesBase* GetAsmRoutines() override { return nullptr; }
+
 private:
   struct Instruction;
 

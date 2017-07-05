@@ -222,7 +222,7 @@ void OpArg::WriteRest(XEmitter* emit, int extraBytes, X64Reg _operandReg,
                       bool warn_64bit_offset) const
 {
   if (_operandReg == INVALID_REG)
-    _operandReg = (X64Reg) this->operandReg;
+    _operandReg = (X64Reg)this->operandReg;
   int mod = 0;
   int ireg = indexReg;
   bool SIB = false;

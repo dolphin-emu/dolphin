@@ -6,54 +6,47 @@
 #include "Core/HW/WiimoteCommon/WiimoteHid.h"
 #include "Core/HW/WiimoteReal/IOdarwin_private.h"
 
-@interface SearchBT : NSObject
-{
+@interface SearchBT : NSObject {
 @public
   unsigned int maxDevices;
   bool done;
 }
 @end
 
-@interface ConnectBT : NSObject
-{
+@interface ConnectBT : NSObject {
 }
 @end
 
-namespace WiimoteReal
-{
-void WiimoteScannerDarwin::FindWiimotes(std::vector<Wiimote*>& found_wiimotes,
-                                        Wiimote*& found_board)
-{
+namespace WiimoteReal {
+void WiimoteScannerDarwin::FindWiimotes(std::vector<Wiimote *> &found_wiimotes,
+                                        Wiimote *&found_board) {
   // TODO: find the device in the constructor and save it for later
-  IOBluetoothHostController* bth;
-  IOBluetoothDeviceInquiry* bti;
+  IOBluetoothHostController *bth;
+  IOBluetoothDeviceInquiry *bti;
   found_board = nullptr;
 
   bth = [[IOBluetoothHostController alloc] init];
   bool btFailed = [bth addressAsString] == nil;
-  if (btFailed)
-  {
+  if (btFailed) {
     WARN_LOG(WIIMOTE, "No Bluetooth host controller");
     [bth release];
     return;
   }
 
-  SearchBT* sbt = [[SearchBT alloc] init];
+  SearchBT *sbt = [[SearchBT alloc] init];
   sbt->maxDevices = 32;
   bti = [[IOBluetoothDeviceInquiry alloc] init];
   [bti setDelegate:sbt];
   [bti setInquiryLength:2];
 
-  if ([bti start] != kIOReturnSuccess)
-  {
+  if ([bti start] != kIOReturnSuccess) {
     ERROR_LOG(WIIMOTE, "Unable to do Bluetooth discovery");
     [bth release];
     [sbt release];
     btFailed = true;
   }
 
-  do
-  {
+  do {
     CFRunLoopRun();
   } while (!sbt->done);
 
@@ -62,21 +55,17 @@ void WiimoteScannerDarwin::FindWiimotes(std::vector<Wiimote*>& found_wiimotes,
   if (found_devices)
     NOTICE_LOG(WIIMOTE, "Found %i Bluetooth devices", found_devices);
 
-  NSEnumerator* en = [[bti foundDevices] objectEnumerator];
-  for (int i = 0; i < found_devices; i++)
-  {
-    IOBluetoothDevice* dev = [en nextObject];
+  NSEnumerator *en = [[bti foundDevices] objectEnumerator];
+  for (int i = 0; i < found_devices; i++) {
+    IOBluetoothDevice *dev = [en nextObject];
     if (!IsValidDeviceName([[dev name] UTF8String]))
       continue;
 
-    Wiimote* wm = new WiimoteDarwin([dev retain]);
+    Wiimote *wm = new WiimoteDarwin([dev retain]);
 
-    if (IsBalanceBoardName([[dev name] UTF8String]))
-    {
+    if (IsBalanceBoardName([[dev name] UTF8String])) {
       found_board = wm;
-    }
-    else
-    {
+    } else {
       found_wiimotes.push_back(wm);
     }
   }
@@ -86,25 +75,21 @@ void WiimoteScannerDarwin::FindWiimotes(std::vector<Wiimote*>& found_wiimotes,
   [sbt release];
 }
 
-bool WiimoteScannerDarwin::IsReady() const
-{
+bool WiimoteScannerDarwin::IsReady() const {
   // TODO: only return true when a BT device is present
   return true;
 }
 
-WiimoteDarwin::WiimoteDarwin(IOBluetoothDevice* device) : m_btd(device)
-{
+WiimoteDarwin::WiimoteDarwin(IOBluetoothDevice *device) : m_btd(device) {
   m_inputlen = 0;
   m_connected = false;
   m_wiimote_thread_run_loop = nullptr;
   m_pm_assertion = kIOPMNullAssertionID;
 }
 
-WiimoteDarwin::~WiimoteDarwin()
-{
+WiimoteDarwin::~WiimoteDarwin() {
   Shutdown();
-  if (m_wiimote_thread_run_loop)
-  {
+  if (m_wiimote_thread_run_loop) {
     CFRelease(m_wiimote_thread_run_loop);
     m_wiimote_thread_run_loop = nullptr;
   }
@@ -114,27 +99,28 @@ WiimoteDarwin::~WiimoteDarwin()
 }
 
 // Connect to a Wiimote with a known address.
-bool WiimoteDarwin::ConnectInternal()
-{
+bool WiimoteDarwin::ConnectInternal() {
   if (IsConnected())
     return false;
 
-  ConnectBT* cbt = [[ConnectBT alloc] init];
+  ConnectBT *cbt = [[ConnectBT alloc] init];
 
   m_cchan = m_ichan = nil;
 
   IOReturn ret = [m_btd openConnection];
-  if (ret)
-  {
-    ERROR_LOG(WIIMOTE, "Unable to open Bluetooth connection to Wiimote %i: %x", m_index + 1, ret);
+  if (ret) {
+    ERROR_LOG(WIIMOTE, "Unable to open Bluetooth connection to Wiimote %i: %x",
+              m_index + 1, ret);
     [cbt release];
     return false;
   }
 
-  ret = [m_btd openL2CAPChannelSync:&m_cchan withPSM:kBluetoothL2CAPPSMHIDControl delegate:cbt];
-  if (ret)
-  {
-    ERROR_LOG(WIIMOTE, "Unable to open control channel for Wiimote %i: %x", m_index + 1, ret);
+  ret = [m_btd openL2CAPChannelSync:&m_cchan
+                            withPSM:kBluetoothL2CAPPSMHIDControl
+                           delegate:cbt];
+  if (ret) {
+    ERROR_LOG(WIIMOTE, "Unable to open control channel for Wiimote %i: %x",
+              m_index + 1, ret);
     goto bad;
   }
   // Apple docs claim:
@@ -144,10 +130,12 @@ bool WiimoteDarwin::ConnectInternal()
   // refcounting behavior here is clearly correct.
   [m_cchan retain];
 
-  ret = [m_btd openL2CAPChannelSync:&m_ichan withPSM:kBluetoothL2CAPPSMHIDInterrupt delegate:cbt];
-  if (ret)
-  {
-    WARN_LOG(WIIMOTE, "Unable to open interrupt channel for Wiimote %i: %x", m_index + 1, ret);
+  ret = [m_btd openL2CAPChannelSync:&m_ichan
+                            withPSM:kBluetoothL2CAPPSMHIDInterrupt
+                           delegate:cbt];
+  if (ret) {
+    WARN_LOG(WIIMOTE, "Unable to open interrupt channel for Wiimote %i: %x",
+             m_index + 1, ret);
     goto bad;
   }
   [m_ichan retain];
@@ -170,8 +158,7 @@ bad:
 }
 
 // Disconnect a Wiimote.
-void WiimoteDarwin::DisconnectInternal()
-{
+void WiimoteDarwin::DisconnectInternal() {
   [m_ichan closeChannel];
   [m_ichan release];
   m_ichan = nil;
@@ -190,21 +177,15 @@ void WiimoteDarwin::DisconnectInternal()
   m_connected = false;
 }
 
-bool WiimoteDarwin::IsConnected() const
-{
-  return m_connected;
-}
+bool WiimoteDarwin::IsConnected() const { return m_connected; }
 
-void WiimoteDarwin::IOWakeup()
-{
-  if (m_wiimote_thread_run_loop)
-  {
+void WiimoteDarwin::IOWakeup() {
+  if (m_wiimote_thread_run_loop) {
     CFRunLoopStop(m_wiimote_thread_run_loop);
   }
 }
 
-int WiimoteDarwin::IORead(unsigned char* buf)
-{
+int WiimoteDarwin::IORead(unsigned char *buf) {
   m_input = buf;
   m_inputlen = -1;
 
@@ -213,14 +194,15 @@ int WiimoteDarwin::IORead(unsigned char* buf)
   return m_inputlen;
 }
 
-int WiimoteDarwin::IOWrite(const unsigned char* buf, size_t len)
-{
+int WiimoteDarwin::IOWrite(const unsigned char *buf, size_t len) {
   IOReturn ret;
 
   if (!IsConnected())
     return 0;
 
-  ret = [m_ichan writeAsync:const_cast<void*>((void*)buf) length:(int)len refcon:nil];
+  ret = [m_ichan writeAsync:const_cast<void *>((void *)buf)
+                     length:(int)len
+                     refcon:nil];
 
   if (ret == kIOReturnSuccess)
     return len;
@@ -228,40 +210,37 @@ int WiimoteDarwin::IOWrite(const unsigned char* buf, size_t len)
     return 0;
 }
 
-void WiimoteDarwin::EnablePowerAssertionInternal()
-{
-  if (m_pm_assertion == kIOPMNullAssertionID)
-  {
+void WiimoteDarwin::EnablePowerAssertionInternal() {
+  if (m_pm_assertion == kIOPMNullAssertionID) {
     if (IOReturn ret = IOPMAssertionCreateWithName(
             kIOPMAssertPreventUserIdleDisplaySleep, kIOPMAssertionLevelOn,
             CFSTR("Dolphin Wiimote activity"), &m_pm_assertion))
-      ERROR_LOG(WIIMOTE, "Could not create power management assertion: %08x", ret);
+      ERROR_LOG(WIIMOTE, "Could not create power management assertion: %08x",
+                ret);
   }
 }
 
-void WiimoteDarwin::DisablePowerAssertionInternal()
-{
-  if (m_pm_assertion != kIOPMNullAssertionID)
-  {
+void WiimoteDarwin::DisablePowerAssertionInternal() {
+  if (m_pm_assertion != kIOPMNullAssertionID) {
     if (IOReturn ret = IOPMAssertionRelease(m_pm_assertion))
-      ERROR_LOG(WIIMOTE, "Could not release power management assertion: %08x", ret);
+      ERROR_LOG(WIIMOTE, "Could not release power management assertion: %08x",
+                ret);
   }
 }
-}  // namespace
+} // namespace
 
 @implementation SearchBT
-- (void)deviceInquiryComplete:(IOBluetoothDeviceInquiry*)sender
+- (void)deviceInquiryComplete:(IOBluetoothDeviceInquiry *)sender
                         error:(IOReturn)error
-                      aborted:(BOOL)aborted
-{
+                      aborted:(BOOL)aborted {
   done = true;
   CFRunLoopStop(CFRunLoopGetCurrent());
 }
 
-- (void)deviceInquiryDeviceFound:(IOBluetoothDeviceInquiry*)sender device:(IOBluetoothDevice*)device
-{
-  NOTICE_LOG(WIIMOTE, "Discovered Bluetooth device at %s: %s", [[device addressString] UTF8String],
-             [[device name] UTF8String]);
+- (void)deviceInquiryDeviceFound:(IOBluetoothDeviceInquiry *)sender
+                          device:(IOBluetoothDevice *)device {
+  NOTICE_LOG(WIIMOTE, "Discovered Bluetooth device at %s: %s",
+             [[device addressString] UTF8String], [[device name] UTF8String]);
 
   if ([[sender foundDevices] count] == maxDevices)
     [sender stop];
@@ -269,18 +248,16 @@ void WiimoteDarwin::DisablePowerAssertionInternal()
 @end
 
 @implementation ConnectBT
-- (void)l2capChannelData:(IOBluetoothL2CAPChannel*)l2capChannel
-                    data:(unsigned char*)data
-                  length:(NSUInteger)length
-{
-  IOBluetoothDevice* device = [l2capChannel device];
-  WiimoteReal::WiimoteDarwin* wm = nullptr;
+- (void)l2capChannelData:(IOBluetoothL2CAPChannel *)l2capChannel
+                    data:(unsigned char *)data
+                  length:(NSUInteger)length {
+  IOBluetoothDevice *device = [l2capChannel device];
+  WiimoteReal::WiimoteDarwin *wm = nullptr;
 
   std::lock_guard<std::mutex> lk(WiimoteReal::g_wiimotes_mutex);
 
-  for (int i = 0; i < MAX_WIIMOTES; i++)
-  {
-    wm = static_cast<WiimoteReal::WiimoteDarwin*>(WiimoteReal::g_wiimotes[i]);
+  for (int i = 0; i < MAX_WIIMOTES; i++) {
+    wm = static_cast<WiimoteReal::WiimoteDarwin *>(WiimoteReal::g_wiimotes[i]);
     if (!wm)
       continue;
     if ([device isEqual:wm->m_btd])
@@ -288,21 +265,20 @@ void WiimoteDarwin::DisablePowerAssertionInternal()
     wm = nullptr;
   }
 
-  if (wm == nullptr)
-  {
+  if (wm == nullptr) {
     ERROR_LOG(WIIMOTE, "Received packet for unknown Wiimote");
     return;
   }
 
-  if (length > MAX_PAYLOAD)
-  {
-    WARN_LOG(WIIMOTE, "Dropping packet for Wiimote %i, too large", wm->GetIndex() + 1);
+  if (length > MAX_PAYLOAD) {
+    WARN_LOG(WIIMOTE, "Dropping packet for Wiimote %i, too large",
+             wm->GetIndex() + 1);
     return;
   }
 
-  if (wm->m_inputlen != -1)
-  {
-    WARN_LOG(WIIMOTE, "Dropping packet for Wiimote %i, queue full", wm->GetIndex() + 1);
+  if (wm->m_inputlen != -1) {
+    WARN_LOG(WIIMOTE, "Dropping packet for Wiimote %i, queue full",
+             wm->GetIndex() + 1);
     return;
   }
 
@@ -312,16 +288,14 @@ void WiimoteDarwin::DisablePowerAssertionInternal()
   CFRunLoopStop(CFRunLoopGetCurrent());
 }
 
-- (void)l2capChannelClosed:(IOBluetoothL2CAPChannel*)l2capChannel
-{
-  IOBluetoothDevice* device = [l2capChannel device];
-  WiimoteReal::WiimoteDarwin* wm = nullptr;
+- (void)l2capChannelClosed:(IOBluetoothL2CAPChannel *)l2capChannel {
+  IOBluetoothDevice *device = [l2capChannel device];
+  WiimoteReal::WiimoteDarwin *wm = nullptr;
 
   std::lock_guard<std::mutex> lk(WiimoteReal::g_wiimotes_mutex);
 
-  for (int i = 0; i < MAX_WIIMOTES; i++)
-  {
-    wm = static_cast<WiimoteReal::WiimoteDarwin*>(WiimoteReal::g_wiimotes[i]);
+  for (int i = 0; i < MAX_WIIMOTES; i++) {
+    wm = static_cast<WiimoteReal::WiimoteDarwin *>(WiimoteReal::g_wiimotes[i]);
     if (!wm)
       continue;
     if ([device isEqual:wm->m_btd])
@@ -329,8 +303,7 @@ void WiimoteDarwin::DisablePowerAssertionInternal()
     wm = nullptr;
   }
 
-  if (wm == nullptr)
-  {
+  if (wm == nullptr) {
     ERROR_LOG(WIIMOTE, "Channel for unknown Wiimote was closed");
     return;
   }

@@ -184,6 +184,7 @@ public:
   }
   std::string GetName() const override { return "CompareLoader"; }
   bool IsInitialized() override { return m_initialized; }
+
 private:
   bool m_initialized;
 

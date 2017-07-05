@@ -5,9 +5,8 @@
 #include "Common/GL/GLInterface/AGL.h"
 #include "Common/Logging/Log.h"
 
-static bool UpdateCachedDimensions(NSView* view, u32* width, u32* height)
-{
-  NSWindow* window = [view window];
+static bool UpdateCachedDimensions(NSView *view, u32 *width, u32 *height) {
+  NSWindow *window = [view window];
   NSSize size = [view frame].size;
 
   float scale = [window backingScaleFactor];
@@ -23,14 +22,13 @@ static bool UpdateCachedDimensions(NSView* view, u32* width, u32* height)
   return true;
 }
 
-static bool AttachContextToView(NSOpenGLContext* context, NSView* view, u32* width, u32* height)
-{
+static bool AttachContextToView(NSOpenGLContext *context, NSView *view,
+                                u32 *width, u32 *height) {
   // Enable high-resolution display support.
   [view setWantsBestResolutionOpenGLSurface:YES];
 
-  NSWindow* window = [view window];
-  if (window == nil)
-  {
+  NSWindow *window = [view window];
+  if (window == nil) {
     ERROR_LOG(VIDEO, "failed to get NSWindow");
     return false;
   }
@@ -44,30 +42,25 @@ static bool AttachContextToView(NSOpenGLContext* context, NSView* view, u32* wid
   return true;
 }
 
-void cInterfaceAGL::Swap()
-{
-  [m_context flushBuffer];
-}
+void cInterfaceAGL::Swap() { [m_context flushBuffer]; }
 
 // Create rendering window.
 // Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
-bool cInterfaceAGL::Create(void* window_handle, bool core)
-{
-  NSOpenGLPixelFormatAttribute attr[] = {NSOpenGLPFADoubleBuffer, NSOpenGLPFAOpenGLProfile,
-                                         core ? NSOpenGLProfileVersion3_2Core :
-                                                NSOpenGLProfileVersionLegacy,
-                                         NSOpenGLPFAAccelerated, 0};
-  NSOpenGLPixelFormat* fmt = [[NSOpenGLPixelFormat alloc] initWithAttributes:attr];
-  if (fmt == nil)
-  {
+bool cInterfaceAGL::Create(void *window_handle, bool core) {
+  NSOpenGLPixelFormatAttribute attr[] = {
+      NSOpenGLPFADoubleBuffer, NSOpenGLPFAOpenGLProfile,
+      core ? NSOpenGLProfileVersion3_2Core : NSOpenGLProfileVersionLegacy,
+      NSOpenGLPFAAccelerated, 0};
+  NSOpenGLPixelFormat *fmt =
+      [[NSOpenGLPixelFormat alloc] initWithAttributes:attr];
+  if (fmt == nil) {
     ERROR_LOG(VIDEO, "failed to create pixel format");
     return false;
   }
 
   m_context = [[NSOpenGLContext alloc] initWithFormat:fmt shareContext:nil];
   [fmt release];
-  if (m_context == nil)
-  {
+  if (m_context == nil) {
     ERROR_LOG(VIDEO, "failed to create context");
     return false;
   }
@@ -75,32 +68,29 @@ bool cInterfaceAGL::Create(void* window_handle, bool core)
   if (!window_handle)
     return true;
 
-  m_view = static_cast<NSView*>(window_handle);
-  return AttachContextToView(m_context, m_view, &s_backbuffer_width, &s_backbuffer_height);
+  m_view = static_cast<NSView *>(window_handle);
+  return AttachContextToView(m_context, m_view, &s_backbuffer_width,
+                             &s_backbuffer_height);
 }
 
-bool cInterfaceAGL::MakeCurrent()
-{
+bool cInterfaceAGL::MakeCurrent() {
   [m_context makeCurrentContext];
   return true;
 }
 
-bool cInterfaceAGL::ClearCurrent()
-{
+bool cInterfaceAGL::ClearCurrent() {
   [NSOpenGLContext clearCurrentContext];
   return true;
 }
 
 // Close backend
-void cInterfaceAGL::Shutdown()
-{
+void cInterfaceAGL::Shutdown() {
   [m_context clearDrawable];
   [m_context release];
   m_context = nil;
 }
 
-void cInterfaceAGL::Update()
-{
+void cInterfaceAGL::Update() {
   if (!m_view)
     return;
 
@@ -108,7 +98,7 @@ void cInterfaceAGL::Update()
     [m_context update];
 }
 
-void cInterfaceAGL::SwapInterval(int interval)
-{
-  [m_context setValues:static_cast<GLint*>(&interval) forParameter:NSOpenGLCPSwapInterval];
+void cInterfaceAGL::SwapInterval(int interval) {
+  [m_context setValues:static_cast<GLint *>(&interval)
+          forParameter:NSOpenGLCPSwapInterval];
 }

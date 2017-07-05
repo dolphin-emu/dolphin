@@ -97,13 +97,14 @@ CBreakPointWindow::CBreakPointWindow(CCodeWindow* _pCodeWindow, wxWindow* parent
   m_BreakPointListView = new CBreakPointView(this, wxID_ANY);
   m_BreakPointListView->Bind(wxEVT_LIST_ITEM_SELECTED, &CBreakPointWindow::OnSelectBP, this);
 
-  m_mgr.AddPane(new CBreakPointBar(this, wxID_ANY), wxAuiPaneInfo()
-                                                        .ToolbarPane()
-                                                        .Top()
-                                                        .LeftDockable(true)
-                                                        .RightDockable(true)
-                                                        .BottomDockable(false)
-                                                        .Floatable(false));
+  m_mgr.AddPane(new CBreakPointBar(this, wxID_ANY),
+                wxAuiPaneInfo()
+                    .ToolbarPane()
+                    .Top()
+                    .LeftDockable(true)
+                    .RightDockable(true)
+                    .BottomDockable(false)
+                    .Floatable(false));
   m_mgr.AddPane(m_BreakPointListView, wxAuiPaneInfo().CenterPane());
   m_mgr.Update();
 }

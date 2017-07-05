@@ -10,28 +10,23 @@
 
 #include "InputCommon/ControllerInterface/OSX/OSXKeyboard.h"
 
-namespace ciface
-{
-namespace OSX
-{
-Keyboard::Keyboard(IOHIDDeviceRef device, std::string name, void* window)
-    : m_device(device), m_device_name(name)
-{
+namespace ciface {
+namespace OSX {
+Keyboard::Keyboard(IOHIDDeviceRef device, std::string name, void *window)
+    : m_device(device), m_device_name(name) {
   // This class should only receive Keyboard or Keypad devices
   // Now, filter on just the buttons we can handle sanely
-  NSDictionary* matchingElements = @{
+  NSDictionary *matchingElements = @{
     @kIOHIDElementTypeKey : @(kIOHIDElementTypeInput_Button),
     @kIOHIDElementMinKey : @0,
     @kIOHIDElementMaxKey : @1
   };
 
-  CFArrayRef elements = IOHIDDeviceCopyMatchingElements(m_device, (CFDictionaryRef)matchingElements,
-                                                        kIOHIDOptionsTypeNone);
+  CFArrayRef elements = IOHIDDeviceCopyMatchingElements(
+      m_device, (CFDictionaryRef)matchingElements, kIOHIDOptionsTypeNone);
 
-  if (elements)
-  {
-    for (int i = 0; i < CFArrayGetCount(elements); i++)
-    {
+  if (elements) {
+    for (int i = 0; i < CFArrayGetCount(elements); i++) {
       IOHIDElementRef e = (IOHIDElementRef)CFArrayGetValueAtIndex(elements, i);
       // DeviceElementDebugPrint(e, nullptr);
 
@@ -40,7 +35,7 @@ Keyboard::Keyboard(IOHIDDeviceRef device, std::string name, void* window)
     CFRelease(elements);
   }
 
-  m_windowid = [[reinterpret_cast<NSView*>(window) window] windowNumber];
+  m_windowid = [[reinterpret_cast<NSView *>(window) window] windowNumber];
 
   // cursor, with a hax for-loop
   for (unsigned int i = 0; i < 4; ++i)
@@ -50,19 +45,19 @@ Keyboard::Keyboard(IOHIDDeviceRef device, std::string name, void* window)
     AddInput(new Button(i, m_mousebuttons[i]));
 }
 
-void Keyboard::UpdateInput()
-{
+void Keyboard::UpdateInput() {
   CGRect bounds = CGRectZero;
   uint32_t windowid[1] = {m_windowid};
-  CFArrayRef windowArray = CFArrayCreate(nullptr, (const void**)windowid, 1, nullptr);
-  CFArrayRef windowDescriptions = CGWindowListCreateDescriptionFromArray(windowArray);
-  CFDictionaryRef windowDescription =
-      (CFDictionaryRef)CFArrayGetValueAtIndex((CFArrayRef)windowDescriptions, 0);
+  CFArrayRef windowArray =
+      CFArrayCreate(nullptr, (const void **)windowid, 1, nullptr);
+  CFArrayRef windowDescriptions =
+      CGWindowListCreateDescriptionFromArray(windowArray);
+  CFDictionaryRef windowDescription = (CFDictionaryRef)CFArrayGetValueAtIndex(
+      (CFArrayRef)windowDescriptions, 0);
 
-  if (CFDictionaryContainsKey(windowDescription, kCGWindowBounds))
-  {
-    CFDictionaryRef boundsDictionary =
-        (CFDictionaryRef)CFDictionaryGetValue(windowDescription, kCGWindowBounds);
+  if (CFDictionaryContainsKey(windowDescription, kCGWindowBounds)) {
+    CFDictionaryRef boundsDictionary = (CFDictionaryRef)CFDictionaryGetValue(
+        windowDescription, kCGWindowBounds);
 
     if (boundsDictionary != nullptr)
       CGRectMakeWithDictionaryRepresentation(boundsDictionary, &bounds);
@@ -80,31 +75,23 @@ void Keyboard::UpdateInput()
   m_cursor.x = loc.x / bounds.size.width * 2 - 1.0;
   m_cursor.y = loc.y / bounds.size.height * 2 - 1.0;
 
-  m_mousebuttons[0] =
-      CGEventSourceButtonState(kCGEventSourceStateHIDSystemState, kCGMouseButtonLeft);
-  m_mousebuttons[1] =
-      CGEventSourceButtonState(kCGEventSourceStateHIDSystemState, kCGMouseButtonRight);
-  m_mousebuttons[2] =
-      CGEventSourceButtonState(kCGEventSourceStateHIDSystemState, kCGMouseButtonCenter);
+  m_mousebuttons[0] = CGEventSourceButtonState(
+      kCGEventSourceStateHIDSystemState, kCGMouseButtonLeft);
+  m_mousebuttons[1] = CGEventSourceButtonState(
+      kCGEventSourceStateHIDSystemState, kCGMouseButtonRight);
+  m_mousebuttons[2] = CGEventSourceButtonState(
+      kCGEventSourceStateHIDSystemState, kCGMouseButtonCenter);
 }
 
-std::string Keyboard::GetName() const
-{
-  return m_device_name;
-}
+std::string Keyboard::GetName() const { return m_device_name; }
 
-std::string Keyboard::GetSource() const
-{
-  return "Keyboard";
-}
+std::string Keyboard::GetSource() const { return "Keyboard"; }
 
 Keyboard::Key::Key(IOHIDElementRef element, IOHIDDeviceRef device)
-    : m_element(element), m_device(device)
-{
-  static const struct PrettyKeys
-  {
+    : m_element(element), m_device(device) {
+  static const struct PrettyKeys {
     const uint32_t code;
-    const char* const name;
+    const char *const name;
   } named_keys[] = {
       {kHIDUsage_KeyboardA, "A"},
       {kHIDUsage_KeyboardB, "B"},
@@ -212,10 +199,8 @@ Keyboard::Key::Key(IOHIDElementRef element, IOHIDDeviceRef device)
   };
 
   const uint32_t keycode = IOHIDElementGetUsage(m_element);
-  for (auto& named_key : named_keys)
-  {
-    if (named_key.code == keycode)
-    {
+  for (auto &named_key : named_keys) {
+    if (named_key.code == keycode) {
       m_name = named_key.name;
       return;
     }
@@ -226,8 +211,7 @@ Keyboard::Key::Key(IOHIDElementRef element, IOHIDDeviceRef device)
   m_name = ss.str();
 }
 
-ControlState Keyboard::Key::GetState() const
-{
+ControlState Keyboard::Key::GetState() const {
   IOHIDValueRef value;
 
   if (IOHIDDeviceGetValue(m_device, m_element, &value) == kIOReturnSuccess)
@@ -236,36 +220,26 @@ ControlState Keyboard::Key::GetState() const
     return 0;
 }
 
-ControlState Keyboard::Cursor::GetState() const
-{
+ControlState Keyboard::Cursor::GetState() const {
   return std::max(0.0, ControlState(m_axis) / (m_positive ? 1.0 : -1.0));
 }
 
-ControlState Keyboard::Button::GetState() const
-{
-  return (m_button != 0);
-}
+ControlState Keyboard::Button::GetState() const { return (m_button != 0); }
 
-std::string Keyboard::Cursor::GetName() const
-{
+std::string Keyboard::Cursor::GetName() const {
   static char tmpstr[] = "Cursor ..";
   tmpstr[7] = (char)('X' + m_index);
   tmpstr[8] = (m_positive ? '+' : '-');
   return tmpstr;
 }
 
-std::string Keyboard::Button::GetName() const
-{
+std::string Keyboard::Button::GetName() const {
   return std::string("Click ") + char('0' + m_index);
 }
 
-std::string Keyboard::Key::GetName() const
-{
-  return m_name;
-}
+std::string Keyboard::Key::GetName() const { return m_name; }
 
-bool Keyboard::IsSameDevice(const IOHIDDeviceRef other_device) const
-{
+bool Keyboard::IsSameDevice(const IOHIDDeviceRef other_device) const {
   return m_device == other_device;
 }
 }

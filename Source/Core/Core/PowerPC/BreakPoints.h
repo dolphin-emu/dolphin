@@ -93,6 +93,7 @@ public:
 
   void Clear() { m_mem_checks.clear(); }
   bool HasAny() const { return !m_mem_checks.empty(); }
+
 private:
   TMemChecks m_mem_checks;
 };

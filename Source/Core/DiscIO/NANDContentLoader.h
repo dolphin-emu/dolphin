@@ -84,6 +84,7 @@ public:
   const IOS::ES::TMDReader& GetTMD() const { return m_tmd; }
   const IOS::ES::TicketReader& GetTicket() const { return m_ticket; }
   const std::vector<NANDContent>& GetContent() const { return m_Content; }
+
 private:
   bool Initialize(const std::string& name);
   void InitializeContentEntries(const std::vector<u8>& data_app);
@@ -108,11 +109,10 @@ public:
     return instance;
   }
 
-  const NANDContentLoader&
-  GetNANDLoader(const std::string& content_path,
-                Common::FromWhichRoot from = Common::FROM_CONFIGURED_ROOT);
-  const NANDContentLoader&
-  GetNANDLoader(u64 title_id, Common::FromWhichRoot from = Common::FROM_CONFIGURED_ROOT);
+  const NANDContentLoader& GetNANDLoader(const std::string& content_path,
+                                         Common::FromWhichRoot from = Common::FROM_CONFIGURED_ROOT);
+  const NANDContentLoader& GetNANDLoader(u64 title_id,
+                                         Common::FromWhichRoot from = Common::FROM_CONFIGURED_ROOT);
   void ClearCache();
 
 private:

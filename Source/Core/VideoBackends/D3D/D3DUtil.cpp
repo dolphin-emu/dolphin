@@ -89,6 +89,7 @@ public:
   void EndAppendData() { context->Unmap(buf, 0); }
   void AddWrapObserver(bool* observer) { observers.push_back(observer); }
   inline ID3D11Buffer*& GetBuffer() { return buf; }
+
 private:
   ID3D11Buffer* buf = nullptr;
   unsigned int offset = 0;

@@ -55,6 +55,7 @@ public:
     Core::UndeclareAsCPUThread();
     File::DeleteDirRecursively(m_profile_path);
   }
+
 private:
   std::string m_profile_path;
 };

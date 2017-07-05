@@ -365,23 +365,25 @@ CFrame::CFrame(wxFrame* parent, wxWindowID id, const wxString& title, wxRect geo
   // Manager
   m_mgr = new wxAuiManager(this, wxAUI_MGR_DEFAULT | wxAUI_MGR_LIVE_RESIZE);
 
-  m_mgr->AddPane(m_panel, wxAuiPaneInfo()
-                              .Name("Pane 0")
-                              .Caption("Pane 0")
-                              .PaneBorder(false)
-                              .CaptionVisible(false)
-                              .Layer(0)
-                              .Center()
-                              .Show());
+  m_mgr->AddPane(m_panel,
+                 wxAuiPaneInfo()
+                     .Name("Pane 0")
+                     .Caption("Pane 0")
+                     .PaneBorder(false)
+                     .CaptionVisible(false)
+                     .Layer(0)
+                     .Center()
+                     .Show());
   if (!m_code_window)
-    m_mgr->AddPane(CreateEmptyNotebook(), wxAuiPaneInfo()
-                                              .Name("Pane 1")
-                                              .Caption(_("Logging"))
-                                              .CaptionVisible(true)
-                                              .Layer(0)
-                                              .FloatingSize(wxSize(600, 350))
-                                              .CloseButton(true)
-                                              .Hide());
+    m_mgr->AddPane(CreateEmptyNotebook(),
+                   wxAuiPaneInfo()
+                       .Name("Pane 1")
+                       .Caption(_("Logging"))
+                       .CaptionVisible(true)
+                       .Layer(0)
+                       .FloatingSize(wxSize(600, 350))
+                       .CloseButton(true)
+                       .Hide());
   m_aui_fullscreen_perspective = m_mgr->SavePerspective();
 
   if (!SConfig::GetInstance().m_InterfaceToolbar)

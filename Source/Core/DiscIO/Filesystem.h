@@ -65,6 +65,7 @@ public:
     // pointers, but will not invalidate copies of the iterator or file info object.
     const FileInfo& operator*() const { return *m_file_info.get(); }
     const FileInfo* operator->() const { return m_file_info.get(); }
+
   private:
     std::unique_ptr<FileInfo> m_file_info;
   };
@@ -121,6 +122,7 @@ public:
   virtual std::unique_ptr<FileInfo> FindFileInfo(u64 disc_offset) const = 0;
 
   virtual const Partition GetPartition() const { return m_partition; }
+
 protected:
   const Volume* const m_volume;
   const Partition m_partition;

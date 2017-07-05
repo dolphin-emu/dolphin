@@ -164,8 +164,8 @@ void UnWriteProtectMemory(void* ptr, size_t size, bool allowExecute)
   if (!VirtualProtect(ptr, size, allowExecute ? PAGE_EXECUTE_READWRITE : PAGE_READWRITE, &oldValue))
     error_occurred = true;
 #else
-  int retval = mprotect(ptr, size, allowExecute ? (PROT_READ | PROT_WRITE | PROT_EXEC) :
-                                                  PROT_WRITE | PROT_READ);
+  int retval = mprotect(
+      ptr, size, allowExecute ? (PROT_READ | PROT_WRITE | PROT_EXEC) : PROT_WRITE | PROT_READ);
 
   if (retval != 0)
     error_occurred = true;

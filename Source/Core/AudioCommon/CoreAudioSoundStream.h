@@ -21,6 +21,7 @@ public:
   void Update() override;
 
   static bool isValid() { return true; }
+
 private:
   AudioUnit audioUnit;
   int m_volume;

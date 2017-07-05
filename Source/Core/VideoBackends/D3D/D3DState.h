@@ -83,6 +83,7 @@ public:
   ~AutoState();
 
   const inline T* GetPtr() const { return state; }
+
 private:
   const T* state;
 };

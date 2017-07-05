@@ -98,6 +98,7 @@ public:
   const uid_data* GetUidData() const { return &data; }
   const u8* GetUidDataRaw() const { return &values[0]; }
   size_t GetUidDataSize() const { return sizeof(values); }
+
 private:
   union
   {

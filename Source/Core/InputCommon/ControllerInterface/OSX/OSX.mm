@@ -18,26 +18,22 @@
 #include "InputCommon/ControllerInterface/OSX/OSXKeyboard.h"
 #include "InputCommon/ControllerInterface/OSX/RunLoopStopper.h"
 
-namespace ciface
-{
-namespace OSX
-{
+namespace ciface {
+namespace OSX {
 constexpr CFTimeInterval FOREVER = 1e20;
 static std::thread s_hotplug_thread;
 static RunLoopStopper s_stopper;
 static IOHIDManagerRef HIDManager = nullptr;
 static CFStringRef OurRunLoop = CFSTR("DolphinOSXInput");
 
-void DeviceElementDebugPrint(const void* value, void* context)
-{
+void DeviceElementDebugPrint(const void *value, void *context) {
   IOHIDElementRef e = (IOHIDElementRef)value;
   bool recurse = false;
   if (context)
-    recurse = *(bool*)context;
+    recurse = *(bool *)context;
 
   std::string type = "";
-  switch (IOHIDElementGetType(e))
-  {
+  switch (IOHIDElementGetType(e)) {
   case kIOHIDElementTypeInput_Axis:
     type = "axis";
     break;
@@ -62,10 +58,8 @@ void DeviceElementDebugPrint(const void* value, void* context)
   }
 
   std::string c_type = "";
-  if (type == "collection")
-  {
-    switch (IOHIDElementGetCollectionType(e))
-    {
+  if (type == "collection") {
+    switch (IOHIDElementGetCollectionType(e)) {
     case kIOHIDElementCollectionTypePhysical:
       c_type = "physical";
       break;
@@ -93,14 +87,14 @@ void DeviceElementDebugPrint(const void* value, void* context)
   c_type.append(" ");
   NSLog(@"%s%s%spage: 0x%x usage: 0x%x name: %@ "
          "lmin: %ld lmax: %ld pmin: %ld pmax: %ld",
-        type.c_str(), type == "collection" ? ":" : "", type == "collection" ? c_type.c_str() : " ",
+        type.c_str(), type == "collection" ? ":" : "",
+        type == "collection" ? c_type.c_str() : " ",
         IOHIDElementGetUsagePage(e), IOHIDElementGetUsage(e),
-        IOHIDElementGetName(e),  // usually just nullptr
-        IOHIDElementGetLogicalMin(e), IOHIDElementGetLogicalMax(e), IOHIDElementGetPhysicalMin(e),
-        IOHIDElementGetPhysicalMax(e));
+        IOHIDElementGetName(e), // usually just nullptr
+        IOHIDElementGetLogicalMin(e), IOHIDElementGetLogicalMax(e),
+        IOHIDElementGetPhysicalMin(e), IOHIDElementGetPhysicalMax(e));
 
-  if ((type == "collection") && recurse)
-  {
+  if ((type == "collection") && recurse) {
     CFArrayRef elements = IOHIDElementGetChildren(e);
     CFRange range = {0, CFArrayGetCount(elements)};
     // this leaks...but it's just debug code, right? :D
@@ -108,10 +102,10 @@ void DeviceElementDebugPrint(const void* value, void* context)
   }
 }
 
-static void DeviceDebugPrint(IOHIDDeviceRef device)
-{
+static void DeviceDebugPrint(IOHIDDeviceRef device) {
 #if 0
-#define shortlog(x) NSLog(@"%s: %@", x, IOHIDDeviceGetProperty(device, CFSTR(x)));
+#define shortlog(x)                                                            \
+  NSLog(@"%s: %@", x, IOHIDDeviceGetProperty(device, CFSTR(x)));
 	NSLog(@"-------------------------");
 	NSLog(@"Got Device: %@",
 		IOHIDDeviceGetProperty(device, CFSTR(kIOHIDProductKey)));
@@ -138,42 +132,42 @@ static void DeviceDebugPrint(IOHIDDeviceRef device)
 #endif
 }
 
-static void* g_window;
+static void *g_window;
 
-static std::string GetDeviceRefName(IOHIDDeviceRef inIOHIDDeviceRef)
-{
-  const NSString* name = reinterpret_cast<const NSString*>(
+static std::string GetDeviceRefName(IOHIDDeviceRef inIOHIDDeviceRef) {
+  const NSString *name = reinterpret_cast<const NSString *>(
       IOHIDDeviceGetProperty(inIOHIDDeviceRef, CFSTR(kIOHIDProductKey)));
   return (name != nullptr) ? StripSpaces([name UTF8String]) : "Unknown device";
 }
 
-static void DeviceRemovalCallback(void* inContext, IOReturn inResult, void* inSender,
-                                  IOHIDDeviceRef inIOHIDDeviceRef)
-{
-  g_controller_interface.RemoveDevice([&inIOHIDDeviceRef](const auto* device) {
-    const Joystick* joystick = dynamic_cast<const Joystick*>(device);
+static void DeviceRemovalCallback(void *inContext, IOReturn inResult,
+                                  void *inSender,
+                                  IOHIDDeviceRef inIOHIDDeviceRef) {
+  g_controller_interface.RemoveDevice([&inIOHIDDeviceRef](const auto *device) {
+    const Joystick *joystick = dynamic_cast<const Joystick *>(device);
     if (joystick && joystick->IsSameDevice(inIOHIDDeviceRef))
       return true;
 
-    const Keyboard* keyboard = dynamic_cast<const Keyboard*>(device);
+    const Keyboard *keyboard = dynamic_cast<const Keyboard *>(device);
     if (keyboard && keyboard->IsSameDevice(inIOHIDDeviceRef))
       return true;
 
     return false;
   });
   g_controller_interface.InvokeHotplugCallbacks();
-  NOTICE_LOG(SERIALINTERFACE, "Removed device: %s", GetDeviceRefName(inIOHIDDeviceRef).c_str());
+  NOTICE_LOG(SERIALINTERFACE, "Removed device: %s",
+             GetDeviceRefName(inIOHIDDeviceRef).c_str());
 }
 
-static void DeviceMatchingCallback(void* inContext, IOReturn inResult, void* inSender,
-                                   IOHIDDeviceRef inIOHIDDeviceRef)
-{
+static void DeviceMatchingCallback(void *inContext, IOReturn inResult,
+                                   void *inSender,
+                                   IOHIDDeviceRef inIOHIDDeviceRef) {
   DeviceDebugPrint(inIOHIDDeviceRef);
   std::string name = GetDeviceRefName(inIOHIDDeviceRef);
 
   // Add a device if it's of a type we want
-  if (IOHIDDeviceConformsTo(inIOHIDDeviceRef, kHIDPage_GenericDesktop, kHIDUsage_GD_Keyboard))
-  {
+  if (IOHIDDeviceConformsTo(inIOHIDDeviceRef, kHIDPage_GenericDesktop,
+                            kHIDUsage_GD_Keyboard)) {
     if (g_window)
       g_controller_interface.AddDevice(
           std::make_shared<Keyboard>(inIOHIDDeviceRef, name, g_window));
@@ -184,17 +178,16 @@ static void DeviceMatchingCallback(void* inContext, IOReturn inResult, void* inS
     g_controller_interface.AddDevice(new Mouse(inIOHIDDeviceRef, name));
   }
 #endif
-  else
-  {
-    g_controller_interface.AddDevice(std::make_shared<Joystick>(inIOHIDDeviceRef, name));
+  else {
+    g_controller_interface.AddDevice(
+        std::make_shared<Joystick>(inIOHIDDeviceRef, name));
   }
 
   NOTICE_LOG(SERIALINTERFACE, "Added device: %s", name.c_str());
   g_controller_interface.InvokeHotplugCallbacks();
 }
 
-void Init(void* window)
-{
+void Init(void *window) {
   g_window = window;
 
   HIDManager = IOHIDManagerCreate(kCFAllocatorDefault, kIOHIDOptionsTypeNone);
@@ -206,39 +199,43 @@ void Init(void* window)
     ERROR_LOG(SERIALINTERFACE, "Failed to open HID Manager");
 
   // Callbacks for acquisition or loss of a matching device
-  IOHIDManagerRegisterDeviceMatchingCallback(HIDManager, DeviceMatchingCallback, nullptr);
-  IOHIDManagerRegisterDeviceRemovalCallback(HIDManager, DeviceRemovalCallback, nullptr);
+  IOHIDManagerRegisterDeviceMatchingCallback(HIDManager, DeviceMatchingCallback,
+                                             nullptr);
+  IOHIDManagerRegisterDeviceRemovalCallback(HIDManager, DeviceRemovalCallback,
+                                            nullptr);
 
   // Match devices that are plugged in right now
-  IOHIDManagerScheduleWithRunLoop(HIDManager, CFRunLoopGetCurrent(), OurRunLoop);
-  while (CFRunLoopRunInMode(OurRunLoop, 0, TRUE) == kCFRunLoopRunHandledSource)
-  {
+  IOHIDManagerScheduleWithRunLoop(HIDManager, CFRunLoopGetCurrent(),
+                                  OurRunLoop);
+  while (CFRunLoopRunInMode(OurRunLoop, 0, TRUE) ==
+         kCFRunLoopRunHandledSource) {
   };
-  IOHIDManagerUnscheduleFromRunLoop(HIDManager, CFRunLoopGetCurrent(), OurRunLoop);
+  IOHIDManagerUnscheduleFromRunLoop(HIDManager, CFRunLoopGetCurrent(),
+                                    OurRunLoop);
 
   // Enable hotplugging
   s_hotplug_thread = std::thread([] {
     Common::SetCurrentThreadName("IOHIDManager Hotplug Thread");
     NOTICE_LOG(SERIALINTERFACE, "IOHIDManager hotplug thread started");
 
-    IOHIDManagerScheduleWithRunLoop(HIDManager, CFRunLoopGetCurrent(), OurRunLoop);
+    IOHIDManagerScheduleWithRunLoop(HIDManager, CFRunLoopGetCurrent(),
+                                    OurRunLoop);
     s_stopper.AddToRunLoop(CFRunLoopGetCurrent(), OurRunLoop);
     CFRunLoopRunInMode(OurRunLoop, FOREVER, FALSE);
     s_stopper.RemoveFromRunLoop(CFRunLoopGetCurrent(), OurRunLoop);
-    IOHIDManagerUnscheduleFromRunLoop(HIDManager, CFRunLoopGetCurrent(), OurRunLoop);
+    IOHIDManagerUnscheduleFromRunLoop(HIDManager, CFRunLoopGetCurrent(),
+                                      OurRunLoop);
 
     NOTICE_LOG(SERIALINTERFACE, "IOHIDManager hotplug thread stopped");
   });
 }
 
-void PopulateDevices(void* window)
-{
+void PopulateDevices(void *window) {
   DeInit();
   Init(window);
 }
 
-void DeInit()
-{
+void DeInit() {
   s_stopper.Signal();
   s_hotplug_thread.join();
 
