@@ -86,6 +86,12 @@ void MenuBar::AddToolsMenu()
   QMenu* tools_menu = addMenu(tr("Tools"));
   m_wad_install_action = tools_menu->addAction(tr("Install WAD..."), this, SLOT(InstallWAD()));
 
+  // Label will be set by a NANDRefresh later
+  m_boot_sysmenu = tools_menu->addAction(QStringLiteral(""), [this] { emit BootWiiSystemMenu(); });
+  m_boot_sysmenu->setEnabled(false);
+
+  connect(&Settings::Instance(), &Settings::NANDRefresh, [this] { UpdateToolsMenu(false); });
+
   m_perform_online_update_menu = tools_menu->addMenu(tr("Perform Online System Update"));
   m_perform_online_update_for_current_region = m_perform_online_update_menu->addAction(
       tr("Current Region"), [this] { emit PerformOnlineUpdate(""); });
@@ -267,11 +273,23 @@ void MenuBar::AddTableColumnsMenu(QMenu* view_menu)
 void MenuBar::UpdateToolsMenu(bool emulation_started)
 {
   const bool enable_wii_tools = !emulation_started || !SConfig::GetInstance().bWii;
+
+  m_boot_sysmenu->setEnabled(!emulation_started);
   m_perform_online_update_menu->setEnabled(enable_wii_tools);
+
   if (enable_wii_tools)
   {
     IOS::HLE::Kernel ios;
     const auto tmd = ios.GetES()->FindInstalledTMD(Titles::SYSTEM_MENU);
+
+    const QString sysmenu_version =
+        tmd.IsValid() ?
+            QString::fromStdString(DiscIO::GetSysMenuVersionString(tmd.GetTitleVersion())) :
+            QStringLiteral("");
+    m_boot_sysmenu->setText(tr("Load Wii System Menu %1").arg(sysmenu_version));
+
+    m_boot_sysmenu->setEnabled(!emulation_started && tmd.IsValid());
+
     for (QAction* action : m_perform_online_update_menu->actions())
       action->setEnabled(!tmd.IsValid());
     m_perform_online_update_for_current_region->setEnabled(tmd.IsValid());
