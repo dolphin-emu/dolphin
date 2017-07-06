@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <QSettings>
+#include <QObject>
 #include <QVector>
 
 #include "Common/NonCopyable.h"
@@ -64,5 +64,4 @@ signals:
 
 private:
   Settings();
-  QSettings m_native_settings;
 };

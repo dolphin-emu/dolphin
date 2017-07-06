@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <QDir>
+#include <QSettings>
 #include <QSize>
 
 #include "AudioCommon/AudioCommon.h"
@@ -13,15 +14,7 @@
 #include "DolphinQt2/Settings.h"
 #include "InputCommon/InputConfig.h"
 
-Settings::Settings()
-    :
-#ifdef Q_OS_MAC
-      m_native_settings(QStringLiteral("dolphin-emu.org"), QStringLiteral("dolphin"))
-#else
-      m_native_settings(QStringLiteral("Dolphin Emulator"), QStringLiteral("Dolphin"))
-#endif
-{
-}
+Settings::Settings() = default;
 
 Settings& Settings::Instance()
 {
@@ -81,22 +74,22 @@ void Settings::RemovePath(const QString& qpath)
 
 bool Settings::GetPreferredView() const
 {
-  return m_native_settings.value(QStringLiteral("PreferredView"), true).toBool();
+  return QSettings().value(QStringLiteral("PreferredView"), true).toBool();
 }
 
 void Settings::SetPreferredView(bool table)
 {
-  m_native_settings.setValue(QStringLiteral("PreferredView"), table);
+  QSettings().setValue(QStringLiteral("PreferredView"), table);
 }
 
 int Settings::GetStateSlot() const
 {
-  return m_native_settings.value(QStringLiteral("Emulation/StateSlot"), 1).toInt();
+  return QSettings().value(QStringLiteral("Emulation/StateSlot"), 1).toInt();
 }
 
 void Settings::SetStateSlot(int slot)
 {
-  m_native_settings.setValue(QStringLiteral("Emulation/StateSlot"), slot);
+  QSettings().setValue(QStringLiteral("Emulation/StateSlot"), slot);
 }
 
 void Settings::SetHideCursor(bool hide_cursor)
