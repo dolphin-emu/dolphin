@@ -17,6 +17,7 @@
 
 #include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
+#include "Core/CommonTitles.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/GCKeyboard.h"
@@ -187,6 +188,7 @@ void MainWindow::ConnectMenuBar()
 
   // Tools
   connect(m_menu_bar, &MenuBar::PerformOnlineUpdate, this, &MainWindow::PerformOnlineUpdate);
+  connect(m_menu_bar, &MenuBar::BootWiiSystemMenu, this, &MainWindow::BootWiiSystemMenu);
 
   // View
   connect(m_menu_bar, &MenuBar::ShowTable, m_game_list, &GameList::SetTableView);
@@ -564,6 +566,12 @@ void MainWindow::PerformOnlineUpdate(const std::string& region)
   WiiUpdate::PerformOnlineUpdate(region, this);
   // Since the update may have installed a newer system menu, refresh the tools menu.
   m_menu_bar->UpdateToolsMenu(false);
+}
+
+void MainWindow::BootWiiSystemMenu()
+{
+  StartGame(QString::fromStdString(
+      Common::GetTitleContentPath(Titles::SYSTEM_MENU, Common::FROM_CONFIGURED_ROOT)));
 }
 
 bool MainWindow::eventFilter(QObject* object, QEvent* event)

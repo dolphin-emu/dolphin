@@ -327,7 +327,12 @@ bool GameFile::Install()
 {
   _assert_(m_platform == DiscIO::Platform::WII_WAD);
 
-  return WiiUtils::InstallWAD(m_path.toStdString());
+  bool installed = WiiUtils::InstallWAD(m_path.toStdString());
+
+  if (installed)
+    Settings::Instance().NANDRefresh();
+
+  return installed;
 }
 
 bool GameFile::Uninstall()

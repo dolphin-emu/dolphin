@@ -272,12 +272,10 @@ void MenuBar::AddTableColumnsMenu(QMenu* view_menu)
 
 void MenuBar::UpdateToolsMenu(bool emulation_started)
 {
-  const bool enable_wii_tools = !emulation_started || !SConfig::GetInstance().bWii;
-
   m_boot_sysmenu->setEnabled(!emulation_started);
-  m_perform_online_update_menu->setEnabled(enable_wii_tools);
+  m_perform_online_update_menu->setEnabled(!emulation_started);
 
-  if (enable_wii_tools)
+  if (!emulation_started)
   {
     IOS::HLE::Kernel ios;
     const auto tmd = ios.GetES()->FindInstalledTMD(Titles::SYSTEM_MENU);
@@ -288,7 +286,7 @@ void MenuBar::UpdateToolsMenu(bool emulation_started)
             QStringLiteral("");
     m_boot_sysmenu->setText(tr("Load Wii System Menu %1").arg(sysmenu_version));
 
-    m_boot_sysmenu->setEnabled(!emulation_started && tmd.IsValid());
+    m_boot_sysmenu->setEnabled(tmd.IsValid());
 
     for (QAction* action : m_perform_online_update_menu->actions())
       action->setEnabled(!tmd.IsValid());
