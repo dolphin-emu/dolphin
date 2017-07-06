@@ -11,6 +11,8 @@
 
 class DolphinSlider;
 class wxCheckBox;
+class wxDateEvent;
+class wxDateTime;
 class wxDatePickerCtrl;
 class wxStaticText;
 class wxTimePickerCtrl;
@@ -31,16 +33,14 @@ private:
   void OnClockOverrideCheckBoxChanged(wxCommandEvent&);
   void OnClockOverrideSliderChanged(wxCommandEvent&);
   void OnCustomRTCCheckBoxChanged(wxCommandEvent&);
-  void OnCustomRTCDateChanged(wxCommandEvent&);
-  void OnCustomRTCTimeChanged(wxCommandEvent&);
+  void OnCustomRTCDateChanged(wxDateEvent&);
+  void OnCustomRTCTimeChanged(wxDateEvent&);
 
   void UpdateCPUClock();
 
   // Custom RTC
   void LoadCustomRTC();
-  void UpdateCustomRTC(time_t date, time_t time);
-  u32 m_temp_date;
-  u32 m_temp_time;
+  void UpdateCustomRTC(const wxDateTime&);
 
   wxCheckBox* m_clock_override_checkbox;
   DolphinSlider* m_clock_override_slider;
