@@ -163,47 +163,20 @@ void LogConfigWindow::OnVerbosityChange(wxCommandEvent& event)
 
 void LogConfigWindow::OnWriteFileChecked(wxCommandEvent& event)
 {
-  for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
-  {
-    m_writeFile = event.IsChecked();
-    if (m_checks->IsChecked(i))
-    {
-      if (m_writeFile)
-        m_LogManager->AddListener((LogTypes::LOG_TYPE)i, LogListener::FILE_LISTENER);
-      else
-        m_LogManager->RemoveListener((LogTypes::LOG_TYPE)i, LogListener::FILE_LISTENER);
-    }
-  }
+  m_writeFile = event.IsChecked();
+  m_LogManager->EnableListener(LogListener::FILE_LISTENER, m_writeFile);
 }
 
 void LogConfigWindow::OnWriteConsoleChecked(wxCommandEvent& event)
 {
-  for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
-  {
-    m_writeConsole = event.IsChecked();
-    if (m_checks->IsChecked(i))
-    {
-      if (m_writeConsole)
-        m_LogManager->AddListener((LogTypes::LOG_TYPE)i, LogListener::CONSOLE_LISTENER);
-      else
-        m_LogManager->RemoveListener((LogTypes::LOG_TYPE)i, LogListener::CONSOLE_LISTENER);
-    }
-  }
+  m_writeConsole = event.IsChecked();
+  m_LogManager->EnableListener(LogListener::CONSOLE_LISTENER, m_writeConsole);
 }
 
 void LogConfigWindow::OnWriteWindowChecked(wxCommandEvent& event)
 {
-  for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
-  {
-    m_writeWindow = event.IsChecked();
-    if (m_checks->IsChecked(i))
-    {
-      if (m_writeWindow)
-        m_LogManager->AddListener((LogTypes::LOG_TYPE)i, LogListener::LOG_WINDOW_LISTENER);
-      else
-        m_LogManager->RemoveListener((LogTypes::LOG_TYPE)i, LogListener::LOG_WINDOW_LISTENER);
-    }
-  }
+  m_writeWindow = event.IsChecked();
+  m_LogManager->EnableListener(LogListener::LOG_WINDOW_LISTENER, m_writeWindow);
 }
 
 void LogConfigWindow::OnToggleAll(wxCommandEvent& WXUNUSED(event))
@@ -217,26 +190,8 @@ void LogConfigWindow::OnToggleAll(wxCommandEvent& WXUNUSED(event))
 void LogConfigWindow::ToggleLog(int _logType, bool enable)
 {
   LogTypes::LOG_TYPE logType = (LogTypes::LOG_TYPE)_logType;
-
   m_checks->Check(_logType, enable);
-
   m_LogManager->SetEnable(logType, enable);
-
-  if (enable)
-  {
-    if (m_writeWindow)
-      m_LogManager->AddListener(logType, LogListener::LOG_WINDOW_LISTENER);
-    if (m_writeFile)
-      m_LogManager->AddListener(logType, LogListener::FILE_LISTENER);
-    if (m_writeConsole)
-      m_LogManager->AddListener(logType, LogListener::CONSOLE_LISTENER);
-  }
-  else
-  {
-    m_LogManager->RemoveListener(logType, LogListener::LOG_WINDOW_LISTENER);
-    m_LogManager->RemoveListener(logType, LogListener::FILE_LISTENER);
-    m_LogManager->RemoveListener(logType, LogListener::CONSOLE_LISTENER);
-  }
 }
 
 void LogConfigWindow::OnLogCheck(wxCommandEvent& event)

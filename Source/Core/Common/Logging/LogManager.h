@@ -8,6 +8,7 @@
 #include <cstdarg>
 #include <string>
 
+#include "Common/BitSet.h"
 #include "Common/Logging/Log.h"
 #include "Common/NonCopyable.h"
 
@@ -50,9 +51,10 @@ public:
 
   std::string GetShortName(LogTypes::LOG_TYPE type) const;
   std::string GetFullName(LogTypes::LOG_TYPE type) const;
+
   void RegisterListener(LogListener::LISTENER id, LogListener* listener);
-  void AddListener(LogTypes::LOG_TYPE type, LogListener::LISTENER id);
-  void RemoveListener(LogTypes::LOG_TYPE type, LogListener::LISTENER id);
+  void EnableListener(LogListener::LISTENER id, bool enable);
+  bool IsListenerEnabled(LogListener::LISTENER id) const;
 
 private:
   LogManager();
@@ -61,5 +63,6 @@ private:
   LogTypes::LOG_LEVELS m_level;
   LogContainer* m_log[LogTypes::NUMBER_OF_LOGS];
   std::array<LogListener*, LogListener::NUMBER_OF_LISTENERS> m_listeners{};
+  BitSet32 m_listener_ids;
   size_t m_path_cutoff_point = 0;
 };

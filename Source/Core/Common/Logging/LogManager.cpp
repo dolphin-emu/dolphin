@@ -8,7 +8,6 @@
 #include <ostream>
 #include <string>
 
-#include "Common/BitSet.h"
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
@@ -58,19 +57,12 @@ public:
 
   std::string GetShortName() const { return m_short_name; }
   std::string GetFullName() const { return m_full_name; }
-  void AddListener(LogListener::LISTENER id) { m_listener_ids[id] = 1; }
-  void RemoveListener(LogListener::LISTENER id) { m_listener_ids[id] = 0; }
   bool IsEnabled() const { return m_enable; }
   void SetEnable(bool enable) { m_enable = enable; }
-  bool HasListeners() const { return bool(m_listener_ids); }
-  typedef class BitSet32::Iterator iterator;
-  iterator begin() const { return m_listener_ids.begin(); }
-  iterator end() const { return m_listener_ids.end(); }
 private:
   std::string m_full_name;
   std::string m_short_name;
   bool m_enable;
-  BitSet32 m_listener_ids;
 };
 
 void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, const char* file, int line,
@@ -169,18 +161,15 @@ LogManager::LogManager()
     verbosity = MAX_LOGLEVEL;
 
   SetLogLevel(static_cast<LogTypes::LOG_LEVELS>(verbosity));
+  EnableListener(LogListener::FILE_LISTENER, write_file);
+  EnableListener(LogListener::CONSOLE_LISTENER, write_console);
+  EnableListener(LogListener::LOG_WINDOW_LISTENER, write_window);
 
   for (LogContainer* container : m_log)
   {
     bool enable;
     logs->Get(container->GetShortName(), &enable, false);
     container->SetEnable(enable);
-    if (enable && write_file)
-      container->AddListener(LogListener::FILE_LISTENER);
-    if (enable && write_console)
-      container->AddListener(LogListener::CONSOLE_LISTENER);
-    if (enable && write_window)
-      container->AddListener(LogListener::LOG_WINDOW_LISTENER);
   }
 
   m_path_cutoff_point = DeterminePathCutOffPoint();
@@ -208,7 +197,7 @@ void LogManager::LogWithFullPath(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE 
   char temp[MAX_MSGLEN];
   LogContainer* log = m_log[type];
 
-  if (!log->IsEnabled() || level > GetLogLevel() || !log->HasListeners())
+  if (!log->IsEnabled() || level > GetLogLevel() || !static_cast<bool>(m_listener_ids))
     return;
 
   CharArrayFromFormatV(temp, MAX_MSGLEN, format, args);
@@ -217,7 +206,7 @@ void LogManager::LogWithFullPath(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE 
       "%s %s:%u %c[%s]: %s\n", Common::Timer::GetTimeFormatted().c_str(), file, line,
       LogTypes::LOG_LEVEL_TO_CHAR[(int)level], log->GetShortName().c_str(), temp);
 
-  for (auto listener_id : *log)
+  for (auto listener_id : m_listener_ids)
     if (m_listeners[listener_id])
       m_listeners[listener_id]->Log(level, msg.c_str());
 }
@@ -257,14 +246,14 @@ void LogManager::RegisterListener(LogListener::LISTENER id, LogListener* listene
   m_listeners[id] = listener;
 }
 
-void LogManager::AddListener(LogTypes::LOG_TYPE type, LogListener::LISTENER id)
+void LogManager::EnableListener(LogListener::LISTENER id, bool enable)
 {
-  m_log[type]->AddListener(id);
+  m_listener_ids[id] = enable;
 }
 
-void LogManager::RemoveListener(LogTypes::LOG_TYPE type, LogListener::LISTENER id)
+bool LogManager::IsListenerEnabled(LogListener::LISTENER id) const
 {
-  m_log[type]->RemoveListener(id);
+  return m_listener_ids[id];
 }
 
 // Singleton. Ugh.
