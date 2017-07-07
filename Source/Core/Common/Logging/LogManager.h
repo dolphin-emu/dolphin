@@ -6,7 +6,6 @@
 
 #include <array>
 #include <cstdarg>
-#include <string>
 
 #include "Common/BitSet.h"
 #include "Common/Logging/Log.h"
@@ -29,8 +28,6 @@ public:
   };
 };
 
-class LogContainer;
-
 class LogManager : NonCopyable
 {
 public:
@@ -49,19 +46,26 @@ public:
   void SetEnable(LogTypes::LOG_TYPE type, bool enable);
   bool IsEnabled(LogTypes::LOG_TYPE type, LogTypes::LOG_LEVELS level = LogTypes::LNOTICE) const;
 
-  std::string GetShortName(LogTypes::LOG_TYPE type) const;
-  std::string GetFullName(LogTypes::LOG_TYPE type) const;
+  const char* GetShortName(LogTypes::LOG_TYPE type) const;
+  const char* GetFullName(LogTypes::LOG_TYPE type) const;
 
   void RegisterListener(LogListener::LISTENER id, LogListener* listener);
   void EnableListener(LogListener::LISTENER id, bool enable);
   bool IsListenerEnabled(LogListener::LISTENER id) const;
 
 private:
+  struct LogContainer
+  {
+    const char* m_short_name;
+    const char* m_full_name;
+    bool m_enable = false;
+  };
+
   LogManager();
   ~LogManager();
 
   LogTypes::LOG_LEVELS m_level;
-  LogContainer* m_log[LogTypes::NUMBER_OF_LOGS];
+  std::array<LogContainer, LogTypes::NUMBER_OF_LOGS> m_log{};
   std::array<LogListener*, LogListener::NUMBER_OF_LISTENERS> m_listeners{};
   BitSet32 m_listener_ids;
   size_t m_path_cutoff_point = 0;

@@ -47,24 +47,6 @@ private:
   bool m_enable;
 };
 
-class LogContainer
-{
-public:
-  LogContainer(const std::string& short_name, const std::string& full_name, bool enable = false)
-      : m_full_name(full_name), m_short_name(short_name), m_enable(enable)
-  {
-  }
-
-  std::string GetShortName() const { return m_short_name; }
-  std::string GetFullName() const { return m_full_name; }
-  bool IsEnabled() const { return m_enable; }
-  void SetEnable(bool enable) { m_enable = enable; }
-private:
-  std::string m_full_name;
-  std::string m_short_name;
-  bool m_enable;
-};
-
 void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, const char* file, int line,
                 const char* fmt, ...)
 {
@@ -87,53 +69,53 @@ static size_t DeterminePathCutOffPoint()
 LogManager::LogManager()
 {
   // create log containers
-  m_log[LogTypes::ACTIONREPLAY] = new LogContainer("ActionReplay", "ActionReplay");
-  m_log[LogTypes::AUDIO] = new LogContainer("Audio", "Audio Emulator");
-  m_log[LogTypes::AUDIO_INTERFACE] = new LogContainer("AI", "Audio Interface (AI)");
-  m_log[LogTypes::BOOT] = new LogContainer("BOOT", "Boot");
-  m_log[LogTypes::COMMANDPROCESSOR] = new LogContainer("CP", "CommandProc");
-  m_log[LogTypes::COMMON] = new LogContainer("COMMON", "Common");
-  m_log[LogTypes::CONSOLE] = new LogContainer("CONSOLE", "Dolphin Console");
-  m_log[LogTypes::CORE] = new LogContainer("CORE", "Core");
-  m_log[LogTypes::DISCIO] = new LogContainer("DIO", "Disc IO");
-  m_log[LogTypes::DSPHLE] = new LogContainer("DSPHLE", "DSP HLE");
-  m_log[LogTypes::DSPLLE] = new LogContainer("DSPLLE", "DSP LLE");
-  m_log[LogTypes::DSP_MAIL] = new LogContainer("DSPMails", "DSP Mails");
-  m_log[LogTypes::DSPINTERFACE] = new LogContainer("DSP", "DSPInterface");
-  m_log[LogTypes::DVDINTERFACE] = new LogContainer("DVD", "DVD Interface");
-  m_log[LogTypes::DYNA_REC] = new LogContainer("JIT", "Dynamic Recompiler");
-  m_log[LogTypes::EXPANSIONINTERFACE] = new LogContainer("EXI", "Expansion Interface");
-  m_log[LogTypes::FILEMON] = new LogContainer("FileMon", "File Monitor");
-  m_log[LogTypes::GDB_STUB] = new LogContainer("GDB_STUB", "GDB Stub");
-  m_log[LogTypes::GPFIFO] = new LogContainer("GP", "GPFifo");
-  m_log[LogTypes::HOST_GPU] = new LogContainer("Host GPU", "Host GPU");
-  m_log[LogTypes::IOS] = new LogContainer("IOS", "IOS");
-  m_log[LogTypes::IOS_DI] = new LogContainer("IOS_DI", "IOS - Drive Interface");
-  m_log[LogTypes::IOS_ES] = new LogContainer("IOS_ES", "IOS - ETicket Services");
-  m_log[LogTypes::IOS_FILEIO] = new LogContainer("IOS_FILEIO", "IOS - FileIO");
-  m_log[LogTypes::IOS_SD] = new LogContainer("IOS_SD", "IOS - SDIO");
-  m_log[LogTypes::IOS_SSL] = new LogContainer("IOS_SSL", "IOS - SSL");
-  m_log[LogTypes::IOS_STM] = new LogContainer("IOS_STM", "IOS - State Transition Manager");
-  m_log[LogTypes::IOS_NET] = new LogContainer("IOS_NET", "IOS - Network");
-  m_log[LogTypes::IOS_USB] = new LogContainer("IOS_USB", "IOS - USB");
-  m_log[LogTypes::IOS_WC24] = new LogContainer("IOS_WC24", "IOS - WiiConnect24");
-  m_log[LogTypes::IOS_WIIMOTE] = new LogContainer("IOS_WIIMOTE", "IOS - Wii Remote");
-  m_log[LogTypes::MASTER_LOG] = new LogContainer("*", "Master Log");
-  m_log[LogTypes::MEMCARD_MANAGER] = new LogContainer("MemCard Manager", "MemCard Manager");
-  m_log[LogTypes::MEMMAP] = new LogContainer("MI", "MI & memmap");
-  m_log[LogTypes::NETPLAY] = new LogContainer("NETPLAY", "Netplay");
-  m_log[LogTypes::OSHLE] = new LogContainer("HLE", "HLE");
-  m_log[LogTypes::OSREPORT] = new LogContainer("OSREPORT", "OSReport");
-  m_log[LogTypes::PAD] = new LogContainer("PAD", "Pad");
-  m_log[LogTypes::PIXELENGINE] = new LogContainer("PE", "PixelEngine");
-  m_log[LogTypes::PROCESSORINTERFACE] = new LogContainer("PI", "ProcessorInt");
-  m_log[LogTypes::POWERPC] = new LogContainer("PowerPC", "IBM CPU");
-  m_log[LogTypes::SERIALINTERFACE] = new LogContainer("SI", "Serial Interface (SI)");
-  m_log[LogTypes::SP1] = new LogContainer("SP1", "Serial Port 1");
-  m_log[LogTypes::VIDEO] = new LogContainer("Video", "Video Backend");
-  m_log[LogTypes::VIDEOINTERFACE] = new LogContainer("VI", "Video Interface (VI)");
-  m_log[LogTypes::WIIMOTE] = new LogContainer("Wiimote", "Wiimote");
-  m_log[LogTypes::WII_IPC] = new LogContainer("WII_IPC", "WII IPC");
+  m_log[LogTypes::ACTIONREPLAY] = {"ActionReplay", "ActionReplay"};
+  m_log[LogTypes::AUDIO] = {"Audio", "Audio Emulator"};
+  m_log[LogTypes::AUDIO_INTERFACE] = {"AI", "Audio Interface (AI)"};
+  m_log[LogTypes::BOOT] = {"BOOT", "Boot"};
+  m_log[LogTypes::COMMANDPROCESSOR] = {"CP", "CommandProc"};
+  m_log[LogTypes::COMMON] = {"COMMON", "Common"};
+  m_log[LogTypes::CONSOLE] = {"CONSOLE", "Dolphin Console"};
+  m_log[LogTypes::CORE] = {"CORE", "Core"};
+  m_log[LogTypes::DISCIO] = {"DIO", "Disc IO"};
+  m_log[LogTypes::DSPHLE] = {"DSPHLE", "DSP HLE"};
+  m_log[LogTypes::DSPLLE] = {"DSPLLE", "DSP LLE"};
+  m_log[LogTypes::DSP_MAIL] = {"DSPMails", "DSP Mails"};
+  m_log[LogTypes::DSPINTERFACE] = {"DSP", "DSPInterface"};
+  m_log[LogTypes::DVDINTERFACE] = {"DVD", "DVD Interface"};
+  m_log[LogTypes::DYNA_REC] = {"JIT", "Dynamic Recompiler"};
+  m_log[LogTypes::EXPANSIONINTERFACE] = {"EXI", "Expansion Interface"};
+  m_log[LogTypes::FILEMON] = {"FileMon", "File Monitor"};
+  m_log[LogTypes::GDB_STUB] = {"GDB_STUB", "GDB Stub"};
+  m_log[LogTypes::GPFIFO] = {"GP", "GPFifo"};
+  m_log[LogTypes::HOST_GPU] = {"Host GPU", "Host GPU"};
+  m_log[LogTypes::IOS] = {"IOS", "IOS"};
+  m_log[LogTypes::IOS_DI] = {"IOS_DI", "IOS - Drive Interface"};
+  m_log[LogTypes::IOS_ES] = {"IOS_ES", "IOS - ETicket Services"};
+  m_log[LogTypes::IOS_FILEIO] = {"IOS_FILEIO", "IOS - FileIO"};
+  m_log[LogTypes::IOS_SD] = {"IOS_SD", "IOS - SDIO"};
+  m_log[LogTypes::IOS_SSL] = {"IOS_SSL", "IOS - SSL"};
+  m_log[LogTypes::IOS_STM] = {"IOS_STM", "IOS - State Transition Manager"};
+  m_log[LogTypes::IOS_NET] = {"IOS_NET", "IOS - Network"};
+  m_log[LogTypes::IOS_USB] = {"IOS_USB", "IOS - USB"};
+  m_log[LogTypes::IOS_WC24] = {"IOS_WC24", "IOS - WiiConnect24"};
+  m_log[LogTypes::IOS_WIIMOTE] = {"IOS_WIIMOTE", "IOS - Wii Remote"};
+  m_log[LogTypes::MASTER_LOG] = {"*", "Master Log"};
+  m_log[LogTypes::MEMCARD_MANAGER] = {"MemCard Manager", "MemCard Manager"};
+  m_log[LogTypes::MEMMAP] = {"MI", "MI & memmap"};
+  m_log[LogTypes::NETPLAY] = {"NETPLAY", "Netplay"};
+  m_log[LogTypes::OSHLE] = {"HLE", "HLE"};
+  m_log[LogTypes::OSREPORT] = {"OSREPORT", "OSReport"};
+  m_log[LogTypes::PAD] = {"PAD", "Pad"};
+  m_log[LogTypes::PIXELENGINE] = {"PE", "PixelEngine"};
+  m_log[LogTypes::PROCESSORINTERFACE] = {"PI", "ProcessorInt"};
+  m_log[LogTypes::POWERPC] = {"PowerPC", "IBM CPU"};
+  m_log[LogTypes::SERIALINTERFACE] = {"SI", "Serial Interface (SI)"};
+  m_log[LogTypes::SP1] = {"SP1", "Serial Port 1"};
+  m_log[LogTypes::VIDEO] = {"Video", "Video Backend"};
+  m_log[LogTypes::VIDEOINTERFACE] = {"VI", "Video Interface (VI)"};
+  m_log[LogTypes::WIIMOTE] = {"Wiimote", "Wiimote"};
+  m_log[LogTypes::WII_IPC] = {"WII_IPC", "WII IPC"};
 
   RegisterListener(LogListener::FILE_LISTENER,
                    new FileLogListener(File::GetUserPath(F_MAINLOG_IDX)));
@@ -165,21 +147,14 @@ LogManager::LogManager()
   EnableListener(LogListener::CONSOLE_LISTENER, write_console);
   EnableListener(LogListener::LOG_WINDOW_LISTENER, write_window);
 
-  for (LogContainer* container : m_log)
-  {
-    bool enable;
-    logs->Get(container->GetShortName(), &enable, false);
-    container->SetEnable(enable);
-  }
+  for (LogContainer& container : m_log)
+    logs->Get(container.m_short_name, &container.m_enable, false);
 
   m_path_cutoff_point = DeterminePathCutOffPoint();
 }
 
 LogManager::~LogManager()
 {
-  for (LogContainer* container : m_log)
-    delete container;
-
   // The log window listener pointer is owned by the GUI code.
   delete m_listeners[LogListener::CONSOLE_LISTENER];
   delete m_listeners[LogListener::FILE_LISTENER];
@@ -194,17 +169,15 @@ void LogManager::Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, const 
 void LogManager::LogWithFullPath(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
                                  const char* file, int line, const char* format, va_list args)
 {
-  char temp[MAX_MSGLEN];
-  LogContainer* log = m_log[type];
-
-  if (!log->IsEnabled() || level > GetLogLevel() || !static_cast<bool>(m_listener_ids))
+  if (!IsEnabled(type, level) || !static_cast<bool>(m_listener_ids))
     return;
 
+  char temp[MAX_MSGLEN];
   CharArrayFromFormatV(temp, MAX_MSGLEN, format, args);
 
-  std::string msg = StringFromFormat(
-      "%s %s:%u %c[%s]: %s\n", Common::Timer::GetTimeFormatted().c_str(), file, line,
-      LogTypes::LOG_LEVEL_TO_CHAR[(int)level], log->GetShortName().c_str(), temp);
+  std::string msg =
+      StringFromFormat("%s %s:%u %c[%s]: %s\n", Common::Timer::GetTimeFormatted().c_str(), file,
+                       line, LogTypes::LOG_LEVEL_TO_CHAR[(int)level], GetShortName(type), temp);
 
   for (auto listener_id : m_listener_ids)
     if (m_listeners[listener_id])
@@ -223,22 +196,22 @@ void LogManager::SetLogLevel(LogTypes::LOG_LEVELS level)
 
 void LogManager::SetEnable(LogTypes::LOG_TYPE type, bool enable)
 {
-  m_log[type]->SetEnable(enable);
+  m_log[type].m_enable = enable;
 }
 
 bool LogManager::IsEnabled(LogTypes::LOG_TYPE type, LogTypes::LOG_LEVELS level) const
 {
-  return m_log[type]->IsEnabled() && GetLogLevel() >= level;
+  return m_log[type].m_enable && GetLogLevel() >= level;
 }
 
-std::string LogManager::GetShortName(LogTypes::LOG_TYPE type) const
+const char* LogManager::GetShortName(LogTypes::LOG_TYPE type) const
 {
-  return m_log[type]->GetShortName();
+  return m_log[type].m_short_name;
 }
 
-std::string LogManager::GetFullName(LogTypes::LOG_TYPE type) const
+const char* LogManager::GetFullName(LogTypes::LOG_TYPE type) const
 {
-  return m_log[type]->GetFullName();
+  return m_log[type].m_full_name;
 }
 
 void LogManager::RegisterListener(LogListener::LISTENER id, LogListener* listener)
