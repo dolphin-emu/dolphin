@@ -33,7 +33,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/IniFile.h"
-#include "Common/Logging/LogManager.h"
+#include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 
@@ -278,7 +278,7 @@ static void LogInfo(const char* format, ...)
   if (s_disable_logging)
     return;
   bool use_internal_log = s_use_internal_log.load(std::memory_order_relaxed);
-  if (LogManager::GetMaxLevel() < LogTypes::LINFO && !use_internal_log)
+  if (MAX_LOGLEVEL < LogTypes::LINFO && !use_internal_log)
     return;
 
   va_list args;
