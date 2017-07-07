@@ -133,23 +133,7 @@ void LogConfigWindow::LoadSettings()
 
 void LogConfigWindow::SaveSettings()
 {
-  IniFile ini;
-  ini.Load(File::GetUserPath(F_LOGGERCONFIG_IDX));
-
-  IniFile::Section* options = ini.GetOrCreateSection("Options");
-  options->Set("Verbosity", m_verbosity->GetSelection() + 1);
-  options->Set("WriteToFile", m_writeFile);
-  options->Set("WriteToConsole", m_writeConsole);
-  options->Set("WriteToWindow", m_writeWindow);
-
-  // Save all enabled/disabled states of the log types to the config ini.
-  for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
-  {
-    ini.GetOrCreateSection("Logs")->Set(m_LogManager->GetShortName((LogTypes::LOG_TYPE)i),
-                                        m_checks->IsChecked(i));
-  }
-
-  ini.Save(File::GetUserPath(F_LOGGERCONFIG_IDX));
+  m_LogManager->SaveSettings();
 }
 
 // If the verbosity changes while logging

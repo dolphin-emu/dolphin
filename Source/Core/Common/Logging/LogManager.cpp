@@ -160,6 +160,24 @@ LogManager::~LogManager()
   delete m_listeners[LogListener::FILE_LISTENER];
 }
 
+void LogManager::SaveSettings()
+{
+  IniFile ini;
+  ini.Load(File::GetUserPath(F_LOGGERCONFIG_IDX));
+
+  IniFile::Section* options = ini.GetOrCreateSection("Options");
+  options->Set("Verbosity", GetLogLevel());
+  options->Set("WriteToFile", m_listener_ids[LogListener::FILE_LISTENER]);
+  options->Set("WriteToConsole", m_listener_ids[LogListener::CONSOLE_LISTENER]);
+  options->Set("WriteToWindow", m_listener_ids[LogListener::LOG_WINDOW_LISTENER]);
+
+  // Save all enabled/disabled states of the log types to the config ini.
+  for (const auto& container : m_log)
+    ini.GetOrCreateSection("Logs")->Set(container.m_short_name, container.m_enable);
+
+  ini.Save(File::GetUserPath(F_LOGGERCONFIG_IDX));
+}
+
 void LogManager::Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, const char* file,
                      int line, const char* format, va_list args)
 {
@@ -244,6 +262,8 @@ void LogManager::Init()
 
 void LogManager::Shutdown()
 {
+  if (s_log_manager)
+    s_log_manager->SaveSettings();
   delete s_log_manager;
   s_log_manager = nullptr;
 }

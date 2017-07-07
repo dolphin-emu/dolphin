@@ -53,6 +53,8 @@ public:
   void EnableListener(LogListener::LISTENER id, bool enable);
   bool IsListenerEnabled(LogListener::LISTENER id) const;
 
+  void SaveSettings();
+
 private:
   struct LogContainer
   {
