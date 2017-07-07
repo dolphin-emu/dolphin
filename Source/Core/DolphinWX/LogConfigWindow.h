@@ -22,7 +22,6 @@ public:
 
 private:
   LogManager* m_LogManager;
-  bool m_writeFile, m_writeConsole, m_writeWindow;
   bool enableAll;
 
   // Controls

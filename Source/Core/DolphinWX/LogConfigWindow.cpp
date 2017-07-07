@@ -12,7 +12,6 @@
 #include <wx/validate.h>
 
 #include "Common/FileUtil.h"
-#include "Common/IniFile.h"
 #include "Common/Logging/ConsoleListener.h"
 #include "Common/Logging/Log.h"
 #include "Common/Logging/LogManager.h"
@@ -90,39 +89,18 @@ void LogConfigWindow::CreateGUIControls()
 
 void LogConfigWindow::LoadSettings()
 {
-  IniFile ini;
-  ini.Load(File::GetUserPath(F_LOGGERCONFIG_IDX));
-
-  IniFile::Section* options = ini.GetOrCreateSection("Options");
-
-  // Retrieve the verbosity value from the config ini file.
-  int verbosity;
-  options->Get("Verbosity", &verbosity, 0);
-
-  // Ensure the verbosity level is valid.
-  if (verbosity < 1)
-    verbosity = 1;
-  if (verbosity > MAX_LOGLEVEL)
-    verbosity = MAX_LOGLEVEL;
-
-  // Actually set the logging verbosity.
-  m_verbosity->SetSelection(verbosity - 1);
+  m_verbosity->SetSelection(m_LogManager->GetLogLevel());
 
   // Get the logger output settings from the config ini file.
-  options->Get("WriteToFile", &m_writeFile, false);
-  m_writeFileCB->SetValue(m_writeFile);
-  options->Get("WriteToConsole", &m_writeConsole, true);
-  m_writeConsoleCB->SetValue(m_writeConsole);
-  options->Get("WriteToWindow", &m_writeWindow, true);
-  m_writeWindowCB->SetValue(m_writeWindow);
+  m_writeFileCB->SetValue(m_LogManager->IsListenerEnabled(LogListener::FILE_LISTENER));
+  m_writeConsoleCB->SetValue(m_LogManager->IsListenerEnabled(LogListener::CONSOLE_LISTENER));
+  m_writeWindowCB->SetValue(m_LogManager->IsListenerEnabled(LogListener::LOG_WINDOW_LISTENER));
 
   // Run through all of the log types and check each checkbox for each logging type
   // depending on its set value within the config ini.
   for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
   {
-    bool log_enabled;
-    ini.GetOrCreateSection("Logs")->Get(m_LogManager->GetShortName((LogTypes::LOG_TYPE)i),
-                                        &log_enabled, false);
+    bool log_enabled = m_LogManager->IsEnabled(static_cast<LogTypes::LOG_TYPE>(i));
 
     if (log_enabled)
       enableAll = false;
@@ -147,20 +125,17 @@ void LogConfigWindow::OnVerbosityChange(wxCommandEvent& event)
 
 void LogConfigWindow::OnWriteFileChecked(wxCommandEvent& event)
 {
-  m_writeFile = event.IsChecked();
-  m_LogManager->EnableListener(LogListener::FILE_LISTENER, m_writeFile);
+  m_LogManager->EnableListener(LogListener::FILE_LISTENER, event.IsChecked());
 }
 
 void LogConfigWindow::OnWriteConsoleChecked(wxCommandEvent& event)
 {
-  m_writeConsole = event.IsChecked();
-  m_LogManager->EnableListener(LogListener::CONSOLE_LISTENER, m_writeConsole);
+  m_LogManager->EnableListener(LogListener::CONSOLE_LISTENER, event.IsChecked());
 }
 
 void LogConfigWindow::OnWriteWindowChecked(wxCommandEvent& event)
 {
-  m_writeWindow = event.IsChecked();
-  m_LogManager->EnableListener(LogListener::LOG_WINDOW_LISTENER, m_writeWindow);
+  m_LogManager->EnableListener(LogListener::LOG_WINDOW_LISTENER, event.IsChecked());
 }
 
 void LogConfigWindow::OnToggleAll(wxCommandEvent& WXUNUSED(event))
