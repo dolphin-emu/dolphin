@@ -52,8 +52,7 @@ class LogContainer
 {
 public:
   LogContainer(const std::string& short_name, const std::string& full_name, bool enable = false)
-      : m_full_name(full_name), m_short_name(short_name), m_enable(enable),
-        m_level(LogTypes::LWARNING)
+      : m_full_name(full_name), m_short_name(short_name), m_enable(enable)
   {
   }
 
@@ -63,8 +62,6 @@ public:
   void RemoveListener(LogListener::LISTENER id) { m_listener_ids[id] = 0; }
   bool IsEnabled() const { return m_enable; }
   void SetEnable(bool enable) { m_enable = enable; }
-  LogTypes::LOG_LEVELS GetLevel() const { return m_level; }
-  void SetLevel(LogTypes::LOG_LEVELS level) { m_level = level; }
   bool HasListeners() const { return bool(m_listener_ids); }
   typedef class BitSet32::Iterator iterator;
   iterator begin() const { return m_listener_ids.begin(); }
@@ -73,7 +70,6 @@ private:
   std::string m_full_name;
   std::string m_short_name;
   bool m_enable;
-  LogTypes::LOG_LEVELS m_level;
   BitSet32 m_listener_ids;
 };
 
@@ -172,12 +168,13 @@ LogManager::LogManager()
   if (verbosity > MAX_LOGLEVEL)
     verbosity = MAX_LOGLEVEL;
 
+  SetLogLevel(static_cast<LogTypes::LOG_LEVELS>(verbosity));
+
   for (LogContainer* container : m_log)
   {
     bool enable;
     logs->Get(container->GetShortName(), &enable, false);
     container->SetEnable(enable);
-    container->SetLevel(static_cast<LogTypes::LOG_LEVELS>(verbosity));
     if (enable && write_file)
       container->AddListener(LogListener::FILE_LISTENER);
     if (enable && write_console)
@@ -211,7 +208,7 @@ void LogManager::LogWithFullPath(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE 
   char temp[MAX_MSGLEN];
   LogContainer* log = m_log[type];
 
-  if (!log->IsEnabled() || level > log->GetLevel() || !log->HasListeners())
+  if (!log->IsEnabled() || level > GetLogLevel() || !log->HasListeners())
     return;
 
   CharArrayFromFormatV(temp, MAX_MSGLEN, format, args);
@@ -225,9 +222,14 @@ void LogManager::LogWithFullPath(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE 
       m_listeners[listener_id]->Log(level, msg.c_str());
 }
 
-void LogManager::SetLogLevel(LogTypes::LOG_TYPE type, LogTypes::LOG_LEVELS level)
+LogTypes::LOG_LEVELS LogManager::GetLogLevel() const
 {
-  m_log[type]->SetLevel(level);
+  return m_level;
+}
+
+void LogManager::SetLogLevel(LogTypes::LOG_LEVELS level)
+{
+  m_level = level;
 }
 
 void LogManager::SetEnable(LogTypes::LOG_TYPE type, bool enable)
@@ -237,7 +239,7 @@ void LogManager::SetEnable(LogTypes::LOG_TYPE type, bool enable)
 
 bool LogManager::IsEnabled(LogTypes::LOG_TYPE type, LogTypes::LOG_LEVELS level) const
 {
-  return m_log[type]->IsEnabled() && m_log[type]->GetLevel() >= level;
+  return m_log[type]->IsEnabled() && GetLogLevel() >= level;
 }
 
 std::string LogManager::GetShortName(LogTypes::LOG_TYPE type) const

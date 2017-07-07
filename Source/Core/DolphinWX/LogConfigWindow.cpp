@@ -155,14 +155,8 @@ void LogConfigWindow::SaveSettings()
 // If the verbosity changes while logging
 void LogConfigWindow::OnVerbosityChange(wxCommandEvent& event)
 {
-  // Get the new verbosity
   int v = m_verbosity->GetSelection() + 1;
-
-  // Set all log types to that verbosity level
-  for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; i++)
-  {
-    m_LogManager->SetLogLevel((LogTypes::LOG_TYPE)i, (LogTypes::LOG_LEVELS)v);
-  }
+  m_LogManager->SetLogLevel(static_cast<LogTypes::LOG_LEVELS>(v));
 
   event.Skip();
 }

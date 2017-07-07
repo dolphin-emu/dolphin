@@ -42,7 +42,8 @@ public:
   void LogWithFullPath(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, const char* file,
                        int line, const char* fmt, va_list args);
 
-  void SetLogLevel(LogTypes::LOG_TYPE type, LogTypes::LOG_LEVELS level);
+  LogTypes::LOG_LEVELS GetLogLevel() const;
+  void SetLogLevel(LogTypes::LOG_LEVELS level);
 
   void SetEnable(LogTypes::LOG_TYPE type, bool enable);
   bool IsEnabled(LogTypes::LOG_TYPE type, LogTypes::LOG_LEVELS level = LogTypes::LNOTICE) const;
@@ -57,6 +58,7 @@ private:
   LogManager();
   ~LogManager();
 
+  LogTypes::LOG_LEVELS m_level;
   LogContainer* m_log[LogTypes::NUMBER_OF_LOGS];
   std::array<LogListener*, LogListener::NUMBER_OF_LISTENERS> m_listeners{};
   size_t m_path_cutoff_point = 0;
