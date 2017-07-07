@@ -162,10 +162,13 @@ namespace DolphinWatch {
 			while (running) {
 				{
 					std::lock_guard<std::mutex> locked(client_mtx);
+                    Core::State previousState = Core::GetState();
+                    Core::SetState(Core::State::Paused);
 					for (Client& client : clients) {
 						// check subscriptions
 						CheckSubs(client);
 					}
+                    Core::SetState(previousState);
 				}
 				Common::SleepCurrentThread(WATCH_TIMEOUT);
 				CheckHijacks();
@@ -250,6 +253,8 @@ namespace DolphinWatch {
 			}
 
 			// Parsing OK
+            Core::State previousState = Core::GetState();
+            Core::SetState(Core::State::Paused);
 			switch (mode) {
 			case 8:
 				PowerPC::HostWrite_U8(val, addr);
@@ -263,6 +268,7 @@ namespace DolphinWatch {
 			default:
 				ERROR_LOG(DOLPHINWATCH, "Wrong mode for writing, 8/16/32 required as 1st parameter. Command: %s", line.c_str());
 			}
+            Core::SetState(previousState);
 		}
 		else if (cmd == "WRITE_MULTI") {
 
@@ -279,9 +285,12 @@ namespace DolphinWatch {
 				return;
 			}
 
+            Core::State previousState = Core::GetState();
+            Core::SetState(Core::State::Paused);
 			do {
 				vals.push_back(val);
 			} while ((parts >> val));
+            Core::SetState(previousState);
 
 			// Parsing OK
 			for (u32 v : vals) {
@@ -304,6 +313,8 @@ namespace DolphinWatch {
 			}
 
 			// Parsing OK
+            Core::State previousState = Core::GetState();
+            Core::SetState(Core::State::Paused);
 			switch (mode) {
 			case 8:
 				val = PowerPC::HostRead_U8(addr);
@@ -318,6 +329,7 @@ namespace DolphinWatch {
 				ERROR_LOG(DOLPHINWATCH, "Wrong mode for reading, 8/16/32 required as 1st parameter. Command: %s", line.c_str());
 				return;
 			}
+            Core::SetState(previousState);
 
 			std::ostringstream message;
 			message << "MEM " << addr << " " << val << std::endl;
@@ -551,7 +563,6 @@ namespace DolphinWatch {
 		else {
 			ERROR_LOG(DOLPHINWATCH, "Unknown command: %s", cmd.c_str());
 		}
-
 	}
 
 	void SendFeedback(Client& client, bool success) {
@@ -564,22 +575,23 @@ namespace DolphinWatch {
 	}
 
 	void CheckSubs(Client& client) {
-		const size_t check_itercount = 5;
+        const size_t check_itercount = 5;
 		if (!Memory::IsInitialized()) return;
 		for (Subscription& sub : client.subs) {
 			u32 val = 0;
-			// read multiple times as some sort of debouncing
-			for (size_t check_i = 0; check_i < check_itercount; check_i++) {
-				u32 prevval = val;
-				if (sub.mode == 8) val = PowerPC::HostRead_U8(sub.addr);
-				else if (sub.mode == 16) val = PowerPC::HostRead_U16(sub.addr);
-				else if (sub.mode == 32) val = PowerPC::HostRead_U32(sub.addr);
-				if (check_i > 0 && prevval != val) {
-					// distortion! abort!
-					val = sub.prev;
-					break;
-				}
-			}
+            // read multiple times as some sort of debouncing
+            for (size_t check_i = 0; check_i < check_itercount; check_i++) {
+                u32 prevval = val;
+                if (sub.mode == 8) val = PowerPC::HostRead_U8(sub.addr);
+                else if (sub.mode == 16) val = PowerPC::HostRead_U16(sub.addr);
+                else if (sub.mode == 32) val = PowerPC::HostRead_U32(sub.addr);
+                if (check_i > 0 && prevval != val) {
+                    // distortion! abort!
+                    WARN_LOG(DOLPHINWATCH, "distortion in single memory read!");
+                    val = sub.prev;
+                    break;
+                }
+            }
 			if (val != sub.prev) {
 				sub.prev = val;
 				std::ostringstream message;
@@ -590,18 +602,19 @@ namespace DolphinWatch {
 		}
 		for (SubscriptionMulti& sub : client.subsMulti) {
 			std::vector<u32> val(sub.size, 0);
-			// read multiple times as some sort of debouncing
-			for (size_t check_i = 0; check_i < check_itercount; check_i++) {
-				std::vector<u32> prevval = val;
-				for (u32 i = 0; i < sub.size; ++i) {
-					val.at(i) = PowerPC::HostRead_U8(sub.addr + i);
-				}
-				if (check_i > 0 && prevval != val) {
-					// distortion! abort!
-					val = sub.prev;
-					break;
-				}
-			}
+            // read multiple times as some sort of debouncing
+            for (size_t check_i = 0; check_i < check_itercount; check_i++) {
+                std::vector<u32> prevval = val;
+                for (u32 i = 0; i < sub.size; ++i) {
+                    val.at(i) = PowerPC::HostRead_U8(sub.addr + i);
+                }
+                if (check_i > 0 && prevval != val) {
+                    // distortion! abort!
+                    WARN_LOG(DOLPHINWATCH, "distortion in multiple-byte memory read!");
+                    val = sub.prev;
+                    break;
+                }
+            }
 			if (val != sub.prev) {
 				sub.prev = val;
 				std::ostringstream message;
@@ -656,7 +669,7 @@ namespace DolphinWatch {
 				std::string s2;
 				std::istringstream subcmds(s);
 				while (getline(subcmds, s2, ';')) {
-					if (!s2.empty()) Process(client, s2);
+                  if (!s2.empty()) Process(client, s2);
 				}
 			}
 		}
