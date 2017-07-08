@@ -34,6 +34,7 @@ bool IsSettingSaveable(const Config::ConfigLocation& config_location)
       Config::GFX_LOG_RENDER_TIME_TO_FILE.location, Config::GFX_OVERLAY_STATS.location,
       Config::GFX_OVERLAY_PROJ_STATS.location, Config::GFX_DUMP_TEXTURES.location,
       Config::GFX_HIRES_TEXTURES.location, Config::GFX_CONVERT_HIRES_TEXTURES.location,
+      Config::GFX_HIRESTEX_OVERRIDE_PREFETCH_CULLED_PERCENT.location,
       Config::GFX_CACHE_HIRES_TEXTURES.location, Config::GFX_DUMP_EFB_TARGET.location,
       Config::GFX_DUMP_FRAMES_AS_IMAGES.location, Config::GFX_FREE_LOOK.location,
       Config::GFX_USE_FFV1.location, Config::GFX_DUMP_FORMAT.location,
