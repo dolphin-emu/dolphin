@@ -17,7 +17,7 @@ bool IsSettingSaveable(const Config::ConfigLocation& config_location)
   const static std::vector<Config::ConfigLocation> s_setting_saveable{
       // Graphics.Hardware
 
-      Config::GFX_VSYNC.location, Config::GFX_ADAPTER.location,
+      Config::GFX_ADAPTER.location, Config::GFX_VSYNC.location,
 
       // Graphics.Settings
 

@@ -14,7 +14,7 @@ void SWTexture::Bind(unsigned int stage)
 {
 }
 
-void SWTexture::CopyRectangleFromTexture(const AbstractTexture* source,
+void SWTexture::CopyRectangleFromTexture(const AbstractTexture* src,
                                          const MathUtil::Rectangle<int>& srcrect,
                                          const MathUtil::Rectangle<int>& dstrect)
 {
