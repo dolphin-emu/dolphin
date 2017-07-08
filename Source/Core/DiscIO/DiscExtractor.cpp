@@ -306,7 +306,7 @@ std::optional<u64> GetFSTSize(const Volume& volume, const Partition& partition)
   if (!IsDisc(volume_type))
     return {};
 
-  const std::optional<u32> size = volume.ReadSwapped<u64>(0x428, partition);
+  const std::optional<u32> size = volume.ReadSwapped<u32>(0x428, partition);
   const u8 offset_shift = volume_type == Platform::WII_DISC ? 2 : 0;
   return size ? static_cast<u64>(*size) << offset_shift : std::optional<u64>();
 }
