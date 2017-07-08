@@ -155,6 +155,10 @@ namespace DolphinWatch {
         // we do not want that. therefore we make sure to pause in
         // an emulation state with MSR.DR set.
         // see also WriteToHardware and ReadFromHardware in MMU.cpp
+        if (!Memory::IsInitialized()) {
+            WARN_LOG(DOLPHINWATCH, "trying to suspend while memory isn't initialized");
+            return Core::GetState();
+        }
         Core::State previousState = Core::GetState();
         Core::SetState(Core::State::Paused);
         bool addressTranslationOn = UReg_MSR(MSR).DR;
@@ -179,6 +183,7 @@ namespace DolphinWatch {
 		thrMemory = std::thread([]() {
 			while (running) {
 				{
+                    if (!Memory::IsInitialized()) continue;
 					std::lock_guard<std::mutex> locked(client_mtx);
                     Core::State previousState = SuspendSafely();
 					for (Client& client : clients) {
