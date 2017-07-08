@@ -150,6 +150,24 @@ namespace DolphinWatch {
 		}
 	}
 
+    Core::State SuspendSafely() {
+        // when MSR.DR isn't set, address translation is disabled.
+        // we do not want that. therefore we make sure to pause in
+        // an emulation state with MSR.DR set.
+        // see also WriteToHardware and ReadFromHardware in MMU.cpp
+        Core::State previousState = Core::GetState();
+        Core::SetState(Core::State::Paused);
+        bool addressTranslationOn = UReg_MSR(MSR).DR;
+        while (!addressTranslationOn) {
+            WARN_LOG(DOLPHINWATCH, "paused in state with MSR.DR not set (address resolution would be disabled), resuming a bit...");
+            Core::SetState(Core::State::Running);
+            Common::SleepCurrentThread(1);
+            Core::SetState(Core::State::Paused);
+            addressTranslationOn = UReg_MSR(MSR).DR;
+        }
+        return previousState;
+    }
+
 	void Init(unsigned short port) {
 		running = true;
 		server.listen(port);
@@ -162,8 +180,7 @@ namespace DolphinWatch {
 			while (running) {
 				{
 					std::lock_guard<std::mutex> locked(client_mtx);
-                    Core::State previousState = Core::GetState();
-                    Core::SetState(Core::State::Paused);
+                    Core::State previousState = SuspendSafely();
 					for (Client& client : clients) {
 						// check subscriptions
 						CheckSubs(client);
@@ -253,11 +270,10 @@ namespace DolphinWatch {
 			}
 
 			// Parsing OK
-            Core::State previousState = Core::GetState();
-            Core::SetState(Core::State::Paused);
+            Core::State previousState = SuspendSafely();
 			switch (mode) {
 			case 8:
-				PowerPC::HostWrite_U8(val, addr);
+                PowerPC::HostWrite_U8(val, addr);
 				break;
 			case 16:
 				PowerPC::HostWrite_U16(val, addr);
@@ -285,18 +301,17 @@ namespace DolphinWatch {
 				return;
 			}
 
-            Core::State previousState = Core::GetState();
-            Core::SetState(Core::State::Paused);
 			do {
 				vals.push_back(val);
 			} while ((parts >> val));
-            Core::SetState(previousState);
 
 			// Parsing OK
+            Core::State previousState = SuspendSafely();
 			for (u32 v : vals) {
 				PowerPC::HostWrite_U8(v, addr);
 				addr++;
 			}
+            Core::SetState(previousState);
 		}
 		else if (cmd == "READ") {
 
@@ -313,8 +328,7 @@ namespace DolphinWatch {
 			}
 
 			// Parsing OK
-            Core::State previousState = Core::GetState();
-            Core::SetState(Core::State::Paused);
+            Core::State previousState = SuspendSafely();
 			switch (mode) {
 			case 8:
 				val = PowerPC::HostRead_U8(addr);
@@ -323,7 +337,7 @@ namespace DolphinWatch {
 				val = PowerPC::HostRead_U16(addr);
 				break;
 			case 32:
-				val = PowerPC::HostRead_U32(addr);
+                val = PowerPC::HostRead_U32(addr);
 				break;
 			default:
 				ERROR_LOG(DOLPHINWATCH, "Wrong mode for reading, 8/16/32 required as 1st parameter. Command: %s", line.c_str());
@@ -575,23 +589,12 @@ namespace DolphinWatch {
 	}
 
 	void CheckSubs(Client& client) {
-        const size_t check_itercount = 5;
 		if (!Memory::IsInitialized()) return;
 		for (Subscription& sub : client.subs) {
 			u32 val = 0;
-            // read multiple times as some sort of debouncing
-            for (size_t check_i = 0; check_i < check_itercount; check_i++) {
-                u32 prevval = val;
-                if (sub.mode == 8) val = PowerPC::HostRead_U8(sub.addr);
-                else if (sub.mode == 16) val = PowerPC::HostRead_U16(sub.addr);
-                else if (sub.mode == 32) val = PowerPC::HostRead_U32(sub.addr);
-                if (check_i > 0 && prevval != val) {
-                    // distortion! abort!
-                    WARN_LOG(DOLPHINWATCH, "distortion in single memory read!");
-                    val = sub.prev;
-                    break;
-                }
-            }
+            if (sub.mode == 8) val = PowerPC::HostRead_U8(sub.addr);
+            else if (sub.mode == 16) val = PowerPC::HostRead_U16(sub.addr);
+            else if (sub.mode == 32) val = PowerPC::HostRead_U32(sub.addr);
 			if (val != sub.prev) {
 				sub.prev = val;
 				std::ostringstream message;
@@ -602,18 +605,8 @@ namespace DolphinWatch {
 		}
 		for (SubscriptionMulti& sub : client.subsMulti) {
 			std::vector<u32> val(sub.size, 0);
-            // read multiple times as some sort of debouncing
-            for (size_t check_i = 0; check_i < check_itercount; check_i++) {
-                std::vector<u32> prevval = val;
-                for (u32 i = 0; i < sub.size; ++i) {
-                    val.at(i) = PowerPC::HostRead_U8(sub.addr + i);
-                }
-                if (check_i > 0 && prevval != val) {
-                    // distortion! abort!
-                    WARN_LOG(DOLPHINWATCH, "distortion in multiple-byte memory read!");
-                    val = sub.prev;
-                    break;
-                }
+            for (u32 i = 0; i < sub.size; ++i) {
+                val.at(i) = PowerPC::HostRead_U8(sub.addr + i);
             }
 			if (val != sub.prev) {
 				sub.prev = val;
