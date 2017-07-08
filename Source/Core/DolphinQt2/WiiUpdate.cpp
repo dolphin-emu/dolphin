@@ -43,6 +43,7 @@ void PerformOnlineUpdate(const std::string& region, QWidget* parent)
   UpdateProgressDialog dialog{parent};
   dialog.setLabelText(QObject::tr("Preparing to update...\nThis can take a while."));
   dialog.setWindowTitle(QObject::tr("Updating"));
+  dialog.setWindowFlags(dialog.windowFlags() & ~Qt::WindowContextHelpButtonHint);
   // QProgressDialog doesn't set its minimum size correctly.
   dialog.setMinimumSize(360, 150);
 

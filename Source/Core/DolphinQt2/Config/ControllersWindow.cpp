@@ -69,6 +69,7 @@ static int FromWiimoteMenuIndex(const int menudevice)
 ControllersWindow::ControllersWindow(QWidget* parent) : QDialog(parent)
 {
   setWindowTitle(tr("Controller Settings"));
+  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
   CreateGamecubeLayout();
   CreateWiimoteLayout();

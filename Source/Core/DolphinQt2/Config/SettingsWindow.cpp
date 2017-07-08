@@ -23,6 +23,7 @@ SettingsWindow::SettingsWindow(QWidget* parent) : QDialog(parent)
 {
   // Set Window Properties
   setWindowTitle(tr("Settings"));
+  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
   resize(720, 600);
 
   // Main Layout
