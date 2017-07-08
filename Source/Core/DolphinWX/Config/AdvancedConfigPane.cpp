@@ -36,6 +36,12 @@ void AdvancedConfigPane::InitializeGUI()
 
   m_custom_rtc_checkbox = new wxCheckBox(this, wxID_ANY, _("Enable Custom RTC"));
   m_custom_rtc_date_picker = new wxDatePickerCtrl(this, wxID_ANY);
+  // The Wii System Menu only allows configuring a year between 2000 and 2035.
+  // However, the GameCube main menu (IPL) allows setting a year between 2000 and 2099,
+  // which is why we use that range here. The Wii still deals OK with dates beyond 2035
+  // and simply clamps them to 2035-12-31.
+  m_custom_rtc_date_picker->SetRange(wxDateTime(1, wxDateTime::Jan, 2000),
+                                     wxDateTime(31, wxDateTime::Dec, 2099));
   m_custom_rtc_time_picker = new wxTimePickerCtrl(this, wxID_ANY);
 
   wxStaticText* const clock_override_description =
@@ -155,9 +161,20 @@ void AdvancedConfigPane::OnClockOverrideSliderChanged(wxCommandEvent& event)
   UpdateCPUClock();
 }
 
-static u32 ToSeconds(wxDateTime date)
+static wxDateTime GetCustomRTCDateTime()
 {
-  return static_cast<u32>(date.GetValue().GetValue() / 1000);
+  time_t timestamp = SConfig::GetInstance().m_customRTCValue;
+  return wxDateTime(timestamp).ToUTC();
+}
+
+static wxDateTime CombineDateAndTime(const wxDateTime& date, const wxDateTime& time)
+{
+  wxDateTime datetime = date;
+  datetime.SetHour(time.GetHour());
+  datetime.SetMinute(time.GetMinute());
+  datetime.SetSecond(time.GetSecond());
+
+  return datetime;
 }
 
 void AdvancedConfigPane::OnCustomRTCCheckBoxChanged(wxCommandEvent& event)
@@ -168,16 +185,16 @@ void AdvancedConfigPane::OnCustomRTCCheckBoxChanged(wxCommandEvent& event)
   m_custom_rtc_time_picker->Enable(checked);
 }
 
-void AdvancedConfigPane::OnCustomRTCDateChanged(wxCommandEvent& event)
+void AdvancedConfigPane::OnCustomRTCDateChanged(wxDateEvent& event)
 {
-  m_temp_date = ToSeconds(m_custom_rtc_date_picker->GetValue());
-  UpdateCustomRTC(m_temp_date, m_temp_time);
+  wxDateTime datetime = CombineDateAndTime(event.GetDate(), GetCustomRTCDateTime());
+  UpdateCustomRTC(datetime);
 }
 
-void AdvancedConfigPane::OnCustomRTCTimeChanged(wxCommandEvent& event)
+void AdvancedConfigPane::OnCustomRTCTimeChanged(wxDateEvent& event)
 {
-  m_temp_time = ToSeconds(m_custom_rtc_time_picker->GetValue()) - m_temp_date;
-  UpdateCustomRTC(m_temp_date, m_temp_time);
+  wxDateTime datetime = CombineDateAndTime(GetCustomRTCDateTime(), event.GetDate());
+  UpdateCustomRTC(datetime);
 }
 
 void AdvancedConfigPane::UpdateCPUClock()
@@ -192,28 +209,28 @@ void AdvancedConfigPane::UpdateCPUClock()
 
 void AdvancedConfigPane::LoadCustomRTC()
 {
-  wxDateTime custom_rtc(static_cast<time_t>(SConfig::GetInstance().m_customRTCValue));
-  custom_rtc = custom_rtc.ToUTC();
   bool custom_rtc_enabled = SConfig::GetInstance().bEnableCustomRTC;
   m_custom_rtc_checkbox->SetValue(custom_rtc_enabled);
-  if (custom_rtc.IsValid())
+
+  wxDateTime datetime = GetCustomRTCDateTime();
+  if (datetime.IsValid())
   {
-    m_custom_rtc_date_picker->SetValue(custom_rtc);
-    m_custom_rtc_time_picker->SetValue(custom_rtc);
+    m_custom_rtc_date_picker->SetValue(datetime);
+    m_custom_rtc_time_picker->SetValue(datetime);
   }
-  m_temp_date = ToSeconds(m_custom_rtc_date_picker->GetValue());
-  m_temp_time = ToSeconds(m_custom_rtc_time_picker->GetValue()) - m_temp_date;
-  // Limit dates to a valid range (Jan 1/2000 to Dec 31/2099)
-  m_custom_rtc_date_picker->SetRange(wxDateTime(1, wxDateTime::Jan, 2000),
-                                     wxDateTime(31, wxDateTime::Dec, 2099));
+
+  // Make sure we have a valid custom RTC date and time
+  // both when it was out of range as well as when it was invalid to begin with.
+  datetime = CombineDateAndTime(m_custom_rtc_date_picker->GetValue(),
+                                m_custom_rtc_time_picker->GetValue());
+  UpdateCustomRTC(datetime);
 }
 
-void AdvancedConfigPane::UpdateCustomRTC(time_t date, time_t time)
+void AdvancedConfigPane::UpdateCustomRTC(const wxDateTime& datetime)
 {
-  wxDateTime custom_rtc(date + time);
-  SConfig::GetInstance().m_customRTCValue = ToSeconds(custom_rtc.FromUTC());
-  m_custom_rtc_date_picker->SetValue(custom_rtc);
-  m_custom_rtc_time_picker->SetValue(custom_rtc);
+  // We need GetValue() as GetTicks() only works up to 0x7ffffffe, which is in 2038.
+  u32 timestamp = datetime.FromUTC().GetValue().GetValue() / 1000;
+  SConfig::GetInstance().m_customRTCValue = timestamp;
 }
 
 void AdvancedConfigPane::OnUpdateCPUClockControls(wxUpdateUIEvent& event)
