@@ -579,8 +579,9 @@ void EndFrame()
 
 void Present()
 {
-  UINT present_flags =
-      g_ActiveConfig.iStereoMode != STEREO_QUADBUFFER ? DXGI_PRESENT_STEREO_TEMPORARY_MONO : 0;
+  UINT present_flags = 0;
+  if (swapchain->IsTemporaryMonoSupported() && g_ActiveConfig.iStereoMode != STEREO_QUADBUFFER)
+    present_flags = DXGI_PRESENT_STEREO_TEMPORARY_MONO;
 
   // TODO: Is 1 the correct value for vsyncing?
   swapchain->Present((UINT)g_ActiveConfig.IsVSync(), present_flags);
