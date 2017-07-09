@@ -304,9 +304,10 @@ HRESULT Create(HWND wnd)
   swap_chain_desc.Width = xres;
   swap_chain_desc.Height = yres;
 
-  // By always creating a stereo swapchain we can toggle Quad-Buffered stereoscopy
+  // By creating a stereo swapchain early we can toggle Quad-Buffered stereoscopy
   // while the game is running.
-  swap_chain_desc.Stereo = TRUE;
+  swap_chain_desc.Stereo =
+      g_ActiveConfig.iStereoMode == STEREO_QUADBUFFER || factory->IsWindowedStereoEnabled();
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
   // Creating debug devices can sometimes fail if the user doesn't have the correct
@@ -316,10 +317,6 @@ HRESULT Create(HWND wnd)
                             D3D11_CREATE_DEVICE_SINGLETHREADED | D3D11_CREATE_DEVICE_DEBUG,
                             supported_feature_levels, NUM_SUPPORTED_FEATURE_LEVELS,
                             D3D11_SDK_VERSION, &device, &featlevel, &context);
-
-    if (SUCCEEDED(hr))
-      hr = factory->CreateSwapChainForHwnd(device, hWnd, &swap_chain_desc, nullptr, nullptr,
-                                           &swapchain);
 
     // Debugbreak on D3D error
     if (SUCCEEDED(hr) && SUCCEEDED(device->QueryInterface(__uuidof(ID3D11Debug), (void**)&debug)))
@@ -348,10 +345,20 @@ HRESULT Create(HWND wnd)
                             D3D11_CREATE_DEVICE_SINGLETHREADED, supported_feature_levels,
                             NUM_SUPPORTED_FEATURE_LEVELS, D3D11_SDK_VERSION, &device, &featlevel,
                             &context);
+  }
 
-    if (SUCCEEDED(hr))
+  if (SUCCEEDED(hr))
+  {
+    hr = factory->CreateSwapChainForHwnd(device, hWnd, &swap_chain_desc, nullptr, nullptr,
+                                         &swapchain);
+    if (FAILED(hr))
+    {
+      // Flip-model swapchains aren't supported on Windows 7, so here we fall back to a legacy
+      // BitBlt-model swapchain
+      swap_chain_desc.SwapEffect = DXGI_SWAP_EFFECT_SEQUENTIAL;
       hr = factory->CreateSwapChainForHwnd(device, hWnd, &swap_chain_desc, nullptr, nullptr,
                                            &swapchain);
+    }
   }
 
   if (FAILED(hr))
@@ -579,8 +586,9 @@ void EndFrame()
 
 void Present()
 {
-  UINT present_flags =
-      g_ActiveConfig.iStereoMode != STEREO_QUADBUFFER ? DXGI_PRESENT_STEREO_TEMPORARY_MONO : 0;
+  UINT present_flags = 0;
+  if (swapchain->IsTemporaryMonoSupported() && g_ActiveConfig.iStereoMode != STEREO_QUADBUFFER)
+    present_flags = DXGI_PRESENT_STEREO_TEMPORARY_MONO;
 
   // TODO: Is 1 the correct value for vsyncing?
   swapchain->Present((UINT)g_ActiveConfig.IsVSync(), present_flags);
