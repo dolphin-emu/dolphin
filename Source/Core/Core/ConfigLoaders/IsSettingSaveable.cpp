@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <vector>
 
-#include "Core/Config/Config.h"
+#include "Common/Config/Config.h"
 #include "Core/Config/GraphicsSettings.h"
 
 namespace ConfigLoaders

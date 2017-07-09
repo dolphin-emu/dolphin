@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <list>
 #include <map>
+#include <tuple>
 
 #include "Common/Assert.h"
 #include "Common/Config/Config.h"
@@ -143,5 +144,35 @@ const std::string& GetLayerName(LayerType layer)
       {LayerType::Meta, "Top"},
   };
   return layer_to_name.at(layer);
+}
+
+bool ConfigLocation::operator==(const ConfigLocation& other) const
+{
+  return std::tie(system, section, key) == std::tie(other.system, other.section, other.key);
+}
+
+bool ConfigLocation::operator!=(const ConfigLocation& other) const
+{
+  return !(*this == other);
+}
+
+bool ConfigLocation::operator<(const ConfigLocation& other) const
+{
+  return std::tie(system, section, key) < std::tie(other.system, other.section, other.key);
+}
+
+LayerType GetActiveLayerForConfig(const ConfigLocation& config)
+{
+  for (auto layer : SEARCH_ORDER)
+  {
+    if (!LayerExists(layer))
+      continue;
+
+    if (GetLayer(layer)->Exists(config.system, config.section, config.key))
+      return layer;
+  }
+
+  // If config is not present in any layer, base layer is considered active.
+  return LayerType::Base;
 }
 }

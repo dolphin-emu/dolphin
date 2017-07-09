@@ -4,7 +4,7 @@
 
 #include "DolphinQt2/Config/Graphics/GraphicsChoice.h"
 
-#include "Core/Config/Config.h"
+#include "Common/Config/Config.h"
 
 GraphicsChoice::GraphicsChoice(const QStringList& options, const Config::ConfigInfo<int>& setting)
     : m_setting(setting)

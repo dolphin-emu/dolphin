@@ -7,8 +7,8 @@
 #include <unordered_set>
 
 #include "Common/CommonTypes.h"
+#include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
-#include "Core/Config/Config.h"
 #include "Core/HW/MMIO.h"
 #include "UICommon/UICommon.h"
 

@@ -22,7 +22,7 @@
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 
-#include "Core/Config/Config.h"
+#include "Common/Config/Config.h"
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/ConfigLoaders/IsSettingSaveable.h"
 
