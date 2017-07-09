@@ -42,6 +42,8 @@ private slots:
 
 signals:
   void GameSelected();
+  void EmulationStarted();
+  void EmulationStopped();
 
 private:
   void MakeTableView();

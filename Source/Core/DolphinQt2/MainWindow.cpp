@@ -249,6 +249,8 @@ void MainWindow::ConnectToolBar()
 void MainWindow::ConnectGameList()
 {
   connect(m_game_list, &GameList::GameSelected, this, &MainWindow::Play);
+  connect(this, &MainWindow::EmulationStarted, m_game_list, &GameList::EmulationStarted);
+  connect(this, &MainWindow::EmulationStopped, m_game_list, &GameList::EmulationStopped);
 }
 
 void MainWindow::ConnectRenderWidget()
