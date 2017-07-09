@@ -317,10 +317,6 @@ HRESULT Create(HWND wnd)
                             supported_feature_levels, NUM_SUPPORTED_FEATURE_LEVELS,
                             D3D11_SDK_VERSION, &device, &featlevel, &context);
 
-    if (SUCCEEDED(hr))
-      hr = factory->CreateSwapChainForHwnd(device, hWnd, &swap_chain_desc, nullptr, nullptr,
-                                           &swapchain);
-
     // Debugbreak on D3D error
     if (SUCCEEDED(hr) && SUCCEEDED(device->QueryInterface(__uuidof(ID3D11Debug), (void**)&debug)))
     {
@@ -348,10 +344,21 @@ HRESULT Create(HWND wnd)
                             D3D11_CREATE_DEVICE_SINGLETHREADED, supported_feature_levels,
                             NUM_SUPPORTED_FEATURE_LEVELS, D3D11_SDK_VERSION, &device, &featlevel,
                             &context);
+  }
 
-    if (SUCCEEDED(hr))
+  if (SUCCEEDED(hr))
+  {
+    hr = factory->CreateSwapChainForHwnd(device, hWnd, &swap_chain_desc, nullptr, nullptr,
+                                         &swapchain);
+    if (FAILED(hr))
+    {
+      // Some swapchain features aren't supported on Windows 7, so here we fall back to legacy
+      // swapchain features
+      swap_chain_desc.Stereo = FALSE;
+      swap_chain_desc.SwapEffect = DXGI_SWAP_EFFECT_SEQUENTIAL;
       hr = factory->CreateSwapChainForHwnd(device, hWnd, &swap_chain_desc, nullptr, nullptr,
                                            &swapchain);
+    }
   }
 
   if (FAILED(hr))
