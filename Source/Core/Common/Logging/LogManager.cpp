@@ -9,8 +9,8 @@
 #include <string>
 
 #include "Common/CommonPaths.h"
+#include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
-#include "Common/IniFile.h"
 #include "Common/Logging/ConsoleListener.h"
 #include "Common/Logging/Log.h"
 #include "Common/Logging/LogManager.h"
@@ -18,6 +18,14 @@
 #include "Common/Timer.h"
 
 constexpr size_t MAX_MSGLEN = 1024;
+
+const Config::ConfigInfo<bool> LOGGER_WRITE_TO_FILE{
+    {Config::System::Logger, "Options", "WriteToFile"}, false};
+const Config::ConfigInfo<bool> LOGGER_WRITE_TO_CONSOLE{
+    {Config::System::Logger, "Options", "WriteToConsole"}, true};
+const Config::ConfigInfo<bool> LOGGER_WRITE_TO_WINDOW{
+    {Config::System::Logger, "Options", "WriteToWindow"}, true};
+const Config::ConfigInfo<int> LOGGER_VERBOSITY{{Config::System::Logger, "Options", "Verbosity"}, 0};
 
 class FileLogListener : public LogListener
 {
@@ -120,20 +128,9 @@ LogManager::LogManager()
                    new FileLogListener(File::GetUserPath(F_MAINLOG_IDX)));
   RegisterListener(LogListener::CONSOLE_LISTENER, new ConsoleListener());
 
-  IniFile ini;
-  ini.Load(File::GetUserPath(F_LOGGERCONFIG_IDX));
-  IniFile::Section* logs = ini.GetOrCreateSection("Logs");
-  IniFile::Section* options = ini.GetOrCreateSection("Options");
-  bool write_file;
-  bool write_console;
-  bool write_window;
-  options->Get("WriteToFile", &write_file, false);
-  options->Get("WriteToConsole", &write_console, true);
-  options->Get("WriteToWindow", &write_window, true);
-
   // Set up log listeners
-  int verbosity;
-  options->Get("Verbosity", &verbosity, 0);
+  int verbosity = Config::Get(LOGGER_VERBOSITY);
+  ;
 
   // Ensure the verbosity level is valid
   if (verbosity < 1)
@@ -142,12 +139,13 @@ LogManager::LogManager()
     verbosity = MAX_LOGLEVEL;
 
   SetLogLevel(static_cast<LogTypes::LOG_LEVELS>(verbosity));
-  EnableListener(LogListener::FILE_LISTENER, write_file);
-  EnableListener(LogListener::CONSOLE_LISTENER, write_console);
-  EnableListener(LogListener::LOG_WINDOW_LISTENER, write_window);
+  EnableListener(LogListener::FILE_LISTENER, Config::Get(LOGGER_WRITE_TO_FILE));
+  EnableListener(LogListener::CONSOLE_LISTENER, Config::Get(LOGGER_WRITE_TO_CONSOLE));
+  EnableListener(LogListener::LOG_WINDOW_LISTENER, Config::Get(LOGGER_WRITE_TO_WINDOW));
 
   for (LogContainer& container : m_log)
-    logs->Get(container.m_short_name, &container.m_enable, false);
+    container.m_enable = Config::Get(
+        Config::ConfigInfo<bool>{{Config::System::Logger, "Logs", container.m_short_name}, false});
 
   m_path_cutoff_point = DeterminePathCutOffPoint();
 }
@@ -161,20 +159,18 @@ LogManager::~LogManager()
 
 void LogManager::SaveSettings()
 {
-  IniFile ini;
-  ini.Load(File::GetUserPath(F_LOGGERCONFIG_IDX));
+  Config::SetBaseOrCurrent(LOGGER_WRITE_TO_FILE, IsListenerEnabled(LogListener::FILE_LISTENER));
+  Config::SetBaseOrCurrent(LOGGER_WRITE_TO_CONSOLE,
+                           IsListenerEnabled(LogListener::CONSOLE_LISTENER));
+  Config::SetBaseOrCurrent(LOGGER_WRITE_TO_WINDOW,
+                           IsListenerEnabled(LogListener::LOG_WINDOW_LISTENER));
+  Config::SetBaseOrCurrent(LOGGER_VERBOSITY, static_cast<int>(GetLogLevel()));
 
-  IniFile::Section* options = ini.GetOrCreateSection("Options");
-  options->Set("Verbosity", GetLogLevel());
-  options->Set("WriteToFile", m_listener_ids[LogListener::FILE_LISTENER]);
-  options->Set("WriteToConsole", m_listener_ids[LogListener::CONSOLE_LISTENER]);
-  options->Set("WriteToWindow", m_listener_ids[LogListener::LOG_WINDOW_LISTENER]);
-
-  // Save all enabled/disabled states of the log types to the config ini.
   for (const auto& container : m_log)
-    ini.GetOrCreateSection("Logs")->Set(container.m_short_name, container.m_enable);
+    Config::SetBaseOrCurrent({{Config::System::Logger, "Logs", container.m_short_name}, false},
+                             container.m_enable);
 
-  ini.Save(File::GetUserPath(F_LOGGERCONFIG_IDX));
+  Config::Save();
 }
 
 void LogManager::Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, const char* file,

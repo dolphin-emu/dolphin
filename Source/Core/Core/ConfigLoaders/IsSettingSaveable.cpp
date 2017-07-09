@@ -14,6 +14,9 @@ namespace ConfigLoaders
 {
 bool IsSettingSaveable(const Config::ConfigLocation& config_location)
 {
+  if (config_location.system == Config::System::Logger)
+    return true;
+
   const static std::vector<Config::ConfigLocation> s_setting_saveable{
       // Graphics.Hardware
 
