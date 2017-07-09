@@ -304,9 +304,10 @@ HRESULT Create(HWND wnd)
   swap_chain_desc.Width = xres;
   swap_chain_desc.Height = yres;
 
-  // By always creating a stereo swapchain we can toggle Quad-Buffered stereoscopy
+  // By creating a stereo swapchain early we can toggle Quad-Buffered stereoscopy
   // while the game is running.
-  swap_chain_desc.Stereo = TRUE;
+  swap_chain_desc.Stereo =
+      g_ActiveConfig.iStereoMode == STEREO_QUADBUFFER || factory->IsWindowedStereoEnabled();
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
   // Creating debug devices can sometimes fail if the user doesn't have the correct
@@ -352,9 +353,8 @@ HRESULT Create(HWND wnd)
                                          &swapchain);
     if (FAILED(hr))
     {
-      // Some swapchain features aren't supported on Windows 7, so here we fall back to legacy
-      // swapchain features
-      swap_chain_desc.Stereo = FALSE;
+      // Flip-model swapchains aren't supported on Windows 7, so here we fall back to a legacy
+      // BitBlt-model swapchain
       swap_chain_desc.SwapEffect = DXGI_SWAP_EFFECT_SEQUENTIAL;
       hr = factory->CreateSwapChainForHwnd(device, hWnd, &swap_chain_desc, nullptr, nullptr,
                                            &swapchain);
