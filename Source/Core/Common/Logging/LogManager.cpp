@@ -40,7 +40,6 @@ public:
   bool IsValid() const { return m_logfile.good(); }
   bool IsEnabled() const { return m_enable; }
   void SetEnable(bool enable) { m_enable = enable; }
-  // const char* GetName() const { return "file"; }
 private:
   std::mutex m_log_lock;
   std::ofstream m_logfile;
