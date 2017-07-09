@@ -133,11 +133,7 @@ void CLogWindow::RemoveAllListeners()
     return;
   m_has_listeners = false;
 
-  for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
-  {
-    m_LogManager->RemoveListener(static_cast<LogTypes::LOG_TYPE>(i),
-                                 LogListener::LOG_WINDOW_LISTENER);
-  }
+  m_LogManager->EnableListener(LogListener::LOG_WINDOW_LISTENER, false);
 }
 
 void CLogWindow::SaveSettings()
