@@ -89,7 +89,7 @@ void LogConfigWindow::CreateGUIControls()
 
 void LogConfigWindow::LoadSettings()
 {
-  m_verbosity->SetSelection(m_LogManager->GetLogLevel());
+  m_verbosity->SetSelection(m_LogManager->GetLogLevel() - 1);
 
   // Get the logger output settings from the config ini file.
   m_writeFileCB->SetValue(m_LogManager->IsListenerEnabled(LogListener::FILE_LISTENER));
@@ -117,8 +117,7 @@ void LogConfigWindow::SaveSettings()
 // If the verbosity changes while logging
 void LogConfigWindow::OnVerbosityChange(wxCommandEvent& event)
 {
-  int v = m_verbosity->GetSelection() + 1;
-  m_LogManager->SetLogLevel(static_cast<LogTypes::LOG_LEVELS>(v));
+  m_LogManager->SetLogLevel(static_cast<LogTypes::LOG_LEVELS>(m_verbosity->GetSelection() + 1));
 
   event.Skip();
 }
