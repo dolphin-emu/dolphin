@@ -66,6 +66,7 @@ struct GXPipelineState
 static u32 s_last_multisamples = 1;
 static bool s_last_stereo_mode = false;
 static bool s_last_xfb_mode = false;
+static bool s_last_fullscreen_mode = false;
 
 static Television s_television;
 
@@ -240,6 +241,7 @@ Renderer::Renderer() : ::Renderer(D3D::GetBackBufferWidth(), D3D::GetBackBufferH
   s_last_multisamples = g_ActiveConfig.iMultisamples;
   s_last_stereo_mode = g_ActiveConfig.iStereoMode > 0;
   s_last_xfb_mode = g_ActiveConfig.bUseRealXFB;
+  s_last_fullscreen_mode = D3D::GetFullscreenState();
 
   g_framebuffer_manager = std::make_unique<FramebufferManager>(m_target_width, m_target_height);
   SetupDeviceObjects();
@@ -838,7 +840,9 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
 
   SetWindowSize(fbStride, fbHeight);
 
-  const bool windowResized = CheckForResize();
+  const bool window_resized = CheckForResize();
+  const bool fullscreen = D3D::GetFullscreenState();
+  const bool fs_changed = s_last_fullscreen_mode != fullscreen;
 
   bool xfbchanged = s_last_xfb_mode != g_ActiveConfig.bUseRealXFB;
 
@@ -856,15 +860,16 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
   D3D::Present();
 
   // Resize the back buffers NOW to avoid flickering
-  if (CalculateTargetSize() || xfbchanged || windowResized ||
+  if (CalculateTargetSize() || xfbchanged || window_resized || fs_changed ||
       s_last_multisamples != g_ActiveConfig.iMultisamples ||
       s_last_stereo_mode != (g_ActiveConfig.iStereoMode > 0))
   {
     s_last_xfb_mode = g_ActiveConfig.bUseRealXFB;
     s_last_multisamples = g_ActiveConfig.iMultisamples;
+    s_last_fullscreen_mode = fullscreen;
     PixelShaderCache::InvalidateMSAAShaders();
 
-    if (windowResized)
+    if (window_resized || fs_changed)
     {
       // TODO: Aren't we still holding a reference to the back buffer right now?
       D3D::Reset();

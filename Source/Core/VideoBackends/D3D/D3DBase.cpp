@@ -52,8 +52,6 @@ unsigned int xres, yres;
 
 bool bFrameInProgress = false;
 
-#define NUM_SWAPCHAIN_BUFFERS 2
-
 HRESULT LoadDXGI()
 {
   if (dxgi_dll_ref++ > 0)
@@ -294,7 +292,7 @@ HRESULT Create(HWND wnd)
   }
 
   DXGI_SWAP_CHAIN_DESC1 swap_chain_desc = {};
-  swap_chain_desc.BufferCount = NUM_SWAPCHAIN_BUFFERS;
+  swap_chain_desc.BufferCount = 2;
   swap_chain_desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
   swap_chain_desc.SampleDesc.Count = 1;
   swap_chain_desc.SampleDesc.Quality = 0;
@@ -548,7 +546,7 @@ void Reset()
   GetClientRect(hWnd, &client);
   xres = client.right - client.left;
   yres = client.bottom - client.top;
-  D3D::swapchain->ResizeBuffers(NUM_SWAPCHAIN_BUFFERS, xres, yres, DXGI_FORMAT_R8G8B8A8_UNORM, 0);
+  D3D::swapchain->ResizeBuffers(0, xres, yres, DXGI_FORMAT_R8G8B8A8_UNORM, 0);
 
   // recreate back buffer texture
   ID3D11Texture2D* buf;
