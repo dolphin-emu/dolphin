@@ -129,11 +129,7 @@ CLogWindow::~CLogWindow()
 
 void CLogWindow::RemoveAllListeners()
 {
-  if (!m_has_listeners)
-    return;
-  m_has_listeners = false;
-
-  m_LogManager->EnableListener(LogListener::LOG_WINDOW_LISTENER, false);
+  m_LogManager->RegisterListener(LogListener::LOG_WINDOW_LISTENER, nullptr);
 }
 
 void CLogWindow::SaveSettings()
