@@ -385,6 +385,12 @@ HRESULT Create(HWND wnd)
   SAFE_RELEASE(factory);
   SAFE_RELEASE(adapter);
 
+  if (SConfig::GetInstance().bFullscreen && !g_ActiveConfig.bBorderlessFullscreen)
+  {
+    swapchain->SetFullscreenState(true, nullptr);
+    swapchain->ResizeBuffers(0, xres, yres, DXGI_FORMAT_R8G8B8A8_UNORM, 0);
+  }
+
   ID3D11Texture2D* buf;
   hr = swapchain->GetBuffer(0, IID_ID3D11Texture2D, (void**)&buf);
   if (FAILED(hr))
