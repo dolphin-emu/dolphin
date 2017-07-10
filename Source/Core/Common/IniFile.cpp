@@ -10,11 +10,13 @@
 #include <cstring>
 #include <fstream>
 #include <map>
+#include <memory>
 #include <string>
 #include <utility>
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Common/File.h"
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 
@@ -393,15 +395,14 @@ void IniFile::SortSections()
   sections.sort();
 }
 
-bool IniFile::Load(const std::string& filename, bool keep_current_data)
+bool IniFile::Load(const File::Path& path, bool keep_current_data)
 {
   if (!keep_current_data)
     sections.clear();
   // first section consists of the comments before the first real section
 
-  // Open file
-  std::ifstream in;
-  File::OpenFStream(in, filename, std::ios::in);
+  std::unique_ptr<File::ReadOnlyFile> file = path.OpenFile(false);
+  File::ReadOnlyFileStream in(file.get());
 
   if (in.fail())
     return false;
@@ -466,7 +467,6 @@ bool IniFile::Load(const std::string& filename, bool keep_current_data)
     }
   }
 
-  in.close();
   return true;
 }
 

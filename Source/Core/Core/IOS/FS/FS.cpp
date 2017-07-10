@@ -95,13 +95,13 @@ void FS::DoState(PointerWrap& p)
   {
     // recurse through tmp and save dirs and files
 
-    File::FSTEntry parentEntry = File::ScanDirectoryTree(Path, true);
-    std::deque<File::FSTEntry> todo;
+    File::FSTEntry<std::string> parentEntry = File::ScanDirectoryTree<std::string>(Path, true);
+    std::deque<File::FSTEntry<std::string>> todo;
     todo.insert(todo.end(), parentEntry.children.begin(), parentEntry.children.end());
 
     while (!todo.empty())
     {
-      File::FSTEntry& entry = todo.front();
+      File::FSTEntry<std::string>& entry = todo.front();
       std::string name = entry.physicalName;
       name.erase(0, Path.length() + 1);
       char type = entry.isDirectory ? 'd' : 'f';
@@ -144,10 +144,11 @@ ReturnCode FS::Open(const OpenRequest& request)
 
 // Get total filesize of contents of a directory (recursive)
 // Only used for ES_GetUsage atm, could be useful elsewhere?
-static u64 ComputeTotalFileSize(const File::FSTEntry& parentEntry)
+template <class T>
+static u64 ComputeTotalFileSize(const File::FSTEntry<T>& parentEntry)
 {
   u64 sizeOfFiles = 0;
-  for (const File::FSTEntry& entry : parentEntry.children)
+  for (const File::FSTEntry<T>& entry : parentEntry.children)
   {
     if (entry.isDirectory)
       sizeOfFiles += ComputeTotalFileSize(entry);
@@ -539,7 +540,7 @@ IPCCommandResult FS::ReadDirectory(const IOCtlVRequest& request)
     return GetFSReply(FS_EINVAL);
   }
 
-  File::FSTEntry entry = File::ScanDirectoryTree(DirName, false);
+  File::FSTEntry<std::string> entry = File::ScanDirectoryTree<std::string>(DirName, false);
 
   // it is one
   if ((request.in_vectors.size() == 1) && (request.io_vectors.size() == 1))
@@ -551,7 +552,7 @@ IPCCommandResult FS::ReadDirectory(const IOCtlVRequest& request)
   }
   else
   {
-    for (File::FSTEntry& child : entry.children)
+    for (File::FSTEntry<std::string>& child : entry.children)
     {
       // Decode escaped invalid file system characters so that games (such as
       // Harry Potter and the Half-Blood Prince) can find what they expect.
@@ -559,7 +560,7 @@ IPCCommandResult FS::ReadDirectory(const IOCtlVRequest& request)
     }
 
     std::sort(entry.children.begin(), entry.children.end(),
-              [](const File::FSTEntry& one, const File::FSTEntry& two) {
+              [](const File::FSTEntry<std::string>& one, const File::FSTEntry<std::string>& two) {
                 return one.virtualName < two.virtualName;
               });
 
@@ -625,7 +626,7 @@ IPCCommandResult FS::GetUsage(const IOCtlVRequest& request)
     }
     else
     {
-      File::FSTEntry parentDir = File::ScanDirectoryTree(path, true);
+      File::FSTEntry<std::string> parentDir = File::ScanDirectoryTree<std::string>(path, true);
       // add one for the folder itself
       iNodes = 1 + (u32)parentDir.size;
 

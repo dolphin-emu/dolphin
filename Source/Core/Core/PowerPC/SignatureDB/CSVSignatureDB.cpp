@@ -5,7 +5,7 @@
 #include "Core/PowerPC/SignatureDB/CSVSignatureDB.h"
 
 #include <cstdio>
-#include <fstream>
+#include <memory>
 #include <sstream>
 
 #include "Common/File.h"
@@ -14,15 +14,16 @@
 
 // CSV separated with tabs
 // Checksum | Size | Symbol | [Object Location |] Object Name
-bool CSVSignatureDB::Load(const std::string& file_path)
+bool CSVSignatureDB::Load(const File::Path& file_path)
 {
-  std::string line;
-  std::ifstream ifs;
-  File::OpenFStream(ifs, file_path, std::ios_base::in);
+  std::unique_ptr<File::ReadOnlyFile> file = file_path.OpenFile(false);
+  File::ReadOnlyFileStream stream(file.get());
 
-  if (!ifs)
+  if (!stream)
     return false;
-  for (size_t i = 1; std::getline(ifs, line); i += 1)
+
+  std::string line;
+  for (size_t i = 1; std::getline(stream, line); i += 1)
   {
     std::istringstream iss(line);
     u32 checksum, size;

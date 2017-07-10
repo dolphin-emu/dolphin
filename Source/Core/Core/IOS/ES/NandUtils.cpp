@@ -70,8 +70,8 @@ static std::vector<u64> GetTitlesInTitleOrImport(const std::string& titles_dir)
 
   // The /title and /import directories contain one directory per title type, and each of them has
   // a directory per title (where the name is the low 32 bits of the title ID in %08x format).
-  const auto entries = File::ScanDirectoryTree(titles_dir, true);
-  for (const File::FSTEntry& title_type : entries.children)
+  const auto entries = File::ScanDirectoryTree<std::string>(titles_dir, true);
+  for (const File::FSTEntry<std::string>& title_type : entries.children)
   {
     if (!title_type.isDirectory || !IsValidPartOfTitleID(title_type.virtualName))
       continue;
@@ -79,7 +79,7 @@ static std::vector<u64> GetTitlesInTitleOrImport(const std::string& titles_dir)
     if (title_type.children.empty())
       continue;
 
-    for (const File::FSTEntry& title_identifier : title_type.children)
+    for (const File::FSTEntry<std::string>& title_identifier : title_type.children)
     {
       if (!title_identifier.isDirectory || !IsValidPartOfTitleID(title_identifier.virtualName))
         continue;
@@ -122,8 +122,8 @@ std::vector<u64> ES::GetTitlesWithTickets() const
 
   // The /ticket directory contains one directory per title type, and each of them contains
   // one ticket per title (where the name is the low 32 bits of the title ID in %08x format).
-  const auto entries = File::ScanDirectoryTree(tickets_dir, true);
-  for (const File::FSTEntry& title_type : entries.children)
+  const auto entries = File::ScanDirectoryTree<std::string>(tickets_dir, true);
+  for (const File::FSTEntry<std::string>& title_type : entries.children)
   {
     if (!title_type.isDirectory || !IsValidPartOfTitleID(title_type.virtualName))
       continue;
@@ -131,7 +131,7 @@ std::vector<u64> ES::GetTitlesWithTickets() const
     if (title_type.children.empty())
       continue;
 
-    for (const File::FSTEntry& ticket : title_type.children)
+    for (const File::FSTEntry<std::string>& ticket : title_type.children)
     {
       const std::string name_without_ext = ticket.virtualName.substr(0, 8);
       if (ticket.isDirectory || !IsValidPartOfTitleID(name_without_ext) ||
@@ -231,8 +231,8 @@ bool ES::FinishImport(const IOS::ES::TMDReader& tmd)
   std::unordered_set<std::string> expected_entries = {"title.tmd"};
   for (const auto& content_info : tmd.GetContents())
     expected_entries.insert(StringFromFormat("%08x.app", content_info.id));
-  const auto entries = File::ScanDirectoryTree(import_content_dir, false);
-  for (const File::FSTEntry& entry : entries.children)
+  const auto entries = File::ScanDirectoryTree<std::string>(import_content_dir, false);
+  for (const File::FSTEntry<std::string>& entry : entries.children)
   {
     // There should not be any directory in there. Remove it.
     if (entry.isDirectory)

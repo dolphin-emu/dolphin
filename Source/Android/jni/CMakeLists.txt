@@ -1,6 +1,7 @@
 list(APPEND LIBS core uicommon)
 
-set(SRCS ButtonManager.cpp
+set(SRCS AndroidAssets.cpp
+         ButtonManager.cpp
          MainAndroid.cpp)
 
 set(SHARED_LIB main)

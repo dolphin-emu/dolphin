@@ -6,6 +6,7 @@
 
 #include <cstddef>
 #include <cstring>
+#include <memory>
 #include <string>
 
 #include "Common/CommonTypes.h"
@@ -23,20 +24,20 @@ struct FuncDesc
 };
 }  // namespace
 
-bool DSYSignatureDB::Load(const std::string& file_path)
+bool DSYSignatureDB::Load(const File::Path& file_path)
 {
-  File::IOFile f(file_path, "rb");
+  std::unique_ptr<File::ReadOnlyFile> file = file_path.OpenFile(true);
 
-  if (!f)
+  if (!*file)
     return false;
   u32 fcount = 0;
-  f.ReadArray(&fcount, 1);
+  file->ReadArray(&fcount, 1);
   for (size_t i = 0; i < fcount; i++)
   {
     FuncDesc temp;
     memset(&temp, 0, sizeof(temp));
 
-    f.ReadArray(&temp, 1);
+    file->ReadArray(&temp, 1);
     temp.name[sizeof(temp.name) - 1] = 0;
 
     HashSignatureDB::DBFunc func;

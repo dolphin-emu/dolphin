@@ -57,7 +57,7 @@ void SignatureDB::Clear()
   m_handler->Clear();
 }
 
-bool SignatureDB::Load(const std::string& file_path)
+bool SignatureDB::Load(const File::Path& file_path)
 {
   return m_handler->Load(file_path);
 }

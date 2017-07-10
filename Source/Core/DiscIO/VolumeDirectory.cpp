@@ -27,9 +27,9 @@
 
 namespace DiscIO
 {
-static u32 ComputeNameSize(const File::FSTEntry& parent_entry);
+static u32 ComputeNameSize(const File::FSTEntry<std::string>& parent_entry);
 static std::string ASCIIToUppercase(std::string str);
-static void ConvertUTF8NamesToSHIFTJIS(File::FSTEntry& parent_entry);
+static void ConvertUTF8NamesToSHIFTJIS(File::FSTEntry<std::string>& parent_entry);
 
 const size_t VolumeDirectory::MAX_NAME_LENGTH;
 const size_t VolumeDirectory::MAX_ID_LENGTH;
@@ -359,7 +359,7 @@ void VolumeDirectory::BuildFST()
 {
   m_fst_data.clear();
 
-  File::FSTEntry rootEntry = File::ScanDirectoryTree(m_root_directory, true);
+  File::FSTEntry<std::string> rootEntry = File::ScanDirectoryTree(m_root_directory, true);
 
   ConvertUTF8NamesToSHIFTJIS(rootEntry);
 
@@ -460,20 +460,22 @@ void VolumeDirectory::WriteEntryName(u32* name_offset, const std::string& name)
   *name_offset += (u32)(name.length() + 1);
 }
 
-void VolumeDirectory::WriteDirectory(const File::FSTEntry& parent_entry, u32* fst_offset,
-                                     u32* name_offset, u64* data_offset, u32 parent_entry_index)
+void VolumeDirectory::WriteDirectory(const File::FSTEntry<std::string>& parent_entry,
+                                     u32* fst_offset, u32* name_offset, u64* data_offset,
+                                     u32 parent_entry_index)
 {
-  std::vector<File::FSTEntry> sorted_entries = parent_entry.children;
+  std::vector<File::FSTEntry<std::string>> sorted_entries = parent_entry.children;
 
   // Sort for determinism
-  std::sort(sorted_entries.begin(), sorted_entries.end(), [](const File::FSTEntry& one,
-                                                             const File::FSTEntry& two) {
-    const std::string one_upper = ASCIIToUppercase(one.virtualName);
-    const std::string two_upper = ASCIIToUppercase(two.virtualName);
-    return one_upper == two_upper ? one.virtualName < two.virtualName : one_upper < two_upper;
-  });
+  std::sort(sorted_entries.begin(), sorted_entries.end(),
+            [](const File::FSTEntry<std::string>& one, const File::FSTEntry<std::string>& two) {
+              const std::string one_upper = ASCIIToUppercase(one.virtualName);
+              const std::string two_upper = ASCIIToUppercase(two.virtualName);
+              return one_upper == two_upper ? one.virtualName < two.virtualName :
+                                              one_upper < two_upper;
+            });
 
-  for (const File::FSTEntry& entry : sorted_entries)
+  for (const File::FSTEntry<std::string>& entry : sorted_entries)
   {
     if (entry.isDirectory)
     {
@@ -501,10 +503,10 @@ void VolumeDirectory::WriteDirectory(const File::FSTEntry& parent_entry, u32* fs
   }
 }
 
-static u32 ComputeNameSize(const File::FSTEntry& parent_entry)
+static u32 ComputeNameSize(const File::FSTEntry<std::string>& parent_entry)
 {
   u32 name_size = 0;
-  for (const File::FSTEntry& entry : parent_entry.children)
+  for (const File::FSTEntry<std::string>& entry : parent_entry.children)
   {
     if (entry.isDirectory)
       name_size += ComputeNameSize(entry);
@@ -514,9 +516,9 @@ static u32 ComputeNameSize(const File::FSTEntry& parent_entry)
   return name_size;
 }
 
-static void ConvertUTF8NamesToSHIFTJIS(File::FSTEntry& parent_entry)
+static void ConvertUTF8NamesToSHIFTJIS(File::FSTEntry<std::string>& parent_entry)
 {
-  for (File::FSTEntry& entry : parent_entry.children)
+  for (File::FSTEntry<std::string>& entry : parent_entry.children)
   {
     if (entry.isDirectory)
       ConvertUTF8NamesToSHIFTJIS(entry);

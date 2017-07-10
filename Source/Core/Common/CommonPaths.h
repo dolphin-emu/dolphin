@@ -33,7 +33,8 @@
 #elif defined __APPLE__
 #define SYSDATA_DIR "Contents/Resources/Sys"
 #elif defined ANDROID
-#define SYSDATA_DIR "/sdcard/dolphin-emu"
+// On Android, there is no Sys directory in the regular sense.
+// The files that would be in there are stored as APK assets instead.
 #else
 #ifdef DATA_DIR
 #define SYSDATA_DIR DATA_DIR "sys"

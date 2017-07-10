@@ -16,6 +16,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
+import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.AddDirectoryActivity;
 import org.dolphinemu.dolphinemu.adapters.PlatformPagerAdapter;
@@ -65,7 +66,7 @@ public final class MainActivity extends AppCompatActivity implements MainView
 		// Stuff in this block only happens when this activity is newly created (i.e. not a rotation)
 		// TODO Split some of this stuff into Application.onCreate()
 		if (savedInstanceState == null)
-			StartupHandler.HandleInit(this);
+			StartupHandler.HandleInit(this, getApplicationContext().getAssets());
 
 		if (PermissionsHandler.hasWriteAccess(this))
 		{
@@ -158,7 +159,7 @@ public final class MainActivity extends AppCompatActivity implements MainView
 		switch (requestCode) {
 			case PermissionsHandler.REQUEST_CODE_WRITE_PERMISSION:
 				if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-					StartupHandler.copyAssetsIfNeeded(this);
+					NativeLibrary.CreateUserFolders();
 
 					PlatformPagerAdapter platformPagerAdapter = new PlatformPagerAdapter(getFragmentManager(), this);
 					mViewPager.setAdapter(platformPagerAdapter);

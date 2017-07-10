@@ -12,6 +12,7 @@
 #include <QWidget>
 
 #include "Common/CommonPaths.h"
+#include "Common/File.h"
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
@@ -58,15 +59,12 @@ void InterfacePane::CreateUI()
   m_combobox_theme->setMaximumWidth(300);
   combobox_layout->addRow(tr("&Theme:"), m_combobox_theme);
 
-  // List avalable themes
-  auto file_search_results =
-      Common::DoFileSearch({File::GetUserPath(D_THEMES_IDX), File::GetSysDirectory() + THEMES_DIR});
-  for (const std::string& filename : file_search_results)
+  // List available themes
+  const std::vector<File::Path> file_search_results = Common::DoFileSearch<File::Path>(
+      {File::GetUserPath(D_THEMES_IDX), File::GetPathInSys(THEMES_DIR)});
+  for (const File::Path& path : file_search_results)
   {
-    std::string name, ext;
-    SplitPath(filename, nullptr, &name, &ext);
-    name += ext;
-    QString qt_name = QString::fromStdString(name);
+    QString qt_name = QString::fromStdString(path.GetName());
     m_combobox_theme->addItem(qt_name);
   }
 

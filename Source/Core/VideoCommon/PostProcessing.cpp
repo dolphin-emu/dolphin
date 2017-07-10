@@ -7,6 +7,7 @@
 
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
+#include "Common/File.h"
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
@@ -30,15 +31,15 @@ PostProcessingShaderImplementation::~PostProcessingShaderImplementation()
 
 static std::vector<std::string> GetShaders(const std::string& sub_dir = "")
 {
-  std::vector<std::string> paths =
-      Common::DoFileSearch({File::GetUserPath(D_SHADERS_IDX) + sub_dir,
-                            File::GetSysDirectory() + SHADERS_DIR DIR_SEP + sub_dir},
-                           {".glsl"});
+  const std::vector<File::Path> paths =
+      Common::DoFileSearch<File::Path>({File::GetUserPath(D_SHADERS_IDX) + sub_dir,
+                                        File::GetPathInSys(SHADERS_DIR DIR_SEP + sub_dir)},
+                                       {".glsl"});
   std::vector<std::string> result;
-  for (std::string path : paths)
+  for (const File::Path& path : paths)
   {
     std::string name;
-    SplitPath(path, nullptr, &name, nullptr);
+    SplitPath(path.GetName(), nullptr, &name, nullptr);
     result.push_back(name);
   }
   return result;
@@ -74,7 +75,6 @@ std::string PostProcessingShaderConfiguration::LoadShader(std::string shader)
 
   // loading shader code
   std::string code;
-  std::string path = File::GetUserPath(D_SHADERS_IDX) + sub_dir + shader + ".glsl";
 
   if (shader == "")
   {
@@ -82,15 +82,11 @@ std::string PostProcessingShaderConfiguration::LoadShader(std::string shader)
   }
   else
   {
-    if (!File::Exists(path))
+    const std::string filename = sub_dir + shader + ".glsl";
+    const std::string relative_path = SHADERS_DIR DIR_SEP + filename;
+    if (!File::ReadFileToString(File::GetPathInUserOrSys(relative_path), code))
     {
-      // Fallback to shared user dir
-      path = File::GetSysDirectory() + SHADERS_DIR DIR_SEP + sub_dir + shader + ".glsl";
-    }
-
-    if (!File::ReadFileToString(path, code))
-    {
-      ERROR_LOG(VIDEO, "Post-processing shader not found: %s", path.c_str());
+      ERROR_LOG(VIDEO, "Post-processing shader not found: %s", filename.c_str());
       code = s_default_shader;
     }
   }

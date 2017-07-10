@@ -111,6 +111,11 @@ std::string JoinStrings(const std::vector<std::string>& strings, const std::stri
 // "C:/Windows/winhelp.exe" to "C:/Windows/", "winhelp", ".exe"
 bool SplitPath(const std::string& full_path, std::string* _pPath, std::string* _pFilename,
                std::string* _pExtension);
+// "C:/Windows/winhelp.exe" to "C:/Windows/", "winhelp.exe"
+bool SplitPath(const std::string& full_path, std::string* _pPath, std::string* _pFilename);
+
+// Remove any trailing forward slashes from directory paths
+std::string StripTailDirSlashes(const std::string& path);
 
 void BuildCompleteFilename(std::string& _CompleteFilename, const std::string& _Path,
                            const std::string& _Filename);

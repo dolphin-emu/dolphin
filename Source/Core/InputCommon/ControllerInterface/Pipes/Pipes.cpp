@@ -45,16 +45,14 @@ void PopulateDevices()
 {
   // Search the Pipes directory for files that we can open in read-only,
   // non-blocking mode. The device name is the virtual name of the file.
-  File::FSTEntry fst;
   std::string dir_path = File::GetUserPath(D_PIPES_IDX);
   if (!File::Exists(dir_path))
     return;
-  fst = File::ScanDirectoryTree(dir_path, false);
+  File::FSTEntry<std::string> fst = File::ScanDirectoryTree<std::string>(dir_path, false);
   if (!fst.isDirectory)
     return;
-  for (unsigned int i = 0; i < fst.size; ++i)
+  for (const File::FSTEntry<std::string>& child : fst.children)
   {
-    const File::FSTEntry& child = fst.children[i];
     if (child.isDirectory)
       continue;
     int fd = open(child.physicalName.c_str(), O_RDONLY | O_NONBLOCK);

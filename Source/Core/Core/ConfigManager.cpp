@@ -893,13 +893,9 @@ const char* SConfig::GetDirectoryForRegion(DiscIO::Region region)
   }
 }
 
-std::string SConfig::GetBootROMPath(const std::string& region_directory) const
+File::Path SConfig::GetBootROMPath(const std::string& region_directory) const
 {
-  const std::string path =
-      File::GetUserPath(D_GCUSER_IDX) + DIR_SEP + region_directory + DIR_SEP GC_IPL;
-  if (!File::Exists(path))
-    return File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + region_directory + DIR_SEP GC_IPL;
-  return path;
+  return File::GetPathInUserOrSys(GC_SYS_DIR DIR_SEP + region_directory + DIR_SEP GC_IPL);
 }
 
 struct SetGameMetadata
@@ -1081,7 +1077,7 @@ IniFile SConfig::LoadDefaultGameIni(const std::string& id, std::optional<u16> re
 {
   IniFile game_ini;
   for (const std::string& filename : GetGameIniFilenames(id, revision))
-    game_ini.Load(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + filename, true);
+    game_ini.Load(File::GetPathInSys(GAMESETTINGS_DIR DIR_SEP + filename), true);
   return game_ini;
 }
 
@@ -1097,7 +1093,7 @@ IniFile SConfig::LoadGameIni(const std::string& id, std::optional<u16> revision)
 {
   IniFile game_ini;
   for (const std::string& filename : GetGameIniFilenames(id, revision))
-    game_ini.Load(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + filename, true);
+    game_ini.Load(File::GetPathInSys(GAMESETTINGS_DIR DIR_SEP + filename), true);
   for (const std::string& filename : GetGameIniFilenames(id, revision))
     game_ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + filename, true);
   return game_ini;

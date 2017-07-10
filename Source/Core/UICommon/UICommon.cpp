@@ -57,7 +57,7 @@ void Shutdown()
 void CreateDirectories()
 {
   // Copy initial Wii NAND data from Sys to User.
-  File::CopyDir(File::GetSysDirectory() + WII_USER_DIR, File::GetUserPath(D_WIIROOT_IDX));
+  File::CopyDir(File::GetPathInSys(WII_USER_DIR), File::GetUserPath(D_WIIROOT_IDX));
 
   File::CreateFullPath(File::GetUserPath(D_USER_IDX));
   File::CreateFullPath(File::GetUserPath(D_CACHE_IDX));
@@ -72,12 +72,14 @@ void CreateDirectories()
   File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX) + JAP_DIR DIR_SEP);
   File::CreateFullPath(File::GetUserPath(D_HIRESTEXTURES_IDX));
   File::CreateFullPath(File::GetUserPath(D_MAILLOGS_IDX));
-  File::CreateFullPath(File::GetUserPath(D_MAPS_IDX));
   File::CreateFullPath(File::GetUserPath(D_SCREENSHOTS_IDX));
   File::CreateFullPath(File::GetUserPath(D_SHADERS_IDX));
   File::CreateFullPath(File::GetUserPath(D_SHADERS_IDX) + ANAGLYPH_DIR DIR_SEP);
   File::CreateFullPath(File::GetUserPath(D_STATESAVES_IDX));
+#ifndef ANDROID
+  File::CreateFullPath(File::GetUserPath(D_MAPS_IDX));
   File::CreateFullPath(File::GetUserPath(D_THEMES_IDX));
+#endif
 }
 
 void SetUserDirectory(const std::string& custom_path)

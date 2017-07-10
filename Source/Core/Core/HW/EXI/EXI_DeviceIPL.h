@@ -8,6 +8,11 @@
 
 #include "Core/HW/EXI/EXI_Device.h"
 
+namespace File
+{
+class Path;
+}
+
 class PointerWrap;
 
 namespace ExpansionInterface
@@ -74,8 +79,8 @@ private:
   void TransferByte(u8& _uByte) override;
   bool IsWriteCommand() const { return !!(m_uAddress & (1 << 31)); }
   u32 CommandRegion() const { return (m_uAddress & ~(1 << 31)) >> 8; }
-  bool LoadFileToIPL(const std::string& filename, u32 offset);
-  void LoadFontFile(const std::string& filename, u32 offset);
+  bool LoadFileToIPL(const File::Path& path, u32 offset);
+  void LoadFontFile(const File::Path& path, u32 offset);
   std::string FindIPLDump(const std::string& path_prefix);
 };
 }  // namespace ExpansionInterface

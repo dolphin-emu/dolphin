@@ -5,6 +5,7 @@
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
 
 #include <cstring>
+#include <memory>
 #include <string>
 
 #include "Common/Assert.h"
@@ -119,8 +120,8 @@ CEXIIPL::CEXIIPL() : m_uPosition(0), m_uAddress(0), m_uRWOffset(0), m_FontsLoade
       memcpy(m_pIPL, iplverPAL, sizeof(iplverPAL));
 
     // Load fonts
-    LoadFontFile((File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + FONT_SHIFT_JIS), 0x1aff00);
-    LoadFontFile((File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + FONT_WINDOWS_1252), 0x1fcf00);
+    LoadFontFile(File::GetPathInSys(GC_SYS_DIR DIR_SEP FONT_SHIFT_JIS), 0x1aff00);
+    LoadFontFile(File::GetPathInSys(GC_SYS_DIR DIR_SEP FONT_WINDOWS_1252), 0x1fcf00);
   }
 
   // Clear RTC
@@ -161,15 +162,10 @@ void CEXIIPL::DoState(PointerWrap& p)
   p.Do(m_FontsLoaded);
 }
 
-bool CEXIIPL::LoadFileToIPL(const std::string& filename, u32 offset)
+bool CEXIIPL::LoadFileToIPL(const File::Path& path, u32 offset)
 {
-  File::IOFile stream(filename, "rb");
-  if (!stream)
-    return false;
-
-  u64 filesize = stream.GetSize();
-
-  if (!stream.ReadBytes(m_pIPL + offset, filesize))
+  std::unique_ptr<File::ReadOnlyFile> file = path.OpenFile(true);
+  if (!file->ReadBytes(m_pIPL + offset, file->GetSize()))
     return false;
 
   m_FontsLoaded = true;
@@ -190,19 +186,14 @@ std::string CEXIIPL::FindIPLDump(const std::string& path_prefix)
   return ipl_dump_path;
 }
 
-void CEXIIPL::LoadFontFile(const std::string& filename, u32 offset)
+void CEXIIPL::LoadFontFile(const File::Path& path, u32 offset)
 {
   // Official IPL fonts are copyrighted. Dolphin ships with a set of free font alternatives but
   // unfortunately the bundled fonts have different padding, causing issues with misplaced text
   // in some titles. This function check if the user has IPL dumps available and load the fonts
   // from those dumps instead of loading the bundled fonts
 
-  // Check for IPL dumps in User folder
   std::string ipl_rom_path = FindIPLDump(File::GetUserPath(D_GCUSER_IDX));
-
-  // If not found, check again in Sys folder
-  if (ipl_rom_path.empty())
-    ipl_rom_path = FindIPLDump(File::GetSysDirectory() + GC_SYS_DIR);
 
   if (File::Exists(ipl_rom_path))
   {
@@ -226,7 +217,7 @@ void CEXIIPL::LoadFontFile(const std::string& filename, u32 offset)
   else
   {
     // No IPL dump available, load bundled font instead
-    LoadFileToIPL(filename, offset);
+    LoadFileToIPL(path, offset);
   }
 }
 

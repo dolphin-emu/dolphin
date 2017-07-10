@@ -10,6 +10,7 @@
 #include <unordered_map>
 #include <utility>
 
+#include "Common/File.h"
 #include "Common/FileUtil.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
@@ -50,13 +51,13 @@ static std::string GetLanguageCode(DiscIO::Language language)
 using Map = std::unordered_map<std::string, std::string>;
 
 // Note that this function will not overwrite entries that already are in the maps
-static bool LoadMap(const std::string& file_path, Map& map,
+static bool LoadMap(const File::Path& file_path, Map& map,
                     std::function<bool(const std::string& game_id)> predicate)
 {
-  std::ifstream txt;
-  File::OpenFStream(txt, file_path, std::ios::in);
+  std::unique_ptr<File::ReadOnlyFile> file = file_path.OpenFile(false);
+  File::ReadOnlyFileStream txt(file.get());
 
-  if (!txt.is_open())
+  if (!txt)
     return false;
 
   std::string line;
@@ -103,7 +104,7 @@ static bool IsNonJapaneseGCTitle(const std::string& game_id)
 }
 
 // Note that this function will not overwrite entries that already are in the maps
-static bool LoadMap(const std::string& file_path, Map& gc_map, Map& wii_map)
+static bool LoadMap(const File::Path& file_path, Map& gc_map, Map& wii_map)
 {
   Map map;
   if (!LoadMap(file_path, map, [](const auto& game_id) { return true; }))
@@ -129,17 +130,14 @@ TitleDatabase::TitleDatabase()
   // so instead, we use Japanese names iff the games are NTSC-J.
   const std::string gc_code = GetLanguageCode(SConfig::GetInstance().GetCurrentLanguage(false));
   const std::string wii_code = GetLanguageCode(SConfig::GetInstance().GetCurrentLanguage(true));
-  LoadMap(File::GetSysDirectory() + "wiitdb-ja.txt", m_gc_title_map, IsJapaneseGCTitle);
+  LoadMap(File::GetPathInSys("wiitdb-ja.txt"), m_gc_title_map, IsJapaneseGCTitle);
   if (gc_code != "en")
-  {
-    LoadMap(File::GetSysDirectory() + "wiitdb-" + gc_code + ".txt", m_gc_title_map,
-            IsNonJapaneseGCTitle);
-  }
+    LoadMap(File::GetPathInSys("wiitdb-" + gc_code + ".txt"), m_gc_title_map, IsNonJapaneseGCTitle);
   if (wii_code != "en")
-    LoadMap(File::GetSysDirectory() + "wiitdb-" + wii_code + ".txt", m_wii_title_map, IsWiiTitle);
+    LoadMap(File::GetPathInSys("wiitdb-" + wii_code + ".txt"), m_wii_title_map, IsWiiTitle);
 
   // Load the English database as the base database.
-  LoadMap(File::GetSysDirectory() + "wiitdb-en.txt", m_gc_title_map, m_wii_title_map);
+  LoadMap(File::GetPathInSys("wiitdb-en.txt"), m_gc_title_map, m_wii_title_map);
 
   // Titles that cannot be part of the Wii TDB,
   // but common enough to justify having entries for them.

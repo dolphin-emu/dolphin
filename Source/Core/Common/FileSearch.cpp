@@ -6,6 +6,7 @@
 #include <functional>
 
 #include "Common/CommonPaths.h"
+#include "Common/File.h"
 #include "Common/FileSearch.h"
 
 #ifdef _MSC_VER
@@ -23,17 +24,17 @@ namespace Common
 {
 #ifndef HAS_STD_FILESYSTEM
 
-static std::vector<std::string>
-FileSearchWithTest(const std::vector<std::string>& directories, bool recursive,
-                   std::function<bool(const File::FSTEntry&)> callback)
+template <class T>
+static std::vector<T> FileSearchWithTest(const std::vector<T>& directories, bool recursive,
+                                         std::function<bool(const File::FSTEntry<T>&)> callback)
 {
-  std::vector<std::string> result;
-  for (const std::string& directory : directories)
+  std::vector<T> result;
+  for (const T& directory : directories)
   {
-    File::FSTEntry top = File::ScanDirectoryTree(directory, recursive);
+    File::FSTEntry<T> top = File::ScanDirectoryTree(directory, recursive);
 
-    std::function<void(File::FSTEntry&)> DoEntry;
-    DoEntry = [&](File::FSTEntry& entry) {
+    std::function<void(File::FSTEntry<T>&)> DoEntry;
+    DoEntry = [&](File::FSTEntry<T>& entry) {
       if (callback(entry))
         result.push_back(entry.physicalName);
       for (auto& child : entry.children)
@@ -48,11 +49,12 @@ FileSearchWithTest(const std::vector<std::string>& directories, bool recursive,
   return result;
 }
 
-std::vector<std::string> DoFileSearch(const std::vector<std::string>& directories,
-                                      const std::vector<std::string>& exts, bool recursive)
+template <class T>
+std::vector<T> DoFileSearch(const std::vector<T>& directories, const std::vector<std::string>& exts,
+                            bool recursive)
 {
   bool accept_all = exts.empty();
-  return FileSearchWithTest(directories, recursive, [&](const File::FSTEntry& entry) {
+  return FileSearchWithTest<T>(directories, recursive, [&](const File::FSTEntry<T>& entry) {
     if (accept_all)
       return true;
     if (entry.isDirectory)
@@ -67,8 +69,9 @@ std::vector<std::string> DoFileSearch(const std::vector<std::string>& directorie
 
 #else
 
-std::vector<std::string> DoFileSearch(const std::vector<std::string>& directories,
-                                      const std::vector<std::string>& exts, bool recursive)
+template <class T>
+std::vector<T> DoFileSearch(const std::vector<T>& directories, const std::vector<std::string>& exts,
+                            bool recursive)
 {
   bool accept_all = exts.empty();
 
@@ -128,5 +131,11 @@ std::vector<std::string> DoFileSearch(const std::vector<std::string>& directorie
 }
 
 #endif
+
+template std::vector<std::string> DoFileSearch(const std::vector<std::string>& directories,
+                                               const std::vector<std::string>& exts,
+                                               bool recursive);
+template std::vector<File::Path> DoFileSearch(const std::vector<File::Path>& directories,
+                                              const std::vector<std::string>& exts, bool recursive);
 
 }  // namespace Common
