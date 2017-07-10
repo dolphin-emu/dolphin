@@ -27,10 +27,23 @@ public:
   void Load(u32 level, u32 width, u32 height, u32 row_length, const u8* buffer,
             size_t buffer_size) override;
 
+  void WriteToAddress(u8* destination, u32 memory_stride) override;
+
   D3DTexture2D* GetRawTexIdentifier() const;
+  D3DTexture2D* GetRenderTargetCopy() const;
 
 private:
   D3DTexture2D* m_texture;
+
+  // We keep a similar texture as a rendertarget
+  // that we use to apply shaders to
+  // we then can copy the data back to the actual texture
+  // (this is because you can't use the same texture for
+  //  both a RenderTargetView and ShaderResourceView
+  //  at the same time)
+  D3DTexture2D* m_renderTarget;
+
+  ID3D11Texture2D* m_outputStage;
 };
 
 }  // namespace DX11

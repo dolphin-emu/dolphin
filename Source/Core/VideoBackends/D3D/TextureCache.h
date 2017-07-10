@@ -40,6 +40,7 @@ private:
 
   bool CompileShaders() override { return true; }
   void DeleteShaders() override {}
+  std::unique_ptr<AbstractPixelShader> CreatePixelShader(const std::string& shader_source) override;
   ID3D11Buffer* palette_buf;
   ID3D11ShaderResourceView* palette_buf_srv;
   ID3D11Buffer* palette_uniform;

@@ -15,6 +15,7 @@
 #include "VideoBackends/D3D/D3DState.h"
 #include "VideoBackends/D3D/D3DTexture.h"
 #include "VideoBackends/D3D/D3DUtil.h"
+#include "VideoBackends/D3D/DXPixelShader.h"
 #include "VideoBackends/D3D/DXTexture.h"
 #include "VideoBackends/D3D/FramebufferManager.h"
 #include "VideoBackends/D3D/GeometryShaderCache.h"
@@ -299,5 +300,10 @@ void TextureCache::CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy,
                                    FramebufferManager::GetEFBDepthTexture()->GetDSV());
 
   g_renderer->RestoreAPIState();
+}
+
+std::unique_ptr<AbstractPixelShader> TextureCache::CreatePixelShader(const std::string& shader_source)
+{
+  return std::make_unique<DXPixelShader>(shader_source);
 }
 }

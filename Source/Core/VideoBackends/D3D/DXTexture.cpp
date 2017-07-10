@@ -44,7 +44,7 @@ DXGI_FORMAT GetDXGIFormatForHostFormat(AbstractTextureFormat format)
 }
 }  // Anonymous namespace
 
-DXTexture::DXTexture(const TextureConfig& tex_config) : AbstractTexture(tex_config)
+DXTexture::DXTexture(const TextureConfig& tex_config) : AbstractTexture(tex_config), m_outputStage(nullptr), m_renderTarget(nullptr)
 {
   DXGI_FORMAT dxgi_format = GetDXGIFormatForHostFormat(m_config.format);
   if (m_config.rendertarget)
@@ -53,6 +53,22 @@ DXTexture::DXTexture(const TextureConfig& tex_config) : AbstractTexture(tex_conf
         m_config.width, m_config.height,
         (D3D11_BIND_FLAG)((int)D3D11_BIND_RENDER_TARGET | (int)D3D11_BIND_SHADER_RESOURCE),
         D3D11_USAGE_DEFAULT, dxgi_format, 1, m_config.layers);
+
+    m_renderTarget = D3DTexture2D::Create(
+      m_config.width, m_config.height,
+      (D3D11_BIND_FLAG)((int)D3D11_BIND_RENDER_TARGET),
+      D3D11_USAGE_DEFAULT, dxgi_format, 1, m_config.layers);
+
+    // Create output staging buffer
+    D3D11_TEXTURE2D_DESC t2dd = CD3D11_TEXTURE2D_DESC(dxgi_format, m_config.width,
+    m_config.height, 1, 1, D3D11_BIND_RENDER_TARGET);
+
+    t2dd.Usage = D3D11_USAGE_STAGING;
+    t2dd.BindFlags = 0;
+    t2dd.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+    auto hr = D3D::device->CreateTexture2D(&t2dd, nullptr, &m_outputStage);
+    CHECK(SUCCEEDED(hr), "create output staging buffer");
+    D3D::SetDebugObjectName(m_outputStage, "output staging buffer");
   }
   else
   {
@@ -79,11 +95,18 @@ DXTexture::DXTexture(const TextureConfig& tex_config) : AbstractTexture(tex_conf
 DXTexture::~DXTexture()
 {
   m_texture->Release();
+  SAFE_RELEASE(m_outputStage);
+  SAFE_RELEASE(m_renderTarget);
 }
 
 D3DTexture2D* DXTexture::GetRawTexIdentifier() const
 {
   return m_texture;
+}
+
+D3DTexture2D* DXTexture::GetRenderTargetCopy() const
+{
+  return m_renderTarget;
 }
 
 void DXTexture::Bind(unsigned int stage)
@@ -193,4 +216,24 @@ void DXTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8*
   D3D::context->UpdateSubresource(m_texture->GetTex(), level, nullptr, buffer,
                                   static_cast<UINT>(src_pitch), 0);
 }
+
+void DXTexture::WriteToAddress(u8* destination, u32 memory_stride)
+{
+  auto* dx_texture = m_texture->GetTex();
+
+  // Copy to staging buffer
+  D3D11_BOX srcBox = CD3D11_BOX(0, 0, 0, m_config.width, m_config.height, 1);
+  D3D::context->CopySubresourceRegion(m_outputStage, 0, 0, 0, 0, dx_texture, 0, &srcBox);
+
+  // Transfer staging buffer to GameCube/Wii RAM
+  D3D11_MAPPED_SUBRESOURCE map = { 0 };
+  auto hr = D3D::context->Map(m_outputStage, 0, D3D11_MAP_READ, 0, &map);
+  CHECK(SUCCEEDED(hr), "map staging buffer (0x%x)", hr);
+
+  u8* src_ptr = static_cast<u8*>(map.pData);
+  memcpy(destination, src_ptr, memory_stride * m_config.height);
+
+  D3D::context->Unmap(m_outputStage, 0);
+}
+
 }  // namespace DX11
