@@ -51,38 +51,67 @@
 // REMEMBER: strdup considered harmful!
 namespace File
 {
-// Returns true if file filename exists
-bool Exists(const std::string& filename)
-{
-  struct stat file_info;
-
 #ifdef _WIN32
-  int result = _tstat64(UTF8ToTStr(filename).c_str(), &file_info);
-#else
-  int result = stat(filename.c_str(), &file_info);
-#endif
-
-  return (result == 0);
+FileInfo::FileInfo(const std::string& path)
+{
+  m_exists = _tstat64(UTF8ToTStr(path).c_str(), &m_stat) == 0;
 }
 
-// Returns true if filename is a directory
-bool IsDirectory(const std::string& filename)
+FileInfo::FileInfo(const char* path) : FileInfo(std::string(path))
 {
-  struct stat file_info;
-
-#ifdef _WIN32
-  int result = _tstat64(UTF8ToTStr(filename).c_str(), &file_info);
+}
 #else
-  int result = stat(filename.c_str(), &file_info);
+FileInfo::FileInfo(const std::string& path) : FileInfo(path.c_str())
+{
+}
+
+FileInfo::FileInfo(const char* path)
+{
+  m_exists = stat(path, &m_stat) == 0;
+}
 #endif
 
-  if (result < 0)
-  {
-    WARN_LOG(COMMON, "IsDirectory: stat failed on %s: %s", filename.c_str(), strerror(errno));
-    return false;
-  }
+FileInfo::FileInfo(int fd)
+{
+  m_exists = fstat(fd, &m_stat);
+}
 
-  return S_ISDIR(file_info.st_mode);
+bool FileInfo::Exists() const
+{
+  return m_exists;
+}
+
+bool FileInfo::IsDirectory() const
+{
+  return m_exists ? S_ISDIR(m_stat.st_mode) : false;
+}
+
+bool FileInfo::IsFile() const
+{
+  return m_exists ? !S_ISDIR(m_stat.st_mode) : false;
+}
+
+u64 FileInfo::GetSize() const
+{
+  return IsFile() ? m_stat.st_size : 0;
+}
+
+// Returns true if the path exists
+bool Exists(const std::string& path)
+{
+  return FileInfo(path).Exists();
+}
+
+// Returns true if the path exists and is a directory
+bool IsDirectory(const std::string& path)
+{
+  return FileInfo(path).IsDirectory();
+}
+
+// Returns true if the path exists and is a file
+bool IsFile(const std::string& path)
+{
+  return FileInfo(path).IsFile();
 }
 
 // Deletes a given filename, return true on success
@@ -91,16 +120,18 @@ bool Delete(const std::string& filename)
 {
   INFO_LOG(COMMON, "Delete: file %s", filename.c_str());
 
+  const FileInfo file_info(filename);
+
   // Return true because we care about the file no
   // being there, not the actual delete.
-  if (!Exists(filename))
+  if (!file_info.Exists())
   {
     WARN_LOG(COMMON, "Delete: %s does not exist", filename.c_str());
     return true;
   }
 
   // We can't delete a directory
-  if (IsDirectory(filename))
+  if (file_info.IsDirectory())
   {
     WARN_LOG(COMMON, "Delete failed: %s is a directory", filename.c_str());
     return false;
@@ -163,7 +194,7 @@ bool CreateFullPath(const std::string& fullPath)
   int panicCounter = 100;
   INFO_LOG(COMMON, "CreateFullPath: path %s", fullPath.c_str());
 
-  if (File::Exists(fullPath))
+  if (Exists(fullPath))
   {
     INFO_LOG(COMMON, "CreateFullPath: path exists %s", fullPath.c_str());
     return true;
@@ -181,7 +212,7 @@ bool CreateFullPath(const std::string& fullPath)
 
     // Include the '/' so the first call is CreateDir("/") rather than CreateDir("")
     std::string const subPath(fullPath.substr(0, position + 1));
-    if (!File::IsDirectory(subPath))
+    if (!IsDirectory(subPath))
       File::CreateDir(subPath);
 
     // A safety check
@@ -201,7 +232,7 @@ bool DeleteDir(const std::string& filename)
   INFO_LOG(COMMON, "DeleteDir: directory %s", filename.c_str());
 
   // check if a directory
-  if (!File::IsDirectory(filename))
+  if (!IsDirectory(filename))
   {
     ERROR_LOG(COMMON, "DeleteDir: Not a directory %s", filename.c_str());
     return false;
@@ -344,46 +375,16 @@ bool Copy(const std::string& srcFilename, const std::string& destFilename)
 #endif
 }
 
-// Returns the size of filename (64bit)
-u64 GetSize(const std::string& filename)
+// Returns the size of a file (or returns 0 if the path isn't a file that exists)
+u64 GetSize(const std::string& path)
 {
-  if (!Exists(filename))
-  {
-    WARN_LOG(COMMON, "GetSize: failed %s: No such file", filename.c_str());
-    return 0;
-  }
-
-  if (IsDirectory(filename))
-  {
-    WARN_LOG(COMMON, "GetSize: failed %s: is a directory", filename.c_str());
-    return 0;
-  }
-
-  struct stat buf;
-#ifdef _WIN32
-  if (_tstat64(UTF8ToTStr(filename).c_str(), &buf) == 0)
-#else
-  if (stat(filename.c_str(), &buf) == 0)
-#endif
-  {
-    DEBUG_LOG(COMMON, "GetSize: %s: %lld", filename.c_str(), (long long)buf.st_size);
-    return buf.st_size;
-  }
-
-  ERROR_LOG(COMMON, "GetSize: Stat failed %s: %s", filename.c_str(), GetLastErrorMsg().c_str());
-  return 0;
+  return FileInfo(path).GetSize();
 }
 
 // Overloaded GetSize, accepts file descriptor
 u64 GetSize(const int fd)
 {
-  struct stat buf;
-  if (fstat(fd, &buf) != 0)
-  {
-    ERROR_LOG(COMMON, "GetSize: stat failed %i: %s", fd, GetLastErrorMsg().c_str());
-    return 0;
-  }
-  return buf.st_size;
+  return FileInfo(fd).GetSize();
 }
 
 // Overloaded GetSize, accepts FILE*
@@ -458,7 +459,8 @@ FSTEntry ScanDirectoryTree(const std::string& directory, bool recursive)
       continue;
     auto physical_name = directory + DIR_SEP + virtual_name;
     FSTEntry entry;
-    entry.isDirectory = IsDirectory(physical_name);
+    const FileInfo file_info(physical_name);
+    entry.isDirectory = file_info.IsDirectory();
     if (entry.isDirectory)
     {
       if (recursive)
@@ -469,7 +471,7 @@ FSTEntry ScanDirectoryTree(const std::string& directory, bool recursive)
     }
     else
     {
-      entry.size = GetSize(physical_name);
+      entry.size = file_info.GetSize();
     }
     entry.virtualName = virtual_name;
     entry.physicalName = physical_name;
@@ -561,9 +563,9 @@ void CopyDir(const std::string& source_path, const std::string& dest_path)
 {
   if (source_path == dest_path)
     return;
-  if (!File::Exists(source_path))
+  if (!Exists(source_path))
     return;
-  if (!File::Exists(dest_path))
+  if (!Exists(dest_path))
     File::CreateFullPath(dest_path);
 
 #ifdef _WIN32
@@ -596,11 +598,11 @@ void CopyDir(const std::string& source_path, const std::string& dest_path)
     std::string dest = dest_path + DIR_SEP + virtualName;
     if (IsDirectory(source))
     {
-      if (!File::Exists(dest))
+      if (!Exists(dest))
         File::CreateFullPath(dest + DIR_SEP);
       CopyDir(source, dest);
     }
-    else if (!File::Exists(dest))
+    else if (!Exists(dest))
       File::Copy(source, dest);
 #ifdef _WIN32
   } while (FindNextFile(hFind, &ffd) != 0);
@@ -852,12 +854,12 @@ void SetUserPath(unsigned int dir_index, const std::string& path)
 std::string GetThemeDir(const std::string& theme_name)
 {
   std::string dir = File::GetUserPath(D_THEMES_IDX) + theme_name + "/";
-  if (File::Exists(dir))
+  if (Exists(dir))
     return dir;
 
   // If the theme doesn't exist in the user dir, load from shared directory
   dir = GetSysDirectory() + THEMES_DIR "/" + theme_name + "/";
-  if (File::Exists(dir))
+  if (Exists(dir))
     return dir;
 
   // If the theme doesn't exist at all, load the default theme

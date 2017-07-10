@@ -142,10 +142,8 @@ GCMemcardDirectory::GCMemcardDirectory(const std::string& directory, int slot, u
       m_save_directory(directory), m_exiting(false)
 {
   // Use existing header data if available
-  if (File::Exists(m_save_directory + MC_HDR))
   {
-    File::IOFile hdr_file((m_save_directory + MC_HDR), "rb");
-    hdr_file.ReadBytes(&m_hdr, BLOCK_SIZE);
+    File::IOFile((m_save_directory + MC_HDR), "rb").ReadBytes(&m_hdr, BLOCK_SIZE);
   }
 
   std::vector<std::string> filenames = Common::DoFileSearch({m_save_directory}, {".gci"});

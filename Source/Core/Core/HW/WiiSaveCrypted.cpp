@@ -343,6 +343,7 @@ void CWiiSaveCrypted::ImportWiiSaveFiles()
 
       std::string file_path_full = m_wii_title_path + file_path;
       File::CreateFullPath(file_path_full);
+      const File::FileInfo file_info(file_path_full);
       if (file_hdr_tmp.type == 1)
       {
         file_size = Common::swap32(file_hdr_tmp.size);
@@ -361,7 +362,7 @@ void CWiiSaveCrypted::ImportWiiSaveFiles()
         mbedtls_aes_crypt_cbc(&m_aes_ctx, MBEDTLS_AES_DECRYPT, file_size_rounded, m_iv,
                               static_cast<const u8*>(file_data_enc.data()), file_data.data());
 
-        if (!File::Exists(file_path_full) ||
+        if (!file_info.Exists() ||
             AskYesNoT("%s already exists, overwrite?", file_path_full.c_str()))
         {
           INFO_LOG(CONSOLE, "Creating file %s", file_path_full.c_str());
@@ -372,12 +373,12 @@ void CWiiSaveCrypted::ImportWiiSaveFiles()
       }
       else if (file_hdr_tmp.type == 2)
       {
-        if (!File::Exists(file_path_full))
+        if (!file_info.Exists())
         {
           if (!File::CreateDir(file_path_full))
             ERROR_LOG(CONSOLE, "Failed to create directory %s", file_path_full.c_str());
         }
-        else if (!File::IsDirectory(file_path_full))
+        else if (!file_info.IsDirectory())
         {
           ERROR_LOG(CONSOLE,
                     "Failed to create directory %s because a file with the same name exists",
@@ -399,13 +400,14 @@ void CWiiSaveCrypted::ExportWiiSaveFiles()
     memset(&file_hdr_tmp, 0, FILE_HDR_SZ);
 
     u32 file_size = 0;
-    if (File::IsDirectory(m_files_list[i]))
+    const File::FileInfo file_info(m_files_list[i]);
+    if (file_info.IsDirectory())
     {
       file_hdr_tmp.type = 2;
     }
     else
     {
-      file_size = static_cast<u32>(File::GetSize(m_files_list[i]));
+      file_size = static_cast<u32>(file_info.GetSize());
       file_hdr_tmp.type = 1;
     }
 

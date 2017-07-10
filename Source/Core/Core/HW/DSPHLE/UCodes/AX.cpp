@@ -52,9 +52,6 @@ void AXUCode::LoadResamplingCoefficients()
   for (fidx = 0; fidx < ArraySize(filenames); ++fidx)
   {
     filename = filenames[fidx];
-    if (!File::Exists(filename))
-      continue;
-
     if (File::GetSize(filename) != 0x1000)
       continue;
 

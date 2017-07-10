@@ -27,15 +27,8 @@ WiiNetConfig::WiiNetConfig()
 
 void WiiNetConfig::ReadConfig()
 {
-  if (File::Exists(m_path))
-  {
-    if (!File::IOFile(m_path, "rb").ReadBytes(&m_data, sizeof(m_data)))
-      ResetConfig();
-  }
-  else
-  {
+  if (!File::IOFile(m_path, "rb").ReadBytes(&m_data, sizeof(m_data)))
     ResetConfig();
-  }
 }
 
 void WiiNetConfig::WriteConfig() const

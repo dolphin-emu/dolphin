@@ -102,7 +102,7 @@ ReturnCode FileIO::Open(const OpenRequest& request)
 
   // The file must exist before we can open it
   // It should be created by ISFS_CreateFile, not here
-  if (!File::Exists(m_filepath) || File::IsDirectory(m_filepath))
+  if (!File::IsFile(m_filepath))
   {
     WARN_LOG(IOS_FILEIO, "FileIO: Open (%s) failed - File doesn't exist %s", Modes[m_Mode],
              m_filepath.c_str());

@@ -466,8 +466,8 @@ bool CBoot::BootUp(std::unique_ptr<BootParameters> boot)
 
 BootExecutableReader::BootExecutableReader(const std::string& file_name)
 {
-  m_bytes.resize(File::GetSize(file_name));
   File::IOFile file{file_name, "rb"};
+  m_bytes.resize(file.GetSize());
   file.ReadBytes(m_bytes.data(), m_bytes.size());
 }
 

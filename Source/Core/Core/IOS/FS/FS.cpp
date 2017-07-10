@@ -524,13 +524,15 @@ IPCCommandResult FS::ReadDirectory(const IOCtlVRequest& request)
 
   INFO_LOG(IOS_FILEIO, "FS: IOCTL_READ_DIR %s", DirName.c_str());
 
-  if (!File::Exists(DirName))
+  const File::FileInfo file_info(DirName);
+
+  if (!file_info.Exists())
   {
     WARN_LOG(IOS_FILEIO, "FS: Search not found: %s", DirName.c_str());
     return GetFSReply(FS_ENOENT);
   }
 
-  if (!File::IsDirectory(DirName))
+  if (!file_info.IsDirectory())
   {
     // It's not a directory, so error.
     // Games don't usually seem to care WHICH error they get, as long as it's <
