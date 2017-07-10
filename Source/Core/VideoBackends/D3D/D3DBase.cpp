@@ -298,7 +298,7 @@ HRESULT Create(HWND wnd)
   swap_chain_desc.SampleDesc.Quality = 0;
   swap_chain_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
   swap_chain_desc.Scaling = DXGI_SCALING_STRETCH;
-  swap_chain_desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
+  swap_chain_desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
   swap_chain_desc.Width = xres;
   swap_chain_desc.Height = yres;
 
@@ -351,9 +351,18 @@ HRESULT Create(HWND wnd)
                                          &swapchain);
     if (FAILED(hr))
     {
+      // Flip-model discard swapchains aren't supported on Windows 8, so here we fall back to
+      // a sequential swapchain
+      swap_chain_desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
+      hr = factory->CreateSwapChainForHwnd(device, hWnd, &swap_chain_desc, nullptr, nullptr,
+                                           &swapchain);
+    }
+
+    if (FAILED(hr))
+    {
       // Flip-model swapchains aren't supported on Windows 7, so here we fall back to a legacy
       // BitBlt-model swapchain
-      swap_chain_desc.SwapEffect = DXGI_SWAP_EFFECT_SEQUENTIAL;
+      swap_chain_desc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
       hr = factory->CreateSwapChainForHwnd(device, hWnd, &swap_chain_desc, nullptr, nullptr,
                                            &swapchain);
     }
