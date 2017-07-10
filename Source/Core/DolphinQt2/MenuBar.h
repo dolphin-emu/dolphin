@@ -9,6 +9,11 @@
 #include <QMenu>
 #include <QMenuBar>
 
+namespace Core
+{
+enum class State;
+}
+
 class MenuBar final : public QMenuBar
 {
   Q_OBJECT
@@ -54,9 +59,6 @@ signals:
   void ShowAboutDialog();
 
 public slots:
-  void EmulationStarted();
-  void EmulationPaused();
-  void EmulationStopped();
   void UpdateStateSlotMenu();
   void UpdateToolsMenu(bool emulation_started);
 
@@ -64,6 +66,8 @@ public slots:
   void InstallWAD();
 
 private:
+  void OnEmulationStateChanged(Core::State state);
+
   void AddFileMenu();
 
   void AddEmulationMenu();

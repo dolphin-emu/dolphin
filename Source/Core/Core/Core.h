@@ -16,6 +16,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Common/Subscribable.h"
 
 struct BootParameters;
 
@@ -31,7 +32,8 @@ enum class State
   Uninitialized,
   Paused,
   Running,
-  Stopping
+  Stopping,
+  Starting,
 };
 
 bool Init(std::unique_ptr<BootParameters> boot);
@@ -82,8 +84,7 @@ void UpdateTitle();
 bool PauseAndLock(bool doLock, bool unpauseOnUnlock = true);
 
 // for calling back into UI code without introducing a dependency on it in core
-using StoppedCallbackFunc = std::function<void()>;
-void SetOnStoppedCallback(StoppedCallbackFunc callback);
+extern Subscribable<State> g_on_state_changed;
 
 // Run on the Host thread when the factors change. [NOT THREADSAFE]
 void UpdateWantDeterminism(bool initial = false);
@@ -102,5 +103,7 @@ void QueueHostJob(std::function<void()> job, bool run_during_stop = false);
 // Should be called periodically by the Host to run pending jobs.
 // WM_USER_JOB_DISPATCH will be sent when something is added to the queue.
 void HostDispatchJobs();
+
+void DoFrameStep();
 
 }  // namespace

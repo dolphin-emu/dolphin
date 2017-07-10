@@ -22,8 +22,8 @@ private:
   void CreateWidgets();
   void ConnectWidgets();
   void AddDescriptions();
-  void OnBackendChanged();
   void OnEmulationStateChanged(bool running);
+  void OnBackendChanged();
 
   // Debugging
   QCheckBox* m_enable_wireframe;

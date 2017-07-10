@@ -60,14 +60,7 @@ void SettingsWindow::SetupSettingsWidget()
   // Panes initalised here
   m_settings_outer->addWidget(new GeneralPane);
   m_settings_outer->addWidget(new InterfacePane);
-
-  auto* audio_pane = new AudioPane;
-  connect(this, &SettingsWindow::EmulationStarted,
-          [audio_pane] { audio_pane->OnEmulationStateChanged(true); });
-  connect(this, &SettingsWindow::EmulationStopped,
-          [audio_pane] { audio_pane->OnEmulationStateChanged(false); });
-  m_settings_outer->addWidget(audio_pane);
-
+  m_settings_outer->addWidget(new AudioPane);
   m_settings_outer->addWidget(new PathPane);
 }
 

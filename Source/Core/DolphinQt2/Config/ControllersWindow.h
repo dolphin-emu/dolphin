@@ -25,9 +25,9 @@ class ControllersWindow final : public QDialog
   Q_OBJECT
 public:
   explicit ControllersWindow(QWidget* parent);
-  void OnEmulationStateChanged(bool running);
 
 private:
+  void OnEmulationStateChanged(bool running);
   void OnWiimoteModeChanged(bool passthrough);
   void OnWiimoteTypeChanged(int state);
   void OnGCTypeChanged(int state);

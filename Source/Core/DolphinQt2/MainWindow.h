@@ -31,11 +31,6 @@ public:
 
   bool eventFilter(QObject* object, QEvent* event) override;
 
-signals:
-  void EmulationStarted();
-  void EmulationPaused();
-  void EmulationStopped();
-
 private slots:
   void Open();
   void Play();
