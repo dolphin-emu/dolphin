@@ -124,6 +124,9 @@ TitleDatabase::TitleDatabase()
   if (!LoadMap(load_directory + "wiitdb.txt", m_gc_title_map, m_wii_title_map))
     LoadMap(load_directory + "titles.txt", m_gc_title_map, m_wii_title_map);
 
+  if (!SConfig::GetInstance().m_use_builtin_title_database)
+    return;
+
   // Load the database in the console language.
   // Note: The GameCube language setting can't be set to Japanese,
   // so instead, we use Japanese names iff the games are NTSC-J.

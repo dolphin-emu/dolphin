@@ -36,6 +36,7 @@ private:
   QCheckBox* m_checkbox_use_panic_handlers;
   QCheckBox* m_checkbox_enable_osd;
   QCheckBox* m_checkbox_show_active_title;
+  QCheckBox* m_checkbox_use_builtin_title_database;
   QCheckBox* m_checkbox_pause_on_focus_lost;
   QCheckBox* m_checkbox_hide_mouse;
 };

@@ -25,6 +25,7 @@ private:
   void OnPanicHandlersCheckBoxChanged(wxCommandEvent&);
   void OnOSDMessagesCheckBoxChanged(wxCommandEvent&);
   void OnShowActiveTitleCheckBoxChanged(wxCommandEvent&);
+  void OnUseBuiltinTitleDatabaseCheckBoxChanged(wxCommandEvent&);
   void OnInterfaceLanguageChoiceChanged(wxCommandEvent&);
   void OnPauseOnFocusLostCheckBoxChanged(wxCommandEvent&);
   void OnThemeSelected(wxCommandEvent&);
@@ -35,6 +36,7 @@ private:
   wxCheckBox* m_panic_handlers_checkbox;
   wxCheckBox* m_osd_messages_checkbox;
   wxCheckBox* m_show_active_title_checkbox;
+  wxCheckBox* m_use_builtin_title_database_checkbox;
   wxCheckBox* m_pause_focus_lost_checkbox;
   wxChoice* m_interface_lang_choice;
   wxChoice* m_theme_choice;
