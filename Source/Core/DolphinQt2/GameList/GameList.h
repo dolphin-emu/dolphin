@@ -26,6 +26,7 @@ public slots:
   void SetListView() { SetPreferredView(false); }
   void SetViewColumn(int col, bool view) { m_table->setColumnHidden(col, !view); }
   void OnColumnVisibilityToggled(const QString& row, bool visible);
+  void OnGameListVisibilityChanged();
 
 private slots:
   void ShowContextMenu(const QPoint&);

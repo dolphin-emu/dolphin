@@ -192,6 +192,9 @@ void MenuBar::AddViewMenu()
   AddGameListTypeSection(view_menu);
   view_menu->addSeparator();
   AddTableColumnsMenu(view_menu);
+  view_menu->addSeparator();
+  AddShowPlatformsMenu(view_menu);
+  AddShowRegionsMenu(view_menu);
 }
 
 void MenuBar::AddOptionsMenu()
@@ -266,6 +269,66 @@ void MenuBar::AddTableColumnsMenu(QMenu* view_menu)
     connect(action, &QAction::toggled, [this, config, key](bool value) {
       *config = value;
       emit ColumnVisibilityToggled(key, value);
+    });
+  }
+}
+
+void MenuBar::AddShowPlatformsMenu(QMenu* view_menu)
+{
+  static const QMap<QString, bool*> platform_map{
+      {tr("Show Wii"), &SConfig::GetInstance().m_ListWii},
+      {tr("Show GameCube"), &SConfig::GetInstance().m_ListGC},
+      {tr("Show WAD"), &SConfig::GetInstance().m_ListWad},
+      {tr("Show ELF/DOL"), &SConfig::GetInstance().m_ListElfDol}};
+
+  QActionGroup* platform_group = new QActionGroup(this);
+  QMenu* plat_menu = view_menu->addMenu(tr("Show Platforms"));
+  platform_group->setExclusive(false);
+
+  for (const auto& key : platform_map.keys())
+  {
+    bool* config = platform_map[key];
+    QAction* action = platform_group->addAction(plat_menu->addAction(key));
+    action->setCheckable(true);
+    action->setChecked(*config);
+    connect(action, &QAction::toggled, [this, config, key](bool value) {
+      *config = value;
+      emit GameListPlatformVisibilityToggled(key, value);
+    });
+  }
+}
+
+void MenuBar::AddShowRegionsMenu(QMenu* view_menu)
+{
+  static const QMap<QString, bool*> region_map{
+      {tr("Show JAP"), &SConfig::GetInstance().m_ListJap},
+      {tr("Show PAL"), &SConfig::GetInstance().m_ListPal},
+      {tr("Show USA"), &SConfig::GetInstance().m_ListUsa},
+      {tr("Show Australia"), &SConfig::GetInstance().m_ListAustralia},
+      {tr("Show France"), &SConfig::GetInstance().m_ListFrance},
+      {tr("Show Germany"), &SConfig::GetInstance().m_ListGermany},
+      {tr("Show Italy"), &SConfig::GetInstance().m_ListItaly},
+      {tr("Show Korea"), &SConfig::GetInstance().m_ListKorea},
+      {tr("Show Netherlands"), &SConfig::GetInstance().m_ListNetherlands},
+      {tr("Show Russia"), &SConfig::GetInstance().m_ListRussia},
+      {tr("Show Spain"), &SConfig::GetInstance().m_ListSpain},
+      {tr("Show Taiwan"), &SConfig::GetInstance().m_ListTaiwan},
+      {tr("Show World"), &SConfig::GetInstance().m_ListWorld},
+      {tr("Show Unknown"), &SConfig::GetInstance().m_ListUnknown}};
+
+  QActionGroup* region_group = new QActionGroup(this);
+  QMenu* region_menu = view_menu->addMenu(tr("Show Regions"));
+  region_group->setExclusive(false);
+
+  for (const auto& key : region_map.keys())
+  {
+    bool* config = region_map[key];
+    QAction* action = region_group->addAction(region_menu->addAction(key));
+    action->setCheckable(true);
+    action->setChecked(*config);
+    connect(action, &QAction::toggled, [this, config, key](bool value) {
+      *config = value;
+      emit GameListRegionVisibilityToggled(key, value);
     });
   }
 }

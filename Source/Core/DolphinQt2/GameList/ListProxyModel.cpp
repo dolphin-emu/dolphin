@@ -34,3 +34,9 @@ QVariant ListProxyModel::data(const QModelIndex& i, int role) const
   }
   return QVariant();
 }
+
+bool ListProxyModel::filterAcceptsRow(int source_row, const QModelIndex& source_parent) const
+{
+  GameListModel* glm = qobject_cast<GameListModel*>(sourceModel());
+  return glm->ShouldDisplayGameListItem(source_row);
+}
