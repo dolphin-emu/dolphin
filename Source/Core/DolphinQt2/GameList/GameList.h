@@ -39,6 +39,7 @@ private slots:
   void UninstallWAD();
   void ExportWiiSave();
   void CompressISO();
+  void OnHeaderViewChanged();
 
 signals:
   void GameSelected();
