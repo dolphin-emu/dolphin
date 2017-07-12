@@ -1326,6 +1326,14 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstF
         continue;
       }
       entry->may_have_overlapping_textures = true;
+
+      // Do not load textures by hash, if they were at least partly overwritten by an efb copy.
+      // In this case, comparing the hash is not enough to check, if two textures are identical.
+      if (entry->textures_by_hash_iter != textures_by_hash.end())
+      {
+        textures_by_hash.erase(entry->textures_by_hash_iter);
+        entry->textures_by_hash_iter = textures_by_hash.end();
+      }
     }
     ++iter.first;
   }
