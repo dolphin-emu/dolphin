@@ -40,6 +40,7 @@
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/StringUtil.h"
+#include "Core/ConfigLoaders/GameConfigLoader.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/GeckoCodeConfig.h"
@@ -444,7 +445,7 @@ void CISOProperties::CreateGUIControls()
 
   // If there is no default gameini, disable the button.
   const std::vector<std::string> ini_names =
-      SConfig::GetGameIniFilenames(game_id, m_open_iso->GetRevision());
+      ConfigLoaders::GetGameIniFilenames(game_id, m_open_iso->GetRevision());
   const bool game_ini_exists =
       std::any_of(ini_names.cbegin(), ini_names.cend(), [](const std::string& name) {
         return File::Exists(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + name);
@@ -752,7 +753,7 @@ void CISOProperties::OnChangeTitle(wxCommandEvent& event)
 void CISOProperties::OnShowDefaultConfig(wxCommandEvent& WXUNUSED(event))
 {
   for (const std::string& filename :
-       SConfig::GetGameIniFilenames(game_id, m_open_iso->GetRevision()))
+       ConfigLoaders::GetGameIniFilenames(game_id, m_open_iso->GetRevision()))
   {
     std::string path = File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + filename;
     if (File::Exists(path))
