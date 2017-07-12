@@ -23,7 +23,7 @@
 // The host can be just a command line app that opens a window, or a full blown debugger
 // interface.
 
-bool Host_UIHasFocus();
+bool Host_UINeedsControllerState();
 bool Host_RendererHasFocus();
 bool Host_RendererIsFullscreen();
 void Host_ConnectWiimote(int wm_idx, bool connect);
