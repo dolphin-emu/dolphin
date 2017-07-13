@@ -21,13 +21,12 @@ D3DBlob::D3DBlob(ID3D10Blob* d3dblob) : ref(1)
   blob = d3dblob;
   data = (u8*)blob->GetBufferPointer();
   size = (unsigned int)blob->GetBufferSize();
-  d3dblob->AddRef();
 }
 
 D3DBlob::~D3DBlob()
 {
   if (blob)
-    blob->Release();
+    blob.Reset();
   else
     delete[] data;
 }

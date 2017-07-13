@@ -9,18 +9,22 @@
 #include <dxgi1_2.h>
 #include <vector>
 
+// Disable warning C4265 in wrl/client.h:
+//   'Microsoft::WRL::Details::RemoveIUnknownBase<T>': class has virtual functions,
+//   but destructor is not virtual
+#pragma warning(push)
+#pragma warning(disable : 4265)
+#include <wrl/client.h>
+#pragma warning(pop)
+
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
 
 namespace DX11
 {
-#define SAFE_RELEASE(x)                                                                            \
-  {                                                                                                \
-    if (x)                                                                                         \
-      (x)->Release();                                                                              \
-    (x) = nullptr;                                                                                 \
-  }
+using Microsoft::WRL::ComPtr;
+
 #define SAFE_DELETE(x)                                                                             \
   {                                                                                                \
     delete (x);                                                                                    \
@@ -55,8 +59,8 @@ std::vector<DXGI_SAMPLE_DESC> EnumAAModes(IDXGIAdapter* adapter);
 HRESULT Create(HWND wnd);
 void Close();
 
-extern ID3D11Device* device;
-extern ID3D11DeviceContext* context;
+extern ComPtr<ID3D11Device> device;
+extern ComPtr<ID3D11DeviceContext> context;
 extern HWND hWnd;
 extern bool bFrameInProgress;
 
@@ -67,7 +71,7 @@ void Present();
 
 unsigned int GetBackBufferWidth();
 unsigned int GetBackBufferHeight();
-D3DTexture2D*& GetBackBuffer();
+D3DTexture2D& GetBackBuffer();
 const char* PixelShaderVersionString();
 const char* GeometryShaderVersionString();
 const char* VertexShaderVersionString();
@@ -81,34 +85,11 @@ bool GetFullscreenState();
 // This function will assign a name to the given resource.
 // The DirectX debug layer will make it easier to identify resources that way,
 // e.g. when listing up all resources who have unreleased references.
-template <typename T>
-void SetDebugObjectName(T resource, const char* name)
-{
-  static_assert(std::is_convertible<T, ID3D11DeviceChild*>::value,
-                "resource must be convertible to ID3D11DeviceChild*");
-#if defined(_DEBUG) || defined(DEBUGFAST)
-  if (resource)
-    resource->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)(name ? strlen(name) : 0), name);
-#endif
-}
+void SetDebugObjectName(ID3D11DeviceChild* resource, const char* name);
+std::string GetDebugObjectName(ID3D11DeviceChild* resource);
 
-template <typename T>
-std::string GetDebugObjectName(T resource)
-{
-  static_assert(std::is_convertible<T, ID3D11DeviceChild*>::value,
-                "resource must be convertible to ID3D11DeviceChild*");
-  std::string name;
-#if defined(_DEBUG) || defined(DEBUGFAST)
-  if (resource)
-  {
-    UINT size = 0;
-    resource->GetPrivateData(WKPDID_D3DDebugObjectName, &size, nullptr);  // get required size
-    name.resize(size);
-    resource->GetPrivateData(WKPDID_D3DDebugObjectName, &size, const_cast<char*>(name.data()));
-  }
-#endif
-  return name;
-}
+// Convenience function for calling D3D::context->OMSetRenderTargets with 1 target
+void SetRenderTarget(ID3D11RenderTargetView* rtv, ID3D11DepthStencilView* dsv = nullptr);
 
 }  // namespace D3D
 

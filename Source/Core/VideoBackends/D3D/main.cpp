@@ -79,9 +79,9 @@ void VideoBackend::InitBackendInfo()
   g_Config.backend_info.bSupportsGPUTextureDecoding = false;
   g_Config.backend_info.bSupportsST3CTextures = false;
 
-  IDXGIFactory* factory;
-  IDXGIAdapter* ad;
-  hr = DX11::PCreateDXGIFactory(__uuidof(IDXGIFactory), (void**)&factory);
+  ComPtr<IDXGIFactory> factory;
+  ComPtr<IDXGIAdapter> ad;
+  hr = DX11::PCreateDXGIFactory(__uuidof(IDXGIFactory), &factory);
   if (FAILED(hr))
     PanicAlert("Failed to create IDXGIFactory object");
 
@@ -100,14 +100,14 @@ void VideoBackend::InitBackendInfo()
     if (adapter_index == g_Config.iAdapter)
     {
       std::string samples;
-      std::vector<DXGI_SAMPLE_DESC> modes = DX11::D3D::EnumAAModes(ad);
+      std::vector<DXGI_SAMPLE_DESC> modes = DX11::D3D::EnumAAModes(ad.Get());
       // First iteration will be 1. This equals no AA.
       for (unsigned int i = 0; i < modes.size(); ++i)
       {
         g_Config.backend_info.AAModes.push_back(modes[i].Count);
       }
 
-      D3D_FEATURE_LEVEL feature_level = D3D::GetFeatureLevel(ad);
+      D3D_FEATURE_LEVEL feature_level = D3D::GetFeatureLevel(ad.Get());
       bool shader_model_5_supported = feature_level >= D3D_FEATURE_LEVEL_11_0;
       g_Config.backend_info.MaxTextureSize = D3D::GetMaxTextureSize(feature_level);
 
@@ -125,9 +125,9 @@ void VideoBackend::InitBackendInfo()
       g_Config.backend_info.bSupportsSSAA = shader_model_5_supported;
     }
     g_Config.backend_info.Adapters.push_back(UTF16ToUTF8(desc.Description));
-    ad->Release();
+    ad.Reset();
   }
-  factory->Release();
+  factory.Reset();
 
   DX11::D3D::UnloadDXGI();
   DX11::D3D::UnloadD3D();

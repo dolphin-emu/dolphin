@@ -66,40 +66,23 @@ public:
   void Clear();
 
 private:
-  std::unordered_map<u32, ID3D11DepthStencilState*> m_depth;
-  std::unordered_map<u32, ID3D11RasterizerState*> m_raster;
-  std::unordered_map<u32, ID3D11BlendState*> m_blend;
-  std::unordered_map<u64, ID3D11SamplerState*> m_sampler;
+  std::unordered_map<u32, ComPtr<ID3D11DepthStencilState>> m_depth;
+  std::unordered_map<u32, ComPtr<ID3D11RasterizerState>> m_raster;
+  std::unordered_map<u32, ComPtr<ID3D11BlendState>> m_blend;
+  std::unordered_map<u64, ComPtr<ID3D11SamplerState>> m_sampler;
 };
 
 namespace D3D
 {
-template <typename T>
-class AutoState
-{
-public:
-  AutoState(const T* object);
-  AutoState(const AutoState<T>& source);
-  ~AutoState();
-
-  const inline T* GetPtr() const { return state; }
-private:
-  const T* state;
-};
-
-typedef AutoState<ID3D11BlendState> AutoBlendState;
-typedef AutoState<ID3D11DepthStencilState> AutoDepthStencilState;
-typedef AutoState<ID3D11RasterizerState> AutoRasterizerState;
-
 class StateManager
 {
 public:
   StateManager();
 
   // call any of these to change the affected states
-  void PushBlendState(const ID3D11BlendState* state);
-  void PushDepthState(const ID3D11DepthStencilState* state);
-  void PushRasterizerState(const ID3D11RasterizerState* state);
+  void PushBlendState(ID3D11BlendState* state);
+  void PushDepthState(ID3D11DepthStencilState* state);
+  void PushRasterizerState(ID3D11RasterizerState* state);
 
   // call these after drawing
   void PopBlendState();
@@ -223,9 +206,9 @@ public:
   void Apply();
 
 private:
-  std::stack<AutoBlendState> m_blendStates;
-  std::stack<AutoDepthStencilState> m_depthStates;
-  std::stack<AutoRasterizerState> m_rasterizerStates;
+  std::stack<ComPtr<ID3D11BlendState>> m_blendStates;
+  std::stack<ComPtr<ID3D11DepthStencilState>> m_depthStates;
+  std::stack<ComPtr<ID3D11RasterizerState>> m_rasterizerStates;
 
   ID3D11BlendState* m_currentBlendState;
   ID3D11DepthStencilState* m_currentDepthState;

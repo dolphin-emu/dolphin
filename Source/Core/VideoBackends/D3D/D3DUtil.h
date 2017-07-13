@@ -8,6 +8,7 @@
 #include <string>
 
 #include "Common/CommonTypes.h"
+#include "VideoBackends/D3D/D3DBase.h"
 #include "VideoCommon/RenderBase.h"
 
 namespace DX11
@@ -23,13 +24,13 @@ namespace D3D
 
 class CD3DFont
 {
-  ID3D11ShaderResourceView* m_pTexture;
-  ID3D11Buffer* m_pVB;
-  ID3D11InputLayout* m_InputLayout;
-  ID3D11PixelShader* m_pshader;
-  ID3D11VertexShader* m_vshader;
-  ID3D11BlendState* m_blendstate;
-  ID3D11RasterizerState* m_raststate;
+  ComPtr<ID3D11ShaderResourceView> m_pTexture;
+  ComPtr<ID3D11Buffer> m_pVB;
+  ComPtr<ID3D11InputLayout> m_InputLayout;
+  ComPtr<ID3D11PixelShader> m_pshader;
+  ComPtr<ID3D11VertexShader> m_vshader;
+  ComPtr<ID3D11BlendState> m_blendstate;
+  ComPtr<ID3D11RasterizerState> m_raststate;
   const int m_dwTexWidth;
   const int m_dwTexHeight;
   unsigned int m_LineHeight;

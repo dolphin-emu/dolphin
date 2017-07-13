@@ -16,7 +16,6 @@ class DXTexture final : public AbstractTexture
 {
 public:
   explicit DXTexture(const TextureConfig& tex_config);
-  ~DXTexture();
 
   void Bind(unsigned int stage) override;
   bool Save(const std::string& filename, unsigned int level) override;
@@ -27,10 +26,10 @@ public:
   void Load(u32 level, u32 width, u32 height, u32 row_length, const u8* buffer,
             size_t buffer_size) override;
 
-  D3DTexture2D* GetRawTexIdentifier() const;
+  const D3DTexture2D* GetRawTexIdentifier() const;
 
 private:
-  D3DTexture2D* m_texture;
+  D3DTexture2D m_texture;
 };
 
 }  // namespace DX11

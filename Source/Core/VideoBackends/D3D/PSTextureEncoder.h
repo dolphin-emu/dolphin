@@ -7,6 +7,7 @@
 #include <map>
 
 #include "Common/CommonTypes.h"
+#include "VideoBackends/D3D/D3DBase.h"
 #include "VideoCommon/TextureConversionShader.h"
 #include "VideoCommon/VideoCommon.h"
 
@@ -41,10 +42,10 @@ private:
 
   bool m_ready;
 
-  ID3D11Texture2D* m_out;
-  ID3D11RenderTargetView* m_outRTV;
-  ID3D11Texture2D* m_outStage;
-  ID3D11Buffer* m_encodeParams;
-  std::map<EFBCopyFormat, ID3D11PixelShader*> m_encoding_shaders;
+  ComPtr<ID3D11Texture2D> m_out;
+  ComPtr<ID3D11RenderTargetView> m_outRTV;
+  ComPtr<ID3D11Texture2D> m_outStage;
+  ComPtr<ID3D11Buffer> m_encodeParams;
+  std::map<EFBCopyFormat, ComPtr<ID3D11PixelShader>> m_encoding_shaders;
 };
 }
