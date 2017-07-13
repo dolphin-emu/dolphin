@@ -64,14 +64,6 @@ std::unique_ptr<AbstractTexture> TextureCache::CreateTexture(const TextureConfig
   return std::make_unique<OGLTexture>(config);
 }
 
-void TextureCache::CopyEFB(u8* dst, const EFBCopyFormat& format, u32 native_width,
-                           u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
-                           bool is_depth_copy, const EFBRectangle& src_rect, bool scale_by_half)
-{
-  TextureConverter::EncodeToRamFromTexture(dst, format, native_width, bytes_per_row, num_blocks_y,
-                                           memory_stride, is_depth_copy, src_rect, scale_by_half);
-}
-
 TextureCache::TextureCache()
 {
   CompileShaders();

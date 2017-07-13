@@ -19,7 +19,6 @@
 #include "VideoBackends/D3D/DXTexture.h"
 #include "VideoBackends/D3D/FramebufferManager.h"
 #include "VideoBackends/D3D/GeometryShaderCache.h"
-#include "VideoBackends/D3D/PSTextureEncoder.h"
 #include "VideoBackends/D3D/PixelShaderCache.h"
 #include "VideoBackends/D3D/VertexShaderCache.h"
 
@@ -32,19 +31,10 @@ namespace DX11
 {
 static const size_t MAX_COPY_BUFFERS = 32;
 static ID3D11Buffer* s_efbcopycbuf[MAX_COPY_BUFFERS] = {0};
-static std::unique_ptr<PSTextureEncoder> g_encoder;
 
 std::unique_ptr<AbstractTexture> TextureCache::CreateTexture(const TextureConfig& config)
 {
   return std::make_unique<DXTexture>(config);
-}
-
-void TextureCache::CopyEFB(u8* dst, const EFBCopyFormat& format, u32 native_width,
-                           u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
-                           bool is_depth_copy, const EFBRectangle& src_rect, bool scale_by_half)
-{
-  g_encoder->Encode(dst, format, native_width, bytes_per_row, num_blocks_y, memory_stride,
-                    is_depth_copy, src_rect, scale_by_half);
 }
 
 const char palette_shader[] =
@@ -184,10 +174,6 @@ ID3D11PixelShader* GetConvertShader(const char* Type)
 
 TextureCache::TextureCache()
 {
-  // FIXME: Is it safe here?
-  g_encoder = std::make_unique<PSTextureEncoder>();
-  g_encoder->Init();
-
   palette_buf = nullptr;
   palette_buf_srv = nullptr;
   palette_uniform = nullptr;
@@ -216,9 +202,6 @@ TextureCache::~TextureCache()
 {
   for (unsigned int k = 0; k < MAX_COPY_BUFFERS; ++k)
     SAFE_RELEASE(s_efbcopycbuf[k]);
-
-  g_encoder->Shutdown();
-  g_encoder.reset();
 
   SAFE_RELEASE(palette_buf);
   SAFE_RELEASE(palette_buf_srv);

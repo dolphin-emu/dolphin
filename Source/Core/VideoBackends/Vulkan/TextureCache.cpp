@@ -112,47 +112,6 @@ void TextureCache::ConvertTexture(TCacheEntry* destination, TCacheEntry* source,
                            VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 }
 
-void TextureCache::CopyEFB(u8* dst, const EFBCopyFormat& format, u32 native_width,
-                           u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
-                           bool is_depth_copy, const EFBRectangle& src_rect, bool scale_by_half)
-{
-  // Flush EFB pokes first, as they're expected to be included.
-  FramebufferManager::GetInstance()->FlushEFBPokes();
-
-  // MSAA case where we need to resolve first.
-  // An out-of-bounds source region is valid here, and fine for the draw (since it is converted
-  // to texture coordinates), but it's not valid to resolve an out-of-range rectangle.
-  TargetRectangle scaled_src_rect = g_renderer->ConvertEFBRectangle(src_rect);
-  VkRect2D region = {{scaled_src_rect.left, scaled_src_rect.top},
-                     {static_cast<u32>(scaled_src_rect.GetWidth()),
-                      static_cast<u32>(scaled_src_rect.GetHeight())}};
-  region = Util::ClampRect2D(region, FramebufferManager::GetInstance()->GetEFBWidth(),
-                             FramebufferManager::GetInstance()->GetEFBHeight());
-  Texture2D* src_texture;
-  if (is_depth_copy)
-    src_texture = FramebufferManager::GetInstance()->ResolveEFBDepthTexture(region);
-  else
-    src_texture = FramebufferManager::GetInstance()->ResolveEFBColorTexture(region);
-
-  // End render pass before barrier (since we have no self-dependencies).
-  // The barrier has to happen after the render pass, not inside it, as we are going to be
-  // reading from the texture immediately afterwards.
-  StateTracker::GetInstance()->EndRenderPass();
-  StateTracker::GetInstance()->OnReadback();
-
-  // Transition to shader resource before reading.
-  VkImageLayout original_layout = src_texture->GetLayout();
-  src_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                                  VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-
-  m_texture_converter->EncodeTextureToMemory(src_texture->GetView(), dst, format, native_width,
-                                             bytes_per_row, num_blocks_y, memory_stride,
-                                             is_depth_copy, src_rect, scale_by_half);
-
-  // Transition back to original state
-  src_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(), original_layout);
-}
-
 bool TextureCache::SupportsGPUTextureDecode(TextureFormat format, TlutFormat palette_format)
 {
   return m_texture_converter->SupportsTextureDecoding(format, palette_format);

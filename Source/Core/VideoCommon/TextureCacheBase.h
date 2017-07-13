@@ -120,10 +120,6 @@ public:
 
   void Invalidate();
 
-  virtual void CopyEFB(u8* dst, const EFBCopyFormat& format, u32 native_width, u32 bytes_per_row,
-                       u32 num_blocks_y, u32 memory_stride, bool is_depth_copy,
-                       const EFBRectangle& src_rect, bool scale_by_half) = 0;
-
   virtual bool CompileShaders() = 0;
   virtual void DeleteShaders() = 0;
 

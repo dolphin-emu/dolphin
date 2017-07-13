@@ -27,8 +27,6 @@ set(SRCS
   PerfQuery.h
   PixelShaderCache.cpp
   PixelShaderCache.h
-  PSTextureEncoder.cpp
-  PSTextureEncoder.h
   Render.cpp
   Render.h
   Television.cpp

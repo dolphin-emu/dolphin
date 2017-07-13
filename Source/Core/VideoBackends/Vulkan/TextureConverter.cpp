@@ -59,9 +59,6 @@ TextureConverter::~TextureConverter()
   if (m_encoding_render_framebuffer != VK_NULL_HANDLE)
     vkDestroyFramebuffer(g_vulkan_context->GetDevice(), m_encoding_render_framebuffer, nullptr);
 
-  for (auto& it : m_encoding_shaders)
-    vkDestroyShaderModule(g_vulkan_context->GetDevice(), it.second, nullptr);
-
   for (const auto& it : m_decoding_pipelines)
   {
     if (it.second.compute_shader != VK_NULL_HANDLE)
@@ -216,68 +213,6 @@ void TextureConverter::ConvertTexture(TextureCacheBase::TCacheEntry* dst_entry,
   draw.SetViewportAndScissor(0, 0, dst_entry->GetWidth(), dst_entry->GetHeight());
   draw.DrawWithoutVertexBuffer(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP, 4);
   draw.EndRenderPass();
-}
-
-void TextureConverter::EncodeTextureToMemory(VkImageView src_texture, u8* dest_ptr,
-                                             const EFBCopyFormat& format, u32 native_width,
-                                             u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
-                                             bool is_depth_copy, const EFBRectangle& src_rect,
-                                             bool scale_by_half)
-{
-  VkShaderModule shader = GetEncodingShader(format);
-  if (shader == VK_NULL_HANDLE)
-  {
-    ERROR_LOG(VIDEO, "Missing encoding fragment shader for format %u->%u", format.efb_format,
-              static_cast<u32>(format.copy_format));
-    return;
-  }
-
-  // Can't do our own draw within a render pass.
-  StateTracker::GetInstance()->EndRenderPass();
-
-  m_encoding_render_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                                                VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-
-  UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                         g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_PUSH_CONSTANT),
-                         m_encoding_render_pass, g_object_cache->GetScreenQuadVertexShader(),
-                         VK_NULL_HANDLE, shader);
-
-  // Uniform - int4 of left,top,native_width,scale
-  s32 position_uniform[4] = {src_rect.left, src_rect.top, static_cast<s32>(native_width),
-                             scale_by_half ? 2 : 1};
-  draw.SetPushConstants(position_uniform, sizeof(position_uniform));
-
-  // We also linear filtering for both box filtering and downsampling higher resolutions to 1x
-  // TODO: This only produces perfect downsampling for 1.5x and 2x IR, other resolution will
-  //       need more complex down filtering to average all pixels and produce the correct result.
-  bool linear_filter = (scale_by_half && !is_depth_copy) || g_ActiveConfig.iEFBScale != SCALE_1X;
-  draw.SetPSSampler(0, src_texture, linear_filter ? g_object_cache->GetLinearSampler() :
-                                                    g_object_cache->GetPointSampler());
-
-  u32 render_width = bytes_per_row / sizeof(u32);
-  u32 render_height = num_blocks_y;
-  Util::SetViewportAndScissor(g_command_buffer_mgr->GetCurrentCommandBuffer(), 0, 0, render_width,
-                              render_height);
-
-  VkRect2D render_region = {{0, 0}, {render_width, render_height}};
-  draw.BeginRenderPass(m_encoding_render_framebuffer, render_region);
-  draw.DrawWithoutVertexBuffer(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP, 4);
-  draw.EndRenderPass();
-
-  // Transition the image before copying
-  m_encoding_render_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                                                VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-  m_encoding_download_texture->CopyFromImage(
-      g_command_buffer_mgr->GetCurrentCommandBuffer(), m_encoding_render_texture->GetImage(),
-      VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, render_width, render_height, 0, 0);
-
-  // Block until the GPU has finished copying to the staging texture.
-  Util::ExecuteCurrentCommandsAndRestoreState(false, true);
-
-  // Copy from staging texture to the final destination, adjusting pitch if necessary.
-  m_encoding_download_texture->ReadTexels(0, 0, render_width, render_height, dest_ptr,
-                                          memory_stride);
 }
 
 void TextureConverter::EncodeTextureToMemoryYUYV(void* dst_ptr, u32 dst_width, u32 dst_stride,
@@ -687,17 +622,6 @@ VkShaderModule TextureConverter::CompileEncodingShader(const EFBCopyFormat& form
     PanicAlert("Failed to compile texture encoding shader.");
 
   return module;
-}
-
-VkShaderModule TextureConverter::GetEncodingShader(const EFBCopyFormat& format)
-{
-  auto iter = m_encoding_shaders.find(format);
-  if (iter != m_encoding_shaders.end())
-    return iter->second;
-
-  VkShaderModule shader = CompileEncodingShader(format);
-  m_encoding_shaders.emplace(format, shader);
-  return shader;
 }
 
 bool TextureConverter::CreateEncodingRenderPass()
