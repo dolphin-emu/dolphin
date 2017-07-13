@@ -20,7 +20,6 @@ signals:
   void EscapePressed();
   void Closed();
   void HandleChanged(void* handle);
-  void FocusChanged(bool focus);
   void StateChanged(bool fullscreen);
 
 private:
