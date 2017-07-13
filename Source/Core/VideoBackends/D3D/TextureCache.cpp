@@ -30,7 +30,7 @@
 namespace DX11
 {
 static const size_t MAX_COPY_BUFFERS = 32;
-static ID3D11Buffer* s_efbcopycbuf[MAX_COPY_BUFFERS] = {0};
+static ComPtr<ID3D11Buffer> s_efbcopycbuf[MAX_COPY_BUFFERS] = {0};
 static std::unique_ptr<PSTextureEncoder> g_encoder;
 
 std::unique_ptr<AbstractTexture> TextureCache::CreateTexture(const TextureConfig& config)
@@ -139,14 +139,14 @@ void TextureCache::ConvertTexture(TCacheEntry* destination, TCacheEntry* source,
   D3D::context->RSSetViewports(1, &vp);
 
   D3D11_BOX box{0, 0, 0, 512, 1, 1};
-  D3D::context->UpdateSubresource(palette_buf, 0, &box, palette, 0, 0);
+  D3D::context->UpdateSubresource(palette_buf.Get(), 0, &box, palette, 0, 0);
 
-  D3D::stateman->SetTexture(1, palette_buf_srv);
+  D3D::stateman->SetTexture(1, palette_buf_srv.Get());
 
   // TODO: Add support for C14X2 format.  (Different multiplier, more palette entries.)
   float params[4] = {source->format == TextureFormat::I4 ? 15.f : 255.f};
-  D3D::context->UpdateSubresource(palette_uniform, 0, nullptr, &params, 0, 0);
-  D3D::stateman->SetPixelConstants(palette_uniform);
+  D3D::context->UpdateSubresource(palette_uniform.Get(), 0, nullptr, &params, 0, 0);
+  D3D::stateman->SetPixelConstants(palette_uniform.Get());
 
   const D3D11_RECT sourcerect = CD3D11_RECT(0, 0, source->GetWidth(), source->GetHeight());
 
@@ -157,23 +157,22 @@ void TextureCache::ConvertTexture(TCacheEntry* destination, TCacheEntry* source,
   D3D::stateman->UnsetTexture(destination_texture->GetRawTexIdentifier()->GetSRV());
   D3D::stateman->Apply();
 
-  D3D::context->OMSetRenderTargets(1, &destination_texture->GetRawTexIdentifier()->GetRTV(),
-                                   nullptr);
+  D3D::SetRenderTarget(destination_texture->GetRawTexIdentifier()->GetRTV(), nullptr);
 
   // Create texture copy
   D3D::drawShadedTexQuad(
       source_texture->GetRawTexIdentifier()->GetSRV(), &sourcerect, source->GetWidth(),
-      source->GetHeight(), palette_pixel_shader[static_cast<int>(format)],
+      source->GetHeight(), palette_pixel_shader[static_cast<int>(format)].Get(),
       VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(),
       GeometryShaderCache::GetCopyGeometryShader());
 
-  D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(),
-                                   FramebufferManager::GetEFBDepthTexture()->GetDSV());
+  D3D::SetRenderTarget(FramebufferManager::GetEFBColorTexture().GetRTV(),
+                       FramebufferManager::GetEFBDepthTexture().GetDSV());
 
   g_renderer->RestoreAPIState();
 }
 
-ID3D11PixelShader* GetConvertShader(const char* Type)
+static ComPtr<ID3D11PixelShader> GetConvertShader(const char* Type)
 {
   std::string shader = "#define DECODE DecodePixel_";
   shader.append(Type);
@@ -197,34 +196,28 @@ TextureCache::TextureCache()
   auto lutBd = CD3D11_BUFFER_DESC(sizeof(u16) * 256, D3D11_BIND_SHADER_RESOURCE);
   HRESULT hr = D3D::device->CreateBuffer(&lutBd, nullptr, &palette_buf);
   CHECK(SUCCEEDED(hr), "create palette decoder lut buffer");
-  D3D::SetDebugObjectName(palette_buf, "texture decoder lut buffer");
+  D3D::SetDebugObjectName(palette_buf.Get(), "texture decoder lut buffer");
   // TODO: C14X2 format.
   auto outlutUavDesc =
-      CD3D11_SHADER_RESOURCE_VIEW_DESC(palette_buf, DXGI_FORMAT_R16_UINT, 0, 256, 0);
-  hr = D3D::device->CreateShaderResourceView(palette_buf, &outlutUavDesc, &palette_buf_srv);
+      CD3D11_SHADER_RESOURCE_VIEW_DESC(palette_buf.Get(), DXGI_FORMAT_R16_UINT, 0, 256, 0);
+  hr = D3D::device->CreateShaderResourceView(palette_buf.Get(), &outlutUavDesc, &palette_buf_srv);
   CHECK(SUCCEEDED(hr), "create palette decoder lut srv");
-  D3D::SetDebugObjectName(palette_buf_srv, "texture decoder lut srv");
+  D3D::SetDebugObjectName(palette_buf_srv.Get(), "texture decoder lut srv");
   const D3D11_BUFFER_DESC cbdesc =
       CD3D11_BUFFER_DESC(16, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DEFAULT);
   hr = D3D::device->CreateBuffer(&cbdesc, nullptr, &palette_uniform);
   CHECK(SUCCEEDED(hr), "Create palette decoder constant buffer");
-  D3D::SetDebugObjectName((ID3D11DeviceChild*)palette_uniform,
+  D3D::SetDebugObjectName(palette_uniform.Get(),
                           "a constant buffer used in TextureCache::CopyRenderTargetToTexture");
 }
 
 TextureCache::~TextureCache()
 {
   for (unsigned int k = 0; k < MAX_COPY_BUFFERS; ++k)
-    SAFE_RELEASE(s_efbcopycbuf[k]);
+    s_efbcopycbuf[k].Reset();
 
   g_encoder->Shutdown();
   g_encoder.reset();
-
-  SAFE_RELEASE(palette_buf);
-  SAFE_RELEASE(palette_buf_srv);
-  SAFE_RELEASE(palette_uniform);
-  for (ID3D11PixelShader*& shader : palette_pixel_shader)
-    SAFE_RELEASE(shader);
 }
 
 void TextureCache::CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy,
@@ -238,13 +231,13 @@ void TextureCache::CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy,
   // filter is ignored.
   bool multisampled = (g_ActiveConfig.iMultisamples > 1);
   ID3D11ShaderResourceView* efbTexSRV = is_depth_copy ?
-                                            FramebufferManager::GetEFBDepthTexture()->GetSRV() :
-                                            FramebufferManager::GetEFBColorTexture()->GetSRV();
+                                            FramebufferManager::GetEFBDepthTexture().GetSRV() :
+                                            FramebufferManager::GetEFBColorTexture().GetSRV();
   if (multisampled && scale_by_half)
   {
     multisampled = false;
-    efbTexSRV = is_depth_copy ? FramebufferManager::GetResolvedEFBDepthTexture()->GetSRV() :
-                                FramebufferManager::GetResolvedEFBColorTexture()->GetSRV();
+    efbTexSRV = is_depth_copy ? FramebufferManager::GetResolvedEFBDepthTexture().GetSRV() :
+                                FramebufferManager::GetResolvedEFBColorTexture().GetSRV();
   }
 
   g_renderer->ResetAPIState();
@@ -264,10 +257,10 @@ void TextureCache::CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy,
     data.pSysMem = colmat;
     HRESULT hr = D3D::device->CreateBuffer(&cbdesc, &data, &s_efbcopycbuf[cbuf_id]);
     CHECK(SUCCEEDED(hr), "Create efb copy constant buffer %d", cbuf_id);
-    D3D::SetDebugObjectName((ID3D11DeviceChild*)s_efbcopycbuf[cbuf_id],
+    D3D::SetDebugObjectName(s_efbcopycbuf[cbuf_id].Get(),
                             "a constant buffer used in TextureCache::CopyRenderTargetToTexture");
   }
-  D3D::stateman->SetPixelConstants(s_efbcopycbuf[cbuf_id]);
+  D3D::stateman->SetPixelConstants(s_efbcopycbuf[cbuf_id].Get());
 
   const TargetRectangle targetSource = g_renderer->ConvertEFBRectangle(src_rect);
   // TODO: try targetSource.asRECT();
@@ -285,8 +278,7 @@ void TextureCache::CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy,
   D3D::stateman->UnsetTexture(destination_texture->GetRawTexIdentifier()->GetSRV());
   D3D::stateman->Apply();
 
-  D3D::context->OMSetRenderTargets(1, &destination_texture->GetRawTexIdentifier()->GetRTV(),
-                                   nullptr);
+  D3D::SetRenderTarget(destination_texture->GetRawTexIdentifier()->GetRTV(), nullptr);
 
   // Create texture copy
   D3D::drawShadedTexQuad(
@@ -296,8 +288,8 @@ void TextureCache::CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy,
       VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(),
       GeometryShaderCache::GetCopyGeometryShader());
 
-  D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(),
-                                   FramebufferManager::GetEFBDepthTexture()->GetDSV());
+  D3D::SetRenderTarget(FramebufferManager::GetEFBColorTexture().GetRTV(),
+                       FramebufferManager::GetEFBDepthTexture().GetDSV());
 
   g_renderer->RestoreAPIState();
 }

@@ -7,6 +7,7 @@
 #include <map>
 
 #include "Common/CommonTypes.h"
+#include "VideoBackends/D3D/D3DBase.h"
 #include "VideoCommon/TextureConversionShader.h"
 #include "VideoCommon/VideoCommon.h"
 
@@ -28,8 +29,6 @@ namespace DX11
 class PSTextureEncoder final
 {
 public:
-  PSTextureEncoder();
-
   void Init();
   void Shutdown();
   void Encode(u8* dst, const EFBCopyParams& params, u32 native_width, u32 bytes_per_row,
@@ -39,12 +38,12 @@ public:
 private:
   ID3D11PixelShader* GetEncodingPixelShader(const EFBCopyParams& params);
 
-  bool m_ready;
+  bool m_ready = false;
 
-  ID3D11Texture2D* m_out;
-  ID3D11RenderTargetView* m_outRTV;
-  ID3D11Texture2D* m_outStage;
-  ID3D11Buffer* m_encodeParams;
-  std::map<EFBCopyParams, ID3D11PixelShader*> m_encoding_shaders;
+  ComPtr<ID3D11Texture2D> m_out;
+  ComPtr<ID3D11RenderTargetView> m_outRTV;
+  ComPtr<ID3D11Texture2D> m_outStage;
+  ComPtr<ID3D11Buffer> m_encodeParams;
+  std::map<EFBCopyParams, ComPtr<ID3D11PixelShader>> m_encoding_shaders;
 };
 }

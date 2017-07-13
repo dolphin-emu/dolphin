@@ -62,7 +62,7 @@ public:
   bool CheckForResize();
 
 private:
-  void BlitScreen(TargetRectangle src, TargetRectangle dst, D3DTexture2D* src_texture,
+  void BlitScreen(TargetRectangle src, TargetRectangle dst, const D3DTexture2D* src_texture,
                   u32 src_width, u32 src_height, float Gamma);
 };
 }

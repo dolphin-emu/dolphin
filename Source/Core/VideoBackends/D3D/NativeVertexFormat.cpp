@@ -114,11 +114,6 @@ D3DVertexFormat::D3DVertexFormat(const PortableVertexDeclaration& _vtx_decl)
   }
 }
 
-D3DVertexFormat::~D3DVertexFormat()
-{
-  SAFE_RELEASE(m_layout);
-}
-
 void D3DVertexFormat::SetInputLayout(D3DBlob* vs_bytecode)
 {
   if (!m_layout)
@@ -130,10 +125,9 @@ void D3DVertexFormat::SetInputLayout(D3DBlob* vs_bytecode)
         m_elems.data(), m_num_elems, vs_bytecode->Data(), vs_bytecode->Size(), &m_layout);
     if (FAILED(hr))
       PanicAlert("Failed to create input layout, %s %d\n", __FILE__, __LINE__);
-    DX11::D3D::SetDebugObjectName((ID3D11DeviceChild*)m_layout,
-                                  "input layout used to emulate the GX pipeline");
+    DX11::D3D::SetDebugObjectName(m_layout.Get(), "input layout used to emulate the GX pipeline");
   }
-  DX11::D3D::stateman->SetInputLayout(m_layout);
+  DX11::D3D::stateman->SetInputLayout(m_layout.Get());
 }
 
 }  // namespace DX11

@@ -5,6 +5,7 @@
 #pragma once
 
 #include "Common/CommonTypes.h"
+#include "VideoBackends/D3D/D3DBase.h"
 
 struct ID3D11Texture2D;
 struct ID3D11ShaderResourceView;
@@ -16,8 +17,6 @@ namespace DX11
 class Television
 {
 public:
-  Television();
-
   void Init();
   void Shutdown();
 
@@ -37,9 +36,9 @@ private:
 
   // Used for real XFB mode
 
-  ID3D11Texture2D* m_yuyvTexture;
-  ID3D11ShaderResourceView* m_yuyvTextureSRV;
-  ID3D11PixelShader* m_pShader;
-  ID3D11SamplerState* m_samplerState;
+  ComPtr<ID3D11Texture2D> m_yuyvTexture;
+  ComPtr<ID3D11ShaderResourceView> m_yuyvTextureSRV;
+  ComPtr<ID3D11PixelShader> m_pShader;
+  ComPtr<ID3D11SamplerState> m_samplerState;
 };
 }

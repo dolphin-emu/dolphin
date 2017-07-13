@@ -19,44 +19,23 @@ namespace D3D
 {
 StateManager* stateman;
 
-template <typename T>
-AutoState<T>::AutoState(const T* object) : state(object)
-{
-  ((IUnknown*)state)->AddRef();
-}
-
-template <typename T>
-AutoState<T>::AutoState(const AutoState<T>& source)
-{
-  state = source.GetPtr();
-  ((T*)state)->AddRef();
-}
-
-template <typename T>
-AutoState<T>::~AutoState()
-{
-  if (state)
-    ((T*)state)->Release();
-  state = nullptr;
-}
-
 StateManager::StateManager()
     : m_currentBlendState(nullptr), m_currentDepthState(nullptr), m_currentRasterizerState(nullptr),
       m_dirtyFlags(~0u), m_pending(), m_current()
 {
 }
 
-void StateManager::PushBlendState(const ID3D11BlendState* state)
+void StateManager::PushBlendState(ID3D11BlendState* state)
 {
-  m_blendStates.push(AutoBlendState(state));
+  m_blendStates.push(state);
 }
-void StateManager::PushDepthState(const ID3D11DepthStencilState* state)
+void StateManager::PushDepthState(ID3D11DepthStencilState* state)
 {
-  m_depthStates.push(AutoDepthStencilState(state));
+  m_depthStates.push(state);
 }
-void StateManager::PushRasterizerState(const ID3D11RasterizerState* state)
+void StateManager::PushRasterizerState(ID3D11RasterizerState* state)
 {
-  m_rasterizerStates.push(AutoRasterizerState(state));
+  m_rasterizerStates.push(state);
 }
 void StateManager::PopBlendState()
 {
@@ -75,9 +54,9 @@ void StateManager::Apply()
 {
   if (!m_blendStates.empty())
   {
-    if (m_currentBlendState != m_blendStates.top().GetPtr())
+    if (m_currentBlendState != m_blendStates.top().Get())
     {
-      m_currentBlendState = (ID3D11BlendState*)m_blendStates.top().GetPtr();
+      m_currentBlendState = m_blendStates.top().Get();
       D3D::context->OMSetBlendState(m_currentBlendState, nullptr, 0xFFFFFFFF);
     }
   }
@@ -86,9 +65,9 @@ void StateManager::Apply()
 
   if (!m_depthStates.empty())
   {
-    if (m_currentDepthState != m_depthStates.top().GetPtr())
+    if (m_currentDepthState != m_depthStates.top().Get())
     {
-      m_currentDepthState = (ID3D11DepthStencilState*)m_depthStates.top().GetPtr();
+      m_currentDepthState = m_depthStates.top().Get();
       D3D::context->OMSetDepthStencilState(m_currentDepthState, 0);
     }
   }
@@ -97,9 +76,9 @@ void StateManager::Apply()
 
   if (!m_rasterizerStates.empty())
   {
-    if (m_currentRasterizerState != m_rasterizerStates.top().GetPtr())
+    if (m_currentRasterizerState != m_rasterizerStates.top().Get())
     {
-      m_currentRasterizerState = (ID3D11RasterizerState*)m_rasterizerStates.top().GetPtr();
+      m_currentRasterizerState = m_rasterizerStates.top().Get();
       D3D::context->RSSetState(m_currentRasterizerState);
     }
   }
@@ -268,7 +247,7 @@ ID3D11SamplerState* StateCache::Get(SamplerState state)
 
   if (it != m_sampler.end())
   {
-    return it->second;
+    return it->second.Get();
   }
 
   const unsigned int d3dMipFilters[4] = {
@@ -339,16 +318,16 @@ ID3D11SamplerState* StateCache::Get(SamplerState state)
   sampdc.MinLOD = std::min(state.min_lod / 16.f, sampdc.MaxLOD);
   sampdc.MipLODBias = (s32)state.lod_bias / 32.0f;
 
-  ID3D11SamplerState* res = nullptr;
+  ComPtr<ID3D11SamplerState> res;
 
   HRESULT hr = D3D::device->CreateSamplerState(&sampdc, &res);
   if (FAILED(hr))
     PanicAlert("Fail %s %d\n", __FILE__, __LINE__);
 
-  D3D::SetDebugObjectName((ID3D11DeviceChild*)res, "sampler state used to emulate the GX pipeline");
+  D3D::SetDebugObjectName(res.Get(), "sampler state used to emulate the GX pipeline");
   m_sampler.emplace(state.packed, res);
 
-  return res;
+  return res.Get();
 }
 
 ID3D11BlendState* StateCache::Get(BlendState state)
@@ -364,7 +343,7 @@ ID3D11BlendState* StateCache::Get(BlendState state)
   auto it = m_blend.find(state.packed);
 
   if (it != m_blend.end())
-    return it->second;
+    return it->second.Get();
 
   D3D11_BLEND_DESC blenddc = CD3D11_BLEND_DESC(CD3D11_DEFAULT());
 
@@ -408,16 +387,16 @@ ID3D11BlendState* StateCache::Get(BlendState state)
     blenddc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
   }
 
-  ID3D11BlendState* res = nullptr;
+  ComPtr<ID3D11BlendState> res;
 
   HRESULT hr = D3D::device->CreateBlendState(&blenddc, &res);
   if (FAILED(hr))
     PanicAlert("Failed to create blend state at %s %d\n", __FILE__, __LINE__);
 
-  D3D::SetDebugObjectName((ID3D11DeviceChild*)res, "blend state used to emulate the GX pipeline");
+  D3D::SetDebugObjectName(res.Get(), "blend state used to emulate the GX pipeline");
   m_blend.emplace(state.packed, res);
 
-  return res;
+  return res.Get();
 }
 
 ID3D11RasterizerState* StateCache::Get(RasterizerState state)
@@ -425,22 +404,21 @@ ID3D11RasterizerState* StateCache::Get(RasterizerState state)
   auto it = m_raster.find(state.packed);
 
   if (it != m_raster.end())
-    return it->second;
+    return it->second.Get();
 
   D3D11_RASTERIZER_DESC rastdc = CD3D11_RASTERIZER_DESC(D3D11_FILL_SOLID, state.cull_mode, false, 0,
                                                         0.f, 0, false, true, false, false);
 
-  ID3D11RasterizerState* res = nullptr;
+  ComPtr<ID3D11RasterizerState> res;
 
   HRESULT hr = D3D::device->CreateRasterizerState(&rastdc, &res);
   if (FAILED(hr))
     PanicAlert("Failed to create rasterizer state at %s %d\n", __FILE__, __LINE__);
 
-  D3D::SetDebugObjectName((ID3D11DeviceChild*)res,
-                          "rasterizer state used to emulate the GX pipeline");
+  D3D::SetDebugObjectName(res.Get(), "rasterizer state used to emulate the GX pipeline");
   m_raster.emplace(state.packed, res);
 
-  return res;
+  return res.Get();
 }
 
 ID3D11DepthStencilState* StateCache::Get(ZMode state)
@@ -448,7 +426,7 @@ ID3D11DepthStencilState* StateCache::Get(ZMode state)
   auto it = m_depth.find(state.hex);
 
   if (it != m_depth.end())
-    return it->second;
+    return it->second.Get();
 
   D3D11_DEPTH_STENCIL_DESC depthdc = CD3D11_DEPTH_STENCIL_DESC(CD3D11_DEFAULT());
 
@@ -478,44 +456,24 @@ ID3D11DepthStencilState* StateCache::Get(ZMode state)
     depthdc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
   }
 
-  ID3D11DepthStencilState* res = nullptr;
+  ComPtr<ID3D11DepthStencilState> res;
 
   HRESULT hr = D3D::device->CreateDepthStencilState(&depthdc, &res);
   if (SUCCEEDED(hr))
-    D3D::SetDebugObjectName((ID3D11DeviceChild*)res,
-                            "depth-stencil state used to emulate the GX pipeline");
+    D3D::SetDebugObjectName(res.Get(), "depth-stencil state used to emulate the GX pipeline");
   else
     PanicAlert("Failed to create depth state at %s %d\n", __FILE__, __LINE__);
 
   m_depth.emplace(state.hex, res);
 
-  return res;
+  return res.Get();
 }
 
 void StateCache::Clear()
 {
-  for (auto it : m_depth)
-  {
-    SAFE_RELEASE(it.second);
-  }
   m_depth.clear();
-
-  for (auto it : m_raster)
-  {
-    SAFE_RELEASE(it.second);
-  }
   m_raster.clear();
-
-  for (auto it : m_blend)
-  {
-    SAFE_RELEASE(it.second);
-  }
   m_blend.clear();
-
-  for (auto it : m_sampler)
-  {
-    SAFE_RELEASE(it.second);
-  }
   m_sampler.clear();
 }
 

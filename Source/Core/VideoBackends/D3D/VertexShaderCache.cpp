@@ -35,10 +35,10 @@ const VertexShaderCache::VSCacheEntry* VertexShaderCache::last_uber_entry;
 VertexShaderUid VertexShaderCache::last_uid;
 UberShader::VertexShaderUid VertexShaderCache::last_uber_uid;
 
-static ID3D11VertexShader* SimpleVertexShader = nullptr;
-static ID3D11VertexShader* ClearVertexShader = nullptr;
-static ID3D11InputLayout* SimpleLayout = nullptr;
-static ID3D11InputLayout* ClearLayout = nullptr;
+static ComPtr<ID3D11VertexShader> SimpleVertexShader;
+static ComPtr<ID3D11VertexShader> ClearVertexShader;
+static ComPtr<ID3D11InputLayout> SimpleLayout;
+static ComPtr<ID3D11InputLayout> ClearLayout;
 
 LinearDiskCache<VertexShaderUid, u8> g_vs_disk_cache;
 LinearDiskCache<UberShader::VertexShaderUid, u8> g_uber_vs_disk_cache;
@@ -46,38 +46,38 @@ std::unique_ptr<VideoCommon::AsyncShaderCompiler> g_async_compiler;
 
 ID3D11VertexShader* VertexShaderCache::GetSimpleVertexShader()
 {
-  return SimpleVertexShader;
+  return SimpleVertexShader.Get();
 }
 ID3D11VertexShader* VertexShaderCache::GetClearVertexShader()
 {
-  return ClearVertexShader;
+  return ClearVertexShader.Get();
 }
 ID3D11InputLayout* VertexShaderCache::GetSimpleInputLayout()
 {
-  return SimpleLayout;
+  return SimpleLayout.Get();
 }
 ID3D11InputLayout* VertexShaderCache::GetClearInputLayout()
 {
-  return ClearLayout;
+  return ClearLayout.Get();
 }
 
-ID3D11Buffer* vscbuf = nullptr;
+ComPtr<ID3D11Buffer> vscbuf;
 
-ID3D11Buffer*& VertexShaderCache::GetConstantBuffer()
+ID3D11Buffer* VertexShaderCache::GetConstantBuffer()
 {
   // TODO: divide the global variables of the generated shaders into about 5 constant buffers to
   // speed this up
   if (VertexShaderManager::dirty)
   {
     D3D11_MAPPED_SUBRESOURCE map;
-    D3D::context->Map(vscbuf, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
+    D3D::context->Map(vscbuf.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
     memcpy(map.pData, &VertexShaderManager::constants, sizeof(VertexShaderConstants));
-    D3D::context->Unmap(vscbuf, 0);
+    D3D::context->Unmap(vscbuf.Get(), 0);
     VertexShaderManager::dirty = false;
 
     ADDSTAT(stats.thisFrame.bytesUniformStreamed, sizeof(VertexShaderConstants));
   }
-  return vscbuf;
+  return vscbuf.Get();
 }
 
 // this class will load the precompiled shaders into our cache
@@ -87,9 +87,8 @@ class VertexShaderCacheInserter : public LinearDiskCacheReader<UidType, u8>
 public:
   void Read(const UidType& key, const u8* value, u32 value_size)
   {
-    D3DBlob* blob = new D3DBlob(value_size, value);
-    VertexShaderCache::InsertByteCode(key, blob);
-    blob->Release();
+    ComPtr<D3DBlob> blob = new D3DBlob(value_size, value);
+    VertexShaderCache::InsertByteCode(key, blob.Get());
   }
 };
 
@@ -141,29 +140,29 @@ void VertexShaderCache::Init()
                                                 D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
   HRESULT hr = D3D::device->CreateBuffer(&cbdesc, nullptr, &vscbuf);
   CHECK(hr == S_OK, "Create vertex shader constant buffer (size=%u)", cbsize);
-  D3D::SetDebugObjectName((ID3D11DeviceChild*)vscbuf,
+  D3D::SetDebugObjectName(vscbuf.Get(),
                           "vertex shader constant buffer used to emulate the GX pipeline");
 
-  D3DBlob* blob;
+  ComPtr<D3DBlob> blob;
   D3D::CompileVertexShader(simple_shader_code, &blob);
   D3D::device->CreateInputLayout(simpleelems, 2, blob->Data(), blob->Size(), &SimpleLayout);
-  SimpleVertexShader = D3D::CreateVertexShaderFromByteCode(blob);
-  if (SimpleLayout == nullptr || SimpleVertexShader == nullptr)
+  SimpleVertexShader = D3D::CreateVertexShaderFromByteCode(blob.Get());
+  if (!SimpleLayout || !SimpleVertexShader)
     PanicAlert("Failed to create simple vertex shader or input layout at %s %d\n", __FILE__,
                __LINE__);
-  blob->Release();
-  D3D::SetDebugObjectName((ID3D11DeviceChild*)SimpleVertexShader, "simple vertex shader");
-  D3D::SetDebugObjectName((ID3D11DeviceChild*)SimpleLayout, "simple input layout");
+  blob.Reset();
+  D3D::SetDebugObjectName(SimpleVertexShader.Get(), "simple vertex shader");
+  D3D::SetDebugObjectName(SimpleLayout.Get(), "simple input layout");
 
   D3D::CompileVertexShader(clear_shader_code, &blob);
   D3D::device->CreateInputLayout(clearelems, 2, blob->Data(), blob->Size(), &ClearLayout);
-  ClearVertexShader = D3D::CreateVertexShaderFromByteCode(blob);
-  if (ClearLayout == nullptr || ClearVertexShader == nullptr)
+  ClearVertexShader = D3D::CreateVertexShaderFromByteCode(blob.Get());
+  if (!ClearLayout || !ClearVertexShader)
     PanicAlert("Failed to create clear vertex shader or input layout at %s %d\n", __FILE__,
                __LINE__);
-  blob->Release();
-  D3D::SetDebugObjectName((ID3D11DeviceChild*)ClearVertexShader, "clear vertex shader");
-  D3D::SetDebugObjectName((ID3D11DeviceChild*)ClearLayout, "clear input layout");
+  blob.Reset();
+  D3D::SetDebugObjectName(ClearVertexShader.Get(), "clear vertex shader");
+  D3D::SetDebugObjectName(ClearLayout.Get(), "clear input layout");
 
   Clear();
 
@@ -212,10 +211,6 @@ void VertexShaderCache::Reload()
 
 void VertexShaderCache::Clear()
 {
-  for (auto& iter : vshaders)
-    iter.second.Destroy();
-  for (auto& iter : ubervshaders)
-    iter.second.Destroy();
   vshaders.clear();
   ubervshaders.clear();
 
@@ -232,13 +227,13 @@ void VertexShaderCache::Shutdown()
   g_async_compiler->StopWorkerThreads();
   g_async_compiler->RetrieveWorkItems();
 
-  SAFE_RELEASE(vscbuf);
+  vscbuf.Reset();
 
-  SAFE_RELEASE(SimpleVertexShader);
-  SAFE_RELEASE(ClearVertexShader);
+  SimpleVertexShader.Reset();
+  ClearVertexShader.Reset();
 
-  SAFE_RELEASE(SimpleLayout);
-  SAFE_RELEASE(ClearLayout);
+  SimpleLayout.Reset();
+  ClearLayout.Reset();
 
   Clear();
   g_vs_disk_cache.Sync();
@@ -261,8 +256,8 @@ bool VertexShaderCache::SetShader(D3DVertexFormat* vertex_format)
     if (!last_entry->shader)
       return false;
 
-    vertex_format->SetInputLayout(last_entry->bytecode);
-    D3D::stateman->SetVertexShader(last_entry->shader);
+    vertex_format->SetInputLayout(last_entry->bytecode.Get());
+    D3D::stateman->SetVertexShader(last_entry->shader.Get());
     return true;
   }
 
@@ -280,8 +275,8 @@ bool VertexShaderCache::SetShader(D3DVertexFormat* vertex_format)
     if (!last_entry->shader)
       return false;
 
-    vertex_format->SetInputLayout(last_entry->bytecode);
-    D3D::stateman->SetVertexShader(last_entry->shader);
+    vertex_format->SetInputLayout(last_entry->bytecode.Get());
+    D3D::stateman->SetVertexShader(last_entry->shader.Get());
     return true;
   }
 
@@ -300,18 +295,14 @@ bool VertexShaderCache::SetShader(D3DVertexFormat* vertex_format)
   }
 
   // Need to compile a new shader
-  D3DBlob* bytecode = nullptr;
+  ComPtr<D3DBlob> bytecode;
   ShaderCode code =
       GenerateVertexShaderCode(APIType::D3D, ShaderHostConfig::GetCurrent(), uid.GetUidData());
   D3D::CompileVertexShader(code.GetBuffer(), &bytecode);
-  if (!InsertByteCode(uid, bytecode))
-  {
-    SAFE_RELEASE(bytecode);
+  if (!InsertByteCode(uid, bytecode.Get()))
     return false;
-  }
 
   g_vs_disk_cache.Append(uid, bytecode->Data(), bytecode->Size());
-  bytecode->Release();
   return SetShader(vertex_format);
 }
 
@@ -325,8 +316,8 @@ bool VertexShaderCache::SetUberShader(D3DVertexFormat* vertex_format)
     if (!last_uber_entry->shader)
       return false;
 
-    uber_vertex_format->SetInputLayout(last_uber_entry->bytecode);
-    D3D::stateman->SetVertexShader(last_uber_entry->shader);
+    uber_vertex_format->SetInputLayout(last_uber_entry->bytecode.Get());
+    D3D::stateman->SetVertexShader(last_uber_entry->shader.Get());
     return true;
   }
 
@@ -341,42 +332,36 @@ bool VertexShaderCache::SetUberShader(D3DVertexFormat* vertex_format)
     if (!last_uber_entry->shader)
       return false;
 
-    uber_vertex_format->SetInputLayout(last_uber_entry->bytecode);
-    D3D::stateman->SetVertexShader(last_uber_entry->shader);
+    uber_vertex_format->SetInputLayout(last_uber_entry->bytecode.Get());
+    D3D::stateman->SetVertexShader(last_uber_entry->shader.Get());
     return true;
   }
 
   // Need to compile a new shader
-  D3DBlob* bytecode = nullptr;
+  ComPtr<D3DBlob> bytecode;
   ShaderCode code =
       UberShader::GenVertexShader(APIType::D3D, ShaderHostConfig::GetCurrent(), uid.GetUidData());
   D3D::CompileVertexShader(code.GetBuffer(), &bytecode);
-  if (!InsertByteCode(uid, bytecode))
-  {
-    SAFE_RELEASE(bytecode);
+  if (!InsertByteCode(uid, bytecode.Get()))
     return false;
-  }
 
   g_uber_vs_disk_cache.Append(uid, bytecode->Data(), bytecode->Size());
-  bytecode->Release();
   return SetUberShader(vertex_format);
 }
 
 bool VertexShaderCache::InsertByteCode(const VertexShaderUid& uid, D3DBlob* blob)
 {
-  ID3D11VertexShader* shader =
+  ComPtr<ID3D11VertexShader> shader =
       blob ? D3D::CreateVertexShaderFromByteCode(blob->Data(), blob->Size()) : nullptr;
-  bool result = InsertShader(uid, shader, blob);
-  SAFE_RELEASE(shader);
+  bool result = InsertShader(uid, shader.Get(), blob);
   return result;
 }
 
 bool VertexShaderCache::InsertByteCode(const UberShader::VertexShaderUid& uid, D3DBlob* blob)
 {
-  ID3D11VertexShader* shader =
+  ComPtr<ID3D11VertexShader> shader =
       blob ? D3D::CreateVertexShaderFromByteCode(blob->Data(), blob->Size()) : nullptr;
-  bool result = InsertShader(uid, shader, blob);
-  SAFE_RELEASE(shader);
+  bool result = InsertShader(uid, shader.Get(), blob);
   return result;
 }
 
@@ -392,7 +377,6 @@ bool VertexShaderCache::InsertShader(const VertexShaderUid& uid, ID3D11VertexSha
   if (!shader || !blob)
     return false;
 
-  shader->AddRef();
   newentry.SetByteCode(blob);
   newentry.shader = shader;
 
@@ -413,7 +397,6 @@ bool VertexShaderCache::InsertShader(const UberShader::VertexShaderUid& uid,
   if (!shader || !blob)
     return false;
 
-  shader->AddRef();
   newentry.SetByteCode(blob);
   newentry.shader = shader;
   return true;
@@ -454,26 +437,20 @@ VertexShaderCache::VertexShaderCompilerWorkItem::VertexShaderCompilerWorkItem(
   std::memcpy(&m_uid, &uid, sizeof(uid));
 }
 
-VertexShaderCache::VertexShaderCompilerWorkItem::~VertexShaderCompilerWorkItem()
-{
-  SAFE_RELEASE(m_bytecode);
-  SAFE_RELEASE(m_vs);
-}
-
 bool VertexShaderCache::VertexShaderCompilerWorkItem::Compile()
 {
   ShaderCode code =
       GenerateVertexShaderCode(APIType::D3D, ShaderHostConfig::GetCurrent(), m_uid.GetUidData());
 
   if (D3D::CompileVertexShader(code.GetBuffer(), &m_bytecode))
-    m_vs = D3D::CreateVertexShaderFromByteCode(m_bytecode);
+    m_vs = D3D::CreateVertexShaderFromByteCode(m_bytecode.Get());
 
   return true;
 }
 
 void VertexShaderCache::VertexShaderCompilerWorkItem::Retrieve()
 {
-  if (InsertShader(m_uid, m_vs, m_bytecode))
+  if (InsertShader(m_uid, m_vs.Get(), m_bytecode.Get()))
     g_vs_disk_cache.Append(m_uid, m_bytecode->Data(), m_bytecode->Size());
 }
 
@@ -483,26 +460,20 @@ VertexShaderCache::UberVertexShaderCompilerWorkItem::UberVertexShaderCompilerWor
   std::memcpy(&m_uid, &uid, sizeof(uid));
 }
 
-VertexShaderCache::UberVertexShaderCompilerWorkItem::~UberVertexShaderCompilerWorkItem()
-{
-  SAFE_RELEASE(m_bytecode);
-  SAFE_RELEASE(m_vs);
-}
-
 bool VertexShaderCache::UberVertexShaderCompilerWorkItem::Compile()
 {
   ShaderCode code =
       UberShader::GenVertexShader(APIType::D3D, ShaderHostConfig::GetCurrent(), m_uid.GetUidData());
 
   if (D3D::CompileVertexShader(code.GetBuffer(), &m_bytecode))
-    m_vs = D3D::CreateVertexShaderFromByteCode(m_bytecode);
+    m_vs = D3D::CreateVertexShaderFromByteCode(m_bytecode.Get());
 
   return true;
 }
 
 void VertexShaderCache::UberVertexShaderCompilerWorkItem::Retrieve()
 {
-  if (InsertShader(m_uid, m_vs, m_bytecode))
+  if (InsertShader(m_uid, m_vs.Get(), m_bytecode.Get()))
     g_uber_vs_disk_cache.Append(m_uid, m_bytecode->Data(), m_bytecode->Size());
 }
 

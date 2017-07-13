@@ -30,7 +30,7 @@ public:
   static void QueueUberShaderCompiles();
   static void WaitForBackgroundCompilesToComplete();
 
-  static ID3D11Buffer*& GetConstantBuffer();
+  static ID3D11Buffer* GetConstantBuffer();
 
   static ID3D11VertexShader* GetSimpleVertexShader();
   static ID3D11VertexShader* GetClearVertexShader();
@@ -46,21 +46,19 @@ public:
 private:
   struct VSCacheEntry
   {
-    ID3D11VertexShader* shader;
-    D3DBlob* bytecode;  // needed to initialize the input layout
-    bool pending;
+    ComPtr<ID3D11VertexShader> shader;
+    ComPtr<D3DBlob> bytecode;  // needed to initialize the input layout
+    bool pending = false;
 
-    VSCacheEntry() : shader(nullptr), bytecode(nullptr), pending(false) {}
     void SetByteCode(D3DBlob* blob)
     {
-      SAFE_RELEASE(bytecode);
+      // Note that assigning to a ComPtr calls AddRef.
       bytecode = blob;
-      blob->AddRef();
     }
     void Destroy()
     {
-      SAFE_RELEASE(shader);
-      SAFE_RELEASE(bytecode);
+      shader.Reset();
+      bytecode.Reset();
     }
   };
 
@@ -68,30 +66,28 @@ private:
   {
   public:
     VertexShaderCompilerWorkItem(const VertexShaderUid& uid);
-    ~VertexShaderCompilerWorkItem() override;
 
     bool Compile() override;
     void Retrieve() override;
 
   private:
     VertexShaderUid m_uid;
-    D3DBlob* m_bytecode = nullptr;
-    ID3D11VertexShader* m_vs = nullptr;
+    ComPtr<D3DBlob> m_bytecode;
+    ComPtr<ID3D11VertexShader> m_vs;
   };
 
   class UberVertexShaderCompilerWorkItem : public VideoCommon::AsyncShaderCompiler::WorkItem
   {
   public:
     UberVertexShaderCompilerWorkItem(const UberShader::VertexShaderUid& uid);
-    ~UberVertexShaderCompilerWorkItem() override;
 
     bool Compile() override;
     void Retrieve() override;
 
   private:
     UberShader::VertexShaderUid m_uid;
-    D3DBlob* m_bytecode = nullptr;
-    ID3D11VertexShader* m_vs = nullptr;
+    ComPtr<D3DBlob> m_bytecode;
+    ComPtr<ID3D11VertexShader> m_vs;
   };
 
   typedef std::map<VertexShaderUid, VSCacheEntry> VSCache;

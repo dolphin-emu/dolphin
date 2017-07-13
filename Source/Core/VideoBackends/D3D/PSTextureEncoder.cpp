@@ -28,12 +28,6 @@ struct EFBEncodeParams
   DWORD ScaleFactor;
 };
 
-PSTextureEncoder::PSTextureEncoder()
-    : m_ready(false), m_out(nullptr), m_outRTV(nullptr), m_outStage(nullptr),
-      m_encodeParams(nullptr)
-{
-}
-
 void PSTextureEncoder::Init()
 {
   m_ready = false;
@@ -45,14 +39,14 @@ void PSTextureEncoder::Init()
                                                     EFB_HEIGHT / 4, 1, 1, D3D11_BIND_RENDER_TARGET);
   hr = D3D::device->CreateTexture2D(&t2dd, nullptr, &m_out);
   CHECK(SUCCEEDED(hr), "create efb encode output texture");
-  D3D::SetDebugObjectName(m_out, "efb encoder output texture");
+  D3D::SetDebugObjectName(m_out.Get(), "efb encoder output texture");
 
   // Create output render target view
   D3D11_RENDER_TARGET_VIEW_DESC rtvd = CD3D11_RENDER_TARGET_VIEW_DESC(
-      m_out, D3D11_RTV_DIMENSION_TEXTURE2D, DXGI_FORMAT_B8G8R8A8_UNORM);
-  hr = D3D::device->CreateRenderTargetView(m_out, &rtvd, &m_outRTV);
+      m_out.Get(), D3D11_RTV_DIMENSION_TEXTURE2D, DXGI_FORMAT_B8G8R8A8_UNORM);
+  hr = D3D::device->CreateRenderTargetView(m_out.Get(), &rtvd, &m_outRTV);
   CHECK(SUCCEEDED(hr), "create efb encode output render target view");
-  D3D::SetDebugObjectName(m_outRTV, "efb encoder output rtv");
+  D3D::SetDebugObjectName(m_outRTV.Get(), "efb encoder output rtv");
 
   // Create output staging buffer
   t2dd.Usage = D3D11_USAGE_STAGING;
@@ -60,13 +54,13 @@ void PSTextureEncoder::Init()
   t2dd.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
   hr = D3D::device->CreateTexture2D(&t2dd, nullptr, &m_outStage);
   CHECK(SUCCEEDED(hr), "create efb encode output staging buffer");
-  D3D::SetDebugObjectName(m_outStage, "efb encoder output staging buffer");
+  D3D::SetDebugObjectName(m_outStage.Get(), "efb encoder output staging buffer");
 
   // Create constant buffer for uploading data to shaders
   D3D11_BUFFER_DESC bd = CD3D11_BUFFER_DESC(sizeof(EFBEncodeParams), D3D11_BIND_CONSTANT_BUFFER);
   hr = D3D::device->CreateBuffer(&bd, nullptr, &m_encodeParams);
   CHECK(SUCCEEDED(hr), "create efb encode params buffer");
-  D3D::SetDebugObjectName(m_encodeParams, "efb encoder params buffer");
+  D3D::SetDebugObjectName(m_encodeParams.Get(), "efb encoder params buffer");
 
   m_ready = true;
 }
@@ -75,16 +69,12 @@ void PSTextureEncoder::Shutdown()
 {
   m_ready = false;
 
-  for (auto& it : m_encoding_shaders)
-  {
-    SAFE_RELEASE(it.second);
-  }
   m_encoding_shaders.clear();
 
-  SAFE_RELEASE(m_encodeParams);
-  SAFE_RELEASE(m_outStage);
-  SAFE_RELEASE(m_outRTV);
-  SAFE_RELEASE(m_out);
+  m_encodeParams.Reset();
+  m_outStage.Reset();
+  m_outRTV.Reset();
+  m_out.Reset();
 }
 
 void PSTextureEncoder::Encode(u8* dst, const EFBCopyParams& params, u32 native_width,
@@ -101,8 +91,8 @@ void PSTextureEncoder::Encode(u8* dst, const EFBCopyParams& params, u32 native_w
   // single sample from each pixel. The game may break if it isn't
   // expecting the blurred edges around multisampled shapes.
   ID3D11ShaderResourceView* pEFB = params.depth ?
-                                       FramebufferManager::GetResolvedEFBDepthTexture()->GetSRV() :
-                                       FramebufferManager::GetResolvedEFBColorTexture()->GetSRV();
+                                       FramebufferManager::GetResolvedEFBDepthTexture().GetSRV() :
+                                       FramebufferManager::GetResolvedEFBColorTexture().GetSRV();
 
   // Reset API
   g_renderer->ResetAPIState();
@@ -117,15 +107,15 @@ void PSTextureEncoder::Encode(u8* dst, const EFBCopyParams& params, u32 native_w
     constexpr EFBRectangle fullSrcRect(0, 0, EFB_WIDTH, EFB_HEIGHT);
     TargetRectangle targetRect = g_renderer->ConvertEFBRectangle(fullSrcRect);
 
-    D3D::context->OMSetRenderTargets(1, &m_outRTV, nullptr);
+    D3D::SetRenderTarget(m_outRTV.Get());
 
     EFBEncodeParams encode_params;
     encode_params.SrcLeft = src_rect.left;
     encode_params.SrcTop = src_rect.top;
     encode_params.DestWidth = native_width;
     encode_params.ScaleFactor = scale_by_half ? 2 : 1;
-    D3D::context->UpdateSubresource(m_encodeParams, 0, nullptr, &encode_params, 0, 0);
-    D3D::stateman->SetPixelConstants(m_encodeParams);
+    D3D::context->UpdateSubresource(m_encodeParams.Get(), 0, nullptr, &encode_params, 0, 0);
+    D3D::stateman->SetPixelConstants(m_encodeParams.Get());
 
     // We also linear filtering for both box filtering and downsampling higher resolutions to 1x
     // TODO: This only produces perfect downsampling for 1.5x and 2x IR, other resolution will
@@ -143,11 +133,11 @@ void PSTextureEncoder::Encode(u8* dst, const EFBCopyParams& params, u32 native_w
 
     // Copy to staging buffer
     D3D11_BOX srcBox = CD3D11_BOX(0, 0, 0, words_per_row, num_blocks_y, 1);
-    D3D::context->CopySubresourceRegion(m_outStage, 0, 0, 0, 0, m_out, 0, &srcBox);
+    D3D::context->CopySubresourceRegion(m_outStage.Get(), 0, 0, 0, 0, m_out.Get(), 0, &srcBox);
 
     // Transfer staging buffer to GameCube/Wii RAM
     D3D11_MAPPED_SUBRESOURCE map = {0};
-    hr = D3D::context->Map(m_outStage, 0, D3D11_MAP_READ, 0, &map);
+    hr = D3D::context->Map(m_outStage.Get(), 0, D3D11_MAP_READ, 0, &map);
     CHECK(SUCCEEDED(hr), "map staging buffer (0x%x)", hr);
 
     u8* src = (u8*)map.pData;
@@ -159,20 +149,20 @@ void PSTextureEncoder::Encode(u8* dst, const EFBCopyParams& params, u32 native_w
       src += map.RowPitch;
     }
 
-    D3D::context->Unmap(m_outStage, 0);
+    D3D::context->Unmap(m_outStage.Get(), 0);
   }
 
   // Restore API
   g_renderer->RestoreAPIState();
-  D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(),
-                                   FramebufferManager::GetEFBDepthTexture()->GetDSV());
+  D3D::SetRenderTarget(FramebufferManager::GetEFBColorTexture().GetRTV(),
+                       FramebufferManager::GetEFBDepthTexture().GetDSV());
 }
 
 ID3D11PixelShader* PSTextureEncoder::GetEncodingPixelShader(const EFBCopyParams& params)
 {
   auto iter = m_encoding_shaders.find(params);
   if (iter != m_encoding_shaders.end())
-    return iter->second;
+    return iter->second.Get();
 
   D3DBlob* bytecode = nullptr;
   const char* shader = TextureConversionShader::GenerateEncodingShader(params, APIType::D3D);
@@ -183,12 +173,12 @@ ID3D11PixelShader* PSTextureEncoder::GetEncodingPixelShader(const EFBCopyParams&
     return nullptr;
   }
 
-  ID3D11PixelShader* newShader;
+  ComPtr<ID3D11PixelShader> newShader;
   HRESULT hr =
       D3D::device->CreatePixelShader(bytecode->Data(), bytecode->Size(), nullptr, &newShader);
   CHECK(SUCCEEDED(hr), "create efb encoder pixel shader");
 
   m_encoding_shaders.emplace(params, newShader);
-  return newShader;
+  return newShader.Get();
 }
 }

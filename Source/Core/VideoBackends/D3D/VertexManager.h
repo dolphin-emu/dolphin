@@ -6,6 +6,7 @@
 
 #include <d3d11.h>
 #include <memory>
+#include "VideoBackends/D3D/D3DBase.h"
 #include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/VertexManagerBase.h"
 
@@ -18,14 +19,13 @@ class D3DVertexFormat : public NativeVertexFormat
 {
 public:
   D3DVertexFormat(const PortableVertexDeclaration& vtx_decl);
-  ~D3DVertexFormat();
   void SetInputLayout(D3DBlob* vs_bytecode);
 
 private:
   std::array<D3D11_INPUT_ELEMENT_DESC, 32> m_elems{};
   UINT m_num_elems = 0;
 
-  ID3D11InputLayout* m_layout = nullptr;
+  ComPtr<ID3D11InputLayout> m_layout;
 };
 
 class VertexManager : public VertexManagerBase
@@ -58,7 +58,7 @@ private:
   {
     MAX_BUFFER_COUNT = 2
   };
-  ID3D11Buffer* m_buffers[MAX_BUFFER_COUNT];
+  ComPtr<ID3D11Buffer> m_buffers[MAX_BUFFER_COUNT];
 
   std::vector<u8> LocalVBuffer;
   std::vector<u16> LocalIBuffer;

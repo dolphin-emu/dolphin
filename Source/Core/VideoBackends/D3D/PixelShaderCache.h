@@ -46,41 +46,38 @@ public:
 private:
   struct PSCacheEntry
   {
-    ID3D11PixelShader* shader;
-    bool pending;
+    ComPtr<ID3D11PixelShader> shader;
+    bool pending = false;
 
-    PSCacheEntry() : shader(nullptr), pending(false) {}
-    void Destroy() { SAFE_RELEASE(shader); }
+    void Destroy() { shader.Reset(); }
   };
 
   class PixelShaderCompilerWorkItem : public VideoCommon::AsyncShaderCompiler::WorkItem
   {
   public:
     PixelShaderCompilerWorkItem(const PixelShaderUid& uid);
-    ~PixelShaderCompilerWorkItem() override;
 
     bool Compile() override;
     void Retrieve() override;
 
   private:
     PixelShaderUid m_uid;
-    ID3D11PixelShader* m_shader = nullptr;
-    D3DBlob* m_bytecode = nullptr;
+    ComPtr<ID3D11PixelShader> m_shader;
+    ComPtr<D3DBlob> m_bytecode;
   };
 
   class UberPixelShaderCompilerWorkItem : public VideoCommon::AsyncShaderCompiler::WorkItem
   {
   public:
     UberPixelShaderCompilerWorkItem(const UberShader::PixelShaderUid& uid);
-    ~UberPixelShaderCompilerWorkItem() override;
 
     bool Compile() override;
     void Retrieve() override;
 
   private:
     UberShader::PixelShaderUid m_uid;
-    ID3D11PixelShader* m_shader = nullptr;
-    D3DBlob* m_bytecode = nullptr;
+    ComPtr<ID3D11PixelShader> m_shader;
+    ComPtr<D3DBlob> m_bytecode;
   };
 
   typedef std::map<PixelShaderUid, PSCacheEntry> PSCache;
