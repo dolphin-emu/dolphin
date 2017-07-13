@@ -14,7 +14,7 @@ class RenderWidget final : public QWidget
 public:
   explicit RenderWidget(QWidget* parent = nullptr);
 
-  bool event(QEvent* event);
+  bool event(QEvent* event) override;
 
 signals:
   void EscapePressed();
