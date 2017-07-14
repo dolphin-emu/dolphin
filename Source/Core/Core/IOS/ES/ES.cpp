@@ -321,7 +321,7 @@ void ES::Context::DoState(PointerWrap& p)
 {
   p.Do(uid);
   p.Do(gid);
-  title_import.DoState(p);
+  title_import_export.DoState(p);
 
   p.Do(active);
   p.Do(ipc_fd);

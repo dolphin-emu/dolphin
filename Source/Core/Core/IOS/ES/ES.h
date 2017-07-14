@@ -55,7 +55,7 @@ public:
   ReturnCode Close(u32 fd) override;
   IPCCommandResult IOCtlV(const IOCtlVRequest& request) override;
 
-  struct TitleImportContext
+  struct TitleImportExportContext
   {
     void DoState(PointerWrap& p);
 
@@ -78,8 +78,7 @@ public:
 
     u16 gid = 0;
     u32 uid = 0;
-    // The same context is used for both title imports and exports.
-    TitleImportContext title_import;
+    TitleImportExportContext title_import_export;
     bool active = false;
     // We use this to associate an IPC fd with an ES context.
     s32 ipc_fd = -1;
