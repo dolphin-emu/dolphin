@@ -91,17 +91,18 @@ int TexDecoder_GetBlockHeightInTexels(u32 format);
 int TexDecoder_GetPaletteSize(int fmt);
 int TexDecoder_GetEfbCopyBaseFormat(int format);
 
-void TexDecoder_Decode(u8* dst, const u8* src, int width, int height, int texformat, const u8* tlut,
-                       TlutFormat tlutfmt);
-void TexDecoder_DecodeRGBA8FromTmem(u8* dst, const u8* src_ar, const u8* src_gb, int width,
-                                    int height);
-void TexDecoder_DecodeTexel(u8* dst, const u8* src, int s, int t, int imageWidth, int texformat,
-                            const u8* tlut, TlutFormat tlutfmt);
-void TexDecoder_DecodeTexelRGBA8FromTmem(u8* dst, const u8* src_ar, const u8* src_gb, int s, int t,
-                                         int imageWidth);
+void TexDecoder_Decode(u8* __restrict dst, const u8* __restrict src, int width, int height,
+                       int texformat, const u8* __restrict tlut, TlutFormat tlutfmt);
+void TexDecoder_DecodeRGBA8FromTmem(u8* __restrict dst, const u8* __restrict src_ar,
+                                    const u8* __restrict src_gb, int width, int height);
+void TexDecoder_DecodeTexel(u8* __restrict dst, const u8* __restrict src, int s, int t,
+                            int imageWidth, int texformat, const u8* __restrict tlut,
+                            TlutFormat tlutfmt);
+void TexDecoder_DecodeTexelRGBA8FromTmem(u8* __restrict dst, const u8* __restrict src_ar,
+                                         const u8* __restrict src_gb, int s, int t, int imageWidth);
 
 void TexDecoder_SetTexFmtOverlayOptions(bool enable, bool center);
 
 /* Internal method, implemented by TextureDecoder_Generic and TextureDecoder_x64. */
-void _TexDecoder_DecodeImpl(u32* dst, const u8* src, int width, int height, int texformat,
-                            const u8* tlut, TlutFormat tlutfmt);
+void _TexDecoder_DecodeImpl(u32* __restrict dst, const u8* __restrict src, int width, int height,
+                            int texformat, const u8* __restrict tlut, TlutFormat tlutfmt);
