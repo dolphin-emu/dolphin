@@ -5,6 +5,7 @@
 #pragma once
 
 #include <memory>
+#include "VideoBackends/D3D/D3DBase.h"
 #include "VideoCommon/VertexManagerBase.h"
 
 struct ID3D11Buffer;
@@ -41,7 +42,7 @@ private:
   {
     MAX_BUFFER_COUNT = 2
   };
-  ID3D11Buffer* m_buffers[MAX_BUFFER_COUNT];
+  ComPtr<ID3D11Buffer> m_buffers[MAX_BUFFER_COUNT];
 
   std::vector<u8> LocalVBuffer;
   std::vector<u16> LocalIBuffer;
