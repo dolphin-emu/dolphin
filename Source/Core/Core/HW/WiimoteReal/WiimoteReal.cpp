@@ -26,7 +26,6 @@
 #include "Core/HW/WiimoteReal/IOWin.h"
 #include "Core/HW/WiimoteReal/IOdarwin.h"
 #include "Core/HW/WiimoteReal/IOhidapi.h"
-#include "Core/Host.h"
 #include "InputCommon/InputConfig.h"
 
 #include "SFML/Network.hpp"
@@ -51,9 +50,7 @@ std::mutex g_wiimotes_mutex;
 Wiimote* g_wiimotes[MAX_BBMOTES];
 WiimoteScanner g_wiimote_scanner;
 
-Wiimote::Wiimote()
-    : m_index(), m_last_input_report(), m_channel(0), m_last_connect_request_counter(0),
-      m_rumble_state()
+Wiimote::Wiimote() : m_index(), m_last_input_report(), m_channel(0), m_rumble_state()
 {
 }
 
@@ -365,14 +362,8 @@ void Wiimote::Update()
   }
 }
 
-void Wiimote::ConnectOnInput()
+bool Wiimote::CheckForButtonPress()
 {
-  if (m_last_connect_request_counter > 0)
-  {
-    --m_last_connect_request_counter;
-    return;
-  }
-
   const Report& rpt = ProcessReadQueue();
   if (rpt.size() >= 4)
   {
@@ -391,15 +382,14 @@ void Wiimote::ConnectOnInput()
       // check any button without checking accelerometer data
       if ((rpt[2] & 0x1F) != 0 || (rpt[3] & 0x9F) != 0)
       {
-        ::Wiimote::Connect(m_index, true);
-        // see WiimoteEmu::Wiimote::ConnectOnInput(), same idea here
-        m_last_connect_request_counter = 100;
+        return true;
       }
       break;
     default:
       break;
     }
   }
+  return false;
 }
 
 void Wiimote::Prepare()
@@ -897,15 +887,16 @@ void Update(int wiimote_number)
     ::Wiimote::Connect(wiimote_number, false);
 }
 
-void ConnectOnInput(int wiimote_number)
+bool CheckForButtonPress(int wiimote_number)
 {
   if (!g_wiimotes_mutex.try_lock())
-    return;
+    return false;
 
   if (g_wiimotes[wiimote_number])
-    g_wiimotes[wiimote_number]->ConnectOnInput();
+    return g_wiimotes[wiimote_number]->CheckForButtonPress();
 
   g_wiimotes_mutex.unlock();
+  return false;
 }
 
 bool IsValidDeviceName(const std::string& name)

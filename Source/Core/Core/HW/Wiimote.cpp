@@ -21,6 +21,9 @@
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/InputConfig.h"
 
+// Limit the amount of wiimote connect requests, when a button is pressed in disconnected state
+std::array<u8, 4> last_connect_request_counter;
+
 namespace Wiimote
 {
 static InputConfig s_config(WIIMOTE_INI_NAME, _trans("Wii Remote"), "Wiimote");
@@ -78,7 +81,7 @@ void Initialize(InitializeMode init_mode)
 
   g_controller_interface.RegisterHotplugCallback(LoadConfig);
 
-  s_config.LoadConfig(false);
+  LoadConfig();
 
   WiimoteReal::Initialize(init_mode);
 
@@ -115,6 +118,7 @@ void ResetAllWiimotes()
 void LoadConfig()
 {
   s_config.LoadConfig(false);
+  last_connect_request_counter.fill(0);
 }
 
 void Resume()
@@ -143,6 +147,26 @@ void InterruptChannel(int number, u16 channel_id, const void* data, u32 size)
         ->InterruptChannel(channel_id, data, size);
 }
 
+bool ButtonPressed(int number)
+{
+  if (last_connect_request_counter[number] > 0)
+  {
+    --last_connect_request_counter[number];
+    return false;
+  }
+
+  bool button_pressed = false;
+
+  if (WIIMOTE_SRC_EMU & g_wiimote_sources[number])
+    button_pressed =
+        static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))->CheckForButtonPress();
+
+  if (WIIMOTE_SRC_REAL & g_wiimote_sources[number])
+    button_pressed = WiimoteReal::CheckForButtonPress(number);
+
+  return button_pressed;
+}
+
 // This function is called periodically by the Core to update Wiimote state.
 void Update(int number, bool connected)
 {
@@ -155,11 +179,13 @@ void Update(int number, bool connected)
   }
   else
   {
-    if (WIIMOTE_SRC_EMU & g_wiimote_sources[number])
-      static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))->ConnectOnInput();
-
-    if (WIIMOTE_SRC_REAL & g_wiimote_sources[number])
-      WiimoteReal::ConnectOnInput(number);
+    if (ButtonPressed(number))
+    {
+      Connect(number, true);
+      // arbitrary value so it doesn't try to send multiple requests before Dolphin can react
+      // if Wii Remotes are polled at 200Hz then this results in one request being sent per 500ms
+      last_connect_request_counter[number] = 100;
+    }
   }
 }
 
