@@ -23,6 +23,7 @@
 #include "VideoBackends/Vulkan/Texture2D.h"
 #include "VideoBackends/Vulkan/TextureConverter.h"
 #include "VideoBackends/Vulkan/Util.h"
+#include "VideoBackends/Vulkan/VKPixelShader.h"
 #include "VideoBackends/Vulkan/VKTexture.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 
@@ -411,6 +412,11 @@ void TextureCache::CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy,
   // Ensure texture is in SHADER_READ_ONLY layout, ready for usage.
   texture->GetRawTexIdentifier()->TransitionToLayout(command_buffer,
                                                      VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+}
+
+std::unique_ptr<AbstractPixelShader> TextureCache::CreatePixelShader(const std::string& shader_source)
+{
+  return std::make_unique<VKPixelShader>(shader_source);
 }
 
 }  // namespace Vulkan

@@ -57,6 +57,8 @@ private:
   void CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy, const EFBRectangle& src_rect,
                            bool scale_by_half, unsigned int cbuf_id, const float* colmat) override;
 
+  std::unique_ptr<AbstractPixelShader> CreatePixelShader(const std::string& shader_source) override;
+
   VkRenderPass m_render_pass = VK_NULL_HANDLE;
 
   std::unique_ptr<StreamBuffer> m_texture_upload_buffer;

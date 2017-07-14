@@ -11,6 +11,7 @@
 
 namespace Vulkan
 {
+class StagingTexture2D;
 class Texture2D;
 
 class VKTexture final : public AbstractTexture
@@ -29,6 +30,8 @@ public:
                                 const MathUtil::Rectangle<int>& dstrect);
   void Load(u32 level, u32 width, u32 height, u32 row_length, const u8* buffer,
             size_t buffer_size) override;
+
+  void WriteToAddress(u8* destination, u32 memory_stride) override;
 
   Texture2D* GetRawTexIdentifier() const;
   VkFramebuffer GetFramebuffer() const;
@@ -49,6 +52,14 @@ private:
 
   std::unique_ptr<Texture2D> m_texture;
   VkFramebuffer m_framebuffer;
+
+  // TODO: This ideally shouldn't be here and should instead be passed in to WriteToAddress
+  // need to look at other backends to see how we can commonize the code
+  static const u32 ENCODING_TEXTURE_WIDTH = EFB_WIDTH * 4;
+  static const u32 ENCODING_TEXTURE_HEIGHT = 1024;
+  static const VkFormat ENCODING_TEXTURE_FORMAT = VK_FORMAT_B8G8R8A8_UNORM;
+  bool CreateEncodingTexture(int width, int height);
+  std::unique_ptr<StagingTexture2D> m_encoding_download_texture;
 };
 
 }  // namespace Vulkan

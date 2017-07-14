@@ -30,6 +30,10 @@ VKTexture::VKTexture(const TextureConfig& tex_config, std::unique_ptr<Texture2D>
                      VkFramebuffer framebuffer)
     : AbstractTexture(tex_config), m_texture(std::move(texture)), m_framebuffer(framebuffer)
 {
+  if (!CreateEncodingTexture(m_config.width, m_config.height))
+  {
+    // TODO: Fail...
+  }
 }
 
 std::unique_ptr<VKTexture> VKTexture::Create(const TextureConfig& tex_config)
@@ -358,6 +362,35 @@ void VKTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8*
     m_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
                                   VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
   }
+}
+
+void VKTexture::WriteToAddress(u8* destination, u32 memory_stride)
+{
+  // End render pass before barrier (since we have no self-dependencies).
+  // The barrier has to happen after the render pass, not inside it, as we are going to be
+  // reading from the texture immediately afterwards.
+  StateTracker::GetInstance()->EndRenderPass();
+  StateTracker::GetInstance()->OnReadback();
+
+  m_encoding_download_texture->CopyFromImage(
+    g_command_buffer_mgr->GetCurrentCommandBuffer(), m_texture->GetImage(),
+    VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, m_config.width, m_config.height, 0, 0);
+
+  // Block until the GPU has finished copying to the staging texture.
+  Util::ExecuteCurrentCommandsAndRestoreState(false, true);
+
+  // Copy from staging texture to the final destination, adjusting pitch if necessary.
+  m_encoding_download_texture->ReadTexels(0, 0, m_config.width, m_config.height, destination,
+    memory_stride);
+}
+
+bool VKTexture::CreateEncodingTexture(int width, int height)
+{
+  m_encoding_download_texture =
+    StagingTexture2D::Create(STAGING_BUFFER_TYPE_READBACK, width,
+      height, ENCODING_TEXTURE_FORMAT);
+
+  return m_encoding_download_texture && m_encoding_download_texture->Map();
 }
 
 }  // namespace Vulkan
