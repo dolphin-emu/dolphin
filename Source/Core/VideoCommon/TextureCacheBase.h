@@ -19,6 +19,7 @@
 #include "VideoCommon/TextureDecoder.h"
 #include "VideoCommon/VideoCommon.h"
 
+class AbstractPixelShader;
 struct VideoConfig;
 
 class TextureCacheBase
@@ -175,6 +176,9 @@ private:
   typedef std::multimap<u64, TCacheEntry*> TexHashCache;
   typedef std::unordered_multimap<TextureConfig, TexPoolEntry, TextureConfig::Hasher> TexPool;
 
+  std::map<EFBCopyFormat, std::unique_ptr<AbstractPixelShader>> m_copyFormatToEncodingShader;
+  AbstractPixelShader* EnsureEncodingShader(const EFBCopyFormat& copy_format);
+
   void SetBackupConfig(const VideoConfig& config);
 
   TCacheEntry* ApplyPaletteToEntry(TCacheEntry* entry, u8* palette, u32 tlutfmt);
@@ -196,10 +200,15 @@ private:
   FindOverlappingTextures(u32 addr, u32 size_in_bytes);
 
   virtual std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config) = 0;
+  virtual std::unique_ptr<AbstractPixelShader> CreatePixelShader(const std::string& shader_source);  // TODO: pure
 
   virtual void CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy,
                                    const EFBRectangle& src_rect, bool scale_by_half,
                                    unsigned int cbuf_id, const float* colmat) = 0;
+  bool CopyEFBToRam(TCacheEntry* entry, u8* dst, u32 memory_stride, const EFBCopyFormat& format,
+                    u32 bytes_per_row, u32 num_blocks_y, const EFBRectangle& src_rect,
+                    bool scale_by_half);
+  void WriteZeroMemoryToEFB(u8* dst, u32 num_blocks_y, u32 bytes_per_row, u32 dstStride);
 
   // Removes and unlinks texture from texture cache and returns it to the pool
   TexAddrCache::iterator InvalidateTexture(TexAddrCache::iterator t_iter);

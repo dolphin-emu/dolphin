@@ -23,6 +23,7 @@
 #include "Core/FifoPlayer/FifoRecorder.h"
 #include "Core/HW/Memmap.h"
 
+#include "VideoCommon/AbstractPixelShader.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/Debugger.h"
 #include "VideoCommon/FramebufferManagerBase.h"
@@ -31,6 +32,7 @@
 #include "VideoCommon/SamplerCommon.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/TextureCacheBase.h"
+#include "VideoCommon/TextureConversionShader.h"
 #include "VideoCommon/TextureDecoder.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
@@ -1288,25 +1290,6 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
   bool copy_to_ram = !g_ActiveConfig.bSkipEFBCopyToRam;
   bool copy_to_vram = true;
 
-  if (copy_to_ram)
-  {
-    EFBCopyFormat format(srcFormat, static_cast<TextureFormat>(dstFormat));
-    CopyEFB(dst, format, tex_w, bytes_per_row, num_blocks_y, dstStride, is_depth_copy, srcRect,
-            scaleByHalf);
-  }
-  else
-  {
-    // Hack: Most games don't actually need the correct texture data in RAM
-    //       and we can just keep a copy in VRAM. We zero the memory so we
-    //       can check it hasn't changed before using our copy in VRAM.
-    u8* ptr = dst;
-    for (u32 i = 0; i < num_blocks_y; i++)
-    {
-      memset(ptr, 0, bytes_per_row);
-      ptr += dstStride;
-    }
-  }
-
   if (g_bRecordFifoData)
   {
     // Mark the memory behind this efb copy as dynamicly generated for the Fifo log
@@ -1391,7 +1374,131 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
 
       textures_by_address.emplace(dstAddr, entry);
     }
+
+    if (copy_to_ram && entry)
+    {
+      EFBCopyFormat format(srcFormat, static_cast<TextureFormat>(dstFormat));
+
+      if (!CopyEFBToRam(entry, dst, dstStride, format, bytes_per_block, num_blocks_y, srcRect, scaleByHalf))
+      {
+        // We failed to copy efb to our destination, fallback as though we didn't have ram enabled
+        WriteZeroMemoryToEFB(dst, num_blocks_y, bytes_per_block, dstStride);
+      }
+    }
+    else
+    {
+      WriteZeroMemoryToEFB(dst, num_blocks_y, bytes_per_block, dstStride);
+    }
   }
+}
+
+bool TextureCacheBase::CopyEFBToRam(TCacheEntry* entry, u8* dst, u32 memory_stride,
+                                    const EFBCopyFormat& format, u32 bytes_per_row,
+                                    u32 num_blocks_y, const EFBRectangle& src_rect,
+                                    bool scale_by_half)
+{
+  // Create our encoding shader
+  AbstractPixelShader* encoding_shader = EnsureEncodingShader(format);
+  if (encoding_shader == nullptr)
+  {
+    ERROR_LOG(VIDEO, "Creating encoding shader for ram copy failed");
+    return false;
+  }
+
+  const u32 render_width = bytes_per_row / sizeof(u32);
+  const u32 render_height = num_blocks_y;
+
+  // Create a new texture the native size
+  TextureConfig newconfig;
+  newconfig.width = render_width;
+  newconfig.height = render_height;
+  newconfig.layers = entry->GetNumLayers();
+  newconfig.rendertarget = true;
+
+  std::unique_ptr<AbstractTexture> new_texture = AllocateTexture(newconfig);
+  if (new_texture == nullptr)
+  {
+    ERROR_LOG(VIDEO, "Creating native texture for ram copy failed");
+    return false;
+  }
+
+  EFBRectangle new_texture_rect = { 0, 0, static_cast<int>(render_width),
+                                    static_cast<int>(render_height) };
+  // Copy from the vram texture
+  new_texture->CopyRectangleFromTexture(entry->texture.get(),
+    entry->texture->GetConfig().GetRect(),
+    new_texture_rect);
+
+  if (g_ActiveConfig.bDumpEFBTarget)
+  {
+    static int ram_count = 0;
+    new_texture->Save(StringFromFormat("%sefb_ram_frame_%i.png",
+      File::GetUserPath(D_DUMPTEXTURES_IDX).c_str(),
+      ram_count++),
+      0);
+  }
+
+  // Apply the encoding shader
+  encoding_shader->AddUniform(0, { src_rect.left, src_rect.top, 0,
+                                   scale_by_half ? 2 : 1, static_cast<s32>(render_width),
+                                   static_cast<s32>(render_height) });
+  encoding_shader->ApplyTo(new_texture.get());
+
+  if (g_ActiveConfig.bDumpEFBTarget)
+  {
+    static int ram_count_post = 0;
+    new_texture->Save(StringFromFormat("%sefb_ram_frame_%i_post.png",
+      File::GetUserPath(D_DUMPTEXTURES_IDX).c_str(),
+      ram_count_post++),
+      0);
+  }
+
+  // Apply the texture to the GC/Wii memory address
+  new_texture->WriteToAddress(dst, memory_stride);
+
+  // At this point, the texture is not necessary so return it to the pool
+  texture_pool.emplace(newconfig, TexPoolEntry(std::move(new_texture)));
+
+  return true;
+}
+
+void TextureCacheBase::WriteZeroMemoryToEFB(u8* dst, u32 num_blocks_y, u32 bytes_per_row, u32 dstStride)
+{
+  // Hack: Most games don't actually need the correct texture data in RAM
+  //       and we can just keep a copy in VRAM. We zero the memory so we
+  //       can check it hasn't changed before using our copy in VRAM.
+  u8* ptr = dst;
+  for (u32 i = 0; i < num_blocks_y; i++)
+  {
+    memset(ptr, 0, bytes_per_row);
+    ptr += dstStride;
+  }
+}
+
+AbstractPixelShader * TextureCacheBase::EnsureEncodingShader(const EFBCopyFormat& copy_format)
+{
+  auto iter = m_copyFormatToEncodingShader.find(copy_format);
+  if (iter != m_copyFormatToEncodingShader.end())
+  {
+    return iter->second.get();
+  }
+  else
+  {
+    std::unique_ptr<AbstractPixelShader> pixel_encoding_shader = CreatePixelShader(TextureConversionShader::GenerateEncodingShader(copy_format, g_Config.backend_info.api_type));
+
+    if (pixel_encoding_shader == nullptr)
+    {
+      return nullptr;
+    }
+    auto result = pixel_encoding_shader.get();
+    m_copyFormatToEncodingShader.emplace(copy_format, std::move(pixel_encoding_shader));
+    return result;
+  }
+}
+
+std::unique_ptr<AbstractPixelShader> TextureCacheBase::CreatePixelShader(const std::string& shader_source)
+{
+  return nullptr;
 }
 
 TextureCacheBase::TCacheEntry* TextureCacheBase::AllocateCacheEntry(const TextureConfig& config)
