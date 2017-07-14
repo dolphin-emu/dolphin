@@ -85,9 +85,9 @@ static void WriteSwizzler(char*& p, u32 format, APIType ApiType)
   // left, top, of source rectangle within source texture
   // width of the destination rectangle, scale_factor (1 or 2)
   if (ApiType == APIType::Vulkan)
-    WRITE(p, "layout(std140, push_constant) uniform PCBlock { int4 position; } PC;\n");
+    WRITE(p, "layout(std140, push_constant) uniform PCBlock { int4 position[2]; } PC;\n");
   else
-    WRITE(p, "uniform int4 position;\n");
+    WRITE(p, "uniform int4 position[2];\n");
 
   // Alpha channel in the copy is set to 1 the EFB format does not have an alpha channel.
   WRITE(p, "float4 RGBA8ToRGB8(float4 src)\n");
@@ -132,7 +132,7 @@ static void WriteSwizzler(char*& p, u32 format, APIType ApiType)
     WRITE(p, "{\n"
              "  int2 sampleUv;\n"
              "  int2 uv1 = int2(gl_FragCoord.xy);\n"
-             "  int4 position = PC.position;\n");
+             "  int4 position[2] = PC.position;\n");
   }
   else  // D3D
   {
@@ -166,17 +166,17 @@ static void WriteSwizzler(char*& p, u32 format, APIType ApiType)
   WRITE(p,
         "  float2 uv0 = float2(sampleUv);\n");  // sampleUv is the sample position in (int)gx_coords
   WRITE(p, "  uv0 += float2(0.5, 0.5);\n");     // move to center of pixel
-  WRITE(p, "  uv0 *= float(position.w);\n");  // scale by two if needed (also move to pixel borders
+  WRITE(p, "  uv0 *= float(position[0].w);\n");  // scale by two if needed (also move to pixel borders
                                               // so that linear filtering will average adjacent
                                               // pixel)
-  WRITE(p, "  uv0 += float2(position.xy);\n");                    // move to copied rect
-  WRITE(p, "  uv0 /= float2(%d, %d);\n", EFB_WIDTH, EFB_HEIGHT);  // normalize to [0:1]
+  WRITE(p, "  uv0 += float2(position[0].xy);\n");                    // move to copied rect
+  WRITE(p, "  uv0 /= float2(position[1].x, position[1].y);\n");  // normalize to [0:1]
   if (ApiType == APIType::OpenGL)                                 // ogl has to flip up and down
   {
     WRITE(p, "  uv0.y = 1.0-uv0.y;\n");
   }
 
-  WRITE(p, "  float sample_offset = float(position.w) / float(%d);\n", EFB_WIDTH);
+  WRITE(p, "  float sample_offset = float(position[0].w) / float(position[1].x);\n");
 }
 
 static void WriteSampleColor(char*& p, const char* colorComp, const char* dest, int xoffset,
