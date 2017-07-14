@@ -191,6 +191,7 @@ public:
                     const int port_num = 0);
   virtual ~InputConfigDialog() = default;
 
+  void OnActivate(wxActivateEvent& event);
   void OnClose(wxCloseEvent& event);
   void OnCloseButton(wxCommandEvent& event);
 

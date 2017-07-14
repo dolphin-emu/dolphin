@@ -39,7 +39,7 @@ void Host_RequestRenderWindowSize(int, int)
 void Host_SetStartupDebuggingParameters()
 {
 }
-bool Host_UIHasFocus()
+bool Host_UINeedsControllerState()
 {
   return false;
 }
