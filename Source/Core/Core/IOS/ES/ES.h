@@ -55,35 +55,21 @@ public:
   ReturnCode Close(u32 fd) override;
   IPCCommandResult IOCtlV(const IOCtlVRequest& request) override;
 
-  struct OpenedContent
+  struct TitleImportExportContext
   {
-    bool m_opened = false;
-    u64 m_title_id = 0;
-    IOS::ES::Content m_content;
-    u32 m_position = 0;
-    u32 m_uid = 0;
-  };
-
-  struct TitleImportContext
-  {
-    IOS::ES::TMDReader tmd;
-    u32 content_id = 0xFFFFFFFF;
-    std::vector<u8> content_buffer;
-  };
-
-  // TODO: merge this with TitleImportContext. Also reuse the global content table.
-  struct TitleExportContext
-  {
-    struct ExportContent
-    {
-      OpenedContent content;
-      std::array<u8, 16> iv{};
-    };
+    void DoState(PointerWrap& p);
 
     bool valid = false;
     IOS::ES::TMDReader tmd;
-    std::array<u8, 16> title_key;
-    std::map<u32, ExportContent> contents;
+    std::array<u8, 16> key{};
+    struct ContentContext
+    {
+      bool valid = false;
+      u32 id = 0;
+      std::array<u8, 16> iv{};
+      std::vector<u8> buffer;
+    };
+    ContentContext content;
   };
 
   struct Context
@@ -92,8 +78,7 @@ public:
 
     u16 gid = 0;
     u32 uid = 0;
-    TitleImportContext title_import;
-    TitleExportContext title_export;
+    TitleImportExportContext title_import_export;
     bool active = false;
     // We use this to associate an IPC fd with an ES context.
     s32 ipc_fd = -1;
@@ -112,6 +97,12 @@ public:
   std::vector<IOS::ES::Content> GetStoredContentsFromTMD(const IOS::ES::TMDReader& tmd) const;
   u32 GetSharedContentsCount() const;
   std::vector<std::array<u8, 20>> GetSharedContents() const;
+
+  // Title contents
+  s32 OpenContent(const IOS::ES::TMDReader& tmd, u16 content_index, u32 uid);
+  ReturnCode CloseContent(u32 cfd, u32 uid);
+  s32 ReadContent(u32 cfd, u8* buffer, u32 size, u32 uid);
+  s32 SeekContent(u32 cfd, u32 offset, SeekMode mode, u32 uid);
 
   // Title management
   ReturnCode ImportTicket(const std::vector<u8>& ticket_bytes, const std::vector<u8>& cert_chain);
@@ -342,7 +333,15 @@ private:
 
   static const DiscIO::NANDContentLoader& AccessContentDevice(u64 title_id);
 
-  s32 OpenContent(const IOS::ES::TMDReader& tmd, u16 content_index, u32 uid);
+  // TODO: reuse the FS code.
+  struct OpenedContent
+  {
+    bool m_opened = false;
+    u64 m_title_id = 0;
+    IOS::ES::Content m_content;
+    u32 m_position = 0;
+    u32 m_uid = 0;
+  };
 
   using ContentTable = std::array<OpenedContent, 16>;
   ContentTable m_content_table;
