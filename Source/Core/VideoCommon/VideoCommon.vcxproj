@@ -36,6 +36,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
+    <ClCompile Include="AbstractPixelShader.cpp" />
     <ClCompile Include="AbstractTexture.cpp" />
     <ClCompile Include="AsyncRequests.cpp" />
     <ClCompile Include="AVIDump.cpp" />
@@ -91,6 +92,7 @@
     <ClCompile Include="XFStructs.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AbstractPixelShader.h" />
     <ClInclude Include="AbstractTexture.h" />
     <ClInclude Include="AsyncRequests.h" />
     <ClInclude Include="AVIDump.h" />
