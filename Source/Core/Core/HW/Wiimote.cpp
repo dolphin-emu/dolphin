@@ -16,13 +16,14 @@
 #include "Core/IOS/USB/Bluetooth/BTEmu.h"
 #include "Core/IOS/USB/Bluetooth/WiimoteDevice.h"
 #include "Core/Movie.h"
+#include "Core/NetPlayClient.h"
 
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/InputConfig.h"
 
 // Limit the amount of wiimote connect requests, when a button is pressed in disconnected state
-std::array<u8, 4> last_connect_request_counter;
+static std::array<u8, 4> s_last_connect_request_counter;
 
 namespace Wiimote
 {
@@ -118,7 +119,7 @@ void ResetAllWiimotes()
 void LoadConfig()
 {
   s_config.LoadConfig(false);
-  last_connect_request_counter.fill(0);
+  s_last_connect_request_counter.fill(0);
 }
 
 void Resume()
@@ -149,9 +150,11 @@ void InterruptChannel(int number, u16 channel_id, const void* data, u32 size)
 
 bool ButtonPressed(int number)
 {
-  if (last_connect_request_counter[number] > 0)
+  if (s_last_connect_request_counter[number] > 0)
   {
-    --last_connect_request_counter[number];
+    --s_last_connect_request_counter[number];
+    if (g_wiimote_sources[number] && NetPlay::IsNetPlayRunning())
+      Wiimote::NetPlay_GetButtonPress(number, false);
     return false;
   }
 
@@ -163,6 +166,9 @@ bool ButtonPressed(int number)
 
   if (WIIMOTE_SRC_REAL & g_wiimote_sources[number])
     button_pressed = WiimoteReal::CheckForButtonPress(number);
+
+  if (g_wiimote_sources[number] && NetPlay::IsNetPlayRunning())
+    button_pressed = Wiimote::NetPlay_GetButtonPress(number, button_pressed);
 
   return button_pressed;
 }
@@ -184,7 +190,7 @@ void Update(int number, bool connected)
       Connect(number, true);
       // arbitrary value so it doesn't try to send multiple requests before Dolphin can react
       // if Wii Remotes are polled at 200Hz then this results in one request being sent per 500ms
-      last_connect_request_counter[number] = 100;
+      s_last_connect_request_counter[number] = 100;
     }
   }
 }
