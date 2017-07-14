@@ -4,55 +4,46 @@
 
 #include <QAbstractEventDispatcher>
 #include <QApplication>
-#include <QMutexLocker>
 
 #include "Common/Common.h"
 #include "Core/Host.h"
 #include "DolphinQt2/Host.h"
-#include "DolphinQt2/MainWindow.h"
 
-Host* Host::m_instance = nullptr;
+Host::Host() = default;
 
 Host* Host::GetInstance()
 {
-  if (m_instance == nullptr)
-    m_instance = new Host();
-  return m_instance;
+  static Host* s_instance = new Host();
+  return s_instance;
 }
 
 void* Host::GetRenderHandle()
 {
-  QMutexLocker locker(&m_lock);
   return m_render_handle;
 }
 
 void Host::SetRenderHandle(void* handle)
 {
-  QMutexLocker locker(&m_lock);
   m_render_handle = handle;
 }
 
 bool Host::GetRenderFocus()
 {
-  QMutexLocker locker(&m_lock);
   return m_render_focus;
 }
 
 void Host::SetRenderFocus(bool focus)
 {
-  QMutexLocker locker(&m_lock);
   m_render_focus = focus;
 }
 
 bool Host::GetRenderFullscreen()
 {
-  QMutexLocker locker(&m_lock);
   return m_render_fullscreen;
 }
 
 void Host::SetRenderFullscreen(bool fullscreen)
 {
-  QMutexLocker locker(&m_lock);
   m_render_fullscreen = fullscreen;
 }
 
