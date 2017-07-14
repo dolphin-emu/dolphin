@@ -274,14 +274,14 @@ int GBASockServer::Receive(u8* si_buffer)
     return 0;
   }
 
-  if (recv_stat == sf::Socket::NotReady)
-    num_received = 0;
-
-  if (num_received > 0)
+  if (recv_stat == sf::Socket::NotReady || num_received == 0)
   {
-    for (size_t i = 0; i < recv_data.size(); i++)
-      si_buffer[i ^ 3] = recv_data[i];
+    m_booted = false;
+    return 0;
   }
+
+  for (size_t i = 0; i < recv_data.size(); i++)
+    si_buffer[i ^ 3] = recv_data[i];
   return static_cast<int>(std::min(num_received, recv_data.size()));
 }
 
@@ -329,9 +329,9 @@ int CSIDevice_GBA::RunBuffer(u8* buffer, int length)
   case NextAction::ReceiveResponse:
   {
     int num_data_received = m_sock_server.Receive(buffer);
-    if (!m_sock_server.IsConnected())
+    m_next_action = NextAction::SendCommand;
+    if (num_data_received == 0)
     {
-      m_next_action = NextAction::SendCommand;
       constexpr u32 reply = SI_ERROR_NO_RESPONSE;
       std::memcpy(buffer, &reply, sizeof(reply));
       return sizeof(reply);
@@ -344,8 +344,6 @@ int CSIDevice_GBA::RunBuffer(u8* buffer, int length)
                 "%01d                              [< %02x%02x%02x%02x%02x] (%i)", m_device_number,
                 buffer[3], buffer[2], buffer[1], buffer[0], buffer[7], num_data_received);
 #endif
-    if (num_data_received > 0)
-      m_next_action = NextAction::SendCommand;
     return num_data_received;
   }
   }
