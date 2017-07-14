@@ -25,6 +25,8 @@ public:
   virtual void Load(u32 level, u32 width, u32 height, u32 row_length, const u8* buffer,
                     size_t buffer_size) = 0;
 
+  virtual void WriteToAddress(u8* destination, u32 memory_stride) {};  // TODO: pure
+
   static bool IsCompressedHostTextureFormat(AbstractTextureFormat format);
   static size_t CalculateHostTextureLevelPitch(AbstractTextureFormat format, u32 row_length);
 
