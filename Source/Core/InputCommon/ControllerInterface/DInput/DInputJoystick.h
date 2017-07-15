@@ -62,14 +62,15 @@ private:
 public:
   void UpdateInput() override;
 
-  Joystick(const LPDIRECTINPUTDEVICE8 device);
+  // Joystick takes ownership of device
+  Joystick(ComPtr<IDirectInputDevice8>&& device);
   ~Joystick();
 
   std::string GetName() const override;
   std::string GetSource() const override;
 
 private:
-  const LPDIRECTINPUTDEVICE8 m_device;
+  ComPtr<IDirectInputDevice8> m_device;
 
   DIJOYSTATE m_state_in;
 

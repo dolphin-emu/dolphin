@@ -85,15 +85,16 @@ private:
 public:
   void UpdateInput() override;
 
-  KeyboardMouse(const LPDIRECTINPUTDEVICE8 kb_device, const LPDIRECTINPUTDEVICE8 mo_device);
+  // KeyboardMouse takes ownership of kb_device and mo_device
+  KeyboardMouse(ComPtr<IDirectInputDevice8>&& kb_device, ComPtr<IDirectInputDevice8>&& mo_device);
   ~KeyboardMouse();
 
   std::string GetName() const override;
   std::string GetSource() const override;
 
 private:
-  const LPDIRECTINPUTDEVICE8 m_kb_device;
-  const LPDIRECTINPUTDEVICE8 m_mo_device;
+  ComPtr<IDirectInputDevice8> m_kb_device;
+  ComPtr<IDirectInputDevice8> m_mo_device;
 
   DWORD m_last_update;
   State m_state_in;

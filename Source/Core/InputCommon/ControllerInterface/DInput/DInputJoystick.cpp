@@ -32,7 +32,7 @@ void InitJoystick(IDirectInput8* const idi8, HWND hwnd)
       continue;
     }
 
-    LPDIRECTINPUTDEVICE8 js_device;
+    ComPtr<IDirectInputDevice8> js_device;
     if (SUCCEEDED(idi8->CreateDevice(joystick.guidInstance, &js_device, nullptr)))
     {
       if (SUCCEEDED(js_device->SetDataFormat(&c_dfDIJoystick)))
@@ -46,12 +46,11 @@ void InitJoystick(IDirectInput8* const idi8, HWND hwnd)
                   js_device->SetCooperativeLevel(nullptr, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE)))
           {
             // PanicAlert("SetCooperativeLevel failed!");
-            js_device->Release();
             continue;
           }
         }
 
-        auto js = std::make_shared<Joystick>(js_device);
+        auto js = std::make_shared<Joystick>(std::move(js_device));
         // only add if it has some inputs/outputs
         if (js->Inputs().size() || js->Outputs().size())
           g_controller_interface.AddDevice(std::move(js));
@@ -59,15 +58,12 @@ void InitJoystick(IDirectInput8* const idi8, HWND hwnd)
       else
       {
         // PanicAlert("SetDataFormat failed!");
-        js_device->Release();
       }
     }
   }
 }
 
-Joystick::Joystick(/*const LPCDIDEVICEINSTANCE lpddi, */ const LPDIRECTINPUTDEVICE8 device)
-    : m_device(device)
-//, m_name(TStringToString(lpddi->tszInstanceName))
+Joystick::Joystick(ComPtr<IDirectInputDevice8>&& device) : m_device(device)
 {
   // seems this needs to be done before GetCapabilities
   // polled or buffered data
@@ -140,7 +136,7 @@ Joystick::Joystick(/*const LPCDIDEVICEINSTANCE lpddi, */ const LPDIRECTINPUTDEVI
   std::list<DIDEVICEOBJECTINSTANCE> objects;
   if (SUCCEEDED(m_device->EnumObjects(DIEnumDeviceObjectsCallback, (LPVOID)&objects, DIDFT_AXIS)))
   {
-    InitForceFeedback(m_device, (int)objects.size());
+    InitForceFeedback(m_device.Get(), (int)objects.size());
   }
 
   ZeroMemory(&m_state_in, sizeof(m_state_in));
@@ -150,13 +146,13 @@ Joystick::Joystick(/*const LPCDIDEVICEINSTANCE lpddi, */ const LPDIRECTINPUTDEVI
 
 Joystick::~Joystick()
 {
-  m_device->Unacquire();
-  m_device->Release();
+  if (m_device != nullptr)
+    m_device->Unacquire();
 }
 
 std::string Joystick::GetName() const
 {
-  return GetDeviceName(m_device);
+  return GetDeviceName(m_device.Get());
 }
 
 std::string Joystick::GetSource() const

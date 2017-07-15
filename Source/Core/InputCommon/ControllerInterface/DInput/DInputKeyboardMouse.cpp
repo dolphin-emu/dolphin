@@ -41,8 +41,8 @@ void InitKeyboardMouse(IDirectInput8* const idi8, HWND _hwnd)
   // other devices
   // so there can be a separated Keyboard and mouse, as well as combined KeyboardMouse
 
-  LPDIRECTINPUTDEVICE8 kb_device = nullptr;
-  LPDIRECTINPUTDEVICE8 mo_device = nullptr;
+  ComPtr<IDirectInputDevice8> kb_device;
+  ComPtr<IDirectInputDevice8> mo_device;
 
   if (SUCCEEDED(idi8->CreateDevice(GUID_SysKeyboard, &kb_device, nullptr)) &&
       SUCCEEDED(kb_device->SetDataFormat(&c_dfDIKeyboard)) &&
@@ -51,28 +51,24 @@ void InitKeyboardMouse(IDirectInput8* const idi8, HWND _hwnd)
       SUCCEEDED(mo_device->SetDataFormat(&c_dfDIMouse2)) &&
       SUCCEEDED(mo_device->SetCooperativeLevel(nullptr, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE)))
   {
-    g_controller_interface.AddDevice(std::make_shared<KeyboardMouse>(kb_device, mo_device));
+    g_controller_interface.AddDevice(
+        std::make_shared<KeyboardMouse>(std::move(kb_device), std::move(mo_device)));
     return;
   }
-
-  if (kb_device)
-    kb_device->Release();
-  if (mo_device)
-    mo_device->Release();
 }
 
 KeyboardMouse::~KeyboardMouse()
 {
   // kb
-  m_kb_device->Unacquire();
-  m_kb_device->Release();
+  if (m_kb_device != nullptr)
+    m_kb_device->Unacquire();
   // mouse
-  m_mo_device->Unacquire();
-  m_mo_device->Release();
+  if (m_mo_device != nullptr)
+    m_mo_device->Unacquire();
 }
 
-KeyboardMouse::KeyboardMouse(const LPDIRECTINPUTDEVICE8 kb_device,
-                             const LPDIRECTINPUTDEVICE8 mo_device)
+KeyboardMouse::KeyboardMouse(ComPtr<IDirectInputDevice8>&& kb_device,
+                             ComPtr<IDirectInputDevice8>&& mo_device)
     : m_kb_device(kb_device), m_mo_device(mo_device)
 {
   m_kb_device->Acquire();
