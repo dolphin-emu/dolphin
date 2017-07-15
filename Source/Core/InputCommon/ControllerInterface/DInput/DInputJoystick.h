@@ -69,7 +69,7 @@ public:
   std::string GetSource() const override;
 
 private:
-  const LPDIRECTINPUTDEVICE8 m_device;
+  ComPtr<IDirectInputDevice8> m_device;
 
   DIJOYSTATE m_state_in;
 

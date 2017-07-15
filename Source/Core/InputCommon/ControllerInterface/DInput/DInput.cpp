@@ -46,17 +46,15 @@ std::string GetDeviceName(const LPDIRECTINPUTDEVICE8 device)
 
 void PopulateDevices(HWND hwnd)
 {
-  IDirectInput8* idi8;
+  ComPtr<IDirectInput8> idi8;
   if (FAILED(DirectInput8Create(GetModuleHandle(nullptr), DIRECTINPUT_VERSION, IID_IDirectInput8,
-                                (LPVOID*)&idi8, nullptr)))
+                                &idi8, nullptr)))
   {
     return;
   }
 
-  InitKeyboardMouse(idi8, hwnd);
-  InitJoystick(idi8, hwnd);
-
-  idi8->Release();
+  InitKeyboardMouse(idi8.Get(), hwnd);
+  InitJoystick(idi8.Get(), hwnd);
 }
 }
 }

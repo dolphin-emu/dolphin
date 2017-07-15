@@ -92,8 +92,8 @@ public:
   std::string GetSource() const override;
 
 private:
-  const LPDIRECTINPUTDEVICE8 m_kb_device;
-  const LPDIRECTINPUTDEVICE8 m_mo_device;
+  ComPtr<IDirectInputDevice8> m_kb_device;
+  ComPtr<IDirectInputDevice8> m_mo_device;
 
   DWORD m_last_update;
   State m_state_in;
