@@ -52,8 +52,6 @@ unsigned int xres, yres;
 
 bool bFrameInProgress = false;
 
-#define NUM_SWAPCHAIN_BUFFERS 2
-
 HRESULT LoadDXGI()
 {
   if (dxgi_dll_ref++ > 0)
@@ -294,13 +292,13 @@ HRESULT Create(HWND wnd)
   }
 
   DXGI_SWAP_CHAIN_DESC1 swap_chain_desc = {};
-  swap_chain_desc.BufferCount = NUM_SWAPCHAIN_BUFFERS;
+  swap_chain_desc.BufferCount = 2;
   swap_chain_desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
   swap_chain_desc.SampleDesc.Count = 1;
   swap_chain_desc.SampleDesc.Quality = 0;
   swap_chain_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
   swap_chain_desc.Scaling = DXGI_SCALING_STRETCH;
-  swap_chain_desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
+  swap_chain_desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
   swap_chain_desc.Width = xres;
   swap_chain_desc.Height = yres;
 
@@ -353,9 +351,18 @@ HRESULT Create(HWND wnd)
                                          &swapchain);
     if (FAILED(hr))
     {
+      // Flip-model discard swapchains aren't supported on Windows 8, so here we fall back to
+      // a sequential swapchain
+      swap_chain_desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
+      hr = factory->CreateSwapChainForHwnd(device, hWnd, &swap_chain_desc, nullptr, nullptr,
+                                           &swapchain);
+    }
+
+    if (FAILED(hr))
+    {
       // Flip-model swapchains aren't supported on Windows 7, so here we fall back to a legacy
       // BitBlt-model swapchain
-      swap_chain_desc.SwapEffect = DXGI_SWAP_EFFECT_SEQUENTIAL;
+      swap_chain_desc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
       hr = factory->CreateSwapChainForHwnd(device, hWnd, &swap_chain_desc, nullptr, nullptr,
                                            &swapchain);
     }
@@ -384,6 +391,12 @@ HRESULT Create(HWND wnd)
   SetDebugObjectName((ID3D11DeviceChild*)context, "device context");
   SAFE_RELEASE(factory);
   SAFE_RELEASE(adapter);
+
+  if (SConfig::GetInstance().bFullscreen && !g_ActiveConfig.bBorderlessFullscreen)
+  {
+    swapchain->SetFullscreenState(true, nullptr);
+    swapchain->ResizeBuffers(0, xres, yres, DXGI_FORMAT_R8G8B8A8_UNORM, 0);
+  }
 
   ID3D11Texture2D* buf;
   hr = swapchain->GetBuffer(0, IID_ID3D11Texture2D, (void**)&buf);
@@ -542,7 +555,7 @@ void Reset()
   GetClientRect(hWnd, &client);
   xres = client.right - client.left;
   yres = client.bottom - client.top;
-  D3D::swapchain->ResizeBuffers(NUM_SWAPCHAIN_BUFFERS, xres, yres, DXGI_FORMAT_R8G8B8A8_UNORM, 0);
+  D3D::swapchain->ResizeBuffers(0, xres, yres, DXGI_FORMAT_R8G8B8A8_UNORM, 0);
 
   // recreate back buffer texture
   ID3D11Texture2D* buf;
