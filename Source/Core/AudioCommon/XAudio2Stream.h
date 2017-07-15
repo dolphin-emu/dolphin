@@ -17,6 +17,16 @@
 
 #include <windows.h>
 
+// Disable warning C4265 in wrl/client.h:
+//   'Microsoft::WRL::Details::RemoveIUnknownBase<T>': class has virtual functions, but destructor
+//   is not virtual
+#pragma warning(push)
+#pragma warning(disable : 4265)
+#include <wrl/client.h>
+#pragma warning(pop)
+
+using Microsoft::WRL::ComPtr;
+
 struct StreamingVoiceContext;
 struct IXAudio2;
 struct IXAudio2MasteringVoice;
@@ -28,18 +38,9 @@ class XAudio2 final : public SoundStream
 #ifdef _WIN32
 
 private:
-  class Releaser
-  {
-  public:
-    template <typename R>
-    void operator()(R* ptr)
-    {
-      ptr->Release();
-    }
-  };
-
-  std::unique_ptr<IXAudio2, Releaser> m_xaudio2;
+  ComPtr<IXAudio2> m_xaudio2;
   std::unique_ptr<StreamingVoiceContext> m_voice_context;
+  // all XAudio2 objects are released when m_xaudio2 is released
   IXAudio2MasteringVoice* m_mastering_voice;
 
   Common::Event m_sound_sync_event;

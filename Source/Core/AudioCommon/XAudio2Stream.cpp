@@ -174,14 +174,12 @@ bool XAudio2::Start()
   HRESULT hr;
 
   // callback doesn't seem to run on a specific CPU anyways
-  IXAudio2* xaudptr;
-  if (FAILED(hr = ((XAudio2Create_t)PXAudio2Create)(&xaudptr, 0, XAUDIO2_DEFAULT_PROCESSOR)))
+  if (FAILED(hr = ((XAudio2Create_t)PXAudio2Create)(&m_xaudio2, 0, XAUDIO2_DEFAULT_PROCESSOR)))
   {
     PanicAlert("XAudio2 init failed: %#X", hr);
     Stop();
     return false;
   }
-  m_xaudio2 = std::unique_ptr<IXAudio2, Releaser>(xaudptr);
 
   // XAudio2 master voice
   // XAUDIO2_DEFAULT_CHANNELS instead of 2 for expansion?
@@ -196,7 +194,7 @@ bool XAudio2::Start()
   m_mastering_voice->SetVolume(m_volume);
 
   m_voice_context = std::unique_ptr<StreamingVoiceContext>(
-      new StreamingVoiceContext(m_xaudio2.get(), m_mixer.get(), m_sound_sync_event));
+      new StreamingVoiceContext(m_xaudio2.Get(), m_mixer.get(), m_sound_sync_event));
 
   return true;
 }
@@ -235,7 +233,7 @@ void XAudio2::Stop()
     m_mastering_voice = nullptr;
   }
 
-  m_xaudio2.reset();  // release interface
+  m_xaudio2.Reset();  // release interface
 
   if (m_xaudio2_dll)
   {
