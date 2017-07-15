@@ -104,9 +104,6 @@ void Host_NotifyMapLoaded()
 void Host_UpdateDisasmDialog()
 {
 }
-void Host_SetWiiMoteConnectionState(int state)
-{
-}
 void Host_ConnectWiimote(int wm_idx, bool connect)
 {
 }

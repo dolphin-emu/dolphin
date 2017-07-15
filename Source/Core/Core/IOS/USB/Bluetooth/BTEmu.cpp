@@ -91,13 +91,10 @@ BluetoothEmu::BluetoothEmu(Kernel& ios, const std::string& device_name)
   m_ControllerBD.b[3] = 0x79;
   m_ControllerBD.b[4] = 0x00;
   m_ControllerBD.b[5] = 0xFF;
-
-  Host_SetWiiMoteConnectionState(0);
 }
 
 BluetoothEmu::~BluetoothEmu()
 {
-  Host_SetWiiMoteConnectionState(0);
   m_WiiMotes.clear();
 }
 
@@ -355,10 +352,7 @@ void BluetoothEmu::Update()
     for (auto& wiimote : m_WiiMotes)
     {
       if (wiimote.EventPagingChanged(m_ScanEnable))
-      {
-        Host_SetWiiMoteConnectionState(1);
         SendEventRequestConnection(wiimote);
-      }
     }
   }
 
@@ -1203,7 +1197,6 @@ void BluetoothEmu::CommandDisconnect(const u8* input)
   DEBUG_LOG(IOS_WIIMOTE, "  ConnectionHandle: 0x%04x", disconnect->con_handle);
   DEBUG_LOG(IOS_WIIMOTE, "  Reason: 0x%02x", disconnect->reason);
 
-  Host_SetWiiMoteConnectionState(0);
   DisplayDisconnectMessage((disconnect->con_handle & 0xFF) + 1, disconnect->reason);
 
   SendEventCommandStatus(HCI_CMD_DISCONNECT);
