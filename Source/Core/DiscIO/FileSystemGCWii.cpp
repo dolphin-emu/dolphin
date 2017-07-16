@@ -270,11 +270,8 @@ std::unique_ptr<FileInfo> FileSystemGCWii::FindFileInfo(const std::string& path,
   // Given a path like "directory1/directory2/fileA.bin", this function will
   // find directory1 and then call itself to search for "directory2/fileA.bin".
 
-  size_t name_start = 0;
-  while (name_start < path.size() && path[name_start] == '/')
-    ++name_start;
-
-  if (name_start == path.size())
+  const size_t name_start = path.find_first_not_of('/');
+  if (name_start == std::string::npos)
     return file_info.clone();  // We're done
 
   const size_t name_end = path.find('/', name_start);
