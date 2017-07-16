@@ -21,6 +21,15 @@ public:
     int height = QListWidget::sizeHint().height();
     return {width, height};
   }
+
+  // Since this is trying to emulate tabs, an item should always be selected. If the selection tries
+  // to change to empty, don't acknowledge it.
+  void selectionChanged(const QItemSelection& selected, const QItemSelection& deselected) override
+  {
+    if (selected.indexes().empty())
+      return;
+    QListWidget::selectionChanged(selected, deselected);
+  }
 };
 
 ListTabWidget::ListTabWidget()
@@ -40,8 +49,6 @@ ListTabWidget::ListTabWidget()
 
   connect(m_labels, &QListWidget::currentItemChanged, this,
           [=](QListWidgetItem* current, QListWidgetItem* previous) {
-            if (!current)
-              current = previous;
             m_display->setCurrentIndex(m_labels->row(current));
           });
 }
