@@ -71,11 +71,16 @@ enum class Language
 bool IsDisc(Platform volume_type);
 bool IsWii(Platform volume_type);
 bool IsNTSC(Region region);
+
 Country TypicalCountryForRegion(Region region);
+// Avoid using this function if you can. Country codes aren't always reliable region indicators.
 Region RegionSwitchGC(u8 country_code);
+// Avoid using this function if you can. Country codes aren't always reliable region indicators.
 Region RegionSwitchWii(u8 country_code);
 Country CountrySwitch(u8 country_code);
+
 Region GetSysMenuRegion(u16 title_version);
 std::string GetSysMenuVersionString(u16 title_version);
+
 std::string GetCompanyFromID(const std::string& company_id);
 }

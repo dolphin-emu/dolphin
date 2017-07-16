@@ -232,14 +232,6 @@ u64 TMDReader::GetIOSId() const
   return Common::swap64(m_bytes.data() + offsetof(TMDHeader, ios_id));
 }
 
-DiscIO::Region TMDReader::GetRegion() const
-{
-  if (GetTitleId() == Titles::SYSTEM_MENU)
-    return DiscIO::GetSysMenuRegion(GetTitleVersion());
-
-  return DiscIO::RegionSwitchWii(static_cast<u8>(GetTitleId() & 0xff));
-}
-
 u64 TMDReader::GetTitleId() const
 {
   return Common::swap64(m_bytes.data() + offsetof(TMDHeader, title_id));
@@ -258,6 +250,14 @@ u16 TMDReader::GetTitleVersion() const
 u16 TMDReader::GetGroupId() const
 {
   return Common::swap16(m_bytes.data() + offsetof(TMDHeader, group_id));
+}
+
+DiscIO::Region TMDReader::GetRegion() const
+{
+  if (GetTitleId() == Titles::SYSTEM_MENU)
+    return DiscIO::GetSysMenuRegion(GetTitleVersion());
+
+  return DiscIO::RegionSwitchWii(static_cast<u8>(GetTitleId() & 0xff));
 }
 
 std::string TMDReader::GetGameID() const

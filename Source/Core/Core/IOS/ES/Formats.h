@@ -185,11 +185,13 @@ public:
 
   u16 GetBootIndex() const;
   u64 GetIOSId() const;
-  DiscIO::Region GetRegion() const;
   u64 GetTitleId() const;
   u32 GetTitleFlags() const;
   u16 GetTitleVersion() const;
   u16 GetGroupId() const;
+
+  // Provides a best guess for the region. Might be inaccurate or UNKNOWN_REGION.
+  DiscIO::Region GetRegion() const;
 
   // Constructs a 6-character game ID in the format typically used by Dolphin.
   // If the 6-character game ID would contain unprintable characters,
