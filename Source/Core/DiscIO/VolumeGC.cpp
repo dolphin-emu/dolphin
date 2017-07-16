@@ -61,7 +61,10 @@ std::string VolumeGC::GetGameID(const Partition& partition) const
 Region VolumeGC::GetRegion() const
 {
   const std::optional<u32> region_code = ReadSwapped<u32>(0x458, PARTITION_NONE);
-  return region_code ? static_cast<Region>(*region_code) : Region::UNKNOWN_REGION;
+  if (!region_code)
+    return Region::UNKNOWN_REGION;
+  const Region region = static_cast<Region>(*region_code);
+  return region <= Region::PAL ? region : Region::UNKNOWN_REGION;
 }
 
 Country VolumeGC::GetCountry(const Partition& partition) const
