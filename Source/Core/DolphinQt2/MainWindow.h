@@ -83,6 +83,7 @@ private:
   void HideRenderWidget();
 
   void ShowSettingsWindow();
+  void ShowAudioWindow();
   void ShowControllersWindow();
   void ShowGraphicsWindow();
   void ShowAboutDialog();

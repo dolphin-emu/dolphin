@@ -41,7 +41,7 @@ SettingsWindow::SettingsWindow(QWidget* parent) : QDialog(parent)
   AddTab(m_tabs, tr("General"), new GeneralPane(), "config");
   AddTab(m_tabs, tr("Interface"), new InterfacePane(), "browse");
   auto* audio_pane = new AudioPane;
-  AddTab(m_tabs, tr("Audio"), audio_pane, "play");
+  m_audio_pane_index = AddTab(m_tabs, tr("Audio"), audio_pane, "play");
   AddTab(m_tabs, tr("Paths"), new PathPane(), "browse");
 
   connect(this, &SettingsWindow::EmulationStarted,
@@ -55,4 +55,9 @@ SettingsWindow::SettingsWindow(QWidget* parent) : QDialog(parent)
   layout->addWidget(ok_box);
 
   setLayout(layout);
+}
+
+void SettingsWindow::SelectAudioPane()
+{
+  m_tabs->setCurrentIndex(m_audio_pane_index);
 }
