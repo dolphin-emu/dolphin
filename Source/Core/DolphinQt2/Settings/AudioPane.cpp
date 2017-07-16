@@ -110,6 +110,7 @@ void AudioPane::CreateWidgets()
   m_main_layout->addWidget(backend_box, 1, 0, 1, -1);
   m_main_layout->addWidget(stretching_box, 2, 0, 1, -1);
 
+  m_main_layout->setContentsMargins(0, 0, 0, 0);
   setLayout(m_main_layout);
 }
 

@@ -23,6 +23,7 @@ PathPane::PathPane(QWidget* parent) : QWidget(parent)
   layout->addWidget(MakeGameFolderBox());
   layout->addLayout(MakePathsLayout());
 
+  layout->setContentsMargins(0, 0, 0, 0);
   setLayout(layout);
 }
 
@@ -82,7 +83,6 @@ void PathPane::BrowseWiiNAND()
 QGroupBox* PathPane::MakeGameFolderBox()
 {
   QGroupBox* game_box = new QGroupBox(tr("Game Folders"));
-  game_box->setMinimumSize(QSize(400, 250));
   QVBoxLayout* vlayout = new QVBoxLayout;
 
   m_path_list = new QListWidget;
