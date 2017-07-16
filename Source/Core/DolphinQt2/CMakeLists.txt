@@ -65,6 +65,7 @@ set(SRCS
   GameList/ListProxyModel.cpp
   QtUtils/DoubleClickEventFilter.cpp
   QtUtils/ElidedButton.cpp
+  QtUtils/ListTabWidget.cpp
   QtUtils/WindowActivationEventFilter.cpp
   Settings/AudioPane.cpp
   Settings/GeneralPane.cpp
