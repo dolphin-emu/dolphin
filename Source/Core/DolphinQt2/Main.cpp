@@ -18,6 +18,7 @@
 #include "DolphinQt2/QtUtils/RunOnObject.h"
 #include "DolphinQt2/Resources.h"
 #include "DolphinQt2/Settings.h"
+#include "DolphinQt2/Translation.h"
 #include "UICommon/CommandLineParse.h"
 #include "UICommon/UICommon.h"
 
@@ -74,6 +75,9 @@ int main(int argc, char* argv[])
 
   // Hook up alerts from core
   RegisterMsgAlertHandler(QtMsgAlertHandler);
+
+  // Hook up translations
+  Translation::Initialize();
 
   // Whenever the event loop is about to go to sleep, dispatch the jobs
   // queued in the Core first.
