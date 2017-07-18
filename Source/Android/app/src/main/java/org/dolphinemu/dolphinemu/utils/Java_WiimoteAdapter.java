@@ -20,7 +20,10 @@ public class Java_WiimoteAdapter
 {
 	final static int MAX_PAYLOAD = 23;
 	final static int MAX_WIIMOTES = 4;
-	final static int TIMEOUT = 200;
+	// Arbitrarily chosen value that allows GC Adapter to not block if bulkTransfer requests hang.
+	// Ideally this should be equal to 0, as they shouldn't hang and we don't trigger unnecessary
+	// bulkTransfer transfers.
+	final static int TIMEOUT = 5000;
 	final static short NINTENDO_VENDOR_ID = 0x057e;
 	final static short NINTENDO_WIIMOTE_PRODUCT_ID = 0x0306;
 	public static UsbManager manager;

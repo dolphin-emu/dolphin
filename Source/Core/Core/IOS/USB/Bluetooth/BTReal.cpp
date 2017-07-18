@@ -373,7 +373,7 @@ void BluetoothReal::WaitForHCICommandComplete(const u16 opcode)
   for (int tries = 0; tries < 100; ++tries)
   {
     if (libusb_interrupt_transfer(m_handle, HCI_EVENT, buffer.data(),
-                                  static_cast<int>(buffer.size()), &actual_length, 20) == 0 &&
+                                  static_cast<int>(buffer.size()), &actual_length, TIMEOUT) == 0 &&
         reinterpret_cast<hci_event_hdr_t*>(buffer.data())->event == HCI_EVENT_COMMAND_COMPL &&
         reinterpret_cast<SHCIEventCommand*>(buffer.data())->Opcode == opcode)
       break;

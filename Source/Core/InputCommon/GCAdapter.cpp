@@ -71,7 +71,7 @@ static void Read()
   while (s_adapter_thread_running.IsSet())
   {
     libusb_interrupt_transfer(s_handle, s_endpoint_in, s_controller_payload_swap,
-                              sizeof(s_controller_payload_swap), &payload_size, 16);
+                              sizeof(s_controller_payload_swap), &payload_size, TIMEOUT);
 
     {
       std::lock_guard<std::mutex> lk(s_mutex);
@@ -313,7 +313,7 @@ static void AddGCAdapter(libusb_device* device)
 
   int tmp = 0;
   unsigned char payload = 0x13;
-  libusb_interrupt_transfer(s_handle, s_endpoint_out, &payload, sizeof(payload), &tmp, 16);
+  libusb_interrupt_transfer(s_handle, s_endpoint_out, &payload, sizeof(payload), &tmp, TIMEOUT);
 
   s_adapter_thread_running.Set(true);
   s_adapter_thread = std::thread(Read);
@@ -501,7 +501,7 @@ static void ResetRumbleLockNeeded()
                              s_controller_rumble[2], s_controller_rumble[3]};
 
   int size = 0;
-  libusb_interrupt_transfer(s_handle, s_endpoint_out, rumble, sizeof(rumble), &size, 16);
+  libusb_interrupt_transfer(s_handle, s_endpoint_out, rumble, sizeof(rumble), &size, TIMEOUT);
 
   INFO_LOG(SERIALINTERFACE, "Rumble state reset");
 }
@@ -521,7 +521,7 @@ void Output(int chan, u8 rumble_command)
                                s_controller_rumble[2], s_controller_rumble[3]};
     int size = 0;
 
-    libusb_interrupt_transfer(s_handle, s_endpoint_out, rumble, sizeof(rumble), &size, 16);
+    libusb_interrupt_transfer(s_handle, s_endpoint_out, rumble, sizeof(rumble), &size, TIMEOUT);
     // Netplay sends invalid data which results in size = 0x00.  Ignore it.
     if (size != 0x05 && size != 0x00)
     {

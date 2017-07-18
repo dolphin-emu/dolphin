@@ -12,6 +12,10 @@ struct GCPadStatus;
 
 namespace GCAdapter
 {
+// Arbitrarily chosen value that allows the GC Adapter thread to not block if usb interrupts hang.
+// Ideally this should be equal to 0, as they shouldn't hang and we don't trigger unnecessary
+// libusb transfers.
+static constexpr int TIMEOUT = 5000;
 enum ControllerTypes
 {
   CONTROLLER_NONE = 0,

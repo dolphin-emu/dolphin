@@ -27,6 +27,11 @@ public class Java_GCAdapter {
 	static UsbEndpoint usb_in;
 	static UsbEndpoint usb_out;
 
+	// Arbitrarily chosen value that allows GC Adapter to not block if bulkTransfer requests hang.
+	// Ideally this should be equal to 0, as they shouldn't hang and we don't trigger unnecessary
+	// bulkTransfer transfers.
+	private static final int TIMEOUT = 5000;
+
 	private static void RequestPermission()
 	{
 		HashMap<String, UsbDevice> devices = manager.getDeviceList();
@@ -73,15 +78,15 @@ public class Java_GCAdapter {
 	public static void InitAdapter()
 	{
 		byte[] init = { 0x13 };
-		usb_con.bulkTransfer(usb_in, init, init.length, 0);
+		usb_con.bulkTransfer(usb_in, init, init.length, TIMEOUT);
 	}
 
 	public static int Input() {
-		return usb_con.bulkTransfer(usb_in, controller_payload, controller_payload.length, 16);
+		return usb_con.bulkTransfer(usb_in, controller_payload, controller_payload.length, TIMEOUT);
 	}
 
 	public static int Output(byte[] rumble) {
-		return usb_con.bulkTransfer(usb_out, rumble, 5, 16);
+		return usb_con.bulkTransfer(usb_out, rumble, 5, TIMEOUT);
 	}
 
 	public static boolean OpenAdapter()
