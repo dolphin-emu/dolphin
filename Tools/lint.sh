@@ -2,13 +2,18 @@
 #
 # Linter script that checks for common style issues in Dolphin's codebase.
 
+set -euo pipefail
+
 fail=0
 
 # Default to staged files, unless a commit was passed.
 COMMIT=${1:---cached}
 
+# Get modified files (must be on own line for exit-code handling)
+modified_files=$(git diff --name-only --diff-filter=ACMRTUXB $COMMIT)
+
 # Loop through each modified file.
-for f in $(git diff --name-only --diff-filter=ACMRTUXB $COMMIT); do
+for f in ${modified_files}; do
   # Filter them.
   if ! echo "${f}" | egrep -q "[.](cpp|h|mm)$"; then
     continue
@@ -18,7 +23,7 @@ for f in $(git diff --name-only --diff-filter=ACMRTUXB $COMMIT); do
   fi
 
   # Check for clang-format issues.
-  d=$(diff -u "${f}" <(clang-format ${f}))
+  d=$(clang-format ${f} | (diff -u "${f}" - || true))
   if ! [ -z "${d}" ]; then
     echo "!!! ${f} not compliant to coding style, here is the fix:"
     echo "${d}"
@@ -26,7 +31,8 @@ for f in $(git diff --name-only --diff-filter=ACMRTUXB $COMMIT); do
   fi
 
   # Check for newline at EOF.
-  if [ -n "$(tail -c 1 ${f})" ]; then
+  last_line="$(tail -c 1 ${f})"
+  if [ -n "${last_line}" ]; then
     echo "!!! ${f} not compliant to coding style:"
     echo "Missing newline at end of file"
     fail=1
