@@ -56,6 +56,9 @@ enum class PartitionType : u32
   // There are more types used by Super Smash Bros. Brawl, but they don't have special names
 };
 
+// 0xFF is an arbitrarily picked value. Note that we can't use 0x00, because that means NTSC-J
+constexpr u32 INVALID_REGION = 0xFF;
+
 constexpr u8 ENTRY_SIZE = 0x0c;
 constexpr u8 FILE_ENTRY = 0;
 constexpr u8 DIRECTORY_ENTRY = 1;
@@ -422,9 +425,6 @@ void DirectoryBlobReader::SetWiiRegionData(const std::string& game_partition_roo
 {
   m_wii_region_data.resize(0x10, 0x00);
   m_wii_region_data.resize(0x20, 0x80);
-
-  // 0xFF is an arbitrarily picked value. Note that we can't use 0x00, because that means NTSC-J
-  constexpr u32 INVALID_REGION = 0xFF;
   Write32(INVALID_REGION, 0, &m_wii_region_data);
 
   const std::string region_bin_path = game_partition_root + "disc/region.bin";
@@ -590,7 +590,17 @@ void DirectoryBlobPartition::SetBI2()
 {
   constexpr u64 BI2_ADDRESS = 0x440;
   constexpr u64 BI2_SIZE = 0x2000;
-  AddFileToContents(&m_contents, m_root_directory + "sys/bi2.bin", BI2_ADDRESS, BI2_SIZE);
+  m_bi2.resize(BI2_SIZE);
+
+  if (!m_is_wii)
+    Write32(INVALID_REGION, 0x18, &m_bi2);
+
+  const std::string bi2_path = m_root_directory + "sys/bi2.bin";
+  const size_t bytes_read = ReadFileToVector(bi2_path, &m_bi2);
+  if (!m_is_wii && bytes_read < 0x1C)
+    ERROR_LOG(DISCIO, "Couldn't read region from %s", bi2_path.c_str());
+
+  m_contents.emplace(BI2_ADDRESS, BI2_SIZE, m_bi2.data());
 }
 
 u64 DirectoryBlobPartition::SetApploader()
