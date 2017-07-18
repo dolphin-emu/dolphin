@@ -399,26 +399,26 @@ u64 DirectoryBlobReader::GetDataSize() const
 void DirectoryBlobReader::SetNonpartitionDiscHeader(const std::vector<u8>& partition_header,
                                                     const std::string& game_partition_root)
 {
-  constexpr u64 NONPARTITION_DISKHEADER_ADDRESS = 0;
-  constexpr u64 NONPARTITION_DISKHEADER_SIZE = 0x100;
+  constexpr u64 NONPARTITION_DISCHEADER_ADDRESS = 0;
+  constexpr u64 NONPARTITION_DISCHEADER_SIZE = 0x100;
 
-  m_disk_header_nonpartition.resize(NONPARTITION_DISKHEADER_SIZE);
+  m_disc_header_nonpartition.resize(NONPARTITION_DISCHEADER_SIZE);
   const size_t header_bin_bytes_read =
-      ReadFileToVector(game_partition_root + "disc/header.bin", &m_disk_header_nonpartition);
+      ReadFileToVector(game_partition_root + "disc/header.bin", &m_disc_header_nonpartition);
 
   // If header.bin is missing or smaller than expected, use the content of sys/boot.bin instead
   std::copy(partition_header.data() + header_bin_bytes_read,
-            partition_header.data() + m_disk_header_nonpartition.size(),
-            m_disk_header_nonpartition.data() + header_bin_bytes_read);
+            partition_header.data() + m_disc_header_nonpartition.size(),
+            m_disc_header_nonpartition.data() + header_bin_bytes_read);
 
   // 0x60 and 0x61 are the only differences between the partition and non-partition headers
   if (header_bin_bytes_read < 0x60)
-    m_disk_header_nonpartition[0x60] = 0;
+    m_disc_header_nonpartition[0x60] = 0;
   if (header_bin_bytes_read < 0x61)
-    m_disk_header_nonpartition[0x61] = 0;
+    m_disc_header_nonpartition[0x61] = 0;
 
-  m_nonpartition_contents.emplace(NONPARTITION_DISKHEADER_ADDRESS, NONPARTITION_DISKHEADER_SIZE,
-                                  m_disk_header_nonpartition.data());
+  m_nonpartition_contents.emplace(NONPARTITION_DISCHEADER_ADDRESS, NONPARTITION_DISCHEADER_SIZE,
+                                  m_disc_header_nonpartition.data());
 }
 
 void DirectoryBlobReader::SetWiiRegionData(const std::string& game_partition_root)
@@ -561,15 +561,15 @@ DirectoryBlobPartition::DirectoryBlobPartition(const std::string& root_directory
 
 void DirectoryBlobPartition::SetDiscHeaderAndDiscType(std::optional<bool> is_wii)
 {
-  constexpr u64 DISKHEADER_ADDRESS = 0;
-  constexpr u64 DISKHEADER_SIZE = 0x440;
+  constexpr u64 DISCHEADER_ADDRESS = 0;
+  constexpr u64 DISCHEADER_SIZE = 0x440;
 
-  m_disk_header.resize(DISKHEADER_SIZE);
+  m_disc_header.resize(DISCHEADER_SIZE);
   const std::string boot_bin_path = m_root_directory + "sys/boot.bin";
-  if (ReadFileToVector(boot_bin_path, &m_disk_header) < 0x20)
+  if (ReadFileToVector(boot_bin_path, &m_disc_header) < 0x20)
     ERROR_LOG(DISCIO, "%s doesn't exist or is too small", boot_bin_path.c_str());
 
-  m_contents.emplace(DISKHEADER_ADDRESS, DISKHEADER_SIZE, m_disk_header.data());
+  m_contents.emplace(DISCHEADER_ADDRESS, DISCHEADER_SIZE, m_disc_header.data());
 
   if (is_wii.has_value())
   {
@@ -577,8 +577,8 @@ void DirectoryBlobPartition::SetDiscHeaderAndDiscType(std::optional<bool> is_wii
   }
   else
   {
-    m_is_wii = Common::swap32(&m_disk_header[0x18]) == 0x5d1c9ea3;
-    const bool is_gc = Common::swap32(&m_disk_header[0x1c]) == 0xc2339f3d;
+    m_is_wii = Common::swap32(&m_disc_header[0x18]) == 0x5d1c9ea3;
+    const bool is_gc = Common::swap32(&m_disc_header[0x1c]) == 0xc2339f3d;
     if (m_is_wii == is_gc)
       ERROR_LOG(DISCIO, "Couldn't detect disc type based on %s", boot_bin_path.c_str());
   }
@@ -644,7 +644,7 @@ u64 DirectoryBlobPartition::SetDOL(u64 dol_address)
   const DiscContent& dol =
       AddFileToContents(&m_contents, m_root_directory + "sys/main.dol", dol_address);
 
-  Write32(static_cast<u32>(dol_address >> m_address_shift), 0x0420, &m_disk_header);
+  Write32(static_cast<u32>(dol_address >> m_address_shift), 0x0420, &m_disc_header);
 
   // Return FST address, 32 byte aligned (plus 32 byte padding)
   return Common::AlignUp(dol_address + dol.GetSize() + 0x20, 0x20ull);
@@ -664,7 +664,7 @@ void DirectoryBlobPartition::BuildFST(u64 fst_address)
   const u64 name_table_offset = total_entries * ENTRY_SIZE;
   m_fst_data.resize(name_table_offset + name_table_size);
 
-  // 32 KiB aligned start of data on disk
+  // 32 KiB aligned start of data on disc
   u64 current_data_address = Common::AlignUp(fst_address + m_fst_data.size(), 0x8000ull);
 
   u32 fst_offset = 0;   // Offset within FST data
@@ -681,9 +681,9 @@ void DirectoryBlobPartition::BuildFST(u64 fst_address)
   _assert_(Common::AlignUp(name_offset, 1ull << m_address_shift) == name_table_size);
 
   // write FST size and location
-  Write32((u32)(fst_address >> m_address_shift), 0x0424, &m_disk_header);
-  Write32((u32)(m_fst_data.size() >> m_address_shift), 0x0428, &m_disk_header);
-  Write32((u32)(m_fst_data.size() >> m_address_shift), 0x042c, &m_disk_header);
+  Write32((u32)(fst_address >> m_address_shift), 0x0424, &m_disc_header);
+  Write32((u32)(m_fst_data.size() >> m_address_shift), 0x0428, &m_disc_header);
+  Write32((u32)(m_fst_data.size() >> m_address_shift), 0x042c, &m_disc_header);
 
   m_contents.emplace(fst_address, m_fst_data.size(), m_fst_data.data());
 

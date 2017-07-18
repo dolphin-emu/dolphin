@@ -73,7 +73,7 @@ public:
   bool IsWii() const { return m_is_wii; }
   u64 GetDataSize() const { return m_data_size; }
   const std::string& GetRootDirectory() const { return m_root_directory; }
-  const std::vector<u8>& GetHeader() const { return m_disk_header; }
+  const std::vector<u8>& GetHeader() const { return m_disc_header; }
   const std::set<DiscContent>& GetContents() const { return m_contents; }
 private:
   void SetDiscHeaderAndDiscType(std::optional<bool> is_wii);
@@ -94,7 +94,7 @@ private:
                       u64* data_offset, u32 parent_entry_index, u64 name_table_offset);
 
   std::set<DiscContent> m_contents;
-  std::vector<u8> m_disk_header;
+  std::vector<u8> m_disc_header;
   std::vector<u8> m_bi2;
   std::vector<u8> m_apploader;
   std::vector<u8> m_fst_data;
@@ -158,7 +158,7 @@ private:
 
   bool m_is_wii;
 
-  std::vector<u8> m_disk_header_nonpartition;
+  std::vector<u8> m_disc_header_nonpartition;
   std::vector<u8> m_partition_table;
   std::vector<u8> m_wii_region_data;
   std::vector<std::vector<u8>> m_partition_headers;
