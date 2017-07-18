@@ -20,7 +20,8 @@ public class Java_WiimoteAdapter
 {
 	final static int MAX_PAYLOAD = 23;
 	final static int MAX_WIIMOTES = 4;
-	// Arbitrarily chosen value that allows GC Adapter to not block if bulkTransfer requests hang.
+	// Arbitrarily chosen value that allows the Wiimote adapter to not block if bulkTransfer
+	// requests hang.
 	// Ideally this should be equal to 0, as they shouldn't hang and we don't trigger unnecessary
 	// bulkTransfer transfers.
 	final static int TIMEOUT = 5000;
