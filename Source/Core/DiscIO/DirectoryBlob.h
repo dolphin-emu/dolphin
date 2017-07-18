@@ -95,6 +95,7 @@ private:
 
   std::set<DiscContent> m_contents;
   std::vector<u8> m_disk_header;
+  std::vector<u8> m_bi2;
   std::vector<u8> m_apploader;
   std::vector<u8> m_fst_data;
 
