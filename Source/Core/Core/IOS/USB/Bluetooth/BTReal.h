@@ -65,10 +65,10 @@ public:
 
 private:
   static constexpr u8 INTERFACE = 0x00;
-  // Arbitrarily chosen value that allows emulated software to not block if libusb transfers
-  // hang for some reason.
+  // Arbitrarily chosen value that allows emulated software to send commands often enough
+  // so that the sync button event is triggered at least every 200ms.
   // Ideally this should be equal to 0, so we don't trigger unnecessary libusb transfers.
-  static constexpr int TIMEOUT = 5000;
+  static constexpr int TIMEOUT = 200;
   static constexpr int SYNC_BUTTON_HOLD_MS_TO_RESET = 10000;
 
   std::atomic<SyncButtonState> m_sync_button_state{SyncButtonState::Unpressed};
