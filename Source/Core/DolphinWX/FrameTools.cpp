@@ -1406,27 +1406,6 @@ void CFrame::OnFifoPlayer(wxCommandEvent& WXUNUSED(event))
   }
 }
 
-void CFrame::ConnectWiimote(int wm_idx, bool connect)
-{
-  if (Core::IsRunning() && SConfig::GetInstance().bWii &&
-      !SConfig::GetInstance().m_bt_passthrough_enabled)
-  {
-    Core::RunAsCPUThread([&] {
-      const auto ios = IOS::HLE::GetIOS();
-      if (!ios)
-        return;
-
-      const auto bt = std::static_pointer_cast<IOS::HLE::Device::BluetoothEmu>(
-          ios->GetDeviceByName("/dev/usb/oh1/57e/305"));
-      if (bt)
-        bt->AccessWiiMote(wm_idx | 0x100)->Activate(connect);
-      const char* message = connect ? "Wii Remote %i connected" : "Wii Remote %i disconnected";
-      Core::DisplayMessage(StringFromFormat(message, wm_idx + 1), 3000);
-      Host_UpdateMainFrame();
-    });
-  }
-}
-
 void CFrame::OnConnectWiimote(wxCommandEvent& event)
 {
   const auto ios = IOS::HLE::GetIOS();
@@ -1435,9 +1414,9 @@ void CFrame::OnConnectWiimote(wxCommandEvent& event)
   Core::RunAsCPUThread([&] {
     const auto bt = std::static_pointer_cast<IOS::HLE::Device::BluetoothEmu>(
         ios->GetDeviceByName("/dev/usb/oh1/57e/305"));
-    const bool is_connected =
-        bt && bt->AccessWiiMote((event.GetId() - IDM_CONNECT_WIIMOTE1) | 0x100)->IsConnected();
-    ConnectWiimote(event.GetId() - IDM_CONNECT_WIIMOTE1, !is_connected);
+    const unsigned int wiimote_index = event.GetId() - IDM_CONNECT_WIIMOTE1;
+    const bool is_connected = bt && bt->AccessWiiMote(wiimote_index | 0x100)->IsConnected();
+    Wiimote::Connect(wiimote_index, !is_connected);
   });
 }
 

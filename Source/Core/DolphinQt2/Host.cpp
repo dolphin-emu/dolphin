@@ -104,9 +104,6 @@ void Host_NotifyMapLoaded()
 void Host_UpdateDisasmDialog()
 {
 }
-void Host_ConnectWiimote(int wm_idx, bool connect)
-{
-}
 void Host_ShowVideoConfig(void* parent, const std::string& backend_name)
 {
 }
