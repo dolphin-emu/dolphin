@@ -229,7 +229,9 @@ struct VideoConfig final
   bool IsSSAAEnabled() const;
   // Host config contains the settings which can influence generated shaders.
   u32 GetHostConfigBits() const;
-  std::string GetHostConfigFilename() const;
+  // Gets the filename of the specified type of cache object (e.g. vertex shader, pipeline).
+  std::string GetDiskCacheFileName(APIType api_type, const char* type, bool include_gameid,
+                                   bool include_host_config) const;
 };
 
 extern VideoConfig g_Config;

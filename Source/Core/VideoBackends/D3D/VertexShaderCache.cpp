@@ -164,14 +164,9 @@ void VertexShaderCache::Init()
 
 void VertexShaderCache::LoadShaderCache()
 {
-  if (!File::Exists(File::GetUserPath(D_SHADERCACHE_IDX)))
-    File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX));
-
-  std::string cache_filename = StringFromFormat(
-      "%sdx11-%s-%s-vs.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
-      SConfig::GetInstance().GetGameID().c_str(), g_ActiveConfig.GetHostConfigFilename().c_str());
   VertexShaderCacheInserter inserter;
-  g_vs_disk_cache.OpenAndRead(cache_filename, inserter);
+  g_vs_disk_cache.OpenAndRead(g_ActiveConfig.GetDiskCacheFileName(APIType::D3D, "VS", true, true),
+                              inserter);
 }
 
 void VertexShaderCache::Reload()

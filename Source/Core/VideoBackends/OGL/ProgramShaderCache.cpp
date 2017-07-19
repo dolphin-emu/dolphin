@@ -552,14 +552,8 @@ void ProgramShaderCache::LoadProgramBinaries()
   }
   else
   {
-    if (!File::Exists(File::GetUserPath(D_SHADERCACHE_IDX)))
-      File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX));
-
-    std::string host_part = g_ActiveConfig.GetHostConfigFilename();
     std::string cache_filename =
-        StringFromFormat("%sogl-%s-%s-shaders.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
-                         SConfig::GetInstance().GetGameID().c_str(), host_part.c_str());
-
+        g_ActiveConfig.GetDiskCacheFileName(APIType::OpenGL, "ProgramBinaries", true, true);
     ProgramShaderCacheInserter inserter;
     g_program_disk_cache.OpenAndRead(cache_filename, inserter);
   }

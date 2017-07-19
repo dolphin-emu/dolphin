@@ -162,9 +162,6 @@ public:
   VkShaderModule GetPassthroughVertexShader() const { return m_passthrough_vertex_shader; }
   VkShaderModule GetScreenQuadGeometryShader() const { return m_screen_quad_geometry_shader; }
   VkShaderModule GetPassthroughGeometryShader() const { return m_passthrough_geometry_shader; }
-  // Gets the filename of the specified type of cache object (e.g. vertex shader, pipeline).
-  std::string GetDiskCacheFileName(const char* type, bool include_gameid, bool include_host_config);
-
 private:
   bool CreatePipelineCache();
   bool LoadPipelineCache();

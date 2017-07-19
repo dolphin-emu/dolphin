@@ -4,9 +4,12 @@
 
 #include <algorithm>
 
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
+#include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 #include "Core/Config/GraphicsSettings.h"
+#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Movie.h"
 #include "VideoCommon/OnScreenDisplay.h"
@@ -256,8 +259,41 @@ u32 VideoConfig::GetHostConfigBits() const
   return bits.bits;
 }
 
-std::string VideoConfig::GetHostConfigFilename() const
+std::string VideoConfig::GetDiskCacheFileName(APIType api_type, const char* type,
+                                              bool include_gameid, bool include_host_config) const
 {
-  u32 bits = GetHostConfigBits();
-  return StringFromFormat("%08X", bits);
+  if (!File::Exists(File::GetUserPath(D_SHADERCACHE_IDX)))
+    File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX));
+
+  std::string filename = File::GetUserPath(D_SHADERCACHE_IDX);
+  switch (api_type)
+  {
+  case APIType::D3D:
+    filename += "D3D";
+    break;
+  case APIType::OpenGL:
+    filename += "OpenGL";
+    break;
+  case APIType::Vulkan:
+    filename += "Vulkan";
+    break;
+  }
+
+  filename += '-';
+  filename += type;
+
+  if (include_gameid)
+  {
+    filename += '-';
+    filename += SConfig::GetInstance().GetGameID();
+  }
+
+  if (include_host_config)
+  {
+    // We're using 18 bits, so 5 hex characters.
+    filename += StringFromFormat("-%05X", GetHostConfigBits());
+  }
+
+  filename += ".cache";
+  return filename;
 }
