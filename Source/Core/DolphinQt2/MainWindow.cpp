@@ -470,8 +470,8 @@ void MainWindow::ShowRenderWidget()
     }
     else
     {
-      m_render_widget->resize(640, 480);
       m_render_widget->showNormal();
+      m_render_widget->resize(640, 480);
     }
   }
 }
