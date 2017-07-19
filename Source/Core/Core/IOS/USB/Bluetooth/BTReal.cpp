@@ -369,8 +369,8 @@ void BluetoothReal::WaitForHCICommandComplete(const u16 opcode)
 {
   int actual_length;
   std::vector<u8> buffer(1024);
-  // Only try 100 transfers at most, to avoid being stuck in an infinite loop
-  for (int tries = 0; tries < 100; ++tries)
+  // Only try 10 transfers at most, to avoid being stuck in an infinite loop
+  for (int tries = 0; tries < 10; ++tries)
   {
     if (libusb_interrupt_transfer(m_handle, HCI_EVENT, buffer.data(),
                                   static_cast<int>(buffer.size()), &actual_length, TIMEOUT) == 0 &&
