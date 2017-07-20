@@ -263,6 +263,9 @@ bool VideoBackend::Initialize(void* window_handle)
     return false;
   }
 
+  // Ensure all pipelines previously used by the game have been created.
+  StateTracker::GetInstance()->ReloadPipelineUIDCache();
+
   // Lastly, precompile ubershaders, if requested.
   // This has to be done after the texture cache and shader cache are initialized.
   if (g_ActiveConfig.CanPrecompileUberShaders())

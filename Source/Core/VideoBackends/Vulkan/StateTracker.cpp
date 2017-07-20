@@ -156,6 +156,10 @@ void StateTracker::ReloadPipelineUIDCache()
     PipelineInserter inserter(this);
     m_uid_cache.OpenAndRead(filename, inserter);
   }
+
+  // If we were using background compilation, ensure everything is ready before continuing.
+  if (g_ActiveConfig.bBackgroundShaderCompiling)
+    g_shader_cache->WaitForBackgroundCompilesToComplete();
 }
 
 void StateTracker::AppendToPipelineUIDCache(const PipelineInfo& info)
@@ -212,11 +216,19 @@ bool StateTracker::PrecachePipelineUID(const SerializedPipelineUID& uid)
   pinfo.blend_state.hex = uid.blend_state_bits;
   pinfo.primitive_topology = uid.primitive_topology;
 
-  VkPipeline pipeline = g_shader_cache->GetPipeline(pinfo);
-  if (pipeline == VK_NULL_HANDLE)
+  if (g_ActiveConfig.bBackgroundShaderCompiling)
   {
-    WARN_LOG(VIDEO, "Failed to get pipeline from cached UID.");
-    return false;
+    // Use async for multithreaded compilation.
+    g_shader_cache->GetPipelineWithCacheResultAsync(pinfo);
+  }
+  else
+  {
+    VkPipeline pipeline = g_shader_cache->GetPipeline(pinfo);
+    if (pipeline == VK_NULL_HANDLE)
+    {
+      WARN_LOG(VIDEO, "Failed to get pipeline from cached UID.");
+      return false;
+    }
   }
 
   // We don't need to do anything with this pipeline, just make sure it exists.

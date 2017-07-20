@@ -113,9 +113,6 @@ bool Renderer::Initialize()
                                                m_bounding_box->GetGPUBufferSize());
   }
 
-  // Ensure all pipelines previously used by the game have been created.
-  StateTracker::GetInstance()->ReloadPipelineUIDCache();
-
   // Initialize post processing.
   m_post_processor = std::make_unique<VulkanPostProcessing>();
   if (!static_cast<VulkanPostProcessing*>(m_post_processor.get())
