@@ -20,5 +20,4 @@ std::string BitfieldExtract(const std::string& source, T type)
   return StringFromFormat("bitfieldExtract(%s, %u, %u)", source.c_str(),
                           static_cast<u32>(type.StartBit()), static_cast<u32>(type.NumBits()));
 }
-
 }  // namespace UberShader

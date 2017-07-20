@@ -44,6 +44,11 @@ struct PixelShaderConstants
 
 struct VertexShaderConstants
 {
+  u32 components;           // .x
+  u32 xfmem_dualTexInfo;    // .y
+  u32 xfmem_numColorChans;  // .z
+  u32 pad1;                 // .w
+
   float4 posnormalmatrix[6];
   float4 projection[4];
   int4 materials[4];
@@ -60,7 +65,10 @@ struct VertexShaderConstants
   float4 normalmatrices[32];
   float4 posttransformmatrices[64];
   float4 pixelcentercorrection;
-  float4 viewport;
+  float viewport[2];  // .xy
+  float pad2[2];      // .zw
+
+  uint4 xfmem_pack1[8];  // .x - texMtxInfo, .y - postMtxInfo, [0..1].z = color, [0..1].w = alpha
 };
 
 struct GeometryShaderConstants
