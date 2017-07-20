@@ -159,7 +159,9 @@ void VertexManager::vFlush()
     return;
   }
 
-  if (!VertexShaderCache::SetShader())
+  D3DVertexFormat* vertex_format =
+      static_cast<D3DVertexFormat*>(VertexLoaderManager::GetCurrentVertexFormat());
+  if (!VertexShaderCache::SetShader(vertex_format))
   {
     GFX_DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR, true, { printf("Fail to set pixel shader\n"); });
     return;
@@ -182,7 +184,6 @@ void VertexManager::vFlush()
 
   PrepareDrawBuffers(stride);
 
-  VertexLoaderManager::GetCurrentVertexFormat()->SetupVertexPointers();
   g_renderer->ApplyState();
 
   Draw(stride);

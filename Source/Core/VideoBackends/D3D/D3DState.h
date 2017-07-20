@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <array>
 #include <cstddef>
 #include <stack>
 #include <unordered_map>
@@ -269,9 +270,9 @@ private:
 
   struct Resources
   {
-    ID3D11ShaderResourceView* textures[8];
-    ID3D11SamplerState* samplers[8];
-    ID3D11Buffer* pixelConstants[2];
+    std::array<ID3D11ShaderResourceView*, 8> textures;
+    std::array<ID3D11SamplerState*, 8> samplers;
+    std::array<ID3D11Buffer*, 2> pixelConstants;
     ID3D11Buffer* vertexConstants;
     ID3D11Buffer* geometryConstants;
     ID3D11Buffer* vertexBuffer;
