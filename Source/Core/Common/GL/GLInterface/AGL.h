@@ -8,6 +8,7 @@
 #import <AppKit/AppKit.h>
 #else
 struct NSOpenGLContext;
+struct NSOpenGLPixelFormat;
 struct NSView;
 #endif
 
@@ -18,13 +19,16 @@ class cInterfaceAGL : public cInterfaceBase
 public:
   void Swap() override;
   bool Create(void* window_handle, bool stereo, bool core) override;
+  bool Create(cInterfaceBase* main_context) override;
   bool MakeCurrent() override;
   bool ClearCurrent() override;
   void Shutdown() override;
   void Update() override;
   void SwapInterval(int interval) override;
+  std::unique_ptr<cInterfaceBase> CreateSharedContext() override;
 
 private:
-  NSView* m_view;
-  NSOpenGLContext* m_context;
+  NSView* m_view = nullptr;
+  NSOpenGLContext* m_context = nullptr;
+  NSOpenGLPixelFormat* m_pixel_format = nullptr;
 };
