@@ -10,13 +10,13 @@
 #include "Common/CommonTypes.h"
 #include "VideoBackends/Vulkan/Constants.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
+#include "VideoBackends/Vulkan/ShaderCache.h"
 #include "VideoCommon/RenderState.h"
 #include "VideoCommon/TextureConfig.h"
 
 namespace Vulkan
 {
 class CommandBufferManager;
-class ObjectCache;
 class StateTracker;
 
 namespace Util

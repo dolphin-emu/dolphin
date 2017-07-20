@@ -225,8 +225,8 @@ void VKTexture::ScaleTextureRectangle(const MathUtil::Rectangle<int>& dst_rect,
   UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                          g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_STANDARD),
                          TextureCache::GetInstance()->GetTextureCopyRenderPass(),
-                         g_object_cache->GetPassthroughVertexShader(),
-                         g_object_cache->GetPassthroughGeometryShader(),
+                         g_shader_cache->GetPassthroughVertexShader(),
+                         g_shader_cache->GetPassthroughGeometryShader(),
                          TextureCache::GetInstance()->GetCopyShader());
 
   VkRect2D region = {

@@ -12,6 +12,7 @@
 
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
+#include "VideoBackends/Vulkan/ShaderCache.h"
 #include "VideoBackends/Vulkan/ShaderCompiler.h"
 #include "VideoBackends/Vulkan/StateTracker.h"
 #include "VideoBackends/Vulkan/StreamBuffer.h"
@@ -720,7 +721,7 @@ void UtilityShaderDraw::BindDescriptors()
 
 bool UtilityShaderDraw::BindPipeline()
 {
-  VkPipeline pipeline = g_object_cache->GetPipeline(m_pipeline_info);
+  VkPipeline pipeline = g_shader_cache->GetPipeline(m_pipeline_info);
   if (pipeline == VK_NULL_HANDLE)
   {
     PanicAlert("Failed to get pipeline for backend shader draw");
@@ -873,7 +874,7 @@ void ComputeShaderDispatcher::BindDescriptors()
 
 bool ComputeShaderDispatcher::BindPipeline()
 {
-  VkPipeline pipeline = g_object_cache->GetComputePipeline(m_pipeline_info);
+  VkPipeline pipeline = g_shader_cache->GetComputePipeline(m_pipeline_info);
   if (pipeline == VK_NULL_HANDLE)
   {
     PanicAlert("Failed to get pipeline for backend compute dispatch");
