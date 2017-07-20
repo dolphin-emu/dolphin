@@ -204,6 +204,8 @@ struct VideoConfig final
     bool bSupportsInternalResolutionFrameDumps;
     bool bSupportsGPUTextureDecoding;
     bool bSupportsST3CTextures;
+    bool bSupportsBitfield;                // Needed by UberShaders, so must stay in VideoCommon
+    bool bSupportsDynamicSamplerIndexing;  // Needed by UberShaders, so must stay in VideoCommon
   } backend_info;
 
   // Utility

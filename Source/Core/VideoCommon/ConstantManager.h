@@ -24,7 +24,22 @@ struct PixelShaderConstants
   int4 fogi;
   float4 fogf[2];
   float4 zslope;
-  float4 efbscale;
+  float efbscale[2];
+
+  // Constants from here onwards are only used in ubershaders.
+  u32 genmode;       // .z
+  u32 alphaTest;     // .w
+  u32 fogParam3;     // .x
+  u32 fogRangeBase;  // .y
+  u32 dstalpha;      // .z
+  u32 ztex_op;       // .w
+  u32 early_ztest;   // .x (bool)
+  u32 rgba6_format;  // .y (bool)
+  u32 dither;        // .z (bool)
+  u32 bounding_box;  // .w (bool)
+  uint4 pack1[16];   // .xy - combiners, .z - tevind, .w - iref
+  uint4 pack2[8];    // .x - tevorder, .y - tevksel
+  int4 konst[32];    // .rgba
 };
 
 struct VertexShaderConstants

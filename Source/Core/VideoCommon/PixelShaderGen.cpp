@@ -394,8 +394,26 @@ void WritePixelShaderCommonHeader(ShaderCode& out, APIType ApiType, bool boundin
             "\tint4 " I_FOGI ";\n"
             "\tfloat4 " I_FOGF "[2];\n"
             "\tfloat4 " I_ZSLOPE ";\n"
-            "\tfloat4 " I_EFBSCALE ";\n"
-            "};\n");
+            "\tfloat2 " I_EFBSCALE ";\n"
+            "\tuint  bpmem_genmode;\n"
+            "\tuint  bpmem_alphaTest;\n"
+            "\tuint  bpmem_fogParam3;\n"
+            "\tuint  bpmem_fogRangeBase;\n"
+            "\tuint  bpmem_dstalpha;\n"
+            "\tuint  bpmem_ztex_op;\n"
+            "\tbool  bpmem_early_ztest;\n"
+            "\tbool  bpmem_rgba6_format;\n"
+            "\tbool  bpmem_dither;\n"
+            "\tbool  bpmem_bounding_box;\n"
+            "\tuint4 bpmem_pack1[16];\n"  // .xy - combiners, .z - tevind
+            "\tuint4 bpmem_pack2[8];\n"   // .x - tevorder, .y - tevksel
+            "\tint4  konstLookup[32];\n"
+            "};\n\n");
+  out.Write("#define bpmem_combiners(i) (bpmem_pack1[(i)].xy)\n"
+            "#define bpmem_tevind(i) (bpmem_pack1[(i)].z)\n"
+            "#define bpmem_iref(i) (bpmem_pack1[(i)].w)\n"
+            "#define bpmem_tevorder(i) (bpmem_pack2[(i)].x)\n"
+            "#define bpmem_tevksel(i) (bpmem_pack2[(i)].y)\n\n");
 
   if (bounding_box)
   {
@@ -449,7 +467,7 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
     if (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan)
       out.Write("UBO_BINDING(std140, 2) uniform VSBlock {\n");
     else
-      out.Write("cbuffer VSBlock : register(b2) {\n");
+      out.Write("cbuffer VSBlock : register(b1) {\n");
 
     out.Write(s_shader_uniforms);
     out.Write("};\n");
