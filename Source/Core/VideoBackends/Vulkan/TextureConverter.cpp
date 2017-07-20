@@ -408,7 +408,7 @@ bool TextureConverter::SupportsTextureDecoding(TextureFormat format, TlutFormat 
   std::string shader_source =
       TextureConversionShader::GenerateDecodingShader(format, palette_format, APIType::Vulkan);
 
-  pipeline.compute_shader = Util::CompileAndCreateComputeShader(shader_source, true);
+  pipeline.compute_shader = Util::CompileAndCreateComputeShader(shader_source);
   if (pipeline.compute_shader == VK_NULL_HANDLE)
   {
     m_decoding_pipelines.emplace(key, pipeline);

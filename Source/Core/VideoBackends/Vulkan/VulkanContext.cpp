@@ -397,7 +397,8 @@ bool VulkanContext::SelectDeviceExtensions(ExtensionList* extension_list, bool e
   for (const auto& extension_properties : available_extension_list)
     INFO_LOG(VIDEO, "Available extension: %s", extension_properties.extensionName);
 
-  auto CheckForExtension = [&](const char* name, bool required) -> bool {
+  auto CheckForExtension = [&](const char* name, bool required,
+                               bool* has_extension = nullptr) -> bool {
     if (std::find_if(available_extension_list.begin(), available_extension_list.end(),
                      [&](const VkExtensionProperties& properties) {
                        return !strcmp(name, properties.extensionName);
@@ -405,8 +406,13 @@ bool VulkanContext::SelectDeviceExtensions(ExtensionList* extension_list, bool e
     {
       INFO_LOG(VIDEO, "Enabling extension: %s", name);
       extension_list->push_back(name);
+      if (has_extension)
+        *has_extension = true;
       return true;
     }
+
+    if (has_extension)
+      *has_extension = false;
 
     if (required)
     {
@@ -420,6 +426,7 @@ bool VulkanContext::SelectDeviceExtensions(ExtensionList* extension_list, bool e
   if (enable_surface && !CheckForExtension(VK_KHR_SWAPCHAIN_EXTENSION_NAME, true))
     return false;
 
+  CheckForExtension(VK_NV_GLSL_SHADER_EXTENSION_NAME, false, &m_supports_nv_glsl_extension);
   return true;
 }
 
