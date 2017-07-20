@@ -76,14 +76,15 @@ VertexShaderUid GetVertexShaderUid()
   return out;
 }
 
-ShaderCode GenerateVertexShaderCode(APIType api_type, const vertex_shader_uid_data* uid_data)
+ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& host_config,
+                                    const vertex_shader_uid_data* uid_data)
 {
   ShaderCode out;
 
   const bool per_pixel_lighting = g_ActiveConfig.bEnablePixelLighting;
-  const bool msaa = g_ActiveConfig.IsMSAAEnabled();
-  const bool ssaa = g_ActiveConfig.IsSSAAEnabled();
-  const bool vertex_rounding = g_ActiveConfig.UseVertexRounding();
+  const bool msaa = host_config.msaa;
+  const bool ssaa = host_config.ssaa;
+  const bool vertex_rounding = host_config.vertex_rounding;
 
   out.Write("%s", s_lighting_struct);
 
@@ -128,7 +129,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const vertex_shader_uid_da
     }
 
     // We need to always use output blocks for Vulkan, but geometry shaders are also optional.
-    if (g_ActiveConfig.backend_info.bSupportsGeometryShaders || api_type == APIType::Vulkan)
+    if (host_config.backend_geometry_shaders || api_type == APIType::Vulkan)
     {
       out.Write("VARYING_LOCATION(0) out VertexData {\n");
       GenerateVSOutputMembers(out, api_type, uid_data->numTexGens, per_pixel_lighting,
@@ -415,7 +416,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const vertex_shader_uid_da
   // If we can disable the incorrect depth clipping planes using depth clamping, then we can do
   // our own depth clipping and calculate the depth range before the perspective divide if
   // necessary.
-  if (g_ActiveConfig.backend_info.bSupportsDepthClamp)
+  if (host_config.backend_depth_clamp)
   {
     // Since we're adjusting z for the depth range before the perspective divide, we have to do our
     // own clipping. We want to clip so that -w <= z <= 0, which matches the console -1..0 range.
@@ -440,7 +441,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const vertex_shader_uid_da
   out.Write("o.pos.z = o.pos.w * " I_PIXELCENTERCORRECTION ".w - "
             "o.pos.z * " I_PIXELCENTERCORRECTION ".z;\n");
 
-  if (!g_ActiveConfig.backend_info.bSupportsClipControl)
+  if (!host_config.backend_clip_control)
   {
     // If the graphics API doesn't support a depth range of 0..1, then we need to map z to
     // the -1..1 range. Unfortunately we have to use a substraction, which is a lossy floating-point
@@ -485,7 +486,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const vertex_shader_uid_da
 
   if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
   {
-    if (g_ActiveConfig.backend_info.bSupportsGeometryShaders || api_type == APIType::Vulkan)
+    if (host_config.backend_geometry_shaders || api_type == APIType::Vulkan)
     {
       AssignVSOutputMembers(out, "vs", "o", uid_data->numTexGens, per_pixel_lighting);
     }
@@ -505,7 +506,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const vertex_shader_uid_da
       out.Write("colors_1 = o.colors_1;\n");
     }
 
-    if (g_ActiveConfig.backend_info.bSupportsDepthClamp)
+    if (host_config.backend_depth_clamp)
     {
       out.Write("gl_ClipDistance[0] = o.clipDist0;\n");
       out.Write("gl_ClipDistance[1] = o.clipDist1;\n");

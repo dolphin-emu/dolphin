@@ -242,7 +242,6 @@ Renderer::Renderer() : ::Renderer(D3D::GetBackBufferWidth(), D3D::GetBackBufferH
   s_last_stereo_mode = g_ActiveConfig.iStereoMode > 0;
   s_last_xfb_mode = g_ActiveConfig.bUseRealXFB;
   s_last_fullscreen_mode = D3D::GetFullscreenState();
-  m_last_host_config_bits = g_ActiveConfig.GetHostConfigBits();
 
   g_framebuffer_manager = std::make_unique<FramebufferManager>(m_target_width, m_target_height);
   SetupDeviceObjects();
@@ -895,14 +894,11 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
                                         D3D11_CLEAR_DEPTH, 0.f, 0);
   }
 
-  u32 new_host_config_bits = g_ActiveConfig.GetHostConfigBits();
-  if (new_host_config_bits != m_last_host_config_bits)
+  if (CheckForHostConfigChanges())
   {
-    OSD::AddMessage("Video config changed, reloading shaders.", OSD::Duration::NORMAL);
     VertexShaderCache::Reload();
     GeometryShaderCache::Reload();
     PixelShaderCache::Reload();
-    m_last_host_config_bits = new_host_config_bits;
   }
 
   // begin next frame

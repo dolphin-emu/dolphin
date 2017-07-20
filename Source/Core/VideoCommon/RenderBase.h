@@ -147,6 +147,8 @@ protected:
   std::tuple<int, int> CalculateTargetScale(int x, int y) const;
   bool CalculateTargetSize();
 
+  bool CheckForHostConfigChanges();
+
   void CheckFifoRecording();
   void RecordVideoMemory();
 
@@ -181,6 +183,8 @@ protected:
   Common::Flag m_surface_needs_change;
   Common::Event m_surface_changed;
   void* m_new_surface_handle = nullptr;
+
+  u32 m_last_host_config_bits = 0;
 
 private:
   void RunFrameDumps();

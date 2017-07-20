@@ -224,14 +224,6 @@ struct VideoConfig final
     return backend_info.bSupportsGPUTextureDecoding && bEnableGPUTextureDecoding;
   }
   bool UseVertexRounding() const { return bVertexRounding && iEFBScale != SCALE_1X; }
-  bool IsStereoEnabled() const;
-  bool IsMSAAEnabled() const;
-  bool IsSSAAEnabled() const;
-  // Host config contains the settings which can influence generated shaders.
-  u32 GetHostConfigBits() const;
-  // Gets the filename of the specified type of cache object (e.g. vertex shader, pipeline).
-  std::string GetDiskCacheFileName(APIType api_type, const char* type, bool include_gameid,
-                                   bool include_host_config) const;
 };
 
 extern VideoConfig g_Config;

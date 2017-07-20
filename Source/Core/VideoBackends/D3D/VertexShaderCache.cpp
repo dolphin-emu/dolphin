@@ -165,8 +165,7 @@ void VertexShaderCache::Init()
 void VertexShaderCache::LoadShaderCache()
 {
   VertexShaderCacheInserter inserter;
-  g_vs_disk_cache.OpenAndRead(g_ActiveConfig.GetDiskCacheFileName(APIType::D3D, "VS", true, true),
-                              inserter);
+  g_vs_disk_cache.OpenAndRead(GetDiskShaderCacheFileName(APIType::D3D, "VS", true, true), inserter);
 }
 
 void VertexShaderCache::Reload()
@@ -229,7 +228,8 @@ bool VertexShaderCache::SetShader()
     return (entry.shader != nullptr);
   }
 
-  ShaderCode code = GenerateVertexShaderCode(APIType::D3D, uid.GetUidData());
+  ShaderCode code =
+      GenerateVertexShaderCode(APIType::D3D, ShaderHostConfig::GetCurrent(), uid.GetUidData());
 
   D3DBlob* pbytecode = nullptr;
   D3D::CompileVertexShader(code.GetBuffer(), &pbytecode);

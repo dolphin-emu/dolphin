@@ -345,14 +345,15 @@ static void WriteFog(ShaderCode& out, const pixel_shader_uid_data* uid_data);
 static void WriteColor(ShaderCode& out, const pixel_shader_uid_data* uid_data,
                        bool use_dual_source);
 
-ShaderCode GeneratePixelShaderCode(APIType ApiType, const pixel_shader_uid_data* uid_data)
+ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host_config,
+                                   const pixel_shader_uid_data* uid_data)
 {
   ShaderCode out;
 
   const bool per_pixel_lighting = g_ActiveConfig.bEnablePixelLighting;
-  const bool msaa = g_ActiveConfig.IsMSAAEnabled();
-  const bool ssaa = g_ActiveConfig.IsSSAAEnabled();
-  const bool stereo = g_ActiveConfig.IsStereoEnabled();
+  const bool msaa = host_config.msaa;
+  const bool ssaa = host_config.ssaa;
+  const bool stereo = host_config.stereo;
   const u32 numStages = uid_data->genMode_numtevstages + 1;
 
   out.Write("//Pixel Shader for TEV stages\n");
@@ -501,7 +502,7 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const pixel_shader_uid_data*
 
   // Only use dual-source blending when required on drivers that don't support it very well.
   const bool use_dual_source =
-      g_ActiveConfig.backend_info.bSupportsDualSourceBlend &&
+      host_config.backend_dual_source_blend &&
       (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING) ||
        uid_data->useDstAlpha);
 
@@ -529,7 +530,7 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const pixel_shader_uid_data*
       out.Write("#define depth gl_FragDepth\n");
 
     // We need to always use output blocks for Vulkan, but geometry shaders are also optional.
-    if (g_ActiveConfig.backend_info.bSupportsGeometryShaders || ApiType == APIType::Vulkan)
+    if (host_config.backend_geometry_shaders || ApiType == APIType::Vulkan)
     {
       out.Write("VARYING_LOCATION(0) in VertexData {\n");
       GenerateVSOutputMembers(out, ApiType, uid_data->genMode_numtexgens, per_pixel_lighting,
@@ -560,7 +561,7 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const pixel_shader_uid_data*
 
     out.Write("void main()\n{\n");
 
-    if (g_ActiveConfig.backend_info.bSupportsGeometryShaders || ApiType == APIType::Vulkan)
+    if (host_config.backend_geometry_shaders || ApiType == APIType::Vulkan)
     {
       for (unsigned int i = 0; i < uid_data->genMode_numtexgens; ++i)
         out.Write("\tfloat3 uv%d = tex%d;\n", i, i);
@@ -713,7 +714,7 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const pixel_shader_uid_data*
     out.Write("\tint zCoord = int(" I_ZSLOPE ".z + " I_ZSLOPE ".x * screenpos.x + " I_ZSLOPE
               ".y * screenpos.y);\n");
   }
-  else if (!g_ActiveConfig.bFastDepthCalc)
+  else if (!host_config.fast_depth_calc)
   {
     // FastDepth means to trust the depth generated in perspective division.
     // It should be correct, but it seems not to be as accurate as required. TODO: Find out why!

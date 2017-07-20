@@ -504,8 +504,7 @@ void PixelShaderCache::Init()
 void PixelShaderCache::LoadShaderCache()
 {
   PixelShaderCacheInserter inserter;
-  g_ps_disk_cache.OpenAndRead(g_ActiveConfig.GetDiskCacheFileName(APIType::D3D, "PS", true, true),
-                              inserter);
+  g_ps_disk_cache.OpenAndRead(GetDiskShaderCacheFileName(APIType::D3D, "PS", true, true), inserter);
 }
 
 void PixelShaderCache::Reload()
@@ -590,7 +589,8 @@ bool PixelShaderCache::SetShader()
   }
 
   // Need to compile a new shader
-  ShaderCode code = GeneratePixelShaderCode(APIType::D3D, uid.GetUidData());
+  ShaderCode code =
+      GeneratePixelShaderCode(APIType::D3D, ShaderHostConfig::GetCurrent(), uid.GetUidData());
 
   D3DBlob* pbytecode;
   if (!D3D::CompilePixelShader(code.GetBuffer(), &pbytecode))

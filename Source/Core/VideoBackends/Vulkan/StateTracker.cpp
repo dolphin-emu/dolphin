@@ -147,8 +147,7 @@ void StateTracker::ReloadPipelineUIDCache()
   m_uid_cache.Close();
 
   // UID caches don't contain any host state, so use a single uid cache per gameid.
-  std::string filename =
-      g_ActiveConfig.GetDiskCacheFileName(APIType::Vulkan, "PipelineUID", true, false);
+  std::string filename = GetDiskShaderCacheFileName(APIType::Vulkan, "PipelineUID", true, false);
   if (g_ActiveConfig.bShaderCache)
   {
     PipelineInserter inserter(this);

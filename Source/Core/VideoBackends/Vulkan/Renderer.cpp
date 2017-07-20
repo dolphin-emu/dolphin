@@ -1126,7 +1126,6 @@ void Renderer::CheckForSurfaceChange()
 void Renderer::CheckForConfigChanges()
 {
   // Save the video config so we can compare against to determine which settings have changed.
-  u32 old_host_bits = g_ActiveConfig.GetHostConfigBits();
   int old_anisotropy = g_ActiveConfig.iMaxAnisotropy;
   int old_aspect_ratio = g_ActiveConfig.iAspectRatio;
   int old_efb_scale = g_ActiveConfig.iEFBScale;
@@ -1140,7 +1139,6 @@ void Renderer::CheckForConfigChanges()
   UpdateActiveConfig();
 
   // Determine which (if any) settings have changed.
-  bool host_bits_changed = old_host_bits != g_ActiveConfig.GetHostConfigBits();
   bool anisotropy_changed = old_anisotropy != g_ActiveConfig.iMaxAnisotropy;
   bool force_texture_filtering_changed = old_force_filtering != g_ActiveConfig.bForceFiltering;
   bool efb_scale_changed = old_efb_scale != g_ActiveConfig.iEFBScale;
@@ -1162,9 +1160,8 @@ void Renderer::CheckForConfigChanges()
   // If the stereoscopy mode changed, we need to recreate the buffers as well.
   // SSAA changed on/off, we have to recompile shaders.
   // Changing stereoscopy from off<->on also requires shaders to be recompiled.
-  if (host_bits_changed)
+  if (CheckForHostConfigChanges())
   {
-    OSD::AddMessage("Video config changed, reloading shaders.", OSD::Duration::NORMAL);
     g_command_buffer_mgr->WaitForGPUIdle();
     FramebufferManager::GetInstance()->RecreateRenderPass();
     FramebufferManager::GetInstance()->ResizeEFBTextures();

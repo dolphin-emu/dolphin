@@ -148,8 +148,5 @@ private:
   std::array<int, 2> m_last_frame_height = {};
   bool m_last_frame_exported = false;
   AVIDump::Frame m_last_frame_state;
-
-  // last host config state
-  u32 m_last_host_config_bits = 0;
 };
 }

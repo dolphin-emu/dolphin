@@ -4,12 +4,9 @@
 
 #include <algorithm>
 
-#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
-#include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 #include "Core/Config/GraphicsSettings.h"
-#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Movie.h"
 #include "VideoCommon/OnScreenDisplay.h"
@@ -190,110 +187,4 @@ void VideoConfig::VerifyValidity()
 bool VideoConfig::IsVSync()
 {
   return bVSync && !Core::GetIsThrottlerTempDisabled();
-}
-
-bool VideoConfig::IsStereoEnabled() const
-{
-  return iStereoMode > 0;
-}
-
-bool VideoConfig::IsMSAAEnabled() const
-{
-  return iMultisamples > 1;
-}
-
-bool VideoConfig::IsSSAAEnabled() const
-{
-  return iMultisamples > 1 && bSSAA && backend_info.bSupportsSSAA;
-}
-
-union HostConfigBits
-{
-  u32 bits;
-
-  struct
-  {
-    u32 msaa : 1;
-    u32 ssaa : 1;
-    u32 stereo : 1;
-    u32 wireframe : 1;
-    u32 per_pixel_lighting : 1;
-    u32 vertex_rounding : 1;
-    u32 fast_depth_calc : 1;
-    u32 bounding_box : 1;
-    u32 backend_dual_source_blend : 1;
-    u32 backend_geometry_shaders : 1;
-    u32 backend_early_z : 1;
-    u32 backend_bbox : 1;
-    u32 backend_gs_instancing : 1;
-    u32 backend_clip_control : 1;
-    u32 backend_ssaa : 1;
-    u32 backend_atomics : 1;
-    u32 backend_depth_clamp : 1;
-    u32 backend_reversed_depth_range : 1;
-    u32 pad : 14;
-  };
-};
-
-u32 VideoConfig::GetHostConfigBits() const
-{
-  HostConfigBits bits = {};
-  bits.msaa = IsMSAAEnabled();
-  bits.ssaa = IsSSAAEnabled();
-  bits.stereo = IsStereoEnabled();
-  bits.wireframe = bWireFrame;
-  bits.per_pixel_lighting = bEnablePixelLighting;
-  bits.vertex_rounding = UseVertexRounding();
-  bits.fast_depth_calc = bFastDepthCalc;
-  bits.bounding_box = bBBoxEnable;
-  bits.backend_dual_source_blend = backend_info.bSupportsDualSourceBlend;
-  bits.backend_geometry_shaders = backend_info.bSupportsGeometryShaders;
-  bits.backend_early_z = backend_info.bSupportsEarlyZ;
-  bits.backend_bbox = backend_info.bSupportsBBox;
-  bits.backend_gs_instancing = backend_info.bSupportsGSInstancing;
-  bits.backend_clip_control = backend_info.bSupportsClipControl;
-  bits.backend_ssaa = backend_info.bSupportsSSAA;
-  bits.backend_atomics = backend_info.bSupportsFragmentStoresAndAtomics;
-  bits.backend_depth_clamp = backend_info.bSupportsDepthClamp;
-  bits.backend_reversed_depth_range = backend_info.bSupportsReversedDepthRange;
-  return bits.bits;
-}
-
-std::string VideoConfig::GetDiskCacheFileName(APIType api_type, const char* type,
-                                              bool include_gameid, bool include_host_config) const
-{
-  if (!File::Exists(File::GetUserPath(D_SHADERCACHE_IDX)))
-    File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX));
-
-  std::string filename = File::GetUserPath(D_SHADERCACHE_IDX);
-  switch (api_type)
-  {
-  case APIType::D3D:
-    filename += "D3D";
-    break;
-  case APIType::OpenGL:
-    filename += "OpenGL";
-    break;
-  case APIType::Vulkan:
-    filename += "Vulkan";
-    break;
-  }
-
-  filename += '-';
-  filename += type;
-
-  if (include_gameid)
-  {
-    filename += '-';
-    filename += SConfig::GetInstance().GetGameID();
-  }
-
-  if (include_host_config)
-  {
-    // We're using 18 bits, so 5 hex characters.
-    filename += StringFromFormat("-%05X", GetHostConfigBits());
-  }
-
-  filename += ".cache";
-  return filename;
 }

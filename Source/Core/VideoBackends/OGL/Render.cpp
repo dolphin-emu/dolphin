@@ -43,6 +43,7 @@
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/RenderState.h"
+#include "VideoCommon/ShaderGenCommon.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
@@ -664,6 +665,9 @@ Renderer::Renderer()
   g_Config.VerifyValidity();
   UpdateActiveConfig();
 
+  // Since we modify the config here, we need to update the last host bits, it may have changed.
+  m_last_host_config_bits = ShaderHostConfig::GetCurrent().bits;
+
   OSD::AddMessage(StringFromFormat("Video Info: %s, %s, %s", g_ogl_config.gl_vendor,
                                    g_ogl_config.gl_renderer, g_ogl_config.gl_version),
                   5000);
@@ -688,7 +692,6 @@ Renderer::Renderer()
 
   s_last_stereo_mode = g_ActiveConfig.iStereoMode > 0;
   s_last_xfb_mode = g_ActiveConfig.bUseRealXFB;
-  m_last_host_config_bits = g_ActiveConfig.GetHostConfigBits();
 
   // Handle VSync on/off
   s_vsync = g_ActiveConfig.IsVSync();
@@ -1471,13 +1474,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
   g_texture_cache->OnConfigChanged(g_ActiveConfig);
 
   // Invalidate shader cache when the host config changes.
-  u32 new_host_config_bits = g_ActiveConfig.GetHostConfigBits();
-  if (new_host_config_bits != m_last_host_config_bits)
-  {
-    OSD::AddMessage("Video config changed, reloading shaders.", OSD::Duration::NORMAL);
+  if (CheckForHostConfigChanges())
     ProgramShaderCache::Reload();
-    m_last_host_config_bits = new_host_config_bits;
-  }
 
   // For testing zbuffer targets.
   // Renderer::SetZBufferRender();

@@ -64,7 +64,5 @@ public:
 private:
   void BlitScreen(TargetRectangle src, TargetRectangle dst, D3DTexture2D* src_texture,
                   u32 src_width, u32 src_height, float Gamma);
-
-  u32 m_last_host_config_bits = 0;
 };
 }

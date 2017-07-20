@@ -217,12 +217,13 @@ SHADER* ProgramShaderCache::SetShader(u32 primitive_type)
   last_entry = &newentry;
   newentry.in_cache = 0;
 
-  ShaderCode vcode = GenerateVertexShaderCode(APIType::OpenGL, uid.vuid.GetUidData());
-  ShaderCode pcode = GeneratePixelShaderCode(APIType::OpenGL, uid.puid.GetUidData());
+  ShaderHostConfig host_config = ShaderHostConfig::GetCurrent();
+  ShaderCode vcode = GenerateVertexShaderCode(APIType::OpenGL, host_config, uid.vuid.GetUidData());
+  ShaderCode pcode = GeneratePixelShaderCode(APIType::OpenGL, host_config, uid.puid.GetUidData());
   ShaderCode gcode;
   if (g_ActiveConfig.backend_info.bSupportsGeometryShaders &&
       !uid.guid.GetUidData()->IsPassthrough())
-    gcode = GenerateGeometryShaderCode(APIType::OpenGL, uid.guid.GetUidData());
+    gcode = GenerateGeometryShaderCode(APIType::OpenGL, host_config, uid.guid.GetUidData());
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
   if (g_ActiveConfig.iLog & CONF_SAVESHADERS)
@@ -553,7 +554,7 @@ void ProgramShaderCache::LoadProgramBinaries()
   else
   {
     std::string cache_filename =
-        g_ActiveConfig.GetDiskCacheFileName(APIType::OpenGL, "ProgramBinaries", true, true);
+        GetDiskShaderCacheFileName(APIType::OpenGL, "ProgramBinaries", true, true);
     ProgramShaderCacheInserter inserter;
     g_program_disk_cache.OpenAndRead(cache_filename, inserter);
   }

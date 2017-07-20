@@ -164,8 +164,7 @@ void GeometryShaderCache::Init()
 void GeometryShaderCache::LoadShaderCache()
 {
   GeometryShaderCacheInserter inserter;
-  g_gs_disk_cache.OpenAndRead(g_ActiveConfig.GetDiskCacheFileName(APIType::D3D, "GS", true, true),
-                              inserter);
+  g_gs_disk_cache.OpenAndRead(GetDiskShaderCacheFileName(APIType::D3D, "GS", true, true), inserter);
 }
 
 void GeometryShaderCache::Reload()
@@ -237,7 +236,8 @@ bool GeometryShaderCache::SetShader(u32 primitive_type)
   }
 
   // Need to compile a new shader
-  ShaderCode code = GenerateGeometryShaderCode(APIType::D3D, uid.GetUidData());
+  ShaderCode code =
+      GenerateGeometryShaderCode(APIType::D3D, ShaderHostConfig::GetCurrent(), uid.GetUidData());
 
   D3DBlob* pbytecode;
   if (!D3D::CompileGeometryShader(code.GetBuffer(), &pbytecode))

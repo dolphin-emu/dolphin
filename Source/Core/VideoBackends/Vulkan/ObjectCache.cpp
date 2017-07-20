@@ -472,8 +472,7 @@ bool ObjectCache::CreatePipelineCache()
   // Vulkan pipeline caches can be shared between games for shader compile time reduction.
   // This assumes that drivers don't create all pipelines in the cache on load time, only
   // when a lookup occurs that matches a pipeline (or pipeline data) in the cache.
-  m_pipeline_cache_filename =
-      g_ActiveConfig.GetDiskCacheFileName(APIType::Vulkan, "Pipeline", false, true);
+  m_pipeline_cache_filename = GetDiskShaderCacheFileName(APIType::Vulkan, "Pipeline", false, true);
 
   VkPipelineCacheCreateInfo info = {
       VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO,  // VkStructureType            sType
@@ -496,8 +495,7 @@ bool ObjectCache::LoadPipelineCache()
 {
   // We have to keep the pipeline cache file name around since when we save it
   // we delete the old one, by which time the game's unique ID is already cleared.
-  m_pipeline_cache_filename =
-      g_ActiveConfig.GetDiskCacheFileName(APIType::Vulkan, "Pipeline", false, true);
+  m_pipeline_cache_filename = GetDiskShaderCacheFileName(APIType::Vulkan, "Pipeline", false, true);
 
   std::vector<u8> disk_data;
   LinearDiskCache<u32, u8> disk_cache;
@@ -663,18 +661,18 @@ struct ShaderCacheReader : public LinearDiskCacheReader<Uid, u32>
 void ObjectCache::LoadShaderCaches()
 {
   ShaderCacheReader<VertexShaderUid> vs_reader(m_vs_cache.shader_map);
-  m_vs_cache.disk_cache.OpenAndRead(
-      g_ActiveConfig.GetDiskCacheFileName(APIType::Vulkan, "VS", true, true), vs_reader);
+  m_vs_cache.disk_cache.OpenAndRead(GetDiskShaderCacheFileName(APIType::Vulkan, "VS", true, true),
+                                    vs_reader);
 
   ShaderCacheReader<PixelShaderUid> ps_reader(m_ps_cache.shader_map);
-  m_ps_cache.disk_cache.OpenAndRead(
-      g_ActiveConfig.GetDiskCacheFileName(APIType::Vulkan, "PS", true, true), ps_reader);
+  m_ps_cache.disk_cache.OpenAndRead(GetDiskShaderCacheFileName(APIType::Vulkan, "PS", true, true),
+                                    ps_reader);
 
   if (g_vulkan_context->SupportsGeometryShaders())
   {
     ShaderCacheReader<GeometryShaderUid> gs_reader(m_gs_cache.shader_map);
-    m_gs_cache.disk_cache.OpenAndRead(
-        g_ActiveConfig.GetDiskCacheFileName(APIType::Vulkan, "GS", true, true), gs_reader);
+    m_gs_cache.disk_cache.OpenAndRead(GetDiskShaderCacheFileName(APIType::Vulkan, "GS", true, true),
+                                      gs_reader);
   }
 
   SETSTAT(stats.numPixelShadersCreated, static_cast<int>(m_ps_cache.shader_map.size()));
@@ -719,7 +717,8 @@ VkShaderModule ObjectCache::GetVertexShaderForUid(const VertexShaderUid& uid)
   // Not in the cache, so compile the shader.
   ShaderCompiler::SPIRVCodeVector spv;
   VkShaderModule module = VK_NULL_HANDLE;
-  ShaderCode source_code = GenerateVertexShaderCode(APIType::Vulkan, uid.GetUidData());
+  ShaderCode source_code =
+      GenerateVertexShaderCode(APIType::Vulkan, ShaderHostConfig::GetCurrent(), uid.GetUidData());
   if (ShaderCompiler::CompileVertexShader(&spv, source_code.GetBuffer().c_str(),
                                           source_code.GetBuffer().length()))
   {
@@ -749,7 +748,8 @@ VkShaderModule ObjectCache::GetGeometryShaderForUid(const GeometryShaderUid& uid
   // Not in the cache, so compile the shader.
   ShaderCompiler::SPIRVCodeVector spv;
   VkShaderModule module = VK_NULL_HANDLE;
-  ShaderCode source_code = GenerateGeometryShaderCode(APIType::Vulkan, uid.GetUidData());
+  ShaderCode source_code =
+      GenerateGeometryShaderCode(APIType::Vulkan, ShaderHostConfig::GetCurrent(), uid.GetUidData());
   if (ShaderCompiler::CompileGeometryShader(&spv, source_code.GetBuffer().c_str(),
                                             source_code.GetBuffer().length()))
   {
@@ -774,7 +774,8 @@ VkShaderModule ObjectCache::GetPixelShaderForUid(const PixelShaderUid& uid)
   // Not in the cache, so compile the shader.
   ShaderCompiler::SPIRVCodeVector spv;
   VkShaderModule module = VK_NULL_HANDLE;
-  ShaderCode source_code = GeneratePixelShaderCode(APIType::Vulkan, uid.GetUidData());
+  ShaderCode source_code =
+      GeneratePixelShaderCode(APIType::Vulkan, ShaderHostConfig::GetCurrent(), uid.GetUidData());
   if (ShaderCompiler::CompileFragmentShader(&spv, source_code.GetBuffer().c_str(),
                                             source_code.GetBuffer().length()))
   {

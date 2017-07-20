@@ -25,5 +25,6 @@ struct geometry_shader_uid_data
 
 typedef ShaderUid<geometry_shader_uid_data> GeometryShaderUid;
 
-ShaderCode GenerateGeometryShaderCode(APIType ApiType, const geometry_shader_uid_data* uid_data);
+ShaderCode GenerateGeometryShaderCode(APIType ApiType, const ShaderHostConfig& host_config,
+                                      const geometry_shader_uid_data* uid_data);
 GeometryShaderUid GetGeometryShaderUid(u32 primitive_type);
