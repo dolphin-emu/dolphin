@@ -159,4 +159,6 @@ typedef ShaderUid<pixel_shader_uid_data> PixelShaderUid;
 
 ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host_config,
                                    const pixel_shader_uid_data* uid_data);
+void WritePixelShaderCommonHeader(ShaderCode& out, APIType ApiType, bool bounding_box);
+ShaderCode GeneratePixelShaderCode(APIType ApiType, const pixel_shader_uid_data* uid_data);
 PixelShaderUid GetPixelShaderUid();
