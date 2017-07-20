@@ -44,13 +44,6 @@ static VertexLoaderMap s_vertex_loader_map;
 
 u8* cached_arraybases[12];
 
-// Used in the Vulkan backend
-
-NativeVertexFormatMap* GetNativeVertexFormatMap()
-{
-  return &s_native_vertex_map;
-}
-
 void Init()
 {
   MarkAllDirty();

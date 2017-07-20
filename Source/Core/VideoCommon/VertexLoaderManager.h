@@ -24,8 +24,6 @@ void Clear();
 
 void MarkAllDirty();
 
-NativeVertexFormatMap* GetNativeVertexFormatMap();
-
 // Creates or obtains a pointer to a VertexFormat representing decl.
 // If this results in a VertexFormat being created, if the game later uses a matching vertex
 // declaration, the one that was previously created will be used.

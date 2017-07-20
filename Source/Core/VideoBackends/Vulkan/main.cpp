@@ -253,6 +253,7 @@ bool VideoBackend::Initialize(void* window_handle)
     g_renderer.reset();
     StateTracker::DestroyInstance();
     g_framebuffer_manager.reset();
+    g_shader_cache->Shutdown();
     g_shader_cache.reset();
     g_object_cache.reset();
     g_command_buffer_mgr.reset();
@@ -261,6 +262,11 @@ bool VideoBackend::Initialize(void* window_handle)
     UnloadVulkanLibrary();
     return false;
   }
+
+  // Lastly, precompile ubershaders, if requested.
+  // This has to be done after the texture cache and shader cache are initialized.
+  if (g_ActiveConfig.CanPrecompileUberShaders())
+    g_shader_cache->PrecompileUberShaders();
 
   return true;
 }
@@ -293,6 +299,7 @@ void VideoBackend::Shutdown()
 void VideoBackend::Video_Cleanup()
 {
   g_command_buffer_mgr->WaitForGPUIdle();
+  g_shader_cache->Shutdown();
 
   // Save all cached pipelines out to disk for next time.
   if (g_ActiveConfig.bShaderCache)

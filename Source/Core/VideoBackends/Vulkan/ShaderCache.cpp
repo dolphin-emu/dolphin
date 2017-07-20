@@ -15,13 +15,20 @@
 #include "Common/MsgHandler.h"
 
 #include "Core/ConfigManager.h"
+#include "Core/Host.h"
 
+#include "VideoBackends/Vulkan/FramebufferManager.h"
 #include "VideoBackends/Vulkan/ShaderCompiler.h"
 #include "VideoBackends/Vulkan/StreamBuffer.h"
 #include "VideoBackends/Vulkan/Util.h"
 #include "VideoBackends/Vulkan/VertexFormat.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
+#include "VideoCommon/AsyncShaderCompiler.h"
+#include "VideoCommon/GeometryShaderGen.h"
 #include "VideoCommon/Statistics.h"
+#include "VideoCommon/UberShaderPixel.h"
+#include "VideoCommon/UberShaderVertex.h"
+#include "VideoCommon/VertexLoaderManager.h"
 
 namespace Vulkan
 {
@@ -55,7 +62,20 @@ bool ShaderCache::Initialize()
   if (!CompileSharedShaders())
     return false;
 
+  m_async_shader_compiler = std::make_unique<VideoCommon::AsyncShaderCompiler>();
+  if (g_ActiveConfig.GetShaderCompilerThreads() > 0)
+    m_async_shader_compiler->StartWorkerThreads(g_ActiveConfig.GetShaderCompilerThreads());
+
   return true;
+}
+
+void ShaderCache::Shutdown()
+{
+  if (m_async_shader_compiler)
+  {
+    m_async_shader_compiler->StopWorkerThreads();
+    m_async_shader_compiler->RetrieveWorkItems();
+  }
 }
 
 static bool IsStripPrimitiveTopology(VkPrimitiveTopology topology)
@@ -365,11 +385,32 @@ std::pair<VkPipeline, bool> ShaderCache::GetPipelineWithCacheResult(const Pipeli
 {
   auto iter = m_pipeline_objects.find(info);
   if (iter != m_pipeline_objects.end())
-    return {iter->second, true};
+  {
+    // If it's background compiling, ignore it, and recompile it synchronously.
+    if (!iter->second.second)
+      return std::make_pair(iter->second.first, true);
+    else
+      m_pipeline_objects.erase(iter);
+  }
 
   VkPipeline pipeline = CreatePipeline(info);
-  m_pipeline_objects.emplace(info, pipeline);
+  m_pipeline_objects.emplace(info, std::make_pair(pipeline, false));
+  _assert_(pipeline != VK_NULL_HANDLE);
   return {pipeline, false};
+}
+
+std::pair<std::pair<VkPipeline, bool>, bool>
+ShaderCache::GetPipelineWithCacheResultAsync(const PipelineInfo& info)
+{
+  auto iter = m_pipeline_objects.find(info);
+  if (iter != m_pipeline_objects.end())
+    return std::make_pair(iter->second, true);
+
+  // Kick a job off.
+  m_async_shader_compiler->QueueWorkItem(
+      m_async_shader_compiler->CreateWorkItem<PipelineCompilerWorkItem>(info));
+  m_pipeline_objects.emplace(info, std::make_pair(static_cast<VkPipeline>(VK_NULL_HANDLE), true));
+  return std::make_pair(std::make_pair(static_cast<VkPipeline>(VK_NULL_HANDLE), true), false);
 }
 
 VkPipeline ShaderCache::CreateComputePipeline(const ComputePipelineInfo& info)
@@ -409,10 +450,11 @@ VkPipeline ShaderCache::GetComputePipeline(const ComputePipelineInfo& info)
 
 void ShaderCache::ClearPipelineCache()
 {
+  // TODO: Stop any async compiling happening.
   for (const auto& it : m_pipeline_objects)
   {
-    if (it.second != VK_NULL_HANDLE)
-      vkDestroyPipeline(g_vulkan_context->GetDevice(), it.second, nullptr);
+    if (it.second.first != VK_NULL_HANDLE)
+      vkDestroyPipeline(g_vulkan_context->GetDevice(), it.second.first, nullptr);
   }
   m_pipeline_objects.clear();
 
@@ -620,7 +662,10 @@ void ShaderCache::SavePipelineCache()
 template <typename Uid>
 struct ShaderCacheReader : public LinearDiskCacheReader<Uid, u32>
 {
-  ShaderCacheReader(std::map<Uid, VkShaderModule>& shader_map) : m_shader_map(shader_map) {}
+  ShaderCacheReader(std::map<Uid, std::pair<VkShaderModule, bool>>& shader_map)
+      : m_shader_map(shader_map)
+  {
+  }
   void Read(const Uid& key, const u32* value, u32 value_size) override
   {
     // We don't insert null modules into the shader map since creation could succeed later on.
@@ -630,10 +675,10 @@ struct ShaderCacheReader : public LinearDiskCacheReader<Uid, u32>
     if (module == VK_NULL_HANDLE)
       return;
 
-    m_shader_map.emplace(key, module);
+    m_shader_map.emplace(key, std::make_pair(module, false));
   }
 
-  std::map<Uid, VkShaderModule>& m_shader_map;
+  std::map<Uid, std::pair<VkShaderModule, bool>>& m_shader_map;
 };
 
 void ShaderCache::LoadShaderCaches()
@@ -653,6 +698,13 @@ void ShaderCache::LoadShaderCaches()
                                       gs_reader);
   }
 
+  ShaderCacheReader<UberShader::VertexShaderUid> uber_vs_reader(m_uber_vs_cache.shader_map);
+  m_uber_vs_cache.disk_cache.OpenAndRead(
+      GetDiskShaderCacheFileName(APIType::Vulkan, "UberVS", false, true), uber_vs_reader);
+  ShaderCacheReader<UberShader::PixelShaderUid> uber_ps_reader(m_uber_ps_cache.shader_map);
+  m_uber_ps_cache.disk_cache.OpenAndRead(
+      GetDiskShaderCacheFileName(APIType::Vulkan, "UberPS", false, true), uber_ps_reader);
+
   SETSTAT(stats.numPixelShadersCreated, static_cast<int>(m_ps_cache.shader_map.size()));
   SETSTAT(stats.numPixelShadersAlive, static_cast<int>(m_ps_cache.shader_map.size()));
   SETSTAT(stats.numVertexShadersCreated, static_cast<int>(m_vs_cache.shader_map.size()));
@@ -666,8 +718,8 @@ static void DestroyShaderCache(T& cache)
   cache.disk_cache.Close();
   for (const auto& it : cache.shader_map)
   {
-    if (it.second != VK_NULL_HANDLE)
-      vkDestroyShaderModule(g_vulkan_context->GetDevice(), it.second, nullptr);
+    if (it.second.first != VK_NULL_HANDLE)
+      vkDestroyShaderModule(g_vulkan_context->GetDevice(), it.second.first, nullptr);
   }
   cache.shader_map.clear();
 }
@@ -680,6 +732,9 @@ void ShaderCache::DestroyShaderCaches()
   if (g_vulkan_context->SupportsGeometryShaders())
     DestroyShaderCache(m_gs_cache);
 
+  DestroyShaderCache(m_uber_vs_cache);
+  DestroyShaderCache(m_uber_ps_cache);
+
   SETSTAT(stats.numPixelShadersCreated, 0);
   SETSTAT(stats.numPixelShadersAlive, 0);
   SETSTAT(stats.numVertexShadersCreated, 0);
@@ -690,7 +745,13 @@ VkShaderModule ShaderCache::GetVertexShaderForUid(const VertexShaderUid& uid)
 {
   auto it = m_vs_cache.shader_map.find(uid);
   if (it != m_vs_cache.shader_map.end())
-    return it->second;
+  {
+    // If it's pending, compile it synchronously.
+    if (!it->second.second)
+      return it->second.first;
+    else
+      m_vs_cache.shader_map.erase(it);
+  }
 
   // Not in the cache, so compile the shader.
   ShaderCompiler::SPIRVCodeVector spv;
@@ -712,7 +773,7 @@ VkShaderModule ShaderCache::GetVertexShaderForUid(const VertexShaderUid& uid)
   }
 
   // We still insert null entries to prevent further compilation attempts.
-  m_vs_cache.shader_map.emplace(uid, module);
+  m_vs_cache.shader_map.emplace(uid, std::make_pair(module, false));
   return module;
 }
 
@@ -721,7 +782,13 @@ VkShaderModule ShaderCache::GetGeometryShaderForUid(const GeometryShaderUid& uid
   _assert_(g_vulkan_context->SupportsGeometryShaders());
   auto it = m_gs_cache.shader_map.find(uid);
   if (it != m_gs_cache.shader_map.end())
-    return it->second;
+  {
+    // If it's pending, compile it synchronously.
+    if (!it->second.second)
+      return it->second.first;
+    else
+      m_gs_cache.shader_map.erase(it);
+  }
 
   // Not in the cache, so compile the shader.
   ShaderCompiler::SPIRVCodeVector spv;
@@ -739,7 +806,7 @@ VkShaderModule ShaderCache::GetGeometryShaderForUid(const GeometryShaderUid& uid
   }
 
   // We still insert null entries to prevent further compilation attempts.
-  m_gs_cache.shader_map.emplace(uid, module);
+  m_gs_cache.shader_map.emplace(uid, std::make_pair(module, false));
   return module;
 }
 
@@ -747,7 +814,13 @@ VkShaderModule ShaderCache::GetPixelShaderForUid(const PixelShaderUid& uid)
 {
   auto it = m_ps_cache.shader_map.find(uid);
   if (it != m_ps_cache.shader_map.end())
-    return it->second;
+  {
+    // If it's pending, compile it synchronously.
+    if (!it->second.second)
+      return it->second.first;
+    else
+      m_ps_cache.shader_map.erase(it);
+  }
 
   // Not in the cache, so compile the shader.
   ShaderCompiler::SPIRVCodeVector spv;
@@ -769,7 +842,79 @@ VkShaderModule ShaderCache::GetPixelShaderForUid(const PixelShaderUid& uid)
   }
 
   // We still insert null entries to prevent further compilation attempts.
-  m_ps_cache.shader_map.emplace(uid, module);
+  m_ps_cache.shader_map.emplace(uid, std::make_pair(module, false));
+  return module;
+}
+
+VkShaderModule ShaderCache::GetVertexUberShaderForUid(const UberShader::VertexShaderUid& uid)
+{
+  auto it = m_uber_vs_cache.shader_map.find(uid);
+  if (it != m_uber_vs_cache.shader_map.end())
+  {
+    // If it's pending, compile it synchronously.
+    if (!it->second.second)
+      return it->second.first;
+    else
+      m_uber_vs_cache.shader_map.erase(it);
+  }
+
+  // Not in the cache, so compile the shader.
+  ShaderCompiler::SPIRVCodeVector spv;
+  VkShaderModule module = VK_NULL_HANDLE;
+  ShaderCode source_code = UberShader::GenVertexShader(
+      APIType::Vulkan, ShaderHostConfig::GetCurrent(), uid.GetUidData());
+  if (ShaderCompiler::CompileVertexShader(&spv, source_code.GetBuffer().c_str(),
+                                          source_code.GetBuffer().length()))
+  {
+    module = Util::CreateShaderModule(spv.data(), spv.size());
+
+    // Append to shader cache if it created successfully.
+    if (module != VK_NULL_HANDLE)
+    {
+      m_uber_vs_cache.disk_cache.Append(uid, spv.data(), static_cast<u32>(spv.size()));
+      INCSTAT(stats.numVertexShadersCreated);
+      INCSTAT(stats.numVertexShadersAlive);
+    }
+  }
+
+  // We still insert null entries to prevent further compilation attempts.
+  m_uber_vs_cache.shader_map.emplace(uid, std::make_pair(module, false));
+  return module;
+}
+
+VkShaderModule ShaderCache::GetPixelUberShaderForUid(const UberShader::PixelShaderUid& uid)
+{
+  auto it = m_uber_ps_cache.shader_map.find(uid);
+  if (it != m_uber_ps_cache.shader_map.end())
+  {
+    // If it's pending, compile it synchronously.
+    if (!it->second.second)
+      return it->second.first;
+    else
+      m_uber_ps_cache.shader_map.erase(it);
+  }
+
+  // Not in the cache, so compile the shader.
+  ShaderCompiler::SPIRVCodeVector spv;
+  VkShaderModule module = VK_NULL_HANDLE;
+  ShaderCode source_code =
+      UberShader::GenPixelShader(APIType::Vulkan, ShaderHostConfig::GetCurrent(), uid.GetUidData());
+  if (ShaderCompiler::CompileFragmentShader(&spv, source_code.GetBuffer().c_str(),
+                                            source_code.GetBuffer().length()))
+  {
+    module = Util::CreateShaderModule(spv.data(), spv.size());
+
+    // Append to shader cache if it created successfully.
+    if (module != VK_NULL_HANDLE)
+    {
+      m_uber_ps_cache.disk_cache.Append(uid, spv.data(), static_cast<u32>(spv.size()));
+      INCSTAT(stats.numPixelShadersCreated);
+      INCSTAT(stats.numPixelShadersAlive);
+    }
+  }
+
+  // We still insert null entries to prevent further compilation attempts.
+  m_uber_ps_cache.shader_map.emplace(uid, std::make_pair(module, false));
   return module;
 }
 
@@ -782,6 +927,9 @@ void ShaderCache::RecompileSharedShaders()
 
 void ShaderCache::ReloadShaderAndPipelineCaches()
 {
+  m_async_shader_compiler->WaitUntilCompletion();
+  m_async_shader_compiler->RetrieveWorkItems();
+
   SavePipelineCache();
   DestroyShaderCaches();
   DestroyPipelineCache();
@@ -795,6 +943,9 @@ void ShaderCache::ReloadShaderAndPipelineCaches()
   {
     CreatePipelineCache();
   }
+
+  if (g_ActiveConfig.CanPrecompileUberShaders())
+    PrecompileUberShaders();
 }
 
 std::string ShaderCache::GetUtilityShaderHeader() const
@@ -1025,5 +1176,212 @@ void ShaderCache::DestroySharedShaders()
   DestroyShader(m_passthrough_vertex_shader);
   DestroyShader(m_screen_quad_geometry_shader);
   DestroyShader(m_passthrough_geometry_shader);
+}
+
+void ShaderCache::CreateDummyPipeline(const UberShader::VertexShaderUid& vuid,
+                                      const GeometryShaderUid& guid,
+                                      const UberShader::PixelShaderUid& puid)
+{
+  PortableVertexDeclaration vertex_decl;
+  std::memset(&vertex_decl, 0, sizeof(vertex_decl));
+
+  PipelineInfo pinfo;
+  pinfo.vertex_format =
+      static_cast<const VertexFormat*>(VertexLoaderManager::GetUberVertexFormat(vertex_decl));
+  pinfo.pipeline_layout = g_object_cache->GetPipelineLayout(
+      g_ActiveConfig.bBBoxEnable && g_ActiveConfig.BBoxUseFragmentShaderImplementation() ?
+          PIPELINE_LAYOUT_BBOX :
+          PIPELINE_LAYOUT_STANDARD);
+  pinfo.vs = GetVertexUberShaderForUid(vuid);
+  pinfo.gs = (!guid.GetUidData()->IsPassthrough() && g_vulkan_context->SupportsGeometryShaders()) ?
+                 GetGeometryShaderForUid(guid) :
+                 VK_NULL_HANDLE;
+  pinfo.ps = GetPixelUberShaderForUid(puid);
+  pinfo.render_pass = FramebufferManager::GetInstance()->GetEFBLoadRenderPass();
+  pinfo.rasterization_state.bits = Util::GetNoCullRasterizationState().bits;
+  pinfo.depth_stencil_state.bits = Util::GetNoDepthTestingDepthStencilState().bits;
+  pinfo.blend_state.hex = Util::GetNoBlendingBlendState().hex;
+  switch (guid.GetUidData()->primitive_type)
+  {
+  case PRIMITIVE_POINTS:
+    pinfo.primitive_topology = VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
+    break;
+  case PRIMITIVE_LINES:
+    pinfo.primitive_topology = VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
+    break;
+  case PRIMITIVE_TRIANGLES:
+    pinfo.primitive_topology = g_ActiveConfig.backend_info.bSupportsPrimitiveRestart ?
+                                   VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP :
+                                   VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+    break;
+  }
+  GetPipelineWithCacheResultAsync(pinfo);
+}
+
+void ShaderCache::PrecompileUberShaders()
+{
+  UberShader::EnumerateVertexShaderUids([&](const UberShader::VertexShaderUid& vuid) {
+    UberShader::EnumeratePixelShaderUids([&](const UberShader::PixelShaderUid& puid) {
+      // UIDs must have compatible texgens, a mismatching combination will never be queried.
+      if (vuid.GetUidData()->num_texgens != puid.GetUidData()->num_texgens)
+        return;
+
+      EnumerateGeometryShaderUids([&](const GeometryShaderUid& guid) {
+        if (guid.GetUidData()->numTexGens != vuid.GetUidData()->num_texgens)
+          return;
+
+        CreateDummyPipeline(vuid, guid, puid);
+      });
+    });
+  });
+
+  WaitForBackgroundCompilesToComplete();
+}
+
+void ShaderCache::WaitForBackgroundCompilesToComplete()
+{
+  m_async_shader_compiler->WaitUntilCompletion([](size_t completed, size_t total) {
+    Host_UpdateProgressDialog(GetStringT("Compiling shaders...").c_str(),
+                              static_cast<int>(completed), static_cast<int>(total));
+  });
+  m_async_shader_compiler->RetrieveWorkItems();
+  Host_UpdateProgressDialog("", -1, -1);
+}
+
+void ShaderCache::RetrieveAsyncShaders()
+{
+  m_async_shader_compiler->RetrieveWorkItems();
+}
+
+std::pair<VkShaderModule, bool> ShaderCache::GetVertexShaderForUidAsync(const VertexShaderUid& uid)
+{
+  auto it = m_vs_cache.shader_map.find(uid);
+  if (it != m_vs_cache.shader_map.end())
+    return it->second;
+
+  // Kick a compile job off.
+  m_async_shader_compiler->QueueWorkItem(
+      m_async_shader_compiler->CreateWorkItem<VertexShaderCompilerWorkItem>(uid));
+  m_vs_cache.shader_map.emplace(uid,
+                                std::make_pair(static_cast<VkShaderModule>(VK_NULL_HANDLE), true));
+  return std::make_pair<VkShaderModule, bool>(VK_NULL_HANDLE, true);
+}
+
+std::pair<VkShaderModule, bool> ShaderCache::GetPixelShaderForUidAsync(const PixelShaderUid& uid)
+{
+  auto it = m_ps_cache.shader_map.find(uid);
+  if (it != m_ps_cache.shader_map.end())
+    return it->second;
+
+  // Kick a compile job off.
+  m_async_shader_compiler->QueueWorkItem(
+      m_async_shader_compiler->CreateWorkItem<PixelShaderCompilerWorkItem>(uid));
+  m_ps_cache.shader_map.emplace(uid,
+                                std::make_pair(static_cast<VkShaderModule>(VK_NULL_HANDLE), true));
+  return std::make_pair<VkShaderModule, bool>(VK_NULL_HANDLE, true);
+}
+
+bool ShaderCache::VertexShaderCompilerWorkItem::Compile()
+{
+  ShaderCode code =
+      GenerateVertexShaderCode(APIType::Vulkan, ShaderHostConfig::GetCurrent(), m_uid.GetUidData());
+  if (!ShaderCompiler::CompileVertexShader(&m_spirv, code.GetBuffer().c_str(),
+                                           code.GetBuffer().length()))
+    return true;
+
+  m_module = Util::CreateShaderModule(m_spirv.data(), m_spirv.size());
+  return true;
+}
+
+void ShaderCache::VertexShaderCompilerWorkItem::Retrieve()
+{
+  auto it = g_shader_cache->m_vs_cache.shader_map.find(m_uid);
+  if (it == g_shader_cache->m_vs_cache.shader_map.end())
+  {
+    g_shader_cache->m_vs_cache.shader_map.emplace(m_uid, std::make_pair(m_module, false));
+    g_shader_cache->m_vs_cache.disk_cache.Append(m_uid, m_spirv.data(),
+                                                 static_cast<u32>(m_spirv.size()));
+    return;
+  }
+
+  // The main thread may have also compiled this shader.
+  if (!it->second.second)
+  {
+    if (m_module != VK_NULL_HANDLE)
+      vkDestroyShaderModule(g_vulkan_context->GetDevice(), m_module, nullptr);
+    return;
+  }
+
+  // No longer pending.
+  it->second.first = m_module;
+  it->second.second = false;
+  g_shader_cache->m_vs_cache.disk_cache.Append(m_uid, m_spirv.data(),
+                                               static_cast<u32>(m_spirv.size()));
+}
+
+bool ShaderCache::PixelShaderCompilerWorkItem::Compile()
+{
+  ShaderCode code =
+      GeneratePixelShaderCode(APIType::Vulkan, ShaderHostConfig::GetCurrent(), m_uid.GetUidData());
+  if (!ShaderCompiler::CompileFragmentShader(&m_spirv, code.GetBuffer().c_str(),
+                                             code.GetBuffer().length()))
+    return true;
+
+  m_module = Util::CreateShaderModule(m_spirv.data(), m_spirv.size());
+  return true;
+}
+
+void ShaderCache::PixelShaderCompilerWorkItem::Retrieve()
+{
+  auto it = g_shader_cache->m_ps_cache.shader_map.find(m_uid);
+  if (it == g_shader_cache->m_ps_cache.shader_map.end())
+  {
+    g_shader_cache->m_ps_cache.shader_map.emplace(m_uid, std::make_pair(m_module, false));
+    g_shader_cache->m_ps_cache.disk_cache.Append(m_uid, m_spirv.data(),
+                                                 static_cast<u32>(m_spirv.size()));
+    return;
+  }
+
+  // The main thread may have also compiled this shader.
+  if (!it->second.second)
+  {
+    if (m_module != VK_NULL_HANDLE)
+      vkDestroyShaderModule(g_vulkan_context->GetDevice(), m_module, nullptr);
+    return;
+  }
+
+  // No longer pending.
+  it->second.first = m_module;
+  it->second.second = false;
+  g_shader_cache->m_ps_cache.disk_cache.Append(m_uid, m_spirv.data(),
+                                               static_cast<u32>(m_spirv.size()));
+}
+
+bool ShaderCache::PipelineCompilerWorkItem::Compile()
+{
+  m_pipeline = g_shader_cache->CreatePipeline(m_info);
+  return true;
+}
+
+void ShaderCache::PipelineCompilerWorkItem::Retrieve()
+{
+  auto it = g_shader_cache->m_pipeline_objects.find(m_info);
+  if (it == g_shader_cache->m_pipeline_objects.end())
+  {
+    g_shader_cache->m_pipeline_objects.emplace(m_info, std::make_pair(m_pipeline, false));
+    return;
+  }
+
+  // The main thread may have also compiled this shader.
+  if (!it->second.second)
+  {
+    if (m_pipeline != VK_NULL_HANDLE)
+      vkDestroyPipeline(g_vulkan_context->GetDevice(), m_pipeline, nullptr);
+    return;
+  }
+
+  // No longer pending.
+  it->second.first = m_pipeline;
+  it->second.second = false;
 }
 }

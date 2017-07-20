@@ -10,16 +10,21 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <utility>
 
 #include "Common/CommonTypes.h"
 #include "Common/LinearDiskCache.h"
 
 #include "VideoBackends/Vulkan/Constants.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
+#include "VideoBackends/Vulkan/ShaderCompiler.h"
 
+#include "VideoCommon/AsyncShaderCompiler.h"
 #include "VideoCommon/GeometryShaderGen.h"
 #include "VideoCommon/PixelShaderGen.h"
 #include "VideoCommon/RenderState.h"
+#include "VideoCommon/UberShaderPixel.h"
+#include "VideoCommon/UberShaderVertex.h"
 #include "VideoCommon/VertexShaderGen.h"
 
 namespace Vulkan
@@ -92,8 +97,17 @@ public:
   VkShaderModule GetGeometryShaderForUid(const GeometryShaderUid& uid);
   VkShaderModule GetPixelShaderForUid(const PixelShaderUid& uid);
 
+  // Ubershader caches
+  VkShaderModule GetVertexUberShaderForUid(const UberShader::VertexShaderUid& uid);
+  VkShaderModule GetPixelUberShaderForUid(const UberShader::PixelShaderUid& uid);
+
+  // Accesses ShaderGen shader caches asynchronously
+  std::pair<VkShaderModule, bool> GetVertexShaderForUidAsync(const VertexShaderUid& uid);
+  std::pair<VkShaderModule, bool> GetPixelShaderForUidAsync(const PixelShaderUid& uid);
+
   // Perform at startup, create descriptor layouts, compiles all static shaders.
   bool Initialize();
+  void Shutdown();
 
   // Creates a pipeline for the specified description. The resulting pipeline, if successful
   // is not stored anywhere, this is left up to the caller.
@@ -106,6 +120,8 @@ public:
   // resulted in a pipeline being created, the second field of the return value will be false,
   // otherwise for a cache hit it will be true.
   std::pair<VkPipeline, bool> GetPipelineWithCacheResult(const PipelineInfo& info);
+  std::pair<std::pair<VkPipeline, bool>, bool>
+  GetPipelineWithCacheResultAsync(const PipelineInfo& info);
 
   // Creates a compute pipeline, and does not track the handle.
   VkPipeline CreateComputePipeline(const ComputePipelineInfo& info);
@@ -134,6 +150,10 @@ public:
   VkShaderModule GetPassthroughVertexShader() const { return m_passthrough_vertex_shader; }
   VkShaderModule GetScreenQuadGeometryShader() const { return m_screen_quad_geometry_shader; }
   VkShaderModule GetPassthroughGeometryShader() const { return m_passthrough_geometry_shader; }
+  void PrecompileUberShaders();
+  void WaitForBackgroundCompilesToComplete();
+  void RetrieveAsyncShaders();
+
 private:
   bool CreatePipelineCache();
   bool LoadPipelineCache();
@@ -144,17 +164,26 @@ private:
   bool CompileSharedShaders();
   void DestroySharedShaders();
 
+  // We generate a dummy pipeline with some defaults in the blend/depth states,
+  // that way the driver is forced to compile something (looking at you, NVIDIA).
+  // It can then hopefully re-use part of this pipeline for others in the future.
+  void CreateDummyPipeline(const UberShader::VertexShaderUid& vuid, const GeometryShaderUid& guid,
+                           const UberShader::PixelShaderUid& puid);
+
   template <typename Uid>
   struct ShaderModuleCache
   {
-    std::map<Uid, VkShaderModule> shader_map;
+    std::map<Uid, std::pair<VkShaderModule, bool>> shader_map;
     LinearDiskCache<Uid, u32> disk_cache;
   };
   ShaderModuleCache<VertexShaderUid> m_vs_cache;
   ShaderModuleCache<GeometryShaderUid> m_gs_cache;
   ShaderModuleCache<PixelShaderUid> m_ps_cache;
+  ShaderModuleCache<UberShader::VertexShaderUid> m_uber_vs_cache;
+  ShaderModuleCache<UberShader::PixelShaderUid> m_uber_ps_cache;
 
-  std::unordered_map<PipelineInfo, VkPipeline, PipelineInfoHash> m_pipeline_objects;
+  std::unordered_map<PipelineInfo, std::pair<VkPipeline, bool>, PipelineInfoHash>
+      m_pipeline_objects;
   std::unordered_map<ComputePipelineInfo, VkPipeline, ComputePipelineInfoHash>
       m_compute_pipeline_objects;
   VkPipelineCache m_pipeline_cache = VK_NULL_HANDLE;
@@ -165,6 +194,45 @@ private:
   VkShaderModule m_passthrough_vertex_shader = VK_NULL_HANDLE;
   VkShaderModule m_screen_quad_geometry_shader = VK_NULL_HANDLE;
   VkShaderModule m_passthrough_geometry_shader = VK_NULL_HANDLE;
+
+  std::unique_ptr<VideoCommon::AsyncShaderCompiler> m_async_shader_compiler;
+
+  // TODO: Use templates to reduce the number of these classes.
+  class VertexShaderCompilerWorkItem : public VideoCommon::AsyncShaderCompiler::WorkItem
+  {
+  public:
+    VertexShaderCompilerWorkItem(const VertexShaderUid& uid) : m_uid(uid) {}
+    bool Compile() override;
+    void Retrieve() override;
+
+  private:
+    VertexShaderUid m_uid;
+    ShaderCompiler::SPIRVCodeVector m_spirv;
+    VkShaderModule m_module = VK_NULL_HANDLE;
+  };
+  class PixelShaderCompilerWorkItem : public VideoCommon::AsyncShaderCompiler::WorkItem
+  {
+  public:
+    PixelShaderCompilerWorkItem(const PixelShaderUid& uid) : m_uid(uid) {}
+    bool Compile() override;
+    void Retrieve() override;
+
+  private:
+    PixelShaderUid m_uid;
+    ShaderCompiler::SPIRVCodeVector m_spirv;
+    VkShaderModule m_module = VK_NULL_HANDLE;
+  };
+  class PipelineCompilerWorkItem : public VideoCommon::AsyncShaderCompiler::WorkItem
+  {
+  public:
+    PipelineCompilerWorkItem(const PipelineInfo& info) : m_info(info) {}
+    bool Compile() override;
+    void Retrieve() override;
+
+  private:
+    PipelineInfo m_info;
+    VkPipeline m_pipeline;
+  };
 };
 
 extern std::unique_ptr<ShaderCache> g_shader_cache;

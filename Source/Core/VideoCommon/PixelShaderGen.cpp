@@ -354,20 +354,9 @@ void WritePixelShaderCommonHeader(ShaderCode& out, APIType ApiType, bool boundin
             "int3 iround(float3 x) { return int3(round(x)); }\n"
             "int4 iround(float4 x) { return int4(round(x)); }\n\n");
 
-  if (ApiType == APIType::OpenGL)
+  if (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan)
   {
     out.Write("SAMPLER_BINDING(0) uniform sampler2DArray samp[8];\n");
-  }
-  else if (ApiType == APIType::Vulkan)
-  {
-    out.Write("SAMPLER_BINDING(0) uniform sampler2DArray samp0;\n");
-    out.Write("SAMPLER_BINDING(1) uniform sampler2DArray samp1;\n");
-    out.Write("SAMPLER_BINDING(2) uniform sampler2DArray samp2;\n");
-    out.Write("SAMPLER_BINDING(3) uniform sampler2DArray samp3;\n");
-    out.Write("SAMPLER_BINDING(4) uniform sampler2DArray samp4;\n");
-    out.Write("SAMPLER_BINDING(5) uniform sampler2DArray samp5;\n");
-    out.Write("SAMPLER_BINDING(6) uniform sampler2DArray samp6;\n");
-    out.Write("SAMPLER_BINDING(7) uniform sampler2DArray samp7;\n");
   }
   else  // D3D
   {
@@ -1190,11 +1179,6 @@ static void SampleTexture(ShaderCode& out, const char* texcoords, const char* te
     out.Write("iround(255.0 * Tex[%d].Sample(samp[%d], float3(%s.xy * " I_TEXDIMS
               "[%d].xy, %s))).%s;\n",
               texmap, texmap, texcoords, texmap, stereo ? "layer" : "0.0", texswap);
-  }
-  else if (ApiType == APIType::Vulkan)
-  {
-    out.Write("iround(255.0 * texture(samp%d, float3(%s.xy * " I_TEXDIMS "[%d].xy, %s))).%s;\n",
-              texmap, texcoords, texmap, stereo ? "layer" : "0.0", texswap);
   }
   else
   {

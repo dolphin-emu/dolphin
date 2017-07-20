@@ -149,7 +149,7 @@ static const std::string DEFAULT_FRAGMENT_SHADER_SOURCE = R"(
 
 static const std::string POSTPROCESSING_SHADER_HEADER = R"(
   SAMPLER_BINDING(0) uniform sampler2DArray samp0;
-  SAMPLER_BINDING(1) uniform sampler2D samp1;
+  SAMPLER_BINDING(1) uniform sampler2DArray samp1;
 
   layout(location = 0) in float3 uv0;
   layout(location = 1) in float4 col0;
@@ -176,7 +176,7 @@ static const std::string POSTPROCESSING_SHADER_HEADER = R"(
 
   float4 SampleFontLocation(float2 location)
   {
-    return texture(samp1, location);
+    return texture(samp1, float3(location, 0.0));
   }
 
   float2 GetResolution()

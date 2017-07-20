@@ -53,17 +53,9 @@ VertexFormat::VertexFormat(const PortableVertexDeclaration& in_vtx_decl)
   SetupInputState();
 }
 
-VertexFormat* VertexFormat::GetOrCreateMatchingFormat(const PortableVertexDeclaration& decl)
+const VkPipelineVertexInputStateCreateInfo& VertexFormat::GetVertexInputStateInfo() const
 {
-  auto vertex_format_map = VertexLoaderManager::GetNativeVertexFormatMap();
-  auto iter = vertex_format_map->find(decl);
-  if (iter == vertex_format_map->end())
-  {
-    auto ipair = vertex_format_map->emplace(decl, std::make_unique<VertexFormat>(decl));
-    iter = ipair.first;
-  }
-
-  return static_cast<VertexFormat*>(iter->second.get());
+  return m_input_state_info;
 }
 
 void VertexFormat::MapAttributes()
