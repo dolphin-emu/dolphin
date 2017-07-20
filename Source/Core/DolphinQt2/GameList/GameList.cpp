@@ -402,7 +402,12 @@ QString GameList::GetSelectedGame() const
   return QStringLiteral("");
 }
 
-void GameList::SetPreferredView(bool list)
+GameListModel* GameList::GetModel() const
+{
+  return m_model;
+}
+
+void GameList::SetPreferredView(bool table)
 {
   m_prefer_list = list;
   Settings::Instance().SetPreferredView(list);
