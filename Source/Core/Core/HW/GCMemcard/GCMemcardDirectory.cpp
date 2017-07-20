@@ -44,6 +44,7 @@ int GCMemcardDirectory::LoadGCI(const std::string& file_name, DiscIO::Region car
       return NO_INDEX;
     }
 
+    // This isn't a reliable way to detect regions. TODO: Get rid of this?
     DiscIO::Region gci_region = DiscIO::RegionSwitchGC(gci.m_gci_header.Gamecode[3]);
     // Some special save files have game IDs that we parse as UNKNOWN_REGION. For instance:
     // - Datel Action Replay uses C as the fourth character. (Can be on any region's card.)

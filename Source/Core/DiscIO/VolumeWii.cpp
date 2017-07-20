@@ -233,7 +233,10 @@ std::string VolumeWii::GetGameID(const Partition& partition) const
 Region VolumeWii::GetRegion() const
 {
   const std::optional<u32> region_code = m_pReader->ReadSwapped<u32>(0x4E000);
-  return region_code ? static_cast<Region>(*region_code) : Region::UNKNOWN_REGION;
+  if (!region_code)
+    return Region::UNKNOWN_REGION;
+  const Region region = static_cast<Region>(*region_code);
+  return region <= Region::NTSC_K ? region : Region::UNKNOWN_REGION;
 }
 
 Country VolumeWii::GetCountry(const Partition& partition) const

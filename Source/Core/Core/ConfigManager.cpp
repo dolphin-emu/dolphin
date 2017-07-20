@@ -13,6 +13,7 @@
 
 #include "AudioCommon/AudioCommon.h"
 
+#include "Common/Assert.h"
 #include "Common/CDUtils.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
@@ -869,6 +870,18 @@ bool SConfig::IsUSBDeviceWhitelisted(const std::pair<u16, u16> vid_pid) const
   return m_usb_passthrough_devices.find(vid_pid) != m_usb_passthrough_devices.end();
 }
 
+// The reason we need this function is because some memory card code
+// expects to get a non-NTSC-K region even if we're emulating an NTSC-K Wii.
+DiscIO::Region SConfig::ToGameCubeRegion(DiscIO::Region region)
+{
+  if (region != DiscIO::Region::NTSC_K)
+    return region;
+
+  // GameCube has no NTSC-K region. No choice of replacement value is completely
+  // non-arbitrary, but let's go with NTSC-J since Korean GameCubes are NTSC-J.
+  return DiscIO::Region::NTSC_J;
+}
+
 const char* SConfig::GetDirectoryForRegion(DiscIO::Region region)
 {
   switch (region)
@@ -883,13 +896,8 @@ const char* SConfig::GetDirectoryForRegion(DiscIO::Region region)
     return EUR_DIR;
 
   case DiscIO::Region::NTSC_K:
-    // This function can't return a Korean directory name, because this
-    // function is only used for GameCube things (memory cards, IPL), and
-    // GameCube has no NTSC-K region. Since NTSC-K doesn't correspond to any
-    // GameCube region, let's return an arbitrary pick. Returning nullptr like
-    // with unknown regions would be inappropriate, because Dolphin expects
-    // to get valid memory card paths even when running an NTSC-K Wii game.
-    return JAP_DIR;
+    _assert_msg_(BOOT, false, "NTSC-K is not a valid GameCube region");
+    return nullptr;
 
   default:
     return nullptr;
@@ -982,7 +990,7 @@ bool SConfig::SetPathsAndGameMetadata(const BootParameters& boot)
     return false;
 
   // Set up region
-  const char* retrieved_region_dir = GetDirectoryForRegion(region);
+  const char* retrieved_region_dir = GetDirectoryForRegion(ToGameCubeRegion(region));
   m_region = retrieved_region_dir ? region : DiscIO::Region::PAL;
   const std::string set_region_dir = retrieved_region_dir ? retrieved_region_dir : EUR_DIR;
   if (!retrieved_region_dir &&

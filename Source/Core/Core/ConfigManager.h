@@ -217,6 +217,9 @@ struct SConfig : NonCopyable
   void SetRunningGameMetadata(const IOS::ES::TMDReader& tmd);
 
   void LoadDefaults();
+  // Replaces NTSC-K with some other region, and doesn't replace non-NTSC-K regions
+  static DiscIO::Region ToGameCubeRegion(DiscIO::Region region);
+  // The region argument must be valid for GameCube (i.e. must not be NTSC-K)
   static const char* GetDirectoryForRegion(DiscIO::Region region);
   std::string GetBootROMPath(const std::string& region_directory) const;
   bool SetPathsAndGameMetadata(const BootParameters& boot);

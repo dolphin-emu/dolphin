@@ -83,6 +83,7 @@ public:
   virtual Platform GetVolumeType() const = 0;
   virtual bool SupportsIntegrityCheck() const { return false; }
   virtual bool CheckIntegrity(const Partition& partition) const { return false; }
+  // May be inaccurate for WADs
   virtual Region GetRegion() const = 0;
   Country GetCountry() const { return GetCountry(GetGamePartition()); }
   virtual Country GetCountry(const Partition& partition) const = 0;

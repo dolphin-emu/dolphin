@@ -60,14 +60,31 @@ std::string VolumeGC::GetGameID(const Partition& partition) const
 
 Region VolumeGC::GetRegion() const
 {
-  const std::optional<u8> country_code = ReadSwapped<u8>(3, PARTITION_NONE);
-  return country_code ? RegionSwitchGC(*country_code) : Region::UNKNOWN_REGION;
+  const std::optional<u32> region_code = ReadSwapped<u32>(0x458, PARTITION_NONE);
+  if (!region_code)
+    return Region::UNKNOWN_REGION;
+  const Region region = static_cast<Region>(*region_code);
+  return region <= Region::PAL ? region : Region::UNKNOWN_REGION;
 }
 
 Country VolumeGC::GetCountry(const Partition& partition) const
 {
-  const std::optional<u8> country_code = ReadSwapped<u8>(3, partition);
-  return country_code ? CountrySwitch(*country_code) : Country::COUNTRY_UNKNOWN;
+  // The 0 that we use as a default value is mapped to COUNTRY_UNKNOWN and UNKNOWN_REGION
+  const u8 country = ReadSwapped<u8>(3, partition).value_or(0);
+  const Region region = GetRegion();
+
+  // Korean GC releases use NTSC-J.
+  // E is normally used for America, but it's also used for English-language Korean GC releases.
+  // K is used by games that are in the Korean language.
+  // W means Taiwan for Wii games, but on the GC, it's used for English-language Korean releases.
+  // (There doesn't seem to be any pattern to which of E and W is used for Korean GC releases.)
+  if (region == Region::NTSC_J && (country == 'E' || country == 'K' || country == 'W'))
+    return Country::COUNTRY_KOREA;
+
+  if (RegionSwitchGC(country) != region)
+    return TypicalCountryForRegion(region);
+
+  return CountrySwitch(country);
 }
 
 std::string VolumeGC::GetMakerID(const Partition& partition) const
