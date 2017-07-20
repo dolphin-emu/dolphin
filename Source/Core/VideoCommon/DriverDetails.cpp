@@ -98,7 +98,10 @@ static BugInfo m_known_bugs[] = {
      BUG_BROKEN_BITWISE_OP_NEGATION, -1.0, -1.0, true},
     {API_VULKAN, OS_ALL, VENDOR_ATI, DRIVER_ATI, Family::UNKNOWN, BUG_PRIMITIVE_RESTART, -1.0, -1.0,
      true},
-};
+    {API_OPENGL, OS_LINUX, VENDOR_MESA, DRIVER_I965, Family::UNKNOWN,
+     BUG_SHARED_CONTEXT_SHADER_COMPILATION, -1.0, -1.0, true},
+    {API_OPENGL, OS_LINUX, VENDOR_MESA, DRIVER_NOUVEAU, Family::UNKNOWN,
+     BUG_SHARED_CONTEXT_SHADER_COMPILATION, -1.0, -1.0, true}};
 
 static std::map<Bug, BugInfo> m_bugs;
 

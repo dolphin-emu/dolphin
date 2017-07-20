@@ -53,8 +53,6 @@ void VertexManager::CreateDeviceObjects()
 
   s_indexBuffer = StreamBuffer::Create(GL_ELEMENT_ARRAY_BUFFER, MAX_IBUFFER_SIZE);
   m_index_buffers = s_indexBuffer->m_buffer;
-
-  m_last_vao = 0;
 }
 
 void VertexManager::DestroyDeviceObjects()
@@ -142,21 +140,12 @@ void VertexManager::vFlush()
   GLVertexFormat* nativeVertexFmt = (GLVertexFormat*)VertexLoaderManager::GetCurrentVertexFormat();
   u32 stride = nativeVertexFmt->GetVertexStride();
 
-  if (m_last_vao != nativeVertexFmt->VAO)
-  {
-    glBindVertexArray(nativeVertexFmt->VAO);
-    m_last_vao = nativeVertexFmt->VAO;
-  }
+  ProgramShaderCache::SetShader(m_current_primitive_type, nativeVertexFmt);
 
   PrepareDrawBuffers(stride);
 
-  ProgramShaderCache::SetShader(m_current_primitive_type);
-
   // upload global constants
   ProgramShaderCache::UploadConstants();
-
-  // setup the pointers
-  nativeVertexFmt->SetupVertexPointers();
 
   if (::BoundingBox::active && !g_Config.BBoxUseFragmentShaderImplementation())
   {
@@ -171,24 +160,6 @@ void VertexManager::vFlush()
     glDisable(GL_STENCIL_TEST);
   }
 
-#if defined(_DEBUG) || defined(DEBUGFAST)
-  if (g_ActiveConfig.iLog & CONF_SAVESHADERS)
-  {
-    // save the shaders
-    ProgramShaderCache::PCacheEntry prog = ProgramShaderCache::GetShaderProgram();
-    std::string filename = StringFromFormat(
-        "%sps%.3d.txt", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), g_ActiveConfig.iSaveTargetId);
-    std::ofstream fps;
-    File::OpenFStream(fps, filename, std::ios_base::out);
-    fps << prog.shader.strpprog;
-
-    filename = StringFromFormat("%svs%.3d.txt", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(),
-                                g_ActiveConfig.iSaveTargetId);
-    std::ofstream fvs;
-    File::OpenFStream(fvs, filename, std::ios_base::out);
-    fvs << prog.shader.strvprog;
-  }
-#endif
   g_Config.iSaveTargetId++;
   ClearEFBCache();
 }

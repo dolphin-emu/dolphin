@@ -247,6 +247,12 @@ enum Bug
   // fail compilation with no useful diagnostic log. This can be worked around by storing
   // the negated value to a temporary variable then using that in the bitwise op.
   BUG_BROKEN_BITWISE_OP_NEGATION,
+
+  // Bug: Shaders are recompiled on the main thread after being previously compiled on
+  // a worker thread on Mesa i965.
+  // Started version: -1
+  // Ended Version: -1
+  BUG_SHARED_CONTEXT_SHADER_COMPILATION,
 };
 
 // Initializes our internal vendor, device family, and driver version

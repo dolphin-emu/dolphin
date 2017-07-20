@@ -42,7 +42,6 @@ public:
   // NativeVertexFormat use this
   GLuint m_vertex_buffers;
   GLuint m_index_buffers;
-  GLuint m_last_vao;
 
 protected:
   void ResetBuffer(u32 stride) override;

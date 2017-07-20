@@ -1472,6 +1472,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
 
   // Clean out old stuff from caches. It's not worth it to clean out the shader caches.
   g_texture_cache->Cleanup(frameCount);
+  ProgramShaderCache::RetrieveAsyncShaders();
 
   // Render to the framebuffer.
   FramebufferManager::SetFramebuffer(0);
@@ -1768,10 +1769,9 @@ void Renderer::RestoreAPIState()
   SetBlendMode(true);
   SetViewport();
 
+  ProgramShaderCache::BindLastVertexFormat();
   const VertexManager* const vm = static_cast<VertexManager*>(g_vertex_manager.get());
   glBindBuffer(GL_ARRAY_BUFFER, vm->m_vertex_buffers);
-  if (vm->m_last_vao)
-    glBindVertexArray(vm->m_last_vao);
 
   OGLTexture::SetStage();
 }
