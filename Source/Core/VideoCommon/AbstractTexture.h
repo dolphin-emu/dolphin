@@ -5,11 +5,14 @@
 #pragma once
 
 #include <cstddef>
+#include <memory>
 #include <string>
 
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
 #include "VideoCommon/TextureConfig.h"
+
+class AbstractRawTexture;
 
 class AbstractTexture
 {
@@ -17,7 +20,8 @@ public:
   explicit AbstractTexture(const TextureConfig& c);
   virtual ~AbstractTexture();
   virtual void Bind(unsigned int stage) = 0;
-  virtual bool Save(const std::string& filename, unsigned int level);
+  bool Save(const std::string& filename, unsigned int level);
+  virtual std::unique_ptr<AbstractRawTexture> GetRawData(unsigned int level);
 
   virtual void CopyRectangleFromTexture(const AbstractTexture* source,
                                         const MathUtil::Rectangle<int>& srcrect,

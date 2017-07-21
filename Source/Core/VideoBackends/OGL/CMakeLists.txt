@@ -4,6 +4,7 @@ set(SRCS
   main.cpp
   NativeVertexFormat.cpp
   OGLTexture.cpp
+  OGLTextureRaw.cpp
   PerfQuery.cpp
   PostProcessing.cpp
   ProgramShaderCache.cpp

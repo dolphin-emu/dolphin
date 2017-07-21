@@ -15,6 +15,8 @@ set(SRCS
   D3DUtil.h
   DXTexture.cpp
   DXTexture.h
+  DXTextureRaw.cpp
+  DXTextureRaw.h
   FramebufferManager.cpp
   FramebufferManager.h
   GeometryShaderCache.cpp

@@ -1,4 +1,5 @@
 set(SRCS
+  AbstractRawTexture.cpp
   AbstractTexture.cpp
   AsyncRequests.cpp
   BoundingBox.cpp

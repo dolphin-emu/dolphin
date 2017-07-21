@@ -14,13 +14,13 @@
 #include "VideoBackends/D3D/D3DTexture.h"
 #include "VideoBackends/D3D/D3DUtil.h"
 #include "VideoBackends/D3D/DXTexture.h"
+#include "VideoBackends/D3D/DXTextureRaw.h"
 #include "VideoBackends/D3D/FramebufferManager.h"
 #include "VideoBackends/D3D/GeometryShaderCache.h"
 #include "VideoBackends/D3D/PixelShaderCache.h"
 #include "VideoBackends/D3D/TextureCache.h"
 #include "VideoBackends/D3D/VertexShaderCache.h"
 
-#include "VideoCommon/ImageWrite.h"
 #include "VideoCommon/TextureConfig.h"
 
 namespace DX11
@@ -91,7 +91,7 @@ void DXTexture::Bind(unsigned int stage)
   D3D::stateman->SetTexture(stage, m_texture->GetSRV());
 }
 
-bool DXTexture::Save(const std::string& filename, unsigned int level)
+std::unique_ptr<AbstractRawTexture> DXTexture::GetRawData(unsigned int level)
 {
   // We can't dump compressed textures currently (it would mean drawing them to a RGBA8
   // framebuffer, and saving that). TextureCache does not call Save for custom textures
@@ -109,7 +109,7 @@ bool DXTexture::Save(const std::string& filename, unsigned int level)
   if (FAILED(hr))
   {
     WARN_LOG(VIDEO, "Failed to create texture dumping readback texture: %X", static_cast<u32>(hr));
-    return false;
+    return nullptr;
   }
 
   // Copy the selected mip level to the staging texture.
@@ -124,15 +124,11 @@ bool DXTexture::Save(const std::string& filename, unsigned int level)
   {
     WARN_LOG(VIDEO, "Failed to map texture dumping readback texture: %X", static_cast<u32>(hr));
     staging_texture->Release();
-    return false;
+    return nullptr;
   }
 
-  bool encode_result =
-      TextureToPng(reinterpret_cast<u8*>(map.pData), map.RowPitch, filename, mip_width, mip_height);
-  D3D::context->Unmap(staging_texture, 0);
-  staging_texture->Release();
-
-  return encode_result;
+  return std::make_unique<DXTextureRaw>(reinterpret_cast<u8*>(map.pData), map.RowPitch, mip_width,
+                                        mip_height, staging_texture);
 }
 
 void DXTexture::CopyRectangleFromTexture(const AbstractTexture* source,

@@ -58,6 +58,7 @@
     <ClCompile Include="TextureCache.cpp" />
     <ClCompile Include="VertexManager.cpp" />
     <ClCompile Include="VKTexture.cpp" />
+    <ClCompile Include="VKTextureRaw.cpp" />
     <ClCompile Include="VulkanContext.cpp" />
     <ClCompile Include="VulkanLoader.cpp" />
   </ItemGroup>
@@ -85,6 +86,7 @@
     <ClInclude Include="VertexManager.h" />
     <ClInclude Include="VideoBackend.h" />
     <ClInclude Include="VKTexture.h" />
+    <ClInclude Include="VKTextureRaw.h" />
     <ClInclude Include="VulkanContext.h" />
     <ClInclude Include="VulkanLoader.h" />
   </ItemGroup>
