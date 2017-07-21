@@ -547,7 +547,16 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const pixel_shader_uid_data*
     }
     else if (use_framebuffer_fetch_blend)
     {
-      out.Write("FRAGMENT_OUTPUT_LOCATION(0) inout vec4 fb_ocol;\n");
+      if (g_ActiveConfig.backend_info.bSupportsInOutFramebufferFetch)
+      {
+        out.Write("FRAGMENT_OUTPUT_LOCATION(0) inout vec4 fb_ocol;\n");
+        out.Write("#define fb_value fb_ocol\n");
+      }
+      else
+      {
+        out.Write("FRAGMENT_OUTPUT_LOCATION(0) out vec4 fb_ocol;\n");
+        out.Write("#define fb_value gl_LastFragColorARM\n");
+      }
     }
     else
     {
@@ -599,7 +608,7 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const pixel_shader_uid_data*
     // Store off the current framebuffer value for blend at the end
     if (use_framebuffer_fetch_blend)
     {
-      out.Write("\tfloat4 initial_fb_value = fb_ocol;\n");
+      out.Write("\tfloat4 initial_fb_value = fb_value;\n");
       out.Write("\tfloat4 ocol0 = float4(0, 0, 0, 0);\n");
       out.Write("\tfloat4 ocol1 = float4(0, 0, 0, 0);\n");
     }

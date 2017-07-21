@@ -750,7 +750,9 @@ void ProgramShaderCache::CreateHeader()
           "",
 
       g_ActiveConfig.backend_info.bSupportsFramebufferFetch ?
-          "#extension GL_EXT_shader_framebuffer_fetch : enable" :
+          (GLExtensions::Supports("GL_ARM_shader_framebuffer_fetch") ?
+               "#extension GL_ARM_shader_framebuffer_fetch : enable" :
+               "#extension GL_EXT_shader_framebuffer_fetch : enable") :
           "",
       is_glsles ? "precision highp float;" : "", is_glsles ? "precision highp int;" : "",
       is_glsles ? "precision highp sampler2DArray;" : "",

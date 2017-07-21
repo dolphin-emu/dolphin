@@ -415,8 +415,23 @@ Renderer::Renderer()
   g_Config.backend_info.bSupportsDualSourceBlend =
       (GLExtensions::Supports("GL_ARB_blend_func_extended") ||
        GLExtensions::Supports("GL_EXT_blend_func_extended"));
-  g_Config.backend_info.bSupportsFramebufferFetch =
-      GLExtensions::Supports("GL_EXT_shader_framebuffer_fetch");
+
+  if (GLExtensions::Supports("GL_EXT_shader_framebuffer_fetch"))
+  {
+    g_Config.backend_info.bSupportsFramebufferFetch = true;
+    g_Config.backend_info.bSupportsInOutFramebufferFetch = true;
+  }
+  else if (GLExtensions::Supports("GL_ARM_shader_framebuffer_fetch"))
+  {
+    g_Config.backend_info.bSupportsFramebufferFetch = true;
+    g_Config.backend_info.bSupportsInOutFramebufferFetch = false;
+  }
+  else
+  {
+    g_Config.backend_info.bSupportsFramebufferFetch = false;
+    g_Config.backend_info.bSupportsInOutFramebufferFetch = false;
+  }
+
   g_Config.backend_info.bSupportsPrimitiveRestart =
       !DriverDetails::HasBug(DriverDetails::BUG_PRIMITIVE_RESTART) &&
       ((GLExtensions::Version() >= 310) || GLExtensions::Supports("GL_NV_primitive_restart"));
