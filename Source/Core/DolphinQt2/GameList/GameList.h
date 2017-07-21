@@ -32,6 +32,7 @@ signals:
   void GameSelected();
   void EmulationStarted();
   void EmulationStopped();
+  void NetPlayHost(const QString& game_path);
 
 private:
   void ShowContextMenu(const QPoint&);
