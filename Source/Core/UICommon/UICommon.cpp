@@ -98,6 +98,14 @@ void SetLocale(std::string locale_name)
   constexpr char OTHER_SEPARATOR = '-';
 #endif
 
+  // Users who use a system language other than English are unlikely to prefer American date and
+  // time formats, so let's explicitly request "en_GB" if Dolphin's language is set to "en".
+  // (The settings window only allows setting "en", not anything like "en_US" or "en_GB".)
+  // Users who prefer the American formats are likely to have their system language set to en_US,
+  // and are thus likely to leave Dolphin's language as the default value "" (<System Language>).
+  if (locale_name == "en")
+    locale_name = "en_GB";
+
   std::replace(locale_name.begin(), locale_name.end(), OTHER_SEPARATOR, PREFERRED_SEPARATOR);
 
   // Use the specified locale if supported.
