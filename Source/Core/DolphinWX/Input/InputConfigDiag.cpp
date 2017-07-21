@@ -915,25 +915,23 @@ void InputConfigDialog::UpdateDeviceComboBox()
 
 void InputConfigDialog::RefreshDevices(wxCommandEvent&)
 {
-  bool was_unpaused = Core::PauseAndLock(true);
+  Core::RunAsCPUThread([&] {
+    // refresh devices
+    g_controller_interface.RefreshDevices();
 
-  // refresh devices
-  g_controller_interface.RefreshDevices();
+    // update all control references
+    UpdateControlReferences();
 
-  // update all control references
-  UpdateControlReferences();
+    // update device cbox
+    UpdateDeviceComboBox();
 
-  // update device cbox
-  UpdateDeviceComboBox();
+    Wiimote::LoadConfig();
+    Keyboard::LoadConfig();
+    Pad::LoadConfig();
+    HotkeyManagerEmu::LoadConfig();
 
-  Wiimote::LoadConfig();
-  Keyboard::LoadConfig();
-  Pad::LoadConfig();
-  HotkeyManagerEmu::LoadConfig();
-
-  UpdateGUI();
-
-  Core::PauseAndLock(false, was_unpaused);
+    UpdateGUI();
+  });
 }
 
 ControlGroupBox::~ControlGroupBox()

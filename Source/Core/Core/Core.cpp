@@ -759,7 +759,7 @@ void RequestRefreshInfo()
   s_request_refresh_info = true;
 }
 
-bool PauseAndLock(bool do_lock, bool unpause_on_unlock)
+static bool PauseAndLock(bool do_lock, bool unpause_on_unlock)
 {
   // WARNING: PauseAndLock is not fully threadsafe so is only valid on the Host Thread
   if (!IsRunning())
@@ -804,6 +804,19 @@ bool PauseAndLock(bool do_lock, bool unpause_on_unlock)
   }
 
   return was_unpaused;
+}
+
+void RunAsCPUThread(std::function<void()> function)
+{
+  const bool is_cpu_thread = IsCPUThread();
+  bool was_unpaused = false;
+  if (!is_cpu_thread)
+    was_unpaused = PauseAndLock(true, true);
+
+  function();
+
+  if (!is_cpu_thread)
+    PauseAndLock(false, was_unpaused);
 }
 
 // Display FPS info
@@ -955,22 +968,20 @@ void UpdateWantDeterminism(bool initial)
   {
     NOTICE_LOG(COMMON, "Want determinism <- %s", new_want_determinism ? "true" : "false");
 
-    bool was_unpaused = Core::PauseAndLock(true);
+    RunAsCPUThread([&] {
+      s_wants_determinism = new_want_determinism;
+      const auto ios = IOS::HLE::GetIOS();
+      if (ios)
+        ios->UpdateWantDeterminism(new_want_determinism);
+      Fifo::UpdateWantDeterminism(new_want_determinism);
+      // We need to clear the cache because some parts of the JIT depend on want_determinism,
+      // e.g. use of FMA.
+      JitInterface::ClearCache();
 
-    s_wants_determinism = new_want_determinism;
-    const auto ios = IOS::HLE::GetIOS();
-    if (ios)
-      ios->UpdateWantDeterminism(new_want_determinism);
-    Fifo::UpdateWantDeterminism(new_want_determinism);
-    // We need to clear the cache because some parts of the JIT depend on want_determinism, e.g. use
-    // of FMA.
-    JitInterface::ClearCache();
-
-    // Don't call InitializeWiiRoot during boot, because IOS already does it.
-    if (!initial)
-      Core::InitializeWiiRoot(s_wants_determinism);
-
-    Core::PauseAndLock(false, was_unpaused);
+      // Don't call InitializeWiiRoot during boot, because IOS already does it.
+      if (!initial)
+        Core::InitializeWiiRoot(s_wants_determinism);
+    });
   }
 }
 
