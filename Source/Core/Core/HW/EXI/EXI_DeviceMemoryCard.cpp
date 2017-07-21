@@ -199,7 +199,7 @@ void CEXIMemoryCard::SetupGciFolder(u16 sizeMb)
   }
 
   memorycard = std::make_unique<GCMemcardDirectory>(strDirectoryName + DIR_SEP, card_index, sizeMb,
-                                                    shift_jis, region, CurrentGameId);
+                                                    shift_jis, CurrentGameId);
 }
 
 void CEXIMemoryCard::SetupRawMemcard(u16 sizeMb)
