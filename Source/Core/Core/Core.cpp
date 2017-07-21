@@ -102,7 +102,6 @@ static StoppedCallbackFunc s_on_stopped_callback;
 
 static std::thread s_cpu_thread;
 static bool s_request_refresh_info = false;
-static int s_pause_and_lock_depth = 0;
 static bool s_is_throttler_temp_disabled = false;
 
 struct HostJob
@@ -763,11 +762,6 @@ static bool PauseAndLock(bool do_lock, bool unpause_on_unlock)
 {
   // WARNING: PauseAndLock is not fully threadsafe so is only valid on the Host Thread
   if (!IsRunning())
-    return true;
-
-  // let's support recursive locking to simplify things on the caller's side,
-  // and let's do it at this outer level in case the individual systems don't support it.
-  if (do_lock ? s_pause_and_lock_depth++ : --s_pause_and_lock_depth)
     return true;
 
   bool was_unpaused = true;
