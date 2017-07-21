@@ -343,6 +343,9 @@ void DolphinApp::InitLanguageSupport()
         _("Error"));
     m_locale.reset(new wxLocale(wxLANGUAGE_DEFAULT));
   }
+
+  // wxWidgets sets the C locale for us, but not the C++ locale, so let's do that ourselves
+  UICommon::SetLocale(language_code);
 }
 
 void DolphinApp::OnEndSession(wxCloseEvent& event)
