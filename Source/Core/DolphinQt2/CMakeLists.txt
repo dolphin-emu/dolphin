@@ -101,6 +101,8 @@ set(SRCS
   Settings/GeneralPane.cpp
   Settings/InterfacePane.cpp
   Settings/PathPane.cpp
+  Settings/WiiPane.cpp
+  Settings/USBDeviceAddToWhitelistDialog.cpp
 )
 
 list(APPEND LIBS core uicommon)
