@@ -237,25 +237,24 @@ void IOWindow::UpdateDeviceList()
   m_block.Set(true);
   m_devices_combo->clear();
 
-  const bool paused = Core::PauseAndLock(true);
+  Core::RunAsCPUThread([&] {
+    g_controller_interface.RefreshDevices();
+    m_controller->UpdateReferences(g_controller_interface);
+    m_controller->UpdateDefaultDevice();
 
-  g_controller_interface.RefreshDevices();
-  m_controller->UpdateReferences(g_controller_interface);
-  m_controller->UpdateDefaultDevice();
+    // Adding default device regardless if it's currently connected or not
+    const auto default_device = m_controller->default_device.ToString();
 
-  // Adding default device regardless if it's currently connected or not
-  const auto default_device = m_controller->default_device.ToString();
+    m_devices_combo->addItem(QString::fromStdString(default_device));
 
-  m_devices_combo->addItem(QString::fromStdString(default_device));
+    for (const auto& name : g_controller_interface.GetAllDeviceStrings())
+    {
+      if (name != default_device)
+        m_devices_combo->addItem(QString::fromStdString(name));
+    }
 
-  for (const auto& name : g_controller_interface.GetAllDeviceStrings())
-  {
-    if (name != default_device)
-      m_devices_combo->addItem(QString::fromStdString(name));
-  }
+    m_devices_combo->setCurrentIndex(0);
+  });
 
-  m_devices_combo->setCurrentIndex(0);
-
-  Core::PauseAndLock(false, paused);
   m_block.Set(false);
 }

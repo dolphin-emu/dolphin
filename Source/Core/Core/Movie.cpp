@@ -544,68 +544,66 @@ bool BeginRecordingInput(int controllers)
   if (s_playMode != MODE_NONE || controllers == 0)
     return false;
 
-  bool was_unpaused = Core::PauseAndLock(true);
+  Core::RunAsCPUThread([controllers] {
+    s_controllers = controllers;
+    s_currentFrame = s_totalFrames = 0;
+    s_currentLagCount = s_totalLagCount = 0;
+    s_currentInputCount = s_totalInputCount = 0;
+    s_totalTickCount = s_tickCountAtLastInput = 0;
+    s_bongos = 0;
+    s_memcards = 0;
+    if (NetPlay::IsNetPlayRunning())
+    {
+      s_bNetPlay = true;
+      s_recordingStartTime = ExpansionInterface::CEXIIPL::NetPlay_GetEmulatedTime();
+    }
+    else if (SConfig::GetInstance().bEnableCustomRTC)
+    {
+      s_recordingStartTime = SConfig::GetInstance().m_customRTCValue;
+    }
+    else
+    {
+      s_recordingStartTime = Common::Timer::GetLocalTimeSinceJan1970();
+    }
 
-  s_controllers = controllers;
-  s_currentFrame = s_totalFrames = 0;
-  s_currentLagCount = s_totalLagCount = 0;
-  s_currentInputCount = s_totalInputCount = 0;
-  s_totalTickCount = s_tickCountAtLastInput = 0;
-  s_bongos = 0;
-  s_memcards = 0;
-  if (NetPlay::IsNetPlayRunning())
-  {
-    s_bNetPlay = true;
-    s_recordingStartTime = ExpansionInterface::CEXIIPL::NetPlay_GetEmulatedTime();
-  }
-  else if (SConfig::GetInstance().bEnableCustomRTC)
-  {
-    s_recordingStartTime = SConfig::GetInstance().m_customRTCValue;
-  }
-  else
-  {
-    s_recordingStartTime = Common::Timer::GetLocalTimeSinceJan1970();
-  }
+    s_rerecords = 0;
 
-  s_rerecords = 0;
+    for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
+    {
+      if (SConfig::GetInstance().m_SIDevice[i] == SerialInterface::SIDEVICE_GC_TARUKONGA)
+        s_bongos |= (1 << i);
+    }
 
-  for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
-  {
-    if (SConfig::GetInstance().m_SIDevice[i] == SerialInterface::SIDEVICE_GC_TARUKONGA)
-      s_bongos |= (1 << i);
-  }
+    if (Core::IsRunningAndStarted())
+    {
+      const std::string save_path = File::GetUserPath(D_STATESAVES_IDX) + "dtm.sav";
+      if (File::Exists(save_path))
+        File::Delete(save_path);
 
-  if (Core::IsRunningAndStarted())
-  {
-    const std::string save_path = File::GetUserPath(D_STATESAVES_IDX) + "dtm.sav";
-    if (File::Exists(save_path))
-      File::Delete(save_path);
+      State::SaveAs(save_path);
+      s_bRecordingFromSaveState = true;
 
-    State::SaveAs(save_path);
-    s_bRecordingFromSaveState = true;
+      std::thread md5thread(GetMD5);
+      md5thread.detach();
+      GetSettings();
+    }
 
-    std::thread md5thread(GetMD5);
-    md5thread.detach();
-    GetSettings();
-  }
+    // Wiimotes cause desync issues if they're not reset before launching the game
+    if (!Core::IsRunningAndStarted())
+    {
+      // This will also reset the wiimotes for gamecube games, but that shouldn't do anything
+      Wiimote::ResetAllWiimotes();
+    }
 
-  // Wiimotes cause desync issues if they're not reset before launching the game
-  if (!Core::IsRunningAndStarted())
-  {
-    // This will also reset the wiimotes for gamecube games, but that shouldn't do anything
-    Wiimote::ResetAllWiimotes();
-  }
+    s_playMode = MODE_RECORDING;
+    s_author = SConfig::GetInstance().m_strMovieAuthor;
+    s_temp_input.clear();
 
-  s_playMode = MODE_RECORDING;
-  s_author = SConfig::GetInstance().m_strMovieAuthor;
-  s_temp_input.clear();
+    s_currentByte = 0;
 
-  s_currentByte = 0;
-
-  if (Core::IsRunning())
-    Core::UpdateWantDeterminism();
-
-  Core::PauseAndLock(false, was_unpaused);
+    if (Core::IsRunning())
+      Core::UpdateWantDeterminism();
+  });
 
   Core::DisplayMessage("Starting movie recording", 2000);
   return true;
