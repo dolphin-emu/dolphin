@@ -18,6 +18,7 @@
 #include "Common/Timer.h"
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/USB/Bluetooth/BTBase.h"
+#include "Core/IOS/USB/Bluetooth/hci.h"
 #include "Core/IOS/USB/USBV0.h"
 
 class PointerWrap;
@@ -40,7 +41,6 @@ enum class SyncButtonState
   Ignored,
 };
 
-using btaddr_t = std::array<u8, 6>;
 using linkkey_t = std::array<u8, 16>;
 
 namespace Device
@@ -101,7 +101,7 @@ private:
   // This stores the address of paired devices and associated link keys.
   // It is needed because some adapters forget all stored link keys when they are reset,
   // which breaks pairings because the Wii relies on the Bluetooth module to remember them.
-  std::map<btaddr_t, linkkey_t> m_link_keys;
+  std::map<bdaddr_t, linkkey_t> m_link_keys;
   Common::Flag m_need_reset_keys;
 
   // This flag is set when a libusb transfer failed (for reasons other than timing out)

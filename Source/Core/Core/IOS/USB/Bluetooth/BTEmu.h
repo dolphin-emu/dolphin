@@ -66,7 +66,7 @@ public:
   void DoState(PointerWrap& p) override;
 
 private:
-  bdaddr_t m_ControllerBD;
+  bdaddr_t m_ControllerBD{{0x11, 0x02, 0x19, 0x79, 0x00, 0xff}};
 
   // this is used to trigger connecting via ACL
   u8 m_ScanEnable = 0;
