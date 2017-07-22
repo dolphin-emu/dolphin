@@ -329,6 +329,6 @@ void ReleaseTraversalClient()
   if (!g_TraversalClient)
     return;
 
-  g_TraversalClient.release();
-  g_MainNetHost.release();
+  g_TraversalClient.reset();
+  g_MainNetHost.reset();
 }
