@@ -1236,7 +1236,7 @@ void Renderer::SetBlendMode(bool forceUpdate)
       state.usedualsrc && g_ActiveConfig.backend_info.bSupportsDualSourceBlend &&
       (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING) || state.dstalpha);
 
-  if (!useDualSource && g_ActiveConfig.backend_info.bSupportsFramebufferFetch)
+  if (state.usedualsrc && (!useDualSource && g_ActiveConfig.backend_info.bSupportsFramebufferFetch))
   {
     glDisable(GL_BLEND);
     // All blending's done in the shader, so don't touch the blend state after ResetAPIState()

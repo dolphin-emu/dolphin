@@ -16,6 +16,7 @@
 #include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/LightingShaderGen.h"
 #include "VideoCommon/NativeVertexFormat.h"
+#include "VideoCommon/RenderState.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
@@ -164,8 +165,12 @@ PixelShaderUid GetPixelShaderUid()
   pixel_shader_uid_data* uid_data = out.GetUidData<pixel_shader_uid_data>();
   memset(uid_data, 0, sizeof(*uid_data));
 
+  BlendingState blend_state;
+  blend_state.Generate(bpmem);
+
   uid_data->useDstAlpha = bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate &&
                           bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24;
+  uid_data->dual_source = blend_state.usedualsrc;
 
   uid_data->genMode_numindstages = bpmem.genMode.numindstages;
   uid_data->genMode_numtevstages = bpmem.genMode.numtevstages;
@@ -512,14 +517,15 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const pixel_shader_uid_data*
 
   // Only use dual-source blending when required on drivers that don't support it very well.
   const bool use_dual_source_fixedfunction =
-      g_ActiveConfig.backend_info.bSupportsDualSourceBlend &&
+      uid_data->dual_source && g_ActiveConfig.backend_info.bSupportsDualSourceBlend &&
       (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING) ||
        uid_data->useDstAlpha);
 
   // Framebuffer-fetch is nearly always slower than dedicated blend blocks, so don't use that unless
   // dual-source blending is not supported
   const bool use_framebuffer_fetch_blend =
-      !use_dual_source_fixedfunction && g_ActiveConfig.backend_info.bSupportsFramebufferFetch;
+      uid_data->dual_source &&
+      (!use_dual_source_fixedfunction && g_ActiveConfig.backend_info.bSupportsFramebufferFetch);
 
   // Enabled if either dual-source blend mode is available
   const bool use_dual_source = use_dual_source_fixedfunction || use_framebuffer_fetch_blend;
