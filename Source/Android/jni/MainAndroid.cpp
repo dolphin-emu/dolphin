@@ -144,10 +144,6 @@ void Host_ConnectWiimote(int wm_idx, bool connect)
 {
 }
 
-void Host_SetWiiMoteConnectionState(int _State)
-{
-}
-
 void Host_ShowVideoConfig(void*, const std::string&)
 {
 }

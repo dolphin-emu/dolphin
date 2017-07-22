@@ -910,9 +910,6 @@ void WiimoteDevice::ReceiveL2capData(u16 scid, const void* _pData, u32 _Size)
   // Update Offset to the final size of the report
   Offset += _Size;
 
-  // Update the status bar
-  Host_SetWiiMoteConnectionState(2);
-
   // Send the report
   m_pHost->SendACLPacket(GetConnectionHandle(), DataFrame, Offset);
 }

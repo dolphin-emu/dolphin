@@ -54,9 +54,6 @@ bool Host_RendererIsFullscreen()
 void Host_ConnectWiimote(int, bool)
 {
 }
-void Host_SetWiiMoteConnectionState(int)
-{
-}
 void Host_ShowVideoConfig(void*, const std::string&)
 {
 }

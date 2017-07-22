@@ -458,35 +458,6 @@ void Host_RequestRenderWindowSize(int width, int height)
   main_frame->GetEventHandler()->AddPendingEvent(event);
 }
 
-void Host_SetWiiMoteConnectionState(int _State)
-{
-  static int currentState = -1;
-  if (_State == currentState)
-    return;
-  currentState = _State;
-
-  wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATE_STATUS_BAR);
-
-  switch (_State)
-  {
-  case 0:
-    event.SetString(_("Not connected"));
-    break;
-  case 1:
-    event.SetString(_("Connecting..."));
-    break;
-  case 2:
-    event.SetString(_("Wii Remote Connected"));
-    break;
-  }
-  // The second field is used for auxiliary info such as this
-  event.SetInt(1);
-
-  NOTICE_LOG(WIIMOTE, "%s", static_cast<const char*>(event.GetString().c_str()));
-
-  main_frame->GetEventHandler()->AddPendingEvent(event);
-}
-
 bool Host_UINeedsControllerState()
 {
   return wxGetApp().IsActiveThreadsafe() && GetUINeedsControllerState();
