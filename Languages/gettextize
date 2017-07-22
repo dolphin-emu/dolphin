@@ -5,7 +5,7 @@ SRCDIR=Source
 find $SRCDIR -name '*.cpp' -o -name '*.h' -o -name '*.c' | \
 	xgettext -d dolphin-emu -s --keyword=_ --keyword=wxTRANSLATE --keyword=SuccessAlertT \
 	--keyword=PanicAlertT --keyword=PanicYesNoT --keyword=AskYesNoT --keyword=CriticalAlertT \
-	--keyword=GetStringT --keyword=_trans --add-comments=i18n -p ./Languages/po \
+	--keyword=GetStringT --keyword=_trans --keyword=tr --add-comments=i18n -p ./Languages/po \
 	-o dolphin-emu.pot -f - --package-name="Dolphin Emulator"
 
 sed -i "s/SOME DESCRIPTIVE TITLE\./Translation of dolphin-emu.pot to LANGUAGE/" Languages/po/dolphin-emu.pot
