@@ -184,6 +184,10 @@ void MainWindow::ConnectMenuBar()
   connect(m_menu_bar, &MenuBar::SetStateSlot, this, &MainWindow::SetStateSlot);
 
   // Options
+  connect(m_menu_bar, &MenuBar::Configure, this, &MainWindow::ShowSettingsWindow);
+  connect(m_menu_bar, &MenuBar::ConfigureGraphics, this, &MainWindow::ShowGraphicsWindow);
+  connect(m_menu_bar, &MenuBar::ConfigureAudio, this, &MainWindow::ShowAudioWindow);
+  connect(m_menu_bar, &MenuBar::ConfigureControllers, this, &MainWindow::ShowControllersWindow);
   connect(m_menu_bar, &MenuBar::ConfigureHotkeys, this, &MainWindow::ShowHotkeyDialog);
 
   // Tools
@@ -503,6 +507,12 @@ void MainWindow::ShowSettingsWindow()
   m_settings_window->show();
   m_settings_window->raise();
   m_settings_window->activateWindow();
+}
+
+void MainWindow::ShowAudioWindow()
+{
+  m_settings_window->SelectAudioPane();
+  ShowSettingsWindow();
 }
 
 void MainWindow::ShowAboutDialog()
