@@ -26,7 +26,7 @@
     <msgfmt Include="po\it.po" />
     <msgfmt Include="po\ja.po" />
     <msgfmt Include="po\ko.po" />
-    <msgfmt Include="po\ms_MY.po" />
+    <msgfmt Include="po\ms.po" />
     <msgfmt Include="po\nb.po" />
     <msgfmt Include="po\nl.po" />
     <msgfmt Include="po\pl.po" />
