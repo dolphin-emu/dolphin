@@ -83,7 +83,10 @@
 
 #pragma once
 
-#include <stdint.h>
+#include <array>
+#include <cstdint>
+
+#include "Common/CommonTypes.h"
 
 // All structs in this file are packed
 #pragma pack(push, 1)
@@ -94,18 +97,8 @@
 /*
  * Bluetooth device address
  */
-#ifndef __BLUETOOTH_H
-typedef struct
-{
-  uint8_t b[BLUETOOTH_BDADDR_SIZE];
-} bdaddr_t;
-#define BDADDR_ANY                                                                                 \
-  {                                                                                                \
-    {                                                                                              \
-      0, 0, 0, 0, 0, 0                                                                             \
-    }                                                                                              \
-  }
-#endif
+using bdaddr_t = std::array<u8, BLUETOOTH_BDADDR_SIZE>;
+constexpr bdaddr_t BDADDR_ANY{};
 
 /**************************************************************************
  **************************************************************************
