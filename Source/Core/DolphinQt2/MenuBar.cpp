@@ -228,9 +228,11 @@ void MenuBar::AddHelpMenu()
 
 void MenuBar::AddGameListTypeSection(QMenu* view_menu)
 {
+  // i18n: When this option is enabled, the game list is displayed as a table
   QAction* table_view = view_menu->addAction(tr("Table"));
   table_view->setCheckable(true);
 
+  // i18n: When this option is enabled, the game list is displayed as a list
   QAction* list_view = view_menu->addAction(tr("List"));
   list_view->setCheckable(true);
 
