@@ -73,9 +73,11 @@ void InterfacePane::CreateUI()
   m_checkbox_auto_window = new QCheckBox(tr("Auto Adjust Window Size"));
   m_checkbox_top_window = new QCheckBox(tr("Keep Dolphin on Top"));
   m_checkbox_render_to_window = new QCheckBox(tr("Render to Main Window"));
+  m_checkbox_use_builtin_title_database = new QCheckBox(tr("Use Built-In Database of Game Names"));
   groupbox_layout->addWidget(m_checkbox_auto_window);
   groupbox_layout->addWidget(m_checkbox_top_window);
   groupbox_layout->addWidget(m_checkbox_render_to_window);
+  groupbox_layout->addWidget(m_checkbox_use_builtin_title_database);
 }
 
 void InterfacePane::CreateInGame()
@@ -89,7 +91,6 @@ void InterfacePane::CreateInGame()
   m_checkbox_use_panic_handlers = new QCheckBox(tr("Use Panic Handlers"));
   m_checkbox_enable_osd = new QCheckBox(tr("Enable On Screen Messages"));
   m_checkbox_show_active_title = new QCheckBox(tr("Show Active Title in Window Title"));
-  m_checkbox_use_builtin_title_database = new QCheckBox(tr("Use Built-In Database of Game Names"));
   m_checkbox_pause_on_focus_lost = new QCheckBox(tr("Pause on Focus Loss"));
   m_checkbox_hide_mouse = new QCheckBox(tr("Hide Mouse Cursor"));
 
@@ -97,7 +98,6 @@ void InterfacePane::CreateInGame()
   groupbox_layout->addWidget(m_checkbox_use_panic_handlers);
   groupbox_layout->addWidget(m_checkbox_enable_osd);
   groupbox_layout->addWidget(m_checkbox_show_active_title);
-  groupbox_layout->addWidget(m_checkbox_use_builtin_title_database);
   groupbox_layout->addWidget(m_checkbox_pause_on_focus_lost);
   groupbox_layout->addWidget(m_checkbox_hide_mouse);
 }
@@ -125,6 +125,7 @@ void InterfacePane::LoadConfig()
   m_checkbox_auto_window->setChecked(startup_params.bRenderWindowAutoSize);
   m_checkbox_top_window->setChecked(startup_params.bKeepWindowOnTop);
   m_checkbox_render_to_window->setChecked(startup_params.bRenderToMain);
+  m_checkbox_use_builtin_title_database->setChecked(startup_params.m_use_builtin_title_database);
   m_combobox_theme->setCurrentIndex(
       m_combobox_theme->findText(QString::fromStdString(SConfig::GetInstance().theme_name)));
 
@@ -133,7 +134,6 @@ void InterfacePane::LoadConfig()
   m_checkbox_use_panic_handlers->setChecked(startup_params.bUsePanicHandlers);
   m_checkbox_enable_osd->setChecked(startup_params.bOnScreenDisplayMessages);
   m_checkbox_show_active_title->setChecked(startup_params.m_show_active_title);
-  m_checkbox_use_builtin_title_database->setChecked(startup_params.m_use_builtin_title_database);
   m_checkbox_pause_on_focus_lost->setChecked(startup_params.m_PauseOnFocusLost);
   m_checkbox_hide_mouse->setChecked(Settings::Instance().GetHideCursor());
 }
@@ -144,13 +144,13 @@ void InterfacePane::OnSaveConfig()
   settings.bRenderWindowAutoSize = m_checkbox_auto_window->isChecked();
   settings.bKeepWindowOnTop = m_checkbox_top_window->isChecked();
   settings.bRenderToMain = m_checkbox_render_to_window->isChecked();
+  settings.m_use_builtin_title_database = m_checkbox_use_builtin_title_database->isChecked();
 
   // In Game Options
   settings.bConfirmStop = m_checkbox_confirm_on_stop->isChecked();
   settings.bUsePanicHandlers = m_checkbox_use_panic_handlers->isChecked();
   settings.bOnScreenDisplayMessages = m_checkbox_enable_osd->isChecked();
   settings.m_show_active_title = m_checkbox_show_active_title->isChecked();
-  settings.m_use_builtin_title_database = m_checkbox_use_builtin_title_database->isChecked();
   settings.m_PauseOnFocusLost = m_checkbox_pause_on_focus_lost->isChecked();
 
   settings.SaveSettings();
