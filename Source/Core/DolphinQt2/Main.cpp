@@ -68,8 +68,8 @@ int main(int argc, char* argv[])
 
       analytics_prompt.setIcon(QMessageBox::Question);
       analytics_prompt.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-      analytics_prompt.setText(QObject::tr(
-          "Do you authorize Dolphin to report this information to Dolphin's developers?"));
+      analytics_prompt.setText(
+          QObject::tr("Do you authorize Dolphin to report information to Dolphin's developers?"));
       analytics_prompt.setInformativeText(
           QObject::tr("If authorized, Dolphin can collect data on its performance, "
                       "feature usage, and configuration, as well as data on your system's "
@@ -79,7 +79,7 @@ int main(int argc, char* argv[])
                       "efforts. It also helps us identify rare configurations that are "
                       "causing bugs, performance and stability issues.\n"
                       "This authorization can be revoked at any time through Dolphin's "
-                      "settings.\n\n"));
+                      "settings."));
 
       const int answer = analytics_prompt.exec();
 
