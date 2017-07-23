@@ -49,6 +49,8 @@ enum TitleFlags : u32
   TITLE_TYPE_0x4 = 0x4,
   // Used for DLC titles.
   TITLE_TYPE_DATA = 0x8,
+  // Unknown.
+  TITLE_TYPE_0x10 = 0x10,
   // Appears to be used for WFS titles.
   TITLE_TYPE_WFS_MAYBE = 0x20,
   // Unknown.

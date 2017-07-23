@@ -85,11 +85,19 @@ constexpr size_t AES128_KEY_SIZE = 0x10;
 ReturnCode IOSC::ImportSecretKey(Handle dest_handle, Handle decrypt_handle, u8* iv,
                                  const u8* encrypted_key, u32 pid)
 {
-  if (!HasOwnership(dest_handle, pid) || !HasOwnership(decrypt_handle, pid) ||
-      IsDefaultHandle(dest_handle))
-  {
+  std::array<u8, AES128_KEY_SIZE> decrypted_key;
+  const ReturnCode ret =
+      Decrypt(decrypt_handle, iv, encrypted_key, AES128_KEY_SIZE, decrypted_key.data(), pid);
+  if (ret != IPC_SUCCESS)
+    return ret;
+
+  return ImportSecretKey(dest_handle, decrypted_key.data(), pid);
+}
+
+ReturnCode IOSC::ImportSecretKey(Handle dest_handle, const u8* decrypted_key, u32 pid)
+{
+  if (!HasOwnership(dest_handle, pid) || IsDefaultHandle(dest_handle))
     return IOSC_EACCES;
-  }
 
   KeyEntry* dest_entry = FindEntry(dest_handle);
   if (!dest_entry)
@@ -99,8 +107,8 @@ ReturnCode IOSC::ImportSecretKey(Handle dest_handle, Handle decrypt_handle, u8* 
   if (dest_entry->type != TYPE_SECRET_KEY || dest_entry->subtype != SUBTYPE_AES128)
     return IOSC_INVALID_OBJTYPE;
 
-  dest_entry->data.resize(AES128_KEY_SIZE);
-  return Decrypt(decrypt_handle, iv, encrypted_key, AES128_KEY_SIZE, dest_entry->data.data(), pid);
+  dest_entry->data = std::vector<u8>(decrypted_key, decrypted_key + AES128_KEY_SIZE);
+  return IPC_SUCCESS;
 }
 
 ReturnCode IOSC::ImportPublicKey(Handle dest_handle, const u8* public_key,
@@ -422,8 +430,9 @@ void IOSC::LoadDefaultEntries(ConsoleType console_type)
     break;
   }
 
-  // Unimplemented.
-  m_key_entries[HANDLE_PRNG_KEY] = {TYPE_SECRET_KEY, SUBTYPE_AES128, std::vector<u8>(16), 3};
+  m_key_entries[HANDLE_PRNG_KEY] = {
+      TYPE_SECRET_KEY, SUBTYPE_AES128,
+      std::vector<u8>(ec.GetBackupKey(), ec.GetBackupKey() + AES128_KEY_SIZE), 3};
 
   m_key_entries[HANDLE_SD_KEY] = {TYPE_SECRET_KEY,
                                   SUBTYPE_AES128,

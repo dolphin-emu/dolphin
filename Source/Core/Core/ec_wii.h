@@ -42,6 +42,7 @@ public:
   u32 GetNGKeyID() const;
   const u8* GetNGPriv() const;
   const u8* GetNGSig() const;
+  const u8* GetBackupKey() const;
 
 private:
   void InitDefaults();
@@ -82,7 +83,7 @@ private:
       };
     };
     u8 nand_key[0x10];    // 0x158
-    u8 rng_key[0x10];     // 0x168
+    u8 backup_key[0x10];  // 0x168
     u32 unk1;             // 0x178
     u32 unk2;             // 0x17C
     u8 eeprom_pad[0x80];  // 0x180
