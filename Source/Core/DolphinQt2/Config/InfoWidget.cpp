@@ -60,7 +60,7 @@ QGroupBox* InfoWidget::CreateISODetails()
 
 QGroupBox* InfoWidget::CreateBannerDetails()
 {
-  QGroupBox* group = new QGroupBox(tr("%1 Banner Details").arg(m_game.GetPlatform()));
+  QGroupBox* group = new QGroupBox(tr("Banner Details"));
   QFormLayout* layout = new QFormLayout;
 
   m_long_name = CreateValueDisplay();
