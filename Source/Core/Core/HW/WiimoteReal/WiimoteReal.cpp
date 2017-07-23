@@ -777,6 +777,7 @@ void Pause()
 
 void ChangeWiimoteSource(unsigned int index, int source)
 {
+  const int previous_source = g_wiimote_sources[index];
   g_wiimote_sources[index] = source;
   {
     // kill real connection (or swap to different slot)
@@ -796,9 +797,10 @@ void ChangeWiimoteSource(unsigned int index, int source)
   }
 
   // reconnect to the emulator
-  Core::RunAsCPUThread([index, source] {
-    ::Wiimote::Connect(index, false);
-    if (WIIMOTE_SRC_EMU & source)
+  Core::RunAsCPUThread([index, previous_source, source] {
+    if (previous_source != WIIMOTE_SRC_NONE)
+      ::Wiimote::Connect(index, false);
+    if (source & WIIMOTE_SRC_EMU)
       ::Wiimote::Connect(index, true);
   });
 }
