@@ -14,7 +14,7 @@
     <msgfmt Include="po\ar.po" />
     <msgfmt Include="po\ca.po" />
     <msgfmt Include="po\cs.po" />
-    <msgfmt Include="po\da_DK.po" />
+    <msgfmt Include="po\da.po" />
     <msgfmt Include="po\de.po" />
     <msgfmt Include="po\el.po" />
     <msgfmt Include="po\en.po" />
