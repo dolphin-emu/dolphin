@@ -107,6 +107,8 @@ void InterfacePane::ConnectLayout()
   connect(m_checkbox_auto_window, &QCheckBox::clicked, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_top_window, &QCheckBox::clicked, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_render_to_window, &QCheckBox::clicked, this, &InterfacePane::OnSaveConfig);
+  connect(m_checkbox_use_builtin_title_database, &QCheckBox::clicked, this,
+          &InterfacePane::OnSaveConfig);
   connect(m_combobox_theme, static_cast<void (QComboBox::*)(const QString&)>(&QComboBox::activated),
           &Settings::Instance(), &Settings::SetThemeName);
   connect(m_combobox_language, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated),
