@@ -43,8 +43,11 @@ Turntable::Turntable(ExtensionReg& reg) : Attachment(_trans("Turntable"), reg)
     m_buttons->controls.emplace_back(new ControllerEmu::Input(turntable_button_name));
 
   // turntables
-  groups.emplace_back(m_left_table = new ControllerEmu::Slider(_trans("Table Left")));
-  groups.emplace_back(m_right_table = new ControllerEmu::Slider(_trans("Table Right")));
+  // i18n: "Table" refers to a turntable
+  groups.emplace_back(m_left_table = new ControllerEmu::Slider("Table Left", _trans("Left Table")));
+  groups.emplace_back(m_right_table =
+                          // i18n: "Table" refers to a turntable
+                      new ControllerEmu::Slider("Table Right", _trans("Right Table")));
 
   // stick
   groups.emplace_back(

@@ -442,7 +442,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
         szr_other->Add(CreateCheckBox(page_general, _("Log Render Time to File"),
                                       wxGetTranslation(log_render_time_to_file_desc),
                                       Config::GFX_LOG_RENDER_TIME_TO_FILE));
-        szr_other->Add(CreateCheckBoxRefBool(page_general, _("Auto Adjust Window Size"),
+        szr_other->Add(CreateCheckBoxRefBool(page_general, _("Auto-Adjust Window Size"),
                                              wxGetTranslation(auto_window_size_desc),
                                              SConfig::GetInstance().bRenderWindowAutoSize));
         szr_other->Add(CreateCheckBox(page_general, _("Show NetPlay Messages"),
