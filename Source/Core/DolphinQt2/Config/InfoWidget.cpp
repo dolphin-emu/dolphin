@@ -81,7 +81,7 @@ QGroupBox* InfoWidget::CreateBannerDetails()
     layout->addRow(tr("Long Maker:"), m_long_maker);
     layout->addRow(tr("Description:"), m_description);
   }
-  else if (m_game.GetPlatformID() == DiscIO::Platform::WII_DISC)
+  else if (DiscIO::IsWii(m_game.GetPlatformID()))
   {
     layout->addRow(tr("Name:"), m_long_name);
   }
