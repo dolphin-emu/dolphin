@@ -54,7 +54,7 @@ AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent)
   text_label->setOpenExternalLinks(true);
 
   QLabel* copyright =
-      new QLabel(tr("\u00A9 2003-%1 Dolphin Team. \u201cGameCubeu201d and \u201cWiiu201d are "
+      new QLabel(tr("\u00A9 2003-%1 Dolphin Team. \u201cGameCube\u201d and \u201cWii\u201d are "
                     "trademarks of Nintendo. Dolphin is not affiliated with Nintendo in any way.")
                      .arg(QStringLiteral(__DATE__).right(4)));
 
