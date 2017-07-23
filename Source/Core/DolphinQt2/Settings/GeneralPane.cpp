@@ -100,7 +100,7 @@ void GeneralPane::CreateBasic()
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
 void GeneralPane::CreateAnalytics()
 {
-  auto* analytics_group = new QGroupBox(tr("Usage Statistics Reporting"));
+  auto* analytics_group = new QGroupBox(tr("Usage Statistics Reporting Settings"));
   auto* analytics_group_layout = new QVBoxLayout;
   analytics_group->setLayout(analytics_group_layout);
   m_main_layout->addWidget(analytics_group);

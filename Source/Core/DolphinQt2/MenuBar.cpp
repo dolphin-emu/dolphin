@@ -76,14 +76,14 @@ void MenuBar::EmulationStopped()
 
 void MenuBar::AddFileMenu()
 {
-  QMenu* file_menu = addMenu(tr("File"));
-  m_open_action = file_menu->addAction(tr("Open"), this, &MenuBar::Open);
-  m_exit_action = file_menu->addAction(tr("Exit"), this, &MenuBar::Exit);
+  QMenu* file_menu = addMenu(tr("&File"));
+  m_open_action = file_menu->addAction(tr("&Open..."), this, &MenuBar::Open);
+  m_exit_action = file_menu->addAction(tr("E&xit"), this, &MenuBar::Exit);
 }
 
 void MenuBar::AddToolsMenu()
 {
-  QMenu* tools_menu = addMenu(tr("Tools"));
+  QMenu* tools_menu = addMenu(tr("&Tools"));
   m_wad_install_action = tools_menu->addAction(tr("Install WAD..."), this, &MenuBar::InstallWAD);
 
   // Label will be set by a NANDRefresh later
@@ -106,13 +106,13 @@ void MenuBar::AddToolsMenu()
 
 void MenuBar::AddEmulationMenu()
 {
-  QMenu* emu_menu = addMenu(tr("Emulation"));
-  m_play_action = emu_menu->addAction(tr("Play"), this, &MenuBar::Play);
-  m_pause_action = emu_menu->addAction(tr("Pause"), this, &MenuBar::Pause);
-  m_stop_action = emu_menu->addAction(tr("Stop"), this, &MenuBar::Stop);
-  m_reset_action = emu_menu->addAction(tr("Reset"), this, &MenuBar::Reset);
-  m_fullscreen_action = emu_menu->addAction(tr("Fullscreen"), this, &MenuBar::Fullscreen);
-  m_frame_advance_action = emu_menu->addAction(tr("Frame Advance"), this, &MenuBar::FrameAdvance);
+  QMenu* emu_menu = addMenu(tr("&Emulation"));
+  m_play_action = emu_menu->addAction(tr("&Play"), this, &MenuBar::Play);
+  m_pause_action = emu_menu->addAction(tr("&Pause"), this, &MenuBar::Pause);
+  m_stop_action = emu_menu->addAction(tr("&Stop"), this, &MenuBar::Stop);
+  m_reset_action = emu_menu->addAction(tr("&Reset"), this, &MenuBar::Reset);
+  m_fullscreen_action = emu_menu->addAction(tr("Toggle &Fullscreen"), this, &MenuBar::Fullscreen);
+  m_frame_advance_action = emu_menu->addAction(tr("&Frame Advance"), this, &MenuBar::FrameAdvance);
   m_screenshot_action = emu_menu->addAction(tr("Take Screenshot"), this, &MenuBar::Screenshot);
   AddStateLoadMenu(emu_menu);
   AddStateSaveMenu(emu_menu);
@@ -122,7 +122,7 @@ void MenuBar::AddEmulationMenu()
 
 void MenuBar::AddStateLoadMenu(QMenu* emu_menu)
 {
-  m_state_load_menu = emu_menu->addMenu(tr("Load State"));
+  m_state_load_menu = emu_menu->addMenu(tr("&Load State"));
   m_state_load_menu->addAction(tr("Load State from File"), this, &MenuBar::StateLoad);
   m_state_load_menu->addAction(tr("Load State from Selected Slot"), this, &MenuBar::StateLoadSlot);
   m_state_load_slots_menu = m_state_load_menu->addMenu(tr("Load State from Slot"));
@@ -138,7 +138,7 @@ void MenuBar::AddStateLoadMenu(QMenu* emu_menu)
 
 void MenuBar::AddStateSaveMenu(QMenu* emu_menu)
 {
-  m_state_save_menu = emu_menu->addMenu(tr("Save State"));
+  m_state_save_menu = emu_menu->addMenu(tr("Sa&ve State"));
   m_state_save_menu->addAction(tr("Save State to File"), this, &MenuBar::StateSave);
   m_state_save_menu->addAction(tr("Save State to Selected Slot"), this, &MenuBar::StateSaveSlot);
   m_state_save_menu->addAction(tr("Save State to Oldest Slot"), this, &MenuBar::StateSaveOldest);
@@ -187,7 +187,7 @@ void MenuBar::UpdateStateSlotMenu()
 
 void MenuBar::AddViewMenu()
 {
-  QMenu* view_menu = addMenu(tr("View"));
+  QMenu* view_menu = addMenu(tr("&View"));
   AddGameListTypeSection(view_menu);
   view_menu->addSeparator();
   AddTableColumnsMenu(view_menu);
@@ -198,7 +198,7 @@ void MenuBar::AddViewMenu()
 
 void MenuBar::AddOptionsMenu()
 {
-  QMenu* options_menu = addMenu(tr("Options"));
+  QMenu* options_menu = addMenu(tr("&Options"));
   options_menu->addAction(tr("Co&nfiguration"), this, &MenuBar::Configure);
   options_menu->addSeparator();
   options_menu->addAction(tr("&Graphics Settings"), this, &MenuBar::ConfigureGraphics);
@@ -209,21 +209,21 @@ void MenuBar::AddOptionsMenu()
 
 void MenuBar::AddHelpMenu()
 {
-  QMenu* help_menu = addMenu(tr("Help"));
-  QAction* website = help_menu->addAction(tr("Website"));
+  QMenu* help_menu = addMenu(tr("&Help"));
+  QAction* website = help_menu->addAction(tr("&Website"));
   connect(website, &QAction::triggered, this,
           []() { QDesktopServices::openUrl(QUrl(QStringLiteral("https://dolphin-emu.org/"))); });
-  QAction* documentation = help_menu->addAction(tr("Online Documentation"));
+  QAction* documentation = help_menu->addAction(tr("Online &Documentation"));
   connect(documentation, &QAction::triggered, this, []() {
     QDesktopServices::openUrl(QUrl(QStringLiteral("https://dolphin-emu.org/docs/guides")));
   });
-  QAction* github = help_menu->addAction(tr("GitHub Repository"));
+  QAction* github = help_menu->addAction(tr("&GitHub Repository"));
   connect(github, &QAction::triggered, this, []() {
     QDesktopServices::openUrl(QUrl(QStringLiteral("https://github.com/dolphin-emu/dolphin")));
   });
 
   help_menu->addSeparator();
-  help_menu->addAction(tr("About"), this, &MenuBar::ShowAboutDialog);
+  help_menu->addAction(tr("&About"), this, &MenuBar::ShowAboutDialog);
 }
 
 void MenuBar::AddGameListTypeSection(QMenu* view_menu)
@@ -257,7 +257,7 @@ void MenuBar::AddTableColumnsMenu(QMenu* view_menu)
       {tr("Maker"), &SConfig::GetInstance().m_showMakerColumn},
       {tr("Size"), &SConfig::GetInstance().m_showSizeColumn},
       {tr("Country"), &SConfig::GetInstance().m_showRegionColumn},
-      {tr("Quality"), &SConfig::GetInstance().m_showStateColumn}};
+      {tr("State"), &SConfig::GetInstance().m_showStateColumn}};
 
   QActionGroup* column_group = new QActionGroup(this);
   QMenu* cols_menu = view_menu->addMenu(tr("Table Columns"));
@@ -373,12 +373,12 @@ void MenuBar::InstallWAD()
   if (GameFile(wad_file).Install())
   {
     result_dialog.setIcon(QMessageBox::Information);
-    result_dialog.setText(tr("Successfully installed title to the NAND"));
+    result_dialog.setText(tr("Successfully installed this title to the NAND."));
   }
   else
   {
     result_dialog.setIcon(QMessageBox::Critical);
-    result_dialog.setText(tr("Failed to install title to the NAND!"));
+    result_dialog.setText(tr("Failed to install this title to the NAND."));
   }
 
   result_dialog.exec();

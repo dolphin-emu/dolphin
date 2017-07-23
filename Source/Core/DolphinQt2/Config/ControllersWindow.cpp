@@ -94,7 +94,7 @@ void ControllersWindow::CreateGamecubeLayout()
 
   for (size_t i = 0; i < m_gc_groups.size(); i++)
   {
-    auto* gc_label = new QLabel(tr("Controller %1").arg(i + 1));
+    auto* gc_label = new QLabel(tr("Port %1").arg(i + 1));
     auto* gc_box = m_gc_controller_boxes[i] = new QComboBox();
     auto* gc_button = m_gc_buttons[i] = new QPushButton(tr("Configure"));
 
@@ -156,13 +156,13 @@ void ControllersWindow::CreateWiimoteLayout()
   m_wiimote_box = new QGroupBox(tr("Wii Remotes"));
   m_wiimote_box->setLayout(m_wiimote_layout);
 
-  m_wiimote_passthrough = new QRadioButton(tr("Use Bluetooth Passthrough"));
+  m_wiimote_passthrough = new QRadioButton(tr("Passthrough a Bluetooth adapter"));
   m_wiimote_sync = new QPushButton(tr("Sync"));
   m_wiimote_reset = new QPushButton(tr("Reset"));
   m_wiimote_refresh = new QPushButton(tr("Refresh"));
   m_wiimote_pt_labels[0] = new QLabel(tr("Sync real Wii Remotes and pair them"));
   m_wiimote_pt_labels[1] = new QLabel(tr("Reset all saved Wii Remote pairings"));
-  m_wiimote_emu = new QRadioButton(tr("Emulate the Wii Bluetooth Adapter"));
+  m_wiimote_emu = new QRadioButton(tr("Emulate the Wii's Bluetooth Adapter"));
   m_wiimote_continuous_scanning = new QCheckBox(tr("Continuous Scanning"));
   m_wiimote_real_balance_board = new QCheckBox(tr("Real Balance Board"));
   m_wiimote_speaker_data = new QCheckBox(tr("Enable Speaker Data"));
@@ -358,7 +358,7 @@ void ControllersWindow::OnBluetoothPassthroughSyncPressed()
   {
     QMessageBox error(this);
     error.setIcon(QMessageBox::Warning);
-    error.setText(tr("A sync can only be triggered when a Wii game is running"));
+    error.setText(tr("A sync can only be triggered when a Wii game is running."));
     error.exec();
     return;
   }
