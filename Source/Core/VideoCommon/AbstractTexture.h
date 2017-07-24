@@ -5,6 +5,7 @@
 #pragma once
 
 #include <cstddef>
+#include <optional>
 #include <string>
 
 #include "Common/CommonTypes.h"
@@ -17,7 +18,20 @@ public:
   explicit AbstractTexture(const TextureConfig& c);
   virtual ~AbstractTexture();
   virtual void Bind(unsigned int stage) = 0;
-  virtual bool Save(const std::string& filename, unsigned int level);
+  bool Save(const std::string& filename, unsigned int level);
+
+  struct RawTextureInfo
+  {
+    const u8* data;
+    u32 stride;
+    u32 width;
+    u32 height;
+  };
+
+  std::optional<RawTextureInfo> Map();
+  std::optional<RawTextureInfo> Map(u32 level, u32 x, u32 y, u32 width, u32 height);
+  std::optional<RawTextureInfo> Map(u32 level);
+  virtual void Unmap();
 
   virtual void CopyRectangleFromTexture(const AbstractTexture* source,
                                         const MathUtil::Rectangle<int>& srcrect,
@@ -31,5 +45,10 @@ public:
   const TextureConfig& GetConfig() const;
 
 protected:
+  virtual std::optional<RawTextureInfo> MapFullImpl();
+  virtual std::optional<RawTextureInfo> MapRegionImpl(u32 level, u32 x, u32 y, u32 width,
+                                                      u32 height);
+  bool m_currently_mapped;
+
   const TextureConfig m_config;
 };

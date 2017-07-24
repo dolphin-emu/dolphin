@@ -28,7 +28,8 @@ namespace Vulkan
 {
 VKTexture::VKTexture(const TextureConfig& tex_config, std::unique_ptr<Texture2D> texture,
                      VkFramebuffer framebuffer)
-    : AbstractTexture(tex_config), m_texture(std::move(texture)), m_framebuffer(framebuffer)
+    : AbstractTexture(tex_config), m_texture(std::move(texture)), m_framebuffer(framebuffer),
+      m_stagingTexture(nullptr)
 {
 }
 
@@ -113,23 +114,17 @@ void VKTexture::Bind(unsigned int stage)
   StateTracker::GetInstance()->SetTexture(stage, m_texture->GetView());
 }
 
-bool VKTexture::Save(const std::string& filename, unsigned int level)
+std::optional<AbstractTexture::RawTextureInfo> VKTexture::MapFullImpl()
 {
-  _assert_(level < m_config.levels);
+  // No support for optimization of full copy
+  return MapRegionImpl(0, 0, 0, m_config.width, m_config.height);
+}
 
-  // We can't dump compressed textures currently (it would mean drawing them to a RGBA8
-  // framebuffer, and saving that). TextureCache does not call Save for custom textures
-  // anyway, so this is fine for now.
-  _assert_(m_config.format == AbstractTextureFormat::RGBA8);
-
-  // Determine dimensions of image we want to save.
-  u32 level_width = std::max(1u, m_config.width >> level);
-  u32 level_height = std::max(1u, m_config.height >> level);
-
-  // Use a temporary staging texture for the download. Certainly not optimal,
-  // but since we have to idle the GPU anyway it doesn't really matter.
-  std::unique_ptr<StagingTexture2D> staging_texture = StagingTexture2D::Create(
-      STAGING_BUFFER_TYPE_READBACK, level_width, level_height, TEXTURECACHE_TEXTURE_FORMAT);
+std::optional<AbstractTexture::RawTextureInfo> VKTexture::MapRegionImpl(u32 level, u32 x, u32 y,
+                                                                        u32 width, u32 height)
+{
+  m_stagingTexture = StagingTexture2D::Create(STAGING_BUFFER_TYPE_READBACK, width, height,
+                                              TEXTURECACHE_TEXTURE_FORMAT);
 
   // Transition image to transfer source, and invalidate the current state,
   // since we'll be executing the command buffer.
@@ -138,9 +133,9 @@ bool VKTexture::Save(const std::string& filename, unsigned int level)
   StateTracker::GetInstance()->EndRenderPass();
 
   // Copy to download buffer.
-  staging_texture->CopyFromImage(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                                 m_texture->GetImage(), VK_IMAGE_ASPECT_COLOR_BIT, 0, 0,
-                                 level_width, level_height, level, 0);
+  m_stagingTexture->CopyFromImage(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                  m_texture->GetImage(), VK_IMAGE_ASPECT_COLOR_BIT, x, y, width,
+                                  height, level, 0);
 
   // Restore original state of texture.
   m_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
@@ -150,21 +145,23 @@ bool VKTexture::Save(const std::string& filename, unsigned int level)
   Util::ExecuteCurrentCommandsAndRestoreState(false, true);
 
   // Map the staging texture so we can copy the contents out.
-  if (!staging_texture->Map())
+  if (!m_stagingTexture->Map())
   {
     PanicAlert("Failed to map staging texture");
-    return false;
+    return {};
   }
 
-  // Write texture out to file.
-  // It's okay to throw this texture away immediately, since we're done with it, and
-  // we blocked until the copy completed on the GPU anyway.
-  bool result = TextureToPng(reinterpret_cast<u8*>(staging_texture->GetMapPointer()),
-                             static_cast<u32>(staging_texture->GetRowStride()), filename,
-                             level_width, level_height);
+  return AbstractTexture::RawTextureInfo{reinterpret_cast<u8*>(m_stagingTexture->GetMapPointer()),
+                                         static_cast<u32>(m_stagingTexture->GetRowStride()), width,
+                                         height};
+}
 
-  staging_texture->Unmap();
-  return result;
+void VKTexture::Unmap()
+{
+  if (m_stagingTexture)
+  {
+    m_stagingTexture->Unmap();
+  }
 }
 
 void VKTexture::CopyTextureRectangle(const MathUtil::Rectangle<int>& dst_rect,
