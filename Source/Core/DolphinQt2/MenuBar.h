@@ -16,6 +16,15 @@ class MenuBar final : public QMenuBar
 public:
   explicit MenuBar(QWidget* parent = nullptr);
 
+  void EmulationStarted();
+  void EmulationPaused();
+  void EmulationStopped();
+  void UpdateStateSlotMenu();
+  void UpdateToolsMenu(bool emulation_started);
+
+  // Tools
+  void InstallWAD();
+
 signals:
   // File
   void Open();
@@ -56,16 +65,6 @@ signals:
   void ColumnVisibilityToggled(const QString& row, bool visible);
 
   void ShowAboutDialog();
-
-public slots:
-  void EmulationStarted();
-  void EmulationPaused();
-  void EmulationStopped();
-  void UpdateStateSlotMenu();
-  void UpdateToolsMenu(bool emulation_started);
-
-  // Tools
-  void InstallWAD();
 
 private:
   void AddFileMenu();

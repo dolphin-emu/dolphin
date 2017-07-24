@@ -60,33 +60,33 @@ void ToolBar::EmulationStopped()
 void ToolBar::MakeActions()
 {
   constexpr int button_width = 65;
-  m_open_action = addAction(tr("Open"), this, SIGNAL(OpenPressed()));
+  m_open_action = addAction(tr("Open"), this, &ToolBar::OpenPressed);
   widgetForAction(m_open_action)->setMinimumWidth(button_width);
 
-  m_play_action = addAction(tr("Play"), this, SIGNAL(PlayPressed()));
+  m_play_action = addAction(tr("Play"), this, &ToolBar::PlayPressed);
   widgetForAction(m_play_action)->setMinimumWidth(button_width);
 
-  m_pause_action = addAction(tr("Pause"), this, SIGNAL(PausePressed()));
+  m_pause_action = addAction(tr("Pause"), this, &ToolBar::PausePressed);
   widgetForAction(m_pause_action)->setMinimumWidth(button_width);
 
-  m_stop_action = addAction(tr("Stop"), this, SIGNAL(StopPressed()));
+  m_stop_action = addAction(tr("Stop"), this, &ToolBar::StopPressed);
   widgetForAction(m_stop_action)->setMinimumWidth(button_width);
 
-  m_fullscreen_action = addAction(tr("Full Screen"), this, SIGNAL(FullScreenPressed()));
+  m_fullscreen_action = addAction(tr("Full Screen"), this, &ToolBar::FullScreenPressed);
   widgetForAction(m_fullscreen_action)->setMinimumWidth(button_width);
 
-  m_screenshot_action = addAction(tr("Screen Shot"), this, SIGNAL(ScreenShotPressed()));
+  m_screenshot_action = addAction(tr("Screen Shot"), this, &ToolBar::ScreenShotPressed);
   widgetForAction(m_screenshot_action)->setMinimumWidth(button_width);
 
   addSeparator();
 
-  m_config_action = addAction(tr("Settings"), this, SIGNAL(SettingsPressed()));
+  m_config_action = addAction(tr("Settings"), this, &ToolBar::SettingsPressed);
   widgetForAction(m_config_action)->setMinimumWidth(button_width);
 
-  m_graphics_action = addAction(tr("Graphics"), this, SIGNAL(GraphicsPressed()));
+  m_graphics_action = addAction(tr("Graphics"), this, &ToolBar::GraphicsPressed);
   widgetForAction(m_graphics_action)->setMinimumWidth(button_width);
 
-  m_controllers_action = addAction(tr("Controllers"), this, SIGNAL(ControllersPressed()));
+  m_controllers_action = addAction(tr("Controllers"), this, &ToolBar::ControllersPressed);
   widgetForAction(m_controllers_action)->setMinimumWidth(button_width);
   m_controllers_action->setEnabled(true);
 }

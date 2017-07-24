@@ -19,12 +19,11 @@ class InfoWidget final : public QWidget
 public:
   explicit InfoWidget(const GameFile& game);
 
-private slots:
+private:
   void ComputeChecksum();
   void ChangeLanguage();
   void SaveBanner();
 
-private:
   QGroupBox* CreateBannerDetails();
   QGroupBox* CreateISODetails();
   QLineEdit* CreateValueDisplay() { return CreateValueDisplay(QStringLiteral("")); };
