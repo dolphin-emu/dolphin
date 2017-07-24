@@ -200,7 +200,9 @@ void GameList::ShowContextMenu(const QPoint&)
 
   QAction* netplay_host = new QAction(tr("Host with NetPlay"), menu);
 
-  connect(netplay_host, &QAction::triggered, [this, game] { emit NetPlayHost(game); });
+  connect(netplay_host, &QAction::triggered,
+          [this, game] { emit NetPlayHost(GameFile(game).GetUniqueID()); });
+
   connect(this, &GameList::EmulationStarted, netplay_host,
           [netplay_host] { netplay_host->setEnabled(false); });
   connect(this, &GameList::EmulationStopped, netplay_host,
