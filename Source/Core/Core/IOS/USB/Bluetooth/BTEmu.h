@@ -191,7 +191,7 @@ private:
     u8 num_registered;
     _conf_pad_device registered[CONF_PAD_MAX_REGISTERED];
     _conf_pad_device active[MAX_BBMOTES];
-    u8 unknown[0x45];
+    _conf_pad_device unknown;
   };
 #pragma pack(pop)
 };
