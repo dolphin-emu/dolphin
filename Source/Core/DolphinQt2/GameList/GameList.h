@@ -10,7 +10,6 @@
 #include <QStackedWidget>
 #include <QTableView>
 
-#include "DolphinQt2/GameList/GameFile.h"
 #include "DolphinQt2/GameList/GameListModel.h"
 
 class GameList final : public QStackedWidget
@@ -27,7 +26,12 @@ public slots:
   void SetViewColumn(int col, bool view) { m_table->setColumnHidden(col, !view); }
   void OnColumnVisibilityToggled(const QString& row, bool visible);
 
-private slots:
+signals:
+  void GameSelected();
+  void EmulationStarted();
+  void EmulationStopped();
+
+private:
   void ShowContextMenu(const QPoint&);
   void OpenContainingFolder();
   void OpenProperties();
@@ -41,12 +45,6 @@ private slots:
   void CompressISO();
   void OnHeaderViewChanged();
 
-signals:
-  void GameSelected();
-  void EmulationStarted();
-  void EmulationStopped();
-
-private:
   void MakeTableView();
   void MakeListView();
   void MakeEmptyView();
