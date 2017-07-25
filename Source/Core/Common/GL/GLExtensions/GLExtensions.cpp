@@ -1742,7 +1742,7 @@ const GLFunc gl_function_array[] = {
                   "GL_OES_draw_elements_base_vertex VERSION_GLES_3 !VERSION_GLES_3_2"),
     GLFUNC_SUFFIX(glDrawRangeElementsBaseVertex, OES,
                   "GL_OES_draw_elements_base_vertex VERSION_GLES_3 !VERSION_GLES_3_2"),
-    GLFUNC_SUFFIX(glMultiDrawElementsBaseVertex, OES,
+    GLFUNC_SUFFIX(glMultiDrawElementsBaseVertex, EXT,
                   "GL_OES_draw_elements_base_vertex GL_EXT_multi_draw_arrays"),
 
     // EXT_draw_elements_base_vertex
