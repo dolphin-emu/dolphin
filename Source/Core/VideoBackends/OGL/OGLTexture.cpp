@@ -172,21 +172,50 @@ std::optional<AbstractTexture::RawTextureInfo> OGLTexture::MapRegionImpl(u32 lev
   m_staging_data.reserve(m_config.width * m_config.height * 4);
   glActiveTexture(GL_TEXTURE9);
   glBindTexture(GL_TEXTURE_2D_ARRAY, m_texId);
-  u8* data_location;
   if (GLExtensions::Version() >= 450)
   {
     glGetTextureSubImage(GL_TEXTURE_2D_ARRAY, level, GLint(x), GLint(y), 0, GLsizei(width),
                          GLsizei(height), 0, GL_RGBA, GL_UNSIGNED_BYTE, GLsizei(width * height * 4),
                          m_staging_data.data());
-    data_location = m_staging_data.data();
   }
   else
   {
-    // TODO: implement 'slow' path for users without 4.5
-    return {};
+    MapRegionSlow(level, x, y, width, height);
   }
   OGLTexture::SetStage();
-  return AbstractTexture::RawTextureInfo{data_location, width * 4, width, height};
+  return AbstractTexture::RawTextureInfo{m_staging_data.data(), width * 4, width, height};
+}
+
+void OGLTexture::MapRegionSlow(u32 level, u32 x, u32 y, u32 width, u32 height)
+{
+  glActiveTexture(GL_TEXTURE9);
+
+  glBindTexture(GL_TEXTURE_2D_ARRAY, m_texId);
+  glGetTexImage(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_staging_data.data());
+
+  // Now copy the region out of the staging data
+
+  const u32 partial_stride = width * 4;
+
+  std::vector<u8> partial_data;
+  partial_data.resize(partial_stride * height);
+
+  const u32 staging_stride = m_config.width * 4;
+  const u32 x_offset = x * 4;
+
+  auto staging_location = m_staging_data.begin() + staging_stride * y;
+  auto partial_location = partial_data.begin();
+
+  for (size_t i = 0; i < height; ++i)
+  {
+    auto starting_location = staging_location + x_offset;
+    std::copy(starting_location, starting_location + partial_stride, partial_location);
+    staging_location += staging_stride;
+    partial_location += partial_stride;
+  }
+
+  // Now swap the region back in for the staging data
+  m_staging_data.swap(partial_data);
 }
 
 void OGLTexture::CopyRectangleFromTexture(const AbstractTexture* source,
