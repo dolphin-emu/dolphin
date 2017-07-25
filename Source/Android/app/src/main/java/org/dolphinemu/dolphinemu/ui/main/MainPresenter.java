@@ -7,11 +7,13 @@ import org.dolphinemu.dolphinemu.DolphinApplication;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.model.GameDatabase;
+import org.dolphinemu.dolphinemu.utils.Log;
 import org.dolphinemu.dolphinemu.utils.SettingsFile;
 
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action1;
-import rx.schedulers.Schedulers;
+import io.reactivex.SingleObserver;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
 
 public final class MainPresenter
 {
@@ -97,14 +99,21 @@ public final class MainPresenter
 		databaseHelper.getGamesForPlatform(platformIndex)
 				.subscribeOn(Schedulers.io())
 				.observeOn(AndroidSchedulers.mainThread())
-				.subscribe(new Action1<Cursor>()
-						   {
-							   @Override
-							   public void call(Cursor games)
-							   {
-								   mView.showGames(platformIndex, games);
-							   }
-						   }
-				);
+				.subscribe(new SingleObserver<Cursor>() {
+					@Override
+					public void onSubscribe(Disposable d) {}
+
+					@Override
+					public void onSuccess(Cursor games)
+					{
+						mView.showGames(platformIndex, games);
+					}
+
+					@Override
+					public void onError(Throwable e)
+					{
+						Log.error(e.getMessage());
+					}
+				});
 	}
 }

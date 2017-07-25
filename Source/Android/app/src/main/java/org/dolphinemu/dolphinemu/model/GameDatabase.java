@@ -13,9 +13,10 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
-import rx.Observable;
-import rx.Subscriber;
+import io.reactivex.Single;
+import io.reactivex.SingleSource;
 
 /**
  * A helper class that provides several utilities simplifying interaction with
@@ -257,12 +258,12 @@ public final class GameDatabase extends SQLiteOpenHelper
 		database.close();
 	}
 
-	public Observable<Cursor> getGamesForPlatform(final int platform)
+	public Single<Cursor> getGamesForPlatform(final int platform)
 	{
-		return Observable.create(new Observable.OnSubscribe<Cursor>()
+		return Single.defer(new Callable<SingleSource<? extends Cursor>>()
 		{
 			@Override
-			public void call(Subscriber<? super Cursor> subscriber)
+			public SingleSource<? extends Cursor> call() throws Exception
 			{
 				Log.info("[GameDatabase] [GameDatabase] Reading games list...");
 
@@ -279,20 +280,17 @@ public final class GameDatabase extends SQLiteOpenHelper
 				SQLiteDatabase database = getReadableDatabase();
 
 				Cursor resultCursor = database.query(
-						TABLE_NAME_GAMES,
-						null,
-						whereClause,
-						whereArgs,
-						null,
-						null,
-						KEY_GAME_TITLE + " ASC"
+					TABLE_NAME_GAMES,
+					null,
+					whereClause,
+					whereArgs,
+					null,
+					null,
+					KEY_GAME_TITLE + " ASC"
 				);
 
 				// Pass the result cursor to the consumer.
-				subscriber.onNext(resultCursor);
-
-				// Tell the consumer we're done; it will unsubscribe implicitly.
-				subscriber.onCompleted();
+				return Single.just(resultCursor);
 			}
 		});
 	}

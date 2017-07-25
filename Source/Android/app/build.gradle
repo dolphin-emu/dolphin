@@ -90,7 +90,8 @@ dependencies {
     compile 'com.squareup.picasso:picasso:2.5.2'
 
     // Allows FRP-style asynchronous operations in Android.
-    compile 'io.reactivex:rxandroid:1.2.1'
+    compile 'io.reactivex.rxjava2:rxandroid:2.0.1'
+    compile 'io.reactivex.rxjava2:rxjava:2.1.2'
 }
 
 def getVersion() {
