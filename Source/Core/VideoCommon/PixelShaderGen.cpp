@@ -350,7 +350,7 @@ static void WriteTevRegular(ShaderCode& out, const char* components, int bias, i
 static void SampleTexture(ShaderCode& out, const char* texcoords, const char* texswap, int texmap,
                           bool stereo, APIType ApiType);
 static void WriteAlphaTest(ShaderCode& out, const pixel_shader_uid_data* uid_data, APIType ApiType,
-                           bool per_pixel_depth, bool use_dual_source);
+                           bool per_pixel_depth, bool use_dual_source, bool use_framebuffer_fetch);
 static void WriteFog(ShaderCode& out, const pixel_shader_uid_data* uid_data);
 static void WriteColor(ShaderCode& out, const pixel_shader_uid_data* uid_data,
                        bool use_dual_source);
@@ -611,6 +611,10 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const pixel_shader_uid_data*
       out.Write("\tfloat4 initial_fb_value = fb_value;\n");
       out.Write("\tfloat4 ocol0 = float4(0, 0, 0, 0);\n");
       out.Write("\tfloat4 ocol1 = float4(0, 0, 0, 0);\n");
+      if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DISCARD_FRAMEBUFFER_FETCH))
+      {
+        out.Write("\tbool fake_discard = false;\n");
+      }
     }
 
     if (g_ActiveConfig.backend_info.bSupportsGeometryShaders || ApiType == APIType::Vulkan)
@@ -756,7 +760,8 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const pixel_shader_uid_data*
   // testing result)
   if (uid_data->Pretest == AlphaTest::UNDETERMINED ||
       (uid_data->Pretest == AlphaTest::FAIL && uid_data->late_ztest))
-    WriteAlphaTest(out, uid_data, ApiType, uid_data->per_pixel_depth, use_dual_source);
+    WriteAlphaTest(out, uid_data, ApiType, uid_data->per_pixel_depth, use_dual_source,
+                   use_framebuffer_fetch_blend);
 
   if (uid_data->zfreeze)
   {
@@ -1261,7 +1266,7 @@ static const char* tevAlphaFunclogicTable[] = {
 };
 
 static void WriteAlphaTest(ShaderCode& out, const pixel_shader_uid_data* uid_data, APIType ApiType,
-                           bool per_pixel_depth, bool use_dual_source)
+                           bool per_pixel_depth, bool use_dual_source, bool use_framebuffer_fetch)
 {
   static const char* alphaRef[2] = {I_ALPHA ".r", I_ALPHA ".g"};
 
@@ -1299,9 +1304,17 @@ static void WriteAlphaTest(ShaderCode& out, const pixel_shader_uid_data* uid_dat
   // ZCOMPLOC HACK:
   if (!uid_data->alpha_test_use_zcomploc_hack)
   {
-    out.Write("\t\tdiscard;\n");
-    if (ApiType != APIType::D3D)
-      out.Write("\t\treturn;\n");
+    if (use_framebuffer_fetch &&
+        DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DISCARD_FRAMEBUFFER_FETCH))
+    {
+      out.Write("fake_discard = true;\n");
+    }
+    else
+    {
+      out.Write("\t\tdiscard;\n");
+      if (ApiType != APIType::D3D)
+        out.Write("\t\treturn;\n");
+    }
   }
 
   out.Write("\t}\n");
@@ -1406,6 +1419,12 @@ static void WriteColor(ShaderCode& out, const pixel_shader_uid_data* uid_data, b
 
 static void WriteBlend(ShaderCode& out)
 {
+  if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DISCARD_FRAMEBUFFER_FETCH))
+  {
+    out.Write("\tif (fake_discard) {\n"
+              "\t\tfb_ocol = initial_fb_value;\n"
+              "\t} else");
+  }
   out.Write(
       "\tif (" I_BLEND_ENABLE " == 1u) {\n"
       "\t\tfloat4 blendsrc;\n"

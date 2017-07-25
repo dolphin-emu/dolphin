@@ -247,6 +247,10 @@ enum Bug
   // fail compilation with no useful diagnostic log. This can be worked around by storing
   // the negated value to a temporary variable then using that in the bitwise op.
   BUG_BROKEN_BITWISE_OP_NEGATION,
+  // NOT REALLY A BUG: The spec for EXT_shader_framebuffer_fetch allows the fetch to return
+  // undefined results for fragments that discard on a per-sample basis. This *may* be what's wrong
+  // here with adreno? Here for testing for now.
+  BUG_BROKEN_DISCARD_FRAMEBUFFER_FETCH,
 };
 
 // Initializes our internal vendor, device family, and driver version
