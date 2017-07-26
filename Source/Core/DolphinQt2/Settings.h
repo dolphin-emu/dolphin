@@ -8,7 +8,6 @@
 #include <QVector>
 
 #include "Common/NonCopyable.h"
-#include "Core/HW/SI/SI.h"
 
 namespace DiscIO
 {
@@ -30,12 +29,10 @@ public:
   QString GetProfilesDir() const;
   QVector<QString> GetProfiles(const InputConfig* config) const;
   QString GetProfileINIPath(const InputConfig* config, const QString& name) const;
-  bool IsInDevelopmentWarningEnabled() const;
 
   // GameList
   QStringList GetPaths() const;
   void AddPath(const QString& path);
-  void SetPaths(const QStringList& paths);
   void RemovePath(const QString& path);
   bool GetPreferredView() const;
   void SetPreferredView(bool table);

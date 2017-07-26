@@ -43,8 +43,6 @@ public:
 private:
   void CreateMainLayout();
   void ConnectWidgets();
-  void LoadSettings();
-  void SaveSettings();
   void Update();
 
   void OnDialogButtonPressed(QAbstractButton* button);
