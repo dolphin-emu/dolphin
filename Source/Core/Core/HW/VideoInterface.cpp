@@ -74,7 +74,7 @@ static u32 s_odd_field_first_hl;   // index first halfline of the odd field
 static u32 s_even_field_last_hl;   // index last halfline of the even field
 static u32 s_odd_field_last_hl;    // index last halfline of the odd field
 
-void DoState(PointerWrap& p)
+static void DoRegisters(PointerWrap& p)
 {
   p.DoPOD(m_VerticalTimingRegister);
   p.DoPOD(m_DisplayControlRegister);
@@ -98,6 +98,25 @@ void DoState(PointerWrap& p)
   p.Do(m_DTVStatus);
   p.Do(m_FBWidth);
   p.Do(m_BorderHBlank);
+}
+
+void LoadVIRegs(const u8* readonly_memory)
+{
+  u8* memory = const_cast<u8*>(readonly_memory);
+  PointerWrap p{&memory, PointerWrap::MODE_READ};
+  DoRegisters(p);
+  UpdateParameters();
+}
+
+void FillVIMemoryArray(u8* memory)
+{
+  PointerWrap p{&memory, PointerWrap::MODE_WRITE};
+  DoRegisters(p);
+}
+
+void DoState(PointerWrap& p)
+{
+  DoRegisters(p);
   p.Do(s_target_refresh_rate);
   p.Do(s_ticks_last_line_start);
   p.Do(s_half_line_count);

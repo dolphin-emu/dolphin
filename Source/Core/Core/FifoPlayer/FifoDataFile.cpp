@@ -15,7 +15,7 @@
 enum
 {
   FILE_ID = 0x0d01f1f0,
-  VERSION_NUMBER = 4,
+  VERSION_NUMBER = 5,
   MIN_LOADER_VERSION = 1,
 };
 
@@ -51,7 +51,8 @@ struct FileFrameInfo
   u32 fifoEnd;
   u64 memoryUpdatesOffset;
   u32 numMemoryUpdates;
-  u8 reserved[32];
+  u64 vi_mem_offset;
+  u8 reserved[24];
 };
 static_assert(sizeof(FileFrameInfo) == 64, "FileFrameInfo should be 64 bytes");
 
@@ -75,6 +76,11 @@ FifoDataFile::~FifoDataFile() = default;
 bool FifoDataFile::HasBrokenEFBCopies() const
 {
   return m_Version < 2;
+}
+
+bool FifoDataFile::HasVideoInterfaceRegisters() const
+{
+  return m_Version >= 5;
 }
 
 void FifoDataFile::SetIsWii(bool isWii)
@@ -159,8 +165,15 @@ bool FifoDataFile::Save(const std::string& filename)
     u64 dataOffset = file.Tell();
     file.WriteBytes(srcFrame.fifoData.data(), srcFrame.fifoData.size());
 
+    // Write memory updates
     u64 memoryUpdatesOffset = WriteMemoryUpdates(srcFrame.memoryUpdates, file);
 
+    // Write VI registers
+    file.Seek(0, SEEK_END);
+    u64 vi_mem_offset = file.Tell();
+    file.WriteBytes(srcFrame.vi_mem.data(), srcFrame.vi_mem.size());
+
+    // Write frame info
     FileFrameInfo dstFrame;
     dstFrame.fifoDataSize = static_cast<u32>(srcFrame.fifoData.size());
     dstFrame.fifoDataOffset = dataOffset;
@@ -168,8 +181,8 @@ bool FifoDataFile::Save(const std::string& filename)
     dstFrame.fifoEnd = srcFrame.fifoEnd;
     dstFrame.memoryUpdatesOffset = memoryUpdatesOffset;
     dstFrame.numMemoryUpdates = static_cast<u32>(srcFrame.memoryUpdates.size());
+    dstFrame.vi_mem_offset = vi_mem_offset;
 
-    // Write frame info
     u64 frameOffset = frameListOffset + (i * sizeof(FileFrameInfo));
     file.Seek(frameOffset, SEEK_SET);
     file.WriteBytes(&dstFrame, sizeof(FileFrameInfo));
@@ -251,6 +264,13 @@ std::unique_ptr<FifoDataFile> FifoDataFile::Load(const std::string& filename, bo
 
     ReadMemoryUpdates(srcFrame.memoryUpdatesOffset, srcFrame.numMemoryUpdates,
                       dstFrame.memoryUpdates, file);
+
+    // VI register saving was added in version 5.
+    if (dataFile->HasVideoInterfaceRegisters())
+    {
+      file.Seek(srcFrame.vi_mem_offset, SEEK_SET);
+      file.ReadArray(dstFrame.vi_mem.data(), dstFrame.vi_mem.size());
+    }
 
     dataFile->AddFrame(dstFrame);
   }

@@ -373,4 +373,8 @@ u32 GetTicksPerField();
 // result by 1.33333..
 float GetAspectRatio();
 
+// For FIFO recording/playing
+void FillVIMemoryArray(u8* memory);
+void LoadVIRegs(const u8* memory);
+
 }  // namespace VideoInterface

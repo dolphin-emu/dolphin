@@ -9,6 +9,8 @@
 #include "Common/Event.h"
 #include "Common/Flag.h"
 #include "Common/Logging/Log.h"
+#include "Core/FifoPlayer/FifoRecorder.h"
+#include "Core/HW/VideoInterface.h"
 #include "Core/Host.h"
 #include "VideoCommon/AsyncRequests.h"
 #include "VideoCommon/BPStructs.h"
@@ -28,6 +30,7 @@
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VideoState.h"
+#include "VideoCommon/XFMemory.h"
 
 static Common::Flag s_FifoShuttingDown;
 
@@ -45,11 +48,49 @@ void VideoBackendBase::Video_ExitLoop()
   s_FifoShuttingDown.Set();
 }
 
+static void RecordVideoMemory()
+{
+  const u32* bpmem_ptr = reinterpret_cast<const u32*>(&bpmem);
+  u32 cpmem[256] = {};
+  // The FIFO recording format splits XF memory into xfmem and xfregs; follow
+  // that split here.
+  const u32* xfmem_ptr = reinterpret_cast<const u32*>(&xfmem);
+  const u32* xfregs_ptr = reinterpret_cast<const u32*>(&xfmem) + FifoDataFile::XF_MEM_SIZE;
+  u32 xfregs_size = sizeof(XFMemory) / 4 - FifoDataFile::XF_MEM_SIZE;
+
+  FillCPMemoryArray(cpmem);
+
+  FifoRecorder::GetInstance().SetVideoMemory(bpmem_ptr, cpmem, xfmem_ptr, xfregs_ptr, xfregs_size,
+                                             texMem);
+}
+
+static void CheckFifoRecording()
+{
+  bool wasRecording = g_bRecordFifoData;
+  g_bRecordFifoData = FifoRecorder::GetInstance().IsRecording();
+
+  if (g_bRecordFifoData)
+  {
+    if (!wasRecording)
+    {
+      RecordVideoMemory();
+    }
+
+    FifoRecorder::GetInstance().EndFrame(CommandProcessor::fifo.CPBase,
+                                         CommandProcessor::fifo.CPEnd);
+  }
+}
+
 // Run from the CPU thread (from VideoInterface.cpp)
 void VideoBackendBase::Video_BeginField(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
                                         u64 ticks)
 {
-  if (m_initialized && g_ActiveConfig.bUseXFB && g_renderer)
+  if (!m_initialized)
+    return;
+
+  CheckFifoRecording();
+
+  if (g_ActiveConfig.bUseXFB && g_renderer)
   {
     Fifo::SyncGPU(Fifo::SyncGPUReason::Swap);
 

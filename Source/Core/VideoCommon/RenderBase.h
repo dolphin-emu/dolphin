@@ -147,9 +147,6 @@ protected:
   std::tuple<int, int> CalculateTargetScale(int x, int y) const;
   bool CalculateTargetSize();
 
-  void CheckFifoRecording();
-  void RecordVideoMemory();
-
   bool IsFrameDumping();
   void DumpFrameData(const u8* data, int w, int h, int stride, const AVIDump::Frame& state,
                      bool swap_upside_down = false);
