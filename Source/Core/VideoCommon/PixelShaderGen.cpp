@@ -1013,7 +1013,7 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
         out.Write("\ttevcoord.xy = int2(0, 0);\n");
     }
     out.Write("\ttextemp = ");
-    SampleTexture(out, "float2(tevcoord.xy)", texswap, stage.tevorders_texmap, uid_data->stereo,
+    SampleTexture(out, "(float2(tevcoord.xy) + 0.25)", texswap, stage.tevorders_texmap, uid_data->stereo,
                   ApiType);
   }
   else
