@@ -98,6 +98,10 @@ void GFXDebuggerBase::DumpPixelShader(const std::string& path)
       ///			output += GeneratePixelShaderCode(DSTALPHA_DUAL_SOURCE_BLEND,
       /// g_ActiveConfig.backend_info.APIType, g_nativeVertexFmt->m_components);
     }
+    else if (g_ActiveConfig.backend_info.bSupportsFramebufferFetch)
+    {
+      output = "Using shader_framebuffer_fetch in-shader blending for destination alpha:\n";
+    }
     else
     {
       output = "Using two passes for emulating destination alpha:\n";

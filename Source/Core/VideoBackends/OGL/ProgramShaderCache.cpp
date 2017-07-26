@@ -19,6 +19,7 @@
 #include "VideoBackends/OGL/Render.h"
 #include "VideoBackends/OGL/StreamBuffer.h"
 
+#include "VideoCommon/BPMemory.h"
 #include "VideoCommon/Debugger.h"
 #include "VideoCommon/GeometryShaderManager.h"
 #include "VideoCommon/ImageWrite.h"
@@ -634,6 +635,24 @@ void ProgramShaderCache::CreateHeader()
     }
   }
 
+  std::string blend_factor_defines = "";
+  if (g_ActiveConfig.backend_info.bSupportsFramebufferFetch)
+  {
+    blend_factor_defines +=
+        StringFromFormat("#define BLEND_ZERO %uu\n"
+                         "#define BLEND_ONE %uu\n"
+                         "#define BLEND_CLR %uu\n"
+                         "#define BLEND_INVCLR %uu\n"
+                         "#define BLEND_SRCALPHA %uu\n"
+                         "#define BLEND_INVSRCALPHA %uu\n"
+                         "#define BLEND_DSTALPHA %uu\n"
+                         "#define BLEND_INVDSTALPHA %uu\n",
+                         BlendMode::BlendFactor::ZERO, BlendMode::BlendFactor::ONE,
+                         BlendMode::BlendFactor::SRCCLR, BlendMode::BlendFactor::INVSRCCLR,
+                         BlendMode::BlendFactor::SRCALPHA, BlendMode::BlendFactor::INVSRCALPHA,
+                         BlendMode::BlendFactor::DSTALPHA, BlendMode::BlendFactor::INVDSTALPHA);
+  }
+
   s_glsl_header = StringFromFormat(
       "%s\n"
       "%s\n"  // ubo
@@ -651,6 +670,7 @@ void ProgramShaderCache::CreateHeader()
       "%s\n"  // ES texture buffer
       "%s\n"  // ES dual source blend
       "%s\n"  // shader image load store
+      "%s\n"  // ES framebuffer fetch
 
       // Precision defines for GLSL ES
       "%s\n"
@@ -674,6 +694,9 @@ void ProgramShaderCache::CreateHeader()
       // hlsl to glsl function translation
       "#define frac fract\n"
       "#define lerp mix\n"
+
+      // Blend factor defines
+      "%s\n"
 
       ,
       GetGLSLVersionString().c_str(),
@@ -725,13 +748,19 @@ void ProgramShaderCache::CreateHeader()
               ((!is_glsles && v < GLSL_430) || (is_glsles && v < GLSLES_310)) ?
           "#extension GL_ARB_shader_image_load_store : enable" :
           "",
+
+      g_ActiveConfig.backend_info.bSupportsFramebufferFetch ?
+          (GLExtensions::Supports("GL_ARM_shader_framebuffer_fetch") ?
+               "#extension GL_ARM_shader_framebuffer_fetch : enable" :
+               "#extension GL_EXT_shader_framebuffer_fetch : enable") :
+          "",
       is_glsles ? "precision highp float;" : "", is_glsles ? "precision highp int;" : "",
       is_glsles ? "precision highp sampler2DArray;" : "",
       (is_glsles && g_ActiveConfig.backend_info.bSupportsPaletteConversion) ?
           "precision highp usamplerBuffer;" :
           "",
       v > GLSLES_300 ? "precision highp sampler2DMS;" : "",
-      v >= GLSLES_310 ? "precision highp image2DArray;" : "");
+      v >= GLSLES_310 ? "precision highp image2DArray;" : "", blend_factor_defines.c_str());
 }
 
 void ProgramShaderCache::ProgramShaderCacheInserter::Read(const SHADERUID& key, const u8* value,

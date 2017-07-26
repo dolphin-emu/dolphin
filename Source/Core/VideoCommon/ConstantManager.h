@@ -25,6 +25,14 @@ struct PixelShaderConstants
   float4 fogf[2];
   float4 zslope;
   float4 efbscale;
+  u32 blend_enable;
+  u32 blend_dstalpha;
+  u32 blend_subtract;
+  u32 blend_subtractalpha;
+  u32 blend_dstfactor;
+  u32 blend_srcfactor;
+  u32 blend_dstfactoralpha;
+  u32 blend_srcfactoralpha;
 };
 
 struct VertexShaderConstants

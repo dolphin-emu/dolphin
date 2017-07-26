@@ -146,7 +146,10 @@ static void BPWritten(const BPCmd& bp)
 
       // Set Blending Mode
       if (bp.changes)
+      {
         SetBlendMode();
+        PixelShaderManager::SetBlendMode();
+      }
 
       // Set LogicOp Blending Mode
       if (bp.changes & 0xF002)  // logicopenable | logicmode

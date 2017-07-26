@@ -27,6 +27,7 @@ void VideoBackend::InitBackendInfo()
   g_Config.backend_info.MaxTextureSize = 16384;
   g_Config.backend_info.bSupportsExclusiveFullscreen = true;
   g_Config.backend_info.bSupportsDualSourceBlend = true;
+  g_Config.backend_info.bSupportsFramebufferFetch = true;
   g_Config.backend_info.bSupportsPrimitiveRestart = true;
   g_Config.backend_info.bSupportsOversizedViewports = true;
   g_Config.backend_info.bSupportsGeometryShaders = true;

@@ -125,4 +125,10 @@ void BlendingState::Generate(const BPMemory& bp)
       }
     }
   }
+
+  usedualsrc =
+      (srcfactor == BlendMode::SRCALPHA || srcfactor == BlendMode::INVSRCALPHA) ||
+      (srcfactoralpha == BlendMode::SRCALPHA || srcfactoralpha == BlendMode::INVSRCALPHA) ||
+      (dstfactor == BlendMode::SRCALPHA || dstfactor == BlendMode::INVSRCALPHA) ||
+      (dstfactoralpha == BlendMode::SRCALPHA || dstfactoralpha == BlendMode::INVSRCALPHA);
 }
