@@ -562,7 +562,7 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
       // Let's set up attributes
       for (unsigned int i = 0; i < uid_data->genMode_numtexgens; ++i)
       {
-        out.Write("%s in float3 uv%d;\n", GetInterpolationQualifier(msaa, ssaa), i);
+        out.Write("%s in float3 tex%d;\n", GetInterpolationQualifier(msaa, ssaa), i);
       }
       out.Write("%s in float4 clipPos;\n", GetInterpolationQualifier(msaa, ssaa));
       if (per_pixel_lighting)
@@ -573,13 +573,6 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
     }
 
     out.Write("void main()\n{\n");
-
-    if (host_config.backend_geometry_shaders || ApiType == APIType::Vulkan)
-    {
-      for (unsigned int i = 0; i < uid_data->genMode_numtexgens; ++i)
-        out.Write("\tfloat3 uv%d = tex%d;\n", i, i);
-    }
-
     out.Write("\tfloat4 rawpos = gl_FragCoord;\n");
   }
   else  // D3D
@@ -595,7 +588,8 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
 
     // compute window position if needed because binding semantic WPOS is not widely supported
     for (unsigned int i = 0; i < uid_data->genMode_numtexgens; ++i)
-      out.Write(",\n  in %s float3 uv%d : TEXCOORD%d", GetInterpolationQualifier(msaa, ssaa), i, i);
+      out.Write(",\n  in %s float3 tex%d : TEXCOORD%d", GetInterpolationQualifier(msaa, ssaa), i,
+                i);
     out.Write(",\n  in %s float4 clipPos : TEXCOORD%d", GetInterpolationQualifier(msaa, ssaa),
               uid_data->genMode_numtexgens);
     if (per_pixel_lighting)
@@ -658,7 +652,7 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
     for (unsigned int i = 0; i < uid_data->genMode_numtexgens; ++i)
     {
       out.Write("\tint2 fixpoint_uv%d = int2(", i);
-      out.Write("(uv%d.z == 0.0 ? uv%d.xy : uv%d.xy / uv%d.z)", i, i, i, i);
+      out.Write("(tex%d.z == 0.0 ? tex%d.xy : tex%d.xy / tex%d.z)", i, i, i, i);
       out.Write(" * " I_TEXDIMS "[%d].zw);\n", i);
       // TODO: S24 overflows here?
     }

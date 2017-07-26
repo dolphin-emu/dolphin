@@ -114,16 +114,16 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
       out.Write("ATTRIBUTE_LOCATION(%d) in float3 rawnorm2;\n", SHADER_NORM2_ATTRIB);
 
     if (uid_data->components & VB_HAS_COL0)
-      out.Write("ATTRIBUTE_LOCATION(%d) in float4 color0;\n", SHADER_COLOR0_ATTRIB);
+      out.Write("ATTRIBUTE_LOCATION(%d) in float4 rawcolor0;\n", SHADER_COLOR0_ATTRIB);
     if (uid_data->components & VB_HAS_COL1)
-      out.Write("ATTRIBUTE_LOCATION(%d) in float4 color1;\n", SHADER_COLOR1_ATTRIB);
+      out.Write("ATTRIBUTE_LOCATION(%d) in float4 rawcolor1;\n", SHADER_COLOR1_ATTRIB);
 
     for (int i = 0; i < 8; ++i)
     {
       u32 hastexmtx = (uid_data->components & (VB_HAS_TEXMTXIDX0 << i));
       if ((uid_data->components & (VB_HAS_UV0 << i)) || hastexmtx)
       {
-        out.Write("ATTRIBUTE_LOCATION(%d) in float%d tex%d;\n", SHADER_TEXTURE0_ATTRIB + i,
+        out.Write("ATTRIBUTE_LOCATION(%d) in float%d rawtex%d;\n", SHADER_TEXTURE0_ATTRIB + i,
                   hastexmtx ? 3 : 2, i);
       }
     }
@@ -143,7 +143,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
       {
         if (i < uid_data->numTexGens)
         {
-          out.Write("%s out float3 uv%u;\n", GetInterpolationQualifier(msaa, ssaa), i);
+          out.Write("%s out float3 tex%u;\n", GetInterpolationQualifier(msaa, ssaa), i);
         }
       }
       out.Write("%s out float4 clipPos;\n", GetInterpolationQualifier(msaa, ssaa));
@@ -170,14 +170,14 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     if (uid_data->components & VB_HAS_NRM2)
       out.Write("  float3 rawnorm2 : NORMAL2,\n");
     if (uid_data->components & VB_HAS_COL0)
-      out.Write("  float4 color0 : COLOR0,\n");
+      out.Write("  float4 rawcolor0 : COLOR0,\n");
     if (uid_data->components & VB_HAS_COL1)
-      out.Write("  float4 color1 : COLOR1,\n");
+      out.Write("  float4 rawcolor1 : COLOR1,\n");
     for (int i = 0; i < 8; ++i)
     {
       u32 hastexmtx = (uid_data->components & (VB_HAS_TEXMTXIDX0 << i));
       if ((uid_data->components & (VB_HAS_UV0 << i)) || hastexmtx)
-        out.Write("  float%d tex%d : TEXCOORD%d,\n", hastexmtx ? 3 : 2, i, i);
+        out.Write("  float%d rawtex%d : TEXCOORD%d,\n", hastexmtx ? 3 : 2, i, i);
     }
     if (uid_data->components & VB_HAS_POSMTXIDX)
       out.Write("  uint4 posmtx : BLENDINDICES,\n");
@@ -242,18 +242,18 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
   if (uid_data->numColorChans == 0)
   {
     if (uid_data->components & VB_HAS_COL0)
-      out.Write("o.colors_0 = color0;\n");
+      out.Write("o.colors_0 = rawcolor0;\n");
     else
       out.Write("o.colors_0 = float4(1.0, 1.0, 1.0, 1.0);\n");
   }
 
   GenerateLightingShaderCode(out, uid_data->lighting, uid_data->components, uid_data->numColorChans,
-                             "color", "o.colors_");
+                             "rawcolor", "o.colors_");
 
   if (uid_data->numColorChans < 2)
   {
     if (uid_data->components & VB_HAS_COL1)
-      out.Write("o.colors_1 = color1;\n");
+      out.Write("o.colors_1 = rawcolor1;\n");
     else
       out.Write("o.colors_1 = o.colors_0;\n");
   }
@@ -296,7 +296,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     default:
       _assert_(texinfo.sourcerow <= XF_SRCTEX7_INROW);
       if (uid_data->components & (VB_HAS_UV0 << (texinfo.sourcerow - XF_SRCTEX0_INROW)))
-        out.Write("coord = float4(tex%d.x, tex%d.y, 1.0, 1.0);\n",
+        out.Write("coord = float4(rawtex%d.x, rawtex%d.y, 1.0, 1.0);\n",
                   texinfo.sourcerow - XF_SRCTEX0_INROW, texinfo.sourcerow - XF_SRCTEX0_INROW);
       break;
     }
@@ -338,7 +338,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     default:
       if (uid_data->components & (VB_HAS_TEXMTXIDX0 << i))
       {
-        out.Write("int tmp = int(tex%d.z);\n", i);
+        out.Write("int tmp = int(rawtex%d.z);\n", i);
         if (((uid_data->texMtxInfo_n_projection >> i) & 1) == XF_TEXPROJ_STQ)
           out.Write("o.tex%d.xyz = float3(dot(coord, " I_TRANSFORMMATRICES
                     "[tmp]), dot(coord, " I_TRANSFORMMATRICES
@@ -407,10 +407,10 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     out.Write("o.WorldPos = pos.xyz;\n");
 
     if (uid_data->components & VB_HAS_COL0)
-      out.Write("o.colors_0 = color0;\n");
+      out.Write("o.colors_0 = rawcolor0;\n");
 
     if (uid_data->components & VB_HAS_COL1)
-      out.Write("o.colors_1 = color1;\n");
+      out.Write("o.colors_1 = rawcolor1;\n");
   }
 
   // If we can disable the incorrect depth clipping planes using depth clamping, then we can do
@@ -495,7 +495,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
       // TODO: Pass interface blocks between shader stages even if geometry shaders
       // are not supported, however that will require at least OpenGL 3.2 support.
       for (unsigned int i = 0; i < uid_data->numTexGens; ++i)
-        out.Write("uv%d.xyz = o.tex%d;\n", i, i);
+        out.Write("tex%d.xyz = o.tex%d;\n", i, i);
       out.Write("clipPos = o.clipPos;\n");
       if (per_pixel_lighting)
       {

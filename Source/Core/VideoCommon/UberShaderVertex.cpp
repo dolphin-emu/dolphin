@@ -113,10 +113,10 @@ ShaderCode GenVertexShader(APIType ApiType, const ShaderHostConfig& host_config,
     out.Write("ATTRIBUTE_LOCATION(%d) in float3 rawnorm0;\n", SHADER_NORM0_ATTRIB);
     out.Write("ATTRIBUTE_LOCATION(%d) in float3 rawnorm1;\n", SHADER_NORM1_ATTRIB);
     out.Write("ATTRIBUTE_LOCATION(%d) in float3 rawnorm2;\n", SHADER_NORM2_ATTRIB);
-    out.Write("ATTRIBUTE_LOCATION(%d) in float4 color0;\n", SHADER_COLOR0_ATTRIB);
-    out.Write("ATTRIBUTE_LOCATION(%d) in float4 color1;\n", SHADER_COLOR1_ATTRIB);
+    out.Write("ATTRIBUTE_LOCATION(%d) in float4 rawcolor0;\n", SHADER_COLOR0_ATTRIB);
+    out.Write("ATTRIBUTE_LOCATION(%d) in float4 rawcolor1;\n", SHADER_COLOR1_ATTRIB);
     for (int i = 0; i < 8; ++i)
-      out.Write("ATTRIBUTE_LOCATION(%d) in float3 tex%d;\n", SHADER_TEXTURE0_ATTRIB + i, i);
+      out.Write("ATTRIBUTE_LOCATION(%d) in float3 rawtex%d;\n", SHADER_TEXTURE0_ATTRIB + i, i);
 
     // We need to always use output blocks for Vulkan, but geometry shaders are also optional.
     if (host_config.backend_geometry_shaders || ApiType == APIType::Vulkan)
@@ -130,7 +130,7 @@ ShaderCode GenVertexShader(APIType ApiType, const ShaderHostConfig& host_config,
     {
       // Let's set up attributes
       for (u32 i = 0; i < numTexgen; ++i)
-        out.Write("%s out float3 uv%u;\n", GetInterpolationQualifier(msaa, ssaa), i);
+        out.Write("%s out float3 tex%u;\n", GetInterpolationQualifier(msaa, ssaa), i);
 
       out.Write("%s out float4 clipPos;\n", GetInterpolationQualifier(msaa, ssaa));
       if (per_pixel_lighting)
@@ -152,10 +152,10 @@ ShaderCode GenVertexShader(APIType ApiType, const ShaderHostConfig& host_config,
     out.Write("  float3 rawnorm0 : NORMAL0,\n");
     out.Write("  float3 rawnorm1 : NORMAL1,\n");
     out.Write("  float3 rawnorm2 : NORMAL2,\n");
-    out.Write("  float4 color0 : COLOR0,\n");
-    out.Write("  float4 color1 : COLOR1,\n");
+    out.Write("  float4 rawcolor0 : COLOR0,\n");
+    out.Write("  float4 rawcolor1 : COLOR1,\n");
     for (int i = 0; i < 8; ++i)
-      out.Write("  float3 tex%d : TEXCOORD%d,\n", i, i);
+      out.Write("  float3 rawtex%d : TEXCOORD%d,\n", i, i);
     out.Write("  uint posmtx : BLENDINDICES,\n");
     out.Write("  float4 rawpos : POSITION) {\n");
   }
@@ -307,7 +307,7 @@ ShaderCode GenVertexShader(APIType ApiType, const ShaderHostConfig& host_config,
       // TODO: Pass interface blocks between shader stages even if geometry shaders
       // are not supported, however that will require at least OpenGL 3.2 support.
       for (u32 i = 0; i < numTexgen; ++i)
-        out.Write("uv%d.xyz = o.tex%d;\n", i, i);
+        out.Write("tex%d.xyz = o.tex%d;\n", i, i);
       out.Write("clipPos = o.clipPos;\n");
       out.Write("colors_0 = o.colors_0;\n");
       out.Write("colors_1 = o.colors_1;\n");
@@ -337,12 +337,12 @@ ShaderCode GenVertexShader(APIType ApiType, const ShaderHostConfig& host_config,
 void GenVertexShaderLighting(APIType ApiType, ShaderCode& out)
 {
   out.Write("if ((components & %uu) != 0u) // VB_HAS_COL0\n", VB_HAS_COL0);
-  out.Write("  o.colors_0 = color0;\n"
+  out.Write("  o.colors_0 = rawcolor0;\n"
             "else\n"
             "  o.colors_0 = float4(1.0, 1.0, 1.0, 1.0);\n"
             "\n");
   out.Write("if ((components & %uu) != 0u) // VB_HAS_COL1\n", VB_HAS_COL1);
-  out.Write("  o.colors_1 = color1;\n"
+  out.Write("  o.colors_1 = rawcolor1;\n"
             "else\n"
             "  o.colors_1 = float4(1.0, 1.0, 1.0, 1.0);\n"
             "\n");
@@ -358,9 +358,10 @@ void GenVertexShaderLighting(APIType ApiType, ShaderCode& out)
 
   out.Write("  if (%s != 0u) {\n", BitfieldExtract("colorreg", LitChannel().matsource).c_str());
   out.Write("    if ((components & (%uu << chan)) != 0u) // VB_HAS_COL0\n", VB_HAS_COL0);
-  out.Write("      mat.xyz = int3(round(((chan == 0u) ? color0.xyz : color1.xyz) * 255.0));\n");
+  out.Write(
+      "      mat.xyz = int3(round(((chan == 0u) ? rawcolor0.xyz : rawcolor1.xyz) * 255.0));\n");
   out.Write("    else if ((components & %uu) != 0u) // VB_HAS_COLO0\n", VB_HAS_COL0);
-  out.Write("      mat.xyz = int3(round(color0.xyz * 255.0));\n"
+  out.Write("      mat.xyz = int3(round(rawcolor0.xyz * 255.0));\n"
             "    else\n"
             "      mat.xyz = int3(255, 255, 255);\n"
             "  }\n"
@@ -368,9 +369,9 @@ void GenVertexShaderLighting(APIType ApiType, ShaderCode& out)
 
   out.Write("  if (%s != 0u) {\n", BitfieldExtract("alphareg", LitChannel().matsource).c_str());
   out.Write("    if ((components & (%uu << chan)) != 0u) // VB_HAS_COL0\n", VB_HAS_COL0);
-  out.Write("      mat.w = int(round(((chan == 0u) ? color0.w : color1.w) * 255.0));\n");
+  out.Write("      mat.w = int(round(((chan == 0u) ? rawcolor0.w : rawcolor1.w) * 255.0));\n");
   out.Write("    else if ((components & %uu) != 0u) // VB_HAS_COLO0\n", VB_HAS_COL0);
-  out.Write("      mat.w = int(round(color0.w * 255.0));\n"
+  out.Write("      mat.w = int(round(rawcolor0.w * 255.0));\n"
             "    else\n"
             "      mat.w = 255;\n"
             "  } else {\n"
@@ -382,9 +383,10 @@ void GenVertexShaderLighting(APIType ApiType, ShaderCode& out)
             BitfieldExtract("colorreg", LitChannel().enablelighting).c_str());
   out.Write("    if (%s != 0u) {\n", BitfieldExtract("colorreg", LitChannel().ambsource).c_str());
   out.Write("      if ((components & (%uu << chan)) != 0u) // VB_HAS_COL0\n", VB_HAS_COL0);
-  out.Write("        lacc.xyz = int3(round(((chan == 0u) ? color0.xyz : color1.xyz) * 255.0));\n");
+  out.Write(
+      "        lacc.xyz = int3(round(((chan == 0u) ? rawcolor0.xyz : rawcolor1.xyz) * 255.0));\n");
   out.Write("      else if ((components & %uu) != 0u) // VB_HAS_COLO0\n", VB_HAS_COL0);
-  out.Write("        lacc.xyz = int3(round(color0.xyz * 255.0));\n"
+  out.Write("        lacc.xyz = int3(round(rawcolor0.xyz * 255.0));\n"
             "      else\n"
             "        lacc.xyz = int3(255, 255, 255);\n"
             "    } else {\n"
@@ -410,9 +412,9 @@ void GenVertexShaderLighting(APIType ApiType, ShaderCode& out)
             BitfieldExtract("alphareg", LitChannel().enablelighting).c_str());
   out.Write("    if (%s != 0u) {\n", BitfieldExtract("alphareg", LitChannel().ambsource).c_str());
   out.Write("      if ((components & (%uu << chan)) != 0u) // VB_HAS_COL0\n", VB_HAS_COL0);
-  out.Write("        lacc.w = int(round(((chan == 0u) ? color0.w : color1.w) * 255.0));\n");
+  out.Write("        lacc.w = int(round(((chan == 0u) ? rawcolor0.w : rawcolor1.w) * 255.0));\n");
   out.Write("      else if ((components & %uu) != 0u) // VB_HAS_COLO0\n", VB_HAS_COL0);
-  out.Write("        lacc.w = int(round(color0.w * 255.0));\n"
+  out.Write("        lacc.w = int(round(rawcolor0.w * 255.0));\n"
             "      else\n"
             "        lacc.w = 255;\n"
             "    } else {\n"
@@ -488,9 +490,10 @@ void GenVertexShaderTexGens(APIType ApiType, u32 numTexgen, ShaderCode& out)
   for (u32 i = 0; i < 8; i++)
   {
     out.Write("  case %uu: // XF_SRCTEX%u_INROW\n", XF_SRCTEX0_INROW + i, i);
-    out.Write("    coord = ((components & %uu /* VB_HAS_UV%u */) != 0u) ? float4(tex%u.x, tex%u.y, "
-              "1.0, 1.0) : coord;\n",
-              VB_HAS_UV0 << i, i, i, i);
+    out.Write(
+        "    coord = ((components & %uu /* VB_HAS_UV%u */) != 0u) ? float4(rawtex%u.x, rawtex%u.y, "
+        "1.0, 1.0) : coord;\n",
+        VB_HAS_UV0 << i, i, i, i);
     out.Write("    break;\n\n");
   }
   out.Write("  }\n");
@@ -541,7 +544,7 @@ void GenVertexShaderTexGens(APIType ApiType, u32 numTexgen, ShaderCode& out)
             "        int tmp = 0;\n"
             "        switch (texgen) {\n");
   for (u32 i = 0; i < numTexgen; i++)
-    out.Write("        case %uu: tmp = int(tex%u.z); break;\n", i, i);
+    out.Write("        case %uu: tmp = int(rawtex%u.z); break;\n", i, i);
   out.Write("        }\n"
             "\n");
   out.Write("        if (%s == %uu) {\n",

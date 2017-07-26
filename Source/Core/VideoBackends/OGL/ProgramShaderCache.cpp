@@ -143,8 +143,8 @@ void SHADER::SetProgramBindings(bool is_compute)
 
     glBindAttribLocation(glprogid, SHADER_POSMTX_ATTRIB, "posmtx");
 
-    glBindAttribLocation(glprogid, SHADER_COLOR0_ATTRIB, "color0");
-    glBindAttribLocation(glprogid, SHADER_COLOR1_ATTRIB, "color1");
+    glBindAttribLocation(glprogid, SHADER_COLOR0_ATTRIB, "rawcolor0");
+    glBindAttribLocation(glprogid, SHADER_COLOR1_ATTRIB, "rawcolor1");
 
     glBindAttribLocation(glprogid, SHADER_NORM0_ATTRIB, "rawnorm0");
     glBindAttribLocation(glprogid, SHADER_NORM1_ATTRIB, "rawnorm1");
@@ -153,7 +153,7 @@ void SHADER::SetProgramBindings(bool is_compute)
 
   for (int i = 0; i < 8; i++)
   {
-    std::string attrib_name = StringFromFormat("tex%d", i);
+    std::string attrib_name = StringFromFormat("rawtex%d", i);
     glBindAttribLocation(glprogid, SHADER_TEXTURE0_ATTRIB + i, attrib_name.c_str());
   }
 }
