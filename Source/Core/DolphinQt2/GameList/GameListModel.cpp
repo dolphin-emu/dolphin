@@ -3,7 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "DolphinQt2/GameList/GameListModel.h"
-
+#include "Core/ConfigManager.h"
 #include "DiscIO/Enums.h"
 #include "DolphinQt2/Resources.h"
 #include "DolphinQt2/Settings.h"
@@ -136,6 +136,63 @@ int GameListModel::rowCount(const QModelIndex& parent) const
 int GameListModel::columnCount(const QModelIndex& parent) const
 {
   return NUM_COLS;
+}
+
+bool GameListModel::ShouldDisplayGameListItem(int index) const
+{
+  QSharedPointer<GameFile> game = m_games[index];
+
+  const bool show_platform = [&game] {
+    switch (game->GetPlatformID())
+    {
+    case DiscIO::Platform::GAMECUBE_DISC:
+      return SConfig::GetInstance().m_ListGC;
+    case DiscIO::Platform::WII_DISC:
+      return SConfig::GetInstance().m_ListWii;
+    case DiscIO::Platform::WII_WAD:
+      return SConfig::GetInstance().m_ListWad;
+    case DiscIO::Platform::ELF_DOL:
+      return SConfig::GetInstance().m_ListElfDol;
+    default:
+      return false;
+    }
+  }();
+
+  if (!show_platform)
+    return false;
+
+  switch (game->GetCountryID())
+  {
+  case DiscIO::Country::COUNTRY_AUSTRALIA:
+    return SConfig::GetInstance().m_ListAustralia;
+  case DiscIO::Country::COUNTRY_EUROPE:
+    return SConfig::GetInstance().m_ListPal;
+  case DiscIO::Country::COUNTRY_FRANCE:
+    return SConfig::GetInstance().m_ListFrance;
+  case DiscIO::Country::COUNTRY_GERMANY:
+    return SConfig::GetInstance().m_ListGermany;
+  case DiscIO::Country::COUNTRY_ITALY:
+    return SConfig::GetInstance().m_ListItaly;
+  case DiscIO::Country::COUNTRY_JAPAN:
+    return SConfig::GetInstance().m_ListJap;
+  case DiscIO::Country::COUNTRY_KOREA:
+    return SConfig::GetInstance().m_ListKorea;
+  case DiscIO::Country::COUNTRY_NETHERLANDS:
+    return SConfig::GetInstance().m_ListNetherlands;
+  case DiscIO::Country::COUNTRY_RUSSIA:
+    return SConfig::GetInstance().m_ListRussia;
+  case DiscIO::Country::COUNTRY_SPAIN:
+    return SConfig::GetInstance().m_ListSpain;
+  case DiscIO::Country::COUNTRY_TAIWAN:
+    return SConfig::GetInstance().m_ListTaiwan;
+  case DiscIO::Country::COUNTRY_USA:
+    return SConfig::GetInstance().m_ListUsa;
+  case DiscIO::Country::COUNTRY_WORLD:
+    return SConfig::GetInstance().m_ListWorld;
+  case DiscIO::Country::COUNTRY_UNKNOWN:
+  default:
+    return SConfig::GetInstance().m_ListUnknown;
+  }
 }
 
 void GameListModel::UpdateGame(QSharedPointer<GameFile> game)

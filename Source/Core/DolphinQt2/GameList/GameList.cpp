@@ -26,6 +26,7 @@
 #include "DolphinQt2/Config/PropertiesDialog.h"
 #include "DolphinQt2/GameList/GameList.h"
 #include "DolphinQt2/GameList/ListProxyModel.h"
+#include "DolphinQt2/GameList/TableProxyModel.h"
 #include "DolphinQt2/QtUtils/DoubleClickEventFilter.h"
 #include "DolphinQt2/Settings.h"
 
@@ -34,7 +35,7 @@ static bool CompressCB(const std::string&, float, void*);
 GameList::GameList(QWidget* parent) : QStackedWidget(parent)
 {
   m_model = new GameListModel(this);
-  m_table_proxy = new QSortFilterProxyModel(this);
+  m_table_proxy = new TableProxyModel(this);
   m_table_proxy->setSortCaseSensitivity(Qt::CaseInsensitive);
   m_table_proxy->setSortRole(Qt::InitialSortOrderRole);
   m_table_proxy->setSourceModel(m_model);
@@ -444,6 +445,12 @@ void GameList::OnColumnVisibilityToggled(const QString& row, bool visible)
       {tr("Quality"), GameListModel::COL_RATING}};
 
   m_table->setColumnHidden(rowname_to_col_index[row], !visible);
+}
+
+void GameList::OnGameListVisibilityChanged()
+{
+  m_table_proxy->invalidate();
+  m_list_proxy->invalidate();
 }
 
 static bool CompressCB(const std::string& text, float percent, void* ptr)

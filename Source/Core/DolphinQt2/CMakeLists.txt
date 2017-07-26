@@ -63,6 +63,7 @@ set(SRCS
   GameList/GameListModel.cpp
   GameList/GameTracker.cpp
   GameList/ListProxyModel.cpp
+  GameList/TableProxyModel.cpp
   QtUtils/DoubleClickEventFilter.cpp
   QtUtils/ElidedButton.cpp
   QtUtils/ListTabWidget.cpp
