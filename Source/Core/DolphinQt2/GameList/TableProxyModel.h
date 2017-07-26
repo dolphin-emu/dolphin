@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#pragma once
+
 #include <QSortFilterProxyModel>
 
 // This subclass of QSortFilterProxyModel allows the data to be filtered by the view.
