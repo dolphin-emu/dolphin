@@ -6,9 +6,15 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+#include "Common/StringUtil.h"
 
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
+#include "Core/IOS/IOS.h"
+#include "Core/IOS/USB/Bluetooth/BTEmu.h"
+#include "Core/IOS/USB/Bluetooth/WiimoteDevice.h"
 #include "Core/Movie.h"
 
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
@@ -79,6 +85,25 @@ void Initialize(InitializeMode init_mode)
   // Reload Wiimotes with our settings
   if (Movie::IsMovieActive())
     Movie::ChangeWiiPads();
+}
+
+void Connect(unsigned int index, bool connect)
+{
+  if (SConfig::GetInstance().m_bt_passthrough_enabled || index >= MAX_BBMOTES)
+    return;
+
+  const auto ios = IOS::HLE::GetIOS();
+  if (!ios)
+    return;
+
+  const auto bluetooth = std::static_pointer_cast<IOS::HLE::Device::BluetoothEmu>(
+      ios->GetDeviceByName("/dev/usb/oh1/57e/305"));
+
+  if (bluetooth)
+    bluetooth->AccessWiiMote(index | 0x100)->Activate(connect);
+
+  const char* message = connect ? "Wii Remote %i connected" : "Wii Remote %i disconnected";
+  Core::DisplayMessage(StringFromFormat(message, index + 1), 3000);
 }
 
 void ResetAllWiimotes()

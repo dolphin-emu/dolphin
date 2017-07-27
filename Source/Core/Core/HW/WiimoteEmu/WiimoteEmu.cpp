@@ -948,7 +948,7 @@ void Wiimote::ConnectOnInput()
 
   if (buttons != 0 || m_extension->IsButtonPressed())
   {
-    Host_ConnectWiimote(m_index, true);
+    ::Wiimote::Connect(m_index, true);
     // arbitrary value so it doesn't try to send multiple requests before Dolphin can react
     // if Wii Remotes are polled at 200Hz then this results in one request being sent per 500ms
     m_last_connect_request_counter = 100;

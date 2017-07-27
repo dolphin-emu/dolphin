@@ -140,10 +140,6 @@ bool Host_RendererIsFullscreen()
   return false;
 }
 
-void Host_ConnectWiimote(int wm_idx, bool connect)
-{
-}
-
 void Host_ShowVideoConfig(void*, const std::string&)
 {
 }
