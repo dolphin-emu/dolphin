@@ -31,8 +31,8 @@
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 
+#include "Common/Config/Config.h"
 #include "Core/Boot/Boot.h"
-#include "Core/Config/Config.h"
 #include "Core/ConfigLoaders/GameConfigLoader.h"
 #include "Core/ConfigLoaders/NetPlayConfigLoader.h"
 #include "Core/ConfigManager.h"

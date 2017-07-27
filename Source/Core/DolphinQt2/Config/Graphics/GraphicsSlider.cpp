@@ -4,7 +4,7 @@
 
 #include "DolphinQt2/Config/Graphics/GraphicsSlider.h"
 
-#include "Core/Config/Config.h"
+#include "Common/Config/Config.h"
 
 GraphicsSlider::GraphicsSlider(int minimum, int maximum, const Config::ConfigInfo<int>& setting,
                                int tick)

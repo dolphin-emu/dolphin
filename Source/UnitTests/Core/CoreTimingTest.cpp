@@ -8,8 +8,8 @@
 #include <bitset>
 #include <string>
 
+#include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
-#include "Core/Config/Config.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -55,6 +55,7 @@ public:
     Core::UndeclareAsCPUThread();
     File::DeleteDirRecursively(m_profile_path);
   }
+
 private:
   std::string m_profile_path;
 };
