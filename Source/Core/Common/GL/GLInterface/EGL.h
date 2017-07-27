@@ -7,6 +7,7 @@
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 #include <string>
+#include <vector>
 
 #include "Common/GL/GLInterfaceBase.h"
 
@@ -17,6 +18,7 @@ private:
   bool m_has_handle;
   EGLNativeWindowType m_host_window;
   bool m_supports_surfaceless = false;
+  std::vector<int> m_attribs;
 
   bool CreateWindowSurface();
   void DestroyWindowSurface();
