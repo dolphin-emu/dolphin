@@ -85,6 +85,8 @@ const ConfigInfo<bool> GFX_PRECOMPILE_UBER_SHADERS{
     {System::GFX, "Settings", "PrecompileUberShaders"}, true};
 const ConfigInfo<int> GFX_SHADER_COMPILER_THREADS{
     {System::GFX, "Settings", "ShaderCompilerThreads"}, 1};
+const ConfigInfo<int> GFX_SHADER_PRECOMPILER_THREADS{
+    {System::GFX, "Settings", "ShaderPrecompilerThreads"}, 1};
 const ConfigInfo<bool> GFX_FORCE_VERTEX_UBER_SHADERS{
     {System::GFX, "Settings", "ForceVertexUberShaders"}, false};
 const ConfigInfo<bool> GFX_FORCE_PIXEL_UBER_SHADERS{

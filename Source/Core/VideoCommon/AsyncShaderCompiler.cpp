@@ -106,8 +106,11 @@ void AsyncShaderCompiler::WaitUntilCompletion(
   }
 }
 
-void AsyncShaderCompiler::StartWorkerThreads(u32 num_worker_threads)
+bool AsyncShaderCompiler::StartWorkerThreads(u32 num_worker_threads)
 {
+  if (num_worker_threads == 0)
+    return true;
+
   for (u32 i = 0; i < num_worker_threads; i++)
   {
     void* thread_param = nullptr;
@@ -131,6 +134,17 @@ void AsyncShaderCompiler::StartWorkerThreads(u32 num_worker_threads)
 
     m_worker_threads.push_back(std::move(thr));
   }
+
+  return HasWorkerThreads();
+}
+
+bool AsyncShaderCompiler::ResizeWorkerThreads(u32 num_worker_threads)
+{
+  if (m_worker_threads.size() == num_worker_threads)
+    return true;
+
+  StopWorkerThreads();
+  return StartWorkerThreads(num_worker_threads);
 }
 
 bool AsyncShaderCompiler::HasWorkerThreads() const
@@ -140,6 +154,9 @@ bool AsyncShaderCompiler::HasWorkerThreads() const
 
 void AsyncShaderCompiler::StopWorkerThreads()
 {
+  if (!HasWorkerThreads())
+    return;
+
   // Signal worker threads to stop, and wake all of them.
   {
     std::lock_guard<std::mutex> guard(m_pending_work_lock);
@@ -151,6 +168,7 @@ void AsyncShaderCompiler::StopWorkerThreads()
   for (std::thread& thr : m_worker_threads)
     thr.join();
   m_worker_threads.clear();
+  m_exit_flag.Clear();
 }
 
 bool AsyncShaderCompiler::WorkerThreadInitMainThread(void** param)

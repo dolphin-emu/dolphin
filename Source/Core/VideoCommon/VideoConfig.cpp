@@ -98,6 +98,7 @@ void VideoConfig::Refresh()
   bDisableSpecializedShaders = Config::Get(Config::GFX_DISABLE_SPECIALIZED_SHADERS);
   bPrecompileUberShaders = Config::Get(Config::GFX_PRECOMPILE_UBER_SHADERS);
   iShaderCompilerThreads = Config::Get(Config::GFX_SHADER_COMPILER_THREADS);
+  iShaderPrecompilerThreads = Config::Get(Config::GFX_SHADER_PRECOMPILER_THREADS);
   bForceVertexUberShaders = Config::Get(Config::GFX_FORCE_VERTEX_UBER_SHADERS);
   bForcePixelUberShaders = Config::Get(Config::GFX_FORCE_PIXEL_UBER_SHADERS);
 
@@ -196,13 +197,26 @@ bool VideoConfig::IsVSync()
   return bVSync && !Core::GetIsThrottlerTempDisabled();
 }
 
+static u32 GetNumAutoShaderCompilerThreads()
+{
+  // Automatic number. We use clamp(cpus - 3, 1, 4).
+  return static_cast<u32>(std::min(std::max(cpu_info.num_cores - 3, 1), 4));
+}
+
 u32 VideoConfig::GetShaderCompilerThreads() const
 {
   if (iShaderCompilerThreads >= 0)
     return static_cast<u32>(iShaderCompilerThreads);
+  else
+    return GetNumAutoShaderCompilerThreads();
+}
 
-  // Automatic number. We use clamp(cpus - 3, 1, 4).
-  return static_cast<u32>(std::min(std::max(cpu_info.num_cores - 3, 1), 4));
+u32 VideoConfig::GetShaderPrecompilerThreads() const
+{
+  if (iShaderPrecompilerThreads >= 0)
+    return static_cast<u32>(iShaderPrecompilerThreads);
+  else
+    return GetNumAutoShaderCompilerThreads();
 }
 
 bool VideoConfig::CanUseUberShaders() const

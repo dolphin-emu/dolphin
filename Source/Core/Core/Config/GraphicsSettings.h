@@ -63,6 +63,7 @@ extern const ConfigInfo<bool> GFX_BACKGROUND_SHADER_COMPILING;
 extern const ConfigInfo<bool> GFX_DISABLE_SPECIALIZED_SHADERS;
 extern const ConfigInfo<bool> GFX_PRECOMPILE_UBER_SHADERS;
 extern const ConfigInfo<int> GFX_SHADER_COMPILER_THREADS;
+extern const ConfigInfo<int> GFX_SHADER_PRECOMPILER_THREADS;
 extern const ConfigInfo<bool> GFX_FORCE_VERTEX_UBER_SHADERS;
 extern const ConfigInfo<bool> GFX_FORCE_PIXEL_UBER_SHADERS;
 

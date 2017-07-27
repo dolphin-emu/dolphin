@@ -27,7 +27,8 @@ public:
   static bool SetShader(D3DVertexFormat* vertex_format);
   static bool SetUberShader(D3DVertexFormat* vertex_format);
   static void RetreiveAsyncShaders();
-  static void PrecompileUberShaders();
+  static void QueueUberShaderCompiles();
+  static void WaitForBackgroundCompilesToComplete();
 
   static ID3D11Buffer*& GetConstantBuffer();
 

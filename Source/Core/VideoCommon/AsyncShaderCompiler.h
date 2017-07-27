@@ -52,7 +52,8 @@ public:
   void WaitUntilCompletion(const std::function<void(size_t, size_t)>& progress_callback);
 
   // Needed because of calling virtual methods in shutdown procedure.
-  void StartWorkerThreads(u32 num_worker_threads);
+  bool StartWorkerThreads(u32 num_worker_threads);
+  bool ResizeWorkerThreads(u32 num_worker_threads);
   bool HasWorkerThreads() const;
   void StopWorkerThreads();
 

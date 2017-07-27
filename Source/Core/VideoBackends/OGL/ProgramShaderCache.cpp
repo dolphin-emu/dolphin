@@ -607,17 +607,8 @@ void ProgramShaderCache::Init()
   // on the main thread the first time they are used, causing stutter. Nouveau has been
   // reported to crash if draw calls are invoked on the shared context threads. For now,
   // disable asynchronous compilation on Mesa.
-  if (!DriverDetails::HasBug(DriverDetails::BUG_SHARED_CONTEXT_SHADER_COMPILATION) &&
-      g_ActiveConfig.GetShaderCompilerThreads() > 0)
-  {
+  if (!DriverDetails::HasBug(DriverDetails::BUG_SHARED_CONTEXT_SHADER_COMPILATION))
     s_async_compiler = std::make_unique<SharedContextAsyncShaderCompiler>();
-    s_async_compiler->StartWorkerThreads(g_ActiveConfig.GetShaderCompilerThreads());
-    if (!s_async_compiler->HasWorkerThreads())
-    {
-      // No point using the async compiler without workers.
-      s_async_compiler.reset();
-    }
-  }
 
   // Read our shader cache, only if supported and enabled
   if (g_ogl_config.bSupportsGLSLCache && g_ActiveConfig.bShaderCache)
@@ -630,7 +621,19 @@ void ProgramShaderCache::Init()
   last_uber_entry = nullptr;
 
   if (g_ActiveConfig.CanPrecompileUberShaders())
+  {
+    if (s_async_compiler)
+      s_async_compiler->ResizeWorkerThreads(g_ActiveConfig.GetShaderPrecompilerThreads());
     PrecompileUberShaders();
+  }
+
+  if (s_async_compiler)
+  {
+    // No point using the async compiler without workers.
+    s_async_compiler->ResizeWorkerThreads(g_ActiveConfig.GetShaderCompilerThreads());
+    if (!s_async_compiler->HasWorkerThreads())
+      s_async_compiler.reset();
+  }
 }
 
 void ProgramShaderCache::RetrieveAsyncShaders()

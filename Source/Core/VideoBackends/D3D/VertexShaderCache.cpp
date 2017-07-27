@@ -174,11 +174,12 @@ void VertexShaderCache::Init()
     LoadShaderCache();
 
   g_async_compiler = std::make_unique<VideoCommon::AsyncShaderCompiler>();
-  if (g_ActiveConfig.GetShaderCompilerThreads() > 0)
-    g_async_compiler->StartWorkerThreads(g_ActiveConfig.GetShaderCompilerThreads());
+  g_async_compiler->ResizeWorkerThreads(g_ActiveConfig.CanPrecompileUberShaders() ?
+                                            g_ActiveConfig.GetShaderPrecompilerThreads() :
+                                            g_ActiveConfig.GetShaderCompilerThreads());
 
   if (g_ActiveConfig.CanPrecompileUberShaders())
-    PrecompileUberShaders();
+    QueueUberShaderCompiles();
 }
 
 void VertexShaderCache::LoadShaderCache()
@@ -206,7 +207,7 @@ void VertexShaderCache::Reload()
     LoadShaderCache();
 
   if (g_ActiveConfig.CanPrecompileUberShaders())
-    PrecompileUberShaders();
+    QueueUberShaderCompiles();
 }
 
 void VertexShaderCache::Clear()
@@ -426,7 +427,7 @@ void VertexShaderCache::RetreiveAsyncShaders()
   g_async_compiler->RetrieveWorkItems();
 }
 
-void VertexShaderCache::PrecompileUberShaders()
+void VertexShaderCache::QueueUberShaderCompiles()
 {
   UberShader::EnumerateVertexShaderUids([&](const UberShader::VertexShaderUid& uid) {
     if (ubervshaders.find(uid) != ubervshaders.end())
@@ -435,13 +436,19 @@ void VertexShaderCache::PrecompileUberShaders()
     g_async_compiler->QueueWorkItem(
         g_async_compiler->CreateWorkItem<UberVertexShaderCompilerWorkItem>(uid));
   });
+}
 
+void VertexShaderCache::WaitForBackgroundCompilesToComplete()
+{
   g_async_compiler->WaitUntilCompletion([](size_t completed, size_t total) {
     Host_UpdateProgressDialog(GetStringT("Compiling shaders...").c_str(),
                               static_cast<int>(completed), static_cast<int>(total));
   });
   g_async_compiler->RetrieveWorkItems();
   Host_UpdateProgressDialog("", -1, -1);
+
+  // Switch from precompile -> runtime compiler threads.
+  g_async_compiler->ResizeWorkerThreads(g_ActiveConfig.GetShaderCompilerThreads());
 }
 
 VertexShaderCache::VertexShaderCompilerWorkItem::VertexShaderCompilerWorkItem(

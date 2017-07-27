@@ -63,9 +63,9 @@ bool ShaderCache::Initialize()
     return false;
 
   m_async_shader_compiler = std::make_unique<VideoCommon::AsyncShaderCompiler>();
-  if (g_ActiveConfig.GetShaderCompilerThreads() > 0)
-    m_async_shader_compiler->StartWorkerThreads(g_ActiveConfig.GetShaderCompilerThreads());
-
+  m_async_shader_compiler->ResizeWorkerThreads(g_ActiveConfig.CanPrecompileUberShaders() ?
+                                                   g_ActiveConfig.GetShaderPrecompilerThreads() :
+                                                   g_ActiveConfig.GetShaderCompilerThreads());
   return true;
 }
 
@@ -1236,6 +1236,9 @@ void ShaderCache::PrecompileUberShaders()
   });
 
   WaitForBackgroundCompilesToComplete();
+
+  // Switch to the runtime/background thread config.
+  m_async_shader_compiler->ResizeWorkerThreads(g_ActiveConfig.GetShaderCompilerThreads());
 }
 
 void ShaderCache::WaitForBackgroundCompilesToComplete()

@@ -161,6 +161,7 @@ void VideoBackend::Video_Prepare()
   VertexShaderCache::Init();
   PixelShaderCache::Init();
   GeometryShaderCache::Init();
+  VertexShaderCache::WaitForBackgroundCompilesToComplete();
   D3D::InitUtils();
   BBox::Init();
 }

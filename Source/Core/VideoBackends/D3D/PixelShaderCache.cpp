@@ -513,7 +513,7 @@ void PixelShaderCache::Init()
     LoadShaderCache();
 
   if (g_ActiveConfig.CanPrecompileUberShaders())
-    PrecompileUberShaders();
+    QueueUberShaderCompiles();
 }
 
 void PixelShaderCache::LoadShaderCache()
@@ -538,7 +538,7 @@ void PixelShaderCache::Reload()
     LoadShaderCache();
 
   if (g_ActiveConfig.CanPrecompileUberShaders())
-    PrecompileUberShaders();
+    QueueUberShaderCompiles();
 }
 
 // ONLY to be used during shutdown.
@@ -757,7 +757,7 @@ bool PixelShaderCache::InsertShader(const UberShader::PixelShaderUid& uid,
   return (shader != nullptr);
 }
 
-void PixelShaderCache::PrecompileUberShaders()
+void PixelShaderCache::QueueUberShaderCompiles()
 {
   UberShader::EnumeratePixelShaderUids([&](const UberShader::PixelShaderUid& uid) {
     if (UberPixelShaders.find(uid) != UberPixelShaders.end())

@@ -28,7 +28,7 @@ public:
   static bool InsertByteCode(const UberShader::PixelShaderUid& uid, const u8* data, size_t len);
   static bool InsertShader(const PixelShaderUid& uid, ID3D11PixelShader* shader);
   static bool InsertShader(const UberShader::PixelShaderUid& uid, ID3D11PixelShader* shader);
-  static void PrecompileUberShaders();
+  static void QueueUberShaderCompiles();
 
   static ID3D11Buffer* GetConstantBuffer();
 
