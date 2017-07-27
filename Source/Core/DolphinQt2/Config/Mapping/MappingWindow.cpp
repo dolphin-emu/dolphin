@@ -50,7 +50,7 @@ MappingWindow::MappingWindow(QWidget* parent, int port_num) : QDialog(parent), m
 void MappingWindow::CreateDevicesLayout()
 {
   m_devices_layout = new QHBoxLayout();
-  m_devices_box = new QGroupBox(tr("Devices"));
+  m_devices_box = new QGroupBox(tr("Device"));
   m_devices_combo = new QComboBox();
   m_devices_refresh = new QPushButton(tr("Refresh"));
 
@@ -64,7 +64,7 @@ void MappingWindow::CreateDevicesLayout()
 void MappingWindow::CreateProfilesLayout()
 {
   m_profiles_layout = new QHBoxLayout();
-  m_profiles_box = new QGroupBox(tr("Profiles"));
+  m_profiles_box = new QGroupBox(tr("Profile"));
   m_profiles_combo = new QComboBox();
   m_profiles_load = new QPushButton(tr("Load"));
   m_profiles_save = new QPushButton(tr("Save"));
@@ -283,7 +283,7 @@ void MappingWindow::ChangeMappingType(MappingWindow::Type type)
   {
     auto* extension = new WiimoteEmuExtension(this);
     widget = new WiimoteEmuGeneral(this, extension);
-    setWindowTitle(tr("Wii Remote at Port %1").arg(GetPort() + 1));
+    setWindowTitle(tr("Wii Remote %1").arg(GetPort() + 1));
     AddWidget(tr("General and Options"), widget);
     AddWidget(tr("Motion Controls and IR"), new WiimoteEmuMotionControl(this));
     AddWidget(tr("Extension"), extension);
@@ -294,10 +294,10 @@ void MappingWindow::ChangeMappingType(MappingWindow::Type type)
     widget = new HotkeyGeneral(this);
     AddWidget(tr("General"), widget);
     AddWidget(tr("TAS Tools"), new HotkeyTAS(this));
-    AddWidget(tr("Wii (Remote)"), new HotkeyWii(this));
+    AddWidget(tr("Wii and Wii Remote"), new HotkeyWii(this));
     AddWidget(tr("Graphics"), new HotkeyGraphics(this));
     AddWidget(tr("3D"), new Hotkey3D(this));
-    AddWidget(tr("Save States"), new HotkeyStates(this));
+    AddWidget(tr("Save and Load State"), new HotkeyStates(this));
     setWindowTitle(tr("Hotkey Settings"));
     break;
   }

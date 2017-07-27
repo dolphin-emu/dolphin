@@ -242,23 +242,23 @@ void Shutdown()
 const std::array<HotkeyGroupInfo, NUM_HOTKEY_GROUPS> groups_info = {
     {{_trans("General"), HK_OPEN, HK_EXIT},
      {_trans("Volume"), HK_VOLUME_DOWN, HK_VOLUME_TOGGLE_MUTE},
-     {_trans("Emulation speed"), HK_DECREASE_EMULATION_SPEED, HK_TOGGLE_THROTTLE},
-     {_trans("Frame advance"), HK_FRAME_ADVANCE, HK_FRAME_ADVANCE_RESET_SPEED},
+     {_trans("Emulation Speed"), HK_DECREASE_EMULATION_SPEED, HK_TOGGLE_THROTTLE},
+     {_trans("Frame Advance"), HK_FRAME_ADVANCE, HK_FRAME_ADVANCE_RESET_SPEED},
      {_trans("Movie"), HK_START_RECORDING, HK_READ_ONLY_MODE},
      {_trans("Stepping"), HK_STEP, HK_SKIP},
      {_trans("Program Counter"), HK_SHOW_PC, HK_SET_PC},
      {_trans("Breakpoint"), HK_BP_TOGGLE, HK_MBP_ADD},
      {_trans("Wii"), HK_TRIGGER_SYNC_BUTTON, HK_BALANCEBOARD_CONNECT},
-     {_trans("Graphics toggles"), HK_TOGGLE_CROP, HK_TOGGLE_TEXTURES},
+     {_trans("Graphics Toggles"), HK_TOGGLE_CROP, HK_TOGGLE_TEXTURES},
      {_trans("Internal Resolution"), HK_INCREASE_IR, HK_DECREASE_IR},
      {_trans("Freelook"), HK_FREELOOK_DECREASE_SPEED, HK_FREELOOK_RESET},
      {_trans("3D"), HK_TOGGLE_STEREO_SBS, HK_TOGGLE_STEREO_3DVISION},
-     {_trans("3D depth"), HK_DECREASE_DEPTH, HK_INCREASE_CONVERGENCE},
-     {_trans("Load state"), HK_LOAD_STATE_SLOT_1, HK_LOAD_STATE_SLOT_SELECTED},
-     {_trans("Save state"), HK_SAVE_STATE_SLOT_1, HK_SAVE_STATE_SLOT_SELECTED},
-     {_trans("Select state"), HK_SELECT_STATE_SLOT_1, HK_SELECT_STATE_SLOT_10},
-     {_trans("Load last state"), HK_LOAD_LAST_STATE_1, HK_LOAD_LAST_STATE_10},
-     {_trans("Other state hotkeys"), HK_SAVE_FIRST_STATE, HK_LOAD_STATE_FILE}}};
+     {_trans("3D Depth"), HK_DECREASE_DEPTH, HK_INCREASE_CONVERGENCE},
+     {_trans("Load State"), HK_LOAD_STATE_SLOT_1, HK_LOAD_STATE_SLOT_SELECTED},
+     {_trans("Save State"), HK_SAVE_STATE_SLOT_1, HK_SAVE_STATE_SLOT_SELECTED},
+     {_trans("Select State"), HK_SELECT_STATE_SLOT_1, HK_SELECT_STATE_SLOT_10},
+     {_trans("Load Last State"), HK_LOAD_LAST_STATE_1, HK_LOAD_LAST_STATE_10},
+     {_trans("Other State Hotkeys"), HK_SAVE_FIRST_STATE, HK_LOAD_STATE_FILE}}};
 
 HotkeyManager::HotkeyManager()
 {

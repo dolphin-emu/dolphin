@@ -123,7 +123,7 @@ QGridLayout* PathPane::MakePathsLayout()
           [=] { SConfig::GetInstance().m_strDefaultISO = m_game_edit->text().toStdString(); });
   QPushButton* game_open = new QPushButton;
   connect(game_open, &QPushButton::clicked, this, &PathPane::BrowseDefaultGame);
-  layout->addWidget(new QLabel(tr("Default Game")), 0, 0);
+  layout->addWidget(new QLabel(tr("Default ISO:")), 0, 0);
   layout->addWidget(m_game_edit, 0, 1);
   layout->addWidget(game_open, 0, 2);
 
@@ -132,7 +132,7 @@ QGridLayout* PathPane::MakePathsLayout()
           [=] { SConfig::GetInstance().m_strDVDRoot = m_dvd_edit->text().toStdString(); });
   QPushButton* dvd_open = new QPushButton;
   connect(dvd_open, &QPushButton::clicked, this, &PathPane::BrowseDVDRoot);
-  layout->addWidget(new QLabel(tr("DVD Root")), 1, 0);
+  layout->addWidget(new QLabel(tr("DVD Root:")), 1, 0);
   layout->addWidget(m_dvd_edit, 1, 1);
   layout->addWidget(dvd_open, 1, 2);
 
@@ -141,7 +141,7 @@ QGridLayout* PathPane::MakePathsLayout()
           [=] { SConfig::GetInstance().m_strApploader = m_app_edit->text().toStdString(); });
   QPushButton* app_open = new QPushButton;
   connect(app_open, &QPushButton::clicked, this, &PathPane::BrowseApploader);
-  layout->addWidget(new QLabel(tr("Apploader")), 2, 0);
+  layout->addWidget(new QLabel(tr("Apploader:")), 2, 0);
   layout->addWidget(m_app_edit, 2, 1);
   layout->addWidget(app_open, 2, 2);
 
@@ -150,7 +150,7 @@ QGridLayout* PathPane::MakePathsLayout()
           [=] { SConfig::GetInstance().m_NANDPath = m_nand_edit->text().toStdString(); });
   QPushButton* nand_open = new QPushButton;
   connect(nand_open, &QPushButton::clicked, this, &PathPane::BrowseWiiNAND);
-  layout->addWidget(new QLabel(tr("Wii NAND Root")), 3, 0);
+  layout->addWidget(new QLabel(tr("Wii NAND Root:")), 3, 0);
   layout->addWidget(m_nand_edit, 3, 1);
   layout->addWidget(nand_open, 3, 2);
 

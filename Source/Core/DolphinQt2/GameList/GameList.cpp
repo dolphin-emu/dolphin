@@ -148,19 +148,19 @@ void GameList::ShowContextMenu(const QPoint&)
 
   QMenu* menu = new QMenu(this);
   DiscIO::Platform platform = GameFile(game).GetPlatformID();
-  menu->addAction(tr("Properties"), this, &GameList::OpenProperties);
-  menu->addAction(tr("Wiki"), this, &GameList::OpenWiki);
+  menu->addAction(tr("&Properties"), this, &GameList::OpenProperties);
+  menu->addAction(tr("&Wiki"), this, &GameList::OpenWiki);
   menu->addSeparator();
 
   if (platform == DiscIO::Platform::GAMECUBE_DISC || platform == DiscIO::Platform::WII_DISC)
   {
-    menu->addAction(tr("Default ISO"), this, &GameList::SetDefaultISO);
+    menu->addAction(tr("Set as &default ISO"), this, &GameList::SetDefaultISO);
     const auto blob_type = GameFile(game).GetBlobType();
 
     if (blob_type == DiscIO::BlobType::GCZ)
-      menu->addAction(tr("Decompress ISO"), this, &GameList::CompressISO);
+      menu->addAction(tr("Decompress ISO..."), this, &GameList::CompressISO);
     else if (blob_type == DiscIO::BlobType::PLAIN)
-      menu->addAction(tr("Compress ISO"), this, &GameList::CompressISO);
+      menu->addAction(tr("Compress ISO..."), this, &GameList::CompressISO);
 
     menu->addSeparator();
   }
@@ -190,13 +190,13 @@ void GameList::ShowContextMenu(const QPoint&)
 
   if (platform == DiscIO::Platform::WII_WAD || platform == DiscIO::Platform::WII_DISC)
   {
-    menu->addAction(tr("Open Wii save folder"), this, &GameList::OpenSaveFolder);
+    menu->addAction(tr("Open Wii &save folder"), this, &GameList::OpenSaveFolder);
     menu->addAction(tr("Export Wii save (Experimental)"), this, &GameList::ExportWiiSave);
     menu->addSeparator();
   }
 
-  menu->addAction(tr("Open Containing Folder"), this, &GameList::OpenContainingFolder);
-  menu->addAction(tr("Remove File"), this, &GameList::DeleteFile);
+  menu->addAction(tr("Open &containing folder"), this, &GameList::OpenContainingFolder);
+  menu->addAction(tr("Delete File..."), this, &GameList::DeleteFile);
   menu->exec(QCursor::pos());
 }
 
@@ -239,7 +239,7 @@ void GameList::CompressISO()
     wii_warning.setText(tr("Are you sure?"));
     wii_warning.setInformativeText(
         tr("Compressing a Wii disc image will irreversibly change the compressed copy by removing "
-           "padding data. Your disc image will still work."));
+           "padding data. Your disc image will still work. Continue?"));
     wii_warning.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
 
     if (wii_warning.exec() == QMessageBox::No)
@@ -253,7 +253,7 @@ void GameList::CompressISO()
           .dir()
           .absoluteFilePath(file.GetGameID())
           .append(compressed ? QStringLiteral(".gcm") : QStringLiteral(".gcz")),
-      compressed ? tr("Uncompressed GC/Wii images (*.iso *.gcm") :
+      compressed ? tr("Uncompressed GC/Wii images (*.iso *.gcm)") :
                    tr("Compressed GC/Wii images (*.gcz)"));
 
   if (dst_path.isEmpty())
@@ -296,8 +296,8 @@ void GameList::InstallWAD()
   const bool success = GameFile(GetSelectedGame()).Install();
 
   result_dialog.setIcon(success ? QMessageBox::Information : QMessageBox::Critical);
-  result_dialog.setText(success ? tr("Succesfully installed title to the NAND") :
-                                  tr("Failed to install title to the NAND"));
+  result_dialog.setText(success ? tr("Successfully installed this title to the NAND.") :
+                                  tr("Failed to install this title to the NAND."));
   result_dialog.exec();
 }
 
@@ -318,8 +318,8 @@ void GameList::UninstallWAD()
   const bool success = GameFile(GetSelectedGame()).Uninstall();
 
   result_dialog.setIcon(success ? QMessageBox::Information : QMessageBox::Critical);
-  result_dialog.setText(success ? tr("Succesfully removed title from the NAND") :
-                                  tr("Failed to remove title from the NAND"));
+  result_dialog.setText(success ? tr("Successfully removed this title from the NAND.") :
+                                  tr("Failed to remove this title from the NAND."));
   result_dialog.exec();
 }
 
@@ -347,7 +347,7 @@ void GameList::DeleteFile()
 
   confirm_dialog.setIcon(QMessageBox::Warning);
   confirm_dialog.setText(tr("Are you sure you want to delete this file?"));
-  confirm_dialog.setInformativeText(tr("You won't be able to undo this!"));
+  confirm_dialog.setInformativeText(tr("This cannot be undone!"));
   confirm_dialog.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
 
   if (confirm_dialog.exec() == QMessageBox::Yes)
@@ -442,7 +442,7 @@ void GameList::OnColumnVisibilityToggled(const QString& row, bool visible)
       {tr("Platform"), GameListModel::COL_PLATFORM},
       {tr("Size"), GameListModel::COL_SIZE},
       {tr("Title"), GameListModel::COL_TITLE},
-      {tr("Quality"), GameListModel::COL_RATING}};
+      {tr("State"), GameListModel::COL_RATING}};
 
   m_table->setColumnHidden(rowname_to_col_index[row], !visible);
 }

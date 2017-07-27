@@ -77,7 +77,7 @@ void AdvancedWidget::CreateWidgets()
 #endif
 
   // Misc.
-  auto* misc_box = new QGroupBox(tr("Misc."));
+  auto* misc_box = new QGroupBox(tr("Misc"));
   auto* misc_layout = new QGridLayout();
   misc_box->setLayout(misc_layout);
 
