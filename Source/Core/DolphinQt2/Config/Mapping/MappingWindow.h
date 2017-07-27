@@ -64,7 +64,6 @@ private:
   void CreateResetLayout();
   void CreateMainLayout();
   void ConnectWidgets();
-  void LoadSettings();
 
   void SetLayoutComplex(bool is_complex);
   void AddWidget(const QString& name, QWidget* widget);
@@ -76,7 +75,6 @@ private:
   void OnLoadProfilePressed();
   void OnSaveProfilePressed();
   void OnDefaultFieldsPressed();
-  void OnProfileChanged(int index);
   void OnDeviceChanged(int index);
 
   ControllerEmu::EmulatedController* m_controller = nullptr;

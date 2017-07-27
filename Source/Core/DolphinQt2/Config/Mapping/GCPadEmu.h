@@ -23,13 +23,7 @@ public:
 private:
   void LoadSettings() override;
   void SaveSettings() override;
-  void CreateButtonsLayout();
-  void CreateControlstickLayout();
-  void CreateCStickLayout();
-  void CreateTriggersLayout();
-  void CreateDPadLayout();
   void CreateMainLayout();
-  void ConnectWidgets();
 
   // Main
   QHBoxLayout* m_main_layout;

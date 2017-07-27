@@ -20,7 +20,6 @@
 
 #include "Core/Core.h"
 #include "DolphinQt2/Config/Mapping/MappingCommon.h"
-#include "DolphinQt2/Config/Mapping/MappingWidget.h"
 #include "DolphinQt2/Config/Mapping/MappingWindow.h"
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"

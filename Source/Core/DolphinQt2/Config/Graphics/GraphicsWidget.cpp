@@ -5,10 +5,7 @@
 #include "DolphinQt2/Config/Graphics/GraphicsWidget.h"
 
 #include <QEvent>
-#include <QFormLayout>
-#include <QGroupBox>
 #include <QLabel>
-#include <QVBoxLayout>
 
 #include "DolphinQt2/Config/Graphics/GraphicsWindow.h"
 
