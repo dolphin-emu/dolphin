@@ -782,8 +782,19 @@ bool TextureConverter::CreateDecodingTexture()
   m_decoding_texture = Texture2D::Create(
       DECODING_TEXTURE_WIDTH, DECODING_TEXTURE_HEIGHT, 1, 1, VK_FORMAT_R8G8B8A8_UNORM,
       VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_VIEW_TYPE_2D_ARRAY, VK_IMAGE_TILING_OPTIMAL,
-      VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT);
-  return static_cast<bool>(m_decoding_texture);
+      VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
+          VK_IMAGE_USAGE_TRANSFER_SRC_BIT);
+  if (!m_decoding_texture)
+    return false;
+
+  VkClearColorValue clear_value = {{0.0f, 0.0f, 0.0f, 1.0f}};
+  VkImageSubresourceRange clear_range = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1};
+  m_decoding_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
+                                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+  vkCmdClearColorImage(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
+                       m_decoding_texture->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                       &clear_value, 1, &clear_range);
+  return true;
 }
 
 bool TextureConverter::CompileYUYVConversionShaders()
