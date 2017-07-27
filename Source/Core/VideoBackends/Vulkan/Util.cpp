@@ -61,6 +61,7 @@ bool IsCompressedFormat(VkFormat format)
   case VK_FORMAT_BC1_RGBA_UNORM_BLOCK:
   case VK_FORMAT_BC2_UNORM_BLOCK:
   case VK_FORMAT_BC3_UNORM_BLOCK:
+  case VK_FORMAT_BC7_UNORM_BLOCK:
     return true;
 
   default:
@@ -102,6 +103,9 @@ VkFormat GetVkFormatForHostTextureFormat(AbstractTextureFormat format)
   case AbstractTextureFormat::DXT5:
     return VK_FORMAT_BC3_UNORM_BLOCK;
 
+  case AbstractTextureFormat::BPTC:
+    return VK_FORMAT_BC7_UNORM_BLOCK;
+
   case AbstractTextureFormat::RGBA8:
   default:
     return VK_FORMAT_R8G8B8A8_UNORM;
@@ -130,6 +134,7 @@ u32 GetTexelSize(VkFormat format)
 
   case VK_FORMAT_BC2_UNORM_BLOCK:
   case VK_FORMAT_BC3_UNORM_BLOCK:
+  case VK_FORMAT_BC7_UNORM_BLOCK:
     return 16;
 
   default:
@@ -145,6 +150,7 @@ u32 GetBlockSize(VkFormat format)
   case VK_FORMAT_BC1_RGBA_UNORM_BLOCK:
   case VK_FORMAT_BC2_UNORM_BLOCK:
   case VK_FORMAT_BC3_UNORM_BLOCK:
+  case VK_FORMAT_BC7_UNORM_BLOCK:
     return 4;
 
   default:
