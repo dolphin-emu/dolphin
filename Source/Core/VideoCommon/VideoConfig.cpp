@@ -5,6 +5,7 @@
 #include <algorithm>
 
 #include "Common/CommonTypes.h"
+#include "Common/StringUtil.h"
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/Core.h"
 #include "Core/Movie.h"

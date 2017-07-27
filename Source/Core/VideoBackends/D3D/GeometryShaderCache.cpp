@@ -158,18 +158,23 @@ void GeometryShaderCache::Init()
   Clear();
 
   if (g_ActiveConfig.bShaderCache)
-  {
-    if (!File::Exists(File::GetUserPath(D_SHADERCACHE_IDX)))
-      File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX));
+    LoadShaderCache();
+}
 
-    std::string cache_filename =
-        StringFromFormat("%sdx11-%s-gs.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
-                         SConfig::GetInstance().GetGameID().c_str());
-    GeometryShaderCacheInserter inserter;
-    g_gs_disk_cache.OpenAndRead(cache_filename, inserter);
-  }
+void GeometryShaderCache::LoadShaderCache()
+{
+  GeometryShaderCacheInserter inserter;
+  g_gs_disk_cache.OpenAndRead(GetDiskShaderCacheFileName(APIType::D3D, "GS", true, true), inserter);
+}
 
-  last_entry = nullptr;
+void GeometryShaderCache::Reload()
+{
+  g_gs_disk_cache.Sync();
+  g_gs_disk_cache.Close();
+  Clear();
+
+  if (g_ActiveConfig.bShaderCache)
+    LoadShaderCache();
 }
 
 // ONLY to be used during shutdown.
@@ -180,6 +185,7 @@ void GeometryShaderCache::Clear()
   GeometryShaders.clear();
 
   last_entry = nullptr;
+  last_uid = {};
 }
 
 void GeometryShaderCache::Shutdown()
@@ -230,7 +236,8 @@ bool GeometryShaderCache::SetShader(u32 primitive_type)
   }
 
   // Need to compile a new shader
-  ShaderCode code = GenerateGeometryShaderCode(APIType::D3D, uid.GetUidData());
+  ShaderCode code =
+      GenerateGeometryShaderCode(APIType::D3D, ShaderHostConfig::GetCurrent(), uid.GetUidData());
 
   D3DBlob* pbytecode;
   if (!D3D::CompileGeometryShader(code.GetBuffer(), &pbytecode))

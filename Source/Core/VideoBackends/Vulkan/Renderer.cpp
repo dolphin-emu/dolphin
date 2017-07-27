@@ -114,7 +114,7 @@ bool Renderer::Initialize()
   }
 
   // Ensure all pipelines previously used by the game have been created.
-  StateTracker::GetInstance()->LoadPipelineUIDCache();
+  StateTracker::GetInstance()->ReloadPipelineUIDCache();
 
   // Initialize post processing.
   m_post_processor = std::make_unique<VulkanPostProcessing>();
@@ -1126,13 +1126,10 @@ void Renderer::CheckForSurfaceChange()
 void Renderer::CheckForConfigChanges()
 {
   // Save the video config so we can compare against to determine which settings have changed.
-  u32 old_multisamples = g_ActiveConfig.iMultisamples;
   int old_anisotropy = g_ActiveConfig.iMaxAnisotropy;
-  int old_stereo_mode = g_ActiveConfig.iStereoMode;
   int old_aspect_ratio = g_ActiveConfig.iAspectRatio;
   int old_efb_scale = g_ActiveConfig.iEFBScale;
   bool old_force_filtering = g_ActiveConfig.bForceFiltering;
-  bool old_ssaa = g_ActiveConfig.bSSAA;
   bool old_use_xfb = g_ActiveConfig.bUseXFB;
   bool old_use_realxfb = g_ActiveConfig.bUseRealXFB;
 
@@ -1142,11 +1139,8 @@ void Renderer::CheckForConfigChanges()
   UpdateActiveConfig();
 
   // Determine which (if any) settings have changed.
-  bool msaa_changed = old_multisamples != g_ActiveConfig.iMultisamples;
-  bool ssaa_changed = old_ssaa != g_ActiveConfig.bSSAA;
   bool anisotropy_changed = old_anisotropy != g_ActiveConfig.iMaxAnisotropy;
   bool force_texture_filtering_changed = old_force_filtering != g_ActiveConfig.bForceFiltering;
-  bool stereo_changed = old_stereo_mode != g_ActiveConfig.iStereoMode;
   bool efb_scale_changed = old_efb_scale != g_ActiveConfig.iEFBScale;
   bool aspect_changed = old_aspect_ratio != g_ActiveConfig.iAspectRatio;
   bool use_xfb_changed = old_use_xfb != g_ActiveConfig.bUseXFB;
@@ -1164,23 +1158,20 @@ void Renderer::CheckForConfigChanges()
 
   // MSAA samples changed, we need to recreate the EFB render pass.
   // If the stereoscopy mode changed, we need to recreate the buffers as well.
-  if (msaa_changed || stereo_changed)
+  // SSAA changed on/off, we have to recompile shaders.
+  // Changing stereoscopy from off<->on also requires shaders to be recompiled.
+  if (CheckForHostConfigChanges())
   {
     g_command_buffer_mgr->WaitForGPUIdle();
     FramebufferManager::GetInstance()->RecreateRenderPass();
     FramebufferManager::GetInstance()->ResizeEFBTextures();
     BindEFBToStateTracker();
-  }
-
-  // SSAA changed on/off, we can leave the buffers/render pass, but have to recompile shaders.
-  // Changing stereoscopy from off<->on also requires shaders to be recompiled.
-  if (msaa_changed || ssaa_changed || stereo_changed)
-  {
-    g_command_buffer_mgr->WaitForGPUIdle();
     RecompileShaders();
     FramebufferManager::GetInstance()->RecompileShaders();
+    g_object_cache->ReloadShaderAndPipelineCaches();
     g_object_cache->RecompileSharedShaders();
-    StateTracker::GetInstance()->LoadPipelineUIDCache();
+    StateTracker::GetInstance()->InvalidateShaderPointers();
+    StateTracker::GetInstance()->ReloadPipelineUIDCache();
   }
 
   // For vsync, we need to change the present mode, which means recreating the swap chain.

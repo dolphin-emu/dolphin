@@ -15,6 +15,7 @@ class PixelShaderCache
 {
 public:
   static void Init();
+  static void Reload();
   static void Clear();
   static void Shutdown();
   static bool SetShader();  // TODO: Should be renamed to LoadShader
@@ -45,6 +46,8 @@ private:
   };
 
   typedef std::map<PixelShaderUid, PSCacheEntry> PSCache;
+
+  static void LoadShaderCache();
 
   static PSCache PixelShaders;
   static const PSCacheEntry* last_entry;

@@ -894,6 +894,13 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
                                         D3D11_CLEAR_DEPTH, 0.f, 0);
   }
 
+  if (CheckForHostConfigChanges())
+  {
+    VertexShaderCache::Reload();
+    GeometryShaderCache::Reload();
+    PixelShaderCache::Reload();
+  }
+
   // begin next frame
   RestoreAPIState();
   D3D::BeginFrame();

@@ -117,7 +117,10 @@ public:
   bool IsWithinRenderArea(s32 x, s32 y, u32 width, u32 height) const;
 
   // Reloads the UID cache, ensuring all pipelines used by the game so far have been created.
-  void LoadPipelineUIDCache();
+  void ReloadPipelineUIDCache();
+
+  // Clears shader pointers, ensuring that now-deleted modules are not used.
+  void InvalidateShaderPointers();
 
 private:
   // Serialized version of PipelineInfo, used when loading/saving the pipeline UID cache.

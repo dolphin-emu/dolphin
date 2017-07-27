@@ -46,7 +46,7 @@ protected:
   }
   ShaderCode GenerateCode(APIType api_type, VertexShaderUid uid) override
   {
-    return GenerateVertexShaderCode(api_type, uid.GetUidData());
+    return GenerateVertexShaderCode(api_type, ShaderHostConfig::GetCurrent(), uid.GetUidData());
   }
 };
 
@@ -62,7 +62,7 @@ protected:
   }
   ShaderCode GenerateCode(APIType api_type, GeometryShaderUid uid) override
   {
-    return GenerateGeometryShaderCode(api_type, uid.GetUidData());
+    return GenerateGeometryShaderCode(api_type, ShaderHostConfig::GetCurrent(), uid.GetUidData());
   }
 };
 
@@ -78,7 +78,7 @@ protected:
   }
   ShaderCode GenerateCode(APIType api_type, PixelShaderUid uid) override
   {
-    return GeneratePixelShaderCode(api_type, uid.GetUidData());
+    return GeneratePixelShaderCode(api_type, ShaderHostConfig::GetCurrent(), uid.GetUidData());
   }
 };
 
