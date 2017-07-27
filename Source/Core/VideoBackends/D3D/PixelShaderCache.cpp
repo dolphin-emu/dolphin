@@ -593,11 +593,8 @@ void PixelShaderCache::Shutdown()
 
 bool PixelShaderCache::SetShader()
 {
-  if (g_ActiveConfig.CanUseUberShaders() &&
-      (g_ActiveConfig.bDisableSpecializedShaders || g_ActiveConfig.bForcePixelUberShaders))
-  {
+  if (g_ActiveConfig.bDisableSpecializedShaders || g_ActiveConfig.bForcePixelUberShaders)
     return SetUberShader();
-  }
 
   PixelShaderUid uid = GetPixelShaderUid();
   if (last_entry && uid == last_uid)

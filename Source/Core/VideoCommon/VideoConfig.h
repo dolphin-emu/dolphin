@@ -258,7 +258,6 @@ struct VideoConfig final
   bool UseVertexRounding() const { return bVertexRounding && iEFBScale != SCALE_1X; }
   u32 GetShaderCompilerThreads() const;
   u32 GetShaderPrecompilerThreads() const;
-  bool CanUseUberShaders() const;
   bool CanPrecompileUberShaders() const;
   bool CanBackgroundCompileShaders() const;
 };

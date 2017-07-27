@@ -223,7 +223,7 @@ void ProgramShaderCache::UploadConstants()
 
 SHADER* ProgramShaderCache::SetShader(u32 primitive_type, const GLVertexFormat* vertex_format)
 {
-  if (g_ActiveConfig.bDisableSpecializedShaders && g_ActiveConfig.CanUseUberShaders())
+  if (g_ActiveConfig.bDisableSpecializedShaders)
     return SetUberShader(primitive_type, vertex_format);
 
   SHADERUID uid;

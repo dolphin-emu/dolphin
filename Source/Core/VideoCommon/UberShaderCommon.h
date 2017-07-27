@@ -13,6 +13,13 @@ namespace UberShader
 void WriteUberShaderCommonHeader(ShaderCode& out, APIType api_type,
                                  const ShaderHostConfig& host_config);
 
+// Vertex lighting
+void WriteLightingFunction(ShaderCode& out);
+void WriteVertexLighting(ShaderCode& out, APIType api_type, const char* world_pos_var,
+                         const char* normal_var, const char* in_color_0_var,
+                         const char* in_color_1_var, const char* out_color_0_var,
+                         const char* out_color_1_var);
+
 // bitfieldExtract generator for BitField types
 template <typename T>
 std::string BitfieldExtract(const std::string& source, T type)

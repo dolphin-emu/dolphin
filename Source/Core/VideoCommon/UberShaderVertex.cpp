@@ -21,7 +21,6 @@ VertexShaderUid GetVertexShaderUid()
   return out;
 }
 
-static void GenVertexShaderLighting(APIType ApiType, ShaderCode& out);
 static void GenVertexShaderTexGens(APIType ApiType, u32 numTexgen, ShaderCode& out);
 
 ShaderCode GenVertexShader(APIType ApiType, const ShaderHostConfig& host_config,
@@ -35,8 +34,6 @@ ShaderCode GenVertexShader(APIType ApiType, const ShaderHostConfig& host_config,
   ShaderCode out;
 
   out.Write("// Vertex UberShader\n\n");
-  WriteUberShaderCommonHeader(out, ApiType, host_config);
-
   out.Write("%s", s_lighting_struct);
 
   // uniforms
@@ -47,64 +44,12 @@ ShaderCode GenVertexShader(APIType ApiType, const ShaderHostConfig& host_config,
   out.Write(s_shader_uniforms);
   out.Write("};\n");
 
-  out.Write("int4 CalculateLighting(uint index, uint attnfunc, uint diffusefunc, float4 pos, "
-            "float3 _norm0) {\n"
-            "  float3 ldir, h, cosAttn, distAttn;\n"
-            "  float dist, dist2, attn;\n"
-            "\n"
-            "  switch (attnfunc) {\n");
-  out.Write("  case %uu: // LIGNTATTN_NONE\n", LIGHTATTN_NONE);
-  out.Write("  case %uu: // LIGHTATTN_DIR\n", LIGHTATTN_DIR);
-  out.Write("    ldir = normalize(" I_LIGHTS "[index].pos.xyz - pos.xyz);\n"
-            "    attn = 1.0;\n"
-            "    if (length(ldir) == 0.0)\n"
-            "      ldir = _norm0;\n"
-            "    break;\n\n");
-  out.Write("  case %uu: // LIGHTATTN_SPEC\n", LIGHTATTN_SPEC);
-  out.Write("    ldir = normalize(" I_LIGHTS "[index].pos.xyz - pos.xyz);\n"
-            "    attn = (dot(_norm0, ldir) >= 0.0) ? max(0.0, dot(_norm0, " I_LIGHTS
-            "[index].dir.xyz)) : 0.0;\n"
-            "    cosAttn = " I_LIGHTS "[index].cosatt.xyz;\n");
-  out.Write("    if (diffusefunc == %uu) // LIGHTDIF_NONE\n", LIGHTDIF_NONE);
-  out.Write("      distAttn = " I_LIGHTS "[index].distatt.xyz;\n"
-            "    else\n"
-            "      distAttn = normalize(" I_LIGHTS "[index].distatt.xyz);\n"
-            "    attn = max(0.0, dot(cosAttn, float3(1.0, attn, attn*attn))) / dot(distAttn, "
-            "float3(1.0, attn, attn*attn));\n"
-            "    break;\n\n");
-  out.Write("  case %uu: // LIGHTATTN_SPOT\n", LIGHTATTN_SPOT);
-  out.Write("    ldir = " I_LIGHTS "[index].pos.xyz - pos.xyz;\n"
-            "    dist2 = dot(ldir, ldir);\n"
-            "    dist = sqrt(dist2);\n"
-            "    ldir = ldir / dist;\n"
-            "    attn = max(0.0, dot(ldir, " I_LIGHTS "[index].dir.xyz));\n"
-            "    attn = max(0.0, " I_LIGHTS "[index].cosatt.x + " I_LIGHTS
-            "[index].cosatt.y * attn + " I_LIGHTS "[index].cosatt.z * attn * attn) / dot(" I_LIGHTS
-            "[index].distatt.xyz, float3(1.0, dist, dist2));\n"
-            "    break;\n\n");
-  out.Write("  default:\n"
-            "    attn = 1.0;\n"
-            "    ldir = _norm0;\n"
-            "    break;\n"
-            "  }\n"
-            "\n"
-            "  switch (diffusefunc) {\n");
-  out.Write("  case %uu: // LIGHTDIF_NONE\n", LIGHTDIF_NONE);
-  out.Write("    return int4(round(attn * float4(" I_LIGHTS "[index].color)));\n\n");
-  out.Write("  case %uu: // LIGHTDIF_SIGN\n", LIGHTDIF_SIGN);
-  out.Write("    return int4(round(attn * dot(ldir, _norm0) * float4(" I_LIGHTS
-            "[index].color)));\n\n");
-  out.Write("  case %uu: // LIGHTDIF_CLAMP\n", LIGHTDIF_CLAMP);
-  out.Write("    return int4(round(attn * max(0.0, dot(ldir, _norm0)) * float4(" I_LIGHTS
-            "[index].color)));\n\n");
-  out.Write("  default:\n"
-            "    return int4(0, 0, 0, 0);\n"
-            "  }\n"
-            "}\n\n");
-
   out.Write("struct VS_OUTPUT {\n");
-  GenerateVSOutputMembers(out, ApiType, numTexgen, false, "");
+  GenerateVSOutputMembers(out, ApiType, numTexgen, per_pixel_lighting, "");
   out.Write("};\n\n");
+
+  WriteUberShaderCommonHeader(out, ApiType, host_config);
+  WriteLightingFunction(out);
 
   if (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan)
   {
@@ -219,7 +164,8 @@ ShaderCode GenVertexShader(APIType ApiType, const ShaderHostConfig& host_config,
             "\n");
 
   // Hardware Lighting
-  GenVertexShaderLighting(ApiType, out);
+  WriteVertexLighting(out, ApiType, "pos.xyz", "_norm0", "rawcolor0", "rawcolor1", "o.colors_0",
+                      "o.colors_1");
 
   // Texture Coordinates
   if (numTexgen > 0)
@@ -227,6 +173,16 @@ ShaderCode GenVertexShader(APIType ApiType, const ShaderHostConfig& host_config,
 
   // clipPos/w needs to be done in pixel shader, not here
   out.Write("o.clipPos = o.pos;\n");
+
+  if (per_pixel_lighting)
+  {
+    out.Write("o.Normal = _norm0;\n");
+    out.Write("o.WorldPos = pos.xyz;\n");
+    out.Write("if ((components & %uu) != 0u) // VB_HAS_COL0\n", VB_HAS_COL0);
+    out.Write("  o.colors_0 = rawcolor0;\n");
+    out.Write("if ((components & %uu) != 0u) // VB_HAS_COL1\n", VB_HAS_COL1);
+    out.Write("  o.colors_1 = rawcolor1;\n");
+  }
 
   // If we can disable the incorrect depth clipping planes using depth clamping, then we can do
   // our own depth clipping and calculate the depth range before the perspective divide if
@@ -300,7 +256,7 @@ ShaderCode GenVertexShader(APIType ApiType, const ShaderHostConfig& host_config,
   {
     if (host_config.backend_geometry_shaders || ApiType == APIType::Vulkan)
     {
-      AssignVSOutputMembers(out, "vs", "o", numTexgen, false);
+      AssignVSOutputMembers(out, "vs", "o", numTexgen, per_pixel_lighting);
     }
     else
     {
@@ -309,6 +265,11 @@ ShaderCode GenVertexShader(APIType ApiType, const ShaderHostConfig& host_config,
       for (u32 i = 0; i < numTexgen; ++i)
         out.Write("tex%d.xyz = o.tex%d;\n", i, i);
       out.Write("clipPos = o.clipPos;\n");
+      if (per_pixel_lighting)
+      {
+        out.Write("Normal = o.Normal;\n");
+        out.Write("WorldPos = o.WorldPos;\n");
+      }
       out.Write("colors_0 = o.colors_0;\n");
       out.Write("colors_1 = o.colors_1;\n");
     }
@@ -332,123 +293,6 @@ ShaderCode GenVertexShader(APIType ApiType, const ShaderHostConfig& host_config,
   out.Write("}\n");
 
   return out;
-}
-
-void GenVertexShaderLighting(APIType ApiType, ShaderCode& out)
-{
-  out.Write("if ((components & %uu) != 0u) // VB_HAS_COL0\n", VB_HAS_COL0);
-  out.Write("  o.colors_0 = rawcolor0;\n"
-            "else\n"
-            "  o.colors_0 = float4(1.0, 1.0, 1.0, 1.0);\n"
-            "\n");
-  out.Write("if ((components & %uu) != 0u) // VB_HAS_COL1\n", VB_HAS_COL1);
-  out.Write("  o.colors_1 = rawcolor1;\n"
-            "else\n"
-            "  o.colors_1 = float4(1.0, 1.0, 1.0, 1.0);\n"
-            "\n");
-
-  out.Write("// Lighting\n");
-  out.Write("%sfor (uint chan = 0u; chan < xfmem_numColorChans; chan++) {\n",
-            ApiType == APIType::D3D ? "[loop] " : "");
-  out.Write("  uint colorreg = xfmem_color(chan);\n"
-            "  uint alphareg = xfmem_alpha(chan);\n"
-            "  int4 mat = " I_MATERIALS "[chan + 2u]; \n"
-            "  int4 lacc = int4(255, 255, 255, 255);\n"
-            "\n");
-
-  out.Write("  if (%s != 0u) {\n", BitfieldExtract("colorreg", LitChannel().matsource).c_str());
-  out.Write("    if ((components & (%uu << chan)) != 0u) // VB_HAS_COL0\n", VB_HAS_COL0);
-  out.Write(
-      "      mat.xyz = int3(round(((chan == 0u) ? rawcolor0.xyz : rawcolor1.xyz) * 255.0));\n");
-  out.Write("    else if ((components & %uu) != 0u) // VB_HAS_COLO0\n", VB_HAS_COL0);
-  out.Write("      mat.xyz = int3(round(rawcolor0.xyz * 255.0));\n"
-            "    else\n"
-            "      mat.xyz = int3(255, 255, 255);\n"
-            "  }\n"
-            "\n");
-
-  out.Write("  if (%s != 0u) {\n", BitfieldExtract("alphareg", LitChannel().matsource).c_str());
-  out.Write("    if ((components & (%uu << chan)) != 0u) // VB_HAS_COL0\n", VB_HAS_COL0);
-  out.Write("      mat.w = int(round(((chan == 0u) ? rawcolor0.w : rawcolor1.w) * 255.0));\n");
-  out.Write("    else if ((components & %uu) != 0u) // VB_HAS_COLO0\n", VB_HAS_COL0);
-  out.Write("      mat.w = int(round(rawcolor0.w * 255.0));\n"
-            "    else\n"
-            "      mat.w = 255;\n"
-            "  } else {\n"
-            "    mat.w = " I_MATERIALS " [chan + 2u].w;\n"
-            "  }\n"
-            "\n");
-
-  out.Write("  if (%s != 0u) {\n",
-            BitfieldExtract("colorreg", LitChannel().enablelighting).c_str());
-  out.Write("    if (%s != 0u) {\n", BitfieldExtract("colorreg", LitChannel().ambsource).c_str());
-  out.Write("      if ((components & (%uu << chan)) != 0u) // VB_HAS_COL0\n", VB_HAS_COL0);
-  out.Write(
-      "        lacc.xyz = int3(round(((chan == 0u) ? rawcolor0.xyz : rawcolor1.xyz) * 255.0));\n");
-  out.Write("      else if ((components & %uu) != 0u) // VB_HAS_COLO0\n", VB_HAS_COL0);
-  out.Write("        lacc.xyz = int3(round(rawcolor0.xyz * 255.0));\n"
-            "      else\n"
-            "        lacc.xyz = int3(255, 255, 255);\n"
-            "    } else {\n"
-            "      lacc.xyz = " I_MATERIALS " [chan].xyz;\n"
-            "    }\n"
-            "\n");
-  out.Write("    uint light_mask = %s | (%s << 4u);\n",
-            BitfieldExtract("colorreg", LitChannel().lightMask0_3).c_str(),
-            BitfieldExtract("colorreg", LitChannel().lightMask4_7).c_str());
-  out.Write("    uint attnfunc = %s;\n",
-            BitfieldExtract("colorreg", LitChannel().attnfunc).c_str());
-  out.Write("    uint diffusefunc = %s;\n",
-            BitfieldExtract("colorreg", LitChannel().diffusefunc).c_str());
-  out.Write("    for (uint light_index = 0u; light_index < 8u; light_index++) {\n"
-            "      if ((light_mask & (1u << light_index)) != 0u)\n"
-            "        lacc.xyz += CalculateLighting(light_index, attnfunc, diffusefunc, pos, "
-            "_norm0).xyz;\n"
-            "    }\n"
-            "  }\n"
-            "\n");
-
-  out.Write("  if (%s != 0u) {\n",
-            BitfieldExtract("alphareg", LitChannel().enablelighting).c_str());
-  out.Write("    if (%s != 0u) {\n", BitfieldExtract("alphareg", LitChannel().ambsource).c_str());
-  out.Write("      if ((components & (%uu << chan)) != 0u) // VB_HAS_COL0\n", VB_HAS_COL0);
-  out.Write("        lacc.w = int(round(((chan == 0u) ? rawcolor0.w : rawcolor1.w) * 255.0));\n");
-  out.Write("      else if ((components & %uu) != 0u) // VB_HAS_COLO0\n", VB_HAS_COL0);
-  out.Write("        lacc.w = int(round(rawcolor0.w * 255.0));\n"
-            "      else\n"
-            "        lacc.w = 255;\n"
-            "    } else {\n"
-            "      lacc.w = " I_MATERIALS " [chan].w;\n"
-            "    }\n"
-            "\n");
-  out.Write("    uint light_mask = %s | (%s << 4u);\n",
-            BitfieldExtract("alphareg", LitChannel().lightMask0_3).c_str(),
-            BitfieldExtract("alphareg", LitChannel().lightMask4_7).c_str());
-  out.Write("    uint attnfunc = %s;\n",
-            BitfieldExtract("alphareg", LitChannel().attnfunc).c_str());
-  out.Write("    uint diffusefunc = %s;\n",
-            BitfieldExtract("alphareg", LitChannel().diffusefunc).c_str());
-  out.Write(
-      "    for (uint light_index = 0u; light_index < 8u; light_index++) {\n\n"
-      "      if ((light_mask & (1u << light_index)) != 0u)\n\n"
-      "        lacc.w += CalculateLighting(light_index, attnfunc, diffusefunc, pos, _norm0).w;\n"
-      "    }\n"
-      "  }\n"
-      "\n");
-
-  out.Write("  lacc = clamp(lacc, 0, 255);\n"
-            "\n"
-            "  // Hopefully GPUs that can support dynamic indexing will optimize this.\n"
-            "  float4 lit_color = float4((mat * (lacc + (lacc >> 7))) >> 8) / 255.0;\n"
-            "  switch (chan) {\n"
-            "  case 0u: o.colors_0 = lit_color; break;\n"
-            "  case 1u: o.colors_1 = lit_color; break;\n"
-            "  }\n"
-            "}\n"
-            "\n");
-
-  out.Write("if (xfmem_numColorChans < 2u && (components & %uu) == 0u)\n", VB_HAS_COL1);
-  out.Write("  o.colors_1 = o.colors_0;\n\n");
 }
 
 void GenVertexShaderTexGens(APIType ApiType, u32 numTexgen, ShaderCode& out)

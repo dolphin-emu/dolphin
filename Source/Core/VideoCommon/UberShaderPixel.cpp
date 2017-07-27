@@ -5,6 +5,7 @@
 #include "VideoCommon/UberShaderPixel.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/DriverDetails.h"
+#include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/UberShaderCommon.h"
 #include "VideoCommon/XFMemory.h"
 
@@ -30,8 +31,6 @@ PixelShaderUid GetPixelShaderUid()
 ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
                           const pixel_ubershader_uid_data* uid_data)
 {
-  // TODO: Support per-pixel lighting.
-  // This can be based on the vertex ubershaders, at the cost of a more expensive pixel shader.
   const bool per_pixel_lighting = host_config.per_pixel_lighting;
   const bool msaa = host_config.msaa;
   const bool ssaa = host_config.ssaa;
@@ -46,12 +45,10 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
 
   out.Write("// Pixel UberShader for %u texgens%s%s\n", numTexgen,
             early_depth ? ", early-depth" : "", per_pixel_depth ? ", per-pixel depth" : "");
-  WritePixelShaderCommonHeader(out, ApiType, bounding_box);
+  WritePixelShaderCommonHeader(out, ApiType, numTexgen, per_pixel_lighting, bounding_box);
   WriteUberShaderCommonHeader(out, ApiType, host_config);
-
-  out.Write("struct VS_OUTPUT {\n");
-  GenerateVSOutputMembers(out, ApiType, numTexgen, per_pixel_lighting, "");
-  out.Write("};\n");
+  if (per_pixel_lighting)
+    WriteLightingFunction(out);
 
   // Shader inputs/outputs in GLSL (HLSL is in main).
   if (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan)
@@ -132,8 +129,6 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
               "  }\n"
               "}\n\n");
   }
-
-  // TODO: Per pixel lighting (not really needed)
 
   // =====================
   //   Texture Sampling
@@ -346,23 +341,13 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
             "  uint cc;\n"
             "  uint ac;\n");
 
-  // For D3D, we need to store colors in the struct, since we access it from outside
-  // the main function, where they are declared. Hopefully the compiler can propagate
-  // these through when it inlines the function.
-  if (ApiType == APIType::D3D)
-  {
-    for (u32 i = 0; i < numTexgen; i++)
-      out.Write("  float3 tex%d;\n", i);
-    out.Write("  float4 colors_0;\n"
-              "  float4 colors_1;\n");
-  }
-
   out.Write("};\n"
             "\n"
-            "int4 getRasColor(State s, StageState ss);\n"
+            "int4 getRasColor(State s, StageState ss, float4 colors_0, float4 colors_1);\n"
             "int4 getKonstColor(State s, StageState ss);\n"
             "\n"
-            "int3 selectColorInput(State s, StageState ss, uint index) {\n"
+            "int3 selectColorInput(State s, StageState ss, float4 colors_0, float4 colors_1, uint "
+            "index) {\n"
             "  switch (index) {\n"
             "  case 0u: // prev.rgb\n"
             "    return s.Reg[0].rgb;\n"
@@ -385,9 +370,9 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
             "  case 9u:\n"
             "    return s.TexColor.aaa;\n"
             "  case 10u:\n"
-            "    return getRasColor(s, ss).rgb;\n"
+            "    return getRasColor(s, ss, colors_0, colors_1).rgb;\n"
             "  case 11u:\n"
-            "    return getRasColor(s, ss).aaa;\n"
+            "    return getRasColor(s, ss, colors_0, colors_1).aaa;\n"
             "  case 12u: // One\n"
             "    return int3(255, 255, 255);\n"
             "  case 13u: // Half\n"
@@ -399,7 +384,8 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
             "  }\n"
             "}\n"
             "\n"
-            "int selectAlphaInput(State s, StageState ss, uint index) {\n"
+            "int selectAlphaInput(State s, StageState ss, float4 colors_0, float4 colors_1, uint "
+            "index) {\n"
             "  switch (index) {\n"
             "  case 0u: // prev.a\n"
             "    return s.Reg[0].a;\n"
@@ -412,7 +398,7 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
             "  case 4u:\n"
             "    return s.TexColor.a;\n"
             "  case 5u:\n"
-            "    return getRasColor(s, ss).a;\n"
+            "    return getRasColor(s, ss, colors_0, colors_1).a;\n"
             "  case 6u:\n"
             "    return getKonstColor(s, ss).a;\n"
             "  case 7u: // Zero\n"
@@ -538,6 +524,18 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
   for (int i = 0; i < 4; i++)
     out.Write("  s.Reg[%d] = " I_COLORS "[%d];\n", i, i);
 
+  const char* color_input_prefix = "";
+  if (per_pixel_lighting)
+  {
+    out.Write("  float4 lit_colors_0 = colors_0;\n");
+    out.Write("  float4 lit_colors_1 = colors_1;\n");
+    out.Write("  float3 lit_normal = normalize(Normal.xyz);\n");
+    out.Write("  float3 lit_pos = WorldPos.xyz;\n");
+    WriteVertexLighting(out, ApiType, "lit_pos", "lit_normal", "colors_0", "colors_1",
+                        "lit_colors_0", "lit_colors_1");
+    color_input_prefix = "lit_";
+  }
+
   out.Write("  uint num_stages = %s;\n\n",
             BitfieldExtract("bpmem_genmode", bpmem.genMode.numtevstages).c_str());
 
@@ -558,12 +556,6 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
             "    if ((stage & 1u) == 1u)\n"
             "      ss.order = ss.order >> %d;\n\n",
             int(TwoTevStageOrders().enable1.StartBit() - TwoTevStageOrders().enable0.StartBit()));
-
-  if (ApiType == APIType::D3D)
-  {
-    out.Write("    ss.colors_0 = colors_0;\n"
-              "    ss.colors_1 = colors_1;\n");
-  }
 
   // Disable texturing when there are no texgens (for now)
   if (numTexgen != 0)
@@ -715,16 +707,21 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
   out.Write("      uint color_dest = %s;\n",
             BitfieldExtract("ss.cc", TevStageCombiner().colorC.dest).c_str());
 
+  out.Write("      uint color_compare_op = color_shift << 1 | uint(color_op);\n"
+            "\n"
+            "      int3 color_A = selectColorInput(s, ss, %scolors_0, %scolors_1, color_a) & "
+            "int3(255, 255, 255);\n"
+            "      int3 color_B = selectColorInput(s, ss, %scolors_0, %scolors_1, color_b) & "
+            "int3(255, 255, 255);\n"
+            "      int3 color_C = selectColorInput(s, ss, %scolors_0, %scolors_1, color_c) & "
+            "int3(255, 255, 255);\n"
+            "      int3 color_D = selectColorInput(s, ss, %scolors_0, %scolors_1, color_d);  // 10 "
+            "bits + sign\n"
+            "\n",  // TODO: do we need to sign extend?
+            color_input_prefix,
+            color_input_prefix, color_input_prefix, color_input_prefix, color_input_prefix,
+            color_input_prefix, color_input_prefix, color_input_prefix);
   out.Write(
-      "      uint color_compare_op = color_shift << 1 | uint(color_op);\n"
-      "\n"
-      "      int3 color_A = selectColorInput(s, ss, color_a) & int3(255, 255, 255);\n"
-      "      int3 color_B = selectColorInput(s, ss, color_b) & int3(255, 255, 255);\n"
-      "      int3 color_C = selectColorInput(s, ss, color_c) & int3(255, 255, 255);\n"
-      "      int3 color_D = selectColorInput(s, ss, color_d);  // 10 bits + sign\n"  // TODO: do we
-                                                                                     // need to sign
-                                                                                     // extend?
-      "\n"
       "      int3 color;\n"
       "      if(color_bias != 3u) { // Normal mode\n"
       "        color = tevLerp3(color_A, color_B, color_C, color_D, color_bias, color_op, false, "
@@ -788,41 +785,44 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
       "      int alpha_B;\n"
       "      if (alpha_bias != 3u || alpha_compare_op > 5u) {\n"
       "        // Small optimisation here: alpha_A and alpha_B are unused by compare ops 0-5\n"
-      "        alpha_A = selectAlphaInput(s, ss, alpha_a) & 255;\n"
-      "        alpha_B = selectAlphaInput(s, ss, alpha_b) & 255;\n"
+      "        alpha_A = selectAlphaInput(s, ss, %scolors_0, %scolors_1, alpha_a) & 255;\n"
+      "        alpha_B = selectAlphaInput(s, ss, %scolors_0, %scolors_1, alpha_b) & 255;\n"
       "      };\n"
-      "      int alpha_C = selectAlphaInput(s, ss, alpha_c) & 255;\n"
-      "      int alpha_D = selectAlphaInput(s, ss, alpha_d); // 10 bits + sign\n"  // TODO: do we
-                                                                                   // need to sign
-                                                                                   // extend?
-      "\n"
-      "      int alpha;\n"
-      "      if(alpha_bias != 3u) { // Normal mode\n"
-      "        alpha = tevLerp(alpha_A, alpha_B, alpha_C, alpha_D, alpha_bias, alpha_op, "
-      "true, alpha_shift);\n"
-      "      } else { // Compare mode\n"
-      "        if (alpha_compare_op == 6u) {\n"
-      "          // TEVCMP_A8_GT\n"
-      "          alpha = (alpha_A > alpha_B) ? alpha_C : 0;\n"
-      "        } else if (alpha_compare_op == 7u) {\n"
-      "          // TEVCMP_A8_EQ\n"
-      "          alpha = (alpha_A == alpha_B) ? alpha_C : 0;\n"
-      "        } else {\n"
-      "          // All remaining alpha compare ops actually compare the color channels\n"
-      "          alpha = tevCompare(alpha_compare_op, color_A, color_B) ? alpha_C : 0;\n"
-      "        }\n"
-      "        alpha = alpha_D + alpha;\n"
-      "      }\n"
-      "\n"
-      "      // Clamp result\n"
-      "      if (alpha_clamp)\n"
-      "        alpha = clamp(alpha, 0, 255);\n"
-      "      else\n"
-      "        alpha = clamp(alpha, -1024, 1023);\n"
-      "\n"
-      "      // Write result to the correct input register of the next stage\n"
-      "      setRegAlpha(s, alpha_dest, alpha);\n"
-      "    }\n");
+      "      int alpha_C = selectAlphaInput(s, ss, %scolors_0, %scolors_1, alpha_c) & 255;\n"
+      "      int alpha_D = selectAlphaInput(s, ss, %scolors_0, %scolors_1, alpha_d); // 10 bits + "
+      "sign\n"
+      "\n",  // TODO: do we need to sign extend?
+      color_input_prefix,
+      color_input_prefix, color_input_prefix, color_input_prefix, color_input_prefix,
+      color_input_prefix, color_input_prefix, color_input_prefix);
+  out.Write("\n"
+            "      int alpha;\n"
+            "      if(alpha_bias != 3u) { // Normal mode\n"
+            "        alpha = tevLerp(alpha_A, alpha_B, alpha_C, alpha_D, alpha_bias, alpha_op, "
+            "true, alpha_shift);\n"
+            "      } else { // Compare mode\n"
+            "        if (alpha_compare_op == 6u) {\n"
+            "          // TEVCMP_A8_GT\n"
+            "          alpha = (alpha_A > alpha_B) ? alpha_C : 0;\n"
+            "        } else if (alpha_compare_op == 7u) {\n"
+            "          // TEVCMP_A8_EQ\n"
+            "          alpha = (alpha_A == alpha_B) ? alpha_C : 0;\n"
+            "        } else {\n"
+            "          // All remaining alpha compare ops actually compare the color channels\n"
+            "          alpha = tevCompare(alpha_compare_op, color_A, color_B) ? alpha_C : 0;\n"
+            "        }\n"
+            "        alpha = alpha_D + alpha;\n"
+            "      }\n"
+            "\n"
+            "      // Clamp result\n"
+            "      if (alpha_clamp)\n"
+            "        alpha = clamp(alpha, 0, 255);\n"
+            "      else\n"
+            "        alpha = clamp(alpha, -1024, 1023);\n"
+            "\n"
+            "      // Write result to the correct input register of the next stage\n"
+            "      setRegAlpha(s, alpha_dest, alpha);\n"
+            "    }\n");
 
   out.Write("  } // Main tev loop\n"
             "\n");
@@ -1036,14 +1036,13 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
 
   out.Write("}\n"
             "\n"
-            "int4 getRasColor(State s, StageState ss) {\n"
+            "int4 getRasColor(State s, StageState ss, float4 colors_0, float4 colors_1) {\n"
             "  // Select Ras for stage\n"
             "  uint ras = %s;\n",
             BitfieldExtract("ss.order", TwoTevStageOrders().colorchan0).c_str());
   out.Write("  if (ras < 2u) { // Lighting Channel 0 or 1\n"
-            "    int4 color = iround(((ras == 0u) ? %scolors_0 : %scolors_1) * 255.0);\n",
-            (ApiType == APIType::D3D) ? "ss." : "", (ApiType == APIType::D3D) ? "ss." : "");
-  out.Write("    uint swap = %s;\n",
+            "    int4 color = iround(((ras == 0u) ? colors_0 : colors_1) * 255.0);\n"
+            "    uint swap = %s;\n",
             BitfieldExtract("ss.ac", TevStageCombiner().alphaC.rswap).c_str());
   out.Write("    return Swizzle(swap, color);\n");
   out.Write("  } else if (ras == 5u) { // Alpha Bumb\n"

@@ -389,13 +389,6 @@ bool StateTracker::CheckForShaderChanges(u32 gx_primitive_type)
   bool uber_vertex_shader = use_ubershaders || g_ActiveConfig.bForceVertexUberShaders;
   bool uber_pixel_shader = use_ubershaders || g_ActiveConfig.bForcePixelUberShaders;
   bool using_ubershaders = uber_vertex_shader || uber_pixel_shader;
-  if (!g_ActiveConfig.CanUseUberShaders())
-  {
-    // Per-pixel lighting disables ubershaders.
-    uber_vertex_shader = false;
-    uber_pixel_shader = false;
-    using_ubershaders = false;
-  }
 
   // Switching to/from ubershaders? Have to adjust the vertex format and pipeline layout.
   if (using_ubershaders != m_using_ubershaders)

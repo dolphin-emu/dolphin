@@ -333,7 +333,8 @@ PixelShaderUid GetPixelShaderUid()
   return out;
 }
 
-void WritePixelShaderCommonHeader(ShaderCode& out, APIType ApiType, bool bounding_box)
+void WritePixelShaderCommonHeader(ShaderCode& out, APIType ApiType, u32 num_texgens,
+                                  bool per_pixel_lighting, bool bounding_box)
 {
   // dot product for integer vectors
   out.Write("int idot(int3 x, int3 y)\n"
@@ -404,6 +405,19 @@ void WritePixelShaderCommonHeader(ShaderCode& out, APIType ApiType, bool boundin
             "#define bpmem_tevorder(i) (bpmem_pack2[(i)].x)\n"
             "#define bpmem_tevksel(i) (bpmem_pack2[(i)].y)\n\n");
 
+  if (per_pixel_lighting)
+  {
+    out.Write("%s", s_lighting_struct);
+
+    if (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan)
+      out.Write("UBO_BINDING(std140, 2) uniform VSBlock {\n");
+    else
+      out.Write("cbuffer VSBlock : register(b1) {\n");
+
+    out.Write(s_shader_uniforms);
+    out.Write("};\n");
+  }
+
   if (bounding_box)
   {
     if (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan)
@@ -417,6 +431,10 @@ void WritePixelShaderCommonHeader(ShaderCode& out, APIType ApiType, bool boundin
       out.Write("globallycoherent RWBuffer<int> bbox_data : register(u2);\n");
     }
   }
+
+  out.Write("struct VS_OUTPUT {\n");
+  GenerateVSOutputMembers(out, ApiType, num_texgens, per_pixel_lighting, "");
+  out.Write("};\n");
 }
 
 static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, int n,
@@ -447,24 +465,8 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
             uid_data->genMode_numindstages);
 
   // Stuff that is shared between ubershaders and pixelgen.
-  WritePixelShaderCommonHeader(out, ApiType, uid_data->bounding_box);
-
-  if (per_pixel_lighting)
-  {
-    out.Write("%s", s_lighting_struct);
-
-    if (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan)
-      out.Write("UBO_BINDING(std140, 2) uniform VSBlock {\n");
-    else
-      out.Write("cbuffer VSBlock : register(b1) {\n");
-
-    out.Write(s_shader_uniforms);
-    out.Write("};\n");
-  }
-
-  out.Write("struct VS_OUTPUT {\n");
-  GenerateVSOutputMembers(out, ApiType, uid_data->genMode_numtexgens, per_pixel_lighting, "");
-  out.Write("};\n");
+  WritePixelShaderCommonHeader(out, ApiType, uid_data->genMode_numtexgens, per_pixel_lighting,
+                               uid_data->bounding_box);
 
   if (uid_data->forced_early_z)
   {

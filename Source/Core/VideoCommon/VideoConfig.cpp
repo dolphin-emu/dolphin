@@ -219,21 +219,14 @@ u32 VideoConfig::GetShaderPrecompilerThreads() const
     return GetNumAutoShaderCompilerThreads();
 }
 
-bool VideoConfig::CanUseUberShaders() const
-{
-  // Ubershaders are currently incompatible with per-pixel lighting.
-  return !bEnablePixelLighting;
-}
-
 bool VideoConfig::CanPrecompileUberShaders() const
 {
   // We don't want to precompile ubershaders if they're never going to be used.
-  return bPrecompileUberShaders && (bBackgroundShaderCompiling || bDisableSpecializedShaders) &&
-         CanUseUberShaders();
+  return bPrecompileUberShaders && (bBackgroundShaderCompiling || bDisableSpecializedShaders);
 }
 
 bool VideoConfig::CanBackgroundCompileShaders() const
 {
   // We require precompiled ubershaders to background compile shaders.
-  return bBackgroundShaderCompiling && bPrecompileUberShaders && CanUseUberShaders();
+  return bBackgroundShaderCompiling && bPrecompileUberShaders;
 }
