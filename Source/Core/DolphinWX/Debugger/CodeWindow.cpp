@@ -123,6 +123,8 @@ CCodeWindow::CCodeWindow(CFrame* parent, wxWindowID id, const wxPoint& position,
   Bind(wxEVT_MENU, &CCodeWindow::OnJitMenu, this, IDM_CLEAR_CODE_CACHE, IDM_SEARCH_INSTRUCTION);
   Bind(wxEVT_MENU, &CCodeWindow::OnSymbolsMenu, this, IDM_CLEAR_SYMBOLS, IDM_PATCH_HLE_FUNCTIONS);
   Bind(wxEVT_MENU, &CCodeWindow::OnProfilerMenu, this, IDM_PROFILE_BLOCKS, IDM_WRITE_PROFILE);
+  Bind(wxEVT_MENU, &CCodeWindow::OnBootToPauseSelected, this, IDM_BOOT_TO_PAUSE);
+  Bind(wxEVT_MENU, &CCodeWindow::OnAutomaticStartSelected, this, IDM_AUTOMATIC_START);
 
   // Toolbar
   Bind(wxEVT_MENU, &CCodeWindow::OnCodeStep, this, IDM_STEP, IDM_GOTOPC);
@@ -483,12 +485,6 @@ void CCodeWindow::OnCPUMode(wxCommandEvent& event)
   case IDM_INTERPRETER:
     PowerPC::SetMode(event.IsChecked() ? PowerPC::CoreMode::Interpreter : PowerPC::CoreMode::JIT);
     break;
-  case IDM_BOOT_TO_PAUSE:
-    SConfig::GetInstance().bBootToPause = event.IsChecked();
-    return;
-  case IDM_AUTOMATIC_START:
-    SConfig::GetInstance().bAutomaticStart = event.IsChecked();
-    return;
   case IDM_JIT_OFF:
     SConfig::GetInstance().bJITOff = event.IsChecked();
     break;
