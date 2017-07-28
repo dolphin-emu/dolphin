@@ -480,48 +480,50 @@ void CCodeWindow::UpdateCallstack()
 // CPU Mode and JIT Menu
 void CCodeWindow::OnCPUMode(wxCommandEvent& event)
 {
-  switch (event.GetId())
-  {
-  case IDM_INTERPRETER:
-    PowerPC::SetMode(event.IsChecked() ? PowerPC::CoreMode::Interpreter : PowerPC::CoreMode::JIT);
-    break;
-  case IDM_JIT_OFF:
-    SConfig::GetInstance().bJITOff = event.IsChecked();
-    break;
-  case IDM_JIT_LS_OFF:
-    SConfig::GetInstance().bJITLoadStoreOff = event.IsChecked();
-    break;
-  case IDM_JIT_LSLXZ_OFF:
-    SConfig::GetInstance().bJITLoadStorelXzOff = event.IsChecked();
-    break;
-  case IDM_JIT_LSLWZ_OFF:
-    SConfig::GetInstance().bJITLoadStorelwzOff = event.IsChecked();
-    break;
-  case IDM_JIT_LSLBZX_OFF:
-    SConfig::GetInstance().bJITLoadStorelbzxOff = event.IsChecked();
-    break;
-  case IDM_JIT_LSF_OFF:
-    SConfig::GetInstance().bJITLoadStoreFloatingOff = event.IsChecked();
-    break;
-  case IDM_JIT_LSP_OFF:
-    SConfig::GetInstance().bJITLoadStorePairedOff = event.IsChecked();
-    break;
-  case IDM_JIT_FP_OFF:
-    SConfig::GetInstance().bJITFloatingPointOff = event.IsChecked();
-    break;
-  case IDM_JIT_I_OFF:
-    SConfig::GetInstance().bJITIntegerOff = event.IsChecked();
-    break;
-  case IDM_JIT_P_OFF:
-    SConfig::GetInstance().bJITPairedOff = event.IsChecked();
-    break;
-  case IDM_JIT_SR_OFF:
-    SConfig::GetInstance().bJITSystemRegistersOff = event.IsChecked();
-    break;
-  }
+  Core::RunAsCPUThread([&event] {
+    switch (event.GetId())
+    {
+    case IDM_INTERPRETER:
+      PowerPC::SetMode(event.IsChecked() ? PowerPC::CoreMode::Interpreter : PowerPC::CoreMode::JIT);
+      break;
+    case IDM_JIT_OFF:
+      SConfig::GetInstance().bJITOff = event.IsChecked();
+      break;
+    case IDM_JIT_LS_OFF:
+      SConfig::GetInstance().bJITLoadStoreOff = event.IsChecked();
+      break;
+    case IDM_JIT_LSLXZ_OFF:
+      SConfig::GetInstance().bJITLoadStorelXzOff = event.IsChecked();
+      break;
+    case IDM_JIT_LSLWZ_OFF:
+      SConfig::GetInstance().bJITLoadStorelwzOff = event.IsChecked();
+      break;
+    case IDM_JIT_LSLBZX_OFF:
+      SConfig::GetInstance().bJITLoadStorelbzxOff = event.IsChecked();
+      break;
+    case IDM_JIT_LSF_OFF:
+      SConfig::GetInstance().bJITLoadStoreFloatingOff = event.IsChecked();
+      break;
+    case IDM_JIT_LSP_OFF:
+      SConfig::GetInstance().bJITLoadStorePairedOff = event.IsChecked();
+      break;
+    case IDM_JIT_FP_OFF:
+      SConfig::GetInstance().bJITFloatingPointOff = event.IsChecked();
+      break;
+    case IDM_JIT_I_OFF:
+      SConfig::GetInstance().bJITIntegerOff = event.IsChecked();
+      break;
+    case IDM_JIT_P_OFF:
+      SConfig::GetInstance().bJITPairedOff = event.IsChecked();
+      break;
+    case IDM_JIT_SR_OFF:
+      SConfig::GetInstance().bJITSystemRegistersOff = event.IsChecked();
+      break;
+    }
 
-  // Clear the JIT cache to enable these changes
-  JitInterface::ClearCache();
+    // Clear the JIT cache to enable these changes
+    JitInterface::ClearCache();
+  });
 }
 
 void CCodeWindow::OnJitMenu(wxCommandEvent& event)
@@ -533,7 +535,7 @@ void CCodeWindow::OnJitMenu(wxCommandEvent& event)
     break;
 
   case IDM_CLEAR_CODE_CACHE:
-    JitInterface::ClearCache();
+    Core::RunAsCPUThread(JitInterface::ClearCache);
     break;
 
   case IDM_SEARCH_INSTRUCTION:
