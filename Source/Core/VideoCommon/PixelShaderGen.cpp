@@ -179,7 +179,7 @@ PixelShaderUid GetPixelShaderUid()
   u32 numStages = uid_data->genMode_numtevstages + 1;
 
   const bool forced_early_z =
-      g_ActiveConfig.backend_info.bSupportsEarlyZ && bpmem.UseEarlyDepthTest() &&
+      bpmem.UseEarlyDepthTest() &&
       (g_ActiveConfig.bFastDepthCalc || bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED)
       // We can't allow early_ztest for zfreeze because depth is overridden per-pixel.
       // This means it's impossible for zcomploc to be emulated on a zfrozen polygon.
@@ -191,18 +191,6 @@ PixelShaderUid GetPixelShaderUid()
 
   uid_data->per_pixel_depth = per_pixel_depth;
   uid_data->forced_early_z = forced_early_z;
-
-  if (!uid_data->forced_early_z && bpmem.UseEarlyDepthTest() &&
-      (!g_ActiveConfig.bFastDepthCalc || bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED))
-  {
-    static bool warn_once = true;
-    if (warn_once)
-      WARN_LOG(VIDEO, "Early z test enabled but not possible to emulate with current "
-                      "configuration. Make sure to enable fast depth calculations. If this message "
-                      "still shows up your hardware isn't able to emulate the feature properly (a "
-                      "GPU with D3D 11.0 / OGL 4.2 support is required).");
-    warn_once = false;
-  }
 
   if (g_ActiveConfig.bEnablePixelLighting)
   {
@@ -468,7 +456,7 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
   WritePixelShaderCommonHeader(out, ApiType, uid_data->genMode_numtexgens, per_pixel_lighting,
                                uid_data->bounding_box);
 
-  if (uid_data->forced_early_z)
+  if (uid_data->forced_early_z && g_ActiveConfig.backend_info.bSupportsEarlyZ)
   {
     // Zcomploc (aka early_ztest) is a way to control whether depth test is done before
     // or after texturing and alpha test. PC graphics APIs used to provide no way to emulate
