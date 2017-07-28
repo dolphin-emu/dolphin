@@ -33,11 +33,6 @@ set(LIBS
 # Only include the Vulkan headers when building the Vulkan backend
 include_directories(${CMAKE_SOURCE_DIR}/Externals/Vulkan/Include)
 
-# Silence warnings on glslang by flagging it as a system include
-include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/Externals/glslang/glslang/Public)
-include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/Externals/glslang/SPIRV)
-
 # Link against glslang, the other necessary libraries are referenced by the executable.
 add_dolphin_library(videovulkan "${SRCS}" "${LIBS}")
 target_link_libraries(videovulkan PRIVATE glslang)
-
