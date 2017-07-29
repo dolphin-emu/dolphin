@@ -77,6 +77,7 @@ private:
     CARD_NOT_EXIST = 0,
     CARD_INSERTED = 1,
     CARD_INITIALIZED = 0x10000,
+    CARD_SDHC = 0x100000,
   };
 
   // Commands
@@ -111,6 +112,14 @@ private:
     EVENT_INVALID = 0xc210000
   };
 
+  enum SD_PROTOCOL
+  {
+    PROTOCOL_V1 = 0,
+    PROTOCOL_V2 = 1,
+  };
+
+  const u32 SDHC_BYTES = 0x80000000;
+
   struct Event
   {
     Event(EventType type_, Request request_) : type(type_), request(request_) {}
@@ -136,6 +145,8 @@ private:
   std::unique_ptr<Event> m_event;
 
   u32 m_Status = CARD_NOT_EXIST;
+  u32 m_Protocol = PROTOCOL_V1;
+
   u32 m_BlockLength = 0;
   u32 m_BusWidth = 0;
 
