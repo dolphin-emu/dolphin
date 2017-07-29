@@ -112,13 +112,14 @@ private:
     EVENT_INVALID = 0xc210000
   };
 
-  enum SD_PROTOCOL
+  enum class SDProtocol
   {
-    PROTOCOL_V1 = 0,
-    PROTOCOL_V2 = 1,
+    V1 = 0,
+    V2 = 1,
   };
 
-  const u32 SDHC_BYTES = 0x80000000;
+  // Number of bytes to trigger using SDHC instead of SDSC
+  static constexpr u32 SDHC_BYTES = 0x80000000;
 
   struct Event
   {
@@ -141,11 +142,18 @@ private:
                      u32 BufferInSize2, u32 _BufferOut, u32 BufferOutSize);
   void OpenInternal();
 
+  u32 GetOCRegister() const;
+
+  void GetCSDv1(u32 csd[4]);
+  void GetCSDv2(u32 csd[4]);
+
+  u64 GetAddressFromRequest(u32 arg) const;
+
   // TODO: do we need more than one?
   std::unique_ptr<Event> m_event;
 
   u32 m_Status = CARD_NOT_EXIST;
-  u32 m_Protocol = PROTOCOL_V1;
+  SDProtocol m_protocol = SDProtocol::V1;
 
   u32 m_BlockLength = 0;
   u32 m_BusWidth = 0;
