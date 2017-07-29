@@ -654,6 +654,7 @@ void CFrame::StartGame(std::unique_ptr<BootParameters> boot)
     m_game_list_ctrl->Disable();
     m_game_list_ctrl->Hide();
 
+    m_renderer_has_focus = true;
     m_render_parent = m_panel;
     m_render_frame = this;
     if (SConfig::GetInstance().bKeepWindowOnTop)
