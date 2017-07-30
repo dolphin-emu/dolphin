@@ -10,7 +10,7 @@ namespace Config
 {
 template <typename T>
 struct ConfigInfo;
-};
+}
 
 class GraphicsChoice : public QComboBox
 {

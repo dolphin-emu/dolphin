@@ -996,4 +996,4 @@ bool ForgetWiimote(BLUETOOTH_DEVICE_INFO_STRUCT& btdi)
 
   return false;
 }
-};
+}

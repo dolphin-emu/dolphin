@@ -11,7 +11,7 @@ namespace Config
 {
 template <typename T>
 struct ConfigInfo;
-};
+}
 
 class GraphicsBool : public QCheckBox
 {

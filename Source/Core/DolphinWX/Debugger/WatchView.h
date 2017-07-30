@@ -30,7 +30,7 @@ private:
   std::array<u32, MAX_SPECIALS> m_CachedWatch;
   std::array<bool, MAX_SPECIALS> m_CachedWatchHasChanged;
 
-  DECLARE_NO_COPY_CLASS(CWatchTable);
+  DECLARE_NO_COPY_CLASS(CWatchTable)
 };
 
 class CWatchView : public wxGrid
