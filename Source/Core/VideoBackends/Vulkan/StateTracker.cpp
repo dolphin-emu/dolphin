@@ -13,6 +13,7 @@
 #include "VideoBackends/Vulkan/Constants.h"
 #include "VideoBackends/Vulkan/FramebufferManager.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
+#include "VideoBackends/Vulkan/ShaderCache.h"
 #include "VideoBackends/Vulkan/StreamBuffer.h"
 #include "VideoBackends/Vulkan/Util.h"
 #include "VideoBackends/Vulkan/VertexFormat.h"
@@ -181,7 +182,7 @@ bool StateTracker::PrecachePipelineUID(const SerializedPipelineUID& uid)
   pinfo.pipeline_layout = uid.ps_uid.GetUidData()->bounding_box ?
                               g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_BBOX) :
                               g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_STANDARD);
-  pinfo.vs = g_object_cache->GetVertexShaderForUid(uid.vs_uid);
+  pinfo.vs = g_shader_cache->GetVertexShaderForUid(uid.vs_uid);
   if (pinfo.vs == VK_NULL_HANDLE)
   {
     WARN_LOG(VIDEO, "Failed to get vertex shader from cached UID.");
@@ -189,14 +190,14 @@ bool StateTracker::PrecachePipelineUID(const SerializedPipelineUID& uid)
   }
   if (g_vulkan_context->SupportsGeometryShaders() && !uid.gs_uid.GetUidData()->IsPassthrough())
   {
-    pinfo.gs = g_object_cache->GetGeometryShaderForUid(uid.gs_uid);
+    pinfo.gs = g_shader_cache->GetGeometryShaderForUid(uid.gs_uid);
     if (pinfo.gs == VK_NULL_HANDLE)
     {
       WARN_LOG(VIDEO, "Failed to get geometry shader from cached UID.");
       return false;
     }
   }
-  pinfo.ps = g_object_cache->GetPixelShaderForUid(uid.ps_uid);
+  pinfo.ps = g_shader_cache->GetPixelShaderForUid(uid.ps_uid);
   if (pinfo.ps == VK_NULL_HANDLE)
   {
     WARN_LOG(VIDEO, "Failed to get pixel shader from cached UID.");
@@ -208,7 +209,7 @@ bool StateTracker::PrecachePipelineUID(const SerializedPipelineUID& uid)
   pinfo.blend_state.hex = uid.blend_state_bits;
   pinfo.primitive_topology = uid.primitive_topology;
 
-  VkPipeline pipeline = g_object_cache->GetPipeline(pinfo);
+  VkPipeline pipeline = g_shader_cache->GetPipeline(pinfo);
   if (pipeline == VK_NULL_HANDLE)
   {
     WARN_LOG(VIDEO, "Failed to get pipeline from cached UID.");
@@ -327,7 +328,7 @@ bool StateTracker::CheckForShaderChanges(u32 gx_primitive_type)
 
   if (vs_uid != m_vs_uid)
   {
-    m_pipeline_state.vs = g_object_cache->GetVertexShaderForUid(vs_uid);
+    m_pipeline_state.vs = g_shader_cache->GetVertexShaderForUid(vs_uid);
     m_vs_uid = vs_uid;
     changed = true;
   }
@@ -340,7 +341,7 @@ bool StateTracker::CheckForShaderChanges(u32 gx_primitive_type)
       if (gs_uid.GetUidData()->IsPassthrough())
         m_pipeline_state.gs = VK_NULL_HANDLE;
       else
-        m_pipeline_state.gs = g_object_cache->GetGeometryShaderForUid(gs_uid);
+        m_pipeline_state.gs = g_shader_cache->GetGeometryShaderForUid(gs_uid);
 
       m_gs_uid = gs_uid;
       changed = true;
@@ -349,7 +350,7 @@ bool StateTracker::CheckForShaderChanges(u32 gx_primitive_type)
 
   if (ps_uid != m_ps_uid)
   {
-    m_pipeline_state.ps = g_object_cache->GetPixelShaderForUid(ps_uid);
+    m_pipeline_state.ps = g_shader_cache->GetPixelShaderForUid(ps_uid);
     m_ps_uid = ps_uid;
     changed = true;
   }
@@ -887,7 +888,7 @@ void StateTracker::EndClearRenderPass()
 
 VkPipeline StateTracker::GetPipelineAndCacheUID(const PipelineInfo& info)
 {
-  auto result = g_object_cache->GetPipelineWithCacheResult(info);
+  auto result = g_shader_cache->GetPipelineWithCacheResult(info);
 
   // Add to the UID cache if it is a new pipeline.
   if (!result.second && g_ActiveConfig.bShaderCache)

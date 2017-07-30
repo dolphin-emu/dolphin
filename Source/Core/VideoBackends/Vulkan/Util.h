@@ -10,13 +10,13 @@
 #include "Common/CommonTypes.h"
 #include "VideoBackends/Vulkan/Constants.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
+#include "VideoBackends/Vulkan/ShaderCache.h"
 #include "VideoCommon/RenderState.h"
 #include "VideoCommon/TextureConfig.h"
 
 namespace Vulkan
 {
 class CommandBufferManager;
-class ObjectCache;
 class StateTracker;
 
 namespace Util
@@ -61,20 +61,16 @@ void ExecuteCurrentCommandsAndRestoreState(bool execute_off_thread,
 VkShaderModule CreateShaderModule(const u32* spv, size_t spv_word_count);
 
 // Compile a vertex shader and create a shader module, discarding the intermediate SPIR-V.
-VkShaderModule CompileAndCreateVertexShader(const std::string& source_code,
-                                            bool prepend_header = true);
+VkShaderModule CompileAndCreateVertexShader(const std::string& source_code);
 
 // Compile a geometry shader and create a shader module, discarding the intermediate SPIR-V.
-VkShaderModule CompileAndCreateGeometryShader(const std::string& source_code,
-                                              bool prepend_header = true);
+VkShaderModule CompileAndCreateGeometryShader(const std::string& source_code);
 
 // Compile a fragment shader and create a shader module, discarding the intermediate SPIR-V.
-VkShaderModule CompileAndCreateFragmentShader(const std::string& source_code,
-                                              bool prepend_header = true);
+VkShaderModule CompileAndCreateFragmentShader(const std::string& source_code);
 
 // Compile a compute shader and create a shader module, discarding the intermediate SPIR-V.
-VkShaderModule CompileAndCreateComputeShader(const std::string& source_code,
-                                             bool prepend_header = true);
+VkShaderModule CompileAndCreateComputeShader(const std::string& source_code);
 }
 
 // Utility shader vertex format

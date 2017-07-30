@@ -212,7 +212,10 @@ bool cInterfaceEGL::Create(void* window_handle, bool stereo, bool core)
 
       egl_ctx = eglCreateContext(egl_dpy, m_config, EGL_NO_CONTEXT, &core_attribs[0]);
       if (egl_ctx)
+      {
+        m_attribs = std::move(core_attribs);
         break;
+      }
     }
   }
 
@@ -220,6 +223,7 @@ bool cInterfaceEGL::Create(void* window_handle, bool stereo, bool core)
   {
     m_core = false;
     egl_ctx = eglCreateContext(egl_dpy, m_config, EGL_NO_CONTEXT, &ctx_attribs[0]);
+    m_attribs = std::move(ctx_attribs);
   }
 
   if (!egl_ctx)
@@ -255,31 +259,13 @@ bool cInterfaceEGL::Create(cInterfaceBase* main_context)
   m_is_shared = true;
   m_has_handle = false;
 
-  EGLint ctx_attribs[] = {EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE};
-
-  switch (egl_context->GetMode())
-  {
-  case GLInterfaceMode::MODE_OPENGL:
-    ctx_attribs[0] = EGL_NONE;
-    break;
-  case GLInterfaceMode::MODE_OPENGLES2:
-    ctx_attribs[1] = 2;
-    break;
-  case GLInterfaceMode::MODE_OPENGLES3:
-    ctx_attribs[1] = 3;
-    break;
-  default:
-    INFO_LOG(VIDEO, "Unknown opengl mode set");
-    return false;
-    break;
-  }
-
   if (egl_context->GetMode() == GLInterfaceMode::MODE_OPENGL)
     eglBindAPI(EGL_OPENGL_API);
   else
     eglBindAPI(EGL_OPENGL_ES_API);
 
-  egl_ctx = eglCreateContext(egl_dpy, m_config, egl_context->egl_ctx, ctx_attribs);
+  egl_ctx =
+      eglCreateContext(egl_dpy, m_config, egl_context->egl_ctx, egl_context->m_attribs.data());
   if (!egl_ctx)
   {
     INFO_LOG(VIDEO, "Error: eglCreateContext failed 0x%04x", eglGetError());

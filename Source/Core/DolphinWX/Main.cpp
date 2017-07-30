@@ -488,3 +488,12 @@ void Host_YieldToUI()
 {
   wxGetApp().GetMainLoop()->YieldFor(wxEVT_CATEGORY_UI);
 }
+
+void Host_UpdateProgressDialog(const char* caption, int position, int total)
+{
+  wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATE_PROGRESS_DIALOG);
+  event.SetString(caption);
+  event.SetInt(position);
+  event.SetExtraLong(total);
+  main_frame->GetEventHandler()->AddPendingEvent(event);
+}

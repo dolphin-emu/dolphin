@@ -435,8 +435,8 @@ void FramebufferManager::ReinterpretPixelData(int convtype)
 
   UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                          g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_STANDARD),
-                         m_efb_load_render_pass, g_object_cache->GetScreenQuadVertexShader(),
-                         g_object_cache->GetScreenQuadGeometryShader(), pixel_shader);
+                         m_efb_load_render_pass, g_shader_cache->GetScreenQuadVertexShader(),
+                         g_shader_cache->GetScreenQuadGeometryShader(), pixel_shader);
 
   RasterizationState rs_state = Util::GetNoCullRasterizationState();
   rs_state.samples = m_efb_samples;
@@ -510,8 +510,8 @@ Texture2D* FramebufferManager::ResolveEFBDepthTexture(const VkRect2D& region)
   // Draw using resolve shader to write the minimum depth of all samples to the resolve texture.
   UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                          g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_STANDARD),
-                         m_depth_resolve_render_pass, g_object_cache->GetScreenQuadVertexShader(),
-                         g_object_cache->GetScreenQuadGeometryShader(), m_ps_depth_resolve);
+                         m_depth_resolve_render_pass, g_shader_cache->GetScreenQuadVertexShader(),
+                         g_shader_cache->GetScreenQuadGeometryShader(), m_ps_depth_resolve);
   draw.BeginRenderPass(m_depth_resolve_framebuffer, region);
   draw.SetPSSampler(0, m_efb_depth_texture->GetView(), g_object_cache->GetPointSampler());
   draw.SetViewportAndScissor(region.offset.x, region.offset.y, region.extent.width,
@@ -641,7 +641,7 @@ bool FramebufferManager::CompileConversionShaders()
     }
   )";
 
-  std::string header = g_object_cache->GetUtilityShaderHeader();
+  std::string header = g_shader_cache->GetUtilityShaderHeader();
   DestroyConversionShaders();
 
   m_ps_rgb8_to_rgba6 = Util::CompileAndCreateFragmentShader(header + RGB8_TO_RGBA6_SHADER_SOURCE);
@@ -698,7 +698,7 @@ bool FramebufferManager::PopulateColorReadbackTexture()
 
     UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                            g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_STANDARD),
-                           m_copy_color_render_pass, g_object_cache->GetScreenQuadVertexShader(),
+                           m_copy_color_render_pass, g_shader_cache->GetScreenQuadVertexShader(),
                            VK_NULL_HANDLE, m_copy_color_shader);
 
     VkRect2D rect = {{0, 0}, {EFB_WIDTH, EFB_HEIGHT}};
@@ -781,7 +781,7 @@ bool FramebufferManager::PopulateDepthReadbackTexture()
 
     UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                            g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_STANDARD),
-                           m_copy_depth_render_pass, g_object_cache->GetScreenQuadVertexShader(),
+                           m_copy_depth_render_pass, g_shader_cache->GetScreenQuadVertexShader(),
                            VK_NULL_HANDLE, m_copy_depth_shader);
 
     VkRect2D rect = {{0, 0}, {EFB_WIDTH, EFB_HEIGHT}};
@@ -956,10 +956,10 @@ bool FramebufferManager::CompileReadbackShaders()
     }
   )";
 
-  source = g_object_cache->GetUtilityShaderHeader() + COPY_COLOR_SHADER_SOURCE;
+  source = g_shader_cache->GetUtilityShaderHeader() + COPY_COLOR_SHADER_SOURCE;
   m_copy_color_shader = Util::CompileAndCreateFragmentShader(source);
 
-  source = g_object_cache->GetUtilityShaderHeader() + COPY_DEPTH_SHADER_SOURCE;
+  source = g_shader_cache->GetUtilityShaderHeader() + COPY_DEPTH_SHADER_SOURCE;
   m_copy_depth_shader = Util::CompileAndCreateFragmentShader(source);
 
   return m_copy_color_shader != VK_NULL_HANDLE && m_copy_depth_shader != VK_NULL_HANDLE;
@@ -1176,7 +1176,7 @@ void FramebufferManager::DrawPokeVertices(const EFBPokeVertex* vertices, size_t 
     pipeline_info.depth_stencil_state.compare_op = VK_COMPARE_OP_ALWAYS;
   }
 
-  VkPipeline pipeline = g_object_cache->GetPipeline(pipeline_info);
+  VkPipeline pipeline = g_shader_cache->GetPipeline(pipeline_info);
   if (pipeline == VK_NULL_HANDLE)
   {
     PanicAlert("Failed to get pipeline for EFB poke draw");
@@ -1309,7 +1309,7 @@ bool FramebufferManager::CompilePokeShaders()
     }
   )";
 
-  std::string source = g_object_cache->GetUtilityShaderHeader();
+  std::string source = g_shader_cache->GetUtilityShaderHeader();
   if (m_poke_primitive_topology == VK_PRIMITIVE_TOPOLOGY_POINT_LIST)
     source += "#define USE_POINT_SIZE 1\n";
   source += POKE_VERTEX_SHADER_SOURCE;
@@ -1319,13 +1319,13 @@ bool FramebufferManager::CompilePokeShaders()
 
   if (g_vulkan_context->SupportsGeometryShaders())
   {
-    source = g_object_cache->GetUtilityShaderHeader() + POKE_GEOMETRY_SHADER_SOURCE;
+    source = g_shader_cache->GetUtilityShaderHeader() + POKE_GEOMETRY_SHADER_SOURCE;
     m_poke_geometry_shader = Util::CompileAndCreateGeometryShader(source);
     if (m_poke_geometry_shader == VK_NULL_HANDLE)
       return false;
   }
 
-  source = g_object_cache->GetUtilityShaderHeader() + POKE_PIXEL_SHADER_SOURCE;
+  source = g_shader_cache->GetUtilityShaderHeader() + POKE_PIXEL_SHADER_SOURCE;
   m_poke_fragment_shader = Util::CompileAndCreateFragmentShader(source);
   if (m_poke_fragment_shader == VK_NULL_HANDLE)
     return false;

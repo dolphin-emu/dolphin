@@ -60,15 +60,14 @@ bool cInterfaceAGL::Create(void* window_handle, bool stereo, bool core)
       NSOpenGLPFAAccelerated,
       stereo ? NSOpenGLPFAStereo : static_cast<NSOpenGLPixelFormatAttribute>(0),
       0};
-  NSOpenGLPixelFormat* fmt = [[NSOpenGLPixelFormat alloc] initWithAttributes:attr];
-  if (fmt == nil)
+  m_pixel_format = [[NSOpenGLPixelFormat alloc] initWithAttributes:attr];
+  if (m_pixel_format == nil)
   {
     ERROR_LOG(VIDEO, "failed to create pixel format");
     return false;
   }
 
-  m_context = [[NSOpenGLContext alloc] initWithFormat:fmt shareContext:nil];
-  [fmt release];
+  m_context = [[NSOpenGLContext alloc] initWithFormat:m_pixel_format shareContext:nil];
   if (m_context == nil)
   {
     ERROR_LOG(VIDEO, "failed to create context");
@@ -80,6 +79,30 @@ bool cInterfaceAGL::Create(void* window_handle, bool stereo, bool core)
 
   m_view = static_cast<NSView*>(window_handle);
   return AttachContextToView(m_context, m_view, &s_backbuffer_width, &s_backbuffer_height);
+}
+
+bool cInterfaceAGL::Create(cInterfaceBase* main_context)
+{
+  cInterfaceAGL* agl_context = static_cast<cInterfaceAGL*>(main_context);
+  NSOpenGLPixelFormat* pixel_format = agl_context->m_pixel_format;
+  NSOpenGLContext* share_context = agl_context->m_context;
+
+  m_context = [[NSOpenGLContext alloc] initWithFormat:pixel_format shareContext:share_context];
+  if (m_context == nil)
+  {
+    ERROR_LOG(VIDEO, "failed to create shared context");
+    return false;
+  }
+
+  return true;
+}
+
+std::unique_ptr<cInterfaceBase> cInterfaceAGL::CreateSharedContext()
+{
+  std::unique_ptr<cInterfaceBase> context = std::make_unique<cInterfaceAGL>();
+  if (!context->Create(this))
+    return nullptr;
+  return context;
 }
 
 bool cInterfaceAGL::MakeCurrent()
@@ -100,6 +123,8 @@ void cInterfaceAGL::Shutdown()
   [m_context clearDrawable];
   [m_context release];
   m_context = nil;
+  [m_pixel_format release];
+  m_pixel_format = nil;
 }
 
 void cInterfaceAGL::Update()

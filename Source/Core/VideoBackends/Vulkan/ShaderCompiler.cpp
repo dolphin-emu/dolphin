@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "VideoBackends/Vulkan/ShaderCompiler.h"
+#include "VideoBackends/Vulkan/VulkanContext.h"
 
 #include <cstddef>
 #include <cstdlib>
@@ -36,6 +37,11 @@ static const TBuiltInResource* GetCompilerResourceLimits();
 static bool CompileShaderToSPV(SPIRVCodeVector* out_code, EShLanguage stage,
                                const char* stage_filename, const char* source_code,
                                size_t source_code_length, const char* header, size_t header_length);
+
+// Copy GLSL source code to a SPIRVCodeVector, for use with VK_NV_glsl_shader.
+static void CopyGLSLToSPVVector(SPIRVCodeVector* out_code, const char* stage_filename,
+                                const char* source_code, size_t source_code_length,
+                                const char* header, size_t header_length);
 
 // Regarding the UBO bind points, we subtract one from the binding index because
 // the OpenGL backend requires UBO #0 for non-block uniforms (at least on NV).
@@ -219,6 +225,42 @@ bool CompileShaderToSPV(SPIRVCodeVector* out_code, EShLanguage stage, const char
   return true;
 }
 
+void CopyGLSLToSPVVector(SPIRVCodeVector* out_code, const char* stage_filename,
+                         const char* source_code, size_t source_code_length, const char* header,
+                         size_t header_length)
+{
+  std::string full_source_code;
+  if (header_length > 0)
+  {
+    full_source_code.reserve(header_length + source_code_length);
+    full_source_code.append(header, header_length);
+    full_source_code.append(source_code, source_code_length);
+  }
+  else
+  {
+    full_source_code.append(source_code, source_code_length);
+  }
+
+  if (g_ActiveConfig.iLog & CONF_SAVESHADERS)
+  {
+    static int counter = 0;
+    std::string filename = StringFromFormat("%s%s_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(),
+                                            stage_filename, counter++);
+
+    std::ofstream stream;
+    File::OpenFStream(stream, filename, std::ios_base::out);
+    if (stream.good())
+      stream << full_source_code << std::endl;
+  }
+
+  size_t padding = full_source_code.size() % 4;
+  if (padding != 0)
+    full_source_code.append(4 - padding, '\n');
+
+  out_code->resize(full_source_code.size() / 4);
+  std::memcpy(out_code->data(), full_source_code.c_str(), full_source_code.size());
+}
+
 bool InitializeGlslang()
 {
   static bool glslang_initialized = false;
@@ -338,29 +380,57 @@ const TBuiltInResource* GetCompilerResourceLimits()
 }
 
 bool CompileVertexShader(SPIRVCodeVector* out_code, const char* source_code,
-                         size_t source_code_length, bool prepend_header)
+                         size_t source_code_length)
 {
+  if (g_vulkan_context->SupportsNVGLSLExtension())
+  {
+    CopyGLSLToSPVVector(out_code, "vs", source_code, source_code_length, SHADER_HEADER,
+                        sizeof(SHADER_HEADER) - 1);
+    return true;
+  }
+
   return CompileShaderToSPV(out_code, EShLangVertex, "vs", source_code, source_code_length,
                             SHADER_HEADER, sizeof(SHADER_HEADER) - 1);
 }
 
 bool CompileGeometryShader(SPIRVCodeVector* out_code, const char* source_code,
-                           size_t source_code_length, bool prepend_header)
+                           size_t source_code_length)
 {
+  if (g_vulkan_context->SupportsNVGLSLExtension())
+  {
+    CopyGLSLToSPVVector(out_code, "gs", source_code, source_code_length, SHADER_HEADER,
+                        sizeof(SHADER_HEADER) - 1);
+    return true;
+  }
+
   return CompileShaderToSPV(out_code, EShLangGeometry, "gs", source_code, source_code_length,
                             SHADER_HEADER, sizeof(SHADER_HEADER) - 1);
 }
 
 bool CompileFragmentShader(SPIRVCodeVector* out_code, const char* source_code,
-                           size_t source_code_length, bool prepend_header)
+                           size_t source_code_length)
 {
+  if (g_vulkan_context->SupportsNVGLSLExtension())
+  {
+    CopyGLSLToSPVVector(out_code, "ps", source_code, source_code_length, SHADER_HEADER,
+                        sizeof(SHADER_HEADER) - 1);
+    return true;
+  }
+
   return CompileShaderToSPV(out_code, EShLangFragment, "ps", source_code, source_code_length,
                             SHADER_HEADER, sizeof(SHADER_HEADER) - 1);
 }
 
 bool CompileComputeShader(SPIRVCodeVector* out_code, const char* source_code,
-                          size_t source_code_length, bool prepend_header)
+                          size_t source_code_length)
 {
+  if (g_vulkan_context->SupportsNVGLSLExtension())
+  {
+    CopyGLSLToSPVVector(out_code, "cs", source_code, source_code_length, COMPUTE_SHADER_HEADER,
+                        sizeof(COMPUTE_SHADER_HEADER) - 1);
+    return true;
+  }
+
   return CompileShaderToSPV(out_code, EShLangCompute, "cs", source_code, source_code_length,
                             COMPUTE_SHADER_HEADER, sizeof(COMPUTE_SHADER_HEADER) - 1);
 }

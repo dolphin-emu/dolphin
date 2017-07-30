@@ -7,6 +7,7 @@ set(SRCS
   PostProcessing.cpp
   RasterFont.cpp
   Renderer.cpp
+  ShaderCache.cpp
   ShaderCompiler.cpp
   StateTracker.cpp
   StagingBuffer.cpp
