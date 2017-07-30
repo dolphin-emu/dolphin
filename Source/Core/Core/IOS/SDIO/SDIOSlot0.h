@@ -114,8 +114,8 @@ private:
 
   enum class SDProtocol
   {
-    V1 = 0,
-    V2 = 1,
+    V1,
+    V2,
   };
 
   // Number of bytes to trigger using SDHC instead of SDSC
@@ -144,23 +144,23 @@ private:
 
   u32 GetOCRegister() const;
 
-  void GetCSDv1(u32 csd[4]);
-  void GetCSDv2(u32 csd[4]);
+  std::array<u32, 4> GetCSDv1();
+  std::array<u32, 4> GetCSDv2();
 
   u64 GetAddressFromRequest(u32 arg) const;
 
   // TODO: do we need more than one?
   std::unique_ptr<Event> m_event;
 
-  u32 m_Status = CARD_NOT_EXIST;
+  u32 m_status = CARD_NOT_EXIST;
   SDProtocol m_protocol = SDProtocol::V1;
 
-  u32 m_BlockLength = 0;
-  u32 m_BusWidth = 0;
+  u32 m_block_length = 0;
+  u32 m_bus_width = 0;
 
   std::array<u32, 0x200 / sizeof(u32)> m_registers;
 
-  File::IOFile m_Card;
+  File::IOFile m_card;
 };
 }  // namespace Device
 }  // namespace HLE
