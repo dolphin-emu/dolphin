@@ -238,6 +238,10 @@ public:
   // Decrypts the title key field for a "personalised" ticket -- one that is device-specific
   // and has a title key that must be decrypted first.
   HLE::ReturnCode Unpersonalise(HLE::IOSC& iosc);
+
+  // Reset the common key field back to 0 if it's an incorrect value.
+  // Intended for use before importing fakesigned tickets, which tend to have a high bogus index.
+  void FixCommonKeyIndex();
 };
 
 class SharedContentMap final

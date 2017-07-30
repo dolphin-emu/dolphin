@@ -463,6 +463,13 @@ HLE::ReturnCode TicketReader::Unpersonalise(HLE::IOSC& iosc)
   return ret;
 }
 
+void TicketReader::FixCommonKeyIndex()
+{
+  u8& index = m_bytes[offsetof(Ticket, common_key_index)];
+  // Assume the ticket is using the normal common key if it's an invalid value.
+  index = index <= 1 ? index : 0;
+}
+
 struct SharedContentMap::Entry
 {
   // ID string
