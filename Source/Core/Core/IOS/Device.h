@@ -47,7 +47,7 @@ enum ReturnCode : s32
   ES_INVALID_SIGNATURE_TYPE = -1012,
   ES_FD_EXHAUSTED = -1016,  // Max of 3 ES handles exceeded
   ES_EINVAL = -1017,        // Invalid argument
-  ES_DEVICE_ID_MISMATCH = -1018,
+  ES_DEVICE_ID_MISMATCH = -1020,
   ES_HASH_MISMATCH = -1022,  // Decrypted content hash doesn't match with the hash from the TMD
   ES_ENOMEM = -1024,         // Alloc failed during request
   ES_EACCES = -1026,         // Incorrect access rights (according to TMD)
