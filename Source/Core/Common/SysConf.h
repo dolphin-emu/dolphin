@@ -17,7 +17,7 @@
 class SysConf final
 {
 public:
-  SysConf(Common::FromWhichRoot root_type);
+  explicit SysConf(Common::FromWhichRoot root_type);
   ~SysConf();
 
   void Clear();
