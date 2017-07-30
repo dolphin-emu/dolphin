@@ -51,7 +51,7 @@ struct EncodingProgram
   SHADER program;
   GLint copy_position_uniform;
 };
-static std::map<EFBCopyFormat, EncodingProgram> s_encoding_programs;
+static std::map<EFBCopyParams, EncodingProgram> s_encoding_programs;
 
 static GLuint s_PBO = 0;  // for readback with different strides
 
@@ -136,13 +136,13 @@ static void CreatePrograms()
   ProgramShaderCache::CompileShader(s_yuyvToRgbProgram, VProgramYuyvToRgb, FProgramYuyvToRgb);
 }
 
-static EncodingProgram& GetOrCreateEncodingShader(const EFBCopyFormat& format)
+static EncodingProgram& GetOrCreateEncodingShader(const EFBCopyParams& params)
 {
-  auto iter = s_encoding_programs.find(format);
+  auto iter = s_encoding_programs.find(params);
   if (iter != s_encoding_programs.end())
     return iter->second;
 
-  const char* shader = TextureConversionShader::GenerateEncodingShader(format, APIType::OpenGL);
+  const char* shader = TextureConversionShader::GenerateEncodingShader(params, APIType::OpenGL);
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
   if (g_ActiveConfig.iLog & CONF_SAVESHADERS && shader)
@@ -166,7 +166,7 @@ static EncodingProgram& GetOrCreateEncodingShader(const EFBCopyFormat& format)
     PanicAlert("Failed to compile texture encoding shader.");
 
   program.copy_position_uniform = glGetUniformLocation(program.program.glprogid, "position");
-  return s_encoding_programs.emplace(format, program).first->second;
+  return s_encoding_programs.emplace(params, program).first->second;
 }
 
 void Init()
@@ -271,24 +271,24 @@ static void EncodeToRamUsingShader(GLuint srcTexture, u8* destAddr, u32 dst_line
   glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 }
 
-void EncodeToRamFromTexture(u8* dest_ptr, const EFBCopyFormat& format, u32 native_width,
+void EncodeToRamFromTexture(u8* dest_ptr, const EFBCopyParams& params, u32 native_width,
                             u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
-                            bool is_depth_copy, const EFBRectangle& src_rect, bool scale_by_half)
+                            const EFBRectangle& src_rect, bool scale_by_half)
 {
   g_renderer->ResetAPIState();
 
-  EncodingProgram& texconv_shader = GetOrCreateEncodingShader(format);
+  EncodingProgram& texconv_shader = GetOrCreateEncodingShader(params);
 
   texconv_shader.program.Bind();
   glUniform4i(texconv_shader.copy_position_uniform, src_rect.left, src_rect.top, native_width,
               scale_by_half ? 2 : 1);
 
-  const GLuint read_texture = is_depth_copy ?
+  const GLuint read_texture = params.depth ?
                                   FramebufferManager::ResolveAndGetDepthTarget(src_rect) :
                                   FramebufferManager::ResolveAndGetRenderTarget(src_rect);
 
   EncodeToRamUsingShader(read_texture, dest_ptr, bytes_per_row, num_blocks_y, memory_stride,
-                         scale_by_half && !is_depth_copy);
+                         scale_by_half && !params.depth);
 
   FramebufferManager::SetFramebuffer(0);
   g_renderer->RestoreAPIState();

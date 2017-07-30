@@ -38,12 +38,12 @@ std::unique_ptr<AbstractTexture> TextureCache::CreateTexture(const TextureConfig
   return std::make_unique<DXTexture>(config);
 }
 
-void TextureCache::CopyEFB(u8* dst, const EFBCopyFormat& format, u32 native_width,
+void TextureCache::CopyEFB(u8* dst, const EFBCopyParams& params, u32 native_width,
                            u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
-                           bool is_depth_copy, const EFBRectangle& src_rect, bool scale_by_half)
+                           const EFBRectangle& src_rect, bool scale_by_half)
 {
-  g_encoder->Encode(dst, format, native_width, bytes_per_row, num_blocks_y, memory_stride,
-                    is_depth_copy, src_rect, scale_by_half);
+  g_encoder->Encode(dst, params, native_width, bytes_per_row, num_blocks_y, memory_stride, src_rect,
+                    scale_by_half);
 }
 
 const char palette_shader[] =
@@ -126,8 +126,8 @@ void main(
 }
 )HLSL";
 
-void TextureCache::ConvertTexture(TCacheEntry* destination, TCacheEntry* source, void* palette,
-                                  TlutFormat format)
+void TextureCache::ConvertTexture(TCacheEntry* destination, TCacheEntry* source,
+                                  const void* palette, TLUTFormat format)
 {
   DXTexture* source_texture = static_cast<DXTexture*>(source->texture.get());
   DXTexture* destination_texture = static_cast<DXTexture*>(destination->texture.get());
@@ -144,7 +144,7 @@ void TextureCache::ConvertTexture(TCacheEntry* destination, TCacheEntry* source,
   D3D::stateman->SetTexture(1, palette_buf_srv);
 
   // TODO: Add support for C14X2 format.  (Different multiplier, more palette entries.)
-  float params[4] = {(source->format & 0xf) == GX_TF_I4 ? 15.f : 255.f};
+  float params[4] = {source->format == TextureFormat::I4 ? 15.f : 255.f};
   D3D::context->UpdateSubresource(palette_uniform, 0, nullptr, &params, 0, 0);
   D3D::stateman->SetPixelConstants(palette_uniform);
 
@@ -163,8 +163,9 @@ void TextureCache::ConvertTexture(TCacheEntry* destination, TCacheEntry* source,
   // Create texture copy
   D3D::drawShadedTexQuad(
       source_texture->GetRawTexIdentifier()->GetSRV(), &sourcerect, source->GetWidth(),
-      source->GetHeight(), palette_pixel_shader[format], VertexShaderCache::GetSimpleVertexShader(),
-      VertexShaderCache::GetSimpleInputLayout(), GeometryShaderCache::GetCopyGeometryShader());
+      source->GetHeight(), palette_pixel_shader[static_cast<int>(format)],
+      VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(),
+      GeometryShaderCache::GetCopyGeometryShader());
 
   D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(),
                                    FramebufferManager::GetEFBDepthTexture()->GetDSV());
@@ -190,9 +191,9 @@ TextureCache::TextureCache()
   palette_buf = nullptr;
   palette_buf_srv = nullptr;
   palette_uniform = nullptr;
-  palette_pixel_shader[GX_TL_IA8] = GetConvertShader("IA8");
-  palette_pixel_shader[GX_TL_RGB565] = GetConvertShader("RGB565");
-  palette_pixel_shader[GX_TL_RGB5A3] = GetConvertShader("RGB5A3");
+  palette_pixel_shader[static_cast<int>(TLUTFormat::IA8)] = GetConvertShader("IA8");
+  palette_pixel_shader[static_cast<int>(TLUTFormat::RGB565)] = GetConvertShader("RGB565");
+  palette_pixel_shader[static_cast<int>(TLUTFormat::RGB5A3)] = GetConvertShader("RGB5A3");
   auto lutBd = CD3D11_BUFFER_DESC(sizeof(u16) * 256, D3D11_BIND_SHADER_RESOURCE);
   HRESULT hr = D3D::device->CreateBuffer(&lutBd, nullptr, &palette_buf);
   CHECK(SUCCEEDED(hr), "create palette decoder lut buffer");

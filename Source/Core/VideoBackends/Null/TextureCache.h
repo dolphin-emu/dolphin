@@ -20,14 +20,14 @@ public:
   ~TextureCache() {}
   bool CompileShaders() override { return true; }
   void DeleteShaders() override {}
-  void ConvertTexture(TCacheEntry* entry, TCacheEntry* unconverted, void* palette,
-                      TlutFormat format) override
+  void ConvertTexture(TCacheEntry* entry, TCacheEntry* unconverted, const void* palette,
+                      TLUTFormat format) override
   {
   }
 
-  void CopyEFB(u8* dst, const EFBCopyFormat& format, u32 native_width, u32 bytes_per_row,
-               u32 num_blocks_y, u32 memory_stride, bool is_depth_copy,
-               const EFBRectangle& src_rect, bool scale_by_half) override
+  void CopyEFB(u8* dst, const EFBCopyParams& params, u32 native_width, u32 bytes_per_row,
+               u32 num_blocks_y, u32 memory_stride, const EFBRectangle& src_rect,
+               bool scale_by_half) override
   {
   }
 

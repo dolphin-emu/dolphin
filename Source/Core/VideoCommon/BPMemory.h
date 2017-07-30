@@ -9,6 +9,8 @@
 #include "Common/BitField.h"
 #include "Common/CommonTypes.h"
 
+enum class EFBCopyFormat;
+
 #pragma pack(4)
 
 enum
@@ -958,7 +960,10 @@ union UPE_Copy
   BitField<16, 1, u32>
       auto_conv;  // if 0 automatic color conversion by texture format and pixel type
 
-  u32 tp_realFormat() const { return target_pixel_format / 2 + (target_pixel_format & 1) * 8; }
+  EFBCopyFormat tp_realFormat() const
+  {
+    return static_cast<EFBCopyFormat>(target_pixel_format / 2 + (target_pixel_format & 1) * 8);
+  }
 };
 
 union BPU_PreloadTileInfo
