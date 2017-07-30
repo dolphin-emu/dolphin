@@ -30,6 +30,7 @@ alignas(16) static float g_fProjectionMatrix[16];
 
 // track changes
 static bool bTexMatricesChanged[2], bPosNormalMatrixChanged, bProjectionChanged, bViewportChanged;
+static bool bTexMtxInfoChanged, bLightingConfigChanged;
 static BitSet32 nMaterialsChanged;
 static int nTransformMatricesChanged[2];      // min,max
 static int nNormalMatricesChanged[2];         // min,max
@@ -193,8 +194,10 @@ void VertexShaderManager::Init()
   bPosNormalMatrixChanged = false;
   bProjectionChanged = true;
   bViewportChanged = false;
+  bTexMtxInfoChanged = false;
+  bLightingConfigChanged = false;
 
-  xfmem = {};
+  std::memset(&xfmem, 0, sizeof(xfmem));
   constants = {};
   ResetView();
 
@@ -561,6 +564,32 @@ void VertexShaderManager::SetConstants()
 
     dirty = true;
   }
+
+  if (bTexMtxInfoChanged)
+  {
+    bTexMtxInfoChanged = false;
+    constants.xfmem_dualTexInfo = xfmem.dualTexTrans.enabled;
+    for (size_t i = 0; i < ArraySize(xfmem.texMtxInfo); i++)
+      constants.xfmem_pack1[i][0] = xfmem.texMtxInfo[i].hex;
+    for (size_t i = 0; i < ArraySize(xfmem.postMtxInfo); i++)
+      constants.xfmem_pack1[i][1] = xfmem.postMtxInfo[i].hex;
+
+    dirty = true;
+  }
+
+  if (bLightingConfigChanged)
+  {
+    bLightingConfigChanged = false;
+
+    for (size_t i = 0; i < 2; i++)
+    {
+      constants.xfmem_pack1[i][2] = xfmem.color[i].hex;
+      constants.xfmem_pack1[i][3] = xfmem.alpha[i].hex;
+    }
+    constants.xfmem_numColorChans = xfmem.numChan.numColorChans;
+
+    dirty = true;
+  }
 }
 
 void VertexShaderManager::InvalidateXFRange(int start, int end)
@@ -758,6 +787,27 @@ void VertexShaderManager::ResetView()
   bProjectionChanged = true;
 }
 
+void VertexShaderManager::SetVertexFormat(u32 components)
+{
+  if (components != constants.components)
+  {
+    constants.components = components;
+    dirty = true;
+  }
+}
+
+void VertexShaderManager::SetTexMatrixInfoChanged(int index)
+{
+  // TODO: Should we track this with more precision, like which indices changed?
+  // The whole vertex constants are probably going to be uploaded regardless.
+  bTexMtxInfoChanged = true;
+}
+
+void VertexShaderManager::SetLightingConfigChanged()
+{
+  bLightingConfigChanged = true;
+}
+
 void VertexShaderManager::TransformToClipSpace(const float* data, float* out, u32 MtxIdx)
 {
   const float* world_matrix = &xfmem.posMatrices[(MtxIdx & 0x3f) * 4];
@@ -800,6 +850,8 @@ void VertexShaderManager::DoState(PointerWrap& p)
   p.Do(bPosNormalMatrixChanged);
   p.Do(bProjectionChanged);
   p.Do(bViewportChanged);
+  p.Do(bTexMtxInfoChanged);
+  p.Do(bLightingConfigChanged);
 
   p.Do(constants);
 

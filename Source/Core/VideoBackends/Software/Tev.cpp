@@ -769,7 +769,7 @@ void Tev::Draw()
       // - scaling of the "k" coefficient isn't clear either.
 
       // First, calculate the offset from the viewport center (normalized to 0..1)
-      float offset = (Position[0] - (static_cast<s32>(bpmem.fogRange.Base.Center) - 342)) /
+      float offset = (Position[0] - (static_cast<s32>(bpmem.fogRange.Base.Center.Value()) - 342)) /
                      static_cast<float>(xfmem.viewport.wd);
 
       // Based on that, choose the index such that points which are far away from the z-axis use the

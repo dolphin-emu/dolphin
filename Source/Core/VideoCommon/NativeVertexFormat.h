@@ -106,8 +106,6 @@ class NativeVertexFormat : NonCopyable
 {
 public:
   virtual ~NativeVertexFormat() {}
-  virtual void SetupVertexPointers() = 0;
-
   u32 GetVertexStride() const { return vtx_decl.stride; }
   const PortableVertexDeclaration& GetVertexDeclaration() const { return vtx_decl; }
 protected:

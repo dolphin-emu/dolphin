@@ -57,6 +57,7 @@ GLVertexFormat::GLVertexFormat(const PortableVertexDeclaration& _vtx_decl)
 
   glGenVertexArrays(1, &VAO);
   glBindVertexArray(VAO);
+  ProgramShaderCache::BindVertexFormat(this);
 
   // the element buffer is bound directly to the vao, so we must it set for every vao
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vm->m_index_buffers);
@@ -74,16 +75,10 @@ GLVertexFormat::GLVertexFormat(const PortableVertexDeclaration& _vtx_decl)
     SetPointer(SHADER_TEXTURE0_ATTRIB + i, vertex_stride, _vtx_decl.texcoords[i]);
 
   SetPointer(SHADER_POSMTX_ATTRIB, vertex_stride, _vtx_decl.posmtx);
-
-  vm->m_last_vao = VAO;
 }
 
 GLVertexFormat::~GLVertexFormat()
 {
   glDeleteVertexArrays(1, &VAO);
-}
-
-void GLVertexFormat::SetupVertexPointers()
-{
 }
 }

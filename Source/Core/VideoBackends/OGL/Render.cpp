@@ -447,6 +447,12 @@ Renderer::Renderer()
   // Clip distance support is useless without a method to clamp the depth range
   g_Config.backend_info.bSupportsDepthClamp = GLExtensions::Supports("GL_ARB_depth_clamp");
 
+  // Desktop OpenGL supports bitfield manulipation and dynamic sampler indexing if it supports
+  // shader5. OpenGL ES 3.1 supports it implicitly without an extension
+  g_Config.backend_info.bSupportsBitfield = GLExtensions::Supports("GL_ARB_gpu_shader5");
+  g_Config.backend_info.bSupportsDynamicSamplerIndexing =
+      GLExtensions::Supports("GL_ARB_gpu_shader5");
+
   g_ogl_config.bSupportsGLSLCache = GLExtensions::Supports("GL_ARB_get_program_binary");
   g_ogl_config.bSupportsGLPinnedMemory = GLExtensions::Supports("GL_AMD_pinned_memory");
   g_ogl_config.bSupportsGLSync = GLExtensions::Supports("GL_ARB_sync");
@@ -515,6 +521,8 @@ Renderer::Renderer()
       g_ogl_config.bSupportsMSAA = true;
       g_ogl_config.bSupportsTextureStorage = true;
       g_ogl_config.bSupports2DTextureStorageMultisample = true;
+      g_Config.backend_info.bSupportsBitfield = true;
+      g_Config.backend_info.bSupportsDynamicSamplerIndexing = g_ogl_config.bSupportsAEP;
       if (g_ActiveConfig.iStereoMode > 0 && g_ActiveConfig.iMultisamples > 1 &&
           !g_ogl_config.bSupports3DTextureStorageMultisample)
       {
@@ -542,6 +550,8 @@ Renderer::Renderer()
       g_ogl_config.bSupportsTextureStorage = true;
       g_ogl_config.bSupports2DTextureStorageMultisample = true;
       g_ogl_config.bSupports3DTextureStorageMultisample = true;
+      g_Config.backend_info.bSupportsBitfield = true;
+      g_Config.backend_info.bSupportsDynamicSamplerIndexing = true;
     }
   }
   else
@@ -1462,6 +1472,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
 
   // Clean out old stuff from caches. It's not worth it to clean out the shader caches.
   g_texture_cache->Cleanup(frameCount);
+  ProgramShaderCache::RetrieveAsyncShaders();
 
   // Render to the framebuffer.
   FramebufferManager::SetFramebuffer(0);
@@ -1758,10 +1769,9 @@ void Renderer::RestoreAPIState()
   SetBlendMode(true);
   SetViewport();
 
+  ProgramShaderCache::BindLastVertexFormat();
   const VertexManager* const vm = static_cast<VertexManager*>(g_vertex_manager.get());
   glBindBuffer(GL_ARRAY_BUFFER, vm->m_vertex_buffers);
-  if (vm->m_last_vao)
-    glBindVertexArray(vm->m_last_vao);
 
   OGLTexture::SetStage();
 }

@@ -59,6 +59,13 @@ extern const ConfigInfo<bool> GFX_ENABLE_VALIDATION_LAYER;
 extern const ConfigInfo<bool> GFX_BACKEND_MULTITHREADING;
 extern const ConfigInfo<int> GFX_COMMAND_BUFFER_EXECUTE_INTERVAL;
 extern const ConfigInfo<bool> GFX_SHADER_CACHE;
+extern const ConfigInfo<bool> GFX_BACKGROUND_SHADER_COMPILING;
+extern const ConfigInfo<bool> GFX_DISABLE_SPECIALIZED_SHADERS;
+extern const ConfigInfo<bool> GFX_PRECOMPILE_UBER_SHADERS;
+extern const ConfigInfo<int> GFX_SHADER_COMPILER_THREADS;
+extern const ConfigInfo<int> GFX_SHADER_PRECOMPILER_THREADS;
+extern const ConfigInfo<bool> GFX_FORCE_VERTEX_UBER_SHADERS;
+extern const ConfigInfo<bool> GFX_FORCE_PIXEL_UBER_SHADERS;
 
 extern const ConfigInfo<bool> GFX_SW_ZCOMPLOC;
 extern const ConfigInfo<bool> GFX_SW_ZFREEZE;

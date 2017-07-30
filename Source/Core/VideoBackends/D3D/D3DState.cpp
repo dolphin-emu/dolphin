@@ -136,7 +136,7 @@ void StateManager::Apply()
         m_current.pixelConstants[1] != m_pending.pixelConstants[1])
     {
       D3D::context->PSSetConstantBuffers(0, m_pending.pixelConstants[1] ? 2 : 1,
-                                         m_pending.pixelConstants);
+                                         m_pending.pixelConstants.data());
       m_current.pixelConstants[0] = m_pending.pixelConstants[0];
       m_current.pixelConstants[1] = m_pending.pixelConstants[1];
     }

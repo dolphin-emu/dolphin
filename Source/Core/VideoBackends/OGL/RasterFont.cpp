@@ -119,11 +119,11 @@ static const u8 rasters[CHARACTER_COUNT][CHARACTER_HEIGHT] = {
 static const char* s_vertexShaderSrc = "uniform vec2 charSize;\n"
                                        "uniform vec2 offset;"
                                        "in vec2 rawpos;\n"
-                                       "in vec2 tex0;\n"
+                                       "in vec2 rawtex0;\n"
                                        "out vec2 uv0;\n"
                                        "void main(void) {\n"
                                        "	gl_Position = vec4(rawpos + offset,0,1);\n"
-                                       "	uv0 = tex0 * charSize;\n"
+                                       "	uv0 = rawtex0 * charSize;\n"
                                        "}\n";
 
 static const char* s_fragmentShaderSrc = "SAMPLER_BINDING(8) uniform sampler2D samp8;\n"

@@ -194,9 +194,6 @@ void VideoBackendBase::InitializeShared()
   g_Config.UpdateProjectionHack();
   g_Config.VerifyValidity();
   UpdateActiveConfig();
-
-  // Notify the core that the video backend is ready
-  Host_Message(WM_USER_CREATE);
 }
 
 void VideoBackendBase::ShutdownShared()

@@ -16,6 +16,7 @@
 
 #include "Core/ConfigManager.h"
 
+#include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/ShaderCompiler.h"
 #include "VideoBackends/Vulkan/StreamBuffer.h"
 #include "VideoBackends/Vulkan/Util.h"
@@ -59,6 +60,19 @@ bool ObjectCache::Initialize()
   if (!m_utility_shader_vertex_buffer || !m_utility_shader_uniform_buffer)
     return false;
 
+  m_dummy_texture = Texture2D::Create(1, 1, 1, 1, VK_FORMAT_R8G8B8A8_UNORM, VK_SAMPLE_COUNT_1_BIT,
+                                      VK_IMAGE_VIEW_TYPE_2D_ARRAY, VK_IMAGE_TILING_LINEAR,
+                                      VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT);
+  m_dummy_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
+                                      VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+  VkClearColorValue clear_color = {};
+  VkImageSubresourceRange clear_range = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1};
+  vkCmdClearColorImage(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
+                       m_dummy_texture->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                       &clear_color, 1, &clear_range);
+  m_dummy_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
+                                      VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
   return true;
 }
 
@@ -99,17 +113,9 @@ bool ObjectCache::CreateDescriptorSetLayouts()
       {UBO_DESCRIPTOR_SET_BINDING_GS, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1,
        VK_SHADER_STAGE_GEOMETRY_BIT}};
 
-  // Annoying these have to be split, apparently we can't partially update an array without the
-  // validation layers throwing a warning.
   static const VkDescriptorSetLayoutBinding sampler_set_bindings[] = {
-      {0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT},
-      {1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT},
-      {2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT},
-      {3, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT},
-      {4, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT},
-      {5, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT},
-      {6, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT},
-      {7, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT}};
+      {0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, static_cast<u32>(NUM_PIXEL_SHADER_SAMPLERS),
+       VK_SHADER_STAGE_FRAGMENT_BIT}};
 
   static const VkDescriptorSetLayoutBinding ssbo_set_bindings[] = {
       {0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, VK_SHADER_STAGE_FRAGMENT_BIT}};

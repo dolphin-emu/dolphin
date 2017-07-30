@@ -179,7 +179,7 @@ PixelShaderUid GetPixelShaderUid()
   u32 numStages = uid_data->genMode_numtevstages + 1;
 
   const bool forced_early_z =
-      g_ActiveConfig.backend_info.bSupportsEarlyZ && bpmem.UseEarlyDepthTest() &&
+      bpmem.UseEarlyDepthTest() &&
       (g_ActiveConfig.bFastDepthCalc || bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED)
       // We can't allow early_ztest for zfreeze because depth is overridden per-pixel.
       // This means it's impossible for zcomploc to be emulated on a zfrozen polygon.
@@ -191,18 +191,6 @@ PixelShaderUid GetPixelShaderUid()
 
   uid_data->per_pixel_depth = per_pixel_depth;
   uid_data->forced_early_z = forced_early_z;
-
-  if (!uid_data->forced_early_z && bpmem.UseEarlyDepthTest() &&
-      (!g_ActiveConfig.bFastDepthCalc || bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED))
-  {
-    static bool warn_once = true;
-    if (warn_once)
-      WARN_LOG(VIDEO, "Early z test enabled but not possible to emulate with current "
-                      "configuration. Make sure to enable fast depth calculations. If this message "
-                      "still shows up your hardware isn't able to emulate the feature properly (a "
-                      "GPU with D3D 11.0 / OGL 4.2 support is required).");
-    warn_once = false;
-  }
 
   if (g_ActiveConfig.bEnablePixelLighting)
   {
@@ -333,6 +321,110 @@ PixelShaderUid GetPixelShaderUid()
   return out;
 }
 
+void WritePixelShaderCommonHeader(ShaderCode& out, APIType ApiType, u32 num_texgens,
+                                  bool per_pixel_lighting, bool bounding_box)
+{
+  // dot product for integer vectors
+  out.Write("int idot(int3 x, int3 y)\n"
+            "{\n"
+            "\tint3 tmp = x * y;\n"
+            "\treturn tmp.x + tmp.y + tmp.z;\n"
+            "}\n");
+
+  out.Write("int idot(int4 x, int4 y)\n"
+            "{\n"
+            "\tint4 tmp = x * y;\n"
+            "\treturn tmp.x + tmp.y + tmp.z + tmp.w;\n"
+            "}\n\n");
+
+  // rounding + casting to integer at once in a single function
+  out.Write("int  iround(float  x) { return int (round(x)); }\n"
+            "int2 iround(float2 x) { return int2(round(x)); }\n"
+            "int3 iround(float3 x) { return int3(round(x)); }\n"
+            "int4 iround(float4 x) { return int4(round(x)); }\n\n");
+
+  if (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan)
+  {
+    out.Write("SAMPLER_BINDING(0) uniform sampler2DArray samp[8];\n");
+  }
+  else  // D3D
+  {
+    // Declare samplers
+    out.Write("SamplerState samp[8] : register(s0);\n");
+    out.Write("\n");
+    out.Write("Texture2DArray Tex[8] : register(t0);\n");
+  }
+  out.Write("\n");
+
+  if (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan)
+    out.Write("UBO_BINDING(std140, 1) uniform PSBlock {\n");
+  else
+    out.Write("cbuffer PSBlock : register(b0) {\n");
+
+  out.Write("\tint4 " I_COLORS "[4];\n"
+            "\tint4 " I_KCOLORS "[4];\n"
+            "\tint4 " I_ALPHA ";\n"
+            "\tfloat4 " I_TEXDIMS "[8];\n"
+            "\tint4 " I_ZBIAS "[2];\n"
+            "\tint4 " I_INDTEXSCALE "[2];\n"
+            "\tint4 " I_INDTEXMTX "[6];\n"
+            "\tint4 " I_FOGCOLOR ";\n"
+            "\tint4 " I_FOGI ";\n"
+            "\tfloat4 " I_FOGF "[2];\n"
+            "\tfloat4 " I_ZSLOPE ";\n"
+            "\tfloat2 " I_EFBSCALE ";\n"
+            "\tuint  bpmem_genmode;\n"
+            "\tuint  bpmem_alphaTest;\n"
+            "\tuint  bpmem_fogParam3;\n"
+            "\tuint  bpmem_fogRangeBase;\n"
+            "\tuint  bpmem_dstalpha;\n"
+            "\tuint  bpmem_ztex_op;\n"
+            "\tbool  bpmem_early_ztest;\n"
+            "\tbool  bpmem_rgba6_format;\n"
+            "\tbool  bpmem_dither;\n"
+            "\tbool  bpmem_bounding_box;\n"
+            "\tuint4 bpmem_pack1[16];\n"  // .xy - combiners, .z - tevind
+            "\tuint4 bpmem_pack2[8];\n"   // .x - tevorder, .y - tevksel
+            "\tint4  konstLookup[32];\n"
+            "};\n\n");
+  out.Write("#define bpmem_combiners(i) (bpmem_pack1[(i)].xy)\n"
+            "#define bpmem_tevind(i) (bpmem_pack1[(i)].z)\n"
+            "#define bpmem_iref(i) (bpmem_pack1[(i)].w)\n"
+            "#define bpmem_tevorder(i) (bpmem_pack2[(i)].x)\n"
+            "#define bpmem_tevksel(i) (bpmem_pack2[(i)].y)\n\n");
+
+  if (per_pixel_lighting)
+  {
+    out.Write("%s", s_lighting_struct);
+
+    if (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan)
+      out.Write("UBO_BINDING(std140, 2) uniform VSBlock {\n");
+    else
+      out.Write("cbuffer VSBlock : register(b1) {\n");
+
+    out.Write(s_shader_uniforms);
+    out.Write("};\n");
+  }
+
+  if (bounding_box)
+  {
+    if (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan)
+    {
+      out.Write("SSBO_BINDING(0) buffer BBox {\n"
+                "\tint4 bbox_data;\n"
+                "};\n");
+    }
+    else
+    {
+      out.Write("globallycoherent RWBuffer<int> bbox_data : register(u2);\n");
+    }
+  }
+
+  out.Write("struct VS_OUTPUT {\n");
+  GenerateVSOutputMembers(out, ApiType, num_texgens, per_pixel_lighting, "");
+  out.Write("};\n");
+}
+
 static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, int n,
                        APIType ApiType, bool stereo);
 static void WriteTevRegular(ShaderCode& out, const char* components, int bias, int op, int clamp,
@@ -360,100 +452,11 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
   out.Write("//%i TEV stages, %i texgens, %i IND stages\n", numStages, uid_data->genMode_numtexgens,
             uid_data->genMode_numindstages);
 
-  // dot product for integer vectors
-  out.Write("int idot(int3 x, int3 y)\n"
-            "{\n"
-            "\tint3 tmp = x * y;\n"
-            "\treturn tmp.x + tmp.y + tmp.z;\n"
-            "}\n");
+  // Stuff that is shared between ubershaders and pixelgen.
+  WritePixelShaderCommonHeader(out, ApiType, uid_data->genMode_numtexgens, per_pixel_lighting,
+                               uid_data->bounding_box);
 
-  out.Write("int idot(int4 x, int4 y)\n"
-            "{\n"
-            "\tint4 tmp = x * y;\n"
-            "\treturn tmp.x + tmp.y + tmp.z + tmp.w;\n"
-            "}\n\n");
-
-  // rounding + casting to integer at once in a single function
-  out.Write("int  iround(float  x) { return int (round(x)); }\n"
-            "int2 iround(float2 x) { return int2(round(x)); }\n"
-            "int3 iround(float3 x) { return int3(round(x)); }\n"
-            "int4 iround(float4 x) { return int4(round(x)); }\n\n");
-
-  if (ApiType == APIType::OpenGL)
-  {
-    out.Write("SAMPLER_BINDING(0) uniform sampler2DArray samp[8];\n");
-  }
-  else if (ApiType == APIType::Vulkan)
-  {
-    out.Write("SAMPLER_BINDING(0) uniform sampler2DArray samp0;\n");
-    out.Write("SAMPLER_BINDING(1) uniform sampler2DArray samp1;\n");
-    out.Write("SAMPLER_BINDING(2) uniform sampler2DArray samp2;\n");
-    out.Write("SAMPLER_BINDING(3) uniform sampler2DArray samp3;\n");
-    out.Write("SAMPLER_BINDING(4) uniform sampler2DArray samp4;\n");
-    out.Write("SAMPLER_BINDING(5) uniform sampler2DArray samp5;\n");
-    out.Write("SAMPLER_BINDING(6) uniform sampler2DArray samp6;\n");
-    out.Write("SAMPLER_BINDING(7) uniform sampler2DArray samp7;\n");
-  }
-  else  // D3D
-  {
-    // Declare samplers
-    out.Write("SamplerState samp[8] : register(s0);\n");
-    out.Write("\n");
-    out.Write("Texture2DArray Tex[8] : register(t0);\n");
-  }
-  out.Write("\n");
-
-  if (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan)
-    out.Write("UBO_BINDING(std140, 1) uniform PSBlock {\n");
-  else
-    out.Write("cbuffer PSBlock : register(b0) {\n");
-
-  out.Write("\tint4 " I_COLORS "[4];\n"
-            "\tint4 " I_KCOLORS "[4];\n"
-            "\tint4 " I_ALPHA ";\n"
-            "\tfloat4 " I_TEXDIMS "[8];\n"
-            "\tint4 " I_ZBIAS "[2];\n"
-            "\tint4 " I_INDTEXSCALE "[2];\n"
-            "\tint4 " I_INDTEXMTX "[6];\n"
-            "\tint4 " I_FOGCOLOR ";\n"
-            "\tint4 " I_FOGI ";\n"
-            "\tfloat4 " I_FOGF "[2];\n"
-            "\tfloat4 " I_ZSLOPE ";\n"
-            "\tfloat4 " I_EFBSCALE ";\n"
-            "};\n");
-
-  if (per_pixel_lighting)
-  {
-    out.Write("%s", s_lighting_struct);
-
-    if (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan)
-      out.Write("UBO_BINDING(std140, 2) uniform VSBlock {\n");
-    else
-      out.Write("cbuffer VSBlock : register(b1) {\n");
-
-    out.Write(s_shader_uniforms);
-    out.Write("};\n");
-  }
-
-  if (uid_data->bounding_box)
-  {
-    if (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan)
-    {
-      out.Write("SSBO_BINDING(0) buffer BBox {\n"
-                "\tint4 bbox_data;\n"
-                "};\n");
-    }
-    else
-    {
-      out.Write("globallycoherent RWBuffer<int> bbox_data : register(u2);\n");
-    }
-  }
-
-  out.Write("struct VS_OUTPUT {\n");
-  GenerateVSOutputMembers(out, ApiType, uid_data->genMode_numtexgens, per_pixel_lighting, "");
-  out.Write("};\n");
-
-  if (uid_data->forced_early_z)
+  if (uid_data->forced_early_z && g_ActiveConfig.backend_info.bSupportsEarlyZ)
   {
     // Zcomploc (aka early_ztest) is a way to control whether depth test is done before
     // or after texturing and alpha test. PC graphics APIs used to provide no way to emulate
@@ -549,7 +552,7 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
       // Let's set up attributes
       for (unsigned int i = 0; i < uid_data->genMode_numtexgens; ++i)
       {
-        out.Write("%s in float3 uv%d;\n", GetInterpolationQualifier(msaa, ssaa), i);
+        out.Write("%s in float3 tex%d;\n", GetInterpolationQualifier(msaa, ssaa), i);
       }
       out.Write("%s in float4 clipPos;\n", GetInterpolationQualifier(msaa, ssaa));
       if (per_pixel_lighting)
@@ -560,13 +563,6 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
     }
 
     out.Write("void main()\n{\n");
-
-    if (host_config.backend_geometry_shaders || ApiType == APIType::Vulkan)
-    {
-      for (unsigned int i = 0; i < uid_data->genMode_numtexgens; ++i)
-        out.Write("\tfloat3 uv%d = tex%d;\n", i, i);
-    }
-
     out.Write("\tfloat4 rawpos = gl_FragCoord;\n");
   }
   else  // D3D
@@ -582,7 +578,8 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
 
     // compute window position if needed because binding semantic WPOS is not widely supported
     for (unsigned int i = 0; i < uid_data->genMode_numtexgens; ++i)
-      out.Write(",\n  in %s float3 uv%d : TEXCOORD%d", GetInterpolationQualifier(msaa, ssaa), i, i);
+      out.Write(",\n  in %s float3 tex%d : TEXCOORD%d", GetInterpolationQualifier(msaa, ssaa), i,
+                i);
     out.Write(",\n  in %s float4 clipPos : TEXCOORD%d", GetInterpolationQualifier(msaa, ssaa),
               uid_data->genMode_numtexgens);
     if (per_pixel_lighting)
@@ -645,7 +642,7 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
     for (unsigned int i = 0; i < uid_data->genMode_numtexgens; ++i)
     {
       out.Write("\tint2 fixpoint_uv%d = int2(", i);
-      out.Write("(uv%d.z == 0.0 ? uv%d.xy : uv%d.xy / uv%d.z)", i, i, i, i);
+      out.Write("(tex%d.z == 0.0 ? tex%d.xy : tex%d.xy / tex%d.z)", i, i, i, i);
       out.Write(" * " I_TEXDIMS "[%d].zw);\n", i);
       // TODO: S24 overflows here?
     }
@@ -824,7 +821,7 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
       const char* tevIndAlphaSel[] = {"", "x", "y", "z"};
       const char* tevIndAlphaMask[] = {"248", "224", "240",
                                        "248"};  // 0b11111000, 0b11100000, 0b11110000, 0b11111000
-      out.Write("alphabump = iindtex%d.%s & %s;\n", tevind.bt, tevIndAlphaSel[tevind.bs],
+      out.Write("alphabump = iindtex%d.%s & %s;\n", tevind.bt.Value(), tevIndAlphaSel[tevind.bs],
                 tevIndAlphaMask[tevind.fmt]);
     }
     else
@@ -836,7 +833,8 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
     {
       // format
       const char* tevIndFmtMask[] = {"255", "31", "15", "7"};
-      out.Write("\tint3 iindtevcrd%d = iindtex%d & %s;\n", n, tevind.bt, tevIndFmtMask[tevind.fmt]);
+      out.Write("\tint3 iindtevcrd%d = iindtex%d & %s;\n", n, tevind.bt.Value(),
+                tevIndFmtMask[tevind.fmt]);
 
       // bias - TODO: Check if this needs to be this complicated..
       const char* tevIndBiasField[] = {"",  "x",  "y",  "xy",
@@ -1165,11 +1163,6 @@ static void SampleTexture(ShaderCode& out, const char* texcoords, const char* te
     out.Write("iround(255.0 * Tex[%d].Sample(samp[%d], float3(%s.xy * " I_TEXDIMS
               "[%d].xy, %s))).%s;\n",
               texmap, texmap, texcoords, texmap, stereo ? "layer" : "0.0", texswap);
-  }
-  else if (ApiType == APIType::Vulkan)
-  {
-    out.Write("iround(255.0 * texture(samp%d, float3(%s.xy * " I_TEXDIMS "[%d].xy, %s))).%s;\n",
-              texmap, texcoords, texmap, stereo ? "layer" : "0.0", texswap);
   }
   else
   {

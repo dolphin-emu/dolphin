@@ -168,6 +168,36 @@ struct VideoConfig final
   // Currently only supported with Vulkan.
   int iCommandBufferExecuteInterval;
 
+  // The following options determine the ubershader mode:
+  //   No ubershaders:
+  //     - bBackgroundShaderCompiling = false
+  //     - bDisableSpecializedShaders = false
+  //   Hybrid/background compiling:
+  //     - bBackgroundShaderCompiling = true
+  //     - bDisableSpecializedShaders = false
+  //   Ubershaders only:
+  //     - bBackgroundShaderCompiling = false
+  //     - bDisableSpecializedShaders = true
+
+  // Enable background shader compiling, use ubershaders while waiting.
+  bool bBackgroundShaderCompiling;
+
+  // Use ubershaders only, don't compile specialized shaders.
+  bool bDisableSpecializedShaders;
+
+  // Precompile ubershader variants at boot/config reload time.
+  bool bPrecompileUberShaders;
+
+  // Number of shader compiler threads.
+  // 0 disables background compilation.
+  // -1 uses an automatic number based on the CPU threads.
+  int iShaderCompilerThreads;
+  int iShaderPrecompilerThreads;
+
+  // Temporary toggling of ubershaders, for debugging
+  bool bForceVertexUberShaders;
+  bool bForcePixelUberShaders;
+
   // Static config per API
   // TODO: Move this out of VideoConfig
   struct
@@ -204,6 +234,8 @@ struct VideoConfig final
     bool bSupportsInternalResolutionFrameDumps;
     bool bSupportsGPUTextureDecoding;
     bool bSupportsST3CTextures;
+    bool bSupportsBitfield;                // Needed by UberShaders, so must stay in VideoCommon
+    bool bSupportsDynamicSamplerIndexing;  // Needed by UberShaders, so must stay in VideoCommon
   } backend_info;
 
   // Utility
@@ -224,6 +256,10 @@ struct VideoConfig final
     return backend_info.bSupportsGPUTextureDecoding && bEnableGPUTextureDecoding;
   }
   bool UseVertexRounding() const { return bVertexRounding && iEFBScale != SCALE_1X; }
+  u32 GetShaderCompilerThreads() const;
+  u32 GetShaderPrecompilerThreads() const;
+  bool CanPrecompileUberShaders() const;
+  bool CanBackgroundCompileShaders() const;
 };
 
 extern VideoConfig g_Config;

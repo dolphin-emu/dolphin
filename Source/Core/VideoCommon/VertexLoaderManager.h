@@ -24,7 +24,15 @@ void Clear();
 
 void MarkAllDirty();
 
-NativeVertexFormatMap* GetNativeVertexFormatMap();
+// Creates or obtains a pointer to a VertexFormat representing decl.
+// If this results in a VertexFormat being created, if the game later uses a matching vertex
+// declaration, the one that was previously created will be used.
+NativeVertexFormat* GetOrCreateMatchingFormat(const PortableVertexDeclaration& decl);
+
+// For vertex ubershaders, all attributes need to be present, even when the vertex
+// format does not contain them. This function returns a vertex format with dummy
+// offsets set to the unused attributes.
+NativeVertexFormat* GetUberVertexFormat(const PortableVertexDeclaration& decl);
 
 // Returns -1 if buf_size is insufficient, else the amount of bytes consumed
 int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bool is_preprocess);

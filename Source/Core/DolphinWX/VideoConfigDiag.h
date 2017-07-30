@@ -140,6 +140,7 @@ protected:
   void PopulatePostProcessingShaders();
   void PopulateAAList();
   void OnAAChanged(wxCommandEvent& ev);
+  void OnUberShaderModeChanged(wxCommandEvent& ev);
 
   wxChoice* choice_backend;
   wxChoice* choice_adapter;

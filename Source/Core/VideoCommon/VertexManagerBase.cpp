@@ -193,22 +193,24 @@ void VertexManagerBase::Flush()
   g_video_backend->CheckInvalidState();
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
-  PRIM_LOG("frame%d:\n texgen=%d, numchan=%d, dualtex=%d, ztex=%d, cole=%d, alpe=%d, ze=%d",
+  PRIM_LOG("frame%d:\n texgen=%u, numchan=%u, dualtex=%u, ztex=%u, cole=%u, alpe=%u, ze=%u",
            g_ActiveConfig.iSaveTargetId, xfmem.numTexGen.numTexGens, xfmem.numChan.numColorChans,
-           xfmem.dualTexTrans.enabled, bpmem.ztex2.op, (int)bpmem.blendmode.colorupdate,
-           (int)bpmem.blendmode.alphaupdate, (int)bpmem.zmode.updateenable);
+           xfmem.dualTexTrans.enabled, bpmem.ztex2.op.Value(), bpmem.blendmode.colorupdate.Value(),
+           bpmem.blendmode.alphaupdate.Value(), bpmem.zmode.updateenable.Value());
 
-  for (unsigned int i = 0; i < xfmem.numChan.numColorChans; ++i)
+  for (u32 i = 0; i < xfmem.numChan.numColorChans; ++i)
   {
     LitChannel* ch = &xfmem.color[i];
-    PRIM_LOG("colchan%d: matsrc=%d, light=0x%x, ambsrc=%d, diffunc=%d, attfunc=%d", i,
-             ch->matsource, ch->GetFullLightMask(), ch->ambsource, ch->diffusefunc, ch->attnfunc);
+    PRIM_LOG("colchan%u: matsrc=%u, light=0x%x, ambsrc=%u, diffunc=%u, attfunc=%u", i,
+             ch->matsource.Value(), ch->GetFullLightMask(), ch->ambsource.Value(),
+             ch->diffusefunc.Value(), ch->attnfunc.Value());
     ch = &xfmem.alpha[i];
-    PRIM_LOG("alpchan%d: matsrc=%d, light=0x%x, ambsrc=%d, diffunc=%d, attfunc=%d", i,
-             ch->matsource, ch->GetFullLightMask(), ch->ambsource, ch->diffusefunc, ch->attnfunc);
+    PRIM_LOG("alpchan%u: matsrc=%u, light=0x%x, ambsrc=%u, diffunc=%u, attfunc=%u", i,
+             ch->matsource.Value(), ch->GetFullLightMask(), ch->ambsource.Value(),
+             ch->diffusefunc.Value(), ch->attnfunc.Value());
   }
 
-  for (unsigned int i = 0; i < xfmem.numTexGen.numTexGens; ++i)
+  for (u32 i = 0; i < xfmem.numTexGen.numTexGens; ++i)
   {
     TexMtxInfo tinfo = xfmem.texMtxInfo[i];
     if (tinfo.texgentype != XF_TEXGEN_EMBOSS_MAP)
@@ -216,16 +218,17 @@ void VertexManagerBase::Flush()
     if (tinfo.texgentype != XF_TEXGEN_REGULAR)
       tinfo.projection = 0;
 
-    PRIM_LOG("txgen%d: proj=%d, input=%d, gentype=%d, srcrow=%d, embsrc=%d, emblght=%d, "
-             "postmtx=%d, postnorm=%d",
-             i, tinfo.projection, tinfo.inputform, tinfo.texgentype, tinfo.sourcerow,
-             tinfo.embosssourceshift, tinfo.embosslightshift, xfmem.postMtxInfo[i].index,
-             xfmem.postMtxInfo[i].normalize);
+    PRIM_LOG("txgen%u: proj=%u, input=%u, gentype=%u, srcrow=%u, embsrc=%u, emblght=%u, "
+             "postmtx=%u, postnorm=%u",
+             i, tinfo.projection.Value(), tinfo.inputform.Value(), tinfo.texgentype.Value(),
+             tinfo.sourcerow.Value(), tinfo.embosssourceshift.Value(),
+             tinfo.embosslightshift.Value(), xfmem.postMtxInfo[i].index.Value(),
+             xfmem.postMtxInfo[i].normalize.Value());
   }
 
-  PRIM_LOG("pixel: tev=%d, ind=%d, texgen=%d, dstalpha=%d, alphatest=0x%x",
-           (int)bpmem.genMode.numtevstages + 1, (int)bpmem.genMode.numindstages,
-           (int)bpmem.genMode.numtexgens, (u32)bpmem.dstalpha.enable,
+  PRIM_LOG("pixel: tev=%u, ind=%u, texgen=%u, dstalpha=%u, alphatest=0x%x",
+           bpmem.genMode.numtevstages.Value() + 1, bpmem.genMode.numindstages.Value(),
+           bpmem.genMode.numtexgens.Value(), bpmem.dstalpha.enable.Value(),
            (bpmem.alpha_test.hex >> 16) & 0xff);
 #endif
 
