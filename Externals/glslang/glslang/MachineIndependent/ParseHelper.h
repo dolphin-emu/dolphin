@@ -51,7 +51,7 @@
 #include "Scan.h"
 #include <functional>
 
-#include <functional>
+#include <cstdarg>
 
 namespace glslang {
 
