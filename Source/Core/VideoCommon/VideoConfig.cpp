@@ -66,9 +66,9 @@ void VideoConfig::Refresh()
   bOverlayStats = Config::Get(Config::GFX_OVERLAY_STATS);
   bOverlayProjStats = Config::Get(Config::GFX_OVERLAY_PROJ_STATS);
   bDumpTextures = Config::Get(Config::GFX_DUMP_TEXTURES);
-  bHiresTextures = Config::Get(Config::GFX_HIRES_TEXTURES);
-  bConvertHiresTextures = Config::Get(Config::GFX_CONVERT_HIRES_TEXTURES);
-  bCacheHiresTextures = Config::Get(Config::GFX_CACHE_HIRES_TEXTURES);
+  bCustomTextures = Config::Get(Config::GFX_CUSTOM_TEXTURES);
+  bConvertCustomTextures = Config::Get(Config::GFX_CONVERT_CUSTOM_TEXTURES);
+  bPrefetchCustomTextures = Config::Get(Config::GFX_PREFETCH_CUSTOM_TEXTURES);
   bDumpEFBTarget = Config::Get(Config::GFX_DUMP_EFB_TARGET);
   bDumpFramesAsImages = Config::Get(Config::GFX_DUMP_FRAMES_AS_IMAGES);
   bFreeLook = Config::Get(Config::GFX_FREE_LOOK);

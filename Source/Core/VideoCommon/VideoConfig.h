@@ -103,9 +103,9 @@ struct VideoConfig final
 
   // Utility
   bool bDumpTextures;
-  bool bHiresTextures;
-  bool bConvertHiresTextures;
-  bool bCacheHiresTextures;
+  bool bCustomTextures;
+  bool bConvertCustomTextures;
+  bool bPrefetchCustomTextures;
   bool bDumpEFBTarget;
   bool bDumpFramesAsImages;
   bool bUseFFV1;

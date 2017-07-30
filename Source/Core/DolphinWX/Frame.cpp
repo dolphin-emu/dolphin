@@ -1479,7 +1479,7 @@ void CFrame::ParseHotkeys()
   }
   if (IsHotkey(HK_TOGGLE_TEXTURES))
   {
-    Config::SetCurrent(Config::GFX_HIRES_TEXTURES, !Config::Get(Config::GFX_HIRES_TEXTURES));
+    Config::SetCurrent(Config::GFX_CUSTOM_TEXTURES, !Config::Get(Config::GFX_CUSTOM_TEXTURES));
   }
   Core::SetIsThrottlerTempDisabled(IsHotkey(HK_TOGGLE_THROTTLE, true));
   if (IsHotkey(HK_DECREASE_EMULATION_SPEED))

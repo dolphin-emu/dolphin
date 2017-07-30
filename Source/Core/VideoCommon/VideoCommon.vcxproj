@@ -50,8 +50,8 @@
     <ClCompile Include="Fifo.cpp" />
     <ClCompile Include="FPSCounter.cpp" />
     <ClCompile Include="FramebufferManagerBase.cpp" />
-    <ClCompile Include="HiresTextures.cpp" />
-    <ClCompile Include="HiresTextures_DDSLoader.cpp" />
+    <ClCompile Include="CustomTextures.cpp" />
+    <ClCompile Include="CustomTextures_DDSLoader.cpp" />
     <ClCompile Include="ImageWrite.cpp" />
     <ClCompile Include="IndexGenerator.cpp" />
     <ClCompile Include="MainBase.cpp" />
@@ -107,7 +107,7 @@
     <ClInclude Include="Fifo.h" />
     <ClInclude Include="FPSCounter.h" />
     <ClInclude Include="FramebufferManagerBase.h" />
-    <ClInclude Include="HiresTextures.h" />
+    <ClInclude Include="CustomTextures.h" />
     <ClInclude Include="ImageWrite.h" />
     <ClInclude Include="IndexGenerator.h" />
     <ClInclude Include="LightingShaderGen.h" />

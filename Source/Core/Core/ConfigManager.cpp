@@ -39,7 +39,7 @@
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/TitleDatabase.h"
-#include "VideoCommon/HiresTextures.h"
+#include "VideoCommon/CustomTextures.h"
 
 #include "DiscIO/Enums.h"
 #include "DiscIO/NANDContentLoader.h"
@@ -798,7 +798,7 @@ void SConfig::SetRunningGameMetadata(const std::string& game_id, u64 title_id, u
     CBoot::LoadMapFromFilename();
     HLE::Reload();
     PatchEngine::Reload();
-    HiresTexture::Update();
+    CustomTexture::Update();
     DolphinAnalytics::Instance()->ReportGameStart();
   }
 }
