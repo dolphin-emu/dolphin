@@ -10,13 +10,18 @@
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
 
+// Format of a texture on the host. All backends support RGBA8.
 enum class AbstractTextureFormat : u32
 {
   RGBA8,
+  I8,
+  AI4,
+  AI8,
+  RGB565,
   DXT1,
   DXT3,
   DXT5,
-  BPTC
+  BPTC,
 };
 
 struct TextureConfig
