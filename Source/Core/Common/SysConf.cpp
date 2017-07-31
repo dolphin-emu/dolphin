@@ -197,7 +197,7 @@ bool SysConf::Save() const
   std::copy(footer.cbegin(), footer.cend(), buffer.end() - footer.size());
 
   // Write the new data.
-  const std::string temp_file = File::GetTempFilenameForAtomicWrite(m_file_name);
+  const std::string temp_file = m_file_name + ".tmp";
   File::CreateFullPath(temp_file);
   {
     File::IOFile file(temp_file, "wb");
