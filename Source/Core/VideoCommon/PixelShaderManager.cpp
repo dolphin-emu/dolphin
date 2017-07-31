@@ -447,17 +447,17 @@ void PixelShaderManager::SetGenModeChanged()
   dirty = true;
 }
 
-void PixelShaderManager::SetZControlChanged()
+void PixelShaderManager::SetZModeControl()
 {
-  u32 early_ztest = bpmem.zcontrol.early_ztest ? 1 : 0;
+  u32 late_ztest = bpmem.UseLateDepthTest();
   u32 rgba6_format =
       (bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24 && !g_ActiveConfig.bForceTrueColor) ? 1 :
                                                                                                  0;
   u32 dither = rgba6_format && bpmem.blendmode.dither;
-  if (constants.early_ztest != early_ztest || constants.rgba6_format != rgba6_format ||
+  if (constants.late_ztest != late_ztest || constants.rgba6_format != rgba6_format ||
       constants.dither != dither)
   {
-    constants.early_ztest = early_ztest;
+    constants.late_ztest = late_ztest;
     constants.rgba6_format = rgba6_format;
     constants.dither = dither;
     dirty = true;

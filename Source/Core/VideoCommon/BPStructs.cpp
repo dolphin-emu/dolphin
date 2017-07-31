@@ -134,18 +134,19 @@ static void BPWritten(const BPCmd& bp)
     GeometryShaderManager::SetLinePtWidthChanged();
     return;
   case BPMEM_ZMODE:  // Depth Control
-    PRIM_LOG("zmode: test=%d, func=%d, upd=%d", (int)bpmem.zmode.testenable, (int)bpmem.zmode.func,
-             (int)bpmem.zmode.updateenable);
+    PRIM_LOG("zmode: test=%u, func=%u, upd=%u", bpmem.zmode.testenable.Value(),
+             bpmem.zmode.func.Value(), bpmem.zmode.updateenable.Value());
     SetDepthMode();
+    PixelShaderManager::SetZModeControl();
     return;
   case BPMEM_BLENDMODE:  // Blending Control
     if (bp.changes & 0xFFFF)
     {
-      PRIM_LOG("blendmode: en=%d, open=%d, colupd=%d, alphaupd=%d, dst=%d, src=%d, sub=%d, mode=%d",
-               (int)bpmem.blendmode.blendenable, (int)bpmem.blendmode.logicopenable,
-               (int)bpmem.blendmode.colorupdate, (int)bpmem.blendmode.alphaupdate,
-               (int)bpmem.blendmode.dstfactor, (int)bpmem.blendmode.srcfactor,
-               (int)bpmem.blendmode.subtract, (int)bpmem.blendmode.logicmode);
+      PRIM_LOG("blendmode: en=%u, open=%u, colupd=%u, alphaupd=%u, dst=%u, src=%u, sub=%u, mode=%u",
+               bpmem.blendmode.blendenable.Value(), bpmem.blendmode.logicopenable.Value(),
+               bpmem.blendmode.colorupdate.Value(), bpmem.blendmode.alphaupdate.Value(),
+               bpmem.blendmode.dstfactor.Value(), bpmem.blendmode.srcfactor.Value(),
+               bpmem.blendmode.subtract.Value(), bpmem.blendmode.logicmode.Value());
 
       // Set Blending Mode
       if (bp.changes)
@@ -424,6 +425,7 @@ static void BPWritten(const BPCmd& bp)
       g_renderer->SetColorMask();  // alpha writing needs to be disabled if the new pixel format
                                    // doesn't have an alpha channel
     }
+    PixelShaderManager::SetZModeControl();
     return;
 
   case BPMEM_MIPMAP_STRIDE:  // MipMap Stride Channel

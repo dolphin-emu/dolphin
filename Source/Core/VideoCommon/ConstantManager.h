@@ -33,7 +33,7 @@ struct PixelShaderConstants
   u32 fogRangeBase;  // .y
   u32 dstalpha;      // .z
   u32 ztex_op;       // .w
-  u32 early_ztest;   // .x (bool)
+  u32 late_ztest;    // .x (bool)
   u32 rgba6_format;  // .y (bool)
   u32 dither;        // .z (bool)
   u32 bounding_box;  // .w (bool)
