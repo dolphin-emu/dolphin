@@ -241,12 +241,6 @@ bool BootCore(std::unique_ptr<BootParameters> boot)
   // Load game specific settings
   if (!std::holds_alternative<BootParameters::IPL>(boot->parameters))
   {
-    std::string game_id = SConfig::GetInstance().GetGameID();
-    u16 revision = SConfig::GetInstance().GetRevision();
-
-    Config::AddLayer(ConfigLoaders::GenerateGlobalGameConfigLoader(game_id, revision));
-    Config::AddLayer(ConfigLoaders::GenerateLocalGameConfigLoader(game_id, revision));
-
     IniFile game_ini = StartUp.LoadGameIni();
 
     // General settings
