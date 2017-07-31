@@ -13,7 +13,7 @@
 class TraversalClientClient
 {
 public:
-  virtual ~TraversalClientClient(){};
+  virtual ~TraversalClientClient() = default;
   virtual void OnTraversalStateChanged() = 0;
   virtual void OnConnectReady(ENetAddress addr) = 0;
   virtual void OnConnectFailed(u8 reason) = 0;

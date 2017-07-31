@@ -59,7 +59,7 @@ public:
   virtual ~CISOProperties();
 
 private:
-  DECLARE_EVENT_TABLE();
+  DECLARE_EVENT_TABLE()
 
   std::unique_ptr<DiscIO::Volume> m_open_iso;
 
