@@ -178,6 +178,12 @@ public:
   virtual void ConvertTexture(TCacheEntry* entry, TCacheEntry* unconverted, const void* palette,
                               TLUTFormat format) = 0;
 
+  virtual bool SupportsHostTextureFormat(AbstractTextureFormat format) const
+  {
+    // Default implementation: All backends support RGBA8.
+    return format == AbstractTextureFormat::RGBA8;
+  }
+
   // Returns true if the texture data and palette formats are supported by the GPU decoder.
   virtual bool SupportsGPUTextureDecode(TextureFormat format, TLUTFormat palette_format)
   {
@@ -198,9 +204,6 @@ public:
 protected:
   TextureCacheBase();
 
-  alignas(16) u8* temp = nullptr;
-  size_t temp_size = 0;
-
   std::array<TCacheEntry*, 8> bound_textures{};
   static std::bitset<8> valid_bind_points;
 
@@ -215,6 +218,9 @@ private:
   typedef std::multimap<u32, TCacheEntry*> TexAddrCache;
   typedef std::multimap<u64, TCacheEntry*> TexHashCache;
   typedef std::unordered_multimap<TextureConfig, TexPoolEntry, TextureConfig::Hasher> TexPool;
+
+  alignas(16) u8* temp = nullptr;
+  size_t temp_size = 0;
 
   void SetBackupConfig(const VideoConfig& config);
 

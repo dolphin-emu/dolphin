@@ -770,7 +770,47 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::Load(const u32 stage)
   config.width = width;
   config.height = height;
   config.levels = texLevels;
-  config.format = hires_tex ? hires_tex->GetFormat() : AbstractTextureFormat::RGBA8;
+  if (hires_tex)
+  {
+    config.format = hires_tex->GetFormat();
+  }
+  else
+  {
+    // Choose the most efficient host texture format
+    if (texformat == TextureFormat::I4 && SupportsHostTextureFormat(AbstractTextureFormat::I8))
+    {
+      config.format = AbstractTextureFormat::I8;
+    }
+    else if (texformat == TextureFormat::I8 && SupportsHostTextureFormat(AbstractTextureFormat::I8))
+    {
+      config.format = AbstractTextureFormat::I8;
+    }
+    else if (texformat == TextureFormat::IA4 &&
+             SupportsHostTextureFormat(AbstractTextureFormat::AI4))
+    {
+      config.format = AbstractTextureFormat::AI4;
+    }
+    else if (texformat == TextureFormat::IA4 &&
+             SupportsHostTextureFormat(AbstractTextureFormat::AI8))
+    {
+      config.format = AbstractTextureFormat::AI8;
+    }
+    else if (texformat == TextureFormat::IA8 &&
+             SupportsHostTextureFormat(AbstractTextureFormat::AI8))
+    {
+      config.format = AbstractTextureFormat::AI8;
+    }
+    else if (texformat == TextureFormat::RGB565 &&
+             SupportsHostTextureFormat(AbstractTextureFormat::RGB565))
+    {
+      config.format = AbstractTextureFormat::RGB565;
+    }
+    else
+    {
+      // Fall back to RGBA8
+      config.format = AbstractTextureFormat::RGBA8;
+    }
+  }
 
   TCacheEntry* entry = AllocateCacheEntry(config);
   GFX_DEBUGGER_PAUSE_AT(NEXT_NEW_TEXTURE, true);
@@ -794,19 +834,60 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::Load(const u32 stage)
   }
   else if (!hires_tex)
   {
-    size_t decoded_texture_size = expandedWidth * sizeof(u32) * expandedHeight;
-    CheckTempSize(decoded_texture_size);
-    if (!(texformat == TextureFormat::RGBA8 && from_tmem))
+    size_t decoded_texture_size = 0;
+    // TODO: factor this logic out into a separate function
+    if (texformat == TextureFormat::I4 && config.format == AbstractTextureFormat::I8)
     {
+      decoded_texture_size = expandedWidth * sizeof(u8) * expandedHeight;
+      CheckTempSize(decoded_texture_size);
+      TexDecoder_Decode4BitTiledTo8BitLinear(temp, src_data, width, height);
+    }
+    else if (texformat == TextureFormat::I8 && config.format == AbstractTextureFormat::I8)
+    {
+      decoded_texture_size = expandedWidth * sizeof(u8) * expandedHeight;
+      CheckTempSize(decoded_texture_size);
+      TexDecoder_Decode8BitTiledToLinear(temp, src_data, width, height);
+    }
+    else if (texformat == TextureFormat::IA4 && config.format == AbstractTextureFormat::AI4)
+    {
+      decoded_texture_size = expandedWidth * sizeof(u8) * expandedHeight;
+      CheckTempSize(decoded_texture_size);
+      TexDecoder_Decode8BitTiledToLinear(temp, src_data, width, height);
+    }
+    else if (texformat == TextureFormat::IA4 && config.format == AbstractTextureFormat::AI8)
+    {
+      decoded_texture_size = expandedWidth * sizeof(u16) * expandedHeight;
+      CheckTempSize(decoded_texture_size);
+      TexDecoder_DecodeAI4TiledToAI8Linear(temp, src_data, width, height);
+    }
+    else if (texformat == TextureFormat::IA8 && config.format == AbstractTextureFormat::AI8)
+    {
+      decoded_texture_size = expandedWidth * sizeof(u16) * expandedHeight;
+      CheckTempSize(decoded_texture_size);
+      TexDecoder_Decode16BitTiledToLinear_NoSwap(temp, src_data, width, height);
+    }
+    else if (texformat == TextureFormat::RGB565 && config.format == AbstractTextureFormat::RGB565)
+    {
+      decoded_texture_size = expandedWidth * sizeof(u16) * expandedHeight;
+      CheckTempSize(decoded_texture_size);
+      TexDecoder_Decode16BitTiledToLinear(temp, src_data, width, height);
+    }
+    else if (!(texformat == TextureFormat::RGBA8 && from_tmem))
+    {
+      decoded_texture_size = expandedWidth * sizeof(u32) * expandedHeight;
+      CheckTempSize(decoded_texture_size);
       TexDecoder_Decode(temp, src_data, expandedWidth, expandedHeight, texformat, tlut, tlutfmt);
     }
     else
     {
-      u8* src_data_gb =
+      decoded_texture_size = expandedWidth * sizeof(u32) * expandedHeight;
+      CheckTempSize(decoded_texture_size);
+      const u8* src_data_gb =
           &texMem[bpmem.tex[stage / 4].texImage2[stage % 4].tmem_odd * TMEM_LINE_SIZE];
       TexDecoder_DecodeRGBA8FromTmem(temp, src_data, src_data_gb, expandedWidth, expandedHeight);
     }
 
+    _assert_(decoded_texture_size != 0);
     entry->texture->Load(0, width, height, expandedWidth, temp, decoded_texture_size);
   }
 
@@ -876,9 +957,48 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::Load(const u32 stage)
       else
       {
         // No need to call CheckTempSize here, as mips will always be smaller than the base level.
-        size_t decoded_mip_size = expanded_mip_width * sizeof(u32) * expanded_mip_height;
-        TexDecoder_Decode(temp, mip_src_data, expanded_mip_width, expanded_mip_height, texformat,
-                          tlut, tlutfmt);
+        size_t decoded_mip_size = 0;
+
+        // TODO: factor this logic out into a separate function
+        if (texformat == TextureFormat::I4 && config.format == AbstractTextureFormat::I8)
+        {
+          decoded_mip_size = expanded_mip_width * sizeof(u8) * expanded_mip_height;
+          TexDecoder_Decode4BitTiledTo8BitLinear(temp, mip_src_data, mip_width, mip_height);
+        }
+        else if (texformat == TextureFormat::I8 && config.format == AbstractTextureFormat::I8)
+        {
+          decoded_mip_size = expanded_mip_width * sizeof(u8) * expanded_mip_height;
+          TexDecoder_Decode8BitTiledToLinear(temp, mip_src_data, mip_width, mip_height);
+        }
+        else if (texformat == TextureFormat::IA4 && config.format == AbstractTextureFormat::AI4)
+        {
+          decoded_mip_size = expanded_mip_width * sizeof(u8) * expanded_mip_height;
+          TexDecoder_Decode8BitTiledToLinear(temp, mip_src_data, mip_width, mip_height);
+        }
+        else if (texformat == TextureFormat::IA4 && config.format == AbstractTextureFormat::AI8)
+        {
+          decoded_mip_size = expanded_mip_width * sizeof(u16) * expanded_mip_height;
+          TexDecoder_DecodeAI4TiledToAI8Linear(temp, mip_src_data, mip_width, mip_height);
+        }
+        else if (texformat == TextureFormat::IA8 && config.format == AbstractTextureFormat::AI8)
+        {
+          decoded_mip_size = expanded_mip_width * sizeof(u16) * expanded_mip_height;
+          TexDecoder_Decode16BitTiledToLinear_NoSwap(temp, mip_src_data, mip_width, mip_height);
+        }
+        else if (texformat == TextureFormat::RGB565 &&
+                 config.format == AbstractTextureFormat::RGB565)
+        {
+          decoded_mip_size = expanded_mip_width * sizeof(u16) * expanded_mip_height;
+          TexDecoder_Decode16BitTiledToLinear(temp, mip_src_data, mip_width, mip_height);
+        }
+        else
+        {
+          decoded_mip_size = expanded_mip_width * sizeof(u32) * expanded_mip_height;
+          TexDecoder_Decode(temp, mip_src_data, expanded_mip_width, expanded_mip_height, texformat,
+                            tlut, tlutfmt);
+        }
+
+        _assert_(decoded_mip_size != 0);
         entry->texture->Load(level, mip_width, mip_height, expanded_mip_width, temp,
                              decoded_mip_size);
       }
