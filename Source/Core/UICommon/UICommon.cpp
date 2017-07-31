@@ -33,7 +33,7 @@ namespace UICommon
 void Init()
 {
   Config::Init();
-  Config::AddLoadLayer(ConfigLoaders::GenerateBaseConfigLoader());
+  Config::AddLayer(ConfigLoaders::GenerateBaseConfigLoader());
   SConfig::Init();
   LogManager::Init();
   VideoBackendBase::PopulateList();

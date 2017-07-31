@@ -244,8 +244,8 @@ bool BootCore(std::unique_ptr<BootParameters> boot)
     std::string game_id = SConfig::GetInstance().GetGameID();
     u16 revision = SConfig::GetInstance().GetRevision();
 
-    Config::AddLoadLayer(ConfigLoaders::GenerateGlobalGameConfigLoader(game_id, revision));
-    Config::AddLoadLayer(ConfigLoaders::GenerateLocalGameConfigLoader(game_id, revision));
+    Config::AddLayer(ConfigLoaders::GenerateGlobalGameConfigLoader(game_id, revision));
+    Config::AddLayer(ConfigLoaders::GenerateLocalGameConfigLoader(game_id, revision));
 
     IniFile game_ini = StartUp.LoadGameIni();
 
@@ -357,7 +357,7 @@ bool BootCore(std::unique_ptr<BootParameters> boot)
 
   if (NetPlay::IsNetPlayRunning())
   {
-    Config::AddLoadLayer(ConfigLoaders::GenerateNetPlayConfigLoader(g_NetPlaySettings));
+    Config::AddLayer(ConfigLoaders::GenerateNetPlayConfigLoader(g_NetPlaySettings));
     StartUp.bCPUThread = g_NetPlaySettings.m_CPUthread;
     StartUp.bEnableCheats = g_NetPlaySettings.m_EnableCheats;
     StartUp.bDSPHLE = g_NetPlaySettings.m_DSPHLE;
