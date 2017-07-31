@@ -41,10 +41,12 @@ std::unique_ptr<VKTexture> VKTexture::Create(const TextureConfig& tex_config)
     usage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
   // Allocate texture object
-  VkFormat vk_format = Util::GetVkFormatForHostTextureFormat(tex_config.format);
-  auto texture = Texture2D::Create(tex_config.width, tex_config.height, tex_config.levels,
-                                   tex_config.layers, vk_format, VK_SAMPLE_COUNT_1_BIT,
-                                   VK_IMAGE_VIEW_TYPE_2D_ARRAY, VK_IMAGE_TILING_OPTIMAL, usage);
+  Util::VkFormatAndMapping vk_format =
+      Util::GetVkFormatAndMappingForHostTextureFormat(tex_config.format);
+  auto texture =
+      Texture2D::Create(tex_config.width, tex_config.height, tex_config.levels, tex_config.layers,
+                        vk_format.format, VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_VIEW_TYPE_2D_ARRAY,
+                        VK_IMAGE_TILING_OPTIMAL, usage, vk_format.component_mapping);
 
   if (!texture)
   {
@@ -120,6 +122,7 @@ bool VKTexture::Save(const std::string& filename, unsigned int level)
   // We can't dump compressed textures currently (it would mean drawing them to a RGBA8
   // framebuffer, and saving that). TextureCache does not call Save for custom textures
   // anyway, so this is fine for now.
+  // FIXME: handle non-RGBA8 textures
   _assert_(m_config.format == AbstractTextureFormat::RGBA8);
 
   // Determine dimensions of image we want to save.
@@ -129,7 +132,7 @@ bool VKTexture::Save(const std::string& filename, unsigned int level)
   // Use a temporary staging texture for the download. Certainly not optimal,
   // but since we have to idle the GPU anyway it doesn't really matter.
   std::unique_ptr<StagingTexture2D> staging_texture = StagingTexture2D::Create(
-      STAGING_BUFFER_TYPE_READBACK, level_width, level_height, TEXTURECACHE_TEXTURE_FORMAT);
+      STAGING_BUFFER_TYPE_READBACK, level_width, level_height, VK_FORMAT_R8G8B8A8_UNORM);
 
   // Transition image to transfer source, and invalidate the current state,
   // since we'll be executing the command buffer.

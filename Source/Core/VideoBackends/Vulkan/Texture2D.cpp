@@ -35,7 +35,8 @@ Texture2D::~Texture2D()
 std::unique_ptr<Texture2D> Texture2D::Create(u32 width, u32 height, u32 levels, u32 layers,
                                              VkFormat format, VkSampleCountFlagBits samples,
                                              VkImageViewType view_type, VkImageTiling tiling,
-                                             VkImageUsageFlags usage)
+                                             VkImageUsageFlags usage,
+                                             VkComponentMapping component_mapping)
 {
   VkImageCreateInfo image_info = {VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
                                   nullptr,
@@ -95,8 +96,7 @@ std::unique_ptr<Texture2D> Texture2D::Create(u32 width, u32 height, u32 levels, 
       image,
       view_type,
       format,
-      {VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY,
-       VK_COMPONENT_SWIZZLE_IDENTITY},
+      component_mapping,
       {Util::IsDepthFormat(format) ? static_cast<VkImageAspectFlags>(VK_IMAGE_ASPECT_DEPTH_BIT) :
                                      static_cast<VkImageAspectFlags>(VK_IMAGE_ASPECT_COLOR_BIT),
        0, levels, 0, layers}};
@@ -122,6 +122,7 @@ std::unique_ptr<Texture2D> Texture2D::CreateFromExistingImage(u32 width, u32 hei
                                                               VkImage existing_image)
 {
   // Only need to create the image view, this is mainly for swap chains.
+  // FIXME: handle non-identity component mappings
   VkImageViewCreateInfo view_info = {
       VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
       nullptr,

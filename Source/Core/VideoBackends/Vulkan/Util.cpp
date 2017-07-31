@@ -90,25 +90,40 @@ VkFormat GetLinearFormat(VkFormat format)
   }
 }
 
-VkFormat GetVkFormatForHostTextureFormat(AbstractTextureFormat format)
+VkFormatAndMapping GetVkFormatAndMappingForHostTextureFormat(AbstractTextureFormat format)
 {
   switch (format)
   {
+  case AbstractTextureFormat::RGBA8:
+    return {VK_FORMAT_R8G8B8A8_UNORM, RGBA_COMPONENT_MAPPING};
+
+  case AbstractTextureFormat::I8:
+    return {VK_FORMAT_R8_UNORM, I_COMPONENT_MAPPING};
+
+  case AbstractTextureFormat::AI4:
+    return {VK_FORMAT_R4G4_UNORM_PACK8, AI_COMPONENT_MAPPING};
+
+  case AbstractTextureFormat::AI8:
+    return {VK_FORMAT_R8G8_UNORM, AI_COMPONENT_MAPPING};
+
+  case AbstractTextureFormat::RGB565:
+    return {VK_FORMAT_R5G6B5_UNORM_PACK16, RGBA_COMPONENT_MAPPING};
+
   case AbstractTextureFormat::DXT1:
-    return VK_FORMAT_BC1_RGBA_UNORM_BLOCK;
+    return {VK_FORMAT_BC1_RGBA_UNORM_BLOCK, RGBA_COMPONENT_MAPPING};
 
   case AbstractTextureFormat::DXT3:
-    return VK_FORMAT_BC2_UNORM_BLOCK;
+    return {VK_FORMAT_BC2_UNORM_BLOCK, RGBA_COMPONENT_MAPPING};
 
   case AbstractTextureFormat::DXT5:
-    return VK_FORMAT_BC3_UNORM_BLOCK;
+    return {VK_FORMAT_BC3_UNORM_BLOCK, RGBA_COMPONENT_MAPPING};
 
   case AbstractTextureFormat::BPTC:
-    return VK_FORMAT_BC7_UNORM_BLOCK;
+    return {VK_FORMAT_BC7_UNORM_BLOCK, RGBA_COMPONENT_MAPPING};
 
-  case AbstractTextureFormat::RGBA8:
   default:
-    return VK_FORMAT_R8G8B8A8_UNORM;
+    PanicAlert("Unsupported host texture format 0x%X", static_cast<int>(format));
+    return {VK_FORMAT_R8G8B8A8_UNORM, RGBA_COMPONENT_MAPPING};
   }
 }
 
@@ -122,6 +137,18 @@ u32 GetTexelSize(VkFormat format)
 
   case VK_FORMAT_D32_SFLOAT:
     return 4;
+
+  case VK_FORMAT_R8_UNORM:
+    return 1;
+
+  case VK_FORMAT_R4G4_UNORM_PACK8:
+    return 1;
+
+  case VK_FORMAT_R5G6B5_UNORM_PACK16:
+    return 2;
+
+  case VK_FORMAT_R8G8_UNORM:
+    return 2;
 
   case VK_FORMAT_R8G8B8A8_UNORM:
     return 4;
@@ -138,7 +165,7 @@ u32 GetTexelSize(VkFormat format)
     return 16;
 
   default:
-    PanicAlert("Unhandled pixel format");
+    PanicAlert("Unhandled pixel format 0x%X", static_cast<int>(format));
     return 1;
   }
 }

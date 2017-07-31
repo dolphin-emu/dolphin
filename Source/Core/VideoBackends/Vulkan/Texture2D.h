@@ -31,10 +31,10 @@ public:
             VkDeviceMemory device_memory, VkImageView view);
   ~Texture2D();
 
-  static std::unique_ptr<Texture2D> Create(u32 width, u32 height, u32 levels, u32 layers,
-                                           VkFormat format, VkSampleCountFlagBits samples,
-                                           VkImageViewType view_type, VkImageTiling tiling,
-                                           VkImageUsageFlags usage);
+  static std::unique_ptr<Texture2D>
+  Create(u32 width, u32 height, u32 levels, u32 layers, VkFormat format,
+         VkSampleCountFlagBits samples, VkImageViewType view_type, VkImageTiling tiling,
+         VkImageUsageFlags usage, VkComponentMapping component_mapping = RGBA_COMPONENT_MAPPING);
 
   static std::unique_ptr<Texture2D> CreateFromExistingImage(u32 width, u32 height, u32 levels,
                                                             u32 layers, VkFormat format,

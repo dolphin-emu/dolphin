@@ -40,6 +40,7 @@ public:
                u32 num_blocks_y, u32 memory_stride, const EFBRectangle& src_rect,
                bool scale_by_half) override;
 
+  bool SupportsHostTextureFormat(AbstractTextureFormat format) const override;
   bool SupportsGPUTextureDecode(TextureFormat format, TLUTFormat palette_format) override;
 
   void DecodeTextureOnGPU(TCacheEntry* entry, u32 dst_level, const u8* data, size_t data_size,
