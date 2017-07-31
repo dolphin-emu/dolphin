@@ -39,7 +39,10 @@ Joystick::Joystick(IOHIDDeviceRef device, std::string name)
   }
 
   // Axes
-  NSDictionary* axisDict = @{ @kIOHIDElementTypeKey : @(kIOHIDElementTypeInput_Misc) };
+  NSDictionary* axisDict = @{
+    @kIOHIDElementTypeKey : @(kIOHIDElementTypeInput_Misc),
+    @kIOHIDElementUsagePageKey : @(kHIDPage_GenericDesktop)
+  };
 
   CFArrayRef axes =
       IOHIDDeviceCopyMatchingElements(m_device, (CFDictionaryRef)axisDict, kIOHIDOptionsTypeNone);
