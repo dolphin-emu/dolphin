@@ -458,6 +458,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot)
     s_is_booting.Clear();
     s_is_started = false;
     s_is_stopping = false;
+    s_wants_determinism = false;
 
     if (s_on_stopped_callback)
       s_on_stopped_callback();
