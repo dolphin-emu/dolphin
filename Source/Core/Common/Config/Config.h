@@ -43,8 +43,6 @@ Section* GetOrCreateSection(System system, const std::string& section_name);
 Layers* GetLayers();
 void AddLayer(std::unique_ptr<Layer> layer);
 void AddLayer(std::unique_ptr<ConfigLayerLoader> loader);
-void AddLoadLayer(std::unique_ptr<Layer> layer);
-void AddLoadLayer(std::unique_ptr<ConfigLayerLoader> loader);
 Layer* GetLayer(LayerType layer);
 void RemoveLayer(LayerType layer);
 bool LayerExists(LayerType layer);

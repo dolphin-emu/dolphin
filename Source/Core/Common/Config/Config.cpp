@@ -38,17 +38,6 @@ void AddLayer(std::unique_ptr<ConfigLayerLoader> loader)
   AddLayer(std::make_unique<Layer>(std::move(loader)));
 }
 
-void AddLoadLayer(std::unique_ptr<Layer> layer)
-{
-  layer->Load();
-  AddLayer(std::move(layer));
-}
-
-void AddLoadLayer(std::unique_ptr<ConfigLayerLoader> loader)
-{
-  AddLoadLayer(std::make_unique<Layer>(std::move(loader)));
-}
-
 Layer* GetLayer(LayerType layer)
 {
   if (!LayerExists(layer))
