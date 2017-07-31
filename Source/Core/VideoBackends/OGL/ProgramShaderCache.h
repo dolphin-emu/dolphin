@@ -154,6 +154,9 @@ private:
   struct SharedContextData
   {
     std::unique_ptr<cInterfaceBase> context;
+    GLuint prerender_FBO;
+    GLuint prerender_FBO_tex;
+    GLuint prerender_FBO_depth;
     GLuint prerender_VBO;
     GLuint prerender_VAO;
     GLuint prerender_IBO;

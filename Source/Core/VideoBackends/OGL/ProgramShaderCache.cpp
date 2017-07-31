@@ -1175,6 +1175,24 @@ void ProgramShaderCache::UberShaderCompileWorkItem::Retrieve()
 
 void ProgramShaderCache::CreatePrerenderArrays(SharedContextData* data)
 {
+  // Create a framebuffer object to render into.
+  // This is because in EGL, and potentially GLX, we have a surfaceless context.
+  glGenTextures(1, &data->prerender_FBO_tex);
+  glBindTexture(GL_TEXTURE_2D_ARRAY, data->prerender_FBO_tex);
+  glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA, 1, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+  glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAX_LEVEL, 1);
+  glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glGenTextures(1, &data->prerender_FBO_depth);
+  glBindTexture(GL_TEXTURE_2D_ARRAY, data->prerender_FBO_depth);
+  glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_DEPTH_COMPONENT32F, 1, 1, 1, 0, GL_DEPTH_COMPONENT,
+               GL_FLOAT, nullptr);
+  glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAX_LEVEL, 1);
+  glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glGenFramebuffers(1, &data->prerender_FBO);
+  glBindFramebuffer(GL_FRAMEBUFFER, data->prerender_FBO);
+  glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, data->prerender_FBO_tex, 0, 0);
+  glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, data->prerender_FBO_depth, 0, 0);
+
   // Create VAO for the prerender vertices.
   // We don't use the normal VAO map, since we need to change the VBO pointer.
   glGenVertexArrays(1, &data->prerender_VAO);
@@ -1256,6 +1274,22 @@ void ProgramShaderCache::DestroyPrerenderArrays(SharedContextData* data)
   {
     glDeleteBuffers(1, &data->prerender_IBO);
     data->prerender_IBO = 0;
+  }
+  if (data->prerender_FBO)
+  {
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glDeleteFramebuffers(1, &data->prerender_FBO);
+    data->prerender_FBO = 0;
+  }
+  if (data->prerender_FBO_tex)
+  {
+    glDeleteTextures(1, &data->prerender_FBO_tex);
+    data->prerender_FBO_tex = 0;
+  }
+  if (data->prerender_FBO_depth)
+  {
+    glDeleteTextures(1, &data->prerender_FBO_depth);
+    data->prerender_FBO_depth = 0;
   }
 }
 
