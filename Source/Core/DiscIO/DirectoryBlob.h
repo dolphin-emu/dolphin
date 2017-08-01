@@ -15,6 +15,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
+#include "Common/NonCopyable.h"
 #include "DiscIO/Blob.h"
 
 namespace File
@@ -58,17 +59,12 @@ private:
   ContentSource m_content_source;
 };
 
-class DirectoryBlobPartition
+// We do not allow copying, because it might mess up the pointers inside DiscContents
+class DirectoryBlobPartition : private NonCopyable
 {
 public:
   DirectoryBlobPartition() = default;
   DirectoryBlobPartition(const std::string& root_directory, std::optional<bool> is_wii);
-
-  // We do not allow copying, because it might mess up the pointers inside DiscContents
-  DirectoryBlobPartition(const DirectoryBlobPartition&) = delete;
-  DirectoryBlobPartition& operator=(const DirectoryBlobPartition&) = delete;
-  DirectoryBlobPartition(DirectoryBlobPartition&&) = default;
-  DirectoryBlobPartition& operator=(DirectoryBlobPartition&&) = default;
 
   bool IsWii() const { return m_is_wii; }
   u64 GetDataSize() const { return m_data_size; }
@@ -107,16 +103,11 @@ private:
   u64 m_data_size;
 };
 
-class DirectoryBlobReader : public BlobReader
+// We do not allow copying, because it might mess up the pointers inside DiscContents
+class DirectoryBlobReader : public BlobReader, private NonCopyable
 {
 public:
   static std::unique_ptr<DirectoryBlobReader> Create(const std::string& dol_path);
-
-  // We do not allow copying, because it might mess up the pointers inside DiscContents
-  DirectoryBlobReader(const DirectoryBlobReader&) = delete;
-  DirectoryBlobReader& operator=(const DirectoryBlobReader&) = delete;
-  DirectoryBlobReader(DirectoryBlobReader&&) = default;
-  DirectoryBlobReader& operator=(DirectoryBlobReader&&) = default;
 
   bool Read(u64 offset, u64 length, u8* buffer) override;
   bool SupportsReadWiiDecrypted() const override;
