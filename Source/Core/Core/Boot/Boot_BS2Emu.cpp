@@ -216,7 +216,7 @@ bool CBoot::EmulatedBS2_GC(const DiscIO::Volume* volume)
   return RunApploader(/*is_wii*/ false, *volume);
 }
 
-bool CBoot::SetupWiiMemory(const DiscIO::Volume* volume, u64 ios_title_id)
+bool CBoot::SetupWiiMemory(u64 ios_title_id)
 {
   static const std::map<DiscIO::Region, const RegionSetting> region_settings = {
       {DiscIO::Region::NTSC_J, {"JPN", "NTSC", "JP", "LJ"}},
@@ -282,10 +282,6 @@ bool CBoot::SetupWiiMemory(const DiscIO::Volume* volume, u64 ios_title_id)
   0x80000060  Copyright code
   */
 
-  // When booting a WAD or the system menu, there will probably not be a disc inserted
-  if (volume)
-    DVDRead(*volume, 0x00000000, 0x00000000, 0x20, DiscIO::PARTITION_NONE);  // Game Code
-
   Memory::Write_U32(0x0D15EA5E, 0x00000020);            // Another magic word
   Memory::Write_U32(0x00000001, 0x00000024);            // Unknown
   Memory::Write_U32(Memory::REALRAM_SIZE, 0x00000028);  // MEM1 size 24MB
@@ -345,8 +341,10 @@ bool CBoot::EmulatedBS2_Wii(const DiscIO::Volume* volume)
   if (!tmd.IsValid())
     return false;
 
-  if (!SetupWiiMemory(volume, tmd.GetIOSId()))
+  if (!SetupWiiMemory(tmd.GetIOSId()))
     return false;
+
+  DVDRead(*volume, 0x00000000, 0x00000000, 0x20, DiscIO::PARTITION_NONE);  // Game Code
 
   // This is some kind of consistency check that is compared to the 0x00
   // values as the game boots. This location keeps the 4 byte ID for as long
