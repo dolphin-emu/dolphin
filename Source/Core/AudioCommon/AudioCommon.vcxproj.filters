@@ -53,9 +53,6 @@
     <ClInclude Include="OpenSLESStream.h">
       <Filter>SoundStreams</Filter>
     </ClInclude>
-    <ClInclude Include="CoreAudioSoundStream.h">
-      <Filter>SoundStreams</Filter>
-    </ClInclude>
     <ClInclude Include="AlsaSoundStream.h">
       <Filter>SoundStreams</Filter>
     </ClInclude>

@@ -54,7 +54,6 @@
     <ClInclude Include="AlsaSoundStream.h" />
     <ClInclude Include="AudioCommon.h" />
     <ClInclude Include="AudioStretcher.h" />
-    <ClInclude Include="CoreAudioSoundStream.h" />
     <ClInclude Include="CubebStream.h" />
     <ClInclude Include="CubebUtils.h" />
     <ClInclude Include="DPL2Decoder.h" />
