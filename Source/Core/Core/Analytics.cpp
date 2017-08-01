@@ -178,6 +178,17 @@ void DolphinAnalytics::MakeBaseBuilder()
   m_base_builder = builder;
 }
 
+static const char* GetUbershaderMode(const VideoConfig& video_config)
+{
+  if (video_config.bDisableSpecializedShaders)
+    return "exclusive";
+
+  if (video_config.bBackgroundShaderCompiling)
+    return "hybrid";
+
+  return "disabled";
+}
+
 void DolphinAnalytics::MakePerGameBuilder()
 {
   Common::AnalyticsReportBuilder builder(m_base_builder);
@@ -219,6 +230,10 @@ void DolphinAnalytics::MakePerGameBuilder()
   builder.AddData("cfg-gfx-efb-copy-scaled", g_Config.bCopyEFBScaled);
   builder.AddData("cfg-gfx-tc-samples", g_Config.iSafeTextureCache_ColorSamples);
   builder.AddData("cfg-gfx-stereo-mode", g_Config.iStereoMode);
+  builder.AddData("cfg-gfx-per-pixel-lighting", g_Config.bEnablePixelLighting);
+  builder.AddData("cfg-gfx-ubershader-mode", GetUbershaderMode(g_Config));
+  builder.AddData("cfg-gfx-fast-depth", g_Config.bFastDepthCalc);
+  builder.AddData("cfg-gfx-vertex-rounding", g_Config.UseVertexRounding());
 
   // GPU features.
   if (g_Config.iAdapter < static_cast<int>(g_Config.backend_info.Adapters.size()))
