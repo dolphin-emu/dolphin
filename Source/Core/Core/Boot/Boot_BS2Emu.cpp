@@ -152,25 +152,8 @@ bool CBoot::RunApploader(bool is_wii, const DiscIO::Volume& volume)
   return true;
 }
 
-// __________________________________________________________________________________________________
-// GameCube Bootstrap 2 HLE:
-// copy the apploader to 0x81200000
-// execute the apploader, function by function, using the above utility.
-bool CBoot::EmulatedBS2_GC(const DiscIO::Volume* volume, bool skip_app_loader)
+void CBoot::SetupGCMemory()
 {
-  INFO_LOG(BOOT, "Faking GC BS2...");
-
-  SetupMSR();
-  SetupBAT(/*is_wii*/ false);
-
-  // Write necessary values
-  // Here we write values to memory that the apploader does not take care of. Game info goes
-  // to 0x80000000 according to YAGCD 4.2.
-
-  // It's possible to boot DOL and ELF files without a disc inserted
-  if (volume)
-    DVDRead(*volume, /*offset*/ 0x00000000, /*address*/ 0x00000000, 0x20, DiscIO::PARTITION_NONE);
-
   // Booted from bootrom. 0xE5207C22 = booted from jtag
   PowerPC::HostWrite_U32(0x0D15EA5E, 0x80000020);
 
@@ -182,8 +165,8 @@ bool CBoot::EmulatedBS2_GC(const DiscIO::Volume* volume, bool skip_app_loader)
   // (Seem to take different EXI paths, see Ikaruga for example)
   PowerPC::HostWrite_U32(0x10000006, 0x8000002C);
 
-  const bool ntsc = DiscIO::IsNTSC(SConfig::GetInstance().m_region);
-  PowerPC::HostWrite_U32(ntsc ? 0 : 1, 0x800000CC);  // Fake the VI Init of the IPL (YAGCD 4.2.1.4)
+  // Fake the VI Init of the IPL (YAGCD 4.2.1.4)
+  PowerPC::HostWrite_U32(DiscIO::IsNTSC(SConfig::GetInstance().m_region) ? 0 : 1, 0x800000CC);
 
   PowerPC::HostWrite_U32(0x01000000, 0x800000d0);  // ARAM Size. 16MB main + 4/16/32MB external
                                                    // (retail consoles have no external ARAM)
@@ -199,9 +182,27 @@ bool CBoot::EmulatedBS2_GC(const DiscIO::Volume* volume, bool skip_app_loader)
 
   // HIO checks this
   // PowerPC::HostWrite_U16(0x8200, 0x000030e6);   // Console type
+}
+
+// __________________________________________________________________________________________________
+// GameCube Bootstrap 2 HLE:
+// copy the apploader to 0x81200000
+// execute the apploader, function by function, using the above utility.
+bool CBoot::EmulatedBS2_GC(const DiscIO::Volume* volume, bool skip_app_loader)
+{
+  INFO_LOG(BOOT, "Faking GC BS2...");
+
+  SetupMSR();
+  SetupBAT(/*is_wii*/ false);
+
+  SetupGCMemory();
 
   if (!volume)
     return false;
+
+  DVDRead(*volume, /*offset*/ 0x00000000, /*address*/ 0x00000000, 0x20, DiscIO::PARTITION_NONE);
+
+  const bool ntsc = DiscIO::IsNTSC(SConfig::GetInstance().m_region);
 
   // Setup pointers like real BS2 does
 

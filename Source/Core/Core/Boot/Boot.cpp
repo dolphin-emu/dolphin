@@ -324,18 +324,19 @@ bool CBoot::BootUp(std::unique_ptr<BootParameters> boot)
 
       SetDefaultDisc();
 
+      SetupMSR();
+      SetupBAT(config.bWii);
+
       if (config.bWii)
       {
         HID4.SBE = 1;
-        SetupMSR();
-        SetupBAT(config.bWii);
         // Because there is no TMD to get the requested system (IOS) version from,
         // we default to IOS58, which is the version used by the Homebrew Channel.
         SetupWiiMemory(nullptr, 0x000000010000003a);
       }
       else
       {
-        EmulatedBS2_GC(nullptr, true);
+        SetupGCMemory();
       }
 
       PC = executable.reader->GetEntryPoint();

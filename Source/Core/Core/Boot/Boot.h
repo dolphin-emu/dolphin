@@ -107,6 +107,7 @@ private:
   static bool EmulatedBS2(bool is_wii, const DiscIO::Volume* volume);
   static bool Load_BS2(const std::string& boot_rom_filename);
 
+  static void SetupGCMemory();
   static bool SetupWiiMemory(const DiscIO::Volume* volume, u64 ios_title_id);
 };
 
