@@ -385,20 +385,15 @@ bool StateTracker::CheckForShaderChanges(u32 gx_primitive_type)
     }
   }
 
-  // Ubershader fallback?
-  bool uber_vertex_shader = use_ubershaders || g_ActiveConfig.bForceVertexUberShaders;
-  bool uber_pixel_shader = use_ubershaders || g_ActiveConfig.bForcePixelUberShaders;
-  bool using_ubershaders = uber_vertex_shader || uber_pixel_shader;
-
   // Switching to/from ubershaders? Have to adjust the vertex format and pipeline layout.
-  if (using_ubershaders != m_using_ubershaders)
+  if (use_ubershaders != m_using_ubershaders)
   {
-    m_using_ubershaders = using_ubershaders;
+    m_using_ubershaders = use_ubershaders;
     UpdatePipelineLayout();
     UpdatePipelineVertexFormat();
   }
 
-  if (uber_vertex_shader)
+  if (use_ubershaders)
   {
     UberShader::VertexShaderUid uber_vs_uid = UberShader::GetVertexShaderUid();
     VkShaderModule vs = g_shader_cache->GetVertexUberShaderForUid(uber_vs_uid);
@@ -408,9 +403,7 @@ bool StateTracker::CheckForShaderChanges(u32 gx_primitive_type)
       m_pipeline_state.vs = vs;
       changed = true;
     }
-  }
-  if (uber_pixel_shader)
-  {
+
     UberShader::PixelShaderUid uber_ps_uid = UberShader::GetPixelShaderUid();
     VkShaderModule ps = g_shader_cache->GetPixelUberShaderForUid(uber_ps_uid);
     if (ps != m_pipeline_state.ps)
