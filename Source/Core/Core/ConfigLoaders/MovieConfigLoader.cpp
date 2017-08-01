@@ -13,6 +13,7 @@
 #include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
 
+#include "Core/Config/SYSCONFSettings.h"
 #include "Core/Movie.h"
 
 namespace ConfigLoaders
@@ -22,7 +23,6 @@ namespace ConfigLoaders
 void MovieConfigLayerLoader::Load(Config::Layer* config_layer)
 {
   Config::Section* core = config_layer->GetOrCreateSection(Config::System::Main, "Core");
-  Config::Section* display = config_layer->GetOrCreateSection(Config::System::Main, "Display");
   Config::Section* video_settings = Config::GetOrCreateSection(Config::System::GFX, "Settings");
   Config::Section* video_hacks = Config::GetOrCreateSection(Config::System::GFX, "Hacks");
 
@@ -33,8 +33,11 @@ void MovieConfigLayerLoader::Load(Config::Layer* config_layer)
   core->Set("CPUCore", m_header->CPUCore);
   core->Set("SyncGPU", m_header->bSyncGPU);
   core->Set("GFXBackend", std::string(reinterpret_cast<char*>(m_header->videoBackend)));
-  display->Set("ProgressiveScan", m_header->bProgressive);
-  display->Set("PAL60", m_header->bPAL60);
+
+  config_layer->Set(Config::SYSCONF_PROGRESSIVE_SCAN, m_header->bProgressive);
+  config_layer->Set(Config::SYSCONF_PAL60, m_header->bPAL60);
+  if (m_header->bWii)
+    config_layer->Set(Config::SYSCONF_LANGUAGE, static_cast<u32>(m_header->language));
 
   video_settings->Set("UseXFB", m_header->bUseXFB);
   video_settings->Set("UseRealXFB", m_header->bUseRealXFB);
@@ -46,7 +49,6 @@ void MovieConfigLayerLoader::Load(Config::Layer* config_layer)
 void MovieConfigLayerLoader::Save(Config::Layer* config_layer)
 {
   Config::Section* core = config_layer->GetOrCreateSection(Config::System::Main, "Core");
-  Config::Section* display = config_layer->GetOrCreateSection(Config::System::Main, "Display");
   Config::Section* video_settings = Config::GetOrCreateSection(Config::System::GFX, "Settings");
   Config::Section* video_hacks = Config::GetOrCreateSection(Config::System::GFX, "Hacks");
 
@@ -60,8 +62,10 @@ void MovieConfigLayerLoader::Save(Config::Layer* config_layer)
   core->Get("CPUCore", &cpu_core);
   core->Get("SyncGPU", &m_header->bSyncGPU);
   core->Get("GFXBackend", &video_backend);
-  display->Get("ProgressiveScan", &m_header->bProgressive);
-  display->Get("PAL60", &m_header->bPAL60);
+  m_header->bProgressive = config_layer->Get(Config::SYSCONF_PROGRESSIVE_SCAN);
+  m_header->bPAL60 = config_layer->Get(Config::SYSCONF_PAL60);
+  if (m_header->bWii)
+    m_header->language = config_layer->Get(Config::SYSCONF_LANGUAGE);
 
   video_settings->Get("UseXFB", &m_header->bUseXFB);
   video_settings->Get("UseRealXFB", &m_header->bUseRealXFB);

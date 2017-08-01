@@ -138,8 +138,6 @@ void SetReset(bool reset);
 
 bool IsConfigSaved();
 bool IsDualCore();
-bool IsProgressive();
-bool IsPAL60();
 bool IsDSPHLE();
 bool IsFastDiscSpeed();
 int GetCPUMode();

@@ -12,9 +12,11 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+#include "Common/Config/Config.h"
 #include "Common/MathUtil.h"
 #include "Common/MsgHandler.h"
 
+#include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/Wiimote.h"
@@ -328,7 +330,7 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index), ir_sin(0), ir_cos(1
   m_hotkeys->AddInput(_trans("Upright Hold"), false);
 
   // TODO: This value should probably be re-read if SYSCONF gets changed
-  m_sensor_bar_on_top = SConfig::GetInstance().m_sensor_bar_position != 0;
+  m_sensor_bar_on_top = Config::Get(Config::SYSCONF_SENSOR_BAR_POSITION) != 0;
 
   // --- reset eeprom/register/values to default ---
   Reset();

@@ -21,6 +21,7 @@
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonPaths.h"
+#include "Common/Config/Config.h"
 #include "Common/File.h"
 #include "Common/FileUtil.h"
 #include "Common/Hash.h"
@@ -29,6 +30,8 @@
 #include "Common/Timer.h"
 
 #include "Core/Boot/Boot.h"
+#include "Core/Config/SYSCONFSettings.h"
+#include "Core/ConfigLoaders/MovieConfigLoader.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -75,7 +78,6 @@ static u64 s_currentInputCount = 0, s_totalInputCount = 0;    // just stats
 static u64 s_totalTickCount = 0, s_tickCountAtLastInput = 0;  // just stats
 static u64 s_recordingStartTime;  // seconds since 1970 that recording started
 static bool s_bSaveConfig = false, s_bDualCore = false;
-static bool s_bProgressive = false, s_bPAL60 = false;
 static bool s_bDSPHLE = false, s_bFastDiscSpeed = false;
 static bool s_bSyncGPU = false, s_bNetPlay = false;
 static std::string s_videoBackend = "unknown";
@@ -421,16 +423,6 @@ bool IsConfigSaved()
 bool IsDualCore()
 {
   return s_bDualCore;
-}
-
-bool IsProgressive()
-{
-  return s_bProgressive;
-}
-
-bool IsPAL60()
-{
-  return s_bPAL60;
 }
 
 bool IsDSPHLE()
@@ -900,9 +892,8 @@ void ReadHeader()
   if (tmpHeader.bSaveConfig)
   {
     s_bSaveConfig = true;
+    Config::AddLayer(ConfigLoaders::GenerateMovieConfigLoader(&tmpHeader));
     s_bDualCore = tmpHeader.bDualCore;
-    s_bProgressive = tmpHeader.bProgressive;
-    s_bPAL60 = tmpHeader.bPAL60;
     s_bDSPHLE = tmpHeader.bDSPHLE;
     s_bFastDiscSpeed = tmpHeader.bFastDiscSpeed;
     s_iCPUCore = tmpHeader.CPUCore;
@@ -1378,10 +1369,12 @@ void SaveRecording(const std::string& filename)
   header.recordingStartTime = s_recordingStartTime;
 
   header.bSaveConfig = true;
+  auto* movie_layer = Config::GetLayer(Config::LayerType::Movie);
+  auto* loader = static_cast<ConfigLoaders::MovieConfigLayerLoader*>(movie_layer->GetLoader());
+  loader->ChangeDTMHeader(&header);
+  movie_layer->Save();
   header.bSkipIdle = true;
   header.bDualCore = s_bDualCore;
-  header.bProgressive = s_bProgressive;
-  header.bPAL60 = s_bPAL60;
   header.bDSPHLE = s_bDSPHLE;
   header.bFastDiscSpeed = s_bFastDiscSpeed;
   strncpy((char*)header.videoBackend, s_videoBackend.c_str(), ArraySize(header.videoBackend));
@@ -1465,8 +1458,6 @@ void GetSettings()
 {
   s_bSaveConfig = true;
   s_bDualCore = SConfig::GetInstance().bCPUThread;
-  s_bProgressive = SConfig::GetInstance().bProgressive;
-  s_bPAL60 = SConfig::GetInstance().bPAL60;
   s_bDSPHLE = SConfig::GetInstance().bDSPHLE;
   s_bFastDiscSpeed = SConfig::GetInstance().bFastDiscSpeed;
   s_videoBackend = g_video_backend->GetName();
@@ -1478,7 +1469,7 @@ void GetSettings()
     u64 title_id = SConfig::GetInstance().GetTitleID();
     s_bClearSave =
         !File::Exists(Common::GetTitleDataPath(title_id, Common::FROM_SESSION_ROOT) + "banner.bin");
-    s_language = SConfig::GetInstance().m_wii_language;
+    s_language = Config::Get(Config::SYSCONF_LANGUAGE);
   }
   else
   {

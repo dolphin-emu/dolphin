@@ -9,9 +9,11 @@
 namespace Config
 {
 class ConfigLayerLoader;
+class Layer;
 }
 
 namespace ConfigLoaders
 {
+void SaveToSYSCONF(Config::Layer* layer);
 std::unique_ptr<Config::ConfigLayerLoader> GenerateBaseConfigLoader();
 }

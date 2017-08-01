@@ -23,10 +23,10 @@
 #include "Common/MsgHandler.h"
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
-#include "Common/SysConf.h"
 
 #include "Core/Analytics.h"
 #include "Core/Boot/Boot.h"
+#include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigLoaders/GameConfigLoader.h"
 #include "Core/Core.h"
 #include "Core/FifoPlayer/FifoDataFile.h"
@@ -34,7 +34,6 @@
 #include "Core/HW/DVD/DVDInterface.h"
 #include "Core/HW/SI/SI.h"
 #include "Core/IOS/ES/Formats.h"
-#include "Core/IOS/USB/Bluetooth/BTBase.h"
 #include "Core/PatchEngine.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -52,7 +51,6 @@ SConfig::SConfig()
   LoadDefaults();
   // Make sure we have log manager
   LoadSettings();
-  LoadSettingsFromSysconf();
 }
 
 void SConfig::Init()
@@ -69,7 +67,6 @@ void SConfig::Shutdown()
 SConfig::~SConfig()
 {
   SaveSettings();
-  SaveSettingsToSysconf();
 }
 
 void SConfig::SaveSettings()
@@ -190,8 +187,6 @@ void SConfig::SaveDisplaySettings(IniFile& ini)
   display->Set("RenderWindowHeight", iRenderWindowHeight);
   display->Set("RenderWindowAutoSize", bRenderWindowAutoSize);
   display->Set("KeepWindowOnTop", bKeepWindowOnTop);
-  display->Set("ProgressiveScan", bProgressive);
-  display->Set("PAL60", bPAL60);
   display->Set("DisableScreenSaver", bDisableScreenSaver);
   display->Set("ForceNTSCJ", bForceNTSCJ);
 }
@@ -374,36 +369,6 @@ void SConfig::SaveUSBPassthroughSettings(IniFile& ini)
   section->Set("Devices", devices_string);
 }
 
-void SConfig::SaveSettingsToSysconf()
-{
-  SysConf sysconf{Common::FromWhichRoot::FROM_CONFIGURED_ROOT};
-
-  sysconf.SetData<u8>("IPL.SSV", SysConf::Entry::Type::Byte, m_wii_screensaver);
-  sysconf.SetData<u8>("IPL.LNG", SysConf::Entry::Type::Byte, m_wii_language);
-
-  sysconf.SetData<u8>("IPL.AR", SysConf::Entry::Type::Byte, m_wii_aspect_ratio);
-  sysconf.SetData<u8>("BT.BAR", SysConf::Entry::Type::Byte, m_sensor_bar_position);
-  sysconf.SetData<u32>("BT.SENS", SysConf::Entry::Type::Long, m_sensor_bar_sensitivity);
-  sysconf.SetData<u8>("BT.SPKV", SysConf::Entry::Type::Byte, m_speaker_volume);
-  sysconf.SetData<u8>("BT.MOT", SysConf::Entry::Type::Byte, m_wiimote_motor);
-  sysconf.SetData<u8>("IPL.PGS", SysConf::Entry::Type::Byte, bProgressive);
-  sysconf.SetData<u8>("IPL.E60", SysConf::Entry::Type::Byte, bPAL60);
-
-  // Disable WiiConnect24's standby mode. If it is enabled, it prevents us from receiving
-  // shutdown commands in the State Transition Manager (STM).
-  // TODO: remove this if and once Dolphin supports WC24 standby mode.
-  SysConf::Entry* idle_entry = sysconf.GetOrAddEntry("IPL.IDL", SysConf::Entry::Type::SmallArray);
-  if (idle_entry->bytes.empty())
-    idle_entry->bytes = std::vector<u8>(2);
-  else
-    idle_entry->bytes[0] = 0;
-  NOTICE_LOG(COMMON, "Disabling WC24 'standby' (shutdown to idle) to avoid hanging on shutdown");
-
-  IOS::HLE::RestoreBTInfoSection(&sysconf);
-
-  sysconf.Save();
-}
-
 void SConfig::LoadSettings()
 {
   Config::Load();
@@ -502,8 +467,6 @@ void SConfig::LoadDisplaySettings(IniFile& ini)
   display->Get("RenderWindowHeight", &iRenderWindowHeight, 480);
   display->Get("RenderWindowAutoSize", &bRenderWindowAutoSize, false);
   display->Get("KeepWindowOnTop", &bKeepWindowOnTop, false);
-  display->Get("ProgressiveScan", &bProgressive, false);
-  display->Get("PAL60", &bPAL60, true);
   display->Get("DisableScreenSaver", &bDisableScreenSaver, true);
   display->Get("ForceNTSCJ", &bForceNTSCJ, false);
 }
@@ -706,21 +669,6 @@ void SConfig::LoadUSBPassthroughSettings(IniFile& ini)
     if (vid && pid)
       m_usb_passthrough_devices.emplace(vid, pid);
   }
-}
-
-void SConfig::LoadSettingsFromSysconf()
-{
-  SysConf sysconf{Common::FromWhichRoot::FROM_CONFIGURED_ROOT};
-
-  m_wii_screensaver = sysconf.GetData<u8>("IPL.SSV", m_wii_screensaver);
-  m_wii_language = sysconf.GetData<u8>("IPL.LNG", m_wii_language);
-  m_wii_aspect_ratio = sysconf.GetData<u8>("IPL.AR", m_wii_aspect_ratio);
-  m_sensor_bar_position = sysconf.GetData<u8>("BT.BAR", m_sensor_bar_position);
-  m_sensor_bar_sensitivity = sysconf.GetData<u32>("BT.SENS", m_sensor_bar_sensitivity);
-  m_speaker_volume = sysconf.GetData<u8>("BT.SPKV", m_speaker_volume);
-  m_wiimote_motor = sysconf.GetData<u8>("BT.MOT", m_wiimote_motor) != 0;
-  bProgressive = sysconf.GetData<u8>("IPL.PGS", bProgressive) != 0;
-  bPAL60 = sysconf.GetData<u8>("IPL.E60", bPAL60) != 0;
 }
 
 void SConfig::ResetRunningGameMetadata()
@@ -1060,7 +1008,7 @@ DiscIO::Language SConfig::GetCurrentLanguage(bool wii) const
 {
   int language_value;
   if (wii)
-    language_value = SConfig::GetInstance().m_wii_language;
+    language_value = Config::Get(Config::SYSCONF_LANGUAGE);
   else
     language_value = SConfig::GetInstance().SelectedLanguage + 1;
   DiscIO::Language language = static_cast<DiscIO::Language>(language_value);

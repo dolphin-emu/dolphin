@@ -27,6 +27,7 @@ set(SRCS
   Boot/ElfReader.cpp
   Config/GraphicsSettings.cpp
   Config/NetplaySettings.cpp
+  Config/SYSCONFSettings.cpp
   ConfigLoaders/BaseConfigLoader.cpp
   ConfigLoaders/GameConfigLoader.cpp
   ConfigLoaders/IsSettingSaveable.cpp

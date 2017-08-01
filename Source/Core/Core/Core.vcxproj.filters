@@ -877,6 +877,9 @@
     <ClCompile Include="Config\NetplaySettings.cpp">
       <Filter>Config</Filter>
     </ClCompile>
+    <ClCompile Include="Config\SYSCONFSettings.cpp">
+      <Filter>Config</Filter>
+    </ClCompile>
     <ClCompile Include="IOS\Network\NCD\WiiNetConfig.cpp">
       <Filter>IOS\Network\NCD</Filter>
     </ClCompile>
@@ -1527,6 +1530,9 @@
       <Filter>Config</Filter>
     </ClInclude>
     <ClInclude Include="Config\NetplaySettings.h">
+      <Filter>Config</Filter>
+    </ClInclude>
+    <ClInclude Include="Config\SYSCONFSettings.h">
       <Filter>Config</Filter>
     </ClInclude>
     <ClInclude Include="IOS\Network\NCD\WiiNetConfig.h">
