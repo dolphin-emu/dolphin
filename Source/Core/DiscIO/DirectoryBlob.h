@@ -55,7 +55,6 @@ public:
 private:
   u64 m_offset;
   u64 m_size = 0;
-  std::string m_path;
   ContentSource m_content_source;
 };
 
