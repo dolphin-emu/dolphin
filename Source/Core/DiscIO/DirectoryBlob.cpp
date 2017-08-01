@@ -156,7 +156,6 @@ bool DiscContentContainer::Read(u64 offset, u64 length, u8* buffer) const
 
   while (it != m_contents.end() && length > 0)
   {
-    _dbg_assert_(DISCIO, it->GetOffset() <= offset);
     if (!it->Read(&offset, &length, &buffer))
       return false;
 
