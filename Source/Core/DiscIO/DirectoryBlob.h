@@ -63,14 +63,14 @@ class DiscContentContainer
 {
 public:
   template <typename T>
-  const DiscContent& Add(u64 offset, const std::vector<T>& vector)
+  void Add(u64 offset, const std::vector<T>& vector)
   {
     return Add(offset, vector.size() * sizeof(T), reinterpret_cast<const u8*>(vector.data()));
   }
-  const DiscContent& Add(u64 offset, u64 size, const std::string& path);
-  const DiscContent& Add(u64 offset, u64 size, const u8* data);
-  const DiscContent& CheckSizeAndAdd(u64 offset, const std::string& path);
-  const DiscContent& CheckSizeAndAdd(u64 offset, u64 max_size, const std::string& path);
+  void Add(u64 offset, u64 size, const std::string& path);
+  void Add(u64 offset, u64 size, const u8* data);
+  u64 CheckSizeAndAdd(u64 offset, const std::string& path);
+  u64 CheckSizeAndAdd(u64 offset, u64 max_size, const std::string& path);
 
   bool Read(u64 offset, u64 length, u8* buffer) const;
 

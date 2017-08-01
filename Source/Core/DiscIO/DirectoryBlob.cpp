@@ -120,25 +120,28 @@ bool DiscContent::Read(u64* offset, u64* length, u8** buffer) const
   return true;
 }
 
-const DiscContent& DiscContentContainer::Add(u64 offset, u64 size, const std::string& path)
+void DiscContentContainer::Add(u64 offset, u64 size, const std::string& path)
 {
-  return *(m_contents.emplace(offset, size, path).first);
+  m_contents.emplace(offset, size, path);
 }
 
-const DiscContent& DiscContentContainer::Add(u64 offset, u64 size, const u8* data)
+void DiscContentContainer::Add(u64 offset, u64 size, const u8* data)
 {
-  return *(m_contents.emplace(offset, size, data).first);
+  m_contents.emplace(offset, size, data);
 }
 
-const DiscContent& DiscContentContainer::CheckSizeAndAdd(u64 offset, const std::string& path)
+u64 DiscContentContainer::CheckSizeAndAdd(u64 offset, const std::string& path)
 {
-  return Add(offset, File::GetSize(path), path);
+  const u64 size = File::GetSize(path);
+  Add(offset, size, path);
+  return size;
 }
 
-const DiscContent& DiscContentContainer::CheckSizeAndAdd(u64 offset, u64 max_size,
-                                                         const std::string& path)
+u64 DiscContentContainer::CheckSizeAndAdd(u64 offset, u64 max_size, const std::string& path)
 {
-  return Add(offset, std::min(File::GetSize(path), max_size), path);
+  const u64 size = std::min(File::GetSize(path), max_size);
+  Add(offset, size, path);
+  return size;
 }
 
 bool DiscContentContainer::Read(u64 offset, u64 length, u8* buffer) const
@@ -532,12 +535,12 @@ void DirectoryBlobReader::SetPartitionHeader(const DirectoryBlobPartition& parti
   m_nonpartition_contents.CheckSizeAndAdd(partition_address + TICKET_OFFSET, TICKET_SIZE,
                                           partition_root + "ticket.bin");
 
-  const DiscContent& tmd = m_nonpartition_contents.CheckSizeAndAdd(
+  const u64 tmd_size = m_nonpartition_contents.CheckSizeAndAdd(
       partition_address + TMD_OFFSET, MAX_TMD_SIZE, partition_root + "tmd.bin");
 
-  const u64 cert_offset = Common::AlignUp(TMD_OFFSET + tmd.GetSize(), 0x20ull);
+  const u64 cert_offset = Common::AlignUp(TMD_OFFSET + tmd_size, 0x20ull);
   const u64 max_cert_size = H3_OFFSET - cert_offset;
-  const DiscContent& cert = m_nonpartition_contents.CheckSizeAndAdd(
+  const u64 cert_size = m_nonpartition_contents.CheckSizeAndAdd(
       partition_address + cert_offset, max_cert_size, partition_root + "cert.bin");
 
   m_nonpartition_contents.CheckSizeAndAdd(partition_address + H3_OFFSET, H3_SIZE,
@@ -548,9 +551,9 @@ void DirectoryBlobReader::SetPartitionHeader(const DirectoryBlobPartition& parti
   const u64 data_size = Common::AlignUp(partition.GetDataSize(), 0x7c00) / 0x7c00 * 0x8000;
   m_partition_headers.emplace_back(PARTITION_HEADER_SIZE);
   std::vector<u8>& partition_header = m_partition_headers.back();
-  Write32(static_cast<u32>(tmd.GetSize()), 0x0, &partition_header);
+  Write32(static_cast<u32>(tmd_size), 0x0, &partition_header);
   Write32(TMD_OFFSET >> 2, 0x4, &partition_header);
-  Write32(static_cast<u32>(cert.GetSize()), 0x8, &partition_header);
+  Write32(static_cast<u32>(cert_size), 0x8, &partition_header);
   Write32(static_cast<u32>(cert_offset >> 2), 0x0C, &partition_header);
   Write32(H3_OFFSET >> 2, 0x10, &partition_header);
   Write32(DATA_OFFSET >> 2, 0x14, &partition_header);
@@ -650,13 +653,12 @@ u64 DirectoryBlobPartition::SetApploader()
 
 u64 DirectoryBlobPartition::SetDOL(u64 dol_address)
 {
-  const DiscContent& dol =
-      m_contents.CheckSizeAndAdd(dol_address, m_root_directory + "sys/main.dol");
+  const u64 dol_size = m_contents.CheckSizeAndAdd(dol_address, m_root_directory + "sys/main.dol");
 
   Write32(static_cast<u32>(dol_address >> m_address_shift), 0x0420, &m_disc_header);
 
   // Return FST address, 32 byte aligned (plus 32 byte padding)
-  return Common::AlignUp(dol_address + dol.GetSize() + 0x20, 0x20ull);
+  return Common::AlignUp(dol_address + dol_size + 0x20, 0x20ull);
 }
 
 void DirectoryBlobPartition::BuildFST(u64 fst_address)
@@ -756,7 +758,7 @@ void DirectoryBlobPartition::WriteDirectory(const File::FSTEntry& parent_entry, 
       WriteEntryName(name_offset, entry.virtualName, name_table_offset);
 
       // write entry to virtual disc
-      auto result = m_contents.Add(*data_offset, entry.size, entry.physicalName);
+      m_contents.Add(*data_offset, entry.size, entry.physicalName);
 
       // 32 KiB aligned - many games are fine with less alignment, but not all
       *data_offset = Common::AlignUp(*data_offset + std::max<u64>(entry.size, 1ull), 0x8000ull);
