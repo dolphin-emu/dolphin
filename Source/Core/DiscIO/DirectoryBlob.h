@@ -58,6 +58,25 @@ private:
   ContentSource m_content_source;
 };
 
+class DiscContentContainer
+{
+public:
+  template <typename T>
+  const DiscContent& Add(u64 offset, const std::vector<T>& vector)
+  {
+    return Add(offset, vector.size() * sizeof(T), reinterpret_cast<const u8*>(vector.data()));
+  }
+  const DiscContent& Add(u64 offset, u64 size, const std::string& path);
+  const DiscContent& Add(u64 offset, u64 size, const u8* data);
+  const DiscContent& CheckSizeAndAdd(u64 offset, const std::string& path);
+  const DiscContent& CheckSizeAndAdd(u64 offset, u64 max_size, const std::string& path);
+
+  bool Read(u64 offset, u64 length, u8* buffer) const;
+
+private:
+  std::set<DiscContent> m_contents;
+};
+
 class DirectoryBlobPartition
 {
 public:
@@ -74,7 +93,7 @@ public:
   u64 GetDataSize() const { return m_data_size; }
   const std::string& GetRootDirectory() const { return m_root_directory; }
   const std::vector<u8>& GetHeader() const { return m_disc_header; }
-  const std::set<DiscContent>& GetContents() const { return m_contents; }
+  const DiscContentContainer& GetContents() const { return m_contents; }
 private:
   void SetDiscHeaderAndDiscType(std::optional<bool> is_wii);
   void SetBI2();
@@ -93,7 +112,7 @@ private:
   void WriteDirectory(const File::FSTEntry& parent_entry, u32* fst_offset, u32* name_offset,
                       u64* data_offset, u32 parent_entry_index, u64 name_table_offset);
 
-  std::set<DiscContent> m_contents;
+  DiscContentContainer m_contents;
   std::vector<u8> m_disc_header;
   std::vector<u8> m_bi2;
   std::vector<u8> m_apploader;
@@ -141,8 +160,6 @@ private:
   explicit DirectoryBlobReader(const std::string& game_partition_root,
                                const std::string& true_root);
 
-  bool ReadInternal(u64 offset, u64 length, u8* buffer, const std::set<DiscContent>& contents);
-
   void SetNonpartitionDiscHeader(const std::vector<u8>& partition_header,
                                  const std::string& game_partition_root);
   void SetWiiRegionData(const std::string& game_partition_root);
@@ -153,7 +170,7 @@ private:
   DirectoryBlobPartition m_gamecube_pseudopartition;
 
   // For Wii:
-  std::set<DiscContent> m_nonpartition_contents;
+  DiscContentContainer m_nonpartition_contents;
   std::map<u64, DirectoryBlobPartition> m_partitions;
 
   bool m_is_wii;
