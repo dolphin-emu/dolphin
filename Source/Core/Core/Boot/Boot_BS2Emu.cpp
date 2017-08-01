@@ -188,7 +188,7 @@ void CBoot::SetupGCMemory()
 // GameCube Bootstrap 2 HLE:
 // copy the apploader to 0x81200000
 // execute the apploader, function by function, using the above utility.
-bool CBoot::EmulatedBS2_GC(const DiscIO::Volume* volume, bool skip_app_loader)
+bool CBoot::EmulatedBS2_GC(const DiscIO::Volume* volume)
 {
   INFO_LOG(BOOT, "Faking GC BS2...");
 
@@ -212,9 +212,6 @@ bool CBoot::EmulatedBS2_GC(const DiscIO::Volume* volume, bool skip_app_loader)
   PowerPC::ppcState.gpr[2] = ntsc ? 0x81465cc0 : 0x814b5b20;
   // Global pointer to Small Data Area Base (Luigi's Mansion's apploader uses it)
   PowerPC::ppcState.gpr[13] = ntsc ? 0x81465320 : 0x814b4fc0;
-
-  if (skip_app_loader)
-    return false;
 
   return RunApploader(/*is_wii*/ false, *volume);
 }
