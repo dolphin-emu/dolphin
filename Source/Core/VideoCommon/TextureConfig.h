@@ -15,7 +15,8 @@ enum class AbstractTextureFormat : u32
   RGBA8,
   DXT1,
   DXT3,
-  DXT5
+  DXT5,
+  BPTC
 };
 
 struct TextureConfig

@@ -37,6 +37,8 @@ DXGI_FORMAT GetDXGIFormatForHostFormat(AbstractTextureFormat format)
     return DXGI_FORMAT_BC2_UNORM;
   case AbstractTextureFormat::DXT5:
     return DXGI_FORMAT_BC3_UNORM;
+  case AbstractTextureFormat::BPTC:
+    return DXGI_FORMAT_BC7_UNORM;
   case AbstractTextureFormat::RGBA8:
   default:
     return DXGI_FORMAT_R8G8B8A8_UNORM;

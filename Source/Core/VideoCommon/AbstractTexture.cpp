@@ -31,6 +31,7 @@ size_t AbstractTexture::CalculateHostTextureLevelPitch(AbstractTextureFormat for
     return static_cast<size_t>(std::max(1u, row_length / 4)) * 8;
   case AbstractTextureFormat::DXT3:
   case AbstractTextureFormat::DXT5:
+  case AbstractTextureFormat::BPTC:
     return static_cast<size_t>(std::max(1u, row_length / 4)) * 16;
   case AbstractTextureFormat::RGBA8:
   default:

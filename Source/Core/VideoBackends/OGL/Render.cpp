@@ -477,6 +477,8 @@ Renderer::Renderer()
   g_Config.backend_info.bSupportsComputeShaders = GLExtensions::Supports("GL_ARB_compute_shader");
   g_Config.backend_info.bSupportsST3CTextures =
       GLExtensions::Supports("GL_EXT_texture_compression_s3tc");
+  g_Config.backend_info.bSupportsBPTCTextures =
+      GLExtensions::Supports("GL_ARB_texture_compression_bptc");
 
   if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3)
   {
