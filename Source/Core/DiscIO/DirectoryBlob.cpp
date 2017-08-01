@@ -151,22 +151,20 @@ bool DiscContentContainer::Read(u64 offset, u64 length, u8* buffer) const
   // Determine which DiscContent the offset refers to
   std::set<DiscContent>::const_iterator it = m_contents.upper_bound(DiscContent(offset));
 
-  // zero fill to start of file data
-  PadToAddress(it->GetOffset(), &offset, &length, &buffer);
-
   while (it != m_contents.end() && length > 0)
   {
+    // Zero fill to start of DiscContent data
+    PadToAddress(it->GetOffset(), &offset, &length, &buffer);
+
     if (!it->Read(&offset, &length, &buffer))
       return false;
 
     ++it;
-
-    if (it != m_contents.end())
-    {
-      _dbg_assert_(DISCIO, it->GetOffset() >= offset);
-      PadToAddress(it->GetOffset(), &offset, &length, &buffer);
-    }
+    _dbg_assert_(DISCIO, it == m_contents.end() || it->GetOffset() >= offset);
   }
+
+  // Zero fill if we went beyond the last DiscContent
+  std::fill_n(buffer, static_cast<size_t>(length), 0);
 
   return true;
 }
