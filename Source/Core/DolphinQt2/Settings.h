@@ -4,16 +4,22 @@
 
 #pragma once
 
+#include <memory>
+
 #include <QObject>
 #include <QVector>
 
 #include "Common/NonCopyable.h"
+
+#include "Core/NetPlayClient.h"
+#include "Core/NetPlayServer.h"
 
 namespace DiscIO
 {
 enum class Language;
 }
 
+class GameListModel;
 class InputConfig;
 
 // UI settings to be stored in the config directory.
@@ -57,6 +63,15 @@ public:
   void IncreaseVolume(int volume);
   void DecreaseVolume(int volume);
 
+  // NetPlay
+  NetPlayClient* GetNetPlayClient();
+  void ResetNetPlayClient(NetPlayClient* client = nullptr);
+  NetPlayServer* GetNetPlayServer();
+  void ResetNetPlayServer(NetPlayServer* server = nullptr);
+
+  // Other
+  GameListModel* GetGameListModel() const;
+
 signals:
   void ThemeChanged();
   void PathAdded(const QString&);
@@ -68,5 +83,7 @@ signals:
   void LogConfigVisibilityChanged(bool visible);
 
 private:
+  std::unique_ptr<NetPlayClient> m_client;
+  std::unique_ptr<NetPlayServer> m_server;
   Settings();
 };

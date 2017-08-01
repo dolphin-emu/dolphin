@@ -416,16 +416,7 @@ QString GameList::GetSelectedGame() const
   return QStringLiteral("");
 }
 
-<<<<<<< HEAD
-GameListModel* GameList::GetModel() const
-{
-  return m_model;
-}
-
-void GameList::SetPreferredView(bool table)
-=======
 void GameList::SetPreferredView(bool list)
->>>>>>> af63a1c36d... tmp.
 {
   m_prefer_list = list;
   Settings::Instance().SetPreferredView(list);
