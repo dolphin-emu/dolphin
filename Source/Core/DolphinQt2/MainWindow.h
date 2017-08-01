@@ -15,6 +15,7 @@
 #include "DolphinQt2/ToolBar.h"
 
 class HotkeyScheduler;
+class LoggerWidget;
 class MappingWindow;
 class SettingsWindow;
 class ControllersWindow;
@@ -109,4 +110,5 @@ private:
   SettingsWindow* m_settings_window;
   MappingWindow* m_hotkey_window;
   GraphicsWindow* m_graphics_window;
+  LoggerWidget* m_logger_widget;
 };
