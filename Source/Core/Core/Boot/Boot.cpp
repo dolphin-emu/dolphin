@@ -298,7 +298,7 @@ bool CBoot::BootUp(std::unique_ptr<BootParameters> boot)
       if (!volume)
         return false;
 
-      if (!EmulatedBS2(config.bWii, volume))
+      if (!EmulatedBS2(config.bWii, *volume))
         return false;
 
       // Try to load the symbol map if there is one, and then scan it for

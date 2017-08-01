@@ -188,7 +188,7 @@ void CBoot::SetupGCMemory()
 // GameCube Bootstrap 2 HLE:
 // copy the apploader to 0x81200000
 // execute the apploader, function by function, using the above utility.
-bool CBoot::EmulatedBS2_GC(const DiscIO::Volume* volume)
+bool CBoot::EmulatedBS2_GC(const DiscIO::Volume& volume)
 {
   INFO_LOG(BOOT, "Faking GC BS2...");
 
@@ -197,10 +197,7 @@ bool CBoot::EmulatedBS2_GC(const DiscIO::Volume* volume)
 
   SetupGCMemory();
 
-  if (!volume)
-    return false;
-
-  DVDRead(*volume, /*offset*/ 0x00000000, /*address*/ 0x00000000, 0x20, DiscIO::PARTITION_NONE);
+  DVDRead(volume, /*offset*/ 0x00000000, /*address*/ 0x00000000, 0x20, DiscIO::PARTITION_NONE);
 
   const bool ntsc = DiscIO::IsNTSC(SConfig::GetInstance().m_region);
 
@@ -213,7 +210,7 @@ bool CBoot::EmulatedBS2_GC(const DiscIO::Volume* volume)
   // Global pointer to Small Data Area Base (Luigi's Mansion's apploader uses it)
   PowerPC::ppcState.gpr[13] = ntsc ? 0x81465320 : 0x814b4fc0;
 
-  return RunApploader(/*is_wii*/ false, *volume);
+  return RunApploader(/*is_wii*/ false, volume);
 }
 
 bool CBoot::SetupWiiMemory(u64 ios_title_id)
@@ -326,17 +323,14 @@ bool CBoot::SetupWiiMemory(u64 ios_title_id)
 // Wii Bootstrap 2 HLE:
 // copy the apploader to 0x81200000
 // execute the apploader
-bool CBoot::EmulatedBS2_Wii(const DiscIO::Volume* volume)
+bool CBoot::EmulatedBS2_Wii(const DiscIO::Volume& volume)
 {
   INFO_LOG(BOOT, "Faking Wii BS2...");
-  if (!volume)
+  if (volume.GetVolumeType() != DiscIO::Platform::WII_DISC)
     return false;
 
-  if (volume->GetVolumeType() != DiscIO::Platform::WII_DISC)
-    return false;
-
-  const DiscIO::Partition partition = volume->GetGamePartition();
-  const IOS::ES::TMDReader tmd = volume->GetTMD(partition);
+  const DiscIO::Partition partition = volume.GetGamePartition();
+  const IOS::ES::TMDReader tmd = volume.GetTMD(partition);
 
   if (!tmd.IsValid())
     return false;
@@ -344,13 +338,13 @@ bool CBoot::EmulatedBS2_Wii(const DiscIO::Volume* volume)
   if (!SetupWiiMemory(tmd.GetIOSId()))
     return false;
 
-  DVDRead(*volume, 0x00000000, 0x00000000, 0x20, DiscIO::PARTITION_NONE);  // Game Code
+  DVDRead(volume, 0x00000000, 0x00000000, 0x20, DiscIO::PARTITION_NONE);  // Game Code
 
   // This is some kind of consistency check that is compared to the 0x00
   // values as the game boots. This location keeps the 4 byte ID for as long
   // as the game is running. The 6 byte ID at 0x00 is overwritten sometime
   // after this check during booting.
-  DVDRead(*volume, 0, 0x3180, 4, partition);
+  DVDRead(volume, 0, 0x3180, 4, partition);
 
   SetupMSR();
   SetupBAT(/*is_wii*/ true);
@@ -361,20 +355,19 @@ bool CBoot::EmulatedBS2_Wii(const DiscIO::Volume* volume)
 
   PowerPC::ppcState.gpr[1] = 0x816ffff0;  // StackPointer
 
-  if (!RunApploader(/*is_wii*/ true, *volume))
+  if (!RunApploader(/*is_wii*/ true, volume))
     return false;
 
   // Warning: This call will set incorrect running game metadata if our volume parameter
   // doesn't point to the same disc as the one that's inserted in the emulated disc drive!
-  IOS::HLE::Device::ES::DIVerify(tmd, volume->GetTicket(partition));
+  IOS::HLE::Device::ES::DIVerify(tmd, volume.GetTicket(partition));
 
   return true;
 }
 
-// Returns true if apploader has run successfully.
-// If is_wii is true and volume is not nullptr, the disc that volume
-// point to must currently be inserted into the emulated disc drive.
-bool CBoot::EmulatedBS2(bool is_wii, const DiscIO::Volume* volume)
+// Returns true if apploader has run successfully. If is_wii is true, the disc
+// that volume refers to must currently be inserted into the emulated disc drive.
+bool CBoot::EmulatedBS2(bool is_wii, const DiscIO::Volume& volume)
 {
   return is_wii ? EmulatedBS2_Wii(volume) : EmulatedBS2_GC(volume);
 }

@@ -102,9 +102,9 @@ private:
   static void SetupMSR();
   static void SetupBAT(bool is_wii);
   static bool RunApploader(bool is_wii, const DiscIO::Volume& volume);
-  static bool EmulatedBS2_GC(const DiscIO::Volume* volume);
-  static bool EmulatedBS2_Wii(const DiscIO::Volume* volume);
-  static bool EmulatedBS2(bool is_wii, const DiscIO::Volume* volume);
+  static bool EmulatedBS2_GC(const DiscIO::Volume& volume);
+  static bool EmulatedBS2_Wii(const DiscIO::Volume& volume);
+  static bool EmulatedBS2(bool is_wii, const DiscIO::Volume& volume);
   static bool Load_BS2(const std::string& boot_rom_filename);
 
   static void SetupGCMemory();
