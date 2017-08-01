@@ -42,12 +42,13 @@ public:
   explicit DiscContent(u64 offset);
 
   u64 GetOffset() const;
+  u64 GetEndOffset() const;
   u64 GetSize() const;
   bool Read(u64* offset, u64* length, u8** buffer) const;
 
-  bool operator==(const DiscContent& other) const { return m_offset == other.m_offset; }
+  bool operator==(const DiscContent& other) const { return GetEndOffset() == other.GetEndOffset(); }
   bool operator!=(const DiscContent& other) const { return !(*this == other); }
-  bool operator<(const DiscContent& other) const { return m_offset < other.m_offset; }
+  bool operator<(const DiscContent& other) const { return GetEndOffset() < other.GetEndOffset(); }
   bool operator>(const DiscContent& other) const { return other < *this; }
   bool operator<=(const DiscContent& other) const { return !(*this < other); }
   bool operator>=(const DiscContent& other) const { return !(*this > other); }

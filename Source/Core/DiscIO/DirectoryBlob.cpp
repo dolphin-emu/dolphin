@@ -77,6 +77,11 @@ u64 DiscContent::GetOffset() const
   return m_offset;
 }
 
+u64 DiscContent::GetEndOffset() const
+{
+  return m_offset + m_size;
+}
+
 u64 DiscContent::GetSize() const
 {
   return m_size;
@@ -138,13 +143,8 @@ const DiscContent& DiscContentContainer::CheckSizeAndAdd(u64 offset, u64 max_siz
 
 bool DiscContentContainer::Read(u64 offset, u64 length, u8* buffer) const
 {
-  if (m_contents.empty())
-    return true;
-
   // Determine which DiscContent the offset refers to
-  std::set<DiscContent>::const_iterator it = m_contents.lower_bound(DiscContent(offset));
-  if (it->GetOffset() > offset && it != m_contents.begin())
-    --it;
+  std::set<DiscContent>::const_iterator it = m_contents.upper_bound(DiscContent(offset));
 
   // zero fill to start of file data
   PadToAddress(it->GetOffset(), &offset, &length, &buffer);
