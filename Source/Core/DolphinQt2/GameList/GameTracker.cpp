@@ -6,6 +6,7 @@
 #include <QDirIterator>
 #include <QFile>
 
+#include "DiscIO/DirectoryBlob.h"
 #include "DolphinQt2/GameList/GameTracker.h"
 #include "DolphinQt2/Settings.h"
 
@@ -135,5 +136,15 @@ void GameTracker::UpdateFile(const QString& file)
   {
     m_tracked_files.remove(file);
     emit GameRemoved(file);
+  }
+}
+
+void GameLoader::LoadGame(const QString& path)
+{
+  if (!DiscIO::ShouldHideFromGameList(path.toStdString()))
+  {
+    auto game = QSharedPointer<GameFile>::create(path);
+    if (game->IsValid())
+      emit GameLoaded(game);
   }
 }

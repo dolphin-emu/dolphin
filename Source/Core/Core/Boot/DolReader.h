@@ -10,10 +10,16 @@
 #include "Common/CommonTypes.h"
 #include "Core/Boot/Boot.h"
 
+namespace File
+{
+class IOFile;
+}
+
 class DolReader final : public BootExecutableReader
 {
 public:
   explicit DolReader(const std::string& filename);
+  explicit DolReader(File::IOFile file);
   explicit DolReader(const std::vector<u8>& buffer);
   ~DolReader();
 
