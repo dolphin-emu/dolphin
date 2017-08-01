@@ -12,6 +12,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Common/Lazy.h"
 #include "Core/IOS/ES/Formats.h"
 #include "DiscIO/Volume.h"
 
@@ -66,9 +67,9 @@ public:
 private:
   struct PartitionDetails
   {
-    std::unique_ptr<mbedtls_aes_context> key;
-    IOS::ES::TicketReader ticket;
-    IOS::ES::TMDReader tmd;
+    Common::Lazy<std::unique_ptr<mbedtls_aes_context>> key;
+    Common::Lazy<IOS::ES::TicketReader> ticket;
+    Common::Lazy<IOS::ES::TMDReader> tmd;
     u32 type;
   };
 
