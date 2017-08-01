@@ -122,12 +122,14 @@ bool DiscContent::Read(u64* offset, u64* length, u8** buffer) const
 
 void DiscContentContainer::Add(u64 offset, u64 size, const std::string& path)
 {
-  m_contents.emplace(offset, size, path);
+  if (size != 0)
+    m_contents.emplace(offset, size, path);
 }
 
 void DiscContentContainer::Add(u64 offset, u64 size, const u8* data)
 {
-  m_contents.emplace(offset, size, data);
+  if (size != 0)
+    m_contents.emplace(offset, size, data);
 }
 
 u64 DiscContentContainer::CheckSizeAndAdd(u64 offset, const std::string& path)
@@ -761,7 +763,7 @@ void DirectoryBlobPartition::WriteDirectory(const File::FSTEntry& parent_entry, 
       m_contents.Add(*data_offset, entry.size, entry.physicalName);
 
       // 32 KiB aligned - many games are fine with less alignment, but not all
-      *data_offset = Common::AlignUp(*data_offset + std::max<u64>(entry.size, 1ull), 0x8000ull);
+      *data_offset = Common::AlignUp(*data_offset + entry.size, 0x8000ull);
     }
   }
 }
