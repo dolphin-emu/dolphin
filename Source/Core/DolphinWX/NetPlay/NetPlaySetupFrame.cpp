@@ -338,7 +338,7 @@ void NetPlaySetupFrame::DoHost()
   host_config.use_traversal = m_direct_traversal->GetCurrentSelection() == TRAVERSAL_CHOICE;
   host_config.player_name = WxStrToStr(m_nickname_text->GetValue());
   host_config.game_list_ctrl = m_game_list;
-  host_config.SetDialogInfo(netplay_section, m_parent);
+  host_config.SetDialogInfo(m_parent);
 #ifdef USE_UPNP
   host_config.forward_port = m_upnp_chk->GetValue();
 #endif
@@ -382,7 +382,7 @@ void NetPlaySetupFrame::DoJoin()
   join_config.use_traversal = m_direct_traversal->GetCurrentSelection() == TRAVERSAL_CHOICE;
   join_config.player_name = WxStrToStr(m_nickname_text->GetValue());
   join_config.game_list_ctrl = m_game_list;
-  join_config.SetDialogInfo(netplay_section, m_parent);
+  join_config.SetDialogInfo(m_parent);
 
   unsigned long port = 0;
   m_connect_port_text->GetValue().ToULong(&port);

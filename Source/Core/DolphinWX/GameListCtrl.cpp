@@ -1343,7 +1343,7 @@ void GameListCtrl::OnNetPlayHost(wxCommandEvent& WXUNUSED(event))
   config.FromIniConfig(netplay_section);
   config.game_name = iso->GetUniqueIdentifier();
   config.game_list_ctrl = this;
-  config.SetDialogInfo(netplay_section, m_parent);
+  config.SetDialogInfo(m_parent);
 
   netplay_section.Set("SelectedHostGame", config.game_name);
   ini_file.Save(dolphin_ini);

@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <wx/config.h>
 #include <wx/gdicmn.h>
 
 #include "Common/CommonTypes.h"
@@ -121,14 +122,14 @@ u16 NetPlayLaunchConfig::GetTraversalPortFromIniConfig(const IniFile::Section& n
   return static_cast<u16>(port);
 }
 
-void NetPlayLaunchConfig::SetDialogInfo(const IniFile::Section& section, wxWindow* parent)
+void NetPlayLaunchConfig::SetDialogInfo(wxWindow* parent)
 {
   parent_window = parent;
 
-  section.Get("NetWindowPosX", &window_pos.x, window_defaults.GetX());
-  section.Get("NetWindowPosY", &window_pos.y, window_defaults.GetY());
-  section.Get("NetWindowWidth", &window_pos.width, window_defaults.GetWidth());
-  section.Get("NetWindowHeight", &window_pos.height, window_defaults.GetHeight());
+  wxConfig::Get()->Read("NetWindowPosX", &window_pos.x, window_defaults.GetX());
+  wxConfig::Get()->Read("NetWindowPosY", &window_pos.y, window_defaults.GetY());
+  wxConfig::Get()->Read("NetWindowWidth", &window_pos.width, window_defaults.GetWidth());
+  wxConfig::Get()->Read("NetWindowHeight", &window_pos.height, window_defaults.GetHeight());
 
   if (window_pos.GetX() == window_defaults.GetX() || window_pos.GetY() == window_defaults.GetY())
   {

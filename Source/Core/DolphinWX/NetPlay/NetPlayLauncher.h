@@ -17,7 +17,7 @@ class NetPlayLaunchConfig
 public:
   static std::string GetTraversalHostFromIniConfig(const IniFile::Section& netplay_section);
   static u16 GetTraversalPortFromIniConfig(const IniFile::Section& netplay_section);
-  void SetDialogInfo(const IniFile::Section& section, wxWindow* parent);
+  void SetDialogInfo(wxWindow* parent);
 
   static const std::string DEFAULT_TRAVERSAL_HOST;
   static constexpr u16 DEFAULT_TRAVERSAL_PORT = 6262;
