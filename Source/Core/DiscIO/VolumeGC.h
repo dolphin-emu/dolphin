@@ -11,6 +11,8 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Common/Lazy.h"
+#include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
 
 // --- this volume type is used for GC disc images ---
@@ -20,6 +22,7 @@ namespace DiscIO
 class BlobReader;
 enum class BlobType;
 enum class Country;
+class FileSystem;
 enum class Language;
 enum class Region;
 enum class Platform;
@@ -31,6 +34,7 @@ public:
   ~VolumeGC();
   bool Read(u64 _Offset, u64 _Length, u8* _pBuffer,
             const Partition& partition = PARTITION_NONE) const override;
+  const FileSystem* GetFileSystem(const Partition& partition = PARTITION_NONE) const override;
   std::string GetGameID(const Partition& partition = PARTITION_NONE) const override;
   std::string GetMakerID(const Partition& partition = PARTITION_NONE) const override;
   std::optional<u16> GetRevision(const Partition& partition = PARTITION_NONE) const override;
@@ -92,6 +96,8 @@ private:
   mutable std::vector<u32> m_image_buffer;
   mutable int m_image_height = 0;
   mutable int m_image_width = 0;
+
+  Common::Lazy<std::unique_ptr<FileSystem>> m_file_system;
 
   std::unique_ptr<BlobReader> m_pReader;
 };

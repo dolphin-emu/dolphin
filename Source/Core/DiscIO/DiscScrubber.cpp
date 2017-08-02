@@ -182,7 +182,7 @@ bool DiscScrubber::ParseDisc()
 // Operations dealing with encrypted space are done here
 bool DiscScrubber::ParsePartitionData(const Partition& partition, PartitionHeader* header)
 {
-  std::unique_ptr<FileSystem> filesystem(CreateFileSystem(m_disc.get(), partition));
+  const FileSystem* filesystem = m_disc->GetFileSystem(partition);
   if (!filesystem)
   {
     ERROR_LOG(DISCIO, "Failed to read file system for the partition at 0x%" PRIx64,

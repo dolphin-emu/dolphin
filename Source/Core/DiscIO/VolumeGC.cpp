@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <cinttypes>
 #include <cstddef>
 #include <map>
 #include <memory>
@@ -20,6 +21,7 @@
 #include "DiscIO/Blob.h"
 #include "DiscIO/DiscExtractor.h"
 #include "DiscIO/Enums.h"
+#include "DiscIO/FileSystemGCWii.h"
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeGC.h"
@@ -29,6 +31,11 @@ namespace DiscIO
 VolumeGC::VolumeGC(std::unique_ptr<BlobReader> reader) : m_pReader(std::move(reader))
 {
   _assert_(m_pReader);
+
+  m_file_system = [this]() -> std::unique_ptr<FileSystem> {
+    auto file_system = std::make_unique<FileSystemGCWii>(this, PARTITION_NONE);
+    return file_system->IsValid() ? std::move(file_system) : nullptr;
+  };
 }
 
 VolumeGC::~VolumeGC()
@@ -41,6 +48,11 @@ bool VolumeGC::Read(u64 _Offset, u64 _Length, u8* _pBuffer, const Partition& par
     return false;
 
   return m_pReader->Read(_Offset, _Length, _pBuffer);
+}
+
+const FileSystem* VolumeGC::GetFileSystem(const Partition& partition) const
+{
+  return m_file_system->get();
 }
 
 std::string VolumeGC::GetGameID(const Partition& partition) const
@@ -192,30 +204,16 @@ void VolumeGC::LoadBannerFile() const
   m_banner_loaded = true;
 
   GCBanner banner_file;
-  std::unique_ptr<FileSystem> file_system(CreateFileSystem(this, PARTITION_NONE));
-  if (!file_system)
-    return;
-
-  std::unique_ptr<FileInfo> file_info = file_system->FindFileInfo("opening.bnr");
-  if (!file_info)
-    return;
-
-  size_t file_size = static_cast<size_t>(file_info->GetSize());
-  constexpr int BNR1_MAGIC = 0x31524e42;
-  constexpr int BNR2_MAGIC = 0x32524e42;
-  if (file_size != BNR1_SIZE && file_size != BNR2_SIZE)
-  {
-    WARN_LOG(DISCIO, "Invalid opening.bnr. Size: %0zx", file_size);
-    return;
-  }
-
-  if (file_size != ReadFile(*this, PARTITION_NONE, file_info.get(),
-                            reinterpret_cast<u8*>(&banner_file), file_size))
+  const u64 file_size = ReadFile(*this, PARTITION_NONE, "opening.bnr",
+                                 reinterpret_cast<u8*>(&banner_file), sizeof(GCBanner));
+  if (file_size < 4)
   {
     WARN_LOG(DISCIO, "Could not read opening.bnr.");
-    return;
+    return;  // Return early so that we don't access the uninitialized banner_file.id
   }
 
+  constexpr u32 BNR1_MAGIC = 0x31524e42;
+  constexpr u32 BNR2_MAGIC = 0x32524e42;
   bool is_bnr1;
   if (banner_file.id == BNR1_MAGIC && file_size == BNR1_SIZE)
   {
