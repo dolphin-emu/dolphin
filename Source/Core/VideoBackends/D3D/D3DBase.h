@@ -72,6 +72,8 @@ const char* PixelShaderVersionString();
 const char* GeometryShaderVersionString();
 const char* VertexShaderVersionString();
 bool BGRATexturesSupported();
+bool RGB565TexturesSupported();
+bool ARGB4TexturesSupported();
 
 u32 GetMaxTextureSize(D3D_FEATURE_LEVEL feature_level);
 

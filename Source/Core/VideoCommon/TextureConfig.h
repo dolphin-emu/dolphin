@@ -13,11 +13,12 @@
 // Format of a texture on the host. All backends support RGBA8.
 enum class AbstractTextureFormat : u32
 {
-  RGBA8,
-  I8,
-  AI4,
-  AI8,
-  RGB565,
+  RGBA8,   // R G B A R G B A ...
+  I8,      // I I I I ...
+  AI4,     // T T T T ... where T = (A << 4) | I
+  AI8,     // A I A I ...
+  RGB565,  // T T T T ... where T = (R << 11) | (G << 5) | B
+  ARGB4,   // T T T T ... where T = (A << 12) | (R << 8) | (B << 4) | B
   DXT1,
   DXT3,
   DXT5,

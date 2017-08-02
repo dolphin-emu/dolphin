@@ -44,6 +44,7 @@ size_t AbstractTexture::CalculateHostTextureLevelPitch(AbstractTextureFormat for
     return static_cast<size_t>(row_length);
   case AbstractTextureFormat::AI8:
   case AbstractTextureFormat::RGB565:
+  case AbstractTextureFormat::ARGB4:
     return static_cast<size_t>(row_length) * 2;
   case AbstractTextureFormat::DXT1:
     return static_cast<size_t>(std::max(1u, row_length / 4)) * 8;

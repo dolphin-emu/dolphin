@@ -689,6 +689,17 @@ public:
   }
 };
 
+class AI4ToARGB4TexelDecoder
+{
+public:
+  inline u16 operator()(u8 val)
+  {
+    u16 a = val >> 4;
+    u16 i = val & 0xF;
+    return (a << 12) | (i << 8) | (i << 4) | i;
+  }
+};
+
 // Functor to unpack a tile of texels to a linear buffer.
 // TW:            tile width
 // TH:            tile height
@@ -784,6 +795,16 @@ void TexDecoder_DecodeAI4TiledToAI8Linear(u8* __restrict dst, const u8* __restri
   static const int TBYTES = 32;
   typedef TileUnpacker<TW, TH, u8, u16, AI4ToAI8TexelDecoder> AI4ToAI8TileUnpacker;
   DecodeTiledToLinear<TW, TH, TBYTES, u16, AI4ToAI8TileUnpacker>(dst, src, width, height);
+}
+
+void TexDecoder_DecodeAI4TiledToARGB4Linear(u8* __restrict dst, const u8* __restrict src, int width,
+                                            int height)
+{
+  static const int TW = 8;
+  static const int TH = 4;
+  static const int TBYTES = 32;
+  typedef TileUnpacker<TW, TH, u8, u16, AI4ToARGB4TexelDecoder> AI4ToARGB4TileUnpacker;
+  DecodeTiledToLinear<TW, TH, TBYTES, u16, AI4ToARGB4TileUnpacker>(dst, src, width, height);
 }
 
 void TexDecoder_Decode8BitTiledToLinear(u8* __restrict dst, const u8* __restrict src, int width,

@@ -227,6 +227,21 @@ TextureCache::~TextureCache()
     SAFE_RELEASE(shader);
 }
 
+bool TextureCache::SupportsHostTextureFormat(AbstractTextureFormat format) const
+{
+  switch (format)
+  {
+  case AbstractTextureFormat::RGBA8:
+    return true;
+  case AbstractTextureFormat::RGB565:
+    return D3D::RGB565TexturesSupported();
+  case AbstractTextureFormat::ARGB4:
+    return D3D::ARGB4TexturesSupported();
+  }
+
+  return false;
+}
+
 void TextureCache::CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy,
                                        const EFBRectangle& src_rect, bool scale_by_half,
                                        unsigned int cbuf_id, const float* colmat)

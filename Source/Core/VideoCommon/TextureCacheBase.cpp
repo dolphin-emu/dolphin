@@ -795,6 +795,11 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::Load(const u32 stage)
     {
       config.format = AbstractTextureFormat::AI8;
     }
+    else if (texformat == TextureFormat::IA4 &&
+             SupportsHostTextureFormat(AbstractTextureFormat::ARGB4))
+    {
+      config.format = AbstractTextureFormat::ARGB4;
+    }
     else if (texformat == TextureFormat::IA8 &&
              SupportsHostTextureFormat(AbstractTextureFormat::AI8))
     {
@@ -859,6 +864,12 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::Load(const u32 stage)
       decoded_texture_size = expandedWidth * sizeof(u16) * expandedHeight;
       CheckTempSize(decoded_texture_size);
       TexDecoder_DecodeAI4TiledToAI8Linear(temp, src_data, width, height);
+    }
+    else if (texformat == TextureFormat::IA4 && config.format == AbstractTextureFormat::ARGB4)
+    {
+      decoded_texture_size = expandedWidth * sizeof(u16) * expandedHeight;
+      CheckTempSize(decoded_texture_size);
+      TexDecoder_DecodeAI4TiledToARGB4Linear(temp, src_data, width, height);
     }
     else if (texformat == TextureFormat::IA8 && config.format == AbstractTextureFormat::AI8)
     {
@@ -979,6 +990,11 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::Load(const u32 stage)
         {
           decoded_mip_size = expanded_mip_width * sizeof(u16) * expanded_mip_height;
           TexDecoder_DecodeAI4TiledToAI8Linear(temp, mip_src_data, mip_width, mip_height);
+        }
+        else if (texformat == TextureFormat::IA4 && config.format == AbstractTextureFormat::ARGB4)
+        {
+          decoded_mip_size = expanded_mip_width * sizeof(u16) * expanded_mip_height;
+          TexDecoder_DecodeAI4TiledToARGB4Linear(temp, mip_src_data, mip_width, mip_height);
         }
         else if (texformat == TextureFormat::IA8 && config.format == AbstractTextureFormat::AI8)
         {
