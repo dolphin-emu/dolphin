@@ -6,6 +6,7 @@
 #include <libusb.h>
 #include <mutex>
 
+#include "Common/Event.h"
 #include "Common/Flag.h"
 #include "Common/Logging/Log.h"
 #include "Common/Thread.h"
@@ -40,8 +41,11 @@ static u8 s_controller_payload_swap[37];
 
 static std::atomic<int> s_controller_payload_size = {0};
 
-static std::thread s_adapter_thread;
+static std::thread s_adapter_input_thread;
+static std::thread s_adapter_output_thread;
 static Common::Flag s_adapter_thread_running;
+
+static Common::Event s_rumble_data_available;
 
 static std::mutex s_init_mutex;
 static std::thread s_adapter_detect_thread;
@@ -80,6 +84,23 @@ static void Read()
     }
 
     Common::YieldCPU();
+  }
+}
+
+static void Write()
+{
+  int size = 0;
+
+  while (true)
+  {
+    s_rumble_data_available.Wait();
+
+    if (!s_adapter_thread_running.IsSet())
+      return;
+
+    u8 payload[5] = {0x11, s_controller_rumble[0], s_controller_rumble[1], s_controller_rumble[2],
+                     s_controller_rumble[3]};
+    libusb_interrupt_transfer(s_handle, s_endpoint_out, payload, sizeof(payload), &size, 16);
   }
 }
 
@@ -316,7 +337,8 @@ static void AddGCAdapter(libusb_device* device)
   libusb_interrupt_transfer(s_handle, s_endpoint_out, &payload, sizeof(payload), &tmp, 16);
 
   s_adapter_thread_running.Set(true);
-  s_adapter_thread = std::thread(Read);
+  s_adapter_input_thread = std::thread(Read);
+  s_adapter_output_thread = std::thread(Write);
 
   s_detected = true;
   if (s_detect_callback != nullptr)
@@ -351,7 +373,9 @@ static void Reset()
 
   if (s_adapter_thread_running.TestAndClear())
   {
-    s_adapter_thread.join();
+    s_rumble_data_available.Set();
+    s_adapter_input_thread.join();
+    s_adapter_output_thread.join();
   }
 
   for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; i++)
@@ -516,18 +540,7 @@ void Output(int chan, u8 rumble_command)
       s_controller_type[chan] != ControllerTypes::CONTROLLER_WIRELESS)
   {
     s_controller_rumble[chan] = rumble_command;
-
-    unsigned char rumble[5] = {0x11, s_controller_rumble[0], s_controller_rumble[1],
-                               s_controller_rumble[2], s_controller_rumble[3]};
-    int size = 0;
-
-    libusb_interrupt_transfer(s_handle, s_endpoint_out, rumble, sizeof(rumble), &size, 16);
-    // Netplay sends invalid data which results in size = 0x00.  Ignore it.
-    if (size != 0x05 && size != 0x00)
-    {
-      ERROR_LOG(SERIALINTERFACE, "error writing rumble (size: %d)", size);
-      Reset();
-    }
+    s_rumble_data_available.Set();
   }
 }
 
