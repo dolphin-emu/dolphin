@@ -45,7 +45,7 @@ public:
   static void SetFogParamChanged();
   static void SetFogRangeAdjustChanged();
   static void SetGenModeChanged();
-  static void SetZControlChanged();
+  static void SetZModeControl();
   static void SetBlendModeChanged();
   static void SetBoundingBoxActive(bool active);
 
