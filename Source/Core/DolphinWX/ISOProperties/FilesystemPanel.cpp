@@ -73,7 +73,7 @@ void CreateDirectoryTree(wxTreeCtrl* tree_ctrl, wxTreeItemId parent,
 {
   for (const DiscIO::FileInfo& file_info : directory)
   {
-    const wxString name = StrToWxStr(file_info.GetName());
+    const wxString name = StrToWxStr(file_info.GetName() + " " + File::PrettyPrintFileSize(file_info.GetSize()));
     if (file_info.IsDirectory())
     {
       wxTreeItemId item = tree_ctrl->AppendItem(parent, name, ICON_FOLDER);

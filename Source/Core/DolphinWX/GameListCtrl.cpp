@@ -536,24 +536,6 @@ void GameListCtrl::RefreshList()
   SetFocus();
 }
 
-static wxString NiceSizeFormat(u64 size)
-{
-  // Return a pretty filesize string from byte count.
-  // e.g. 1134278 -> "1.08 MiB"
-
-  const char* const unit_symbols[] = {"B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB"};
-
-  // Find largest power of 2 less than size.
-  // div 10 to get largest named unit less than size
-  // 10 == log2(1024) (number of B in a KiB, KiB in a MiB, etc)
-  // Max value is 63 / 10 = 6
-  const int unit = IntLog2(std::max<u64>(size, 1)) / 10;
-
-  // Don't need exact values, only 5 most significant digits
-  double unit_size = std::pow(2, unit * 10);
-  return wxString::Format("%.2f %s", size / unit_size, unit_symbols[unit]);
-}
-
 // Update the column content of the item at index
 void GameListCtrl::UpdateItemAtColumn(long index, int column)
 {
@@ -611,7 +593,8 @@ void GameListCtrl::UpdateItemAtColumn(long index, int column)
                        m_image_indexes.flag[static_cast<size_t>(iso_file.GetCountry())]);
     break;
   case COLUMN_SIZE:
-    SetItem(index, COLUMN_SIZE, NiceSizeFormat(iso_file.GetFileSize()), -1);
+    //SetItem(index, COLUMN_SIZE, NiceSizeFormat(iso_file.GetFileSize()), -1);
+    SetItem(index, COLUMN_SIZE, File::PrettyPrintFileSize(iso_file.GetFileSize()), -1);
     break;
   case COLUMN_ID:
     SetItem(index, COLUMN_ID, iso_file.GetGameID(), -1);

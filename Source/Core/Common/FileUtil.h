@@ -166,6 +166,9 @@ bool SetCurrentDir(const std::string& directory);
 // Creates and returns the path to a new temporary directory.
 std::string CreateTempDir();
 
+// Returns a human-readable string representing a filesize
+std::string PrettyPrintFileSize(u64 size);
+
 // Get a filename that can hopefully be atomically renamed to the given path.
 std::string GetTempFilenameForAtomicWrite(const std::string& path);
 
