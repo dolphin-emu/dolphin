@@ -42,6 +42,9 @@ WiiConfigPane::WiiConfigPane(wxWindow* parent, wxWindowID id) : wxPanel(parent, 
   InitializeGUI();
   LoadGUIValues();
   BindEvents();
+  // This is only safe because WiiConfigPane is owned by CConfigMain, which exists
+  // as long as the DolphinWX app exists.
+  Config::AddConfigChangedCallback([&] { Core::QueueHostJob([&] { LoadGUIValues(); }, true); });
 }
 
 void WiiConfigPane::InitializeGUI()
