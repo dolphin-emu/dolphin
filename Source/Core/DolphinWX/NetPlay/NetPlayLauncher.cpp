@@ -6,8 +6,8 @@
 #include <wx/gdicmn.h>
 
 #include "Common/CommonTypes.h"
-#include "Common/IniFile.h"
 #include "Common/StringUtil.h"
+#include "Core/Config/NetplaySettings.h"
 #include "DolphinWX/NetPlay/NetPlayLauncher.h"
 #include "DolphinWX/NetPlay/NetWindow.h"
 #include "DolphinWX/WxUtils.h"
@@ -92,36 +92,6 @@ bool NetPlayLauncher::Join(const NetPlayJoinConfig& config)
   }
 }
 
-const std::string NetPlayLaunchConfig::DEFAULT_TRAVERSAL_HOST = "stun.dolphin-emu.org";
-
-std::string
-NetPlayLaunchConfig::GetTraversalHostFromIniConfig(const IniFile::Section& netplay_section)
-{
-  std::string host;
-
-  netplay_section.Get("TraversalServer", &host, DEFAULT_TRAVERSAL_HOST);
-  host = StripSpaces(host);
-
-  if (host.empty())
-    return DEFAULT_TRAVERSAL_HOST;
-
-  return host;
-}
-
-u16 NetPlayLaunchConfig::GetTraversalPortFromIniConfig(const IniFile::Section& netplay_section)
-{
-  std::string port_str;
-  unsigned long port;
-
-  netplay_section.Get("TraversalPort", &port_str, std::to_string(DEFAULT_TRAVERSAL_PORT));
-  StrToWxStr(port_str).ToULong(&port);
-
-  if (port == 0)
-    port = DEFAULT_TRAVERSAL_PORT;
-
-  return static_cast<u16>(port);
-}
-
 void NetPlayLaunchConfig::SetDialogInfo(wxWindow* parent)
 {
   parent_window = parent;
@@ -138,26 +108,20 @@ void NetPlayLaunchConfig::SetDialogInfo(wxWindow* parent)
   }
 }
 
-void NetPlayHostConfig::FromIniConfig(IniFile::Section& netplay_section)
+void NetPlayHostConfig::FromConfig()
 {
-  netplay_section.Get("Nickname", &player_name, "Player");
+  player_name = Config::Get(Config::NETPLAY_NICKNAME);
 
-  std::string traversal_choice_setting;
-  netplay_section.Get("TraversalChoice", &traversal_choice_setting, "direct");
+  const std::string traversal_choice_setting = Config::Get(Config::NETPLAY_TRAVERSAL_CHOICE);
   use_traversal = traversal_choice_setting == "traversal";
 
   if (!use_traversal)
   {
-    unsigned long lport = 0;
-    std::string port_setting;
-    netplay_section.Get("HostPort", &port_setting, std::to_string(DEFAULT_LISTEN_PORT));
-    StrToWxStr(port_setting).ToULong(&lport);
-
-    listen_port = static_cast<u16>(lport);
+    listen_port = Config::Get(Config::NETPLAY_HOST_PORT);
   }
   else
   {
-    traversal_port = GetTraversalPortFromIniConfig(netplay_section);
-    traversal_host = GetTraversalHostFromIniConfig(netplay_section);
+    traversal_port = Config::Get(Config::NETPLAY_TRAVERSAL_PORT);
+    traversal_host = Config::Get(Config::NETPLAY_TRAVERSAL_SERVER);
   }
 }

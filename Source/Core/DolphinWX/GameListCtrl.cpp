@@ -46,6 +46,7 @@
 #include "Common/SysConf.h"
 #include "Common/Thread.h"
 #include "Core/Boot/Boot.h"
+#include "Core/Config/NetplaySettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/DVD/DVDInterface.h"
@@ -1334,20 +1335,13 @@ void GameListCtrl::OnNetPlayHost(wxCommandEvent& WXUNUSED(event))
   if (!iso)
     return;
 
-  IniFile ini_file;
-  const std::string dolphin_ini = File::GetUserPath(F_DOLPHINCONFIG_IDX);
-  ini_file.Load(dolphin_ini);
-  IniFile::Section& netplay_section = *ini_file.GetOrCreateSection("NetPlay");
-
   NetPlayHostConfig config;
-  config.FromIniConfig(netplay_section);
+  config.FromConfig();
   config.game_name = iso->GetUniqueIdentifier();
   config.game_list_ctrl = this;
   config.SetDialogInfo(m_parent);
 
-  netplay_section.Set("SelectedHostGame", config.game_name);
-  ini_file.Save(dolphin_ini);
-
+  Config::SetBaseOrCurrent(Config::NETPLAY_SELECTED_HOST_GAME, config.game_name);
   NetPlayLauncher::Host(config);
 }
 

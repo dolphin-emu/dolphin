@@ -46,6 +46,7 @@
     <ClCompile Include="Boot\DolReader.cpp" />
     <ClCompile Include="Boot\ElfReader.cpp" />
     <ClCompile Include="Config\GraphicsSettings.cpp" />
+    <ClCompile Include="Config\NetplaySettings.cpp" />
     <ClCompile Include="ConfigLoaders\BaseConfigLoader.cpp" />
     <ClCompile Include="ConfigLoaders\GameConfigLoader.cpp" />
     <ClCompile Include="ConfigLoaders\IsSettingSaveable.cpp" />
@@ -301,6 +302,7 @@
     <ClInclude Include="Boot\ElfReader.h" />
     <ClInclude Include="Boot\ElfTypes.h" />
     <ClInclude Include="Config\GraphicsSettings.h" />
+    <ClInclude Include="Config\NetplaySettings.h" />
     <ClInclude Include="ConfigLoaders\BaseConfigLoader.h" />
     <ClInclude Include="ConfigLoaders\GameConfigLoader.h" />
     <ClInclude Include="ConfigLoaders\IsSettingSaveable.h" />
