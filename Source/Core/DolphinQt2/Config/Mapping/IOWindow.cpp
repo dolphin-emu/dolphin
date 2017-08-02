@@ -21,6 +21,7 @@
 #include "Core/Core.h"
 #include "DolphinQt2/Config/Mapping/MappingCommon.h"
 #include "DolphinQt2/Config/Mapping/MappingWindow.h"
+#include "DolphinQt2/QtUtils/BlockUserInputFilter.h"
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
@@ -171,11 +172,10 @@ void IOWindow::OnDialogButtonPressed(QAbstractButton* button)
 
 void IOWindow::OnDetectButtonPressed()
 {
-  if (m_block.IsSet())
-    return;
+  installEventFilter(BlockUserInputFilter::Instance());
+  grabKeyboard();
+  grabMouse();
 
-  m_block.Set(true);
-  m_expression_text->setEnabled(false);
   std::thread([this] {
     auto* btn = m_type == IOWindow::Type::Input ? m_detect_button : m_test_button;
     const auto old_label = btn->text();
@@ -194,8 +194,10 @@ void IOWindow::OnDetectButtonPressed()
       if (list.size() > 0)
         m_option_list->setCurrentItem(list[0]);
     }
-    m_expression_text->setEnabled(true);
-    m_block.Set(false);
+
+    releaseMouse();
+    releaseKeyboard();
+    removeEventFilter(BlockUserInputFilter::Instance());
   }).detach();
 }
 
@@ -208,9 +210,6 @@ void IOWindow::OnRangeChanged(int value)
 
 void IOWindow::UpdateOptionList()
 {
-  if (m_block.IsSet())
-    return;
-
   m_option_list->clear();
 
   const auto device = g_controller_interface.FindDevice(m_devq);
@@ -233,7 +232,6 @@ void IOWindow::UpdateOptionList()
 
 void IOWindow::UpdateDeviceList()
 {
-  m_block.Set(true);
   m_devices_combo->clear();
 
   Core::RunAsCPUThread([&] {
@@ -254,6 +252,4 @@ void IOWindow::UpdateDeviceList()
 
     m_devices_combo->setCurrentIndex(0);
   });
-
-  m_block.Set(false);
 }

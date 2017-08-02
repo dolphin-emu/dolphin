@@ -194,10 +194,6 @@ struct VideoConfig final
   int iShaderCompilerThreads;
   int iShaderPrecompilerThreads;
 
-  // Temporary toggling of ubershaders, for debugging
-  bool bForceVertexUberShaders;
-  bool bForcePixelUberShaders;
-
   // Static config per API
   // TODO: Move this out of VideoConfig
   struct
@@ -236,6 +232,7 @@ struct VideoConfig final
     bool bSupportsST3CTextures;
     bool bSupportsBitfield;                // Needed by UberShaders, so must stay in VideoCommon
     bool bSupportsDynamicSamplerIndexing;  // Needed by UberShaders, so must stay in VideoCommon
+    bool bSupportsBPTCTextures;
   } backend_info;
 
   // Utility

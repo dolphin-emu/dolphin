@@ -63,34 +63,33 @@ std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(const std::stri
   std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
 
   static const std::unordered_set<std::string> disc_image_extensions = {
-      {".gcm", ".iso", ".tgc", ".wbfs", ".ciso", ".gcz"}};
+      {".gcm", ".iso", ".tgc", ".wbfs", ".ciso", ".gcz", ".dol", ".elf"}};
   if (disc_image_extensions.find(extension) != disc_image_extensions.end() || is_drive)
   {
-    auto volume = DiscIO::CreateVolumeFromFilename(path);
-    if (!volume)
+    std::unique_ptr<DiscIO::Volume> volume = DiscIO::CreateVolumeFromFilename(path);
+    if (volume)
+      return std::make_unique<BootParameters>(Disc{path, std::move(volume)});
+
+    if (extension == ".elf")
+      return std::make_unique<BootParameters>(Executable{path, std::make_unique<ElfReader>(path)});
+
+    if (extension == ".dol")
+      return std::make_unique<BootParameters>(Executable{path, std::make_unique<DolReader>(path)});
+
+    if (is_drive)
     {
-      if (is_drive)
-      {
-        PanicAlertT("Could not read \"%s\". "
-                    "There is no disc in the drive or it is not a GameCube/Wii backup. "
-                    "Please note that Dolphin cannot play games directly from the original "
-                    "GameCube and Wii discs.",
-                    path.c_str());
-      }
-      else
-      {
-        PanicAlertT("\"%s\" is an invalid GCM/ISO file, or is not a GC/Wii ISO.", path.c_str());
-      }
-      return {};
+      PanicAlertT("Could not read \"%s\". "
+                  "There is no disc in the drive or it is not a GameCube/Wii backup. "
+                  "Please note that Dolphin cannot play games directly from the original "
+                  "GameCube and Wii discs.",
+                  path.c_str());
     }
-    return std::make_unique<BootParameters>(Disc{path, std::move(volume)});
+    else
+    {
+      PanicAlertT("\"%s\" is an invalid GCM/ISO file, or is not a GC/Wii ISO.", path.c_str());
+    }
+    return {};
   }
-
-  if (extension == ".elf")
-    return std::make_unique<BootParameters>(Executable{path, std::make_unique<ElfReader>(path)});
-
-  if (extension == ".dol")
-    return std::make_unique<BootParameters>(Executable{path, std::make_unique<DolReader>(path)});
 
   if (extension == ".dff")
     return std::make_unique<BootParameters>(DFF{path});
@@ -131,44 +130,6 @@ bool CBoot::DVDRead(const DiscIO::Volume& volume, u64 dvd_offset, u32 output_add
     return false;
   Memory::CopyToEmu(output_address, buffer.data(), length);
   return true;
-}
-
-void CBoot::Load_FST(bool is_wii, const DiscIO::Volume* volume)
-{
-  if (!volume)
-    return;
-
-  const DiscIO::Partition partition = volume->GetGamePartition();
-
-  // copy first 32 bytes of disc to start of Mem 1
-  DVDRead(*volume, /*offset*/ 0, /*address*/ 0, /*length*/ 0x20, DiscIO::PARTITION_NONE);
-
-  // copy of game id
-  Memory::Write_U32(Memory::Read_U32(0x0000), 0x3180);
-
-  u32 shift = 0;
-  if (is_wii)
-    shift = 2;
-
-  const std::optional<u32> fst_offset = volume->ReadSwapped<u32>(0x0424, partition);
-  const std::optional<u32> fst_size = volume->ReadSwapped<u32>(0x0428, partition);
-  const std::optional<u32> max_fst_size = volume->ReadSwapped<u32>(0x042c, partition);
-  if (!fst_offset || !fst_size || !max_fst_size)
-    return;
-
-  u32 arena_high = Common::AlignDown(0x817FFFFF - (*max_fst_size << shift), 0x20);
-  Memory::Write_U32(arena_high, 0x00000034);
-
-  // load FST
-  DVDRead(*volume, *fst_offset << shift, arena_high, *fst_size << shift, partition);
-  Memory::Write_U32(arena_high, 0x00000038);
-  Memory::Write_U32(*max_fst_size << shift, 0x0000003c);
-
-  if (is_wii)
-  {
-    // the apploader changes IOS MEM1_ARENA_END too
-    Memory::Write_U32(arena_high, 0x00003110);
-  }
 }
 
 void CBoot::UpdateDebugger_MapLoaded()
@@ -309,15 +270,11 @@ bool CBoot::Load_BS2(const std::string& boot_rom_filename)
   return true;
 }
 
-static const DiscIO::Volume* SetDefaultDisc()
+static void SetDefaultDisc()
 {
   const SConfig& config = SConfig::GetInstance();
-  // load default image or create virtual drive from directory
-  if (!config.m_strDVDRoot.empty())
-    return SetDisc(DiscIO::CreateVolumeFromDirectory(config.m_strDVDRoot, config.bWii));
   if (!config.m_strDefaultISO.empty())
-    return SetDisc(DiscIO::CreateVolumeFromFilename(config.m_strDefaultISO));
-  return nullptr;
+    SetDisc(DiscIO::CreateVolumeFromFilename(config.m_strDefaultISO));
 }
 
 // Third boot step after BootManager and Core. See Call schedule in BootManager.cpp
@@ -341,7 +298,7 @@ bool CBoot::BootUp(std::unique_ptr<BootParameters> boot)
       if (!volume)
         return false;
 
-      if (!EmulatedBS2(config.bWii, volume))
+      if (!EmulatedBS2(config.bWii, *volume))
         return false;
 
       // Try to load the symbol map if there is one, and then scan it for
@@ -359,49 +316,29 @@ bool CBoot::BootUp(std::unique_ptr<BootParameters> boot)
       if (!executable.reader->IsValid())
         return false;
 
-      const DiscIO::Volume* volume = nullptr;
-      // VolumeDirectory only works with DOLs.
-      if (StringEndsWith(executable.path, ".dol"))
-      {
-        if (!config.m_strDVDRoot.empty())
-        {
-          NOTICE_LOG(BOOT, "Setting DVDRoot %s", config.m_strDVDRoot.c_str());
-          volume = SetDisc(DiscIO::CreateVolumeFromDirectory(
-              config.m_strDVDRoot, config.bWii, config.m_strApploader, executable.path));
-        }
-        else if (!config.m_strDefaultISO.empty())
-        {
-          NOTICE_LOG(BOOT, "Loading default ISO %s", config.m_strDefaultISO.c_str());
-          volume = SetDisc(DiscIO::CreateVolumeFromFilename(config.m_strDefaultISO));
-        }
-      }
-      else
-      {
-        volume = SetDefaultDisc();
-      }
-
       if (!executable.reader->LoadIntoMemory())
       {
         PanicAlertT("Failed to load the executable to memory.");
         return false;
       }
 
-      // Poor man's bootup
+      SetDefaultDisc();
+
+      SetupMSR();
+      SetupBAT(config.bWii);
+
       if (config.bWii)
       {
         HID4.SBE = 1;
-        SetupMSR();
-        SetupBAT(config.bWii);
         // Because there is no TMD to get the requested system (IOS) version from,
         // we default to IOS58, which is the version used by the Homebrew Channel.
-        SetupWiiMemory(volume, 0x000000010000003a);
+        SetupWiiMemory(0x000000010000003a);
       }
       else
       {
-        EmulatedBS2_GC(volume, true);
+        SetupGCMemory();
       }
 
-      Load_FST(config.bWii, volume);
       PC = executable.reader->GetEntryPoint();
 
       if (executable.reader->LoadSymbols() || LoadMapFromFilename())
@@ -465,8 +402,13 @@ bool CBoot::BootUp(std::unique_ptr<BootParameters> boot)
 }
 
 BootExecutableReader::BootExecutableReader(const std::string& file_name)
+    : BootExecutableReader(File::IOFile{file_name, "rb"})
 {
-  File::IOFile file{file_name, "rb"};
+}
+
+BootExecutableReader::BootExecutableReader(File::IOFile file)
+{
+  file.Seek(0, SEEK_SET);
   m_bytes.resize(file.GetSize());
   file.ReadBytes(m_bytes.data(), m_bytes.size());
 }

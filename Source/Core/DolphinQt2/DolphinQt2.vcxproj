@@ -66,6 +66,7 @@
     <QtMoc Include="Config\Mapping\MappingButton.h" />
     <QtMoc Include="Config\Mapping\MappingWidget.h" />
     <QtMoc Include="Config\Mapping\MappingWindow.h" />
+    <QtMoc Include="Config\LoggerWidget.h" />
     <QtMoc Include="Config\Graphics\AdvancedWidget.h" />
     <QtMoc Include="Config\Graphics\EnhancementsWidget.h" />
     <QtMoc Include="Config\Graphics\GeneralWidget.h" />
@@ -127,6 +128,7 @@
     <ClCompile Include="$(QtMocOutPrefix)IOWindow.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)ListProxyModel.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)TableProxyModel.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)LoggerWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)MainWindow.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)MappingButton.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)MappingWidget.cpp" />
@@ -172,6 +174,7 @@
     <ClCompile Include="Config\Mapping\WiimoteEmuExtension.cpp" />
     <ClCompile Include="Config\Mapping\WiimoteEmuGeneral.cpp" />
     <ClCompile Include="Config\Mapping\WiimoteEmuMotionControl.cpp" />
+    <ClCompile Include="Config\LoggerWidget.cpp" />
     <ClCompile Include="Config\PropertiesDialog.cpp" />
     <ClCompile Include="Config\SettingsWindow.cpp" />
     <ClCompile Include="GameList\GameFile.cpp" />
@@ -186,6 +189,7 @@
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MainWindow.cpp" />
     <ClCompile Include="MenuBar.cpp" />
+    <ClCompile Include="QtUtils\BlockUserInputFilter.cpp" />
     <ClCompile Include="QtUtils\DoubleClickEventFilter.cpp" />
     <ClCompile Include="QtUtils\ElidedButton.cpp" />
     <ClCompile Include="QtUtils\ListTabWidget.cpp" />
@@ -217,6 +221,7 @@
     <ClInclude Include="Config\Mapping\WiimoteEmuExtension.h" />
     <ClInclude Include="Config\Mapping\WiimoteEmuGeneral.h" />
     <ClInclude Include="Config\Mapping\WiimoteEmuMotionControl.h" />
+    <ClInclude Include="QtUtils\BlockUserInputFilter.h" />
     <ClInclude Include="QtUtils\ElidedButton.h" />
     <ClInclude Include="QtUtils\ListTabWidget.h" />
     <ClInclude Include="Resources.h" />

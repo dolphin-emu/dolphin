@@ -89,6 +89,7 @@
     <ClInclude Include="GL\GLExtensions\ARB_shader_image_load_store.h" />
     <ClInclude Include="GL\GLExtensions\ARB_shader_storage_buffer_object.h" />
     <ClInclude Include="GL\GLExtensions\ARB_sync.h" />
+    <ClInclude Include="GL\GLExtensions\ARB_texture_compression_bptc.h" />
     <ClInclude Include="GL\GLExtensions\ARB_texture_multisample.h" />
     <ClInclude Include="GL\GLExtensions\ARB_texture_storage.h" />
     <ClInclude Include="GL\GLExtensions\ARB_texture_storage_multisample.h" />
@@ -125,6 +126,7 @@
     <ClInclude Include="HttpRequest.h" />
     <ClInclude Include="IniFile.h" />
     <ClInclude Include="JitRegister.h" />
+    <ClInclude Include="Lazy.h" />
     <ClInclude Include="LdrWatcher.h" />
     <ClInclude Include="LinearDiskCache.h" />
     <ClInclude Include="MathUtil.h" />

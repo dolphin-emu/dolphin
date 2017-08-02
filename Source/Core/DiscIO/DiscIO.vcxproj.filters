@@ -57,8 +57,8 @@
     <ClCompile Include="WbfsBlob.cpp">
       <Filter>Volume\Blob</Filter>
     </ClCompile>
-    <ClCompile Include="VolumeDirectory.cpp">
-      <Filter>Volume</Filter>
+    <ClCompile Include="DirectoryBlob.cpp">
+      <Filter>Volume\Blob</Filter>
     </ClCompile>
     <ClCompile Include="VolumeGC.cpp">
       <Filter>Volume</Filter>
@@ -122,8 +122,8 @@
     <ClInclude Include="Volume.h">
       <Filter>Volume</Filter>
     </ClInclude>
-    <ClInclude Include="VolumeDirectory.h">
-      <Filter>Volume</Filter>
+    <ClInclude Include="DirectoryBlob.h">
+      <Filter>Volume\Blob</Filter>
     </ClInclude>
     <ClInclude Include="VolumeGC.h">
       <Filter>Volume</Filter>

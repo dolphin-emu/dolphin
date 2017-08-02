@@ -76,7 +76,9 @@ ControllerEmu::ControlGroup* GetTurntableGroup(int number, WiimoteEmu::Turntable
 
 void ControlChannel(int number, u16 channel_id, const void* data, u32 size);
 void InterruptChannel(int number, u16 channel_id, const void* data, u32 size);
+bool ButtonPressed(int number);
 void Update(int number, bool connected);
+bool NetPlay_GetButtonPress(int wiimote, bool pressed);
 }
 
 namespace WiimoteReal

@@ -35,7 +35,6 @@ class TMDReader;
 // DSP Backend Types
 #define BACKEND_NULLSOUND _trans("No audio output")
 #define BACKEND_ALSA "ALSA"
-#define BACKEND_COREAUDIO "CoreAudio"
 #define BACKEND_CUBEB "Cubeb"
 #define BACKEND_OPENAL "OpenAL"
 #define BACKEND_PULSEAUDIO "Pulse"
@@ -198,8 +197,6 @@ struct SConfig : NonCopyable
   std::string m_strBootROM;
   std::string m_strSRAM;
   std::string m_strDefaultISO;
-  std::string m_strDVDRoot;
-  std::string m_strApploader;
   std::string m_strWiiSDCardPath;
 
   std::string m_perfDir;

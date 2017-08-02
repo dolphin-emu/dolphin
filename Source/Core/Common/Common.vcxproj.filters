@@ -253,7 +253,11 @@
       <Filter>GL\GLExtensions</Filter>
     </ClInclude>
     <ClInclude Include="File.h" />
+    <ClInclude Include="Lazy.h" />
     <ClInclude Include="LdrWatcher.h" />
+    <ClInclude Include="GL\GLExtensions\ARB_texture_compression_bptc.h">
+      <Filter>GL\GLExtensions</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CDUtils.cpp" />

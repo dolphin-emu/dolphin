@@ -94,7 +94,7 @@ bool CBoot::Boot_WiiWAD(const std::string& _pFilename)
     IOS::HLE::CreateVirtualFATFilesystem();
   // setup Wii memory
 
-  if (!SetupWiiMemory(nullptr, ContentLoader.GetTMD().GetIOSId()))
+  if (!SetupWiiMemory(ContentLoader.GetTMD().GetIOSId()))
     return false;
 
   IOS::HLE::Device::ES::LoadWAD(_pFilename);

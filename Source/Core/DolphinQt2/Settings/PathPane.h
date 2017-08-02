@@ -19,8 +19,6 @@ public:
 private:
   void Browse();
   void BrowseDefaultGame();
-  void BrowseDVDRoot();
-  void BrowseApploader();
   void BrowseWiiNAND();
   QGroupBox* MakeGameFolderBox();
   QGridLayout* MakePathsLayout();
@@ -28,7 +26,5 @@ private:
 
   QListWidget* m_path_list;
   QLineEdit* m_game_edit;
-  QLineEdit* m_dvd_edit;
-  QLineEdit* m_app_edit;
   QLineEdit* m_nand_edit;
 };

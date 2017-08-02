@@ -319,6 +319,14 @@ bool ParseDDSHeader(File::IOFile& file, DDSLoadInfo* info)
       info->bytes_per_block = 16;
       needs_s3tc = true;
     }
+    else if (dxt10_format == 98)
+    {
+      info->format = AbstractTextureFormat::BPTC;
+      info->block_size = 4;
+      info->bytes_per_block = 16;
+      if (!g_ActiveConfig.backend_info.bSupportsBPTCTextures)
+        return false;
+    }
     else
     {
       // Leave all remaining formats to SOIL.

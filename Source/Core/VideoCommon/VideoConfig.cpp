@@ -38,6 +38,7 @@ VideoConfig::VideoConfig()
   backend_info.bSupportsMultithreading = false;
   backend_info.bSupportsInternalResolutionFrameDumps = false;
   backend_info.bSupportsST3CTextures = false;
+  backend_info.bSupportsBPTCTextures = false;
 
   bEnableValidationLayer = false;
   bBackendMultithreading = true;
@@ -99,8 +100,6 @@ void VideoConfig::Refresh()
   bPrecompileUberShaders = Config::Get(Config::GFX_PRECOMPILE_UBER_SHADERS);
   iShaderCompilerThreads = Config::Get(Config::GFX_SHADER_COMPILER_THREADS);
   iShaderPrecompilerThreads = Config::Get(Config::GFX_SHADER_PRECOMPILER_THREADS);
-  bForceVertexUberShaders = Config::Get(Config::GFX_FORCE_VERTEX_UBER_SHADERS);
-  bForcePixelUberShaders = Config::Get(Config::GFX_FORCE_PIXEL_UBER_SHADERS);
 
   bZComploc = Config::Get(Config::GFX_SW_ZCOMPLOC);
   bZFreeze = Config::Get(Config::GFX_SW_ZFREEZE);

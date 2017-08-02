@@ -249,7 +249,7 @@ void VertexShaderCache::Shutdown()
 
 bool VertexShaderCache::SetShader(D3DVertexFormat* vertex_format)
 {
-  if (g_ActiveConfig.bDisableSpecializedShaders || g_ActiveConfig.bForceVertexUberShaders)
+  if (g_ActiveConfig.bDisableSpecializedShaders)
     return SetUberShader(vertex_format);
 
   VertexShaderUid uid = GetVertexShaderUid();

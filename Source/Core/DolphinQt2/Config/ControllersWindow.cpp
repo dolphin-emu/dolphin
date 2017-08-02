@@ -162,7 +162,7 @@ void ControllersWindow::CreateWiimoteLayout()
   m_wiimote_refresh = new QPushButton(tr("Refresh"));
   m_wiimote_pt_labels[0] = new QLabel(tr("Sync real Wii Remotes and pair them"));
   m_wiimote_pt_labels[1] = new QLabel(tr("Reset all saved Wii Remote pairings"));
-  m_wiimote_emu = new QRadioButton(tr("Emulate the Wii's Bluetooth Adapter"));
+  m_wiimote_emu = new QRadioButton(tr("Emulate the Wii's Bluetooth adapter"));
   m_wiimote_continuous_scanning = new QCheckBox(tr("Continuous Scanning"));
   m_wiimote_real_balance_board = new QCheckBox(tr("Real Balance Board"));
   m_wiimote_speaker_data = new QCheckBox(tr("Enable Speaker Data"));

@@ -30,6 +30,12 @@ public:
   QVector<QString> GetProfiles(const InputConfig* config) const;
   QString GetProfileINIPath(const InputConfig* config, const QString& name) const;
 
+  bool IsInDevelopmentWarningEnabled() const;
+  bool IsLogVisible() const;
+  void SetLogVisible(bool visible);
+  bool IsLogConfigVisible() const;
+  void SetLogConfigVisible(bool visible);
+
   // GameList
   QStringList GetPaths() const;
   void AddPath(const QString& path);
@@ -58,6 +64,8 @@ signals:
   void HideCursorChanged();
   void VolumeChanged(int volume);
   void NANDRefresh();
+  void LogVisibilityChanged(bool visible);
+  void LogConfigVisibilityChanged(bool visible);
 
 private:
   Settings();

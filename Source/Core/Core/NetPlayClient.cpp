@@ -1280,6 +1280,27 @@ bool WiimoteEmu::Wiimote::NetPlay_GetWiimoteData(int wiimote, u8* data, u8 size,
     return false;
 }
 
+// Sync the info whether a button was pressed or not. Used for the reconnect on button press feature
+bool Wiimote::NetPlay_GetButtonPress(int wiimote, bool pressed)
+{
+  std::lock_guard<std::mutex> lk(crit_netplay_client);
+
+  // Use the reporting mode 0 for the button pressed event, the real ones start at RT_REPORT_CORE
+  u8 data[2] = {static_cast<u8>(pressed), 0};
+
+  if (netplay_client)
+  {
+    if (netplay_client->WiimoteUpdate(wiimote, data, 2, 0))
+    {
+      return data[0];
+    }
+    PanicAlertT("Netplay has desynced in NetPlay_GetButtonPress()");
+    return false;
+  }
+
+  return pressed;
+}
+
 // called from ---CPU--- thread
 // so all players' games get the same time
 //
