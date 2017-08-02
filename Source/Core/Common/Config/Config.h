@@ -95,6 +95,7 @@ void Set(LayerType layer, const ConfigInfo<T>& info, const T& value)
   GetLayer(layer)
       ->GetOrCreateSection(info.location.system, info.location.section)
       ->Set(info.location.key, value);
+  InvokeConfigChangedCallbacks();
 }
 
 template <typename T>
