@@ -106,7 +106,6 @@ protected:
 class FileSystem
 {
 public:
-  FileSystem(const Volume* volume, const Partition& partition);
   virtual ~FileSystem();
 
   // If IsValid is false, GetRoot must not be called.
@@ -118,11 +117,6 @@ public:
   virtual std::unique_ptr<FileInfo> FindFileInfo(const std::string& path) const = 0;
   // Returns nullptr if not found
   virtual std::unique_ptr<FileInfo> FindFileInfo(u64 disc_offset) const = 0;
-
-  virtual const Partition GetPartition() const { return m_partition; }
-protected:
-  const Volume* const m_volume;
-  const Partition m_partition;
 };
 
 // Calling Volume::GetFileSystem instead of manually constructing a filesystem is recommended,
