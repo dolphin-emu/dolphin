@@ -531,3 +531,10 @@ wxString StrToWxStr(const std::string& str)
   // return wxString::FromUTF8Unchecked(str.c_str());
   return wxString::FromUTF8(str.c_str());
 }
+
+unsigned long WxStrToUL(const wxString& str)
+{
+  unsigned long value = 0;
+  str.ToULong(&value);
+  return value;
+}
