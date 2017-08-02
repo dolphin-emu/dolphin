@@ -231,7 +231,8 @@ bool CreateFullPath(const std::string& fullPath)
 
 // Returns a human-readable string representing a filesize
 std::string PrettyPrintFileSize(u64 size)
-{  // Return a pretty filesize string from byte count.
+{  
+  // Return a pretty filesize string from byte count.
   // e.g. 1134278 -> "1.08 MiB"
 
   const char* const unit_symbols[] = {"B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB"};
@@ -247,7 +248,6 @@ std::string PrettyPrintFileSize(u64 size)
   std::stringstream stream;
   stream << std::fixed << std::setprecision(2) << size / unit_size << " " << unit_symbols[unit];
   return stream.str();
-  //return wxString::Format("%.2f %s", size / unit_size, unit_symbols[unit]);
 }
 
 // Deletes a directory filename, returns true on success

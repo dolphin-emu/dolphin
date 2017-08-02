@@ -594,7 +594,6 @@ void GameListCtrl::UpdateItemAtColumn(long index, int column)
                        m_image_indexes.flag[static_cast<size_t>(iso_file.GetCountry())]);
     break;
   case COLUMN_SIZE:
-    //SetItem(index, COLUMN_SIZE, NiceSizeFormat(iso_file.GetFileSize()), -1);
     SetItem(index, COLUMN_SIZE, File::PrettyPrintFileSize(iso_file.GetFileSize()), -1);
     break;
   case COLUMN_ID:
