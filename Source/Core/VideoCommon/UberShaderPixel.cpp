@@ -894,7 +894,7 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
   {
     out.Write("  // If early depth is enabled, write to zbuffer before depth textures\n");
     out.Write("  // If early depth isn't enabled, we write to the zbuffer here\n");
-    out.Write("  int zbuffer_zCoord = bpmem_early_ztest ? early_zCoord : zCoord;\n");
+    out.Write("  int zbuffer_zCoord = bpmem_late_ztest ? zCoord : early_zCoord;\n");
     if (ApiType == APIType::D3D || ApiType == APIType::Vulkan)
       out.Write("  depth = 1.0 - float(zbuffer_zCoord) / 16777216.0;\n");
     else
