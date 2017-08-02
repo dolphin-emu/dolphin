@@ -79,23 +79,26 @@ private:
                                                     // (only one for BNR1 type)
   };
 
-  void LoadBannerFile() const;
-  void ExtractBannerInformation(const GCBanner& banner_file, bool is_bnr1) const;
+  struct ConvertedGCBanner
+  {
+    std::map<Language, std::string> short_names;
+    std::map<Language, std::string> long_names;
+    std::map<Language, std::string> short_makers;
+    std::map<Language, std::string> long_makers;
+    std::map<Language, std::string> descriptions;
+
+    std::vector<u32> image_buffer;
+    int image_height = 0;
+    int image_width = 0;
+  };
+
+  ConvertedGCBanner LoadBannerFile() const;
+  ConvertedGCBanner ExtractBannerInformation(const GCBanner& banner_file, bool is_bnr1) const;
 
   static const size_t BNR1_SIZE = sizeof(GCBanner) - sizeof(GCBannerInformation) * 5;
   static const size_t BNR2_SIZE = sizeof(GCBanner);
 
-  mutable std::map<Language, std::string> m_short_names;
-
-  mutable std::map<Language, std::string> m_long_names;
-  mutable std::map<Language, std::string> m_short_makers;
-  mutable std::map<Language, std::string> m_long_makers;
-  mutable std::map<Language, std::string> m_descriptions;
-
-  mutable bool m_banner_loaded = false;
-  mutable std::vector<u32> m_image_buffer;
-  mutable int m_image_height = 0;
-  mutable int m_image_width = 0;
+  Common::Lazy<ConvertedGCBanner> m_converted_banner;
 
   Common::Lazy<std::unique_ptr<FileSystem>> m_file_system;
 
