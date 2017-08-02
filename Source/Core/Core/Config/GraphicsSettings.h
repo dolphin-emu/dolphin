@@ -21,6 +21,7 @@ extern const ConfigInfo<int> GFX_ADAPTER;
 
 extern const ConfigInfo<bool> GFX_WIDESCREEN_HACK;
 extern const ConfigInfo<int> GFX_ASPECT_RATIO;
+extern const ConfigInfo<int> GFX_SUGGESTED_ASPECT_RATIO;
 extern const ConfigInfo<bool> GFX_CROP;
 extern const ConfigInfo<bool> GFX_USE_XFB;
 extern const ConfigInfo<bool> GFX_USE_REAL_XFB;
