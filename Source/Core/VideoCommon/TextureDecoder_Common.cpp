@@ -677,6 +677,12 @@ static u8 ExpandI4ToI8(u8 v)
   return (masked << 4) | masked;
 }
 
+static u16 ExpandI4ToARGB4(u8 v)
+{
+  u16 masked = v & 0xF;
+  return (masked << 12) | (masked << 8) | (masked << 4) | masked;
+}
+
 class AI4ToAI8TexelDecoder
 {
 public:
@@ -751,6 +757,29 @@ public:
   }
 };
 
+// Functor to unpack an I4 tile to ARGB4.
+class I4ToARGB4TileUnpacker
+{
+public:
+  inline void operator()(u8* __restrict dst, const u8* __restrict src, int dst_pitch)
+  {
+    static const int TW = 8;
+    static const int TH = 8;
+
+    for (int y = 0; y < TH; ++y)
+    {
+      const u8* src_row = &src[y * (TW / 2)];
+      u16* dst_row = reinterpret_cast<u16*>(&dst[y * dst_pitch]);
+      for (int x = 0; x < (TW / 2); ++x)
+      {
+        u8 v = src_row[x];
+        dst_row[x * 2] = ExpandI4ToARGB4(v >> 4);
+        dst_row[x * 2 + 1] = ExpandI4ToARGB4(v & 0xF);
+      }
+    }
+  }
+};
+
 // Unpack a grid of tiles to linear form.
 // TW:            tile width
 // TH:            tile height
@@ -785,6 +814,15 @@ void TexDecoder_Decode4BitTiledTo8BitLinear(u8* __restrict dst, const u8* __rest
   static const int TH = 8;
   static const int TBYTES = 32;
   DecodeTiledToLinear<TW, TH, TBYTES, u8, I4ToI8TileUnpacker>(dst, src, width, height);
+}
+
+void TexDecoder_DecodeI4ToARGB4Linear(u8* __restrict dst, const u8* __restrict src, int width,
+                                      int height)
+{
+  static const int TW = 8;
+  static const int TH = 8;
+  static const int TBYTES = 32;
+  DecodeTiledToLinear<TW, TH, TBYTES, u16, I4ToARGB4TileUnpacker>(dst, src, width, height);
 }
 
 void TexDecoder_DecodeAI4TiledToAI8Linear(u8* __restrict dst, const u8* __restrict src, int width,
