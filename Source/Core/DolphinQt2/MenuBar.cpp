@@ -188,13 +188,13 @@ void MenuBar::UpdateStateSlotMenu()
 void MenuBar::AddViewMenu()
 {
   QMenu* view_menu = addMenu(tr("&View"));
-  QAction* show_log = view_menu->addAction(tr("Show Log"));
+  QAction* show_log = view_menu->addAction(tr("Show &Log"));
   show_log->setCheckable(true);
   show_log->setChecked(Settings::Instance().IsLogVisible());
 
   connect(show_log, &QAction::toggled, &Settings::Instance(), &Settings::SetLogVisible);
 
-  QAction* show_log_config = view_menu->addAction(tr("Show Log Configuration"));
+  QAction* show_log_config = view_menu->addAction(tr("Show Log &Configuration"));
   show_log_config->setCheckable(true);
   show_log_config->setChecked(Settings::Instance().IsLogConfigVisible());
 
