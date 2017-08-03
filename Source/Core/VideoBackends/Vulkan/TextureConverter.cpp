@@ -181,8 +181,10 @@ void TextureConverter::ConvertTexture(TextureCacheBase::TCacheEntry* dst_entry,
   _assert_(static_cast<size_t>(palette_format) < NUM_PALETTE_CONVERSION_SHADERS);
   _assert_(destination_texture->GetConfig().rendertarget);
 
+  const u32 src_texture_format = src_entry->TextureFormat();
+
   // We want to align to 2 bytes (R16) or the device's texel buffer alignment, whichever is greater.
-  size_t palette_size = (src_entry->format & 0xF) == GX_TF_I4 ? 32 : 512;
+  size_t palette_size = src_texture_format == GX_TF_I4 ? 32 : 512;
   if (!ReserveTexelBufferStorage(palette_size, sizeof(u16)))
     return;
 
@@ -207,7 +209,7 @@ void TextureConverter::ConvertTexture(TextureCacheBase::TCacheEntry* dst_entry,
   draw.BeginRenderPass(destination_texture->GetFramebuffer(), region);
 
   PSUniformBlock uniforms = {};
-  uniforms.multiplier = (src_entry->format & 0xF) == GX_TF_I4 ? 15.0f : 255.0f;
+  uniforms.multiplier = src_texture_format == GX_TF_I4 ? 15.0f : 255.0f;
   uniforms.texel_buffer_offset = static_cast<int>(palette_offset / sizeof(u16));
   draw.SetPushConstants(&uniforms, sizeof(uniforms));
   draw.SetPSSampler(0, source_texture->GetRawTexIdentifier()->GetView(),
