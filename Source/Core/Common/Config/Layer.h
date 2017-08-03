@@ -75,8 +75,6 @@ public:
 
   LayerType GetLayer() const;
   const LayerMap& GetLayerMap() const;
-  // Stay away from this routine as much as possible
-  ConfigLayerLoader* GetLoader() const;
 
 protected:
   bool IsDirty() const;

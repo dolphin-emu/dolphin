@@ -33,6 +33,7 @@
 
 #include "Common/Config/Config.h"
 #include "Core/Boot/Boot.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigLoaders/BaseConfigLoader.h"
 #include "Core/ConfigLoaders/GameConfigLoader.h"
@@ -312,13 +313,14 @@ bool BootCore(std::unique_ptr<BootParameters> boot)
   // Movie settings
   if (Movie::IsPlayingInput() && Movie::IsConfigSaved())
   {
-    StartUp.bCPUThread = Movie::IsDualCore();
-    StartUp.bDSPHLE = Movie::IsDSPHLE();
-    StartUp.bFastDiscSpeed = Movie::IsFastDiscSpeed();
-    StartUp.iCPUCore = Movie::GetCPUMode();
-    StartUp.bSyncGPU = Movie::IsSyncGPU();
+    // TODO: remove this once ConfigManager starts using OnionConfig.
+    StartUp.bCPUThread = Config::Get(Config::MAIN_CPU_THREAD);
+    StartUp.bDSPHLE = Config::Get(Config::MAIN_DSP_HLE);
+    StartUp.bFastDiscSpeed = Config::Get(Config::MAIN_FAST_DISC_SPEED);
+    StartUp.iCPUCore = Config::Get(Config::MAIN_CPU_CORE);
+    StartUp.bSyncGPU = Config::Get(Config::MAIN_SYNC_GPU);
     if (!StartUp.bWii)
-      StartUp.SelectedLanguage = Movie::GetLanguage();
+      StartUp.SelectedLanguage = Config::Get(Config::MAIN_GC_LANGUAGE);
     for (int i = 0; i < 2; ++i)
     {
       if (Movie::IsUsingMemcard(i) && Movie::IsStartingFromClearSave() && !StartUp.bWii)
