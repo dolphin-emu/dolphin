@@ -13,6 +13,10 @@ RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
   setAttribute(Qt::WA_OpaquePaintEvent, true);
   setAttribute(Qt::WA_NoSystemBackground, true);
 
+  // This fixes the flickering that happens on some systems. See
+  // http://vtk.1045678.n5.nabble.com/QVtkWidgets-problem-with-Qt-PaintOnScreen-attribute-and-Aero-td5730202.html
+  setAttribute(Qt::WA_PaintOnScreen, false);
+
   connect(Host::GetInstance(), &Host::RequestTitle, this, &RenderWidget::setWindowTitle);
   connect(this, &RenderWidget::StateChanged, Host::GetInstance(), &Host::SetRenderFullscreen);
   connect(this, &RenderWidget::HandleChanged, Host::GetInstance(), &Host::SetRenderHandle);
