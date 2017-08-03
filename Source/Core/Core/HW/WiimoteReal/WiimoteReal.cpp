@@ -892,11 +892,13 @@ bool CheckForButtonPress(int wiimote_number)
   if (!g_wiimotes_mutex.try_lock())
     return false;
 
+  bool button_pressed = false;
+
   if (g_wiimotes[wiimote_number])
-    return g_wiimotes[wiimote_number]->CheckForButtonPress();
+    button_pressed = g_wiimotes[wiimote_number]->CheckForButtonPress();
 
   g_wiimotes_mutex.unlock();
-  return false;
+  return button_pressed;
 }
 
 bool IsValidDeviceName(const std::string& name)
