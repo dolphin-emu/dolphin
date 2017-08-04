@@ -219,6 +219,14 @@ private:
   typedef std::multimap<u64, TCacheEntry*> TexHashCache;
   typedef std::unordered_multimap<TextureConfig, TexPoolEntry, TextureConfig::Hasher> TexPool;
 
+  struct TextureDecoderInfo
+  {
+    AbstractTextureFormat destfmt;
+    size_t bytes_per_texel;
+    std::function<void(u8* __restrict dst, const u8* __restrict src, int width, int height)>
+        decode_fn;
+  };
+
   alignas(16) u8* temp = nullptr;
   size_t temp_size = 0;
 
@@ -242,6 +250,8 @@ private:
   // indexed, this may return false positives.
   std::pair<TexAddrCache::iterator, TexAddrCache::iterator>
   FindOverlappingTextures(u32 addr, u32 size_in_bytes);
+
+  const TextureDecoderInfo* ChooseTextureDecoder(TextureFormat texfmt) const;
 
   virtual std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config) = 0;
 
