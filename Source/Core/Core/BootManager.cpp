@@ -107,10 +107,6 @@ bool BootCore(std::unique_ptr<BootParameters> boot)
     return false;
 
   SConfig& StartUp = SConfig::GetInstance();
-
-  StartUp.bRunCompareClient = false;
-  StartUp.bRunCompareServer = false;
-
   config_cache.SaveConfig(StartUp);
 
   if (!StartUp.SetPathsAndGameMetadata(*boot))

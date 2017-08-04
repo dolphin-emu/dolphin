@@ -67,8 +67,6 @@ const ConfigInfo<bool> MAIN_WIIMOTE_CONTINUOUS_SCANNING{
     {System::Main, "Core", "WiimoteContinuousScanning"}, false};
 const ConfigInfo<bool> MAIN_WIIMOTE_ENABLE_SPEAKER{{System::Main, "Core", "WiimoteEnableSpeaker"},
                                                    false};
-const ConfigInfo<bool> MAIN_RUN_COMPARE_SERVER{{System::Main, "Core", "RunCompareServer"}, false};
-const ConfigInfo<bool> MAIN_RUN_COMPARE_CLIENT{{System::Main, "Core", "RunCompareClient"}, false};
 const ConfigInfo<bool> MAIN_MMU{{System::Main, "Core", "MMU"}, false};
 const ConfigInfo<int> MAIN_BB_DUMP_PORT{{System::Main, "Core", "BBDumpPort"}, -1};
 const ConfigInfo<bool> MAIN_SYNC_GPU{{System::Main, "Core", "SyncGPU"}, false};

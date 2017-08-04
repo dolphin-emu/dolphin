@@ -589,15 +589,10 @@ static void EmuThread(std::unique_ptr<BootParameters> boot)
   UndeclareAsCPUThread();
 
   // Setup our core, but can't use dynarec if we are compare server
-  if (Config::Get(Config::MAIN_CPU_CORE) != PowerPC::CORE_INTERPRETER &&
-      (!core_parameter.bRunCompareServer || core_parameter.bRunCompareClient))
-  {
+  if (Config::Get(Config::MAIN_CPU_CORE) != PowerPC::CORE_INTERPRETER)
     PowerPC::SetMode(PowerPC::CoreMode::JIT);
-  }
   else
-  {
     PowerPC::SetMode(PowerPC::CoreMode::Interpreter);
-  }
 
   // Update the window again because all stuff is initialized
   Host_UpdateDisasmDialog();

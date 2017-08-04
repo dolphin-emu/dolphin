@@ -44,8 +44,6 @@ extern const ConfigInfo<bool> MAIN_WII_SD_CARD_WRITABLE;
 extern const ConfigInfo<bool> MAIN_WII_KEYBOARD;
 extern const ConfigInfo<bool> MAIN_WIIMOTE_CONTINUOUS_SCANNING;
 extern const ConfigInfo<bool> MAIN_WIIMOTE_ENABLE_SPEAKER;
-extern const ConfigInfo<bool> MAIN_RUN_COMPARE_SERVER;
-extern const ConfigInfo<bool> MAIN_RUN_COMPARE_CLIENT;
 extern const ConfigInfo<bool> MAIN_MMU;
 extern const ConfigInfo<int> MAIN_BB_DUMP_PORT;
 extern const ConfigInfo<bool> MAIN_SYNC_GPU;

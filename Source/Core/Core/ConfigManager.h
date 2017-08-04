@@ -60,7 +60,7 @@ struct SConfig
   // Settings
   bool bEnableDebugging = false;
 #ifdef USE_GDBSTUB
-  int iGDBPort;
+  int iGDBPort = -1;
 #ifndef _WIN32
   std::string gdb_socket;
 #endif
@@ -101,9 +101,6 @@ struct SConfig
   bool m_audio_stretch = false;
   int m_audio_stretch_max_latency = 80;
 
-  bool bRunCompareServer = false;
-  bool bRunCompareClient = false;
-
   bool bMMU = false;
   bool bDCBZOFF = false;
   bool bLowDCBZHack = false;
@@ -138,7 +135,10 @@ struct SConfig
   bool bFullscreen = false, bRenderToMain = false;
   bool bDisableScreenSaver = false;
 
-  int iPosX, iPosY, iWidth, iHeight;
+  int iPosX = std::numeric_limits<int>::min();
+  int iPosY = std::numeric_limits<int>::min();
+  int iWidth = -1;
+  int iHeight = -1;
 
   // Analytics settings.
   std::string m_analytics_id;

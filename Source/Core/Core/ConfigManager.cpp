@@ -493,8 +493,6 @@ void SConfig::LoadCoreSettings()
     m_AdapterKonga[i] = Config::Get(Config::GetInfoForSimulateKonga(i));
   }
 
-  bRunCompareServer = Config::Get(Config::MAIN_RUN_COMPARE_SERVER);
-  bRunCompareClient = Config::Get(Config::MAIN_RUN_COMPARE_CLIENT);
   bMMU = Config::Get(Config::MAIN_MMU);
   iBBDumpPort = Config::Get(Config::MAIN_BB_DUMP_PORT);
   bSyncGPU = Config::Get(Config::MAIN_SYNC_GPU);
@@ -683,62 +681,7 @@ void SConfig::SetRunningGameMetadata(const std::string& game_id, u64 title_id, u
 
 void SConfig::LoadDefaults()
 {
-  bEnableDebugging = false;
-  bAutomaticStart = false;
-  bBootToPause = false;
-
-#ifdef USE_GDBSTUB
-  iGDBPort = -1;
-#ifndef _WIN32
-  gdb_socket = "";
-#endif
-#endif
-
-  iTimingVariance = 40;
-  bCPUThread = false;
-  bSyncGPUOnSkipIdleHack = true;
-  bRunCompareServer = false;
-  bDSPHLE = true;
-  bFastmem = true;
-  bFPRF = false;
-  bAccurateNaNs = false;
-  bMMU = false;
-  bDCBZOFF = false;
-  bLowDCBZHack = false;
-  iBBDumpPort = -1;
-  bSyncGPU = false;
-  bFastDiscSpeed = false;
   m_strWiiSDCardPath = File::GetUserPath(F_WIISDCARD_IDX);
-  bEnableMemcardSdWriting = true;
-  SelectedLanguage = 0;
-  bOverrideGCLanguage = false;
-  bWii = false;
-  bDPL2Decoder = false;
-  iLatency = 20;
-  m_audio_stretch = false;
-  m_audio_stretch_max_latency = 80;
-
-  iPosX = INT_MIN;
-  iPosY = INT_MIN;
-  iWidth = -1;
-  iHeight = -1;
-
-  m_analytics_id = "";
-  m_analytics_enabled = false;
-  m_analytics_permission_asked = false;
-
-  bLoopFifoReplay = true;
-
-  bJITOff = false;  // debugger only settings
-  bJITLoadStoreOff = false;
-  bJITLoadStoreFloatingOff = false;
-  bJITLoadStorePairedOff = false;
-  bJITFloatingPointOff = false;
-  bJITIntegerOff = false;
-  bJITPairedOff = false;
-  bJITSystemRegistersOff = false;
-  bJITBranchOff = false;
-
   ResetRunningGameMetadata();
 }
 
