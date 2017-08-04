@@ -62,12 +62,14 @@ void Load()
 {
   for (auto& layer : s_layers)
     layer.second->Load();
+  InvokeConfigChangedCallbacks();
 }
 
 void Save()
 {
   for (auto& layer : s_layers)
     layer.second->Save();
+  InvokeConfigChangedCallbacks();
 }
 
 void Init()
