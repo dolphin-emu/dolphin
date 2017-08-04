@@ -129,7 +129,7 @@ void LoggerWidget::CreateWidgets()
   // Log
   m_tab_log = new QWidget;
   m_log_text = new QTextEdit;
-  m_log_wrap = new QCheckBox(tr("Wrap Text"));
+  m_log_wrap = new QCheckBox(tr("Word Wrap"));
   m_log_font = new QComboBox;
   m_log_clear = new QPushButton(tr("Clear"));
 
