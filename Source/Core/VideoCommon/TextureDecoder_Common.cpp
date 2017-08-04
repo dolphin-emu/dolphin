@@ -683,18 +683,6 @@ static u16 ExpandI4ToARGB4(u8 v)
   return (masked << 12) | (masked << 8) | (masked << 4) | masked;
 }
 
-class AI4ToAI8TexelDecoder
-{
-public:
-  inline u16 operator()(u8 val)
-  {
-    u8 result[2] = {
-        ExpandI4ToI8(val >> 4), ExpandI4ToI8(val & 0xF),
-    };
-    return *reinterpret_cast<const u16*>(result);
-  }
-};
-
 class AI4ToARGB4TexelDecoder
 {
 public:
@@ -825,18 +813,8 @@ void TexDecoder_DecodeI4ToARGB4Linear(u8* __restrict dst, const u8* __restrict s
   DecodeTiledToLinear<TW, TH, TBYTES, u16, I4ToARGB4TileUnpacker>(dst, src, width, height);
 }
 
-void TexDecoder_DecodeAI4TiledToAI8Linear(u8* __restrict dst, const u8* __restrict src, int width,
-                                          int height)
-{
-  static const int TW = 8;
-  static const int TH = 4;
-  static const int TBYTES = 32;
-  typedef TileUnpacker<TW, TH, u8, u16, AI4ToAI8TexelDecoder> AI4ToAI8TileUnpacker;
-  DecodeTiledToLinear<TW, TH, TBYTES, u16, AI4ToAI8TileUnpacker>(dst, src, width, height);
-}
-
-void TexDecoder_DecodeAI4TiledToARGB4Linear(u8* __restrict dst, const u8* __restrict src, int width,
-                                            int height)
+void TexDecoder_DecodeIA4ToARGB4Linear(u8* __restrict dst, const u8* __restrict src, int width,
+                                       int height)
 {
   static const int TW = 8;
   static const int TH = 4;

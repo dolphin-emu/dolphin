@@ -117,12 +117,9 @@ void TexDecoder_Decode4BitTiledTo8BitLinear(u8* __restrict dst, const u8* __rest
 // Decode I8 to ARGB4 linear format. Width and height are padded to 8x8.
 void TexDecoder_DecodeI4ToARGB4Linear(u8* __restrict dst, const u8* __restrict src, int width,
                                       int height);
-// Decode AI4 tiled texture formats to AI8 linear format. Width and height are padded to 8x4.
-void TexDecoder_DecodeAI4TiledToAI8Linear(u8* __restrict dst, const u8* __restrict src, int width,
-                                          int height);
-// Decode AI4 tiled texture format to BGRA4 linear format. Width and height are padded to 8x4.
-void TexDecoder_DecodeAI4TiledToARGB4Linear(u8* __restrict dst, const u8* __restrict src, int width,
-                                            int height);
+// Decode IA4 to BGRA4 linear format. Width and height are padded to 8x4.
+void TexDecoder_DecodeIA4ToARGB4Linear(u8* __restrict dst, const u8* __restrict src, int width,
+                                       int height);
 // Decode 8-bit tiled texture formats (I8, IA4) to 8-bit linear format. Width and height are padded
 // to 8x4.
 void TexDecoder_Decode8BitTiledToLinear(u8* __restrict dst, const u8* __restrict src, int width,
