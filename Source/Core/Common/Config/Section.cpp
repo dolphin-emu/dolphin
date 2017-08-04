@@ -54,6 +54,11 @@ void Section::Set(const std::string& key, const std::string& value)
   }
 }
 
+void Section::Set(const std::string& key, u16 newValue)
+{
+  Section::Set(key, StringFromFormat("0x%04x", newValue));
+}
+
 void Section::Set(const std::string& key, u32 newValue)
 {
   Section::Set(key, StringFromFormat("0x%08x", newValue));
@@ -113,6 +118,18 @@ bool Section::Get(const std::string& key, std::string* value,
 }
 
 bool Section::Get(const std::string& key, int* value, int defaultValue) const
+{
+  std::string temp;
+  bool retval = Get(key, &temp);
+
+  if (retval && TryParse(temp, value))
+    return true;
+
+  *value = defaultValue;
+  return false;
+}
+
+bool Section::Get(const std::string& key, u16* value, u16 defaultValue) const
 {
   std::string temp;
   bool retval = Get(key, &temp);
