@@ -3,7 +3,7 @@
 # This script updates the dolphin-emu.pot file to match the strings in
 # the source code.
 
-cd ${0/update-source-strings.sh/}/..
+cd "$(dirname "$0")/.."
 SRCDIR=Source
 find $SRCDIR -name '*.cpp' -o -name '*.h' -o -name '*.c' | \
 	xgettext -d dolphin-emu -s --keyword=_ --keyword=wxTRANSLATE --keyword=SuccessAlertT \
