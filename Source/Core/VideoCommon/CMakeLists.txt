@@ -39,6 +39,7 @@ set(SRCS
   TextureCacheBase.cpp
   TextureConfig.cpp
   TextureConversionShader.cpp
+  TextureConverterShaderGen.cpp
   TextureDecoder_Common.cpp
   VertexLoader.cpp
   VertexLoaderBase.cpp

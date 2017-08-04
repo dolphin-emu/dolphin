@@ -13,6 +13,7 @@
 
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/TextureConversionShader.h"
+#include "VideoCommon/TextureConverterShaderGen.h"
 #include "VideoCommon/VideoCommon.h"
 
 class AbstractTexture;
@@ -67,7 +68,8 @@ private:
                bool scale_by_half) override;
 
   void CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy, const EFBRectangle& src_rect,
-                           bool scale_by_half, unsigned int cbuf_id, const float* colmat) override;
+                           bool scale_by_half, unsigned int cbuf_id, const float* colmat,
+                           EFBCopyFormat dst_format, bool is_intensity) override;
 
   bool CompileShaders() override;
   void DeleteShaders() override;
@@ -78,17 +80,16 @@ private:
   void CreateTextureDecodingResources();
   void DestroyTextureDecodingResources();
 
-  SHADER m_colorCopyProgram;
-  SHADER m_colorMatrixProgram;
-  SHADER m_depthMatrixProgram;
-  GLuint m_colorMatrixUniform;
-  GLuint m_depthMatrixUniform;
-  GLuint m_colorCopyPositionUniform;
-  GLuint m_colorMatrixPositionUniform;
-  GLuint m_depthCopyPositionUniform;
+  struct EFBCopyShader
+  {
+    SHADER shader;
+    GLuint position_uniform;
+  };
 
-  u32 m_color_cbuf_id;
-  u32 m_depth_cbuf_id;
+  std::map<TextureConverterShaderUid, EFBCopyShader> m_efb_copy_programs;
+
+  SHADER m_colorCopyProgram;
+  GLuint m_colorCopyPositionUniform;
 
   std::array<PaletteShader, 3> m_palette_shaders;
   std::unique_ptr<StreamBuffer> m_palette_stream_buffer;

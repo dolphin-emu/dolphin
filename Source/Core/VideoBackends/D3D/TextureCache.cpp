@@ -222,7 +222,8 @@ TextureCache::~TextureCache()
 
 void TextureCache::CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy,
                                        const EFBRectangle& src_rect, bool scale_by_half,
-                                       unsigned int cbuf_id, const float* colmat)
+                                       unsigned int cbuf_id, const float* colmat,
+                                       EFBCopyFormat dst_format, bool is_intensity)
 {
   auto* destination_texture = static_cast<DXTexture*>(entry->texture.get());
 
