@@ -16,7 +16,7 @@
 #include <windows.h>
 #endif
 
-bool DefaultMsgHandler(const char* caption, const char* text, bool yes_no, int Style);
+bool DefaultMsgHandler(const char* caption, const char* text, bool yes_no, MsgType style);
 static MsgAlertHandler msg_handler = DefaultMsgHandler;
 static bool AlertEnabled = true;
 
@@ -42,14 +42,14 @@ void SetEnableAlert(bool enable)
   AlertEnabled = enable;
 }
 
-std::string GetTranslation(const char* string)
+std::string GetStringT(const char* string)
 {
   return str_translator(string);
 }
 
 // This is the first stop for gui alerts where the log is updated and the
 // correct window is shown
-bool MsgAlert(bool yes_no, int Style, const char* format, ...)
+bool MsgAlert(bool yes_no, MsgType style, const char* format, ...)
 {
   // Read message and write it to the log
   std::string caption;
@@ -68,18 +68,18 @@ bool MsgAlert(bool yes_no, int Style, const char* format, ...)
     crit_caption = str_translator(_trans("Critical"));
   }
 
-  switch (Style)
+  switch (style)
   {
-  case INFORMATION:
+  case MsgType::Information:
     caption = info_caption;
     break;
-  case QUESTION:
+  case MsgType::Question:
     caption = ques_caption;
     break;
-  case WARNING:
+  case MsgType::Warning:
     caption = warn_caption;
     break;
-  case CRITICAL:
+  case MsgType::Critical:
     caption = crit_caption;
     break;
   }
@@ -92,24 +92,24 @@ bool MsgAlert(bool yes_no, int Style, const char* format, ...)
   ERROR_LOG(MASTER_LOG, "%s: %s", caption.c_str(), buffer);
 
   // Don't ignore questions, especially AskYesNo, PanicYesNo could be ignored
-  if (msg_handler && (AlertEnabled || Style == QUESTION || Style == CRITICAL))
-    return msg_handler(caption.c_str(), buffer, yes_no, Style);
+  if (msg_handler && (AlertEnabled || style == MsgType::Question || style == MsgType::Critical))
+    return msg_handler(caption.c_str(), buffer, yes_no, style);
 
   return true;
 }
 
 // Default non library dependent panic alert
-bool DefaultMsgHandler(const char* caption, const char* text, bool yes_no, int Style)
+bool DefaultMsgHandler(const char* caption, const char* text, bool yes_no, MsgType style)
 {
 #ifdef _WIN32
-  int STYLE = MB_ICONINFORMATION;
-  if (Style == QUESTION)
-    STYLE = MB_ICONQUESTION;
-  if (Style == WARNING)
-    STYLE = MB_ICONWARNING;
+  int window_style = MB_ICONINFORMATION;
+  if (style == MsgType::Question)
+    window_style = MB_ICONQUESTION;
+  if (style == MsgType::Warning)
+    window_style = MB_ICONWARNING;
 
   return IDYES == MessageBox(0, UTF8ToTStr(text).c_str(), UTF8ToTStr(caption).c_str(),
-                             STYLE | (yes_no ? MB_YESNO : MB_OK));
+                             window_style | (yes_no ? MB_YESNO : MB_OK));
 #else
   fprintf(stderr, "%s\n", text);
 

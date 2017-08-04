@@ -8,16 +8,45 @@
 #include <QMessageBox>
 #include <QObject>
 
+#include "Common/MsgHandler.h"
 #include "Core/Analytics.h"
 #include "Core/BootManager.h"
 #include "Core/Core.h"
 #include "DolphinQt2/Host.h"
 #include "DolphinQt2/InDevelopmentWarning.h"
 #include "DolphinQt2/MainWindow.h"
+#include "DolphinQt2/QtUtils/RunOnObject.h"
 #include "DolphinQt2/Resources.h"
 #include "DolphinQt2/Settings.h"
 #include "UICommon/CommandLineParse.h"
 #include "UICommon/UICommon.h"
+
+bool QtMsgAlertHandler(const char* caption, const char* text, bool yes_no, MsgType style)
+{
+  return RunOnObject(QApplication::instance(), [&] {
+    QMessageBox message_box(QApplication::activeWindow());
+    message_box.setWindowTitle(QString::fromUtf8(caption));
+    message_box.setText(QString::fromUtf8(text));
+    message_box.setStandardButtons(yes_no ? QMessageBox::Yes | QMessageBox::No : QMessageBox::Ok);
+    message_box.setIcon([&] {
+      switch (style)
+      {
+      case MsgType::Information:
+        return QMessageBox::Information;
+      case MsgType::Question:
+        return QMessageBox::Question;
+      case MsgType::Warning:
+        return QMessageBox::Warning;
+      case MsgType::Critical:
+        return QMessageBox::Critical;
+      }
+      // appease MSVC
+      return QMessageBox::NoIcon;
+    }());
+
+    return message_box.exec() == QMessageBox::Yes;
+  });
+}
 
 // N.B. On Windows, this should be called from WinMain. Link against qtmain and specify
 // /SubSystem:Windows
@@ -39,6 +68,9 @@ int main(int argc, char* argv[])
   UICommon::CreateDirectories();
   UICommon::Init();
   Resources::Init();
+
+  // Hook up alerts from core
+  RegisterMsgAlertHandler(QtMsgAlertHandler);
 
   // Whenever the event loop is about to go to sleep, dispatch the jobs
   // queued in the Core first.
