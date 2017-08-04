@@ -9,7 +9,6 @@
 
 #include "Common/BitSet.h"
 #include "Common/Logging/Log.h"
-#include "Common/NonCopyable.h"
 
 // pure virtual interface
 class LogListener
@@ -28,7 +27,7 @@ public:
   };
 };
 
-class LogManager : NonCopyable
+class LogManager
 {
 public:
   static LogManager* GetInstance();
@@ -65,6 +64,11 @@ private:
 
   LogManager();
   ~LogManager();
+
+  LogManager(const LogManager&) = delete;
+  LogManager& operator=(const LogManager&) = delete;
+  LogManager(LogManager&&) = delete;
+  LogManager& operator=(LogManager&&) = delete;
 
   LogTypes::LOG_LEVELS m_level;
   std::array<LogContainer, LogTypes::NUMBER_OF_LOGS> m_log{};

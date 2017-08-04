@@ -12,7 +12,6 @@
 #include <vector>
 
 #include "Common/IniFile.h"
-#include "Common/NonCopyable.h"
 #include "Core/HW/EXI/EXI_Device.h"
 #include "Core/HW/SI/SI_Device.h"
 #include "Core/TitleDatabase.h"
@@ -52,7 +51,7 @@ enum GPUDeterminismMode
 
 struct BootParameters;
 
-struct SConfig : NonCopyable
+struct SConfig
 {
   // Wii Devices
   bool m_WiiSDCard;
@@ -317,6 +316,11 @@ struct SConfig : NonCopyable
   bool m_SSLVerifyCert;
   bool m_SSLDumpRootCA;
   bool m_SSLDumpPeerCert;
+
+  SConfig(const SConfig&) = delete;
+  SConfig& operator=(const SConfig&) = delete;
+  SConfig(SConfig&&) = delete;
+  SConfig& operator=(SConfig&&) = delete;
 
   // Save settings
   void SaveSettings();

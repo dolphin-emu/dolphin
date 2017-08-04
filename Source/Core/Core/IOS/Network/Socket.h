@@ -50,7 +50,6 @@ typedef struct pollfd pollfd_t;
 
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
-#include "Common/NonCopyable.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/Network/IP/Top.h"
@@ -207,7 +206,7 @@ public:
   void operator=(WiiSocket const&) = delete;
 };
 
-class WiiSockMan : public ::NonCopyable
+class WiiSockMan
 {
 public:
   static s32 GetNetErrorCode(s32 ret, const char* caller, bool isRW);
@@ -249,6 +248,10 @@ public:
 
 private:
   WiiSockMan() = default;
+  WiiSockMan(const WiiSockMan&) = delete;
+  WiiSockMan& operator=(const WiiSockMan&) = delete;
+  WiiSockMan(WiiSockMan&&) = delete;
+  WiiSockMan& operator=(WiiSockMan&&) = delete;
 
   std::unordered_map<s32, WiiSocket> WiiSockets;
   s32 errno_last;

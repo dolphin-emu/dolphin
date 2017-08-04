@@ -237,7 +237,6 @@
       <Filter>GL\GLInterface</Filter>
     </ClInclude>
     <ClInclude Include="Assert.h" />
-    <ClInclude Include="NonCopyable.h" />
     <ClInclude Include="Analytics.h" />
     <ClInclude Include="Semaphore.h" />
     <ClInclude Include="MD5.h" />

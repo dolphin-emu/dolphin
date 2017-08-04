@@ -10,19 +10,24 @@
 #include <vector>
 
 #include "Common/Event.h"
-#include "Common/NonCopyable.h"
 #include "Core/HW/GCMemcard/GCMemcard.h"
 
 // Uncomment this to write the system data of the memorycard from directory to disc
 //#define _WRITE_MC_HEADER 1
 void MigrateFromMemcardFile(const std::string& directory_name, int card_index);
 
-class GCMemcardDirectory : public MemoryCardBase, NonCopyable
+class GCMemcardDirectory : public MemoryCardBase
 {
 public:
   GCMemcardDirectory(const std::string& directory, int slot, u16 size_mbits, bool shift_jis,
                      int game_id);
   ~GCMemcardDirectory();
+
+  GCMemcardDirectory(const GCMemcardDirectory&) = delete;
+  GCMemcardDirectory& operator=(const GCMemcardDirectory&) = delete;
+  GCMemcardDirectory(GCMemcardDirectory&&) = default;
+  GCMemcardDirectory& operator=(GCMemcardDirectory&&) = default;
+
   void FlushToFile();
   void FlushThread();
   s32 Read(u32 src_address, s32 length, u8* dest_address) override;

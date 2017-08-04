@@ -14,7 +14,6 @@
 #include "Common/Event.h"
 #include "Common/FifoQueue.h"
 #include "Common/Flag.h"
-#include "Common/NonCopyable.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteCommon/WiimoteConstants.h"
 #include "Core/HW/WiimoteCommon/WiimoteHid.h"
@@ -24,9 +23,14 @@ class PointerWrap;
 
 namespace WiimoteReal
 {
-class Wiimote : NonCopyable
+class Wiimote
 {
 public:
+  Wiimote(const Wiimote&) = delete;
+  Wiimote& operator=(const Wiimote&) = delete;
+  Wiimote(Wiimote&&) = default;
+  Wiimote& operator=(Wiimote&&) = default;
+
   virtual ~Wiimote() {}
   // This needs to be called in derived destructors!
   void Shutdown();

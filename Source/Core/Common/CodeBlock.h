@@ -10,7 +10,6 @@
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/MemoryUtil.h"
-#include "Common/NonCopyable.h"
 
 // Everything that needs to generate code should inherit from this.
 // You get memory management for free, plus, you can use all emitter functions without
@@ -18,7 +17,7 @@
 // Example implementation:
 // class JIT : public CodeBlock<ARMXEmitter> {}
 template <class T>
-class CodeBlock : public T, NonCopyable
+class CodeBlock : public T
 {
 private:
   // A privately used function to set the executable RAM space to something invalid.
@@ -37,11 +36,16 @@ protected:
   std::vector<CodeBlock*> m_children;
 
 public:
+  CodeBlock() = default;
   virtual ~CodeBlock()
   {
     if (region)
       FreeCodeSpace();
   }
+  CodeBlock(const CodeBlock&) = delete;
+  CodeBlock& operator=(const CodeBlock&) = delete;
+  CodeBlock(CodeBlock&&) = delete;
+  CodeBlock& operator=(CodeBlock&&) = delete;
 
   // Call this before you generate any code.
   void AllocCodeSpace(size_t size)
