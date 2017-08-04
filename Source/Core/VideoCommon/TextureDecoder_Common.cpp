@@ -320,7 +320,7 @@ static const char* texfmt[] = {
     "CZ16L", "0x3D", "0x3E", "0x3F",
 };
 
-static void TexDecoder_DrawOverlay(u8* dst, int width, int height, int texformat)
+static void TexDecoder_DrawOverlay(u8* __restrict dst, int width, int height, int texformat)
 {
   int w = std::min(width, 40);
   int h = std::min(height, 10);
@@ -376,7 +376,7 @@ static inline u32 DecodePixel_IA8(u16 val)
 {
   int a = val & 0xFF;
   int i = val >> 8;
-  return i | (i << 8) | (i << 16) | (a << 24);
+  return (i * 0x010101) | (a << 24);
 }
 
 static inline u32 DecodePixel_RGB565(u16 val)
@@ -384,7 +384,7 @@ static inline u32 DecodePixel_RGB565(u16 val)
   int r, g, b, a;
   r = Convert5To8((val >> 11) & 0x1f);
   g = Convert6To8((val >> 5) & 0x3f);
-  b = Convert5To8((val)&0x1f);
+  b = Convert5To8((val) & 0x1f);
   a = 0xFF;
   return r | (g << 8) | (b << 16) | (a << 24);
 }
@@ -392,11 +392,11 @@ static inline u32 DecodePixel_RGB565(u16 val)
 static inline u32 DecodePixel_RGB5A3(u16 val)
 {
   int r, g, b, a;
-  if ((val & 0x8000))
+  if (val & 0x8000)
   {
     r = Convert5To8((val >> 10) & 0x1f);
     g = Convert5To8((val >> 5) & 0x1f);
-    b = Convert5To8((val)&0x1f);
+    b = Convert5To8((val) & 0x1f);
     a = 0xFF;
   }
   else
@@ -404,7 +404,7 @@ static inline u32 DecodePixel_RGB5A3(u16 val)
     a = Convert3To8((val >> 12) & 0x7);
     r = Convert4To8((val >> 8) & 0xf);
     g = Convert4To8((val >> 4) & 0xf);
-    b = Convert4To8((val)&0xf);
+    b = Convert4To8((val) & 0xf);
   }
   return r | (g << 8) | (b << 16) | (a << 24);
 }
@@ -424,8 +424,9 @@ static inline u32 DecodePixel_Paletted(u16 pixel, TlutFormat tlutfmt)
   }
 }
 
-void TexDecoder_DecodeTexel(u8* dst, const u8* src, int s, int t, int imageWidth, int texformat,
-                            const u8* tlut_, TlutFormat tlutfmt)
+void TexDecoder_DecodeTexel(u8* __restrict dst, const u8* __restrict src, int s, int t,
+                            int imageWidth, int texformat, const u8* __restrict tlut_,
+                            TlutFormat tlutfmt)
 {
   /* General formula for computing texture offset
   //
@@ -689,8 +690,8 @@ void TexDecoder_DecodeTexel(u8* dst, const u8* src, int s, int t, int imageWidth
   }
 }
 
-void TexDecoder_DecodeTexelRGBA8FromTmem(u8* dst, const u8* src_ar, const u8* src_gb, int s, int t,
-                                         int imageWidth)
+void TexDecoder_DecodeTexelRGBA8FromTmem(u8* __restrict dst, const u8* __restrict src_ar,
+                                         const u8* __restrict src_gb, int s, int t, int imageWidth)
 {
   u16 sBlk = s >> 2;
   u16 tBlk = t >> 2;
@@ -713,8 +714,8 @@ void TexDecoder_DecodeTexelRGBA8FromTmem(u8* dst, const u8* src_ar, const u8* sr
   dst[2] = val_addr_gb[1];  // B
 }
 
-void TexDecoder_DecodeRGBA8FromTmem(u8* dst, const u8* src_ar, const u8* src_gb, int width,
-                                    int height)
+void TexDecoder_DecodeRGBA8FromTmem(u8* __restrict dst, const u8* __restrict src_ar,
+                                    const u8* __restrict src_gb, int width, int height)
 {
   // TODO for someone who cares: Make this less slow!
   for (int y = 0; y < height; ++y)
