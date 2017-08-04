@@ -119,6 +119,10 @@ bool DolphinApp::OnInit()
 
   ParseCommandLine();
 
+#ifdef _WIN32
+  FreeConsole();
+#endif
+
   UICommon::SetUserDirectory(m_user_path.ToStdString());
   UICommon::CreateDirectories();
   InitLanguageSupport();  // The language setting is loaded from the user directory
