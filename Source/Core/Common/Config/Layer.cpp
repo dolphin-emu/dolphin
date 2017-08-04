@@ -115,7 +115,6 @@ void Layer::Load()
   if (m_loader)
     m_loader->Load(this);
   m_is_dirty = false;
-  InvokeConfigChangedCallbacks();
 }
 
 void Layer::Save()
@@ -125,7 +124,6 @@ void Layer::Save()
 
   m_loader->Save(this);
   m_is_dirty = false;
-  InvokeConfigChangedCallbacks();
 }
 
 LayerType Layer::GetLayer() const
