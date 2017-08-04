@@ -110,6 +110,12 @@ constexpr VkComponentMapping AI_COMPONENT_MAPPING = {
     VK_COMPONENT_SWIZZLE_G,         // B
     VK_COMPONENT_SWIZZLE_R,         // A
 };
+constexpr VkComponentMapping BGRA_AS_ARGB_COMPONENT_MAPPING = {
+    VK_COMPONENT_SWIZZLE_G,  // R
+    VK_COMPONENT_SWIZZLE_R,  // G
+    VK_COMPONENT_SWIZZLE_A,  // B
+    VK_COMPONENT_SWIZZLE_B,  // A
+};
 constexpr VkComponentMapping RGBA_COMPONENT_MAPPING = {
     VK_COMPONENT_SWIZZLE_IDENTITY,  // R
     VK_COMPONENT_SWIZZLE_IDENTITY,  // G

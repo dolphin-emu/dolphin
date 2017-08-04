@@ -109,6 +109,9 @@ VkFormatAndMapping GetVkFormatAndMappingForHostTextureFormat(AbstractTextureForm
   case AbstractTextureFormat::RGB565:
     return {VK_FORMAT_R5G6B5_UNORM_PACK16, RGBA_COMPONENT_MAPPING};
 
+  case AbstractTextureFormat::ARGB4:
+    return {VK_FORMAT_B4G4R4A4_UNORM_PACK16, BGRA_AS_ARGB_COMPONENT_MAPPING};
+
   case AbstractTextureFormat::DXT1:
     return {VK_FORMAT_BC1_RGBA_UNORM_BLOCK, RGBA_COMPONENT_MAPPING};
 
@@ -145,6 +148,9 @@ u32 GetTexelSize(VkFormat format)
     return 1;
 
   case VK_FORMAT_R5G6B5_UNORM_PACK16:
+    return 2;
+
+  case VK_FORMAT_B4G4R4A4_UNORM_PACK16:
     return 2;
 
   case VK_FORMAT_R8G8_UNORM:

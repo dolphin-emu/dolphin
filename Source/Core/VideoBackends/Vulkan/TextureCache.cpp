@@ -160,6 +160,7 @@ bool TextureCache::SupportsHostTextureFormat(AbstractTextureFormat format) const
   case AbstractTextureFormat::I8:
   case AbstractTextureFormat::AI8:
   case AbstractTextureFormat::RGB565:
+  case AbstractTextureFormat::ARGB4:
     return true;
   case AbstractTextureFormat::AI4:
     return g_vulkan_context->SupportsR4G4();
