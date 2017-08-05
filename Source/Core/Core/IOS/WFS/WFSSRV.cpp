@@ -94,6 +94,11 @@ IPCCommandResult WFSSRV::IOCtl(const IOCtlRequest& request)
     m_hanging.push_back(request.address);
     return GetNoReply();
 
+  case IOCTL_WFS_FLUSH:
+    // Nothing to do.
+    INFO_LOG(IOS, "IOCTL_WFS_FLUSH: doing nothing");
+    break;
+
   // TODO(wfs): Globbing is not really implemented, we just fake the one case
   // (listing /vol/*) which is required to get the installer to work.
   case IOCTL_WFS_GLOB_START:
