@@ -7,21 +7,21 @@
 #include <cstdio>
 #include <cstring>
 #include <fcntl.h>
+#include <iomanip>
 #include <limits.h>
+#include <sstream>
 #include <string>
 #include <sys/stat.h>
 #include <vector>
-#include <sstream>
-#include <iomanip>
 
 #include "Common/Common.h"
 #include "Common/CommonFuncs.h"
 #include "Common/CommonPaths.h"
-#include "Common/MathUtil.h"
 #include "Common/CommonTypes.h"
 #include "Common/File.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
+#include "Common/MathUtil.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -231,7 +231,7 @@ bool CreateFullPath(const std::string& fullPath)
 
 // Returns a human-readable string representing a filesize
 std::string PrettyPrintFileSize(u64 size)
-{  
+{
   // Return a pretty filesize string from byte count.
   // e.g. 1134278 -> "1.08 MiB"
 

@@ -72,13 +72,8 @@ private:
 class FilesystemTreeItemData final : public wxTreeItemData
 {
 public:
-  FilesystemTreeItemData(std::string data) : m_id(data)
-  {}
-
-  std::string GetData() const
-  {
-    return m_id;
-  }
+  FilesystemTreeItemData(std::string data) : m_id(data) {}
+  std::string GetData() const { return m_id; }
 private:
   std::string m_id;
 };
