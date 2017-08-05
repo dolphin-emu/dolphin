@@ -52,8 +52,14 @@ private:
 
   IOS::ES::TMDReader m_tmd;
   std::string m_base_extract_path;
+  u64 m_title_id;
 
   ARCUnpacker m_arc_unpacker;
+
+  enum
+  {
+    WFSI_ENOENT = -12000,
+  };
 
   enum
   {
@@ -74,6 +80,8 @@ private:
     IOCTL_WFSI_FINALIZE_PROFILE = 0x88,
 
     IOCTL_WFSI_APPLY_TITLE_PROFILE = 0x89,
+
+    IOCTL_WFSI_LOAD_DOL = 0x90,
   };
 };
 }  // namespace Device

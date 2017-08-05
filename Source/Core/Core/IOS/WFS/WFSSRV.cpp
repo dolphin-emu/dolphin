@@ -44,6 +44,20 @@ IPCCommandResult WFSSRV::IOCtl(const IOCtlRequest& request)
     INFO_LOG(IOS, "IOCTL_WFS_INIT");
     break;
 
+  case IOCTL_WFS_SHUTDOWN:
+    INFO_LOG(IOS, "IOCTL_WFS_SHUTDOWN");
+
+    // Close all hanging attach/detach ioctls with an appropriate error code.
+    for (auto address : m_hanging)
+    {
+      IOCtlRequest hanging_request{address};
+      Memory::Write_U32(0x80000000, hanging_request.buffer_out);
+      Memory::Write_U32(0, hanging_request.buffer_out + 4);
+      Memory::Write_U32(0, hanging_request.buffer_out + 8);
+      m_ios.EnqueueIPCReply(hanging_request, 0);
+    }
+    break;
+
   case IOCTL_WFS_DEVICE_INFO:
     INFO_LOG(IOS, "IOCTL_WFS_DEVICE_INFO");
     Memory::Write_U64(16ull << 30, request.buffer_out);  // 16GB storage.
@@ -68,9 +82,9 @@ IPCCommandResult WFSSRV::IOCtl(const IOCtlRequest& request)
 
   case IOCTL_WFS_ATTACH_DETACH:
     INFO_LOG(IOS, "IOCTL_WFS_ATTACH_DETACH(%u)", request.request);
-    Memory::Write_U32(1, request.buffer_out);
-    Memory::Write_U32(0, request.buffer_out + 4);
-    Memory::Write_U32(0, request.buffer_out + 8);
+
+    // Leave hanging, but we need to acknowledge the request at shutdown time.
+    m_hanging.push_back(request.address);
     return GetNoReply();
 
   // TODO(wfs): Globbing is not really implemented, we just fake the one case

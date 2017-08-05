@@ -38,8 +38,10 @@ private:
   enum
   {
     IOCTL_WFS_INIT = 0x02,
+    IOCTL_WFS_SHUTDOWN = 0x03,
     IOCTL_WFS_DEVICE_INFO = 0x04,
     IOCTL_WFS_GET_DEVICE_NAME = 0x05,
+    IOCTL_WFS_UNMOUNT_VOLUME = 0x06,
     IOCTL_WFS_FLUSH = 0x0a,
     IOCTL_WFS_GLOB_START = 0x0d,
     IOCTL_WFS_GLOB_NEXT = 0x0e,
@@ -74,6 +76,10 @@ private:
     bool Open();
   };
   std::vector<FileDescriptor> m_fds;
+
+  // List of addresses of IPC requests left hanging that need closing at
+  // shutdown time.
+  std::vector<u32> m_hanging;
 
   FileDescriptor* FindFileDescriptor(u16 fd);
   u16 GetNewFileDescriptor();

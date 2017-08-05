@@ -15,6 +15,7 @@
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Core/HW/Memmap.h"
+#include "Core/IOS/ES/ES.h"
 #include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/WFS/WFSSRV.h"
 #include "DiscIO/NANDContentLoader.h"
@@ -215,8 +216,13 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
     break;
 
   case IOCTL_WFSI_INIT:
-    // Nothing to do.
     INFO_LOG(IOS, "IOCTL_WFSI_INIT");
+    if (GetIOS()->GetES()->GetTitleId(&m_title_id) < 0)
+    {
+      ERROR_LOG(IOS, "IOCTL_WFSI_INIT: Could not get title id.");
+      return_error_code = IPC_EINVAL;
+      break;
+    }
     break;
 
   case IOCTL_WFSI_SET_DEVICE_NAME:
@@ -234,6 +240,51 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
     File::CreateFullPath(WFS::NativePath(m_base_extract_path));
 
     break;
+
+  case IOCTL_WFSI_LOAD_DOL:
+  {
+    std::string path = StringFromFormat(
+        "/vol/%s/_install/%c%c%c%c/content", m_device_name.c_str(),
+        static_cast<char>(m_title_id >> 24), static_cast<char>(m_title_id >> 16),
+        static_cast<char>(m_title_id >> 8), static_cast<char>(m_title_id));
+
+    u32 dol_addr = Memory::Read_U32(request.buffer_in + 0x18);
+    u32 max_dol_size = Memory::Read_U32(request.buffer_in + 0x14);
+    u16 dol_extension_id = Memory::Read_U16(request.buffer_in + 0x1e);
+
+    if (dol_extension_id == 0)
+    {
+      path += "/default.dol";
+    }
+    else
+    {
+      path += StringFromFormat("/extension%d.dol", dol_extension_id);
+    }
+
+    INFO_LOG(IOS, "IOCTL_WFSI_LOAD_DOL: loading %s at address %08x (size %d)", path.c_str(),
+             dol_addr, max_dol_size);
+
+    File::IOFile fp(WFS::NativePath(path), "rb");
+    if (!fp)
+    {
+      WARN_LOG(IOS, "IOCTL_WFSI_LOAD_DOL: no such file or directory: %s", path.c_str());
+      return_error_code = WFSI_ENOENT;
+      break;
+    }
+
+    u32 real_dol_size = fp.GetSize();
+    if (dol_addr == 0)
+    {
+      // Write the expected size to the size parameter, in the input.
+      Memory::Write_U32(real_dol_size, request.buffer_in + 0x14);
+    }
+    else
+    {
+      fp.ReadBytes(Memory::GetPointer(dol_addr), max_dol_size);
+    }
+    Memory::Write_U32(real_dol_size, request.buffer_out);
+    break;
+  }
 
   default:
     // TODO(wfs): Should be returning an error. However until we have
