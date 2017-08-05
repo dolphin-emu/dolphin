@@ -44,6 +44,13 @@ IPCCommandResult WFSSRV::IOCtl(const IOCtlRequest& request)
     INFO_LOG(IOS, "IOCTL_WFS_INIT");
     break;
 
+  case IOCTL_WFS_UNKNOWN_8:
+    // TODO(wfs): Figure out what this actually does.
+    INFO_LOG(IOS, "IOCTL_WFS_UNKNOWN_8");
+    Memory::Write_U8(7, request.buffer_out);
+    Memory::CopyToEmu(request.buffer_out + 1, "msc01\x00\x00\x00", 8);
+    break;
+
   case IOCTL_WFS_SHUTDOWN:
     INFO_LOG(IOS, "IOCTL_WFS_SHUTDOWN");
 
