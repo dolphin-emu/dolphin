@@ -33,14 +33,14 @@ public:
     const_iterator() : m_file_info(nullptr) {}
     const_iterator(std::unique_ptr<FileInfo> file_info) : m_file_info(std::move(file_info)) {}
     const_iterator(const const_iterator& it) : m_file_info(it.m_file_info->clone()) {}
-    const_iterator(const_iterator&& it) : m_file_info(std::move(it.m_file_info)) {}
+    const_iterator(const_iterator&& it) noexcept : m_file_info(std::move(it.m_file_info)) {}
     ~const_iterator() = default;
     const_iterator& operator=(const const_iterator& it)
     {
       m_file_info = it.m_file_info ? it.m_file_info->clone() : nullptr;
       return *this;
     }
-    const_iterator& operator=(const_iterator&& it)
+    const_iterator& operator=(const_iterator&& it) noexcept
     {
       m_file_info = std::move(it.m_file_info);
       return *this;
