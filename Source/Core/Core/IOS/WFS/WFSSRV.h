@@ -35,6 +35,12 @@ private:
   // WFS device name, e.g. msc01/msc02.
   std::string m_device_name;
 
+  // Home / current directories.
+  std::string m_home_directory;
+  std::string m_current_directory;
+
+  std::string ExpandPath(const std::string& path) const;
+
   enum
   {
     IOCTL_WFS_INIT = 0x02,
@@ -78,13 +84,13 @@ private:
   };
   std::vector<FileDescriptor> m_fds;
 
-  // List of addresses of IPC requests left hanging that need closing at
-  // shutdown time.
-  std::vector<u32> m_hanging;
-
   FileDescriptor* FindFileDescriptor(u16 fd);
   u16 GetNewFileDescriptor();
   void ReleaseFileDescriptor(u16 fd);
+
+  // List of addresses of IPC requests left hanging that need closing at
+  // shutdown time.
+  std::vector<u32> m_hanging;
 };
 }  // namespace Device
 }  // namespace HLE

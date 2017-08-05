@@ -117,11 +117,25 @@ IPCCommandResult WFSSRV::IOCtl(const IOCtlRequest& request)
     Memory::Memset(request.buffer_out, 0, request.buffer_out_size);
     break;
 
+  case IOCTL_WFS_SET_HOMEDIR:
+    m_home_directory =
+        Memory::GetString(request.buffer_in + 2, Memory::Read_U16(request.buffer_in));
+    INFO_LOG(IOS, "IOCTL_WFS_SET_HOMEDIR: %s", m_home_directory.c_str());
+    break;
+
+  case IOCTL_WFS_CHDIR:
+    m_current_directory =
+        Memory::GetString(request.buffer_in + 2, Memory::Read_U16(request.buffer_in));
+    INFO_LOG(IOS, "IOCTL_WFS_CHDIR: %s", m_current_directory.c_str());
+    break;
+
   case IOCTL_WFS_OPEN:
   {
     u32 mode = Memory::Read_U32(request.buffer_in);
     u16 path_len = Memory::Read_U16(request.buffer_in + 0x20);
     std::string path = Memory::GetString(request.buffer_in + 0x22, path_len);
+
+    path = ExpandPath(path);
 
     u16 fd = GetNewFileDescriptor();
     FileDescriptor* fd_obj = &m_fds[fd];
@@ -188,6 +202,24 @@ IPCCommandResult WFSSRV::IOCtl(const IOCtlRequest& request)
   }
 
   return GetDefaultReply(return_error_code);
+}
+
+std::string WFSSRV::ExpandPath(const std::string& path) const
+{
+  std::string expanded;
+  if (!path.empty() && path[0] == '~')
+  {
+    expanded = m_home_directory + "/" + path.substr(1);
+  }
+  else if (path.empty() || path[0] != '/')
+  {
+    expanded = m_current_directory + "/" + path;
+  }
+  else
+  {
+    expanded = path;
+  }
+  return expanded;
 }
 
 WFSSRV::FileDescriptor* WFSSRV::FindFileDescriptor(u16 fd)
