@@ -215,8 +215,7 @@ s32 SDIOSlot0::ExecuteCommand(const Request& request, u32 _BufferIn, u32 _Buffer
     // If the card can operate on the supplied voltage, the response echoes back the supply
     // voltage and the check pattern that were set in the command argument.
     // This command is used to differentiate between protocol v1 and v2.
-    m_protocol = SDProtocol::V2;
-    m_status |= CARD_INITIALIZED;
+    InitSDHC();
     Memory::Write_U32(req.arg, _BufferOut);
     break;
 
@@ -449,7 +448,8 @@ IPCCommandResult SDIOSlot0::GetStatus(const IOCtlRequest& request)
       // Others will work if they are manually initialized (SEND_IF_COND)
       if (m_sdhc_supported)
       {
-        m_status |= CARD_INITIALIZED;
+        // All of the initialization is done internally by IOS, so we get to skip some steps.
+        InitSDHC();
       }
       m_status |= CARD_SDHC;
     }
@@ -643,6 +643,12 @@ u64 SDIOSlot0::GetAddressFromRequest(u32 arg) const
   if (m_status & CARD_SDHC)
     address *= 512;
   return address;
+}
+
+void SDIOSlot0::InitSDHC()
+{
+  m_protocol = SDProtocol::V2;
+  m_status |= CARD_INITIALIZED;
 }
 
 }  // namespace Device

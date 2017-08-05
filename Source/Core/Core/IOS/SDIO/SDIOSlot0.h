@@ -147,6 +147,7 @@ private:
 
   std::array<u32, 4> GetCSDv1();
   std::array<u32, 4> GetCSDv2();
+  void InitSDHC();
 
   u64 GetAddressFromRequest(u32 arg) const;
 
