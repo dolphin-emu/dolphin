@@ -84,8 +84,8 @@
     <QtMoc Include="GameList\GameList.h" />
     <QtMoc Include="GameList\GameListModel.h" />
     <QtMoc Include="GameList\GameTracker.h" />
+    <QtMoc Include="GameList\GridProxyModel.h" />
     <QtMoc Include="GameList\ListProxyModel.h" />
-    <QtMoc Include="GameList\TableProxyModel.h" />
     <QtMoc Include="Host.h" />
     <QtMoc Include="HotkeyScheduler.h" />
     <QtMoc Include="InDevelopmentWarning.h" />
@@ -126,8 +126,8 @@
     <ClCompile Include="$(QtMocOutPrefix)InfoWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)InterfacePane.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)IOWindow.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)GridProxyModel.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)ListProxyModel.cpp" />
-    <ClCompile Include="$(QtMocOutPrefix)TableProxyModel.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)LoggerWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)MainWindow.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)MappingButton.cpp" />
@@ -181,8 +181,8 @@
     <ClCompile Include="GameList\GameList.cpp" />
     <ClCompile Include="GameList\GameListModel.cpp" />
     <ClCompile Include="GameList\GameTracker.cpp" />
+    <ClCompile Include="GameList\GridProxyModel.cpp" />
     <ClCompile Include="GameList\ListProxyModel.cpp" />
-    <ClCompile Include="GameList\TableProxyModel.cpp" />
     <ClCompile Include="HotkeyScheduler.cpp" />
     <ClCompile Include="Host.cpp" />
     <ClCompile Include="InDevelopmentWarning.cpp" />

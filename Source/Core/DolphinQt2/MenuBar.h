@@ -60,8 +60,8 @@ signals:
   void ConfigureHotkeys();
 
   // View
-  void ShowTable();
   void ShowList();
+  void ShowGrid();
   void ColumnVisibilityToggled(const QString& row, bool visible);
   void GameListPlatformVisibilityToggled(const QString& row, bool visible);
   void GameListRegionVisibilityToggled(const QString& row, bool visible);
@@ -78,7 +78,7 @@ private:
 
   void AddViewMenu();
   void AddGameListTypeSection(QMenu* view_menu);
-  void AddTableColumnsMenu(QMenu* view_menu);
+  void AddListColumnsMenu(QMenu* view_menu);
   void AddShowPlatformsMenu(QMenu* view_menu);
   void AddShowRegionsMenu(QMenu* view_menu);
 
