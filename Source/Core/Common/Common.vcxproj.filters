@@ -258,6 +258,7 @@
     <ClInclude Include="GL\GLExtensions\ARB_texture_compression_bptc.h">
       <Filter>GL\GLExtensions</Filter>
     </ClInclude>
+    <ClInclude Include="ComPtr.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CDUtils.cpp" />

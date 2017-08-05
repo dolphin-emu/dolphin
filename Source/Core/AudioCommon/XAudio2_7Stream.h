@@ -20,16 +20,9 @@
 #ifdef _WIN32
 
 #include <Windows.h>
+#include "Common/ComPtr.h"
 
-// Disable warning C4265 in wrl/client.h:
-//   'Microsoft::WRL::Details::RemoveIUnknownBase<T>': class has virtual functions, but destructor
-//   is not virtual
-#pragma warning(push)
-#pragma warning(disable : 4265)
-#include <wrl/client.h>
-#pragma warning(pop)
-
-using Microsoft::WRL::ComPtr;
+using Common::ComPtr;
 
 struct StreamingVoiceContext2_7;
 struct IXAudio2;
