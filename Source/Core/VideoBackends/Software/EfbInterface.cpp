@@ -32,7 +32,7 @@ static inline u32 GetDepthOffset(u16 x, u16 y)
   return (x + y * EFB_WIDTH) * 3 + DEPTH_BUFFER_START;
 }
 
-static void SetPixelAlphaOnly(u32 offset, u8 a)
+static void SetPixelAlphaOnly(u32 offset, u32 pixel)
 {
   switch (bpmem.zcontrol.pixel_format)
   {
@@ -43,11 +43,13 @@ static void SetPixelAlphaOnly(u32 offset, u8 a)
     break;
   case PEControl::RGBA6_Z24:
   {
-    u32 a32 = a;
-    u32* dst = (u32*)&efb[offset];
-    u32 val = *dst & 0xffffffc0;
-    val |= (a32 >> 2) & 0x0000003f;
-    *dst = val;
+    const u32 alpha = pixel & 0xFF;
+    u32 efb_pixel;
+    std::memcpy(&efb_pixel, &efb[offset], sizeof(u32));
+
+    u32 val = efb_pixel & 0xffffffc0;
+    val |= (alpha >> 2) & 0x0000003f;
+    std::memcpy(&efb[offset], &val, sizeof(u32));
   }
   break;
   default:
@@ -55,39 +57,36 @@ static void SetPixelAlphaOnly(u32 offset, u8 a)
   }
 }
 
-static void SetPixelColorOnly(u32 offset, u8* rgb)
+static void SetPixelColorOnly(u32 offset, u32 rgb)
 {
+  u32 efb_pixel;
+  std::memcpy(&efb_pixel, &efb[offset], sizeof(u32));
+
   switch (bpmem.zcontrol.pixel_format)
   {
   case PEControl::RGB8_Z24:
   case PEControl::Z24:
   {
-    u32 src = *(u32*)rgb;
-    u32* dst = (u32*)&efb[offset];
-    u32 val = *dst & 0xff000000;
-    val |= src >> 8;
-    *dst = val;
+    u32 val = efb_pixel & 0xff000000;
+    val |= rgb >> 8;
+    std::memcpy(&efb[offset], &val, sizeof(u32));
   }
   break;
   case PEControl::RGBA6_Z24:
   {
-    u32 src = *(u32*)rgb;
-    u32* dst = (u32*)&efb[offset];
-    u32 val = *dst & 0xff00003f;
-    val |= (src >> 4) & 0x00000fc0;  // blue
-    val |= (src >> 6) & 0x0003f000;  // green
-    val |= (src >> 8) & 0x00fc0000;  // red
-    *dst = val;
+    u32 val = efb_pixel & 0xff00003f;
+    val |= (rgb >> 4) & 0x00000fc0;  // blue
+    val |= (rgb >> 6) & 0x0003f000;  // green
+    val |= (rgb >> 8) & 0x00fc0000;  // red
+    std::memcpy(&efb[offset], &val, sizeof(u32));
   }
   break;
   case PEControl::RGB565_Z16:
   {
     WARN_LOG(VIDEO, "RGB565_Z16 is not supported correctly yet");
-    u32 src = *(u32*)rgb;
-    u32* dst = (u32*)&efb[offset];
-    u32 val = *dst & 0xff000000;
-    val |= src >> 8;
-    *dst = val;
+    u32 val = efb_pixel & 0xff000000;
+    val |= rgb >> 8;
+    std::memcpy(&efb[offset], &val, sizeof(u32));
   }
   break;
   default:
@@ -95,40 +94,37 @@ static void SetPixelColorOnly(u32 offset, u8* rgb)
   }
 }
 
-static void SetPixelAlphaColor(u32 offset, u8* color)
+static void SetPixelAlphaColor(u32 offset, u32 color)
 {
+  u32 efb_pixel;
+  std::memcpy(&efb_pixel, &efb[offset], sizeof(u32));
+
   switch (bpmem.zcontrol.pixel_format)
   {
   case PEControl::RGB8_Z24:
   case PEControl::Z24:
   {
-    u32 src = *(u32*)color;
-    u32* dst = (u32*)&efb[offset];
-    u32 val = *dst & 0xff000000;
-    val |= src >> 8;
-    *dst = val;
+    u32 val = efb_pixel & 0xff000000;
+    val |= color >> 8;
+    std::memcpy(&efb[offset], &val, sizeof(u32));
   }
   break;
   case PEControl::RGBA6_Z24:
   {
-    u32 src = *(u32*)color;
-    u32* dst = (u32*)&efb[offset];
-    u32 val = *dst & 0xff000000;
-    val |= (src >> 2) & 0x0000003f;  // alpha
-    val |= (src >> 4) & 0x00000fc0;  // blue
-    val |= (src >> 6) & 0x0003f000;  // green
-    val |= (src >> 8) & 0x00fc0000;  // red
-    *dst = val;
+    u32 val = efb_pixel & 0xff000000;
+    val |= (color >> 2) & 0x0000003f;  // alpha
+    val |= (color >> 4) & 0x00000fc0;  // blue
+    val |= (color >> 6) & 0x0003f000;  // green
+    val |= (color >> 8) & 0x00fc0000;  // red
+    std::memcpy(&efb[offset], &val, sizeof(u32));
   }
   break;
   case PEControl::RGB565_Z16:
   {
     WARN_LOG(VIDEO, "RGB565_Z16 is not supported correctly yet");
-    u32 src = *(u32*)color;
-    u32* dst = (u32*)&efb[offset];
-    u32 val = *dst & 0xff000000;
-    val |= src >> 8;
-    *dst = val;
+    u32 val = efb_pixel & 0xff000000;
+    val |= color >> 8;
+    std::memcpy(&efb[offset], &val, sizeof(u32));
   }
   break;
   default:
@@ -429,17 +425,17 @@ void BlendTev(u16 x, u16 y, u8* color)
   {
     Dither(x, y, dstClrPtr);
     if (bpmem.blendmode.alphaupdate)
-      SetPixelAlphaColor(offset, dstClrPtr);
+      SetPixelAlphaColor(offset, dstClr);
     else
-      SetPixelColorOnly(offset, dstClrPtr);
+      SetPixelColorOnly(offset, dstClr);
   }
   else if (bpmem.blendmode.alphaupdate)
   {
-    SetPixelAlphaOnly(offset, dstClrPtr[ALP_C]);
+    SetPixelAlphaOnly(offset, dstClr);
   }
 }
 
-void SetColor(u16 x, u16 y, u8* color)
+void SetColor(u16 x, u16 y, u32 color)
 {
   u32 offset = GetColorOffset(x, y);
   if (bpmem.blendmode.colorupdate)
@@ -451,7 +447,7 @@ void SetColor(u16 x, u16 y, u8* color)
   }
   else if (bpmem.blendmode.alphaupdate)
   {
-    SetPixelAlphaOnly(offset, color[ALP_C]);
+    SetPixelAlphaOnly(offset, color);
   }
 }
 
