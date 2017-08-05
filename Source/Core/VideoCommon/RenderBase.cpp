@@ -662,6 +662,7 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
     }
   }
 
+  bool update_frame_count = false;
   if (xfbAddr && fbWidth && fbStride && fbHeight)
   {
     constexpr int force_safe_texture_cache_hash = 0;
@@ -677,11 +678,11 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
 
       // TODO: merge more generic parts into VideoCommon
       g_renderer->SwapImpl(xfb_entry->texture.get(), rc, ticks, Gamma);
+
+      m_fps_counter.Update();
+      update_frame_count = true;
     }
   }
-
-  if (m_xfb_written)
-    m_fps_counter.Update();
 
   frameCount++;
   GFX_DEBUGGER_PAUSE_AT(NEXT_FRAME, true);
@@ -691,7 +692,7 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
   // New frame
   stats.ResetFrame();
 
-  Core::Callback_VideoCopiedToXFB(m_xfb_written || !g_ActiveConfig.bSkipXFBCopyToRam);
+  Core::Callback_VideoCopiedToXFB(update_frame_count);
   m_xfb_written = false;
 }
 
