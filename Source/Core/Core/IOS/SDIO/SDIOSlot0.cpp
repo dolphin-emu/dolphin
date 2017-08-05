@@ -155,8 +155,7 @@ s32 SDIOSlot0::ExecuteCommand(const Request& request, u32 _BufferIn, u32 _Buffer
     u32 pad0;
   } req;
 
-  // Ignore the first two bits (start bit and direction)
-  req.command = Memory::Read_U32(_BufferIn + 0) & 0x3f;
+  req.command = Memory::Read_U32(_BufferIn + 0);
   req.type = Memory::Read_U32(_BufferIn + 4);
   req.resp = Memory::Read_U32(_BufferIn + 8);
   req.arg = Memory::Read_U32(_BufferIn + 12);
@@ -317,9 +316,6 @@ s32 SDIOSlot0::ExecuteCommand(const Request& request, u32 _BufferIn, u32 _Buffer
     Memory::Write_U32(0x900, _BufferOut);
     break;
 
-  // The following events don't seem to be possible due to the command length being only 6 bits
-  // I don't want to delete this without more context on why it's there and what it's meant to do
-  /*
   case EVENT_REGISTER:  // async
     INFO_LOG(IOS_SD, "Register event %x", req.arg);
     m_event = std::make_unique<Event>(static_cast<EventType>(req.arg), request);
@@ -339,7 +335,6 @@ s32 SDIOSlot0::ExecuteCommand(const Request& request, u32 _BufferIn, u32 _Buffer
     m_event.reset();
     break;
   }
-  */
 
   default:
     ERROR_LOG(IOS_SD, "Unknown SD command 0x%08x", req.command);
