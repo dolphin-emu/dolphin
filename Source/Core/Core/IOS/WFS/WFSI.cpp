@@ -101,7 +101,7 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
     constexpr u32 MAX_TMD_SIZE = 0x4000;
     if (tmd_size > MAX_TMD_SIZE)
     {
-      ERROR_LOG(IOS, "IOCTL_WFSI_INIT: TMD size too large (%d)", tmd_size);
+      ERROR_LOG(IOS, "IOCTL_WFSI_PREPARE_DEVICE: TMD size too large (%d)", tmd_size);
       return_error_code = IPC_EINVAL;
       break;
     }
