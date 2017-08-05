@@ -148,9 +148,9 @@ bool cInterfaceGLX::Create(void* window_handle, bool stereo, bool core)
   if (!ctx || s_glxError)
   {
     ERROR_LOG(VIDEO, "Unable to create GL context.");
+    XSetErrorHandler(oldHandler);
     return false;
   }
-  XSetErrorHandler(oldHandler);
 
   std::string tmp;
   std::istringstream buffer(glXQueryExtensionsString(dpy, screen));
@@ -172,8 +172,11 @@ bool cInterfaceGLX::Create(void* window_handle, bool stereo, bool core)
   if (!CreateWindowSurface())
   {
     ERROR_LOG(VIDEO, "Error: CreateWindowSurface failed\n");
+    XSetErrorHandler(oldHandler);
     return false;
   }
+
+  XSetErrorHandler(oldHandler);
   return true;
 }
 
@@ -182,6 +185,7 @@ bool cInterfaceGLX::Create(cInterfaceBase* main_context)
   cInterfaceGLX* glx_context = static_cast<cInterfaceGLX*>(main_context);
 
   m_has_handle = false;
+  m_supports_pbuffer = glx_context->m_supports_pbuffer;
   dpy = glx_context->dpy;
   fbconfig = glx_context->fbconfig;
   s_glxError = false;
@@ -193,15 +197,18 @@ bool cInterfaceGLX::Create(cInterfaceBase* main_context)
   if (!ctx || s_glxError)
   {
     ERROR_LOG(VIDEO, "Unable to create GL context.");
+    XSetErrorHandler(oldHandler);
     return false;
   }
-  XSetErrorHandler(oldHandler);
 
-  if (!CreateWindowSurface())
+  if (m_supports_pbuffer && !CreateWindowSurface())
   {
     ERROR_LOG(VIDEO, "Error: CreateWindowSurface failed\n");
+    XSetErrorHandler(oldHandler);
     return false;
   }
+
+  XSetErrorHandler(oldHandler);
   return true;
 }
 
@@ -235,7 +242,7 @@ bool cInterfaceGLX::CreateWindowSurface()
     win = XWindow.CreateXWindow(m_host_window, vi);
     XFree(vi);
   }
-  else
+  else if (m_supports_pbuffer)
   {
     win = m_pbuffer = glXCreateGLXPbufferSGIX(dpy, fbconfig, 1, 1, nullptr);
     if (!m_pbuffer)
@@ -247,11 +254,11 @@ bool cInterfaceGLX::CreateWindowSurface()
 
 void cInterfaceGLX::DestroyWindowSurface()
 {
-  if (!m_pbuffer)
+  if (m_has_handle)
   {
     XWindow.DestroyXWindow();
   }
-  else
+  else if (m_supports_pbuffer && m_pbuffer)
   {
     glXDestroyGLXPbufferSGIX(dpy, m_pbuffer);
     m_pbuffer = 0;
