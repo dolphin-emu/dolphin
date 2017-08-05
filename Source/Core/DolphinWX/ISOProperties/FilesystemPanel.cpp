@@ -74,13 +74,9 @@ u64 DetermineDirectorySize(const DiscIO::FileInfo& directory, u64 size)
   for(const DiscIO::FileInfo& file_info : directory)
   {
     if(file_info.IsDirectory())
-    {
       size += DetermineDirectorySize(file_info,0);
-    }
     else
-    {
       size += file_info.GetSize();
-    }
   }
   return size;
 }
