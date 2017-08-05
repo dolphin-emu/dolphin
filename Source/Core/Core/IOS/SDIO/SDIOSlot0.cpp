@@ -25,7 +25,28 @@ namespace HLE
 {
 namespace Device
 {
-SDIOSlot0::SDIOSlot0(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
+constexpr bool SupportsSDHC(u32 ios_version)
+{
+  switch (ios_version)
+  {
+  // Known versions to support SDHC
+  case 48:
+  case 56:
+  case 57:
+  case 58:
+  case 59:
+  case 60:
+  case 61:
+  case 70:
+  case 80:
+    return true;
+  default:
+    return false;
+  };
+}
+
+SDIOSlot0::SDIOSlot0(Kernel& ios, const std::string& device_name)
+    : Device(ios, device_name), m_sdhc_supported(SupportsSDHC(ios.GetVersion()))
 {
 }
 
@@ -173,25 +194,8 @@ s32 SDIOSlot0::ExecuteCommand(const Request& request, u32 _BufferIn, u32 _Buffer
   {
   case GO_IDLE_STATE:
     INFO_LOG(IOS_SD, "GO_IDLE_STATE");
-    if (m_card)
-    {
-      if (m_card.GetSize() > SDHC_BYTES)
-      {
-        // SDHC requires further initialization (SEND_IF_COND)
-        m_status |= CARD_SDHC;
-      }
-      else
-      {
-        // No further initialization required.
-        m_status |= CARD_INITIALIZED;
-      }
-    }
-    else
-    {
-      // Make sure we're not initialized
-      m_status &= ~CARD_INITIALIZED;
-    }
-    Memory::Write_U32(GetOCRegister(), _BufferOut);
+    // Response is R1 (idle state)
+    Memory::Write_U32(0x00, _BufferOut);
     break;
 
   case SEND_RELATIVE_ADDR:
@@ -212,6 +216,7 @@ s32 SDIOSlot0::ExecuteCommand(const Request& request, u32 _BufferIn, u32 _Buffer
     // voltage and the check pattern that were set in the command argument.
     // This command is used to differentiate between protocol v1 and v2.
     m_protocol = SDProtocol::V2;
+    m_status |= CARD_INITIALIZED;
     Memory::Write_U32(req.arg, _BufferOut);
     break;
 
@@ -250,14 +255,7 @@ s32 SDIOSlot0::ExecuteCommand(const Request& request, u32 _BufferIn, u32 _Buffer
   case ACMD_SENDOPCOND:
     // Sends host capacity support information (HCS) and asks the accessed card to send
     // its operating condition register (OCR) content
-    {
-      // Only leave idle state if the card is supported by the protocol
-      if (m_protocol == SDProtocol::V2 || !(m_status & CARD_SDHC))
-        m_status |= CARD_INITIALIZED;
-
-      u32 ocr = GetOCRegister();
-      Memory::Write_U32(ocr, _BufferOut);
-    }
+    Memory::Write_U32(GetOCRegister(), _BufferOut);
     break;
 
   case READ_MULTIPLE_BLOCK:
@@ -437,27 +435,42 @@ IPCCommandResult SDIOSlot0::SendCommand(const IOCtlRequest& request)
 
 IPCCommandResult SDIOSlot0::GetStatus(const IOCtlRequest& request)
 {
-  if (SConfig::GetInstance().m_WiiSDCard)
-    m_status |= CARD_INSERTED;
-  else
-    m_status = CARD_NOT_EXIST;
+  // Since IOS does the SD initialization itself, we just say we're always initialized.
+  if (m_card)
+  {
+    if (m_card.GetSize() < SDHC_BYTES)
+    {
+      // No further initialization required.
+      m_status |= CARD_INITIALIZED;
+    }
+    else
+    {
+      // Some IOS versions support SDHC.
+      // Others will work if they are manually initialized (SEND_IF_COND)
+      if (m_sdhc_supported)
+      {
+        m_status |= CARD_INITIALIZED;
+      }
+      m_status |= CARD_SDHC;
+    }
+  }
+
+  // Evaluate whether a card is currently inserted (config value).
+  // Make sure we don't modify m_status so we don't lose track of whether the card is SDHC.
+  const u32 status =
+      SConfig::GetInstance().m_WiiSDCard ? (m_status | CARD_INSERTED) : CARD_NOT_EXIST;
 
   INFO_LOG(IOS_SD, "IOCTL_GETSTATUS. Replying that %s card is %s%s",
-           (m_status & CARD_SDHC) ? "SDHC" : "SD",
-           (m_status & CARD_INSERTED) ? "inserted" : "not present",
-           (m_status & CARD_INITIALIZED) ? " and initialized" : "");
+           (status & CARD_SDHC) ? "SDHC" : "SD",
+           (status & CARD_INSERTED) ? "inserted" : "not present",
+           (status & CARD_INITIALIZED) ? " and initialized" : "");
 
-  Memory::Write_U32(m_status, request.buffer_out);
+  Memory::Write_U32(status, request.buffer_out);
   return GetDefaultReply(IPC_SUCCESS);
 }
 
 IPCCommandResult SDIOSlot0::GetOCRegister(const IOCtlRequest& request)
 {
-  // Make sure we're not initialized if the card is not supported by the protocol
-  if (m_protocol != SDProtocol::V2 && (m_status & CARD_SDHC))
-  {
-    m_status &= ~CARD_INITIALIZED;
-  }
   u32 ocr = GetOCRegister();
   INFO_LOG(IOS_SD, "IOCTL_GETOCR. Replying with ocr %x", ocr);
   Memory::Write_U32(ocr, request.buffer_out);

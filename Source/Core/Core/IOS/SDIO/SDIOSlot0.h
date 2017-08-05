@@ -141,6 +141,7 @@ private:
   s32 ExecuteCommand(const Request& request, u32 BufferIn, u32 BufferInSize, u32 BufferIn2,
                      u32 BufferInSize2, u32 _BufferOut, u32 BufferOutSize);
   void OpenInternal();
+  void InitStatus();
 
   u32 GetOCRegister() const;
 
@@ -154,6 +155,10 @@ private:
 
   u32 m_status = CARD_NOT_EXIST;
   SDProtocol m_protocol = SDProtocol::V1;
+
+  // Is SDHC supported by the IOS?
+  // Other IOS requires manual SDHC initialization
+  const bool m_sdhc_supported;
 
   u32 m_block_length = 0;
   u32 m_bus_width = 0;
