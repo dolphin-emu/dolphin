@@ -166,7 +166,7 @@ TextureConverter::GetCommandBufferForTextureConversion(const TextureCache::TCach
 void TextureConverter::ConvertTexture(TextureCacheBase::TCacheEntry* dst_entry,
                                       TextureCacheBase::TCacheEntry* src_entry,
                                       VkRenderPass render_pass, const void* palette,
-                                      TlutFormat palette_format)
+                                      TLUTFormat palette_format)
 {
   struct PSUniformBlock
   {
@@ -182,7 +182,7 @@ void TextureConverter::ConvertTexture(TextureCacheBase::TCacheEntry* dst_entry,
   _assert_(destination_texture->GetConfig().rendertarget);
 
   // We want to align to 2 bytes (R16) or the device's texel buffer alignment, whichever is greater.
-  size_t palette_size = (src_entry->format & 0xF) == GX_TF_I4 ? 32 : 512;
+  size_t palette_size = src_entry->format == TextureFormat::I4 ? 32 : 512;
   if (!ReserveTexelBufferStorage(palette_size, sizeof(u16)))
     return;
 
@@ -201,13 +201,13 @@ void TextureConverter::ConvertTexture(TextureCacheBase::TCacheEntry* dst_entry,
   UtilityShaderDraw draw(command_buffer,
                          g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_TEXTURE_CONVERSION),
                          render_pass, g_shader_cache->GetScreenQuadVertexShader(), VK_NULL_HANDLE,
-                         m_palette_conversion_shaders[palette_format]);
+                         m_palette_conversion_shaders[static_cast<int>(palette_format)]);
 
   VkRect2D region = {{0, 0}, {dst_entry->GetWidth(), dst_entry->GetHeight()}};
   draw.BeginRenderPass(destination_texture->GetFramebuffer(), region);
 
   PSUniformBlock uniforms = {};
-  uniforms.multiplier = (src_entry->format & 0xF) == GX_TF_I4 ? 15.0f : 255.0f;
+  uniforms.multiplier = src_entry->format == TextureFormat::I4 ? 15.0f : 255.0f;
   uniforms.texel_buffer_offset = static_cast<int>(palette_offset / sizeof(u16));
   draw.SetPushConstants(&uniforms, sizeof(uniforms));
   draw.SetPSSampler(0, source_texture->GetRawTexIdentifier()->GetView(),
@@ -219,16 +219,15 @@ void TextureConverter::ConvertTexture(TextureCacheBase::TCacheEntry* dst_entry,
 }
 
 void TextureConverter::EncodeTextureToMemory(VkImageView src_texture, u8* dest_ptr,
-                                             const EFBCopyFormat& format, u32 native_width,
+                                             const EFBCopyParams& params, u32 native_width,
                                              u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
-                                             bool is_depth_copy, const EFBRectangle& src_rect,
-                                             bool scale_by_half)
+                                             const EFBRectangle& src_rect, bool scale_by_half)
 {
-  VkShaderModule shader = GetEncodingShader(format);
+  VkShaderModule shader = GetEncodingShader(params);
   if (shader == VK_NULL_HANDLE)
   {
-    ERROR_LOG(VIDEO, "Missing encoding fragment shader for format %u->%u", format.efb_format,
-              static_cast<u32>(format.copy_format));
+    ERROR_LOG(VIDEO, "Missing encoding fragment shader for format %u->%u",
+              static_cast<unsigned>(params.efb_format), static_cast<unsigned>(params.copy_format));
     return;
   }
 
@@ -251,7 +250,7 @@ void TextureConverter::EncodeTextureToMemory(VkImageView src_texture, u8* dest_p
   // We also linear filtering for both box filtering and downsampling higher resolutions to 1x
   // TODO: This only produces perfect downsampling for 1.5x and 2x IR, other resolution will
   //       need more complex down filtering to average all pixels and produce the correct result.
-  bool linear_filter = (scale_by_half && !is_depth_copy) || g_ActiveConfig.iEFBScale != SCALE_1X;
+  bool linear_filter = (scale_by_half && !params.depth) || g_ActiveConfig.iEFBScale != SCALE_1X;
   draw.SetPSSampler(0, src_texture, linear_filter ? g_object_cache->GetLinearSampler() :
                                                     g_object_cache->GetPointSampler());
 
@@ -387,7 +386,7 @@ void TextureConverter::DecodeYUYVTextureFromMemory(VKTexture* dst_texture, const
   draw.EndRenderPass();
 }
 
-bool TextureConverter::SupportsTextureDecoding(TextureFormat format, TlutFormat palette_format)
+bool TextureConverter::SupportsTextureDecoding(TextureFormat format, TLUTFormat palette_format)
 {
   auto key = std::make_pair(format, palette_format);
   auto iter = m_decoding_pipelines.find(key);
@@ -424,7 +423,7 @@ void TextureConverter::DecodeTexture(VkCommandBuffer command_buffer,
                                      TextureCache::TCacheEntry* entry, u32 dst_level,
                                      const u8* data, size_t data_size, TextureFormat format,
                                      u32 width, u32 height, u32 aligned_width, u32 aligned_height,
-                                     u32 row_stride, const u8* palette, TlutFormat palette_format)
+                                     u32 row_stride, const u8* palette, TLUTFormat palette_format)
 {
   VKTexture* destination_texture = static_cast<VKTexture*>(entry->texture.get());
   auto key = std::make_pair(format, palette_format);
@@ -667,21 +666,21 @@ bool TextureConverter::CompilePaletteConversionShaders()
   std::string palette_rgb5a3_program = StringFromFormat(
       "%s\n%s", "#define DECODE DecodePixel_RGB5A3", PALETTE_CONVERSION_FRAGMENT_SHADER_SOURCE);
 
-  m_palette_conversion_shaders[GX_TL_IA8] =
+  m_palette_conversion_shaders[static_cast<int>(TLUTFormat::IA8)] =
       Util::CompileAndCreateFragmentShader(palette_ia8_program);
-  m_palette_conversion_shaders[GX_TL_RGB565] =
+  m_palette_conversion_shaders[static_cast<int>(TLUTFormat::RGB565)] =
       Util::CompileAndCreateFragmentShader(palette_rgb565_program);
-  m_palette_conversion_shaders[GX_TL_RGB5A3] =
+  m_palette_conversion_shaders[static_cast<int>(TLUTFormat::RGB5A3)] =
       Util::CompileAndCreateFragmentShader(palette_rgb5a3_program);
 
-  return m_palette_conversion_shaders[GX_TL_IA8] != VK_NULL_HANDLE &&
-         m_palette_conversion_shaders[GX_TL_RGB565] != VK_NULL_HANDLE &&
-         m_palette_conversion_shaders[GX_TL_RGB5A3] != VK_NULL_HANDLE;
+  return m_palette_conversion_shaders[static_cast<int>(TLUTFormat::IA8)] != VK_NULL_HANDLE &&
+         m_palette_conversion_shaders[static_cast<int>(TLUTFormat::RGB565)] != VK_NULL_HANDLE &&
+         m_palette_conversion_shaders[static_cast<int>(TLUTFormat::RGB5A3)] != VK_NULL_HANDLE;
 }
 
-VkShaderModule TextureConverter::CompileEncodingShader(const EFBCopyFormat& format)
+VkShaderModule TextureConverter::CompileEncodingShader(const EFBCopyParams& params)
 {
-  const char* shader = TextureConversionShader::GenerateEncodingShader(format, APIType::Vulkan);
+  const char* shader = TextureConversionShader::GenerateEncodingShader(params, APIType::Vulkan);
   VkShaderModule module = Util::CompileAndCreateFragmentShader(shader);
   if (module == VK_NULL_HANDLE)
     PanicAlert("Failed to compile texture encoding shader.");
@@ -689,14 +688,14 @@ VkShaderModule TextureConverter::CompileEncodingShader(const EFBCopyFormat& form
   return module;
 }
 
-VkShaderModule TextureConverter::GetEncodingShader(const EFBCopyFormat& format)
+VkShaderModule TextureConverter::GetEncodingShader(const EFBCopyParams& params)
 {
-  auto iter = m_encoding_shaders.find(format);
+  auto iter = m_encoding_shaders.find(params);
   if (iter != m_encoding_shaders.end())
     return iter->second;
 
-  VkShaderModule shader = CompileEncodingShader(format);
-  m_encoding_shaders.emplace(format, shader);
+  VkShaderModule shader = CompileEncodingShader(params);
+  m_encoding_shaders.emplace(params, shader);
   return shader;
 }
 

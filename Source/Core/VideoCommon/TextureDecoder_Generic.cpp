@@ -57,22 +57,22 @@ static inline u32 DecodePixel_RGB5A3(u16 val)
   return r | (g << 8) | (b << 16) | (a << 24);
 }
 
-static inline u32 DecodePixel_Paletted(u16 pixel, TlutFormat tlutfmt)
+static inline u32 DecodePixel_Paletted(u16 pixel, TLUTFormat tlutfmt)
 {
   switch (tlutfmt)
   {
-  case GX_TL_IA8:
+  case TLUTFormat::IA8:
     return DecodePixel_IA8(pixel);
-  case GX_TL_RGB565:
+  case TLUTFormat::RGB565:
     return DecodePixel_RGB565(Common::swap16(pixel));
-  case GX_TL_RGB5A3:
+  case TLUTFormat::RGB5A3:
     return DecodePixel_RGB5A3(Common::swap16(pixel));
   default:
     return 0;
   }
 }
 
-static inline void DecodeBytes_C4(u32* dst, const u8* src, const u8* tlut_, TlutFormat tlutfmt)
+static inline void DecodeBytes_C4(u32* dst, const u8* src, const u8* tlut_, TLUTFormat tlutfmt)
 {
   const u16* tlut = (u16*)tlut_;
   for (int x = 0; x < 4; x++)
@@ -83,7 +83,7 @@ static inline void DecodeBytes_C4(u32* dst, const u8* src, const u8* tlut_, Tlut
   }
 }
 
-static inline void DecodeBytes_C8(u32* dst, const u8* src, const u8* tlut_, TlutFormat tlutfmt)
+static inline void DecodeBytes_C8(u32* dst, const u8* src, const u8* tlut_, TLUTFormat tlutfmt)
 {
   const u16* tlut = (u16*)tlut_;
   for (int x = 0; x < 8; x++)
@@ -93,7 +93,7 @@ static inline void DecodeBytes_C8(u32* dst, const u8* src, const u8* tlut_, Tlut
   }
 }
 
-static inline void DecodeBytes_C14X2(u32* dst, const u16* src, const u8* tlut_, TlutFormat tlutfmt)
+static inline void DecodeBytes_C14X2(u32* dst, const u16* src, const u8* tlut_, TLUTFormat tlutfmt)
 {
   const u16* tlut = (u16*)tlut_;
   for (int x = 0; x < 4; x++)
@@ -195,21 +195,21 @@ static void DecodeDXTBlock(u32* dst, const DXTBlock* src, int pitch)
 // TODO: complete SSE2 optimization of less often used texture formats.
 // TODO: refactor algorithms using _mm_loadl_epi64 unaligned loads to prefer 128-bit aligned loads.
 
-void _TexDecoder_DecodeImpl(u32* dst, const u8* src, int width, int height, int texformat,
-                            const u8* tlut, TlutFormat tlutfmt)
+void _TexDecoder_DecodeImpl(u32* dst, const u8* src, int width, int height, TextureFormat texformat,
+                            const u8* tlut, TLUTFormat tlutfmt)
 {
   const int Wsteps4 = (width + 3) / 4;
   const int Wsteps8 = (width + 7) / 8;
 
   switch (texformat)
   {
-  case GX_TF_C4:
+  case TextureFormat::C4:
     for (int y = 0; y < height; y += 8)
       for (int x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8, yStep++)
         for (int iy = 0, xStep = 8 * yStep; iy < 8; iy++, xStep++)
           DecodeBytes_C4(dst + (y + iy) * width + x, src + 4 * xStep, tlut, tlutfmt);
     break;
-  case GX_TF_I4:
+  case TextureFormat::I4:
   {
     // Reference C implementation:
     for (int y = 0; y < height; y += 8)
@@ -225,7 +225,7 @@ void _TexDecoder_DecodeImpl(u32* dst, const u8* src, int width, int height, int 
           }
   }
   break;
-  case GX_TF_I8:  // speed critical
+  case TextureFormat::I8:  // speed critical
   {
     // Reference C implementation
     for (int y = 0; y < height; y += 4)
@@ -255,13 +255,13 @@ void _TexDecoder_DecodeImpl(u32* dst, const u8* src, int width, int height, int 
         }
   }
   break;
-  case GX_TF_C8:
+  case TextureFormat::C8:
     for (int y = 0; y < height; y += 4)
       for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
         for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
           DecodeBytes_C8((u32*)dst + (y + iy) * width + x, src + 8 * xStep, tlut, tlutfmt);
     break;
-  case GX_TF_IA4:
+  case TextureFormat::IA4:
   {
     for (int y = 0; y < height; y += 4)
       for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
@@ -269,7 +269,7 @@ void _TexDecoder_DecodeImpl(u32* dst, const u8* src, int width, int height, int 
           DecodeBytes_IA4(dst + (y + iy) * width + x, src + 8 * xStep);
   }
   break;
-  case GX_TF_IA8:
+  case TextureFormat::IA8:
   {
     // Reference C implementation:
     for (int y = 0; y < height; y += 4)
@@ -285,13 +285,13 @@ void _TexDecoder_DecodeImpl(u32* dst, const u8* src, int width, int height, int 
         }
   }
   break;
-  case GX_TF_C14X2:
+  case TextureFormat::C14X2:
     for (int y = 0; y < height; y += 4)
       for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
         for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
           DecodeBytes_C14X2(dst + (y + iy) * width + x, (u16*)(src + 8 * xStep), tlut, tlutfmt);
     break;
-  case GX_TF_RGB565:
+  case TextureFormat::RGB565:
   {
     // Reference C implementation.
     for (int y = 0; y < height; y += 4)
@@ -305,7 +305,7 @@ void _TexDecoder_DecodeImpl(u32* dst, const u8* src, int width, int height, int 
         }
   }
   break;
-  case GX_TF_RGB5A3:
+  case TextureFormat::RGB5A3:
   {
     // Reference C implementation:
     for (int y = 0; y < height; y += 4)
@@ -314,7 +314,7 @@ void _TexDecoder_DecodeImpl(u32* dst, const u8* src, int width, int height, int 
           DecodeBytes_RGB5A3(dst + (y + iy) * width + x, (u16*)src);
   }
   break;
-  case GX_TF_RGBA8:  // speed critical
+  case TextureFormat::RGBA8:  // speed critical
   {
     // Reference C implementation.
     for (int y = 0; y < height; y += 4)
@@ -327,7 +327,7 @@ void _TexDecoder_DecodeImpl(u32* dst, const u8* src, int width, int height, int 
       }
   }
   break;
-  case GX_TF_CMPR:  // speed critical
+  case TextureFormat::CMPR:  // speed critical
     // The metroid games use this format almost exclusively.
     {
       for (int y = 0; y < height; y += 8)

@@ -226,8 +226,8 @@ void TextureCacheBase::SetBackupConfig(const VideoConfig& config)
   backup_config.gpu_texture_decoding = config.bEnableGPUTextureDecoding;
 }
 
-TextureCacheBase::TCacheEntry* TextureCacheBase::ApplyPaletteToEntry(TCacheEntry* entry,
-                                                                     u8* palette, u32 tlutfmt)
+TextureCacheBase::TCacheEntry*
+TextureCacheBase::ApplyPaletteToEntry(TCacheEntry* entry, u8* palette, TLUTFormat tlutfmt)
 {
   TextureConfig new_config = entry->texture->GetConfig();
   new_config.levels = 1;
@@ -243,7 +243,7 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::ApplyPaletteToEntry(TCacheEntry
   decoded_entry->frameCount = FRAMECOUNT_INVALID;
   decoded_entry->is_efb_copy = false;
 
-  ConvertTexture(decoded_entry, entry, palette, static_cast<TlutFormat>(tlutfmt));
+  ConvertTexture(decoded_entry, entry, palette, tlutfmt);
   textures_by_address.emplace(entry->addr, decoded_entry);
 
   return decoded_entry;
@@ -290,7 +290,8 @@ void TextureCacheBase::ScaleTextureCacheEntryTo(TextureCacheBase::TCacheEntry* e
 }
 
 TextureCacheBase::TCacheEntry*
-TextureCacheBase::DoPartialTextureUpdates(TCacheEntry* entry_to_update, u8* palette, u32 tlutfmt)
+TextureCacheBase::DoPartialTextureUpdates(TCacheEntry* entry_to_update, u8* palette,
+                                          TLUTFormat tlutfmt)
 {
   // If the flag may_have_overlapping_textures is cleared, there are no overlapping EFB copies,
   // which aren't applied already. It is set for new textures, and for the affected range
@@ -299,19 +300,17 @@ TextureCacheBase::DoPartialTextureUpdates(TCacheEntry* entry_to_update, u8* pale
     return entry_to_update;
   entry_to_update->may_have_overlapping_textures = false;
 
-  const bool isPaletteTexture =
-      (entry_to_update->format == GX_TF_C4 || entry_to_update->format == GX_TF_C8 ||
-       entry_to_update->format == GX_TF_C14X2 || entry_to_update->format >= 0x10000);
+  const bool isPaletteTexture = IsColorIndexed(entry_to_update->format.texfmt);
 
   // EFB copies are excluded from these updates, until there's an example where a game would
   // benefit from updating. This would require more work to be done.
   if (entry_to_update->IsEfbCopy())
     return entry_to_update;
 
-  u32 block_width = TexDecoder_GetBlockWidthInTexels(entry_to_update->format & 0xf);
-  u32 block_height = TexDecoder_GetBlockHeightInTexels(entry_to_update->format & 0xf);
+  u32 block_width = TexDecoder_GetBlockWidthInTexels(entry_to_update->format.texfmt);
+  u32 block_height = TexDecoder_GetBlockHeightInTexels(entry_to_update->format.texfmt);
   u32 block_size = block_width * block_height *
-                   TexDecoder_GetTexelSizeInNibbles(entry_to_update->format & 0xf) / 2;
+                   TexDecoder_GetTexelSizeInNibbles(entry_to_update->format.texfmt) / 2;
 
   u32 numBlocksX = (entry_to_update->native_width + block_width - 1) / block_width;
 
@@ -490,9 +489,9 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::Load(const u32 stage)
   const u32 address = (tex.texImage3[id].image_base /* & 0x1FFFFF*/) << 5;
   u32 width = tex.texImage0[id].width + 1;
   u32 height = tex.texImage0[id].height + 1;
-  const int texformat = tex.texImage0[id].format;
+  const TextureFormat texformat = static_cast<TextureFormat>(tex.texImage0[id].format);
   const u32 tlutaddr = tex.texTlut[id].tmem_offset << 9;
-  const u32 tlutfmt = tex.texTlut[id].tlut_format;
+  const TLUTFormat tlutfmt = static_cast<TLUTFormat>(tex.texTlut[id].tlut_format);
   const bool use_mipmaps = SamplerCommon::AreBpTexMode0MipmapsEnabled(tex.texMode0[id]);
   u32 tex_levels = use_mipmaps ? ((tex.texMode1[id].max_lod + 0xf) / 0x10 + 1) : 1;
   const bool from_tmem = tex.texImage1[id].image_type != 0;
@@ -511,17 +510,13 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::Load(const u32 stage)
   u64 base_hash = TEXHASH_INVALID;
   u64 full_hash = TEXHASH_INVALID;
 
-  u32 full_format = texformat;
+  TextureAndTLUTFormat full_format(texformat, tlutfmt);
 
-  const bool isPaletteTexture =
-      (texformat == GX_TF_C4 || texformat == GX_TF_C8 || texformat == GX_TF_C14X2);
+  const bool isPaletteTexture = IsColorIndexed(texformat);
 
   // Reject invalid tlut format.
-  if (isPaletteTexture && tlutfmt > GX_TL_RGB5A3)
+  if (isPaletteTexture && !IsValidTLUTFormat(tlutfmt))
     return nullptr;
-
-  if (isPaletteTexture)
-    full_format = texformat | (tlutfmt << 16);
 
   const u32 texture_size =
       TexDecoder_GetTextureSizeInBytes(expandedWidth, expandedHeight, texformat);
@@ -766,11 +761,9 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::Load(const u32 stage)
   // banks, and if we're doing an copy we may as well just do the whole thing on the CPU, since
   // there's no conversion between formats. In the future this could be extended with a separate
   // shader, however.
-  bool decode_on_gpu =
-      !hires_tex && g_ActiveConfig.UseGPUTextureDecoding() &&
-      g_texture_cache->SupportsGPUTextureDecode(static_cast<TextureFormat>(texformat),
-                                                static_cast<TlutFormat>(tlutfmt)) &&
-      !(from_tmem && texformat == GX_TF_RGBA8);
+  bool decode_on_gpu = !hires_tex && g_ActiveConfig.UseGPUTextureDecoding() &&
+                       g_texture_cache->SupportsGPUTextureDecode(texformat, tlutfmt) &&
+                       !(from_tmem && texformat == TextureFormat::RGBA8);
 
   // create the entry/texture
   TextureConfig config;
@@ -796,18 +789,16 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::Load(const u32 stage)
   if (!hires_tex && decode_on_gpu)
   {
     u32 row_stride = bytes_per_block * (expandedWidth / bsw);
-    g_texture_cache->DecodeTextureOnGPU(
-        entry, 0, src_data, texture_size, static_cast<TextureFormat>(texformat), width, height,
-        expandedWidth, expandedHeight, row_stride, tlut, static_cast<TlutFormat>(tlutfmt));
+    g_texture_cache->DecodeTextureOnGPU(entry, 0, src_data, texture_size, texformat, width, height,
+                                        expandedWidth, expandedHeight, row_stride, tlut, tlutfmt);
   }
   else if (!hires_tex)
   {
     size_t decoded_texture_size = expandedWidth * sizeof(u32) * expandedHeight;
     CheckTempSize(decoded_texture_size);
-    if (!(texformat == GX_TF_RGBA8 && from_tmem))
+    if (!(texformat == TextureFormat::RGBA8 && from_tmem))
     {
-      TexDecoder_Decode(temp, src_data, expandedWidth, expandedHeight, texformat, tlut,
-                        (TlutFormat)tlutfmt);
+      TexDecoder_Decode(temp, src_data, expandedWidth, expandedHeight, texformat, tlut, tlutfmt);
     }
     else
     {
@@ -878,17 +869,16 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::Load(const u32 stage)
       if (decode_on_gpu)
       {
         u32 row_stride = bytes_per_block * (expanded_mip_width / bsw);
-        g_texture_cache->DecodeTextureOnGPU(entry, level, mip_src_data, mip_size,
-                                            static_cast<TextureFormat>(texformat), mip_width,
-                                            mip_height, expanded_mip_width, expanded_mip_height,
-                                            row_stride, tlut, static_cast<TlutFormat>(tlutfmt));
+        g_texture_cache->DecodeTextureOnGPU(entry, level, mip_src_data, mip_size, texformat,
+                                            mip_width, mip_height, expanded_mip_width,
+                                            expanded_mip_height, row_stride, tlut, tlutfmt);
       }
       else
       {
         // No need to call CheckTempSize here, as mips will always be smaller than the base level.
         size_t decoded_mip_size = expanded_mip_width * sizeof(u32) * expanded_mip_height;
         TexDecoder_Decode(temp, mip_src_data, expanded_mip_width, expanded_mip_height, texformat,
-                          tlut, (TlutFormat)tlutfmt);
+                          tlut, tlutfmt);
         entry->texture->Load(level, mip_width, mip_height, expanded_mip_width, temp,
                              decoded_mip_size);
       }
@@ -908,9 +898,10 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::Load(const u32 stage)
   return ReturnEntry(stage, entry);
 }
 
-void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat, u32 dstStride,
-                                                 bool is_depth_copy, const EFBRectangle& srcRect,
-                                                 bool isIntensity, bool scaleByHalf)
+void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstFormat,
+                                                 u32 dstStride, bool is_depth_copy,
+                                                 const EFBRectangle& srcRect, bool isIntensity,
+                                                 bool scaleByHalf)
 {
   // Emulation methods:
   //
@@ -980,81 +971,73 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
   ColorMask[0] = ColorMask[1] = ColorMask[2] = ColorMask[3] = 255.0f;
   ColorMask[4] = ColorMask[5] = ColorMask[6] = ColorMask[7] = 1.0f / 255.0f;
   unsigned int cbufid = UINT_MAX;
-  u32 srcFormat = bpmem.zcontrol.pixel_format;
+  PEControl::PixelFormat srcFormat = bpmem.zcontrol.pixel_format;
   bool efbHasAlpha = srcFormat == PEControl::RGBA6_Z24;
 
   if (is_depth_copy)
   {
     switch (dstFormat)
     {
-    case 0:  // Z4
+    case EFBCopyFormat::R4:  // Z4
       colmat[3] = colmat[7] = colmat[11] = colmat[15] = 1.0f;
       cbufid = 0;
-      dstFormat |= _GX_TF_CTF;
       break;
-    case 8:  // Z8H
-      dstFormat |= _GX_TF_CTF;
-    case 1:  // Z8
+    case EFBCopyFormat::R8_0x1:  // Z8
+    case EFBCopyFormat::R8:      // Z8H
       colmat[0] = colmat[4] = colmat[8] = colmat[12] = 1.0f;
       cbufid = 1;
       break;
 
-    case 3:  // Z16
+    case EFBCopyFormat::RA8:  // Z16
       colmat[1] = colmat[5] = colmat[9] = colmat[12] = 1.0f;
       cbufid = 2;
       break;
 
-    case 11:  // Z16 (reverse order)
+    case EFBCopyFormat::RG8:  // Z16 (reverse order)
       colmat[0] = colmat[4] = colmat[8] = colmat[13] = 1.0f;
       cbufid = 3;
-      dstFormat |= _GX_TF_CTF;
       break;
 
-    case 6:  // Z24X8
+    case EFBCopyFormat::RGBA8:  // Z24X8
       colmat[0] = colmat[5] = colmat[10] = 1.0f;
       cbufid = 4;
       break;
 
-    case 9:  // Z8M
+    case EFBCopyFormat::G8:  // Z8M
       colmat[1] = colmat[5] = colmat[9] = colmat[13] = 1.0f;
       cbufid = 5;
-      dstFormat |= _GX_TF_CTF;
       break;
 
-    case 10:  // Z8L
+    case EFBCopyFormat::B8:  // Z8L
       colmat[2] = colmat[6] = colmat[10] = colmat[14] = 1.0f;
       cbufid = 6;
-      dstFormat |= _GX_TF_CTF;
       break;
 
-    case 12:  // Z16L - copy lower 16 depth bits
+    case EFBCopyFormat::GB8:  // Z16L - copy lower 16 depth bits
       // expected to be used as an IA8 texture (upper 8 bits stored as intensity, lower 8 bits
       // stored as alpha)
       // Used e.g. in Zelda: Skyward Sword
       colmat[1] = colmat[5] = colmat[9] = colmat[14] = 1.0f;
       cbufid = 7;
-      dstFormat |= _GX_TF_CTF;
       break;
 
     default:
-      ERROR_LOG(VIDEO, "Unknown copy zbuf format: 0x%x", dstFormat);
+      ERROR_LOG(VIDEO, "Unknown copy zbuf format: 0x%X", static_cast<int>(dstFormat));
       colmat[2] = colmat[5] = colmat[8] = 1.0f;
       cbufid = 8;
       break;
     }
-
-    dstFormat |= _GX_TF_ZTF;
   }
   else if (isIntensity)
   {
     fConstAdd[0] = fConstAdd[1] = fConstAdd[2] = 16.0f / 255.0f;
     switch (dstFormat)
     {
-    case 0:  // I4
-    case 1:  // I8
-    case 2:  // IA4
-    case 3:  // IA8
-    case 8:  // I8
+    case EFBCopyFormat::R4:      // I4
+    case EFBCopyFormat::R8_0x1:  // I8
+    case EFBCopyFormat::R8:      // IA4
+    case EFBCopyFormat::RA4:     // IA8
+    case EFBCopyFormat::RA8:     // I8
       // TODO - verify these coefficients
       colmat[0] = 0.257f;
       colmat[1] = 0.504f;
@@ -1066,13 +1049,14 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
       colmat[9] = 0.504f;
       colmat[10] = 0.098f;
 
-      if (dstFormat < 2 || dstFormat == 8)
+      if (dstFormat == EFBCopyFormat::R4 || dstFormat == EFBCopyFormat::R8_0x1 ||
+          dstFormat == EFBCopyFormat::R8)
       {
         colmat[12] = 0.257f;
         colmat[13] = 0.504f;
         colmat[14] = 0.098f;
         fConstAdd[3] = 16.0f / 255.0f;
-        if (dstFormat == 0)
+        if (dstFormat == EFBCopyFormat::R4)
         {
           ColorMask[0] = ColorMask[1] = ColorMask[2] = 255.0f / 16.0f;
           ColorMask[4] = ColorMask[5] = ColorMask[6] = 1.0f / 15.0f;
@@ -1086,7 +1070,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
       else  // alpha
       {
         colmat[15] = 1;
-        if (dstFormat == 2)
+        if (dstFormat == EFBCopyFormat::RA4)
         {
           ColorMask[0] = ColorMask[1] = ColorMask[2] = ColorMask[3] = 255.0f / 16.0f;
           ColorMask[4] = ColorMask[5] = ColorMask[6] = ColorMask[7] = 1.0f / 15.0f;
@@ -1100,7 +1084,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
       break;
 
     default:
-      ERROR_LOG(VIDEO, "Unknown copy intensity format: 0x%x", dstFormat);
+      ERROR_LOG(VIDEO, "Unknown copy intensity format: 0x%X", static_cast<int>(dstFormat));
       colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1.0f;
       cbufid = 13;
       break;
@@ -1110,21 +1094,19 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
   {
     switch (dstFormat)
     {
-    case 0:  // R4
+    case EFBCopyFormat::R4:  // R4
       colmat[0] = colmat[4] = colmat[8] = colmat[12] = 1;
       ColorMask[0] = 255.0f / 16.0f;
       ColorMask[4] = 1.0f / 15.0f;
       cbufid = 14;
-      dstFormat |= _GX_TF_CTF;
       break;
-    case 1:  // R8
-    case 8:  // R8
+    case EFBCopyFormat::R8_0x1:  // R8
+    case EFBCopyFormat::R8:      // R8
       colmat[0] = colmat[4] = colmat[8] = colmat[12] = 1;
       cbufid = 15;
-      dstFormat = GX_CTF_R8;
       break;
 
-    case 2:  // RA4
+    case EFBCopyFormat::RA4:  // RA4
       colmat[0] = colmat[4] = colmat[8] = colmat[15] = 1.0f;
       ColorMask[0] = ColorMask[3] = 255.0f / 16.0f;
       ColorMask[4] = ColorMask[7] = 1.0f / 15.0f;
@@ -1136,9 +1118,8 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
         fConstAdd[3] = 1.0f;
         cbufid = 17;
       }
-      dstFormat |= _GX_TF_CTF;
       break;
-    case 3:  // RA8
+    case EFBCopyFormat::RA8:  // RA8
       colmat[0] = colmat[4] = colmat[8] = colmat[15] = 1.0f;
 
       cbufid = 18;
@@ -1148,10 +1129,9 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
         fConstAdd[3] = 1.0f;
         cbufid = 19;
       }
-      dstFormat |= _GX_TF_CTF;
       break;
 
-    case 7:  // A8
+    case EFBCopyFormat::A8:  // A8
       colmat[3] = colmat[7] = colmat[11] = colmat[15] = 1.0f;
 
       cbufid = 20;
@@ -1164,33 +1144,28 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
         fConstAdd[3] = 1.0f;
         cbufid = 21;
       }
-      dstFormat |= _GX_TF_CTF;
       break;
 
-    case 9:  // G8
+    case EFBCopyFormat::G8:  // G8
       colmat[1] = colmat[5] = colmat[9] = colmat[13] = 1.0f;
       cbufid = 22;
-      dstFormat |= _GX_TF_CTF;
       break;
-    case 10:  // B8
+    case EFBCopyFormat::B8:  // B8
       colmat[2] = colmat[6] = colmat[10] = colmat[14] = 1.0f;
       cbufid = 23;
-      dstFormat |= _GX_TF_CTF;
       break;
 
-    case 11:  // RG8
+    case EFBCopyFormat::RG8:  // RG8
       colmat[0] = colmat[4] = colmat[8] = colmat[13] = 1.0f;
       cbufid = 24;
-      dstFormat |= _GX_TF_CTF;
       break;
 
-    case 12:  // GB8
+    case EFBCopyFormat::GB8:  // GB8
       colmat[1] = colmat[5] = colmat[9] = colmat[14] = 1.0f;
       cbufid = 25;
-      dstFormat |= _GX_TF_CTF;
       break;
 
-    case 4:  // RGB565
+    case EFBCopyFormat::RGB565:  // RGB565
       colmat[0] = colmat[5] = colmat[10] = 1.0f;
       ColorMask[0] = ColorMask[2] = 255.0f / 8.0f;
       ColorMask[4] = ColorMask[6] = 1.0f / 31.0f;
@@ -1200,7 +1175,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
       cbufid = 26;
       break;
 
-    case 5:  // RGB5A3
+    case EFBCopyFormat::RGB5A3:  // RGB5A3
       colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1.0f;
       ColorMask[0] = ColorMask[1] = ColorMask[2] = 255.0f / 8.0f;
       ColorMask[4] = ColorMask[5] = ColorMask[6] = 1.0f / 31.0f;
@@ -1215,7 +1190,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
         cbufid = 28;
       }
       break;
-    case 6:  // RGBA8
+    case EFBCopyFormat::RGBA8:  // RGBA8
       colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1.0f;
 
       cbufid = 29;
@@ -1228,7 +1203,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
       break;
 
     default:
-      ERROR_LOG(VIDEO, "Unknown copy color format: 0x%x", dstFormat);
+      ERROR_LOG(VIDEO, "Unknown copy color format: 0x%X", static_cast<int>(dstFormat));
       colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1.0f;
       cbufid = 31;
       break;
@@ -1267,7 +1242,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
   }
 
   // Get the base (in memory) format of this efb copy.
-  int baseFormat = TexDecoder_GetEfbCopyBaseFormat(dstFormat);
+  TextureFormat baseFormat = TexDecoder_GetEFBCopyBaseFormat(dstFormat);
 
   u32 blockH = TexDecoder_GetBlockHeightInTexels(baseFormat);
   const u32 blockW = TexDecoder_GetBlockWidthInTexels(baseFormat);
@@ -1280,7 +1255,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
   const u32 num_blocks_x = actualWidth / blockW;
 
   // RGBA takes two cache lines per block; all others take one
-  const u32 bytes_per_block = baseFormat == GX_TF_RGBA8 ? 64 : 32;
+  const u32 bytes_per_block = baseFormat == TextureFormat::RGBA8 ? 64 : 32;
 
   const u32 bytes_per_row = num_blocks_x * bytes_per_block;
   const u32 covered_range = num_blocks_y * dstStride;
@@ -1290,9 +1265,8 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
 
   if (copy_to_ram)
   {
-    EFBCopyFormat format(srcFormat, static_cast<TextureFormat>(dstFormat));
-    CopyEFB(dst, format, tex_w, bytes_per_row, num_blocks_y, dstStride, is_depth_copy, srcRect,
-            scaleByHalf);
+    EFBCopyParams format(srcFormat, dstFormat, is_depth_copy, isIntensity);
+    CopyEFB(dst, format, tex_w, bytes_per_row, num_blocks_y, dstStride, srcRect, scaleByHalf);
   }
   else
   {
@@ -1510,7 +1484,7 @@ TextureCacheBase::InvalidateTexture(TexAddrCache::iterator iter)
 
 u32 TextureCacheBase::TCacheEntry::BytesPerRow() const
 {
-  const u32 blockW = TexDecoder_GetBlockWidthInTexels(format);
+  const u32 blockW = TexDecoder_GetBlockWidthInTexels(format.texfmt);
 
   // Round up source height to multiple of block size
   const u32 actualWidth = Common::AlignUp(native_width, blockW);
@@ -1518,14 +1492,14 @@ u32 TextureCacheBase::TCacheEntry::BytesPerRow() const
   const u32 numBlocksX = actualWidth / blockW;
 
   // RGBA takes two cache lines per block; all others take one
-  const u32 bytes_per_block = format == GX_TF_RGBA8 ? 64 : 32;
+  const u32 bytes_per_block = format == TextureFormat::RGBA8 ? 64 : 32;
 
   return numBlocksX * bytes_per_block;
 }
 
 u32 TextureCacheBase::TCacheEntry::NumBlocksY() const
 {
-  u32 blockH = TexDecoder_GetBlockHeightInTexels(format);
+  u32 blockH = TexDecoder_GetBlockHeightInTexels(format.texfmt);
   // Round up source height to multiple of block size
   u32 actualHeight = Common::AlignUp(native_height, blockH);
 

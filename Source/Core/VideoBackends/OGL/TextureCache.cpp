@@ -9,6 +9,7 @@
 #include <memory>
 #include <vector>
 
+#include "Common/Assert.h"
 #include "Common/GL/GLInterfaceBase.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
@@ -32,12 +33,18 @@ namespace OGL
 {
 static u32 s_ColorCbufid;
 static u32 s_DepthCbufid;
-static SHADER s_palette_pixel_shader[3];
+
+struct PaletteShader
+{
+  SHADER shader;
+  GLuint buffer_offset_uniform;
+  GLuint multiplier_uniform;
+  GLuint copy_position_uniform;
+};
+
+static PaletteShader s_palette_shader[3];
 static std::unique_ptr<StreamBuffer> s_palette_stream_buffer;
-static GLuint s_palette_resolv_texture;
-static GLuint s_palette_buffer_offset_uniform[3];
-static GLuint s_palette_multiplier_uniform[3];
-static GLuint s_palette_copy_position_uniform[3];
+static GLuint s_palette_resolv_texture = 0;
 
 struct TextureDecodingProgramInfo
 {
@@ -64,12 +71,12 @@ std::unique_ptr<AbstractTexture> TextureCache::CreateTexture(const TextureConfig
   return std::make_unique<OGLTexture>(config);
 }
 
-void TextureCache::CopyEFB(u8* dst, const EFBCopyFormat& format, u32 native_width,
+void TextureCache::CopyEFB(u8* dst, const EFBCopyParams& params, u32 native_width,
                            u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
-                           bool is_depth_copy, const EFBRectangle& src_rect, bool scale_by_half)
+                           const EFBRectangle& src_rect, bool scale_by_half)
 {
-  TextureConverter::EncodeToRamFromTexture(dst, format, native_width, bytes_per_row, num_blocks_y,
-                                           memory_stride, is_depth_copy, src_rect, scale_by_half);
+  TextureConverter::EncodeToRamFromTexture(dst, params, native_width, bytes_per_row, num_blocks_y,
+                                           memory_stride, src_rect, scale_by_half);
 }
 
 TextureCache::TextureCache()
@@ -124,6 +131,23 @@ const SHADER& TextureCache::GetColorCopyProgram() const
 GLuint TextureCache::GetColorCopyPositionUniform() const
 {
   return m_colorCopyPositionUniform;
+}
+
+static bool CompilePaletteShader(TLUTFormat tlutfmt, const std::string& vcode,
+                                 const std::string& pcode, const std::string& gcode)
+{
+  _assert_(IsValidTLUTFormat(tlutfmt));
+  PaletteShader& shader = s_palette_shader[static_cast<int>(tlutfmt)];
+
+  if (!ProgramShaderCache::CompileShader(shader.shader, vcode, pcode, gcode))
+    return false;
+
+  shader.buffer_offset_uniform =
+      glGetUniformLocation(shader.shader.glprogid, "texture_buffer_offset");
+  shader.multiplier_uniform = glGetUniformLocation(shader.shader.glprogid, "multiplier");
+  shader.copy_position_uniform = glGetUniformLocation(shader.shader.glprogid, "copy_position");
+
+  return true;
 }
 
 bool TextureCache::CompileShaders()
@@ -315,44 +339,17 @@ bool TextureCache::CompileShaders()
 
   if (g_ActiveConfig.backend_info.bSupportsPaletteConversion)
   {
-    if (!ProgramShaderCache::CompileShader(
-            s_palette_pixel_shader[GX_TL_IA8], StringFromFormat(vertex_program, prefix, prefix),
-            "#define DECODE DecodePixel_IA8" + palette_shader, geo_program))
-    {
+    if (!CompilePaletteShader(TLUTFormat::IA8, StringFromFormat(vertex_program, prefix, prefix),
+                              "#define DECODE DecodePixel_IA8" + palette_shader, geo_program))
       return false;
-    }
-    s_palette_buffer_offset_uniform[GX_TL_IA8] =
-        glGetUniformLocation(s_palette_pixel_shader[GX_TL_IA8].glprogid, "texture_buffer_offset");
-    s_palette_multiplier_uniform[GX_TL_IA8] =
-        glGetUniformLocation(s_palette_pixel_shader[GX_TL_IA8].glprogid, "multiplier");
-    s_palette_copy_position_uniform[GX_TL_IA8] =
-        glGetUniformLocation(s_palette_pixel_shader[GX_TL_IA8].glprogid, "copy_position");
 
-    if (!ProgramShaderCache::CompileShader(
-            s_palette_pixel_shader[GX_TL_RGB565], StringFromFormat(vertex_program, prefix, prefix),
-            "#define DECODE DecodePixel_RGB565" + palette_shader, geo_program))
-    {
+    if (!CompilePaletteShader(TLUTFormat::RGB565, StringFromFormat(vertex_program, prefix, prefix),
+                              "#define DECODE DecodePixel_RGB565" + palette_shader, geo_program))
       return false;
-    }
-    s_palette_buffer_offset_uniform[GX_TL_RGB565] = glGetUniformLocation(
-        s_palette_pixel_shader[GX_TL_RGB565].glprogid, "texture_buffer_offset");
-    s_palette_multiplier_uniform[GX_TL_RGB565] =
-        glGetUniformLocation(s_palette_pixel_shader[GX_TL_RGB565].glprogid, "multiplier");
-    s_palette_copy_position_uniform[GX_TL_RGB565] =
-        glGetUniformLocation(s_palette_pixel_shader[GX_TL_RGB565].glprogid, "copy_position");
 
-    if (!ProgramShaderCache::CompileShader(
-            s_palette_pixel_shader[GX_TL_RGB5A3], StringFromFormat(vertex_program, prefix, prefix),
-            "#define DECODE DecodePixel_RGB5A3" + palette_shader, geo_program))
-    {
+    if (!CompilePaletteShader(TLUTFormat::RGB5A3, StringFromFormat(vertex_program, prefix, prefix),
+                              "#define DECODE DecodePixel_RGB5A3" + palette_shader, geo_program))
       return false;
-    }
-    s_palette_buffer_offset_uniform[GX_TL_RGB5A3] = glGetUniformLocation(
-        s_palette_pixel_shader[GX_TL_RGB5A3].glprogid, "texture_buffer_offset");
-    s_palette_multiplier_uniform[GX_TL_RGB5A3] =
-        glGetUniformLocation(s_palette_pixel_shader[GX_TL_RGB5A3].glprogid, "multiplier");
-    s_palette_copy_position_uniform[GX_TL_RGB5A3] =
-        glGetUniformLocation(s_palette_pixel_shader[GX_TL_RGB5A3].glprogid, "copy_position");
   }
 
   return true;
@@ -364,15 +361,18 @@ void TextureCache::DeleteShaders()
   m_depthMatrixProgram.Destroy();
 
   if (g_ActiveConfig.backend_info.bSupportsPaletteConversion)
-    for (auto& shader : s_palette_pixel_shader)
-      shader.Destroy();
+    for (auto& shader : s_palette_shader)
+      shader.shader.Destroy();
 }
 
-void TextureCache::ConvertTexture(TCacheEntry* destination, TCacheEntry* source, void* palette,
-                                  TlutFormat format)
+void TextureCache::ConvertTexture(TCacheEntry* destination, TCacheEntry* source,
+                                  const void* palette, TLUTFormat tlutfmt)
 {
   if (!g_ActiveConfig.backend_info.bSupportsPaletteConversion)
     return;
+
+  _assert_(IsValidTLUTFormat(tlutfmt));
+  const PaletteShader& palette_shader = s_palette_shader[static_cast<int>(tlutfmt)];
 
   g_renderer->ResetAPIState();
 
@@ -385,16 +385,17 @@ void TextureCache::ConvertTexture(TCacheEntry* destination, TCacheEntry* source,
 
   FramebufferManager::SetFramebuffer(destination_texture->GetFramebuffer());
   glViewport(0, 0, destination->GetWidth(), destination->GetHeight());
-  s_palette_pixel_shader[format].Bind();
+  palette_shader.shader.Bind();
 
   // C14 textures are currently unsupported
-  int size = (source->format & 0xf) == GX_TF_I4 ? 32 : 512;
+  int size = source->format == TextureFormat::I4 ? 32 : 512;
   auto buffer = s_palette_stream_buffer->Map(size);
   memcpy(buffer.first, palette, size);
   s_palette_stream_buffer->Unmap(size);
-  glUniform1i(s_palette_buffer_offset_uniform[format], buffer.second / 2);
-  glUniform1f(s_palette_multiplier_uniform[format], (source->format & 0xf) == 0 ? 15.0f : 255.0f);
-  glUniform4f(s_palette_copy_position_uniform[format], 0.0f, 0.0f,
+  glUniform1i(palette_shader.buffer_offset_uniform, buffer.second / 2);
+  glUniform1f(palette_shader.multiplier_uniform,
+              source->format == TextureFormat::I4 ? 15.0f : 255.0f);
+  glUniform4f(palette_shader.copy_position_uniform, 0.0f, 0.0f,
               static_cast<float>(source->GetWidth()), static_cast<float>(source->GetHeight()));
 
   glActiveTexture(GL_TEXTURE10);
@@ -441,7 +442,7 @@ void DestroyTextureDecodingResources()
   s_texture_decoding_program_info.clear();
 }
 
-bool TextureCache::SupportsGPUTextureDecode(TextureFormat format, TlutFormat palette_format)
+bool TextureCache::SupportsGPUTextureDecode(TextureFormat format, TLUTFormat palette_format)
 {
   auto key = std::make_pair(static_cast<u32>(format), static_cast<u32>(palette_format));
   auto iter = s_texture_decoding_program_info.find(key);
@@ -483,7 +484,7 @@ bool TextureCache::SupportsGPUTextureDecode(TextureFormat format, TlutFormat pal
 void TextureCache::DecodeTextureOnGPU(TCacheEntry* entry, u32 dst_level, const u8* data,
                                       size_t data_size, TextureFormat format, u32 width, u32 height,
                                       u32 aligned_width, u32 aligned_height, u32 row_stride,
-                                      const u8* palette, TlutFormat palette_format)
+                                      const u8* palette, TLUTFormat palette_format)
 {
   auto key = std::make_pair(static_cast<u32>(format), static_cast<u32>(palette_format));
   auto iter = s_texture_decoding_program_info.find(key);

@@ -28,12 +28,12 @@ private:
     return 0;
   };
 
-  void ConvertTexture(TCacheEntry* destination, TCacheEntry* source, void* palette,
-                      TlutFormat format) override;
+  void ConvertTexture(TCacheEntry* destination, TCacheEntry* source, const void* palette,
+                      TLUTFormat format) override;
 
-  void CopyEFB(u8* dst, const EFBCopyFormat& format, u32 native_width, u32 bytes_per_row,
-               u32 num_blocks_y, u32 memory_stride, bool is_depth_copy,
-               const EFBRectangle& src_rect, bool scale_by_half) override;
+  void CopyEFB(u8* dst, const EFBCopyParams& params, u32 native_width, u32 bytes_per_row,
+               u32 num_blocks_y, u32 memory_stride, const EFBRectangle& src_rect,
+               bool scale_by_half) override;
 
   void CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy, const EFBRectangle& src_rect,
                            bool scale_by_half, unsigned int cbuf_id, const float* colmat) override;

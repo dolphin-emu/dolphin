@@ -21,6 +21,47 @@
 
 struct VideoConfig;
 
+struct TextureAndTLUTFormat
+{
+  TextureAndTLUTFormat(TextureFormat texfmt_ = TextureFormat::I4,
+                       TLUTFormat tlutfmt_ = TLUTFormat::IA8)
+      : texfmt(texfmt_), tlutfmt(tlutfmt_)
+  {
+  }
+
+  bool operator==(const TextureAndTLUTFormat& other) const
+  {
+    if (IsColorIndexed(texfmt))
+      return texfmt == other.texfmt && tlutfmt == other.tlutfmt;
+
+    return texfmt == other.texfmt;
+  }
+
+  bool operator!=(const TextureAndTLUTFormat& other) const { return !operator==(other); }
+  TextureFormat texfmt;
+  TLUTFormat tlutfmt;
+};
+
+struct EFBCopyParams
+{
+  EFBCopyParams(PEControl::PixelFormat efb_format_, EFBCopyFormat copy_format_, bool depth_,
+                bool yuv_)
+      : efb_format(efb_format_), copy_format(copy_format_), depth(depth_), yuv(yuv_)
+  {
+  }
+
+  bool operator<(const EFBCopyParams& rhs) const
+  {
+    return std::tie(efb_format, copy_format, depth, yuv) <
+           std::tie(rhs.efb_format, rhs.copy_format, rhs.depth, rhs.yuv);
+  }
+
+  PEControl::PixelFormat efb_format;
+  EFBCopyFormat copy_format;
+  bool depth;
+  bool yuv;
+};
+
 class TextureCacheBase
 {
 private:
@@ -34,8 +75,8 @@ public:
     u32 addr;
     u32 size_in_bytes;
     u64 base_hash;
-    u64 hash;    // for paletted textures, hash = base_hash ^ palette_hash
-    u32 format;  // bits 0-3 will contain the in-memory format.
+    u64 hash;  // for paletted textures, hash = base_hash ^ palette_hash
+    TextureAndTLUTFormat format;
     u32 memory_stride;
     bool is_efb_copy;
     bool is_custom_tex;
@@ -62,7 +103,7 @@ public:
 
     ~TCacheEntry();
 
-    void SetGeneralParameters(u32 _addr, u32 _size, u32 _format)
+    void SetGeneralParameters(u32 _addr, u32 _size, TextureAndTLUTFormat _format)
     {
       addr = _addr;
       size_in_bytes = _size;
@@ -119,9 +160,9 @@ public:
 
   void Invalidate();
 
-  virtual void CopyEFB(u8* dst, const EFBCopyFormat& format, u32 native_width, u32 bytes_per_row,
-                       u32 num_blocks_y, u32 memory_stride, bool is_depth_copy,
-                       const EFBRectangle& src_rect, bool scale_by_half) = 0;
+  virtual void CopyEFB(u8* dst, const EFBCopyParams& params, u32 native_width, u32 bytes_per_row,
+                       u32 num_blocks_y, u32 memory_stride, const EFBRectangle& src_rect,
+                       bool scale_by_half) = 0;
 
   virtual bool CompileShaders() = 0;
   virtual void DeleteShaders() = 0;
@@ -130,15 +171,15 @@ public:
   static void InvalidateAllBindPoints() { valid_bind_points.reset(); }
   static bool IsValidBindPoint(u32 i) { return valid_bind_points.test(i); }
   void BindTextures();
-  void CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat, u32 dstStride,
+  void CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstFormat, u32 dstStride,
                                  bool is_depth_copy, const EFBRectangle& srcRect, bool isIntensity,
                                  bool scaleByHalf);
 
-  virtual void ConvertTexture(TCacheEntry* entry, TCacheEntry* unconverted, void* palette,
-                              TlutFormat format) = 0;
+  virtual void ConvertTexture(TCacheEntry* entry, TCacheEntry* unconverted, const void* palette,
+                              TLUTFormat format) = 0;
 
   // Returns true if the texture data and palette formats are supported by the GPU decoder.
-  virtual bool SupportsGPUTextureDecode(TextureFormat format, TlutFormat palette_format)
+  virtual bool SupportsGPUTextureDecode(TextureFormat format, TLUTFormat palette_format)
   {
     return false;
   }
@@ -150,7 +191,7 @@ public:
   virtual void DecodeTextureOnGPU(TCacheEntry* entry, u32 dst_level, const u8* data,
                                   size_t data_size, TextureFormat format, u32 width, u32 height,
                                   u32 aligned_width, u32 aligned_height, u32 row_stride,
-                                  const u8* palette, TlutFormat palette_format)
+                                  const u8* palette, TLUTFormat palette_format)
   {
   }
 
@@ -177,10 +218,11 @@ private:
 
   void SetBackupConfig(const VideoConfig& config);
 
-  TCacheEntry* ApplyPaletteToEntry(TCacheEntry* entry, u8* palette, u32 tlutfmt);
+  TCacheEntry* ApplyPaletteToEntry(TCacheEntry* entry, u8* palette, TLUTFormat tlutfmt);
 
   void ScaleTextureCacheEntryTo(TCacheEntry* entry, u32 new_width, u32 new_height);
-  TCacheEntry* DoPartialTextureUpdates(TCacheEntry* entry_to_update, u8* palette, u32 tlutfmt);
+  TCacheEntry* DoPartialTextureUpdates(TCacheEntry* entry_to_update, u8* palette,
+                                       TLUTFormat tlutfmt);
 
   void DumpTexture(TCacheEntry* entry, std::string basename, unsigned int level);
   void CheckTempSize(size_t required_size);

@@ -87,9 +87,9 @@ void PSTextureEncoder::Shutdown()
   SAFE_RELEASE(m_out);
 }
 
-void PSTextureEncoder::Encode(u8* dst, const EFBCopyFormat& format, u32 native_width,
+void PSTextureEncoder::Encode(u8* dst, const EFBCopyParams& params, u32 native_width,
                               u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
-                              bool is_depth_copy, const EFBRectangle& src_rect, bool scale_by_half)
+                              const EFBRectangle& src_rect, bool scale_by_half)
 {
   if (!m_ready)  // Make sure we initialized OK
     return;
@@ -100,7 +100,7 @@ void PSTextureEncoder::Encode(u8* dst, const EFBCopyFormat& format, u32 native_w
   // FIXME: Instead of resolving EFB, it would be better to pick out a
   // single sample from each pixel. The game may break if it isn't
   // expecting the blurred edges around multisampled shapes.
-  ID3D11ShaderResourceView* pEFB = is_depth_copy ?
+  ID3D11ShaderResourceView* pEFB = params.depth ?
                                        FramebufferManager::GetResolvedEFBDepthTexture()->GetSRV() :
                                        FramebufferManager::GetResolvedEFBColorTexture()->GetSRV();
 
@@ -119,12 +119,12 @@ void PSTextureEncoder::Encode(u8* dst, const EFBCopyFormat& format, u32 native_w
 
     D3D::context->OMSetRenderTargets(1, &m_outRTV, nullptr);
 
-    EFBEncodeParams params;
-    params.SrcLeft = src_rect.left;
-    params.SrcTop = src_rect.top;
-    params.DestWidth = native_width;
-    params.ScaleFactor = scale_by_half ? 2 : 1;
-    D3D::context->UpdateSubresource(m_encodeParams, 0, nullptr, &params, 0, 0);
+    EFBEncodeParams encode_params;
+    encode_params.SrcLeft = src_rect.left;
+    encode_params.SrcTop = src_rect.top;
+    encode_params.DestWidth = native_width;
+    encode_params.ScaleFactor = scale_by_half ? 2 : 1;
+    D3D::context->UpdateSubresource(m_encodeParams, 0, nullptr, &encode_params, 0, 0);
     D3D::stateman->SetPixelConstants(m_encodeParams);
 
     // We also linear filtering for both box filtering and downsampling higher resolutions to 1x
@@ -137,7 +137,7 @@ void PSTextureEncoder::Encode(u8* dst, const EFBCopyFormat& format, u32 native_w
       D3D::SetPointCopySampler();
 
     D3D::drawShadedTexQuad(pEFB, targetRect.AsRECT(), g_renderer->GetTargetWidth(),
-                           g_renderer->GetTargetHeight(), GetEncodingPixelShader(format),
+                           g_renderer->GetTargetHeight(), GetEncodingPixelShader(params),
                            VertexShaderCache::GetSimpleVertexShader(),
                            VertexShaderCache::GetSimpleInputLayout());
 
@@ -168,18 +168,18 @@ void PSTextureEncoder::Encode(u8* dst, const EFBCopyFormat& format, u32 native_w
                                    FramebufferManager::GetEFBDepthTexture()->GetDSV());
 }
 
-ID3D11PixelShader* PSTextureEncoder::GetEncodingPixelShader(const EFBCopyFormat& format)
+ID3D11PixelShader* PSTextureEncoder::GetEncodingPixelShader(const EFBCopyParams& params)
 {
-  auto iter = m_encoding_shaders.find(format);
+  auto iter = m_encoding_shaders.find(params);
   if (iter != m_encoding_shaders.end())
     return iter->second;
 
   D3DBlob* bytecode = nullptr;
-  const char* shader = TextureConversionShader::GenerateEncodingShader(format, APIType::D3D);
+  const char* shader = TextureConversionShader::GenerateEncodingShader(params, APIType::D3D);
   if (!D3D::CompilePixelShader(shader, &bytecode))
   {
     PanicAlert("Failed to compile texture encoding shader.");
-    m_encoding_shaders[format] = nullptr;
+    m_encoding_shaders[params] = nullptr;
     return nullptr;
   }
 
@@ -188,7 +188,7 @@ ID3D11PixelShader* PSTextureEncoder::GetEncodingPixelShader(const EFBCopyFormat&
       D3D::device->CreatePixelShader(bytecode->Data(), bytecode->Size(), nullptr, &newShader);
   CHECK(SUCCEEDED(hr), "create efb encoder pixel shader");
 
-  m_encoding_shaders.emplace(format, newShader);
+  m_encoding_shaders.emplace(params, newShader);
   return newShader;
 }
 }
