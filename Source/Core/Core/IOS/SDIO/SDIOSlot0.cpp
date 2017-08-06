@@ -579,10 +579,10 @@ std::array<u32, 4> SDIOSlot0::GetCSDv1()
   constexpr u32 crc = 0;
 
   // Form the csd using the description above
-  return {
+  return {{
       0x007f003, 0x5b5f8000 | (c_size >> 2), 0x3ffc7f80 | (c_size << 30) | (c_size_mult << 15),
       0x07c04001 | (crc << 1),
-  };
+  }};
 }
 
 std::array<u32, 4> SDIOSlot0::GetCSDv2()
@@ -634,9 +634,9 @@ std::array<u32, 4> SDIOSlot0::GetCSDv2()
   constexpr u32 crc = 0;
 
   // Form the csd using the description above
-  return {
+  return {{
       0x400e005a, 0x5f590000 | (c_size >> 16), 0x00007f80 | (c_size << 16), 0x0a400001 | (crc << 1),
-  };
+  }};
 }
 
 u64 SDIOSlot0::GetAddressFromRequest(u32 arg) const
