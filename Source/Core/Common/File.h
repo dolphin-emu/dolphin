@@ -74,7 +74,7 @@ public:
 
   bool Seek(s64 off, int origin);
   u64 Tell() const;
-  u64 GetSize();
+  u64 GetSize() const;
   bool Resize(u64 size);
   bool Flush();
 
