@@ -135,7 +135,7 @@ IPCCommandResult WFSSRV::IOCtl(const IOCtlRequest& request)
     u16 path_len = Memory::Read_U16(request.buffer_in + 0x20);
     std::string path = Memory::GetString(request.buffer_in + 0x22, path_len);
 
-    path = ExpandPath(path);
+    path = NormalizePath(path);
 
     u16 fd = GetNewFileDescriptor();
     FileDescriptor* fd_obj = &m_fds[fd];
@@ -204,7 +204,7 @@ IPCCommandResult WFSSRV::IOCtl(const IOCtlRequest& request)
   return GetDefaultReply(return_error_code);
 }
 
-std::string WFSSRV::ExpandPath(const std::string& path) const
+std::string WFSSRV::NormalizePath(const std::string& path) const
 {
   std::string expanded;
   if (!path.empty() && path[0] == '~')
@@ -219,7 +219,25 @@ std::string WFSSRV::ExpandPath(const std::string& path) const
   {
     expanded = path;
   }
-  return expanded;
+
+  std::vector<std::string> components = SplitString(expanded, '/');
+  std::vector<std::string> normalized_components;
+  for (const auto& component : components)
+  {
+    if (component.empty() || component == ".")
+    {
+      continue;
+    }
+    else if (component == ".." && !normalized_components.empty())
+    {
+      normalized_components.pop_back();
+    }
+    else
+    {
+      normalized_components.push_back(component);
+    }
+  }
+  return "/" + JoinStrings(normalized_components, "/");
 }
 
 WFSSRV::FileDescriptor* WFSSRV::FindFileDescriptor(u16 fd)

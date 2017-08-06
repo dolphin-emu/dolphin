@@ -39,7 +39,7 @@ private:
   std::string m_home_directory;
   std::string m_current_directory;
 
-  std::string ExpandPath(const std::string& path) const;
+  std::string NormalizePath(const std::string& path) const;
 
   enum
   {
