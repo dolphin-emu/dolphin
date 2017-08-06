@@ -360,6 +360,14 @@ bool CBoot::EmulatedBS2_Wii(const DiscIO::Volume& volume)
     state->discstate = 0x01;
   });
 
+  // While reading a disc, the system menu reads the first partition table
+  // (0x20 bytes from 0x00040020) and stores a pointer to the data partition entry.
+  // When launching the disc game, it copies the partition type and offset to 0x3194
+  // and 0x3198 respectively.
+  const DiscIO::Partition data_partition = volume.GetGamePartition();
+  Memory::Write_U32(0, 0x3194);
+  Memory::Write_U32(static_cast<u32>(data_partition.offset >> 2), 0x3198);
+
   if (!SetupWiiMemory(tmd.GetIOSId()))
     return false;
 
