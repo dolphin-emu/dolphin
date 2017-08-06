@@ -5,7 +5,9 @@
 #include "VideoBackends/Software/TransformUnit.h"
 
 #include <algorithm>
+#include <array>
 #include <cmath>
+#include <cstring>
 
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
@@ -322,15 +324,15 @@ void TransformColor(const InputVertexData* src, OutputVertexData* dst)
   for (u32 chan = 0; chan < xfmem.numChan.numColorChans; chan++)
   {
     // abgr
-    u8 matcolor[4];
-    u8 chancolor[4];
+    std::array<u8, 4> matcolor;
+    std::array<u8, 4> chancolor;
 
     // color
     const LitChannel& colorchan = xfmem.color[chan];
     if (colorchan.matsource)
-      *(u32*)matcolor = *(u32*)src->color[chan];  // vertex
+      std::memcpy(matcolor.data(), src->color[chan], sizeof(u32));  // vertex
     else
-      *(u32*)matcolor = xfmem.matColor[chan];
+      std::memcpy(matcolor.data(), &xfmem.matColor[chan], sizeof(u32));
 
     if (colorchan.enablelighting)
     {
@@ -366,7 +368,7 @@ void TransformColor(const InputVertexData* src, OutputVertexData* dst)
     }
     else
     {
-      *(u32*)chancolor = *(u32*)matcolor;
+      chancolor = matcolor;
     }
 
     // alpha
@@ -382,7 +384,7 @@ void TransformColor(const InputVertexData* src, OutputVertexData* dst)
       if (alphachan.ambsource)
         lightCol = src->color[chan][0];  // vertex
       else
-        lightCol = (float)(xfmem.ambColor[chan] & 0xff);
+        lightCol = static_cast<float>(xfmem.ambColor[chan] & 0xff);
 
       u8 mask = alphachan.GetFullLightMask();
       for (int i = 0; i < 8; ++i)
@@ -400,7 +402,8 @@ void TransformColor(const InputVertexData* src, OutputVertexData* dst)
     }
 
     // abgr -> rgba
-    *(u32*)dst->color[chan] = Common::swap32(*(u32*)chancolor);
+    const u32 rgba_color = Common::swap32(chancolor.data());
+    std::memcpy(dst->color[chan], &rgba_color, sizeof(u32));
   }
 }
 
