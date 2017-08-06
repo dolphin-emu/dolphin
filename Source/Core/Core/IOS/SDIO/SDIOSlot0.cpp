@@ -503,7 +503,7 @@ u32 SDIOSlot0::GetOCRegister() const
   return ocr;
 }
 
-std::array<u32, 4> SDIOSlot0::GetCSDv1()
+std::array<u32, 4> SDIOSlot0::GetCSDv1() const
 {
   u64 size = m_card.GetSize();
 
@@ -585,7 +585,7 @@ std::array<u32, 4> SDIOSlot0::GetCSDv1()
   }};
 }
 
-std::array<u32, 4> SDIOSlot0::GetCSDv2()
+std::array<u32, 4> SDIOSlot0::GetCSDv2() const
 {
   const u64 size = m_card.GetSize();
 
