@@ -15,6 +15,6 @@ public:
   void setElideMode(Qt::TextElideMode elide_mode);
 
 private:
-  void paintEvent(QPaintEvent* event);
+  void paintEvent(QPaintEvent* event) override;
   Qt::TextElideMode m_elide_mode;
 };
