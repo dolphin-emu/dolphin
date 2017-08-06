@@ -4,6 +4,7 @@
 
 #include "Core/IOS/WFS/WFSSRV.h"
 
+#include <cinttypes>
 #include <string>
 #include <vector>
 
@@ -154,6 +155,28 @@ IPCCommandResult WFSSRV::IOCtl(const IOCtlRequest& request)
 
     INFO_LOG(IOS, "IOCTL_WFS_OPEN(%s, %d) -> %d", path.c_str(), mode, fd);
     Memory::Write_U16(fd, request.buffer_out + 0x14);
+    break;
+  }
+
+  case IOCTL_WFS_GET_SIZE:
+  {
+    u16 fd = Memory::Read_U16(request.buffer_in);
+    FileDescriptor* fd_obj = FindFileDescriptor(fd);
+    if (fd_obj == nullptr)
+    {
+      ERROR_LOG(IOS, "IOCTL_WFS_GET_SIZE: invalid file descriptor %d", fd);
+      return_error_code = WFS_EBADFD;
+      break;
+    }
+
+    u64 size = fd_obj->file.GetSize();
+    u32 truncated_size = static_cast<u32>(size);
+    INFO_LOG(IOS, "IOCTL_WFS_GET_SIZE(%d) -> %d", fd, truncated_size);
+    if (size != truncated_size)
+    {
+      ERROR_LOG(IOS, "IOCTL_WFS_GET_SIZE: file %d too large (%" PRIu64 ")", fd, size);
+    }
+    Memory::Write_U32(truncated_size, request.buffer_out);
     break;
   }
 

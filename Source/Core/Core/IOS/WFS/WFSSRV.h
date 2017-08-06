@@ -61,6 +61,7 @@ private:
     IOCTL_WFS_DELETE = 0x15,
     IOCTL_WFS_GET_ATTRIBUTES = 0x17,
     IOCTL_WFS_OPEN = 0x1A,
+    IOCTL_WFS_GET_SIZE = 0x1B,
     IOCTL_WFS_CLOSE = 0x1E,
     IOCTL_WFS_READ = 0x20,
     IOCTL_WFS_WRITE = 0x22,
@@ -70,6 +71,7 @@ private:
 
   enum
   {
+    WFS_EBADFD = -10026,  // Invalid file descriptor.
     WFS_EEMPTY = -10028,  // Directory is empty of iteration completed.
   };
 
