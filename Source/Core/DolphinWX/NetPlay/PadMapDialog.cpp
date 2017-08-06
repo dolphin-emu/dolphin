@@ -26,7 +26,7 @@ PadMapDialog::PadMapDialog(wxWindow* parent, NetPlayServer* server, NetPlayClien
   wxArrayString player_names;
   player_names.Add(_("None"));
   for (const auto& player : m_player_list)
-    player_names.Add(StrToWxStr(player->name));
+    player_names.Add(StrToWxStr(player->name) << "[" << std::to_wstring(player->pid) << "]");
 
   auto build_choice = [&](unsigned int base_idx, unsigned int idx, const PadMappingArray& mapping,
                           const wxString& port_name) {
