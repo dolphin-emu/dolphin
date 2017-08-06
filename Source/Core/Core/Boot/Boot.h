@@ -5,6 +5,7 @@
 #pragma once
 
 #include <cstdlib>
+#include <functional>
 #include <memory>
 #include <optional>
 #include <string>
@@ -128,3 +129,18 @@ public:
 protected:
   std::vector<u8> m_bytes;
 };
+
+struct StateFlags
+{
+  void UpdateChecksum();
+  u32 checksum;
+  u8 flags;
+  u8 type;
+  u8 discstate;
+  u8 returnto;
+  u32 unknown[6];
+};
+
+// Reads the state file from the NAND, then calls the passed update function to update the struct,
+// and finally writes the updated state file to the NAND.
+void UpdateStateFlags(std::function<void(StateFlags*)> update_function);
