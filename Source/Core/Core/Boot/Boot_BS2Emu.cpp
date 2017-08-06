@@ -300,6 +300,15 @@ bool CBoot::SetupWiiMemory(u64 ios_title_id)
   Memory::Write_U16(0x8201, 0x000030e6);                // Dev console / debug capable
   Memory::Write_U32(0x00000000, 0x000030f0);            // Apploader
 
+  // During the boot process, 0x315c is first set to 0xdeadbeef by IOS
+  // in the boot_ppc syscall. The value is then partly overwritten by SDK titles.
+  // Two bytes at 0x315e are used to indicate the "devkit boot program version".
+  // It is only written to by the system menu, so we must do so here as well.
+  //
+  // 0x0113 appears to mean v1.13, which is the latest version.
+  // It is fine to always use the latest value as apploaders work with all versions.
+  Memory::Write_U16(0x0113, 0x0000315e);
+
   if (!IOS::HLE::GetIOS()->BootIOS(ios_title_id))
     return false;
 
