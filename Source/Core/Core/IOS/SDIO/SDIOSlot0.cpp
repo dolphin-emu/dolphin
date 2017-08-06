@@ -61,6 +61,8 @@ void SDIOSlot0::DoState(PointerWrap& p)
   p.Do(m_block_length);
   p.Do(m_bus_width);
   p.Do(m_registers);
+  p.Do(m_protocol);
+  p.Do(m_sdhc_supported);
 }
 
 void SDIOSlot0::EventNotify()
