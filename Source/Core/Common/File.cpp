@@ -85,7 +85,7 @@ void IOFile::SetHandle(std::FILE* file)
   m_file = file;
 }
 
-u64 IOFile::GetSize()
+u64 IOFile::GetSize() const
 {
   if (IsOpen())
     return File::GetSize(m_file);
