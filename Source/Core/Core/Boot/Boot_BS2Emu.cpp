@@ -319,6 +319,15 @@ bool CBoot::SetupWiiMemory(u64 ios_title_id)
   return true;
 }
 
+static void WriteEmptyPlayRecord()
+{
+  const std::string file_path =
+      Common::GetTitleDataPath(Titles::SYSTEM_MENU, Common::FROM_SESSION_ROOT) + "play_rec.dat";
+  File::IOFile playrec_file(file_path, "r+b");
+  std::vector<u8> empty_record(0x80);
+  playrec_file.WriteBytes(empty_record.data(), empty_record.size());
+}
+
 // __________________________________________________________________________________________________
 // Wii Bootstrap 2 HLE:
 // copy the apploader to 0x81200000
@@ -334,6 +343,8 @@ bool CBoot::EmulatedBS2_Wii(const DiscIO::Volume& volume)
 
   if (!tmd.IsValid())
     return false;
+
+  WriteEmptyPlayRecord();
 
   if (!SetupWiiMemory(tmd.GetIOSId()))
     return false;
