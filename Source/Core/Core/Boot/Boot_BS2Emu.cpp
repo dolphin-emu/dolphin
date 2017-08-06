@@ -345,6 +345,11 @@ bool CBoot::EmulatedBS2_Wii(const DiscIO::Volume& volume)
     return false;
 
   WriteEmptyPlayRecord();
+  UpdateStateFlags([](StateFlags* state) {
+    state->flags = 0xc1;
+    state->type = 0xff;
+    state->discstate = 0x01;
+  });
 
   if (!SetupWiiMemory(tmd.GetIOSId()))
     return false;
