@@ -53,6 +53,9 @@ private:
   IOS::ES::TMDReader m_tmd;
   std::string m_base_extract_path;
   u64 m_title_id;
+  std::string m_title_id_str;
+  u16 m_group_id;
+  std::string m_group_id_str;
 
   ARCUnpacker m_arc_unpacker;
 

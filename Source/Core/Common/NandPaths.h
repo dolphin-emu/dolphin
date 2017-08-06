@@ -29,6 +29,9 @@ std::string GetTitleDataPath(u64 _titleID, FromWhichRoot from);
 std::string GetTitleContentPath(u64 _titleID, FromWhichRoot from);
 std::string GetTMDFileName(u64 _titleID, FromWhichRoot from);
 
+// Returns whether a path is within an installed title's directory.
+bool IsTitlePath(const std::string& path, FromWhichRoot from, u64* title_id = nullptr);
+
 // Escapes characters that are invalid or have special meanings in the host file system
 std::string EscapeFileName(const std::string& filename);
 // Escapes characters that are invalid or have special meanings in the host file system

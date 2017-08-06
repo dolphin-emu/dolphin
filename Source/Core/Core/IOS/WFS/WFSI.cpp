@@ -216,6 +216,7 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
     break;
 
   case IOCTL_WFSI_INIT:
+  {
     INFO_LOG(IOS, "IOCTL_WFSI_INIT");
     if (GetIOS()->GetES()->GetTitleId(&m_title_id) < 0)
     {
@@ -223,7 +224,15 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
       return_error_code = IPC_EINVAL;
       break;
     }
+    m_title_id_str = StringFromFormat(
+        "%c%c%c%c", static_cast<char>(m_title_id >> 24), static_cast<char>(m_title_id >> 16),
+        static_cast<char>(m_title_id >> 8), static_cast<char>(m_title_id));
+
+    IOS::ES::TMDReader tmd = GetIOS()->GetES()->FindInstalledTMD(m_title_id);
+    m_group_id = tmd.GetGroupId();
+    m_group_id_str = StringFromFormat("%c%c", m_group_id >> 8, m_group_id & 0xFF);
     break;
+  }
 
   case IOCTL_WFSI_SET_DEVICE_NAME:
     INFO_LOG(IOS, "IOCTL_WFSI_SET_DEVICE_NAME");
@@ -233,20 +242,16 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
   case IOCTL_WFSI_APPLY_TITLE_PROFILE:
     INFO_LOG(IOS, "IOCTL_WFSI_APPLY_TITLE_PROFILE");
 
-    m_base_extract_path = StringFromFormat(
-        "/vol/%s/_install/%c%c%c%c/content", m_device_name.c_str(),
-        static_cast<char>(m_tmd.GetTitleId() >> 24), static_cast<char>(m_tmd.GetTitleId() >> 16),
-        static_cast<char>(m_tmd.GetTitleId() >> 8), static_cast<char>(m_tmd.GetTitleId()));
+    m_base_extract_path = StringFromFormat("/vol/%s/_install/%s/content", m_device_name.c_str(),
+                                           m_title_id_str.c_str());
     File::CreateFullPath(WFS::NativePath(m_base_extract_path));
 
     break;
 
   case IOCTL_WFSI_LOAD_DOL:
   {
-    std::string path = StringFromFormat(
-        "/vol/%s/_install/%c%c%c%c/content", m_device_name.c_str(),
-        static_cast<char>(m_title_id >> 24), static_cast<char>(m_title_id >> 16),
-        static_cast<char>(m_title_id >> 8), static_cast<char>(m_title_id));
+    std::string path = StringFromFormat("/vol/%s/title/%s/%s/content", m_device_name.c_str(),
+                                        m_group_id_str.c_str(), m_title_id_str.c_str());
 
     u32 dol_addr = Memory::Read_U32(request.buffer_in + 0x18);
     u32 max_dol_size = Memory::Read_U32(request.buffer_in + 0x14);
