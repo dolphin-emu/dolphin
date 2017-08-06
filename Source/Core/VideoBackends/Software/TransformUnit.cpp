@@ -265,7 +265,7 @@ static float CalculateLightAttn(const LightPointer* light, Vec3* _ldir, const Ve
   return attn;
 }
 
-static void LightColor(const Vec3& pos, const Vec3& normal, u8 lightNum, LitChannel& chan,
+static void LightColor(const Vec3& pos, const Vec3& normal, u8 lightNum, const LitChannel& chan,
                        Vec3& lightCol)
 {
   const LightPointer* light = (const LightPointer*)&xfmem.lights[lightNum];
@@ -326,7 +326,7 @@ void TransformColor(const InputVertexData* src, OutputVertexData* dst)
     u8 chancolor[4];
 
     // color
-    LitChannel& colorchan = xfmem.color[chan];
+    const LitChannel& colorchan = xfmem.color[chan];
     if (colorchan.matsource)
       *(u32*)matcolor = *(u32*)src->color[chan];  // vertex
     else
@@ -344,7 +344,7 @@ void TransformColor(const InputVertexData* src, OutputVertexData* dst)
       }
       else
       {
-        u8* ambColor = (u8*)&xfmem.ambColor[chan];
+        const u8* ambColor = reinterpret_cast<u8*>(&xfmem.ambColor[chan]);
         lightCol.x = ambColor[1];
         lightCol.y = ambColor[2];
         lightCol.z = ambColor[3];
@@ -370,7 +370,7 @@ void TransformColor(const InputVertexData* src, OutputVertexData* dst)
     }
 
     // alpha
-    LitChannel& alphachan = xfmem.alpha[chan];
+    const LitChannel& alphachan = xfmem.alpha[chan];
     if (alphachan.matsource)
       matcolor[0] = src->color[chan][0];  // vertex
     else
