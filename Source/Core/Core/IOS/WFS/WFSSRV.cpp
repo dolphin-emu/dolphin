@@ -189,26 +189,39 @@ IPCCommandResult WFSSRV::IOCtl(const IOCtlRequest& request)
   }
 
   case IOCTL_WFS_READ:
+  case IOCTL_WFS_READ_ABSOLUTE:
   {
     u32 addr = Memory::Read_U32(request.buffer_in);
+    u32 position = Memory::Read_U32(request.buffer_in + 4);  // Only for absolute.
     u16 fd = Memory::Read_U16(request.buffer_in + 0xC);
     u32 size = Memory::Read_U32(request.buffer_in + 8);
+
+    bool absolute = request.request == IOCTL_WFS_READ_ABSOLUTE;
 
     FileDescriptor* fd_obj = FindFileDescriptor(fd);
     if (fd_obj == nullptr)
     {
       ERROR_LOG(IOS, "IOCTL_WFS_READ: invalid file descriptor %d", fd);
-      return_error_code = -1;  // TODO(wfs): proper error code.
+      return_error_code = WFS_EBADFD;
       break;
     }
 
-    size_t read_bytes;
-    if (!fd_obj->file.ReadArray(Memory::GetPointer(addr), size, &read_bytes))
+    u64 previous_position = fd_obj->file.Tell();
+    if (absolute)
     {
-      return_error_code = -1;  // TODO(wfs): proper error code.
-      break;
+      fd_obj->file.Seek(position, SEEK_SET);
     }
-    fd_obj->position += read_bytes;
+    size_t read_bytes;
+    fd_obj->file.ReadArray(Memory::GetPointer(addr), size, &read_bytes);
+    // TODO(wfs): Handle read errors.
+    if (absolute)
+    {
+      fd_obj->file.Seek(previous_position, SEEK_SET);
+    }
+    else
+    {
+      fd_obj->position += read_bytes;
+    }
 
     INFO_LOG(IOS, "IOCTL_WFS_READ: read %zd bytes from FD %d (%s)", read_bytes, fd,
              fd_obj->path.c_str());
