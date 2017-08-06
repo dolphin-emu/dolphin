@@ -286,7 +286,6 @@ bool CBoot::SetupWiiMemory(u64 ios_title_id)
   Memory::Write_U32(0x00000000, 0x00000030);            // Init
   Memory::Write_U32(0x817FEC60, 0x00000034);            // Init
   // 38, 3C should get start, size of FST through apploader
-  Memory::Write_U32(0x38a00040, 0x00000060);            // Exception init
   Memory::Write_U32(0x8008f7b8, 0x000000e4);            // Thread Init
   Memory::Write_U32(Memory::REALRAM_SIZE, 0x000000f0);  // "Simulated memory size" (debug mode?)
   Memory::Write_U32(0x8179b500, 0x000000f4);            // __start
