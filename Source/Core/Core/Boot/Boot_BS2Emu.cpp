@@ -296,7 +296,7 @@ bool CBoot::SetupWiiMemory(u64 ios_title_id)
   Memory::Write_U32(0x00000000, 0x000030c0);            // EXI
   Memory::Write_U32(0x00000000, 0x000030c4);            // EXI
   Memory::Write_U32(0x00000000, 0x000030dc);            // Time
-  Memory::Write_U32(0x00000000, 0x000030d8);            // Time
+  Memory::Write_U32(0xffffffff, 0x000030d8);            // Unknown, set by any official NAND title
   Memory::Write_U16(0x8201, 0x000030e6);                // Dev console / debug capable
   Memory::Write_U32(0x00000000, 0x000030f0);            // Apploader
 
