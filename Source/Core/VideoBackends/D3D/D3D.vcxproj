@@ -55,7 +55,6 @@
     <ClCompile Include="TextureCache.cpp" />
     <ClCompile Include="VertexManager.cpp" />
     <ClCompile Include="VertexShaderCache.cpp" />
-    <ClCompile Include="XFBEncoder.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BoundingBox.h" />
@@ -76,7 +75,6 @@
     <ClInclude Include="VertexManager.h" />
     <ClInclude Include="VertexShaderCache.h" />
     <ClInclude Include="VideoBackend.h" />
-    <ClInclude Include="XFBEncoder.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="$(CoreDir)VideoCommon\VideoCommon.vcxproj">

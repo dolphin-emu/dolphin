@@ -48,17 +48,6 @@
 
 namespace OGL
 {
-struct XFBSource : public XFBSourceBase
-{
-  XFBSource(GLuint tex, int layers) : texture(tex), m_layers(layers) {}
-  ~XFBSource();
-
-  void CopyEFB(float Gamma) override;
-
-  const GLuint texture;
-  const int m_layers;
-};
-
 class FramebufferManager : public FramebufferManagerBase
 {
 public:
@@ -76,7 +65,6 @@ public:
   {
     return (layer < m_EFBLayers) ? m_efbFramebuffer[layer] : m_efbFramebuffer.back();
   }
-  static GLuint GetXFBFramebuffer() { return m_xfbFramebuffer; }
   // Resolved framebuffer is only used in MSAA mode.
   static GLuint GetResolvedFramebuffer();
   static void SetFramebuffer(GLuint fb);
@@ -108,13 +96,6 @@ private:
                        GLenum data_type);
   void BindLayeredTexture(GLuint texture, const std::vector<GLuint>& framebuffers,
                           GLenum attachment, GLenum texture_type);
-  std::unique_ptr<XFBSourceBase> CreateXFBSource(unsigned int target_width,
-                                                 unsigned int target_height,
-                                                 unsigned int layers) override;
-  std::pair<u32, u32> GetTargetSize() const override;
-
-  void CopyToRealXFB(u32 xfbAddr, u32 fbStride, u32 fbHeight, const EFBRectangle& sourceRc,
-                     float Gamma) override;
 
   static int m_targetWidth;
   static int m_targetHeight;
@@ -122,7 +103,6 @@ private:
 
   static GLenum m_textureType;
   static std::vector<GLuint> m_efbFramebuffer;
-  static GLuint m_xfbFramebuffer;
   static GLuint m_efbColor;
   static GLuint m_efbDepth;
   static GLuint

@@ -57,9 +57,6 @@
     <ClCompile Include="VertexShaderCache.cpp">
       <Filter>Render</Filter>
     </ClCompile>
-    <ClCompile Include="XFBEncoder.cpp">
-      <Filter>Render</Filter>
-    </ClCompile>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="BoundingBox.cpp">
       <Filter>Render</Filter>
@@ -112,9 +109,6 @@
       <Filter>Render</Filter>
     </ClInclude>
     <ClInclude Include="VertexShaderCache.h">
-      <Filter>Render</Filter>
-    </ClInclude>
-    <ClInclude Include="XFBEncoder.h">
       <Filter>Render</Filter>
     </ClInclude>
     <ClInclude Include="VideoBackend.h" />

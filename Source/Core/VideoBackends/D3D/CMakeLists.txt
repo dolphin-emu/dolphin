@@ -38,8 +38,6 @@ set(SRCS
   VertexShaderCache.cpp
   VertexShaderCache.h
   VideoBackend.h
-  XFBEncoder.cpp
-  XFBEncoder.h
 )
 
 set(LIBS

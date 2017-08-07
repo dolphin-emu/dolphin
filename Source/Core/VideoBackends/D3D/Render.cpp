@@ -610,11 +610,6 @@ void Renderer::SetBlendingState(const BlendingState& state)
 // This function has the final picture. We adjust the aspect ratio here.
 void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& rc, u64 ticks, float Gamma)
 {
-  if (!m_xfb_written)
-  {
-    Core::Callback_VideoCopiedToXFB(false);
-  }
-
   ResetAPIState();
 
   // Prepare to copy the XFBs to our backbuffer

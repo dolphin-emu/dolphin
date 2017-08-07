@@ -112,8 +112,6 @@ void Renderer::RenderToXFB(u32 xfbAddr, const EFBRectangle& sourceRc, u32 fbStri
 
   if (!fbStride || !fbHeight)
     return;
-
-  m_xfb_written = true;
 }
 
 unsigned int Renderer::GetEFBScale() const
@@ -412,34 +410,6 @@ std::tuple<float, float> Renderer::ScaleToDisplayAspectRatio(const int width,
   return std::make_tuple(scaled_width, scaled_height);
 }
 
-TargetRectangle Renderer::CalculateFrameDumpDrawRectangle() const
-{
-  // No point including any borders in the frame dump image, since they'd have to be cropped anyway.
-  TargetRectangle rc;
-  rc.left = 0;
-  rc.top = 0;
-
-  // If full-resolution frame dumping is disabled, just use the window draw rectangle.
-  if (!g_ActiveConfig.bInternalResolutionFrameDumps)
-  {
-    // But still remove the borders, since the caller expects this.
-    rc.right = m_target_rectangle.GetWidth();
-    rc.bottom = m_target_rectangle.GetHeight();
-    return rc;
-  }
-
-  // Grab the dimensions of the EFB textures, we scale either of these depending on the ratio.
-  u32 efb_width, efb_height;
-  std::tie(efb_width, efb_height) = g_framebuffer_manager->GetTargetSize();
-
-  float draw_width, draw_height;
-  std::tie(draw_width, draw_height) = ScaleToDisplayAspectRatio(efb_width, efb_height);
-
-  rc.right = static_cast<int>(std::ceil(draw_width));
-  rc.bottom = static_cast<int>(std::ceil(draw_height));
-  return rc;
-}
-
 void Renderer::UpdateDrawRectangle()
 {
   // The rendering window size
@@ -693,7 +663,6 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
   stats.ResetFrame();
 
   Core::Callback_VideoCopiedToXFB(update_frame_count);
-  m_xfb_written = false;
 }
 
 bool Renderer::IsFrameDumping()

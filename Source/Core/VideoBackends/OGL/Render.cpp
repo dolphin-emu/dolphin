@@ -790,12 +790,7 @@ Renderer::Renderer()
   ClearEFBCache();
 }
 
-Renderer::~Renderer()
-{
-  FlushFrameDump();
-  //FinishFrameData();
-  DestroyFrameDumpResources();
-}
+Renderer::~Renderer() = default;
 
 void Renderer::Shutdown()
 {
@@ -1360,27 +1355,6 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& rc, u64 ti
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
   BlitScreen(sourceRc, flipped_trc, xfb_texture->GetRawTexIdentifier(), xfb_texture->GetConfig().width, xfb_texture->GetConfig().height);
 
-  // The FlushFrameDump call here is necessary even after frame dumping is stopped.
-  // If left out, screenshots are "one frame" behind, as an extra frame is dumped and buffered.
-  /*FlushFrameDump();
-  if (IsFrameDumping())
-  {
-    // Currently, we only use the off-screen buffer as a frame dump source if full-resolution
-    // frame dumping is enabled, saving the need for an extra copy. In the future, this could
-    // be extended to be used for surfaceless contexts as well.
-    bool use_offscreen_buffer = g_ActiveConfig.bInternalResolutionFrameDumps;
-    if (use_offscreen_buffer)
-    {
-      // DumpFrameUsingFBO resets GL_FRAMEBUFFER, so change back to the window for drawing OSD.
-      DumpFrameUsingFBO(sourceRc, ticks);
-    }
-    else
-    {
-      // GL_READ_FRAMEBUFFER is set by GL_FRAMEBUFFER in DrawFrame -> Draw{EFB,VirtualXFB,RealXFB}.
-      DumpFrame(flipped_trc, ticks);
-    }
-  }*/
-
   // Finish up the current frame, print some stats
 
   SetWindowSize(xfb_texture->GetConfig().width, xfb_texture->GetConfig().height);
@@ -1507,134 +1481,6 @@ void Renderer::DrawEFB(GLuint framebuffer, const TargetRectangle& target_rc,
   GLuint tex = FramebufferManager::ResolveAndGetRenderTarget(source_rc);
   glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
   BlitScreen(source_rc, target_rc, tex, m_target_width, m_target_height);
-}
-
-void Renderer::FlushFrameDump()
-{
-  /*if (!m_last_frame_exported)
-    return;
-
-  FinishFrameData();
-  glBindBuffer(GL_PIXEL_PACK_BUFFER, m_frame_dumping_pbo[0]);
-  m_frame_pbo_is_mapped[0] = true;
-  void* data = glMapBufferRange(
-      GL_PIXEL_PACK_BUFFER, 0, m_last_frame_width[0] * m_last_frame_height[0] * 4, GL_MAP_READ_BIT);
-  DumpFrameData(reinterpret_cast<u8*>(data), m_last_frame_width[0], m_last_frame_height[0],
-                m_last_frame_width[0] * 4, m_last_frame_state, true);
-  glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
-  m_last_frame_exported = false;*/
-}
-
-void Renderer::DumpFrame(const TargetRectangle& flipped_trc, u64 ticks)
-{
-  if (!m_frame_dumping_pbo[0])
-  {
-    glGenBuffers(2, m_frame_dumping_pbo.data());
-    glBindBuffer(GL_PIXEL_PACK_BUFFER, m_frame_dumping_pbo[0]);
-  }
-  else
-  {
-    FlushFrameDump();
-    std::swap(m_frame_dumping_pbo[0], m_frame_dumping_pbo[1]);
-    std::swap(m_frame_pbo_is_mapped[0], m_frame_pbo_is_mapped[1]);
-    std::swap(m_last_frame_width[0], m_last_frame_width[1]);
-    std::swap(m_last_frame_height[0], m_last_frame_height[1]);
-    glBindBuffer(GL_PIXEL_PACK_BUFFER, m_frame_dumping_pbo[0]);
-    if (m_frame_pbo_is_mapped[0])
-      glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
-    m_frame_pbo_is_mapped[0] = false;
-  }
-
-  if (flipped_trc.GetWidth() != m_last_frame_width[0] ||
-      flipped_trc.GetHeight() != m_last_frame_height[0])
-  {
-    m_last_frame_width[0] = flipped_trc.GetWidth();
-    m_last_frame_height[0] = flipped_trc.GetHeight();
-    glBufferData(GL_PIXEL_PACK_BUFFER, m_last_frame_width[0] * m_last_frame_height[0] * 4, nullptr,
-                 GL_STREAM_READ);
-  }
-
-  m_last_frame_state = AVIDump::FetchState(ticks);
-  m_last_frame_exported = true;
-
-  glPixelStorei(GL_PACK_ALIGNMENT, 1);
-  glReadPixels(flipped_trc.left, flipped_trc.bottom, m_last_frame_width[0], m_last_frame_height[0],
-               GL_RGBA, GL_UNSIGNED_BYTE, 0);
-  glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
-}
-
-void Renderer::DumpFrameUsingFBO(const TargetRectangle& source_rc, u64 ticks)
-{
-  // This needs to be converted to the GL bottom-up window coordinate system.
-  TargetRectangle render_rc = CalculateFrameDumpDrawRectangle();
-  std::swap(render_rc.top, render_rc.bottom);
-
-  // Ensure the render texture meets the size requirements of the draw area.
-  u32 render_width = static_cast<u32>(render_rc.GetWidth());
-  u32 render_height = static_cast<u32>(render_rc.GetHeight());
-  PrepareFrameDumpRenderTexture(render_width, render_height);
-
-  // Ensure the alpha channel of the render texture is blank. The frame dump backend expects
-  // that the alpha is set to 1.0 for all pixels.
-  glBindFramebuffer(GL_FRAMEBUFFER, m_frame_dump_render_framebuffer);
-  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-  glClear(GL_COLOR_BUFFER_BIT);
-
-  // Render the frame into the frame dump render texture. Disable alpha writes in case the
-  // post-processing shader writes a non-1.0 value.
-  glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_FALSE);
-  DrawEFB(m_frame_dump_render_framebuffer, render_rc, source_rc);
-
-  // Copy frame to output buffer. This assumes that GL_FRAMEBUFFER has been set.
-  DumpFrame(render_rc, ticks);
-
-  // Restore state after drawing. This isn't the game state, it's the state set by ResetAPIState.
-  glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
-}
-
-void Renderer::PrepareFrameDumpRenderTexture(u32 width, u32 height)
-{
-  // Ensure framebuffer exists (we lazily allocate it in case frame dumping isn't used).
-  // Or, resize texture if it isn't large enough to accommodate the current frame.
-  if (m_frame_dump_render_texture != 0 && m_frame_dump_render_framebuffer != 0 &&
-      m_frame_dump_render_texture_width >= width && m_frame_dump_render_texture_height >= height)
-  {
-    return;
-  }
-
-  // Recreate texture objects.
-  if (m_frame_dump_render_texture != 0)
-    glDeleteTextures(1, &m_frame_dump_render_texture);
-  if (m_frame_dump_render_framebuffer != 0)
-    glDeleteFramebuffers(1, &m_frame_dump_render_framebuffer);
-
-  glGenTextures(1, &m_frame_dump_render_texture);
-  glActiveTexture(GL_TEXTURE9);
-  glBindTexture(GL_TEXTURE_2D, m_frame_dump_render_texture);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-
-  glGenFramebuffers(1, &m_frame_dump_render_framebuffer);
-  FramebufferManager::SetFramebuffer(m_frame_dump_render_framebuffer);
-  FramebufferManager::FramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-                                         m_frame_dump_render_texture, 0);
-
-  m_frame_dump_render_texture_width = width;
-  m_frame_dump_render_texture_height = height;
-  OGLTexture::SetStage();
-}
-
-void Renderer::DestroyFrameDumpResources()
-{
-  if (m_frame_dump_render_framebuffer)
-    glDeleteFramebuffers(1, &m_frame_dump_render_framebuffer);
-  if (m_frame_dump_render_texture)
-    glDeleteTextures(1, &m_frame_dump_render_texture);
-  if (m_frame_dumping_pbo[0])
-    glDeleteBuffers(2, m_frame_dumping_pbo.data());
 }
 
 // ALWAYS call RestoreAPIState for each ResetAPIState call you're doing

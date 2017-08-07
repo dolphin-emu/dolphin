@@ -46,16 +46,6 @@ namespace DX11
 // There may be multiple XFBs in GameCube RAM. This is the maximum number to
 // virtualize.
 
-struct XFBSource : public XFBSourceBase
-{
-  XFBSource(D3DTexture2D* _tex, int slices) : tex(_tex), m_slices(slices) {}
-  ~XFBSource() { tex->Release(); }
-  void CopyEFB(float Gamma) override;
-
-  D3DTexture2D* const tex;
-  const int m_slices;
-};
-
 class FramebufferManager : public FramebufferManagerBase
 {
 public:
@@ -79,14 +69,6 @@ public:
   static void BindEFBRenderTarget(bool bind_depth = true);
 
 private:
-  std::unique_ptr<XFBSourceBase> CreateXFBSource(unsigned int target_width,
-                                                 unsigned int target_height,
-                                                 unsigned int layers) override;
-  std::pair<u32, u32> GetTargetSize() const override;
-
-  void CopyToRealXFB(u32 xfbAddr, u32 fbStride, u32 fbHeight, const EFBRectangle& sourceRc,
-                     float Gamma) override;
-
   static struct Efb
   {
     D3DTexture2D* color_tex;
