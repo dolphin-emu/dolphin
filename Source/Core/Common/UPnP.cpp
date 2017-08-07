@@ -25,7 +25,7 @@ static std::thread s_thread;
 
 // called from ---UPnP--- thread
 // discovers the IGD
-static bool initUPnP()
+static bool InitUPnP()
 {
   static bool s_inited = false;
   static bool s_error = false;
@@ -106,7 +106,7 @@ static bool initUPnP()
 // hanging, the NVRAM will fill with portmappings, and eventually all UPnP
 // requests will fail silently, with the only recourse being a factory reset.
 // --
-static bool UPnPUnmapPort(const u16 port)
+static bool UnmapPort(const u16 port)
 {
   std::string port_str = StringFromFormat("%d", port);
   UPNP_DeletePortMapping(s_urls.controlURL, s_data.first.servicetype, port_str.c_str(), "UDP",
@@ -117,10 +117,10 @@ static bool UPnPUnmapPort(const u16 port)
 
 // called from ---UPnP--- thread
 // Attempt to portforward!
-static bool UPnPMapPort(const char* addr, const u16 port)
+static bool MapPort(const char* addr, const u16 port)
 {
   if (s_mapped > 0)
-    UPnPUnmapPort(s_mapped);
+    UnmapPort(s_mapped);
 
   std::string port_str = StringFromFormat("%d", port);
   int result = UPNP_AddPortMapping(
@@ -136,9 +136,9 @@ static bool UPnPMapPort(const char* addr, const u16 port)
 }
 
 // UPnP thread: try to map a port
-static void mapPortThread(const u16 port)
+static void MapPortThread(const u16 port)
 {
-  if (initUPnP() && UPnPMapPort(s_our_ip.data(), port))
+  if (InitUPnP() && MapPort(s_our_ip.data(), port))
   {
     NOTICE_LOG(NETPLAY, "Successfully mapped port %d to %s.", port, s_our_ip.data());
     return;
@@ -148,24 +148,24 @@ static void mapPortThread(const u16 port)
 }
 
 // UPnP thread: try to unmap a port
-static void unmapPortThread()
+static void UnmapPortThread()
 {
   if (s_mapped > 0)
-    UPnPUnmapPort(s_mapped);
+    UnmapPort(s_mapped);
 }
 
 void UPnP::TryPortmapping(u16 port)
 {
   if (s_thread.joinable())
     s_thread.join();
-  s_thread = std::thread(&mapPortThread, port);
+  s_thread = std::thread(&MapPortThread, port);
 }
 
 void UPnP::StopPortmapping()
 {
   if (s_thread.joinable())
     s_thread.join();
-  s_thread = std::thread(&unmapPortThread);
+  s_thread = std::thread(&UnmapPortThread);
   s_thread.join();
 }
 
