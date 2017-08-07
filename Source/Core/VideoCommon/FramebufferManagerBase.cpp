@@ -12,6 +12,8 @@
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoConfig.h"
 
+#define FOO
+
 std::unique_ptr<FramebufferManagerBase> g_framebuffer_manager;
 
 std::unique_ptr<XFBSourceBase>
