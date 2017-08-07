@@ -4,6 +4,43 @@
 
 set -euo pipefail
 
+if ! [ -x "$(command -v git)" ]; then
+  echo >&2 "error: git is not installed"
+  exit 1
+fi
+
+REQUIRED_CLANG_FORMAT_MAJOR=3
+REQUIRED_CLANG_FORMAT_MINOR=8
+
+if ! [ -x "$(command -v clang-format)" ]; then
+  echo >&2 "error: clang-format is not installed"
+  echo >&2 "Install clang-format version ${REQUIRED_CLANG_FORMAT_MAJOR}.${REQUIRED_CLANG_FORMAT_MINOR}.*"
+  exit 1
+fi
+
+FORCE=0
+
+if [ $# -gt 0 ]; then
+  case "$1" in
+    -f|--force)
+    FORCE=1
+    shift
+    ;;
+  esac
+fi
+
+if [ $FORCE -eq 0 ]; then
+  CLANG_FORMAT_VERSION=$(clang-format -version | cut -d' ' -f3)
+  CLANG_FORMAT_MAJOR=$(echo $CLANG_FORMAT_VERSION | cut -d'.' -f1)
+  CLANG_FORMAT_MINOR=$(echo $CLANG_FORMAT_VERSION | cut -d'.' -f2)
+
+  if [ $CLANG_FORMAT_MAJOR != $REQUIRED_CLANG_FORMAT_MAJOR ] || [ $CLANG_FORMAT_MINOR != $REQUIRED_CLANG_FORMAT_MINOR ]; then
+    echo >&2 "error: clang-format is the wrong version (${CLANG_FORMAT_VERSION})"
+    echo >&2 "Install clang-format version ${REQUIRED_CLANG_FORMAT_MAJOR}.${REQUIRED_CLANG_FORMAT_MINOR}.* or use --force to ignore"
+    exit 1
+  fi
+fi
+
 fail=0
 
 # Default to staged files, unless a commit was passed.
