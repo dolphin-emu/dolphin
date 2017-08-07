@@ -24,6 +24,8 @@
 #include "VideoCommon/VertexShaderGen.h"
 #include "VideoCommon/VideoBackendBase.h"
 
+#define FOO
+
 namespace OGL
 {
 int FramebufferManager::m_targetWidth;

@@ -18,6 +18,8 @@
 #include "VideoBackends/D3D/XFBEncoder.h"
 #include "VideoCommon/VideoConfig.h"
 
+#define FOO
+
 namespace DX11
 {
 static XFBEncoder s_xfbEncoder;

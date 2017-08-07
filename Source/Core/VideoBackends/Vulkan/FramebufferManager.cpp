@@ -30,6 +30,8 @@
 #include "VideoCommon/TextureConfig.h"
 #include "VideoCommon/VideoConfig.h"
 
+#define FOO
+
 namespace Vulkan
 {
 // Maximum number of pixels poked in one batch * 6
