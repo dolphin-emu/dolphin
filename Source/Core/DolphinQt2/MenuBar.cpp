@@ -19,6 +19,8 @@
 #include "DolphinQt2/MenuBar.h"
 #include "DolphinQt2/Settings.h"
 
+#define FOO
+
 MenuBar::MenuBar(QWidget* parent) : QMenuBar(parent)
 {
   AddFileMenu();

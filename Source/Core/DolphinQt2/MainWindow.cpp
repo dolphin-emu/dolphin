@@ -13,6 +13,8 @@
 #include <QMessageBox>
 #include <QMimeData>
 
+#define FOO
+
 #include "Common/Common.h"
 
 #include "Core/Boot/Boot.h"

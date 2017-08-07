@@ -21,6 +21,8 @@
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/Network/Socket.h"
 
+#define FOO
+
 namespace IOS
 {
 namespace HLE

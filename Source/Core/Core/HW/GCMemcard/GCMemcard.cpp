@@ -18,6 +18,8 @@
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
 
+#define FOO
+
 static void ByteSwap(u8* valueA, u8* valueB)
 {
   u8 tmp = *valueA;

@@ -33,6 +33,8 @@
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoConfig.h"
 
+#define FOO
+
 static std::unordered_map<std::string, std::string> s_textureMap;
 static std::unordered_map<std::string, std::shared_ptr<HiresTexture>> s_textureCache;
 static std::mutex s_textureCacheMutex;

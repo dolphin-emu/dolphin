@@ -22,6 +22,8 @@
 #include "Core/Core.h"
 #include "Core/HW/GCMemcard/GCMemcard.h"
 
+#define FOO
+
 #define SIZE_TO_Mb (1024 * 8 * 16)
 #define MC_HDR_SIZE 0xA000
 

@@ -15,6 +15,8 @@
 #include "Common/Swap.h"
 #include "VideoCommon/VideoConfig.h"
 
+#define FOO
+
 namespace
 {
 // From https://raw.githubusercontent.com/Microsoft/DirectXTex/master/DirectXTex/DDS.h

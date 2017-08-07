@@ -8,6 +8,8 @@
 
 #include "DiscIO/FileBlob.h"
 
+#define FOO
+
 namespace DiscIO
 {
 PlainFileReader::PlainFileReader(File::IOFile file) : m_file(std::move(file))

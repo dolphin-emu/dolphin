@@ -26,6 +26,8 @@
 #include "DiscIO/VolumeWad.h"
 #include "DiscIO/VolumeWii.h"
 
+#define FOO
+
 namespace DiscIO
 {
 static const unsigned int WII_BANNER_WIDTH = 192;

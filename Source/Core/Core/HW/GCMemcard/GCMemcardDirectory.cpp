@@ -26,6 +26,8 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 
+#define FOO
+
 const int NO_INDEX = -1;
 static const char* MC_HDR = "MC_SYSTEM_AREA";
 

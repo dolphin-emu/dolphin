@@ -19,6 +19,8 @@
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
+#define FOO
+
 namespace Null
 {
 void VideoBackend::InitBackendInfo()

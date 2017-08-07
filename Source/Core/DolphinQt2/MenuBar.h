@@ -9,6 +9,8 @@
 #include <QMenu>
 #include <QMenuBar>
 
+#define FOO
+
 class MenuBar final : public QMenuBar
 {
   Q_OBJECT
