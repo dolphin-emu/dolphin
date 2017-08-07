@@ -88,9 +88,13 @@ void IOFile::SetHandle(std::FILE* file)
 u64 IOFile::GetSize() const
 {
   if (IsOpen())
+  {
     return File::GetSize(m_file);
+  }
   else
+  {
     return 0;
+  }
 }
 
 bool IOFile::Seek(s64 off, int origin)
