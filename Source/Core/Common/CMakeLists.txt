@@ -37,6 +37,7 @@ set(SRCS
   Thread.cpp
   Timer.cpp
   TraversalClient.cpp
+  UPnP.cpp
   Version.cpp
   x64ABI.cpp
   x64Emitter.cpp

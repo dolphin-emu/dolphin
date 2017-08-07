@@ -94,6 +94,7 @@
     <ClInclude Include="JitRegister.h" />
     <ClInclude Include="TraversalClient.h" />
     <ClInclude Include="TraversalProto.h" />
+    <ClInclude Include="UPnP.h" />
     <ClInclude Include="GL\GLUtil.h">
       <Filter>GL</Filter>
     </ClInclude>
@@ -307,6 +308,7 @@
     <ClCompile Include="GekkoDisassembler.cpp" />
     <ClCompile Include="JitRegister.cpp" />
     <ClCompile Include="TraversalClient.cpp" />
+    <ClCompile Include="UPnP.cpp" />
     <ClCompile Include="Logging\ConsoleListenerWin.cpp">
       <Filter>Logging</Filter>
     </ClCompile>
