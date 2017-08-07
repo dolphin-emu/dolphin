@@ -684,10 +684,10 @@ bool MainWindow::NetPlayJoin()
   const std::string nickname = Config::Get(Config::NETPLAY_NICKNAME);
 
   // Create Client
-  Settings::Instance().ResetNetPlayClient(
-      new NetPlayClient(host_ip, host_port, m_netplay_dialog, nickname,
-                        Settings::Instance().GetNetPlayServer() != nullptr ? false : is_traversal,
-                        traversal_host, traversal_port));
+  Settings::Instance().ResetNetPlayClient(new NetPlayClient(
+      host_ip, host_port, m_netplay_dialog, nickname,
+      NetTraversalConfig{Settings::Instance().GetNetPlayServer() != nullptr ? false : is_traversal,
+                         traversal_host, traversal_port}));
 
   if (!Settings::Instance().GetNetPlayClient()->IsConnected())
   {
@@ -733,8 +733,8 @@ bool MainWindow::NetPlayHost(const QString& game_id)
     host_port = Config::Get(Config::NETPLAY_LISTEN_PORT);
 
   // Create Server
-  Settings::Instance().ResetNetPlayServer(
-      new NetPlayServer(host_port, is_traversal, traversal_host, traversal_port));
+  Settings::Instance().ResetNetPlayServer(new NetPlayServer(
+      host_port, NetTraversalConfig{is_traversal, traversal_host, traversal_port}));
 
   if (!Settings::Instance().GetNetPlayServer()->is_connected)
   {

@@ -28,7 +28,7 @@ public:
   void ThreadFunc();
   void SendAsyncToClients(sf::Packet&& packet);
 
-  NetPlayServer(const u16 port, bool traversal, const std::string& centralServer, u16 centralPort);
+  NetPlayServer(const u16 port, const NetTraversalConfig& traversal_config);
   ~NetPlayServer();
 
   bool ChangeGame(const std::string& game);

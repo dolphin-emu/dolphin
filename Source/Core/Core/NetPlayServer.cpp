@@ -63,8 +63,7 @@ NetPlayServer::~NetPlayServer()
 }
 
 // called from ---GUI--- thread
-NetPlayServer::NetPlayServer(const u16 port, bool traversal, const std::string& centralServer,
-                             u16 centralPort)
+NetPlayServer::NetPlayServer(const u16 port, const NetTraversalConfig& traversal_config)
 {
   //--use server time
   if (enet_initialize() != 0)
@@ -75,9 +74,10 @@ NetPlayServer::NetPlayServer(const u16 port, bool traversal, const std::string& 
   m_pad_map.fill(-1);
   m_wiimote_map.fill(-1);
 
-  if (traversal)
+  if (traversal_config.use_traversal)
   {
-    if (!EnsureTraversalClient(centralServer, centralPort, port))
+    if (!EnsureTraversalClient(traversal_config.traversal_host, traversal_config.traversal_port,
+                               port))
       return;
 
     g_TraversalClient->m_Client = this;
