@@ -1008,7 +1008,6 @@ bool NetPlayServer::initUPnP()
     WARN_LOG(NETPLAY, "An error occurred trying to discover UPnP devices.");
 
     m_upnp_error = true;
-    m_upnp_inited = false;
 
     return false;
   }
@@ -1047,6 +1046,7 @@ bool NetPlayServer::initUPnP()
     }
   }
 
+  m_upnp_inited = true;
   return true;
 }
 
