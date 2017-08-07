@@ -74,13 +74,13 @@ static void WriteSwizzler(char*& p, EFBCopyFormat format, APIType ApiType)
 
   WRITE(p, "float4 RGBA8ToRGBA6(float4 src)\n");
   WRITE(p, "{\n");
-  WRITE(p, "  int4 val = int4(src * 255.0) >> 2;\n");
+  WRITE(p, "  int4 val = int4(roundEven(src * 255.0)) >> 2;\n");
   WRITE(p, "  return float4(val) / 63.0;\n");
   WRITE(p, "}\n");
 
   WRITE(p, "float4 RGBA8ToRGB565(float4 src)\n");
   WRITE(p, "{\n");
-  WRITE(p, "  int4 val = int4(src * 255.0);\n");
+  WRITE(p, "  int4 val = int4(roundEven(src * 255.0));\n");
   WRITE(p, "  val = int4(val.r >> 3, val.g >> 2, val.b >> 3, 1);\n");
   WRITE(p, "  return float4(val) / float4(31.0, 63.0, 31.0, 1.0);\n");
   WRITE(p, "}\n");
