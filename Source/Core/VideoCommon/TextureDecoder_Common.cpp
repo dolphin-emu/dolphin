@@ -640,7 +640,6 @@ void TexDecoder_DecodeTexel(u8* dst, const u8* src, int s, int t, int imageWidth
   break;
   case TextureFormat::XFB:
   {
-    // TODO: I should kind of like... ACTUALLY TEST THIS!!!!!
     size_t offset = (t * imageWidth + (s & (~1))) * 2;
 
     // We do this one color sample (aka 2 RGB pixles) at a time

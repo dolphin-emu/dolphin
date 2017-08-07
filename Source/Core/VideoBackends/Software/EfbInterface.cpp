@@ -553,13 +553,6 @@ void CopyToXFB(yuv422_packed* xfb_in_ram, u32 fbWidth, u32 fbHeight, const EFBRe
   }
 }
 
-// Like CopyToXFB, but we copy directly into the OpenGL color texture without going via GameCube
-// main memory or doing a yuyv conversion
-void BypassXFB(u8* texture, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc, float Gamma)
-{
-  // TODO: Upload directly to texture cache.
-}
-
 bool ZCompare(u16 x, u16 y, u32 z)
 {
   u32 offset = GetDepthOffset(x, y);

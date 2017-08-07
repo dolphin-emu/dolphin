@@ -59,7 +59,6 @@ u8* GetPixelPointer(u16 x, u16 y, bool depth);
 
 void CopyToXFB(yuv422_packed* xfb_in_ram, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc,
                float Gamma);
-void BypassXFB(u8* texture, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc, float Gamma);
 
 extern u32 perf_values[PQ_NUM_MEMBERS];
 inline void IncPerfCounterQuadCount(PerfQueryType type)
