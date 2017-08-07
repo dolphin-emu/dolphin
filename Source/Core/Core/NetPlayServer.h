@@ -28,7 +28,7 @@ public:
   void ThreadFunc();
   void SendAsyncToClients(sf::Packet&& packet);
 
-  NetPlayServer(const u16 port, const NetTraversalConfig& traversal_config);
+  NetPlayServer(u16 port, bool forward_port, const NetTraversalConfig& traversal_config);
   ~NetPlayServer();
 
   bool ChangeGame(const std::string& game);
@@ -57,10 +57,6 @@ public:
   std::string GetInterfaceHost(const std::string& inter) const;
 
   bool is_connected = false;
-
-#ifdef USE_UPNP
-  void TryPortmapping(u16 port);
-#endif
 
 private:
   class Client

@@ -734,7 +734,7 @@ bool MainWindow::NetPlayHost(const QString& game_id)
 
   // Create Server
   Settings::Instance().ResetNetPlayServer(new NetPlayServer(
-      host_port, NetTraversalConfig{is_traversal, traversal_host, traversal_port}));
+      host_port, use_upnp, NetTraversalConfig{is_traversal, traversal_host, traversal_port}));
 
   if (!Settings::Instance().GetNetPlayServer()->is_connected)
   {
@@ -747,11 +747,6 @@ bool MainWindow::NetPlayHost(const QString& game_id)
   }
 
   Settings::Instance().GetNetPlayServer()->ChangeGame(game_id.toStdString());
-
-#ifdef USE_UPNP
-  if (use_upnp)
-    Settings::Instance().GetNetPlayServer()->TryPortmapping(host_port);
-#endif
 
   // Join our local server
   return NetPlayJoin();

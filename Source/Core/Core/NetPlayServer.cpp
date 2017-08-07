@@ -63,7 +63,8 @@ NetPlayServer::~NetPlayServer()
 }
 
 // called from ---GUI--- thread
-NetPlayServer::NetPlayServer(const u16 port, const NetTraversalConfig& traversal_config)
+NetPlayServer::NetPlayServer(const u16 port, const bool forward_port,
+                             const NetTraversalConfig& traversal_config)
 {
   //--use server time
   if (enet_initialize() != 0)
@@ -103,6 +104,11 @@ NetPlayServer::NetPlayServer(const u16 port, const NetTraversalConfig& traversal
     m_do_loop = true;
     m_thread = std::thread(&NetPlayServer::ThreadFunc, this);
     m_target_buffer_size = 5;
+
+#ifdef USE_UPNP
+    if (forward_port)
+      UPnP::TryPortmapping(port);
+#endif
   }
 }
 
@@ -931,11 +937,3 @@ std::vector<std::pair<std::string, std::string>> NetPlayServer::GetInterfaceList
     result.emplace_back(std::make_pair("!local!", "127.0.0.1"));
   return result;
 }
-
-#ifdef USE_UPNP
-// called from ---GUI--- thread
-void NetPlayServer::TryPortmapping(u16 port)
-{
-  UPnP::TryPortmapping(port);
-}
-#endif

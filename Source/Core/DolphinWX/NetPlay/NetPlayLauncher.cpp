@@ -24,7 +24,7 @@ bool NetPlayLauncher::Host(const NetPlayHostConfig& config)
   }
 
   netplay_server = new NetPlayServer(
-      config.listen_port,
+      config.listen_port, config.forward_port,
       NetTraversalConfig{config.use_traversal, config.traversal_host, config.traversal_port});
 
   if (!netplay_server->is_connected)
@@ -35,13 +35,6 @@ bool NetPlayLauncher::Host(const NetPlayHostConfig& config)
   }
 
   netplay_server->ChangeGame(config.game_name);
-
-#ifdef USE_UPNP
-  if (config.forward_port)
-  {
-    netplay_server->TryPortmapping(config.listen_port);
-  }
-#endif
 
   npd = new NetPlayDialog(config.parent_window, config.game_list_ctrl, config.game_name, true);
 
