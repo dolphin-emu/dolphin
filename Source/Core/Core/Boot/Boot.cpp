@@ -5,7 +5,10 @@
 #include "Core/Boot/Boot.h"
 
 #include <algorithm>
+#include <array>
+#include <cstring>
 #include <memory>
+#include <numeric>
 #include <optional>
 #include <string>
 #include <unordered_set>
@@ -25,6 +28,7 @@
 
 #include "Core/Boot/DolReader.h"
 #include "Core/Boot/ElfReader.h"
+#include "Core/CommonTitles.h"
 #include "Core/ConfigManager.h"
 #include "Core/FifoPlayer/FifoPlayer.h"
 #include "Core/HLE/HLE.h"
@@ -418,3 +422,38 @@ BootExecutableReader::BootExecutableReader(const std::vector<u8>& bytes) : m_byt
 }
 
 BootExecutableReader::~BootExecutableReader() = default;
+
+void StateFlags::UpdateChecksum()
+{
+  constexpr size_t length_in_bytes = sizeof(StateFlags) - 4;
+  constexpr size_t num_elements = length_in_bytes / sizeof(u32);
+  std::array<u32, num_elements> flag_data;
+  std::memcpy(flag_data.data(), &flags, length_in_bytes);
+  checksum = std::accumulate(flag_data.cbegin(), flag_data.cend(), 0U);
+}
+
+void UpdateStateFlags(std::function<void(StateFlags*)> update_function)
+{
+  const std::string file_path =
+      Common::GetTitleDataPath(Titles::SYSTEM_MENU, Common::FROM_SESSION_ROOT) + WII_STATE;
+
+  File::IOFile file;
+  StateFlags state;
+  if (File::Exists(file_path))
+  {
+    file.Open(file_path, "r+b");
+    file.ReadBytes(&state, sizeof(state));
+  }
+  else
+  {
+    File::CreateFullPath(file_path);
+    file.Open(file_path, "a+b");
+    memset(&state, 0, sizeof(state));
+  }
+
+  update_function(&state);
+  state.UpdateChecksum();
+
+  file.Seek(0, SEEK_SET);
+  file.WriteBytes(&state, sizeof(state));
+}

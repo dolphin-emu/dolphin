@@ -286,7 +286,6 @@ bool CBoot::SetupWiiMemory(u64 ios_title_id)
   Memory::Write_U32(0x00000000, 0x00000030);            // Init
   Memory::Write_U32(0x817FEC60, 0x00000034);            // Init
   // 38, 3C should get start, size of FST through apploader
-  Memory::Write_U32(0x38a00040, 0x00000060);            // Exception init
   Memory::Write_U32(0x8008f7b8, 0x000000e4);            // Thread Init
   Memory::Write_U32(Memory::REALRAM_SIZE, 0x000000f0);  // "Simulated memory size" (debug mode?)
   Memory::Write_U32(0x8179b500, 0x000000f4);            // __start
@@ -296,9 +295,18 @@ bool CBoot::SetupWiiMemory(u64 ios_title_id)
   Memory::Write_U32(0x00000000, 0x000030c0);            // EXI
   Memory::Write_U32(0x00000000, 0x000030c4);            // EXI
   Memory::Write_U32(0x00000000, 0x000030dc);            // Time
-  Memory::Write_U32(0x00000000, 0x000030d8);            // Time
+  Memory::Write_U32(0xffffffff, 0x000030d8);            // Unknown, set by any official NAND title
   Memory::Write_U16(0x8201, 0x000030e6);                // Dev console / debug capable
   Memory::Write_U32(0x00000000, 0x000030f0);            // Apploader
+
+  // During the boot process, 0x315c is first set to 0xdeadbeef by IOS
+  // in the boot_ppc syscall. The value is then partly overwritten by SDK titles.
+  // Two bytes at 0x315e are used to indicate the "devkit boot program version".
+  // It is only written to by the system menu, so we must do so here as well.
+  //
+  // 0x0113 appears to mean v1.13, which is the latest version.
+  // It is fine to always use the latest value as apploaders work with all versions.
+  Memory::Write_U16(0x0113, 0x0000315e);
 
   if (!IOS::HLE::GetIOS()->BootIOS(ios_title_id))
     return false;
@@ -319,6 +327,15 @@ bool CBoot::SetupWiiMemory(u64 ios_title_id)
   return true;
 }
 
+static void WriteEmptyPlayRecord()
+{
+  const std::string file_path =
+      Common::GetTitleDataPath(Titles::SYSTEM_MENU, Common::FROM_SESSION_ROOT) + "play_rec.dat";
+  File::IOFile playrec_file(file_path, "r+b");
+  std::vector<u8> empty_record(0x80);
+  playrec_file.WriteBytes(empty_record.data(), empty_record.size());
+}
+
 // __________________________________________________________________________________________________
 // Wii Bootstrap 2 HLE:
 // copy the apploader to 0x81200000
@@ -334,6 +351,21 @@ bool CBoot::EmulatedBS2_Wii(const DiscIO::Volume& volume)
 
   if (!tmd.IsValid())
     return false;
+
+  WriteEmptyPlayRecord();
+  UpdateStateFlags([](StateFlags* state) {
+    state->flags = 0xc1;
+    state->type = 0xff;
+    state->discstate = 0x01;
+  });
+
+  // While reading a disc, the system menu reads the first partition table
+  // (0x20 bytes from 0x00040020) and stores a pointer to the data partition entry.
+  // When launching the disc game, it copies the partition type and offset to 0x3194
+  // and 0x3198 respectively.
+  const DiscIO::Partition data_partition = volume.GetGamePartition();
+  Memory::Write_U32(0, 0x3194);
+  Memory::Write_U32(static_cast<u32>(data_partition.offset >> 2), 0x3198);
 
   if (!SetupWiiMemory(tmd.GetIOSId()))
     return false;
