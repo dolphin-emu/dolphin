@@ -31,8 +31,6 @@ static bool InitUPnP()
   static bool s_inited = false;
   static bool s_error = false;
 
-  int upnperror = 0;
-
   // Don't init if already inited
   if (s_inited)
     return true;
@@ -45,6 +43,7 @@ static bool InitUPnP()
   std::memset(&s_data, 0, sizeof(IGDdatas));
 
   // Find all UPnP devices
+  int upnperror = 0;
   std::unique_ptr<UPNPDev, decltype(&freeUPNPDevlist)> devlist(nullptr, freeUPNPDevlist);
 #if MINIUPNPC_API_VERSION >= 14
   devlist.reset(upnpDiscover(2000, nullptr, nullptr, 0, 0, 2, &upnperror));
