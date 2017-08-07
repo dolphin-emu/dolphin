@@ -31,7 +31,6 @@ static bool InitUPnP()
   static bool s_inited = false;
   static bool s_error = false;
 
-  std::vector<UPNPDev*> igds;
   int upnperror = 0;
 
   // Don't init if already inited
@@ -64,12 +63,9 @@ static bool InitUPnP()
   // Look for the IGD
   for (UPNPDev* dev = devlist.get(); dev; dev = dev->pNext)
   {
-    if (std::strstr(dev->st, "InternetGatewayDevice"))
-      igds.push_back(dev);
-  }
+    if (!std::strstr(dev->st, "InternetGatewayDevice"))
+      continue;
 
-  for (const UPNPDev* dev : igds)
-  {
     int desc_xml_size = 0;
     std::unique_ptr<char, decltype(&std::free)> desc_xml(nullptr, std::free);
     int statusCode = 200;
