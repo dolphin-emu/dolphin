@@ -959,17 +959,15 @@ void NetPlayServer::TryPortmapping(u16 port)
 void NetPlayServer::mapPortThread(const u16 port)
 {
   if (!m_upnp_inited)
-    if (!initUPnP())
-      goto fail;
+    initUPnP();
 
-  if (!UPnPMapPort(m_upnp_ourip, port))
-    goto fail;
+  if (m_upnp_inited && UPnPMapPort(m_upnp_ourip, port))
+  {
+    NOTICE_LOG(NETPLAY, "Successfully mapped port %d to %s.", port, m_upnp_ourip.c_str());
+    return;
+  }
 
-  NOTICE_LOG(NETPLAY, "Successfully mapped port %d to %s.", port, m_upnp_ourip.c_str());
-  return;
-fail:
   WARN_LOG(NETPLAY, "Failed to map port %d to %s.", port, m_upnp_ourip.c_str());
-  return;
 }
 
 // UPnP thread: try to unmap a port
