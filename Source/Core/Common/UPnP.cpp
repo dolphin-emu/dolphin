@@ -9,6 +9,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 
+#include <array>
 #include <cstring>
 #include <miniupnpc.h>
 #include <miniwget.h>
@@ -18,7 +19,7 @@
 
 static UPNPUrls s_urls;
 static IGDdatas s_data;
-static std::string s_our_ip;
+static std::array<char, 20> s_our_ip;
 static u16 s_mapped = 0;
 static std::thread s_thread;
 
@@ -31,7 +32,6 @@ static bool initUPnP()
 
   std::vector<UPNPDev*> igds;
   int descXMLsize = 0, upnperror = 0;
-  char cIP[20];
 
   // Don't init if already inited
   if (s_inited)
@@ -72,18 +72,17 @@ static bool initUPnP()
     std::unique_ptr<char, decltype(&std::free)> descXML(nullptr, std::free);
     int statusCode = 200;
 #if MINIUPNPC_API_VERSION >= 16
-    descXML.reset(static_cast<char*>(
-        miniwget_getaddr(dev->descURL, &descXMLsize, cIP, sizeof(cIP), 0, &statusCode)));
-#else
     descXML.reset(
-        static_cast<char*>(miniwget_getaddr(dev->descURL, &descXMLsize, cIP, sizeof(cIP), 0)));
+        static_cast<char*>(miniwget_getaddr(dev->descURL, &descXMLsize, s_our_ip.data(),
+                                            static_cast<int>(s_our_ip.size()), 0, &statusCode)));
+#else
+    descXML.reset(static_cast<char*>(miniwget_getaddr(dev->descURL, &descXMLsize, s_our_ip.data(),
+                                                      static_cast<int>(s_our_ip.size()), 0)));
 #endif
     if (descXML && statusCode == 200)
     {
       parserootdesc(descXML.get(), descXMLsize, &s_data);
       GetUPNPUrls(&s_urls, &s_data, dev->descURL, 0);
-
-      s_our_ip = cIP;
 
       NOTICE_LOG(NETPLAY, "Got info from IGD at %s.", dev->descURL);
       break;
@@ -118,14 +117,14 @@ static bool UPnPUnmapPort(const u16 port)
 
 // called from ---UPnP--- thread
 // Attempt to portforward!
-static bool UPnPMapPort(const std::string& addr, const u16 port)
+static bool UPnPMapPort(const char* addr, const u16 port)
 {
   if (s_mapped > 0)
     UPnPUnmapPort(s_mapped);
 
   std::string port_str = StringFromFormat("%d", port);
   int result = UPNP_AddPortMapping(
-      s_urls.controlURL, s_data.first.servicetype, port_str.c_str(), port_str.c_str(), addr.c_str(),
+      s_urls.controlURL, s_data.first.servicetype, port_str.c_str(), port_str.c_str(), addr,
       (std::string("dolphin-emu UDP on ") + addr).c_str(), "UDP", nullptr, nullptr);
 
   if (result != 0)
@@ -139,13 +138,13 @@ static bool UPnPMapPort(const std::string& addr, const u16 port)
 // UPnP thread: try to map a port
 static void mapPortThread(const u16 port)
 {
-  if (initUPnP() && UPnPMapPort(s_our_ip, port))
+  if (initUPnP() && UPnPMapPort(s_our_ip.data(), port))
   {
-    NOTICE_LOG(NETPLAY, "Successfully mapped port %d to %s.", port, s_our_ip.c_str());
+    NOTICE_LOG(NETPLAY, "Successfully mapped port %d to %s.", port, s_our_ip.data());
     return;
   }
 
-  WARN_LOG(NETPLAY, "Failed to map port %d to %s.", port, s_our_ip.c_str());
+  WARN_LOG(NETPLAY, "Failed to map port %d to %s.", port, s_our_ip.data());
 }
 
 // UPnP thread: try to unmap a port
