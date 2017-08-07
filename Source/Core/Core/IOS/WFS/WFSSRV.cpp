@@ -110,7 +110,7 @@ IPCCommandResult WFSSRV::IOCtl(const IOCtlRequest& request)
 
   case IOCTL_WFS_GLOB_NEXT:
     INFO_LOG(IOS, "IOCTL_WFS_GLOB_NEXT(%u)", request.request);
-    return_error_code = WFS_EEMPTY;
+    return_error_code = WFS_ENOENT;
     break;
 
   case IOCTL_WFS_GLOB_END:
@@ -149,7 +149,7 @@ IPCCommandResult WFSSRV::IOCtl(const IOCtlRequest& request)
     {
       ERROR_LOG(IOS, "IOCTL_WFS_OPEN(%s, %d): error opening file", path.c_str(), mode);
       ReleaseFileDescriptor(fd);
-      return_error_code = -1;  // TODO(wfs): proper error code.
+      return_error_code = WFS_ENOENT;
       break;
     }
 

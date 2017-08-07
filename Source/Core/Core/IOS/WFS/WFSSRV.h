@@ -73,7 +73,7 @@ private:
   enum
   {
     WFS_EBADFD = -10026,  // Invalid file descriptor.
-    WFS_EEMPTY = -10028,  // Directory is empty of iteration completed.
+    WFS_ENOENT = -10028,  // No such file or directory.
   };
 
   struct FileDescriptor
