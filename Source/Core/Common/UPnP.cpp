@@ -16,11 +16,11 @@
 #include <thread>
 #include <upnpcommands.h>
 
-static struct UPNPUrls m_upnp_urls;
-static struct IGDdatas m_upnp_data;
-static std::string m_upnp_ourip;
-static u16 m_upnp_mapped = 0;
-static std::thread m_upnp_thread;
+static UPNPUrls s_urls;
+static IGDdatas s_data;
+static std::string s_our_ip;
+static u16 s_mapped = 0;
+static std::thread s_thread;
 
 // called from ---UPnP--- thread
 // discovers the IGD
@@ -41,8 +41,8 @@ static bool initUPnP()
   if (s_error)
     return false;
 
-  std::memset(&m_upnp_urls, 0, sizeof(UPNPUrls));
-  std::memset(&m_upnp_data, 0, sizeof(IGDdatas));
+  std::memset(&s_urls, 0, sizeof(UPNPUrls));
+  std::memset(&s_data, 0, sizeof(IGDdatas));
 
   // Find all UPnP devices
   std::unique_ptr<UPNPDev, decltype(&freeUPNPDevlist)> devlist(nullptr, freeUPNPDevlist);
@@ -80,10 +80,10 @@ static bool initUPnP()
 #endif
     if (descXML && statusCode == 200)
     {
-      parserootdesc(descXML.get(), descXMLsize, &m_upnp_data);
-      GetUPNPUrls(&m_upnp_urls, &m_upnp_data, dev->descURL, 0);
+      parserootdesc(descXML.get(), descXMLsize, &s_data);
+      GetUPNPUrls(&s_urls, &s_data, dev->descURL, 0);
 
-      m_upnp_ourip = cIP;
+      s_our_ip = cIP;
 
       NOTICE_LOG(NETPLAY, "Got info from IGD at %s.", dev->descURL);
       break;
@@ -110,8 +110,8 @@ static bool initUPnP()
 static bool UPnPUnmapPort(const u16 port)
 {
   std::string port_str = StringFromFormat("%d", port);
-  UPNP_DeletePortMapping(m_upnp_urls.controlURL, m_upnp_data.first.servicetype, port_str.c_str(),
-                         "UDP", nullptr);
+  UPNP_DeletePortMapping(s_urls.controlURL, s_data.first.servicetype, port_str.c_str(), "UDP",
+                         nullptr);
 
   return true;
 }
@@ -120,18 +120,18 @@ static bool UPnPUnmapPort(const u16 port)
 // Attempt to portforward!
 static bool UPnPMapPort(const std::string& addr, const u16 port)
 {
-  if (m_upnp_mapped > 0)
-    UPnPUnmapPort(m_upnp_mapped);
+  if (s_mapped > 0)
+    UPnPUnmapPort(s_mapped);
 
   std::string port_str = StringFromFormat("%d", port);
   int result = UPNP_AddPortMapping(
-      m_upnp_urls.controlURL, m_upnp_data.first.servicetype, port_str.c_str(), port_str.c_str(),
-      addr.c_str(), (std::string("dolphin-emu UDP on ") + addr).c_str(), "UDP", nullptr, nullptr);
+      s_urls.controlURL, s_data.first.servicetype, port_str.c_str(), port_str.c_str(), addr.c_str(),
+      (std::string("dolphin-emu UDP on ") + addr).c_str(), "UDP", nullptr, nullptr);
 
   if (result != 0)
     return false;
 
-  m_upnp_mapped = port;
+  s_mapped = port;
 
   return true;
 }
@@ -139,35 +139,35 @@ static bool UPnPMapPort(const std::string& addr, const u16 port)
 // UPnP thread: try to map a port
 static void mapPortThread(const u16 port)
 {
-  if (initUPnP() && UPnPMapPort(m_upnp_ourip, port))
+  if (initUPnP() && UPnPMapPort(s_our_ip, port))
   {
-    NOTICE_LOG(NETPLAY, "Successfully mapped port %d to %s.", port, m_upnp_ourip.c_str());
+    NOTICE_LOG(NETPLAY, "Successfully mapped port %d to %s.", port, s_our_ip.c_str());
     return;
   }
 
-  WARN_LOG(NETPLAY, "Failed to map port %d to %s.", port, m_upnp_ourip.c_str());
+  WARN_LOG(NETPLAY, "Failed to map port %d to %s.", port, s_our_ip.c_str());
 }
 
 // UPnP thread: try to unmap a port
 static void unmapPortThread()
 {
-  if (m_upnp_mapped > 0)
-    UPnPUnmapPort(m_upnp_mapped);
+  if (s_mapped > 0)
+    UPnPUnmapPort(s_mapped);
 }
 
 void UPnP::TryPortmapping(u16 port)
 {
-  if (m_upnp_thread.joinable())
-    m_upnp_thread.join();
-  m_upnp_thread = std::thread(&mapPortThread, port);
+  if (s_thread.joinable())
+    s_thread.join();
+  s_thread = std::thread(&mapPortThread, port);
 }
 
 void UPnP::StopPortmapping()
 {
-  if (m_upnp_thread.joinable())
-    m_upnp_thread.join();
-  m_upnp_thread = std::thread(&unmapPortThread);
-  m_upnp_thread.join();
+  if (s_thread.joinable())
+    s_thread.join();
+  s_thread = std::thread(&unmapPortThread);
+  s_thread.join();
 }
 
 #endif
