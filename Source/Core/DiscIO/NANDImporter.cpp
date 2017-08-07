@@ -19,6 +19,8 @@
 #include "Core/IOS/ES/Formats.h"
 #include "DiscIO/NANDContentLoader.h"
 
+#define FOO
+
 namespace DiscIO
 {
 constexpr size_t NAND_SIZE = 0x20000000;

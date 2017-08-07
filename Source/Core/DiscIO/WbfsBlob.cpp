@@ -19,6 +19,8 @@
 #include "Common/MsgHandler.h"
 #include "Common/Swap.h"
 
+#define FOO
+
 namespace DiscIO
 {
 static const u64 WII_SECTOR_SIZE = 0x8000;

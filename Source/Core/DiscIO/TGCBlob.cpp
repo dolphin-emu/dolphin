@@ -11,6 +11,8 @@
 #include "Common/File.h"
 #include "Common/Swap.h"
 
+#define FOO
+
 namespace
 {
 template <typename T>

@@ -16,6 +16,8 @@
 #include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
 
+#define FOO
+
 namespace ExpansionInterface
 {
 CEXIAgp::CEXIAgp(int index)

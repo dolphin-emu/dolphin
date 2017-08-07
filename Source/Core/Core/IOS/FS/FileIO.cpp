@@ -20,6 +20,8 @@
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/IOS.h"
 
+#define FOO
+
 namespace IOS
 {
 namespace HLE

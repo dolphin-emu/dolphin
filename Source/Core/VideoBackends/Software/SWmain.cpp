@@ -25,6 +25,7 @@
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
+#define FOO
 #define VSYNC_ENABLED 0
 
 namespace SW

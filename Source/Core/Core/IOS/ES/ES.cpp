@@ -29,6 +29,8 @@
 #include "Core/ec_wii.h"
 #include "DiscIO/NANDContentLoader.h"
 
+#define FOO
+
 namespace IOS
 {
 namespace HLE

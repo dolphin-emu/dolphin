@@ -31,6 +31,8 @@
 
 #include "DiscIO/WiiWad.h"
 
+#define FOO
+
 namespace DiscIO
 {
 NANDContentData::~NANDContentData() = default;

@@ -28,6 +28,8 @@
 #include "DiscIO/CompressedBlob.h"
 #include "DiscIO/DiscScrubber.h"
 
+#define FOO
+
 namespace DiscIO
 {
 bool IsGCZBlob(File::IOFile& file);

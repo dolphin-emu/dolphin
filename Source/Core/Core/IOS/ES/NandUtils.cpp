@@ -21,6 +21,8 @@
 #include "Core/IOS/ES/ES.h"
 #include "Core/IOS/ES/Formats.h"
 
+#define FOO
+
 namespace IOS
 {
 namespace HLE

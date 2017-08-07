@@ -11,6 +11,8 @@
 #include "Common/File.h"
 #include "DiscIO/CISOBlob.h"
 
+#define FOO
+
 namespace DiscIO
 {
 CISOFileReader::CISOFileReader(File::IOFile file) : m_file(std::move(file))
