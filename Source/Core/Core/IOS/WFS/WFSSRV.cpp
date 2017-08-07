@@ -130,6 +130,12 @@ IPCCommandResult WFSSRV::IOCtl(const IOCtlRequest& request)
     INFO_LOG(IOS, "IOCTL_WFS_CHDIR: %s", m_current_directory.c_str());
     break;
 
+  case IOCTL_WFS_GET_HOMEDIR:
+    INFO_LOG(IOS, "IOCTL_WFS_GET_HOMEDIR: %s", m_home_directory.c_str());
+    Memory::Write_U16(static_cast<u16>(m_home_directory.size()), request.buffer_out);
+    Memory::CopyToEmu(request.buffer_out + 2, m_home_directory.data(), m_home_directory.size());
+    break;
+
   case IOCTL_WFS_OPEN:
   {
     u32 mode = Memory::Read_U32(request.buffer_in);
