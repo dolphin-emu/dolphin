@@ -237,18 +237,18 @@ void CFrame::BindDebuggerMenuBarUpdateEvents()
 
   Bind(wxEVT_UPDATE_UI, &CFrame::OnUpdateInterpreterMenuItem, this, IDM_INTERPRETER);
 
-  Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCorePaused, IDM_JIT_OFF);
-  Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCorePaused, IDM_JIT_LS_OFF);
-  Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCorePaused, IDM_JIT_LSLXZ_OFF);
-  Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCorePaused, IDM_JIT_LSLWZ_OFF);
-  Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCorePaused, IDM_JIT_LSLBZX_OFF);
-  Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCorePaused, IDM_JIT_LSF_OFF);
-  Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCorePaused, IDM_JIT_LSP_OFF);
-  Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCorePaused, IDM_JIT_FP_OFF);
-  Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCorePaused, IDM_JIT_I_OFF);
-  Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCorePaused, IDM_JIT_P_OFF);
-  Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCorePaused, IDM_JIT_SR_OFF);
-  Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCorePaused, IDM_CLEAR_CODE_CACHE);
+  Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreRunning, IDM_JIT_OFF);
+  Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreRunning, IDM_JIT_LS_OFF);
+  Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreRunning, IDM_JIT_LSLXZ_OFF);
+  Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreRunning, IDM_JIT_LSLWZ_OFF);
+  Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreRunning, IDM_JIT_LSLBZX_OFF);
+  Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreRunning, IDM_JIT_LSF_OFF);
+  Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreRunning, IDM_JIT_LSP_OFF);
+  Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreRunning, IDM_JIT_FP_OFF);
+  Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreRunning, IDM_JIT_I_OFF);
+  Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreRunning, IDM_JIT_P_OFF);
+  Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreRunning, IDM_JIT_SR_OFF);
+  Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreRunning, IDM_CLEAR_CODE_CACHE);
 
   Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreInitialized, IDM_SEARCH_INSTRUCTION);
   Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreInitialized, IDM_CLEAR_SYMBOLS);
@@ -1111,7 +1111,7 @@ void CFrame::OnRescanGameList(wxCommandEvent& WXUNUSED(event))
 
 void CFrame::OnUpdateInterpreterMenuItem(wxUpdateUIEvent& event)
 {
-  WxEventUtils::OnEnableIfCorePaused(event);
+  WxEventUtils::OnEnableIfCoreRunning(event);
 
   if (GetMenuBar()->FindItem(IDM_INTERPRETER)->IsChecked())
     return;

@@ -505,6 +505,16 @@ void CCodeWindow::OnChangeFont(wxCommandEvent& event)
   // TODO: Send event to all panels that tells them to reload the font when it changes.
 }
 
+void CCodeWindow::OnBootToPauseSelected(wxCommandEvent& event)
+{
+  SConfig::GetInstance().bBootToPause = event.IsChecked();
+}
+
+void CCodeWindow::OnAutomaticStartSelected(wxCommandEvent& event)
+{
+  SConfig::GetInstance().bAutomaticStart = event.IsChecked();
+}
+
 // Toggle windows
 
 wxPanel* CCodeWindow::GetUntypedPanel(int id) const
