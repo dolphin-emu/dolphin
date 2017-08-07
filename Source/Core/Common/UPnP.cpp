@@ -32,7 +32,7 @@ static bool InitUPnP()
   static bool s_error = false;
 
   std::vector<UPNPDev*> igds;
-  int descXMLsize = 0, upnperror = 0;
+  int upnperror = 0;
 
   // Don't init if already inited
   if (s_inited)
@@ -70,19 +70,20 @@ static bool InitUPnP()
 
   for (const UPNPDev* dev : igds)
   {
-    std::unique_ptr<char, decltype(&std::free)> descXML(nullptr, std::free);
+    int desc_xml_size = 0;
+    std::unique_ptr<char, decltype(&std::free)> desc_xml(nullptr, std::free);
     int statusCode = 200;
 #if MINIUPNPC_API_VERSION >= 16
-    descXML.reset(
-        static_cast<char*>(miniwget_getaddr(dev->descURL, &descXMLsize, s_our_ip.data(),
+    desc_xml.reset(
+        static_cast<char*>(miniwget_getaddr(dev->descURL, &desc_xml_size, s_our_ip.data(),
                                             static_cast<int>(s_our_ip.size()), 0, &statusCode)));
 #else
-    descXML.reset(static_cast<char*>(miniwget_getaddr(dev->descURL, &descXMLsize, s_our_ip.data(),
-                                                      static_cast<int>(s_our_ip.size()), 0)));
+    desc_xml.reset(static_cast<char*>(miniwget_getaddr(
+        dev->descURL, &desc_xml_size, s_our_ip.data(), static_cast<int>(s_our_ip.size()), 0)));
 #endif
-    if (descXML && statusCode == 200)
+    if (desc_xml && statusCode == 200)
     {
-      parserootdesc(descXML.get(), descXMLsize, &s_data);
+      parserootdesc(desc_xml.get(), desc_xml_size, &s_data);
       GetUPNPUrls(&s_urls, &s_data, dev->descURL, 0);
 
       NOTICE_LOG(NETPLAY, "Got info from IGD at %s.", dev->descURL);
