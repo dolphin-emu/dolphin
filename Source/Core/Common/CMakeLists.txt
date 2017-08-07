@@ -6,6 +6,9 @@ set(SRCS
   Config/Config.cpp
   Config/Layer.cpp
   Config/Section.cpp
+  Crypto/AES.cpp
+  Crypto/bn.cpp
+  Crypto/ec.cpp
   ENetUtil.cpp
   File.cpp
   FileSearch.cpp
@@ -15,7 +18,9 @@ set(SRCS
   HttpRequest.cpp
   IniFile.cpp
   JitRegister.cpp
+  Logging/LogManager.cpp
   MathUtil.cpp
+  MD5.cpp
   MemArena.cpp
   MemoryUtil.cpp
   MsgHandler.cpp
@@ -35,11 +40,6 @@ set(SRCS
   Version.cpp
   x64ABI.cpp
   x64Emitter.cpp
-  MD5.cpp
-  Crypto/AES.cpp
-  Crypto/bn.cpp
-  Crypto/ec.cpp
-  Logging/LogManager.cpp
 )
 
 set(LIBS ${LIBS} ${MBEDTLS_LIBRARIES})
