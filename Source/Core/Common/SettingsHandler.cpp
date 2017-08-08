@@ -8,6 +8,8 @@
 #include <cstdio>
 #include <cstring>
 #include <ctime>
+#include <iomanip>
+#include <sstream>
 #include <string>
 
 #ifdef _WIN32
@@ -134,16 +136,12 @@ void SettingsHandler::WriteByte(u8 b)
 
 std::string SettingsHandler::GenerateSerialNumber()
 {
-  time_t rawtime;
-  tm* timeinfo;
-  char buffer[12];
-  char serialNumber[12];
+  const std::time_t t = std::time(nullptr);
 
-  time(&rawtime);
-  timeinfo = localtime(&rawtime);
-  strftime(buffer, 11, "%j%H%M%S", timeinfo);
-
-  snprintf(serialNumber, 11, "%s%i", buffer, (Common::Timer::GetTimeMs() >> 1) & 0xF);
-  serialNumber[10] = 0;
-  return std::string(serialNumber);
+  // Must be 9 characters at most; otherwise the serial number will be rejected by SDK libraries,
+  // as there is a check to ensure the string length is strictly lower than 10.
+  // 3 for %j, 2 for %H, 2 for %M, 2 for %S.
+  std::stringstream stream;
+  stream << std::put_time(std::localtime(&t), "%j%H%M%S");
+  return stream.str();
 }
