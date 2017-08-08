@@ -102,7 +102,7 @@ public:
   void OnPadBufferChanged(u32 buffer) override;
   void OnDesync(u32 frame, const std::string& player) override;
   void OnConnectionLost() override;
-  void OnTraversalError(int error) override;
+  void OnTraversalError(TraversalClient::FailureReason error) override;
 
   static NetPlayDialog*& GetInstance() { return npd; }
   static NetPlayClient*& GetNetPlayClient() { return netplay_client; }

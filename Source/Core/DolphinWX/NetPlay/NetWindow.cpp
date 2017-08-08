@@ -457,19 +457,19 @@ void NetPlayDialog::OnConnectionLost()
   GetEventHandler()->AddPendingEvent(evt);
 }
 
-void NetPlayDialog::OnTraversalError(int error)
+void NetPlayDialog::OnTraversalError(TraversalClient::FailureReason error)
 {
   switch (error)
   {
-  case TraversalClient::BadHost:
+  case TraversalClient::FailureReason::BadHost:
     PanicAlertT("Couldn't look up central server");
     break;
-  case TraversalClient::VersionTooOld:
+  case TraversalClient::FailureReason::VersionTooOld:
     PanicAlertT("Dolphin is too old for traversal server");
     break;
-  case TraversalClient::ServerForgotAboutUs:
-  case TraversalClient::SocketSendError:
-  case TraversalClient::ResendTimeout:
+  case TraversalClient::FailureReason::ServerForgotAboutUs:
+  case TraversalClient::FailureReason::SocketSendError:
+  case TraversalClient::FailureReason::ResendTimeout:
     wxThreadEvent evt(wxEVT_THREAD, NP_GUI_EVT_TRAVERSAL_CONNECTION_ERROR);
     GetEventHandler()->AddPendingEvent(evt);
     break;
