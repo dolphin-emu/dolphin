@@ -61,6 +61,8 @@ TextureConverter::~TextureConverter()
     vkDestroyBufferView(g_vulkan_context->GetDevice(), m_texel_buffer_view_r32g32_uint, nullptr);
   if (m_texel_buffer_view_rgba8_unorm != VK_NULL_HANDLE)
     vkDestroyBufferView(g_vulkan_context->GetDevice(), m_texel_buffer_view_rgba8_unorm, nullptr);
+  if (m_texel_buffer_view_rgba8_uint != VK_NULL_HANDLE)
+    vkDestroyBufferView(g_vulkan_context->GetDevice(), m_texel_buffer_view_rgba8_uint, nullptr);
 
   if (m_encoding_render_pass != VK_NULL_HANDLE)
     vkDestroyRenderPass(g_vulkan_context->GetDevice(), m_encoding_render_pass, nullptr);
@@ -487,10 +489,21 @@ void TextureConverter::DecodeTexture(VkCommandBuffer command_buffer,
 
   // Copy/commit upload buffer.
   u32 texel_buffer_offset = static_cast<u32>(m_texel_buffer->GetCurrentOffset());
+
+  Util::BufferMemoryBarrier(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                            m_texel_buffer->GetBuffer(), VK_ACCESS_SHADER_READ_BIT,
+                            VK_ACCESS_HOST_WRITE_BIT, texel_buffer_offset, total_upload_size,
+                            VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_HOST_BIT);
+
   std::memcpy(m_texel_buffer->GetCurrentHostPointer(), data, data_size);
   if (has_palette)
     std::memcpy(m_texel_buffer->GetCurrentHostPointer() + palette_offset, palette, palette_size);
   m_texel_buffer->CommitMemory(total_upload_size);
+
+  Util::BufferMemoryBarrier(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                            m_texel_buffer->GetBuffer(), VK_ACCESS_HOST_WRITE_BIT,
+                            VK_ACCESS_SHADER_READ_BIT, texel_buffer_offset, total_upload_size,
+                            VK_PIPELINE_STAGE_HOST_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
 
   // Determine uniforms.
   PushConstants constants = {
@@ -512,6 +525,9 @@ void TextureConverter::DecodeTexture(VkCommandBuffer command_buffer,
     break;
   case TextureConversionShader::BUFFER_FORMAT_R32G32_UINT:
     data_view = m_texel_buffer_view_r32g32_uint;
+    break;
+  case TextureConversionShader::BUFFER_FORMAT_RGBA8_UINT:
+    data_view = m_texel_buffer_view_rgba8_uint;
     break;
   default:
     break;
@@ -564,10 +580,12 @@ bool TextureConverter::CreateTexelBuffer()
   m_texel_buffer_view_r16_uint = CreateTexelBufferView(VK_FORMAT_R16_UINT);
   m_texel_buffer_view_r32g32_uint = CreateTexelBufferView(VK_FORMAT_R32G32_UINT);
   m_texel_buffer_view_rgba8_unorm = CreateTexelBufferView(VK_FORMAT_R8G8B8A8_UNORM);
+  m_texel_buffer_view_rgba8_uint= CreateTexelBufferView(VK_FORMAT_R8G8B8A8_UINT);
   return m_texel_buffer_view_r8_uint != VK_NULL_HANDLE &&
          m_texel_buffer_view_r16_uint != VK_NULL_HANDLE &&
          m_texel_buffer_view_r32g32_uint != VK_NULL_HANDLE &&
-         m_texel_buffer_view_rgba8_unorm != VK_NULL_HANDLE;
+         m_texel_buffer_view_rgba8_unorm != VK_NULL_HANDLE &&
+         m_texel_buffer_view_rgba8_uint != VK_NULL_HANDLE;
 }
 
 VkBufferView TextureConverter::CreateTexelBufferView(VkFormat format) const

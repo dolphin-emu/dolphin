@@ -1262,12 +1262,41 @@ static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
         vec4 norm_color = GetPaletteColorNormalized(index);
         imageStore(output_image, ivec3(ivec2(coords), 0), norm_color);
       }
+      )"}},
+
+  // We do the inverse BT.601 conversion for YCbCr to RGB
+  // http://www.equasys.de/colorconversion.html#YCbCr-RGBColorFormatConversion
+      { TextureFormat::XFB,
+       { BUFFER_FORMAT_RGBA8_UINT, 0, 8, 8, false,
+       R"(
+      layout(local_size_x = 8, local_size_y = 8) in;
+
+      void main()
+      {
+        uvec2 uv = gl_GlobalInvocationID.xy;
+        int buffer_pos = int(u_src_offset + (uv.y * u_src_row_stride) + (uv.x / 2));
+        vec4 yuyv = texelFetch(s_input_buffer, buffer_pos);
+
+        float y = mix(yuyv.r, yuyv.b, (uv.x & 1u) == 1u);
+
+        float yComp = 1.164 * (y - 16);
+        float uComp = yuyv.g - 128;
+        float vComp = yuyv.a - 128;
+
+        vec4 rgb = vec4(yComp + (1.596 * vComp),
+                        yComp - (0.813 * vComp) - (0.391 * uComp),
+                        yComp + (2.018 * uComp),
+                        255.0);
+        vec4 rgba_norm = rgb / 255.0;
+        imageStore(output_image, ivec3(ivec2(uv), 0), rgba_norm);
+      }
       )"}}};
 
 static const std::array<u32, BUFFER_FORMAT_COUNT> s_buffer_bytes_per_texel = {{
     1,  // BUFFER_FORMAT_R8_UINT
     2,  // BUFFER_FORMAT_R16_UINT
     8,  // BUFFER_FORMAT_R32G32_UINT
+    4,  // BUFFER_FORMAT_RGBA8_UINT
 }};
 
 const DecodingShaderInfo* GetDecodingShaderInfo(TextureFormat format)

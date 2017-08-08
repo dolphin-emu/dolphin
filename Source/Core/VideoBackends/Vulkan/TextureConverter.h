@@ -97,6 +97,7 @@ private:
   VkBufferView m_texel_buffer_view_r8_uint = VK_NULL_HANDLE;
   VkBufferView m_texel_buffer_view_r16_uint = VK_NULL_HANDLE;
   VkBufferView m_texel_buffer_view_r32g32_uint = VK_NULL_HANDLE;
+  VkBufferView m_texel_buffer_view_rgba8_uint = VK_NULL_HANDLE;
   VkBufferView m_texel_buffer_view_rgba8_unorm = VK_NULL_HANDLE;
   size_t m_texel_buffer_size = 0;
 
