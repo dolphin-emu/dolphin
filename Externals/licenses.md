@@ -8,6 +8,8 @@ Dolphin includes or links code of the following third-party software projects:
    [LGPLv2.1+](http://bochs.sourceforge.net/cgi-bin/lxr/source/COPYING)
 - [cubeb](https://github.com/kinetiknz/cubeb):
    [ISC](https://github.com/kinetiknz/cubeb/blob/master/LICENSE)
+- [Eigen](http://eigen.tuxfamily.org/):
+   [MPL2](http://eigen.tuxfamily.org/index.php?title=Main_Page#License)
 - [ENet](http://enet.bespin.org/):
    [MIT](http://enet.bespin.org/License.html)
 - [GCEmu](http://sourceforge.net/projects/gcemu-project/):

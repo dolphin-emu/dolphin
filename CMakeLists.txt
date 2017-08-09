@@ -549,6 +549,8 @@ endif()
 add_subdirectory(Externals/Bochs_disasm)
 include_directories(Externals/Bochs_disasm)
 
+include_directories(Externals/Eigen)
+
 add_subdirectory(Externals/glslang)
 
 add_subdirectory(Externals/pugixml)
