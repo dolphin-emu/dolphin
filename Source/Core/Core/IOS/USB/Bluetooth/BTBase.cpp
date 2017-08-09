@@ -38,14 +38,16 @@ void BackUpBTInfoSection(const SysConf* sysconf)
 void RestoreBTInfoSection(SysConf* sysconf)
 {
   const std::string filename = File::GetUserPath(D_CONFIG_IDX) + DIR_SEP WII_BTDINF_BACKUP;
-  File::IOFile backup(filename, "rb");
-  if (!backup)
-    return;
-  auto& section = sysconf->GetOrAddEntry("BT.DINF", SysConf::Entry::Type::BigArray)->bytes;
-  if (!backup.ReadBytes(section.data(), section.size()))
   {
-    ERROR_LOG(IOS_WIIMOTE, "Failed to read backed up BT.DINF section");
-    return;
+    File::IOFile backup(filename, "rb");
+    if (!backup)
+      return;
+    auto& section = sysconf->GetOrAddEntry("BT.DINF", SysConf::Entry::Type::BigArray)->bytes;
+    if (!backup.ReadBytes(section.data(), section.size()))
+    {
+      ERROR_LOG(IOS_WIIMOTE, "Failed to read backed up BT.DINF section");
+      return;
+    }
   }
 
   File::Delete(filename);
