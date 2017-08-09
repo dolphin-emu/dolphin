@@ -587,6 +587,11 @@ else()
   set(PNG png)
 endif()
 
+# Using static FreeSurround from Externals
+# There is no system FreeSurround library.
+message(STATUS "Using static FreeSurround from Externals")
+add_subdirectory(Externals/FreeSurround)
+
 if (APPLE)
   message(STATUS "Using ed25519 from Externals")
   add_subdirectory(Externals/ed25519)

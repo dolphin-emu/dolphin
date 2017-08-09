@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="source\ChannelMaps.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="source\FreeSurroundDecoder.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="source\KissFFT.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="source\KissFFTR.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\FreeSurround\_KissFFTGuts.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\FreeSurround\ChannelMaps.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\FreeSurround\FreeSurroundDecoder.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\FreeSurround\KissFFT.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\FreeSurround\KissFFTR.h">
+      <Filter>include</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="include">
+      <UniqueIdentifier>{776ecb31-6d5e-489f-bac9-b91a1b202345}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source">
+      <UniqueIdentifier>{11345325-d67c-4a21-b2e9-c7c6c8cfc8b4}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
