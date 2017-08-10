@@ -46,7 +46,7 @@ public:
   void OnPadBufferChanged(u32 buffer) override;
   void OnDesync(u32 frame, const std::string& player) override;
   void OnConnectionLost() override;
-  void OnTraversalError(int error) override;
+  void OnTraversalError(TraversalClient::FailureReason error) override;
   bool IsRecording() override;
   std::string FindGame(const std::string& game) override;
   void ShowMD5Dialog(const std::string& file_identifier) override;

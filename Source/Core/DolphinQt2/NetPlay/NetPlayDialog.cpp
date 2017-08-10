@@ -497,23 +497,23 @@ void NetPlayDialog::OnConnectionLost()
   DisplayMessage(tr("Lost connection to NetPlay server..."), "red");
 }
 
-void NetPlayDialog::OnTraversalError(int error)
+void NetPlayDialog::OnTraversalError(TraversalClient::FailureReason error)
 {
   QueueOnObject(this, [this, error] {
     switch (error)
     {
-    case TraversalClient::BadHost:
+    case TraversalClient::FailureReason::BadHost:
       QMessageBox::critical(this, tr("Traversal Error"), tr("Couldn't look up central server"));
       QDialog::reject();
       break;
-    case TraversalClient::VersionTooOld:
+    case TraversalClient::FailureReason::VersionTooOld:
       QMessageBox::critical(this, tr("Traversal Error"),
                             tr("Dolphin is too old for traversal server"));
       QDialog::reject();
       break;
-    case TraversalClient::ServerForgotAboutUs:
-    case TraversalClient::SocketSendError:
-    case TraversalClient::ResendTimeout:
+    case TraversalClient::FailureReason::ServerForgotAboutUs:
+    case TraversalClient::FailureReason::SocketSendError:
+    case TraversalClient::FailureReason::ResendTimeout:
       UpdateGUI();
       break;
     }
