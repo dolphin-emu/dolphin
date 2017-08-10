@@ -1035,9 +1035,9 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstF
     {
     case EFBCopyFormat::R4:      // I4
     case EFBCopyFormat::R8_0x1:  // I8
-    case EFBCopyFormat::R8:      // IA4
-    case EFBCopyFormat::RA4:     // IA8
-    case EFBCopyFormat::RA8:     // I8
+    case EFBCopyFormat::R8:      // I8
+    case EFBCopyFormat::RA4:     // IA4
+    case EFBCopyFormat::RA8:     // IA8
       // TODO - verify these coefficients
       colmat[0] = 0.257f;
       colmat[1] = 0.504f;
