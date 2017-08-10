@@ -88,7 +88,7 @@ void MenuBar::AddToolsMenu()
   QMenu* tools_menu = addMenu(tr("&Tools"));
   m_wad_install_action = tools_menu->addAction(tr("Install WAD..."), this, &MenuBar::InstallWAD);
 
-  tools_menu->addAction(tr("Start NetPlay..."), this, &MenuBar::StartNetPlay);
+  tools_menu->addAction(tr("Start &NetPlay..."), this, &MenuBar::StartNetPlay);
   tools_menu->addSeparator();
 
   // Label will be set by a NANDRefresh later
