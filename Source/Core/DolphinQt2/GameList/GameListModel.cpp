@@ -195,6 +195,11 @@ bool GameListModel::ShouldDisplayGameListItem(int index) const
   }
 }
 
+QSharedPointer<GameFile> GameListModel::GetGameFile(int index) const
+{
+  return m_games[index];
+}
+
 void GameListModel::UpdateGame(QSharedPointer<GameFile> game)
 {
   QString path = game->GetFilePath();

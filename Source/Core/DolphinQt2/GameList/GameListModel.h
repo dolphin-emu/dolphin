@@ -25,6 +25,7 @@ public:
   int rowCount(const QModelIndex& parent) const override;
   int columnCount(const QModelIndex& parent) const override;
 
+  QSharedPointer<GameFile> GetGameFile(int index) const;
   // Path of the Game at the specified index.
   QString GetPath(int index) const { return m_games[index]->GetFilePath(); }
   // Unique ID of the Game at the specified index
