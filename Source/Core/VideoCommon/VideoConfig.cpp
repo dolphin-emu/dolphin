@@ -139,26 +139,6 @@ void VideoConfig::Refresh()
   phack.m_zfar = Config::Get(Config::GFX_PROJECTION_HACK_ZFAR);
   bPerfQueriesEnable = Config::Get(Config::GFX_PERF_QUERIES_ENABLE);
 
-  if (iEFBScale == SCALE_FORCE_INTEGRAL)
-  {
-    // Round down to multiple of native IR
-    switch (Config::GetBase(Config::GFX_EFB_SCALE))
-    {
-    case SCALE_AUTO:
-      iEFBScale = SCALE_AUTO_INTEGRAL;
-      break;
-    case SCALE_1_5X:
-      iEFBScale = SCALE_1X;
-      break;
-    case SCALE_2_5X:
-      iEFBScale = SCALE_2X;
-      break;
-    default:
-      iEFBScale = Config::GetBase(Config::GFX_EFB_SCALE);
-      break;
-    }
-  }
-
   VerifyValidity();
 }
 

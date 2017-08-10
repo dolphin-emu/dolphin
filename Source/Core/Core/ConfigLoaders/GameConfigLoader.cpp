@@ -312,7 +312,17 @@ private:
 
       auto* config_section =
           config_layer->GetOrCreateSection(mapped_config.system, mapped_config.section);
-      config_section->Set(mapped_config.key, value.second);
+
+      if (mapped_config == Config::GFX_EFB_SCALE.location)
+      {
+        std::optional<int> efb_scale = Config::ConvertFromLegacyEFBScale(value.second);
+        if (efb_scale)
+          config_section->Set(mapped_config.key, *efb_scale);
+      }
+      else
+      {
+        config_section->Set(mapped_config.key, value.second);
+      }
     }
   }
 
@@ -335,16 +345,25 @@ void INIGameConfigLayerLoader::Save(Config::Layer* config_layer)
     {
       for (const auto& value : section->GetValues())
       {
-        if (!IsSettingSaveable({system.first, section->GetName(), value.first}))
+        const Config::ConfigLocation location{system.first, section->GetName(), value.first};
+        if (!IsSettingSaveable(location))
           continue;
 
-        const auto ini_location =
-            GetINILocationFromConfig({system.first, section->GetName(), value.first});
+        const auto ini_location = GetINILocationFromConfig(location);
         if (ini_location.first.empty() && ini_location.second.empty())
           continue;
 
         IniFile::Section* ini_section = ini.GetOrCreateSection(ini_location.first);
-        ini_section->Set(ini_location.second, value.second);
+        if (location == Config::GFX_EFB_SCALE.location)
+        {
+          std::optional<int> efb_scale = Config::ConvertToLegacyEFBScale(value.second);
+          if (efb_scale)
+            ini_section->Set(ini_location.second, *efb_scale);
+        }
+        else
+        {
+          ini_section->Set(ini_location.second, value.second);
+        }
       }
     }
   }

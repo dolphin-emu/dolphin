@@ -1446,7 +1446,7 @@ void CFrame::ParseHotkeys()
   if (IsHotkey(HK_DECREASE_IR))
   {
     OSDChoice = 1;
-    if (Config::Get(Config::GFX_EFB_SCALE) > SCALE_AUTO)
+    if (Config::Get(Config::GFX_EFB_SCALE) > EFB_SCALE_AUTO_INTEGRAL)
       Config::SetCurrent(Config::GFX_EFB_SCALE, Config::Get(Config::GFX_EFB_SCALE) - 1);
   }
   if (IsHotkey(HK_TOGGLE_CROP))

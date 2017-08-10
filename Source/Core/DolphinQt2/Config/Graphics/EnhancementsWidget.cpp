@@ -43,16 +43,15 @@ void EnhancementsWidget::CreateWidgets()
   auto* enhancements_layout = new QGridLayout();
   enhancements_box->setLayout(enhancements_layout);
 
-  m_ir_combo = new GraphicsChoice(
-      {tr("Auto (Window Size)"), tr("Auto (Multiple of 640x528)"), tr("Native (640x528)"),
-       tr("1.5x Native (960x792)"), tr("2x Native (1280x1056) for 720p"),
-       tr("2.5x Native (1600x1320)"), tr("3x Native (1920x1584) for 1080p"),
-       tr("4x Native (2560x2112) for 1440p"), tr("5x Native (3200x2640)"),
-       tr("6x Native (3840x3168) for 4K"), tr("7x Native (4480x3696)"),
-       tr("8x Native (5120x4224) for 5K")},
-      Config::GFX_EFB_SCALE);
+  m_ir_combo = new GraphicsChoice({tr("Auto (Multiple of 640x528)"), tr("Native (640x528)"),
+                                   tr("2x Native (1280x1056) for 720p"),
+                                   tr("3x Native (1920x1584) for 1080p"),
+                                   tr("4x Native (2560x2112) for 1440p"),
+                                   tr("5x Native (3200x2640)"), tr("6x Native (3840x3168) for 4K"),
+                                   tr("7x Native (4480x3696)"), tr("8x Native (5120x4224) for 5K")},
+                                  Config::GFX_EFB_SCALE);
 
-  if (g_Config.iEFBScale > 11)
+  if (g_Config.iEFBScale > 8)
   {
     m_ir_combo->addItem(tr("Custom"));
     m_ir_combo->setCurrentIndex(m_ir_combo->count() - 1);
@@ -221,10 +220,8 @@ void EnhancementsWidget::AddDescriptions()
   static const char* TR_INTERNAL_RESOLUTION_DESCRIPTION =
       QT_TR_NOOP("Specifies the resolution used to render at. A high resolution greatly improves "
                  "visual quality, but also greatly increases GPU load and can cause issues in "
-                 "certain games.\n\"Multiple of 640x528\" will result in a size slightly larger "
-                 "than \"Window Size\" but yield fewer issues. Generally speaking, the lower the "
-                 "internal resolution is, the better your performance will be. Auto (Window Size), "
-                 "1.5x, and 2.5x may cause issues in some games.\n\nIf unsure, select Native.");
+                 "certain games. Generally speaking, the lower the internal resolution is, the "
+                 "better your performance will be.\n\nIf unsure, select Native.");
 
   static const char* TR_ANTIALIAS_DESCRIPTION =
       QT_TR_NOOP("Reduces the amount of aliasing caused by rasterizing 3D graphics. This smooths "

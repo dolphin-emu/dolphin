@@ -376,8 +376,7 @@ void VertexShaderManager::SetConstants()
     // NOTE: If we ever emulate antialiasing, the sample locations set by
     // BP registers 0x01-0x04 need to be considered here.
     const float pixel_center_correction = 7.0f / 12.0f - 0.5f;
-    const bool bUseVertexRounding =
-        g_ActiveConfig.bVertexRounding && g_ActiveConfig.iEFBScale != SCALE_1X;
+    const bool bUseVertexRounding = g_ActiveConfig.bVertexRounding && g_ActiveConfig.iEFBScale != 1;
     const float viewport_width = bUseVertexRounding ?
                                      (2.f * xfmem.viewport.wd) :
                                      g_renderer->EFBToScaledXf(2.f * xfmem.viewport.wd);

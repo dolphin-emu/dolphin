@@ -22,23 +22,14 @@
 #define CONF_SAVETARGETS 8
 #define CONF_SAVESHADERS 16
 
+constexpr int EFB_SCALE_AUTO_INTEGRAL = 0;
+
 enum AspectMode
 {
   ASPECT_AUTO = 0,
   ASPECT_ANALOG_WIDE = 1,
   ASPECT_ANALOG = 2,
   ASPECT_STRETCH = 3,
-};
-
-enum EFBScale
-{
-  SCALE_FORCE_INTEGRAL = -1,
-  SCALE_AUTO,
-  SCALE_AUTO_INTEGRAL,
-  SCALE_1X,
-  SCALE_1_5X,
-  SCALE_2X,
-  SCALE_2_5X,
 };
 
 enum StereoMode
@@ -252,7 +243,7 @@ struct VideoConfig final
   {
     return backend_info.bSupportsGPUTextureDecoding && bEnableGPUTextureDecoding;
   }
-  bool UseVertexRounding() const { return bVertexRounding && iEFBScale != SCALE_1X; }
+  bool UseVertexRounding() const { return bVertexRounding && iEFBScale != 1; }
   u32 GetShaderCompilerThreads() const;
   u32 GetShaderPrecompilerThreads() const;
   bool CanPrecompileUberShaders() const;
