@@ -943,8 +943,6 @@ struct UPNPUrls NetPlayServer::m_upnp_urls;
 struct IGDdatas NetPlayServer::m_upnp_data;
 std::string NetPlayServer::m_upnp_ourip;
 u16 NetPlayServer::m_upnp_mapped = 0;
-bool NetPlayServer::m_upnp_inited = false;
-bool NetPlayServer::m_upnp_error = false;
 std::thread NetPlayServer::m_upnp_thread;
 
 // called from ---GUI--- thread
@@ -958,10 +956,7 @@ void NetPlayServer::TryPortmapping(u16 port)
 // UPnP thread: try to map a port
 void NetPlayServer::mapPortThread(const u16 port)
 {
-  if (!m_upnp_inited)
-    initUPnP();
-
-  if (m_upnp_inited && UPnPMapPort(m_upnp_ourip, port))
+  if (initUPnP() && UPnPMapPort(m_upnp_ourip, port))
   {
     NOTICE_LOG(NETPLAY, "Successfully mapped port %d to %s.", port, m_upnp_ourip.c_str());
     return;
@@ -981,16 +976,19 @@ void NetPlayServer::unmapPortThread()
 // discovers the IGD
 bool NetPlayServer::initUPnP()
 {
+  static bool s_inited = false;
+  static bool s_error = false;
+
   std::vector<UPNPDev*> igds;
   int descXMLsize = 0, upnperror = 0;
   char cIP[20];
 
   // Don't init if already inited
-  if (m_upnp_inited)
+  if (s_inited)
     return true;
 
   // Don't init if it failed before
-  if (m_upnp_error)
+  if (s_error)
     return false;
 
   memset(&m_upnp_urls, 0, sizeof(UPNPUrls));
@@ -1007,8 +1005,7 @@ bool NetPlayServer::initUPnP()
   {
     WARN_LOG(NETPLAY, "An error occurred trying to discover UPnP devices.");
 
-    m_upnp_error = true;
-    m_upnp_inited = false;
+    s_error = true;
 
     return false;
   }
@@ -1047,6 +1044,7 @@ bool NetPlayServer::initUPnP()
     }
   }
 
+  s_inited = true;
   return true;
 }
 
