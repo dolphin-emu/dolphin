@@ -38,6 +38,7 @@ signals:
   void Fullscreen();
   void FrameAdvance();
   void Screenshot();
+  void StartNetPlay();
   void StateLoad();
   void StateSave();
   void StateLoadSlot();

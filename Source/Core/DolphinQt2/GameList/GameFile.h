@@ -41,6 +41,7 @@ public:
   u64 GetTitleID() const { return m_title_id; }
   u16 GetRevision() const { return m_revision; }
   QString GetInternalName() const { return m_internal_name; }
+  QString GetUniqueID() const;
   u8 GetDiscNumber() const { return m_disc_number; }
   u64 GetRawSize() const { return m_raw_size; }
   QPixmap GetBanner() const { return m_banner; }

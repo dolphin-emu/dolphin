@@ -11,6 +11,7 @@
 #include "Common/Assert.h"
 #include "Common/FileUtil.h"
 #include "Common/NandPaths.h"
+#include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/WiiSaveCrypted.h"
 #include "Core/IOS/ES/ES.h"
@@ -303,6 +304,51 @@ QString GameFile::GetLanguage(DiscIO::Language lang) const
   default:
     return QObject::tr("Unknown");
   }
+}
+
+QString GameFile::GetUniqueID() const
+{
+  std::vector<std::string> info;
+  if (!GetGameID().isEmpty())
+    info.push_back(GetGameID().toStdString());
+
+  if (GetRevision() != 0)
+  {
+    info.push_back("Revision " + std::to_string(GetRevision()));
+  }
+
+  std::string name = m_long_names[DiscIO::Language::LANGUAGE_ENGLISH].toStdString();
+
+  if (name.empty())
+  {
+    if (!m_long_names.isEmpty())
+      name = m_long_names.begin().value().toStdString();
+    else
+    {
+      std::string filename, extension;
+      name = SplitPath(m_path.toStdString(), nullptr, &filename, &extension);
+      name = filename + extension;
+    }
+  }
+
+  int disc_number = GetDiscNumber() + 1;
+
+  std::string lower_name = name;
+  std::transform(lower_name.begin(), lower_name.end(), lower_name.begin(), ::tolower);
+  if (disc_number > 1 &&
+      lower_name.find(std::string("disc ") + std::to_string(disc_number)) == std::string::npos &&
+      lower_name.find(std::string("disc") + std::to_string(disc_number)) == std::string::npos)
+  {
+    info.push_back("Disc " + std::to_string(disc_number));
+  }
+
+  if (info.empty())
+    return QString::fromStdString(name);
+
+  std::ostringstream ss;
+  std::copy(info.begin(), info.end() - 1, std::ostream_iterator<std::string>(ss, ", "));
+  ss << info.back();
+  return QString::fromStdString(name + " (" + ss.str() + ")");
 }
 
 bool GameFile::IsInstalled() const

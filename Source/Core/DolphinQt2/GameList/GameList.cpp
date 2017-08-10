@@ -34,7 +34,7 @@ static bool CompressCB(const std::string&, float, void*);
 
 GameList::GameList(QWidget* parent) : QStackedWidget(parent)
 {
-  m_model = new GameListModel(this);
+  m_model = Settings::Instance().GetGameListModel();
   m_list_proxy = new ListProxyModel(this);
   m_list_proxy->setSortCaseSensitivity(Qt::CaseInsensitive);
   m_list_proxy->setSortRole(Qt::InitialSortOrderRole);
@@ -197,6 +197,20 @@ void GameList::ShowContextMenu(const QPoint&)
 
   menu->addAction(tr("Open &containing folder"), this, &GameList::OpenContainingFolder);
   menu->addAction(tr("Delete File..."), this, &GameList::DeleteFile);
+
+  QAction* netplay_host = new QAction(tr("Host with NetPlay"), menu);
+
+  connect(netplay_host, &QAction::triggered,
+          [this, game] { emit NetPlayHost(GameFile(game).GetUniqueID()); });
+
+  connect(this, &GameList::EmulationStarted, netplay_host,
+          [netplay_host] { netplay_host->setEnabled(false); });
+  connect(this, &GameList::EmulationStopped, netplay_host,
+          [netplay_host] { netplay_host->setEnabled(true); });
+  netplay_host->setEnabled(!Core::IsRunning());
+
+  menu->addAction(netplay_host);
+
   menu->exec(QCursor::pos());
 }
 

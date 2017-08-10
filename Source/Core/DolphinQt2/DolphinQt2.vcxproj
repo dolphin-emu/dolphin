@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
@@ -47,7 +47,7 @@
       <AdditionalDependencies>avrt.lib;iphlpapi.lib;winmm.lib;setupapi.lib;opengl32.lib;glu32.lib;rpcrt4.lib;comctl32.lib;avcodec.lib;avformat.lib;avutil.lib;swresample.lib;swscale.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(ProjectDir)VideoInterface;$(ProjectDir)GameList;$(ProjectDir)Settings;$(ProjectDir)Config;$(ProjectDir)Config\Mapping;$(ProjectDir)Config\Graphics;$(ProjectDir)QtUtils;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)VideoInterface;$(ProjectDir)GameList;$(ProjectDir)Settings;$(ProjectDir)Config;$(ProjectDir)Config\Mapping;$(ProjectDir)Config\Graphics;$(ProjectDir)NetPlay;$(ProjectDir)QtUtils;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Manifest>
       <AdditionalManifestFiles>DolphinQt2.manifest;%(AdditionalManifestFiles)</AdditionalManifestFiles>
@@ -93,6 +93,11 @@
     <QtMoc Include="Settings\AudioPane.h" />
     <QtMoc Include="MainWindow.h" />
     <QtMoc Include="MenuBar.h" />
+    <QtMoc Include="NetPlay\GameListDialog.h" />
+    <QtMoc Include="NetPlay\MD5Dialog.h" />
+    <QtMoc Include="NetPlay\NetPlayDialog.h" />
+    <QtMoc Include="NetPlay\NetPlaySetupDialog.h" />
+    <QtMoc Include="NetPlay\PadMappingDialog.h" />
     <QtMoc Include="QtUtils\DoubleClickEventFilter.h" />
     <QtMoc Include="QtUtils\WindowActivationEventFilter.h" />
     <QtMoc Include="RenderWidget.h" />
@@ -110,6 +115,7 @@
     <ClCompile Include="$(QtMocOutPrefix)FilesystemWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)WindowActivationEventFilter.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GameList.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)GameListDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GameListModel.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GameTracker.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GeneralPane.cpp" />
@@ -133,7 +139,11 @@
     <ClCompile Include="$(QtMocOutPrefix)MappingButton.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)MappingWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)MappingWindow.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)MD5Dialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)MenuBar.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)NetPlayDialog.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)NetPlaySetupDialog.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)PadMappingDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)PropertiesDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)DoubleClickEventFilter.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)RenderWidget.cpp" />
@@ -190,6 +200,11 @@
     <ClCompile Include="MainWindow.cpp" />
     <ClCompile Include="MenuBar.cpp" />
     <ClCompile Include="QtUtils\BlockUserInputFilter.cpp" />
+    <ClCompile Include="NetPlay\GameListDialog.cpp" />
+    <ClCompile Include="NetPlay\MD5Dialog.cpp" />
+    <ClCompile Include="NetPlay\NetPlayDialog.cpp" />
+    <ClCompile Include="NetPlay\NetPlaySetupDialog.cpp" />
+    <ClCompile Include="NetPlay\PadMappingDialog.cpp" />
     <ClCompile Include="QtUtils\DoubleClickEventFilter.cpp" />
     <ClCompile Include="QtUtils\ElidedButton.cpp" />
     <ClCompile Include="QtUtils\ListTabWidget.cpp" />

@@ -17,6 +17,10 @@
 class HotkeyScheduler;
 class LoggerWidget;
 class MappingWindow;
+class NetPlayClient;
+class NetPlayDialog;
+class NetPlayServer;
+class NetPlaySetupDialog;
 class SettingsWindow;
 class ControllersWindow;
 class DragEnterEvent;
@@ -88,6 +92,12 @@ private:
   void ShowGraphicsWindow();
   void ShowAboutDialog();
   void ShowHotkeyDialog();
+  void ShowNetPlaySetupDialog();
+
+  void NetPlayInit();
+  bool NetPlayJoin();
+  bool NetPlayHost(const QString& game_id);
+  void NetPlayQuit();
 
   void OnStopComplete();
   void dragEnterEvent(QDragEnterEvent* event) override;
@@ -109,6 +119,8 @@ private:
   ControllersWindow* m_controllers_window;
   SettingsWindow* m_settings_window;
   MappingWindow* m_hotkey_window;
+  NetPlayDialog* m_netplay_dialog;
+  NetPlaySetupDialog* m_netplay_setup_dialog;
   GraphicsWindow* m_graphics_window;
   LoggerWidget* m_logger_widget;
 };

@@ -66,6 +66,11 @@ set(SRCS
   GameList/GridProxyModel.cpp
   GameList/ListProxyModel.cpp
   QtUtils/BlockUserInputFilter.cpp
+  NetPlay/GameListDialog.cpp
+  NetPlay/MD5Dialog.cpp
+  NetPlay/NetPlayDialog.cpp
+  NetPlay/NetPlaySetupDialog.cpp
+  NetPlay/PadMappingDialog.cpp
   QtUtils/DoubleClickEventFilter.cpp
   QtUtils/ElidedButton.cpp
   QtUtils/ListTabWidget.cpp
