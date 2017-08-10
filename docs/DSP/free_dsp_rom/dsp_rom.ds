@@ -55,7 +55,8 @@ param5:
 	jnz mainloop+#IROM_BASE
 	call wait_for_cpu_mbox+#IROM_BASE
 	lr $AR0, @CMBL
-	jmp 0x80b5
+	; skip the branch of bootucode that uses the AX registers
+	jmp bootucode_ix+#IROM_BASE
 
 wait_dma:
 	lrs		$AC0.M, @DSCR
