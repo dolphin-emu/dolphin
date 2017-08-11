@@ -23,6 +23,7 @@ enum class LayerType
 enum class System
 {
   Main,
+  SYSCONF,
   GCPad,
   WiiPad,
   GCKeyboard,

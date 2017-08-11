@@ -23,6 +23,7 @@
 
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
+#include "Common/Config/Config.h"
 #include "Common/Event.h"
 #include "Common/FileUtil.h"
 #include "Common/Flag.h"
@@ -33,6 +34,7 @@
 #include "Common/Thread.h"
 #include "Common/Timer.h"
 
+#include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -93,9 +95,7 @@ Renderer::Renderer(int backbuffer_width, int backbuffer_height)
   OSDTime = 0;
 
   if (SConfig::GetInstance().bWii)
-  {
-    m_aspect_wide = SConfig::GetInstance().m_wii_aspect_ratio != 0;
-  }
+    m_aspect_wide = Config::Get(Config::SYSCONF_WIDESCREEN);
 
   m_last_host_config_bits = ShaderHostConfig::GetCurrent().bits;
 }

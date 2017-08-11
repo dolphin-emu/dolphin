@@ -32,11 +32,13 @@
 
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
+#include "Common/Config/Config.h"
 #include "Common/FifoQueue.h"
 #include "Common/FileUtil.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 
+#include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/EXI/EXI_Device.h"
 #include "Core/NetPlayClient.h"
@@ -316,8 +318,8 @@ void NetPlayDialog::GetNetSettings(NetSettings& settings)
   settings.m_EnableCheats = instance.bEnableCheats;
   settings.m_SelectedLanguage = instance.SelectedLanguage;
   settings.m_OverrideGCLanguage = instance.bOverrideGCLanguage;
-  settings.m_ProgressiveScan = instance.bProgressive;
-  settings.m_PAL60 = instance.bPAL60;
+  settings.m_ProgressiveScan = Config::Get(Config::SYSCONF_PROGRESSIVE_SCAN);
+  settings.m_PAL60 = Config::Get(Config::SYSCONF_PAL60);
   settings.m_DSPHLE = instance.bDSPHLE;
   settings.m_DSPEnableJIT = instance.m_DSPEnableJIT;
   settings.m_WriteToMemcard = m_memcard_write->GetValue();

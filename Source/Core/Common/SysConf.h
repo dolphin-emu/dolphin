@@ -84,7 +84,6 @@ public:
   }
 
 private:
-  void ApplySettingsFromMovie();
   void InsertDefaultEntries();
   bool LoadFromFile(const std::string& file_name);
 

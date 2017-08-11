@@ -20,6 +20,7 @@
 #include "Common/CDUtils.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
+#include "Common/Config/Config.h"
 #include "Common/File.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
@@ -29,6 +30,7 @@
 #include "Core/Boot/DolReader.h"
 #include "Core/Boot/ElfReader.h"
 #include "Core/CommonTitles.h"
+#include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/FifoPlayer/FifoPlayer.h"
 #include "Core/HLE/HLE.h"
@@ -289,7 +291,8 @@ bool CBoot::BootUp(std::unique_ptr<BootParameters> boot)
   g_symbolDB.Clear();
 
   // PAL Wii uses NTSC framerate and linecount in 60Hz modes
-  VideoInterface::Preset(DiscIO::IsNTSC(config.m_region) || (config.bWii && config.bPAL60));
+  VideoInterface::Preset(DiscIO::IsNTSC(config.m_region) ||
+                         (config.bWii && Config::Get(Config::SYSCONF_PAL60)));
 
   struct BootTitle
   {

@@ -14,7 +14,6 @@
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/Swap.h"
-#include "Core/Movie.h"
 
 constexpr size_t SYSCONF_SIZE = 0x4000;
 
@@ -61,8 +60,6 @@ void SysConf::Load()
     WARN_LOG(CORE, "No valid SYSCONF detected. Creating a new one.");
     InsertDefaultEntries();
   }
-
-  ApplySettingsFromMovie();
 }
 
 bool SysConf::LoadFromFile(const std::string& file_name)
@@ -255,17 +252,6 @@ void SysConf::RemoveEntry(const std::string& key)
   m_entries.erase(std::remove_if(m_entries.begin(), m_entries.end(),
                                  [&key](const auto& entry) { return entry.name == key; }),
                   m_entries.end());
-}
-
-// Apply Wii settings from normal SYSCONF on Movie recording/playback
-void SysConf::ApplySettingsFromMovie()
-{
-  if (!Movie::IsMovieActive())
-    return;
-
-  SetData<u8>("IPL.LNG", Entry::Type::Byte, Movie::GetLanguage());
-  SetData<u8>("IPL.E60", Entry::Type::Byte, Movie::IsPAL60());
-  SetData<u8>("IPL.PGS", Entry::Type::Byte, Movie::IsProgressive());
 }
 
 void SysConf::InsertDefaultEntries()

@@ -26,10 +26,10 @@ public:
   void Load(Config::Layer* config_layer) override;
   void Save(Config::Layer* config_layer) override;
 
-  void ChangeDTMHeader(Movie::DTMHeader* header) { m_header = header; }
 private:
   Movie::DTMHeader* m_header;
 };
 
+void SaveToDTM(Config::Layer* layer, Movie::DTMHeader* header);
 std::unique_ptr<Config::ConfigLayerLoader> GenerateMovieConfigLoader(Movie::DTMHeader* header);
 }

@@ -147,7 +147,6 @@ struct SConfig : NonCopyable
   int iRenderWindowHeight = -1;
   bool bRenderWindowAutoSize = false, bKeepWindowOnTop = false;
   bool bFullscreen = false, bRenderToMain = false;
-  bool bProgressive = false, bPAL60 = false;
   bool bDisableScreenSaver = false;
 
   int iPosX, iPosY, iWidth, iHeight;
@@ -168,15 +167,6 @@ struct SConfig : NonCopyable
   bool IsUSBDeviceWhitelisted(std::pair<u16, u16> vid_pid) const;
 
   bool m_enable_signature_checks = true;
-
-  // SYSCONF settings
-  int m_sensor_bar_position = 0x01;
-  int m_sensor_bar_sensitivity = 0x03;
-  int m_speaker_volume = 0x58;
-  bool m_wiimote_motor = true;
-  int m_wii_language = 0x01;
-  int m_wii_aspect_ratio = 0x01;
-  int m_wii_screensaver = 0x00;
 
   // Fifo Player related settings
   bool bLoopFifoReplay = true;
@@ -333,9 +323,6 @@ struct SConfig : NonCopyable
 
   // Load settings
   void LoadSettings();
-
-  void LoadSettingsFromSysconf();
-  void SaveSettingsToSysconf();
 
   // Return the permanent and somewhat globally used instance of this struct
   static SConfig& GetInstance() { return (*m_Instance); }
