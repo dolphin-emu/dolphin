@@ -581,7 +581,7 @@ void NetPlayDialog::OnThread(wxThreadEvent& event)
   break;
   case NP_GUI_EVT_PAD_BUFFER_CHANGE:
   {
-    std::string msg = StringFromFormat("Pad buffer: %d", m_pad_buffer);
+    std::string msg = StringFromFormat("Buffer size: %d", m_pad_buffer);
 
     if (g_ActiveConfig.bShowNetPlayMessages)
     {
