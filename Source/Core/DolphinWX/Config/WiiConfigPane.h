@@ -60,5 +60,5 @@ private:
   wxChoice* m_bt_sensor_bar_pos;
   DolphinSlider* m_bt_sensor_bar_sens;
   DolphinSlider* m_bt_speaker_volume;
-  wxCheckBox* m_bt_wiimote_motor;
+  wxCheckBox* m_bt_wiimote_motor_checkbox;
 };
