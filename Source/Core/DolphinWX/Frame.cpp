@@ -449,6 +449,10 @@ CFrame::CFrame(wxFrame* parent, wxWindowID id, const wxString& title, wxRect geo
   Bind(wxEVT_TIMER, &CFrame::PollHotkeys, this, m_poll_hotkey_timer.GetId());
   m_poll_hotkey_timer.Start(1000 / 60, wxTIMER_CONTINUOUS);
 
+  m_cursor_timer.SetOwner(this);
+  Bind(wxEVT_TIMER, &CFrame::HandleCursorTimer, this, m_cursor_timer.GetId());
+  m_cursor_timer.StartOnce(MOUSE_HIDE_DELAY);
+
   // Shut down cleanly on SIGINT, SIGTERM (Unix) and on various signals on Windows
   m_handle_signal_timer.SetOwner(this);
   Bind(wxEVT_TIMER, &CFrame::HandleSignal, this, m_handle_signal_timer.GetId());
@@ -1138,6 +1142,13 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 
 void CFrame::OnMouse(wxMouseEvent& event)
 {
+  if (!SConfig::GetInstance().bHideCursor && main_frame->RendererHasFocus() &&
+      Core::GetState() == Core::State::Running)
+  {
+    m_render_parent->SetCursor(wxNullCursor);
+    m_cursor_timer.StartOnce(MOUSE_HIDE_DELAY);
+  }
+
   // next handlers are all for FreeLook, so we don't need to check them if disabled
   if (!g_Config.bFreeLook)
   {
@@ -1711,6 +1722,13 @@ void CFrame::HandleFrameSkipHotkeys()
     holdFrameStep = false;
     holdFrameStepDelayCount = 0;
   }
+}
+
+void CFrame::HandleCursorTimer(wxTimerEvent& event)
+{
+  if (!SConfig::GetInstance().bHideCursor && main_frame->RendererHasFocus() &&
+      Core::GetState() == Core::State::Running)
+    m_render_parent->SetCursor(wxCURSOR_BLANK);
 }
 
 void CFrame::HandleSignal(wxTimerEvent& event)
