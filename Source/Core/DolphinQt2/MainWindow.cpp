@@ -310,7 +310,7 @@ void MainWindow::Play()
   }
   else
   {
-    QString selection = m_game_list->GetSelectedGame();
+    QString selection = m_game_list->GetSelectedGame()->GetFilePath();
     if (selection.length() > 0)
     {
       StartGame(selection);
