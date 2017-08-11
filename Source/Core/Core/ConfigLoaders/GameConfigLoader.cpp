@@ -72,6 +72,7 @@ static const INIToLocationMap& GetINIToLocationMap()
 
       {{"Video_Settings", "wideScreenHack"}, {Config::GFX_WIDESCREEN_HACK.location}},
       {{"Video_Settings", "AspectRatio"}, {Config::GFX_ASPECT_RATIO.location}},
+      {{"Video_Settings", "SuggestedAspectRatio"}, {Config::GFX_SUGGESTED_ASPECT_RATIO.location}},
       {{"Video_Settings", "Crop"}, {Config::GFX_CROP.location}},
       {{"Video_Settings", "UseXFB"}, {Config::GFX_USE_XFB.location}},
       {{"Video_Settings", "UseRealXFB"}, {Config::GFX_USE_REAL_XFB.location}},
