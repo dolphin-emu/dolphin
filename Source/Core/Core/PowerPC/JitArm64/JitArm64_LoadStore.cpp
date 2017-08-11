@@ -499,8 +499,8 @@ void JitArm64::lmw(UGeckoInstruction inst)
       LDP(INDEX_POST, EncodeRegTo64(RX1), EncodeRegTo64(RX3), XA, 16);
       REV32(EncodeRegTo64(RX1), EncodeRegTo64(RX1));
       REV32(EncodeRegTo64(RX3), EncodeRegTo64(RX3));
-      ORR(EncodeRegTo64(RX2), ZR, EncodeRegTo64(RX1), ArithOption(EncodeRegTo64(RX1), ST_LSR, 32));
-      ORR(EncodeRegTo64(RX4), ZR, EncodeRegTo64(RX3), ArithOption(EncodeRegTo64(RX3), ST_LSR, 32));
+      LSR(EncodeRegTo64(RX2), EncodeRegTo64(RX1), 32);
+      LSR(EncodeRegTo64(RX4), EncodeRegTo64(RX3), 32);
       i += 3;
     }
     else if (remaining >= 2)
