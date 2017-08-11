@@ -484,7 +484,7 @@ void NetPlayDialog::OnMsgStopGame()
 void NetPlayDialog::OnPadBufferChanged(u32 buffer)
 {
   QueueOnObject(this, [this, buffer] { m_buffer_size_box->setValue(buffer); });
-  DisplayMessage(tr("Pad size changed to %1").arg(buffer), "gray");
+  DisplayMessage(tr("Buffer size changed to %1").arg(buffer), "gray");
 }
 
 void NetPlayDialog::OnDesync(u32 frame, const std::string& player)
