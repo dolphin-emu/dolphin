@@ -18,8 +18,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-08-10 16:15+0200\n"
-"PO-Revision-Date: 2017-08-10 14:17+0000\n"
+"POT-Creation-Date: 2017-08-11 14:30+0200\n"
+"PO-Revision-Date: 2017-08-11 12:31+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Chinese (China) (http://www.transifex.com/delroth/dolphin-emu/"
 "language/zh_CN/)\n"
@@ -41,7 +41,7 @@ msgstr ""
 "\n"
 "该软件不能用于运行你非法持有的游戏。\n"
 
-#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:762
+#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:764
 msgid " (internal IP)"
 msgstr "(内部 IP)"
 
@@ -49,9 +49,9 @@ msgstr "(内部 IP)"
 msgid " (too many to display)"
 msgstr " （项目太多，无法显示）"
 
-#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:115
-#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:537
-#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:643
+#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:117
+#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:539
+#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:645
 msgid " Game : "
 msgstr " 游戏 :"
 
@@ -79,7 +79,7 @@ msgstr "清理 %s 失败。镜像可能已损坏。"
 msgid "\"%s\" is already compressed! Cannot compress it further."
 msgstr "%s 已经被压缩过! 无法对它进一步压缩。"
 
-#: Source/Core/Core/Boot/Boot.cpp:93
+#: Source/Core/Core/Boot/Boot.cpp:95
 #, c-format
 msgid "\"%s\" is an invalid GCM/ISO file, or is not a GC/Wii ISO."
 msgstr "\"%s\" 不是一个有效的 GCM/ISO 文件，或者不是一个 GC/Wii 镜像。"
@@ -100,11 +100,11 @@ msgstr "%1$s复制%1$s"
 
 #: Source/Core/DolphinQt2/NetPlay/MD5Dialog.cpp:110
 msgid "%1[%2]: %3"
-msgstr ""
+msgstr "%1[%2]: %3"
 
 #: Source/Core/DolphinQt2/NetPlay/MD5Dialog.cpp:98
 msgid "%1[%2]: %3 %"
-msgstr ""
+msgstr "%1[%2]: %3 %"
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:240
 #, c-format
@@ -183,7 +183,7 @@ msgstr ""
 msgid "%s (Disc %i)"
 msgstr "%s (光盘 %i)"
 
-#: Source/Core/Core/Boot/Boot.cpp:243
+#: Source/Core/Core/Boot/Boot.cpp:245
 #, c-format
 msgid "%s IPL found in %s directory. The disc might not be recognized"
 msgstr "%s IPL 位于 %s 目录中，光盘可能无法识别。"
@@ -655,7 +655,7 @@ msgstr ""
 "堂没有任何形式的关联。"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:154
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:1269
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:1271
 msgid "(off)"
 msgstr "(关)"
 
@@ -664,31 +664,31 @@ msgstr "(关)"
 msgid "+ ADD"
 msgstr "+ 加"
 
-#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:364
+#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:366
 msgid "..."
-msgstr ""
+msgstr "..."
 
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:61
 msgid "16-bit"
 msgstr "16位"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:63
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:554
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:555
 msgid "16x"
 msgstr "16x"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:63
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:554
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:555
 msgid "1x"
 msgstr "1x"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:63
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:554
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:555
 msgid "2x"
 msgstr "2x"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:47
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:520
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:521
 msgid "2x Native (1280x1056) for 720p"
 msgstr "2x 原生 (1280x1056) 适合 720p"
 
@@ -710,32 +710,32 @@ msgid "3D Depth"
 msgstr "3D 深度"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:48
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:520
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:521
 msgid "3x Native (1920x1584) for 1080p"
 msgstr "3x 原生 (1920x1584) 适合 1080p"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:63
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:554
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:555
 msgid "4x"
 msgstr "4x"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:49
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:521
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:522
 msgid "4x Native (2560x2112) for 1440p"
 msgstr "4x 原生 (2560x2112) 适合 1440p"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:50
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:521
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:522
 msgid "5x Native (3200x2640)"
 msgstr "5x 原生 (3200x2640)"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:50
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:522
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:523
 msgid "6x Native (3840x3168) for 4K"
 msgstr "6x 原生  (3840x3168) 适合 4K"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:51
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:522
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:523
 msgid "7x Native (4480x3696)"
 msgstr "7x 原生 (4480x3696)"
 
@@ -744,12 +744,12 @@ msgid "8-bit"
 msgstr "8位"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:63
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:554
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:555
 msgid "8x"
 msgstr "8x"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:51
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:523
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:524
 msgid "8x Native (5120x4224) for 5K"
 msgstr "8x 原生 (5120x4224) 适合 5K"
 
@@ -757,7 +757,7 @@ msgstr "8x 原生 (5120x4224) 适合 5K"
 msgid "<Insert name here>"
 msgstr "<Insert name here>"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:396
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:397
 msgid "<No resolutions found>"
 msgstr "<未找到分辨率>"
 
@@ -792,7 +792,7 @@ msgstr ""
 #: Source/Core/DolphinQt2/MainWindow.cpp:661
 #: Source/Core/DolphinQt2/MainWindow.cpp:719
 msgid "A NetPlay Session is already in progress!"
-msgstr ""
+msgstr "已经有一个联机会话正在进行中！"
 
 #: Source/Core/DolphinWX/NetPlay/NetPlayLauncher.cpp:22
 msgid "A NetPlay window is already open!"
@@ -868,7 +868,7 @@ msgid "About Dolphin"
 msgstr "关于 Dolphin"
 
 #: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:60
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:745
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:746
 msgid "Accuracy:"
 msgstr "精确度："
 
@@ -969,7 +969,7 @@ msgid "Adapter Detected"
 msgstr "检测到适配器"
 
 #: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:71
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:372
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:373
 msgid "Adapter:"
 msgstr "适配器："
 
@@ -1028,7 +1028,7 @@ msgid "Add to &watch"
 msgstr "添加到监视(&W)"
 
 #: Source/Core/DolphinWX/Config/PathConfigPane.cpp:38
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:74
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:79
 #: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:395
 msgid "Add..."
 msgstr "添加..."
@@ -1057,7 +1057,7 @@ msgstr "GBA 游戏端口"
 #: Source/Core/DolphinQt2/Config/Graphics/GraphicsWindow.cpp:76
 #: Source/Core/DolphinQt2/Config/Graphics/GraphicsWindow.cpp:106
 #: Source/Core/DolphinWX/Config/ConfigMain.cpp:90
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:836
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:837
 msgid "Advanced"
 msgstr "高级"
 
@@ -1106,6 +1106,11 @@ msgstr "所有 Wii 镜像文件 (iso)"
 msgid "All compressed GC/Wii ISO files (gcz)"
 msgstr "所有压缩的 GC/Wii 镜像文件 (gcz)"
 
+#: Source/Core/DolphinQt2/Settings/InterfacePane.cpp:95
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:461
+msgid "Always Hide Mouse Cursor"
+msgstr ""
+
 #: Source/Core/Common/Assert.h:46
 #, c-format
 msgid ""
@@ -1128,7 +1133,7 @@ msgid "An inserted disc was expected but not found."
 msgstr "光盘预计已插入但无法找到。"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:100
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:649
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:650
 msgid "Anaglyph"
 msgstr "色差式"
 
@@ -1141,12 +1146,12 @@ msgid "Angle"
 msgstr "角度"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:81
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:555
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:556
 msgid "Anisotropic Filtering:"
 msgstr "各向异性过滤："
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:79
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:541
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:542
 msgid "Anti-Aliasing:"
 msgstr "抗锯齿："
 
@@ -1172,7 +1177,7 @@ msgid "Apply Signat&ure File..."
 msgstr "应用签名文件(&U)..."
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:238
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:270
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:271
 msgid ""
 "Apply a post-processing effect after finishing a frame.\n"
 "\n"
@@ -1208,9 +1213,9 @@ msgstr "确定要删除该文件吗?"
 msgid "Are you sure you want to delete this file? It will be gone forever!"
 msgstr "你确定要删除此文件吗？它将无法恢复！"
 
-#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:279
+#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:281
 msgid "Are you sure you want to quit NetPlay?"
-msgstr ""
+msgstr "确定要退出联机吗？"
 
 #: Source/Core/DolphinQt2/GameList/GameList.cpp:253
 msgid "Are you sure?"
@@ -1221,13 +1226,13 @@ msgid "Are you trying to use the same file in both slots?"
 msgstr "你是否试图在两个插槽中使用相同的文件?"
 
 #: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:80
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:96
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:421
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:101
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:422
 msgid "Aspect Ratio:"
 msgstr "宽高比："
 
-#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:123
-#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:230
+#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:125
+#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:232
 msgid "Assign Controller Ports"
 msgstr "指定控制器端口"
 
@@ -1262,24 +1267,24 @@ msgstr "作者"
 
 #: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:50
 #: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:62
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:385
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:418
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:386
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:419
 msgid "Auto"
 msgstr "自动"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:46
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:519
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:520
 msgid "Auto (Multiple of 640x528)"
 msgstr "自动（640x528 的倍数）"
 
 #: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:94
 #: Source/Core/DolphinQt2/Settings/InterfacePane.cpp:73
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:451
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:452
 msgid "Auto-Adjust Window Size"
 msgstr "自动调整窗口大小"
 
 #: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:265
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:126
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:127
 msgid ""
 "Automatically adjusts the window size to your internal resolution.\n"
 "\n"
@@ -1326,7 +1331,7 @@ msgstr "后端设置"
 #: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:68
 #: Source/Core/DolphinQt2/Config/Graphics/SoftwareRendererWidget.cpp:44
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:60
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:342
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:343
 msgid "Backend:"
 msgstr "后端："
 
@@ -1366,7 +1371,7 @@ msgid "Bar"
 msgstr "摇把"
 
 #: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:44
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:477
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:478
 msgid "Basic"
 msgstr "基本"
 
@@ -1379,7 +1384,7 @@ msgstr "基本设置"
 msgid "Bass"
 msgstr "低音"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:318
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:320
 msgid "Battery"
 msgstr "电池"
 
@@ -1428,11 +1433,11 @@ msgid "BootMii NAND backup file (*.bin)"
 msgstr "BootMii NAND 备份文件 (*.bin)"
 
 #: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:93
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:926
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:928
 msgid "Borderless Fullscreen"
 msgstr "无边框全屏"
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:62
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:67
 #: Source/Core/DolphinWX/MainMenuBar.cpp:411
 msgid "Bottom"
 msgstr "底部"
@@ -1492,8 +1497,12 @@ msgstr "浏览输出目录"
 msgid "Buffer Size:"
 msgstr "缓冲区大小:"
 
-#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:65
-#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:249
+#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:487
+msgid "Buffer size changed to %1"
+msgstr ""
+
+#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:67
+#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:251
 msgid "Buffer:"
 msgstr "缓冲区："
 
@@ -1507,7 +1516,7 @@ msgstr "按键"
 #: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:68
 #: Source/Core/Core/HW/WiimoteEmu/Attachment/Nunchuk.cpp:33
 #: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:41
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:258
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:260
 #: Source/Core/DolphinQt2/Config/Mapping/GCPadEmu.cpp:32
 #: Source/Core/DolphinQt2/Config/Mapping/WiimoteEmuExtension.cpp:34
 #: Source/Core/DolphinQt2/Config/Mapping/WiimoteEmuExtension.cpp:57
@@ -1552,7 +1561,7 @@ msgid "CPU Options"
 msgstr "CPU 选项"
 
 #: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:151
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:248
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:249
 msgid ""
 "Cache custom textures to system RAM on startup.\n"
 "This can require exponentially more RAM but fixes possible stuttering.\n"
@@ -1570,7 +1579,7 @@ msgid "Cached Interpreter (slower)"
 msgstr "缓存解释器（较慢）"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:247
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:166
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:167
 msgid ""
 "Calculates lighting of 3D objects per-pixel rather than per-vertex, "
 "smoothing out the appearance of lit polygons and making individual triangles "
@@ -1597,7 +1606,7 @@ msgstr "不能按照连接句柄 %02x 找到 Wii 控制器"
 #: Source/Core/DolphinQt2/MainWindow.cpp:654
 #: Source/Core/DolphinQt2/MainWindow.cpp:712
 msgid "Can't start a NetPlay Session while a game is still running!"
-msgstr ""
+msgstr "游戏运行时无法启动联机会话！"
 
 #: Source/Core/DolphinQt2/Config/InfoWidget.cpp:182
 msgid "Cancel"
@@ -1607,7 +1616,7 @@ msgstr "取消"
 msgid "Cannot SingleStep the FIFO. Use Frame Advance instead."
 msgstr "无法单步执行 FIFO，使用帧步进代替。"
 
-#: Source/Core/Core/Boot/Boot.cpp:371
+#: Source/Core/Core/Boot/Boot.cpp:374
 msgid "Cannot find the GC IPL."
 msgstr "找不到 GC IPL。"
 
@@ -1615,7 +1624,7 @@ msgstr "找不到 GC IPL。"
 msgid "Cannot set uninitialized memory."
 msgstr "无法设置未初始化的内存。"
 
-#: Source/Core/Core/Boot/Boot.cpp:369
+#: Source/Core/Core/Boot/Boot.cpp:372
 msgid "Cannot start the game, because the GC IPL could not be found."
 msgstr "找不到 GC IPL，无法启动游戏。"
 
@@ -1647,7 +1656,7 @@ msgstr "切换光盘(&D)..."
 msgid "Change Disc"
 msgstr "切换光盘"
 
-#: Source/Core/Core/Movie.cpp:1260
+#: Source/Core/Core/Movie.cpp:1211
 #, c-format
 msgid "Change the disc to %s"
 msgstr "切换光盘至 %s"
@@ -1664,8 +1673,8 @@ msgstr ""
 msgid "Changing cheats will only take effect when the game is restarted."
 msgstr "游戏重启后更改的金手指才会生效。"
 
-#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:96
-#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:156
+#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:98
+#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:158
 msgid "Chat"
 msgstr "聊天"
 
@@ -1794,7 +1803,7 @@ msgstr "复制并编辑代码(&E)..."
 #: Source/Core/DolphinWX/MemcardManager.cpp:233
 #: Source/Core/DolphinWX/PostProcessingConfigDiag.cpp:135
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:151
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:948
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:950
 msgid "Close"
 msgstr "关闭"
 
@@ -1902,7 +1911,7 @@ msgstr "正在计算:"
 
 #: Source/Core/DolphinQt2/ToolBar.cpp:83
 #: Source/Core/DolphinWX/MainToolBar.cpp:185
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:591
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:592
 msgid "Config"
 msgstr "设置"
 
@@ -1956,9 +1965,9 @@ msgstr "确认文件覆盖"
 msgid "Confirm on Stop"
 msgstr "停止游戏时确认"
 
-#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:278
+#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:280
 msgid "Confirmation"
-msgstr ""
+msgstr "确定"
 
 #: Source/Core/DolphinQt2/NetPlay/NetPlaySetupDialog.cpp:80
 #: Source/Core/DolphinQt2/NetPlay/NetPlaySetupDialog.cpp:143
@@ -1972,7 +1981,7 @@ msgstr "连接"
 msgid "Connect Balance Board"
 msgstr "连接平衡板"
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:71
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:76
 msgid "Connect USB Keyboard"
 msgstr "连接 USB 键盘"
 
@@ -2043,7 +2052,7 @@ msgid "Controllers"
 msgstr "控制器"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:270
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:285
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:286
 msgid ""
 "Controls the distance of the convergence plane. This is the distance at "
 "which virtual objects will appear to be in front of the screen.\n"
@@ -2055,7 +2064,7 @@ msgstr ""
 "数值越高凸出屏幕效果越强，而数值越低观感会越舒适。"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:267
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:282
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:283
 msgid ""
 "Controls the separation distance between the virtual cameras.\n"
 "A higher value creates a stronger feeling of depth while a lower value is "
@@ -2065,7 +2074,7 @@ msgstr ""
 "数值越高则深度感会越强，而数值越低观感会越舒适。"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:110
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:675
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:676
 msgid "Convergence:"
 msgstr "会聚："
 
@@ -2077,13 +2086,13 @@ msgstr "会聚："
 msgid "Convert to GCI"
 msgstr "转换到 GCI"
 
-#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:120
-#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:371
-#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:387
-#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:208
-#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:782
-#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:789
-#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:807
+#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:122
+#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:373
+#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:389
+#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:210
+#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:784
+#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:791
+#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:809
 msgid "Copy"
 msgstr "复制"
 
@@ -2104,7 +2113,7 @@ msgstr "复制十六进制(&H)"
 msgid "Copy code &line"
 msgstr "复制代码行(&L)"
 
-#: Source/Core/Core/ConfigManager.cpp:1045
+#: Source/Core/Core/ConfigManager.cpp:993
 msgid "Copy failed"
 msgstr "复制失败"
 
@@ -2160,7 +2169,7 @@ msgstr ""
 "无法启动游戏 %016<PRIx64> 因为 NAND 中没有该软件。\n"
 "已模拟运行的软件将可能挂起。"
 
-#: Source/Core/Core/Boot/Boot.cpp:85
+#: Source/Core/Core/Boot/Boot.cpp:87
 #, c-format
 msgid ""
 "Could not read \"%s\". There is no disc in the drive or it is not a GameCube/"
@@ -2170,7 +2179,7 @@ msgstr ""
 "无法读取 \"%s\"。驱动器里没有光盘或不是 GameCube/Wii 备份。请注意 Dolphin 不"
 "能直接从原始的 GameCube 与 Wii 光盘上运行游戏。"
 
-#: Source/Core/Core/Boot/Boot.cpp:104
+#: Source/Core/Core/Boot/Boot.cpp:106
 #, c-format
 msgid "Could not recognize file %s"
 msgstr "无法识别文件 %s"
@@ -2222,8 +2231,8 @@ msgstr "找不到扩展名 'ini' 的打开命令!"
 msgid "Couldn't initialise libusb for Bluetooth passthrough: %s"
 msgstr "无法为蓝牙直通初始化 libusb: %s"
 
-#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:506
-#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:465
+#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:508
+#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:467
 msgid "Couldn't look up central server"
 msgstr "无法查找中心服务器"
 
@@ -2266,7 +2275,7 @@ msgid ""
 msgstr "创建一个可用于识别在其他游戏中有相同函数的 .dsy 文件。"
 
 #: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:157
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:253
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:254
 msgid ""
 "Create frame dumps and screenshots at the internal resolution of the "
 "renderer, rather than the size of the window it is displayed within. If the "
@@ -2293,12 +2302,12 @@ msgid "Critical"
 msgstr "错误"
 
 #: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:84
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:910
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:911
 msgid "Crop"
 msgstr "裁切"
 
 #: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:175
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:267
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:268
 msgid ""
 "Crop the picture from its native aspect ratio to 4:3 or 16:9.\n"
 "\n"
@@ -2323,13 +2332,13 @@ msgstr "当前区域"
 msgid "Current directory changed from %s to %s after wxFileSelector!"
 msgstr "经过 wxFileSelector 之后当前目录从 %s 改变为 %s!"
 
-#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:72
-#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:131
+#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:74
+#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:133
 msgid "Current game"
 msgstr "当前游戏"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:56
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:523
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:524
 msgid "Custom"
 msgstr "自定义"
 
@@ -2339,7 +2348,7 @@ msgstr "自定义 RTC 选项"
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:80
 #: Source/Core/Core/HW/WiimoteEmu/Attachment/Classic.cpp:84
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:301
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:303
 #: Source/Core/DolphinQt2/Config/Mapping/GCPadEmu.cpp:37
 #: Source/Core/DolphinQt2/Config/Mapping/WiimoteEmuExtension.cpp:43
 #: Source/Core/DolphinQt2/Config/Mapping/WiimoteEmuGeneral.cpp:35
@@ -2415,7 +2424,7 @@ msgstr "调试专用"
 #: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:38
 #: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:166
 #: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:116
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:856
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:857
 msgid "Debugging"
 msgstr "调试"
 
@@ -2501,7 +2510,7 @@ msgid "Depth Percentage: "
 msgstr "深度百分比："
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:108
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:664
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:665
 msgid "Depth:"
 msgstr "深度："
 
@@ -2509,7 +2518,7 @@ msgstr "深度："
 #: Source/Core/DolphinQt2/GameList/GameList.cpp:453
 #: Source/Core/DolphinQt2/GameList/GameListModel.cpp:118
 #: Source/Core/DolphinQt2/MenuBar.cpp:284
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:1243
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:1245
 msgid "Description"
 msgstr "说明"
 
@@ -2555,7 +2564,7 @@ msgstr "未找到设备"
 msgid "Dial"
 msgstr "拨盘"
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:84
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:89
 msgid "Dims the screen after five minutes of inactivity."
 msgstr "五分钟非活动状态后变暗屏幕。"
 
@@ -2569,12 +2578,12 @@ msgid "Directory checksum and directory backup checksum failed"
 msgstr "目录校检和目录备份校检全部失败"
 
 #: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:71
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:785
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:786
 msgid "Disable"
 msgstr "禁用"
 
 #: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:86
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:810
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:811
 msgid "Disable Bounding Box"
 msgstr "禁用边界框"
 
@@ -2587,13 +2596,13 @@ msgid "Disable Emulation Speed Limit"
 msgstr "禁用模拟速度限制"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:73
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:623
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:624
 msgid "Disable Fog"
 msgstr "禁用雾化"
 
 #: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:182
 #: Source/Core/DolphinQt2/Config/Graphics/SoftwareRendererWidget.cpp:159
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:232
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:233
 msgid ""
 "Disable any XFB emulation.\n"
 "Speeds up emulation a lot but causes heavy glitches in many games which rely "
@@ -2612,7 +2621,7 @@ msgid "Disable docking of perspective panes to main window"
 msgstr "禁用布局面板对接到主窗口"
 
 #: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:206
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:174
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:175
 msgid ""
 "Disable the bounding box emulation.\n"
 "This may improve the GPU performance a lot, but some games will break.\n"
@@ -2624,11 +2633,11 @@ msgstr ""
 "\n"
 "如果不确定，请勾选此项。"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:565
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:566
 msgid "Disabled"
 msgstr "禁用"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:310
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:311
 msgid ""
 "Disabled: Ubershaders are never used. Stuttering will occur during shader "
 "compilation, but GPU demands are low. Recommended for low-end hardware.\n"
@@ -2664,7 +2673,7 @@ msgstr "光盘号:"
 msgid "Disc Read Error"
 msgstr "光盘读取错误"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:482
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:483
 msgid "Display"
 msgstr "显示"
 
@@ -2710,7 +2719,7 @@ msgid "Dolphin %1 Graphics Configuration"
 msgstr "Dolphin %1 图形配置"
 
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:37
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:319
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:320
 #, c-format
 msgid "Dolphin %s Graphics Configuration"
 msgstr "Dolphin %s 图形配置"
@@ -2742,8 +2751,8 @@ msgstr "Dolphin 快捷键"
 msgid "Dolphin Map File (*.map)"
 msgstr "Dolphin 映射文件 (*.map)"
 
-#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:44
-#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:69
+#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:46
+#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:71
 msgid "Dolphin NetPlay"
 msgstr "Dolphin 联机"
 
@@ -2802,8 +2811,8 @@ msgid ""
 "games..."
 msgstr "Dolphin 当前设置了隐藏所有游戏。双击这里显示所有游戏……"
 
-#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:511
-#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:468
+#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:513
+#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:470
 msgid "Dolphin is too old for traversal server"
 msgstr "Dolphin 版本太旧，穿透服务器不支持"
 
@@ -2875,7 +2884,7 @@ msgid "Dump Audio"
 msgstr "转储音频"
 
 #: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:65
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:886
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:887
 msgid "Dump EFB Target"
 msgstr "转储 EFB 目标"
 
@@ -2917,13 +2926,13 @@ msgstr "转储材质接收"
 #: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:59
 #: Source/Core/DolphinQt2/Config/Graphics/SoftwareRendererWidget.cpp:60
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:111
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:868
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:869
 msgid "Dump Textures"
 msgstr "转储材质"
 
 #: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:145
 #: Source/Core/DolphinQt2/Config/Graphics/SoftwareRendererWidget.cpp:167
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:243
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:244
 msgid ""
 "Dump decoded game textures to User/Dump/Textures/<game_id>/.\n"
 "\n"
@@ -2935,7 +2944,7 @@ msgstr ""
 "如果不确定，请不要勾选此项。"
 
 #: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:154
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:251
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:252
 msgid ""
 "Dump the contents of EFB copies to User/Dump/Textures/.\n"
 "\n"
@@ -2952,7 +2961,7 @@ msgstr "重复打包 ActionReplay 代码"
 
 #: Source/Core/DolphinQt2/GameList/GameFile.cpp:297
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:58
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:56
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:61
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:73
 msgid "Dutch"
 msgstr "荷兰语"
@@ -3018,7 +3027,7 @@ msgid ""
 msgstr "从当前扫描结果中消除不匹配当前搜索设置的条目。"
 
 #: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:32
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:704
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:705
 msgid "Embedded Frame Buffer (EFB)"
 msgstr "内置帧缓冲 (EFB)"
 
@@ -3031,7 +3040,7 @@ msgid "Emu Thread already running"
 msgstr "模拟线程已经在运行"
 
 #: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:192
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:239
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:240
 msgid ""
 "Emulate XFBs accurately.\n"
 "Slows down emulation a lot and prohibits high-resolution rendering but is "
@@ -3046,7 +3055,7 @@ msgstr ""
 "如果不确定，请选择“虚拟 XFB 模拟”。"
 
 #: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:186
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:235
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:236
 msgid ""
 "Emulate XFBs using GPU texture objects.\n"
 "Fixes many games which don't work without XFB emulation while not being as "
@@ -3082,7 +3091,7 @@ msgid "Emulation State: "
 msgstr "模拟状态："
 
 #: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:47
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:851
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:852
 msgid "Enable API Validation Layers"
 msgstr "启用 API 验证层"
 
@@ -3125,12 +3134,12 @@ msgstr "启用 FPRF"
 msgid "Enable MMU"
 msgstr "启用 MMU"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:470
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:471
 msgid "Enable Multi-threading"
 msgstr "启用多线程"
 
 #: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:86
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:915
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:916
 msgid "Enable Progressive Scan"
 msgstr "启用逐行扫描"
 
@@ -3139,7 +3148,7 @@ msgstr "启用逐行扫描"
 msgid "Enable Rumble"
 msgstr "启用震动"
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:65
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:70
 msgid "Enable Screen Saver"
 msgstr "允许屏幕保护程序"
 
@@ -3158,12 +3167,12 @@ msgid "Enable WideScreen"
 msgstr "启用宽屏"
 
 #: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:42
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:843
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:844
 msgid "Enable Wireframe"
 msgstr "启用线框"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:234
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:153
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:154
 msgid ""
 "Enable anisotropic filtering.\n"
 "Enhances visual quality of textures that are at oblique viewing angles.\n"
@@ -3190,7 +3199,7 @@ msgid "Enable pages"
 msgstr "启用页面"
 
 #: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:262
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:123
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:124
 msgid ""
 "Enable this if you want the whole screen to be used for rendering.\n"
 "If this is disabled, a render window will be created instead.\n"
@@ -3203,7 +3212,7 @@ msgstr ""
 "如果不确定，请不要勾选此项。"
 
 #: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:273
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:134
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:135
 msgid ""
 "Enable this if you want to use the main Dolphin window for rendering rather "
 "than a separate render window.\n"
@@ -3228,7 +3237,7 @@ msgid ""
 "= Compatible, OFF = Fast)"
 msgstr "启用浮点结果标记运算，一些游戏需要。（开 = 兼容，关 = 快速）"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:295
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:296
 msgid ""
 "Enables multi-threading in the video backend, which may result in "
 "performance gains in some scenarios.\n"
@@ -3240,7 +3249,7 @@ msgstr ""
 "如果不确定，请不要勾选此项。"
 
 #: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:178
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:137
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:138
 msgid ""
 "Enables progressive scan if supported by the emulated software.\n"
 "Most games don't care about this.\n"
@@ -3258,7 +3267,7 @@ msgid "Enables stretching of the audio to match emulation speed."
 msgstr "对音频进行伸缩以匹配模拟速度"
 
 #: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:197
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:306
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:307
 msgid ""
 "Enables texture decoding using the GPU instead of the CPU. This may result "
 "in performance gains in some scenarios, or on systems where the CPU is the "
@@ -3293,7 +3302,7 @@ msgid "Enables the use of Action Replay and Gecko cheats."
 msgstr "启用 Action Replay 和 Gecko 金手指代码"
 
 #: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:142
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:292
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:293
 msgid ""
 "Enables validation of API calls made by the video backend, which may assist "
 "in debugging graphical issues.\n"
@@ -3305,7 +3314,7 @@ msgstr ""
 "如果不确定，请不要勾选此项。"
 
 #: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:164
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:259
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:260
 msgid ""
 "Encode frame dumps using the FFV1 codec.\n"
 "\n"
@@ -3327,7 +3336,7 @@ msgstr "Enet 没有初始化"
 #: Source/Core/DolphinQt2/GameList/GameFile.cpp:287
 #: Source/Core/DolphinQt2/Settings/InterfacePane.cpp:53
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:53
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:51
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:56
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:58
 msgid "English"
 msgstr "英语"
@@ -3335,8 +3344,8 @@ msgstr "英语"
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:42
 #: Source/Core/DolphinQt2/Config/Graphics/GraphicsWindow.cpp:74
 #: Source/Core/DolphinQt2/Config/Graphics/GraphicsWindow.cpp:104
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:508
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:631
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:509
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:632
 msgid "Enhancements"
 msgstr "增强"
 
@@ -3388,7 +3397,7 @@ msgstr "等于"
 #: Source/Core/DolphinQt2/MainWindow.cpp:711
 #: Source/Core/DolphinQt2/MainWindow.cpp:718
 #: Source/Core/DolphinQt2/MainWindow.cpp:805
-#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:375
+#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:377
 #: Source/Core/DolphinQt2/NetPlay/NetPlaySetupDialog.cpp:231
 #: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:67
 #: Source/Core/DolphinWX/LogConfigWindow.cpp:42
@@ -3444,7 +3453,7 @@ msgstr "Euphoria"
 msgid "Europe"
 msgstr "欧洲"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:565
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:566
 msgid "Exclusive"
 msgstr "独占"
 
@@ -3486,14 +3495,14 @@ msgstr "导出失败"
 msgid "Export save as..."
 msgstr "导出存档为..."
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:285
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:287
 #: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:289
 #: Source/Core/DolphinQt2/Config/Mapping/WiimoteEmuGeneral.cpp:40
 msgid "Extension"
 msgstr "扩展"
 
 #: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:67
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:782
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:783
 msgid "External Frame Buffer (XFB)"
 msgstr "外部帧缓冲 (XFB)"
 
@@ -3565,7 +3574,7 @@ msgstr "索取蓝牙直通接口失败"
 
 #: Source/Core/DolphinQt2/MainWindow.cpp:696
 msgid "Failed to connect to server"
-msgstr ""
+msgstr "连接服务器失败"
 
 #: Source/Core/DolphinQt2/GameList/GameList.cpp:384
 msgid "Failed to delete the selected file."
@@ -3617,7 +3626,7 @@ msgstr "启动失败"
 msgid ""
 "Failed to listen on port %1. Is another instance of the NetPlay server "
 "running?"
-msgstr ""
+msgstr "监听端口 %1 失败。是否有另一个联机服务器的实例正在运行？"
 
 #: Source/Core/DolphinWX/NetPlay/NetPlayLauncher.cpp:32
 msgid "Failed to listen. Is another instance of the NetPlay server running?"
@@ -3633,7 +3642,7 @@ msgid ""
 "mode."
 msgstr "载入 MIOS 失败，无法以 Wii 模式运行 GameCube 游戏。"
 
-#: Source/Core/Core/Boot/Boot.cpp:325
+#: Source/Core/Core/Boot/Boot.cpp:328
 msgid "Failed to load the executable to memory."
 msgstr "加载可执行文件到内存失败。"
 
@@ -3648,7 +3657,7 @@ msgstr "打开蓝牙设备失败: %s"
 
 #: Source/Core/DolphinQt2/MainWindow.cpp:748
 msgid "Failed to open server"
-msgstr ""
+msgstr "打开服务器失败"
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:169
 #: Source/Core/DiscIO/CompressedBlob.cpp:354
@@ -3667,7 +3676,7 @@ msgstr ""
 "无法打开输出文件  \"%s\"。\n"
 "请检查是否有权限写入目标文件夹并且该媒体能够被写入。"
 
-#: Source/Core/Core/Movie.cpp:999
+#: Source/Core/Core/Movie.cpp:950
 #, c-format
 msgid "Failed to read %s"
 msgstr "读取 %s 失败"
@@ -3752,16 +3761,16 @@ msgstr ""
 "请检查目标驱动器是否有足够多的可用空间。"
 
 #: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:63
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:751
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:752
 msgid "Fast"
 msgstr "快速"
 
 #: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:84
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:807
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:808
 msgid "Fast Depth Calculation"
 msgstr "快速深度计算"
 
-#: Source/Core/Core/Movie.cpp:1292
+#: Source/Core/Core/Movie.cpp:1243
 #, c-format
 msgid ""
 "Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s"
@@ -3845,7 +3854,7 @@ msgid "Filter Symbols"
 msgstr "过滤符号"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:281
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:177
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:178
 msgid ""
 "Filter all textures, including any that the game explicitly set as "
 "unfiltered.\n"
@@ -3919,17 +3928,17 @@ msgid "Follow &branch"
 msgstr "跟随分支(&B)"
 
 #: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:50
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:418
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:419
 msgid "Force 16:9"
 msgstr "强制 16:9"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:75
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:625
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:626
 msgid "Force 24-bit Color"
 msgstr "强制 24 位色"
 
 #: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:50
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:418
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:419
 msgid "Force 4:3"
 msgstr "强制 4:3"
 
@@ -3944,7 +3953,7 @@ msgid "Force Listen Port:"
 msgstr "强制监听端口:"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:71
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:618
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:619
 msgid "Force Texture Filtering"
 msgstr "强制纹理过滤"
 
@@ -3959,7 +3968,7 @@ msgstr ""
 "动开启。"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:251
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:145
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:146
 msgid ""
 "Forces the game to output graphics for any aspect ratio.\n"
 "Use with \"Aspect Ratio\" set to \"Force 16:9\" to force 4:3-only games to "
@@ -3981,7 +3990,7 @@ msgstr ""
 "如果不确定，请不要勾选此项。"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:277
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:298
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:299
 msgid ""
 "Forces the game to render the RGB color channels in 24-bit, thereby "
 "increasing quality by reducing color banding.\n"
@@ -4061,7 +4070,7 @@ msgid "Frame Buffer"
 msgstr "帧缓冲"
 
 #: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:67
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:892
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:893
 msgid "Frame Dumps Use FFV1"
 msgstr "使用 FFV1 转储帧"
 
@@ -4088,7 +4097,7 @@ msgid "France"
 msgstr "法国"
 
 #: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:66
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:889
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:890
 msgid "Free Look"
 msgstr "自由视点"
 
@@ -4139,7 +4148,7 @@ msgstr "自由视点远离"
 
 #: Source/Core/DolphinQt2/GameList/GameFile.cpp:291
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:55
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:53
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:58
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:64
 msgid "French"
 msgstr "法语"
@@ -4155,7 +4164,7 @@ msgid "From"
 msgstr "从"
 
 #: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:63
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:881
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:882
 msgid "Full Resolution Frame Dumps"
 msgstr "满分辨率帧转储"
 
@@ -4165,7 +4174,7 @@ msgid "FullScr"
 msgstr "全屏"
 
 #: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:76
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:398
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:399
 msgid "Fullscreen Resolution:"
 msgstr "全屏分辨率："
 
@@ -4192,7 +4201,7 @@ msgstr "GC 端口"
 
 #: Source/Core/DolphinQt2/NetPlay/PadMappingDialog.cpp:33
 msgid "GC Port %1"
-msgstr ""
+msgstr "GC 端口 %1"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:530
 msgid "GCI File(*.gci)"
@@ -4234,7 +4243,7 @@ msgstr ""
 "Dolphin 现在可能崩溃或挂起。请关闭。"
 
 #: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:55
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:757
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:758
 msgid "GPU Texture Decoding"
 msgstr "GPU 纹理解码"
 
@@ -4255,9 +4264,9 @@ msgstr "游戏 ID"
 msgid "Game ID:"
 msgstr "游戏 ID："
 
-#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:447
+#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:449
 msgid "Game changed to \"%1\""
-msgstr ""
+msgstr "游戏更改为 \"%1\""
 
 #: Source/Core/Core/NetPlayClient.cpp:802
 msgid "Game is already running!"
@@ -4355,7 +4364,7 @@ msgstr "Gecko 代码"
 #: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:108
 #: Source/Core/DolphinWX/PostProcessingConfigDiag.cpp:130
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:46
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:333
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:334
 msgid "General"
 msgstr "常规"
 
@@ -4376,7 +4385,7 @@ msgstr "几何数据"
 
 #: Source/Core/DolphinQt2/GameList/GameFile.cpp:289
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:54
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:52
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:57
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:61
 msgid "German"
 msgstr "德语"
@@ -4416,7 +4425,7 @@ msgid "Greater Than"
 msgstr "大于"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:241
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:162
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:163
 msgid ""
 "Greatly increases quality of textures generated using render-to-texture "
 "effects.\n"
@@ -4446,7 +4455,7 @@ msgstr "绿 右"
 
 #: Source/Core/DolphinQt2/MenuBar.cpp:262
 msgid "Grid View"
-msgstr ""
+msgstr "网格视图"
 
 #: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:55
 #: Source/Core/DolphinQt2/Config/Mapping/WiimoteEmuExtension.cpp:106
@@ -4457,17 +4466,17 @@ msgstr "吉他（吉他英雄）"
 msgid "Guitar Configuration"
 msgstr "吉他配置（吉他英雄）"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:649
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:650
 msgid "HDMI 3D"
 msgstr "HDMI 3D"
 
 #: Source/Core/DolphinQt2/Config/Graphics/GraphicsWindow.cpp:75
 #: Source/Core/DolphinQt2/Config/Graphics/GraphicsWindow.cpp:105
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:699
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:700
 msgid "Hacks"
 msgstr "修正"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:766
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:767
 #, c-format
 msgid ""
 "Hash tap count is set to %d which is non-standard.\n"
@@ -4498,13 +4507,11 @@ msgid "Hide"
 msgstr "隐藏"
 
 #: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:98
-#: Source/Core/DolphinQt2/Settings/InterfacePane.cpp:95
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:460
 msgid "Hide Mouse Cursor"
 msgstr "隐藏鼠标光标"
 
 #: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:270
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:131
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:132
 msgid ""
 "Hides the mouse cursor if it's on top of the emulation window.\n"
 "\n"
@@ -4552,7 +4559,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt2/GameList/GameList.cpp:201
 msgid "Host with NetPlay"
-msgstr ""
+msgstr "建主机联网"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1190
 msgid "Host with Netplay"
@@ -4563,12 +4570,12 @@ msgid "Hotkey Settings"
 msgstr "热键设置"
 
 #: Source/Core/Core/HotkeyManager.cpp:165
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:321
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:323
 #: Source/Core/DolphinQt2/Config/Mapping/WiimoteEmuGeneral.cpp:37
 msgid "Hotkeys"
 msgstr "热键"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:565
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:566
 msgid "Hybrid"
 msgstr "混合"
 
@@ -4617,20 +4624,20 @@ msgstr "IP 地址 :"
 msgid "IPL Settings"
 msgstr "IPL 设置"
 
-#: Source/Core/Core/Boot/Boot.cpp:236
+#: Source/Core/Core/Boot/Boot.cpp:238
 #, c-format
 msgid "IPL with unknown hash %x"
 msgstr "IPL 存在未知 Hash %x"
 
 #. i18n: IR stands for infrared and refers to the pointer functionality of Wii Remotes
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:267
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:269
 #: Source/Core/DolphinQt2/Config/Mapping/WiimoteEmuMotionControl.cpp:28
 #: Source/Core/DolphinWX/TASInputDlg.cpp:135
 msgid "IR"
 msgstr "红外线"
 
 #. i18n: IR stands for infrared and refers to the pointer functionality of Wii Remotes
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:131
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:136
 msgid "IR Sensitivity:"
 msgstr "红外灵敏度："
 
@@ -4701,12 +4708,12 @@ msgstr ""
 "您是否要授权 Dolphin 向开发者报告这些信息？"
 
 #: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:37
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:711
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:712
 msgid "Ignore Format Changes"
 msgstr "忽略格式变化"
 
 #: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:168
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:196
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:197
 msgid ""
 "Ignore any changes to the EFB format.\n"
 "Improves performance in many games without any negative effect. Causes "
@@ -4721,7 +4728,7 @@ msgstr ""
 "如果不确定，请勾选此项。"
 
 #: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:164
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:192
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:193
 msgid ""
 "Ignore any requests from the CPU to read from or write to the EFB.\n"
 "Improves performance in some games, but might disable some gameplay-related "
@@ -4736,7 +4743,7 @@ msgstr ""
 "如果不确定，请不要勾选此项。"
 
 #: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:182
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:181
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:182
 msgid ""
 "Implement fullscreen mode with a borderless window spanning the whole screen "
 "instead of using exclusive mode.\n"
@@ -4836,7 +4843,7 @@ msgstr "输入"
 msgid "Insert &nop"
 msgstr "插入 nop (&N)"
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:70
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:75
 msgid "Insert SD Card"
 msgstr "插入 SD 卡"
 
@@ -4910,7 +4917,7 @@ msgid "Internal Resolution"
 msgstr "内部分辨率"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:77
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:533
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:534
 msgid "Internal Resolution:"
 msgstr "内部分辨率："
 
@@ -4929,7 +4936,7 @@ msgstr "无效混合代码"
 
 #: Source/Core/DolphinQt2/NetPlay/MD5Dialog.cpp:17
 msgid "Invalid Player ID"
-msgstr ""
+msgstr "无效玩家 ID"
 
 #: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:239
 #, c-format
@@ -4948,7 +4955,7 @@ msgstr "无效主机"
 msgid "Invalid index"
 msgstr "无效索引"
 
-#: Source/Core/Core/Movie.cpp:942
+#: Source/Core/Core/Movie.cpp:893
 msgid "Invalid recording file"
 msgstr "无效录制文件"
 
@@ -4975,7 +4982,7 @@ msgstr "无效值： %s"
 
 #: Source/Core/DolphinQt2/GameList/GameFile.cpp:295
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:57
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:55
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:60
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:70
 msgid "Italian"
 msgstr "意大利语"
@@ -4986,7 +4993,7 @@ msgid "Italy"
 msgstr "意大利"
 
 #: Source/Core/Core/HW/GCKeyboardEmu.cpp:84 Source/Core/Core/HW/GCPadEmu.cpp:87
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:314
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:316
 #: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:65
 msgid "Iterative Input"
 msgstr "连续输入"
@@ -5012,19 +5019,19 @@ msgid "Japan"
 msgstr "日本"
 
 #: Source/Core/DolphinQt2/GameList/GameFile.cpp:285
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:50
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:55
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:55
 msgid "Japanese"
 msgstr "日语"
 
 #: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:97
 #: Source/Core/DolphinQt2/Settings/InterfacePane.cpp:74
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:457
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:458
 msgid "Keep Window on Top"
 msgstr "窗口置顶"
 
 #: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:268
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:129
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:130
 msgid ""
 "Keep the game window on top of all other windows.\n"
 "\n"
@@ -5049,8 +5056,8 @@ msgstr "键盘"
 msgid "Keys"
 msgstr "按键"
 
-#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:122
-#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:226
+#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:124
+#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:228
 msgid "Kick Player"
 msgstr "踢除玩家"
 
@@ -5062,7 +5069,7 @@ msgid "Korea"
 msgstr "韩国"
 
 #: Source/Core/DolphinQt2/GameList/GameFile.cpp:303
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:59
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:64
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:82
 msgid "Korean"
 msgstr "韩语"
@@ -5175,11 +5182,11 @@ msgstr ""
 
 #: Source/Core/DolphinQt2/MenuBar.cpp:291
 msgid "List Columns"
-msgstr ""
+msgstr "表单列"
 
 #: Source/Core/DolphinQt2/MenuBar.cpp:259
 msgid "List View"
-msgstr ""
+msgstr "列表视图"
 
 #: Source/Core/DolphinQt2/Config/Mapping/HotkeyStates.cpp:24
 #: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:69
@@ -5198,7 +5205,7 @@ msgid "Load &Other Map File..."
 msgstr "载入其他映射文件(&O)..."
 
 #: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:60
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:871
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:872
 msgid "Load Custom Textures"
 msgstr "加载自定义纹理"
 
@@ -5324,8 +5331,8 @@ msgstr "从插槽中载入状态"
 msgid "Load State..."
 msgstr "载入状态..."
 
-#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:63
-#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:258
+#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:65
+#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:260
 msgid "Load Wii Save"
 msgstr "载入 Wii 存档"
 
@@ -5356,7 +5363,7 @@ msgid "Load bad map file"
 msgstr "载入损坏映射文件"
 
 #: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:148
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:246
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:247
 msgid ""
 "Load custom textures from User/Load/Textures/<game_id>/.\n"
 "\n"
@@ -5384,8 +5391,8 @@ msgstr "载入映射文件"
 msgid "Loaded %d good functions, ignored %d bad functions."
 msgstr "加载了 %d 个完好函数，忽略了 %d 个损坏函数。"
 
-#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:764
-#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:770
+#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:766
+#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:772
 msgid "Localhost"
 msgstr "本地主机"
 
@@ -5401,7 +5408,7 @@ msgid "Log Configuration"
 msgstr "记录设置"
 
 #: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:93
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:448
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:449
 msgid "Log Render Time to File"
 msgstr "记录渲染时间到文件"
 
@@ -5411,7 +5418,7 @@ msgid "Log Types"
 msgstr "记录类型"
 
 #: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:290
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:220
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:221
 msgid ""
 "Log the render time of every frame to User/Logs/render_time.txt. Use this "
 "feature when you want to measure the performance of Dolphin.\n"
@@ -5442,13 +5449,13 @@ msgstr "完整制作者:"
 msgid "Long Name:"
 msgstr "完整名称:"
 
-#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:497
+#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:499
 msgid "Lost connection to NetPlay server..."
-msgstr ""
+msgstr "丢失联机服务器连接..."
 
-#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:72
+#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:74
 msgid "MD5 Check:"
-msgstr ""
+msgstr "MD5 校验:"
 
 #: Source/Core/DolphinQt2/NetPlay/MD5Dialog.cpp:33
 #: Source/Core/DolphinWX/NetPlay/MD5Dialog.cpp:19
@@ -5460,7 +5467,7 @@ msgstr "MD5 校验和"
 msgid "MD5 Checksum:"
 msgstr "MD5 校验和："
 
-#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:130
+#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:132
 msgid "MD5 check..."
 msgstr "MD5 校验..."
 
@@ -5500,7 +5507,7 @@ msgid "Maker:"
 msgstr "制作者："
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:256
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:210
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:211
 msgid ""
 "Makes distant objects more visible by removing fog, thus increasing the "
 "overall detail.\n"
@@ -5523,12 +5530,12 @@ msgstr "找到匹配"
 msgid "Matrix Cmd"
 msgstr "矩阵命令"
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:115
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:122
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:120
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:127
 msgid "Max"
 msgstr "最大"
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:87
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:92
 msgid "May cause slow down in Wii Menu and some games."
 msgstr "这会导致 Wii 菜单和一些游戏减速。"
 
@@ -5546,7 +5553,7 @@ msgstr "存储卡"
 msgid "Memory Card Manager"
 msgstr "存储卡管理器"
 
-#: Source/Core/Core/ConfigManager.cpp:1037
+#: Source/Core/Core/ConfigManager.cpp:985
 #, c-format
 msgid ""
 "Memory Card filename in Slot %c is incorrect\n"
@@ -5613,17 +5620,17 @@ msgstr ""
 msgid "Microphone"
 msgstr "麦克风"
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:112
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:119
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:117
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:124
 msgid "Min"
 msgstr "最小"
 
 #: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:80
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:933
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:935
 msgid "Misc"
 msgstr "其它"
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:143
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:148
 msgid "Misc Settings"
 msgstr "其它设置"
 
@@ -5633,7 +5640,7 @@ msgid "Modifier"
 msgstr "修饰键"
 
 #: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:139
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:229
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:230
 msgid ""
 "Modify textures to show the format they're encoded in. Needs an emulation "
 "reset in most cases.\n"
@@ -5662,18 +5669,18 @@ msgstr "等宽字体"
 msgid "Motion Controls and IR"
 msgstr "体感控制和红外线"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:294
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:296
 msgid "Motion Plus"
 msgstr "动感强化器"
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:73
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:298
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:300
 msgid "Motor"
 msgstr "马达"
 
 #: Source/Core/DolphinQt2/Config/Graphics/GraphicsWindow.cpp:43
 #: Source/Core/DolphinQt2/Config/Graphics/GraphicsWindow.cpp:137
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:102
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:103
 msgid ""
 "Move the mouse pointer over an option to display a detailed description."
 msgstr "将鼠标指针移至某一选项上以显示详细说明。"
@@ -5720,7 +5727,7 @@ msgid "Name: "
 msgstr "名称："
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:46
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:519
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:520
 msgid "Native (640x528)"
 msgstr "原生 (640x528)"
 
@@ -5823,7 +5830,7 @@ msgstr "未找到 undo.dtm 文件，为防止影片出现不同步撤销载入�
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:51
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:313
 #: Source/Core/DolphinWX/NetPlay/PadMapDialog.cpp:27
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:1306
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:1308
 msgid "None"
 msgstr "无"
 
@@ -5841,8 +5848,8 @@ msgstr "未设置"
 msgid "Not Valid Hex"
 msgstr "无效的十六进制"
 
-#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:213
-#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:351
+#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:215
+#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:353
 msgid "Not all players have the game. Do you really want to start?"
 msgstr "并不是所有玩家都有该游戏。你真的要开始吗？"
 
@@ -5905,7 +5912,7 @@ msgstr "双节棍控制器方向"
 msgid "Nunchuk stick"
 msgstr "双节棍控制器"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:649
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:650
 msgid "Nvidia 3D Vision"
 msgstr "NVIDIA 3D Vision"
 
@@ -5919,7 +5926,7 @@ msgid "Object Range"
 msgstr "对象范围"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:100
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:648
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:649
 msgid "Off"
 msgstr "关"
 
@@ -5989,12 +5996,12 @@ msgid ""
 "text editor."
 msgstr "在外部文本编辑器中打开本游戏的默认（只读）设置。"
 
-#: Source/Core/DolphinWX/Frame.cpp:839
+#: Source/Core/DolphinWX/Frame.cpp:843
 msgid "Operation in progress..."
 msgstr "操作正在进行中..."
 
 #: Source/Core/Core/HW/GCKeyboardEmu.cpp:82 Source/Core/Core/HW/GCPadEmu.cpp:85
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:306
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:308
 #: Source/Core/DolphinQt2/Config/Mapping/GCKeyboardEmu.cpp:38
 #: Source/Core/DolphinQt2/Config/Mapping/WiimoteEmuGeneral.cpp:58
 #: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:70
@@ -6022,8 +6029,8 @@ msgstr "方向"
 
 #: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:87
 #: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:79
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:487
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:819
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:488
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:820
 msgid "Other"
 msgstr "其他"
 
@@ -6035,8 +6042,8 @@ msgstr "其他状态热键"
 msgid "Other State Management"
 msgstr "其他状态管理"
 
-#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:72
-#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:132
+#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:74
+#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:134
 msgid "Other game"
 msgstr "其他游戏"
 
@@ -6076,10 +6083,6 @@ msgstr "PPC vs x86"
 #: Source/Core/Core/HW/GCPad.cpp:18
 msgid "Pad"
 msgstr "手柄"
-
-#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:485
-msgid "Pad size changed to %1"
-msgstr ""
 
 #: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:39
 #: Source/Core/DolphinQt2/Config/Mapping/WiimoteEmuExtension.cpp:61
@@ -6136,7 +6139,7 @@ msgid "Pauses the emulator when focus is taken away from the emulation window."
 msgstr "在窗口失去输入焦点时模拟器暂停运行。"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:69
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:615
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:616
 msgid "Per-Pixel Lighting"
 msgstr "逐像素光照"
 
@@ -6198,8 +6201,8 @@ msgstr "尚可"
 msgid "Playback Options"
 msgstr "回放选项"
 
-#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:117
-#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:188
+#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:119
+#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:190
 msgid "Players"
 msgstr "玩家"
 
@@ -6228,35 +6231,35 @@ msgstr "端口 %i"
 msgid "Port:"
 msgstr "端口 :"
 
-#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:490
+#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:492
 msgid "Possible desync detected: %1 might have desynced at frame %2"
-msgstr ""
+msgstr "检测到可能的非同步异常: %1  或许已在帧 %2 处不同步 "
 
 #: Source/Core/DolphinWX/PostProcessingConfigDiag.cpp:22
 msgid "Post Processing Shader Configuration"
 msgstr "后处理着色器配置"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:83
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:598
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:599
 msgid "Post-Processing Effect:"
 msgstr "后处理效果："
 
 #: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:62
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:874
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:875
 msgid "Prefetch Custom Textures"
 msgstr "预读取自定义材质"
 
-#: Source/Core/Core/Movie.cpp:1179
+#: Source/Core/Core/Movie.cpp:1130
 #, c-format
 msgid "Premature movie end in PlayController. %u + %zu > %zu"
 msgstr "在 PlayController 中提前结束影片。 %u+%zu >%zu"
 
-#: Source/Core/Core/Movie.cpp:1306
+#: Source/Core/Core/Movie.cpp:1257
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u + %d > %zu"
 msgstr "在 PlayWiimote 中提前结束影片。 %u+%d> %zu"
 
-#: Source/Core/Core/Movie.cpp:1280
+#: Source/Core/Core/Movie.cpp:1231
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u > %zu"
 msgstr "在PlayWiimote 中提前结束影片。 %u> %zu"
@@ -6316,12 +6319,12 @@ msgstr "将主菜单 ROM 放至 User/GC/{地区}."
 msgid "Question"
 msgstr "询问"
 
-#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:66
+#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:68
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:108
 msgid "Quit"
 msgstr "退出"
 
-#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:270
+#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:272
 msgid "Quit Netplay"
 msgstr "退出联机"
 
@@ -6380,7 +6383,7 @@ msgid "Read-only mode"
 msgstr "只读模式"
 
 #: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:72
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:788
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:789
 msgid "Real"
 msgstr "真实"
 
@@ -6415,8 +6418,8 @@ msgstr "推荐普通用户使用"
 msgid "Record"
 msgstr "录制"
 
-#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:64
-#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:268
+#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:66
+#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:270
 msgid "Record inputs"
 msgstr "录制输入"
 
@@ -6442,7 +6445,7 @@ msgid "Red Right"
 msgstr "红 右"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:227
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:156
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:157
 msgid ""
 "Reduces the amount of aliasing caused by rasterizing 3D graphics. This "
 "smooths out jagged edges on objects.\n"
@@ -6491,7 +6494,7 @@ msgstr "相对输入"
 
 #: Source/Core/DolphinQt2/Settings/PathPane.cpp:83
 #: Source/Core/DolphinWX/Config/PathConfigPane.cpp:39
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:75
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:80
 #: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:396
 #: Source/Core/DolphinWX/PatchAddEdit.cpp:87
 msgid "Remove"
@@ -6506,7 +6509,7 @@ msgid "Rename symbol:"
 msgstr "重命名符号："
 
 #: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:135
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:208
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:209
 msgid ""
 "Render the scene as a wireframe.\n"
 "\n"
@@ -6518,7 +6521,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:99
 #: Source/Core/DolphinQt2/Settings/InterfacePane.cpp:75
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:464
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:465
 msgid "Render to Main Window"
 msgstr "渲染到主窗口"
 
@@ -6542,11 +6545,11 @@ msgstr "重置"
 
 #: Source/Core/DolphinQt2/NetPlay/NetPlaySetupDialog.cpp:263
 msgid "Reset Traversal Server"
-msgstr ""
+msgstr "重置穿透服务器"
 
 #: Source/Core/DolphinQt2/NetPlay/NetPlaySetupDialog.cpp:264
 msgid "Reset Traversal Server to %1:%2"
-msgstr ""
+msgstr "重置穿透服务器到 %1:%2"
 
 #: Source/Core/DolphinQt2/NetPlay/NetPlaySetupDialog.cpp:69
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:98
@@ -6570,8 +6573,8 @@ msgstr "需要重启"
 msgid "Results"
 msgstr "结果"
 
-#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:376
-#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:796
+#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:378
+#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:798
 msgid "Retry"
 msgstr "重试"
 
@@ -6612,16 +6615,16 @@ msgstr "右碟片"
 msgid "Right stick"
 msgstr "右摇杆"
 
-#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:299
+#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:301
 msgid "Room ID"
-msgstr ""
+msgstr "房间 ID"
 
-#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:200
+#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:202
 msgid "Room ID:"
 msgstr "房间 ID："
 
 #: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:209
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:302
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:303
 msgid ""
 "Rounds 2D vertices to whole pixels. Fixes graphical problems in some games "
 "at higher internal resolutions. This setting has no effect when native "
@@ -6635,7 +6638,7 @@ msgstr ""
 "如果不确定，请不要勾选此项。"
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:72
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:297
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:299
 #: Source/Core/DolphinQt2/Config/Mapping/GCPadEmu.cpp:29
 #: Source/Core/DolphinQt2/Config/Mapping/WiimoteEmuGeneral.cpp:56
 msgid "Rumble"
@@ -6662,8 +6665,8 @@ msgstr "俄罗斯"
 msgid "SD Card Path:"
 msgstr "SD 卡路径:"
 
-#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:72
-#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:133
+#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:74
+#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:135
 msgid "SD card"
 msgstr "SD 卡"
 
@@ -6679,7 +6682,7 @@ msgid "Sa&ve State"
 msgstr "保存状态(&V)"
 
 #: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:57
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:748
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:749
 msgid "Safe"
 msgstr "安全"
 
@@ -6859,17 +6862,17 @@ msgstr "已保存布局"
 msgid "Saved Wii Remote pairings can only be reset when a Wii game is running."
 msgstr "只有在 Wii 游戏运行时保存的 Wii 控制器配对才能重置。"
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:86
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:91
 msgid "Saved to /Wii/sd.raw (default size is 128mb)"
 msgstr "保存至 /Wii/sd.raw（默认大小是 128MB）"
 
-#: Source/Core/Core/Movie.cpp:1008
+#: Source/Core/Core/Movie.cpp:959
 #, c-format
 msgid "Savestate movie %s is corrupted, movie recording stopping..."
 msgstr "即时存档影片 %s 被破坏, 影片录制停止..."
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:67
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:612
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:613
 msgid "Scaled EFB Copy"
 msgstr "缩放 EFB 副本"
 
@@ -7047,7 +7050,7 @@ msgid "Select the state to save"
 msgstr "选择要保存的状态"
 
 #: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:276
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:140
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:141
 msgid ""
 "Select what aspect ratio to use when rendering:\n"
 "Auto: Use the native aspect ratio\n"
@@ -7073,7 +7076,7 @@ msgstr "选择要保存压缩镜像的位置"
 msgid "Select where you want to save the decompressed image"
 msgstr "选择要保存解压缩镜像的位置"
 
-#: Source/Core/Core/ConfigLoaders/GameConfigLoader.cpp:258
+#: Source/Core/Core/ConfigLoaders/GameConfigLoader.cpp:265
 #: Source/Core/InputCommon/InputConfig.cpp:63
 msgid "Selected controller profile does not exist"
 msgstr "所选控制器预设不存在"
@@ -7083,7 +7086,7 @@ msgid "Selected font"
 msgstr "所选字体"
 
 #: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:250
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:117
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:118
 msgid ""
 "Selects a hardware adapter to use.\n"
 "\n"
@@ -7094,7 +7097,7 @@ msgstr ""
 "如果不确定，请使用第一个。"
 
 #: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:258
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:119
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:120
 msgid ""
 "Selects the display resolution used in fullscreen mode.\n"
 "This should always be bigger than or equal to the internal resolution. "
@@ -7109,7 +7112,7 @@ msgstr ""
 "如果不确定，请选择“自动”。"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:261
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:276
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:277
 msgid ""
 "Selects the stereoscopic 3D mode. Stereoscopy allows you to get a better "
 "feeling of depth if you have the necessary hardware.\n"
@@ -7130,7 +7133,7 @@ msgstr ""
 "如果不确定，请选择“关”。"
 
 #: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:253
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:112
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:113
 msgid ""
 "Selects what graphics API to use internally.\n"
 "The software renderer is extremely slow and only useful for debugging, so "
@@ -7146,7 +7149,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:244
 #: Source/Core/DolphinQt2/Config/Graphics/SoftwareRendererWidget.cpp:152
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:105
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:106
 msgid ""
 "Selects what graphics API to use internally.\n"
 "The software renderer is extremely slow and only useful for debugging, so "
@@ -7165,12 +7168,12 @@ msgstr ""
 "\n"
 "如果不确定，请选择“OpenGL”。"
 
-#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:99
-#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:168
+#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:101
+#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:170
 msgid "Send"
 msgstr "发送"
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:126
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:131
 msgid "Sensor Bar Position:"
 msgstr "感应条位置："
 
@@ -7219,7 +7222,7 @@ msgstr "设置当前指令"
 msgid "Sets the GameCube system language."
 msgstr "设置 GameCube 的系统语言。"
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:82
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:87
 msgid ""
 "Sets the Wii display mode to 60Hz (480i) instead of 50Hz (576i) for PAL "
 "games.\n"
@@ -7228,7 +7231,7 @@ msgstr ""
 "将 PAL 制式 Wii 游戏的显示模式由 50Hz (576i)  改为 60Hz (480i)。\n"
 "可能并不适用于所有游戏。"
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:85
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:90
 msgid "Sets the Wii system language."
 msgstr "设置 Wii 的系统语言。"
 
@@ -7248,7 +7251,7 @@ msgid "SetupWiiMemory: Can't create setting.txt file"
 msgstr "SetupWiiMemory: 无法创建 setting.txt 文件"
 
 #: Source/Core/Core/HW/WiimoteEmu/Attachment/Nunchuk.cpp:48
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:276
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:278
 #: Source/Core/DolphinQt2/Config/Mapping/WiimoteEmuExtension.cpp:97
 #: Source/Core/DolphinQt2/Config/Mapping/WiimoteEmuMotionControl.cpp:26
 msgid "Shake"
@@ -7304,7 +7307,7 @@ msgid "Show ELF/DOL"
 msgstr "显示 ELF/DOL"
 
 #: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:90
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:443
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:444
 msgid "Show FPS"
 msgstr "显示 FPS"
 
@@ -7361,12 +7364,12 @@ msgid "Show Log &Configuration"
 msgstr "显示日志设置(&C)"
 
 #: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:96
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:454
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:455
 msgid "Show NetPlay Messages"
 msgstr "显示联机信息"
 
 #: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:91
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:445
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:446
 msgid "Show NetPlay Ping"
 msgstr "显示联机延迟"
 
@@ -7413,7 +7416,7 @@ msgid "Show Spain"
 msgstr "显示西班牙"
 
 #: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:43
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:846
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:847
 msgid "Show Statistics"
 msgstr "显示统计数据"
 
@@ -7489,7 +7492,7 @@ msgid "Show the active title name in the emulation window title."
 msgstr "在模拟窗口的标题栏中显示正在运行的游戏标题。"
 
 #: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:284
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:214
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:215
 msgid ""
 "Show the number of frames rendered per second as a measure of emulation "
 "speed.\n"
@@ -7501,7 +7504,7 @@ msgstr ""
 "如果不确定，请不要勾选此项。"
 
 #: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:287
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:217
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:218
 msgid ""
 "Show the players' maximum Ping while playing on NetPlay.\n"
 "\n"
@@ -7513,7 +7516,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:137
 #: Source/Core/DolphinQt2/Config/Graphics/SoftwareRendererWidget.cpp:164
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:224
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:225
 msgid ""
 "Show various rendering statistics.\n"
 "\n"
@@ -7524,24 +7527,24 @@ msgstr ""
 "如果不确定，请不要勾选此项。"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:100
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:648
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:649
 msgid "Side-by-Side"
 msgstr "左右并排"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:327
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:329
 msgid "Sideways Hold"
 msgstr "保持横置"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:324
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:326
 msgid "Sideways Toggle"
 msgstr "切换横置"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:309
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:311
 msgid "Sideways Wii Remote"
 msgstr "横置 Wii 控制器"
 
 #: Source/Core/DolphinQt2/GameList/GameFile.cpp:299
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:57
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:62
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:76
 msgid "Simplified Chinese"
 msgstr "简体中文"
@@ -7575,7 +7578,7 @@ msgid "Skip DCBZ clearing"
 msgstr "跳过 DCBZ 清除"
 
 #: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:36
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:706
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:707
 msgid "Skip EFB Access from CPU"
 msgstr "跳过 CPU 对 EFB 访问"
 
@@ -7591,7 +7594,7 @@ msgstr "完全跳过下一条指令"
 msgid "Slider Bar"
 msgstr "滑品板"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:272
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:273
 msgid ""
 "Slightly speeds up EFB to RAM copies by sacrificing emulation accuracy.\n"
 "If you're experiencing any issues, try raising texture cache accuracy or "
@@ -7626,7 +7629,7 @@ msgid "Software Renderer"
 msgstr "软件渲染器"
 
 #: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:184
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:980
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:982
 msgid ""
 "Software rendering is an order of magnitude slower than using the other "
 "backends.\n"
@@ -7644,21 +7647,21 @@ msgstr "西班牙"
 
 #: Source/Core/DolphinQt2/GameList/GameFile.cpp:293
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:56
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:54
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:59
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:67
 msgid "Spanish"
 msgstr "西班牙语"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:316
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:318
 msgid "Speaker Pan"
 msgstr "扬声器声像"
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:135
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:140
 msgid "Speaker Volume:"
 msgstr "扬声器音量："
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:221
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:187
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:188
 msgid ""
 "Specifies the resolution used to render at. A high resolution greatly "
 "improves visual quality, but also greatly increases GPU load and can cause "
@@ -7667,6 +7670,10 @@ msgid ""
 "\n"
 "If unsure, select Native."
 msgstr ""
+"指定渲染使用的分辨率。选择较高的分辨率将显著提高图像质量，但也将显著增加 GPU "
+"负荷且可能在一些游戏中引起故障。一般而言，内部分辨率越低，性能将越高。\n"
+"\n"
+"如果不确定，请选择“原生”。"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:100
 msgid "Speed Limit:"
@@ -7690,9 +7697,9 @@ msgstr ""
 msgid "Standard Controller"
 msgstr "标准控制器"
 
-#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:60
+#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:62
 #: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:29
-#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:246
+#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:248
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:142
 msgid "Start"
 msgstr "开始"
@@ -7714,9 +7721,9 @@ msgstr "开始录制"
 msgid "Start the game directly instead of booting to pause"
 msgstr "直接启动游戏，而不是引导后暂停"
 
-#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:468
+#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:470
 msgid "Started game"
-msgstr ""
+msgstr "游戏已启动"
 
 #: Source/Core/DolphinQt2/GameList/GameList.cpp:459
 #: Source/Core/DolphinQt2/GameList/GameListModel.cpp:124
@@ -7805,13 +7812,13 @@ msgid "Stepping"
 msgstr "步进"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:106
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:645
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:646
 msgid "Stereoscopic 3D Mode:"
 msgstr "立体 3D 模式："
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:95
 #: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:367
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:682
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:683
 msgid "Stereoscopy"
 msgstr "立体 3D"
 
@@ -7846,17 +7853,17 @@ msgstr "停止播放/录制输入"
 msgid "Stop Recording Input"
 msgstr "停止录制输入"
 
-#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:478
+#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:480
 msgid "Stopped game"
-msgstr ""
+msgstr "游戏已停止"
 
 #: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:39
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:716
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:717
 msgid "Store EFB Copies to Texture Only"
 msgstr "仅存储 EFB 副本为纹理"
 
 #: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:172
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:200
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:201
 msgid ""
 "Stores EFB Copies exclusively on the GPU, bypassing system memory. Causes "
 "graphical defects in a small number of games.\n"
@@ -7874,7 +7881,7 @@ msgstr ""
 "如果不确定，请勾选此项。"
 
 #: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:50
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:419
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:420
 msgid "Stretch to Window"
 msgstr "拉伸到窗口大小"
 
@@ -7933,12 +7940,12 @@ msgid "Support"
 msgstr "支持"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:104
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:678
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:679
 msgid "Swap Eyes"
 msgstr "交换双眼"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:274
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:289
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:290
 msgid ""
 "Swaps the left and right eye. Mostly useful if you want to view side-by-side "
 "cross-eyed.\n"
@@ -7951,7 +7958,7 @@ msgstr ""
 "如果不确定，请不要勾选此项。"
 
 #: Source/Core/Core/HW/WiimoteEmu/Attachment/Nunchuk.cpp:42
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:270
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:272
 #: Source/Core/DolphinQt2/Config/Mapping/WiimoteEmuExtension.cpp:91
 #: Source/Core/DolphinQt2/Config/Mapping/WiimoteEmuMotionControl.cpp:32
 msgid "Swing"
@@ -7997,7 +8004,7 @@ msgid "Syntax error"
 msgstr "语法错误"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:106
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:100
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:105
 msgid "System Language:"
 msgstr "系统语言："
 
@@ -8059,7 +8066,7 @@ msgid "Texture"
 msgstr "材质"
 
 #: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:47
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:728
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:729
 msgid "Texture Cache"
 msgstr "纹理缓存"
 
@@ -8068,7 +8075,7 @@ msgid "Texture Cmd"
 msgstr "材质命令"
 
 #: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:45
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:848
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:849
 msgid "Texture Format Overlay"
 msgstr "显示纹理格式"
 
@@ -8077,7 +8084,7 @@ msgid "Textures"
 msgstr "材质"
 
 #: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:177
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:204
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:205
 msgid ""
 "The \"Safe\" setting eliminates the likelihood of the GPU missing texture "
 "updates from RAM.\n"
@@ -8107,7 +8114,7 @@ msgstr "校检和成功修复。"
 msgid "The chosen directory is already in the list."
 msgstr "所选目录已经在列表中。"
 
-#: Source/Core/Core/Movie.cpp:388
+#: Source/Core/Core/Movie.cpp:386
 #, c-format
 msgid ""
 "The disc change to \"%s\" could not be saved in the .dtm file.\n"
@@ -8185,12 +8192,12 @@ msgstr "文件 %s 已经打开，文件头不会被写入。"
 #: Source/Core/DolphinQt2/NetPlay/MD5Dialog.cpp:120
 #: Source/Core/DolphinWX/NetPlay/MD5Dialog.cpp:94
 msgid "The hashes do not match!"
-msgstr ""
+msgstr "哈希值不匹配！"
 
 #: Source/Core/DolphinQt2/NetPlay/MD5Dialog.cpp:114
 #: Source/Core/DolphinWX/NetPlay/MD5Dialog.cpp:94
 msgid "The hashes match!"
-msgstr ""
+msgstr "哈希值匹配！"
 
 #: Source/Core/DolphinWX/FrameAui.cpp:561
 msgid "The name cannot be empty"
@@ -8204,7 +8211,7 @@ msgstr "名称不能包含字符 ','"
 msgid "The profile '%1' does not exist"
 msgstr "配置文件 '%1' 不存在"
 
-#: Source/Core/Core/Movie.cpp:228
+#: Source/Core/Core/Movie.cpp:226
 #, c-format
 msgid "The recorded game (%s) is not the same as the selected game (%s)"
 msgstr "被录制的游戏 (%s) 与所选游戏 (%s) 不一致"
@@ -8239,7 +8246,7 @@ msgstr "服务器回应: 游戏正在运行!"
 msgid "The server sent an unknown error message!"
 msgstr "服务器发送了一个未知错误消息!"
 
-#: Source/Core/Core/Boot/Boot.cpp:61
+#: Source/Core/Core/Boot/Boot.cpp:63
 #, c-format
 msgid "The specified file \"%s\" does not exist"
 msgstr "指定的文件 \"%s\" 不存在"
@@ -8316,7 +8323,7 @@ msgid "This cannot be undone!"
 msgstr "不能被撤销！"
 
 #: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:167
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:262
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:263
 msgid ""
 "This feature allows you to change the game's camera.\n"
 "Move the mouse while holding the right mouse button to pan and while holding "
@@ -8422,7 +8429,7 @@ msgid "Threshold"
 msgstr "阈值"
 
 #: Source/Core/Core/HW/WiimoteEmu/Attachment/Nunchuk.cpp:45
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:273
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:275
 #: Source/Core/DolphinQt2/Config/Mapping/WiimoteEmuExtension.cpp:89
 #: Source/Core/DolphinQt2/Config/Mapping/WiimoteEmuMotionControl.cpp:30
 msgid "Tilt"
@@ -8520,26 +8527,26 @@ msgstr "切换布局编辑"
 msgid "Toggle fullscreen"
 msgstr "切换全屏"
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:61
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:66
 #: Source/Core/DolphinWX/MainMenuBar.cpp:410
 msgid "Top"
 msgstr "顶部"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:100
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:648
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:649
 msgid "Top-and-Bottom"
 msgstr "上下并排"
 
 #: Source/Core/DolphinQt2/GameList/GameFile.cpp:301
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:58
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:63
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:79
 msgid "Traditional Chinese"
 msgstr "繁体中文"
 
-#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:506
-#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:510
+#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:508
+#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:512
 msgid "Traversal Error"
-msgstr ""
+msgstr "穿透错误"
 
 #: Source/Core/DolphinQt2/NetPlay/NetPlaySetupDialog.cpp:132
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:96
@@ -8606,9 +8613,9 @@ msgstr "美国"
 msgid "USB Gecko"
 msgstr "USB Gecko"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:571
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:572
 msgid "Ubershaders:"
-msgstr "Uber 着色器:"
+msgstr "Uber 着色器："
 
 #: Source/Core/DolphinWX/PatchAddEdit.cpp:242
 msgid ""
@@ -8781,15 +8788,15 @@ msgstr ""
 "正在更新软件 %1...\n"
 "这可能需要一段时间。"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:328
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:330
 msgid "Upright Hold"
 msgstr "保持直握"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:325
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:327
 msgid "Upright Toggle"
 msgstr "切换直握"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:312
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:314
 msgid "Upright Wii Remote"
 msgstr "直握 Wii 控制器"
 
@@ -8818,10 +8825,10 @@ msgstr "使用内建数据库游戏名称"
 
 #: Source/Core/DolphinQt2/InDevelopmentWarning.cpp:42
 msgid "Use DolphinQt Anyway"
-msgstr "坚持使用 DolphinQt "
+msgstr "仍然使用 DolphinQt "
 
 #: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:54
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:433
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:434
 msgid "Use Fullscreen"
 msgstr "全屏显示"
 
@@ -8829,7 +8836,7 @@ msgstr "全屏显示"
 msgid "Use Hex"
 msgstr "使用十六进制"
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:64
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:69
 msgid "Use PAL60 Mode (EuRGB60)"
 msgstr "使用 PAL60 模式 (EuRGB60)"
 
@@ -8839,7 +8846,7 @@ msgid "Use Panic Handlers"
 msgstr "使用警告程序"
 
 #: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:202
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:170
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:171
 msgid ""
 "Use a less accurate algorithm to calculate depth values.\n"
 "Causes issues in a few games, but can give a decent speedup depending on the "
@@ -8868,12 +8875,12 @@ msgstr "用户界面"
 #: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:55
 #: Source/Core/DolphinQt2/Config/Graphics/SoftwareRendererWidget.cpp:58
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:103
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:897
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:898
 msgid "Utility"
 msgstr "实用功能"
 
 #: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:53
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:431
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:432
 msgid "V-Sync"
 msgstr "垂直同步"
 
@@ -8934,7 +8941,7 @@ msgid "Vertex Matrices"
 msgstr "顶点矩阵"
 
 #: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:87
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:814
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:815
 msgid "Vertex Rounding"
 msgstr "顶点取整"
 
@@ -8984,7 +8991,7 @@ msgid "View as unsigned integer"
 msgstr "以无符号整数查看"
 
 #: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:73
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:786
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:787
 msgid "Virtual"
 msgstr "虚拟"
 
@@ -9029,7 +9036,7 @@ msgid "WAD installation failed: The selected file is not a valid WAD."
 msgstr "WAD 安装失败: 所选文件不是有效的 WAD。"
 
 #: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:281
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:150
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:151
 msgid ""
 "Wait for vertical blanks in order to reduce tearing.\n"
 "Decreases performance if emulation speed is below 100%.\n"
@@ -9043,13 +9050,13 @@ msgstr ""
 
 #: Source/Core/Common/MsgHandler.cpp:67
 #: Source/Core/DolphinQt2/Config/LoggerWidget.cpp:162
-#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:212
+#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:214
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1303
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1611
 #: Source/Core/DolphinWX/LogConfigWindow.cpp:43
 #: Source/Core/DolphinWX/MemcardManager.cpp:587
-#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:352
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:983
+#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:354
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:985
 msgid "Warning"
 msgstr "警告"
 
@@ -9083,7 +9090,7 @@ msgstr ""
 "%s\n"
 "要继续吗?"
 
-#: Source/Core/Core/Movie.cpp:1056
+#: Source/Core/Core/Movie.cpp:1007
 #, c-format
 msgid ""
 "Warning: You loaded a save that's after the end of the current movie. (byte "
@@ -9093,7 +9100,7 @@ msgstr ""
 "警告: 您读取的存档在当前影片结束之后。 (字节 %u > %zu) (输入 %u > %u) 。您需"
 "要读取另一个存档方可继续，或关闭只读模式再读取此状态存档。"
 
-#: Source/Core/Core/Movie.cpp:1031
+#: Source/Core/Core/Movie.cpp:982
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie ends before the current frame in the "
@@ -9103,7 +9110,7 @@ msgstr ""
 "警告: 您读取的存档影片已结束在存档的当前帧之前(字节%u < %u) (帧%u < %u)。您需"
 "要读取另一个存档方可继续。"
 
-#: Source/Core/Core/Movie.cpp:1082
+#: Source/Core/Core/Movie.cpp:1033
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on byte %zu (0x%zX). You "
@@ -9113,7 +9120,7 @@ msgstr ""
 "警告: 您读取的存档在 %zu (0x%zX) 字节处与影片不匹配。您需要读取另一个存档方可"
 "继续，或关闭只读模式再读取此状态存档。否则将可能发生不同步。"
 
-#: Source/Core/Core/Movie.cpp:1099
+#: Source/Core/Core/Movie.cpp:1050
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on frame %td. You should "
@@ -9160,7 +9167,7 @@ msgid "Whammy"
 msgstr "颤音"
 
 #: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:294
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:226
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:227
 msgid ""
 "When playing on NetPlay, show chat messages, buffer changes and desync "
 "alerts.\n"
@@ -9171,12 +9178,12 @@ msgstr ""
 "\n"
 "如果不确定，请不要勾选此项。"
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:149
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:154
 msgid "Whitelisted USB Passthrough Devices"
 msgstr "USB 直通设备白名单"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:72
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:621
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:622
 msgid "Widescreen Hack"
 msgstr "宽屏修正"
 
@@ -9226,11 +9233,11 @@ msgstr "Wii 控制器 %1"
 msgid "Wii Remote %i"
 msgstr "Wii 控制器 %i"
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:80
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:85
 msgid "Wii Remote Rumble"
 msgstr "Wii 控制器震动"
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:158
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:163
 msgid "Wii Remote Settings"
 msgstr "Wii 控制器设置"
 
@@ -9300,8 +9307,8 @@ msgstr "全球"
 msgid "Write only"
 msgstr "只写"
 
-#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:62
-#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:256
+#: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:64
+#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:258
 msgid "Write save/SD data"
 msgstr "写入存档/SD 数据"
 
@@ -9322,7 +9329,7 @@ msgstr "写入到窗口"
 
 #. i18n: Refers to a 3D axis (used when mapping motion controls)
 #: Source/Core/Core/HW/WiimoteEmu/Attachment/Nunchuk.cpp:50
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:278
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:280
 #: Source/Core/DolphinWX/TASInputDlg.cpp:496
 msgid "X"
 msgstr "X"
@@ -9337,7 +9344,7 @@ msgstr "XFB 命令"
 
 #. i18n: Refers to a 3D axis (used when mapping motion controls)
 #: Source/Core/Core/HW/WiimoteEmu/Attachment/Nunchuk.cpp:52
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:280
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:282
 #: Source/Core/DolphinWX/TASInputDlg.cpp:498
 msgid "Y"
 msgstr "Y"
@@ -9384,9 +9391,9 @@ msgstr "您必须重新启动 Dolphin 以使改动生效。"
 
 #: Source/Core/DolphinQt2/NetPlay/NetPlaySetupDialog.cpp:231
 msgid "You must select a game to host!"
-msgstr ""
+msgstr "你必须选择一个游戏来建主机！"
 
-#: Source/Core/Core/DSP/DSPCore.cpp:74
+#: Source/Core/Core/DSP/DSPCore.cpp:78
 msgid ""
 "Your DSP ROMs have incorrect hashes.\n"
 "Would you like to stop now to fix the problem?\n"
@@ -9396,7 +9403,7 @@ msgstr ""
 "是否要现在停止以处理这个问题?\n"
 "如果选择“否”，声音可能会出现混乱。"
 
-#: Source/Core/Core/ConfigManager.cpp:996
+#: Source/Core/Core/ConfigManager.cpp:944
 msgid ""
 "Your GCM/ISO file seems to be invalid (invalid country).\n"
 "Continue with PAL region?"
@@ -9406,7 +9413,7 @@ msgstr ""
 
 #. i18n: Refers to a 3D axis (used when mapping motion controls)
 #: Source/Core/Core/HW/WiimoteEmu/Attachment/Nunchuk.cpp:54
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:282
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:284
 #: Source/Core/DolphinWX/TASInputDlg.cpp:500
 msgid "Z"
 msgstr "Z"
