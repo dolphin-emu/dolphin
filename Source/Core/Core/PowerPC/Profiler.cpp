@@ -5,6 +5,7 @@
 #include "Core/PowerPC/Profiler.h"
 
 #include <string>
+#include "Common/PerformanceCounter.h"
 #include "Core/PowerPC/JitInterface.h"
 
 namespace Profiler

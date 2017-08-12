@@ -16,6 +16,7 @@
 #include "Common/File.h"
 #include "Common/Logging/Log.h"
 #include "Common/MemoryUtil.h"
+#include "Common/PerformanceCounter.h"
 #include "Common/StringUtil.h"
 #include "Common/x64ABI.h"
 #include "Core/Core.h"
@@ -648,15 +649,17 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
   }
 
   // Conditionally add profiling code.
+  b->ticCounter = 0;
+  b->ticStart = 0;
+  b->ticStop = 0;
   if (Profiler::g_ProfileBlocks)
   {
     MOV(64, R(RSCRATCH), ImmPtr(&b->runCount));
     ADD(32, MatR(RSCRATCH), Imm8(1));
-    b->ticCounter = 0;
-    b->ticStart = 0;
-    b->ticStop = 0;
+
     // get start tic
-    PROFILER_QUERY_PERFORMANCE_COUNTER(&b->ticStart);
+    MOV(64, R(ABI_PARAM1), Imm64(reinterpret_cast<u64>(&b->ticStart)));
+    ABI_CallFunction(QueryPerformanceCounter);
   }
 #if defined(_DEBUG) || defined(DEBUGFAST) || defined(NAN_CHECK)
   // should help logged stack-traces become more accurate
@@ -734,12 +737,18 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
       if (Profiler::g_ProfileBlocks)
       {
         // WARNING - cmp->branch merging will screw this up.
-        PROFILER_VPUSH;
+        BitSet32 registersInUse = CallerSavedRegistersInUse();
+        ABI_PushRegistersAndAdjustStack(registersInUse, 0);
         // get end tic
-        PROFILER_QUERY_PERFORMANCE_COUNTER(&b->ticStop);
+        MOV(64, R(ABI_PARAM1), Imm64(reinterpret_cast<u64>(&b->ticStop)));
+        ABI_CallFunction(QueryPerformanceCounter);
         // tic counter += (end tic - start tic)
-        PROFILER_UPDATE_TIME(b);
-        PROFILER_VPOP;
+        MOV(64, R(RSCRATCH2), Imm64((u64)b));
+        MOV(64, R(RSCRATCH), MDisp(RSCRATCH2, offsetof(struct JitBlock, ticStop)));
+        SUB(64, R(RSCRATCH), MDisp(RSCRATCH2, offsetof(struct JitBlock, ticStart)));
+        ADD(64, R(RSCRATCH), MDisp(RSCRATCH2, offsetof(struct JitBlock, ticCounter)));
+        MOV(64, MDisp(RSCRATCH2, offsetof(struct JitBlock, ticCounter)), R(RSCRATCH));
+        ABI_PopRegistersAndAdjustStack(registersInUse, 0);
       }
       js.isLastInstruction = true;
     }
