@@ -304,7 +304,7 @@ void BluetoothReal::DoState(PointerWrap& p)
   {
     // On load, discard any pending transfer to make sure the emulated software is not stuck
     // waiting for the previous request to complete. This is usually not an issue as long as
-    // the Bluetooth state is the same (same Wii remote connections).
+    // the Bluetooth state is the same (same Wii Remote connections).
     for (const auto& address_to_discard : addresses_to_discard)
       m_ios.EnqueueIPCReply(Request{address_to_discard}, 0);
 
