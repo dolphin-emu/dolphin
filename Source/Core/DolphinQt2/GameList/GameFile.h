@@ -72,11 +72,12 @@ public:
   bool Install();
   bool Uninstall();
   bool ExportWiiSave();
+  void RemoveCache();
 
 private:
   QString GetBannerString(const QMap<DiscIO::Language, QString>& m) const;
 
-  QString GetCacheFileName() const;
+  QString GetHashedFileName() const;
   void ReadBanner(const DiscIO::Volume& volume);
   bool LoadFileInfo(const QString& path);
   void LoadState();
@@ -116,6 +117,7 @@ private:
   QString m_issues;
   int m_rating = 0;
   QString m_apploader_date;
+  bool m_has_banner = false;
 };
 
 QString FormatSize(qint64 size);

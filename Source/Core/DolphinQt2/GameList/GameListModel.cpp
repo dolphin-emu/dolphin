@@ -217,6 +217,7 @@ void GameListModel::RemoveGame(const QString& path)
     return;
 
   beginRemoveRows(QModelIndex(), entry, entry);
+  m_games[entry]->RemoveCache();
   m_games.removeAt(entry);
   endRemoveRows();
 }
