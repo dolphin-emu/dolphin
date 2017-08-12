@@ -36,15 +36,6 @@ constexpr size_t SAFE_STACK_SIZE = 512 * 1024;
 constexpr size_t GUARD_SIZE = 0x10000;  // two guards - bottom (permanent) and middle (see above)
 constexpr size_t GUARD_OFFSET = STACK_SIZE - SAFE_STACK_SIZE - GUARD_SIZE;
 
-static bool HasCycleCounters()
-{
-  // Bit needs to be set to support cycle counters
-  const u32 PMUSERENR_CR = 0x4;
-  u32 reg;
-  asm("mrs %[val], PMUSERENR_EL0" : [val] "=r"(reg));
-  return !!(reg & PMUSERENR_CR);
-}
-
 void JitArm64::Init()
 {
   InitializeInstructionTables();
@@ -72,8 +63,6 @@ void JitArm64::Init()
 
   AllocStack();
   GenerateAsm();
-
-  m_supports_cycle_counter = HasCycleCounters();
 }
 
 bool JitArm64::HandleFault(uintptr_t access_address, SContext* ctx)
@@ -514,73 +503,47 @@ void JitArm64::DumpCode(const u8* start, const u8* end)
   WARN_LOG(DYNA_REC, "Code dump from %p to %p:\n%s", start, end, output.c_str());
 }
 
-void JitArm64::EmitResetCycleCounters()
-{
-  const u32 PMCR_EL0_E = 1;
-  const u32 PMCR_EL0_P = 2;
-  const u32 PMCR_EL0_C = 4;
-  const u32 PMCR_EL0_LC = 0x40;
-  _MSR(FIELD_PMCR_EL0, X10);
-  MOVI2R(X11, PMCR_EL0_E | PMCR_EL0_P | PMCR_EL0_C | PMCR_EL0_LC);
-  ORR(X10, X10, X11);
-  MRS(X10, FIELD_PMCR_EL0);
-}
-
-void JitArm64::EmitGetCycles(Arm64Gen::ARM64Reg reg)
-{
-  _MSR(FIELD_PMCCNTR_EL0, reg);
-}
-
 void JitArm64::BeginTimeProfile(JitBlock* b)
 {
   MOVP2R(X0, &b->profile_data);
   LDR(INDEX_UNSIGNED, X1, X0, offsetof(JitBlock::ProfileData, runCount));
   ADD(X1, X1, 1);
 
-  if (m_supports_cycle_counter)
-  {
-    EmitResetCycleCounters();
-    EmitGetCycles(X2);
+  // Fetch the current counter register
+  CNTVCT(X2);
 
-    // stores runCount and ticStart
-    STP(INDEX_UNSIGNED, X1, X2, X0, offsetof(JitBlock::ProfileData, runCount));
-  }
-  else
-  {
-    STR(INDEX_UNSIGNED, X1, X0, offsetof(JitBlock::ProfileData, runCount));
-
-    MOVP2R(X1, &QueryPerformanceCounter);
-    ADD(X0, X0, offsetof(JitBlock::ProfileData, ticStart));
-    BLR(X1);
-  }
+  // stores runCount and ticStart
+  STP(INDEX_SIGNED, X1, X2, X0, offsetof(JitBlock::ProfileData, runCount));
 }
 
 void JitArm64::EndTimeProfile(JitBlock* b)
 {
-  MOVP2R(X20, &b->profile_data);
-  if (m_supports_cycle_counter)
-  {
-    EmitGetCycles(X2);
-  }
-  else
-  {
-    MOVP2R(X1, &QueryPerformanceCounter);
-    ADD(X0, X20, offsetof(JitBlock::ProfileData, ticStop));
-    BLR(X1);
+  ARM64Reg WA = gpr.GetReg();
+  ARM64Reg XA = EncodeRegTo64(WA);
+  ARM64Reg WB = gpr.GetReg();
+  ARM64Reg XB = EncodeRegTo64(WB);
+  ARM64Reg WC = gpr.GetReg();
+  ARM64Reg XC = EncodeRegTo64(WC);
+  ARM64Reg WD = gpr.GetReg();
+  ARM64Reg XD = EncodeRegTo64(WD);
 
-    LDR(INDEX_UNSIGNED, X2, X20, offsetof(JitBlock::ProfileData, ticStop));
-  }
+  // Fetch the current counter register
+  CNTVCT(XB);
 
-  LDR(INDEX_UNSIGNED, X1, X20, offsetof(JitBlock::ProfileData, ticStart));
+  MOVP2R(XA, &b->profile_data);
+
+  LDR(INDEX_UNSIGNED, XC, XA, offsetof(JitBlock::ProfileData, ticStart));
+  SUB(XB, XB, XC);
 
   // loads ticCounter and downcountCounter
-  LDP(INDEX_UNSIGNED, X3, X4, X20, offsetof(JitBlock::ProfileData, ticCounter));
-  SUB(X2, X2, X1);
-  ADD(X3, X3, X2);
-  ADDI2R(X4, X4, js.downcountAmount);
+  LDP(INDEX_SIGNED, XC, XD, XA, offsetof(JitBlock::ProfileData, ticCounter));
+  ADD(XC, XC, XB);
+  ADDI2R(XD, XD, js.downcountAmount);
 
   // stores ticCounter and downcountCounter
-  STP(INDEX_UNSIGNED, X3, X4, X20, offsetof(JitBlock::ProfileData, ticCounter));
+  STP(INDEX_SIGNED, XC, XD, XA, offsetof(JitBlock::ProfileData, ticCounter));
+
+  gpr.Unlock(WA, WB, WC, WD);
 }
 
 void JitArm64::Run()
