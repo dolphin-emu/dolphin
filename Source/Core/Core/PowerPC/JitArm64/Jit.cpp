@@ -520,10 +520,10 @@ void JitArm64::EmitResetCycleCounters()
   const u32 PMCR_EL0_P = 2;
   const u32 PMCR_EL0_C = 4;
   const u32 PMCR_EL0_LC = 0x40;
-  _MSR(FIELD_PMCR_EL0, X0);
-  MOVI2R(X1, PMCR_EL0_E | PMCR_EL0_P | PMCR_EL0_C | PMCR_EL0_LC);
-  ORR(X0, X0, X1);
-  MRS(X0, FIELD_PMCR_EL0);
+  _MSR(FIELD_PMCR_EL0, X10);
+  MOVI2R(X11, PMCR_EL0_E | PMCR_EL0_P | PMCR_EL0_C | PMCR_EL0_LC);
+  ORR(X10, X10, X11);
+  MRS(X10, FIELD_PMCR_EL0);
 }
 
 void JitArm64::EmitGetCycles(Arm64Gen::ARM64Reg reg)
@@ -533,47 +533,54 @@ void JitArm64::EmitGetCycles(Arm64Gen::ARM64Reg reg)
 
 void JitArm64::BeginTimeProfile(JitBlock* b)
 {
-  b->ticCounter = 0;
-  b->ticStart = 0;
-  b->ticStop = 0;
+  MOVP2R(X0, &b->profile_data);
+  LDR(INDEX_UNSIGNED, X1, X0, offsetof(JitBlock::ProfileData, runCount));
+  ADD(X1, X1, 1);
 
   if (m_supports_cycle_counter)
   {
     EmitResetCycleCounters();
-    EmitGetCycles(X1);
-    MOVP2R(X0, &b->ticStart);
-    STR(INDEX_UNSIGNED, X1, X0, 0);
+    EmitGetCycles(X2);
+
+    // stores runCount and ticStart
+    STP(INDEX_UNSIGNED, X1, X2, X0, offsetof(JitBlock::ProfileData, runCount));
   }
   else
   {
+    STR(INDEX_UNSIGNED, X1, X0, offsetof(JitBlock::ProfileData, runCount));
+
     MOVP2R(X1, &QueryPerformanceCounter);
-    MOVP2R(X0, &b->ticStart);
+    ADD(X0, X0, offsetof(JitBlock::ProfileData, ticStart));
     BLR(X1);
   }
 }
 
 void JitArm64::EndTimeProfile(JitBlock* b)
 {
+  MOVP2R(X20, &b->profile_data);
   if (m_supports_cycle_counter)
   {
     EmitGetCycles(X2);
-    MOVP2R(X0, &b->ticStart);
   }
   else
   {
     MOVP2R(X1, &QueryPerformanceCounter);
-    MOVP2R(X0, &b->ticStop);
+    ADD(X0, X20, offsetof(JitBlock::ProfileData, ticStop));
     BLR(X1);
 
-    MOVP2R(X0, &b->ticStart);
-    LDR(INDEX_UNSIGNED, X2, X0, 8);  // Stop
+    LDR(INDEX_UNSIGNED, X2, X20, offsetof(JitBlock::ProfileData, ticStop));
   }
 
-  LDR(INDEX_UNSIGNED, X1, X0, 0);   // Start
-  LDR(INDEX_UNSIGNED, X3, X0, 16);  // Counter
+  LDR(INDEX_UNSIGNED, X1, X20, offsetof(JitBlock::ProfileData, ticStart));
+
+  // loads ticCounter and downcountCounter
+  LDP(INDEX_UNSIGNED, X3, X4, X20, offsetof(JitBlock::ProfileData, ticCounter));
   SUB(X2, X2, X1);
   ADD(X3, X3, X2);
-  STR(INDEX_UNSIGNED, X3, X0, 16);
+  ADDI2R(X4, X4, js.downcountAmount);
+
+  // stores ticCounter and downcountCounter
+  STP(INDEX_UNSIGNED, X3, X4, X20, offsetof(JitBlock::ProfileData, ticCounter));
 }
 
 void JitArm64::Run()
@@ -657,7 +664,6 @@ void JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBlock*
 
   const u8* start = GetCodePtr();
   b->checkedEntry = start;
-  b->runCount = 0;
 
   // Downcount flag check, Only valid for linked blocks
   {
@@ -673,15 +679,6 @@ void JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBlock*
   // Conditionally add profiling code.
   if (Profiler::g_ProfileBlocks)
   {
-    ARM64Reg WA = gpr.GetReg();
-    ARM64Reg WB = gpr.GetReg();
-    ARM64Reg XA = EncodeRegTo64(WA);
-    ARM64Reg XB = EncodeRegTo64(WB);
-    MOVP2R(XA, &b->runCount);
-    LDR(INDEX_UNSIGNED, XB, XA, 0);
-    ADD(XB, XB, 1);
-    STR(INDEX_UNSIGNED, XB, XA, 0);
-    gpr.Unlock(WA, WB);
     // get start tic
     BeginTimeProfile(b);
   }

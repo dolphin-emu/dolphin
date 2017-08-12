@@ -628,7 +628,6 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
   const u8* start =
       AlignCode4();  // TODO: Test if this or AlignCode16 make a difference from GetCodePtr
   b->checkedEntry = start;
-  b->runCount = 0;
 
   // Downcount flag check. The last block decremented downcounter, and the flag should still be
   // available.
@@ -649,16 +648,13 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
   }
 
   // Conditionally add profiling code.
-  b->ticCounter = 0;
-  b->ticStart = 0;
-  b->ticStop = 0;
   if (Profiler::g_ProfileBlocks)
   {
-    MOV(64, R(RSCRATCH), ImmPtr(&b->runCount));
-    ADD(32, MatR(RSCRATCH), Imm8(1));
-
     // get start tic
-    MOV(64, R(ABI_PARAM1), Imm64(reinterpret_cast<u64>(&b->ticStart)));
+    MOV(64, R(ABI_PARAM1), Imm64(reinterpret_cast<u64>(&b->profile_data.ticStart)));
+    int offset = static_cast<int>(offsetof(JitBlock::ProfileData, runCount)) -
+                 static_cast<int>(offsetof(JitBlock::ProfileData, ticStart));
+    ADD(64, MDisp(ABI_PARAM1, offset), Imm8(1));
     ABI_CallFunction(QueryPerformanceCounter);
   }
 #if defined(_DEBUG) || defined(DEBUGFAST) || defined(NAN_CHECK)
@@ -736,18 +732,20 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
     {
       if (Profiler::g_ProfileBlocks)
       {
-        // WARNING - cmp->branch merging will screw this up.
+        // TODO: Move this to WriteExit() calls.
         BitSet32 registersInUse = CallerSavedRegistersInUse();
         ABI_PushRegistersAndAdjustStack(registersInUse, 0);
         // get end tic
-        MOV(64, R(ABI_PARAM1), Imm64(reinterpret_cast<u64>(&b->ticStop)));
+        MOV(64, R(ABI_PARAM1), Imm64(reinterpret_cast<u64>(&b->profile_data.ticStop)));
         ABI_CallFunction(QueryPerformanceCounter);
         // tic counter += (end tic - start tic)
-        MOV(64, R(RSCRATCH2), Imm64((u64)b));
-        MOV(64, R(RSCRATCH), MDisp(RSCRATCH2, offsetof(struct JitBlock, ticStop)));
-        SUB(64, R(RSCRATCH), MDisp(RSCRATCH2, offsetof(struct JitBlock, ticStart)));
-        ADD(64, R(RSCRATCH), MDisp(RSCRATCH2, offsetof(struct JitBlock, ticCounter)));
-        MOV(64, MDisp(RSCRATCH2, offsetof(struct JitBlock, ticCounter)), R(RSCRATCH));
+        MOV(64, R(RSCRATCH2), Imm64(reinterpret_cast<u64>(&b->profile_data)));
+        MOV(64, R(RSCRATCH), MDisp(RSCRATCH2, offsetof(JitBlock::ProfileData, ticStop)));
+        SUB(64, R(RSCRATCH), MDisp(RSCRATCH2, offsetof(JitBlock::ProfileData, ticStart)));
+        ADD(64, R(RSCRATCH), MDisp(RSCRATCH2, offsetof(JitBlock::ProfileData, ticCounter)));
+        ADD(64, MDisp(RSCRATCH2, offsetof(JitBlock::ProfileData, downcountCounter)),
+            Imm32(js.downcountAmount));
+        MOV(64, MDisp(RSCRATCH2, offsetof(JitBlock::ProfileData, ticCounter)), R(RSCRATCH));
         ABI_PopRegistersAndAdjustStack(registersInUse, 0);
       }
       js.isLastInstruction = true;
