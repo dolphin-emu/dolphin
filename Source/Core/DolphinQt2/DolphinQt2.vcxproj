@@ -187,6 +187,7 @@
     <ClCompile Include="Config\LoggerWidget.cpp" />
     <ClCompile Include="Config\PropertiesDialog.cpp" />
     <ClCompile Include="Config\SettingsWindow.cpp" />
+    <ClCompile Include="Database.cpp" />
     <ClCompile Include="GameList\GameFile.cpp" />
     <ClCompile Include="GameList\GameList.cpp" />
     <ClCompile Include="GameList\GameListModel.cpp" />
