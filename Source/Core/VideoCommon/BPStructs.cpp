@@ -604,20 +604,21 @@ static void BPWritten(const BPCmd& bp)
       GeometryShaderManager::SetTexCoordChanged((bp.address - BPMEM_SU_SSIZE) >> 1);
     }
     return;
+
   // ------------------------
   // BPMEM_TX_SETMODE0 - (Texture lookup and filtering mode) LOD/BIAS Clamp, MaxAnsio, LODBIAS,
   // DiagLoad, Min Filter, Mag Filter, Wrap T, S
   // BPMEM_TX_SETMODE1 - (LOD Stuff) - Max LOD, Min LOD
   // ------------------------
   case BPMEM_TX_SETMODE0:  // (0x90 for linear)
-  case BPMEM_TX_SETMODE0_4:
-    TextureCacheBase::InvalidateAllBindPoints();
+  case BPMEM_TX_SETMODE1:
+    TextureCacheBase::InvalidateBindPoint(bp.address & 0x3);
+    return;
+  case BPMEM_TX_SETMODE0_4:  // (0x90 for linear)
+  case BPMEM_TX_SETMODE1_4:
+    TextureCacheBase::InvalidateBindPoint((bp.address & 0x3) + 4);
     return;
 
-  case BPMEM_TX_SETMODE1:
-  case BPMEM_TX_SETMODE1_4:
-    TextureCacheBase::InvalidateAllBindPoints();
-    return;
   // --------------------------------------------
   // BPMEM_TX_SETIMAGE0 - Texture width, height, format
   // BPMEM_TX_SETIMAGE1 - even LOD address in TMEM - Image Type, Cache Height, Cache Width, TMEM
@@ -626,22 +627,27 @@ static void BPWritten(const BPCmd& bp)
   // BPMEM_TX_SETIMAGE3 - Address of Texture in main memory
   // --------------------------------------------
   case BPMEM_TX_SETIMAGE0:
-  case BPMEM_TX_SETIMAGE0_4:
   case BPMEM_TX_SETIMAGE1:
-  case BPMEM_TX_SETIMAGE1_4:
   case BPMEM_TX_SETIMAGE2:
-  case BPMEM_TX_SETIMAGE2_4:
   case BPMEM_TX_SETIMAGE3:
-  case BPMEM_TX_SETIMAGE3_4:
-    TextureCacheBase::InvalidateAllBindPoints();
+    TextureCacheBase::InvalidateBindPoint(bp.address & 0x3);
     return;
+  case BPMEM_TX_SETIMAGE0_4:
+  case BPMEM_TX_SETIMAGE1_4:
+  case BPMEM_TX_SETIMAGE2_4:
+  case BPMEM_TX_SETIMAGE3_4:
+    TextureCacheBase::InvalidateBindPoint((bp.address & 0x3) + 4);
+    return;
+
   // -------------------------------
   // Set a TLUT
   // BPMEM_TX_SETTLUT - Format, TMEM Offset (offset of TLUT from start of TMEM high bank > > 5)
   // -------------------------------
   case BPMEM_TX_SETTLUT:
+    TextureCacheBase::InvalidateBindPoint(bp.address & 0x3);
+    return;
   case BPMEM_TX_SETTLUT_4:
-    TextureCacheBase::InvalidateAllBindPoints();
+    TextureCacheBase::InvalidateBindPoint((bp.address & 0x3) + 4);
     return;
 
   default:
