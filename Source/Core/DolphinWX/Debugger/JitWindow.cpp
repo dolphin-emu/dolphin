@@ -87,6 +87,7 @@ void CJitWindow::Compare(u32 em_address)
   PPCAnalyst::CodeBlock code_block;
   PPCAnalyst::PPCAnalyzer analyzer;
   analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE);
+  analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_BRANCH_FOLLOW);
 
   code_block.m_stats = &st;
   code_block.m_gpa = &gpa;
