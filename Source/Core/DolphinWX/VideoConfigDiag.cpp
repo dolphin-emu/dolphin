@@ -717,11 +717,6 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
                                 Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM),
                  0, wxLEFT | wxRIGHT, space5);
     szr_efb->AddSpacer(space5);
-    szr_efb->Add(CreateCheckBox(page_hacks, _("Store XFB Copies to Texture Only"),
-                                wxGetTranslation(skip_xfb_copy_to_ram_desc),
-                                Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM),
-                 0, wxLEFT | wxRIGHT, space5);
-    szr_efb->AddSpacer(space5);
 
     szr_hacks->AddSpacer(space5);
     szr_hacks->Add(szr_efb, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
@@ -779,6 +774,21 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
       szr_hacks->AddSpacer(space5);
       szr_hacks->Add(szr_safetex, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
     }
+
+     // - XFB
+    {
+      wxStaticBoxSizer* const group_xfb =
+          new wxStaticBoxSizer(wxVERTICAL, page_hacks, _("External Frame Buffer (XFB)"));
+
+      group_xfb->Add(CreateCheckBox(page_hacks, _("Store XFB Copies to Texture Only"),
+                                wxGetTranslation(skip_xfb_copy_to_ram_desc),
+                                Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM),
+                   0, wxLEFT | wxRIGHT, space5);
+      group_xfb->AddSpacer(space5);
+
+      szr_hacks->AddSpacer(space5);
+      szr_hacks->Add(group_xfb, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+    }  // xfb
 
     // - other hacks
     {
