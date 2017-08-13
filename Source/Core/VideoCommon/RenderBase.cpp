@@ -150,8 +150,8 @@ bool Renderer::CalculateTargetSize()
   if (g_ActiveConfig.iEFBScale == EFB_SCALE_AUTO_INTEGRAL)
   {
     // Set a scale based on the window size
-    int width = FramebufferManagerBase::ScaleToVirtualXfbWidth(EFB_WIDTH, m_target_rectangle);
-    int height = FramebufferManagerBase::ScaleToVirtualXfbHeight(EFB_HEIGHT, m_target_rectangle);
+    int width = EFB_WIDTH * m_target_rectangle.GetWidth() / m_last_xfb_width;
+    int height = EFB_HEIGHT * m_target_rectangle.GetWidth() / m_last_xfb_height;
     m_efb_scale = std::max((width - 1) / EFB_WIDTH + 1, (height - 1) / EFB_HEIGHT + 1);
   }
   else
@@ -652,6 +652,10 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
       m_fps_counter.Update();
       update_frame_count = true;
     }
+
+    // Update our last xfb values
+    m_last_xfb_width = (fbStride < 1 || fbStride > MAX_XFB_WIDTH) ? MAX_XFB_WIDTH : fbStride;
+    m_last_xfb_height = (fbHeight < 1 || fbHeight > MAX_XFB_HEIGHT) ? MAX_XFB_HEIGHT : fbHeight;
   }
 
   frameCount++;

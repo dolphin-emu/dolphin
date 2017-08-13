@@ -209,6 +209,10 @@ private:
 
   AbstractTexture * m_last_xfb_texture;
 
+  // Note: Only used for auto-ir
+  u32 m_last_xfb_width = MAX_XFB_WIDTH;
+  u32 m_last_xfb_height = MAX_XFB_HEIGHT;
+
   // NOTE: The methods below are called on the framedumping thread.
   bool StartFrameDumpToAVI(const FrameDumpConfig& config);
   void DumpFrameToAVI(const FrameDumpConfig& config);
