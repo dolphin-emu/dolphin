@@ -1,10 +1,11 @@
 find_package(Qt5Widgets REQUIRED)
 find_Package(Qt5Gui REQUIRED)
+find_package(Qt5Sql REQUIRED)
 set_property(TARGET Qt5::Core PROPERTY INTERFACE_COMPILE_FEATURES "")
 message(STATUS "Found Qt version ${Qt5Core_VERSION}")
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
-
+include_directories(${Qt5SQl_INCLUDE_DIRS})
 include_directories(${Qt5Gui_PRIVATE_INCLUDE_DIRS})
 
 add_definitions(-DQT_USE_QSTRINGBUILDER -DQT_NO_CAST_FROM_ASCII -DQT_NO_CAST_TO_ASCII)
@@ -59,6 +60,7 @@ set(SRCS
   Config/Mapping/WiimoteEmuMotionControl.cpp
   Config/PropertiesDialog.cpp
   Config/SettingsWindow.cpp
+  Database.cpp
   GameList/GameFile.cpp
   GameList/GameList.cpp
   GameList/GameListModel.cpp
@@ -90,7 +92,7 @@ endif()
 set(DOLPHINQT2_BINARY dolphin-emu-qt2)
 
 add_executable(${DOLPHINQT2_BINARY} ${SRCS} ${UI_HEADERS})
-target_link_libraries(${DOLPHINQT2_BINARY} ${LIBS} Qt5::Widgets)
+target_link_libraries(${DOLPHINQT2_BINARY} ${LIBS} Qt5::Widgets Qt5::Sql)
 
 if(APPLE)
   # Note: This is copied from DolphinQt, based on the DolphinWX version.

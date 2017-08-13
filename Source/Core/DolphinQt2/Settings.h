@@ -14,6 +14,8 @@
 #include "Core/NetPlayClient.h"
 #include "Core/NetPlayServer.h"
 
+#include "DolphinQt2/Database.h"
+
 namespace DiscIO
 {
 enum class Language;
@@ -72,6 +74,8 @@ public:
   // Other
   GameListModel* GetGameListModel() const;
 
+  // Database
+  Database& GetDatabase();
 signals:
   void ThemeChanged();
   void PathAdded(const QString&);
@@ -85,5 +89,7 @@ signals:
 private:
   std::unique_ptr<NetPlayClient> m_client;
   std::unique_ptr<NetPlayServer> m_server;
+  Database m_database;
+
   Settings();
 };

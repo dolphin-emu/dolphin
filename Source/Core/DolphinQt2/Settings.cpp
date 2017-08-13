@@ -15,7 +15,10 @@
 #include "DolphinQt2/Settings.h"
 #include "InputCommon/InputConfig.h"
 
-Settings::Settings() = default;
+Settings::Settings()
+    : m_database(QString::fromStdString(File::GetUserPath(D_CONFIG_IDX) + "dolphin.sqlite"))
+{
+}
 
 Settings& Settings::Instance()
 {
@@ -197,4 +200,9 @@ NetPlayServer* Settings::GetNetPlayServer()
 void Settings::ResetNetPlayServer(NetPlayServer* server)
 {
   m_server.reset(server);
+}
+
+Database& Settings::GetDatabase()
+{
+  return m_database;
 }

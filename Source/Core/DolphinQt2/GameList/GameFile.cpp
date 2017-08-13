@@ -2,8 +2,10 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <QBuffer>
 #include <QCryptographicHash>
 #include <QDataStream>
+#include <QDebug>
 #include <QDir>
 #include <QImage>
 #include <QSharedPointer>
@@ -59,6 +61,7 @@ GameFile::GameFile(const QString& path) : m_path(path)
     {
       return;
     }
+    SaveCache();
   }
 
   m_valid = true;
@@ -75,14 +78,10 @@ bool GameFile::IsValid() const
   return true;
 }
 
-QString GameFile::GetCacheFileName() const
+QString GameFile::GetHashedFileName() const
 {
-  QString folder = QString::fromStdString(File::GetUserPath(D_CACHE_IDX));
-  // Append a hash of the full path to prevent name clashes between
-  // files with the same names in different folders.
-  QString hash =
-      QString::fromUtf8(QCryptographicHash::hash(m_path.toUtf8(), QCryptographicHash::Md5).toHex());
-  return folder + m_file_name + hash;
+  return QString::fromUtf8(
+      QCryptographicHash::hash(m_path.toUtf8(), QCryptographicHash::Md5).toHex());
 }
 
 void GameFile::ReadBanner(const DiscIO::Volume& volume)
@@ -101,6 +100,8 @@ void GameFile::ReadBanner(const DiscIO::Volume& volume)
     m_banner = QPixmap::fromImage(banner);
   else
     m_banner = Resources::GetMisc(Resources::BANNER_MISSING);
+
+  m_has_banner = !banner.isNull();
 }
 
 bool GameFile::LoadFileInfo(const QString& path)
@@ -134,23 +135,70 @@ bool GameFile::IsElfOrDol()
 
 bool GameFile::TryLoadCache()
 {
-  QFile cache(GetCacheFileName());
-  if (!cache.exists())
-    return false;
-  if (!cache.open(QIODevice::ReadOnly))
-    return false;
-  if (QFileInfo(cache).lastModified() < m_last_modified)
-    return false;
+  auto& database = Settings::Instance().GetDatabase();
+  auto cache_entry =
+      database.GetRow(QStringLiteral("SELECT * FROM gamefile_cache WHERE path_hash = '%1'")
+                          .arg(GetHashedFileName()));
 
-  QDataStream in(&cache);
-  in.setVersion(DATASTREAM_VERSION);
+  if (!cache_entry.isEmpty())
+  {
+    m_game_id = cache_entry.value(QStringLiteral("game_id")).toString();
+    m_title_id = cache_entry.value(QStringLiteral("title_id")).toLongLong();
+    m_maker = cache_entry.value(QStringLiteral("maker")).toString();
+    m_maker_id = cache_entry.value(QStringLiteral("maker_id")).toString();
+    m_internal_name = cache_entry.value(QStringLiteral("name_internal")).toString();
+    m_revision = cache_entry.value(QStringLiteral("revision")).toInt();
+    m_disc_number = cache_entry.value(QStringLiteral("disc_number")).toInt();
+    m_platform =
+        static_cast<DiscIO::Platform>(cache_entry.value(QStringLiteral("platform")).toInt());
+    m_region = static_cast<DiscIO::Region>(cache_entry.value(QStringLiteral("region")).toInt());
+    m_country = static_cast<DiscIO::Country>(cache_entry.value(QStringLiteral("country")).toInt());
+    m_blob_type =
+        static_cast<DiscIO::BlobType>(cache_entry.value(QStringLiteral("blob_type")).toInt());
+    m_raw_size = cache_entry.value(QStringLiteral("size")).toInt();
+    m_apploader_date = cache_entry.value(QStringLiteral("apploader_data")).toString();
 
-  int cache_version;
-  in >> cache_version;
-  if (cache_version != CACHE_VERSION)
-    return false;
+    for (auto language :
+         {DiscIO::Language::LANGUAGE_JAPANESE, DiscIO::Language::LANGUAGE_ENGLISH,
+          DiscIO::Language::LANGUAGE_GERMAN, DiscIO::Language::LANGUAGE_FRENCH,
+          DiscIO::Language::LANGUAGE_SPANISH, DiscIO::Language::LANGUAGE_ITALIAN,
+          DiscIO::Language::LANGUAGE_DUTCH, DiscIO::Language::LANGUAGE_SIMPLIFIED_CHINESE,
+          DiscIO::Language::LANGUAGE_TRADITIONAL_CHINESE, DiscIO::Language::LANGUAGE_KOREAN,
+          DiscIO::Language::LANGUAGE_UNKNOWN})
+    {
+      auto cache_multi_enter = database.GetRow(
+          QStringLiteral(
+              "SELECT * FROM gamefile_cache_multilang WHERE path_hash='%1' AND language_id='%2'")
+              .arg(GetHashedFileName(), QString::number(static_cast<int>(language))));
 
-  return false;
+      if (!cache_multi_enter.isEmpty())
+      {
+        m_descriptions[language] =
+            cache_multi_enter.value(QStringLiteral("description")).toString();
+        m_short_names[language] = cache_multi_enter.value(QStringLiteral("name_short")).toString();
+        m_long_names[language] = cache_multi_enter.value(QStringLiteral("name_long")).toString();
+        m_short_makers[language] =
+            cache_multi_enter.value(QStringLiteral("maker_short")).toString();
+        m_long_makers[language] = cache_multi_enter.value(QStringLiteral("maker_long")).toString();
+      }
+    }
+
+    // TODO: Implement Banner loading
+    QByteArray banner = cache_entry.value(QStringLiteral("banner")).toByteArray();
+
+    if (!banner.isEmpty())
+    {
+      m_banner = QPixmap::fromImage(QImage::fromData(QByteArray::fromBase64(banner)));
+    }
+    else
+    {
+      m_banner = Resources::GetMisc(Resources::BANNER_MISSING);
+    }
+
+    return true;
+  }
+
+  return !cache_entry.isEmpty();
 }
 
 bool GameFile::TryLoadVolume()
@@ -182,7 +230,6 @@ bool GameFile::TryLoadVolume()
 
   ReadBanner(*volume);
 
-  SaveCache();
   return true;
 }
 
@@ -206,7 +253,40 @@ bool GameFile::TryLoadElfDol()
 
 void GameFile::SaveCache()
 {
-  // TODO
+  QString banner_string;
+
+  if (m_has_banner)
+  {
+    QByteArray ba;
+    QBuffer buffer(&ba);
+    buffer.open(QIODevice::WriteOnly);
+    m_banner.toImage().save(&buffer, "PNG");
+    banner_string = QString::fromUtf8(ba.toBase64());
+  }
+
+  auto& database = Settings::Instance().GetDatabase();
+  database.InsertValues(
+      QStringLiteral("gamefile_cache"),
+      {GetHashedFileName(), m_game_id, QString::number(m_title_id), m_maker, m_maker_id,
+       m_internal_name, QString::number(m_revision), QString::number(m_disc_number),
+       QString::number(static_cast<int>(m_platform)), QString::number(static_cast<int>(m_region)),
+       QString::number(static_cast<int>(m_country)), QString::number(static_cast<int>(m_blob_type)),
+       QString::number(m_raw_size), m_apploader_date, banner_string});
+
+  for (auto language :
+       {DiscIO::Language::LANGUAGE_JAPANESE, DiscIO::Language::LANGUAGE_ENGLISH,
+        DiscIO::Language::LANGUAGE_GERMAN, DiscIO::Language::LANGUAGE_FRENCH,
+        DiscIO::Language::LANGUAGE_SPANISH, DiscIO::Language::LANGUAGE_ITALIAN,
+        DiscIO::Language::LANGUAGE_DUTCH, DiscIO::Language::LANGUAGE_SIMPLIFIED_CHINESE,
+        DiscIO::Language::LANGUAGE_TRADITIONAL_CHINESE, DiscIO::Language::LANGUAGE_KOREAN,
+        DiscIO::Language::LANGUAGE_UNKNOWN})
+  {
+    database.InsertValues(QStringLiteral("gamefile_cache_multilang"),
+                          {GetHashedFileName(), QString::number(static_cast<int>(language)),
+                           m_descriptions[language], m_short_names[language],
+                           m_long_names[language], m_short_makers[language],
+                           m_long_names[language]});
+  }
 }
 
 QString GameFile::GetBannerString(const QMap<DiscIO::Language, QString>& m) const
@@ -416,4 +496,11 @@ QString FormatSize(qint64 size)
     num /= 1024.0;
   }
   return QStringLiteral("%1 %2").arg(QString::number(num, 'f', 1)).arg(unit);
+}
+
+void GameFile::RemoveCache()
+{
+  Settings::Instance().GetDatabase().Execute(
+      QStringLiteral("DELETE gamefile_cache, gamefile_cache_multilang FROM path_hash='%1'")
+          .arg(GetHashedFileName()));
 }
