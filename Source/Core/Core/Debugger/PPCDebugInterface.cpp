@@ -53,9 +53,11 @@ std::string PPCDebugInterface::GetRawMemoryString(int memory, unsigned int addre
   {
     const bool is_aram = memory != 0;
 
-    if (is_aram || PowerPC::HostIsRAMAddress(address))
+    if ((is_aram && DSP::HostIsARAMAddress(address)) ||
+        (!is_aram && PowerPC::HostIsRAMAddress(address)))
+    {
       return StringFromFormat("%08X%s", ReadExtraMemory(memory, address), is_aram ? " (ARAM)" : "");
-
+    }
     return is_aram ? "--ARAM--" : "--------";
   }
 

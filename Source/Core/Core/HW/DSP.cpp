@@ -603,6 +603,13 @@ void WriteARAM(u8 value, u32 address)
   s_ARAM.ptr[address & s_ARAM.mask] = value;
 }
 
+bool HostIsARAMAddress(u32 address)
+{
+  if (s_ARAM.wii_mode && (address & 0x10000000) == 0)
+    return (address & Memory::RAM_MASK) < Memory::REALRAM_SIZE;
+  return (address & s_ARAM.mask) < s_ARAM.size;
+}
+
 u8* GetARAMPtr()
 {
   return s_ARAM.ptr;

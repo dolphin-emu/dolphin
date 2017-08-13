@@ -75,6 +75,7 @@ void GenerateDSPInterruptFromDSPEmu(DSPInterruptType type, int cycles_into_futur
 // Audio/DSP Helper
 u8 ReadARAM(u32 address);
 void WriteARAM(u8 value, u32 address);
+bool HostIsARAMAddress(u32 address);
 
 // Debugger Helper
 u8* GetARAMPtr();
