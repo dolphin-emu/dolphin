@@ -108,6 +108,7 @@ static const INIToLocationMap& GetINIToLocationMap()
       {{"Video_Hacks", "ForceProgressive"}, {Config::GFX_HACK_FORCE_PROGRESSIVE.location}},
       {{"Video_Hacks", "EFBToTextureEnable"}, {Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM.location}},
       {{"Video_Hacks", "XFBToTextureEnable"}, {Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM.location}},
+      {{"Video_Hacks", "ImmediateXFBEnable"}, {Config::GFX_HACK_IMMEDIATE_XFB.location}},
       {{"Video_Hacks", "EFBScaledCopy"}, {Config::GFX_EFB_SCALE.location}},
       {{"Video_Hacks", "EFBEmulateFormatChanges"},
        {Config::GFX_HACK_EFB_EMULATE_FORMAT_CHANGES.location}},

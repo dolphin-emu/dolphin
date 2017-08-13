@@ -205,6 +205,10 @@ static wxString skip_xfb_copy_to_ram_desc = wxTRANSLATE(
   "Stores XFB Copies exclusively on the GPU, bypassing system memory. Causes graphical defects "
   "in a small number of games that need to readback from memory.\n\nEnabled = XFB Copies to Texture\nDisabled = XFB Copies to RAM "
   "(and Texture)\n\nIf unsure, leave this checked.");
+static wxString immediate_xfb_desc = wxTRANSLATE(
+  "Displays the XFB copies as soon as they are created, without waiting for scanout. Can cause graphical defects "
+  "in some games if the game doesn't expect all XFB copies to be displayed. However, turning this setting on reduces latency."
+  "\n\nIf unsure, leave this unchecked.");
 static wxString stc_desc =
     wxTRANSLATE("The \"Safe\" setting eliminates the likelihood of the GPU missing texture updates "
                 "from RAM.\nLower accuracies cause in-game text to appear garbled in certain "
@@ -783,6 +787,12 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
       group_xfb->Add(CreateCheckBox(page_hacks, _("Store XFB Copies to Texture Only"),
                                 wxGetTranslation(skip_xfb_copy_to_ram_desc),
                                 Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM),
+                   0, wxLEFT | wxRIGHT, space5);
+      group_xfb->AddSpacer(space5);
+
+      group_xfb->Add(CreateCheckBox(page_hacks, _("Immediately Present XFB"),
+                                wxGetTranslation(immediate_xfb_desc),
+                                Config::GFX_HACK_IMMEDIATE_XFB),
                    0, wxLEFT | wxRIGHT, space5);
       group_xfb->AddSpacer(space5);
 

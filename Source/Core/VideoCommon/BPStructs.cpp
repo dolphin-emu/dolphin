@@ -12,6 +12,7 @@
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
 #include "Core/ConfigManager.h"
+#include "Core/CoreTiming.h"
 #include "Core/FifoPlayer/FifoPlayer.h"
 #include "Core/FifoPlayer/FifoRecorder.h"
 #include "Core/HW/Memmap.h"
@@ -266,9 +267,17 @@ static void BPWritten(const BPCmd& bp)
       // This stays in to signal end of a "frame"
       g_renderer->RenderToXFB(destAddr, srcRect, destStride, height, s_gammaLUT[PE_copy.gamma]);
 
-      if (FifoPlayer::GetInstance().IsRunningWithFakeVideoInterfaceUpdates())
+      if (g_ActiveConfig.bImmediateXFB)
       {
-        VideoInterface::FakeVIUpdate(destAddr, srcRect.GetWidth(), height);
+        // below div two to convert from bytes to pixels - it expects width, not stride
+        g_renderer->Swap(destAddr, destStride / 2, destStride / 2, height, false, srcRect, CoreTiming::GetTicks(), s_gammaLUT[PE_copy.gamma]);
+      }
+      else
+      {
+        if (FifoPlayer::GetInstance().IsRunningWithFakeVideoInterfaceUpdates())
+        {
+          VideoInterface::FakeVIUpdate(destAddr, srcRect.GetWidth(), height);
+        }
       }
     }
 

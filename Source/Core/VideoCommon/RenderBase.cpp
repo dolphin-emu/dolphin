@@ -37,7 +37,6 @@
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "Core/CoreTiming.h"
 #include "Core/FifoPlayer/FifoRecorder.h"
 #include "Core/HW/VideoInterface.h"
 #include "Core/Host.h"
@@ -337,7 +336,7 @@ void Renderer::DrawDebugText()
             "Speed Limit: Unlimited" :
             StringFromFormat("Speed Limit: %li%%",
                              std::lround(SConfig::GetInstance().m_EmulationSpeed * 100.f)),
-        std::string("Copy XFB: ") + xfbcopy_text,
+        std::string("Copy XFB: ") + xfbcopy_text + (g_ActiveConfig.bImmediateXFB ? " (Immediate)" : ""),
     };
 
     enum

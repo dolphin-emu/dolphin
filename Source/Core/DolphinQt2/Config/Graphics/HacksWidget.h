@@ -32,6 +32,7 @@ private:
 
   // External Framebuffer
   QCheckBox* m_store_xfb_copies;
+  QCheckBox* m_immediate_xfb;
 
   // Other
   QCheckBox* m_fast_depth_calculation;
