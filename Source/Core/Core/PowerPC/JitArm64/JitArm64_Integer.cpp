@@ -532,11 +532,28 @@ void JitArm64::rlwinmx(UGeckoInstruction inst)
 
   gpr.BindToRegister(a, a == s);
 
-  ARM64Reg WA = gpr.GetReg();
-  ArithOption Shift(gpr.R(s), ST_ROR, 32 - inst.SH);
-  MOVI2R(WA, mask);
-  AND(gpr.R(a), WA, gpr.R(s), Shift);
-  gpr.Unlock(WA);
+  if (!inst.SH)
+  {
+    // Immediate mask
+    ANDI2R(gpr.R(a), gpr.R(s), mask);
+  }
+  else if (inst.ME == 31 && 31 < inst.SH + inst.MB)
+  {
+    // Bit select of the upper part
+    UBFX(gpr.R(a), gpr.R(s), 32 - inst.SH, 32 - inst.MB);
+  }
+  else if (inst.ME == 31 - inst.SH && 32 > inst.SH + inst.MB)
+  {
+    // Bit select of the lower part
+    UBFIZ(gpr.R(a), gpr.R(s), inst.SH, 32 - inst.SH - inst.MB);
+  }
+  else
+  {
+    ARM64Reg WA = gpr.GetReg();
+    MOVI2R(WA, mask);
+    AND(gpr.R(a), WA, gpr.R(s), ArithOption(gpr.R(s), ST_ROR, 32 - inst.SH));
+    gpr.Unlock(WA);
+  }
 
   if (inst.Rc)
     ComputeRC0(gpr.R(a));

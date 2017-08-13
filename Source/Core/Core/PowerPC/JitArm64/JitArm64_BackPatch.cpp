@@ -196,14 +196,14 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode, AR
       {
         m_float_emit.FCVTN(32, D0, RS);
         m_float_emit.UMOV(64, X0, D0, 0);
-        ORR(X0, SP, X0, ArithOption(X0, ST_ROR, 32));
+        ROR(X0, X0, 32);
         MOVP2R(X30, &PowerPC::Write_U64);
         BLR(X30);
       }
       else if (flags & BackPatchInfo::FLAG_SIZE_F32X2I)
       {
         m_float_emit.UMOV(64, X0, RS, 0);
-        ORR(X0, SP, X0, ArithOption(X0, ST_ROR, 32));
+        ROR(X0, X0, 32);
         MOVP2R(X30, &PowerPC::Write_U64);
         BLR(X30);
       }

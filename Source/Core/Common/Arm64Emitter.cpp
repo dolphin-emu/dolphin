@@ -1542,19 +1542,22 @@ void ARM64XEmitter::MVN(ARM64Reg Rd, ARM64Reg Rm)
 }
 void ARM64XEmitter::LSL(ARM64Reg Rd, ARM64Reg Rm, int shift)
 {
-  ORR(Rd, Is64Bit(Rd) ? ZR : WZR, Rm, ArithOption(Rm, ST_LSL, shift));
+  int bits = Is64Bit(Rd) ? 64 : 32;
+  UBFM(Rd, Rm, (bits - shift) & (bits - 1), bits - shift - 1);
 }
 void ARM64XEmitter::LSR(ARM64Reg Rd, ARM64Reg Rm, int shift)
 {
-  ORR(Rd, Is64Bit(Rd) ? ZR : WZR, Rm, ArithOption(Rm, ST_LSR, shift));
+  int bits = Is64Bit(Rd) ? 64 : 32;
+  UBFM(Rd, Rm, shift, bits - 1);
 }
 void ARM64XEmitter::ASR(ARM64Reg Rd, ARM64Reg Rm, int shift)
 {
-  ORR(Rd, Is64Bit(Rd) ? ZR : WZR, Rm, ArithOption(Rm, ST_ASR, shift));
+  int bits = Is64Bit(Rd) ? 64 : 32;
+  SBFM(Rd, Rm, shift, bits - 1);
 }
 void ARM64XEmitter::ROR(ARM64Reg Rd, ARM64Reg Rm, int shift)
 {
-  ORR(Rd, Is64Bit(Rd) ? ZR : WZR, Rm, ArithOption(Rm, ST_ROR, shift));
+  EXTR(Rd, Rm, Rm, shift);
 }
 
 // Logical (immediate)
