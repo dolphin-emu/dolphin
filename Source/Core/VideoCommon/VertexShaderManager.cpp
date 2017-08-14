@@ -26,7 +26,7 @@
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
 
-alignas(16) static float g_fProjectionMatrix[16];
+alignas(16) static MathUtil::Matrix4f g_fProjectionMatrix;
 
 // track changes
 static bool bTexMatricesChanged[2], bPosNormalMatrixChanged, bProjectionChanged, bViewportChanged;
@@ -37,11 +37,11 @@ static int nNormalMatricesChanged[2];         // min,max
 static int nPostTransformMatricesChanged[2];  // min,max
 static int nLightsChanged[2];                 // min,max
 
-static Matrix44 s_viewportCorrection;
-static Matrix33 s_viewRotationMatrix;
-static Matrix33 s_viewInvRotationMatrix;
-static float s_fViewTranslationVector[3];
-static float s_fViewRotation[2];
+static MathUtil::Matrix4f s_viewportCorrection;
+static MathUtil::Matrix3f s_viewRotationMatrix;
+static MathUtil::Matrix3f s_viewInvRotationMatrix;
+static MathUtil::Vector3f s_fViewTranslationVector;
+static MathUtil::Vector2f s_fViewRotation;
 
 VertexShaderConstants VertexShaderManager::constants;
 bool VertexShaderManager::dirty;
@@ -138,7 +138,7 @@ void UpdateProjectionHack(const ProjectionHackConfig& config)
 // [         0   (ih/ah)     0   ((-ih + 2*(ay-iy)) / ah + 1)   ]
 // [         0         0     1                              0   ]
 // [         0         0     0                              1   ]
-static void ViewportCorrectionMatrix(Matrix44& result)
+static void ViewportCorrectionMatrix(MathUtil::Matrix4f& result)
 {
   int scissorXOff = bpmem.scissorOffset.x * 2;
   int scissorYOff = bpmem.scissorOffset.y * 2;
@@ -167,14 +167,14 @@ static void ViewportCorrectionMatrix(Matrix44& result)
   float Wd = (X + intendedWd <= EFB_WIDTH) ? intendedWd : (EFB_WIDTH - X);
   float Ht = (Y + intendedHt <= EFB_HEIGHT) ? intendedHt : (EFB_HEIGHT - Y);
 
-  Matrix44::LoadIdentity(result);
+  result.setIdentity();
   if (Wd == 0 || Ht == 0)
     return;
 
-  result.data[4 * 0 + 0] = intendedWd / Wd;
-  result.data[4 * 0 + 3] = (intendedWd - 2.f * (X - intendedX)) / Wd - 1.f;
-  result.data[4 * 1 + 1] = intendedHt / Ht;
-  result.data[4 * 1 + 3] = (-intendedHt + 2.f * (Y - intendedY)) / Ht + 1.f;
+  result(0, 0) = intendedWd / Wd;
+  result(0, 3) = (intendedWd - 2.f * (X - intendedX)) / Wd - 1.f;
+  result(1, 1) = intendedHt / Ht;
+  result(1, 3) = (-intendedHt + 2.f * (Y - intendedY)) / Ht + 1.f;
 }
 
 void VertexShaderManager::Init()
@@ -202,10 +202,8 @@ void VertexShaderManager::Init()
   ResetView();
 
   // TODO: should these go inside ResetView()?
-  Matrix44::LoadIdentity(s_viewportCorrection);
-  memset(g_fProjectionMatrix, 0, sizeof(g_fProjectionMatrix));
-  for (int i = 0; i < 4; ++i)
-    g_fProjectionMatrix[i * 5] = 1.0f;
+  s_viewportCorrection.setIdentity();
+  g_fProjectionMatrix.setIdentity();
 
   dirty = true;
 }
@@ -435,130 +433,95 @@ void VertexShaderManager::SetConstants()
   {
     bProjectionChanged = false;
 
-    float* rawProjection = xfmem.projection.rawProjection;
+    const float* rawProjection = xfmem.projection.rawProjection;
 
     switch (xfmem.projection.type)
     {
     case GX_PERSPECTIVE:
+      g_fProjectionMatrix(0, 0) = rawProjection[0] * g_ActiveConfig.fAspectRatioHackW;
+      g_fProjectionMatrix(0, 1) = 0.0f;
+      g_fProjectionMatrix(0, 2) = rawProjection[1] * g_ActiveConfig.fAspectRatioHackW;
+      g_fProjectionMatrix(0, 3) = 0.0f;
 
-      g_fProjectionMatrix[0] = rawProjection[0] * g_ActiveConfig.fAspectRatioHackW;
-      g_fProjectionMatrix[1] = 0.0f;
-      g_fProjectionMatrix[2] = rawProjection[1] * g_ActiveConfig.fAspectRatioHackW;
-      g_fProjectionMatrix[3] = 0.0f;
+      g_fProjectionMatrix(1, 0) = 0.0f;
+      g_fProjectionMatrix(1, 1) = rawProjection[2] * g_ActiveConfig.fAspectRatioHackH;
+      g_fProjectionMatrix(1, 2) = rawProjection[3] * g_ActiveConfig.fAspectRatioHackH;
+      g_fProjectionMatrix(1, 3) = 0.0f;
 
-      g_fProjectionMatrix[4] = 0.0f;
-      g_fProjectionMatrix[5] = rawProjection[2] * g_ActiveConfig.fAspectRatioHackH;
-      g_fProjectionMatrix[6] = rawProjection[3] * g_ActiveConfig.fAspectRatioHackH;
-      g_fProjectionMatrix[7] = 0.0f;
+      g_fProjectionMatrix.row(2) << 0.0f, 0.0f, rawProjection[4], rawProjection[5];
+      g_fProjectionMatrix.row(3) << 0.0f, 0.0f, -1.0f, 0.0f;
 
-      g_fProjectionMatrix[8] = 0.0f;
-      g_fProjectionMatrix[9] = 0.0f;
-      g_fProjectionMatrix[10] = rawProjection[4];
-
-      g_fProjectionMatrix[11] = rawProjection[5];
-
-      g_fProjectionMatrix[12] = 0.0f;
-      g_fProjectionMatrix[13] = 0.0f;
-
-      g_fProjectionMatrix[14] = -1.0f;
-      g_fProjectionMatrix[15] = 0.0f;
-
-      SETSTAT_FT(stats.gproj_0, g_fProjectionMatrix[0]);
-      SETSTAT_FT(stats.gproj_1, g_fProjectionMatrix[1]);
-      SETSTAT_FT(stats.gproj_2, g_fProjectionMatrix[2]);
-      SETSTAT_FT(stats.gproj_3, g_fProjectionMatrix[3]);
-      SETSTAT_FT(stats.gproj_4, g_fProjectionMatrix[4]);
-      SETSTAT_FT(stats.gproj_5, g_fProjectionMatrix[5]);
-      SETSTAT_FT(stats.gproj_6, g_fProjectionMatrix[6]);
-      SETSTAT_FT(stats.gproj_7, g_fProjectionMatrix[7]);
-      SETSTAT_FT(stats.gproj_8, g_fProjectionMatrix[8]);
-      SETSTAT_FT(stats.gproj_9, g_fProjectionMatrix[9]);
-      SETSTAT_FT(stats.gproj_10, g_fProjectionMatrix[10]);
-      SETSTAT_FT(stats.gproj_11, g_fProjectionMatrix[11]);
-      SETSTAT_FT(stats.gproj_12, g_fProjectionMatrix[12]);
-      SETSTAT_FT(stats.gproj_13, g_fProjectionMatrix[13]);
-      SETSTAT_FT(stats.gproj_14, g_fProjectionMatrix[14]);
-      SETSTAT_FT(stats.gproj_15, g_fProjectionMatrix[15]);
+      SETSTAT_FT(stats.gproj_0, g_fProjectionMatrix(0, 0));
+      SETSTAT_FT(stats.gproj_1, g_fProjectionMatrix(0, 1));
+      SETSTAT_FT(stats.gproj_2, g_fProjectionMatrix(0, 2));
+      SETSTAT_FT(stats.gproj_3, g_fProjectionMatrix(0, 3));
+      SETSTAT_FT(stats.gproj_4, g_fProjectionMatrix(1, 0));
+      SETSTAT_FT(stats.gproj_5, g_fProjectionMatrix(1, 1));
+      SETSTAT_FT(stats.gproj_6, g_fProjectionMatrix(1, 2));
+      SETSTAT_FT(stats.gproj_7, g_fProjectionMatrix(1, 3));
+      SETSTAT_FT(stats.gproj_8, g_fProjectionMatrix(2, 0));
+      SETSTAT_FT(stats.gproj_9, g_fProjectionMatrix(2, 1));
+      SETSTAT_FT(stats.gproj_10, g_fProjectionMatrix(2, 2));
+      SETSTAT_FT(stats.gproj_11, g_fProjectionMatrix(2, 3));
+      SETSTAT_FT(stats.gproj_12, g_fProjectionMatrix(3, 0));
+      SETSTAT_FT(stats.gproj_13, g_fProjectionMatrix(3, 1));
+      SETSTAT_FT(stats.gproj_14, g_fProjectionMatrix(3, 2));
+      SETSTAT_FT(stats.gproj_15, g_fProjectionMatrix(3, 3));
       break;
 
     case GX_ORTHOGRAPHIC:
+      g_fProjectionMatrix.row(0) << rawProjection[0], 0.0f, 0.0f, rawProjection[1];
+      g_fProjectionMatrix.row(1) << 0.0f, rawProjection[2], 0.0f, rawProjection[3];
 
-      g_fProjectionMatrix[0] = rawProjection[0];
-      g_fProjectionMatrix[1] = 0.0f;
-      g_fProjectionMatrix[2] = 0.0f;
-      g_fProjectionMatrix[3] = rawProjection[1];
+      g_fProjectionMatrix(2, 0) = 0.0f;
+      g_fProjectionMatrix(2, 1) = 0.0f;
+      g_fProjectionMatrix(2, 2) = (g_proj_hack_near.value + rawProjection[4]) *
+                                  ((g_proj_hack_near.sign == 0) ? 1.0f : g_proj_hack_near.sign);
+      g_fProjectionMatrix(2, 3) = (g_proj_hack_far.value + rawProjection[5]) *
+                                  ((g_proj_hack_far.sign == 0) ? 1.0f : g_proj_hack_far.sign);
 
-      g_fProjectionMatrix[4] = 0.0f;
-      g_fProjectionMatrix[5] = rawProjection[2];
-      g_fProjectionMatrix[6] = 0.0f;
-      g_fProjectionMatrix[7] = rawProjection[3];
+      g_fProjectionMatrix.row(3) << 0.0f, 0.0f, 0.0f, 1.0f;
 
-      g_fProjectionMatrix[8] = 0.0f;
-      g_fProjectionMatrix[9] = 0.0f;
-      g_fProjectionMatrix[10] = (g_proj_hack_near.value + rawProjection[4]) *
-                                ((g_proj_hack_near.sign == 0) ? 1.0f : g_proj_hack_near.sign);
-      g_fProjectionMatrix[11] = (g_proj_hack_far.value + rawProjection[5]) *
-                                ((g_proj_hack_far.sign == 0) ? 1.0f : g_proj_hack_far.sign);
-
-      g_fProjectionMatrix[12] = 0.0f;
-      g_fProjectionMatrix[13] = 0.0f;
-
-      g_fProjectionMatrix[14] = 0.0f;
-      g_fProjectionMatrix[15] = 1.0f;
-
-      SETSTAT_FT(stats.g2proj_0, g_fProjectionMatrix[0]);
-      SETSTAT_FT(stats.g2proj_1, g_fProjectionMatrix[1]);
-      SETSTAT_FT(stats.g2proj_2, g_fProjectionMatrix[2]);
-      SETSTAT_FT(stats.g2proj_3, g_fProjectionMatrix[3]);
-      SETSTAT_FT(stats.g2proj_4, g_fProjectionMatrix[4]);
-      SETSTAT_FT(stats.g2proj_5, g_fProjectionMatrix[5]);
-      SETSTAT_FT(stats.g2proj_6, g_fProjectionMatrix[6]);
-      SETSTAT_FT(stats.g2proj_7, g_fProjectionMatrix[7]);
-      SETSTAT_FT(stats.g2proj_8, g_fProjectionMatrix[8]);
-      SETSTAT_FT(stats.g2proj_9, g_fProjectionMatrix[9]);
-      SETSTAT_FT(stats.g2proj_10, g_fProjectionMatrix[10]);
-      SETSTAT_FT(stats.g2proj_11, g_fProjectionMatrix[11]);
-      SETSTAT_FT(stats.g2proj_12, g_fProjectionMatrix[12]);
-      SETSTAT_FT(stats.g2proj_13, g_fProjectionMatrix[13]);
-      SETSTAT_FT(stats.g2proj_14, g_fProjectionMatrix[14]);
-      SETSTAT_FT(stats.g2proj_15, g_fProjectionMatrix[15]);
-      SETSTAT_FT(stats.proj_0, rawProjection[0]);
-      SETSTAT_FT(stats.proj_1, rawProjection[1]);
-      SETSTAT_FT(stats.proj_2, rawProjection[2]);
-      SETSTAT_FT(stats.proj_3, rawProjection[3]);
-      SETSTAT_FT(stats.proj_4, rawProjection[4]);
-      SETSTAT_FT(stats.proj_5, rawProjection[5]);
+      SETSTAT_FT(stats.g2proj_0, g_fProjectionMatrix(0, 0));
+      SETSTAT_FT(stats.g2proj_1, g_fProjectionMatrix(0, 1));
+      SETSTAT_FT(stats.g2proj_2, g_fProjectionMatrix(0, 2));
+      SETSTAT_FT(stats.g2proj_3, g_fProjectionMatrix(0, 3));
+      SETSTAT_FT(stats.g2proj_4, g_fProjectionMatrix(1, 0));
+      SETSTAT_FT(stats.g2proj_5, g_fProjectionMatrix(1, 1));
+      SETSTAT_FT(stats.g2proj_6, g_fProjectionMatrix(1, 2));
+      SETSTAT_FT(stats.g2proj_7, g_fProjectionMatrix(1, 3));
+      SETSTAT_FT(stats.g2proj_8, g_fProjectionMatrix(2, 0));
+      SETSTAT_FT(stats.g2proj_9, g_fProjectionMatrix(2, 1));
+      SETSTAT_FT(stats.g2proj_10, g_fProjectionMatrix(2, 2));
+      SETSTAT_FT(stats.g2proj_11, g_fProjectionMatrix(2, 3));
+      SETSTAT_FT(stats.g2proj_12, g_fProjectionMatrix(3, 0));
+      SETSTAT_FT(stats.g2proj_13, g_fProjectionMatrix(3, 1));
+      SETSTAT_FT(stats.g2proj_14, g_fProjectionMatrix(3, 2));
+      SETSTAT_FT(stats.g2proj_15, g_fProjectionMatrix(3, 3));
       break;
 
     default:
       ERROR_LOG(VIDEO, "Unknown projection type: %d", xfmem.projection.type);
+      break;
     }
+
+    SETSTAT_FT(stats.proj_0, rawProjection[0]);
+    SETSTAT_FT(stats.proj_1, rawProjection[1]);
+    SETSTAT_FT(stats.proj_2, rawProjection[2]);
+    SETSTAT_FT(stats.proj_3, rawProjection[3]);
+    SETSTAT_FT(stats.proj_4, rawProjection[4]);
+    SETSTAT_FT(stats.proj_5, rawProjection[5]);
 
     PRIM_LOG("Projection: %f %f %f %f %f %f", rawProjection[0], rawProjection[1], rawProjection[2],
              rawProjection[3], rawProjection[4], rawProjection[5]);
 
+    constants.projection = s_viewportCorrection * g_fProjectionMatrix;
     if (g_ActiveConfig.bFreeLook && xfmem.projection.type == GX_PERSPECTIVE)
     {
-      Matrix44 mtxA;
-      Matrix44 mtxB;
-      Matrix44 viewMtx;
+      const Eigen::Projective3f rotation(s_viewRotationMatrix);
+      const Eigen::Translation3f translation(s_fViewTranslationVector);
 
-      Matrix44::Translate(mtxA, s_fViewTranslationVector);
-      Matrix44::LoadMatrix33(mtxB, s_viewRotationMatrix);
-      Matrix44::Multiply(mtxB, mtxA, viewMtx);  // view = rotation x translation
-      Matrix44::Set(mtxB, g_fProjectionMatrix);
-      Matrix44::Multiply(mtxB, viewMtx, mtxA);               // mtxA = projection x view
-      Matrix44::Multiply(s_viewportCorrection, mtxA, mtxB);  // mtxB = viewportCorrection x mtxA
-      memcpy(constants.projection.data(), mtxB.data, 4 * sizeof(float4));
-    }
-    else
-    {
-      Matrix44 projMtx;
-      Matrix44::Set(projMtx, g_fProjectionMatrix);
-
-      Matrix44 correctedMtx;
-      Matrix44::Multiply(s_viewportCorrection, projMtx, correctedMtx);
-      memcpy(constants.projection.data(), correctedMtx.data, 4 * sizeof(float4));
+      constants.projection *= Eigen::Projective3f(rotation * translation).matrix();
     }
 
     dirty = true;
@@ -746,42 +709,30 @@ void VertexShaderManager::SetMaterialColorChanged(int index)
 
 void VertexShaderManager::TranslateView(float x, float y, float z)
 {
-  float result[3];
-  float vector[3] = {x, z, y};
-
-  Matrix33::Multiply(s_viewInvRotationMatrix, vector, result);
-
-  for (size_t i = 0; i < ArraySize(result); i++)
-    s_fViewTranslationVector[i] += result[i];
-
+  // Yes, (x, z, y) is the correct order.
+  s_fViewTranslationVector += s_viewInvRotationMatrix * MathUtil::Vector3f(x, z, y);
   bProjectionChanged = true;
 }
 
 void VertexShaderManager::RotateView(float x, float y)
 {
-  s_fViewRotation[0] += x;
-  s_fViewRotation[1] += y;
+  s_fViewRotation += MathUtil::Vector2f(x, y);
 
-  Matrix33 mx;
-  Matrix33 my;
-  Matrix33::RotateX(mx, s_fViewRotation[1]);
-  Matrix33::RotateY(my, s_fViewRotation[0]);
-  Matrix33::Multiply(mx, my, s_viewRotationMatrix);
+  const Eigen::AngleAxisf x_rot(s_fViewRotation.x(), MathUtil::Vector3f::UnitY());
+  const Eigen::AngleAxisf y_rot(s_fViewRotation.y(), MathUtil::Vector3f::UnitX());
 
-  // reverse rotation
-  Matrix33::RotateX(mx, -s_fViewRotation[1]);
-  Matrix33::RotateY(my, -s_fViewRotation[0]);
-  Matrix33::Multiply(my, mx, s_viewInvRotationMatrix);
+  s_viewRotationMatrix = y_rot * x_rot;
+  s_viewInvRotationMatrix = x_rot.inverse() * y_rot.inverse();
 
   bProjectionChanged = true;
 }
 
 void VertexShaderManager::ResetView()
 {
-  memset(s_fViewTranslationVector, 0, sizeof(s_fViewTranslationVector));
-  Matrix33::LoadIdentity(s_viewRotationMatrix);
-  Matrix33::LoadIdentity(s_viewInvRotationMatrix);
-  s_fViewRotation[0] = s_fViewRotation[1] = 0.0f;
+  s_fViewTranslationVector.setZero();
+  s_viewRotationMatrix.setIdentity();
+  s_viewInvRotationMatrix.setIdentity();
+  s_fViewRotation.setZero();
 
   bProjectionChanged = true;
 }
@@ -809,25 +760,16 @@ void VertexShaderManager::SetLightingConfigChanged()
 
 void VertexShaderManager::TransformToClipSpace(const float* data, float* out, u32 MtxIdx)
 {
-  const float* world_matrix = &xfmem.posMatrices[(MtxIdx & 0x3f) * 4];
+  const MathUtil::Matrix3x4f world_matrix(&xfmem.posMatrices[(MtxIdx & 0x3f) * 4]);
 
   // We use the projection matrix calculated by VertexShaderManager, because it
   // includes any free look transformations.
   // Make sure VertexShaderManager::SetConstants() has been called first.
-  const float* proj_matrix = &g_fProjectionMatrix[0];
 
-  const float t[3] = {data[0] * world_matrix[0] + data[1] * world_matrix[1] +
-                          data[2] * world_matrix[2] + world_matrix[3],
-                      data[0] * world_matrix[4] + data[1] * world_matrix[5] +
-                          data[2] * world_matrix[6] + world_matrix[7],
-                      data[0] * world_matrix[8] + data[1] * world_matrix[9] +
-                          data[2] * world_matrix[10] + world_matrix[11]};
-
-  out[0] = t[0] * proj_matrix[0] + t[1] * proj_matrix[1] + t[2] * proj_matrix[2] + proj_matrix[3];
-  out[1] = t[0] * proj_matrix[4] + t[1] * proj_matrix[5] + t[2] * proj_matrix[6] + proj_matrix[7];
-  out[2] = t[0] * proj_matrix[8] + t[1] * proj_matrix[9] + t[2] * proj_matrix[10] + proj_matrix[11];
-  out[3] =
-      t[0] * proj_matrix[12] + t[1] * proj_matrix[13] + t[2] * proj_matrix[14] + proj_matrix[15];
+  const MathUtil::Vector3f vertex(data);
+  const MathUtil::Vector4f result =
+      g_fProjectionMatrix * (Eigen::AffineCompact3f(world_matrix) * vertex).homogeneous();
+  std::copy(result.data(), &result.data()[4], out);
 }
 
 void VertexShaderManager::DoState(PointerWrap& p)

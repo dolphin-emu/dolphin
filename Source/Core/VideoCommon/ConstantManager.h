@@ -7,6 +7,7 @@
 #include <array>
 
 #include "Common/CommonTypes.h"
+#include "Common/MathUtil.h"
 
 // all constant buffer attributes must be 16 bytes aligned, so this are the only allowed components:
 using float4 = std::array<float, 4>;
@@ -52,7 +53,7 @@ struct VertexShaderConstants
   u32 pad1;                 // .w
 
   std::array<float4, 6> posnormalmatrix;
-  std::array<float4, 4> projection;
+  Eigen::Matrix<float, 4, 4, Eigen::DontAlign> projection;
   std::array<int4, 4> materials;
   struct Light
   {

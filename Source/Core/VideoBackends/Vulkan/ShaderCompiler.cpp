@@ -60,6 +60,7 @@ static const char SHADER_HEADER[] = R"(
   #define float2 vec2
   #define float3 vec3
   #define float4 vec4
+  #define float4x4 mat4
   #define uint2 uvec2
   #define uint3 uvec3
   #define uint4 uvec4
@@ -68,6 +69,7 @@ static const char SHADER_HEADER[] = R"(
   #define int4 ivec4
   #define frac fract
   #define lerp mix
+  float4 mul(float4x4 m, float4 v) { return m * v; }
 
   // These were changed in Vulkan
   #define gl_VertexID gl_VertexIndex
@@ -86,6 +88,7 @@ static const char COMPUTE_SHADER_HEADER[] = R"(
   #define float2 vec2
   #define float3 vec3
   #define float4 vec4
+  #define float4x4 mat4
   #define uint2 uvec2
   #define uint3 uvec3
   #define uint4 uvec4
@@ -94,6 +97,7 @@ static const char COMPUTE_SHADER_HEADER[] = R"(
   #define int4 ivec4
   #define frac fract
   #define lerp mix
+  float4 mul(float4x4 m, float4 v) { return m * v; }
 )";
 
 bool CompileShaderToSPV(SPIRVCodeVector* out_code, EShLanguage stage, const char* stage_filename,

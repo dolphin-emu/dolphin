@@ -105,6 +105,7 @@
     <ClInclude Include="BPMemory.h" />
     <ClInclude Include="BPStructs.h" />
     <ClInclude Include="CommandProcessor.h" />
+    <ClInclude Include="ConstantManager.h" />
     <ClInclude Include="CPMemory.h" />
     <ClInclude Include="DataReader.h" />
     <ClInclude Include="Debugger.h" />

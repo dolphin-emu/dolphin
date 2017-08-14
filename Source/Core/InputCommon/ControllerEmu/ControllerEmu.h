@@ -14,7 +14,11 @@
 
 class ControllerInterface;
 
-#define sign(x) ((x) ? (x) < 0 ? -1 : 1 : 0)
+template <typename T>
+constexpr int sign(T x)
+{
+  return ((x) ? (x) < 0 ? -1 : 1 : 0);
+}
 
 const char* const named_directions[] = {"Up", "Down", "Left", "Right"};
 

@@ -431,7 +431,6 @@
     <ClInclude Include="HW\WiimoteEmu\Attachment\Nunchuk.h" />
     <ClInclude Include="HW\WiimoteEmu\Attachment\Turntable.h" />
     <ClInclude Include="HW\WiimoteEmu\Encryption.h" />
-    <ClInclude Include="HW\WiimoteEmu\MatrixMath.h" />
     <ClInclude Include="HW\WiimoteEmu\WiimoteEmu.h" />
     <ClInclude Include="HW\WiimoteEmu\WiimoteHid.h" />
     <ClInclude Include="HW\WiimoteReal\WiimoteReal.h" />

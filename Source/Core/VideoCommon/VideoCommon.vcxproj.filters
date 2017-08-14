@@ -356,6 +356,9 @@
     <ClInclude Include="UberShaderVertex.h">
       <Filter>Shader Generators</Filter>
     </ClInclude>
+    <ClInclude Include="ConstantManager.h">
+      <Filter>Shader Generators</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

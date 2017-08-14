@@ -27,7 +27,6 @@
 #include "Core/HW/WiimoteEmu/Attachment/Guitar.h"
 #include "Core/HW/WiimoteEmu/Attachment/Nunchuk.h"
 #include "Core/HW/WiimoteEmu/Attachment/Turntable.h"
-#include "Core/HW/WiimoteEmu/MatrixMath.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayClient.h"
@@ -554,7 +553,7 @@ void Wiimote::GetIRData(u8* const data, bool use_accel)
 
   m_ir->GetState(&xx, &yy, &zz, true);
 
-  Vertex v[4];
+  MathUtil::Vector3d v[4];
 
   static const int camWidth = 1024;
   static const int camHeight = 768;
@@ -567,36 +566,42 @@ void Wiimote::GetIRData(u8* const data, bool use_accel)
 
   for (auto& vtx : v)
   {
-    vtx.x = xx * (bndright - bndleft) / 2 + (bndleft + bndright) / 2;
+    vtx.x() = xx * (bndright - bndleft) / 2 + (bndleft + bndright) / 2;
     if (m_sensor_bar_on_top)
-      vtx.y = yy * (bndup - bnddown) / 2 + (bndup + bnddown) / 2;
+      vtx.y() = yy * (bndup - bnddown) / 2 + (bndup + bnddown) / 2;
     else
-      vtx.y = yy * (bndup - bnddown) / 2 - (bndup + bnddown) / 2;
-    vtx.z = 0;
+      vtx.y() = yy * (bndup - bnddown) / 2 - (bndup + bnddown) / 2;
+    vtx.z() = 0;
   }
 
-  v[0].x -= (zz * 0.5 + 1) * dist1;
-  v[1].x += (zz * 0.5 + 1) * dist1;
-  v[2].x -= (zz * 0.5 + 1) * dist2;
-  v[3].x += (zz * 0.5 + 1) * dist2;
+  v[0].x() -= (zz * 0.5 + 1) * dist1;
+  v[1].x() += (zz * 0.5 + 1) * dist1;
+  v[2].x() -= (zz * 0.5 + 1) * dist2;
+  v[3].x() += (zz * 0.5 + 1) * dist2;
 
-#define printmatrix(m)                                                                             \
-  PanicAlert("%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n", m[0][0], m[0][1], m[0][2],    \
-             m[0][3], m[1][0], m[1][1], m[1][2], m[1][3], m[2][0], m[2][1], m[2][2], m[2][3],      \
-             m[3][0], m[3][1], m[3][2], m[3][3])
-  Matrix rot, tot;
-  static Matrix scale;
-  MatrixScale(scale, 1, camWidth / camHeight, 1);
-  MatrixRotationByZ(rot, ir_sin, ir_cos);
-  MatrixMultiply(tot, scale, rot);
+  Eigen::Matrix4d rot, tot;
+  static Eigen::Matrix4d scale;
+
+  // XXX: This line looks wrong -- the second argument uses integer division when it should use
+  //      floating-point division. A corrected version of the second argument is:
+  //      `static_cast<double>(camWidth) / camHeight`.
+  //      However, the surrounding code is calibrated around this longstanding error. thus, we
+  //      cannot change this line without causing more issues.
+  scale = Eigen::Affine3d(Eigen::Scaling<double>(1.0, camWidth / camHeight, 1.0)).matrix();
+
+  // Rotation about Z axis
+  rot.setIdentity();
+  rot.row(0) << ir_cos, -ir_sin, 0.0, 0.0;
+  rot.row(1) << ir_sin, ir_cos, 0.0, 0.0;
+  tot = scale * rot;
 
   for (int i = 0; i < 4; i++)
   {
-    MatrixTransformVertex(tot, v[i]);
-    if ((v[i].x < -1) || (v[i].x > 1) || (v[i].y < -1) || (v[i].y > 1))
+    v[i] = (Eigen::Projective3d(tot) * v[i].homogeneous()).hnormalized();
+    if ((v[i].x() < -1) || (v[i].x() > 1) || (v[i].y() < -1) || (v[i].y() > 1))
       continue;
-    x[i] = (u16)lround((v[i].x + 1) / 2 * (camWidth - 1));
-    y[i] = (u16)lround((v[i].y + 1) / 2 * (camHeight - 1));
+    x[i] = (u16)lround((v[i].x() + 1) / 2 * (camWidth - 1));
+    y[i] = (u16)lround((v[i].y() + 1) / 2 * (camHeight - 1));
   }
   // Fill report with valid data when full handshake was done
   if (m_reg_ir.data[0x30])

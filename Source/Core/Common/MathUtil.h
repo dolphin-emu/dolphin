@@ -9,6 +9,8 @@
 #include <cstdlib>
 #include <vector>
 
+#include <Eigen/Dense>
+
 #include "Common/CommonTypes.h"
 
 #ifdef _MSC_VER
@@ -187,6 +189,21 @@ struct Rectangle
   }
 };
 
+// Vectors are matrices with one column.
+typedef Eigen::Matrix<float, 2, 1, Eigen::DontAlign> Vector2f;
+typedef Eigen::Matrix<double, 2, 1, Eigen::DontAlign> Vector2d;
+typedef Eigen::Matrix<float, 3, 1, Eigen::DontAlign> Vector3f;
+typedef Eigen::Matrix<double, 3, 1, Eigen::DontAlign> Vector3d;
+typedef Eigen::Matrix<float, 4, 1, Eigen::DontAlign> Vector4f;
+typedef Eigen::Matrix<double, 4, 1, Eigen::DontAlign> Vector4d;
+
+typedef Eigen::Matrix<float, 3, 3, Eigen::DontAlign> Matrix3f;
+typedef Eigen::Matrix<double, 3, 3, Eigen::DontAlign> Matrix3d;
+typedef Eigen::Matrix<float, 3, 4, Eigen::DontAlign> Matrix3x4f;
+typedef Eigen::Matrix<double, 3, 4, Eigen::DontAlign> Matrix3x4d;
+typedef Eigen::Matrix<float, 4, 4, Eigen::DontAlign> Matrix4f;
+typedef Eigen::Matrix<double, 4, 4, Eigen::DontAlign> Matrix4d;
+
 }  // namespace MathUtil
 
 float MathFloatVectorSum(const std::vector<float>&);
@@ -212,38 +229,3 @@ inline int IntLog2(u64 val)
   return result;
 #endif
 }
-
-// Tiny matrix/vector library.
-// Used for things like Free-Look in the gfx backend.
-
-class Matrix33
-{
-public:
-  static void LoadIdentity(Matrix33& mtx);
-
-  // set mtx to be a rotation matrix around the x axis
-  static void RotateX(Matrix33& mtx, float rad);
-  // set mtx to be a rotation matrix around the y axis
-  static void RotateY(Matrix33& mtx, float rad);
-
-  // set result = a x b
-  static void Multiply(const Matrix33& a, const Matrix33& b, Matrix33& result);
-  static void Multiply(const Matrix33& a, const float vec[3], float result[3]);
-
-  float data[9];
-};
-
-class Matrix44
-{
-public:
-  static void LoadIdentity(Matrix44& mtx);
-  static void LoadMatrix33(Matrix44& mtx, const Matrix33& m33);
-  static void Set(Matrix44& mtx, const float mtxArray[16]);
-
-  static void Translate(Matrix44& mtx, const float vec[3]);
-  static void Shear(Matrix44& mtx, const float a, const float b = 0);
-
-  static void Multiply(const Matrix44& a, const Matrix44& b, Matrix44& result);
-
-  float data[16];
-};

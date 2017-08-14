@@ -232,8 +232,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
   if (!(uid_data->components & VB_HAS_NRM0))
     out.Write("float3 _norm0 = float3(0.0, 0.0, 0.0);\n");
 
-  out.Write("o.pos = float4(dot(" I_PROJECTION "[0], pos), dot(" I_PROJECTION
-            "[1], pos), dot(" I_PROJECTION "[2], pos), dot(" I_PROJECTION "[3], pos));\n");
+  out.Write("o.pos = mul(" I_PROJECTION ", pos);\n");
 
   out.Write("int4 lacc;\n"
             "float3 ldir, h, cosAttn, distAttn;\n"

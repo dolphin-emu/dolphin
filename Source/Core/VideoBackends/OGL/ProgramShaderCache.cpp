@@ -915,6 +915,7 @@ void ProgramShaderCache::CreateHeader()
       "#define float2 vec2\n"
       "#define float3 vec3\n"
       "#define float4 vec4\n"
+      "#define float4x4 mat4\n"
       "#define uint2 uvec2\n"
       "#define uint3 uvec3\n"
       "#define uint4 uvec4\n"
@@ -925,6 +926,7 @@ void ProgramShaderCache::CreateHeader()
       // hlsl to glsl function translation
       "#define frac fract\n"
       "#define lerp mix\n"
+      "float4 mul(float4x4 m, float4 v) { return m * v; }\n"
 
       ,
       GetGLSLVersionString().c_str(),

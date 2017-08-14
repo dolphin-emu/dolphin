@@ -142,8 +142,7 @@ ShaderCode GenVertexShader(APIType ApiType, const ShaderHostConfig& host_config,
             "}\n"
             "\n"
             "float4 pos = float4(dot(P0, rawpos), dot(P1, rawpos), dot(P2, rawpos), 1.0);\n"
-            "o.pos = float4(dot(" I_PROJECTION "[0], pos), dot(" I_PROJECTION
-            "[1], pos), dot(" I_PROJECTION "[2], pos), dot(" I_PROJECTION "[3], pos));\n"
+            "o.pos = mul(" I_PROJECTION ", pos);\n"
             "\n"
             "// Only the first normal gets normalized (TODO: why?)\n"
             "float3 _norm0 = float3(0.0, 0.0, 0.0);\n"
