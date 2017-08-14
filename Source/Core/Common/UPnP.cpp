@@ -39,8 +39,8 @@ static bool InitUPnP()
   if (s_error)
     return false;
 
-  std::memset(&s_urls, 0, sizeof(UPNPUrls));
-  std::memset(&s_data, 0, sizeof(IGDdatas));
+  s_urls = {};
+  s_data = {};
 
   // Find all UPnP devices
   int upnperror = 0;
