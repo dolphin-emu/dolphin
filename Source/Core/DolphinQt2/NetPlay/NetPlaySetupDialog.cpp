@@ -181,7 +181,9 @@ void NetPlaySetupDialog::SaveSettings()
   Config::SetBaseOrCurrent(Config::NETPLAY_CONNECT_PORT,
                            static_cast<u16>(m_connect_port_box->value()));
   Config::SetBaseOrCurrent(Config::NETPLAY_HOST_PORT, static_cast<u16>(m_host_port_box->value()));
+#ifdef USE_UPNP
   Config::SetBaseOrCurrent(Config::NETPLAY_USE_UPNP, m_host_upnp->isChecked());
+#endif
 
   if (m_host_force_port_check->isChecked())
     Config::SetBaseOrCurrent(Config::NETPLAY_LISTEN_PORT,
@@ -195,7 +197,9 @@ void NetPlaySetupDialog::OnConnectionTypeChanged(int index)
 
   m_host_port_label->setHidden(index != 0);
   m_host_port_box->setHidden(index != 0);
+#ifdef USE_UPNP
   m_host_upnp->setHidden(index != 0);
+#endif
   m_host_force_port_check->setHidden(index == 0);
   m_host_force_port_box->setHidden(index == 0);
 
