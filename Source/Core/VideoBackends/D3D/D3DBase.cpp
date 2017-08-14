@@ -103,25 +103,16 @@ HRESULT LoadD3DCompiler()
   if (hD3DCompilerDll)
     return S_OK;
 
-  // try to load D3DCompiler first to check whether we have proper runtime support
-  // try to use the dll the backend was compiled against first - don't bother about debug runtimes
+  // The older version of the D3D compiler cannot compile our ubershaders without various
+  // graphical issues. D3DCOMPILER_DLL_A should point to d3dcompiler_47.dll, so if this fails
+  // to load, inform the user that they need to update their system.
   hD3DCompilerDll = LoadLibraryA(D3DCOMPILER_DLL_A);
   if (!hD3DCompilerDll)
   {
-    // if that fails, use the dll which should be available in every SDK which officially supports
-    // DX11.
-    hD3DCompilerDll = LoadLibraryA("D3DCompiler_42.dll");
-    if (!hD3DCompilerDll)
-    {
-      MessageBoxA(nullptr, "Failed to load D3DCompiler_42.dll, update your DX11 runtime, please",
-                  "Critical error", MB_OK | MB_ICONERROR);
-      return E_FAIL;
-    }
-    else
-    {
-      NOTICE_LOG(VIDEO, "Successfully loaded D3DCompiler_42.dll. If you're having trouble, try "
-                        "updating your DX runtime first.");
-    }
+    PanicAlertT("Failed to load %s. If you are using Windows 7, try installing the "
+                "KB4019990 update package.",
+                D3DCOMPILER_DLL_A);
+    return E_FAIL;
   }
 
   PD3DReflect = (D3DREFLECT)GetProcAddress(hD3DCompilerDll, "D3DReflect");
