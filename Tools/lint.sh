@@ -18,7 +18,7 @@ for f in ${modified_files}; do
   if ! echo "${f}" | egrep -q "[.](cpp|h|mm)$"; then
     continue
   fi
-  if ! echo "${f}" | egrep -q "^Source/Core"; then
+  if ! echo "${f}" | egrep -q "^Source"; then
     continue
   fi
 
