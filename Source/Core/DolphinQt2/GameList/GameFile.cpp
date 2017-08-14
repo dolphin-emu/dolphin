@@ -2,8 +2,6 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <QCryptographicHash>
-#include <QDataStream>
 #include <QDir>
 #include <QFileInfo>
 #include <QImage>
@@ -26,9 +24,6 @@
 #include "DolphinQt2/Resources.h"
 #include "DolphinQt2/Settings.h"
 
-static const int CACHE_VERSION = 13;  // Last changed in PR #3261
-static const int DATASTREAM_VERSION = QDataStream::Qt_5_5;
-
 QList<DiscIO::Language> GameFile::GetAvailableLanguages() const
 {
   return m_long_names.keys();
@@ -43,6 +38,11 @@ ConvertLanguageMap(const std::map<DiscIO::Language, std::string>& map)
   return result;
 }
 
+GameFile::GameFile()
+{
+  m_valid = false;
+}
+
 GameFile::GameFile(const QString& path) : m_path(path)
 {
   m_valid = false;
@@ -50,16 +50,13 @@ GameFile::GameFile(const QString& path) : m_path(path)
   if (!LoadFileInfo(path))
     return;
 
-  if (!TryLoadCache())
+  if (TryLoadVolume())
   {
-    if (TryLoadVolume())
-    {
-      LoadState();
-    }
-    else if (!TryLoadElfDol())
-    {
-      return;
-    }
+    LoadState();
+  }
+  else if (!TryLoadElfDol())
+  {
+    return;
   }
 
   m_valid = true;
@@ -74,16 +71,6 @@ bool GameFile::IsValid() const
     return false;
 
   return true;
-}
-
-QString GameFile::GetCacheFileName() const
-{
-  QString folder = QString::fromStdString(File::GetUserPath(D_CACHE_IDX));
-  // Append a hash of the full path to prevent name clashes between
-  // files with the same names in different folders.
-  QString hash =
-      QString::fromUtf8(QCryptographicHash::hash(m_path.toUtf8(), QCryptographicHash::Md5).toHex());
-  return folder + GetFileName() + hash;
 }
 
 void GameFile::ReadBanner(const DiscIO::Volume& volume)
@@ -129,27 +116,6 @@ bool GameFile::IsElfOrDol()
   return extension == QStringLiteral("elf") || extension == QStringLiteral("dol");
 }
 
-bool GameFile::TryLoadCache()
-{
-  QFile cache(GetCacheFileName());
-  if (!cache.exists())
-    return false;
-  if (!cache.open(QIODevice::ReadOnly))
-    return false;
-  if (QFileInfo(cache).lastModified() < m_last_modified)
-    return false;
-
-  QDataStream in(&cache);
-  in.setVersion(DATASTREAM_VERSION);
-
-  int cache_version;
-  in >> cache_version;
-  if (cache_version != CACHE_VERSION)
-    return false;
-
-  return false;
-}
-
 bool GameFile::TryLoadVolume()
 {
   QSharedPointer<DiscIO::Volume> volume(
@@ -179,7 +145,6 @@ bool GameFile::TryLoadVolume()
 
   ReadBanner(*volume);
 
-  SaveCache();
   return true;
 }
 
@@ -197,11 +162,6 @@ bool GameFile::TryLoadElfDol()
   m_rating = 0;
 
   return true;
-}
-
-void GameFile::SaveCache()
-{
-  // TODO
 }
 
 QString GameFile::GetFileName() const
@@ -426,4 +386,97 @@ QString FormatSize(qint64 size)
     num /= 1024.0;
   }
   return QStringLiteral("%1 %2").arg(QString::number(num, 'f', 1)).arg(unit);
+}
+
+template <typename T, typename U = std::enable_if_t<std::is_enum<T>::value>>
+QDataStream& operator<<(QDataStream& out, const T& enum_value)
+{
+  out << static_cast<std::underlying_type_t<T>>(enum_value);
+  return out;
+}
+
+template <typename T, typename U = std::enable_if_t<std::is_enum<T>::value>>
+QDataStream& operator>>(QDataStream& in, T& enum_value)
+{
+  std::underlying_type_t<T> tmp;
+  in >> tmp;
+  enum_value = static_cast<T>(tmp);
+  return in;
+}
+
+// Some C++ implementations define uint64_t as an 'unsigned long', but QDataStream only has built-in
+// overloads for quint64, which is an 'unsigned long long' on Unix
+QDataStream& operator<<(QDataStream& out, const unsigned long& integer)
+{
+  out << static_cast<quint64>(integer);
+  return out;
+}
+QDataStream& operator>>(QDataStream& in, unsigned long& integer)
+{
+  quint64 tmp;
+  in >> tmp;
+  integer = static_cast<unsigned long>(tmp);
+  return in;
+}
+
+QDataStream& operator<<(QDataStream& out, const GameFile& file)
+{
+  out << file.m_last_modified;
+  out << file.m_path;
+  out << file.m_title_id;
+  out << file.m_game_id;
+  out << file.m_maker_id;
+  out << file.m_maker;
+  out << file.m_long_makers;
+  out << file.m_short_makers;
+  out << file.m_internal_name;
+  out << file.m_long_names;
+  out << file.m_short_names;
+  out << file.m_platform;
+  out << file.m_region;
+  out << file.m_country;
+  out << file.m_blob_type;
+  out << file.m_size;
+  out << file.m_raw_size;
+  out << file.m_descriptions;
+  out << file.m_revision;
+  out << file.m_disc_number;
+  out << file.m_issues;
+  out << file.m_rating;
+  out << file.m_apploader_date;
+  out << file.m_banner;
+
+  return out;
+}
+
+QDataStream& operator>>(QDataStream& in, GameFile& file)
+{
+  in >> file.m_last_modified;
+  in >> file.m_path;
+  in >> file.m_title_id;
+  in >> file.m_game_id;
+  in >> file.m_maker_id;
+  in >> file.m_maker;
+  in >> file.m_long_makers;
+  in >> file.m_short_makers;
+  in >> file.m_internal_name;
+  in >> file.m_long_names;
+  in >> file.m_short_names;
+  in >> file.m_platform;
+  in >> file.m_region;
+  in >> file.m_country;
+  in >> file.m_blob_type;
+  in >> file.m_size;
+  in >> file.m_raw_size;
+  in >> file.m_descriptions;
+  in >> file.m_revision;
+  in >> file.m_disc_number;
+  in >> file.m_issues;
+  in >> file.m_rating;
+  in >> file.m_apploader_date;
+  in >> file.m_banner;
+
+  file.m_valid = true;
+
+  return in;
 }

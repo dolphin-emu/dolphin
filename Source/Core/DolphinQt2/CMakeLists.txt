@@ -59,6 +59,7 @@ set(SRCS
   Config/Mapping/WiimoteEmuMotionControl.cpp
   Config/PropertiesDialog.cpp
   Config/SettingsWindow.cpp
+  GameList/GameFileCache.cpp
   GameList/GameFile.cpp
   GameList/GameList.cpp
   GameList/GameListModel.cpp
