@@ -119,6 +119,10 @@ endif()
 
 add_dolphin_library(common "${SRCS}" "${LIBS}")
 
+if(OPROFILE_FOUND)
+  target_link_libraries(common PRIVATE ${OPROFILE_LIBRARIES})
+endif()
+
 if(UNIX)
   # Posix networking code needs to be fixed for Windows
   add_executable(traversal_server TraversalServer.cpp)

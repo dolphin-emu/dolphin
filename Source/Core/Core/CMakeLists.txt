@@ -345,10 +345,6 @@ if(TARGET Hidapi::Hidapi)
   add_definitions(-DHAVE_HIDAPI=1)
 endif()
 
-if(OPROFILE_FOUND)
-  set(LIBS ${LIBS} ${OPROFILE_LIBRARIES})
-endif()
-
 if(GDBSTUB)
   set(SRCS ${SRCS} PowerPC/GDBStub.cpp)
 endif()
