@@ -194,6 +194,16 @@ IPCCommandResult WFSSRV::IOCtl(const IOCtlRequest& request)
     break;
   }
 
+  case IOCTL_WFS_CLOSE_2:
+  {
+    // TODO(wfs): Figure out the exact semantics difference from the other
+    // close.
+    u16 fd = Memory::Read_U16(request.buffer_in + 0x4);
+    INFO_LOG(IOS, "IOCTL_WFS_CLOSE_2(%d)", fd);
+    ReleaseFileDescriptor(fd);
+    break;
+  }
+
   case IOCTL_WFS_READ:
   case IOCTL_WFS_READ_ABSOLUTE:
   {
