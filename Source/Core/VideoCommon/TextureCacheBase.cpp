@@ -1108,7 +1108,7 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::GetTexture(u32 address, u32 wid
 void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstFormat,
                                                  u32 dstStride, bool is_depth_copy,
                                                  const EFBRectangle& srcRect, bool isIntensity,
-                                                 bool scaleByHalf, float y_scale)
+                                                 bool scaleByHalf, float y_scale, float gamma)
 {
   // Emulation methods:
   //
@@ -1558,6 +1558,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstF
       entry->SetGeneralParameters(dstAddr, 0, baseFormat, is_xfb_copy);
       entry->SetDimensions(tex_w, tex_h, 1);
       entry->y_scale = y_scale;
+      entry->gamma = gamma;
 
       entry->frameCount = FRAMECOUNT_INVALID;
       if (is_xfb_copy)

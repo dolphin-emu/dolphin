@@ -599,7 +599,7 @@ void Renderer::RecordVideoMemory()
 }
 
 void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const EFBRectangle& rc,
-                    u64 ticks, float Gamma)
+                    u64 ticks)
 {
   // Heuristic to detect if a GameCube game is in 16:9 anamorphic widescreen mode.
   if (!SConfig::GetInstance().bWii)
@@ -646,7 +646,7 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
       m_last_xfb_texture = xfb_entry->texture.get();
 
       // TODO: merge more generic parts into VideoCommon
-      g_renderer->SwapImpl(xfb_entry->texture.get(), rc, ticks, Gamma);
+      g_renderer->SwapImpl(xfb_entry->texture.get(), rc, ticks, xfb_entry->gamma);
 
       m_fps_counter.Update();
       update_frame_count = true;

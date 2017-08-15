@@ -88,6 +88,7 @@ public:
     bool should_force_safe_hashing = false;  // for XFB
     bool is_xfb_copy = false;
     float y_scale = 1.0f;
+    float gamma = 1.0f;
 
     unsigned int native_width,
         native_height;  // Texture dimensions from the GameCube's point of view
@@ -190,7 +191,7 @@ public:
   virtual void BindTextures();
   void CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstFormat, u32 dstStride,
                                  bool is_depth_copy, const EFBRectangle& srcRect, bool isIntensity,
-                                 bool scaleByHalf, float y_scale);
+                                 bool scaleByHalf, float y_scale, float gamma);
 
   virtual void ConvertTexture(TCacheEntry* entry, TCacheEntry* unconverted, const void* palette,
                               TLUTFormat format) = 0;
