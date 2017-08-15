@@ -248,6 +248,13 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
 
     break;
 
+  case IOCTL_WFSI_SET_FST_BUFFER:
+  {
+    INFO_LOG(IOS, "IOCTL_WFSI_SET_FST_BUFFER: address %08x, size %08x", request.buffer_in,
+             request.buffer_in_size);
+    break;
+  }
+
   case IOCTL_WFSI_LOAD_DOL:
   {
     std::string path = StringFromFormat("/vol/%s/title/%s/%s/content", m_device_name.c_str(),

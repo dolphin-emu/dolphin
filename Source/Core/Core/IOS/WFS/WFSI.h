@@ -84,6 +84,8 @@ private:
 
     IOCTL_WFSI_APPLY_TITLE_PROFILE = 0x89,
 
+    IOCTL_WFSI_SET_FST_BUFFER = 0x8e,
+
     IOCTL_WFSI_LOAD_DOL = 0x90,
   };
 };
