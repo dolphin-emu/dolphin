@@ -127,6 +127,7 @@ public:
   ReturnCode DeleteContent(u64 title_id, u32 content_id) const;
 
   ReturnCode GetDeviceId(u32* device_id) const;
+  ReturnCode GetTitleId(u64* device_id) const;
 
   // Views
   ReturnCode GetV0TicketFromView(const u8* ticket_view, u8* ticket) const;
@@ -243,7 +244,7 @@ private:
   // Misc
   IPCCommandResult SetUID(u32 uid, const IOCtlVRequest& request);
   IPCCommandResult GetTitleDirectory(const IOCtlVRequest& request);
-  IPCCommandResult GetTitleID(const IOCtlVRequest& request);
+  IPCCommandResult GetTitleId(const IOCtlVRequest& request);
   IPCCommandResult GetConsumption(const IOCtlVRequest& request);
   IPCCommandResult Launch(const IOCtlVRequest& request);
   IPCCommandResult LaunchBC(const IOCtlVRequest& request);

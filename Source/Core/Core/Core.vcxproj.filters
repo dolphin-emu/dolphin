@@ -826,6 +826,9 @@
     <ClCompile Include="IOS\USB\USB_HID\HIDv4.cpp">
       <Filter>IOS\USB</Filter>
     </ClCompile>
+    <ClCompile Include="IOS\USB\USB_HID\HIDv5.cpp">
+      <Filter>IOS\USB</Filter>
+    </ClCompile>
     <ClCompile Include="IOS\USB\USB_VEN\VEN.cpp">
       <Filter>IOS\USB</Filter>
     </ClCompile>
@@ -1467,6 +1470,9 @@
       <Filter>IOS\USB</Filter>
     </ClInclude>
     <ClInclude Include="IOS\USB\USB_HID\HIDv4.h">
+      <Filter>IOS\USB</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\USB\USB_HID\HIDv5.h">
       <Filter>IOS\USB</Filter>
     </ClInclude>
     <ClInclude Include="IOS\USB\USB_VEN\VEN.h">

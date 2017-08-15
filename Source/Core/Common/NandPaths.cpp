@@ -58,6 +58,35 @@ std::string GetTMDFileName(u64 _titleID, FromWhichRoot from)
   return GetTitleContentPath(_titleID, from) + "title.tmd";
 }
 
+bool IsTitlePath(const std::string& path, FromWhichRoot from, u64* title_id)
+{
+  std::string expected_prefix = RootUserPath(from) + "/title/";
+  if (!StringBeginsWith(path, expected_prefix))
+  {
+    return false;
+  }
+
+  // Try to find a title ID in the remaining path.
+  std::string subdirectory = path.substr(expected_prefix.size());
+  std::vector<std::string> components = SplitString(subdirectory, '/');
+  if (components.size() < 2)
+  {
+    return false;
+  }
+
+  u32 title_id_high, title_id_low;
+  if (!AsciiToHex(components[0], title_id_high) || !AsciiToHex(components[1], title_id_low))
+  {
+    return false;
+  }
+
+  if (title_id != nullptr)
+  {
+    *title_id = (static_cast<u64>(title_id_high) << 32) | title_id_low;
+  }
+  return true;
+}
+
 std::string EscapeFileName(const std::string& filename)
 {
   // Prevent paths from containing special names like ., .., ..., ...., and so on

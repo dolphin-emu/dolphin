@@ -21,6 +21,8 @@
 #include "Common/NandPaths.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/SystemTimers.h"
+#include "Core/IOS/ES/ES.h"
+#include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/FS/FileIO.h"
 
 namespace IOS
@@ -325,6 +327,18 @@ IPCCommandResult FS::GetAttribute(const IOCtlRequest& request)
   u8 GroupPerm = 0x3;    // read/write
   u8 OtherPerm = 0x3;    // read/write
   u8 Attributes = 0x00;  // no attributes
+
+  // Hack: if the path that is being accessed is within an installed title directory, get the
+  // UID/GID from the installed title TMD.
+  u64 title_id;
+  if (IsTitlePath(Filename, Common::FROM_SESSION_ROOT, &title_id))
+  {
+    IOS::ES::TMDReader tmd = GetIOS()->GetES()->FindInstalledTMD(title_id);
+    if (tmd.IsValid())
+    {
+      GroupID = tmd.GetGroupId();
+    }
+  }
 
   if (File::IsDirectory(Filename))
   {
