@@ -47,10 +47,6 @@ public:
   void SetVertexBuffer(VkBuffer buffer, VkDeviceSize offset);
   void SetIndexBuffer(VkBuffer buffer, VkDeviceSize offset, VkIndexType type);
 
-  void SetRenderPass(VkRenderPass load_render_pass, VkRenderPass clear_render_pass);
-
-  void SetFramebuffer(VkFramebuffer framebuffer, const VkRect2D& render_area);
-
   void SetVertexFormat(const VertexFormat* vertex_format);
 
   void SetPrimitiveTopology(VkPrimitiveTopology primitive_topology);
@@ -67,6 +63,7 @@ public:
   void UpdateVertexShaderConstants();
   void UpdateGeometryShaderConstants();
   void UpdatePixelShaderConstants();
+  void UpdateRasterizationStateSamples();
 
   void SetTexture(size_t index, VkImageView view);
   void SetSampler(size_t index, VkSampler sampler);
@@ -89,13 +86,9 @@ public:
   // Ends a render pass if we're currently in one.
   // When Bind() is next called, the pass will be restarted.
   // Calling this function is allowed even if a pass has not begun.
-  bool InRenderPass() const { return m_current_render_pass != VK_NULL_HANDLE; }
+  bool InRenderPass() const;
   void BeginRenderPass();
   void EndRenderPass();
-
-  // Ends the current render pass if it was a clear render pass.
-  void BeginClearRenderPass(const VkRect2D& area, const VkClearValue clear_values[2]);
-  void EndClearRenderPass();
 
   void SetViewport(const VkViewport& viewport);
   void SetScissor(const VkRect2D& scissor);
@@ -116,8 +109,6 @@ public:
   // Prevent/allow background command buffer execution.
   // Use when queries are active.
   void SetBackgroundCommandBufferExecution(bool enabled);
-
-  bool IsWithinRenderArea(s32 x, s32 y, u32 width, u32 height) const;
 
   // Reloads the UID cache, ensuring all pipelines used by the game so far have been created.
   void ReloadPipelineUIDCache();
@@ -174,10 +165,6 @@ private:
 
   // Precaches a pipeline based on the UID information.
   bool PrecachePipelineUID(const SerializedPipelineUID& uid);
-
-  // Check that the specified viewport is within the render area.
-  // If not, ends the render pass if it is a clear render pass.
-  bool IsViewportWithinRenderArea() const;
 
   // Obtains a Vulkan pipeline object for the specified pipeline configuration.
   // Also adds this pipeline configuration to the UID cache if it is not present already.
@@ -242,13 +229,7 @@ private:
 
   // uniform buffers
   std::unique_ptr<StreamBuffer> m_uniform_stream_buffer;
-
-  VkFramebuffer m_framebuffer = VK_NULL_HANDLE;
-  VkRenderPass m_load_render_pass = VK_NULL_HANDLE;
-  VkRenderPass m_clear_render_pass = VK_NULL_HANDLE;
-  VkRenderPass m_current_render_pass = VK_NULL_HANDLE;
-  VkRect2D m_framebuffer_size = {};
-  VkRect2D m_framebuffer_render_area = {};
+  bool m_in_render_pass = false;
   bool m_bbox_enabled = false;
 
   // CPU access tracking

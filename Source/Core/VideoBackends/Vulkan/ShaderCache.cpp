@@ -1197,7 +1197,7 @@ void ShaderCache::CreateDummyPipeline(const UberShader::VertexShaderUid& vuid,
                  GetGeometryShaderForUid(guid) :
                  VK_NULL_HANDLE;
   pinfo.ps = GetPixelUberShaderForUid(puid);
-  pinfo.render_pass = FramebufferManager::GetInstance()->GetEFBLoadRenderPass();
+  pinfo.render_pass = FramebufferManager::GetInstance()->GetEFBRenderPass();
   pinfo.rasterization_state.bits = Util::GetNoCullRasterizationState().bits;
   pinfo.depth_stencil_state.bits = Util::GetNoDepthTestingDepthStencilState().bits;
   pinfo.blend_state.hex = Util::GetNoBlendingBlendState().hex;
