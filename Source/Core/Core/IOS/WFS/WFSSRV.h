@@ -70,6 +70,7 @@ private:
     IOCTL_WFS_ATTACH_DETACH_2 = 0x2e,
     IOCTL_WFS_CLOSE_2 = 0x47,
     IOCTL_WFS_READ_ABSOLUTE = 0x48,
+    IOCTL_WFS_WRITE_ABSOLUTE = 0x49,
   };
 
   enum

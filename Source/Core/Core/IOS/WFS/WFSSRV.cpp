@@ -303,6 +303,45 @@ IPCCommandResult WFSSRV::IOCtl(const IOCtlRequest& request)
     break;
   }
 
+  case IOCTL_WFS_WRITE:
+  case IOCTL_WFS_WRITE_ABSOLUTE:
+  {
+    u32 addr = Memory::Read_U32(request.buffer_in);
+    u32 position = Memory::Read_U32(request.buffer_in + 4);  // Only for absolute.
+    u16 fd = Memory::Read_U16(request.buffer_in + 0xC);
+    u32 size = Memory::Read_U32(request.buffer_in + 8);
+
+    bool absolute = request.request == IOCTL_WFS_WRITE_ABSOLUTE;
+
+    FileDescriptor* fd_obj = FindFileDescriptor(fd);
+    if (fd_obj == nullptr)
+    {
+      ERROR_LOG(IOS, "IOCTL_WFS_WRITE: invalid file descriptor %d", fd);
+      return_error_code = WFS_EBADFD;
+      break;
+    }
+
+    u64 previous_position = fd_obj->file.Tell();
+    if (absolute)
+    {
+      fd_obj->file.Seek(position, SEEK_SET);
+    }
+    fd_obj->file.WriteArray(Memory::GetPointer(addr), size);
+    // TODO(wfs): Handle write errors.
+    if (absolute)
+    {
+      fd_obj->file.Seek(previous_position, SEEK_SET);
+    }
+    else
+    {
+      fd_obj->position += size;
+    }
+
+    INFO_LOG(IOS, "IOCTL_WFS_WRITE: written %d bytes from FD %d (%s)", size, fd,
+             fd_obj->path.c_str());
+    break;
+  }
+
   default:
     // TODO(wfs): Should be returning -3. However until we have everything
     // properly stubbed it's easier to simulate the methods succeeding.
