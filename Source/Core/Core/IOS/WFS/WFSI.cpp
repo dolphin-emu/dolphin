@@ -355,7 +355,7 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
     if (!fp)
     {
       WARN_LOG(IOS_WFS, "IOCTL_WFSI_LOAD_DOL: no such file or directory: %s", path.c_str());
-      return_error_code = WFSI_ENOENT;
+      return_error_code = WFS_ENOENT;
       break;
     }
 
@@ -395,7 +395,7 @@ u32 WFSI::GetTmd(u16 group_id, u32 title_id, u64 subtitle_id, u32 address, u32* 
   if (!fp)
   {
     WARN_LOG(IOS, "GetTmd: no such file or directory: %s", path.c_str());
-    return WFSI_ENOENT;
+    return WFS_ENOENT;
   }
   if (address)
   {

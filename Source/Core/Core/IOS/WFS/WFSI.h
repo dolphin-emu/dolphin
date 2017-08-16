@@ -66,11 +66,6 @@ private:
 
   enum
   {
-    WFSI_ENOENT = -12000,
-  };
-
-  enum
-  {
     IOCTL_WFSI_PREPARE_DEVICE = 0x02,
 
     IOCTL_WFSI_PREPARE_CONTENT = 0x03,

@@ -22,6 +22,13 @@ namespace WFS
 std::string NativePath(const std::string& wfs_path);
 }
 
+enum
+{
+  WFS_EBADFD = -10026,  // Invalid file descriptor.
+  WFS_EEXIST = -10027,  // File already exists.
+  WFS_ENOENT = -10028,  // No such file or directory.
+};
+
 namespace Device
 {
 class WFSSRV : public Device
@@ -71,13 +78,6 @@ private:
     IOCTL_WFS_CLOSE_2 = 0x47,
     IOCTL_WFS_READ_ABSOLUTE = 0x48,
     IOCTL_WFS_WRITE_ABSOLUTE = 0x49,
-  };
-
-  enum
-  {
-    WFS_EBADFD = -10026,  // Invalid file descriptor.
-    WFS_EEXIST = -10027,  // File already exists.
-    WFS_ENOENT = -10028,  // No such file or directory.
   };
 
   struct FileDescriptor
