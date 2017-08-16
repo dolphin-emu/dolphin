@@ -44,6 +44,7 @@ public:
   IPCCommandResult IOCtl(const IOCtlRequest& request) override;
 
 private:
+  u32 GetTmd(u16 group_id, u32 title_id, u64 subtitle_id, u32 address, u32* size) const;
   std::string m_device_name;
 
   mbedtls_aes_context m_aes_ctx;
@@ -83,6 +84,9 @@ private:
     IOCTL_WFSI_FINALIZE_PROFILE = 0x88,
 
     IOCTL_WFSI_APPLY_TITLE_PROFILE = 0x89,
+
+    IOCTL_WFSI_GET_TMD = 0x8a,
+    IOCTL_WFSI_GET_TMD_ABSOLUTE = 0x8b,
 
     IOCTL_WFSI_SET_FST_BUFFER = 0x8e,
 
