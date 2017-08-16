@@ -127,15 +127,14 @@ void HashSignatureDB::Apply(PPCSymbolDB* symbol_db) const
     for (const auto& function : symbol_db->GetSymbolsFromHash(entry.first))
     {
       // Found the function. Let's rename it according to the symbol file.
+      function->Rename(entry.second.name);
       if (entry.second.size == static_cast<unsigned int>(function->size))
       {
-        function->name = entry.second.name;
         INFO_LOG(OSHLE, "Found %s at %08x (size: %08x)!", entry.second.name.c_str(),
                  function->address, function->size);
       }
       else
       {
-        function->name = entry.second.name;
         ERROR_LOG(OSHLE, "Wrong size! Found %s at %08x (size: %08x instead of %08x)!",
                   entry.second.name.c_str(), function->address, function->size, entry.second.size);
       }

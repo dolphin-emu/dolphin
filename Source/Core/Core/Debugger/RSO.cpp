@@ -384,7 +384,7 @@ void RSOView::Apply(PPCSymbolDB* symbol_db) const
       if (symbol)
       {
         // Function symbol
-        symbol->name = export_name;
+        symbol->Rename(export_name);
       }
       else
       {

@@ -85,8 +85,8 @@ static u32 EvaluateBranchTarget(UGeckoInstruction instr, u32 pc)
 // one blr or rfi, and keep scanning.
 bool AnalyzeFunction(u32 startAddr, Symbol& func, int max_size)
 {
-  if (!func.name.size())
-    func.name = StringFromFormat("zz_%07x_", startAddr & 0x0FFFFFFF);
+  if (func.name.empty())
+    func.Rename(StringFromFormat("zz_%07x_", startAddr & 0x0FFFFFFF));
   if (func.analyzed)
     return true;  // No error, just already did it.
 
@@ -341,7 +341,7 @@ static void FindFunctionsFromHandlers(PPCSymbolDB* func_db)
       Symbol* f = func_db->AddFunction(entry.first);
       if (!f)
         continue;
-      f->name = entry.second;
+      f->Rename(entry.second);
     }
   }
 }
@@ -407,9 +407,9 @@ void FindFunctions(u32 startAddr, u32 endAddr, PPCSymbolDB* func_db)
     if (f.name.substr(0, 3) == "zzz")
     {
       if (f.flags & FFLAG_LEAF)
-        f.name += "_leaf";
+        f.Rename(f.name + "_leaf");
       if (f.flags & FFLAG_STRAIGHT)
-        f.name += "_straight";
+        f.Rename(f.name + "_straight");
     }
     if (f.flags & FFLAG_LEAF)
     {

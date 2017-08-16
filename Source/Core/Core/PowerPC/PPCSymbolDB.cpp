@@ -17,15 +17,6 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/SignatureDB/SignatureDB.h"
 
-static std::string GetStrippedFunctionName(const std::string& symbol_name)
-{
-  std::string name = symbol_name.substr(0, symbol_name.find('('));
-  size_t position = name.find(' ');
-  if (position != std::string::npos)
-    name.erase(position);
-  return name;
-}
-
 PPCSymbolDB g_symbolDB;
 
 PPCSymbolDB::PPCSymbolDB()
@@ -64,8 +55,7 @@ void PPCSymbolDB::AddKnownSymbol(u32 startAddr, u32 size, const std::string& nam
   {
     // already got it, let's just update name, checksum & size to be sure.
     Symbol* tempfunc = &iter->second;
-    tempfunc->name = name;
-    tempfunc->function_name = GetStrippedFunctionName(name);
+    tempfunc->Rename(name);
     tempfunc->hash = HashSignatureDB::ComputeCodeChecksum(startAddr, startAddr + size - 4);
     tempfunc->type = type;
     tempfunc->size = size;
@@ -74,14 +64,13 @@ void PPCSymbolDB::AddKnownSymbol(u32 startAddr, u32 size, const std::string& nam
   {
     // new symbol. run analyze.
     Symbol tf;
-    tf.name = name;
+    tf.Rename(name);
     tf.type = type;
     tf.address = startAddr;
     if (tf.type == Symbol::Type::Function)
     {
       PPCAnalyst::AnalyzeFunction(startAddr, tf, size);
       checksumToFunction[tf.hash].insert(&functions[startAddr]);
-      tf.function_name = GetStrippedFunctionName(name);
     }
     tf.size = size;
     functions[startAddr] = tf;

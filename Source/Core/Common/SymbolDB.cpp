@@ -11,6 +11,21 @@
 #include "Common/Logging/Log.h"
 #include "Common/SymbolDB.h"
 
+static std::string GetStrippedFunctionName(const std::string& symbol_name)
+{
+  std::string name = symbol_name.substr(0, symbol_name.find('('));
+  size_t position = name.find(' ');
+  if (position != std::string::npos)
+    name.erase(position);
+  return name;
+}
+
+void Symbol::Rename(const std::string& symbol_name)
+{
+  this->name = symbol_name;
+  this->function_name = GetStrippedFunctionName(symbol_name);
+}
+
 void SymbolDB::List()
 {
   for (const auto& func : functions)

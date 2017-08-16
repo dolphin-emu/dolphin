@@ -30,6 +30,8 @@ struct Symbol
     Data,
   };
 
+  void Rename(const std::string& symbol_name);
+
   std::string name;
   std::string function_name;   // stripped function name
   std::vector<SCall> callers;  // addresses of functions that call this function
