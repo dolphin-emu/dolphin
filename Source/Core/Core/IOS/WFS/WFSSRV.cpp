@@ -184,9 +184,12 @@ IPCCommandResult WFSSRV::IOCtl(const IOCtlRequest& request)
     break;
   }
 
+  case IOCTL_WFS_CREATE_OPEN:
   case IOCTL_WFS_OPEN:
   {
-    u32 mode = Memory::Read_U32(request.buffer_in);
+    const char* ioctl_name =
+        request.request == IOCTL_WFS_OPEN ? "IOCTL_WFS_OPEN" : "IOCTL_WFS_CREATE_OPEN";
+    u32 mode = request.request == IOCTL_WFS_OPEN ? Memory::Read_U32(request.buffer_in) : 2;
     u16 path_len = Memory::Read_U16(request.buffer_in + 0x20);
     std::string path = Memory::GetString(request.buffer_in + 0x22, path_len);
 
@@ -201,14 +204,21 @@ IPCCommandResult WFSSRV::IOCtl(const IOCtlRequest& request)
 
     if (!fd_obj->Open())
     {
-      ERROR_LOG(IOS_WFS, "IOCTL_WFS_OPEN(%s, %d): error opening file", path.c_str(), mode);
+      ERROR_LOG(IOS_WFS, "%s(%s, %d): error opening file", ioctl_name, path.c_str(), mode);
       ReleaseFileDescriptor(fd);
       return_error_code = WFS_ENOENT;
       break;
     }
 
-    INFO_LOG(IOS_WFS, "IOCTL_WFS_OPEN(%s, %d) -> %d", path.c_str(), mode, fd);
-    Memory::Write_U16(fd, request.buffer_out + 0x14);
+    INFO_LOG(IOS_WFS, "%s(%s, %d) -> %d", ioctl_name, path.c_str(), mode, fd);
+    if (request.request == IOCTL_WFS_OPEN)
+    {
+      Memory::Write_U16(fd, request.buffer_out + 0x14);
+    }
+    else
+    {
+      Memory::Write_U16(fd, request.buffer_out);
+    }
     break;
   }
 
