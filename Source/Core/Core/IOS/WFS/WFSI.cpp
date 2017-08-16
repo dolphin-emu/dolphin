@@ -39,7 +39,7 @@ void ARCUnpacker::Extract(const WriteCallback& callback)
   u32 fourcc = Common::swap32(m_whole_file.data());
   if (fourcc != 0x55AA382D)
   {
-    ERROR_LOG(IOS, "ARCUnpacker: invalid fourcc (%08x)", fourcc);
+    ERROR_LOG(IOS_WFS, "ARCUnpacker: invalid fourcc (%08x)", fourcc);
     return;
   }
 
@@ -97,12 +97,12 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
     u32 tmd_addr = Memory::Read_U32(request.buffer_in);
     u32 tmd_size = Memory::Read_U32(request.buffer_in + 4);
 
-    INFO_LOG(IOS, "IOCTL_WFSI_PREPARE_DEVICE");
+    INFO_LOG(IOS_WFS, "IOCTL_WFSI_PREPARE_DEVICE");
 
     constexpr u32 MAX_TMD_SIZE = 0x4000;
     if (tmd_size > MAX_TMD_SIZE)
     {
-      ERROR_LOG(IOS, "IOCTL_WFSI_PREPARE_DEVICE: TMD size too large (%d)", tmd_size);
+      ERROR_LOG(IOS_WFS, "IOCTL_WFSI_PREPARE_DEVICE: TMD size too large (%d)", tmd_size);
       return_error_code = IPC_EINVAL;
       break;
     }
@@ -139,7 +139,7 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
     IOS::ES::Content content_info;
     if (!m_tmd.FindContentById(content_id, &content_info))
     {
-      WARN_LOG(IOS, "%s: Content id %08x not found", ioctl_name, content_id);
+      WARN_LOG(IOS_WFS, "%s: Content id %08x not found", ioctl_name, content_id);
       return_error_code = -10003;
       break;
     }
@@ -147,7 +147,7 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
     memset(m_aes_iv, 0, sizeof(m_aes_iv));
     m_aes_iv[0] = content_info.index >> 8;
     m_aes_iv[1] = content_info.index & 0xFF;
-    INFO_LOG(IOS, "%s: Content id %08x found at index %d", ioctl_name, content_id,
+    INFO_LOG(IOS_WFS, "%s: Content id %08x found at index %d", ioctl_name, content_id,
              content_info.index);
 
     m_arc_unpacker.Reset();
@@ -164,7 +164,7 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
     u32 content_id = Memory::Read_U32(request.buffer_in + 0xC);
     u32 input_ptr = Memory::Read_U32(request.buffer_in + 0x10);
     u32 input_size = Memory::Read_U32(request.buffer_in + 0x14);
-    INFO_LOG(IOS, "%s: %08x bytes of data at %08x from content id %d", ioctl_name, input_size,
+    INFO_LOG(IOS_WFS, "%s: %08x bytes of data at %08x from content id %d", ioctl_name, input_size,
              input_ptr, content_id);
 
     std::vector<u8> decrypted(input_size);
@@ -181,17 +181,17 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
     const char* ioctl_name = request.request == IOCTL_WFSI_FINALIZE_PROFILE ?
                                  "IOCTL_WFSI_FINALIZE_PROFILE" :
                                  "IOCTL_WFSI_FINALIZE_CONTENT";
-    INFO_LOG(IOS, "%s", ioctl_name);
+    INFO_LOG(IOS_WFS, "%s", ioctl_name);
 
     auto callback = [this](const std::string& filename, const std::vector<u8>& bytes) {
-      INFO_LOG(IOS, "Extract: %s (%zd bytes)", filename.c_str(), bytes.size());
+      INFO_LOG(IOS_WFS, "Extract: %s (%zd bytes)", filename.c_str(), bytes.size());
 
       std::string path = WFS::NativePath(m_base_extract_path + "/" + filename);
       File::CreateFullPath(path);
       File::IOFile f(path, "wb");
       if (!f)
       {
-        ERROR_LOG(IOS, "Could not extract %s to %s", filename.c_str(), path.c_str());
+        ERROR_LOG(IOS_WFS, "Could not extract %s to %s", filename.c_str(), path.c_str());
         return;
       }
       f.WriteBytes(bytes.data(), bytes.size());
@@ -208,19 +208,19 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
     // Bytes 0-4: ??
     // Bytes 4-8: game id
     // Bytes 1c-1e: title id?
-    WARN_LOG(IOS, "IOCTL_WFSI_DELETE_TITLE: unimplemented");
+    WARN_LOG(IOS_WFS, "IOCTL_WFSI_DELETE_TITLE: unimplemented");
     break;
 
   case IOCTL_WFSI_IMPORT_TITLE:
-    WARN_LOG(IOS, "IOCTL_WFSI_IMPORT_TITLE: unimplemented");
+    WARN_LOG(IOS_WFS, "IOCTL_WFSI_IMPORT_TITLE: unimplemented");
     break;
 
   case IOCTL_WFSI_INIT:
   {
-    INFO_LOG(IOS, "IOCTL_WFSI_INIT");
+    INFO_LOG(IOS_WFS, "IOCTL_WFSI_INIT");
     if (GetIOS()->GetES()->GetTitleId(&m_title_id) < 0)
     {
-      ERROR_LOG(IOS, "IOCTL_WFSI_INIT: Could not get title id.");
+      ERROR_LOG(IOS_WFS, "IOCTL_WFSI_INIT: Could not get title id.");
       return_error_code = IPC_EINVAL;
       break;
     }
@@ -235,12 +235,12 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
   }
 
   case IOCTL_WFSI_SET_DEVICE_NAME:
-    INFO_LOG(IOS, "IOCTL_WFSI_SET_DEVICE_NAME");
+    INFO_LOG(IOS_WFS, "IOCTL_WFSI_SET_DEVICE_NAME");
     m_device_name = Memory::GetString(request.buffer_in);
     break;
 
   case IOCTL_WFSI_APPLY_TITLE_PROFILE:
-    INFO_LOG(IOS, "IOCTL_WFSI_APPLY_TITLE_PROFILE");
+    INFO_LOG(IOS_WFS, "IOCTL_WFSI_APPLY_TITLE_PROFILE");
 
     m_base_extract_path = StringFromFormat("/vol/%s/_install/%s/content", m_device_name.c_str(),
                                            m_title_id_str.c_str());
@@ -266,13 +266,13 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
       path += StringFromFormat("/extension%d.dol", dol_extension_id);
     }
 
-    INFO_LOG(IOS, "IOCTL_WFSI_LOAD_DOL: loading %s at address %08x (size %d)", path.c_str(),
+    INFO_LOG(IOS_WFS, "IOCTL_WFSI_LOAD_DOL: loading %s at address %08x (size %d)", path.c_str(),
              dol_addr, max_dol_size);
 
     File::IOFile fp(WFS::NativePath(path), "rb");
     if (!fp)
     {
-      WARN_LOG(IOS, "IOCTL_WFSI_LOAD_DOL: no such file or directory: %s", path.c_str());
+      WARN_LOG(IOS_WFS, "IOCTL_WFSI_LOAD_DOL: no such file or directory: %s", path.c_str());
       return_error_code = WFSI_ENOENT;
       break;
     }

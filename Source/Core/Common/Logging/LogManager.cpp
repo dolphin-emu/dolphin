@@ -106,6 +106,7 @@ LogManager::LogManager()
   m_log[LogTypes::IOS_NET] = {"IOS_NET", "IOS - Network"};
   m_log[LogTypes::IOS_USB] = {"IOS_USB", "IOS - USB"};
   m_log[LogTypes::IOS_WC24] = {"IOS_WC24", "IOS - WiiConnect24"};
+  m_log[LogTypes::IOS_WFS] = {"IOS_WFS", "IOS - WFS"};
   m_log[LogTypes::IOS_WIIMOTE] = {"IOS_WIIMOTE", "IOS - Wii Remote"};
   m_log[LogTypes::MASTER_LOG] = {"*", "Master Log"};
   m_log[LogTypes::MEMCARD_MANAGER] = {"MemCard Manager", "MemCard Manager"};
