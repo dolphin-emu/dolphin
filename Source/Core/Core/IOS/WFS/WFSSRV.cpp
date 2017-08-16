@@ -4,6 +4,7 @@
 
 #include "Core/IOS/WFS/WFSSRV.h"
 
+#include <algorithm>
 #include <cinttypes>
 #include <string>
 #include <vector>
@@ -184,6 +185,17 @@ IPCCommandResult WFSSRV::IOCtl(const IOCtlRequest& request)
     break;
   }
 
+  case IOCTL_WFS_RENAME:
+  case IOCTL_WFS_RENAME_2:
+  {
+    const std::string source_path =
+        Memory::GetString(request.buffer_in + 2, Memory::Read_U16(request.buffer_in));
+    const std::string dest_path =
+        Memory::GetString(request.buffer_in + 512 + 2, Memory::Read_U16(request.buffer_in + 512));
+    return_error_code = Rename(source_path, dest_path);
+    break;
+  }
+
   case IOCTL_WFS_CREATE_OPEN:
   case IOCTL_WFS_OPEN:
   {
@@ -351,6 +363,26 @@ IPCCommandResult WFSSRV::IOCtl(const IOCtlRequest& request)
   }
 
   return GetDefaultReply(return_error_code);
+}
+
+s32 WFSSRV::Rename(std::string source, std::string dest) const
+{
+  source = NormalizePath(source);
+  dest = NormalizePath(dest);
+
+  INFO_LOG(IOS_WFS, "IOCTL_WFS_RENAME: %s to %s", source.c_str(), dest.c_str());
+
+  const bool opened = std::any_of(m_fds.begin(), m_fds.end(),
+                                  [&](const auto& fd) { return fd.in_use && fd.path == source; });
+
+  if (opened)
+    return WFS_FILE_IS_OPENED;
+
+  // TODO(wfs): Handle other rename failures
+  if (!File::Rename(WFS::NativePath(source), WFS::NativePath(dest)))
+    return WFS_ENOENT;
+
+  return IPC_SUCCESS;
 }
 
 std::string WFSSRV::NormalizePath(const std::string& path) const
