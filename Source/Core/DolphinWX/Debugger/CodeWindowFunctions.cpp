@@ -337,7 +337,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 
         Symbol* symbol = g_symbolDB.GetSymbolFromAddr(address);
         if (symbol)
-          symbol->name = line.substr(12);
+          symbol->Rename(line.substr(12));
       }
 
       Host_NotifyMapLoaded();
