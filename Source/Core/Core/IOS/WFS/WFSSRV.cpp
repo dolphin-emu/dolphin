@@ -136,6 +136,31 @@ IPCCommandResult WFSSRV::IOCtl(const IOCtlRequest& request)
     Memory::CopyToEmu(request.buffer_out + 2, m_home_directory.data(), m_home_directory.size());
     break;
 
+  case IOCTL_WFS_GET_ATTRIBUTES:
+  {
+    std::string path = NormalizePath(
+        Memory::GetString(request.buffer_in + 2, Memory::Read_U16(request.buffer_in)));
+    std::string native_path = WFS::NativePath(path);
+    Memory::Memset(0, request.buffer_out, request.buffer_out_size);
+    if (!File::Exists(native_path))
+    {
+      INFO_LOG(IOS, "IOCTL_WFS_GET_ATTRIBUTES(%s): no such file or directory", path.c_str());
+      return_error_code = WFS_ENOENT;
+    }
+    else if (File::IsDirectory(native_path))
+    {
+      INFO_LOG(IOS, "IOCTL_WFS_GET_ATTRIBUTES(%s): directory", path.c_str());
+      Memory::Write_U32(0x80000000, request.buffer_out + 4);
+    }
+    else
+    {
+      u32 size = static_cast<u32>(File::GetSize(native_path));
+      INFO_LOG(IOS, "IOCTL_WFS_GET_ATTRIBUTES(%s): file with size %d", path.c_str(), size);
+      Memory::Write_U32(size, request.buffer_out);
+    }
+    break;
+  }
+
   case IOCTL_WFS_OPEN:
   {
     u32 mode = Memory::Read_U32(request.buffer_in);
