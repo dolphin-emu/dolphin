@@ -226,8 +226,8 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
       break;
     }
     m_title_id_str = StringFromFormat(
-        "%c%c%c%c", static_cast<char>(m_title_id >> 24), static_cast<char>(m_title_id >> 16),
-        static_cast<char>(m_title_id >> 8), static_cast<char>(m_title_id));
+        "%c%c%c%c", static_cast<char>(m_title_id >> 56), static_cast<char>(m_title_id >> 48),
+        static_cast<char>(m_title_id >> 40), static_cast<char>(m_title_id >> 32));
 
     IOS::ES::TMDReader tmd = GetIOS()->GetES()->FindInstalledTMD(m_title_id);
     m_group_id = tmd.GetGroupId();
@@ -243,16 +243,26 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
   case IOCTL_WFSI_APPLY_TITLE_PROFILE:
     INFO_LOG(IOS_WFS, "IOCTL_WFSI_APPLY_TITLE_PROFILE");
 
-    m_base_extract_path = StringFromFormat("/vol/%s/_install/%s/content", m_device_name.c_str(),
-                                           m_title_id_str.c_str());
+    std::string install_directory = StringFromFormat("/vol/%s/_install", m_device_name.c_str());
+    if (File::IsDirectory(WFS::NativePath(install_directory)))
+    {
+      File::DeleteDirRecursively(WFS::NativePath(install_directory));
+    }
+
+    m_base_extract_path =
+        StringFromFormat("%s/%s/content", install_directory.c_str(), m_title_id_str.c_str());
     File::CreateFullPath(WFS::NativePath(m_base_extract_path));
 
     for (auto dir : {"work", "meta", "save"})
     {
-      std::string path = StringFromFormat("/vol/%s/_install/%s/%s", m_device_name.c_str(),
-                                          m_title_id_str.c_str(), dir);
+      std::string path =
+          StringFromFormat("%s/%s/%s", install_directory.c_str(), m_title_id_str.c_str(), dir);
       File::CreateFullPath(WFS::NativePath(path));
     }
+
+    std::string group_path =
+        StringFromFormat("/vol/%s/title/%s", m_device_name.c_str(), m_group_id_str.c_str());
+    File::CreateFullPath(WFS::NativePath(group_path));
 
     break;
 
