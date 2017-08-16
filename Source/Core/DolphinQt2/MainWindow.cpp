@@ -663,9 +663,8 @@ bool MainWindow::NetPlayJoin()
   }
 
   // Settings
-  std::string host_ip, traversal_host, nickname;
-  int host_port, traversal_port;
-  bool is_traversal;
+  std::string host_ip;
+  u16 host_port;
   if (Settings::Instance().GetNetPlayServer() != nullptr)
   {
     host_ip = "127.0.0.1";
@@ -677,18 +676,18 @@ bool MainWindow::NetPlayJoin()
     host_port = Config::Get(Config::NETPLAY_HOST_PORT);
   }
 
-  std::string traversal_choice = Config::Get(Config::NETPLAY_TRAVERSAL_CHOICE);
-  is_traversal = traversal_choice == "traversal";
+  const std::string traversal_choice = Config::Get(Config::NETPLAY_TRAVERSAL_CHOICE);
+  const bool is_traversal = traversal_choice == "traversal";
 
-  traversal_host = Config::Get(Config::NETPLAY_TRAVERSAL_SERVER);
-  traversal_port = Config::Get(Config::NETPLAY_TRAVERSAL_PORT);
-  nickname = Config::Get(Config::NETPLAY_NICKNAME);
+  const std::string traversal_host = Config::Get(Config::NETPLAY_TRAVERSAL_SERVER);
+  const u16 traversal_port = Config::Get(Config::NETPLAY_TRAVERSAL_PORT);
+  const std::string nickname = Config::Get(Config::NETPLAY_NICKNAME);
 
   // Create Client
-  Settings::Instance().ResetNetPlayClient(
-      new NetPlayClient(host_ip, host_port, m_netplay_dialog, nickname,
-                        Settings::Instance().GetNetPlayServer() != nullptr ? false : is_traversal,
-                        traversal_host, traversal_port));
+  Settings::Instance().ResetNetPlayClient(new NetPlayClient(
+      host_ip, host_port, m_netplay_dialog, nickname,
+      NetTraversalConfig{Settings::Instance().GetNetPlayServer() != nullptr ? false : is_traversal,
+                         traversal_host, traversal_port}));
 
   if (!Settings::Instance().GetNetPlayClient()->IsConnected())
   {
@@ -721,26 +720,21 @@ bool MainWindow::NetPlayHost(const QString& game_id)
   }
 
   // Settings
-  std::string traversal_host, nickname;
-  int host_port, traversal_port;
-  bool is_traversal, use_upnp;
+  u16 host_port = Config::Get(Config::NETPLAY_HOST_PORT);
+  const std::string traversal_choice = Config::Get(Config::NETPLAY_TRAVERSAL_CHOICE);
+  const bool is_traversal = traversal_choice == "traversal";
+  const bool use_upnp = Config::Get(Config::NETPLAY_USE_UPNP);
 
-  host_port = Config::Get(Config::NETPLAY_HOST_PORT);
-  std::string traversal_choice;
-  traversal_choice = Config::Get(Config::NETPLAY_TRAVERSAL_CHOICE);
-  is_traversal = traversal_choice == "traversal";
-  use_upnp = Config::Get(Config::NETPLAY_USE_UPNP);
-
-  traversal_host = Config::Get(Config::NETPLAY_TRAVERSAL_SERVER);
-  traversal_port = Config::Get(Config::NETPLAY_TRAVERSAL_PORT);
-  nickname = Config::Get(Config::NETPLAY_NICKNAME);
+  const std::string traversal_host = Config::Get(Config::NETPLAY_TRAVERSAL_SERVER);
+  const u16 traversal_port = Config::Get(Config::NETPLAY_TRAVERSAL_PORT);
+  const std::string nickname = Config::Get(Config::NETPLAY_NICKNAME);
 
   if (is_traversal)
     host_port = Config::Get(Config::NETPLAY_LISTEN_PORT);
 
   // Create Server
-  Settings::Instance().ResetNetPlayServer(
-      new NetPlayServer(host_port, is_traversal, traversal_host, traversal_port));
+  Settings::Instance().ResetNetPlayServer(new NetPlayServer(
+      host_port, use_upnp, NetTraversalConfig{is_traversal, traversal_host, traversal_port}));
 
   if (!Settings::Instance().GetNetPlayServer()->is_connected)
   {
@@ -753,11 +747,6 @@ bool MainWindow::NetPlayHost(const QString& game_id)
   }
 
   Settings::Instance().GetNetPlayServer()->ChangeGame(game_id.toStdString());
-
-#ifdef USE_UPNP
-  if (use_upnp)
-    Settings::Instance().GetNetPlayServer()->TryPortmapping(host_port);
-#endif
 
   // Join our local server
   return NetPlayJoin();
