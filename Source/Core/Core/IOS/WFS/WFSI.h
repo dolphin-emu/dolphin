@@ -58,6 +58,10 @@ private:
   u16 m_group_id;
   std::string m_group_id_str;
 
+  // Set on PREPARE_DEVICE when the next profile application should not delete
+  // temporary install files.
+  u32 m_continue_install = 0;
+
   ARCUnpacker m_arc_unpacker;
 
   enum
@@ -72,6 +76,8 @@ private:
     IOCTL_WFSI_PREPARE_CONTENT = 0x03,
     IOCTL_WFSI_IMPORT_CONTENT = 0x04,
     IOCTL_WFSI_FINALIZE_CONTENT = 0x05,
+
+    IOCTL_WFSI_FINALIZE_IMPORT = 0x06,
 
     IOCTL_WFSI_DELETE_TITLE = 0x17,
     IOCTL_WFSI_IMPORT_TITLE = 0x2f,

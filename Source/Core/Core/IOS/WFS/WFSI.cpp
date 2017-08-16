@@ -98,6 +98,8 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
     u32 tmd_addr = Memory::Read_U32(request.buffer_in);
     u32 tmd_size = Memory::Read_U32(request.buffer_in + 4);
 
+    m_continue_install = Memory::Read_U32(request.buffer_in + 36);
+
     INFO_LOG(IOS_WFS, "IOCTL_WFSI_PREPARE_DEVICE");
 
     constexpr u32 MAX_TMD_SIZE = 0x4000;
@@ -121,6 +123,13 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
 
     memcpy(m_aes_key, ticket.GetTitleKey(m_ios.GetIOSC()).data(), sizeof(m_aes_key));
     mbedtls_aes_setkey_dec(&m_aes_ctx, m_aes_key, 128);
+
+    m_title_id = m_tmd.GetTitleId();
+    m_title_id_str = StringFromFormat(
+        "%c%c%c%c", static_cast<char>(m_title_id >> 24), static_cast<char>(m_title_id >> 16),
+        static_cast<char>(m_title_id >> 8), static_cast<char>(m_title_id));
+    m_group_id = m_tmd.GetGroupId();
+    m_group_id_str = StringFromFormat("%c%c", m_group_id >> 8, m_group_id & 0xFF);
 
     break;
   }
@@ -205,6 +214,23 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
     break;
   }
 
+  case IOCTL_WFSI_FINALIZE_IMPORT:
+  {
+    // TODO(wfs): Handle patches.
+    std::string title_install_dir =
+        StringFromFormat("/vol/%s/_install/%s", m_device_name.c_str(), m_title_id_str.c_str());
+    std::string title_final_dir = StringFromFormat("/vol/%s/title/%s/%s", m_device_name.c_str(),
+                                                   m_group_id_str.c_str(), m_title_id_str.c_str());
+    File::Rename(WFS::NativePath(title_install_dir), WFS::NativePath(title_final_dir));
+
+    std::string tmd_path =
+        StringFromFormat("/vol/%s/title/%s/%s/meta/%016" PRIx64 ".tmd", m_device_name.c_str(),
+                         m_group_id_str.c_str(), m_title_id_str.c_str(), m_title_id);
+    File::IOFile tmd_file(WFS::NativePath(tmd_path), "wb");
+    tmd_file.WriteBytes(m_tmd.GetBytes().data(), m_tmd.GetBytes().size());
+    break;
+  }
+
   case IOCTL_WFSI_DELETE_TITLE:
     // Bytes 0-4: ??
     // Bytes 4-8: game id
@@ -226,8 +252,8 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
       break;
     }
     m_title_id_str = StringFromFormat(
-        "%c%c%c%c", static_cast<char>(m_title_id >> 56), static_cast<char>(m_title_id >> 48),
-        static_cast<char>(m_title_id >> 40), static_cast<char>(m_title_id >> 32));
+        "%c%c%c%c", static_cast<char>(m_title_id >> 24), static_cast<char>(m_title_id >> 16),
+        static_cast<char>(m_title_id >> 8), static_cast<char>(m_title_id));
 
     IOS::ES::TMDReader tmd = GetIOS()->GetES()->FindInstalledTMD(m_title_id);
     m_group_id = tmd.GetGroupId();
@@ -241,10 +267,11 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
     break;
 
   case IOCTL_WFSI_APPLY_TITLE_PROFILE:
+  {
     INFO_LOG(IOS_WFS, "IOCTL_WFSI_APPLY_TITLE_PROFILE");
 
     std::string install_directory = StringFromFormat("/vol/%s/_install", m_device_name.c_str());
-    if (File::IsDirectory(WFS::NativePath(install_directory)))
+    if (!m_continue_install && File::IsDirectory(WFS::NativePath(install_directory)))
     {
       File::DeleteDirRecursively(WFS::NativePath(install_directory));
     }
@@ -252,19 +279,22 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
     m_base_extract_path =
         StringFromFormat("%s/%s/content", install_directory.c_str(), m_title_id_str.c_str());
     File::CreateFullPath(WFS::NativePath(m_base_extract_path));
+    File::CreateDir(WFS::NativePath(m_base_extract_path));
 
     for (auto dir : {"work", "meta", "save"})
     {
       std::string path =
           StringFromFormat("%s/%s/%s", install_directory.c_str(), m_title_id_str.c_str(), dir);
-      File::CreateFullPath(WFS::NativePath(path));
+      File::CreateDir(WFS::NativePath(path));
     }
 
     std::string group_path =
         StringFromFormat("/vol/%s/title/%s", m_device_name.c_str(), m_group_id_str.c_str());
     File::CreateFullPath(WFS::NativePath(group_path));
+    File::CreateDir(WFS::NativePath(group_path));
 
     break;
+  }
 
   case IOCTL_WFSI_GET_TMD:
   {
