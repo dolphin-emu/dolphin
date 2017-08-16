@@ -247,6 +247,13 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
                                            m_title_id_str.c_str());
     File::CreateFullPath(WFS::NativePath(m_base_extract_path));
 
+    for (auto dir : {"work", "meta", "save"})
+    {
+      std::string path = StringFromFormat("/vol/%s/_install/%s/%s", m_device_name.c_str(),
+                                          m_title_id_str.c_str(), dir);
+      File::CreateFullPath(WFS::NativePath(path));
+    }
+
     break;
 
   case IOCTL_WFSI_GET_TMD:
