@@ -44,20 +44,17 @@ bool IsWiiWAD(BlobReader& reader)
 }
 }  // Anonymous namespace
 
-WiiWAD::WiiWAD(const std::string& name) : m_reader(CreateBlobReader(name))
-{
-  if (m_reader == nullptr)
-  {
-    m_valid = false;
-    return;
-  }
-
-  m_valid = ParseWAD();
-}
-
-WiiWAD::~WiiWAD()
+WiiWAD::WiiWAD(const std::string& name) : WiiWAD(CreateBlobReader(name))
 {
 }
+
+WiiWAD::WiiWAD(std::unique_ptr<BlobReader> blob_reader) : m_reader(std::move(blob_reader))
+{
+  if (m_reader)
+    m_valid = ParseWAD();
+}
+
+WiiWAD::~WiiWAD() = default;
 
 bool WiiWAD::ParseWAD()
 {

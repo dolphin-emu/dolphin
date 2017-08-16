@@ -1320,39 +1320,9 @@ static std::string GetUpdateRegionFromIdm(int idm)
   }
 }
 
-void CFrame::OnPerformOnlineWiiUpdate(wxCommandEvent& event)
+static void ShowUpdateResult(WiiUtils::UpdateResult result)
 {
-  int confirm = wxMessageBox(_("Connect to the Internet and perform an online system update?"),
-                             _("System Update"), wxYES_NO, this);
-  if (confirm != wxYES)
-    return;
-
-  wxProgressDialog dialog(_("Updating"), _("Preparing to update...\nThis can take a while."), 1,
-                          this, wxPD_APP_MODAL | wxPD_AUTO_HIDE | wxPD_SMOOTH | wxPD_CAN_ABORT);
-
-  const std::string region = GetUpdateRegionFromIdm(event.GetId());
-  std::future<WiiUtils::UpdateResult> result = std::async(std::launch::async, [&] {
-    const WiiUtils::UpdateResult res = WiiUtils::DoOnlineUpdate(
-        [&](size_t processed, size_t total, u64 title_id) {
-          Core::QueueHostJob(
-              [&dialog, processed, total, title_id] {
-                dialog.SetRange(total);
-                dialog.Update(processed, wxString::Format(_("Updating title %016" PRIx64 "...\n"
-                                                            "This can take a while."),
-                                                          title_id));
-                dialog.Fit();
-              },
-              true);
-          return !dialog.WasCancelled();
-        },
-        region);
-    Core::QueueHostJob([&dialog] { dialog.EndModal(0); }, true);
-    return res;
-  });
-
-  dialog.ShowModal();
-
-  switch (result.get())
+  switch (result)
   {
   case WiiUtils::UpdateResult::Succeeded:
     wxMessageBox(_("The emulated Wii console has been updated."), _("Update completed"),
@@ -1384,8 +1354,73 @@ void CFrame::OnPerformOnlineWiiUpdate(wxCommandEvent& event)
                    "finish it in order to avoid inconsistent system software versions."),
                  _("Update cancelled"), wxOK | wxICON_WARNING);
     break;
+  case WiiUtils::UpdateResult::RegionMismatch:
+    wxMessageBox(_("The game's region does not match your console's. "
+                   "To avoid issues with the system menu, it is not possible to update "
+                   "the emulated console using this disc."),
+                 _("Update failed"), wxOK | wxICON_ERROR);
+    break;
+  case WiiUtils::UpdateResult::MissingUpdatePartition:
+  case WiiUtils::UpdateResult::DiscReadFailed:
+    wxMessageBox(_("The game disc does not contain any usable update information."),
+                 _("Update failed"), wxOK | wxICON_ERROR);
+    break;
   }
+}
 
+template <typename Callable, typename... Args>
+static WiiUtils::UpdateResult ShowUpdateProgress(CFrame* frame, Callable function, Args&&... args)
+{
+  wxProgressDialog dialog(_("Updating"), _("Preparing to update...\nThis can take a while."), 1,
+                          frame, wxPD_APP_MODAL | wxPD_AUTO_HIDE | wxPD_SMOOTH | wxPD_CAN_ABORT);
+
+  std::future<WiiUtils::UpdateResult> result = std::async(std::launch::async, [&] {
+    const WiiUtils::UpdateResult res = function(
+        [&](size_t processed, size_t total, u64 title_id) {
+          Core::QueueHostJob(
+              [&dialog, processed, total, title_id] {
+                dialog.SetRange(total);
+                dialog.Update(processed, wxString::Format(_("Updating title %016" PRIx64 "...\n"
+                                                            "This can take a while."),
+                                                          title_id));
+                dialog.Fit();
+              },
+              true);
+          return !dialog.WasCancelled();
+        },
+        std::forward<Args>(args)...);
+    Core::QueueHostJob([&dialog] { dialog.EndModal(0); }, true);
+    return res;
+  });
+
+  dialog.ShowModal();
+  return result.get();
+}
+
+void CFrame::OnPerformOnlineWiiUpdate(wxCommandEvent& event)
+{
+  int confirm = wxMessageBox(_("Connect to the Internet and perform an online system update?"),
+                             _("System Update"), wxYES_NO, this);
+  if (confirm != wxYES)
+    return;
+
+  const std::string region = GetUpdateRegionFromIdm(event.GetId());
+
+  const WiiUtils::UpdateResult result = ShowUpdateProgress(this, WiiUtils::DoOnlineUpdate, region);
+  ShowUpdateResult(result);
+  UpdateLoadWiiMenuItem();
+}
+
+void CFrame::OnPerformDiscWiiUpdate(wxCommandEvent&)
+{
+  const GameListItem* iso = m_game_list_ctrl->GetSelectedISO();
+  if (!iso)
+    return;
+
+  const std::string file_name = iso->GetFileName();
+
+  const WiiUtils::UpdateResult result = ShowUpdateProgress(this, WiiUtils::DoDiscUpdate, file_name);
+  ShowUpdateResult(result);
   UpdateLoadWiiMenuItem();
 }
 

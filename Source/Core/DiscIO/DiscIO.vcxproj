@@ -51,6 +51,7 @@
     <ClCompile Include="NANDImporter.cpp" />
     <ClCompile Include="TGCBlob.cpp" />
     <ClCompile Include="Volume.cpp" />
+    <ClCompile Include="VolumeFileBlobReader.cpp" />
     <ClCompile Include="VolumeGC.cpp" />
     <ClCompile Include="VolumeWad.cpp" />
     <ClCompile Include="VolumeWii.cpp" />
@@ -73,6 +74,7 @@
     <ClInclude Include="NANDImporter.h" />
     <ClInclude Include="TGCBlob.h" />
     <ClInclude Include="Volume.h" />
+    <ClInclude Include="VolumeFileBlobReader.h" />
     <ClInclude Include="VolumeGC.h" />
     <ClInclude Include="VolumeWad.h" />
     <ClInclude Include="VolumeWii.h" />
