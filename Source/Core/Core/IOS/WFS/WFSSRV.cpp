@@ -100,6 +100,29 @@ IPCCommandResult WFSSRV::IOCtl(const IOCtlRequest& request)
     INFO_LOG(IOS_WFS, "IOCTL_WFS_FLUSH: doing nothing");
     break;
 
+  case IOCTL_WFS_MKDIR:
+  {
+    std::string path = NormalizePath(
+        Memory::GetString(request.buffer_in + 34, Memory::Read_U16(request.buffer_in + 32)));
+    std::string native_path = WFS::NativePath(path);
+
+    if (File::Exists(native_path))
+    {
+      INFO_LOG(IOS, "IOCTL_WFS_MKDIR(%s): already exists", path.c_str());
+      return_error_code = WFS_EEXIST;
+    }
+    else if (!File::CreateDir(native_path))
+    {
+      INFO_LOG(IOS, "IOCTL_WFS_MKDIR(%s): no such file or directory", path.c_str());
+      return_error_code = WFS_ENOENT;
+    }
+    else
+    {
+      INFO_LOG(IOS, "IOCTL_WFS_MKDIR(%s): directory created", path.c_str());
+    }
+    break;
+  }
+
   // TODO(wfs): Globbing is not really implemented, we just fake the one case
   // (listing /vol/*) which is required to get the installer to work.
   case IOCTL_WFS_GLOB_START:
