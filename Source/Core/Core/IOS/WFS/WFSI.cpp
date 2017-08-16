@@ -373,6 +373,23 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
     break;
   }
 
+  case IOCTL_WFSI_CHECK_HAS_SPACE:
+    WARN_LOG(IOS, "IOCTL_WFSI_CHECK_HAS_SPACE: returning true");
+
+    // TODO(wfs): implement this properly.
+    //       1 is returned if there is free space, 0 otherwise.
+    //
+    // WFSI builds a path depending on the import state
+    //   /vol/VOLUME_ID/title/GROUP_ID/GAME_ID
+    //   /vol/VOLUME_ID/_install/GAME_ID
+    // then removes everything after the last path separator ('/')
+    // it then calls WFSISrvGetFreeBlkNum (ioctl 0x5a, aliased to 0x5b) with that path.
+    // If the ioctl fails, WFSI returns 0.
+    // If the ioctl succeeds, WFSI returns 0 or 1 depending on the three u32s in the input buffer
+    // and the three u32s returned by WFSSRV (TODO: figure out what it does)
+    return_error_code = 1;
+    break;
+
   default:
     // TODO(wfs): Should be returning an error. However until we have
     // everything properly stubbed it's easier to simulate the methods

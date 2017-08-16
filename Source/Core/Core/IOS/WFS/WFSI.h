@@ -92,6 +92,8 @@ private:
     IOCTL_WFSI_SET_FST_BUFFER = 0x8e,
 
     IOCTL_WFSI_LOAD_DOL = 0x90,
+
+    IOCTL_WFSI_CHECK_HAS_SPACE = 0x95,
   };
 };
 }  // namespace Device
