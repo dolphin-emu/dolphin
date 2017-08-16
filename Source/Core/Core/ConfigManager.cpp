@@ -26,6 +26,7 @@
 
 #include "Core/Analytics.h"
 #include "Core/Boot/Boot.h"
+#include "Core/CommonTitles.h"
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigLoaders/GameConfigLoader.h"
 #include "Core/Core.h"
@@ -33,6 +34,7 @@
 #include "Core/HLE/HLE.h"
 #include "Core/HW/DVD/DVDInterface.h"
 #include "Core/HW/SI/SI.h"
+#include "Core/IOS/ES/ES.h"
 #include "Core/IOS/ES/Formats.h"
 #include "Core/PatchEngine.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
@@ -879,12 +881,7 @@ struct SetGameMetadata
 
     config->bWii = executable.reader->IsWii();
 
-    // TODO: Right now GC homebrew boots in NTSC and Wii homebrew in PAL.
-    // This is intentional so that Wii homebrew can boot in both 50Hz and 60Hz,
-    // without forcing all GC homebrew to 50Hz.
-    // In the future, it probably makes sense to add a Region setting for homebrew somewhere in
-    // the emulator config.
-    *region = config->bWii ? DiscIO::Region::PAL : DiscIO::Region::NTSC_U;
+    *region = DiscIO::Region::UNKNOWN_REGION;
 
     // Strip the .elf/.dol file extension and directories before the name
     SplitPath(executable.path, nullptr, &config->m_debugger_game_id, nullptr);
@@ -932,26 +929,28 @@ bool SConfig::SetPathsAndGameMetadata(const BootParameters& boot)
 {
   m_is_mios = false;
   m_disc_booted_from_game_list = false;
-  DiscIO::Region region;
-  if (!std::visit(SetGameMetadata(this, &region), boot.parameters))
+  if (!std::visit(SetGameMetadata(this, &m_region), boot.parameters))
     return false;
 
-  // Set up region
-  const char* retrieved_region_dir = GetDirectoryForRegion(ToGameCubeRegion(region));
-  m_region = retrieved_region_dir ? region : DiscIO::Region::PAL;
-  const std::string set_region_dir = retrieved_region_dir ? retrieved_region_dir : EUR_DIR;
-  if (!retrieved_region_dir &&
-      !PanicYesNoT("Your GCM/ISO file seems to be invalid (invalid country)."
-                   "\nContinue with PAL region?"))
+  // Fall back to the system menu region, if possible.
+  if (m_region == DiscIO::Region::UNKNOWN_REGION)
   {
-    return false;
+    IOS::HLE::Kernel ios;
+    const IOS::ES::TMDReader system_menu_tmd = ios.GetES()->FindInstalledTMD(Titles::SYSTEM_MENU);
+    if (system_menu_tmd.IsValid())
+      m_region = system_menu_tmd.GetRegion();
   }
 
+  // Fall back to PAL.
+  if (m_region == DiscIO::Region::UNKNOWN_REGION)
+    m_region = DiscIO::Region::PAL;
+
   // Set up paths
-  CheckMemcardPath(SConfig::GetInstance().m_strMemoryCardA, set_region_dir, true);
-  CheckMemcardPath(SConfig::GetInstance().m_strMemoryCardB, set_region_dir, false);
+  const std::string region_dir = GetDirectoryForRegion(ToGameCubeRegion(m_region));
+  CheckMemcardPath(SConfig::GetInstance().m_strMemoryCardA, region_dir, true);
+  CheckMemcardPath(SConfig::GetInstance().m_strMemoryCardB, region_dir, false);
   m_strSRAM = File::GetUserPath(F_GCSRAM_IDX);
-  m_strBootROM = GetBootROMPath(set_region_dir);
+  m_strBootROM = GetBootROMPath(region_dir);
 
   return true;
 }
