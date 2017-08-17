@@ -21,6 +21,20 @@
 #include "Core/IOS/WFS/WFSSRV.h"
 #include "DiscIO/NANDContentLoader.h"
 
+namespace
+{
+std::string TitleIdStr(u64 tid)
+{
+  return StringFromFormat("%c%c%c%c", static_cast<char>(tid >> 24), static_cast<char>(tid >> 16),
+                          static_cast<char>(tid >> 8), static_cast<char>(tid));
+}
+
+std::string GroupIdStr(u16 gid)
+{
+  return StringFromFormat("%c%c", gid >> 8, gid & 0xFF);
+}
+}  // namespace
+
 namespace IOS
 {
 namespace HLE
@@ -87,6 +101,24 @@ WFSI::WFSI(Kernel& ios, const std::string& device_name) : Device(ios, device_nam
 {
 }
 
+void WFSI::SetCurrentTitleIdAndGroupId(u64 tid, u16 gid)
+{
+  m_current_title_id = tid;
+  m_current_group_id = gid;
+
+  m_current_title_id_str = TitleIdStr(tid);
+  m_current_group_id_str = GroupIdStr(gid);
+}
+
+void WFSI::SetImportTitleIdAndGroupId(u64 tid, u16 gid)
+{
+  m_import_title_id = tid;
+  m_import_group_id = gid;
+
+  m_import_title_id_str = TitleIdStr(tid);
+  m_import_group_id_str = GroupIdStr(gid);
+}
+
 IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
 {
   s32 return_error_code = IPC_SUCCESS;
@@ -98,7 +130,7 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
     u32 tmd_addr = Memory::Read_U32(request.buffer_in);
     u32 tmd_size = Memory::Read_U32(request.buffer_in + 4);
 
-    m_patch_type = Memory::Read_U32(request.buffer_in + 32);
+    m_patch_type = static_cast<PatchType>(Memory::Read_U32(request.buffer_in + 32));
     m_continue_install = Memory::Read_U32(request.buffer_in + 36);
 
     INFO_LOG(IOS_WFS, "IOCTL_WFSI_PREPARE_DEVICE: patch type %d, continue install: %s",
@@ -126,13 +158,7 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
     memcpy(m_aes_key, ticket.GetTitleKey(m_ios.GetIOSC()).data(), sizeof(m_aes_key));
     mbedtls_aes_setkey_dec(&m_aes_ctx, m_aes_key, 128);
 
-    m_title_id = m_tmd.GetTitleId();
-    m_title_id_str = StringFromFormat(
-        "%c%c%c%c", static_cast<char>(m_title_id >> 24), static_cast<char>(m_title_id >> 16),
-        static_cast<char>(m_title_id >> 8), static_cast<char>(m_title_id));
-    m_group_id = m_tmd.GetGroupId();
-    m_group_id_str = StringFromFormat("%c%c", m_group_id >> 8, m_group_id & 0xFF);
-
+    SetImportTitleIdAndGroupId(m_tmd.GetTitleId(), m_tmd.GetGroupId());
     break;
   }
 
@@ -219,15 +245,16 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
   case IOCTL_WFSI_FINALIZE_TITLE_INSTALL:
   {
     // TODO(wfs): Handle patches.
-    std::string title_install_dir =
-        StringFromFormat("/vol/%s/_install/%s", m_device_name.c_str(), m_title_id_str.c_str());
-    std::string title_final_dir = StringFromFormat("/vol/%s/title/%s/%s", m_device_name.c_str(),
-                                                   m_group_id_str.c_str(), m_title_id_str.c_str());
+    std::string title_install_dir = StringFromFormat("/vol/%s/_install/%s", m_device_name.c_str(),
+                                                     m_import_title_id_str.c_str());
+    std::string title_final_dir =
+        StringFromFormat("/vol/%s/title/%s/%s", m_device_name.c_str(),
+                         m_import_group_id_str.c_str(), m_import_title_id_str.c_str());
     File::Rename(WFS::NativePath(title_install_dir), WFS::NativePath(title_final_dir));
 
-    std::string tmd_path =
-        StringFromFormat("/vol/%s/title/%s/%s/meta/%016" PRIx64 ".tmd", m_device_name.c_str(),
-                         m_group_id_str.c_str(), m_title_id_str.c_str(), m_title_id);
+    std::string tmd_path = StringFromFormat("/vol/%s/title/%s/%s/meta/%016" PRIx64 ".tmd",
+                                            m_device_name.c_str(), m_import_group_id_str.c_str(),
+                                            m_import_title_id_str.c_str(), m_import_title_id);
     File::IOFile tmd_file(WFS::NativePath(tmd_path), "wb");
     tmd_file.WriteBytes(m_tmd.GetBytes().data(), m_tmd.GetBytes().size());
     break;
@@ -247,19 +274,16 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
   case IOCTL_WFSI_INIT:
   {
     INFO_LOG(IOS_WFS, "IOCTL_WFSI_INIT");
-    if (GetIOS()->GetES()->GetTitleId(&m_title_id) < 0)
+    u64 tid;
+    if (GetIOS()->GetES()->GetTitleId(&tid) < 0)
     {
       ERROR_LOG(IOS_WFS, "IOCTL_WFSI_INIT: Could not get title id.");
       return_error_code = IPC_EINVAL;
       break;
     }
-    m_title_id_str = StringFromFormat(
-        "%c%c%c%c", static_cast<char>(m_title_id >> 24), static_cast<char>(m_title_id >> 16),
-        static_cast<char>(m_title_id >> 8), static_cast<char>(m_title_id));
 
-    IOS::ES::TMDReader tmd = GetIOS()->GetES()->FindInstalledTMD(m_title_id);
-    m_group_id = tmd.GetGroupId();
-    m_group_id_str = StringFromFormat("%c%c", m_group_id >> 8, m_group_id & 0xFF);
+    IOS::ES::TMDReader tmd = GetIOS()->GetES()->FindInstalledTMD(tid);
+    SetCurrentTitleIdAndGroupId(tmd.GetTitleId(), tmd.GetGroupId());
     break;
   }
 
@@ -272,28 +296,39 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
   {
     INFO_LOG(IOS_WFS, "IOCTL_WFSI_APPLY_TITLE_PROFILE");
 
-    std::string install_directory = StringFromFormat("/vol/%s/_install", m_device_name.c_str());
-    if (!m_continue_install && File::IsDirectory(WFS::NativePath(install_directory)))
+    if (m_patch_type == NOT_A_PATCH)
     {
-      File::DeleteDirRecursively(WFS::NativePath(install_directory));
+      std::string install_directory = StringFromFormat("/vol/%s/_install", m_device_name.c_str());
+      if (!m_continue_install && File::IsDirectory(WFS::NativePath(install_directory)))
+      {
+        File::DeleteDirRecursively(WFS::NativePath(install_directory));
+      }
+
+      m_base_extract_path = StringFromFormat("%s/%s/content", install_directory.c_str(),
+                                             m_import_title_id_str.c_str());
+      File::CreateFullPath(WFS::NativePath(m_base_extract_path));
+      File::CreateDir(WFS::NativePath(m_base_extract_path));
+
+      for (auto dir : {"work", "meta", "save"})
+      {
+        std::string path = StringFromFormat("%s/%s/%s", install_directory.c_str(),
+                                            m_import_title_id_str.c_str(), dir);
+        File::CreateDir(WFS::NativePath(path));
+      }
+
+      std::string group_path = StringFromFormat("/vol/%s/title/%s", m_device_name.c_str(),
+                                                m_import_group_id_str.c_str());
+      File::CreateFullPath(WFS::NativePath(group_path));
+      File::CreateDir(WFS::NativePath(group_path));
     }
-
-    m_base_extract_path =
-        StringFromFormat("%s/%s/content", install_directory.c_str(), m_title_id_str.c_str());
-    File::CreateFullPath(WFS::NativePath(m_base_extract_path));
-    File::CreateDir(WFS::NativePath(m_base_extract_path));
-
-    for (auto dir : {"work", "meta", "save"})
+    else
     {
-      std::string path =
-          StringFromFormat("%s/%s/%s", install_directory.c_str(), m_title_id_str.c_str(), dir);
-      File::CreateDir(WFS::NativePath(path));
+      m_base_extract_path =
+          StringFromFormat("/vol/%s/title/%s/%s/_patch/content", m_device_name.c_str(),
+                           m_current_group_id_str.c_str(), m_current_title_id_str.c_str());
+      File::CreateFullPath(WFS::NativePath(m_base_extract_path));
+      File::CreateDir(WFS::NativePath(m_base_extract_path));
     }
-
-    std::string group_path =
-        StringFromFormat("/vol/%s/title/%s", m_device_name.c_str(), m_group_id_str.c_str());
-    File::CreateFullPath(WFS::NativePath(group_path));
-    File::CreateDir(WFS::NativePath(group_path));
 
     break;
   }
@@ -305,7 +340,8 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
     INFO_LOG(IOS, "IOCTL_WFSI_GET_TMD: subtitle ID %016" PRIx64, subtitle_id);
 
     u32 tmd_size;
-    return_error_code = GetTmd(m_group_id, m_title_id, subtitle_id, address, &tmd_size);
+    return_error_code =
+        GetTmd(m_current_group_id, m_current_title_id, subtitle_id, address, &tmd_size);
     Memory::Write_U32(tmd_size, request.buffer_out);
     break;
   }
@@ -334,8 +370,9 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
 
   case IOCTL_WFSI_LOAD_DOL:
   {
-    std::string path = StringFromFormat("/vol/%s/title/%s/%s/content", m_device_name.c_str(),
-                                        m_group_id_str.c_str(), m_title_id_str.c_str());
+    std::string path =
+        StringFromFormat("/vol/%s/title/%s/%s/content", m_device_name.c_str(),
+                         m_current_group_id_str.c_str(), m_current_title_id_str.c_str());
 
     u32 dol_addr = Memory::Read_U32(request.buffer_in + 0x18);
     u32 max_dol_size = Memory::Read_U32(request.buffer_in + 0x14);
@@ -406,10 +443,9 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
 
 u32 WFSI::GetTmd(u16 group_id, u32 title_id, u64 subtitle_id, u32 address, u32* size) const
 {
-  // TODO(wfs): This is using a separate copy of tid/gid in wfssrv. Why?
   std::string path =
       StringFromFormat("/vol/%s/title/%s/%s/meta/%016" PRIx64 ".tmd", m_device_name.c_str(),
-                       m_group_id_str.c_str(), m_title_id_str.c_str(), subtitle_id);
+                       GroupIdStr(group_id).c_str(), TitleIdStr(title_id).c_str(), subtitle_id);
   File::IOFile fp(WFS::NativePath(path), "rb");
   if (!fp)
   {

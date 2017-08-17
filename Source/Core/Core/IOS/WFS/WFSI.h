@@ -45,6 +45,10 @@ public:
 
 private:
   u32 GetTmd(u16 group_id, u32 title_id, u64 subtitle_id, u32 address, u32* size) const;
+
+  void SetCurrentTitleIdAndGroupId(u64 tid, u16 gid);
+  void SetImportTitleIdAndGroupId(u64 tid, u16 gid);
+
   std::string m_device_name;
 
   mbedtls_aes_context m_aes_ctx;
@@ -53,10 +57,15 @@ private:
 
   IOS::ES::TMDReader m_tmd;
   std::string m_base_extract_path;
-  u64 m_title_id;
-  std::string m_title_id_str;
-  u16 m_group_id;
-  std::string m_group_id_str;
+
+  u64 m_current_title_id;
+  std::string m_current_title_id_str;
+  u16 m_current_group_id;
+  std::string m_current_group_id_str;
+  u64 m_import_title_id;
+  std::string m_import_title_id_str;
+  u16 m_import_group_id;
+  std::string m_import_group_id_str;
 
   // Set on PREPARE_DEVICE when the next profile application should not delete
   // temporary install files.
@@ -64,7 +73,13 @@ private:
 
   // Set on PREPARE_DEVICE to indicate that the install is a patch and not a
   // standalone title.
-  u32 m_patch_type = 0;
+  enum PatchType
+  {
+    NOT_A_PATCH,
+    PATCH_TYPE_1,
+    PATCH_TYPE_2,
+  };
+  PatchType m_patch_type = NOT_A_PATCH;
 
   ARCUnpacker m_arc_unpacker;
 
@@ -96,6 +111,8 @@ private:
     IOCTL_WFSI_SET_FST_BUFFER = 0x8e,
 
     IOCTL_WFSI_LOAD_DOL = 0x90,
+
+    IOCTL_WFSI_FINALIZE_PATCH_INSTALL = 0x91,
 
     IOCTL_WFSI_CHECK_HAS_SPACE = 0x95,
   };
