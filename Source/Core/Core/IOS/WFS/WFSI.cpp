@@ -187,12 +187,12 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
     break;
   }
 
-  case IOCTL_WFSI_FINALIZE_PROFILE:
-  case IOCTL_WFSI_FINALIZE_CONTENT:
+  case IOCTL_WFSI_IMPORT_CONTENT_END:
+  case IOCTL_WFSI_IMPORT_PROFILE_END:
   {
-    const char* ioctl_name = request.request == IOCTL_WFSI_FINALIZE_PROFILE ?
-                                 "IOCTL_WFSI_FINALIZE_PROFILE" :
-                                 "IOCTL_WFSI_FINALIZE_CONTENT";
+    const char* ioctl_name = request.request == IOCTL_WFSI_IMPORT_PROFILE_END ?
+                                 "IOCTL_WFSI_IMPORT_PROFILE_END" :
+                                 "IOCTL_WFSI_IMPORT_CONTENT_END";
     INFO_LOG(IOS_WFS, "%s", ioctl_name);
 
     auto callback = [this](const std::string& filename, const std::vector<u8>& bytes) {
@@ -216,7 +216,7 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
     break;
   }
 
-  case IOCTL_WFSI_FINALIZE_IMPORT:
+  case IOCTL_WFSI_FINALIZE_TITLE_INSTALL:
   {
     // TODO(wfs): Handle patches.
     std::string title_install_dir =
