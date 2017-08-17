@@ -141,14 +141,14 @@ bool Delete(const std::string& filename)
   if (!DeleteFile(UTF8ToTStr(filename).c_str()))
   {
     WARN_LOG(COMMON, "Delete: DeleteFile failed on %s: %s", filename.c_str(),
-             GetLastErrorMsg().c_str());
+             GetLastErrorString().c_str());
     return false;
   }
 #else
   if (unlink(filename.c_str()) == -1)
   {
     WARN_LOG(COMMON, "Delete: unlink failed on %s: %s", filename.c_str(),
-             GetLastErrorMsg().c_str());
+             LastStrerrorString().c_str());
     return false;
   }
 #endif
@@ -241,11 +241,14 @@ bool DeleteDir(const std::string& filename)
 #ifdef _WIN32
   if (::RemoveDirectory(UTF8ToTStr(filename).c_str()))
     return true;
+  ERROR_LOG(COMMON, "DeleteDir: RemoveDirectory failed on %s: %s", filename.c_str(),
+            GetLastErrorString().c_str());
 #else
   if (rmdir(filename.c_str()) == 0)
     return true;
+  ERROR_LOG(COMMON, "DeleteDir: rmdir failed on %s: %s", filename.c_str(),
+            LastStrerrorString().c_str());
 #endif
-  ERROR_LOG(COMMON, "DeleteDir: %s: %s", filename.c_str(), GetLastErrorMsg().c_str());
 
   return false;
 }
@@ -268,12 +271,14 @@ bool Rename(const std::string& srcFilename, const std::string& destFilename)
     if (MoveFile(sf.c_str(), df.c_str()))
       return true;
   }
+  ERROR_LOG(COMMON, "Rename: MoveFile failed on %s --> %s: %s", srcFilename.c_str(),
+            destFilename.c_str(), GetLastErrorString().c_str());
 #else
   if (rename(srcFilename.c_str(), destFilename.c_str()) == 0)
     return true;
+  ERROR_LOG(COMMON, "Rename: rename failed on %s --> %s: %s", srcFilename.c_str(),
+            destFilename.c_str(), LastStrerrorString().c_str());
 #endif
-  ERROR_LOG(COMMON, "Rename: failed %s --> %s: %s", srcFilename.c_str(), destFilename.c_str(),
-            GetLastErrorMsg().c_str());
   return false;
 }
 
@@ -321,7 +326,7 @@ bool Copy(const std::string& srcFilename, const std::string& destFilename)
     return true;
 
   ERROR_LOG(COMMON, "Copy: failed %s --> %s: %s", srcFilename.c_str(), destFilename.c_str(),
-            GetLastErrorMsg().c_str());
+            GetLastErrorString().c_str());
   return false;
 #else
 
@@ -335,8 +340,7 @@ bool Copy(const std::string& srcFilename, const std::string& destFilename)
   OpenFStream(input, srcFilename, std::ifstream::in | std::ifstream::binary);
   if (!input.is_open())
   {
-    ERROR_LOG(COMMON, "Copy: input failed %s --> %s: %s", srcFilename.c_str(), destFilename.c_str(),
-              GetLastErrorMsg().c_str());
+    ERROR_LOG(COMMON, "Copy: failed to open %s", srcFilename.c_str());
     return false;
   }
 
@@ -346,7 +350,7 @@ bool Copy(const std::string& srcFilename, const std::string& destFilename)
   if (!output.IsOpen())
   {
     ERROR_LOG(COMMON, "Copy: output failed %s --> %s: %s", srcFilename.c_str(),
-              destFilename.c_str(), GetLastErrorMsg().c_str());
+              destFilename.c_str(), LastStrerrorString().c_str());
     return false;
   }
 
@@ -357,8 +361,8 @@ bool Copy(const std::string& srcFilename, const std::string& destFilename)
     input.read(buffer, BSIZE);
     if (!input)
     {
-      ERROR_LOG(COMMON, "Copy: failed reading from source, %s --> %s: %s", srcFilename.c_str(),
-                destFilename.c_str(), GetLastErrorMsg().c_str());
+      ERROR_LOG(COMMON, "Copy: failed reading from source, %s --> %s", srcFilename.c_str(),
+                destFilename.c_str());
       return false;
     }
 
@@ -366,7 +370,7 @@ bool Copy(const std::string& srcFilename, const std::string& destFilename)
     if (!output.WriteBytes(buffer, BSIZE))
     {
       ERROR_LOG(COMMON, "Copy: failed writing to output, %s --> %s: %s", srcFilename.c_str(),
-                destFilename.c_str(), GetLastErrorMsg().c_str());
+                destFilename.c_str(), LastStrerrorString().c_str());
       return false;
     }
   }
@@ -394,14 +398,14 @@ u64 GetSize(FILE* f)
   u64 pos = ftello(f);
   if (fseeko(f, 0, SEEK_END) != 0)
   {
-    ERROR_LOG(COMMON, "GetSize: seek failed %p: %s", f, GetLastErrorMsg().c_str());
+    ERROR_LOG(COMMON, "GetSize: seek failed %p: %s", f, LastStrerrorString().c_str());
     return 0;
   }
 
   u64 size = ftello(f);
   if ((size != pos) && (fseeko(f, pos, SEEK_SET) != 0))
   {
-    ERROR_LOG(COMMON, "GetSize: seek failed %p: %s", f, GetLastErrorMsg().c_str());
+    ERROR_LOG(COMMON, "GetSize: seek failed %p: %s", f, LastStrerrorString().c_str());
     return 0;
   }
 
@@ -416,7 +420,7 @@ bool CreateEmptyFile(const std::string& filename)
   if (!File::IOFile(filename, "wb"))
   {
     ERROR_LOG(COMMON, "CreateEmptyFile: failed %s: %s", filename.c_str(),
-              GetLastErrorMsg().c_str());
+              LastStrerrorString().c_str());
     return false;
   }
 
@@ -620,7 +624,7 @@ std::string GetCurrentDir()
   char* dir = __getcwd(nullptr, 0);
   if (!dir)
   {
-    ERROR_LOG(COMMON, "GetCurrentDirectory failed: %s", GetLastErrorMsg().c_str());
+    ERROR_LOG(COMMON, "GetCurrentDirectory failed: %s", LastStrerrorString().c_str());
     return nullptr;
   }
   std::string strDir = dir;
