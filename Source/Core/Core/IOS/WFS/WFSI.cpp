@@ -125,7 +125,7 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
 
   switch (request.request)
   {
-  case IOCTL_WFSI_PREPARE_DEVICE:
+  case IOCTL_WFSI_IMPORT_TITLE_INIT:
   {
     u32 tmd_addr = Memory::Read_U32(request.buffer_in);
     u32 tmd_size = Memory::Read_U32(request.buffer_in + 4);
@@ -133,12 +133,12 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
     m_patch_type = static_cast<PatchType>(Memory::Read_U32(request.buffer_in + 32));
     m_continue_install = Memory::Read_U32(request.buffer_in + 36);
 
-    INFO_LOG(IOS_WFS, "IOCTL_WFSI_PREPARE_DEVICE: patch type %d, continue install: %s",
+    INFO_LOG(IOS_WFS, "IOCTL_WFSI_IMPORT_TITLE_INIT: patch type %d, continue install: %s",
              m_patch_type, m_continue_install ? "true" : "false");
 
     if (!IOS::ES::IsValidTMDSize(tmd_size))
     {
-      ERROR_LOG(IOS_WFS, "IOCTL_WFSI_PREPARE_DEVICE: TMD size too large (%d)", tmd_size);
+      ERROR_LOG(IOS_WFS, "IOCTL_WFSI_IMPORT_TITLE_INIT: TMD size too large (%d)", tmd_size);
       return_error_code = IPC_EINVAL;
       break;
     }
@@ -279,7 +279,7 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
     INFO_LOG(IOS, "IOCTL_WFSI_FINALIZE_PATCH_INSTALL");
     if (m_patch_type != NOT_A_PATCH)
     {
-      std::string current_title_dir = 
+      std::string current_title_dir =
           StringFromFormat("/vol/%s/title/%s/%s", m_device_name.c_str(),
                            m_current_group_id_str.c_str(), m_current_title_id_str.c_str());
       std::string patch_dir = current_title_dir + "/_patch";
@@ -295,8 +295,8 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
     WARN_LOG(IOS_WFS, "IOCTL_WFSI_DELETE_TITLE: unimplemented");
     break;
 
-  case IOCTL_WFSI_IMPORT_TITLE:
-    WARN_LOG(IOS_WFS, "IOCTL_WFSI_IMPORT_TITLE: unimplemented");
+  case IOCTL_WFSI_IMPORT_TITLE_CANCEL:
+    WARN_LOG(IOS_WFS, "IOCTL_WFSI_IMPORT_TITLE_CANCEL: unimplemented");
     break;
 
   case IOCTL_WFSI_INIT:
