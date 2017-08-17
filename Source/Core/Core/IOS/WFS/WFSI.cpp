@@ -276,7 +276,18 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
   }
 
   case IOCTL_WFSI_FINALIZE_PATCH_INSTALL:
+  {
+    INFO_LOG(IOS, "IOCTL_WFSI_FINALIZE_PATCH_INSTALL");
+    if (m_patch_type != NOT_A_PATCH)
+    {
+      std::string current_title_dir = 
+          StringFromFormat("/vol/%s/title/%s/%s", m_device_name.c_str(),
+                           m_current_group_id_str.c_str(), m_current_title_id_str.c_str());
+      std::string patch_dir = current_title_dir + "/_patch";
+      File::CopyDir(WFS::NativePath(patch_dir), WFS::NativePath(current_title_dir), true);
+    }
     break;
+  }
 
   case IOCTL_WFSI_DELETE_TITLE:
     // Bytes 0-4: ??
