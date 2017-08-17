@@ -312,8 +312,20 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
     break;
 
   case IOCTL_WFSI_IMPORT_TITLE_CANCEL:
-    WARN_LOG(IOS_WFS, "IOCTL_WFSI_IMPORT_TITLE_CANCEL: unimplemented");
+  {
+    INFO_LOG(IOS_WFS, "IOCTL_WFSI_IMPORT_TITLE_CANCEL");
+
+    bool continue_install = Memory::Read_U32(request.buffer_in) != 0;
+    if (m_patch_type == PatchType::NOT_A_PATCH)
+      return_error_code = CancelTitleImport(continue_install);
+    else if (m_patch_type == PatchType::PATCH_TYPE_1 || m_patch_type == PatchType::PATCH_TYPE_2)
+      return_error_code = CancelPatchImport(continue_install);
+    else
+      return_error_code = WFS_EINVAL;
+
+    m_tmd = {};
     break;
+  }
 
   case IOCTL_WFSI_INIT:
   {
