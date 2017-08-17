@@ -49,6 +49,9 @@ private:
   void SetCurrentTitleIdAndGroupId(u64 tid, u16 gid);
   void SetImportTitleIdAndGroupId(u64 tid, u16 gid);
 
+  s32 CancelTitleImport(bool continue_install);
+  s32 CancelPatchImport(bool continue_install);
+
   std::string m_device_name;
 
   mbedtls_aes_context m_aes_ctx;

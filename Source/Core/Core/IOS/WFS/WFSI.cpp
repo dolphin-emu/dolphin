@@ -488,6 +488,55 @@ u32 WFSI::GetTmd(u16 group_id, u32 title_id, u64 subtitle_id, u32 address, u32* 
   return IPC_SUCCESS;
 }
 
+static s32 DeleteTemporaryFiles(const std::string& device_name, u64 title_id)
+{
+  File::Delete(WFS::NativePath(
+      StringFromFormat("/vol/%s/tmp/%016" PRIx64 ".ini", device_name.c_str(), title_id)));
+  File::Delete(WFS::NativePath(
+      StringFromFormat("/vol/%s/tmp/%016" PRIx64 ".ppcini", device_name.c_str(), title_id)));
+  return IPC_SUCCESS;
+}
+
+s32 WFSI::CancelTitleImport(bool continue_install)
+{
+  m_arc_unpacker.Reset();
+
+  if (!continue_install)
+  {
+    File::DeleteDirRecursively(
+        WFS::NativePath(StringFromFormat("/vol/%s/_install", m_device_name.c_str())));
+  }
+
+  DeleteTemporaryFiles(m_device_name, m_import_title_id);
+
+  return IPC_SUCCESS;
+}
+
+s32 WFSI::CancelPatchImport(bool continue_install)
+{
+  m_arc_unpacker.Reset();
+
+  if (!continue_install)
+  {
+    File::DeleteDirRecursively(WFS::NativePath(
+        StringFromFormat("/vol/%s/title/%s/%s/_patch", m_device_name.c_str(),
+                         m_current_group_id_str.c_str(), m_current_title_id_str.c_str())));
+
+    if (m_patch_type == PatchType::PATCH_TYPE_2)
+    {
+      // Move back _default.dol to default.dol.
+      const std::string content_dir =
+          StringFromFormat("/vol/%s/title/%s/%s/content", m_device_name.c_str(),
+                           m_current_group_id_str.c_str(), m_current_title_id_str.c_str());
+      File::Rename(WFS::NativePath(content_dir + "/_default.dol"),
+                   WFS::NativePath(content_dir + "/default.dol"));
+    }
+  }
+
+  DeleteTemporaryFiles(m_device_name, m_current_title_id);
+
+  return IPC_SUCCESS;
+}
 }  // namespace Device
 }  // namespace HLE
 }  // namespace IOS
