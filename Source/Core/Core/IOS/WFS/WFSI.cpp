@@ -136,8 +136,7 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
     INFO_LOG(IOS_WFS, "IOCTL_WFSI_PREPARE_DEVICE: patch type %d, continue install: %s",
              m_patch_type, m_continue_install ? "true" : "false");
 
-    constexpr u32 MAX_TMD_SIZE = 0x4000;
-    if (tmd_size > MAX_TMD_SIZE)
+    if (!IOS::ES::IsValidTMDSize(tmd_size))
     {
       ERROR_LOG(IOS_WFS, "IOCTL_WFSI_PREPARE_DEVICE: TMD size too large (%d)", tmd_size);
       return_error_code = IPC_EINVAL;
