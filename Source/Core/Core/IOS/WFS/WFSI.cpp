@@ -136,6 +136,16 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
     INFO_LOG(IOS_WFS, "IOCTL_WFSI_IMPORT_TITLE_INIT: patch type %d, continue install: %s",
              m_patch_type, m_continue_install ? "true" : "false");
 
+    if (m_patch_type == PatchType::PATCH_TYPE_2)
+    {
+      const std::string content_dir =
+          StringFromFormat("/vol/%s/title/%s/%s/content", m_device_name.c_str(),
+                           m_current_group_id_str.c_str(), m_current_title_id_str.c_str());
+
+      File::Rename(WFS::NativePath(content_dir + "/default.dol"),
+                   WFS::NativePath(content_dir + "/_default.dol"));
+    }
+
     if (!IOS::ES::IsValidTMDSize(tmd_size))
     {
       ERROR_LOG(IOS_WFS, "IOCTL_WFSI_IMPORT_TITLE_INIT: TMD size too large (%d)", tmd_size);
@@ -158,6 +168,12 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
     mbedtls_aes_setkey_dec(&m_aes_ctx, m_aes_key, 128);
 
     SetImportTitleIdAndGroupId(m_tmd.GetTitleId(), m_tmd.GetGroupId());
+
+    if (m_patch_type == PatchType::PATCH_TYPE_1)
+      CancelPatchImport(m_continue_install);
+    else if (m_patch_type == PatchType::NOT_A_PATCH)
+      CancelTitleImport(m_continue_install);
+
     break;
   }
 
