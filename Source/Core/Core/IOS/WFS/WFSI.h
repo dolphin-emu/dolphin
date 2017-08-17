@@ -60,7 +60,11 @@ private:
 
   // Set on PREPARE_DEVICE when the next profile application should not delete
   // temporary install files.
-  u32 m_continue_install = 0;
+  bool m_continue_install = false;
+
+  // Set on PREPARE_DEVICE to indicate that the install is a patch and not a
+  // standalone title.
+  u32 m_patch_type = 0;
 
   ARCUnpacker m_arc_unpacker;
 

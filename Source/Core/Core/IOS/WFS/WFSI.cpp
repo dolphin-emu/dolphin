@@ -98,9 +98,11 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
     u32 tmd_addr = Memory::Read_U32(request.buffer_in);
     u32 tmd_size = Memory::Read_U32(request.buffer_in + 4);
 
+    m_patch_type = Memory::Read_U32(request.buffer_in + 32);
     m_continue_install = Memory::Read_U32(request.buffer_in + 36);
 
-    INFO_LOG(IOS_WFS, "IOCTL_WFSI_PREPARE_DEVICE");
+    INFO_LOG(IOS_WFS, "IOCTL_WFSI_PREPARE_DEVICE: patch type %d, continue install: %s",
+             m_patch_type, m_continue_install ? "true" : "false");
 
     constexpr u32 MAX_TMD_SIZE = 0x4000;
     if (tmd_size > MAX_TMD_SIZE)
