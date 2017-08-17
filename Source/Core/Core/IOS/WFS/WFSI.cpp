@@ -244,21 +244,39 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
 
   case IOCTL_WFSI_FINALIZE_TITLE_INSTALL:
   {
-    // TODO(wfs): Handle patches.
-    std::string title_install_dir = StringFromFormat("/vol/%s/_install/%s", m_device_name.c_str(),
-                                                     m_import_title_id_str.c_str());
-    std::string title_final_dir =
-        StringFromFormat("/vol/%s/title/%s/%s", m_device_name.c_str(),
-                         m_import_group_id_str.c_str(), m_import_title_id_str.c_str());
-    File::Rename(WFS::NativePath(title_install_dir), WFS::NativePath(title_final_dir));
+    std::string tmd_path;
+    if (m_patch_type == NOT_A_PATCH)
+    {
+      std::string title_install_dir = StringFromFormat("/vol/%s/_install/%s", m_device_name.c_str(),
+                                                       m_import_title_id_str.c_str());
+      std::string title_final_dir =
+          StringFromFormat("/vol/%s/title/%s/%s", m_device_name.c_str(),
+                           m_import_group_id_str.c_str(), m_import_title_id_str.c_str());
+      File::Rename(WFS::NativePath(title_install_dir), WFS::NativePath(title_final_dir));
 
-    std::string tmd_path = StringFromFormat("/vol/%s/title/%s/%s/meta/%016" PRIx64 ".tmd",
-                                            m_device_name.c_str(), m_import_group_id_str.c_str(),
-                                            m_import_title_id_str.c_str(), m_import_title_id);
+      tmd_path = StringFromFormat("/vol/%s/title/%s/%s/meta/%016" PRIx64 ".tmd",
+                                  m_device_name.c_str(), m_import_group_id_str.c_str(),
+                                  m_import_title_id_str.c_str(), m_import_title_id);
+    }
+    else
+    {
+      std::string patch_dir =
+          StringFromFormat("/vol/%s/title/%s/%s/_patch", m_device_name.c_str(),
+                           m_current_group_id_str.c_str(), m_current_title_id_str.c_str());
+      File::DeleteDirRecursively(WFS::NativePath(patch_dir));
+
+      tmd_path = StringFromFormat("/vol/%s/title/%s/%s/meta/%016" PRIx64 ".tmd",
+                                  m_device_name.c_str(), m_current_group_id_str.c_str(),
+                                  m_current_title_id_str.c_str(), m_import_title_id);
+    }
+
     File::IOFile tmd_file(WFS::NativePath(tmd_path), "wb");
     tmd_file.WriteBytes(m_tmd.GetBytes().data(), m_tmd.GetBytes().size());
     break;
   }
+
+  case IOCTL_WFSI_FINALIZE_PATCH_INSTALL:
+    break;
 
   case IOCTL_WFSI_DELETE_TITLE:
     // Bytes 0-4: ??
