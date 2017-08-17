@@ -34,3 +34,5 @@ set(SRCS	src/igd_desc_parse.c
 
 add_library(miniupnpc STATIC ${SRCS})
 target_include_directories(miniupnpc PUBLIC src)
+
+add_library(Miniupnpc::miniupnpc ALIAS miniupnpc)
