@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <QThread>
 #include <type_traits>
 #include <utility>
 
