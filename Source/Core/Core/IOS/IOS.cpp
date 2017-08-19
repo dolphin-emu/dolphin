@@ -345,32 +345,69 @@ void Kernel::AddStaticDevices()
 {
   std::lock_guard<std::mutex> lock(m_device_map_mutex);
 
+  const Feature features = GetFeatures(GetVersion());
+
+  // OH1 (Bluetooth)
+  AddDevice(std::make_unique<Device::Stub>(*this, "/dev/usb/oh1"));
   if (!SConfig::GetInstance().m_bt_passthrough_enabled)
     AddDevice(std::make_unique<Device::BluetoothEmu>(*this, "/dev/usb/oh1/57e/305"));
   else
     AddDevice(std::make_unique<Device::BluetoothReal>(*this, "/dev/usb/oh1/57e/305"));
 
+  // Other core modules
   AddDevice(std::make_unique<Device::STMImmediate>(*this, "/dev/stm/immediate"));
   AddDevice(std::make_unique<Device::STMEventHook>(*this, "/dev/stm/eventhook"));
   AddDevice(std::make_unique<Device::DI>(*this, "/dev/di"));
-  AddDevice(std::make_unique<Device::NetKDRequest>(*this, "/dev/net/kd/request"));
-  AddDevice(std::make_unique<Device::NetKDTime>(*this, "/dev/net/kd/time"));
-  AddDevice(std::make_unique<Device::NetNCDManage>(*this, "/dev/net/ncd/manage"));
-  AddDevice(std::make_unique<Device::NetWDCommand>(*this, "/dev/net/wd/command"));
-  AddDevice(std::make_unique<Device::NetIPTop>(*this, "/dev/net/ip/top"));
-  AddDevice(std::make_unique<Device::NetSSL>(*this, "/dev/net/ssl"));
-  AddDevice(std::make_unique<Device::USB_KBD>(*this, "/dev/usb/kbd"));
   AddDevice(std::make_unique<Device::SDIOSlot0>(*this, "/dev/sdio/slot0"));
   AddDevice(std::make_unique<Device::Stub>(*this, "/dev/sdio/slot1"));
-  if (GetVersion() == 59)
-    AddDevice(std::make_unique<Device::USB_HIDv5>(*this, "/dev/usb/hid"));
-  else
-    AddDevice(std::make_unique<Device::USB_HIDv4>(*this, "/dev/usb/hid"));
+
+  // Network modules
+  if (HasFeature(features, Feature::KD))
+  {
+    AddDevice(std::make_unique<Device::NetKDRequest>(*this, "/dev/net/kd/request"));
+    AddDevice(std::make_unique<Device::NetKDTime>(*this, "/dev/net/kd/time"));
+  }
+  if (HasFeature(features, Feature::NCD))
+  {
+    AddDevice(std::make_unique<Device::NetNCDManage>(*this, "/dev/net/ncd/manage"));
+  }
+  if (HasFeature(features, Feature::WiFi))
+  {
+    AddDevice(std::make_unique<Device::NetWDCommand>(*this, "/dev/net/wd/command"));
+  }
+  if (HasFeature(features, Feature::SO))
+  {
+    AddDevice(std::make_unique<Device::NetIPTop>(*this, "/dev/net/ip/top"));
+  }
+  if (HasFeature(features, Feature::SSL))
+  {
+    AddDevice(std::make_unique<Device::NetSSL>(*this, "/dev/net/ssl"));
+  }
+
+  // USB modules
+  // OH0 is unconditionally added because this device path is registered in all cases.
   AddDevice(std::make_unique<Device::OH0>(*this, "/dev/usb/oh0"));
-  AddDevice(std::make_unique<Device::Stub>(*this, "/dev/usb/oh1"));
-  AddDevice(std::make_unique<Device::USB_VEN>(*this, "/dev/usb/ven"));
-  AddDevice(std::make_unique<Device::WFSSRV>(*this, "/dev/usb/wfssrv"));
-  AddDevice(std::make_unique<Device::WFSI>(*this, "/dev/wfsi"));
+  if (HasFeature(features, Feature::NewUSB))
+  {
+    AddDevice(std::make_unique<Device::USB_HIDv5>(*this, "/dev/usb/hid"));
+    AddDevice(std::make_unique<Device::USB_VEN>(*this, "/dev/usb/ven"));
+
+    // TODO(IOS): register /dev/usb/usb, /dev/usb/msc, /dev/usb/hub and /dev/usb/ehc
+    //            as stubs that return IPC_EACCES.
+  }
+  else
+  {
+    if (HasFeature(features, Feature::USB_HIDv4))
+      AddDevice(std::make_unique<Device::USB_HIDv4>(*this, "/dev/usb/hid"));
+    if (HasFeature(features, Feature::USB_KBD))
+      AddDevice(std::make_unique<Device::USB_KBD>(*this, "/dev/usb/kbd"));
+  }
+
+  if (HasFeature(features, Feature::WFS))
+  {
+    AddDevice(std::make_unique<Device::WFSSRV>(*this, "/dev/usb/wfssrv"));
+    AddDevice(std::make_unique<Device::WFSI>(*this, "/dev/wfsi"));
+  }
 }
 
 s32 Kernel::GetFreeDeviceID()
@@ -411,7 +448,8 @@ s32 Kernel::OpenDevice(OpenRequest& request)
   request.fd = new_fd;
 
   std::shared_ptr<Device::Device> device;
-  if (request.path.find("/dev/usb/oh0/") == 0 && !GetDeviceByName(request.path))
+  if (request.path.find("/dev/usb/oh0/") == 0 && !GetDeviceByName(request.path) &&
+      !HasFeature(GetVersion(), Feature::NewUSB))
   {
     device = std::make_shared<Device::OH0Device>(*this, request.path);
   }

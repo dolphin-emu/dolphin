@@ -31,7 +31,6 @@ public:
   USB_VEN(Kernel& ios, const std::string& device_name);
   ~USB_VEN() override;
 
-  ReturnCode Open(const OpenRequest& request) override;
   IPCCommandResult IOCtl(const IOCtlRequest& request) override;
   IPCCommandResult IOCtlV(const IOCtlVRequest& request) override;
 
