@@ -4,6 +4,7 @@
 
 #include "VideoBackends/Software/SWVertexLoader.h"
 
+#include <cstddef>
 #include <limits>
 
 #include "Common/Assert.h"
@@ -97,7 +98,7 @@ void SWVertexLoader::vFlush()
     memset(&m_Vertex, 0, sizeof(m_Vertex));
 
     // Super Mario Sunshine requires those to be zero for those debug boxes.
-    memset(&m_Vertex.color, 0, sizeof(m_Vertex.color));
+    m_Vertex.color = {};
 
     // parse the videocommon format to our own struct format (m_Vertex)
     SetFormat(g_main_cp_state.last_id, primitiveType);
@@ -106,7 +107,7 @@ void SWVertexLoader::vFlush()
     // transform this vertex so that it can be used for rasterization (outVertex)
     OutputVertexData* outVertex = m_SetupUnit.GetVertex();
     TransformUnit::TransformPosition(&m_Vertex, outVertex);
-    memset(&outVertex->normal, 0, sizeof(outVertex->normal));
+    outVertex->normal = {};
     if (VertexLoaderManager::g_current_components & VB_HAS_NRM0)
     {
       TransformUnit::TransformNormal(
@@ -218,19 +219,19 @@ void SWVertexLoader::ParseVertex(const PortableVertexDeclaration& vdec, int inde
 
   ReadVertexAttribute<float>(&m_Vertex.position[0], src, vdec.position, 0, 3, false);
 
-  for (int i = 0; i < 3; i++)
+  for (std::size_t i = 0; i < m_Vertex.normal.size(); i++)
   {
     ReadVertexAttribute<float>(&m_Vertex.normal[i][0], src, vdec.normals[i], 0, 3, false);
   }
 
-  for (int i = 0; i < 2; i++)
+  for (std::size_t i = 0; i < m_Vertex.color.size(); i++)
   {
-    ReadVertexAttribute<u8>(m_Vertex.color[i], src, vdec.colors[i], 0, 4, true);
+    ReadVertexAttribute<u8>(m_Vertex.color[i].data(), src, vdec.colors[i], 0, 4, true);
   }
 
-  for (int i = 0; i < 8; i++)
+  for (std::size_t i = 0; i < m_Vertex.texCoords.size(); i++)
   {
-    ReadVertexAttribute<float>(m_Vertex.texCoords[i], src, vdec.texcoords[i], 0, 2, false);
+    ReadVertexAttribute<float>(m_Vertex.texCoords[i].data(), src, vdec.texcoords[i], 0, 2, false);
 
     // the texmtr is stored as third component of the texCoord
     if (vdec.texcoords[i].components >= 3)

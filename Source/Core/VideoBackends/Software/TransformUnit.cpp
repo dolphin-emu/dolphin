@@ -330,7 +330,7 @@ void TransformColor(const InputVertexData* src, OutputVertexData* dst)
     // color
     const LitChannel& colorchan = xfmem.color[chan];
     if (colorchan.matsource)
-      std::memcpy(matcolor.data(), src->color[chan], sizeof(u32));  // vertex
+      matcolor = src->color[chan];  // vertex
     else
       std::memcpy(matcolor.data(), &xfmem.matColor[chan], sizeof(u32));
 
@@ -403,7 +403,7 @@ void TransformColor(const InputVertexData* src, OutputVertexData* dst)
 
     // abgr -> rgba
     const u32 rgba_color = Common::swap32(chancolor.data());
-    std::memcpy(dst->color[chan], &rgba_color, sizeof(u32));
+    std::memcpy(dst->color[chan].data(), &rgba_color, sizeof(u32));
   }
 }
 

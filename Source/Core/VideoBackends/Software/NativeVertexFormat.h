@@ -4,6 +4,9 @@
 
 #pragma once
 
+#include <array>
+#include <cstddef>
+
 #include "Common/CommonTypes.h"
 #include "VideoBackends/Software/Vec3.h"
 
@@ -18,12 +21,12 @@ struct Vec4
 struct InputVertexData
 {
   u8 posMtx;
-  u8 texMtx[8];
+  std::array<u8, 8> texMtx;
 
   Vec3 position;
-  Vec3 normal[3];
-  u8 color[2][4];
-  float texCoords[8][2];
+  std::array<Vec3, 3> normal;
+  std::array<std::array<u8, 4>, 2> color;
+  std::array<std::array<float, 2>, 8> texCoords;
 };
 
 struct OutputVertexData
@@ -40,9 +43,9 @@ struct OutputVertexData
   Vec3 mvPosition = {};
   Vec4 projectedPosition = {};
   Vec3 screenPosition = {};
-  Vec3 normal[3] = {};
-  u8 color[2][4] = {};
-  Vec3 texCoords[8] = {};
+  std::array<Vec3, 3> normal{};
+  std::array<std::array<u8, 4>, 2> color{};
+  std::array<Vec3, 8> texCoords{};
 
   void Lerp(float t, const OutputVertexData* a, const OutputVertexData* b)
   {
@@ -57,19 +60,19 @@ struct OutputVertexData
     projectedPosition.z = LINTERP(t, a->projectedPosition.z, b->projectedPosition.z);
     projectedPosition.w = LINTERP(t, a->projectedPosition.w, b->projectedPosition.w);
 
-    for (int i = 0; i < 3; ++i)
+    for (std::size_t i = 0; i < normal.size(); ++i)
     {
       normal[i] = LINTERP(t, a->normal[i], b->normal[i]);
     }
 
-    u16 t_int = (u16)(t * 256);
-    for (int i = 0; i < 4; ++i)
+    const u16 t_int = static_cast<u16>(t * 256);
+    for (std::size_t i = 0; i < color[0].size(); ++i)
     {
       color[0][i] = LINTERP_INT(t_int, a->color[0][i], b->color[0][i]);
       color[1][i] = LINTERP_INT(t_int, a->color[1][i], b->color[1][i]);
     }
 
-    for (int i = 0; i < 8; ++i)
+    for (std::size_t i = 0; i < texCoords.size(); ++i)
     {
       texCoords[i] = LINTERP(t, a->texCoords[i], b->texCoords[i]);
     }
