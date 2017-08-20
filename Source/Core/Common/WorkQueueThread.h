@@ -35,7 +35,7 @@ public:
   {
     {
       std::unique_lock<std::mutex> lg(m_lock);
-      m_items.emplace(std::move(args)...);
+      m_items.emplace(std::forward<Args>(args)...);
     }
     m_wakeup.Set();
   }
