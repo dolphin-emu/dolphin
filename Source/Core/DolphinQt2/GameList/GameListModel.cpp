@@ -200,7 +200,7 @@ QSharedPointer<GameFile> GameListModel::GetGameFile(int index) const
   return m_games[index];
 }
 
-void GameListModel::UpdateGame(QSharedPointer<GameFile> game)
+void GameListModel::UpdateGame(const QSharedPointer<GameFile>& game)
 {
   QString path = game->GetFilePath();
 
