@@ -291,7 +291,7 @@ bool SDCardCreate(u64 disk_size /*in MB*/, const std::string& filename)
 FailWrite:
   ERROR_LOG(COMMON, "Could not write to '%s', aborting...", filename.c_str());
   if (unlink(filename.c_str()) < 0)
-    ERROR_LOG(COMMON, "unlink(%s) failed: %s", filename.c_str(), GetLastErrorMsg().c_str());
+    ERROR_LOG(COMMON, "unlink(%s) failed: %s", filename.c_str(), LastStrerrorString().c_str());
   return false;
 }
 
