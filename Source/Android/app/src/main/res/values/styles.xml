@@ -52,23 +52,8 @@
     </style>
 
     <!-- Themes for Dialogs -->
-    <style name="DolphinDialogBase" parent="Theme.AppCompat.Light.Dialog">
-        <item name="colorPrimary">@color/dolphin_blue</item>
-        <item name="colorPrimaryDark">@color/dolphin_blue_dark</item>
-    </style>
 
     <!-- Inherit from the Base Dolphin Dialog Theme -->
-    <style name="DolphinDialogWii" parent="DolphinDialogBase">
-        <item name="colorAccent">@color/dolphin_accent_wii</item>
-    </style>
-
-    <style name="DolphinDialogGamecube" parent="DolphinDialogBase">
-        <item name="colorAccent">@color/dolphin_accent_gamecube</item>
-    </style>
-
-    <style name="DolphinDialogWiiware" parent="DolphinDialogBase">
-        <item name="colorAccent">@color/dolphin_accent_wiiware</item>
-    </style>
 
     <style name="DolphinEmulationBase" parent="Theme.AppCompat.Light.DarkActionBar">
         <item name="colorPrimary">@color/dolphin_blue</item>
