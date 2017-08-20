@@ -639,11 +639,10 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
     auto* xfb_entry = g_texture_cache->GetTexture(xfbAddr, fbWidth, fbHeight, TextureFormat::XFB,
                                                   force_safe_texture_cache_hash);
 
-    if (xfb_entry)
+    if (xfb_entry && xfb_entry->id != m_last_xfb_id)
     {
-      // TODO, check if xfb_entry is a duplicate of the previous frame and skip SwapImpl
-
       m_last_xfb_texture = xfb_entry->texture.get();
+      m_last_xfb_id = xfb_entry->id;
 
       // TODO: merge more generic parts into VideoCommon
       g_renderer->SwapImpl(xfb_entry->texture.get(), rc, ticks, xfb_entry->gamma);

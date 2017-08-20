@@ -207,6 +207,7 @@ private:
   } m_frame_dump_config;
 
   AbstractTexture * m_last_xfb_texture;
+  u64 m_last_xfb_id = 0;
 
   // Note: Only used for auto-ir
   u32 m_last_xfb_width = MAX_XFB_WIDTH;

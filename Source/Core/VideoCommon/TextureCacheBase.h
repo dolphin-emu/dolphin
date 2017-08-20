@@ -89,6 +89,7 @@ public:
     bool is_xfb_copy = false;
     float y_scale = 1.0f;
     float gamma = 1.0f;
+    u64 id;
 
     unsigned int native_width,
         native_height;  // Texture dimensions from the GameCube's point of view
@@ -268,6 +269,7 @@ private:
   TexAddrCache textures_by_address;
   TexHashCache textures_by_hash;
   TexPool texture_pool;
+  u64 last_entry_id = 0;
 
   // Backup configuration values
   struct BackupConfig

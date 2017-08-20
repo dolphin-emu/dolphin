@@ -1611,6 +1611,7 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::AllocateCacheEntry(const Textur
   }
   TCacheEntry* cacheEntry = new TCacheEntry(std::move(texture));
   cacheEntry->textures_by_hash_iter = textures_by_hash.end();
+  cacheEntry->id = last_entry_id++;
   return cacheEntry;
 }
 
