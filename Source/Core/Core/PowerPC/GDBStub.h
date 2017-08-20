@@ -6,14 +6,7 @@
 
 #pragma once
 
-#include <signal.h>
-
 #include "Common/CommonTypes.h"
-#include "Common/Thread.h"
-
-#include "Core/HW/CPU.h"
-#include "Core/HW/Memmap.h"
-#include "Core/PowerPC/PowerPC.h"
 
 #ifdef _WIN32
 #define SIGTRAP 5
