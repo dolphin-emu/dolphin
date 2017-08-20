@@ -109,17 +109,17 @@ IPCCommandResult WFSSRV::IOCtl(const IOCtlRequest& request)
 
     if (File::Exists(native_path))
     {
-      INFO_LOG(IOS, "IOCTL_WFS_MKDIR(%s): already exists", path.c_str());
+      INFO_LOG(IOS_WFS, "IOCTL_WFS_MKDIR(%s): already exists", path.c_str());
       return_error_code = WFS_EEXIST;
     }
     else if (!File::CreateDir(native_path))
     {
-      INFO_LOG(IOS, "IOCTL_WFS_MKDIR(%s): no such file or directory", path.c_str());
+      INFO_LOG(IOS_WFS, "IOCTL_WFS_MKDIR(%s): no such file or directory", path.c_str());
       return_error_code = WFS_ENOENT;
     }
     else
     {
-      INFO_LOG(IOS, "IOCTL_WFS_MKDIR(%s): directory created", path.c_str());
+      INFO_LOG(IOS_WFS, "IOCTL_WFS_MKDIR(%s): directory created", path.c_str());
     }
     break;
   }
@@ -168,18 +168,18 @@ IPCCommandResult WFSSRV::IOCtl(const IOCtlRequest& request)
     Memory::Memset(0, request.buffer_out, request.buffer_out_size);
     if (!File::Exists(native_path))
     {
-      INFO_LOG(IOS, "IOCTL_WFS_GET_ATTRIBUTES(%s): no such file or directory", path.c_str());
+      INFO_LOG(IOS_WFS, "IOCTL_WFS_GET_ATTRIBUTES(%s): no such file or directory", path.c_str());
       return_error_code = WFS_ENOENT;
     }
     else if (File::IsDirectory(native_path))
     {
-      INFO_LOG(IOS, "IOCTL_WFS_GET_ATTRIBUTES(%s): directory", path.c_str());
+      INFO_LOG(IOS_WFS, "IOCTL_WFS_GET_ATTRIBUTES(%s): directory", path.c_str());
       Memory::Write_U32(0x80000000, request.buffer_out + 4);
     }
     else
     {
       u32 size = static_cast<u32>(File::GetSize(native_path));
-      INFO_LOG(IOS, "IOCTL_WFS_GET_ATTRIBUTES(%s): file with size %d", path.c_str(), size);
+      INFO_LOG(IOS_WFS, "IOCTL_WFS_GET_ATTRIBUTES(%s): file with size %d", path.c_str(), size);
       Memory::Write_U32(size, request.buffer_out);
     }
     break;
@@ -269,7 +269,7 @@ IPCCommandResult WFSSRV::IOCtl(const IOCtlRequest& request)
     // TODO(wfs): Figure out the exact semantics difference from the other
     // close.
     u16 fd = Memory::Read_U16(request.buffer_in + 0x4);
-    INFO_LOG(IOS, "IOCTL_WFS_CLOSE_2(%d)", fd);
+    INFO_LOG(IOS_WFS, "IOCTL_WFS_CLOSE_2(%d)", fd);
     ReleaseFileDescriptor(fd);
     break;
   }
@@ -328,7 +328,7 @@ IPCCommandResult WFSSRV::IOCtl(const IOCtlRequest& request)
     FileDescriptor* fd_obj = FindFileDescriptor(fd);
     if (fd_obj == nullptr)
     {
-      ERROR_LOG(IOS, "IOCTL_WFS_WRITE: invalid file descriptor %d", fd);
+      ERROR_LOG(IOS_WFS, "IOCTL_WFS_WRITE: invalid file descriptor %d", fd);
       return_error_code = WFS_EBADFD;
       break;
     }
@@ -349,7 +349,7 @@ IPCCommandResult WFSSRV::IOCtl(const IOCtlRequest& request)
       fd_obj->position += size;
     }
 
-    INFO_LOG(IOS, "IOCTL_WFS_WRITE: written %d bytes from FD %d (%s)", size, fd,
+    INFO_LOG(IOS_WFS, "IOCTL_WFS_WRITE: written %d bytes from FD %d (%s)", size, fd,
              fd_obj->path.c_str());
     break;
   }

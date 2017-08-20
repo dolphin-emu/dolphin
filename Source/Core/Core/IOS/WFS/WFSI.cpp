@@ -292,7 +292,7 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
 
   case IOCTL_WFSI_FINALIZE_PATCH_INSTALL:
   {
-    INFO_LOG(IOS, "IOCTL_WFSI_FINALIZE_PATCH_INSTALL");
+    INFO_LOG(IOS_WFS, "IOCTL_WFSI_FINALIZE_PATCH_INSTALL");
     if (m_patch_type != NOT_A_PATCH)
     {
       std::string current_title_dir =
@@ -398,7 +398,7 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
   {
     u64 subtitle_id = Memory::Read_U64(request.buffer_in);
     u32 address = Memory::Read_U32(request.buffer_in + 24);
-    INFO_LOG(IOS, "IOCTL_WFSI_GET_TMD: subtitle ID %016" PRIx64, subtitle_id);
+    INFO_LOG(IOS_WFS, "IOCTL_WFSI_GET_TMD: subtitle ID %016" PRIx64, subtitle_id);
 
     u32 tmd_size;
     return_error_code =
@@ -413,7 +413,7 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
     u32 address = Memory::Read_U32(request.buffer_in + 24);
     u16 group_id = Memory::Read_U16(request.buffer_in + 36);
     u32 title_id = Memory::Read_U32(request.buffer_in + 32);
-    INFO_LOG(IOS, "IOCTL_WFSI_GET_TMD_ABSOLUTE: tid %08x, gid %04x, subtitle ID %016" PRIx64,
+    INFO_LOG(IOS_WFS, "IOCTL_WFSI_GET_TMD_ABSOLUTE: tid %08x, gid %04x, subtitle ID %016" PRIx64,
              title_id, group_id, subtitle_id);
 
     u32 tmd_size;
@@ -424,7 +424,7 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
 
   case IOCTL_WFSI_SET_FST_BUFFER:
   {
-    INFO_LOG(IOS, "IOCTL_WFSI_SET_FST_BUFFER: address %08x, size %08x", request.buffer_in,
+    INFO_LOG(IOS_WFS, "IOCTL_WFSI_SET_FST_BUFFER: address %08x, size %08x", request.buffer_in,
              request.buffer_in_size);
     break;
   }
@@ -477,7 +477,7 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
   }
 
   case IOCTL_WFSI_CHECK_HAS_SPACE:
-    WARN_LOG(IOS, "IOCTL_WFSI_CHECK_HAS_SPACE: returning true");
+    WARN_LOG(IOS_WFS, "IOCTL_WFSI_CHECK_HAS_SPACE: returning true");
 
     // TODO(wfs): implement this properly.
     //       1 is returned if there is free space, 0 otherwise.
@@ -513,7 +513,7 @@ u32 WFSI::GetTmd(u16 group_id, u32 title_id, u64 subtitle_id, u32 address, u32* 
   File::IOFile fp(WFS::NativePath(path), "rb");
   if (!fp)
   {
-    WARN_LOG(IOS, "GetTmd: no such file or directory: %s", path.c_str());
+    WARN_LOG(IOS_WFS, "GetTmd: no such file or directory: %s", path.c_str());
     return WFS_ENOENT;
   }
   if (address)
