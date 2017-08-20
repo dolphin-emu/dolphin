@@ -192,7 +192,6 @@ bool GameFile::TryLoadElfDol()
     return false;
 
   m_revision = 0;
-  m_long_names[DiscIO::Language::LANGUAGE_ENGLISH] = m_file_name;
   m_platform = DiscIO::Platform::ELF_DOL;
   m_region = DiscIO::Region::UNKNOWN_REGION;
   m_country = DiscIO::Country::COUNTRY_UNKNOWN;
