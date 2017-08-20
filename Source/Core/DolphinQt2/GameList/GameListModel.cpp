@@ -76,7 +76,10 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
                                                Core::TitleDatabase::TitleType::Channel :
                                                Core::TitleDatabase::TitleType::Other));
       if (display_name.isEmpty())
-        return game->GetLongName();
+        display_name = game->GetLongName();
+
+      if (display_name.isEmpty())
+        display_name = game->GetFileName();
 
       return display_name;
     }
