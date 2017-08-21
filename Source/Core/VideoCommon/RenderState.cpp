@@ -94,9 +94,10 @@ void BlendingState::Generate(const BPMemory& bp)
       srcfactor = RemoveDstAlphaUsage(srcfactor);
       dstfactor = RemoveDstAlphaUsage(dstfactor);
     }
-    // replaces SRCCLR with SRCALPHA
-    srcfactoralpha = RemoveSrcColorUsage(srcfactor);
-    dstfactoralpha = RemoveDstColorUsage(dstfactor);
+    // replaces SRCCLR with SRCALPHA and DSTCLR with DSTALPHA, it is important to
+    // use the dst function for the src factor and vice versa
+    srcfactoralpha = RemoveDstColorUsage(srcfactor);
+    dstfactoralpha = RemoveSrcColorUsage(dstfactor);
 
     if (dstalpha)
     {
