@@ -358,7 +358,7 @@ bool Copy(const std::string& srcFilename, const std::string& destFilename)
   while (!input.eof())
   {
     // read input
-    input.read(buffer, BSIZE);
+    auto read_size = input.readsome(buffer, BSIZE);
     if (!input)
     {
       ERROR_LOG(COMMON, "Copy: failed reading from source, %s --> %s", srcFilename.c_str(),
@@ -367,7 +367,7 @@ bool Copy(const std::string& srcFilename, const std::string& destFilename)
     }
 
     // write output
-    if (!output.WriteBytes(buffer, BSIZE))
+    if (!output.WriteBytes(buffer, read_size))
     {
       ERROR_LOG(COMMON, "Copy: failed writing to output, %s --> %s: %s", srcFilename.c_str(),
                 destFilename.c_str(), LastStrerrorString().c_str());
