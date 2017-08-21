@@ -113,7 +113,7 @@
     </style>
 
     <!-- Android TV Themes -->
-    <style name="DolphinTvBase" parent="Theme.Leanback">
+    <style name="DolphinTvBase" parent="Theme.Leanback.Browse">
         <item name="colorPrimary">@color/dolphin_blue</item>
         <item name="colorPrimaryDark">@color/dolphin_blue_dark</item>
 
@@ -125,6 +125,7 @@
 
     <style name="DolphinTvGamecube" parent="DolphinTvBase">
         <item name="colorAccent">@color/dolphin_accent_gamecube</item>
+        <item name="browseTitleViewLayout">@layout/titleview</item>
     </style>
 
     <style name="InGameMenuOption" parent="Widget.AppCompat.Button.Borderless">
