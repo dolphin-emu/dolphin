@@ -99,8 +99,6 @@ void GameFile::ReadBanner(const DiscIO::Volume& volume)
 
   if (!banner.isNull())
     m_banner = QPixmap::fromImage(banner);
-  else
-    m_banner = Resources::GetMisc(Resources::BANNER_MISSING);
 }
 
 bool GameFile::LoadFileInfo(const QString& path)
@@ -197,7 +195,6 @@ bool GameFile::TryLoadElfDol()
   m_country = DiscIO::Country::COUNTRY_UNKNOWN;
   m_blob_type = DiscIO::BlobType::DIRECTORY;
   m_raw_size = m_size;
-  m_banner = Resources::GetMisc(Resources::BANNER_MISSING);
   m_rating = 0;
 
   return true;
