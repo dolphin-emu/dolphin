@@ -5,6 +5,7 @@
 #include <QCryptographicHash>
 #include <QDataStream>
 #include <QDir>
+#include <QFileInfo>
 #include <QImage>
 #include <QSharedPointer>
 
