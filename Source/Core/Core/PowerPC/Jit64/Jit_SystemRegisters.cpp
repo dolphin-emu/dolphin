@@ -403,7 +403,7 @@ void Jit64::mtmsr(UGeckoInstruction inst)
   // external exceptions when going out of mtmsr in order to execute delayed
   // interrupts as soon as possible.
   TEST(32, PPCSTATE(msr), Imm32(0x8000));
-  FixupBranch eeDisabled = J_CC(CC_Z);
+  FixupBranch eeDisabled = J_CC(CC_Z, true);
 
   TEST(32, PPCSTATE(Exceptions),
        Imm32(EXCEPTION_EXTERNAL_INT | EXCEPTION_PERFORMANCE_MONITOR | EXCEPTION_DECREMENTER));
