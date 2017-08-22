@@ -2,13 +2,14 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "DolphinQt2/Config/PropertiesDialog.h"
+
 #include <QDialogButtonBox>
 #include <QTabWidget>
 #include <QVBoxLayout>
 
 #include "DolphinQt2/Config/FilesystemWidget.h"
 #include "DolphinQt2/Config/InfoWidget.h"
-#include "DolphinQt2/Config/PropertiesDialog.h"
 
 PropertiesDialog::PropertiesDialog(QWidget* parent, const GameFile& game) : QDialog(parent)
 {
