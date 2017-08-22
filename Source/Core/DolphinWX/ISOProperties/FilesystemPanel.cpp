@@ -68,20 +68,40 @@ wxImageList* LoadIconBitmaps(const wxWindow* context)
   return icon_list;
 }
 
+// Iterates over all files in a directory summing up their sizes to determine
+// the size of the directory
+u64 DetermineDirectorySize(const DiscIO::FileInfo& directory, u64 size)
+{
+  for (const DiscIO::FileInfo& file_info : directory)
+  {
+    if (file_info.IsDirectory())
+      size += DetermineDirectorySize(file_info, 0);
+    else
+      size += file_info.GetSize();
+  }
+  return size;
+}
+
 void CreateDirectoryTree(wxTreeCtrl* tree_ctrl, wxTreeItemId parent,
                          const DiscIO::FileInfo& directory)
 {
   for (const DiscIO::FileInfo& file_info : directory)
   {
-    const wxString name = StrToWxStr(file_info.GetName());
     if (file_info.IsDirectory())
     {
-      wxTreeItemId item = tree_ctrl->AppendItem(parent, name, ICON_FOLDER);
+      u64 size = DetermineDirectorySize(file_info, 0);
+      const wxString name =
+          StrToWxStr(file_info.GetName() + " [" + File::PrettyPrintFileSize(size) + "]");
+      wxTreeItemId item = tree_ctrl->AppendItem(parent, name, ICON_FOLDER, -1,
+                                                new FilesystemTreeItemData(file_info.GetName()));
       CreateDirectoryTree(tree_ctrl, item, file_info);
     }
     else
     {
-      tree_ctrl->AppendItem(parent, name, ICON_FILE);
+      const wxString name = StrToWxStr(file_info.GetName() + " [" +
+                                       File::PrettyPrintFileSize(file_info.GetSize()) + "]");
+      tree_ctrl->AppendItem(parent, name, ICON_FILE, -1,
+                            new FilesystemTreeItemData(file_info.GetName()));
     }
   }
 }
@@ -222,7 +242,8 @@ void FilesystemPanel::OnRightClickTree(wxTreeEvent& event)
 
 void FilesystemPanel::OnExtractFile(wxCommandEvent& WXUNUSED(event))
 {
-  const wxString selection_label = m_tree_ctrl->GetItemText(m_tree_ctrl->GetSelection());
+  const wxString selection_label =
+      ((FilesystemTreeItemData*)m_tree_ctrl->GetItemData(m_tree_ctrl->GetSelection()))->GetData();
 
   const wxString output_file_path =
       wxFileSelector(_("Extract File"), wxEmptyString, selection_label, wxEmptyString,

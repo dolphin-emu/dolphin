@@ -8,6 +8,7 @@
 #include <string>
 #include <utility>
 #include <wx/panel.h>
+#include <wx/treebase.h>
 
 class GameListItem;
 class wxTreeCtrl;
@@ -63,4 +64,16 @@ private:
 
   std::unique_ptr<DiscIO::FileSystem> m_filesystem;
   bool m_has_partitions;
+};
+
+// Data class for items in the Filesystem tree panel.
+// Currently used to store the name of each file without
+// that file's size appended to ease extraction
+class FilesystemTreeItemData final : public wxTreeItemData
+{
+public:
+  FilesystemTreeItemData(std::string data) : m_id(data) {}
+  std::string GetData() const { return m_id; }
+private:
+  std::string m_id;
 };

@@ -7,7 +7,9 @@
 #include <cstdio>
 #include <cstring>
 #include <fcntl.h>
+#include <iomanip>
 #include <limits.h>
+#include <sstream>
 #include <string>
 #include <sys/stat.h>
 #include <vector>
@@ -19,6 +21,7 @@
 #include "Common/File.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
+#include "Common/MathUtil.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -224,6 +227,27 @@ bool CreateFullPath(const std::string& fullPath)
     }
     position++;
   }
+}
+
+// Returns a human-readable string representing a filesize
+std::string PrettyPrintFileSize(u64 size)
+{
+  // Return a pretty filesize string from byte count.
+  // e.g. 1134278 -> "1.08 MiB"
+
+  const char* const unit_symbols[] = {"B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB"};
+
+  // Find largest power of 2 less than size.
+  // div 10 to get largest named unit less than size
+  // 10 == log2(1024) (number of B in a KiB, KiB in a MiB, etc)
+  // Max value is 63 / 10 = 6
+  const int unit = IntLog2(std::max<u64>(size, 1)) / 10;
+
+  // Don't need exact values, only 5 most significant digits
+  double unit_size = std::pow(2, unit * 10);
+  std::stringstream stream;
+  stream << std::fixed << std::setprecision(2) << size / unit_size << " " << unit_symbols[unit];
+  return stream.str();
 }
 
 // Deletes a directory filename, returns true on success
