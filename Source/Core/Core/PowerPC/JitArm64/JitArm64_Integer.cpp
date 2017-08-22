@@ -532,7 +532,12 @@ void JitArm64::rlwinmx(UGeckoInstruction inst)
 
   gpr.BindToRegister(a, a == s);
 
-  if (!inst.SH)
+  if (!inst.SH && mask == 0xFFFFFFFF)
+  {
+    if (a != s)
+      MOV(gpr.R(a), gpr.R(s));
+  }
+  else if (!inst.SH)
   {
     // Immediate mask
     ANDI2R(gpr.R(a), gpr.R(s), mask);

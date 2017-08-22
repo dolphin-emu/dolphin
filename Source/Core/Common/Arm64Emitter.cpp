@@ -4057,7 +4057,7 @@ void ARM64XEmitter::ANDI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
   else
   {
     _assert_msg_(DYNA_REC, scratch != INVALID_REG,
-                 "ANDSI2R - failed to construct logical immediate value from %08x, need scratch",
+                 "ANDI2R - failed to construct logical immediate value from %08x, need scratch",
                  (u32)imm);
     MOVI2R(scratch, imm);
     AND(Rd, Rn, scratch);
