@@ -5,6 +5,7 @@
 #include <QCryptographicHash>
 #include <QDataStream>
 #include <QDir>
+#include <QFileInfo>
 #include <QImage>
 #include <QSharedPointer>
 
@@ -82,7 +83,7 @@ QString GameFile::GetCacheFileName() const
   // files with the same names in different folders.
   QString hash =
       QString::fromUtf8(QCryptographicHash::hash(m_path.toUtf8(), QCryptographicHash::Md5).toHex());
-  return folder + m_file_name + hash;
+  return folder + GetFileName() + hash;
 }
 
 void GameFile::ReadBanner(const DiscIO::Volume& volume)
@@ -107,9 +108,6 @@ bool GameFile::LoadFileInfo(const QString& path)
   if (!info.exists() || !info.isReadable())
     return false;
 
-  m_file_name = info.fileName();
-  m_extension = info.suffix();
-  m_folder = info.dir().dirName();
   m_last_modified = info.lastModified();
   m_size = info.size();
 
@@ -127,7 +125,8 @@ void GameFile::LoadState()
 
 bool GameFile::IsElfOrDol()
 {
-  return m_extension == QStringLiteral("elf") || m_extension == QStringLiteral("dol");
+  QString extension = GetFileExtension();
+  return extension == QStringLiteral("elf") || extension == QStringLiteral("dol");
 }
 
 bool GameFile::TryLoadCache()
@@ -203,6 +202,21 @@ bool GameFile::TryLoadElfDol()
 void GameFile::SaveCache()
 {
   // TODO
+}
+
+QString GameFile::GetFileName() const
+{
+  return QFileInfo(m_path).fileName();
+}
+
+QString GameFile::GetFileExtension() const
+{
+  return QFileInfo(m_path).suffix();
+}
+
+QString GameFile::GetFileFolder() const
+{
+  return QFileInfo(m_path).dir().dirName();
 }
 
 QString GameFile::GetBannerString(const QMap<DiscIO::Language, QString>& m) const
