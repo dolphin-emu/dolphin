@@ -105,7 +105,6 @@ private:
   QMap<DiscIO::Language, QString> m_short_makers;
   QMap<DiscIO::Language, QString> m_long_makers;
   QMap<DiscIO::Language, QString> m_descriptions;
-  QString m_company;
   u8 m_disc_number = 0;
   DiscIO::Region m_region;
   DiscIO::Platform m_platform;
