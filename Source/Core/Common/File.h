@@ -9,14 +9,13 @@
 #include <string>
 
 #include "Common/CommonTypes.h"
-#include "Common/NonCopyable.h"
 
 namespace File
 {
 // simple wrapper for cstdlib file functions to
 // hopefully will make error checking easier
 // and make forgetting an fclose() harder
-class IOFile : public NonCopyable
+class IOFile
 {
 public:
   IOFile();
@@ -24,6 +23,9 @@ public:
   IOFile(const std::string& filename, const char openmode[]);
 
   ~IOFile();
+
+  IOFile(const IOFile&) = delete;
+  IOFile& operator=(const IOFile&) = delete;
 
   IOFile(IOFile&& other) noexcept;
   IOFile& operator=(IOFile&& other) noexcept;

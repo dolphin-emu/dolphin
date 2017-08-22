@@ -8,7 +8,6 @@
 #include <string>
 
 #include "Common/CommonTypes.h"
-#include "Common/NonCopyable.h"
 
 class PCAP;
 
@@ -51,7 +50,7 @@ public:
 
 // A capture logger implementation that logs to PCAP files in a custom
 // packet-based format.
-class PCAPDSPCaptureLogger final : public DSPCaptureLogger, NonCopyable
+class PCAPDSPCaptureLogger final : public DSPCaptureLogger
 {
 public:
   // Automatically creates a writeable file (truncate existing file).

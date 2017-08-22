@@ -8,7 +8,6 @@
 #include <memory>
 
 #include "Common/CommonTypes.h"
-#include "Common/NonCopyable.h"
 
 // All the templated and very repetitive MMIO-related code is isolated in this
 // file for easier reading. It mostly contains code related to handling methods
@@ -119,7 +118,7 @@ public:
 // inlinable, we need to provide some of the implementation of these two
 // classes here and can't just use a forward declaration.
 template <typename T>
-class ReadHandler : public NonCopyable
+class ReadHandler
 {
 public:
   ReadHandler();
@@ -155,7 +154,7 @@ private:
   std::function<T(u32)> m_ReadFunc;
 };
 template <typename T>
-class WriteHandler : public NonCopyable
+class WriteHandler
 {
 public:
   WriteHandler();

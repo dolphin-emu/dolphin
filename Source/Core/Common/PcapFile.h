@@ -18,9 +18,8 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/File.h"
-#include "Common/NonCopyable.h"
 
-class PCAP final : public NonCopyable
+class PCAP final
 {
 public:
   // Takes ownership of the file object. Assumes the file object is already
