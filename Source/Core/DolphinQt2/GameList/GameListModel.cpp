@@ -63,6 +63,8 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
       // GameCube banners are 96x32, but Wii banners are 192x64.
       // TODO: use custom banners from rom directory like DolphinWX?
       QPixmap banner = game->GetBanner();
+      if (banner.isNull())
+        banner = Resources::GetMisc(Resources::BANNER_MISSING);
       banner.setDevicePixelRatio(std::max(banner.width() / GAMECUBE_BANNER_SIZE.width(),
                                           banner.height() / GAMECUBE_BANNER_SIZE.height()));
       return banner;

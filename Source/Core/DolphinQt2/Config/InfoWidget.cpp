@@ -69,7 +69,6 @@ QGroupBox* InfoWidget::CreateBannerDetails()
   m_long_maker = CreateValueDisplay();
   m_description = new QTextEdit();
   m_description->setReadOnly(true);
-  QWidget* banner = CreateBannerGraphic();
   CreateLanguageSelector();
 
   layout->addRow(tr("Show Language:"), m_language_selector);
@@ -85,7 +84,11 @@ QGroupBox* InfoWidget::CreateBannerDetails()
   {
     layout->addRow(tr("Name:"), m_long_name);
   }
-  layout->addRow(tr("Banner:"), banner);
+
+  if (!m_game.GetBanner().isNull())
+  {
+    layout->addRow(tr("Banner:"), CreateBannerGraphic());
+  }
 
   group->setLayout(layout);
   return group;
