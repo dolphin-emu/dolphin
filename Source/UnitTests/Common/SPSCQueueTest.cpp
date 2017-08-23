@@ -5,11 +5,11 @@
 #include <gtest/gtest.h>
 #include <thread>
 
-#include "Common/FifoQueue.h"
+#include "Common/SPSCQueue.h"
 
-TEST(FifoQueue, Simple)
+TEST(SPSCQueue, Simple)
 {
-  Common::FifoQueue<u32> q;
+  Common::SPSCQueue<u32> q;
 
   EXPECT_EQ(0u, q.Size());
   EXPECT_TRUE(q.Empty());
@@ -43,9 +43,9 @@ TEST(FifoQueue, Simple)
   EXPECT_TRUE(q.Empty());
 }
 
-TEST(FifoQueue, MultiThreaded)
+TEST(SPSCQueue, MultiThreaded)
 {
-  Common::FifoQueue<u32> q;
+  Common::SPSCQueue<u32> q;
 
   auto inserter = [&q]() {
     for (u32 i = 0; i < 100000; ++i)

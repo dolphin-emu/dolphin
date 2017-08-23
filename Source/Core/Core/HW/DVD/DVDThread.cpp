@@ -16,10 +16,10 @@
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
-#include "Common/FifoQueue.h"
 #include "Common/Flag.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
+#include "Common/SPSCQueue.h"
 #include "Common/Thread.h"
 #include "Common/Timer.h"
 
@@ -83,8 +83,8 @@ static Common::Event s_request_queue_expanded;    // Is set by CPU thread
 static Common::Event s_result_queue_expanded;     // Is set by DVD thread
 static Common::Flag s_dvd_thread_exiting(false);  // Is set by CPU thread
 
-static Common::FifoQueue<ReadRequest, false> s_request_queue;
-static Common::FifoQueue<ReadResult, false> s_result_queue;
+static Common::SPSCQueue<ReadRequest, false> s_request_queue;
+static Common::SPSCQueue<ReadResult, false> s_result_queue;
 static std::map<u64, ReadResult> s_result_map;
 
 static std::unique_ptr<DiscIO::Volume> s_disc;
@@ -140,7 +140,7 @@ void DoState(PointerWrap& p)
   WaitUntilIdle();
 
   // Move all results from s_result_queue to s_result_map because
-  // PointerWrap::Do supports std::map but not Common::FifoQueue.
+  // PointerWrap::Do supports std::map but not Common::SPSCQueue.
   // This won't affect the behavior of FinishRead.
   ReadResult result;
   while (s_result_queue.Pop(result))

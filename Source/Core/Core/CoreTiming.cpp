@@ -13,8 +13,8 @@
 
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
-#include "Common/FifoQueue.h"
 #include "Common/Logging/Log.h"
+#include "Common/SPSCQueue.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
 
@@ -63,7 +63,7 @@ static std::unordered_map<std::string, EventType> s_event_types;
 static std::vector<Event> s_event_queue;
 static u64 s_event_fifo_id;
 static std::mutex s_ts_write_lock;
-static Common::FifoQueue<Event, false> s_ts_queue;
+static Common::SPSCQueue<Event, false> s_ts_queue;
 
 static float s_last_OC_factor;
 static constexpr int MAX_SLICE_LENGTH = 20000;

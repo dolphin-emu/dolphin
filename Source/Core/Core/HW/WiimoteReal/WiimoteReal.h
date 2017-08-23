@@ -12,8 +12,8 @@
 
 #include "Common/Common.h"
 #include "Common/Event.h"
-#include "Common/FifoQueue.h"
 #include "Common/Flag.h"
+#include "Common/SPSCQueue.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteCommon/WiimoteConstants.h"
 #include "Core/HW/WiimoteCommon/WiimoteHid.h"
@@ -112,8 +112,8 @@ private:
   // Triggered when the thread has finished ConnectInternal.
   Common::Event m_thread_ready_event;
 
-  Common::FifoQueue<Report> m_read_reports;
-  Common::FifoQueue<Report> m_write_reports;
+  Common::SPSCQueue<Report> m_read_reports;
+  Common::SPSCQueue<Report> m_write_reports;
 };
 
 class WiimoteScannerBackend

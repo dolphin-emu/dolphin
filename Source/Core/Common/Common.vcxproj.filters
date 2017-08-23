@@ -41,7 +41,6 @@
     <ClInclude Include="CPUDetect.h" />
     <ClInclude Include="DebugInterface.h" />
     <ClInclude Include="ENetUtil.h" />
-    <ClInclude Include="FifoQueue.h" />
     <ClInclude Include="FileSearch.h" />
     <ClInclude Include="FileUtil.h" />
     <ClInclude Include="FixedSizeQueue.h" />
@@ -62,6 +61,7 @@
     <ClInclude Include="ScopeGuard.h" />
     <ClInclude Include="SDCardUtil.h" />
     <ClInclude Include="SettingsHandler.h" />
+    <ClInclude Include="SPSCQueue.h" />
     <ClInclude Include="StringUtil.h" />
     <ClInclude Include="Swap.h" />
     <ClInclude Include="SymbolDB.h" />
