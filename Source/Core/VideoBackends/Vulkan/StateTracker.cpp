@@ -1118,7 +1118,8 @@ bool StateTracker::UpdateDescriptorSet()
     m_dirty_flags |= DIRTY_FLAG_DESCRIPTOR_SET_BINDING;
   }
 
-  if ((m_dirty_flags & DIRTY_FLAG_PS_SSBO ||
+  if (IsSSBODescriptorRequired() &&
+      (m_dirty_flags & DIRTY_FLAG_PS_SSBO ||
        m_descriptor_sets[DESCRIPTOR_SET_BIND_POINT_STORAGE_OR_TEXEL_BUFFER] == VK_NULL_HANDLE))
   {
     VkDescriptorSetLayout layout =
