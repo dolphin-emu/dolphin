@@ -144,7 +144,7 @@ void ExitGpuLoop()
 
   // Terminate GPU thread loop
   s_emu_running_state.Set();
-  s_gpu_mainloop.Stop(s_gpu_mainloop.kNonBlock);
+  s_gpu_mainloop.Stop(Common::BlockingLoop::StopMode::NonBlock);
 }
 
 void EmulatorState(bool running)
