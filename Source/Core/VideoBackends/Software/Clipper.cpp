@@ -339,7 +339,7 @@ static void CopyVertex(OutputVertexData* dst, const OutputVertexData* src, float
   dst->screenPosition.z = src->screenPosition.z;
 
   dst->normal = src->normal;
-  dst->color[0] = src->color[0];
+  dst->color = src->color;
 
   // todo - s offset
   dst->texCoords = src->texCoords;
