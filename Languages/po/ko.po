@@ -11,8 +11,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-08-11 14:30+0200\n"
-"PO-Revision-Date: 2017-08-11 12:31+0000\n"
+"POT-Creation-Date: 2017-08-23 18:58+0200\n"
+"PO-Revision-Date: 2017-08-23 16:58+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Korean (http://www.transifex.com/delroth/dolphin-emu/language/"
 "ko/)\n"
@@ -92,11 +92,11 @@ msgstr "%1$s복사%1$s"
 
 #: Source/Core/DolphinQt2/NetPlay/MD5Dialog.cpp:110
 msgid "%1[%2]: %3"
-msgstr ""
+msgstr "%1[%2]: %3"
 
 #: Source/Core/DolphinQt2/NetPlay/MD5Dialog.cpp:98
 msgid "%1[%2]: %3 %"
-msgstr ""
+msgstr "%1[%2]: %3 %"
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:240
 #, c-format
@@ -309,7 +309,7 @@ msgstr "DVD 백업에서 부트(&B)"
 msgid "&Breakpoints"
 msgstr "중단점 (&B)"
 
-#: Source/Core/DolphinQt2/WiiUpdate.cpp:53
+#: Source/Core/DolphinQt2/WiiUpdate.cpp:98
 msgid "&Cancel"
 msgstr "취소(&C)"
 
@@ -346,7 +346,7 @@ msgstr "디버그 (&D)"
 msgid "&Delete File..."
 msgstr "파일 삭제...(&D)"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1198
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1205
 msgid "&Delete selected ISOs..."
 msgstr "선택된 ISO를 삭제...(&D)"
 
@@ -531,7 +531,7 @@ msgstr "블록 프로파일 (&P)"
 msgid "&Profiler"
 msgstr "프로파일러 (&P)"
 
-#: Source/Core/DolphinQt2/GameList/GameList.cpp:151
+#: Source/Core/DolphinQt2/GameList/GameList.cpp:150
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1132
 msgid "&Properties"
 msgstr "속성(&P)"
@@ -631,7 +631,7 @@ msgstr "관찰(&W)"
 msgid "&Website"
 msgstr "웹사이트(&W)"
 
-#: Source/Core/DolphinQt2/GameList/GameList.cpp:152
+#: Source/Core/DolphinQt2/GameList/GameList.cpp:151
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1133
 msgid "&Wiki"
 msgstr "위키(&W)"
@@ -660,7 +660,7 @@ msgstr "+ ADD"
 
 #: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:366
 msgid "..."
-msgstr ""
+msgstr "..."
 
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:61
 msgid "16-bit"
@@ -786,9 +786,9 @@ msgstr ""
 "포트를 만들 포인트가 없습니다 개발자들이 이미 그것들을 알고 있거든요.</p>\n"
 
 #: Source/Core/DolphinQt2/MainWindow.cpp:661
-#: Source/Core/DolphinQt2/MainWindow.cpp:719
+#: Source/Core/DolphinQt2/MainWindow.cpp:718
 msgid "A NetPlay Session is already in progress!"
-msgstr ""
+msgstr "넷플레이 세션이 이미 진행 중입니다!"
 
 #: Source/Core/DolphinWX/NetPlay/NetPlayLauncher.cpp:22
 msgid "A NetPlay window is already open!"
@@ -855,7 +855,7 @@ msgstr ""
 msgid "AR Codes"
 msgstr "AR 코드"
 
-#: Source/Core/DolphinQt2/GameList/GameList.cpp:277
+#: Source/Core/DolphinQt2/GameList/GameList.cpp:285
 msgid "Abort"
 msgstr "중단"
 
@@ -1088,7 +1088,7 @@ msgid "All GC/Wii files (elf, dol, gcm, iso, tgc, wbfs, ciso, gcz, wad, dff)"
 msgstr ""
 "모든 GC/Wii 파일들 (elf, dol, gcm, iso, tgc, wbfs, ciso, gcz, wad, dff)"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1500
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1507
 msgid "All GameCube GCM files (gcm)"
 msgstr "모든 게임큐브 GCM 파일 (gcm)"
 
@@ -1097,23 +1097,23 @@ msgstr "모든 게임큐브 GCM 파일 (gcm)"
 msgid "All Save States (*.sav *.s##);; All Files (*)"
 msgstr "모든 저장 상태 (*.sav *.s##);; 모든 파일들 (*)"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1435
-#: Source/Core/DolphinWX/FrameTools.cpp:1447
+#: Source/Core/DolphinWX/FrameTools.cpp:1470
+#: Source/Core/DolphinWX/FrameTools.cpp:1482
 msgid "All Save States (sav, s##)"
 msgstr "모든 저장 상태 (sav, s##)"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1498
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1505
 msgid "All Wii ISO files (iso)"
 msgstr "모든 Wii ISO 파일 (iso)"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1513
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1520
 msgid "All compressed GC/Wii ISO files (gcz)"
 msgstr "모든 압축된 GC/Wii ISO 파일 (gcz)"
 
 #: Source/Core/DolphinQt2/Settings/InterfacePane.cpp:95
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:461
 msgid "Always Hide Mouse Cursor"
-msgstr ""
+msgstr "항상 마우스 커서를 숨깁니다"
 
 #: Source/Core/Common/Assert.h:46
 #, c-format
@@ -1205,23 +1205,23 @@ msgstr "'%1' 를 정말로 지우고 싶습니까?"
 msgid "Are you sure you want to delete \"%s\"?"
 msgstr "\"%s\" 를 정말로 지우고 싶습니까?"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1301
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1308
 msgid "Are you sure you want to delete these files? They will be gone forever!"
 msgstr "이 파일들을 정말로 삭제하시겠습니까? 영원히 사라지게 됩니다!"
 
-#: Source/Core/DolphinQt2/GameList/GameList.cpp:363
+#: Source/Core/DolphinQt2/GameList/GameList.cpp:371
 msgid "Are you sure you want to delete this file?"
 msgstr "이 파일을 정말로 삭제하시겠습니까?"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1300
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1307
 msgid "Are you sure you want to delete this file? It will be gone forever!"
 msgstr "이 파일을 정말로 삭제하시겠습니까? 영원히 사라지게 됩니다!"
 
 #: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:281
 msgid "Are you sure you want to quit NetPlay?"
-msgstr ""
+msgstr "정말로 넷플레이를 종료하고 싶습니까?"
 
-#: Source/Core/DolphinQt2/GameList/GameList.cpp:253
+#: Source/Core/DolphinQt2/GameList/GameList.cpp:261
 msgid "Are you sure?"
 msgstr "확신합니까?"
 
@@ -1230,7 +1230,7 @@ msgid "Are you trying to use the same file in both slots?"
 msgstr "두 슬롯에 같은 파일을 사용하시겠습니까?"
 
 #: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:80
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:101
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:102
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:422
 msgid "Aspect Ratio:"
 msgstr "종횡비:"
@@ -1259,7 +1259,7 @@ msgstr "오디오 백엔드:"
 msgid "Audio Stretching Settings"
 msgstr "오디오 늘림 설정"
 
-#: Source/Core/DolphinQt2/GameList/GameFile.cpp:256
+#: Source/Core/DolphinQt2/GameList/GameFile.cpp:266
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:99
 msgid "Australia"
 msgstr "오스트레일리아"
@@ -1353,8 +1353,8 @@ msgstr "백그라운드 입력"
 msgid "Backward"
 msgstr "뒤로"
 
-#: Source/Core/DolphinQt2/GameList/GameList.cpp:451
-#: Source/Core/DolphinQt2/GameList/GameListModel.cpp:116
+#: Source/Core/DolphinQt2/GameList/GameList.cpp:459
+#: Source/Core/DolphinQt2/GameList/GameListModel.cpp:124
 #: Source/Core/DolphinQt2/MenuBar.cpp:282
 #: Source/Core/DolphinWX/GameListCtrl.cpp:462
 #: Source/Core/DolphinWX/MainMenuBar.cpp:302
@@ -1367,7 +1367,7 @@ msgstr "배너"
 msgid "Banner Details"
 msgstr "배너 세부사항"
 
-#: Source/Core/DolphinQt2/Config/InfoWidget.cpp:88
+#: Source/Core/DolphinQt2/Config/InfoWidget.cpp:90
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:279
 msgid "Banner:"
 msgstr "배너:"
@@ -1495,7 +1495,7 @@ msgstr "작동하지 않음"
 msgid "Browse for a directory to add"
 msgstr "추가할 디렉토리 찾아보기"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1401
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1408
 msgid "Browse for output directory"
 msgstr "출력 디렉토리 찾아보기"
 
@@ -1506,7 +1506,7 @@ msgstr "버퍼 크기:"
 
 #: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:487
 msgid "Buffer size changed to %1"
-msgstr ""
+msgstr "버퍼 크기가 %1 로 변경되었습니다"
 
 #: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:67
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:251
@@ -1612,11 +1612,11 @@ msgid "Can't find Wii Remote by connection handle %02x"
 msgstr "%02x 연결 핸들로 Wii 리모트를 찾을 수 없음"
 
 #: Source/Core/DolphinQt2/MainWindow.cpp:654
-#: Source/Core/DolphinQt2/MainWindow.cpp:712
+#: Source/Core/DolphinQt2/MainWindow.cpp:711
 msgid "Can't start a NetPlay Session while a game is still running!"
-msgstr ""
+msgstr "게임이 여전히 구동되는 동안에 넷플레이 세션을 시작할 수 없습니다!"
 
-#: Source/Core/DolphinQt2/Config/InfoWidget.cpp:182
+#: Source/Core/DolphinQt2/Config/InfoWidget.cpp:185
 msgid "Cancel"
 msgstr "취소"
 
@@ -1707,7 +1707,7 @@ msgstr "파티션 무결성 체크"
 msgid "Check for updates: "
 msgstr "업데이트 확인: "
 
-#: Source/Core/DolphinQt2/GameList/GameList.cpp:385
+#: Source/Core/DolphinQt2/GameList/GameList.cpp:393
 msgid ""
 "Check whether you have the permissions required to delete the file or "
 "whether it's still in use."
@@ -1857,26 +1857,26 @@ msgstr "컴파일됨:"
 msgid "Compiling shaders..."
 msgstr "쉐이더들 컴파일하기..."
 
-#: Source/Core/DolphinQt2/GameList/GameList.cpp:163
+#: Source/Core/DolphinQt2/GameList/GameList.cpp:162
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1170
 msgid "Compress ISO..."
 msgstr "ISO 압축..."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1200
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1207
 msgid "Compress selected ISOs..."
 msgstr "선택된 ISO를 압축..."
 
-#: Source/Core/DolphinQt2/GameList/GameList.cpp:271
+#: Source/Core/DolphinQt2/GameList/GameList.cpp:279
 msgid "Compressed GC/Wii images (*.gcz)"
 msgstr "압축된 GC/Wii 이미지들 (*.gcz)"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1410
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1528
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1417
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1535
 msgid "Compressing ISO"
 msgstr "ISO 압축하기"
 
-#: Source/Core/DolphinQt2/GameList/GameList.cpp:255
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1609
+#: Source/Core/DolphinQt2/GameList/GameList.cpp:263
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1616
 msgid ""
 "Compressing a Wii disc image will irreversibly change the compressed copy by "
 "removing padding data. Your disc image will still work. Continue?"
@@ -1885,17 +1885,17 @@ msgstr ""
 "수 없게 변경할 것입니다. 당신의 디스크 이미지는 여전히 작동할 것입니다. 계속"
 "할까요?"
 
-#: Source/Core/DolphinQt2/GameList/GameList.cpp:276
+#: Source/Core/DolphinQt2/GameList/GameList.cpp:284
 msgid "Compressing..."
 msgstr "압축하기..."
 
-#: Source/Core/DolphinQt2/Config/InfoWidget.cpp:160
+#: Source/Core/DolphinQt2/Config/InfoWidget.cpp:163
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:250
 msgid "Compute"
 msgstr "계산"
 
-#: Source/Core/DolphinQt2/Config/InfoWidget.cpp:182
-#: Source/Core/DolphinQt2/Config/InfoWidget.cpp:183
+#: Source/Core/DolphinQt2/Config/InfoWidget.cpp:185
+#: Source/Core/DolphinQt2/Config/InfoWidget.cpp:186
 msgid "Computing MD5 Checksum"
 msgstr "MD5 체크섬 계산하기"
 
@@ -1960,14 +1960,14 @@ msgid "Configure..."
 msgstr "환경설정..."
 
 #: Source/Core/DolphinQt2/MainWindow.cpp:374
-#: Source/Core/DolphinQt2/MainWindow.cpp:820
-#: Source/Core/DolphinQt2/WiiUpdate.cpp:28
+#: Source/Core/DolphinQt2/MainWindow.cpp:809
+#: Source/Core/DolphinQt2/WiiUpdate.cpp:134
 msgid "Confirm"
 msgstr "확정"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1433
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1458
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1523
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1440
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1465
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1530
 msgid "Confirm File Overwrite"
 msgstr "파일 덮어쓰기 확인"
 
@@ -1978,7 +1978,7 @@ msgstr "멈출 때 확인"
 
 #: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:280
 msgid "Confirmation"
-msgstr ""
+msgstr "확정"
 
 #: Source/Core/DolphinQt2/NetPlay/NetPlaySetupDialog.cpp:80
 #: Source/Core/DolphinQt2/NetPlay/NetPlaySetupDialog.cpp:143
@@ -2021,8 +2021,8 @@ msgstr "Wii 리모트 4 연결"
 msgid "Connect Wii Remotes"
 msgstr "Wii 리모트 연결"
 
-#: Source/Core/DolphinQt2/WiiUpdate.cpp:29
-#: Source/Core/DolphinWX/FrameTools.cpp:1325
+#: Source/Core/DolphinQt2/WiiUpdate.cpp:135
+#: Source/Core/DolphinWX/FrameTools.cpp:1402
 msgid "Connect to the Internet and perform an online system update?"
 msgstr "인터넷에 연결하여 온라인 시스템 업데이트를 하시겠습니까?"
 
@@ -2125,7 +2125,7 @@ msgstr "헥스 복사 (&h)"
 msgid "Copy code &line"
 msgstr "코드 줄 복사 (&l)"
 
-#: Source/Core/Core/ConfigManager.cpp:993
+#: Source/Core/Core/ConfigManager.cpp:992
 msgid "Copy failed"
 msgstr "복사에 실패했습니다."
 
@@ -2143,8 +2143,8 @@ msgstr "코어"
 msgid "Cost"
 msgstr "비용"
 
-#: Source/Core/DolphinQt2/WiiUpdate.cpp:103
-#: Source/Core/DolphinWX/FrameTools.cpp:1373
+#: Source/Core/DolphinQt2/WiiUpdate.cpp:46
+#: Source/Core/DolphinWX/FrameTools.cpp:1343
 msgid ""
 "Could not download update files from Nintendo. Please check your Internet "
 "connection and try again."
@@ -2152,8 +2152,8 @@ msgstr ""
 "닌텐도로부터 업데이트 파일을 다운로드할 수 없었습니다. 인터넷 연결을 확인하시"
 "고 다시 시도하세요."
 
-#: Source/Core/DolphinQt2/WiiUpdate.cpp:98
-#: Source/Core/DolphinWX/FrameTools.cpp:1368
+#: Source/Core/DolphinQt2/WiiUpdate.cpp:41
+#: Source/Core/DolphinWX/FrameTools.cpp:1338
 msgid ""
 "Could not download update information from Nintendo. Please check your "
 "Internet connection and try again."
@@ -2161,8 +2161,8 @@ msgstr ""
 "닌텐도로부터 업데이트 정보를 다운로드할 수 없었습니다. 인터넷 연결을 확인하시"
 "고 다시 시도하세요."
 
-#: Source/Core/DolphinQt2/WiiUpdate.cpp:108
-#: Source/Core/DolphinWX/FrameTools.cpp:1378
+#: Source/Core/DolphinQt2/WiiUpdate.cpp:51
+#: Source/Core/DolphinWX/FrameTools.cpp:1348
 msgid ""
 "Could not install an update to the Wii system memory. Please refer to logs "
 "for more information."
@@ -2170,7 +2170,7 @@ msgstr ""
 "Wii 시스템 메모리에 업데이트를 설치할 수 없었습니다. 더 많은 정보에 대해서는 "
 "로그를 참조하세요."
 
-#: Source/Core/Core/IOS/ES/ES.cpp:279
+#: Source/Core/Core/IOS/ES/ES.cpp:288
 msgid ""
 "Could not launch the Wii Menu because it is missing from the NAND.\n"
 "The emulated software will likely hang now."
@@ -2178,7 +2178,7 @@ msgstr ""
 "NAND 에 없어서 Wii 메뉴를 시작할 수 없었습니다. \n"
 "에뮬된 소프트웨어가 지금 멈출 것 같습니다."
 
-#: Source/Core/Core/IOS/ES/ES.cpp:284
+#: Source/Core/Core/IOS/ES/ES.cpp:293
 #, c-format
 msgid ""
 "Could not launch title %016<PRIx64> because it is missing from the NAND.\n"
@@ -2235,11 +2235,11 @@ msgstr ""
 "에뮬레이터 디렉토리를 이동한 후에 이 메시지를 받고 있나요?\n"
 "그렇다면, 옵션에서 메모리카드 위치를 재지정해야 합니다."
 
-#: Source/Core/Core/NetPlayClient.cpp:90
+#: Source/Core/Core/NetPlayClient.cpp:89
 msgid "Couldn't Create Client"
 msgstr "클라이언트를 생성할 수 없습니다."
 
-#: Source/Core/Core/NetPlayClient.cpp:101
+#: Source/Core/Core/NetPlayClient.cpp:100
 msgid "Couldn't create peer."
 msgstr "피어를 생성할 수 없습니다."
 
@@ -2270,7 +2270,7 @@ msgstr "카운트:"
 msgid "Count: %lu"
 msgstr "카운트: %lu"
 
-#: Source/Core/DolphinQt2/GameList/GameList.cpp:452
+#: Source/Core/DolphinQt2/GameList/GameList.cpp:460
 #: Source/Core/DolphinQt2/MenuBar.cpp:287
 msgid "Country"
 msgstr "국가"
@@ -2456,21 +2456,21 @@ msgstr "디버깅"
 msgid "Decimal"
 msgstr "10 진수"
 
-#: Source/Core/DolphinQt2/GameList/GameList.cpp:161
+#: Source/Core/DolphinQt2/GameList/GameList.cpp:160
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1168
 msgid "Decompress ISO..."
 msgstr "ISO 압축풀기..."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1201
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1208
 msgid "Decompress selected ISOs..."
 msgstr "선택된 ISO 들을 압축풀기..."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1410
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1528
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1417
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1535
 msgid "Decompressing ISO"
 msgstr "ISO 압축풀기"
 
-#: Source/Core/DolphinQt2/GameList/GameList.cpp:276
+#: Source/Core/DolphinQt2/GameList/GameList.cpp:284
 msgid "Decompressing..."
 msgstr "압축풀기..."
 
@@ -2515,7 +2515,7 @@ msgstr "기본 폰트"
 msgid "Delete"
 msgstr "삭제"
 
-#: Source/Core/DolphinQt2/GameList/GameList.cpp:199
+#: Source/Core/DolphinQt2/GameList/GameList.cpp:207
 msgid "Delete File..."
 msgstr "파일 삭제..."
 
@@ -2539,14 +2539,14 @@ msgid "Depth:"
 msgstr "깊이:"
 
 #: Source/Core/DolphinQt2/Config/Graphics/GraphicsWindow.cpp:40
-#: Source/Core/DolphinQt2/GameList/GameList.cpp:453
-#: Source/Core/DolphinQt2/GameList/GameListModel.cpp:118
+#: Source/Core/DolphinQt2/GameList/GameList.cpp:461
+#: Source/Core/DolphinQt2/GameList/GameListModel.cpp:126
 #: Source/Core/DolphinQt2/MenuBar.cpp:284
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:1245
 msgid "Description"
 msgstr "설명"
 
-#: Source/Core/DolphinQt2/Config/InfoWidget.cpp:82
+#: Source/Core/DolphinQt2/Config/InfoWidget.cpp:81
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:276
 msgid "Description:"
 msgstr "설명:"
@@ -2719,7 +2719,7 @@ msgstr ""
 msgid "Do you authorize Dolphin to report information to Dolphin's developers?"
 msgstr "돌핀이 정보를 돌핀 개발자들에게 보고하도록 허가하시겠습니까?"
 
-#: Source/Core/DolphinQt2/MainWindow.cpp:821
+#: Source/Core/DolphinQt2/MainWindow.cpp:810
 msgid "Do you want to add \"%1\" to the list of Game Paths?"
 msgstr "\"%1\" 를 게임 경로들의 목록에 추가하고 싶습니까?"
 
@@ -2807,7 +2807,7 @@ msgstr "돌핀 부호 리네임 파일 (*.sym)"
 msgid "Dolphin TAS Movies (*.dtm)"
 msgstr "돌핀 TAS 무비 (*.dtm)"
 
-#: Source/Core/DolphinQt2/GameList/GameList.cpp:117
+#: Source/Core/DolphinQt2/GameList/GameList.cpp:116
 msgid ""
 "Dolphin could not find any GameCube/Wii ISOs or WADs.\n"
 "Double-click here to set a games directory..."
@@ -2823,7 +2823,7 @@ msgstr ""
 "돌핀이 어떠한 게임큐브/Wii ISO나 WAD를 찾을 수 없습니다. 게임 디렉토리를 설정"
 "하려면 여기를 더블클릭하세요..."
 
-#: Source/Core/DolphinQt2/GameList/GameList.cpp:302
+#: Source/Core/DolphinQt2/GameList/GameList.cpp:310
 msgid "Dolphin failed to complete the requested action."
 msgstr "돌핀이 요청된 액션 완수에 실패했습니다."
 
@@ -2848,8 +2848,8 @@ msgstr ""
 msgid "Dolphin is too old for traversal server"
 msgstr "횡단 서버에 비해 돌핀이 너무 구 버전입니다."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1470
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1543
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1477
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1550
 msgid "Dolphin was unable to complete the requested action."
 msgstr "돌핀이 요청된 액션을 완수할 수 없었습니다."
 
@@ -2989,7 +2989,7 @@ msgstr ""
 msgid "Duplicate Bundled ActionReplay Code"
 msgstr "번들 액션리플레이 코드를 복제"
 
-#: Source/Core/DolphinQt2/GameList/GameFile.cpp:297
+#: Source/Core/DolphinQt2/GameList/GameFile.cpp:307
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:58
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:61
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:73
@@ -3005,7 +3005,7 @@ msgstr "종료(&x)"
 msgid "EFB Cmd"
 msgstr "EFB 명령"
 
-#: Source/Core/DolphinQt2/GameList/GameFile.cpp:239
+#: Source/Core/DolphinQt2/GameList/GameFile.cpp:249
 msgid "ELF/DOL"
 msgstr "ELF/DOL"
 
@@ -3273,6 +3273,10 @@ msgstr ""
 "부동 소수점 결과 플래그 계산을 켭니다, 소수의 게임들에서 필요합니다. (켬 = 호"
 "환성, 끔 = 빠름)"
 
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:93
+msgid "Enables Wii Remote vibration."
+msgstr ""
+
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:296
 msgid ""
 "Enables multi-threading in the video backend, which may result in "
@@ -3369,11 +3373,11 @@ msgstr ""
 msgid "End"
 msgstr "끝"
 
-#: Source/Core/Core/NetPlayServer.cpp:74
+#: Source/Core/Core/NetPlayServer.cpp:72
 msgid "Enet Didn't Initialize"
 msgstr "Enet이 초기화되지 않았습니다."
 
-#: Source/Core/DolphinQt2/GameList/GameFile.cpp:287
+#: Source/Core/DolphinQt2/GameList/GameFile.cpp:297
 #: Source/Core/DolphinQt2/Settings/InterfacePane.cpp:53
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:53
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:56
@@ -3433,12 +3437,12 @@ msgstr "같음"
 #: Source/Core/DolphinQt2/MainWindow.cpp:463
 #: Source/Core/DolphinQt2/MainWindow.cpp:653
 #: Source/Core/DolphinQt2/MainWindow.cpp:660
-#: Source/Core/DolphinQt2/MainWindow.cpp:695
-#: Source/Core/DolphinQt2/MainWindow.cpp:711
-#: Source/Core/DolphinQt2/MainWindow.cpp:718
-#: Source/Core/DolphinQt2/MainWindow.cpp:805
+#: Source/Core/DolphinQt2/MainWindow.cpp:694
+#: Source/Core/DolphinQt2/MainWindow.cpp:710
+#: Source/Core/DolphinQt2/MainWindow.cpp:717
+#: Source/Core/DolphinQt2/MainWindow.cpp:794
 #: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:377
-#: Source/Core/DolphinQt2/NetPlay/NetPlaySetupDialog.cpp:231
+#: Source/Core/DolphinQt2/NetPlay/NetPlaySetupDialog.cpp:235
 #: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:67
 #: Source/Core/DolphinWX/LogConfigWindow.cpp:42
 #: Source/Core/DolphinWX/Main.cpp:314 Source/Core/DolphinWX/Main.cpp:322
@@ -3487,7 +3491,7 @@ msgstr ""
 msgid "Euphoria"
 msgstr "유포리아"
 
-#: Source/Core/DolphinQt2/GameList/GameFile.cpp:250
+#: Source/Core/DolphinQt2/GameList/GameFile.cpp:260
 #: Source/Core/DolphinQt2/MenuBar.cpp:104
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:101
 #: Source/Core/DolphinWX/MainMenuBar.cpp:241
@@ -3518,7 +3522,7 @@ msgstr "입력 기록 내보내기..."
 msgid "Export Save"
 msgstr "저장 내보내기"
 
-#: Source/Core/DolphinQt2/GameList/GameList.cpp:194
+#: Source/Core/DolphinQt2/GameList/GameList.cpp:202
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1141
 msgid "Export Wii save (Experimental)"
 msgstr "Wii 저장 내보내기 (실험적 기능)"
@@ -3601,11 +3605,11 @@ msgstr "FIFO 플레이어"
 msgid "FP value"
 msgstr "FP 값"
 
-#: Source/Core/Core/NetPlayClient.cpp:171
+#: Source/Core/Core/NetPlayClient.cpp:170
 msgid "Failed To Connect!"
 msgstr "연결에 실패했습니다!"
 
-#: Source/Core/Core/NetPlayClient.cpp:116
+#: Source/Core/Core/NetPlayClient.cpp:115
 msgid "Failed to Connect!"
 msgstr "연결에 실패했습니다!"
 
@@ -3613,11 +3617,11 @@ msgstr "연결에 실패했습니다!"
 msgid "Failed to claim interface for BT passthrough"
 msgstr "블투 패스쓰루용 인터페이스 요청에 실패했습니다"
 
-#: Source/Core/DolphinQt2/MainWindow.cpp:696
+#: Source/Core/DolphinQt2/MainWindow.cpp:695
 msgid "Failed to connect to server"
-msgstr ""
+msgstr "서버 연결에 실패했습니다"
 
-#: Source/Core/DolphinQt2/GameList/GameList.cpp:384
+#: Source/Core/DolphinQt2/GameList/GameList.cpp:392
 msgid "Failed to delete the selected file."
 msgstr "선택된 파일 삭제에 실패했습니다."
 
@@ -3630,7 +3634,7 @@ msgstr "블투 패스쓰루용 커널 드라이버 제거 실패: %s"
 msgid "Failed to download codes."
 msgstr "코드 다운로드에 실패했습니다."
 
-#: Source/Core/DolphinQt2/GameList/GameList.cpp:231
+#: Source/Core/DolphinQt2/GameList/GameList.cpp:239
 msgid "Failed to export save files!"
 msgstr "저장 파일들 내보내기에 실패했습니다!"
 
@@ -3654,7 +3658,7 @@ msgstr ""
 msgid "Failed to init core"
 msgstr "코어 인식에 실패했습니다"
 
-#: Source/Core/DolphinQt2/GameList/GameList.cpp:314
+#: Source/Core/DolphinQt2/GameList/GameList.cpp:322
 #: Source/Core/DolphinQt2/MenuBar.cpp:409
 msgid "Failed to install this title to the NAND."
 msgstr "NAND 에 이 타이틀 설치에 실패했습니다."
@@ -3663,15 +3667,25 @@ msgstr "NAND 에 이 타이틀 설치에 실패했습니다."
 msgid "Failed to launch"
 msgstr "런치에 실패했습니다"
 
-#: Source/Core/DolphinQt2/MainWindow.cpp:750
+#: Source/Core/DolphinQt2/MainWindow.cpp:744
 msgid ""
 "Failed to listen on port %1. Is another instance of the NetPlay server "
 "running?"
 msgstr ""
+"포트 %1 듣기에 실패했습니다. 구동 중인 다른 넷플레이 서버 인스턴스가 있습니"
+"까?"
 
-#: Source/Core/DolphinWX/NetPlay/NetPlayLauncher.cpp:32
+#: Source/Core/DolphinWX/NetPlay/NetPlayLauncher.cpp:33
 msgid "Failed to listen. Is another instance of the NetPlay server running?"
-msgstr "연결에 실패했습니다. 구동중인 다른 넷플레이 서버 인스턴스가 있습니까?"
+msgstr ""
+"연결 듣기에 실패했습니다. 구동중인 다른 넷플레이 서버 인스턴스가 있습니까?"
+
+#: Source/Core/VideoBackends/D3D/D3DBase.cpp:112
+#, c-format
+msgid ""
+"Failed to load %s. If you are using Windows 7, try installing the KB4019990 "
+"update package."
+msgstr ""
 
 #: Source/Core/Core/IOS/MIOS.cpp:139
 msgid "Failed to load MIOS ELF into memory."
@@ -3687,7 +3701,7 @@ msgstr "MIOS 로드에 실패했습니다. Wii 모드로 게임큐브 타이틀�
 msgid "Failed to load the executable to memory."
 msgstr "실행 가능한 것을 메모리에 로드하는데 실패했습니다."
 
-#: Source/Core/DolphinQt2/MainWindow.cpp:805
+#: Source/Core/DolphinQt2/MainWindow.cpp:794
 msgid "Failed to open '%1'"
 msgstr "'%1' 를 열기에 실패했습니다"
 
@@ -3696,9 +3710,9 @@ msgstr "'%1' 를 열기에 실패했습니다"
 msgid "Failed to open Bluetooth device: %s"
 msgstr "블루투스 장치 열기에 실패했습니다: %s"
 
-#: Source/Core/DolphinQt2/MainWindow.cpp:748
+#: Source/Core/DolphinQt2/MainWindow.cpp:742
 msgid "Failed to open server"
-msgstr ""
+msgstr "서버 열기에 실패했습니다"
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:169
 #: Source/Core/DiscIO/CompressedBlob.cpp:354
@@ -3783,7 +3797,7 @@ msgstr ""
 msgid "Failed to read unique ID from disc image"
 msgstr "디스크 이미지의 ID를 읽기에 실패했습니다"
 
-#: Source/Core/DolphinQt2/GameList/GameList.cpp:336
+#: Source/Core/DolphinQt2/GameList/GameList.cpp:344
 #: Source/Core/DolphinWX/FrameTools.cpp:1270
 msgid "Failed to remove this title from the NAND."
 msgstr "NAND 에서 이 타이틀 제거에 실패했습니다."
@@ -3930,7 +3944,7 @@ msgstr "이전 찾기"
 msgid "Find functions based on RSO modules (experimental)..."
 msgstr "RSO 모듈상에 기반한 함수들 찾기 (실험적)..."
 
-#: Source/Core/DolphinQt2/WiiUpdate.cpp:58
+#: Source/Core/DolphinQt2/WiiUpdate.cpp:103
 msgid ""
 "Finishing the update...\n"
 "This can take a while."
@@ -4135,7 +4149,7 @@ msgstr "프레임 덤프 이미지(들) '%s' 가 이미 존재합니다. 덮어�
 msgid "Frames to Record"
 msgstr "녹화할 프레임"
 
-#: Source/Core/DolphinQt2/GameList/GameFile.cpp:258
+#: Source/Core/DolphinQt2/GameList/GameFile.cpp:268
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:103
 msgid "France"
 msgstr "프랑스"
@@ -4190,7 +4204,7 @@ msgstr "자유로운 보기 줌 인"
 msgid "Freelook Zoom Out"
 msgstr "자유로운 보기 줌 아웃"
 
-#: Source/Core/DolphinQt2/GameList/GameFile.cpp:291
+#: Source/Core/DolphinQt2/GameList/GameFile.cpp:301
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:55
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:58
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:64
@@ -4245,7 +4259,7 @@ msgstr "GC 포트"
 
 #: Source/Core/DolphinQt2/NetPlay/PadMappingDialog.cpp:33
 msgid "GC Port %1"
-msgstr ""
+msgstr "GC 포트 %1"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:530
 msgid "GCI File(*.gci)"
@@ -4310,9 +4324,9 @@ msgstr "게임 ID:"
 
 #: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:449
 msgid "Game changed to \"%1\""
-msgstr ""
+msgstr "게임이 \"%1\" 로 변경되었습니다"
 
-#: Source/Core/Core/NetPlayClient.cpp:802
+#: Source/Core/Core/NetPlayClient.cpp:801
 msgid "Game is already running!"
 msgstr "게임이 이미 구동중입니다!"
 
@@ -4330,7 +4344,7 @@ msgstr "게임-상세 설정"
 msgid "GameConfig"
 msgstr "게임 설정"
 
-#: Source/Core/DolphinQt2/GameList/GameFile.cpp:233
+#: Source/Core/DolphinQt2/GameList/GameFile.cpp:243
 #: Source/Core/DolphinWX/Config/ConfigMain.cpp:87
 msgid "GameCube"
 msgstr "게임큐브"
@@ -4427,14 +4441,14 @@ msgstr "새로운 통계 식별자 생성"
 msgid "Geometry data"
 msgstr "기하학 데이터"
 
-#: Source/Core/DolphinQt2/GameList/GameFile.cpp:289
+#: Source/Core/DolphinQt2/GameList/GameFile.cpp:299
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:54
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:57
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:61
 msgid "German"
 msgstr "독일어"
 
-#: Source/Core/DolphinQt2/GameList/GameFile.cpp:260
+#: Source/Core/DolphinQt2/GameList/GameFile.cpp:270
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:107
 msgid "Germany"
 msgstr "독일"
@@ -4499,7 +4513,7 @@ msgstr "초록 오른쪽"
 
 #: Source/Core/DolphinQt2/MenuBar.cpp:262
 msgid "Grid View"
-msgstr ""
+msgstr "격자 보기"
 
 #: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:55
 #: Source/Core/DolphinQt2/Config/Mapping/WiimoteEmuExtension.cpp:106
@@ -4590,12 +4604,12 @@ msgstr ""
 msgid "Host"
 msgstr "호스트"
 
-#: Source/Core/DolphinQt2/NetPlay/NetPlaySetupDialog.cpp:206
+#: Source/Core/DolphinQt2/NetPlay/NetPlaySetupDialog.cpp:210
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:394
 msgid "Host Code:"
 msgstr "호스트 코드:"
 
-#: Source/Core/Core/NetPlayClient.cpp:123
+#: Source/Core/Core/NetPlayClient.cpp:122
 msgid ""
 "Host code size is to large.\n"
 "Please recheck that you have the correct code"
@@ -4603,11 +4617,11 @@ msgstr ""
 "호스트 코드 크기가 너무 큽니다.\n"
 "올바른 코드인지 다시 확인해 주세요."
 
-#: Source/Core/DolphinQt2/GameList/GameList.cpp:201
+#: Source/Core/DolphinQt2/GameList/GameList.cpp:209
 msgid "Host with NetPlay"
-msgstr ""
+msgstr "넷플레이로 호스트"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1190
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1197
 msgid "Host with Netplay"
 msgstr "넷플레이로 호스트"
 
@@ -4630,8 +4644,8 @@ msgstr "하이브리드"
 msgid "Hybrid Wii Remote"
 msgstr "하이브리드 Wii 리모트"
 
-#: Source/Core/DolphinQt2/GameList/GameList.cpp:454
-#: Source/Core/DolphinQt2/GameList/GameListModel.cpp:114
+#: Source/Core/DolphinQt2/GameList/GameList.cpp:462
+#: Source/Core/DolphinQt2/GameList/GameListModel.cpp:122
 #: Source/Core/DolphinQt2/MenuBar.cpp:281
 #: Source/Core/DolphinWX/GameListCtrl.cpp:467
 msgid "ID"
@@ -4663,7 +4677,7 @@ msgstr ""
 "설정상의 설명은 https://dolphin-emu.org/docs/guides/wii-network-guide/ 를 참"
 "고하세요."
 
-#: Source/Core/DolphinQt2/NetPlay/NetPlaySetupDialog.cpp:206
+#: Source/Core/DolphinQt2/NetPlay/NetPlaySetupDialog.cpp:210
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:419
 msgid "IP Address:"
 msgstr "IP 주소:"
@@ -4685,7 +4699,7 @@ msgid "IR"
 msgstr "IR"
 
 #. i18n: IR stands for infrared and refers to the pointer functionality of Wii Remotes
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:136
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:137
 msgid "IR Sensitivity:"
 msgstr "IR 감도:"
 
@@ -4903,8 +4917,8 @@ msgstr "SD 카드 삽입"
 msgid "Install WAD..."
 msgstr "WAD 설치..."
 
-#: Source/Core/DolphinQt2/GameList/GameList.cpp:169
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1179
+#: Source/Core/DolphinQt2/GameList/GameList.cpp:177
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1186
 msgid "Install to the NAND"
 msgstr "NAND 에 설치"
 
@@ -4989,7 +5003,7 @@ msgstr "부적합 복합 코드"
 
 #: Source/Core/DolphinQt2/NetPlay/MD5Dialog.cpp:17
 msgid "Invalid Player ID"
-msgstr ""
+msgstr "부적합한 플레이어 아이디"
 
 #: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:239
 #, c-format
@@ -5000,7 +5014,7 @@ msgstr "부적합 주소: %s"
 msgid "Invalid bat.map or dir entry."
 msgstr "부적합 bat.map 혹은 디렉토리 엔트리."
 
-#: Source/Core/Core/NetPlayClient.cpp:936
+#: Source/Core/Core/NetPlayClient.cpp:935
 msgid "Invalid host"
 msgstr "부적합 호스트"
 
@@ -5033,14 +5047,14 @@ msgstr "부적합한 값."
 msgid "Invalid value: %s"
 msgstr "부적합한 값: %s"
 
-#: Source/Core/DolphinQt2/GameList/GameFile.cpp:295
+#: Source/Core/DolphinQt2/GameList/GameFile.cpp:305
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:57
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:60
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:70
 msgid "Italian"
 msgstr "이탈리아어"
 
-#: Source/Core/DolphinQt2/GameList/GameFile.cpp:262
+#: Source/Core/DolphinQt2/GameList/GameFile.cpp:272
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:105
 msgid "Italy"
 msgstr "이탈리아"
@@ -5064,14 +5078,14 @@ msgstr "JIT 블록 뷰어"
 msgid "JIT Recompiler (recommended)"
 msgstr "JIT 리컴파일러 (권장)"
 
-#: Source/Core/DolphinQt2/GameList/GameFile.cpp:252
+#: Source/Core/DolphinQt2/GameList/GameFile.cpp:262
 #: Source/Core/DolphinQt2/MenuBar.cpp:106
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:117
 #: Source/Core/DolphinWX/MainMenuBar.cpp:242
 msgid "Japan"
 msgstr "일본"
 
-#: Source/Core/DolphinQt2/GameList/GameFile.cpp:285
+#: Source/Core/DolphinQt2/GameList/GameFile.cpp:295
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:55
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:55
 msgid "Japanese"
@@ -5114,14 +5128,14 @@ msgstr "키"
 msgid "Kick Player"
 msgstr "플레이어 차기"
 
-#: Source/Core/DolphinQt2/GameList/GameFile.cpp:264
+#: Source/Core/DolphinQt2/GameList/GameFile.cpp:274
 #: Source/Core/DolphinQt2/MenuBar.cpp:107
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:119
 #: Source/Core/DolphinWX/MainMenuBar.cpp:243
 msgid "Korea"
 msgstr "한국"
 
-#: Source/Core/DolphinQt2/GameList/GameFile.cpp:303
+#: Source/Core/DolphinQt2/GameList/GameFile.cpp:313
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:64
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:82
 msgid "Korean"
@@ -5236,11 +5250,11 @@ msgstr ""
 
 #: Source/Core/DolphinQt2/MenuBar.cpp:291
 msgid "List Columns"
-msgstr ""
+msgstr "목록 세로줄"
 
 #: Source/Core/DolphinQt2/MenuBar.cpp:259
 msgid "List View"
-msgstr ""
+msgstr "목록 보기"
 
 #: Source/Core/DolphinQt2/Config/Mapping/HotkeyStates.cpp:24
 #: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:69
@@ -5439,7 +5453,7 @@ msgstr "선택된 슬롯에서 로드"
 msgid "Load map file"
 msgstr "맵 파일 로드"
 
-#: Source/Core/Core/PowerPC/PPCSymbolDB.cpp:387
+#: Source/Core/Core/PowerPC/PPCSymbolDB.cpp:376
 #, c-format
 msgid "Loaded %d good functions, ignored %d bad functions."
 msgstr "%d 훌륭한 함수들이 로드되었습니다, %d 나쁜 함수들이 무시되었습니다."
@@ -5490,25 +5504,25 @@ msgstr "로거 출력"
 
 #: Source/Core/DolphinQt2/Config/LoggerWidget.cpp:38
 #: Source/Core/DolphinWX/Cheats/CheatsWindow.cpp:131
-#: Source/Core/DolphinWX/Frame.cpp:380
+#: Source/Core/DolphinWX/Frame.cpp:381
 msgid "Logging"
 msgstr "로깅"
 
-#: Source/Core/DolphinQt2/Config/InfoWidget.cpp:81
+#: Source/Core/DolphinQt2/Config/InfoWidget.cpp:80
 msgid "Long Maker:"
 msgstr "긴 제작사:"
 
-#: Source/Core/DolphinQt2/Config/InfoWidget.cpp:80
+#: Source/Core/DolphinQt2/Config/InfoWidget.cpp:79
 msgid "Long Name:"
 msgstr "긴 이름:"
 
 #: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:499
 msgid "Lost connection to NetPlay server..."
-msgstr ""
+msgstr "넷플레이 서버 연결을 잃었습니다..."
 
 #: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:74
 msgid "MD5 Check:"
-msgstr ""
+msgstr "MD5 체크:"
 
 #: Source/Core/DolphinQt2/NetPlay/MD5Dialog.cpp:33
 #: Source/Core/DolphinWX/NetPlay/MD5Dialog.cpp:19
@@ -5541,8 +5555,8 @@ msgstr ""
 "존재하는 두 파일을 합쳐서, 더 많은 함수들을 인식시켜줄 수 있는 새로운 .dsy 파"
 "일을 만듭니다. 첫번째 입력 파일이 우선권을 가집니다."
 
-#: Source/Core/DolphinQt2/GameList/GameList.cpp:455
-#: Source/Core/DolphinQt2/GameList/GameListModel.cpp:120
+#: Source/Core/DolphinQt2/GameList/GameList.cpp:463
+#: Source/Core/DolphinQt2/GameList/GameListModel.cpp:128
 #: Source/Core/DolphinQt2/MenuBar.cpp:285
 #: Source/Core/DolphinWX/GameListCtrl.cpp:465
 #: Source/Core/DolphinWX/MainMenuBar.cpp:306
@@ -5583,8 +5597,8 @@ msgstr "매치 발견"
 msgid "Matrix Cmd"
 msgstr "행렬 명령"
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:120
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:127
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:121
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:128
 msgid "Max"
 msgstr "최대값"
 
@@ -5606,7 +5620,7 @@ msgstr "메모리 카드"
 msgid "Memory Card Manager"
 msgstr "메모리 카드 매니저"
 
-#: Source/Core/Core/ConfigManager.cpp:985
+#: Source/Core/Core/ConfigManager.cpp:984
 #, c-format
 msgid ""
 "Memory Card filename in Slot %c is incorrect\n"
@@ -5674,8 +5688,8 @@ msgstr ""
 msgid "Microphone"
 msgstr "마이크"
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:117
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:124
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:118
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:125
 msgid "Min"
 msgstr "최소값"
 
@@ -5684,7 +5698,7 @@ msgstr "최소값"
 msgid "Misc"
 msgstr "기타"
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:148
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:149
 msgid "Misc Settings"
 msgstr "기타 설정"
 
@@ -5767,7 +5781,7 @@ msgstr "NTSC-J"
 msgid "NTSC-U"
 msgstr "NTSC-U"
 
-#: Source/Core/DolphinQt2/Config/InfoWidget.cpp:86
+#: Source/Core/DolphinQt2/Config/InfoWidget.cpp:85
 #: Source/Core/DolphinWX/Cheats/ARCodeAddEdit.cpp:42
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:270
 #: Source/Core/DolphinWX/PatchAddEdit.cpp:58
@@ -5791,16 +5805,16 @@ msgstr "원본 (640x528)"
 msgid "Native GCI files(*.gci)"
 msgstr "원본 GCI 파일(*.gci)"
 
-#: Source/Core/DolphinQt2/GameList/GameFile.cpp:266
+#: Source/Core/DolphinQt2/GameList/GameFile.cpp:276
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:109
 msgid "Netherlands"
 msgstr "네덜란드"
 
-#: Source/Core/Core/NetPlayClient.cpp:1297
+#: Source/Core/Core/NetPlayClient.cpp:1296
 msgid "Netplay has desynced in NetPlay_GetButtonPress()"
 msgstr "넷플레이가 NetPlay_GetButtonPress() 에서 비동기화되었습니다"
 
-#: Source/Core/Core/NetPlayClient.cpp:1091
+#: Source/Core/Core/NetPlayClient.cpp:1090
 msgid "Netplay has desynced. There is no way to recover from this."
 msgstr "넷플레이가 갈렸습니다. 이것으로부터 복구할 방법이 없습니다."
 
@@ -5845,7 +5859,7 @@ msgstr "매치 없음"
 msgid "No Value Given"
 msgstr "주어진 값 없음"
 
-#: Source/Core/Core/ConfigManager.h:36
+#: Source/Core/Core/ConfigManager.h:35
 msgid "No audio output"
 msgstr "오디오 출력 없음"
 
@@ -6019,12 +6033,12 @@ msgstr "Op?"
 msgid "Open"
 msgstr "열기"
 
-#: Source/Core/DolphinQt2/GameList/GameList.cpp:198
+#: Source/Core/DolphinQt2/GameList/GameList.cpp:206
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1153
 msgid "Open &containing folder"
 msgstr "담고 있는 폴더 열기(&c)"
 
-#: Source/Core/DolphinQt2/GameList/GameList.cpp:193
+#: Source/Core/DolphinQt2/GameList/GameList.cpp:201
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1139
 msgid "Open Wii &save folder"
 msgstr "Wii 저장 폴더 열기(&s)"
@@ -6054,9 +6068,9 @@ msgid ""
 msgstr ""
 "외부 텍스트 에디터로 이 게임에 대한 기본 (읽기-전용) 환경설정을 엽니다."
 
-#: Source/Core/DolphinWX/Frame.cpp:843
+#: Source/Core/DolphinWX/Frame.cpp:844
 msgid "Operation in progress..."
-msgstr "작동 처리중..."
+msgstr "작업 진행 중..."
 
 #: Source/Core/Core/HW/GCKeyboardEmu.cpp:82 Source/Core/Core/HW/GCPadEmu.cpp:85
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:308
@@ -6126,7 +6140,7 @@ msgstr "입력 기록 플레이...(&l)"
 msgid "PAL"
 msgstr "PAL"
 
-#: Source/Core/DolphinQt2/Config/InfoWidget.cpp:113
+#: Source/Core/DolphinQt2/Config/InfoWidget.cpp:116
 msgid "PNG image file (*.png);; All Files (*)"
 msgstr "PNG 이미지 파일 (*.png);; 모든 파일들 (*)"
 
@@ -6210,6 +6224,11 @@ msgstr "완벽한"
 msgid "Perform Online System Update"
 msgstr "온라인 시스템 업데이트 하기"
 
+#: Source/Core/DolphinQt2/GameList/GameList.cpp:169
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1179
+msgid "Perform System Update"
+msgstr ""
+
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:41
 msgid ""
 "Perform a full index of the game's RAM at the current Data Size. Required "
@@ -6234,7 +6253,7 @@ msgstr "픽셀 쉐이더"
 msgid "Pixel Shader Constants"
 msgstr "픽셀 쉐이더 상수"
 
-#: Source/Core/DolphinQt2/GameList/GameList.cpp:456
+#: Source/Core/DolphinQt2/GameList/GameList.cpp:464
 #: Source/Core/DolphinQt2/MenuBar.cpp:280
 #: Source/Core/DolphinWX/MainMenuBar.cpp:300
 msgid "Platform"
@@ -6291,7 +6310,7 @@ msgstr "포트:"
 
 #: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:492
 msgid "Possible desync detected: %1 might have desynced at frame %2"
-msgstr ""
+msgstr "가능한 비동기 감지됨: %1 가 프레임 %2 에서 비동기화된 듯 합니다"
 
 #: Source/Core/DolphinWX/PostProcessingConfigDiag.cpp:22
 msgid "Post Processing Shader Configuration"
@@ -6322,8 +6341,8 @@ msgstr "PlayWiimote 로 무비 마무리가 미완성되었습니다. %u + %d > 
 msgid "Premature movie end in PlayWiimote. %u > %zu"
 msgstr "PlayWiimote 로 무비 마무리가 미완성되었습니다. %u > %zu"
 
-#: Source/Core/DolphinQt2/WiiUpdate.cpp:45
-#: Source/Core/DolphinWX/FrameTools.cpp:1330
+#: Source/Core/DolphinQt2/WiiUpdate.cpp:90
+#: Source/Core/DolphinWX/FrameTools.cpp:1374
 msgid ""
 "Preparing to update...\n"
 "This can take a while."
@@ -6605,13 +6624,13 @@ msgstr "알림: GCIFolder가 할당되지 않은 블록 0x%x 에 씀"
 msgid "Reset"
 msgstr "리셋"
 
-#: Source/Core/DolphinQt2/NetPlay/NetPlaySetupDialog.cpp:263
+#: Source/Core/DolphinQt2/NetPlay/NetPlaySetupDialog.cpp:267
 msgid "Reset Traversal Server"
-msgstr ""
+msgstr "횡단 서버를 리셋합니다"
 
-#: Source/Core/DolphinQt2/NetPlay/NetPlaySetupDialog.cpp:264
+#: Source/Core/DolphinQt2/NetPlay/NetPlaySetupDialog.cpp:268
 msgid "Reset Traversal Server to %1:%2"
-msgstr ""
+msgstr "횡단 서버를 %1:%2 로 리셋합니다"
 
 #: Source/Core/DolphinQt2/NetPlay/NetPlaySetupDialog.cpp:69
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:98
@@ -6679,7 +6698,7 @@ msgstr "오른쪽 스틱"
 
 #: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:301
 msgid "Room ID"
-msgstr ""
+msgstr "룸 ID"
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:202
 msgid "Room ID:"
@@ -6716,7 +6735,7 @@ msgstr "여기까지 실행 (&T)"
 msgid "Run DolphinWX Instead"
 msgstr "DolphinWX 대신 실행합니다"
 
-#: Source/Core/DolphinQt2/GameList/GameFile.cpp:268
+#: Source/Core/DolphinQt2/GameList/GameFile.cpp:278
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:111
 msgid "Russia"
 msgstr "러시아"
@@ -6847,7 +6866,7 @@ msgstr "심볼 맵 다른 이름으로 저장... (&A)"
 msgid "Save and Load State"
 msgstr "상태 저장과 로드"
 
-#: Source/Core/DolphinQt2/Config/InfoWidget.cpp:101
+#: Source/Core/DolphinQt2/Config/InfoWidget.cpp:104
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:353
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:359
 msgid "Save as..."
@@ -6857,7 +6876,7 @@ msgstr "다른 이름으로 저장..."
 msgid "Save combined output file as"
 msgstr "합쳐진 출력 파일 다른 이름으로 저장"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1511
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1518
 msgid "Save compressed GCM/ISO"
 msgstr "압축된 GCM/ISO를 저장"
 
@@ -6865,7 +6884,7 @@ msgstr "압축된 GCM/ISO를 저장"
 msgid "Save currently-toggled perspectives"
 msgstr "최근-토글된 관점 저장"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1502
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1509
 msgid "Save decompressed GCM/ISO"
 msgstr "압축풀린 GCM/ISO를 저장"
 
@@ -7063,12 +7082,12 @@ msgstr "Wii NAND 루트 선택"
 msgid "Select a BootMii NAND backup to import"
 msgstr "가져올 BootMii NAND 백업을 선택"
 
-#: Source/Core/DolphinQt2/GameList/GameList.cpp:125
+#: Source/Core/DolphinQt2/GameList/GameList.cpp:124
 #: Source/Core/DolphinQt2/Settings/PathPane.cpp:33
 msgid "Select a Directory"
 msgstr "디렉토리 선택"
 
-#: Source/Core/DolphinQt2/Config/InfoWidget.cpp:112
+#: Source/Core/DolphinQt2/Config/InfoWidget.cpp:115
 #: Source/Core/DolphinQt2/MainWindow.cpp:292
 #: Source/Core/DolphinQt2/MainWindow.cpp:567
 #: Source/Core/DolphinQt2/MainWindow.cpp:574
@@ -7103,11 +7122,11 @@ msgstr "로드할 파일 선택"
 msgid "Select the save file"
 msgstr "저장 파일을 선택"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1434
+#: Source/Core/DolphinWX/FrameTools.cpp:1469
 msgid "Select the state to load"
 msgstr "로드할 상태 선택"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1446
+#: Source/Core/DolphinWX/FrameTools.cpp:1481
 msgid "Select the state to save"
 msgstr "저장할 상태 선택"
 
@@ -7130,11 +7149,11 @@ msgstr ""
 "\n"
 "잘 모르겠으면, 자동을 선택하세요."
 
-#: Source/Core/DolphinQt2/GameList/GameList.cpp:265
+#: Source/Core/DolphinQt2/GameList/GameList.cpp:273
 msgid "Select where you want to save the compressed image"
 msgstr "압축된 이미지를 저장하고 싶은 곳을 선택하세요"
 
-#: Source/Core/DolphinQt2/GameList/GameList.cpp:264
+#: Source/Core/DolphinQt2/GameList/GameList.cpp:272
 msgid "Select where you want to save the decompressed image"
 msgstr "압축풀린 이미지를 저장하고 싶은 곳을 선택하세요"
 
@@ -7235,7 +7254,7 @@ msgstr ""
 msgid "Send"
 msgstr "보내기"
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:131
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:132
 msgid "Sensor Bar Position:"
 msgstr "센서 바 위치:"
 
@@ -7244,7 +7263,7 @@ msgid ""
 "Serial Port 1 - This is the port which devices such as the net adapter use."
 msgstr "시리얼 포트 1 - 이것은 넷 어댑터같은 디바이스가 사용하는 포트입니다."
 
-#: Source/Core/Core/NetPlayClient.cpp:933
+#: Source/Core/Core/NetPlayClient.cpp:932
 msgid "Server rejected traversal attempt"
 msgstr "서버가 횡단 시도를 거절했습니다"
 
@@ -7258,7 +7277,7 @@ msgstr "PC 설정"
 msgid "Set Value"
 msgstr "값 설정"
 
-#: Source/Core/DolphinQt2/GameList/GameList.cpp:157
+#: Source/Core/DolphinQt2/GameList/GameList.cpp:156
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1156
 msgid "Set as &default ISO"
 msgstr "기본 ISO로 설정(&d)"
@@ -7322,11 +7341,11 @@ msgstr "Wii메모리설정: setting.txt 파일을 생성할 수 없음"
 msgid "Shake"
 msgstr "흔들기"
 
-#: Source/Core/DolphinQt2/Config/InfoWidget.cpp:79
+#: Source/Core/DolphinQt2/Config/InfoWidget.cpp:78
 msgid "Short Maker:"
 msgstr "단축 제작사:"
 
-#: Source/Core/DolphinQt2/Config/InfoWidget.cpp:78
+#: Source/Core/DolphinQt2/Config/InfoWidget.cpp:77
 msgid "Short Name:"
 msgstr "단축 이름:"
 
@@ -7418,7 +7437,7 @@ msgstr "한국"
 msgid "Show Lag Counter"
 msgstr "랙 카운터 보기"
 
-#: Source/Core/DolphinQt2/Config/InfoWidget.cpp:75
+#: Source/Core/DolphinQt2/Config/InfoWidget.cpp:74
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:283
 msgid "Show Language:"
 msgstr "언어 보기:"
@@ -7609,7 +7628,7 @@ msgstr "옆방향 토글"
 msgid "Sideways Wii Remote"
 msgstr "Wii 리모트 옆으로"
 
-#: Source/Core/DolphinQt2/GameList/GameFile.cpp:299
+#: Source/Core/DolphinQt2/GameList/GameFile.cpp:309
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:62
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:76
 msgid "Simplified Chinese"
@@ -7620,8 +7639,8 @@ msgstr "간소화 중국어"
 msgid "Simulate DK Bongos"
 msgstr "DK 봉고 시뮬"
 
-#: Source/Core/DolphinQt2/GameList/GameList.cpp:457
-#: Source/Core/DolphinQt2/GameList/GameListModel.cpp:122
+#: Source/Core/DolphinQt2/GameList/GameList.cpp:465
+#: Source/Core/DolphinQt2/GameList/GameListModel.cpp:130
 #: Source/Core/DolphinQt2/MenuBar.cpp:286
 #: Source/Core/DolphinWX/GameListCtrl.cpp:469
 msgid "Size"
@@ -7707,12 +7726,12 @@ msgstr ""
 "소프트웨어 렌더링을 활성을 정말 원합니까? 잘 모르겠으면, '아니오'를 선택하세"
 "요."
 
-#: Source/Core/DolphinQt2/GameList/GameFile.cpp:270
+#: Source/Core/DolphinQt2/GameList/GameFile.cpp:280
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:113
 msgid "Spain"
 msgstr "스페인"
 
-#: Source/Core/DolphinQt2/GameList/GameFile.cpp:293
+#: Source/Core/DolphinQt2/GameList/GameFile.cpp:303
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:56
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:59
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:67
@@ -7723,7 +7742,7 @@ msgstr "스페인어"
 msgid "Speaker Pan"
 msgstr "스피커 팬"
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:140
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:141
 msgid "Speaker Volume:"
 msgstr "스피커 볼륨:"
 
@@ -7737,6 +7756,12 @@ msgid ""
 "\n"
 "If unsure, select Native."
 msgstr ""
+"렌더에 사용되는 해상도를 지정합니다. 고해상도는 비주얼 품질을 굉장히 향상시킵"
+"니다, 하지만  GPU 로드를 또한 굉장히 증가시키고 특정 게임에서 이슈들을 유발"
+"할 수 있습니다. 일반적으로 말해서, 더 낮은 내부 해상도는, 더 좋은 성능이 나"
+"올 것입니다.\n"
+"\n"
+"모르겠으면, 원본을 선택하세요."
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:100
 msgid "Speed Limit:"
@@ -7787,10 +7812,10 @@ msgstr "부팅하고 멈추는 대신에 게임을 직접 시작합니다"
 
 #: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:470
 msgid "Started game"
-msgstr ""
+msgstr "시작된 게임"
 
-#: Source/Core/DolphinQt2/GameList/GameList.cpp:459
-#: Source/Core/DolphinQt2/GameList/GameListModel.cpp:124
+#: Source/Core/DolphinQt2/GameList/GameList.cpp:467
+#: Source/Core/DolphinQt2/GameList/GameListModel.cpp:132
 #: Source/Core/DolphinQt2/MenuBar.cpp:288
 #: Source/Core/DolphinWX/GameListCtrl.cpp:470
 #: Source/Core/DolphinWX/MainMenuBar.cpp:316
@@ -7861,7 +7886,7 @@ msgstr "스텝 나가기 시간 초과!"
 
 #: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:333
 msgid "Step over in progress..."
-msgstr "스텝 넘어가기 중..."
+msgstr "스텝 넘어가기 진행 중..."
 
 #: Source/Core/DolphinWX/MainToolBar.cpp:200
 msgid "Step over the next instruction"
@@ -7903,23 +7928,23 @@ msgstr "스틱"
 msgid "Stop"
 msgstr "중지"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1652
+#: Source/Core/DolphinWX/FrameTools.cpp:1687
 msgid "Stop Playing Input"
 msgstr "입력 재생 중지"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1637
-#: Source/Core/DolphinWX/FrameTools.cpp:1654
+#: Source/Core/DolphinWX/FrameTools.cpp:1672
+#: Source/Core/DolphinWX/FrameTools.cpp:1689
 #: Source/Core/DolphinWX/MainMenuBar.cpp:143
 msgid "Stop Playing/Recording Input"
 msgstr "입력 재생/기록 중지"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1650
+#: Source/Core/DolphinWX/FrameTools.cpp:1685
 msgid "Stop Recording Input"
 msgstr "입력 기록 중지"
 
 #: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:480
 msgid "Stopped game"
-msgstr ""
+msgstr "멈춰진 게임"
 
 #: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:39
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:717
@@ -7960,11 +7985,11 @@ msgstr "스트링"
 msgid "Strum"
 msgstr "스트럼"
 
-#: Source/Core/DolphinQt2/GameList/GameList.cpp:296
+#: Source/Core/DolphinQt2/GameList/GameList.cpp:304
 msgid "Success!"
 msgstr "성공!"
 
-#: Source/Core/DolphinQt2/GameList/GameList.cpp:296
+#: Source/Core/DolphinQt2/GameList/GameList.cpp:304
 msgid "Successfully compressed image."
 msgstr "성공적으로 이미지를 압축했습니다."
 
@@ -7982,7 +8007,7 @@ msgstr "성공적으로 내보낸 %u 가 %s 로 저장됩니다"
 msgid "Successfully exported file to %s"
 msgstr "성공적으로 파일을 %s로 내보냈음"
 
-#: Source/Core/DolphinQt2/GameList/GameList.cpp:230
+#: Source/Core/DolphinQt2/GameList/GameList.cpp:238
 msgid "Successfully exported save files"
 msgstr "저장 파일들을 성공적으로 내보냈습니다"
 
@@ -7990,12 +8015,12 @@ msgstr "저장 파일들을 성공적으로 내보냈습니다"
 msgid "Successfully imported save files"
 msgstr "저장 파일들을 성공적으로 가져왔습니다"
 
-#: Source/Core/DolphinQt2/GameList/GameList.cpp:313
+#: Source/Core/DolphinQt2/GameList/GameList.cpp:321
 #: Source/Core/DolphinQt2/MenuBar.cpp:404
 msgid "Successfully installed this title to the NAND."
 msgstr "NAND 에 이 타이틀을 성공적으로 설치했습니다."
 
-#: Source/Core/DolphinQt2/GameList/GameList.cpp:335
+#: Source/Core/DolphinQt2/GameList/GameList.cpp:343
 msgid "Successfully removed this title from the NAND."
 msgstr "NAND 에서 이 타이틀을 성공적으로 제거했습니다."
 
@@ -8070,11 +8095,11 @@ msgid "Syntax error"
 msgstr "문법 오류"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:106
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:105
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:106
 msgid "System Language:"
 msgstr "시스템 언어:"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1326
+#: Source/Core/DolphinWX/FrameTools.cpp:1403
 msgid "System Update"
 msgstr "시스템 업데이트"
 
@@ -8108,7 +8133,7 @@ msgstr "TLUT 명령"
 msgid "Tab Split"
 msgstr "탭 분리"
 
-#: Source/Core/DolphinQt2/GameList/GameFile.cpp:272
+#: Source/Core/DolphinQt2/GameList/GameFile.cpp:282
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:121
 msgid "Taiwan"
 msgstr "타이완"
@@ -8212,13 +8237,13 @@ msgstr "디스크 이미지 \"%s\" 가 짤렸습니다, 일부 데이터는 잃�
 msgid "The disc that was about to be inserted couldn't be found."
 msgstr "삽입되려 했던 디스크를 찾을 수 없습니다."
 
-#: Source/Core/DolphinQt2/WiiUpdate.cpp:88
-#: Source/Core/DolphinWX/FrameTools.cpp:1358
+#: Source/Core/DolphinQt2/WiiUpdate.cpp:31
+#: Source/Core/DolphinWX/FrameTools.cpp:1328
 msgid "The emulated Wii console has been updated."
 msgstr "에뮬된 Wii 콘솔이 업데이트되었습니다."
 
-#: Source/Core/DolphinQt2/WiiUpdate.cpp:93
-#: Source/Core/DolphinWX/FrameTools.cpp:1363
+#: Source/Core/DolphinQt2/WiiUpdate.cpp:36
+#: Source/Core/DolphinWX/FrameTools.cpp:1333
 msgid "The emulated Wii console is already up-to-date."
 msgstr "에뮬된 Wii 콘솔이 이미 최신입니다."
 
@@ -8232,9 +8257,9 @@ msgstr "입력된 PID 가 부적합합니다."
 msgid "The entered VID is invalid."
 msgstr "입력된 VID 가 부적합합니다."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1431
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1456
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1521
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1438
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1463
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1528
 #, c-format
 msgid ""
 "The file %s already exists.\n"
@@ -8257,15 +8282,28 @@ msgstr ""
 msgid "The file %s was already open, the file header will not be written."
 msgstr "%s 파일이 이미 열려 있습니다, 파일 헤더는 기록되지 않을 것입니다."
 
+#: Source/Core/DolphinQt2/WiiUpdate.cpp:69
+#: Source/Core/DolphinWX/FrameTools.cpp:1365
+msgid "The game disc does not contain any usable update information."
+msgstr ""
+
+#: Source/Core/DolphinQt2/WiiUpdate.cpp:62
+#: Source/Core/DolphinWX/FrameTools.cpp:1358
+msgid ""
+"The game's region does not match your console's. To avoid issues with the "
+"system menu, it is not possible to update the emulated console using this "
+"disc."
+msgstr ""
+
 #: Source/Core/DolphinQt2/NetPlay/MD5Dialog.cpp:120
 #: Source/Core/DolphinWX/NetPlay/MD5Dialog.cpp:94
 msgid "The hashes do not match!"
-msgstr ""
+msgstr "해쉬가 일치하지 않습니다!"
 
 #: Source/Core/DolphinQt2/NetPlay/MD5Dialog.cpp:114
 #: Source/Core/DolphinWX/NetPlay/MD5Dialog.cpp:94
 msgid "The hashes match!"
-msgstr ""
+msgstr "해쉬가 일치합니다!"
 
 #: Source/Core/DolphinWX/FrameAui.cpp:561
 msgid "The name cannot be empty"
@@ -8300,19 +8338,19 @@ msgstr ""
 "선택된 언어는 당신의 시스템에서 지원되지 않습니다. 시스템 기본으로 돌아갑니"
 "다."
 
-#: Source/Core/Core/NetPlayClient.cpp:209
+#: Source/Core/Core/NetPlayClient.cpp:208
 msgid "The server and client's NetPlay versions are incompatible!"
 msgstr "서버와 클라이언트의 넷플레이 버전들이 호환되지 않습니다!"
 
-#: Source/Core/Core/NetPlayClient.cpp:206
+#: Source/Core/Core/NetPlayClient.cpp:205
 msgid "The server is full!"
 msgstr "서버가 가득 찼습니다!"
 
-#: Source/Core/Core/NetPlayClient.cpp:212
+#: Source/Core/Core/NetPlayClient.cpp:211
 msgid "The server responded: the game is currently running!"
 msgstr "서버의 응답: 그 게임은 현재 구동중입니다!"
 
-#: Source/Core/Core/NetPlayClient.cpp:215
+#: Source/Core/Core/NetPlayClient.cpp:214
 msgid "The server sent an unknown error message!"
 msgstr "서버가 알려지지 않은 오류 메시지를 보냈음!"
 
@@ -8321,8 +8359,8 @@ msgstr "서버가 알려지지 않은 오류 메시지를 보냈음!"
 msgid "The specified file \"%s\" does not exist"
 msgstr "기술된 \"%s\" 파일은 존재하지 않습니다"
 
-#: Source/Core/DolphinQt2/WiiUpdate.cpp:114
-#: Source/Core/DolphinWX/FrameTools.cpp:1383
+#: Source/Core/DolphinQt2/WiiUpdate.cpp:57
+#: Source/Core/DolphinWX/FrameTools.cpp:1353
 msgid ""
 "The update has been cancelled. It is strongly recommended to finish it in "
 "order to avoid inconsistent system software versions."
@@ -8377,7 +8415,7 @@ msgstr ""
 msgid "This USB device is already whitelisted."
 msgstr "이 USB 장치는 이미 화이트리스트되어 있습니다."
 
-#: Source/Core/Core/WiiUtils.cpp:66
+#: Source/Core/Core/WiiUtils.cpp:72
 msgid "This WAD has not been signed by Nintendo. Continue to import?"
 msgstr ""
 "이 WAD 는 닌텐도에 의해 서명되지 않았습니다. 가져오기를 계속하겠습니까?"
@@ -8395,7 +8433,7 @@ msgstr ""
 "습니다."
 
 #: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:151
-#: Source/Core/DolphinQt2/GameList/GameList.cpp:364
+#: Source/Core/DolphinQt2/GameList/GameList.cpp:372
 msgid "This cannot be undone!"
 msgstr "이것은 되돌릴 수 없습니다!"
 
@@ -8519,8 +8557,8 @@ msgstr "한계점"
 msgid "Tilt"
 msgstr "기울기"
 
-#: Source/Core/DolphinQt2/GameList/GameList.cpp:458
-#: Source/Core/DolphinQt2/GameList/GameListModel.cpp:112
+#: Source/Core/DolphinQt2/GameList/GameList.cpp:466
+#: Source/Core/DolphinQt2/GameList/GameListModel.cpp:120
 #: Source/Core/DolphinQt2/MenuBar.cpp:283
 #: Source/Core/DolphinWX/GameListCtrl.cpp:463
 #: Source/Core/DolphinWX/MainMenuBar.cpp:304
@@ -8621,7 +8659,7 @@ msgstr "위"
 msgid "Top-and-Bottom"
 msgstr "위 아래로"
 
-#: Source/Core/DolphinQt2/GameList/GameFile.cpp:301
+#: Source/Core/DolphinQt2/GameList/GameFile.cpp:311
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:63
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:79
 msgid "Traditional Chinese"
@@ -8630,7 +8668,7 @@ msgstr "전통 중국어"
 #: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:508
 #: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:512
 msgid "Traversal Error"
-msgstr ""
+msgstr "횡단 에러"
 
 #: Source/Core/DolphinQt2/NetPlay/NetPlaySetupDialog.cpp:132
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:96
@@ -8642,7 +8680,7 @@ msgstr "횡단 서버"
 msgid "Traversal Server: %s"
 msgstr "횡단 서버: %s"
 
-#: Source/Core/Core/NetPlayClient.cpp:930
+#: Source/Core/Core/NetPlayClient.cpp:929
 msgid "Traversal server timed out connecting to the host"
 msgstr "횡단 서버가 호스트에 연결중 시간이 초과되었습니다."
 
@@ -8690,7 +8728,7 @@ msgstr "타입"
 msgid "UNKNOWN_%02X"
 msgstr "알려지지않은_%02X"
 
-#: Source/Core/DolphinQt2/GameList/GameFile.cpp:254
+#: Source/Core/DolphinQt2/GameList/GameFile.cpp:264
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:115
 msgid "USA"
 msgstr "미국"
@@ -8729,7 +8767,7 @@ msgstr ""
 msgid "Unable to write to file %s"
 msgstr "%s 파일에 쓸 수 없습니다"
 
-#: Source/Core/DolphinQt2/GameList/GameList.cpp:270
+#: Source/Core/DolphinQt2/GameList/GameList.cpp:278
 msgid "Uncompressed GC/Wii images (*.iso *.gcm)"
 msgstr "압축풀린 GC/Wii 이미지들 (*.iso *.gcm)"
 
@@ -8749,12 +8787,12 @@ msgstr "상태 저장 되돌리기"
 msgid "Unexpected 0x80 call? Aborting..."
 msgstr "예상하지 못한 0x80 요청? 중단 중..."
 
-#: Source/Core/DolphinQt2/GameList/GameList.cpp:170
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1181
+#: Source/Core/DolphinQt2/GameList/GameList.cpp:178
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1188
 msgid "Uninstall from the NAND"
 msgstr "NAND 에서 언인스톨"
 
-#: Source/Core/DolphinQt2/GameList/GameList.cpp:323
+#: Source/Core/DolphinQt2/GameList/GameList.cpp:331
 #: Source/Core/DolphinWX/FrameTools.cpp:1260
 msgid ""
 "Uninstalling the WAD will remove the currently installed version of this "
@@ -8769,9 +8807,9 @@ msgid "United States"
 msgstr "미국"
 
 #: Source/Core/Core/State.cpp:458
-#: Source/Core/DolphinQt2/GameList/GameFile.cpp:241
-#: Source/Core/DolphinQt2/GameList/GameFile.cpp:276
-#: Source/Core/DolphinQt2/GameList/GameFile.cpp:305
+#: Source/Core/DolphinQt2/GameList/GameFile.cpp:251
+#: Source/Core/DolphinQt2/GameList/GameFile.cpp:286
+#: Source/Core/DolphinQt2/GameList/GameFile.cpp:315
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:107
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:86
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:126
@@ -8783,7 +8821,7 @@ msgstr "알려지지 않음"
 msgid "Unknown DVD command %08x - fatal error"
 msgstr "알려지지 않은 DVD 명령 %08x - 치명적 오류"
 
-#: Source/Core/Core/NetPlayClient.cpp:939
+#: Source/Core/Core/NetPlayClient.cpp:938
 #, c-format
 msgid "Unknown error %x"
 msgstr "알려지지 않은 오류 %x"
@@ -8793,12 +8831,12 @@ msgstr "알려지지 않은 오류 %x"
 msgid "Unknown memory card error"
 msgstr "알려지지 않은 메모리 카드 오류"
 
-#: Source/Core/Core/NetPlayClient.cpp:561
+#: Source/Core/Core/NetPlayClient.cpp:560
 #, c-format
 msgid "Unknown message received with id : %d"
 msgstr "id : %d의 알려지지 않은 메시지를 받았습니다"
 
-#: Source/Core/Core/NetPlayServer.cpp:714
+#: Source/Core/Core/NetPlayServer.cpp:718
 #, c-format
 msgid "Unknown message with id:%d received from player:%d Kicking player!"
 msgstr ""
@@ -8828,24 +8866,28 @@ msgstr "업데이트"
 msgid "Update Screen"
 msgstr "화면 업데이트"
 
-#: Source/Core/DolphinQt2/WiiUpdate.cpp:113
-#: Source/Core/DolphinWX/FrameTools.cpp:1385
+#: Source/Core/DolphinQt2/WiiUpdate.cpp:56
+#: Source/Core/DolphinWX/FrameTools.cpp:1355
 msgid "Update cancelled"
 msgstr "업데이트가 취소되었습니다"
 
-#: Source/Core/DolphinQt2/WiiUpdate.cpp:87
-#: Source/Core/DolphinQt2/WiiUpdate.cpp:92
-#: Source/Core/DolphinWX/FrameTools.cpp:1358
-#: Source/Core/DolphinWX/FrameTools.cpp:1363
+#: Source/Core/DolphinQt2/WiiUpdate.cpp:30
+#: Source/Core/DolphinQt2/WiiUpdate.cpp:35
+#: Source/Core/DolphinWX/FrameTools.cpp:1328
+#: Source/Core/DolphinWX/FrameTools.cpp:1333
 msgid "Update completed"
 msgstr "업데이트가 완료되었습니다"
 
-#: Source/Core/DolphinQt2/WiiUpdate.cpp:97
-#: Source/Core/DolphinQt2/WiiUpdate.cpp:102
-#: Source/Core/DolphinQt2/WiiUpdate.cpp:107
-#: Source/Core/DolphinWX/FrameTools.cpp:1370
-#: Source/Core/DolphinWX/FrameTools.cpp:1375
-#: Source/Core/DolphinWX/FrameTools.cpp:1380
+#: Source/Core/DolphinQt2/WiiUpdate.cpp:40
+#: Source/Core/DolphinQt2/WiiUpdate.cpp:45
+#: Source/Core/DolphinQt2/WiiUpdate.cpp:50
+#: Source/Core/DolphinQt2/WiiUpdate.cpp:61
+#: Source/Core/DolphinQt2/WiiUpdate.cpp:68
+#: Source/Core/DolphinWX/FrameTools.cpp:1340
+#: Source/Core/DolphinWX/FrameTools.cpp:1345
+#: Source/Core/DolphinWX/FrameTools.cpp:1350
+#: Source/Core/DolphinWX/FrameTools.cpp:1361
+#: Source/Core/DolphinWX/FrameTools.cpp:1366
 msgid "Update failed"
 msgstr "업데이트가 실패했습니다"
 
@@ -8853,12 +8895,12 @@ msgstr "업데이트가 실패했습니다"
 msgid "Update the Wii system software to the latest version from Nintendo."
 msgstr "Wii 시스템 소프트웨어를 닌텐도로부터 최신 버전으로 업데이트합니다."
 
-#: Source/Core/DolphinQt2/WiiUpdate.cpp:46
-#: Source/Core/DolphinWX/FrameTools.cpp:1330
+#: Source/Core/DolphinQt2/WiiUpdate.cpp:91
+#: Source/Core/DolphinWX/FrameTools.cpp:1374
 msgid "Updating"
 msgstr "업데이트하기"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1340
+#: Source/Core/DolphinWX/FrameTools.cpp:1383
 #, c-format
 msgid ""
 "Updating title %016<PRIx64>...\n"
@@ -8867,7 +8909,7 @@ msgstr ""
 "업데이트중 타이틀 %016<PRIx64>...\n"
 "시간이 잠시 걸릴 수 있습니다."
 
-#: Source/Core/DolphinQt2/WiiUpdate.cpp:72
+#: Source/Core/DolphinQt2/WiiUpdate.cpp:117
 msgid ""
 "Updating title %1...\n"
 "This can take a while."
@@ -9107,20 +9149,20 @@ msgstr "볼륨 증가"
 msgid "WAD files (*.wad)"
 msgstr "WAD 파일들 (*.wad)"
 
-#: Source/Core/Core/WiiUtils.cpp:98
+#: Source/Core/Core/WiiUtils.cpp:104
 msgid "WAD installation failed: Could not finalise title import."
 msgstr "WAD 설치를 실패했습니다: 타이틀 가져오기를 마무리 할 수 없습니다."
 
-#: Source/Core/Core/WiiUtils.cpp:88
+#: Source/Core/Core/WiiUtils.cpp:94
 #, c-format
 msgid "WAD installation failed: Could not import content %08x."
 msgstr "WAD 설치를 실패했습니다: 내용 %08x 를 가져올 수 없습니다."
 
-#: Source/Core/Core/WiiUtils.cpp:73
+#: Source/Core/Core/WiiUtils.cpp:79
 msgid "WAD installation failed: Could not initialise title import."
 msgstr "WAD 설치를 실패했습니다: 타이틀 가져오기를 초기화할 수 없습니다."
 
-#: Source/Core/Core/WiiUtils.cpp:46
+#: Source/Core/Core/WiiUtils.cpp:53
 msgid "WAD installation failed: The selected file is not a valid WAD."
 msgstr "WAD 설치를 실패했습니다: 선택된 파일은 적합한 WAD 가 아닙니다."
 
@@ -9140,8 +9182,8 @@ msgstr ""
 #: Source/Core/Common/MsgHandler.cpp:67
 #: Source/Core/DolphinQt2/Config/LoggerWidget.cpp:162
 #: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:214
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1303
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1611
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1310
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1618
 #: Source/Core/DolphinWX/LogConfigWindow.cpp:43
 #: Source/Core/DolphinWX/MemcardManager.cpp:587
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:354
@@ -9274,7 +9316,7 @@ msgstr ""
 "\n"
 "잘 모르겠으면, 체크 해제해 두세요."
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:154
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:155
 msgid "Whitelisted USB Passthrough Devices"
 msgstr "화이트리스트된 USB 패스쓰루 장치들"
 
@@ -9289,12 +9331,12 @@ msgstr "너비"
 
 #: Source/Core/Core/HotkeyManager.cpp:251
 #: Source/Core/DolphinQt2/Config/Mapping/HotkeyWii.cpp:21
-#: Source/Core/DolphinQt2/GameList/GameFile.cpp:235
+#: Source/Core/DolphinQt2/GameList/GameFile.cpp:245
 #: Source/Core/DolphinWX/Config/ConfigMain.cpp:88
 msgid "Wii"
 msgstr "Wii"
 
-#: Source/Core/DolphinQt2/GameList/GameFile.cpp:237
+#: Source/Core/DolphinQt2/GameList/GameFile.cpp:247
 msgid "Wii Channel"
 msgstr "Wii 채널"
 
@@ -9333,7 +9375,7 @@ msgstr "Wii 리모트 %i"
 msgid "Wii Remote Rumble"
 msgstr "Wii 리모트 진동"
 
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:163
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:164
 msgid "Wii Remote Settings"
 msgstr "Wii 리모트 설정"
 
@@ -9383,14 +9425,14 @@ msgstr "자동 줄바꿈"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:1246
 #: Source/Core/DolphinWX/FrameTools.cpp:1294
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1410
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1529
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1417
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1536
 #: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:323
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:330
 msgid "Working..."
 msgstr "작동 중..."
 
-#: Source/Core/DolphinQt2/GameList/GameFile.cpp:274
+#: Source/Core/DolphinQt2/GameList/GameFile.cpp:284
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:123
 msgid "World"
 msgstr "세계"
@@ -9454,7 +9496,7 @@ msgstr "노랑"
 msgid "You can't close panes that have pages in them."
 msgstr "당신은 페이지들을 가진 창을 닫을 수 없습니다."
 
-#: Source/Core/Core/IOS/ES/ES.cpp:251
+#: Source/Core/Core/IOS/ES/ES.cpp:260
 msgid ""
 "You cannot use the Wii Shop Channel without using your own device "
 "credentials.\n"
@@ -9485,9 +9527,9 @@ msgstr "적합한 프로파일 이름을 넣어야 합니다."
 msgid "You must restart Dolphin in order for the change to take effect."
 msgstr "변경이 적용되려면 돌핀을 재시작 해야 합니다."
 
-#: Source/Core/DolphinQt2/NetPlay/NetPlaySetupDialog.cpp:231
+#: Source/Core/DolphinQt2/NetPlay/NetPlaySetupDialog.cpp:235
 msgid "You must select a game to host!"
-msgstr ""
+msgstr "호스트할 게임을 선택해야 합니다!"
 
 #: Source/Core/Core/DSP/DSPCore.cpp:78
 msgid ""
@@ -9498,14 +9540,6 @@ msgstr ""
 "당신의 DSP 롬들이 잘못된 해쉬를 지녔습니다.\n"
 "문제를 고치기위해 지금 중단하시겠습니까?\n"
 "\"아니오\"를 선택하면, 오디오가 왜곡될 지도 모릅니다."
-
-#: Source/Core/Core/ConfigManager.cpp:944
-msgid ""
-"Your GCM/ISO file seems to be invalid (invalid country).\n"
-"Continue with PAL region?"
-msgstr ""
-"당신의 GCM/ISO 파일이 부적합(부적합 국가)인 것 같습니다.\n"
-"PAL 지역으로 계속합니까?"
 
 #. i18n: Refers to a 3D axis (used when mapping motion controls)
 #: Source/Core/Core/HW/WiimoteEmu/Attachment/Nunchuk.cpp:54
