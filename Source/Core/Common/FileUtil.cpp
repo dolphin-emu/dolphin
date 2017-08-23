@@ -521,7 +521,7 @@ bool DeleteDirRecursively(const std::string& directory)
 }
 
 // Create directory and copy contents (does not overwrite existing files)
-void CopyDir(const std::string& source_path, const std::string& dest_path)
+void CopyDir(const std::string& source_path, const std::string& dest_path, bool destructive)
 {
   if (source_path == dest_path)
     return;
@@ -562,10 +562,16 @@ void CopyDir(const std::string& source_path, const std::string& dest_path)
     {
       if (!Exists(dest))
         File::CreateFullPath(dest + DIR_SEP);
-      CopyDir(source, dest);
+      CopyDir(source, dest, destructive);
     }
-    else if (!Exists(dest))
-      File::Copy(source, dest);
+    else if (!Exists(dest) && !destructive)
+    {
+      Copy(source, dest);
+    }
+    else
+    {
+      Rename(source, dest);
+    }
 #ifdef _WIN32
   } while (FindNextFile(hFind, &ffd) != 0);
   FindClose(hFind);

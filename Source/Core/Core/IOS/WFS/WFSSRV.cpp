@@ -4,6 +4,7 @@
 
 #include "Core/IOS/WFS/WFSSRV.h"
 
+#include <algorithm>
 #include <cinttypes>
 #include <string>
 #include <vector>
@@ -100,6 +101,29 @@ IPCCommandResult WFSSRV::IOCtl(const IOCtlRequest& request)
     INFO_LOG(IOS_WFS, "IOCTL_WFS_FLUSH: doing nothing");
     break;
 
+  case IOCTL_WFS_MKDIR:
+  {
+    std::string path = NormalizePath(
+        Memory::GetString(request.buffer_in + 34, Memory::Read_U16(request.buffer_in + 32)));
+    std::string native_path = WFS::NativePath(path);
+
+    if (File::Exists(native_path))
+    {
+      INFO_LOG(IOS_WFS, "IOCTL_WFS_MKDIR(%s): already exists", path.c_str());
+      return_error_code = WFS_EEXIST;
+    }
+    else if (!File::CreateDir(native_path))
+    {
+      INFO_LOG(IOS_WFS, "IOCTL_WFS_MKDIR(%s): no such file or directory", path.c_str());
+      return_error_code = WFS_ENOENT;
+    }
+    else
+    {
+      INFO_LOG(IOS_WFS, "IOCTL_WFS_MKDIR(%s): directory created", path.c_str());
+    }
+    break;
+  }
+
   // TODO(wfs): Globbing is not really implemented, we just fake the one case
   // (listing /vol/*) which is required to get the installer to work.
   case IOCTL_WFS_GLOB_START:
@@ -136,9 +160,48 @@ IPCCommandResult WFSSRV::IOCtl(const IOCtlRequest& request)
     Memory::CopyToEmu(request.buffer_out + 2, m_home_directory.data(), m_home_directory.size());
     break;
 
+  case IOCTL_WFS_GET_ATTRIBUTES:
+  {
+    std::string path = NormalizePath(
+        Memory::GetString(request.buffer_in + 2, Memory::Read_U16(request.buffer_in)));
+    std::string native_path = WFS::NativePath(path);
+    Memory::Memset(0, request.buffer_out, request.buffer_out_size);
+    if (!File::Exists(native_path))
+    {
+      INFO_LOG(IOS_WFS, "IOCTL_WFS_GET_ATTRIBUTES(%s): no such file or directory", path.c_str());
+      return_error_code = WFS_ENOENT;
+    }
+    else if (File::IsDirectory(native_path))
+    {
+      INFO_LOG(IOS_WFS, "IOCTL_WFS_GET_ATTRIBUTES(%s): directory", path.c_str());
+      Memory::Write_U32(0x80000000, request.buffer_out + 4);
+    }
+    else
+    {
+      u32 size = static_cast<u32>(File::GetSize(native_path));
+      INFO_LOG(IOS_WFS, "IOCTL_WFS_GET_ATTRIBUTES(%s): file with size %d", path.c_str(), size);
+      Memory::Write_U32(size, request.buffer_out);
+    }
+    break;
+  }
+
+  case IOCTL_WFS_RENAME:
+  case IOCTL_WFS_RENAME_2:
+  {
+    const std::string source_path =
+        Memory::GetString(request.buffer_in + 2, Memory::Read_U16(request.buffer_in));
+    const std::string dest_path =
+        Memory::GetString(request.buffer_in + 512 + 2, Memory::Read_U16(request.buffer_in + 512));
+    return_error_code = Rename(source_path, dest_path);
+    break;
+  }
+
+  case IOCTL_WFS_CREATE_OPEN:
   case IOCTL_WFS_OPEN:
   {
-    u32 mode = Memory::Read_U32(request.buffer_in);
+    const char* ioctl_name =
+        request.request == IOCTL_WFS_OPEN ? "IOCTL_WFS_OPEN" : "IOCTL_WFS_CREATE_OPEN";
+    u32 mode = request.request == IOCTL_WFS_OPEN ? Memory::Read_U32(request.buffer_in) : 2;
     u16 path_len = Memory::Read_U16(request.buffer_in + 0x20);
     std::string path = Memory::GetString(request.buffer_in + 0x22, path_len);
 
@@ -153,14 +216,21 @@ IPCCommandResult WFSSRV::IOCtl(const IOCtlRequest& request)
 
     if (!fd_obj->Open())
     {
-      ERROR_LOG(IOS_WFS, "IOCTL_WFS_OPEN(%s, %d): error opening file", path.c_str(), mode);
+      ERROR_LOG(IOS_WFS, "%s(%s, %d): error opening file", ioctl_name, path.c_str(), mode);
       ReleaseFileDescriptor(fd);
       return_error_code = WFS_ENOENT;
       break;
     }
 
-    INFO_LOG(IOS_WFS, "IOCTL_WFS_OPEN(%s, %d) -> %d", path.c_str(), mode, fd);
-    Memory::Write_U16(fd, request.buffer_out + 0x14);
+    INFO_LOG(IOS_WFS, "%s(%s, %d) -> %d", ioctl_name, path.c_str(), mode, fd);
+    if (request.request == IOCTL_WFS_OPEN)
+    {
+      Memory::Write_U16(fd, request.buffer_out + 0x14);
+    }
+    else
+    {
+      Memory::Write_U16(fd, request.buffer_out);
+    }
     break;
   }
 
@@ -190,6 +260,16 @@ IPCCommandResult WFSSRV::IOCtl(const IOCtlRequest& request)
   {
     u16 fd = Memory::Read_U16(request.buffer_in + 0x4);
     INFO_LOG(IOS_WFS, "IOCTL_WFS_CLOSE(%d)", fd);
+    ReleaseFileDescriptor(fd);
+    break;
+  }
+
+  case IOCTL_WFS_CLOSE_2:
+  {
+    // TODO(wfs): Figure out the exact semantics difference from the other
+    // close.
+    u16 fd = Memory::Read_U16(request.buffer_in + 0x4);
+    INFO_LOG(IOS_WFS, "IOCTL_WFS_CLOSE_2(%d)", fd);
     ReleaseFileDescriptor(fd);
     break;
   }
@@ -235,6 +315,45 @@ IPCCommandResult WFSSRV::IOCtl(const IOCtlRequest& request)
     break;
   }
 
+  case IOCTL_WFS_WRITE:
+  case IOCTL_WFS_WRITE_ABSOLUTE:
+  {
+    u32 addr = Memory::Read_U32(request.buffer_in);
+    u32 position = Memory::Read_U32(request.buffer_in + 4);  // Only for absolute.
+    u16 fd = Memory::Read_U16(request.buffer_in + 0xC);
+    u32 size = Memory::Read_U32(request.buffer_in + 8);
+
+    bool absolute = request.request == IOCTL_WFS_WRITE_ABSOLUTE;
+
+    FileDescriptor* fd_obj = FindFileDescriptor(fd);
+    if (fd_obj == nullptr)
+    {
+      ERROR_LOG(IOS_WFS, "IOCTL_WFS_WRITE: invalid file descriptor %d", fd);
+      return_error_code = WFS_EBADFD;
+      break;
+    }
+
+    u64 previous_position = fd_obj->file.Tell();
+    if (absolute)
+    {
+      fd_obj->file.Seek(position, SEEK_SET);
+    }
+    fd_obj->file.WriteArray(Memory::GetPointer(addr), size);
+    // TODO(wfs): Handle write errors.
+    if (absolute)
+    {
+      fd_obj->file.Seek(previous_position, SEEK_SET);
+    }
+    else
+    {
+      fd_obj->position += size;
+    }
+
+    INFO_LOG(IOS_WFS, "IOCTL_WFS_WRITE: written %d bytes from FD %d (%s)", size, fd,
+             fd_obj->path.c_str());
+    break;
+  }
+
   default:
     // TODO(wfs): Should be returning -3. However until we have everything
     // properly stubbed it's easier to simulate the methods succeeding.
@@ -244,6 +363,26 @@ IPCCommandResult WFSSRV::IOCtl(const IOCtlRequest& request)
   }
 
   return GetDefaultReply(return_error_code);
+}
+
+s32 WFSSRV::Rename(std::string source, std::string dest) const
+{
+  source = NormalizePath(source);
+  dest = NormalizePath(dest);
+
+  INFO_LOG(IOS_WFS, "IOCTL_WFS_RENAME: %s to %s", source.c_str(), dest.c_str());
+
+  const bool opened = std::any_of(m_fds.begin(), m_fds.end(),
+                                  [&](const auto& fd) { return fd.in_use && fd.path == source; });
+
+  if (opened)
+    return WFS_FILE_IS_OPENED;
+
+  // TODO(wfs): Handle other rename failures
+  if (!File::Rename(WFS::NativePath(source), WFS::NativePath(dest)))
+    return WFS_ENOENT;
+
+  return IPC_SUCCESS;
 }
 
 std::string WFSSRV::NormalizePath(const std::string& path) const

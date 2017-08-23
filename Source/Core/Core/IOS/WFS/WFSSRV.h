@@ -22,6 +22,15 @@ namespace WFS
 std::string NativePath(const std::string& wfs_path);
 }
 
+enum
+{
+  WFS_EINVAL = -10003,          // Invalid argument.
+  WFS_EBADFD = -10026,          // Invalid file descriptor.
+  WFS_EEXIST = -10027,          // File already exists.
+  WFS_ENOENT = -10028,          // No such file or directory.
+  WFS_FILE_IS_OPENED = -10032,  // Cannot perform operation on an opened file.
+};
+
 namespace Device
 {
 class WFSSRV : public Device
@@ -30,6 +39,8 @@ public:
   WFSSRV(Kernel& ios, const std::string& device_name);
 
   IPCCommandResult IOCtl(const IOCtlRequest& request) override;
+
+  s32 Rename(std::string source, std::string dest) const;
 
 private:
   // WFS device name, e.g. msc01/msc02.
@@ -59,7 +70,9 @@ private:
     IOCTL_WFS_GET_HOMEDIR = 0x12,
     IOCTL_WFS_GETCWD = 0x13,
     IOCTL_WFS_DELETE = 0x15,
+    IOCTL_WFS_RENAME = 0x16,
     IOCTL_WFS_GET_ATTRIBUTES = 0x17,
+    IOCTL_WFS_CREATE_OPEN = 0x19,
     IOCTL_WFS_OPEN = 0x1A,
     IOCTL_WFS_GET_SIZE = 0x1B,
     IOCTL_WFS_CLOSE = 0x1E,
@@ -67,13 +80,10 @@ private:
     IOCTL_WFS_WRITE = 0x22,
     IOCTL_WFS_ATTACH_DETACH = 0x2d,
     IOCTL_WFS_ATTACH_DETACH_2 = 0x2e,
+    IOCTL_WFS_RENAME_2 = 0x41,
+    IOCTL_WFS_CLOSE_2 = 0x47,
     IOCTL_WFS_READ_ABSOLUTE = 0x48,
-  };
-
-  enum
-  {
-    WFS_EBADFD = -10026,  // Invalid file descriptor.
-    WFS_ENOENT = -10028,  // No such file or directory.
+    IOCTL_WFS_WRITE_ABSOLUTE = 0x49,
   };
 
   struct FileDescriptor
