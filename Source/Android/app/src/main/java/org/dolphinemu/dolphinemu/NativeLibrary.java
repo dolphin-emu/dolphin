@@ -247,13 +247,6 @@ public final class NativeLibrary
 	public static native void SetConfig(String configFile, String Section, String Key, String Value);
 
 	/**
-	 * Sets the filename to be run during emulation.
-	 * 
-	 * @param filename The filename to be run during emulation.
-	 */
-	public static native void SetFilename(String filename);
-
-	/**
 	 * Gets the embedded banner within the given ISO/ROM.
 	 * 
 	 * @param filename the file path to the ISO/ROM.
@@ -328,7 +321,7 @@ public final class NativeLibrary
 	/**
 	 * Begins emulation.
 	 */
-	public static native void Run();
+	public static native void Run(String path);
 
 	// Surface Handling
 	public static native void SurfaceChanged(Surface surf);
