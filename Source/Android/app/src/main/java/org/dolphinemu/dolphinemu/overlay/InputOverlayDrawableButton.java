@@ -50,7 +50,7 @@ public final class InputOverlayDrawableButton
 
 	/**
 	 * Gets this InputOverlayDrawableButton's button ID.
-	 * 
+	 *
 	 * @return this InputOverlayDrawableButton's button ID.
 	 */
 	public int getId()
