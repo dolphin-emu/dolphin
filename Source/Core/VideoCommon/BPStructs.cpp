@@ -384,7 +384,12 @@ static void BPWritten(const BPCmd& bp)
   // ----------------
   // EFB Copy config
   // ----------------
-  case BPMEM_EFB_TL:    // EFB Source Rect. Top, Left
+  case BPMEM_EFB_TL:  // EFB Source Rect. Top, Left
+    // NHL Slapshot uses 4 efb copies with the same offset, but different top/left source positions
+    // TODO: Find out where and how the tmem cache is invalidated for the game, this solution is
+    //       possibly wrong, or it could be done more efficiently without invalidating all stages
+    TextureCacheBase::InvalidateAllBindPoints();
+    return;
   case BPMEM_EFB_BR:    // EFB Source Rect. Bottom, Right (w, h - 1)
   case BPMEM_EFB_ADDR:  // EFB Target Address
     return;
