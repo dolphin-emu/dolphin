@@ -37,12 +37,12 @@ public:
   {
     // Already running, so no need for a wakeup.
     // This is the common case, so try to get this as fast as possible.
-    if (m_running_state.load() >= STATE_NEED_EXECUTION)
+    if (m_running_state.load() == RunningState::NeedExecution)
       return;
 
     // Mark that new data is available. If the old state will rerun the payload
     // itself, we don't have to set the event to interrupt the worker.
-    if (m_running_state.exchange(STATE_NEED_EXECUTION) != STATE_SLEEPING)
+    if (m_running_state.exchange(RunningState::NeedExecution) != RunningState::Sleeping)
       return;
 
     // Else as the worker thread may sleep now, we have to set the event.
@@ -113,7 +113,8 @@ public:
     if (!m_stopped.TestAndClear())
       return;
     m_running_state.store(
-        STATE_LAST_EXECUTION);  // so the payload will only be executed once without any Wakeup call
+        RunningState::NeedExecution);  // so the payload will only be executed once
+                                       // without any Wakeup call
     m_shutdown.Clear();
     m_may_sleep.Set();
   }
@@ -132,64 +133,46 @@ public:
 
     while (!m_shutdown.IsSet())
     {
-      payload();
-
-      switch (m_running_state.load())
+      if (m_running_state.load() == RunningState::NeedExecution)
       {
-      case STATE_NEED_EXECUTION:
-        // We won't get notified while we are in the STATE_NEED_EXECUTION state, so maybe Wakeup was
-        // called.
-        // So we have to assume on finishing the STATE_NEED_EXECUTION state, that there may be some
-        // remaining tasks.
-        // To process this tasks, we call the payload again within the STATE_LAST_EXECUTION state.
-        m_running_state--;
-        break;
+        m_running_state.store(RunningState::Executing);
 
-      case STATE_LAST_EXECUTION:
-        // If we're still in the STATE_LAST_EXECUTION state, then Wakeup wasn't called within the
-        // last
-        // execution of the payload. This means we should be ready now.
-        // But bad luck, Wakeup may have been called right now. So break and rerun the payload
-        // if the state was touched.
-        if (m_running_state-- != STATE_LAST_EXECUTION)
-          break;
+        payload();
 
-        // Else we're likely in the STATE_DONE state now, so wakeup the waiting threads right now.
-        // However, if we're not in the STATE_DONE state any more, the event should also be
-        // triggered so that we'll skip the next waiting call quite fast.
-        m_done_event.Set();
+        // If we're still in the Running state, then Wakeup wasn't called within the last execution
+        // of the payload. This means we should be ready now. Else we're in the Done state now, so
+        // wakeup the waiting threads right now.
+        RunningState expected_running{RunningState::Executing};
+        if (m_running_state.compare_exchange_strong(expected_running, RunningState::Done))
+          m_done_event.Set();
+      }
+      // We're done now. So time to check if we want to sleep or if we want to stay in a busy loop.
+      else if (m_may_sleep.TestAndClear())
+      {
+        // Try to set the sleeping state.
+        RunningState expected_done{RunningState::Done};
+        if (!m_running_state.compare_exchange_strong(expected_done, RunningState::Sleeping))
+          continue;
 
-      case STATE_DONE:
-        // We're done now. So time to check if we want to sleep or if we want to stay in a busy
-        // loop.
-        if (m_may_sleep.TestAndClear())
-        {
-          // Try to set the sleeping state.
-          if (m_running_state-- != STATE_DONE)
-            break;
-        }
-        else
-        {
-          // Busy loop.
-          break;
-        }
-
-      case STATE_SLEEPING:
         // Just relax
         if (timeout > 0)
         {
-          m_new_work_event.WaitFor(std::chrono::milliseconds(timeout));
+          while (!m_new_work_event.WaitFor(std::chrono::milliseconds(timeout)))
+            payload();
         }
         else
         {
           m_new_work_event.Wait();
         }
-        break;
+      }
+      else
+      {
+        payload();
       }
     }
 
     // Shutdown down, so get a safe state
-    m_running_state.store(STATE_DONE);
+    m_running_state.store(RunningState::Done);
     m_stopped.Set();
 
     // Wake up the last Wait calls.
@@ -226,7 +209,13 @@ public:
   }
 
   bool IsRunning() const { return !m_stopped.IsSet() && !m_shutdown.IsSet(); }
-  bool IsDone() const { return m_stopped.IsSet() || m_running_state.load() <= STATE_DONE; }
+  bool IsDone() const
+  {
+    if (m_stopped.IsSet())
+      return true;
+    RunningState state = m_running_state.load();
+    return state == RunningState::Done || state == RunningState::Sleeping;
+  }
   // This function should be triggered regularly over time so
   // that we will fall back from the busy loop to sleeping.
   void AllowSleep() { m_may_sleep.Set(); }
@@ -240,14 +229,14 @@ private:
   Event m_new_work_event;
   Event m_done_event;
 
-  enum RUNNING_TYPE
+  enum class RunningState
   {
-    STATE_SLEEPING = 0,
-    STATE_DONE = 1,
-    STATE_LAST_EXECUTION = 2,
-    STATE_NEED_EXECUTION = 3
+    NeedExecution,
+    Executing,
+    Done,
+    Sleeping
   };
-  std::atomic<int> m_running_state;  // must be of type RUNNING_TYPE
+  std::atomic<RunningState> m_running_state;
 
   Flag m_may_sleep;  // If this is set, we fall back from the busy loop to an event based
                      // synchronization.
