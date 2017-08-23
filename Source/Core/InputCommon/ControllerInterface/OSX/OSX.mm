@@ -171,9 +171,6 @@ static void DeviceMatchingCallback(void* inContext, IOReturn inResult, void* inS
   {
     g_controller_interface.AddDevice(std::make_shared<Joystick>(inIOHIDDeviceRef, name));
   }
-  else
-  {
-  }
 
   NOTICE_LOG(SERIALINTERFACE, "Added device: %s", name.c_str());
   g_controller_interface.InvokeHotplugCallbacks();
