@@ -309,7 +309,11 @@ std::unique_ptr<FileInfo> FileSystemGCWii::FindFileInfo(u64 disc_offset) const
     {
       FileInfoGCWii file_info(m_root, i);
       if (!file_info.IsDirectory())
-        m_offset_file_info_cache.emplace(file_info.GetOffset() + file_info.GetSize(), i);
+      {
+        const u32 size = file_info.GetSize();
+        if (size != 0)
+          m_offset_file_info_cache.emplace(file_info.GetOffset() + size, i);
+      }
     }
   }
 
