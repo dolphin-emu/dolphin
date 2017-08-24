@@ -54,6 +54,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Clipper.h" />
+    <ClInclude Include="CopyRegion.h" />
     <ClInclude Include="DebugUtil.h" />
     <ClInclude Include="EfbCopy.h" />
     <ClInclude Include="EfbInterface.h" />

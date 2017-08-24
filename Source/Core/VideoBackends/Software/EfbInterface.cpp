@@ -7,11 +7,13 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstring>
+#include <vector>
 
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/Swap.h"
 
+#include "VideoBackends/Software/CopyRegion.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/LookUpTables.h"
 #include "VideoCommon/PerfQueryBase.h"
@@ -495,19 +497,16 @@ u8* GetPixelPointer(u16 x, u16 y, bool depth)
   return &efb[GetColorOffset(x, y)];
 }
 
-void CopyToXFB(yuv422_packed* xfb_in_ram, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc,
-               float Gamma)
+void EncodeXFB(yuv422_packed* xfb_in_ram, u32 memory_stride, const EFBRectangle& source_rect, float y_scale)
 {
-  // FIXME: We should do Gamma correction
-
   if (!xfb_in_ram)
   {
     WARN_LOG(VIDEO, "Tried to copy to invalid XFB address");
     return;
   }
 
-  int left = sourceRc.left;
-  int right = sourceRc.right;
+  int left = source_rect.left;
+  int right = source_rect.right;
 
   // this assumes copies will always start on an even (YU) pixel and the
   // copy always has an even width, which might not be true.
@@ -520,7 +519,11 @@ void CopyToXFB(yuv422_packed* xfb_in_ram, u32 fbWidth, u32 fbHeight, const EFBRe
   // Scanline buffer, leave room for borders
   yuv444 scanline[EFB_WIDTH + 2];
 
-  for (u16 y = sourceRc.top; y < sourceRc.bottom; y++)
+  static std::vector<yuv422_packed> source;
+  source.resize(EFB_WIDTH * EFB_HEIGHT);
+  yuv422_packed* src_ptr = &source[0];
+
+  for (float y = source_rect.top; y < source_rect.bottom; y++)
   {
     // Get a scanline of YUV pixels in 4:4:4 format
 
@@ -537,20 +540,23 @@ void CopyToXFB(yuv422_packed* xfb_in_ram, u32 fbWidth, u32 fbHeight, const EFBRe
     for (int i = 1, x = left; x < right; i += 2, x += 2)
     {
       // YU pixel
-      xfb_in_ram[x].Y = scanline[i].Y + 16;
+      src_ptr[x].Y = scanline[i].Y + 16;
       // we mix our color differences in 10 bit space so it will round more accurately
       // U[i] = 1/4 * U[i-1] + 1/2 * U[i] + 1/4 * U[i+1]
-      xfb_in_ram[x].UV =
+      src_ptr[x].UV =
           128 + ((scanline[i - 1].U + (scanline[i].U << 1) + scanline[i + 1].U) >> 2);
 
       // YV pixel
-      xfb_in_ram[x + 1].Y = scanline[i + 1].Y + 16;
+      src_ptr[x + 1].Y = scanline[i + 1].Y + 16;
       // V[i] = 1/4 * V[i-1] + 1/2 * V[i] + 1/4 * V[i+1]
-      xfb_in_ram[x + 1].UV =
+      src_ptr[x + 1].UV =
           128 + ((scanline[i].V + (scanline[i + 1].V << 1) + scanline[i + 2].V) >> 2);
     }
-    xfb_in_ram += fbWidth;
+    src_ptr += memory_stride;
   }
+
+  // Apply y scaling and copy to the xfb memory location
+  SW::copy_region(source.data(), source_rect, xfb_in_ram, EFBRectangle{ source_rect.left, source_rect.top, source_rect.right, static_cast<int>(static_cast<float>(source_rect.bottom) * y_scale) });
 }
 
 bool ZCompare(u16 x, u16 y, u32 z)

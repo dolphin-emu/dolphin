@@ -1,9 +1,8 @@
 #pragma once
 
 #include <memory>
-
-#include "VideoBackends/Software/EfbCopy.h"
 #include "VideoBackends/Software/SWTexture.h"
+#include "VideoBackends/Software/TextureEncoder.h"
 #include "VideoCommon/TextureCacheBase.h"
 
 namespace SW
@@ -22,7 +21,9 @@ public:
                u32 num_blocks_y, u32 memory_stride, const EFBRectangle& src_rect,
                bool scale_by_half) override
   {
-    EfbCopy::CopyEfb();
+    TextureEncoder::Encode(dst, params, native_width, bytes_per_row,
+      num_blocks_y, memory_stride, src_rect,
+      scale_by_half);
   }
 
 private:
@@ -34,7 +35,7 @@ private:
   void CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy, const EFBRectangle& src_rect,
                            bool scale_by_half, unsigned int cbuf_id, const float* colmat) override
   {
-    EfbCopy::CopyEfb();
+    // TODO: If we ever want to "fake" vram textures, we would need to implement this
   }
 };
 

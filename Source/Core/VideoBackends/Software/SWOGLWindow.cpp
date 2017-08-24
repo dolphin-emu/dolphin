@@ -9,7 +9,7 @@
 #include "Common/Logging/Log.h"
 
 #include "VideoBackends/Software/SWOGLWindow.h"
-#include "VideoCommon/AbstractTexture.h"
+#include "VideoBackends/Software/SWTexture.h"
 
 std::unique_ptr<SWOGLWindow> SWOGLWindow::s_instance;
 
@@ -54,9 +54,9 @@ void SWOGLWindow::Prepare()
 
   std::string frag_shader = "in vec2 TexCoord;\n"
                             "out vec4 ColorOut;\n"
-                            "uniform sampler2DArray samp;\n"
+                            "uniform sampler2D samp;\n"
                             "void main() {\n"
-                            "	ColorOut = texture(samp, vec3(TexCoord, 0.0));\n"
+                            "	ColorOut = texture(samp, TexCoord);\n"
                             "}\n";
 
   std::string vertex_shader = "out vec2 TexCoord;\n"
@@ -76,8 +76,11 @@ void SWOGLWindow::Prepare()
   glUseProgram(m_image_program);
 
   glUniform1i(glGetUniformLocation(m_image_program, "samp"), 0);
+  glGenTextures(1, &m_image_texture);
+  glBindTexture(GL_TEXTURE_2D, m_image_texture);
 
-  glPixelStorei(GL_UNPACK_ALIGNMENT, 4);  // 4-byte pixel alignment
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
   glGenVertexArrays(1, &m_image_vao);
 }
@@ -89,6 +92,7 @@ void SWOGLWindow::PrintText(const std::string& text, int x, int y, u32 color)
 
 void SWOGLWindow::ShowImage(AbstractTexture* image, float aspect)
 {
+  SW::SWTexture * sw_image = static_cast<SW::SWTexture*>(image);
   GLInterface->Update();  // just updates the render window position and the backbuffer size
 
   GLsizei glWidth = (GLsizei)GLInterface->GetBackBufferWidth();
@@ -96,10 +100,15 @@ void SWOGLWindow::ShowImage(AbstractTexture* image, float aspect)
 
   glViewport(0, 0, glWidth, glHeight);
 
-  image->Bind(0);
+  glActiveTexture(GL_TEXTURE9);
+  glBindTexture(GL_TEXTURE_2D, m_image_texture);
 
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glPixelStorei(GL_UNPACK_ALIGNMENT, 4);  // 4-byte pixel alignment
+  glPixelStorei(GL_UNPACK_ROW_LENGTH, sw_image->GetConfig().width);
+
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, static_cast<GLsizei>(sw_image->GetConfig().width),
+               static_cast<GLsizei>(sw_image->GetConfig().height), 0, GL_RGBA, GL_UNSIGNED_BYTE,
+               sw_image->GetData());
 
   glUseProgram(m_image_program);
 

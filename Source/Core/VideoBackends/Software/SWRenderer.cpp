@@ -45,8 +45,6 @@ void SWRenderer::RenderText(const std::string& pstr, int left, int top, u32 colo
 // Called on the GPU thread
 void SWRenderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& rc, u64 ticks, float Gamma)
 {
-  SWOGLWindow::s_instance->ShowImage(texture, 1.0);
-
   OSD::DoCallbacks(OSD::CallbackType::OnFrame);
 
   DrawDebugText();
