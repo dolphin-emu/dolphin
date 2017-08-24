@@ -9,6 +9,11 @@
 #include <QMenu>
 #include <QMenuBar>
 
+namespace DiscIO
+{
+enum class Region;
+};
+
 class MenuBar final : public QMenuBar
 {
   Q_OBJECT
@@ -21,11 +26,6 @@ public:
   void EmulationStopped();
   void UpdateStateSlotMenu();
   void UpdateToolsMenu(bool emulation_started);
-
-  // Tools
-  void InstallWAD();
-  void ImportWiiSave();
-  void ExportWiiSaves();
 
 signals:
   // File
@@ -52,6 +52,7 @@ signals:
   void StateSaveOldest();
   void SetStateSlot(int slot);
   void BootWiiSystemMenu();
+  void ImportNANDBackup();
 
   void PerformOnlineUpdate(const std::string& region);
 
@@ -92,6 +93,10 @@ private:
   void AddToolsMenu();
   void AddHelpMenu();
 
+  void InstallWAD();
+  void ImportWiiSave();
+  void ExportWiiSaves();
+
   // File
   QAction* m_open_action;
   QAction* m_exit_action;
@@ -103,6 +108,7 @@ private:
   QAction* m_ntscj_ipl;
   QAction* m_ntscu_ipl;
   QAction* m_pal_ipl;
+  QAction* m_import_backup;
 
   // Emulation
   QAction* m_play_action;

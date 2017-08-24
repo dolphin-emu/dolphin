@@ -12,9 +12,11 @@
 #include <QIcon>
 #include <QMessageBox>
 #include <QMimeData>
+#include <QProgressDialog>
+
+#include <future>
 
 #include "Common/Common.h"
-#include "Common/Compat/optional"
 
 #include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
@@ -34,6 +36,8 @@
 #include "Core/NetPlayServer.h"
 #include "Core/State.h"
 
+#include "DiscIO/NANDImporter.h"
+
 #include "DolphinQt2/AboutDialog.h"
 #include "DolphinQt2/Config/ControllersWindow.h"
 #include "DolphinQt2/Config/Graphics/GraphicsWindow.h"
@@ -45,6 +49,7 @@
 #include "DolphinQt2/MainWindow.h"
 #include "DolphinQt2/NetPlay/NetPlayDialog.h"
 #include "DolphinQt2/NetPlay/NetPlaySetupDialog.h"
+#include "DolphinQt2/QtUtils/QueueOnObject.h"
 #include "DolphinQt2/QtUtils/WindowActivationEventFilter.h"
 #include "DolphinQt2/Resources.h"
 #include "DolphinQt2/Settings.h"
@@ -201,6 +206,7 @@ void MainWindow::ConnectMenuBar()
 
   // Tools
   connect(m_menu_bar, &MenuBar::BootGameCubeIPL, this, &MainWindow::OnBootGameCubeIPL);
+  connect(m_menu_bar, &MenuBar::ImportNANDBackup, this, &MainWindow::OnImportNANDBackup);
   connect(m_menu_bar, &MenuBar::PerformOnlineUpdate, this, &MainWindow::PerformOnlineUpdate);
   connect(m_menu_bar, &MenuBar::BootWiiSystemMenu, this, &MainWindow::BootWiiSystemMenu);
   connect(m_menu_bar, &MenuBar::StartNetPlay, this, &MainWindow::ShowNetPlaySetupDialog);
@@ -831,4 +837,48 @@ QSize MainWindow::sizeHint() const
 void MainWindow::OnBootGameCubeIPL(DiscIO::Region region)
 {
   StartGame(std::make_unique<BootParameters>(BootParameters::IPL{region}));
+}
+
+void MainWindow::OnImportNANDBackup()
+{
+  auto response = QMessageBox::question(
+      this, tr("Question"),
+      tr("Merging a new NAND over your currently selected NAND will overwrite any channels "
+         "and savegames that already exist. This process is not reversible, so it is "
+         "recommended that you keep backups of both NANDs. Are you sure you want to "
+         "continue?"));
+
+  if (response == QMessageBox::No)
+    return;
+
+  QString file = QFileDialog::getOpenFileName(this, tr("Select the save file"), QDir::currentPath(),
+                                              tr("BootMii NAND backup file (*.bin);;"
+                                                 "All Files (*)"));
+
+  if (file.isEmpty())
+    return;
+
+  QProgressDialog* dialog = new QProgressDialog(this);
+  dialog->setMinimum(0);
+  dialog->setMaximum(0);
+  dialog->setLabelText(tr("Importing NAND backup"));
+  dialog->setCancelButton(nullptr);
+
+  auto beginning = QDateTime::currentDateTime().toSecsSinceEpoch();
+
+  auto result = std::async(std::launch::async, [&] {
+    DiscIO::NANDImporter().ImportNANDBin(file.toStdString(), [&dialog, beginning] {
+      QueueOnObject(dialog, [&dialog, beginning] {
+        dialog->setLabelText(tr("Importing NAND backup\n Time elapsed: %1s")
+                                 .arg(QDateTime::currentDateTime().toSecsSinceEpoch() - beginning));
+      });
+    });
+    QueueOnObject(dialog, [dialog] { dialog->close(); });
+  });
+
+  dialog->exec();
+
+  result.wait();
+
+  m_menu_bar->UpdateToolsMenu(Core::IsRunning());
 }

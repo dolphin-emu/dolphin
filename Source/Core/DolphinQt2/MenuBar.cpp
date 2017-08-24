@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "DolphinQt2/MenuBar.h"
+
 #include <QAction>
 #include <QDesktopServices>
 #include <QFileDialog>
@@ -17,9 +19,9 @@
 #include "Core/IOS/ES/ES.h"
 #include "Core/IOS/IOS.h"
 #include "Core/State.h"
+#include "DiscIO/NANDImporter.h"
 #include "DolphinQt2/AboutDialog.h"
 #include "DolphinQt2/GameList/GameFile.h"
-#include "DolphinQt2/MenuBar.h"
 #include "DolphinQt2/Settings.h"
 
 MenuBar::MenuBar(QWidget* parent) : QMenuBar(parent)
@@ -112,6 +114,9 @@ void MenuBar::AddToolsMenu()
 
   // Label will be set by a NANDRefresh later
   m_boot_sysmenu = tools_menu->addAction(QStringLiteral(""), [this] { emit BootWiiSystemMenu(); });
+  m_import_backup = tools_menu->addAction(tr("Import BootMii NAND Backup..."),
+                                          [this] { emit ImportNANDBackup(); });
+
   m_boot_sysmenu->setEnabled(false);
 
   connect(&Settings::Instance(), &Settings::NANDRefresh, [this] { UpdateToolsMenu(false); });
@@ -393,6 +398,7 @@ void MenuBar::UpdateToolsMenu(bool emulation_started)
                           File::Exists(SConfig::GetInstance().GetBootROMPath(USA_DIR)));
   m_pal_ipl->setEnabled(!emulation_started &&
                         File::Exists(SConfig::GetInstance().GetBootROMPath(EUR_DIR)));
+  m_import_backup->setEnabled(!emulation_started);
 
   if (!emulation_started)
   {
@@ -451,3 +457,4 @@ void MenuBar::ExportWiiSaves()
 {
   CWiiSaveCrypted::ExportAllSaves();
 }
+

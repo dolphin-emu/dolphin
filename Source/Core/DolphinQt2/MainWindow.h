@@ -104,6 +104,7 @@ private:
   void NetPlayQuit();
 
   void OnBootGameCubeIPL(DiscIO::Region region);
+  void OnImportNANDBackup();
   void OnStopComplete();
   void dragEnterEvent(QDragEnterEvent* event) override;
   void dropEvent(QDropEvent* event) override;
