@@ -24,6 +24,7 @@ public:
 
   // Tools
   void InstallWAD();
+  void ImportWiiSave();
 
 signals:
   // File

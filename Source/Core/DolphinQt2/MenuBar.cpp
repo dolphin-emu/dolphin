@@ -11,6 +11,7 @@
 
 #include "Core/CommonTitles.h"
 #include "Core/ConfigManager.h"
+#include "Core/HW/WiiSaveCrypted.h"
 #include "Core/IOS/ES/ES.h"
 #include "Core/IOS/IOS.h"
 #include "Core/State.h"
@@ -86,6 +87,11 @@ void MenuBar::AddFileMenu()
 void MenuBar::AddToolsMenu()
 {
   QMenu* tools_menu = addMenu(tr("&Tools"));
+
+  tools_menu->addAction(tr("Import Wii Save..."), this, &MenuBar::ImportWiiSave);
+
+  tools_menu->addSeparator();
+
   m_wad_install_action = tools_menu->addAction(tr("Install WAD..."), this, &MenuBar::InstallWAD);
 
   tools_menu->addAction(tr("Start &NetPlay..."), this, &MenuBar::StartNetPlay);
@@ -410,4 +416,14 @@ void MenuBar::InstallWAD()
   }
 
   result_dialog.exec();
+}
+
+void MenuBar::ImportWiiSave()
+{
+  QString file = QFileDialog::getOpenFileName(this, tr("Select the save file"), QDir::currentPath(),
+                                              tr("Wii save files (*.bin);;"
+                                                 "All Files (*)"));
+
+  if (!file.isEmpty())
+    CWiiSaveCrypted::ImportWiiSave(file.toStdString());
 }
