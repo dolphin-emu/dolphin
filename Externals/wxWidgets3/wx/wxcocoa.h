@@ -249,7 +249,7 @@
 
 #define wxUSE_INTL 1
 
-#define wxUSE_XLOCALE 1
+#define wxUSE_XLOCALE 0
 
 #define wxUSE_DATETIME 1
 
