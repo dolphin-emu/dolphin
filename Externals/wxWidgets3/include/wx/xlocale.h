@@ -41,7 +41,9 @@
         #define wxXLOCALE_IDENT(name) _ ## name
     #elif defined(HAVE_LOCALE_T)
         #include <locale.h>
-        #include <xlocale.h>
+        #if !(__GLIBC__ == 2 && __GLIBC_MINOR__ >= 26 || __GLIBC__ > 2)
+            #include <xlocale.h>
+        #endif
         #include <ctype.h>
         #include <stdlib.h>
 
