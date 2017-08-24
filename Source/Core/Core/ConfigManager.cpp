@@ -739,6 +739,7 @@ void SConfig::SetRunningGameMetadata(const std::string& game_id, u64 title_id, u
 
   Config::AddLayer(ConfigLoaders::GenerateGlobalGameConfigLoader(game_id, revision));
   Config::AddLayer(ConfigLoaders::GenerateLocalGameConfigLoader(game_id, revision));
+  m_network_logger = std::make_unique<Core::BinarySSLCaptureLogger>();
 
   if (Core::IsRunning())
   {

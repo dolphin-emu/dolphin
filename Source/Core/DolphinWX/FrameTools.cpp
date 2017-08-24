@@ -898,6 +898,7 @@ void CFrame::DoStop()
       DoRecordingSave();
     if (Movie::IsMovieActive())
       Movie::EndPlayInput(false);
+    SConfig::GetInstance().m_network_logger = std::make_unique<Core::DummyNetworkCaptureLogger>();
 
     if (!m_tried_graceful_shutdown && UICommon::TriggerSTMPowerEvent())
     {

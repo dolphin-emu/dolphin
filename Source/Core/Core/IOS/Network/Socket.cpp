@@ -405,15 +405,10 @@ void WiiSocket::Update(bool read, bool write, bool except)
             int ret = mbedtls_ssl_write(&Device::NetSSL::_SSL[sslID].ctx,
                                         Memory::GetPointer(BufferOut2), BufferOutSize2);
 
-            if (SConfig::GetInstance().m_SSLDumpWrite && ret > 0)
-            {
-              std::string filename = File::GetUserPath(D_DUMPSSL_IDX) +
-                                     SConfig::GetInstance().GetGameID() + "_write.bin";
-              File::IOFile(filename, "ab").WriteBytes(Memory::GetPointer(BufferOut2), ret);
-            }
-
             if (ret >= 0)
             {
+              SConfig::GetInstance().m_network_logger->LogWrite(Memory::GetPointer(BufferOut2),
+                                                                ret);
               // Return bytes written or SSL_ERR_ZERO if none
               WriteReturnValue((ret == 0) ? SSL_ERR_ZERO : ret, BufferIn);
             }
@@ -443,15 +438,9 @@ void WiiSocket::Update(bool read, bool write, bool except)
             int ret = mbedtls_ssl_read(&Device::NetSSL::_SSL[sslID].ctx,
                                        Memory::GetPointer(BufferIn2), BufferInSize2);
 
-            if (SConfig::GetInstance().m_SSLDumpRead && ret > 0)
-            {
-              std::string filename = File::GetUserPath(D_DUMPSSL_IDX) +
-                                     SConfig::GetInstance().GetGameID() + "_read.bin";
-              File::IOFile(filename, "ab").WriteBytes(Memory::GetPointer(BufferIn2), ret);
-            }
-
             if (ret >= 0)
             {
+              SConfig::GetInstance().m_network_logger->LogRead(Memory::GetPointer(BufferIn2), ret);
               // Return bytes read or SSL_ERR_ZERO if none
               WriteReturnValue((ret == 0) ? SSL_ERR_ZERO : ret, BufferIn);
             }

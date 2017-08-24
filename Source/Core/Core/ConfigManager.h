@@ -5,6 +5,7 @@
 #pragma once
 
 #include <limits>
+#include <memory>
 #include <optional>
 #include <set>
 #include <string>
@@ -14,6 +15,7 @@
 #include "Common/IniFile.h"
 #include "Core/HW/EXI/EXI_Device.h"
 #include "Core/HW/SI/SI_Device.h"
+#include "Core/NetworkCaptureLogger.h"
 #include "Core/TitleDatabase.h"
 
 namespace DiscIO
@@ -316,6 +318,7 @@ struct SConfig
   bool m_SSLVerifyCert;
   bool m_SSLDumpRootCA;
   bool m_SSLDumpPeerCert;
+  std::unique_ptr<Core::NetworkCaptureLogger> m_network_logger;
 
   SConfig(const SConfig&) = delete;
   SConfig& operator=(const SConfig&) = delete;
