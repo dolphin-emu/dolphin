@@ -167,7 +167,10 @@ static void DeviceMatchingCallback(void* inContext, IOReturn inResult, void* inS
   std::string name = GetDeviceRefName(inIOHIDDeviceRef);
 
   // Add a device if it's of a type we want
-  if (IOHIDDeviceConformsTo(inIOHIDDeviceRef, kHIDPage_GenericDesktop, kHIDUsage_GD_Joystick))
+  if (IOHIDDeviceConformsTo(inIOHIDDeviceRef, kHIDPage_GenericDesktop, kHIDUsage_GD_Joystick) ||
+      IOHIDDeviceConformsTo(inIOHIDDeviceRef, kHIDPage_GenericDesktop, kHIDUsage_GD_GamePad) ||
+      IOHIDDeviceConformsTo(inIOHIDDeviceRef, kHIDPage_GenericDesktop,
+                            kHIDUsage_GD_MultiAxisController))
   {
     g_controller_interface.AddDevice(std::make_shared<Joystick>(inIOHIDDeviceRef, name));
   }
