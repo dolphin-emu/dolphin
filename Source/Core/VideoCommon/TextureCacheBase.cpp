@@ -1181,7 +1181,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstF
   PEControl::PixelFormat srcFormat = bpmem.zcontrol.pixel_format;
   bool efbHasAlpha = srcFormat == PEControl::RGBA6_Z24;
   
-  bool copy_to_ram = !g_ActiveConfig.bSkipEFBCopyToRam;
+  bool copy_to_ram = !g_ActiveConfig.bSkipEFBCopyToRam || g_ActiveConfig.backend_info.bForceCopyToRam;
   bool copy_to_vram = g_ActiveConfig.backend_info.bSupportsCopyToVram;
   bool is_xfb_copy = false;
 
@@ -1418,7 +1418,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstF
       ColorMask[3] = 0.0f;
       fConstAdd[3] = 1.0f;
       cbufid = 30;  // just re-use the RGBX8 cbufid from above
-      copy_to_ram = !g_ActiveConfig.bSkipXFBCopyToRam;
+      copy_to_ram = !g_ActiveConfig.bSkipXFBCopyToRam || g_ActiveConfig.backend_info.bForceCopyToRam;
       is_xfb_copy = true;
       break;
 
