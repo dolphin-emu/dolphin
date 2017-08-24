@@ -28,8 +28,6 @@ GraphicsWindow::GraphicsWindow(X11Utils::XRRConfiguration* xrr_config, MainWindo
   setWindowTitle(tr("Graphics"));
   setWindowFlags(Qt::Window);
 
-  OnBackendChanged(QString::fromStdString(SConfig::GetInstance().m_strVideoBackend));
-
   connect(parent, &MainWindow::EmulationStarted, this, &GraphicsWindow::EmulationStarted);
   connect(parent, &MainWindow::EmulationStopped, this, &GraphicsWindow::EmulationStopped);
 }
