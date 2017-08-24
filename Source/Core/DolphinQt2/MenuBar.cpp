@@ -89,6 +89,7 @@ void MenuBar::AddToolsMenu()
   QMenu* tools_menu = addMenu(tr("&Tools"));
 
   tools_menu->addAction(tr("Import Wii Save..."), this, &MenuBar::ImportWiiSave);
+  tools_menu->addAction(tr("Export All Wii Saves"), this, &MenuBar::ExportWiiSaves);
 
   tools_menu->addSeparator();
 
@@ -426,4 +427,9 @@ void MenuBar::ImportWiiSave()
 
   if (!file.isEmpty())
     CWiiSaveCrypted::ImportWiiSave(file.toStdString());
+}
+
+void MenuBar::ExportWiiSaves()
+{
+  CWiiSaveCrypted::ExportAllSaves();
 }
