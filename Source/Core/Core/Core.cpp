@@ -534,6 +534,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
 
     PatchEngine::Shutdown();
     HLE::Clear();
+    PowerPC::debug_interface.Clear();
   }};
 
   VideoBackendBase::PopulateBackendInfo();

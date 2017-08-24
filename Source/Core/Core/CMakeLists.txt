@@ -406,6 +406,8 @@ add_library(core
   NetPlayClient.h
   NetPlayServer.cpp
   NetPlayServer.h
+  NetworkCaptureLogger.cpp
+  NetworkCaptureLogger.h
   PatchEngine.cpp
   PatchEngine.h
   PowerPC/BreakPoints.cpp
