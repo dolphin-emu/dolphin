@@ -55,6 +55,9 @@ signals:
 
   void PerformOnlineUpdate(const std::string& region);
 
+  // Tools
+  void BootGameCubeIPL(DiscIO::Region region);
+
   // Options
   void Configure();
   void ConfigureGraphics();
@@ -97,6 +100,9 @@ private:
   QAction* m_wad_install_action;
   QMenu* m_perform_online_update_menu;
   QAction* m_perform_online_update_for_current_region;
+  QAction* m_ntscj_ipl;
+  QAction* m_ntscu_ipl;
+  QAction* m_pal_ipl;
 
   // Emulation
   QAction* m_play_action;

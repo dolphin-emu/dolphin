@@ -14,6 +14,7 @@
 #include <QMimeData>
 
 #include "Common/Common.h"
+#include "Common/Compat/optional"
 
 #include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
@@ -199,6 +200,7 @@ void MainWindow::ConnectMenuBar()
   connect(m_menu_bar, &MenuBar::ConfigureHotkeys, this, &MainWindow::ShowHotkeyDialog);
 
   // Tools
+  connect(m_menu_bar, &MenuBar::BootGameCubeIPL, this, &MainWindow::OnBootGameCubeIPL);
   connect(m_menu_bar, &MenuBar::PerformOnlineUpdate, this, &MainWindow::PerformOnlineUpdate);
   connect(m_menu_bar, &MenuBar::BootWiiSystemMenu, this, &MainWindow::BootWiiSystemMenu);
   connect(m_menu_bar, &MenuBar::StartNetPlay, this, &MainWindow::ShowNetPlaySetupDialog);
@@ -345,10 +347,10 @@ void MainWindow::OnStopComplete()
     QGuiApplication::instance()->quit();
 
   // If the current emulation prevented the booting of another, do that now
-  if (!m_pending_boot.isEmpty())
+  if (m_pending_boot != nullptr)
   {
-    StartGame(m_pending_boot);
-    m_pending_boot.clear();
+    StartGame(std::move(m_pending_boot));
+    m_pending_boot.reset();
   }
 }
 
@@ -447,6 +449,11 @@ void MainWindow::ScreenShot()
 
 void MainWindow::StartGame(const QString& path)
 {
+  StartGame(BootParameters::GenerateFromFile(path.toStdString()));
+}
+
+void MainWindow::StartGame(std::unique_ptr<BootParameters>&& parameters)
+{
   // If we're running, only start a new game once we've stopped the last.
   if (Core::GetState() != Core::State::Uninitialized)
   {
@@ -454,11 +461,11 @@ void MainWindow::StartGame(const QString& path)
       return;
 
     // As long as the shutdown isn't complete, we can't boot, so let's boot later
-    m_pending_boot = path;
+    m_pending_boot = std::move(parameters);
     return;
   }
   // Boot up, show an error if it fails to load the game.
-  if (!BootManager::BootCore(BootParameters::GenerateFromFile(path.toStdString())))
+  if (!BootManager::BootCore(std::move(parameters)))
   {
     QMessageBox::critical(this, tr("Error"), tr("Failed to init core"), QMessageBox::Ok);
     return;
@@ -637,7 +644,8 @@ void MainWindow::NetPlayInit()
   m_netplay_setup_dialog = new NetPlaySetupDialog(this);
   m_netplay_dialog = new NetPlayDialog(this);
 
-  connect(m_netplay_dialog, &NetPlayDialog::Boot, this, &MainWindow::StartGame);
+  connect(m_netplay_dialog, &NetPlayDialog::Boot, this,
+          static_cast<void (MainWindow::*)(const QString&)>(&MainWindow::StartGame));
   connect(m_netplay_dialog, &NetPlayDialog::Stop, this, &MainWindow::RequestStop);
   connect(m_netplay_dialog, &NetPlayDialog::rejected, this, &MainWindow::NetPlayQuit);
   connect(this, &MainWindow::EmulationStopped, m_netplay_dialog, &NetPlayDialog::EmulationStopped);
@@ -818,4 +826,9 @@ void MainWindow::dropEvent(QDropEvent* event)
 QSize MainWindow::sizeHint() const
 {
   return QSize(800, 600);
+}
+
+void MainWindow::OnBootGameCubeIPL(DiscIO::Region region)
+{
+  StartGame(std::make_unique<BootParameters>(BootParameters::IPL{region}));
 }

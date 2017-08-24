@@ -9,6 +9,8 @@
 #include <QMessageBox>
 #include <QUrl>
 
+#include "Common/CommonPaths.h"
+#include "Common/FileUtil.h"
 #include "Core/CommonTitles.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/WiiSaveCrypted.h"
@@ -94,6 +96,16 @@ void MenuBar::AddToolsMenu()
   tools_menu->addSeparator();
 
   m_wad_install_action = tools_menu->addAction(tr("Install WAD..."), this, &MenuBar::InstallWAD);
+
+  tools_menu->addSeparator();
+  QMenu* gc_ipl = tools_menu->addMenu(tr("Load GameCube Main Menu"));
+
+  m_ntscj_ipl = gc_ipl->addAction(tr("NTSC-J"), this,
+                                  [this] { emit BootGameCubeIPL(DiscIO::Region::NTSC_J); });
+  m_ntscu_ipl = gc_ipl->addAction(tr("NTSC-U"), this,
+                                  [this] { emit BootGameCubeIPL(DiscIO::Region::NTSC_U); });
+  m_pal_ipl =
+      gc_ipl->addAction(tr("PAL"), this, [this] { emit BootGameCubeIPL(DiscIO::Region::PAL); });
 
   tools_menu->addAction(tr("Start &NetPlay..."), this, &MenuBar::StartNetPlay);
   tools_menu->addSeparator();
@@ -375,6 +387,12 @@ void MenuBar::UpdateToolsMenu(bool emulation_started)
 {
   m_boot_sysmenu->setEnabled(!emulation_started);
   m_perform_online_update_menu->setEnabled(!emulation_started);
+  m_ntscj_ipl->setEnabled(!emulation_started &&
+                          File::Exists(SConfig::GetInstance().GetBootROMPath(JAP_DIR)));
+  m_ntscu_ipl->setEnabled(!emulation_started &&
+                          File::Exists(SConfig::GetInstance().GetBootROMPath(USA_DIR)));
+  m_pal_ipl->setEnabled(!emulation_started &&
+                        File::Exists(SConfig::GetInstance().GetBootROMPath(EUR_DIR)));
 
   if (!emulation_started)
   {
