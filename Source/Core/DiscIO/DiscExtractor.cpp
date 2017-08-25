@@ -166,7 +166,7 @@ bool ExportTMD(const Volume& volume, const Partition& partition, const std::stri
   if (!size || !offset)
     return false;
 
-  return ExportData(volume, PARTITION_NONE, *offset, *size, export_filename);
+  return ExportData(volume, PARTITION_NONE, partition.offset + *offset, *size, export_filename);
 }
 
 bool ExportCertificateChain(const Volume& volume, const Partition& partition,
