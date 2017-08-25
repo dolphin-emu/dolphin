@@ -564,11 +564,11 @@ void CopyDir(const std::string& source_path, const std::string& dest_path, bool 
         File::CreateFullPath(dest + DIR_SEP);
       CopyDir(source, dest, destructive);
     }
-    else if (!Exists(dest) && !destructive)
+    else if (!destructive && !Exists(dest))
     {
       Copy(source, dest);
     }
-    else
+    else if (destructive)
     {
       Rename(source, dest);
     }
