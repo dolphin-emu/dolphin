@@ -96,6 +96,7 @@ private:
   void InstallWAD();
   void ImportWiiSave();
   void ExportWiiSaves();
+  void NANDExtractCertificates();
 
   // File
   QAction* m_open_action;
@@ -109,6 +110,7 @@ private:
   QAction* m_ntscu_ipl;
   QAction* m_pal_ipl;
   QAction* m_import_backup;
+  QAction* m_extract_certificates;
 
   // Emulation
   QAction* m_play_action;

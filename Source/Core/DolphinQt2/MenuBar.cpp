@@ -117,6 +117,9 @@ void MenuBar::AddToolsMenu()
   m_import_backup = tools_menu->addAction(tr("Import BootMii NAND Backup..."),
                                           [this] { emit ImportNANDBackup(); });
 
+  m_extract_certificates = tools_menu->addAction(tr("Extract Certificates from NAND"), this,
+                                                 &MenuBar::NANDExtractCertificates);
+
   m_boot_sysmenu->setEnabled(false);
 
   connect(&Settings::Instance(), &Settings::NANDRefresh, [this] { UpdateToolsMenu(false); });
@@ -458,3 +461,15 @@ void MenuBar::ExportWiiSaves()
   CWiiSaveCrypted::ExportAllSaves();
 }
 
+void MenuBar::NANDExtractCertificates()
+{
+  if (DiscIO::NANDImporter().ExtractCertificates(File::GetUserPath(D_WIIROOT_IDX)))
+  {
+    QMessageBox::information(this, tr("Success"),
+                             tr("Successfully extracted certificates from NAND"));
+  }
+  else
+  {
+    QMessageBox::critical(this, tr("Error"), tr("Failed to extract certificates from NAND"));
+  }
+}
