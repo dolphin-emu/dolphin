@@ -13,9 +13,11 @@ class SettingsWindow final : public QDialog
   Q_OBJECT
 public:
   explicit SettingsWindow(QWidget* parent = nullptr);
+  void SelectGeneralPane();
   void SelectAudioPane();
 
 private:
   ListTabWidget* m_tabs;
   int m_audio_pane_index = -1;
+  int m_general_pane_index = -1;
 };

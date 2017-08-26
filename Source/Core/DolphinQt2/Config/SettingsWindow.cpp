@@ -38,7 +38,7 @@ SettingsWindow::SettingsWindow(QWidget* parent) : QDialog(parent)
   m_tabs = new ListTabWidget();
   layout->addWidget(m_tabs);
 
-  AddTab(m_tabs, tr("General"), new GeneralPane(), "config");
+  m_general_pane_index = AddTab(m_tabs, tr("General"), new GeneralPane(), "config");
   AddTab(m_tabs, tr("Interface"), new InterfacePane(), "browse");
   m_audio_pane_index = AddTab(m_tabs, tr("Audio"), new AudioPane(), "play");
   AddTab(m_tabs, tr("Paths"), new PathPane(), "browse");
@@ -54,4 +54,9 @@ SettingsWindow::SettingsWindow(QWidget* parent) : QDialog(parent)
 void SettingsWindow::SelectAudioPane()
 {
   m_tabs->setCurrentIndex(m_audio_pane_index);
+}
+
+void SettingsWindow::SelectGeneralPane()
+{
+  m_tabs->setCurrentIndex(m_general_pane_index);
 }
