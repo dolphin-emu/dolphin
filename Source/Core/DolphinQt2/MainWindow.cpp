@@ -41,7 +41,8 @@
 #include "DolphinQt2/AboutDialog.h"
 #include "DolphinQt2/Config/ControllersWindow.h"
 #include "DolphinQt2/Config/Graphics/GraphicsWindow.h"
-#include "DolphinQt2/Config/LoggerWidget.h"
+#include "DolphinQt2/Config/LogConfigWidget.h"
+#include "DolphinQt2/Config/LogWidget.h"
 #include "DolphinQt2/Config/Mapping/MappingWindow.h"
 #include "DolphinQt2/Config/SettingsWindow.h"
 #include "DolphinQt2/Host.h"
@@ -147,7 +148,8 @@ void MainWindow::CreateComponents()
   m_controllers_window = new ControllersWindow(this);
   m_settings_window = new SettingsWindow(this);
   m_hotkey_window = new MappingWindow(this, 0);
-  m_logger_widget = new LoggerWidget(this);
+  m_log_widget = new LogWidget(this);
+  m_log_config_widget = new LogConfigWidget(this);
 
   connect(this, &MainWindow::EmulationStarted, m_settings_window,
           &SettingsWindow::EmulationStarted);
@@ -310,7 +312,12 @@ void MainWindow::ConnectStack()
   m_stack->addWidget(m_game_list);
 
   setCentralWidget(m_stack);
-  addDockWidget(Qt::RightDockWidgetArea, m_logger_widget);
+
+  setTabPosition(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea, QTabWidget::North);
+  addDockWidget(Qt::RightDockWidgetArea, m_log_widget);
+  addDockWidget(Qt::RightDockWidgetArea, m_log_config_widget);
+
+  tabifyDockWidget(m_log_widget, m_log_config_widget);
 }
 
 void MainWindow::Open()
