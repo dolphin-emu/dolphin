@@ -43,6 +43,8 @@ signals:
   void EmulationStarted();
   void EmulationPaused();
   void EmulationStopped();
+  void ReadOnlyModeChanged(bool read_only);
+  void RecordingStatusChanged(bool recording);
 
 private:
   void Open();
@@ -105,6 +107,12 @@ private:
 
   void OnBootGameCubeIPL(DiscIO::Region region);
   void OnImportNANDBackup();
+
+  void OnPlayRecording();
+  void OnStartRecording();
+  void OnStopRecording();
+  void OnExportRecording();
+
   void OnStopComplete();
   void dragEnterEvent(QDragEnterEvent* event) override;
   void dropEvent(QDropEvent* event) override;
