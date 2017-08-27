@@ -227,7 +227,7 @@ void VertexShaderManager::SetConstants()
   {
     int startn = nTransformMatricesChanged[0] / 4;
     int endn = (nTransformMatricesChanged[1] + 3) / 4;
-    memcpy(constants.transformmatrices[startn], &xfmem.posMatrices[startn * 4],
+    memcpy(constants.transformmatrices[startn].data(), &xfmem.posMatrices[startn * 4],
            (endn - startn) * sizeof(float4));
     dirty = true;
     nTransformMatricesChanged[0] = nTransformMatricesChanged[1] = -1;
@@ -239,7 +239,7 @@ void VertexShaderManager::SetConstants()
     int endn = (nNormalMatricesChanged[1] + 2) / 3;
     for (int i = startn; i < endn; i++)
     {
-      memcpy(constants.normalmatrices[i], &xfmem.normalMatrices[3 * i], 12);
+      memcpy(constants.normalmatrices[i].data(), &xfmem.normalMatrices[3 * i], 12);
     }
     dirty = true;
     nNormalMatricesChanged[0] = nNormalMatricesChanged[1] = -1;
@@ -249,7 +249,7 @@ void VertexShaderManager::SetConstants()
   {
     int startn = nPostTransformMatricesChanged[0] / 4;
     int endn = (nPostTransformMatricesChanged[1] + 3) / 4;
-    memcpy(constants.posttransformmatrices[startn], &xfmem.postMatrices[startn * 4],
+    memcpy(constants.posttransformmatrices[startn].data(), &xfmem.postMatrices[startn * 4],
            (endn - startn) * sizeof(float4));
     dirty = true;
     nPostTransformMatricesChanged[0] = nPostTransformMatricesChanged[1] = -1;
@@ -327,10 +327,10 @@ void VertexShaderManager::SetConstants()
     const float* norm =
         &xfmem.normalMatrices[3 * (g_main_cp_state.matrix_index_a.PosNormalMtxIdx & 31)];
 
-    memcpy(constants.posnormalmatrix, pos, 3 * sizeof(float4));
-    memcpy(constants.posnormalmatrix[3], norm, 3 * sizeof(float));
-    memcpy(constants.posnormalmatrix[4], norm + 3, 3 * sizeof(float));
-    memcpy(constants.posnormalmatrix[5], norm + 6, 3 * sizeof(float));
+    memcpy(constants.posnormalmatrix.data(), pos, 3 * sizeof(float4));
+    memcpy(constants.posnormalmatrix[3].data(), norm, 3 * sizeof(float));
+    memcpy(constants.posnormalmatrix[4].data(), norm + 3, 3 * sizeof(float));
+    memcpy(constants.posnormalmatrix[5].data(), norm + 6, 3 * sizeof(float));
     dirty = true;
   }
 
@@ -345,7 +345,7 @@ void VertexShaderManager::SetConstants()
 
     for (size_t i = 0; i < ArraySize(pos_matrix_ptrs); ++i)
     {
-      memcpy(constants.texmatrices[3 * i], pos_matrix_ptrs[i], 3 * sizeof(float4));
+      memcpy(constants.texmatrices[3 * i].data(), pos_matrix_ptrs[i], 3 * sizeof(float4));
     }
     dirty = true;
   }
@@ -361,7 +361,7 @@ void VertexShaderManager::SetConstants()
 
     for (size_t i = 0; i < ArraySize(pos_matrix_ptrs); ++i)
     {
-      memcpy(constants.texmatrices[3 * i + 12], pos_matrix_ptrs[i], 3 * sizeof(float4));
+      memcpy(constants.texmatrices[3 * i + 12].data(), pos_matrix_ptrs[i], 3 * sizeof(float4));
     }
     dirty = true;
   }
@@ -549,7 +549,7 @@ void VertexShaderManager::SetConstants()
       Matrix44::Set(mtxB, g_fProjectionMatrix);
       Matrix44::Multiply(mtxB, viewMtx, mtxA);               // mtxA = projection x view
       Matrix44::Multiply(s_viewportCorrection, mtxA, mtxB);  // mtxB = viewportCorrection x mtxA
-      memcpy(constants.projection, mtxB.data, 4 * sizeof(float4));
+      memcpy(constants.projection.data(), mtxB.data, 4 * sizeof(float4));
     }
     else
     {
@@ -558,7 +558,7 @@ void VertexShaderManager::SetConstants()
 
       Matrix44 correctedMtx;
       Matrix44::Multiply(s_viewportCorrection, projMtx, correctedMtx);
-      memcpy(constants.projection, correctedMtx.data, 4 * sizeof(float4));
+      memcpy(constants.projection.data(), correctedMtx.data, 4 * sizeof(float4));
     }
 
     dirty = true;
