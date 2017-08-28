@@ -243,11 +243,13 @@ static wxString xfb_real_desc =
 static wxString dump_textures_desc =
     wxTRANSLATE("Dump decoded game textures to User/Dump/Textures/<game_id>/.\n\nIf unsure, leave "
                 "this unchecked.");
-static wxString load_hires_textures_desc = wxTRANSLATE(
-    "Load custom textures from User/Load/Textures/<game_id>/.\n\nIf unsure, leave this unchecked.");
-static wxString cache_hires_textures_desc =
-    wxTRANSLATE("Cache custom textures to system RAM on startup.\nThis can require exponentially "
-                "more RAM but fixes possible stuttering.\n\nIf unsure, leave this unchecked.");
+static wxString load_hires_textures_desc =
+    wxTRANSLATE("Load custom textures from User/Load/Textures/<game_id>/."
+                "\n\nIf unsure, leave this unchecked.");
+static wxString cache_hires_textures_desc = wxTRANSLATE(
+    "Prefetch custom textures to system RAM on startup.\nThis can require exponentially "
+    "more RAM for non-native texture formats such as PNG, but fixes possible stuttering."
+    "\n\nIf unsure, leave this unchecked.");
 static wxString dump_efb_desc = wxTRANSLATE(
     "Dump the contents of EFB copies to User/Dump/Textures/.\n\nIf unsure, leave this unchecked.");
 static wxString internal_resolution_frame_dumping_desc = wxTRANSLATE(

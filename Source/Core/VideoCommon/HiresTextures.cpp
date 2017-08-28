@@ -37,13 +37,30 @@ static std::unordered_map<std::string, std::string> s_textureMap;
 static std::unordered_map<std::string, std::shared_ptr<HiresTexture>> s_textureCache;
 static std::mutex s_textureCacheMutex;
 static std::mutex s_textureCacheAquireMutex;  // for high priority access
-static Common::Flag s_textureCacheAbortLoading;
+static Common::Flag s_texturePrefetcher_AbortLoading;
 static bool s_check_native_format;
 static bool s_check_new_format;
 
 static std::thread s_prefetcher;
 
 static const std::string s_format_prefix = "tex1_";
+
+static constexpr double bytes_to_mb = (1024.0 * 1024.0);
+static constexpr double ms_to_sec = 1000.0;
+static constexpr double dolphin_min_req_mem = (1024.0 * 1024.0 * 1024.0 * 2.0);
+
+// Per Extension Custom Texture Prefetch Counters - INFO_LOG only
+struct pref_ft_counters
+{
+  static u32 dds;
+  static u32 png;
+  static u32 bmp;
+  static u32 tga;  // Common for TGA and TGB variants
+  static u32 jpg;  // Common for JPG, JPEG and JFIF variants
+  static u32 hdr;
+  static u32 totalsum;  // TEMPCOMMENT: VS2017 points to "enet_uint16 total;" in compress.c -
+                        // renamed to totalsum
+};
 
 HiresTexture::Level::Level() : data(nullptr, SOIL_free_image_data)
 {
@@ -61,7 +78,7 @@ void HiresTexture::Shutdown()
 {
   if (s_prefetcher.joinable())
   {
-    s_textureCacheAbortLoading.Set();
+    s_texturePrefetcher_AbortLoading.Set();
     s_prefetcher.join();
   }
 
@@ -73,7 +90,7 @@ void HiresTexture::Update()
 {
   if (s_prefetcher.joinable())
   {
-    s_textureCacheAbortLoading.Set();
+    s_texturePrefetcher_AbortLoading.Set();
     s_prefetcher.join();
   }
 
@@ -91,31 +108,70 @@ void HiresTexture::Update()
 
   const std::string& game_id = SConfig::GetInstance().GetGameID();
   const std::string texture_directory = GetTextureDirectory(game_id);
-  std::vector<std::string> extensions{
-      ".png", ".bmp", ".tga", ".dds",
-      ".jpg"  // Why not? Could be useful for large photo-like textures
-  };
+  std::vector<std::string> extensions{".dds", ".png", ".bmp",  ".tga",  ".tgb",
+                                      ".jpg", ".jpe", ".jpeg", ".jfif", ".hdr"};
 
-  std::vector<std::string> filenames =
+  std::vector<std::string> file_paths_found =
       Common::DoFileSearch({texture_directory}, extensions, /*recursive*/ true);
 
   const std::string code = game_id + "_";
 
-  for (auto& rFilename : filenames)
-  {
-    std::string FileName;
-    SplitPath(rFilename, nullptr, &FileName, nullptr);
+  pref_ft_counters::dds = 0;
+  pref_ft_counters::png = 0;
+  pref_ft_counters::bmp = 0;
+  pref_ft_counters::tga = 0;  // Common for TGA and TGB variants
+  pref_ft_counters::jpg = 0;  // Common for JPG, JPEG and JFIF variants
+  pref_ft_counters::hdr = 0;
+  pref_ft_counters::totalsum = 0;
 
-    if (FileName.substr(0, code.length()) == code)
+  for (auto& full_filepath : file_paths_found)
+  {
+    std::string curr_file_name;
+    std::string curr_file_type;
+
+    SplitPath(full_filepath, nullptr, &curr_file_name, &curr_file_type);
+
+    if (curr_file_name.substr(0, code.length()) == code)
     {
-      s_textureMap[FileName] = rFilename;
+      s_textureMap[curr_file_name] = full_filepath;
       s_check_native_format = true;
     }
 
-    if (FileName.substr(0, s_format_prefix.length()) == s_format_prefix)
+    if (curr_file_name.substr(0, s_format_prefix.length()) == s_format_prefix)
     {
-      s_textureMap[FileName] = rFilename;
+      s_textureMap[curr_file_name] = full_filepath;
       s_check_new_format = true;
+    }
+
+    // Check FileType And Count - used by prefetcher
+    std::string ft_counter_curr_type = curr_file_type;
+    std::transform(ft_counter_curr_type.begin(), ft_counter_curr_type.end(),
+                   ft_counter_curr_type.begin(), ::tolower);
+
+    if (ft_counter_curr_type == ".dds")
+    {
+      pref_ft_counters::dds++;
+    }
+    else if (ft_counter_curr_type == ".png")
+    {
+      pref_ft_counters::png;
+    }
+    else if (ft_counter_curr_type == ".bmp")
+    {
+      pref_ft_counters::bmp++;
+    }
+    else if ((ft_counter_curr_type == ".tga") || (ft_counter_curr_type == ".tgb"))
+    {
+      pref_ft_counters::tga++;
+    }
+    else if ((ft_counter_curr_type == ".jpg") || (ft_counter_curr_type == ".jpe") ||
+             (ft_counter_curr_type == ".jpeg") || (ft_counter_curr_type == ".jfif"))
+    {
+      pref_ft_counters::jpg++;
+    }
+    else if (ft_counter_curr_type == ".hdr")
+    {
+      pref_ft_counters::hdr++;
     }
   }
 
@@ -135,25 +191,75 @@ void HiresTexture::Update()
       }
     }
 
-    s_textureCacheAbortLoading.Clear();
+    s_texturePrefetcher_AbortLoading.Clear();
     s_prefetcher = std::thread(Prefetch);
   }
 }
 
 void HiresTexture::Prefetch()
 {
+  // prefetch() is running in a tight loop, and it's using that to allow "at least" 1 Search()
+  // run per cycle
   Common::SetCurrentThreadName("Prefetcher");
 
-  size_t size_sum = 0;
-  size_t sys_mem = Common::MemPhysical();
-  size_t recommended_min_mem = 2 * size_t(1024 * 1024 * 1024);
-  // keep 2GB memory for system stability if system RAM is 4GB+ - use half of memory in other cases
-  size_t max_mem =
-      (sys_mem / 2 < recommended_min_mem) ? (sys_mem / 2) : (sys_mem - recommended_min_mem);
-  u32 starttime = Common::Timer::GetTimeMs();
-  for (const auto& entry : s_textureMap)
+  double prefetch_start_time_total = 0;
+  double prefetch_stop_time_total = 0;
+  constexpr double culled_percent_default = 30.0;
+  constexpr double culled_percent_low_bound = 5.0;
+  constexpr double culled_percent_high_bound = 90.0;
+  u32 ft_counter_total_amount = 0;
+
+  // Overridable by HiresTexOverridePrefetchCulledPercent INI setting
+  double culled_percent = culled_percent_default;
+
+  if (Config::Get(Config::GFX_HIRESTEX_OVERRIDE_PREFETCH_CULLED_PERCENT) != culled_percent_default)
   {
-    const std::string& base_filename = entry.first;
+    if (Config::Get(Config::GFX_HIRESTEX_OVERRIDE_PREFETCH_CULLED_PERCENT) <
+        culled_percent_low_bound)
+    {
+      culled_percent = culled_percent_low_bound;
+      WARN_LOG(VIDEO, "Prefetcher: Mem limit cull percentage exceeds the minimum of %.2f %%. "
+                      "Raising the percentage to the lower bound.",
+               culled_percent_low_bound);
+    }
+    else if (Config::Get(Config::GFX_HIRESTEX_OVERRIDE_PREFETCH_CULLED_PERCENT) >
+             culled_percent_high_bound)
+    {
+      culled_percent = culled_percent_high_bound;
+      WARN_LOG(VIDEO, "Prefetcher: Mem limit cull percentage exceeds the maximum of %.2f %%. "
+                      "Lowering the percentage to the upper bound.",
+               culled_percent_high_bound);
+    }
+    else if ((Config::Get(Config::GFX_HIRESTEX_OVERRIDE_PREFETCH_CULLED_PERCENT) >=
+              culled_percent_low_bound) ||
+             (Config::Get(Config::GFX_HIRESTEX_OVERRIDE_PREFETCH_CULLED_PERCENT) <=
+              culled_percent_high_bound))
+    {
+      culled_percent = Config::Get(Config::GFX_HIRESTEX_OVERRIDE_PREFETCH_CULLED_PERCENT);
+      WARN_LOG(VIDEO, "Prefetcher: Mem limit cull percentage successfully overriden by user INI, "
+                      "at %.2f %%.",
+               culled_percent);
+    }
+  }
+
+  double prefetched_size_sum = 0;  // total mem size incl. non-native decompressed textures
+  const double absolute_max_mem = Common::MemPhysical();  // excl. HW reserved mem
+  const double culled_amount = (Common::MemPhysical() * culled_percent) / 100;
+  const double delegated_max_mem = Common::MemPhysical() - culled_amount;
+
+  if (absolute_max_mem <= dolphin_min_req_mem)
+  {
+    WARN_LOG(VIDEO, "Prefetcher: Warning! System RAM of %.3f MB is below Dolphin's minimum "
+                    "recommended specifications.",
+             absolute_max_mem / bytes_to_mb);
+  }
+
+  // Start Prefetching
+  prefetch_start_time_total = Common::Timer::GetTimeMs();
+
+  for (const auto& texmap_ref : s_textureMap)
+  {
+    const std::string& base_filename = texmap_ref.first;
 
     if (base_filename.find("_mip") == std::string::npos)
     {
@@ -184,34 +290,57 @@ void HiresTexture::Prefetch()
       }
       if (iter != s_textureCache.end())
       {
-        for (const Level& l : iter->second->m_levels)
+        for (const Level& level : iter->second->m_levels)
         {
-          size_sum += l.data_size;
+          prefetched_size_sum += level.data_size;
+          // a texture without mipmaps is considered to have 1 mip level
         }
       }
     }
 
-    if (s_textureCacheAbortLoading.IsSet())
+    if (s_texturePrefetcher_AbortLoading.IsSet())
     {
       return;
     }
 
-    if (size_sum > max_mem)
+    // Stops prefetching to avoid getting out of RAM completely, crash prone
+    // Currently no way to know how much RAM is used by OS and other applications
+    if (prefetched_size_sum >= delegated_max_mem)
     {
       Config::SetCurrent(Config::GFX_HIRES_TEXTURES, false);
 
+      WARN_LOG(VIDEO, "Prefetcher: Warning, custom textures prefetching after %.3f MB aborted."
+                      " Maximum delegated memory limit of %.3f breached.",
+               prefetched_size_sum / bytes_to_mb, delegated_max_mem / bytes_to_mb);
       OSD::AddMessage(
           StringFromFormat(
               "Custom Textures prefetching after %.1f MB aborted, not enough RAM available",
-              size_sum / (1024.0 * 1024.0)),
-          10000);
+              prefetched_size_sum / (1024.0 * 1024.0)),
+          25000);
       return;
     }
-  }
-  u32 stoptime = Common::Timer::GetTimeMs();
-  OSD::AddMessage(StringFromFormat("Custom Textures loaded, %.1f MB in %.1f s",
-                                   size_sum / (1024.0 * 1024.0), (stoptime - starttime) / 1000.0),
-                  10000);
+
+  }  // End Prefetching
+  prefetch_stop_time_total = Common::Timer::GetTimeMs();
+
+  pref_ft_counters::totalsum = pref_ft_counters::dds + pref_ft_counters::png +
+                               pref_ft_counters::bmp + pref_ft_counters::tga +
+                               pref_ft_counters::jpg + pref_ft_counters::hdr;
+  const std::string ft_c_total_s = std::to_string(ft_counter_total_amount);
+  const double Pref_sum_total_MB = prefetched_size_sum / bytes_to_mb;
+  const double Pref_time_total_Sec =
+      (prefetch_stop_time_total - prefetch_start_time_total) / ms_to_sec;
+
+  OSD::AddMessage("Prefetcher: Total of " + ft_c_total_s + " custom textures loaded, " +
+                      StringFromFormat("%.1f", Pref_sum_total_MB) + " MB in " +
+                      StringFromFormat("%.1f", Pref_time_total_Sec) + " seconds.",
+                  25000);
+
+  INFO_LOG(VIDEO, "Prefetcher: Total of %u custom textures loaded, %.3f MB in %.3f Sec, "
+                  "from %u DDS, %u PNG, %u BMP, %u TGA, %u JPG, %u HDR files.",
+           pref_ft_counters::totalsum, Pref_sum_total_MB, Pref_time_total_Sec,
+           pref_ft_counters::dds, pref_ft_counters::png, pref_ft_counters::bmp,
+           pref_ft_counters::tga, pref_ft_counters::jpg, pref_ft_counters::hdr);
 }
 
 std::string HiresTexture::GenBaseName(const u8* texture, size_t texture_size, const u8* tlut,
@@ -528,6 +657,7 @@ bool HiresTexture::LoadTexture(Level& level, const std::vector<u8>& buffer)
 
   u8* data = SOIL_load_image_from_memory(buffer.data(), static_cast<int>(buffer.size()), &width,
                                          &height, &channels, SOIL_LOAD_RGBA);
+
   if (!data)
     return false;
 
