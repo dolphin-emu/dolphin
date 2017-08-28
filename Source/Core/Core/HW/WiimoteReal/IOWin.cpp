@@ -25,6 +25,7 @@
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
+#include "Common/ScopeGuard.h"
 #include "Common/Thread.h"
 #include "Core/HW/WiimoteCommon/WiimoteConstants.h"
 #include "Core/HW/WiimoteReal/IOWin.h"
@@ -365,6 +366,8 @@ static bool IsWiimote(const std::basic_string<TCHAR>& device_path, WinWriteMetho
                                  FILE_FLAG_OVERLAPPED, nullptr);
   if (dev_handle == INVALID_HANDLE_VALUE)
     return false;
+
+  Common::ScopeGuard handle_guard{[&dev_handle] { CloseHandle(dev_handle); }};
 
   u8 buf[MAX_PAYLOAD];
   u8 const req_status_report[] = {WR_SET_REPORT | BT_OUTPUT, RT_REQUEST_STATUS, 0};
