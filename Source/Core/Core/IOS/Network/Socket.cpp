@@ -407,8 +407,10 @@ void WiiSocket::Update(bool read, bool write, bool except)
 
             if (ret >= 0)
             {
-              SConfig::GetInstance().m_network_logger->LogWrite(Memory::GetPointer(BufferOut2),
-                                                                ret);
+              SConfig::GetInstance().m_network_logger->LogSSLWrite(
+                  Memory::GetPointer(BufferOut2), ret,
+                  reinterpret_cast<mbedtls_net_context*>(Device::NetSSL::_SSL[sslID].ctx.p_bio)
+                      ->fd);
               // Return bytes written or SSL_ERR_ZERO if none
               WriteReturnValue((ret == 0) ? SSL_ERR_ZERO : ret, BufferIn);
             }
@@ -440,7 +442,10 @@ void WiiSocket::Update(bool read, bool write, bool except)
 
             if (ret >= 0)
             {
-              SConfig::GetInstance().m_network_logger->LogRead(Memory::GetPointer(BufferIn2), ret);
+              SConfig::GetInstance().m_network_logger->LogSSLRead(
+                  Memory::GetPointer(BufferIn2), ret,
+                  reinterpret_cast<mbedtls_net_context*>(Device::NetSSL::_SSL[sslID].ctx.p_bio)
+                      ->fd);
               // Return bytes read or SSL_ERR_ZERO if none
               WriteReturnValue((ret == 0) ? SSL_ERR_ZERO : ret, BufferIn);
             }
@@ -502,6 +507,8 @@ void WiiSocket::Update(bool read, bool write, bool except)
                            has_destaddr ? (struct sockaddr*)&local_name : nullptr,
                            has_destaddr ? sizeof(sockaddr) : 0);
           ReturnValue = WiiSockMan::GetNetErrorCode(ret, "SO_SENDTO", true);
+          if (ret > 0)
+            SConfig::GetInstance().m_network_logger->LogWrite(data, ret, fd);
 
           INFO_LOG(IOS_NET,
                    "%s = %d Socket: %08x, BufferIn: (%08x, %i), BufferIn2: (%08x, %i), %u.%u.%u.%u",
@@ -548,6 +555,8 @@ void WiiSocket::Update(bool read, bool write, bool except)
                              BufferOutSize2 ? &addrlen : nullptr);
           ReturnValue =
               WiiSockMan::GetNetErrorCode(ret, BufferOutSize2 ? "SO_RECVFROM" : "SO_RECV", true);
+          if (ret > 0)
+            SConfig::GetInstance().m_network_logger->LogRead(data, ret, fd);
 
           INFO_LOG(IOS_NET, "%s(%d, %p) Socket: %08X, Flags: %08X, "
                             "BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
