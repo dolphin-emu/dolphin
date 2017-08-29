@@ -518,12 +518,25 @@ void Renderer::UpdateDrawRectangle()
 
 void Renderer::SetWindowSize(int width, int height)
 {
-  width = std::max(width, 1);
-  height = std::max(height, 1);
-
   // Scale the window size by the EFB scale.
   if (g_ActiveConfig.iEFBScale != EFB_SCALE_AUTO_INTEGRAL)
     std::tie(width, height) = CalculateTargetScale(width, height);
+
+  std::tie(width, height) = CalculateOutputDimensions(width, height);
+
+  // Track the last values of width/height to avoid sending a window resize event every frame.
+  if (width != m_last_window_request_width || height != m_last_window_request_height)
+  {
+    m_last_window_request_width = width;
+    m_last_window_request_height = height;
+    Host_RequestRenderWindowSize(width, height);
+  }
+}
+
+std::tuple<int, int> Renderer::CalculateOutputDimensions(int width, int height)
+{
+  width = std::max(width, 1);
+  height = std::max(height, 1);
 
   float scaled_width, scaled_height;
   std::tie(scaled_width, scaled_height) = ScaleToDisplayAspectRatio(width, height);
@@ -556,13 +569,7 @@ void Renderer::SetWindowSize(int width, int height)
   width -= width % 4;
   height -= height % 4;
 
-  // Track the last values of width/height to avoid sending a window resize event every frame.
-  if (width != m_last_window_request_width || height != m_last_window_request_height)
-  {
-    m_last_window_request_width = width;
-    m_last_window_request_height = height;
-    Host_RequestRenderWindowSize(width, height);
-  }
+  return std::make_tuple(width, height);
 }
 
 void Renderer::CheckFifoRecording()
@@ -620,9 +627,11 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
   // The FinishFrameData call here is necessary even after frame dumping is stopped.
   // If left out, screenshots are "one frame" behind, as an extra frame is dumped and buffered.
   FinishFrameData();
-  if (IsFrameDumping())
+  if (IsFrameDumping() && m_last_xfb_texture)
   {
-    auto result = m_last_xfb_texture->Map();
+    UpdateFrameDumpTexture(horizontal_scale);
+
+    auto result = m_dump_texture->Map();
     if (result.has_value())
     {
       auto raw_data = result.value();
@@ -677,6 +686,26 @@ bool Renderer::IsFrameDumping()
 
   ShutdownFrameDumping();
   return false;
+}
+
+void Renderer::UpdateFrameDumpTexture(float horizontal_scale)
+{
+  int target_width, target_height;
+  std::tie(target_width, target_height) = CalculateOutputDimensions(m_last_xfb_texture->GetConfig().width, m_last_xfb_texture->GetConfig().height);
+  if (m_dump_texture == nullptr ||
+      m_dump_texture->GetConfig().width != static_cast<u32>(target_width) ||
+      m_dump_texture->GetConfig().height != static_cast<u32>(target_height))
+  {
+    TextureConfig config;
+    config.width = target_width;
+    config.height = target_height;
+    config.rendertarget = true;
+    m_dump_texture = g_texture_cache->CreateTexture(config);
+  }
+  auto source_rect = m_last_xfb_texture->GetConfig().GetRect();
+  source_rect.right /= horizontal_scale;
+  m_dump_texture->CopyRectangleFromTexture(m_last_xfb_texture, source_rect,
+                                           EFBRectangle{0, 0, target_width, target_height});
 }
 
 void Renderer::ShutdownFrameDumping()
