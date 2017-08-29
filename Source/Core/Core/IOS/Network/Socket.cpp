@@ -462,8 +462,9 @@ void WiiSocket::Update(bool read, bool write, bool except)
 
             if (ret >= 0)
             {
-              PowerPC::debug_interface.NetworkLogger()->LogWrite(Memory::GetPointer(BufferOut2),
-                                                                 ret);
+              PowerPC::debug_interface.NetworkLogger()->LogSSLWrite(
+                  Memory::GetPointer(BufferOut2), ret,
+                  static_cast<mbedtls_net_context*>(Device::NetSSL::_SSL[sslID].ctx.p_bio)->fd);
               // Return bytes written or SSL_ERR_ZERO if none
               WriteReturnValue((ret == 0) ? SSL_ERR_ZERO : ret, BufferIn);
             }
@@ -495,7 +496,9 @@ void WiiSocket::Update(bool read, bool write, bool except)
 
             if (ret >= 0)
             {
-              PowerPC::debug_interface.NetworkLogger()->LogRead(Memory::GetPointer(BufferIn2), ret);
+              PowerPC::debug_interface.NetworkLogger()->LogSSLRead(
+                  Memory::GetPointer(BufferIn2), ret,
+                  static_cast<mbedtls_net_context*>(Device::NetSSL::_SSL[sslID].ctx.p_bio)->fd);
               // Return bytes read or SSL_ERR_ZERO if none
               WriteReturnValue((ret == 0) ? SSL_ERR_ZERO : ret, BufferIn);
             }
@@ -553,10 +556,12 @@ void WiiSocket::Update(bool read, bool write, bool except)
             WiiSockMan::Convert(*wii_name, local_name);
           }
 
-          const int ret = sendto(fd, data, BufferInSize, flags,
-                                 has_destaddr ? (struct sockaddr*)&local_name : nullptr,
-                                 has_destaddr ? sizeof(sockaddr) : 0);
+          auto* to = has_destaddr ? reinterpret_cast<sockaddr*>(&local_name) : nullptr;
+          socklen_t tolen = has_destaddr ? sizeof(sockaddr) : 0;
+          const int ret = sendto(fd, data, BufferInSize, flags, to, tolen);
           ReturnValue = WiiSockMan::GetNetErrorCode(ret, "SO_SENDTO", true);
+          if (ret > 0)
+            PowerPC::debug_interface.NetworkLogger()->LogWrite(data, ret, fd, to);
 
           INFO_LOG_FMT(IOS_NET,
                        "{} = {} Socket: {:08x}, BufferIn: ({:08x}, {}), BufferIn2: ({:08x}, {}), "
@@ -599,11 +604,13 @@ void WiiSocket::Update(bool read, bool write, bool except)
           }
 #endif
           socklen_t addrlen = sizeof(sockaddr_in);
-          const int ret = recvfrom(fd, data, data_len, flags,
-                                   BufferOutSize2 ? (struct sockaddr*)&local_name : nullptr,
-                                   BufferOutSize2 ? &addrlen : nullptr);
+          auto* from = BufferOutSize2 ? reinterpret_cast<sockaddr*>(&local_name) : nullptr;
+          socklen_t* fromlen = BufferOutSize2 ? &addrlen : nullptr;
+          const int ret = recvfrom(fd, data, data_len, flags, from, fromlen);
           ReturnValue =
               WiiSockMan::GetNetErrorCode(ret, BufferOutSize2 ? "SO_RECVFROM" : "SO_RECV", true);
+          if (ret > 0)
+            PowerPC::debug_interface.NetworkLogger()->LogRead(data, ret, fd, from);
 
           INFO_LOG_FMT(IOS_NET,
                        "{}({}, {}) Socket: {:08X}, Flags: {:08X}, "

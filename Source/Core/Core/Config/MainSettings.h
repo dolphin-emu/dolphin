@@ -129,6 +129,7 @@ extern const Info<bool> MAIN_NETWORK_SSL_DUMP_WRITE;
 extern const Info<bool> MAIN_NETWORK_SSL_VERIFY_CERTIFICATES;
 extern const Info<bool> MAIN_NETWORK_SSL_DUMP_ROOT_CA;
 extern const Info<bool> MAIN_NETWORK_SSL_DUMP_PEER_CERT;
+extern const Info<bool> MAIN_NETWORK_DUMP_AS_PCAP;
 
 // Main.Interface
 
