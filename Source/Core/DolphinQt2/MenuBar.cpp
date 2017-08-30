@@ -116,6 +116,8 @@ void MenuBar::AddToolsMenu()
       AddAction(gc_ipl, tr("PAL"), this, [this] { emit BootGameCubeIPL(DiscIO::Region::PAL); });
 
   AddAction(tools_menu, tr("Start &NetPlay..."), this, &MenuBar::StartNetPlay);
+  AddAction(tools_menu, tr("FIFO Player"), this, &MenuBar::ShowFIFOPlayer);
+
   tools_menu->addSeparator();
 
   // Label will be set by a NANDRefresh later

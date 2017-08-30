@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <functional>
 #include <memory>
 #include <string>
 #include <vector>
@@ -56,7 +57,7 @@ extern bool IsPlayingBackFifologWithBrokenEFBCopies;
 class FifoPlayer
 {
 public:
-  typedef void (*CallbackFunc)(void);
+  using CallbackFunc = std::function<void()>;
 
   ~FifoPlayer();
 
