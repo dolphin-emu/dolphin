@@ -145,7 +145,7 @@ void GeneralPane::LoadConfig()
   m_checkbox_enable_analytics->setChecked(SConfig::GetInstance().m_analytics_enabled);
 #endif
   m_checkbox_dualcore->setChecked(SConfig::GetInstance().bCPUThread);
-  m_checkbox_cheats->setChecked(SConfig::GetInstance().bEnableCheats);
+  m_checkbox_cheats->setChecked(Settings::Instance().GetCheatsEnabled());
   int selection = qRound(SConfig::GetInstance().m_EmulationSpeed * 10);
   if (selection < m_combobox_speedlimit->count())
     m_combobox_speedlimit->setCurrentIndex(selection);
@@ -177,7 +177,7 @@ void GeneralPane::OnSaveConfig()
   SConfig::GetInstance().m_analytics_enabled = m_checkbox_enable_analytics->isChecked();
 #endif
   SConfig::GetInstance().bCPUThread = m_checkbox_dualcore->isChecked();
-  SConfig::GetInstance().bEnableCheats = m_checkbox_cheats->isChecked();
+  Settings::Instance().SetCheatsEnabled(m_checkbox_cheats->isChecked());
   SConfig::GetInstance().m_EmulationSpeed = m_combobox_speedlimit->currentIndex() * 0.1f;
   int engine_value = 0;
   if (m_radio_interpreter->isChecked())

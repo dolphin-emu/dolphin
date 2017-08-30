@@ -6,35 +6,34 @@
 
 #include <QHBoxLayout>
 #include <QLabel>
-#include <QMessageBox>
 #include <QPixmap>
 #include <QPushButton>
 #include <QStyle>
-#include <QTimer>
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "DolphinQt2/Settings.h"
 
 CheatWarningWidget::CheatWarningWidget(const std::string& game_id) : m_game_id(game_id)
 {
   CreateWidgets();
   ConnectWidgets();
 
-  setHidden(true);
+  connect(&Settings::Instance(), &Settings::EnableCheatsChanged,
+          [this] { Update(Core::IsRunning()); });
+  connect(this, &CheatWarningWidget::EmulationStarted, [this] { Update(true); });
+  connect(this, &CheatWarningWidget::EmulationStopped, [this] { Update(false); });
 
-  connect(this, &CheatWarningWidget::CheatEnableToggled, this,
-          &CheatWarningWidget::CheatEnableToggled);
-  connect(this, &CheatWarningWidget::EmulationStarted, this,
-          &CheatWarningWidget::CheatEnableToggled);
-  connect(this, &CheatWarningWidget::EmulationStopped, this,
-          &CheatWarningWidget::CheatEnableToggled);
+  Update(Core::IsRunning());
 }
 
 void CheatWarningWidget::CreateWidgets()
 {
   auto* icon = new QLabel;
 
-  QPixmap warning_icon = style()->standardIcon(QStyle::SP_MessageBoxWarning).pixmap(24, 24);
+  const auto size = 1.5 * QFontMetrics(font()).height();
+
+  QPixmap warning_icon = style()->standardIcon(QStyle::SP_MessageBoxWarning).pixmap(size, size);
 
   icon->setPixmap(warning_icon);
 
@@ -46,34 +45,38 @@ void CheatWarningWidget::CreateWidgets()
   auto* layout = new QHBoxLayout;
 
   layout->addWidget(icon);
-  layout->addWidget(m_text);
+  layout->addWidget(m_text, 1);
   layout->addWidget(m_config_button);
+
+  layout->setContentsMargins(0, 0, 0, 0);
 
   setLayout(layout);
 }
 
-void CheatWarningWidget::Update()
+void CheatWarningWidget::Update(bool running)
 {
-  bool cheats_enabled = SConfig::GetInstance().bEnableCheats;
+  bool hide_widget = true;
+  bool hide_config_button = true;
 
-  bool hide = true;
-
-  if (Core::IsRunning() && SConfig::GetInstance().GetGameID() == m_game_id)
+  if (running && SConfig::GetInstance().GetGameID() == m_game_id)
   {
-    hide = false;
+    hide_widget = false;
     m_text->setText(tr("Changing cheats will only take effect when the game is restarted."));
   }
 
-  if (!cheats_enabled)
+  if (!Settings::Instance().GetCheatsEnabled())
   {
-    hide = false;
+    hide_widget = false;
+    hide_config_button = false;
     m_text->setText(tr("Dolphin's cheat system is currently disabled."));
   }
 
-  m_config_button->setHidden(hide);
+  setHidden(hide_widget);
+  m_config_button->setHidden(hide_config_button);
 }
 
 void CheatWarningWidget::ConnectWidgets()
 {
-  connect(m_config_button, &QPushButton::pressed, [this] { emit OpenCheatEnableSettings(); });
+  connect(m_config_button, &QPushButton::pressed, this,
+          &CheatWarningWidget::OpenCheatEnableSettings);
 }

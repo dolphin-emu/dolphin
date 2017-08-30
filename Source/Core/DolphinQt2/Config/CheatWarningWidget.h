@@ -10,7 +10,6 @@
 
 class QLabel;
 class QPushButton;
-class QTimer;
 
 class CheatWarningWidget : public QWidget
 {
@@ -20,18 +19,16 @@ public:
 
 signals:
   void OpenCheatEnableSettings();
-  void CheatEnableToggled();
   void EmulationStarted();
   void EmulationStopped();
 
 private:
-  const std::string& m_game_id;
-
   void CreateWidgets();
   void ConnectWidgets();
 
-  void Update();
+  void Update(bool running);
 
   QLabel* m_text;
   QPushButton* m_config_button;
+  const std::string m_game_id;
 };

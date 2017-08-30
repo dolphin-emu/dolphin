@@ -203,3 +203,17 @@ void Settings::ResetNetPlayServer(NetPlayServer* server)
 {
   m_server.reset(server);
 }
+
+bool Settings::GetCheatsEnabled() const
+{
+  return SConfig::GetInstance().bEnableCheats;
+}
+
+void Settings::SetCheatsEnabled(bool enabled)
+{
+  if (SConfig::GetInstance().bEnableCheats != enabled)
+  {
+    SConfig::GetInstance().bEnableCheats = enabled;
+    emit EnableCheatsChanged(enabled);
+  }
+}
