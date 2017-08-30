@@ -16,6 +16,7 @@
 # Puniasterus <puniasterus@gmail.com>, 2013
 # Sithdown <afdezmnez@gmail.com>, 2013
 # Swyter <Swyterzone@gmail.com>, 2014-2017
+# Lekam <@Lekam_yt>, 2017
 msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
@@ -85,7 +86,7 @@ msgstr "¡«%s» ya está comprimido! No puede comprimirse más."
 #: Source/Core/Core/Boot/Boot.cpp:95
 #, c-format
 msgid "\"%s\" is an invalid GCM/ISO file, or is not a GC/Wii ISO."
-msgstr "«%s» no es un archivo GCM/ISO válido, o no es una ISO GC/Wii."
+msgstr "«%s» no es un archivo GCM/ISO válido, o no es una ISO de GC/Wii."
 
 #: Source/Core/DolphinQt2/Settings/AudioPane.cpp:244
 msgid "%1 %"
@@ -183,7 +184,7 @@ msgstr ""
 "%s\n"
 "no se cargó porque hay menos del 10%% de bloques libres en la tarjeta de "
 "memoria.\n"
-"Bloques totales: %d; Bloques libres: %d"
+"Bloques totales: %d; Bloques disponibles: %d"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:595
 #, c-format
@@ -263,7 +264,7 @@ msgstr "%sImportar GCI%s"
 #: Source/Core/DolphinWX/MemcardManager.cpp:780
 #, c-format
 msgid "%u Free Blocks; %u Free Dir Entries"
-msgstr "%u Bloques libres; %u entradas de dir. libres"
+msgstr "%u Bloques disponibles; %u entradas de dir. disponibles"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:880
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:946
@@ -315,11 +316,11 @@ msgstr "Ajustes de &audio"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:190
 msgid "&Automatic Start"
-msgstr "Comienzo &automático"
+msgstr "Inicio &automático"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:82
 msgid "&Boot from DVD Backup"
-msgstr "&Iniciar desde copia de seguridad en DVD"
+msgstr "&Iniciar desde una copia de seguridad en DVD"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:335
 msgid "&Breakpoints"
