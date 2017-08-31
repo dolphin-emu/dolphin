@@ -32,6 +32,7 @@ extern const ConfigInfo<bool> GFX_OVERLAY_STATS;
 extern const ConfigInfo<bool> GFX_OVERLAY_PROJ_STATS;
 extern const ConfigInfo<bool> GFX_DUMP_TEXTURES;
 extern const ConfigInfo<bool> GFX_HIRES_TEXTURES;
+extern const ConfigInfo<double> GFX_HIRESTEX_PREFETCH_CULLED_PERCENT;
 extern const ConfigInfo<bool> GFX_CONVERT_HIRES_TEXTURES;
 extern const ConfigInfo<bool> GFX_CACHE_HIRES_TEXTURES;
 extern const ConfigInfo<bool> GFX_DUMP_EFB_TARGET;
