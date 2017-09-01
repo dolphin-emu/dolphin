@@ -12,6 +12,9 @@
 #include <QIcon>
 #include <QMessageBox>
 #include <QMimeData>
+#include <QProgressDialog>
+
+#include <future>
 
 #include "Common/Common.h"
 
@@ -33,6 +36,8 @@
 #include "Core/NetPlayServer.h"
 #include "Core/State.h"
 
+#include "DiscIO/NANDImporter.h"
+
 #include "DolphinQt2/AboutDialog.h"
 #include "DolphinQt2/Config/ControllersWindow.h"
 #include "DolphinQt2/Config/Graphics/GraphicsWindow.h"
@@ -44,6 +49,7 @@
 #include "DolphinQt2/MainWindow.h"
 #include "DolphinQt2/NetPlay/NetPlayDialog.h"
 #include "DolphinQt2/NetPlay/NetPlaySetupDialog.h"
+#include "DolphinQt2/QtUtils/QueueOnObject.h"
 #include "DolphinQt2/QtUtils/WindowActivationEventFilter.h"
 #include "DolphinQt2/Resources.h"
 #include "DolphinQt2/Settings.h"
@@ -199,6 +205,8 @@ void MainWindow::ConnectMenuBar()
   connect(m_menu_bar, &MenuBar::ConfigureHotkeys, this, &MainWindow::ShowHotkeyDialog);
 
   // Tools
+  connect(m_menu_bar, &MenuBar::BootGameCubeIPL, this, &MainWindow::OnBootGameCubeIPL);
+  connect(m_menu_bar, &MenuBar::ImportNANDBackup, this, &MainWindow::OnImportNANDBackup);
   connect(m_menu_bar, &MenuBar::PerformOnlineUpdate, this, &MainWindow::PerformOnlineUpdate);
   connect(m_menu_bar, &MenuBar::BootWiiSystemMenu, this, &MainWindow::BootWiiSystemMenu);
   connect(m_menu_bar, &MenuBar::StartNetPlay, this, &MainWindow::ShowNetPlaySetupDialog);
@@ -345,10 +353,10 @@ void MainWindow::OnStopComplete()
     QGuiApplication::instance()->quit();
 
   // If the current emulation prevented the booting of another, do that now
-  if (!m_pending_boot.isEmpty())
+  if (m_pending_boot != nullptr)
   {
-    StartGame(m_pending_boot);
-    m_pending_boot.clear();
+    StartGame(std::move(m_pending_boot));
+    m_pending_boot.reset();
   }
 }
 
@@ -447,6 +455,11 @@ void MainWindow::ScreenShot()
 
 void MainWindow::StartGame(const QString& path)
 {
+  StartGame(BootParameters::GenerateFromFile(path.toStdString()));
+}
+
+void MainWindow::StartGame(std::unique_ptr<BootParameters>&& parameters)
+{
   // If we're running, only start a new game once we've stopped the last.
   if (Core::GetState() != Core::State::Uninitialized)
   {
@@ -454,11 +467,11 @@ void MainWindow::StartGame(const QString& path)
       return;
 
     // As long as the shutdown isn't complete, we can't boot, so let's boot later
-    m_pending_boot = path;
+    m_pending_boot = std::move(parameters);
     return;
   }
   // Boot up, show an error if it fails to load the game.
-  if (!BootManager::BootCore(BootParameters::GenerateFromFile(path.toStdString())))
+  if (!BootManager::BootCore(std::move(parameters)))
   {
     QMessageBox::critical(this, tr("Error"), tr("Failed to init core"), QMessageBox::Ok);
     return;
@@ -637,7 +650,8 @@ void MainWindow::NetPlayInit()
   m_netplay_setup_dialog = new NetPlaySetupDialog(this);
   m_netplay_dialog = new NetPlayDialog(this);
 
-  connect(m_netplay_dialog, &NetPlayDialog::Boot, this, &MainWindow::StartGame);
+  connect(m_netplay_dialog, &NetPlayDialog::Boot, this,
+          static_cast<void (MainWindow::*)(const QString&)>(&MainWindow::StartGame));
   connect(m_netplay_dialog, &NetPlayDialog::Stop, this, &MainWindow::RequestStop);
   connect(m_netplay_dialog, &NetPlayDialog::rejected, this, &MainWindow::NetPlayQuit);
   connect(this, &MainWindow::EmulationStopped, m_netplay_dialog, &NetPlayDialog::EmulationStopped);
@@ -818,4 +832,53 @@ void MainWindow::dropEvent(QDropEvent* event)
 QSize MainWindow::sizeHint() const
 {
   return QSize(800, 600);
+}
+
+void MainWindow::OnBootGameCubeIPL(DiscIO::Region region)
+{
+  StartGame(std::make_unique<BootParameters>(BootParameters::IPL{region}));
+}
+
+void MainWindow::OnImportNANDBackup()
+{
+  auto response = QMessageBox::question(
+      this, tr("Question"),
+      tr("Merging a new NAND over your currently selected NAND will overwrite any channels "
+         "and savegames that already exist. This process is not reversible, so it is "
+         "recommended that you keep backups of both NANDs. Are you sure you want to "
+         "continue?"));
+
+  if (response == QMessageBox::No)
+    return;
+
+  QString file = QFileDialog::getOpenFileName(this, tr("Select the save file"), QDir::currentPath(),
+                                              tr("BootMii NAND backup file (*.bin);;"
+                                                 "All Files (*)"));
+
+  if (file.isEmpty())
+    return;
+
+  QProgressDialog* dialog = new QProgressDialog(this);
+  dialog->setMinimum(0);
+  dialog->setMaximum(0);
+  dialog->setLabelText(tr("Importing NAND backup"));
+  dialog->setCancelButton(nullptr);
+
+  auto beginning = QDateTime::currentDateTime().toSecsSinceEpoch();
+
+  auto result = std::async(std::launch::async, [&] {
+    DiscIO::NANDImporter().ImportNANDBin(file.toStdString(), [&dialog, beginning] {
+      QueueOnObject(dialog, [&dialog, beginning] {
+        dialog->setLabelText(tr("Importing NAND backup\n Time elapsed: %1s")
+                                 .arg(QDateTime::currentDateTime().toSecsSinceEpoch() - beginning));
+      });
+    });
+    QueueOnObject(dialog, [dialog] { dialog->close(); });
+  });
+
+  dialog->exec();
+
+  result.wait();
+
+  m_menu_bar->UpdateToolsMenu(Core::IsRunning());
 }

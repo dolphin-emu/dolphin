@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "DolphinQt2/MenuBar.h"
+
 #include <QAction>
 #include <QDesktopServices>
 #include <QFileDialog>
@@ -9,14 +11,17 @@
 #include <QMessageBox>
 #include <QUrl>
 
+#include "Common/CommonPaths.h"
+#include "Common/FileUtil.h"
 #include "Core/CommonTitles.h"
 #include "Core/ConfigManager.h"
+#include "Core/HW/WiiSaveCrypted.h"
 #include "Core/IOS/ES/ES.h"
 #include "Core/IOS/IOS.h"
 #include "Core/State.h"
+#include "DiscIO/NANDImporter.h"
 #include "DolphinQt2/AboutDialog.h"
 #include "DolphinQt2/GameList/GameFile.h"
-#include "DolphinQt2/MenuBar.h"
 #include "DolphinQt2/Settings.h"
 
 MenuBar::MenuBar(QWidget* parent) : QMenuBar(parent)
@@ -86,13 +91,35 @@ void MenuBar::AddFileMenu()
 void MenuBar::AddToolsMenu()
 {
   QMenu* tools_menu = addMenu(tr("&Tools"));
+
+  tools_menu->addAction(tr("Import Wii Save..."), this, &MenuBar::ImportWiiSave);
+  tools_menu->addAction(tr("Export All Wii Saves"), this, &MenuBar::ExportWiiSaves);
+
+  tools_menu->addSeparator();
+
   m_wad_install_action = tools_menu->addAction(tr("Install WAD..."), this, &MenuBar::InstallWAD);
+
+  tools_menu->addSeparator();
+  QMenu* gc_ipl = tools_menu->addMenu(tr("Load GameCube Main Menu"));
+
+  m_ntscj_ipl = gc_ipl->addAction(tr("NTSC-J"), this,
+                                  [this] { emit BootGameCubeIPL(DiscIO::Region::NTSC_J); });
+  m_ntscu_ipl = gc_ipl->addAction(tr("NTSC-U"), this,
+                                  [this] { emit BootGameCubeIPL(DiscIO::Region::NTSC_U); });
+  m_pal_ipl =
+      gc_ipl->addAction(tr("PAL"), this, [this] { emit BootGameCubeIPL(DiscIO::Region::PAL); });
 
   tools_menu->addAction(tr("Start &NetPlay..."), this, &MenuBar::StartNetPlay);
   tools_menu->addSeparator();
 
   // Label will be set by a NANDRefresh later
   m_boot_sysmenu = tools_menu->addAction(QStringLiteral(""), [this] { emit BootWiiSystemMenu(); });
+  m_import_backup = tools_menu->addAction(tr("Import BootMii NAND Backup..."),
+                                          [this] { emit ImportNANDBackup(); });
+
+  m_extract_certificates = tools_menu->addAction(tr("Extract Certificates from NAND"), this,
+                                                 &MenuBar::NANDExtractCertificates);
+
   m_boot_sysmenu->setEnabled(false);
 
   connect(&Settings::Instance(), &Settings::NANDRefresh, [this] { UpdateToolsMenu(false); });
@@ -368,6 +395,13 @@ void MenuBar::UpdateToolsMenu(bool emulation_started)
 {
   m_boot_sysmenu->setEnabled(!emulation_started);
   m_perform_online_update_menu->setEnabled(!emulation_started);
+  m_ntscj_ipl->setEnabled(!emulation_started &&
+                          File::Exists(SConfig::GetInstance().GetBootROMPath(JAP_DIR)));
+  m_ntscu_ipl->setEnabled(!emulation_started &&
+                          File::Exists(SConfig::GetInstance().GetBootROMPath(USA_DIR)));
+  m_pal_ipl->setEnabled(!emulation_started &&
+                        File::Exists(SConfig::GetInstance().GetBootROMPath(EUR_DIR)));
+  m_import_backup->setEnabled(!emulation_started);
 
   if (!emulation_started)
   {
@@ -410,4 +444,32 @@ void MenuBar::InstallWAD()
   }
 
   result_dialog.exec();
+}
+
+void MenuBar::ImportWiiSave()
+{
+  QString file = QFileDialog::getOpenFileName(this, tr("Select the save file"), QDir::currentPath(),
+                                              tr("Wii save files (*.bin);;"
+                                                 "All Files (*)"));
+
+  if (!file.isEmpty())
+    CWiiSaveCrypted::ImportWiiSave(file.toStdString());
+}
+
+void MenuBar::ExportWiiSaves()
+{
+  CWiiSaveCrypted::ExportAllSaves();
+}
+
+void MenuBar::NANDExtractCertificates()
+{
+  if (DiscIO::NANDImporter().ExtractCertificates(File::GetUserPath(D_WIIROOT_IDX)))
+  {
+    QMessageBox::information(this, tr("Success"),
+                             tr("Successfully extracted certificates from NAND"));
+  }
+  else
+  {
+    QMessageBox::critical(this, tr("Error"), tr("Failed to extract certificates from NAND"));
+  }
 }

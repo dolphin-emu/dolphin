@@ -9,11 +9,14 @@
 #include <QString>
 #include <QToolBar>
 
+#include <memory>
+
 #include "DolphinQt2/GameList/GameList.h"
 #include "DolphinQt2/MenuBar.h"
 #include "DolphinQt2/RenderWidget.h"
 #include "DolphinQt2/ToolBar.h"
 
+struct BootParameters;
 class HotkeyScheduler;
 class LoggerWidget;
 class MappingWindow;
@@ -83,6 +86,7 @@ private:
   void InitCoreCallbacks();
 
   void StartGame(const QString& path);
+  void StartGame(std::unique_ptr<BootParameters>&& parameters);
   void ShowRenderWidget();
   void HideRenderWidget();
 
@@ -99,6 +103,8 @@ private:
   bool NetPlayHost(const QString& game_id);
   void NetPlayQuit();
 
+  void OnBootGameCubeIPL(DiscIO::Region region);
+  void OnImportNANDBackup();
   void OnStopComplete();
   void dragEnterEvent(QDragEnterEvent* event) override;
   void dropEvent(QDropEvent* event) override;
@@ -113,7 +119,7 @@ private:
   bool m_stop_requested = false;
   bool m_exit_requested = false;
   int m_state_slot = 1;
-  QString m_pending_boot;
+  std::unique_ptr<BootParameters> m_pending_boot;
 
   HotkeyScheduler* m_hotkey_scheduler;
   ControllersWindow* m_controllers_window;
