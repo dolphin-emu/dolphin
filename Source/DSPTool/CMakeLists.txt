@@ -1,4 +1,4 @@
-add_executable(dsptool DSPTool.cpp)
+add_executable(dsptool DSPTool.cpp ../StubHost.cpp)
 target_link_libraries(dsptool core)
 if(NOT APPLE)
   install(TARGETS dsptool RUNTIME DESTINATION ${bindir})

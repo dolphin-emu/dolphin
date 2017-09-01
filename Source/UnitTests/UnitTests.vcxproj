@@ -58,6 +58,7 @@
     <ClCompile Include="*.cpp" />
     <ClCompile Include="*\*.cpp" />
     <ClCompile Include="*\*\*.cpp" />
+    <ClCompile Include="..\StubHost.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />
