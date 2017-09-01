@@ -9,6 +9,4 @@ add_subdirectory(UICommon)
 add_subdirectory(VideoCommon)
 add_subdirectory(VideoBackends)
 
-if(ENABLE_QT2)
-  add_subdirectory(DolphinQt2)
-endif()
+add_subdirectory(DolphinQt2)
