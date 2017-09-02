@@ -67,7 +67,7 @@ private:
   class VertexShaderCompilerWorkItem : public VideoCommon::AsyncShaderCompiler::WorkItem
   {
   public:
-    VertexShaderCompilerWorkItem(const VertexShaderUid& uid);
+    explicit VertexShaderCompilerWorkItem(const VertexShaderUid& uid);
     ~VertexShaderCompilerWorkItem() override;
 
     bool Compile() override;
@@ -82,7 +82,7 @@ private:
   class UberVertexShaderCompilerWorkItem : public VideoCommon::AsyncShaderCompiler::WorkItem
   {
   public:
-    UberVertexShaderCompilerWorkItem(const UberShader::VertexShaderUid& uid);
+    explicit UberVertexShaderCompilerWorkItem(const UberShader::VertexShaderUid& uid);
     ~UberVertexShaderCompilerWorkItem() override;
 
     bool Compile() override;

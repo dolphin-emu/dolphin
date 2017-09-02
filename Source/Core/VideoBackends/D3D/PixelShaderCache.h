@@ -56,7 +56,7 @@ private:
   class PixelShaderCompilerWorkItem : public VideoCommon::AsyncShaderCompiler::WorkItem
   {
   public:
-    PixelShaderCompilerWorkItem(const PixelShaderUid& uid);
+    explicit PixelShaderCompilerWorkItem(const PixelShaderUid& uid);
     ~PixelShaderCompilerWorkItem() override;
 
     bool Compile() override;
@@ -71,7 +71,7 @@ private:
   class UberPixelShaderCompilerWorkItem : public VideoCommon::AsyncShaderCompiler::WorkItem
   {
   public:
-    UberPixelShaderCompilerWorkItem(const UberShader::PixelShaderUid& uid);
+    explicit UberPixelShaderCompilerWorkItem(const UberShader::PixelShaderUid& uid);
     ~UberPixelShaderCompilerWorkItem() override;
 
     bool Compile() override;
