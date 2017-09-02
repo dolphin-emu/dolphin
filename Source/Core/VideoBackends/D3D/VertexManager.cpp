@@ -46,7 +46,7 @@ void VertexManager::CreateDeviceObjects()
     m_buffers[i] = nullptr;
     CHECK(SUCCEEDED(D3D::device->CreateBuffer(&bufdesc, nullptr, &m_buffers[i])),
           "Failed to create buffer.");
-    D3D::SetDebugObjectName((ID3D11DeviceChild*)m_buffers[i], "Buffer of VertexManager");
+    D3D::SetDebugObjectName(m_buffers[i], "Buffer of VertexManager");
   }
 
   m_currentBuffer = 0;
