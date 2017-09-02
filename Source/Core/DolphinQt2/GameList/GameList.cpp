@@ -27,6 +27,7 @@
 #include "DolphinQt2/GameList/GameList.h"
 #include "DolphinQt2/GameList/GridProxyModel.h"
 #include "DolphinQt2/GameList/ListProxyModel.h"
+#include "DolphinQt2/QtUtils/ActionHelper.h"
 #include "DolphinQt2/QtUtils/DoubleClickEventFilter.h"
 #include "DolphinQt2/Settings.h"
 #include "DolphinQt2/WiiUpdate.h"
@@ -155,26 +156,26 @@ void GameList::ShowContextMenu(const QPoint&)
 
   QMenu* menu = new QMenu(this);
   DiscIO::Platform platform = game->GetPlatformID();
-  menu->addAction(tr("&Properties"), this, &GameList::OpenProperties);
-  menu->addAction(tr("&Wiki"), this, &GameList::OpenWiki);
+  AddAction(menu, tr("&Properties"), this, &GameList::OpenProperties);
+  AddAction(menu, tr("&Wiki"), this, &GameList::OpenWiki);
   menu->addSeparator();
 
   if (platform == DiscIO::Platform::GAMECUBE_DISC || platform == DiscIO::Platform::WII_DISC)
   {
-    menu->addAction(tr("Set as &default ISO"), this, &GameList::SetDefaultISO);
+    AddAction(menu, tr("Set as &default ISO"), this, &GameList::SetDefaultISO);
     const auto blob_type = game->GetBlobType();
 
     if (blob_type == DiscIO::BlobType::GCZ)
-      menu->addAction(tr("Decompress ISO..."), this, &GameList::CompressISO);
+      AddAction(menu, tr("Decompress ISO..."), this, &GameList::CompressISO);
     else if (blob_type == DiscIO::BlobType::PLAIN)
-      menu->addAction(tr("Compress ISO..."), this, &GameList::CompressISO);
+      AddAction(menu, tr("Compress ISO..."), this, &GameList::CompressISO);
 
     menu->addSeparator();
   }
 
   if (platform == DiscIO::Platform::WII_DISC)
   {
-    menu->addAction(tr("Perform System Update"), [this] {
+    AddAction(menu, tr("Perform System Update"), this, [this] {
       WiiUpdate::PerformDiscUpdate(GetSelectedGame()->GetFilePath().toStdString(), this);
     });
     menu->setEnabled(!Core::IsRunning() || !SConfig::GetInstance().bWii);
@@ -206,13 +207,13 @@ void GameList::ShowContextMenu(const QPoint&)
 
   if (platform == DiscIO::Platform::WII_WAD || platform == DiscIO::Platform::WII_DISC)
   {
-    menu->addAction(tr("Open Wii &save folder"), this, &GameList::OpenSaveFolder);
-    menu->addAction(tr("Export Wii save (Experimental)"), this, &GameList::ExportWiiSave);
+    AddAction(menu, tr("Open Wii &save folder"), this, &GameList::OpenSaveFolder);
+    AddAction(menu, tr("Export Wii save (Experimental)"), this, &GameList::ExportWiiSave);
     menu->addSeparator();
   }
 
-  menu->addAction(tr("Open &containing folder"), this, &GameList::OpenContainingFolder);
-  menu->addAction(tr("Delete File..."), this, &GameList::DeleteFile);
+  AddAction(menu, tr("Open &containing folder"), this, &GameList::OpenContainingFolder);
+  AddAction(menu, tr("Delete File..."), this, &GameList::DeleteFile);
 
   QAction* netplay_host = new QAction(tr("Host with NetPlay"), menu);
 
