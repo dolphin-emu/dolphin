@@ -11,6 +11,7 @@
 #include <memory>
 #include <mutex>
 #include <thread>
+#include <utility>
 #include <vector>
 
 #include "Common/CommonTypes.h"
@@ -36,9 +37,9 @@ public:
   virtual ~AsyncShaderCompiler();
 
   template <typename T, typename... Params>
-  static WorkItemPtr CreateWorkItem(Params... params)
+  static WorkItemPtr CreateWorkItem(Params&&... params)
   {
-    return std::unique_ptr<WorkItem>(new T(params...));
+    return std::unique_ptr<WorkItem>(new T(std::forward<Params>(params)...));
   }
 
   void QueueWorkItem(WorkItemPtr item);
