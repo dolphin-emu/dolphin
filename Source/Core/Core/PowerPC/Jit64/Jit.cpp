@@ -375,10 +375,10 @@ bool Jit64::Cleanup()
   {
     ABI_PushRegistersAndAdjustStack({}, 0);
     // get end tic
-    MOV(64, R(ABI_PARAM1), Imm64(reinterpret_cast<u64>(&js.curBlock->profile_data.ticStop)));
+    MOV(64, R(ABI_PARAM1), ImmPtr(&js.curBlock->profile_data.ticStop));
     ABI_CallFunction(QueryPerformanceCounter);
     // tic counter += (end tic - start tic)
-    MOV(64, R(RSCRATCH2), Imm64(reinterpret_cast<u64>(&js.curBlock->profile_data)));
+    MOV(64, R(RSCRATCH2), ImmPtr(&js.curBlock->profile_data));
     MOV(64, R(RSCRATCH), MDisp(RSCRATCH2, offsetof(JitBlock::ProfileData, ticStop)));
     SUB(64, R(RSCRATCH), MDisp(RSCRATCH2, offsetof(JitBlock::ProfileData, ticStart)));
     ADD(64, R(RSCRATCH), MDisp(RSCRATCH2, offsetof(JitBlock::ProfileData, ticCounter)));
@@ -668,7 +668,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
   if (Profiler::g_ProfileBlocks)
   {
     // get start tic
-    MOV(64, R(ABI_PARAM1), Imm64(reinterpret_cast<u64>(&b->profile_data.ticStart)));
+    MOV(64, R(ABI_PARAM1), ImmPtr(&b->profile_data.ticStart));
     int offset = static_cast<int>(offsetof(JitBlock::ProfileData, runCount)) -
                  static_cast<int>(offsetof(JitBlock::ProfileData, ticStart));
     ADD(64, MDisp(ABI_PARAM1, offset), Imm8(1));
