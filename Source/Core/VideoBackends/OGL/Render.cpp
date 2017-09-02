@@ -326,6 +326,29 @@ static void InitDriverInfo()
     version = 100 * major + minor;
   }
   break;
+  case DriverDetails::VENDOR_IMGTEC:
+  {
+    // Example version string:
+    // "OpenGL ES 3.2 build 1.9@4850625"
+    // Ends up as "109.4850625" - "1.9" being the branch, "4850625" being the build's change ID
+    // The change ID only makes sense to compare within a branch
+    driver = DriverDetails::DRIVER_IMGTEC;
+    double gl_version;
+    int major, minor, change;
+    constexpr double change_scale = 10000000;
+    sscanf(g_ogl_config.gl_version, "OpenGL ES %lg build %d.%d@%d", &gl_version, &major, &minor,
+           &change);
+    version = 100 * major + minor;
+    if (change >= change_scale)
+    {
+      ERROR_LOG(VIDEO, "Version changeID overflow - change:%d scale:%f", change, change_scale);
+    }
+    else
+    {
+      version += static_cast<double>(change) / change_scale;
+    }
+  }
+  break;
   // We don't care about these
   default:
     break;
