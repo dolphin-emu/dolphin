@@ -242,7 +242,7 @@ enum Bug
   BUG_BROKEN_DUAL_SOURCE_BLENDING,
   // BUG: ImgTec GLSL shader compiler fails when negating the input to a bitwise operation
   // Started version: 1.5
-  // Ended version: 1.10
+  // Ended version: 1.8@4693462
   // Shaders that do something like "variable <<= (-othervariable);" cause the shader to
   // fail compilation with no useful diagnostic log. This can be worked around by storing
   // the negated value to a temporary variable then using that in the bitwise op.
