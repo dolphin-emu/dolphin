@@ -4,6 +4,8 @@
 
 // http://www.nvidia.com/object/General_FAQ.html#t6 !!!!!
 
+#include "VideoCommon/PixelEngine.h"
+
 #include <mutex>
 
 #include "Common/ChunkFile.h"
@@ -15,10 +17,10 @@
 #include "Core/HW/MMIO.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "VideoCommon/BoundingBox.h"
-#include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/Fifo.h"
-#include "VideoCommon/PixelEngine.h"
+#include "VideoCommon/PerfQueryBase.h"
 #include "VideoCommon/PixelShaderManager.h"
+#include "VideoCommon/VideoBackendBase.h"
 
 namespace PixelEngine
 {
