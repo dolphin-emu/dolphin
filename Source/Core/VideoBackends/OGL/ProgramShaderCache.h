@@ -146,9 +146,9 @@ private:
   class SharedContextAsyncShaderCompiler : public VideoCommon::AsyncShaderCompiler
   {
   protected:
-    virtual bool WorkerThreadInitMainThread(void** param) override;
-    virtual bool WorkerThreadInitWorkerThread(void* param) override;
-    virtual void WorkerThreadExit(void* param) override;
+    bool WorkerThreadInitMainThread(void** param) override;
+    bool WorkerThreadInitWorkerThread(void* param) override;
+    void WorkerThreadExit(void* param) override;
   };
 
   struct SharedContextData
