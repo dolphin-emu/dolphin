@@ -39,7 +39,7 @@ public:
   template <typename T, typename... Params>
   static WorkItemPtr CreateWorkItem(Params&&... params)
   {
-    return std::unique_ptr<WorkItem>(new T(std::forward<Params>(params)...));
+    return std::make_unique<T>(std::forward<Params>(params)...);
   }
 
   void QueueWorkItem(WorkItemPtr item);
