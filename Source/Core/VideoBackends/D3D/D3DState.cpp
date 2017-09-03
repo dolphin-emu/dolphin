@@ -358,6 +358,37 @@ ID3D11BlendState* StateCache::Get(BlendingState state)
   if (it != m_blend.end())
     return it->second;
 
+  if (state.logicopenable && D3D::device1)
+  {
+    D3D11_BLEND_DESC1 desc = {};
+    D3D11_RENDER_TARGET_BLEND_DESC1& tdesc = desc.RenderTarget[0];
+    if (state.colorupdate)
+      tdesc.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_RED | D3D11_COLOR_WRITE_ENABLE_GREEN |
+                                    D3D11_COLOR_WRITE_ENABLE_BLUE;
+    else
+      tdesc.RenderTargetWriteMask = 0;
+    if (state.alphaupdate)
+      tdesc.RenderTargetWriteMask |= D3D11_COLOR_WRITE_ENABLE_ALPHA;
+
+    static constexpr std::array<D3D11_LOGIC_OP, 16> logic_ops = {
+        {D3D11_LOGIC_OP_CLEAR, D3D11_LOGIC_OP_AND, D3D11_LOGIC_OP_AND_REVERSE, D3D11_LOGIC_OP_COPY,
+         D3D11_LOGIC_OP_AND_INVERTED, D3D11_LOGIC_OP_NOOP, D3D11_LOGIC_OP_XOR, D3D11_LOGIC_OP_OR,
+         D3D11_LOGIC_OP_NOR, D3D11_LOGIC_OP_EQUIV, D3D11_LOGIC_OP_INVERT, D3D11_LOGIC_OP_OR_REVERSE,
+         D3D11_LOGIC_OP_COPY_INVERTED, D3D11_LOGIC_OP_OR_INVERTED, D3D11_LOGIC_OP_NAND,
+         D3D11_LOGIC_OP_SET}};
+    tdesc.LogicOpEnable = TRUE;
+    tdesc.LogicOp = logic_ops[state.logicmode];
+
+    ID3D11BlendState1* res;
+    HRESULT hr = D3D::device1->CreateBlendState1(&desc, &res);
+    if (SUCCEEDED(hr))
+    {
+      D3D::SetDebugObjectName(res, "blend state used to emulate the GX pipeline");
+      m_blend.emplace(state.hex, res);
+      return res;
+    }
+  }
+
   D3D11_BLEND_DESC desc = {};
   desc.AlphaToCoverageEnable = FALSE;
   desc.IndependentBlendEnable = FALSE;

@@ -266,8 +266,7 @@ Renderer::Renderer() : ::Renderer(D3D::GetBackBufferWidth(), D3D::GetBackBufferH
 
   D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, (float)m_target_width, (float)m_target_height);
   D3D::context->RSSetViewports(1, &vp);
-  D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(),
-                                   FramebufferManager::GetEFBDepthTexture()->GetDSV());
+  FramebufferManager::BindEFBRenderTarget();
   D3D::BeginFrame();
 }
 
@@ -402,8 +401,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
                          VertexShaderCache::GetSimpleInputLayout());
 
   // Restore expected game state.
-  D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(),
-                                   FramebufferManager::GetEFBDepthTexture()->GetDSV());
+  FramebufferManager::BindEFBRenderTarget();
   RestoreAPIState();
 
   // Copy the pixel from the renderable to cpu-readable buffer.
@@ -478,8 +476,7 @@ void Renderer::PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num
     D3D11_VIEWPORT vp =
         CD3D11_VIEWPORT(0.0f, 0.0f, (float)GetTargetWidth(), (float)GetTargetHeight());
     D3D::context->RSSetViewports(1, &vp);
-    D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(),
-                                     nullptr);
+    FramebufferManager::BindEFBRenderTarget(false);
   }
   else  // if (type == EFBAccessType::PokeZ)
   {
@@ -490,9 +487,7 @@ void Renderer::PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num
         CD3D11_VIEWPORT(0.0f, 0.0f, (float)GetTargetWidth(), (float)GetTargetHeight());
 
     D3D::context->RSSetViewports(1, &vp);
-
-    D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(),
-                                     FramebufferManager::GetEFBDepthTexture()->GetDSV());
+    FramebufferManager::BindEFBRenderTarget();
   }
 
   D3D::DrawEFBPokeQuads(type, points, num_points);
@@ -590,6 +585,7 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
       CD3D11_VIEWPORT((float)targetRc.left, (float)targetRc.top, (float)targetRc.GetWidth(),
                       (float)targetRc.GetHeight(), 0.f, 1.f);
   D3D::context->RSSetViewports(1, &vp);
+  FramebufferManager::SetIntegerEFBRenderTarget(false);
 
   // Color is passed in bgra mode so we need to convert it to rgba
   u32 rgbaColor = (color & 0xFF00FF00) | ((color >> 16) & 0xFF) | ((color << 16) & 0xFF0000);
@@ -636,8 +632,7 @@ void Renderer::ReinterpretPixelData(unsigned int convtype)
   RestoreAPIState();
 
   FramebufferManager::SwapReinterpretTexture();
-  D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(),
-                                   FramebufferManager::GetEFBDepthTexture()->GetDSV());
+  FramebufferManager::BindEFBRenderTarget();
 }
 
 void Renderer::SetBlendingState(const BlendingState& state)
@@ -845,8 +840,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
   // begin next frame
   RestoreAPIState();
   D3D::BeginFrame();
-  D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(),
-                                   FramebufferManager::GetEFBDepthTexture()->GetDSV());
+  FramebufferManager::BindEFBRenderTarget();
   SetViewport();
 }
 
@@ -873,6 +867,7 @@ void Renderer::ApplyState()
   D3D::stateman->PushBlendState(s_gx_state_cache.Get(s_gx_state.blend));
   D3D::stateman->PushDepthState(s_gx_state_cache.Get(s_gx_state.zmode));
   D3D::stateman->PushRasterizerState(s_gx_state_cache.Get(s_gx_state.raster));
+  FramebufferManager::SetIntegerEFBRenderTarget(s_gx_state.blend.logicopenable);
 
   for (size_t stage = 0; stage < s_gx_state.samplers.size(); stage++)
   {

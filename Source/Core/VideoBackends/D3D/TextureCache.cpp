@@ -167,9 +167,7 @@ void TextureCache::ConvertTexture(TCacheEntry* destination, TCacheEntry* source,
       VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(),
       GeometryShaderCache::GetCopyGeometryShader());
 
-  D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(),
-                                   FramebufferManager::GetEFBDepthTexture()->GetDSV());
-
+  FramebufferManager::BindEFBRenderTarget();
   g_renderer->RestoreAPIState();
 }
 
@@ -296,9 +294,7 @@ void TextureCache::CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy,
       VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(),
       GeometryShaderCache::GetCopyGeometryShader());
 
-  D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(),
-                                   FramebufferManager::GetEFBDepthTexture()->GetDSV());
-
+  FramebufferManager::BindEFBRenderTarget();
   g_renderer->RestoreAPIState();
 }
 }
