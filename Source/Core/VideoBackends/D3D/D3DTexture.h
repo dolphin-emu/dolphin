@@ -42,7 +42,6 @@ private:
   ID3D11ShaderResourceView* srv = nullptr;
   ID3D11RenderTargetView* rtv = nullptr;
   ID3D11DepthStencilView* dsv = nullptr;
-  D3D11_BIND_FLAG bindflags;
   UINT ref = 1;
 };
 
