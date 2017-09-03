@@ -66,9 +66,12 @@ HRESULT LoadDXGI()
     --dxgi_dll_ref;
     return E_FAIL;
   }
-  PCreateDXGIFactory = (CREATEDXGIFACTORY)GetProcAddress(hDXGIDll, "CreateDXGIFactory");
+
+  // Even though we use IDXGIFactory2 we use CreateDXGIFactory1 to create it to maintain
+  // compatibility with Windows 7
+  PCreateDXGIFactory = (CREATEDXGIFACTORY)GetProcAddress(hDXGIDll, "CreateDXGIFactory1");
   if (PCreateDXGIFactory == nullptr)
-    MessageBoxA(nullptr, "GetProcAddress failed for CreateDXGIFactory!", "Critical error",
+    MessageBoxA(nullptr, "GetProcAddress failed for CreateDXGIFactory1!", "Critical error",
                 MB_OK | MB_ICONERROR);
 
   return S_OK;
@@ -264,7 +267,7 @@ HRESULT Create(HWND wnd)
   }
 
   IDXGIFactory2* factory;
-  hr = PCreateDXGIFactory(__uuidof(IDXGIFactory), (void**)&factory);
+  hr = PCreateDXGIFactory(__uuidof(IDXGIFactory2), (void**)&factory);
   if (FAILED(hr))
     MessageBox(wnd, _T("Failed to create IDXGIFactory object"), _T("Dolphin Direct3D 11 backend"),
                MB_OK | MB_ICONERROR);
