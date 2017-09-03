@@ -82,9 +82,9 @@ void VideoBackend::InitBackendInfo()
   g_Config.backend_info.bSupportsDynamicSamplerIndexing = false;
   g_Config.backend_info.bSupportsBPTCTextures = false;
 
-  IDXGIFactory* factory;
+  IDXGIFactory2* factory;
   IDXGIAdapter* ad;
-  hr = DX11::PCreateDXGIFactory(__uuidof(IDXGIFactory), (void**)&factory);
+  hr = DX11::PCreateDXGIFactory(__uuidof(IDXGIFactory2), (void**)&factory);
   if (FAILED(hr))
     PanicAlert("Failed to create IDXGIFactory object");
 
