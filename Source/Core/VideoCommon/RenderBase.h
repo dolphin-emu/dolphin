@@ -208,7 +208,7 @@ private:
     AVIDump::Frame state;
   } m_frame_dump_config;
 
-  AbstractTexture * m_last_xfb_texture;
+  AbstractTexture* m_last_xfb_texture;
   u64 m_last_xfb_id = 0;
 
   std::unique_ptr<AbstractTexture> m_dump_texture;

@@ -223,7 +223,7 @@ struct VideoConfig final
     bool bSupportsGPUTextureDecoding;
     bool bSupportsST3CTextures;
     bool bSupportsCopyToVram;
-    bool bForceCopyToRam; // Needed by Software Renderer
+    bool bForceCopyToRam;                  // Needed by Software Renderer
     bool bSupportsBitfield;                // Needed by UberShaders, so must stay in VideoCommon
     bool bSupportsDynamicSamplerIndexing;  // Needed by UberShaders, so must stay in VideoCommon
     bool bSupportsBPTCTextures;

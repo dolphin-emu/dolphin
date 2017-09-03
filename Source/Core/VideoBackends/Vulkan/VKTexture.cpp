@@ -133,8 +133,8 @@ std::optional<AbstractTexture::RawTextureInfo> VKTexture::MapRegionImpl(u32 leve
 
   // Copy to download buffer.
   m_staging_texture->CopyFromImage(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                                  m_texture->GetImage(), VK_IMAGE_ASPECT_COLOR_BIT, x, y, width,
-                                  height, level, 0);
+                                   m_texture->GetImage(), VK_IMAGE_ASPECT_COLOR_BIT, x, y, width,
+                                   height, level, 0);
 
   // Restore original state of texture.
   m_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),

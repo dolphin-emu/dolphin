@@ -799,9 +799,9 @@ void FakeVIUpdate(u32 xfb_address, u32 fb_width, u32 fb_height)
   m_VBlankTimingEven.PSB = 4;
   m_PictureConfiguration.WPL = fb_width / 16;
   m_PictureConfiguration.STD = fb_stride / 16;
-  
+
   UpdateParameters();
-  
+
   u32 total_halflines = GetHalfLinesPerEvenField() + GetHalfLinesPerOddField();
 
   if ((s_half_line_count - s_even_field_first_hl) % total_halflines <

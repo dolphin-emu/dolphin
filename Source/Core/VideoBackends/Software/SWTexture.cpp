@@ -10,7 +10,6 @@
 
 namespace SW
 {
-
 SWTexture::SWTexture(const TextureConfig& tex_config) : AbstractTexture(tex_config)
 {
 }
@@ -23,11 +22,12 @@ void SWTexture::CopyRectangleFromTexture(const AbstractTexture* source,
                                          const MathUtil::Rectangle<int>& srcrect,
                                          const MathUtil::Rectangle<int>& dstrect)
 {
-  const SWTexture * software_source_texture = static_cast<const SWTexture*>(source);
+  const SWTexture* software_source_texture = static_cast<const SWTexture*>(source);
 
   if (srcrect.GetWidth() == dstrect.GetWidth() && srcrect.GetHeight() == dstrect.GetHeight())
   {
-    m_data.assign(software_source_texture->GetData(), software_source_texture->GetData() + m_data.size());
+    m_data.assign(software_source_texture->GetData(),
+                  software_source_texture->GetData() + m_data.size());
   }
   else
   {
@@ -53,8 +53,8 @@ u8* SWTexture::GetData()
 
 std::optional<AbstractTexture::RawTextureInfo> SWTexture::MapFullImpl()
 {
-  return AbstractTexture::RawTextureInfo{ GetData(),
-    m_config.width * 4, m_config.width, m_config.height };
+  return AbstractTexture::RawTextureInfo{GetData(), m_config.width * 4, m_config.width,
+                                         m_config.height};
 }
 
 }  // namespace SW

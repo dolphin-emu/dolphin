@@ -39,8 +39,8 @@
 #include "VideoCommon/RenderState.h"
 #include "VideoCommon/SamplerCommon.h"
 #include "VideoCommon/VideoBackendBase.h"
-#include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VideoCommon.h"
+#include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
 
 namespace DX11
@@ -626,8 +626,8 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& rc, u64 ti
   auto* xfb_texture = static_cast<DXTexture*>(texture);
   TargetRectangle source_rc = xfb_texture->GetConfig().GetRect();
 
-  BlitScreen(source_rc, targetRc, xfb_texture->GetRawTexIdentifier(), xfb_texture->GetConfig().width,
-             xfb_texture->GetConfig().height, Gamma);
+  BlitScreen(source_rc, targetRc, xfb_texture->GetRawTexIdentifier(),
+             xfb_texture->GetConfig().width, xfb_texture->GetConfig().height, Gamma);
 
   // Reset viewport for drawing text
   D3D11_VIEWPORT vp =

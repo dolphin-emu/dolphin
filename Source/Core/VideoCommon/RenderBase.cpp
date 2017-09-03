@@ -42,8 +42,8 @@
 #include "Core/Host.h"
 #include "Core/Movie.h"
 
-#include "VideoCommon/AbstractTexture.h"
 #include "VideoCommon/AVIDump.h"
+#include "VideoCommon/AbstractTexture.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/CommandProcessor.h"
@@ -336,7 +336,8 @@ void Renderer::DrawDebugText()
             "Speed Limit: Unlimited" :
             StringFromFormat("Speed Limit: %li%%",
                              std::lround(SConfig::GetInstance().m_EmulationSpeed * 100.f)),
-        std::string("Copy XFB: ") + xfbcopy_text + (g_ActiveConfig.bImmediateXFB ? " (Immediate)" : ""),
+        std::string("Copy XFB: ") + xfbcopy_text +
+            (g_ActiveConfig.bImmediateXFB ? " (Immediate)" : ""),
     };
 
     enum
@@ -691,7 +692,8 @@ bool Renderer::IsFrameDumping()
 void Renderer::UpdateFrameDumpTexture(float horizontal_scale)
 {
   int target_width, target_height;
-  std::tie(target_width, target_height) = CalculateOutputDimensions(m_last_xfb_texture->GetConfig().width, m_last_xfb_texture->GetConfig().height);
+  std::tie(target_width, target_height) = CalculateOutputDimensions(
+      m_last_xfb_texture->GetConfig().width, m_last_xfb_texture->GetConfig().height);
   if (m_dump_texture == nullptr ||
       m_dump_texture->GetConfig().width != static_cast<u32>(target_width) ||
       m_dump_texture->GetConfig().height != static_cast<u32>(target_height))
@@ -720,7 +722,7 @@ void Renderer::ShutdownFrameDumping()
 
 void Renderer::DumpFrameData(const u8* data, int w, int h, int stride, const AVIDump::Frame& state)
 {
-  m_frame_dump_config = FrameDumpConfig{ m_last_xfb_texture, data, w, h, stride, state };
+  m_frame_dump_config = FrameDumpConfig{m_last_xfb_texture, data, w, h, stride, state};
 
   if (!m_frame_dump_thread_running.IsSet())
   {

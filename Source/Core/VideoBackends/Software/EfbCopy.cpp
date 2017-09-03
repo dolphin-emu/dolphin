@@ -14,7 +14,6 @@
 
 namespace EfbCopy
 {
-
 void ClearEfb()
 {
   u32 clearColor = (bpmem.clearcolorAR & 0xff) << 24 | bpmem.clearcolorGB << 8 |
@@ -34,5 +33,4 @@ void ClearEfb()
     }
   }
 }
-
 }

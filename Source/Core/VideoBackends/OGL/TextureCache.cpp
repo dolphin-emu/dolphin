@@ -388,10 +388,10 @@ void main()
 void TextureCache::CreateTextureDecodingResources()
 {
   static const GLenum gl_view_types[TextureConversionShader::BUFFER_FORMAT_COUNT] = {
-      GL_R8UI,    // BUFFER_FORMAT_R8_UINT
-      GL_R16UI,   // BUFFER_FORMAT_R16_UINT
-      GL_RG32UI,  // BUFFER_FORMAT_R32G32_UINT
-      GL_RGBA8UI, // BUFFER_FORMAT_RGBA8_UINT
+      GL_R8UI,     // BUFFER_FORMAT_R8_UINT
+      GL_R16UI,    // BUFFER_FORMAT_R16_UINT
+      GL_RG32UI,   // BUFFER_FORMAT_R32G32_UINT
+      GL_RGBA8UI,  // BUFFER_FORMAT_RGBA8_UINT
   };
 
   glGenTextures(TextureConversionShader::BUFFER_FORMAT_COUNT,

@@ -1353,7 +1353,8 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& rc, u64 ti
 
   // Copy the framebuffer to screen.
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
-  BlitScreen(sourceRc, flipped_trc, xfb_texture->GetRawTexIdentifier(), xfb_texture->GetConfig().width, xfb_texture->GetConfig().height);
+  BlitScreen(sourceRc, flipped_trc, xfb_texture->GetRawTexIdentifier(),
+             xfb_texture->GetConfig().width, xfb_texture->GetConfig().height);
 
   // Finish up the current frame, print some stats
 

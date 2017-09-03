@@ -25,7 +25,7 @@ static const char s_vertex_shader[] = "out vec2 uv0;\n"
                                       "void main(void) {\n"
                                       "	vec2 rawpos = vec2(gl_VertexID&1, gl_VertexID&2);\n"
                                       "	gl_Position = vec4(rawpos*2.0-1.0, 0.0, 1.0);\n"
-                                       "	uv0 = vec2(mix(src_rect.xy, src_rect.zw, rawpos));\n"
+                                      "	uv0 = vec2(mix(src_rect.xy, src_rect.zw, rawpos));\n"
                                       "}\n";
 
 OpenGLPostProcessing::OpenGLPostProcessing() : m_initialized(false)

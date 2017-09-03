@@ -1486,7 +1486,7 @@ void _TexDecoder_DecodeImpl(u32* dst, const u8* src, int width, int height, Text
   case TextureFormat::CMPR:
     TexDecoder_DecodeImpl_CMPR(dst, src, width, height, texformat, tlut, tlutfmt, Wsteps4, Wsteps8);
     break;
-  
+
   case TextureFormat::XFB:
   {
     for (int y = 0; y < height; y += 1)

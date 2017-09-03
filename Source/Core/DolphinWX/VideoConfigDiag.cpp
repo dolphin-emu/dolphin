@@ -202,13 +202,16 @@ static wxString skip_efb_copy_to_ram_desc = wxTRANSLATE(
     "in a small number of games.\n\nEnabled = EFB Copies to Texture\nDisabled = EFB Copies to RAM "
     "(and Texture)\n\nIf unsure, leave this checked.");
 static wxString skip_xfb_copy_to_ram_desc = wxTRANSLATE(
-  "Stores XFB Copies exclusively on the GPU, bypassing system memory. Causes graphical defects "
-  "in a small number of games that need to readback from memory.\n\nEnabled = XFB Copies to Texture\nDisabled = XFB Copies to RAM "
-  "(and Texture)\n\nIf unsure, leave this checked.");
-static wxString immediate_xfb_desc = wxTRANSLATE(
-  "Displays the XFB copies as soon as they are created, without waiting for scanout. Can cause graphical defects "
-  "in some games if the game doesn't expect all XFB copies to be displayed. However, turning this setting on reduces latency."
-  "\n\nIf unsure, leave this unchecked.");
+    "Stores XFB Copies exclusively on the GPU, bypassing system memory. Causes graphical defects "
+    "in a small number of games that need to readback from memory.\n\nEnabled = XFB Copies to "
+    "Texture\nDisabled = XFB Copies to RAM "
+    "(and Texture)\n\nIf unsure, leave this checked.");
+static wxString immediate_xfb_desc =
+    wxTRANSLATE("Displays the XFB copies as soon as they are created, without waiting for scanout. "
+                "Can cause graphical defects "
+                "in some games if the game doesn't expect all XFB copies to be displayed. However, "
+                "turning this setting on reduces latency."
+                "\n\nIf unsure, leave this unchecked.");
 static wxString stc_desc =
     wxTRANSLATE("The \"Safe\" setting eliminates the likelihood of the GPU missing texture updates "
                 "from RAM.\nLower accuracies cause in-game text to appear garbled in certain "
@@ -248,7 +251,7 @@ static wxString cache_hires_textures_desc =
 static wxString dump_efb_desc = wxTRANSLATE(
     "Dump the contents of EFB copies to User/Dump/Textures/.\n\nIf unsure, leave this unchecked.");
 static wxString dump_xfb_desc = wxTRANSLATE(
-	"Dump the contents of XFB copies to User/Dump/Textures/.\n\nIf unsure, leave this unchecked.");
+    "Dump the contents of XFB copies to User/Dump/Textures/.\n\nIf unsure, leave this unchecked.");
 static wxString internal_resolution_frame_dumping_desc = wxTRANSLATE(
     "Create frame dumps and screenshots at the internal resolution of the renderer, rather than "
     "the size of the window it is displayed within. If the aspect ratio is widescreen, the output "
@@ -779,21 +782,21 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
       szr_hacks->Add(szr_safetex, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
     }
 
-     // - XFB
+    // - XFB
     {
       wxStaticBoxSizer* const group_xfb =
           new wxStaticBoxSizer(wxVERTICAL, page_hacks, _("External Frame Buffer (XFB)"));
 
       group_xfb->Add(CreateCheckBox(page_hacks, _("Store XFB Copies to Texture Only"),
-                                wxGetTranslation(skip_xfb_copy_to_ram_desc),
-                                Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM),
-                   0, wxLEFT | wxRIGHT, space5);
+                                    wxGetTranslation(skip_xfb_copy_to_ram_desc),
+                                    Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM),
+                     0, wxLEFT | wxRIGHT, space5);
       group_xfb->AddSpacer(space5);
 
       group_xfb->Add(CreateCheckBox(page_hacks, _("Immediately Present XFB"),
-                                wxGetTranslation(immediate_xfb_desc),
-                                Config::GFX_HACK_IMMEDIATE_XFB),
-                   0, wxLEFT | wxRIGHT, space5);
+                                    wxGetTranslation(immediate_xfb_desc),
+                                    Config::GFX_HACK_IMMEDIATE_XFB),
+                     0, wxLEFT | wxRIGHT, space5);
       group_xfb->AddSpacer(space5);
 
       szr_hacks->AddSpacer(space5);
@@ -885,8 +888,9 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
       szr_utility->Add(CreateCheckBox(page_advanced, _("Dump EFB Target"),
                                       wxGetTranslation(dump_efb_desc),
                                       Config::GFX_DUMP_EFB_TARGET));
-	  szr_utility->Add(CreateCheckBox(page_advanced, _("Dump XFB Target"),
-                                      wxGetTranslation(dump_xfb_desc), Config::GFX_DUMP_XFB_TARGET));
+      szr_utility->Add(CreateCheckBox(page_advanced, _("Dump XFB Target"),
+                                      wxGetTranslation(dump_xfb_desc),
+                                      Config::GFX_DUMP_XFB_TARGET));
       szr_utility->Add(CreateCheckBox(page_advanced, _("Free Look"),
                                       wxGetTranslation(free_look_desc), Config::GFX_FREE_LOOK));
 #if defined(HAVE_FFMPEG)

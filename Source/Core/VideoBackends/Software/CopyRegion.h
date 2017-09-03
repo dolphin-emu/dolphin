@@ -22,9 +22,9 @@ void copy_region(const T* const source, const MathUtil::Rectangle<int>& srcrect,
       int destination_y = i + dstrect.top;
       int destination_offset = (destination_y * dstrect.GetWidth()) + destination_x;
 
-      double src_x = std::round(destination_x*x_ratio) + srcrect.left;
-      double src_y = std::round(destination_y*y_ratio) + srcrect.top;
-      int src_offset = static_cast<int>((src_y*srcrect.GetWidth()) + src_x);
+      double src_x = std::round(destination_x * x_ratio) + srcrect.left;
+      double src_y = std::round(destination_y * y_ratio) + srcrect.top;
+      int src_offset = static_cast<int>((src_y * srcrect.GetWidth()) + src_x);
 
       destination[destination_offset] = source[src_offset];
     }

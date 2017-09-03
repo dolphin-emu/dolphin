@@ -69,8 +69,7 @@ void HacksWidget::CreateWidgets()
 
   m_store_xfb_copies = new GraphicsBool(tr("Store XFB Copies to Texture Only"),
                                         Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM);
-  m_immediate_xfb = new GraphicsBool(tr("Immediately Present XFB"),
-                                     Config::GFX_HACK_IMMEDIATE_XFB);
+  m_immediate_xfb = new GraphicsBool(tr("Immediately Present XFB"), Config::GFX_HACK_IMMEDIATE_XFB);
 
   xfb_layout->addWidget(m_store_xfb_copies, 1, 0);
 
@@ -171,15 +170,18 @@ void HacksWidget::AddDescriptions()
       "from RAM.\nLower accuracies cause in-game text to appear garbled in certain "
       "games.\n\nIf unsure, use the rightmost value.");
 
-    static const char* TR_STORE_XFB_TO_TEXTURE_DESCRIPTION = QT_TR_NOOP(
+  static const char* TR_STORE_XFB_TO_TEXTURE_DESCRIPTION = QT_TR_NOOP(
       "Stores XFB Copies exclusively on the GPU, bypassing system memory. Causes graphical defects "
-      "in a small number of games that need to readback from memory.\n\nEnabled = XFB Copies to Texture\nDisabled = XFB Copies to RAM "
+      "in a small number of games that need to readback from memory.\n\nEnabled = XFB Copies to "
+      "Texture\nDisabled = XFB Copies to RAM "
       "(and Texture)\n\nIf unsure, leave this checked.");
 
-    static const char* TR_IMMEDIATE_XFB_DESCRIPTION = QT_TR_NOOP(
-      "Displays the XFB copies as soon as they are created, without waiting for scanout. Can cause graphical defects "
-      "in some games if the game doesn't expect all XFB copies to be displayed. However, turning this setting on reduces latency."
-      "\n\nIf unsure, leave this unchecked.");
+  static const char* TR_IMMEDIATE_XFB_DESCRIPTION =
+      QT_TR_NOOP("Displays the XFB copies as soon as they are created, without waiting for "
+                 "scanout. Can cause graphical defects "
+                 "in some games if the game doesn't expect all XFB copies to be displayed. "
+                 "However, turning this setting on reduces latency."
+                 "\n\nIf unsure, leave this unchecked.");
 
   static const char* TR_GPU_DECODING_DESCRIPTION =
       QT_TR_NOOP("Enables texture decoding using the GPU instead of the CPU. This may result in "

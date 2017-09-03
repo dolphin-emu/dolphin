@@ -64,7 +64,8 @@ static void WriteSwizzler(char*& p, EFBCopyFormat format, APIType ApiType)
   // left, top, of source rectangle within source texture
   // width of the destination rectangle, scale_factor (1 or 2)
   if (ApiType == APIType::Vulkan)
-    WRITE(p, "layout(std140, push_constant) uniform PCBlock { int4 position; float y_scale; } PC;\n");
+    WRITE(p,
+          "layout(std140, push_constant) uniform PCBlock { int4 position; float y_scale; } PC;\n");
   else
   {
     WRITE(p, "uniform int4 position;\n");
@@ -154,7 +155,7 @@ static void WriteSwizzler(char*& p, EFBCopyFormat format, APIType ApiType)
                                               // pixel)
   WRITE(p, "  uv0 += float2(position.xy);\n");                    // move to copied rect
   WRITE(p, "  uv0 /= float2(%d, %d);\n", EFB_WIDTH, EFB_HEIGHT);  // normalize to [0:1]
-  WRITE(p, "  uv0 /= float2(1, y_scale);\n");                 // apply the y scaling
+  WRITE(p, "  uv0 /= float2(1, y_scale);\n");                     // apply the y scaling
   if (ApiType == APIType::OpenGL)                                 // ogl has to flip up and down
   {
     WRITE(p, "  uv0.y = 1.0-uv0.y;\n");
@@ -666,22 +667,22 @@ static void WriteZ24Encoder(char*& p, APIType ApiType, const EFBCopyParams& para
 static void WriteXFBEncoder(char*& p, APIType ApiType, const EFBCopyParams& params)
 {
   WriteSwizzler(p, EFBCopyFormat::XFB, ApiType);
-  
+
   WRITE(p, "  float3 y_const = float3(0.257, 0.504, 0.098);\n");
   WRITE(p, "  float3 u_const = float3(-0.148, -0.291, 0.439);\n");
   WRITE(p, "  float3 v_const = float3(0.439, -0.368, -0.071);\n");
   WRITE(p, "  float3 color0;\n");
   WRITE(p, "  float3 color1;\n");
-  
+
   WriteSampleColor(p, "rgb", "color0", 0, ApiType, params);
   WriteSampleColor(p, "rgb", "color1", 1, ApiType, params);
   WRITE(p, "  float3 average = (color0 + color1) * 0.5;\n");
-  
+
   WRITE(p, "  ocol0.b = dot(color0,  y_const) + 0.0625;\n");
   WRITE(p, "  ocol0.g = dot(average, u_const) + 0.5;\n");
   WRITE(p, "  ocol0.r = dot(color1,  y_const) + 0.0625;\n");
   WRITE(p, "  ocol0.a = dot(average, v_const) + 0.5;\n");
-  
+
   WriteEncoderEnd(p);
 }
 
@@ -1264,11 +1265,11 @@ static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
       }
       )"}},
 
-  // We do the inverse BT.601 conversion for YCbCr to RGB
-  // http://www.equasys.de/colorconversion.html#YCbCr-RGBColorFormatConversion
-      { TextureFormat::XFB,
-       { BUFFER_FORMAT_RGBA8_UINT, 0, 8, 8, false,
-       R"(
+    // We do the inverse BT.601 conversion for YCbCr to RGB
+    // http://www.equasys.de/colorconversion.html#YCbCr-RGBColorFormatConversion
+    {TextureFormat::XFB,
+     {BUFFER_FORMAT_RGBA8_UINT, 0, 8, 8, false,
+      R"(
       layout(local_size_x = 8, local_size_y = 8) in;
 
       void main()

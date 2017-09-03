@@ -23,9 +23,7 @@ public:
   virtual ~FramebufferManagerBase();
 
   static unsigned int GetEFBLayers() { return m_EFBLayers; }
-
 protected:
-
   static unsigned int m_EFBLayers;
 };
 

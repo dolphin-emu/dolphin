@@ -33,14 +33,14 @@
 
 namespace Vulkan
 {
-  namespace
-  {
-    struct EFBEncodeParams
-    {
-      std::array<s32, 4> position_uniform;
-      float y_scale;
-    };
-  }
+namespace
+{
+struct EFBEncodeParams
+{
+  std::array<s32, 4> position_uniform;
+  float y_scale;
+};
+}
 TextureConverter::TextureConverter()
 {
 }
@@ -265,8 +265,8 @@ void TextureConverter::EncodeTextureToMemory(VkImageView src_texture, u8* dest_p
   // We also linear filtering for both box filtering and downsampling higher resolutions to 1x
   // TODO: This only produces perfect downsampling for 2x IR, other resolutions will need more
   //       complex down filtering to average all pixels and produce the correct result.
-  bool linear_filter = (scale_by_half && !params.depth) || g_renderer->GetEFBScale() != 1 ||
-                       params.y_scale > 1.0f;
+  bool linear_filter =
+      (scale_by_half && !params.depth) || g_renderer->GetEFBScale() != 1 || params.y_scale > 1.0f;
   draw.SetPSSampler(0, src_texture, linear_filter ? g_object_cache->GetLinearSampler() :
                                                     g_object_cache->GetPointSampler());
 
@@ -580,7 +580,7 @@ bool TextureConverter::CreateTexelBuffer()
   m_texel_buffer_view_r16_uint = CreateTexelBufferView(VK_FORMAT_R16_UINT);
   m_texel_buffer_view_r32g32_uint = CreateTexelBufferView(VK_FORMAT_R32G32_UINT);
   m_texel_buffer_view_rgba8_unorm = CreateTexelBufferView(VK_FORMAT_R8G8B8A8_UNORM);
-  m_texel_buffer_view_rgba8_uint= CreateTexelBufferView(VK_FORMAT_R8G8B8A8_UINT);
+  m_texel_buffer_view_rgba8_uint = CreateTexelBufferView(VK_FORMAT_R8G8B8A8_UINT);
   return m_texel_buffer_view_r8_uint != VK_NULL_HANDLE &&
          m_texel_buffer_view_r16_uint != VK_NULL_HANDLE &&
          m_texel_buffer_view_r32g32_uint != VK_NULL_HANDLE &&

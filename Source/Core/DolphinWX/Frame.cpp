@@ -1496,7 +1496,7 @@ void CFrame::ParseHotkeys()
     OSDChoice = 6;
     // Toggle immediate present of xfb
     Config::SetCurrent(Config::GFX_HACK_IMMEDIATE_XFB,
-      !Config::Get(Config::GFX_HACK_IMMEDIATE_XFB));
+                       !Config::Get(Config::GFX_HACK_IMMEDIATE_XFB));
   }
   if (IsHotkey(HK_TOGGLE_FOG))
   {

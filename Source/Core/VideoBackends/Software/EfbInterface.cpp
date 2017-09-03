@@ -497,7 +497,8 @@ u8* GetPixelPointer(u16 x, u16 y, bool depth)
   return &efb[GetColorOffset(x, y)];
 }
 
-void EncodeXFB(yuv422_packed* xfb_in_ram, u32 memory_stride, const EFBRectangle& source_rect, float y_scale)
+void EncodeXFB(yuv422_packed* xfb_in_ram, u32 memory_stride, const EFBRectangle& source_rect,
+               float y_scale)
 {
   if (!xfb_in_ram)
   {
@@ -543,8 +544,7 @@ void EncodeXFB(yuv422_packed* xfb_in_ram, u32 memory_stride, const EFBRectangle&
       src_ptr[x].Y = scanline[i].Y + 16;
       // we mix our color differences in 10 bit space so it will round more accurately
       // U[i] = 1/4 * U[i-1] + 1/2 * U[i] + 1/4 * U[i+1]
-      src_ptr[x].UV =
-          128 + ((scanline[i - 1].U + (scanline[i].U << 1) + scanline[i + 1].U) >> 2);
+      src_ptr[x].UV = 128 + ((scanline[i - 1].U + (scanline[i].U << 1) + scanline[i + 1].U) >> 2);
 
       // YV pixel
       src_ptr[x + 1].Y = scanline[i + 1].Y + 16;
@@ -556,7 +556,9 @@ void EncodeXFB(yuv422_packed* xfb_in_ram, u32 memory_stride, const EFBRectangle&
   }
 
   // Apply y scaling and copy to the xfb memory location
-  SW::copy_region(source.data(), source_rect, xfb_in_ram, EFBRectangle{ source_rect.left, source_rect.top, source_rect.right, static_cast<int>(static_cast<float>(source_rect.bottom) * y_scale) });
+  SW::copy_region(source.data(), source_rect, xfb_in_ram,
+                  EFBRectangle{source_rect.left, source_rect.top, source_rect.right,
+                               static_cast<int>(static_cast<float>(source_rect.bottom) * y_scale)});
 }
 
 bool ZCompare(u16 x, u16 y, u32 z)

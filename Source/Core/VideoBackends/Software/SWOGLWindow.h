@@ -31,7 +31,6 @@ public:
 
 private:
   SWOGLWindow() {}
-
   struct TextData
   {
     std::string text;

@@ -92,7 +92,7 @@ void SWOGLWindow::PrintText(const std::string& text, int x, int y, u32 color)
 
 void SWOGLWindow::ShowImage(AbstractTexture* image, float aspect)
 {
-  SW::SWTexture * sw_image = static_cast<SW::SWTexture*>(image);
+  SW::SWTexture* sw_image = static_cast<SW::SWTexture*>(image);
   GLInterface->Update();  // just updates the render window position and the backbuffer size
 
   GLsizei glWidth = (GLsizei)GLInterface->GetBackBufferWidth();

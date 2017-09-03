@@ -157,7 +157,7 @@ void DXTexture::Unmap()
 {
   if (!m_staging_texture)
     return;
-  
+
   D3D::context->Unmap(m_staging_texture, 0);
 }
 

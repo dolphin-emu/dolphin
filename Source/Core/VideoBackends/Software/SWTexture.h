@@ -30,7 +30,6 @@ public:
   u8* GetData();
 
 private:
-
   std::optional<RawTextureInfo> MapFullImpl() override;
 
   std::vector<u8> m_data;

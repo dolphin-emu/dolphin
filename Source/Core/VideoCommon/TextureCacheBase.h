@@ -46,7 +46,8 @@ struct EFBCopyParams
 {
   EFBCopyParams(PEControl::PixelFormat efb_format_, EFBCopyFormat copy_format_, bool depth_,
                 bool yuv_, float y_scale_)
-      : efb_format(efb_format_), copy_format(copy_format_), depth(depth_), yuv(yuv_), y_scale(y_scale_)
+      : efb_format(efb_format_), copy_format(copy_format_), depth(depth_), yuv(yuv_),
+        y_scale(y_scale_)
   {
   }
 
@@ -111,7 +112,8 @@ public:
 
     ~TCacheEntry();
 
-    void SetGeneralParameters(u32 _addr, u32 _size, TextureAndTLUTFormat _format, bool force_safe_hashing)
+    void SetGeneralParameters(u32 _addr, u32 _size, TextureAndTLUTFormat _format,
+                              bool force_safe_hashing)
     {
       addr = _addr;
       size_in_bytes = _size;
@@ -150,7 +152,6 @@ public:
 
     bool IsEfbCopy() const { return is_efb_copy; }
     bool IsCopy() const { return is_xfb_copy || is_efb_copy; }
-
     u32 NumBlocksY() const;
     u32 BytesPerRow() const;
 
@@ -186,7 +187,7 @@ public:
   static bool IsValidBindPoint(u32 i) { return valid_bind_points.test(i); }
   TCacheEntry* GetTexture(u32 address, u32 width, u32 height, const TextureFormat texformat,
                           const int textureCacheSafetyColorSampleSize, u32 tlutaddr = 0,
-                          TLUTFormat  tlutfmt = TLUTFormat::IA8, bool use_mipmaps = false,
+                          TLUTFormat tlutfmt = TLUTFormat::IA8, bool use_mipmaps = false,
                           u32 tex_levels = 1, bool from_tmem = false, u32 tmem_address_even = 0,
                           u32 tmem_address_odd = 0);
   virtual void BindTextures();

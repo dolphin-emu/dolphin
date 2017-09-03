@@ -55,7 +55,7 @@ struct TargetRectangle : public MathUtil::Rectangle<int>
     return (RECT*)this;
   }
 #endif
-  TargetRectangle(const MathUtil::Rectangle<int> &other) : MathUtil::Rectangle<int>(other) {}
+  TargetRectangle(const MathUtil::Rectangle<int>& other) : MathUtil::Rectangle<int>(other) {}
   TargetRectangle() = default;
 };
 
