@@ -201,7 +201,7 @@ private:
   class VertexShaderCompilerWorkItem : public VideoCommon::AsyncShaderCompiler::WorkItem
   {
   public:
-    VertexShaderCompilerWorkItem(const VertexShaderUid& uid) : m_uid(uid) {}
+    explicit VertexShaderCompilerWorkItem(const VertexShaderUid& uid) : m_uid(uid) {}
     bool Compile() override;
     void Retrieve() override;
 
@@ -213,7 +213,7 @@ private:
   class PixelShaderCompilerWorkItem : public VideoCommon::AsyncShaderCompiler::WorkItem
   {
   public:
-    PixelShaderCompilerWorkItem(const PixelShaderUid& uid) : m_uid(uid) {}
+    explicit PixelShaderCompilerWorkItem(const PixelShaderUid& uid) : m_uid(uid) {}
     bool Compile() override;
     void Retrieve() override;
 
@@ -225,7 +225,7 @@ private:
   class PipelineCompilerWorkItem : public VideoCommon::AsyncShaderCompiler::WorkItem
   {
   public:
-    PipelineCompilerWorkItem(const PipelineInfo& info) : m_info(info) {}
+    explicit PipelineCompilerWorkItem(const PipelineInfo& info) : m_info(info) {}
     bool Compile() override;
     void Retrieve() override;
 
