@@ -69,6 +69,7 @@ bool StateTracker::Initialize()
   m_pipeline_state.blend_state.dstfactoralpha = BlendMode::ZERO;
   m_pipeline_state.blend_state.colorupdate = true;
   m_pipeline_state.blend_state.alphaupdate = true;
+  UpdateRasterizationStateSamples();
 
   // Enable depth clamping if supported by driver.
   if (g_ActiveConfig.backend_info.bSupportsDepthClamp)
@@ -210,7 +211,7 @@ bool StateTracker::PrecachePipelineUID(const SerializedPipelineUID& uid)
     WARN_LOG(VIDEO, "Failed to get pixel shader from cached UID.");
     return false;
   }
-  pinfo.render_pass = m_load_render_pass;
+  pinfo.render_pass = FramebufferManager::GetInstance()->GetEFBRenderPass();
   pinfo.rasterization_state.bits = uid.rasterizer_state_bits;
   pinfo.depth_stencil_state.bits = uid.depth_stencil_state_bits;
   pinfo.blend_state.hex = uid.blend_state_bits;
@@ -256,28 +257,11 @@ void StateTracker::SetIndexBuffer(VkBuffer buffer, VkDeviceSize offset, VkIndexT
   m_dirty_flags |= DIRTY_FLAG_INDEX_BUFFER;
 }
 
-void StateTracker::SetRenderPass(VkRenderPass load_render_pass, VkRenderPass clear_render_pass)
+void StateTracker::UpdateRasterizationStateSamples()
 {
-  // Should not be changed within a render pass.
-  _assert_(!InRenderPass());
-
-  // The clear and load render passes are compatible, so we don't need to change our pipeline.
-  if (m_pipeline_state.render_pass != load_render_pass)
-  {
-    m_pipeline_state.render_pass = load_render_pass;
-    m_dirty_flags |= DIRTY_FLAG_PIPELINE;
-  }
-
-  m_load_render_pass = load_render_pass;
-  m_clear_render_pass = clear_render_pass;
-}
-
-void StateTracker::SetFramebuffer(VkFramebuffer framebuffer, const VkRect2D& render_area)
-{
-  // Should not be changed within a render pass.
-  _assert_(!InRenderPass());
-  m_framebuffer = framebuffer;
-  m_framebuffer_size = render_area;
+  m_pipeline_state.rasterization_state.samples = FramebufferManager::GetInstance()->GetEFBSamples();
+  m_pipeline_state.rasterization_state.per_sample_shading = g_ActiveConfig.bSSAA;
+  m_dirty_flags |= DIRTY_FLAG_PIPELINE;
 }
 
 void StateTracker::SetVertexFormat(const VertexFormat* vertex_format)
@@ -703,24 +687,29 @@ void StateTracker::SetPendingRebind()
                    DIRTY_FLAG_PIPELINE;
 }
 
+bool StateTracker::InRenderPass() const
+{
+  return m_in_render_pass;
+}
+
 void StateTracker::BeginRenderPass()
 {
   if (InRenderPass())
     return;
 
-  m_current_render_pass = m_load_render_pass;
-  m_framebuffer_render_area = m_framebuffer_size;
-
   VkRenderPassBeginInfo begin_info = {VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
                                       nullptr,
-                                      m_current_render_pass,
-                                      m_framebuffer,
-                                      m_framebuffer_render_area,
+                                      FramebufferManager::GetInstance()->GetEFBRenderPass(),
+                                      FramebufferManager::GetInstance()->GetEFBFramebuffer(),
+                                      {{0, 0},
+                                       {FramebufferManager::GetInstance()->GetEFBWidth(),
+                                        FramebufferManager::GetInstance()->GetEFBHeight()}},
                                       0,
                                       nullptr};
 
   vkCmdBeginRenderPass(g_command_buffer_mgr->GetCurrentCommandBuffer(), &begin_info,
                        VK_SUBPASS_CONTENTS_INLINE);
+  m_in_render_pass = true;
 }
 
 void StateTracker::EndRenderPass()
@@ -729,26 +718,7 @@ void StateTracker::EndRenderPass()
     return;
 
   vkCmdEndRenderPass(g_command_buffer_mgr->GetCurrentCommandBuffer());
-  m_current_render_pass = VK_NULL_HANDLE;
-}
-
-void StateTracker::BeginClearRenderPass(const VkRect2D& area, const VkClearValue clear_values[2])
-{
-  _assert_(!InRenderPass());
-
-  m_current_render_pass = m_clear_render_pass;
-  m_framebuffer_render_area = area;
-
-  VkRenderPassBeginInfo begin_info = {VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
-                                      nullptr,
-                                      m_current_render_pass,
-                                      m_framebuffer,
-                                      m_framebuffer_render_area,
-                                      2,
-                                      clear_values};
-
-  vkCmdBeginRenderPass(g_command_buffer_mgr->GetCurrentCommandBuffer(), &begin_info,
-                       VK_SUBPASS_CONTENTS_INLINE);
+  m_in_render_pass = false;
 }
 
 void StateTracker::SetViewport(const VkViewport& viewport)
@@ -771,10 +741,6 @@ void StateTracker::SetScissor(const VkRect2D& scissor)
 
 bool StateTracker::Bind(bool rebind_all /*= false*/)
 {
-  // Check the render area if we were in a clear pass.
-  if (m_current_render_pass == m_clear_render_pass && !IsViewportWithinRenderArea())
-    EndRenderPass();
-
   // Get new pipeline object if any parts have changed
   if (m_dirty_flags & DIRTY_FLAG_PIPELINE && !UpdatePipeline())
   {
@@ -927,38 +893,6 @@ void StateTracker::OnEndFrame()
 void StateTracker::SetBackgroundCommandBufferExecution(bool enabled)
 {
   m_allow_background_execution = enabled;
-}
-
-bool StateTracker::IsWithinRenderArea(s32 x, s32 y, u32 width, u32 height) const
-{
-  // Check that the viewport does not lie outside the render area.
-  // If it does, we need to switch to a normal load/store render pass.
-  s32 left = m_framebuffer_render_area.offset.x;
-  s32 top = m_framebuffer_render_area.offset.y;
-  s32 right = left + static_cast<s32>(m_framebuffer_render_area.extent.width);
-  s32 bottom = top + static_cast<s32>(m_framebuffer_render_area.extent.height);
-  s32 test_left = x;
-  s32 test_top = y;
-  s32 test_right = test_left + static_cast<s32>(width);
-  s32 test_bottom = test_top + static_cast<s32>(height);
-  return test_left >= left && test_right <= right && test_top >= top && test_bottom <= bottom;
-}
-
-bool StateTracker::IsViewportWithinRenderArea() const
-{
-  return IsWithinRenderArea(static_cast<s32>(m_viewport.x), static_cast<s32>(m_viewport.y),
-                            static_cast<u32>(m_viewport.width),
-                            static_cast<u32>(m_viewport.height));
-}
-
-void StateTracker::EndClearRenderPass()
-{
-  if (m_current_render_pass != m_clear_render_pass)
-    return;
-
-  // End clear render pass. Bind() will call BeginRenderPass() which
-  // will switch to the load/store render pass.
-  EndRenderPass();
 }
 
 VkPipeline StateTracker::GetPipelineAndCacheUID()

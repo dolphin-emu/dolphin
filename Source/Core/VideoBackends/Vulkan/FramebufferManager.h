@@ -32,8 +32,7 @@ public:
 
   bool Initialize();
 
-  VkRenderPass GetEFBLoadRenderPass() const { return m_efb_load_render_pass; }
-  VkRenderPass GetEFBClearRenderPass() const { return m_efb_clear_render_pass; }
+  VkRenderPass GetEFBRenderPass() const { return m_efb_render_pass; }
   u32 GetEFBWidth() const { return m_efb_width; }
   u32 GetEFBHeight() const { return m_efb_height; }
   u32 GetEFBLayers() const { return m_efb_layers; }
@@ -120,8 +119,7 @@ private:
   void DrawPokeVertices(const EFBPokeVertex* vertices, size_t vertex_count, bool write_color,
                         bool write_depth);
 
-  VkRenderPass m_efb_load_render_pass = VK_NULL_HANDLE;
-  VkRenderPass m_efb_clear_render_pass = VK_NULL_HANDLE;
+  VkRenderPass m_efb_render_pass = VK_NULL_HANDLE;
   VkRenderPass m_depth_resolve_render_pass = VK_NULL_HANDLE;
 
   u32 m_efb_width = 0;

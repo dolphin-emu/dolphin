@@ -78,8 +78,6 @@ Renderer* Renderer::GetInstance()
 
 bool Renderer::Initialize()
 {
-  BindEFBToStateTracker();
-
   if (!CreateSemaphores())
   {
     PanicAlert("Failed to create semaphores.");
@@ -373,23 +371,6 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool color_enable, bool alpha
   clear_color_value.color.float32[3] = static_cast<float>((color >> 24) & 0xFF) / 255.0f;
   clear_depth_value.depthStencil.depth = (1.0f - (static_cast<float>(z & 0xFFFFFF) / 16777216.0f));
 
-  // If we're not in a render pass (start of the frame), we can use a clear render pass
-  // to discard the data, rather than loading and then clearing.
-  bool use_clear_render_pass = (color_enable && alpha_enable && z_enable);
-  if (StateTracker::GetInstance()->InRenderPass())
-  {
-    // Prefer not to end a render pass just to do a clear.
-    use_clear_render_pass = false;
-  }
-
-  // Fastest path: Use a render pass to clear the buffers.
-  if (use_clear_render_pass)
-  {
-    VkClearValue clear_values[2] = {clear_color_value, clear_depth_value};
-    StateTracker::GetInstance()->BeginClearRenderPass(target_vk_rc, clear_values);
-    return;
-  }
-
   // Fast path: Use vkCmdClearAttachments to clear the buffers within a render path
   // We can't use this when preserving alpha but clearing color.
   if (g_ActiveConfig.iMultisamples == 1 ||
@@ -416,15 +397,9 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool color_enable, bool alpha
     }
     if (num_clear_attachments > 0)
     {
-      VkClearRect vk_rect = {target_vk_rc, 0, FramebufferManager::GetInstance()->GetEFBLayers()};
-      if (!StateTracker::GetInstance()->IsWithinRenderArea(
-              target_vk_rc.offset.x, target_vk_rc.offset.y, target_vk_rc.extent.width,
-              target_vk_rc.extent.height))
-      {
-        StateTracker::GetInstance()->EndClearRenderPass();
-      }
       StateTracker::GetInstance()->BeginRenderPass();
 
+      VkClearRect vk_rect = {target_vk_rc, 0, FramebufferManager::GetInstance()->GetEFBLayers()};
       vkCmdClearAttachments(g_command_buffer_mgr->GetCurrentCommandBuffer(), num_clear_attachments,
                             clear_attachments, 1, &vk_rect);
     }
@@ -435,13 +410,9 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool color_enable, bool alpha
     return;
 
   // Clearing must occur within a render pass.
-  if (!StateTracker::GetInstance()->IsWithinRenderArea(target_vk_rc.offset.x, target_vk_rc.offset.y,
-                                                       target_vk_rc.extent.width,
-                                                       target_vk_rc.extent.height))
-  {
-    StateTracker::GetInstance()->EndClearRenderPass();
-  }
   StateTracker::GetInstance()->BeginRenderPass();
+
+  // Set pending rebinding because we are modifying the active descriptor set.
   StateTracker::GetInstance()->SetPendingRebind();
 
   // Mask away the appropriate colors and use a shader
@@ -461,7 +432,7 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool color_enable, bool alpha
   // No need to start a new render pass, but we do need to restore viewport state
   UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                          g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_STANDARD),
-                         FramebufferManager::GetInstance()->GetEFBLoadRenderPass(),
+                         FramebufferManager::GetInstance()->GetEFBRenderPass(),
                          g_shader_cache->GetPassthroughVertexShader(),
                          g_shader_cache->GetPassthroughGeometryShader(), m_clear_fragment_shader);
 
@@ -480,9 +451,6 @@ void Renderer::ReinterpretPixelData(unsigned int convtype)
   StateTracker::GetInstance()->EndRenderPass();
   StateTracker::GetInstance()->SetPendingRebind();
   FramebufferManager::GetInstance()->ReinterpretPixelData(convtype);
-
-  // EFB framebuffer has now changed, so update accordingly.
-  BindEFBToStateTracker();
 }
 
 void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height,
@@ -1168,13 +1136,13 @@ void Renderer::CheckForConfigChanges()
     g_command_buffer_mgr->WaitForGPUIdle();
     FramebufferManager::GetInstance()->RecreateRenderPass();
     FramebufferManager::GetInstance()->ResizeEFBTextures();
-    BindEFBToStateTracker();
     RecompileShaders();
     FramebufferManager::GetInstance()->RecompileShaders();
     g_shader_cache->ReloadShaderAndPipelineCaches();
     g_shader_cache->RecompileSharedShaders();
     StateTracker::GetInstance()->InvalidateShaderPointers();
     StateTracker::GetInstance()->ReloadPipelineUIDCache();
+    StateTracker::GetInstance()->UpdateRasterizationStateSamples();
   }
 
   // For vsync, we need to change the present mode, which means recreating the swap chain.
@@ -1206,32 +1174,11 @@ void Renderer::OnSwapChainResized()
     ResizeEFBTextures();
 }
 
-void Renderer::BindEFBToStateTracker()
-{
-  // Update framebuffer in state tracker
-  VkRect2D framebuffer_size = {{0, 0},
-                               {FramebufferManager::GetInstance()->GetEFBWidth(),
-                                FramebufferManager::GetInstance()->GetEFBHeight()}};
-  StateTracker::GetInstance()->SetRenderPass(
-      FramebufferManager::GetInstance()->GetEFBLoadRenderPass(),
-      FramebufferManager::GetInstance()->GetEFBClearRenderPass());
-  StateTracker::GetInstance()->SetFramebuffer(
-      FramebufferManager::GetInstance()->GetEFBFramebuffer(), framebuffer_size);
-
-  // Update rasterization state with MSAA info
-  RasterizationState rs_state = {};
-  rs_state.bits = StateTracker::GetInstance()->GetRasterizationState().bits;
-  rs_state.samples = FramebufferManager::GetInstance()->GetEFBSamples();
-  rs_state.per_sample_shading = g_ActiveConfig.bSSAA ? VK_TRUE : VK_FALSE;
-  StateTracker::GetInstance()->SetRasterizationState(rs_state);
-}
-
 void Renderer::ResizeEFBTextures()
 {
   // Ensure the GPU is finished with the current EFB textures.
   g_command_buffer_mgr->WaitForGPUIdle();
   FramebufferManager::GetInstance()->ResizeEFBTextures();
-  BindEFBToStateTracker();
 
   // Viewport and scissor rect have to be reset since they will be scaled differently.
   SetViewport();

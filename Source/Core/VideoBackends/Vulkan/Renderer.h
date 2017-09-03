@@ -79,7 +79,6 @@ private:
   void ResetSamplerStates();
 
   void OnSwapChainResized();
-  void BindEFBToStateTracker();
   void ResizeEFBTextures();
   void ResizeSwapChain();
 
