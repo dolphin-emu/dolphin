@@ -4,6 +4,7 @@
 
 #include <QApplication>
 #include <QBoxLayout>
+#include <QCheckBox>
 #include <QCommandLinkButton>
 #include <QDialogButtonBox>
 #include <QFileInfo>
@@ -12,6 +13,7 @@
 #include <QProcess>
 #include <QStyle>
 
+#include "Core/ConfigManager.h"
 #include "DolphinQt2/InDevelopmentWarning.h"
 #include "DolphinQt2/Resources.h"
 
@@ -40,6 +42,7 @@ InDevelopmentWarning::InDevelopmentWarning(QWidget* parent)
   QCommandLinkButton* btn_dolphinwx = new QCommandLinkButton(
       tr("Run DolphinWX Instead"), tr("Recommended for normal users"), container);
   QCommandLinkButton* btn_run = new QCommandLinkButton(tr("Use DolphinQt Anyway"), container);
+  QCheckBox* hide_future = new QCheckBox(tr("Don't show me this warning again"));
 
   container->setForegroundRole(QPalette::Text);
   container->setBackgroundRole(QPalette::Base);
@@ -87,12 +90,15 @@ InDevelopmentWarning::InDevelopmentWarning(QWidget* parent)
   connect(btn_run, &QCommandLinkButton::clicked, this, [this](bool) { accept(); });
   connect(std_buttons->button(QDialogButtonBox::Cancel), &QPushButton::clicked, this,
           [this](bool) { reject(); });
+  connect(hide_future, &QCheckBox::toggled,
+          [](bool hide) { SConfig::GetInstance().m_show_development_warning = !hide; });
 
   QVBoxLayout* body_column = new QVBoxLayout();
   body_column->addWidget(heading);
   body_column->addWidget(body);
   body_column->addWidget(btn_dolphinwx);
   body_column->addWidget(btn_run);
+  body_column->addWidget(hide_future);
   body_column->setMargin(0);
   body_column->setSpacing(10);
 
