@@ -15,9 +15,12 @@
 #include "Common/FileUtil.h"
 #include "Core/CommonTitles.h"
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "Core/HW/WiiSaveCrypted.h"
+#include "Core/HW/Wiimote.h"
 #include "Core/IOS/ES/ES.h"
 #include "Core/IOS/IOS.h"
+#include "Core/Movie.h"
 #include "Core/State.h"
 #include "DiscIO/NANDImporter.h"
 #include "DolphinQt2/AboutDialog.h"
@@ -28,13 +31,17 @@ MenuBar::MenuBar(QWidget* parent) : QMenuBar(parent)
 {
   AddFileMenu();
   AddEmulationMenu();
-  addMenu(tr("Movie"));
+  AddMovieMenu();
   AddOptionsMenu();
   AddToolsMenu();
   AddViewMenu();
   AddHelpMenu();
 
   EmulationStopped();
+
+  connect(this, &MenuBar::SelectionChanged, this, &MenuBar::OnSelectionChanged);
+  connect(this, &MenuBar::RecordingStatusChanged, this, &MenuBar::OnRecordingStatusChanged);
+  connect(this, &MenuBar::ReadOnlyModeChanged, this, &MenuBar::OnReadOnlyModeChanged);
 }
 
 void MenuBar::EmulationStarted()
@@ -51,6 +58,11 @@ void MenuBar::EmulationStarted()
   m_screenshot_action->setEnabled(true);
   m_state_load_menu->setEnabled(true);
   m_state_save_menu->setEnabled(true);
+
+  // Movie
+  m_recording_read_only->setEnabled(true);
+  m_recording_play->setEnabled(false);
+
   UpdateStateSlotMenu();
   UpdateToolsMenu(true);
 }
@@ -75,6 +87,12 @@ void MenuBar::EmulationStopped()
   m_screenshot_action->setEnabled(false);
   m_state_load_menu->setEnabled(false);
   m_state_save_menu->setEnabled(false);
+
+  // Movie
+  m_recording_read_only->setEnabled(false);
+  m_recording_stop->setEnabled(false);
+  m_recording_play->setEnabled(false);
+
   UpdateStateSlotMenu();
   UpdateToolsMenu(false);
 }
@@ -391,6 +409,75 @@ void MenuBar::AddShowRegionsMenu(QMenu* view_menu)
   }
 }
 
+void MenuBar::AddMovieMenu()
+{
+  auto* movie_menu = addMenu(tr("&Movie"));
+  m_recording_start =
+      movie_menu->addAction(tr("Start Recording Input"), [this] { emit StartRecording(); });
+  m_recording_play =
+      movie_menu->addAction(tr("Play Input Recording..."), [this] { emit PlayRecording(); });
+  m_recording_stop =
+      movie_menu->addAction(tr("Stop Playing/Recording Input"), [this] { emit StopRecording(); });
+  m_recording_export =
+      movie_menu->addAction(tr("Export Recording..."), [this] { emit ExportRecording(); });
+
+  m_recording_start->setEnabled(false);
+  m_recording_play->setEnabled(false);
+  m_recording_stop->setEnabled(false);
+  m_recording_export->setEnabled(false);
+
+  m_recording_read_only = movie_menu->addAction(tr("Read-Only Mode"));
+  m_recording_read_only->setCheckable(true);
+  m_recording_read_only->setChecked(Movie::IsReadOnly());
+  connect(m_recording_read_only, &QAction::toggled, [](bool value) { Movie::SetReadOnly(value); });
+
+  movie_menu->addSeparator();
+
+  auto* pause_at_end = movie_menu->addAction(tr("Pause at End of Movie"));
+  pause_at_end->setCheckable(true);
+  pause_at_end->setChecked(SConfig::GetInstance().m_PauseMovie);
+  connect(pause_at_end, &QAction::toggled,
+          [](bool value) { SConfig::GetInstance().m_PauseMovie = value; });
+
+  auto* lag_counter = movie_menu->addAction(tr("Show Lag Counter"));
+  lag_counter->setCheckable(true);
+  lag_counter->setChecked(SConfig::GetInstance().m_ShowLag);
+  connect(lag_counter, &QAction::toggled,
+          [](bool value) { SConfig::GetInstance().m_ShowLag = value; });
+
+  auto* frame_counter = movie_menu->addAction(tr("Show Frame Counter"));
+  frame_counter->setCheckable(true);
+  frame_counter->setChecked(SConfig::GetInstance().m_ShowFrameCount);
+  connect(frame_counter, &QAction::toggled,
+          [](bool value) { SConfig::GetInstance().m_ShowFrameCount = value; });
+
+  auto* input_display = movie_menu->addAction(tr("Show Input Display"));
+  input_display->setCheckable(true);
+  input_display->setChecked(SConfig::GetInstance().m_ShowInputDisplay);
+  connect(frame_counter, &QAction::toggled,
+          [](bool value) { SConfig::GetInstance().m_ShowInputDisplay = value; });
+
+  auto* system_clock = movie_menu->addAction(tr("Show System Clock"));
+  system_clock->setCheckable(true);
+  system_clock->setChecked(SConfig::GetInstance().m_ShowRTC);
+  connect(system_clock, &QAction::toggled,
+          [](bool value) { SConfig::GetInstance().m_ShowRTC = value; });
+
+  movie_menu->addSeparator();
+
+  auto* dump_frames = movie_menu->addAction(tr("Dump Frames"));
+  dump_frames->setCheckable(true);
+  dump_frames->setChecked(SConfig::GetInstance().m_DumpFrames);
+  connect(dump_frames, &QAction::toggled,
+          [](bool value) { SConfig::GetInstance().m_DumpFrames = value; });
+
+  auto* dump_audio = movie_menu->addAction(tr("Dump Audio"));
+  dump_audio->setCheckable(true);
+  dump_audio->setChecked(SConfig::GetInstance().m_DumpAudio);
+  connect(dump_audio, &QAction::toggled,
+          [](bool value) { SConfig::GetInstance().m_DumpAudio = value; });
+}
+
 void MenuBar::UpdateToolsMenu(bool emulation_started)
 {
   m_boot_sysmenu->setEnabled(!emulation_started);
@@ -472,4 +559,23 @@ void MenuBar::NANDExtractCertificates()
   {
     QMessageBox::critical(this, tr("Error"), tr("Failed to extract certificates from NAND"));
   }
+}
+
+void MenuBar::OnSelectionChanged(QSharedPointer<GameFile> game_file)
+{
+  bool is_null = game_file.isNull();
+
+  m_recording_play->setEnabled(!Core::IsRunning() && !is_null);
+  m_recording_start->setEnabled(!Movie::IsPlayingInput() && !is_null);
+}
+
+void MenuBar::OnRecordingStatusChanged(bool recording)
+{
+  m_recording_start->setEnabled(!recording);
+  m_recording_stop->setEnabled(recording);
+}
+
+void MenuBar::OnReadOnlyModeChanged(bool read_only)
+{
+  m_recording_read_only->setChecked(read_only);
 }

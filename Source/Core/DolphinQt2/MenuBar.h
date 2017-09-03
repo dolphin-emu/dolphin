@@ -14,6 +14,8 @@ namespace DiscIO
 enum class Region;
 };
 
+#include "DolphinQt2/GameList/GameFile.h"
+
 class MenuBar final : public QMenuBar
 {
   Q_OBJECT
@@ -75,6 +77,16 @@ signals:
 
   void ShowAboutDialog();
 
+  // Movie
+  void PlayRecording();
+  void StartRecording();
+  void StopRecording();
+  void ExportRecording();
+
+  void SelectionChanged(QSharedPointer<GameFile> game_file);
+  void RecordingStatusChanged(bool recording);
+  void ReadOnlyModeChanged(bool read_only);
+
 private:
   void AddFileMenu();
 
@@ -92,11 +104,16 @@ private:
   void AddOptionsMenu();
   void AddToolsMenu();
   void AddHelpMenu();
+  void AddMovieMenu();
 
   void InstallWAD();
   void ImportWiiSave();
   void ExportWiiSaves();
   void NANDExtractCertificates();
+
+  void OnSelectionChanged(QSharedPointer<GameFile> game_file);
+  void OnRecordingStatusChanged(bool recording);
+  void OnReadOnlyModeChanged(bool read_only);
 
   // File
   QAction* m_open_action;
@@ -127,4 +144,11 @@ private:
   QActionGroup* m_state_slots;
   QMenu* m_state_load_slots_menu;
   QMenu* m_state_save_slots_menu;
+
+  // Movie
+  QAction* m_recording_export;
+  QAction* m_recording_play;
+  QAction* m_recording_start;
+  QAction* m_recording_stop;
+  QAction* m_recording_read_only;
 };

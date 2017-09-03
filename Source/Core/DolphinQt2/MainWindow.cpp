@@ -211,6 +211,12 @@ void MainWindow::ConnectMenuBar()
   connect(m_menu_bar, &MenuBar::BootWiiSystemMenu, this, &MainWindow::BootWiiSystemMenu);
   connect(m_menu_bar, &MenuBar::StartNetPlay, this, &MainWindow::ShowNetPlaySetupDialog);
 
+  // Movie
+  connect(m_menu_bar, &MenuBar::PlayRecording, this, &MainWindow::OnPlayRecording);
+  connect(m_menu_bar, &MenuBar::StartRecording, this, &MainWindow::OnStartRecording);
+  connect(m_menu_bar, &MenuBar::StopRecording, this, &MainWindow::OnStopRecording);
+  connect(m_menu_bar, &MenuBar::ExportRecording, this, &MainWindow::OnExportRecording);
+
   // View
   connect(m_menu_bar, &MenuBar::ShowList, m_game_list, &GameList::SetListView);
   connect(m_menu_bar, &MenuBar::ShowGrid, m_game_list, &GameList::SetGridView);
@@ -227,6 +233,9 @@ void MainWindow::ConnectMenuBar()
   connect(this, &MainWindow::EmulationStarted, m_menu_bar, &MenuBar::EmulationStarted);
   connect(this, &MainWindow::EmulationPaused, m_menu_bar, &MenuBar::EmulationPaused);
   connect(this, &MainWindow::EmulationStopped, m_menu_bar, &MenuBar::EmulationStopped);
+  connect(m_game_list, &GameList::SelectionChanged, m_menu_bar, &MenuBar::SelectionChanged);
+  connect(this, &MainWindow::ReadOnlyModeChanged, m_menu_bar, &MenuBar::ReadOnlyModeChanged);
+  connect(this, &MainWindow::RecordingStatusChanged, m_menu_bar, &MenuBar::RecordingStatusChanged);
 
   connect(this, &MainWindow::EmulationStarted, this,
           [=]() { m_controllers_window->OnEmulationStateChanged(true); });
@@ -248,6 +257,16 @@ void MainWindow::ConnectHotkeys()
           &MainWindow::StateSaveSlot);
   connect(m_hotkey_scheduler, &HotkeyScheduler::SetStateSlotHotkey, this,
           &MainWindow::SetStateSlot);
+
+  connect(m_hotkey_scheduler, &HotkeyScheduler::StartRecording, this,
+          &MainWindow::OnStartRecording);
+  connect(m_hotkey_scheduler, &HotkeyScheduler::ExportRecording, this,
+          &MainWindow::OnExportRecording);
+  connect(m_hotkey_scheduler, &HotkeyScheduler::ToggleReadOnlyMode, [this] {
+    bool read_only = !Movie::IsReadOnly();
+    Movie::SetReadOnly(read_only);
+    emit ReadOnlyModeChanged(read_only);
+  });
 }
 
 void MainWindow::ConnectToolBar()
@@ -882,4 +901,90 @@ void MainWindow::OnImportNANDBackup()
   result.wait();
 
   m_menu_bar->UpdateToolsMenu(Core::IsRunning());
+}
+
+void MainWindow::OnPlayRecording()
+{
+  QString dtm_file = QFileDialog::getOpenFileName(this, tr("Select The Recording File"), QString(),
+                                                  tr("Dolphin TAS Movies (*.dtm)"));
+
+  if (dtm_file.isEmpty())
+    return;
+
+  if (!Movie::IsReadOnly())
+  {
+    // let's make the read-only flag consistent at the start of a movie.
+    Movie::SetReadOnly(true);
+    emit ReadOnlyModeChanged(true);
+  }
+
+  if (Movie::PlayInput(dtm_file.toStdString()))
+  {
+    emit RecordingStatusChanged(true);
+
+    Play();
+  }
+}
+
+void MainWindow::OnStartRecording()
+{
+  if ((!Core::IsRunningAndStarted() && Core::IsRunning()) || Movie::IsRecordingInput() ||
+      Movie::IsPlayingInput())
+    return;
+
+  if (Movie::IsReadOnly())
+  {
+    // The user just chose to record a movie, so that should take precedence
+    Movie::SetReadOnly(false);
+    emit ReadOnlyModeChanged(true);
+  }
+
+  int controllers = 0;
+
+  for (int i = 0; i < 4; i++)
+  {
+    if (SerialInterface::SIDevice_IsGCController(SConfig::GetInstance().m_SIDevice[i]))
+      controllers |= (1 << i);
+
+    if (g_wiimote_sources[i] != WIIMOTE_SRC_NONE)
+      controllers |= (1 << (i + 4));
+  }
+
+  if (Movie::BeginRecordingInput(controllers))
+  {
+    emit RecordingStatusChanged(true);
+
+    if (!Core::IsRunning())
+      Play();
+  }
+}
+
+void MainWindow::OnStopRecording()
+{
+  if (Movie::IsRecordingInput())
+    OnExportRecording();
+
+  Movie::EndPlayInput(false);
+  emit RecordingStatusChanged(true);
+}
+
+void MainWindow::OnExportRecording()
+{
+  bool was_paused = Core::GetState() == Core::State::Paused;
+
+  if (was_paused)
+    Core::SetState(Core::State::Paused);
+
+  QString dtm_file = QFileDialog::getSaveFileName(this, tr("Select The Recording File"), QString(),
+                                                  tr("Dolphin TAS Movies (*.dtm)"));
+
+  if (was_paused)
+    Core::SetState(Core::State::Running);
+
+  if (dtm_file.isEmpty())
+    return;
+
+  Core::SetState(Core::State::Running);
+
+  Movie::SaveRecording(dtm_file.toStdString());
 }
