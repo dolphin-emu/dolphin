@@ -69,9 +69,8 @@ DXTexture::DXTexture(const TextureConfig& tex_config) : AbstractTexture(tex_conf
     m_texture = new D3DTexture2D(pTexture, D3D11_BIND_SHADER_RESOURCE);
 
     // TODO: better debug names
-    D3D::SetDebugObjectName((ID3D11DeviceChild*)m_texture->GetTex(),
-                            "a texture of the TextureCache");
-    D3D::SetDebugObjectName((ID3D11DeviceChild*)m_texture->GetSRV(),
+    D3D::SetDebugObjectName(m_texture->GetTex(), "a texture of the TextureCache");
+    D3D::SetDebugObjectName(m_texture->GetSRV(),
                             "shader resource view of a texture of the TextureCache");
 
     SAFE_RELEASE(pTexture);

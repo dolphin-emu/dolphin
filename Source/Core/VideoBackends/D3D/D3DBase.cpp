@@ -386,7 +386,7 @@ HRESULT Create(HWND wnd)
     MessageBox(wnd, _T("Failed to associate the window"), _T("Dolphin Direct3D 11 backend"),
                MB_OK | MB_ICONERROR);
 
-  SetDebugObjectName((ID3D11DeviceChild*)context, "device context");
+  SetDebugObjectName(context, "device context");
   SAFE_RELEASE(factory);
   SAFE_RELEASE(adapter);
 
@@ -410,8 +410,8 @@ HRESULT Create(HWND wnd)
   backbuf = new D3DTexture2D(buf, D3D11_BIND_RENDER_TARGET);
   SAFE_RELEASE(buf);
   CHECK(backbuf != nullptr, "Create back buffer texture");
-  SetDebugObjectName((ID3D11DeviceChild*)backbuf->GetTex(), "backbuffer texture");
-  SetDebugObjectName((ID3D11DeviceChild*)backbuf->GetRTV(), "backbuffer render target view");
+  SetDebugObjectName(backbuf->GetTex(), "backbuffer texture");
+  SetDebugObjectName(backbuf->GetRTV(), "backbuffer render target view");
 
   context->OMSetRenderTargets(1, &backbuf->GetRTV(), nullptr);
 
@@ -571,8 +571,8 @@ void Reset()
   backbuf = new D3DTexture2D(buf, D3D11_BIND_RENDER_TARGET);
   SAFE_RELEASE(buf);
   CHECK(backbuf != nullptr, "Create back buffer texture");
-  SetDebugObjectName((ID3D11DeviceChild*)backbuf->GetTex(), "backbuffer texture");
-  SetDebugObjectName((ID3D11DeviceChild*)backbuf->GetRTV(), "backbuffer render target view");
+  SetDebugObjectName(backbuf->GetTex(), "backbuffer texture");
+  SetDebugObjectName(backbuf->GetRTV(), "backbuffer render target view");
 }
 
 bool BeginFrame()
@@ -616,6 +616,29 @@ bool GetFullscreenState()
   BOOL state = FALSE;
   swapchain->GetFullscreenState(&state, nullptr);
   return !!state;
+}
+
+void SetDebugObjectName(ID3D11DeviceChild* resource, const char* name)
+{
+#if defined(_DEBUG) || defined(DEBUGFAST)
+  if (resource)
+    resource->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)(name ? strlen(name) : 0), name);
+#endif
+}
+
+std::string GetDebugObjectName(ID3D11DeviceChild* resource)
+{
+  std::string name;
+#if defined(_DEBUG) || defined(DEBUGFAST)
+  if (resource)
+  {
+    UINT size = 0;
+    resource->GetPrivateData(WKPDID_D3DDebugObjectName, &size, nullptr);  // get required size
+    name.resize(size);
+    resource->GetPrivateData(WKPDID_D3DDebugObjectName, &size, const_cast<char*>(name.data()));
+  }
+#endif
+  return name;
 }
 
 }  // namespace D3D

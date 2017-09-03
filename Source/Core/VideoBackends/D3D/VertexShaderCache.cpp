@@ -141,8 +141,7 @@ void VertexShaderCache::Init()
                                                 D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
   HRESULT hr = D3D::device->CreateBuffer(&cbdesc, nullptr, &vscbuf);
   CHECK(hr == S_OK, "Create vertex shader constant buffer (size=%u)", cbsize);
-  D3D::SetDebugObjectName((ID3D11DeviceChild*)vscbuf,
-                          "vertex shader constant buffer used to emulate the GX pipeline");
+  D3D::SetDebugObjectName(vscbuf, "vertex shader constant buffer used to emulate the GX pipeline");
 
   D3DBlob* blob;
   D3D::CompileVertexShader(simple_shader_code, &blob);
@@ -152,8 +151,8 @@ void VertexShaderCache::Init()
     PanicAlert("Failed to create simple vertex shader or input layout at %s %d\n", __FILE__,
                __LINE__);
   blob->Release();
-  D3D::SetDebugObjectName((ID3D11DeviceChild*)SimpleVertexShader, "simple vertex shader");
-  D3D::SetDebugObjectName((ID3D11DeviceChild*)SimpleLayout, "simple input layout");
+  D3D::SetDebugObjectName(SimpleVertexShader, "simple vertex shader");
+  D3D::SetDebugObjectName(SimpleLayout, "simple input layout");
 
   D3D::CompileVertexShader(clear_shader_code, &blob);
   D3D::device->CreateInputLayout(clearelems, 2, blob->Data(), blob->Size(), &ClearLayout);
@@ -162,8 +161,8 @@ void VertexShaderCache::Init()
     PanicAlert("Failed to create clear vertex shader or input layout at %s %d\n", __FILE__,
                __LINE__);
   blob->Release();
-  D3D::SetDebugObjectName((ID3D11DeviceChild*)ClearVertexShader, "clear vertex shader");
-  D3D::SetDebugObjectName((ID3D11DeviceChild*)ClearLayout, "clear input layout");
+  D3D::SetDebugObjectName(ClearVertexShader, "clear vertex shader");
+  D3D::SetDebugObjectName(ClearLayout, "clear input layout");
 
   Clear();
 
