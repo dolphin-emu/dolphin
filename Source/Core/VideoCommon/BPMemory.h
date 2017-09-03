@@ -648,6 +648,8 @@ union BlendMode
   BitField<12, 4, LogicOp> logicmode;
 
   u32 hex;
+
+  bool UseLogicOp() const;
 };
 
 union FogParam0
