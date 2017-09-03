@@ -60,8 +60,8 @@ GLVertexFormat::GLVertexFormat(const PortableVertexDeclaration& _vtx_decl)
   ProgramShaderCache::BindVertexFormat(this);
 
   // the element buffer is bound directly to the vao, so we must it set for every vao
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vm->m_index_buffers);
-  glBindBuffer(GL_ARRAY_BUFFER, vm->m_vertex_buffers);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vm->GetIndexBufferHandle());
+  glBindBuffer(GL_ARRAY_BUFFER, vm->GetVertexBufferHandle());
 
   SetPointer(SHADER_POSITION_ATTRIB, vertex_stride, _vtx_decl.position);
 
