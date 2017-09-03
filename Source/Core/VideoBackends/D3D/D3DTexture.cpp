@@ -74,7 +74,7 @@ ID3D11DepthStencilView*& D3DTexture2D::GetDSV()
 
 D3DTexture2D::D3DTexture2D(ID3D11Texture2D* texptr, D3D11_BIND_FLAG bind, DXGI_FORMAT srv_format,
                            DXGI_FORMAT dsv_format, DXGI_FORMAT rtv_format, bool multisampled)
-    : ref(1), tex(texptr), srv(nullptr), rtv(nullptr), dsv(nullptr)
+    : tex{texptr}
 {
   D3D11_SRV_DIMENSION srv_dim =
       multisampled ? D3D11_SRV_DIMENSION_TEXTURE2DMSARRAY : D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
