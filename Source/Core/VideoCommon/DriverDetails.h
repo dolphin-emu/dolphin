@@ -254,11 +254,16 @@ enum Bug
   // Ended Version: -1
   BUG_SHARED_CONTEXT_SHADER_COMPILATION,
 
-  // Bug: vkCmdClearAttachments with MSAA enabled causes NVIDIA Maxwell+ cards to lock up.
+  // Bug: Fast clears on a MSAA framebuffer can cause NVIDIA GPU resets/lockups.
   // Started version: -1
   // Ended version: -1
-  // Seems to only occur when the top of the clear rect is non-zero.
-  BUG_BROKEN_MSAA_VKCMDCLEARATTACHMENTS,
+  // Calling vkCmdClearAttachments with a partial rect, or specifying a render area in a
+  // render pass with the load op set to clear can cause the GPU to lock up, or raise a
+  // bounds violation. This only occurs on MSAA framebuffers, and it seems when there are
+  // multiple clears in a single command buffer. Worked around by back to the slow path
+  // (drawing quads) when MSAA is enabled.
+  BUG_BROKEN_MSAA_CLEAR,
+
   // BUG: Some vulkan implementations don't like the 'clear' loadop renderpass.
   // For example, the ImgTec VK driver fails if you try to use a framebuffer with a different
   // load/store op than that which it was created with, despite the spec saying they should be
