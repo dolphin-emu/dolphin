@@ -1213,7 +1213,7 @@ void ScheduleReads(u64 offset, u32 length, const DiscIO::Partition& partition, u
   const u32 bytes_per_chunk =
       partition == DiscIO::PARTITION_NONE ? DVD_ECC_BLOCK_SIZE : DiscIO::VolumeWii::BLOCK_DATA_SIZE;
 
-  while (length > 0)
+  do
   {
     // The length of this read - "+1" so that if this read is already
     // aligned to a block we'll read the entire block.
@@ -1221,6 +1221,8 @@ void ScheduleReads(u64 offset, u32 length, const DiscIO::Partition& partition, u
 
     // The last chunk may be short
     chunk_length = std::min(chunk_length, length);
+
+    // TODO: If the emulated software requests 0 bytes of data, should we seek or not?
 
     if (dvd_offset >= buffer_start && dvd_offset < buffer_end)
     {
@@ -1266,7 +1268,7 @@ void ScheduleReads(u64 offset, u32 length, const DiscIO::Partition& partition, u
     offset += chunk_length;
     length -= chunk_length;
     dvd_offset += DVD_ECC_BLOCK_SIZE;
-  }
+  } while (length > 0);
 
   // Update the buffer based on this read. Based on experimental testing,
   // we will only reuse the old buffer while reading forward. Note that the
