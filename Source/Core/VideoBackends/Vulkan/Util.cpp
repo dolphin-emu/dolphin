@@ -282,38 +282,50 @@ VkShaderModule CreateShaderModule(const u32* spv, size_t spv_word_count)
   return module;
 }
 
-VkShaderModule CompileAndCreateVertexShader(const std::string& source_code)
+VkShaderModule CompileAndCreateVertexShader(const std::string& source_code, bool prepend_header)
 {
   ShaderCompiler::SPIRVCodeVector code;
-  if (!ShaderCompiler::CompileVertexShader(&code, source_code.c_str(), source_code.length()))
+  if (!ShaderCompiler::CompileVertexShader(&code, source_code.c_str(), source_code.length(),
+                                           prepend_header))
+  {
     return VK_NULL_HANDLE;
+  }
 
   return CreateShaderModule(code.data(), code.size());
 }
 
-VkShaderModule CompileAndCreateGeometryShader(const std::string& source_code)
+VkShaderModule CompileAndCreateGeometryShader(const std::string& source_code, bool prepend_header)
 {
   ShaderCompiler::SPIRVCodeVector code;
-  if (!ShaderCompiler::CompileGeometryShader(&code, source_code.c_str(), source_code.length()))
+  if (!ShaderCompiler::CompileGeometryShader(&code, source_code.c_str(), source_code.length(),
+                                             prepend_header))
+  {
     return VK_NULL_HANDLE;
+  }
 
   return CreateShaderModule(code.data(), code.size());
 }
 
-VkShaderModule CompileAndCreateFragmentShader(const std::string& source_code)
+VkShaderModule CompileAndCreateFragmentShader(const std::string& source_code, bool prepend_header)
 {
   ShaderCompiler::SPIRVCodeVector code;
-  if (!ShaderCompiler::CompileFragmentShader(&code, source_code.c_str(), source_code.length()))
+  if (!ShaderCompiler::CompileFragmentShader(&code, source_code.c_str(), source_code.length(),
+                                             prepend_header))
+  {
     return VK_NULL_HANDLE;
+  }
 
   return CreateShaderModule(code.data(), code.size());
 }
 
-VkShaderModule CompileAndCreateComputeShader(const std::string& source_code)
+VkShaderModule CompileAndCreateComputeShader(const std::string& source_code, bool prepend_header)
 {
   ShaderCompiler::SPIRVCodeVector code;
-  if (!ShaderCompiler::CompileComputeShader(&code, source_code.c_str(), source_code.length()))
+  if (!ShaderCompiler::CompileComputeShader(&code, source_code.c_str(), source_code.length(),
+                                            prepend_header))
+  {
     return VK_NULL_HANDLE;
+  }
 
   return CreateShaderModule(code.data(), code.size());
 }
