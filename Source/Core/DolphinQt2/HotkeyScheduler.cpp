@@ -162,6 +162,16 @@ void HotkeyScheduler::Run()
 
       auto& settings = Settings::Instance();
 
+      // Recording
+      if (IsHotkey(HK_START_RECORDING))
+        emit StartRecording();
+
+      if (IsHotkey(HK_EXPORT_RECORDING))
+        emit ExportRecording();
+
+      if (IsHotkey(HK_READ_ONLY_MODE))
+        emit ToggleReadOnlyMode();
+
       // Volume
       if (IsHotkey(HK_VOLUME_DOWN))
         settings.DecreaseVolume(3);
