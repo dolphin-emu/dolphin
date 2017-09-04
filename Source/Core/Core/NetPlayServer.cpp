@@ -351,9 +351,9 @@ unsigned int NetPlayServer::OnConnect(ENetPeer* socket)
   }
   spac.clear();
   spac << static_cast<MessageId>(NP_MSG_SYNC_GC_SRAM);
-  for (size_t i = 0; i < sizeof(g_SRAM.p_SRAM); ++i)
+  for (size_t i = 0; i < sizeof(g_SRAM) - offsetof(Sram, settings); ++i)
   {
-    spac << g_SRAM.p_SRAM[i];
+    spac << g_SRAM.raw[offsetof(Sram, settings) + i];
   }
   Send(player.socket, spac);
 
