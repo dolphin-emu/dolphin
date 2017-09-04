@@ -171,9 +171,12 @@ static bool acc_end_reached;
 void AcceleratorSetup(PB_TYPE* pb, u32* cur_addr)
 {
   acc_pb = pb;
-  acc_loop_addr = HILO_TO_32(pb->audio_addr.loop_addr);
-  acc_end_addr = HILO_TO_32(pb->audio_addr.end_addr);
+  // Masking occurs for the start and end addresses as soon as the registers are written to.
+  acc_loop_addr = HILO_TO_32(pb->audio_addr.loop_addr) & 0x3fffffff;
+  acc_end_addr = HILO_TO_32(pb->audio_addr.end_addr) & 0x3fffffff;
   acc_cur_addr = cur_addr;
+  // It also happens for the current address, but with a different mask.
+  *acc_cur_addr &= 0xbfffffff;
   acc_end_reached = false;
 }
 
@@ -456,8 +459,8 @@ void GetInputSamples(PB_TYPE& pb, s16* samples, u16 count, const s16* coeffs)
   pb.src.cur_addr_frac = (curr_pos & 0xFFFF);
 
   // Update current position in the PB.
-  pb.audio_addr.cur_addr_hi = (u16)(cur_addr >> 16);
-  pb.audio_addr.cur_addr_lo = (u16)(cur_addr & 0xFFFF);
+  pb.audio_addr.cur_addr_hi = static_cast<u16>(cur_addr >> 16) & 0xbfff;
+  pb.audio_addr.cur_addr_lo = static_cast<u16>(cur_addr);
 }
 
 // Add samples to an output buffer, with optional volume ramping.
