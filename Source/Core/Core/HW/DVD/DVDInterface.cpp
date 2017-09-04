@@ -39,7 +39,7 @@
 
 // The minimum time it takes for the DVD drive to process a command (in
 // microseconds)
-constexpr u64 COMMAND_LATENCY_US = 300;
+constexpr u64 COMMAND_LATENCY_US = 382;
 
 // The size of the streaming buffer.
 constexpr u64 STREAMING_BUFFER_SIZE = 1024 * 1024;
