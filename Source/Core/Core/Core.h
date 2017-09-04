@@ -85,8 +85,8 @@ void UpdateTitle();
 void RunAsCPUThread(std::function<void()> function);
 
 // for calling back into UI code without introducing a dependency on it in core
-using StoppedCallbackFunc = std::function<void()>;
-void SetOnStoppedCallback(StoppedCallbackFunc callback);
+using StateChangedCallbackFunc = std::function<void(Core::State)>;
+void SetOnStateChangedCallback(StateChangedCallbackFunc callback);
 
 // Run on the Host thread when the factors change. [NOT THREADSAFE]
 void UpdateWantDeterminism(bool initial = false);

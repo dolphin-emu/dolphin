@@ -121,7 +121,10 @@ void MainWindow::ShutdownControllers()
 
 void MainWindow::InitCoreCallbacks()
 {
-  Core::SetOnStoppedCallback([this] { emit EmulationStopped(); });
+  Core::SetOnStateChangedCallback([=](Core::State state) {
+    if (state == Core::State::Uninitialized)
+      emit EmulationStopped();
+  });
   installEventFilter(this);
   m_render_widget->installEventFilter(this);
 }
