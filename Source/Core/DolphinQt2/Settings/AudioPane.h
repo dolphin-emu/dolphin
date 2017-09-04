@@ -21,8 +21,6 @@ class AudioPane final : public QWidget
 public:
   explicit AudioPane();
 
-  void OnEmulationStateChanged(bool running);
-
 private:
   void CreateWidgets();
   void ConnectWidgets();
@@ -30,6 +28,7 @@ private:
   void LoadSettings();
   void SaveSettings();
 
+  void OnEmulationStateChanged(bool running);
   void OnBackendChanged();
   void OnVolumeChanged(int volume);
 

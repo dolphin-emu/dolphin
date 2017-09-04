@@ -11,11 +11,16 @@
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "DolphinQt2/GameList/GameListModel.h"
 #include "DolphinQt2/Settings.h"
 #include "InputCommon/InputConfig.h"
 
-Settings::Settings() = default;
+Settings::Settings()
+{
+  Core::SetOnStateChangedCallback(
+      [this](Core::State new_state) { emit EmulationStateChanged(new_state); });
+}
 
 Settings& Settings::Instance()
 {

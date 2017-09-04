@@ -54,7 +54,6 @@ public:
   void SetMD5Result(int pid, const std::string& result) override;
   void AbortMD5() override;
 signals:
-  void EmulationStopped();
   void Boot(const QString& filename);
   void Stop();
 

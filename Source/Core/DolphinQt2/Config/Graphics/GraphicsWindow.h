@@ -33,8 +33,6 @@ public:
   bool eventFilter(QObject* object, QEvent* event) override;
 signals:
   void BackendChanged(const QString& backend);
-  void EmulationStarted();
-  void EmulationStopped();
 
 private:
   void CreateMainLayout();

@@ -21,6 +21,7 @@
 #include <map>
 
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "Core/HW/SI/SI.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
@@ -238,6 +239,9 @@ void ControllersWindow::CreateMainLayout()
 
 void ControllersWindow::ConnectWidgets()
 {
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
+          [=](Core::State state) { OnEmulationStateChanged(state != Core::State::Uninitialized); });
+
   connect(m_wiimote_passthrough, &QRadioButton::toggled, this,
           &ControllersWindow::OnWiimoteModeChanged);
 
