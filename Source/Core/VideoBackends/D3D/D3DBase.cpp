@@ -306,9 +306,9 @@ HRESULT Create(HWND wnd)
   swap_chain_desc.Height = yres;
   swap_chain_desc.Stereo = g_ActiveConfig.iStereoMode == STEREO_QUADBUFFER;
 
-#if defined(_DEBUG) || defined(DEBUGFAST)
   // Creating debug devices can sometimes fail if the user doesn't have the correct
   // version of the DirectX SDK. If it does, simply fallback to a non-debug device.
+  if (g_Config.bEnableValidationLayer)
   {
     hr = PD3D11CreateDevice(adapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr, D3D11_CREATE_DEVICE_DEBUG,
                             supported_feature_levels, NUM_SUPPORTED_FEATURE_LEVELS,
@@ -334,8 +334,7 @@ HRESULT Create(HWND wnd)
     }
   }
 
-  if (FAILED(hr))
-#endif
+  if (!g_Config.bEnableValidationLayer || FAILED(hr))
   {
     hr = PD3D11CreateDevice(adapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr, 0, supported_feature_levels,
                             NUM_SUPPORTED_FEATURE_LEVELS, D3D11_SDK_VERSION, &device, &featlevel,

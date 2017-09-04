@@ -56,7 +56,7 @@ public:
   void ResetAPIState() override;
   void RestoreAPIState() override;
 
-  void SetBlendMode(bool force_update) override;
+  void SetBlendingState(const BlendingState& state) override;
   void SetScissorRect(const EFBRectangle& rc) override;
   void SetGenerationMode() override;
   void SetDepthMode() override;

@@ -1264,11 +1264,8 @@ void Renderer::ReinterpretPixelData(unsigned int convtype)
   }
 }
 
-void Renderer::SetBlendMode(bool forceUpdate)
+void Renderer::SetBlendingState(const BlendingState& state)
 {
-  BlendingState state;
-  state.Generate(bpmem);
-
   bool useDualSource =
       state.usedualsrc && g_ActiveConfig.backend_info.bSupportsDualSourceBlend &&
       (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING) || state.dstalpha);
@@ -1791,7 +1788,7 @@ void Renderer::RestoreAPIState()
   SetGenerationMode();
   BPFunctions::SetScissor();
   SetDepthMode();
-  SetBlendMode(true);
+  BPFunctions::SetBlendMode();
   SetViewport();
 
   ProgramShaderCache::BindLastVertexFormat();

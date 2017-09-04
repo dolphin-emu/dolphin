@@ -8,6 +8,7 @@
 #include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/RenderBase.h"
+#include "VideoCommon/RenderState.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
@@ -72,17 +73,9 @@ void SetDepthMode()
 
 void SetBlendMode()
 {
-  g_renderer->SetBlendMode(false);
-}
-
-void SetLogicOpMode()
-{
-  g_renderer->SetLogicOpMode();
-}
-
-void SetColorMask()
-{
-  g_renderer->SetColorMask();
+  BlendingState state;
+  state.Generate(bpmem);
+  g_renderer->SetBlendingState(state);
 }
 
 /* Explanation of the magic behind ClearScreen:
