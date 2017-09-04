@@ -57,6 +57,8 @@ public:
   VkDevice GetDevice() const { return m_device; }
   VkQueue GetGraphicsQueue() const { return m_graphics_queue; }
   u32 GetGraphicsQueueFamilyIndex() const { return m_graphics_queue_family_index; }
+  VkQueue GetPresentQueue() const { return m_present_queue; }
+  u32 GetPresentQueueFamilyIndex() const { return m_present_queue_family_index; }
   const VkQueueFamilyProperties& GetGraphicsQueueProperties() const
   {
     return m_graphics_queue_properties;
@@ -119,6 +121,8 @@ private:
 
   VkQueue m_graphics_queue = VK_NULL_HANDLE;
   u32 m_graphics_queue_family_index = 0;
+  VkQueue m_present_queue = VK_NULL_HANDLE;
+  u32 m_present_queue_family_index = 0;
   VkQueueFamilyProperties m_graphics_queue_properties = {};
 
   VkDebugReportCallbackEXT m_debug_report_callback = VK_NULL_HANDLE;
