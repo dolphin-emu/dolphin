@@ -175,6 +175,7 @@ PixelShaderUid GetPixelShaderUid()
   uid_data->rgba6_format =
       bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24 && !g_ActiveConfig.bForceTrueColor;
   uid_data->dither = bpmem.blendmode.dither && uid_data->rgba6_format;
+  uid_data->uint_output = bpmem.blendmode.UseLogicOp();
 
   u32 numStages = uid_data->genMode_numtevstages + 1;
 
@@ -434,7 +435,7 @@ static void SampleTexture(ShaderCode& out, const char* texcoords, const char* te
 static void WriteAlphaTest(ShaderCode& out, const pixel_shader_uid_data* uid_data, APIType ApiType,
                            bool per_pixel_depth, bool use_dual_source);
 static void WriteFog(ShaderCode& out, const pixel_shader_uid_data* uid_data);
-static void WriteColor(ShaderCode& out, const pixel_shader_uid_data* uid_data,
+static void WriteColor(ShaderCode& out, APIType api_type, const pixel_shader_uid_data* uid_data,
                        bool use_dual_source);
 
 ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host_config,
@@ -568,8 +569,12 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
   else  // D3D
   {
     out.Write("void main(\n");
-    out.Write("  out float4 ocol0 : SV_Target0,\n"
-              "  out float4 ocol1 : SV_Target1,\n%s"
+    if (uid_data->uint_output)
+      out.Write("  out uint4 ocol0 : SV_Target,\n");
+    else
+      out.Write("  out float4 ocol0 : SV_Target0,\n"
+                "  out float4 ocol1 : SV_Target1,\n");
+    out.Write("%s"
               "  in float4 rawpos : SV_Position,\n",
               uid_data->per_pixel_depth ? "  out float depth : SV_Depth,\n" : "");
 
@@ -778,7 +783,7 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
   WriteFog(out, uid_data);
 
   // Write the color and alpha values to the framebuffer
-  WriteColor(out, uid_data, use_dual_source);
+  WriteColor(out, ApiType, uid_data, use_dual_source);
 
   if (uid_data->bounding_box)
   {
@@ -1302,8 +1307,19 @@ static void WriteFog(ShaderCode& out, const pixel_shader_uid_data* uid_data)
   out.Write("\tprev.rgb = (prev.rgb * (256 - ifog) + " I_FOGCOLOR ".rgb * ifog) >> 8;\n");
 }
 
-static void WriteColor(ShaderCode& out, const pixel_shader_uid_data* uid_data, bool use_dual_source)
+static void WriteColor(ShaderCode& out, APIType api_type, const pixel_shader_uid_data* uid_data,
+                       bool use_dual_source)
 {
+  // D3D requires that the shader outputs be uint when writing to a uint render target for logic op.
+  if (api_type == APIType::D3D && uid_data->uint_output)
+  {
+    if (uid_data->rgba6_format)
+      out.Write("\tocol0 = uint4(prev & 0xFC);\n");
+    else
+      out.Write("\tocol0 = uint4(prev);\n");
+    return;
+  }
+
   if (uid_data->rgba6_format)
     out.Write("\tocol0.rgb = float3(prev.rgb >> 2) / 63.0;\n");
   else

@@ -181,9 +181,7 @@ void DXTexture::CopyRectangleFromTexture(const AbstractTexture* source,
                          VertexShaderCache::GetSimpleInputLayout(),
                          GeometryShaderCache::GetCopyGeometryShader(), 1.0, 0);
 
-  D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(),
-                                   FramebufferManager::GetEFBDepthTexture()->GetDSV());
-
+  FramebufferManager::BindEFBRenderTarget();
   g_renderer->RestoreAPIState();
 }
 
