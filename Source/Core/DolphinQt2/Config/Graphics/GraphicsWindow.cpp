@@ -26,7 +26,7 @@ GraphicsWindow::GraphicsWindow(X11Utils::XRRConfiguration* xrr_config, MainWindo
   ConnectWidgets();
 
   setWindowTitle(tr("Graphics"));
-  setWindowFlags(Qt::Window);
+  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
   OnBackendChanged(QString::fromStdString(SConfig::GetInstance().m_strVideoBackend));
 
