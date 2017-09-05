@@ -338,8 +338,9 @@ bool StateTracker::CheckForShaderChanges(u32 gx_primitive_type)
 {
   VertexShaderUid vs_uid = GetVertexShaderUid();
   PixelShaderUid ps_uid = GetPixelShaderUid();
-  bool changed = false;
+  ClearUnusedPixelShaderUidBits(APIType::Vulkan, &ps_uid);
 
+  bool changed = false;
   bool use_ubershaders = g_ActiveConfig.bDisableSpecializedShaders;
   if (g_ActiveConfig.CanBackgroundCompileShaders() && !g_ActiveConfig.bDisableSpecializedShaders)
   {
@@ -405,6 +406,7 @@ bool StateTracker::CheckForShaderChanges(u32 gx_primitive_type)
     }
 
     UberShader::PixelShaderUid uber_ps_uid = UberShader::GetPixelShaderUid();
+    UberShader::ClearUnusedPixelShaderUidBits(APIType::Vulkan, &uber_ps_uid);
     VkShaderModule ps = g_shader_cache->GetPixelUberShaderForUid(uber_ps_uid);
     if (ps != m_pipeline_state.ps)
     {
@@ -983,6 +985,7 @@ VkPipeline StateTracker::GetPipelineAndCacheUID()
     PipelineInfo uber_info = m_pipeline_state;
     UberShader::VertexShaderUid uber_vuid = UberShader::GetVertexShaderUid();
     UberShader::PixelShaderUid uber_puid = UberShader::GetPixelShaderUid();
+    UberShader::ClearUnusedPixelShaderUidBits(APIType::Vulkan, &uber_puid);
     uber_info.vs = g_shader_cache->GetVertexUberShaderForUid(uber_vuid);
     uber_info.ps = g_shader_cache->GetPixelUberShaderForUid(uber_puid);
 

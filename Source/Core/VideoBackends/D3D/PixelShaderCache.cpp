@@ -593,6 +593,7 @@ bool PixelShaderCache::SetShader()
     return SetUberShader();
 
   PixelShaderUid uid = GetPixelShaderUid();
+  ClearUnusedPixelShaderUidBits(APIType::D3D, &uid);
   if (last_entry && uid == last_uid)
   {
     if (last_entry->pending)
@@ -656,6 +657,7 @@ bool PixelShaderCache::SetShader()
 bool PixelShaderCache::SetUberShader()
 {
   UberShader::PixelShaderUid uid = UberShader::GetPixelShaderUid();
+  UberShader::ClearUnusedPixelShaderUidBits(APIType::D3D, &uid);
 
   if (last_uber_entry && last_uber_uid == uid)
   {
