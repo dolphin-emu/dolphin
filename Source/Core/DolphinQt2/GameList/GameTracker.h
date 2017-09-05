@@ -12,6 +12,7 @@
 
 #include "Common/WorkQueueThread.h"
 #include "DolphinQt2/GameList/GameFile.h"
+#include "DolphinQt2/GameList/GameFileCache.h"
 
 // Watches directories and loads GameFiles in a separate thread.
 // To use this, just add directories using AddDirectory, and listen for the
@@ -39,6 +40,7 @@ private:
   // game path -> directories that track it
   QMap<QString, QSet<QString>> m_tracked_files;
   Common::WorkQueueThread<QString> m_load_thread;
+  GameFileCache cache;
 };
 
 Q_DECLARE_METATYPE(QSharedPointer<GameFile>)

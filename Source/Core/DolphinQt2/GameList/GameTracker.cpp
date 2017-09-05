@@ -7,7 +7,9 @@
 #include <QFile>
 
 #include "DiscIO/DirectoryBlob.h"
+#include "DolphinQt2/GameList/GameFileCache.h"
 #include "DolphinQt2/GameList/GameTracker.h"
+#include "DolphinQt2/QtUtils/QueueOnObject.h"
 #include "DolphinQt2/Settings.h"
 
 static const QStringList game_filters{
@@ -20,6 +22,8 @@ GameTracker::GameTracker(QObject* parent) : QFileSystemWatcher(parent)
   qRegisterMetaType<QSharedPointer<GameFile>>();
   connect(this, &QFileSystemWatcher::directoryChanged, this, &GameTracker::UpdateDirectory);
   connect(this, &QFileSystemWatcher::fileChanged, this, &GameTracker::UpdateFile);
+
+  cache.Load();
 
   m_load_thread.Reset([this](const QString& path) { LoadGame(path); });
 }
@@ -128,8 +132,23 @@ void GameTracker::LoadGame(const QString& path)
 {
   if (!DiscIO::ShouldHideFromGameList(path.toStdString()))
   {
+    if (cache.IsCached(path))
+    {
+      const QDateTime last_modified = QFileInfo(path).lastModified();
+      auto cached_file = cache.GetFile(path);
+      if (cached_file.GetLastModified() >= last_modified)
+      {
+        emit GameLoaded(QSharedPointer<GameFile>::create(cached_file));
+        return;
+      }
+    }
+
     auto game = QSharedPointer<GameFile>::create(path);
     if (game->IsValid())
+    {
       emit GameLoaded(game);
+      cache.Update(*game);
+      cache.Save();
+    }
   }
 }

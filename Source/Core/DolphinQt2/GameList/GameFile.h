@@ -5,6 +5,7 @@
 #pragma once
 
 #include <QDateTime>
+#include <QFile>
 #include <QMap>
 #include <QPixmap>
 #include <QString>
@@ -21,10 +22,10 @@ enum class Platform;
 class Volume;
 }
 
-// TODO cache
 class GameFile final
 {
 public:
+  GameFile();
   explicit GameFile(const QString& path);
 
   bool IsValid() const;
@@ -34,6 +35,7 @@ public:
   QString GetFileExtension() const;
   QString GetFileFolder() const;
   qint64 GetFileSize() const { return m_size; }
+  QDateTime GetLastModified() const { return m_last_modified; }
   // The rest will not.
   QString GetGameID() const { return m_game_id; }
   QString GetMakerID() const { return m_maker_id; }
@@ -73,18 +75,18 @@ public:
   bool Uninstall();
   bool ExportWiiSave();
 
+  friend QDataStream& operator<<(QDataStream& out, const GameFile& file);
+  friend QDataStream& operator>>(QDataStream& in, GameFile& file);
+
 private:
   QString GetBannerString(const QMap<DiscIO::Language, QString>& m) const;
 
-  QString GetCacheFileName() const;
   void ReadBanner(const DiscIO::Volume& volume);
   bool LoadFileInfo(const QString& path);
   void LoadState();
   bool IsElfOrDol();
   bool TryLoadElfDol();
-  bool TryLoadCache();
   bool TryLoadVolume();
-  void SaveCache();
 
   bool m_valid;
   QString m_path;
@@ -115,3 +117,9 @@ private:
 };
 
 QString FormatSize(qint64 size);
+
+QDataStream& operator<<(QDataStream& out, const GameFile& file);
+QDataStream& operator>>(QDataStream& in, GameFile& file);
+
+QDataStream& operator<<(QDataStream& out, const unsigned long& file);
+QDataStream& operator>>(QDataStream& in, unsigned long& file);
