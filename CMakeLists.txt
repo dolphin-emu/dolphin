@@ -786,8 +786,9 @@ message(STATUS "Using static gtest from Externals")
 add_subdirectory(Externals/gtest EXCLUDE_FROM_ALL)
 
 ########################################
-# Process Dolphin source now that all setup is complete
+# Process Dolphin source and data now that all setup is complete
 #
+add_subdirectory(Data)
 add_subdirectory(Source)
 
 ########################################
@@ -795,6 +796,7 @@ add_subdirectory(Source)
 #
 if(NOT CMAKE_SYSTEM_NAME MATCHES "Darwin|Windows")
   install(DIRECTORY Data/Sys/ DESTINATION ${datadir}/sys PATTERN)
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/Data/GameSettings.zip DESTINATION ${datadir}/sys)
 endif()
 if(NOT CMAKE_SYSTEM_NAME MATCHES "Linux|FreeBSD|OpenBSD|Darwin")
   install(FILES Data/license.txt DESTINATION ${datadir})

@@ -12,6 +12,7 @@
     <BinaryOutputDir>$(BinaryRootDir)$(Platform)\</BinaryOutputDir>
     <ExternalsDir>$(DolphinRootDir)Externals\</ExternalsDir>
     <CoreDir>$(SolutionDir)Core\</CoreDir>
+    <DataDir>$(DolphinRootDir)Data\</DataDir>
   </PropertyGroup>
   <PropertyGroup>
     <!--

@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{99F1156D-29C5-4417-9D9D-23AD00099B71}</ProjectGuid>
+    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <Import Project="..\Source\VSProps\Base.props" />
+
+  <!--
+    DisableFastUpToDateCheck bypasses Visual Studio's build manager and forces MSBuild to be run
+    on the project. This allows our PreBuildEvent to be run by MSBuild even if VS thinks things
+    are up-to-date.
+   -->
+  <PropertyGroup>
+    <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
+    <GameSettingsZipFile>$(BinaryOutputDir)\Sys\GameSettings.zip</GameSettingsZipFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <GameIni Include="GameSettings\*.ini" />
+  </ItemGroup>
+
+  <Target Name="Build" Inputs="@(GameIni)" Outputs="$(GameSettingsZipFile)">
+    <MakeDir Directories="$(BinaryOutputDir)\Sys" />
+    <ZipFiles Output="$(GameSettingsZipFile)" Inputs="@(GameIni)" />
+  </Target>
+  
+  <Target Name="Clean">
+    <Delete Files="$(GameSettingsZipFile)" />
+  </Target>
+  
+  <Target Name="Rebuild">
+    <CallTarget Targets="Clean" />
+    <CallTarget Targets="Build" />
+  </Target>
+  
+  <UsingTask TaskName="ZipFiles" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <Output ParameterType="System.String" Required="true" />
+      <Inputs ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />
+    </ParameterGroup>
+    <Task>
+      <Reference Include="System.IO.Compression" />
+      <Reference Include="System.IO.Compression.FileSystem" />
+      <Using Namespace="System.IO" />
+      <Using Namespace="System.IO.Compression" />
+      <Code Type="Fragment" Language="cs"><![CDATA[
+        try
+        {
+          Log.LogMessage(MessageImportance.High, string.Format("Zipping {0} GameSettings files to {1}", Inputs.Length, Output));
+          File.Delete(Output);
+          using (ZipArchive Zip = ZipFile.Open(Output, ZipArchiveMode.Create))
+          {
+            foreach (ITaskItem Item in Inputs)
+            {
+              Zip.CreateEntryFromFile(Item.ItemSpec, Path.GetFileName(Item.ItemSpec));
+            }
+          }
+          return true;
+        }
+        catch(Exception ex)
+        {
+          Log.LogErrorFromException(ex);
+          return false;
+        }
+      ]]></Code>
+    </Task>
+  </UsingTask>
+
+  <!--
+    The 5 following targets are required to be a VS project reference.
+    See https://github.com/Microsoft/msbuild/blob/master/documentation/ProjectReference-Protocol.md
+  -->
+  <Target Name="GetCopyToOutputDirectoryItems" />
+  <Target Name="GetNativeManifest" />
+  <Target Name="GetResolvedLinkLibs" />
+  <Target Name="GetResolvedLinkObjs" />
+  <Target Name="GetTargetPath" />
+</Project>

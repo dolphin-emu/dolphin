@@ -166,6 +166,8 @@ if(APPLE)
       MACOSX_PACKAGE_LOCATION "Resources/${resdir}")
     source_group("Resources" FILES "${CMAKE_SOURCE_DIR}/Data/${res}")
   endforeach()
+  add_dependencies(dolphin-emu game_settings_zip)
+  set_target_properties(game_settings_zip PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/Sys")
 
   # Update library references to make the bundle portable
   include(DolphinPostprocessBundle)

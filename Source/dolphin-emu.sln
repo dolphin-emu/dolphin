@@ -85,6 +85,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pugixml", "..\Externals\pug
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "minizip", "..\Externals\minizip\minizip.vcxproj", "{23114507-079A-4418-9707-CFA81A03CA99}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Data", "..\Data\Data.vcxproj", "{99F1156D-29C5-4417-9D9D-23AD00099B71}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -243,6 +245,10 @@ Global
 		{23114507-079A-4418-9707-CFA81A03CA99}.Debug|x64.Build.0 = Debug|x64
 		{23114507-079A-4418-9707-CFA81A03CA99}.Release|x64.ActiveCfg = Release|x64
 		{23114507-079A-4418-9707-CFA81A03CA99}.Release|x64.Build.0 = Release|x64
+		{99F1156D-29C5-4417-9D9D-23AD00099B71}.Debug|x64.ActiveCfg = Debug|x64
+		{99F1156D-29C5-4417-9D9D-23AD00099B71}.Debug|x64.Build.0 = Debug|x64
+		{99F1156D-29C5-4417-9D9D-23AD00099B71}.Release|x64.ActiveCfg = Release|x64
+		{99F1156D-29C5-4417-9D9D-23AD00099B71}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -281,5 +287,6 @@ Global
 		{8EA11166-6512-44FC-B7A5-A4D1ECC81170} = {87ADDFF9-5768-4DA2-A33B-2477593D6677}
 		{38FEE76F-F347-484B-949C-B4649381CFFB} = {87ADDFF9-5768-4DA2-A33B-2477593D6677}
 		{23114507-079A-4418-9707-CFA81A03CA99} = {87ADDFF9-5768-4DA2-A33B-2477593D6677}
+		{99F1156D-29C5-4417-9D9D-23AD00099B71} = {15670B2E-CED6-4ED5-94CE-A00B1B2B5BA6}
 	EndGlobalSection
 EndGlobal

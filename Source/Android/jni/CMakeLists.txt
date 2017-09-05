@@ -15,6 +15,6 @@ ${LIBS}
 )
 
 file(MAKE_DIRECTORY ${CMAKE_SOURCE_DIR}/Source/Android/app/src/main/assets/)
-file(COPY ${CMAKE_SOURCE_DIR}/Data/Sys/GameSettings ${CMAKE_SOURCE_DIR}/Data/Sys/GC ${CMAKE_SOURCE_DIR}/Data/Sys/Wii ${CMAKE_SOURCE_DIR}/Data/Sys/Shaders DESTINATION ${CMAKE_SOURCE_DIR}/Source/Android/app/src/main/assets/)
+file(COPY ${CMAKE_BINARY_DIR}/Data/GameSettings.zip ${CMAKE_SOURCE_DIR}/Data/Sys/GC ${CMAKE_SOURCE_DIR}/Data/Sys/Wii ${CMAKE_SOURCE_DIR}/Data/Sys/Shaders DESTINATION ${CMAKE_SOURCE_DIR}/Source/Android/app/src/main/assets/)
 
 set(CPACK_PACKAGE_EXECUTABLES ${CPACK_PACKAGE_EXECUTABLES} ${SHARED_LIB})

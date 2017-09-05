@@ -582,6 +582,9 @@
     <ProjectReference Include="$(ExternalsDir)pugixml\pugixml.vcxproj">
       <Project>{38fee76f-f347-484b-949c-b4649381cffb}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(DataDir)Data.vcxproj">
+      <Project>{99f1156d-29c5-4417-9d9d-23ad00099b71}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(ExternalsDir)minizip\minizip.vcxproj">
       <Project>{23114507-079a-4418-9707-cfa81a03ca99}</Project>
     </ProjectReference>
