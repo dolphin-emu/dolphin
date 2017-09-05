@@ -10,6 +10,7 @@
 #include <cstring>
 #include <fstream>
 #include <map>
+#include <sstream>
 #include <string>
 #include <utility>
 #include <vector>
@@ -395,16 +396,19 @@ void IniFile::SortSections()
 
 bool IniFile::Load(const std::string& filename, bool keep_current_data)
 {
+  std::string contents;
+  if (!File::ReadFileToString(filename, contents))
+    return false;
+  return LoadFromString(contents, keep_current_data);
+}
+
+bool IniFile::LoadFromString(const std::string& contents, bool keep_current_data)
+{
   if (!keep_current_data)
     sections.clear();
   // first section consists of the comments before the first real section
 
-  // Open file
-  std::ifstream in;
-  File::OpenFStream(in, filename, std::ios::in);
-
-  if (in.fail())
-    return false;
+  std::istringstream in(contents);
 
   Section* current_section = nullptr;
   bool first_line = true;
@@ -465,8 +469,6 @@ bool IniFile::Load(const std::string& filename, bool keep_current_data)
       }
     }
   }
-
-  in.close();
   return true;
 }
 

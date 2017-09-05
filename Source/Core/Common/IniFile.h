@@ -96,6 +96,7 @@ public:
    * user-specified) and should eventually be replaced with a less stupid system.
    */
   bool Load(const std::string& filename, bool keep_current_data = false);
+  bool LoadFromString(const std::string& contents, bool keep_current_data = false);
 
   bool Save(const std::string& filename);
 
