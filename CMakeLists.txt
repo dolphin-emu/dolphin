@@ -586,6 +586,9 @@ else()
   add_subdirectory(Externals/zlib)
 endif()
 
+add_subdirectory(Externals/minizip)
+include_directories(External/minizip)
+
 if(NOT APPLE)
   check_lib(LZO "(no .pc for lzo2)" lzo2 lzo/lzo1x.h QUIET)
 endif()
