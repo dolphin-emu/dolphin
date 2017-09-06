@@ -44,6 +44,7 @@ HWND hWnd;
 std::vector<DXGI_SAMPLE_DESC> aa_modes;  // supported AA modes of the current adapter
 
 bool bgra_textures_supported;
+bool allow_tearing_supported;
 
 #define NUM_SUPPORTED_FEATURE_LEVELS 3
 const D3D_FEATURE_LEVEL supported_feature_levels[NUM_SUPPORTED_FEATURE_LEVELS] = {
@@ -295,6 +296,18 @@ HRESULT Create(HWND wnd)
     UpdateActiveConfig();
   }
 
+  // Check support for allow tearing, we query the interface for backwards compatibility
+  UINT allow_tearing = FALSE;
+  IDXGIFactory5* factory5;
+  hr = factory->QueryInterface(&factory5);
+  if (SUCCEEDED(hr))
+  {
+    hr = factory5->CheckFeatureSupport(DXGI_FEATURE_PRESENT_ALLOW_TEARING, &allow_tearing,
+                                       sizeof(allow_tearing));
+    factory5->Release();
+  }
+  allow_tearing_supported = SUCCEEDED(hr) && allow_tearing;
+
   DXGI_SWAP_CHAIN_DESC1 swap_chain_desc = {};
   swap_chain_desc.BufferCount = 2;
   swap_chain_desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
@@ -306,6 +319,9 @@ HRESULT Create(HWND wnd)
   swap_chain_desc.Width = xres;
   swap_chain_desc.Height = yres;
   swap_chain_desc.Stereo = g_ActiveConfig.iStereoMode == STEREO_QUADBUFFER;
+
+  // This flag is necessary if we want to use a flip-model swapchain without locking the framerate
+  swap_chain_desc.Flags = allow_tearing_supported ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0;
 
   // Creating debug devices can sometimes fail if the user doesn't have the correct
   // version of the DirectX SDK. If it does, simply fallback to a non-debug device.
@@ -396,7 +412,7 @@ HRESULT Create(HWND wnd)
   if (SConfig::GetInstance().bFullscreen && !g_ActiveConfig.bBorderlessFullscreen)
   {
     swapchain->SetFullscreenState(true, nullptr);
-    swapchain->ResizeBuffers(0, xres, yres, DXGI_FORMAT_R8G8B8A8_UNORM, 0);
+    swapchain->ResizeBuffers(0, xres, yres, DXGI_FORMAT_R8G8B8A8_UNORM, swap_chain_desc.Flags);
   }
 
   ID3D11Texture2D* buf;
@@ -523,6 +539,11 @@ bool BGRATexturesSupported()
   return bgra_textures_supported;
 }
 
+bool AllowTearingSupported()
+{
+  return allow_tearing_supported;
+}
+
 // Returns the maximum width/height of a texture. This value only depends upon the feature level in
 // DX11
 u32 GetMaxTextureSize(D3D_FEATURE_LEVEL feature_level)
@@ -553,12 +574,14 @@ void Reset()
   // release all back buffer references
   SAFE_RELEASE(backbuf);
 
+  UINT swap_chain_flags = AllowTearingSupported() ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0;
+
   // resize swapchain buffers
   RECT client;
   GetClientRect(hWnd, &client);
   xres = client.right - client.left;
   yres = client.bottom - client.top;
-  D3D::swapchain->ResizeBuffers(0, xres, yres, DXGI_FORMAT_R8G8B8A8_UNORM, 0);
+  D3D::swapchain->ResizeBuffers(0, xres, yres, DXGI_FORMAT_R8G8B8A8_UNORM, swap_chain_flags);
 
   // recreate back buffer texture
   ID3D11Texture2D* buf;
@@ -603,8 +626,16 @@ void EndFrame()
 void Present()
 {
   UINT present_flags = 0;
+
+  // When using sync interval 0, it is recommended to always pass the tearing
+  // flag when it is supported, even when presenting in windowed mode.
+  // However, this flag cannot be used if the app is in fullscreen mode as a
+  // result of calling SetFullscreenState.
+  if (AllowTearingSupported() && !g_ActiveConfig.IsVSync() && !GetFullscreenState())
+    present_flags |= DXGI_PRESENT_ALLOW_TEARING;
+
   if (swapchain->IsTemporaryMonoSupported() && g_ActiveConfig.iStereoMode != STEREO_QUADBUFFER)
-    present_flags = DXGI_PRESENT_STEREO_TEMPORARY_MONO;
+    present_flags |= DXGI_PRESENT_STEREO_TEMPORARY_MONO;
 
   // TODO: Is 1 the correct value for vsyncing?
   swapchain->Present((UINT)g_ActiveConfig.IsVSync(), present_flags);

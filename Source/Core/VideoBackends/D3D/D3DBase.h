@@ -7,7 +7,7 @@
 #include <d3d11.h>
 #include <d3d11_1.h>
 #include <d3dcompiler.h>
-#include <dxgi1_2.h>
+#include <dxgi1_5.h>
 #include <vector>
 
 #include "Common/Common.h"
@@ -74,6 +74,7 @@ const char* PixelShaderVersionString();
 const char* GeometryShaderVersionString();
 const char* VertexShaderVersionString();
 bool BGRATexturesSupported();
+bool AllowTearingSupported();
 
 u32 GetMaxTextureSize(D3D_FEATURE_LEVEL feature_level);
 
