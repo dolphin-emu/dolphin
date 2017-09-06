@@ -352,7 +352,7 @@ void CommandBufferManager::SubmitCommandBuffer(size_t index, VkSemaphore wait_se
                                      &present_image_index,
                                      nullptr};
 
-    res = vkQueuePresentKHR(g_vulkan_context->GetGraphicsQueue(), &present_info);
+    res = vkQueuePresentKHR(g_vulkan_context->GetPresentQueue(), &present_info);
     if (res != VK_SUCCESS && res != VK_ERROR_OUT_OF_DATE_KHR && res != VK_SUBOPTIMAL_KHR)
       LOG_VULKAN_ERROR(res, "vkQueuePresentKHR failed: ");
   }

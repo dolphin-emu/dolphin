@@ -327,7 +327,6 @@ bool SwapChain::CreateSwapChain()
   VkSwapchainKHR old_swap_chain = m_swap_chain;
 
   // Now we can actually create the swap chain
-  // TODO: Handle case where the present queue is not the graphics queue.
   VkSwapchainCreateInfoKHR swap_chain_info = {VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
                                               nullptr,
                                               0,
@@ -346,6 +345,17 @@ bool SwapChain::CreateSwapChain()
                                               m_present_mode,
                                               VK_TRUE,
                                               old_swap_chain};
+  std::array<uint32_t, 2> indices = {{
+      g_vulkan_context->GetGraphicsQueueFamilyIndex(),
+      g_vulkan_context->GetPresentQueueFamilyIndex(),
+  }};
+  if (g_vulkan_context->GetGraphicsQueueFamilyIndex() !=
+      g_vulkan_context->GetPresentQueueFamilyIndex())
+  {
+    swap_chain_info.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
+    swap_chain_info.queueFamilyIndexCount = 2;
+    swap_chain_info.pQueueFamilyIndices = indices.data();
+  }
 
   res =
       vkCreateSwapchainKHR(g_vulkan_context->GetDevice(), &swap_chain_info, nullptr, &m_swap_chain);
