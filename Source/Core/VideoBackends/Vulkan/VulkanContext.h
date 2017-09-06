@@ -83,7 +83,6 @@ public:
   {
     return m_device_features.occlusionQueryPrecise == VK_TRUE;
   }
-  bool SupportsNVGLSLExtension() const { return m_supports_nv_glsl_extension; }
   // Helpers for getting constants
   VkDeviceSize GetUniformBufferAlignment() const
   {
@@ -130,8 +129,6 @@ private:
   VkPhysicalDeviceFeatures m_device_features = {};
   VkPhysicalDeviceProperties m_device_properties = {};
   VkPhysicalDeviceMemoryProperties m_device_memory_properties = {};
-
-  bool m_supports_nv_glsl_extension = false;
 };
 
 extern std::unique_ptr<VulkanContext> g_vulkan_context;
