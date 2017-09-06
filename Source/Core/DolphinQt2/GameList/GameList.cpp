@@ -185,10 +185,10 @@ void GameList::ShowContextMenu(const QPoint&)
 
   if (platform == DiscIO::Platform::WII_DISC)
   {
-    AddAction(menu, tr("Perform System Update"), this, [this] {
+    auto* perform_disc_update = AddAction(menu, tr("Perform System Update"), this, [this] {
       WiiUpdate::PerformDiscUpdate(GetSelectedGame()->GetFilePath().toStdString(), this);
     });
-    menu->setEnabled(!Core::IsRunning() || !SConfig::GetInstance().bWii);
+    perform_disc_update->setEnabled(!Core::IsRunning() || !SConfig::GetInstance().bWii);
   }
 
   if (platform == DiscIO::Platform::WII_WAD)
