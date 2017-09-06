@@ -404,14 +404,17 @@ ID3D11BlendState* StateCache::Get(BlendingState state)
   if (state.alphaupdate)
     tdesc.RenderTargetWriteMask |= D3D11_COLOR_WRITE_ENABLE_ALPHA;
 
-  static constexpr std::array<D3D11_BLEND, 8> src_factors = {
+  const bool use_dual_source = state.usedualsrc;
+  const std::array<D3D11_BLEND, 8> src_factors = {
       {D3D11_BLEND_ZERO, D3D11_BLEND_ONE, D3D11_BLEND_DEST_COLOR, D3D11_BLEND_INV_DEST_COLOR,
-       D3D11_BLEND_SRC1_ALPHA, D3D11_BLEND_INV_SRC1_ALPHA, D3D11_BLEND_DEST_ALPHA,
-       D3D11_BLEND_INV_DEST_ALPHA}};
-  static constexpr std::array<D3D11_BLEND, 8> dst_factors = {
+       use_dual_source ? D3D11_BLEND_SRC1_ALPHA : D3D11_BLEND_SRC_ALPHA,
+       use_dual_source ? D3D11_BLEND_INV_SRC1_ALPHA : D3D11_BLEND_INV_SRC_ALPHA,
+       D3D11_BLEND_DEST_ALPHA, D3D11_BLEND_INV_DEST_ALPHA}};
+  const std::array<D3D11_BLEND, 8> dst_factors = {
       {D3D11_BLEND_ZERO, D3D11_BLEND_ONE, D3D11_BLEND_SRC_COLOR, D3D11_BLEND_INV_SRC_COLOR,
-       D3D11_BLEND_SRC1_ALPHA, D3D11_BLEND_INV_SRC1_ALPHA, D3D11_BLEND_DEST_ALPHA,
-       D3D11_BLEND_INV_DEST_ALPHA}};
+       use_dual_source ? D3D11_BLEND_SRC1_ALPHA : D3D11_BLEND_SRC_ALPHA,
+       use_dual_source ? D3D11_BLEND_INV_SRC1_ALPHA : D3D11_BLEND_INV_SRC_ALPHA,
+       D3D11_BLEND_DEST_ALPHA, D3D11_BLEND_INV_DEST_ALPHA}};
 
   tdesc.SrcBlend = src_factors[state.srcfactor];
   tdesc.SrcBlendAlpha = src_factors[state.srcfactoralpha];
