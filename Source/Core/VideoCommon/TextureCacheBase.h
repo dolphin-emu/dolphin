@@ -178,6 +178,12 @@ public:
   virtual void ConvertTexture(TCacheEntry* entry, TCacheEntry* unconverted, const void* palette,
                               TLUTFormat format) = 0;
 
+  virtual bool SupportsHostTextureFormat(AbstractTextureFormat format) const
+  {
+    // Default implementation: All backends support RGBA8.
+    return format == AbstractTextureFormat::RGBA8;
+  }
+
   // Returns true if the texture data and palette formats are supported by the GPU decoder.
   virtual bool SupportsGPUTextureDecode(TextureFormat format, TLUTFormat palette_format)
   {
@@ -198,9 +204,6 @@ public:
 protected:
   TextureCacheBase();
 
-  alignas(16) u8* temp = nullptr;
-  size_t temp_size = 0;
-
   std::array<TCacheEntry*, 8> bound_textures{};
   static std::bitset<8> valid_bind_points;
 
@@ -215,6 +218,17 @@ private:
   typedef std::multimap<u32, TCacheEntry*> TexAddrCache;
   typedef std::multimap<u64, TCacheEntry*> TexHashCache;
   typedef std::unordered_multimap<TextureConfig, TexPoolEntry, TextureConfig::Hasher> TexPool;
+
+  struct TextureDecoderInfo
+  {
+    AbstractTextureFormat destfmt;
+    size_t bytes_per_texel;
+    std::function<void(u8* __restrict dst, const u8* __restrict src, int width, int height)>
+        decode_fn;
+  };
+
+  alignas(16) u8* temp = nullptr;
+  size_t temp_size = 0;
 
   void SetBackupConfig(const VideoConfig& config);
 
@@ -236,6 +250,8 @@ private:
   // indexed, this may return false positives.
   std::pair<TexAddrCache::iterator, TexAddrCache::iterator>
   FindOverlappingTextures(u32 addr, u32 size_in_bytes);
+
+  const TextureDecoderInfo* ChooseTextureDecoder(TextureFormat texfmt) const;
 
   virtual std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config) = 0;
 

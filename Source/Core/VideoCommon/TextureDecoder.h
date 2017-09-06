@@ -98,14 +98,40 @@ int TexDecoder_GetEFBCopyBlockHeightInTexels(EFBCopyFormat format);
 int TexDecoder_GetPaletteSize(TextureFormat fmt);
 TextureFormat TexDecoder_GetEFBCopyBaseFormat(EFBCopyFormat format);
 
+// Decode any texture format to RGBA8 linear format. Width and height are padded to the format's
+// tile size.
 void TexDecoder_Decode(u8* dst, const u8* src, int width, int height, TextureFormat texformat,
                        const u8* tlut, TLUTFormat tlutfmt);
+// Decode RGBA8 textures with separate AR and GB banks to RGBA8 linear format. Used for TMEM
+// textures. Width and height are padded to 4x4.
 void TexDecoder_DecodeRGBA8FromTmem(u8* dst, const u8* src_ar, const u8* src_gb, int width,
                                     int height);
 void TexDecoder_DecodeTexel(u8* dst, const u8* src, int s, int t, int imageWidth,
                             TextureFormat texformat, const u8* tlut, TLUTFormat tlutfmt);
 void TexDecoder_DecodeTexelRGBA8FromTmem(u8* dst, const u8* src_ar, const u8* src_gb, int s, int t,
                                          int imageWidth);
+// Decode 4-bit tiled texture formats (I4, C4) to 8-bit linear format. Width and height are padded
+// to 8x8.
+void TexDecoder_Decode4BitTiledTo8BitLinear(u8* __restrict dst, const u8* __restrict src, int width,
+                                            int height);
+// Decode I8 to ARGB4 linear format. Width and height are padded to 8x8.
+void TexDecoder_DecodeI4ToARGB4Linear(u8* __restrict dst, const u8* __restrict src, int width,
+                                      int height);
+// Decode IA4 to BGRA4 linear format. Width and height are padded to 8x4.
+void TexDecoder_DecodeIA4ToARGB4Linear(u8* __restrict dst, const u8* __restrict src, int width,
+                                       int height);
+// Decode 8-bit tiled texture formats (I8, IA4) to 8-bit linear format. Width and height are padded
+// to 8x4.
+void TexDecoder_Decode8BitTiledToLinear(u8* __restrict dst, const u8* __restrict src, int width,
+                                        int height);
+// Decode 16-bit tiled texture formats (RGB565) to 16-bit linear format. Width and height are
+// padded to 4x4. Texels are converted from big-endian.
+void TexDecoder_Decode16BitTiledToLinear(u8* __restrict dst, const u8* __restrict src, int width,
+                                         int height);
+// Decode 16-bit tiled texture formats (IA8) to 16-bit linear format. Width and height are padded
+// to 4x4. Texels are copied without converting endianness.
+void TexDecoder_Decode16BitTiledToLinear_NoSwap(u8* __restrict dst, const u8* __restrict src,
+                                                int width, int height);
 
 void TexDecoder_SetTexFmtOverlayOptions(bool enable, bool center);
 

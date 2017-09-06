@@ -25,10 +25,16 @@ size_t AlignBufferOffset(size_t offset, size_t alignment);
 
 u32 MakeRGBA8Color(float r, float g, float b, float a);
 
+struct VkFormatAndMapping
+{
+  VkFormat format = VK_FORMAT_UNDEFINED;
+  VkComponentMapping component_mapping = RGBA_COMPONENT_MAPPING;
+};
+
 bool IsDepthFormat(VkFormat format);
 bool IsCompressedFormat(VkFormat format);
 VkFormat GetLinearFormat(VkFormat format);
-VkFormat GetVkFormatForHostTextureFormat(AbstractTextureFormat format);
+VkFormatAndMapping GetVkFormatAndMappingForHostTextureFormat(AbstractTextureFormat format);
 u32 GetTexelSize(VkFormat format);
 u32 GetBlockSize(VkFormat format);
 

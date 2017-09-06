@@ -18,6 +18,8 @@ public:
   TextureCache();
   ~TextureCache();
 
+  bool SupportsHostTextureFormat(AbstractTextureFormat format) const override;
+
 private:
   std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config) override;
 

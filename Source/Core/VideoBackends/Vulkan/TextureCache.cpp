@@ -152,6 +152,23 @@ void TextureCache::CopyEFB(u8* dst, const EFBCopyParams& params, u32 native_widt
   src_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(), original_layout);
 }
 
+bool TextureCache::SupportsHostTextureFormat(AbstractTextureFormat format) const
+{
+  switch (format)
+  {
+  case AbstractTextureFormat::RGBA8:
+  case AbstractTextureFormat::I8:
+  case AbstractTextureFormat::AI8:
+  case AbstractTextureFormat::RGB565:
+  case AbstractTextureFormat::ARGB4:
+    return true;
+  case AbstractTextureFormat::AI4:
+    return g_vulkan_context->SupportsR4G4();
+  }
+
+  return false;
+}
+
 bool TextureCache::SupportsGPUTextureDecode(TextureFormat format, TLUTFormat palette_format)
 {
   return m_texture_converter->SupportsTextureDecoding(format, palette_format);
@@ -185,9 +202,10 @@ std::unique_ptr<AbstractTexture> TextureCache::CreateTexture(const TextureConfig
 
 bool TextureCache::CreateRenderPasses()
 {
+  // FIXME: handle updates for non-RGBA8 textures
   static constexpr VkAttachmentDescription update_attachment = {
       0,
-      TEXTURECACHE_TEXTURE_FORMAT,
+      VK_FORMAT_R8G8B8A8_UNORM,
       VK_SAMPLE_COUNT_1_BIT,
       VK_ATTACHMENT_LOAD_OP_DONT_CARE,
       VK_ATTACHMENT_STORE_OP_STORE,

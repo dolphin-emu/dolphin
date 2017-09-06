@@ -43,7 +43,9 @@ HWND hWnd;
 
 std::vector<DXGI_SAMPLE_DESC> aa_modes;  // supported AA modes of the current adapter
 
-bool bgra_textures_supported;
+static bool s_bgra_textures_supported = false;
+static bool s_rgb565_textures_supported = false;
+static bool s_argb4_textures_supported = false;
 
 #define NUM_SUPPORTED_FEATURE_LEVELS 3
 const D3D_FEATURE_LEVEL supported_feature_levels[NUM_SUPPORTED_FEATURE_LEVELS] = {
@@ -418,11 +420,16 @@ HRESULT Create(HWND wnd)
 
   context->OMSetRenderTargets(1, &backbuf->GetRTV(), nullptr);
 
-  // BGRA textures are easier to deal with in TextureCache, but might not be supported by the
-  // hardware
-  UINT format_support;
+  UINT format_support = 0;
+  static const int REQUIRED_TEXTURE_FLAGS =
+      D3D11_FORMAT_SUPPORT_TEXTURE2D | D3D11_FORMAT_SUPPORT_MIP | D3D11_FORMAT_SUPPORT_CPU_LOCKABLE;
   device->CheckFormatSupport(DXGI_FORMAT_B8G8R8A8_UNORM, &format_support);
-  bgra_textures_supported = (format_support & D3D11_FORMAT_SUPPORT_TEXTURE2D) != 0;
+  s_bgra_textures_supported = (format_support & REQUIRED_TEXTURE_FLAGS) == REQUIRED_TEXTURE_FLAGS;
+  device->CheckFormatSupport(DXGI_FORMAT_B5G6R5_UNORM, &format_support);
+  s_rgb565_textures_supported = (format_support & REQUIRED_TEXTURE_FLAGS) == REQUIRED_TEXTURE_FLAGS;
+  device->CheckFormatSupport(DXGI_FORMAT_B4G4R4A4_UNORM, &format_support);
+  s_argb4_textures_supported = (format_support & REQUIRED_TEXTURE_FLAGS) == REQUIRED_TEXTURE_FLAGS;
+
   g_Config.backend_info.bSupportsST3CTextures = SupportsS3TCTextures(device);
   g_Config.backend_info.bSupportsBPTCTextures = SupportsBPTCTextures(device);
 
@@ -520,7 +527,17 @@ unsigned int GetBackBufferHeight()
 
 bool BGRATexturesSupported()
 {
-  return bgra_textures_supported;
+  return s_bgra_textures_supported;
+}
+
+bool RGB565TexturesSupported()
+{
+  return s_rgb565_textures_supported;
+}
+
+bool ARGB4TexturesSupported()
+{
+  return s_argb4_textures_supported;
 }
 
 // Returns the maximum width/height of a texture. This value only depends upon the feature level in

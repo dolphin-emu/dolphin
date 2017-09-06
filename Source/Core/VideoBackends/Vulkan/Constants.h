@@ -97,8 +97,31 @@ constexpr VkFormat EFB_COLOR_TEXTURE_FORMAT = VK_FORMAT_R8G8B8A8_UNORM;
 constexpr VkFormat EFB_DEPTH_TEXTURE_FORMAT = VK_FORMAT_D32_SFLOAT;
 constexpr VkFormat EFB_DEPTH_AS_COLOR_TEXTURE_FORMAT = VK_FORMAT_R32_SFLOAT;
 
-// Format of texturecache textures
-constexpr VkFormat TEXTURECACHE_TEXTURE_FORMAT = VK_FORMAT_R8G8B8A8_UNORM;
+// Texture component mappings
+constexpr VkComponentMapping I_COMPONENT_MAPPING = {
+    VK_COMPONENT_SWIZZLE_IDENTITY,  // R
+    VK_COMPONENT_SWIZZLE_R,         // G
+    VK_COMPONENT_SWIZZLE_R,         // B
+    VK_COMPONENT_SWIZZLE_R,         // A
+};
+constexpr VkComponentMapping AI_COMPONENT_MAPPING = {
+    VK_COMPONENT_SWIZZLE_G,         // R
+    VK_COMPONENT_SWIZZLE_IDENTITY,  // G
+    VK_COMPONENT_SWIZZLE_G,         // B
+    VK_COMPONENT_SWIZZLE_R,         // A
+};
+constexpr VkComponentMapping BGRA_AS_ARGB_COMPONENT_MAPPING = {
+    VK_COMPONENT_SWIZZLE_G,  // R
+    VK_COMPONENT_SWIZZLE_R,  // G
+    VK_COMPONENT_SWIZZLE_A,  // B
+    VK_COMPONENT_SWIZZLE_B,  // A
+};
+constexpr VkComponentMapping RGBA_COMPONENT_MAPPING = {
+    VK_COMPONENT_SWIZZLE_IDENTITY,  // R
+    VK_COMPONENT_SWIZZLE_IDENTITY,  // G
+    VK_COMPONENT_SWIZZLE_IDENTITY,  // B
+    VK_COMPONENT_SWIZZLE_IDENTITY,  // A
+};
 
 // Textures that don't fit into this buffer will be uploaded with a separate buffer (see below).
 constexpr size_t INITIAL_TEXTURE_UPLOAD_BUFFER_SIZE = 16 * 1024 * 1024;

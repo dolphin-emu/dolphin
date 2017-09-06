@@ -659,3 +659,198 @@ void TexDecoder_DecodeRGBA8FromTmem(u8* dst, const u8* src_ar, const u8* src_gb,
     }
   }
 }
+
+template <typename T>
+class CopyTexelDecoder
+{
+public:
+  inline T operator()(T val) { return val; }
+};
+
+class BE16TexelDecoder
+{
+public:
+  inline u16 operator()(u16 val) { return Common::FromBigEndian(val); }
+};
+
+static u8 ExpandI4ToI8(u8 v)
+{
+  u8 masked = v & 0xF;
+  return (masked << 4) | masked;
+}
+
+static u16 ExpandI4ToARGB4(u8 v)
+{
+  u16 masked = v & 0xF;
+  return (masked << 12) | (masked << 8) | (masked << 4) | masked;
+}
+
+class AI4ToARGB4TexelDecoder
+{
+public:
+  inline u16 operator()(u8 val)
+  {
+    u16 a = val >> 4;
+    u16 i = val & 0xF;
+    return (a << 12) | (i << 8) | (i << 4) | i;
+  }
+};
+
+// Functor to unpack a tile of texels to a linear buffer.
+// TW:            tile width
+// TH:            tile height
+// TBYTES:        number of source bytes per tile
+// SrcType:       source texel type
+// DstType:       destination texel type
+// TexelDecoder:  functor to decode texels
+template <int TW, int TH, typename SrcType, typename DstType, typename TexelDecoder>
+class TileUnpacker
+{
+public:
+  // Unpack tile.
+  // dst_pitch:  destination pitch in bytes.
+  inline void operator()(u8* __restrict dst, const u8* __restrict src, int dst_pitch)
+  {
+    const SrcType* psrc = reinterpret_cast<const SrcType*>(src);
+
+    for (int y = 0; y < TH; ++y)
+    {
+      const SrcType* psrc_row = &psrc[y * TW];
+      DstType* dst_row = reinterpret_cast<DstType*>(&dst[y * dst_pitch]);
+      for (int x = 0; x < TW; ++x)
+      {
+        dst_row[x] = TexelDecoder()(psrc_row[x]);
+      }
+    }
+  }
+};
+
+// Functor to unpack an 8x8 tile of 4-bit texels.
+class I4ToI8TileUnpacker
+{
+public:
+  inline void operator()(u8* __restrict dst, const u8* __restrict src, int dst_pitch)
+  {
+    static const int TW = 8;
+    static const int TH = 8;
+
+    for (int y = 0; y < TH; ++y)
+    {
+      const u8* src_row = &src[y * (TW / 2)];
+      u8* dst_row = &dst[y * dst_pitch];
+      for (int x = 0; x < (TW / 2); ++x)
+      {
+        dst_row[x * 2] = ExpandI4ToI8(src_row[x] >> 4);
+        dst_row[x * 2 + 1] = ExpandI4ToI8(src_row[x] & 0xF);
+      }
+    }
+  }
+};
+
+// Functor to unpack an I4 tile to ARGB4.
+class I4ToARGB4TileUnpacker
+{
+public:
+  inline void operator()(u8* __restrict dst, const u8* __restrict src, int dst_pitch)
+  {
+    static const int TW = 8;
+    static const int TH = 8;
+
+    for (int y = 0; y < TH; ++y)
+    {
+      const u8* src_row = &src[y * (TW / 2)];
+      u16* dst_row = reinterpret_cast<u16*>(&dst[y * dst_pitch]);
+      for (int x = 0; x < (TW / 2); ++x)
+      {
+        u8 v = src_row[x];
+        dst_row[x * 2] = ExpandI4ToARGB4(v >> 4);
+        dst_row[x * 2 + 1] = ExpandI4ToARGB4(v & 0xF);
+      }
+    }
+  }
+};
+
+// Unpack a grid of tiles to linear form.
+// TW:            tile width
+// TH:            tile height
+// TBYTES:        number of source bytes per tile
+// DstType:       destination texel type
+// TileUnpacker:  functor to unpack tiles
+template <int TW, int TH, int TBYTES, typename DstType, typename TileUnpacker>
+static void DecodeTiledToLinear(u8* __restrict dst, const u8* __restrict src, int width, int height)
+{
+  const int xtiles = (width + TW - 1) / TW;
+  const int ytiles = (height + TH - 1) / TH;
+  const int src_pitch = xtiles * TBYTES;
+  const int dst_pitch = xtiles * TW * sizeof(DstType);
+
+  for (int ty = 0; ty < ytiles; ++ty)
+  {
+    u8* row_dst = &dst[ty * TH * dst_pitch];
+    const u8* row_src = &src[ty * src_pitch];
+    for (int tx = 0; tx < xtiles; ++tx)
+    {
+      u8* tile_dst = &row_dst[tx * TW * sizeof(DstType)];
+      const u8* tile_src = &row_src[tx * TBYTES];
+      TileUnpacker()(tile_dst, tile_src, dst_pitch);
+    }
+  }
+}
+
+void TexDecoder_Decode4BitTiledTo8BitLinear(u8* __restrict dst, const u8* __restrict src, int width,
+                                            int height)
+{
+  static const int TW = 8;
+  static const int TH = 8;
+  static const int TBYTES = 32;
+  DecodeTiledToLinear<TW, TH, TBYTES, u8, I4ToI8TileUnpacker>(dst, src, width, height);
+}
+
+void TexDecoder_DecodeI4ToARGB4Linear(u8* __restrict dst, const u8* __restrict src, int width,
+                                      int height)
+{
+  static const int TW = 8;
+  static const int TH = 8;
+  static const int TBYTES = 32;
+  DecodeTiledToLinear<TW, TH, TBYTES, u16, I4ToARGB4TileUnpacker>(dst, src, width, height);
+}
+
+void TexDecoder_DecodeIA4ToARGB4Linear(u8* __restrict dst, const u8* __restrict src, int width,
+                                       int height)
+{
+  static const int TW = 8;
+  static const int TH = 4;
+  static const int TBYTES = 32;
+  typedef TileUnpacker<TW, TH, u8, u16, AI4ToARGB4TexelDecoder> AI4ToARGB4TileUnpacker;
+  DecodeTiledToLinear<TW, TH, TBYTES, u16, AI4ToARGB4TileUnpacker>(dst, src, width, height);
+}
+
+void TexDecoder_Decode8BitTiledToLinear(u8* __restrict dst, const u8* __restrict src, int width,
+                                        int height)
+{
+  static const int TW = 8;
+  static const int TH = 4;
+  static const int TBYTES = 32;
+  typedef TileUnpacker<TW, TH, u8, u8, CopyTexelDecoder<u8>> EightBitTileUnpacker;
+  DecodeTiledToLinear<TW, TH, TBYTES, u8, EightBitTileUnpacker>(dst, src, width, height);
+}
+
+void TexDecoder_Decode16BitTiledToLinear(u8* __restrict dst, const u8* __restrict src, int width,
+                                         int height)
+{
+  static const int TW = 4;
+  static const int TH = 4;
+  static const int TBYTES = 32;
+  typedef TileUnpacker<TW, TH, u16, u16, BE16TexelDecoder> SixteenBitTileUnpacker;
+  DecodeTiledToLinear<TW, TH, TBYTES, u16, SixteenBitTileUnpacker>(dst, src, width, height);
+}
+
+void TexDecoder_Decode16BitTiledToLinear_NoSwap(u8* __restrict dst, const u8* __restrict src,
+                                                int width, int height)
+{
+  static const int TW = 4;
+  static const int TH = 4;
+  static const int TBYTES = 32;
+  typedef TileUnpacker<TW, TH, u16, u16, CopyTexelDecoder<u16>> SixteenBitTileUnpacker_NoSwap;
+  DecodeTiledToLinear<TW, TH, TBYTES, u16, SixteenBitTileUnpacker_NoSwap>(dst, src, width, height);
+}

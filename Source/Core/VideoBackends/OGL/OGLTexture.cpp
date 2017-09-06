@@ -27,6 +27,8 @@ GLenum GetGLInternalFormatForTextureFormat(AbstractTextureFormat format, bool st
 {
   switch (format)
   {
+  case AbstractTextureFormat::RGBA8:
+    return storage ? GL_RGBA8 : GL_RGBA;
   case AbstractTextureFormat::DXT1:
     return GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
   case AbstractTextureFormat::DXT3:
@@ -35,8 +37,8 @@ GLenum GetGLInternalFormatForTextureFormat(AbstractTextureFormat format, bool st
     return GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
   case AbstractTextureFormat::BPTC:
     return GL_COMPRESSED_RGBA_BPTC_UNORM_ARB;
-  case AbstractTextureFormat::RGBA8:
   default:
+    PanicAlert("Unsupported host texture format 0x%X", static_cast<int>(format));
     return storage ? GL_RGBA8 : GL_RGBA;
   }
 }
@@ -49,6 +51,7 @@ GLenum GetGLFormatForTextureFormat(AbstractTextureFormat format)
     return GL_RGBA;
   // Compressed texture formats don't use this parameter.
   default:
+    PanicAlert("Unexpected host texture format 0x%X", static_cast<int>(format));
     return GL_UNSIGNED_BYTE;
   }
 }
@@ -61,6 +64,7 @@ GLenum GetGLTypeForTextureFormat(AbstractTextureFormat format)
     return GL_UNSIGNED_BYTE;
   // Compressed texture formats don't use this parameter.
   default:
+    PanicAlert("Unexpected host texture format 0x%X", static_cast<int>(format));
     return GL_UNSIGNED_BYTE;
   }
 }

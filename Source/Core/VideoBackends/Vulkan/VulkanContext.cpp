@@ -24,6 +24,15 @@ VulkanContext::VulkanContext(VkInstance instance, VkPhysicalDevice physical_devi
   vkGetPhysicalDeviceProperties(physical_device, &m_device_properties);
   vkGetPhysicalDeviceMemoryProperties(physical_device, &m_device_memory_properties);
 
+  // Detect VK_FORMAT_R4G4_UNORM_PACK8 support
+  VkFormatProperties r4g4_properties = {};
+  vkGetPhysicalDeviceFormatProperties(physical_device, VK_FORMAT_R4G4_UNORM_PACK8,
+                                      &r4g4_properties);
+  const VkFormatFeatureFlagBits REQUIRED_R4G4_PROPERTIES = static_cast<VkFormatFeatureFlagBits>(
+      VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT | VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT);
+  m_supports_r4g4 = (r4g4_properties.optimalTilingFeatures & REQUIRED_R4G4_PROPERTIES) ==
+                    REQUIRED_R4G4_PROPERTIES;
+
   // Would any drivers be this silly? I hope not...
   m_device_properties.limits.minUniformBufferOffsetAlignment = std::max(
       m_device_properties.limits.minUniformBufferOffsetAlignment, static_cast<VkDeviceSize>(1));

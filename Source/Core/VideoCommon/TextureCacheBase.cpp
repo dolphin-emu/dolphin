@@ -767,12 +767,29 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::Load(const u32 stage)
                        g_texture_cache->SupportsGPUTextureDecode(texformat, tlutfmt) &&
                        !(from_tmem && texformat == TextureFormat::RGBA8);
 
+  const TextureDecoderInfo* decoder_info = nullptr;
+
   // create the entry/texture
   TextureConfig config;
   config.width = width;
   config.height = height;
   config.levels = texLevels;
-  config.format = hires_tex ? hires_tex->GetFormat() : AbstractTextureFormat::RGBA8;
+  if (hires_tex)
+  {
+    config.format = hires_tex->GetFormat();
+  }
+  else if (texformat == TextureFormat::RGBA8 && from_tmem)
+  {
+    config.format = AbstractTextureFormat::RGBA8;
+  }
+  else
+  {
+    decoder_info = ChooseTextureDecoder(texformat);
+    if (decoder_info != nullptr)
+      config.format = decoder_info->destfmt;
+    else
+      config.format = AbstractTextureFormat::RGBA8;
+  }
 
   TCacheEntry* entry = AllocateCacheEntry(config);
   GFX_DEBUGGER_PAUSE_AT(NEXT_NEW_TEXTURE, true);
@@ -796,19 +813,31 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::Load(const u32 stage)
   }
   else if (!hires_tex)
   {
-    size_t decoded_texture_size = expandedWidth * sizeof(u32) * expandedHeight;
-    CheckTempSize(decoded_texture_size);
-    if (!(texformat == TextureFormat::RGBA8 && from_tmem))
+    size_t decoded_texture_size = 0;
+    if (texformat == TextureFormat::RGBA8 && from_tmem)
     {
-      TexDecoder_Decode(temp, src_data, expandedWidth, expandedHeight, texformat, tlut, tlutfmt);
-    }
-    else
-    {
-      u8* src_data_gb =
+      _assert_(config.format == AbstractTextureFormat::RGBA8);
+      decoded_texture_size = expandedWidth * sizeof(u32) * expandedHeight;
+      CheckTempSize(decoded_texture_size);
+      const u8* src_data_gb =
           &texMem[bpmem.tex[stage / 4].texImage2[stage % 4].tmem_odd * TMEM_LINE_SIZE];
       TexDecoder_DecodeRGBA8FromTmem(temp, src_data, src_data_gb, expandedWidth, expandedHeight);
     }
+    else if (decoder_info != nullptr)
+    {
+      decoded_texture_size = expandedWidth * decoder_info->bytes_per_texel * expandedHeight;
+      CheckTempSize(decoded_texture_size);
+      decoder_info->decode_fn(temp, src_data, width, height);
+    }
+    else
+    {
+      _assert_(config.format == AbstractTextureFormat::RGBA8);
+      decoded_texture_size = expandedWidth * sizeof(u32) * expandedHeight;
+      CheckTempSize(decoded_texture_size);
+      TexDecoder_Decode(temp, src_data, expandedWidth, expandedHeight, texformat, tlut, tlutfmt);
+    }
 
+    _assert_(decoded_texture_size != 0);
     entry->texture->Load(0, width, height, expandedWidth, temp, decoded_texture_size);
   }
 
@@ -879,9 +908,24 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::Load(const u32 stage)
       else
       {
         // No need to call CheckTempSize here, as mips will always be smaller than the base level.
-        size_t decoded_mip_size = expanded_mip_width * sizeof(u32) * expanded_mip_height;
-        TexDecoder_Decode(temp, mip_src_data, expanded_mip_width, expanded_mip_height, texformat,
-                          tlut, tlutfmt);
+        size_t decoded_mip_size = 0;
+
+        // TODO: handle loading RGBA8 mipmaps from TMEM?
+        if (decoder_info != nullptr)
+        {
+          decoded_mip_size =
+              expanded_mip_width * decoder_info->bytes_per_texel * expanded_mip_height;
+          decoder_info->decode_fn(temp, mip_src_data, mip_width, mip_height);
+        }
+        else
+        {
+          _assert_(config.format == AbstractTextureFormat::RGBA8);
+          decoded_mip_size = expanded_mip_width * sizeof(u32) * expanded_mip_height;
+          TexDecoder_Decode(temp, mip_src_data, expanded_mip_width, expanded_mip_height, texformat,
+                            tlut, tlutfmt);
+        }
+
+        _assert_(decoded_mip_size != 0);
         entry->texture->Load(level, mip_width, mip_height, expanded_mip_width, temp,
                              decoded_mip_size);
       }
@@ -1448,6 +1492,43 @@ TextureCacheBase::FindOverlappingTextures(u32 addr, u32 size_in_bytes)
   auto end = textures_by_address.upper_bound(addr + size_in_bytes);
 
   return std::make_pair(begin, end);
+}
+
+const TextureCacheBase::TextureDecoderInfo*
+TextureCacheBase::ChooseTextureDecoder(TextureFormat texfmt) const
+{
+  static const TextureDecoderInfo I4_TO_I8 = {AbstractTextureFormat::I8, sizeof(u8),
+                                              TexDecoder_Decode4BitTiledTo8BitLinear};
+  static const TextureDecoderInfo I4_TO_ARGB4 = {AbstractTextureFormat::ARGB4, sizeof(u16),
+                                                 TexDecoder_DecodeI4ToARGB4Linear};
+  static const TextureDecoderInfo I8_TO_I8 = {AbstractTextureFormat::I8, sizeof(u8),
+                                              TexDecoder_Decode8BitTiledToLinear};
+  static const TextureDecoderInfo IA4_TO_AI4 = {AbstractTextureFormat::AI4, sizeof(u8),
+                                                TexDecoder_Decode8BitTiledToLinear};
+  static const TextureDecoderInfo IA4_TO_ARGB4 = {AbstractTextureFormat::ARGB4, sizeof(u16),
+                                                  TexDecoder_DecodeIA4ToARGB4Linear};
+  static const TextureDecoderInfo IA8_TO_AI8 = {AbstractTextureFormat::AI8, sizeof(u16),
+                                                TexDecoder_Decode16BitTiledToLinear_NoSwap};
+  static const TextureDecoderInfo RGB565_TO_RGB565 = {AbstractTextureFormat::RGB565, sizeof(u16),
+                                                      TexDecoder_Decode16BitTiledToLinear};
+
+  if (texfmt == TextureFormat::I4 && SupportsHostTextureFormat(AbstractTextureFormat::I8))
+    return &I4_TO_I8;
+  else if (texfmt == TextureFormat::I4 && SupportsHostTextureFormat(AbstractTextureFormat::ARGB4))
+    return &I4_TO_ARGB4;
+  else if (texfmt == TextureFormat::I8 && SupportsHostTextureFormat(AbstractTextureFormat::I8))
+    return &I8_TO_I8;
+  else if (texfmt == TextureFormat::IA4 && SupportsHostTextureFormat(AbstractTextureFormat::AI4))
+    return &IA4_TO_AI4;
+  else if (texfmt == TextureFormat::IA4 && SupportsHostTextureFormat(AbstractTextureFormat::ARGB4))
+    return &IA4_TO_ARGB4;
+  else if (texfmt == TextureFormat::IA8 && SupportsHostTextureFormat(AbstractTextureFormat::AI8))
+    return &IA8_TO_AI8;
+  else if (texfmt == TextureFormat::RGB565 &&
+           SupportsHostTextureFormat(AbstractTextureFormat::RGB565))
+    return &RGB565_TO_RGB565;
+
+  return nullptr;
 }
 
 TextureCacheBase::TexAddrCache::iterator

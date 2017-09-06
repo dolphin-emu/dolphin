@@ -31,6 +31,12 @@ DXGI_FORMAT GetDXGIFormatForHostFormat(AbstractTextureFormat format)
 {
   switch (format)
   {
+  case AbstractTextureFormat::RGBA8:
+    return DXGI_FORMAT_R8G8B8A8_UNORM;
+  case AbstractTextureFormat::RGB565:
+    return DXGI_FORMAT_B5G6R5_UNORM;  // Despite the name, this is RGB565.
+  case AbstractTextureFormat::ARGB4:
+    return DXGI_FORMAT_B4G4R4A4_UNORM;  // Despite the name, this is ARGB4.
   case AbstractTextureFormat::DXT1:
     return DXGI_FORMAT_BC1_UNORM;
   case AbstractTextureFormat::DXT3:
@@ -39,8 +45,8 @@ DXGI_FORMAT GetDXGIFormatForHostFormat(AbstractTextureFormat format)
     return DXGI_FORMAT_BC3_UNORM;
   case AbstractTextureFormat::BPTC:
     return DXGI_FORMAT_BC7_UNORM;
-  case AbstractTextureFormat::RGBA8:
   default:
+    PanicAlert("Unsupported host texture format 0x%X", static_cast<int>(format));
     return DXGI_FORMAT_R8G8B8A8_UNORM;
   }
 }
