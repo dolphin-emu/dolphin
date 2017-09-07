@@ -1275,18 +1275,23 @@ void VideoConfigDiag::PopulatePostProcessingShaders()
     choice_ppshader->AppendString(StrToWxStr(shader));
   }
 
-  if (!choice_ppshader->SetStringSelection(StrToWxStr(vconfig.sPostProcessingShader)))
+  if (vconfig.sPostProcessingShader.empty())
+  {
+    // Select (off) value in choice.
+    choice_ppshader->Select(0);
+  }
+  else if (!choice_ppshader->SetStringSelection(StrToWxStr(vconfig.sPostProcessingShader)))
   {
     // Invalid shader, reset it to default
     choice_ppshader->Select(0);
 
     if (vconfig.iStereoMode == STEREO_ANAGLYPH)
     {
-      Config::SetCurrent(Config::GFX_ENHANCE_POST_SHADER, std::string("dubois"));
+      Config::SetBaseOrCurrent(Config::GFX_ENHANCE_POST_SHADER, std::string("dubois"));
       choice_ppshader->SetStringSelection(StrToWxStr(vconfig.sPostProcessingShader));
     }
     else
-      Config::SetCurrent(Config::GFX_ENHANCE_POST_SHADER, std::string(""));
+      Config::SetBaseOrCurrent(Config::GFX_ENHANCE_POST_SHADER, std::string(""));
   }
 
   // Should the configuration button be loaded by default?
