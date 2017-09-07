@@ -71,20 +71,24 @@ BluetoothReal::BluetoothReal(Kernel& ios, const std::string& device_name)
 
 BluetoothReal::~BluetoothReal()
 {
-  if (m_handle != nullptr)
-  {
-    SendHCIResetCommand();
-    WaitForHCICommandComplete(HCI_CMD_RESET);
-    libusb_release_interface(m_handle, 0);
-    libusb_attach_kernel_driver(m_handle, INTERFACE);
-    // libusb_handle_events() may block the libusb thread indefinitely, so we need to
-    // call libusb_close() first then immediately stop the thread in StopTransferThread.
-    StopTransferThread();
-    libusb_unref_device(m_device);
-  }
-
+  CloseAndCleanupDevice();
   libusb_exit(m_libusb_context);
   SaveLinkKeys();
+}
+
+void BluetoothReal::CloseAndCleanupDevice()
+{
+  if (!m_handle)
+    return;
+
+  SendHCIResetCommand();
+  WaitForHCICommandComplete(HCI_CMD_RESET);
+  libusb_release_interface(m_handle, INTERFACE);
+  libusb_attach_kernel_driver(m_handle, INTERFACE);
+  // libusb_handle_events() may block the libusb thread indefinitely, so we need to
+  // call libusb_close() first then immediately stop the thread in StopTransferThread.
+  StopTransferThread();
+  libusb_unref_device(m_device);
 }
 
 ReturnCode BluetoothReal::Open(const OpenRequest& request)
@@ -154,14 +158,7 @@ ReturnCode BluetoothReal::Open(const OpenRequest& request)
 
 ReturnCode BluetoothReal::Close(u32 fd)
 {
-  if (m_handle)
-  {
-    libusb_release_interface(m_handle, 0);
-    StopTransferThread();
-    libusb_unref_device(m_device);
-    m_handle = nullptr;
-  }
-
+  CloseAndCleanupDevice();
   return Device::Close(fd);
 }
 
@@ -597,6 +594,7 @@ void BluetoothReal::StopTransferThread()
   if (m_thread_running.TestAndClear())
   {
     libusb_close(m_handle);
+    m_handle = nullptr;
     m_thread.join();
   }
 }
