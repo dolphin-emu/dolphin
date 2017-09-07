@@ -251,7 +251,7 @@ bool GeometryShaderCache::CompileShader(const GeometryShaderUid& uid)
   ShaderCode code =
       GenerateGeometryShaderCode(APIType::D3D, ShaderHostConfig::GetCurrent(), uid.GetUidData());
   if (!D3D::CompileGeometryShader(code.GetBuffer(), &bytecode) ||
-      !InsertByteCode(uid, bytecode->Data(), bytecode->Size()))
+      !InsertByteCode(uid, bytecode ? bytecode->Data() : nullptr, bytecode ? bytecode->Size() : 0))
   {
     SAFE_RELEASE(bytecode);
     return false;
