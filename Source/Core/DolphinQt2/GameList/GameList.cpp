@@ -171,7 +171,7 @@ void GameList::ShowContextMenu(const QPoint&)
     else if (blob_type == DiscIO::BlobType::PLAIN)
       AddAction(menu, tr("Compress ISO..."), this, &GameList::CompressISO);
 
-    QAction* change_disc = menu->addAction(tr("Change &Disc"), this, &GameList::ChangeDisc);
+    QAction* change_disc = AddAction(menu, tr("Change &Disc"), this, &GameList::ChangeDisc);
 
     connect(this, &GameList::EmulationStarted, change_disc,
             [change_disc] { change_disc->setEnabled(true); });
