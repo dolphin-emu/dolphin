@@ -76,6 +76,7 @@ BluetoothReal::~BluetoothReal()
     SendHCIResetCommand();
     WaitForHCICommandComplete(HCI_CMD_RESET);
     libusb_release_interface(m_handle, 0);
+    libusb_attach_kernel_driver(m_handle, INTERFACE);
     // libusb_handle_events() may block the libusb thread indefinitely, so we need to
     // call libusb_close() first then immediately stop the thread in StopTransferThread.
     StopTransferThread();
