@@ -181,8 +181,6 @@ public final class SettingsFragmentPresenter
 		}
 		else
 		{
-			mSettings.get(SettingsFile.SETTINGS_DOLPHIN).put(SettingsFile.SECTION_CORE, new SettingSection(SettingsFile.SECTION_CORE));
-
 			mView.passSettingsToActivity(mSettings);
 		}
 
@@ -253,17 +251,11 @@ public final class SettingsFragmentPresenter
 		}
 		else
 		{
-			mSettings.get(SettingsFile.SETTINGS_GFX).put(SettingsFile.SECTION_GFX_SETTINGS, new SettingSection(SettingsFile.SECTION_GFX_SETTINGS));
-			mSettings.get(SettingsFile.SETTINGS_GFX).put(SettingsFile.SECTION_GFX_ENHANCEMENTS, new SettingSection(SettingsFile.SECTION_GFX_ENHANCEMENTS));
-			mSettings.get(SettingsFile.SETTINGS_GFX).put(SettingsFile.SECTION_GFX_HACKS, new SettingSection(SettingsFile.SECTION_GFX_HACKS));
-
 			mView.passSettingsToActivity(mSettings);
 		}
 
 		if (mSettings.get(SettingsFile.SETTINGS_DOLPHIN).isEmpty())
 		{
-			mSettings.get(SettingsFile.SETTINGS_DOLPHIN).put(SettingsFile.SECTION_CORE, new SettingSection(SettingsFile.SECTION_CORE));
-
 			mView.passSettingsToActivity(mSettings);
 		}
 
@@ -347,12 +339,8 @@ public final class SettingsFragmentPresenter
 		sl.add(new SingleChoiceSetting(SettingsFile.KEY_ASPECT_RATIO, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.aspect_ratio, R.string.aspect_ratio_descrip, R.array.aspectRatioEntries, R.array.aspectRatioValues, 0, aspectRatio));
 	}
 
-	private void addStereoSettings(ArrayList<SettingsItem> sl) {
-		if (mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_STEREOSCOPY) == null)
-		{
-			mSettings.get(SettingsFile.SETTINGS_GFX).put(SettingsFile.SECTION_STEREOSCOPY, new SettingSection(SettingsFile.SECTION_STEREOSCOPY));
-		}
-
+	private void addStereoSettings(ArrayList<SettingsItem> sl)
+	{
 		Setting stereoModeValue = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_STEREOSCOPY).getSetting(SettingsFile.KEY_STEREO_MODE);
 		Setting stereoDepth = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_STEREOSCOPY).getSetting(SettingsFile.KEY_STEREO_DEPTH);
 		Setting convergence = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_STEREOSCOPY).getSetting(SettingsFile.KEY_STEREO_CONV);
@@ -414,8 +402,6 @@ public final class SettingsFragmentPresenter
 			}
 			catch (NullPointerException ex)
 			{
-				mSettings.get(SettingsFile.SETTINGS_DOLPHIN).put(SettingsFile.SECTION_BINDINGS, new SettingSection(SettingsFile.SECTION_BINDINGS));
-
 				mView.passSettingsToActivity(mSettings);
 			}
 
@@ -534,8 +520,6 @@ public final class SettingsFragmentPresenter
 		}
 		catch (NullPointerException ex)
 		{
-			mSettings.get(SettingsFile.SETTINGS_DOLPHIN).put(SettingsFile.SECTION_BINDINGS, new SettingSection(SettingsFile.SECTION_BINDINGS));
-
 			mView.passSettingsToActivity(mSettings);
 		}
 
