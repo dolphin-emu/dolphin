@@ -46,7 +46,7 @@
 
 namespace WiiUtils
 {
-bool InstallWAD(IOS::HLE::Kernel& ios, const DiscIO::WiiWAD& wad)
+static bool InstallWAD(IOS::HLE::Kernel& ios, const DiscIO::WiiWAD& wad)
 {
   if (!wad.IsValid())
   {
