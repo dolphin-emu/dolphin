@@ -46,6 +46,7 @@ private:
   void UninstallWAD();
   void ExportWiiSave();
   void CompressISO();
+  void ChangeDisc();
   void OnHeaderViewChanged();
 
   void MakeListView();

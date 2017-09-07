@@ -20,6 +20,7 @@
 #include "Common/FileUtil.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/HW/DVD/DVDInterface.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
 
@@ -169,6 +170,15 @@ void GameList::ShowContextMenu(const QPoint&)
       AddAction(menu, tr("Decompress ISO..."), this, &GameList::CompressISO);
     else if (blob_type == DiscIO::BlobType::PLAIN)
       AddAction(menu, tr("Compress ISO..."), this, &GameList::CompressISO);
+
+    QAction* change_disc = menu->addAction(tr("Change &Disc"), this, &GameList::ChangeDisc);
+
+    connect(this, &GameList::EmulationStarted, change_disc,
+            [change_disc] { change_disc->setEnabled(true); });
+    connect(this, &GameList::EmulationStopped, change_disc,
+            [change_disc] { change_disc->setEnabled(false); });
+
+    change_disc->setEnabled(Core::IsRunning());
 
     menu->addSeparator();
   }
@@ -408,6 +418,11 @@ void GameList::DeleteFile()
       }
     }
   }
+}
+
+void GameList::ChangeDisc()
+{
+  DVDInterface::ChangeDiscAsHost(GetSelectedGame()->GetFilePath().toStdString());
 }
 
 QSharedPointer<GameFile> GameList::GetSelectedGame() const
