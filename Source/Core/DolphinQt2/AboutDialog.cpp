@@ -29,7 +29,6 @@ AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent)
               QStringLiteral("</p>"));
   text.append(small + tr("Revision: ") + QString::fromUtf8(Common::scm_rev_git_str.c_str()) +
               QStringLiteral("</p>"));
-  text.append(small + tr("Compiled: ") + QStringLiteral(__DATE__ " " __TIME__ "</p>"));
 
   text.append(medium + tr("Check for updates: ") +
               QStringLiteral(
@@ -62,9 +61,8 @@ AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent)
       // in your translation, please use the type of curly quotes that's appropriate for
       // your language. If you aren't sure which type is appropriate, see
       // https://en.wikipedia.org/wiki/Quotation_mark#Specific_language_features
-      new QLabel(tr("\u00A9 2003-%1 Dolphin Team. \u201cGameCube\u201d and \u201cWii\u201d are "
-                    "trademarks of Nintendo. Dolphin is not affiliated with Nintendo in any way.")
-                     .arg(QStringLiteral(__DATE__).right(4)));
+      new QLabel(tr("\u00A9 2003-2015+ Dolphin Team. \u201cGameCube\u201d and \u201cWii\u201d are "
+                    "trademarks of Nintendo. Dolphin is not affiliated with Nintendo in any way."));
 
   QLabel* logo = new QLabel();
   logo->setPixmap(Resources::GetMisc(Resources::LOGO_LARGE));
