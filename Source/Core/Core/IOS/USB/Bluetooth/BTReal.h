@@ -124,6 +124,7 @@ private:
   void SaveLinkKeys();
 
   bool OpenDevice(libusb_device* device);
+  void CloseAndCleanupDevice();
   void StartTransferThread();
   void StopTransferThread();
   void TransferThread();
