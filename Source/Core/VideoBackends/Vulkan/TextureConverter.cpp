@@ -801,6 +801,7 @@ bool TextureConverter::CompileYUYVConversionShaders()
   static const char RGB_TO_YUYV_SHADER_SOURCE[] = R"(
     SAMPLER_BINDING(0) uniform sampler2DArray source;
     layout(location = 0) in vec3 uv0;
+    layout(location = 1) in vec4 col0;
     layout(location = 0) out vec4 ocol0;
 
     const vec3 y_const = vec3(0.257,0.504,0.098);
