@@ -375,18 +375,23 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool color_enable, bool alpha
 
   // If we're not in a render pass (start of the frame), we can use a clear render pass
   // to discard the data, rather than loading and then clearing.
-  bool use_clear_render_pass = (color_enable && alpha_enable && z_enable);
+  bool use_clear_attachments = (color_enable && alpha_enable) || z_enable;
+  bool use_clear_render_pass =
+      !StateTracker::GetInstance()->InRenderPass() && color_enable && alpha_enable && z_enable;
+
+  // The NVIDIA Vulkan driver causes the GPU to lock up, or throw exceptions if MSAA is enabled,
+  // a non-full clear rect is specified, and a clear loadop or vkCmdClearAttachments is used.
+  if (g_ActiveConfig.iMultisamples > 1 &&
+      DriverDetails::HasBug(DriverDetails::BUG_BROKEN_MSAA_CLEAR))
+  {
+    use_clear_render_pass = false;
+    use_clear_attachments = false;
+  }
+
+  // This path cannot be used if the driver implementation doesn't guarantee pixels with no drawn
+  // geometry in "this" renderpass won't be cleared
   if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_CLEAR_LOADOP_RENDERPASS))
-  {
-    // This path cannot be used if the driver implementation doesn't guarantee pixels with no drawn
-    // geomerty in "this" renderpass won't be cleared
     use_clear_render_pass = false;
-  }
-  if (StateTracker::GetInstance()->InRenderPass())
-  {
-    // Prefer not to end a render pass just to do a clear.
-    use_clear_render_pass = false;
-  }
 
   // Fastest path: Use a render pass to clear the buffers.
   if (use_clear_render_pass)
@@ -398,8 +403,7 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool color_enable, bool alpha
 
   // Fast path: Use vkCmdClearAttachments to clear the buffers within a render path
   // We can't use this when preserving alpha but clearing color.
-  if (g_ActiveConfig.iMultisamples == 1 ||
-      !DriverDetails::HasBug(DriverDetails::BUG_BROKEN_MSAA_VKCMDCLEARATTACHMENTS))
+  if (use_clear_attachments)
   {
     VkClearAttachment clear_attachments[2];
     uint32_t num_clear_attachments = 0;
