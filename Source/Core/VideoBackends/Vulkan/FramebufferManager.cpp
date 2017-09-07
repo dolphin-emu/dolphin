@@ -362,6 +362,8 @@ bool FramebufferManager::CreateEFBFramebuffer()
   // Transition to state that can be used to clear
   m_efb_color_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                                           VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+  m_efb_convert_color_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                                  VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
   m_efb_depth_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                                           VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
@@ -373,6 +375,9 @@ bool FramebufferManager::CreateEFBFramebuffer()
   vkCmdClearColorImage(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                        m_efb_color_texture->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                        &clear_color, 1, &clear_color_range);
+  vkCmdClearColorImage(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                       m_efb_convert_color_texture->GetImage(),
+                       VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, &clear_color, 1, &clear_color_range);
   vkCmdClearDepthStencilImage(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                               m_efb_depth_texture->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                               &clear_depth, 1, &clear_depth_range);
