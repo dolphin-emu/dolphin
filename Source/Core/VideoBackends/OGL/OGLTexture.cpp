@@ -4,6 +4,7 @@
 
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
+#include "Common/GL/GLExtensions/GLExtensions.h"
 #include "Common/GL/GLInterfaceBase.h"
 #include "Common/MsgHandler.h"
 
@@ -65,22 +66,6 @@ GLenum GetGLTypeForTextureFormat(AbstractTextureFormat format)
   }
 }
 }  // Anonymous namespace
-
-bool SaveTexture(const std::string& filename, u32 textarget, u32 tex, int virtual_width,
-                 int virtual_height, unsigned int level)
-{
-  if (GLInterface->GetMode() != GLInterfaceMode::MODE_OPENGL)
-    return false;
-  int width = std::max(virtual_width >> level, 1);
-  int height = std::max(virtual_height >> level, 1);
-  std::vector<u8> data(width * height * 4);
-  glActiveTexture(GL_TEXTURE9);
-  glBindTexture(textarget, tex);
-  glGetTexImage(textarget, level, GL_RGBA, GL_UNSIGNED_BYTE, data.data());
-  OGLTexture::SetStage();
-
-  return TextureToPng(data.data(), width * 4, filename, width, height, true);
-}
 
 OGLTexture::OGLTexture(const TextureConfig& tex_config) : AbstractTexture(tex_config)
 {
@@ -164,15 +149,73 @@ void OGLTexture::Bind(unsigned int stage)
   }
 }
 
-bool OGLTexture::Save(const std::string& filename, unsigned int level)
+std::optional<AbstractTexture::RawTextureInfo> OGLTexture::MapFullImpl()
 {
-  // We can't dump compressed textures currently (it would mean drawing them to a RGBA8
-  // framebuffer, and saving that). TextureCache does not call Save for custom textures
-  // anyway, so this is fine for now.
-  _assert_(m_config.format == AbstractTextureFormat::RGBA8);
+  if (GLInterface->GetMode() != GLInterfaceMode::MODE_OPENGL)
+    return {};
 
-  return SaveTexture(filename, GL_TEXTURE_2D_ARRAY, m_texId, m_config.width, m_config.height,
-                     level);
+  m_staging_data.reserve(m_config.width * m_config.height * 4);
+  glActiveTexture(GL_TEXTURE9);
+
+  glBindTexture(GL_TEXTURE_2D_ARRAY, m_texId);
+  glGetTexImage(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_staging_data.data());
+  OGLTexture::SetStage();
+  return AbstractTexture::RawTextureInfo{reinterpret_cast<u8*>(m_staging_data.data()),
+                                         m_config.width * 4, m_config.width, m_config.height};
+}
+
+std::optional<AbstractTexture::RawTextureInfo> OGLTexture::MapRegionImpl(u32 level, u32 x, u32 y,
+                                                                         u32 width, u32 height)
+{
+  if (GLInterface->GetMode() != GLInterfaceMode::MODE_OPENGL)
+    return {};
+  m_staging_data.reserve(m_config.width * m_config.height * 4);
+  glActiveTexture(GL_TEXTURE9);
+  glBindTexture(GL_TEXTURE_2D_ARRAY, m_texId);
+  if (GLExtensions::Version() >= 450)
+  {
+    glGetTextureSubImage(GL_TEXTURE_2D_ARRAY, level, GLint(x), GLint(y), 0, GLsizei(width),
+                         GLsizei(height), 0, GL_RGBA, GL_UNSIGNED_BYTE, GLsizei(width * height * 4),
+                         m_staging_data.data());
+  }
+  else
+  {
+    MapRegionSlow(level, x, y, width, height);
+  }
+  OGLTexture::SetStage();
+  return AbstractTexture::RawTextureInfo{m_staging_data.data(), width * 4, width, height};
+}
+
+void OGLTexture::MapRegionSlow(u32 level, u32 x, u32 y, u32 width, u32 height)
+{
+  glActiveTexture(GL_TEXTURE9);
+
+  glBindTexture(GL_TEXTURE_2D_ARRAY, m_texId);
+  glGetTexImage(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_staging_data.data());
+
+  // Now copy the region out of the staging data
+
+  const u32 partial_stride = width * 4;
+
+  std::vector<u8> partial_data;
+  partial_data.resize(partial_stride * height);
+
+  const u32 staging_stride = m_config.width * 4;
+  const u32 x_offset = x * 4;
+
+  auto staging_location = m_staging_data.begin() + staging_stride * y;
+  auto partial_location = partial_data.begin();
+
+  for (size_t i = 0; i < height; ++i)
+  {
+    auto starting_location = staging_location + x_offset;
+    std::copy(starting_location, starting_location + partial_stride, partial_location);
+    staging_location += staging_stride;
+    partial_location += partial_stride;
+  }
+
+  // Now swap the region back in for the staging data
+  m_staging_data.swap(partial_data);
 }
 
 void OGLTexture::CopyRectangleFromTexture(const AbstractTexture* source,
