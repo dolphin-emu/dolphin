@@ -67,8 +67,8 @@ void JitArm64::rfi(UGeckoInstruction inst)
   LDR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(spr[SPR_SRR0]));
   gpr.Unlock(WB, WC);
 
-  // WA is unlocked in this function
   WriteExceptionExit(WA);
+  gpr.Unlock(WA);
 }
 
 void JitArm64::bx(UGeckoInstruction inst)
@@ -220,6 +220,8 @@ void JitArm64::bcctrx(UGeckoInstruction inst)
   AND(WA, WA, 30, 29);  // Wipe the bottom 2 bits.
 
   WriteExit(WA, inst.LK_3, js.compilerPC + 4);
+
+  gpr.Unlock(WA);
 }
 
 void JitArm64::bclrx(UGeckoInstruction inst)
@@ -274,6 +276,8 @@ void JitArm64::bclrx(UGeckoInstruction inst)
   fpr.Flush(conditional ? FlushMode::FLUSH_MAINTAIN_STATE : FlushMode::FLUSH_ALL);
 
   WriteBLRExit(WA);
+
+  gpr.Unlock(WA);
 
   if (conditional)
     SwitchToNearCode();

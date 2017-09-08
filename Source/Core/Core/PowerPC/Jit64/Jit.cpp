@@ -16,6 +16,7 @@
 #include "Common/File.h"
 #include "Common/Logging/Log.h"
 #include "Common/MemoryUtil.h"
+#include "Common/PerformanceCounter.h"
 #include "Common/StringUtil.h"
 #include "Common/x64ABI.h"
 #include "Core/Core.h"
@@ -370,6 +371,23 @@ bool Jit64::Cleanup()
     did_something = true;
   }
 
+  if (Profiler::g_ProfileBlocks)
+  {
+    ABI_PushRegistersAndAdjustStack({}, 0);
+    // get end tic
+    MOV(64, R(ABI_PARAM1), ImmPtr(&js.curBlock->profile_data.ticStop));
+    ABI_CallFunction(QueryPerformanceCounter);
+    // tic counter += (end tic - start tic)
+    MOV(64, R(RSCRATCH2), ImmPtr(&js.curBlock->profile_data));
+    MOV(64, R(RSCRATCH), MDisp(RSCRATCH2, offsetof(JitBlock::ProfileData, ticStop)));
+    SUB(64, R(RSCRATCH), MDisp(RSCRATCH2, offsetof(JitBlock::ProfileData, ticStart)));
+    ADD(64, R(RSCRATCH), MDisp(RSCRATCH2, offsetof(JitBlock::ProfileData, ticCounter)));
+    ADD(64, MDisp(RSCRATCH2, offsetof(JitBlock::ProfileData, downcountCounter)),
+        Imm32(js.downcountAmount));
+    MOV(64, MDisp(RSCRATCH2, offsetof(JitBlock::ProfileData, ticCounter)), R(RSCRATCH));
+    ABI_PopRegistersAndAdjustStack({}, 0);
+  }
+
   return did_something;
 }
 
@@ -627,7 +645,6 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
   const u8* start =
       AlignCode4();  // TODO: Test if this or AlignCode16 make a difference from GetCodePtr
   b->checkedEntry = start;
-  b->runCount = 0;
 
   // Downcount flag check. The last block decremented downcounter, and the flag should still be
   // available.
@@ -650,13 +667,12 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
   // Conditionally add profiling code.
   if (Profiler::g_ProfileBlocks)
   {
-    MOV(64, R(RSCRATCH), ImmPtr(&b->runCount));
-    ADD(32, MatR(RSCRATCH), Imm8(1));
-    b->ticCounter = 0;
-    b->ticStart = 0;
-    b->ticStop = 0;
     // get start tic
-    PROFILER_QUERY_PERFORMANCE_COUNTER(&b->ticStart);
+    MOV(64, R(ABI_PARAM1), ImmPtr(&b->profile_data.ticStart));
+    int offset = static_cast<int>(offsetof(JitBlock::ProfileData, runCount)) -
+                 static_cast<int>(offsetof(JitBlock::ProfileData, ticStart));
+    ADD(64, MDisp(ABI_PARAM1, offset), Imm8(1));
+    ABI_CallFunction(QueryPerformanceCounter);
   }
 #if defined(_DEBUG) || defined(DEBUGFAST) || defined(NAN_CHECK)
   // should help logged stack-traces become more accurate
@@ -731,16 +747,6 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
 
     if (i == (code_block.m_num_instructions - 1))
     {
-      if (Profiler::g_ProfileBlocks)
-      {
-        // WARNING - cmp->branch merging will screw this up.
-        PROFILER_VPUSH;
-        // get end tic
-        PROFILER_QUERY_PERFORMANCE_COUNTER(&b->ticStop);
-        // tic counter += (end tic - start tic)
-        PROFILER_UPDATE_TIME(b);
-        PROFILER_VPOP;
-      }
       js.isLastInstruction = true;
     }
 

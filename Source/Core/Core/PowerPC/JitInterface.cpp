@@ -119,12 +119,12 @@ void GetProfileResults(ProfileStats* prof_stats)
 
   QueryPerformanceFrequency((LARGE_INTEGER*)&prof_stats->countsPerSec);
   g_jit->GetBlockCache()->RunOnBlocks([&prof_stats](const JitBlock& block) {
-    // Rough heuristic.  Mem instructions should cost more.
-    u64 cost = block.originalSize * (block.runCount / 4);
-    u64 timecost = block.ticCounter;
+    const auto& data = block.profile_data;
+    u64 cost = data.downcountCounter;
+    u64 timecost = data.ticCounter;
     // Todo: tweak.
-    if (block.runCount >= 1)
-      prof_stats->block_stats.emplace_back(block.effectiveAddress, cost, timecost, block.runCount,
+    if (data.runCount >= 1)
+      prof_stats->block_stats.emplace_back(block.effectiveAddress, cost, timecost, data.runCount,
                                            block.codeSize);
     prof_stats->cost_sum += cost;
     prof_stats->timecost_sum += timecost;
