@@ -58,3 +58,10 @@ union BlendingState
 
   u32 hex;
 };
+
+namespace RenderState
+{
+RasterizationState GetNoCullRasterizationState();
+DepthState GetNoDepthTestingDepthStencilState();
+BlendingState GetNoBlendingBlendState();
+}

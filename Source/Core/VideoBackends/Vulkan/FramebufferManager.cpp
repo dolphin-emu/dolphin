@@ -1192,11 +1192,11 @@ void FramebufferManager::DrawPokeVertices(const EFBPokeVertex* vertices, size_t 
   pipeline_info.gs = (GetEFBLayers() > 1) ? m_poke_geometry_shader : VK_NULL_HANDLE;
   pipeline_info.ps = m_poke_fragment_shader;
   pipeline_info.render_pass = m_efb_load_render_pass;
-  pipeline_info.rasterization_state.hex = Util::GetNoCullRasterizationState().hex;
+  pipeline_info.rasterization_state.hex = RenderState::GetNoCullRasterizationState().hex;
   pipeline_info.rasterization_state.primitive = m_poke_primitive;
   pipeline_info.multisampling_state.hex = GetEFBMultisamplingState().hex;
-  pipeline_info.depth_state.hex = Util::GetNoDepthTestingDepthStencilState().hex;
-  pipeline_info.blend_state.hex = Util::GetNoBlendingBlendState().hex;
+  pipeline_info.depth_state.hex = RenderState::GetNoDepthTestingDepthStencilState().hex;
+  pipeline_info.blend_state.hex = RenderState::GetNoBlendingBlendState().hex;
   pipeline_info.blend_state.colorupdate = write_color;
   pipeline_info.blend_state.alphaupdate = write_color;
   if (write_depth)

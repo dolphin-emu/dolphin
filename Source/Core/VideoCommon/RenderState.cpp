@@ -144,3 +144,37 @@ void BlendingState::Generate(const BPMemory& bp)
     }
   }
 }
+
+namespace RenderState
+{
+RasterizationState GetNoCullRasterizationState()
+{
+  RasterizationState state = {};
+  state.cullmode = GenMode::CULL_NONE;
+  return state;
+}
+
+DepthState GetNoDepthTestingDepthStencilState()
+{
+  DepthState state = {};
+  state.testenable = false;
+  state.updateenable = false;
+  state.func = ZMode::ALWAYS;
+  return state;
+}
+
+BlendingState GetNoBlendingBlendState()
+{
+  BlendingState state = {};
+  state.usedualsrc = false;
+  state.blendenable = false;
+  state.srcfactor = BlendMode::ONE;
+  state.srcfactoralpha = BlendMode::ONE;
+  state.dstfactor = BlendMode::ZERO;
+  state.dstfactoralpha = BlendMode::ZERO;
+  state.logicopenable = false;
+  state.colorupdate = true;
+  state.alphaupdate = true;
+  return state;
+}
+}

@@ -455,11 +455,11 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool color_enable, bool alpha
   StateTracker::GetInstance()->SetPendingRebind();
 
   // Mask away the appropriate colors and use a shader
-  BlendingState blend_state = Util::GetNoBlendingBlendState();
+  BlendingState blend_state = RenderState::GetNoBlendingBlendState();
   blend_state.colorupdate = color_enable;
   blend_state.alphaupdate = alpha_enable;
 
-  DepthState depth_state = Util::GetNoDepthTestingDepthStencilState();
+  DepthState depth_state = RenderState::GetNoDepthTestingDepthStencilState();
   depth_state.testenable = z_enable;
   depth_state.updateenable = z_enable;
   depth_state.func = ZMode::ALWAYS;

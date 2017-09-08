@@ -185,36 +185,6 @@ VkBlendFactor GetAlphaBlendFactor(VkBlendFactor factor)
   }
 }
 
-RasterizationState GetNoCullRasterizationState()
-{
-  RasterizationState state = {};
-  state.cullmode = GenMode::CULL_NONE;
-  return state;
-}
-
-DepthState GetNoDepthTestingDepthStencilState()
-{
-  DepthState state = {};
-  state.testenable = false;
-  state.updateenable = false;
-  state.func = ZMode::ALWAYS;
-  return state;
-}
-
-BlendingState GetNoBlendingBlendState()
-{
-  BlendingState state = {};
-  state.blendenable = false;
-  state.srcfactor = BlendMode::ONE;
-  state.srcfactoralpha = BlendMode::ZERO;
-  state.dstfactor = BlendMode::ONE;
-  state.dstfactoralpha = BlendMode::ZERO;
-  state.logicopenable = false;
-  state.colorupdate = true;
-  state.alphaupdate = true;
-  return state;
-}
-
 void SetViewportAndScissor(VkCommandBuffer command_buffer, int x, int y, int width, int height,
                            float min_depth /*= 0.0f*/, float max_depth /*= 1.0f*/)
 {
@@ -342,10 +312,10 @@ UtilityShaderDraw::UtilityShaderDraw(VkCommandBuffer command_buffer,
   m_pipeline_info.vs = vertex_shader;
   m_pipeline_info.gs = geometry_shader;
   m_pipeline_info.ps = pixel_shader;
-  m_pipeline_info.rasterization_state.hex = Util::GetNoCullRasterizationState().hex;
+  m_pipeline_info.rasterization_state.hex = RenderState::GetNoCullRasterizationState().hex;
   m_pipeline_info.rasterization_state.primitive = primitive;
-  m_pipeline_info.depth_state.hex = Util::GetNoDepthTestingDepthStencilState().hex;
-  m_pipeline_info.blend_state.hex = Util::GetNoBlendingBlendState().hex;
+  m_pipeline_info.depth_state.hex = RenderState::GetNoDepthTestingDepthStencilState().hex;
+  m_pipeline_info.blend_state.hex = RenderState::GetNoBlendingBlendState().hex;
   m_pipeline_info.multisampling_state.per_sample_shading = false;
   m_pipeline_info.multisampling_state.samples = 1;
 }

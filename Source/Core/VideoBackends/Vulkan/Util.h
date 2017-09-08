@@ -38,10 +38,6 @@ VkRect2D ClampRect2D(const VkRect2D& rect, u32 width, u32 height);
 // Map {SRC,DST}_COLOR to {SRC,DST}_ALPHA
 VkBlendFactor GetAlphaBlendFactor(VkBlendFactor factor);
 
-RasterizationState GetNoCullRasterizationState();
-DepthState GetNoDepthTestingDepthStencilState();
-BlendingState GetNoBlendingBlendState();
-
 // Combines viewport and scissor updates
 void SetViewportAndScissor(VkCommandBuffer command_buffer, int x, int y, int width, int height,
                            float min_depth = 0.0f, float max_depth = 1.0f);

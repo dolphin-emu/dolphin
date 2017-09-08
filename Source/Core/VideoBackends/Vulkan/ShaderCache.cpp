@@ -1210,9 +1210,9 @@ void ShaderCache::CreateDummyPipeline(const UberShader::VertexShaderUid& vuid,
                  VK_NULL_HANDLE;
   pinfo.ps = GetPixelUberShaderForUid(puid);
   pinfo.render_pass = FramebufferManager::GetInstance()->GetEFBLoadRenderPass();
-  pinfo.rasterization_state.hex = Util::GetNoCullRasterizationState().hex;
-  pinfo.depth_state.hex = Util::GetNoDepthTestingDepthStencilState().hex;
-  pinfo.blend_state.hex = Util::GetNoBlendingBlendState().hex;
+  pinfo.rasterization_state.hex = RenderState::GetNoCullRasterizationState().hex;
+  pinfo.depth_state.hex = RenderState::GetNoDepthTestingDepthStencilState().hex;
+  pinfo.blend_state.hex = RenderState::GetNoBlendingBlendState().hex;
   pinfo.multisampling_state.hex = FramebufferManager::GetInstance()->GetEFBMultisamplingState().hex;
   pinfo.rasterization_state.primitive = guid.GetUidData()->primitive_type;
   GetPipelineWithCacheResultAsync(pinfo);

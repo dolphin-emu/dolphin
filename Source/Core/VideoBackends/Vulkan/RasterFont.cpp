@@ -400,7 +400,7 @@ void RasterFont::PrintMultiLineText(VkRenderPass render_pass, const std::string&
   draw.SetPSSampler(0, m_texture->GetView(), g_object_cache->GetLinearSampler());
 
   // Setup alpha blending
-  BlendingState blend_state = Util::GetNoBlendingBlendState();
+  BlendingState blend_state = RenderState::GetNoBlendingBlendState();
   blend_state.blendenable = true;
   blend_state.srcfactor = BlendMode::SRCALPHA;
   blend_state.dstfactor = BlendMode::INVSRCALPHA;
