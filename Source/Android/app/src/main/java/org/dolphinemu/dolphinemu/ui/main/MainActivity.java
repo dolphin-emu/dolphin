@@ -3,9 +3,11 @@ package org.dolphinemu.dolphinemu.ui.main;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
@@ -26,6 +28,8 @@ import org.dolphinemu.dolphinemu.ui.settings.SettingsActivity;
 import org.dolphinemu.dolphinemu.utils.PermissionsHandler;
 import org.dolphinemu.dolphinemu.utils.StartupHandler;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * The main Activity of the Lollipop style UI. Manages several PlatformGamesFragments, which
  * individually display a grid of available games for each Fragment, in a tabbed layout.
@@ -38,6 +42,8 @@ public final class MainActivity extends AppCompatActivity implements MainView
 	private FloatingActionButton mFab;
 
 	private MainPresenter mPresenter = new MainPresenter(this);
+
+	private Snackbar snackbar;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -75,6 +81,8 @@ public final class MainActivity extends AppCompatActivity implements MainView
 		} else {
 			mViewPager.setVisibility(View.INVISIBLE);
 		}
+
+		snackbar = Snackbar.make(mViewPager, R.string.scan_games, Snackbar.LENGTH_INDEFINITE);
 	}
 
 	// TODO: Replace with a ButterKnife injection.
@@ -140,6 +148,31 @@ public final class MainActivity extends AppCompatActivity implements MainView
 	public void showGames(Platform platform, Cursor games)
 	{
 		// no-op. Handled by PlatformGamesFragment.
+	}
+
+	@Override
+	public void showScanGamesLoading()
+	{
+		snackbar.show();
+	}
+
+	@Override
+	public void updateScanGamesLoadingMessage(String message)
+	{
+		String gameName = Uri.parse(message).getLastPathSegment();
+		snackbar.setText(gameName);
+	}
+
+	@Override
+	public void hideScanGamesLoading()
+	{
+		snackbar.getView().postDelayed(new Runnable() {
+			@Override
+			public void run()
+			{
+				snackbar.dismiss();
+			}
+		}, TimeUnit.SECONDS.toMillis(2));
 	}
 
 	/**

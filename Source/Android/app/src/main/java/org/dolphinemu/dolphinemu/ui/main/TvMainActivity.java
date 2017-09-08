@@ -1,6 +1,7 @@
 package org.dolphinemu.dolphinemu.ui.main;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.FragmentManager;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -40,6 +41,8 @@ public final class TvMainActivity extends Activity implements MainView
 	private BrowseFragment mBrowseFragment;
 
 	private ArrayObjectAdapter mRowsAdapter;
+
+	private AlertDialog loading;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -95,6 +98,12 @@ public final class TvMainActivity extends Activity implements MainView
 						}
 					}
 				});
+
+
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setTitle(R.string.scan_games);
+		builder.setMessage(R.string.scan_games);
+		loading = builder.create();
 	}
 	/**
 	 * MainView
@@ -140,6 +149,24 @@ public final class TvMainActivity extends Activity implements MainView
 		{
 			mRowsAdapter.add(row);
 		}
+	}
+
+	@Override
+	public void showScanGamesLoading()
+	{
+		loading.show();
+	}
+
+	@Override
+	public void updateScanGamesLoadingMessage(String message)
+	{
+		loading.setMessage(message);
+	}
+
+	@Override
+	public void hideScanGamesLoading()
+	{
+		loading.dismiss();
 	}
 
 	/**

@@ -45,4 +45,11 @@ public interface MainView
 	 * @param games A Cursor containing the games read from the database.
 	 */
 	void showGames(Platform platform, Cursor games);
+
+	void showScanGamesLoading();
+
+	void updateScanGamesLoadingMessage(String message);
+
+	void hideScanGamesLoading();
+
 }

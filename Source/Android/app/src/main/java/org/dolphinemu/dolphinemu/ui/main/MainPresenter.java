@@ -11,6 +11,7 @@ import org.dolphinemu.dolphinemu.ui.platform.Platform;
 import org.dolphinemu.dolphinemu.utils.SettingsFile;
 
 import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 
@@ -58,9 +59,35 @@ public final class MainPresenter
 				return true;
 
 			case R.id.menu_refresh:
+				mView.showScanGamesLoading();
 				GameDatabase databaseHelper = DolphinApplication.databaseHelper;
-				databaseHelper.scanLibrary(databaseHelper.getWritableDatabase());
-				mView.refresh();
+				databaseHelper
+						.scanLibrary(databaseHelper.getWritableDatabase())
+						.onBackpressureLatest()
+						.observeOn(AndroidSchedulers.mainThread())
+						.subscribeOn(Schedulers.io())
+						.subscribe(new Action1<String>() {
+							@Override
+							public void call(String s)
+							{
+								mView.updateScanGamesLoadingMessage(s);
+							}
+						}, new Action1<Throwable>() {
+							@Override
+							public void call(Throwable throwable)
+							{
+								mView.hideScanGamesLoading();
+							}
+						}, new Action0() {
+							@Override
+							public void call()
+							{
+								mView.refresh();
+								mView.hideScanGamesLoading();
+							}
+						});
+
+
 				return true;
 
 			case R.id.button_add_directory:
