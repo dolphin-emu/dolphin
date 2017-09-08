@@ -17,6 +17,7 @@ import android.support.v17.leanback.widget.OnItemViewClickedListener;
 import android.support.v17.leanback.widget.Presenter;
 import android.support.v17.leanback.widget.Row;
 import android.support.v17.leanback.widget.RowPresenter;
+import android.support.v4.content.ContextCompat;
 import android.widget.Toast;
 
 import org.dolphinemu.dolphinemu.R;
@@ -45,6 +46,16 @@ public final class TvMainActivity extends Activity implements MainView
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_tv_main);
 
+		setupUI();
+
+		mPresenter.onCreate();
+
+		// Stuff in this block only happens when this activity is newly created (i.e. not a rotation)
+		if (savedInstanceState == null)
+			StartupHandler.HandleInit(this);
+	}
+
+	void setupUI() {
 		final FragmentManager fragmentManager = getFragmentManager();
 		mBrowseFragment = new BrowseFragment();
 		fragmentManager
@@ -54,13 +65,8 @@ public final class TvMainActivity extends Activity implements MainView
 
 		// Set display parameters for the BrowseFragment
 		mBrowseFragment.setHeadersState(BrowseFragment.HEADERS_ENABLED);
-		mBrowseFragment.setTitle(getString(R.string.app_name));
-		mBrowseFragment.setBadgeDrawable(getResources().getDrawable(
-				R.drawable.ic_launcher, null));
-		mBrowseFragment.setBrandColor(getResources().getColor(R.color.dolphin_blue_dark));
+		mBrowseFragment.setBrandColor(ContextCompat.getColor(this, R.color.dolphin_blue_dark));
 		buildRowsAdapter();
-
-		mPresenter.onCreate();
 
 		mBrowseFragment.setOnItemViewClickedListener(
 				new OnItemViewClickedListener()
@@ -88,12 +94,7 @@ public final class TvMainActivity extends Activity implements MainView
 						}
 					}
 				});
-
-		// Stuff in this block only happens when this activity is newly created (i.e. not a rotation)
-		if (savedInstanceState == null)
-			StartupHandler.HandleInit(this);
 	}
-
 	/**
 	 * MainView
 	 */
@@ -101,7 +102,7 @@ public final class TvMainActivity extends Activity implements MainView
 	@Override
 	public void setVersionString(String version)
 	{
-		// No-op
+		mBrowseFragment.setTitle(version);
 	}
 
 	@Override
