@@ -260,7 +260,7 @@ bool VertexShaderCache::SetShader(D3DVertexFormat* vertex_format)
     if (!last_entry->shader)
       return false;
 
-    vertex_format->SetInputLayout(last_entry->bytecode);
+    D3D::stateman->SetInputLayout(vertex_format->GetInputLayout(last_entry->bytecode));
     D3D::stateman->SetVertexShader(last_entry->shader);
     return true;
   }
@@ -279,7 +279,7 @@ bool VertexShaderCache::SetShader(D3DVertexFormat* vertex_format)
     if (!last_entry->shader)
       return false;
 
-    vertex_format->SetInputLayout(last_entry->bytecode);
+    D3D::stateman->SetInputLayout(vertex_format->GetInputLayout(last_entry->bytecode));
     D3D::stateman->SetVertexShader(last_entry->shader);
     return true;
   }
@@ -324,7 +324,7 @@ bool VertexShaderCache::SetUberShader(D3DVertexFormat* vertex_format)
     if (!last_uber_entry->shader)
       return false;
 
-    uber_vertex_format->SetInputLayout(last_uber_entry->bytecode);
+    D3D::stateman->SetInputLayout(uber_vertex_format->GetInputLayout(last_uber_entry->bytecode));
     D3D::stateman->SetVertexShader(last_uber_entry->shader);
     return true;
   }
@@ -340,7 +340,7 @@ bool VertexShaderCache::SetUberShader(D3DVertexFormat* vertex_format)
     if (!last_uber_entry->shader)
       return false;
 
-    uber_vertex_format->SetInputLayout(last_uber_entry->bytecode);
+    D3D::stateman->SetInputLayout(uber_vertex_format->GetInputLayout(last_uber_entry->bytecode));
     D3D::stateman->SetVertexShader(last_uber_entry->shader);
     return true;
   }

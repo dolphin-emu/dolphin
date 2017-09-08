@@ -9,6 +9,7 @@
 #include <string>
 
 #include "Common/Align.h"
+#include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/GL/GLInterfaceBase.h"
@@ -20,6 +21,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Host.h"
 
+#include "VideoBackends/OGL/OGLShader.h"
 #include "VideoBackends/OGL/Render.h"
 #include "VideoBackends/OGL/StreamBuffer.h"
 #include "VideoBackends/OGL/VertexManager.h"
@@ -57,6 +59,7 @@ static LinearDiskCache<UBERSHADERUID, u8> s_uber_program_disk_cache;
 static GLuint CurrentProgram = 0;
 ProgramShaderCache::PCache ProgramShaderCache::pshaders;
 ProgramShaderCache::UberPCache ProgramShaderCache::ubershaders;
+ProgramShaderCache::PipelineProgramMap ProgramShaderCache::pipelineprograms;
 ProgramShaderCache::PCacheEntry* ProgramShaderCache::last_entry;
 ProgramShaderCache::PCacheEntry* ProgramShaderCache::last_uber_entry;
 SHADERUID ProgramShaderCache::last_uid;
@@ -186,6 +189,47 @@ void SHADER::DestroyShaders()
     glDeleteShader(psid);
     psid = 0;
   }
+}
+
+bool PipelineProgramKey::operator!=(const PipelineProgramKey& rhs) const
+{
+  return !operator==(rhs);
+}
+
+bool PipelineProgramKey::operator==(const PipelineProgramKey& rhs) const
+{
+  return std::tie(vertex_shader, geometry_shader, pixel_shader) ==
+         std::tie(rhs.vertex_shader, rhs.geometry_shader, rhs.pixel_shader);
+}
+
+bool PipelineProgramKey::operator<(const PipelineProgramKey& rhs) const
+{
+  return std::tie(vertex_shader, geometry_shader, pixel_shader) <
+         std::tie(rhs.vertex_shader, rhs.geometry_shader, rhs.pixel_shader);
+}
+
+std::size_t PipelineProgramKeyHash::operator()(const PipelineProgramKey& key) const
+{
+  // We would really want std::hash_combine for this..
+  std::hash<const void*> hasher;
+  return hasher(key.vertex_shader) + hasher(key.geometry_shader) + hasher(key.pixel_shader);
+}
+
+StreamBuffer* ProgramShaderCache::GetUniformBuffer()
+{
+  return s_buffer.get();
+}
+
+u32 ProgramShaderCache::GetUniformBufferAlignment()
+{
+  return s_ubo_align;
+}
+
+void ProgramShaderCache::InvalidateConstants()
+{
+  VertexShaderManager::dirty = true;
+  GeometryShaderManager::dirty = true;
+  PixelShaderManager::dirty = true;
 }
 
 void ProgramShaderCache::UploadConstants()
@@ -697,6 +741,10 @@ void ProgramShaderCache::Shutdown()
   s_attributeless_VBO = 0;
   s_attributeless_VAO = 0;
   s_last_VAO = 0;
+
+  // All pipeline programs should have been released.
+  _dbg_assert_(VIDEO, pipelineprograms.empty());
+  pipelineprograms.clear();
 }
 
 void ProgramShaderCache::CreateAttributelessVAO()
@@ -730,6 +778,11 @@ void ProgramShaderCache::BindVertexFormat(const GLVertexFormat* vertex_format)
 void ProgramShaderCache::InvalidateVertexFormat()
 {
   s_last_VAO = 0;
+}
+
+void ProgramShaderCache::InvalidateLastProgram()
+{
+  CurrentProgram = 0;
 }
 
 GLuint ProgramShaderCache::CreateProgramFromBinary(const u8* value, u32 value_size)
@@ -858,6 +911,58 @@ void ProgramShaderCache::DestroyShaders()
   for (auto& entry : ubershaders)
     entry.second.Destroy();
   ubershaders.clear();
+}
+
+const PipelineProgram* ProgramShaderCache::GetPipelineProgram(const OGLShader* vertex_shader,
+                                                              const OGLShader* geometry_shader,
+                                                              const OGLShader* pixel_shader)
+{
+  PipelineProgramKey key = {vertex_shader, geometry_shader, pixel_shader};
+  auto iter = pipelineprograms.find(key);
+  if (iter != pipelineprograms.end())
+  {
+    iter->second->reference_count++;
+    return iter->second.get();
+  }
+
+  std::unique_ptr<PipelineProgram> prog = std::make_unique<PipelineProgram>();
+  prog->key = key;
+
+  // Attach shaders.
+  _assert_(vertex_shader && vertex_shader->GetStage() == ShaderStage::Vertex);
+  _assert_(pixel_shader && pixel_shader->GetStage() == ShaderStage::Pixel);
+  prog->shader.glprogid = glCreateProgram();
+  glAttachShader(prog->shader.glprogid, vertex_shader->GetGLShaderID());
+  glAttachShader(prog->shader.glprogid, pixel_shader->GetGLShaderID());
+  if (geometry_shader)
+  {
+    _assert_(geometry_shader->GetStage() == ShaderStage::Geometry);
+    glAttachShader(prog->shader.glprogid, geometry_shader->GetGLShaderID());
+  }
+
+  // Link program.
+  prog->shader.SetProgramBindings(false);
+  glLinkProgram(prog->shader.glprogid);
+  if (!ProgramShaderCache::CheckProgramLinkResult(prog->shader.glprogid, {}, {}, {}))
+  {
+    prog->shader.Destroy();
+    return nullptr;
+  }
+
+  auto ip = pipelineprograms.emplace(key, std::move(prog));
+  return ip.first->second.get();
+}
+
+void ProgramShaderCache::ReleasePipelineProgram(const PipelineProgram* prog)
+{
+  auto iter = pipelineprograms.find(prog->key);
+  _assert_(iter != pipelineprograms.end() && prog == iter->second.get());
+
+  if (--iter->second->reference_count == 0)
+  {
+    iter->second->shader.Destroy();
+    pipelineprograms.erase(iter);
+  }
 }
 
 void ProgramShaderCache::CreateHeader()
@@ -1368,5 +1473,4 @@ void ProgramShaderCache::DrawPrerenderArray(const SHADER& shader, PrimitiveType 
   glClientWaitSync(sync, GL_SYNC_FLUSH_COMMANDS_BIT, GL_TIMEOUT_IGNORED);
   glDeleteSync(sync);
 }
-
 }  // namespace OGL

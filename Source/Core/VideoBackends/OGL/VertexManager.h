@@ -14,6 +14,7 @@
 
 namespace OGL
 {
+class StreamBuffer;
 class GLVertexFormat : public NativeVertexFormat
 {
 public:
@@ -37,6 +38,8 @@ public:
   void CreateDeviceObjects() override;
   void DestroyDeviceObjects() override;
 
+  StreamBuffer* GetVertexBuffer() const;
+  StreamBuffer* GetIndexBuffer() const;
   GLuint GetVertexBufferHandle() const;
   GLuint GetIndexBufferHandle() const;
 

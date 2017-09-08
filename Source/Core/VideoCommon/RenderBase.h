@@ -33,10 +33,15 @@
 #include "VideoCommon/VideoCommon.h"
 
 class AbstractRawTexture;
+class AbstractPipeline;
+class AbstractShader;
 class AbstractTexture;
 class AbstractStagingTexture;
 class PostProcessingShaderImplementation;
 struct TextureConfig;
+struct ComputePipelineConfig;
+struct AbstractPipelineConfig;
+enum class ShaderStage;
 enum class EFBAccessType;
 enum class StagingTextureType;
 
@@ -69,6 +74,7 @@ public:
     PP_EFB_COPY_CLOCKS
   };
 
+  virtual void SetPipeline(const AbstractPipeline* pipeline) {}
   virtual void SetBlendingState(const BlendingState& state) {}
   virtual void SetScissorRect(const MathUtil::Rectangle<int>& rc) {}
   virtual void SetRasterizationState(const RasterizationState& state) {}
@@ -90,6 +96,14 @@ public:
   virtual std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config) = 0;
   virtual std::unique_ptr<AbstractStagingTexture>
   CreateStagingTexture(StagingTextureType type, const TextureConfig& config) = 0;
+
+  // Shader modules/objects.
+  virtual std::unique_ptr<AbstractShader>
+  CreateShaderFromSource(ShaderStage stage, const char* source, size_t length) = 0;
+  virtual std::unique_ptr<AbstractShader>
+  CreateShaderFromBinary(ShaderStage stage, const void* data, size_t length) = 0;
+  virtual std::unique_ptr<AbstractPipeline>
+  CreatePipeline(const AbstractPipelineConfig& config) = 0;
 
   // Ideal internal resolution - multiple of the native EFB resolution
   int GetTargetWidth() const { return m_target_width; }
@@ -159,6 +173,16 @@ public:
   bool UseVertexDepthRange() const;
 
   virtual void Shutdown();
+
+  // Drawing utility shaders.
+  virtual void DrawUtilityPipeline(const void* uniforms, u32 uniforms_size, const void* vertices,
+                                   u32 vertex_stride, u32 num_vertices)
+  {
+  }
+  virtual void DispatchComputeShader(const AbstractShader* shader, const void* uniforms,
+                                     u32 uniforms_size, u32 groups_x, u32 groups_y, u32 groups_z)
+  {
+  }
 
 protected:
   std::tuple<int, int> CalculateTargetScale(int x, int y) const;

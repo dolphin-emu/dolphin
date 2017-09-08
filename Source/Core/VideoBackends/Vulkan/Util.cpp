@@ -566,7 +566,7 @@ void UtilityShaderDraw::BindDescriptors()
   if (m_vs_uniform_buffer.buffer != VK_NULL_HANDLE || m_ps_uniform_buffer.buffer != VK_NULL_HANDLE)
   {
     VkDescriptorSet set = g_command_buffer_mgr->AllocateDescriptorSet(
-        g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_LAYOUT_UNIFORM_BUFFERS));
+        g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_LAYOUT_PER_STAGE_UNIFORM_BUFFERS));
     if (set == VK_NULL_HANDLE)
       PanicAlert("Failed to allocate descriptor set for utility draw");
 
@@ -595,7 +595,7 @@ void UtilityShaderDraw::BindDescriptors()
                                                          &dummy_uniform_buffer,
         nullptr};
 
-    bind_descriptor_sets[DESCRIPTOR_SET_LAYOUT_UNIFORM_BUFFERS] = set;
+    bind_descriptor_sets[DESCRIPTOR_SET_LAYOUT_PER_STAGE_UNIFORM_BUFFERS] = set;
   }
 
   // PS samplers

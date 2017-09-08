@@ -13,6 +13,7 @@
 #include <strsafe.h>
 #include <tuple>
 
+#include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
@@ -23,6 +24,8 @@
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DState.h"
 #include "VideoBackends/D3D/D3DUtil.h"
+#include "VideoBackends/D3D/DXPipeline.h"
+#include "VideoBackends/D3D/DXShader.h"
 #include "VideoBackends/D3D/DXTexture.h"
 #include "VideoBackends/D3D/FramebufferManager.h"
 #include "VideoBackends/D3D/GeometryShaderCache.h"
@@ -41,6 +44,12 @@
 
 namespace DX11
 {
+// Reserve 512KB for vertices, and 64KB for uniforms.
+// This should be sufficient for our usages, and if more is required,
+// we split it into multiple draws.
+constexpr u32 UTILITY_VBO_SIZE = 512 * 1024;
+constexpr u32 UTILITY_UBO_SIZE = 64 * 1024;
+
 // Nvidia stereo blitting struct defined in "nvstereo.h" from the Nvidia SDK
 typedef struct _Nv_Stereo_Image_Header
 {
@@ -165,6 +174,16 @@ void Renderer::SetupDeviceObjects()
   D3D::SetDebugObjectName(m_reset_rast_state, "rasterizer state for Renderer::ResetAPIState");
 
   m_screenshot_texture = nullptr;
+
+  CD3D11_BUFFER_DESC vbo_desc(UTILITY_VBO_SIZE, D3D11_BIND_VERTEX_BUFFER, D3D11_USAGE_DYNAMIC,
+                              D3D11_CPU_ACCESS_WRITE);
+  hr = D3D::device->CreateBuffer(&vbo_desc, nullptr, &m_utility_vertex_buffer);
+  CHECK(SUCCEEDED(hr), "Create utility VBO");
+
+  CD3D11_BUFFER_DESC ubo_desc(UTILITY_UBO_SIZE, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC,
+                              D3D11_CPU_ACCESS_WRITE);
+  hr = D3D::device->CreateBuffer(&ubo_desc, nullptr, &m_utility_uniform_buffer);
+  CHECK(SUCCEEDED(hr), "Create utility UBO");
 }
 
 // Kill off all device objects
@@ -184,6 +203,8 @@ void Renderer::TeardownDeviceObjects()
   SAFE_RELEASE(m_reset_rast_state);
   SAFE_RELEASE(m_screenshot_texture);
   SAFE_RELEASE(m_3d_vision_texture);
+  SAFE_RELEASE(m_utility_vertex_buffer);
+  SAFE_RELEASE(m_utility_uniform_buffer);
 }
 
 void Renderer::Create3DVisionTexture(int width, int height)
@@ -227,6 +248,109 @@ void Renderer::RenderText(const std::string& text, int left, int top, u32 color)
   D3D::DrawTextScaled(static_cast<float>(left + 1), static_cast<float>(top + 1), 20.f, 0.0f,
                       color & 0xFF000000, text);
   D3D::DrawTextScaled(static_cast<float>(left), static_cast<float>(top), 20.f, 0.0f, color, text);
+}
+
+std::unique_ptr<AbstractShader> Renderer::CreateShaderFromSource(ShaderStage stage,
+                                                                 const char* source, size_t length)
+{
+  return DXShader::CreateFromSource(stage, source, length);
+}
+
+std::unique_ptr<AbstractShader> Renderer::CreateShaderFromBinary(ShaderStage stage,
+                                                                 const void* data, size_t length)
+{
+  return DXShader::CreateFromBinary(stage, data, length);
+}
+
+std::unique_ptr<AbstractPipeline> Renderer::CreatePipeline(const AbstractPipelineConfig& config)
+{
+  return DXPipeline::Create(config);
+}
+
+void Renderer::UpdateUtilityUniformBuffer(const void* uniforms, u32 uniforms_size)
+{
+  _dbg_assert_(VIDEO, uniforms_size > 0 && uniforms_size < UTILITY_UBO_SIZE);
+  D3D11_MAPPED_SUBRESOURCE mapped;
+  HRESULT hr = D3D::context->Map(m_utility_uniform_buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
+  CHECK(SUCCEEDED(hr), "Map utility UBO");
+  std::memcpy(mapped.pData, uniforms, uniforms_size);
+  D3D::context->Unmap(m_utility_uniform_buffer, 0);
+}
+
+void Renderer::UpdateUtilityVertexBuffer(const void* vertices, u32 vertex_stride, u32 num_vertices)
+{
+  D3D11_MAPPED_SUBRESOURCE mapped;
+  HRESULT hr = D3D::context->Map(m_utility_vertex_buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
+  CHECK(SUCCEEDED(hr), "Map utility VBO");
+  std::memcpy(mapped.pData, vertices, num_vertices * vertex_stride);
+  D3D::context->Unmap(m_utility_vertex_buffer, 0);
+}
+
+void Renderer::SetPipeline(const AbstractPipeline* pipeline)
+{
+  const DXPipeline* dx_pipeline = static_cast<const DXPipeline*>(pipeline);
+
+  D3D::stateman->SetRasterizerState(dx_pipeline->GetRasterizerState());
+  D3D::stateman->SetDepthState(dx_pipeline->GetDepthState());
+  D3D::stateman->SetBlendState(dx_pipeline->GetBlendState());
+  D3D::stateman->SetPrimitiveTopology(dx_pipeline->GetPrimitiveTopology());
+  D3D::stateman->SetInputLayout(dx_pipeline->GetInputLayout());
+  D3D::stateman->SetVertexShader(dx_pipeline->GetVertexShader());
+  D3D::stateman->SetGeometryShader(dx_pipeline->GetGeometryShader());
+  D3D::stateman->SetPixelShader(dx_pipeline->GetPixelShader());
+}
+
+void Renderer::DrawUtilityPipeline(const void* uniforms, u32 uniforms_size, const void* vertices,
+                                   u32 vertex_stride, u32 num_vertices)
+{
+  // Textures are fine, they're set directly via SetTexture.
+  // Since samplers are set via gx_state, we need to fix this up here.
+  for (size_t stage = 0; stage < m_gx_state.samplers.size(); stage++)
+    D3D::stateman->SetSampler(stage, m_state_cache.Get(m_gx_state.samplers[stage]));
+
+  // Copy in uniforms.
+  if (uniforms_size > 0)
+  {
+    UpdateUtilityUniformBuffer(uniforms, uniforms_size);
+    D3D::stateman->SetVertexConstants(m_utility_uniform_buffer);
+    D3D::stateman->SetPixelConstants(m_utility_uniform_buffer);
+    D3D::stateman->SetGeometryConstants(m_utility_uniform_buffer);
+  }
+
+  // If the vertices are larger than our buffer, we need to break it up into multiple draws.
+  const char* vertices_ptr = static_cast<const char*>(vertices);
+  while (num_vertices > 0)
+  {
+    u32 vertices_this_draw = num_vertices;
+    if (vertices_ptr)
+    {
+      vertices_this_draw = std::min(vertices_this_draw, UTILITY_VBO_SIZE / vertex_stride);
+      _dbg_assert_(VIDEO, vertices_this_draw > 0);
+      UpdateUtilityVertexBuffer(vertices_ptr, vertex_stride, vertices_this_draw);
+      D3D::stateman->SetVertexBuffer(m_utility_vertex_buffer, vertex_stride, 0);
+    }
+
+    // Apply pending state and draw.
+    D3D::stateman->Apply();
+    D3D::context->Draw(vertices_this_draw, 0);
+    vertices_ptr += vertex_stride * vertices_this_draw;
+    num_vertices -= vertices_this_draw;
+  }
+}
+
+void Renderer::DispatchComputeShader(const AbstractShader* shader, const void* uniforms,
+                                     u32 uniforms_size, u32 groups_x, u32 groups_y, u32 groups_z)
+{
+  D3D::stateman->SetComputeShader(static_cast<const DXShader*>(shader)->GetD3DComputeShader());
+
+  if (uniforms_size > 0)
+  {
+    UpdateUtilityUniformBuffer(uniforms, uniforms_size);
+    D3D::stateman->SetComputeConstants(m_utility_uniform_buffer);
+  }
+
+  D3D::stateman->Apply();
+  D3D::context->Dispatch(groups_x, groups_y, groups_z);
 }
 
 TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)

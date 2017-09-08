@@ -61,6 +61,16 @@ void VertexManager::DestroyDeviceObjects()
   s_indexBuffer.reset();
 }
 
+StreamBuffer* VertexManager::GetVertexBuffer() const
+{
+  return s_vertexBuffer.get();
+}
+
+OGL::StreamBuffer* VertexManager::GetIndexBuffer() const
+{
+  return s_indexBuffer.get();
+}
+
 GLuint VertexManager::GetVertexBufferHandle() const
 {
   return m_vertex_buffers;
