@@ -31,6 +31,7 @@
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/FPSCounter.h"
 #include "VideoCommon/RenderState.h"
+#include "VideoCommon/TextureConfig.h"
 #include "VideoCommon/VideoCommon.h"
 
 class AbstractFramebuffer;
@@ -62,7 +63,7 @@ extern int OSDChoice;
 class Renderer
 {
 public:
-  Renderer(int backbuffer_width, int backbuffer_height);
+  Renderer(int backbuffer_width, int backbuffer_height, AbstractTextureFormat backbuffer_format);
   virtual ~Renderer();
 
   using ClearColor = std::array<float, 4>;
@@ -231,6 +232,7 @@ protected:
   int m_backbuffer_height = 0;
   int m_new_backbuffer_width = 0;
   int m_new_backbuffer_height = 0;
+  AbstractTextureFormat m_backbuffer_format = AbstractTextureFormat::Undefined;
   TargetRectangle m_target_rectangle = {};
 
   FPSCounter m_fps_counter;

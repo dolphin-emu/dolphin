@@ -360,7 +360,8 @@ static void InitDriverInfo()
 // Init functions
 Renderer::Renderer()
     : ::Renderer(static_cast<int>(std::max(GLInterface->GetBackBufferWidth(), 1u)),
-                 static_cast<int>(std::max(GLInterface->GetBackBufferHeight(), 1u)))
+                 static_cast<int>(std::max(GLInterface->GetBackBufferHeight(), 1u)),
+                 AbstractTextureFormat::RGBA8)
 {
   bool bSuccess = true;
 

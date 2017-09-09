@@ -24,7 +24,8 @@
 #include "VideoCommon/VideoConfig.h"
 
 SWRenderer::SWRenderer()
-    : ::Renderer(static_cast<int>(MAX_XFB_WIDTH), static_cast<int>(MAX_XFB_HEIGHT))
+    : ::Renderer(static_cast<int>(MAX_XFB_WIDTH), static_cast<int>(MAX_XFB_HEIGHT),
+                 AbstractTextureFormat::RGBA8)
 {
 }
 
