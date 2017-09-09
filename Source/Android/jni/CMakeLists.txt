@@ -15,6 +15,8 @@ ${LIBS}
 )
 
 file(MAKE_DIRECTORY ${CMAKE_SOURCE_DIR}/Source/Android/app/src/main/assets/)
-file(COPY ${CMAKE_SOURCE_DIR}/Data/Sys/GameSettings ${CMAKE_SOURCE_DIR}/Data/Sys/GC ${CMAKE_SOURCE_DIR}/Data/Sys/Wii ${CMAKE_SOURCE_DIR}/Data/Sys/Shaders DESTINATION ${CMAKE_SOURCE_DIR}/Source/Android/app/src/main/assets/)
+file(REMOVE_RECURSE ${CMAKE_SOURCE_DIR}/Source/Android/app/src/main/assets/Sys/)
+file(COPY ${CMAKE_SOURCE_DIR}/Data/Sys DESTINATION ${CMAKE_SOURCE_DIR}/Source/Android/app/src/main/assets/)
+file(REMOVE_RECURSE ${CMAKE_SOURCE_DIR}/Source/Android/app/src/main/assets/Sys/Resources/)  # not used on Android
 
 set(CPACK_PACKAGE_EXECUTABLES ${CPACK_PACKAGE_EXECUTABLES} ${SHARED_LIB})
