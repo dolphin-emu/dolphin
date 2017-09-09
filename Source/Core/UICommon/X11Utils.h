@@ -10,7 +10,7 @@
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
 #include <X11/extensions/Xrandr.h>
 #endif
-#include <X11/X.h>
+#include <X11/Xlib.h>
 
 // EWMH state actions, see
 // http://freedesktop.org/wiki/Specifications/wm-spec?action=show&redirect=Standards%2Fwm-spec
