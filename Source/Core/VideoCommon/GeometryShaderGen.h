@@ -20,7 +20,7 @@ struct geometry_shader_uid_data
   bool IsPassthrough() const;
 
   u32 numTexGens : 4;
-  PrimitiveType primitive_type : 2;
+  u32 primitive_type : 2;
 };
 
 #pragma pack()

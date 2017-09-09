@@ -24,6 +24,7 @@
 #include "VideoCommon/PerfQueryBase.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/RenderBase.h"
+#include "VideoCommon/SamplerCommon.h"
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexShaderManager.h"
@@ -208,6 +209,52 @@ std::pair<size_t, size_t> VertexManagerBase::ResetFlushAspectRatioCount()
   return val;
 }
 
+static void SetSamplerState(u32 index, bool custom_tex)
+{
+  const FourTexUnits& tex = bpmem.tex[index / 4];
+  const TexMode0& tm0 = tex.texMode0[index % 4];
+
+  SamplerState state = {};
+  state.Generate(bpmem, index);
+
+  // Force texture filtering config option.
+  if (g_ActiveConfig.bForceFiltering)
+  {
+    state.min_filter = SamplerState::Filter::Linear;
+    state.mag_filter = SamplerState::Filter::Linear;
+    state.mipmap_filter = SamplerCommon::AreBpTexMode0MipmapsEnabled(tm0) ?
+                              SamplerState::Filter::Linear :
+                              SamplerState::Filter::Point;
+  }
+
+  // Custom textures may have a greater number of mips
+  if (custom_tex)
+    state.max_lod = 255;
+
+  // Anisotropic filtering option.
+  if (g_ActiveConfig.iMaxAnisotropy != 0 && !SamplerCommon::IsBpTexMode0PointFiltering(tm0))
+  {
+    // https://www.opengl.org/registry/specs/EXT/texture_filter_anisotropic.txt
+    // For predictable results on all hardware/drivers, only use one of:
+    //	GL_LINEAR + GL_LINEAR (No Mipmaps [Bilinear])
+    //	GL_LINEAR + GL_LINEAR_MIPMAP_LINEAR (w/ Mipmaps [Trilinear])
+    // Letting the game set other combinations will have varying arbitrary results;
+    // possibly being interpreted as equal to bilinear/trilinear, implicitly
+    // disabling anisotropy, or changing the anisotropic algorithm employed.
+    state.min_filter = SamplerState::Filter::Linear;
+    state.mag_filter = SamplerState::Filter::Linear;
+    if (SamplerCommon::AreBpTexMode0MipmapsEnabled(tm0))
+      state.mipmap_filter = SamplerState::Filter::Linear;
+    state.anisotropic_filtering = 1;
+  }
+  else
+  {
+    state.anisotropic_filtering = 0;
+  }
+
+  g_renderer->SetSamplerState(index, state);
+}
+
 void VertexManagerBase::Flush()
 {
   if (m_is_flushed)
@@ -276,7 +323,7 @@ void VertexManagerBase::Flush()
 
       if (tentry)
       {
-        g_renderer->SetSamplerState(i & 3, i >> 2, tentry->is_custom_tex);
+        SetSamplerState(i, tentry->is_custom_tex);
         PixelShaderManager::SetTexDims(i, tentry->native_width, tentry->native_height);
       }
       else

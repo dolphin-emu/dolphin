@@ -1119,7 +1119,8 @@ bool ProgramShaderCache::ShaderCompileWorkItem::Compile()
     gcode = GenerateGeometryShaderCode(APIType::OpenGL, host_config, m_uid.guid.GetUidData());
 
   CompileShader(m_program, vcode.GetBuffer(), pcode.GetBuffer(), gcode.GetBuffer());
-  DrawPrerenderArray(m_program, m_uid.guid.GetUidData()->primitive_type);
+  DrawPrerenderArray(m_program,
+                     static_cast<PrimitiveType>(m_uid.guid.GetUidData()->primitive_type));
   return true;
 }
 
@@ -1157,7 +1158,8 @@ bool ProgramShaderCache::UberShaderCompileWorkItem::Compile()
     gcode = GenerateGeometryShaderCode(APIType::OpenGL, host_config, m_uid.guid.GetUidData());
 
   CompileShader(m_program, vcode.GetBuffer(), pcode.GetBuffer(), gcode.GetBuffer());
-  DrawPrerenderArray(m_program, m_uid.guid.GetUidData()->primitive_type);
+  DrawPrerenderArray(m_program,
+                     static_cast<PrimitiveType>(m_uid.guid.GetUidData()->primitive_type));
   return true;
 }
 

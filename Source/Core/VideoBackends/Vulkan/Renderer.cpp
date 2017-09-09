@@ -52,10 +52,8 @@ Renderer::Renderer(std::unique_ptr<SwapChain> swap_chain)
       m_swap_chain(std::move(swap_chain))
 {
   UpdateActiveConfig();
-
-  // Set to something invalid, forcing all states to be re-initialized.
   for (size_t i = 0; i < m_sampler_states.size(); i++)
-    m_sampler_states[i].bits = std::numeric_limits<decltype(m_sampler_states[i].bits)>::max();
+    m_sampler_states[i].hex = RenderState::GetPointSamplerState().hex;
 }
 
 Renderer::~Renderer()
@@ -1282,65 +1280,22 @@ void Renderer::SetBlendingState(const BlendingState& state)
   StateTracker::GetInstance()->SetBlendState(state);
 }
 
-void Renderer::SetSamplerState(int stage, int texindex, bool custom_tex)
+void Renderer::SetSamplerState(u32 index, const SamplerState& state)
 {
-  const FourTexUnits& tex = bpmem.tex[texindex];
-  const TexMode0& tm0 = tex.texMode0[stage];
-  const TexMode1& tm1 = tex.texMode1[stage];
-  SamplerState new_state = {};
-
-  if (g_ActiveConfig.bForceFiltering)
-  {
-    new_state.min_filter = VK_FILTER_LINEAR;
-    new_state.mag_filter = VK_FILTER_LINEAR;
-    new_state.mipmap_mode = SamplerCommon::AreBpTexMode0MipmapsEnabled(tm0) ?
-                                VK_SAMPLER_MIPMAP_MODE_LINEAR :
-                                VK_SAMPLER_MIPMAP_MODE_NEAREST;
-  }
-  else
-  {
-    // Constants for these?
-    new_state.min_filter = (tm0.min_filter & 4) != 0 ? VK_FILTER_LINEAR : VK_FILTER_NEAREST;
-    new_state.mipmap_mode = SamplerCommon::AreBpTexMode0MipmapsEnabled(tm0) ?
-                                VK_SAMPLER_MIPMAP_MODE_LINEAR :
-                                VK_SAMPLER_MIPMAP_MODE_NEAREST;
-    new_state.mag_filter = tm0.mag_filter != 0 ? VK_FILTER_LINEAR : VK_FILTER_NEAREST;
-  }
-
-  // If mipmaps are disabled, clamp min/max lod
-  new_state.max_lod = SamplerCommon::AreBpTexMode0MipmapsEnabled(tm0) ? tm1.max_lod : 0;
-  new_state.min_lod = std::min(new_state.max_lod.Value(), tm1.min_lod);
-  new_state.lod_bias = SamplerCommon::AreBpTexMode0MipmapsEnabled(tm0) ? tm0.lod_bias : 0;
-
-  // Custom textures may have a greater number of mips
-  if (custom_tex)
-    new_state.max_lod = 255;
-
-  // Address modes
-  static const VkSamplerAddressMode address_modes[] = {
-      VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, VK_SAMPLER_ADDRESS_MODE_REPEAT,
-      VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT, VK_SAMPLER_ADDRESS_MODE_REPEAT};
-  new_state.wrap_u = address_modes[tm0.wrap_s];
-  new_state.wrap_v = address_modes[tm0.wrap_t];
-
-  // Only use anisotropic filtering for textures that would be linearly filtered.
-  new_state.enable_anisotropic_filtering = SamplerCommon::IsBpTexMode0PointFiltering(tm0) ? 0 : 1;
-
   // Skip lookup if the state hasn't changed.
-  size_t bind_index = (texindex * 4) + stage;
-  if (m_sampler_states[bind_index].bits == new_state.bits)
+  if (m_sampler_states[index].hex == state.hex)
     return;
 
   // Look up new state and replace in state tracker.
-  VkSampler sampler = g_object_cache->GetSampler(new_state);
+  VkSampler sampler = g_object_cache->GetSampler(state);
   if (sampler == VK_NULL_HANDLE)
   {
     ERROR_LOG(VIDEO, "Failed to create sampler");
     sampler = g_object_cache->GetPointSampler();
   }
 
-  StateTracker::GetInstance()->SetSampler(bind_index, sampler);
-  m_sampler_states[bind_index].bits = new_state.bits;
+  StateTracker::GetInstance()->SetSampler(index, sampler);
+  m_sampler_states[index].hex = state.hex;
 }
 
 void Renderer::ResetSamplerStates()
@@ -1352,7 +1307,7 @@ void Renderer::ResetSamplerStates()
   // Invalidate all sampler states, next draw will re-initialize them.
   for (size_t i = 0; i < m_sampler_states.size(); i++)
   {
-    m_sampler_states[i].bits = std::numeric_limits<decltype(m_sampler_states[i].bits)>::max();
+    m_sampler_states[i].hex = RenderState::GetPointSamplerState().hex;
     StateTracker::GetInstance()->SetSampler(i, g_object_cache->GetPointSampler());
   }
 

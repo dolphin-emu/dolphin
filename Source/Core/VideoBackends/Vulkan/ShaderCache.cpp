@@ -977,18 +977,6 @@ std::string ShaderCache::GetUtilityShaderHeader() const
   return ss.str();
 }
 
-// Comparison operators for PipelineInfos
-// Since these all boil down to POD types, we can just memcmp the entire thing for speed
-// The is_trivially_copyable check fails on MSVC due to BitField.
-// TODO: Can we work around this any way?
-#if defined(__GNUC__) && !defined(__clang__) && __GNUC__ < 5 && !defined(_MSC_VER)
-static_assert(std::has_trivial_copy_constructor<PipelineInfo>::value,
-              "PipelineInfo is trivially copyable");
-#elif !defined(_MSC_VER)
-static_assert(std::is_trivially_copyable<PipelineInfo>::value,
-              "PipelineInfo is trivially copyable");
-#endif
-
 std::size_t PipelineInfoHash::operator()(const PipelineInfo& key) const
 {
   return static_cast<std::size_t>(XXH64(&key, sizeof(key), 0));
@@ -1012,26 +1000,6 @@ bool operator<(const PipelineInfo& lhs, const PipelineInfo& rhs)
 bool operator>(const PipelineInfo& lhs, const PipelineInfo& rhs)
 {
   return std::memcmp(&lhs, &rhs, sizeof(lhs)) > 0;
-}
-
-bool operator==(const SamplerState& lhs, const SamplerState& rhs)
-{
-  return lhs.bits == rhs.bits;
-}
-
-bool operator!=(const SamplerState& lhs, const SamplerState& rhs)
-{
-  return !operator==(lhs, rhs);
-}
-
-bool operator>(const SamplerState& lhs, const SamplerState& rhs)
-{
-  return lhs.bits > rhs.bits;
-}
-
-bool operator<(const SamplerState& lhs, const SamplerState& rhs)
-{
-  return lhs.bits < rhs.bits;
 }
 
 std::size_t ComputePipelineInfoHash::operator()(const ComputePipelineInfo& key) const
@@ -1214,7 +1182,8 @@ void ShaderCache::CreateDummyPipeline(const UberShader::VertexShaderUid& vuid,
   pinfo.depth_state.hex = RenderState::GetNoDepthTestingDepthStencilState().hex;
   pinfo.blend_state.hex = RenderState::GetNoBlendingBlendState().hex;
   pinfo.multisampling_state.hex = FramebufferManager::GetInstance()->GetEFBMultisamplingState().hex;
-  pinfo.rasterization_state.primitive = guid.GetUidData()->primitive_type;
+  pinfo.rasterization_state.primitive =
+      static_cast<PrimitiveType>(guid.GetUidData()->primitive_type);
   GetPipelineWithCacheResultAsync(pinfo);
 }
 

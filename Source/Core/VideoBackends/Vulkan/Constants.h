@@ -132,20 +132,4 @@ union MultisamplingState
   u32 hex;
 };
 
-// Sampler info
-union SamplerState
-{
-  BitField<0, 1, VkFilter> min_filter;
-  BitField<1, 1, VkFilter> mag_filter;
-  BitField<2, 1, VkSamplerMipmapMode> mipmap_mode;
-  BitField<3, 2, VkSamplerAddressMode> wrap_u;
-  BitField<5, 2, VkSamplerAddressMode> wrap_v;
-  BitField<7, 8, u32> min_lod;
-  BitField<15, 8, u32> max_lod;
-  BitField<23, 8, s32> lod_bias;
-  BitField<31, 1, u32> enable_anisotropic_filtering;
-
-  u32 bits;
-};
-
 }  // namespace Vulkan

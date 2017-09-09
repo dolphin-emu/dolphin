@@ -20,20 +20,6 @@ struct ID3D11RasterizerState;
 
 namespace DX11
 {
-union SamplerState
-{
-  BitField<0, 3, u64> min_filter;
-  BitField<3, 1, u64> mag_filter;
-  BitField<4, 8, u64> min_lod;
-  BitField<12, 8, u64> max_lod;
-  BitField<20, 8, s64> lod_bias;
-  BitField<28, 2, u64> wrap_s;
-  BitField<30, 2, u64> wrap_t;
-  BitField<32, 5, u64> max_anisotropy;
-
-  u64 packed;
-};
-
 class StateCache
 {
 public:
@@ -54,7 +40,7 @@ private:
   std::unordered_map<u32, ID3D11DepthStencilState*> m_depth;
   std::unordered_map<u32, ID3D11RasterizerState*> m_raster;
   std::unordered_map<u32, ID3D11BlendState*> m_blend;
-  std::unordered_map<u64, ID3D11SamplerState*> m_sampler;
+  std::unordered_map<u32, ID3D11SamplerState*> m_sampler;
 };
 
 namespace D3D

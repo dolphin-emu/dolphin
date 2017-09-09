@@ -81,7 +81,7 @@ public:
   void SetScissorRect(const EFBRectangle& rc) override;
   void SetRasterizationState(const RasterizationState& state) override;
   void SetDepthState(const DepthState& state) override;
-  void SetSamplerState(int stage, int texindex, bool custom_tex) override;
+  void SetSamplerState(u32 index, const SamplerState& state) override;
   void SetInterlacingMode() override;
   void SetViewport() override;
 

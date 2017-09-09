@@ -249,7 +249,7 @@ Renderer::Renderer() : ::Renderer(D3D::GetBackBufferWidth(), D3D::GetBackBufferH
 
   // Setup GX pipeline state
   for (auto& sampler : s_gx_state.samplers)
-    sampler.packed = 0;
+    sampler.hex = RenderState::GetPointSamplerState().hex;
 
   s_gx_state.zmode.testenable = false;
   s_gx_state.zmode.updateenable = false;
@@ -870,12 +870,8 @@ void Renderer::ApplyState()
       StateCache::GetPrimitiveTopology(s_gx_state.raster.primitive));
   FramebufferManager::SetIntegerEFBRenderTarget(s_gx_state.blend.logicopenable);
 
-  for (size_t stage = 0; stage < s_gx_state.samplers.size(); stage++)
-  {
-    // TODO: cache SamplerState directly, not d3d object
-    s_gx_state.samplers[stage].max_anisotropy = UINT64_C(1) << g_ActiveConfig.iMaxAnisotropy;
+  for (u32 stage = 0; stage < static_cast<u32>(s_gx_state.samplers.size()); stage++)
     D3D::stateman->SetSampler(stage, s_gx_state_cache.Get(s_gx_state.samplers[stage]));
-  }
 
   ID3D11Buffer* vertexConstants = VertexShaderCache::GetConstantBuffer();
 
@@ -902,38 +898,9 @@ void Renderer::SetDepthState(const DepthState& state)
   s_gx_state.zmode.hex = state.hex;
 }
 
-void Renderer::SetSamplerState(int stage, int texindex, bool custom_tex)
+void Renderer::SetSamplerState(u32 index, const SamplerState& state)
 {
-  const FourTexUnits& tex = bpmem.tex[texindex];
-  const TexMode0& tm0 = tex.texMode0[stage];
-  const TexMode1& tm1 = tex.texMode1[stage];
-
-  if (texindex)
-    stage += 4;
-
-  if (g_ActiveConfig.bForceFiltering)
-  {
-    // Only use mipmaps if the game says they are available.
-    s_gx_state.samplers[stage].min_filter = SamplerCommon::AreBpTexMode0MipmapsEnabled(tm0) ? 6 : 4;
-    s_gx_state.samplers[stage].mag_filter = 1;  // linear mag
-  }
-  else
-  {
-    s_gx_state.samplers[stage].min_filter = (u32)tm0.min_filter;
-    s_gx_state.samplers[stage].mag_filter = (u32)tm0.mag_filter;
-  }
-
-  s_gx_state.samplers[stage].wrap_s = (u32)tm0.wrap_s;
-  s_gx_state.samplers[stage].wrap_t = (u32)tm0.wrap_t;
-  s_gx_state.samplers[stage].max_lod = (u32)tm1.max_lod;
-  s_gx_state.samplers[stage].min_lod = (u32)tm1.min_lod;
-  s_gx_state.samplers[stage].lod_bias = (s32)tm0.lod_bias;
-
-  // custom textures may have higher resolution, so disable the max_lod
-  if (custom_tex)
-  {
-    s_gx_state.samplers[stage].max_lod = 255;
-  }
+  s_gx_state.samplers[index].hex = state.hex;
 }
 
 void Renderer::SetInterlacingMode()

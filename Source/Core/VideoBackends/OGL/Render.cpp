@@ -1503,8 +1503,12 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
 
   g_Config.iSaveTargetId = 0;
 
+  int old_anisotropy = g_ActiveConfig.iMaxAnisotropy;
   UpdateActiveConfig();
   g_texture_cache->OnConfigChanged(g_ActiveConfig);
+
+  if (old_anisotropy != g_ActiveConfig.iMaxAnisotropy)
+    g_sampler_cache->Clear();
 
   // Invalidate shader cache when the host config changes.
   if (CheckForHostConfigChanges())
@@ -1834,13 +1838,9 @@ void Renderer::SetDepthState(const DepthState& state)
   }
 }
 
-void Renderer::SetSamplerState(int stage, int texindex, bool custom_tex)
+void Renderer::SetSamplerState(u32 index, const SamplerState& state)
 {
-  auto const& tex = bpmem.tex[texindex];
-  auto const& tm0 = tex.texMode0[stage];
-  auto const& tm1 = tex.texMode1[stage];
-
-  g_sampler_cache->SetSamplerState((texindex * 4) + stage, tm0, tm1, custom_tex);
+  g_sampler_cache->SetSamplerState(index, state);
 }
 
 void Renderer::SetInterlacingMode()

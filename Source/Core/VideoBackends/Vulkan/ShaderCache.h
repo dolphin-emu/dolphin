@@ -62,10 +62,6 @@ bool operator==(const PipelineInfo& lhs, const PipelineInfo& rhs);
 bool operator!=(const PipelineInfo& lhs, const PipelineInfo& rhs);
 bool operator<(const PipelineInfo& lhs, const PipelineInfo& rhs);
 bool operator>(const PipelineInfo& lhs, const PipelineInfo& rhs);
-bool operator==(const SamplerState& lhs, const SamplerState& rhs);
-bool operator!=(const SamplerState& lhs, const SamplerState& rhs);
-bool operator>(const SamplerState& lhs, const SamplerState& rhs);
-bool operator<(const SamplerState& lhs, const SamplerState& rhs);
 
 struct ComputePipelineInfo
 {
