@@ -1,9 +1,15 @@
 // This file is public domain, in case it's useful to anyone. -comex
 
 #include "Common/TraversalClient.h"
+
+#include <cstddef>
+#include <cstring>
+#include <random>
+#include <string>
+
+#include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
-#include "Common/Timer.h"
 
 static void GetRandomishBytes(u8* buf, size_t size)
 {

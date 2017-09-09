@@ -4,19 +4,6 @@
 
 #pragma once
 
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <string>
-
-// Git version number
-extern const std::string scm_desc_str;
-extern const std::string scm_branch_str;
-extern const std::string scm_rev_str;
-extern const std::string scm_rev_git_str;
-extern const std::string netplay_dolphin_ver;
-extern const std::string scm_distributor_str;
-
 // Force enable logging in the right modes. For some reason, something had changed
 // so that debugfast no longer logged.
 #if defined(_DEBUG) || defined(DEBUGFAST)

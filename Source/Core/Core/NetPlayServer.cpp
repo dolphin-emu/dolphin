@@ -5,6 +5,8 @@
 #include "Core/NetPlayServer.h"
 
 #include <algorithm>
+#include <cstddef>
+#include <cstdio>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -12,13 +14,13 @@
 #include <unordered_set>
 #include <vector>
 
-#include "Common/Common.h"
 #include "Common/ENetUtil.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 #include "Common/UPnP.h"
+#include "Common/Version.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/Sram.h"
 #include "Core/NetPlayClient.h"  //for NetPlayUI
@@ -254,7 +256,7 @@ unsigned int NetPlayServer::OnConnect(ENetPeer* socket)
   std::string npver;
   rpac >> npver;
   // Dolphin netplay version
-  if (npver != scm_rev_git_str)
+  if (npver != Common::scm_rev_git_str)
     return CON_ERR_VERSION_MISMATCH;
 
   // game is currently running
