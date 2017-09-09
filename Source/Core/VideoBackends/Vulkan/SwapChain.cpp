@@ -33,7 +33,6 @@ SwapChain::~SwapChain()
 {
   DestroySwapChainImages();
   DestroySwapChain();
-  DestroyRenderPass();
   DestroySurface();
 }
 
@@ -229,48 +228,9 @@ bool SwapChain::SelectPresentMode()
 bool SwapChain::CreateRenderPass()
 {
   // render pass for rendering to the swap chain
-  VkAttachmentDescription present_render_pass_attachments[] = {
-      {0, m_surface_format.format, VK_SAMPLE_COUNT_1_BIT, VK_ATTACHMENT_LOAD_OP_CLEAR,
-       VK_ATTACHMENT_STORE_OP_STORE, VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-       VK_ATTACHMENT_STORE_OP_DONT_CARE, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-       VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL}};
-
-  VkAttachmentReference present_render_pass_color_attachment_references[] = {
-      {0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL}};
-
-  VkSubpassDescription present_render_pass_subpass_descriptions[] = {
-      {0, VK_PIPELINE_BIND_POINT_GRAPHICS, 0, nullptr, 1,
-       present_render_pass_color_attachment_references, nullptr, nullptr, 0, nullptr}};
-
-  VkRenderPassCreateInfo present_render_pass_info = {
-      VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
-      nullptr,
-      0,
-      static_cast<u32>(ArraySize(present_render_pass_attachments)),
-      present_render_pass_attachments,
-      static_cast<u32>(ArraySize(present_render_pass_subpass_descriptions)),
-      present_render_pass_subpass_descriptions,
-      0,
-      nullptr};
-
-  VkResult res = vkCreateRenderPass(g_vulkan_context->GetDevice(), &present_render_pass_info,
-                                    nullptr, &m_render_pass);
-  if (res != VK_SUCCESS)
-  {
-    LOG_VULKAN_ERROR(res, "vkCreateRenderPass (present) failed: ");
-    return false;
-  }
-
-  return true;
-}
-
-void SwapChain::DestroyRenderPass()
-{
-  if (!m_render_pass)
-    return;
-
-  vkDestroyRenderPass(g_vulkan_context->GetDevice(), m_render_pass, nullptr);
-  m_render_pass = VK_NULL_HANDLE;
+  m_render_pass = g_object_cache->GetRenderPass(m_surface_format.format, VK_FORMAT_UNDEFINED, 1,
+                                                VK_ATTACHMENT_LOAD_OP_CLEAR);
+  return m_render_pass != VK_NULL_HANDLE;
 }
 
 bool SwapChain::CreateSwapChain()
@@ -498,7 +458,6 @@ bool SwapChain::SetVSync(bool enabled)
 bool SwapChain::RecreateSurface(void* native_handle)
 {
   // Destroy the old swap chain, images, and surface.
-  DestroyRenderPass();
   DestroySwapChainImages();
   DestroySwapChain();
   DestroySurface();

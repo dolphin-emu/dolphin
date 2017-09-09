@@ -37,19 +37,12 @@ TextureCache::TextureCache()
 
 TextureCache::~TextureCache()
 {
-  if (m_render_pass != VK_NULL_HANDLE)
-    vkDestroyRenderPass(g_vulkan_context->GetDevice(), m_render_pass, nullptr);
   TextureCache::DeleteShaders();
 }
 
 VkShaderModule TextureCache::GetCopyShader() const
 {
   return m_copy_shader;
-}
-
-VkRenderPass TextureCache::GetTextureCopyRenderPass() const
-{
-  return m_render_pass;
 }
 
 StreamBuffer* TextureCache::GetTextureUploadBuffer() const
@@ -73,12 +66,6 @@ bool TextureCache::Initialize()
     return false;
   }
 
-  if (!CreateRenderPasses())
-  {
-    PanicAlert("Failed to create copy render pass");
-    return false;
-  }
-
   m_texture_converter = std::make_unique<TextureConverter>();
   if (!m_texture_converter->Initialize())
   {
@@ -98,7 +85,7 @@ bool TextureCache::Initialize()
 void TextureCache::ConvertTexture(TCacheEntry* destination, TCacheEntry* source,
                                   const void* palette, TLUTFormat format)
 {
-  m_texture_converter->ConvertTexture(destination, source, m_render_pass, palette, format);
+  m_texture_converter->ConvertTexture(destination, source, palette, format);
 
   // Ensure both textures remain in the SHADER_READ_ONLY layout so they can be bound.
   static_cast<VKTexture*>(source->texture.get())
@@ -176,50 +163,6 @@ void TextureCache::DecodeTextureOnGPU(TCacheEntry* entry, u32 dst_level, const u
         ->GetRawTexIdentifier()
         ->TransitionToLayout(command_buffer, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
   }
-}
-
-bool TextureCache::CreateRenderPasses()
-{
-  static constexpr VkAttachmentDescription update_attachment = {
-      0,
-      TEXTURECACHE_TEXTURE_FORMAT,
-      VK_SAMPLE_COUNT_1_BIT,
-      VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-      VK_ATTACHMENT_STORE_OP_STORE,
-      VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-      VK_ATTACHMENT_STORE_OP_DONT_CARE,
-      VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-      VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL};
-
-  static constexpr VkAttachmentReference color_attachment_reference = {
-      0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL};
-
-  static constexpr VkSubpassDescription subpass_description = {
-      0,       VK_PIPELINE_BIND_POINT_GRAPHICS,
-      0,       nullptr,
-      1,       &color_attachment_reference,
-      nullptr, nullptr,
-      0,       nullptr};
-
-  VkRenderPassCreateInfo update_info = {VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
-                                        nullptr,
-                                        0,
-                                        1,
-                                        &update_attachment,
-                                        1,
-                                        &subpass_description,
-                                        0,
-                                        nullptr};
-
-  VkResult res =
-      vkCreateRenderPass(g_vulkan_context->GetDevice(), &update_info, nullptr, &m_render_pass);
-  if (res != VK_SUCCESS)
-  {
-    LOG_VULKAN_ERROR(res, "vkCreateRenderPass failed: ");
-    return false;
-  }
-
-  return true;
 }
 
 bool TextureCache::CompileShaders()
@@ -322,8 +265,12 @@ void TextureCache::CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy,
     shader = Util::CompileAndCreateFragmentShader(source);
   }
 
+  VkRenderPass render_pass = g_object_cache->GetRenderPass(
+      texture->GetRawTexIdentifier()->GetFormat(), VK_FORMAT_UNDEFINED,
+      texture->GetRawTexIdentifier()->GetSamples(), VK_ATTACHMENT_LOAD_OP_DONT_CARE);
+
   UtilityShaderDraw draw(command_buffer,
-                         g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_STANDARD), m_render_pass,
+                         g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_STANDARD), render_pass,
                          g_shader_cache->GetPassthroughVertexShader(),
                          g_shader_cache->GetPassthroughGeometryShader(), shader);
 

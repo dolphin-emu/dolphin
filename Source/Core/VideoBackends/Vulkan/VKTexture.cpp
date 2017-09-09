@@ -56,11 +56,13 @@ std::unique_ptr<VKTexture> VKTexture::Create(const TextureConfig& tex_config)
   if (tex_config.rendertarget)
   {
     VkImageView framebuffer_attachments[] = {texture->GetView()};
+    VkRenderPass render_pass = g_object_cache->GetRenderPass(
+        texture->GetFormat(), VK_FORMAT_UNDEFINED, 1, VK_ATTACHMENT_LOAD_OP_DONT_CARE);
     VkFramebufferCreateInfo framebuffer_info = {
         VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
         nullptr,
         0,
-        TextureCache::GetInstance()->GetTextureCopyRenderPass(),
+        render_pass,
         static_cast<u32>(ArraySize(framebuffer_attachments)),
         framebuffer_attachments,
         texture->GetWidth(),
@@ -175,9 +177,10 @@ void VKTexture::ScaleRectangleFromTexture(const AbstractTexture* source,
   m_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                                 VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
+  VkRenderPass render_pass = g_object_cache->GetRenderPass(
+      m_texture->GetFormat(), VK_FORMAT_UNDEFINED, 1, VK_ATTACHMENT_LOAD_OP_DONT_CARE);
   UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                         g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_STANDARD),
-                         TextureCache::GetInstance()->GetTextureCopyRenderPass(),
+                         g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_STANDARD), render_pass,
                          g_shader_cache->GetPassthroughVertexShader(),
                          g_shader_cache->GetPassthroughGeometryShader(),
                          TextureCache::GetInstance()->GetCopyShader());

@@ -37,6 +37,7 @@ ObjectCache::~ObjectCache()
   DestroySamplers();
   DestroyPipelineLayouts();
   DestroyDescriptorSetLayouts();
+  DestroyRenderPassCache();
 }
 
 bool ObjectCache::Initialize()
@@ -357,5 +358,91 @@ VkSampler ObjectCache::GetSampler(const SamplerState& info)
   // Store it even if it failed
   m_sampler_cache.emplace(info, sampler);
   return sampler;
+}
+
+VkRenderPass ObjectCache::GetRenderPass(VkFormat color_format, VkFormat depth_format,
+                                        u32 multisamples, VkAttachmentLoadOp load_op)
+{
+  auto key = std::tie(color_format, depth_format, multisamples, load_op);
+  auto it = m_render_pass_cache.find(key);
+  if (it != m_render_pass_cache.end())
+    return it->second;
+
+  VkAttachmentReference color_reference;
+  VkAttachmentReference* color_reference_ptr = nullptr;
+  VkAttachmentReference depth_reference;
+  VkAttachmentReference* depth_reference_ptr = nullptr;
+  std::array<VkAttachmentDescription, 2> attachments;
+  u32 num_attachments = 0;
+  if (color_format != VK_FORMAT_UNDEFINED)
+  {
+    attachments[num_attachments] = {0,
+                                    color_format,
+                                    static_cast<VkSampleCountFlagBits>(multisamples),
+                                    load_op,
+                                    VK_ATTACHMENT_STORE_OP_STORE,
+                                    VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+                                    VK_ATTACHMENT_STORE_OP_DONT_CARE,
+                                    VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                                    VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL};
+    color_reference.attachment = num_attachments;
+    color_reference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    color_reference_ptr = &color_reference;
+    num_attachments++;
+  }
+  if (depth_format != VK_FORMAT_UNDEFINED)
+  {
+    attachments[num_attachments] = {0,
+                                    depth_format,
+                                    static_cast<VkSampleCountFlagBits>(multisamples),
+                                    load_op,
+                                    VK_ATTACHMENT_STORE_OP_STORE,
+                                    VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+                                    VK_ATTACHMENT_STORE_OP_DONT_CARE,
+                                    VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+                                    VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL};
+    depth_reference.attachment = num_attachments;
+    depth_reference.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+    depth_reference_ptr = &depth_reference;
+    num_attachments++;
+  }
+
+  VkSubpassDescription subpass = {0,
+                                  VK_PIPELINE_BIND_POINT_GRAPHICS,
+                                  0,
+                                  nullptr,
+                                  color_reference_ptr ? 1u : 0u,
+                                  color_reference_ptr ? color_reference_ptr : nullptr,
+                                  nullptr,
+                                  depth_reference_ptr,
+                                  0,
+                                  nullptr};
+  VkRenderPassCreateInfo pass_info = {VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
+                                      nullptr,
+                                      0,
+                                      num_attachments,
+                                      attachments.data(),
+                                      1,
+                                      &subpass,
+                                      0,
+                                      nullptr};
+
+  VkRenderPass pass;
+  VkResult res = vkCreateRenderPass(g_vulkan_context->GetDevice(), &pass_info, nullptr, &pass);
+  if (res != VK_SUCCESS)
+  {
+    LOG_VULKAN_ERROR(res, "vkCreateRenderPass failed: ");
+    return VK_NULL_HANDLE;
+  }
+
+  m_render_pass_cache.emplace(key, pass);
+  return pass;
+}
+
+void ObjectCache::DestroyRenderPassCache()
+{
+  for (auto& it : m_render_pass_cache)
+    vkDestroyRenderPass(g_vulkan_context->GetDevice(), it.second, nullptr);
+  m_render_pass_cache.clear();
 }
 }

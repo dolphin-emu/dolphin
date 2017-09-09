@@ -63,9 +63,6 @@ TextureConverter::~TextureConverter()
   if (m_texel_buffer_view_rgba8_uint != VK_NULL_HANDLE)
     vkDestroyBufferView(g_vulkan_context->GetDevice(), m_texel_buffer_view_rgba8_uint, nullptr);
 
-  if (m_encoding_render_pass != VK_NULL_HANDLE)
-    vkDestroyRenderPass(g_vulkan_context->GetDevice(), m_encoding_render_pass, nullptr);
-
   for (auto& it : m_encoding_shaders)
     vkDestroyShaderModule(g_vulkan_context->GetDevice(), it.second, nullptr);
 
@@ -92,12 +89,6 @@ bool TextureConverter::Initialize()
   if (!CompilePaletteConversionShaders())
   {
     PanicAlert("Failed to compile palette conversion shaders");
-    return false;
-  }
-
-  if (!CreateEncodingRenderPass())
-  {
-    PanicAlert("Failed to create encode render pass");
     return false;
   }
 
@@ -165,8 +156,7 @@ TextureConverter::GetCommandBufferForTextureConversion(const TextureCache::TCach
 }
 
 void TextureConverter::ConvertTexture(TextureCacheBase::TCacheEntry* dst_entry,
-                                      TextureCacheBase::TCacheEntry* src_entry,
-                                      VkRenderPass render_pass, const void* palette,
+                                      TextureCacheBase::TCacheEntry* src_entry, const void* palette,
                                       TLUTFormat palette_format)
 {
   struct PSUniformBlock
@@ -199,6 +189,9 @@ void TextureConverter::ConvertTexture(TextureCacheBase::TCacheEntry* dst_entry,
       command_buffer, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
   // Bind and draw to the destination.
+  VkRenderPass render_pass = g_object_cache->GetRenderPass(
+      destination_texture->GetRawTexIdentifier()->GetFormat(), VK_FORMAT_UNDEFINED,
+      destination_texture->GetRawTexIdentifier()->GetSamples(), VK_ATTACHMENT_LOAD_OP_DONT_CARE);
   UtilityShaderDraw draw(command_buffer,
                          g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_TEXTURE_CONVERSION),
                          render_pass, g_shader_cache->GetScreenQuadVertexShader(), VK_NULL_HANDLE,
@@ -240,10 +233,13 @@ void TextureConverter::EncodeTextureToMemory(VkImageView src_texture, u8* dest_p
       ->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                            VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
+  VkRenderPass render_pass = g_object_cache->GetRenderPass(
+      Util::GetVkFormatForHostTextureFormat(m_encoding_render_texture->GetConfig().format),
+      VK_FORMAT_UNDEFINED, 1, VK_ATTACHMENT_LOAD_OP_DONT_CARE);
   UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                          g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_PUSH_CONSTANT),
-                         m_encoding_render_pass, g_shader_cache->GetScreenQuadVertexShader(),
-                         VK_NULL_HANDLE, shader);
+                         render_pass, g_shader_cache->GetScreenQuadVertexShader(), VK_NULL_HANDLE,
+                         shader);
 
   // Uniform - int4 of left,top,native_width,scale
   EFBEncodeParams encoder_params;
@@ -297,10 +293,12 @@ void TextureConverter::EncodeTextureToMemoryYUYV(void* dst_ptr, u32 dst_width, u
   // the order the guest is expecting and we don't have to swap it at readback time. The width
   // is halved because we're using an RGBA8 texture, but the YUYV data is two bytes per pixel.
   u32 output_width = dst_width / 2;
-  UtilityShaderDraw draw(command_buffer,
-                         g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_STANDARD),
-                         m_encoding_render_pass, g_shader_cache->GetPassthroughVertexShader(),
-                         VK_NULL_HANDLE, m_rgb_to_yuyv_shader);
+  VkRenderPass render_pass = g_object_cache->GetRenderPass(
+      Util::GetVkFormatForHostTextureFormat(m_encoding_render_texture->GetConfig().format),
+      VK_FORMAT_UNDEFINED, 1, VK_ATTACHMENT_LOAD_OP_DONT_CARE);
+  UtilityShaderDraw draw(
+      command_buffer, g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_STANDARD), render_pass,
+      g_shader_cache->GetPassthroughVertexShader(), VK_NULL_HANDLE, m_rgb_to_yuyv_shader);
   VkRect2D region = {{0, 0}, {output_width, dst_height}};
   draw.BeginRenderPass(static_cast<VKTexture*>(m_encoding_render_texture.get())->GetFramebuffer(),
                        region);
@@ -368,10 +366,13 @@ void TextureConverter::DecodeYUYVTextureFromMemory(VKTexture* dst_texture, const
                                    static_cast<int>(src_width / 2)};
 
   // Convert from the YUYV data now in the intermediate texture to RGBA in the destination.
+  VkRenderPass render_pass = g_object_cache->GetRenderPass(
+      dst_texture->GetRawTexIdentifier()->GetFormat(), VK_FORMAT_UNDEFINED,
+      dst_texture->GetRawTexIdentifier()->GetSamples(), VK_ATTACHMENT_LOAD_OP_DONT_CARE);
   UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                          g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_TEXTURE_CONVERSION),
-                         m_encoding_render_pass, g_shader_cache->GetScreenQuadVertexShader(),
-                         VK_NULL_HANDLE, m_yuyv_to_rgb_shader);
+                         render_pass, g_shader_cache->GetScreenQuadVertexShader(), VK_NULL_HANDLE,
+                         m_yuyv_to_rgb_shader);
   VkRect2D region = {{0, 0}, {src_width, src_height}};
   draw.BeginRenderPass(dst_texture->GetFramebuffer(), region);
   draw.SetViewportAndScissor(0, 0, static_cast<int>(src_width), static_cast<int>(src_height));
@@ -709,42 +710,6 @@ VkShaderModule TextureConverter::GetEncodingShader(const EFBCopyParams& params)
   VkShaderModule shader = CompileEncodingShader(params);
   m_encoding_shaders.emplace(params, shader);
   return shader;
-}
-
-bool TextureConverter::CreateEncodingRenderPass()
-{
-  VkAttachmentDescription attachments[] = {
-      {0, Util::GetVkFormatForHostTextureFormat(ENCODING_TEXTURE_FORMAT), VK_SAMPLE_COUNT_1_BIT,
-       VK_ATTACHMENT_LOAD_OP_DONT_CARE, VK_ATTACHMENT_STORE_OP_STORE,
-       VK_ATTACHMENT_LOAD_OP_DONT_CARE, VK_ATTACHMENT_STORE_OP_DONT_CARE,
-       VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL}};
-
-  VkAttachmentReference color_attachment_references[] = {
-      {0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL}};
-
-  VkSubpassDescription subpass_descriptions[] = {{0, VK_PIPELINE_BIND_POINT_GRAPHICS, 0, nullptr, 1,
-                                                  color_attachment_references, nullptr, nullptr, 0,
-                                                  nullptr}};
-
-  VkRenderPassCreateInfo pass_info = {VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
-                                      nullptr,
-                                      0,
-                                      static_cast<u32>(ArraySize(attachments)),
-                                      attachments,
-                                      static_cast<u32>(ArraySize(subpass_descriptions)),
-                                      subpass_descriptions,
-                                      0,
-                                      nullptr};
-
-  VkResult res = vkCreateRenderPass(g_vulkan_context->GetDevice(), &pass_info, nullptr,
-                                    &m_encoding_render_pass);
-  if (res != VK_SUCCESS)
-  {
-    LOG_VULKAN_ERROR(res, "vkCreateRenderPass (Encode) failed: ");
-    return false;
-  }
-
-  return true;
 }
 
 bool TextureConverter::CreateEncodingTexture()
