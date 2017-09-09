@@ -63,7 +63,7 @@ typedef struct _Nv_Stereo_Image_Header
 #define NVSTEREO_IMAGE_SIGNATURE 0x4433564e
 
 Renderer::Renderer(int backbuffer_width, int backbuffer_height)
-    : ::Renderer(backbuffer_width, backbuffer_height)
+    : ::Renderer(backbuffer_width, backbuffer_height, AbstractTextureFormat::RGBA8)
 {
   m_last_multisamples = g_ActiveConfig.iMultisamples;
   m_last_stereo_mode = g_ActiveConfig.stereo_mode != StereoMode::Off;

@@ -25,7 +25,8 @@
 #include "VideoCommon/VideoConfig.h"
 
 SWRenderer::SWRenderer(std::unique_ptr<SWOGLWindow> window)
-    : ::Renderer(static_cast<int>(MAX_XFB_WIDTH), static_cast<int>(MAX_XFB_HEIGHT)),
+    : ::Renderer(static_cast<int>(MAX_XFB_WIDTH), static_cast<int>(MAX_XFB_HEIGHT),
+                 AbstractTextureFormat::RGBA8),
       m_window(std::move(window))
 {
 }

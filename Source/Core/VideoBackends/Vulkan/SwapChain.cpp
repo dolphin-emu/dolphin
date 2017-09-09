@@ -142,11 +142,8 @@ std::unique_ptr<SwapChain> SwapChain::Create(void* display_handle, void* native_
   std::unique_ptr<SwapChain> swap_chain =
       std::make_unique<SwapChain>(display_handle, native_handle, surface, vsync);
 
-  if (!swap_chain->CreateSwapChain() || !swap_chain->CreateRenderPass() ||
-      !swap_chain->SetupSwapChainImages())
-  {
+  if (!swap_chain->CreateSwapChain() || !swap_chain->SetupSwapChainImages())
     return nullptr;
-  }
 
   return swap_chain;
 }
@@ -175,13 +172,27 @@ bool SwapChain::SelectSurfaceFormat()
     return true;
   }
 
-  // Use the first surface format, just use what it prefers.
-  // Some drivers seem to return a SRGB format here (Intel Mesa).
-  // This results in gamma correction when presenting to the screen, which we don't want.
-  // Use a linear format instead, if this is the case.
-  m_surface_format.format = Util::GetLinearFormat(surface_formats[0].format);
-  m_surface_format.colorSpace = surface_formats[0].colorSpace;
-  return true;
+  // Try to find a suitable format.
+  for (const VkSurfaceFormatKHR& surface_format : surface_formats)
+  {
+    // Some drivers seem to return a SRGB format here (Intel Mesa).
+    // This results in gamma correction when presenting to the screen, which we don't want.
+    // Use a linear format instead, if this is the case.
+    VkFormat format = Util::GetLinearFormat(surface_format.format);
+    if (format == VK_FORMAT_R8G8B8A8_UNORM)
+      m_texture_format = AbstractTextureFormat::RGBA8;
+    else if (format == VK_FORMAT_B8G8R8A8_UNORM)
+      m_texture_format = AbstractTextureFormat::BGRA8;
+    else
+      continue;
+
+    m_surface_format.format = format;
+    m_surface_format.colorSpace = surface_format.colorSpace;
+    return true;
+  }
+
+  PanicAlert("Failed to find a suitable format for swap chain buffers.");
+  return false;
 }
 
 bool SwapChain::SelectPresentMode()
@@ -234,14 +245,6 @@ bool SwapChain::SelectPresentMode()
   // Fall back to whatever is available.
   m_present_mode = present_modes[0];
   return true;
-}
-
-bool SwapChain::CreateRenderPass()
-{
-  // render pass for rendering to the swap chain
-  m_render_pass = g_object_cache->GetRenderPass(m_surface_format.format, VK_FORMAT_UNDEFINED, 1,
-                                                VK_ATTACHMENT_LOAD_OP_CLEAR);
-  return m_render_pass != VK_NULL_HANDLE;
 }
 
 bool SwapChain::CreateSwapChain()
@@ -367,6 +370,9 @@ bool SwapChain::SetupSwapChainImages()
                                 images.data());
   ASSERT(res == VK_SUCCESS);
 
+  VkRenderPass render_pass = g_object_cache->GetRenderPass(
+      m_surface_format.format, VK_FORMAT_UNDEFINED, 1, VK_ATTACHMENT_LOAD_OP_CLEAR);
+
   m_swap_chain_images.reserve(image_count);
   for (uint32_t i = 0; i < image_count; i++)
   {
@@ -382,7 +388,7 @@ bool SwapChain::SetupSwapChainImages()
     VkFramebufferCreateInfo framebuffer_info = {VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
                                                 nullptr,
                                                 0,
-                                                m_render_pass,
+                                                render_pass,
                                                 1,
                                                 &view,
                                                 m_width,
@@ -499,7 +505,7 @@ bool SwapChain::RecreateSurface(void* native_handle)
   }
 
   // Finally re-create the swap chain
-  if (!CreateSwapChain() || !SetupSwapChainImages() || !CreateRenderPass())
+  if (!CreateSwapChain() || !SetupSwapChainImages())
     return false;
 
   return true;

@@ -49,7 +49,8 @@ namespace Vulkan
 {
 Renderer::Renderer(std::unique_ptr<SwapChain> swap_chain)
     : ::Renderer(swap_chain ? static_cast<int>(swap_chain->GetWidth()) : 1,
-                 swap_chain ? static_cast<int>(swap_chain->GetHeight()) : 0),
+                 swap_chain ? static_cast<int>(swap_chain->GetHeight()) : 0,
+                 swap_chain ? swap_chain->GetTextureFormat() : AbstractTextureFormat::Undefined),
       m_swap_chain(std::move(swap_chain))
 {
   UpdateActiveConfig();
@@ -93,6 +94,23 @@ bool Renderer::Initialize()
   {
     PanicAlert("Failed to initialize raster font.");
     return false;
+  }
+
+  // Swap chain render pass.
+  if (m_swap_chain)
+  {
+    m_swap_chain_render_pass =
+        g_object_cache->GetRenderPass(m_swap_chain->GetSurfaceFormat().format, VK_FORMAT_UNDEFINED,
+                                      1, VK_ATTACHMENT_LOAD_OP_LOAD);
+    m_swap_chain_clear_render_pass =
+        g_object_cache->GetRenderPass(m_swap_chain->GetSurfaceFormat().format, VK_FORMAT_UNDEFINED,
+                                      1, VK_ATTACHMENT_LOAD_OP_CLEAR);
+    if (m_swap_chain_render_pass == VK_NULL_HANDLE ||
+        m_swap_chain_clear_render_pass == VK_NULL_HANDLE)
+    {
+      PanicAlert("Failed to create swap chain render passes.");
+      return false;
+    }
   }
 
   m_bounding_box = std::make_unique<BoundingBox>();
@@ -398,7 +416,7 @@ void Renderer::RenderText(const std::string& text, int left, int top, u32 color)
   u32 backbuffer_width = m_swap_chain->GetWidth();
   u32 backbuffer_height = m_swap_chain->GetHeight();
 
-  m_raster_font->PrintMultiLineText(m_swap_chain->GetRenderPass(), text,
+  m_raster_font->PrintMultiLineText(m_swap_chain_render_pass, text,
                                     left * 2.0f / static_cast<float>(backbuffer_width) - 1,
                                     1 - top * 2.0f / static_cast<float>(backbuffer_height),
                                     backbuffer_width, backbuffer_height, color);
@@ -816,20 +834,18 @@ void Renderer::DrawScreen(VKTexture* xfb_texture, const EFBRectangle& xfb_region
   m_current_framebuffer_width = backbuffer->GetWidth();
   m_current_framebuffer_height = backbuffer->GetHeight();
 
+  // Draw to the backbuffer.
+  VkRect2D region = {{0, 0}, {backbuffer->GetWidth(), backbuffer->GetHeight()}};
+  StateTracker::GetInstance()->SetRenderPass(m_swap_chain_render_pass,
+                                             m_swap_chain_clear_render_pass);
+  StateTracker::GetInstance()->SetFramebuffer(m_swap_chain->GetCurrentFramebuffer(), region);
+
   // Begin render pass for rendering to the swap chain.
   VkClearValue clear_value = {{{0.0f, 0.0f, 0.0f, 1.0f}}};
-  VkRenderPassBeginInfo info = {VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
-                                nullptr,
-                                m_swap_chain->GetRenderPass(),
-                                m_swap_chain->GetCurrentFramebuffer(),
-                                {{0, 0}, {backbuffer->GetWidth(), backbuffer->GetHeight()}},
-                                1,
-                                &clear_value};
-  vkCmdBeginRenderPass(g_command_buffer_mgr->GetCurrentCommandBuffer(), &info,
-                       VK_SUBPASS_CONTENTS_INLINE);
+  StateTracker::GetInstance()->BeginClearRenderPass(region, &clear_value, 1);
 
   // Draw
-  BlitScreen(m_swap_chain->GetRenderPass(), GetTargetRectangle(), xfb_region,
+  BlitScreen(m_swap_chain_render_pass, GetTargetRectangle(), xfb_region,
              xfb_texture->GetRawTexIdentifier());
 
   // Draw OSD
@@ -840,7 +856,8 @@ void Renderer::DrawScreen(VKTexture* xfb_texture, const EFBRectangle& xfb_region
   OSD::DrawMessages();
 
   // End drawing to backbuffer
-  vkCmdEndRenderPass(g_command_buffer_mgr->GetCurrentCommandBuffer());
+  StateTracker::GetInstance()->EndRenderPass();
+  BindEFBToStateTracker();
 
   // Transition the backbuffer to PRESENT_SRC to ensure all commands drawing
   // to it have finished before present.

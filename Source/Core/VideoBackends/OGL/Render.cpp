@@ -355,7 +355,8 @@ static void InitDriverInfo()
 // Init functions
 Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context)
     : ::Renderer(static_cast<int>(std::max(main_gl_context->GetBackBufferWidth(), 1u)),
-                 static_cast<int>(std::max(main_gl_context->GetBackBufferHeight(), 1u))),
+                 static_cast<int>(std::max(main_gl_context->GetBackBufferHeight(), 1u)),
+                 AbstractTextureFormat::RGBA8),
       m_main_gl_context(std::move(main_gl_context))
 {
   bool bSuccess = true;
