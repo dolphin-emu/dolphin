@@ -14,7 +14,7 @@
 
 #include "VideoCommon/VertexManagerBase.h"
 
-class SWVertexLoader : public VertexManagerBase
+class SWVertexLoader final : public VertexManagerBase
 {
 public:
   SWVertexLoader();
