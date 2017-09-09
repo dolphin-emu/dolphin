@@ -1355,11 +1355,37 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
              xfb_texture->GetConfig().width, xfb_texture->GetConfig().height);
 
   // Finish up the current frame, print some stats
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+  // Reset viewport for drawing text
+  glViewport(0, 0, GLInterface->GetBackBufferWidth(), GLInterface->GetBackBufferHeight());
+  DrawDebugText();
+
+  // Do our OSD callbacks
+  OSD::DoCallbacks(OSD::CallbackType::OnFrame);
+  OSD::DrawMessages();
+
+  // Copy the rendered frame to the real window.
+  GLInterface->Swap();
+
+#ifdef ANDROID
+  // Handle surface changes on Android.
+  if (m_surface_needs_change.IsSet())
+  {
+    GLInterface->UpdateHandle(m_new_surface_handle);
+    GLInterface->UpdateSurface();
+    m_new_surface_handle = nullptr;
+    m_surface_needs_change.Clear();
+    m_surface_changed.Set();
+  }
+#endif
+
+  // Update the render window position and the backbuffer size
   SetWindowSize(xfb_texture->GetConfig().width, xfb_texture->GetConfig().height);
+  GLInterface->Update();
 
-  GLInterface->Update();  // just updates the render window position and the backbuffer size
-
+  // Was the size changed since the last frame?
   bool window_resized = false;
   int window_width = static_cast<int>(std::max(GLInterface->GetBackBufferWidth(), 1u));
   int window_height = static_cast<int>(std::max(GLInterface->GetBackBufferHeight(), 1u));
@@ -1403,33 +1429,6 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
         m_target_width, m_target_height, s_MSAASamples, BoundingBox::NeedsStencilBuffer());
     BoundingBox::SetTargetSizeChanged(m_target_width, m_target_height);
   }
-
-  // ---------------------------------------------------------------------
-  glEnable(GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-  // Reset viewport for drawing text
-  glViewport(0, 0, GLInterface->GetBackBufferWidth(), GLInterface->GetBackBufferHeight());
-
-  DrawDebugText();
-
-  // Do our OSD callbacks
-  OSD::DoCallbacks(OSD::CallbackType::OnFrame);
-  OSD::DrawMessages();
-
-#ifdef ANDROID
-  if (m_surface_needs_change.IsSet())
-  {
-    GLInterface->UpdateHandle(m_new_surface_handle);
-    GLInterface->UpdateSurface();
-    m_new_surface_handle = nullptr;
-    m_surface_needs_change.Clear();
-    m_surface_changed.Set();
-  }
-#endif
-
-  // Copy the rendered frame to the real window
-  GLInterface->Swap();
 
   // Clear framebuffer
   glClearColor(0, 0, 0, 0);
