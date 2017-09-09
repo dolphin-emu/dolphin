@@ -18,9 +18,14 @@ PropertiesDialog::PropertiesDialog(QWidget* parent, const GameFile& game) : QDia
 
   QTabWidget* tab_widget = new QTabWidget(this);
   InfoWidget* info = new InfoWidget(game);
-  FilesystemWidget* filesystem = new FilesystemWidget(game);
   tab_widget->addTab(info, tr("Info"));
-  tab_widget->addTab(filesystem, tr("Filesystem"));
+
+  if (DiscIO::IsDisc(game.GetPlatformID()))
+  {
+    FilesystemWidget* filesystem = new FilesystemWidget(game);
+    tab_widget->addTab(filesystem, tr("Filesystem"));
+  }
+
   layout->addWidget(tab_widget);
 
   QDialogButtonBox* ok_box = new QDialogButtonBox(QDialogButtonBox::Ok);

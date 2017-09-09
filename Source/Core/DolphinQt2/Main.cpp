@@ -52,7 +52,10 @@ bool QtMsgAlertHandler(const char* caption, const char* text, bool yes_no, MsgTy
 // /SubSystem:Windows
 int main(int argc, char* argv[])
 {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
   QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+#endif
+
   QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
   QCoreApplication::setOrganizationName(QStringLiteral("Dolphin Emulator"));
   QCoreApplication::setOrganizationDomain(QStringLiteral("dolphin-emu.org"));
