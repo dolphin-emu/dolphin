@@ -15,6 +15,7 @@ import android.widget.Button;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.overlay.InputOverlay;
+import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
 import org.dolphinemu.dolphinemu.utils.Log;
 
 public final class EmulationFragment extends Fragment implements SurfaceHolder.Callback
@@ -235,6 +236,8 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 					return;
 
 			Log.info("[EmulationFragment] Starting emulation: " + mSurface);
+
+			DirectoryInitializationService.waitForExternalStorageInitialization();
 
 			// Start emulation using the provided Surface.
 			String path = getArguments().getString(ARG_GAME_PATH);

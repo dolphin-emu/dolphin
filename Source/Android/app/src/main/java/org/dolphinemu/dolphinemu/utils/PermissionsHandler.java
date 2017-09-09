@@ -3,6 +3,7 @@ package org.dolphinemu.dolphinemu.utils;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.os.Build;
@@ -45,9 +46,9 @@ public class PermissionsHandler {
 		return true;
 	}
 
-	public static boolean hasWriteAccess(Activity activity) {
+	public static boolean hasWriteAccess(Context context) {
 		if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-			int hasWritePermission = ContextCompat.checkSelfPermission(activity, WRITE_EXTERNAL_STORAGE);
+			int hasWritePermission = ContextCompat.checkSelfPermission(context, WRITE_EXTERNAL_STORAGE);
 			return hasWritePermission == PackageManager.PERMISSION_GRANTED;
 		}
 

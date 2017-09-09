@@ -301,11 +301,6 @@ public final class NativeLibrary
 	public static native void LoadState(int slot);
 
 	/**
-	 * Creates the initial folder structure in /sdcard/dolphin-emu/
-	 */
-	public static native void CreateUserFolders();
-
-	/**
 	 * Sets the current working user directory
 	 * If not set, it auto-detects a location
 	 */

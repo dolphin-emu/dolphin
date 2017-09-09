@@ -28,6 +28,7 @@ import org.dolphinemu.dolphinemu.adapters.SettingsRowPresenter;
 import org.dolphinemu.dolphinemu.model.Game;
 import org.dolphinemu.dolphinemu.model.TvSettingsItem;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
+import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
 import org.dolphinemu.dolphinemu.ui.settings.SettingsActivity;
 import org.dolphinemu.dolphinemu.utils.PermissionsHandler;
 import org.dolphinemu.dolphinemu.utils.StartupHandler;
@@ -160,7 +161,7 @@ public final class TvMainActivity extends Activity implements MainView
 		switch (requestCode) {
 			case PermissionsHandler.REQUEST_CODE_WRITE_PERMISSION:
 				if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-					StartupHandler.copyAssetsIfNeeded(this);
+					DirectoryInitializationService.setHasExternalStoragePermission();
 					loadGames();
 				} else {
 					Toast.makeText(this, R.string.write_permission_needed, Toast.LENGTH_SHORT)
