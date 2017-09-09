@@ -25,19 +25,19 @@ public:
 
 protected:
   void ResetBuffer(u32 stride) override;
-  u16* GetIndexBuffer() { return &LocalIBuffer[0]; }
+  u16* GetIndexBuffer() { return &m_local_index_buffer[0]; }
 private:
   void vFlush() override;
-  std::vector<u8> LocalVBuffer;
-  std::vector<u16> LocalIBuffer;
+  std::vector<u8> m_local_vertex_buffer;
+  std::vector<u16> m_local_index_buffer;
 
-  InputVertexData m_Vertex;
+  InputVertexData m_vertex;
 
   void ParseVertex(const PortableVertexDeclaration& vdec, int index);
 
-  SetupUnit m_SetupUnit;
+  SetupUnit m_setup_unit;
 
-  bool m_TexGenSpecialCase;
+  bool m_tex_gen_special_case;
 
 public:
   void SetFormat(u8 attributeIndex, u8 primitiveType);
