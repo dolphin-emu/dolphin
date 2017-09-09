@@ -692,6 +692,20 @@ std::string GetSysDirectory()
 {
   std::string sysDir;
 
+#if defined(_WIN32) || defined(LINUX_LOCAL_DEV)
+#define SYSDATA_DIR "Sys"
+#elif defined __APPLE__
+#define SYSDATA_DIR "Contents/Resources/Sys"
+#elif defined ANDROID
+#define SYSDATA_DIR "/sdcard/dolphin-emu"
+#else
+#ifdef DATA_DIR
+#define SYSDATA_DIR DATA_DIR "sys"
+#else
+#define SYSDATA_DIR "sys"
+#endif
+#endif
+
 #if defined(__APPLE__)
   sysDir = GetBundleDirectory() + DIR_SEP + SYSDATA_DIR;
 #elif defined(_WIN32) || defined(LINUX_LOCAL_DEV)
