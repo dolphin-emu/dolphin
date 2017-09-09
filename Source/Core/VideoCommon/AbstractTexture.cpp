@@ -5,7 +5,7 @@
 #include <algorithm>
 
 #include "Common/Assert.h"
-
+#include "Common/MsgHandler.h"
 #include "VideoCommon/AbstractTexture.h"
 #include "VideoCommon/ImageWrite.h"
 
@@ -102,8 +102,17 @@ AbstractTexture::MapRegionImpl(u32 level, u32 x, u32 y, u32 width, u32 height)
 
 bool AbstractTexture::IsCompressedHostTextureFormat(AbstractTextureFormat format)
 {
-  // This will need to be changed if we add any other uncompressed formats.
-  return format != AbstractTextureFormat::RGBA8;
+  switch (format)
+  {
+  case AbstractTextureFormat::DXT1:
+  case AbstractTextureFormat::DXT3:
+  case AbstractTextureFormat::DXT5:
+  case AbstractTextureFormat::BPTC:
+    return true;
+
+  default:
+    return false;
+  }
 }
 
 size_t AbstractTexture::CalculateHostTextureLevelPitch(AbstractTextureFormat format, u32 row_length)
@@ -117,8 +126,11 @@ size_t AbstractTexture::CalculateHostTextureLevelPitch(AbstractTextureFormat for
   case AbstractTextureFormat::BPTC:
     return static_cast<size_t>(std::max(1u, row_length / 4)) * 16;
   case AbstractTextureFormat::RGBA8:
-  default:
+  case AbstractTextureFormat::BGRA8:
     return static_cast<size_t>(row_length) * 4;
+  default:
+    PanicAlert("Unhandled texture format.");
+    return 0;
   }
 }
 

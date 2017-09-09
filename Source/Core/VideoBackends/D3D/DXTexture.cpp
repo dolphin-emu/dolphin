@@ -40,7 +40,11 @@ DXGI_FORMAT GetDXGIFormatForHostFormat(AbstractTextureFormat format)
   case AbstractTextureFormat::BPTC:
     return DXGI_FORMAT_BC7_UNORM;
   case AbstractTextureFormat::RGBA8:
+    return DXGI_FORMAT_R8G8B8A8_UNORM;
+  case AbstractTextureFormat::BGRA8:
+    return DXGI_FORMAT_B8G8R8A8_UNORM;
   default:
+    PanicAlert("Unhandled texture format.");
     return DXGI_FORMAT_R8G8B8A8_UNORM;
   }
 }
