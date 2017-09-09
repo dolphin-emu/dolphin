@@ -52,7 +52,7 @@ void SWVertexLoader::ResetBuffer(u32 stride)
 {
   m_cur_buffer_pointer = m_base_buffer_pointer = m_local_vertex_buffer.data();
   m_end_buffer_pointer = m_cur_buffer_pointer + m_local_vertex_buffer.size();
-  IndexGenerator::Start(GetIndexBuffer());
+  IndexGenerator::Start(m_local_index_buffer.data());
 }
 
 void SWVertexLoader::vFlush()

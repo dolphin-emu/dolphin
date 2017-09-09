@@ -25,7 +25,7 @@ public:
 
 protected:
   void ResetBuffer(u32 stride) override;
-  u16* GetIndexBuffer() { return &m_local_index_buffer[0]; }
+
 private:
   void vFlush() override;
   std::vector<u8> m_local_vertex_buffer;
