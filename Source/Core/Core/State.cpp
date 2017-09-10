@@ -22,6 +22,7 @@
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
 #include "Common/Timer.h"
+#include "Common/Version.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -116,7 +117,7 @@ static bool DoStateVersion(PointerWrap& p, std::string* version_created_by)
     version = cookie - COOKIE_BASE;
   }
 
-  *version_created_by = scm_rev_str;
+  *version_created_by = Common::scm_rev_str;
   if (version > 42)
     p.Do(*version_created_by);
   else

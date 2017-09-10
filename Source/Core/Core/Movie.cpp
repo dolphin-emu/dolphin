@@ -28,6 +28,7 @@
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
 #include "Common/Timer.h"
+#include "Common/Version.h"
 
 #include "Core/Boot/Boot.h"
 #include "Core/Config/MainSettings.h"
@@ -1419,7 +1420,7 @@ void GetSettings()
        SConfig::GetInstance().m_EXIDevice[1] == ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER)
       << 1;
 
-  std::array<u8, 20> revision = ConvertGitRevisionToBytes(scm_rev_git_str);
+  std::array<u8, 20> revision = ConvertGitRevisionToBytes(Common::scm_rev_git_str);
   std::copy(std::begin(revision), std::end(revision), std::begin(s_revision));
 
   if (!Config::Get(Config::MAIN_DSP_HLE))
