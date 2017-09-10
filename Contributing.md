@@ -30,10 +30,24 @@ This project uses clang-format (stable branch) to check for common style issues.
 
 In most cases, clang-format can and **should** be used to automatically reformat code and solve most formatting issues.
 
-- To run clang-format on all staged files:
+It can be downloaded as part of the LLVM package here: [LLVM Downloads](http://releases.llvm.org/download.html)
+
+- To run clang-format on all staged files use the following command:
   ```
   git diff --cached --name-only | egrep '[.](cpp|h|mm)$' | xargs clang-format -i
   ```
+  - You will have to restage any modified files.
+  - This operation may produce `.TMP` backups of the original files that were modified. Make sure you do not include these files when restagining. You may move or delete them. To ignore them by git, copy this `*.TMP` into a new line in the `exclude` file in the `.git\info` directory inside your local repository. Note that `.git` is a hidden folder under Windows.
+  - Windows users: To delete all `.TMP` files in your repository, run command prompt from the root repository location with the following command `del /s /q *.tmp`
+  - Windows users: Unfortunately clang-format is only available for official download packed inside a rather large LLVM installer, whereas clang-format is very small. Thankfully there is a way to skip the installer. The LLVM installer executable can be opened by [7-Zip](http://www.7-zip.org/download.html) directly as if it's a ZIP file. Download the LLVM installer but don't run it. Rename the LLVM installer's `.exe` extension to `.7z` or drag&drop it onto `7zFM.exe` located in the 7-Zip root installation directory. Open the `bin` folder, locate `clang-format.exe` and place it in `usr\bin` subdirectory of your Git installation path.
+  - **Warning:** This method does not take the `.clang-format` configuration file into account, results may vary. While it may perform good enough to pass Lint checks on github, it will not be 100% accurate.
+  
+- Clang-format can also be used inside Visual Studio 2017 with this extension:
+
+   - It can be downloaded here: [clang-format plugin for VS2017](https://marketplace.visualstudio.com/items?itemName=HansWennborg.ClangFormat#overview)
+   - Preferrably run the VSIX installer while Visual Studio is not running.
+   - Supports "Format When Save" feature, but it's disabled by default.
+   - The `.clang-format` configuration file is taken into account automatically, more options are available in the LLVM/Clang tab of the Visual Studio "Tools > Options" window.
 
 - Formatting issues can be checked for before committing with a lint script that is included with the codebase. To enable it as a pre-commit hook (assuming you are in the repository root):
   ```
