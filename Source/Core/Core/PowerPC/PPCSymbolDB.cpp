@@ -79,19 +79,20 @@ void PPCSymbolDB::AddKnownSymbol(u32 startAddr, u32 size, const std::string& nam
 
 Symbol* PPCSymbolDB::GetSymbolFromAddr(u32 addr)
 {
-  XFuncMap::iterator it = functions.find(addr);
-  if (it != functions.end())
-  {
+  XFuncMap::iterator it = functions.lower_bound(addr);
+  if (it == functions.end())
+    return nullptr;
+
+  // If the address is exactly the start address of a symbol, we're done.
+  if (it->second.address == addr)
     return &it->second;
-  }
-  else
-  {
-    for (auto& p : functions)
-    {
-      if (addr >= p.second.address && addr < p.second.address + p.second.size)
-        return &p.second;
-    }
-  }
+
+  // Otherwise, check whether the address is within the bounds of a symbol.
+  if (it != functions.begin())
+    --it;
+  if (addr >= it->second.address && addr < it->second.address + it->second.size)
+    return &it->second;
+
   return nullptr;
 }
 
