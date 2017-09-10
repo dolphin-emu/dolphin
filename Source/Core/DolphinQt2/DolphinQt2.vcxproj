@@ -60,8 +60,10 @@
   <!--NOTE: When adding moc'd files, you must list outputs in the ClCompile ItemGroup too!-->
   <ItemGroup>
     <QtMoc Include="AboutDialog.h" />
+    <QtMoc Include="Config\CheatWarningWidget.h" />
     <QtMoc Include="Config\ControllersWindow.h" />
     <QtMoc Include="Config\FilesystemWidget.h" />
+    <QtMoc Include="Config\GeckoCodeWidget.h" />
     <QtMoc Include="Config\Mapping\IOWindow.h" />
     <QtMoc Include="Config\Mapping\MappingButton.h" />
     <QtMoc Include="Config\Mapping\MappingWidget.h" />
@@ -111,14 +113,16 @@
     <ClCompile Include="$(QtMocOutPrefix)AboutDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)AudioPane.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)AdvancedWidget.cpp" />
-    <ClCompile Include="$(QtMocOutPrefix)EnhancementsWidget.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)CheatWarningWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)ControllersWindow.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)EnhancementsWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)FilesystemWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)WindowActivationEventFilter.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GameList.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GameListDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GameListModel.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GameTracker.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)GeckoCodeWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GeneralPane.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GeneralWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GraphicsBool.cpp" />
@@ -154,8 +158,10 @@
     <ClCompile Include="$(QtMocOutPrefix)SoftwareRendererWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)ToolBar.cpp" />
     <ClCompile Include="AboutDialog.cpp" />
+    <ClCompile Include="Config\CheatWarningWidget.cpp" />
     <ClCompile Include="Config\ControllersWindow.cpp" />
     <ClCompile Include="Config\FilesystemWidget.cpp" />
+    <ClCompile Include="Config\GeckoCodeWidget.cpp" />
     <ClCompile Include="Config\Graphics\AdvancedWidget.cpp" />
     <ClCompile Include="Config\Graphics\EnhancementsWidget.cpp" />
     <ClCompile Include="Config\Graphics\HacksWidget.cpp" />
@@ -226,8 +232,8 @@
   </ItemGroup>
   <!--Put standard C/C++ headers here-->
   <ItemGroup>
-    <ClInclude Include="Config\LogWidget.h" />
-    <ClInclude Include="Config\LogConfigWidget.h" />
+    <ClInclude Include="Config\CheatWarningWidget.h" />
+    <ClInclude Include="Config\GeckoCodeWidget.h" />
     <ClInclude Include="Config\Mapping\GCKeyboardEmu.h" />
     <ClInclude Include="Config\Mapping\GCPadEmu.h" />
     <ClInclude Include="Config\Mapping\GCPadWiiU.h" />

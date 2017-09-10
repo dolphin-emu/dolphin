@@ -91,6 +91,7 @@ private:
   void HideRenderWidget();
 
   void ShowSettingsWindow();
+  void ShowGeneralWindow();
   void ShowAudioWindow();
   void ShowControllersWindow();
   void ShowGraphicsWindow();

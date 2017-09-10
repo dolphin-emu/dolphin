@@ -19,8 +19,6 @@ public:
 
 signals:
   void OpenCheatEnableSettings();
-  void EmulationStarted();
-  void EmulationStopped();
 
 private:
   void CreateWidgets();

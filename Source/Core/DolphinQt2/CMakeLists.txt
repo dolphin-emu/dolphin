@@ -31,8 +31,10 @@ set(SRCS
   Translation.cpp
   WiiUpdate.cpp
   WiiUpdate.h
+  Config/CheatWarningWidget.cpp
   Config/ControllersWindow.cpp
   Config/FilesystemWidget.cpp
+  Config/GeckoCodeWidget.cpp
   Config/Graphics/AdvancedWidget.cpp
   Config/Graphics/EnhancementsWidget.cpp
   Config/Graphics/GeneralWidget.cpp

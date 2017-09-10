@@ -31,6 +31,7 @@ signals:
   void GameSelected();
   void NetPlayHost(const QString& game_id);
   void SelectionChanged(QSharedPointer<GameFile> game_file);
+  void OpenGeneralSettings();
 
 private:
   void ShowContextMenu(const QPoint&);
