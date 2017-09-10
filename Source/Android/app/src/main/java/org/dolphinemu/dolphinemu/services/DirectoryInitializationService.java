@@ -8,6 +8,8 @@ package org.dolphinemu.dolphinemu.services;
 
 import android.app.IntentService;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.utils.Log;
@@ -99,11 +101,19 @@ public final class DirectoryInitializationService extends IntentService
 	{
 		File sysDirectory = new File(getFilesDir(), "Sys");
 
-		// Delete the existing extracted Sys directory in case it's from a different version of Dolphin.
-		deleteDirectoryRecursively(sysDirectory);
+		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+		String revision = NativeLibrary.GetGitRevision();
+		if (!preferences.getString("sysDirectoryVersion", "").equals(revision))
+		{
+			// There is no extracted Sys directory, or there is a Sys directory from another
+			// version of Dolphin that might contain outdated files. Let's (re-)extract Sys.
+			deleteDirectoryRecursively(sysDirectory);
+			copyAssetFolder("Sys", sysDirectory);
 
-		// Extract the Sys directory to app-local internal storage.
-		copyAssetFolder("Sys", sysDirectory);
+			SharedPreferences.Editor editor = preferences.edit();
+			editor.putString("sysDirectoryVersion", revision);
+			editor.apply();
+		}
 
 		// Let the native code know where the Sys directory is.
 		SetSysDirectory(sysDirectory.getPath());

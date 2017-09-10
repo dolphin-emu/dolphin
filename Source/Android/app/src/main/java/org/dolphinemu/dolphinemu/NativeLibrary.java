@@ -281,6 +281,8 @@ public final class NativeLibrary
 	 */
 	public static native String GetVersionString();
 
+	public static native String GetGitRevision();
+
 	/**
 	 * Saves a screen capture of the game
 	 */
