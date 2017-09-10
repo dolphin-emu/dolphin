@@ -14,7 +14,7 @@
 
 #include "VideoCommon/VertexManagerBase.h"
 
-class SWVertexLoader : public VertexManagerBase
+class SWVertexLoader final : public VertexManagerBase
 {
 public:
   SWVertexLoader();
@@ -23,22 +23,18 @@ public:
   std::unique_ptr<NativeVertexFormat>
   CreateNativeVertexFormat(const PortableVertexDeclaration& vdec) override;
 
-protected:
-  void ResetBuffer(u32 stride) override;
-  u16* GetIndexBuffer() { return &LocalIBuffer[0]; }
 private:
+  void ResetBuffer(u32 stride) override;
   void vFlush() override;
-  std::vector<u8> LocalVBuffer;
-  std::vector<u16> LocalIBuffer;
 
-  InputVertexData m_Vertex;
-
+  void SetFormat(u8 attributeIndex, u8 primitiveType);
   void ParseVertex(const PortableVertexDeclaration& vdec, int index);
 
-  SetupUnit m_SetupUnit;
+  std::vector<u8> m_local_vertex_buffer;
+  std::vector<u16> m_local_index_buffer;
 
-  bool m_TexGenSpecialCase;
+  InputVertexData m_vertex;
+  SetupUnit m_setup_unit;
 
-public:
-  void SetFormat(u8 attributeIndex, u8 primitiveType);
+  bool m_tex_gen_special_case;
 };
