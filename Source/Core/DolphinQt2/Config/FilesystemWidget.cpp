@@ -21,6 +21,7 @@
 #include "DiscIO/DiscExtractor.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/Filesystem.h"
+#include "DolphinQt2/QtUtils/ActionHelper.h"
 #include "DolphinQt2/Resources.h"
 
 constexpr int ENTRY_PARTITION = Qt::UserRole;
@@ -153,7 +154,7 @@ void FilesystemWidget::ShowContextMenu(const QPoint&)
   if ((type == EntryType::Disc && m_volume->GetPartitions().empty()) ||
       type == EntryType::Partition)
   {
-    menu->addAction(tr("Extract System Data..."), this, [this, partition] {
+    AddAction(menu, tr("Extract System Data..."), this, [this, partition] {
       auto folder = SelectFolder();
 
       if (!folder.isEmpty())
@@ -164,7 +165,7 @@ void FilesystemWidget::ShowContextMenu(const QPoint&)
   switch (type)
   {
   case EntryType::Disc:
-    menu->addAction(tr("Extract Entire Disc..."), this, [this, partition, path] {
+    AddAction(menu, tr("Extract Entire Disc..."), this, [this, partition, path] {
       auto folder = SelectFolder();
 
       if (folder.isEmpty())
@@ -182,17 +183,17 @@ void FilesystemWidget::ShowContextMenu(const QPoint&)
     });
     break;
   case EntryType::Partition:
-    menu->addAction(tr("Extract Entire Partition..."), this, [this, partition] {
+    AddAction(menu, tr("Extract Entire Partition..."), this, [this, partition] {
       auto folder = SelectFolder();
       if (!folder.isEmpty())
         ExtractPartition(partition, folder);
     });
     menu->addSeparator();
-    menu->addAction(tr("Check Partition Integrity"), this,
-                    [this, partition] { CheckIntegrity(partition); });
+    AddAction(menu, tr("Check Partition Integrity"), this,
+              [this, partition] { CheckIntegrity(partition); });
     break;
   case EntryType::Dir:
-    menu->addAction(tr("Extract Files..."), this, [this, partition, path] {
+    AddAction(menu, tr("Extract Files..."), this, [this, partition, path] {
       auto folder = SelectFolder();
 
       if (!folder.isEmpty())
@@ -200,7 +201,7 @@ void FilesystemWidget::ShowContextMenu(const QPoint&)
     });
     break;
   case EntryType::File:
-    menu->addAction(tr("Extract File..."), this, [this, partition, path] {
+    AddAction(menu, tr("Extract File..."), this, [this, partition, path] {
       auto dest = QFileDialog::getSaveFileName(this, tr("Save File to"));
 
       if (!dest.isEmpty())
