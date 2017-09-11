@@ -49,8 +49,8 @@ struct PipelineInfo
   VkRenderPass render_pass;
   BlendingState blend_state;
   RasterizationState rasterization_state;
-  DepthStencilState depth_stencil_state;
-  VkPrimitiveTopology primitive_topology;
+  DepthState depth_state;
+  MultisamplingState multisampling_state;
 };
 
 struct PipelineInfoHash
@@ -62,10 +62,6 @@ bool operator==(const PipelineInfo& lhs, const PipelineInfo& rhs);
 bool operator!=(const PipelineInfo& lhs, const PipelineInfo& rhs);
 bool operator<(const PipelineInfo& lhs, const PipelineInfo& rhs);
 bool operator>(const PipelineInfo& lhs, const PipelineInfo& rhs);
-bool operator==(const SamplerState& lhs, const SamplerState& rhs);
-bool operator!=(const SamplerState& lhs, const SamplerState& rhs);
-bool operator>(const SamplerState& lhs, const SamplerState& rhs);
-bool operator<(const SamplerState& lhs, const SamplerState& rhs);
 
 struct ComputePipelineInfo
 {

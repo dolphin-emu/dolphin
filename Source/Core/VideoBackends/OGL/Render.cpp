@@ -1503,8 +1503,12 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
 
   g_Config.iSaveTargetId = 0;
 
+  int old_anisotropy = g_ActiveConfig.iMaxAnisotropy;
   UpdateActiveConfig();
   g_texture_cache->OnConfigChanged(g_ActiveConfig);
+
+  if (old_anisotropy != g_ActiveConfig.iMaxAnisotropy)
+    g_sampler_cache->Clear();
 
   // Invalidate shader cache when the host config changes.
   if (CheckForHostConfigChanges())
@@ -1785,9 +1789,9 @@ void Renderer::RestoreAPIState()
     glEnable(GL_CLIP_DISTANCE0);
     glEnable(GL_CLIP_DISTANCE1);
   }
-  SetGenerationMode();
+  BPFunctions::SetGenerationMode();
   BPFunctions::SetScissor();
-  SetDepthMode();
+  BPFunctions::SetDepthMode();
   BPFunctions::SetBlendMode();
   SetViewport();
 
@@ -1798,14 +1802,14 @@ void Renderer::RestoreAPIState()
   OGLTexture::SetStage();
 }
 
-void Renderer::SetGenerationMode()
+void Renderer::SetRasterizationState(const RasterizationState& state)
 {
   // none, ccw, cw, ccw
-  if (bpmem.genMode.cullmode > 0)
+  if (state.cullmode != GenMode::CULL_NONE)
   {
     // TODO: GX_CULL_ALL not supported, yet!
     glEnable(GL_CULL_FACE);
-    glFrontFace(bpmem.genMode.cullmode == 2 ? GL_CCW : GL_CW);
+    glFrontFace(state.cullmode == GenMode::CULL_FRONT ? GL_CCW : GL_CW);
   }
   else
   {
@@ -1813,16 +1817,16 @@ void Renderer::SetGenerationMode()
   }
 }
 
-void Renderer::SetDepthMode()
+void Renderer::SetDepthState(const DepthState& state)
 {
   const GLenum glCmpFuncs[8] = {GL_NEVER,   GL_LESS,     GL_EQUAL,  GL_LEQUAL,
                                 GL_GREATER, GL_NOTEQUAL, GL_GEQUAL, GL_ALWAYS};
 
-  if (bpmem.zmode.testenable)
+  if (state.testenable)
   {
     glEnable(GL_DEPTH_TEST);
-    glDepthMask(bpmem.zmode.updateenable ? GL_TRUE : GL_FALSE);
-    glDepthFunc(glCmpFuncs[bpmem.zmode.func]);
+    glDepthMask(state.updateenable ? GL_TRUE : GL_FALSE);
+    glDepthFunc(glCmpFuncs[state.func]);
   }
   else
   {
@@ -1834,13 +1838,9 @@ void Renderer::SetDepthMode()
   }
 }
 
-void Renderer::SetSamplerState(int stage, int texindex, bool custom_tex)
+void Renderer::SetSamplerState(u32 index, const SamplerState& state)
 {
-  auto const& tex = bpmem.tex[texindex];
-  auto const& tm0 = tex.texMode0[stage];
-  auto const& tm1 = tex.texMode1[stage];
-
-  g_sampler_cache->SetSamplerState((texindex * 4) + stage, tm0, tm1, custom_tex);
+  g_sampler_cache->SetSamplerState(index, state);
 }
 
 void Renderer::SetInterlacingMode()

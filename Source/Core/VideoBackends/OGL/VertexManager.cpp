@@ -114,17 +114,17 @@ void VertexManager::Draw(u32 stride)
 
   switch (m_current_primitive_type)
   {
-  case PRIMITIVE_POINTS:
+  case PrimitiveType::Points:
     primitive_mode = GL_POINTS;
-    glDisable(GL_CULL_FACE);
     break;
-  case PRIMITIVE_LINES:
+  case PrimitiveType::Lines:
     primitive_mode = GL_LINES;
-    glDisable(GL_CULL_FACE);
     break;
-  case PRIMITIVE_TRIANGLES:
-    primitive_mode =
-        g_ActiveConfig.backend_info.bSupportsPrimitiveRestart ? GL_TRIANGLE_STRIP : GL_TRIANGLES;
+  case PrimitiveType::Triangles:
+    primitive_mode = GL_TRIANGLES;
+    break;
+  case PrimitiveType::TriangleStrip:
+    primitive_mode = GL_TRIANGLE_STRIP;
     break;
   }
 
@@ -140,9 +140,6 @@ void VertexManager::Draw(u32 stride)
   }
 
   INCSTAT(stats.thisFrame.numDrawCalls);
-
-  if (m_current_primitive_type != PRIMITIVE_TRIANGLES)
-    static_cast<Renderer*>(g_renderer.get())->SetGenerationMode();
 }
 
 void VertexManager::vFlush()

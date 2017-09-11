@@ -94,8 +94,8 @@ public:
   };
 
   static PCacheEntry GetShaderProgram();
-  static SHADER* SetShader(u32 primitive_type, const GLVertexFormat* vertex_format);
-  static SHADER* SetUberShader(u32 primitive_type, const GLVertexFormat* vertex_format);
+  static SHADER* SetShader(PrimitiveType primitive_type, const GLVertexFormat* vertex_format);
+  static SHADER* SetUberShader(PrimitiveType primitive_type, const GLVertexFormat* vertex_format);
   static void BindVertexFormat(const GLVertexFormat* vertex_format);
   static void InvalidateVertexFormat();
   static void BindLastVertexFormat();
@@ -198,7 +198,7 @@ private:
   static void DestroyShaders();
   static void CreatePrerenderArrays(SharedContextData* data);
   static void DestroyPrerenderArrays(SharedContextData* data);
-  static void DrawPrerenderArray(const SHADER& shader, u32 primitive_type);
+  static void DrawPrerenderArray(const SHADER& shader, PrimitiveType primitive_type);
 
   static PCache pshaders;
   static UberPCache ubershaders;

@@ -312,29 +312,36 @@ VkSampler ObjectCache::GetSampler(const SamplerState& info)
   if (iter != m_sampler_cache.end())
     return iter->second;
 
+  static constexpr std::array<VkFilter, 4> filters = {{VK_FILTER_NEAREST, VK_FILTER_LINEAR}};
+  static constexpr std::array<VkSamplerMipmapMode, 2> mipmap_modes = {
+      {VK_SAMPLER_MIPMAP_MODE_NEAREST, VK_SAMPLER_MIPMAP_MODE_LINEAR}};
+  static constexpr std::array<VkSamplerAddressMode, 4> address_modes = {
+      {VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, VK_SAMPLER_ADDRESS_MODE_REPEAT,
+       VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT}};
+
   VkSamplerCreateInfo create_info = {
-      VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,      // VkStructureType         sType
-      nullptr,                                    // const void*             pNext
-      0,                                          // VkSamplerCreateFlags    flags
-      info.mag_filter,                            // VkFilter                magFilter
-      info.min_filter,                            // VkFilter                minFilter
-      info.mipmap_mode,                           // VkSamplerMipmapMode     mipmapMode
-      info.wrap_u,                                // VkSamplerAddressMode    addressModeU
-      info.wrap_v,                                // VkSamplerAddressMode    addressModeV
-      VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,      // VkSamplerAddressMode    addressModeW
-      static_cast<float>(info.lod_bias / 32.0f),  // float                   mipLodBias
-      VK_FALSE,                                   // VkBool32                anisotropyEnable
-      0.0f,                                       // float                   maxAnisotropy
-      VK_FALSE,                                   // VkBool32                compareEnable
-      VK_COMPARE_OP_ALWAYS,                       // VkCompareOp             compareOp
-      static_cast<float>(info.min_lod / 16.0f),   // float                   minLod
-      static_cast<float>(info.max_lod / 16.0f),   // float                   maxLod
-      VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK,    // VkBorderColor           borderColor
-      VK_FALSE                                    // VkBool32                unnormalizedCoordinates
+      VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,               // VkStructureType         sType
+      nullptr,                                             // const void*             pNext
+      0,                                                   // VkSamplerCreateFlags    flags
+      filters[static_cast<u32>(info.mag_filter.Value())],  // VkFilter                magFilter
+      filters[static_cast<u32>(info.min_filter.Value())],  // VkFilter                minFilter
+      mipmap_modes[static_cast<u32>(info.mipmap_filter.Value())],  // VkSamplerMipmapMode mipmapMode
+      address_modes[static_cast<u32>(info.wrap_u.Value())],  // VkSamplerAddressMode    addressModeU
+      address_modes[static_cast<u32>(info.wrap_v.Value())],  // VkSamplerAddressMode    addressModeV
+      VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,                 // VkSamplerAddressMode    addressModeW
+      info.lod_bias / 32.0f,                                 // float                   mipLodBias
+      VK_FALSE,                                 // VkBool32                anisotropyEnable
+      0.0f,                                     // float                   maxAnisotropy
+      VK_FALSE,                                 // VkBool32                compareEnable
+      VK_COMPARE_OP_ALWAYS,                     // VkCompareOp             compareOp
+      info.min_lod / 16.0f,                     // float                   minLod
+      info.max_lod / 16.0f,                     // float                   maxLod
+      VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK,  // VkBorderColor           borderColor
+      VK_FALSE                                  // VkBool32                unnormalizedCoordinates
   };
 
   // Can we use anisotropic filtering with this sampler?
-  if (info.enable_anisotropic_filtering && g_vulkan_context->SupportsAnisotropicFiltering())
+  if (info.anisotropic_filtering && g_vulkan_context->SupportsAnisotropicFiltering())
   {
     // Cap anisotropy to device limits.
     create_info.anisotropyEnable = VK_TRUE;

@@ -39,29 +39,21 @@ public:
   {
     return m_pipeline_state.rasterization_state;
   }
-  const DepthStencilState& GetDepthStencilState() const
-  {
-    return m_pipeline_state.depth_stencil_state;
-  }
+  const DepthState& GetDepthStencilState() const { return m_pipeline_state.depth_state; }
   const BlendingState& GetBlendState() const { return m_pipeline_state.blend_state; }
   void SetVertexBuffer(VkBuffer buffer, VkDeviceSize offset);
   void SetIndexBuffer(VkBuffer buffer, VkDeviceSize offset, VkIndexType type);
 
   void SetRenderPass(VkRenderPass load_render_pass, VkRenderPass clear_render_pass);
-
   void SetFramebuffer(VkFramebuffer framebuffer, const VkRect2D& render_area);
-
   void SetVertexFormat(const VertexFormat* vertex_format);
 
-  void SetPrimitiveTopology(VkPrimitiveTopology primitive_topology);
-
-  void DisableBackFaceCulling();
-
   void SetRasterizationState(const RasterizationState& state);
-  void SetDepthStencilState(const DepthStencilState& state);
+  void SetMultisamplingstate(const MultisamplingState& state);
+  void SetDepthState(const DepthState& state);
   void SetBlendState(const BlendingState& state);
 
-  bool CheckForShaderChanges(u32 gx_primitive_type);
+  bool CheckForShaderChanges();
   void ClearShaders();
 
   void UpdateVertexShaderConstants();
@@ -130,13 +122,12 @@ private:
   struct SerializedPipelineUID
   {
     u32 rasterizer_state_bits;
-    u32 depth_stencil_state_bits;
+    u32 depth_state_bits;
     u32 blend_state_bits;
     PortableVertexDeclaration vertex_decl;
     VertexShaderUid vs_uid;
     GeometryShaderUid gs_uid;
     PixelShaderUid ps_uid;
-    VkPrimitiveTopology primitive_topology;
   };
 
   // Number of descriptor sets for game draws.

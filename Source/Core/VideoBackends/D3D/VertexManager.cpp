@@ -127,28 +127,10 @@ void VertexManager::Draw(u32 stride)
   u32 baseVertex = m_vertexDrawOffset / stride;
   u32 startIndex = m_indexDrawOffset / sizeof(u16);
 
-  switch (m_current_primitive_type)
-  {
-  case PRIMITIVE_POINTS:
-    D3D::stateman->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
-    static_cast<Renderer*>(g_renderer.get())->ApplyCullDisable();
-    break;
-  case PRIMITIVE_LINES:
-    D3D::stateman->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
-    static_cast<Renderer*>(g_renderer.get())->ApplyCullDisable();
-    break;
-  case PRIMITIVE_TRIANGLES:
-    D3D::stateman->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-    break;
-  }
-
   D3D::stateman->Apply();
   D3D::context->DrawIndexed(indices, startIndex, baseVertex);
 
   INCSTAT(stats.thisFrame.numDrawCalls);
-
-  if (m_current_primitive_type != PRIMITIVE_TRIANGLES)
-    static_cast<Renderer*>(g_renderer.get())->RestoreCull();
 }
 
 void VertexManager::vFlush()

@@ -229,6 +229,7 @@ struct VideoConfig final
   // Utility
   bool RealXFBEnabled() const { return bUseXFB && bUseRealXFB; }
   bool VirtualXFBEnabled() const { return bUseXFB && !bUseRealXFB; }
+  bool MultisamplingEnabled() const { return iMultisamples > 1; }
   bool ExclusiveFullscreenEnabled() const
   {
     return backend_info.bSupportsExclusiveFullscreen && !bBorderlessFullscreen;

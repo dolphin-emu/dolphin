@@ -60,8 +60,8 @@ struct GXPipelineState
 {
   std::array<SamplerState, 8> samplers;
   BlendingState blend;
-  ZMode zmode;
-  RasterizerState raster;
+  DepthState zmode;
+  RasterizationState raster;
 };
 
 static u32 s_last_multisamples = 1;
@@ -249,13 +249,12 @@ Renderer::Renderer() : ::Renderer(D3D::GetBackBufferWidth(), D3D::GetBackBufferH
 
   // Setup GX pipeline state
   for (auto& sampler : s_gx_state.samplers)
-    sampler.packed = 0;
+    sampler.hex = RenderState::GetPointSamplerState().hex;
 
   s_gx_state.zmode.testenable = false;
   s_gx_state.zmode.updateenable = false;
   s_gx_state.zmode.func = ZMode::NEVER;
-
-  s_gx_state.raster.cull_mode = D3D11_CULL_NONE;
+  s_gx_state.raster.cullmode = GenMode::CULL_NONE;
 
   // Clear EFB textures
   constexpr std::array<float, 4> clear_color{{0.f, 0.f, 0.f, 1.f}};
@@ -867,14 +866,12 @@ void Renderer::ApplyState()
   D3D::stateman->PushBlendState(s_gx_state_cache.Get(s_gx_state.blend));
   D3D::stateman->PushDepthState(s_gx_state_cache.Get(s_gx_state.zmode));
   D3D::stateman->PushRasterizerState(s_gx_state_cache.Get(s_gx_state.raster));
+  D3D::stateman->SetPrimitiveTopology(
+      StateCache::GetPrimitiveTopology(s_gx_state.raster.primitive));
   FramebufferManager::SetIntegerEFBRenderTarget(s_gx_state.blend.logicopenable);
 
-  for (size_t stage = 0; stage < s_gx_state.samplers.size(); stage++)
-  {
-    // TODO: cache SamplerState directly, not d3d object
-    s_gx_state.samplers[stage].max_anisotropy = UINT64_C(1) << g_ActiveConfig.iMaxAnisotropy;
+  for (u32 stage = 0; stage < static_cast<u32>(s_gx_state.samplers.size()); stage++)
     D3D::stateman->SetSampler(stage, s_gx_state_cache.Get(s_gx_state.samplers[stage]));
-  }
 
   ID3D11Buffer* vertexConstants = VertexShaderCache::GetConstantBuffer();
 
@@ -891,68 +888,19 @@ void Renderer::RestoreState()
   D3D::stateman->PopRasterizerState();
 }
 
-void Renderer::ApplyCullDisable()
+void Renderer::SetRasterizationState(const RasterizationState& state)
 {
-  RasterizerState rast = s_gx_state.raster;
-  rast.cull_mode = D3D11_CULL_NONE;
-
-  ID3D11RasterizerState* raststate = s_gx_state_cache.Get(rast);
-  D3D::stateman->PushRasterizerState(raststate);
+  s_gx_state.raster.hex = state.hex;
 }
 
-void Renderer::RestoreCull()
+void Renderer::SetDepthState(const DepthState& state)
 {
-  D3D::stateman->PopRasterizerState();
+  s_gx_state.zmode.hex = state.hex;
 }
 
-void Renderer::SetGenerationMode()
+void Renderer::SetSamplerState(u32 index, const SamplerState& state)
 {
-  constexpr std::array<D3D11_CULL_MODE, 4> d3d_cull_modes{{
-      D3D11_CULL_NONE, D3D11_CULL_BACK, D3D11_CULL_FRONT, D3D11_CULL_BACK,
-  }};
-
-  // rastdc.FrontCounterClockwise must be false for this to work
-  // TODO: GX_CULL_ALL not supported, yet!
-  s_gx_state.raster.cull_mode = d3d_cull_modes[bpmem.genMode.cullmode];
-}
-
-void Renderer::SetDepthMode()
-{
-  s_gx_state.zmode.hex = bpmem.zmode.hex;
-}
-
-void Renderer::SetSamplerState(int stage, int texindex, bool custom_tex)
-{
-  const FourTexUnits& tex = bpmem.tex[texindex];
-  const TexMode0& tm0 = tex.texMode0[stage];
-  const TexMode1& tm1 = tex.texMode1[stage];
-
-  if (texindex)
-    stage += 4;
-
-  if (g_ActiveConfig.bForceFiltering)
-  {
-    // Only use mipmaps if the game says they are available.
-    s_gx_state.samplers[stage].min_filter = SamplerCommon::AreBpTexMode0MipmapsEnabled(tm0) ? 6 : 4;
-    s_gx_state.samplers[stage].mag_filter = 1;  // linear mag
-  }
-  else
-  {
-    s_gx_state.samplers[stage].min_filter = (u32)tm0.min_filter;
-    s_gx_state.samplers[stage].mag_filter = (u32)tm0.mag_filter;
-  }
-
-  s_gx_state.samplers[stage].wrap_s = (u32)tm0.wrap_s;
-  s_gx_state.samplers[stage].wrap_t = (u32)tm0.wrap_t;
-  s_gx_state.samplers[stage].max_lod = (u32)tm1.max_lod;
-  s_gx_state.samplers[stage].min_lod = (u32)tm1.min_lod;
-  s_gx_state.samplers[stage].lod_bias = (s32)tm0.lod_bias;
-
-  // custom textures may have higher resolution, so disable the max_lod
-  if (custom_tex)
-  {
-    s_gx_state.samplers[stage].max_lod = 255;
-  }
+  s_gx_state.samplers[index].hex = state.hex;
 }
 
 void Renderer::SetInterlacingMode()

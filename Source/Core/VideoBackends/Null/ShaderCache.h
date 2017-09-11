@@ -22,10 +22,10 @@ public:
   virtual ~ShaderCache();
 
   void Clear();
-  bool SetShader(u32 primitive_type);
+  bool SetShader(PrimitiveType primitive_type);
 
 protected:
-  virtual Uid GetUid(u32 primitive_type, APIType api_type) = 0;
+  virtual Uid GetUid(PrimitiveType primitive_type, APIType api_type) = 0;
   virtual ShaderCode GenerateCode(APIType api_type, Uid uid) = 0;
 
 private:
@@ -40,7 +40,7 @@ public:
   static std::unique_ptr<VertexShaderCache> s_instance;
 
 protected:
-  VertexShaderUid GetUid(u32 primitive_type, APIType api_type) override
+  VertexShaderUid GetUid(PrimitiveType primitive_type, APIType api_type) override
   {
     return GetVertexShaderUid();
   }
@@ -56,7 +56,7 @@ public:
   static std::unique_ptr<GeometryShaderCache> s_instance;
 
 protected:
-  GeometryShaderUid GetUid(u32 primitive_type, APIType api_type) override
+  GeometryShaderUid GetUid(PrimitiveType primitive_type, APIType api_type) override
   {
     return GetGeometryShaderUid(primitive_type);
   }
@@ -72,7 +72,7 @@ public:
   static std::unique_ptr<PixelShaderCache> s_instance;
 
 protected:
-  PixelShaderUid GetUid(u32 primitive_type, APIType api_type) override
+  PixelShaderUid GetUid(PrimitiveType primitive_type, APIType api_type) override
   {
     return GetPixelShaderUid();
   }

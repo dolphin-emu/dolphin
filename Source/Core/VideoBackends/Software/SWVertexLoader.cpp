@@ -62,16 +62,17 @@ void SWVertexLoader::vFlush()
   u8 primitiveType = 0;
   switch (m_current_primitive_type)
   {
-  case PRIMITIVE_POINTS:
+  case PrimitiveType::Points:
     primitiveType = OpcodeDecoder::GX_DRAW_POINTS;
     break;
-  case PRIMITIVE_LINES:
+  case PrimitiveType::Lines:
     primitiveType = OpcodeDecoder::GX_DRAW_LINES;
     break;
-  case PRIMITIVE_TRIANGLES:
-    primitiveType = g_ActiveConfig.backend_info.bSupportsPrimitiveRestart ?
-                        OpcodeDecoder::GX_DRAW_TRIANGLE_STRIP :
-                        OpcodeDecoder::GX_DRAW_TRIANGLES;
+  case PrimitiveType::Triangles:
+    primitiveType = OpcodeDecoder::GX_DRAW_TRIANGLES;
+    break;
+  case PrimitiveType::TriangleStrip:
+    primitiveType = OpcodeDecoder::GX_DRAW_TRIANGLE_STRIP;
     break;
   }
 
@@ -89,13 +90,6 @@ void SWVertexLoader::vFlush()
   for (u32 i = 0; i < IndexGenerator::GetIndexLen(); i++)
   {
     const u16 index = m_local_index_buffer[i];
-
-    if (index == 0xffff)
-    {
-      // primitive restart
-      m_setup_unit.Init(primitiveType);
-      continue;
-    }
     memset(&m_vertex, 0, sizeof(m_vertex));
 
     // Super Mario Sunshine requires those to be zero for those debug boxes.
