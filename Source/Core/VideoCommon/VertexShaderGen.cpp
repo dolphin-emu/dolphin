@@ -49,10 +49,6 @@ VertexShaderUid GetVertexShaderUid()
         texinfo.embosslightshift = xfmem.texMtxInfo[i].embosslightshift;
         texinfo.embosssourceshift = xfmem.texMtxInfo[i].embosssourceshift;
       }
-      else
-      {
-        texinfo.embosssourceshift = xfmem.texMtxInfo[i].embosssourceshift;
-      }
       break;
     case XF_TEXGEN_COLOR_STRGBC0:
     case XF_TEXGEN_COLOR_STRGBC1:
@@ -321,10 +317,8 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
       }
       else
       {
-        // The following assert was triggered in House of the Dead Overkill and Star Wars Rogue
-        // Squadron 2
-        //_assert_(0); // should have normals
-        out.Write("o.tex%d.xyz = o.tex%d.xyz;\n", i, texinfo.embosssourceshift);
+        // Even if inputform ABC1 is set, it only uses AB11
+        out.Write("o.tex%d.xyz = float3(coord.xy, 1.0);\n", i);
       }
 
       break;
