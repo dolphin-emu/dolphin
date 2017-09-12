@@ -1,6 +1,6 @@
-../../Binary/x64/DSPTool.exe -h dsp_code tests/mul_test.ds
-mkdir emu
-cp ../Core/Core/DSP/*.cpp emu
-cp ../Core/Core/DSP/*.h emu
-make
+#!/bin/sh
 
+mkdir -p build
+cd build
+cmake -DCMAKE_TOOLCHAIN_FILE=../toolchain-powerpc.cmake -GNinja ..
+ninja

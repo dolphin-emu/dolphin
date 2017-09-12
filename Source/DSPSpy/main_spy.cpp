@@ -135,7 +135,7 @@ RealDSP real_dsp;
 // Currently running microcode
 int curUcode = 0, runningUcode = 1;
 
-int dsp_steps = 0;
+size_t dsp_steps = 0;
 
 // When comparing regs, ignore the loop stack registers.
 bool regs_equal(int reg, u16 value1, u16 value2)
@@ -446,7 +446,7 @@ void dump_all_ucodes(bool fastmode)
 {
   char filename[260] = {0};
   char temp[100];
-  u32 written;
+  size_t written;
 
   sprintf(filename, "sd:/dsp_dump_all.bin");
   FILE* f2 = fopen(filename, "wb");
@@ -467,7 +467,7 @@ void dump_all_ucodes(bool fastmode)
     VIDEO_WaitVSync();
     // Loop over handling mail until we've stopped stepping
     // dsp_steps-3 compensates for mails to setup the ucode
-    for (int steps_cache = dsp_steps - 3; steps_cache <= dsp_steps; steps_cache++)
+    for (size_t steps_cache = dsp_steps - 3; steps_cache <= dsp_steps; steps_cache++)
       handle_dsp_mail();
     VIDEO_WaitVSync();
 
@@ -512,7 +512,7 @@ void dump_all_ucodes(bool fastmode)
 
       if (UCodeToDump < NUM_UCODES - 1)
       {
-        sprintf(temp, "Dump %d Successful. Wrote %d bytes, steps: %d", UCodeToDump + 1, written,
+        sprintf(temp, "Dump %d Successful. Wrote %zu bytes, steps: %zu", UCodeToDump + 1, written,
                 dsp_steps);
         UpdateLastMessage(temp);
       }
@@ -609,7 +609,7 @@ int main()
   // Initialize DSP.
   real_dsp.Init();
 
-  int show_step = 0;
+  size_t show_step = 0;
   while (true)
   {
     handle_dsp_mail();
