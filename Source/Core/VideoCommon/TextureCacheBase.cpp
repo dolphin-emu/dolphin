@@ -454,20 +454,6 @@ static u32 CalculateLevelSize(u32 level_0_size, u32 level)
   return std::max(level_0_size >> level, 1u);
 }
 
-// Used by TextureCacheBase::Load
-TextureCacheBase::TCacheEntry* TextureCacheBase::ReturnEntry(unsigned int stage, TCacheEntry* entry)
-{
-  entry->frameCount = FRAMECOUNT_INVALID;
-  bound_textures[stage] = entry;
-
-  GFX_DEBUGGER_PAUSE_AT(NEXT_TEXTURE_CHANGE, true);
-
-  // We need to keep track of invalided textures until they have actually been replaced or re-loaded
-  valid_bind_points.set(stage);
-
-  return entry;
-}
-
 void TextureCacheBase::BindTextures()
 {
   for (size_t i = 0; i < bound_textures.size(); ++i)
@@ -482,7 +468,7 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::Load(const u32 stage)
   // if this stage was not invalidated by changes to texture registers, keep the current texture
   if (IsValidBindPoint(stage) && bound_textures[stage])
   {
-    return ReturnEntry(stage, bound_textures[stage]);
+    return bound_textures[stage];
   }
 
   const FourTexUnits& tex = bpmem.tex[stage >> 2];
@@ -497,6 +483,32 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::Load(const u32 stage)
   u32 tex_levels = use_mipmaps ? ((tex.texMode1[id].max_lod + 0xf) / 0x10 + 1) : 1;
   const bool from_tmem = tex.texImage1[id].image_type != 0;
 
+  const u32 tmem_address_even = from_tmem ? tex.texImage1[id].tmem_even * TMEM_LINE_SIZE : 0;
+  const u32 tmem_address_odd = from_tmem ? tex.texImage2[id].tmem_odd * TMEM_LINE_SIZE : 0;
+
+  auto entry = GetTexture(address, width, height, texformat,
+                          g_ActiveConfig.iSafeTextureCache_ColorSamples, tlutaddr, tlutfmt,
+                          use_mipmaps, tex_levels, from_tmem, tmem_address_even, tmem_address_odd);
+  if (entry != nullptr)
+  {
+    entry->frameCount = FRAMECOUNT_INVALID;
+    bound_textures[stage] = entry;
+    GFX_DEBUGGER_PAUSE_AT(NEXT_TEXTURE_CHANGE, true);
+
+    // We need to keep track of invalided textures until they have actually been replaced or
+    // re-loaded
+    valid_bind_points.set(stage);
+  }
+
+  return entry;
+}
+
+TextureCacheBase::TCacheEntry*
+TextureCacheBase::GetTexture(u32 address, u32 width, u32 height, const int texformat,
+                             int textureCacheSafetyColorSampleSize, u32 tlutaddr, u32 tlutfmt,
+                             bool use_mipmaps, u32 tex_levels, bool from_tmem,
+                             u32 tmem_address_even, u32 tmem_address_odd)
+{
   // TexelSizeInNibbles(format) * width * height / 16;
   const unsigned int bsw = TexDecoder_GetBlockWidthInTexels(texformat);
   const unsigned int bsh = TexDecoder_GetBlockHeightInTexels(texformat);
@@ -540,9 +552,12 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::Load(const u32 stage)
         TexDecoder_GetTextureSizeInBytes(expanded_mip_width, expanded_mip_height, texformat);
   }
 
+  // TODO: the texture cache lookup is based on address, but a texture from tmem has no reason
+  //       to have a unique and valid address. This could result in a regular texture and a tmem
+  //       texture aliasing onto the same texture cache entry.
   const u8* src_data;
   if (from_tmem)
-    src_data = &texMem[bpmem.tex[stage / 4].texImage1[stage % 4].tmem_even * TMEM_LINE_SIZE];
+    src_data = &texMem[tmem_address_even];
   else
     src_data = Memory::GetPointer(address);
 
@@ -561,13 +576,13 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::Load(const u32 stage)
 
   // TODO: This doesn't hash GB tiles for preloaded RGBA8 textures (instead, it's hashing more data
   // from the low tmem bank than it should)
-  base_hash = GetHash64(src_data, texture_size, g_ActiveConfig.iSafeTextureCache_ColorSamples);
+  base_hash = GetHash64(src_data, texture_size, textureCacheSafetyColorSampleSize);
   u32 palette_size = 0;
   if (isPaletteTexture)
   {
     palette_size = TexDecoder_GetPaletteSize(texformat);
-    full_hash = base_hash ^ GetHash64(&texMem[tlutaddr], palette_size,
-                                      g_ActiveConfig.iSafeTextureCache_ColorSamples);
+    full_hash =
+        base_hash ^ GetHash64(&texMem[tlutaddr], palette_size, textureCacheSafetyColorSampleSize);
   }
   else
   {
@@ -646,7 +661,7 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::Load(const u32 stage)
         // texture formats. I'm not sure what effect checking width/height/levels
         // would have.
         if (!isPaletteTexture || !g_Config.backend_info.bSupportsPaletteConversion)
-          return ReturnEntry(stage, entry);
+          return entry;
 
         // Note that we found an unconverted EFB copy, then continue.  We'll
         // perform the conversion later.  Currently, we only convert EFB copies to
@@ -673,7 +688,7 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::Load(const u32 stage)
       {
         entry = DoPartialTextureUpdates(iter->second, &texMem[tlutaddr], tlutfmt);
 
-        return ReturnEntry(stage, entry);
+        return entry;
       }
     }
 
@@ -698,7 +713,7 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::Load(const u32 stage)
 
     if (decoded_entry)
     {
-      return ReturnEntry(stage, decoded_entry);
+      return decoded_entry;
     }
   }
 
@@ -708,9 +723,8 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::Load(const u32 stage)
   // textures cause unnecessary slowdowns
   // Example: Tales of Symphonia (GC) uses over 500 small textures in menus, but only around 70
   // different ones
-  if (g_ActiveConfig.iSafeTextureCache_ColorSamples == 0 ||
-      std::max(texture_size, palette_size) <=
-          (u32)g_ActiveConfig.iSafeTextureCache_ColorSamples * 8)
+  if (textureCacheSafetyColorSampleSize == 0 ||
+      std::max(texture_size, palette_size) <= (u32)textureCacheSafetyColorSampleSize * 8)
   {
     auto hash_range = textures_by_hash.equal_range(full_hash);
     TexHashCache::iterator hash_iter = hash_range.first;
@@ -723,7 +737,7 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::Load(const u32 stage)
       {
         entry = DoPartialTextureUpdates(hash_iter->second, &texMem[tlutaddr], tlutfmt);
 
-        return ReturnEntry(stage, entry);
+        return entry;
       }
       ++hash_iter;
     }
@@ -804,8 +818,7 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::Load(const u32 stage)
     }
     else
     {
-      u8* src_data_gb =
-          &texMem[bpmem.tex[stage / 4].texImage2[stage % 4].tmem_odd * TMEM_LINE_SIZE];
+      u8* src_data_gb = &texMem[tmem_address_odd];
       TexDecoder_DecodeRGBA8FromTmem(temp, src_data, src_data_gb, expandedWidth, expandedHeight);
     }
 
@@ -813,9 +826,8 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::Load(const u32 stage)
   }
 
   iter = textures_by_address.emplace(address, entry);
-  if (g_ActiveConfig.iSafeTextureCache_ColorSamples == 0 ||
-      std::max(texture_size, palette_size) <=
-          (u32)g_ActiveConfig.iSafeTextureCache_ColorSamples * 8)
+  if (textureCacheSafetyColorSampleSize == 0 ||
+      std::max(texture_size, palette_size) <= (u32)textureCacheSafetyColorSampleSize * 8)
   {
     entry->textures_by_hash_iter = textures_by_hash.emplace(full_hash, entry);
   }
@@ -853,9 +865,8 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::Load(const u32 stage)
     const u8* ptr_odd = nullptr;
     if (from_tmem)
     {
-      ptr_even = &texMem[bpmem.tex[stage / 4].texImage1[stage % 4].tmem_even * TMEM_LINE_SIZE +
-                         texture_size];
-      ptr_odd = &texMem[bpmem.tex[stage / 4].texImage2[stage % 4].tmem_odd * TMEM_LINE_SIZE];
+      ptr_even = &texMem[tmem_address_even + texture_size];
+      ptr_odd = &texMem[tmem_address_odd];
     }
 
     for (u32 level = 1; level != texLevels; ++level)
@@ -898,7 +909,7 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::Load(const u32 stage)
 
   entry = DoPartialTextureUpdates(iter->second, &texMem[tlutaddr], tlutfmt);
 
-  return ReturnEntry(stage, entry);
+  return entry;
 }
 
 void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstFormat,

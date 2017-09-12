@@ -170,6 +170,10 @@ public:
   TCacheEntry* Load(const u32 stage);
   static void InvalidateAllBindPoints() { valid_bind_points.reset(); }
   static bool IsValidBindPoint(u32 i) { return valid_bind_points.test(i); }
+  TCacheEntry* GetTexture(u32 address, u32 width, u32 height, const int texformat,
+                          int textureCacheSafetyColorSampleSize, u32 tlutaddr, u32 tlutfmt,
+                          bool use_mipmaps, u32 tex_levels, bool from_tmem, u32 tmem_address_even,
+                          u32 tmem_address_odd);
   void BindTextures();
   void CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstFormat, u32 dstStride,
                                  bool is_depth_copy, const EFBRectangle& srcRect, bool isIntensity,
@@ -245,8 +249,6 @@ private:
 
   // Removes and unlinks texture from texture cache and returns it to the pool
   TexAddrCache::iterator InvalidateTexture(TexAddrCache::iterator t_iter);
-
-  TCacheEntry* ReturnEntry(unsigned int stage, TCacheEntry* entry);
 
   TexAddrCache textures_by_address;
   TexHashCache textures_by_hash;
