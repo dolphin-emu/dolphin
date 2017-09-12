@@ -32,8 +32,8 @@ static inline void WrapCoord(int* coordp, int wrapMode, int imageSize)
     break;
   case 2:  // mirror
   {
-    int sizePlus1 = imageSize + 1;
-    int div = coord / sizePlus1;
+    const int sizePlus1 = imageSize + 1;
+    const int div = coord / sizePlus1;
     coord = coord - (div * sizePlus1);
     coord = (coord < 0) ? -coord : coord;
     coord = (div & 1) ? imageSize - coord : coord;
@@ -43,7 +43,7 @@ static inline void WrapCoord(int* coordp, int wrapMode, int imageSize)
   *coordp = coord;
 }
 
-static inline void SetTexel(u8* inTexel, u32* outTexel, u32 fract)
+static inline void SetTexel(const u8* inTexel, u32* outTexel, u32 fract)
 {
   outTexel[0] = inTexel[0] * fract;
   outTexel[1] = inTexel[1] * fract;
@@ -51,7 +51,7 @@ static inline void SetTexel(u8* inTexel, u32* outTexel, u32 fract)
   outTexel[3] = inTexel[3] * fract;
 }
 
-static inline void AddTexel(u8* inTexel, u32* outTexel, u32 fract)
+static inline void AddTexel(const u8* inTexel, u32* outTexel, u32 fract)
 {
   outTexel[0] += inTexel[0] * fract;
   outTexel[1] += inTexel[1] * fract;
@@ -65,10 +65,10 @@ void Sample(s32 s, s32 t, s32 lod, bool linear, u8 texmap, u8* sample)
   bool mipLinear = false;
 
 #if (ALLOW_MIPMAP)
-  FourTexUnits& texUnit = bpmem.tex[(texmap >> 2) & 1];
-  TexMode0& tm0 = texUnit.texMode0[texmap & 3];
+  const FourTexUnits& texUnit = bpmem.tex[(texmap >> 2) & 1];
+  const TexMode0& tm0 = texUnit.texMode0[texmap & 3];
 
-  s32 lodFract = lod & 0xf;
+  const s32 lodFract = lod & 0xf;
 
   if (lod > 0 && SamplerCommon::AreBpTexMode0MipmapsEnabled(tm0))
   {
@@ -105,16 +105,17 @@ void Sample(s32 s, s32 t, s32 lod, bool linear, u8 texmap, u8* sample)
 
 void SampleMip(s32 s, s32 t, s32 mip, bool linear, u8 texmap, u8* sample)
 {
-  FourTexUnits& texUnit = bpmem.tex[(texmap >> 2) & 1];
-  u8 subTexmap = texmap & 3;
+  const FourTexUnits& texUnit = bpmem.tex[(texmap >> 2) & 1];
+  const u8 subTexmap = texmap & 3;
 
-  TexMode0& tm0 = texUnit.texMode0[subTexmap];
-  TexImage0& ti0 = texUnit.texImage0[subTexmap];
-  TexTLUT& texTlut = texUnit.texTlut[subTexmap];
-  TextureFormat texfmt = static_cast<TextureFormat>(ti0.format);
-  TLUTFormat tlutfmt = static_cast<TLUTFormat>(texTlut.tlut_format);
+  const TexMode0& tm0 = texUnit.texMode0[subTexmap];
+  const TexImage0& ti0 = texUnit.texImage0[subTexmap];
+  const TexTLUT& texTlut = texUnit.texTlut[subTexmap];
+  const TextureFormat texfmt = static_cast<TextureFormat>(ti0.format);
+  const TLUTFormat tlutfmt = static_cast<TLUTFormat>(texTlut.tlut_format);
 
-  u8 *imageSrc, *imageSrcOdd = nullptr;
+  const u8* imageSrc;
+  const u8* imageSrcOdd = nullptr;
   if (texUnit.texImage1[subTexmap].image_type)
   {
     imageSrc = &texMem[texUnit.texImage1[subTexmap].tmem_even * TMEM_LINE_SIZE];
@@ -123,14 +124,14 @@ void SampleMip(s32 s, s32 t, s32 mip, bool linear, u8 texmap, u8* sample)
   }
   else
   {
-    u32 imageBase = texUnit.texImage3[subTexmap].image_base << 5;
+    const u32 imageBase = texUnit.texImage3[subTexmap].image_base << 5;
     imageSrc = Memory::GetPointer(imageBase);
   }
 
   int imageWidth = ti0.width;
   int imageHeight = ti0.height;
 
-  int tlutAddress = texTlut.tmem_offset << 9;
+  const int tlutAddress = texTlut.tmem_offset << 9;
   const u8* tlut = &texMem[tlutAddress];
 
   // reduce sample location and texture size to mip level
@@ -140,9 +141,9 @@ void SampleMip(s32 s, s32 t, s32 mip, bool linear, u8 texmap, u8* sample)
     int mipWidth = imageWidth + 1;
     int mipHeight = imageHeight + 1;
 
-    int fmtWidth = TexDecoder_GetBlockWidthInTexels(texfmt);
-    int fmtHeight = TexDecoder_GetBlockHeightInTexels(texfmt);
-    int fmtDepth = TexDecoder_GetTexelSizeInNibbles(texfmt);
+    const int fmtWidth = TexDecoder_GetBlockWidthInTexels(texfmt);
+    const int fmtHeight = TexDecoder_GetBlockHeightInTexels(texfmt);
+    const int fmtDepth = TexDecoder_GetTexelSizeInNibbles(texfmt);
 
     imageWidth >>= mip;
     imageHeight >>= mip;
@@ -153,7 +154,7 @@ void SampleMip(s32 s, s32 t, s32 mip, bool linear, u8 texmap, u8* sample)
     {
       mipWidth = std::max(mipWidth, fmtWidth);
       mipHeight = std::max(mipHeight, fmtHeight);
-      u32 size = (mipWidth * mipHeight * fmtDepth) >> 1;
+      const u32 size = (mipWidth * mipHeight * fmtDepth) >> 1;
 
       imageSrc += size;
       mipWidth >>= 1;
@@ -174,10 +175,10 @@ void SampleMip(s32 s, s32 t, s32 mip, bool linear, u8 texmap, u8* sample)
 
     // linear sampling
     int imageSPlus1 = imageS + 1;
-    int fractS = s & 0x7f;
+    const int fractS = s & 0x7f;
 
     int imageTPlus1 = imageT + 1;
-    int fractT = t & 0x7f;
+    const int fractT = t & 0x7f;
 
     u8 sampledTex[4];
     u32 texel[4];
