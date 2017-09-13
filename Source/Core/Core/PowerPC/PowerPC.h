@@ -164,7 +164,13 @@ void InjectExternalCPUCore(CPUCoreBase* core);
 void SingleStep();
 void CheckExceptions();
 void CheckExternalExceptions();
-void CheckBreakPoints();
+
+// Return zero if execution should continue, non-zero to stop
+u32 CheckBreakPoints();
+
+// Syncs current execution with current breakpoints
+void SyncBreakPoint();
+
 void RunLoop();
 
 u32 CompactCR();

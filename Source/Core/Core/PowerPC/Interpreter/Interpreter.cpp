@@ -199,6 +199,11 @@ int Interpreter::SingleStepInner()
 
 void Interpreter::SingleStep()
 {
+  if (PowerPC::CheckBreakPoints() != 0)
+  {
+    Host_UpdateDisasmDialog();
+    return;
+  }
   // Declare start of new slice
   CoreTiming::Advance();
 
@@ -212,6 +217,11 @@ void Interpreter::SingleStep()
   {
     PowerPC::CheckExceptions();
     PC = NPC;
+  }
+
+  if (PowerPC::CheckBreakPoints() != 0)
+  {
+    Host_UpdateDisasmDialog();
   }
 }
 
@@ -255,9 +265,7 @@ void Interpreter::Run()
           if (PCVec.size() > ShowSteps)
             PCVec.erase(PCVec.begin());
 #endif
-
-          // 2: check for breakpoint
-          if (PowerPC::breakpoints.IsAddressBreakPoint(PC))
+          if (PowerPC::CheckBreakPoints() != 0)
           {
 #ifdef SHOW_HISTORY
             NOTICE_LOG(POWERPC, "----------------------------");
@@ -278,11 +286,6 @@ void Interpreter::Run()
               NOTICE_LOG(POWERPC, "PC: 0x%08x", PCVec.at(j));
             }
 #endif
-            INFO_LOG(POWERPC, "Hit Breakpoint - %08x", PC);
-            CPU::Break();
-            if (PowerPC::breakpoints.IsTempBreakPoint(PC))
-              PowerPC::breakpoints.Remove(PC);
-
             Host_UpdateDisasmDialog();
             return;
           }
