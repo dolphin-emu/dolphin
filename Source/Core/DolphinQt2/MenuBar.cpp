@@ -328,13 +328,14 @@ void MenuBar::AddListColumnsMenu(QMenu* view_menu)
 {
   static const QMap<QString, bool*> columns{
       {tr("Platform"), &SConfig::GetInstance().m_showSystemColumn},
-      {tr("ID"), &SConfig::GetInstance().m_showIDColumn},
       {tr("Banner"), &SConfig::GetInstance().m_showBannerColumn},
       {tr("Title"), &SConfig::GetInstance().m_showTitleColumn},
       {tr("Description"), &SConfig::GetInstance().m_showDescriptionColumn},
       {tr("Maker"), &SConfig::GetInstance().m_showMakerColumn},
-      {tr("Size"), &SConfig::GetInstance().m_showSizeColumn},
-      {tr("Country"), &SConfig::GetInstance().m_showRegionColumn},
+      {tr("File Name"), &SConfig::GetInstance().m_showFileNameColumn},
+      {tr("Game ID"), &SConfig::GetInstance().m_showIDColumn},
+      {tr("Region"), &SConfig::GetInstance().m_showRegionColumn},
+      {tr("File Size"), &SConfig::GetInstance().m_showSizeColumn},
       {tr("State"), &SConfig::GetInstance().m_showStateColumn}};
 
   QActionGroup* column_group = new QActionGroup(this);
