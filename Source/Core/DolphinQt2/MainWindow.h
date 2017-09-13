@@ -31,6 +31,7 @@ class SettingsWindow;
 class ControllersWindow;
 class DragEnterEvent;
 class GraphicsWindow;
+class RegisterWidget;
 
 class MainWindow final : public QMainWindow
 {
@@ -138,7 +139,9 @@ private:
   NetPlayDialog* m_netplay_dialog;
   NetPlaySetupDialog* m_netplay_setup_dialog;
   GraphicsWindow* m_graphics_window;
+
   LogWidget* m_log_widget;
   LogConfigWidget* m_log_config_widget;
   FIFOPlayerWindow* m_fifo_window;
+  RegisterWidget* m_register_widget;
 };

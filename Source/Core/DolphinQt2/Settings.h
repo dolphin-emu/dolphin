@@ -81,6 +81,8 @@ public:
   // Debug
   void SetDebugModeEnabled(bool enabled);
   bool IsDebugModeEnabled() const;
+  void SetRegistersVisible(bool enabled);
+  bool IsRegistersVisible() const;
 
   // Other
   GameListModel* GetGameListModel() const;
@@ -93,13 +95,13 @@ signals:
   void HideCursorChanged();
   void VolumeChanged(int volume);
   void NANDRefresh();
+  void RegistersVisibilityChanged(bool visible);
   void LogVisibilityChanged(bool visible);
   void LogConfigVisibilityChanged(bool visible);
   void EnableCheatsChanged(bool enabled);
   void DebugModeToggled(bool enabled);
 
 private:
-  bool m_registers_visible = false;
   std::unique_ptr<NetPlayClient> m_client;
   std::unique_ptr<NetPlayServer> m_server;
   Settings();

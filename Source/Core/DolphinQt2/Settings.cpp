@@ -210,3 +210,18 @@ bool Settings::IsDebugModeEnabled() const
 {
   return SConfig::GetInstance().bEnableDebugging;
 }
+
+void Settings::SetRegistersVisible(bool enabled)
+{
+  if (IsRegistersVisible() != enabled)
+  {
+    QSettings().setValue(QStringLiteral("debugger/showregisters"), enabled);
+
+    emit RegistersVisibilityChanged(enabled);
+  }
+}
+
+bool Settings::IsRegistersVisible() const
+{
+  return QSettings().value(QStringLiteral("debugger/showregisters")).toBool();
+}

@@ -70,6 +70,8 @@ set(SRCS
   Config/Mapping/WiimoteEmuMotionControl.cpp
   Config/PropertiesDialog.cpp
   Config/SettingsWindow.cpp
+  Debugger/RegisterColumn.cpp
+  Debugger/RegisterWidget.cpp
   GameList/GameFileCache.cpp
   GameList/GameFile.cpp
   GameList/GameList.cpp

@@ -50,6 +50,7 @@ MenuBar::MenuBar(QWidget* parent) : QMenuBar(parent)
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
           [=](Core::State state) { OnEmulationStateChanged(state); });
   OnEmulationStateChanged(Core::GetState());
+  connect(&Settings::Instance(), &Settings::DebugModeToggled, this, &MenuBar::OnDebugModeToggled);
 
   connect(this, &MenuBar::SelectionChanged, this, &MenuBar::OnSelectionChanged);
   connect(this, &MenuBar::RecordingStatusChanged, this, &MenuBar::OnRecordingStatusChanged);
@@ -83,6 +84,13 @@ void MenuBar::OnEmulationStateChanged(Core::State state)
 
   UpdateStateSlotMenu();
   UpdateToolsMenu(running);
+
+  OnDebugModeToggled(Settings::Instance().IsDebugModeEnabled());
+}
+
+void MenuBar::OnDebugModeToggled(bool enabled)
+{
+  m_show_registers->setVisible(enabled);
 }
 
 void MenuBar::AddFileMenu()
@@ -251,6 +259,17 @@ void MenuBar::AddViewMenu()
 
   connect(&Settings::Instance(), &Settings::LogVisibilityChanged, show_log, &QAction::setChecked);
   connect(&Settings::Instance(), &Settings::LogConfigVisibilityChanged, show_log_config,
+          &QAction::setChecked);
+
+  view_menu->addSeparator();
+
+  m_show_registers = view_menu->addAction(tr("&Registers"));
+  m_show_registers->setCheckable(true);
+  m_show_registers->setChecked(Settings::Instance().IsRegistersVisible());
+
+  connect(m_show_registers, &QAction::toggled, &Settings::Instance(),
+          &Settings::SetRegistersVisible);
+  connect(&Settings::Instance(), &Settings::RegistersVisibilityChanged, m_show_registers,
           &QAction::setChecked);
 
   view_menu->addSeparator();

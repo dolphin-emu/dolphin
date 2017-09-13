@@ -46,6 +46,7 @@
 #include "DolphinQt2/Config/LogWidget.h"
 #include "DolphinQt2/Config/Mapping/MappingWindow.h"
 #include "DolphinQt2/Config/SettingsWindow.h"
+#include "DolphinQt2/Debugger/RegisterWidget.h"
 #include "DolphinQt2/FIFOPlayerWindow.h"
 #include "DolphinQt2/Host.h"
 #include "DolphinQt2/HotkeyScheduler.h"
@@ -97,6 +98,8 @@ MainWindow::~MainWindow()
 {
   m_render_widget->deleteLater();
   ShutdownControllers();
+
+  Config::Save();
 }
 
 void MainWindow::InitControllers()
@@ -166,6 +169,7 @@ void MainWindow::CreateComponents()
 
   connect(m_fifo_window, &FIFOPlayerWindow::LoadFIFORequested, this,
           [this](const QString& path) { StartGame(path); });
+  m_register_widget = new RegisterWidget(this);
 
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
   m_graphics_window = new GraphicsWindow(
@@ -314,8 +318,10 @@ void MainWindow::ConnectStack()
   setTabPosition(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea, QTabWidget::North);
   addDockWidget(Qt::RightDockWidgetArea, m_log_widget);
   addDockWidget(Qt::RightDockWidgetArea, m_log_config_widget);
+  addDockWidget(Qt::RightDockWidgetArea, m_register_widget);
 
   tabifyDockWidget(m_log_widget, m_log_config_widget);
+  tabifyDockWidget(m_log_widget, m_register_widget);
 }
 
 void MainWindow::Open()

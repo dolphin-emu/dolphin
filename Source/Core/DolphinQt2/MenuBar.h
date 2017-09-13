@@ -119,6 +119,7 @@ private:
   void OnSelectionChanged(QSharedPointer<GameFile> game_file);
   void OnRecordingStatusChanged(bool recording);
   void OnReadOnlyModeChanged(bool read_only);
+  void OnDebugModeToggled(bool enabled);
 
   // File
   QAction* m_open_action;
@@ -157,4 +158,7 @@ private:
   QAction* m_recording_start;
   QAction* m_recording_stop;
   QAction* m_recording_read_only;
+
+  // View
+  QAction* m_show_registers;
 };
