@@ -29,6 +29,7 @@
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/Logging/LogManager.h"
+#include "Common/MemoryUtil.h"
 #include "Common/MsgHandler.h"
 #include "Common/Thread.h"
 #include "Common/Version.h"
@@ -59,6 +60,9 @@
 #if defined HAVE_X11 && HAVE_X11
 #include <X11/Xlib.h>
 #endif
+
+size_t max_sys_mem = Common::MemPhysical();  // excl. driverlocked & hw-reserved
+constexpr double DOLPHIN_REC_MEM_AMOUNT = (1024.0 * 1024.0 * 1024.0 * 4.1);
 
 // ------------
 //  Main window
@@ -233,6 +237,14 @@ void DolphinApp::AfterInit()
     DolphinAnalytics::Instance()->ReloadConfig();
   }
 #endif
+
+  if (max_sys_mem <= DOLPHIN_REC_MEM_AMOUNT)
+  {
+    wxMessageBox(_("Warning!\n\nSystem memory (RAM) is below Dolphin's "
+                   "recommendations.\n\n"
+                   "The use of custom textures may lead to system instability or failure. "),
+                 _("Low System Resources"), wxOK, main_frame);
+  }
 
   if (m_confirm_stop)
     SConfig::GetInstance().bConfirmStop = m_confirm_setting;
