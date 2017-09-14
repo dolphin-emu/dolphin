@@ -16,12 +16,12 @@ AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent)
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
   QString text = QStringLiteral("");
-  QString small = QStringLiteral("<p style='margin-top:0px; margin-bottom:0px; font-size:9pt;'>");
-  QString medium = QStringLiteral("<p style='margin-top:15px; font-size:11pt;'>");
+  QString small = QStringLiteral("<p style='margin-top:0; margin-bottom:0; font-size:small;'>");
+  QString medium = QStringLiteral("<p style='margin-top:15px;'>");
 
-  text.append(QStringLiteral("<p style='font-size:50pt; font-weight:400; margin-bottom:0px;'>") +
+  text.append(QStringLiteral("<p style='font-size:38pt; font-weight:400; margin-bottom:0;'>") +
               tr("Dolphin") + QStringLiteral("</p>"));
-  text.append(QStringLiteral("<p style='font-size:18pt; margin-top:0px;'>%1</p>")
+  text.append(QStringLiteral("<p style='font-size:18pt; margin-top:0;'>%1</p>")
                   .arg(QString::fromUtf8(Common::scm_desc_str.c_str())));
 
   text.append(small + tr("Branch: ") + QString::fromUtf8(Common::scm_branch_str.c_str()) +
