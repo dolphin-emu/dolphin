@@ -484,7 +484,8 @@ void GameList::OnColumnVisibilityToggled(const QString& row, bool visible)
       {tr("Platform"), GameListModel::COL_PLATFORM},
       {tr("Size"), GameListModel::COL_SIZE},
       {tr("Title"), GameListModel::COL_TITLE},
-      {tr("State"), GameListModel::COL_RATING}};
+      {tr("State"), GameListModel::COL_RATING},
+      {tr("File Name"), GameListModel::COL_FILE_NAME}};
 
   m_list->setColumnHidden(rowname_to_col_index[row], !visible);
 }
