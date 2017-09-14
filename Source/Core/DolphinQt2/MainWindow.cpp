@@ -553,8 +553,8 @@ void MainWindow::ShowAudioWindow()
 
 void MainWindow::ShowAboutDialog()
 {
-  AboutDialog* about = new AboutDialog(this);
-  about->show();
+  AboutDialog about{this};
+  about.exec();
 }
 
 void MainWindow::ShowHotkeyDialog()
