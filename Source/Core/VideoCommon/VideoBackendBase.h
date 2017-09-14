@@ -47,7 +47,9 @@ public:
 
   virtual void Video_Prepare() = 0;
   void Video_ExitLoop();
-  virtual void Video_Cleanup() = 0;  // called from gl/d3d thread
+
+  void Video_CleanupShared();  // called from gl/d3d thread
+  virtual void Video_Cleanup() = 0;
 
   void Video_BeginField(u32, u32, u32, u32, u64);
 

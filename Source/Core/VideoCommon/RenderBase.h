@@ -142,6 +142,8 @@ public:
   virtual void ChangeSurface(void* new_surface_handle) {}
   bool UseVertexDepthRange() const;
 
+  void ExitFramedumping();
+
 protected:
   std::tuple<int, int> CalculateTargetScale(int x, int y) const;
   bool CalculateTargetSize();
@@ -179,6 +181,7 @@ protected:
   u32 m_last_host_config_bits = 0;
 
 private:
+  void DoDumpFrame();
   void RunFrameDumps();
   void ShutdownFrameDumping();
   std::tuple<int, int> CalculateOutputDimensions(int width, int height);
@@ -208,8 +211,10 @@ private:
     AVIDump::Frame state;
   } m_frame_dump_config;
 
-  AbstractTexture* m_last_xfb_texture;
-  u64 m_last_xfb_id = 0;
+  AbstractTexture* m_last_xfb_texture = nullptr;
+  u64 m_last_xfb_id = std::numeric_limits<u64>::max();
+  u64 m_last_xfb_ticks = 0;
+  float m_last_xfb_horizontal_scale = 0.0f;
 
   std::unique_ptr<AbstractTexture> m_dump_texture;
 

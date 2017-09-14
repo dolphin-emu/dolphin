@@ -97,11 +97,15 @@ Renderer::Renderer(int backbuffer_width, int backbuffer_height)
   m_last_host_config_bits = ShaderHostConfig::GetCurrent().bits;
 }
 
-Renderer::~Renderer()
+Renderer::~Renderer() = default;
+
+void Renderer::ExitFramedumping()
 {
   ShutdownFrameDumping();
   if (m_frame_dump_thread.joinable())
     m_frame_dump_thread.join();
+
+  m_dump_texture.reset();
 }
 
 void Renderer::RenderToXFB(u32 xfbAddr, const EFBRectangle& sourceRc, u32 fbStride, u32 fbHeight,
@@ -625,20 +629,13 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
       m_aspect_wide = flush_count_anamorphic > 0.75 * flush_total;
   }
 
-  // The FinishFrameData call here is necessary even after frame dumping is stopped.
-  // If left out, screenshots are "one frame" behind, as an extra frame is dumped and buffered.
-  FinishFrameData();
   if (IsFrameDumping() && m_last_xfb_texture)
   {
-    UpdateFrameDumpTexture(horizontal_scale);
-
-    auto result = m_dump_texture->Map();
-    if (result.has_value())
-    {
-      auto raw_data = result.value();
-      DumpFrameData(raw_data.data, raw_data.width, raw_data.height, raw_data.stride,
-                    AVIDump::FetchState(ticks));
-    }
+    FinishFrameData();
+  }
+  else
+  {
+    ShutdownFrameDumping();
   }
 
   bool update_frame_count = false;
@@ -653,12 +650,18 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
     {
       m_last_xfb_texture = xfb_entry->texture.get();
       m_last_xfb_id = xfb_entry->id;
+      m_last_xfb_ticks = ticks;
+      m_last_xfb_horizontal_scale = horizontal_scale;
 
       // TODO: merge more generic parts into VideoCommon
       g_renderer->SwapImpl(xfb_entry->texture.get(), rc, ticks, xfb_entry->gamma);
 
       m_fps_counter.Update();
       update_frame_count = true;
+      if (IsFrameDumping())
+      {
+        DoDumpFrame();
+      }
     }
 
     // Update our last xfb values
@@ -685,8 +688,20 @@ bool Renderer::IsFrameDumping()
   if (SConfig::GetInstance().m_DumpFrames)
     return true;
 
-  ShutdownFrameDumping();
   return false;
+}
+
+void Renderer::DoDumpFrame()
+{
+  UpdateFrameDumpTexture(m_last_xfb_horizontal_scale);
+
+  auto result = m_dump_texture->Map();
+  if (result.has_value())
+  {
+    auto raw_data = result.value();
+    DumpFrameData(raw_data.data, raw_data.width, raw_data.height, raw_data.stride,
+                  AVIDump::FetchState(m_last_xfb_ticks));
+  }
 }
 
 void Renderer::UpdateFrameDumpTexture(float horizontal_scale)
