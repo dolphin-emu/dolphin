@@ -63,6 +63,11 @@ void FifoRecorder::StopRecording()
   m_RequestedRecordingEnd = true;
 }
 
+FifoDataFile* FifoRecorder::GetRecordedFile() const
+{
+  return m_File.get();
+}
+
 void FifoRecorder::WriteGPCommand(const u8* data, u32 size)
 {
   if (!m_SkipNextData)
@@ -203,6 +208,11 @@ void FifoRecorder::SetVideoMemory(const u32* bpMem, const u32* cpMem, const u32*
   }
 
   FifoRecordAnalyzer::Initialize(cpMem);
+}
+
+bool FifoRecorder::IsRecording() const
+{
+  return m_IsRecording;
 }
 
 FifoRecorder& FifoRecorder::GetInstance()

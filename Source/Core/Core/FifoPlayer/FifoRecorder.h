@@ -20,7 +20,7 @@ public:
   void StartRecording(s32 numFrames, CallbackFunc finishedCb);
   void StopRecording();
 
-  FifoDataFile* GetRecordedFile() const { return m_File.get(); }
+  FifoDataFile* GetRecordedFile() const;
   // Called from video thread
 
   // Must write one full GP command at a time
@@ -41,7 +41,7 @@ public:
                       u32 xfRegsSize, const u8* texMem);
 
   // Checked once per frame prior to callng EndFrame()
-  bool IsRecording() const { return m_IsRecording; }
+  bool IsRecording() const;
   static FifoRecorder& GetInstance();
 
 private:
