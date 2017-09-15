@@ -15,7 +15,7 @@ class wxTreeEvent;
 
 namespace DiscIO
 {
-class FileSystem;
+struct Partition;
 class Volume;
 }
 
@@ -51,16 +51,15 @@ private:
   void ExtractSingleFile(const wxString& output_file_path) const;
   void ExtractSingleDirectory(const wxString& output_folder);
   void ExtractDirectories(const std::string& full_path, const std::string& output_folder,
-                          const DiscIO::FileSystem& filesystem);
-  void ExtractPartition(const std::string& output_folder, const DiscIO::FileSystem& filesystem);
+                          const DiscIO::Partition& partition);
+  void ExtractPartition(const std::string& output_folder, const DiscIO::Partition& partition);
 
-  std::pair<wxString, const DiscIO::FileSystem&> BuildFilePathFromSelection() const;
-  std::pair<wxString, const DiscIO::FileSystem&> BuildDirectoryPathFromSelection() const;
+  std::pair<wxString, DiscIO::Partition> BuildFilePathFromSelection() const;
+  std::pair<wxString, DiscIO::Partition> BuildDirectoryPathFromSelection() const;
 
   wxTreeCtrl* m_tree_ctrl;
 
   const std::unique_ptr<DiscIO::Volume>& m_opened_iso;
 
-  std::unique_ptr<DiscIO::FileSystem> m_filesystem;
   bool m_has_partitions;
 };

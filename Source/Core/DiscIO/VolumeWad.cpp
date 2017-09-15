@@ -65,6 +65,12 @@ bool VolumeWAD::Read(u64 offset, u64 length, u8* buffer, const Partition& partit
   return m_reader->Read(offset, length, buffer);
 }
 
+const FileSystem* VolumeWAD::GetFileSystem(const Partition& partition) const
+{
+  // TODO: Implement this?
+  return nullptr;
+}
+
 Region VolumeWAD::GetRegion() const
 {
   if (!m_tmd.IsValid())

@@ -13,14 +13,14 @@
 namespace DiscIO
 {
 class FileInfo;
-class FileSystem;
+struct Partition;
 class Volume;
 
 class VolumeFileBlobReader final : public BlobReader
 {
 public:
   static std::unique_ptr<VolumeFileBlobReader>
-  Create(const Volume& volume, const FileSystem& file_system, const std::string& file_path);
+  Create(const Volume& volume, const Partition& partition, const std::string& file_path);
 
   BlobType GetBlobType() const override { return BlobType::PLAIN; }
   u64 GetDataSize() const override;
@@ -28,11 +28,11 @@ public:
   bool Read(u64 offset, u64 length, u8* out_ptr) override;
 
 private:
-  VolumeFileBlobReader(const Volume& volume, const FileSystem& file_system,
+  VolumeFileBlobReader(const Volume& volume, const Partition& partition,
                        std::unique_ptr<FileInfo> file_info);
 
   const Volume& m_volume;
-  const FileSystem& m_file_system;
+  const Partition& m_partition;
   std::unique_ptr<FileInfo> m_file_info;
 };
 }  // namespace

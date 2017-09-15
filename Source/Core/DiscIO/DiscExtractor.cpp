@@ -61,6 +61,17 @@ u64 ReadFile(const Volume& volume, const Partition& partition, const FileInfo* f
   return read_length;
 }
 
+u64 ReadFile(const Volume& volume, const Partition& partition, const std::string& path, u8* buffer,
+             u64 max_buffer_size, u64 offset_in_file)
+{
+  const FileSystem* file_system = volume.GetFileSystem(partition);
+  if (!file_system)
+    return 0;
+
+  return ReadFile(volume, partition, file_system->FindFileInfo(path).get(), buffer, max_buffer_size,
+                  offset_in_file);
+}
+
 bool ExportData(const Volume& volume, const Partition& partition, u64 offset, u64 size,
                 const std::string& export_filename)
 {
@@ -96,6 +107,16 @@ bool ExportFile(const Volume& volume, const Partition& partition, const FileInfo
 
   return ExportData(volume, partition, file_info->GetOffset(), file_info->GetSize(),
                     export_filename);
+}
+
+bool ExportFile(const Volume& volume, const Partition& partition, const std::string& path,
+                const std::string& export_filename)
+{
+  const FileSystem* file_system = volume.GetFileSystem(partition);
+  if (!file_system)
+    return false;
+
+  return ExportFile(volume, partition, file_system->FindFileInfo(path).get(), export_filename);
 }
 
 void ExportDirectory(const Volume& volume, const Partition partition, const FileInfo& directory,

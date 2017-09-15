@@ -14,15 +14,17 @@
 #include "Common/CommonTypes.h"
 #include "Common/Lazy.h"
 #include "Core/IOS/ES/Formats.h"
+#include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
 
-// --- this volume type is used for encrypted Wii images ---
+// --- this volume type is used for Wii disc images ---
 
 namespace DiscIO
 {
 class BlobReader;
 enum class BlobType;
 enum class Country;
+class FileSystem;
 enum class Language;
 enum class Region;
 enum class Platform;
@@ -39,6 +41,7 @@ public:
   std::optional<u64> GetTitleID(const Partition& partition) const override;
   const IOS::ES::TicketReader& GetTicket(const Partition& partition) const override;
   const IOS::ES::TMDReader& GetTMD(const Partition& partition) const override;
+  const FileSystem* GetFileSystem(const Partition& partition) const override;
   std::string GetGameID(const Partition& partition) const override;
   std::string GetMakerID(const Partition& partition) const override;
   std::optional<u16> GetRevision(const Partition& partition) const override;
@@ -72,6 +75,7 @@ private:
     Common::Lazy<std::unique_ptr<mbedtls_aes_context>> key;
     Common::Lazy<IOS::ES::TicketReader> ticket;
     Common::Lazy<IOS::ES::TMDReader> tmd;
+    Common::Lazy<std::unique_ptr<FileSystem>> file_system;
     u32 type;
   };
 

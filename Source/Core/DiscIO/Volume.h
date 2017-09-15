@@ -21,6 +21,7 @@
 namespace DiscIO
 {
 enum class BlobType;
+class FileSystem;
 
 struct Partition final
 {
@@ -67,6 +68,8 @@ public:
     return INVALID_TICKET;
   }
   virtual const IOS::ES::TMDReader& GetTMD(const Partition& partition) const { return INVALID_TMD; }
+  // Returns a non-owning pointer. Returns nullptr if the file system couldn't be read.
+  virtual const FileSystem* GetFileSystem(const Partition& partition) const = 0;
   std::string GetGameID() const { return GetGameID(GetGamePartition()); }
   virtual std::string GetGameID(const Partition& partition) const = 0;
   std::string GetMakerID() const { return GetMakerID(GetGamePartition()); }

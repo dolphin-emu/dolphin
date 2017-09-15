@@ -26,6 +26,7 @@
 #include "DiscIO/Blob.h"
 #include "DiscIO/DiscExtractor.h"
 #include "DiscIO/Enums.h"
+#include "DiscIO/FileSystemGCWii.h"
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
 
@@ -111,10 +112,17 @@ VolumeWii::VolumeWii(std::unique_ptr<BlobReader> reader)
         return aes_context;
       };
 
+      auto get_file_system = [this, partition]() -> std::unique_ptr<FileSystem> {
+        auto file_system = std::make_unique<FileSystemGCWii>(this, partition);
+        return file_system->IsValid() ? std::move(file_system) : nullptr;
+      };
+
       m_partitions.emplace(
           partition, PartitionDetails{Common::Lazy<std::unique_ptr<mbedtls_aes_context>>(get_key),
                                       Common::Lazy<IOS::ES::TicketReader>(get_ticket),
-                                      Common::Lazy<IOS::ES::TMDReader>(get_tmd), *partition_type});
+                                      Common::Lazy<IOS::ES::TMDReader>(get_tmd),
+                                      Common::Lazy<std::unique_ptr<FileSystem>>(get_file_system),
+                                      *partition_type});
     }
   }
 }
@@ -220,6 +228,12 @@ const IOS::ES::TMDReader& VolumeWii::GetTMD(const Partition& partition) const
   return it != m_partitions.end() ? *it->second.tmd : INVALID_TMD;
 }
 
+const FileSystem* VolumeWii::GetFileSystem(const Partition& partition) const
+{
+  auto it = m_partitions.find(partition);
+  return it != m_partitions.end() ? it->second.file_system->get() : nullptr;
+}
+
 u64 VolumeWii::PartitionOffsetToRawOffset(u64 offset, const Partition& partition)
 {
   if (partition == PARTITION_NONE)
@@ -287,13 +301,8 @@ std::string VolumeWii::GetInternalName(const Partition& partition) const
 
 std::map<Language, std::string> VolumeWii::GetLongNames() const
 {
-  std::unique_ptr<FileSystem> file_system(CreateFileSystem(this, GetGamePartition()));
-  if (!file_system)
-    return {};
-
   std::vector<u8> opening_bnr(NAMES_TOTAL_BYTES);
-  std::unique_ptr<FileInfo> file_info = file_system->FindFileInfo("opening.bnr");
-  opening_bnr.resize(ReadFile(*this, GetGamePartition(), file_info.get(), opening_bnr.data(),
+  opening_bnr.resize(ReadFile(*this, GetGamePartition(), "opening.bnr", opening_bnr.data(),
                               opening_bnr.size(), 0x5C));
   return ReadWiiNames(opening_bnr);
 }

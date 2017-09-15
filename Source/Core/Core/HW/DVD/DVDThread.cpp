@@ -116,7 +116,6 @@ void Stop()
 {
   StopDVDThread();
   s_disc.reset();
-  FileMonitor::SetFileSystem(nullptr);
 }
 
 static void StopDVDThread()
@@ -160,14 +159,9 @@ void DoState(PointerWrap& p)
   if (had_disc != HasDisc())
   {
     if (had_disc)
-    {
       PanicAlertT("An inserted disc was expected but not found.");
-    }
     else
-    {
       s_disc.reset();
-      FileMonitor::SetFileSystem(nullptr);
-    }
   }
 
   // TODO: Savestates can be smaller if the buffers of results aren't saved,
@@ -185,7 +179,6 @@ void SetDisc(std::unique_ptr<DiscIO::Volume> disc)
 {
   WaitUntilIdle();
   s_disc = std::move(disc);
-  FileMonitor::SetFileSystem(s_disc.get());
 }
 
 bool HasDisc()
@@ -356,7 +349,7 @@ static void DVDThread()
     ReadRequest request;
     while (s_request_queue.Pop(request))
     {
-      FileMonitor::Log(request.dvd_offset, request.partition);
+      FileMonitor::Log(*s_disc, request.partition, request.dvd_offset);
 
       std::vector<u8> buffer(request.length);
       if (!s_disc->Read(request.dvd_offset, request.length, buffer.data(), request.partition))
