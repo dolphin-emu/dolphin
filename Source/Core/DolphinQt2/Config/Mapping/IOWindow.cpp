@@ -110,7 +110,7 @@ void IOWindow::CreateMainLayout()
 
 void IOWindow::Update()
 {
-  m_expression_text->setPlainText(QString::fromStdString(m_reference->expression));
+  m_expression_text->setPlainText(QString::fromStdString(m_reference->GetExpression()));
   m_range_spinbox->setValue(m_reference->range * SLIDER_TICK_COUNT);
   m_range_slider->setValue(m_reference->range * SLIDER_TICK_COUNT);
 
@@ -164,7 +164,7 @@ void IOWindow::OnDialogButtonPressed(QAbstractButton* button)
     return;
   }
 
-  m_reference->expression = m_expression_text->toPlainText().toStdString();
+  m_reference->SetExpression(m_expression_text->toPlainText().toStdString());
 
   if (button != m_apply_button)
     accept();

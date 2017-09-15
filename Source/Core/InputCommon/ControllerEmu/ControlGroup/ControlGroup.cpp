@@ -54,8 +54,12 @@ void ControlGroup::LoadConfig(IniFile::Section* sec, const std::string& defdev,
 
   for (auto& c : controls)
   {
-    // control expression
-    sec->Get(group + c->name, &c->control_ref->expression, "");
+    {
+      // control expression
+      std::string expression;
+      sec->Get(group + c->name, &expression, "");
+      c->control_ref->SetExpression(std::move(expression));
+    }
 
     // range
     sec->Get(group + c->name + "/Range", &c->control_ref->range, 100.0);
@@ -109,7 +113,7 @@ void ControlGroup::SaveConfig(IniFile::Section* sec, const std::string& defdev,
   for (auto& c : controls)
   {
     // control expression
-    sec->Set(group + c->name, c->control_ref->expression, "");
+    sec->Set(group + c->name, c->control_ref->GetExpression(), "");
 
     // range
     sec->Set(group + c->name + "/Range", c->control_ref->range * 100.0, 100.0);
@@ -128,6 +132,6 @@ void ControlGroup::SaveConfig(IniFile::Section* sec, const std::string& defdev,
 
 void ControlGroup::SetControlExpression(int index, const std::string& expression)
 {
-  controls.at(index)->control_ref->expression = expression;
+  controls.at(index)->control_ref->SetExpression(expression);
 }
 }  // namespace ControllerEmu
