@@ -12,8 +12,8 @@
 // arbitrary code from non-GUI threads. For more information, see:
 // https://stackoverflow.com/questions/21646467/
 
-template <typename F>
-static void QueueOnObject(QObject* obj, F&& func)
+template <typename T, typename F>
+static void QueueOnObject(T* obj, F&& func)
 {
   QObject src;
   QObject::connect(&src, &QObject::destroyed, obj, std::forward<F>(func), Qt::QueuedConnection);

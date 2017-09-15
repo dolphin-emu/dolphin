@@ -405,7 +405,7 @@ void NetPlayDialog::StopGame()
 
 void NetPlayDialog::Update()
 {
-  QueueOnObject(this, [this] { UpdateGUI(); });
+  QueueOnObject(this, &NetPlayDialog::UpdateGUI);
 }
 
 void NetPlayDialog::DisplayMessage(const QString& msg, const std::string& color, int duration)
