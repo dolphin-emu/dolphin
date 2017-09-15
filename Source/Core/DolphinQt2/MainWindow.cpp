@@ -353,7 +353,7 @@ void MainWindow::Pause()
 void MainWindow::OnStopComplete()
 {
   m_stop_requested = false;
-  m_render_widget->hide();
+  HideRenderWidget();
 
   if (m_exit_requested)
     QGuiApplication::instance()->quit();
@@ -425,7 +425,6 @@ bool MainWindow::RequestStop()
 void MainWindow::ForceStop()
 {
   BootManager::Stop();
-  HideRenderWidget();
 }
 
 void MainWindow::Reset()
