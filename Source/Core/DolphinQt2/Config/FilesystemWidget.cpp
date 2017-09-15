@@ -85,8 +85,6 @@ void FilesystemWidget::PopulateView()
 
   for (size_t i = 0; i < partitions.size(); i++)
   {
-    const DiscIO::FileSystem* file_system = m_volume->GetFileSystem(partitions[i]);
-
     auto* item = new QStandardItem(tr("Partition %1").arg(i));
     item->setEditable(false);
 
@@ -94,7 +92,7 @@ void FilesystemWidget::PopulateView()
     item->setData(static_cast<qlonglong>(i), ENTRY_PARTITION);
     item->setData(QVariant::fromValue(EntryType::Partition), ENTRY_TYPE);
 
-    PopulateDirectory(static_cast<int>(i), item, file_system->GetRoot());
+    PopulateDirectory(static_cast<int>(i), item, partitions[i]);
 
     disc->appendRow(item);
 
@@ -103,7 +101,15 @@ void FilesystemWidget::PopulateView()
   }
 
   if (partitions.empty())
-    PopulateDirectory(-1, disc, m_volume->GetFileSystem(DiscIO::PARTITION_NONE)->GetRoot());
+    PopulateDirectory(-1, disc, DiscIO::PARTITION_NONE);
+}
+
+void FilesystemWidget::PopulateDirectory(int partition_id, QStandardItem* root,
+                                         const DiscIO::Partition& partition)
+{
+  const DiscIO::FileSystem* const file_system = m_volume->GetFileSystem(partition);
+  if (file_system)
+    PopulateDirectory(partition_id, root, file_system->GetRoot());
 }
 
 void FilesystemWidget::PopulateDirectory(int partition_id, QStandardItem* root,
@@ -234,6 +240,9 @@ void FilesystemWidget::ExtractDirectory(const DiscIO::Partition& partition, cons
                                         const QString& out)
 {
   const DiscIO::FileSystem* filesystem = m_volume->GetFileSystem(partition);
+  if (!filesystem)
+    return;
+
   std::unique_ptr<DiscIO::FileInfo> info = filesystem->FindFileInfo(path.toStdString());
   u32 size = info->GetTotalChildren();
 
@@ -263,6 +272,9 @@ void FilesystemWidget::ExtractFile(const DiscIO::Partition& partition, const QSt
                                    const QString& out)
 {
   const DiscIO::FileSystem* filesystem = m_volume->GetFileSystem(partition);
+  if (!filesystem)
+    return;
+
   bool success = DiscIO::ExportFile(
       *m_volume, partition, filesystem->FindFileInfo(path.toStdString()).get(), out.toStdString());
 
