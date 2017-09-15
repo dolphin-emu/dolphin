@@ -96,3 +96,5 @@ private:
   std::unique_ptr<NetPlayServer> m_server;
   Settings();
 };
+
+Q_DECLARE_METATYPE(Core::State);
