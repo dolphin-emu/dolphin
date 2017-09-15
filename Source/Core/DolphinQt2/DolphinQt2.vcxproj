@@ -218,6 +218,7 @@
     <ClCompile Include="Settings\InterfacePane.cpp" />
     <ClCompile Include="Settings\PathPane.cpp" />
     <ClCompile Include="ToolBar.cpp" />
+    <ClCompile Include="Translation.cpp" />
     <ClCompile Include="WiiUpdate.cpp" />
   </ItemGroup>
   <!--Put standard C/C++ headers here-->
@@ -243,6 +244,7 @@
     <ClInclude Include="QtUtils\ListTabWidget.h" />
     <ClInclude Include="Resources.h" />
     <ClInclude Include="Settings\PathPane.h" />
+    <ClInclude Include="Translation.h" />
     <ClInclude Include="WiiUpdate.h" />
   </ItemGroup>
   <ItemGroup>
