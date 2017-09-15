@@ -18,7 +18,8 @@
 
 struct BootParameters;
 class HotkeyScheduler;
-class LoggerWidget;
+class LogConfigWidget;
+class LogWidget;
 class MappingWindow;
 class NetPlayClient;
 class NetPlayDialog;
@@ -136,5 +137,6 @@ private:
   NetPlayDialog* m_netplay_dialog;
   NetPlaySetupDialog* m_netplay_setup_dialog;
   GraphicsWindow* m_graphics_window;
-  LoggerWidget* m_logger_widget;
+  LogWidget* m_log_widget;
+  LogConfigWidget* m_log_config_widget;
 };
