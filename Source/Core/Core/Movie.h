@@ -148,7 +148,6 @@ bool IsUsingBongo(int controller);
 void ChangePads(bool instantly = false);
 void ChangeWiiPads(bool instantly = false);
 
-void DoFrameStep();
 void SetReadOnly(bool bEnabled);
 
 bool BeginRecordingInput(int controllers);

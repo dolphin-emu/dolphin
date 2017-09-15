@@ -122,7 +122,10 @@ void MainWindow::ShutdownControllers()
 
 void MainWindow::InitCoreCallbacks()
 {
-  Core::SetOnStoppedCallback([this] { emit EmulationStopped(); });
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [=](Core::State state) {
+    if (state == Core::State::Uninitialized)
+      OnStopComplete();
+  });
   installEventFilter(this);
   m_render_widget->installEventFilter(this);
 }
@@ -150,11 +153,6 @@ void MainWindow::CreateComponents()
   m_hotkey_window = new MappingWindow(this, 0);
   m_log_widget = new LogWidget(this);
   m_log_config_widget = new LogConfigWidget(this);
-
-  connect(this, &MainWindow::EmulationStarted, m_settings_window,
-          &SettingsWindow::EmulationStarted);
-  connect(this, &MainWindow::EmulationStopped, m_settings_window,
-          &SettingsWindow::EmulationStopped);
 
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
   m_graphics_window = new GraphicsWindow(
@@ -232,17 +230,9 @@ void MainWindow::ConnectMenuBar()
 
   connect(m_menu_bar, &MenuBar::ShowAboutDialog, this, &MainWindow::ShowAboutDialog);
 
-  connect(this, &MainWindow::EmulationStarted, m_menu_bar, &MenuBar::EmulationStarted);
-  connect(this, &MainWindow::EmulationPaused, m_menu_bar, &MenuBar::EmulationPaused);
-  connect(this, &MainWindow::EmulationStopped, m_menu_bar, &MenuBar::EmulationStopped);
   connect(m_game_list, &GameList::SelectionChanged, m_menu_bar, &MenuBar::SelectionChanged);
   connect(this, &MainWindow::ReadOnlyModeChanged, m_menu_bar, &MenuBar::ReadOnlyModeChanged);
   connect(this, &MainWindow::RecordingStatusChanged, m_menu_bar, &MenuBar::RecordingStatusChanged);
-
-  connect(this, &MainWindow::EmulationStarted, this,
-          [=]() { m_controllers_window->OnEmulationStateChanged(true); });
-  connect(this, &MainWindow::EmulationStopped, this,
-          [=]() { m_controllers_window->OnEmulationStateChanged(false); });
 }
 
 void MainWindow::ConnectHotkeys()
@@ -283,20 +273,12 @@ void MainWindow::ConnectToolBar()
   connect(m_tool_bar, &ToolBar::SettingsPressed, this, &MainWindow::ShowSettingsWindow);
   connect(m_tool_bar, &ToolBar::ControllersPressed, this, &MainWindow::ShowControllersWindow);
   connect(m_tool_bar, &ToolBar::GraphicsPressed, this, &MainWindow::ShowGraphicsWindow);
-
-  connect(this, &MainWindow::EmulationStarted, m_tool_bar, &ToolBar::EmulationStarted);
-  connect(this, &MainWindow::EmulationPaused, m_tool_bar, &ToolBar::EmulationPaused);
-  connect(this, &MainWindow::EmulationStopped, m_tool_bar, &ToolBar::EmulationStopped);
-
-  connect(this, &MainWindow::EmulationStopped, this, &MainWindow::OnStopComplete);
 }
 
 void MainWindow::ConnectGameList()
 {
   connect(m_game_list, &GameList::GameSelected, this, &MainWindow::Play);
   connect(m_game_list, &GameList::NetPlayHost, this, &MainWindow::NetPlayHost);
-  connect(this, &MainWindow::EmulationStarted, m_game_list, &GameList::EmulationStarted);
-  connect(this, &MainWindow::EmulationStopped, m_game_list, &GameList::EmulationStopped);
 }
 
 void MainWindow::ConnectRenderWidget()
@@ -340,7 +322,6 @@ void MainWindow::Play()
   if (Core::GetState() == Core::State::Paused)
   {
     Core::SetState(Core::State::Running);
-    emit EmulationStarted();
   }
   else
   {
@@ -367,7 +348,6 @@ void MainWindow::Play()
 void MainWindow::Pause()
 {
   Core::SetState(Core::State::Paused);
-  emit EmulationPaused();
 }
 
 void MainWindow::OnStopComplete()
@@ -457,8 +437,7 @@ void MainWindow::Reset()
 
 void MainWindow::FrameAdvance()
 {
-  Movie::DoFrameStep();
-  EmulationPaused();
+  Core::DoFrameStep();
 }
 
 void MainWindow::FullScreen()
@@ -503,7 +482,6 @@ void MainWindow::StartGame(std::unique_ptr<BootParameters>&& parameters)
     return;
   }
   ShowRenderWidget();
-  emit EmulationStarted();
 
 #ifdef Q_OS_WIN
   // Prevents Windows from sleeping, turning off the display, or idling
@@ -680,7 +658,6 @@ void MainWindow::NetPlayInit()
           static_cast<void (MainWindow::*)(const QString&)>(&MainWindow::StartGame));
   connect(m_netplay_dialog, &NetPlayDialog::Stop, this, &MainWindow::RequestStop);
   connect(m_netplay_dialog, &NetPlayDialog::rejected, this, &MainWindow::NetPlayQuit);
-  connect(this, &MainWindow::EmulationStopped, m_netplay_dialog, &NetPlayDialog::EmulationStopped);
   connect(m_netplay_setup_dialog, &NetPlaySetupDialog::Join, this, &MainWindow::NetPlayJoin);
   connect(m_netplay_setup_dialog, &NetPlaySetupDialog::Host, this, &MainWindow::NetPlayHost);
 }

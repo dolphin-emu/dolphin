@@ -188,8 +188,8 @@ void NetPlayDialog::ConnectWidgets()
     }
   });
 
-  connect(this, &NetPlayDialog::EmulationStopped, this, [this] {
-    if (isVisible())
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [=](Core::State state) {
+    if (state == Core::State::Uninitialized && isVisible())
       GameStatusChanged(false);
   });
 }

@@ -41,9 +41,6 @@ public:
   bool eventFilter(QObject* object, QEvent* event) override;
 
 signals:
-  void EmulationStarted();
-  void EmulationPaused();
-  void EmulationStopped();
   void ReadOnlyModeChanged(bool read_only);
   void RecordingStatusChanged(bool recording);
 

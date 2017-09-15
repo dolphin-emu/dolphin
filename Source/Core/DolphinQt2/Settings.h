@@ -12,6 +12,11 @@
 #include "Core/NetPlayClient.h"
 #include "Core/NetPlayServer.h"
 
+namespace Core
+{
+enum class State;
+}
+
 namespace DiscIO
 {
 enum class Language;
@@ -76,6 +81,7 @@ public:
   GameListModel* GetGameListModel() const;
 
 signals:
+  void EmulationStateChanged(Core::State new_state);
   void ThemeChanged();
   void PathAdded(const QString&);
   void PathRemoved(const QString&);
