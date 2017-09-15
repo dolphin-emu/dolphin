@@ -524,7 +524,7 @@ void NetPlayDialog::OnTraversalError(TraversalClient::FailureReason error)
 
 bool NetPlayDialog::IsRecording()
 {
-  return RunOnObject(this, [this] { return m_record_input_box->isChecked(); });
+  return RunOnObject(m_record_input_box, &QCheckBox::isChecked);
 }
 
 std::string NetPlayDialog::FindGame(const std::string& game)
