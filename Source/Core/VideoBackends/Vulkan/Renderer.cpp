@@ -719,7 +719,7 @@ void Renderer::DrawScreen(const TargetRectangle& scaled_efb_rect, u32 xfb_addr,
                           u32 fb_stride, u32 fb_height)
 {
   VkResult res;
-  if (!g_command_buffer_mgr->DidLastPresentFail())
+  if (!g_command_buffer_mgr->CheckLastPresentFail())
   {
     // Grab the next image from the swap chain in preparation for drawing the window.
     res = m_swap_chain->AcquireNextImage(m_image_available_semaphore);
@@ -739,7 +739,7 @@ void Renderer::DrawScreen(const TargetRectangle& scaled_efb_rect, u32 xfb_addr,
     // command buffer, resize the swap chain (which calls WaitForGPUIdle), and then finally call
     // PrepareToSubmitCommandBuffer to return to the state that the caller expects.
     g_command_buffer_mgr->SubmitCommandBuffer(false);
-    ResizeSwapChain();
+    m_swap_chain->ResizeSwapChain();
     BeginFrame();
     g_command_buffer_mgr->PrepareToSubmitCommandBuffer();
     res = m_swap_chain->AcquireNextImage(m_image_available_semaphore);
@@ -1076,14 +1076,17 @@ void Renderer::CheckForSurfaceChange()
   if (!m_surface_needs_change.IsSet())
     return;
 
-  u32 old_width = m_swap_chain ? m_swap_chain->GetWidth() : 0;
-  u32 old_height = m_swap_chain ? m_swap_chain->GetHeight() : 0;
+  // Wait for the GPU to catch up since we're going to destroy the swap chain.
+  g_command_buffer_mgr->WaitForGPUIdle();
+
+  // Clear the present failed flag, since we don't want to resize after recreating.
+  g_command_buffer_mgr->CheckLastPresentFail();
 
   // Fast path, if the surface handle is the same, the window has just been resized.
   if (m_swap_chain && m_new_surface_handle == m_swap_chain->GetNativeHandle())
   {
     INFO_LOG(VIDEO, "Detected window resize.");
-    ResizeSwapChain();
+    m_swap_chain->RecreateSwapChain();
 
     // Notify the main thread we are done.
     m_surface_needs_change.Clear();
@@ -1092,9 +1095,6 @@ void Renderer::CheckForSurfaceChange()
   }
   else
   {
-    // Wait for the GPU to catch up since we're going to destroy the swap chain.
-    g_command_buffer_mgr->WaitForGPUIdle();
-
     // Did we previously have a swap chain?
     if (m_swap_chain)
     {
@@ -1133,12 +1133,8 @@ void Renderer::CheckForSurfaceChange()
     m_surface_changed.Set();
   }
 
-  if (m_swap_chain)
-  {
-    // Handle case where the dimensions are now different
-    if (old_width != m_swap_chain->GetWidth() || old_height != m_swap_chain->GetHeight())
-      OnSwapChainResized();
-  }
+  // Handle case where the dimensions are now different.
+  OnSwapChainResized();
 }
 
 void Renderer::CheckForConfigChanges()
@@ -1202,7 +1198,10 @@ void Renderer::CheckForConfigChanges()
   // For quad-buffered stereo we need to change the layer count, so recreate the swap chain.
   if (m_swap_chain &&
       (g_ActiveConfig.iStereoMode == STEREO_QUADBUFFER) != m_swap_chain->IsStereoEnabled())
-    ResizeSwapChain();
+  {
+    g_command_buffer_mgr->WaitForGPUIdle();
+    m_swap_chain->RecreateSwapChain();
+  }
 
   // Wipe sampler cache if force texture filtering or anisotropy changes.
   if (anisotropy_changed || force_texture_filtering_changed)
@@ -1246,18 +1245,6 @@ void Renderer::ResizeEFBTextures()
   // Viewport and scissor rect have to be reset since they will be scaled differently.
   SetViewport();
   BPFunctions::SetScissor();
-}
-
-void Renderer::ResizeSwapChain()
-{
-  // The worker thread may still be submitting a present on this swap chain.
-  g_command_buffer_mgr->WaitForGPUIdle();
-
-  // It's now safe to resize the swap chain.
-  if (!m_swap_chain->ResizeSwapChain())
-    PanicAlert("Failed to resize swap chain.");
-
-  OnSwapChainResized();
 }
 
 void Renderer::ApplyState()

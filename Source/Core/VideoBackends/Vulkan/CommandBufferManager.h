@@ -80,7 +80,7 @@ public:
   void ExecuteCommandBuffer(bool submit_off_thread, bool wait_for_completion);
 
   // Was the last present submitted to the queue a failure? If so, we must recreate our swapchain.
-  bool DidLastPresentFail() { return m_present_failed_flag.TestAndClear(); }
+  bool CheckLastPresentFail() { return m_present_failed_flag.TestAndClear(); }
   // Schedule a vulkan resource for destruction later on. This will occur when the command buffer
   // is next re-used, and the GPU has finished working with the specified resource.
   void DeferBufferDestruction(VkBuffer object);
