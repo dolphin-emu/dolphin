@@ -325,10 +325,6 @@ void Renderer::BeginFrame()
   // Activate a new command list, and restore state ready for the next draw
   g_command_buffer_mgr->ActivateCommandBuffer();
 
-  // Restore the EFB color texture to color attachment ready for rendering the next frame.
-  FramebufferManager::GetInstance()->GetEFBColorTexture()->TransitionToLayout(
-      g_command_buffer_mgr->GetCurrentCommandBuffer(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-
   // Ensure that the state tracker rebinds everything, and allocates a new set
   // of descriptors out of the next pool.
   StateTracker::GetInstance()->InvalidateDescriptorSets();
@@ -575,6 +571,10 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
   // Prep for the next frame (get command buffer ready) before doing anything else.
   BeginFrame();
 
+  // Restore the EFB color texture to color attachment ready for rendering the next frame.
+  FramebufferManager::GetInstance()->GetEFBColorTexture()->TransitionToLayout(
+      g_command_buffer_mgr->GetCurrentCommandBuffer(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+
   // Determine what (if anything) has changed in the config.
   CheckForConfigChanges();
 
@@ -730,6 +730,7 @@ void Renderer::DrawScreen(const TargetRectangle& scaled_efb_rect, u32 xfb_addr,
     // PrepareToSubmitCommandBuffer to return to the state that the caller expects.
     g_command_buffer_mgr->SubmitCommandBuffer(false);
     ResizeSwapChain();
+    BeginFrame();
     g_command_buffer_mgr->PrepareToSubmitCommandBuffer();
     res = m_swap_chain->AcquireNextImage(m_image_available_semaphore);
   }
