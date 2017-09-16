@@ -101,6 +101,9 @@ public:
   int GetSSLFreeID() const;
 
   static WII_SSL _SSL[NET_SSL_MAXINSTANCES];
+
+private:
+  bool m_cert_error_shown = false;
 };
 }  // namespace Device
 }  // namespace HLE
