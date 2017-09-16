@@ -718,8 +718,18 @@ void Renderer::DrawScreen(const TargetRectangle& scaled_efb_rect, u32 xfb_addr,
                           const XFBSourceBase* const* xfb_sources, u32 xfb_count, u32 fb_width,
                           u32 fb_stride, u32 fb_height)
 {
-  // Grab the next image from the swap chain in preparation for drawing the window.
-  VkResult res = m_swap_chain->AcquireNextImage(m_image_available_semaphore);
+  VkResult res;
+  if (!g_command_buffer_mgr->DidLastPresentFail())
+  {
+    // Grab the next image from the swap chain in preparation for drawing the window.
+    res = m_swap_chain->AcquireNextImage(m_image_available_semaphore);
+  }
+  else
+  {
+    // If the last present failed, we need to recreate the swap chain.
+    res = VK_ERROR_OUT_OF_DATE_KHR;
+  }
+
   if (res == VK_SUBOPTIMAL_KHR || res == VK_ERROR_OUT_OF_DATE_KHR)
   {
     // There's an issue here. We can't resize the swap chain while the GPU is still busy with it,
