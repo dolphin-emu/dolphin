@@ -16,6 +16,7 @@
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/TextureConversionShader.h"
 #include "VideoCommon/VideoCommon.h"
+#include "VideoCommon/VideoConfig.h"
 
 #define WRITE p += sprintf
 
@@ -147,7 +148,7 @@ static void WriteSampleFunction(char*& p, const EFBCopyParams& params, APIType A
     else
     {
       // Handle D3D depth inversion.
-      if (ApiType == APIType::D3D || ApiType == APIType::Vulkan)
+      if (!g_ActiveConfig.backend_info.bSupportsReversedDepthRange)
         WRITE(p, "1.0 - (");
       else
         WRITE(p, "(");

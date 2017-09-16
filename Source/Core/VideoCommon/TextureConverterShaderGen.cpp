@@ -112,7 +112,7 @@ ShaderCode GenerateShader(APIType api_type, const UidData* uid_data)
 
   if (uid_data->is_depth_copy)
   {
-    if (api_type == APIType::D3D || api_type == APIType::Vulkan)
+    if (!g_ActiveConfig.backend_info.bSupportsReversedDepthRange)
       out.Write("texcol.x = 1.0 - texcol.x;\n");
 
     out.Write("  int depth = int(texcol.x * 16777216.0);\n"
