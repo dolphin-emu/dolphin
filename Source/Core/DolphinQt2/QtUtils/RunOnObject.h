@@ -33,3 +33,9 @@ auto RunOnObject(QObject* object, F&& functor)
   event.Wait();
   return result;
 }
+
+template <typename Base, typename Type, typename Receiver>
+auto RunOnObject(Receiver* obj, Type Base::*func)
+{
+  return RunOnObject(obj, [obj, func] { return (obj->*func)(); });
+}
