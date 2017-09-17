@@ -21,6 +21,7 @@ enum Hotkey
 {
   HK_OPEN,
   HK_CHANGE_DISC,
+  HK_EJECT_DISC,
   HK_REFRESH_LIST,
   HK_PLAY_PAUSE,
   HK_STOP,

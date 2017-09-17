@@ -299,6 +299,7 @@ private:
   void OnShowInputDisplay(wxCommandEvent& event);
   void OnShowRTCDisplay(wxCommandEvent& event);
   void OnChangeDisc(wxCommandEvent& event);
+  void OnEjectDisc(wxCommandEvent& event);
   void OnScreenshot(wxCommandEvent& event);
   void OnActive(wxActivateEvent& event);
   void OnClose(wxCloseEvent& event);

@@ -961,6 +961,8 @@ static int GetMenuIDFromHotkey(unsigned int key)
     return wxID_OPEN;
   case HK_CHANGE_DISC:
     return IDM_CHANGE_DISC;
+  case HK_EJECT_DISC:
+    return IDM_EJECT_DISC;
   case HK_REFRESH_LIST:
     return wxID_REFRESH;
   case HK_PLAY_PAUSE:
@@ -1305,6 +1307,7 @@ void CFrame::ParseHotkeys()
     {
     case HK_OPEN:
     case HK_CHANGE_DISC:
+    case HK_EJECT_DISC:
     case HK_REFRESH_LIST:
     case HK_RESET:
     case HK_START_RECORDING:

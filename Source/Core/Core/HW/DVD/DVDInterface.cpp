@@ -469,6 +469,12 @@ static void InsertDiscCallback(u64 userdata, s64 cyclesLate)
 }
 
 // Must only be called on the CPU thread
+void EjectDisc()
+{
+  CoreTiming::ScheduleEvent(0, s_eject_disc);
+}
+
+// Must only be called on the CPU thread
 void ChangeDisc(const std::string& new_path)
 {
   if (!s_disc_path_to_insert.empty())
@@ -477,10 +483,10 @@ void ChangeDisc(const std::string& new_path)
     return;
   }
 
-  s_disc_path_to_insert = new_path;
-  CoreTiming::ScheduleEvent(0, s_eject_disc);
-  CoreTiming::ScheduleEvent(SystemTimers::GetTicksPerSecond(), s_insert_disc);
+  EjectDisc();
 
+  s_disc_path_to_insert = new_path;
+  CoreTiming::ScheduleEvent(SystemTimers::GetTicksPerSecond(), s_insert_disc);
   Movie::SignalDiscChange(new_path);
 }
 

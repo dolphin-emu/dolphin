@@ -113,6 +113,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 
 void SetDisc(std::unique_ptr<DiscIO::Volume> disc);
 bool IsDiscInside();
+void EjectDisc();                              // Must only be called on the CPU thread
 void ChangeDisc(const std::string& new_path);  // Must only be called on the CPU thread
 
 // This function returns true and calls SConfig::SetRunningGameMetadata(Volume&, Partition&)

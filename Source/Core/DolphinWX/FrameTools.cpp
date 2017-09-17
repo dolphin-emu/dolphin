@@ -127,6 +127,7 @@ void CFrame::BindMenuBarEvents()
   // File menu
   Bind(wxEVT_MENU, &CFrame::OnOpen, this, wxID_OPEN);
   Bind(wxEVT_MENU, &CFrame::OnChangeDisc, this, IDM_CHANGE_DISC);
+  Bind(wxEVT_MENU, &CFrame::OnEjectDisc, this, IDM_EJECT_DISC);
   Bind(wxEVT_MENU, &CFrame::OnBootDrive, this, IDM_DRIVE1, IDM_DRIVE24);
   Bind(wxEVT_MENU, &CFrame::OnRefresh, this, wxID_REFRESH);
   Bind(wxEVT_MENU, &CFrame::OnQuit, this, wxID_EXIT);
@@ -457,6 +458,11 @@ void CFrame::OnFrameStep(wxCommandEvent& event)
 void CFrame::OnChangeDisc(wxCommandEvent& WXUNUSED(event))
 {
   DoOpen(false);
+}
+
+void CFrame::OnEjectDisc(wxCommandEvent& WXUNUSED(event))
+{
+  Core::RunAsCPUThread(DVDInterface::EjectDisc);
 }
 
 void CFrame::OnRecord(wxCommandEvent& WXUNUSED(event))
