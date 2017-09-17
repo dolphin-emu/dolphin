@@ -31,40 +31,7 @@
 
 namespace OGL
 {
-static u32 s_ColorCbufid;
-static u32 s_DepthCbufid;
-
-struct PaletteShader
-{
-  SHADER shader;
-  GLuint buffer_offset_uniform;
-  GLuint multiplier_uniform;
-  GLuint copy_position_uniform;
-};
-
-static PaletteShader s_palette_shader[3];
-static std::unique_ptr<StreamBuffer> s_palette_stream_buffer;
-static GLuint s_palette_resolv_texture = 0;
-
-struct TextureDecodingProgramInfo
-{
-  const TextureConversionShader::DecodingShaderInfo* base_info = nullptr;
-  SHADER program;
-  GLint uniform_dst_size = -1;
-  GLint uniform_src_size = -1;
-  GLint uniform_src_row_stride = -1;
-  GLint uniform_src_offset = -1;
-  GLint uniform_palette_offset = -1;
-  bool valid = false;
-};
-
 //#define TIME_TEXTURE_DECODING 1
-
-static std::map<std::pair<u32, u32>, TextureDecodingProgramInfo> s_texture_decoding_program_info;
-static std::array<GLuint, TextureConversionShader::BUFFER_FORMAT_COUNT>
-    s_texture_decoding_buffer_views;
-static void CreateTextureDecodingResources();
-static void DestroyTextureDecodingResources();
 
 std::unique_ptr<AbstractTexture> TextureCache::CreateTexture(const TextureConfig& config)
 {
@@ -97,10 +64,10 @@ TextureCache::TextureCache()
     // Clamp the buffer size to the maximum size that the driver supports.
     buffer_size = std::min(buffer_size, max_buffer_size);
 
-    s_palette_stream_buffer = StreamBuffer::Create(GL_TEXTURE_BUFFER, buffer_size);
-    glGenTextures(1, &s_palette_resolv_texture);
-    glBindTexture(GL_TEXTURE_BUFFER, s_palette_resolv_texture);
-    glTexBuffer(GL_TEXTURE_BUFFER, GL_R16UI, s_palette_stream_buffer->m_buffer);
+    m_palette_stream_buffer = StreamBuffer::Create(GL_TEXTURE_BUFFER, buffer_size);
+    glGenTextures(1, &m_palette_resolv_texture);
+    glBindTexture(GL_TEXTURE_BUFFER, m_palette_resolv_texture);
+    glTexBuffer(GL_TEXTURE_BUFFER, GL_R16UI, m_palette_stream_buffer->m_buffer);
 
     CreateTextureDecodingResources();
   }
@@ -113,8 +80,7 @@ TextureCache::~TextureCache()
 
   if (g_ActiveConfig.backend_info.bSupportsPaletteConversion)
   {
-    s_palette_stream_buffer.reset();
-    glDeleteTextures(1, &s_palette_resolv_texture);
+    glDeleteTextures(1, &m_palette_resolv_texture);
   }
 }
 
@@ -133,11 +99,11 @@ GLuint TextureCache::GetColorCopyPositionUniform() const
   return m_colorCopyPositionUniform;
 }
 
-static bool CompilePaletteShader(TLUTFormat tlutfmt, const std::string& vcode,
-                                 const std::string& pcode, const std::string& gcode)
+bool TextureCache::CompilePaletteShader(TLUTFormat tlutfmt, const std::string& vcode,
+                                        const std::string& pcode, const std::string& gcode)
 {
   _assert_(IsValidTLUTFormat(tlutfmt));
-  PaletteShader& shader = s_palette_shader[static_cast<int>(tlutfmt)];
+  PaletteShader& shader = m_palette_shaders[static_cast<int>(tlutfmt)];
 
   if (!ProgramShaderCache::CompileShader(shader.shader, vcode, pcode, gcode))
     return false;
@@ -249,8 +215,8 @@ bool TextureCache::CompileShaders()
 
   m_colorMatrixUniform = glGetUniformLocation(m_colorMatrixProgram.glprogid, "colmat");
   m_depthMatrixUniform = glGetUniformLocation(m_depthMatrixProgram.glprogid, "colmat");
-  s_ColorCbufid = UINT_MAX;
-  s_DepthCbufid = UINT_MAX;
+  m_color_cbuf_id = UINT_MAX;
+  m_depth_cbuf_id = UINT_MAX;
 
   m_colorCopyPositionUniform = glGetUniformLocation(m_colorCopyProgram.glprogid, "copy_position");
   m_colorMatrixPositionUniform =
@@ -361,7 +327,7 @@ void TextureCache::DeleteShaders()
   m_depthMatrixProgram.Destroy();
 
   if (g_ActiveConfig.backend_info.bSupportsPaletteConversion)
-    for (auto& shader : s_palette_shader)
+    for (auto& shader : m_palette_shaders)
       shader.shader.Destroy();
 }
 
@@ -372,7 +338,7 @@ void TextureCache::ConvertTexture(TCacheEntry* destination, TCacheEntry* source,
     return;
 
   _assert_(IsValidTLUTFormat(tlutfmt));
-  const PaletteShader& palette_shader = s_palette_shader[static_cast<int>(tlutfmt)];
+  const PaletteShader& palette_shader = m_palette_shaders[static_cast<int>(tlutfmt)];
 
   g_renderer->ResetAPIState();
 
@@ -389,9 +355,9 @@ void TextureCache::ConvertTexture(TCacheEntry* destination, TCacheEntry* source,
 
   // C14 textures are currently unsupported
   int size = source->format == TextureFormat::I4 ? 32 : 512;
-  auto buffer = s_palette_stream_buffer->Map(size);
+  auto buffer = m_palette_stream_buffer->Map(size);
   memcpy(buffer.first, palette, size);
-  s_palette_stream_buffer->Unmap(size);
+  m_palette_stream_buffer->Unmap(size);
   glUniform1i(palette_shader.buffer_offset_uniform, buffer.second / 2);
   glUniform1f(palette_shader.multiplier_uniform,
               source->format == TextureFormat::I4 ? 15.0f : 255.0f);
@@ -399,7 +365,7 @@ void TextureCache::ConvertTexture(TCacheEntry* destination, TCacheEntry* source,
               static_cast<float>(source->GetWidth()), static_cast<float>(source->GetHeight()));
 
   glActiveTexture(GL_TEXTURE10);
-  glBindTexture(GL_TEXTURE_BUFFER, s_palette_resolv_texture);
+  glBindTexture(GL_TEXTURE_BUFFER, m_palette_resolv_texture);
   g_sampler_cache->BindNearestSampler(10);
 
   OpenGL_BindAttributelessVAO();
@@ -417,7 +383,7 @@ void main()
 }
 )";
 
-void CreateTextureDecodingResources()
+void TextureCache::CreateTextureDecodingResources()
 {
   static const GLenum gl_view_types[TextureConversionShader::BUFFER_FORMAT_COUNT] = {
       GL_R8UI,    // BUFFER_FORMAT_R8_UINT
@@ -426,34 +392,34 @@ void CreateTextureDecodingResources()
   };
 
   glGenTextures(TextureConversionShader::BUFFER_FORMAT_COUNT,
-                s_texture_decoding_buffer_views.data());
+                m_texture_decoding_buffer_views.data());
   for (size_t i = 0; i < TextureConversionShader::BUFFER_FORMAT_COUNT; i++)
   {
-    glBindTexture(GL_TEXTURE_BUFFER, s_texture_decoding_buffer_views[i]);
-    glTexBuffer(GL_TEXTURE_BUFFER, gl_view_types[i], s_palette_stream_buffer->m_buffer);
+    glBindTexture(GL_TEXTURE_BUFFER, m_texture_decoding_buffer_views[i]);
+    glTexBuffer(GL_TEXTURE_BUFFER, gl_view_types[i], m_palette_stream_buffer->m_buffer);
   }
 }
 
-void DestroyTextureDecodingResources()
+void TextureCache::DestroyTextureDecodingResources()
 {
   glDeleteTextures(TextureConversionShader::BUFFER_FORMAT_COUNT,
-                   s_texture_decoding_buffer_views.data());
-  s_texture_decoding_buffer_views.fill(0);
-  s_texture_decoding_program_info.clear();
+                   m_texture_decoding_buffer_views.data());
+  m_texture_decoding_buffer_views.fill(0);
+  m_texture_decoding_program_info.clear();
 }
 
 bool TextureCache::SupportsGPUTextureDecode(TextureFormat format, TLUTFormat palette_format)
 {
   auto key = std::make_pair(static_cast<u32>(format), static_cast<u32>(palette_format));
-  auto iter = s_texture_decoding_program_info.find(key);
-  if (iter != s_texture_decoding_program_info.end())
+  auto iter = m_texture_decoding_program_info.find(key);
+  if (iter != m_texture_decoding_program_info.end())
     return iter->second.valid;
 
   TextureDecodingProgramInfo info;
   info.base_info = TextureConversionShader::GetDecodingShaderInfo(format);
   if (!info.base_info)
   {
-    s_texture_decoding_program_info.emplace(key, info);
+    m_texture_decoding_program_info.emplace(key, info);
     return false;
   }
 
@@ -461,13 +427,13 @@ bool TextureCache::SupportsGPUTextureDecode(TextureFormat format, TLUTFormat pal
       TextureConversionShader::GenerateDecodingShader(format, palette_format, APIType::OpenGL);
   if (shader_source.empty())
   {
-    s_texture_decoding_program_info.emplace(key, info);
+    m_texture_decoding_program_info.emplace(key, info);
     return false;
   }
 
   if (!ProgramShaderCache::CompileComputeShader(info.program, shader_source))
   {
-    s_texture_decoding_program_info.emplace(key, info);
+    m_texture_decoding_program_info.emplace(key, info);
     return false;
   }
 
@@ -477,7 +443,7 @@ bool TextureCache::SupportsGPUTextureDecode(TextureFormat format, TLUTFormat pal
   info.uniform_src_row_stride = glGetUniformLocation(info.program.glprogid, "u_src_row_stride");
   info.uniform_palette_offset = glGetUniformLocation(info.program.glprogid, "u_palette_offset");
   info.valid = true;
-  s_texture_decoding_program_info.emplace(key, info);
+  m_texture_decoding_program_info.emplace(key, info);
   return true;
 }
 
@@ -487,8 +453,8 @@ void TextureCache::DecodeTextureOnGPU(TCacheEntry* entry, u32 dst_level, const u
                                       const u8* palette, TLUTFormat palette_format)
 {
   auto key = std::make_pair(static_cast<u32>(format), static_cast<u32>(palette_format));
-  auto iter = s_texture_decoding_program_info.find(key);
-  if (iter == s_texture_decoding_program_info.end())
+  auto iter = m_texture_decoding_program_info.find(key);
+  if (iter == m_texture_decoding_program_info.end())
     return;
 
 #ifdef TIME_TEXTURE_DECODING
@@ -517,11 +483,11 @@ void TextureCache::DecodeTextureOnGPU(TCacheEntry* entry, u32 dst_level, const u
   }
 
   // Allocate space in stream buffer, and copy texture + palette across.
-  auto buffer = s_palette_stream_buffer->Map(total_upload_size, bytes_per_buffer_elem);
+  auto buffer = m_palette_stream_buffer->Map(total_upload_size, bytes_per_buffer_elem);
   memcpy(buffer.first, data, data_size);
   if (has_palette)
     memcpy(buffer.first + palette_offset, palette, info.base_info->palette_size);
-  s_palette_stream_buffer->Unmap(total_upload_size);
+  m_palette_stream_buffer->Unmap(total_upload_size);
 
   info.program.Bind();
 
@@ -541,13 +507,13 @@ void TextureCache::DecodeTextureOnGPU(TCacheEntry* entry, u32 dst_level, const u
     glUniform1ui(info.uniform_palette_offset, palette_offset_in_elements);
 
   glActiveTexture(GL_TEXTURE9);
-  glBindTexture(GL_TEXTURE_BUFFER, s_texture_decoding_buffer_views[info.base_info->buffer_format]);
+  glBindTexture(GL_TEXTURE_BUFFER, m_texture_decoding_buffer_views[info.base_info->buffer_format]);
 
   if (has_palette)
   {
     // Use an R16UI view for the palette.
     glActiveTexture(GL_TEXTURE10);
-    glBindTexture(GL_TEXTURE_BUFFER, s_palette_resolv_texture);
+    glBindTexture(GL_TEXTURE_BUFFER, m_palette_resolv_texture);
   }
 
   auto dispatch_groups =
@@ -594,17 +560,17 @@ void TextureCache::CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy,
   if (is_depth_copy)
   {
     m_depthMatrixProgram.Bind();
-    if (s_DepthCbufid != cbuf_id)
+    if (m_depth_cbuf_id != cbuf_id)
       glUniform4fv(m_depthMatrixUniform, 5, colmat);
-    s_DepthCbufid = cbuf_id;
+    m_depth_cbuf_id = cbuf_id;
     uniform_location = m_depthCopyPositionUniform;
   }
   else
   {
     m_colorMatrixProgram.Bind();
-    if (s_ColorCbufid != cbuf_id)
+    if (m_color_cbuf_id != cbuf_id)
       glUniform4fv(m_colorMatrixUniform, 7, colmat);
-    s_ColorCbufid = cbuf_id;
+    m_color_cbuf_id = cbuf_id;
     uniform_location = m_colorMatrixPositionUniform;
   }
 
