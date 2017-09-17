@@ -19,7 +19,6 @@
 #include "Common/Logging/Log.h"
 
 #include "Core/ConfigManager.h"
-#include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/AudioInterface.h"
 #include "Core/HW/DVD/DVDMath.h"
@@ -473,14 +472,8 @@ static void InsertDiscCallback(u64 userdata, s64 cyclesLate)
   s_disc_path_to_insert.clear();
 }
 
-// Can only be called by the host thread
-void ChangeDiscAsHost(const std::string& new_path)
-{
-  Core::RunAsCPUThread([&] { ChangeDiscAsCPU(new_path); });
-}
-
-// Can only be called by the CPU thread
-void ChangeDiscAsCPU(const std::string& new_path)
+// Must only be called on the CPU thread
+void ChangeDisc(const std::string& new_path)
 {
   if (!s_disc_path_to_insert.empty())
   {

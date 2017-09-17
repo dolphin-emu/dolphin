@@ -1557,7 +1557,7 @@ void GameListCtrl::OnChangeDisc(wxCommandEvent& WXUNUSED(event))
   const GameListItem* iso = GetSelectedISO();
   if (!iso || !Core::IsRunning())
     return;
-  DVDInterface::ChangeDiscAsHost(WxStrToStr(iso->GetFileName()));
+  Core::RunAsCPUThread([&iso] { DVDInterface::ChangeDisc(WxStrToStr(iso->GetFileName())); });
 }
 
 void GameListCtrl::OnSize(wxSizeEvent& event)

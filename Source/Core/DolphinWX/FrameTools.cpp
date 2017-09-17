@@ -369,7 +369,7 @@ void CFrame::DoOpen(bool Boot)
   }
   else
   {
-    DVDInterface::ChangeDiscAsHost(WxStrToStr(path));
+    Core::RunAsCPUThread([&path] { DVDInterface::ChangeDisc(WxStrToStr(path)); });
   }
 }
 
