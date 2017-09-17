@@ -91,7 +91,7 @@ private:
   u32 m_color_cbuf_id;
   u32 m_depth_cbuf_id;
 
-  PaletteShader m_palette_shaders[3];
+  std::array<PaletteShader, 3> m_palette_shaders;
   std::unique_ptr<StreamBuffer> m_palette_stream_buffer;
   GLuint m_palette_resolv_texture = 0;
 
