@@ -450,10 +450,6 @@ bool IsDiscInside()
   return DVDThread::HasDisc();
 }
 
-// Take care of all logic of "swapping discs"
-// We want this in the "backend", NOT the gui
-// any !empty string will be deleted to ensure
-// that the userdata string exists when called
 static void EjectDiscCallback(u64 userdata, s64 cyclesLate)
 {
   SetDisc(nullptr);
