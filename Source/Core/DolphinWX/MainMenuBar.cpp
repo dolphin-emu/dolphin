@@ -79,6 +79,7 @@ wxMenu* MainMenuBar::CreateFileMenu() const
   auto* const file_menu = new wxMenu;
   file_menu->Append(wxID_OPEN, _("&Open..."));
   file_menu->Append(IDM_CHANGE_DISC, _("Change &Disc..."));
+  file_menu->Append(IDM_EJECT_DISC, _("Eject Disc"));
   file_menu->Append(IDM_DRIVES, _("&Boot from DVD Backup"), external_drive_menu);
   file_menu->AppendSeparator();
   file_menu->Append(wxID_REFRESH, _("&Refresh Game List"));
