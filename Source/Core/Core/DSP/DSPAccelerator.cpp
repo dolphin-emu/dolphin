@@ -73,13 +73,6 @@ u16 Accelerator::Read(s16* coefs)
   {
   case 0x00:  // ADPCM audio
   {
-    // ADPCM decoding, not much to explain here.
-    if ((m_current_address & 15) == 0)
-    {
-      m_pred_scale = ReadMemory((m_current_address & ~15) >> 1);
-      m_current_address += 2;
-    }
-
     switch (m_end_address & 15)
     {
     case 0:  // Tom and Jerry
@@ -111,6 +104,13 @@ u16 Accelerator::Read(s16* coefs)
     m_yn2 = m_yn1;
     m_yn1 = val;
     m_current_address += 1;
+
+    if ((m_current_address & 15) == 0)
+    {
+      m_pred_scale = ReadMemory((m_current_address & ~15) >> 1);
+      m_current_address += 2;
+      step_size_bytes += 2;
+    }
     break;
   }
   case 0x0A:  // 16-bit PCM audio
