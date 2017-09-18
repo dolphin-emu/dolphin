@@ -59,6 +59,7 @@ std::string ThousandSeparate(I value, int spaces = 0)
 std::string StringFromBool(bool value);
 
 bool TryParse(const std::string& str, bool* output);
+bool TryParse(const std::string& str, u16* output);
 bool TryParse(const std::string& str, u32* output);
 bool TryParse(const std::string& str, u64* output);
 
