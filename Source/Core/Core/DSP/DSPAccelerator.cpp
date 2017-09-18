@@ -120,8 +120,8 @@ u16 ReadAccelerator(u32 start_address, u32 end_address, u32* current_address, u1
     if (temp >= 8)
       temp -= 16;
 
-    val = (scale * temp) + ((0x400 + coef1 * *yn1 + coef2 * *yn2) >> 11);
-    val = MathUtil::Clamp<s16>(val, -0x7FFF, 0x7FFF);
+    s32 val32 = (scale * temp) + ((0x400 + coef1 * *yn1 + coef2 * *yn2) >> 11);
+    val = static_cast<s16>(MathUtil::Clamp<s32>(val32, -0x7FFF, 0x7FFF));
 
     *yn2 = *yn1;
     *yn1 = val;
