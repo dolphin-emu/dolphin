@@ -165,34 +165,4 @@ bool HasBug(Bug bug)
     return false;
   return it->second.m_hasbug;
 }
-
-Vendor TranslatePCIVendorID(u32 vendor_id)
-{
-  switch (vendor_id)
-  {
-  case 0x10DE:
-    return VENDOR_NVIDIA;
-
-  case 0x1002:
-  case 0x1022:
-    return VENDOR_ATI;
-
-  case 0x8086:
-  case 0x8087:
-    return VENDOR_INTEL;
-
-  // TODO: Is this correct for Mali?
-  case 0x13B6:
-    return VENDOR_ARM;
-
-  case 0x5143:
-    return VENDOR_QUALCOMM;
-
-  case 0x1010:
-    return VENDOR_IMGTEC;
-
-  default:
-    return VENDOR_UNKNOWN;
-  }
-}
 }
