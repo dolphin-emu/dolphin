@@ -60,6 +60,9 @@ void Accelerator::WriteD3(u16 value)
 
 u16 Accelerator::Read(s16* coefs)
 {
+  if (m_reads_stopped)
+    return 0x0000;
+
   u16 val;
   u8 step_size_bytes = 0;
 
@@ -148,6 +151,7 @@ u16 Accelerator::Read(s16* coefs)
   {
     // Set address back to start address.
     m_current_address = m_start_address;
+    m_reads_stopped = true;
     OnEndException();
   }
 
@@ -164,6 +168,7 @@ void Accelerator::DoState(PointerWrap& p)
   p.Do(m_yn1);
   p.Do(m_yn2);
   p.Do(m_pred_scale);
+  p.Do(m_reads_stopped);
 }
 
 constexpr u32 START_END_ADDRESS_MASK = 0x3fffffff;
@@ -197,6 +202,7 @@ void Accelerator::SetYn1(s16 yn1)
 void Accelerator::SetYn2(s16 yn2)
 {
   m_yn2 = yn2;
+  m_reads_stopped = false;
 }
 
 void Accelerator::SetPredScale(u16 pred_scale)

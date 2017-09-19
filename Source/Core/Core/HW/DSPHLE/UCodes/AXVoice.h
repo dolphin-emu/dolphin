@@ -199,10 +199,10 @@ protected:
 
 #ifdef AX_WII
       // One of the few meaningful differences between AXGC and AXWii:
-      // while AXGC handles non looping voices ending by having 0000
-      // samples at the loop address, AXWii has the 0000 samples
-      // internally in DRAM and use an internal pointer to it (loop addr
-      // does not contain 0000 samples on AXWii!).
+      // while AXGC handles non looping voices ending by relying on the
+      // accelerator to stop reads once the loop address is reached,
+      // AXWii has the 0000 samples internally in DRAM and use an internal
+      // pointer to it (loop addr does not contain 0000 samples on AXWii!).
       acc_end_reached = true;
 #endif
     }

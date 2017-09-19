@@ -50,5 +50,10 @@ protected:
   s16 m_yn1 = 0;
   s16 m_yn2 = 0;
   u16 m_pred_scale = 0;
+
+  // When an ACCOV is triggered, the accelerator stops reading back anything
+  // and updating the current address register, unless the YN2 register is written to.
+  // This is kept track of internally; this state is not exposed via any register.
+  bool m_reads_stopped = false;
 };
 }  // namespace DSP
