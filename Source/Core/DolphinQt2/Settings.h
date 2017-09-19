@@ -78,9 +78,12 @@ public:
   bool GetCheatsEnabled() const;
   void SetCheatsEnabled(bool enabled);
 
+  // Debug
+  void SetDebugModeEnabled(bool enabled);
+  bool IsDebugModeEnabled() const;
+
   // Other
   GameListModel* GetGameListModel() const;
-
 signals:
   void ConfigChanged();
   void EmulationStateChanged(Core::State new_state);
@@ -93,8 +96,10 @@ signals:
   void LogVisibilityChanged(bool visible);
   void LogConfigVisibilityChanged(bool visible);
   void EnableCheatsChanged(bool enabled);
+  void DebugModeToggled(bool enabled);
 
 private:
+  bool m_registers_visible = false;
   std::unique_ptr<NetPlayClient> m_client;
   std::unique_ptr<NetPlayServer> m_server;
   Settings();

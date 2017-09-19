@@ -196,3 +196,17 @@ void Settings::SetCheatsEnabled(bool enabled)
     emit EnableCheatsChanged(enabled);
   }
 }
+
+void Settings::SetDebugModeEnabled(bool enabled)
+{
+  if (IsDebugModeEnabled() != enabled)
+  {
+    SConfig::GetInstance().bEnableDebugging = enabled;
+    emit DebugModeToggled(enabled);
+  }
+}
+
+bool Settings::IsDebugModeEnabled() const
+{
+  return SConfig::GetInstance().bEnableDebugging;
+}
