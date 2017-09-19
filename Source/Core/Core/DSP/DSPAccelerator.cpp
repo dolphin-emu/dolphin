@@ -76,19 +76,6 @@ u16 Accelerator::Read(s16* coefs)
   {
   case 0x00:  // ADPCM audio
   {
-    switch (m_end_address & 15)
-    {
-    case 0:  // Tom and Jerry
-      step_size_bytes = 1;
-      break;
-    case 1:  // Blazing Angels
-      step_size_bytes = 0;
-      break;
-    default:
-      step_size_bytes = 2;
-      break;
-    }
-
     int scale = 1 << (m_pred_scale & 0xF);
     int coef_idx = (m_pred_scale >> 4) & 0x7;
 
@@ -103,12 +90,26 @@ u16 Accelerator::Read(s16* coefs)
 
     s32 val32 = (scale * temp) + ((0x400 + coef1 * m_yn1 + coef2 * m_yn2) >> 11);
     val = static_cast<s16>(MathUtil::Clamp<s32>(val32, -0x7FFF, 0x7FFF));
+    step_size_bytes = 2;
 
     m_yn2 = m_yn1;
     m_yn1 = val;
     m_current_address += 1;
 
-    if ((m_current_address & 15) == 0)
+    // These two cases are handled in a special way, separate from normal overflow handling:
+    // the ACCOV exception does not fire at all, the predscale register is not updated,
+    // and if the end address is 16-byte aligned, the DSP loops to start_address + 1
+    // instead of start_address.
+    if ((m_end_address & 0xf) == 0x0 && m_current_address == m_end_address)
+    {
+      m_current_address = m_start_address + 1;
+    }
+    else if ((m_end_address & 0xf) == 0x1 && m_current_address == m_end_address - 1)
+    {
+      m_current_address = m_start_address;
+    }
+    // If any of these special cases were hit, the DSP does not update the predscale register.
+    else if ((m_current_address & 15) == 0)
     {
       m_pred_scale = ReadMemory((m_current_address & ~15) >> 1);
       m_current_address += 2;
