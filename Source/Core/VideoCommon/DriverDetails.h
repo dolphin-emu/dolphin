@@ -271,6 +271,11 @@ enum Bug
   // Started Version: 1.7
   // Ended Version: 1.10
   BUG_BROKEN_CLEAR_LOADOP_RENDERPASS,
+
+  // BUG: Reversed viewport depth range does not work as intended on some Vulkan drivers.
+  // The Vulkan spec allows the minDepth/maxDepth fields in the viewport to be reversed,
+  // however the implementation is broken on some drivers (mainly AMD).
+  BUG_BROKEN_REVERSED_DEPTH_RANGE,
 };
 
 // Initializes our internal vendor, device family, and driver version
