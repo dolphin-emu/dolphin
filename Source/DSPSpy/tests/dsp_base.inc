@@ -138,8 +138,18 @@ irq4:
 	lri		$ac0.m, #0x0004
 	jmp		irq
 irq5:
-	lri		$ac0.m, #0x0005
-	jmp		irq
+	lrs		$ac0.m, @DMBH
+	andcf		$ac0.m, #0x8000
+	jlz		irq5
+	si		@DMBH, #0x8005
+	si		@DMBL, #0x0000
+	si		@DIRQ, #0x0001
+	lri		$ac0.m, #0xbbbb
+	sr		@0xffda, $ac0.m ; pred scale
+	sr		@0xffdb, $ac0.m ; yn1
+	lr		$ix2, @ARAM
+	sr		@0xffdc, $ac0.m ; yn2
+	rti
 irq6:
 	lri		$ac0.m, #0x0006
 	jmp		irq
