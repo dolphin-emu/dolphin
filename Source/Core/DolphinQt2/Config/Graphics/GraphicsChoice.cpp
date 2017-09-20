@@ -16,12 +16,9 @@ GraphicsChoice::GraphicsChoice(const QStringList& options, const Config::ConfigI
   setCurrentIndex(Config::Get(m_setting));
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, [this]() {
-    if (Config::GetActiveLayerForConfig(m_setting) != Config::LayerType::Base)
-    {
-      QFont bf = font();
-      bf.setBold(true);
-      setFont(bf);
-    }
+    QFont bf = font();
+    bf.setBold(Config::GetActiveLayerForConfig(m_setting) != Config::LayerType::Base);
+    setFont(bf);
   });
 }
 
