@@ -16,7 +16,7 @@ GraphicsBool::GraphicsBool(const QString& label, const Config::ConfigInfo<bool>&
   connect(this, &QCheckBox::toggled, this, &GraphicsBool::Update);
   setChecked(Config::Get(m_setting) ^ reverse);
 
-  connect(&Settings::Instance(), &Settings::EmulationStateChanged, [this]() {
+  connect(&Settings::Instance(), &Settings::ConfigChanged, [this] {
     QFont bf = font();
     bf.setBold(Config::GetActiveLayerForConfig(m_setting) != Config::LayerType::Base);
     setFont(bf);
