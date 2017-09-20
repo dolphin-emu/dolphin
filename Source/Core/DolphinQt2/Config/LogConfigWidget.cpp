@@ -196,3 +196,8 @@ void LogConfigWidget::SaveSettings()
       LogManager::GetInstance()->SetEnable(type, enabled);
   }
 }
+
+void LogConfigWidget::closeEvent(QCloseEvent*)
+{
+  Settings::Instance().SetLogConfigVisible(false);
+}

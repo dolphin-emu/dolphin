@@ -7,6 +7,7 @@
 #include <QDockWidget>
 
 class QCheckBox;
+class QCloseEvent;
 class QListWidget;
 class QPushButton;
 class QRadioButton;
@@ -18,6 +19,9 @@ class LogConfigWidget final : public QDockWidget
 public:
   explicit LogConfigWidget(QWidget* parent = nullptr);
   ~LogConfigWidget();
+
+protected:
+  void closeEvent(QCloseEvent* event) override;
 
 private:
   void CreateWidgets();
