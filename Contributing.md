@@ -28,6 +28,8 @@ This project uses clang-format (stable branch) to check for common style issues.
 
 ## <a name="intro-formatting-issues"></a>Checking and fixing formatting issues
 
+Windows users need to be careful about line endings. Windows users should configure git to checkout UNIX-style line endings to keep clang-format simple.
+
 In most cases, clang-format can and **should** be used to automatically reformat code and solve most formatting issues.
 
 - To run clang-format on all staged files:
