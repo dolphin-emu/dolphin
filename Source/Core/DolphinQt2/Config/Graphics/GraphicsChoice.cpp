@@ -5,6 +5,7 @@
 #include "DolphinQt2/Config/Graphics/GraphicsChoice.h"
 
 #include "Common/Config/Config.h"
+#include "DolphinQt2/Settings.h"
 
 GraphicsChoice::GraphicsChoice(const QStringList& options, const Config::ConfigInfo<int>& setting)
     : m_setting(setting)
@@ -14,12 +15,14 @@ GraphicsChoice::GraphicsChoice(const QStringList& options, const Config::ConfigI
           &GraphicsChoice::Update);
   setCurrentIndex(Config::Get(m_setting));
 
-  if (Config::GetActiveLayerForConfig(m_setting) != Config::LayerType::Base)
-  {
-    QFont bf = font();
-    bf.setBold(true);
-    setFont(bf);
-  }
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, [this]() {
+    if (Config::GetActiveLayerForConfig(m_setting) != Config::LayerType::Base)
+    {
+      QFont bf = font();
+      bf.setBold(true);
+      setFont(bf);
+    }
+  });
 }
 
 void GraphicsChoice::Update(int choice)
