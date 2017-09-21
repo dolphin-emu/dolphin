@@ -98,7 +98,7 @@ u16 gdsp_mbox_read_l(Mailbox mbx)
   return (u16)value;
 }
 
-void gdsp_ifx_write(u32 addr, u32 val)
+void gdsp_ifx_write(u32 addr, u16 val)
 {
   g_dsp_cap->LogIFXWrite(addr, val);
 
