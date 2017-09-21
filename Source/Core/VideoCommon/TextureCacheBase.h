@@ -169,6 +169,7 @@ public:
 
   TCacheEntry* Load(const u32 stage);
   static void InvalidateAllBindPoints() { valid_bind_points.reset(); }
+  static void InvalidateBindPoint(u8 stage) { valid_bind_points.reset(stage); }
   static bool IsValidBindPoint(u32 i) { return valid_bind_points.test(i); }
   void BindTextures();
   void CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstFormat, u32 dstStride,
