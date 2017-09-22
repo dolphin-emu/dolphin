@@ -264,7 +264,7 @@ public final class GameDatabase extends SQLiteOpenHelper
 			@Override
 			public void call(Subscriber<? super Cursor> subscriber)
 			{
-				Log.info("[GameDatabase] [GameDatabase] Reading games list...");
+				Log.info("[GameDatabase] Reading games list...");
 
 				String whereClause = null;
 				String[] whereArgs = null;
