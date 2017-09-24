@@ -15,12 +15,14 @@
 #include "Common/MemoryUtil.h"
 #include "Common/MsgHandler.h"
 
+#include "Core/DSP/DSPAccelerator.h"
 #include "Core/DSP/DSPAnalyzer.h"
 #include "Core/DSP/DSPHWInterface.h"
 #include "Core/DSP/DSPHost.h"
 #include "Core/DSP/Interpreter/DSPIntUtil.h"
 #include "Core/DSP/Interpreter/DSPInterpreter.h"
 #include "Core/DSP/Jit/DSPEmitter.h"
+#include "Core/HW/DSP.h"
 
 namespace DSP
 {
@@ -111,10 +113,20 @@ static void DSPCore_FreeMemoryPages()
   g_dsp.irom = g_dsp.iram = g_dsp.dram = g_dsp.coef = nullptr;
 }
 
+class LLEAccelerator final : public Accelerator
+{
+protected:
+  u8 ReadMemory(u32 address) override { return Host::ReadHostMemory(address); }
+  void WriteMemory(u32 address, u8 value) override { Host::WriteHostMemory(value, address); }
+  void OnEndException() override { DSPCore_SetException(EXP_ACCOV); }
+};
+
 bool DSPCore_Init(const DSPInitOptions& opts)
 {
   g_dsp.step_counter = 0;
   g_init_hax = false;
+
+  g_dsp.accelerator = std::make_unique<LLEAccelerator>();
 
   g_dsp.irom = static_cast<u16*>(Common::AllocateMemoryPages(DSP_IROM_BYTE_SIZE));
   g_dsp.iram = static_cast<u16*>(Common::AllocateMemoryPages(DSP_IRAM_BYTE_SIZE));

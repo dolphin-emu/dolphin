@@ -22,6 +22,6 @@ u16 gdsp_mbox_read_h(Mailbox mbx);
 u16 gdsp_mbox_read_l(Mailbox mbx);
 
 void gdsp_ifx_init();
-void gdsp_ifx_write(u32 addr, u32 val);
+void gdsp_ifx_write(u32 addr, u16 val);
 u16 gdsp_ifx_read(u16 addr);
 }  // namespace DSP
