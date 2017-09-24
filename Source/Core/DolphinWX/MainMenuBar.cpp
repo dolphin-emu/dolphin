@@ -248,6 +248,8 @@ wxMenu* MainMenuBar::CreateToolsMenu() const
       _("Update the Wii system software to the latest version from Nintendo."));
   tools_menu->AppendSeparator();
   tools_menu->AppendSubMenu(wiimote_menu, _("Connect Wii Remotes"));
+  tools_menu->AppendSeparator();
+  tools_menu->Append(IDM_LUA_SCRIPT, _("Open Lua console"), _("Opens Lua console"));
 
   return tools_menu;
 }

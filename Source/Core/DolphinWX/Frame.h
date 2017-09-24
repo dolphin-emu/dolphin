@@ -21,6 +21,7 @@
 #include "Common/Event.h"
 #include "Core/ConfigManager.h"
 #include "DolphinWX/Globals.h"
+#include "LuaScriptFrame.h"
 
 #if defined(HAVE_X11) && HAVE_X11
 #include "UICommon/X11Utils.h"
@@ -96,6 +97,7 @@ public:
   // These have to be public
   CCodeWindow* m_code_window = nullptr;
   NetPlaySetupFrame* m_netplay_setup_frame = nullptr;
+  LuaScriptFrame* m_lua_script_frame = nullptr;
 
   void DoStop();
   void UpdateGUI();
@@ -362,6 +364,8 @@ private:
   void OnSelectSlot(wxCommandEvent& event);
   void OnSaveCurrentSlot(wxCommandEvent& event);
   void OnLoadCurrentSlot(wxCommandEvent& event);
+
+  void OnLua(wxCommandEvent& event);
 
   void PollHotkeys(wxTimerEvent&);
   void ParseHotkeys();

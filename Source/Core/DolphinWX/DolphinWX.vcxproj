@@ -89,6 +89,7 @@
     <ClCompile Include="ISOProperties\FilesystemPanel.cpp" />
     <ClCompile Include="ISOProperties\InfoPanel.cpp" />
     <ClCompile Include="ISOProperties\ISOProperties.cpp" />
+    <ClCompile Include="LuaScriptFrame.cpp" />
     <ClCompile Include="NetPlay\ChangeGameDialog.cpp" />
     <ClCompile Include="NetPlay\MD5Dialog.cpp" />
     <ClCompile Include="NetPlay\NetPlayLauncher.cpp" />
@@ -148,6 +149,7 @@
     <ClInclude Include="ISOProperties\FilesystemPanel.h" />
     <ClInclude Include="ISOProperties\InfoPanel.h" />
     <ClInclude Include="ISOProperties\ISOProperties.h" />
+    <ClInclude Include="LuaScriptFrame.h" />
     <ClInclude Include="NetPlay\ChangeGameDialog.h" />
     <ClInclude Include="NetPlay\MD5Dialog.h" />
     <ClInclude Include="NetPlay\NetPlayLauncher.h" />

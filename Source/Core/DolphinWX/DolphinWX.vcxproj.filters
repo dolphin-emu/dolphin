@@ -34,6 +34,9 @@
     <Filter Include="GUI\ISOProperties">
       <UniqueIdentifier>{d72aa7f0-ed24-4fed-9d3a-38b82d1b753c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="GUI\Lua">
+      <UniqueIdentifier>{9c26e4e0-b047-4fa2-bccc-450ee607af15}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp" />
@@ -268,6 +271,9 @@
     <ClCompile Include="DolphinSlider.cpp">
       <Filter>GUI\Widgets</Filter>
     </ClCompile>
+    <ClCompile Include="LuaScriptFrame.cpp">
+      <Filter>GUI\Lua</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Main.h" />
@@ -494,6 +500,9 @@
     </ClInclude>
     <ClInclude Include="DolphinSlider.h">
       <Filter>GUI\Widgets</Filter>
+    </ClInclude>
+    <ClInclude Include="LuaScriptFrame.h">
+      <Filter>GUI\Lua</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

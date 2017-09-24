@@ -186,6 +186,7 @@ void CFrame::BindMenuBarEvents()
   Bind(wxEVT_MENU, &CFrame::OnLoadWiiMenu, this, IDM_LOAD_WII_MENU);
   Bind(wxEVT_MENU, &CFrame::OnImportBootMiiBackup, this, IDM_IMPORT_NAND);
   Bind(wxEVT_MENU, &CFrame::OnExtractCertificates, this, IDM_EXTRACT_CERTIFICATES);
+  Bind(wxEVT_MENU, &CFrame::OnLua, this, IDM_LUA_SCRIPT);
   for (const int idm : {IDM_PERFORM_ONLINE_UPDATE_CURRENT, IDM_PERFORM_ONLINE_UPDATE_EUR,
                         IDM_PERFORM_ONLINE_UPDATE_JPN, IDM_PERFORM_ONLINE_UPDATE_KOR,
                         IDM_PERFORM_ONLINE_UPDATE_USA})
@@ -1168,6 +1169,19 @@ void CFrame::OnNetPlay(wxCommandEvent& WXUNUSED(event))
   {
     m_netplay_setup_frame->Raise();
   }
+}
+
+void CFrame::OnLua(wxCommandEvent& WXUNUSED(event))
+{
+  if (!m_lua_script_frame)
+  {
+    m_lua_script_frame = new LuaScriptFrame(this);
+  }
+  else
+  {
+    m_lua_script_frame->Raise();
+  }
+  m_lua_script_frame->Show();
 }
 
 void CFrame::OnMemcard(wxCommandEvent& WXUNUSED(event))
