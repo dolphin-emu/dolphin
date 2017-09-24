@@ -208,6 +208,6 @@ void Accelerator::SetYn2(s16 yn2)
 
 void Accelerator::SetPredScale(u16 pred_scale)
 {
-  m_pred_scale = pred_scale;
+  m_pred_scale = pred_scale & 0x7f;
 }
 }  // namespace DSP
