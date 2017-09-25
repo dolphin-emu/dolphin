@@ -7,12 +7,14 @@
 #include <QSize>
 
 #include "AudioCommon/AudioCommon.h"
+#include "Common/Config/Config.h"
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "DolphinQt2/GameList/GameListModel.h"
+#include "DolphinQt2/QtUtils/QueueOnObject.h"
 #include "DolphinQt2/Settings.h"
 #include "InputCommon/InputConfig.h"
 
@@ -21,6 +23,9 @@ Settings::Settings()
   qRegisterMetaType<Core::State>();
   Core::SetOnStateChangedCallback(
       [this](Core::State new_state) { emit EmulationStateChanged(new_state); });
+
+  Config::AddConfigChangedCallback(
+      [this] { QueueOnObject(this, [this] { emit ConfigChanged(); }); });
 }
 
 Settings& Settings::Instance()

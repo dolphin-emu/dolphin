@@ -81,6 +81,7 @@ public:
   GameListModel* GetGameListModel() const;
 
 signals:
+  void ConfigChanged();
   void EmulationStateChanged(Core::State new_state);
   void ThemeChanged();
   void PathAdded(const QString&);
