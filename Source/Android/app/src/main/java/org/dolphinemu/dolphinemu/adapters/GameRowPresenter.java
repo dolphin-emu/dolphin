@@ -63,13 +63,13 @@ public final class GameRowPresenter extends Presenter
 		int backgroundId;
 		switch (game.getPlatform())
 		{
-			case Game.PLATFORM_GC:
+			case GAMECUBE:
 				backgroundId = R.drawable.tv_card_background_gamecube;
 				break;
-			case Game.PLATFORM_WII:
+			case WII:
 				backgroundId = R.drawable.tv_card_background_wii;
 				break;
-			case Game.PLATFORM_WII_WARE:
+			case WIIWARE:
 			default:  // This shouldn't happen, but set the default to WiiWare colors.
 				backgroundId = R.drawable.tv_card_background_wiiware;
 				break;

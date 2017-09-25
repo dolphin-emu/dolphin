@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
+import org.dolphinemu.dolphinemu.ui.platform.Platform;
 import org.dolphinemu.dolphinemu.utils.Log;
 
 import java.io.File;
@@ -200,12 +201,7 @@ public final class GameDatabase extends SQLiteOpenHelper
 									gameId = filePath.substring(filePath.lastIndexOf("/") + 1, filePath.lastIndexOf("."));
 								}
 
-								// If the game's platform field is empty, file under Wiiware. // TODO Something less dum
-								int platform = NativeLibrary.GetPlatform(filePath);
-								if (platform == -1)
-								{
-									platform = Game.PLATFORM_WII_WARE;
-								}
+								Platform platform = Platform.fromNativeInt(NativeLibrary.GetPlatform(filePath));
 
 								ContentValues game = Game.asContentValues(platform,
 										name,
@@ -257,7 +253,7 @@ public final class GameDatabase extends SQLiteOpenHelper
 		database.close();
 	}
 
-	public Observable<Cursor> getGamesForPlatform(final int platform)
+	public Observable<Cursor> getGamesForPlatform(final Platform platform)
 	{
 		return Observable.create(new Observable.OnSubscribe<Cursor>()
 		{
@@ -266,18 +262,17 @@ public final class GameDatabase extends SQLiteOpenHelper
 			{
 				Log.info("[GameDatabase] Reading games list...");
 
+
+				// Only add a WHERE clause if we have a specific platform
 				String whereClause = null;
 				String[] whereArgs = null;
-
-				// If -1 passed in, return all games. Else, return games for one platform only.
-				if (platform >= 0)
+				if (platform != Platform.ALL)
 				{
 					whereClause = KEY_GAME_PLATFORM + " = ?";
-					whereArgs = new String[]{Integer.toString(platform)};
+					whereArgs = new String[]{Integer.toString(platform.toInt())};
 				}
 
 				SQLiteDatabase database = getReadableDatabase();
-
 				Cursor resultCursor = database.query(
 						TABLE_NAME_GAMES,
 						null,
