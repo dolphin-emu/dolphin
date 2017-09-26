@@ -10,13 +10,12 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.GridLayout;
 
-import org.dolphinemu.dolphinemu.BuildConfig;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 
 public final class SaveStateFragment extends Fragment implements View.OnClickListener
 {
-	public static final String FRAGMENT_TAG = BuildConfig.APPLICATION_ID + ".save_state";
+	public static final String FRAGMENT_TAG = "save_state";
 
 	private static SparseIntArray buttonsActionsMap = new SparseIntArray();
 	static {

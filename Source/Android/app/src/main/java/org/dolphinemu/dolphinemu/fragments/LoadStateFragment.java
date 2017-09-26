@@ -10,13 +10,12 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.GridLayout;
 
-import org.dolphinemu.dolphinemu.BuildConfig;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 
 public final class LoadStateFragment extends Fragment implements View.OnClickListener
 {
-	public static final String FRAGMENT_TAG = BuildConfig.APPLICATION_ID + ".load_state";
+	public static final String FRAGMENT_TAG = "load_state";
 
 	private static SparseIntArray buttonsActionsMap = new SparseIntArray();
 	static {

@@ -10,13 +10,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import org.dolphinemu.dolphinemu.BuildConfig;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.adapters.GameAdapter;
 
 public final class PlatformGamesFragment extends Fragment implements PlatformGamesView
 {
-	private static final String ARG_PLATFORM = BuildConfig.APPLICATION_ID + ".PLATFORM";
+	private static final String ARG_PLATFORM = "platform";
 
 	private PlatformGamesPresenter mPresenter = new PlatformGamesPresenter(this);
 

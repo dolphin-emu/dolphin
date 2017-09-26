@@ -15,7 +15,6 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 
-import org.dolphinemu.dolphinemu.BuildConfig;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.adapters.FileAdapter;
 import org.dolphinemu.dolphinemu.model.GameDatabase;
@@ -28,7 +27,7 @@ import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
  */
 public class AddDirectoryActivity extends AppCompatActivity implements FileAdapter.FileClickListener
 {
-	public static final String KEY_CURRENT_PATH = BuildConfig.APPLICATION_ID + ".path";
+	private static final String KEY_CURRENT_PATH = "path";
 
 	private FileAdapter mAdapter;
 	private Toolbar mToolbar;
