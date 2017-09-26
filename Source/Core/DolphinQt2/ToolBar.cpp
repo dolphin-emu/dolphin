@@ -35,7 +35,6 @@ void ToolBar::OnEmulationStateChanged(Core::State state)
 {
   bool running = state != Core::State::Uninitialized;
   m_stop_action->setEnabled(running);
-  m_stop_action->setVisible(running);
   m_fullscreen_action->setEnabled(running);
   m_screenshot_action->setEnabled(running);
 
@@ -62,7 +61,7 @@ void ToolBar::MakeActions()
   m_controllers_action = AddAction(this, tr("Controllers"), this, &ToolBar::ControllersPressed);
   m_controllers_action->setEnabled(true);
 
-  // Ensure every button has the same width
+  // Ensure every button has about the same width
   std::vector<QWidget*> items;
   for (const auto& action : {m_open_action, m_play_action, m_pause_action, m_stop_action,
                              m_stop_action, m_fullscreen_action, m_screenshot_action,
