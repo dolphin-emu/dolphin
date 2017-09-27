@@ -84,6 +84,7 @@ set(SRCS
   QtUtils/ElidedButton.cpp
   QtUtils/ListTabWidget.cpp
   QtUtils/WindowActivationEventFilter.cpp
+  Settings/AdvancedPane.cpp
   Settings/AudioPane.cpp
   Settings/GeneralPane.cpp
   Settings/InterfacePane.cpp

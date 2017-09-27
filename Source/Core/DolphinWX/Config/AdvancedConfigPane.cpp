@@ -110,7 +110,8 @@ void AdvancedConfigPane::InitializeGUI()
 
 void AdvancedConfigPane::LoadGUIValues()
 {
-  int ocFactor = (int)(std::log2f(SConfig::GetInstance().m_OCFactor) * 25.f + 100.f + 0.5f);
+  int ocFactor =
+      static_cast<int>(std::ceil(std::log2f(SConfig::GetInstance().m_OCFactor) * 25.f + 100.f));
   bool oc_enabled = SConfig::GetInstance().m_OCEnable;
   m_clock_override_checkbox->SetValue(oc_enabled);
   m_clock_override_slider->SetValue(ocFactor);
@@ -199,7 +200,7 @@ void AdvancedConfigPane::OnCustomRTCTimeChanged(wxDateEvent& event)
 
 void AdvancedConfigPane::UpdateCPUClock()
 {
-  int core_clock = SystemTimers::GetTicksPerSecond() / pow(10, 6);
+  int core_clock = SystemTimers::GetTicksPerSecond() / std::pow(10, 6);
   int percent = static_cast<int>(std::round(SConfig::GetInstance().m_OCFactor * 100.f));
   int clock = static_cast<int>(std::round(SConfig::GetInstance().m_OCFactor * core_clock));
 
