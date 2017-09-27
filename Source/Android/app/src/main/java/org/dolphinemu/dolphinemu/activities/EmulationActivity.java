@@ -156,8 +156,23 @@ public final class EmulationActivity extends AppCompatActivity
 		buttonsActionsMap.append(R.id.menu_emulation_load_4, EmulationActivity.MENU_ACTION_LOAD_SLOT4);
 		buttonsActionsMap.append(R.id.menu_emulation_load_5, EmulationActivity.MENU_ACTION_LOAD_SLOT5);
 		buttonsActionsMap.append(R.id.menu_exit, EmulationActivity.MENU_ACTION_EXIT);
+	}
 
+	public static void launch(Activity activity, String path, String title, String screenshotPath, int position, View sharedView)
+	{
+		Intent launcher = new Intent(activity, EmulationActivity.class);
 
+		launcher.putExtra("SelectedGame", path);
+		launcher.putExtra("SelectedTitle", title);
+		launcher.putExtra("ScreenPath", screenshotPath);
+		launcher.putExtra("GridPosition", position);
+
+		ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(
+				activity,
+				sharedView,
+				"image_game_screenshot");
+
+		activity.startActivityForResult(launcher, MainPresenter.REQUEST_EMULATE_GAME, options.toBundle());
 	}
 
 	@Override
@@ -940,22 +955,5 @@ public final class EmulationActivity extends AppCompatActivity
 	public static boolean isGameCubeGame()
 	{
 		return mIsGameCubeGame;
-	}
-
-	public static void launch(Activity activity, String path, String title, String screenshotPath, int position, View sharedView)
-	{
-		Intent launcher = new Intent(activity, EmulationActivity.class);
-
-		launcher.putExtra("SelectedGame", path);
-		launcher.putExtra("SelectedTitle", title);
-		launcher.putExtra("ScreenPath", screenshotPath);
-		launcher.putExtra("GridPosition", position);
-
-		ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(
-				activity,
-				sharedView,
-				"image_game_screenshot");
-
-		activity.startActivityForResult(launcher, MainPresenter.REQUEST_EMULATE_GAME, options.toBundle());
 	}
 }

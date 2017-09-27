@@ -22,6 +22,13 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
 	private static final String FRAGMENT_TAG = "settings";
 	private SettingsActivityPresenter mPresenter = new SettingsActivityPresenter(this);
 
+	public static void launch(Context context, String menuTag)
+	{
+		Intent settings = new Intent(context, SettingsActivity.class);
+		settings.putExtra(ARG_FILE_NAME, menuTag);
+		context.startActivity(settings);
+	}
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
 	{
@@ -172,14 +179,5 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
 	private SettingsFragment getFragment()
 	{
 		return (SettingsFragment) getFragmentManager().findFragmentByTag(FRAGMENT_TAG);
-	}
-
-	public static void launch(Context context, String menuTag)
-	{
-		Intent settings = new Intent(context, SettingsActivity.class);
-
-		settings.putExtra(ARG_FILE_NAME, menuTag);
-
-		context.startActivity(settings);
 	}
 }
