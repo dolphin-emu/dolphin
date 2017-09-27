@@ -37,9 +37,8 @@ import com.squareup.picasso.Picasso;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.fragments.EmulationFragment;
-import org.dolphinemu.dolphinemu.fragments.LoadStateFragment;
 import org.dolphinemu.dolphinemu.fragments.MenuFragment;
-import org.dolphinemu.dolphinemu.fragments.SaveStateFragment;
+import org.dolphinemu.dolphinemu.fragments.SaveLoadStateFragment;
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
 import org.dolphinemu.dolphinemu.utils.Animations;
@@ -54,13 +53,12 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
 
 public final class EmulationActivity extends AppCompatActivity
 {
+	private static final String FRAGMENT_SUBMENU_TAG = "submenu";
 	private View mDecorView;
 	private ImageView mImageView;
 
 	private FrameLayout mFrameEmulation;
 	private LinearLayout mMenuLayout;
-
-	private String mSubmenuFragmentTag;
 
 	private SharedPreferences mPreferences;
 
@@ -70,6 +68,7 @@ public final class EmulationActivity extends AppCompatActivity
 	private boolean mDeviceHasTouchScreen;
 	private boolean mSystemUiVisible;
 	private boolean mMenuVisible;
+	private boolean mSubMenuVisible = false;
 
 	private static boolean mIsGameCubeGame;
 
@@ -371,7 +370,7 @@ public final class EmulationActivity extends AppCompatActivity
 	{
 		if (!mDeviceHasTouchScreen)
 		{
-			if (mSubmenuFragmentTag != null)
+			if (mSubMenuVisible)
 			{
 				removeSubMenu();
 			}
@@ -543,14 +542,14 @@ public final class EmulationActivity extends AppCompatActivity
 			case MENU_ACTION_SAVE_ROOT:
 				if (!mDeviceHasTouchScreen)
 				{
-					showMenu(MenuType.SAVE);
+					showMenu(SaveLoadStateFragment.SaveOrLoad.SAVE);
 				}
 				return;
 
 			case MENU_ACTION_LOAD_ROOT:
 				if (!mDeviceHasTouchScreen)
 				{
-					showMenu(MenuType.LOAD);
+					showMenu(SaveLoadStateFragment.SaveOrLoad.LOAD);
 				}
 				return;
 
@@ -883,68 +882,44 @@ public final class EmulationActivity extends AppCompatActivity
 				});
 	}
 
-	private void showMenu(MenuType menuId)
+	private void showMenu(SaveLoadStateFragment.SaveOrLoad saveOrLoad)
 	{
-		Fragment fragment;
-
-		switch (menuId)
-		{
-			case SAVE:
-				fragment = SaveStateFragment.newInstance();
-				mSubmenuFragmentTag = SaveStateFragment.FRAGMENT_TAG;
-				break;
-
-			case LOAD:
-				fragment = LoadStateFragment.newInstance();
-				mSubmenuFragmentTag = LoadStateFragment.FRAGMENT_TAG;
-				break;
-
-			default:
-				return;
-		}
-
+		Fragment fragment = SaveLoadStateFragment.newInstance(saveOrLoad);
 		getFragmentManager().beginTransaction()
 				.setCustomAnimations(R.animator.menu_slide_in, R.animator.menu_slide_out)
-				.replace(R.id.frame_submenu, fragment, mSubmenuFragmentTag)
+				.replace(R.id.frame_submenu, fragment, FRAGMENT_SUBMENU_TAG)
 				.commit();
+		mSubMenuVisible = true;
 	}
 
 	private void removeSubMenu()
 	{
-		if (mSubmenuFragmentTag != null)
+		final Fragment fragment = getFragmentManager().findFragmentByTag(FRAGMENT_SUBMENU_TAG);
+
+		if (fragment != null)
 		{
-			final Fragment fragment = getFragmentManager().findFragmentByTag(mSubmenuFragmentTag);
-
-			if (fragment != null)
-			{
-				// When removing a fragment without replacement, its animation must be done
-				// manually beforehand.
-				Animations.fadeViewOutToRight(fragment.getView())
-						.withEndAction(new Runnable()
+			// When removing a fragment without replacement, its animation must be done
+			// manually beforehand.
+			Animations.fadeViewOutToRight(fragment.getView())
+					.withEndAction(new Runnable()
+					{
+						@Override
+						public void run()
 						{
-							@Override
-							public void run()
+							if (mMenuVisible)
 							{
-								if (mMenuVisible)
-								{
-									getFragmentManager().beginTransaction()
-											.remove(fragment)
-											.commit();
-								}
+								getFragmentManager().beginTransaction()
+										.remove(fragment)
+										.commit();
 							}
-						});
-			}
-			else
-			{
-				Log.error("[EmulationActivity] Fragment not found, can't remove.");
-			}
-
-			mSubmenuFragmentTag = null;
+						}
+					});
 		}
 		else
 		{
-			Log.error("[EmulationActivity] Fragment Tag empty.");
+			Log.error("[EmulationActivity] Fragment not found, can't remove.");
 		}
+		mSubMenuVisible = false;
 	}
 
 	public String getSelectedTitle()
