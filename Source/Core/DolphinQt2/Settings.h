@@ -40,9 +40,6 @@ public:
 
   // UI
   void SetThemeName(const QString& theme_name);
-  QString GetProfilesDir() const;
-  QVector<QString> GetProfiles(const InputConfig* config) const;
-  QString GetProfileINIPath(const InputConfig* config, const QString& name) const;
 
   bool IsInDevelopmentWarningEnabled() const;
   bool IsLogVisible() const;

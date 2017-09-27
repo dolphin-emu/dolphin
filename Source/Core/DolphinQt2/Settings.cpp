@@ -8,7 +8,6 @@
 
 #include "AudioCommon/AudioCommon.h"
 #include "Common/Config/Config.h"
-#include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
@@ -38,17 +37,6 @@ void Settings::SetThemeName(const QString& theme_name)
 {
   SConfig::GetInstance().theme_name = theme_name.toStdString();
   emit ThemeChanged();
-}
-
-QString Settings::GetProfilesDir() const
-{
-  return QString::fromStdString(File::GetUserPath(D_CONFIG_IDX) + "Profiles/");
-}
-
-QString Settings::GetProfileINIPath(const InputConfig* config, const QString& name) const
-{
-  return GetProfilesDir() + QString::fromStdString(config->GetProfileName()) + QDir::separator() +
-         name + QStringLiteral(".ini");
 }
 
 QStringList Settings::GetPaths() const
@@ -139,21 +127,6 @@ void Settings::DecreaseVolume(int volume)
 {
   AudioCommon::DecreaseVolume(volume);
   emit VolumeChanged(GetVolume());
-}
-
-QVector<QString> Settings::GetProfiles(const InputConfig* config) const
-{
-  const std::string path = GetProfilesDir().toStdString() + config->GetProfileName();
-  QVector<QString> vec;
-
-  for (const auto& file : Common::DoFileSearch({path}, {".ini"}))
-  {
-    std::string basename;
-    SplitPath(file, nullptr, &basename, nullptr);
-    vec.push_back(QString::fromStdString(basename));
-  }
-
-  return vec;
 }
 
 bool Settings::IsLogVisible() const
