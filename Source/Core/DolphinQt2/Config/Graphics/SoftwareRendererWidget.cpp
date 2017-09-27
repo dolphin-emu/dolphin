@@ -99,6 +99,7 @@ void SoftwareRendererWidget::CreateWidgets()
   main_layout->addWidget(overlay_box);
   main_layout->addWidget(utility_box);
   main_layout->addWidget(object_range_box);
+  main_layout->addStretch();
 
   setLayout(main_layout);
 }

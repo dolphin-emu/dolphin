@@ -74,6 +74,8 @@ void GameList::MakeListView()
   m_list->setCurrentIndex(QModelIndex());
   m_list->setContextMenuPolicy(Qt::CustomContextMenu);
   m_list->setWordWrap(false);
+  m_list->verticalHeader()->setDefaultSectionSize(m_list->verticalHeader()->defaultSectionSize() *
+                                                  1.25);
 
   connect(m_list, &QTableView::customContextMenuRequested, this, &GameList::ShowContextMenu);
   connect(m_list->selectionModel(), &QItemSelectionModel::selectionChanged,
@@ -484,7 +486,8 @@ void GameList::OnColumnVisibilityToggled(const QString& row, bool visible)
       {tr("Platform"), GameListModel::COL_PLATFORM},
       {tr("Size"), GameListModel::COL_SIZE},
       {tr("Title"), GameListModel::COL_TITLE},
-      {tr("State"), GameListModel::COL_RATING}};
+      {tr("State"), GameListModel::COL_RATING},
+      {tr("File Name"), GameListModel::COL_FILE_NAME}};
 
   m_list->setColumnHidden(rowname_to_col_index[row], !visible);
 }

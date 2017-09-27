@@ -100,6 +100,7 @@ void AdvancedWidget::CreateWidgets()
   main_layout->addWidget(debugging_box);
   main_layout->addWidget(utility_box);
   main_layout->addWidget(misc_box);
+  main_layout->addStretch();
 
   setLayout(main_layout);
 }

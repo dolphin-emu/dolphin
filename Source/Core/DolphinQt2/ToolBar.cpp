@@ -2,6 +2,9 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
+#include <vector>
+
 #include <QIcon>
 
 #include "Core/Core.h"
@@ -32,7 +35,6 @@ void ToolBar::OnEmulationStateChanged(Core::State state)
 {
   bool running = state != Core::State::Uninitialized;
   m_stop_action->setEnabled(running);
-  m_stop_action->setVisible(running);
   m_fullscreen_action->setEnabled(running);
   m_screenshot_action->setEnabled(running);
 
@@ -45,36 +47,36 @@ void ToolBar::OnEmulationStateChanged(Core::State state)
 
 void ToolBar::MakeActions()
 {
-  constexpr int button_width = 65;
   m_open_action = AddAction(this, tr("Open"), this, &ToolBar::OpenPressed);
-  widgetForAction(m_open_action)->setMinimumWidth(button_width);
-
   m_play_action = AddAction(this, tr("Play"), this, &ToolBar::PlayPressed);
-  widgetForAction(m_play_action)->setMinimumWidth(button_width);
-
   m_pause_action = AddAction(this, tr("Pause"), this, &ToolBar::PausePressed);
-  widgetForAction(m_pause_action)->setMinimumWidth(button_width);
-
   m_stop_action = AddAction(this, tr("Stop"), this, &ToolBar::StopPressed);
-  widgetForAction(m_stop_action)->setMinimumWidth(button_width);
-
   m_fullscreen_action = AddAction(this, tr("FullScr"), this, &ToolBar::FullScreenPressed);
-  widgetForAction(m_fullscreen_action)->setMinimumWidth(button_width);
-
   m_screenshot_action = AddAction(this, tr("ScrShot"), this, &ToolBar::ScreenShotPressed);
-  widgetForAction(m_screenshot_action)->setMinimumWidth(button_width);
 
   addSeparator();
 
   m_config_action = AddAction(this, tr("Config"), this, &ToolBar::SettingsPressed);
-  widgetForAction(m_config_action)->setMinimumWidth(button_width);
-
   m_graphics_action = AddAction(this, tr("Graphics"), this, &ToolBar::GraphicsPressed);
-  widgetForAction(m_graphics_action)->setMinimumWidth(button_width);
-
   m_controllers_action = AddAction(this, tr("Controllers"), this, &ToolBar::ControllersPressed);
-  widgetForAction(m_controllers_action)->setMinimumWidth(button_width);
   m_controllers_action->setEnabled(true);
+
+  // Ensure every button has about the same width
+  std::vector<QWidget*> items;
+  for (const auto& action : {m_open_action, m_play_action, m_pause_action, m_stop_action,
+                             m_stop_action, m_fullscreen_action, m_screenshot_action,
+                             m_config_action, m_graphics_action, m_controllers_action})
+  {
+    items.emplace_back(widgetForAction(action));
+  }
+
+  std::vector<int> widths;
+  std::transform(items.begin(), items.end(), std::back_inserter(widths),
+                 [](QWidget* item) { return item->sizeHint().width(); });
+
+  const int min_width = *std::max_element(widths.begin(), widths.end()) * 0.85;
+  for (QWidget* widget : items)
+    widget->setMinimumWidth(min_width);
 }
 
 void ToolBar::UpdateIcons()
