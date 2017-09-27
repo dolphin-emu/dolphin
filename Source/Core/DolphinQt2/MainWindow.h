@@ -32,6 +32,7 @@ class ControllersWindow;
 class DragEnterEvent;
 class GraphicsWindow;
 class RegisterWidget;
+class WatchWidget;
 
 class MainWindow final : public QMainWindow
 {
@@ -144,4 +145,5 @@ private:
   LogConfigWidget* m_log_config_widget;
   FIFOPlayerWindow* m_fifo_window;
   RegisterWidget* m_register_widget;
+  WatchWidget* m_watch_widget;
 };

@@ -161,4 +161,5 @@ private:
 
   // View
   QAction* m_show_registers;
+  QAction* m_show_watch;
 };

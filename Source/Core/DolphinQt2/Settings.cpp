@@ -225,3 +225,18 @@ bool Settings::IsRegistersVisible() const
 {
   return QSettings().value(QStringLiteral("debugger/showregisters")).toBool();
 }
+
+void Settings::SetWatchVisible(bool enabled)
+{
+  if (IsWatchVisible() != enabled)
+  {
+    QSettings().setValue(QStringLiteral("debugger/showwatch"), enabled);
+
+    emit WatchVisibilityChanged(enabled);
+  }
+}
+
+bool Settings::IsWatchVisible() const
+{
+  return QSettings().value(QStringLiteral("debugger/showwatch")).toBool();
+}

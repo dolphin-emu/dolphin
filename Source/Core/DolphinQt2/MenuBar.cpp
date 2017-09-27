@@ -91,6 +91,7 @@ void MenuBar::OnEmulationStateChanged(Core::State state)
 void MenuBar::OnDebugModeToggled(bool enabled)
 {
   m_show_registers->setVisible(enabled);
+  m_show_watch->setVisible(enabled);
 }
 
 void MenuBar::AddFileMenu()
@@ -270,6 +271,14 @@ void MenuBar::AddViewMenu()
   connect(m_show_registers, &QAction::toggled, &Settings::Instance(),
           &Settings::SetRegistersVisible);
   connect(&Settings::Instance(), &Settings::RegistersVisibilityChanged, m_show_registers,
+          &QAction::setChecked);
+
+  m_show_watch = view_menu->addAction(tr("&Watch"));
+  m_show_watch->setCheckable(true);
+  m_show_watch->setChecked(Settings::Instance().IsWatchVisible());
+
+  connect(m_show_watch, &QAction::toggled, &Settings::Instance(), &Settings::SetWatchVisible);
+  connect(&Settings::Instance(), &Settings::WatchVisibilityChanged, m_show_watch,
           &QAction::setChecked);
 
   view_menu->addSeparator();

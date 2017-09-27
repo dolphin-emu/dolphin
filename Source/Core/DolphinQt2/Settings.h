@@ -83,6 +83,8 @@ public:
   bool IsDebugModeEnabled() const;
   void SetRegistersVisible(bool enabled);
   bool IsRegistersVisible() const;
+  void SetWatchVisible(bool enabled);
+  bool IsWatchVisible() const;
 
   // Other
   GameListModel* GetGameListModel() const;
@@ -99,6 +101,7 @@ signals:
   void LogVisibilityChanged(bool visible);
   void LogConfigVisibilityChanged(bool visible);
   void EnableCheatsChanged(bool enabled);
+  void WatchVisibilityChanged(bool visible);
   void DebugModeToggled(bool enabled);
 
 private:

@@ -72,6 +72,7 @@ set(SRCS
   Config/SettingsWindow.cpp
   Debugger/RegisterColumn.cpp
   Debugger/RegisterWidget.cpp
+  Debugger/WatchWidget.cpp
   GameList/GameFileCache.cpp
   GameList/GameFile.cpp
   GameList/GameList.cpp
