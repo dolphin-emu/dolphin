@@ -70,9 +70,10 @@ public final class GameRowPresenter extends Presenter
 				backgroundId = R.drawable.tv_card_background_wii;
 				break;
 			case WIIWARE:
-			default:  // This shouldn't happen, but set the default to WiiWare colors.
 				backgroundId = R.drawable.tv_card_background_wiiware;
 				break;
+			default:
+				throw new AssertionError("Not reachable.");
 		}
 		Context context = holder.cardParent.getContext();
 		Drawable background = ContextCompat.getDrawable(context, backgroundId);

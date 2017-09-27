@@ -262,21 +262,13 @@ public final class GameDatabase extends SQLiteOpenHelper
 			{
 				Log.info("[GameDatabase] Reading games list...");
 
-
-				// Only add a WHERE clause if we have a specific platform
-				String whereClause = null;
-				String[] whereArgs = null;
-				if (platform != Platform.ALL)
-				{
-					whereClause = KEY_GAME_PLATFORM + " = ?";
-					whereArgs = new String[]{Integer.toString(platform.toInt())};
-				}
+				String[] whereArgs = new String[]{Integer.toString(platform.toInt())};
 
 				SQLiteDatabase database = getReadableDatabase();
 				Cursor resultCursor = database.query(
 						TABLE_NAME_GAMES,
 						null,
-						whereClause,
+						KEY_GAME_PLATFORM + " = ?",
 						whereArgs,
 						null,
 						null,

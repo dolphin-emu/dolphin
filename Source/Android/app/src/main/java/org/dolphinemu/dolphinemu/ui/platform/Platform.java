@@ -5,8 +5,7 @@ public enum Platform
 {
 	GAMECUBE(0, "GameCube Games"),
 	WII(1, "Wii Games"),
-	WIIWARE(2, "WiiWare Games"),
-	ALL(3, "All Games");
+	WIIWARE(2, "WiiWare Games");
 
 	private final int value;
 	private final String headerName;
