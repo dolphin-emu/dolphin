@@ -31,14 +31,14 @@ AudioConfigPane::AudioConfigPane(wxWindow* parent, wxWindowID id) : wxPanel(pare
 
 void AudioConfigPane::InitializeGUI()
 {
-  m_dsp_engine_strings.Add(_("DSP HLE emulation (fast)"));
-  m_dsp_engine_strings.Add(_("DSP LLE recompiler"));
-  m_dsp_engine_strings.Add(_("DSP LLE interpreter (slow)"));
+  m_dsp_engine_strings.Add(_("DSP HLE Emulation (fast)"));
+  m_dsp_engine_strings.Add(_("DSP LLE Recompiler"));
+  m_dsp_engine_strings.Add(_("DSP LLE Interpreter (slow)"));
 
   m_dsp_engine_radiobox =
       new wxRadioBox(this, wxID_ANY, _("DSP Emulator Engine"), wxDefaultPosition, wxDefaultSize,
                      m_dsp_engine_strings, 0, wxRA_SPECIFY_ROWS);
-  m_dpl2_decoder_checkbox = new wxCheckBox(this, wxID_ANY, _("Dolby Pro Logic II decoder"));
+  m_dpl2_decoder_checkbox = new wxCheckBox(this, wxID_ANY, _("Dolby Pro Logic II Decoder"));
   m_volume_slider = new DolphinSlider(this, wxID_ANY, 0, 0, 100, wxDefaultPosition, wxDefaultSize,
                                       wxSL_VERTICAL | wxSL_INVERSE);
   m_volume_text = new wxStaticText(this, wxID_ANY, "");
