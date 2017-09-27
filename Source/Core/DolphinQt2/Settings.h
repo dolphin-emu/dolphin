@@ -77,6 +77,10 @@ public:
   NetPlayServer* GetNetPlayServer();
   void ResetNetPlayServer(NetPlayServer* server = nullptr);
 
+  // Cheats
+  bool GetCheatsEnabled() const;
+  void SetCheatsEnabled(bool enabled);
+
   // Other
   GameListModel* GetGameListModel() const;
 
@@ -91,6 +95,7 @@ signals:
   void NANDRefresh();
   void LogVisibilityChanged(bool visible);
   void LogConfigVisibilityChanged(bool visible);
+  void EnableCheatsChanged(bool enabled);
 
 private:
   std::unique_ptr<NetPlayClient> m_client;

@@ -241,6 +241,9 @@ void GameList::ShowContextMenu(const QPoint&)
 void GameList::OpenProperties()
 {
   PropertiesDialog* properties = new PropertiesDialog(this, *GetSelectedGame());
+
+  connect(properties, &PropertiesDialog::OpenGeneralSettings, this, &GameList::OpenGeneralSettings);
+
   properties->show();
 }
 

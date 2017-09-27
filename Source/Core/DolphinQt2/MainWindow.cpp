@@ -279,6 +279,8 @@ void MainWindow::ConnectGameList()
 {
   connect(m_game_list, &GameList::GameSelected, this, &MainWindow::Play);
   connect(m_game_list, &GameList::NetPlayHost, this, &MainWindow::NetPlayHost);
+
+  connect(m_game_list, &GameList::OpenGeneralSettings, this, &MainWindow::ShowGeneralWindow);
 }
 
 void MainWindow::ConnectRenderWidget()
@@ -547,6 +549,12 @@ void MainWindow::ShowSettingsWindow()
 void MainWindow::ShowAudioWindow()
 {
   m_settings_window->SelectAudioPane();
+  ShowSettingsWindow();
+}
+
+void MainWindow::ShowGeneralWindow()
+{
+  m_settings_window->SelectGeneralPane();
   ShowSettingsWindow();
 }
 

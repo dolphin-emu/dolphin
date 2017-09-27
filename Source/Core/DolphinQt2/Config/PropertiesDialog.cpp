@@ -7,6 +7,7 @@
 #include <QVBoxLayout>
 
 #include "DolphinQt2/Config/FilesystemWidget.h"
+#include "DolphinQt2/Config/GeckoCodeWidget.h"
 #include "DolphinQt2/Config/InfoWidget.h"
 #include "DolphinQt2/Config/PropertiesDialog.h"
 
@@ -18,7 +19,14 @@ PropertiesDialog::PropertiesDialog(QWidget* parent, const GameFile& game) : QDia
 
   QTabWidget* tab_widget = new QTabWidget(this);
   InfoWidget* info = new InfoWidget(game);
+
+  GeckoCodeWidget* gecko = new GeckoCodeWidget(game);
+
+  connect(gecko, &GeckoCodeWidget::OpenGeneralSettings, this,
+          &PropertiesDialog::OpenGeneralSettings);
+
   tab_widget->addTab(info, tr("Info"));
+  tab_widget->addTab(gecko, tr("Gecko Codes"));
 
   if (DiscIO::IsDisc(game.GetPlatformID()))
   {
