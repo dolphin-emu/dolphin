@@ -72,6 +72,11 @@ public final class EmulationActivity extends AppCompatActivity
 
 	private static boolean mIsGameCubeGame;
 
+	private enum MenuType
+	{
+		SAVE, LOAD
+	}
+
 	/**
 	 * Handlers are a way to pass a message to an Activity telling it to do something
 	 * on the UI thread. This Handler responds to any message, even blank ones, by
@@ -522,14 +527,14 @@ public final class EmulationActivity extends AppCompatActivity
 			case MENU_ACTION_SAVE_ROOT:
 				if (!mDeviceHasTouchScreen)
 				{
-					showMenu(SaveStateFragment.FRAGMENT_ID);
+					showMenu(MenuType.SAVE);
 				}
 				return;
 
 			case MENU_ACTION_LOAD_ROOT:
 				if (!mDeviceHasTouchScreen)
 				{
-					showMenu(LoadStateFragment.FRAGMENT_ID);
+					showMenu(MenuType.LOAD);
 				}
 				return;
 
@@ -862,18 +867,18 @@ public final class EmulationActivity extends AppCompatActivity
 				});
 	}
 
-	private void showMenu(int menuId)
+	private void showMenu(MenuType menuId)
 	{
 		Fragment fragment;
 
 		switch (menuId)
 		{
-			case SaveStateFragment.FRAGMENT_ID:
+			case SAVE:
 				fragment = SaveStateFragment.newInstance();
 				mSubmenuFragmentTag = SaveStateFragment.FRAGMENT_TAG;
 				break;
 
-			case LoadStateFragment.FRAGMENT_ID:
+			case LOAD:
 				fragment = LoadStateFragment.newInstance();
 				mSubmenuFragmentTag = LoadStateFragment.FRAGMENT_TAG;
 				break;
