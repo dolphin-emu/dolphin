@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "VideoCommon/VideoCommon.h"
 
 class AbstractTexture;
 
@@ -23,7 +24,7 @@ public:
   void PrintText(const std::string& text, int x, int y, u32 color);
 
   // Image to show, will be swapped immediately
-  void ShowImage(AbstractTexture* image, float aspect);
+  void ShowImage(AbstractTexture* image, const EFBRectangle& xfb_region);
 
   int PeekMessages();
 

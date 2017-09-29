@@ -651,10 +651,14 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
       m_last_xfb_texture = xfb_entry->texture.get();
       m_last_xfb_id = xfb_entry->id;
       m_last_xfb_ticks = ticks;
-      m_last_xfb_horizontal_scale = horizontal_scale;
+
+      auto xfb_rect = xfb_entry->texture->GetConfig().GetRect();
+      xfb_rect.right -= EFBToScaledX(fbStride - fbWidth);
+
+      m_last_xfb_region = xfb_rect;
 
       // TODO: merge more generic parts into VideoCommon
-      g_renderer->SwapImpl(xfb_entry->texture.get(), rc, ticks, xfb_entry->gamma);
+      g_renderer->SwapImpl(xfb_entry->texture.get(), xfb_rect, ticks, xfb_entry->gamma);
 
       m_fps_counter.Update();
       update_frame_count = true;
@@ -693,7 +697,7 @@ bool Renderer::IsFrameDumping()
 
 void Renderer::DoDumpFrame()
 {
-  UpdateFrameDumpTexture(m_last_xfb_horizontal_scale);
+  UpdateFrameDumpTexture();
 
   auto result = m_dump_texture->Map();
   if (result.has_value())
@@ -704,7 +708,7 @@ void Renderer::DoDumpFrame()
   }
 }
 
-void Renderer::UpdateFrameDumpTexture(float horizontal_scale)
+void Renderer::UpdateFrameDumpTexture()
 {
   int target_width, target_height;
   std::tie(target_width, target_height) = CalculateOutputDimensions(
@@ -719,9 +723,7 @@ void Renderer::UpdateFrameDumpTexture(float horizontal_scale)
     config.rendertarget = true;
     m_dump_texture = g_texture_cache->CreateTexture(config);
   }
-  auto source_rect = m_last_xfb_texture->GetConfig().GetRect();
-  source_rect.right /= horizontal_scale;
-  m_dump_texture->CopyRectangleFromTexture(m_last_xfb_texture, source_rect,
+  m_dump_texture->CopyRectangleFromTexture(m_last_xfb_texture, m_last_xfb_region,
                                            EFBRectangle{0, 0, target_width, target_height});
 }
 

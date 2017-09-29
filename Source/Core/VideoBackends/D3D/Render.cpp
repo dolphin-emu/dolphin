@@ -608,7 +608,7 @@ void Renderer::SetBlendingState(const BlendingState& state)
 }
 
 // This function has the final picture. We adjust the aspect ratio here.
-void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& rc, u64 ticks, float Gamma)
+void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region, u64 ticks, float Gamma)
 {
   ResetAPIState();
 
@@ -624,9 +624,8 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& rc, u64 ti
   // activate linear filtering for the buffer copies
   D3D::SetLinearCopySampler();
   auto* xfb_texture = static_cast<DXTexture*>(texture);
-  TargetRectangle source_rc = xfb_texture->GetConfig().GetRect();
 
-  BlitScreen(source_rc, targetRc, xfb_texture->GetRawTexIdentifier(),
+  BlitScreen(xfb_region, targetRc, xfb_texture->GetRawTexIdentifier(),
              xfb_texture->GetConfig().width, xfb_texture->GetConfig().height, Gamma);
 
   // Reset viewport for drawing text

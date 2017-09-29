@@ -481,7 +481,7 @@ void Renderer::ReinterpretPixelData(unsigned int convtype)
   BindEFBToStateTracker();
 }
 
-void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& rc, u64 ticks, float Gamma)
+void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region, u64 ticks, float Gamma)
 {
   // Pending/batched EFB pokes should be included in the final image.
   FramebufferManager::GetInstance()->FlushEFBPokes();
@@ -504,7 +504,7 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& rc, u64 ti
   // Draw to the screen if we have a swap chain.
   if (m_swap_chain)
   {
-    DrawScreen(xfb_texture);
+    DrawScreen(xfb_texture, xfb_region);
 
     // Submit the current command buffer, signaling rendering finished semaphore when it's done
     // Because this final command buffer is rendering to the swap chain, we need to wait for
@@ -552,7 +552,7 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& rc, u64 ti
   g_shader_cache->RetrieveAsyncShaders();
 }
 
-void Renderer::DrawScreen(VKTexture* xfb_texture)
+void Renderer::DrawScreen(VKTexture* xfb_texture, const EFBRectangle& xfb_region)
 {
   VkResult res;
   if (!g_command_buffer_mgr->CheckLastPresentFail())
@@ -605,7 +605,8 @@ void Renderer::DrawScreen(VKTexture* xfb_texture)
 
   // Draw
   TargetRectangle source_rc = xfb_texture->GetConfig().GetRect();
-  BlitScreen(m_swap_chain->GetRenderPass(), GetTargetRectangle(), source_rc, xfb_texture->GetRawTexIdentifier());
+  BlitScreen(m_swap_chain->GetRenderPass(), GetTargetRectangle(), xfb_region,
+             xfb_texture->GetRawTexIdentifier());
 
   // Draw OSD
   Util::SetViewportAndScissor(g_command_buffer_mgr->GetCurrentCommandBuffer(), 0, 0,

@@ -86,7 +86,7 @@ private:
   void DestroyShaders();
 
   // Draw the frame, as well as the OSD to the swap chain.
-  void DrawScreen(VKTexture* xfb_texture);
+  void DrawScreen(VKTexture* xfb_texture, const EFBRectangle& xfb_region);
 
   // Copies/scales an image to the currently-bound framebuffer.
   void BlitScreen(VkRenderPass render_pass, const TargetRectangle& dst_rect,

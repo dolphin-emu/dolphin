@@ -1325,7 +1325,7 @@ void Renderer::SetBlendingState(const BlendingState& state)
 }
 
 // This function has the final picture. We adjust the aspect ratio here.
-void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& rc, u64 ticks, float Gamma)
+void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region, u64 ticks, float Gamma)
 {
   if (g_ogl_config.bSupportsDebug)
   {
@@ -1337,10 +1337,8 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& rc, u64 ti
 
   auto* xfb_texture = static_cast<OGLTexture*>(texture);
 
-  TargetRectangle sourceRc = ConvertEFBRectangle(rc);
-  sourceRc.left = 0;
-  sourceRc.right = xfb_texture->GetConfig().width;
-  sourceRc.top = xfb_texture->GetConfig().height;
+  TargetRectangle sourceRc = xfb_region;
+  sourceRc.top = xfb_region.GetHeight();
   sourceRc.bottom = 0;
 
   ResetAPIState();

@@ -90,7 +90,7 @@ void SWOGLWindow::PrintText(const std::string& text, int x, int y, u32 color)
   m_text.push_back({text, x, y, color});
 }
 
-void SWOGLWindow::ShowImage(AbstractTexture* image, float aspect)
+void SWOGLWindow::ShowImage(AbstractTexture* image, const EFBRectangle& xfb_region)
 {
   SW::SWTexture* sw_image = static_cast<SW::SWTexture*>(image);
   GLInterface->Update();  // just updates the render window position and the backbuffer size
@@ -102,6 +102,8 @@ void SWOGLWindow::ShowImage(AbstractTexture* image, float aspect)
 
   glActiveTexture(GL_TEXTURE9);
   glBindTexture(GL_TEXTURE_2D, m_image_texture);
+
+  // TODO: Apply xfb_region
 
   glPixelStorei(GL_UNPACK_ALIGNMENT, 4);  // 4-byte pixel alignment
   glPixelStorei(GL_UNPACK_ROW_LENGTH, sw_image->GetConfig().width);

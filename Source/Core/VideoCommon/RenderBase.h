@@ -185,7 +185,7 @@ private:
   void RunFrameDumps();
   void ShutdownFrameDumping();
   std::tuple<int, int> CalculateOutputDimensions(int width, int height);
-  void UpdateFrameDumpTexture(float horizontal_scale);
+  void UpdateFrameDumpTexture();
 
   PEControl::PixelFormat m_prev_efb_format = PEControl::INVALID_FMT;
   unsigned int m_efb_scale = 1;
@@ -214,7 +214,7 @@ private:
   AbstractTexture* m_last_xfb_texture = nullptr;
   u64 m_last_xfb_id = std::numeric_limits<u64>::max();
   u64 m_last_xfb_ticks = 0;
-  float m_last_xfb_horizontal_scale = 0.0f;
+  EFBRectangle m_last_xfb_region;
 
   std::unique_ptr<AbstractTexture> m_dump_texture;
 

@@ -270,7 +270,8 @@ static void BPWritten(const BPCmd& bp)
       if (g_ActiveConfig.bImmediateXFB)
       {
         // below div two to convert from bytes to pixels - it expects width, not stride
-        g_renderer->Swap(destAddr, destStride / 2, destStride / 2, height, false, srcRect, CoreTiming::GetTicks());
+        g_renderer->Swap(destAddr, destStride / 2, destStride / 2, height, srcRect,
+                         CoreTiming::GetTicks());
       }
       else
       {
