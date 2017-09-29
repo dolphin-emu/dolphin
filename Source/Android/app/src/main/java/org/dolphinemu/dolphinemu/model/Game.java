@@ -4,13 +4,10 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.os.Environment;
 
+import org.dolphinemu.dolphinemu.ui.platform.Platform;
+
 public final class Game
 {
-	public static final int PLATFORM_GC = 0;
-	public static final int PLATFORM_WII = 1;
-	public static final int PLATFORM_WII_WARE = 2;
-	public static final int PLATFORM_ALL = 3;
-
 	// Copied from IVolume::ECountry. Update these if that is ever modified.
 	public static final int COUNTRY_EUROPE = 0;
 	public static final int COUNTRY_JAPAN = 1;
@@ -36,10 +33,10 @@ public final class Game
 	private String mScreenshotPath;
 	private String mCompany;
 
-	private int mPlatform;
+	private Platform mPlatform;
 	private int mCountry;
 
-	public Game(int platform, String title, String description, int country, String path, String gameId, String company, String screenshotPath)
+	public Game(Platform platform, String title, String description, int country, String path, String gameId, String company, String screenshotPath)
 	{
 		mPlatform = platform;
 		mTitle = title;
@@ -51,7 +48,7 @@ public final class Game
 		mScreenshotPath = screenshotPath;
 	}
 
-	public int getPlatform()
+	public Platform getPlatform()
 	{
 		return mPlatform;
 	}
@@ -91,13 +88,13 @@ public final class Game
 		return mScreenshotPath;
 	}
 
-	public static ContentValues asContentValues(int platform, String title, String description, int country, String path, String gameId, String company)
+	public static ContentValues asContentValues(Platform platform, String title, String description, int country, String path, String gameId, String company)
 	{
 		ContentValues values = new ContentValues();
 
 		String screenPath = PATH_SCREENSHOT_FOLDER + gameId + "/" + gameId + "-1.png";
 
-		values.put(GameDatabase.KEY_GAME_PLATFORM, platform);
+		values.put(GameDatabase.KEY_GAME_PLATFORM, platform.toInt());
 		values.put(GameDatabase.KEY_GAME_TITLE, title);
 		values.put(GameDatabase.KEY_GAME_DESCRIPTION, description);
 		values.put(GameDatabase.KEY_GAME_COUNTRY, company);
@@ -111,7 +108,7 @@ public final class Game
 
 	public static Game fromCursor(Cursor cursor)
 	{
-		return new Game(cursor.getInt(GameDatabase.GAME_COLUMN_PLATFORM),
+		return new Game(Platform.fromInt(cursor.getInt(GameDatabase.GAME_COLUMN_PLATFORM)),
 				cursor.getString(GameDatabase.GAME_COLUMN_TITLE),
 				cursor.getString(GameDatabase.GAME_COLUMN_DESCRIPTION),
 				cursor.getInt(GameDatabase.GAME_COLUMN_COUNTRY),

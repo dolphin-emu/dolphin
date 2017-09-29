@@ -20,6 +20,7 @@ import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.AddDirectoryActivity;
 import org.dolphinemu.dolphinemu.adapters.PlatformPagerAdapter;
 import org.dolphinemu.dolphinemu.model.GameProvider;
+import org.dolphinemu.dolphinemu.ui.platform.Platform;
 import org.dolphinemu.dolphinemu.ui.platform.PlatformGamesView;
 import org.dolphinemu.dolphinemu.ui.settings.SettingsActivity;
 import org.dolphinemu.dolphinemu.utils.PermissionsHandler;
@@ -114,7 +115,8 @@ public final class MainActivity extends AppCompatActivity implements MainView
 	public void refreshFragmentScreenshot(int fragmentPosition)
 	{
 		// Invalidate Picasso image so that the new screenshot is animated in.
-		PlatformGamesView fragment = getPlatformGamesView(mViewPager.getCurrentItem());
+		Platform platform = Platform.fromPosition(mViewPager.getCurrentItem());
+		PlatformGamesView fragment = getPlatformGamesView(platform);
 
 		if (fragment != null)
 		{
@@ -135,7 +137,7 @@ public final class MainActivity extends AppCompatActivity implements MainView
 	}
 
 	@Override
-	public void showGames(int platformIndex, Cursor games)
+	public void showGames(Platform platform, Cursor games)
 	{
 		// no-op. Handled by PlatformGamesFragment.
 	}
@@ -189,7 +191,9 @@ public final class MainActivity extends AppCompatActivity implements MainView
 
 	private void refreshFragment()
 	{
-		PlatformGamesView fragment = getPlatformGamesView(mViewPager.getCurrentItem());
+
+		Platform platform = Platform.fromPosition(mViewPager.getCurrentItem());
+		PlatformGamesView fragment = getPlatformGamesView(platform);
 		if (fragment != null)
 		{
 			fragment.refresh();
@@ -197,7 +201,7 @@ public final class MainActivity extends AppCompatActivity implements MainView
 	}
 
 	@Nullable
-	private PlatformGamesView getPlatformGamesView(int platform)
+	private PlatformGamesView getPlatformGamesView(Platform platform)
 	{
 		String fragmentTag = "android:switcher:" + mViewPager.getId() + ":" + platform;
 
