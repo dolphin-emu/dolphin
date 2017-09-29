@@ -336,6 +336,7 @@ void SConfig::SaveNetworkSettings(IniFile& ini)
   network->Set("SSLVerifyCertificates", m_SSLVerifyCert);
   network->Set("SSLDumpRootCA", m_SSLDumpRootCA);
   network->Set("SSLDumpPeerCert", m_SSLDumpPeerCert);
+  network->Set("NetworkDumpPCAP", m_NetworkDumpPCAP);
 }
 
 void SConfig::SaveAnalyticsSettings(IniFile& ini)
@@ -633,6 +634,7 @@ void SConfig::LoadNetworkSettings(IniFile& ini)
   network->Get("SSLVerifyCertificates", &m_SSLVerifyCert, true);
   network->Get("SSLDumpRootCA", &m_SSLDumpRootCA, false);
   network->Get("SSLDumpPeerCert", &m_SSLDumpPeerCert, false);
+  network->Get("NetworkDumpPCAP", &m_NetworkDumpPCAP, false);
 }
 
 void SConfig::LoadAnalyticsSettings(IniFile& ini)
@@ -739,7 +741,12 @@ void SConfig::SetRunningGameMetadata(const std::string& game_id, u64 title_id, u
 
   Config::AddLayer(ConfigLoaders::GenerateGlobalGameConfigLoader(game_id, revision));
   Config::AddLayer(ConfigLoaders::GenerateLocalGameConfigLoader(game_id, revision));
-  m_network_logger = std::make_unique<Core::PCAPSSLCaptureLogger>();
+  if (m_NetworkDumpPCAP)
+    m_network_logger = std::make_unique<Core::PCAPSSLCaptureLogger>();
+  else if (m_SSLDumpRead || m_SSLDumpWrite)
+    m_network_logger = std::make_unique<Core::BinarySSLCaptureLogger>();
+  else
+    m_network_logger = std::make_unique<Core::DummyNetworkCaptureLogger>();
 
   if (Core::IsRunning())
   {

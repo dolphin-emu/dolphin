@@ -318,6 +318,7 @@ struct SConfig
   bool m_SSLVerifyCert;
   bool m_SSLDumpRootCA;
   bool m_SSLDumpPeerCert;
+  bool m_NetworkDumpPCAP;
   std::unique_ptr<Core::NetworkCaptureLogger> m_network_logger;
 
   SConfig(const SConfig&) = delete;
