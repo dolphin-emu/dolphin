@@ -27,69 +27,67 @@ LuaScriptFrame::LuaScriptFrame(wxWindow* parent) : wxFrame(parent, wxID_ANY, _("
 
 LuaScriptFrame::~LuaScriptFrame()
 {
-
+  // Disconnect Events
+  this->Disconnect(wxID_ANY, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(LuaScriptFrame::OnExitClicked));
+  Browse->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(LuaScriptFrame::BrowseOnButtonClick), NULL, this);
+  run_button->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(LuaScriptFrame::RunOnButtonClick), NULL, this);
+  stop_button->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(LuaScriptFrame::StopOnButtonClick), NULL, this);
 }
 
 void LuaScriptFrame::CreateGUI()
 {
-  /*
-  wxPanel* const panel = new wxPanel(this);
-  panel->Bind(wxEVT_CLOSE_WINDOW, &LuaScriptFrame::OnClose, this);
-
-  wxMenu* file = new wxMenu;
-  wxMenuItem* load = new wxMenuItem(file, wxID_ANY, _("Load Script"));
-  file->Append(load);
-
-  wxMenuBar* menubar = new wxMenuBar;
-  menubar->Append(file, "File");
-
-  SetMenuBar(menubar);
-  */
-
   this->SetSizeHints(wxDefaultSize, wxDefaultSize);
 
-  m_menubar1 = new wxMenuBar(0);
-  this->SetMenuBar(m_menubar1);
+  m_menubar = new wxMenuBar(0);
+  m_menu = new wxMenu();
+  wxMenuItem* exit;
+  exit = new wxMenuItem(m_menu, wxID_ANY, wxString(wxT("Exit")), wxEmptyString, wxITEM_NORMAL);
+  m_menu->Append(exit);
 
-  m_menu1 = new wxMenu();
-  wxMenuItem* file;
-  file = new wxMenuItem(m_menu1, wxID_ANY, wxString(wxT("File")), wxEmptyString, wxITEM_NORMAL);
-  m_menu1->Append(file);
+  m_menubar->Append(m_menu, wxT("File"));
 
-  this->Connect(wxEVT_RIGHT_DOWN, wxMouseEventHandler(LuaScriptFrame::MyFrame1OnContextMenu), NULL, this);
+  this->SetMenuBar(m_menubar);
 
-  wxBoxSizer* bSizer1;
-  bSizer1 = new wxBoxSizer(wxVERTICAL);
-
-  m_panel1 = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
-  bSizer1->Add(m_panel1, 1, wxEXPAND | wxALL, 5);
+  wxBoxSizer* main_sizer;
+  main_sizer = new wxBoxSizer(wxVERTICAL);
 
   script_file_label = new wxStaticText(this, wxID_ANY, wxT("Script File:"), wxDefaultPosition, wxDefaultSize, 0);
   script_file_label->Wrap(-1);
-  bSizer1->Add(script_file_label, 0, wxALL, 5);
+  main_sizer->Add(script_file_label, 0, wxALL, 5);
 
   m_textCtrl1 = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(300, -1), 0);
-  bSizer1->Add(m_textCtrl1, 0, wxALL, 5);
+  m_textCtrl1->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
+
+  main_sizer->Add(m_textCtrl1, 0, wxALL, 5);
+
+  wxBoxSizer* buttons;
+  buttons = new wxBoxSizer(wxHORIZONTAL);
 
   Browse = new wxButton(this, wxID_ANY, wxT("Browse..."), wxPoint(-1, -1), wxDefaultSize, 0);
-  bSizer1->Add(Browse, 0, wxALL, 5);
+  buttons->Add(Browse, 0, wxALL, 5);
+
+  run_button = new wxButton(this, wxID_ANY, wxT("Run"), wxDefaultPosition, wxDefaultSize, 0);
+  buttons->Add(run_button, 0, wxALL, 5);
+
+  stop_button = new wxButton(this, wxID_ANY, wxT("Stop"), wxDefaultPosition, wxDefaultSize, 0);
+  buttons->Add(stop_button, 0, wxALL, 5);
 
 
-  this->SetSizer(bSizer1);
+  main_sizer->Add(buttons, 1, wxEXPAND, 5);
+
+  m_staticText2 = new wxStaticText(this, wxID_ANY, wxT("Output Console:"), wxDefaultPosition, wxDefaultSize, 0);
+  m_staticText2->Wrap(-1);
+  main_sizer->Add(m_staticText2, 0, wxALL, 5);
+
+
+  this->SetSizer(main_sizer);
   this->Layout();
 
   this->Centre(wxBOTH);
 
   // Connect Events
+  this->Connect(exit->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(LuaScriptFrame::OnExitClicked));
   Browse->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(LuaScriptFrame::BrowseOnButtonClick), NULL, this);
-}
-
-void LuaScriptFrame::OnClose(wxCloseEvent& event)
-{
-
-}
-
-void LuaScriptFrame::OnLoad(wxEvent& event)
-{
-
+  run_button->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(LuaScriptFrame::RunOnButtonClick), NULL, this);
+  stop_button->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(LuaScriptFrame::StopOnButtonClick), NULL, this);
 }

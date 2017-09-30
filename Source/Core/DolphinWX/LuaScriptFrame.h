@@ -4,19 +4,16 @@
 
 #pragma once
 
-#include <algorithm>
-#include <string>
 #include <wx/artprov.h>
 #include <wx/string.h>
+#include <wx/bitmap.h>
+#include <wx/image.h>
+#include <wx/icon.h>
 #include <wx/menu.h>
 #include <wx/gdicmn.h>
 #include <wx/font.h>
 #include <wx/colour.h>
 #include <wx/settings.h>
-#include <wx/bitmap.h>
-#include <wx/image.h>
-#include <wx/icon.h>
-#include <wx/panel.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
 #include <wx/button.h>
@@ -25,32 +22,24 @@
 
 class LuaScriptFrame final : public wxFrame
 {
-  /*
-public:
-  LuaScriptFrame(wxWindow* parent);
-  ~LuaScriptFrame();
-
 private:
   void CreateGUI();
-  void OnClose(wxCloseEvent& event);
-  void OnLoad(wxEvent& event);
-  */
-
-private:
-  void CreateGUI();
-  void OnClose(wxCloseEvent& event);
-  void OnLoad(wxEvent& event);
 
 protected:
-  wxMenuBar* m_menubar1;
-  wxMenu* m_menu1;
-  wxPanel* m_panel1;
+  wxMenuBar* m_menubar;
+  wxMenu* m_menu;
   wxStaticText* script_file_label;
   wxTextCtrl* m_textCtrl1;
   wxButton* Browse;
+  wxButton* run_button;
+  wxButton* stop_button;
+  wxStaticText* m_staticText2;
 
   // Virtual event handlers, overide them in your derived class
+  virtual void OnExitClicked(wxCommandEvent& event) { event.Skip(); }
   virtual void BrowseOnButtonClick(wxCommandEvent& event) { event.Skip(); }
+  virtual void RunOnButtonClick(wxCommandEvent& event) { event.Skip(); }
+  virtual void StopOnButtonClick(wxCommandEvent& event) { event.Skip(); }
 
 
 public:
@@ -59,8 +48,8 @@ public:
 
   ~LuaScriptFrame();
 
-  void MyFrame1OnContextMenu(wxMouseEvent &event)
+  void LuaScriptFrameOnContextMenu(wxMouseEvent &event)
   {
-    this->PopupMenu(m_menu1, event.GetPosition());
+    this->PopupMenu(m_menu, event.GetPosition());
   }
 };
