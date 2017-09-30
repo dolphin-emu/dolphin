@@ -1173,14 +1173,7 @@ void CFrame::OnNetPlay(wxCommandEvent& WXUNUSED(event))
 
 void CFrame::OnLua(wxCommandEvent& WXUNUSED(event))
 {
-  if (!m_lua_script_frame)
-  {
-    m_lua_script_frame = new LuaScriptFrame(this);
-  }
-  else
-  {
-    m_lua_script_frame->Raise();
-  }
+  m_lua_script_frame = new LuaScriptFrame(this);
 }
 
 void CFrame::OnMemcard(wxCommandEvent& WXUNUSED(event))
