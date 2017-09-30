@@ -1181,7 +1181,6 @@ void CFrame::OnLua(wxCommandEvent& WXUNUSED(event))
   {
     m_lua_script_frame->Raise();
   }
-  m_lua_script_frame->Show();
 }
 
 void CFrame::OnMemcard(wxCommandEvent& WXUNUSED(event))

@@ -25,5 +25,6 @@ public:
 
 private:
   void CreateGUI();
-  void OnKeyDown(wxKeyEvent& event);
+  void OnClose(wxCloseEvent& event);
+  void OnLoad(wxEvent& event);
 };
