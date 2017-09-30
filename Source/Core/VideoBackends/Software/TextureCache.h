@@ -25,11 +25,6 @@ public:
   }
 
 private:
-  std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config) override
-  {
-    return std::make_unique<SWTexture>(config);
-  }
-
   void CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy, const EFBRectangle& src_rect,
                            bool scale_by_half, unsigned int cbuf_id, const float* colmat) override
   {

@@ -77,6 +77,8 @@ public:
   void Init();
   void Shutdown();
 
+  std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config) override;
+
   void SetBlendingState(const BlendingState& state) override;
   void SetScissorRect(const EFBRectangle& rc) override;
   void SetRasterizationState(const RasterizationState& state) override;

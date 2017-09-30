@@ -211,6 +211,11 @@ void Renderer::Create3DVisionTexture(int width, int height)
                            DXGI_FORMAT_R8G8B8A8_UNORM, 1, 1, &sys_data);
 }
 
+std::unique_ptr<AbstractTexture> Renderer::CreateTexture(const TextureConfig& config)
+{
+  return std::make_unique<DXTexture>(config);
+}
+
 void Renderer::RenderText(const std::string& text, int left, int top, u32 color)
 {
   D3D::DrawTextScaled(static_cast<float>(left + 1), static_cast<float>(top + 1), 20.f, 0.0f,

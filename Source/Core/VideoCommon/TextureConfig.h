@@ -22,6 +22,13 @@ enum class AbstractTextureFormat : u32
 struct TextureConfig
 {
   constexpr TextureConfig() = default;
+  constexpr TextureConfig(u32 width_, u32 height_, u32 levels_, u32 layers_,
+                          AbstractTextureFormat format_, bool rendertarget_)
+      : width(width_), height(height_), levels(levels_), layers(layers_), format(format_),
+        rendertarget(rendertarget_)
+  {
+  }
+
   bool operator==(const TextureConfig& o) const;
   MathUtil::Rectangle<int> GetRect() const;
 

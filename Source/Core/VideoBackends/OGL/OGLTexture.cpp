@@ -9,7 +9,6 @@
 
 #include "VideoBackends/OGL/FramebufferManager.h"
 #include "VideoBackends/OGL/OGLTexture.h"
-#include "VideoBackends/OGL/Render.h"
 #include "VideoBackends/OGL/SamplerCache.h"
 #include "VideoBackends/OGL/TextureCache.h"
 

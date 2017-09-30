@@ -814,6 +814,11 @@ void Renderer::Init()
   OpenGL_CreateAttributelessVAO();
 }
 
+std::unique_ptr<AbstractTexture> Renderer::CreateTexture(const TextureConfig& config)
+{
+  return std::make_unique<OGLTexture>(config);
+}
+
 void Renderer::RenderText(const std::string& text, int left, int top, u32 color)
 {
   u32 backbuffer_width = std::max(GLInterface->GetBackBufferWidth(), 1u);

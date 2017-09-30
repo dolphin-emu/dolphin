@@ -159,6 +159,11 @@ void Renderer::DestroySemaphores()
   }
 }
 
+std::unique_ptr<AbstractTexture> Renderer::CreateTexture(const TextureConfig& config)
+{
+  return VKTexture::Create(config);
+}
+
 void Renderer::RenderText(const std::string& text, int left, int top, u32 color)
 {
   u32 backbuffer_width = m_swap_chain->GetWidth();

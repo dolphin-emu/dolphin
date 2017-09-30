@@ -731,7 +731,7 @@ void Renderer::UpdateFrameDumpTexture()
     config.width = target_width;
     config.height = target_height;
     config.rendertarget = true;
-    m_dump_texture = g_texture_cache->CreateTexture(config);
+    m_dump_texture = CreateTexture(config);
   }
   m_dump_texture->CopyRectangleFromTexture(m_last_xfb_texture, m_last_xfb_region,
                                            EFBRectangle{0, 0, target_width, target_height});

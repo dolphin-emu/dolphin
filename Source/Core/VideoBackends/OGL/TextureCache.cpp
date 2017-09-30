@@ -33,11 +33,6 @@ namespace OGL
 {
 //#define TIME_TEXTURE_DECODING 1
 
-std::unique_ptr<AbstractTexture> TextureCache::CreateTexture(const TextureConfig& config)
-{
-  return std::make_unique<OGLTexture>(config);
-}
-
 void TextureCache::CopyEFB(u8* dst, const EFBCopyParams& params, u32 native_width,
                            u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
                            const EFBRectangle& src_rect, bool scale_by_half)

@@ -2090,7 +2090,7 @@ std::unique_ptr<AbstractTexture> TextureCacheBase::AllocateTexture(const Texture
   }
   else
   {
-    entry = CreateTexture(config);
+    entry = g_renderer->CreateTexture(config);
     if (!entry)
       return nullptr;
 
