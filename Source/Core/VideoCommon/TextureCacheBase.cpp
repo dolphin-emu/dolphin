@@ -1353,10 +1353,30 @@ bool TextureCacheBase::LoadTextureFromOverlappingTextures(TCacheEntry* entry_to_
         srcrect.right = (src_x + copy_width);
         srcrect.bottom = (src_y + copy_height);
 
+        if (static_cast<int>(entry->GetWidth()) == srcrect.GetWidth())
+        {
+          srcrect.right -= 1;
+        }
+
+        if (static_cast<int>(entry->GetHeight()) == srcrect.GetHeight())
+        {
+          srcrect.bottom -= 1;
+        }
+
         dstrect.left = dst_x;
         dstrect.top = dst_y;
         dstrect.right = (dst_x + copy_width);
         dstrect.bottom = (dst_y + copy_height);
+
+        if (static_cast<int>(entry_to_update->GetWidth()) == dstrect.GetWidth())
+        {
+          dstrect.right -= 1;
+        }
+
+        if (static_cast<int>(entry_to_update->GetHeight()) == dstrect.GetHeight())
+        {
+          dstrect.bottom -= 1;
+        }
 
         entry_to_update->texture->CopyRectangleFromTexture(entry->texture.get(), srcrect, dstrect);
 
