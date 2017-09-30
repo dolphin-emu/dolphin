@@ -53,14 +53,6 @@ typedef struct _Nv_Stereo_Image_Header
 
 #define NVSTEREO_IMAGE_SIGNATURE 0x4433564e
 
-struct GXPipelineState
-{
-  std::array<SamplerState, 8> samplers;
-  BlendingState blend;
-  DepthState zmode;
-  RasterizationState raster;
-};
-
 static u32 s_last_multisamples = 1;
 static bool s_last_stereo_mode = false;
 static bool s_last_fullscreen_mode = false;
@@ -73,9 +65,6 @@ static ID3D11RasterizerState* s_reset_rast_state = nullptr;
 
 static ID3D11Texture2D* s_screenshot_texture = nullptr;
 static D3DTexture2D* s_3d_vision_texture = nullptr;
-
-static GXPipelineState s_gx_state;
-static StateCache s_gx_state_cache;
 
 static void SetupDeviceObjects()
 {
@@ -173,8 +162,6 @@ static void TeardownDeviceObjects()
   SAFE_RELEASE(s_reset_rast_state);
   SAFE_RELEASE(s_screenshot_texture);
   SAFE_RELEASE(s_3d_vision_texture);
-
-  s_gx_state_cache.Clear();
 }
 
 static void Create3DVisionTexture(int width, int height)
@@ -212,13 +199,13 @@ Renderer::Renderer() : ::Renderer(D3D::GetBackBufferWidth(), D3D::GetBackBufferH
   SetupDeviceObjects();
 
   // Setup GX pipeline state
-  for (auto& sampler : s_gx_state.samplers)
+  for (auto& sampler : m_gx_state.samplers)
     sampler.hex = RenderState::GetPointSamplerState().hex;
 
-  s_gx_state.zmode.testenable = false;
-  s_gx_state.zmode.updateenable = false;
-  s_gx_state.zmode.func = ZMode::NEVER;
-  s_gx_state.raster.cullmode = GenMode::CULL_NONE;
+  m_gx_state.zmode.testenable = false;
+  m_gx_state.zmode.updateenable = false;
+  m_gx_state.zmode.func = ZMode::NEVER;
+  m_gx_state.raster.cullmode = GenMode::CULL_NONE;
 
   // Clear EFB textures
   constexpr std::array<float, 4> clear_color{{0.f, 0.f, 0.f, 1.f}};
@@ -600,7 +587,7 @@ void Renderer::ReinterpretPixelData(unsigned int convtype)
 
 void Renderer::SetBlendingState(const BlendingState& state)
 {
-  s_gx_state.blend.hex = state.hex;
+  m_gx_state.blend.hex = state.hex;
 }
 
 // This function has the final picture. We adjust the aspect ratio here.
@@ -719,15 +706,15 @@ void Renderer::RestoreAPIState()
 
 void Renderer::ApplyState()
 {
-  D3D::stateman->PushBlendState(s_gx_state_cache.Get(s_gx_state.blend));
-  D3D::stateman->PushDepthState(s_gx_state_cache.Get(s_gx_state.zmode));
-  D3D::stateman->PushRasterizerState(s_gx_state_cache.Get(s_gx_state.raster));
+  D3D::stateman->PushBlendState(m_state_cache.Get(m_gx_state.blend));
+  D3D::stateman->PushDepthState(m_state_cache.Get(m_gx_state.zmode));
+  D3D::stateman->PushRasterizerState(m_state_cache.Get(m_gx_state.raster));
   D3D::stateman->SetPrimitiveTopology(
-      StateCache::GetPrimitiveTopology(s_gx_state.raster.primitive));
-  FramebufferManager::SetIntegerEFBRenderTarget(s_gx_state.blend.logicopenable);
+      StateCache::GetPrimitiveTopology(m_gx_state.raster.primitive));
+  FramebufferManager::SetIntegerEFBRenderTarget(m_gx_state.blend.logicopenable);
 
-  for (u32 stage = 0; stage < static_cast<u32>(s_gx_state.samplers.size()); stage++)
-    D3D::stateman->SetSampler(stage, s_gx_state_cache.Get(s_gx_state.samplers[stage]));
+  for (u32 stage = 0; stage < static_cast<u32>(m_gx_state.samplers.size()); stage++)
+    D3D::stateman->SetSampler(stage, m_state_cache.Get(m_gx_state.samplers[stage]));
 
   ID3D11Buffer* vertexConstants = VertexShaderCache::GetConstantBuffer();
 
@@ -746,17 +733,17 @@ void Renderer::RestoreState()
 
 void Renderer::SetRasterizationState(const RasterizationState& state)
 {
-  s_gx_state.raster.hex = state.hex;
+  m_gx_state.raster.hex = state.hex;
 }
 
 void Renderer::SetDepthState(const DepthState& state)
 {
-  s_gx_state.zmode.hex = state.hex;
+  m_gx_state.zmode.hex = state.hex;
 }
 
 void Renderer::SetSamplerState(u32 index, const SamplerState& state)
 {
-  s_gx_state.samplers[index].hex = state.hex;
+  m_gx_state.samplers[index].hex = state.hex;
 }
 
 void Renderer::SetInterlacingMode()

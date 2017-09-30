@@ -5,6 +5,7 @@
 #pragma once
 
 #include <string>
+#include "VideoBackends/D3D/D3DState.h"
 #include "VideoCommon/RenderBase.h"
 
 enum class EFBAccessType;
@@ -19,6 +20,7 @@ public:
   Renderer();
   ~Renderer() override;
 
+  StateCache& GetStateCache() { return m_state_cache; }
   void SetBlendingState(const BlendingState& state) override;
   void SetScissorRect(const EFBRectangle& rc) override;
   void SetRasterizationState(const RasterizationState& state) override;
@@ -56,7 +58,18 @@ public:
   bool CheckForResize();
 
 private:
+  struct GXPipelineState
+  {
+    std::array<SamplerState, 8> samplers;
+    BlendingState blend;
+    DepthState zmode;
+    RasterizationState raster;
+  };
+
   void BlitScreen(TargetRectangle src, TargetRectangle dst, D3DTexture2D* src_texture,
                   u32 src_width, u32 src_height, float Gamma);
+
+  StateCache m_state_cache;
+  GXPipelineState m_gx_state;
 };
 }
