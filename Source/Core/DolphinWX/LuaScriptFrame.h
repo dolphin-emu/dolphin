@@ -1,4 +1,4 @@
-// Copyright 2015 Dolphin Emulator Project
+// Copyright 2017 Dolphin Emulator Project
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
@@ -30,22 +30,20 @@
 #include <laux.h>
 #endif
 
+int printToTextCtrl(lua_State* L);
+
 class LuaScriptFrame final : public wxFrame
 {
 private:
   void CreateGUI();
-  void Log(const char* message);
-  int howdy(lua_State* state);
-  void OnExitClicked(wxCommandEvent& event);
+  void OnClearClicked(wxCommandEvent& event);
   void BrowseOnButtonClick(wxCommandEvent& event);
   void RunOnButtonClick(wxCommandEvent& event);
   void StopOnButtonClick(wxCommandEvent& event);
-
-protected:
   wxMenuBar* m_menubar;
   wxMenu* m_menu;
   wxStaticText* script_file_label;
-  wxTextCtrl* m_textCtrl1;
+  wxTextCtrl* file_path;
   wxButton* Browse;
   wxButton* run_button;
   wxButton* stop_button;
@@ -53,6 +51,7 @@ protected:
   wxTextCtrl* output_console;
 
 public:
+  void Log(const char* message);
 
   LuaScriptFrame(wxWindow* parent);
 

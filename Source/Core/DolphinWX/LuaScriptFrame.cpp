@@ -1,4 +1,4 @@
-// Copyright 2015 Dolphin Emulator Project
+// Copyright 2017 Dolphin Emulator Project
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
@@ -16,6 +16,9 @@
 #include "LuaScriptFrame.h"
 #include "Frame.h"
 
+//THIS GLOBAL MUST BE USED TO SPEAK WITH THE CONSOLE
+LuaScriptFrame* currentWindow;
+
 LuaScriptFrame::LuaScriptFrame(wxWindow* parent) : wxFrame(parent, wxID_ANY, _("Lua Console"), wxDefaultPosition, wxSize(431, 397), wxDEFAULT_FRAME_STYLE ^ wxRESIZE_BORDER)
 {
   CreateGUI();
@@ -23,12 +26,14 @@ LuaScriptFrame::LuaScriptFrame(wxWindow* parent) : wxFrame(parent, wxID_ANY, _("
 
   Center();
   Show();
+
+  currentWindow = this;
 }
 
 LuaScriptFrame::~LuaScriptFrame()
 {
   // Disconnect Events
-  this->Disconnect(wxID_ANY, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(LuaScriptFrame::OnExitClicked));
+  this->Disconnect(wxID_ANY, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(LuaScriptFrame::OnClearClicked));
   Browse->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(LuaScriptFrame::BrowseOnButtonClick), NULL, this);
   run_button->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(LuaScriptFrame::RunOnButtonClick), NULL, this);
   stop_button->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(LuaScriptFrame::StopOnButtonClick), NULL, this);
@@ -44,11 +49,11 @@ void LuaScriptFrame::CreateGUI()
 
   m_menubar = new wxMenuBar(0);
   m_menu = new wxMenu();
-  wxMenuItem* exit;
-  exit = new wxMenuItem(m_menu, wxID_ANY, wxString(wxT("Exit")), wxEmptyString, wxITEM_NORMAL);
-  m_menu->Append(exit);
+  wxMenuItem* clear;
+  clear = new wxMenuItem(m_menu, wxID_ANY, wxString(wxT("Clear")), wxEmptyString, wxITEM_NORMAL);
+  m_menu->Append(clear);
 
-  m_menubar->Append(m_menu, wxT("File"));
+  m_menubar->Append(m_menu, wxT("Console"));
 
   this->SetMenuBar(m_menubar);
 
@@ -59,10 +64,10 @@ void LuaScriptFrame::CreateGUI()
   script_file_label->Wrap(-1);
   main_sizer->Add(script_file_label, 0, wxALL, 5);
 
-  m_textCtrl1 = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(300, -1), 0);
-  m_textCtrl1->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT));
+  file_path = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(300, -1), 0);
+  file_path->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT));
 
-  main_sizer->Add(m_textCtrl1, 0, wxALL, 5);
+  main_sizer->Add(file_path, 0, wxALL, 5);
 
   wxBoxSizer* buttons;
   buttons = new wxBoxSizer(wxHORIZONTAL);
@@ -93,7 +98,7 @@ void LuaScriptFrame::CreateGUI()
   this->Centre(wxBOTH);
 
   // Connect Events
-  this->Connect(exit->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(LuaScriptFrame::OnExitClicked));
+  this->Connect(clear->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(LuaScriptFrame::OnClearClicked));
   Browse->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(LuaScriptFrame::BrowseOnButtonClick), NULL, this);
   run_button->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(LuaScriptFrame::RunOnButtonClick), NULL, this);
   stop_button->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(LuaScriptFrame::StopOnButtonClick), NULL, this);
@@ -104,35 +109,9 @@ void LuaScriptFrame::Log(const char* message)
   output_console->AppendText(message);
 }
 
-int LuaScriptFrame::howdy(lua_State* state)
+void LuaScriptFrame::OnClearClicked(wxCommandEvent& event)
 {
-  // The number of function arguments will be on top of the stack.
-  int args = lua_gettop(state);
-  char buffer[512];
-  itoa(args, buffer, 10);
-
-  Log("howdy() was called with ");
-  Log(buffer);
-  Log(" arguments.\n");
-
-  for (int n = 1; n <= args; ++n) {
-    printf("  argument %d: '%s'\n", n, lua_tostring(state, n));
-  }
-
-  // Push the return value on top of the stack. NOTE: We haven't popped the
-  // input arguments to our function. To be honest, I haven't checked if we
-  // must, but at least in stack machines like the JVM, the stack will be
-  // cleaned between each function call.
-
-  lua_pushnumber(state, 123);
-
-  // Let Lua know how many return values we've passed
-  return 1;
-}
-
-void LuaScriptFrame::OnExitClicked(wxCommandEvent& event)
-{
-
+  output_console->Clear();
 }
 
 void LuaScriptFrame::BrowseOnButtonClick(wxCommandEvent &event)
@@ -142,7 +121,7 @@ void LuaScriptFrame::BrowseOnButtonClick(wxCommandEvent &event)
   if (dialog->ShowModal() == wxID_CANCEL)
     return;
 
-  m_textCtrl1->SetValue(dialog->GetPath());
+  file_path->SetValue(dialog->GetPath());
   dialog->Destroy();
 }
 
@@ -154,9 +133,9 @@ void LuaScriptFrame::RunOnButtonClick(wxCommandEvent& event)
   luaL_openlibs(state);
 
   //Register additinal functions with Lua
-  lua_register(state, "howdy", howdy);
+  lua_register(state, "emu.print", printToTextCtrl);
 
-  if (luaL_loadfile(state, m_textCtrl1->GetValue()) != LUA_OK)
+  if (luaL_loadfile(state, file_path->GetValue()) != LUA_OK)
   {
     Log("Error opening file.\n");
     return;
@@ -172,4 +151,13 @@ void LuaScriptFrame::RunOnButtonClick(wxCommandEvent& event)
 void LuaScriptFrame::StopOnButtonClick(wxCommandEvent& event)
 {
 
+}
+
+//Functions to register with Lua
+int printToTextCtrl(lua_State* L)
+{
+  currentWindow->Log(lua_tostring(L, 1));
+  currentWindow->Log("\n");
+
+  return 0;
 }
