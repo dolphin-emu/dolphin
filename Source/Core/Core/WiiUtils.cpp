@@ -76,8 +76,9 @@ static bool ImportWAD(IOS::HLE::Kernel& ios, const DiscIO::WiiWAD& wad)
       continue;
     }
 
+    if (ret != IOS::HLE::IOSC_FAIL_CHECKVALUE)
+      PanicAlertT("WAD installation failed: Could not initialise title import (error %d).", ret);
     SConfig::GetInstance().m_enable_signature_checks = checks_enabled;
-    PanicAlertT("WAD installation failed: Could not initialise title import.");
     return false;
   }
   SConfig::GetInstance().m_enable_signature_checks = checks_enabled;
