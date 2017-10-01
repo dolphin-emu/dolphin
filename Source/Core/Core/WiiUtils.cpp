@@ -113,6 +113,15 @@ bool InstallWAD(const std::string& wad_path)
 {
   IOS::HLE::Kernel ios;
   const DiscIO::WiiWAD wad{wad_path};
+
+  if (!wad.GetTMD().IsValid())
+    return false;
+
+  // Skip the install if the WAD is already installed.
+  const auto installed_contents = ios.GetES()->GetStoredContentsFromTMD(wad.GetTMD());
+  if (wad.GetTMD().GetContents() == installed_contents)
+    return true;
+
   const bool result = InstallWAD(ios, wad);
 
   DiscIO::NANDContentManager::Access().ClearCache();
