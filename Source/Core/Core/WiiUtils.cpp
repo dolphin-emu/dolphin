@@ -122,6 +122,15 @@ bool InstallWAD(const std::string& wad_path)
   if (wad.GetTMD().GetContents() == installed_contents)
     return true;
 
+  // If a different version is currently installed, warn the user to make sure
+  // they don't overwrite the current version by mistake.
+  if (ios.GetES()->FindInstalledTMD(wad.GetTMD().GetTitleId()).IsValid() &&
+      !AskYesNoT("A different version of this title is already installed on the NAND. "
+                 "Installing this WAD will replace it irreversibly. Continue?"))
+  {
+    return false;
+  }
+
   const bool result = InstallWAD(ios, wad);
 
   DiscIO::NANDContentManager::Access().ClearCache();
