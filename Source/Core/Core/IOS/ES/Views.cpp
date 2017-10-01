@@ -49,7 +49,7 @@ IPCCommandResult ES::GetTicketViewCount(const IOCtlVRequest& request)
 
   u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
 
-  const IOS::ES::TicketReader ticket = DiscIO::FindSignedTicket(TitleID);
+  const IOS::ES::TicketReader ticket = FindSignedTicket(TitleID);
   u32 view_count = ticket.IsValid() ? static_cast<u32>(ticket.GetNumberOfTickets()) : 0;
 
   if (ShouldReturnFakeViewsForIOSes(TitleID, m_title_context))
@@ -73,7 +73,7 @@ IPCCommandResult ES::GetTicketViews(const IOCtlVRequest& request)
   u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
   u32 maxViews = Memory::Read_U32(request.in_vectors[1].address);
 
-  const IOS::ES::TicketReader ticket = DiscIO::FindSignedTicket(TitleID);
+  const IOS::ES::TicketReader ticket = FindSignedTicket(TitleID);
 
   if (ticket.IsValid())
   {
@@ -102,7 +102,7 @@ ReturnCode ES::GetV0TicketFromView(const u8* ticket_view, u8* ticket) const
   const u64 title_id = Common::swap64(&ticket_view[offsetof(IOS::ES::TicketView, title_id)]);
   const u64 ticket_id = Common::swap64(&ticket_view[offsetof(IOS::ES::TicketView, ticket_id)]);
 
-  const auto installed_ticket = DiscIO::FindSignedTicket(title_id);
+  const auto installed_ticket = FindSignedTicket(title_id);
   // TODO: when we get std::optional, check for presence instead of validity.
   // This is close enough, though.
   if (!installed_ticket.IsValid())

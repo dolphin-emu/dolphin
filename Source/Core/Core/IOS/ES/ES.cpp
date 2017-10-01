@@ -684,7 +684,7 @@ ReturnCode ES::SetUpStreamKey(const u32 uid, const u8* ticket_view, const IOS::E
   // Find a signed ticket from the view.
   const u64 ticket_id = Common::swap64(&ticket_view[offsetof(IOS::ES::TicketView, ticket_id)]);
   const u64 title_id = Common::swap64(&ticket_view[offsetof(IOS::ES::TicketView, title_id)]);
-  const IOS::ES::TicketReader installed_ticket = DiscIO::FindSignedTicket(title_id);
+  const IOS::ES::TicketReader installed_ticket = FindSignedTicket(title_id);
   // Unlike the other "get ticket from view" function, this returns a FS error, not ES_NO_TICKET.
   if (!installed_ticket.IsValid())
     return FS_ENOENT;

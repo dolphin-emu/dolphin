@@ -50,6 +50,20 @@ IOS::ES::TMDReader ES::FindInstalledTMD(u64 title_id) const
   return FindTMD(title_id, Common::GetTMDFileName(title_id, Common::FROM_SESSION_ROOT));
 }
 
+IOS::ES::TicketReader ES::FindSignedTicket(u64 title_id) const
+{
+  const std::string path = Common::GetTicketFileName(title_id, Common::FROM_SESSION_ROOT);
+  File::IOFile ticket_file(path, "rb");
+  if (!ticket_file)
+    return {};
+
+  std::vector<u8> signed_ticket(ticket_file.GetSize());
+  if (!ticket_file.ReadBytes(signed_ticket.data(), signed_ticket.size()))
+    return {};
+
+  return IOS::ES::TicketReader{std::move(signed_ticket)};
+}
+
 static bool IsValidPartOfTitleID(const std::string& string)
 {
   if (string.length() != 8)

@@ -670,7 +670,7 @@ UpdateResult DiscSystemUpdater::ProcessEntry(u32 type, std::bitset<32> attrs,
     return UpdateResult::AlreadyUpToDate;
 
   const IOS::ES::TMDReader tmd = m_ios.GetES()->FindInstalledTMD(title.id);
-  const IOS::ES::TicketReader ticket = DiscIO::FindSignedTicket(title.id);
+  const IOS::ES::TicketReader ticket = m_ios.GetES()->FindSignedTicket(title.id);
 
   // Optional titles can be skipped if the ticket is present, even when the title isn't installed.
   if (attrs.test(16) && ticket.IsValid())
@@ -735,7 +735,7 @@ NANDCheckResult CheckNAND(IOS::HLE::Kernel& ios)
     }
 
     // Check for incomplete title installs (missing ticket, TMD or contents).
-    const auto ticket = DiscIO::FindSignedTicket(title_id);
+    const auto ticket = es->FindSignedTicket(title_id);
     if (!IOS::ES::IsDiscTitle(title_id) && !ticket.IsValid())
     {
       ERROR_LOG(CORE, "CheckNAND: Missing ticket for title %016" PRIx64, title_id);
@@ -801,7 +801,7 @@ bool RepairNAND(IOS::HLE::Kernel& ios)
     const auto content_files = File::ScanDirectoryTree(content_dir, false).children;
     const bool has_no_tmd_but_contents =
         !es->FindInstalledTMD(title_id).IsValid() && !content_files.empty();
-    if (has_no_tmd_but_contents || !DiscIO::FindSignedTicket(title_id).IsValid())
+    if (has_no_tmd_but_contents || !es->FindSignedTicket(title_id).IsValid())
     {
       const std::string title_dir = Common::GetTitlePath(title_id, Common::FROM_CONFIGURED_ROOT);
       File::DeleteDirRecursively(title_dir);

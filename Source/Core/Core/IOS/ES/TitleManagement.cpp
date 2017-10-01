@@ -220,7 +220,7 @@ ReturnCode ES::ImportTitleInit(Context& context, const std::vector<u8>& tmd_byte
   if (ret != IPC_SUCCESS)
     return ret;
 
-  const auto ticket = DiscIO::FindSignedTicket(context.title_import_export.tmd.GetTitleId());
+  const auto ticket = FindSignedTicket(context.title_import_export.tmd.GetTitleId());
   if (!ticket.IsValid())
     return ES_NO_TICKET;
 
@@ -528,7 +528,7 @@ ReturnCode ES::DeleteTicket(const u8* ticket_view)
   if (!CanDeleteTitle(title_id))
     return ES_EINVAL;
 
-  auto ticket = DiscIO::FindSignedTicket(title_id);
+  auto ticket = FindSignedTicket(title_id);
   if (!ticket.IsValid())
     return FS_ENOENT;
 

@@ -85,6 +85,7 @@ public:
 
   IOS::ES::TMDReader FindImportTMD(u64 title_id) const;
   IOS::ES::TMDReader FindInstalledTMD(u64 title_id) const;
+  IOS::ES::TicketReader FindSignedTicket(u64 title_id) const;
 
   // Get installed titles (in /title) without checking for TMDs at all.
   std::vector<u64> GetInstalledTitles() const;
