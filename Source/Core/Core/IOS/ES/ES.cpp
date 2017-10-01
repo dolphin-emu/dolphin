@@ -246,6 +246,39 @@ bool ES::LaunchTitle(u64 title_id, bool skip_reload)
 
 bool ES::LaunchIOS(u64 ios_title_id)
 {
+  // A real Wii goes through several steps before getting to MIOS.
+  //
+  // * The System Menu detects a GameCube disc and launches BC (1-100) instead of the game.
+  // * BC (similar to boot1) lowers the clock speed to the Flipper's and then launches boot2.
+  // * boot2 sees the lowered clock speed and launches MIOS (1-101) instead of the System Menu.
+  //
+  // Because we don't have boot1 and boot2, and BC is only ever used to launch MIOS
+  // (indirectly via boot2), we can just launch MIOS when BC is launched.
+  if (ios_title_id == Titles::BC)
+  {
+    NOTICE_LOG(IOS, "BC: Launching MIOS...");
+    return LaunchIOS(Titles::MIOS);
+  }
+
+  // IOS checks whether the system title is installed and returns an error if it isn't.
+  // Unfortunately, we can't rely on titles being installed as we don't require system titles,
+  // so only have this check for MIOS (for which having the binary is *required*).
+  if (ios_title_id == Titles::MIOS)
+  {
+    const IOS::ES::TMDReader tmd = FindInstalledTMD(ios_title_id);
+    const IOS::ES::TicketReader ticket = FindSignedTicket(ios_title_id);
+    IOS::ES::Content content;
+    if (!tmd.IsValid() || !ticket.IsValid() || !tmd.GetContent(tmd.GetBootIndex(), &content) ||
+        !m_ios.BootIOS(ios_title_id, GetContentPath(ios_title_id, content)))
+    {
+      PanicAlertT("Could not launch IOS %016" PRIx64 " because it is missing from the NAND.\n"
+                  "The emulated software will likely hang now.",
+                  ios_title_id);
+      return false;
+    }
+    return true;
+  }
+
   return m_ios.BootIOS(ios_title_id);
 }
 
