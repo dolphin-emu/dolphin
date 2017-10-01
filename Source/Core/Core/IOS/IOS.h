@@ -19,11 +19,6 @@
 
 class PointerWrap;
 
-namespace DiscIO
-{
-class NANDContentLoader;
-}
-
 namespace IOS
 {
 namespace HLE
@@ -113,7 +108,7 @@ public:
   void SetGidForPPC(u16 gid);
   u16 GetGidForPPC() const;
 
-  bool BootstrapPPC(const DiscIO::NANDContentLoader& content_loader);
+  bool BootstrapPPC(const std::string& boot_content_path);
   bool BootIOS(u64 ios_title_id);
   u32 GetVersion() const;
 

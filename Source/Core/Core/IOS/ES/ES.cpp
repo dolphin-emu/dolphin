@@ -251,8 +251,10 @@ bool ES::LaunchIOS(u64 ios_title_id)
 
 bool ES::LaunchPPCTitle(u64 title_id, bool skip_reload)
 {
-  const DiscIO::NANDContentLoader& content_loader = AccessContentDevice(title_id);
-  if (!content_loader.IsValid())
+  const IOS::ES::TMDReader tmd = FindInstalledTMD(title_id);
+  const IOS::ES::TicketReader ticket = FindSignedTicket(title_id);
+
+  if (!tmd.IsValid() || !ticket.IsValid())
   {
     if (title_id == Titles::SYSTEM_MENU)
     {
@@ -268,22 +270,18 @@ bool ES::LaunchPPCTitle(u64 title_id, bool skip_reload)
     return false;
   }
 
-  if (!content_loader.GetTMD().IsValid() || !content_loader.GetTicket().IsValid())
-    return false;
-
   // Before launching a title, IOS first reads the TMD and reloads into the specified IOS version,
   // even when that version is already running. After it has reloaded, ES_Launch will be called
   // again with the reload skipped, and the PPC will be bootstrapped then.
   if (!skip_reload)
   {
     s_title_to_launch = title_id;
-    const u64 required_ios = content_loader.GetTMD().GetIOSId();
+    const u64 required_ios = tmd.GetIOSId();
     return LaunchTitle(required_ios);
   }
 
-  m_title_context.Update(content_loader.GetTMD(), content_loader.GetTicket());
-  INFO_LOG(IOS_ES, "LaunchPPCTitle: Title context changed: %016" PRIx64,
-           m_title_context.tmd.GetTitleId());
+  m_title_context.Update(tmd, ticket);
+  INFO_LOG(IOS_ES, "LaunchPPCTitle: Title context changed: %016" PRIx64, tmd.GetTitleId());
 
   // Note: the UID/GID is also updated for IOS titles, but since we have no guarantee IOS titles
   // are installed, we can only do this for PPC titles.
@@ -294,7 +292,11 @@ bool ES::LaunchPPCTitle(u64 title_id, bool skip_reload)
     return false;
   }
 
-  return m_ios.BootstrapPPC(content_loader);
+  IOS::ES::Content content;
+  if (!tmd.GetContent(tmd.GetBootIndex(), &content))
+    return false;
+
+  return m_ios.BootstrapPPC(GetContentPath(tmd.GetTitleId(), content));
 }
 
 void ES::Context::DoState(PointerWrap& p)
@@ -310,7 +312,20 @@ void ES::Context::DoState(PointerWrap& p)
 void ES::DoState(PointerWrap& p)
 {
   Device::DoState(p);
-  p.Do(m_content_table);
+
+  for (auto& entry : m_content_table)
+  {
+    p.Do(entry.m_opened);
+    p.Do(entry.m_title_id);
+    p.Do(entry.m_content);
+    p.Do(entry.m_position);
+    p.Do(entry.m_uid);
+    if (entry.m_opened)
+      entry.m_opened = entry.m_file.Open(GetContentPath(entry.m_title_id, entry.m_content), "rb");
+    else
+      entry.m_file.Close();
+  }
+
   m_title_context.DoState(p);
 
   for (auto& context : m_contexts)
@@ -571,11 +586,6 @@ IPCCommandResult ES::LaunchBC(const IOCtlVRequest& request)
     return GetDefaultReply(FS_ENOENT);
 
   return GetNoReply();
-}
-
-const DiscIO::NANDContentLoader& ES::AccessContentDevice(u64 title_id)
-{
-  return DiscIO::NANDContentManager::Access().GetNANDLoader(title_id, Common::FROM_SESSION_ROOT);
 }
 
 // This is technically an ioctlv in IOS's ES, but it is an internal API which cannot be

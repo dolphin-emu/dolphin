@@ -54,7 +54,6 @@
 #include "Core/IOS/WFS/WFSSRV.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/WiiRoot.h"
-#include "DiscIO/NANDContentLoader.h"
 
 namespace IOS
 {
@@ -275,23 +274,17 @@ u16 Kernel::GetGidForPPC() const
 
 // This corresponds to syscall 0x41, which loads a binary from the NAND and bootstraps the PPC.
 // Unlike 0x42, IOS will set up some constants in memory before booting the PPC.
-bool Kernel::BootstrapPPC(const DiscIO::NANDContentLoader& content_loader)
+bool Kernel::BootstrapPPC(const std::string& boot_content_path)
 {
-  if (!content_loader.IsValid())
-    return false;
+  const DolReader dol{boot_content_path};
 
-  const auto* content = content_loader.GetContentByIndex(content_loader.GetTMD().GetBootIndex());
-  if (!content)
-    return false;
-
-  const auto dol_loader = std::make_unique<DolReader>(content->m_Data->Get());
-  if (!dol_loader->IsValid())
+  if (!dol.IsValid())
     return false;
 
   if (!SetupMemory(m_title_id, MemorySetupType::Full))
     return false;
 
-  if (!dol_loader->LoadIntoMemory())
+  if (!dol.LoadIntoMemory())
     return false;
 
   // NAND titles start with address translation off at 0x3400 (via the PPC bootstub)

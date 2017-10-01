@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Common/File.h"
 #include "Core/IOS/Device.h"
 #include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/IOS.h"
@@ -343,13 +344,11 @@ private:
                              const IOS::ES::SharedContentMap& map = IOS::ES::SharedContentMap{
                                  Common::FROM_SESSION_ROOT}) const;
 
-  // TODO: remove these
-  const DiscIO::NANDContentLoader& AccessContentDevice(u64 title_id);
-
   // TODO: reuse the FS code.
   struct OpenedContent
   {
     bool m_opened = false;
+    File::IOFile m_file;
     u64 m_title_id = 0;
     IOS::ES::Content m_content;
     u32 m_position = 0;

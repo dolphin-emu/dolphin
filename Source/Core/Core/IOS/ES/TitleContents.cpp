@@ -23,14 +23,10 @@ namespace Device
 s32 ES::OpenContent(const IOS::ES::TMDReader& tmd, u16 content_index, u32 uid)
 {
   const u64 title_id = tmd.GetTitleId();
-  const DiscIO::NANDContentLoader& loader = AccessContentDevice(title_id);
 
-  if (!loader.IsValid())
-    return FS_ENOENT;
-
-  const DiscIO::NANDContent* content = loader.GetContentByIndex(content_index);
-  if (!content)
-    return FS_ENOENT;
+  IOS::ES::Content content;
+  if (!tmd.GetContent(content_index, &content))
+    return ES_EINVAL;
 
   for (size_t i = 0; i < m_content_table.size(); ++i)
   {
@@ -38,9 +34,12 @@ s32 ES::OpenContent(const IOS::ES::TMDReader& tmd, u16 content_index, u32 uid)
     if (entry.m_opened)
       continue;
 
+    if (!entry.m_file.Open(GetContentPath(title_id, content), "rb"))
+      return FS_ENOENT;
+
     entry.m_opened = true;
     entry.m_position = 0;
-    entry.m_content = content->m_metadata;
+    entry.m_content = content;
     entry.m_title_id = title_id;
     entry.m_uid = uid;
     INFO_LOG(IOS_ES, "OpenContent: title ID %016" PRIx64 ", UID 0x%x, CFD %zu", title_id, uid, i);
@@ -102,20 +101,14 @@ s32 ES::ReadContent(u32 cfd, u8* buffer, u32 size, u32 uid)
   // XXX: make this reuse the FS code... ES just does a simple "IOS_Read" call here
   //      instead of all this duplicated filesystem logic.
 
-  if (entry.m_position + size > entry.m_content.size)
-    size = static_cast<u32>(entry.m_content.size) - entry.m_position;
+  if (entry.m_position + size > entry.m_file.GetSize())
+    size = static_cast<u32>(entry.m_file.GetSize()) - entry.m_position;
 
-  const DiscIO::NANDContentLoader& ContentLoader = AccessContentDevice(entry.m_title_id);
-  // ContentLoader should never be invalid; rContent has been created by it.
-  if (ContentLoader.IsValid() && ContentLoader.GetTicket().IsValid())
+  entry.m_file.Seek(entry.m_position, SEEK_SET);
+  if (!entry.m_file.ReadBytes(buffer, size))
   {
-    const DiscIO::NANDContent* pContent = ContentLoader.GetContentByIndex(entry.m_content.index);
-    pContent->m_Data->Open();
-    if (!pContent->m_Data->GetRange(entry.m_position, size, buffer))
-    {
-      ERROR_LOG(IOS_ES, "ES: failed to read %u bytes from %u!", size, entry.m_position);
-      return ES_SHORT_READ;
-    }
+    ERROR_LOG(IOS_ES, "ES: failed to read %u bytes from %u!", size, entry.m_position);
+    return ES_SHORT_READ;
   }
 
   entry.m_position += size;
@@ -144,15 +137,6 @@ ReturnCode ES::CloseContent(u32 cfd, u32 uid)
     return ES_EACCES;
   if (!entry.m_opened)
     return IPC_EINVAL;
-
-  // XXX: again, this should be a simple IOS_Close.
-  const DiscIO::NANDContentLoader& ContentLoader = AccessContentDevice(entry.m_title_id);
-  // ContentLoader should never be invalid; we shouldn't be here if ES_OPENCONTENT failed before.
-  if (ContentLoader.IsValid())
-  {
-    const DiscIO::NANDContent* content = ContentLoader.GetContentByIndex(entry.m_content.index);
-    content->m_Data->Close();
-  }
 
   entry = {};
   INFO_LOG(IOS_ES, "CloseContent: CFD %u", cfd);
