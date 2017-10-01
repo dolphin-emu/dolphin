@@ -43,7 +43,8 @@ void SWRenderer::RenderText(const std::string& pstr, int left, int top, u32 colo
 }
 
 // Called on the GPU thread
-void SWRenderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region, u64 ticks, float Gamma)
+void SWRenderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region, u64 ticks,
+                          float Gamma)
 {
   OSD::DoCallbacks(OSD::CallbackType::OnFrame);
 

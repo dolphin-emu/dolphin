@@ -97,7 +97,7 @@ struct TextureLookupInformation
   u32 tmem_address_even = 0;
   u32 tmem_address_odd = 0;
 
-  int texture_cache_safety_color_sample_size = 0; // Default to safe hashing
+  int texture_cache_safety_color_sample_size = 0;  // Default to safe hashing
 
   u8* src_data;
 
@@ -132,7 +132,7 @@ public:
     float gamma = 1.0f;
     u64 id;
 
-    bool reference_changed = false; // used by xfb to determine when a reference xfb changed
+    bool reference_changed = false;  // used by xfb to determine when a reference xfb changed
 
     unsigned int native_width,
         native_height;  // Texture dimensions from the GameCube's point of view
@@ -234,14 +234,20 @@ public:
                           u32 tmem_address_odd = 0);
 
   TCacheEntry* GetXFBTexture(u32 address, u32 width, u32 height, TextureFormat texformat,
-    int textureCacheSafetyColorSampleSize);
-  std::optional<TextureLookupInformation> ComputeTextureInformation(u32 address, u32 width, u32 height, TextureFormat texformat,
-    int textureCacheSafetyColorSampleSize, bool from_tmem, u32 tmem_address_even, u32 tmem_address_odd, u32 tlutaddr, TLUTFormat tlutfmt, u32 levels);
+                             int textureCacheSafetyColorSampleSize);
+  std::optional<TextureLookupInformation>
+  ComputeTextureInformation(u32 address, u32 width, u32 height, TextureFormat texformat,
+                            int textureCacheSafetyColorSampleSize, bool from_tmem,
+                            u32 tmem_address_even, u32 tmem_address_odd, u32 tlutaddr,
+                            TLUTFormat tlutfmt, u32 levels);
   TCacheEntry* GetXFBFromCache(const TextureLookupInformation& tex_info);
-  bool LoadTextureFromOverlappingTextures(TCacheEntry* entry_to_update, const TextureLookupInformation& tex_info);
+  bool LoadTextureFromOverlappingTextures(TCacheEntry* entry_to_update,
+                                          const TextureLookupInformation& tex_info);
   TCacheEntry* CreateNormalTexture(const TextureLookupInformation& tex_info);
-  void LoadTextureFromMemory(TCacheEntry* entry_to_update, const TextureLookupInformation& tex_info);
-  void LoadTextureLevelZeroFromMemory(TCacheEntry* entry_to_update, const TextureLookupInformation& tex_info, bool decode_on_gpu);
+  void LoadTextureFromMemory(TCacheEntry* entry_to_update,
+                             const TextureLookupInformation& tex_info);
+  void LoadTextureLevelZeroFromMemory(TCacheEntry* entry_to_update,
+                                      const TextureLookupInformation& tex_info, bool decode_on_gpu);
   virtual void BindTextures();
   void CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstFormat, u32 dstStride,
                                  bool is_depth_copy, const EFBRectangle& srcRect, bool isIntensity,

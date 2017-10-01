@@ -650,12 +650,11 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::Load(const u32 stage)
   return entry;
 }
 
-TextureCacheBase::TCacheEntry* TextureCacheBase::GetTexture(u32 address, u32 width, u32 height,
-                                                            const TextureFormat texformat,
-                                                            const int textureCacheSafetyColorSampleSize, u32 tlutaddr,
-                                                            TLUTFormat  tlutfmt, bool use_mipmaps,
-                                                            u32 tex_levels, bool from_tmem, u32 tmem_address_even,
-                                                            u32 tmem_address_odd)
+TextureCacheBase::TCacheEntry*
+TextureCacheBase::GetTexture(u32 address, u32 width, u32 height, const TextureFormat texformat,
+                             const int textureCacheSafetyColorSampleSize, u32 tlutaddr,
+                             TLUTFormat tlutfmt, bool use_mipmaps, u32 tex_levels, bool from_tmem,
+                             u32 tmem_address_even, u32 tmem_address_odd)
 {
   // TexelSizeInNibbles(format) * width * height / 16;
   const unsigned int bsw = TexDecoder_GetBlockWidthInTexels(texformat);
@@ -1169,16 +1168,16 @@ std::optional<TextureLookupInformation> TextureCacheBase::ComputeTextureInformat
   tex_info.block_width = TexDecoder_GetBlockWidthInTexels(tex_format);
   tex_info.block_height = TexDecoder_GetBlockHeightInTexels(tex_format);
 
-  tex_info.bytes_per_block =
-      (tex_info.block_width * tex_info.block_height * TexDecoder_GetTexelSizeInNibbles(tex_format))
-      / 2;
+  tex_info.bytes_per_block = (tex_info.block_width * tex_info.block_height *
+                              TexDecoder_GetTexelSizeInNibbles(tex_format)) /
+                             2;
 
   tex_info.expanded_width = Common::AlignUp(width, tex_info.block_width);
   tex_info.expanded_height = Common::AlignUp(height, tex_info.block_height);
-  
+
   tex_info.total_bytes = TexDecoder_GetTextureSizeInBytes(tex_info.expanded_width,
                                                           tex_info.expanded_height, tex_format);
-  
+
   tex_info.native_width = width;
   tex_info.native_height = height;
   tex_info.native_levels = levels;
@@ -1204,8 +1203,8 @@ std::optional<TextureLookupInformation> TextureCacheBase::ComputeTextureInformat
   {
     tex_info.palette_size = TexDecoder_GetPaletteSize(tex_format);
     tex_info.full_hash =
-      tex_info.base_hash ^ GetHash64(&texMem[tex_info.tlut_address], tex_info.palette_size,
-                            tex_info.texture_cache_safety_color_sample_size);
+        tex_info.base_hash ^ GetHash64(&texMem[tex_info.tlut_address], tex_info.palette_size,
+                                       tex_info.texture_cache_safety_color_sample_size);
   }
   else
   {
@@ -1330,14 +1329,16 @@ bool TextureCacheBase::LoadTextureFromOverlappingTextures(TCacheEntry* entry_to_
 
         // If one of the textures is scaled, scale both with the current efb scaling factor
         if (entry_to_update->native_width != entry_to_update->GetWidth() ||
-          (entry_to_update->native_height * entry_to_update->y_scale) != entry_to_update->GetHeight() ||
-          entry->native_width != entry->GetWidth() || (entry->native_height * entry->y_scale) != entry->GetHeight())
+            (entry_to_update->native_height * entry_to_update->y_scale) !=
+                entry_to_update->GetHeight() ||
+            entry->native_width != entry->GetWidth() ||
+            (entry->native_height * entry->y_scale) != entry->GetHeight())
         {
           ScaleTextureCacheEntryTo(
-            entry_to_update, g_renderer->EFBToScaledX(entry_to_update->native_width),
-            g_renderer->EFBToScaledY(entry_to_update->native_height * entry_to_update->y_scale));
+              entry_to_update, g_renderer->EFBToScaledX(entry_to_update->native_width),
+              g_renderer->EFBToScaledY(entry_to_update->native_height * entry_to_update->y_scale));
           ScaleTextureCacheEntryTo(entry, g_renderer->EFBToScaledX(entry->native_width),
-            g_renderer->EFBToScaledY(entry->native_height * entry->y_scale));
+                                   g_renderer->EFBToScaledY(entry->native_height * entry->y_scale));
 
           src_x = g_renderer->EFBToScaledX(src_x);
           src_y = g_renderer->EFBToScaledY(src_y);
@@ -1409,7 +1410,8 @@ bool TextureCacheBase::LoadTextureFromOverlappingTextures(TCacheEntry* entry_to_
   return updated_entry;
 }
 
-TextureCacheBase::TCacheEntry* TextureCacheBase::CreateNormalTexture(const TextureLookupInformation& tex_info)
+TextureCacheBase::TCacheEntry*
+TextureCacheBase::CreateNormalTexture(const TextureLookupInformation& tex_info)
 {
   // create the entry/texture
   TextureConfig config;
@@ -1427,7 +1429,8 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::CreateNormalTexture(const Textu
 
   textures_by_address.emplace(tex_info.address, entry);
   if (tex_info.texture_cache_safety_color_sample_size == 0 ||
-    std::max(tex_info.total_bytes, tex_info.palette_size) <= (u32)tex_info.texture_cache_safety_color_sample_size * 8)
+      std::max(tex_info.total_bytes, tex_info.palette_size) <=
+          (u32)tex_info.texture_cache_safety_color_sample_size * 8)
   {
     entry->textures_by_hash_iter = textures_by_hash.emplace(tex_info.full_hash, entry);
   }
@@ -1450,7 +1453,8 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::CreateNormalTexture(const Textu
   return entry;
 }
 
-void TextureCacheBase::LoadTextureFromMemory(TCacheEntry* entry_to_update, const TextureLookupInformation& tex_info)
+void TextureCacheBase::LoadTextureFromMemory(TCacheEntry* entry_to_update,
+                                             const TextureLookupInformation& tex_info)
 {
   // We can decode on the GPU if it is a supported format and the flag is enabled.
   // Currently we don't decode RGBA8 textures from Tmem, as that would require copying from both
@@ -1458,23 +1462,26 @@ void TextureCacheBase::LoadTextureFromMemory(TCacheEntry* entry_to_update, const
   // there's no conversion between formats. In the future this could be extended with a separate
   // shader, however.
   bool decode_on_gpu = g_ActiveConfig.UseGPUTextureDecoding() &&
-    g_texture_cache->SupportsGPUTextureDecode(tex_info.full_format.texfmt,
-      tex_info.full_format.tlutfmt) &&
-    !(tex_info.from_tmem && tex_info.full_format.texfmt == TextureFormat::RGBA8);
+                       g_texture_cache->SupportsGPUTextureDecode(tex_info.full_format.texfmt,
+                                                                 tex_info.full_format.tlutfmt) &&
+                       !(tex_info.from_tmem && tex_info.full_format.texfmt == TextureFormat::RGBA8);
 
   LoadTextureLevelZeroFromMemory(entry_to_update, tex_info, decode_on_gpu);
 }
 
-void TextureCacheBase::LoadTextureLevelZeroFromMemory(TCacheEntry* entry_to_update, const TextureLookupInformation& tex_info, bool decode_on_gpu)
+void TextureCacheBase::LoadTextureLevelZeroFromMemory(TCacheEntry* entry_to_update,
+                                                      const TextureLookupInformation& tex_info,
+                                                      bool decode_on_gpu)
 {
   const u8* tlut = &texMem[tex_info.tlut_address];
 
   if (decode_on_gpu)
   {
     u32 row_stride = tex_info.bytes_per_block * (tex_info.expanded_width / tex_info.block_width);
-    g_texture_cache->DecodeTextureOnGPU(entry_to_update, 0, tex_info.src_data, tex_info.total_bytes, tex_info.full_format.texfmt, tex_info.native_width,
-      tex_info.native_height, tex_info.expanded_width, tex_info.expanded_height, row_stride, tlut,
-      tex_info.full_format.tlutfmt);
+    g_texture_cache->DecodeTextureOnGPU(
+        entry_to_update, 0, tex_info.src_data, tex_info.total_bytes, tex_info.full_format.texfmt,
+        tex_info.native_width, tex_info.native_height, tex_info.expanded_width,
+        tex_info.expanded_height, row_stride, tlut, tex_info.full_format.tlutfmt);
   }
   else
   {
@@ -1482,15 +1489,18 @@ void TextureCacheBase::LoadTextureLevelZeroFromMemory(TCacheEntry* entry_to_upda
     CheckTempSize(decoded_texture_size);
     if (!(tex_info.full_format.texfmt == TextureFormat::RGBA8 && tex_info.from_tmem))
     {
-      TexDecoder_Decode(temp, tex_info.src_data, tex_info.expanded_width, tex_info.expanded_height, tex_info.full_format.texfmt, tlut, tex_info.full_format.tlutfmt);
+      TexDecoder_Decode(temp, tex_info.src_data, tex_info.expanded_width, tex_info.expanded_height,
+                        tex_info.full_format.texfmt, tlut, tex_info.full_format.tlutfmt);
     }
     else
     {
       u8* src_data_gb = &texMem[tex_info.tmem_address_odd];
-      TexDecoder_DecodeRGBA8FromTmem(temp, tex_info.src_data, src_data_gb, tex_info.expanded_width, tex_info.expanded_height);
+      TexDecoder_DecodeRGBA8FromTmem(temp, tex_info.src_data, src_data_gb, tex_info.expanded_width,
+                                     tex_info.expanded_height);
     }
 
-    entry_to_update->texture->Load(0, tex_info.native_width, tex_info.native_height, tex_info.expanded_width, temp, decoded_texture_size);
+    entry_to_update->texture->Load(0, tex_info.native_width, tex_info.native_height,
+                                   tex_info.expanded_width, temp, decoded_texture_size);
   }
 }
 

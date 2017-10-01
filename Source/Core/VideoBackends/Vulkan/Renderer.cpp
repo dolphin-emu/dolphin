@@ -481,7 +481,8 @@ void Renderer::ReinterpretPixelData(unsigned int convtype)
   BindEFBToStateTracker();
 }
 
-void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region, u64 ticks, float Gamma)
+void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region, u64 ticks,
+                        float Gamma)
 {
   // Pending/batched EFB pokes should be included in the final image.
   FramebufferManager::GetInstance()->FlushEFBPokes();

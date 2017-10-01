@@ -643,8 +643,8 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
   {
     constexpr int force_safe_texture_cache_hash = 0;
     // Get the current XFB from texture cache
-    auto* xfb_entry = g_texture_cache->GetXFBTexture(xfbAddr, fbStride, fbHeight, TextureFormat::XFB,
-                                                  force_safe_texture_cache_hash);
+    auto* xfb_entry = g_texture_cache->GetXFBTexture(
+        xfbAddr, fbStride, fbHeight, TextureFormat::XFB, force_safe_texture_cache_hash);
 
     if (xfb_entry && xfb_entry->id != m_last_xfb_id)
     {
