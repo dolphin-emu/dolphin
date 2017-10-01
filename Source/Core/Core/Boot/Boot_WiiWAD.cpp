@@ -18,8 +18,10 @@
 #include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/FS/FileIO.h"
 #include "Core/IOS/IOS.h"
+#include "Core/WiiUtils.h"
 
 #include "DiscIO/NANDContentLoader.h"
+#include "DiscIO/WiiWad.h"
 
 bool CBoot::BootNANDTitle(const u64 title_id)
 {
@@ -35,46 +37,12 @@ bool CBoot::BootNANDTitle(const u64 title_id)
   return ios->GetES()->LaunchTitle(title_id);
 }
 
-bool CBoot::Boot_WiiWAD(const std::string& _pFilename)
+bool CBoot::Boot_WiiWAD(const DiscIO::WiiWAD& wad)
 {
-  UpdateStateFlags([](StateFlags* state) {
-    state->type = 0x03;  // TYPE_RETURN
-  });
-
-  const DiscIO::NANDContentLoader& ContentLoader =
-      DiscIO::NANDContentManager::Access().GetNANDLoader(_pFilename);
-  if (!ContentLoader.IsValid())
-    return false;
-
-  u64 titleID = ContentLoader.GetTMD().GetTitleId();
-
-  if (!IOS::ES::IsChannel(titleID))
+  if (!WiiUtils::InstallWAD(*IOS::HLE::GetIOS(), wad))
   {
-    PanicAlertT("This WAD is not bootable.");
+    PanicAlertT("Cannot boot this WAD because it could not be installed to the NAND.");
     return false;
   }
-
-  // create data directory
-  File::CreateFullPath(Common::GetTitleDataPath(titleID, Common::FROM_SESSION_ROOT));
-
-  if (titleID == Titles::SYSTEM_MENU)
-    IOS::HLE::CreateVirtualFATFilesystem();
-  // setup Wii memory
-
-  if (!SetupWiiMemory(ContentLoader.GetTMD().GetIOSId()))
-    return false;
-
-  IOS::HLE::Device::ES::LoadWAD(_pFilename);
-
-  // TODO: kill these manual calls and just use ES_Launch here, as soon as the direct WAD
-  //       launch hack is dropped.
-  auto* ios = IOS::HLE::GetIOS();
-  IOS::ES::UIDSys uid_map{Common::FROM_SESSION_ROOT};
-  ios->SetUidForPPC(uid_map.GetOrInsertUIDForTitle(titleID));
-  ios->SetGidForPPC(ContentLoader.GetTMD().GetGroupId());
-
-  if (!ios->BootstrapPPC(ContentLoader))
-    return false;
-
-  return true;
+  return BootNANDTitle(wad.GetTMD().GetTitleId());
 }
