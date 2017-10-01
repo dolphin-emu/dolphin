@@ -19,6 +19,16 @@
 #include <wx/button.h>
 #include <wx/sizer.h>
 #include <wx/frame.h>
+#include <wx/filedlg.h>
+
+//Lua include stuff
+#ifdef __cplusplus
+#include <lua.hpp>
+#else
+#include <lua.h>
+#include <lualib.h>
+#include <laux.h>
+#endif
 
 class LuaScriptFrame final : public wxFrame
 {
@@ -36,10 +46,10 @@ protected:
   wxStaticText* m_staticText2;
 
   // Virtual event handlers, overide them in your derived class
-  virtual void OnExitClicked(wxCommandEvent& event) { event.Skip(); }
-  virtual void BrowseOnButtonClick(wxCommandEvent& event) { event.Skip(); }
-  virtual void RunOnButtonClick(wxCommandEvent& event) { event.Skip(); }
-  virtual void StopOnButtonClick(wxCommandEvent& event) { event.Skip(); }
+  void OnExitClicked(wxCommandEvent& event);
+  void BrowseOnButtonClick(wxCommandEvent& event);
+  void RunOnButtonClick(wxCommandEvent& event);
+  void StopOnButtonClick(wxCommandEvent& event);
 
 
 public:

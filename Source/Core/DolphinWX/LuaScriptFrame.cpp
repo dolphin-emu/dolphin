@@ -56,7 +56,7 @@ void LuaScriptFrame::CreateGUI()
   main_sizer->Add(script_file_label, 0, wxALL, 5);
 
   m_textCtrl1 = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(300, -1), 0);
-  m_textCtrl1->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
+  m_textCtrl1->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT));
 
   main_sizer->Add(m_textCtrl1, 0, wxALL, 5);
 
@@ -90,4 +90,29 @@ void LuaScriptFrame::CreateGUI()
   Browse->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(LuaScriptFrame::BrowseOnButtonClick), NULL, this);
   run_button->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(LuaScriptFrame::RunOnButtonClick), NULL, this);
   stop_button->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(LuaScriptFrame::StopOnButtonClick), NULL, this);
+}
+
+void LuaScriptFrame::OnExitClicked(wxCommandEvent& event)
+{
+
+}
+
+void LuaScriptFrame::BrowseOnButtonClick(wxCommandEvent &event)
+{
+  wxFileDialog* dialog = new wxFileDialog(this, _("Select Lua script."));
+
+  if (dialog->ShowModal() == wxID_CANCEL)
+    return;
+
+  m_textCtrl1->SetValue(dialog->GetPath());
+}
+
+void LuaScriptFrame::RunOnButtonClick(wxCommandEvent& event)
+{
+
+}
+
+void LuaScriptFrame::StopOnButtonClick(wxCommandEvent& event)
+{
+
 }
