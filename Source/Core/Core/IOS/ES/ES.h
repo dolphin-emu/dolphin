@@ -32,7 +32,6 @@ struct TitleContext
 {
   void Clear();
   void DoState(PointerWrap& p);
-  void Update(const DiscIO::NANDContentLoader& content_loader);
   void Update(const IOS::ES::TMDReader& tmd_, const IOS::ES::TicketReader& ticket_);
 
   IOS::ES::TicketReader ticket;
@@ -46,8 +45,7 @@ class ES final : public Device
 public:
   ES(Kernel& ios, const std::string& device_name);
 
-  static s32 DIVerify(const IOS::ES::TMDReader& tmd, const IOS::ES::TicketReader& ticket);
-  static void LoadWAD(const std::string& _rContentFile);
+  s32 DIVerify(const IOS::ES::TMDReader& tmd, const IOS::ES::TicketReader& ticket);
   bool LaunchTitle(u64 title_id, bool skip_reload = false);
 
   void DoState(PointerWrap& p) override;
@@ -306,7 +304,6 @@ private:
 
   bool LaunchIOS(u64 ios_title_id);
   bool LaunchPPCTitle(u64 title_id, bool skip_reload);
-  static TitleContext& GetTitleContext();
   bool IsActiveTitlePermittedByTicket(const u8* ticket_view) const;
 
   ReturnCode CheckStreamKeyPermissions(u32 uid, const u8* ticket_view,
@@ -341,7 +338,8 @@ private:
   void FinishStaleImport(u64 title_id);
   void FinishAllStaleImports();
 
-  static const DiscIO::NANDContentLoader& AccessContentDevice(u64 title_id);
+  // TODO: remove these
+  const DiscIO::NANDContentLoader& AccessContentDevice(u64 title_id);
 
   // TODO: reuse the FS code.
   struct OpenedContent
@@ -357,6 +355,7 @@ private:
   ContentTable m_content_table;
 
   ContextArray m_contexts;
+  TitleContext m_title_context{};
 };
 }  // namespace Device
 }  // namespace HLE

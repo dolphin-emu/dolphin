@@ -77,15 +77,15 @@ IPCCommandResult ES::OpenActiveTitleContent(u32 caller_uid, const IOCtlVRequest&
 
   const u32 content_index = Memory::Read_U32(request.in_vectors[0].address);
 
-  if (!GetTitleContext().active)
+  if (!m_title_context.active)
     return GetDefaultReply(ES_EINVAL);
 
   IOS::ES::UIDSys uid_map{Common::FROM_SESSION_ROOT};
-  const u32 uid = uid_map.GetOrInsertUIDForTitle(GetTitleContext().tmd.GetTitleId());
+  const u32 uid = uid_map.GetOrInsertUIDForTitle(m_title_context.tmd.GetTitleId());
   if (caller_uid != 0 && caller_uid != uid)
     return GetDefaultReply(ES_EACCES);
 
-  return GetDefaultReply(OpenContent(GetTitleContext().tmd, content_index, caller_uid));
+  return GetDefaultReply(OpenContent(m_title_context.tmd, content_index, caller_uid));
 }
 
 s32 ES::ReadContent(u32 cfd, u8* buffer, u32 size, u32 uid)

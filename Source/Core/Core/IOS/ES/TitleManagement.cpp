@@ -160,8 +160,8 @@ ReturnCode ES::ImportTmd(Context& context, const std::vector<u8>& tmd_bytes)
   if (!InitImport(context.title_import_export.tmd.GetTitleId()))
     return ES_EIO;
 
-  ret = InitBackupKey(GetTitleContext().tmd, m_ios.GetIOSC(),
-                      &context.title_import_export.key_handle);
+  ret =
+      InitBackupKey(m_title_context.tmd, m_ios.GetIOSC(), &context.title_import_export.key_handle);
   if (ret != IPC_SUCCESS)
     return ret;
 
@@ -639,8 +639,8 @@ ReturnCode ES::ExportTitleInit(Context& context, u64 title_id, u8* tmd_bytes, u3
   ResetTitleImportContext(&context, m_ios.GetIOSC());
   context.title_import_export.tmd = tmd;
 
-  const ReturnCode ret = InitBackupKey(GetTitleContext().tmd, m_ios.GetIOSC(),
-                                       &context.title_import_export.key_handle);
+  const ReturnCode ret =
+      InitBackupKey(m_title_context.tmd, m_ios.GetIOSC(), &context.title_import_export.key_handle);
   if (ret != IPC_SUCCESS)
     return ret;
 

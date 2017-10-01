@@ -35,10 +35,6 @@ namespace HLE
 {
 namespace Device
 {
-// TODO: drop this and convert the title context into a member once the WAD launch hack is gone.
-static std::string s_content_file;
-static TitleContext s_title_context;
-
 // Title to launch after IOS has been reset and reloaded (similar to /sys/launch.sys).
 static u64 s_title_to_launch;
 
@@ -84,20 +80,12 @@ ES::ES(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
 
   FinishAllStaleImports();
 
-  s_content_file = "";
-  s_title_context = TitleContext{};
-
   if (s_title_to_launch != 0)
   {
     NOTICE_LOG(IOS, "Re-launching title after IOS reload.");
     LaunchTitle(s_title_to_launch, true);
     s_title_to_launch = 0;
   }
-}
-
-TitleContext& ES::GetTitleContext()
-{
-  return s_title_context;
 }
 
 void TitleContext::Clear()
@@ -112,13 +100,6 @@ void TitleContext::DoState(PointerWrap& p)
   ticket.DoState(p);
   tmd.DoState(p);
   p.Do(active);
-}
-
-void TitleContext::Update(const DiscIO::NANDContentLoader& content_loader)
-{
-  if (!content_loader.IsValid())
-    return;
-  Update(content_loader.GetTMD(), content_loader.GetTicket());
 }
 
 void TitleContext::Update(const IOS::ES::TMDReader& tmd_, const IOS::ES::TicketReader& ticket_)
@@ -141,16 +122,6 @@ void TitleContext::Update(const IOS::ES::TMDReader& tmd_, const IOS::ES::TicketR
   }
 }
 
-void ES::LoadWAD(const std::string& _rContentFile)
-{
-  s_content_file = _rContentFile;
-  // XXX: Ideally, this should be done during a launch, but because we support launching WADs
-  // without installing them (which is a bit of a hack), we have to do this manually here.
-  const auto& content_loader = DiscIO::NANDContentManager::Access().GetNANDLoader(s_content_file);
-  s_title_context.Update(content_loader);
-  INFO_LOG(IOS_ES, "LoadWAD: Title context changed: %016" PRIx64, s_title_context.tmd.GetTitleId());
-}
-
 IPCCommandResult ES::GetTitleDirectory(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 1))
@@ -167,9 +138,9 @@ IPCCommandResult ES::GetTitleDirectory(const IOCtlVRequest& request)
 
 ReturnCode ES::GetTitleId(u64* title_id) const
 {
-  if (!s_title_context.active)
+  if (!m_title_context.active)
     return ES_EINVAL;
-  *title_id = s_title_context.tmd.GetTitleId();
+  *title_id = m_title_context.tmd.GetTitleId();
   return IPC_SUCCESS;
 }
 
@@ -242,7 +213,7 @@ IPCCommandResult ES::SetUID(u32 uid, const IOCtlVRequest& request)
 
 bool ES::LaunchTitle(u64 title_id, bool skip_reload)
 {
-  s_title_context.Clear();
+  m_title_context.Clear();
   INFO_LOG(IOS_ES, "ES_Launch: Title context changed: (none)");
 
   NOTICE_LOG(IOS_ES, "Launching title %016" PRIx64 "...", title_id);
@@ -310,15 +281,15 @@ bool ES::LaunchPPCTitle(u64 title_id, bool skip_reload)
     return LaunchTitle(required_ios);
   }
 
-  s_title_context.Update(content_loader);
+  m_title_context.Update(content_loader.GetTMD(), content_loader.GetTicket());
   INFO_LOG(IOS_ES, "LaunchPPCTitle: Title context changed: %016" PRIx64,
-           s_title_context.tmd.GetTitleId());
+           m_title_context.tmd.GetTitleId());
 
   // Note: the UID/GID is also updated for IOS titles, but since we have no guarantee IOS titles
   // are installed, we can only do this for PPC titles.
-  if (!UpdateUIDAndGID(m_ios, s_title_context.tmd))
+  if (!UpdateUIDAndGID(m_ios, m_title_context.tmd))
   {
-    s_title_context.Clear();
+    m_title_context.Clear();
     INFO_LOG(IOS_ES, "LaunchPPCTitle: Title context changed: (none)");
     return false;
   }
@@ -339,9 +310,8 @@ void ES::Context::DoState(PointerWrap& p)
 void ES::DoState(PointerWrap& p)
 {
   Device::DoState(p);
-  p.Do(s_content_file);
   p.Do(m_content_table);
-  s_title_context.DoState(p);
+  m_title_context.DoState(p);
 
   for (auto& context : m_contexts)
     context.DoState(p);
@@ -605,16 +575,6 @@ IPCCommandResult ES::LaunchBC(const IOCtlVRequest& request)
 
 const DiscIO::NANDContentLoader& ES::AccessContentDevice(u64 title_id)
 {
-  // for WADs, the passed title id and the stored title id match; along with s_content_file
-  // being set to the actual WAD file name. We cannot simply get a NAND Loader for the title id
-  // in those cases, since the WAD need not be installed in the NAND, but it could be opened
-  // directly from a WAD file anywhere on disk.
-  if (s_title_context.active && s_title_context.tmd.GetTitleId() == title_id &&
-      !s_content_file.empty())
-  {
-    return DiscIO::NANDContentManager::Access().GetNANDLoader(s_content_file);
-  }
-
   return DiscIO::NANDContentManager::Access().GetNANDLoader(title_id, Common::FROM_SESSION_ROOT);
 }
 
@@ -628,7 +588,7 @@ IPCCommandResult ES::DIVerify(const IOCtlVRequest& request)
 
 s32 ES::DIVerify(const IOS::ES::TMDReader& tmd, const IOS::ES::TicketReader& ticket)
 {
-  s_title_context.Clear();
+  m_title_context.Clear();
   INFO_LOG(IOS_ES, "ES_DIVerify: Title context changed: (none)");
 
   if (!tmd.IsValid() || !ticket.IsValid())
@@ -637,7 +597,7 @@ s32 ES::DIVerify(const IOS::ES::TMDReader& tmd, const IOS::ES::TicketReader& tic
   if (tmd.GetTitleId() != ticket.GetTitleId())
     return ES_EINVAL;
 
-  s_title_context.Update(tmd, ticket);
+  m_title_context.Update(tmd, ticket);
   INFO_LOG(IOS_ES, "ES_DIVerify: Title context changed: %016" PRIx64, tmd.GetTitleId());
 
   std::string tmd_path = Common::GetTMDFileName(tmd.GetTitleId(), Common::FROM_SESSION_ROOT);
@@ -659,7 +619,7 @@ s32 ES::DIVerify(const IOS::ES::TMDReader& tmd, const IOS::ES::TicketReader& tic
   // clear the cache to avoid content access mismatches.
   DiscIO::NANDContentManager::Access().ClearCache();
 
-  if (!UpdateUIDAndGID(*GetIOS(), s_title_context.tmd))
+  if (!UpdateUIDAndGID(*GetIOS(), m_title_context.tmd))
   {
     return ES_SHORT_READ;
   }
@@ -803,10 +763,10 @@ IPCCommandResult ES::DeleteStreamKey(const IOCtlVRequest& request)
 
 bool ES::IsActiveTitlePermittedByTicket(const u8* ticket_view) const
 {
-  if (!GetTitleContext().active)
+  if (!m_title_context.active)
     return false;
 
-  const u32 title_identifier = static_cast<u32>(GetTitleContext().tmd.GetTitleId());
+  const u32 title_identifier = static_cast<u32>(m_title_context.tmd.GetTitleId());
   const u32 permitted_title_mask =
       Common::swap32(ticket_view + offsetof(IOS::ES::TicketView, permitted_title_mask));
   const u32 permitted_title_id =
