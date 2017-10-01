@@ -16,7 +16,7 @@
 #include "LuaScriptFrame.h"
 #include "Frame.h"
 
-LuaScriptFrame::LuaScriptFrame(wxWindow* parent) : wxFrame(parent, wxID_ANY, _("Lua Console"))
+LuaScriptFrame::LuaScriptFrame(wxWindow* parent) : wxFrame(parent, wxID_ANY, _("Lua Console"), wxDefaultPosition, wxSize(431, 397), wxDEFAULT_FRAME_STYLE ^ wxRESIZE_BORDER)
 {
   CreateGUI();
   SetIcons(WxUtils::GetDolphinIconBundle());
@@ -36,6 +36,10 @@ LuaScriptFrame::~LuaScriptFrame()
 
 void LuaScriptFrame::CreateGUI()
 {
+  //Get size of this frame
+  //int frame_width, frame_height;
+  //this->GetSize(&frame_width, &frame_height);
+
   this->SetSizeHints(wxDefaultSize, wxDefaultSize);
 
   m_menubar = new wxMenuBar(0);
@@ -79,6 +83,9 @@ void LuaScriptFrame::CreateGUI()
   m_staticText2->Wrap(-1);
   main_sizer->Add(m_staticText2, 0, wxALL, 5);
 
+  output_console = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(415, 200), wxHSCROLL | wxTE_MULTILINE | wxTE_READONLY);
+  main_sizer->Add(output_console, 0, wxALL, 6);
+
 
   this->SetSizer(main_sizer);
   this->Layout();
@@ -110,6 +117,20 @@ void LuaScriptFrame::BrowseOnButtonClick(wxCommandEvent &event)
 
 void LuaScriptFrame::RunOnButtonClick(wxCommandEvent& event)
 {
+  lua_State* state = luaL_newstate();
+
+  //Make standard libraries available to loaded script
+  luaL_openlibs(state);
+
+  if (luaL_loadfile(state, m_textCtrl1->GetValue()) != LUA_OK)
+  {
+    return;
+  }
+
+  if (lua_pcall(state, 0, LUA_MULTRET, 0) != LUA_OK)
+  {
+    return;
+  }
 
 }
 

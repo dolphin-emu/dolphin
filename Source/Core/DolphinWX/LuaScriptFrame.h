@@ -44,6 +44,7 @@ protected:
   wxButton* run_button;
   wxButton* stop_button;
   wxStaticText* m_staticText2;
+  wxTextCtrl* output_console;
 
   // Virtual event handlers, overide them in your derived class
   void OnExitClicked(wxCommandEvent& event);
