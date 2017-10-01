@@ -13,4 +13,7 @@ class PropertiesDialog final : public QDialog
   Q_OBJECT
 public:
   explicit PropertiesDialog(QWidget* parent, const GameFile& game);
+
+signals:
+  void OpenGeneralSettings();
 };

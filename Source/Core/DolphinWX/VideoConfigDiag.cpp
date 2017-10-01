@@ -268,7 +268,7 @@ static wxString free_look_desc = wxTRANSLATE(
 static wxString crop_desc = wxTRANSLATE("Crop the picture from its native aspect ratio to 4:3 or "
                                         "16:9.\n\nIf unsure, leave this unchecked.");
 static wxString ppshader_desc = wxTRANSLATE(
-    "Apply a post-processing effect after finishing a frame.\n\nIf unsure, select (off).");
+    "Apply a post-processing effect after finishing a frame.\n\nIf unsure, select Off.");
 static wxString cache_efb_copies_desc =
     wxTRANSLATE("Slightly speeds up EFB to RAM copies by sacrificing emulation accuracy.\nIf "
                 "you're experiencing any issues, try raising texture cache accuracy or disable "
@@ -623,7 +623,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
                                Config::GFX_WIDESCREEN_HACK));
     cb_szr->Add(CreateCheckBox(page_enh, _("Disable Fog"), wxGetTranslation(disable_fog_desc),
                                Config::GFX_DISABLE_FOG));
-    cb_szr->Add(CreateCheckBox(page_enh, _("Force 24-bit Color"), wxGetTranslation(true_color_desc),
+    cb_szr->Add(CreateCheckBox(page_enh, _("Force 24-Bit Color"), wxGetTranslation(true_color_desc),
                                Config::GFX_ENHANCE_FORCE_TRUE_COLOR));
     szr_enh->Add(cb_szr, wxGBPosition(row, 0), wxGBSpan(1, 3));
     row += 1;
@@ -1268,7 +1268,7 @@ void VideoConfigDiag::PopulatePostProcessingShaders()
   if (shaders.empty())
     return;
 
-  choice_ppshader->AppendString(_("(off)"));
+  choice_ppshader->AppendString(_("Off"));
 
   for (const std::string& shader : shaders)
   {

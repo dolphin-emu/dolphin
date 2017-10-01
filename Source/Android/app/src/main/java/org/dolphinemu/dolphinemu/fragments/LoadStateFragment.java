@@ -10,14 +10,12 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.GridLayout;
 
-import org.dolphinemu.dolphinemu.BuildConfig;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 
 public final class LoadStateFragment extends Fragment implements View.OnClickListener
 {
-	public static final String FRAGMENT_TAG = BuildConfig.APPLICATION_ID + ".load_state";
-	public static final int FRAGMENT_ID = R.layout.fragment_state_load;
+	public static final String FRAGMENT_TAG = "load_state";
 
 	private static SparseIntArray buttonsActionsMap = new SparseIntArray();
 	static {
@@ -42,7 +40,7 @@ public final class LoadStateFragment extends Fragment implements View.OnClickLis
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
 	{
-		View rootView = inflater.inflate(FRAGMENT_ID, container, false);
+		View rootView = inflater.inflate(R.layout.fragment_state_load, container, false);
 
 		GridLayout grid = (GridLayout) rootView.findViewById(R.id.grid_state_slots);
 		for (int childIndex = 0; childIndex < grid.getChildCount(); childIndex++)

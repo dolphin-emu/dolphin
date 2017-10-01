@@ -101,6 +101,7 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
   case COL_FILE_NAME:
     if (role == Qt::DisplayRole || role == Qt::InitialSortOrderRole)
       return game->GetFileName();
+    break;
   case COL_SIZE:
     if (role == Qt::DisplayRole)
       return FormatSize(game->GetFileSize());

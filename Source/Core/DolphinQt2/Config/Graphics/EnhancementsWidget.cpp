@@ -113,6 +113,7 @@ void EnhancementsWidget::CreateWidgets()
 
   main_layout->addWidget(enhancements_box);
   main_layout->addWidget(stereoscopy_box);
+  main_layout->addStretch();
 
   setLayout(main_layout);
 }

@@ -41,6 +41,7 @@ import org.dolphinemu.dolphinemu.fragments.LoadStateFragment;
 import org.dolphinemu.dolphinemu.fragments.MenuFragment;
 import org.dolphinemu.dolphinemu.fragments.SaveStateFragment;
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
+import org.dolphinemu.dolphinemu.ui.platform.Platform;
 import org.dolphinemu.dolphinemu.utils.Animations;
 import org.dolphinemu.dolphinemu.utils.Java_GCAdapter;
 import org.dolphinemu.dolphinemu.utils.Java_WiimoteAdapter;
@@ -71,6 +72,11 @@ public final class EmulationActivity extends AppCompatActivity
 	private boolean mMenuVisible;
 
 	private static boolean mIsGameCubeGame;
+
+	private enum MenuType
+	{
+		SAVE, LOAD
+	}
 
 	/**
 	 * Handlers are a way to pass a message to an Activity telling it to do something
@@ -293,7 +299,7 @@ public final class EmulationActivity extends AppCompatActivity
 
 		mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 
-		mIsGameCubeGame = (NativeLibrary.GetPlatform(path) == 0);
+		mIsGameCubeGame = Platform.fromNativeInt(NativeLibrary.GetPlatform(path)) == Platform.GAMECUBE;
 	}
 
 	@Override
@@ -522,14 +528,14 @@ public final class EmulationActivity extends AppCompatActivity
 			case MENU_ACTION_SAVE_ROOT:
 				if (!mDeviceHasTouchScreen)
 				{
-					showMenu(SaveStateFragment.FRAGMENT_ID);
+					showMenu(MenuType.SAVE);
 				}
 				return;
 
 			case MENU_ACTION_LOAD_ROOT:
 				if (!mDeviceHasTouchScreen)
 				{
-					showMenu(LoadStateFragment.FRAGMENT_ID);
+					showMenu(MenuType.LOAD);
 				}
 				return;
 
@@ -862,18 +868,18 @@ public final class EmulationActivity extends AppCompatActivity
 				});
 	}
 
-	private void showMenu(int menuId)
+	private void showMenu(MenuType menuId)
 	{
 		Fragment fragment;
 
 		switch (menuId)
 		{
-			case SaveStateFragment.FRAGMENT_ID:
+			case SAVE:
 				fragment = SaveStateFragment.newInstance();
 				mSubmenuFragmentTag = SaveStateFragment.FRAGMENT_TAG;
 				break;
 
-			case LoadStateFragment.FRAGMENT_ID:
+			case LOAD:
 				fragment = LoadStateFragment.newInstance();
 				mSubmenuFragmentTag = LoadStateFragment.FRAGMENT_TAG;
 				break;

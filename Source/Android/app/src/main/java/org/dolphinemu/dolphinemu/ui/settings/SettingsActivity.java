@@ -10,7 +10,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.Toast;
 
-import org.dolphinemu.dolphinemu.BuildConfig;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.model.settings.SettingSection;
 
@@ -19,6 +18,8 @@ import java.util.HashMap;
 
 public final class SettingsActivity extends AppCompatActivity implements SettingsActivityView
 {
+	private static final String ARG_FILE_NAME = "file_name";
+	private static final String FRAGMENT_TAG = "settings";
 	private SettingsActivityPresenter mPresenter = new SettingsActivityPresenter(this);
 
 	@Override
@@ -29,7 +30,7 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
 		setContentView(R.layout.activity_settings);
 
 		Intent launcher = getIntent();
-		String filename = launcher.getStringExtra(ARGUMENT_FILE_NAME);
+		String filename = launcher.getStringExtra(ARG_FILE_NAME);
 
 		mPresenter.onCreate(savedInstanceState, filename);
 	}
@@ -93,7 +94,7 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
 			transaction.addToBackStack(null);
 			mPresenter.addToStack();
 		}
-		transaction.replace(R.id.frame_content, SettingsFragment.newInstance(menuTag), SettingsFragment.FRAGMENT_TAG);
+		transaction.replace(R.id.frame_content, SettingsFragment.newInstance(menuTag), FRAGMENT_TAG);
 
 		transaction.commit();
 	}
@@ -170,16 +171,14 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
 
 	private SettingsFragment getFragment()
 	{
-		return (SettingsFragment) getFragmentManager().findFragmentByTag(SettingsFragment.FRAGMENT_TAG);
+		return (SettingsFragment) getFragmentManager().findFragmentByTag(FRAGMENT_TAG);
 	}
-
-	public static final String ARGUMENT_FILE_NAME = BuildConfig.APPLICATION_ID + ".file_name";
 
 	public static void launch(Context context, String menuTag)
 	{
 		Intent settings = new Intent(context, SettingsActivity.class);
 
-		settings.putExtra(ARGUMENT_FILE_NAME, menuTag);
+		settings.putExtra(ARG_FILE_NAME, menuTag);
 
 		context.startActivity(settings);
 	}

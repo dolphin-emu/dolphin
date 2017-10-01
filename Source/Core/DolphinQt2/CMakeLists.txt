@@ -31,8 +31,10 @@ set(SRCS
   Translation.cpp
   WiiUpdate.cpp
   WiiUpdate.h
+  Config/CheatWarningWidget.cpp
   Config/ControllersWindow.cpp
   Config/FilesystemWidget.cpp
+  Config/GeckoCodeWidget.cpp
   Config/Graphics/AdvancedWidget.cpp
   Config/Graphics/EnhancementsWidget.cpp
   Config/Graphics/GeneralWidget.cpp
@@ -84,6 +86,7 @@ set(SRCS
   QtUtils/ElidedButton.cpp
   QtUtils/ListTabWidget.cpp
   QtUtils/WindowActivationEventFilter.cpp
+  Settings/AdvancedPane.cpp
   Settings/AudioPane.cpp
   Settings/GeneralPane.cpp
   Settings/InterfacePane.cpp

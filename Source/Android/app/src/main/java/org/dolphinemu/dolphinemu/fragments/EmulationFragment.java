@@ -12,7 +12,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 
-import org.dolphinemu.dolphinemu.BuildConfig;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.overlay.InputOverlay;
@@ -20,9 +19,9 @@ import org.dolphinemu.dolphinemu.utils.Log;
 
 public final class EmulationFragment extends Fragment implements SurfaceHolder.Callback
 {
-	public static final String FRAGMENT_TAG = BuildConfig.APPLICATION_ID + ".emulation_fragment";
+	public static final String FRAGMENT_TAG = "emulation_fragment";
 
-	private static final String ARGUMENT_GAME_PATH = BuildConfig.APPLICATION_ID + ".game_path";
+	private static final String ARG_GAME_PATH = "game_path";
 
 	private SharedPreferences mPreferences;
 
@@ -40,7 +39,7 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 		EmulationFragment fragment = new EmulationFragment();
 
 		Bundle arguments = new Bundle();
-		arguments.putString(ARGUMENT_GAME_PATH, path);
+		arguments.putString(ARG_GAME_PATH, path);
 		fragment.setArguments(arguments);
 
 		return fragment;
@@ -238,7 +237,7 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 			Log.info("[EmulationFragment] Starting emulation: " + mSurface);
 
 			// Start emulation using the provided Surface.
-			String path = getArguments().getString(ARGUMENT_GAME_PATH);
+			String path = getArguments().getString(ARG_GAME_PATH);
 			NativeLibrary.Run(path);
 		}
 	};
