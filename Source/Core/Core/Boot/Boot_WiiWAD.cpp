@@ -20,7 +20,6 @@
 #include "Core/IOS/IOS.h"
 #include "Core/WiiUtils.h"
 
-#include "DiscIO/NANDContentLoader.h"
 #include "DiscIO/WiiWad.h"
 
 bool CBoot::BootNANDTitle(const u64 title_id)

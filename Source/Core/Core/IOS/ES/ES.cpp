@@ -27,7 +27,6 @@
 #include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/IOSC.h"
 #include "Core/ec_wii.h"
-#include "DiscIO/NANDContentLoader.h"
 
 namespace IOS
 {
@@ -218,11 +217,6 @@ bool ES::LaunchTitle(u64 title_id, bool skip_reload)
 
   NOTICE_LOG(IOS_ES, "Launching title %016" PRIx64 "...", title_id);
 
-  // ES_Launch should probably reset the whole state, which at least means closing all open files.
-  // leaving them open through ES_Launch may cause hangs and other funky behavior
-  // (supposedly when trying to re-open those files).
-  DiscIO::NANDContentManager::Access().ClearCache();
-
   u32 device_id;
   if (title_id == Titles::SHOP &&
       (GetDeviceId(&device_id) != IPC_SUCCESS || device_id == DEFAULT_WII_DEVICE_ID))
@@ -401,8 +395,6 @@ ReturnCode ES::Close(u32 fd)
 
   INFO_LOG(IOS_ES, "ES: Close");
   m_is_active = false;
-  // clear the NAND content cache to make sure nothing remains open.
-  DiscIO::NANDContentManager::Access().ClearCache();
   return IPC_SUCCESS;
 }
 
@@ -658,9 +650,6 @@ s32 ES::DIVerify(const IOS::ES::TMDReader& tmd, const IOS::ES::TicketReader& tic
     if (!tmd_file.WriteBytes(tmd_bytes.data(), tmd_bytes.size()))
       ERROR_LOG(IOS_ES, "DIVerify failed to write disc TMD to NAND.");
   }
-  // DI_VERIFY writes to title.tmd, which is read and cached inside the NAND Content Manager.
-  // clear the cache to avoid content access mismatches.
-  DiscIO::NANDContentManager::Access().ClearCache();
 
   if (!UpdateUIDAndGID(*GetIOS(), m_title_context.tmd))
   {

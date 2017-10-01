@@ -60,7 +60,6 @@
 #include "Core/WiiUtils.h"
 
 #include "DiscIO/Enums.h"
-#include "DiscIO/NANDContentLoader.h"
 #include "DiscIO/NANDImporter.h"
 #include "DiscIO/VolumeWad.h"
 

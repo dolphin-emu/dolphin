@@ -18,11 +18,6 @@
 
 class PointerWrap;
 
-namespace DiscIO
-{
-class NANDContentLoader;
-}
-
 namespace IOS
 {
 namespace HLE

@@ -17,7 +17,6 @@
 #include "Core/Core.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/ES/Formats.h"
-#include "DiscIO/NANDContentLoader.h"
 
 namespace IOS
 {

@@ -38,7 +38,6 @@
 #include "DiscIO/DiscExtractor.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/Filesystem.h"
-#include "DiscIO/NANDContentLoader.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeFileBlobReader.h"
 #include "DiscIO/VolumeWii.h"
@@ -129,10 +128,7 @@ bool InstallWAD(IOS::HLE::Kernel& ios, const DiscIO::WiiWAD& wad)
     return false;
   }
 
-  const bool result = ImportWAD(ios, wad);
-
-  DiscIO::NANDContentManager::Access().ClearCache();
-  return result;
+  return ImportWAD(ios, wad);
 }
 
 bool InstallWAD(const std::string& wad_path)
@@ -695,17 +691,13 @@ UpdateResult DiscSystemUpdater::ProcessEntry(u32 type, std::bitset<32> attrs,
 UpdateResult DoOnlineUpdate(UpdateCallback update_callback, const std::string& region)
 {
   OnlineSystemUpdater updater{std::move(update_callback), region};
-  const UpdateResult result = updater.DoOnlineUpdate();
-  DiscIO::NANDContentManager::Access().ClearCache();
-  return result;
+  return updater.DoOnlineUpdate();
 }
 
 UpdateResult DoDiscUpdate(UpdateCallback update_callback, const std::string& image_path)
 {
   DiscSystemUpdater updater{std::move(update_callback), image_path};
-  const UpdateResult result = updater.DoDiscUpdate();
-  DiscIO::NANDContentManager::Access().ClearCache();
-  return result;
+  return updater.DoDiscUpdate();
 }
 
 NANDCheckResult CheckNAND(IOS::HLE::Kernel& ios)

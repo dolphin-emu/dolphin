@@ -43,7 +43,6 @@
 #include "VideoCommon/HiresTextures.h"
 
 #include "DiscIO/Enums.h"
-#include "DiscIO/NANDContentLoader.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/WiiWad.h"
 

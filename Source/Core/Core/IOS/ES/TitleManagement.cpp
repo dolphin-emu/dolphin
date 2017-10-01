@@ -22,7 +22,6 @@
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/ES/Formats.h"
 #include "Core/ec_wii.h"
-#include "DiscIO/NANDContentLoader.h"
 
 namespace IOS
 {
@@ -506,8 +505,6 @@ ReturnCode ES::DeleteTitle(u64 title_id)
     ERROR_LOG(IOS_ES, "DeleteTitle: Failed to delete title directory: %s", title_dir.c_str());
     return FS_EACCESS;
   }
-  // XXX: ugly, but until we drop NANDContentManager everywhere, this is going to be needed.
-  DiscIO::NANDContentManager::Access().ClearCache();
 
   return IPC_SUCCESS;
 }

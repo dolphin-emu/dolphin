@@ -46,7 +46,6 @@
 #include "Core/PowerPC/PowerPC.h"
 
 #include "DiscIO/Enums.h"
-#include "DiscIO/NANDContentLoader.h"
 #include "DiscIO/Volume.h"
 
 BootParameters::BootParameters(Parameters&& parameters_) : parameters(std::move(parameters_))

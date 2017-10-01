@@ -19,7 +19,6 @@
 #include "Core/IOS/ES/ES.h"
 #include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/WFS/WFSSRV.h"
-#include "DiscIO/NANDContentLoader.h"
 
 namespace
 {

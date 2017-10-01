@@ -17,7 +17,6 @@
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
 #include "Core/IOS/ES/Formats.h"
-#include "DiscIO/NANDContentLoader.h"
 
 namespace DiscIO
 {
@@ -44,9 +43,6 @@ void NANDImporter::ImportNANDBin(const std::string& path_to_bin,
   ProcessEntry(0, nand_root);
   ExportKeys(nand_root);
   ExtractCertificates(nand_root);
-
-  // We have to clear the cache so the new NAND takes effect
-  DiscIO::NANDContentManager::Access().ClearCache();
 }
 
 bool NANDImporter::ReadNANDBin(const std::string& path_to_bin)
