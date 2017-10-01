@@ -46,7 +46,7 @@
 
 namespace WiiUtils
 {
-static bool InstallWAD(IOS::HLE::Kernel& ios, const DiscIO::WiiWAD& wad)
+static bool ImportWAD(IOS::HLE::Kernel& ios, const DiscIO::WiiWAD& wad)
 {
   if (!wad.IsValid())
   {
@@ -109,11 +109,8 @@ static bool InstallWAD(IOS::HLE::Kernel& ios, const DiscIO::WiiWAD& wad)
   return true;
 }
 
-bool InstallWAD(const std::string& wad_path)
+bool InstallWAD(IOS::HLE::Kernel& ios, const DiscIO::WiiWAD& wad)
 {
-  IOS::HLE::Kernel ios;
-  const DiscIO::WiiWAD wad{wad_path};
-
   if (!wad.GetTMD().IsValid())
     return false;
 
@@ -131,10 +128,16 @@ bool InstallWAD(const std::string& wad_path)
     return false;
   }
 
-  const bool result = InstallWAD(ios, wad);
+  const bool result = ImportWAD(ios, wad);
 
   DiscIO::NANDContentManager::Access().ClearCache();
   return result;
+}
+
+bool InstallWAD(const std::string& wad_path)
+{
+  IOS::HLE::Kernel ios;
+  return InstallWAD(ios, DiscIO::WiiWAD{wad_path});
 }
 
 // Common functionality for system updaters.
@@ -685,7 +688,7 @@ UpdateResult DiscSystemUpdater::ProcessEntry(u32 type, std::bitset<32> attrs,
     return UpdateResult::DiscReadFailed;
   }
   const DiscIO::WiiWAD wad{std::move(blob)};
-  return InstallWAD(m_ios, wad) ? UpdateResult::Succeeded : UpdateResult::ImportFailed;
+  return ImportWAD(m_ios, wad) ? UpdateResult::Succeeded : UpdateResult::ImportFailed;
 }
 
 UpdateResult DoOnlineUpdate(UpdateCallback update_callback, const std::string& region)

@@ -13,6 +13,10 @@
 
 // Small utility functions for common Wii related tasks.
 
+namespace DiscIO
+{
+class WiiWAD;
+}
 namespace IOS
 {
 namespace HLE
@@ -23,6 +27,8 @@ class Kernel;
 
 namespace WiiUtils
 {
+bool InstallWAD(IOS::HLE::Kernel& ios, const DiscIO::WiiWAD& wad);
+// Same as the above, but constructs a temporary IOS and WiiWAD instance for importing.
 bool InstallWAD(const std::string& wad_path);
 
 enum class UpdateResult
