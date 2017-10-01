@@ -21,6 +21,20 @@
 
 #include "DiscIO/NANDContentLoader.h"
 
+bool CBoot::BootNANDTitle(const u64 title_id)
+{
+  UpdateStateFlags([](StateFlags* state) {
+    state->type = 0x03;  // TYPE_RETURN
+  });
+
+  if (title_id == Titles::SYSTEM_MENU)
+    IOS::HLE::CreateVirtualFATFilesystem();
+
+  SetupWiiMemory();
+  auto* ios = IOS::HLE::GetIOS();
+  return ios->GetES()->LaunchTitle(title_id);
+}
+
 bool CBoot::Boot_WiiWAD(const std::string& _pFilename)
 {
   UpdateStateFlags([](StateFlags* state) {

@@ -1225,7 +1225,7 @@ void CFrame::OnShowCheatsWindow(wxCommandEvent& WXUNUSED(event))
 
 void CFrame::OnLoadWiiMenu(wxCommandEvent& WXUNUSED(event))
 {
-  BootGame(Common::GetTitleContentPath(Titles::SYSTEM_MENU, Common::FROM_CONFIGURED_ROOT));
+  StartGame(std::make_unique<BootParameters>(BootParameters::NANDTitle{Titles::SYSTEM_MENU}));
 }
 
 void CFrame::OnInstallWAD(wxCommandEvent& event)

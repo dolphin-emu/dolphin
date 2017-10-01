@@ -213,7 +213,7 @@ bool CBoot::EmulatedBS2_GC(const DiscIO::Volume& volume)
   return RunApploader(/*is_wii*/ false, volume);
 }
 
-bool CBoot::SetupWiiMemory(u64 ios_title_id)
+bool CBoot::SetupWiiMemory()
 {
   static const std::map<DiscIO::Region, const RegionSetting> region_settings = {
       {DiscIO::Region::NTSC_J, {"JPN", "NTSC", "JP", "LJ"}},
@@ -308,9 +308,6 @@ bool CBoot::SetupWiiMemory(u64 ios_title_id)
   // It is fine to always use the latest value as apploaders work with all versions.
   Memory::Write_U16(0x0113, 0x0000315e);
 
-  if (!IOS::HLE::GetIOS()->BootIOS(ios_title_id))
-    return false;
-
   Memory::Write_U8(0x80, 0x0000315c);         // OSInit
   Memory::Write_U16(0x0000, 0x000030e0);      // PADInit
   Memory::Write_U32(0x80000000, 0x00003184);  // GameID Address
@@ -367,7 +364,7 @@ bool CBoot::EmulatedBS2_Wii(const DiscIO::Volume& volume)
   Memory::Write_U32(0, 0x3194);
   Memory::Write_U32(static_cast<u32>(data_partition.offset >> 2), 0x3198);
 
-  if (!SetupWiiMemory(tmd.GetIOSId()))
+  if (!SetupWiiMemory() || !IOS::HLE::GetIOS()->BootIOS(tmd.GetIOSId()))
     return false;
 
   DVDRead(volume, 0x00000000, 0x00000000, 0x20, DiscIO::PARTITION_NONE);  // Game Code

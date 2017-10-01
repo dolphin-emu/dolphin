@@ -652,8 +652,7 @@ void MainWindow::PerformOnlineUpdate(const std::string& region)
 
 void MainWindow::BootWiiSystemMenu()
 {
-  StartGame(QString::fromStdString(
-      Common::GetTitleContentPath(Titles::SYSTEM_MENU, Common::FROM_CONFIGURED_ROOT)));
+  StartGame(std::make_unique<BootParameters>(BootParameters::NANDTitle{Titles::SYSTEM_MENU}));
 }
 
 void MainWindow::NetPlayInit()

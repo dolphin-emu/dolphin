@@ -339,7 +339,8 @@ bool CBoot::BootUp(std::unique_ptr<BootParameters> boot)
         HID4.SBE = 1;
         // Because there is no TMD to get the requested system (IOS) version from,
         // we default to IOS58, which is the version used by the Homebrew Channel.
-        SetupWiiMemory(0x000000010000003a);
+        SetupWiiMemory();
+        IOS::HLE::GetIOS()->BootIOS(0x000000010000003a);
       }
       else
       {
@@ -361,6 +362,12 @@ bool CBoot::BootUp(std::unique_ptr<BootParameters> boot)
       NOTICE_LOG(BOOT, "Booting from NAND: %s", nand.content_path.c_str());
       SetDefaultDisc();
       return Boot_WiiWAD(nand.content_path);
+    }
+
+    bool operator()(const BootParameters::NANDTitle& nand_title) const
+    {
+      SetDefaultDisc();
+      return BootNANDTitle(nand_title.id);
     }
 
     bool operator()(const BootParameters::IPL& ipl) const

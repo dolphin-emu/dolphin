@@ -902,6 +902,21 @@ struct SetGameMetadata
     return true;
   }
 
+  bool operator()(const BootParameters::NANDTitle& nand_title) const
+  {
+    IOS::HLE::Kernel ios;
+    const IOS::ES::TMDReader tmd = ios.GetES()->FindInstalledTMD(nand_title.id);
+    if (!tmd.IsValid() || !IOS::ES::IsChannel(nand_title.id))
+    {
+      PanicAlertT("This title cannot be booted.");
+      return false;
+    }
+    config->SetRunningGameMetadata(tmd);
+    config->bWii = true;
+    *region = tmd.GetRegion();
+    return true;
+  }
+
   bool operator()(const BootParameters::IPL& ipl) const
   {
     config->bWii = false;
