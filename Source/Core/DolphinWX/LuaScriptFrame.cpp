@@ -99,6 +99,37 @@ void LuaScriptFrame::CreateGUI()
   stop_button->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(LuaScriptFrame::StopOnButtonClick), NULL, this);
 }
 
+void LuaScriptFrame::Log(const char* message)
+{
+  output_console->AppendText(message);
+}
+
+int LuaScriptFrame::howdy(lua_State* state)
+{
+  // The number of function arguments will be on top of the stack.
+  int args = lua_gettop(state);
+  char buffer[512];
+  itoa(args, buffer, 10);
+
+  Log("howdy() was called with ");
+  Log(buffer);
+  Log(" arguments.\n");
+
+  for (int n = 1; n <= args; ++n) {
+    printf("  argument %d: '%s'\n", n, lua_tostring(state, n));
+  }
+
+  // Push the return value on top of the stack. NOTE: We haven't popped the
+  // input arguments to our function. To be honest, I haven't checked if we
+  // must, but at least in stack machines like the JVM, the stack will be
+  // cleaned between each function call.
+
+  lua_pushnumber(state, 123);
+
+  // Let Lua know how many return values we've passed
+  return 1;
+}
+
 void LuaScriptFrame::OnExitClicked(wxCommandEvent& event)
 {
 
@@ -122,16 +153,20 @@ void LuaScriptFrame::RunOnButtonClick(wxCommandEvent& event)
   //Make standard libraries available to loaded script
   luaL_openlibs(state);
 
+  //Register additinal functions with Lua
+  lua_register(state, "howdy", howdy);
+
   if (luaL_loadfile(state, m_textCtrl1->GetValue()) != LUA_OK)
   {
+    Log("Error opening file.\n");
     return;
   }
 
   if (lua_pcall(state, 0, LUA_MULTRET, 0) != LUA_OK)
   {
+    Log("Error running file.\n");
     return;
   }
-
 }
 
 void LuaScriptFrame::StopOnButtonClick(wxCommandEvent& event)

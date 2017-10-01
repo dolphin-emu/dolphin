@@ -34,6 +34,12 @@ class LuaScriptFrame final : public wxFrame
 {
 private:
   void CreateGUI();
+  void Log(const char* message);
+  int howdy(lua_State* state);
+  void OnExitClicked(wxCommandEvent& event);
+  void BrowseOnButtonClick(wxCommandEvent& event);
+  void RunOnButtonClick(wxCommandEvent& event);
+  void StopOnButtonClick(wxCommandEvent& event);
 
 protected:
   wxMenuBar* m_menubar;
@@ -45,13 +51,6 @@ protected:
   wxButton* stop_button;
   wxStaticText* m_staticText2;
   wxTextCtrl* output_console;
-
-  // Virtual event handlers, overide them in your derived class
-  void OnExitClicked(wxCommandEvent& event);
-  void BrowseOnButtonClick(wxCommandEvent& event);
-  void RunOnButtonClick(wxCommandEvent& event);
-  void StopOnButtonClick(wxCommandEvent& event);
-
 
 public:
 
