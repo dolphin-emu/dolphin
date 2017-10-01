@@ -106,6 +106,7 @@ public:
   void StatusBarMessage(const char* format, ...);
   void ClearStatusBar();
   void BootGame(const std::string& filename);
+  void StartGame(std::unique_ptr<BootParameters> boot);
   bool RendererHasFocus();
   bool RendererIsFullscreen();
   void OpenGeneralConfiguration(wxWindowID tab_id = wxID_ANY);
@@ -193,7 +194,6 @@ private:
   void InitializeTASDialogs();
   void InitializeCoreCallbacks();
 
-  void StartGame(std::unique_ptr<BootParameters> boot);
   void SetDebuggerStartupParameters() const;
 
   // Utility
