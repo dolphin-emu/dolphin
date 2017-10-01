@@ -791,6 +791,9 @@ bool ES::IsIssuerCorrect(VerifyContainerType type, const IOS::ES::CertReader& is
 
 ReturnCode ES::ReadCertStore(std::vector<u8>* buffer) const
 {
+  if (!SConfig::GetInstance().m_enable_signature_checks)
+    return IPC_SUCCESS;
+
   const std::string store_path = Common::RootUserPath(Common::FROM_SESSION_ROOT) + "/sys/cert.sys";
   File::IOFile store_file{store_path, "rb"};
   if (!store_file)
