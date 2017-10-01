@@ -105,6 +105,7 @@ void LuaScriptFrame::BrowseOnButtonClick(wxCommandEvent &event)
     return;
 
   m_textCtrl1->SetValue(dialog->GetPath());
+  dialog->Destroy();
 }
 
 void LuaScriptFrame::RunOnButtonClick(wxCommandEvent& event)
