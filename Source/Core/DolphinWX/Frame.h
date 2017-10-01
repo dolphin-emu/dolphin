@@ -275,9 +275,6 @@ private:
 
   void OnUpdateInterpreterMenuItem(wxUpdateUIEvent& event);
 
-  void OnUpdateLoadWiiMenuItem(wxCommandEvent&);
-  void UpdateLoadWiiMenuItem() const;
-
   void OnOpen(wxCommandEvent& event);  // File menu
   void OnRefresh(wxCommandEvent& event);
   void OnBootDrive(wxCommandEvent& event);
