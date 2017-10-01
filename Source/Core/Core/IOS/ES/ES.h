@@ -339,6 +339,10 @@ private:
   void FinishStaleImport(u64 title_id);
   void FinishAllStaleImports();
 
+  std::string GetContentPath(u64 title_id, const IOS::ES::Content& content,
+                             const IOS::ES::SharedContentMap& map = IOS::ES::SharedContentMap{
+                                 Common::FROM_SESSION_ROOT}) const;
+
   // TODO: remove these
   const DiscIO::NANDContentLoader& AccessContentDevice(u64 title_id);
 
