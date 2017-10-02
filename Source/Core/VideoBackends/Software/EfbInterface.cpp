@@ -556,9 +556,9 @@ void EncodeXFB(yuv422_packed* xfb_in_ram, u32 memory_stride, const EFBRectangle&
   }
 
   // Apply y scaling and copy to the xfb memory location
-  SW::copy_region(source.data(), source_rect, xfb_in_ram,
-                  EFBRectangle{source_rect.left, source_rect.top, source_rect.right,
-                               static_cast<int>(static_cast<float>(source_rect.bottom) * y_scale)});
+  SW::CopyRegion(source.data(), source_rect, xfb_in_ram,
+                 EFBRectangle{source_rect.left, source_rect.top, source_rect.right,
+                              static_cast<int>(static_cast<float>(source_rect.bottom) * y_scale)});
 }
 
 bool ZCompare(u16 x, u16 y, u32 z)

@@ -44,8 +44,8 @@ void SWTexture::CopyRectangleFromTexture(const AbstractTexture* source,
   }
   else
   {
-    copy_region(reinterpret_cast<const Pixel*>(software_source_texture->GetData()), srcrect,
-                reinterpret_cast<Pixel*>(GetData()), dstrect);
+    CopyRegion(reinterpret_cast<const Pixel*>(software_source_texture->GetData()), srcrect,
+               reinterpret_cast<Pixel*>(GetData()), dstrect);
   }
 }
 

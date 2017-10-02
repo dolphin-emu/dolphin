@@ -9,8 +9,8 @@ namespace SW
 // Modified from
 // http://tech-algorithm.com/articles/nearest-neighbor-image-scaling/
 template <typename T>
-void copy_region(const T* const source, const MathUtil::Rectangle<int>& srcrect, T* destination,
-                 const MathUtil::Rectangle<int>& dstrect)
+void CopyRegion(const T* const source, const MathUtil::Rectangle<int>& srcrect, T* destination,
+                const MathUtil::Rectangle<int>& dstrect)
 {
   double x_ratio = srcrect.GetWidth() / static_cast<double>(dstrect.GetWidth());
   double y_ratio = srcrect.GetHeight() / static_cast<double>(dstrect.GetHeight());
