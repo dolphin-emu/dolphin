@@ -133,7 +133,7 @@ void LuaScriptFrame::RunOnButtonClick(wxCommandEvent& event)
   luaL_openlibs(state);
 
   //Register additinal functions with Lua
-  lua_register(state, "emu.print", printToTextCtrl);
+  lua_register(state, "print", printToTextCtrl);
 
   if (luaL_loadfile(state, file_path->GetValue()) != LUA_OK)
   {
