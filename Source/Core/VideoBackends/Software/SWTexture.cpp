@@ -10,8 +10,21 @@
 
 namespace SW
 {
+namespace
+{
+#pragma pack(push, 1)
+struct Pixel
+{
+  u8 r;
+  u8 g;
+  u8 b;
+  u8 a;
+};
+#pragma pack(pop)
+}
 SWTexture::SWTexture(const TextureConfig& tex_config) : AbstractTexture(tex_config)
 {
+  m_data.resize(tex_config.width * tex_config.height * 4);
 }
 
 void SWTexture::Bind(unsigned int stage)
@@ -31,7 +44,8 @@ void SWTexture::CopyRectangleFromTexture(const AbstractTexture* source,
   }
   else
   {
-    copy_region(software_source_texture->GetData(), srcrect, GetData(), dstrect);
+    copy_region(reinterpret_cast<const Pixel*>(software_source_texture->GetData()), srcrect,
+                reinterpret_cast<Pixel*>(GetData()), dstrect);
   }
 }
 
