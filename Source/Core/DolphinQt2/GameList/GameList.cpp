@@ -84,15 +84,17 @@ void GameList::MakeListView()
           });
 
   m_list->setColumnHidden(GameListModel::COL_PLATFORM, !SConfig::GetInstance().m_showSystemColumn);
-  m_list->setColumnHidden(GameListModel::COL_ID, !SConfig::GetInstance().m_showIDColumn);
   m_list->setColumnHidden(GameListModel::COL_BANNER, !SConfig::GetInstance().m_showBannerColumn);
   m_list->setColumnHidden(GameListModel::COL_TITLE, !SConfig::GetInstance().m_showTitleColumn);
   m_list->setColumnHidden(GameListModel::COL_DESCRIPTION,
                           !SConfig::GetInstance().m_showDescriptionColumn);
   m_list->setColumnHidden(GameListModel::COL_MAKER, !SConfig::GetInstance().m_showMakerColumn);
-  m_list->setColumnHidden(GameListModel::COL_SIZE, !SConfig::GetInstance().m_showSizeColumn);
+  m_list->setColumnHidden(GameListModel::COL_ID, !SConfig::GetInstance().m_showIDColumn);
   m_list->setColumnHidden(GameListModel::COL_COUNTRY, !SConfig::GetInstance().m_showRegionColumn);
+  m_list->setColumnHidden(GameListModel::COL_SIZE, !SConfig::GetInstance().m_showSizeColumn);
   m_list->setColumnHidden(GameListModel::COL_RATING, !SConfig::GetInstance().m_showStateColumn);
+  m_list->setColumnHidden(GameListModel::COL_FILE_NAME,
+                          !SConfig::GetInstance().m_showFileNameColumn);
 
   QHeaderView* hor_header = m_list->horizontalHeader();
 
@@ -105,15 +107,15 @@ void GameList::MakeListView()
   hor_header->restoreState(QSettings().value(QStringLiteral("tableheader/state")).toByteArray());
 
   hor_header->setSectionResizeMode(GameListModel::COL_PLATFORM, QHeaderView::ResizeToContents);
-  hor_header->setSectionResizeMode(GameListModel::COL_COUNTRY, QHeaderView::ResizeToContents);
-  hor_header->setSectionResizeMode(GameListModel::COL_ID, QHeaderView::ResizeToContents);
   hor_header->setSectionResizeMode(GameListModel::COL_BANNER, QHeaderView::ResizeToContents);
   hor_header->setSectionResizeMode(GameListModel::COL_TITLE, QHeaderView::Stretch);
-  hor_header->setSectionResizeMode(GameListModel::COL_MAKER, QHeaderView::Stretch);
-  hor_header->setSectionResizeMode(GameListModel::COL_FILE_NAME, QHeaderView::ResizeToContents);
-  hor_header->setSectionResizeMode(GameListModel::COL_SIZE, QHeaderView::ResizeToContents);
   hor_header->setSectionResizeMode(GameListModel::COL_DESCRIPTION, QHeaderView::Stretch);
+  hor_header->setSectionResizeMode(GameListModel::COL_MAKER, QHeaderView::Stretch);
+  hor_header->setSectionResizeMode(GameListModel::COL_ID, QHeaderView::ResizeToContents);
+  hor_header->setSectionResizeMode(GameListModel::COL_COUNTRY, QHeaderView::ResizeToContents);
+  hor_header->setSectionResizeMode(GameListModel::COL_SIZE, QHeaderView::ResizeToContents);
   hor_header->setSectionResizeMode(GameListModel::COL_RATING, QHeaderView::ResizeToContents);
+  hor_header->setSectionResizeMode(GameListModel::COL_FILE_NAME, QHeaderView::ResizeToContents);
 
   m_list->verticalHeader()->hide();
   m_list->setFrameStyle(QFrame::NoFrame);
