@@ -27,8 +27,15 @@ class Kernel;
 
 namespace WiiUtils
 {
-bool InstallWAD(IOS::HLE::Kernel& ios, const DiscIO::WiiWAD& wad);
-// Same as the above, but constructs a temporary IOS and WiiWAD instance for importing.
+enum class InstallType
+{
+  Permanent,
+  Temporary,
+};
+
+bool InstallWAD(IOS::HLE::Kernel& ios, const DiscIO::WiiWAD& wad, InstallType type);
+// Same as the above, but constructs a temporary IOS and WiiWAD instance for importing
+// and does a permanent install.
 bool InstallWAD(const std::string& wad_path);
 
 enum class UpdateResult

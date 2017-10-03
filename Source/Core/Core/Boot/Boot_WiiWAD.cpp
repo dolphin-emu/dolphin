@@ -38,7 +38,7 @@ bool CBoot::BootNANDTitle(const u64 title_id)
 
 bool CBoot::Boot_WiiWAD(const DiscIO::WiiWAD& wad)
 {
-  if (!WiiUtils::InstallWAD(*IOS::HLE::GetIOS(), wad))
+  if (!WiiUtils::InstallWAD(*IOS::HLE::GetIOS(), wad, WiiUtils::InstallType::Temporary))
   {
     PanicAlertT("Cannot boot this WAD because it could not be installed to the NAND.");
     return false;

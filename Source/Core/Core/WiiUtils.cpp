@@ -29,6 +29,7 @@
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
+#include "Common/SysConf.h"
 #include "Core/CommonTitles.h"
 #include "Core/ConfigManager.h"
 #include "Core/IOS/Device.h"
@@ -109,7 +110,7 @@ static bool ImportWAD(IOS::HLE::Kernel& ios, const DiscIO::WiiWAD& wad)
   return true;
 }
 
-bool InstallWAD(IOS::HLE::Kernel& ios, const DiscIO::WiiWAD& wad)
+bool InstallWAD(IOS::HLE::Kernel& ios, const DiscIO::WiiWAD& wad, InstallType install_type)
 {
   if (!wad.GetTMD().IsValid())
     return false;
@@ -121,20 +122,42 @@ bool InstallWAD(IOS::HLE::Kernel& ios, const DiscIO::WiiWAD& wad)
 
   // If a different version is currently installed, warn the user to make sure
   // they don't overwrite the current version by mistake.
-  if (ios.GetES()->FindInstalledTMD(wad.GetTMD().GetTitleId()).IsValid() &&
-      !AskYesNoT("A different version of this title is already installed on the NAND. "
-                 "Installing this WAD will replace it irreversibly. Continue?"))
+  const u64 title_id = wad.GetTMD().GetTitleId();
+  const IOS::ES::TMDReader installed_tmd = ios.GetES()->FindInstalledTMD(title_id);
+  const bool has_another_version =
+      installed_tmd.IsValid() && installed_tmd.GetTitleVersion() != wad.GetTMD().GetTitleVersion();
+  if (has_another_version &&
+      !AskYesNoT("A different version of this title is already installed on the NAND.\n\n"
+                 "Installed version: %u\nWAD version: %u\n\n"
+                 "Installing this WAD will replace it irreversibly. Continue?",
+                 installed_tmd.GetTitleVersion(), wad.GetTMD().GetTitleVersion()))
   {
     return false;
   }
 
-  return ImportWAD(ios, wad);
+  // Delete a previous temporary title, if it exists.
+  SysConf sysconf{Common::FROM_SESSION_ROOT};
+  SysConf::Entry* tid_entry = sysconf.GetOrAddEntry("IPL.TID", SysConf::Entry::Type::LongLong);
+  if (const u64 previous_temporary_title_id = Common::swap64(tid_entry->GetData<u64>(0)))
+    ios.GetES()->DeleteTitleContent(previous_temporary_title_id);
+
+  if (!ImportWAD(ios, wad))
+    return false;
+
+  // Keep track of the title ID so this title can be removed to make room for any future install.
+  // We use the same mechanism as the System Menu for temporary SD card title data.
+  if (!has_another_version && install_type == InstallType::Temporary)
+    tid_entry->SetData<u64>(Common::swap64(title_id));
+  else
+    tid_entry->SetData<u64>(0);
+
+  return true;
 }
 
 bool InstallWAD(const std::string& wad_path)
 {
   IOS::HLE::Kernel ios;
-  return InstallWAD(ios, DiscIO::WiiWAD{wad_path});
+  return InstallWAD(ios, DiscIO::WiiWAD{wad_path}, InstallType::Permanent);
 }
 
 // Common functionality for system updaters.
