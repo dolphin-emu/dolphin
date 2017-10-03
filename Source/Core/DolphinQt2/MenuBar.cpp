@@ -92,6 +92,7 @@ void MenuBar::OnDebugModeToggled(bool enabled)
 {
   m_show_registers->setVisible(enabled);
   m_show_watch->setVisible(enabled);
+  m_show_breakpoints->setVisible(enabled);
 }
 
 void MenuBar::AddFileMenu()
@@ -279,6 +280,15 @@ void MenuBar::AddViewMenu()
 
   connect(m_show_watch, &QAction::toggled, &Settings::Instance(), &Settings::SetWatchVisible);
   connect(&Settings::Instance(), &Settings::WatchVisibilityChanged, m_show_watch,
+          &QAction::setChecked);
+
+  m_show_breakpoints = view_menu->addAction(tr("&Breakpoints"));
+  m_show_breakpoints->setCheckable(true);
+  m_show_breakpoints->setChecked(Settings::Instance().IsBreakpointsVisible());
+
+  connect(m_show_breakpoints, &QAction::toggled, &Settings::Instance(),
+          &Settings::SetBreakpointsVisible);
+  connect(&Settings::Instance(), &Settings::BreakpointsVisibilityChanged, m_show_breakpoints,
           &QAction::setChecked);
 
   view_menu->addSeparator();

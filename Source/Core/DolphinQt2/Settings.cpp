@@ -240,3 +240,18 @@ bool Settings::IsWatchVisible() const
 {
   return QSettings().value(QStringLiteral("debugger/showwatch")).toBool();
 }
+
+void Settings::SetBreakpointsVisible(bool enabled)
+{
+  if (IsBreakpointsVisible() != enabled)
+  {
+    QSettings().setValue(QStringLiteral("debugger/showbreakpoints"), enabled);
+
+    emit BreakpointsVisibilityChanged(enabled);
+  }
+}
+
+bool Settings::IsBreakpointsVisible() const
+{
+  return QSettings().value(QStringLiteral("debugger/showbreakpoints")).toBool();
+}

@@ -173,6 +173,7 @@ void WatchWidget::closeEvent(QCloseEvent*)
 {
   Settings::Instance().SetWatchVisible(false);
 }
+
 void WatchWidget::OnLoad()
 {
   IniFile ini;

@@ -85,6 +85,8 @@ public:
   bool IsRegistersVisible() const;
   void SetWatchVisible(bool enabled);
   bool IsWatchVisible() const;
+  void SetBreakpointsVisible(bool enabled);
+  bool IsBreakpointsVisible() const;
 
   // Other
   GameListModel* GetGameListModel() const;
@@ -102,6 +104,7 @@ signals:
   void LogConfigVisibilityChanged(bool visible);
   void EnableCheatsChanged(bool enabled);
   void WatchVisibilityChanged(bool visible);
+  void BreakpointsVisibilityChanged(bool visible);
   void DebugModeToggled(bool enabled);
 
 private:

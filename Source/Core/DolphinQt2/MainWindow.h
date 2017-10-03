@@ -17,6 +17,7 @@
 #include "DolphinQt2/RenderWidget.h"
 #include "DolphinQt2/ToolBar.h"
 
+class BreakpointWidget;
 struct BootParameters;
 class FIFOPlayerWindow;
 class HotkeyScheduler;
@@ -141,6 +142,7 @@ private:
   NetPlaySetupDialog* m_netplay_setup_dialog;
   GraphicsWindow* m_graphics_window;
 
+  BreakpointWidget* m_breakpoint_widget;
   LogWidget* m_log_widget;
   LogConfigWidget* m_log_config_widget;
   FIFOPlayerWindow* m_fifo_window;
