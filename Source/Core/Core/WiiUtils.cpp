@@ -65,7 +65,8 @@ static bool InstallWAD(IOS::HLE::Kernel& ios, const DiscIO::WiiWAD& wad)
   // Ensure the common key index is correct, as it's checked by IOS.
   ticket.FixCommonKeyIndex();
 
-  while ((ret = es->ImportTicket(ticket.GetBytes(), wad.GetCertificateChain())) < 0 ||
+  while ((ret = es->ImportTicket(ticket.GetBytes(), wad.GetCertificateChain(),
+                                 IOS::HLE::Device::ES::TicketImportType::Unpersonalised)) < 0 ||
          (ret = es->ImportTitleInit(context, tmd.GetBytes(), wad.GetCertificateChain())) < 0)
   {
     if (checks_enabled && ret == IOS::HLE::IOSC_FAIL_CHECKVALUE &&

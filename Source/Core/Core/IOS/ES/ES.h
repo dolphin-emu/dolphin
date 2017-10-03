@@ -106,7 +106,15 @@ public:
   s32 SeekContent(u32 cfd, u32 offset, SeekMode mode, u32 uid);
 
   // Title management
-  ReturnCode ImportTicket(const std::vector<u8>& ticket_bytes, const std::vector<u8>& cert_chain);
+  enum class TicketImportType
+  {
+    // Ticket may be personalised, so use console specific data for decryption if needed.
+    PossiblyPersonalised,
+    // Ticket is unpersonalised, so ignore any console specific decryption data.
+    Unpersonalised,
+  };
+  ReturnCode ImportTicket(const std::vector<u8>& ticket_bytes, const std::vector<u8>& cert_chain,
+                          TicketImportType type = TicketImportType::PossiblyPersonalised);
   ReturnCode ImportTmd(Context& context, const std::vector<u8>& tmd_bytes);
   ReturnCode ImportTitleInit(Context& context, const std::vector<u8>& tmd_bytes,
                              const std::vector<u8>& cert_chain);
