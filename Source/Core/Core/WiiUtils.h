@@ -12,6 +12,14 @@
 
 // Small utility functions for common Wii related tasks.
 
+namespace IOS
+{
+namespace HLE
+{
+class Kernel;
+}
+}
+
 namespace WiiUtils
 {
 bool InstallWAD(const std::string& wad_path);
@@ -48,4 +56,8 @@ UpdateResult DoOnlineUpdate(UpdateCallback update_callback, const std::string& r
 
 // Perform a disc update with behaviour similar to the System Menu.
 UpdateResult DoDiscUpdate(UpdateCallback update_callback, const std::string& image_path);
+
+// Check the emulated NAND for common issues.
+bool CheckNAND(IOS::HLE::Kernel& ios);
+bool RepairNAND(IOS::HLE::Kernel& ios);
 }

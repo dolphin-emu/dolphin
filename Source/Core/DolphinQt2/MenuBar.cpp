@@ -22,6 +22,7 @@
 #include "Core/IOS/IOS.h"
 #include "Core/Movie.h"
 #include "Core/State.h"
+#include "Core/WiiUtils.h"
 #include "DiscIO/NANDImporter.h"
 #include "DolphinQt2/AboutDialog.h"
 #include "DolphinQt2/GameList/GameFile.h"
@@ -114,7 +115,7 @@ void MenuBar::AddToolsMenu()
       AddAction(tools_menu, QStringLiteral(""), this, [this] { emit BootWiiSystemMenu(); });
   m_import_backup = AddAction(gc_ipl, tr("Import BootMii NAND Backup..."), this,
                               [this] { emit ImportNANDBackup(); });
-
+  m_check_nand = AddAction(tools_menu, tr("Check NAND..."), this, &MenuBar::CheckNAND);
   m_extract_certificates = AddAction(tools_menu, tr("Extract Certificates from NAND"), this,
                                      &MenuBar::NANDExtractCertificates);
 
@@ -473,6 +474,7 @@ void MenuBar::UpdateToolsMenu(bool emulation_started)
   m_pal_ipl->setEnabled(!emulation_started &&
                         File::Exists(SConfig::GetInstance().GetBootROMPath(EUR_DIR)));
   m_import_backup->setEnabled(!emulation_started);
+  m_check_nand->setEnabled(!emulation_started);
 
   if (!emulation_started)
   {
@@ -530,6 +532,35 @@ void MenuBar::ImportWiiSave()
 void MenuBar::ExportWiiSaves()
 {
   CWiiSaveCrypted::ExportAllSaves();
+}
+
+void MenuBar::CheckNAND()
+{
+  IOS::HLE::Kernel ios;
+  if (WiiUtils::CheckNAND(ios))
+  {
+    QMessageBox::information(this, tr("NAND Check"), tr("No issues have been detected."));
+    return;
+  }
+
+  if (QMessageBox::question(
+          this, tr("NAND Check"),
+          tr("The emulated NAND is damaged. System titles such as the Wii Menu and "
+             "the Wii Shop Channel may not work correctly.\n\n"
+             "Do you want to try to repair the NAND?")) != QMessageBox::Yes)
+  {
+    return;
+  }
+
+  if (WiiUtils::RepairNAND(ios))
+  {
+    QMessageBox::information(this, tr("NAND Check"), tr("The NAND has been repaired."));
+    return;
+  }
+
+  QMessageBox::critical(this, tr("NAND Check"),
+                        tr("The NAND could not be repaired. It is recommended to back up "
+                           "your current data and start over with a fresh NAND."));
 }
 
 void MenuBar::NANDExtractCertificates()

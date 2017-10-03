@@ -185,6 +185,7 @@ void CFrame::BindMenuBarEvents()
   Bind(wxEVT_MENU, &CFrame::OnInstallWAD, this, IDM_MENU_INSTALL_WAD);
   Bind(wxEVT_MENU, &CFrame::OnLoadWiiMenu, this, IDM_LOAD_WII_MENU);
   Bind(wxEVT_MENU, &CFrame::OnImportBootMiiBackup, this, IDM_IMPORT_NAND);
+  Bind(wxEVT_MENU, &CFrame::OnCheckNAND, this, IDM_CHECK_NAND);
   Bind(wxEVT_MENU, &CFrame::OnExtractCertificates, this, IDM_EXTRACT_CERTIFICATES);
   for (const int idm : {IDM_PERFORM_ONLINE_UPDATE_CURRENT, IDM_PERFORM_ONLINE_UPDATE_EUR,
                         IDM_PERFORM_ONLINE_UPDATE_JPN, IDM_PERFORM_ONLINE_UPDATE_KOR,
@@ -1306,6 +1307,34 @@ void CFrame::OnImportBootMiiBackup(wxCommandEvent& WXUNUSED(event))
                           wxPD_APP_MODAL | wxPD_ELAPSED_TIME | wxPD_SMOOTH);
   DiscIO::NANDImporter().ImportNANDBin(file_name, [&dialog] { dialog.Pulse(); });
   UpdateLoadWiiMenuItem();
+}
+
+void CFrame::OnCheckNAND(wxCommandEvent&)
+{
+  IOS::HLE::Kernel ios;
+  if (WiiUtils::CheckNAND(ios))
+  {
+    wxMessageBox(_("No issues have been detected."), _("NAND Check"), wxOK | wxICON_INFORMATION);
+    return;
+  }
+
+  if (wxMessageBox("The emulated NAND is damaged. System titles such as the Wii Menu and "
+                   "the Wii Shop Channel may not work correctly.\n\n"
+                   "Do you want to try to repair the NAND?",
+                   _("NAND Check"), wxYES_NO) != wxYES)
+  {
+    return;
+  }
+
+  if (WiiUtils::RepairNAND(ios))
+  {
+    wxMessageBox(_("The NAND has been repaired."), _("NAND Check"), wxOK | wxICON_INFORMATION);
+    return;
+  }
+
+  wxMessageBox(_("The NAND could not be repaired. It is recommended to back up "
+                 "your current data and start over with a fresh NAND."),
+               _("NAND Check"), wxOK | wxICON_ERROR);
 }
 
 void CFrame::OnExtractCertificates(wxCommandEvent& WXUNUSED(event))

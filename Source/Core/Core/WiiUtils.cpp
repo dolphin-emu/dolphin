@@ -685,4 +685,89 @@ UpdateResult DoDiscUpdate(UpdateCallback update_callback, const std::string& ima
   DiscIO::NANDContentManager::Access().ClearCache();
   return result;
 }
+
+bool CheckNAND(IOS::HLE::Kernel& ios)
+{
+  bool bad = false;
+  const auto es = ios.GetES();
+
+  // Check for NANDs that were used with old Dolphin versions.
+  if (File::Exists(Common::RootUserPath(Common::FROM_CONFIGURED_ROOT) + "/sys/replace"))
+  {
+    ERROR_LOG(CORE, "CheckNAND: NAND was used with old versions, so it is likely to be damaged");
+    bad = true;
+  }
+
+  for (const u64 title_id : es->GetInstalledTitles())
+  {
+    // Check for missing title sub directories.
+    if (!File::IsDirectory(Common::GetTitleContentPath(title_id, Common::FROM_CONFIGURED_ROOT)))
+    {
+      ERROR_LOG(CORE, "CheckNAND: Missing content directory for title %016" PRIx64, title_id);
+      bad = true;
+    }
+    if (!File::IsDirectory(Common::GetTitleDataPath(title_id, Common::FROM_CONFIGURED_ROOT)))
+    {
+      ERROR_LOG(CORE, "CheckNAND: Missing data directory for title %016" PRIx64, title_id);
+      bad = true;
+    }
+
+    // Check for incomplete title installs (missing ticket, TMD or contents).
+    const auto ticket = DiscIO::FindSignedTicket(title_id);
+    if (!IOS::ES::IsDiscTitle(title_id) && !ticket.IsValid())
+    {
+      ERROR_LOG(CORE, "CheckNAND: Missing ticket for title %016" PRIx64, title_id);
+      bad = true;
+    }
+
+    const auto tmd = es->FindInstalledTMD(title_id);
+    if (!tmd.IsValid())
+    {
+      WARN_LOG(CORE, "CheckNAND: Missing TMD for title %016" PRIx64, title_id);
+      // Further checks require the TMD to be valid.
+      continue;
+    }
+
+    const auto installed_contents = es->GetStoredContentsFromTMD(tmd);
+    const bool is_installed = std::any_of(installed_contents.begin(), installed_contents.end(),
+                                          [](const auto& content) { return !content.IsShared(); });
+
+    if (is_installed && installed_contents != tmd.GetContents() &&
+        (tmd.GetTitleFlags() & IOS::ES::TitleFlags::TITLE_TYPE_WFS_MAYBE) == 0)
+    {
+      ERROR_LOG(CORE, "CheckNAND: Missing contents for title %016" PRIx64, title_id);
+      bad = true;
+    }
+  }
+
+  return !bad;
+}
+
+bool RepairNAND(IOS::HLE::Kernel& ios)
+{
+  const auto es = ios.GetES();
+
+  // Delete an old, unneeded file
+  File::Delete(Common::RootUserPath(Common::FROM_CONFIGURED_ROOT) + "/sys/replace");
+
+  for (const u64 title_id : es->GetInstalledTitles())
+  {
+    // Create missing title sub directories.
+    const std::string content_dir =
+        Common::GetTitleContentPath(title_id, Common::FROM_CONFIGURED_ROOT);
+    const std::string data_dir = Common::GetTitleDataPath(title_id, Common::FROM_CONFIGURED_ROOT);
+    File::CreateDir(content_dir);
+    File::CreateDir(data_dir);
+
+    // If there's nothing in the content/data directories and no ticket,
+    // this title shouldn't exist at all on the NAND.
+    if (File::ScanDirectoryTree(content_dir, false).children.empty() &&
+        File::ScanDirectoryTree(data_dir, false).children.empty() &&
+        !DiscIO::FindSignedTicket(title_id).IsValid())
+    {
+      es->DeleteTitle(title_id);
+    }
+  }
+  return CheckNAND(ios);
+}
 }
