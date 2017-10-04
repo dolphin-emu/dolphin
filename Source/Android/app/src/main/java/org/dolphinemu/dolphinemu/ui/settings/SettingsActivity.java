@@ -1,9 +1,9 @@
 package org.dolphinemu.dolphinemu.ui.settings;
 
-import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -88,7 +88,7 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
 	@Override
 	public void showSettingsFragment(String menuTag, boolean addToStack)
 	{
-		FragmentTransaction transaction = getFragmentManager().beginTransaction();
+		FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
 
 		if (addToStack)
 		{
@@ -149,7 +149,7 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
 	@Override
 	public void popBackStack()
 	{
-		getFragmentManager().popBackStackImmediate();
+		getSupportFragmentManager().popBackStackImmediate();
 	}
 
 	@Override
@@ -178,6 +178,6 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
 
 	private SettingsFragment getFragment()
 	{
-		return (SettingsFragment) getFragmentManager().findFragmentByTag(FRAGMENT_TAG);
+		return (SettingsFragment) getSupportFragmentManager().findFragmentByTag(FRAGMENT_TAG);
 	}
 }

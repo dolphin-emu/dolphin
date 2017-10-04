@@ -1,9 +1,7 @@
 package org.dolphinemu.dolphinemu.activities;
 
-import android.app.Activity;
 import android.app.ActivityOptions;
 import android.app.AlertDialog;
-import android.app.Fragment;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -14,6 +12,8 @@ import android.os.Handler;
 import android.os.Message;
 import android.preference.PreferenceManager;
 import android.support.annotation.IntDef;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.AppCompatActivity;
 import android.util.SparseIntArray;
 import android.view.InputDevice;
@@ -157,7 +157,7 @@ public final class EmulationActivity extends AppCompatActivity
 		buttonsActionsMap.append(R.id.menu_exit, EmulationActivity.MENU_ACTION_EXIT);
 	}
 
-	public static void launch(Activity activity, String path, String title, String screenshotPath, int position, View sharedView)
+	public static void launch(FragmentActivity activity, String path, String title, String screenshotPath, int position, View sharedView)
 	{
 		Intent launcher = new Intent(activity, EmulationActivity.class);
 
@@ -171,6 +171,8 @@ public final class EmulationActivity extends AppCompatActivity
 				sharedView,
 				"image_game_screenshot");
 
+		// I believe this warning is a bug. Activities are FragmentActivity from the support lib
+		//noinspection RestrictedApi
 		activity.startActivityForResult(launcher, MainPresenter.REQUEST_EMULATE_GAME, options.toBundle());
 	}
 
@@ -286,7 +288,7 @@ public final class EmulationActivity extends AppCompatActivity
 			EmulationFragment emulationFragment = EmulationFragment.newInstance(path);
 
 			// Add fragment to the activity - this triggers all its lifecycle callbacks.
-			getFragmentManager().beginTransaction()
+			getSupportFragmentManager().beginTransaction()
 					.add(R.id.frame_emulation_fragment, emulationFragment, EmulationFragment.FRAGMENT_TAG)
 					.commit();
 		}
@@ -302,7 +304,7 @@ public final class EmulationActivity extends AppCompatActivity
 		}
 		else
 		{
-			MenuFragment menuFragment = (MenuFragment) getFragmentManager()
+			MenuFragment menuFragment = (MenuFragment) getSupportFragmentManager()
 					.findFragmentById(R.id.fragment_menu);
 
 			if (menuFragment != null)
@@ -413,7 +415,7 @@ public final class EmulationActivity extends AppCompatActivity
 
 	private void stopEmulation()
 	{
-		EmulationFragment fragment = (EmulationFragment) getFragmentManager()
+		EmulationFragment fragment = (EmulationFragment) getSupportFragmentManager()
 				.findFragmentByTag(EmulationFragment.FRAGMENT_TAG);
 		fragment.notifyEmulationStopped();
 
@@ -612,7 +614,7 @@ public final class EmulationActivity extends AppCompatActivity
 
 
 	private void editControlsPlacement() {
-		EmulationFragment emulationFragment = (EmulationFragment) getFragmentManager()
+		EmulationFragment emulationFragment = (EmulationFragment) getSupportFragmentManager()
 				.findFragmentById(R.id.frame_emulation_fragment);
 		if (emulationFragment.isConfiguringControls()) {
 			emulationFragment.stopConfiguringControls();
@@ -707,7 +709,7 @@ public final class EmulationActivity extends AppCompatActivity
 		builder.setNeutralButton(getString(R.string.emulation_toggle_all), new DialogInterface.OnClickListener() {
 			@Override
 			public void onClick(DialogInterface dialogInterface, int i) {
-				EmulationFragment emulationFragment = (EmulationFragment) getFragmentManager()
+				EmulationFragment emulationFragment = (EmulationFragment) getSupportFragmentManager()
 						.findFragmentByTag(EmulationFragment.FRAGMENT_TAG);
 				emulationFragment.toggleInputOverlayVisibility();
 			}
@@ -717,7 +719,7 @@ public final class EmulationActivity extends AppCompatActivity
 			public void onClick(DialogInterface dialogInterface, int i) {
 				editor.apply();
 
-				EmulationFragment emulationFragment = (EmulationFragment) getFragmentManager()
+				EmulationFragment emulationFragment = (EmulationFragment) getSupportFragmentManager()
 						.findFragmentByTag(EmulationFragment.FRAGMENT_TAG);
 				emulationFragment.refreshInputOverlay();
 			}
@@ -764,7 +766,7 @@ public final class EmulationActivity extends AppCompatActivity
 				editor.putInt("controlScale", seekbar.getProgress());
 				editor.apply();
 
-				EmulationFragment emulationFragment = (EmulationFragment) getFragmentManager()
+				EmulationFragment emulationFragment = (EmulationFragment) getSupportFragmentManager()
 						.findFragmentByTag(EmulationFragment.FRAGMENT_TAG);
 				emulationFragment.refreshInputOverlay();
 			}
@@ -793,7 +795,7 @@ public final class EmulationActivity extends AppCompatActivity
 			public void onClick(DialogInterface dialogInterface, int i) {
 				editor.apply();
 
-				EmulationFragment emulationFragment = (EmulationFragment) getFragmentManager()
+				EmulationFragment emulationFragment = (EmulationFragment) getSupportFragmentManager()
 						.findFragmentByTag(EmulationFragment.FRAGMENT_TAG);
 				emulationFragment.refreshInputOverlay();
 
@@ -885,7 +887,7 @@ public final class EmulationActivity extends AppCompatActivity
 	private void showMenu(SaveLoadStateFragment.SaveOrLoad saveOrLoad)
 	{
 		Fragment fragment = SaveLoadStateFragment.newInstance(saveOrLoad);
-		getFragmentManager().beginTransaction()
+		getSupportFragmentManager().beginTransaction()
 				.setCustomAnimations(R.animator.menu_slide_in, R.animator.menu_slide_out)
 				.replace(R.id.frame_submenu, fragment, FRAGMENT_SUBMENU_TAG)
 				.commit();
@@ -894,7 +896,7 @@ public final class EmulationActivity extends AppCompatActivity
 
 	private void removeSubMenu()
 	{
-		final Fragment fragment = getFragmentManager().findFragmentByTag(FRAGMENT_SUBMENU_TAG);
+		final Fragment fragment = getSupportFragmentManager().findFragmentByTag(FRAGMENT_SUBMENU_TAG);
 
 		if (fragment != null)
 		{
@@ -908,7 +910,7 @@ public final class EmulationActivity extends AppCompatActivity
 						{
 							if (mMenuVisible)
 							{
-								getFragmentManager().beginTransaction()
+								getSupportFragmentManager().beginTransaction()
 										.remove(fragment)
 										.commit();
 							}
