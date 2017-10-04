@@ -13,6 +13,7 @@
 #include "Common/File.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
+#include "Common/StringUtil.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/SignatureDB/SignatureDB.h"
@@ -219,10 +220,12 @@ bool PPCSymbolDB::LoadMap(const std::string& filename, bool bad)
     return false;
 
   // four columns are used in American Mensa Academy map files and perhaps other games
-  bool started = false, four_columns = false;
-  int good_count = 0, bad_count = 0;
+  bool four_columns = false;
+  int good_count = 0;
+  int bad_count = 0;
 
   char line[512];
+  std::string section_name;
   while (fgets(line, 512, f.GetHandle()))
   {
     size_t length = strlen(line);
@@ -240,44 +243,48 @@ bool PPCSymbolDB::LoadMap(const std::string& filename, bool bad)
 
     if (strcmp(temp, "UNUSED") == 0)
       continue;
-    if (strcmp(temp, ".text") == 0)
+
+    // Support CodeWarrior and Dolphin map
+    if (StringEndsWith(line, " section layout\n") || strcmp(temp, ".text") == 0 ||
+        strcmp(temp, ".init") == 0)
     {
-      started = true;
+      section_name = temp;
       continue;
-    };
-    if (strcmp(temp, ".init") == 0)
-    {
-      started = true;
-      continue;
-    };
+    }
+
+    // Skip four columns' header.
+    //
+    // Four columns example:
+    //
+    // .text section layout
+    //   Starting        Virtual
+    //   address  Size   address
+    //   -----------------------
     if (strcmp(temp, "Starting") == 0)
-      continue;
-    if (strcmp(temp, "extab") == 0)
-      continue;
-    if (strcmp(temp, ".ctors") == 0)
-      break;  // uh?
-    if (strcmp(temp, ".dtors") == 0)
-      break;
-    if (strcmp(temp, ".rodata") == 0)
-      continue;
-    if (strcmp(temp, ".data") == 0)
-      continue;
-    if (strcmp(temp, ".sbss") == 0)
-      continue;
-    if (strcmp(temp, ".sdata") == 0)
-      continue;
-    if (strcmp(temp, ".sdata2") == 0)
       continue;
     if (strcmp(temp, "address") == 0)
       continue;
     if (strcmp(temp, "-----------------------") == 0)
       continue;
-    if (strcmp(temp, ".sbss2") == 0)
-      break;
-    if (temp[1] == ']')
+
+    // Skip link map.
+    //
+    // Link map example:
+    //
+    // Link map of __start
+    //  1] __start(func, weak) found in os.a __start.c
+    //   2] __init_registers(func, local) found in os.a __start.c
+    //    3] _stack_addr found as linker generated symbol
+    // ...
+    //           10] EXILock(func, global) found in exi.a EXIBios.c
+    if (StringEndsWith(temp, "]"))
       continue;
 
-    if (!started)
+    // TODO - Handle/Write a parser for:
+    //  - Memory map
+    //  - Link map
+    //  - Linker generated symbols
+    if (section_name.empty())
       continue;
 
     u32 address, vaddress, size, offset, alignment;
@@ -344,7 +351,7 @@ bool PPCSymbolDB::LoadMap(const std::string& filename, bool bad)
       name[strlen(name) - 1] = 0;
 
     // Check if this is a valid entry.
-    if (strcmp(name, ".text") != 0 && strcmp(name, ".init") != 0 && strlen(name) > 0)
+    if (strlen(name) > 0)
     {
       // Can't compute the checksum if not in RAM
       bool good = !bad && PowerPC::HostIsInstructionRAMAddress(vaddress) &&
@@ -363,7 +370,10 @@ bool PPCSymbolDB::LoadMap(const std::string& filename, bool bad)
       if (good)
       {
         ++good_count;
-        AddKnownSymbol(vaddress, size, name);  // ST_FUNCTION
+        if (section_name == ".text" || section_name == ".init")
+          AddKnownSymbol(vaddress, size, name, Symbol::Type::Function);
+        else
+          AddKnownSymbol(vaddress, size, name, Symbol::Type::Data);
       }
       else
       {
