@@ -395,16 +395,36 @@ bool PPCSymbolDB::SaveSymbolMap(const std::string& filename) const
   if (!f)
     return false;
 
-  // Write ".text" at the top
-  fprintf(f.GetHandle(), ".text\n");
+  std::vector<const Symbol*> function_symbols;
+  std::vector<const Symbol*> data_symbols;
 
-  // Write symbol address, size, virtual address, alignment, name
   for (const auto& function : functions)
   {
     const Symbol& symbol = function.second;
-    fprintf(f.GetHandle(), "%08x %08x %08x %i %s\n", symbol.address, symbol.size, symbol.address, 0,
-            symbol.name.c_str());
+    if (symbol.type == Symbol::Type::Function)
+      function_symbols.push_back(&symbol);
+    else
+      data_symbols.push_back(&symbol);
   }
+
+  // Write .text section
+  fprintf(f.GetHandle(), ".text section layout\n");
+  for (const auto& symbol : function_symbols)
+  {
+    // Write symbol address, size, virtual address, alignment, name
+    fprintf(f.GetHandle(), "%08x %08x %08x %i %s\n", symbol->address, symbol->size, symbol->address,
+            0, symbol->name.c_str());
+  }
+
+  // Write .data section
+  fprintf(f.GetHandle(), "\n.data section layout\n");
+  for (const auto& symbol : data_symbols)
+  {
+    // Write symbol address, size, virtual address, alignment, name
+    fprintf(f.GetHandle(), "%08x %08x %08x %i %s\n", symbol->address, symbol->size, symbol->address,
+            0, symbol->name.c_str());
+  }
+
   return true;
 }
 
