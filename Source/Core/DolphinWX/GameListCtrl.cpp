@@ -82,7 +82,7 @@ public:
   wxProgressDialog* dialog;
 };
 
-static constexpr u32 CACHE_REVISION = 3;  // Last changed in PR 5573
+static constexpr u32 CACHE_REVISION = 4;  // Last changed in PR 6092
 
 static bool sorted = false;
 
