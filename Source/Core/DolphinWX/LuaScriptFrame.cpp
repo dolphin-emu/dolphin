@@ -40,15 +40,18 @@ LuaScriptFrame::~LuaScriptFrame()
   run_button->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(LuaScriptFrame::RunOnButtonClick), NULL, this);
   stop_button->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(LuaScriptFrame::StopOnButtonClick), NULL, this);
 
+  //Stop currently executing Lua thread
+  if (lua_thread != nullptr && lua_thread->IsRunning())
+  {
+    lua_thread->Kill();
+    lua_thread = nullptr;
+  }
+
   main_frame->m_lua_script_frame = nullptr;
 }
 
 void LuaScriptFrame::CreateGUI()
 {
-  //Get size of this frame
-  //int frame_width, frame_height;
-  //this->GetSize(&frame_width, &frame_height);
-
   this->SetSizeHints(wxDefaultSize, wxDefaultSize);
 
   m_menubar = new wxMenuBar(0);
