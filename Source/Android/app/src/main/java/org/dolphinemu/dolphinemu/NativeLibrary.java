@@ -399,20 +399,6 @@ public final class NativeLibrary
 		}
 	}
 
-	public static void endEmulationActivity()
-	{
-		Log.verbose("[NativeLibrary] Ending EmulationActivity.");
-		EmulationActivity emulationActivity = sEmulationActivity.get();
-		if (emulationActivity != null)
-		{
-			emulationActivity.exitWithAnimation();
-		}
-		else
-		{
-			Log.warning("[NativeLibrary] EmulationActivity is null, can't end.");
-		}
-	}
-
 	public static void setEmulationActivity(EmulationActivity emulationActivity)
 	{
 		Log.verbose("[NativeLibrary] Registering EmulationActivity.");

@@ -23,7 +23,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
@@ -55,8 +54,8 @@ public final class EmulationActivity extends AppCompatActivity
 	private static final String FRAGMENT_SUBMENU_TAG = "submenu";
 	private View mDecorView;
 	private ImageView mImageView;
+	private EmulationFragment mEmulationFragment;
 
-	private FrameLayout mFrameEmulation;
 	private LinearLayout mMenuLayout;
 
 	private SharedPreferences mPreferences;
@@ -85,7 +84,6 @@ public final class EmulationActivity extends AppCompatActivity
 		}
 	};
 	private String mScreenPath;
-	private FrameLayout mFrameContent;
 	private String mSelectedTitle;
 
 	@Retention(SOURCE)
@@ -219,12 +217,13 @@ public final class EmulationActivity extends AppCompatActivity
 
 		Java_GCAdapter.manager = (UsbManager) getSystemService(Context.USB_SERVICE);
 		Java_WiimoteAdapter.manager = (UsbManager) getSystemService(Context.USB_SERVICE);
+		
 		setContentView(R.layout.activity_emulation);
 
 		mImageView = (ImageView) findViewById(R.id.image_screenshot);
-		mFrameContent = (FrameLayout) findViewById(R.id.frame_content);
-		mFrameEmulation = (FrameLayout) findViewById(R.id.frame_emulation_fragment);
 		mMenuLayout = (LinearLayout) findViewById(R.id.layout_ingame_menu);
+		mEmulationFragment = (EmulationFragment) getSupportFragmentManager()
+				.findFragmentById(R.id.fragment_emulation);
 
 		Intent gameToEmulate = getIntent();
 		String path = gameToEmulate.getStringExtra("SelectedGame");
@@ -260,14 +259,6 @@ public final class EmulationActivity extends AppCompatActivity
 
 			Animations.fadeViewOut(mImageView)
 					.setStartDelay(2000)
-					.withStartAction(new Runnable()
-					{
-						@Override
-						public void run()
-						{
-							mFrameEmulation.setVisibility(View.VISIBLE);
-						}
-					})
 					.withEndAction(new Runnable()
 					{
 						@Override
@@ -277,18 +268,12 @@ public final class EmulationActivity extends AppCompatActivity
 						}
 					});
 
-			// Instantiate an EmulationFragment.
-			EmulationFragment emulationFragment = EmulationFragment.newInstance(path);
-
-			// Add fragment to the activity - this triggers all its lifecycle callbacks.
-			getSupportFragmentManager().beginTransaction()
-					.add(R.id.frame_emulation_fragment, emulationFragment, EmulationFragment.FRAGMENT_TAG)
-					.commit();
+			mEmulationFragment.setGamePath(path);
+			mEmulationFragment.startEmulation();
 		}
 		else
 		{
 			mImageView.setVisibility(View.GONE);
-			mFrameEmulation.setVisibility(View.VISIBLE);
 		}
 
 		if (mDeviceHasTouchScreen)
@@ -309,23 +294,6 @@ public final class EmulationActivity extends AppCompatActivity
 		mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 
 		mIsGameCubeGame = Platform.fromNativeInt(NativeLibrary.GetPlatform(path)) == Platform.GAMECUBE;
-	}
-
-	@Override
-	protected void onStart()
-	{
-		super.onStart();
-		Log.debug("[EmulationActivity] EmulationActivity starting.");
-		NativeLibrary.setEmulationActivity(this);
-	}
-
-	@Override
-	protected void onStop()
-	{
-		super.onStop();
-		Log.debug("[EmulationActivity] EmulationActivity stopping.");
-
-		NativeLibrary.clearEmulationActivity();
 	}
 
 	@Override
@@ -376,7 +344,8 @@ public final class EmulationActivity extends AppCompatActivity
 		}
 		else
 		{
-			stopEmulation();
+			mEmulationFragment.stopEmulation();
+			exitWithAnimation();
 		}
 	}
 
@@ -404,15 +373,6 @@ public final class EmulationActivity extends AppCompatActivity
 			mMenuVisible = true;
 			Animations.fadeViewInFromLeft(mMenuLayout);
 		}
-	}
-
-	private void stopEmulation()
-	{
-		EmulationFragment fragment = (EmulationFragment) getSupportFragmentManager()
-				.findFragmentByTag(EmulationFragment.FRAGMENT_TAG);
-		fragment.notifyEmulationStopped();
-
-		NativeLibrary.StopEmulation();
 	}
 
 	public void exitWithAnimation()
@@ -458,7 +418,6 @@ public final class EmulationActivity extends AppCompatActivity
 		@Override
 		public void run()
 		{
-			mFrameContent.removeView(mFrameEmulation);
 			setResult(mPosition);
 			finishAfterTransition();
 		}
@@ -599,20 +558,23 @@ public final class EmulationActivity extends AppCompatActivity
 				return;
 
 			case MENU_ACTION_EXIT:
-				toggleMenu();
-				stopEmulation();
+				toggleMenu();  // Hide the menu (it will be showing since we just clicked it)
+				mEmulationFragment.stopEmulation();
+				exitWithAnimation();
 				return;
 		}
 	}
 
 
-	private void editControlsPlacement() {
-		EmulationFragment emulationFragment = (EmulationFragment) getSupportFragmentManager()
-				.findFragmentById(R.id.frame_emulation_fragment);
-		if (emulationFragment.isConfiguringControls()) {
-			emulationFragment.stopConfiguringControls();
-		} else {
-			emulationFragment.startConfiguringControls();
+	private void editControlsPlacement()
+	{
+		if (mEmulationFragment.isConfiguringControls())
+		{
+			mEmulationFragment.stopConfiguringControls();
+		}
+		else
+		{
+			mEmulationFragment.startConfiguringControls();
 		}
 	}
 
@@ -701,20 +663,18 @@ public final class EmulationActivity extends AppCompatActivity
 		}
 		builder.setNeutralButton(getString(R.string.emulation_toggle_all), new DialogInterface.OnClickListener() {
 			@Override
-			public void onClick(DialogInterface dialogInterface, int i) {
-				EmulationFragment emulationFragment = (EmulationFragment) getSupportFragmentManager()
-						.findFragmentByTag(EmulationFragment.FRAGMENT_TAG);
-				emulationFragment.toggleInputOverlayVisibility();
+			public void onClick(DialogInterface dialogInterface, int i)
+			{
+				mEmulationFragment.toggleInputOverlayVisibility();
 			}
 		});
 		builder.setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
 			@Override
-			public void onClick(DialogInterface dialogInterface, int i) {
+			public void onClick(DialogInterface dialogInterface, int i)
+			{
 				editor.apply();
 
-				EmulationFragment emulationFragment = (EmulationFragment) getSupportFragmentManager()
-						.findFragmentByTag(EmulationFragment.FRAGMENT_TAG);
-				emulationFragment.refreshInputOverlay();
+				mEmulationFragment.refreshInputOverlay();
 			}
 		});
 
@@ -759,9 +719,7 @@ public final class EmulationActivity extends AppCompatActivity
 				editor.putInt("controlScale", seekbar.getProgress());
 				editor.apply();
 
-				EmulationFragment emulationFragment = (EmulationFragment) getSupportFragmentManager()
-						.findFragmentByTag(EmulationFragment.FRAGMENT_TAG);
-				emulationFragment.refreshInputOverlay();
+				mEmulationFragment.refreshInputOverlay();
 			}
 		});
 
@@ -788,9 +746,7 @@ public final class EmulationActivity extends AppCompatActivity
 			public void onClick(DialogInterface dialogInterface, int i) {
 				editor.apply();
 
-				EmulationFragment emulationFragment = (EmulationFragment) getSupportFragmentManager()
-						.findFragmentByTag(EmulationFragment.FRAGMENT_TAG);
-				emulationFragment.refreshInputOverlay();
+				mEmulationFragment.refreshInputOverlay();
 
 				Toast.makeText(getApplication(), R.string.emulation_controller_changed, Toast.LENGTH_SHORT).show();
 			}
