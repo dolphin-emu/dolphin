@@ -1,6 +1,8 @@
 package org.dolphinemu.dolphinemu.utils;
 
+import android.app.Activity;
 import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
 import android.hardware.usb.UsbConfiguration;
 import android.hardware.usb.UsbConstants;
@@ -15,7 +17,6 @@ import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.services.USBPermService;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 public class Java_GCAdapter {
@@ -29,22 +30,31 @@ public class Java_GCAdapter {
 
 	private static void RequestPermission()
 	{
-		HashMap<String, UsbDevice> devices = manager.getDeviceList();
-		for (Map.Entry<String, UsbDevice> pair : devices.entrySet())
+		Context context = NativeLibrary.sEmulationActivity.get();
+		if (context != null)
 		{
-			UsbDevice dev = pair.getValue();
-			if (dev.getProductId() == 0x0337 && dev.getVendorId() == 0x057e)
+			HashMap<String, UsbDevice> devices = manager.getDeviceList();
+			for (Map.Entry<String, UsbDevice> pair : devices.entrySet())
 			{
-				if (!manager.hasPermission(dev))
+				UsbDevice dev = pair.getValue();
+				if (dev.getProductId() == 0x0337 && dev.getVendorId() == 0x057e)
 				{
-					Intent intent = new Intent();
-					PendingIntent pend_intent;
-					intent.setClass(NativeLibrary.sEmulationActivity, USBPermService.class);
-					pend_intent = PendingIntent.getService(NativeLibrary.sEmulationActivity, 0, intent, 0);
-					manager.requestPermission(dev, pend_intent);
+					if (!manager.hasPermission(dev))
+					{
+						Intent intent = new Intent();
+						PendingIntent pend_intent;
+						intent.setClass(context, USBPermService.class);
+						pend_intent = PendingIntent.getService(context, 0, intent, 0);
+						manager.requestPermission(dev, pend_intent);
+					}
 				}
 			}
 		}
+		else
+		{
+			Log.warning("Cannot request GameCube Adapter permission as EmulationActivity is null.");
+		}
+
 	}
 
 	public static void Shutdown()
@@ -124,14 +134,22 @@ public class Java_GCAdapter {
 						}
 					}
 
-					NativeLibrary.sEmulationActivity.runOnUiThread(new Runnable()
+					final Activity emulationActivity = NativeLibrary.sEmulationActivity.get();
+					if (emulationActivity != null)
 					{
-						@Override
-						public void run()
+						emulationActivity.runOnUiThread(new Runnable()
 						{
-							Toast.makeText(NativeLibrary.sEmulationActivity, "GameCube Adapter couldn't be opened. Please re-plug the device.", Toast.LENGTH_LONG).show();
-						}
-					});
+							@Override
+							public void run()
+							{
+								Toast.makeText(emulationActivity, "GameCube Adapter couldn't be opened. Please re-plug the device.", Toast.LENGTH_LONG).show();
+							}
+						});
+					}
+					else
+					{
+						Log.warning("Cannot show toast for GameCube Adapter failure.");
+					}
 					usb_con.close();
 				}
 			}
