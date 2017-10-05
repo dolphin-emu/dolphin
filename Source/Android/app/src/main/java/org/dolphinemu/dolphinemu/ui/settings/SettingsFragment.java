@@ -30,6 +30,17 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
 
 	private SettingsAdapter mAdapter;
 
+	public static Fragment newInstance(String menuTag)
+	{
+		SettingsFragment fragment = new SettingsFragment();
+
+		Bundle arguments = new Bundle();
+		arguments.putString(ARGUMENT_MENU_TAG, menuTag);
+
+		fragment.setArguments(arguments);
+		return fragment;
+	}
+
 	@Override
 	public void onAttach(Context context)
 	{
@@ -175,14 +186,4 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
 		mActivity.onExtensionSettingChanged(key, value);
 	}
 
-	public static Fragment newInstance(String menuTag)
-	{
-		SettingsFragment fragment = new SettingsFragment();
-
-		Bundle arguments = new Bundle();
-		arguments.putString(ARGUMENT_MENU_TAG, menuTag);
-
-		fragment.setArguments(arguments);
-		return fragment;
-	}
 }
