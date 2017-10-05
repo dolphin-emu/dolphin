@@ -72,11 +72,6 @@ public final class EmulationActivity extends AppCompatActivity
 
 	private static boolean mIsGameCubeGame;
 
-	private enum MenuType
-	{
-		SAVE, LOAD
-	}
-
 	/**
 	 * Handlers are a way to pass a message to an Activity telling it to do something
 	 * on the UI thread. This Handler responds to any message, even blank ones, by
