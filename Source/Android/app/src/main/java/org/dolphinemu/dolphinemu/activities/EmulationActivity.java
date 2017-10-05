@@ -332,7 +332,7 @@ public final class EmulationActivity extends AppCompatActivity
 		super.onStop();
 		Log.debug("[EmulationActivity] EmulationActivity stopping.");
 
-		NativeLibrary.setEmulationActivity(null);
+		NativeLibrary.clearEmulationActivity();
 	}
 
 	@Override

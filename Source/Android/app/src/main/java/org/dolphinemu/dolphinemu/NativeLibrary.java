@@ -391,13 +391,19 @@ public final class NativeLibrary
 
 	public static void endEmulationActivity()
 	{
-		Log.verbose("[NativeLibrary]Ending EmulationActivity.");
+		Log.verbose("[NativeLibrary] Ending EmulationActivity.");
 		sEmulationActivity.exitWithAnimation();
 	}
 
 	public static void setEmulationActivity(EmulationActivity emulationActivity)
 	{
-		Log.verbose("[NativeLibrary]Registering EmulationActivity.");
+		Log.verbose("[NativeLibrary] Registering EmulationActivity.");
 		sEmulationActivity = emulationActivity;
+	}
+
+	public static void clearEmulationActivity()
+	{
+		Log.verbose("[NativeLibrary] Unregistering EmulationActivity.");
+		sEmulationActivity = null;
 	}
 }
