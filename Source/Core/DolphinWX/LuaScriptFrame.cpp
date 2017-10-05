@@ -13,8 +13,9 @@
 #include <wx/textctrl.h>
 #include <wx/sizer.h>
 #include "DolphinWX/WxUtils.h"
-#include "LuaScriptFrame.h"
+#include "DolphinWX/Main.h"
 #include "Frame.h"
+#include "LuaScriptFrame.h"
 
 //THIS GLOBAL MUST BE USED TO SPEAK WITH THE CONSOLE
 LuaScriptFrame* currentWindow;
@@ -38,6 +39,8 @@ LuaScriptFrame::~LuaScriptFrame()
   Browse->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(LuaScriptFrame::BrowseOnButtonClick), NULL, this);
   run_button->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(LuaScriptFrame::RunOnButtonClick), NULL, this);
   stop_button->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(LuaScriptFrame::StopOnButtonClick), NULL, this);
+
+  main_frame->m_lua_script_frame = nullptr;
 }
 
 void LuaScriptFrame::CreateGUI()
