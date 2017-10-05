@@ -7,6 +7,7 @@
 #include <QApplication>
 #include <QMessageBox>
 #include <QObject>
+#include <QPushButton>
 #include <QWidget>
 
 #include "Common/MsgHandler.h"
@@ -30,7 +31,11 @@ static bool QtMsgAlertHandler(const char* caption, const char* text, bool yes_no
     QMessageBox message_box(QApplication::activeWindow());
     message_box.setWindowTitle(QString::fromUtf8(caption));
     message_box.setText(QString::fromUtf8(text));
+
     message_box.setStandardButtons(yes_no ? QMessageBox::Yes | QMessageBox::No : QMessageBox::Ok);
+    if (style == MsgType::Warning)
+      message_box.addButton(QMessageBox::Ignore)->setText(QObject::tr("Ignore for this session"));
+
     message_box.setIcon([&] {
       switch (style)
       {
@@ -47,7 +52,14 @@ static bool QtMsgAlertHandler(const char* caption, const char* text, bool yes_no
       return QMessageBox::NoIcon;
     }());
 
-    return message_box.exec() == QMessageBox::Yes;
+    const int button = message_box.exec();
+    if (button == QMessageBox::Yes)
+      return true;
+
+    if (button == QMessageBox::Ignore)
+      SetEnableAlert(false);
+
+    return false;
   });
 }
 
