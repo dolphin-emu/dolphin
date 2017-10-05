@@ -98,6 +98,7 @@
     <ClCompile Include="ISOProperties\InfoPanel.cpp" />
     <ClCompile Include="ISOProperties\ISOProperties.cpp" />
     <ClCompile Include="LuaScriptFrame.cpp" />
+    <ClCompile Include="LuaThread.cpp" />
     <ClCompile Include="NetPlay\ChangeGameDialog.cpp" />
     <ClCompile Include="NetPlay\MD5Dialog.cpp" />
     <ClCompile Include="NetPlay\NetPlayLauncher.cpp" />

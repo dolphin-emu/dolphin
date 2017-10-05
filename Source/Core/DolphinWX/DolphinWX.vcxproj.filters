@@ -274,6 +274,9 @@
     <ClCompile Include="LuaScriptFrame.cpp">
       <Filter>GUI\Lua</Filter>
     </ClCompile>
+    <ClCompile Include="LuaThread.cpp">
+      <Filter>GUI\Lua</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Main.h" />

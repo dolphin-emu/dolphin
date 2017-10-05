@@ -28,6 +28,7 @@ LuaScriptFrame::LuaScriptFrame(wxWindow* parent) : wxFrame(parent, wxID_ANY, _("
   Show();
 
   currentWindow = this;
+  lua_thread = nullptr;
 }
 
 LuaScriptFrame::~LuaScriptFrame()
@@ -127,30 +128,26 @@ void LuaScriptFrame::BrowseOnButtonClick(wxCommandEvent &event)
 
 void LuaScriptFrame::RunOnButtonClick(wxCommandEvent& event)
 {
-  lua_State* state = luaL_newstate();
-
-  //Make standard libraries available to loaded script
-  luaL_openlibs(state);
-
-  //Register additinal functions with Lua
-  lua_register(state, "print", printToTextCtrl);
-
-  if (luaL_loadfile(state, file_path->GetValue()) != LUA_OK)
+  if (lua_thread == nullptr)
   {
-    Log("Error opening file.\n");
-    return;
-  }
-
-  if (lua_pcall(state, 0, LUA_MULTRET, 0) != LUA_OK)
-  {
-    Log("Error running file.\n");
-    return;
+    lua_thread = new LuaThread(this, file_path->GetValue());
+    lua_thread->Run();
   }
 }
 
 void LuaScriptFrame::StopOnButtonClick(wxCommandEvent& event)
 {
+  //Kill current Lua thread
+  if (lua_thread != nullptr && lua_thread->IsRunning())
+  {
+    lua_thread->Kill();
+    lua_thread = nullptr;
+  }
+}
 
+void LuaScriptFrame::SignalThreadFinished()
+{
+  lua_thread = nullptr;
 }
 
 //Functions to register with Lua

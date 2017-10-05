@@ -30,6 +30,22 @@
 #include <laux.h>
 #endif
 
+class LuaScriptFrame;
+
+class LuaThread : public wxThread
+{
+public:
+  LuaThread(LuaScriptFrame* p, wxString file);
+  ~LuaThread();
+
+  wxThread::ExitCode Entry();
+
+private:
+  LuaScriptFrame* parent;
+  wxString file_path;
+};
+
+
 int printToTextCtrl(lua_State* L);
 
 class LuaScriptFrame final : public wxFrame
@@ -49,9 +65,11 @@ private:
   wxButton* stop_button;
   wxStaticText* m_staticText2;
   wxTextCtrl* output_console;
+  LuaThread* lua_thread;
 
 public:
   void Log(const char* message);
+  void SignalThreadFinished();
 
   LuaScriptFrame(wxWindow* parent);
 
