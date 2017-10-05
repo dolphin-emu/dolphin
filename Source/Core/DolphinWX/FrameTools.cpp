@@ -1606,6 +1606,7 @@ void CFrame::UpdateGUI()
   GetMenuBar()->FindItem(IDM_SAVE_STATE)->Enable(Initialized);
   // Misc
   GetMenuBar()->FindItem(IDM_CHANGE_DISC)->Enable(Initialized);
+  GetMenuBar()->FindItem(IDM_EJECT_DISC)->Enable(Initialized);
   GetMenuBar()
       ->FindItem(IDM_LOAD_GC_IPL_JAP)
       ->Enable(!Initialized && File::Exists(SConfig::GetInstance().GetBootROMPath(JAP_DIR)));
