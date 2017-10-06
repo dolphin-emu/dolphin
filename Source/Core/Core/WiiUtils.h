@@ -7,6 +7,7 @@
 #include <cstddef>
 #include <functional>
 #include <string>
+#include <unordered_set>
 
 #include "Common/CommonTypes.h"
 
@@ -58,6 +59,11 @@ UpdateResult DoOnlineUpdate(UpdateCallback update_callback, const std::string& r
 UpdateResult DoDiscUpdate(UpdateCallback update_callback, const std::string& image_path);
 
 // Check the emulated NAND for common issues.
-bool CheckNAND(IOS::HLE::Kernel& ios);
+struct NANDCheckResult
+{
+  bool bad = false;
+  std::unordered_set<u64> titles_to_remove;
+};
+NANDCheckResult CheckNAND(IOS::HLE::Kernel& ios);
 bool RepairNAND(IOS::HLE::Kernel& ios);
 }

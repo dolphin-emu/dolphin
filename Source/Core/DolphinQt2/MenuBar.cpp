@@ -22,6 +22,7 @@
 #include "Core/IOS/IOS.h"
 #include "Core/Movie.h"
 #include "Core/State.h"
+#include "Core/TitleDatabase.h"
 #include "Core/WiiUtils.h"
 #include "DiscIO/NANDImporter.h"
 #include "DolphinQt2/AboutDialog.h"
@@ -537,20 +538,36 @@ void MenuBar::ExportWiiSaves()
 void MenuBar::CheckNAND()
 {
   IOS::HLE::Kernel ios;
-  if (WiiUtils::CheckNAND(ios))
+  WiiUtils::NANDCheckResult result = WiiUtils::CheckNAND(ios);
+  if (!result.bad)
   {
     QMessageBox::information(this, tr("NAND Check"), tr("No issues have been detected."));
     return;
   }
 
-  if (QMessageBox::question(
-          this, tr("NAND Check"),
-          tr("The emulated NAND is damaged. System titles such as the Wii Menu and "
-             "the Wii Shop Channel may not work correctly.\n\n"
-             "Do you want to try to repair the NAND?")) != QMessageBox::Yes)
+  QString message = tr("The emulated NAND is damaged. System titles such as the Wii Menu and "
+                       "the Wii Shop Channel may not work correctly.\n\n"
+                       "Do you want to try to repair the NAND?");
+  if (!result.titles_to_remove.empty())
   {
-    return;
+    message += tr("\n\nWARNING: Fixing this NAND requires the deletion of titles that have "
+                  "incomplete data on the NAND, including all associated save data. "
+                  "By continuing, the following title(s) will be removed:\n\n");
+    Core::TitleDatabase title_db;
+    for (const u64 title_id : result.titles_to_remove)
+    {
+      const std::string name = title_db.GetTitleName(title_id);
+      message += !name.empty() ?
+                     QStringLiteral("%1 (%2)")
+                         .arg(QString::fromStdString(name))
+                         .arg(title_id, 16, 16, QLatin1Char('0')) :
+                     QStringLiteral("%1").arg(title_id, 16, 16, QLatin1Char('0'));
+      message += QStringLiteral("\n");
+    }
   }
+
+  if (QMessageBox::question(this, tr("NAND Check"), message) != QMessageBox::Yes)
+    return;
 
   if (WiiUtils::RepairNAND(ios))
   {

@@ -1312,19 +1312,33 @@ void CFrame::OnImportBootMiiBackup(wxCommandEvent& WXUNUSED(event))
 void CFrame::OnCheckNAND(wxCommandEvent&)
 {
   IOS::HLE::Kernel ios;
-  if (WiiUtils::CheckNAND(ios))
+  WiiUtils::NANDCheckResult result = WiiUtils::CheckNAND(ios);
+  if (!result.bad)
   {
     wxMessageBox(_("No issues have been detected."), _("NAND Check"), wxOK | wxICON_INFORMATION);
     return;
   }
 
-  if (wxMessageBox("The emulated NAND is damaged. System titles such as the Wii Menu and "
-                   "the Wii Shop Channel may not work correctly.\n\n"
-                   "Do you want to try to repair the NAND?",
-                   _("NAND Check"), wxYES_NO) != wxYES)
+  wxString message = _("The emulated NAND is damaged. System titles such as the Wii Menu and "
+                       "the Wii Shop Channel may not work correctly.\n\n"
+                       "Do you want to try to repair the NAND?");
+  if (!result.titles_to_remove.empty())
   {
-    return;
+    message += _("\n\nWARNING: Fixing this NAND requires the deletion of titles that have "
+                 "incomplete data on the NAND, including all associated save data. "
+                 "By continuing, the following title(s) will be removed:\n\n");
+    Core::TitleDatabase title_db;
+    for (const u64 title_id : result.titles_to_remove)
+    {
+      const std::string name = title_db.GetTitleName(title_id);
+      message += !name.empty() ? StringFromFormat("%s (%016" PRIx64 ")", name.c_str(), title_id) :
+                                 StringFromFormat("%016" PRIx64, title_id);
+      message += "\n";
+    }
   }
+
+  if (wxMessageBox(message, _("NAND Check"), wxYES_NO) != wxYES)
+    return;
 
   if (WiiUtils::RepairNAND(ios))
   {
