@@ -20,6 +20,7 @@
 #include <wx/sizer.h>
 #include <wx/frame.h>
 #include <wx/filedlg.h>
+#include <map>
 #include "InputCommon\GCPadStatus.h"
 
 //Lua include stuff
@@ -31,6 +32,8 @@
 #include <laux.h>
 #endif
 
+typedef int(*LuaFunction)(lua_State* L);
+
 class LuaScriptFrame;
 
 class LuaThread : public wxThread
@@ -40,7 +43,6 @@ public:
   ~LuaThread();
 
   wxThread::ExitCode Entry();
-  void setAnalogStick(u8 xPos, u8 yPos);
 
 private:
   LuaScriptFrame* parent = nullptr;
@@ -50,7 +52,11 @@ private:
 
 int printToTextCtrl(lua_State* L);
 int frameAdvance(lua_State* L);
+int getFrameCount(lua_State* L);
+int getAnalog(lua_State* L);
 int setAnalog(lua_State* L);
+
+extern std::map<const char*, LuaFunction>* registeredFunctions;
 
 class LuaScriptFrame final : public wxFrame
 {

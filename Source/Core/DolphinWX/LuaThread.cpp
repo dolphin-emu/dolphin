@@ -23,11 +23,18 @@ wxThread::ExitCode LuaThread::Entry()
   luaL_openlibs(state);
 
   //Register additinal functions with Lua
-  //TODO: Make function registering more maintainable
+  std::map<const char*, LuaFunction>::iterator it;
+  for (it = registeredFunctions->begin(); it != registeredFunctions->end(); it++)
+  {
+    lua_register(state, it->first, it->second);
+  }
+  /*
   lua_register(state, "print", printToTextCtrl);
   lua_register(state, "frameAdvance", frameAdvance);
+  lua_register(state, "getFrameCount", getFrameCount);
+  lua_register(state, "getAnalog", getAnalog);
   lua_register(state, "setAnalog", setAnalog);
-
+  */
   if (luaL_loadfile(state, file_path) != LUA_OK)
   {
     parent->Log("Error opening file.\n");

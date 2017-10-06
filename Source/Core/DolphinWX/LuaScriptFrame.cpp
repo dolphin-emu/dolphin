@@ -25,6 +25,9 @@
 // GLOBAL IS NECESSARY FOR LOG TO WORK
 LuaScriptFrame* currentWindow;
 
+//External symbol
+std::map<const char*, LuaFunction>* registeredFunctions;
+
 LuaScriptFrame::LuaScriptFrame(wxWindow* parent) : wxFrame(parent, wxID_ANY, _("Lua Console"), wxDefaultPosition, wxSize(431, 397), wxDEFAULT_FRAME_STYLE ^ wxRESIZE_BORDER)
 {
   CreateGUI();
@@ -35,6 +38,18 @@ LuaScriptFrame::LuaScriptFrame(wxWindow* parent) : wxFrame(parent, wxID_ANY, _("
 
   currentWindow = this;
   lua_thread = nullptr;
+
+  //Create function map if it doesn't already exist
+  if (!registeredFunctions)
+  {
+    registeredFunctions = new std::map<const char*, LuaFunction>;
+
+    registeredFunctions->insert(std::pair<const char*, LuaFunction>("print", printToTextCtrl));
+    registeredFunctions->insert(std::pair<const char*, LuaFunction>("frameAdvance", frameAdvance));
+    registeredFunctions->insert(std::pair<const char*, LuaFunction>("getFrameCount", getFrameCount));
+    registeredFunctions->insert(std::pair<const char*, LuaFunction>("getAnalog", getAnalog));
+    registeredFunctions->insert(std::pair<const char*, LuaFunction>("setAnalog", setAnalog));
+  }
 
   //Initialize virtual controller
   pad_status = (GCPadStatus*)malloc(sizeof(GCPadStatus));
@@ -68,7 +83,7 @@ LuaScriptFrame::~LuaScriptFrame()
   free(pad_status);
   pad_status = nullptr;
 
-  //
+  //Nullify GC manipulator function to prevent crash when lua console is closed
   Movie::s_gc_manip_funcs[Movie::GCManipIndex::LuaGCManip] = nullptr;
 }
 
@@ -210,6 +225,20 @@ int frameAdvance(lua_State* L)
 {
   Core::DoFrameStep();
   return 0;
+}
+
+int getFrameCount(lua_State* L)
+{
+  lua_pushinteger(L, Movie::GetCurrentFrame());
+  return 1;
+}
+
+int getAnalog(lua_State* L)
+{
+  lua_pushinteger(L, currentWindow->pad_status->stickY);
+  lua_pushinteger(L, currentWindow->pad_status->stickX);
+
+  return 2;
 }
 
 int setAnalog(lua_State* L)
