@@ -712,7 +712,6 @@ void CFrame::StartGame(std::unique_ptr<BootParameters> boot)
     // To capture key events on Linux and Mac OS X the frame needs at least one child.
     m_render_parent = new wxPanel(m_render_frame, IDM_MPANEL, wxDefaultPosition, wxDefaultSize, 0);
 #endif
-
     m_render_frame->Show();
   }
 
@@ -761,6 +760,8 @@ void CFrame::StartGame(std::unique_ptr<BootParameters> boot)
     wxTheApp->Bind(wxEVT_MIDDLE_UP, &CFrame::OnMouse, this);
     wxTheApp->Bind(wxEVT_MOTION, &CFrame::OnMouse, this);
     m_render_parent->Bind(wxEVT_SIZE, &CFrame::OnRenderParentResize, this);
+
+    m_render_parent->SetCursor(wxCURSOR_BLANK);
   }
 }
 
@@ -910,6 +911,9 @@ void CFrame::DoStop()
 
       return;
     }
+
+    // Reshow the cursor on the parent frame after successful stop.
+    m_render_parent->SetCursor(wxNullCursor);
 
     Core::Stop();
     UpdateGUI();
