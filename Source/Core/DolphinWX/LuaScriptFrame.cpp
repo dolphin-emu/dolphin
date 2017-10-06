@@ -15,7 +15,11 @@
 #include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Main.h"
 #include "Frame.h"
-#include "LuaScriptFrame.h"
+#include "Core\HW\GCPad.h"
+#include "Core\HW\GCPadEmu.h"
+#include "InputCommon\GCPadStatus.h"
+#include "InputCommon\InputConfig.h"
+#include "LuaScripting.h"
 
 //THIS GLOBAL MUST BE USED TO SPEAK WITH THE CONSOLE
 LuaScriptFrame* currentWindow;
@@ -50,6 +54,12 @@ LuaScriptFrame::~LuaScriptFrame()
   main_frame->m_lua_script_frame = nullptr;
 }
 
+
+//
+//CreateGUI
+//
+//Creates actual Lua console window.
+//
 void LuaScriptFrame::CreateGUI()
 {
   this->SetSizeHints(wxDefaultSize, wxDefaultSize);
@@ -157,6 +167,8 @@ void LuaScriptFrame::SignalThreadFinished()
 }
 
 //Functions to register with Lua
+#pragma region Lua_Functs
+
 int printToTextCtrl(lua_State* L)
 {
   currentWindow->Log(lua_tostring(L, 1));
@@ -164,3 +176,15 @@ int printToTextCtrl(lua_State* L)
 
   return 0;
 }
+
+int getAnalogCoordinates(lua_State* L)
+{
+  GCPad* pad = static_cast<GCPad*>(Pad::GetConfig()->GetController(0));
+  GCPadStatus status = pad->GetInput();
+
+  lua_pushnumber(L, status.stickY);
+  lua_pushnumber(L, status.stickX);
+
+  return 2;
+}
+#pragma endregion

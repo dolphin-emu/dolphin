@@ -158,7 +158,7 @@
     <ClInclude Include="ISOProperties\FilesystemPanel.h" />
     <ClInclude Include="ISOProperties\InfoPanel.h" />
     <ClInclude Include="ISOProperties\ISOProperties.h" />
-    <ClInclude Include="LuaScriptFrame.h" />
+    <ClInclude Include="LuaScripting.h" />
     <ClInclude Include="NetPlay\ChangeGameDialog.h" />
     <ClInclude Include="NetPlay\MD5Dialog.h" />
     <ClInclude Include="NetPlay\NetPlayLauncher.h" />

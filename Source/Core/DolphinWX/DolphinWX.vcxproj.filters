@@ -504,7 +504,7 @@
     <ClInclude Include="DolphinSlider.h">
       <Filter>GUI\Widgets</Filter>
     </ClInclude>
-    <ClInclude Include="LuaScriptFrame.h">
+    <ClInclude Include="LuaScripting.h">
       <Filter>GUI\Lua</Filter>
     </ClInclude>
   </ItemGroup>

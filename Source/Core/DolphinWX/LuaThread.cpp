@@ -2,7 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "LuaScriptFrame.h"
+#include "LuaScripting.h"
 
 LuaThread::LuaThread(LuaScriptFrame* p, wxString file) : wxThread()
 {
@@ -24,6 +24,7 @@ wxThread::ExitCode LuaThread::Entry()
 
   //Register additinal functions with Lua
   lua_register(state, "print", printToTextCtrl);
+  lua_register(state, "getAnalog", getAnalogCoordinates);
 
   if (luaL_loadfile(state, file_path) != LUA_OK)
   {

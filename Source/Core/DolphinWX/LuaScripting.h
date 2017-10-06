@@ -47,6 +47,7 @@ private:
 
 
 int printToTextCtrl(lua_State* L);
+int getAnalogCoordinates(lua_State* L);
 
 class LuaScriptFrame final : public wxFrame
 {

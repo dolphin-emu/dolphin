@@ -21,7 +21,7 @@
 #include "Common/Event.h"
 #include "Core/ConfigManager.h"
 #include "DolphinWX/Globals.h"
-#include "LuaScriptFrame.h"
+#include "LuaScripting.h"
 
 #if defined(HAVE_X11) && HAVE_X11
 #include "UICommon/X11Utils.h"
