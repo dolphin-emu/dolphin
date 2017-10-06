@@ -97,7 +97,6 @@ static bool s_bPolled = false;
 static std::mutex s_input_display_lock;
 static std::string s_InputDisplay[8];
 
-static GCManipFunction s_gc_manip_funcs[GCManipIndex_size];
 static WiiManipFunction s_wii_manip_func;
 
 static std::string s_current_file_name;

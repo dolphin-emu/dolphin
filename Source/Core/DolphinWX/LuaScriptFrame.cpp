@@ -19,6 +19,7 @@
 #include "Core\HW\GCPad.h"
 #include "Core\HW\GCPadEmu.h"
 #include "InputCommon\InputConfig.h"
+#include "Core\Movie.h"
 #include "LuaScripting.h"
 
 // GLOBAL IS NECESSARY FOR LOG TO WORK
@@ -66,6 +67,9 @@ LuaScriptFrame::~LuaScriptFrame()
   //Free pad
   free(pad_status);
   pad_status = nullptr;
+
+  //
+  Movie::s_gc_manip_funcs[Movie::GCManipIndex::LuaGCManip] = nullptr;
 }
 
 
