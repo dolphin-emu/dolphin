@@ -448,7 +448,7 @@ static bool Subtype_AddCode(const ARAddr& addr, const u32 data)
     LogInfo("8-bit Add");
     LogInfo("--------");
     PowerPC::HostWrite_U8(PowerPC::HostRead_U8(new_addr) + data, new_addr);
-    LogInfo("Wrote %08x to address %08x", PowerPC::HostRead_U8(new_addr) + (data & 0xFF), new_addr);
+    LogInfo("Wrote %02x to address %08x", PowerPC::HostRead_U8(new_addr), new_addr);
     LogInfo("--------");
     break;
 
@@ -456,8 +456,7 @@ static bool Subtype_AddCode(const ARAddr& addr, const u32 data)
     LogInfo("16-bit Add");
     LogInfo("--------");
     PowerPC::HostWrite_U16(PowerPC::HostRead_U16(new_addr) + data, new_addr);
-    LogInfo("Wrote %08x to address %08x", PowerPC::HostRead_U16(new_addr) + (data & 0xFFFF),
-            new_addr);
+    LogInfo("Wrote %04x to address %08x", PowerPC::HostRead_U16(new_addr), new_addr);
     LogInfo("--------");
     break;
 
@@ -465,7 +464,7 @@ static bool Subtype_AddCode(const ARAddr& addr, const u32 data)
     LogInfo("32-bit Add");
     LogInfo("--------");
     PowerPC::HostWrite_U32(PowerPC::HostRead_U32(new_addr) + data, new_addr);
-    LogInfo("Wrote %08x to address %08x", PowerPC::HostRead_U32(new_addr) + data, new_addr);
+    LogInfo("Wrote %08x to address %08x", PowerPC::HostRead_U32(new_addr), new_addr);
     LogInfo("--------");
     break;
 
