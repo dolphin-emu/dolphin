@@ -20,6 +20,7 @@
 #include <wx/sizer.h>
 #include <wx/frame.h>
 #include <wx/filedlg.h>
+#include "InputCommon\GCPadStatus.h"
 
 //Lua include stuff
 #ifdef __cplusplus
@@ -39,16 +40,17 @@ public:
   ~LuaThread();
 
   wxThread::ExitCode Entry();
+  void setAnalogStick(u8 xPos, u8 yPos);
 
 private:
-  LuaScriptFrame* parent;
+  LuaScriptFrame* parent = nullptr;
   wxString file_path;
 };
 
 
 int printToTextCtrl(lua_State* L);
 int frameAdvance(lua_State* L);
-int getAnalogCoordinates(lua_State* L);
+int setAnalog(lua_State* L);
 
 class LuaScriptFrame final : public wxFrame
 {
@@ -67,11 +69,13 @@ private:
   wxButton* stop_button;
   wxStaticText* m_staticText2;
   wxTextCtrl* output_console;
-  LuaThread* lua_thread;
 
 public:
   void Log(const char* message);
   void SignalThreadFinished();
+  void GetValues(GCPadStatus* status);
+  LuaThread* lua_thread;
+  GCPadStatus* pad_status;
 
   LuaScriptFrame(wxWindow* parent);
 
@@ -82,3 +86,4 @@ public:
     this->PopupMenu(m_menu, event.GetPosition());
   }
 };
+

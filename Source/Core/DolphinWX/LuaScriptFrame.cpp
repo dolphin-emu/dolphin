@@ -18,7 +18,6 @@
 #include "Core\Core.h"
 #include "Core\HW\GCPad.h"
 #include "Core\HW\GCPadEmu.h"
-#include "InputCommon\GCPadStatus.h"
 #include "InputCommon\InputConfig.h"
 #include "LuaScripting.h"
 
@@ -35,6 +34,16 @@ LuaScriptFrame::LuaScriptFrame(wxWindow* parent) : wxFrame(parent, wxID_ANY, _("
 
   currentWindow = this;
   lua_thread = nullptr;
+
+  //Initialize virtual controller
+  pad_status = (GCPadStatus*)malloc(sizeof(GCPadStatus));
+  pad_status->button = 0;
+  pad_status->stickX = GCPadStatus::MAIN_STICK_CENTER_X;
+  pad_status->stickY = GCPadStatus::MAIN_STICK_CENTER_Y;
+  pad_status->triggerLeft = 0;
+  pad_status->triggerRight = 0;
+  pad_status->analogA = GCPadStatus::C_STICK_CENTER_X;
+  pad_status->analogB = GCPadStatus::C_STICK_CENTER_X;
 }
 
 LuaScriptFrame::~LuaScriptFrame()
@@ -53,6 +62,10 @@ LuaScriptFrame::~LuaScriptFrame()
   }
 
   main_frame->m_lua_script_frame = nullptr;
+
+  //Free pad
+  free(pad_status);
+  pad_status = nullptr;
 }
 
 
@@ -167,6 +180,15 @@ void LuaScriptFrame::SignalThreadFinished()
   lua_thread = nullptr;
 }
 
+void LuaScriptFrame::GetValues(GCPadStatus* status)
+{
+  if (lua_thread == nullptr)
+    return;
+
+  status->stickX = pad_status->stickX;
+  status->stickY = pad_status->stickY;
+}
+
 //Functions to register with Lua
 #pragma region Lua_Functs
 
@@ -179,23 +201,27 @@ int printToTextCtrl(lua_State* L)
   return 0;
 }
 
-
 // Steps a frame if the emulator is paused, pauses it otherwise.
 int frameAdvance(lua_State* L)
 {
   Core::DoFrameStep();
-
   return 0;
 }
 
-int getAnalogCoordinates(lua_State* L)
+int setAnalog(lua_State* L)
 {
-  GCPad* pad = static_cast<GCPad*>(Pad::GetConfig()->GetController(0));
-  GCPadStatus status = pad->GetInput();
+  if (lua_gettop(L) != 2)
+  {
+    currentWindow->Log("Incorrect # of parameters passed to setAnalog.\n");
+    return 0;
+  }
 
-  lua_pushinteger(L, status.stickY);
-  lua_pushinteger(L, status.stickX);
+  u8 xPos = lua_tointeger(L, 1);
+  u8 yPos = lua_tointeger(L, 2);
 
-  return 2;
+  currentWindow->pad_status->stickX = xPos;
+  currentWindow->pad_status->stickY = yPos;
+
+  return 0;
 }
 #pragma endregion

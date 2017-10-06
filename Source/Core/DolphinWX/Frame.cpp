@@ -513,7 +513,7 @@ void CFrame::InitializeTASDialogs()
 
   Movie::SetGCInputManip([this](GCPadStatus* pad_status, int controller_id) {
     m_tas_input_dialogs[controller_id]->GetValues(pad_status);
-  });
+  }, Movie::GCManipIndex::TASInputGCManip);
 
   Movie::SetWiiInputManip([this](u8* data, WiimoteEmu::ReportFeatures rptf, int controller_id,
                                  int ext, wiimote_key key) {

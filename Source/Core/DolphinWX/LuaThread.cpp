@@ -7,7 +7,7 @@
 LuaThread::LuaThread(LuaScriptFrame* p, wxString file) : wxThread()
 {
   parent = p;
-  file_path = file;
+  file_path = file;  
 }
 
 LuaThread::~LuaThread()
@@ -23,9 +23,10 @@ wxThread::ExitCode LuaThread::Entry()
   luaL_openlibs(state);
 
   //Register additinal functions with Lua
+  //TODO: Make function registering more maintainable
   lua_register(state, "print", printToTextCtrl);
   lua_register(state, "frameAdvance", frameAdvance);
-  lua_register(state, "getAnalog", getAnalogCoordinates);
+  lua_register(state, "setAnalog", setAnalog);
 
   if (luaL_loadfile(state, file_path) != LUA_OK)
   {

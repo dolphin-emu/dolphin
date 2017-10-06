@@ -1177,8 +1177,15 @@ void CFrame::OnNetPlay(wxCommandEvent& WXUNUSED(event))
 
 void CFrame::OnLua(wxCommandEvent& WXUNUSED(event))
 {
+
   if (!m_lua_script_frame)
+  {
     m_lua_script_frame = new LuaScriptFrame(this);
+
+    Movie::SetGCInputManip([this](GCPadStatus* pad_status, int controller_id) {
+      m_lua_script_frame->GetValues(pad_status);
+    }, Movie::GCManipIndex::LuaGCManip);
+  }
   else
     m_lua_script_frame->Raise();
 }

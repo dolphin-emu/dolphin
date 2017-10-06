@@ -97,7 +97,7 @@ static bool s_bPolled = false;
 static std::mutex s_input_display_lock;
 static std::string s_InputDisplay[8];
 
-static GCManipFunction s_gc_manip_func;
+static GCManipFunction s_gc_manip_funcs[GCManipIndex_size];
 static WiiManipFunction s_wii_manip_func;
 
 static std::string s_current_file_name;
@@ -1339,10 +1339,11 @@ void SaveRecording(const std::string& filename)
     Core::DisplayMessage(StringFromFormat("Failed to save %s", filename.c_str()), 2000);
 }
 
-void SetGCInputManip(GCManipFunction func)
+void SetGCInputManip(GCManipFunction func, GCManipIndex manipfunctionsindex)
 {
-  s_gc_manip_func = std::move(func);
+  s_gc_manip_funcs[manipfunctionsindex] = std::move(func);
 }
+
 void SetWiiInputManip(WiiManipFunction func)
 {
   s_wii_manip_func = std::move(func);
@@ -1351,8 +1352,10 @@ void SetWiiInputManip(WiiManipFunction func)
 // NOTE: CPU Thread
 void CallGCInputManip(GCPadStatus* PadStatus, int controllerID)
 {
-  if (s_gc_manip_func)
-    s_gc_manip_func(PadStatus, controllerID);
+  if (s_gc_manip_funcs[TASInputGCManip])
+    s_gc_manip_funcs[TASInputGCManip](PadStatus, controllerID);
+  if (s_gc_manip_funcs[LuaGCManip])
+    s_gc_manip_funcs[LuaGCManip](PadStatus, controllerID);
 }
 // NOTE: CPU Thread
 void CallWiiInputManip(u8* data, WiimoteEmu::ReportFeatures rptf, int controllerID, int ext,
@@ -1478,4 +1481,5 @@ void Shutdown()
   s_currentInputCount = s_totalInputCount = s_totalFrames = s_tickCountAtLastInput = 0;
   s_temp_input.clear();
 }
+
 };
