@@ -15,13 +15,14 @@
 #include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Main.h"
 #include "Frame.h"
+#include "Core\Core.h"
 #include "Core\HW\GCPad.h"
 #include "Core\HW\GCPadEmu.h"
 #include "InputCommon\GCPadStatus.h"
 #include "InputCommon\InputConfig.h"
 #include "LuaScripting.h"
 
-//THIS GLOBAL MUST BE USED TO SPEAK WITH THE CONSOLE
+// GLOBAL IS NECESSARY FOR LOG TO WORK
 LuaScriptFrame* currentWindow;
 
 LuaScriptFrame::LuaScriptFrame(wxWindow* parent) : wxFrame(parent, wxID_ANY, _("Lua Console"), wxDefaultPosition, wxSize(431, 397), wxDEFAULT_FRAME_STYLE ^ wxRESIZE_BORDER)
@@ -169,10 +170,20 @@ void LuaScriptFrame::SignalThreadFinished()
 //Functions to register with Lua
 #pragma region Lua_Functs
 
+// Prints a string to the text control of this frame
 int printToTextCtrl(lua_State* L)
 {
   currentWindow->Log(lua_tostring(L, 1));
   currentWindow->Log("\n");
+
+  return 0;
+}
+
+
+// Steps a frame if the emulator is paused, pauses it otherwise.
+int frameAdvance(lua_State* L)
+{
+  Core::DoFrameStep();
 
   return 0;
 }
@@ -182,8 +193,8 @@ int getAnalogCoordinates(lua_State* L)
   GCPad* pad = static_cast<GCPad*>(Pad::GetConfig()->GetController(0));
   GCPadStatus status = pad->GetInput();
 
-  lua_pushnumber(L, status.stickY);
-  lua_pushnumber(L, status.stickX);
+  lua_pushinteger(L, status.stickY);
+  lua_pushinteger(L, status.stickX);
 
   return 2;
 }
