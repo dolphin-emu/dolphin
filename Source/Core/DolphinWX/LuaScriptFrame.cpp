@@ -22,6 +22,15 @@
 #include "Core\Movie.h"
 #include "LuaScripting.h"
 
+void clearPad(GCPadStatus* status);
+int printToTextCtrl(lua_State* L);
+int frameAdvance(lua_State* L);
+int getFrameCount(lua_State* L);
+int getAnalog(lua_State* L);
+int setAnalog(lua_State* L);
+int getButtons(lua_State* L);
+int setButtons(lua_State* L);
+
 // GLOBAL IS NECESSARY FOR LOG TO WORK
 LuaScriptFrame* currentWindow;
 
@@ -49,17 +58,13 @@ LuaScriptFrame::LuaScriptFrame(wxWindow* parent) : wxFrame(parent, wxID_ANY, _("
     registeredFunctions->insert(std::pair<const char*, LuaFunction>("getFrameCount", getFrameCount));
     registeredFunctions->insert(std::pair<const char*, LuaFunction>("getAnalog", getAnalog));
     registeredFunctions->insert(std::pair<const char*, LuaFunction>("setAnalog", setAnalog));
+    registeredFunctions->insert(std::pair<const char*, LuaFunction>("getButtons", getButtons));
+    registeredFunctions->insert(std::pair<const char*, LuaFunction>("setButtons", setButtons));
   }
 
   //Initialize virtual controller
   pad_status = (GCPadStatus*)malloc(sizeof(GCPadStatus));
-  pad_status->button = 0;
-  pad_status->stickX = GCPadStatus::MAIN_STICK_CENTER_X;
-  pad_status->stickY = GCPadStatus::MAIN_STICK_CENTER_Y;
-  pad_status->triggerLeft = 0;
-  pad_status->triggerRight = 0;
-  pad_status->analogA = GCPadStatus::C_STICK_CENTER_X;
-  pad_status->analogB = GCPadStatus::C_STICK_CENTER_X;
+  clearPad(pad_status);
 }
 
 LuaScriptFrame::~LuaScriptFrame()
@@ -81,7 +86,6 @@ LuaScriptFrame::~LuaScriptFrame()
 
   //Free pad
   free(pad_status);
-  pad_status = nullptr;
 
   //Nullify GC manipulator function to prevent crash when lua console is closed
   Movie::s_gc_manip_funcs[Movie::GCManipIndex::LuaGCManip] = nullptr;
@@ -199,6 +203,7 @@ void LuaScriptFrame::SignalThreadFinished()
   lua_thread = nullptr;
 }
 
+// The callback function that tells the emulator what to actually press
 void LuaScriptFrame::GetValues(GCPadStatus* status)
 {
   if (lua_thread == nullptr)
@@ -206,6 +211,21 @@ void LuaScriptFrame::GetValues(GCPadStatus* status)
 
   status->stickX = pad_status->stickX;
   status->stickY = pad_status->stickY;
+  status->button |= pad_status->button;
+
+  //Set pad_status back to default
+  //clearPad(pad_status);
+}
+
+void clearPad(GCPadStatus* status)
+{
+  status->button = 0;
+  status->stickX = GCPadStatus::MAIN_STICK_CENTER_X;
+  status->stickY = GCPadStatus::MAIN_STICK_CENTER_Y;
+  status->triggerLeft = 0;
+  status->triggerRight = 0;
+  status->analogA = GCPadStatus::C_STICK_CENTER_X;
+  status->analogB = GCPadStatus::C_STICK_CENTER_X;
 }
 
 //Functions to register with Lua
@@ -223,7 +243,12 @@ int printToTextCtrl(lua_State* L)
 // Steps a frame if the emulator is paused, pauses it otherwise.
 int frameAdvance(lua_State* L)
 {
+  u64 currentFrame = Movie::GetCurrentFrame();
   Core::DoFrameStep();
+
+  //Block until a frame has actually processed
+  //Prevents script from executing it's main loop more than once per frame.
+  while (currentFrame == Movie::GetCurrentFrame());
   return 0;
 }
 
@@ -235,8 +260,8 @@ int getFrameCount(lua_State* L)
 
 int getAnalog(lua_State* L)
 {
-  lua_pushinteger(L, currentWindow->pad_status->stickY);
   lua_pushinteger(L, currentWindow->pad_status->stickX);
+  lua_pushinteger(L, currentWindow->pad_status->stickY);
 
   return 2;
 }
@@ -254,6 +279,44 @@ int setAnalog(lua_State* L)
 
   currentWindow->pad_status->stickX = xPos;
   currentWindow->pad_status->stickY = yPos;
+
+  return 0;
+}
+
+int getButtons(lua_State* L)
+{
+
+
+  return 0;
+}
+
+//Each button passed in is set to pressed.
+int setButtons(lua_State* L)
+{
+  int n = lua_gettop(L);
+  for (int i = 0; i < n; i++)
+  {
+    //Only looks at first char
+    char s = lua_tostring(L, i + 1)[0];
+    switch (s)
+    {
+    case 'A':
+      currentWindow->pad_status->button = PadButton::PAD_BUTTON_A;
+      break;
+    case 'B':
+      currentWindow->pad_status->button = PadButton::PAD_BUTTON_B;
+      break;
+    case 'X':
+      currentWindow->pad_status->button = PadButton::PAD_BUTTON_X;
+      break;
+    case 'Y':
+      currentWindow->pad_status->button = PadButton::PAD_BUTTON_Y;
+      break;
+    case 'S':
+      currentWindow->pad_status->button = PadButton::PAD_BUTTON_START;
+      break;
+    }
+  }
 
   return 0;
 }

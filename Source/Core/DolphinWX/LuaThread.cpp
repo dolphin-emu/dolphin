@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core\Core.h"
 #include "LuaScripting.h"
 
 LuaThread::LuaThread(LuaScriptFrame* p, wxString file) : wxThread()
@@ -17,6 +18,9 @@ LuaThread::~LuaThread()
   
 wxThread::ExitCode LuaThread::Entry()
 {
+  //Pause emu
+  Core::DoFrameStep();
+
   lua_State* state = luaL_newstate();
 
   //Make standard libraries available to loaded script
@@ -28,13 +32,7 @@ wxThread::ExitCode LuaThread::Entry()
   {
     lua_register(state, it->first, it->second);
   }
-  /*
-  lua_register(state, "print", printToTextCtrl);
-  lua_register(state, "frameAdvance", frameAdvance);
-  lua_register(state, "getFrameCount", getFrameCount);
-  lua_register(state, "getAnalog", getAnalog);
-  lua_register(state, "setAnalog", setAnalog);
-  */
+
   if (luaL_loadfile(state, file_path) != LUA_OK)
   {
     parent->Log("Error opening file.\n");

@@ -49,13 +49,6 @@ private:
   wxString file_path;
 };
 
-
-int printToTextCtrl(lua_State* L);
-int frameAdvance(lua_State* L);
-int getFrameCount(lua_State* L);
-int getAnalog(lua_State* L);
-int setAnalog(lua_State* L);
-
 extern std::map<const char*, LuaFunction>* registeredFunctions;
 
 class LuaScriptFrame final : public wxFrame
