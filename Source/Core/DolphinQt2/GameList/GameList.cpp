@@ -472,7 +472,7 @@ void GameList::ConsiderViewChange()
 }
 void GameList::keyReleaseEvent(QKeyEvent* event)
 {
-  if (event->key() == Qt::Key_Return)
+  if (event->key() == Qt::Key_Return && GetSelectedGame() != nullptr)
     emit GameSelected();
   else
     QStackedWidget::keyReleaseEvent(event);
