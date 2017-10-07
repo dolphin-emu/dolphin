@@ -118,6 +118,10 @@ ControllerEmu::EmulatedController* InputConfig::GetController(int index)
   return m_controllers.at(index).get();
 }
 
+size_t InputConfig::GetControllerCount() const {
+  return m_controllers.size();
+}
+
 void InputConfig::ClearControllers()
 {
   m_controllers.clear();

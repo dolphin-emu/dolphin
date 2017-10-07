@@ -1368,6 +1368,12 @@ void CFrame::ParseHotkeys()
   if (IsHotkey(HK_VOLUME_TOGGLE_MUTE))
     AudioCommon::ToggleMuteVolume();
 
+  if (IsHotkey(HK_NEXT_PROFILE))
+    CycleProfile(true);
+
+  if (IsHotkey(HK_PREV_PROFILE))
+    CycleProfile(false);
+
   if (SConfig::GetInstance().m_bt_passthrough_enabled)
   {
     const auto ios = IOS::HLE::GetIOS();

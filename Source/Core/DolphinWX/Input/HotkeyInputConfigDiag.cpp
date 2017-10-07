@@ -207,10 +207,14 @@ wxPanel* HotkeyInputConfigDialog::CreateWiiPanel()
   auto* const wii_group_box =
       new ControlGroupBox(HotkeyManagerEmu::GetHotkeyGroup(HKGP_WII), wii_panel, this);
 
+  auto* const profile_group_box =
+    new ControlGroupBox(HotkeyManagerEmu::GetHotkeyGroup(HKGP_PROFILE), wii_panel, this);
+
   auto* const wii_sizer = new wxBoxSizer(wxHORIZONTAL);
   wii_sizer->AddSpacer(space5);
   wii_sizer->Add(wii_group_box, 0, wxEXPAND | wxTOP, space5);
   wii_sizer->AddSpacer(space5);
+  wii_sizer->Add(profile_group_box, 0, wxEXPAND | wxTOP, space5);
 
   wii_panel->SetSizerAndFit(wii_sizer);
   return wii_panel;

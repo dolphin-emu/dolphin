@@ -292,6 +292,37 @@ void CFrame::OpenGeneralConfiguration(wxWindowID tab_id)
   m_main_config_dialog->SetFocus();
 }
 
+void CFrame::CycleProfile(bool forward){
+  InputConfig* conf = Wiimote::GetConfig();
+  std::string pname(File::GetUserPath(D_CONFIG_IDX));
+  pname += "Profiles/" + conf->GetProfileName();
+  std::vector<std::string> sv = Common::DoFileSearch({ pname }, { ".ini" });
+  m_profile_index += forward ? 1 : -1;
+  m_profile_index = m_profile_index >= sv.size() ? 0 : m_profile_index;
+  m_profile_index = m_profile_index < 0 ? sv.size() - 1 : m_profile_index;
+
+  size_t controllerCount = conf->GetControllerCount();
+  auto& filename = sv[m_profile_index];
+  std::string base;
+  SplitPath(filename, nullptr, &base, nullptr);
+
+  IniFile iniFile;
+  if (iniFile.Load(filename))
+  {
+    Core::DisplayMessage("Loading profile: " + base, 3000);
+    for (int i = 0; i < controllerCount; ++i)
+    {
+      auto controller = conf->GetController(i);
+      controller->LoadConfig(iniFile.GetOrCreateSection("Profile"));
+      controller->UpdateReferences(g_controller_interface);
+    }
+  }
+  else
+  {
+    Core::DisplayMessage("Unable to load profile: " + base, 3000);
+  }
+}
+
 // Menu items
 
 // Start the game or change the disc.
