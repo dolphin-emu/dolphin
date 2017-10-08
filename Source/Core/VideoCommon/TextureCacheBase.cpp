@@ -376,19 +376,18 @@ TextureCacheBase::DoPartialTextureUpdates(TCacheEntry* entry_to_update, u8* pale
         u32 copy_width =
             std::min(entry->native_width - src_x, entry_to_update->native_width - dst_x);
         u32 copy_height =
-            std::min((entry->native_height * entry->y_scale) - src_y,
-                     (entry_to_update->native_height * entry_to_update->y_scale) - dst_y);
+            std::min(entry->native_height - src_y, entry_to_update->native_height - dst_y);
 
         // If one of the textures is scaled, scale both with the current efb scaling factor
         if (entry_to_update->native_width != entry_to_update->GetWidth() ||
             entry_to_update->native_height != entry_to_update->GetHeight() ||
             entry->native_width != entry->GetWidth() || entry->native_height != entry->GetHeight())
         {
-          ScaleTextureCacheEntryTo(
-              entry_to_update, g_renderer->EFBToScaledX(entry_to_update->native_width),
-              g_renderer->EFBToScaledY(entry_to_update->native_height * entry_to_update->y_scale));
+          ScaleTextureCacheEntryTo(entry_to_update,
+                                   g_renderer->EFBToScaledX(entry_to_update->native_width),
+                                   g_renderer->EFBToScaledY(entry_to_update->native_height));
           ScaleTextureCacheEntryTo(entry, g_renderer->EFBToScaledX(entry->native_width),
-                                   g_renderer->EFBToScaledY(entry->native_height * entry->y_scale));
+                                   g_renderer->EFBToScaledY(entry->native_height));
 
           src_x = g_renderer->EFBToScaledX(src_x);
           src_y = g_renderer->EFBToScaledY(src_y);
@@ -794,8 +793,7 @@ TextureCacheBase::GetTexture(u32 address, u32 width, u32 height, const TextureFo
 
     // Do not load strided EFB copies, they are not meant to be used directly.
     // Also do not directly load EFB copies, which were partly overwritten.
-    if (entry->IsCopy() && entry->native_width == nativeW &&
-        static_cast<unsigned int>(entry->native_height * entry->y_scale) == nativeH &&
+    if (entry->IsEfbCopy() && entry->native_width == nativeW && entry->native_height == nativeH &&
         entry->memory_stride == entry->BytesPerRow() && !entry->may_have_overlapping_textures)
     {
       // EFB copies have slightly different rules as EFB copy formats have different
@@ -830,7 +828,7 @@ TextureCacheBase::GetTexture(u32 address, u32 width, u32 height, const TextureFo
     else
     {
       // For normal textures, all texture parameters need to match
-      if (!entry->IsCopy() && entry->hash == full_hash && entry->format == full_format &&
+      if (!entry->IsEfbCopy() && entry->hash == full_hash && entry->format == full_format &&
           entry->native_levels >= tex_levels && entry->native_width == nativeW &&
           entry->native_height == nativeH)
       {
@@ -846,7 +844,7 @@ TextureCacheBase::GetTexture(u32 address, u32 width, u32 height, const TextureFo
     // Example: Sonic the Fighters (inside Sonic Gems Collection)
     // Skip EFB copies here, so they can be used for partial texture updates
     if (entry->frameCount != FRAMECOUNT_INVALID && entry->frameCount < temp_frameCount &&
-        !entry->IsCopy() && !(isPaletteTexture && entry->base_hash == base_hash))
+        !entry->IsEfbCopy() && !(isPaletteTexture && entry->base_hash == base_hash))
     {
       temp_frameCount = entry->frameCount;
       oldest_entry = iter;
@@ -881,8 +879,7 @@ TextureCacheBase::GetTexture(u32 address, u32 width, u32 height, const TextureFo
       TCacheEntry* entry = hash_iter->second;
       // All parameters, except the address, need to match here
       if (entry->format == full_format && entry->native_levels >= tex_levels &&
-          entry->native_width == nativeW &&
-          static_cast<unsigned int>(entry->native_height * entry->y_scale) == nativeH)
+          entry->native_width == nativeW && entry->native_height == nativeH)
       {
         entry = DoPartialTextureUpdates(hash_iter->second, &texMem[tlutaddr], tlutfmt);
 
