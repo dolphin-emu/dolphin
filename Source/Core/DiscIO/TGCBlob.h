@@ -55,7 +55,7 @@ private:
   File::IOFile m_file;
   u64 m_size;
 
-  u64 m_file_area_shift;
+  s64 m_file_area_shift;
 
   // Stored as big endian in memory, regardless of the host endianness
   TGCHeader m_header = {};

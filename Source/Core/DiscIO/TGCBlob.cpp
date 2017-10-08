@@ -73,7 +73,7 @@ TGCFileReader::TGCFileReader(File::IOFile file) : m_file(std::move(file))
   m_file.ReadArray(&m_header, 1);
   u32 header_size = Common::swap32(m_header.tgc_header_size);
   m_size = m_file.GetSize();
-  m_file_area_shift = Common::swap32(m_header.file_area_virtual_offset) -
+  m_file_area_shift = static_cast<s64>(Common::swap32(m_header.file_area_virtual_offset)) -
                       Common::swap32(m_header.file_area_real_offset) + header_size;
 }
 
@@ -85,14 +85,18 @@ u64 TGCFileReader::GetDataSize() const
 
 bool TGCFileReader::Read(u64 offset, u64 nbytes, u8* out_ptr)
 {
-  Interval<u64> first_part;
-  Interval<u64> empty_part;
-  Interval<u64> file_part;
+  Interval<u64> first_part = {0, 0};
+  Interval<u64> empty_part = {0, 0};
+  Interval<u64> file_part = {0, 0};
 
   const u32 tgc_header_size = Common::swap32(m_header.tgc_header_size);
   const u64 split_point = Common::swap32(m_header.file_area_real_offset) - tgc_header_size;
   SplitInterval(split_point, Interval<u64>{offset, nbytes}, &first_part, &file_part);
-  SplitInterval(m_file_area_shift - tgc_header_size, file_part, &empty_part, &file_part);
+  if (m_file_area_shift > tgc_header_size)
+  {
+    SplitInterval(static_cast<u64>(m_file_area_shift - tgc_header_size), file_part, &empty_part,
+                  &file_part);
+  }
 
   // Offsets in the initial areas of the disc are unshifted
   // (except for InternalRead's constant shift by tgc_header_size).
