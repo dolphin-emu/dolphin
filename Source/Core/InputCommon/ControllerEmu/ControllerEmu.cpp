@@ -71,6 +71,7 @@ void EmulatedController::LoadConfig(IniFile::Section* sec, const std::string& ba
   {
     sec->Get(base + "Device", &defdev, "");
     default_device.FromString(defdev);
+    sec->Get(base + "Profile Filter", &profile_filter, "");
   }
 
   for (auto& cg : groups)
@@ -81,7 +82,10 @@ void EmulatedController::SaveConfig(IniFile::Section* sec, const std::string& ba
 {
   const std::string defdev = default_device.ToString();
   if (base.empty())
-    sec->Set(/*std::string(" ") +*/ base + "Device", defdev, "");
+  {
+    sec->Set(base + "Device", defdev, "");
+    sec->Set(base + "Profile Filter", profile_filter, "");
+  }
 
   for (auto& ctrlGroup : groups)
     ctrlGroup->SaveConfig(sec, defdev, base);

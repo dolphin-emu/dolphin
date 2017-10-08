@@ -169,7 +169,6 @@ private:
   bool m_confirm_stop = false;
   bool m_tried_graceful_shutdown = false;
   int m_save_slot = 1;
-  int m_profile_index = 0;
 
   wxTimer m_poll_hotkey_timer;
   wxTimer m_cursor_timer;

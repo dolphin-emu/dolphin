@@ -6,9 +6,12 @@
 #include <wx/notebook.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>
+#include <wx/textctrl.h>
+#include <wx/stattext.h>
 
 #include "Core/ConfigManager.h"
 #include "Core/HotkeyManager.h"
+#include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Input/HotkeyInputConfigDiag.h"
 
 HotkeyInputConfigDialog::HotkeyInputConfigDialog(wxWindow* parent, InputConfig& config,
@@ -210,13 +213,24 @@ wxPanel* HotkeyInputConfigDialog::CreateWiiPanel()
   auto* const profile_group_box =
     new ControlGroupBox(HotkeyManagerEmu::GetHotkeyGroup(HKGP_PROFILE), wii_panel, this);
 
+  auto* const profile_filter_label =
+    new wxStaticText(wii_panel, wxID_ANY, "Profile filter: ");
+
+  profile_filter =
+    new wxTextCtrl(wii_panel, wxID_ANY, StrToWxStr(controller->profile_filter));
+  profile_filter->ToggleWindowStyle(wxTE_PROCESS_ENTER);
+
+  profile_filter->Bind(wxEVT_TEXT_ENTER, &InputConfigDialog::SetProfileFilter, this);
+
   auto* const wii_sizer = new wxBoxSizer(wxHORIZONTAL);
   wii_sizer->AddSpacer(space5);
   wii_sizer->Add(wii_group_box, 0, wxEXPAND | wxTOP, space5);
   wii_sizer->AddSpacer(space5);
   wii_sizer->Add(profile_group_box, 0, wxEXPAND | wxTOP, space5);
-
   wii_panel->SetSizerAndFit(wii_sizer);
+  profile_group_box->Add(profile_filter_label, 0, wxEXPAND | wxTOP, space5);
+  profile_group_box->Add(profile_filter, 0, wxEXPAND | wxTOP, space5);
+
   return wii_panel;
 }
 

@@ -292,17 +292,50 @@ void CFrame::OpenGeneralConfiguration(wxWindowID tab_id)
   m_main_config_dialog->SetFocus();
 }
 
-void CFrame::CycleProfile(bool forward){
-  InputConfig* conf = Wiimote::GetConfig();
-  std::string pname(File::GetUserPath(D_CONFIG_IDX));
-  pname += "Profiles/" + conf->GetProfileName();
-  std::vector<std::string> sv = Common::DoFileSearch({ pname }, { ".ini" });
-  m_profile_index += forward ? 1 : -1;
-  m_profile_index = m_profile_index >= sv.size() ? 0 : m_profile_index;
-  m_profile_index = m_profile_index < 0 ? sv.size() - 1 : m_profile_index;
+void CFrame::CycleProfile(bool forward) {
+  //load the hotkey config
+  InputConfig* hk_conf = HotkeyManagerEmu::GetConfig();
+  auto hotkey_controller = hk_conf->GetController(0);
 
-  size_t controllerCount = conf->GetControllerCount();
-  auto& filename = sv[m_profile_index];
+  //load the wiimote config
+  InputConfig* wm_conf = Wiimote::GetConfig();
+  std::string pname(File::GetUserPath(D_CONFIG_IDX));
+
+  //find all profiles
+  pname += "Profiles/" + wm_conf->GetProfileName();
+  std::vector<std::string> sv = Common::DoFileSearch({ pname }, { ".ini" });
+
+  //remove all profiles that do not fit the filter string
+  if (!hotkey_controller->profile_filter.empty()){
+    sv.erase(
+      std::remove_if(
+        sv.begin(), sv.end(), [filter = hotkey_controller->profile_filter](std::string s)
+        {
+          return s.find(filter) == std::string::npos;
+        }
+      ), sv.end()
+    );
+  }
+
+  //check if there are any profiles to cycle through
+  if (sv.empty())
+  {
+    if (hotkey_controller->profile_filter.empty())
+      Core::DisplayMessage("No Profiles found", 3000);
+    else
+      Core::DisplayMessage("No Profiles found matching filter: " + hotkey_controller->profile_filter, 3000);
+
+    return;
+  }
+
+  size_t controllerCount = wm_conf->GetControllerCount();
+
+  //increment/decrement the profile index, clamped to the filtered set of profiles
+  hotkey_controller->profile_index += forward ? 1 : -1;
+  hotkey_controller->profile_index = hotkey_controller->profile_index >= sv.size() ? 0 : hotkey_controller->profile_index;
+  hotkey_controller->profile_index = hotkey_controller->profile_index < 0 ? sv.size() - 1 : hotkey_controller->profile_index;
+
+  auto& filename = sv[hotkey_controller->profile_index];
   std::string base;
   SplitPath(filename, nullptr, &base, nullptr);
 
@@ -312,7 +345,7 @@ void CFrame::CycleProfile(bool forward){
     Core::DisplayMessage("Loading profile: " + base, 3000);
     for (int i = 0; i < controllerCount; ++i)
     {
-      auto controller = conf->GetController(i);
+      auto controller = wm_conf->GetController(i);
       controller->LoadConfig(iniFile.GetOrCreateSection("Profile"));
       controller->UpdateReferences(g_controller_interface);
     }

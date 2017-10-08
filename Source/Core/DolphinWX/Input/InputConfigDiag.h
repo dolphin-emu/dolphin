@@ -216,6 +216,7 @@ public:
   void ConfigExtension(wxCommandEvent& event);
 
   void SetDevice(wxCommandEvent& event);
+  void SetProfileFilter(wxCommandEvent& event);
 
   void ClearAll(wxCommandEvent& event);
   void LoadDefaults(wxCommandEvent& event);
@@ -231,6 +232,8 @@ public:
 
   wxComboBox* profile_cbox = nullptr;
   wxComboBox* device_cbox = nullptr;
+
+  wxTextCtrl* profile_filter = nullptr;
 
   std::vector<ControlGroupBox*> control_groups;
   std::vector<ControlButton*> control_buttons;

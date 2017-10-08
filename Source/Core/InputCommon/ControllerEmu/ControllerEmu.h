@@ -45,5 +45,8 @@ public:
   std::vector<std::unique_ptr<ControlGroup>> groups;
 
   ciface::Core::DeviceQualifier default_device;
+
+  std::string profile_filter;
+  int profile_index = 0;
 };
 }  // namespace ControllerEmu
