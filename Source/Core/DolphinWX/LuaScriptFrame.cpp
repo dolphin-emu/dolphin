@@ -212,9 +212,13 @@ void LuaScriptFrame::GetValues(GCPadStatus* status)
   if (pad_status->stickY != GCPadStatus::MAIN_STICK_CENTER_Y)
     status->stickY = pad_status->stickY;
 
-  status->button = pad_status->button;
+  status->button |= pad_status->button;
+
+  //TRYING THIS ONE THING
+  //clearPad(pad_status);
 }
 
+// Sets status to the default values
 void clearPad(GCPadStatus* status)
 {
   status->button = 0;
@@ -289,28 +293,33 @@ int getButtons(lua_State* L)
 
 //Each button passed in is set to pressed.
 int setButtons(lua_State* L)
-{
-  int n = lua_gettop(L);
-  for (int i = 0; i < n; i++)
+{  
+  const char* s = lua_tostring(L, 1);
+
+  for (int i = 0; i < strlen(s); i++)
   {
-    //Only looks at first char
-    char s = lua_tostring(L, i + 1)[0];
-    switch (s)
+    if (s[i] == 'U')
+    {
+      pad_status->button = 0;
+      break;
+    }
+
+    switch (s[i])
     {
     case 'A':
-      pad_status->button = PadButton::PAD_BUTTON_A;
+      pad_status->button |= PadButton::PAD_BUTTON_A;
       break;
     case 'B':
-      pad_status->button = PadButton::PAD_BUTTON_B;
+      pad_status->button |= PadButton::PAD_BUTTON_B;
       break;
     case 'X':
-      pad_status->button = PadButton::PAD_BUTTON_X;
+      pad_status->button |= PadButton::PAD_BUTTON_X;
       break;
     case 'Y':
-      pad_status->button = PadButton::PAD_BUTTON_Y;
+      pad_status->button |= PadButton::PAD_BUTTON_Y;
       break;
     case 'S':
-      pad_status->button = PadButton::PAD_BUTTON_START;
+      pad_status->button |= PadButton::PAD_BUTTON_START;
       break;
     }
   }

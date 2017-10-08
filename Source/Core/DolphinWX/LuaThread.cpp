@@ -15,8 +15,6 @@ LuaThread::LuaThread(LuaScriptFrame* p, wxString file) : wxThread()
   //Initialize virtual controller
   pad_status = (GCPadStatus*)malloc(sizeof(GCPadStatus));
   clearPad(pad_status);
-
-  parent->Log("-----SCRIPT BEGIN-----\n");
 }
 
 LuaThread::~LuaThread()
@@ -26,14 +24,13 @@ LuaThread::~LuaThread()
   free(pad_status);
   pad_status = nullptr;
   
-  parent->Log("-----SCRIPT END-----\n");
   parent->SignalThreadFinished();
 }
   
 wxThread::ExitCode LuaThread::Entry()
 {
   //Pause emu
-  Core::DoFrameStep();
+  Core::SetState(Core::State::Paused);
 
   lua_State* state = luaL_newstate();
 
