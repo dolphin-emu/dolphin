@@ -90,8 +90,9 @@ bool TGCFileReader::Read(u64 offset, u64 nbytes, u8* out_ptr)
   Interval<u64> file_part;
 
   const u32 tgc_header_size = Common::swap32(m_header.tgc_header_size);
-  SplitInterval(m_file_area_shift, Interval<u64>{offset, nbytes}, &first_part, &file_part);
-  SplitInterval(m_size - tgc_header_size, first_part, &first_part, &empty_part);
+  const u64 split_point = Common::swap32(m_header.file_area_real_offset) - tgc_header_size;
+  SplitInterval(split_point, Interval<u64>{offset, nbytes}, &first_part, &file_part);
+  SplitInterval(m_file_area_shift - tgc_header_size, file_part, &empty_part, &file_part);
 
   // Offsets in the initial areas of the disc are unshifted
   // (except for InternalRead's constant shift by tgc_header_size).
