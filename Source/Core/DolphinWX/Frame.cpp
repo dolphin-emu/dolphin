@@ -511,8 +511,8 @@ void CFrame::InitializeTASDialogs()
   std::generate(m_tas_input_dialogs.begin(), m_tas_input_dialogs.end(),
                 [this] { return new TASInputDlg{this}; });
 
-  Movie::SetGCInputManip([this](GCPadStatus* pad_status, int controller_id) {
-    m_tas_input_dialogs[controller_id]->GetValues(pad_status);
+  Movie::SetGCInputManip([this](GCPadStatus* pad, int controller_id) {
+    m_tas_input_dialogs[controller_id]->GetValues(pad);
   }, Movie::GCManipIndex::TASInputGCManip);
 
   Movie::SetWiiInputManip([this](u8* data, WiimoteEmu::ReportFeatures rptf, int controller_id,

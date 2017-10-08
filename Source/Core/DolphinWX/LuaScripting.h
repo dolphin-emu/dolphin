@@ -21,9 +21,10 @@
 #include <wx/frame.h>
 #include <wx/filedlg.h>
 #include <map>
+#include <mutex>
 #include "InputCommon\GCPadStatus.h"
 
-//Lua include stuff
+//Lua includes
 #ifdef __cplusplus
 #include <lua.hpp>
 #else
@@ -33,6 +34,15 @@
 #endif
 
 typedef int(*LuaFunction)(lua_State* L);
+
+extern std::map<const char*, LuaFunction>* registered_functions;
+
+// pad_status is shared between the window thread and the script executing thread.
+// so access to it must be mutex protected.
+extern GCPadStatus* pad_status;
+extern std::mutex lua_mutex;
+
+void clearPad(GCPadStatus*);
 
 class LuaScriptFrame;
 
@@ -48,8 +58,6 @@ private:
   LuaScriptFrame* parent = nullptr;
   wxString file_path;
 };
-
-extern std::map<const char*, LuaFunction>* registeredFunctions;
 
 class LuaScriptFrame final : public wxFrame
 {
@@ -74,7 +82,6 @@ public:
   void SignalThreadFinished();
   void GetValues(GCPadStatus* status);
   LuaThread* lua_thread;
-  GCPadStatus* pad_status;
 
   LuaScriptFrame(wxWindow* parent);
 

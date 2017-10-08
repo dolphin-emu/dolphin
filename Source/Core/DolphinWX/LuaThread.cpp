@@ -5,14 +5,28 @@
 #include "Core\Core.h"
 #include "LuaScripting.h"
 
+GCPadStatus* pad_status;
+
 LuaThread::LuaThread(LuaScriptFrame* p, wxString file) : wxThread()
 {
   parent = p;
-  file_path = file;  
+  file_path = file;
+
+  //Initialize virtual controller
+  pad_status = (GCPadStatus*)malloc(sizeof(GCPadStatus));
+  clearPad(pad_status);
+
+  parent->Log("-----SCRIPT BEGIN-----\n");
 }
 
 LuaThread::~LuaThread()
 {
+  //Delete virtual controller
+  std::unique_lock<std::mutex> lock(lua_mutex);
+  free(pad_status);
+  pad_status = nullptr;
+  
+  parent->Log("-----SCRIPT END-----\n");
   parent->SignalThreadFinished();
 }
   
@@ -28,7 +42,7 @@ wxThread::ExitCode LuaThread::Entry()
 
   //Register additinal functions with Lua
   std::map<const char*, LuaFunction>::iterator it;
-  for (it = registeredFunctions->begin(); it != registeredFunctions->end(); it++)
+  for (it = registered_functions->begin(); it != registered_functions->end(); it++)
   {
     lua_register(state, it->first, it->second);
   }

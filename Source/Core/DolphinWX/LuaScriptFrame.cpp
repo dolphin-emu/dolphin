@@ -22,7 +22,6 @@
 #include "Core\Movie.h"
 #include "LuaScripting.h"
 
-void clearPad(GCPadStatus* status);
 int printToTextCtrl(lua_State* L);
 int frameAdvance(lua_State* L);
 int getFrameCount(lua_State* L);
@@ -35,7 +34,8 @@ int setButtons(lua_State* L);
 LuaScriptFrame* currentWindow;
 
 //External symbol
-std::map<const char*, LuaFunction>* registeredFunctions;
+std::map<const char*, LuaFunction>* registered_functions;
+std::mutex lua_mutex;
 
 LuaScriptFrame::LuaScriptFrame(wxWindow* parent) : wxFrame(parent, wxID_ANY, _("Lua Console"), wxDefaultPosition, wxSize(431, 397), wxDEFAULT_FRAME_STYLE ^ wxRESIZE_BORDER)
 {
@@ -49,22 +49,18 @@ LuaScriptFrame::LuaScriptFrame(wxWindow* parent) : wxFrame(parent, wxID_ANY, _("
   lua_thread = nullptr;
 
   //Create function map if it doesn't already exist
-  if (!registeredFunctions)
+  if (!registered_functions)
   {
-    registeredFunctions = new std::map<const char*, LuaFunction>;
+    registered_functions = new std::map<const char*, LuaFunction>;
 
-    registeredFunctions->insert(std::pair<const char*, LuaFunction>("print", printToTextCtrl));
-    registeredFunctions->insert(std::pair<const char*, LuaFunction>("frameAdvance", frameAdvance));
-    registeredFunctions->insert(std::pair<const char*, LuaFunction>("getFrameCount", getFrameCount));
-    registeredFunctions->insert(std::pair<const char*, LuaFunction>("getAnalog", getAnalog));
-    registeredFunctions->insert(std::pair<const char*, LuaFunction>("setAnalog", setAnalog));
-    registeredFunctions->insert(std::pair<const char*, LuaFunction>("getButtons", getButtons));
-    registeredFunctions->insert(std::pair<const char*, LuaFunction>("setButtons", setButtons));
+    registered_functions->insert(std::pair<const char*, LuaFunction>("print", printToTextCtrl));
+    registered_functions->insert(std::pair<const char*, LuaFunction>("frameAdvance", frameAdvance));
+    registered_functions->insert(std::pair<const char*, LuaFunction>("getFrameCount", getFrameCount));
+    registered_functions->insert(std::pair<const char*, LuaFunction>("getAnalog", getAnalog));
+    registered_functions->insert(std::pair<const char*, LuaFunction>("setAnalog", setAnalog));
+    registered_functions->insert(std::pair<const char*, LuaFunction>("getButtons", getButtons));
+    registered_functions->insert(std::pair<const char*, LuaFunction>("setButtons", setButtons));
   }
-
-  //Initialize virtual controller
-  pad_status = (GCPadStatus*)malloc(sizeof(GCPadStatus));
-  clearPad(pad_status);
 }
 
 LuaScriptFrame::~LuaScriptFrame()
@@ -83,9 +79,6 @@ LuaScriptFrame::~LuaScriptFrame()
   }
 
   main_frame->m_lua_script_frame = nullptr;
-
-  //Free pad
-  free(pad_status);
 
   //Nullify GC manipulator function to prevent crash when lua console is closed
   Movie::s_gc_manip_funcs[Movie::GCManipIndex::LuaGCManip] = nullptr;
@@ -206,15 +199,20 @@ void LuaScriptFrame::SignalThreadFinished()
 // The callback function that tells the emulator what to actually press
 void LuaScriptFrame::GetValues(GCPadStatus* status)
 {
+  // We lock here to prevent an issue where pad_status could be deleted during the
+  // middle of this function's execution
+  std::unique_lock<std::mutex> lock(lua_mutex);
+
   if (lua_thread == nullptr)
     return;
+  
+  if (pad_status->stickX != GCPadStatus::MAIN_STICK_CENTER_X)
+    status->stickX = pad_status->stickX;
 
-  status->stickX = pad_status->stickX;
-  status->stickY = pad_status->stickY;
-  status->button |= pad_status->button;
+  if (pad_status->stickY != GCPadStatus::MAIN_STICK_CENTER_Y)
+    status->stickY = pad_status->stickY;
 
-  //Set pad_status back to default
-  //clearPad(pad_status);
+  status->button = pad_status->button;
 }
 
 void clearPad(GCPadStatus* status)
@@ -247,7 +245,7 @@ int frameAdvance(lua_State* L)
   Core::DoFrameStep();
 
   //Block until a frame has actually processed
-  //Prevents script from executing it's main loop more than once per frame.
+  //Prevents a script from executing it's main loop more than once per frame.
   while (currentFrame == Movie::GetCurrentFrame());
   return 0;
 }
@@ -260,8 +258,8 @@ int getFrameCount(lua_State* L)
 
 int getAnalog(lua_State* L)
 {
-  lua_pushinteger(L, currentWindow->pad_status->stickX);
-  lua_pushinteger(L, currentWindow->pad_status->stickY);
+  lua_pushinteger(L, pad_status->stickX);
+  lua_pushinteger(L, pad_status->stickY);
 
   return 2;
 }
@@ -277,17 +275,16 @@ int setAnalog(lua_State* L)
   u8 xPos = lua_tointeger(L, 1);
   u8 yPos = lua_tointeger(L, 2);
 
-  currentWindow->pad_status->stickX = xPos;
-  currentWindow->pad_status->stickY = yPos;
+  pad_status->stickX = xPos;
+  pad_status->stickY = yPos;
 
   return 0;
 }
 
 int getButtons(lua_State* L)
 {
-
-
-  return 0;
+  lua_pushinteger(L, pad_status->button);
+  return 1;
 }
 
 //Each button passed in is set to pressed.
@@ -301,19 +298,19 @@ int setButtons(lua_State* L)
     switch (s)
     {
     case 'A':
-      currentWindow->pad_status->button = PadButton::PAD_BUTTON_A;
+      pad_status->button = PadButton::PAD_BUTTON_A;
       break;
     case 'B':
-      currentWindow->pad_status->button = PadButton::PAD_BUTTON_B;
+      pad_status->button = PadButton::PAD_BUTTON_B;
       break;
     case 'X':
-      currentWindow->pad_status->button = PadButton::PAD_BUTTON_X;
+      pad_status->button = PadButton::PAD_BUTTON_X;
       break;
     case 'Y':
-      currentWindow->pad_status->button = PadButton::PAD_BUTTON_Y;
+      pad_status->button = PadButton::PAD_BUTTON_Y;
       break;
     case 'S':
-      currentWindow->pad_status->button = PadButton::PAD_BUTTON_START;
+      pad_status->button = PadButton::PAD_BUTTON_START;
       break;
     }
   }
