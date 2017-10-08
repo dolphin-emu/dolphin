@@ -293,18 +293,15 @@ void CFrame::OpenGeneralConfiguration(wxWindowID tab_id)
   m_main_config_dialog->SetFocus();
 }
 
-void CFrame::CycleProfile(CycleDirection cycle_direction)
+void CFrame::CycleProfile(CycleDirection cycle_direction, InputConfig* controller_conf)
 {
   // load the hotkey config
   InputConfig* hk_conf = HotkeyManagerEmu::GetConfig();
   auto* hotkey_controller = hk_conf->GetController(0);
 
-  // load the wiimote config
-  InputConfig* wm_conf = Wiimote::GetConfig();
+  // find all controller profiles
   std::string profile_name(File::GetUserPath(D_CONFIG_IDX));
-
-  // find all profiles
-  profile_name += "Profiles/" + wm_conf->GetProfileName();
+  profile_name += "Profiles/" + controller_conf->GetProfileName();
   std::vector<std::string> sv = Common::DoFileSearch({profile_name}, {".ini"});
 
   // remove all profiles that do not fit the filter string
@@ -321,15 +318,19 @@ void CFrame::CycleProfile(CycleDirection cycle_direction)
   if (sv.empty())
   {
     if (hotkey_controller->profile_filter.empty())
+    {
       Core::DisplayMessage("No Profiles found", 3000);
+    }
     else
+    {
       Core::DisplayMessage(
           "No Profiles found matching filter: " + hotkey_controller->profile_filter, 3000);
+    }
 
     return;
   }
 
-  size_t controller_count = wm_conf->GetControllerCount();
+  size_t controller_count = controller_conf->GetControllerCount();
 
   // update the index and bound it to the number of available strings
   auto positive_modulo = [](int& i, int n) { i = (i % n + n) % n; };
@@ -346,7 +347,7 @@ void CFrame::CycleProfile(CycleDirection cycle_direction)
     Core::DisplayMessage("Loading profile: " + base, 3000);
     for (int i = 0; i < static_cast<int>(controller_count); ++i)
     {
-      auto* controller = wm_conf->GetController(i);
+      auto* controller = controller_conf->GetController(i);
       controller->LoadConfig(ini_file.GetOrCreateSection("Profile"));
       controller->UpdateReferences(g_controller_interface);
     }

@@ -38,6 +38,7 @@ class CCodeWindow;
 class CConfigMain;
 class CLogWindow;
 class FifoPlayerDlg;
+class InputConfig;
 class LogConfigWindow;
 class NetPlaySetupFrame;
 class TASInputDlg;
@@ -147,8 +148,8 @@ private:
 
   enum class CycleDirection : int
   {
-    FORWARD = 1,
-    BACKWARD = -1
+    Forward = 1,
+    Backward = -1
   };
 
   static constexpr int MOUSE_HIDE_DELAY = 3000;
@@ -202,7 +203,7 @@ private:
   void StartGame(std::unique_ptr<BootParameters> boot);
   void SetDebuggerStartupParameters() const;
 
-  void CycleProfile(CycleDirection);
+  void CycleProfile(CycleDirection, InputConfig* controller_conf);
 
   // Utility
   wxWindow* GetNotebookPageFromId(wxWindowID Id);

@@ -94,7 +94,7 @@ Display* XDisplayFromHandle(void* Handle)
 {
   return GDK_WINDOW_XDISPLAY(gtk_widget_get_window(GTK_WIDGET(Handle)));
 }
-}
+}  // namespace X11Utils
 #endif
 
 CRenderFrame::CRenderFrame(wxFrame* parent, wxWindowID id, const wxString& title,
@@ -199,7 +199,7 @@ WXLRESULT CRenderFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lPa
     // Let Core finish initializing before accepting any WM_CLOSE messages
     if (!Core::IsRunning())
       break;
-  // Use default action otherwise
+    // Use default action otherwise
 
   default:
     // By default let wxWidgets do what it normally does with this event
@@ -666,8 +666,9 @@ void CFrame::OnResize(wxSizeEvent& event)
 
   // Make sure the logger pane is a sane size
   if (!m_code_window && m_log_window && m_mgr->GetPane("Pane 1").IsShown() &&
-      !m_mgr->GetPane("Pane 1").IsFloating() && (m_log_window->x > GetClientRect().GetWidth() ||
-                                                 m_log_window->y > GetClientRect().GetHeight()))
+      !m_mgr->GetPane("Pane 1").IsFloating() &&
+      (m_log_window->x > GetClientRect().GetWidth() ||
+       m_log_window->y > GetClientRect().GetHeight()))
   {
     ShowResizePane();
   }
@@ -702,8 +703,8 @@ WXLRESULT CFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
 
 void CFrame::InhibitScreensaver()
 {
-// Inhibit the screensaver. Depending on the operating system this may also
-// disable low-power states and/or screen dimming.
+  // Inhibit the screensaver. Depending on the operating system this may also
+  // disable low-power states and/or screen dimming.
 
 #if defined(HAVE_X11) && HAVE_X11
   if (SConfig::GetInstance().bDisableScreenSaver)
@@ -779,7 +780,7 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
   case IDM_UPDATE_DISASM_DIALOG:  // For breakpoints causing pausing
     if (!m_code_window || Core::GetState() != Core::State::Paused)
       return;
-  // fallthrough
+    // fallthrough
 
   case IDM_UPDATE_GUI:
     UpdateGUI();
@@ -1368,11 +1369,14 @@ void CFrame::ParseHotkeys()
   if (IsHotkey(HK_VOLUME_TOGGLE_MUTE))
     AudioCommon::ToggleMuteVolume();
 
-  if (IsHotkey(HK_NEXT_CONTROLLER_PROFILE))
-    CycleProfile(CycleDirection::FORWARD);
-
-  if (IsHotkey(HK_PREV_CONTROLLER_PROFILE))
-    CycleProfile(CycleDirection::BACKWARD);
+  if (IsHotkey(HK_NEXT_WIIMOTE_PROFILE))
+    CycleProfile(CycleDirection::Forward, Wiimote::GetConfig());
+  if (IsHotkey(HK_PREV_WIIMOTE_PROFILE))
+    CycleProfile(CycleDirection::Backward, Wiimote::GetConfig());
+  if (IsHotkey(HK_NEXT_PAD_PROFILE))
+    CycleProfile(CycleDirection::Forward, Pad::GetConfig());
+  if (IsHotkey(HK_PREV_PAD_PROFILE))
+    CycleProfile(CycleDirection::Backward, Pad::GetConfig());
 
   if (SConfig::GetInstance().m_bt_passthrough_enabled)
   {
