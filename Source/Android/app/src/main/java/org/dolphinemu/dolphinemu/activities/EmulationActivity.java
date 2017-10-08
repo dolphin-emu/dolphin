@@ -14,6 +14,7 @@ import android.preference.PreferenceManager;
 import android.support.annotation.IntDef;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.SparseIntArray;
 import android.view.InputDevice;
@@ -24,7 +25,6 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -42,7 +42,6 @@ import org.dolphinemu.dolphinemu.ui.platform.Platform;
 import org.dolphinemu.dolphinemu.utils.Animations;
 import org.dolphinemu.dolphinemu.utils.Java_GCAdapter;
 import org.dolphinemu.dolphinemu.utils.Java_WiimoteAdapter;
-import org.dolphinemu.dolphinemu.utils.Log;
 
 import java.lang.annotation.Retention;
 import java.util.List;
@@ -51,12 +50,11 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
 
 public final class EmulationActivity extends AppCompatActivity
 {
-	private static final String FRAGMENT_SUBMENU_TAG = "submenu";
+	private static final String BACKSTACK_NAME_MENU = "menu";
+	private static final String BACKSTACK_NAME_SUBMENU = "submenu";
 	private View mDecorView;
 	private ImageView mImageView;
 	private EmulationFragment mEmulationFragment;
-
-	private LinearLayout mMenuLayout;
 
 	private SharedPreferences mPreferences;
 
@@ -66,7 +64,6 @@ public final class EmulationActivity extends AppCompatActivity
 	private boolean mDeviceHasTouchScreen;
 	private boolean mSystemUiVisible;
 	private boolean mMenuVisible;
-	private boolean mSubMenuVisible = false;
 
 	private static boolean mIsGameCubeGame;
 
@@ -221,7 +218,6 @@ public final class EmulationActivity extends AppCompatActivity
 		setContentView(R.layout.activity_emulation);
 
 		mImageView = (ImageView) findViewById(R.id.image_screenshot);
-		mMenuLayout = (LinearLayout) findViewById(R.id.layout_ingame_menu);
 		mEmulationFragment = (EmulationFragment) getSupportFragmentManager()
 				.findFragmentById(R.id.fragment_emulation);
 
@@ -280,16 +276,6 @@ public final class EmulationActivity extends AppCompatActivity
 		{
 			setTitle(mSelectedTitle);
 		}
-		else
-		{
-			MenuFragment menuFragment = (MenuFragment) getSupportFragmentManager()
-					.findFragmentById(R.id.fragment_menu);
-
-			if (menuFragment != null)
-			{
-				menuFragment.setTitleText(mSelectedTitle);
-			}
-		}
 
 		mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 
@@ -333,11 +319,9 @@ public final class EmulationActivity extends AppCompatActivity
 	{
 		if (!mDeviceHasTouchScreen)
 		{
-			if (mSubMenuVisible)
-			{
-				removeSubMenu();
-			}
-			else
+			boolean popResult = getSupportFragmentManager().popBackStackImmediate(
+				BACKSTACK_NAME_SUBMENU, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+			if (!popResult)
 			{
 				toggleMenu();
 			}
@@ -347,31 +331,28 @@ public final class EmulationActivity extends AppCompatActivity
 			mEmulationFragment.stopEmulation();
 			exitWithAnimation();
 		}
+
 	}
 
 	private void toggleMenu()
 	{
-		if (mMenuVisible)
-		{
-			mMenuVisible = false;
+		boolean result = getSupportFragmentManager().popBackStackImmediate(
+				BACKSTACK_NAME_MENU, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+		mMenuVisible = false;
 
-			Animations.fadeViewOutToLeft(mMenuLayout)
-					.withEndAction(new Runnable()
-					{
-						@Override
-						public void run()
-						{
-							if (mMenuVisible)
-							{
-								mMenuLayout.setVisibility(View.GONE);
-							}
-						}
-					});
-		}
-		else
-		{
+		if (!result) {
+			// Removing the menu failed, so that means it wasn't visible. Add it.
+			Fragment fragment = MenuFragment.newInstance(mSelectedTitle);
+			getSupportFragmentManager().beginTransaction()
+					.setCustomAnimations(
+							R.animator.menu_slide_in_from_left,
+							R.animator.menu_slide_out_to_left,
+							R.animator.menu_slide_in_from_left,
+							R.animator.menu_slide_out_to_left)
+					.add(R.id.frame_menu, fragment)
+					.addToBackStack(BACKSTACK_NAME_MENU)
+					.commit();
 			mMenuVisible = true;
-			Animations.fadeViewInFromLeft(mMenuLayout);
 		}
 	}
 
@@ -422,7 +403,7 @@ public final class EmulationActivity extends AppCompatActivity
 			finishAfterTransition();
 		}
 	};
-
+	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu)
 	{
@@ -496,14 +477,14 @@ public final class EmulationActivity extends AppCompatActivity
 			case MENU_ACTION_SAVE_ROOT:
 				if (!mDeviceHasTouchScreen)
 				{
-					showMenu(SaveLoadStateFragment.SaveOrLoad.SAVE);
+					showSubMenu(SaveLoadStateFragment.SaveOrLoad.SAVE);
 				}
 				return;
 
 			case MENU_ACTION_LOAD_ROOT:
 				if (!mDeviceHasTouchScreen)
 				{
-					showMenu(SaveLoadStateFragment.SaveOrLoad.LOAD);
+					showSubMenu(SaveLoadStateFragment.SaveOrLoad.LOAD);
 				}
 				return;
 
@@ -817,44 +798,22 @@ public final class EmulationActivity extends AppCompatActivity
 		hideSystemUiAfterDelay();
 	}
 
-	private void showMenu(SaveLoadStateFragment.SaveOrLoad saveOrLoad)
+	private void showSubMenu(SaveLoadStateFragment.SaveOrLoad saveOrLoad)
 	{
+		// Get rid of any visible submenu
+		getSupportFragmentManager().popBackStack(
+				BACKSTACK_NAME_SUBMENU, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+
 		Fragment fragment = SaveLoadStateFragment.newInstance(saveOrLoad);
 		getSupportFragmentManager().beginTransaction()
-				.setCustomAnimations(R.animator.menu_slide_in, R.animator.menu_slide_out)
-				.replace(R.id.frame_submenu, fragment, FRAGMENT_SUBMENU_TAG)
+				.setCustomAnimations(
+						R.animator.menu_slide_in_from_right,
+						R.animator.menu_slide_out_to_right,
+						R.animator.menu_slide_in_from_right,
+						R.animator.menu_slide_out_to_right)
+				.replace(R.id.frame_submenu, fragment)
+				.addToBackStack(BACKSTACK_NAME_SUBMENU)
 				.commit();
-		mSubMenuVisible = true;
-	}
-
-	private void removeSubMenu()
-	{
-		final Fragment fragment = getSupportFragmentManager().findFragmentByTag(FRAGMENT_SUBMENU_TAG);
-
-		if (fragment != null)
-		{
-			// When removing a fragment without replacement, its animation must be done
-			// manually beforehand.
-			Animations.fadeViewOutToRight(fragment.getView())
-					.withEndAction(new Runnable()
-					{
-						@Override
-						public void run()
-						{
-							if (mMenuVisible)
-							{
-								getSupportFragmentManager().beginTransaction()
-										.remove(fragment)
-										.commit();
-							}
-						}
-					});
-		}
-		else
-		{
-			Log.error("[EmulationActivity] Fragment not found, can't remove.");
-		}
-		mSubMenuVisible = false;
 	}
 
 	public String getSelectedTitle()
