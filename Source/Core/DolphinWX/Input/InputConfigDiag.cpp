@@ -432,7 +432,8 @@ void InputConfigDialog::SetDevice(wxCommandEvent&)
 
 void InputConfigDialog::SetProfileFilter(wxCommandEvent&)
 {
-  if (!profile_filter) return;
+  if (!profile_filter)
+    return;
 
   controller->profile_filter = WxStrToStr(profile_filter->GetValue());
 }

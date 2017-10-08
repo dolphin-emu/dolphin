@@ -109,7 +109,6 @@ public:
   bool RendererHasFocus();
   bool RendererIsFullscreen();
   void OpenGeneralConfiguration(wxWindowID tab_id = wxID_ANY);
-  void CycleProfile(bool forward);
 
   wxMenuBar* GetMenuBar() const override;
 
@@ -144,6 +143,12 @@ private:
     ADD_PANE_LEFT,
     ADD_PANE_RIGHT,
     ADD_PANE_CENTER
+  };
+
+  enum class CycleDirection : int
+  {
+    FORWARD = 1,
+    BACKWARD = -1
   };
 
   static constexpr int MOUSE_HIDE_DELAY = 3000;
@@ -196,6 +201,8 @@ private:
 
   void StartGame(std::unique_ptr<BootParameters> boot);
   void SetDebuggerStartupParameters() const;
+
+  void CycleProfile(CycleDirection);
 
   // Utility
   wxWindow* GetNotebookPageFromId(wxWindowID Id);
