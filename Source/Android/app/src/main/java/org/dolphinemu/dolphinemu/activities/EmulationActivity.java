@@ -23,7 +23,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewTreeObserver;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -248,14 +247,14 @@ public final class EmulationActivity extends AppCompatActivity
 						@Override
 						public void onSuccess()
 						{
-							scheduleStartPostponedTransition(mImageView);
+							startPostponedEnterTransition();
 						}
 
 						@Override
 						public void onError()
 						{
 							// Still have to do this, or else the app will crash.
-							scheduleStartPostponedTransition(mImageView);
+							startPostponedEnterTransition();
 						}
 					});
 
@@ -860,22 +859,6 @@ public final class EmulationActivity extends AppCompatActivity
 				View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
 
 		hideSystemUiAfterDelay();
-	}
-
-
-	private void scheduleStartPostponedTransition(final View sharedElement)
-	{
-		sharedElement.getViewTreeObserver().addOnPreDrawListener(
-				new ViewTreeObserver.OnPreDrawListener()
-				{
-					@Override
-					public boolean onPreDraw()
-					{
-						sharedElement.getViewTreeObserver().removeOnPreDrawListener(this);
-						startPostponedEnterTransition();
-						return true;
-					}
-				});
 	}
 
 	private void showMenu(SaveLoadStateFragment.SaveOrLoad saveOrLoad)
