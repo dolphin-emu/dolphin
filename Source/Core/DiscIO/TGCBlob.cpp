@@ -32,10 +32,14 @@ void SplitInterval(T split_point, Interval<T> interval, Interval<T>* out_1, Inte
     *out_1 = {0, 0};
 
   if (interval.End() > split_point)
+  {
     *out_2 = {std::max(interval.start, split_point),
               std::min(interval.length, interval.End() - split_point)};
+  }
   else
+  {
     *out_2 = {0, 0};
+  }
 }
 
 u32 SubtractBE32(u32 minuend_be, u32 subtrahend_le)
@@ -117,7 +121,9 @@ bool TGCFileReader::Read(u64 offset, u64 nbytes, u8* out_ptr)
   {
     if (!InternalRead(file_part.start - m_file_area_shift, file_part.length,
                       out_ptr + (file_part.start - offset)))
+    {
       return false;
+    }
   }
 
   return true;
