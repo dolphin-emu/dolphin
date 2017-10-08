@@ -220,11 +220,6 @@ public final class EmulationActivity extends AppCompatActivity
 
 		Java_GCAdapter.manager = (UsbManager) getSystemService(Context.USB_SERVICE);
 		Java_WiimoteAdapter.manager = (UsbManager) getSystemService(Context.USB_SERVICE);
-
-		// Picasso will take a while to load these big-ass screenshots. So don't run
-		// the animation until we say so.
-		postponeEnterTransition();
-
 		setContentView(R.layout.activity_emulation);
 
 		mImageView = (ImageView) findViewById(R.id.image_screenshot);
@@ -240,6 +235,10 @@ public final class EmulationActivity extends AppCompatActivity
 
 		if (savedInstanceState == null)
 		{
+			// Picasso will take a while to load these big-ass screenshots. So don't run
+			// the animation until we say so.
+			postponeEnterTransition();
+
 			Picasso.with(this)
 					.load(mScreenPath)
 					.noFade()
