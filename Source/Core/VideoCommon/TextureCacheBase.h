@@ -212,9 +212,9 @@ private:
     int frameCount = FRAMECOUNT_INVALID;
     TexPoolEntry(std::unique_ptr<AbstractTexture> tex) : texture(std::move(tex)) {}
   };
-  typedef std::multimap<u32, TCacheEntry*> TexAddrCache;
-  typedef std::multimap<u64, TCacheEntry*> TexHashCache;
-  typedef std::unordered_multimap<TextureConfig, TexPoolEntry, TextureConfig::Hasher> TexPool;
+  using TexAddrCache = std::multimap<u32, TCacheEntry*>;
+  using TexHashCache = std::multimap<u64, TCacheEntry*>;
+  using TexPool = std::unordered_multimap<TextureConfig, TexPoolEntry>;
 
   void SetBackupConfig(const VideoConfig& config);
 
