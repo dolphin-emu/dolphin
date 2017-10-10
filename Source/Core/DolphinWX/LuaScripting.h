@@ -68,11 +68,17 @@ namespace Lua
   private:
     void CreateGUI();
     void OnClearClicked(wxCommandEvent& event);
+    void OnDocumentationClicked(wxCommandEvent& event);
+    void OnAPIClicked(wxCommandEvent& event);
     void BrowseOnButtonClick(wxCommandEvent& event);
     void RunOnButtonClick(wxCommandEvent& event);
     void StopOnButtonClick(wxCommandEvent& event);
     wxMenuBar* m_menubar;
-    wxMenu* m_menu;
+    wxMenuItem* clear;
+    wxMenuItem* documentation;
+    wxMenuItem* api;
+    wxMenu* console_menu;
+    wxMenu* help_menu;
     wxStaticText* script_file_label;
     wxTextCtrl* file_path;
     wxButton* browse_button;

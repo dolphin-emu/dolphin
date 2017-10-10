@@ -39,6 +39,9 @@ namespace Lua
   int getButtons(lua_State* L);
   int setButtons(lua_State* L);
 
+  //The argument should be a percentage of speed. I.E. setEmulatorSpeed(100) would set it to normal playback speed
+  int setEmulatorSpeed(lua_State* L);
+
   // GLOBAL IS NECESSARY FOR LOG TO WORK
   LuaScriptFrame* currentWindow;
 
@@ -73,6 +76,7 @@ namespace Lua
       registered_functions->insert(std::pair<const char*, LuaFunction>("setAnalog", setAnalog));
       registered_functions->insert(std::pair<const char*, LuaFunction>("getButtons", getButtons));
       registered_functions->insert(std::pair<const char*, LuaFunction>("setButtons", setButtons));
+      registered_functions->insert(std::pair<const char*, LuaFunction>("setEmulatorSpeed", setEmulatorSpeed));
     }
   }
 
@@ -108,19 +112,24 @@ namespace Lua
     this->SetSizeHints(wxDefaultSize, wxDefaultSize);
 
     m_menubar = new wxMenuBar(0);
-    m_menu = new wxMenu();
-    wxMenuItem* clear;
-    clear = new wxMenuItem(m_menu, wxID_ANY, wxString(wxT("Clear")), wxEmptyString, wxITEM_NORMAL);
-    m_menu->Append(clear);
+    console_menu = new wxMenu();
+    clear = new wxMenuItem(console_menu, wxID_ANY, wxString(_("Clear")), wxEmptyString, wxITEM_NORMAL);
+    console_menu->Append(clear);
+    help_menu = new wxMenu();
+    documentation = new wxMenuItem(help_menu, wxID_ANY, wxString(_("Lua Documentation")), wxEmptyString, wxITEM_NORMAL);
+    api = new wxMenuItem(help_menu, wxID_ANY, wxString(_("Dolphin Lua API")), wxEmptyString, wxITEM_NORMAL);
+    help_menu->Append(documentation);
+    help_menu->Append(api);
 
-    m_menubar->Append(m_menu, wxT("Console"));
+    m_menubar->Append(console_menu, _("Console"));
+    m_menubar->Append(help_menu, _("Help"));
 
     this->SetMenuBar(m_menubar);
 
     wxBoxSizer* main_sizer;
     main_sizer = new wxBoxSizer(wxVERTICAL);
 
-    script_file_label = new wxStaticText(this, wxID_ANY, wxT("Script File:"), wxDefaultPosition, wxDefaultSize, 0);
+    script_file_label = new wxStaticText(this, wxID_ANY, _("Script File:"), wxDefaultPosition, wxDefaultSize, 0);
     script_file_label->Wrap(-1);
     main_sizer->Add(script_file_label, 0, wxALL, 5);
 
@@ -132,19 +141,19 @@ namespace Lua
     wxBoxSizer* buttons;
     buttons = new wxBoxSizer(wxHORIZONTAL);
 
-    browse_button = new wxButton(this, wxID_ANY, wxT("Browse..."), wxPoint(-1, -1), wxDefaultSize, 0);
+    browse_button = new wxButton(this, wxID_ANY, _("Browse..."), wxPoint(-1, -1), wxDefaultSize, 0);
     buttons->Add(browse_button, 0, wxALL, 5);
 
-    run_button = new wxButton(this, wxID_ANY, wxT("Run"), wxDefaultPosition, wxDefaultSize, 0);
+    run_button = new wxButton(this, wxID_ANY, _("Run"), wxDefaultPosition, wxDefaultSize, 0);
     buttons->Add(run_button, 0, wxALL, 5);
 
-    stop_button = new wxButton(this, wxID_ANY, wxT("Stop"), wxDefaultPosition, wxDefaultSize, 0);
+    stop_button = new wxButton(this, wxID_ANY, _("Stop"), wxDefaultPosition, wxDefaultSize, 0);
     buttons->Add(stop_button, 0, wxALL, 5);
 
 
     main_sizer->Add(buttons, 1, wxEXPAND, 5);
 
-    output_console_literal = new wxStaticText(this, wxID_ANY, wxT("Output Console:"), wxDefaultPosition, wxDefaultSize, 0);
+    output_console_literal = new wxStaticText(this, wxID_ANY, _("Output Console:"), wxDefaultPosition, wxDefaultSize, 0);
     output_console_literal->Wrap(-1);
     main_sizer->Add(output_console_literal, 0, wxALL, 5);
 
@@ -159,6 +168,8 @@ namespace Lua
 
     // Connect Events
     this->Connect(clear->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(LuaScriptFrame::OnClearClicked));
+    this->Connect(documentation->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(LuaScriptFrame::OnDocumentationClicked));
+    this->Connect(api->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(LuaScriptFrame::OnAPIClicked));
     browse_button->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(LuaScriptFrame::BrowseOnButtonClick), NULL, this);
     run_button->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(LuaScriptFrame::RunOnButtonClick), NULL, this);
     stop_button->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(LuaScriptFrame::StopOnButtonClick), NULL, this);
@@ -172,6 +183,16 @@ namespace Lua
   void LuaScriptFrame::OnClearClicked(wxCommandEvent& event)
   {
     output_console->Clear();
+  }
+
+  void LuaScriptFrame::OnDocumentationClicked(wxCommandEvent& event)
+  {
+    wxLaunchDefaultBrowser("https://www.lua.org/pil/contents.html");
+  }
+
+  void LuaScriptFrame::OnAPIClicked(wxCommandEvent& event)
+  {
+    return;
   }
 
   void LuaScriptFrame::BrowseOnButtonClick(wxCommandEvent &event)
@@ -368,6 +389,13 @@ namespace Lua
         break;
       }
     }
+
+    return 0;
+  }
+
+  int setEmulatorSpeed(lua_State* L)
+  {
+    SConfig::GetInstance().m_EmulationSpeed = lua_tonumber(L, 1) * 0.01f;
 
     return 0;
   }
