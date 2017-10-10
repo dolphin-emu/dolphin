@@ -27,7 +27,7 @@ namespace Lua
   int printToTextCtrl(lua_State* L);
   int frameAdvance(lua_State* L);
   int getFrameCount(lua_State* L);
-  int getTotalFrameCount(lua_State* L);
+  int getMovieLength(lua_State* L);
   int softReset(lua_State* L);
 
   // Slots from 0-99.
@@ -65,7 +65,7 @@ namespace Lua
       registered_functions->insert(std::pair<const char*, LuaFunction>("print", printToTextCtrl));
       registered_functions->insert(std::pair<const char*, LuaFunction>("frameAdvance", frameAdvance));
       registered_functions->insert(std::pair<const char*, LuaFunction>("getFrameCount", getFrameCount));
-      registered_functions->insert(std::pair<const char*, LuaFunction>("getTotalFrameCount", getTotalFrameCount));
+      registered_functions->insert(std::pair<const char*, LuaFunction>("getMovieLength", getMovieLength));
       registered_functions->insert(std::pair<const char*, LuaFunction>("softReset", softReset));
       registered_functions->insert(std::pair<const char*, LuaFunction>("saveState", saveState));
       registered_functions->insert(std::pair<const char*, LuaFunction>("loadState", loadState));
@@ -270,7 +270,7 @@ namespace Lua
     return 1;
   }
 
-  int getTotalFrameCount(lua_State *L)
+  int getMovieLength(lua_State *L)
   {
     if (Movie::IsMovieActive())
     {
