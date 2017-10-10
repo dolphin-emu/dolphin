@@ -191,11 +191,6 @@ void LuaScriptFrame::StopOnButtonClick(wxCommandEvent& event)
   }
 }
 
-void LuaScriptFrame::SignalThreadFinished()
-{
-  lua_thread = nullptr;
-}
-
 // The callback function that tells the emulator what to actually press
 void LuaScriptFrame::GetValues(GCPadStatus* status)
 {
@@ -213,9 +208,6 @@ void LuaScriptFrame::GetValues(GCPadStatus* status)
     status->stickY = pad_status->stickY;
 
   status->button |= pad_status->button;
-
-  //TRYING THIS ONE THING
-  //clearPad(pad_status);
 }
 
 // Sets status to the default values

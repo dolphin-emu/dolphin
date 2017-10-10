@@ -1353,6 +1353,8 @@ void CallGCInputManip(GCPadStatus* PadStatus, int controllerID)
 {
   if (s_gc_manip_funcs[TASInputGCManip])
     s_gc_manip_funcs[TASInputGCManip](PadStatus, controllerID);
+
+  //With this ordering, the Lua script will have priority over the TASInput window
   if (s_gc_manip_funcs[LuaGCManip])
     s_gc_manip_funcs[LuaGCManip](PadStatus, controllerID);
 }

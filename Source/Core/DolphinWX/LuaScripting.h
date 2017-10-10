@@ -79,7 +79,6 @@ private:
 
 public:
   void Log(const char* message);
-  void SignalThreadFinished();
   void GetValues(GCPadStatus* status);
   LuaThread* lua_thread;
 

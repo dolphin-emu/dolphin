@@ -24,7 +24,7 @@ LuaThread::~LuaThread()
   free(pad_status);
   pad_status = nullptr;
   
-  parent->SignalThreadFinished();
+  parent->lua_thread = nullptr;
 }
   
 wxThread::ExitCode LuaThread::Entry()
