@@ -1180,7 +1180,7 @@ void CFrame::OnLua(wxCommandEvent& WXUNUSED(event))
 
   if (!m_lua_script_frame)
   {
-    m_lua_script_frame = new LuaScriptFrame(this);
+    m_lua_script_frame = new Lua::LuaScriptFrame(this);
 
     Movie::SetGCInputManip([this](GCPadStatus* pad, int controller_id) {
       if (m_lua_script_frame)

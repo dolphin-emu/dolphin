@@ -24,6 +24,7 @@
 #include <mutex>
 #include "InputCommon\GCPadStatus.h"
 #include "Core\HW\ProcessorInterface.h"
+#include "Core\State.h"
 
 //Lua includes
 #ifdef __cplusplus
@@ -36,60 +37,59 @@
 
 typedef int(*LuaFunction)(lua_State* L);
 
-extern std::map<const char*, LuaFunction>* registered_functions;
-
-// pad_status is shared between the window thread and the script executing thread.
-// so access to it must be mutex protected.
-extern GCPadStatus* pad_status;
-extern std::mutex lua_mutex;
-
-void clearPad(GCPadStatus*);
-
-class LuaScriptFrame;
-
-class LuaThread : public wxThread
+namespace Lua
 {
-public:
-  LuaThread(LuaScriptFrame* p, wxString file);
-  ~LuaThread();
+  extern std::map<const char*, LuaFunction>* registered_functions;
 
-  wxThread::ExitCode Entry();
+  // pad_status is shared between the window thread and the script executing thread.
+  // so access to it must be mutex protected.
+  extern GCPadStatus* pad_status;
+  extern std::mutex lua_mutex;
 
-private:
-  LuaScriptFrame* parent = nullptr;
-  wxString file_path;
-};
+  void clearPad(GCPadStatus*);
 
-class LuaScriptFrame final : public wxFrame
-{
-private:
-  void CreateGUI();
-  void OnClearClicked(wxCommandEvent& event);
-  void BrowseOnButtonClick(wxCommandEvent& event);
-  void RunOnButtonClick(wxCommandEvent& event);
-  void StopOnButtonClick(wxCommandEvent& event);
-  wxMenuBar* m_menubar;
-  wxMenu* m_menu;
-  wxStaticText* script_file_label;
-  wxTextCtrl* file_path;
-  wxButton* Browse;
-  wxButton* run_button;
-  wxButton* stop_button;
-  wxStaticText* m_staticText2;
-  wxTextCtrl* output_console;
+  class LuaScriptFrame;
 
-public:
-  void Log(const char* message);
-  void GetValues(GCPadStatus* status);
-  LuaThread* lua_thread;
-
-  LuaScriptFrame(wxWindow* parent);
-
-  ~LuaScriptFrame();
-
-  void LuaScriptFrameOnContextMenu(wxMouseEvent &event)
+  class LuaThread : public wxThread
   {
-    this->PopupMenu(m_menu, event.GetPosition());
-  }
-};
+  public:
+    LuaThread(LuaScriptFrame* p, wxString file);
+    ~LuaThread();
 
+    wxThread::ExitCode Entry();
+
+  private:
+    LuaScriptFrame* parent = nullptr;
+    wxString file_path;
+  };
+
+  class LuaScriptFrame final : public wxFrame
+  {
+  private:
+    void CreateGUI();
+    void OnClearClicked(wxCommandEvent& event);
+    void BrowseOnButtonClick(wxCommandEvent& event);
+    void RunOnButtonClick(wxCommandEvent& event);
+    void StopOnButtonClick(wxCommandEvent& event);
+    wxMenuBar* m_menubar;
+    wxMenu* m_menu;
+    wxStaticText* script_file_label;
+    wxTextCtrl* file_path;
+    wxButton* browse_button;
+    wxButton* run_button;
+    wxButton* stop_button;
+    wxStaticText* output_console_literal;
+    wxTextCtrl* output_console;
+    LuaThread* lua_thread;
+
+  public:
+    void Log(const char* message);
+    void GetValues(GCPadStatus* status);
+    void NullifyLuaThread();
+
+    LuaScriptFrame(wxWindow* parent);
+
+    ~LuaScriptFrame();
+  };
+
+}

@@ -97,7 +97,7 @@ public:
   // These have to be public
   CCodeWindow* m_code_window = nullptr;
   NetPlaySetupFrame* m_netplay_setup_frame = nullptr;
-  LuaScriptFrame* m_lua_script_frame = nullptr;
+  Lua::LuaScriptFrame* m_lua_script_frame = nullptr;
 
   void DoStop();
   void UpdateGUI();
