@@ -25,6 +25,7 @@
 int printToTextCtrl(lua_State* L);
 int frameAdvance(lua_State* L);
 int getFrameCount(lua_State* L);
+int softReset(lua_State* L);
 int getAnalog(lua_State* L);
 int setAnalog(lua_State* L);
 int getButtons(lua_State* L);
@@ -56,6 +57,7 @@ LuaScriptFrame::LuaScriptFrame(wxWindow* parent) : wxFrame(parent, wxID_ANY, _("
     registered_functions->insert(std::pair<const char*, LuaFunction>("print", printToTextCtrl));
     registered_functions->insert(std::pair<const char*, LuaFunction>("frameAdvance", frameAdvance));
     registered_functions->insert(std::pair<const char*, LuaFunction>("getFrameCount", getFrameCount));
+    registered_functions->insert(std::pair<const char*, LuaFunction>("softReset", softReset));
     registered_functions->insert(std::pair<const char*, LuaFunction>("getAnalog", getAnalog));
     registered_functions->insert(std::pair<const char*, LuaFunction>("setAnalog", setAnalog));
     registered_functions->insert(std::pair<const char*, LuaFunction>("getButtons", getButtons));
@@ -250,6 +252,12 @@ int getFrameCount(lua_State* L)
 {
   lua_pushinteger(L, Movie::GetCurrentFrame());
   return 1;
+}
+
+int softReset(lua_State* L)
+{
+  ProcessorInterface::ResetButton_Tap();
+  return 0;
 }
 
 int getAnalog(lua_State* L)

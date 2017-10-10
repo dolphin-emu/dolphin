@@ -23,6 +23,7 @@
 #include <map>
 #include <mutex>
 #include "InputCommon\GCPadStatus.h"
+#include "Core\HW\ProcessorInterface.h"
 
 //Lua includes
 #ifdef __cplusplus
