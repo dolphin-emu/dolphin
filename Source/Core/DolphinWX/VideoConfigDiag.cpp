@@ -321,7 +321,10 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
                                                   wxGetTranslation(StrToWxStr(title)))),
       vconfig(g_Config)
 {
-  vconfig.Refresh();
+  // We don't need to load the config if the core is running, since it would have been done
+  // at startup time already.
+  if (!Core::IsRunning())
+    vconfig.Refresh();
 
   Bind(wxEVT_UPDATE_UI, &VideoConfigDiag::OnUpdateUI, this);
 
