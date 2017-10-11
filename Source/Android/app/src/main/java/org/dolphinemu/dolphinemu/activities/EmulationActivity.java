@@ -1,6 +1,5 @@
 package org.dolphinemu.dolphinemu.activities;
 
-import android.app.ActivityOptions;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -12,6 +11,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.preference.PreferenceManager;
 import android.support.annotation.IntDef;
+import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
@@ -65,7 +65,7 @@ public final class EmulationActivity extends AppCompatActivity
 	private boolean mSystemUiVisible;
 	private boolean mMenuVisible;
 
-	private static boolean mIsGameCubeGame;
+	private static boolean sIsGameCubeGame;
 
 	/**
 	 * Handlers are a way to pass a message to an Activity telling it to do something
@@ -155,7 +155,7 @@ public final class EmulationActivity extends AppCompatActivity
 		launcher.putExtra("ScreenPath", screenshotPath);
 		launcher.putExtra("GridPosition", position);
 
-		ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(
+		ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(
 				activity,
 				sharedView,
 				"image_game_screenshot");
@@ -168,6 +168,15 @@ public final class EmulationActivity extends AppCompatActivity
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
 	{
+		super.onCreate(savedInstanceState);
+
+		// Get params we were passed
+		Intent gameToEmulate = getIntent();
+		String path = gameToEmulate.getStringExtra("SelectedGame");
+		sIsGameCubeGame = Platform.fromNativeInt(NativeLibrary.GetPlatform(path)) == Platform.GAMECUBE;
+		mSelectedTitle = gameToEmulate.getStringExtra("SelectedTitle");
+		mScreenPath = gameToEmulate.getStringExtra("ScreenPath");
+		mPosition = gameToEmulate.getIntExtra("GridPosition", -1);
 		mDeviceHasTouchScreen = getPackageManager().hasSystemFeature("android.hardware.touchscreen");
 
 		int themeId;
@@ -210,22 +219,15 @@ public final class EmulationActivity extends AppCompatActivity
 		}
 
 		setTheme(themeId);
-		super.onCreate(savedInstanceState);
 
 		Java_GCAdapter.manager = (UsbManager) getSystemService(Context.USB_SERVICE);
 		Java_WiimoteAdapter.manager = (UsbManager) getSystemService(Context.USB_SERVICE);
-		
+
 		setContentView(R.layout.activity_emulation);
 
 		mImageView = (ImageView) findViewById(R.id.image_screenshot);
 		mEmulationFragment = (EmulationFragment) getSupportFragmentManager()
 				.findFragmentById(R.id.fragment_emulation);
-
-		Intent gameToEmulate = getIntent();
-		String path = gameToEmulate.getStringExtra("SelectedGame");
-		mSelectedTitle = gameToEmulate.getStringExtra("SelectedTitle");
-		mScreenPath = gameToEmulate.getStringExtra("ScreenPath");
-		mPosition = gameToEmulate.getIntExtra("GridPosition", -1);
 
 		if (savedInstanceState == null)
 		{
@@ -242,14 +244,14 @@ public final class EmulationActivity extends AppCompatActivity
 						@Override
 						public void onSuccess()
 						{
-							startPostponedEnterTransition();
+							supportStartPostponedEnterTransition();
 						}
 
 						@Override
 						public void onError()
 						{
 							// Still have to do this, or else the app will crash.
-							startPostponedEnterTransition();
+							supportStartPostponedEnterTransition();
 						}
 					});
 
@@ -279,7 +281,6 @@ public final class EmulationActivity extends AppCompatActivity
 
 		mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 
-		mIsGameCubeGame = Platform.fromNativeInt(NativeLibrary.GetPlatform(path)) == Platform.GAMECUBE;
 	}
 
 	@Override
@@ -400,15 +401,15 @@ public final class EmulationActivity extends AppCompatActivity
 		public void run()
 		{
 			setResult(mPosition);
-			finishAfterTransition();
+			supportFinishAfterTransition();
 		}
 	};
-	
+
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu)
 	{
 		// Inflate the menu; this adds items to the action bar if it is present.
-		if (mIsGameCubeGame)
+		if (sIsGameCubeGame)
 		{
 			getMenuInflater().inflate(R.menu.menu_emulation, menu);
 		}
@@ -598,7 +599,7 @@ public final class EmulationActivity extends AppCompatActivity
 		boolean[] enabledButtons = new boolean[14];
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setTitle(R.string.emulation_toggle_controls);
-		if (mIsGameCubeGame || mPreferences.getInt("wiiController", 3) == 0) {
+		if (sIsGameCubeGame || mPreferences.getInt("wiiController", 3) == 0) {
 			for (int i = 0; i < enabledButtons.length; i++) {
 				enabledButtons[i] = mPreferences.getBoolean("buttonToggleGc" + i, true);
 			}
@@ -823,6 +824,6 @@ public final class EmulationActivity extends AppCompatActivity
 
 	public static boolean isGameCubeGame()
 	{
-		return mIsGameCubeGame;
+		return sIsGameCubeGame;
 	}
 }
