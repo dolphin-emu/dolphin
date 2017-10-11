@@ -206,7 +206,8 @@ bool CBoot::Load_BS2(const std::string& boot_rom_filename)
   constexpr u32 PAL_v1_1 = 0xDD8CAB7C;
   // Redump
   constexpr u32 PAL_v1_2 = 0xAD1B7F16;
-
+  // https://github.com/mamedev/mame/blob/master/src/mame/drivers/triforce.cpp
+  constexpr u32 TRI_v1_0 = 0xD1883221;
   // Load the whole ROM dump
   std::string data;
   if (!File::ReadFileToString(boot_rom_filename, data))
