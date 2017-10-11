@@ -55,8 +55,8 @@ static int AshmemCreateFileMapping(const char* name, size_t size)
 void MemArena::GrabSHMSegment(size_t size)
 {
 #ifdef _WIN32
-  hMemoryMapping =
-      CreateFileMapping(INVALID_HANDLE_VALUE, nullptr, PAGE_READWRITE, 0, (DWORD)(size), nullptr);
+  hMemoryMapping = CreateFileMapping(INVALID_HANDLE_VALUE, nullptr, PAGE_READWRITE, 0,
+                                     static_cast<DWORD>(size), L"Dolphin-emu");
 #elif defined(ANDROID)
   fd = AshmemCreateFileMapping("Dolphin-emu", size);
   if (fd < 0)
