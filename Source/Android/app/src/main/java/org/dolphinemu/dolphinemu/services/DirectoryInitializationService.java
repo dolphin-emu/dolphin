@@ -7,73 +7,35 @@
 package org.dolphinemu.dolphinemu.services;
 
 import android.app.IntentService;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+import android.support.v4.content.LocalBroadcastManager;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.utils.Log;
+import org.dolphinemu.dolphinemu.utils.PermissionsHandler;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.concurrent.CountDownLatch;
 
 /**
  * A service that spawns its own thread in order to create directories and extract files.
  */
 public final class DirectoryInitializationService extends IntentService
 {
-	private static volatile boolean sServiceStarted = false;
-	private static CountDownLatch sInternalStorageInitialized = new CountDownLatch(1);
-	private static CountDownLatch sExternalStorageInitialized = new CountDownLatch(1);
-	private static CountDownLatch sHasExternalStoragePermission = new CountDownLatch(1);
+	public static final String BROADCAST_ACTION = "org.dolphinemu.dolphinemu.BROADCAST";
 
-	private static void waitFor(CountDownLatch latch)
-	{
-		while (true)
-		{
-			try
-			{
-				latch.await();
-				return;
-			}
-			catch (InterruptedException e)
-			{
-			}
-		}
-	}
+	public static final String EXTRA_STATE = "directoryState";
+	private static DirectoryInitializationState directoryState = null;
 
-	public static void waitForInternalStorageInitialization()
-	{
-		// The exception we might throw in here is intended to make us notice logic errors that
-		// could've led to waiting for something that never will happen.
-
-		if (!sServiceStarted)
-			throw new IllegalStateException("DirectoryInitializationService not started");
-
-		waitFor(sInternalStorageInitialized);
-	}
-
-	public static void waitForExternalStorageInitialization()
-	{
-		// The exceptions we might throw in here are intended to make us notice logic errors that
-		// otherwise could've led to waiting for something that never will happen.
-
-		if (!sServiceStarted)
-			throw new IllegalStateException("DirectoryInitializationService not started");
-
-		if (sHasExternalStoragePermission.getCount() != 0)
-			throw new IllegalStateException("External storage write permission not granted");
-
-		waitFor(sExternalStorageInitialized);
-	}
-
-	public static void setHasExternalStoragePermission()
-	{
-		sHasExternalStoragePermission.countDown();
+	public enum DirectoryInitializationState {
+		DOLPHIN_DIRECTORIES_INITIALIZED,
+		EXTERNAL_STORAGE_PERMISSION_NEEDED
 	}
 
 	public DirectoryInitializationService()
@@ -82,19 +44,25 @@ public final class DirectoryInitializationService extends IntentService
 		super("DirectoryInitializationService");
 	}
 
+	public static void startService(Context context) {
+		Intent intent = new Intent(context, DirectoryInitializationService.class);
+		context.startService(intent);
+	}
+
 	@Override
 	protected void onHandleIntent(Intent intent)
 	{
-		if (sServiceStarted)
-			throw new IllegalStateException("DirectoryInitializationService shouldn't run twice");
-		sServiceStarted = true;
-
 		initializeInternalStorage();
-		sInternalStorageInitialized.countDown();
-
-		waitFor(sHasExternalStoragePermission);
-		initializeExternalStorage();
-		sExternalStorageInitialized.countDown();
+		if (PermissionsHandler.hasWriteAccess(this))
+		{
+			initializeExternalStorage();
+			directoryState = DirectoryInitializationState.DOLPHIN_DIRECTORIES_INITIALIZED;
+			sendBroadcastState(DirectoryInitializationState.DOLPHIN_DIRECTORIES_INITIALIZED);
+		}
+		else
+		{
+			sendBroadcastState(DirectoryInitializationState.EXTERNAL_STORAGE_PERMISSION_NEEDED);
+		}
 	}
 
 	private void initializeInternalStorage()
@@ -132,6 +100,10 @@ public final class DirectoryInitializationService extends IntentService
 		copyAsset("WiimoteNew.ini", new File(configDirectory, "WiimoteNew.ini"));
 	}
 
+	public static boolean isDolphinDirectoriesReady() {
+		return directoryState == DirectoryInitializationState.DOLPHIN_DIRECTORIES_INITIALIZED;
+	}
+
 	private static void deleteDirectoryRecursively(File file)
 	{
 		if (file.isDirectory())
@@ -141,6 +113,13 @@ public final class DirectoryInitializationService extends IntentService
 		}
 
 		file.delete();
+	}
+
+	private void sendBroadcastState(DirectoryInitializationState state) {
+		Intent localIntent =
+				new Intent(BROADCAST_ACTION)
+						.putExtra(EXTRA_STATE, state);
+		LocalBroadcastManager.getInstance(this).sendBroadcast(localIntent);
 	}
 
 	private void copyAsset(String asset, File output)

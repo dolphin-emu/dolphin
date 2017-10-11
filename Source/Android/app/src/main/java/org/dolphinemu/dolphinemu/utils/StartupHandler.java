@@ -8,6 +8,7 @@ import android.text.TextUtils;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
+import org.dolphinemu.dolphinemu.services.DirectoryInitializationService.DirectoryInitializationState;
 
 public final class StartupHandler
 {
@@ -27,10 +28,10 @@ public final class StartupHandler
 
 		NativeLibrary.SetUserDirectory(user_dir);  // Uses default path if user_dir equals ""
 
-		parent.startService(new Intent(parent, DirectoryInitializationService.class));
-
 		if (PermissionsHandler.checkWritePermission(parent))
-			DirectoryInitializationService.setHasExternalStoragePermission();
+		{
+			DirectoryInitializationService.startService(parent);
+		}
 
 		if (!TextUtils.isEmpty(start_file))
 		{

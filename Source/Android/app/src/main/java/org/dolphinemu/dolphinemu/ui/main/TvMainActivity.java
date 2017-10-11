@@ -34,6 +34,8 @@ import org.dolphinemu.dolphinemu.utils.PermissionsHandler;
 import org.dolphinemu.dolphinemu.utils.StartupHandler;
 import org.dolphinemu.dolphinemu.viewholders.TvGameViewHolder;
 
+import static org.dolphinemu.dolphinemu.services.DirectoryInitializationService.DirectoryInitializationState.DOLPHIN_DIRECTORIES_INITIALIZED;
+
 public final class TvMainActivity extends Activity implements MainView
 {
 	private MainPresenter mPresenter = new MainPresenter(this);
@@ -161,7 +163,7 @@ public final class TvMainActivity extends Activity implements MainView
 		switch (requestCode) {
 			case PermissionsHandler.REQUEST_CODE_WRITE_PERMISSION:
 				if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-					DirectoryInitializationService.setHasExternalStoragePermission();
+					DirectoryInitializationService.startService(this);
 					loadGames();
 				} else {
 					Toast.makeText(this, R.string.write_permission_needed, Toast.LENGTH_SHORT)
