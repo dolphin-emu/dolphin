@@ -113,6 +113,7 @@ private:
   void InstallWAD();
   void ImportWiiSave();
   void ExportWiiSaves();
+  void CheckNAND();
   void NANDExtractCertificates();
 
   void OnSelectionChanged(QSharedPointer<GameFile> game_file);
@@ -131,6 +132,7 @@ private:
   QAction* m_ntscu_ipl;
   QAction* m_pal_ipl;
   QAction* m_import_backup;
+  QAction* m_check_nand;
   QAction* m_extract_certificates;
 
   // Emulation
