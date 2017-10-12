@@ -22,6 +22,7 @@
 #include <wx/filedlg.h>
 #include <map>
 #include <mutex>
+#include <math.h>
 #include "InputCommon\GCPadStatus.h"
 #include "Core\HW\ProcessorInterface.h"
 #include "Core\State.h"

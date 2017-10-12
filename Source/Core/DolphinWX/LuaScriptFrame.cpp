@@ -36,6 +36,7 @@ namespace Lua
 
   int getAnalog(lua_State* L);
   int setAnalog(lua_State* L);
+  int setAnalogPolar(lua_State* L);
   int getButtons(lua_State* L);
   int setButtons(lua_State* L);
 
@@ -74,6 +75,7 @@ namespace Lua
       registered_functions->insert(std::pair<const char*, LuaFunction>("loadState", loadState));
       registered_functions->insert(std::pair<const char*, LuaFunction>("getAnalog", getAnalog));
       registered_functions->insert(std::pair<const char*, LuaFunction>("setAnalog", setAnalog));
+      registered_functions->insert(std::pair<const char*, LuaFunction>("setAnalogPolar", setAnalogPolar));
       registered_functions->insert(std::pair<const char*, LuaFunction>("getButtons", getButtons));
       registered_functions->insert(std::pair<const char*, LuaFunction>("setButtons", setButtons));
       registered_functions->insert(std::pair<const char*, LuaFunction>("setEmulatorSpeed", setEmulatorSpeed));
@@ -338,8 +340,7 @@ namespace Lua
   {
     if (lua_gettop(L) != 2)
     {
-      currentWindow->Log("Incorrect # of parameters passed to setAnalog.\n");
-      return 0;
+      luaL_error(L, "Incorrect # of parameters passed to setAnalog.\n");
     }
 
     u8 xPos = lua_tointeger(L, 1);
@@ -347,6 +348,27 @@ namespace Lua
 
     pad_status->stickX = xPos;
     pad_status->stickY = yPos;
+
+    return 0;
+  }
+
+  //Same thing as setAnalog except it takes polar coordinates
+  //Must use an m int the range [0, 128)
+  int setAnalogPolar(lua_State* L)
+  {
+    int m = lua_tointeger(L, 1);
+    if (m < 0 || m >= 128)
+    {
+      luaL_error(L, "m is outside of acceptable range (0, 128)");
+    }
+
+    //Gotta convert theta to radians
+    double theta = lua_tonumber(L, 2) * M_PI / 180.0;
+
+    //Round to the nearest whole number, then subtract 128 so that our
+    //"origin" is the stick in neutral position.
+    pad_status->stickX = (u8)(floor(m * cos(theta)) + 128);
+    pad_status->stickY = (u8)(floor(m * sin(theta)) + 128);
 
     return 0;
   }
