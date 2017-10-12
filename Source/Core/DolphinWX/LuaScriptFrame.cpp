@@ -34,14 +34,16 @@ namespace Lua
   int saveState(lua_State* L);
   int loadState(lua_State* L);
 
+  //The argument should be a percentage of speed. I.E. setEmulatorSpeed(100) would set it to normal playback speed
+  int setEmulatorSpeed(lua_State* L);
+
   int getAnalog(lua_State* L);
   int setAnalog(lua_State* L);
   int setAnalogPolar(lua_State* L);
   int getButtons(lua_State* L);
   int setButtons(lua_State* L);
-
-  //The argument should be a percentage of speed. I.E. setEmulatorSpeed(100) would set it to normal playback speed
-  int setEmulatorSpeed(lua_State* L);
+  int getTriggers(lua_State* L);
+  int setTriggers(lua_State* L);
 
   // GLOBAL IS NECESSARY FOR LOG TO WORK
   LuaScriptFrame* currentWindow;
@@ -73,12 +75,14 @@ namespace Lua
       registered_functions->insert(std::pair<const char*, LuaFunction>("softReset", softReset));
       registered_functions->insert(std::pair<const char*, LuaFunction>("saveState", saveState));
       registered_functions->insert(std::pair<const char*, LuaFunction>("loadState", loadState));
+      registered_functions->insert(std::pair<const char*, LuaFunction>("setEmulatorSpeed", setEmulatorSpeed));
       registered_functions->insert(std::pair<const char*, LuaFunction>("getAnalog", getAnalog));
       registered_functions->insert(std::pair<const char*, LuaFunction>("setAnalog", setAnalog));
       registered_functions->insert(std::pair<const char*, LuaFunction>("setAnalogPolar", setAnalogPolar));
       registered_functions->insert(std::pair<const char*, LuaFunction>("getButtons", getButtons));
       registered_functions->insert(std::pair<const char*, LuaFunction>("setButtons", setButtons));
-      registered_functions->insert(std::pair<const char*, LuaFunction>("setEmulatorSpeed", setEmulatorSpeed));
+      registered_functions->insert(std::pair<const char*, LuaFunction>("getTriggers", getTriggers));
+      registered_functions->insert(std::pair<const char*, LuaFunction>("setTriggers", setTriggers));
     }
   }
 
@@ -242,6 +246,12 @@ namespace Lua
 
     if (pad_status->stickY != GCPadStatus::MAIN_STICK_CENTER_Y)
       status->stickY = pad_status->stickY;
+
+    if (pad_status->triggerLeft != 0)
+      status->triggerLeft = pad_status->triggerLeft;
+
+    if (pad_status->triggerRight != 0)
+      status->triggerRight = pad_status->triggerRight;
 
     status->button |= pad_status->button;
   }
@@ -418,6 +428,22 @@ namespace Lua
   int setEmulatorSpeed(lua_State* L)
   {
     SConfig::GetInstance().m_EmulationSpeed = lua_tonumber(L, 1) * 0.01f;
+
+    return 0;
+  }
+
+  int getTriggers(lua_State* L)
+  {
+    lua_pushinteger(L, pad_status->triggerLeft);
+    lua_pushinteger(L, pad_status->triggerRight);
+
+    return 2;
+  }
+
+  int setTriggers(lua_State* L)
+  {
+    pad_status->triggerLeft = lua_tointeger(L, 1);
+    pad_status->triggerRight = lua_tointeger(L, 2);
 
     return 0;
   }

@@ -55,8 +55,6 @@ Dolphin represents the buttons on a GC controller as a 16-bit bitmask where:
 * D-Pad down = 4
 * D-Pad up = 8
 * Z button = 16
-* R trigger = 32
-* L trigger = 64
 * A button = 256
 * B button = 512
 * X button = 1024
@@ -77,7 +75,9 @@ Dolphin represents the buttons on a GC controller as a 16-bit bitmask where:
     * S = Start button
   * U = Unset all buttons
 
+* u8, u8 getTriggers()
+  * Returns the values of the left and right triggers, respectively
 
-
-
-
+* void setTriggers(u8 left, u8 right)
+  * Sets the left trigger to left and sets the right trigger to right
+  
