@@ -114,9 +114,9 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 		super.onDetach();
 	}
 
-	public void setGamePath(String setPath)
+	public void setGamePath(String gamePath)
 	{
-		this.mGamePath = setPath;
+		mGamePath = gamePath;
 	}
 
 	public void toggleInputOverlayVisibility()
