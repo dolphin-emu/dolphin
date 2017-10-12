@@ -37,12 +37,12 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>C:\Users\Nick\Desktop\Games\Emulators\dolphin\Source\Core\DolphinWX\LuaDependencies\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\Nick\Desktop\Games\Emulators\dolphin\Source\Core\DolphinWX\LuaDependencies;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\Nick\Desktop\Games\Emulators\dolphin\Source\Core\DolphinWX\lua5.3;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>C:\Users\Nick\Desktop\Games\Emulators\dolphin\Source\Core\DolphinWX\LuaDependencies\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\Nick\Desktop\Games\Emulators\dolphin\Source\Core\DolphinWX\LuaDependencies;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\Nick\Desktop\Games\Emulators\dolphin\Source\Core\DolphinWX\lua5.3;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <Link>

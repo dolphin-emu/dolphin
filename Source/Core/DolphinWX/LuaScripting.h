@@ -29,11 +29,11 @@
 
 //Lua includes
 #ifdef __cplusplus
-#include <lua.hpp>
+#include "lua5.3\include\lua.hpp"
 #else
-#include <lua.h>
-#include <lualib.h>
-#include <laux.h>
+#include <lua5.3\include\lua.h>
+#include <lua5.3\include\lualib.h>
+#include <lua5.3\include\laux.h>
 #endif
 
 typedef int(*LuaFunction)(lua_State* L);
