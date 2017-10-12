@@ -13,7 +13,7 @@ which is a good way to start learning how to write Lua scripts.
 ## Emulator Functions
 
 * void print(string str)
-  * Predictably this function simply writes str to the output console.
+  * Predictably, this function simply writes str to the output console.
 
 * void frameAdvance()
   * Advances Dolphin by one frame if paused, pauses otherwise. 
@@ -29,7 +29,7 @@ which is a good way to start learning how to write Lua scripts.
   * Resets the emulator. Basically the same thing as pushing the reset button on a real GameCube/Wii.
 
 * void saveState(int slot)
-  * Saves a state in slot slot where slot can be any number from 0 to 99
+  * Saves a state in slot where slot can be any number from 0 to 99
 
 * void loadState(int slot)
   * Loads the state at slot
@@ -63,8 +63,10 @@ Dolphin represents the buttons on a GC controller as a 16-bit bitmask where:
 * Y button = 2048
 * Start button = 4096
 
+
+
 * u16 getButtons()
-  ** Returns the bitmask described above.
+  * Returns the bitmask described above.
 
 * void setButtons(string buttons)
   * Takes a string and then checks each letter and sets the appropriate button
