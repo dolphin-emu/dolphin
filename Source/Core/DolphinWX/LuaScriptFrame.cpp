@@ -198,7 +198,7 @@ namespace Lua
 
   void LuaScriptFrame::OnAPIClicked(wxCommandEvent& event)
   {
-    return;
+    wxLaunchDefaultBrowser("https://github.com/NickDriscoll/dolphin/blob/Lua_scripting/Lua.md");
   }
 
   void LuaScriptFrame::BrowseOnButtonClick(wxCommandEvent &event)
