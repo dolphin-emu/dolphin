@@ -12,7 +12,70 @@ which is a good way to start learning how to write Lua scripts.
 
 ## Emulator Functions
 
-* print(string str)
-    Predictably this function simply writes str to the output console.
+* void print(string str)
+  ** Predictably this function simply writes str to the output console.
 
-* 
+* void frameAdvance()
+  ** Advances Dolphin by one frame if paused, pauses otherwise. 
+     This function will wait until Dolphin has advanced before returning
+
+* int getFrameCount()
+  ** Returns Dolphin's internal frame count
+
+* int getMovieLength()
+  ** Returns length of loaded movie. If no movie is loaded, this errors.
+
+* void softReset()
+  ** Resets the emulator. Basically the same thing as pushing the reset button on a real GameCube/Wii.
+
+* void saveState(int slot)
+  ** Saves a state in slot slot where slot can be any number from 0 to 99
+
+* void loadState(int slot)
+  ** Loads the state at slot
+
+* void setEmulatorSpeed(double percentage)
+  ** Sets Dolphins max speed to the percentage specified.
+
+## Gamecube controller functions
+
+* u8, u8 getAnalog()
+  ** Returns the x and y positions of Lua's virtual controller.
+
+* void setAnalog(u8 xPos, u8 yPos)
+  ** Sets the analog stick to the cartesian ordered pair (xPos, yPos)
+
+* void setAnalogPolar(int magnitude, int direction)
+  ** Sets the analog stick to the polar ordered pair (magnitude, direction)
+  Note: Magnitude must be in the range [0, 128)
+
+Dolphin represents the buttons on a GC controller as a 16-bit bitmask where:
+* D-Pad left = 1
+* D-Pad right = 2
+* D-Pad down = 4
+* D-Pad up = 8
+* Z button = 16
+* R trigger = 32
+* L trigger = 64
+* A button = 256
+* B button = 512
+* X button = 1024
+* Y button = 2048
+* Start button = 4096
+
+* u16 getButtons()
+  ** Returns the bitmask described above.
+
+* void setButtons(string buttons)
+  ** Takes a string and then checks each letter and sets the appropriate button
+    *** A = A button
+    *** B = B button
+    *** X = X button
+    *** Y = Y button
+    *** S = Start button
+  ** U = Unset all buttons
+
+
+
+
+
