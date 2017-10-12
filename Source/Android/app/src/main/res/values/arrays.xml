@@ -15,9 +15,9 @@
         <item>1</item>
     </integer-array>
     <string-array name="emuCoresEntriesARM64" translatable="false">
-        <item>Interpreter</item>
-        <item>Cached Interpreter</item>
-        <item>JIT ARM64 Recompiler</item>
+        <item>解释器</item>
+        <item>缓存解释器</item>
+        <item>JIT ARM64 编译器</item>
     </string-array>
     <integer-array name="emuCoresValuesARM64" translatable="false">
         <item>0</item>
@@ -37,8 +37,8 @@
     <string-array name="videoBackendEntries" translatable="false">
         <item>OpenGL</item>
         <item>Vulkan</item>
-        <item>Software</item>
-        <item>Null</item>
+        <item>软件</item>
+        <item>空</item>
     </string-array>
     <integer-array name="videoBackendValues" translatable="false">
         <item>0</item>
@@ -49,12 +49,12 @@
 
     <!-- Wii Remote extensions -->
     <string-array name="wiimoteExtensionsEntries" translatable="false">
-        <item>None</item>
+        <item>无</item>
         <item>Nunchuk</item>
-        <item>Classic</item>
-        <item>Guitar</item>
-        <item>Drums</item>
-        <item>Turntable</item>
+        <item>经典</item>
+        <item>吉他</item>
+        <item>鼓</item>
+        <item>转盘</item>
     </string-array>
     <integer-array name="wiimoteExtensionsValues" translatable="false">
         <item>0</item>
@@ -67,9 +67,9 @@
 
     <!-- Texture Cache Accuracy Preference -->
     <string-array name="textureCacheAccuracyEntries" translatable="false">
-        <item>Low</item>
-        <item>Medium</item>
-        <item>High</item>
+        <item>低</item>
+        <item>中</item>
+        <item>高</item>
     </string-array>
     <integer-array name="textureCacheAccuracyValues" translatable="false">
         <item>128</item>
@@ -79,9 +79,9 @@
 
     <!-- External Frame Buffer Preference -->
     <string-array name="externalFrameBufferEntries" translatable="false">
-        <item>Disabled</item>
-        <item>Virtual</item>
-        <item>Real</item>
+        <item>禁用</item>
+        <item>虚拟</item>
+        <item>真实</item>
     </string-array>
     <integer-array name="externalFrameBufferValues" translatable="false">
         <item>0</item>
@@ -91,9 +91,9 @@
 
     <!-- Ubershader Mode Preference -->
     <string-array name="uberShaderModeEntries" translatable="false">
-        <item>Disabled</item>
-        <item>Hybrid</item>
-        <item>Exclusive</item>
+        <item>禁用</item>
+        <item>混合</item>
+        <item>独占</item>
     </string-array>
     <integer-array name="uberShaderModeValues" translatable="false">
         <item>0</item>
@@ -103,12 +103,12 @@
 
     <!-- Internal Resolution Preference -->
     <string-array name="internalResolutionEntries" translatable="false">
-        <item>1x Native (640x528)</item>
-        <item>2x Native (1280x1056) for 720p</item>
-        <item>3x Native (1920x1584) for 1080p</item>
-        <item>4x Native (2560x2112)</item>
-        <item>5x Native (3200x2640)</item>
-        <item>6x Native (3840x3168) for 4K</item>
+        <item>1x 本机 (640x528)</item>
+        <item>2x 本机 (1280x1056) 为 720p</item>
+        <item>3x 本机 (1920x1584) 为 1080p</item>
+        <item>4x 本机 (2560x2112)</item>
+        <item>5x 本机 (3200x2640)</item>
+        <item>6x 本机 (3840x3168) 为 4K</item>
     </string-array>
     <integer-array name="internalResolutionValues" translatable="false">
         <item>2</item>
@@ -149,10 +149,10 @@
 
     <!-- Stereoscopy Preference -->
     <string-array name="stereoscopyEntries" translatable="false">
-        <item>Off</item>
-        <item>Side-by-Side</item>
-        <item>Top-and-Bottom</item>
-        <item>Anaglyph</item>
+        <item>关</item>
+        <item>并排</item>
+        <item>上下并列</item>
+        <item>立体</item>
     </string-array>
     <integer-array name="stereoscopyValues" translatable="false">
         <item>0</item>
@@ -163,10 +163,10 @@
 
     <!-- Aspect Ratio Preference -->
     <string-array name="aspectRatioEntries" translatable="false">
-        <item>Auto</item>
-        <item>Force 16:9</item>
-        <item>Force 4:3</item>
-        <item>Stretch To Window</item>
+        <item>自动</item>
+        <item>强制 16:9</item>
+        <item>强制 4:3</item>
+        <item>拉伸窗口</item>
     </string-array>
     <integer-array name="aspectRatioValues" translatable="false">
         <item>0</item>
@@ -176,25 +176,25 @@
     </integer-array>
 
     <string-array name="countryNames">
-        <item>Europe</item>
-        <item>Japan</item>
-        <item>USA</item>
-        <item>Australia</item>
-        <item>France</item>
-        <item>Germany</item>
-        <item>Italy</item>
-        <item>Korea</item>
-        <item>Netherlands</item>
-        <item>Russia</item>
-        <item>Spain</item>
-        <item>Taiwan</item>
-        <item>Unknown</item>
+        <item>欧洲</item>
+        <item>日本</item>
+        <item>美国</item>
+        <item>澳大利亚</item>
+        <item>法国</item>
+        <item>德国</item>
+        <item>意大利</item>
+        <item>韩国</item>
+        <item>荷兰</item>
+        <item>俄罗斯</item>
+        <item>西班牙</item>
+        <item>台湾</item>
+        <item>未知</item>
     </string-array>
 
     <string-array name="gcpadTypeEntries">
-        <item>Disabled</item>
-        <item>Emulated</item>
-        <item>GameCube Adapter</item>
+        <item>禁用</item>
+        <item>模拟</item>
+        <item>GameCube 适配器</item>
     </string-array>
     <integer-array name="gcpadTypeValues">
         <item>0</item>
@@ -203,9 +203,9 @@
     </integer-array>
 
     <string-array name="wiimoteTypeEntries">
-        <item>Disabled</item>
-        <item>Emulated</item>
-        <item>Real Wii Remote (DolphinBar required)</item>
+        <item>禁用</item>
+        <item>模拟</item>
+        <item>真实 Wii 遥控器 (DolphinBar 要求)</item>
     </string-array>
     <integer-array name="wiimoteTypeValues">
         <item>0</item>
@@ -214,11 +214,11 @@
     </integer-array>
 
     <string-array name="controllersEntries">
-        <item>GameCube Controller</item>
-        <item>Wii Remote</item>
-        <item>Horizontal Wii Remote</item>
-        <item>Wii Remote + Nunchuk</item>
-        <item>Classic Controller</item>
+        <item>GameCube 控制器</item>
+        <item>Wii 遥控器</item>
+        <item>横向 Wii 遥控器</item>
+        <item>Wii 遥控器 + Nunchuk</item>
+        <item>经典控制器</item>
     </string-array>
     <string-array name="controllersValues">
         <item>None</item>
@@ -237,9 +237,9 @@
         <item>Start</item>
         <item>L</item>
         <item>R</item>
-        <item>D-Pad</item>
-        <item>Main Stick</item>
-        <item>C Stick</item>
+        <item>方向键</item>
+        <item>主摇杆</item>
+        <item>C 摇杆</item>
     </string-array>
 
     <string-array name="wiimoteButtons">
@@ -250,7 +250,7 @@
         <item>+</item>
         <item>-</item>
         <item>Home</item>
-        <item>D-Pad</item>
+        <item>方向键</item>
     </string-array>
 
     <string-array name="nunchukButtons">
@@ -261,10 +261,10 @@
         <item>+</item>
         <item>-</item>
         <item>Home</item>
-        <item>D-Pad</item>
+        <item>方向键</item>
         <item>C</item>
         <item>Z</item>
-        <item>Nunchuk Stick</item>
+        <item>Nunchuk 摇杆</item>
     </string-array>
 
     <string-array name="classicButtons">
@@ -279,9 +279,9 @@
         <item>R</item>
         <item>ZL</item>
         <item>ZR</item>
-        <item>D-Pad</item>
-        <item>Left Stick</item>
-        <item>Right Stick</item>
+        <item>方向键</item>
+        <item>左摇杆</item>
+        <item>右摇杆</item>
     </string-array>
 
 </resources>
