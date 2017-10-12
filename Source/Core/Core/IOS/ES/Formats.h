@@ -93,6 +93,8 @@ struct Content
   std::array<u8, 20> sha1;
 };
 static_assert(sizeof(Content) == 36, "Content has the wrong size");
+bool operator==(const Content&, const Content&);
+bool operator!=(const Content&, const Content&);
 
 struct TimeLimit
 {
