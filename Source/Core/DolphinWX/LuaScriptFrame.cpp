@@ -40,8 +40,12 @@ namespace Lua
   int getAnalog(lua_State* L);
   int setAnalog(lua_State* L);
   int setAnalogPolar(lua_State* L);
+  int getCStick(lua_State* L);
+  int setCStick(lua_State* L);
+  int setCStickPolar(lua_State* L);
   int getButtons(lua_State* L);
   int setButtons(lua_State* L);
+  int setDPad(lua_State* L);
   int getTriggers(lua_State* L);
   int setTriggers(lua_State* L);
 
@@ -78,9 +82,13 @@ namespace Lua
       registered_functions->insert(std::pair<const char*, LuaFunction>("setEmulatorSpeed", setEmulatorSpeed));
       registered_functions->insert(std::pair<const char*, LuaFunction>("getAnalog", getAnalog));
       registered_functions->insert(std::pair<const char*, LuaFunction>("setAnalog", setAnalog));
+      registered_functions->insert(std::pair<const char*, LuaFunction>("getCStick", getCStick));
+      registered_functions->insert(std::pair<const char*, LuaFunction>("setCStick", setCStick));
+      registered_functions->insert(std::pair<const char*, LuaFunction>("setCStickPolar", setCStickPolar));
       registered_functions->insert(std::pair<const char*, LuaFunction>("setAnalogPolar", setAnalogPolar));
       registered_functions->insert(std::pair<const char*, LuaFunction>("getButtons", getButtons));
       registered_functions->insert(std::pair<const char*, LuaFunction>("setButtons", setButtons));
+      registered_functions->insert(std::pair<const char*, LuaFunction>("setDPad", setDPad));
       registered_functions->insert(std::pair<const char*, LuaFunction>("getTriggers", getTriggers));
       registered_functions->insert(std::pair<const char*, LuaFunction>("setTriggers", setTriggers));
     }
@@ -253,6 +261,12 @@ namespace Lua
     if (pad_status->triggerRight != 0)
       status->triggerRight = pad_status->triggerRight;
 
+    if (pad_status->substickX != GCPadStatus::C_STICK_CENTER_X)
+      status->substickX = pad_status->substickX;
+
+    if (pad_status->substickY != GCPadStatus::C_STICK_CENTER_Y)
+      status->substickY = pad_status->substickY;
+
     status->button |= pad_status->button;
   }
 
@@ -369,7 +383,7 @@ namespace Lua
     int m = lua_tointeger(L, 1);
     if (m < 0 || m >= 128)
     {
-      luaL_error(L, "m is outside of acceptable range (0, 128)");
+      luaL_error(L, "m is outside of acceptable range [0, 128)");
     }
 
     //Gotta convert theta to radians
@@ -379,6 +393,41 @@ namespace Lua
     //"origin" is the stick in neutral position.
     pad_status->stickX = (u8)(floor(m * cos(theta)) + 128);
     pad_status->stickY = (u8)(floor(m * sin(theta)) + 128);
+
+    return 0;
+  }
+
+  int getCStick(lua_State* L)
+  {
+    lua_pushinteger(L, pad_status->substickX);
+    lua_pushinteger(L, pad_status->substickY);
+
+    return 2;
+  }
+
+  int setCStick(lua_State* L)
+  {
+    pad_status->substickX = lua_tointeger(L, 1);
+    pad_status->substickY = lua_tointeger(L, 2);
+
+    return 0;
+  }
+
+  int setCStickPolar(lua_State* L)
+  {
+    int m = lua_tointeger(L, 1);
+    if (m < 0 || m >= 128)
+    {
+      luaL_error(L, "m is outside of acceptable range [0, 128)");
+    }
+
+    int theta = lua_tointeger(L, 2);
+
+    //Convert theta to radians
+    theta = theta * M_PI / 180.0;
+
+    pad_status->substickX = (u8)(floor(m * cos(theta)) + 128);
+    pad_status->substickY = (u8)(floor(m * sin(theta)) + 128);
 
     return 0;
   }
@@ -418,6 +467,35 @@ namespace Lua
         break;
       case 'S':
         pad_status->button |= PadButton::PAD_BUTTON_START;
+        break;
+      case 'Z':
+        pad_status->button |= PadButton::PAD_TRIGGER_Z;
+        break;
+      }
+    }
+
+    return 0;
+  }
+
+  int setDPad(lua_State* L)
+  {
+    const char* str = lua_tostring(L, 1);
+
+    for (int i = 0; i < strlen(str); i++)
+    {
+      switch (str[i])
+      {
+      case 'U':
+        pad_status->button |= PadButton::PAD_BUTTON_UP;
+        break;
+      case 'D':
+        pad_status->button |= PadButton::PAD_BUTTON_DOWN;
+        break;
+      case 'L':
+        pad_status->button |= PadButton::PAD_BUTTON_LEFT;
+        break;
+      case 'R':
+        pad_status->button |= PadButton::PAD_BUTTON_RIGHT;
         break;
       }
     }
