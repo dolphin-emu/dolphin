@@ -100,7 +100,11 @@ public final class GameProvider extends ContentProvider
 			if (table.equals(REFRESH_LIBRARY))
 			{
 				Log.info("[GameProvider] URI specified table REFRESH_LIBRARY. No insertion necessary; refreshing library contents...");
-				mDbHelper.scanLibrary(database);
+				mDbHelper
+						.scanLibrary(database)
+						.onBackpressureBuffer()
+						.subscribe();
+
 				return uri;
 			}
 
@@ -112,7 +116,10 @@ public final class GameProvider extends ContentProvider
 				// If we just added a folder, add its contents to the game list.
 				if (table.equals(GameDatabase.TABLE_NAME_FOLDERS))
 				{
-					mDbHelper.scanLibrary(database);
+					mDbHelper
+							.scanLibrary(database)
+							.onBackpressureBuffer()
+							.subscribe();
 				}
 
 				// Notify the UI that its contents should be refreshed.
