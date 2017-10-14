@@ -12,6 +12,7 @@
 #include <wx/button.h>
 #include <wx/textctrl.h>
 #include <wx/sizer.h>
+#include <fstream>
 #include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Main.h"
 #include "Frame.h"
@@ -283,14 +284,14 @@ namespace Lua
     status->stickY = GCPadStatus::MAIN_STICK_CENTER_Y;
     status->triggerLeft = 0;
     status->triggerRight = 0;
-    status->analogA = GCPadStatus::C_STICK_CENTER_X;
-    status->analogB = GCPadStatus::C_STICK_CENTER_X;
+    status->substickX = GCPadStatus::C_STICK_CENTER_X;
+    status->substickY = GCPadStatus::C_STICK_CENTER_Y;
   }
 
   //Functions to register with Lua
 #pragma region Lua_Functs
 
-// Prints a string to the text control of this frame
+  // Prints a string to the text control of this frame
   int printToTextCtrl(lua_State* L)
   {
     currentWindow->Log(lua_tostring(L, 1));

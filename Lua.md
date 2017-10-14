@@ -49,6 +49,16 @@ which is a good way to start learning how to write Lua scripts.
   * Sets the analog stick to the polar ordered pair (magnitude, direction)
   Note: Magnitude must be in the range [0, 128)
 
+* u8, u8 getCStick()
+  * Returns the x and y positions of Lua's virtual C-Stick
+
+* void setCStick(u8 xPos, u8 yPos)
+  * Sets the C-stick to the cartesian ordered pair (xPos, yPos)
+
+* void setCStickPolar(int magnitude, int direction)
+  * Sets the C-stick to the polar ordered pair (magnitude, direction)
+  Note: Magnitude must be in the range [0, 128)
+
 Dolphin represents the buttons on a GC controller as a 16-bit bitmask where:
 * D-Pad left = 1
 * D-Pad right = 2
