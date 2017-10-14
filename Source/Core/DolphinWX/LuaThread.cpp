@@ -17,7 +17,7 @@ namespace Lua
 
     //Initialize virtual controller
     pad_status = (GCPadStatus*)malloc(sizeof(GCPadStatus));
-    clearPad(pad_status);
+    ClearPad(pad_status);
   }
 
   LuaThread::~LuaThread()

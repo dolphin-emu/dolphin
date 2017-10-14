@@ -277,7 +277,7 @@ namespace Lua
   }
 
   // Sets status to the default values
-  void clearPad(GCPadStatus* status)
+  void ClearPad(GCPadStatus* status)
   {
     status->button = 0;
     status->stickX = GCPadStatus::MAIN_STICK_CENTER_X;

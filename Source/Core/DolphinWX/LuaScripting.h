@@ -47,7 +47,7 @@ namespace Lua
   extern GCPadStatus* pad_status;
   extern std::mutex lua_mutex;
 
-  void clearPad(GCPadStatus*);
+  void ClearPad(GCPadStatus*);
 
   class LuaScriptFrame;
 
@@ -66,6 +66,15 @@ namespace Lua
 
   class LuaScriptFrame final : public wxFrame
   {
+  public:
+    void Log(const char* message);
+    void GetValues(GCPadStatus* status);
+    void NullifyLuaThread();
+
+    LuaScriptFrame(wxWindow* parent);
+
+    ~LuaScriptFrame();
+
   private:
     void CreateGUI();
     void OnClearClicked(wxCommandEvent& event);
@@ -88,15 +97,5 @@ namespace Lua
     wxStaticText* output_console_literal;
     wxTextCtrl* output_console;
     LuaThread* lua_thread;
-
-  public:
-    void Log(const char* message);
-    void GetValues(GCPadStatus* status);
-    void NullifyLuaThread();
-
-    LuaScriptFrame(wxWindow* parent);
-
-    ~LuaScriptFrame();
   };
-
 }
