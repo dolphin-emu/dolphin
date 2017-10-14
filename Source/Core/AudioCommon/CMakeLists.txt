@@ -67,9 +67,6 @@ if(WIN32)
   else()
     message(FATAL_ERROR "OpenAL NOT found in Externals")
   endif()
-
-elseif(APPLE)
-  target_sources(audiocommon PRIVATE CoreAudioSoundStream.cpp)
 endif()
 
 target_link_libraries(audiocommon PRIVATE cubeb SoundTouch)

@@ -6,7 +6,10 @@
 #include <QDirIterator>
 #include <QFile>
 
+#include "DiscIO/DirectoryBlob.h"
+#include "DolphinQt2/GameList/GameFileCache.h"
 #include "DolphinQt2/GameList/GameTracker.h"
+#include "DolphinQt2/QtUtils/QueueOnObject.h"
 #include "DolphinQt2/Settings.h"
 
 static const QStringList game_filters{
@@ -16,26 +19,13 @@ static const QStringList game_filters{
 
 GameTracker::GameTracker(QObject* parent) : QFileSystemWatcher(parent)
 {
-  m_loader = new GameLoader;
-  m_loader->moveToThread(&m_loader_thread);
-
   qRegisterMetaType<QSharedPointer<GameFile>>();
-  connect(&m_loader_thread, &QThread::finished, m_loader, &QObject::deleteLater);
   connect(this, &QFileSystemWatcher::directoryChanged, this, &GameTracker::UpdateDirectory);
   connect(this, &QFileSystemWatcher::fileChanged, this, &GameTracker::UpdateFile);
-  connect(this, &GameTracker::PathChanged, m_loader, &GameLoader::LoadGame);
-  connect(m_loader, &GameLoader::GameLoaded, this, &GameTracker::GameLoaded);
 
-  m_loader_thread.start();
+  cache.Load();
 
-  for (QString dir : Settings::Instance().GetPaths())
-    AddDirectory(dir);
-}
-
-GameTracker::~GameTracker()
-{
-  m_loader_thread.quit();
-  m_loader_thread.wait();
+  m_load_thread.Reset([this](const QString& path) { LoadGame(path); });
 }
 
 void GameTracker::AddDirectory(const QString& dir)
@@ -83,7 +73,7 @@ void GameTracker::UpdateDirectory(const QString& dir)
     {
       addPath(path);
       m_tracked_files[path] = QSet<QString>{dir};
-      emit PathChanged(path);
+      m_load_thread.EmplaceItem(path);
     }
   }
 
@@ -129,11 +119,36 @@ void GameTracker::UpdateFile(const QString& file)
     GameRemoved(file);
     addPath(file);
 
-    emit PathChanged(file);
+    m_load_thread.EmplaceItem(file);
   }
   else if (removePath(file))
   {
     m_tracked_files.remove(file);
     emit GameRemoved(file);
+  }
+}
+
+void GameTracker::LoadGame(const QString& path)
+{
+  if (!DiscIO::ShouldHideFromGameList(path.toStdString()))
+  {
+    if (cache.IsCached(path))
+    {
+      const QDateTime last_modified = QFileInfo(path).lastModified();
+      auto cached_file = cache.GetFile(path);
+      if (cached_file.GetLastModified() >= last_modified)
+      {
+        emit GameLoaded(QSharedPointer<GameFile>::create(cached_file));
+        return;
+      }
+    }
+
+    auto game = QSharedPointer<GameFile>::create(path);
+    if (game->IsValid())
+    {
+      emit GameLoaded(game);
+      cache.Update(*game);
+      cache.Save();
+    }
   }
 }

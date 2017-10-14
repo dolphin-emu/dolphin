@@ -9,7 +9,6 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/Hash.h"
-#include "Common/NonCopyable.h"
 
 // m_components
 enum
@@ -102,11 +101,14 @@ struct hash<PortableVertexDeclaration>
 
 // Note that this class can't just invent arbitrary vertex formats out of its input -
 // all the data loading code must always be made compatible.
-class NativeVertexFormat : NonCopyable
+class NativeVertexFormat
 {
 public:
   virtual ~NativeVertexFormat() {}
-  virtual void SetupVertexPointers() = 0;
+  NativeVertexFormat(const NativeVertexFormat&) = delete;
+  NativeVertexFormat& operator=(const NativeVertexFormat&) = delete;
+  NativeVertexFormat(NativeVertexFormat&&) = default;
+  NativeVertexFormat& operator=(NativeVertexFormat&&) = default;
 
   u32 GetVertexStride() const { return vtx_decl.stride; }
   const PortableVertexDeclaration& GetVertexDeclaration() const { return vtx_decl; }

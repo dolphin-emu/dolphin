@@ -15,7 +15,8 @@ enum class AbstractTextureFormat : u32
   RGBA8,
   DXT1,
   DXT3,
-  DXT5
+  DXT5,
+  BPTC
 };
 
 struct TextureConfig
@@ -30,14 +31,22 @@ struct TextureConfig
   u32 layers = 1;
   AbstractTextureFormat format = AbstractTextureFormat::RGBA8;
   bool rendertarget = false;
-
-  struct Hasher : std::hash<u64>
-  {
-    size_t operator()(const TextureConfig& c) const
-    {
-      u64 id = (u64)c.rendertarget << 63 | (u64)c.format << 50 | (u64)c.layers << 48 |
-               (u64)c.levels << 32 | (u64)c.height << 16 | (u64)c.width;
-      return std::hash<u64>::operator()(id);
-    }
-  };
 };
+
+namespace std
+{
+template <>
+struct hash<TextureConfig>
+{
+  using argument_type = TextureConfig;
+  using result_type = size_t;
+
+  result_type operator()(const argument_type& c) const noexcept
+  {
+    const u64 id = static_cast<u64>(c.rendertarget) << 63 | static_cast<u64>(c.format) << 50 |
+                   static_cast<u64>(c.layers) << 48 | static_cast<u64>(c.levels) << 32 |
+                   static_cast<u64>(c.height) << 16 | static_cast<u64>(c.width);
+    return std::hash<u64>{}(id);
+  }
+};
+}  // namespace std

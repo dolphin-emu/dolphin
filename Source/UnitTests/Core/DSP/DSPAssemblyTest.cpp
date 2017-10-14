@@ -23,7 +23,7 @@ static bool RoundTrippableDissassemble(const std::vector<u16>& code, std::string
   settings.show_pc = false;
   DSP::DSPDisassembler disasm(settings);
 
-  return disasm.Disassemble(0x0000, code, 0x0000, text);
+  return disasm.Disassemble(code, text);
 }
 
 // This test goes from text ASM to binary to text ASM and once again back to binary.

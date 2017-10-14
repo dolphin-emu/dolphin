@@ -7,6 +7,7 @@
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 #include <string>
+#include <vector>
 
 #include "Common/GL/GLInterfaceBase.h"
 
@@ -17,6 +18,7 @@ private:
   bool m_has_handle;
   EGLNativeWindowType m_host_window;
   bool m_supports_surfaceless = false;
+  std::vector<int> m_attribs;
 
   bool CreateWindowSurface();
   void DestroyWindowSurface();
@@ -38,7 +40,7 @@ public:
   void SwapInterval(int interval) override;
   void SetMode(GLInterfaceMode mode) override { s_opengl_mode = mode; }
   void* GetFuncAddress(const std::string& name) override;
-  bool Create(void* window_handle, bool core) override;
+  bool Create(void* window_handle, bool stereo, bool core) override;
   bool Create(cInterfaceBase* main_context) override;
   bool MakeCurrent() override;
   bool ClearCurrent() override;

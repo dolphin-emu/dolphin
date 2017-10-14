@@ -17,6 +17,7 @@ import android.support.v17.leanback.widget.OnItemViewClickedListener;
 import android.support.v17.leanback.widget.Presenter;
 import android.support.v17.leanback.widget.Row;
 import android.support.v17.leanback.widget.RowPresenter;
+import android.support.v4.content.ContextCompat;
 import android.widget.Toast;
 
 import org.dolphinemu.dolphinemu.R;
@@ -26,6 +27,7 @@ import org.dolphinemu.dolphinemu.adapters.GameRowPresenter;
 import org.dolphinemu.dolphinemu.adapters.SettingsRowPresenter;
 import org.dolphinemu.dolphinemu.model.Game;
 import org.dolphinemu.dolphinemu.model.TvSettingsItem;
+import org.dolphinemu.dolphinemu.ui.platform.Platform;
 import org.dolphinemu.dolphinemu.ui.settings.SettingsActivity;
 import org.dolphinemu.dolphinemu.utils.PermissionsHandler;
 import org.dolphinemu.dolphinemu.utils.StartupHandler;
@@ -45,6 +47,16 @@ public final class TvMainActivity extends Activity implements MainView
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_tv_main);
 
+		setupUI();
+
+		mPresenter.onCreate();
+
+		// Stuff in this block only happens when this activity is newly created (i.e. not a rotation)
+		if (savedInstanceState == null)
+			StartupHandler.HandleInit(this);
+	}
+
+	void setupUI() {
 		final FragmentManager fragmentManager = getFragmentManager();
 		mBrowseFragment = new BrowseFragment();
 		fragmentManager
@@ -54,13 +66,8 @@ public final class TvMainActivity extends Activity implements MainView
 
 		// Set display parameters for the BrowseFragment
 		mBrowseFragment.setHeadersState(BrowseFragment.HEADERS_ENABLED);
-		mBrowseFragment.setTitle(getString(R.string.app_name));
-		mBrowseFragment.setBadgeDrawable(getResources().getDrawable(
-				R.drawable.ic_launcher, null));
-		mBrowseFragment.setBrandColor(getResources().getColor(R.color.dolphin_blue_dark));
+		mBrowseFragment.setBrandColor(ContextCompat.getColor(this, R.color.dolphin_blue_dark));
 		buildRowsAdapter();
-
-		mPresenter.onCreate();
 
 		mBrowseFragment.setOnItemViewClickedListener(
 				new OnItemViewClickedListener()
@@ -88,12 +95,7 @@ public final class TvMainActivity extends Activity implements MainView
 						}
 					}
 				});
-
-		// Stuff in this block only happens when this activity is newly created (i.e. not a rotation)
-		if (savedInstanceState == null)
-			StartupHandler.HandleInit(this);
 	}
-
 	/**
 	 * MainView
 	 */
@@ -101,7 +103,7 @@ public final class TvMainActivity extends Activity implements MainView
 	@Override
 	public void setVersionString(String version)
 	{
-		// No-op
+		mBrowseFragment.setTitle(version);
 	}
 
 	@Override
@@ -129,9 +131,9 @@ public final class TvMainActivity extends Activity implements MainView
 	}
 
 	@Override
-	public void showGames(int platformIndex, Cursor games)
+	public void showGames(Platform platform, Cursor games)
 	{
-		ListRow row = buildGamesRow(platformIndex, games);
+		ListRow row = buildGamesRow(platform, games);
 
 		// Add row to the adapter only if it is not empty.
 		if (row != null)
@@ -186,13 +188,12 @@ public final class TvMainActivity extends Activity implements MainView
 	}
 
 	private void loadGames() {
-		// For each platform
-		for (int platformIndex = 0; platformIndex <= Game.PLATFORM_ALL; ++platformIndex) {
-			mPresenter.loadGames(platformIndex);
+		for (Platform platform : Platform.values()) {
+			mPresenter.loadGames(platform);
 		}
 	}
 
-	private ListRow buildGamesRow(int platform, Cursor games)
+	private ListRow buildGamesRow(Platform platform, Cursor games)
 	{
 		// Create an adapter for this row.
 		CursorObjectAdapter row = new CursorObjectAdapter(new GameRowPresenter());
@@ -219,32 +220,10 @@ public final class TvMainActivity extends Activity implements MainView
 			}
 		});
 
-		String headerName;
-		switch (platform)
-		{
-			case Game.PLATFORM_GC:
-				headerName = "GameCube Games";
-				break;
-
-			case Game.PLATFORM_WII:
-				headerName = "Wii Games";
-				break;
-
-			case Game.PLATFORM_WII_WARE:
-				headerName = "WiiWare";
-				break;
-
-			case Game.PLATFORM_ALL:
-				headerName = "All Games";
-				break;
-
-			default:
-				headerName = "Error";
-				break;
-		}
+		String headerName = platform.getHeaderName();
 
 		// Create a header for this row.
-		HeaderItem header = new HeaderItem(platform, headerName);
+		HeaderItem header = new HeaderItem(platform.toInt(), platform.getHeaderName());
 
 		// Create the row, passing it the filled adapter and the header, and give it to the master adapter.
 		return new ListRow(header, row);

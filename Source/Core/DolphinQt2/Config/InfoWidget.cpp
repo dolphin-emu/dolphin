@@ -60,7 +60,7 @@ QGroupBox* InfoWidget::CreateISODetails()
 
 QGroupBox* InfoWidget::CreateBannerDetails()
 {
-  QGroupBox* group = new QGroupBox(tr("%1 Banner Details").arg(m_game.GetPlatform()));
+  QGroupBox* group = new QGroupBox(tr("Banner Details"));
   QFormLayout* layout = new QFormLayout;
 
   m_long_name = CreateValueDisplay();
@@ -69,7 +69,6 @@ QGroupBox* InfoWidget::CreateBannerDetails()
   m_long_maker = CreateValueDisplay();
   m_description = new QTextEdit();
   m_description->setReadOnly(true);
-  QWidget* banner = CreateBannerGraphic();
   CreateLanguageSelector();
 
   layout->addRow(tr("Show Language:"), m_language_selector);
@@ -81,11 +80,15 @@ QGroupBox* InfoWidget::CreateBannerDetails()
     layout->addRow(tr("Long Maker:"), m_long_maker);
     layout->addRow(tr("Description:"), m_description);
   }
-  else if (m_game.GetPlatformID() == DiscIO::Platform::WII_DISC)
+  else if (DiscIO::IsWii(m_game.GetPlatformID()))
   {
     layout->addRow(tr("Name:"), m_long_name);
   }
-  layout->addRow(tr("Banner:"), banner);
+
+  if (!m_game.GetBanner().isNull())
+  {
+    layout->addRow(tr("Banner:"), CreateBannerGraphic());
+  }
 
   group->setLayout(layout);
   return group;
@@ -133,7 +136,9 @@ void InfoWidget::CreateLanguageSelector()
   }
   if (m_language_selector->count() == 1)
     m_language_selector->setDisabled(true);
-  connect(m_language_selector, SIGNAL(currentIndexChanged(int)), this, SLOT(ChangeLanguage()));
+  connect(m_language_selector,
+          static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this,
+          &InfoWidget::ChangeLanguage);
   ChangeLanguage();
 }
 

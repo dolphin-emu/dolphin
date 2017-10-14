@@ -181,6 +181,11 @@ const u8* EcWii::GetNGSig() const
   return BootMiiKeysBin.ng_sig;
 }
 
+const u8* EcWii::GetBackupKey() const
+{
+  return BootMiiKeysBin.backup_key;
+}
+
 void EcWii::InitDefaults()
 {
   memset(&BootMiiKeysBin, 0, sizeof(BootMiiKeysBin));

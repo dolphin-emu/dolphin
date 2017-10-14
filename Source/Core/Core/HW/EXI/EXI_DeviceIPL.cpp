@@ -204,30 +204,26 @@ void CEXIIPL::LoadFontFile(const std::string& filename, u32 offset)
   if (ipl_rom_path.empty())
     ipl_rom_path = FindIPLDump(File::GetSysDirectory() + GC_SYS_DIR);
 
-  if (File::Exists(ipl_rom_path))
-  {
-    // The user has an IPL dump, load the font from it
-    File::IOFile stream(ipl_rom_path, "rb");
-    if (!stream)
-      return;
-
-    // Official Windows-1252 and Shift JIS fonts present on the IPL dumps are 0x2575 and 0x4a24d
-    // bytes long respectively, so, determine the size of the font being loaded based on the offset
-    u64 fontsize = (offset == 0x1aff00) ? 0x4a24d : 0x2575;
-
-    INFO_LOG(BOOT, "Found IPL dump, loading %s font from %s",
-             ((offset == 0x1aff00) ? "Shift JIS" : "Windows-1252"), (ipl_rom_path).c_str());
-
-    stream.Seek(offset, 0);
-    stream.ReadBytes(m_pIPL + offset, fontsize);
-
-    m_FontsLoaded = true;
-  }
-  else
+  // If the user has an IPL dump, load the font from it
+  File::IOFile stream(ipl_rom_path, "rb");
+  if (!stream)
   {
     // No IPL dump available, load bundled font instead
     LoadFileToIPL(filename, offset);
+    return;
   }
+
+  // Official Windows-1252 and Shift JIS fonts present on the IPL dumps are 0x2575 and 0x4a24d
+  // bytes long respectively, so, determine the size of the font being loaded based on the offset
+  u64 fontsize = (offset == 0x1aff00) ? 0x4a24d : 0x2575;
+
+  INFO_LOG(BOOT, "Found IPL dump, loading %s font from %s",
+           ((offset == 0x1aff00) ? "Shift JIS" : "Windows-1252"), (ipl_rom_path).c_str());
+
+  stream.Seek(offset, 0);
+  stream.ReadBytes(m_pIPL + offset, fontsize);
+
+  m_FontsLoaded = true;
 }
 
 void CEXIIPL::SetCS(int _iCS)

@@ -37,14 +37,10 @@ struct vertex_shader_uid_data
   u32 numTexGens : 4;
   u32 numColorChans : 2;
   u32 dualTexTrans_enabled : 1;
-  u32 pixel_lighting : 1;
-  u32 msaa : 1;
 
   u32 texMtxInfo_n_projection : 16;  // Stored separately to guarantee that the texMtxInfo struct is
                                      // 8 bits wide
-  u32 ssaa : 1;
-  u32 vertex_rounding : 1;
-  u32 pad : 14;
+  u32 pad : 18;
 
   struct
   {
@@ -69,4 +65,5 @@ struct vertex_shader_uid_data
 typedef ShaderUid<vertex_shader_uid_data> VertexShaderUid;
 
 VertexShaderUid GetVertexShaderUid();
-ShaderCode GenerateVertexShaderCode(APIType api_type, const vertex_shader_uid_data* uid_data);
+ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& host_config,
+                                    const vertex_shader_uid_data* uid_data);

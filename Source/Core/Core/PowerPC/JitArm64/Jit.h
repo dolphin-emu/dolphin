@@ -174,9 +174,6 @@ private:
   static void InitializeInstructionTables();
   void CompileInstruction(PPCAnalyst::CodeOp& op);
 
-  void EmitResetCycleCounters();
-  void EmitGetCycles(Arm64Gen::ARM64Reg reg);
-
   // Simple functions to switch between near and far code emitting
   void SwitchToFarCode()
   {
@@ -229,8 +226,8 @@ private:
 
   FixupBranch JumpIfCRFieldBit(int field, int bit, bool jump_if_set);
 
-  void ComputeRC(Arm64Gen::ARM64Reg reg, int crf = 0, bool needs_sext = true);
-  void ComputeRC(u64 imm, int crf = 0, bool needs_sext = true);
+  void ComputeRC0(Arm64Gen::ARM64Reg reg);
+  void ComputeRC0(u64 imm);
   void ComputeCarry(bool Carry);
   void ComputeCarry();
   void FlushCarry();
@@ -252,9 +249,6 @@ private:
 
   Arm64Gen::ARM64CodeBlock farcode;
   u8* nearcode;  // Backed up when we switch to far code.
-
-  // Do we support cycle counter profiling?
-  bool m_supports_cycle_counter;
 
   bool m_enable_blr_optimization;
   bool m_cleanup_after_stackfault = false;

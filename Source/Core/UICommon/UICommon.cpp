@@ -32,10 +32,10 @@ namespace UICommon
 {
 void Init()
 {
-  LogManager::Init();
   Config::Init();
-  Config::AddLoadLayer(ConfigLoaders::GenerateBaseConfigLoader());
+  Config::AddLayer(ConfigLoaders::GenerateBaseConfigLoader());
   SConfig::Init();
+  LogManager::Init();
   VideoBackendBase::PopulateList();
   WiimoteReal::LoadSettings();
   GCAdapter::Init();
@@ -49,9 +49,9 @@ void Shutdown()
   GCAdapter::Shutdown();
   WiimoteReal::Shutdown();
   VideoBackendBase::ClearList();
+  LogManager::Shutdown();
   SConfig::Shutdown();
   Config::Shutdown();
-  LogManager::Shutdown();
 }
 
 void CreateDirectories()

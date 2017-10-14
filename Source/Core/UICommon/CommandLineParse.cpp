@@ -9,8 +9,8 @@
 
 #include <OptionParser.h>
 
-#include "Common/Common.h"
 #include "Common/Config/Config.h"
+#include "Common/Version.h"
 #include "UICommon/CommandLineParse.h"
 
 namespace CommandLineParse
@@ -64,7 +64,7 @@ private:
 std::unique_ptr<optparse::OptionParser> CreateParser(ParserOptions options)
 {
   auto parser = std::make_unique<optparse::OptionParser>();
-  parser->usage("usage: %prog [options]... [FILE]...").version(scm_rev_str);
+  parser->usage("usage: %prog [options]... [FILE]...").version(Common::scm_rev_str);
 
   parser->add_option("-u", "--user").action("store").help("User folder path");
   parser->add_option("-m", "--movie").action("store").help("Play a movie file");
@@ -81,7 +81,9 @@ std::unique_ptr<optparse::OptionParser> CreateParser(ParserOptions options)
 
   if (options == ParserOptions::IncludeGUIOptions)
   {
-    parser->add_option("-d", "--debugger").action("store_true").help("Opens the debuger");
+    parser->add_option("-d", "--debugger")
+        .action("store_true")
+        .help("Show the debugger pane and additional View menu options");
     parser->add_option("-l", "--logger").action("store_true").help("Opens the logger");
     parser->add_option("-b", "--batch").action("store_true").help("Exit Dolphin with emulation");
     parser->add_option("-c", "--confirm").action("store_true").help("Set Confirm on Stop");

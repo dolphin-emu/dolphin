@@ -4,7 +4,8 @@
 
 #include "DolphinQt2/Config/Graphics/GraphicsSlider.h"
 
-#include "Core/Config/Config.h"
+#include "Common/Config/Config.h"
+#include "DolphinQt2/Settings.h"
 
 GraphicsSlider::GraphicsSlider(int minimum, int maximum, const Config::ConfigInfo<int>& setting,
                                int tick)
@@ -17,6 +18,12 @@ GraphicsSlider::GraphicsSlider(int minimum, int maximum, const Config::ConfigInf
   setValue(Config::Get(setting));
 
   connect(this, &GraphicsSlider::valueChanged, this, &GraphicsSlider::Update);
+
+  connect(&Settings::Instance(), &Settings::ConfigChanged, [this] {
+    QFont bf = font();
+    bf.setBold(Config::GetActiveLayerForConfig(m_setting) != Config::LayerType::Base);
+    setFont(bf);
+  });
 }
 
 void GraphicsSlider::Update(int value)

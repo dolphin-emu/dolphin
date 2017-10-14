@@ -23,6 +23,7 @@
 
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
+#include "Common/Config/Config.h"
 #include "Common/Event.h"
 #include "Common/FileUtil.h"
 #include "Common/Flag.h"
@@ -33,6 +34,7 @@
 #include "Common/Thread.h"
 #include "Common/Timer.h"
 
+#include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -52,6 +54,7 @@
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/PostProcessing.h"
+#include "VideoCommon/ShaderGenCommon.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/TextureDecoder.h"
@@ -79,8 +82,7 @@ static float AspectToWidescreen(float aspect)
 }
 
 Renderer::Renderer(int backbuffer_width, int backbuffer_height)
-    : m_backbuffer_width(backbuffer_width), m_backbuffer_height(backbuffer_height),
-      m_last_efb_scale(g_ActiveConfig.iEFBScale)
+    : m_backbuffer_width(backbuffer_width), m_backbuffer_height(backbuffer_height)
 {
   FramebufferManagerBase::SetLastXfbWidth(MAX_XFB_WIDTH);
   FramebufferManagerBase::SetLastXfbHeight(MAX_XFB_HEIGHT);
@@ -93,9 +95,9 @@ Renderer::Renderer(int backbuffer_width, int backbuffer_height)
   OSDTime = 0;
 
   if (SConfig::GetInstance().bWii)
-  {
-    m_aspect_wide = SConfig::GetInstance().m_wii_aspect_ratio != 0;
-  }
+    m_aspect_wide = Config::Get(Config::SYSCONF_WIDESCREEN);
+
+  m_last_host_config_bits = ShaderHostConfig::GetCurrent().bits;
 }
 
 Renderer::~Renderer()
@@ -131,26 +133,12 @@ void Renderer::RenderToXFB(u32 xfbAddr, const EFBRectangle& sourceRc, u32 fbStri
 
 int Renderer::EFBToScaledX(int x) const
 {
-  switch (g_ActiveConfig.iEFBScale)
-  {
-  case SCALE_AUTO:  // fractional
-    return FramebufferManagerBase::ScaleToVirtualXfbWidth(x, m_target_rectangle);
-
-  default:
-    return x * (int)m_efb_scale_numeratorX / (int)m_efb_scale_denominatorX;
-  };
+  return x * static_cast<int>(m_efb_scale);
 }
 
 int Renderer::EFBToScaledY(int y) const
 {
-  switch (g_ActiveConfig.iEFBScale)
-  {
-  case SCALE_AUTO:  // fractional
-    return FramebufferManagerBase::ScaleToVirtualXfbHeight(y, m_target_rectangle);
-
-  default:
-    return y * (int)m_efb_scale_numeratorY / (int)m_efb_scale_denominatorY;
-  };
+  return y * static_cast<int>(m_efb_scale);
 }
 
 float Renderer::EFBToScaledXf(float x) const
@@ -165,89 +153,31 @@ float Renderer::EFBToScaledYf(float y) const
 
 std::tuple<int, int> Renderer::CalculateTargetScale(int x, int y) const
 {
-  if (g_ActiveConfig.iEFBScale == SCALE_AUTO || g_ActiveConfig.iEFBScale == SCALE_AUTO_INTEGRAL)
-  {
-    return std::make_tuple(x, y);
-  }
-
-  const int scaled_x =
-      x * static_cast<int>(m_efb_scale_numeratorX) / static_cast<int>(m_efb_scale_denominatorX);
-
-  const int scaled_y =
-      y * static_cast<int>(m_efb_scale_numeratorY) / static_cast<int>(m_efb_scale_denominatorY);
-
-  return std::make_tuple(scaled_x, scaled_y);
+  return std::make_tuple(x * static_cast<int>(m_efb_scale), y * static_cast<int>(m_efb_scale));
 }
 
 // return true if target size changed
 bool Renderer::CalculateTargetSize()
 {
-  m_last_efb_scale = g_ActiveConfig.iEFBScale;
+  if (g_ActiveConfig.iEFBScale == EFB_SCALE_AUTO_INTEGRAL)
+  {
+    // Set a scale based on the window size
+    int width = FramebufferManagerBase::ScaleToVirtualXfbWidth(EFB_WIDTH, m_target_rectangle);
+    int height = FramebufferManagerBase::ScaleToVirtualXfbHeight(EFB_HEIGHT, m_target_rectangle);
+    m_efb_scale = std::max((width - 1) / EFB_WIDTH + 1, (height - 1) / EFB_HEIGHT + 1);
+  }
+  else
+  {
+    m_efb_scale = g_ActiveConfig.iEFBScale;
+  }
+
+  const u32 max_size = g_ActiveConfig.backend_info.MaxTextureSize;
+  if (max_size < EFB_WIDTH * m_efb_scale)
+    m_efb_scale = max_size / EFB_WIDTH;
 
   int new_efb_width = 0;
   int new_efb_height = 0;
-
-  // TODO: Ugly. Clean up
-  switch (m_last_efb_scale)
-  {
-  case SCALE_AUTO:
-  case SCALE_AUTO_INTEGRAL:
-    new_efb_width = FramebufferManagerBase::ScaleToVirtualXfbWidth(EFB_WIDTH, m_target_rectangle);
-    new_efb_height =
-        FramebufferManagerBase::ScaleToVirtualXfbHeight(EFB_HEIGHT, m_target_rectangle);
-
-    if (m_last_efb_scale == SCALE_AUTO_INTEGRAL)
-    {
-      m_efb_scale_numeratorX = m_efb_scale_numeratorY =
-          std::max((new_efb_width - 1) / EFB_WIDTH + 1, (new_efb_height - 1) / EFB_HEIGHT + 1);
-      m_efb_scale_denominatorX = m_efb_scale_denominatorY = 1;
-      new_efb_width = EFBToScaledX(EFB_WIDTH);
-      new_efb_height = EFBToScaledY(EFB_HEIGHT);
-    }
-    else
-    {
-      m_efb_scale_numeratorX = new_efb_width;
-      m_efb_scale_denominatorX = EFB_WIDTH;
-      m_efb_scale_numeratorY = new_efb_height;
-      m_efb_scale_denominatorY = EFB_HEIGHT;
-    }
-    break;
-
-  case SCALE_1X:
-    m_efb_scale_numeratorX = m_efb_scale_numeratorY = 1;
-    m_efb_scale_denominatorX = m_efb_scale_denominatorY = 1;
-    break;
-
-  case SCALE_1_5X:
-    m_efb_scale_numeratorX = m_efb_scale_numeratorY = 3;
-    m_efb_scale_denominatorX = m_efb_scale_denominatorY = 2;
-    break;
-
-  case SCALE_2X:
-    m_efb_scale_numeratorX = m_efb_scale_numeratorY = 2;
-    m_efb_scale_denominatorX = m_efb_scale_denominatorY = 1;
-    break;
-
-  case SCALE_2_5X:
-    m_efb_scale_numeratorX = m_efb_scale_numeratorY = 5;
-    m_efb_scale_denominatorX = m_efb_scale_denominatorY = 2;
-    break;
-
-  default:
-    m_efb_scale_numeratorX = m_efb_scale_numeratorY = m_last_efb_scale - 3;
-    m_efb_scale_denominatorX = m_efb_scale_denominatorY = 1;
-
-    const u32 max_size = g_ActiveConfig.backend_info.MaxTextureSize;
-    if (max_size < EFB_WIDTH * m_efb_scale_numeratorX / m_efb_scale_denominatorX)
-    {
-      m_efb_scale_numeratorX = m_efb_scale_numeratorY = (max_size / EFB_WIDTH);
-      m_efb_scale_denominatorX = m_efb_scale_denominatorY = 1;
-    }
-
-    break;
-  }
-  if (m_last_efb_scale > SCALE_AUTO_INTEGRAL)
-    std::tie(new_efb_width, new_efb_height) = CalculateTargetScale(EFB_WIDTH, EFB_HEIGHT);
+  std::tie(new_efb_width, new_efb_height) = CalculateTargetScale(EFB_WIDTH, EFB_HEIGHT);
 
   if (new_efb_width != m_target_width || new_efb_height != m_target_height)
   {
@@ -315,6 +245,17 @@ void Renderer::SaveScreenshot(const std::string& filename, bool wait_for_complet
   }
 }
 
+bool Renderer::CheckForHostConfigChanges()
+{
+  ShaderHostConfig new_host_config = ShaderHostConfig::GetCurrent();
+  if (new_host_config.bits == m_last_host_config_bits)
+    return false;
+
+  OSD::AddMessage("Video config changed, reloading shaders.", OSD::Duration::NORMAL);
+  m_last_host_config_bits = new_host_config.bits;
+  return true;
+}
+
 // Create On-Screen-Messages
 void Renderer::DrawDebugText()
 {
@@ -323,7 +264,7 @@ void Renderer::DrawDebugText()
   if (g_ActiveConfig.bShowFPS || SConfig::GetInstance().m_ShowFrameCount)
   {
     if (g_ActiveConfig.bShowFPS)
-      final_cyan += StringFromFormat("FPS: %u", m_fps_counter.GetFPS());
+      final_cyan += StringFromFormat("FPS: %.2f", m_fps_counter.GetFPS());
 
     if (g_ActiveConfig.bShowFPS && SConfig::GetInstance().m_ShowFrameCount)
       final_cyan += " - ";
@@ -369,26 +310,14 @@ void Renderer::DrawDebugText()
     std::string res_text;
     switch (g_ActiveConfig.iEFBScale)
     {
-    case SCALE_AUTO:
-      res_text = "Auto (fractional)";
-      break;
-    case SCALE_AUTO_INTEGRAL:
+    case EFB_SCALE_AUTO_INTEGRAL:
       res_text = "Auto (integral)";
       break;
-    case SCALE_1X:
+    case 1:
       res_text = "Native";
       break;
-    case SCALE_1_5X:
-      res_text = "1.5x";
-      break;
-    case SCALE_2X:
-      res_text = "2x";
-      break;
-    case SCALE_2_5X:
-      res_text = "2.5x";
-      break;
     default:
-      res_text = StringFromFormat("%dx", g_ActiveConfig.iEFBScale - 3);
+      res_text = StringFromFormat("%dx", g_ActiveConfig.iEFBScale);
       break;
     }
     const char* ar_text = "";
@@ -634,7 +563,8 @@ void Renderer::SetWindowSize(int width, int height)
   height = std::max(height, 1);
 
   // Scale the window size by the EFB scale.
-  std::tie(width, height) = CalculateTargetScale(width, height);
+  if (g_ActiveConfig.iEFBScale != EFB_SCALE_AUTO_INTEGRAL)
+    std::tie(width, height) = CalculateTargetScale(width, height);
 
   float scaled_width, scaled_height;
   std::tie(scaled_width, scaled_height) = ScaleToDisplayAspectRatio(width, height);
@@ -752,10 +682,8 @@ bool Renderer::IsFrameDumping()
   if (m_screenshot_request.IsSet())
     return true;
 
-#if defined(HAVE_FFMPEG)
   if (SConfig::GetInstance().m_DumpFrames)
     return true;
-#endif
 
   ShutdownFrameDumping();
   return false;

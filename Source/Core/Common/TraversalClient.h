@@ -1,19 +1,22 @@
 // This file is public domain, in case it's useful to anyone. -comex
 
 #pragma once
-#include <enet/enet.h>
-#include <functional>
+
+#include <cstddef>
 #include <list>
 #include <memory>
-#include <random>
-#include "Common/Common.h"
+#include <string>
+
+#include <enet/enet.h>
+
+#include "Common/CommonTypes.h"
 #include "Common/Thread.h"
 #include "Common/TraversalProto.h"
 
 class TraversalClientClient
 {
 public:
-  virtual ~TraversalClientClient(){};
+  virtual ~TraversalClientClient() = default;
   virtual void OnTraversalStateChanged() = 0;
   virtual void OnConnectReady(ENetAddress addr) = 0;
   virtual void OnConnectFailed(u8 reason) = 0;
@@ -28,7 +31,7 @@ public:
     Connected,
     Failure
   };
-  enum FailureReason
+  enum class FailureReason
   {
     BadHost = 0x300,
     VersionTooOld,
@@ -50,7 +53,7 @@ public:
   TraversalClientClient* m_Client;
   TraversalHostId m_HostId;
   State m_State;
-  int m_FailureReason;
+  FailureReason m_FailureReason;
 
 private:
   struct OutgoingTraversalPacketInfo

@@ -4,7 +4,9 @@
 
 #include <algorithm>
 
+#include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
+#include "Common/StringUtil.h"
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/Core.h"
 #include "Core/Movie.h"
@@ -36,6 +38,7 @@ VideoConfig::VideoConfig()
   backend_info.bSupportsMultithreading = false;
   backend_info.bSupportsInternalResolutionFrameDumps = false;
   backend_info.bSupportsST3CTextures = false;
+  backend_info.bSupportsBPTCTextures = false;
 
   bEnableValidationLayer = false;
   bBackendMultithreading = true;
@@ -45,7 +48,12 @@ void VideoConfig::Refresh()
 {
   if (!s_has_registered_callback)
   {
-    Config::AddConfigChangedCallback([]() { g_Config.Refresh(); });
+    // There was a race condition between the video thread and the host thread here, if
+    // corrections need to be made by VerifyValidity(). Briefly, the config will contain
+    // invalid values. Instead, pause emulation first, which will flush the video thread,
+    // update the config and correct it, then resume emulation, after which the video
+    // thread will detect the config has changed and act accordingly.
+    Config::AddConfigChangedCallback([]() { Core::RunAsCPUThread([]() { g_Config.Refresh(); }); });
     s_has_registered_callback = true;
   }
 
@@ -53,7 +61,11 @@ void VideoConfig::Refresh()
   iAdapter = Config::Get(Config::GFX_ADAPTER);
 
   bWidescreenHack = Config::Get(Config::GFX_WIDESCREEN_HACK);
-  iAspectRatio = Config::Get(Config::GFX_ASPECT_RATIO);
+  const int aspect_ratio = Config::Get(Config::GFX_ASPECT_RATIO);
+  if (aspect_ratio == ASPECT_AUTO)
+    iAspectRatio = Config::Get(Config::GFX_SUGGESTED_ASPECT_RATIO);
+  else
+    iAspectRatio = aspect_ratio;
   bCrop = Config::Get(Config::GFX_CROP);
   bUseXFB = Config::Get(Config::GFX_USE_XFB);
   bUseRealXFB = Config::Get(Config::GFX_USE_REAL_XFB);
@@ -92,6 +104,11 @@ void VideoConfig::Refresh()
   bBackendMultithreading = Config::Get(Config::GFX_BACKEND_MULTITHREADING);
   iCommandBufferExecuteInterval = Config::Get(Config::GFX_COMMAND_BUFFER_EXECUTE_INTERVAL);
   bShaderCache = Config::Get(Config::GFX_SHADER_CACHE);
+  bBackgroundShaderCompiling = Config::Get(Config::GFX_BACKGROUND_SHADER_COMPILING);
+  bDisableSpecializedShaders = Config::Get(Config::GFX_DISABLE_SPECIALIZED_SHADERS);
+  bPrecompileUberShaders = Config::Get(Config::GFX_PRECOMPILE_UBER_SHADERS);
+  iShaderCompilerThreads = Config::Get(Config::GFX_SHADER_COMPILER_THREADS);
+  iShaderPrecompilerThreads = Config::Get(Config::GFX_SHADER_PRECOMPILER_THREADS);
 
   bZComploc = Config::Get(Config::GFX_SW_ZCOMPLOC);
   bZFreeze = Config::Get(Config::GFX_SW_ZFREEZE);
@@ -131,26 +148,6 @@ void VideoConfig::Refresh()
   phack.m_zfar = Config::Get(Config::GFX_PROJECTION_HACK_ZFAR);
   bPerfQueriesEnable = Config::Get(Config::GFX_PERF_QUERIES_ENABLE);
 
-  if (iEFBScale == SCALE_FORCE_INTEGRAL)
-  {
-    // Round down to multiple of native IR
-    switch (Config::GetBase(Config::GFX_EFB_SCALE))
-    {
-    case SCALE_AUTO:
-      iEFBScale = SCALE_AUTO_INTEGRAL;
-      break;
-    case SCALE_1_5X:
-      iEFBScale = SCALE_1X;
-      break;
-    case SCALE_2_5X:
-      iEFBScale = SCALE_2X;
-      break;
-    default:
-      iEFBScale = Config::GetBase(Config::GFX_EFB_SCALE);
-      break;
-    }
-  }
-
   VerifyValidity();
 }
 
@@ -186,4 +183,38 @@ void VideoConfig::VerifyValidity()
 bool VideoConfig::IsVSync()
 {
   return bVSync && !Core::GetIsThrottlerTempDisabled();
+}
+
+static u32 GetNumAutoShaderCompilerThreads()
+{
+  // Automatic number. We use clamp(cpus - 3, 1, 4).
+  return static_cast<u32>(std::min(std::max(cpu_info.num_cores - 3, 1), 4));
+}
+
+u32 VideoConfig::GetShaderCompilerThreads() const
+{
+  if (iShaderCompilerThreads >= 0)
+    return static_cast<u32>(iShaderCompilerThreads);
+  else
+    return GetNumAutoShaderCompilerThreads();
+}
+
+u32 VideoConfig::GetShaderPrecompilerThreads() const
+{
+  if (iShaderPrecompilerThreads >= 0)
+    return static_cast<u32>(iShaderPrecompilerThreads);
+  else
+    return GetNumAutoShaderCompilerThreads();
+}
+
+bool VideoConfig::CanPrecompileUberShaders() const
+{
+  // We don't want to precompile ubershaders if they're never going to be used.
+  return bPrecompileUberShaders && (bBackgroundShaderCompiling || bDisableSpecializedShaders);
+}
+
+bool VideoConfig::CanBackgroundCompileShaders() const
+{
+  // We require precompiled ubershaders to background compile shaders.
+  return bBackgroundShaderCompiling && bPrecompileUberShaders;
 }

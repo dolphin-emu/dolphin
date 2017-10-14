@@ -9,7 +9,6 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/NandPaths.h"
-#include "Common/NonCopyable.h"
 #include "Common/Swap.h"
 #include "Common/Timer.h"
 
@@ -295,7 +294,7 @@ public:
   std::string m_filename;
 };
 
-class GCMemcard : NonCopyable
+class GCMemcard
 {
 private:
   bool m_valid;
@@ -317,6 +316,12 @@ private:
 public:
   explicit GCMemcard(const std::string& fileName, bool forceCreation = false,
                      bool shift_jis = false);
+
+  GCMemcard(const GCMemcard&) = delete;
+  GCMemcard& operator=(const GCMemcard&) = delete;
+  GCMemcard(GCMemcard&&) = default;
+  GCMemcard& operator=(GCMemcard&&) = default;
+
   bool IsValid() const { return m_valid; }
   bool IsShiftJIS() const;
   bool Save();

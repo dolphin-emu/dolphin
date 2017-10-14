@@ -38,7 +38,6 @@ elseif(APPLE)
   find_library(COCOA_LIBRARY Cocoa)
   set(SRCS ${SRCS}
     ControllerInterface/OSX/OSX.mm
-    ControllerInterface/OSX/OSXKeyboard.mm
     ControllerInterface/OSX/OSXJoystick.mm
     ControllerInterface/Quartz/Quartz.mm
     ControllerInterface/Quartz/QuartzKeyboardAndMouse.mm

@@ -6,17 +6,53 @@
 #include <cstring>
 #include <mutex>
 #include <ostream>
-#include <set>
 #include <string>
 
 #include "Common/CommonPaths.h"
+#include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
-#include "Common/IniFile.h"
 #include "Common/Logging/ConsoleListener.h"
 #include "Common/Logging/Log.h"
 #include "Common/Logging/LogManager.h"
 #include "Common/StringUtil.h"
 #include "Common/Timer.h"
+
+constexpr size_t MAX_MSGLEN = 1024;
+
+const Config::ConfigInfo<bool> LOGGER_WRITE_TO_FILE{
+    {Config::System::Logger, "Options", "WriteToFile"}, false};
+const Config::ConfigInfo<bool> LOGGER_WRITE_TO_CONSOLE{
+    {Config::System::Logger, "Options", "WriteToConsole"}, true};
+const Config::ConfigInfo<bool> LOGGER_WRITE_TO_WINDOW{
+    {Config::System::Logger, "Options", "WriteToWindow"}, true};
+const Config::ConfigInfo<int> LOGGER_VERBOSITY{{Config::System::Logger, "Options", "Verbosity"}, 0};
+
+class FileLogListener : public LogListener
+{
+public:
+  FileLogListener(const std::string& filename)
+  {
+    File::OpenFStream(m_logfile, filename, std::ios::app);
+    SetEnable(true);
+  }
+
+  void Log(LogTypes::LOG_LEVELS, const char* msg) override
+  {
+    if (!IsEnabled() || !IsValid())
+      return;
+
+    std::lock_guard<std::mutex> lk(m_log_lock);
+    m_logfile << msg << std::flush;
+  }
+
+  bool IsValid() const { return m_logfile.good(); }
+  bool IsEnabled() const { return m_enable; }
+  void SetEnable(bool enable) { m_enable = enable; }
+private:
+  std::mutex m_log_lock;
+  std::ofstream m_logfile;
+  bool m_enable;
+};
 
 void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, const char* file, int line,
                 const char* fmt, ...)
@@ -27,8 +63,6 @@ void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, const char*
     LogManager::GetInstance()->Log(level, type, file, line, fmt, args);
   va_end(args);
 }
-
-LogManager* LogManager::m_logManager = nullptr;
 
 static size_t DeterminePathCutOffPoint()
 {
@@ -42,73 +76,62 @@ static size_t DeterminePathCutOffPoint()
 LogManager::LogManager()
 {
   // create log containers
-  m_Log[LogTypes::ACTIONREPLAY] = new LogContainer("ActionReplay", "ActionReplay");
-  m_Log[LogTypes::AUDIO] = new LogContainer("Audio", "Audio Emulator");
-  m_Log[LogTypes::AUDIO_INTERFACE] = new LogContainer("AI", "Audio Interface (AI)");
-  m_Log[LogTypes::BOOT] = new LogContainer("BOOT", "Boot");
-  m_Log[LogTypes::COMMANDPROCESSOR] = new LogContainer("CP", "CommandProc");
-  m_Log[LogTypes::COMMON] = new LogContainer("COMMON", "Common");
-  m_Log[LogTypes::CONSOLE] = new LogContainer("CONSOLE", "Dolphin Console");
-  m_Log[LogTypes::CORE] = new LogContainer("CORE", "Core");
-  m_Log[LogTypes::DISCIO] = new LogContainer("DIO", "Disc IO");
-  m_Log[LogTypes::DOLPHINWATCH] = new LogContainer("DW", "DolphinWatch");
-  m_Log[LogTypes::DSPHLE] = new LogContainer("DSPHLE", "DSP HLE");
-  m_Log[LogTypes::DSPLLE] = new LogContainer("DSPLLE", "DSP LLE");
-  m_Log[LogTypes::DSP_MAIL] = new LogContainer("DSPMails", "DSP Mails");
-  m_Log[LogTypes::DSPINTERFACE] = new LogContainer("DSP", "DSPInterface");
-  m_Log[LogTypes::DVDINTERFACE] = new LogContainer("DVD", "DVD Interface");
-  m_Log[LogTypes::DYNA_REC] = new LogContainer("JIT", "Dynamic Recompiler");
-  m_Log[LogTypes::EXPANSIONINTERFACE] = new LogContainer("EXI", "Expansion Interface");
-  m_Log[LogTypes::FILEMON] = new LogContainer("FileMon", "File Monitor");
-  m_Log[LogTypes::GDB_STUB] = new LogContainer("GDB_STUB", "GDB Stub");
-  m_Log[LogTypes::GPFIFO] = new LogContainer("GP", "GPFifo");
-  m_Log[LogTypes::HOST_GPU] = new LogContainer("Host GPU", "Host GPU");
-  m_Log[LogTypes::IOS] = new LogContainer("IOS", "IOS");
-  m_Log[LogTypes::IOS_DI] = new LogContainer("IOS_DI", "IOS - Drive Interface");
-  m_Log[LogTypes::IOS_ES] = new LogContainer("IOS_ES", "IOS - ETicket Services");
-  m_Log[LogTypes::IOS_FILEIO] = new LogContainer("IOS_FILEIO", "IOS - FileIO");
-  m_Log[LogTypes::IOS_SD] = new LogContainer("IOS_SD", "IOS - SDIO");
-  m_Log[LogTypes::IOS_SSL] = new LogContainer("IOS_SSL", "IOS - SSL");
-  m_Log[LogTypes::IOS_STM] = new LogContainer("IOS_STM", "IOS - State Transition Manager");
-  m_Log[LogTypes::IOS_NET] = new LogContainer("IOS_NET", "IOS - Network");
-  m_Log[LogTypes::IOS_USB] = new LogContainer("IOS_USB", "IOS - USB");
-  m_Log[LogTypes::IOS_WC24] = new LogContainer("IOS_WC24", "IOS - WiiConnect24");
-  m_Log[LogTypes::IOS_WIIMOTE] = new LogContainer("IOS_WIIMOTE", "IOS - Wii Remote");
-  m_Log[LogTypes::MASTER_LOG] = new LogContainer("*", "Master Log");
-  m_Log[LogTypes::MEMCARD_MANAGER] = new LogContainer("MemCard Manager", "MemCard Manager");
-  m_Log[LogTypes::MEMMAP] = new LogContainer("MI", "MI & memmap");
-  m_Log[LogTypes::NETPLAY] = new LogContainer("NETPLAY", "Netplay");
-  m_Log[LogTypes::OSHLE] = new LogContainer("HLE", "HLE");
-  m_Log[LogTypes::OSREPORT] = new LogContainer("OSREPORT", "OSReport");
-  m_Log[LogTypes::PAD] = new LogContainer("PAD", "Pad");
-  m_Log[LogTypes::PIXELENGINE] = new LogContainer("PE", "PixelEngine");
-  m_Log[LogTypes::PROCESSORINTERFACE] = new LogContainer("PI", "ProcessorInt");
-  m_Log[LogTypes::POWERPC] = new LogContainer("PowerPC", "IBM CPU");
-  m_Log[LogTypes::SERIALINTERFACE] = new LogContainer("SI", "Serial Interface (SI)");
-  m_Log[LogTypes::SP1] = new LogContainer("SP1", "Serial Port 1");
-  m_Log[LogTypes::VIDEO] = new LogContainer("Video", "Video Backend");
-  m_Log[LogTypes::VIDEOINTERFACE] = new LogContainer("VI", "Video Interface (VI)");
-  m_Log[LogTypes::WIIMOTE] = new LogContainer("Wiimote", "Wiimote");
-  m_Log[LogTypes::WII_IPC] = new LogContainer("WII_IPC", "WII IPC");
+  m_log[LogTypes::ACTIONREPLAY] = {"ActionReplay", "ActionReplay"};
+  m_log[LogTypes::AUDIO] = {"Audio", "Audio Emulator"};
+  m_log[LogTypes::AUDIO_INTERFACE] = {"AI", "Audio Interface (AI)"};
+  m_log[LogTypes::BOOT] = {"BOOT", "Boot"};
+  m_log[LogTypes::COMMANDPROCESSOR] = {"CP", "CommandProc"};
+  m_log[LogTypes::COMMON] = {"COMMON", "Common"};
+  m_log[LogTypes::CONSOLE] = {"CONSOLE", "Dolphin Console"};
+  m_log[LogTypes::CORE] = {"CORE", "Core"};
+  m_log[LogTypes::DISCIO] = {"DIO", "Disc IO"};
+  m_log[LogTypes::DOLPHINWATCH] = {"DW", "DolphinWatch"};
+  m_log[LogTypes::DSPHLE] = {"DSPHLE", "DSP HLE"};
+  m_log[LogTypes::DSPLLE] = {"DSPLLE", "DSP LLE"};
+  m_log[LogTypes::DSP_MAIL] = {"DSPMails", "DSP Mails"};
+  m_log[LogTypes::DSPINTERFACE] = {"DSP", "DSPInterface"};
+  m_log[LogTypes::DVDINTERFACE] = {"DVD", "DVD Interface"};
+  m_log[LogTypes::DYNA_REC] = {"JIT", "Dynamic Recompiler"};
+  m_log[LogTypes::EXPANSIONINTERFACE] = {"EXI", "Expansion Interface"};
+  m_log[LogTypes::FILEMON] = {"FileMon", "File Monitor"};
+  m_log[LogTypes::GDB_STUB] = {"GDB_STUB", "GDB Stub"};
+  m_log[LogTypes::GPFIFO] = {"GP", "GPFifo"};
+  m_log[LogTypes::HOST_GPU] = {"Host GPU", "Host GPU"};
+  m_log[LogTypes::IOS] = {"IOS", "IOS"};
+  m_log[LogTypes::IOS_DI] = {"IOS_DI", "IOS - Drive Interface"};
+  m_log[LogTypes::IOS_ES] = {"IOS_ES", "IOS - ETicket Services"};
+  m_log[LogTypes::IOS_FILEIO] = {"IOS_FILEIO", "IOS - FileIO"};
+  m_log[LogTypes::IOS_SD] = {"IOS_SD", "IOS - SDIO"};
+  m_log[LogTypes::IOS_SSL] = {"IOS_SSL", "IOS - SSL"};
+  m_log[LogTypes::IOS_STM] = {"IOS_STM", "IOS - State Transition Manager"};
+  m_log[LogTypes::IOS_NET] = {"IOS_NET", "IOS - Network"};
+  m_log[LogTypes::IOS_USB] = {"IOS_USB", "IOS - USB"};
+  m_log[LogTypes::IOS_WC24] = {"IOS_WC24", "IOS - WiiConnect24"};
+  m_log[LogTypes::IOS_WFS] = { "IOS_WFS", "IOS - WFS" };
+  m_log[LogTypes::IOS_WIIMOTE] = {"IOS_WIIMOTE", "IOS - Wii Remote"};
+  m_log[LogTypes::MASTER_LOG] = {"*", "Master Log"};
+  m_log[LogTypes::MEMCARD_MANAGER] = {"MemCard Manager", "MemCard Manager"};
+  m_log[LogTypes::MEMMAP] = {"MI", "MI & memmap"};
+  m_log[LogTypes::NETPLAY] = {"NETPLAY", "Netplay"};
+  m_log[LogTypes::OSHLE] = {"HLE", "HLE"};
+  m_log[LogTypes::OSREPORT] = {"OSREPORT", "OSReport"};
+  m_log[LogTypes::PAD] = {"PAD", "Pad"};
+  m_log[LogTypes::PIXELENGINE] = {"PE", "PixelEngine"};
+  m_log[LogTypes::PROCESSORINTERFACE] = {"PI", "ProcessorInt"};
+  m_log[LogTypes::POWERPC] = {"PowerPC", "IBM CPU"};
+  m_log[LogTypes::SERIALINTERFACE] = {"SI", "Serial Interface (SI)"};
+  m_log[LogTypes::SP1] = {"SP1", "Serial Port 1"};
+  m_log[LogTypes::VIDEO] = {"Video", "Video Backend"};
+  m_log[LogTypes::VIDEOINTERFACE] = {"VI", "Video Interface (VI)"};
+  m_log[LogTypes::WIIMOTE] = {"Wiimote", "Wiimote"};
+  m_log[LogTypes::WII_IPC] = {"WII_IPC", "WII IPC"};
 
   RegisterListener(LogListener::FILE_LISTENER,
                    new FileLogListener(File::GetUserPath(F_MAINLOG_IDX)));
   RegisterListener(LogListener::CONSOLE_LISTENER, new ConsoleListener());
 
-  IniFile ini;
-  ini.Load(File::GetUserPath(F_LOGGERCONFIG_IDX));
-  IniFile::Section* logs = ini.GetOrCreateSection("Logs");
-  IniFile::Section* options = ini.GetOrCreateSection("Options");
-  bool write_file;
-  bool write_console;
-  bool write_window;
-  options->Get("WriteToFile", &write_file, false);
-  options->Get("WriteToConsole", &write_console, true);
-  options->Get("WriteToWindow", &write_window, true);
-
   // Set up log listeners
-  int verbosity;
-  options->Get("Verbosity", &verbosity, 0);
+  int verbosity = Config::Get(LOGGER_VERBOSITY);
 
   // Ensure the verbosity level is valid
   if (verbosity < 1)
@@ -116,31 +139,39 @@ LogManager::LogManager()
   if (verbosity > MAX_LOGLEVEL)
     verbosity = MAX_LOGLEVEL;
 
-  for (LogContainer* container : m_Log)
-  {
-    bool enable;
-    logs->Get(container->GetShortName(), &enable, false);
-    container->SetEnable(enable);
-    container->SetLevel(static_cast<LogTypes::LOG_LEVELS>(verbosity));
-    if (enable && write_file)
-      container->AddListener(LogListener::FILE_LISTENER);
-    if (enable && write_console)
-      container->AddListener(LogListener::CONSOLE_LISTENER);
-    if (enable && write_window)
-      container->AddListener(LogListener::LOG_WINDOW_LISTENER);
-  }
+  SetLogLevel(static_cast<LogTypes::LOG_LEVELS>(verbosity));
+  EnableListener(LogListener::FILE_LISTENER, Config::Get(LOGGER_WRITE_TO_FILE));
+  EnableListener(LogListener::CONSOLE_LISTENER, Config::Get(LOGGER_WRITE_TO_CONSOLE));
+  EnableListener(LogListener::LOG_WINDOW_LISTENER, Config::Get(LOGGER_WRITE_TO_WINDOW));
+
+  for (LogContainer& container : m_log)
+    container.m_enable = Config::Get(
+        Config::ConfigInfo<bool>{{Config::System::Logger, "Logs", container.m_short_name}, false});
 
   m_path_cutoff_point = DeterminePathCutOffPoint();
 }
 
 LogManager::~LogManager()
 {
-  for (LogContainer* container : m_Log)
-    delete container;
-
   // The log window listener pointer is owned by the GUI code.
   delete m_listeners[LogListener::CONSOLE_LISTENER];
   delete m_listeners[LogListener::FILE_LISTENER];
+}
+
+void LogManager::SaveSettings()
+{
+  Config::SetBaseOrCurrent(LOGGER_WRITE_TO_FILE, IsListenerEnabled(LogListener::FILE_LISTENER));
+  Config::SetBaseOrCurrent(LOGGER_WRITE_TO_CONSOLE,
+                           IsListenerEnabled(LogListener::CONSOLE_LISTENER));
+  Config::SetBaseOrCurrent(LOGGER_WRITE_TO_WINDOW,
+                           IsListenerEnabled(LogListener::LOG_WINDOW_LISTENER));
+  Config::SetBaseOrCurrent(LOGGER_VERBOSITY, static_cast<int>(GetLogLevel()));
+
+  for (const auto& container : m_log)
+    Config::SetBaseOrCurrent({{Config::System::Logger, "Logs", container.m_short_name}, false},
+                             container.m_enable);
+
+  Config::Save();
 }
 
 void LogManager::Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, const char* file,
@@ -152,50 +183,83 @@ void LogManager::Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, const 
 void LogManager::LogWithFullPath(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
                                  const char* file, int line, const char* format, va_list args)
 {
-  char temp[MAX_MSGLEN];
-  LogContainer* log = m_Log[type];
-
-  if (!log->IsEnabled() || level > log->GetLevel() || !log->HasListeners())
+  if (!IsEnabled(type, level) || !static_cast<bool>(m_listener_ids))
     return;
 
+  char temp[MAX_MSGLEN];
   CharArrayFromFormatV(temp, MAX_MSGLEN, format, args);
 
-  std::string msg = StringFromFormat(
-      "%s %s:%u %c[%s]: %s\n", Common::Timer::GetTimeFormatted().c_str(), file, line,
-      LogTypes::LOG_LEVEL_TO_CHAR[(int)level], log->GetShortName().c_str(), temp);
+  std::string msg =
+      StringFromFormat("%s %s:%u %c[%s]: %s\n", Common::Timer::GetTimeFormatted().c_str(), file,
+                       line, LogTypes::LOG_LEVEL_TO_CHAR[(int)level], GetShortName(type), temp);
 
-  for (auto listener_id : *log)
+  for (auto listener_id : m_listener_ids)
     if (m_listeners[listener_id])
       m_listeners[listener_id]->Log(level, msg.c_str());
 }
 
+LogTypes::LOG_LEVELS LogManager::GetLogLevel() const
+{
+  return m_level;
+}
+
+void LogManager::SetLogLevel(LogTypes::LOG_LEVELS level)
+{
+  m_level = level;
+}
+
+void LogManager::SetEnable(LogTypes::LOG_TYPE type, bool enable)
+{
+  m_log[type].m_enable = enable;
+}
+
+bool LogManager::IsEnabled(LogTypes::LOG_TYPE type, LogTypes::LOG_LEVELS level) const
+{
+  return m_log[type].m_enable && GetLogLevel() >= level;
+}
+
+const char* LogManager::GetShortName(LogTypes::LOG_TYPE type) const
+{
+  return m_log[type].m_short_name;
+}
+
+const char* LogManager::GetFullName(LogTypes::LOG_TYPE type) const
+{
+  return m_log[type].m_full_name;
+}
+
+void LogManager::RegisterListener(LogListener::LISTENER id, LogListener* listener)
+{
+  m_listeners[id] = listener;
+}
+
+void LogManager::EnableListener(LogListener::LISTENER id, bool enable)
+{
+  m_listener_ids[id] = enable;
+}
+
+bool LogManager::IsListenerEnabled(LogListener::LISTENER id) const
+{
+  return m_listener_ids[id];
+}
+
+// Singleton. Ugh.
+static LogManager* s_log_manager;
+
+LogManager* LogManager::GetInstance()
+{
+  return s_log_manager;
+}
+
 void LogManager::Init()
 {
-  m_logManager = new LogManager();
+  s_log_manager = new LogManager();
 }
 
 void LogManager::Shutdown()
 {
-  delete m_logManager;
-  m_logManager = nullptr;
-}
-
-LogContainer::LogContainer(const std::string& shortName, const std::string& fullName, bool enable)
-    : m_fullName(fullName), m_shortName(shortName), m_enable(enable), m_level(LogTypes::LWARNING)
-{
-}
-
-FileLogListener::FileLogListener(const std::string& filename)
-{
-  File::OpenFStream(m_logfile, filename, std::ios::app);
-  SetEnable(true);
-}
-
-void FileLogListener::Log(LogTypes::LOG_LEVELS, const char* msg)
-{
-  if (!IsEnabled() || !IsValid())
-    return;
-
-  std::lock_guard<std::mutex> lk(m_log_lock);
-  m_logfile << msg << std::flush;
+  if (s_log_manager)
+    s_log_manager->SaveSettings();
+  delete s_log_manager;
+  s_log_manager = nullptr;
 }

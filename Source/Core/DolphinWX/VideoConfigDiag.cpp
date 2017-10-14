@@ -25,6 +25,7 @@
 #include "Common/Assert.h"
 #include "Common/FileUtil.h"
 #include "Common/SysConf.h"
+#include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "DolphinWX/DolphinSlider.h"
@@ -186,10 +187,8 @@ static wxString borderless_fullscreen_desc = wxTRANSLATE(
 static wxString internal_res_desc =
     wxTRANSLATE("Specifies the resolution used to render at. A high resolution greatly improves "
                 "visual quality, but also greatly increases GPU load and can cause issues in "
-                "certain games.\n\"Multiple of 640x528\" will result in a size slightly larger "
-                "than \"Window Size\" but yield fewer issues. Generally speaking, the lower the "
-                "internal resolution is, the better your performance will be. Auto (Window Size), "
-                "1.5x, and 2.5x may cause issues in some games.\n\nIf unsure, select Native.");
+                "certain games. Generally speaking, the lower the internal resolution is, the "
+                "better your performance will be.\n\nIf unsure, select Native.");
 static wxString efb_access_desc =
     wxTRANSLATE("Ignore any requests from the CPU to read from or write to the EFB.\nImproves "
                 "performance in some games, but might disable some gameplay-related features or "
@@ -269,7 +268,7 @@ static wxString free_look_desc = wxTRANSLATE(
 static wxString crop_desc = wxTRANSLATE("Crop the picture from its native aspect ratio to 4:3 or "
                                         "16:9.\n\nIf unsure, leave this unchecked.");
 static wxString ppshader_desc = wxTRANSLATE(
-    "Apply a post-processing effect after finishing a frame.\n\nIf unsure, select (off).");
+    "Apply a post-processing effect after finishing a frame.\n\nIf unsure, select Off.");
 static wxString cache_efb_copies_desc =
     wxTRANSLATE("Slightly speeds up EFB to RAM copies by sacrificing emulation accuracy.\nIf "
                 "you're experiencing any issues, try raising texture cache accuracy or disable "
@@ -277,8 +276,9 @@ static wxString cache_efb_copies_desc =
 static wxString stereo_3d_desc =
     wxTRANSLATE("Selects the stereoscopic 3D mode. Stereoscopy allows you to get a better feeling "
                 "of depth if you have the necessary hardware.\nSide-by-Side and Top-and-Bottom are "
-                "used by most 3D TVs.\nAnaglyph is used for Red-Cyan colored glasses.\nHeavily "
-                "decreases emulation speed and sometimes causes issues.\n\nIf unsure, select Off.");
+                "used by most 3D TVs.\nAnaglyph is used for Red-Cyan colored glasses.\nHDMI 3D is "
+                "used when your monitor supports 3D display resolutions.\nHeavily decreases "
+                "emulation speed and sometimes causes issues.\n\nIf unsure, select Off.");
 static wxString stereo_depth_desc =
     wxTRANSLATE("Controls the separation distance between the virtual cameras.\nA higher value "
                 "creates a stronger feeling of depth while a lower value is more comfortable.");
@@ -307,13 +307,24 @@ static wxString gpu_texture_decoding_desc =
     wxTRANSLATE("Enables texture decoding using the GPU instead of the CPU. This may result in "
                 "performance gains in some scenarios, or on systems where the CPU is the "
                 "bottleneck.\n\nIf unsure, leave this unchecked.");
+static wxString ubershader_desc =
+    wxTRANSLATE("Disabled: Ubershaders are never used. Stuttering will occur during shader "
+                "compilation, but GPU demands are low. Recommended for low-end hardware.\n\n"
+                "Hybrid: Ubershaders will be used to prevent stuttering during shader "
+                "compilation, but traditional shaders will be used when they will not cause "
+                "stuttering. Balances performance and smoothness.\n\n"
+                "Exclusive: Ubershaders will always be used. Only recommended for high-end "
+                "systems.");
 
 VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
     : wxDialog(parent, wxID_ANY, wxString::Format(_("Dolphin %s Graphics Configuration"),
                                                   wxGetTranslation(StrToWxStr(title)))),
       vconfig(g_Config)
 {
-  vconfig.Refresh();
+  // We don't need to load the config if the core is running, since it would have been done
+  // at startup time already.
+  if (!Core::IsRunning())
+    vconfig.Refresh();
 
   Bind(wxEVT_UPDATE_UI, &VideoConfigDiag::OnUpdateUI, this);
 
@@ -441,7 +452,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
         szr_other->Add(CreateCheckBox(page_general, _("Log Render Time to File"),
                                       wxGetTranslation(log_render_time_to_file_desc),
                                       Config::GFX_LOG_RENDER_TIME_TO_FILE));
-        szr_other->Add(CreateCheckBoxRefBool(page_general, _("Auto Adjust Window Size"),
+        szr_other->Add(CreateCheckBoxRefBool(page_general, _("Auto-Adjust Window Size"),
                                              wxGetTranslation(auto_window_size_desc),
                                              SConfig::GetInstance().bRenderWindowAutoSize));
         szr_other->Add(CreateCheckBox(page_general, _("Show NetPlay Messages"),
@@ -450,7 +461,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
         szr_other->Add(CreateCheckBoxRefBool(page_general, _("Keep Window on Top"),
                                              wxGetTranslation(keep_window_on_top_desc),
                                              SConfig::GetInstance().bKeepWindowOnTop));
-        szr_other->Add(CreateCheckBoxRefBool(page_general, _("Hide Mouse Cursor"),
+        szr_other->Add(CreateCheckBoxRefBool(page_general, _("Always Hide Mouse Cursor"),
                                              wxGetTranslation(hide_mouse_cursor_desc),
                                              SConfig::GetInstance().bHideCursor));
         szr_other->Add(render_to_main_checkbox =
@@ -508,27 +519,20 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
 
     // Internal resolution
     {
-      const wxString efbscale_choices[] = {_("Auto (Window Size)"),
-                                           _("Auto (Multiple of 640x528)"),
-                                           _("Native (640x528)"),
-                                           _("1.5x Native (960x792)"),
-                                           _("2x Native (1280x1056) for 720p"),
-                                           _("2.5x Native (1600x1320)"),
-                                           _("3x Native (1920x1584) for 1080p"),
-                                           _("4x Native (2560x2112) for 1440p"),
-                                           _("5x Native (3200x2640)"),
-                                           _("6x Native (3840x3168) for 4K"),
-                                           _("7x Native (4480x3696)"),
-                                           _("8x Native (5120x4224) for 5K"),
-                                           _("Custom")};
+      const wxString efbscale_choices[] = {
+          _("Auto (Multiple of 640x528)"),      _("Native (640x528)"),
+          _("2x Native (1280x1056) for 720p"),  _("3x Native (1920x1584) for 1080p"),
+          _("4x Native (2560x2112) for 1440p"), _("5x Native (3200x2640)"),
+          _("6x Native (3840x3168) for 4K"),    _("7x Native (4480x3696)"),
+          _("8x Native (5120x4224) for 5K"),    _("Custom")};
 
       wxChoice* const choice_efbscale = CreateChoice(
           page_enh, Config::GFX_EFB_SCALE, wxGetTranslation(internal_res_desc),
-          (vconfig.iEFBScale > 11) ? ArraySize(efbscale_choices) : ArraySize(efbscale_choices) - 1,
+          (vconfig.iEFBScale > 8) ? ArraySize(efbscale_choices) : ArraySize(efbscale_choices) - 1,
           efbscale_choices);
 
-      if (vconfig.iEFBScale > 11)
-        choice_efbscale->SetSelection(12);
+      if (vconfig.iEFBScale > 8)
+        choice_efbscale->SetSelection(9);
 
       szr_enh->Add(new wxStaticText(page_enh, wxID_ANY, _("Internal Resolution:")),
                    wxGBPosition(row, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
@@ -551,13 +555,36 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
 
     // AF
     {
-      const std::array<wxString, 5> af_choices{{"1x", "2x", "4x", "8x", "16x"}};
+      const std::array<wxString, 5> af_choices{{_("1x"), _("2x"), _("4x"), _("8x"), _("16x")}};
       szr_enh->Add(new wxStaticText(page_enh, wxID_ANY, _("Anisotropic Filtering:")),
                    wxGBPosition(row, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
       szr_enh->Add(CreateChoice(page_enh, Config::GFX_ENHANCE_MAX_ANISOTROPY,
                                 wxGetTranslation(af_desc), af_choices.size(), af_choices.data()),
                    wxGBPosition(row, 1), span2, wxALIGN_CENTER_VERTICAL);
       row += 1;
+    }
+
+    // ubershaders
+    {
+      const std::array<wxString, 3> mode_choices = {{_("Disabled"), _("Hybrid"), _("Exclusive")}};
+
+      wxChoice* const choice_mode =
+          new wxChoice(page_enh, wxID_ANY, wxDefaultPosition, wxDefaultSize,
+                       static_cast<int>(mode_choices.size()), mode_choices.data());
+      RegisterControl(choice_mode, wxGetTranslation(ubershader_desc));
+      szr_enh->Add(new wxStaticText(page_enh, wxID_ANY, _("Ubershaders:")), wxGBPosition(row, 0),
+                   wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
+      szr_enh->Add(choice_mode, wxGBPosition(row, 1), span2, wxALIGN_CENTER_VERTICAL);
+      row += 1;
+
+      // Determine ubershader mode
+      choice_mode->Bind(wxEVT_CHOICE, &VideoConfigDiag::OnUberShaderModeChanged, this);
+      if (Config::GetBase(Config::GFX_DISABLE_SPECIALIZED_SHADERS))
+        choice_mode->SetSelection(2);
+      else if (Config::GetBase(Config::GFX_BACKGROUND_SHADER_COMPILING))
+        choice_mode->SetSelection(1);
+      else
+        choice_mode->SetSelection(0);
     }
 
     // postproc shader
@@ -599,7 +626,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
                                Config::GFX_WIDESCREEN_HACK));
     cb_szr->Add(CreateCheckBox(page_enh, _("Disable Fog"), wxGetTranslation(disable_fog_desc),
                                Config::GFX_DISABLE_FOG));
-    cb_szr->Add(CreateCheckBox(page_enh, _("Force 24-bit Color"), wxGetTranslation(true_color_desc),
+    cb_szr->Add(CreateCheckBox(page_enh, _("Force 24-Bit Color"), wxGetTranslation(true_color_desc),
                                Config::GFX_ENHANCE_FORCE_TRUE_COLOR));
     szr_enh->Add(cb_szr, wxGBPosition(row, 0), wxGBSpan(1, 3));
     row += 1;
@@ -622,8 +649,8 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
       szr_stereo->Add(new wxStaticText(page_enh, wxID_ANY, _("Stereoscopic 3D Mode:")), 0,
                       wxALIGN_CENTER_VERTICAL);
 
-      const wxString stereo_choices[] = {_("Off"), _("Side-by-Side"), _("Top-and-Bottom"),
-                                         _("Anaglyph"), _("Nvidia 3D Vision")};
+      const wxString stereo_choices[] = {_("Off"),      _("Side-by-Side"), _("Top-and-Bottom"),
+                                         _("Anaglyph"), _("HDMI 3D"),      _("Nvidia 3D Vision")};
       wxChoice* stereo_choice =
           CreateChoice(page_enh, Config::GFX_STEREO_MODE, wxGetTranslation(stereo_3d_desc),
                        vconfig.backend_info.bSupports3DVision ? ArraySize(stereo_choices) :
@@ -894,7 +921,8 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
         progressive_scan_checkbox->Bind(wxEVT_CHECKBOX, &VideoConfigDiag::Event_ProgressiveScan,
                                         this);
 
-        progressive_scan_checkbox->SetValue(SConfig::GetInstance().bProgressive);
+        // TODO: split this into two different settings, one for Wii and one for GC?
+        progressive_scan_checkbox->SetValue(Config::Get(Config::SYSCONF_PROGRESSIVE_SCAN));
         szr_misc->Add(progressive_scan_checkbox);
       }
 
@@ -1004,7 +1032,7 @@ void VideoConfigDiag::Event_DisplayResolution(wxCommandEvent& ev)
 
 void VideoConfigDiag::Event_ProgressiveScan(wxCommandEvent& ev)
 {
-  SConfig::GetInstance().bProgressive = ev.IsChecked();
+  Config::SetBase(Config::SYSCONF_PROGRESSIVE_SCAN, ev.IsChecked());
   ev.Skip();
 }
 
@@ -1088,7 +1116,7 @@ void VideoConfigDiag::OnUpdateUI(wxUpdateUIEvent& ev)
   cache_hires_textures->Enable(vconfig.bHiresTextures);
 
   // Vertex rounding
-  vertex_rounding_checkbox->Enable(vconfig.iEFBScale != SCALE_1X);
+  vertex_rounding_checkbox->Enable(vconfig.iEFBScale != 1);
 
   // Repopulating the post-processing shaders can't be done from an event
   if (choice_ppshader && choice_ppshader->IsEmpty())
@@ -1243,25 +1271,30 @@ void VideoConfigDiag::PopulatePostProcessingShaders()
   if (shaders.empty())
     return;
 
-  choice_ppshader->AppendString(_("(off)"));
+  choice_ppshader->AppendString(_("Off"));
 
   for (const std::string& shader : shaders)
   {
     choice_ppshader->AppendString(StrToWxStr(shader));
   }
 
-  if (!choice_ppshader->SetStringSelection(StrToWxStr(vconfig.sPostProcessingShader)))
+  if (vconfig.sPostProcessingShader.empty())
+  {
+    // Select (off) value in choice.
+    choice_ppshader->Select(0);
+  }
+  else if (!choice_ppshader->SetStringSelection(StrToWxStr(vconfig.sPostProcessingShader)))
   {
     // Invalid shader, reset it to default
     choice_ppshader->Select(0);
 
     if (vconfig.iStereoMode == STEREO_ANAGLYPH)
     {
-      Config::SetCurrent(Config::GFX_ENHANCE_POST_SHADER, std::string("dubois"));
+      Config::SetBaseOrCurrent(Config::GFX_ENHANCE_POST_SHADER, std::string("dubois"));
       choice_ppshader->SetStringSelection(StrToWxStr(vconfig.sPostProcessingShader));
     }
     else
-      Config::SetCurrent(Config::GFX_ENHANCE_POST_SHADER, std::string(""));
+      Config::SetBaseOrCurrent(Config::GFX_ENHANCE_POST_SHADER, std::string(""));
   }
 
   // Should the configuration button be loaded by default?
@@ -1324,4 +1357,14 @@ void VideoConfigDiag::OnAAChanged(wxCommandEvent& ev)
     return;
 
   Config::SetBaseOrCurrent(Config::GFX_MSAA, vconfig.backend_info.AAModes[mode]);
+}
+
+void VideoConfigDiag::OnUberShaderModeChanged(wxCommandEvent& ev)
+{
+  // 0: No ubershaders
+  // 1: Hybrid ubershaders
+  // 2: Only ubershaders
+  int mode = ev.GetInt();
+  Config::SetBaseOrCurrent(Config::GFX_BACKGROUND_SHADER_COMPILING, mode == 1);
+  Config::SetBaseOrCurrent(Config::GFX_DISABLE_SPECIALIZED_SHADERS, mode == 2);
 }

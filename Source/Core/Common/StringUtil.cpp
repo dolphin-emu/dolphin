@@ -226,25 +226,27 @@ std::string StripQuotes(const std::string& s)
     return s;
 }
 
+bool TryParse(const std::string& str, u16* const output)
+{
+  u64 value;
+  if (!TryParse(str, &value))
+    return false;
+
+  if (value >= 0x10000ull && value <= 0xFFFFFFFFFFFF0000ull)
+    return false;
+
+  *output = static_cast<u16>(value);
+  return true;
+}
+
 bool TryParse(const std::string& str, u32* const output)
 {
-  char* endptr = nullptr;
-
-  // Reset errno to a value other than ERANGE
-  errno = 0;
-
-  unsigned long value = strtoul(str.c_str(), &endptr, 0);
-
-  if (!endptr || *endptr)
+  u64 value;
+  if (!TryParse(str, &value))
     return false;
 
-  if (errno == ERANGE)
-    return false;
-
-#if ULONG_MAX > UINT_MAX
   if (value >= 0x100000000ull && value <= 0xFFFFFFFF00000000ull)
     return false;
-#endif
 
   *output = static_cast<u32>(value);
   return true;
@@ -281,13 +283,6 @@ bool TryParse(const std::string& str, bool* const output)
     return false;
 
   return true;
-}
-
-std::string StringFromInt(int value)
-{
-  char temp[16];
-  sprintf(temp, "%i", value);
-  return temp;
 }
 
 std::string StringFromBool(bool value)

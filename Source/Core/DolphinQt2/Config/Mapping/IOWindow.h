@@ -43,8 +43,6 @@ public:
 private:
   void CreateMainLayout();
   void ConnectWidgets();
-  void LoadSettings();
-  void SaveSettings();
   void Update();
 
   void OnDialogButtonPressed(QAbstractButton* button);
@@ -94,6 +92,5 @@ private:
   ControllerEmu::EmulatedController* m_controller;
 
   ciface::Core::DeviceQualifier m_devq;
-  Common::Flag m_block;
   Type m_type;
 };

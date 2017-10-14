@@ -86,7 +86,12 @@ __declspec(dllimport) void __stdcall DebugBreak(void);
   }
 #endif  // WIN32 ndef
 
-// Generic function to get last error message.
-// Call directly after the command or use the error num.
+// Wrapper function to get last strerror(errno) string.
 // This function might change the error code.
-std::string GetLastErrorMsg();
+std::string LastStrerrorString();
+
+#ifdef _WIN32
+// Wrapper function to get GetLastError() string.
+// This function might change the error code.
+std::string GetLastErrorString();
+#endif

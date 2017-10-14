@@ -249,7 +249,7 @@ int CD3DFont::Init()
     PanicAlert("Failed to create font texture");
     return hr;
   }
-  D3D::SetDebugObjectName((ID3D11DeviceChild*)buftex, "texture of a CD3DFont object");
+  D3D::SetDebugObjectName(buftex, "texture of a CD3DFont object");
 
   // Lock the surface and write the alpha values for the set pixels
   D3D11_MAPPED_SUBRESOURCE texmap;
@@ -284,7 +284,7 @@ int CD3DFont::Init()
   m_pshader = D3D::CompileAndCreatePixelShader(fontpixshader);
   if (m_pshader == nullptr)
     PanicAlert("Failed to create pixel shader, %s %d\n", __FILE__, __LINE__);
-  D3D::SetDebugObjectName((ID3D11DeviceChild*)m_pshader, "pixel shader of a CD3DFont object");
+  D3D::SetDebugObjectName(m_pshader, "pixel shader of a CD3DFont object");
 
   D3DBlob* vsbytecode;
   D3D::CompileVertexShader(fontvertshader, &vsbytecode);
@@ -293,7 +293,7 @@ int CD3DFont::Init()
   m_vshader = D3D::CreateVertexShaderFromByteCode(vsbytecode);
   if (m_vshader == nullptr)
     PanicAlert("Failed to create vertex shader, %s %d\n", __FILE__, __LINE__);
-  D3D::SetDebugObjectName((ID3D11DeviceChild*)m_vshader, "vertex shader of a CD3DFont object");
+  D3D::SetDebugObjectName(m_vshader, "vertex shader of a CD3DFont object");
 
   const D3D11_INPUT_ELEMENT_DESC desc[] = {
       {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
@@ -319,13 +319,13 @@ int CD3DFont::Init()
   blenddesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
   hr = D3D::device->CreateBlendState(&blenddesc, &m_blendstate);
   CHECK(hr == S_OK, "Create font blend state");
-  D3D::SetDebugObjectName((ID3D11DeviceChild*)m_blendstate, "blend state of a CD3DFont object");
+  D3D::SetDebugObjectName(m_blendstate, "blend state of a CD3DFont object");
 
   D3D11_RASTERIZER_DESC rastdesc = CD3D11_RASTERIZER_DESC(D3D11_FILL_SOLID, D3D11_CULL_NONE, false,
                                                           0, 0.f, 0.f, false, false, false, false);
   hr = D3D::device->CreateRasterizerState(&rastdesc, &m_raststate);
   CHECK(hr == S_OK, "Create font rasterizer state");
-  D3D::SetDebugObjectName((ID3D11DeviceChild*)m_raststate, "rasterizer state of a CD3DFont object");
+  D3D::SetDebugObjectName(m_raststate, "rasterizer state of a CD3DFont object");
 
   D3D11_BUFFER_DESC vbdesc =
       CD3D11_BUFFER_DESC(MAX_NUM_VERTICES * sizeof(FONT2DVERTEX), D3D11_BIND_VERTEX_BUFFER,
@@ -335,7 +335,7 @@ int CD3DFont::Init()
     PanicAlert("Failed to create font vertex buffer at %s, line %d\n", __FILE__, __LINE__);
     return hr;
   }
-  D3D::SetDebugObjectName((ID3D11DeviceChild*)m_pVB, "vertex buffer of a CD3DFont object");
+  D3D::SetDebugObjectName(m_pVB, "vertex buffer of a CD3DFont object");
   return S_OK;
 }
 
@@ -521,7 +521,7 @@ void InitUtils()
   if (FAILED(hr))
     PanicAlert("Failed to create sampler state at %s %d\n", __FILE__, __LINE__);
   else
-    SetDebugObjectName((ID3D11DeviceChild*)point_copy_sampler, "point copy sampler state");
+    SetDebugObjectName(point_copy_sampler, "point copy sampler state");
 
   samDesc = CD3D11_SAMPLER_DESC(D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_BORDER,
                                 D3D11_TEXTURE_ADDRESS_BORDER, D3D11_TEXTURE_ADDRESS_BORDER, 0.f, 1,
@@ -530,7 +530,7 @@ void InitUtils()
   if (FAILED(hr))
     PanicAlert("Failed to create sampler state at %s %d\n", __FILE__, __LINE__);
   else
-    SetDebugObjectName((ID3D11DeviceChild*)linear_copy_sampler, "linear copy sampler state");
+    SetDebugObjectName(linear_copy_sampler, "linear copy sampler state");
 
   // cached data used to avoid unnecessarily reloading the vertex buffers
   memset(&tex_quad_data, 0, sizeof(tex_quad_data));

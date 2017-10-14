@@ -8,15 +8,18 @@
 #include <utility>
 
 #include "Common/CommonTypes.h"
-#include "VideoCommon/TextureDecoder.h"
 
 enum class APIType;
+enum class TextureFormat;
+enum class EFBCopyFormat;
+enum class TLUTFormat;
+struct EFBCopyParams;
 
 namespace TextureConversionShader
 {
-u16 GetEncodedSampleCount(u32 format);
+u16 GetEncodedSampleCount(EFBCopyFormat format);
 
-const char* GenerateEncodingShader(const EFBCopyFormat& format, APIType ApiType);
+const char* GenerateEncodingShader(const EFBCopyParams& params, APIType ApiType);
 
 // View format of the input data to the texture decoding shader.
 enum BufferFormat
@@ -51,7 +54,7 @@ u32 GetBytesPerBufferElement(BufferFormat buffer_format);
 std::pair<u32, u32> GetDispatchCount(const DecodingShaderInfo* info, u32 width, u32 height);
 
 // Returns the GLSL string containing the texture decoding shader for the specified format.
-std::string GenerateDecodingShader(TextureFormat format, TlutFormat palette_format,
+std::string GenerateDecodingShader(TextureFormat format, TLUTFormat palette_format,
                                    APIType api_type);
 
 }  // namespace TextureConversionShader

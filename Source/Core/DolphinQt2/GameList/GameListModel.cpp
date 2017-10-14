@@ -3,7 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "DolphinQt2/GameList/GameListModel.h"
-
+#include "Core/ConfigManager.h"
 #include "DiscIO/Enums.h"
 #include "DolphinQt2/Resources.h"
 #include "DolphinQt2/Settings.h"
@@ -14,8 +14,11 @@ GameListModel::GameListModel(QObject* parent) : QAbstractTableModel(parent)
 {
   connect(&m_tracker, &GameTracker::GameLoaded, this, &GameListModel::UpdateGame);
   connect(&m_tracker, &GameTracker::GameRemoved, this, &GameListModel::RemoveGame);
-  connect(this, &GameListModel::DirectoryAdded, &m_tracker, &GameTracker::AddDirectory);
-  connect(this, &GameListModel::DirectoryRemoved, &m_tracker, &GameTracker::RemoveDirectory);
+  connect(&Settings::Instance(), &Settings::PathAdded, &m_tracker, &GameTracker::AddDirectory);
+  connect(&Settings::Instance(), &Settings::PathRemoved, &m_tracker, &GameTracker::RemoveDirectory);
+
+  for (const QString& dir : Settings::Instance().GetPaths())
+    m_tracker.AddDirectory(dir);
 
   connect(&Settings::Instance(), &Settings::ThemeChanged, [this] {
     // Tell the view to repaint. The signal 'dataChanged' also seems like it would work here, but
@@ -60,6 +63,8 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
       // GameCube banners are 96x32, but Wii banners are 192x64.
       // TODO: use custom banners from rom directory like DolphinWX?
       QPixmap banner = game->GetBanner();
+      if (banner.isNull())
+        banner = Resources::GetMisc(Resources::BANNER_MISSING);
       banner.setDevicePixelRatio(std::max(banner.width() / GAMECUBE_BANNER_SIZE.width(),
                                           banner.height() / GAMECUBE_BANNER_SIZE.height()));
       return banner;
@@ -73,7 +78,10 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
                                                Core::TitleDatabase::TitleType::Channel :
                                                Core::TitleDatabase::TitleType::Other));
       if (display_name.isEmpty())
-        return game->GetLongName();
+        display_name = game->GetLongName();
+
+      if (display_name.isEmpty())
+        display_name = game->GetFileName();
 
       return display_name;
     }
@@ -89,6 +97,10 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
   case COL_MAKER:
     if (role == Qt::DisplayRole || role == Qt::InitialSortOrderRole)
       return game->GetMaker();
+    break;
+  case COL_FILE_NAME:
+    if (role == Qt::DisplayRole || role == Qt::InitialSortOrderRole)
+      return game->GetFileName();
     break;
   case COL_SIZE:
     if (role == Qt::DisplayRole)
@@ -118,10 +130,12 @@ QVariant GameListModel::headerData(int section, Qt::Orientation orientation, int
     return tr("Description");
   case COL_MAKER:
     return tr("Maker");
+  case COL_FILE_NAME:
+    return tr("File Name");
   case COL_SIZE:
     return tr("Size");
   case COL_RATING:
-    return tr("Quality");
+    return tr("State");
   }
   return QVariant();
 }
@@ -138,19 +152,84 @@ int GameListModel::columnCount(const QModelIndex& parent) const
   return NUM_COLS;
 }
 
-void GameListModel::UpdateGame(QSharedPointer<GameFile> game)
+bool GameListModel::ShouldDisplayGameListItem(int index) const
+{
+  QSharedPointer<GameFile> game = m_games[index];
+
+  const bool show_platform = [&game] {
+    switch (game->GetPlatformID())
+    {
+    case DiscIO::Platform::GAMECUBE_DISC:
+      return SConfig::GetInstance().m_ListGC;
+    case DiscIO::Platform::WII_DISC:
+      return SConfig::GetInstance().m_ListWii;
+    case DiscIO::Platform::WII_WAD:
+      return SConfig::GetInstance().m_ListWad;
+    case DiscIO::Platform::ELF_DOL:
+      return SConfig::GetInstance().m_ListElfDol;
+    default:
+      return false;
+    }
+  }();
+
+  if (!show_platform)
+    return false;
+
+  switch (game->GetCountryID())
+  {
+  case DiscIO::Country::COUNTRY_AUSTRALIA:
+    return SConfig::GetInstance().m_ListAustralia;
+  case DiscIO::Country::COUNTRY_EUROPE:
+    return SConfig::GetInstance().m_ListPal;
+  case DiscIO::Country::COUNTRY_FRANCE:
+    return SConfig::GetInstance().m_ListFrance;
+  case DiscIO::Country::COUNTRY_GERMANY:
+    return SConfig::GetInstance().m_ListGermany;
+  case DiscIO::Country::COUNTRY_ITALY:
+    return SConfig::GetInstance().m_ListItaly;
+  case DiscIO::Country::COUNTRY_JAPAN:
+    return SConfig::GetInstance().m_ListJap;
+  case DiscIO::Country::COUNTRY_KOREA:
+    return SConfig::GetInstance().m_ListKorea;
+  case DiscIO::Country::COUNTRY_NETHERLANDS:
+    return SConfig::GetInstance().m_ListNetherlands;
+  case DiscIO::Country::COUNTRY_RUSSIA:
+    return SConfig::GetInstance().m_ListRussia;
+  case DiscIO::Country::COUNTRY_SPAIN:
+    return SConfig::GetInstance().m_ListSpain;
+  case DiscIO::Country::COUNTRY_TAIWAN:
+    return SConfig::GetInstance().m_ListTaiwan;
+  case DiscIO::Country::COUNTRY_USA:
+    return SConfig::GetInstance().m_ListUsa;
+  case DiscIO::Country::COUNTRY_WORLD:
+    return SConfig::GetInstance().m_ListWorld;
+  case DiscIO::Country::COUNTRY_UNKNOWN:
+  default:
+    return SConfig::GetInstance().m_ListUnknown;
+  }
+}
+
+QSharedPointer<GameFile> GameListModel::GetGameFile(int index) const
+{
+  return m_games[index];
+}
+
+void GameListModel::UpdateGame(const QSharedPointer<GameFile>& game)
 {
   QString path = game->GetFilePath();
 
-  int entry = FindGame(path);
-  if (entry < 0)
-    entry = m_games.size();
+  int index = FindGame(path);
+  if (index < 0)
+  {
+    beginInsertRows(QModelIndex(), m_games.size(), m_games.size());
+    m_games.push_back(game);
+    endInsertRows();
+  }
   else
-    return;
-
-  beginInsertRows(QModelIndex(), entry, entry);
-  m_games.insert(entry, game);
-  endInsertRows();
+  {
+    m_games[index] = game;
+    emit dataChanged(createIndex(index, 0), createIndex(index + 1, columnCount(QModelIndex())));
+  }
 }
 
 void GameListModel::RemoveGame(const QString& path)

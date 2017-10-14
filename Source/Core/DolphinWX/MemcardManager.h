@@ -26,7 +26,7 @@ public:
   ~CMemcardManager();
 
 private:
-  DECLARE_EVENT_TABLE();
+  DECLARE_EVENT_TABLE()
 
   std::array<int, 2> page;
   int itemsPerPage;

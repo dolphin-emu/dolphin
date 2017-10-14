@@ -5,7 +5,6 @@
 #include <OptionParser.h>
 #include <cstdio>
 #include <cstring>
-#include <mutex>
 #include <string>
 #include <utility>
 #include <wx/app.h>
@@ -32,6 +31,7 @@
 #include "Common/Logging/LogManager.h"
 #include "Common/MsgHandler.h"
 #include "Common/Thread.h"
+#include "Common/Version.h"
 
 #include "Core/Analytics.h"
 #include "Core/ConfigManager.h"
@@ -47,6 +47,7 @@
 #include "DolphinWX/Main.h"
 #include "DolphinWX/NetPlay/NetWindow.h"
 #include "DolphinWX/SoftwareVideoConfigDialog.h"
+#include "DolphinWX/UINeedsControllerState.h"
 #include "DolphinWX/VideoConfigDiag.h"
 #include "DolphinWX/WxUtils.h"
 
@@ -66,12 +67,10 @@
 
 IMPLEMENT_APP(DolphinApp)
 
-bool wxMsgAlert(const char*, const char*, bool, int);
+bool wxMsgAlert(const char*, const char*, bool, MsgType);
 std::string wxStringTranslator(const char*);
 
 CFrame* main_frame = nullptr;
-
-static std::mutex s_init_mutex;
 
 bool DolphinApp::Initialize(int& c, wxChar** v)
 {
@@ -123,7 +122,9 @@ bool DolphinApp::OnInit()
 
   ParseCommandLine();
 
-  std::lock_guard<std::mutex> lk(s_init_mutex);
+#ifdef _WIN32
+  FreeConsole();
+#endif
 
   UICommon::SetUserDirectory(m_user_path.ToStdString());
   UICommon::CreateDirectories();
@@ -153,7 +154,7 @@ bool DolphinApp::OnInit()
   // event dispatch including WM_MOVE/WM_SIZE)
   wxRect window_geometry(SConfig::GetInstance().iPosX, SConfig::GetInstance().iPosY,
                          SConfig::GetInstance().iWidth, SConfig::GetInstance().iHeight);
-  main_frame = new CFrame(nullptr, wxID_ANY, StrToWxStr(scm_rev_str), window_geometry,
+  main_frame = new CFrame(nullptr, wxID_ANY, StrToWxStr(Common::scm_rev_str), window_geometry,
                           m_use_debugger, m_batch_mode, m_use_logger);
   SetTopWindow(main_frame);
 
@@ -364,7 +365,7 @@ void DolphinApp::OnIdle(wxIdleEvent& ev)
 // ------------
 // Talk to GUI
 
-bool wxMsgAlert(const char* caption, const char* text, bool yes_no, int /*Style*/)
+bool wxMsgAlert(const char* caption, const char* text, bool yes_no, MsgType /*style*/)
 {
   if (wxIsMainThread())
   {
@@ -466,38 +467,9 @@ void Host_RequestRenderWindowSize(int width, int height)
   main_frame->GetEventHandler()->AddPendingEvent(event);
 }
 
-void Host_SetWiiMoteConnectionState(int _State)
+bool Host_UINeedsControllerState()
 {
-  static int currentState = -1;
-  if (_State == currentState)
-    return;
-  currentState = _State;
-
-  wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATE_STATUS_BAR);
-
-  switch (_State)
-  {
-  case 0:
-    event.SetString(_("Not connected"));
-    break;
-  case 1:
-    event.SetString(_("Connecting..."));
-    break;
-  case 2:
-    event.SetString(_("Wii Remote Connected"));
-    break;
-  }
-  // The second field is used for auxiliary info such as this
-  event.SetInt(1);
-
-  NOTICE_LOG(WIIMOTE, "%s", static_cast<const char*>(event.GetString().c_str()));
-
-  main_frame->GetEventHandler()->AddPendingEvent(event);
-}
-
-bool Host_UIHasFocus()
-{
-  return wxGetApp().IsActiveThreadsafe();
+  return wxGetApp().IsActiveThreadsafe() && GetUINeedsControllerState();
 }
 
 bool Host_RendererHasFocus()
@@ -508,21 +480,6 @@ bool Host_RendererHasFocus()
 bool Host_RendererIsFullscreen()
 {
   return main_frame->RendererIsFullscreen();
-}
-
-void Host_ConnectWiimote(int wm_idx, bool connect)
-{
-  std::lock_guard<std::mutex> lk(s_init_mutex);
-  if (connect)
-  {
-    wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_FORCE_CONNECT_WIIMOTE1 + wm_idx);
-    main_frame->GetEventHandler()->AddPendingEvent(event);
-  }
-  else
-  {
-    wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_FORCE_DISCONNECT_WIIMOTE1 + wm_idx);
-    main_frame->GetEventHandler()->AddPendingEvent(event);
-  }
 }
 
 void Host_ShowVideoConfig(void* parent, const std::string& backend_name)
@@ -544,4 +501,13 @@ void Host_ShowVideoConfig(void* parent, const std::string& backend_name)
 void Host_YieldToUI()
 {
   wxGetApp().GetMainLoop()->YieldFor(wxEVT_CATEGORY_UI);
+}
+
+void Host_UpdateProgressDialog(const char* caption, int position, int total)
+{
+  wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATE_PROGRESS_DIALOG);
+  event.SetString(caption);
+  event.SetInt(position);
+  event.SetExtraLong(total);
+  main_frame->GetEventHandler()->AddPendingEvent(event);
 }

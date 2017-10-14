@@ -19,11 +19,9 @@ namespace IOS
 {
 namespace HLE
 {
-constexpr u16 BT_INFO_SECTION_LENGTH = 0x460;
-
 void BackUpBTInfoSection(const SysConf* sysconf)
 {
-  const std::string filename = File::GetUserPath(D_SESSION_WIIROOT_IDX) + DIR_SEP WII_BTDINF_BACKUP;
+  const std::string filename = File::GetUserPath(D_CONFIG_IDX) + DIR_SEP WII_BTDINF_BACKUP;
   if (File::Exists(filename))
     return;
   File::IOFile backup(filename, "wb");
@@ -39,18 +37,19 @@ void BackUpBTInfoSection(const SysConf* sysconf)
 
 void RestoreBTInfoSection(SysConf* sysconf)
 {
-  const std::string filename = File::GetUserPath(D_SESSION_WIIROOT_IDX) + DIR_SEP WII_BTDINF_BACKUP;
-  if (!File::Exists(filename))
-    return;
-  File::IOFile backup(filename, "rb");
-  std::vector<u8> section(BT_INFO_SECTION_LENGTH);
-  if (!backup.ReadBytes(section.data(), section.size()))
+  const std::string filename = File::GetUserPath(D_CONFIG_IDX) + DIR_SEP WII_BTDINF_BACKUP;
   {
-    ERROR_LOG(IOS_WIIMOTE, "Failed to read backed up BT.DINF section");
-    return;
+    File::IOFile backup(filename, "rb");
+    if (!backup)
+      return;
+    auto& section = sysconf->GetOrAddEntry("BT.DINF", SysConf::Entry::Type::BigArray)->bytes;
+    if (!backup.ReadBytes(section.data(), section.size()))
+    {
+      ERROR_LOG(IOS_WIIMOTE, "Failed to read backed up BT.DINF section");
+      return;
+    }
   }
 
-  sysconf->GetOrAddEntry("BT.DINF", SysConf::Entry::Type::BigArray)->bytes = std::move(section);
   File::Delete(filename);
 }
 }  // namespace HLE

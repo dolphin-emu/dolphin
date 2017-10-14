@@ -59,34 +59,34 @@ public:
   virtual ~CISOProperties();
 
 private:
-  DECLARE_EVENT_TABLE();
+  DECLARE_EVENT_TABLE()
 
   std::unique_ptr<DiscIO::Volume> m_open_iso;
 
-  std::vector<PatchEngine::Patch> onFrame;
-  PHackData m_PHack_Data;
+  std::vector<PatchEngine::Patch> m_on_frame;
+  PHackData m_phack_data;
 
   // Core
-  wxCheckBox *CPUThread, *MMU, *DCBZOFF, *FPRF;
-  wxCheckBox *SyncGPU, *FastDiscSpeed, *DSPHLE;
+  wxCheckBox *m_cpu_thread, *m_mmu, *m_dcbz_off, *m_fprf;
+  wxCheckBox *m_sync_gpu, *m_fast_disc_speed, *m_dps_hle;
 
-  wxArrayString arrayStringFor_GPUDeterminism;
-  wxChoice* GPUDeterminism;
+  wxArrayString m_gpu_determinism_string;
+  wxChoice* m_gpu_determinism;
   // Wii
-  wxCheckBox* EnableWideScreen;
+  wxCheckBox* m_enable_widescreen;
 
   // Stereoscopy
-  DolphinSlider* DepthPercentage;
-  wxSpinCtrl* Convergence;
-  wxCheckBox* MonoDepth;
+  DolphinSlider* m_depth_percentage;
+  wxSpinCtrl* m_convergence;
+  wxCheckBox* m_mono_depth;
 
-  wxArrayString arrayStringFor_EmuState;
-  wxChoice* EmuState;
-  wxTextCtrl* EmuIssues;
+  wxArrayString m_emustate_string;
+  wxChoice* m_emustate_choice;
+  wxTextCtrl* m_emu_issues;
 
-  wxCheckListBox* Patches;
-  wxButton* EditPatch;
-  wxButton* RemovePatch;
+  wxCheckListBox* m_patches;
+  wxButton* m_edit_patch;
+  wxButton* m_remove_patch;
 
   ActionReplayCodesPanel* m_ar_code_panel;
   Gecko::CodeConfigPanel* m_geckocode_panel;
@@ -141,14 +141,14 @@ private:
   void OnCheatCodeToggled(wxCommandEvent& event);
   void OnChangeTitle(wxCommandEvent& event);
 
-  const GameListItem OpenGameListItem;
+  const GameListItem m_open_gamelist_item;
 
-  IniFile GameIniDefault;
-  IniFile GameIniLocal;
-  std::string GameIniFileLocal;
-  std::string game_id;
+  IniFile m_gameini_default;
+  IniFile m_gameini_local;
+  std::string m_gameini_file_local;
+  std::string m_game_id;
 
-  std::set<std::string> DefaultPatches;
+  std::set<std::string> m_default_patches;
 
   void LoadGameConfig();
   bool SaveGameConfig();

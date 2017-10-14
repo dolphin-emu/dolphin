@@ -94,6 +94,7 @@ void HacksWidget::CreateWidgets()
   main_layout->addWidget(texture_cache_box);
   main_layout->addWidget(xfb_box);
   main_layout->addWidget(other_box);
+  main_layout->addStretch();
 
   setLayout(main_layout);
 }

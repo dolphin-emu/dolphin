@@ -24,6 +24,7 @@
 #include "Common/GL/GLInterfaceBase.h"
 #include "Common/Logging/LogManager.h"
 #include "Common/MsgHandler.h"
+#include "Common/Version.h"
 
 #include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
@@ -53,7 +54,6 @@ JavaVM* g_java_vm;
 namespace
 {
 ANativeWindow* s_surf;
-std::string s_filename;
 std::string s_set_userpath;
 
 jclass s_jni_class;
@@ -125,7 +125,7 @@ void Host_SetStartupDebuggingParameters()
 {
 }
 
-bool Host_UIHasFocus()
+bool Host_UINeedsControllerState()
 {
   return true;
 }
@@ -140,14 +140,6 @@ bool Host_RendererIsFullscreen()
   return false;
 }
 
-void Host_ConnectWiimote(int wm_idx, bool connect)
-{
-}
-
-void Host_SetWiiMoteConnectionState(int _State)
-{
-}
-
 void Host_ShowVideoConfig(void*, const std::string&)
 {
 }
@@ -156,7 +148,11 @@ void Host_YieldToUI()
 {
 }
 
-static bool MsgAlert(const char* caption, const char* text, bool yes_no, int /*Style*/)
+void Host_UpdateProgressDialog(const char* caption, int position, int total)
+{
+}
+
+static bool MsgAlert(const char* caption, const char* text, bool yes_no, MsgType /*style*/)
 {
   __android_log_print(ANDROID_LOG_ERROR, DOLPHIN_TAG, "%s:%s", caption, text);
 
@@ -470,7 +466,8 @@ JNIEXPORT void JNICALL
 Java_org_dolphinemu_dolphinemu_NativeLibrary_WriteProfileResults(JNIEnv* env, jobject obj);
 JNIEXPORT void JNICALL
 Java_org_dolphinemu_dolphinemu_NativeLibrary_CacheClassesAndMethods(JNIEnv* env, jobject obj);
-JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run(JNIEnv* env, jobject obj);
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run(JNIEnv* env, jobject obj,
+                                                                        jstring jFile);
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SurfaceChanged(JNIEnv* env,
                                                                                    jobject obj,
                                                                                    jobject surf);
@@ -589,7 +586,7 @@ JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetPlatform(
 JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetVersionString(JNIEnv* env,
                                                                                         jobject obj)
 {
-  return env->NewStringUTF(scm_rev_str.c_str());
+  return env->NewStringUTF(Common::scm_rev_str.c_str());
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SaveScreenShot(JNIEnv* env,
@@ -635,13 +632,6 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetConfig(
 
   ini.GetOrCreateSection(section)->Set(key, value);
   ini.Save(File::GetUserPath(D_CONFIG_IDX) + std::string(file));
-}
-
-JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetFilename(JNIEnv* env,
-                                                                                jobject obj,
-                                                                                jstring jFile)
-{
-  s_filename = GetJString(env, jFile);
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SaveState(JNIEnv* env,
@@ -777,9 +767,11 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_RefreshWiimo
   WiimoteReal::Refresh();
 }
 
-JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run(JNIEnv* env, jobject obj)
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run(JNIEnv* env, jobject obj,
+                                                                        jstring jFile)
 {
-  __android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Running : %s", s_filename.c_str());
+  const std::string path = GetJString(env, jFile);
+  __android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Running : %s", path.c_str());
 
   // Install our callbacks
   OSD::AddCallback(OSD::CallbackType::Initialization, ButtonManager::Init);
@@ -795,7 +787,7 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run(JNIEnv* 
 
   // No use running the loop when booting fails
   s_have_wm_user_stop = false;
-  if (BootManager::BootCore(BootParameters::GenerateFromFile(s_filename)))
+  if (BootManager::BootCore(BootParameters::GenerateFromFile(path)))
   {
     static constexpr int TIMEOUT = 10000;
     static constexpr int WAIT_STEP = 25;

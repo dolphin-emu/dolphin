@@ -242,11 +242,35 @@ enum Bug
   BUG_BROKEN_DUAL_SOURCE_BLENDING,
   // BUG: ImgTec GLSL shader compiler fails when negating the input to a bitwise operation
   // Started version: 1.5
-  // Ended version: 1.10
+  // Ended version: 1.8@4693462
   // Shaders that do something like "variable <<= (-othervariable);" cause the shader to
   // fail compilation with no useful diagnostic log. This can be worked around by storing
   // the negated value to a temporary variable then using that in the bitwise op.
   BUG_BROKEN_BITWISE_OP_NEGATION,
+
+  // Bug: Shaders are recompiled on the main thread after being previously compiled on
+  // a worker thread on Mesa i965.
+  // Started version: -1
+  // Ended Version: -1
+  BUG_SHARED_CONTEXT_SHADER_COMPILATION,
+
+  // Bug: Fast clears on a MSAA framebuffer can cause NVIDIA GPU resets/lockups.
+  // Started version: -1
+  // Ended version: -1
+  // Calling vkCmdClearAttachments with a partial rect, or specifying a render area in a
+  // render pass with the load op set to clear can cause the GPU to lock up, or raise a
+  // bounds violation. This only occurs on MSAA framebuffers, and it seems when there are
+  // multiple clears in a single command buffer. Worked around by back to the slow path
+  // (drawing quads) when MSAA is enabled.
+  BUG_BROKEN_MSAA_CLEAR,
+
+  // BUG: Some vulkan implementations don't like the 'clear' loadop renderpass.
+  // For example, the ImgTec VK driver fails if you try to use a framebuffer with a different
+  // load/store op than that which it was created with, despite the spec saying they should be
+  // compatible.
+  // Started Version: 1.7
+  // Ended Version: 1.10
+  BUG_BROKEN_CLEAR_LOADOP_RENDERPASS,
 };
 
 // Initializes our internal vendor, device family, and driver version

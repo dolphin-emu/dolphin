@@ -34,12 +34,14 @@ public:
   ciface::ExpressionParser::ParseStatus GetParseStatus() const;
   void UpdateReference(const ciface::Core::DeviceContainer& devices,
                        const ciface::Core::DeviceQualifier& default_device);
+  std::string GetExpression() const;
+  void SetExpression(std::string expr);
 
   ControlState range;
-  std::string expression;
 
 protected:
   ControlReference();
+  std::string m_expression;
   std::unique_ptr<ciface::ExpressionParser::Expression> m_parsed_expression;
   ciface::ExpressionParser::ParseStatus m_parse_status;
 };

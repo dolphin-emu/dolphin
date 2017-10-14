@@ -371,7 +371,6 @@ void RSOView::LoadAll(u32 address)
 
 void RSOView::Apply(PPCSymbolDB* symbol_db) const
 {
-  std::size_t count = 0;
   for (const RSOExport& rso_export : GetExports())
   {
     u32 address = GetExportAddress(rso_export);
@@ -380,14 +379,21 @@ void RSOView::Apply(PPCSymbolDB* symbol_db) const
       Symbol* symbol = symbol_db->AddFunction(address);
       if (!symbol)
         symbol = symbol_db->GetSymbolFromAddr(address);
+
+      const std::string export_name = GetExportName(rso_export);
       if (symbol)
       {
-        symbol->name = GetExportName(rso_export);
-        count += 1;
+        // Function symbol
+        symbol->Rename(export_name);
+      }
+      else
+      {
+        // Data symbol
+        symbol_db->AddKnownSymbol(address, 0, export_name, Symbol::Type::Data);
       }
     }
   }
-  DEBUG_LOG(OSHLE, "RSO(%s): %zu/%zu symbols applied", GetName().c_str(), count, GetExportsCount());
+  DEBUG_LOG(OSHLE, "RSO(%s): %zu symbols applied", GetName().c_str(), GetExportsCount());
 }
 
 u32 RSOView::GetNextEntry() const

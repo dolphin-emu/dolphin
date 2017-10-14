@@ -18,9 +18,10 @@
 #include <QScreen>
 #include <QVBoxLayout>
 
-#include <unordered_map>
+#include <map>
 
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "Core/HW/SI/SI.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
@@ -33,13 +34,13 @@
 
 #include "DolphinQt2/Config/ControllersWindow.h"
 
-static const std::unordered_map<SerialInterface::SIDevices, int> s_gc_types = {
+static const std::map<SerialInterface::SIDevices, int> s_gc_types = {
     {SerialInterface::SIDEVICE_NONE, 0},         {SerialInterface::SIDEVICE_GC_CONTROLLER, 1},
     {SerialInterface::SIDEVICE_WIIU_ADAPTER, 2}, {SerialInterface::SIDEVICE_GC_STEERING, 3},
     {SerialInterface::SIDEVICE_DANCEMAT, 4},     {SerialInterface::SIDEVICE_GC_TARUKONGA, 5},
     {SerialInterface::SIDEVICE_GC_GBA, 6},       {SerialInterface::SIDEVICE_GC_KEYBOARD, 7}};
 
-static const std::unordered_map<int, int> s_wiimote_types = {
+static const std::map<int, int> s_wiimote_types = {
     {WIIMOTE_SRC_NONE, 0}, {WIIMOTE_SRC_EMU, 1}, {WIIMOTE_SRC_REAL, 2}, {WIIMOTE_SRC_HYBRID, 3}};
 
 static int ToGCMenuIndex(const SerialInterface::SIDevices sidevice)
@@ -69,6 +70,7 @@ static int FromWiimoteMenuIndex(const int menudevice)
 ControllersWindow::ControllersWindow(QWidget* parent) : QDialog(parent)
 {
   setWindowTitle(tr("Controller Settings"));
+  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
   CreateGamecubeLayout();
   CreateWiimoteLayout();
@@ -93,7 +95,7 @@ void ControllersWindow::CreateGamecubeLayout()
 
   for (size_t i = 0; i < m_gc_groups.size(); i++)
   {
-    auto* gc_label = new QLabel(tr("Controller %1").arg(i + 1));
+    auto* gc_label = new QLabel(tr("Port %1").arg(i + 1));
     auto* gc_box = m_gc_controller_boxes[i] = new QComboBox();
     auto* gc_button = m_gc_buttons[i] = new QPushButton(tr("Configure"));
 
@@ -155,13 +157,13 @@ void ControllersWindow::CreateWiimoteLayout()
   m_wiimote_box = new QGroupBox(tr("Wii Remotes"));
   m_wiimote_box->setLayout(m_wiimote_layout);
 
-  m_wiimote_passthrough = new QRadioButton(tr("Use Bluetooth Passthrough"));
+  m_wiimote_passthrough = new QRadioButton(tr("Passthrough a Bluetooth adapter"));
   m_wiimote_sync = new QPushButton(tr("Sync"));
   m_wiimote_reset = new QPushButton(tr("Reset"));
   m_wiimote_refresh = new QPushButton(tr("Refresh"));
   m_wiimote_pt_labels[0] = new QLabel(tr("Sync real Wii Remotes and pair them"));
   m_wiimote_pt_labels[1] = new QLabel(tr("Reset all saved Wii Remote pairings"));
-  m_wiimote_emu = new QRadioButton(tr("Emulate the Wii Bluetooth Adapter"));
+  m_wiimote_emu = new QRadioButton(tr("Emulate the Wii's Bluetooth adapter"));
   m_wiimote_continuous_scanning = new QCheckBox(tr("Continuous Scanning"));
   m_wiimote_real_balance_board = new QCheckBox(tr("Real Balance Board"));
   m_wiimote_speaker_data = new QCheckBox(tr("Enable Speaker Data"));
@@ -237,6 +239,9 @@ void ControllersWindow::CreateMainLayout()
 
 void ControllersWindow::ConnectWidgets()
 {
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
+          [=](Core::State state) { OnEmulationStateChanged(state != Core::State::Uninitialized); });
+
   connect(m_wiimote_passthrough, &QRadioButton::toggled, this,
           &ControllersWindow::OnWiimoteModeChanged);
 
@@ -357,7 +362,7 @@ void ControllersWindow::OnBluetoothPassthroughSyncPressed()
   {
     QMessageBox error(this);
     error.setIcon(QMessageBox::Warning);
-    error.setText(tr("A sync can only be triggered when a Wii game is running"));
+    error.setText(tr("A sync can only be triggered when a Wii game is running."));
     error.exec();
     return;
   }
@@ -378,7 +383,7 @@ void ControllersWindow::OnWiimoteRefreshPressed()
 
 void ControllersWindow::OnEmulationStateChanged(bool running)
 {
-  if (!Settings::Instance().IsWiiGameRunning() || NetPlay::IsNetPlayRunning())
+  if (!SConfig::GetInstance().bWii || NetPlay::IsNetPlayRunning())
   {
     m_wiimote_sync->setEnabled(!running);
     m_wiimote_reset->setEnabled(!running);
@@ -390,7 +395,7 @@ void ControllersWindow::OnEmulationStateChanged(bool running)
   m_wiimote_emu->setEnabled(!running);
   m_wiimote_passthrough->setEnabled(!running);
 
-  if (!Settings::Instance().IsWiiGameRunning())
+  if (!SConfig::GetInstance().bWii)
   {
     m_wiimote_real_balance_board->setEnabled(!running);
     m_wiimote_continuous_scanning->setEnabled(!running);
@@ -478,35 +483,32 @@ void ControllersWindow::UnimplementedButton()
 
 void ControllersWindow::LoadSettings()
 {
-  auto& settings = Settings::Instance();
   for (size_t i = 0; i < m_wiimote_groups.size(); i++)
   {
-    m_gc_controller_boxes[i]->setCurrentIndex(ToGCMenuIndex(settings.GetSIDevice(i)));
+    m_gc_controller_boxes[i]->setCurrentIndex(ToGCMenuIndex(SConfig::GetInstance().m_SIDevice[i]));
     m_wiimote_boxes[i]->setCurrentIndex(ToWiimoteMenuIndex(g_wiimote_sources[i]));
   }
   m_wiimote_real_balance_board->setChecked(g_wiimote_sources[WIIMOTE_BALANCE_BOARD] ==
                                            WIIMOTE_SRC_REAL);
-  m_wiimote_speaker_data->setChecked(settings.IsWiimoteSpeakerEnabled());
-  m_wiimote_continuous_scanning->setChecked(settings.IsContinuousScanningEnabled());
+  m_wiimote_speaker_data->setChecked(SConfig::GetInstance().m_WiimoteEnableSpeaker);
+  m_wiimote_continuous_scanning->setChecked(SConfig::GetInstance().m_WiimoteContinuousScanning);
 
-  m_advanced_bg_input->setChecked(settings.IsBackgroundInputEnabled());
+  m_advanced_bg_input->setChecked(SConfig::GetInstance().m_BackgroundInput);
 
-  if (settings.IsBluetoothPassthroughEnabled())
+  if (SConfig::GetInstance().m_bt_passthrough_enabled)
     m_wiimote_passthrough->setChecked(true);
   else
     m_wiimote_emu->setChecked(true);
 
-  OnWiimoteModeChanged(settings.IsBluetoothPassthroughEnabled());
+  OnWiimoteModeChanged(SConfig::GetInstance().m_bt_passthrough_enabled);
 }
 
 void ControllersWindow::SaveSettings()
 {
-  auto& settings = Settings::Instance();
-  settings.SetWiimoteSpeakerEnabled(m_wiimote_speaker_data->isChecked());
-  settings.SetContinuousScanningEnabled(m_wiimote_continuous_scanning->isChecked());
-
-  settings.SetBluetoothPassthroughEnabled(m_wiimote_passthrough->isChecked());
-  settings.SetBackgroundInputEnabled(m_advanced_bg_input->isChecked());
+  SConfig::GetInstance().m_WiimoteEnableSpeaker = m_wiimote_speaker_data->isChecked();
+  SConfig::GetInstance().m_WiimoteContinuousScanning = m_wiimote_continuous_scanning->isChecked();
+  SConfig::GetInstance().m_bt_passthrough_enabled = m_wiimote_passthrough->isChecked();
+  SConfig::GetInstance().m_BackgroundInput = m_advanced_bg_input->isChecked();
 
   WiimoteReal::ChangeWiimoteSource(WIIMOTE_BALANCE_BOARD,
                                    m_wiimote_real_balance_board->isChecked() ? WIIMOTE_SRC_REAL :
@@ -524,8 +526,8 @@ void ControllersWindow::SaveSettings()
   for (size_t i = 0; i < m_gc_groups.size(); i++)
   {
     const int index = m_gc_controller_boxes[i]->currentIndex();
-    settings.SetSIDevice(i, FromGCMenuIndex(index));
+    SConfig::GetInstance().m_SIDevice[i] = FromGCMenuIndex(index);
     m_gc_buttons[i]->setEnabled(index != 0 && index != 6);
   }
-  settings.Save();
+  SConfig::GetInstance().SaveSettings();
 }

@@ -4,115 +4,65 @@
 
 #include "Core/DSP/DSPAccelerator.h"
 
+#include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
 
-#include "Core/DSP/DSPCore.h"
-#include "Core/DSP/DSPHost.h"
-
 namespace DSP
 {
-// The hardware adpcm decoder :)
-static s16 ADPCM_Step(u32& _rSamplePos)
+u16 Accelerator::ReadD3()
 {
-  const s16* pCoefTable = (const s16*)&g_dsp.ifx_regs[DSP_COEF_A1_0];
-
-  if ((_rSamplePos & 15) == 0)
-  {
-    g_dsp.ifx_regs[DSP_PRED_SCALE] = Host::ReadHostMemory((_rSamplePos & ~15) >> 1);
-    _rSamplePos += 2;
-  }
-
-  int scale = 1 << (g_dsp.ifx_regs[DSP_PRED_SCALE] & 0xF);
-  int coef_idx = (g_dsp.ifx_regs[DSP_PRED_SCALE] >> 4) & 0x7;
-
-  s32 coef1 = pCoefTable[coef_idx * 2 + 0];
-  s32 coef2 = pCoefTable[coef_idx * 2 + 1];
-
-  int temp = (_rSamplePos & 1) ? (Host::ReadHostMemory(_rSamplePos >> 1) & 0xF) :
-                                 (Host::ReadHostMemory(_rSamplePos >> 1) >> 4);
-
-  if (temp >= 8)
-    temp -= 16;
-
-  // 0x400 = 0.5  in 11-bit fixed point
-  int val =
-      (scale * temp) +
-      ((0x400 + coef1 * (s16)g_dsp.ifx_regs[DSP_YN1] + coef2 * (s16)g_dsp.ifx_regs[DSP_YN2]) >> 11);
-  val = MathUtil::Clamp(val, -0x7FFF, 0x7FFF);
-
-  g_dsp.ifx_regs[DSP_YN2] = g_dsp.ifx_regs[DSP_YN1];
-  g_dsp.ifx_regs[DSP_YN1] = val;
-
-  _rSamplePos++;
-
-  // The advanced interpolation (linear, polyphase,...) is done by the ucode,
-  // so we don't need to bother with it here.
-  return val;
-}
-
-u16 dsp_read_aram_d3()
-{
-  // Zelda ucode reads ARAM through 0xffd3.
-  const u32 EndAddress = (g_dsp.ifx_regs[DSP_ACEAH] << 16) | g_dsp.ifx_regs[DSP_ACEAL];
-  u32 Address = (g_dsp.ifx_regs[DSP_ACCAH] << 16) | g_dsp.ifx_regs[DSP_ACCAL];
   u16 val = 0;
 
-  switch (g_dsp.ifx_regs[DSP_FORMAT])
+  switch (m_sample_format)
   {
   case 0x5:  // u8 reads
-    val = Host::ReadHostMemory(Address);
-    Address++;
+    val = ReadMemory(m_current_address);
+    m_current_address++;
     break;
   case 0x6:  // u16 reads
-    val = (Host::ReadHostMemory(Address * 2) << 8) | Host::ReadHostMemory(Address * 2 + 1);
-    Address++;
+    val = (ReadMemory(m_current_address * 2) << 8) | ReadMemory(m_current_address * 2 + 1);
+    m_current_address++;
     break;
   default:
-    ERROR_LOG(DSPLLE, "dsp_read_aram_d3() - unknown format 0x%x", g_dsp.ifx_regs[DSP_FORMAT]);
+    ERROR_LOG(DSPLLE, "dsp_read_aram_d3() - unknown format 0x%x", m_sample_format);
     break;
   }
 
-  if (Address >= EndAddress)
+  if (m_current_address >= m_end_address)
   {
     // Set address back to start address. (never seen this here!)
-    Address = (g_dsp.ifx_regs[DSP_ACSAH] << 16) | g_dsp.ifx_regs[DSP_ACSAL];
+    m_current_address = m_start_address;
   }
-
-  g_dsp.ifx_regs[DSP_ACCAH] = Address >> 16;
-  g_dsp.ifx_regs[DSP_ACCAL] = Address & 0xffff;
   return val;
 }
 
-void dsp_write_aram_d3(u16 value)
+void Accelerator::WriteD3(u16 value)
 {
   // Zelda ucode writes a bunch of zeros to ARAM through d3 during
   // initialization.  Don't know if it ever does it later, too.
   // Pikmin 2 Wii writes non-stop to 0x10008000-0x1000801f (non-zero values too)
   // Zelda TP Wii writes non-stop to 0x10000000-0x1000001f (non-zero values too)
-  u32 Address = (g_dsp.ifx_regs[DSP_ACCAH] << 16) | g_dsp.ifx_regs[DSP_ACCAL];
 
-  switch (g_dsp.ifx_regs[DSP_FORMAT])
+  switch (m_sample_format)
   {
   case 0xA:  // u16 writes
-    Host::WriteHostMemory(value >> 8, Address * 2);
-    Host::WriteHostMemory(value & 0xFF, Address * 2 + 1);
-    Address++;
+    WriteMemory(m_current_address * 2, value >> 8);
+    WriteMemory(m_current_address * 2 + 1, value & 0xFF);
+    m_current_address++;
     break;
   default:
-    ERROR_LOG(DSPLLE, "dsp_write_aram_d3() - unknown format 0x%x", g_dsp.ifx_regs[DSP_FORMAT]);
+    ERROR_LOG(DSPLLE, "dsp_write_aram_d3() - unknown format 0x%x", m_sample_format);
     break;
   }
-
-  g_dsp.ifx_regs[DSP_ACCAH] = Address >> 16;
-  g_dsp.ifx_regs[DSP_ACCAL] = Address & 0xffff;
 }
 
-u16 dsp_read_accelerator()
+u16 Accelerator::Read(s16* coefs)
 {
-  const u32 EndAddress = (g_dsp.ifx_regs[DSP_ACEAH] << 16) | g_dsp.ifx_regs[DSP_ACEAL];
-  u32 Address = (g_dsp.ifx_regs[DSP_ACCAH] << 16) | g_dsp.ifx_regs[DSP_ACCAL];
+  if (m_reads_stopped)
+    return 0x0000;
+
   u16 val;
   u8 step_size_bytes = 0;
 
@@ -122,41 +72,69 @@ u16 dsp_read_accelerator()
   // extension and do/do not use ADPCM.  It also remains to be figured out
   // whether there's a difference between the usual accelerator "read
   // address" and 0xd3.
-  switch (g_dsp.ifx_regs[DSP_FORMAT])
+  switch (m_sample_format)
   {
   case 0x00:  // ADPCM audio
-    switch (EndAddress & 15)
-    {
-    case 0:  // Tom and Jerry
-      step_size_bytes = 1;
-      break;
-    case 1:  // Blazing Angels
-      step_size_bytes = 0;
-      break;
-    default:
-      step_size_bytes = 2;
-      break;
-    }
-    val = ADPCM_Step(Address);
-    break;
-  case 0x0A:  // 16-bit PCM audio
-    val = (Host::ReadHostMemory(Address * 2) << 8) | Host::ReadHostMemory(Address * 2 + 1);
-    g_dsp.ifx_regs[DSP_YN2] = g_dsp.ifx_regs[DSP_YN1];
-    g_dsp.ifx_regs[DSP_YN1] = val;
+  {
+    int scale = 1 << (m_pred_scale & 0xF);
+    int coef_idx = (m_pred_scale >> 4) & 0x7;
+
+    s32 coef1 = coefs[coef_idx * 2 + 0];
+    s32 coef2 = coefs[coef_idx * 2 + 1];
+
+    int temp = (m_current_address & 1) ? (ReadMemory(m_current_address >> 1) & 0xF) :
+                                         (ReadMemory(m_current_address >> 1) >> 4);
+
+    if (temp >= 8)
+      temp -= 16;
+
+    s32 val32 = (scale * temp) + ((0x400 + coef1 * m_yn1 + coef2 * m_yn2) >> 11);
+    val = static_cast<s16>(MathUtil::Clamp<s32>(val32, -0x7FFF, 0x7FFF));
     step_size_bytes = 2;
-    Address++;
+
+    m_yn2 = m_yn1;
+    m_yn1 = val;
+    m_current_address += 1;
+
+    // These two cases are handled in a special way, separate from normal overflow handling:
+    // the ACCOV exception does not fire at all, the predscale register is not updated,
+    // and if the end address is 16-byte aligned, the DSP loops to start_address + 1
+    // instead of start_address.
+    if ((m_end_address & 0xf) == 0x0 && m_current_address == m_end_address)
+    {
+      m_current_address = m_start_address + 1;
+    }
+    else if ((m_end_address & 0xf) == 0x1 && m_current_address == m_end_address - 1)
+    {
+      m_current_address = m_start_address;
+    }
+    // If any of these special cases were hit, the DSP does not update the predscale register.
+    else if ((m_current_address & 15) == 0)
+    {
+      m_pred_scale = ReadMemory((m_current_address & ~15) >> 1);
+      m_current_address += 2;
+      step_size_bytes += 2;
+    }
+    break;
+  }
+  case 0x0A:  // 16-bit PCM audio
+    val = (ReadMemory(m_current_address * 2) << 8) | ReadMemory(m_current_address * 2 + 1);
+    m_yn2 = m_yn1;
+    m_yn1 = val;
+    step_size_bytes = 2;
+    m_current_address += 1;
     break;
   case 0x19:  // 8-bit PCM audio
-    val = Host::ReadHostMemory(Address) << 8;
-    g_dsp.ifx_regs[DSP_YN2] = g_dsp.ifx_regs[DSP_YN1];
-    g_dsp.ifx_regs[DSP_YN1] = val;
+    val = ReadMemory(m_current_address) << 8;
+    m_yn2 = m_yn1;
+    m_yn1 = val;
     step_size_bytes = 2;
-    Address++;
+    m_current_address += 1;
     break;
   default:
-    ERROR_LOG(DSPLLE, "dsp_read_accelerator() - unknown format 0x%x", g_dsp.ifx_regs[DSP_FORMAT]);
+    ERROR_LOG(DSPLLE, "dsp_read_accelerator() - unknown format 0x%x", m_sample_format);
     step_size_bytes = 2;
-    Address++;
+    m_current_address += 1;
     val = 0;
     break;
   }
@@ -170,15 +148,66 @@ u16 dsp_read_accelerator()
   // Somehow, YN1 and YN2 must be initialized with their "loop" values,
   // so yeah, it seems likely that we should raise an exception to let
   // the DSP program do that, at least if DSP_FORMAT == 0x0A.
-  if (Address == (EndAddress + step_size_bytes - 1))
+  if (m_current_address == (m_end_address + step_size_bytes - 1))
   {
     // Set address back to start address.
-    Address = (g_dsp.ifx_regs[DSP_ACSAH] << 16) | g_dsp.ifx_regs[DSP_ACSAL];
-    DSPCore_SetException(EXP_ACCOV);
+    m_current_address = m_start_address;
+    m_reads_stopped = true;
+    OnEndException();
   }
 
-  g_dsp.ifx_regs[DSP_ACCAH] = Address >> 16;
-  g_dsp.ifx_regs[DSP_ACCAL] = Address & 0xffff;
+  SetCurrentAddress(m_current_address);
   return val;
+}
+
+void Accelerator::DoState(PointerWrap& p)
+{
+  p.Do(m_start_address);
+  p.Do(m_end_address);
+  p.Do(m_current_address);
+  p.Do(m_sample_format);
+  p.Do(m_yn1);
+  p.Do(m_yn2);
+  p.Do(m_pred_scale);
+  p.Do(m_reads_stopped);
+}
+
+constexpr u32 START_END_ADDRESS_MASK = 0x3fffffff;
+constexpr u32 CURRENT_ADDRESS_MASK = 0xbfffffff;
+
+void Accelerator::SetStartAddress(u32 address)
+{
+  m_start_address = address & START_END_ADDRESS_MASK;
+}
+
+void Accelerator::SetEndAddress(u32 address)
+{
+  m_end_address = address & START_END_ADDRESS_MASK;
+}
+
+void Accelerator::SetCurrentAddress(u32 address)
+{
+  m_current_address = address & CURRENT_ADDRESS_MASK;
+}
+
+void Accelerator::SetSampleFormat(u16 format)
+{
+  m_sample_format = format;
+}
+
+void Accelerator::SetYn1(s16 yn1)
+{
+  m_yn1 = yn1;
+}
+
+void Accelerator::SetYn2(s16 yn2)
+{
+  m_yn2 = yn2;
+  m_reads_stopped = false;
+}
+
+void Accelerator::SetPredScale(u16 pred_scale)
+{
+  m_pred_scale = pred_scale & 0x7f;
 }
 }  // namespace DSP

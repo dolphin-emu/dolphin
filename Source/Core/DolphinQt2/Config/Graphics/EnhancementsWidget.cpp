@@ -43,16 +43,15 @@ void EnhancementsWidget::CreateWidgets()
   auto* enhancements_layout = new QGridLayout();
   enhancements_box->setLayout(enhancements_layout);
 
-  m_ir_combo = new GraphicsChoice(
-      {tr("Auto (Window Size)"), tr("Auto (Multiple of 640x528)"), tr("Native (640x528)"),
-       tr("1.5x Native (960x792)"), tr("2x Native (1280x1056) for 720p"),
-       tr("2.5x Native (1600x1320)"), tr("3x Native (1920x1584) for 1080p"),
-       tr("4x Native (2560x2112) for 1440p"), tr("5x Native (3200x2640)"),
-       tr("6x Native (3840x3168) for 4K"), tr("7x Native (4480x3696)"),
-       tr("8x Native (5120x4224) for 5K")},
-      Config::GFX_EFB_SCALE);
+  m_ir_combo = new GraphicsChoice({tr("Auto (Multiple of 640x528)"), tr("Native (640x528)"),
+                                   tr("2x Native (1280x1056) for 720p"),
+                                   tr("3x Native (1920x1584) for 1080p"),
+                                   tr("4x Native (2560x2112) for 1440p"),
+                                   tr("5x Native (3200x2640)"), tr("6x Native (3840x3168) for 4K"),
+                                   tr("7x Native (4480x3696)"), tr("8x Native (5120x4224) for 5K")},
+                                  Config::GFX_EFB_SCALE);
 
-  if (g_Config.iEFBScale > 11)
+  if (g_Config.iEFBScale > 8)
   {
     m_ir_combo->addItem(tr("Custom"));
     m_ir_combo->setCurrentIndex(m_ir_combo->count() - 1);
@@ -77,9 +76,9 @@ void EnhancementsWidget::CreateWidgets()
 
   enhancements_layout->addWidget(new QLabel(tr("Internal Resolution:")), 0, 0);
   enhancements_layout->addWidget(m_ir_combo, 0, 1, 1, -1);
-  enhancements_layout->addWidget(new QLabel(tr("Anti-Aliasing")), 1, 0);
+  enhancements_layout->addWidget(new QLabel(tr("Anti-Aliasing:")), 1, 0);
   enhancements_layout->addWidget(m_aa_combo, 1, 1, 1, -1);
-  enhancements_layout->addWidget(new QLabel(tr("Antisotrophic Filtering:")), 2, 0);
+  enhancements_layout->addWidget(new QLabel(tr("Anisotropic Filtering:")), 2, 0);
   enhancements_layout->addWidget(m_af_combo, 2, 1, 1, -1);
   enhancements_layout->addWidget(new QLabel(tr("Post-Processing Effect:")), 3, 0);
   enhancements_layout->addWidget(m_pp_effect, 3, 1);
@@ -114,6 +113,7 @@ void EnhancementsWidget::CreateWidgets()
 
   main_layout->addWidget(enhancements_box);
   main_layout->addWidget(stereoscopy_box);
+  main_layout->addStretch();
 
   setLayout(main_layout);
 }
@@ -221,10 +221,8 @@ void EnhancementsWidget::AddDescriptions()
   static const char* TR_INTERNAL_RESOLUTION_DESCRIPTION =
       QT_TR_NOOP("Specifies the resolution used to render at. A high resolution greatly improves "
                  "visual quality, but also greatly increases GPU load and can cause issues in "
-                 "certain games.\n\"Multiple of 640x528\" will result in a size slightly larger "
-                 "than \"Window Size\" but yield fewer issues. Generally speaking, the lower the "
-                 "internal resolution is, the better your performance will be. Auto (Window Size), "
-                 "1.5x, and 2.5x may cause issues in some games.\n\nIf unsure, select Native.");
+                 "certain games. Generally speaking, the lower the internal resolution is, the "
+                 "better your performance will be.\n\nIf unsure, select Native.");
 
   static const char* TR_ANTIALIAS_DESCRIPTION =
       QT_TR_NOOP("Reduces the amount of aliasing caused by rasterizing 3D graphics. This smooths "
@@ -233,7 +231,7 @@ void EnhancementsWidget::AddDescriptions()
                  "geometry anti-aliasing and also applies anti-aliasing to lighting, shader "
                  "effects, and textures.\n\nIf unsure, select None.");
 
-  static const char* TR_ANTISTROPIC_FILTERING_DESCRIPTION = QT_TR_NOOP(
+  static const char* TR_ANISOTROPIC_FILTERING_DESCRIPTION = QT_TR_NOOP(
       "Enable anisotropic filtering.\nEnhances visual quality of textures that are at oblique "
       "viewing angles.\nMight cause issues in a small number of games.\n\nIf unsure, select 1x.");
 
@@ -263,8 +261,9 @@ void EnhancementsWidget::AddDescriptions()
   static const char* TR_3D_MODE_DESCRIPTION = QT_TR_NOOP(
       "Selects the stereoscopic 3D mode. Stereoscopy allows you to get a better feeling "
       "of depth if you have the necessary hardware.\nSide-by-Side and Top-and-Bottom are "
-      "used by most 3D TVs.\nAnaglyph is used for Red-Cyan colored glasses.\nHeavily "
-      "decreases emulation speed and sometimes causes issues.\n\nIf unsure, select Off.");
+      "used by most 3D TVs.\nAnaglyph is used for Red-Cyan colored glasses.\nHDMI 3D is "
+      "used when your monitor supports 3D display resolutions.\nHeavily decreases "
+      "emulation speed and sometimes causes issues.\n\nIf unsure, select Off.");
   static const char* TR_3D_DEPTH_DESCRIPTION =
       QT_TR_NOOP("Controls the separation distance between the virtual cameras.\nA higher value "
                  "creates a stronger feeling of depth while a lower value is more comfortable.");
@@ -286,7 +285,7 @@ void EnhancementsWidget::AddDescriptions()
 
   AddDescription(m_ir_combo, TR_INTERNAL_RESOLUTION_DESCRIPTION);
   AddDescription(m_aa_combo, TR_ANTIALIAS_DESCRIPTION);
-  AddDescription(m_af_combo, TR_ANTISTROPIC_FILTERING_DESCRIPTION);
+  AddDescription(m_af_combo, TR_ANISOTROPIC_FILTERING_DESCRIPTION);
   AddDescription(m_pp_effect, TR_POSTPROCESSING_DESCRIPTION);
   AddDescription(m_scaled_efb_copy, TR_SCALED_EFB_COPY_DESCRIPTION);
   AddDescription(m_per_pixel_lighting, TR_PER_PIXEL_LIGHTING_DESCRIPTION);

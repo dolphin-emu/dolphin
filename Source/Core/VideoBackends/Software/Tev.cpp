@@ -175,7 +175,7 @@ void Tev::SetRasColor(int colorChan, int swaptable)
   {
   case 0:  // Color0
   {
-    u8* color = Color[0];
+    const u8* color = Color[0];
     RasColor[RED_C] = color[bpmem.tevksel[swaptable].swap1];
     RasColor[GRN_C] = color[bpmem.tevksel[swaptable].swap2];
     swaptable++;
@@ -185,7 +185,7 @@ void Tev::SetRasColor(int colorChan, int swaptable)
   break;
   case 1:  // Color1
   {
-    u8* color = Color[1];
+    const u8* color = Color[1];
     RasColor[RED_C] = color[bpmem.tevksel[swaptable].swap1];
     RasColor[GRN_C] = color[bpmem.tevksel[swaptable].swap2];
     swaptable++;
@@ -203,7 +203,7 @@ void Tev::SetRasColor(int colorChan, int swaptable)
   break;
   case 6:  // alpha bump normalized
   {
-    u8 normalized = AlphaBump | AlphaBump >> 5;
+    const u8 normalized = AlphaBump | AlphaBump >> 5;
     for (s16& comp : RasColor)
     {
       comp = normalized;
@@ -221,13 +221,13 @@ void Tev::SetRasColor(int colorChan, int swaptable)
   }
 }
 
-void Tev::DrawColorRegular(TevStageCombiner::ColorCombiner& cc, const InputRegType inputs[4])
+void Tev::DrawColorRegular(const TevStageCombiner::ColorCombiner& cc, const InputRegType inputs[4])
 {
   for (int i = 0; i < 3; i++)
   {
     const InputRegType& InputReg = inputs[BLU_C + i];
 
-    u16 c = InputReg.c + (InputReg.c >> 7);
+    const u16 c = InputReg.c + (InputReg.c >> 7);
 
     s32 temp = InputReg.a * (256 - c) + (InputReg.b * c);
     temp <<= m_ScaleLShiftLUT[cc.shift];
@@ -242,7 +242,7 @@ void Tev::DrawColorRegular(TevStageCombiner::ColorCombiner& cc, const InputRegTy
   }
 }
 
-void Tev::DrawColorCompare(TevStageCombiner::ColorCombiner& cc, const InputRegType inputs[4])
+void Tev::DrawColorCompare(const TevStageCombiner::ColorCombiner& cc, const InputRegType inputs[4])
 {
   for (int i = BLU_C; i <= RED_C; i++)
   {
@@ -258,32 +258,32 @@ void Tev::DrawColorCompare(TevStageCombiner::ColorCombiner& cc, const InputRegTy
 
     case TEVCMP_GR16_GT:
     {
-      u32 a = (inputs[GRN_C].a << 8) | inputs[RED_C].a;
-      u32 b = (inputs[GRN_C].b << 8) | inputs[RED_C].b;
+      const u32 a = (inputs[GRN_C].a << 8) | inputs[RED_C].a;
+      const u32 b = (inputs[GRN_C].b << 8) | inputs[RED_C].b;
       Reg[cc.dest][i] = inputs[i].d + ((a > b) ? inputs[i].c : 0);
     }
     break;
 
     case TEVCMP_GR16_EQ:
     {
-      u32 a = (inputs[GRN_C].a << 8) | inputs[RED_C].a;
-      u32 b = (inputs[GRN_C].b << 8) | inputs[RED_C].b;
+      const u32 a = (inputs[GRN_C].a << 8) | inputs[RED_C].a;
+      const u32 b = (inputs[GRN_C].b << 8) | inputs[RED_C].b;
       Reg[cc.dest][i] = inputs[i].d + ((a == b) ? inputs[i].c : 0);
     }
     break;
 
     case TEVCMP_BGR24_GT:
     {
-      u32 a = (inputs[BLU_C].a << 16) | (inputs[GRN_C].a << 8) | inputs[RED_C].a;
-      u32 b = (inputs[BLU_C].b << 16) | (inputs[GRN_C].b << 8) | inputs[RED_C].b;
+      const u32 a = (inputs[BLU_C].a << 16) | (inputs[GRN_C].a << 8) | inputs[RED_C].a;
+      const u32 b = (inputs[BLU_C].b << 16) | (inputs[GRN_C].b << 8) | inputs[RED_C].b;
       Reg[cc.dest][i] = inputs[i].d + ((a > b) ? inputs[i].c : 0);
     }
     break;
 
     case TEVCMP_BGR24_EQ:
     {
-      u32 a = (inputs[BLU_C].a << 16) | (inputs[GRN_C].a << 8) | inputs[RED_C].a;
-      u32 b = (inputs[BLU_C].b << 16) | (inputs[GRN_C].b << 8) | inputs[RED_C].b;
+      const u32 a = (inputs[BLU_C].a << 16) | (inputs[GRN_C].a << 8) | inputs[RED_C].a;
+      const u32 b = (inputs[BLU_C].b << 16) | (inputs[GRN_C].b << 8) | inputs[RED_C].b;
       Reg[cc.dest][i] = inputs[i].d + ((a == b) ? inputs[i].c : 0);
     }
     break;
@@ -299,11 +299,11 @@ void Tev::DrawColorCompare(TevStageCombiner::ColorCombiner& cc, const InputRegTy
   }
 }
 
-void Tev::DrawAlphaRegular(TevStageCombiner::AlphaCombiner& ac, const InputRegType inputs[4])
+void Tev::DrawAlphaRegular(const TevStageCombiner::AlphaCombiner& ac, const InputRegType inputs[4])
 {
   const InputRegType& InputReg = inputs[ALP_C];
 
-  u16 c = InputReg.c + (InputReg.c >> 7);
+  const u16 c = InputReg.c + (InputReg.c >> 7);
 
   s32 temp = InputReg.a * (256 - c) + (InputReg.b * c);
   temp <<= m_ScaleLShiftLUT[ac.shift];
@@ -316,7 +316,7 @@ void Tev::DrawAlphaRegular(TevStageCombiner::AlphaCombiner& ac, const InputRegTy
   Reg[ac.dest][ALP_C] = result;
 }
 
-void Tev::DrawAlphaCompare(TevStageCombiner::AlphaCombiner& ac, const InputRegType inputs[4])
+void Tev::DrawAlphaCompare(const TevStageCombiner::AlphaCombiner& ac, const InputRegType inputs[4])
 {
   switch ((ac.shift << 1) | ac.op | 8)  // encoded compare mode
   {
@@ -332,32 +332,32 @@ void Tev::DrawAlphaCompare(TevStageCombiner::AlphaCombiner& ac, const InputRegTy
 
   case TEVCMP_GR16_GT:
   {
-    u32 a = (inputs[GRN_C].a << 8) | inputs[RED_C].a;
-    u32 b = (inputs[GRN_C].b << 8) | inputs[RED_C].b;
+    const u32 a = (inputs[GRN_C].a << 8) | inputs[RED_C].a;
+    const u32 b = (inputs[GRN_C].b << 8) | inputs[RED_C].b;
     Reg[ac.dest][ALP_C] = inputs[ALP_C].d + ((a > b) ? inputs[ALP_C].c : 0);
   }
   break;
 
   case TEVCMP_GR16_EQ:
   {
-    u32 a = (inputs[GRN_C].a << 8) | inputs[RED_C].a;
-    u32 b = (inputs[GRN_C].b << 8) | inputs[RED_C].b;
+    const u32 a = (inputs[GRN_C].a << 8) | inputs[RED_C].a;
+    const u32 b = (inputs[GRN_C].b << 8) | inputs[RED_C].b;
     Reg[ac.dest][ALP_C] = inputs[ALP_C].d + ((a == b) ? inputs[ALP_C].c : 0);
   }
   break;
 
   case TEVCMP_BGR24_GT:
   {
-    u32 a = (inputs[BLU_C].a << 16) | (inputs[GRN_C].a << 8) | inputs[RED_C].a;
-    u32 b = (inputs[BLU_C].b << 16) | (inputs[GRN_C].b << 8) | inputs[RED_C].b;
+    const u32 a = (inputs[BLU_C].a << 16) | (inputs[GRN_C].a << 8) | inputs[RED_C].a;
+    const u32 b = (inputs[BLU_C].b << 16) | (inputs[GRN_C].b << 8) | inputs[RED_C].b;
     Reg[ac.dest][ALP_C] = inputs[ALP_C].d + ((a > b) ? inputs[ALP_C].c : 0);
   }
   break;
 
   case TEVCMP_BGR24_EQ:
   {
-    u32 a = (inputs[BLU_C].a << 16) | (inputs[GRN_C].a << 8) | inputs[RED_C].a;
-    u32 b = (inputs[BLU_C].b << 16) | (inputs[GRN_C].b << 8) | inputs[RED_C].b;
+    const u32 a = (inputs[BLU_C].a << 16) | (inputs[GRN_C].a << 8) | inputs[RED_C].a;
+    const u32 b = (inputs[BLU_C].b << 16) | (inputs[GRN_C].b << 8) | inputs[RED_C].b;
     Reg[ac.dest][ALP_C] = inputs[ALP_C].d + ((a == b) ? inputs[ALP_C].c : 0);
   }
   break;
@@ -401,8 +401,8 @@ static bool AlphaCompare(int alpha, int ref, AlphaTest::CompareMode comp)
 
 static bool TevAlphaTest(int alpha)
 {
-  bool comp0 = AlphaCompare(alpha, bpmem.alpha_test.ref0, bpmem.alpha_test.comp0);
-  bool comp1 = AlphaCompare(alpha, bpmem.alpha_test.ref1, bpmem.alpha_test.comp1);
+  const bool comp0 = AlphaCompare(alpha, bpmem.alpha_test.ref0, bpmem.alpha_test.comp0);
+  const bool comp1 = AlphaCompare(alpha, bpmem.alpha_test.ref1, bpmem.alpha_test.comp1);
 
   switch (bpmem.alpha_test.logic)
   {
@@ -444,8 +444,8 @@ static inline s32 WrapIndirectCoord(s32 coord, int wrapMode)
 
 void Tev::Indirect(unsigned int stageNum, s32 s, s32 t)
 {
-  TevStageIndirect& indirect = bpmem.tevind[stageNum];
-  u8* indmap = IndirectTex[indirect.bt];
+  const TevStageIndirect& indirect = bpmem.tevind[stageNum];
+  const u8* indmap = IndirectTex[indirect.bt];
 
   s32 indcoord[3];
 
@@ -467,7 +467,7 @@ void Tev::Indirect(unsigned int stageNum, s32 s, s32 t)
   }
 
   // bias select
-  s16 biasValue = indirect.fmt == ITF_8 ? -128 : 1;
+  const s16 biasValue = indirect.fmt == ITF_8 ? -128 : 1;
   s16 bias[3];
   bias[0] = indirect.bias & 1 ? biasValue : 0;
   bias[1] = indirect.bias & 2 ? biasValue : 0;
@@ -509,11 +509,11 @@ void Tev::Indirect(unsigned int stageNum, s32 s, s32 t)
 
   // matrix multiply - results might overflow, but we don't care since we only use the lower 24 bits
   // of the result.
-  int indmtxid = indirect.mid & 3;
+  const int indmtxid = indirect.mid & 3;
   if (indmtxid)
   {
-    IND_MTX& indmtx = bpmem.indmtx[indmtxid - 1];
-    int scale =
+    const IND_MTX& indmtx = bpmem.indmtx[indmtxid - 1];
+    const int scale =
         ((u32)indmtx.col0.s0 << 0) | ((u32)indmtx.col1.s1 << 2) | ((u32)indmtx.col2.s2 << 4);
 
     int shift;
@@ -580,15 +580,15 @@ void Tev::Draw()
 
   for (unsigned int stageNum = 0; stageNum < bpmem.genMode.numindstages; stageNum++)
   {
-    int stageNum2 = stageNum >> 1;
-    int stageOdd = stageNum & 1;
+    const int stageNum2 = stageNum >> 1;
+    const int stageOdd = stageNum & 1;
 
-    u32 texcoordSel = bpmem.tevindref.getTexCoord(stageNum);
-    u32 texmap = bpmem.tevindref.getTexMap(stageNum);
+    const u32 texcoordSel = bpmem.tevindref.getTexCoord(stageNum);
+    const u32 texmap = bpmem.tevindref.getTexMap(stageNum);
 
     const TEXSCALE& texscale = bpmem.texscale[stageNum2];
-    s32 scaleS = stageOdd ? texscale.ss1 : texscale.ss0;
-    s32 scaleT = stageOdd ? texscale.ts1 : texscale.ts0;
+    const s32 scaleS = stageOdd ? texscale.ss1 : texscale.ss0;
+    const s32 scaleT = stageOdd ? texscale.ts1 : texscale.ts0;
 
     TextureSampler::Sample(Uv[texcoordSel].s >> scaleS, Uv[texcoordSel].t >> scaleT,
                            IndirectLod[stageNum], IndirectLinear[stageNum], texmap,
@@ -607,17 +607,17 @@ void Tev::Draw()
 
   for (unsigned int stageNum = 0; stageNum <= bpmem.genMode.numtevstages; stageNum++)
   {
-    int stageNum2 = stageNum >> 1;
-    int stageOdd = stageNum & 1;
-    TwoTevStageOrders& order = bpmem.tevorders[stageNum2];
-    TevKSel& kSel = bpmem.tevksel[stageNum2];
+    const int stageNum2 = stageNum >> 1;
+    const int stageOdd = stageNum & 1;
+    const TwoTevStageOrders& order = bpmem.tevorders[stageNum2];
+    const TevKSel& kSel = bpmem.tevksel[stageNum2];
 
     // stage combiners
-    TevStageCombiner::ColorCombiner& cc = bpmem.combiners[stageNum].colorC;
-    TevStageCombiner::AlphaCombiner& ac = bpmem.combiners[stageNum].alphaC;
+    const TevStageCombiner::ColorCombiner& cc = bpmem.combiners[stageNum].colorC;
+    const TevStageCombiner::AlphaCombiner& ac = bpmem.combiners[stageNum].alphaC;
 
-    int texcoordSel = order.getTexCoord(stageOdd);
-    int texmap = order.getTexMap(stageOdd);
+    const int texcoordSel = order.getTexCoord(stageOdd);
+    const int texmap = order.getTexMap(stageOdd);
 
     Indirect(stageNum, Uv[texcoordSel].s, Uv[texcoordSel].t);
 
@@ -645,8 +645,8 @@ void Tev::Draw()
     }
 
     // set konst for this stage
-    int kc = kSel.getKC(stageOdd);
-    int ka = kSel.getKA(stageOdd);
+    const int kc = kSel.getKC(stageOdd);
+    const int ka = kSel.getKA(stageOdd);
     StageKonst[RED_C] = *(m_KonstLUT[kc][RED_C]);
     StageKonst[GRN_C] = *(m_KonstLUT[kc][GRN_C]);
     StageKonst[BLU_C] = *(m_KonstLUT[kc][BLU_C]);
@@ -709,8 +709,8 @@ void Tev::Draw()
   // convert to 8 bits per component
   // the results of the last tev stage are put onto the screen,
   // regardless of the used destination register - TODO: Verify!
-  u32 color_index = bpmem.combiners[bpmem.genMode.numtevstages].colorC.dest;
-  u32 alpha_index = bpmem.combiners[bpmem.genMode.numtevstages].alphaC.dest;
+  const u32 color_index = bpmem.combiners[bpmem.genMode.numtevstages].colorC.dest;
+  const u32 alpha_index = bpmem.combiners[bpmem.genMode.numtevstages].alphaC.dest;
   u8 output[4] = {(u8)Reg[alpha_index][ALP_C], (u8)Reg[color_index][BLU_C],
                   (u8)Reg[color_index][GRN_C], (u8)Reg[color_index][RED_C]};
 
@@ -749,7 +749,7 @@ void Tev::Draw()
     {
       // perspective
       // ze = A/(B - (Zs >> B_SHF))
-      s32 denom = bpmem.fog.b_magnitude - (Position[2] >> bpmem.fog.b_shift);
+      const s32 denom = bpmem.fog.b_magnitude - (Position[2] >> bpmem.fog.b_shift);
       // in addition downscale magnitude and zs to 0.24 bits
       ze = (bpmem.fog.a.GetA() * 16777215.0f) / (float)denom;
     }
@@ -769,8 +769,9 @@ void Tev::Draw()
       // - scaling of the "k" coefficient isn't clear either.
 
       // First, calculate the offset from the viewport center (normalized to 0..1)
-      float offset = (Position[0] - (static_cast<s32>(bpmem.fogRange.Base.Center) - 342)) /
-                     static_cast<float>(xfmem.viewport.wd);
+      const float offset =
+          (Position[0] - (static_cast<s32>(bpmem.fogRange.Base.Center.Value()) - 342)) /
+          static_cast<float>(xfmem.viewport.wd);
 
       // Based on that, choose the index such that points which are far away from the z-axis use the
       // 10th "k" value and such that central points use the first value.
@@ -780,17 +781,17 @@ void Tev::Draw()
                                         floatindex;  // TODO: This shouldn't be necessary!
 
       // Get the two closest integer indices, look up the corresponding samples
-      int indexlower = (int)floor(floatindex);
-      int indexupper = indexlower + 1;
+      const int indexlower = (int)floor(floatindex);
+      const int indexupper = indexlower + 1;
       // Look up coefficient... Seems like multiplying by 4 makes Fortune Street work properly (fog
       // is too strong without the factor)
-      float klower = bpmem.fogRange.K[indexlower / 2].GetValue(indexlower % 2) * 4.f;
-      float kupper = bpmem.fogRange.K[indexupper / 2].GetValue(indexupper % 2) * 4.f;
+      const float klower = bpmem.fogRange.K[indexlower / 2].GetValue(indexlower % 2) * 4.f;
+      const float kupper = bpmem.fogRange.K[indexupper / 2].GetValue(indexupper % 2) * 4.f;
 
       // linearly interpolate the samples and multiple ze by the resulting adjustment factor
-      float factor = indexupper - floatindex;
-      float k = klower * factor + kupper * (1.f - factor);
-      float x_adjust = sqrt(offset * offset + k * k) / k;
+      const float factor = indexupper - floatindex;
+      const float k = klower * factor + kupper * (1.f - factor);
+      const float x_adjust = sqrt(offset * offset + k * k) / k;
       ze *= x_adjust;  // NOTE: This is basically dividing by a cosine (hidden behind
                        // GXInitFogAdjTable): 1/cos = c/b = sqrt(a^2+b^2)/b
     }
@@ -819,15 +820,15 @@ void Tev::Draw()
     }
 
     // lerp from output to fog color
-    u32 fogInt = (u32)(fog * 256);
-    u32 invFog = 256 - fogInt;
+    const u32 fogInt = (u32)(fog * 256);
+    const u32 invFog = 256 - fogInt;
 
     output[RED_C] = (output[RED_C] * invFog + fogInt * bpmem.fog.color.r) >> 8;
     output[GRN_C] = (output[GRN_C] * invFog + fogInt * bpmem.fog.color.g) >> 8;
     output[BLU_C] = (output[BLU_C] * invFog + fogInt * bpmem.fog.color.b) >> 8;
   }
 
-  bool late_ztest = !bpmem.zcontrol.early_ztest || !g_ActiveConfig.bZComploc;
+  const bool late_ztest = !bpmem.zcontrol.early_ztest || !g_ActiveConfig.bZComploc;
   if (late_ztest && bpmem.zmode.testenable)
   {
     // TODO: Check against hw if these values get incremented even if depth testing is disabled

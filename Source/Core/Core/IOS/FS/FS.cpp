@@ -21,6 +21,8 @@
 #include "Common/NandPaths.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/SystemTimers.h"
+#include "Core/IOS/ES/ES.h"
+#include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/FS/FileIO.h"
 
 namespace IOS
@@ -326,6 +328,18 @@ IPCCommandResult FS::GetAttribute(const IOCtlRequest& request)
   u8 OtherPerm = 0x3;    // read/write
   u8 Attributes = 0x00;  // no attributes
 
+  // Hack: if the path that is being accessed is within an installed title directory, get the
+  // UID/GID from the installed title TMD.
+  u64 title_id;
+  if (IsTitlePath(Filename, Common::FROM_SESSION_ROOT, &title_id))
+  {
+    IOS::ES::TMDReader tmd = GetIOS()->GetES()->FindInstalledTMD(title_id);
+    if (tmd.IsValid())
+    {
+      GroupID = tmd.GetGroupId();
+    }
+  }
+
   if (File::IsDirectory(Filename))
   {
     INFO_LOG(IOS_FILEIO, "FS: GET_ATTR Directory %s - all permission flags are set",
@@ -524,13 +538,15 @@ IPCCommandResult FS::ReadDirectory(const IOCtlVRequest& request)
 
   INFO_LOG(IOS_FILEIO, "FS: IOCTL_READ_DIR %s", DirName.c_str());
 
-  if (!File::Exists(DirName))
+  const File::FileInfo file_info(DirName);
+
+  if (!file_info.Exists())
   {
     WARN_LOG(IOS_FILEIO, "FS: Search not found: %s", DirName.c_str());
     return GetFSReply(FS_ENOENT);
   }
 
-  if (!File::IsDirectory(DirName))
+  if (!file_info.IsDirectory())
   {
     // It's not a directory, so error.
     // Games don't usually seem to care WHICH error they get, as long as it's <
@@ -613,27 +629,13 @@ IPCCommandResult FS::GetUsage(const IOCtlVRequest& request)
   INFO_LOG(IOS_FILEIO, "IOCTL_GETUSAGE %s", path.c_str());
   if (File::IsDirectory(path))
   {
-    // LPFaint99: After I found that setting the number of inodes to the number of children + 1
-    // for the directory itself
-    // I decided to compare with sneek which has the following 2 special cases which are
-    // Copyright (C) 2009-2011  crediar http://code.google.com/p/sneek/
-    if ((relativepath.compare(0, 16, "/title/00010001") == 0) ||
-        (relativepath.compare(0, 16, "/title/00010005") == 0))
-    {
-      fsBlocks = 23;  // size is size/0x4000
-      iNodes = 42;    // empty folders return a FileCount of 1
-    }
-    else
-    {
-      File::FSTEntry parentDir = File::ScanDirectoryTree(path, true);
-      // add one for the folder itself
-      iNodes = 1 + (u32)parentDir.size;
+    File::FSTEntry parentDir = File::ScanDirectoryTree(path, true);
+    // add one for the folder itself
+    iNodes = 1 + (u32)parentDir.size;
 
-      u64 totalSize =
-          ComputeTotalFileSize(parentDir);  // "Real" size, to be converted to nand blocks
+    u64 totalSize = ComputeTotalFileSize(parentDir);  // "Real" size, to be converted to nand blocks
 
-      fsBlocks = (u32)(totalSize / (16 * 1024));  // one bock is 16kb
-    }
+    fsBlocks = (u32)(totalSize / (16 * 1024));  // one bock is 16kb
 
     INFO_LOG(IOS_FILEIO, "FS: fsBlock: %i, iNodes: %i", fsBlocks, iNodes);
   }

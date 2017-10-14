@@ -37,6 +37,8 @@ DXGI_FORMAT GetDXGIFormatForHostFormat(AbstractTextureFormat format)
     return DXGI_FORMAT_BC2_UNORM;
   case AbstractTextureFormat::DXT5:
     return DXGI_FORMAT_BC3_UNORM;
+  case AbstractTextureFormat::BPTC:
+    return DXGI_FORMAT_BC7_UNORM;
   case AbstractTextureFormat::RGBA8:
   default:
     return DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -67,9 +69,8 @@ DXTexture::DXTexture(const TextureConfig& tex_config) : AbstractTexture(tex_conf
     m_texture = new D3DTexture2D(pTexture, D3D11_BIND_SHADER_RESOURCE);
 
     // TODO: better debug names
-    D3D::SetDebugObjectName((ID3D11DeviceChild*)m_texture->GetTex(),
-                            "a texture of the TextureCache");
-    D3D::SetDebugObjectName((ID3D11DeviceChild*)m_texture->GetSRV(),
+    D3D::SetDebugObjectName(m_texture->GetTex(), "a texture of the TextureCache");
+    D3D::SetDebugObjectName(m_texture->GetSRV(),
                             "shader resource view of a texture of the TextureCache");
 
     SAFE_RELEASE(pTexture);
@@ -180,9 +181,7 @@ void DXTexture::CopyRectangleFromTexture(const AbstractTexture* source,
                          VertexShaderCache::GetSimpleInputLayout(),
                          GeometryShaderCache::GetCopyGeometryShader(), 1.0, 0);
 
-  D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(),
-                                   FramebufferManager::GetEFBDepthTexture()->GetDSV());
-
+  FramebufferManager::BindEFBRenderTarget();
   g_renderer->RestoreAPIState();
 }
 

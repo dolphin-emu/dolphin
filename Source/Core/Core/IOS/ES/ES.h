@@ -13,6 +13,7 @@
 #include "Core/IOS/Device.h"
 #include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/IOS.h"
+#include "Core/IOS/IOSC.h"
 
 class PointerWrap;
 
@@ -55,35 +56,21 @@ public:
   ReturnCode Close(u32 fd) override;
   IPCCommandResult IOCtlV(const IOCtlVRequest& request) override;
 
-  struct OpenedContent
+  struct TitleImportExportContext
   {
-    bool m_opened = false;
-    u64 m_title_id = 0;
-    IOS::ES::Content m_content;
-    u32 m_position = 0;
-    u32 m_uid = 0;
-  };
-
-  struct TitleImportContext
-  {
-    IOS::ES::TMDReader tmd;
-    u32 content_id = 0xFFFFFFFF;
-    std::vector<u8> content_buffer;
-  };
-
-  // TODO: merge this with TitleImportContext. Also reuse the global content table.
-  struct TitleExportContext
-  {
-    struct ExportContent
-    {
-      OpenedContent content;
-      std::array<u8, 16> iv{};
-    };
+    void DoState(PointerWrap& p);
 
     bool valid = false;
     IOS::ES::TMDReader tmd;
-    std::array<u8, 16> title_key;
-    std::map<u32, ExportContent> contents;
+    IOSC::Handle key_handle = 0;
+    struct ContentContext
+    {
+      bool valid = false;
+      u32 id = 0;
+      std::array<u8, 16> iv{};
+      std::vector<u8> buffer;
+    };
+    ContentContext content;
   };
 
   struct Context
@@ -92,8 +79,7 @@ public:
 
     u16 gid = 0;
     u32 uid = 0;
-    TitleImportContext title_import;
-    TitleExportContext title_export;
+    TitleImportExportContext title_import_export;
     bool active = false;
     // We use this to associate an IPC fd with an ES context.
     s32 ipc_fd = -1;
@@ -113,8 +99,22 @@ public:
   u32 GetSharedContentsCount() const;
   std::vector<std::array<u8, 20>> GetSharedContents() const;
 
+  // Title contents
+  s32 OpenContent(const IOS::ES::TMDReader& tmd, u16 content_index, u32 uid);
+  ReturnCode CloseContent(u32 cfd, u32 uid);
+  s32 ReadContent(u32 cfd, u8* buffer, u32 size, u32 uid);
+  s32 SeekContent(u32 cfd, u32 offset, SeekMode mode, u32 uid);
+
   // Title management
-  ReturnCode ImportTicket(const std::vector<u8>& ticket_bytes, const std::vector<u8>& cert_chain);
+  enum class TicketImportType
+  {
+    // Ticket may be personalised, so use console specific data for decryption if needed.
+    PossiblyPersonalised,
+    // Ticket is unpersonalised, so ignore any console specific decryption data.
+    Unpersonalised,
+  };
+  ReturnCode ImportTicket(const std::vector<u8>& ticket_bytes, const std::vector<u8>& cert_chain,
+                          TicketImportType type = TicketImportType::PossiblyPersonalised);
   ReturnCode ImportTmd(Context& context, const std::vector<u8>& tmd_bytes);
   ReturnCode ImportTitleInit(Context& context, const std::vector<u8>& tmd_bytes,
                              const std::vector<u8>& cert_chain);
@@ -135,6 +135,7 @@ public:
   ReturnCode DeleteContent(u64 title_id, u32 content_id) const;
 
   ReturnCode GetDeviceId(u32* device_id) const;
+  ReturnCode GetTitleId(u64* device_id) const;
 
   // Views
   ReturnCode GetV0TicketFromView(const u8* ticket_view, u8* ticket) const;
@@ -251,7 +252,7 @@ private:
   // Misc
   IPCCommandResult SetUID(u32 uid, const IOCtlVRequest& request);
   IPCCommandResult GetTitleDirectory(const IOCtlVRequest& request);
-  IPCCommandResult GetTitleID(const IOCtlVRequest& request);
+  IPCCommandResult GetTitleId(const IOCtlVRequest& request);
   IPCCommandResult GetConsumption(const IOCtlVRequest& request);
   IPCCommandResult Launch(const IOCtlVRequest& request);
   IPCCommandResult LaunchBC(const IOCtlVRequest& request);
@@ -342,7 +343,15 @@ private:
 
   static const DiscIO::NANDContentLoader& AccessContentDevice(u64 title_id);
 
-  s32 OpenContent(const IOS::ES::TMDReader& tmd, u16 content_index, u32 uid);
+  // TODO: reuse the FS code.
+  struct OpenedContent
+  {
+    bool m_opened = false;
+    u64 m_title_id = 0;
+    IOS::ES::Content m_content;
+    u32 m_position = 0;
+    u32 m_uid = 0;
+  };
 
   using ContentTable = std::array<OpenedContent, 16>;
   ContentTable m_content_table;

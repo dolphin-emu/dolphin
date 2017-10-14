@@ -300,12 +300,12 @@ void JitArm64::mfspr(UGeckoInstruction inst)
         if (iIndex == SPR_TL)
           MOV(gpr.R(d), Wresult);
         else
-          ORR(EncodeRegTo64(gpr.R(d)), ZR, Xresult, ArithOption(Xresult, ST_LSR, 32));
+          LSR(EncodeRegTo64(gpr.R(d)), Xresult, 32);
 
         if (nextIndex == SPR_TL)
           MOV(gpr.R(n), Wresult);
         else
-          ORR(EncodeRegTo64(gpr.R(n)), ZR, Xresult, ArithOption(Xresult, ST_LSR, 32));
+          LSR(EncodeRegTo64(gpr.R(n)), Xresult, 32);
 
         gpr.Unlock(Wg, Wresult, WA, WB);
         fpr.Unlock(VC, VD);
@@ -314,7 +314,7 @@ void JitArm64::mfspr(UGeckoInstruction inst)
     }
     gpr.BindToRegister(d, false);
     if (iIndex == SPR_TU)
-      ORR(EncodeRegTo64(gpr.R(d)), ZR, Xresult, ArithOption(Xresult, ST_LSR, 32));
+      LSR(EncodeRegTo64(gpr.R(d)), Xresult, 32);
     else
       MOV(gpr.R(d), Wresult);
 

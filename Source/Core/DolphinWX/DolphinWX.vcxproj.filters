@@ -196,6 +196,9 @@
     <ClCompile Include="TASInputDlg.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
+    <ClCompile Include="UINeedsControllerState.cpp">
+      <Filter>GUI</Filter>
+    </ClCompile>
     <ClCompile Include="SoftwareVideoConfigDialog.cpp">
       <Filter>GUI\Video</Filter>
     </ClCompile>
@@ -418,6 +421,9 @@
       <Filter>GUI</Filter>
     </ClInclude>
     <ClInclude Include="TASInputDlg.h">
+      <Filter>GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="UINeedsControllerState.h">
       <Filter>GUI</Filter>
     </ClInclude>
     <ClInclude Include="SoftwareVideoConfigDialog.h">

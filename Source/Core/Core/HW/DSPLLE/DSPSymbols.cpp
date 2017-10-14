@@ -149,7 +149,7 @@ bool ReadAnnotatedAssembly(const std::string& filename)
           temp[i - 5] = 0;
 
           // Mark symbol so the next hex sets the address
-          current_symbol.name = temp;
+          current_symbol.Rename(temp);
           current_symbol.address = 0xFFFF;
           current_symbol.index = symbol_count++;
           symbol_in_progress = true;
@@ -230,7 +230,7 @@ void AutoDisassembly(u16 start_addr, u16 end_addr)
     addr_to_line[addr] = line_counter;
 
     std::string buf;
-    if (!disasm.DisassembleOpcode(ptr, 0, 2, &addr, buf))
+    if (!disasm.DisassembleOpcode(ptr, &addr, buf))
     {
       ERROR_LOG(DSPLLE, "disasm failed at %04x", addr);
       break;

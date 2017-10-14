@@ -56,11 +56,11 @@ public:
   void ResetAPIState() override;
   void RestoreAPIState() override;
 
-  void SetBlendMode(bool force_update) override;
+  void SetBlendingState(const BlendingState& state) override;
   void SetScissorRect(const EFBRectangle& rc) override;
-  void SetGenerationMode() override;
-  void SetDepthMode() override;
-  void SetSamplerState(int stage, int texindex, bool custom_tex) override;
+  void SetRasterizationState(const RasterizationState& state) override;
+  void SetDepthState(const DepthState& state) override;
+  void SetSamplerState(u32 index, const SamplerState& state) override;
   void SetInterlacingMode() override;
   void SetViewport() override;
 
@@ -81,7 +81,6 @@ private:
   void OnSwapChainResized();
   void BindEFBToStateTracker();
   void ResizeEFBTextures();
-  void ResizeSwapChain();
 
   void RecompileShaders();
   bool CompileShaders();

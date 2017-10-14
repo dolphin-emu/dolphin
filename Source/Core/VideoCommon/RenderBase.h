@@ -29,6 +29,7 @@
 #include "VideoCommon/AVIDump.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/FPSCounter.h"
+#include "VideoCommon/RenderState.h"
 #include "VideoCommon/VideoCommon.h"
 
 class PostProcessingShaderImplementation;
@@ -63,13 +64,11 @@ public:
     PP_EFB_COPY_CLOCKS
   };
 
-  virtual void SetColorMask() {}
-  virtual void SetBlendMode(bool forceUpdate) {}
+  virtual void SetBlendingState(const BlendingState& state) {}
   virtual void SetScissorRect(const EFBRectangle& rc) {}
-  virtual void SetGenerationMode() {}
-  virtual void SetDepthMode() {}
-  virtual void SetLogicOpMode() {}
-  virtual void SetSamplerState(int stage, int texindex, bool custom_tex) {}
+  virtual void SetRasterizationState(const RasterizationState& state) {}
+  virtual void SetDepthState(const DepthState& state) {}
+  virtual void SetSamplerState(u32 index, const SamplerState& state) {}
   virtual void SetInterlacingMode() {}
   virtual void SetViewport() {}
   virtual void SetFullscreen(bool enable_fullscreen) {}
@@ -78,8 +77,7 @@ public:
   virtual void RestoreState() {}
   virtual void ResetAPIState() {}
   virtual void RestoreAPIState() {}
-  // Ideal internal resolution - determined by display resolution (automatic scaling) and/or a
-  // multiple of the native EFB resolution
+  // Ideal internal resolution - multiple of the native EFB resolution
   int GetTargetWidth() const { return m_target_width; }
   int GetTargetHeight() const { return m_target_height; }
   // Display resolution
@@ -147,6 +145,8 @@ protected:
   std::tuple<int, int> CalculateTargetScale(int x, int y) const;
   bool CalculateTargetSize();
 
+  bool CheckForHostConfigChanges();
+
   void CheckFifoRecording();
   void RecordVideoMemory();
 
@@ -168,7 +168,6 @@ protected:
   // TODO: Add functionality to reinit all the render targets when the window is resized.
   int m_backbuffer_width = 0;
   int m_backbuffer_height = 0;
-  int m_last_efb_scale = 0;
   TargetRectangle m_target_rectangle = {};
   bool m_xfb_written = false;
 
@@ -182,15 +181,14 @@ protected:
   Common::Event m_surface_changed;
   void* m_new_surface_handle = nullptr;
 
+  u32 m_last_host_config_bits = 0;
+
 private:
   void RunFrameDumps();
   void ShutdownFrameDumping();
 
   PEControl::PixelFormat m_prev_efb_format = PEControl::INVALID_FMT;
-  unsigned int m_efb_scale_numeratorX = 1;
-  unsigned int m_efb_scale_numeratorY = 1;
-  unsigned int m_efb_scale_denominatorX = 1;
-  unsigned int m_efb_scale_denominatorY = 1;
+  unsigned int m_efb_scale = 1;
 
   // These will be set on the first call to SetWindowSize.
   int m_last_window_request_width = 0;

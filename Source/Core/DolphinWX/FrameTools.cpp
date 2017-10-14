@@ -31,6 +31,7 @@
 #include "Common/FileUtil.h"
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
+#include "Common/Version.h"
 
 #include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
@@ -126,6 +127,7 @@ void CFrame::BindMenuBarEvents()
   // File menu
   Bind(wxEVT_MENU, &CFrame::OnOpen, this, wxID_OPEN);
   Bind(wxEVT_MENU, &CFrame::OnChangeDisc, this, IDM_CHANGE_DISC);
+  Bind(wxEVT_MENU, &CFrame::OnEjectDisc, this, IDM_EJECT_DISC);
   Bind(wxEVT_MENU, &CFrame::OnBootDrive, this, IDM_DRIVE1, IDM_DRIVE24);
   Bind(wxEVT_MENU, &CFrame::OnRefresh, this, wxID_REFRESH);
   Bind(wxEVT_MENU, &CFrame::OnQuit, this, wxID_EXIT);
@@ -183,6 +185,7 @@ void CFrame::BindMenuBarEvents()
   Bind(wxEVT_MENU, &CFrame::OnInstallWAD, this, IDM_MENU_INSTALL_WAD);
   Bind(wxEVT_MENU, &CFrame::OnLoadWiiMenu, this, IDM_LOAD_WII_MENU);
   Bind(wxEVT_MENU, &CFrame::OnImportBootMiiBackup, this, IDM_IMPORT_NAND);
+  Bind(wxEVT_MENU, &CFrame::OnCheckNAND, this, IDM_CHECK_NAND);
   Bind(wxEVT_MENU, &CFrame::OnExtractCertificates, this, IDM_EXTRACT_CERTIFICATES);
   for (const int idm : {IDM_PERFORM_ONLINE_UPDATE_CURRENT, IDM_PERFORM_ONLINE_UPDATE_EUR,
                         IDM_PERFORM_ONLINE_UPDATE_JPN, IDM_PERFORM_ONLINE_UPDATE_KOR,
@@ -237,18 +240,18 @@ void CFrame::BindDebuggerMenuBarUpdateEvents()
 
   Bind(wxEVT_UPDATE_UI, &CFrame::OnUpdateInterpreterMenuItem, this, IDM_INTERPRETER);
 
-  Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCorePaused, IDM_JIT_OFF);
-  Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCorePaused, IDM_JIT_LS_OFF);
-  Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCorePaused, IDM_JIT_LSLXZ_OFF);
-  Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCorePaused, IDM_JIT_LSLWZ_OFF);
-  Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCorePaused, IDM_JIT_LSLBZX_OFF);
-  Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCorePaused, IDM_JIT_LSF_OFF);
-  Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCorePaused, IDM_JIT_LSP_OFF);
-  Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCorePaused, IDM_JIT_FP_OFF);
-  Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCorePaused, IDM_JIT_I_OFF);
-  Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCorePaused, IDM_JIT_P_OFF);
-  Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCorePaused, IDM_JIT_SR_OFF);
-  Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCorePaused, IDM_CLEAR_CODE_CACHE);
+  Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreRunning, IDM_JIT_OFF);
+  Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreRunning, IDM_JIT_LS_OFF);
+  Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreRunning, IDM_JIT_LSLXZ_OFF);
+  Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreRunning, IDM_JIT_LSLWZ_OFF);
+  Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreRunning, IDM_JIT_LSLBZX_OFF);
+  Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreRunning, IDM_JIT_LSF_OFF);
+  Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreRunning, IDM_JIT_LSP_OFF);
+  Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreRunning, IDM_JIT_FP_OFF);
+  Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreRunning, IDM_JIT_I_OFF);
+  Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreRunning, IDM_JIT_P_OFF);
+  Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreRunning, IDM_JIT_SR_OFF);
+  Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreRunning, IDM_CLEAR_CODE_CACHE);
 
   Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreInitialized, IDM_SEARCH_INSTRUCTION);
   Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreInitialized, IDM_CLEAR_SYMBOLS);
@@ -368,7 +371,7 @@ void CFrame::DoOpen(bool Boot)
   }
   else
   {
-    DVDInterface::ChangeDiscAsHost(WxStrToStr(path));
+    Core::RunAsCPUThread([&path] { DVDInterface::ChangeDisc(WxStrToStr(path)); });
   }
 }
 
@@ -445,7 +448,7 @@ void CFrame::OnFrameStep(wxCommandEvent& event)
 {
   bool wasPaused = Core::GetState() == Core::State::Paused;
 
-  Movie::DoFrameStep();
+  Core::DoFrameStep();
 
   bool isPaused = Core::GetState() == Core::State::Paused;
   if (isPaused && !wasPaused)  // don't update on unpause, otherwise the status would be wrong when
@@ -456,6 +459,11 @@ void CFrame::OnFrameStep(wxCommandEvent& event)
 void CFrame::OnChangeDisc(wxCommandEvent& WXUNUSED(event))
 {
   DoOpen(false);
+}
+
+void CFrame::OnEjectDisc(wxCommandEvent& WXUNUSED(event))
+{
+  Core::RunAsCPUThread(DVDInterface::EjectDisc);
 }
 
 void CFrame::OnRecord(wxCommandEvent& WXUNUSED(event))
@@ -654,6 +662,7 @@ void CFrame::StartGame(std::unique_ptr<BootParameters> boot)
     m_game_list_ctrl->Disable();
     m_game_list_ctrl->Hide();
 
+    m_renderer_has_focus = true;
     m_render_parent = m_panel;
     m_render_frame = this;
     if (SConfig::GetInstance().bKeepWindowOnTop)
@@ -703,7 +712,6 @@ void CFrame::StartGame(std::unique_ptr<BootParameters> boot)
     // To capture key events on Linux and Mac OS X the frame needs at least one child.
     m_render_parent = new wxPanel(m_render_frame, IDM_MPANEL, wxDefaultPosition, wxDefaultSize, 0);
 #endif
-
     m_render_frame->Show();
   }
 
@@ -752,6 +760,8 @@ void CFrame::StartGame(std::unique_ptr<BootParameters> boot)
     wxTheApp->Bind(wxEVT_MIDDLE_UP, &CFrame::OnMouse, this);
     wxTheApp->Bind(wxEVT_MOTION, &CFrame::OnMouse, this);
     m_render_parent->Bind(wxEVT_SIZE, &CFrame::OnRenderParentResize, this);
+
+    m_render_parent->SetCursor(wxCURSOR_BLANK);
   }
 }
 
@@ -880,14 +890,14 @@ void CFrame::DoStop()
       Core::SetState(state);
     }
 
+    if (NetPlayDialog::GetNetPlayClient())
+      NetPlayDialog::GetNetPlayClient()->Stop();
+
     // TODO: Show the author/description dialog here
     if (Movie::IsRecordingInput())
       DoRecordingSave();
     if (Movie::IsMovieActive())
       Movie::EndPlayInput(false);
-
-    if (NetPlayDialog::GetNetPlayClient())
-      NetPlayDialog::GetNetPlayClient()->Stop();
 
     if (!m_tried_graceful_shutdown && UICommon::TriggerSTMPowerEvent())
     {
@@ -902,6 +912,9 @@ void CFrame::DoStop()
       return;
     }
 
+    // Reshow the cursor on the parent frame after successful stop.
+    m_render_parent->SetCursor(wxNullCursor);
+
     Core::Stop();
     UpdateGUI();
   }
@@ -915,7 +928,7 @@ void CFrame::OnStopped()
 
   UninhibitScreensaver();
 
-  m_render_frame->SetTitle(StrToWxStr(scm_rev_str));
+  m_render_frame->SetTitle(StrToWxStr(Common::scm_rev_str));
 
   // Destroy the renderer frame when not rendering to main
   m_render_parent->Unbind(wxEVT_SIZE, &CFrame::OnRenderParentResize, this);
@@ -1110,7 +1123,7 @@ void CFrame::OnRescanGameList(wxCommandEvent& WXUNUSED(event))
 
 void CFrame::OnUpdateInterpreterMenuItem(wxUpdateUIEvent& event)
 {
-  WxEventUtils::OnEnableIfCorePaused(event);
+  WxEventUtils::OnEnableIfCoreRunning(event);
 
   if (GetMenuBar()->FindItem(IDM_INTERPRETER)->IsChecked())
     return;
@@ -1296,6 +1309,48 @@ void CFrame::OnImportBootMiiBackup(wxCommandEvent& WXUNUSED(event))
   UpdateLoadWiiMenuItem();
 }
 
+void CFrame::OnCheckNAND(wxCommandEvent&)
+{
+  IOS::HLE::Kernel ios;
+  WiiUtils::NANDCheckResult result = WiiUtils::CheckNAND(ios);
+  if (!result.bad)
+  {
+    wxMessageBox(_("No issues have been detected."), _("NAND Check"), wxOK | wxICON_INFORMATION);
+    return;
+  }
+
+  wxString message = _("The emulated NAND is damaged. System titles such as the Wii Menu and "
+                       "the Wii Shop Channel may not work correctly.\n\n"
+                       "Do you want to try to repair the NAND?");
+  if (!result.titles_to_remove.empty())
+  {
+    message += _("\n\nWARNING: Fixing this NAND requires the deletion of titles that have "
+                 "incomplete data on the NAND, including all associated save data. "
+                 "By continuing, the following title(s) will be removed:\n\n");
+    Core::TitleDatabase title_db;
+    for (const u64 title_id : result.titles_to_remove)
+    {
+      const std::string name = title_db.GetTitleName(title_id);
+      message += !name.empty() ? StringFromFormat("%s (%016" PRIx64 ")", name.c_str(), title_id) :
+                                 StringFromFormat("%016" PRIx64, title_id);
+      message += "\n";
+    }
+  }
+
+  if (wxMessageBox(message, _("NAND Check"), wxYES_NO) != wxYES)
+    return;
+
+  if (WiiUtils::RepairNAND(ios))
+  {
+    wxMessageBox(_("The NAND has been repaired."), _("NAND Check"), wxOK | wxICON_INFORMATION);
+    return;
+  }
+
+  wxMessageBox(_("The NAND could not be repaired. It is recommended to back up "
+                 "your current data and start over with a fresh NAND."),
+               _("NAND Check"), wxOK | wxICON_ERROR);
+}
+
 void CFrame::OnExtractCertificates(wxCommandEvent& WXUNUSED(event))
 {
   DiscIO::NANDImporter().ExtractCertificates(File::GetUserPath(D_WIIROOT_IDX));
@@ -1319,39 +1374,9 @@ static std::string GetUpdateRegionFromIdm(int idm)
   }
 }
 
-void CFrame::OnPerformOnlineWiiUpdate(wxCommandEvent& event)
+static void ShowUpdateResult(WiiUtils::UpdateResult result)
 {
-  int confirm = wxMessageBox(_("Connect to the Internet and perform an online system update?"),
-                             _("System Update"), wxYES_NO, this);
-  if (confirm != wxYES)
-    return;
-
-  wxProgressDialog dialog(_("Updating"), _("Preparing to update...\nThis can take a while."), 1,
-                          this, wxPD_APP_MODAL | wxPD_AUTO_HIDE | wxPD_SMOOTH | wxPD_CAN_ABORT);
-
-  const std::string region = GetUpdateRegionFromIdm(event.GetId());
-  std::future<WiiUtils::UpdateResult> result = std::async(std::launch::async, [&] {
-    const WiiUtils::UpdateResult res = WiiUtils::DoOnlineUpdate(
-        [&](size_t processed, size_t total, u64 title_id) {
-          Core::QueueHostJob(
-              [&dialog, processed, total, title_id] {
-                dialog.SetRange(total);
-                dialog.Update(processed, wxString::Format(_("Updating title %016" PRIx64 "...\n"
-                                                            "This can take a while."),
-                                                          title_id));
-                dialog.Fit();
-              },
-              true);
-          return !dialog.WasCancelled();
-        },
-        region);
-    Core::QueueHostJob([&dialog] { dialog.EndModal(0); }, true);
-    return res;
-  });
-
-  dialog.ShowModal();
-
-  switch (result.get())
+  switch (result)
   {
   case WiiUtils::UpdateResult::Succeeded:
     wxMessageBox(_("The emulated Wii console has been updated."), _("Update completed"),
@@ -1383,8 +1408,73 @@ void CFrame::OnPerformOnlineWiiUpdate(wxCommandEvent& event)
                    "finish it in order to avoid inconsistent system software versions."),
                  _("Update cancelled"), wxOK | wxICON_WARNING);
     break;
+  case WiiUtils::UpdateResult::RegionMismatch:
+    wxMessageBox(_("The game's region does not match your console's. "
+                   "To avoid issues with the system menu, it is not possible to update "
+                   "the emulated console using this disc."),
+                 _("Update failed"), wxOK | wxICON_ERROR);
+    break;
+  case WiiUtils::UpdateResult::MissingUpdatePartition:
+  case WiiUtils::UpdateResult::DiscReadFailed:
+    wxMessageBox(_("The game disc does not contain any usable update information."),
+                 _("Update failed"), wxOK | wxICON_ERROR);
+    break;
   }
+}
 
+template <typename Callable, typename... Args>
+static WiiUtils::UpdateResult ShowUpdateProgress(CFrame* frame, Callable function, Args&&... args)
+{
+  wxProgressDialog dialog(_("Updating"), _("Preparing to update...\nThis can take a while."), 1,
+                          frame, wxPD_APP_MODAL | wxPD_AUTO_HIDE | wxPD_SMOOTH | wxPD_CAN_ABORT);
+
+  std::future<WiiUtils::UpdateResult> result = std::async(std::launch::async, [&] {
+    const WiiUtils::UpdateResult res = function(
+        [&](size_t processed, size_t total, u64 title_id) {
+          Core::QueueHostJob(
+              [&dialog, processed, total, title_id] {
+                dialog.SetRange(total);
+                dialog.Update(processed, wxString::Format(_("Updating title %016" PRIx64 "...\n"
+                                                            "This can take a while."),
+                                                          title_id));
+                dialog.Fit();
+              },
+              true);
+          return !dialog.WasCancelled();
+        },
+        std::forward<Args>(args)...);
+    Core::QueueHostJob([&dialog] { dialog.EndModal(0); }, true);
+    return res;
+  });
+
+  dialog.ShowModal();
+  return result.get();
+}
+
+void CFrame::OnPerformOnlineWiiUpdate(wxCommandEvent& event)
+{
+  int confirm = wxMessageBox(_("Connect to the Internet and perform an online system update?"),
+                             _("System Update"), wxYES_NO, this);
+  if (confirm != wxYES)
+    return;
+
+  const std::string region = GetUpdateRegionFromIdm(event.GetId());
+
+  const WiiUtils::UpdateResult result = ShowUpdateProgress(this, WiiUtils::DoOnlineUpdate, region);
+  ShowUpdateResult(result);
+  UpdateLoadWiiMenuItem();
+}
+
+void CFrame::OnPerformDiscWiiUpdate(wxCommandEvent&)
+{
+  const GameListItem* iso = m_game_list_ctrl->GetSelectedISO();
+  if (!iso)
+    return;
+
+  const std::string file_name = iso->GetFileName();
+
+  const WiiUtils::UpdateResult result = ShowUpdateProgress(this, WiiUtils::DoDiscUpdate, file_name);
+  ShowUpdateResult(result);
   UpdateLoadWiiMenuItem();
 }
 
@@ -1406,39 +1496,18 @@ void CFrame::OnFifoPlayer(wxCommandEvent& WXUNUSED(event))
   }
 }
 
-void CFrame::ConnectWiimote(int wm_idx, bool connect)
-{
-  if (Core::IsRunning() && SConfig::GetInstance().bWii &&
-      !SConfig::GetInstance().m_bt_passthrough_enabled)
-  {
-    bool was_unpaused = Core::PauseAndLock(true);
-    const auto ios = IOS::HLE::GetIOS();
-    if (!ios)
-      return;
-
-    const auto bt = std::static_pointer_cast<IOS::HLE::Device::BluetoothEmu>(
-        ios->GetDeviceByName("/dev/usb/oh1/57e/305"));
-    if (bt)
-      bt->AccessWiiMote(wm_idx | 0x100)->Activate(connect);
-    const char* message = connect ? "Wii Remote %i connected" : "Wii Remote %i disconnected";
-    Core::DisplayMessage(StringFromFormat(message, wm_idx + 1), 3000);
-    Host_UpdateMainFrame();
-    Core::PauseAndLock(false, was_unpaused);
-  }
-}
-
 void CFrame::OnConnectWiimote(wxCommandEvent& event)
 {
   const auto ios = IOS::HLE::GetIOS();
   if (!ios || SConfig::GetInstance().m_bt_passthrough_enabled)
     return;
-  bool was_unpaused = Core::PauseAndLock(true);
-  const auto bt = std::static_pointer_cast<IOS::HLE::Device::BluetoothEmu>(
-      ios->GetDeviceByName("/dev/usb/oh1/57e/305"));
-  const bool is_connected =
-      bt && bt->AccessWiiMote((event.GetId() - IDM_CONNECT_WIIMOTE1) | 0x100)->IsConnected();
-  ConnectWiimote(event.GetId() - IDM_CONNECT_WIIMOTE1, !is_connected);
-  Core::PauseAndLock(false, was_unpaused);
+  Core::RunAsCPUThread([&] {
+    const auto bt = std::static_pointer_cast<IOS::HLE::Device::BluetoothEmu>(
+        ios->GetDeviceByName("/dev/usb/oh1/57e/305"));
+    const unsigned int wiimote_index = event.GetId() - IDM_CONNECT_WIIMOTE1;
+    const bool is_connected = bt && bt->AccessWiiMote(wiimote_index | 0x100)->IsConnected();
+    Wiimote::Connect(wiimote_index, !is_connected);
+  });
 }
 
 // Toggle fullscreen. In Windows the fullscreen mode is accomplished by expanding the m_panel to
@@ -1578,6 +1647,7 @@ void CFrame::UpdateGUI()
   GetMenuBar()->FindItem(IDM_SAVE_STATE)->Enable(Initialized);
   // Misc
   GetMenuBar()->FindItem(IDM_CHANGE_DISC)->Enable(Initialized);
+  GetMenuBar()->FindItem(IDM_EJECT_DISC)->Enable(Initialized);
   GetMenuBar()
       ->FindItem(IDM_LOAD_GC_IPL_JAP)
       ->Enable(!Initialized && File::Exists(SConfig::GetInstance().GetBootROMPath(JAP_DIR)));
@@ -1603,15 +1673,15 @@ void CFrame::UpdateGUI()
   GetMenuBar()->FindItem(IDM_CONNECT_BALANCEBOARD)->Enable(ShouldEnableWiimotes);
   if (ShouldEnableWiimotes)
   {
-    bool was_unpaused = Core::PauseAndLock(true);
-    GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE1)->Check(bt->AccessWiiMote(0x0100)->IsConnected());
-    GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE2)->Check(bt->AccessWiiMote(0x0101)->IsConnected());
-    GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE3)->Check(bt->AccessWiiMote(0x0102)->IsConnected());
-    GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE4)->Check(bt->AccessWiiMote(0x0103)->IsConnected());
-    GetMenuBar()
-        ->FindItem(IDM_CONNECT_BALANCEBOARD)
-        ->Check(bt->AccessWiiMote(0x0104)->IsConnected());
-    Core::PauseAndLock(false, was_unpaused);
+    Core::RunAsCPUThread([&] {
+      GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE1)->Check(bt->AccessWiiMote(0x0100)->IsConnected());
+      GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE2)->Check(bt->AccessWiiMote(0x0101)->IsConnected());
+      GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE3)->Check(bt->AccessWiiMote(0x0102)->IsConnected());
+      GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE4)->Check(bt->AccessWiiMote(0x0103)->IsConnected());
+      GetMenuBar()
+          ->FindItem(IDM_CONNECT_BALANCEBOARD)
+          ->Check(bt->AccessWiiMote(0x0104)->IsConnected());
+    });
   }
 
   GetMenuBar()->FindItem(IDM_RECORD_READ_ONLY)->Enable(Running || Paused);

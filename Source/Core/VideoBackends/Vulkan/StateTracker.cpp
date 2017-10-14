@@ -11,8 +11,8 @@
 
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/Constants.h"
-#include "VideoBackends/Vulkan/FramebufferManager.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
+#include "VideoBackends/Vulkan/ShaderCache.h"
 #include "VideoBackends/Vulkan/StreamBuffer.h"
 #include "VideoBackends/Vulkan/Util.h"
 #include "VideoBackends/Vulkan/VertexFormat.h"
@@ -21,6 +21,7 @@
 #include "VideoCommon/GeometryShaderManager.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/Statistics.h"
+#include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -52,36 +53,17 @@ void StateTracker::DestroyInstance()
 
 bool StateTracker::Initialize()
 {
-  // Set some sensible defaults
-  m_pipeline_state.rasterization_state.cull_mode = VK_CULL_MODE_NONE;
-  m_pipeline_state.rasterization_state.per_sample_shading = VK_FALSE;
-  m_pipeline_state.rasterization_state.depth_clamp = VK_FALSE;
-  m_pipeline_state.depth_stencil_state.test_enable = VK_TRUE;
-  m_pipeline_state.depth_stencil_state.write_enable = VK_TRUE;
-  m_pipeline_state.depth_stencil_state.compare_op = VK_COMPARE_OP_LESS;
-  m_pipeline_state.blend_state.hex = 0;
-  m_pipeline_state.blend_state.blendenable = false;
-  m_pipeline_state.blend_state.srcfactor = BlendMode::ONE;
-  m_pipeline_state.blend_state.srcfactoralpha = BlendMode::ONE;
-  m_pipeline_state.blend_state.dstfactor = BlendMode::ZERO;
-  m_pipeline_state.blend_state.dstfactoralpha = BlendMode::ZERO;
-  m_pipeline_state.blend_state.colorupdate = true;
-  m_pipeline_state.blend_state.alphaupdate = true;
-
-  // Enable depth clamping if supported by driver.
-  if (g_ActiveConfig.backend_info.bSupportsDepthClamp)
-    m_pipeline_state.rasterization_state.depth_clamp = VK_TRUE;
-
   // BBox is disabled by default.
   m_pipeline_state.pipeline_layout = g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_STANDARD);
   m_num_active_descriptor_sets = NUM_GX_DRAW_DESCRIPTOR_SETS;
   m_bbox_enabled = false;
+  ClearShaders();
 
   // Initialize all samplers to point by default
   for (size_t i = 0; i < NUM_PIXEL_SHADER_SAMPLERS; i++)
   {
     m_bindings.ps_samplers[i].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-    m_bindings.ps_samplers[i].imageView = VK_NULL_HANDLE;
+    m_bindings.ps_samplers[i].imageView = g_object_cache->GetDummyImageView();
     m_bindings.ps_samplers[i].sampler = g_object_cache->GetPointSampler();
   }
 
@@ -115,7 +97,20 @@ bool StateTracker::Initialize()
   return true;
 }
 
-void StateTracker::LoadPipelineUIDCache()
+void StateTracker::InvalidateShaderPointers()
+{
+  // Clear UIDs, forcing a false match next time.
+  m_vs_uid = {};
+  m_gs_uid = {};
+  m_ps_uid = {};
+
+  // Invalidate shader pointers.
+  m_pipeline_state.vs = VK_NULL_HANDLE;
+  m_pipeline_state.gs = VK_NULL_HANDLE;
+  m_pipeline_state.ps = VK_NULL_HANDLE;
+}
+
+void StateTracker::ReloadPipelineUIDCache()
 {
   class PipelineInserter final : public LinearDiskCacheReader<SerializedPipelineUID, u32>
   {
@@ -130,25 +125,32 @@ void StateTracker::LoadPipelineUIDCache()
     StateTracker* this_ptr;
   };
 
-  std::string filename = g_object_cache->GetDiskCacheFileName("pipeline-uid");
-  PipelineInserter inserter(this);
+  m_uid_cache.Sync();
+  m_uid_cache.Close();
 
-  // OpenAndRead calls Close() first, which will flush all data to disk when reloading.
-  // This assertion must hold true, otherwise data corruption will result.
-  m_uid_cache.OpenAndRead(filename, inserter);
+  // UID caches don't contain any host state, so use a single uid cache per gameid.
+  std::string filename = GetDiskShaderCacheFileName(APIType::Vulkan, "PipelineUID", true, false);
+  if (g_ActiveConfig.bShaderCache)
+  {
+    PipelineInserter inserter(this);
+    m_uid_cache.OpenAndRead(filename, inserter);
+  }
+
+  // If we were using background compilation, ensure everything is ready before continuing.
+  if (g_ActiveConfig.bBackgroundShaderCompiling)
+    g_shader_cache->WaitForBackgroundCompilesToComplete();
 }
 
 void StateTracker::AppendToPipelineUIDCache(const PipelineInfo& info)
 {
   SerializedPipelineUID sinfo;
   sinfo.blend_state_bits = info.blend_state.hex;
-  sinfo.rasterizer_state_bits = info.rasterization_state.bits;
-  sinfo.depth_stencil_state_bits = info.depth_stencil_state.bits;
+  sinfo.rasterizer_state_bits = info.rasterization_state.hex;
+  sinfo.depth_state_bits = info.depth_state.hex;
   sinfo.vertex_decl = m_pipeline_state.vertex_format->GetVertexDeclaration();
   sinfo.vs_uid = m_vs_uid;
   sinfo.gs_uid = m_gs_uid;
   sinfo.ps_uid = m_ps_uid;
-  sinfo.primitive_topology = info.primitive_topology;
 
   u32 dummy_value = 0;
   m_uid_cache.Append(sinfo, &dummy_value, 1);
@@ -160,11 +162,12 @@ bool StateTracker::PrecachePipelineUID(const SerializedPipelineUID& uid)
 
   // Need to create the vertex declaration first, rather than deferring to when a game creates a
   // vertex loader that uses this format, since we need it to create a pipeline.
-  pinfo.vertex_format = VertexFormat::GetOrCreateMatchingFormat(uid.vertex_decl);
+  pinfo.vertex_format =
+      static_cast<VertexFormat*>(VertexLoaderManager::GetOrCreateMatchingFormat(uid.vertex_decl));
   pinfo.pipeline_layout = uid.ps_uid.GetUidData()->bounding_box ?
                               g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_BBOX) :
                               g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_STANDARD);
-  pinfo.vs = g_object_cache->GetVertexShaderForUid(uid.vs_uid);
+  pinfo.vs = g_shader_cache->GetVertexShaderForUid(uid.vs_uid);
   if (pinfo.vs == VK_NULL_HANDLE)
   {
     WARN_LOG(VIDEO, "Failed to get vertex shader from cached UID.");
@@ -172,30 +175,38 @@ bool StateTracker::PrecachePipelineUID(const SerializedPipelineUID& uid)
   }
   if (g_vulkan_context->SupportsGeometryShaders() && !uid.gs_uid.GetUidData()->IsPassthrough())
   {
-    pinfo.gs = g_object_cache->GetGeometryShaderForUid(uid.gs_uid);
+    pinfo.gs = g_shader_cache->GetGeometryShaderForUid(uid.gs_uid);
     if (pinfo.gs == VK_NULL_HANDLE)
     {
       WARN_LOG(VIDEO, "Failed to get geometry shader from cached UID.");
       return false;
     }
   }
-  pinfo.ps = g_object_cache->GetPixelShaderForUid(uid.ps_uid);
+  pinfo.ps = g_shader_cache->GetPixelShaderForUid(uid.ps_uid);
   if (pinfo.ps == VK_NULL_HANDLE)
   {
     WARN_LOG(VIDEO, "Failed to get pixel shader from cached UID.");
     return false;
   }
   pinfo.render_pass = m_load_render_pass;
-  pinfo.rasterization_state.bits = uid.rasterizer_state_bits;
-  pinfo.depth_stencil_state.bits = uid.depth_stencil_state_bits;
+  pinfo.rasterization_state.hex = uid.rasterizer_state_bits;
+  pinfo.depth_state.hex = uid.depth_state_bits;
   pinfo.blend_state.hex = uid.blend_state_bits;
-  pinfo.primitive_topology = uid.primitive_topology;
+  pinfo.multisampling_state.hex = m_pipeline_state.multisampling_state.hex;
 
-  VkPipeline pipeline = g_object_cache->GetPipeline(pinfo);
-  if (pipeline == VK_NULL_HANDLE)
+  if (g_ActiveConfig.bBackgroundShaderCompiling)
   {
-    WARN_LOG(VIDEO, "Failed to get pipeline from cached UID.");
-    return false;
+    // Use async for multithreaded compilation.
+    g_shader_cache->GetPipelineWithCacheResultAsync(pinfo);
+  }
+  else
+  {
+    VkPipeline pipeline = g_shader_cache->GetPipeline(pinfo);
+    if (pipeline == VK_NULL_HANDLE)
+    {
+      WARN_LOG(VIDEO, "Failed to get pipeline from cached UID.");
+      return false;
+    }
   }
 
   // We don't need to do anything with this pipeline, just make sure it exists.
@@ -249,46 +260,37 @@ void StateTracker::SetFramebuffer(VkFramebuffer framebuffer, const VkRect2D& ren
 
 void StateTracker::SetVertexFormat(const VertexFormat* vertex_format)
 {
-  if (m_pipeline_state.vertex_format == vertex_format)
+  if (m_vertex_format == vertex_format)
     return;
 
-  m_pipeline_state.vertex_format = vertex_format;
-  m_dirty_flags |= DIRTY_FLAG_PIPELINE;
-}
-
-void StateTracker::SetPrimitiveTopology(VkPrimitiveTopology primitive_topology)
-{
-  if (m_pipeline_state.primitive_topology == primitive_topology)
-    return;
-
-  m_pipeline_state.primitive_topology = primitive_topology;
-  m_dirty_flags |= DIRTY_FLAG_PIPELINE;
-}
-
-void StateTracker::DisableBackFaceCulling()
-{
-  if (m_pipeline_state.rasterization_state.cull_mode == VK_CULL_MODE_NONE)
-    return;
-
-  m_pipeline_state.rasterization_state.cull_mode = VK_CULL_MODE_NONE;
-  m_dirty_flags |= DIRTY_FLAG_PIPELINE;
+  m_vertex_format = vertex_format;
+  UpdatePipelineVertexFormat();
 }
 
 void StateTracker::SetRasterizationState(const RasterizationState& state)
 {
-  if (m_pipeline_state.rasterization_state.bits == state.bits)
+  if (m_pipeline_state.rasterization_state.hex == state.hex)
     return;
 
-  m_pipeline_state.rasterization_state.bits = state.bits;
+  m_pipeline_state.rasterization_state.hex = state.hex;
   m_dirty_flags |= DIRTY_FLAG_PIPELINE;
 }
 
-void StateTracker::SetDepthStencilState(const DepthStencilState& state)
+void StateTracker::SetMultisamplingstate(const MultisamplingState& state)
 {
-  if (m_pipeline_state.depth_stencil_state.bits == state.bits)
+  if (m_pipeline_state.multisampling_state.hex == state.hex)
     return;
 
-  m_pipeline_state.depth_stencil_state.bits = state.bits;
+  m_pipeline_state.multisampling_state.hex = state.hex;
+  m_dirty_flags |= DIRTY_FLAG_PIPELINE;
+}
+
+void StateTracker::SetDepthState(const DepthState& state)
+{
+  if (m_pipeline_state.depth_state.hex == state.hex)
+    return;
+
+  m_pipeline_state.depth_state.hex = state.hex;
   m_dirty_flags |= DIRTY_FLAG_PIPELINE;
 }
 
@@ -301,46 +303,124 @@ void StateTracker::SetBlendState(const BlendingState& state)
   m_dirty_flags |= DIRTY_FLAG_PIPELINE;
 }
 
-bool StateTracker::CheckForShaderChanges(u32 gx_primitive_type)
+bool StateTracker::CheckForShaderChanges()
 {
   VertexShaderUid vs_uid = GetVertexShaderUid();
   PixelShaderUid ps_uid = GetPixelShaderUid();
+  ClearUnusedPixelShaderUidBits(APIType::Vulkan, &ps_uid);
 
   bool changed = false;
-
-  if (vs_uid != m_vs_uid)
+  bool use_ubershaders = g_ActiveConfig.bDisableSpecializedShaders;
+  if (g_ActiveConfig.CanBackgroundCompileShaders() && !g_ActiveConfig.bDisableSpecializedShaders)
   {
-    m_pipeline_state.vs = g_object_cache->GetVertexShaderForUid(vs_uid);
-    m_vs_uid = vs_uid;
-    changed = true;
-  }
-
-  if (g_vulkan_context->SupportsGeometryShaders())
-  {
-    GeometryShaderUid gs_uid = GetGeometryShaderUid(gx_primitive_type);
-    if (gs_uid != m_gs_uid)
+    // Look up both VS and PS, and check if we can compile it asynchronously.
+    auto vs = g_shader_cache->GetVertexShaderForUidAsync(vs_uid);
+    auto ps = g_shader_cache->GetPixelShaderForUidAsync(ps_uid);
+    if (vs.second || ps.second)
     {
-      if (gs_uid.GetUidData()->IsPassthrough())
-        m_pipeline_state.gs = VK_NULL_HANDLE;
-      else
-        m_pipeline_state.gs = g_object_cache->GetGeometryShaderForUid(gs_uid);
-
-      m_gs_uid = gs_uid;
+      // One of the shaders is still pending. Use the ubershader for both.
+      use_ubershaders = true;
+    }
+    else
+    {
+      // Use the standard shaders for both.
+      if (m_pipeline_state.vs != vs.first)
+      {
+        m_pipeline_state.vs = vs.first;
+        m_vs_uid = vs_uid;
+        changed = true;
+      }
+      if (m_pipeline_state.ps != ps.first)
+      {
+        m_pipeline_state.ps = ps.first;
+        m_ps_uid = ps_uid;
+        changed = true;
+      }
+    }
+  }
+  else
+  {
+    // Normal shader path. No ubershaders.
+    if (vs_uid != m_vs_uid)
+    {
+      m_vs_uid = vs_uid;
+      m_pipeline_state.vs = g_shader_cache->GetVertexShaderForUid(vs_uid);
+      changed = true;
+    }
+    if (ps_uid != m_ps_uid)
+    {
+      m_ps_uid = ps_uid;
+      m_pipeline_state.ps = g_shader_cache->GetPixelShaderForUid(ps_uid);
       changed = true;
     }
   }
 
-  if (ps_uid != m_ps_uid)
+  // Switching to/from ubershaders? Have to adjust the vertex format and pipeline layout.
+  if (use_ubershaders != m_using_ubershaders)
   {
-    m_pipeline_state.ps = g_object_cache->GetPixelShaderForUid(ps_uid);
-    m_ps_uid = ps_uid;
-    changed = true;
+    m_using_ubershaders = use_ubershaders;
+    UpdatePipelineLayout();
+    UpdatePipelineVertexFormat();
+  }
+
+  if (use_ubershaders)
+  {
+    UberShader::VertexShaderUid uber_vs_uid = UberShader::GetVertexShaderUid();
+    VkShaderModule vs = g_shader_cache->GetVertexUberShaderForUid(uber_vs_uid);
+    if (vs != m_pipeline_state.vs)
+    {
+      m_uber_vs_uid = uber_vs_uid;
+      m_pipeline_state.vs = vs;
+      changed = true;
+    }
+
+    UberShader::PixelShaderUid uber_ps_uid = UberShader::GetPixelShaderUid();
+    UberShader::ClearUnusedPixelShaderUidBits(APIType::Vulkan, &uber_ps_uid);
+    VkShaderModule ps = g_shader_cache->GetPixelUberShaderForUid(uber_ps_uid);
+    if (ps != m_pipeline_state.ps)
+    {
+      m_uber_ps_uid = uber_ps_uid;
+      m_pipeline_state.ps = ps;
+      changed = true;
+    }
+  }
+
+  if (g_vulkan_context->SupportsGeometryShaders())
+  {
+    GeometryShaderUid gs_uid = GetGeometryShaderUid(m_pipeline_state.rasterization_state.primitive);
+    if (gs_uid != m_gs_uid)
+    {
+      m_gs_uid = gs_uid;
+      if (gs_uid.GetUidData()->IsPassthrough())
+        m_pipeline_state.gs = VK_NULL_HANDLE;
+      else
+        m_pipeline_state.gs = g_shader_cache->GetGeometryShaderForUid(gs_uid);
+
+      changed = true;
+    }
   }
 
   if (changed)
     m_dirty_flags |= DIRTY_FLAG_PIPELINE;
 
   return changed;
+}
+
+void StateTracker::ClearShaders()
+{
+  // Set the UIDs to something that will never match, so on the first access they are checked.
+  std::memset(&m_vs_uid, 0xFF, sizeof(m_vs_uid));
+  std::memset(&m_gs_uid, 0xFF, sizeof(m_gs_uid));
+  std::memset(&m_ps_uid, 0xFF, sizeof(m_ps_uid));
+  std::memset(&m_uber_vs_uid, 0xFF, sizeof(m_uber_vs_uid));
+  std::memset(&m_uber_ps_uid, 0xFF, sizeof(m_uber_ps_uid));
+
+  m_pipeline_state.vs = VK_NULL_HANDLE;
+  m_pipeline_state.gs = VK_NULL_HANDLE;
+  m_pipeline_state.ps = VK_NULL_HANDLE;
+  m_pipeline_state.vertex_format = nullptr;
+
+  m_dirty_flags |= DIRTY_FLAG_PIPELINE;
 }
 
 void StateTracker::UpdateVertexShaderConstants()
@@ -539,24 +619,8 @@ void StateTracker::SetBBoxEnable(bool enable)
   if (m_bbox_enabled == enable)
     return;
 
-  // Change the number of active descriptor sets, as well as the pipeline layout
-  if (enable)
-  {
-    m_pipeline_state.pipeline_layout = g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_BBOX);
-    m_num_active_descriptor_sets = NUM_GX_DRAW_WITH_BBOX_DESCRIPTOR_SETS;
-
-    // The bbox buffer never changes, so we defer descriptor updates until it is enabled.
-    if (m_descriptor_sets[DESCRIPTOR_SET_BIND_POINT_STORAGE_OR_TEXEL_BUFFER] == VK_NULL_HANDLE)
-      m_dirty_flags |= DIRTY_FLAG_PS_SSBO;
-  }
-  else
-  {
-    m_pipeline_state.pipeline_layout = g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_STANDARD);
-    m_num_active_descriptor_sets = NUM_GX_DRAW_DESCRIPTOR_SETS;
-  }
-
-  m_dirty_flags |= DIRTY_FLAG_PIPELINE | DIRTY_FLAG_DESCRIPTOR_SET_BINDING;
   m_bbox_enabled = enable;
+  UpdatePipelineLayout();
 }
 
 void StateTracker::SetBBoxBuffer(VkBuffer buffer, VkDeviceSize offset, VkDeviceSize range)
@@ -572,7 +636,7 @@ void StateTracker::SetBBoxBuffer(VkBuffer buffer, VkDeviceSize offset, VkDeviceS
   m_bindings.ps_ssbo.range = range;
 
   // Defer descriptor update until bbox is actually enabled.
-  if (m_bbox_enabled)
+  if (IsSSBODescriptorRequired())
     m_dirty_flags |= DIRTY_FLAG_PS_SSBO;
 }
 
@@ -581,7 +645,7 @@ void StateTracker::UnbindTexture(VkImageView view)
   for (VkDescriptorImageInfo& it : m_bindings.ps_samplers)
   {
     if (it.imageView == view)
-      it.imageView = VK_NULL_HANDLE;
+      it.imageView = g_object_cache->GetDummyImageView();
   }
 }
 
@@ -591,7 +655,7 @@ void StateTracker::InvalidateDescriptorSets()
   m_dirty_flags |= DIRTY_FLAG_ALL_DESCRIPTOR_SETS;
 
   // Defer SSBO descriptor update until bbox is actually enabled.
-  if (!m_bbox_enabled)
+  if (!IsSSBODescriptorRequired())
     m_dirty_flags &= ~DIRTY_FLAG_PS_SSBO;
 }
 
@@ -868,15 +932,50 @@ void StateTracker::EndClearRenderPass()
   EndRenderPass();
 }
 
-VkPipeline StateTracker::GetPipelineAndCacheUID(const PipelineInfo& info)
+VkPipeline StateTracker::GetPipelineAndCacheUID()
 {
-  auto result = g_object_cache->GetPipelineWithCacheResult(info);
+  // We can't cache ubershader uids, only normal shader uids.
+  if (g_ActiveConfig.CanBackgroundCompileShaders() && !m_using_ubershaders)
+  {
+    // Append to UID cache if it is a new pipeline.
+    auto result = g_shader_cache->GetPipelineWithCacheResultAsync(m_pipeline_state);
+    if (!result.second && g_ActiveConfig.bShaderCache)
+      AppendToPipelineUIDCache(m_pipeline_state);
 
-  // Add to the UID cache if it is a new pipeline.
-  if (!result.second)
-    AppendToPipelineUIDCache(info);
+    // Still waiting for the pipeline to compile?
+    if (!result.first.second)
+      return result.first.first;
 
-  return result.first;
+    // Use ubershader instead.
+    m_using_ubershaders = true;
+    UpdatePipelineLayout();
+    UpdatePipelineVertexFormat();
+
+    PipelineInfo uber_info = m_pipeline_state;
+    UberShader::VertexShaderUid uber_vuid = UberShader::GetVertexShaderUid();
+    UberShader::PixelShaderUid uber_puid = UberShader::GetPixelShaderUid();
+    UberShader::ClearUnusedPixelShaderUidBits(APIType::Vulkan, &uber_puid);
+    uber_info.vs = g_shader_cache->GetVertexUberShaderForUid(uber_vuid);
+    uber_info.ps = g_shader_cache->GetPixelUberShaderForUid(uber_puid);
+
+    auto uber_result = g_shader_cache->GetPipelineWithCacheResult(uber_info);
+    return uber_result.first;
+  }
+  else
+  {
+    // Add to the UID cache if it is a new pipeline.
+    auto result = g_shader_cache->GetPipelineWithCacheResult(m_pipeline_state);
+    if (!result.second && !m_using_ubershaders && g_ActiveConfig.bShaderCache)
+      AppendToPipelineUIDCache(m_pipeline_state);
+
+    return result.first;
+  }
+}
+
+bool StateTracker::IsSSBODescriptorRequired() const
+{
+  return m_bbox_enabled || (m_using_ubershaders && g_ActiveConfig.bBBoxEnable &&
+                            g_ActiveConfig.BBoxUseFragmentShaderImplementation());
 }
 
 bool StateTracker::UpdatePipeline()
@@ -886,16 +985,56 @@ bool StateTracker::UpdatePipeline()
     return false;
 
   // Grab a new pipeline object, this can fail.
-  m_pipeline_object = GetPipelineAndCacheUID(m_pipeline_state);
+  m_pipeline_object = GetPipelineAndCacheUID();
 
   m_dirty_flags |= DIRTY_FLAG_PIPELINE_BINDING;
   return m_pipeline_object != VK_NULL_HANDLE;
 }
 
+void StateTracker::UpdatePipelineLayout()
+{
+  const bool use_bbox_pipeline_layout = IsSSBODescriptorRequired();
+  VkPipelineLayout pipeline_layout =
+      use_bbox_pipeline_layout ? g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_BBOX) :
+                                 g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_STANDARD);
+  if (m_pipeline_state.pipeline_layout == pipeline_layout)
+    return;
+
+  // Change the number of active descriptor sets, as well as the pipeline layout
+  m_pipeline_state.pipeline_layout = pipeline_layout;
+  if (use_bbox_pipeline_layout)
+  {
+    m_num_active_descriptor_sets = NUM_GX_DRAW_WITH_BBOX_DESCRIPTOR_SETS;
+
+    // The bbox buffer never changes, so we defer descriptor updates until it is enabled.
+    if (m_descriptor_sets[DESCRIPTOR_SET_BIND_POINT_STORAGE_OR_TEXEL_BUFFER] == VK_NULL_HANDLE)
+      m_dirty_flags |= DIRTY_FLAG_PS_SSBO;
+  }
+  else
+  {
+    m_num_active_descriptor_sets = NUM_GX_DRAW_DESCRIPTOR_SETS;
+  }
+
+  m_dirty_flags |= DIRTY_FLAG_PIPELINE | DIRTY_FLAG_DESCRIPTOR_SET_BINDING;
+}
+
+void StateTracker::UpdatePipelineVertexFormat()
+{
+  const NativeVertexFormat* vertex_format =
+      m_using_ubershaders ?
+          VertexLoaderManager::GetUberVertexFormat(m_vertex_format->GetVertexDeclaration()) :
+          m_vertex_format;
+  if (m_pipeline_state.vertex_format == vertex_format)
+    return;
+
+  m_pipeline_state.vertex_format = static_cast<const VertexFormat*>(vertex_format);
+  m_dirty_flags |= DIRTY_FLAG_PIPELINE;
+}
+
 bool StateTracker::UpdateDescriptorSet()
 {
   const size_t MAX_DESCRIPTOR_WRITES = NUM_UBO_DESCRIPTOR_SET_BINDINGS +  // UBO
-                                       NUM_PIXEL_SHADER_SAMPLERS +        // Samplers
+                                       1 +                                // Samplers
                                        1;                                 // SSBO
   std::array<VkWriteDescriptorSet, MAX_DESCRIPTOR_WRITES> writes;
   u32 num_writes = 0;
@@ -936,29 +1075,22 @@ bool StateTracker::UpdateDescriptorSet()
     if (set == VK_NULL_HANDLE)
       return false;
 
-    for (size_t i = 0; i < NUM_PIXEL_SHADER_SAMPLERS; i++)
-    {
-      const VkDescriptorImageInfo& info = m_bindings.ps_samplers[i];
-      if (info.imageView != VK_NULL_HANDLE && info.sampler != VK_NULL_HANDLE)
-      {
-        writes[num_writes++] = {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                                nullptr,
-                                set,
-                                static_cast<uint32_t>(i),
-                                0,
-                                1,
-                                VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-                                &info,
-                                nullptr,
-                                nullptr};
-      }
-    }
+    writes[num_writes++] = {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                            nullptr,
+                            set,
+                            0,
+                            0,
+                            static_cast<u32>(NUM_PIXEL_SHADER_SAMPLERS),
+                            VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+                            m_bindings.ps_samplers.data(),
+                            nullptr,
+                            nullptr};
 
     m_descriptor_sets[DESCRIPTOR_SET_BIND_POINT_PIXEL_SHADER_SAMPLERS] = set;
     m_dirty_flags |= DIRTY_FLAG_DESCRIPTOR_SET_BINDING;
   }
 
-  if (m_bbox_enabled &&
+  if (IsSSBODescriptorRequired() &&
       (m_dirty_flags & DIRTY_FLAG_PS_SSBO ||
        m_descriptor_sets[DESCRIPTOR_SET_BIND_POINT_STORAGE_OR_TEXEL_BUFFER] == VK_NULL_HANDLE))
   {

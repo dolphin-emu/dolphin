@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#pragma once
+
 #include "DolphinQt2/Config/Mapping/MappingWidget.h"
 
 class QCheckBox;
@@ -21,13 +23,7 @@ public:
 private:
   void LoadSettings() override;
   void SaveSettings() override;
-  void CreateButtonsLayout();
-  void CreateControlstickLayout();
-  void CreateCStickLayout();
-  void CreateTriggersLayout();
-  void CreateDPadLayout();
   void CreateMainLayout();
-  void ConnectWidgets();
 
   // Main
   QHBoxLayout* m_main_layout;

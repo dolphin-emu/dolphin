@@ -4,14 +4,15 @@
 
 #pragma once
 
+#include <algorithm>
 #include <cstring>
 #include <fstream>
 #include <string>
 #include <type_traits>
 
-#include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
+#include "Common/Version.h"
 
 // On disk format:
 // header{
@@ -177,7 +178,8 @@ private:
     {
       // Null-terminator is intentionally not copied.
       std::memcpy(&id, "DCAC", sizeof(u32));
-      std::memcpy(ver, scm_rev_git_str.c_str(), std::min(scm_rev_git_str.size(), sizeof(ver)));
+      std::memcpy(ver, Common::scm_rev_git_str.c_str(),
+                  std::min(Common::scm_rev_git_str.size(), sizeof(ver)));
     }
 
     u32 id;

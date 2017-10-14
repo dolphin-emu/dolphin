@@ -19,15 +19,21 @@ class GameList final : public QStackedWidget
 
 public:
   explicit GameList(QWidget* parent = nullptr);
-  QString GetSelectedGame() const;
+  QSharedPointer<GameFile> GetSelectedGame() const;
 
-public slots:
-  void SetTableView() { SetPreferredView(true); }
-  void SetListView() { SetPreferredView(false); }
-  void SetViewColumn(int col, bool view) { m_table->setColumnHidden(col, !view); }
+  void SetListView() { SetPreferredView(true); }
+  void SetGridView() { SetPreferredView(false); }
+  void SetViewColumn(int col, bool view) { m_list->setColumnHidden(col, !view); }
   void OnColumnVisibilityToggled(const QString& row, bool visible);
+  void OnGameListVisibilityChanged();
 
-private slots:
+signals:
+  void GameSelected();
+  void NetPlayHost(const QString& game_id);
+  void SelectionChanged(QSharedPointer<GameFile> game_file);
+  void OpenGeneralSettings();
+
+private:
   void ShowContextMenu(const QPoint&);
   void OpenContainingFolder();
   void OpenProperties();
@@ -39,26 +45,24 @@ private slots:
   void UninstallWAD();
   void ExportWiiSave();
   void CompressISO();
+  void ChangeDisc();
+  void OnHeaderViewChanged();
 
-signals:
-  void GameSelected();
-
-private:
-  void MakeTableView();
   void MakeListView();
+  void MakeGridView();
   void MakeEmptyView();
   // We only have two views, just use a bool to distinguish.
-  void SetPreferredView(bool table);
+  void SetPreferredView(bool list);
   void ConsiderViewChange();
 
   GameListModel* m_model;
-  QSortFilterProxyModel* m_table_proxy;
   QSortFilterProxyModel* m_list_proxy;
+  QSortFilterProxyModel* m_grid_proxy;
 
-  QListView* m_list;
-  QTableView* m_table;
+  QListView* m_grid;
+  QTableView* m_list;
   QLabel* m_empty;
-  bool m_prefer_table;
+  bool m_prefer_list;
 
 protected:
   void keyReleaseEvent(QKeyEvent* event) override;

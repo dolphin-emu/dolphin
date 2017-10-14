@@ -8,6 +8,7 @@
 #include <array>
 #include <list>
 #include <map>
+#include <optional>
 #include <sstream>
 #include <string>
 #include <tuple>
@@ -22,32 +23,43 @@
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 
-#include "Core/Config/Config.h"
+#include "Common/Config/Config.h"
 #include "Core/Config/GraphicsSettings.h"
+#include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigLoaders/IsSettingSaveable.h"
 
 namespace ConfigLoaders
 {
-using ConfigLocation = Config::ConfigLocation;
-
 // Returns all possible filenames in ascending order of priority
-static std::vector<std::string> GetGameIniFilenames(const std::string& id, u16 revision)
+std::vector<std::string> GetGameIniFilenames(const std::string& id, std::optional<u16> revision)
 {
   std::vector<std::string> filenames;
 
-  // INIs that match all regions
-  if (id.size() >= 4)
+  if (id.empty())
+    return filenames;
+
+  // Using the first letter or the 3 letters of the ID only makes sense
+  // if the ID is an actual game ID (which has 6 characters).
+  if (id.length() == 6)
+  {
+    // INIs that match the system code (unique for each Virtual Console system)
+    filenames.push_back(id.substr(0, 1) + ".ini");
+
+    // INIs that match all regions
     filenames.push_back(id.substr(0, 3) + ".ini");
+  }
 
   // Regular INIs
   filenames.push_back(id + ".ini");
 
   // INIs with specific revisions
-  filenames.push_back(id + StringFromFormat("r%d", revision) + ".ini");
+  if (revision)
+    filenames.push_back(id + StringFromFormat("r%d", *revision) + ".ini");
 
   return filenames;
 }
 
+using ConfigLocation = Config::ConfigLocation;
 using INIToLocationMap = std::map<std::pair<std::string, std::string>, ConfigLocation>;
 
 // This is a mapping from the legacy section-key pairs to ConfigLocations.
@@ -60,6 +72,7 @@ static const INIToLocationMap& GetINIToLocationMap()
 
       {{"Video_Settings", "wideScreenHack"}, {Config::GFX_WIDESCREEN_HACK.location}},
       {{"Video_Settings", "AspectRatio"}, {Config::GFX_ASPECT_RATIO.location}},
+      {{"Video_Settings", "SuggestedAspectRatio"}, {Config::GFX_SUGGESTED_ASPECT_RATIO.location}},
       {{"Video_Settings", "Crop"}, {Config::GFX_CROP.location}},
       {{"Video_Settings", "UseXFB"}, {Config::GFX_USE_XFB.location}},
       {{"Video_Settings", "UseRealXFB"}, {Config::GFX_USE_REAL_XFB.location}},
@@ -107,6 +120,11 @@ static const INIToLocationMap& GetINIToLocationMap()
       {{"Video", "PH_ZNear"}, {Config::GFX_PROJECTION_HACK_ZNEAR.location}},
       {{"Video", "PH_ZFar"}, {Config::GFX_PROJECTION_HACK_ZFAR.location}},
       {{"Video", "PerfQueriesEnable"}, {Config::GFX_PERF_QUERIES_ENABLE.location}},
+
+      {{"Core", "ProgressiveScan"}, {Config::SYSCONF_PROGRESSIVE_SCAN.location}},
+      {{"Core", "PAL60"}, {Config::SYSCONF_PAL60.location}},
+      {{"Wii", "Widescreen"}, {Config::SYSCONF_WIDESCREEN.location}},
+      {{"Wii", "Language"}, {Config::SYSCONF_LANGUAGE.location}},
   };
   return ini_to_location;
 }
@@ -301,7 +319,17 @@ private:
 
       auto* config_section =
           config_layer->GetOrCreateSection(mapped_config.system, mapped_config.section);
-      config_section->Set(mapped_config.key, value.second);
+
+      if (mapped_config == Config::GFX_EFB_SCALE.location)
+      {
+        std::optional<int> efb_scale = Config::ConvertFromLegacyEFBScale(value.second);
+        if (efb_scale)
+          config_section->Set(mapped_config.key, *efb_scale);
+      }
+      else
+      {
+        config_section->Set(mapped_config.key, value.second);
+      }
     }
   }
 
@@ -324,16 +352,25 @@ void INIGameConfigLayerLoader::Save(Config::Layer* config_layer)
     {
       for (const auto& value : section->GetValues())
       {
-        if (!IsSettingSaveable({system.first, section->GetName(), value.first}))
+        const Config::ConfigLocation location{system.first, section->GetName(), value.first};
+        if (!IsSettingSaveable(location))
           continue;
 
-        const auto ini_location =
-            GetINILocationFromConfig({system.first, section->GetName(), value.first});
+        const auto ini_location = GetINILocationFromConfig(location);
         if (ini_location.first.empty() && ini_location.second.empty())
           continue;
 
         IniFile::Section* ini_section = ini.GetOrCreateSection(ini_location.first);
-        ini_section->Set(ini_location.second, value.second);
+        if (location == Config::GFX_EFB_SCALE.location)
+        {
+          std::optional<int> efb_scale = Config::ConvertToLegacyEFBScale(value.second);
+          if (efb_scale)
+            ini_section->Set(ini_location.second, *efb_scale);
+        }
+        else
+        {
+          ini_section->Set(ini_location.second, value.second);
+        }
       }
     }
   }

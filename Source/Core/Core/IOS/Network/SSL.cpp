@@ -103,17 +103,21 @@ constexpr std::array<u8, 32> s_root_ca_hash = {{0xc5, 0xb0, 0xf8, 0xdf, 0xce, 0x
                                                 0xc2, 0x09, 0xdc, 0x17, 0x7d, 0x24, 0x3c, 0x8d,
                                                 0xf2, 0xbd, 0xdf, 0x9e, 0x39, 0x17, 0x1e, 0x5f}};
 
-static std::vector<u8> ReadCertFile(const std::string& path, const std::array<u8, 32>& correct_hash)
+static std::vector<u8> ReadCertFile(const std::string& path, const std::array<u8, 32>& correct_hash,
+                                    bool silent)
 {
   File::IOFile file(path, "rb");
   std::vector<u8> bytes(file.GetSize());
   if (!file.ReadBytes(bytes.data(), bytes.size()))
   {
     ERROR_LOG(IOS_SSL, "Failed to read %s", path.c_str());
-    PanicAlertT("IOS: Could not read a file required for SSL services (%s). Please refer to "
-                "https://dolphin-emu.org/docs/guides/wii-network-guide/ for "
-                "instructions on setting up Wii networking.",
-                path.c_str());
+    if (!silent)
+    {
+      PanicAlertT("IOS: Could not read a file required for SSL services (%s). Please refer to "
+                  "https://dolphin-emu.org/docs/guides/wii-network-guide/ for "
+                  "instructions on setting up Wii networking.",
+                  path.c_str());
+    }
     return {};
   }
 
@@ -122,10 +126,13 @@ static std::vector<u8> ReadCertFile(const std::string& path, const std::array<u8
   if (hash != correct_hash)
   {
     ERROR_LOG(IOS_SSL, "Wrong hash for %s", path.c_str());
-    PanicAlertT("IOS: A file required for SSL services (%s) is invalid. Please refer to "
-                "https://dolphin-emu.org/docs/guides/wii-network-guide/ for "
-                "instructions on setting up Wii networking.",
-                path.c_str());
+    if (!silent)
+    {
+      PanicAlertT("IOS: A file required for SSL services (%s) is invalid. Please refer to "
+                  "https://dolphin-emu.org/docs/guides/wii-network-guide/ for "
+                  "instructions on setting up Wii networking.",
+                  path.c_str());
+    }
     return {};
   }
   return bytes;
@@ -331,9 +338,13 @@ IPCCommandResult NetSSL::IOCtlV(const IOCtlVRequest& request)
       WII_SSL* ssl = &_SSL[sslID];
       const std::string cert_base_path = File::GetUserPath(D_SESSION_WIIROOT_IDX);
       const std::vector<u8> client_cert =
-          ReadCertFile(cert_base_path + "/clientca.pem", s_client_cert_hash);
+          ReadCertFile(cert_base_path + "/clientca.pem", s_client_cert_hash, m_cert_error_shown);
       const std::vector<u8> client_key =
-          ReadCertFile(cert_base_path + "/clientcakey.pem", s_client_key_hash);
+          ReadCertFile(cert_base_path + "/clientcakey.pem", s_client_key_hash, m_cert_error_shown);
+      // If any of the required files fail to load, show a panic alert, but only once
+      // per IOS instance (usually once per emulation session).
+      if (client_cert.empty() || client_key.empty())
+        m_cert_error_shown = true;
 
       int ret = mbedtls_x509_crt_parse(&ssl->clicert, client_cert.data(), client_cert.size());
       int pk_ret = mbedtls_pk_parse_key(&ssl->pk, client_key.data(), client_key.size(), nullptr, 0);
@@ -391,7 +402,10 @@ IPCCommandResult NetSSL::IOCtlV(const IOCtlVRequest& request)
     {
       WII_SSL* ssl = &_SSL[sslID];
       const std::string cert_base_path = File::GetUserPath(D_SESSION_WIIROOT_IDX);
-      const std::vector<u8> root_ca = ReadCertFile(cert_base_path + "/rootca.pem", s_root_ca_hash);
+      const std::vector<u8> root_ca =
+          ReadCertFile(cert_base_path + "/rootca.pem", s_root_ca_hash, m_cert_error_shown);
+      if (root_ca.empty())
+        m_cert_error_shown = true;
 
       int ret = mbedtls_x509_crt_parse(&ssl->cacert, root_ca.data(), root_ca.size());
       if (ret)

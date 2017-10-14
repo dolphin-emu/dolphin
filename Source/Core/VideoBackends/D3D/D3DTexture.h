@@ -39,11 +39,10 @@ private:
   ~D3DTexture2D();
 
   ID3D11Texture2D* tex;
-  ID3D11ShaderResourceView* srv;
-  ID3D11RenderTargetView* rtv;
-  ID3D11DepthStencilView* dsv;
-  D3D11_BIND_FLAG bindflags;
-  UINT ref;
+  ID3D11ShaderResourceView* srv = nullptr;
+  ID3D11RenderTargetView* rtv = nullptr;
+  ID3D11DepthStencilView* dsv = nullptr;
+  UINT ref = 1;
 };
 
 }  // namespace DX11

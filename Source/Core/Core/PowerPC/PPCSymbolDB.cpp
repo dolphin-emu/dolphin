@@ -13,18 +13,10 @@
 #include "Common/File.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
+#include "Common/StringUtil.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/SignatureDB/SignatureDB.h"
-
-static std::string GetStrippedFunctionName(const std::string& symbol_name)
-{
-  std::string name = symbol_name.substr(0, symbol_name.find('('));
-  size_t position = name.find(' ');
-  if (position != std::string::npos)
-    name.erase(position);
-  return name;
-}
 
 PPCSymbolDB g_symbolDB;
 
@@ -64,8 +56,7 @@ void PPCSymbolDB::AddKnownSymbol(u32 startAddr, u32 size, const std::string& nam
   {
     // already got it, let's just update name, checksum & size to be sure.
     Symbol* tempfunc = &iter->second;
-    tempfunc->name = name;
-    tempfunc->function_name = GetStrippedFunctionName(name);
+    tempfunc->Rename(name);
     tempfunc->hash = HashSignatureDB::ComputeCodeChecksum(startAddr, startAddr + size - 4);
     tempfunc->type = type;
     tempfunc->size = size;
@@ -74,14 +65,13 @@ void PPCSymbolDB::AddKnownSymbol(u32 startAddr, u32 size, const std::string& nam
   {
     // new symbol. run analyze.
     Symbol tf;
-    tf.name = name;
+    tf.Rename(name);
     tf.type = type;
     tf.address = startAddr;
     if (tf.type == Symbol::Type::Function)
     {
       PPCAnalyst::AnalyzeFunction(startAddr, tf, size);
       checksumToFunction[tf.hash].insert(&functions[startAddr]);
-      tf.function_name = GetStrippedFunctionName(name);
     }
     tf.size = size;
     functions[startAddr] = tf;
@@ -90,19 +80,20 @@ void PPCSymbolDB::AddKnownSymbol(u32 startAddr, u32 size, const std::string& nam
 
 Symbol* PPCSymbolDB::GetSymbolFromAddr(u32 addr)
 {
-  XFuncMap::iterator it = functions.find(addr);
-  if (it != functions.end())
-  {
+  XFuncMap::iterator it = functions.lower_bound(addr);
+  if (it == functions.end())
+    return nullptr;
+
+  // If the address is exactly the start address of a symbol, we're done.
+  if (it->second.address == addr)
     return &it->second;
-  }
-  else
-  {
-    for (auto& p : functions)
-    {
-      if (addr >= p.second.address && addr < p.second.address + p.second.size)
-        return &p.second;
-    }
-  }
+
+  // Otherwise, check whether the address is within the bounds of a symbol.
+  if (it != functions.begin())
+    --it;
+  if (addr >= it->second.address && addr < it->second.address + it->second.size)
+    return &it->second;
+
   return nullptr;
 }
 
@@ -229,10 +220,12 @@ bool PPCSymbolDB::LoadMap(const std::string& filename, bool bad)
     return false;
 
   // four columns are used in American Mensa Academy map files and perhaps other games
-  bool started = false, four_columns = false;
-  int good_count = 0, bad_count = 0;
+  bool four_columns = false;
+  int good_count = 0;
+  int bad_count = 0;
 
   char line[512];
+  std::string section_name;
   while (fgets(line, 512, f.GetHandle()))
   {
     size_t length = strlen(line);
@@ -250,44 +243,48 @@ bool PPCSymbolDB::LoadMap(const std::string& filename, bool bad)
 
     if (strcmp(temp, "UNUSED") == 0)
       continue;
-    if (strcmp(temp, ".text") == 0)
+
+    // Support CodeWarrior and Dolphin map
+    if (StringEndsWith(line, " section layout\n") || strcmp(temp, ".text") == 0 ||
+        strcmp(temp, ".init") == 0)
     {
-      started = true;
+      section_name = temp;
       continue;
-    };
-    if (strcmp(temp, ".init") == 0)
-    {
-      started = true;
-      continue;
-    };
+    }
+
+    // Skip four columns' header.
+    //
+    // Four columns example:
+    //
+    // .text section layout
+    //   Starting        Virtual
+    //   address  Size   address
+    //   -----------------------
     if (strcmp(temp, "Starting") == 0)
-      continue;
-    if (strcmp(temp, "extab") == 0)
-      continue;
-    if (strcmp(temp, ".ctors") == 0)
-      break;  // uh?
-    if (strcmp(temp, ".dtors") == 0)
-      break;
-    if (strcmp(temp, ".rodata") == 0)
-      continue;
-    if (strcmp(temp, ".data") == 0)
-      continue;
-    if (strcmp(temp, ".sbss") == 0)
-      continue;
-    if (strcmp(temp, ".sdata") == 0)
-      continue;
-    if (strcmp(temp, ".sdata2") == 0)
       continue;
     if (strcmp(temp, "address") == 0)
       continue;
     if (strcmp(temp, "-----------------------") == 0)
       continue;
-    if (strcmp(temp, ".sbss2") == 0)
-      break;
-    if (temp[1] == ']')
+
+    // Skip link map.
+    //
+    // Link map example:
+    //
+    // Link map of __start
+    //  1] __start(func, weak) found in os.a __start.c
+    //   2] __init_registers(func, local) found in os.a __start.c
+    //    3] _stack_addr found as linker generated symbol
+    // ...
+    //           10] EXILock(func, global) found in exi.a EXIBios.c
+    if (StringEndsWith(temp, "]"))
       continue;
 
-    if (!started)
+    // TODO - Handle/Write a parser for:
+    //  - Memory map
+    //  - Link map
+    //  - Linker generated symbols
+    if (section_name.empty())
       continue;
 
     u32 address, vaddress, size, offset, alignment;
@@ -354,7 +351,7 @@ bool PPCSymbolDB::LoadMap(const std::string& filename, bool bad)
       name[strlen(name) - 1] = 0;
 
     // Check if this is a valid entry.
-    if (strcmp(name, ".text") != 0 && strcmp(name, ".init") != 0 && strlen(name) > 0)
+    if (strlen(name) > 0)
     {
       // Can't compute the checksum if not in RAM
       bool good = !bad && PowerPC::HostIsInstructionRAMAddress(vaddress) &&
@@ -373,7 +370,10 @@ bool PPCSymbolDB::LoadMap(const std::string& filename, bool bad)
       if (good)
       {
         ++good_count;
-        AddKnownSymbol(vaddress, size, name);  // ST_FUNCTION
+        if (section_name == ".text" || section_name == ".init")
+          AddKnownSymbol(vaddress, size, name, Symbol::Type::Function);
+        else
+          AddKnownSymbol(vaddress, size, name, Symbol::Type::Data);
       }
       else
       {
@@ -395,16 +395,36 @@ bool PPCSymbolDB::SaveSymbolMap(const std::string& filename) const
   if (!f)
     return false;
 
-  // Write ".text" at the top
-  fprintf(f.GetHandle(), ".text\n");
+  std::vector<const Symbol*> function_symbols;
+  std::vector<const Symbol*> data_symbols;
 
-  // Write symbol address, size, virtual address, alignment, name
   for (const auto& function : functions)
   {
     const Symbol& symbol = function.second;
-    fprintf(f.GetHandle(), "%08x %08x %08x %i %s\n", symbol.address, symbol.size, symbol.address, 0,
-            symbol.name.c_str());
+    if (symbol.type == Symbol::Type::Function)
+      function_symbols.push_back(&symbol);
+    else
+      data_symbols.push_back(&symbol);
   }
+
+  // Write .text section
+  fprintf(f.GetHandle(), ".text section layout\n");
+  for (const auto& symbol : function_symbols)
+  {
+    // Write symbol address, size, virtual address, alignment, name
+    fprintf(f.GetHandle(), "%08x %08x %08x %i %s\n", symbol->address, symbol->size, symbol->address,
+            0, symbol->name.c_str());
+  }
+
+  // Write .data section
+  fprintf(f.GetHandle(), "\n.data section layout\n");
+  for (const auto& symbol : data_symbols)
+  {
+    // Write symbol address, size, virtual address, alignment, name
+    fprintf(f.GetHandle(), "%08x %08x %08x %i %s\n", symbol->address, symbol->size, symbol->address,
+            0, symbol->name.c_str());
+  }
+
   return true;
 }
 

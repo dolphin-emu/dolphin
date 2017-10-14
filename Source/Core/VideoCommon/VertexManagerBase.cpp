@@ -4,6 +4,7 @@
 
 #include "VideoCommon/VertexManagerBase.h"
 
+#include <array>
 #include <cmath>
 #include <memory>
 
@@ -23,6 +24,7 @@
 #include "VideoCommon/PerfQueryBase.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/RenderBase.h"
+#include "VideoCommon/SamplerCommon.h"
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexShaderManager.h"
@@ -32,15 +34,28 @@
 
 std::unique_ptr<VertexManagerBase> g_vertex_manager;
 
-static const PrimitiveType primitive_from_gx[8] = {
-    PRIMITIVE_TRIANGLES,  // GX_DRAW_QUADS
-    PRIMITIVE_TRIANGLES,  // GX_DRAW_QUADS_2
-    PRIMITIVE_TRIANGLES,  // GX_DRAW_TRIANGLES
-    PRIMITIVE_TRIANGLES,  // GX_DRAW_TRIANGLE_STRIP
-    PRIMITIVE_TRIANGLES,  // GX_DRAW_TRIANGLE_FAN
-    PRIMITIVE_LINES,      // GX_DRAW_LINES
-    PRIMITIVE_LINES,      // GX_DRAW_LINE_STRIP
-    PRIMITIVE_POINTS,     // GX_DRAW_POINTS
+// GX primitive -> RenderState primitive, no primitive restart
+constexpr std::array<PrimitiveType, 8> primitive_from_gx = {
+    PrimitiveType::Triangles,  // GX_DRAW_QUADS
+    PrimitiveType::Triangles,  // GX_DRAW_QUADS_2
+    PrimitiveType::Triangles,  // GX_DRAW_TRIANGLES
+    PrimitiveType::Triangles,  // GX_DRAW_TRIANGLE_STRIP
+    PrimitiveType::Triangles,  // GX_DRAW_TRIANGLE_FAN
+    PrimitiveType::Lines,      // GX_DRAW_LINES
+    PrimitiveType::Lines,      // GX_DRAW_LINE_STRIP
+    PrimitiveType::Points,     // GX_DRAW_POINTS
+};
+
+// GX primitive -> RenderState primitive, using primitive restart
+constexpr std::array<PrimitiveType, 8> primitive_from_gx_pr = {
+    PrimitiveType::TriangleStrip,  // GX_DRAW_QUADS
+    PrimitiveType::TriangleStrip,  // GX_DRAW_QUADS_2
+    PrimitiveType::TriangleStrip,  // GX_DRAW_TRIANGLES
+    PrimitiveType::TriangleStrip,  // GX_DRAW_TRIANGLE_STRIP
+    PrimitiveType::TriangleStrip,  // GX_DRAW_TRIANGLE_FAN
+    PrimitiveType::Lines,          // GX_DRAW_LINES
+    PrimitiveType::Lines,          // GX_DRAW_LINE_STRIP
+    PrimitiveType::Points,         // GX_DRAW_POINTS
 };
 
 // Due to the BT.601 standard which the GameCube is based on being a compromise
@@ -80,9 +95,19 @@ DataReader VertexManagerBase::PrepareForAdditionalData(int primitive, u32 count,
   u32 const needed_vertex_bytes = count * stride + 4;
 
   // We can't merge different kinds of primitives, so we have to flush here
-  if (m_current_primitive_type != primitive_from_gx[primitive])
+  PrimitiveType new_primitive_type = g_ActiveConfig.backend_info.bSupportsPrimitiveRestart ?
+                                         primitive_from_gx_pr[primitive] :
+                                         primitive_from_gx[primitive];
+  if (m_current_primitive_type != new_primitive_type)
+  {
     Flush();
-  m_current_primitive_type = primitive_from_gx[primitive];
+
+    // Have to update the rasterization state for point/line cull modes.
+    RasterizationState raster_state = {};
+    raster_state.Generate(bpmem, new_primitive_type);
+    g_renderer->SetRasterizationState(raster_state);
+    m_current_primitive_type = new_primitive_type;
+  }
 
   // Check for size in buffer, if the buffer gets full, call Flush()
   if (!m_is_flushed &&
@@ -184,6 +209,52 @@ std::pair<size_t, size_t> VertexManagerBase::ResetFlushAspectRatioCount()
   return val;
 }
 
+static void SetSamplerState(u32 index, bool custom_tex)
+{
+  const FourTexUnits& tex = bpmem.tex[index / 4];
+  const TexMode0& tm0 = tex.texMode0[index % 4];
+
+  SamplerState state = {};
+  state.Generate(bpmem, index);
+
+  // Force texture filtering config option.
+  if (g_ActiveConfig.bForceFiltering)
+  {
+    state.min_filter = SamplerState::Filter::Linear;
+    state.mag_filter = SamplerState::Filter::Linear;
+    state.mipmap_filter = SamplerCommon::AreBpTexMode0MipmapsEnabled(tm0) ?
+                              SamplerState::Filter::Linear :
+                              SamplerState::Filter::Point;
+  }
+
+  // Custom textures may have a greater number of mips
+  if (custom_tex)
+    state.max_lod = 255;
+
+  // Anisotropic filtering option.
+  if (g_ActiveConfig.iMaxAnisotropy != 0 && !SamplerCommon::IsBpTexMode0PointFiltering(tm0))
+  {
+    // https://www.opengl.org/registry/specs/EXT/texture_filter_anisotropic.txt
+    // For predictable results on all hardware/drivers, only use one of:
+    //	GL_LINEAR + GL_LINEAR (No Mipmaps [Bilinear])
+    //	GL_LINEAR + GL_LINEAR_MIPMAP_LINEAR (w/ Mipmaps [Trilinear])
+    // Letting the game set other combinations will have varying arbitrary results;
+    // possibly being interpreted as equal to bilinear/trilinear, implicitly
+    // disabling anisotropy, or changing the anisotropic algorithm employed.
+    state.min_filter = SamplerState::Filter::Linear;
+    state.mag_filter = SamplerState::Filter::Linear;
+    if (SamplerCommon::AreBpTexMode0MipmapsEnabled(tm0))
+      state.mipmap_filter = SamplerState::Filter::Linear;
+    state.anisotropic_filtering = 1;
+  }
+  else
+  {
+    state.anisotropic_filtering = 0;
+  }
+
+  g_renderer->SetSamplerState(index, state);
+}
+
 void VertexManagerBase::Flush()
 {
   if (m_is_flushed)
@@ -193,22 +264,24 @@ void VertexManagerBase::Flush()
   g_video_backend->CheckInvalidState();
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
-  PRIM_LOG("frame%d:\n texgen=%d, numchan=%d, dualtex=%d, ztex=%d, cole=%d, alpe=%d, ze=%d",
+  PRIM_LOG("frame%d:\n texgen=%u, numchan=%u, dualtex=%u, ztex=%u, cole=%u, alpe=%u, ze=%u",
            g_ActiveConfig.iSaveTargetId, xfmem.numTexGen.numTexGens, xfmem.numChan.numColorChans,
-           xfmem.dualTexTrans.enabled, bpmem.ztex2.op, (int)bpmem.blendmode.colorupdate,
-           (int)bpmem.blendmode.alphaupdate, (int)bpmem.zmode.updateenable);
+           xfmem.dualTexTrans.enabled, bpmem.ztex2.op.Value(), bpmem.blendmode.colorupdate.Value(),
+           bpmem.blendmode.alphaupdate.Value(), bpmem.zmode.updateenable.Value());
 
-  for (unsigned int i = 0; i < xfmem.numChan.numColorChans; ++i)
+  for (u32 i = 0; i < xfmem.numChan.numColorChans; ++i)
   {
     LitChannel* ch = &xfmem.color[i];
-    PRIM_LOG("colchan%d: matsrc=%d, light=0x%x, ambsrc=%d, diffunc=%d, attfunc=%d", i,
-             ch->matsource, ch->GetFullLightMask(), ch->ambsource, ch->diffusefunc, ch->attnfunc);
+    PRIM_LOG("colchan%u: matsrc=%u, light=0x%x, ambsrc=%u, diffunc=%u, attfunc=%u", i,
+             ch->matsource.Value(), ch->GetFullLightMask(), ch->ambsource.Value(),
+             ch->diffusefunc.Value(), ch->attnfunc.Value());
     ch = &xfmem.alpha[i];
-    PRIM_LOG("alpchan%d: matsrc=%d, light=0x%x, ambsrc=%d, diffunc=%d, attfunc=%d", i,
-             ch->matsource, ch->GetFullLightMask(), ch->ambsource, ch->diffusefunc, ch->attnfunc);
+    PRIM_LOG("alpchan%u: matsrc=%u, light=0x%x, ambsrc=%u, diffunc=%u, attfunc=%u", i,
+             ch->matsource.Value(), ch->GetFullLightMask(), ch->ambsource.Value(),
+             ch->diffusefunc.Value(), ch->attnfunc.Value());
   }
 
-  for (unsigned int i = 0; i < xfmem.numTexGen.numTexGens; ++i)
+  for (u32 i = 0; i < xfmem.numTexGen.numTexGens; ++i)
   {
     TexMtxInfo tinfo = xfmem.texMtxInfo[i];
     if (tinfo.texgentype != XF_TEXGEN_EMBOSS_MAP)
@@ -216,16 +289,17 @@ void VertexManagerBase::Flush()
     if (tinfo.texgentype != XF_TEXGEN_REGULAR)
       tinfo.projection = 0;
 
-    PRIM_LOG("txgen%d: proj=%d, input=%d, gentype=%d, srcrow=%d, embsrc=%d, emblght=%d, "
-             "postmtx=%d, postnorm=%d",
-             i, tinfo.projection, tinfo.inputform, tinfo.texgentype, tinfo.sourcerow,
-             tinfo.embosssourceshift, tinfo.embosslightshift, xfmem.postMtxInfo[i].index,
-             xfmem.postMtxInfo[i].normalize);
+    PRIM_LOG("txgen%u: proj=%u, input=%u, gentype=%u, srcrow=%u, embsrc=%u, emblght=%u, "
+             "postmtx=%u, postnorm=%u",
+             i, tinfo.projection.Value(), tinfo.inputform.Value(), tinfo.texgentype.Value(),
+             tinfo.sourcerow.Value(), tinfo.embosssourceshift.Value(),
+             tinfo.embosslightshift.Value(), xfmem.postMtxInfo[i].index.Value(),
+             xfmem.postMtxInfo[i].normalize.Value());
   }
 
-  PRIM_LOG("pixel: tev=%d, ind=%d, texgen=%d, dstalpha=%d, alphatest=0x%x",
-           (int)bpmem.genMode.numtevstages + 1, (int)bpmem.genMode.numindstages,
-           (int)bpmem.genMode.numtexgens, (u32)bpmem.dstalpha.enable,
+  PRIM_LOG("pixel: tev=%u, ind=%u, texgen=%u, dstalpha=%u, alphatest=0x%x",
+           bpmem.genMode.numtevstages.Value() + 1, bpmem.genMode.numindstages.Value(),
+           bpmem.genMode.numtexgens.Value(), bpmem.dstalpha.enable.Value(),
            (bpmem.alpha_test.hex >> 16) & 0xff);
 #endif
 
@@ -243,14 +317,13 @@ void VertexManagerBase::Flush()
         if (bpmem.tevind[i].IsActive() && bpmem.tevind[i].bt < bpmem.genMode.numindstages)
           usedtextures[bpmem.tevindref.getTexMap(bpmem.tevind[i].bt)] = true;
 
-    g_texture_cache->UnbindTextures();
     for (unsigned int i : usedtextures)
     {
       const auto* tentry = g_texture_cache->Load(i);
 
       if (tentry)
       {
-        g_renderer->SetSamplerState(i & 3, i >> 2, tentry->is_custom_tex);
+        SetSamplerState(i, tentry->is_custom_tex);
         PixelShaderManager::SetTexDims(i, tentry->native_width, tentry->native_height);
       }
       else
@@ -330,8 +403,11 @@ void VertexManagerBase::CalculateZSlope(NativeVertexFormat* format)
   float viewOffset[2] = {xfmem.viewport.xOrig - bpmem.scissorOffset.x * 2,
                          xfmem.viewport.yOrig - bpmem.scissorOffset.y * 2};
 
-  if (m_current_primitive_type != PRIMITIVE_TRIANGLES)
+  if (m_current_primitive_type != PrimitiveType::Triangles &&
+      m_current_primitive_type != PrimitiveType::TriangleStrip)
+  {
     return;
+  }
 
   // Global matrix ID.
   u32 mtxIdx = g_main_cp_state.matrix_index_a.PosNormalMtxIdx;

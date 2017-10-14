@@ -6,6 +6,7 @@
 
 #include <memory>
 #include <string>
+#include <utility>
 #include <wx/panel.h>
 
 class GameListItem;
@@ -14,7 +15,7 @@ class wxTreeEvent;
 
 namespace DiscIO
 {
-class FileSystem;
+struct Partition;
 class Volume;
 }
 
@@ -31,8 +32,7 @@ private:
     ID_EXTRACT_DIR = 20000,
     ID_EXTRACT_ALL,
     ID_EXTRACT_FILE,
-    ID_EXTRACT_APPLOADER,
-    ID_EXTRACT_DOL,
+    ID_EXTRACT_SYSTEM_DATA,
     ID_CHECK_INTEGRITY,
   };
 
@@ -44,22 +44,22 @@ private:
   void OnRightClickTree(wxTreeEvent&);
   void OnExtractFile(wxCommandEvent&);
   void OnExtractDirectories(wxCommandEvent&);
-  void OnExtractHeaderData(wxCommandEvent&);
+  void OnExtractSystemData(wxCommandEvent&);
+  void OnExtractAll(wxCommandEvent&);
   void OnCheckPartitionIntegrity(wxCommandEvent&);
 
-  void ExtractAllFiles(const wxString& output_folder);
   void ExtractSingleFile(const wxString& output_file_path) const;
   void ExtractSingleDirectory(const wxString& output_folder);
   void ExtractDirectories(const std::string& full_path, const std::string& output_folder,
-                          const DiscIO::FileSystem& filesystem);
+                          const DiscIO::Partition& partition);
+  void ExtractPartition(const std::string& output_folder, const DiscIO::Partition& partition);
 
-  wxString BuildFilePathFromSelection() const;
-  wxString BuildDirectoryPathFromSelection() const;
+  std::pair<wxString, DiscIO::Partition> BuildFilePathFromSelection() const;
+  std::pair<wxString, DiscIO::Partition> BuildDirectoryPathFromSelection() const;
 
   wxTreeCtrl* m_tree_ctrl;
 
   const std::unique_ptr<DiscIO::Volume>& m_opened_iso;
 
-  std::unique_ptr<DiscIO::FileSystem> m_filesystem;
   bool m_has_partitions;
 };

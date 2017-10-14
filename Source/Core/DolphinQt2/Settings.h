@@ -4,74 +4,61 @@
 
 #pragma once
 
-#include <QSettings>
+#include <memory>
+
+#include <QObject>
 #include <QVector>
 
-#include "Common/NonCopyable.h"
-#include "Core/HW/SI/SI.h"
+#include "Core/NetPlayClient.h"
+#include "Core/NetPlayServer.h"
+
+namespace Core
+{
+enum class State;
+}
 
 namespace DiscIO
 {
 enum class Language;
 }
 
+class GameListModel;
 class InputConfig;
 
 // UI settings to be stored in the config directory.
-class Settings final : public QSettings, NonCopyable
+class Settings final : public QObject
 {
   Q_OBJECT
 
 public:
+  Settings(const Settings&) = delete;
+  Settings& operator=(const Settings&) = delete;
+  Settings(Settings&&) = delete;
+  Settings& operator=(Settings&&) = delete;
+
   static Settings& Instance();
 
   // UI
   void SetThemeName(const QString& theme_name);
-  QString GetThemeDir() const;
-  QString GetResourcesDir() const;
-  QString GetProfilesDir() const;
-  QVector<QString> GetProfiles(const InputConfig* config) const;
-  QString GetProfileINIPath(const InputConfig* config, const QString& name) const;
+
   bool IsInDevelopmentWarningEnabled() const;
+  bool IsLogVisible() const;
+  void SetLogVisible(bool visible);
+  bool IsLogConfigVisible() const;
+  void SetLogConfigVisible(bool visible);
 
   // GameList
   QStringList GetPaths() const;
   void AddPath(const QString& path);
-  void SetPaths(const QStringList& paths);
   void RemovePath(const QString& path);
-  QString GetDefaultGame() const;
-  void SetDefaultGame(const QString& path);
-  QString GetDVDRoot() const;
-  void SetDVDRoot(const QString& path);
-  QString GetApploader() const;
-  void SetApploader(const QString& path);
-  QString GetWiiNAND() const;
-  void SetWiiNAND(const QString& path);
-  DiscIO::Language GetWiiSystemLanguage() const;
-  DiscIO::Language GetGCSystemLanguage() const;
   bool GetPreferredView() const;
-  void SetPreferredView(bool table);
+  void SetPreferredView(bool list);
 
   // Emulation
-  bool GetConfirmStop() const;
-  bool IsWiiGameRunning() const;
   int GetStateSlot() const;
   void SetStateSlot(int);
-  float GetEmulationSpeed() const;
-  void SetEmulationSpeed(float val);
-  bool GetForceNTSCJ() const;
-  void SetForceNTSCJ(bool val);
-
-  // Analytics
-  bool HasAskedForAnalyticsPermission() const;
-  void SetAskedForAnalyticsPermission(bool value);
-  bool GetAnalyticsEnabled() const;
-  void SetAnalyticsEnabled(bool val);
 
   // Graphics
-  bool GetRenderToMain() const;
-  bool GetFullScreen() const;
-  QSize GetRenderWindowSize() const;
   void SetHideCursor(bool hide_cursor);
   bool GetHideCursor() const;
 
@@ -81,49 +68,36 @@ public:
   void IncreaseVolume(int volume);
   void DecreaseVolume(int volume);
 
-  // Columns
-  bool& BannerVisible() const;
-  bool& CountryVisible() const;
-  bool& DescriptionVisible() const;
-  bool& FilenameVisible() const;
-  bool& IDVisible() const;
-  bool& PlatformVisible() const;
-  bool& MakerVisible() const;
-  bool& SizeVisible() const;
-  bool& StateVisible() const;
-  bool& TitleVisible() const;
+  // NetPlay
+  NetPlayClient* GetNetPlayClient();
+  void ResetNetPlayClient(NetPlayClient* client = nullptr);
+  NetPlayServer* GetNetPlayServer();
+  void ResetNetPlayServer(NetPlayServer* server = nullptr);
 
-  // Input
-  bool IsWiimoteSpeakerEnabled() const;
-  void SetWiimoteSpeakerEnabled(bool enabled);
+  // Cheats
+  bool GetCheatsEnabled() const;
+  void SetCheatsEnabled(bool enabled);
 
-  bool IsBackgroundInputEnabled() const;
-  void SetBackgroundInputEnabled(bool enabled);
-
-  bool IsBluetoothPassthroughEnabled() const;
-  void SetBluetoothPassthroughEnabled(bool enabled);
-
-  SerialInterface::SIDevices GetSIDevice(size_t i) const;
-  void SetSIDevice(size_t i, SerialInterface::SIDevices device);
-
-  bool IsContinuousScanningEnabled() const;
-  void SetContinuousScanningEnabled(bool enabled);
-
-  bool IsGCAdapterRumbleEnabled(int port) const;
-  void SetGCAdapterRumbleEnabled(int port, bool enabled);
-
-  bool IsGCAdapterSimulatingDKBongos(int port) const;
-  void SetGCAdapterSimulatingDKBongos(int port, bool enabled);
-
-  void Save();
+  // Other
+  GameListModel* GetGameListModel() const;
 
 signals:
+  void ConfigChanged();
+  void EmulationStateChanged(Core::State new_state);
   void ThemeChanged();
   void PathAdded(const QString&);
   void PathRemoved(const QString&);
   void HideCursorChanged();
   void VolumeChanged(int volume);
+  void NANDRefresh();
+  void LogVisibilityChanged(bool visible);
+  void LogConfigVisibilityChanged(bool visible);
+  void EnableCheatsChanged(bool enabled);
 
 private:
+  std::unique_ptr<NetPlayClient> m_client;
+  std::unique_ptr<NetPlayServer> m_server;
   Settings();
 };
+
+Q_DECLARE_METATYPE(Core::State);

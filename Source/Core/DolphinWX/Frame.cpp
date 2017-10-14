@@ -20,6 +20,7 @@
 #include <wx/menu.h>
 #include <wx/msgdlg.h>
 #include <wx/panel.h>
+#include <wx/progdlg.h>
 #include <wx/sizer.h>
 #include <wx/statusbr.h>
 #include <wx/textctrl.h>
@@ -41,6 +42,7 @@
 #include "Common/Logging/ConsoleListener.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
+#include "Common/Version.h"
 
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/ConfigManager.h"
@@ -141,7 +143,7 @@ void CRenderFrame::OnDropFiles(wxDropFilesEvent& event)
   }
   else
   {
-    DVDInterface::ChangeDiscAsHost(filepath);
+    Core::RunAsCPUThread([&filepath] { DVDInterface::ChangeDisc(filepath); });
   }
 }
 
@@ -244,6 +246,7 @@ BEGIN_EVENT_TABLE(CFrame, CRenderFrame)
 EVT_MENU_RANGE(IDM_FLOAT_LOG_WINDOW, IDM_FLOAT_CODE_WINDOW, CFrame::OnFloatWindow)
 
 // Game list context menu
+EVT_MENU(IDM_LIST_PERFORM_DISC_UPDATE, CFrame::OnPerformDiscWiiUpdate)
 EVT_MENU(IDM_LIST_INSTALL_WAD, CFrame::OnInstallWAD)
 EVT_MENU(IDM_LIST_UNINSTALL_WAD, CFrame::OnUninstallWAD)
 
@@ -448,6 +451,10 @@ CFrame::CFrame(wxFrame* parent, wxWindowID id, const wxString& title, wxRect geo
   Bind(wxEVT_TIMER, &CFrame::PollHotkeys, this, m_poll_hotkey_timer.GetId());
   m_poll_hotkey_timer.Start(1000 / 60, wxTIMER_CONTINUOUS);
 
+  m_cursor_timer.SetOwner(this);
+  Bind(wxEVT_TIMER, &CFrame::HandleCursorTimer, this, m_cursor_timer.GetId());
+  m_cursor_timer.StartOnce(MOUSE_HIDE_DELAY);
+
   // Shut down cleanly on SIGINT, SIGTERM (Unix) and on various signals on Windows
   m_handle_signal_timer.SetOwner(this);
   Bind(wxEVT_TIMER, &CFrame::HandleSignal, this, m_handle_signal_timer.GetId());
@@ -523,8 +530,9 @@ void CFrame::InitializeCoreCallbacks()
   });
 
   // Warning: this gets called from the EmuThread
-  Core::SetOnStoppedCallback([this] {
-    AddPendingEvent(wxCommandEvent{wxEVT_HOST_COMMAND, IDM_STOPPED});
+  Core::SetOnStateChangedCallback([this](Core::State state) {
+    if (state == Core::State::Uninitialized)
+      AddPendingEvent(wxCommandEvent{wxEVT_HOST_COMMAND, IDM_STOPPED});
   });
 }
 
@@ -752,7 +760,7 @@ void CFrame::UninhibitScreensaver()
 
 void CFrame::UpdateTitle(const wxString& str)
 {
-  const wxString revision_string = StrToWxStr(scm_rev_str);
+  const wxString revision_string = StrToWxStr(Common::scm_rev_str);
   if (SConfig::GetInstance().bRenderToMain && SConfig::GetInstance().m_InterfaceStatusbar)
   {
     GetStatusBar()->SetStatusText(str, 0);
@@ -822,21 +830,36 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
     OnStopped();
     break;
 
-  case IDM_FORCE_CONNECT_WIIMOTE1:
-  case IDM_FORCE_CONNECT_WIIMOTE2:
-  case IDM_FORCE_CONNECT_WIIMOTE3:
-  case IDM_FORCE_CONNECT_WIIMOTE4:
-  case IDM_FORCE_CONNECT_BALANCEBOARD:
-    ConnectWiimote(event.GetId() - IDM_FORCE_CONNECT_WIIMOTE1, true);
-    break;
-
-  case IDM_FORCE_DISCONNECT_WIIMOTE1:
-  case IDM_FORCE_DISCONNECT_WIIMOTE2:
-  case IDM_FORCE_DISCONNECT_WIIMOTE3:
-  case IDM_FORCE_DISCONNECT_WIIMOTE4:
-  case IDM_FORCE_DISCONNECT_BALANCEBOARD:
-    ConnectWiimote(event.GetId() - IDM_FORCE_DISCONNECT_WIIMOTE1, false);
-    break;
+  case IDM_UPDATE_PROGRESS_DIALOG:
+  {
+    int current = event.GetInt();
+    int total = static_cast<int>(event.GetExtraLong());
+    if (total < 0 || current >= total)
+    {
+      if (m_progress_dialog)
+      {
+        delete m_progress_dialog;
+        m_progress_dialog = nullptr;
+      }
+    }
+    else if (total > 0 && current < total)
+    {
+      if (!m_progress_dialog)
+      {
+        m_progress_dialog = new wxProgressDialog(
+            _("Operation in progress..."), event.GetString(), total, m_render_frame,
+            wxPD_APP_MODAL | wxPD_ELAPSED_TIME | wxPD_SMOOTH | wxPD_REMAINING_TIME);
+        m_progress_dialog->Show();
+      }
+      else
+      {
+        if (m_progress_dialog->GetRange() != total)
+          m_progress_dialog->SetRange(total);
+        m_progress_dialog->Update(current, event.GetString());
+      }
+    }
+  }
+  break;
   }
 }
 
@@ -942,6 +965,8 @@ static int GetMenuIDFromHotkey(unsigned int key)
     return wxID_OPEN;
   case HK_CHANGE_DISC:
     return IDM_CHANGE_DISC;
+  case HK_EJECT_DISC:
+    return IDM_EJECT_DISC;
   case HK_REFRESH_LIST:
     return wxID_REFRESH;
   case HK_PLAY_PAUSE:
@@ -1126,6 +1151,13 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 
 void CFrame::OnMouse(wxMouseEvent& event)
 {
+  if (!SConfig::GetInstance().bHideCursor && main_frame->RendererHasFocus() &&
+      Core::GetState() == Core::State::Running)
+  {
+    m_render_parent->SetCursor(wxNullCursor);
+    m_cursor_timer.StartOnce(MOUSE_HIDE_DELAY);
+  }
+
   // next handlers are all for FreeLook, so we don't need to check them if disabled
   if (!g_Config.bFreeLook)
   {
@@ -1253,9 +1285,7 @@ void CFrame::DoExclusiveFullscreen(bool enable_fullscreen)
   if (!g_renderer || g_renderer->IsFullscreen() == enable_fullscreen)
     return;
 
-  bool was_unpaused = Core::PauseAndLock(true);
-  g_renderer->SetFullscreen(enable_fullscreen);
-  Core::PauseAndLock(false, was_unpaused);
+  Core::RunAsCPUThread([enable_fullscreen] { g_renderer->SetFullscreen(enable_fullscreen); });
 }
 
 void CFrame::PollHotkeys(wxTimerEvent& event)
@@ -1281,6 +1311,7 @@ void CFrame::ParseHotkeys()
     {
     case HK_OPEN:
     case HK_CHANGE_DISC:
+    case HK_EJECT_DISC:
     case HK_REFRESH_LIST:
     case HK_RESET:
     case HK_START_RECORDING:
@@ -1436,7 +1467,7 @@ void CFrame::ParseHotkeys()
   if (IsHotkey(HK_DECREASE_IR))
   {
     OSDChoice = 1;
-    if (Config::Get(Config::GFX_EFB_SCALE) > SCALE_AUTO)
+    if (Config::Get(Config::GFX_EFB_SCALE) > EFB_SCALE_AUTO_INTEGRAL)
       Config::SetCurrent(Config::GFX_EFB_SCALE, Config::Get(Config::GFX_EFB_SCALE) - 1);
   }
   if (IsHotkey(HK_TOGGLE_CROP))
@@ -1701,6 +1732,13 @@ void CFrame::HandleFrameSkipHotkeys()
     holdFrameStep = false;
     holdFrameStepDelayCount = 0;
   }
+}
+
+void CFrame::HandleCursorTimer(wxTimerEvent& event)
+{
+  if (!SConfig::GetInstance().bHideCursor && main_frame->RendererHasFocus() &&
+      Core::GetState() == Core::State::Running)
+    m_render_parent->SetCursor(wxCURSOR_BLANK);
 }
 
 void CFrame::HandleSignal(wxTimerEvent& event)

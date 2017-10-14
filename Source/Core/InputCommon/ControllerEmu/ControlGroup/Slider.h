@@ -13,6 +13,7 @@ namespace ControllerEmu
 class Slider : public ControlGroup
 {
 public:
+  Slider(const std::string& name, const std::string& ui_name);
   explicit Slider(const std::string& name);
 
   void GetState(ControlState* slider);

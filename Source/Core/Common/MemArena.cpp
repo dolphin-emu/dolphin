@@ -55,8 +55,8 @@ static int AshmemCreateFileMapping(const char* name, size_t size)
 void MemArena::GrabSHMSegment(size_t size)
 {
 #ifdef _WIN32
-  hMemoryMapping =
-      CreateFileMapping(INVALID_HANDLE_VALUE, nullptr, PAGE_READWRITE, 0, (DWORD)(size), nullptr);
+  hMemoryMapping = CreateFileMapping(INVALID_HANDLE_VALUE, nullptr, PAGE_READWRITE, 0,
+                                     static_cast<DWORD>(size), L"Dolphin-emu");
 #elif defined(ANDROID)
   fd = AshmemCreateFileMapping("Dolphin-emu", size);
   if (fd < 0)
@@ -136,7 +136,7 @@ u8* MemArena::FindMemoryBase()
   u8* base = static_cast<u8*>(VirtualAlloc(nullptr, memory_size, MEM_RESERVE, PAGE_READWRITE));
   if (!base)
   {
-    PanicAlert("Failed to map enough memory space: %s", GetLastErrorMsg().c_str());
+    PanicAlert("Failed to map enough memory space: %s", GetLastErrorString().c_str());
     return nullptr;
   }
   VirtualFree(base, 0, MEM_RELEASE);
@@ -153,7 +153,7 @@ u8* MemArena::FindMemoryBase()
   void* base = mmap(nullptr, memory_size, PROT_NONE, flags, -1, 0);
   if (base == MAP_FAILED)
   {
-    PanicAlert("Failed to map enough memory space: %s", GetLastErrorMsg().c_str());
+    PanicAlert("Failed to map enough memory space: %s", LastStrerrorString().c_str());
     return nullptr;
   }
   munmap(base, memory_size);

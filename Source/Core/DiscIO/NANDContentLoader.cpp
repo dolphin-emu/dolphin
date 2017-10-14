@@ -163,7 +163,7 @@ bool NANDContentLoader::Initialize(const std::string& name)
       return false;
     }
 
-    std::vector<u8> bytes(File::GetSize(tmd_filename));
+    std::vector<u8> bytes(tmd_file.GetSize());
     tmd_file.ReadBytes(bytes.data(), bytes.size());
     m_tmd.SetBytes(std::move(bytes));
 

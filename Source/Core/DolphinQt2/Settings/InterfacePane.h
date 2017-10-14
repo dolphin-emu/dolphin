@@ -31,6 +31,7 @@ private:
   QCheckBox* m_checkbox_auto_window;
   QCheckBox* m_checkbox_top_window;
   QCheckBox* m_checkbox_render_to_window;
+  QCheckBox* m_checkbox_use_builtin_title_database;
 
   QCheckBox* m_checkbox_confirm_on_stop;
   QCheckBox* m_checkbox_use_panic_handlers;

@@ -13,6 +13,7 @@
 
 #include "AudioCommon/AudioCommon.h"
 
+#include "Common/Assert.h"
 #include "Common/CDUtils.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
@@ -22,17 +23,19 @@
 #include "Common/MsgHandler.h"
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
-#include "Common/SysConf.h"
 
 #include "Core/Analytics.h"
 #include "Core/Boot/Boot.h"
+#include "Core/CommonTitles.h"
+#include "Core/Config/SYSCONFSettings.h"
+#include "Core/ConfigLoaders/GameConfigLoader.h"
 #include "Core/Core.h"
 #include "Core/FifoPlayer/FifoDataFile.h"
 #include "Core/HLE/HLE.h"
 #include "Core/HW/DVD/DVDInterface.h"
 #include "Core/HW/SI/SI.h"
+#include "Core/IOS/ES/ES.h"
 #include "Core/IOS/ES/Formats.h"
-#include "Core/IOS/USB/Bluetooth/BTBase.h"
 #include "Core/PatchEngine.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -50,7 +53,6 @@ SConfig::SConfig()
   LoadDefaults();
   // Make sure we have log manager
   LoadSettings();
-  LoadSettingsFromSysconf();
 }
 
 void SConfig::Init()
@@ -67,7 +69,6 @@ void SConfig::Shutdown()
 SConfig::~SConfig()
 {
   SaveSettings();
-  SaveSettingsToSysconf();
 }
 
 void SConfig::SaveSettings()
@@ -168,6 +169,8 @@ void SConfig::SaveInterfaceSettings(IniFile& ini)
   interface->Set("ShowLogConfigWindow", m_InterfaceLogConfigWindow);
   interface->Set("ExtendedFPSInfo", m_InterfaceExtendedFPSInfo);
   interface->Set("ShowActiveTitle", m_show_active_title);
+  interface->Set("UseBuiltinTitleDatabase", m_use_builtin_title_database);
+  interface->Set("ShowDevelopmentWarning", m_show_development_warning);
   interface->Set("ThemeName", theme_name);
   interface->Set("PauseOnFocusLost", m_PauseOnFocusLost);
   interface->Set("DisableTooltips", m_DisableTooltips);
@@ -186,8 +189,6 @@ void SConfig::SaveDisplaySettings(IniFile& ini)
   display->Set("RenderWindowHeight", iRenderWindowHeight);
   display->Set("RenderWindowAutoSize", bRenderWindowAutoSize);
   display->Set("KeepWindowOnTop", bKeepWindowOnTop);
-  display->Set("ProgressiveScan", bProgressive);
-  display->Set("PAL60", bPAL60);
   display->Set("DisableScreenSaver", bDisableScreenSaver);
   display->Set("ForceNTSCJ", bForceNTSCJ);
 }
@@ -248,8 +249,6 @@ void SConfig::SaveCoreSettings(IniFile& ini)
   core->Set("FPRF", bFPRF);
   core->Set("AccurateNaNs", bAccurateNaNs);
   core->Set("DefaultISO", m_strDefaultISO);
-  core->Set("DVDRoot", m_strDVDRoot);
-  core->Set("Apploader", m_strApploader);
   core->Set("EnableCheats", bEnableCheats);
   core->Set("SelectedLanguage", SelectedLanguage);
   core->Set("OverrideGCLang", bOverrideGCLanguage);
@@ -372,36 +371,6 @@ void SConfig::SaveUSBPassthroughSettings(IniFile& ini)
   section->Set("Devices", devices_string);
 }
 
-void SConfig::SaveSettingsToSysconf()
-{
-  SysConf sysconf{Common::FromWhichRoot::FROM_CONFIGURED_ROOT};
-
-  sysconf.SetData<u8>("IPL.SSV", SysConf::Entry::Type::Byte, m_wii_screensaver);
-  sysconf.SetData<u8>("IPL.LNG", SysConf::Entry::Type::Byte, m_wii_language);
-
-  sysconf.SetData<u8>("IPL.AR", SysConf::Entry::Type::Byte, m_wii_aspect_ratio);
-  sysconf.SetData<u8>("BT.BAR", SysConf::Entry::Type::Byte, m_sensor_bar_position);
-  sysconf.SetData<u32>("BT.SENS", SysConf::Entry::Type::Long, m_sensor_bar_sensitivity);
-  sysconf.SetData<u8>("BT.SPKV", SysConf::Entry::Type::Byte, m_speaker_volume);
-  sysconf.SetData<u8>("BT.MOT", SysConf::Entry::Type::Byte, m_wiimote_motor);
-  sysconf.SetData<u8>("IPL.PGS", SysConf::Entry::Type::Byte, bProgressive);
-  sysconf.SetData<u8>("IPL.E60", SysConf::Entry::Type::Byte, bPAL60);
-
-  // Disable WiiConnect24's standby mode. If it is enabled, it prevents us from receiving
-  // shutdown commands in the State Transition Manager (STM).
-  // TODO: remove this if and once Dolphin supports WC24 standby mode.
-  SysConf::Entry* idle_entry = sysconf.GetOrAddEntry("IPL.IDL", SysConf::Entry::Type::SmallArray);
-  if (idle_entry->bytes.empty())
-    idle_entry->bytes = std::vector<u8>(2);
-  else
-    idle_entry->bytes[0] = 0;
-  NOTICE_LOG(COMMON, "Disabling WC24 'standby' (shutdown to idle) to avoid hanging on shutdown");
-
-  IOS::HLE::RestoreBTInfoSection(&sysconf);
-
-  sysconf.Save();
-}
-
 void SConfig::LoadSettings()
 {
   Config::Load();
@@ -480,6 +449,8 @@ void SConfig::LoadInterfaceSettings(IniFile& ini)
   interface->Get("ShowLogConfigWindow", &m_InterfaceLogConfigWindow, false);
   interface->Get("ExtendedFPSInfo", &m_InterfaceExtendedFPSInfo, false);
   interface->Get("ShowActiveTitle", &m_show_active_title, true);
+  interface->Get("UseBuiltinTitleDatabase", &m_use_builtin_title_database, true);
+  interface->Get("ShowDevelopmentWarning", &m_show_development_warning, true);
   interface->Get("ThemeName", &theme_name, DEFAULT_THEME_DIR);
   interface->Get("PauseOnFocusLost", &m_PauseOnFocusLost, false);
   interface->Get("DisableTooltips", &m_DisableTooltips, false);
@@ -498,8 +469,6 @@ void SConfig::LoadDisplaySettings(IniFile& ini)
   display->Get("RenderWindowHeight", &iRenderWindowHeight, 480);
   display->Get("RenderWindowAutoSize", &bRenderWindowAutoSize, false);
   display->Get("KeepWindowOnTop", &bKeepWindowOnTop, false);
-  display->Get("ProgressiveScan", &bProgressive, false);
-  display->Get("PAL60", &bPAL60, true);
   display->Get("DisableScreenSaver", &bDisableScreenSaver, true);
   display->Get("ForceNTSCJ", &bForceNTSCJ, false);
 }
@@ -562,8 +531,6 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("CPUThread", &bCPUThread, true);
   core->Get("SyncOnSkipIdle", &bSyncGPUOnSkipIdleHack, true);
   core->Get("DefaultISO", &m_strDefaultISO);
-  core->Get("DVDRoot", &m_strDVDRoot);
-  core->Get("Apploader", &m_strApploader);
   core->Get("EnableCheats", &bEnableCheats, false);
   core->Get("SelectedLanguage", &SelectedLanguage, 0);
   core->Get("OverrideGCLang", &bOverrideGCLanguage, false);
@@ -706,21 +673,6 @@ void SConfig::LoadUSBPassthroughSettings(IniFile& ini)
   }
 }
 
-void SConfig::LoadSettingsFromSysconf()
-{
-  SysConf sysconf{Common::FromWhichRoot::FROM_CONFIGURED_ROOT};
-
-  m_wii_screensaver = sysconf.GetData<u8>("IPL.SSV", m_wii_screensaver);
-  m_wii_language = sysconf.GetData<u8>("IPL.LNG", m_wii_language);
-  m_wii_aspect_ratio = sysconf.GetData<u8>("IPL.AR", m_wii_aspect_ratio);
-  m_sensor_bar_position = sysconf.GetData<u8>("BT.BAR", m_sensor_bar_position);
-  m_sensor_bar_sensitivity = sysconf.GetData<u32>("BT.SENS", m_sensor_bar_sensitivity);
-  m_speaker_volume = sysconf.GetData<u8>("BT.SPKV", m_speaker_volume);
-  m_wiimote_motor = sysconf.GetData<u8>("BT.MOT", m_wiimote_motor) != 0;
-  bProgressive = sysconf.GetData<u8>("IPL.PGS", bProgressive) != 0;
-  bPAL60 = sysconf.GetData<u8>("IPL.E60", bPAL60) != 0;
-}
-
 void SConfig::ResetRunningGameMetadata()
 {
   SetRunningGameMetadata("00000000", 0, 0, Core::TitleDatabase::TitleType::Other);
@@ -784,6 +736,9 @@ void SConfig::SetRunningGameMetadata(const std::string& game_id, u64 title_id, u
   const Core::TitleDatabase title_database;
   m_title_description = title_database.Describe(m_game_id, type);
   NOTICE_LOG(CORE, "Active title: %s", m_title_description.c_str());
+
+  Config::AddLayer(ConfigLoaders::GenerateGlobalGameConfigLoader(game_id, revision));
+  Config::AddLayer(ConfigLoaders::GenerateLocalGameConfigLoader(game_id, revision));
 
   if (Core::IsRunning())
   {
@@ -864,6 +819,18 @@ bool SConfig::IsUSBDeviceWhitelisted(const std::pair<u16, u16> vid_pid) const
   return m_usb_passthrough_devices.find(vid_pid) != m_usb_passthrough_devices.end();
 }
 
+// The reason we need this function is because some memory card code
+// expects to get a non-NTSC-K region even if we're emulating an NTSC-K Wii.
+DiscIO::Region SConfig::ToGameCubeRegion(DiscIO::Region region)
+{
+  if (region != DiscIO::Region::NTSC_K)
+    return region;
+
+  // GameCube has no NTSC-K region. No choice of replacement value is completely
+  // non-arbitrary, but let's go with NTSC-J since Korean GameCubes are NTSC-J.
+  return DiscIO::Region::NTSC_J;
+}
+
 const char* SConfig::GetDirectoryForRegion(DiscIO::Region region)
 {
   switch (region)
@@ -878,13 +845,8 @@ const char* SConfig::GetDirectoryForRegion(DiscIO::Region region)
     return EUR_DIR;
 
   case DiscIO::Region::NTSC_K:
-    // This function can't return a Korean directory name, because this
-    // function is only used for GameCube things (memory cards, IPL), and
-    // GameCube has no NTSC-K region. Since NTSC-K doesn't correspond to any
-    // GameCube region, let's return an arbitrary pick. Returning nullptr like
-    // with unknown regions would be inappropriate, because Dolphin expects
-    // to get valid memory card paths even when running an NTSC-K Wii game.
-    return JAP_DIR;
+    _assert_msg_(BOOT, false, "NTSC-K is not a valid GameCube region");
+    return nullptr;
 
   default:
     return nullptr;
@@ -919,12 +881,7 @@ struct SetGameMetadata
 
     config->bWii = executable.reader->IsWii();
 
-    // TODO: Right now GC homebrew boots in NTSC and Wii homebrew in PAL.
-    // This is intentional so that Wii homebrew can boot in both 50Hz and 60Hz,
-    // without forcing all GC homebrew to 50Hz.
-    // In the future, it probably makes sense to add a Region setting for homebrew somewhere in
-    // the emulator config.
-    *region = config->bWii ? DiscIO::Region::PAL : DiscIO::Region::NTSC_U;
+    *region = DiscIO::Region::UNKNOWN_REGION;
 
     // Strip the .elf/.dol file extension and directories before the name
     SplitPath(executable.path, nullptr, &config->m_debugger_game_id, nullptr);
@@ -972,26 +929,28 @@ bool SConfig::SetPathsAndGameMetadata(const BootParameters& boot)
 {
   m_is_mios = false;
   m_disc_booted_from_game_list = false;
-  DiscIO::Region region;
-  if (!std::visit(SetGameMetadata(this, &region), boot.parameters))
+  if (!std::visit(SetGameMetadata(this, &m_region), boot.parameters))
     return false;
 
-  // Set up region
-  const char* retrieved_region_dir = GetDirectoryForRegion(region);
-  m_region = retrieved_region_dir ? region : DiscIO::Region::PAL;
-  const std::string set_region_dir = retrieved_region_dir ? retrieved_region_dir : EUR_DIR;
-  if (!retrieved_region_dir &&
-      !PanicYesNoT("Your GCM/ISO file seems to be invalid (invalid country)."
-                   "\nContinue with PAL region?"))
+  // Fall back to the system menu region, if possible.
+  if (m_region == DiscIO::Region::UNKNOWN_REGION)
   {
-    return false;
+    IOS::HLE::Kernel ios;
+    const IOS::ES::TMDReader system_menu_tmd = ios.GetES()->FindInstalledTMD(Titles::SYSTEM_MENU);
+    if (system_menu_tmd.IsValid())
+      m_region = system_menu_tmd.GetRegion();
   }
 
+  // Fall back to PAL.
+  if (m_region == DiscIO::Region::UNKNOWN_REGION)
+    m_region = DiscIO::Region::PAL;
+
   // Set up paths
-  CheckMemcardPath(SConfig::GetInstance().m_strMemoryCardA, set_region_dir, true);
-  CheckMemcardPath(SConfig::GetInstance().m_strMemoryCardB, set_region_dir, false);
+  const std::string region_dir = GetDirectoryForRegion(ToGameCubeRegion(m_region));
+  CheckMemcardPath(SConfig::GetInstance().m_strMemoryCardA, region_dir, true);
+  CheckMemcardPath(SConfig::GetInstance().m_strMemoryCardB, region_dir, false);
   m_strSRAM = File::GetUserPath(F_GCSRAM_IDX);
-  m_strBootROM = GetBootROMPath(set_region_dir);
+  m_strBootROM = GetBootROMPath(region_dir);
 
   return true;
 }
@@ -1048,7 +1007,7 @@ DiscIO::Language SConfig::GetCurrentLanguage(bool wii) const
 {
   int language_value;
   if (wii)
-    language_value = SConfig::GetInstance().m_wii_language;
+    language_value = Config::Get(Config::SYSCONF_LANGUAGE);
   else
     language_value = SConfig::GetInstance().SelectedLanguage + 1;
   DiscIO::Language language = static_cast<DiscIO::Language>(language_value);
@@ -1078,7 +1037,7 @@ IniFile SConfig::LoadGameIni() const
 IniFile SConfig::LoadDefaultGameIni(const std::string& id, std::optional<u16> revision)
 {
   IniFile game_ini;
-  for (const std::string& filename : GetGameIniFilenames(id, revision))
+  for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(id, revision))
     game_ini.Load(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + filename, true);
   return game_ini;
 }
@@ -1086,7 +1045,7 @@ IniFile SConfig::LoadDefaultGameIni(const std::string& id, std::optional<u16> re
 IniFile SConfig::LoadLocalGameIni(const std::string& id, std::optional<u16> revision)
 {
   IniFile game_ini;
-  for (const std::string& filename : GetGameIniFilenames(id, revision))
+  for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(id, revision))
     game_ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + filename, true);
   return game_ini;
 }
@@ -1094,35 +1053,9 @@ IniFile SConfig::LoadLocalGameIni(const std::string& id, std::optional<u16> revi
 IniFile SConfig::LoadGameIni(const std::string& id, std::optional<u16> revision)
 {
   IniFile game_ini;
-  for (const std::string& filename : GetGameIniFilenames(id, revision))
+  for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(id, revision))
     game_ini.Load(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + filename, true);
-  for (const std::string& filename : GetGameIniFilenames(id, revision))
+  for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(id, revision))
     game_ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + filename, true);
   return game_ini;
-}
-
-// Returns all possible filenames in ascending order of priority
-std::vector<std::string> SConfig::GetGameIniFilenames(const std::string& id,
-                                                      std::optional<u16> revision)
-{
-  std::vector<std::string> filenames;
-
-  if (id.empty())
-    return filenames;
-
-  // INIs that match the system code (unique for each Virtual Console system)
-  filenames.push_back(id.substr(0, 1) + ".ini");
-
-  // INIs that match all regions
-  if (id.size() >= 4)
-    filenames.push_back(id.substr(0, 3) + ".ini");
-
-  // Regular INIs
-  filenames.push_back(id + ".ini");
-
-  // INIs with specific revisions
-  if (revision)
-    filenames.push_back(id + StringFromFormat("r%d", *revision) + ".ini");
-
-  return filenames;
 }

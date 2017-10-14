@@ -19,7 +19,7 @@ GCAdapterConfigDiag::GCAdapterConfigDiag(wxWindow* const parent, const wxString&
                                          const int tab_num)
     : wxDialog(parent, wxID_ANY, name), m_pad_id(tab_num)
 {
-  wxCheckBox* const gamecube_rumble = new wxCheckBox(this, wxID_ANY, _("Rumble"));
+  wxCheckBox* const gamecube_rumble = new wxCheckBox(this, wxID_ANY, _("Enable Rumble"));
   gamecube_rumble->SetValue(SConfig::GetInstance().m_AdapterRumble[m_pad_id]);
   gamecube_rumble->Bind(wxEVT_CHECKBOX, &GCAdapterConfigDiag::OnAdapterRumble, this);
 
@@ -27,7 +27,7 @@ GCAdapterConfigDiag::GCAdapterConfigDiag(wxWindow* const parent, const wxString&
   gamecube_konga->SetValue(SConfig::GetInstance().m_AdapterKonga[m_pad_id]);
   gamecube_konga->Bind(wxEVT_CHECKBOX, &GCAdapterConfigDiag::OnAdapterKonga, this);
 
-  m_adapter_status = new wxStaticText(this, wxID_ANY, _("Adapter Not Detected"));
+  m_adapter_status = new wxStaticText(this, wxID_ANY, _("No Adapter Detected"));
 
   if (!GCAdapter::IsDetected())
   {
@@ -71,12 +71,12 @@ void GCAdapterConfigDiag::ScheduleAdapterUpdate()
 
 void GCAdapterConfigDiag::OnUpdateAdapter(wxCommandEvent& WXUNUSED(event))
 {
-  bool unpause = Core::PauseAndLock(true);
-  if (GCAdapter::IsDetected())
-    m_adapter_status->SetLabelText(_("Adapter Detected"));
-  else
-    m_adapter_status->SetLabelText(_("Adapter Not Detected"));
-  Core::PauseAndLock(false, unpause);
+  Core::RunAsCPUThread([this] {
+    if (GCAdapter::IsDetected())
+      m_adapter_status->SetLabelText(_("Adapter Detected"));
+    else
+      m_adapter_status->SetLabelText(_("No Adapter Detected"));
+  });
 }
 
 void GCAdapterConfigDiag::OnAdapterRumble(wxCommandEvent& event)

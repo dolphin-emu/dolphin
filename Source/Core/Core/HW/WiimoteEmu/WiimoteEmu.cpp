@@ -12,9 +12,11 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+#include "Common/Config/Config.h"
 #include "Common/MathUtil.h"
 #include "Common/MsgHandler.h"
 
+#include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/Wiimote.h"
@@ -27,7 +29,6 @@
 #include "Core/HW/WiimoteEmu/Attachment/Turntable.h"
 #include "Core/HW/WiimoteEmu/MatrixMath.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
-#include "Core/Host.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayClient.h"
 
@@ -251,8 +252,7 @@ void Wiimote::Reset()
   m_adpcm_state.step = 127;
 }
 
-Wiimote::Wiimote(const unsigned int index)
-    : m_index(index), ir_sin(0), ir_cos(1), m_last_connect_request_counter(0)
+Wiimote::Wiimote(const unsigned int index) : m_index(index), ir_sin(0), ir_cos(1)
 {
   // ---- set up all the controls ----
 
@@ -330,7 +330,7 @@ Wiimote::Wiimote(const unsigned int index)
   m_hotkeys->AddInput(_trans("Upright Hold"), false);
 
   // TODO: This value should probably be re-read if SYSCONF gets changed
-  m_sensor_bar_on_top = SConfig::GetInstance().m_sensor_bar_position != 0;
+  m_sensor_bar_on_top = Config::Get(Config::SYSCONF_SENSOR_BAR_POSITION) != 0;
 
   // --- reset eeprom/register/values to default ---
   Reset();
@@ -933,26 +933,14 @@ void Wiimote::InterruptChannel(const u16 channel_id, const void* data, u32 size)
   }
 }
 
-void Wiimote::ConnectOnInput()
+bool Wiimote::CheckForButtonPress()
 {
-  if (m_last_connect_request_counter > 0)
-  {
-    --m_last_connect_request_counter;
-    return;
-  }
-
   u16 buttons = 0;
   const auto lock = GetStateLock();
   m_buttons->GetState(&buttons, button_bitmasks);
   m_dpad->GetState(&buttons, dpad_bitmasks);
 
-  if (buttons != 0 || m_extension->IsButtonPressed())
-  {
-    Host_ConnectWiimote(m_index, true);
-    // arbitrary value so it doesn't try to send multiple requests before Dolphin can react
-    // if Wii Remotes are polled at 200Hz then this results in one request being sent per 500ms
-    m_last_connect_request_counter = 100;
-  }
+  return (buttons != 0 || m_extension->IsButtonPressed());
 }
 
 void Wiimote::SetReportingAuto(bool b) {

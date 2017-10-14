@@ -13,9 +13,11 @@
 #endif
 
 #include <functional>
+#include <memory>
 
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
+#include "Core/DSP/DSPAccelerator.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/DSPHLE/UCodes/AX.h"
 #include "Core/HW/DSPHLE/UCodes/AXStructs.h"
@@ -162,130 +164,33 @@ void DumpPB(const PB_TYPE& pb)
 #endif
 
 // Simulated accelerator state.
-static u32 acc_loop_addr, acc_end_addr;
-static u32* acc_cur_addr;
 static PB_TYPE* acc_pb;
 static bool acc_end_reached;
 
-// Sets up the simulated accelerator.
-void AcceleratorSetup(PB_TYPE* pb, u32* cur_addr)
+class HLEAccelerator final : public Accelerator
 {
-  acc_pb = pb;
-  acc_loop_addr = HILO_TO_32(pb->audio_addr.loop_addr);
-  acc_end_addr = HILO_TO_32(pb->audio_addr.end_addr);
-  acc_cur_addr = cur_addr;
-  acc_end_reached = false;
-}
-
-// Reads a sample from the simulated accelerator. Also handles looping and
-// disabling streams that reached the end (this is done by an exception raised
-// by the accelerator on real hardware).
-u16 AcceleratorGetSample()
-{
-  u16 ret;
-  u8 step_size_bytes = 0;
-
-  // See below for explanations about acc_end_reached.
-  if (acc_end_reached)
-    return 0;
-
-  switch (acc_pb->audio_addr.sample_format)
+protected:
+  void OnEndException() override
   {
-  case 0x00:  // ADPCM
-  {
-    // ADPCM decoding, not much to explain here.
-    if ((*acc_cur_addr & 15) == 0)
-    {
-      acc_pb->adpcm.pred_scale = DSP::ReadARAM((*acc_cur_addr & ~15) >> 1);
-      *acc_cur_addr += 2;
-    }
-
-    switch (acc_end_addr & 15)
-    {
-    case 0:  // Tom and Jerry
-      step_size_bytes = 1;
-      break;
-    case 1:  // Blazing Angels
-      step_size_bytes = 0;
-      break;
-    default:
-      step_size_bytes = 2;
-      break;
-    }
-
-    int scale = 1 << (acc_pb->adpcm.pred_scale & 0xF);
-    int coef_idx = (acc_pb->adpcm.pred_scale >> 4) & 0x7;
-
-    s32 coef1 = acc_pb->adpcm.coefs[coef_idx * 2 + 0];
-    s32 coef2 = acc_pb->adpcm.coefs[coef_idx * 2 + 1];
-
-    int temp = (*acc_cur_addr & 1) ? (DSP::ReadARAM(*acc_cur_addr >> 1) & 0xF) :
-                                     (DSP::ReadARAM(*acc_cur_addr >> 1) >> 4);
-
-    if (temp >= 8)
-      temp -= 16;
-
-    int val =
-        (scale * temp) + ((0x400 + coef1 * acc_pb->adpcm.yn1 + coef2 * acc_pb->adpcm.yn2) >> 11);
-    val = MathUtil::Clamp(val, -0x7FFF, 0x7FFF);
-
-    acc_pb->adpcm.yn2 = acc_pb->adpcm.yn1;
-    acc_pb->adpcm.yn1 = val;
-    *acc_cur_addr += 1;
-    ret = val;
-    break;
-  }
-
-  case 0x0A:  // 16-bit PCM audio
-    ret = (DSP::ReadARAM(*acc_cur_addr * 2) << 8) | DSP::ReadARAM(*acc_cur_addr * 2 + 1);
-    acc_pb->adpcm.yn2 = acc_pb->adpcm.yn1;
-    acc_pb->adpcm.yn1 = ret;
-    step_size_bytes = 2;
-    *acc_cur_addr += 1;
-    break;
-
-  case 0x19:  // 8-bit PCM audio
-    ret = DSP::ReadARAM(*acc_cur_addr) << 8;
-    acc_pb->adpcm.yn2 = acc_pb->adpcm.yn1;
-    acc_pb->adpcm.yn1 = ret;
-    step_size_bytes = 2;
-    *acc_cur_addr += 1;
-    break;
-
-  default:
-    ERROR_LOG(DSPHLE, "Unknown sample format: %d", acc_pb->audio_addr.sample_format);
-    return 0;
-  }
-
-  // Have we reached the end address?
-  //
-  // On real hardware, this would raise an interrupt that is handled by the
-  // UCode. We simulate what this interrupt does here.
-  if (*acc_cur_addr == (acc_end_addr + step_size_bytes - 1))
-  {
-    // loop back to loop_addr.
-    *acc_cur_addr = acc_loop_addr;
-
     if (acc_pb->audio_addr.looping)
     {
-      // Set the ADPCM infos to continue processing at loop_addr.
-      //
-      // For some reason, yn1 and yn2 aren't set if the voice is not of
-      // stream type. This is what the AX UCode does and I don't really
-      // know why.
-      acc_pb->adpcm.pred_scale = acc_pb->adpcm_loop_info.pred_scale;
+      // Set the ADPCM info to continue processing at loop_addr.
+      SetPredScale(acc_pb->adpcm_loop_info.pred_scale);
       if (!acc_pb->is_stream)
       {
-        acc_pb->adpcm.yn1 = acc_pb->adpcm_loop_info.yn1;
-        acc_pb->adpcm.yn2 = acc_pb->adpcm_loop_info.yn2;
+        SetYn1(acc_pb->adpcm_loop_info.yn1);
+        SetYn2(acc_pb->adpcm_loop_info.yn2);
       }
-#ifdef AX_GC
       else
       {
+        // Refresh YN1 and YN2. This indirectly causes the accelerator to resume reads.
+        SetYn1(GetYn1());
+        SetYn2(GetYn2());
+#ifdef AX_GC
         // If we're streaming, increment the loop counter.
         acc_pb->loop_counter++;
-      }
 #endif
+      }
     }
     else
     {
@@ -294,16 +199,45 @@ u16 AcceleratorGetSample()
 
 #ifdef AX_WII
       // One of the few meaningful differences between AXGC and AXWii:
-      // while AXGC handles non looping voices ending by having 0000
-      // samples at the loop address, AXWii has the 0000 samples
-      // internally in DRAM and use an internal pointer to it (loop addr
-      // does not contain 0000 samples on AXWii!).
+      // while AXGC handles non looping voices ending by relying on the
+      // accelerator to stop reads once the loop address is reached,
+      // AXWii has the 0000 samples internally in DRAM and use an internal
+      // pointer to it (loop addr does not contain 0000 samples on AXWii!).
       acc_end_reached = true;
 #endif
     }
   }
 
-  return ret;
+  u8 ReadMemory(u32 address) override { return ReadARAM(address); }
+  void WriteMemory(u32 address, u8 value) override { WriteARAM(value, address); }
+};
+
+static std::unique_ptr<Accelerator> s_accelerator = std::make_unique<HLEAccelerator>();
+
+// Sets up the simulated accelerator.
+void AcceleratorSetup(PB_TYPE* pb)
+{
+  acc_pb = pb;
+  s_accelerator->SetStartAddress(HILO_TO_32(pb->audio_addr.loop_addr));
+  s_accelerator->SetEndAddress(HILO_TO_32(pb->audio_addr.end_addr));
+  s_accelerator->SetCurrentAddress(HILO_TO_32(pb->audio_addr.cur_addr));
+  s_accelerator->SetSampleFormat(pb->audio_addr.sample_format);
+  s_accelerator->SetYn1(pb->adpcm.yn1);
+  s_accelerator->SetYn2(pb->adpcm.yn2);
+  s_accelerator->SetPredScale(pb->adpcm.pred_scale);
+  acc_end_reached = false;
+}
+
+// Reads a sample from the accelerator. Also handles looping and
+// disabling streams that reached the end (this is done by an exception raised
+// by the accelerator on real hardware).
+u16 AcceleratorGetSample()
+{
+  // See below for explanations about acc_end_reached.
+  if (acc_end_reached)
+    return 0;
+
+  return s_accelerator->Read(acc_pb->adpcm.coefs);
 }
 
 // Reads samples from the input callback, resamples them to <count> samples at
@@ -445,8 +379,7 @@ u32 ResampleAudio(std::function<s16(u32)> input_callback, s16* output, u32 count
 // if required.
 void GetInputSamples(PB_TYPE& pb, s16* samples, u16 count, const s16* coeffs)
 {
-  u32 cur_addr = HILO_TO_32(pb.audio_addr.cur_addr);
-  AcceleratorSetup(&pb, &cur_addr);
+  AcceleratorSetup(&pb);
 
   if (coeffs)
     coeffs += pb.coef_select * 0x200;
@@ -455,9 +388,12 @@ void GetInputSamples(PB_TYPE& pb, s16* samples, u16 count, const s16* coeffs)
                     pb.src.cur_addr_frac, HILO_TO_32(pb.src.ratio), pb.src_type, coeffs);
   pb.src.cur_addr_frac = (curr_pos & 0xFFFF);
 
-  // Update current position in the PB.
-  pb.audio_addr.cur_addr_hi = (u16)(cur_addr >> 16);
-  pb.audio_addr.cur_addr_lo = (u16)(cur_addr & 0xFFFF);
+  // Update current position, YN1, YN2 and pred scale in the PB.
+  pb.audio_addr.cur_addr_hi = static_cast<u16>(s_accelerator->GetCurrentAddress() >> 16);
+  pb.audio_addr.cur_addr_lo = static_cast<u16>(s_accelerator->GetCurrentAddress());
+  pb.adpcm.yn1 = s_accelerator->GetYn1();
+  pb.adpcm.yn2 = s_accelerator->GetYn2();
+  pb.adpcm.pred_scale = s_accelerator->GetPredScale();
 }
 
 // Add samples to an output buffer, with optional volume ramping.

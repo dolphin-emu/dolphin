@@ -23,6 +23,32 @@ import java.util.Set;
 import java.util.TreeSet;
 
 /**
+ * A HashMap<String, SettingSection> that constructs a new SettingSection instead of returning null
+ * when getting a key not already in the map
+ */
+final class SettingsSectionMap extends HashMap<String, SettingSection>
+{
+	@Override
+	public SettingSection get(Object key)
+	{
+		if (!(key instanceof String))
+		{
+			return null;
+		}
+
+		String stringKey = (String)key;
+
+		if (!super.containsKey(stringKey))
+		{
+			SettingSection section = new SettingSection(stringKey);
+			super.put(stringKey, section);
+			return section;
+		}
+		return super.get(key);
+	}
+}
+
+/**
  * Contains static methods for interacting with .ini files in which settings are stored.
  */
 public final class SettingsFile
@@ -79,6 +105,9 @@ public final class SettingsFile
 	public static final String KEY_XFB_REAL = "UseRealXFB";
 	public static final String KEY_FAST_DEPTH = "FastDepthCalc";
 	public static final String KEY_ASPECT_RATIO = "AspectRatio";
+	public static final String KEY_UBERSHADER_MODE = "UberShaderMode";
+	public static final String KEY_DISABLE_SPECIALIZED_SHADERS = "DisableSpecializedShaders";
+	public static final String KEY_BACKGROUND_SHADER_COMPILING = "BackgroundShaderCompiling";
 
 	public static final String KEY_GCPAD_TYPE = "SIDevice";
 
@@ -253,7 +282,7 @@ public final class SettingsFile
 	 */
 	public static HashMap<String, SettingSection> readFile(final String fileName, SettingsActivityView view)
 	{
-		HashMap<String, SettingSection> sections = new HashMap<>();
+		HashMap<String, SettingSection> sections = new SettingsSectionMap();
 
 		File ini = getSettingsFile(fileName);
 
@@ -271,10 +300,13 @@ public final class SettingsFile
 					current = sectionFromLine(line);
 					sections.put(current.getName(), current);
 				}
-				else if ((current != null) && line.contains("="))
+				else if ((current != null))
 				{
 					Setting setting = settingFromLine(current, line, fileName);
-					current.putSetting(setting);
+					if (setting != null)
+					{
+						current.putSetting(setting);
+					}
 				}
 			}
 		}
@@ -377,6 +409,12 @@ public final class SettingsFile
 	private static Setting settingFromLine(SettingSection current, String line, String fileName)
 	{
 		String[] splitLine = line.split("=");
+
+		if (splitLine.length != 2)
+		{
+			Log.warning("Skipping invalid config line \"" + line + "\"");
+			return null;
+		}
 
 		String key = splitLine[0].trim();
 		String value = splitLine[1].trim();

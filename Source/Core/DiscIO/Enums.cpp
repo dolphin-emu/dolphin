@@ -11,6 +11,16 @@
 
 namespace DiscIO
 {
+bool IsDisc(Platform volume_type)
+{
+  return volume_type == Platform::GAMECUBE_DISC || volume_type == Platform::WII_DISC;
+}
+
+bool IsWii(Platform volume_type)
+{
+  return volume_type == Platform::WII_DISC || volume_type == Platform::WII_WAD;
+}
+
 bool IsNTSC(Region region)
 {
   return region == Region::NTSC_J || region == Region::NTSC_U || region == Region::NTSC_K;
@@ -38,7 +48,7 @@ Country TypicalCountryForRegion(Region region)
 Region RegionSwitchGC(u8 country_code)
 {
   Region region = RegionSwitchWii(country_code);
-  return region == Region::NTSC_K ? Region::UNKNOWN_REGION : region;
+  return region == Region::NTSC_K ? Region::NTSC_J : region;
 }
 
 Region RegionSwitchWii(u8 country_code)
@@ -340,6 +350,7 @@ std::string GetCompanyFromID(const std::string& company_id)
       {"5Q", "LEGO Media"},
       {"5S", "Xicat Interactive"},
       {"5T", "Cryo Interactive"},
+      {"5V", "Agetec"},
       {"5W", "Red Storm Entertainment"},
       {"5X", "Microids"},
       {"5Z", "Data Design / Conspiracy / Swing"},
@@ -556,20 +567,25 @@ std::string GetCompanyFromID(const std::string& company_id)
       {"GM", "Gamecock Media Group"},
       {"GN", "Oxygen Games"},
       {"GT", "505 Games"},
+      {"GX", "Commodore"},
       {"GY", "The Game Factory"},
       {"H1", "Treasure"},
       {"H2", "Aruze"},
       {"H3", "Ertain"},
       {"H4", "SNK Playmore"},
       {"HF", "Level-5"},
+      {"HH", "Focus Home Interactive"},
       {"HJ", "Genius Products"},
       {"HY", "Reef Entertainment"},
       {"HZ", "Nordcurrent"},
       {"IH", "Yojigen"},
+      {"J8", "SNK Playmore"},
       {"J9", "AQ Interactive"},
       {"JF", "Arc System Works"},
+      {"JH", "City Interactive"},
       {"JJ", "Deep Silver"},
       {"JW", "Atari"},
+      {"JX", "Shin'en"},
       {"K6", "Nihon System"},
       {"KB", "NIS America"},
       {"KM", "Deep Silver"},
@@ -598,6 +614,8 @@ std::string GetCompanyFromID(const std::string& company_id)
       {"SV", "SevenGames"},
       {"SZ", "Storm City"},
       {"TK", "Tasuke / Works"},
+      {"TL", "Telltale Games"},
+      {"TR", "Tetris Online"},
       {"TV", "Tivola"},
       {"UG", "Metro 3D / Data Design"},
       {"VN", "Valcon Games"},

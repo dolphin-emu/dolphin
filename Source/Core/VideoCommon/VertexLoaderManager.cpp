@@ -44,13 +44,6 @@ static VertexLoaderMap s_vertex_loader_map;
 
 u8* cached_arraybases[12];
 
-// Used in the Vulkan backend
-
-NativeVertexFormatMap* GetNativeVertexFormatMap()
-{
-  return &s_native_vertex_map;
-}
-
 void Init()
 {
   MarkAllDirty();
@@ -133,6 +126,75 @@ void MarkAllDirty()
   g_preprocess_cp_state.attr_dirty = BitSet32::AllTrue(8);
 }
 
+NativeVertexFormat* GetOrCreateMatchingFormat(const PortableVertexDeclaration& decl)
+{
+  auto iter = s_native_vertex_map.find(decl);
+  if (iter == s_native_vertex_map.end())
+  {
+    std::unique_ptr<NativeVertexFormat> fmt = g_vertex_manager->CreateNativeVertexFormat(decl);
+    auto ipair = s_native_vertex_map.emplace(decl, std::move(fmt));
+    iter = ipair.first;
+  }
+
+  return iter->second.get();
+}
+
+NativeVertexFormat* GetUberVertexFormat(const PortableVertexDeclaration& decl)
+{
+  // The padding in the structs can cause the memcmp() in the map to create duplicates.
+  // Avoid this by initializing the padding to zero.
+  PortableVertexDeclaration new_decl;
+  std::memset(&new_decl, 0, sizeof(new_decl));
+  new_decl.stride = decl.stride;
+
+  auto MakeDummyAttribute = [](AttributeFormat& attr, VarType type, int components, bool integer) {
+    attr.type = type;
+    attr.components = components;
+    attr.offset = 0;
+    attr.enable = true;
+    attr.integer = integer;
+  };
+  auto CopyAttribute = [](AttributeFormat& attr, const AttributeFormat& src) {
+    attr.type = src.type;
+    attr.components = src.components;
+    attr.offset = src.offset;
+    attr.enable = src.enable;
+    attr.integer = src.integer;
+  };
+
+  if (decl.position.enable)
+    CopyAttribute(new_decl.position, decl.position);
+  else
+    MakeDummyAttribute(new_decl.position, VAR_FLOAT, 1, false);
+  for (size_t i = 0; i < ArraySize(new_decl.normals); i++)
+  {
+    if (decl.normals[i].enable)
+      CopyAttribute(new_decl.normals[i], decl.normals[i]);
+    else
+      MakeDummyAttribute(new_decl.normals[i], VAR_FLOAT, 1, false);
+  }
+  for (size_t i = 0; i < ArraySize(new_decl.colors); i++)
+  {
+    if (decl.colors[i].enable)
+      CopyAttribute(new_decl.colors[i], decl.colors[i]);
+    else
+      MakeDummyAttribute(new_decl.colors[i], VAR_UNSIGNED_BYTE, 4, false);
+  }
+  for (size_t i = 0; i < ArraySize(new_decl.texcoords); i++)
+  {
+    if (decl.texcoords[i].enable)
+      CopyAttribute(new_decl.texcoords[i], decl.texcoords[i]);
+    else
+      MakeDummyAttribute(new_decl.texcoords[i], VAR_FLOAT, 1, false);
+  }
+  if (decl.posmtx.enable)
+    CopyAttribute(new_decl.posmtx, decl.posmtx);
+  else
+    MakeDummyAttribute(new_decl.posmtx, VAR_UNSIGNED_BYTE, 1, true);
+
+  return GetOrCreateMatchingFormat(new_decl);
+}
+
 static VertexLoaderBase* RefreshLoader(int vtx_attr_group, bool preprocess = false)
 {
   CPState* state = preprocess ? &g_preprocess_cp_state : &g_main_cp_state;
@@ -208,6 +270,7 @@ int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bo
   }
   s_current_vtx_fmt = loader->m_native_vertex_format;
   g_current_components = loader->m_native_components;
+  VertexShaderManager::SetVertexFormat(loader->m_native_components);
 
   // if cull mode is CULL_ALL, tell VertexManager to skip triangles and quads.
   // They still need to go through vertex loading, because we need to calculate a zfreeze refrence

@@ -1218,6 +1218,14 @@ void ARM64XEmitter::MRS(ARM64Reg Rt, PStateField field)
   EncodeSystemInst(o0 | 4, op1, CRn, CRm, op2, DecodeReg(Rt));
 }
 
+void ARM64XEmitter::CNTVCT(Arm64Gen::ARM64Reg Rt)
+{
+  _assert_msg_(DYNA_REC, Is64Bit(Rt), "CNTVCT: Rt must be 64-bit");
+
+  // MRS <Xt>, CNTVCT_EL0 ; Read CNTVCT_EL0 into Xt
+  EncodeSystemInst(3 | 4, 3, 0xe, 0, 2, DecodeReg(Rt));
+}
+
 void ARM64XEmitter::HINT(SystemHint op)
 {
   EncodeSystemInst(0, 3, 2, 0, op, WSP);
@@ -1542,19 +1550,22 @@ void ARM64XEmitter::MVN(ARM64Reg Rd, ARM64Reg Rm)
 }
 void ARM64XEmitter::LSL(ARM64Reg Rd, ARM64Reg Rm, int shift)
 {
-  ORR(Rd, Is64Bit(Rd) ? ZR : WZR, Rm, ArithOption(Rm, ST_LSL, shift));
+  int bits = Is64Bit(Rd) ? 64 : 32;
+  UBFM(Rd, Rm, (bits - shift) & (bits - 1), bits - shift - 1);
 }
 void ARM64XEmitter::LSR(ARM64Reg Rd, ARM64Reg Rm, int shift)
 {
-  ORR(Rd, Is64Bit(Rd) ? ZR : WZR, Rm, ArithOption(Rm, ST_LSR, shift));
+  int bits = Is64Bit(Rd) ? 64 : 32;
+  UBFM(Rd, Rm, shift, bits - 1);
 }
 void ARM64XEmitter::ASR(ARM64Reg Rd, ARM64Reg Rm, int shift)
 {
-  ORR(Rd, Is64Bit(Rd) ? ZR : WZR, Rm, ArithOption(Rm, ST_ASR, shift));
+  int bits = Is64Bit(Rd) ? 64 : 32;
+  SBFM(Rd, Rm, shift, bits - 1);
 }
 void ARM64XEmitter::ROR(ARM64Reg Rd, ARM64Reg Rm, int shift)
 {
-  ORR(Rd, Is64Bit(Rd) ? ZR : WZR, Rm, ArithOption(Rm, ST_ROR, shift));
+  EXTR(Rd, Rm, Rm, shift);
 }
 
 // Logical (immediate)
@@ -4054,7 +4065,7 @@ void ARM64XEmitter::ANDI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
   else
   {
     _assert_msg_(DYNA_REC, scratch != INVALID_REG,
-                 "ANDSI2R - failed to construct logical immediate value from %08x, need scratch",
+                 "ANDI2R - failed to construct logical immediate value from %08x, need scratch",
                  (u32)imm);
     MOVI2R(scratch, imm);
     AND(Rd, Rn, scratch);

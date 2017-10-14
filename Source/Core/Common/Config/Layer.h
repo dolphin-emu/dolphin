@@ -14,6 +14,9 @@
 
 namespace Config
 {
+template <typename T>
+struct ConfigInfo;
+
 using LayerMap = std::map<System, std::vector<std::unique_ptr<Section>>>;
 
 class ConfigLayerLoader
@@ -52,14 +55,26 @@ public:
   virtual Section* GetSection(System system, const std::string& section_name);
   virtual Section* GetOrCreateSection(System system, const std::string& section_name);
 
+  template <typename T>
+  T Get(const ConfigInfo<T>& config_info)
+  {
+    return GetOrCreateSection(config_info.location.system, config_info.location.section)
+        ->template Get<T>(config_info.location.key, config_info.default_value);
+  }
+
+  template <typename T>
+  void Set(const ConfigInfo<T>& config_info, const T& value)
+  {
+    GetOrCreateSection(config_info.location.system, config_info.location.section)
+        ->Set(config_info.location.key, value);
+  }
+
   // Explicit load and save of layers
   void Load();
   void Save();
 
   LayerType GetLayer() const;
   const LayerMap& GetLayerMap() const;
-  // Stay away from this routine as much as possible
-  ConfigLayerLoader* GetLoader() const;
 
 protected:
   bool IsDirty() const;

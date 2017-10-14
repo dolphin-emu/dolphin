@@ -9,13 +9,22 @@
 #include <QString>
 #include <QToolBar>
 
+#include <memory>
+
 #include "DolphinQt2/GameList/GameList.h"
 #include "DolphinQt2/MenuBar.h"
 #include "DolphinQt2/RenderWidget.h"
 #include "DolphinQt2/ToolBar.h"
 
+struct BootParameters;
 class HotkeyScheduler;
+class LogConfigWidget;
+class LogWidget;
 class MappingWindow;
+class NetPlayClient;
+class NetPlayDialog;
+class NetPlayServer;
+class NetPlaySetupDialog;
 class SettingsWindow;
 class ControllersWindow;
 class DragEnterEvent;
@@ -32,17 +41,16 @@ public:
   bool eventFilter(QObject* object, QEvent* event) override;
 
 signals:
-  void EmulationStarted();
-  void EmulationPaused();
-  void EmulationStopped();
+  void ReadOnlyModeChanged(bool read_only);
+  void RecordingStatusChanged(bool recording);
 
-private slots:
+private:
   void Open();
   void Play();
   void Pause();
 
   // May ask for confirmation. Returns whether or not it actually stopped.
-  bool Stop();
+  bool RequestStop();
   void ForceStop();
   void Reset();
   void FrameAdvance();
@@ -56,13 +64,13 @@ private slots:
   void StateSaveUndo();
   void StateSaveOldest();
   void SetStateSlot(int slot);
+  void BootWiiSystemMenu();
 
   void PerformOnlineUpdate(const std::string& region);
 
   void FullScreen();
   void ScreenShot();
 
-private:
   void CreateComponents();
 
   void ConnectGameList();
@@ -78,17 +86,36 @@ private:
   void InitCoreCallbacks();
 
   void StartGame(const QString& path);
+  void StartGame(std::unique_ptr<BootParameters>&& parameters);
   void ShowRenderWidget();
   void HideRenderWidget();
 
   void ShowSettingsWindow();
+  void ShowGeneralWindow();
+  void ShowAudioWindow();
   void ShowControllersWindow();
   void ShowGraphicsWindow();
   void ShowAboutDialog();
   void ShowHotkeyDialog();
+  void ShowNetPlaySetupDialog();
 
+  void NetPlayInit();
+  bool NetPlayJoin();
+  bool NetPlayHost(const QString& game_id);
+  void NetPlayQuit();
+
+  void OnBootGameCubeIPL(DiscIO::Region region);
+  void OnImportNANDBackup();
+
+  void OnPlayRecording();
+  void OnStartRecording();
+  void OnStopRecording();
+  void OnExportRecording();
+
+  void OnStopComplete();
   void dragEnterEvent(QDragEnterEvent* event) override;
   void dropEvent(QDropEvent* event) override;
+  QSize sizeHint() const override;
 
   QStackedWidget* m_stack;
   ToolBar* m_tool_bar;
@@ -97,11 +124,17 @@ private:
   RenderWidget* m_render_widget;
   bool m_rendering_to_main;
   bool m_stop_requested = false;
+  bool m_exit_requested = false;
   int m_state_slot = 1;
+  std::unique_ptr<BootParameters> m_pending_boot;
 
   HotkeyScheduler* m_hotkey_scheduler;
   ControllersWindow* m_controllers_window;
   SettingsWindow* m_settings_window;
   MappingWindow* m_hotkey_window;
+  NetPlayDialog* m_netplay_dialog;
+  NetPlaySetupDialog* m_netplay_setup_dialog;
   GraphicsWindow* m_graphics_window;
+  LogWidget* m_log_widget;
+  LogConfigWidget* m_log_config_widget;
 };

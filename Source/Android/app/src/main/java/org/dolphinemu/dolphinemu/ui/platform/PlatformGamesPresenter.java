@@ -15,14 +15,14 @@ public final class PlatformGamesPresenter
 {
 	private final PlatformGamesView mView;
 
-	private int mPlatform;
+	private Platform mPlatform;
 
 	public PlatformGamesPresenter(PlatformGamesView view)
 	{
 		mView = view;
 	}
 
-	public void onCreate(int platform)
+	public void onCreate(Platform platform)
 	{
 		mPlatform = platform;
 	}

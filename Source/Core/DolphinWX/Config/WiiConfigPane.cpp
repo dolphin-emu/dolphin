@@ -11,6 +11,8 @@
 #include <wx/slider.h>
 #include <wx/stattext.h>
 
+#include "Common/Config/Config.h"
+#include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/IOS/IOS.h"
@@ -40,6 +42,9 @@ WiiConfigPane::WiiConfigPane(wxWindow* parent, wxWindowID id) : wxPanel(parent, 
   InitializeGUI();
   LoadGUIValues();
   BindEvents();
+  // This is only safe because WiiConfigPane is owned by CConfigMain, which exists
+  // as long as the DolphinWX app exists.
+  Config::AddConfigChangedCallback([&] { Core::QueueHostJob([&] { LoadGUIValues(); }, true); });
 }
 
 void WiiConfigPane::InitializeGUI()
@@ -77,7 +82,7 @@ void WiiConfigPane::InitializeGUI()
       new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_bt_sensor_bar_pos_strings);
   m_bt_sensor_bar_sens = new DolphinSlider(this, wxID_ANY, 0, 0, 4);
   m_bt_speaker_volume = new DolphinSlider(this, wxID_ANY, 0, 0, 127);
-  m_bt_wiimote_motor = new wxCheckBox(this, wxID_ANY, _("Wii Remote Rumble"));
+  m_bt_wiimote_motor_checkbox = new wxCheckBox(this, wxID_ANY, _("Wii Remote Rumble"));
 
   m_pal60_mode_checkbox->SetToolTip(_("Sets the Wii display mode to 60Hz (480i) instead of 50Hz "
                                       "(576i) for PAL games.\nMay not work for all games."));
@@ -85,6 +90,7 @@ void WiiConfigPane::InitializeGUI()
   m_system_language_choice->SetToolTip(_("Sets the Wii system language."));
   m_sd_card_checkbox->SetToolTip(_("Saved to /Wii/sd.raw (default size is 128mb)"));
   m_connect_keyboard_checkbox->SetToolTip(_("May cause slow down in Wii Menu and some games."));
+  m_bt_wiimote_motor_checkbox->SetToolTip(_("Enables Wii Remote vibration."));
 
   const int space5 = FromDIP(5);
 
@@ -136,7 +142,7 @@ void WiiConfigPane::InitializeGUI()
                               wxGBPosition(2, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
   bt_settings_grid_sizer->Add(bt_speaker_volume_sizer, wxGBPosition(2, 1), wxDefaultSpan,
                               wxALIGN_CENTER_VERTICAL);
-  bt_settings_grid_sizer->Add(m_bt_wiimote_motor, wxGBPosition(3, 0), wxGBSpan(1, 2),
+  bt_settings_grid_sizer->Add(m_bt_wiimote_motor_checkbox, wxGBPosition(3, 0), wxGBSpan(1, 2),
                               wxALIGN_CENTER_VERTICAL);
 
   wxStaticBoxSizer* const misc_settings_static_sizer =
@@ -174,10 +180,10 @@ void WiiConfigPane::InitializeGUI()
 
 void WiiConfigPane::LoadGUIValues()
 {
-  m_screensaver_checkbox->SetValue(!!SConfig::GetInstance().m_wii_screensaver);
-  m_pal60_mode_checkbox->SetValue(SConfig::GetInstance().bPAL60);
-  m_aspect_ratio_choice->SetSelection(SConfig::GetInstance().m_wii_aspect_ratio);
-  m_system_language_choice->SetSelection(SConfig::GetInstance().m_wii_language);
+  m_screensaver_checkbox->SetValue(Config::Get(Config::SYSCONF_SCREENSAVER));
+  m_pal60_mode_checkbox->SetValue(Config::Get(Config::SYSCONF_PAL60));
+  m_aspect_ratio_choice->SetSelection(Config::Get(Config::SYSCONF_WIDESCREEN));
+  m_system_language_choice->SetSelection(Config::Get(Config::SYSCONF_LANGUAGE));
 
   m_sd_card_checkbox->SetValue(SConfig::GetInstance().m_WiiSDCard);
   m_connect_keyboard_checkbox->SetValue(SConfig::GetInstance().m_WiiKeyboard);
@@ -185,10 +191,10 @@ void WiiConfigPane::LoadGUIValues()
   PopulateUSBPassthroughListbox();
 
   m_bt_sensor_bar_pos->SetSelection(
-      TranslateSensorBarPosition(SConfig::GetInstance().m_sensor_bar_position));
-  m_bt_sensor_bar_sens->SetValue(SConfig::GetInstance().m_sensor_bar_sensitivity);
-  m_bt_speaker_volume->SetValue(SConfig::GetInstance().m_speaker_volume);
-  m_bt_wiimote_motor->SetValue(SConfig::GetInstance().m_wiimote_motor);
+      TranslateSensorBarPosition(Config::Get(Config::SYSCONF_SENSOR_BAR_POSITION)));
+  m_bt_sensor_bar_sens->SetValue(Config::Get(Config::SYSCONF_SENSOR_BAR_SENSITIVITY));
+  m_bt_speaker_volume->SetValue(Config::Get(Config::SYSCONF_SPEAKER_VOLUME));
+  m_bt_wiimote_motor_checkbox->SetValue(Config::Get(Config::SYSCONF_WIIMOTE_MOTOR));
 }
 
 void WiiConfigPane::PopulateUSBPassthroughListbox()
@@ -230,8 +236,8 @@ void WiiConfigPane::BindEvents()
   m_bt_speaker_volume->Bind(wxEVT_SLIDER, &WiiConfigPane::OnSpeakerVolumeChanged, this);
   m_bt_speaker_volume->Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreNotRunning);
 
-  m_bt_wiimote_motor->Bind(wxEVT_CHECKBOX, &WiiConfigPane::OnWiimoteMotorChanged, this);
-  m_bt_wiimote_motor->Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreNotRunning);
+  m_bt_wiimote_motor_checkbox->Bind(wxEVT_CHECKBOX, &WiiConfigPane::OnWiimoteMotorChanged, this);
+  m_bt_wiimote_motor_checkbox->Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreNotRunning);
 
   m_usb_passthrough_add_device_btn->Bind(wxEVT_BUTTON, &WiiConfigPane::OnUSBWhitelistAddButton,
                                          this);
@@ -268,12 +274,12 @@ void WiiConfigPane::OnUSBWhitelistRemoveButtonUpdate(wxUpdateUIEvent& event)
 
 void WiiConfigPane::OnScreenSaverCheckBoxChanged(wxCommandEvent& event)
 {
-  SConfig::GetInstance().m_wii_screensaver = m_screensaver_checkbox->IsChecked();
+  Config::SetBase(Config::SYSCONF_SCREENSAVER, m_screensaver_checkbox->IsChecked());
 }
 
 void WiiConfigPane::OnPAL60CheckBoxChanged(wxCommandEvent& event)
 {
-  SConfig::GetInstance().bPAL60 = m_pal60_mode_checkbox->IsChecked();
+  Config::SetBase(Config::SYSCONF_PAL60, m_pal60_mode_checkbox->IsChecked());
 }
 
 void WiiConfigPane::OnSDCardCheckBoxChanged(wxCommandEvent& event)
@@ -291,30 +297,32 @@ void WiiConfigPane::OnConnectKeyboardCheckBoxChanged(wxCommandEvent& event)
 
 void WiiConfigPane::OnSystemLanguageChoiceChanged(wxCommandEvent& event)
 {
-  SConfig::GetInstance().m_wii_language = m_system_language_choice->GetSelection();
+  Config::SetBase(Config::SYSCONF_LANGUAGE,
+                  static_cast<u32>(m_system_language_choice->GetSelection()));
 }
 
 void WiiConfigPane::OnAspectRatioChoiceChanged(wxCommandEvent& event)
 {
-  SConfig::GetInstance().m_wii_aspect_ratio = m_aspect_ratio_choice->GetSelection();
+  Config::SetBase(Config::SYSCONF_WIDESCREEN, m_aspect_ratio_choice->GetSelection() == 1);
 }
 
 void WiiConfigPane::OnSensorBarPosChanged(wxCommandEvent& event)
 {
-  SConfig::GetInstance().m_sensor_bar_position = TranslateSensorBarPosition(event.GetInt());
+  Config::SetBase(Config::SYSCONF_SENSOR_BAR_POSITION,
+                  static_cast<u32>(TranslateSensorBarPosition(event.GetInt())));
 }
 
 void WiiConfigPane::OnSensorBarSensChanged(wxCommandEvent& event)
 {
-  SConfig::GetInstance().m_sensor_bar_sensitivity = event.GetInt();
+  Config::SetBase(Config::SYSCONF_SENSOR_BAR_SENSITIVITY, static_cast<u32>(event.GetInt()));
 }
 
 void WiiConfigPane::OnSpeakerVolumeChanged(wxCommandEvent& event)
 {
-  SConfig::GetInstance().m_speaker_volume = event.GetInt();
+  Config::SetBase(Config::SYSCONF_SPEAKER_VOLUME, static_cast<u32>(event.GetInt()));
 }
 
 void WiiConfigPane::OnWiimoteMotorChanged(wxCommandEvent& event)
 {
-  SConfig::GetInstance().m_wiimote_motor = event.IsChecked();
+  Config::SetBase(Config::SYSCONF_WIIMOTE_MOTOR, event.IsChecked());
 }

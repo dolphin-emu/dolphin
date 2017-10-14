@@ -173,6 +173,21 @@
     <ClCompile Include="AbstractTexture.cpp">
       <Filter>Base</Filter>
     </ClCompile>
+    <ClCompile Include="ShaderGenCommon.cpp">
+      <Filter>Shader Generators</Filter>
+    </ClCompile>
+    <ClCompile Include="AsyncShaderCompiler.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
+    <ClCompile Include="UberShaderPixel.cpp">
+      <Filter>Shader Generators</Filter>
+    </ClCompile>
+    <ClCompile Include="UberShaderCommon.cpp">
+      <Filter>Shader Generators</Filter>
+    </ClCompile>
+    <ClCompile Include="UberShaderVertex.cpp">
+      <Filter>Shader Generators</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommandProcessor.h" />
@@ -328,6 +343,18 @@
     </ClInclude>
     <ClInclude Include="AbstractTexture.h">
       <Filter>Base</Filter>
+    </ClInclude>
+    <ClInclude Include="AsyncShaderCompiler.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="UberShaderPixel.h">
+      <Filter>Shader Generators</Filter>
+    </ClInclude>
+    <ClInclude Include="UberShaderCommon.h">
+      <Filter>Shader Generators</Filter>
+    </ClInclude>
+    <ClInclude Include="UberShaderVertex.h">
+      <Filter>Shader Generators</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

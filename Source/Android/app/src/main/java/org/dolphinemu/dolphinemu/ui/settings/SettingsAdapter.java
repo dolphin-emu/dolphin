@@ -274,6 +274,10 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 				{
 					putXfbSetting(which);
 				}
+				else if (scSetting.getKey().equals(SettingsFile.KEY_UBERSHADER_MODE))
+				{
+					putUberShaderModeSetting(which);
+				}
 				else if (scSetting.getKey().equals(SettingsFile.KEY_WIIMOTE_EXTENSION))
 				{
 					putExtensionSetting(which, Character.getNumericValue(scSetting.getSection().charAt(scSetting.getSection().length() - 1)));
@@ -435,6 +439,33 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 
 		mView.putSetting(xfbEnable);
 		mView.putSetting(xfbReal);
+	}
+
+  public void putUberShaderModeSetting(int which)
+  {
+		BooleanSetting disableSpecializedShaders = null;
+		BooleanSetting backgroundShaderCompilation = null;
+
+		switch (which)
+		{
+			case 0:
+				disableSpecializedShaders = new BooleanSetting(SettingsFile.KEY_DISABLE_SPECIALIZED_SHADERS, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, false);
+				backgroundShaderCompilation = new BooleanSetting(SettingsFile.KEY_BACKGROUND_SHADER_COMPILING, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, false);
+				break;
+
+			case 1:
+				disableSpecializedShaders = new BooleanSetting(SettingsFile.KEY_DISABLE_SPECIALIZED_SHADERS, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, false);
+				backgroundShaderCompilation = new BooleanSetting(SettingsFile.KEY_BACKGROUND_SHADER_COMPILING, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, true);
+				break;
+
+			case 2:
+				disableSpecializedShaders = new BooleanSetting(SettingsFile.KEY_DISABLE_SPECIALIZED_SHADERS, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, true);
+				backgroundShaderCompilation = new BooleanSetting(SettingsFile.KEY_BACKGROUND_SHADER_COMPILING, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, false);
+				break;
+		}
+
+		mView.putSetting(disableSpecializedShaders);
+		mView.putSetting(backgroundShaderCompilation);
 	}
 
 	public void putExtensionSetting(int which, int wiimoteNumber)

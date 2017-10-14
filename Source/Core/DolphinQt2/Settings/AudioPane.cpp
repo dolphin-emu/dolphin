@@ -18,6 +18,7 @@
 
 #include "AudioCommon/AudioCommon.h"
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "DolphinQt2/Config/SettingsWindow.h"
 #include "DolphinQt2/Settings.h"
 
@@ -28,6 +29,8 @@ AudioPane::AudioPane()
   ConnectWidgets();
 
   connect(&Settings::Instance(), &Settings::VolumeChanged, this, &AudioPane::OnVolumeChanged);
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
+          [=](Core::State state) { OnEmulationStateChanged(state != Core::State::Uninitialized); });
 }
 
 void AudioPane::CreateWidgets()
@@ -110,6 +113,7 @@ void AudioPane::CreateWidgets()
   m_main_layout->addWidget(backend_box, 1, 0, 1, -1);
   m_main_layout->addWidget(stretching_box, 2, 0, 1, -1);
 
+  m_main_layout->setContentsMargins(0, 0, 0, 0);
   setLayout(m_main_layout);
 }
 

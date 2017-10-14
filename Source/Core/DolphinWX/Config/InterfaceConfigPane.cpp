@@ -36,11 +36,10 @@
 static const std::array<std::string, 29> language_ids{{
     "",
 
-    "ms", "ca", "cs",    "da", "de", "en", "es",    "fr",    "hr", "it", "hu", "nl",
-    "nb",  // wxWidgets won't accept "no"
-    "pl", "pt", "pt_BR", "ro", "sr", "sv", "tr",
+    "ms", "ca", "cs", "da", "de", "en",    "es",    "fr",    "hr", "it",
+    "hu", "nl", "nb", "pl", "pt", "pt_BR", "ro",    "sr",    "sv", "tr",
 
-    "el", "ru", "ar",    "fa", "ko", "ja", "zh_CN", "zh_TW",
+    "el", "ru", "ar", "fa", "ko", "ja",    "zh_CN", "zh_TW",
 }};
 
 InterfaceConfigPane::InterfaceConfigPane(wxWindow* parent, wxWindowID id) : wxPanel(parent, id)
@@ -87,11 +86,13 @@ void InterfaceConfigPane::InitializeGUI()
 
   m_confirm_stop_checkbox = new wxCheckBox(this, wxID_ANY, _("Confirm on Stop"));
   m_panic_handlers_checkbox = new wxCheckBox(this, wxID_ANY, _("Use Panic Handlers"));
-  m_osd_messages_checkbox = new wxCheckBox(this, wxID_ANY, _("On-Screen Display Messages"));
+  m_osd_messages_checkbox = new wxCheckBox(this, wxID_ANY, _("Show On-Screen Messages"));
   m_simple_title_checkbox = new wxCheckBox(this, wxID_ANY, _("Use simpler window title for emulation window"));
   m_show_active_title_checkbox =
       new wxCheckBox(this, wxID_ANY, _("Show Active Title in Window Title"));
-  m_pause_focus_lost_checkbox = new wxCheckBox(this, wxID_ANY, _("Pause on Focus Lost"));
+  m_use_builtin_title_database_checkbox =
+      new wxCheckBox(this, wxID_ANY, _("Use Built-In Database of Game Names"));
+  m_pause_focus_lost_checkbox = new wxCheckBox(this, wxID_ANY, _("Pause on Focus Loss"));
   m_interface_lang_choice =
       new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_interface_lang_strings);
   m_theme_choice = new wxChoice(this, wxID_ANY);
@@ -105,6 +106,8 @@ void InterfaceConfigPane::InitializeGUI()
   m_simple_title_checkbox->Bind(wxEVT_CHECKBOX, &InterfaceConfigPane::OnSimpleTitleCheckBoxChanged, this);
   m_show_active_title_checkbox->Bind(wxEVT_CHECKBOX,
                                      &InterfaceConfigPane::OnShowActiveTitleCheckBoxChanged, this);
+  m_use_builtin_title_database_checkbox->Bind(
+      wxEVT_CHECKBOX, &InterfaceConfigPane::OnUseBuiltinTitleDatabaseCheckBoxChanged, this);
   m_pause_focus_lost_checkbox->Bind(wxEVT_CHECKBOX,
                                     &InterfaceConfigPane::OnPauseOnFocusLostCheckBoxChanged, this);
   m_interface_lang_choice->Bind(wxEVT_CHOICE,
@@ -122,6 +125,10 @@ void InterfaceConfigPane::InitializeGUI()
   m_simple_title_checkbox->SetToolTip(_("Makes the emulation window use a simple, constant window title. Fixes some issues with applications that track windows by their names."));
   m_show_active_title_checkbox->SetToolTip(
       _("Show the active title name in the emulation window title."));
+  m_use_builtin_title_database_checkbox->SetToolTip(
+      _("Read game names from an internal database instead of reading names from the games "
+        "themselves, except for games that aren't in the database. The names in the database are "
+        "often more consistently formatted, especially for Wii games."));
   m_pause_focus_lost_checkbox->SetToolTip(
       _("Pauses the emulator when focus is taken away from the emulation window."));
   m_interface_lang_choice->SetToolTip(
@@ -151,6 +158,8 @@ void InterfaceConfigPane::InitializeGUI()
   main_static_box_sizer->Add(m_simple_title_checkbox, 0, wxLEFT | wxRIGHT, space5);
   main_static_box_sizer->Add(m_show_active_title_checkbox, 0, wxLEFT | wxRIGHT, space5);
   main_static_box_sizer->AddSpacer(space5);
+  main_static_box_sizer->Add(m_use_builtin_title_database_checkbox, 0, wxLEFT | wxRIGHT, space5);
+  main_static_box_sizer->AddSpacer(space5);
   main_static_box_sizer->Add(m_pause_focus_lost_checkbox, 0, wxLEFT | wxRIGHT, space5);
   main_static_box_sizer->AddSpacer(space5);
   main_static_box_sizer->Add(language_and_theme_grid_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
@@ -173,6 +182,7 @@ void InterfaceConfigPane::LoadGUIValues()
   m_osd_messages_checkbox->SetValue(startup_params.bOnScreenDisplayMessages);
   m_simple_title_checkbox->SetValue(startup_params.bSimpleWindowTitle);
   m_show_active_title_checkbox->SetValue(startup_params.m_show_active_title);
+  m_use_builtin_title_database_checkbox->SetValue(startup_params.m_use_builtin_title_database);
   m_pause_focus_lost_checkbox->SetValue(SConfig::GetInstance().m_PauseOnFocusLost);
 
   const std::string exact_language = SConfig::GetInstance().m_InterfaceLanguage;
@@ -241,6 +251,12 @@ void InterfaceConfigPane::OnSimpleTitleCheckBoxChanged(wxCommandEvent& event)
 void InterfaceConfigPane::OnShowActiveTitleCheckBoxChanged(wxCommandEvent&)
 {
   SConfig::GetInstance().m_show_active_title = m_show_active_title_checkbox->IsChecked();
+}
+
+void InterfaceConfigPane::OnUseBuiltinTitleDatabaseCheckBoxChanged(wxCommandEvent&)
+{
+  SConfig::GetInstance().m_use_builtin_title_database =
+      m_use_builtin_title_database_checkbox->IsChecked();
 }
 
 void InterfaceConfigPane::OnInterfaceLanguageChoiceChanged(wxCommandEvent& event)

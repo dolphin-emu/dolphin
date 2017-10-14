@@ -138,33 +138,9 @@ void VertexManager::vFlush()
   // Figure out the number of indices to draw
   u32 index_count = IndexGenerator::GetIndexLen();
 
-  // Update assembly state
+  // Update tracked state
   StateTracker::GetInstance()->SetVertexFormat(vertex_format);
-  switch (m_current_primitive_type)
-  {
-  case PRIMITIVE_POINTS:
-    StateTracker::GetInstance()->SetPrimitiveTopology(VK_PRIMITIVE_TOPOLOGY_POINT_LIST);
-    StateTracker::GetInstance()->DisableBackFaceCulling();
-    break;
-
-  case PRIMITIVE_LINES:
-    StateTracker::GetInstance()->SetPrimitiveTopology(VK_PRIMITIVE_TOPOLOGY_LINE_LIST);
-    StateTracker::GetInstance()->DisableBackFaceCulling();
-    break;
-
-  case PRIMITIVE_TRIANGLES:
-    StateTracker::GetInstance()->SetPrimitiveTopology(
-        g_ActiveConfig.backend_info.bSupportsPrimitiveRestart ?
-            VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP :
-            VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
-    g_renderer->SetGenerationMode();
-    break;
-  }
-
-  // Check for any shader stage changes
-  StateTracker::GetInstance()->CheckForShaderChanges(m_current_primitive_type);
-
-  // Update any changed constants
+  StateTracker::GetInstance()->CheckForShaderChanges();
   StateTracker::GetInstance()->UpdateVertexShaderConstants();
   StateTracker::GetInstance()->UpdateGeometryShaderConstants();
   StateTracker::GetInstance()->UpdatePixelShaderConstants();

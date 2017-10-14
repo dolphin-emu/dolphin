@@ -1,5 +1,11 @@
-find_package(Qt5Widgets REQUIRED)
-find_Package(Qt5Gui REQUIRED)
+find_package(Qt5Widgets)
+find_package(Qt5Gui)
+
+if(NOT Qt5Widgets_FOUND OR NOT Qt5Gui_FOUND)
+  message(FATAL_ERROR "Could not find Qt5, which is required to build the DolphinQt2 frontend. If you don't want to build the Qt frontend, pass -DENABLE_QT2=False to
+CMake.")
+endif()
+
 set_property(TARGET Qt5::Core PROPERTY INTERFACE_COMPILE_FEATURES "")
 message(STATUS "Found Qt version ${Qt5Core_VERSION}")
 
@@ -22,10 +28,13 @@ set(SRCS
   Resources.cpp
   Settings.cpp
   ToolBar.cpp
+  Translation.cpp
   WiiUpdate.cpp
   WiiUpdate.h
+  Config/CheatWarningWidget.cpp
   Config/ControllersWindow.cpp
   Config/FilesystemWidget.cpp
+  Config/GeckoCodeWidget.cpp
   Config/Graphics/AdvancedWidget.cpp
   Config/Graphics/EnhancementsWidget.cpp
   Config/Graphics/GeneralWidget.cpp
@@ -37,6 +46,8 @@ set(SRCS
   Config/Graphics/GraphicsWindow.cpp
   Config/Graphics/SoftwareRendererWidget.cpp
   Config/InfoWidget.cpp
+  Config/LogConfigWidget.cpp
+  Config/LogWidget.cpp
   Config/Mapping/GCKeyboardEmu.cpp
   Config/Mapping/GCPadEmu.cpp
   Config/Mapping/GCPadWiiU.cpp
@@ -58,14 +69,24 @@ set(SRCS
   Config/Mapping/WiimoteEmuMotionControl.cpp
   Config/PropertiesDialog.cpp
   Config/SettingsWindow.cpp
+  GameList/GameFileCache.cpp
   GameList/GameFile.cpp
   GameList/GameList.cpp
   GameList/GameListModel.cpp
   GameList/GameTracker.cpp
+  GameList/GridProxyModel.cpp
   GameList/ListProxyModel.cpp
+  QtUtils/BlockUserInputFilter.cpp
+  NetPlay/GameListDialog.cpp
+  NetPlay/MD5Dialog.cpp
+  NetPlay/NetPlayDialog.cpp
+  NetPlay/NetPlaySetupDialog.cpp
+  NetPlay/PadMappingDialog.cpp
   QtUtils/DoubleClickEventFilter.cpp
   QtUtils/ElidedButton.cpp
+  QtUtils/ListTabWidget.cpp
   QtUtils/WindowActivationEventFilter.cpp
+  Settings/AdvancedPane.cpp
   Settings/AudioPane.cpp
   Settings/GeneralPane.cpp
   Settings/InterfacePane.cpp
@@ -82,6 +103,39 @@ set(DOLPHINQT2_BINARY dolphin-emu-qt2)
 
 add_executable(${DOLPHINQT2_BINARY} ${SRCS} ${UI_HEADERS})
 target_link_libraries(${DOLPHINQT2_BINARY} ${LIBS} Qt5::Widgets)
+
+# Handle localization
+find_package(Gettext)
+if(GETTEXT_MSGMERGE_EXECUTABLE AND GETTEXT_MSGFMT_EXECUTABLE)
+  set(pot_file "${CMAKE_SOURCE_DIR}/Languages/po/dolphin-emu.pot")
+  file(GLOB LINGUAS ${CMAKE_SOURCE_DIR}/Languages/po/*.po)
+
+  target_sources(dolphin-emu-qt2 PRIVATE ${pot_file} ${LINGUAS})
+  source_group("Localization" FILES ${LINGUAS})
+  source_group("Localization\\\\Generated" FILES ${pot_file})
+
+  foreach(po ${LINGUAS})
+    get_filename_component(lang ${po} NAME_WE)
+    set(mo_dir ${CMAKE_CURRENT_BINARY_DIR}/${lang})
+    set(mo ${mo_dir}/dolphin-emu.mo)
+
+    target_sources(dolphin-emu-qt2 PRIVATE ${mo})
+    source_group("Localization\\\\Generated" FILES ${mo})
+
+    if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+      set_source_files_properties(${mo} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/${lang}.lproj")
+    else()
+      install(FILES ${mo} DESTINATION share/locale/${lang}/LC_MESSAGES)
+    endif()
+
+    add_custom_command(OUTPUT ${mo}
+      COMMAND mkdir -p ${mo_dir}
+      COMMAND ${GETTEXT_MSGMERGE_EXECUTABLE} --quiet --update --backup=none -s ${po} ${pot_file}
+      COMMAND ${GETTEXT_MSGFMT_EXECUTABLE} -o ${mo} ${po}
+      DEPENDS ${po}
+    )
+  endforeach()
+endif()
 
 if(APPLE)
   # Note: This is copied from DolphinQt, based on the DolphinWX version.

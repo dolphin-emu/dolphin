@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "Common/BitField.h"
 #include "Common/CommonTypes.h"
 #include "VideoCommon/CPMemory.h"
 
@@ -132,27 +133,15 @@ enum
 
 union LitChannel
 {
-  struct
-  {
-    u32 matsource : 1;
-    u32 enablelighting : 1;
-    u32 lightMask0_3 : 4;
-    u32 ambsource : 1;
-    u32 diffusefunc : 2;  // LIGHTDIF_X
-    u32 attnfunc : 2;     // LIGHTATTN_X
-    u32 lightMask4_7 : 4;
-  };
-  struct
-  {
-    u32 hex : 15;
-    u32 unused : 17;
-  };
-  struct
-  {
-    u32 dummy0 : 7;
-    u32 lightparams : 4;
-    u32 dummy1 : 21;
-  };
+  BitField<0, 1, u32> matsource;
+  BitField<1, 1, u32> enablelighting;
+  BitField<2, 4, u32> lightMask0_3;
+  BitField<6, 1, u32> ambsource;
+  BitField<7, 2, u32> diffusefunc;  // LIGHTDIF_X
+  BitField<9, 2, u32> attnfunc;     // LIGHTATTN_X
+  BitField<11, 4, u32> lightMask4_7;
+  u32 hex;
+
   unsigned int GetFullLightMask() const
   {
     return enablelighting ? (lightMask0_3 | (lightMask4_7 << 4)) : 0;
@@ -173,28 +162,22 @@ union INVTXSPEC
 
 union TexMtxInfo
 {
-  struct
-  {
-    u32 unknown : 1;
-    u32 projection : 1;  // XF_TEXPROJ_X
-    u32 inputform : 1;   // XF_TEXINPUT_X
-    u32 unknown2 : 1;
-    u32 texgentype : 3;         // XF_TEXGEN_X
-    u32 sourcerow : 5;          // XF_SRCGEOM_X
-    u32 embosssourceshift : 3;  // what generated texcoord to use
-    u32 embosslightshift : 3;   // light index that is used
-  };
+  BitField<0, 1, u32> unknown;             //
+  BitField<1, 1, u32> projection;          // XF_TEXPROJ_X
+  BitField<2, 1, u32> inputform;           // XF_TEXINPUT_X
+  BitField<3, 1, u32> unknown2;            //
+  BitField<4, 3, u32> texgentype;          // XF_TEXGEN_X
+  BitField<7, 5, u32> sourcerow;           // XF_SRCGEOM_X
+  BitField<12, 3, u32> embosssourceshift;  // what generated texcoord to use
+  BitField<15, 3, u32> embosslightshift;   // light index that is used
   u32 hex;
 };
 
 union PostMtxInfo
 {
-  struct
-  {
-    u32 index : 6;  // base row of dual transform matrix
-    u32 unused : 2;
-    u32 normalize : 1;  // normalize before send operation
-  };
+  BitField<0, 6, u32> index;      // base row of dual transform matrix
+  BitField<6, 2, u32> unused;     //
+  BitField<8, 1, u32> normalize;  // normalize before send operation
   u32 hex;
 };
 

@@ -172,6 +172,8 @@ public:
   // Import a secret, encrypted key into dest_handle, which will be decrypted using decrypt_handle.
   ReturnCode ImportSecretKey(Handle dest_handle, Handle decrypt_handle, u8* iv,
                              const u8* encrypted_key, u32 pid);
+  // Import a secret key that is already decrypted.
+  ReturnCode ImportSecretKey(Handle dest_handle, const u8* decrypted_key, u32 pid);
   // Import a public key. public_key_exponent must be passed for RSA keys.
   ReturnCode ImportPublicKey(Handle dest_handle, const u8* public_key,
                              const u8* public_key_exponent, u32 pid);

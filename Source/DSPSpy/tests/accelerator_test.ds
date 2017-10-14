@@ -1,0 +1,153 @@
+; Test for the DSP accelerator, in particular to check its masking behaviour.
+; See https://github.com/dolphin-emu/dolphin/pull/5997
+incdir  "tests"
+include "dsp_base.inc"
+jmp test_main
+
+; Writes the passed format, start and end addresses to the accelerator registers,
+; then reads them back to registers.
+; The current address is initialised to the start.
+; Parameters:
+;   AC0.H: sample format
+;   AC0.M/L: start address
+;   AC1.M/L: end address
+test_accelerator_addrs_ex:
+  ; Set the sample format
+  sr @0xffd1, $AC0.H
+
+  ; Set the accelerator start and current address.
+  srs @ACSAH, $AC0.M
+  srs @ACCAH, $AC0.M
+  srs @ACSAL, $AC0.L
+  srs @ACCAL, $AC0.L
+  ; Set the accelerator end address.
+  srs @ACEAH, $AC1.M
+  srs @ACEAL, $AC1.L
+
+  ; Move the values back to registers that can be printed by dspspy.
+  ; AC0 -> start, AC1 -> end, AX0 -> current
+  lri $AC0.H, #0
+  lrs $AC0.M, @ACSAH
+  lrs $AC0.L, @ACSAL
+  lri $AC1.H, #0
+  lrs $AC1.M, @ACEAH
+  lrs $AC1.L, @ACEAL
+  lrs $AX0.H, @ACCAH
+  lrs $AX0.L, @ACCAL
+
+  ; Make the accelerator read memory
+  lrs $AX1.H, @ARAM
+  lrs $AX1.H, @ARAM
+  ; AX1 -> new current position after read
+  lrs $AX1.H, @ACCAH
+  lrs $AX1.L, @ACCAL
+
+  call send_back
+  ret
+
+; Same as test_accelerator_addrs_ex, but with the end address set to start + 0x1000.
+test_accelerator_addrs:
+  lri $AC1.H, #0
+  lri $AC1.M, #0
+  lri $AC1.L, #0x1000
+  add $ACC1, $ACC0
+  jmp test_accelerator_addrs_ex
+
+test_main:
+  ; Test 1
+  lri $AC0.H, #0x19 ; 8-bit PCM
+  lri $AC0.M, #0x0000 ; start
+  lri $AC0.L, #0x1000 ; start
+  call test_accelerator_addrs
+
+  ; Test 2
+  lri $AC0.H, #0xa ; 16-bit PCM
+  lri $AC0.M, #0x0000 ; start
+  lri $AC0.L, #0x1000 ; start
+  call test_accelerator_addrs
+
+  ; Test 3
+  lri $AC0.H, #0xa ; 16-bit PCM
+  lri $AC0.M, #0x1000 ; start
+  lri $AC0.L, #0x0000 ; start
+  call test_accelerator_addrs
+
+  ; Test 4
+  lri $AC0.H, #0xa ; 16-bit PCM
+  lri $AC0.M, #0x2000 ; start
+  lri $AC0.L, #0x0000 ; start
+  call test_accelerator_addrs
+
+  ; Test 5
+  lri $AC0.H, #0xa ; 16-bit PCM
+  lri $AC0.M, #0x3000 ; start
+  lri $AC0.L, #0x0000 ; start
+  call test_accelerator_addrs
+
+  ; Test 6
+  lri $AC0.H, #0xa ; 16-bit PCM
+  lri $AC0.M, #0x3fff ; start
+  lri $AC0.L, #0xffff ; start
+  call test_accelerator_addrs
+
+  ; Test 7
+  lri $AC0.H, #0xa ; 16-bit PCM
+  lri $AC0.M, #0x4000 ; start
+  lri $AC0.L, #0x0000 ; start
+  call test_accelerator_addrs
+
+  ; Test 8
+  lri $AC0.H, #0xa ; 16-bit PCM
+  lri $AC0.M, #0x5000 ; start
+  lri $AC0.L, #0x0000 ; start
+  call test_accelerator_addrs
+
+  ; Test 9
+  lri $AC0.H, #0xa ; 16-bit PCM
+  lri $AC0.M, #0x6000 ; start
+  lri $AC0.L, #0x0000 ; start
+  call test_accelerator_addrs
+
+  ; Test 10
+  lri $AC0.H, #0xa ; 16-bit PCM
+  lri $AC0.M, #0x7000 ; start
+  lri $AC0.L, #0x0000 ; start
+  call test_accelerator_addrs
+
+  ; Test 11
+  lri $AC0.H, #0xa ; 16-bit PCM
+  lri $AC0.M, #0x7fff ; start
+  lri $AC0.L, #0xffff ; start
+  call test_accelerator_addrs
+
+  ; Test 12
+  lri $AC0.H, #0xa ; 16-bit PCM
+  lri $AC0.M, #0x8000 ; start
+  lri $AC0.L, #0x0000 ; start
+  call test_accelerator_addrs
+
+  ; Test 13
+  lri $AC0.H, #0xa ; 16-bit PCM
+  lri $AC0.M, #0x9000 ; start
+  lri $AC0.L, #0x0000 ; start
+  call test_accelerator_addrs
+
+  ; Test 14
+  lri $AC0.H, #0xa ; 16-bit PCM
+  lri $AC0.M, #0xc000 ; start
+  lri $AC0.L, #0x1000 ; start
+  call test_accelerator_addrs
+
+  ; Test 15
+  lri $AC0.H, #0xa ; 16-bit PCM
+  lri $AC0.M, #0xd000 ; start
+  lri $AC0.L, #0x1000 ; start
+  call test_accelerator_addrs
+
+  ; Test 16
+  lri $AC0.H, #0xa ; 16-bit PCM
+  lri $AC0.M, #0xffff ; start
+  lri $AC0.L, #0xffff ; start
+  call test_accelerator_addrs
+
+  jmp end_of_test

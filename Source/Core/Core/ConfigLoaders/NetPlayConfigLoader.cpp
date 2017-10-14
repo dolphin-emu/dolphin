@@ -7,6 +7,7 @@
 #include <memory>
 
 #include "Common/Config/Config.h"
+#include "Core/Config/SYSCONFSettings.h"
 #include "Core/NetPlayProto.h"
 
 namespace ConfigLoaders
@@ -23,7 +24,6 @@ public:
   {
     Config::Section* core = config_layer->GetOrCreateSection(Config::System::Main, "Core");
     Config::Section* dsp = config_layer->GetOrCreateSection(Config::System::Main, "DSP");
-    Config::Section* display = config_layer->GetOrCreateSection(Config::System::Main, "Display");
 
     core->Set("CPUThread", m_settings.m_CPUthread);
     core->Set("CPUCore", m_settings.m_CPUcore);
@@ -38,8 +38,8 @@ public:
 
     dsp->Set("EnableJIT", m_settings.m_DSPEnableJIT);
 
-    display->Set("ProgressiveScan", m_settings.m_ProgressiveScan);
-    display->Set("PAL60", m_settings.m_PAL60);
+    config_layer->Set(Config::SYSCONF_PROGRESSIVE_SCAN, m_settings.m_ProgressiveScan);
+    config_layer->Set(Config::SYSCONF_PAL60, m_settings.m_PAL60);
   }
 
   void Save(Config::Layer* config_layer) override

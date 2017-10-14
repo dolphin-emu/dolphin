@@ -47,6 +47,7 @@
 #include "Core/IOS/USB/OH0/OH0.h"
 #include "Core/IOS/USB/OH0/OH0Device.h"
 #include "Core/IOS/USB/USB_HID/HIDv4.h"
+#include "Core/IOS/USB/USB_HID/HIDv5.h"
 #include "Core/IOS/USB/USB_KBD.h"
 #include "Core/IOS/USB/USB_VEN/VEN.h"
 #include "Core/IOS/WFS/WFSI.h"
@@ -361,7 +362,10 @@ void Kernel::AddStaticDevices()
   AddDevice(std::make_unique<Device::USB_KBD>(*this, "/dev/usb/kbd"));
   AddDevice(std::make_unique<Device::SDIOSlot0>(*this, "/dev/sdio/slot0"));
   AddDevice(std::make_unique<Device::Stub>(*this, "/dev/sdio/slot1"));
-  AddDevice(std::make_unique<Device::USB_HIDv4>(*this, "/dev/usb/hid"));
+  if (GetVersion() == 59)
+    AddDevice(std::make_unique<Device::USB_HIDv5>(*this, "/dev/usb/hid"));
+  else
+    AddDevice(std::make_unique<Device::USB_HIDv4>(*this, "/dev/usb/hid"));
   AddDevice(std::make_unique<Device::OH0>(*this, "/dev/usb/oh0"));
   AddDevice(std::make_unique<Device::Stub>(*this, "/dev/usb/oh1"));
   AddDevice(std::make_unique<Device::USB_VEN>(*this, "/dev/usb/ven"));

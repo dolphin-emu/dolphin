@@ -215,7 +215,7 @@ void HiresTexture::Prefetch()
 }
 
 std::string HiresTexture::GenBaseName(const u8* texture, size_t texture_size, const u8* tlut,
-                                      size_t tlut_size, u32 width, u32 height, int format,
+                                      size_t tlut_size, u32 width, u32 height, TextureFormat format,
                                       bool has_mipmaps, bool dump)
 {
   std::string name = "";
@@ -385,7 +385,8 @@ u32 HiresTexture::CalculateMipCount(u32 width, u32 height)
 
 std::shared_ptr<HiresTexture> HiresTexture::Search(const u8* texture, size_t texture_size,
                                                    const u8* tlut, size_t tlut_size, u32 width,
-                                                   u32 height, int format, bool has_mipmaps)
+                                                   u32 height, TextureFormat format,
+                                                   bool has_mipmaps)
 {
   std::string base_filename =
       GenBaseName(texture, texture_size, tlut, tlut_size, width, height, format, has_mipmaps);

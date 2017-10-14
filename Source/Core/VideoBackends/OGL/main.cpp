@@ -104,6 +104,7 @@ void VideoBackend::InitBackendInfo()
   g_Config.backend_info.bSupportsClipControl = true;
   g_Config.backend_info.bSupportsDepthClamp = true;
   g_Config.backend_info.bSupportsST3CTextures = false;
+  g_Config.backend_info.bSupportsBPTCTextures = false;
 
   g_Config.backend_info.Adapters.clear();
 
@@ -167,7 +168,7 @@ bool VideoBackend::Initialize(void* window_handle)
 
   InitInterface();
   GLInterface->SetMode(GLInterfaceMode::MODE_DETECT);
-  if (!GLInterface->Create(window_handle))
+  if (!GLInterface->Create(window_handle, g_ActiveConfig.iStereoMode == STEREO_QUADBUFFER))
     return false;
 
   return true;

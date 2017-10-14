@@ -10,6 +10,19 @@
 // STATE_TO_SAVE
 BPMemory bpmem;
 
+bool BlendMode::UseLogicOp() const
+{
+  // Logicop bit has lowest priority.
+  if (subtract || blendenable || !logicopenable)
+    return false;
+
+  // Fast path for Kirby's Return to Dreamland, they use it with dstAlpha.
+  if (logicmode == BlendMode::NOOP)
+    return false;
+
+  return true;
+}
+
 float FogParam0::GetA() const
 {
   // scale mantissa from 11 to 23 bits
@@ -24,8 +37,7 @@ float FogParam0::GetA() const
 float FogParam3::GetC() const
 {
   // scale mantissa from 11 to 23 bits
-  const u32 integral = (static_cast<u32>(c_sign) << 31) | (static_cast<u32>(c_exp) << 23) |
-                       (static_cast<u32>(c_mant) << 12);
+  const u32 integral = (c_sign.Value() << 31) | (c_exp.Value() << 23) | (c_mant.Value() << 12);
 
   float real;
   std::memcpy(&real, &integral, sizeof(u32));

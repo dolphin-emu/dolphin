@@ -20,8 +20,6 @@ public:
   GLVertexFormat(const PortableVertexDeclaration& vtx_decl);
   ~GLVertexFormat();
 
-  void SetupVertexPointers() override;
-
   GLuint VAO;
 };
 
@@ -39,10 +37,8 @@ public:
   void CreateDeviceObjects() override;
   void DestroyDeviceObjects() override;
 
-  // NativeVertexFormat use this
-  GLuint m_vertex_buffers;
-  GLuint m_index_buffers;
-  GLuint m_last_vao;
+  GLuint GetVertexBufferHandle() const;
+  GLuint GetIndexBufferHandle() const;
 
 protected:
   void ResetBuffer(u32 stride) override;
@@ -51,6 +47,9 @@ private:
   void Draw(u32 stride);
   void vFlush() override;
   void PrepareDrawBuffers(u32 stride);
+
+  GLuint m_vertex_buffers;
+  GLuint m_index_buffers;
 
   // Alternative buffers in CPU memory for primatives we are going to discard.
   std::vector<u8> m_cpu_v_buffer;

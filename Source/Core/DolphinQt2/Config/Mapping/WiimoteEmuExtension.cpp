@@ -136,12 +136,13 @@ void WiimoteEmuExtension::CreateTurntableLayout()
 
   auto* vbox = new QVBoxLayout();
   vbox->addWidget(CreateGroupBox(
-      tr("Effect Dial"),
-      Wiimote::GetTurntableGroup(GetPort(), WiimoteEmu::TurntableGroup::EffectDial)));
+      tr("Effect"), Wiimote::GetTurntableGroup(GetPort(), WiimoteEmu::TurntableGroup::EffectDial)));
   vbox->addWidget(
+      // i18n: "Table" refers to a turntable
       CreateGroupBox(tr("Left Table"),
                      Wiimote::GetTurntableGroup(GetPort(), WiimoteEmu::TurntableGroup::LeftTable)));
   vbox->addWidget(CreateGroupBox(
+      // i18n: "Table" refers to a turntable
       tr("Right Table"),
       Wiimote::GetTurntableGroup(GetPort(), WiimoteEmu::TurntableGroup::RightTable)));
   vbox->addWidget(

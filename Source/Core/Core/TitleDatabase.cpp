@@ -14,6 +14,7 @@
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
+#include "Core/IOS/ES/Formats.h"
 #include "DiscIO/Enums.h"
 
 namespace Core
@@ -94,12 +95,12 @@ static bool IsWiiTitle(const std::string& game_id)
 
 static bool IsJapaneseGCTitle(const std::string& game_id)
 {
-  return IsGCTitle(game_id) && DiscIO::RegionSwitchGC(game_id[3]) == DiscIO::Region::NTSC_J;
+  return IsGCTitle(game_id) && DiscIO::CountrySwitch(game_id[3]) == DiscIO::Country::COUNTRY_JAPAN;
 }
 
 static bool IsNonJapaneseGCTitle(const std::string& game_id)
 {
-  return IsGCTitle(game_id) && DiscIO::RegionSwitchGC(game_id[3]) != DiscIO::Region::NTSC_J;
+  return IsGCTitle(game_id) && DiscIO::CountrySwitch(game_id[3]) != DiscIO::Country::COUNTRY_JAPAN;
 }
 
 // Note that this function will not overwrite entries that already are in the maps
@@ -123,6 +124,9 @@ TitleDatabase::TitleDatabase()
   const std::string& load_directory = File::GetUserPath(D_LOAD_IDX);
   if (!LoadMap(load_directory + "wiitdb.txt", m_gc_title_map, m_wii_title_map))
     LoadMap(load_directory + "titles.txt", m_gc_title_map, m_wii_title_map);
+
+  if (!SConfig::GetInstance().m_use_builtin_title_database)
+    return;
 
   // Load the database in the console language.
   // Note: The GameCube language setting can't be set to Japanese,
@@ -160,6 +164,14 @@ std::string TitleDatabase::GetTitleName(const std::string& game_id, TitleType ty
       type == TitleType::Channel && game_id.length() == 6 ? game_id.substr(0, 4) : game_id;
   const auto iterator = map.find(key);
   return iterator != map.end() ? iterator->second : "";
+}
+
+std::string TitleDatabase::GetTitleName(u64 title_id) const
+{
+  const std::string id{
+      {static_cast<char>((title_id >> 24) & 0xff), static_cast<char>((title_id >> 16) & 0xff),
+       static_cast<char>((title_id >> 8) & 0xff), static_cast<char>(title_id & 0xff)}};
+  return GetTitleName(id, IOS::ES::IsChannel(title_id) ? TitleType::Channel : TitleType::Other);
 }
 
 std::string TitleDatabase::Describe(const std::string& game_id, TitleType type) const

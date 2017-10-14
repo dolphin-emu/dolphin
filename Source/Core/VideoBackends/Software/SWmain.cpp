@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <cstring>
 #include <memory>
 #include <string>
 #include <utility>
@@ -40,9 +41,9 @@ public:
   {
     memset(EfbInterface::perf_values, 0, sizeof(EfbInterface::perf_values));
   }
-  u32 GetQueryResult(PerfQueryType type) override { return EfbInterface::perf_values[type]; };
+  u32 GetQueryResult(PerfQueryType type) override { return EfbInterface::perf_values[type]; }
   void FlushResults() override {}
-  bool IsFlushed() const override { return true; };
+  bool IsFlushed() const override { return true; }
 };
 
 class TextureCache : public TextureCacheBase
@@ -50,13 +51,13 @@ class TextureCache : public TextureCacheBase
 public:
   bool CompileShaders() override { return true; }
   void DeleteShaders() override {}
-  void ConvertTexture(TCacheEntry* entry, TCacheEntry* unconverted, void* palette,
-                      TlutFormat format) override
+  void ConvertTexture(TCacheEntry* entry, TCacheEntry* unconverted, const void* palette,
+                      TLUTFormat format) override
   {
   }
-  void CopyEFB(u8* dst, const EFBCopyFormat& format, u32 native_width, u32 bytes_per_row,
-               u32 num_blocks_y, u32 memory_stride, bool is_depth_copy,
-               const EFBRectangle& src_rect, bool scale_by_half) override
+  void CopyEFB(u8* dst, const EFBCopyParams& params, u32 native_width, u32 bytes_per_row,
+               u32 num_blocks_y, u32 memory_stride, const EFBRectangle& src_rect,
+               bool scale_by_half) override
   {
     EfbCopy::CopyEfb();
   }
@@ -121,6 +122,7 @@ void VideoSoftware::InitBackendInfo()
   g_Config.backend_info.bSupportsInternalResolutionFrameDumps = false;
   g_Config.backend_info.bSupportsGPUTextureDecoding = false;
   g_Config.backend_info.bSupportsST3CTextures = false;
+  g_Config.backend_info.bSupportsBPTCTextures = false;
 
   // aamodes
   g_Config.backend_info.AAModes = {1};

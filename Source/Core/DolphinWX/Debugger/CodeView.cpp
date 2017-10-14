@@ -227,9 +227,9 @@ void CCodeView::InsertBlrNop(int Blr)
     temp.oldValue = m_debugger->ReadMemory(m_selection);
     m_blrList.push_back(temp);
     if (Blr == 0)
-      m_debugger->InsertBLR(m_selection, 0x4e800020);
+      m_debugger->Patch(m_selection, 0x4e800020);
     else
-      m_debugger->InsertBLR(m_selection, 0x60000000);
+      m_debugger->Patch(m_selection, 0x60000000);
   }
   Refresh();
 }
@@ -320,7 +320,7 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
       unsigned long code;
       if (dialog.GetValue().ToULong(&code, 0) && code <= std::numeric_limits<u32>::max())
       {
-        m_debugger->InsertBLR(m_selection, code);
+        m_debugger->Patch(m_selection, code);
         Refresh();
       }
     }
@@ -361,7 +361,7 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
                                      StrToWxStr(symbol->name));
       if (input_symbol.ShowModal() == wxID_OK)
       {
-        symbol->name = WxStrToStr(input_symbol.GetValue());
+        symbol->Rename(WxStrToStr(input_symbol.GetValue()));
         Refresh();  // Redraw to show the renamed symbol
       }
       Host_NotifyMapLoaded();

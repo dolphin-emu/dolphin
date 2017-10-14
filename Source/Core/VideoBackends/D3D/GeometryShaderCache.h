@@ -15,16 +15,17 @@ class GeometryShaderCache
 {
 public:
   static void Init();
+  static void Reload();
   static void Clear();
   static void Shutdown();
-  static bool SetShader(u32 primitive_type);  // TODO: Should be renamed to LoadShader
-  static bool InsertByteCode(const GeometryShaderUid& uid, const void* bytecode,
-                             unsigned int bytecodelen);
+  static bool SetShader(PrimitiveType primitive_type);
+  static bool CompileShader(const GeometryShaderUid& uid);
+  static bool InsertByteCode(const GeometryShaderUid& uid, const u8* bytecode, size_t len);
+  static void PrecompileShaders();
 
   static ID3D11GeometryShader* GetClearGeometryShader();
   static ID3D11GeometryShader* GetCopyGeometryShader();
 
-  static ID3D11GeometryShader* GetActiveShader() { return last_entry->shader; }
   static ID3D11Buffer*& GetConstantBuffer();
 
 private:
@@ -37,6 +38,8 @@ private:
   };
 
   typedef std::map<GeometryShaderUid, GSCacheEntry> GSCache;
+
+  static void LoadShaderCache();
 
   static GSCache GeometryShaders;
   static const GSCacheEntry* last_entry;

@@ -68,6 +68,8 @@
     <ClInclude Include="SysConf.h" />
     <ClInclude Include="Thread.h" />
     <ClInclude Include="Timer.h" />
+    <ClInclude Include="Version.h" />
+    <ClInclude Include="WorkQueueThread.h" />
     <ClInclude Include="x64ABI.h" />
     <ClInclude Include="x64Emitter.h" />
     <ClInclude Include="x64Reg.h" />
@@ -94,6 +96,7 @@
     <ClInclude Include="JitRegister.h" />
     <ClInclude Include="TraversalClient.h" />
     <ClInclude Include="TraversalProto.h" />
+    <ClInclude Include="UPnP.h" />
     <ClInclude Include="GL\GLUtil.h">
       <Filter>GL</Filter>
     </ClInclude>
@@ -236,7 +239,6 @@
       <Filter>GL\GLInterface</Filter>
     </ClInclude>
     <ClInclude Include="Assert.h" />
-    <ClInclude Include="NonCopyable.h" />
     <ClInclude Include="Analytics.h" />
     <ClInclude Include="Semaphore.h" />
     <ClInclude Include="MD5.h" />
@@ -253,7 +255,11 @@
       <Filter>GL\GLExtensions</Filter>
     </ClInclude>
     <ClInclude Include="File.h" />
+    <ClInclude Include="Lazy.h" />
     <ClInclude Include="LdrWatcher.h" />
+    <ClInclude Include="GL\GLExtensions\ARB_texture_compression_bptc.h">
+      <Filter>GL\GLExtensions</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CDUtils.cpp" />
@@ -303,6 +309,7 @@
     <ClCompile Include="GekkoDisassembler.cpp" />
     <ClCompile Include="JitRegister.cpp" />
     <ClCompile Include="TraversalClient.cpp" />
+    <ClCompile Include="UPnP.cpp" />
     <ClCompile Include="Logging\ConsoleListenerWin.cpp">
       <Filter>Logging</Filter>
     </ClCompile>

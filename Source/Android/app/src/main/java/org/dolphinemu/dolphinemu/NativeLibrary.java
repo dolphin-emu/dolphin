@@ -206,7 +206,7 @@ public final class NativeLibrary
 
 	/**
 	 * Handles button press events for a gamepad.
-	 * 
+	 *
 	 * @param Device The input descriptor of the gamepad.
 	 * @param Button Key code identifying which button was pressed.
 	 * @param Action Mask identifying which action is happening (button pressed down, or button released).
@@ -217,7 +217,7 @@ public final class NativeLibrary
 
 	/**
 	 * Handles gamepad movement events.
-	 * 
+	 *
 	 * @param Device The device ID of the gamepad.
 	 * @param Axis   The axis ID
 	 * @param Value  The value of the axis represented by the given ID.
@@ -226,19 +226,19 @@ public final class NativeLibrary
 
 	/**
 	 * Gets a value from a key in the given ini-based config file.
-	 * 
+	 *
 	 * @param configFile The ini-based config file to get the value from.
 	 * @param Section    The section key that the actual key is in.
 	 * @param Key        The key to get the value from.
 	 * @param Default    The value to return in the event the given key doesn't exist.
-	 * 
+	 *
 	 * @return the value stored at the key, or a default value if it doesn't exist.
 	 */
 	public static native String GetConfig(String configFile, String Section, String Key, String Default);
 
 	/**
 	 * Sets a value to a key in the given ini config file.
-	 * 
+	 *
 	 * @param configFile The ini-based config file to add the value to.
 	 * @param Section    The section key for the ini key
 	 * @param Key        The actual ini key to set.
@@ -247,26 +247,19 @@ public final class NativeLibrary
 	public static native void SetConfig(String configFile, String Section, String Key, String Value);
 
 	/**
-	 * Sets the filename to be run during emulation.
-	 * 
-	 * @param filename The filename to be run during emulation.
-	 */
-	public static native void SetFilename(String filename);
-
-	/**
 	 * Gets the embedded banner within the given ISO/ROM.
-	 * 
+	 *
 	 * @param filename the file path to the ISO/ROM.
-	 * 
+	 *
 	 * @return an integer array containing the color data for the banner.
 	 */
 	public static native int[] GetBanner(String filename);
 
 	/**
 	 * Gets the embedded title of the given ISO/ROM.
-	 * 
+	 *
 	 * @param filename The file path to the ISO/ROM.
-	 * 
+	 *
 	 * @return the embedded title of the ISO/ROM.
 	 */
 	public static native String GetTitle(String filename);
@@ -283,7 +276,7 @@ public final class NativeLibrary
 
 	/**
 	 * Gets the Dolphin version string.
-	 * 
+	 *
 	 * @return the Dolphin version string.
 	 */
 	public static native String GetVersionString();
@@ -328,7 +321,7 @@ public final class NativeLibrary
 	/**
 	 * Begins emulation.
 	 */
-	public static native void Run();
+	public static native void Run(String path);
 
 	// Surface Handling
 	public static native void SurfaceChanged(Surface surf);

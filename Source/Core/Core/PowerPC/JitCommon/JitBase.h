@@ -116,7 +116,7 @@ public:
   JitBase();
   ~JitBase() override;
 
-  static const u8* Dispatch() { return g_jit->GetBlockCache()->Dispatch(); };
+  static const u8* Dispatch() { return g_jit->GetBlockCache()->Dispatch(); }
   virtual JitBaseBlockCache* GetBlockCache() = 0;
 
   virtual void Jit(u32 em_address) = 0;

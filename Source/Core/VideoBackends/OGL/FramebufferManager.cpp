@@ -343,16 +343,16 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
   ProgramShaderCache::CompileShader(
       m_EfbPokes,
       StringFromFormat("in vec2 rawpos;\n"
-                       "in vec4 color0;\n"  // color
-                       "in int color1;\n"   // depth
+                       "in vec4 rawcolor0;\n"  // color
+                       "in int rawcolor1;\n"   // depth
                        "out vec4 v_c;\n"
                        "out float v_z;\n"
                        "void main(void) {\n"
                        "	gl_Position = vec4(((rawpos + 0.5) / vec2(640.0, 528.0) * 2.0 - 1.0) * "
                        "vec2(1.0, -1.0), 0.0, 1.0);\n"
                        "	gl_PointSize = %d.0 / 640.0;\n"
-                       "	v_c = color0.bgra;\n"
-                       "	v_z = float(color1 & 0xFFFFFF) / 16777216.0;\n"
+                       "	v_c = rawcolor0.bgra;\n"
+                       "	v_z = float(rawcolor1 & 0xFFFFFF) / 16777216.0;\n"
                        "}\n",
                        m_targetWidth),
 

@@ -15,9 +15,11 @@
 
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "DolphinQt2/Config/Graphics/GraphicsBool.h"
 #include "DolphinQt2/Config/Graphics/GraphicsChoice.h"
 #include "DolphinQt2/Config/Graphics/GraphicsWindow.h"
+#include "DolphinQt2/Settings.h"
 #include "UICommon/VideoUtils.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
@@ -32,16 +34,16 @@ GeneralWidget::GeneralWidget(X11Utils::XRRConfiguration* xrr_config, GraphicsWin
   emit BackendChanged(QString::fromStdString(SConfig::GetInstance().m_strVideoBackend));
 
   connect(parent, &GraphicsWindow::BackendChanged, this, &GeneralWidget::OnBackendChanged);
-  connect(parent, &GraphicsWindow::EmulationStarted, [this] { OnEmulationStateChanged(true); });
-  connect(parent, &GraphicsWindow::EmulationStopped, [this] { OnEmulationStateChanged(false); });
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
+          [=](Core::State state) { OnEmulationStateChanged(state != Core::State::Uninitialized); });
 }
 
 void GeneralWidget::CreateWidgets()
 {
   auto* main_layout = new QVBoxLayout;
 
-  // Video Section
-  auto* m_video_box = new QGroupBox(tr("Video"));
+  // Basic Section
+  auto* m_video_box = new QGroupBox(tr("Basic"));
   m_video_layout = new QGridLayout();
 
   m_backend_combo = new QComboBox();
@@ -83,14 +85,15 @@ void GeneralWidget::CreateWidgets()
   m_video_layout->addWidget(m_enable_vsync, 4, 0);
   m_video_layout->addWidget(m_enable_fullscreen, 4, 1);
 
-  // Options
-  auto* m_options_box = new QGroupBox(tr("Options"));
+  // Other
+  auto* m_options_box = new QGroupBox(tr("Other"));
   auto* m_options_layout = new QGridLayout();
 
   m_show_fps = new GraphicsBool(tr("Show FPS"), Config::GFX_SHOW_FPS);
   m_show_ping = new GraphicsBool(tr("Show NetPlay Ping"), Config::GFX_SHOW_NETPLAY_PING);
-  m_log_render_time = new GraphicsBool(tr("Log Rendertime"), Config::GFX_LOG_RENDER_TIME_TO_FILE);
-  m_autoadjust_window_size = new QCheckBox(tr("Auto-adjust Window size"));
+  m_log_render_time =
+      new GraphicsBool(tr("Log Render Time to File"), Config::GFX_LOG_RENDER_TIME_TO_FILE);
+  m_autoadjust_window_size = new QCheckBox(tr("Auto-Adjust Window Size"));
   m_show_messages =
       new GraphicsBool(tr("Show NetPlay Messages"), Config::GFX_SHOW_NETPLAY_MESSAGES);
   m_keep_window_top = new QCheckBox(tr("Keep Window on Top"));
@@ -113,6 +116,7 @@ void GeneralWidget::CreateWidgets()
 
   main_layout->addWidget(m_video_box);
   main_layout->addWidget(m_options_box);
+  main_layout->addStretch();
 
   setLayout(main_layout);
 }

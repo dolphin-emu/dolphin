@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <list>
 #include <map>
+#include <tuple>
 
 #include "Common/Assert.h"
 #include "Common/Config/Config.h"
@@ -35,17 +36,6 @@ void AddLayer(std::unique_ptr<Layer> layer)
 void AddLayer(std::unique_ptr<ConfigLayerLoader> loader)
 {
   AddLayer(std::make_unique<Layer>(std::move(loader)));
-}
-
-void AddLoadLayer(std::unique_ptr<Layer> layer)
-{
-  layer->Load();
-  AddLayer(std::move(layer));
-}
-
-void AddLoadLayer(std::unique_ptr<ConfigLayerLoader> loader)
-{
-  AddLoadLayer(std::make_unique<Layer>(std::move(loader)));
 }
 
 Layer* GetLayer(LayerType layer)
@@ -111,8 +101,7 @@ void ClearCurrentRunLayer()
 static const std::map<System, std::string> system_to_name = {
     {System::Main, "Dolphin"},          {System::GCPad, "GCPad"},  {System::WiiPad, "Wiimote"},
     {System::GCKeyboard, "GCKeyboard"}, {System::GFX, "Graphics"}, {System::Logger, "Logger"},
-    {System::Debugger, "Debugger"},     {System::UI, "UI"},
-};
+    {System::Debugger, "Debugger"},     {System::UI, "UI"},        {System::SYSCONF, "SYSCONF"}};
 
 const std::string& GetSystemName(System system)
 {
@@ -143,5 +132,35 @@ const std::string& GetLayerName(LayerType layer)
       {LayerType::Meta, "Top"},
   };
   return layer_to_name.at(layer);
+}
+
+bool ConfigLocation::operator==(const ConfigLocation& other) const
+{
+  return std::tie(system, section, key) == std::tie(other.system, other.section, other.key);
+}
+
+bool ConfigLocation::operator!=(const ConfigLocation& other) const
+{
+  return !(*this == other);
+}
+
+bool ConfigLocation::operator<(const ConfigLocation& other) const
+{
+  return std::tie(system, section, key) < std::tie(other.system, other.section, other.key);
+}
+
+LayerType GetActiveLayerForConfig(const ConfigLocation& config)
+{
+  for (auto layer : SEARCH_ORDER)
+  {
+    if (!LayerExists(layer))
+      continue;
+
+    if (GetLayer(layer)->Exists(config.system, config.section, config.key))
+      return layer;
+  }
+
+  // If config is not present in any layer, base layer is considered active.
+  return LayerType::Base;
 }
 }

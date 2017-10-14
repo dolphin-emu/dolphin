@@ -150,7 +150,7 @@ layout(std140, push_constant) uniform PCBlock {
   vec4 color;
 } PC;
 
-layout(set = 1, binding = 0) uniform sampler2D samp0;
+layout(set = 1, binding = 0) uniform sampler2DArray samp0;
 
 layout(location = 0) in vec2 uv0;
 
@@ -158,7 +158,7 @@ layout(location = 0) out vec4 ocol0;
 
 void main()
 {
-  ocol0 = texture(samp0, uv0) * PC.color;
+  ocol0 = texture(samp0, float3(uv0, 0.0)) * PC.color;
 }
 
 )";
@@ -209,7 +209,7 @@ bool RasterFont::CreateTexture()
   // create the actual texture object
   m_texture = Texture2D::Create(CHARACTER_WIDTH * CHARACTER_COUNT, CHARACTER_HEIGHT, 1, 1,
                                 VK_FORMAT_R8G8B8A8_UNORM, VK_SAMPLE_COUNT_1_BIT,
-                                VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_TILING_OPTIMAL,
+                                VK_IMAGE_VIEW_TYPE_2D_ARRAY, VK_IMAGE_TILING_OPTIMAL,
                                 VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
   if (!m_texture)
     return false;
@@ -310,10 +310,10 @@ void RasterFont::PrintMultiLineText(VkRenderPass render_pass, const std::string&
 
   UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                          g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_PUSH_CONSTANT),
-                         render_pass, m_vertex_shader, VK_NULL_HANDLE, m_fragment_shader);
+                         render_pass, m_vertex_shader, VK_NULL_HANDLE, m_fragment_shader,
+                         PrimitiveType::Triangles);
 
-  UtilityShaderVertex* vertices =
-      draw.ReserveVertices(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, text.length() * 6);
+  UtilityShaderVertex* vertices = draw.ReserveVertices(text.length() * 6);
   size_t num_vertices = 0;
   if (!vertices)
     return;
@@ -400,7 +400,7 @@ void RasterFont::PrintMultiLineText(VkRenderPass render_pass, const std::string&
   draw.SetPSSampler(0, m_texture->GetView(), g_object_cache->GetLinearSampler());
 
   // Setup alpha blending
-  BlendingState blend_state = Util::GetNoBlendingBlendState();
+  BlendingState blend_state = RenderState::GetNoBlendingBlendState();
   blend_state.blendenable = true;
   blend_state.srcfactor = BlendMode::SRCALPHA;
   blend_state.dstfactor = BlendMode::INVSRCALPHA;

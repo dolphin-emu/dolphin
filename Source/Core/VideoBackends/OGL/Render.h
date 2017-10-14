@@ -58,6 +58,7 @@ struct VideoConfig
   bool bSupportsConservativeDepth;
   bool bSupportsImageLoadStore;
   bool bSupportsAniso;
+  bool bSupportsBitfield;
 
   const char* gl_vendor;
   const char* gl_renderer;
@@ -76,11 +77,11 @@ public:
   void Init();
   void Shutdown();
 
-  void SetBlendMode(bool forceUpdate) override;
+  void SetBlendingState(const BlendingState& state) override;
   void SetScissorRect(const EFBRectangle& rc) override;
-  void SetGenerationMode() override;
-  void SetDepthMode() override;
-  void SetSamplerState(int stage, int texindex, bool custom_tex) override;
+  void SetRasterizationState(const RasterizationState& state) override;
+  void SetDepthState(const DepthState& state) override;
+  void SetSamplerState(u32 index, const SamplerState& state) override;
   void SetInterlacingMode() override;
   void SetViewport() override;
 

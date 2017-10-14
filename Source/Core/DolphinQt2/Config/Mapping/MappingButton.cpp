@@ -15,13 +15,20 @@
 #include "DolphinQt2/Config/Mapping/MappingCommon.h"
 #include "DolphinQt2/Config/Mapping/MappingWidget.h"
 #include "DolphinQt2/Config/Mapping/MappingWindow.h"
+#include "DolphinQt2/QtUtils/BlockUserInputFilter.h"
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/Device.h"
 
+static QString EscapeAmpersand(QString&& string)
+{
+  return string.replace(QStringLiteral("&"), QStringLiteral("&&"));
+}
+
 MappingButton::MappingButton(MappingWidget* widget, ControlReference* ref)
-    : ElidedButton(QString::fromStdString(ref->expression)), m_parent(widget), m_reference(ref)
+    : ElidedButton(EscapeAmpersand(QString::fromStdString(ref->GetExpression()))), m_parent(widget),
+      m_reference(ref)
 {
   Connect();
 }
@@ -36,9 +43,7 @@ void MappingButton::OnButtonPressed()
   if (m_parent->GetDevice() == nullptr || !m_reference->IsInput())
     return;
 
-  if (!m_block.TestAndSet())
-    return;
-
+  installEventFilter(BlockUserInputFilter::Instance());
   grabKeyboard();
   grabMouse();
 
@@ -57,11 +62,11 @@ void MappingButton::OnButtonPressed()
 
     releaseMouse();
     releaseKeyboard();
-    m_block.Clear();
+    removeEventFilter(BlockUserInputFilter::Instance());
 
     if (!expr.isEmpty())
     {
-      m_reference->expression = expr.toStdString();
+      m_reference->SetExpression(expr.toStdString());
       Update();
     }
     else
@@ -73,13 +78,13 @@ void MappingButton::OnButtonPressed()
 
 void MappingButton::OnButtonTimeout()
 {
-  setText(QString::fromStdString(m_reference->expression));
+  setText(EscapeAmpersand(QString::fromStdString(m_reference->GetExpression())));
 }
 
 void MappingButton::Clear()
 {
   m_parent->Update();
-  m_reference->expression.clear();
+  m_reference->SetExpression("");
   Update();
 }
 
@@ -87,24 +92,8 @@ void MappingButton::Update()
 {
   const auto lock = ControllerEmu::EmulatedController::GetStateLock();
   m_reference->UpdateReference(g_controller_interface, m_parent->GetParent()->GetDeviceQualifier());
-  setText(QString::fromStdString(m_reference->expression));
+  setText(EscapeAmpersand(QString::fromStdString(m_reference->GetExpression())));
   m_parent->SaveSettings();
-}
-
-bool MappingButton::event(QEvent* event)
-{
-  const QEvent::Type event_type = event->type();
-  // Returning 'true' means "yes, this event has been handled, don't propagate it to parent
-  // widgets".
-  if (m_block.IsSet() &&
-      (event_type == QEvent::KeyPress || event_type == QEvent::KeyRelease ||
-       event_type == QEvent::MouseButtonPress || event_type == QEvent::MouseButtonRelease ||
-       event_type == QEvent::MouseButtonDblClick))
-  {
-    return true;
-  }
-
-  return QPushButton::event(event);
 }
 
 void MappingButton::mouseReleaseEvent(QMouseEvent* event)

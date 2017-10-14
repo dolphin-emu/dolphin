@@ -23,6 +23,7 @@ namespace DiscIO
 class BlobReader;
 enum class BlobType;
 enum class Country;
+class FileSystem;
 enum class Language;
 enum class Region;
 enum class Platform;
@@ -34,6 +35,7 @@ public:
   ~VolumeWAD();
   bool Read(u64 offset, u64 length, u8* buffer,
             const Partition& partition = PARTITION_NONE) const override;
+  const FileSystem* GetFileSystem(const Partition& partition = PARTITION_NONE) const override;
   std::optional<u64> GetTitleID(const Partition& partition = PARTITION_NONE) const override;
   const IOS::ES::TMDReader& GetTMD(const Partition& partition = PARTITION_NONE) const override;
   std::string GetGameID(const Partition& partition = PARTITION_NONE) const override;
@@ -50,6 +52,7 @@ public:
     return "";
   }
   Platform GetVolumeType() const override;
+  // Provides a best guess for the region. Might be inaccurate or UNKNOWN_REGION.
   Region GetRegion() const override;
   Country GetCountry(const Partition& partition = PARTITION_NONE) const override;
 

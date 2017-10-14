@@ -4,7 +4,8 @@
 
 #include "DolphinQt2/Config/Graphics/GraphicsBool.h"
 
-#include "Core/Config/Config.h"
+#include "Common/Config/Config.h"
+#include "DolphinQt2/Settings.h"
 
 #include <QFont>
 
@@ -15,12 +16,11 @@ GraphicsBool::GraphicsBool(const QString& label, const Config::ConfigInfo<bool>&
   connect(this, &QCheckBox::toggled, this, &GraphicsBool::Update);
   setChecked(Config::Get(m_setting) ^ reverse);
 
-  if (Config::GetActiveLayerForConfig(m_setting) != Config::LayerType::Base)
-  {
+  connect(&Settings::Instance(), &Settings::ConfigChanged, [this] {
     QFont bf = font();
-    bf.setBold(true);
+    bf.setBold(Config::GetActiveLayerForConfig(m_setting) != Config::LayerType::Base);
     setFont(bf);
-  }
+  });
 }
 
 void GraphicsBool::Update()

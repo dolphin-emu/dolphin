@@ -22,12 +22,9 @@
 #include "Core/BootManager.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "Core/HW/Wiimote.h"
 #include "Core/Host.h"
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/STM/STM.h"
-#include "Core/IOS/USB/Bluetooth/BTEmu.h"
-#include "Core/IOS/USB/Bluetooth/WiimoteDevice.h"
 #include "Core/State.h"
 
 #include "UICommon/CommandLineParse.h"
@@ -116,7 +113,7 @@ void Host_RequestRenderWindowSize(int width, int height)
 {
 }
 
-bool Host_UIHasFocus()
+bool Host_UINeedsControllerState()
 {
   return false;
 }
@@ -131,31 +128,15 @@ bool Host_RendererIsFullscreen()
   return rendererIsFullscreen;
 }
 
-void Host_ConnectWiimote(int wm_idx, bool connect)
-{
-  Core::QueueHostJob([=] {
-    const auto ios = IOS::HLE::GetIOS();
-    if (!ios || SConfig::GetInstance().m_bt_passthrough_enabled)
-      return;
-    bool was_unpaused = Core::PauseAndLock(true);
-    const auto bt = std::static_pointer_cast<IOS::HLE::Device::BluetoothEmu>(
-        ios->GetDeviceByName("/dev/usb/oh1/57e/305"));
-    if (bt)
-      bt->AccessWiiMote(wm_idx | 0x100)->Activate(connect);
-    Host_UpdateMainFrame();
-    Core::PauseAndLock(false, was_unpaused);
-  });
-}
-
-void Host_SetWiiMoteConnectionState(int _State)
-{
-}
-
 void Host_ShowVideoConfig(void*, const std::string&)
 {
 }
 
 void Host_YieldToUI()
+{
+}
+
+void Host_UpdateProgressDialog(const char* caption, int position, int total)
 {
 }
 
@@ -411,7 +392,10 @@ int main(int argc, char* argv[])
   UICommon::SetUserDirectory(user_directory);
   UICommon::Init();
 
-  Core::SetOnStoppedCallback([]() { s_running.Clear(); });
+  Core::SetOnStateChangedCallback([](Core::State state) {
+    if (state == Core::State::Uninitialized)
+      s_running.Clear();
+  });
   platform->Init();
 
   // Shut down cleanly on SIGINT and SIGTERM

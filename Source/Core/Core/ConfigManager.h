@@ -12,7 +12,6 @@
 #include <vector>
 
 #include "Common/IniFile.h"
-#include "Common/NonCopyable.h"
 #include "Core/HW/EXI/EXI_Device.h"
 #include "Core/HW/SI/SI_Device.h"
 #include "Core/TitleDatabase.h"
@@ -33,9 +32,8 @@ class TMDReader;
 }
 
 // DSP Backend Types
-#define BACKEND_NULLSOUND _trans("No audio output")
+#define BACKEND_NULLSOUND _trans("No Audio Output")
 #define BACKEND_ALSA "ALSA"
-#define BACKEND_COREAUDIO "CoreAudio"
 #define BACKEND_CUBEB "Cubeb"
 #define BACKEND_OPENAL "OpenAL"
 #define BACKEND_PULSEAUDIO "Pulse"
@@ -53,7 +51,7 @@ enum GPUDeterminismMode
 
 struct BootParameters;
 
-struct SConfig : NonCopyable
+struct SConfig
 {
   // Wii Devices
   bool m_WiiSDCard;
@@ -149,7 +147,6 @@ struct SConfig : NonCopyable
   int iRenderWindowHeight = -1;
   bool bRenderWindowAutoSize = false, bKeepWindowOnTop = false;
   bool bFullscreen = false, bRenderToMain = false;
-  bool bProgressive = false, bPAL60 = false;
   bool bDisableScreenSaver = false;
 
   int iPosX, iPosY, iWidth, iHeight;
@@ -171,15 +168,6 @@ struct SConfig : NonCopyable
 
   bool m_enable_signature_checks = true;
 
-  // SYSCONF settings
-  int m_sensor_bar_position = 0x01;
-  int m_sensor_bar_sensitivity = 0x03;
-  int m_speaker_volume = 0x58;
-  bool m_wiimote_motor = true;
-  int m_wii_language = 0x01;
-  int m_wii_aspect_ratio = 0x01;
-  int m_wii_screensaver = 0x00;
-
   // Fifo Player related settings
   bool bLoopFifoReplay = true;
 
@@ -199,8 +187,6 @@ struct SConfig : NonCopyable
   std::string m_strBootROM;
   std::string m_strSRAM;
   std::string m_strDefaultISO;
-  std::string m_strDVDRoot;
-  std::string m_strApploader;
   std::string m_strWiiSDCardPath;
 
   std::string m_perfDir;
@@ -218,6 +204,9 @@ struct SConfig : NonCopyable
   void SetRunningGameMetadata(const IOS::ES::TMDReader& tmd);
 
   void LoadDefaults();
+  // Replaces NTSC-K with some other region, and doesn't replace non-NTSC-K regions
+  static DiscIO::Region ToGameCubeRegion(DiscIO::Region region);
+  // The region argument must be valid for GameCube (i.e. must not be NTSC-K)
   static const char* GetDirectoryForRegion(DiscIO::Region region);
   std::string GetBootROMPath(const std::string& region_directory) const;
   bool SetPathsAndGameMetadata(const BootParameters& boot);
@@ -231,9 +220,6 @@ struct SConfig : NonCopyable
   static IniFile LoadDefaultGameIni(const std::string& id, std::optional<u16> revision);
   static IniFile LoadLocalGameIni(const std::string& id, std::optional<u16> revision);
   static IniFile LoadGameIni(const std::string& id, std::optional<u16> revision);
-
-  static std::vector<std::string> GetGameIniFilenames(const std::string& id,
-                                                      std::optional<u16> revision);
 
   std::string m_NANDPath;
   std::string m_DumpPath;
@@ -258,6 +244,8 @@ struct SConfig : NonCopyable
   bool m_InterfaceLogConfigWindow;
   bool m_InterfaceExtendedFPSInfo;
   bool m_show_active_title = false;
+  bool m_use_builtin_title_database = true;
+  bool m_show_development_warning;
 
   bool m_ListDrives;
   bool m_ListWad;
@@ -330,14 +318,16 @@ struct SConfig : NonCopyable
   bool m_SSLDumpRootCA;
   bool m_SSLDumpPeerCert;
 
+  SConfig(const SConfig&) = delete;
+  SConfig& operator=(const SConfig&) = delete;
+  SConfig(SConfig&&) = delete;
+  SConfig& operator=(SConfig&&) = delete;
+
   // Save settings
   void SaveSettings();
 
   // Load settings
   void LoadSettings();
-
-  void LoadSettingsFromSysconf();
-  void SaveSettingsToSysconf();
 
   // Return the permanent and somewhat globally used instance of this struct
   static SConfig& GetInstance() { return (*m_Instance); }

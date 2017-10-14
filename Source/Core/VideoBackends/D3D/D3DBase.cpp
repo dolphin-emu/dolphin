@@ -26,21 +26,16 @@ CREATEDXGIFACTORY PCreateDXGIFactory = nullptr;
 HINSTANCE hDXGIDll = nullptr;
 int dxgi_dll_ref = 0;
 
-typedef HRESULT(WINAPI* D3D11CREATEDEVICEANDSWAPCHAIN)(IDXGIAdapter*, D3D_DRIVER_TYPE, HMODULE,
-                                                       UINT, CONST D3D_FEATURE_LEVEL*, UINT, UINT,
-                                                       CONST DXGI_SWAP_CHAIN_DESC*,
-                                                       IDXGISwapChain**, ID3D11Device**,
-                                                       D3D_FEATURE_LEVEL*, ID3D11DeviceContext**);
 static D3D11CREATEDEVICE PD3D11CreateDevice = nullptr;
-D3D11CREATEDEVICEANDSWAPCHAIN PD3D11CreateDeviceAndSwapChain = nullptr;
 HINSTANCE hD3DDll = nullptr;
 int d3d_dll_ref = 0;
 
 namespace D3D
 {
 ID3D11Device* device = nullptr;
+ID3D11Device1* device1 = nullptr;
 ID3D11DeviceContext* context = nullptr;
-static IDXGISwapChain* swapchain = nullptr;
+static IDXGISwapChain1* swapchain = nullptr;
 static ID3D11Debug* debug = nullptr;
 D3D_FEATURE_LEVEL featlevel;
 D3DTexture2D* backbuf = nullptr;
@@ -49,6 +44,7 @@ HWND hWnd;
 std::vector<DXGI_SAMPLE_DESC> aa_modes;  // supported AA modes of the current adapter
 
 bool bgra_textures_supported;
+bool allow_tearing_supported;
 
 #define NUM_SUPPORTED_FEATURE_LEVELS 3
 const D3D_FEATURE_LEVEL supported_feature_levels[NUM_SUPPORTED_FEATURE_LEVELS] = {
@@ -72,9 +68,12 @@ HRESULT LoadDXGI()
     --dxgi_dll_ref;
     return E_FAIL;
   }
-  PCreateDXGIFactory = (CREATEDXGIFACTORY)GetProcAddress(hDXGIDll, "CreateDXGIFactory");
+
+  // Even though we use IDXGIFactory2 we use CreateDXGIFactory1 to create it to maintain
+  // compatibility with Windows 7
+  PCreateDXGIFactory = (CREATEDXGIFACTORY)GetProcAddress(hDXGIDll, "CreateDXGIFactory1");
   if (PCreateDXGIFactory == nullptr)
-    MessageBoxA(nullptr, "GetProcAddress failed for CreateDXGIFactory!", "Critical error",
+    MessageBoxA(nullptr, "GetProcAddress failed for CreateDXGIFactory1!", "Critical error",
                 MB_OK | MB_ICONERROR);
 
   return S_OK;
@@ -99,12 +98,6 @@ HRESULT LoadD3D()
     MessageBoxA(nullptr, "GetProcAddress failed for D3D11CreateDevice!", "Critical error",
                 MB_OK | MB_ICONERROR);
 
-  PD3D11CreateDeviceAndSwapChain =
-      (D3D11CREATEDEVICEANDSWAPCHAIN)GetProcAddress(hD3DDll, "D3D11CreateDeviceAndSwapChain");
-  if (PD3D11CreateDeviceAndSwapChain == nullptr)
-    MessageBoxA(nullptr, "GetProcAddress failed for D3D11CreateDeviceAndSwapChain!",
-                "Critical error", MB_OK | MB_ICONERROR);
-
   return S_OK;
 }
 
@@ -115,25 +108,16 @@ HRESULT LoadD3DCompiler()
   if (hD3DCompilerDll)
     return S_OK;
 
-  // try to load D3DCompiler first to check whether we have proper runtime support
-  // try to use the dll the backend was compiled against first - don't bother about debug runtimes
+  // The older version of the D3D compiler cannot compile our ubershaders without various
+  // graphical issues. D3DCOMPILER_DLL_A should point to d3dcompiler_47.dll, so if this fails
+  // to load, inform the user that they need to update their system.
   hD3DCompilerDll = LoadLibraryA(D3DCOMPILER_DLL_A);
   if (!hD3DCompilerDll)
   {
-    // if that fails, use the dll which should be available in every SDK which officially supports
-    // DX11.
-    hD3DCompilerDll = LoadLibraryA("D3DCompiler_42.dll");
-    if (!hD3DCompilerDll)
-    {
-      MessageBoxA(nullptr, "Failed to load D3DCompiler_42.dll, update your DX11 runtime, please",
-                  "Critical error", MB_OK | MB_ICONERROR);
-      return E_FAIL;
-    }
-    else
-    {
-      NOTICE_LOG(VIDEO, "Successfully loaded D3DCompiler_42.dll. If you're having trouble, try "
-                        "updating your DX runtime first.");
-    }
+    PanicAlertT("Failed to load %s. If you are using Windows 7, try installing the "
+                "KB4019990 update package.",
+                D3DCOMPILER_DLL_A);
+    return E_FAIL;
   }
 
   PD3DReflect = (D3DREFLECT)GetProcAddress(hD3DCompilerDll, "D3DReflect");
@@ -172,7 +156,6 @@ void UnloadD3D()
     FreeLibrary(hD3DDll);
   hD3DDll = nullptr;
   PD3D11CreateDevice = nullptr;
-  PD3D11CreateDeviceAndSwapChain = nullptr;
 }
 
 void UnloadD3DCompiler()
@@ -198,10 +181,9 @@ std::vector<DXGI_SAMPLE_DESC> EnumAAModes(IDXGIAdapter* adapter)
   ID3D11Device* _device;
   ID3D11DeviceContext* _context;
   D3D_FEATURE_LEVEL feat_level;
-  HRESULT hr = PD3D11CreateDevice(adapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr,
-                                  D3D11_CREATE_DEVICE_SINGLETHREADED, supported_feature_levels,
-                                  NUM_SUPPORTED_FEATURE_LEVELS, D3D11_SDK_VERSION, &_device,
-                                  &feat_level, &_context);
+  HRESULT hr = PD3D11CreateDevice(adapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr, 0,
+                                  supported_feature_levels, NUM_SUPPORTED_FEATURE_LEVELS,
+                                  D3D11_SDK_VERSION, &_device, &feat_level, &_context);
   if (FAILED(hr) || feat_level == D3D_FEATURE_LEVEL_10_0)
   {
     DXGI_SAMPLE_DESC desc;
@@ -234,9 +216,9 @@ std::vector<DXGI_SAMPLE_DESC> EnumAAModes(IDXGIAdapter* adapter)
 D3D_FEATURE_LEVEL GetFeatureLevel(IDXGIAdapter* adapter)
 {
   D3D_FEATURE_LEVEL feat_level = D3D_FEATURE_LEVEL_9_1;
-  PD3D11CreateDevice(adapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr, D3D11_CREATE_DEVICE_SINGLETHREADED,
-                     supported_feature_levels, NUM_SUPPORTED_FEATURE_LEVELS, D3D11_SDK_VERSION,
-                     nullptr, &feat_level, nullptr);
+  PD3D11CreateDevice(adapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr, 0, supported_feature_levels,
+                     NUM_SUPPORTED_FEATURE_LEVELS, D3D11_SDK_VERSION, nullptr, &feat_level,
+                     nullptr);
   return feat_level;
 }
 
@@ -251,6 +233,16 @@ static bool SupportsS3TCTextures(ID3D11Device* dev)
   }
 
   return ((bc1_support & bc2_support & bc3_support) & D3D11_FORMAT_SUPPORT_TEXTURE2D) != 0;
+}
+
+static bool SupportsBPTCTextures(ID3D11Device* dev)
+{
+  // Currently, we only care about BC7. This could be extended to BC6H in the future.
+  UINT bc7_support;
+  if (FAILED(dev->CheckFormatSupport(DXGI_FORMAT_BC7_UNORM, &bc7_support)))
+    return false;
+
+  return (bc7_support & D3D11_FORMAT_SUPPORT_TEXTURE2D) != 0;
 }
 
 HRESULT Create(HWND wnd)
@@ -276,14 +268,13 @@ HRESULT Create(HWND wnd)
     return hr;
   }
 
-  IDXGIFactory* factory;
-  IDXGIAdapter* adapter;
-  IDXGIOutput* output;
-  hr = PCreateDXGIFactory(__uuidof(IDXGIFactory), (void**)&factory);
+  IDXGIFactory2* factory;
+  hr = PCreateDXGIFactory(__uuidof(IDXGIFactory2), (void**)&factory);
   if (FAILED(hr))
     MessageBox(wnd, _T("Failed to create IDXGIFactory object"), _T("Dolphin Direct3D 11 backend"),
                MB_OK | MB_ICONERROR);
 
+  IDXGIAdapter* adapter;
   hr = factory->EnumAdapters(g_ActiveConfig.iAdapter, &adapter);
   if (FAILED(hr))
   {
@@ -292,25 +283,6 @@ HRESULT Create(HWND wnd)
     if (FAILED(hr))
       MessageBox(wnd, _T("Failed to enumerate adapters"), _T("Dolphin Direct3D 11 backend"),
                  MB_OK | MB_ICONERROR);
-  }
-
-  // TODO: Make this configurable
-  hr = adapter->EnumOutputs(0, &output);
-  if (FAILED(hr))
-  {
-    // try using the first one
-    IDXGIAdapter* firstadapter;
-    hr = factory->EnumAdapters(0, &firstadapter);
-    if (!FAILED(hr))
-      hr = firstadapter->EnumOutputs(0, &output);
-    if (FAILED(hr))
-      MessageBox(wnd, _T("Failed to enumerate outputs!\n")
-                      _T("This usually happens when you've set your video adapter to the Nvidia ")
-                      _T("GPU in an Optimus-equipped system.\n")
-                      _T("Set Dolphin to use the high-performance graphics in Nvidia's drivers ")
-                      _T("instead and leave Dolphin's video adapter set to the Intel GPU."),
-                 _T("Dolphin Direct3D 11 backend"), MB_OK | MB_ICONERROR);
-    SAFE_RELEASE(firstadapter);
   }
 
   // get supported AA modes
@@ -324,45 +296,41 @@ HRESULT Create(HWND wnd)
     UpdateActiveConfig();
   }
 
-  DXGI_SWAP_CHAIN_DESC swap_chain_desc = {};
-  swap_chain_desc.BufferCount = 1;
+  // Check support for allow tearing, we query the interface for backwards compatibility
+  UINT allow_tearing = FALSE;
+  IDXGIFactory5* factory5;
+  hr = factory->QueryInterface(&factory5);
+  if (SUCCEEDED(hr))
+  {
+    hr = factory5->CheckFeatureSupport(DXGI_FEATURE_PRESENT_ALLOW_TEARING, &allow_tearing,
+                                       sizeof(allow_tearing));
+    factory5->Release();
+  }
+  allow_tearing_supported = SUCCEEDED(hr) && allow_tearing;
+
+  DXGI_SWAP_CHAIN_DESC1 swap_chain_desc = {};
+  swap_chain_desc.BufferCount = 2;
   swap_chain_desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-  swap_chain_desc.OutputWindow = wnd;
   swap_chain_desc.SampleDesc.Count = 1;
   swap_chain_desc.SampleDesc.Quality = 0;
-  swap_chain_desc.Windowed =
-      !SConfig::GetInstance().bFullscreen || g_ActiveConfig.bBorderlessFullscreen;
+  swap_chain_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+  swap_chain_desc.Scaling = DXGI_SCALING_STRETCH;
+  swap_chain_desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+  swap_chain_desc.Width = xres;
+  swap_chain_desc.Height = yres;
+  swap_chain_desc.Stereo = g_ActiveConfig.iStereoMode == STEREO_QUADBUFFER;
 
-  DXGI_OUTPUT_DESC out_desc = {};
-  output->GetDesc(&out_desc);
+  // This flag is necessary if we want to use a flip-model swapchain without locking the framerate
+  swap_chain_desc.Flags = allow_tearing_supported ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0;
 
-  DXGI_MODE_DESC mode_desc = {};
-  mode_desc.Width = out_desc.DesktopCoordinates.right - out_desc.DesktopCoordinates.left;
-  mode_desc.Height = out_desc.DesktopCoordinates.bottom - out_desc.DesktopCoordinates.top;
-  mode_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-  mode_desc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
-  hr = output->FindClosestMatchingMode(&mode_desc, &swap_chain_desc.BufferDesc, nullptr);
-  if (FAILED(hr))
-    MessageBox(wnd, _T("Failed to find a supported video mode"), _T("Dolphin Direct3D 11 backend"),
-               MB_OK | MB_ICONERROR);
-
-  if (swap_chain_desc.Windowed)
-  {
-    // forcing buffer resolution to xres and yres..
-    // this is not a problem as long as we're in windowed mode
-    swap_chain_desc.BufferDesc.Width = xres;
-    swap_chain_desc.BufferDesc.Height = yres;
-  }
-
-#if defined(_DEBUG) || defined(DEBUGFAST)
   // Creating debug devices can sometimes fail if the user doesn't have the correct
   // version of the DirectX SDK. If it does, simply fallback to a non-debug device.
+  if (g_Config.bEnableValidationLayer)
   {
-    hr = PD3D11CreateDeviceAndSwapChain(
-        adapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr,
-        D3D11_CREATE_DEVICE_SINGLETHREADED | D3D11_CREATE_DEVICE_DEBUG, supported_feature_levels,
-        NUM_SUPPORTED_FEATURE_LEVELS, D3D11_SDK_VERSION, &swap_chain_desc, &swapchain, &device,
-        &featlevel, &context);
+    hr = PD3D11CreateDevice(adapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr, D3D11_CREATE_DEVICE_DEBUG,
+                            supported_feature_levels, NUM_SUPPORTED_FEATURE_LEVELS,
+                            D3D11_SDK_VERSION, &device, &featlevel, &context);
+
     // Debugbreak on D3D error
     if (SUCCEEDED(hr) && SUCCEEDED(device->QueryInterface(__uuidof(ID3D11Debug), (void**)&debug)))
     {
@@ -383,13 +351,34 @@ HRESULT Create(HWND wnd)
     }
   }
 
-  if (FAILED(hr))
-#endif
+  if (!g_Config.bEnableValidationLayer || FAILED(hr))
   {
-    hr = PD3D11CreateDeviceAndSwapChain(
-        adapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr, D3D11_CREATE_DEVICE_SINGLETHREADED,
-        supported_feature_levels, NUM_SUPPORTED_FEATURE_LEVELS, D3D11_SDK_VERSION, &swap_chain_desc,
-        &swapchain, &device, &featlevel, &context);
+    hr = PD3D11CreateDevice(adapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr, 0, supported_feature_levels,
+                            NUM_SUPPORTED_FEATURE_LEVELS, D3D11_SDK_VERSION, &device, &featlevel,
+                            &context);
+  }
+
+  if (SUCCEEDED(hr))
+  {
+    hr = factory->CreateSwapChainForHwnd(device, hWnd, &swap_chain_desc, nullptr, nullptr,
+                                         &swapchain);
+    if (FAILED(hr))
+    {
+      // Flip-model discard swapchains aren't supported on Windows 8, so here we fall back to
+      // a sequential swapchain
+      swap_chain_desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
+      hr = factory->CreateSwapChainForHwnd(device, hWnd, &swap_chain_desc, nullptr, nullptr,
+                                           &swapchain);
+    }
+
+    if (FAILED(hr))
+    {
+      // Flip-model swapchains aren't supported on Windows 7, so here we fall back to a legacy
+      // BitBlt-model swapchain
+      swap_chain_desc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
+      hr = factory->CreateSwapChainForHwnd(device, hWnd, &swap_chain_desc, nullptr, nullptr,
+                                           &swapchain);
+    }
   }
 
   if (FAILED(hr))
@@ -404,6 +393,10 @@ HRESULT Create(HWND wnd)
     return E_FAIL;
   }
 
+  hr = device->QueryInterface<ID3D11Device1>(&device1);
+  if (FAILED(hr))
+    WARN_LOG(VIDEO, "Missing Direct3D 11.1 support. Logical operations will not be supported.");
+
   // prevent DXGI from responding to Alt+Enter, unfortunately DXGI_MWA_NO_ALT_ENTER
   // does not work so we disable all monitoring of window messages. However this
   // may make it more difficult for DXGI to handle display mode changes.
@@ -412,10 +405,15 @@ HRESULT Create(HWND wnd)
     MessageBox(wnd, _T("Failed to associate the window"), _T("Dolphin Direct3D 11 backend"),
                MB_OK | MB_ICONERROR);
 
-  SetDebugObjectName((ID3D11DeviceChild*)context, "device context");
+  SetDebugObjectName(context, "device context");
   SAFE_RELEASE(factory);
-  SAFE_RELEASE(output);
   SAFE_RELEASE(adapter);
+
+  if (SConfig::GetInstance().bFullscreen && !g_ActiveConfig.bBorderlessFullscreen)
+  {
+    swapchain->SetFullscreenState(true, nullptr);
+    swapchain->ResizeBuffers(0, xres, yres, DXGI_FORMAT_R8G8B8A8_UNORM, swap_chain_desc.Flags);
+  }
 
   ID3D11Texture2D* buf;
   hr = swapchain->GetBuffer(0, IID_ID3D11Texture2D, (void**)&buf);
@@ -431,8 +429,8 @@ HRESULT Create(HWND wnd)
   backbuf = new D3DTexture2D(buf, D3D11_BIND_RENDER_TARGET);
   SAFE_RELEASE(buf);
   CHECK(backbuf != nullptr, "Create back buffer texture");
-  SetDebugObjectName((ID3D11DeviceChild*)backbuf->GetTex(), "backbuffer texture");
-  SetDebugObjectName((ID3D11DeviceChild*)backbuf->GetRTV(), "backbuffer render target view");
+  SetDebugObjectName(backbuf->GetTex(), "backbuffer texture");
+  SetDebugObjectName(backbuf->GetRTV(), "backbuffer render target view");
 
   context->OMSetRenderTargets(1, &backbuf->GetRTV(), nullptr);
 
@@ -442,6 +440,7 @@ HRESULT Create(HWND wnd)
   device->CheckFormatSupport(DXGI_FORMAT_B8G8R8A8_UNORM, &format_support);
   bgra_textures_supported = (format_support & D3D11_FORMAT_SUPPORT_TEXTURE2D) != 0;
   g_Config.backend_info.bSupportsST3CTextures = SupportsS3TCTextures(device);
+  g_Config.backend_info.bSupportsBPTCTextures = SupportsBPTCTextures(device);
 
   stateman = new StateManager;
   return S_OK;
@@ -460,6 +459,7 @@ void Close()
   context->Flush();  // immediately destroy device objects
 
   SAFE_RELEASE(context);
+  SAFE_RELEASE(device1);
   ULONG references = device->Release();
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
@@ -539,6 +539,11 @@ bool BGRATexturesSupported()
   return bgra_textures_supported;
 }
 
+bool AllowTearingSupported()
+{
+  return allow_tearing_supported;
+}
+
 // Returns the maximum width/height of a texture. This value only depends upon the feature level in
 // DX11
 u32 GetMaxTextureSize(D3D_FEATURE_LEVEL feature_level)
@@ -569,12 +574,14 @@ void Reset()
   // release all back buffer references
   SAFE_RELEASE(backbuf);
 
+  UINT swap_chain_flags = AllowTearingSupported() ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0;
+
   // resize swapchain buffers
   RECT client;
   GetClientRect(hWnd, &client);
   xres = client.right - client.left;
   yres = client.bottom - client.top;
-  D3D::swapchain->ResizeBuffers(1, xres, yres, DXGI_FORMAT_R8G8B8A8_UNORM, 0);
+  D3D::swapchain->ResizeBuffers(0, xres, yres, DXGI_FORMAT_R8G8B8A8_UNORM, swap_chain_flags);
 
   // recreate back buffer texture
   ID3D11Texture2D* buf;
@@ -591,8 +598,8 @@ void Reset()
   backbuf = new D3DTexture2D(buf, D3D11_BIND_RENDER_TARGET);
   SAFE_RELEASE(buf);
   CHECK(backbuf != nullptr, "Create back buffer texture");
-  SetDebugObjectName((ID3D11DeviceChild*)backbuf->GetTex(), "backbuffer texture");
-  SetDebugObjectName((ID3D11DeviceChild*)backbuf->GetRTV(), "backbuffer render target view");
+  SetDebugObjectName(backbuf->GetTex(), "backbuffer texture");
+  SetDebugObjectName(backbuf->GetRTV(), "backbuffer render target view");
 }
 
 bool BeginFrame()
@@ -618,8 +625,20 @@ void EndFrame()
 
 void Present()
 {
+  UINT present_flags = 0;
+
+  // When using sync interval 0, it is recommended to always pass the tearing
+  // flag when it is supported, even when presenting in windowed mode.
+  // However, this flag cannot be used if the app is in fullscreen mode as a
+  // result of calling SetFullscreenState.
+  if (AllowTearingSupported() && !g_ActiveConfig.IsVSync() && !GetFullscreenState())
+    present_flags |= DXGI_PRESENT_ALLOW_TEARING;
+
+  if (swapchain->IsTemporaryMonoSupported() && g_ActiveConfig.iStereoMode != STEREO_QUADBUFFER)
+    present_flags |= DXGI_PRESENT_STEREO_TEMPORARY_MONO;
+
   // TODO: Is 1 the correct value for vsyncing?
-  swapchain->Present((UINT)g_ActiveConfig.IsVSync(), 0);
+  swapchain->Present((UINT)g_ActiveConfig.IsVSync(), present_flags);
 }
 
 HRESULT SetFullscreenState(bool enable_fullscreen)
@@ -632,6 +651,29 @@ bool GetFullscreenState()
   BOOL state = FALSE;
   swapchain->GetFullscreenState(&state, nullptr);
   return !!state;
+}
+
+void SetDebugObjectName(ID3D11DeviceChild* resource, const char* name)
+{
+#if defined(_DEBUG) || defined(DEBUGFAST)
+  if (resource)
+    resource->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)(name ? strlen(name) : 0), name);
+#endif
+}
+
+std::string GetDebugObjectName(ID3D11DeviceChild* resource)
+{
+  std::string name;
+#if defined(_DEBUG) || defined(DEBUGFAST)
+  if (resource)
+  {
+    UINT size = 0;
+    resource->GetPrivateData(WKPDID_D3DDebugObjectName, &size, nullptr);  // get required size
+    name.resize(size);
+    resource->GetPrivateData(WKPDID_D3DDebugObjectName, &size, const_cast<char*>(name.data()));
+  }
+#endif
+  return name;
 }
 
 }  // namespace D3D

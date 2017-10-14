@@ -16,6 +16,7 @@
 #include <wx/choice.h>
 #include <wx/clipbrd.h>
 #include <wx/colour.h>
+#include <wx/config.h>
 #include <wx/dialog.h>
 #include <wx/frame.h>
 #include <wx/listbox.h>
@@ -31,12 +32,13 @@
 
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
+#include "Common/Config/Config.h"
 #include "Common/FifoQueue.h"
 #include "Common/FileUtil.h"
-#include "Common/IniFile.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 
+#include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/EXI/EXI_Device.h"
 #include "Core/NetPlayClient.h"
@@ -77,15 +79,11 @@ NetPlayDialog::NetPlayDialog(wxWindow* const parent, const GameListCtrl* const g
 
   // Remember the window size and position for NetWindow
   {
-    IniFile inifile;
-    inifile.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
-    IniFile::Section& netplay_section = *inifile.GetOrCreateSection("NetPlay");
-
     int winPosX, winPosY, winWidth, winHeight;
-    netplay_section.Get("NetWindowPosX", &winPosX, std::numeric_limits<int>::min());
-    netplay_section.Get("NetWindowPosY", &winPosY, std::numeric_limits<int>::min());
-    netplay_section.Get("NetWindowWidth", &winWidth, -1);
-    netplay_section.Get("NetWindowHeight", &winHeight, -1);
+    wxConfig::Get()->Read("NetWindowPosX", &winPosX, std::numeric_limits<int>::min());
+    wxConfig::Get()->Read("NetWindowPosY", &winPosY, std::numeric_limits<int>::min());
+    wxConfig::Get()->Read("NetWindowWidth", &winWidth, -1);
+    wxConfig::Get()->Read("NetWindowHeight", &winHeight, -1);
 
     WxUtils::SetWindowSizeAndFitToScreen(this, wxPoint(winPosX, winPosY),
                                          wxSize(winWidth, winHeight), GetSize());
@@ -282,17 +280,10 @@ wxSizer* NetPlayDialog::CreateBottomGUI(wxWindow* parent)
 
 NetPlayDialog::~NetPlayDialog()
 {
-  IniFile inifile;
-  const std::string dolphin_ini = File::GetUserPath(F_DOLPHINCONFIG_IDX);
-  inifile.Load(dolphin_ini);
-  IniFile::Section& netplay_config = *inifile.GetOrCreateSection("NetPlay");
-
-  netplay_config.Set("NetWindowPosX", GetPosition().x);
-  netplay_config.Set("NetWindowPosY", GetPosition().y);
-  netplay_config.Set("NetWindowWidth", GetSize().GetWidth());
-  netplay_config.Set("NetWindowHeight", GetSize().GetHeight());
-
-  inifile.Save(dolphin_ini);
+  wxConfig::Get()->Write("NetWindowPosX", GetPosition().x);
+  wxConfig::Get()->Write("NetWindowPosY", GetPosition().y);
+  wxConfig::Get()->Write("NetWindowWidth", GetSize().GetWidth());
+  wxConfig::Get()->Write("NetWindowHeight", GetSize().GetHeight());
 
   if (netplay_client)
   {
@@ -327,8 +318,8 @@ void NetPlayDialog::GetNetSettings(NetSettings& settings)
   settings.m_EnableCheats = instance.bEnableCheats;
   settings.m_SelectedLanguage = instance.SelectedLanguage;
   settings.m_OverrideGCLanguage = instance.bOverrideGCLanguage;
-  settings.m_ProgressiveScan = instance.bProgressive;
-  settings.m_PAL60 = instance.bPAL60;
+  settings.m_ProgressiveScan = Config::Get(Config::SYSCONF_PROGRESSIVE_SCAN);
+  settings.m_PAL60 = Config::Get(Config::SYSCONF_PAL60);
   settings.m_DSPHLE = instance.bDSPHLE;
   settings.m_DSPEnableJIT = instance.m_DSPEnableJIT;
   settings.m_WriteToMemcard = m_memcard_write->GetValue();
@@ -468,19 +459,19 @@ void NetPlayDialog::OnConnectionLost()
   GetEventHandler()->AddPendingEvent(evt);
 }
 
-void NetPlayDialog::OnTraversalError(int error)
+void NetPlayDialog::OnTraversalError(TraversalClient::FailureReason error)
 {
   switch (error)
   {
-  case TraversalClient::BadHost:
+  case TraversalClient::FailureReason::BadHost:
     PanicAlertT("Couldn't look up central server");
     break;
-  case TraversalClient::VersionTooOld:
+  case TraversalClient::FailureReason::VersionTooOld:
     PanicAlertT("Dolphin is too old for traversal server");
     break;
-  case TraversalClient::ServerForgotAboutUs:
-  case TraversalClient::SocketSendError:
-  case TraversalClient::ResendTimeout:
+  case TraversalClient::FailureReason::ServerForgotAboutUs:
+  case TraversalClient::FailureReason::SocketSendError:
+  case TraversalClient::FailureReason::ResendTimeout:
     wxThreadEvent evt(wxEVT_THREAD, NP_GUI_EVT_TRAVERSAL_CONNECTION_ERROR);
     GetEventHandler()->AddPendingEvent(evt);
     break;
@@ -590,7 +581,7 @@ void NetPlayDialog::OnThread(wxThreadEvent& event)
   break;
   case NP_GUI_EVT_PAD_BUFFER_CHANGE:
   {
-    std::string msg = StringFromFormat("Pad buffer: %d", m_pad_buffer);
+    std::string msg = StringFromFormat("Buffer size: %d", m_pad_buffer);
 
     if (g_ActiveConfig.bShowNetPlayMessages)
     {

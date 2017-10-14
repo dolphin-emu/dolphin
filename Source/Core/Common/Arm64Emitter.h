@@ -603,9 +603,9 @@ public:
 
   // System
   void _MSR(PStateField field, u8 imm);
-
   void _MSR(PStateField field, ARM64Reg Rt);
   void MRS(ARM64Reg Rt, PStateField field);
+  void CNTVCT(ARM64Reg Rt);
 
   void HINT(SystemHint op);
   void CLREX();
@@ -721,7 +721,7 @@ public:
   void MOV(ARM64Reg Rd, ARM64Reg Rm);
   void MVN(ARM64Reg Rd, ARM64Reg Rm);
 
-  // TODO: These are "slow" as they use arith+shift, should be replaced with UBFM/EXTR variants.
+  // Convenience wrappers around UBFM/EXTR.
   void LSR(ARM64Reg Rd, ARM64Reg Rm, int shift);
   void LSL(ARM64Reg Rd, ARM64Reg Rm, int shift);
   void ASR(ARM64Reg Rd, ARM64Reg Rm, int shift);

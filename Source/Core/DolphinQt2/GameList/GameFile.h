@@ -5,6 +5,7 @@
 #pragma once
 
 #include <QDateTime>
+#include <QFile>
 #include <QMap>
 #include <QPixmap>
 #include <QString>
@@ -21,19 +22,20 @@ enum class Platform;
 class Volume;
 }
 
-// TODO cache
 class GameFile final
 {
 public:
+  GameFile();
   explicit GameFile(const QString& path);
 
   bool IsValid() const;
   // These will be properly initialized before we try to load the file.
   QString GetFilePath() const { return m_path; }
-  QString GetFileName() const { return m_file_name; }
-  QString GetFileExtension() const { return m_extension; }
-  QString GetFileFolder() const { return m_folder; }
+  QString GetFileName() const;
+  QString GetFileExtension() const;
+  QString GetFileFolder() const;
   qint64 GetFileSize() const { return m_size; }
+  QDateTime GetLastModified() const { return m_last_modified; }
   // The rest will not.
   QString GetGameID() const { return m_game_id; }
   QString GetMakerID() const { return m_maker_id; }
@@ -41,6 +43,7 @@ public:
   u64 GetTitleID() const { return m_title_id; }
   u16 GetRevision() const { return m_revision; }
   QString GetInternalName() const { return m_internal_name; }
+  QString GetUniqueID() const;
   u8 GetDiscNumber() const { return m_disc_number; }
   u64 GetRawSize() const { return m_raw_size; }
   QPixmap GetBanner() const { return m_banner; }
@@ -72,24 +75,21 @@ public:
   bool Uninstall();
   bool ExportWiiSave();
 
+  friend QDataStream& operator<<(QDataStream& out, const GameFile& file);
+  friend QDataStream& operator>>(QDataStream& in, GameFile& file);
+
 private:
   QString GetBannerString(const QMap<DiscIO::Language, QString>& m) const;
 
-  QString GetCacheFileName() const;
   void ReadBanner(const DiscIO::Volume& volume);
   bool LoadFileInfo(const QString& path);
   void LoadState();
   bool IsElfOrDol();
   bool TryLoadElfDol();
-  bool TryLoadCache();
   bool TryLoadVolume();
-  void SaveCache();
 
   bool m_valid;
   QString m_path;
-  QString m_file_name;
-  QString m_extension;
-  QString m_folder;
   QDateTime m_last_modified;
   qint64 m_size = 0;
 
@@ -104,7 +104,6 @@ private:
   QMap<DiscIO::Language, QString> m_short_makers;
   QMap<DiscIO::Language, QString> m_long_makers;
   QMap<DiscIO::Language, QString> m_descriptions;
-  QString m_company;
   u8 m_disc_number = 0;
   DiscIO::Region m_region;
   DiscIO::Platform m_platform;
@@ -118,3 +117,9 @@ private:
 };
 
 QString FormatSize(qint64 size);
+
+QDataStream& operator<<(QDataStream& out, const GameFile& file);
+QDataStream& operator>>(QDataStream& in, GameFile& file);
+
+QDataStream& operator<<(QDataStream& out, const unsigned long& file);
+QDataStream& operator>>(QDataStream& in, unsigned long& file);

@@ -10,6 +10,7 @@
 
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
+#include "VideoBackends/Vulkan/ShaderCache.h"
 #include "VideoBackends/Vulkan/Texture2D.h"
 #include "VideoBackends/Vulkan/Util.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
@@ -41,11 +42,14 @@ void VulkanPostProcessing::BlitFromTexture(const TargetRectangle& dst, const Tar
                                            const Texture2D* src_tex, int src_layer,
                                            VkRenderPass render_pass)
 {
+  // If the source layer is negative we simply copy all available layers.
+  VkShaderModule geometry_shader =
+      src_layer < 0 ? g_shader_cache->GetPassthroughGeometryShader() : VK_NULL_HANDLE;
   VkShaderModule fragment_shader =
       m_fragment_shader != VK_NULL_HANDLE ? m_fragment_shader : m_default_fragment_shader;
   UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                          g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_STANDARD), render_pass,
-                         g_object_cache->GetPassthroughVertexShader(), VK_NULL_HANDLE,
+                         g_shader_cache->GetPassthroughVertexShader(), geometry_shader,
                          fragment_shader);
 
   // Source is always bound.
@@ -145,7 +149,7 @@ static const std::string DEFAULT_FRAGMENT_SHADER_SOURCE = R"(
 
 static const std::string POSTPROCESSING_SHADER_HEADER = R"(
   SAMPLER_BINDING(0) uniform sampler2DArray samp0;
-  SAMPLER_BINDING(1) uniform sampler2D samp1;
+  SAMPLER_BINDING(1) uniform sampler2DArray samp1;
 
   layout(location = 0) in float3 uv0;
   layout(location = 1) in float4 col0;
@@ -172,7 +176,7 @@ static const std::string POSTPROCESSING_SHADER_HEADER = R"(
 
   float4 SampleFontLocation(float2 location)
   {
-    return texture(samp1, location);
+    return texture(samp1, float3(location, 0.0));
   }
 
   float2 GetResolution()
@@ -237,7 +241,7 @@ bool VulkanPostProcessing::RecompileShader()
   if (m_fragment_shader != VK_NULL_HANDLE)
   {
     g_command_buffer_mgr->WaitForGPUIdle();
-    g_object_cache->ClearPipelineCache();
+    g_shader_cache->ClearPipelineCache();
     vkDestroyShaderModule(g_vulkan_context->GetDevice(), m_fragment_shader, nullptr);
     m_fragment_shader = VK_NULL_HANDLE;
   }

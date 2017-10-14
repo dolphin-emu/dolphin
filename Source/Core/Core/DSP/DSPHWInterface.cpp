@@ -98,7 +98,7 @@ u16 gdsp_mbox_read_l(Mailbox mbx)
   return (u16)value;
 }
 
-void gdsp_ifx_write(u32 addr, u32 val)
+void gdsp_ifx_write(u32 addr, u16 val)
 {
   g_dsp_cap->LogIFXWrite(addr, val);
 
@@ -136,10 +136,6 @@ void gdsp_ifx_write(u32 addr, u32 val)
     g_dsp.ifx_regs[DSP_DSBL] = 0;
     break;
 
-  case DSP_ACDATA1:  // Accelerator write (Zelda type) - "UnkZelda"
-    dsp_write_aram_d3(val);
-    break;
-
   case DSP_GAIN:
     if (val)
     {
@@ -151,11 +147,47 @@ void gdsp_ifx_write(u32 addr, u32 val)
   case DSP_DSCR:
     g_dsp.ifx_regs[addr & 0xFF] = val;
     break;
-  /*
-      case DSP_ACCAL:
-        dsp_step_accelerator();
-        break;
-  */
+
+  case DSP_ACSAH:
+    g_dsp.accelerator->SetStartAddress(val << 16 |
+                                       static_cast<u16>(g_dsp.accelerator->GetStartAddress()));
+    break;
+  case DSP_ACSAL:
+    g_dsp.accelerator->SetStartAddress(
+        static_cast<u16>(g_dsp.accelerator->GetStartAddress() >> 16) << 16 | val);
+    break;
+  case DSP_ACEAH:
+    g_dsp.accelerator->SetEndAddress(val << 16 |
+                                     static_cast<u16>(g_dsp.accelerator->GetEndAddress()));
+    break;
+  case DSP_ACEAL:
+    g_dsp.accelerator->SetEndAddress(
+        static_cast<u16>(g_dsp.accelerator->GetEndAddress() >> 16) << 16 | val);
+    break;
+  case DSP_ACCAH:
+    g_dsp.accelerator->SetCurrentAddress(val << 16 |
+                                         static_cast<u16>(g_dsp.accelerator->GetCurrentAddress()));
+    break;
+  case DSP_ACCAL:
+    g_dsp.accelerator->SetCurrentAddress(
+        static_cast<u16>(g_dsp.accelerator->GetCurrentAddress() >> 16) << 16 | val);
+    break;
+  case DSP_FORMAT:
+    g_dsp.accelerator->SetSampleFormat(val);
+    break;
+  case DSP_YN1:
+    g_dsp.accelerator->SetYn1(val);
+    break;
+  case DSP_YN2:
+    g_dsp.accelerator->SetYn2(val);
+    break;
+  case DSP_PRED_SCALE:
+    g_dsp.accelerator->SetPredScale(val);
+    break;
+  case DSP_ACDATA1:  // Accelerator write (Zelda type) - "UnkZelda"
+    g_dsp.accelerator->WriteD3(val);
+    break;
+
   default:
     if ((addr & 0xff) >= 0xa0)
     {
@@ -196,11 +228,30 @@ static u16 _gdsp_ifx_read(u16 addr)
   case DSP_DSCR:
     return g_dsp.ifx_regs[addr & 0xFF];
 
+  case DSP_ACSAH:
+    return static_cast<u16>(g_dsp.accelerator->GetStartAddress() >> 16);
+  case DSP_ACSAL:
+    return static_cast<u16>(g_dsp.accelerator->GetStartAddress());
+  case DSP_ACEAH:
+    return static_cast<u16>(g_dsp.accelerator->GetEndAddress() >> 16);
+  case DSP_ACEAL:
+    return static_cast<u16>(g_dsp.accelerator->GetEndAddress());
+  case DSP_ACCAH:
+    return static_cast<u16>(g_dsp.accelerator->GetCurrentAddress() >> 16);
+  case DSP_ACCAL:
+    return static_cast<u16>(g_dsp.accelerator->GetCurrentAddress());
+  case DSP_FORMAT:
+    return g_dsp.accelerator->GetSampleFormat();
+  case DSP_YN1:
+    return g_dsp.accelerator->GetYn1();
+  case DSP_YN2:
+    return g_dsp.accelerator->GetYn2();
+  case DSP_PRED_SCALE:
+    return g_dsp.accelerator->GetPredScale();
   case DSP_ACCELERATOR:  // ADPCM Accelerator reads
-    return dsp_read_accelerator();
-
+    return g_dsp.accelerator->Read(reinterpret_cast<s16*>(&g_dsp.ifx_regs[DSP_COEF_A1_0]));
   case DSP_ACDATA1:  // Accelerator reads (Zelda type) - "UnkZelda"
-    return dsp_read_aram_d3();
+    return g_dsp.accelerator->ReadD3();
 
   default:
     if ((addr & 0xff) >= 0xa0)

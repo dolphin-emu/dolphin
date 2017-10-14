@@ -27,7 +27,7 @@ private:
   std::array<u16, 32> m_CachedRegs{};
   std::array<bool, 32> m_CachedRegHasChanged{};
 
-  DECLARE_NO_COPY_CLASS(CDSPRegTable);
+  DECLARE_NO_COPY_CLASS(CDSPRegTable)
 };
 
 class DSPRegisterView final : public wxGrid

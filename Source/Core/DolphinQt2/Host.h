@@ -4,9 +4,8 @@
 
 #pragma once
 
-#include <QMutex>
 #include <QObject>
-#include <QSize>
+#include <atomic>
 
 // Singleton that talks to the Core via the interface defined in Core/Host.h.
 // Because Host_* calls might come from different threads than the MainWindow,
@@ -24,7 +23,6 @@ public:
   bool GetRenderFocus();
   bool GetRenderFullscreen();
 
-public slots:
   void SetRenderHandle(void* handle);
   void SetRenderFocus(bool focus);
   void SetRenderFullscreen(bool fullscreen);
@@ -35,11 +33,9 @@ signals:
   void RequestRenderSize(int w, int h);
 
 private:
-  Host() {}
-  static Host* m_instance;
-  QMutex m_lock;
+  Host();
 
-  void* m_render_handle;
-  bool m_render_focus;
-  bool m_render_fullscreen;
+  std::atomic<void*> m_render_handle;
+  std::atomic<bool> m_render_focus;
+  std::atomic<bool> m_render_fullscreen;
 };

@@ -71,21 +71,21 @@ TEST(BitUtils, IsValidLowMask)
 
   EXPECT_TRUE(Common::IsValidLowMask((u8)~0b0));
   EXPECT_FALSE(Common::IsValidLowMask((u8)(~0b0 - 1)));
-  EXPECT_FALSE(Common::IsValidLowMask((u8)~(0b10000)));
+  EXPECT_FALSE(Common::IsValidLowMask((u8) ~(0b10000)));
   EXPECT_FALSE(Common::IsValidLowMask((u8)(~((u8)(~0b0) >> 1) | 0b1111)));
 
   EXPECT_TRUE(Common::IsValidLowMask((u16)~0b0));
   EXPECT_FALSE(Common::IsValidLowMask((u16)(~0b0 - 1)));
-  EXPECT_FALSE(Common::IsValidLowMask((u16)~(0b10000)));
+  EXPECT_FALSE(Common::IsValidLowMask((u16) ~(0b10000)));
   EXPECT_FALSE(Common::IsValidLowMask((u16)(~((u16)(~0b0) >> 1) | 0b1111)));
 
   EXPECT_TRUE(Common::IsValidLowMask((u32)~0b0));
   EXPECT_FALSE(Common::IsValidLowMask((u32)(~0b0 - 1)));
-  EXPECT_FALSE(Common::IsValidLowMask((u32)~(0b10000)));
+  EXPECT_FALSE(Common::IsValidLowMask((u32) ~(0b10000)));
   EXPECT_FALSE(Common::IsValidLowMask((u32)(~((u32)(~0b0) >> 1) | 0b1111)));
 
   EXPECT_TRUE(Common::IsValidLowMask((u64)~0b0));
   EXPECT_FALSE(Common::IsValidLowMask((u64)(~0b0 - 1)));
-  EXPECT_FALSE(Common::IsValidLowMask((u64)~(0b10000)));
+  EXPECT_FALSE(Common::IsValidLowMask((u64) ~(0b10000)));
   EXPECT_FALSE(Common::IsValidLowMask((u64)(~((u64)(~0b0) >> 1) | 0b1111)));
 }

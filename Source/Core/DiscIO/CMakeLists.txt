@@ -3,6 +3,8 @@ set(SRCS
   CISOBlob.cpp
   WbfsBlob.cpp
   CompressedBlob.cpp
+  DirectoryBlob.cpp
+  DiscExtractor.cpp
   DiscScrubber.cpp
   DriveBlob.cpp
   Enums.cpp
@@ -13,7 +15,7 @@ set(SRCS
   NANDImporter.cpp
   TGCBlob.cpp
   Volume.cpp
-  VolumeDirectory.cpp
+  VolumeFileBlobReader.cpp
   VolumeGC.cpp
   VolumeWad.cpp
   VolumeWii.cpp

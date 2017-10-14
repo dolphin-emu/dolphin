@@ -19,13 +19,17 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/File.h"
-#include "Common/NonCopyable.h"
 
-class WaveFileWriter : NonCopyable
+class WaveFileWriter
 {
 public:
   WaveFileWriter();
   ~WaveFileWriter();
+
+  WaveFileWriter(const WaveFileWriter&) = delete;
+  WaveFileWriter& operator=(const WaveFileWriter&) = delete;
+  WaveFileWriter(WaveFileWriter&&) = delete;
+  WaveFileWriter& operator=(WaveFileWriter&&) = delete;
 
   bool Start(const std::string& filename, unsigned int HLESampleRate);
   void Stop();

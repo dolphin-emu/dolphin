@@ -259,7 +259,7 @@ bool GameListItem::BannerChanged()
 
   if (!m_volume_banner.empty())
     return false;
-  if (m_platform != DiscIO::Platform::WII_DISC && m_platform != DiscIO::Platform::WII_WAD)
+  if (!DiscIO::IsWii(m_platform))
     return false;
 
   auto& banner = m_pending.volume_banner;
@@ -286,7 +286,7 @@ std::string GameListItem::GetDescription(DiscIO::Language language) const
 
 std::string GameListItem::GetDescription() const
 {
-  bool wii = m_platform != DiscIO::Platform::GAMECUBE_DISC;
+  const bool wii = DiscIO::IsWii(m_platform);
   return GetDescription(SConfig::GetInstance().GetCurrentLanguage(wii));
 }
 
@@ -300,7 +300,7 @@ std::string GameListItem::GetName() const
   if (!m_custom_name.empty())
     return m_custom_name;
 
-  bool wii = m_platform != DiscIO::Platform::GAMECUBE_DISC;
+  const bool wii = DiscIO::IsWii(m_platform);
   std::string name = GetName(SConfig::GetInstance().GetCurrentLanguage(wii));
   if (!name.empty())
     return name;
@@ -356,7 +356,7 @@ std::vector<DiscIO::Language> GameListItem::GetLanguages() const
 
 const std::string GameListItem::GetWiiFSPath() const
 {
-  if (m_platform != DiscIO::Platform::WII_DISC && m_platform != DiscIO::Platform::WII_WAD)
+  if (!DiscIO::IsWii(m_platform))
     return "";
 
   const std::string path = Common::GetTitleDataPath(m_title_id, Common::FROM_CONFIGURED_ROOT);

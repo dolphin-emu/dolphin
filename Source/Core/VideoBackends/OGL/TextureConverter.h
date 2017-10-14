@@ -7,8 +7,9 @@
 #include "Common/CommonTypes.h"
 #include "Common/GL/GLUtil.h"
 
-#include "VideoCommon/TextureDecoder.h"
 #include "VideoCommon/VideoCommon.h"
+
+struct EFBCopyParams;
 
 namespace OGL
 {
@@ -25,9 +26,9 @@ void EncodeToRamYUYV(GLuint srcTexture, const TargetRectangle& sourceRc, u8* des
 void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTexture);
 
 // returns size of the encoded data (in bytes)
-void EncodeToRamFromTexture(u8* dest_ptr, const EFBCopyFormat& format, u32 native_width,
+void EncodeToRamFromTexture(u8* dest_ptr, const EFBCopyParams& params, u32 native_width,
                             u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
-                            bool is_depth_copy, const EFBRectangle& src_rect, bool scale_by_half);
+                            const EFBRectangle& src_rect, bool scale_by_half);
 }
 
 }  // namespace OGL

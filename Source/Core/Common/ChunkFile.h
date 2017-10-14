@@ -15,6 +15,7 @@
 
 #include <array>
 #include <cstddef>
+#include <cstring>
 #include <deque>
 #include <list>
 #include <map>

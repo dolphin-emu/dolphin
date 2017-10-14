@@ -1,6 +1,7 @@
 set(SRCS
   AbstractTexture.cpp
   AsyncRequests.cpp
+  AsyncShaderCompiler.cpp
   BoundingBox.cpp
   BPFunctions.cpp
   BPMemory.cpp
@@ -29,7 +30,11 @@ set(SRCS
   PostProcessing.cpp
   RenderBase.cpp
   RenderState.cpp
+  ShaderGenCommon.cpp
   Statistics.cpp
+  UberShaderCommon.cpp
+  UberShaderPixel.cpp
+  UberShaderVertex.cpp
   TextureCacheBase.cpp
   TextureConfig.cpp
   TextureConversionShader.cpp

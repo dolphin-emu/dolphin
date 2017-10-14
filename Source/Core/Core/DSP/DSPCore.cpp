@@ -15,12 +15,14 @@
 #include "Common/MemoryUtil.h"
 #include "Common/MsgHandler.h"
 
+#include "Core/DSP/DSPAccelerator.h"
 #include "Core/DSP/DSPAnalyzer.h"
 #include "Core/DSP/DSPHWInterface.h"
 #include "Core/DSP/DSPHost.h"
 #include "Core/DSP/Interpreter/DSPIntUtil.h"
 #include "Core/DSP/Interpreter/DSPInterpreter.h"
 #include "Core/DSP/Jit/DSPEmitter.h"
+#include "Core/HW/DSP.h"
 
 namespace DSP
 {
@@ -41,22 +43,26 @@ static bool VerifyRoms()
     u32 hash_drom;  // dsp_coef.bin
   };
 
-  static const std::array<DspRomHashes, 5> known_roms = {
-      {// Official Nintendo ROM
-       {0x66f334fe, 0xf3b93527},
+  static const std::array<DspRomHashes, 6> known_roms = {{
+      // Official Nintendo ROM
+      {0x66f334fe, 0xf3b93527},
 
-       // LM1234 replacement ROM (Zelda UCode only)
-       {0x9c8f593c, 0x10000001},
+      // LM1234 replacement ROM (Zelda UCode only)
+      {0x9c8f593c, 0x10000001},
 
-       // delroth's improvement on LM1234 replacement ROM (Zelda and AX only,
-       // IPL/Card/GBA still broken)
-       {0xd9907f71, 0xb019c2fb},
+      // delroth's improvement on LM1234 replacement ROM (Zelda and AX only,
+      // IPL/Card/GBA still broken)
+      {0xd9907f71, 0xb019c2fb},
 
-       // above with improved resampling coefficients
-       {0xd9907f71, 0xdb6880c1},
+      // above with improved resampling coefficients
+      {0xd9907f71, 0xdb6880c1},
 
-       // above with support for GBA ucode
-       {0x3aa4a793, 0xa4a575f5}}};
+      // above with support for GBA ucode
+      {0x3aa4a793, 0xa4a575f5},
+
+      // above with fix to skip bootucode_ax when running from ROM entrypoint
+      {0x128ea7a2, 0xa4a575f5},
+  }};
 
   u32 hash_irom = HashAdler32((u8*)g_dsp.irom, DSP_IROM_BYTE_SIZE);
   u32 hash_drom = HashAdler32((u8*)g_dsp.coef, DSP_COEF_BYTE_SIZE);
@@ -107,10 +113,20 @@ static void DSPCore_FreeMemoryPages()
   g_dsp.irom = g_dsp.iram = g_dsp.dram = g_dsp.coef = nullptr;
 }
 
+class LLEAccelerator final : public Accelerator
+{
+protected:
+  u8 ReadMemory(u32 address) override { return Host::ReadHostMemory(address); }
+  void WriteMemory(u32 address, u8 value) override { Host::WriteHostMemory(value, address); }
+  void OnEndException() override { DSPCore_SetException(EXP_ACCOV); }
+};
+
 bool DSPCore_Init(const DSPInitOptions& opts)
 {
   g_dsp.step_counter = 0;
   g_init_hax = false;
+
+  g_dsp.accelerator = std::make_unique<LLEAccelerator>();
 
   g_dsp.irom = static_cast<u16*>(Common::AllocateMemoryPages(DSP_IROM_BYTE_SIZE));
   g_dsp.iram = static_cast<u16*>(Common::AllocateMemoryPages(DSP_IRAM_BYTE_SIZE));

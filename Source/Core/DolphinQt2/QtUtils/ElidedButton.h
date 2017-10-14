@@ -9,12 +9,12 @@
 class ElidedButton : public QPushButton
 {
 public:
-  ElidedButton(const QString& text = QStringLiteral(""),
-               Qt::TextElideMode elide_mode = Qt::ElideRight);
+  explicit ElidedButton(const QString& text = QStringLiteral(""),
+                        Qt::TextElideMode elide_mode = Qt::ElideRight);
   Qt::TextElideMode elideMode() const;
   void setElideMode(Qt::TextElideMode elide_mode);
 
 private:
-  void paintEvent(QPaintEvent* event);
+  void paintEvent(QPaintEvent* event) override;
   Qt::TextElideMode m_elide_mode;
 };

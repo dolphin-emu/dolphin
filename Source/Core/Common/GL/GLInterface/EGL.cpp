@@ -9,6 +9,7 @@
 
 #include "Common/GL/GLInterface/EGL.h"
 #include "Common/Logging/Log.h"
+#include "Core/Config/GraphicsSettings.h"
 
 #ifndef EGL_KHR_create_context
 #define EGL_KHR_create_context 1
@@ -47,6 +48,7 @@ void cInterfaceEGL::DetectMode()
 {
   if (s_opengl_mode != GLInterfaceMode::MODE_DETECT)
     return;
+  bool preferGLES = Config::Get(Config::GFX_PREFER_GLES);
 
   EGLint num_configs;
   bool supportsGL = false, supportsGLES2 = false, supportsGLES3 = false;
@@ -98,20 +100,50 @@ void cInterfaceEGL::DetectMode()
     delete[] config;
   }
 
-  if (supportsGL)
-    s_opengl_mode = GLInterfaceMode::MODE_OPENGL;
-  else if (supportsGLES3)
-    s_opengl_mode = GLInterfaceMode::MODE_OPENGLES3;
-  else if (supportsGLES2)
-    s_opengl_mode = GLInterfaceMode::MODE_OPENGLES2;
+  if (preferGLES)
+  {
+    if (supportsGLES3)
+      s_opengl_mode = GLInterfaceMode::MODE_OPENGLES3;
+    else if (supportsGLES2)
+      s_opengl_mode = GLInterfaceMode::MODE_OPENGLES2;
+    else if (supportsGL)
+      s_opengl_mode = GLInterfaceMode::MODE_OPENGL;
+  }
+  else
+  {
+    if (supportsGL)
+      s_opengl_mode = GLInterfaceMode::MODE_OPENGL;
+    else if (supportsGLES3)
+      s_opengl_mode = GLInterfaceMode::MODE_OPENGLES3;
+    else if (supportsGLES2)
+      s_opengl_mode = GLInterfaceMode::MODE_OPENGLES2;
+  }
 
-  if (s_opengl_mode == GLInterfaceMode::MODE_DETECT)  // Errored before we found a mode
-    s_opengl_mode = GLInterfaceMode::MODE_OPENGL;     // Fall back to OpenGL
+  if (s_opengl_mode == GLInterfaceMode::MODE_OPENGL)
+  {
+    INFO_LOG(VIDEO, "Using OpenGL");
+  }
+  else if (s_opengl_mode == GLInterfaceMode::MODE_OPENGLES3)
+  {
+    INFO_LOG(VIDEO, "Using OpenGL|ES 3");
+  }
+  else if (s_opengl_mode == GLInterfaceMode::MODE_OPENGLES2)
+  {
+    INFO_LOG(VIDEO, "Using OpenGL|ES 2");
+  }
+  else if (s_opengl_mode == GLInterfaceMode::MODE_DETECT)
+  {
+    // Errored before we found a mode
+    ERROR_LOG(VIDEO, "Error: Failed to detect OpenGL flavour, falling back to OpenGL");
+    // This will fail to create a context, as it'll try to use the same attribs we just failed to
+    // find a matching config with
+    s_opengl_mode = GLInterfaceMode::MODE_OPENGL;
+  }
 }
 
 // Create rendering window.
 // Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
-bool cInterfaceEGL::Create(void* window_handle, bool core)
+bool cInterfaceEGL::Create(void* window_handle, bool stereo, bool core)
 {
   EGLint egl_major, egl_minor;
   bool supports_core_profile = false;
@@ -212,7 +244,10 @@ bool cInterfaceEGL::Create(void* window_handle, bool core)
 
       egl_ctx = eglCreateContext(egl_dpy, m_config, EGL_NO_CONTEXT, &core_attribs[0]);
       if (egl_ctx)
+      {
+        m_attribs = std::move(core_attribs);
         break;
+      }
     }
   }
 
@@ -220,6 +255,7 @@ bool cInterfaceEGL::Create(void* window_handle, bool core)
   {
     m_core = false;
     egl_ctx = eglCreateContext(egl_dpy, m_config, EGL_NO_CONTEXT, &ctx_attribs[0]);
+    m_attribs = std::move(ctx_attribs);
   }
 
   if (!egl_ctx)
@@ -255,31 +291,13 @@ bool cInterfaceEGL::Create(cInterfaceBase* main_context)
   m_is_shared = true;
   m_has_handle = false;
 
-  EGLint ctx_attribs[] = {EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE};
-
-  switch (egl_context->GetMode())
-  {
-  case GLInterfaceMode::MODE_OPENGL:
-    ctx_attribs[0] = EGL_NONE;
-    break;
-  case GLInterfaceMode::MODE_OPENGLES2:
-    ctx_attribs[1] = 2;
-    break;
-  case GLInterfaceMode::MODE_OPENGLES3:
-    ctx_attribs[1] = 3;
-    break;
-  default:
-    INFO_LOG(VIDEO, "Unknown opengl mode set");
-    return false;
-    break;
-  }
-
   if (egl_context->GetMode() == GLInterfaceMode::MODE_OPENGL)
     eglBindAPI(EGL_OPENGL_API);
   else
     eglBindAPI(EGL_OPENGL_ES_API);
 
-  egl_ctx = eglCreateContext(egl_dpy, m_config, egl_context->egl_ctx, ctx_attribs);
+  egl_ctx =
+      eglCreateContext(egl_dpy, m_config, egl_context->egl_ctx, egl_context->m_attribs.data());
   if (!egl_ctx)
   {
     INFO_LOG(VIDEO, "Error: eglCreateContext failed 0x%04x", eglGetError());

@@ -10,7 +10,7 @@ namespace Config
 {
 template <typename T>
 struct ConfigInfo;
-};
+}
 
 class GraphicsSlider : public QSlider
 {

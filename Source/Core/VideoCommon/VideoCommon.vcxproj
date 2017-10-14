@@ -38,6 +38,7 @@
   <ItemGroup>
     <ClCompile Include="AbstractTexture.cpp" />
     <ClCompile Include="AsyncRequests.cpp" />
+    <ClCompile Include="AsyncShaderCompiler.cpp" />
     <ClCompile Include="AVIDump.cpp" />
     <ClCompile Include="BoundingBox.cpp" />
     <ClCompile Include="BPFunctions.cpp" />
@@ -65,12 +66,16 @@
     <ClCompile Include="RenderBase.cpp" />
     <ClCompile Include="RenderState.cpp" />
     <ClCompile Include="LightingShaderGen.cpp" />
+    <ClCompile Include="ShaderGenCommon.cpp" />
+    <ClCompile Include="UberShaderCommon.cpp" />
+    <ClCompile Include="UberShaderPixel.cpp" />
     <ClCompile Include="Statistics.cpp" />
     <ClCompile Include="GeometryShaderGen.cpp" />
     <ClCompile Include="GeometryShaderManager.cpp" />
     <ClCompile Include="TextureCacheBase.cpp" />
     <ClCompile Include="TextureConfig.cpp" />
     <ClCompile Include="TextureConversionShader.cpp" />
+    <ClCompile Include="UberShaderVertex.cpp" />
     <ClCompile Include="VertexLoader.cpp" />
     <ClCompile Include="VertexLoaderBase.cpp" />
     <ClCompile Include="VertexLoaderX64.cpp" />
@@ -93,6 +98,7 @@
   <ItemGroup>
     <ClInclude Include="AbstractTexture.h" />
     <ClInclude Include="AsyncRequests.h" />
+    <ClInclude Include="AsyncShaderCompiler.h" />
     <ClInclude Include="AVIDump.h" />
     <ClInclude Include="BoundingBox.h" />
     <ClInclude Include="BPFunctions.h" />
@@ -106,6 +112,8 @@
     <ClInclude Include="Fifo.h" />
     <ClInclude Include="FPSCounter.h" />
     <ClInclude Include="FramebufferManagerBase.h" />
+    <ClInclude Include="UberShaderCommon.h" />
+    <ClInclude Include="UberShaderPixel.h" />
     <ClInclude Include="HiresTextures.h" />
     <ClInclude Include="ImageWrite.h" />
     <ClInclude Include="IndexGenerator.h" />
@@ -130,6 +138,7 @@
     <ClInclude Include="TextureConfig.h" />
     <ClInclude Include="TextureConversionShader.h" />
     <ClInclude Include="TextureDecoder.h" />
+    <ClInclude Include="UberShaderVertex.h" />
     <ClInclude Include="VertexLoader.h" />
     <ClInclude Include="VertexLoaderBase.h" />
     <ClInclude Include="VertexLoaderManager.h" />

@@ -67,6 +67,17 @@ bool Content::IsOptional() const
   return (type & 0x4000) != 0;
 }
 
+bool operator==(const Content& lhs, const Content& rhs)
+{
+  auto fields = [](const Content& c) { return std::tie(c.id, c.index, c.type, c.size, c.sha1); };
+  return fields(lhs) == fields(rhs);
+}
+
+bool operator!=(const Content& lhs, const Content& rhs)
+{
+  return !operator==(lhs, rhs);
+}
+
 SignedBlobReader::SignedBlobReader(const std::vector<u8>& bytes) : m_bytes(bytes)
 {
 }
@@ -232,14 +243,6 @@ u64 TMDReader::GetIOSId() const
   return Common::swap64(m_bytes.data() + offsetof(TMDHeader, ios_id));
 }
 
-DiscIO::Region TMDReader::GetRegion() const
-{
-  if (GetTitleId() == Titles::SYSTEM_MENU)
-    return DiscIO::GetSysMenuRegion(GetTitleVersion());
-
-  return DiscIO::RegionSwitchWii(static_cast<u8>(GetTitleId() & 0xff));
-}
-
 u64 TMDReader::GetTitleId() const
 {
   return Common::swap64(m_bytes.data() + offsetof(TMDHeader, title_id));
@@ -258,6 +261,14 @@ u16 TMDReader::GetTitleVersion() const
 u16 TMDReader::GetGroupId() const
 {
   return Common::swap16(m_bytes.data() + offsetof(TMDHeader, group_id));
+}
+
+DiscIO::Region TMDReader::GetRegion() const
+{
+  if (GetTitleId() == Titles::SYSTEM_MENU)
+    return DiscIO::GetSysMenuRegion(GetTitleVersion());
+
+  return DiscIO::RegionSwitchWii(static_cast<u8>(GetTitleId() & 0xff));
 }
 
 std::string TMDReader::GetGameID() const
@@ -461,6 +472,13 @@ HLE::ReturnCode TicketReader::Unpersonalise(HLE::IOSC& iosc)
     std::copy(key.cbegin(), key.cend(), ticket_begin + offsetof(Ticket, title_key));
 
   return ret;
+}
+
+void TicketReader::FixCommonKeyIndex()
+{
+  u8& index = m_bytes[offsetof(Ticket, common_key_index)];
+  // Assume the ticket is using the normal common key if it's an invalid value.
+  index = index <= 1 ? index : 0;
 }
 
 struct SharedContentMap::Entry

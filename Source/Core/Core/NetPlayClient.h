@@ -34,7 +34,7 @@ public:
   virtual void OnPadBufferChanged(u32 buffer) = 0;
   virtual void OnDesync(u32 frame, const std::string& player) = 0;
   virtual void OnConnectionLost() = 0;
-  virtual void OnTraversalError(int error) = 0;
+  virtual void OnTraversalError(TraversalClient::FailureReason error) = 0;
   virtual bool IsRecording() = 0;
   virtual std::string FindGame(const std::string& game) = 0;
   virtual void ShowMD5Dialog(const std::string& file_identifier) = 0;
@@ -67,8 +67,7 @@ public:
   void SendAsync(sf::Packet&& packet);
 
   NetPlayClient(const std::string& address, const u16 port, NetPlayUI* dialog,
-                const std::string& name, bool traversal, const std::string& centralServer,
-                u16 centralPort);
+                const std::string& name, const NetTraversalConfig& traversal_config);
   ~NetPlayClient();
 
   void GetPlayerList(std::string& list, std::vector<int>& pid_list);

@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoCommon/Fifo.h"
+
 #include <atomic>
 #include <cstring>
 
@@ -17,17 +19,16 @@
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/Memmap.h"
-#include "Core/HW/SystemTimers.h"
 #include "Core/Host.h"
 
 #include "VideoCommon/AsyncRequests.h"
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/DataReader.h"
-#include "VideoCommon/Fifo.h"
 #include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexManagerBase.h"
+#include "VideoCommon/VideoBackendBase.h"
 
 namespace Fifo
 {

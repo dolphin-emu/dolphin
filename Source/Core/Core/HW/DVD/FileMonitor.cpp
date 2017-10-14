@@ -21,10 +21,7 @@
 
 namespace FileMonitor
 {
-static const DiscIO::Volume* s_volume;
-static bool s_new_volume = false;
-static std::unique_ptr<DiscIO::FileSystem> s_filesystem;
-static DiscIO::Partition s_partition;
+static DiscIO::Partition s_previous_partition;
 static std::string s_previous_file;
 
 // Filtered files
@@ -53,42 +50,19 @@ static bool IsSoundFile(const std::string& filename)
   return extensions.find(extension) != extensions.end();
 }
 
-void SetFileSystem(const DiscIO::Volume* volume)
-{
-  // Instead of creating the file system object right away, we will let Log
-  // create it later once we know that it actually will get used
-  s_volume = volume;
-  s_new_volume = true;
-}
-
-// Logs access to files in the file system set by SetFileSystem
-void Log(u64 offset, const DiscIO::Partition& partition)
+void Log(const DiscIO::Volume& volume, const DiscIO::Partition& partition, u64 offset)
 {
   // Do nothing if the log isn't selected
   if (!LogManager::GetInstance()->IsEnabled(LogTypes::FILEMON, LogTypes::LWARNING))
     return;
 
-  // If the volume or partition changed, load the filesystem of the new partition
-  if (s_new_volume || s_partition != partition)
-  {
-    // Discs with partitions don't have PARTITION_NONE filesystems,
-    // so let's not waste time trying to read one
-    const bool reading_from_partition = partition != DiscIO::PARTITION_NONE;
-    const bool disc_has_partitions = !s_volume->GetPartitions().empty();
-    if (reading_from_partition != disc_has_partitions)
-      return;
-
-    s_new_volume = false;
-    s_filesystem = DiscIO::CreateFileSystem(s_volume, partition);
-    s_partition = partition;
-    s_previous_file.clear();
-  }
+  const DiscIO::FileSystem* file_system = volume.GetFileSystem(partition);
 
   // Do nothing if there is no valid file system
-  if (!s_filesystem)
+  if (!file_system)
     return;
 
-  const std::unique_ptr<DiscIO::FileInfo> file_info = s_filesystem->FindFileInfo(offset);
+  const std::unique_ptr<DiscIO::FileInfo> file_info = file_system->FindFileInfo(offset);
 
   // Do nothing if no file was found at that offset
   if (!file_info)
@@ -97,7 +71,7 @@ void Log(u64 offset, const DiscIO::Partition& partition)
   const std::string path = file_info->GetPath();
 
   // Do nothing if we found the same file again
-  if (s_previous_file == path)
+  if (s_previous_partition == partition && s_previous_file == path)
     return;
 
   const std::string size_string = ThousandSeparate(file_info->GetSize() / 1000, 7);
@@ -109,6 +83,7 @@ void Log(u64 offset, const DiscIO::Partition& partition)
     WARN_LOG(FILEMON, "%s", log_string.c_str());
 
   // Update the last accessed file
+  s_previous_partition = partition;
   s_previous_file = path;
 }
 

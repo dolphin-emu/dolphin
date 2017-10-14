@@ -21,6 +21,7 @@
 namespace DiscIO
 {
 enum class BlobType;
+class FileSystem;
 
 struct Partition final
 {
@@ -51,8 +52,15 @@ public:
       return {};
     return Common::FromBigEndian(temp);
   }
+  std::optional<u64> ReadSwappedAndShifted(u64 offset, const Partition& partition) const
+  {
+    const std::optional<u32> temp = ReadSwapped<u32>(offset, partition);
+    return temp ? static_cast<u64>(*temp) << GetOffsetShift() : std::optional<u64>();
+  }
+
   virtual std::vector<Partition> GetPartitions() const { return {}; }
   virtual Partition GetGamePartition() const { return PARTITION_NONE; }
+  virtual std::optional<u32> GetPartitionType(const Partition& partition) const { return {}; }
   std::optional<u64> GetTitleID() const { return GetTitleID(GetGamePartition()); }
   virtual std::optional<u64> GetTitleID(const Partition& partition) const { return {}; }
   virtual const IOS::ES::TicketReader& GetTicket(const Partition& partition) const
@@ -60,6 +68,8 @@ public:
     return INVALID_TICKET;
   }
   virtual const IOS::ES::TMDReader& GetTMD(const Partition& partition) const { return INVALID_TMD; }
+  // Returns a non-owning pointer. Returns nullptr if the file system couldn't be read.
+  virtual const FileSystem* GetFileSystem(const Partition& partition) const = 0;
   std::string GetGameID() const { return GetGameID(GetGamePartition()); }
   virtual std::string GetGameID(const Partition& partition) const = 0;
   std::string GetMakerID() const { return GetMakerID(GetGamePartition()); }
@@ -82,6 +92,7 @@ public:
   virtual Platform GetVolumeType() const = 0;
   virtual bool SupportsIntegrityCheck() const { return false; }
   virtual bool CheckIntegrity(const Partition& partition) const { return false; }
+  // May be inaccurate for WADs
   virtual Region GetRegion() const = 0;
   Country GetCountry() const { return GetCountry(GetGamePartition()); }
   virtual Country GetCountry(const Partition& partition) const = 0;
@@ -106,6 +117,7 @@ protected:
       return CP1252ToUTF8(string);
   }
 
+  virtual u32 GetOffsetShift() const { return 0; }
   static std::map<Language, std::string> ReadWiiNames(const std::vector<u8>& data);
 
   static const size_t NUMBER_OF_LANGUAGES = 10;
@@ -118,8 +130,5 @@ protected:
 };
 
 std::unique_ptr<Volume> CreateVolumeFromFilename(const std::string& filename);
-std::unique_ptr<Volume> CreateVolumeFromDirectory(const std::string& directory, bool is_wii,
-                                                  const std::string& apploader = "",
-                                                  const std::string& dol = "");
 
 }  // namespace

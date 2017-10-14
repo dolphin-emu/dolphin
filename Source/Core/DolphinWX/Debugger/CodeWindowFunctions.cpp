@@ -337,7 +337,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 
         Symbol* symbol = g_symbolDB.GetSymbolFromAddr(address);
         if (symbol)
-          symbol->name = line.substr(12);
+          symbol->Rename(line.substr(12));
       }
 
       Host_NotifyMapLoaded();
@@ -503,6 +503,16 @@ void CCodeWindow::OnChangeFont(wxCommandEvent& event)
 
   UpdateFonts();
   // TODO: Send event to all panels that tells them to reload the font when it changes.
+}
+
+void CCodeWindow::OnBootToPauseSelected(wxCommandEvent& event)
+{
+  SConfig::GetInstance().bBootToPause = event.IsChecked();
+}
+
+void CCodeWindow::OnAutomaticStartSelected(wxCommandEvent& event)
+{
+  SConfig::GetInstance().bAutomaticStart = event.IsChecked();
 }
 
 // Toggle windows

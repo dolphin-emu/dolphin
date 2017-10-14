@@ -27,8 +27,15 @@ constexpr u32 RAM_VENDOR_MIOS = 0xCAFEBABE;
 // The writes are usually contained in a single function that
 // mostly writes raw literals to the relevant locations.
 // e.g. IOS9, version 1034, content id 0x00000006, function at 0xffff6884
-constexpr std::array<MemoryValues, 40> ios_memory_values = {
+constexpr std::array<MemoryValues, 41> ios_memory_values = {
     {{
+         4,          0x40003,     0x81006,          MEM1_SIZE,
+         MEM1_SIZE,  MEM1_END,    MEM1_ARENA_BEGIN, MEM1_ARENA_END,
+         MEM2_SIZE,  MEM2_SIZE,   0x93400000,       MEM2_ARENA_BEGIN,
+         0x933E0000, 0x933E0000,  0x93400000,       HOLLYWOOD_REVISION,
+         RAM_VENDOR, PLACEHOLDER, PLACEHOLDER,      0,
+     },
+     {
          9,          0x9040a,     0x030110,         MEM1_SIZE,
          MEM1_SIZE,  MEM1_END,    MEM1_ARENA_BEGIN, MEM1_ARENA_END,
          MEM2_SIZE,  MEM2_SIZE,   0x93400000,       MEM2_ARENA_BEGIN,
@@ -324,7 +331,7 @@ constexpr std::array<MemoryValues, 40> ios_memory_values = {
          PLACEHOLDER,
      }}};
 
-const std::array<MemoryValues, 40>& GetMemoryValues()
+const std::array<MemoryValues, 41>& GetMemoryValues()
 {
   return ios_memory_values;
 }

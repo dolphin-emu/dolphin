@@ -37,16 +37,9 @@ WiimoteDevice::WiimoteDevice(Device::BluetoothEmu* host, int number, bdaddr_t bd
   m_ConnectionHandle = 0x100 + number;
   memset(m_LinkKey, 0xA0 + number, HCI_KEY_SIZE);
 
-  bdaddr_t _nullBD = BDADDR_ANY;
-  if (memcmp(&m_BD, &_nullBD, sizeof(bdaddr_t)) == 0)
-  {
-    m_BD.b[0] = 0x11;
-    m_BD.b[1] = 0x02;
-    m_BD.b[2] = 0x19;
-    m_BD.b[3] = 0x79;
-    m_BD.b[4] = 0x00;
-    m_BD.b[5] = number;
-  }
+  if (m_BD == BDADDR_ANY)
+    m_BD = {{0x11, 0x02, 0x19, 0x79, static_cast<u8>(number)}};
+
   uclass[0] = 0x00;
   uclass[1] = 0x04;
   uclass[2] = 0x48;
@@ -909,9 +902,6 @@ void WiimoteDevice::ReceiveL2capData(u16 scid, const void* _pData, u32 _Size)
   memcpy(DataFrame + Offset, _pData, _Size);
   // Update Offset to the final size of the report
   Offset += _Size;
-
-  // Update the status bar
-  Host_SetWiiMoteConnectionState(2);
 
   // Send the report
   m_pHost->SendACLPacket(GetConnectionHandle(), DataFrame, Offset);

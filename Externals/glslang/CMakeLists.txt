@@ -52,14 +52,19 @@ endif()
 
 if(NOT MSVC)
 # glslang requires C++11 at a minimum to compile.
-add_definitions(-std=c++11)
+add_compile_options(-std=c++11)
 
 # Silence some warnings that occur frequently to reduce noise in build logs.
-add_definitions(-Wno-shadow)
-add_definitions(-Wno-reorder)
-add_definitions(-Wno-sign-compare)
-add_definitions(-Wno-parentheses)
-add_definitions(-Wno-unused-variable)
+add_compile_options(-Wno-shadow)
+add_compile_options(-Wno-reorder)
+add_compile_options(-Wno-sign-compare)
+add_compile_options(-Wno-parentheses)
+add_compile_options(-Wno-unused-variable)
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+	add_compile_options(-Wno-unused-but-set-variable)
+elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+	add_compile_options(-Wno-missing-variable-declarations)
+endif()
 endif()
 
 add_library(glslang STATIC ${SRCS})

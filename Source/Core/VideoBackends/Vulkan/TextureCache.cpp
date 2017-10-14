@@ -95,8 +95,8 @@ bool TextureCache::Initialize()
   return true;
 }
 
-void TextureCache::ConvertTexture(TCacheEntry* destination, TCacheEntry* source, void* palette,
-                                  TlutFormat format)
+void TextureCache::ConvertTexture(TCacheEntry* destination, TCacheEntry* source,
+                                  const void* palette, TLUTFormat format)
 {
   m_texture_converter->ConvertTexture(destination, source, m_render_pass, palette, format);
 
@@ -111,9 +111,9 @@ void TextureCache::ConvertTexture(TCacheEntry* destination, TCacheEntry* source,
                            VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 }
 
-void TextureCache::CopyEFB(u8* dst, const EFBCopyFormat& format, u32 native_width,
+void TextureCache::CopyEFB(u8* dst, const EFBCopyParams& params, u32 native_width,
                            u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
-                           bool is_depth_copy, const EFBRectangle& src_rect, bool scale_by_half)
+                           const EFBRectangle& src_rect, bool scale_by_half)
 {
   // Flush EFB pokes first, as they're expected to be included.
   FramebufferManager::GetInstance()->FlushEFBPokes();
@@ -128,7 +128,7 @@ void TextureCache::CopyEFB(u8* dst, const EFBCopyFormat& format, u32 native_widt
   region = Util::ClampRect2D(region, FramebufferManager::GetInstance()->GetEFBWidth(),
                              FramebufferManager::GetInstance()->GetEFBHeight());
   Texture2D* src_texture;
-  if (is_depth_copy)
+  if (params.depth)
     src_texture = FramebufferManager::GetInstance()->ResolveEFBDepthTexture(region);
   else
     src_texture = FramebufferManager::GetInstance()->ResolveEFBColorTexture(region);
@@ -144,15 +144,15 @@ void TextureCache::CopyEFB(u8* dst, const EFBCopyFormat& format, u32 native_widt
   src_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                                   VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
-  m_texture_converter->EncodeTextureToMemory(src_texture->GetView(), dst, format, native_width,
-                                             bytes_per_row, num_blocks_y, memory_stride,
-                                             is_depth_copy, src_rect, scale_by_half);
+  m_texture_converter->EncodeTextureToMemory(src_texture->GetView(), dst, params, native_width,
+                                             bytes_per_row, num_blocks_y, memory_stride, src_rect,
+                                             scale_by_half);
 
   // Transition back to original state
   src_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(), original_layout);
 }
 
-bool TextureCache::SupportsGPUTextureDecode(TextureFormat format, TlutFormat palette_format)
+bool TextureCache::SupportsGPUTextureDecode(TextureFormat format, TLUTFormat palette_format)
 {
   return m_texture_converter->SupportsTextureDecoding(format, palette_format);
 }
@@ -160,7 +160,7 @@ bool TextureCache::SupportsGPUTextureDecode(TextureFormat format, TlutFormat pal
 void TextureCache::DecodeTextureOnGPU(TCacheEntry* entry, u32 dst_level, const u8* data,
                                       size_t data_size, TextureFormat format, u32 width, u32 height,
                                       u32 aligned_width, u32 aligned_height, u32 row_stride,
-                                      const u8* palette, TlutFormat palette_format)
+                                      const u8* palette, TLUTFormat palette_format)
 {
   // Group compute shader dispatches together in the init command buffer. That way we don't have to
   // pay a penalty for switching from graphics->compute, or end/restart our render pass.
@@ -299,7 +299,7 @@ bool TextureCache::CompileShaders()
     }
   )";
 
-  std::string header = g_object_cache->GetUtilityShaderHeader();
+  std::string header = g_shader_cache->GetUtilityShaderHeader();
   std::string source;
 
   source = header + COPY_SHADER_SOURCE;
@@ -385,8 +385,8 @@ void TextureCache::CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy,
 
   UtilityShaderDraw draw(command_buffer,
                          g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_PUSH_CONSTANT),
-                         m_render_pass, g_object_cache->GetPassthroughVertexShader(),
-                         g_object_cache->GetPassthroughGeometryShader(),
+                         m_render_pass, g_shader_cache->GetPassthroughVertexShader(),
+                         g_shader_cache->GetPassthroughGeometryShader(),
                          is_depth_copy ? m_efb_depth_to_tex_shader : m_efb_color_to_tex_shader);
 
   draw.SetPushConstants(colmat, (is_depth_copy ? sizeof(float) * 20 : sizeof(float) * 28));

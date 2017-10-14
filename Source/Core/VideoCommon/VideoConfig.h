@@ -22,6 +22,8 @@
 #define CONF_SAVETARGETS 8
 #define CONF_SAVESHADERS 16
 
+constexpr int EFB_SCALE_AUTO_INTEGRAL = 0;
+
 enum AspectMode
 {
   ASPECT_AUTO = 0,
@@ -30,23 +32,13 @@ enum AspectMode
   ASPECT_STRETCH = 3,
 };
 
-enum EFBScale
-{
-  SCALE_FORCE_INTEGRAL = -1,
-  SCALE_AUTO,
-  SCALE_AUTO_INTEGRAL,
-  SCALE_1X,
-  SCALE_1_5X,
-  SCALE_2X,
-  SCALE_2_5X,
-};
-
 enum StereoMode
 {
   STEREO_OFF = 0,
   STEREO_SBS,
   STEREO_TAB,
   STEREO_ANAGLYPH,
+  STEREO_QUADBUFFER,
   STEREO_3DVISION
 };
 
@@ -167,6 +159,32 @@ struct VideoConfig final
   // Currently only supported with Vulkan.
   int iCommandBufferExecuteInterval;
 
+  // The following options determine the ubershader mode:
+  //   No ubershaders:
+  //     - bBackgroundShaderCompiling = false
+  //     - bDisableSpecializedShaders = false
+  //   Hybrid/background compiling:
+  //     - bBackgroundShaderCompiling = true
+  //     - bDisableSpecializedShaders = false
+  //   Ubershaders only:
+  //     - bBackgroundShaderCompiling = false
+  //     - bDisableSpecializedShaders = true
+
+  // Enable background shader compiling, use ubershaders while waiting.
+  bool bBackgroundShaderCompiling;
+
+  // Use ubershaders only, don't compile specialized shaders.
+  bool bDisableSpecializedShaders;
+
+  // Precompile ubershader variants at boot/config reload time.
+  bool bPrecompileUberShaders;
+
+  // Number of shader compiler threads.
+  // 0 disables background compilation.
+  // -1 uses an automatic number based on the CPU threads.
+  int iShaderCompilerThreads;
+  int iShaderPrecompilerThreads;
+
   // Static config per API
   // TODO: Move this out of VideoConfig
   struct
@@ -203,11 +221,15 @@ struct VideoConfig final
     bool bSupportsInternalResolutionFrameDumps;
     bool bSupportsGPUTextureDecoding;
     bool bSupportsST3CTextures;
+    bool bSupportsBitfield;                // Needed by UberShaders, so must stay in VideoCommon
+    bool bSupportsDynamicSamplerIndexing;  // Needed by UberShaders, so must stay in VideoCommon
+    bool bSupportsBPTCTextures;
   } backend_info;
 
   // Utility
   bool RealXFBEnabled() const { return bUseXFB && bUseRealXFB; }
   bool VirtualXFBEnabled() const { return bUseXFB && !bUseRealXFB; }
+  bool MultisamplingEnabled() const { return iMultisamples > 1; }
   bool ExclusiveFullscreenEnabled() const
   {
     return backend_info.bSupportsExclusiveFullscreen && !bBorderlessFullscreen;
@@ -222,6 +244,11 @@ struct VideoConfig final
   {
     return backend_info.bSupportsGPUTextureDecoding && bEnableGPUTextureDecoding;
   }
+  bool UseVertexRounding() const { return bVertexRounding && iEFBScale != 1; }
+  u32 GetShaderCompilerThreads() const;
+  u32 GetShaderPrecompilerThreads() const;
+  bool CanPrecompileUberShaders() const;
+  bool CanBackgroundCompileShaders() const;
 };
 
 extern VideoConfig g_Config;

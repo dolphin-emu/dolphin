@@ -4,8 +4,7 @@
 
 // Originally written by Sven Peter <sven@fail0verflow.com> for anergistic.
 
-#include <fcntl.h>
-#include <stdarg.h>
+#include <signal.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -20,8 +19,14 @@
 #include <sys/un.h>
 #endif
 
+#include "Common/Logging/Log.h"
+#include "Core/HW/CPU.h"
+#include "Core/HW/Memmap.h"
 #include "Core/Host.h"
 #include "Core/PowerPC/GDBStub.h"
+#include "Core/PowerPC/Gekko.h"
+#include "Core/PowerPC/PPCCache.h"
+#include "Core/PowerPC/PowerPC.h"
 
 #define GDB_BFR_MAX 10000
 #define GDB_MAX_BP 10

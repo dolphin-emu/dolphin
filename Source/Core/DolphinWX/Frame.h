@@ -49,6 +49,7 @@ class wxAuiNotebook;
 class wxAuiNotebookEvent;
 class wxListEvent;
 class wxMenuItem;
+class wxProgressDialog;
 
 class CRenderFrame : public wxFrame
 {
@@ -144,6 +145,7 @@ private:
     ADD_PANE_CENTER
   };
 
+  static constexpr int MOUSE_HIDE_DELAY = 3000;
   GameListCtrl* m_game_list_ctrl = nullptr;
   CConfigMain* m_main_config_dialog = nullptr;
   wxPanel* m_panel = nullptr;
@@ -154,6 +156,7 @@ private:
   FifoPlayerDlg* m_fifo_player_dialog = nullptr;
   std::array<TASInputDlg*, 8> m_tas_input_dialogs{};
   wxCheatsWindow* m_cheats_window = nullptr;
+  wxProgressDialog* m_progress_dialog = nullptr;
   bool m_use_debugger = false;
   bool m_batch_mode = false;
   bool m_editing_perspectives = false;
@@ -167,6 +170,7 @@ private:
   int m_save_slot = 1;
 
   wxTimer m_poll_hotkey_timer;
+  wxTimer m_cursor_timer;
   wxTimer m_handle_signal_timer;
 
   wxMenuBar* m_menubar_shadow = nullptr;
@@ -256,7 +260,6 @@ private:
   void OnStopped();
   void OnRenderWindowSizeRequest(int width, int height);
   void UpdateTitle(const wxString& str);
-  static void ConnectWiimote(int wm_idx, bool connect);
 
   // Event functions
   void PostEvent(wxCommandEvent& event);
@@ -296,6 +299,7 @@ private:
   void OnShowInputDisplay(wxCommandEvent& event);
   void OnShowRTCDisplay(wxCommandEvent& event);
   void OnChangeDisc(wxCommandEvent& event);
+  void OnEjectDisc(wxCommandEvent& event);
   void OnScreenshot(wxCommandEvent& event);
   void OnActive(wxActivateEvent& event);
   void OnClose(wxCloseEvent& event);
@@ -344,8 +348,10 @@ private:
   void OnInstallWAD(wxCommandEvent& event);
   void OnUninstallWAD(wxCommandEvent& event);
   void OnImportBootMiiBackup(wxCommandEvent& event);
+  void OnCheckNAND(wxCommandEvent& event);
   void OnExtractCertificates(wxCommandEvent& event);
   void OnPerformOnlineWiiUpdate(wxCommandEvent& event);
+  void OnPerformDiscWiiUpdate(wxCommandEvent& event);
   void OnFifoPlayer(wxCommandEvent& event);
   void OnConnectWiimote(wxCommandEvent& event);
   void GameListChanged(wxCommandEvent& event);
@@ -360,10 +366,11 @@ private:
 
   void PollHotkeys(wxTimerEvent&);
   void ParseHotkeys();
+  void HandleCursorTimer(wxTimerEvent&);
   void HandleSignal(wxTimerEvent&);
 
   bool InitControllers();
 
   // Event table
-  DECLARE_EVENT_TABLE();
+  DECLARE_EVENT_TABLE()
 };

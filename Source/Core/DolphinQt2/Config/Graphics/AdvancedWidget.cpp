@@ -11,9 +11,11 @@
 
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "DolphinQt2/Config/Graphics/GraphicsBool.h"
 #include "DolphinQt2/Config/Graphics/GraphicsChoice.h"
 #include "DolphinQt2/Config/Graphics/GraphicsWindow.h"
+#include "DolphinQt2/Settings.h"
 #include "VideoCommon/VideoConfig.h"
 
 AdvancedWidget::AdvancedWidget(GraphicsWindow* parent) : GraphicsWidget(parent)
@@ -24,8 +26,8 @@ AdvancedWidget::AdvancedWidget(GraphicsWindow* parent) : GraphicsWidget(parent)
   AddDescriptions();
 
   connect(parent, &GraphicsWindow::BackendChanged, this, &AdvancedWidget::OnBackendChanged);
-  connect(parent, &GraphicsWindow::EmulationStarted, [this] { OnEmulationStateChanged(true); });
-  connect(parent, &GraphicsWindow::EmulationStopped, [this] { OnEmulationStateChanged(false); });
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
+          [=](Core::State state) { OnEmulationStateChanged(state != Core::State::Uninitialized); });
 
   OnBackendChanged();
 }
@@ -73,11 +75,11 @@ void AdvancedWidget::CreateWidgets()
   utility_layout->addWidget(m_dump_efb_target, 2, 0);
   utility_layout->addWidget(m_enable_freelook, 2, 1);
 #if defined(HAVE_FFMPEG)
-  utility_layout->addWidget(m_dump_use_ffv1, 3, -1);
+  utility_layout->addWidget(m_dump_use_ffv1, 3, 0);
 #endif
 
   // Misc.
-  auto* misc_box = new QGroupBox(tr("Misc."));
+  auto* misc_box = new QGroupBox(tr("Misc"));
   auto* misc_layout = new QGridLayout();
   misc_box->setLayout(misc_layout);
 
@@ -98,6 +100,7 @@ void AdvancedWidget::CreateWidgets()
   main_layout->addWidget(debugging_box);
   main_layout->addWidget(utility_box);
   main_layout->addWidget(misc_box);
+  main_layout->addStretch();
 
   setLayout(main_layout);
 }

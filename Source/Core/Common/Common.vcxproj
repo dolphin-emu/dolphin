@@ -89,6 +89,7 @@
     <ClInclude Include="GL\GLExtensions\ARB_shader_image_load_store.h" />
     <ClInclude Include="GL\GLExtensions\ARB_shader_storage_buffer_object.h" />
     <ClInclude Include="GL\GLExtensions\ARB_sync.h" />
+    <ClInclude Include="GL\GLExtensions\ARB_texture_compression_bptc.h" />
     <ClInclude Include="GL\GLExtensions\ARB_texture_multisample.h" />
     <ClInclude Include="GL\GLExtensions\ARB_texture_storage.h" />
     <ClInclude Include="GL\GLExtensions\ARB_texture_storage_multisample.h" />
@@ -125,6 +126,7 @@
     <ClInclude Include="HttpRequest.h" />
     <ClInclude Include="IniFile.h" />
     <ClInclude Include="JitRegister.h" />
+    <ClInclude Include="Lazy.h" />
     <ClInclude Include="LdrWatcher.h" />
     <ClInclude Include="LinearDiskCache.h" />
     <ClInclude Include="MathUtil.h" />
@@ -134,7 +136,6 @@
     <ClInclude Include="MsgHandler.h" />
     <ClInclude Include="NandPaths.h" />
     <ClInclude Include="Network.h" />
-    <ClInclude Include="NonCopyable.h" />
     <ClInclude Include="PcapFile.h" />
     <ClInclude Include="Profiler.h" />
     <ClInclude Include="ScopeGuard.h" />
@@ -149,6 +150,9 @@
     <ClInclude Include="Timer.h" />
     <ClInclude Include="TraversalClient.h" />
     <ClInclude Include="TraversalProto.h" />
+    <ClInclude Include="UPnP.h" />
+    <ClInclude Include="Version.h" />
+    <ClInclude Include="WorkQueueThread.h" />
     <ClInclude Include="x64ABI.h" />
     <ClInclude Include="x64Emitter.h" />
     <ClInclude Include="x64Reg.h" />
@@ -200,6 +204,7 @@
     <ClCompile Include="Thread.cpp" />
     <ClCompile Include="Timer.cpp" />
     <ClCompile Include="TraversalClient.cpp" />
+    <ClCompile Include="UPnP.cpp" />
     <ClCompile Include="Version.cpp" />
     <ClCompile Include="x64ABI.cpp" />
     <ClCompile Include="x64CPUDetect.cpp" />

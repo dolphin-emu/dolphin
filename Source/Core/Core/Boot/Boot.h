@@ -5,6 +5,7 @@
 #pragma once
 
 #include <cstdlib>
+#include <functional>
 #include <memory>
 #include <optional>
 #include <string>
@@ -14,6 +15,11 @@
 #include "Common/CommonTypes.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
+
+namespace File
+{
+class IOFile;
+}
 
 struct RegionSetting
 {
@@ -97,19 +103,20 @@ private:
   static void SetupMSR();
   static void SetupBAT(bool is_wii);
   static bool RunApploader(bool is_wii, const DiscIO::Volume& volume);
-  static bool EmulatedBS2_GC(const DiscIO::Volume* volume, bool skip_app_loader = false);
-  static bool EmulatedBS2_Wii(const DiscIO::Volume* volume);
-  static bool EmulatedBS2(bool is_wii, const DiscIO::Volume* volume);
+  static bool EmulatedBS2_GC(const DiscIO::Volume& volume);
+  static bool EmulatedBS2_Wii(const DiscIO::Volume& volume);
+  static bool EmulatedBS2(bool is_wii, const DiscIO::Volume& volume);
   static bool Load_BS2(const std::string& boot_rom_filename);
-  static void Load_FST(bool is_wii, const DiscIO::Volume* volume);
 
-  static bool SetupWiiMemory(const DiscIO::Volume* volume, u64 ios_title_id);
+  static void SetupGCMemory();
+  static bool SetupWiiMemory(u64 ios_title_id);
 };
 
 class BootExecutableReader
 {
 public:
   explicit BootExecutableReader(const std::string& file_name);
+  explicit BootExecutableReader(File::IOFile file);
   explicit BootExecutableReader(const std::vector<u8>& buffer);
   virtual ~BootExecutableReader();
 
@@ -122,3 +129,18 @@ public:
 protected:
   std::vector<u8> m_bytes;
 };
+
+struct StateFlags
+{
+  void UpdateChecksum();
+  u32 checksum;
+  u8 flags;
+  u8 type;
+  u8 discstate;
+  u8 returnto;
+  u32 unknown[6];
+};
+
+// Reads the state file from the NAND, then calls the passed update function to update the struct,
+// and finally writes the updated state file to the NAND.
+void UpdateStateFlags(std::function<void(StateFlags*)> update_function);

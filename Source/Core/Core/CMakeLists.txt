@@ -26,8 +26,10 @@ set(SRCS
   Boot/Boot_WiiWAD.cpp
   Boot/DolReader.cpp
   Boot/ElfReader.cpp
-  Config/Config.cpp
   Config/GraphicsSettings.cpp
+  Config/MainSettings.cpp
+  Config/NetplaySettings.cpp
+  Config/SYSCONFSettings.cpp
   ConfigLoaders/BaseConfigLoader.cpp
   ConfigLoaders/GameConfigLoader.cpp
   ConfigLoaders/IsSettingSaveable.cpp
@@ -185,6 +187,7 @@ set(SRCS
   IOS/USB/OH0/OH0.cpp
   IOS/USB/OH0/OH0Device.cpp
   IOS/USB/USB_HID/HIDv4.cpp
+  IOS/USB/USB_HID/HIDv5.cpp
   IOS/USB/USB_VEN/VEN.cpp
   IOS/USB/USBV0.cpp
   IOS/USB/USBV4.cpp
@@ -342,10 +345,6 @@ if(TARGET Hidapi::Hidapi)
   set(SRCS ${SRCS} HW/WiimoteReal/IOhidapi.cpp)
   list(APPEND LIBS Hidapi::Hidapi)
   add_definitions(-DHAVE_HIDAPI=1)
-endif()
-
-if(OPROFILE_FOUND)
-  set(LIBS ${LIBS} ${OPROFILE_LIBRARIES})
 endif()
 
 if(GDBSTUB)

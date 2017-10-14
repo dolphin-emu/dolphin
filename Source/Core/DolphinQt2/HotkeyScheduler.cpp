@@ -11,6 +11,7 @@
 
 #include "AudioCommon/AudioCommon.h"
 #include "Common/Thread.h"
+#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HotkeyManager.h"
 #include "Core/IOS/IOS.h"
@@ -161,6 +162,16 @@ void HotkeyScheduler::Run()
 
       auto& settings = Settings::Instance();
 
+      // Recording
+      if (IsHotkey(HK_START_RECORDING))
+        emit StartRecording();
+
+      if (IsHotkey(HK_EXPORT_RECORDING))
+        emit ExportRecording();
+
+      if (IsHotkey(HK_READ_ONLY_MODE))
+        emit ToggleReadOnlyMode();
+
       // Volume
       if (IsHotkey(HK_VOLUME_DOWN))
         settings.DecreaseVolume(3);
@@ -172,7 +183,7 @@ void HotkeyScheduler::Run()
         AudioCommon::ToggleMuteVolume();
 
       // Wiimote
-      if (settings.IsBluetoothPassthroughEnabled())
+      if (SConfig::GetInstance().m_bt_passthrough_enabled)
       {
         const auto ios = IOS::HLE::GetIOS();
         auto device = ios ? ios->GetDeviceByName("/dev/usb/oh1/57e/305") : nullptr;
@@ -184,7 +195,7 @@ void HotkeyScheduler::Run()
 
       // TODO Debugging shortcuts (Separate PR)
 
-      if (settings.IsWiiGameRunning())
+      if (SConfig::GetInstance().bWii)
       {
         int wiimote_id = -1;
         if (IsHotkey(HK_WIIMOTE1_CONNECT))
@@ -206,7 +217,7 @@ void HotkeyScheduler::Run()
       if (IsHotkey(HK_INCREASE_IR))
         ++g_Config.iEFBScale;
       if (IsHotkey(HK_DECREASE_IR))
-        g_Config.iEFBScale = std::max(g_Config.iEFBScale - 1, static_cast<int>(SCALE_AUTO));
+        g_Config.iEFBScale = std::max(g_Config.iEFBScale - 1, EFB_SCALE_AUTO_INTEGRAL);
       if (IsHotkey(HK_TOGGLE_CROP))
         g_Config.bCrop = !g_Config.bCrop;
       if (IsHotkey(HK_TOGGLE_AR))
@@ -224,16 +235,16 @@ void HotkeyScheduler::Run()
 
       if (IsHotkey(HK_DECREASE_EMULATION_SPEED))
       {
-        auto speed = settings.GetEmulationSpeed() - 0.1;
+        auto speed = SConfig::GetInstance().m_EmulationSpeed - 0.1;
         speed = (speed <= 0 || (speed >= 0.95 && speed <= 1.05)) ? 1.0 : speed;
-        settings.SetEmulationSpeed(speed);
+        SConfig::GetInstance().m_EmulationSpeed = speed;
       }
 
       if (IsHotkey(HK_INCREASE_EMULATION_SPEED))
       {
-        auto speed = settings.GetEmulationSpeed() + 0.1;
+        auto speed = SConfig::GetInstance().m_EmulationSpeed + 0.1;
         speed = (speed >= 0.95 && speed <= 1.05) ? 1.0 : speed;
-        settings.SetEmulationSpeed(speed);
+        SConfig::GetInstance().m_EmulationSpeed = speed;
       }
 
       // Slot Saving / Loading

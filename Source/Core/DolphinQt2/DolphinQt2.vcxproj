@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
@@ -47,7 +47,7 @@
       <AdditionalDependencies>avrt.lib;iphlpapi.lib;winmm.lib;setupapi.lib;opengl32.lib;glu32.lib;rpcrt4.lib;comctl32.lib;avcodec.lib;avformat.lib;avutil.lib;swresample.lib;swscale.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(ProjectDir)VideoInterface;$(ProjectDir)GameList;$(ProjectDir)Settings;$(ProjectDir)Config;$(ProjectDir)Config\Mapping;$(ProjectDir)Config\Graphics;$(ProjectDir)QtUtils;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)VideoInterface;$(ProjectDir)GameList;$(ProjectDir)Settings;$(ProjectDir)Config;$(ProjectDir)Config\Mapping;$(ProjectDir)Config\Graphics;$(ProjectDir)NetPlay;$(ProjectDir)QtUtils;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Manifest>
       <AdditionalManifestFiles>DolphinQt2.manifest;%(AdditionalManifestFiles)</AdditionalManifestFiles>
@@ -60,12 +60,16 @@
   <!--NOTE: When adding moc'd files, you must list outputs in the ClCompile ItemGroup too!-->
   <ItemGroup>
     <QtMoc Include="AboutDialog.h" />
+    <QtMoc Include="Config\CheatWarningWidget.h" />
     <QtMoc Include="Config\ControllersWindow.h" />
     <QtMoc Include="Config\FilesystemWidget.h" />
+    <QtMoc Include="Config\GeckoCodeWidget.h" />
     <QtMoc Include="Config\Mapping\IOWindow.h" />
     <QtMoc Include="Config\Mapping\MappingButton.h" />
     <QtMoc Include="Config\Mapping\MappingWidget.h" />
     <QtMoc Include="Config\Mapping\MappingWindow.h" />
+    <QtMoc Include="Config\LogConfigWidget.h" />
+    <QtMoc Include="Config\LogWidget.h" />
     <QtMoc Include="Config\Graphics\AdvancedWidget.h" />
     <QtMoc Include="Config\Graphics\EnhancementsWidget.h" />
     <QtMoc Include="Config\Graphics\GeneralWidget.h" />
@@ -83,6 +87,7 @@
     <QtMoc Include="GameList\GameList.h" />
     <QtMoc Include="GameList\GameListModel.h" />
     <QtMoc Include="GameList\GameTracker.h" />
+    <QtMoc Include="GameList\GridProxyModel.h" />
     <QtMoc Include="GameList\ListProxyModel.h" />
     <QtMoc Include="Host.h" />
     <QtMoc Include="HotkeyScheduler.h" />
@@ -91,25 +96,35 @@
     <QtMoc Include="Settings\AudioPane.h" />
     <QtMoc Include="MainWindow.h" />
     <QtMoc Include="MenuBar.h" />
+    <QtMoc Include="NetPlay\GameListDialog.h" />
+    <QtMoc Include="NetPlay\MD5Dialog.h" />
+    <QtMoc Include="NetPlay\NetPlayDialog.h" />
+    <QtMoc Include="NetPlay\NetPlaySetupDialog.h" />
+    <QtMoc Include="NetPlay\PadMappingDialog.h" />
     <QtMoc Include="QtUtils\DoubleClickEventFilter.h" />
     <QtMoc Include="QtUtils\WindowActivationEventFilter.h" />
     <QtMoc Include="RenderWidget.h" />
     <QtMoc Include="Settings.h" />
+    <QtMoc Include="Settings\AdvancedPane.h" />
     <QtMoc Include="Settings\GeneralPane.h" />
     <QtMoc Include="ToolBar.h" />
   </ItemGroup>
   <!--TODO figure out how to get QtMoc to add outputs to ClCompile's inputs...-->
   <ItemGroup>
     <ClCompile Include="$(QtMocOutPrefix)AboutDialog.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)AdvancedPane.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)AudioPane.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)AdvancedWidget.cpp" />
-    <ClCompile Include="$(QtMocOutPrefix)EnhancementsWidget.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)CheatWarningWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)ControllersWindow.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)EnhancementsWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)FilesystemWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)WindowActivationEventFilter.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GameList.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)GameListDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GameListModel.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GameTracker.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)GeckoCodeWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GeneralPane.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GeneralWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GraphicsBool.cpp" />
@@ -124,12 +139,19 @@
     <ClCompile Include="$(QtMocOutPrefix)InfoWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)InterfacePane.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)IOWindow.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)GridProxyModel.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)ListProxyModel.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)LogConfigWidget.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)LogWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)MainWindow.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)MappingButton.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)MappingWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)MappingWindow.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)MD5Dialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)MenuBar.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)NetPlayDialog.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)NetPlaySetupDialog.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)PadMappingDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)PropertiesDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)DoubleClickEventFilter.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)RenderWidget.cpp" />
@@ -138,8 +160,10 @@
     <ClCompile Include="$(QtMocOutPrefix)SoftwareRendererWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)ToolBar.cpp" />
     <ClCompile Include="AboutDialog.cpp" />
+    <ClCompile Include="Config\CheatWarningWidget.cpp" />
     <ClCompile Include="Config\ControllersWindow.cpp" />
     <ClCompile Include="Config\FilesystemWidget.cpp" />
+    <ClCompile Include="Config\GeckoCodeWidget.cpp" />
     <ClCompile Include="Config\Graphics\AdvancedWidget.cpp" />
     <ClCompile Include="Config\Graphics\EnhancementsWidget.cpp" />
     <ClCompile Include="Config\Graphics\HacksWidget.cpp" />
@@ -170,12 +194,16 @@
     <ClCompile Include="Config\Mapping\WiimoteEmuExtension.cpp" />
     <ClCompile Include="Config\Mapping\WiimoteEmuGeneral.cpp" />
     <ClCompile Include="Config\Mapping\WiimoteEmuMotionControl.cpp" />
+    <ClCompile Include="Config\LogConfigWidget.cpp" />
+    <ClCompile Include="Config\LogWidget.cpp" />
     <ClCompile Include="Config\PropertiesDialog.cpp" />
     <ClCompile Include="Config\SettingsWindow.cpp" />
     <ClCompile Include="GameList\GameFile.cpp" />
+    <ClCompile Include="GameList\GameFileCache.cpp" />
     <ClCompile Include="GameList\GameList.cpp" />
     <ClCompile Include="GameList\GameListModel.cpp" />
     <ClCompile Include="GameList\GameTracker.cpp" />
+    <ClCompile Include="GameList\GridProxyModel.cpp" />
     <ClCompile Include="GameList\ListProxyModel.cpp" />
     <ClCompile Include="HotkeyScheduler.cpp" />
     <ClCompile Include="Host.cpp" />
@@ -183,21 +211,32 @@
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MainWindow.cpp" />
     <ClCompile Include="MenuBar.cpp" />
+    <ClCompile Include="QtUtils\BlockUserInputFilter.cpp" />
+    <ClCompile Include="NetPlay\GameListDialog.cpp" />
+    <ClCompile Include="NetPlay\MD5Dialog.cpp" />
+    <ClCompile Include="NetPlay\NetPlayDialog.cpp" />
+    <ClCompile Include="NetPlay\NetPlaySetupDialog.cpp" />
+    <ClCompile Include="NetPlay\PadMappingDialog.cpp" />
     <ClCompile Include="QtUtils\DoubleClickEventFilter.cpp" />
     <ClCompile Include="QtUtils\ElidedButton.cpp" />
+    <ClCompile Include="QtUtils\ListTabWidget.cpp" />
     <ClCompile Include="QtUtils\WindowActivationEventFilter.cpp" />
     <ClCompile Include="RenderWidget.cpp" />
     <ClCompile Include="Resources.cpp" />
     <ClCompile Include="Settings.cpp" />
+    <ClCompile Include="Settings\AdvancedPane.cpp" />
     <ClCompile Include="Settings\AudioPane.cpp" />
     <ClCompile Include="Settings\GeneralPane.cpp" />
     <ClCompile Include="Settings\InterfacePane.cpp" />
     <ClCompile Include="Settings\PathPane.cpp" />
     <ClCompile Include="ToolBar.cpp" />
+    <ClCompile Include="Translation.cpp" />
     <ClCompile Include="WiiUpdate.cpp" />
   </ItemGroup>
   <!--Put standard C/C++ headers here-->
   <ItemGroup>
+    <ClInclude Include="Config\CheatWarningWidget.h" />
+    <ClInclude Include="Config\GeckoCodeWidget.h" />
     <ClInclude Include="Config\Mapping\GCKeyboardEmu.h" />
     <ClInclude Include="Config\Mapping\GCPadEmu.h" />
     <ClInclude Include="Config\Mapping\GCPadWiiU.h" />
@@ -213,13 +252,20 @@
     <ClInclude Include="Config\Mapping\WiimoteEmuExtension.h" />
     <ClInclude Include="Config\Mapping\WiimoteEmuGeneral.h" />
     <ClInclude Include="Config\Mapping\WiimoteEmuMotionControl.h" />
+    <ClInclude Include="GameList\GameFileCache.h" />
+    <ClInclude Include="QtUtils\BlockUserInputFilter.h" />
     <ClInclude Include="QtUtils\ElidedButton.h" />
+    <ClInclude Include="QtUtils\ListTabWidget.h" />
     <ClInclude Include="Resources.h" />
     <ClInclude Include="Settings\PathPane.h" />
+    <ClInclude Include="Translation.h" />
     <ClInclude Include="WiiUpdate.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="DolphinQt2.rc" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="$(ExternalsDir)Bochs_disasm\Bochs_disasm.vcxproj">

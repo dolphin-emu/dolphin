@@ -19,7 +19,6 @@
 #include "Common/Logging/Log.h"
 
 #include "Core/ConfigManager.h"
-#include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/AudioInterface.h"
 #include "Core/HW/DVD/DVDMath.h"
@@ -451,10 +450,6 @@ bool IsDiscInside()
   return DVDThread::HasDisc();
 }
 
-// Take care of all logic of "swapping discs"
-// We want this in the "backend", NOT the gui
-// any !empty string will be deleted to ensure
-// that the userdata string exists when called
 static void EjectDiscCallback(u64 userdata, s64 cyclesLate)
 {
   SetDisc(nullptr);
@@ -473,19 +468,14 @@ static void InsertDiscCallback(u64 userdata, s64 cyclesLate)
   s_disc_path_to_insert.clear();
 }
 
-// Can only be called by the host thread
-void ChangeDiscAsHost(const std::string& new_path)
+// Must only be called on the CPU thread
+void EjectDisc()
 {
-  bool was_unpaused = Core::PauseAndLock(true);
-
-  // The host thread is now temporarily the CPU thread
-  ChangeDiscAsCPU(new_path);
-
-  Core::PauseAndLock(false, was_unpaused);
+  CoreTiming::ScheduleEvent(0, s_eject_disc);
 }
 
-// Can only be called by the CPU thread
-void ChangeDiscAsCPU(const std::string& new_path)
+// Must only be called on the CPU thread
+void ChangeDisc(const std::string& new_path)
 {
   if (!s_disc_path_to_insert.empty())
   {
@@ -493,10 +483,10 @@ void ChangeDiscAsCPU(const std::string& new_path)
     return;
   }
 
-  s_disc_path_to_insert = new_path;
-  CoreTiming::ScheduleEvent(0, s_eject_disc);
-  CoreTiming::ScheduleEvent(SystemTimers::GetTicksPerSecond(), s_insert_disc);
+  EjectDisc();
 
+  s_disc_path_to_insert = new_path;
+  CoreTiming::ScheduleEvent(SystemTimers::GetTicksPerSecond(), s_insert_disc);
   Movie::SignalDiscChange(new_path);
 }
 
@@ -1218,7 +1208,7 @@ void ScheduleReads(u64 offset, u32 length, const DiscIO::Partition& partition, u
   const u32 bytes_per_chunk =
       partition == DiscIO::PARTITION_NONE ? DVD_ECC_BLOCK_SIZE : DiscIO::VolumeWii::BLOCK_DATA_SIZE;
 
-  while (length > 0)
+  do
   {
     // The length of this read - "+1" so that if this read is already
     // aligned to a block we'll read the entire block.
@@ -1226,6 +1216,8 @@ void ScheduleReads(u64 offset, u32 length, const DiscIO::Partition& partition, u
 
     // The last chunk may be short
     chunk_length = std::min(chunk_length, length);
+
+    // TODO: If the emulated software requests 0 bytes of data, should we seek or not?
 
     if (dvd_offset >= buffer_start && dvd_offset < buffer_end)
     {
@@ -1271,7 +1263,7 @@ void ScheduleReads(u64 offset, u32 length, const DiscIO::Partition& partition, u
     offset += chunk_length;
     length -= chunk_length;
     dvd_offset += DVD_ECC_BLOCK_SIZE;
-  }
+  } while (length > 0);
 
   // Update the buffer based on this read. Based on experimental testing,
   // we will only reuse the old buffer while reading forward. Note that the

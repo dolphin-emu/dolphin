@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <sstream>
 
 #include <Foundation/Foundation.h>
@@ -39,18 +40,36 @@ Joystick::Joystick(IOHIDDeviceRef device, std::string name)
   }
 
   // Axes
-  NSDictionary* axisDict = @{ @kIOHIDElementTypeKey : @(kIOHIDElementTypeInput_Misc) };
+  NSDictionary* axisDict = @{
+    @kIOHIDElementTypeKey : @(kIOHIDElementTypeInput_Misc),
+    @kIOHIDElementUsagePageKey : @(kHIDPage_GenericDesktop)
+  };
 
   CFArrayRef axes =
       IOHIDDeviceCopyMatchingElements(m_device, (CFDictionaryRef)axisDict, kIOHIDOptionsTypeNone);
 
   if (axes)
   {
+    std::vector<IOHIDElementRef> elems;
     for (int i = 0; i < CFArrayGetCount(axes); i++)
     {
       IOHIDElementRef e = (IOHIDElementRef)CFArrayGetValueAtIndex(axes, i);
       // DeviceElementDebugPrint(e, nullptr);
+      uint32_t usage = IOHIDElementGetUsage(e);
 
+      // Check for any existing elements with the same usage
+      auto it = std::find_if(elems.begin(), elems.end(), [usage](const auto& ref) {
+        return usage == IOHIDElementGetUsage(ref);
+      });
+
+      if (it == elems.end())
+        elems.push_back(e);
+      else
+        *it = e;
+    }
+
+    for (auto e : elems)
+    {
       if (IOHIDElementGetUsage(e) == kHIDUsage_GD_Hatswitch)
       {
         AddInput(new Hat(e, m_device, Hat::up));
@@ -64,6 +83,7 @@ Joystick::Joystick(IOHIDDeviceRef device, std::string name)
                         new Axis(e, m_device, Axis::positive));
       }
     }
+
     CFRelease(axes);
   }
 

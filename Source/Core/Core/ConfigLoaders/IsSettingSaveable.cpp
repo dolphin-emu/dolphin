@@ -7,13 +7,19 @@
 #include <algorithm>
 #include <vector>
 
-#include "Core/Config/Config.h"
+#include "Common/Config/Config.h"
 #include "Core/Config/GraphicsSettings.h"
 
 namespace ConfigLoaders
 {
 bool IsSettingSaveable(const Config::ConfigLocation& config_location)
 {
+  if (config_location.system == Config::System::Logger)
+    return true;
+
+  if (config_location.system == Config::System::Main && config_location.section == "NetPlay")
+    return true;
+
   const static std::vector<Config::ConfigLocation> s_setting_saveable{
       // Graphics.Hardware
 
@@ -40,6 +46,10 @@ bool IsSettingSaveable(const Config::ConfigLocation& config_location)
       Config::GFX_DISABLE_FOG.location, Config::GFX_BORDERLESS_FULLSCREEN.location,
       Config::GFX_ENABLE_VALIDATION_LAYER.location, Config::GFX_BACKEND_MULTITHREADING.location,
       Config::GFX_COMMAND_BUFFER_EXECUTE_INTERVAL.location, Config::GFX_SHADER_CACHE.location,
+      Config::GFX_BACKGROUND_SHADER_COMPILING.location,
+      Config::GFX_DISABLE_SPECIALIZED_SHADERS.location,
+      Config::GFX_PRECOMPILE_UBER_SHADERS.location, Config::GFX_SHADER_COMPILER_THREADS.location,
+      Config::GFX_SHADER_PRECOMPILER_THREADS.location,
 
       Config::GFX_SW_ZCOMPLOC.location, Config::GFX_SW_ZFREEZE.location,
       Config::GFX_SW_DUMP_OBJECTS.location, Config::GFX_SW_DUMP_TEV_STAGES.location,

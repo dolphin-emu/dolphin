@@ -181,8 +181,6 @@ public final class SettingsFragmentPresenter
 		}
 		else
 		{
-			mSettings.get(SettingsFile.SETTINGS_DOLPHIN).put(SettingsFile.SECTION_CORE, new SettingSection(SettingsFile.SECTION_CORE));
-
 			mView.passSettingsToActivity(mSettings);
 		}
 
@@ -253,17 +251,11 @@ public final class SettingsFragmentPresenter
 		}
 		else
 		{
-			mSettings.get(SettingsFile.SETTINGS_GFX).put(SettingsFile.SECTION_GFX_SETTINGS, new SettingSection(SettingsFile.SECTION_GFX_SETTINGS));
-			mSettings.get(SettingsFile.SETTINGS_GFX).put(SettingsFile.SECTION_GFX_ENHANCEMENTS, new SettingSection(SettingsFile.SECTION_GFX_ENHANCEMENTS));
-			mSettings.get(SettingsFile.SETTINGS_GFX).put(SettingsFile.SECTION_GFX_HACKS, new SettingSection(SettingsFile.SECTION_GFX_HACKS));
-
 			mView.passSettingsToActivity(mSettings);
 		}
 
 		if (mSettings.get(SettingsFile.SETTINGS_DOLPHIN).isEmpty())
 		{
-			mSettings.get(SettingsFile.SETTINGS_DOLPHIN).put(SettingsFile.SECTION_CORE, new SettingSection(SettingsFile.SECTION_CORE));
-
 			mView.passSettingsToActivity(mSettings);
 		}
 
@@ -276,6 +268,8 @@ public final class SettingsFragmentPresenter
 
 	private void addEnhanceSettings(ArrayList<SettingsItem> sl)
 	{
+		int uberShaderModeValue = getUberShaderModeValue();
+
 		Setting resolution = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_GFX_SETTINGS).getSetting(SettingsFile.KEY_INTERNAL_RES);
 		Setting fsaa = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_GFX_SETTINGS).getSetting(SettingsFile.KEY_FSAA);
 		Setting anisotropic = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_GFX_ENHANCEMENTS).getSetting(SettingsFile.KEY_ANISOTROPY);
@@ -283,6 +277,7 @@ public final class SettingsFragmentPresenter
 		Setting perPixel = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_GFX_SETTINGS).getSetting(SettingsFile.KEY_PER_PIXEL);
 		Setting forceFilter = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_GFX_ENHANCEMENTS).getSetting(SettingsFile.KEY_FORCE_FILTERING);
 		Setting disableFog = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_GFX_SETTINGS).getSetting(SettingsFile.KEY_DISABLE_FOG);
+		IntSetting uberShaderMode = new IntSetting(SettingsFile.KEY_UBERSHADER_MODE, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, uberShaderModeValue);
 
 		sl.add(new SingleChoiceSetting(SettingsFile.KEY_INTERNAL_RES, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.internal_resolution, R.string.internal_resolution_descrip, R.array.internalResolutionEntries, R.array.internalResolutionValues, 0, resolution));
 		sl.add(new SingleChoiceSetting(SettingsFile.KEY_FSAA, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.FSAA, R.string.FSAA_descrip, R.array.FSAAEntries, R.array.FSAAValues, 0, fsaa));
@@ -296,6 +291,7 @@ public final class SettingsFragmentPresenter
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_PER_PIXEL, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.per_pixel_lighting, R.string.per_pixel_lighting_descrip, false, perPixel));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_FORCE_FILTERING, SettingsFile.SECTION_GFX_ENHANCEMENTS, SettingsFile.SETTINGS_GFX, R.string.force_texture_filtering, R.string.force_texture_filtering_descrip, false, forceFilter));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_DISABLE_FOG, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.disable_fog, R.string.disable_fog_descrip, false, disableFog));
+		sl.add(new SingleChoiceSetting(SettingsFile.KEY_UBERSHADER_MODE, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.ubershader_mode, R.string.ubershader_mode_descrip, R.array.uberShaderModeEntries, R.array.uberShaderModeValues, 0, uberShaderMode));
 
 		 /*
 		 Check if we support stereo
@@ -343,12 +339,8 @@ public final class SettingsFragmentPresenter
 		sl.add(new SingleChoiceSetting(SettingsFile.KEY_ASPECT_RATIO, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.aspect_ratio, R.string.aspect_ratio_descrip, R.array.aspectRatioEntries, R.array.aspectRatioValues, 0, aspectRatio));
 	}
 
-	private void addStereoSettings(ArrayList<SettingsItem> sl) {
-		if (mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_STEREOSCOPY) == null)
-		{
-			mSettings.get(SettingsFile.SETTINGS_GFX).put(SettingsFile.SECTION_STEREOSCOPY, new SettingSection(SettingsFile.SECTION_STEREOSCOPY));
-		}
-
+	private void addStereoSettings(ArrayList<SettingsItem> sl)
+	{
 		Setting stereoModeValue = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_STEREOSCOPY).getSetting(SettingsFile.KEY_STEREO_MODE);
 		Setting stereoDepth = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_STEREOSCOPY).getSetting(SettingsFile.KEY_STEREO_DEPTH);
 		Setting convergence = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_STEREOSCOPY).getSetting(SettingsFile.KEY_STEREO_CONV);
@@ -364,56 +356,26 @@ public final class SettingsFragmentPresenter
 	{
 		if (gcPadType == 1) // Emulated
 		{
-			Setting bindA = null;
-			Setting bindB = null;
-			Setting bindX = null;
-			Setting bindY = null;
-			Setting bindZ = null;
-			Setting bindStart = null;
-			Setting bindControlUp = null;
-			Setting bindControlDown = null;
-			Setting bindControlLeft = null;
-			Setting bindControlRight = null;
-			Setting bindCUp = null;
-			Setting bindCDown = null;
-			Setting bindCLeft = null;
-			Setting bindCRight = null;
-			Setting bindTriggerL = null;
-			Setting bindTriggerR = null;
-			Setting bindDPadUp = null;
-			Setting bindDPadDown = null;
-			Setting bindDPadLeft = null;
-			Setting bindDPadRight = null;
-
-			try
-			{
-				bindA = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_GCBIND_A + gcPadNumber);
-				bindB = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_GCBIND_B + gcPadNumber);
-				bindX = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_GCBIND_X + gcPadNumber);
-				bindY = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_GCBIND_Y + gcPadNumber);
-				bindZ = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_GCBIND_Z + gcPadNumber);
-				bindStart = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_GCBIND_START + gcPadNumber);
-				bindControlUp = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_GCBIND_CONTROL_UP + gcPadNumber);
-				bindControlDown = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_GCBIND_CONTROL_DOWN + gcPadNumber);
-				bindControlLeft = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_GCBIND_CONTROL_LEFT + gcPadNumber);
-				bindControlRight = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_GCBIND_CONTROL_RIGHT + gcPadNumber);
-				bindCUp = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_GCBIND_C_UP + gcPadNumber);
-				bindCDown = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_GCBIND_C_DOWN + gcPadNumber);
-				bindCLeft = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_GCBIND_C_LEFT + gcPadNumber);
-				bindCRight = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_GCBIND_C_RIGHT + gcPadNumber);
-				bindTriggerL = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_GCBIND_TRIGGER_L + gcPadNumber);
-				bindTriggerR = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_GCBIND_TRIGGER_R + gcPadNumber);
-				bindDPadUp = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_GCBIND_DPAD_UP + gcPadNumber);
-				bindDPadDown = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_GCBIND_DPAD_DOWN + gcPadNumber);
-				bindDPadLeft = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_GCBIND_DPAD_LEFT + gcPadNumber);
-				bindDPadRight = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_GCBIND_DPAD_RIGHT + gcPadNumber);
-			}
-			catch (NullPointerException ex)
-			{
-				mSettings.get(SettingsFile.SETTINGS_DOLPHIN).put(SettingsFile.SECTION_BINDINGS, new SettingSection(SettingsFile.SECTION_BINDINGS));
-
-				mView.passSettingsToActivity(mSettings);
-			}
+			Setting bindA = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_GCBIND_A + gcPadNumber);
+			Setting bindB = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_GCBIND_B + gcPadNumber);
+			Setting bindX = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_GCBIND_X + gcPadNumber);
+			Setting bindY = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_GCBIND_Y + gcPadNumber);
+			Setting bindZ = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_GCBIND_Z + gcPadNumber);
+			Setting bindStart = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_GCBIND_START + gcPadNumber);
+			Setting bindControlUp = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_GCBIND_CONTROL_UP + gcPadNumber);
+			Setting bindControlDown = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_GCBIND_CONTROL_DOWN + gcPadNumber);
+			Setting bindControlLeft = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_GCBIND_CONTROL_LEFT + gcPadNumber);
+			Setting bindControlRight = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_GCBIND_CONTROL_RIGHT + gcPadNumber);
+			Setting bindCUp = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_GCBIND_C_UP + gcPadNumber);
+			Setting bindCDown = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_GCBIND_C_DOWN + gcPadNumber);
+			Setting bindCLeft = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_GCBIND_C_LEFT + gcPadNumber);
+			Setting bindCRight = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_GCBIND_C_RIGHT + gcPadNumber);
+			Setting bindTriggerL = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_GCBIND_TRIGGER_L + gcPadNumber);
+			Setting bindTriggerR = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_GCBIND_TRIGGER_R + gcPadNumber);
+			Setting bindDPadUp = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_GCBIND_DPAD_UP + gcPadNumber);
+			Setting bindDPadDown = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_GCBIND_DPAD_DOWN + gcPadNumber);
+			Setting bindDPadLeft = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_GCBIND_DPAD_LEFT + gcPadNumber);
+			Setting bindDPadRight = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_GCBIND_DPAD_RIGHT + gcPadNumber);
 
 			sl.add(new HeaderSetting(null, null, R.string.generic_buttons, 0));
 			sl.add(new InputBindingSetting(SettingsFile.KEY_GCBIND_A + gcPadNumber, SettingsFile.SECTION_BINDINGS, SettingsFile.SETTINGS_DOLPHIN, R.string.button_a, bindA));
@@ -457,83 +419,40 @@ public final class SettingsFragmentPresenter
 
 	private void addWiimoteSubSettings(ArrayList<SettingsItem> sl, int wiimoteNumber)
 	{
-		IntSetting extension = null;
-		Setting bindA = null;
-		Setting bindB = null;
-		Setting bind1 = null;
-		Setting bind2 = null;
-		Setting bindMinus = null;
-		Setting bindPlus = null;
-		Setting bindHome = null;
-		Setting bindIRUp = null;
-		Setting bindIRDown = null;
-		Setting bindIRLeft = null;
-		Setting bindIRRight = null;
-		Setting bindIRForward = null;
-		Setting bindIRBackward = null;
-		Setting bindIRHide = null;
-		Setting bindSwingUp = null;
-		Setting bindSwingDown = null;
-		Setting bindSwingLeft = null;
-		Setting bindSwingRight = null;
-		Setting bindSwingForward = null;
-		Setting bindSwingBackward = null;
-		Setting bindTiltForward = null;
-		Setting bindTiltBackward = null;
-		Setting bindTiltLeft = null;
-		Setting bindTiltRight = null;
-		Setting bindTiltModifier = null;
-		Setting bindShakeX = null;
-		Setting bindShakeY = null;
-		Setting bindShakeZ = null;
-		Setting bindDPadUp = null;
-		Setting bindDPadDown = null;
-		Setting bindDPadLeft = null;
-		Setting bindDPadRight = null;
-
-		try
-		{
-			// Bindings use controller numbers 4-7 (0-3 are GameCube), but the extension setting uses 1-4.
-			extension = new IntSetting(SettingsFile.KEY_WIIMOTE_EXTENSION, SettingsFile.SECTION_WIIMOTE + (wiimoteNumber - 3), SettingsFile.SETTINGS_WIIMOTE, getExtensionValue(wiimoteNumber - 3));
-			bindA = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_A + wiimoteNumber);
-			bindB = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_B + wiimoteNumber);
-			bind1 = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_1 + wiimoteNumber);
-			bind2 = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_2 + wiimoteNumber);
-			bindMinus = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_MINUS + wiimoteNumber);
-			bindPlus = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_PLUS + wiimoteNumber);
-			bindHome = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_HOME + wiimoteNumber);
-			bindIRUp = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_IR_UP + wiimoteNumber);
-			bindIRDown = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_IR_DOWN + wiimoteNumber);
-			bindIRLeft = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_IR_LEFT + wiimoteNumber);
-			bindIRRight = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_IR_RIGHT + wiimoteNumber);
-			bindIRForward = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_IR_FORWARD + wiimoteNumber);
-			bindIRBackward = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_IR_BACKWARD + wiimoteNumber);
-			bindIRHide = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_IR_HIDE + wiimoteNumber);
-			bindSwingUp = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_SWING_UP + wiimoteNumber);
-			bindSwingDown = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_SWING_DOWN + wiimoteNumber);
-			bindSwingLeft = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_SWING_LEFT + wiimoteNumber);
-			bindSwingRight = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_SWING_RIGHT + wiimoteNumber);
-			bindSwingForward = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_SWING_FORWARD + wiimoteNumber);
-			bindSwingBackward = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_SWING_BACKWARD + wiimoteNumber);
-			bindTiltForward = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_TILT_FORWARD + wiimoteNumber);
-			bindTiltBackward = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_TILT_BACKWARD + wiimoteNumber);
-			bindTiltLeft = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_TILT_LEFT + wiimoteNumber);
-			bindTiltRight = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_TILT_RIGHT + wiimoteNumber);
-			bindTiltModifier = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_TILT_MODIFIER + wiimoteNumber);
-			bindShakeX = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_SHAKE_X + wiimoteNumber);
-			bindShakeY = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_SHAKE_Y + wiimoteNumber);
-			bindShakeZ = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_SHAKE_Z + wiimoteNumber);
-			bindDPadUp = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_DPAD_UP + wiimoteNumber);
-			bindDPadDown = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_DPAD_DOWN + wiimoteNumber);
-			bindDPadLeft = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_DPAD_LEFT + wiimoteNumber);
-			bindDPadRight = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_DPAD_RIGHT + wiimoteNumber);
-		}
-		catch (NullPointerException ex)
-		{
-			mSettings.get(SettingsFile.SETTINGS_DOLPHIN).put(SettingsFile.SECTION_BINDINGS, new SettingSection(SettingsFile.SECTION_BINDINGS));
-
-			mView.passSettingsToActivity(mSettings);
-		}
+		// Bindings use controller numbers 4-7 (0-3 are GameCube), but the extension setting uses 1-4.
+		IntSetting extension = new IntSetting(SettingsFile.KEY_WIIMOTE_EXTENSION, SettingsFile.SECTION_WIIMOTE + (wiimoteNumber - 3), SettingsFile.SETTINGS_WIIMOTE, getExtensionValue(wiimoteNumber - 3));
+		Setting bindA = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_A + wiimoteNumber);
+		Setting bindB = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_B + wiimoteNumber);
+		Setting bind1 = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_1 + wiimoteNumber);
+		Setting bind2 = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_2 + wiimoteNumber);
+		Setting bindMinus = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_MINUS + wiimoteNumber);
+		Setting bindPlus = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_PLUS + wiimoteNumber);
+		Setting bindHome = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_HOME + wiimoteNumber);
+		Setting bindIRUp = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_IR_UP + wiimoteNumber);
+		Setting bindIRDown = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_IR_DOWN + wiimoteNumber);
+		Setting bindIRLeft = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_IR_LEFT + wiimoteNumber);
+		Setting bindIRRight = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_IR_RIGHT + wiimoteNumber);
+		Setting bindIRForward = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_IR_FORWARD + wiimoteNumber);
+		Setting bindIRBackward = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_IR_BACKWARD + wiimoteNumber);
+		Setting bindIRHide = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_IR_HIDE + wiimoteNumber);
+		Setting bindSwingUp = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_SWING_UP + wiimoteNumber);
+		Setting bindSwingDown = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_SWING_DOWN + wiimoteNumber);
+		Setting bindSwingLeft = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_SWING_LEFT + wiimoteNumber);
+		Setting bindSwingRight = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_SWING_RIGHT + wiimoteNumber);
+		Setting bindSwingForward = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_SWING_FORWARD + wiimoteNumber);
+		Setting bindSwingBackward = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_SWING_BACKWARD + wiimoteNumber);
+		Setting bindTiltForward = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_TILT_FORWARD + wiimoteNumber);
+		Setting bindTiltBackward = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_TILT_BACKWARD + wiimoteNumber);
+		Setting bindTiltLeft = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_TILT_LEFT + wiimoteNumber);
+		Setting bindTiltRight = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_TILT_RIGHT + wiimoteNumber);
+		Setting bindTiltModifier = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_TILT_MODIFIER + wiimoteNumber);
+		Setting bindShakeX = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_SHAKE_X + wiimoteNumber);
+		Setting bindShakeY = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_SHAKE_Y + wiimoteNumber);
+		Setting bindShakeZ = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_SHAKE_Z + wiimoteNumber);
+		Setting bindDPadUp = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_DPAD_UP + wiimoteNumber);
+		Setting bindDPadDown = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_DPAD_DOWN + wiimoteNumber);
+		Setting bindDPadLeft = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_DPAD_LEFT + wiimoteNumber);
+		Setting bindDPadRight = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_DPAD_RIGHT + wiimoteNumber);
 
 		sl.add(new SingleChoiceSetting(SettingsFile.KEY_WIIMOTE_EXTENSION, SettingsFile.SECTION_WIIMOTE + (wiimoteNumber - 3), SettingsFile.SETTINGS_WIIMOTE, R.string.wiimote_extensions, R.string.wiimote_extensions_descrip, R.array.wiimoteExtensionsEntries, R.array.wiimoteExtensionsValues, 0, extension));
 
@@ -901,6 +820,29 @@ public final class SettingsFragmentPresenter
 		}
 
 		return xfbValue;
+	}
+
+	private int getUberShaderModeValue()
+	{
+		int uberShaderModeValue = 0;
+
+		try
+		{
+			boolean backgroundShaderCompiling = ((BooleanSetting) mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_GFX_SETTINGS).getSetting(SettingsFile.KEY_BACKGROUND_SHADER_COMPILING)).getValue();
+			boolean disableSpecializedShaders = ((BooleanSetting) mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_GFX_SETTINGS).getSetting(SettingsFile.KEY_DISABLE_SPECIALIZED_SHADERS)).getValue();
+
+			if (disableSpecializedShaders)
+				uberShaderModeValue = 2;    // Exclusive
+			else if (backgroundShaderCompiling)
+				uberShaderModeValue = 1;    // Hybrid
+			else
+				uberShaderModeValue = 0;    // Disabled
+		}
+		catch (NullPointerException ex)
+		{
+		}
+
+		return uberShaderModeValue;
 	}
 
 	private int getExtensionValue(int wiimoteNumber)

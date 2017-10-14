@@ -17,7 +17,7 @@
 class SysConf final
 {
 public:
-  SysConf(Common::FromWhichRoot root_type);
+  explicit SysConf(Common::FromWhichRoot root_type);
   ~SysConf();
 
   void Clear();
@@ -84,7 +84,6 @@ public:
   }
 
 private:
-  void ApplySettingsFromMovie();
   void InsertDefaultEntries();
   bool LoadFromFile(const std::string& file_name);
 

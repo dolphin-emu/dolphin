@@ -390,6 +390,10 @@ void handle_dsp_mail(void)
       while (real_dsp.CheckMailTo())
         ;
     }
+    else if (mail == 0x80050000)
+    {
+      CON_PrintRow(4, 25, "ACCOV at step %i", dsp_steps);
+    }
 
     // ROM dumping mails
     else if (mail == 0x8888c0de)

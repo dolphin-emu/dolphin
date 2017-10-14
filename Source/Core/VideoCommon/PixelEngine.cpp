@@ -4,6 +4,8 @@
 
 // http://www.nvidia.com/object/General_FAQ.html#t6 !!!!!
 
+#include "VideoCommon/PixelEngine.h"
+
 #include <mutex>
 
 #include "Common/ChunkFile.h"
@@ -15,9 +17,10 @@
 #include "Core/HW/MMIO.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "VideoCommon/BoundingBox.h"
-#include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/Fifo.h"
-#include "VideoCommon/PixelEngine.h"
+#include "VideoCommon/PerfQueryBase.h"
+#include "VideoCommon/PixelShaderManager.h"
+#include "VideoCommon/VideoBackendBase.h"
 
 namespace PixelEngine
 {
@@ -231,6 +234,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   {
     mmio->Register(base | (PE_BBOX_LEFT + 2 * i), MMIO::ComplexRead<u16>([i](u32) {
                      BoundingBox::active = false;
+                     PixelShaderManager::SetBoundingBoxActive(false);
                      return g_video_backend->Video_GetBoundingBox(i);
                    }),
                    MMIO::InvalidWrite<u16>());

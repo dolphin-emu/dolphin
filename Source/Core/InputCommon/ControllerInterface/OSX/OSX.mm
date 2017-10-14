@@ -15,7 +15,6 @@
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/OSX/OSX.h"
 #include "InputCommon/ControllerInterface/OSX/OSXJoystick.h"
-#include "InputCommon/ControllerInterface/OSX/OSXKeyboard.h"
 #include "InputCommon/ControllerInterface/OSX/RunLoopStopper.h"
 
 namespace ciface
@@ -155,10 +154,6 @@ static void DeviceRemovalCallback(void* inContext, IOReturn inResult, void* inSe
     if (joystick && joystick->IsSameDevice(inIOHIDDeviceRef))
       return true;
 
-    const Keyboard* keyboard = dynamic_cast<const Keyboard*>(device);
-    if (keyboard && keyboard->IsSameDevice(inIOHIDDeviceRef))
-      return true;
-
     return false;
   });
   g_controller_interface.InvokeHotplugCallbacks();
@@ -172,19 +167,10 @@ static void DeviceMatchingCallback(void* inContext, IOReturn inResult, void* inS
   std::string name = GetDeviceRefName(inIOHIDDeviceRef);
 
   // Add a device if it's of a type we want
-  if (IOHIDDeviceConformsTo(inIOHIDDeviceRef, kHIDPage_GenericDesktop, kHIDUsage_GD_Keyboard))
-  {
-    if (g_window)
-      g_controller_interface.AddDevice(
-          std::make_shared<Keyboard>(inIOHIDDeviceRef, name, g_window));
-  }
-#if 0
-  else if (IOHIDDeviceConformsTo(inIOHIDDeviceRef, kHIDPage_GenericDesktop, kHIDUsage_GD_Mouse))
-  {
-    g_controller_interface.AddDevice(new Mouse(inIOHIDDeviceRef, name));
-  }
-#endif
-  else
+  if (IOHIDDeviceConformsTo(inIOHIDDeviceRef, kHIDPage_GenericDesktop, kHIDUsage_GD_Joystick) ||
+      IOHIDDeviceConformsTo(inIOHIDDeviceRef, kHIDPage_GenericDesktop, kHIDUsage_GD_GamePad) ||
+      IOHIDDeviceConformsTo(inIOHIDDeviceRef, kHIDPage_GenericDesktop,
+                            kHIDUsage_GD_MultiAxisController))
   {
     g_controller_interface.AddDevice(std::make_shared<Joystick>(inIOHIDDeviceRef, name));
   }

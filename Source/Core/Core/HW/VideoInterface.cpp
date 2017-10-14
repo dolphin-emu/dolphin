@@ -10,9 +10,11 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+#include "Common/Config/Config.h"
 #include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
 
+#include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -179,7 +181,7 @@ void Preset(bool _bNTSC)
   m_Clock = DiscIO::IsNTSC(region);
 
   // Say component cable is plugged
-  m_DTVStatus.component_plugged = SConfig::GetInstance().bProgressive;
+  m_DTVStatus.component_plugged = Config::Get(Config::SYSCONF_PROGRESSIVE_SCAN);
   m_DTVStatus.ntsc_j = SConfig::GetInstance().bForceNTSCJ || region == DiscIO::Region::NTSC_J;
 
   m_FBWidth.Hex = 0;

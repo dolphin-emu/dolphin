@@ -5,6 +5,8 @@
 #include "Core/NetPlayClient.h"
 
 #include <algorithm>
+#include <cstddef>
+#include <cstring>
 #include <fstream>
 #include <memory>
 #include <mutex>
@@ -13,7 +15,6 @@
 
 #include <mbedtls/md5.h>
 
-#include "Common/Common.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/ENetUtil.h"
@@ -21,6 +22,7 @@
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 #include "Common/Timer.h"
+#include "Common/Version.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
 #include "Core/HW/SI/SI.h"
@@ -74,13 +76,12 @@ NetPlayClient::~NetPlayClient()
 
 // called from ---GUI--- thread
 NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlayUI* dialog,
-                             const std::string& name, bool traversal,
-                             const std::string& centralServer, u16 centralPort)
+                             const std::string& name, const NetTraversalConfig& traversal_config)
     : m_dialog(dialog), m_player_name(name)
 {
   ClearBuffers();
 
-  if (!traversal)
+  if (!traversal_config.use_traversal)
   {
     // Direct Connection
     m_client = enet_host_create(nullptr, 1, 3, 0, 0);
@@ -124,7 +125,7 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
       return;
     }
 
-    if (!EnsureTraversalClient(centralServer, centralPort))
+    if (!EnsureTraversalClient(traversal_config.traversal_host, traversal_config.traversal_port))
       return;
     m_client = g_MainNetHost.get();
 
@@ -176,8 +177,8 @@ bool NetPlayClient::Connect()
 {
   // send connect message
   sf::Packet packet;
-  packet << scm_rev_git_str;
-  packet << netplay_dolphin_ver;
+  packet << Common::scm_rev_git_str;
+  packet << Common::netplay_dolphin_ver;
   packet << m_player_name;
   Send(packet);
   enet_host_flush(m_client);
@@ -226,7 +227,7 @@ bool NetPlayClient::Connect()
     Player player;
     player.name = m_player_name;
     player.pid = m_pid;
-    player.revision = netplay_dolphin_ver;
+    player.revision = Common::netplay_dolphin_ver;
 
     // add self to player list
     m_players[m_pid] = player;
@@ -1278,6 +1279,27 @@ bool WiimoteEmu::Wiimote::NetPlay_GetWiimoteData(int wiimote, u8* data, u8 size,
     return netplay_client->WiimoteUpdate(wiimote, data, size, reporting_mode);
   else
     return false;
+}
+
+// Sync the info whether a button was pressed or not. Used for the reconnect on button press feature
+bool Wiimote::NetPlay_GetButtonPress(int wiimote, bool pressed)
+{
+  std::lock_guard<std::mutex> lk(crit_netplay_client);
+
+  // Use the reporting mode 0 for the button pressed event, the real ones start at RT_REPORT_CORE
+  u8 data[2] = {static_cast<u8>(pressed), 0};
+
+  if (netplay_client)
+  {
+    if (netplay_client->WiimoteUpdate(wiimote, data, 2, 0))
+    {
+      return data[0];
+    }
+    PanicAlertT("Netplay has desynced in NetPlay_GetButtonPress()");
+    return false;
+  }
+
+  return pressed;
 }
 
 // called from ---CPU--- thread

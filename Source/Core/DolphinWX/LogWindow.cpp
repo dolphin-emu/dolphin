@@ -64,9 +64,9 @@ void CLogWindow::CreateGUIControls()
   // Font
   m_FontChoice = new wxChoice(this, wxID_ANY);
   m_FontChoice->Bind(wxEVT_CHOICE, &CLogWindow::OnFontChange, this);
-  m_FontChoice->Append(_("Default font"));
-  m_FontChoice->Append(_("Monospaced font"));
-  m_FontChoice->Append(_("Selected font"));
+  m_FontChoice->Append(_("Default Font"));
+  m_FontChoice->Append(_("Monospaced Font"));
+  m_FontChoice->Append(_("Selected Font"));
 
   DefaultFont = GetFont();
   MonoSpaceFont.SetFamily(wxFONTFAMILY_TELETYPE);
@@ -129,15 +129,7 @@ CLogWindow::~CLogWindow()
 
 void CLogWindow::RemoveAllListeners()
 {
-  if (!m_has_listeners)
-    return;
-  m_has_listeners = false;
-
-  for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
-  {
-    m_LogManager->RemoveListener(static_cast<LogTypes::LOG_TYPE>(i),
-                                 LogListener::LOG_WINDOW_LISTENER);
-  }
+  m_LogManager->RegisterListener(LogListener::LOG_WINDOW_LISTENER, nullptr);
 }
 
 void CLogWindow::SaveSettings()

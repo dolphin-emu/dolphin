@@ -15,9 +15,9 @@
 
 #include "Common/Analytics.h"
 #include "Common/CPUDetect.h"
-#include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
+#include "Common/Version.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/GCPad.h"
 #include "Core/Movie.h"
@@ -121,10 +121,10 @@ void DolphinAnalytics::MakeBaseBuilder()
   Common::AnalyticsReportBuilder builder;
 
   // Version information.
-  builder.AddData("version-desc", scm_desc_str);
-  builder.AddData("version-hash", scm_rev_git_str);
-  builder.AddData("version-branch", scm_branch_str);
-  builder.AddData("version-dist", scm_distributor_str);
+  builder.AddData("version-desc", Common::scm_desc_str);
+  builder.AddData("version-hash", Common::scm_rev_git_str);
+  builder.AddData("version-branch", Common::scm_branch_str);
+  builder.AddData("version-dist", Common::scm_distributor_str);
 
   // CPU information.
   builder.AddData("cpu-summary", cpu_info.Summarize());
@@ -178,6 +178,17 @@ void DolphinAnalytics::MakeBaseBuilder()
   m_base_builder = builder;
 }
 
+static const char* GetUbershaderMode(const VideoConfig& video_config)
+{
+  if (video_config.bDisableSpecializedShaders)
+    return "exclusive";
+
+  if (video_config.bBackgroundShaderCompiling)
+    return "hybrid";
+
+  return "disabled";
+}
+
 void DolphinAnalytics::MakePerGameBuilder()
 {
   Common::AnalyticsReportBuilder builder(m_base_builder);
@@ -219,6 +230,10 @@ void DolphinAnalytics::MakePerGameBuilder()
   builder.AddData("cfg-gfx-efb-copy-scaled", g_Config.bCopyEFBScaled);
   builder.AddData("cfg-gfx-tc-samples", g_Config.iSafeTextureCache_ColorSamples);
   builder.AddData("cfg-gfx-stereo-mode", g_Config.iStereoMode);
+  builder.AddData("cfg-gfx-per-pixel-lighting", g_Config.bEnablePixelLighting);
+  builder.AddData("cfg-gfx-ubershader-mode", GetUbershaderMode(g_Config));
+  builder.AddData("cfg-gfx-fast-depth", g_Config.bFastDepthCalc);
+  builder.AddData("cfg-gfx-vertex-rounding", g_Config.UseVertexRounding());
 
   // GPU features.
   if (g_Config.iAdapter < static_cast<int>(g_Config.backend_info.Adapters.size()))

@@ -5,8 +5,9 @@
 #pragma once
 
 #include <d3d11.h>
+#include <d3d11_1.h>
 #include <d3dcompiler.h>
-#include <dxgi.h>
+#include <dxgi1_5.h>
 #include <vector>
 
 #include "Common/Common.h"
@@ -56,6 +57,7 @@ HRESULT Create(HWND wnd);
 void Close();
 
 extern ID3D11Device* device;
+extern ID3D11Device1* device1;
 extern ID3D11DeviceContext* context;
 extern HWND hWnd;
 extern bool bFrameInProgress;
@@ -72,6 +74,7 @@ const char* PixelShaderVersionString();
 const char* GeometryShaderVersionString();
 const char* VertexShaderVersionString();
 bool BGRATexturesSupported();
+bool AllowTearingSupported();
 
 u32 GetMaxTextureSize(D3D_FEATURE_LEVEL feature_level);
 
@@ -81,34 +84,8 @@ bool GetFullscreenState();
 // This function will assign a name to the given resource.
 // The DirectX debug layer will make it easier to identify resources that way,
 // e.g. when listing up all resources who have unreleased references.
-template <typename T>
-void SetDebugObjectName(T resource, const char* name)
-{
-  static_assert(std::is_convertible<T, ID3D11DeviceChild*>::value,
-                "resource must be convertible to ID3D11DeviceChild*");
-#if defined(_DEBUG) || defined(DEBUGFAST)
-  if (resource)
-    resource->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)(name ? strlen(name) : 0), name);
-#endif
-}
-
-template <typename T>
-std::string GetDebugObjectName(T resource)
-{
-  static_assert(std::is_convertible<T, ID3D11DeviceChild*>::value,
-                "resource must be convertible to ID3D11DeviceChild*");
-  std::string name;
-#if defined(_DEBUG) || defined(DEBUGFAST)
-  if (resource)
-  {
-    UINT size = 0;
-    resource->GetPrivateData(WKPDID_D3DDebugObjectName, &size, nullptr);  // get required size
-    name.resize(size);
-    resource->GetPrivateData(WKPDID_D3DDebugObjectName, &size, const_cast<char*>(name.data()));
-  }
-#endif
-  return name;
-}
+void SetDebugObjectName(ID3D11DeviceChild* resource, const char* name);
+std::string GetDebugObjectName(ID3D11DeviceChild* resource);
 
 }  // namespace D3D
 

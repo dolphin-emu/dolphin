@@ -1,6 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
+    <Filter Include="DiscExtractor">
+      <UniqueIdentifier>{51cdf366-d3fe-464a-9f89-c9f1592a6f1c}</UniqueIdentifier>
+    </Filter>
     <Filter Include="DiscScrubber">
       <UniqueIdentifier>{3873659a-9a30-4a58-af9e-8dad7d7eb627}</UniqueIdentifier>
     </Filter>
@@ -54,7 +57,10 @@
     <ClCompile Include="WbfsBlob.cpp">
       <Filter>Volume\Blob</Filter>
     </ClCompile>
-    <ClCompile Include="VolumeDirectory.cpp">
+    <ClCompile Include="DirectoryBlob.cpp">
+      <Filter>Volume\Blob</Filter>
+    </ClCompile>
+    <ClCompile Include="VolumeFileBlobReader.cpp">
       <Filter>Volume</Filter>
     </ClCompile>
     <ClCompile Include="VolumeGC.cpp">
@@ -74,6 +80,9 @@
     </ClCompile>
     <ClCompile Include="TGCBlob.cpp">
       <Filter>Volume\Blob</Filter>
+    </ClCompile>
+    <ClCompile Include="DiscExtractor.cpp">
+      <Filter>DiscExtractor</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -116,7 +125,10 @@
     <ClInclude Include="Volume.h">
       <Filter>Volume</Filter>
     </ClInclude>
-    <ClInclude Include="VolumeDirectory.h">
+    <ClInclude Include="DirectoryBlob.h">
+      <Filter>Volume\Blob</Filter>
+    </ClInclude>
+    <ClInclude Include="VolumeFileBlobReader.h">
       <Filter>Volume</Filter>
     </ClInclude>
     <ClInclude Include="VolumeGC.h">
@@ -133,6 +145,9 @@
     </ClInclude>
     <ClInclude Include="TGCBlob.h">
       <Filter>Volume\Blob</Filter>
+    </ClInclude>
+    <ClInclude Include="DiscExtractor.h">
+      <Filter>DiscExtractor</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

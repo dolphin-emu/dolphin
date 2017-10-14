@@ -109,11 +109,6 @@ const LayerMap& Layer::GetLayerMap() const
   return m_sections;
 }
 
-ConfigLayerLoader* Layer::GetLoader() const
-{
-  return m_loader.get();
-}
-
 bool Layer::IsDirty() const
 {
   return std::any_of(m_sections.begin(), m_sections.end(), [](const auto& system) {

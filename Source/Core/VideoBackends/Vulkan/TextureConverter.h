@@ -33,14 +33,13 @@ public:
   // Applies palette to dst_entry, using indices from src_entry.
   void ConvertTexture(TextureCacheBase::TCacheEntry* dst_entry,
                       TextureCache::TCacheEntry* src_entry, VkRenderPass render_pass,
-                      const void* palette, TlutFormat palette_format);
+                      const void* palette, TLUTFormat palette_format);
 
   // Uses an encoding shader to copy src_texture to dest_ptr.
   // NOTE: Executes the current command buffer.
-  void EncodeTextureToMemory(VkImageView src_texture, u8* dest_ptr, const EFBCopyFormat& format,
+  void EncodeTextureToMemory(VkImageView src_texture, u8* dest_ptr, const EFBCopyParams& params,
                              u32 native_width, u32 bytes_per_row, u32 num_blocks_y,
-                             u32 memory_stride, bool is_depth_copy, const EFBRectangle& src_rect,
-                             bool scale_by_half);
+                             u32 memory_stride, const EFBRectangle& src_rect, bool scale_by_half);
 
   // Encodes texture to guest memory in XFB (YUYV) format.
   void EncodeTextureToMemoryYUYV(void* dst_ptr, u32 dst_width, u32 dst_stride, u32 dst_height,
@@ -50,11 +49,11 @@ public:
   void DecodeYUYVTextureFromMemory(VKTexture* dst_texture, const void* src_ptr, u32 src_width,
                                    u32 src_stride, u32 src_height);
 
-  bool SupportsTextureDecoding(TextureFormat format, TlutFormat palette_format);
+  bool SupportsTextureDecoding(TextureFormat format, TLUTFormat palette_format);
   void DecodeTexture(VkCommandBuffer command_buffer, TextureCache::TCacheEntry* entry,
                      u32 dst_level, const u8* data, size_t data_size, TextureFormat format,
                      u32 width, u32 height, u32 aligned_width, u32 aligned_height, u32 row_stride,
-                     const u8* palette, TlutFormat palette_format);
+                     const u8* palette, TLUTFormat palette_format);
 
 private:
   static const u32 ENCODING_TEXTURE_WIDTH = EFB_WIDTH * 4;
@@ -71,8 +70,8 @@ private:
 
   bool CompilePaletteConversionShaders();
 
-  VkShaderModule CompileEncodingShader(const EFBCopyFormat& format);
-  VkShaderModule GetEncodingShader(const EFBCopyFormat& format);
+  VkShaderModule CompileEncodingShader(const EFBCopyParams& params);
+  VkShaderModule GetEncodingShader(const EFBCopyParams& params);
 
   bool CreateEncodingRenderPass();
   bool CreateEncodingTexture();
@@ -105,7 +104,7 @@ private:
   std::array<VkShaderModule, NUM_PALETTE_CONVERSION_SHADERS> m_palette_conversion_shaders = {};
 
   // Texture encoding - RGBA8->GX format in memory
-  std::map<EFBCopyFormat, VkShaderModule> m_encoding_shaders;
+  std::map<EFBCopyParams, VkShaderModule> m_encoding_shaders;
   VkRenderPass m_encoding_render_pass = VK_NULL_HANDLE;
   std::unique_ptr<Texture2D> m_encoding_render_texture;
   VkFramebuffer m_encoding_render_framebuffer = VK_NULL_HANDLE;
@@ -118,7 +117,7 @@ private:
     VkShaderModule compute_shader;
     bool valid;
   };
-  std::map<std::pair<TextureFormat, TlutFormat>, TextureDecodingPipeline> m_decoding_pipelines;
+  std::map<std::pair<TextureFormat, TLUTFormat>, TextureDecodingPipeline> m_decoding_pipelines;
   std::unique_ptr<Texture2D> m_decoding_texture;
 
   // XFB encoding/decoding shaders
