@@ -1,9 +1,11 @@
 package org.dolphinemu.dolphinemu.fragments;
 
 import android.app.Fragment;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.v4.content.LocalBroadcastManager;
 import android.view.LayoutInflater;
 import android.view.Surface;
 import android.view.SurfaceHolder;
@@ -15,7 +17,12 @@ import android.widget.Button;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.overlay.InputOverlay;
+import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
+import org.dolphinemu.dolphinemu.services.DirectoryInitializationService.DirectoryInitializationState;
+import org.dolphinemu.dolphinemu.utils.DirectoryStateReceiver;
 import org.dolphinemu.dolphinemu.utils.Log;
+
+import rx.functions.Action1;
 
 public final class EmulationFragment extends Fragment implements SurfaceHolder.Callback
 {
@@ -28,6 +35,7 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 	private Surface mSurface;
 
 	private InputOverlay mInputOverlay;
+	private DirectoryStateReceiver directoryStateReceiver;
 
 	private Thread mEmulationThread;
 
@@ -116,12 +124,44 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 	public void onStart()
 	{
 		super.onStart();
-		startEmulation();
+		if (DirectoryInitializationService.isDolphinDirectoriesReady())
+		{
+			startEmulation();
+		}
+		else
+		{
+			IntentFilter statusIntentFilter = new IntentFilter(
+					DirectoryInitializationService.BROADCAST_ACTION);
+
+			directoryStateReceiver =
+					new DirectoryStateReceiver(new Action1<DirectoryInitializationState>() {
+						@Override
+						public void call(DirectoryInitializationState directoryInitializationState)
+						{
+
+							if (directoryInitializationState == DirectoryInitializationState.DOLPHIN_DIRECTORIES_INITIALIZED)
+							{
+								startEmulation();
+							}
+						}
+					});
+
+			// Registers the DirectoryStateReceiver and its intent filters
+			LocalBroadcastManager.getInstance(getActivity()).registerReceiver(
+					directoryStateReceiver,
+					statusIntentFilter);
+			DirectoryInitializationService.startService(getActivity());
+		}
 	}
 
 	@Override
 	public void onStop()
 	{
+		if(directoryStateReceiver != null)
+		{
+			LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(directoryStateReceiver);
+		}
+
 		super.onStop();
 	}
 

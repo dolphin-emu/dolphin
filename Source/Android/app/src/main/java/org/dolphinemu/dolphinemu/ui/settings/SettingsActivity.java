@@ -1,9 +1,12 @@
 package org.dolphinemu.dolphinemu.ui.settings;
 
 import android.app.FragmentTransaction;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -12,19 +15,34 @@ import android.widget.Toast;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.model.settings.SettingSection;
+import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
+import org.dolphinemu.dolphinemu.services.DirectoryInitializationService.DirectoryInitializationState;
+import org.dolphinemu.dolphinemu.utils.DirectoryStateReceiver;
+import org.dolphinemu.dolphinemu.utils.Log;
+import org.dolphinemu.dolphinemu.utils.PermissionsHandler;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+
+import rx.functions.Action1;
 
 public final class SettingsActivity extends AppCompatActivity implements SettingsActivityView
 {
 	private static final String ARG_FILE_NAME = "file_name";
 	private static final String FRAGMENT_TAG = "settings";
 	private SettingsActivityPresenter mPresenter = new SettingsActivityPresenter(this);
+	private ProgressDialog dialog;
+	private DirectoryStateReceiver directoryStateReceiver;
 
 	public static void launch(Context context, String menuTag)
 	{
-		Intent settings = new Intent(context, SettingsActivity.class);
+        if (!PermissionsHandler.hasWriteAccess(context))
+        {
+            Log.error("Settings could not be opened because write permission is not granted");
+            return;
+        }
+
+        Intent settings = new Intent(context, SettingsActivity.class);
 		settings.putExtra(ARG_FILE_NAME, menuTag);
 		context.startActivity(settings);
 	}
@@ -40,6 +58,9 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
 		String filename = launcher.getStringExtra(ARG_FILE_NAME);
 
 		mPresenter.onCreate(savedInstanceState, filename);
+		dialog = new ProgressDialog(this);
+		dialog.setMessage(getString(R.string.load_settings));
+		dialog.setIndeterminate(true);
 	}
 
 	@Override
@@ -65,6 +86,13 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
 		mPresenter.saveState(outState);
 	}
 
+	@Override
+	protected void onStart()
+	{
+		super.onStart();
+		prepareDirectoriesIfNeeded();
+	}
+
 	/**
 	 * If this is called, the user has left the settings screen (potentially through the
 	 * home button) and will expect their changes to be persisted. So we kick off an
@@ -73,6 +101,11 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
 	@Override
 	protected void onStop()
 	{
+		if (directoryStateReceiver != null)
+		{
+			LocalBroadcastManager.getInstance(this).unregisterReceiver(directoryStateReceiver);
+		}
+
 		super.onStop();
 
 		mPresenter.onStop(isFinishing());
@@ -179,5 +212,47 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
 	private SettingsFragment getFragment()
 	{
 		return (SettingsFragment) getFragmentManager().findFragmentByTag(FRAGMENT_TAG);
+	}
+
+	private void prepareDirectoriesIfNeeded()
+	{
+		if (DirectoryInitializationService.isDolphinDirectoriesReady())
+		{
+			mPresenter.loadSettingsUI();
+		}
+		else
+		{
+			showLoading();
+			IntentFilter statusIntentFilter = new IntentFilter(
+					DirectoryInitializationService.BROADCAST_ACTION);
+
+			directoryStateReceiver =
+					new DirectoryStateReceiver(new Action1<DirectoryInitializationState>() {
+						@Override
+						public void call(DirectoryInitializationState directoryInitializationState)
+						{
+							if (directoryInitializationState == DirectoryInitializationState.DOLPHIN_DIRECTORIES_INITIALIZED)
+							{
+								hideLoading();
+								mPresenter.loadSettingsUI();
+							}
+						}
+					});
+
+			// Registers the DirectoryStateReceiver and its intent filters
+			LocalBroadcastManager.getInstance(this).registerReceiver(
+					directoryStateReceiver,
+					statusIntentFilter);
+			DirectoryInitializationService.startService(this);
+		}
+
+	}
+
+	private void showLoading() {
+		dialog.show();
+	}
+
+	private void hideLoading() {
+		dialog.dismiss();
 	}
 }

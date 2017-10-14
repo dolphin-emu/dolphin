@@ -281,6 +281,8 @@ public final class NativeLibrary
 	 */
 	public static native String GetVersionString();
 
+	public static native String GetGitRevision();
+
 	/**
 	 * Saves a screen capture of the game
 	 */
@@ -299,11 +301,6 @@ public final class NativeLibrary
 	 * @param slot  The slot location to load state from.
 	 */
 	public static native void LoadState(int slot);
-
-	/**
-	 * Creates the initial folder structure in /sdcard/dolphin-emu/
-	 */
-	public static native void CreateUserFolders();
 
 	/**
 	 * Sets the current working user directory

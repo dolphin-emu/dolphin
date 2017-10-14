@@ -27,21 +27,27 @@ public final class SettingsActivityPresenter
 		mView = view;
 	}
 
+	private String menuTag;
+
 	public void onCreate(Bundle savedInstanceState, String menuTag)
 	{
 		if (savedInstanceState == null)
 		{
-			mView.showSettingsFragment(menuTag, false);
-
-			mSettings.add(SettingsFile.SETTINGS_DOLPHIN, SettingsFile.readFile(SettingsFile.FILE_NAME_DOLPHIN, mView));
-			mSettings.add(SettingsFile.SETTINGS_GFX, SettingsFile.readFile(SettingsFile.FILE_NAME_GFX, mView));
-			mSettings.add(SettingsFile.SETTINGS_WIIMOTE, SettingsFile.readFile(SettingsFile.FILE_NAME_WIIMOTE, mView));
-			mView.onSettingsFileLoaded(mSettings);
+			this.menuTag = menuTag;
 		}
 		else
 		{
 			mShouldSave = savedInstanceState.getBoolean(KEY_SHOULD_SAVE);
 		}
+	}
+
+	public void loadSettingsUI() {
+		mView.showSettingsFragment(menuTag, false);
+
+		mSettings.add(SettingsFile.SETTINGS_DOLPHIN, SettingsFile.readFile(SettingsFile.FILE_NAME_DOLPHIN, mView));
+		mSettings.add(SettingsFile.SETTINGS_GFX, SettingsFile.readFile(SettingsFile.FILE_NAME_GFX, mView));
+		mSettings.add(SettingsFile.SETTINGS_WIIMOTE, SettingsFile.readFile(SettingsFile.FILE_NAME_WIIMOTE, mView));
+		mView.onSettingsFileLoaded(mSettings);
 	}
 
 	public void setSettings(ArrayList<HashMap<String, SettingSection>> settings)
