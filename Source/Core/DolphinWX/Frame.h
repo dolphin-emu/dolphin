@@ -21,7 +21,6 @@
 #include "Common/Event.h"
 #include "Core/ConfigManager.h"
 #include "DolphinWX/Globals.h"
-#include "LuaScripting.h"
 
 #if defined(HAVE_X11) && HAVE_X11
 #include "UICommon/X11Utils.h"
@@ -51,6 +50,11 @@ class wxAuiNotebookEvent;
 class wxListEvent;
 class wxMenuItem;
 class wxProgressDialog;
+
+namespace Lua
+{
+class LuaScriptFrame;
+}
 
 class CRenderFrame : public wxFrame
 {

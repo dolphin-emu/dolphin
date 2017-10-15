@@ -1340,7 +1340,7 @@ void SaveRecording(const std::string& filename)
 
 void SetGCInputManip(GCManipFunction func, GCManipIndex manipfunctionsindex)
 {
-  s_gc_manip_funcs[manipfunctionsindex] = std::move(func);
+  s_gc_manip_funcs[static_cast<size_t>(manipfunctionsindex)] = std::move(func);
 }
 
 void SetWiiInputManip(WiiManipFunction func)
@@ -1351,12 +1351,12 @@ void SetWiiInputManip(WiiManipFunction func)
 // NOTE: CPU Thread
 void CallGCInputManip(GCPadStatus* PadStatus, int controllerID)
 {
-  if (s_gc_manip_funcs[TASInputGCManip])
-    s_gc_manip_funcs[TASInputGCManip](PadStatus, controllerID);
+  if (s_gc_manip_funcs[static_cast<size_t>(GCManipIndex::TASInputGCManip)])
+    s_gc_manip_funcs[static_cast<size_t>(GCManipIndex::TASInputGCManip)](PadStatus, controllerID);
 
   //With this ordering, the Lua script will have priority over the TASInput window
-  if (s_gc_manip_funcs[LuaGCManip])
-    s_gc_manip_funcs[LuaGCManip](PadStatus, controllerID);
+  if (s_gc_manip_funcs[static_cast<size_t>(GCManipIndex::LuaGCManip)])
+    s_gc_manip_funcs[static_cast<size_t>(GCManipIndex::LuaGCManip)](PadStatus, controllerID);
 }
 // NOTE: CPU Thread
 void CallWiiInputManip(u8* data, WiimoteEmu::ReportFeatures rptf, int controllerID, int ext,

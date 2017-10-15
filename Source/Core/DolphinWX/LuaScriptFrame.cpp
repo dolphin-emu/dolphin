@@ -6,22 +6,25 @@
 
 #include "LuaScripting.h"
 
-#include <algorithm>
-#include <fstream>
-#include <string>
 #include <wx/button.h>
-#include <wx/frame.h>
+#include <wx/filedlg.h>
 #include <wx/menu.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>
+#include <wx/stattext.h>
 #include <wx/textctrl.h>
+#include <lua5.3\include\lua.hpp>
+
 #include "Core\Core.h"
 #include "Core\HW\GCPad.h"
 #include "Core\HW\GCPadEmu.h"
+#include "Core\HW\ProcessorInterface.h"
 #include "Core\Movie.h"
+#include "Core\State.h"
 #include "DolphinWX/Main.h"
 #include "DolphinWX/WxUtils.h"
 #include "Frame.h"
+#include "InputCommon\GCPadStatus.h"
 #include "InputCommon\InputConfig.h"
 
 namespace Lua
@@ -126,7 +129,7 @@ LuaScriptFrame::~LuaScriptFrame()
   main_frame->m_lua_script_frame = nullptr;
 
   // Nullify GC manipulator function to prevent crash when lua console is closed
-  Movie::s_gc_manip_funcs[Movie::GCManipIndex::LuaGCManip] = nullptr;
+  Movie::s_gc_manip_funcs[static_cast<size_t>(Movie::GCManipIndex::LuaGCManip)] = nullptr;
 }
 
 //

@@ -32,13 +32,13 @@ enum PlayMode
   MODE_PLAYING
 };
 
-enum GCManipIndex
+enum class GCManipIndex
 {
   TASInputGCManip,
   LuaGCManip
 };
 
-const int GCManipIndex_size = 2;
+constexpr size_t gc_manip_index_size = 2;
 
 // GameCube Controller State
 #pragma pack(push, 1)
@@ -190,5 +190,5 @@ void CallGCInputManip(GCPadStatus* PadStatus, int controllerID);
 void CallWiiInputManip(u8* core, WiimoteEmu::ReportFeatures rptf, int controllerID, int ext,
                        const wiimote_key key);
 
-static GCManipFunction s_gc_manip_funcs[GCManipIndex_size];
+static GCManipFunction s_gc_manip_funcs[gc_manip_index_size];
 }

@@ -5,41 +5,28 @@
 #pragma once
 
 #include <map>
-#include <math.h>
-#include <mutex>
-#include <wx/artprov.h>
-#include <wx/bitmap.h>
-#include <wx/button.h>
-#include <wx/colour.h>
-#include <wx/filedlg.h>
-#include <wx/font.h>
 #include <wx/frame.h>
-#include <wx/gdicmn.h>
-#include <wx/icon.h>
-#include <wx/image.h>
-#include <wx/menu.h>
-#include <wx/settings.h>
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/string.h>
-#include <wx/textctrl.h>
-#include "Core\HW\ProcessorInterface.h"
-#include "Core\State.h"
-#include "InputCommon\GCPadStatus.h"
 
-// Lua includes
-#ifdef __cplusplus
-#include <lua5.3\include\lua.hpp>
-#else
-#include <lua5.3\include\laux.h>
-#include <lua5.3\include\lua.h>
-#include <lua5.3\include\lualib.h>
-#endif
-
-typedef int (*LuaFunction)(lua_State* L);
+// Forward Declarations
+class wxString;
+class wxFileDialog;
+class wxTextCtrl;
+class wxStaticText;
+class wxMenuItem;
+class wxMenuBar;
+class wxMenu;
+class wxButton;
+struct GCPadStatus;
+struct lua_State;
+namespace std
+{
+class mutex;
+}
 
 namespace Lua
 {
+using LuaFunction = int (*)(lua_State* L);
+
 extern std::map<const char*, LuaFunction>* registered_functions;
 
 // pad_status is shared between the window thread and the script executing thread.
