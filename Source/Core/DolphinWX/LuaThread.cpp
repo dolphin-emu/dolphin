@@ -6,18 +6,16 @@
 #include <mutex>
 #include "Core\Core.h"
 #include "InputCommon\GCPadStatus.h"
-#include "LuaScripting.h"
+#include "DolphinWX\LuaScripting.h"
 
 namespace Lua
 {
 GCPadStatus* pad_status;
 
-LuaThread::LuaThread(LuaScriptFrame* p, wxString file) : wxThread()
+LuaThread::LuaThread(LuaScriptFrame* p, const wxString& file) : m_parent(p), m_file_path(file),  wxThread()
 {
-  parent = p;
-  file_path = file;
-
   // Initialize virtual controller
+  //std::unique_ptr<GCPadStatus>
   pad_status = (GCPadStatus*)malloc(sizeof(GCPadStatus));
   ClearPad(pad_status);
 }
@@ -29,7 +27,7 @@ LuaThread::~LuaThread()
   free(pad_status);
   pad_status = nullptr;
 
-  parent->NullifyLuaThread();
+  m_parent->NullifyLuaThread();
 }
 
 wxThread::ExitCode LuaThread::Entry()
@@ -44,25 +42,25 @@ wxThread::ExitCode LuaThread::Entry()
 
   // Register additinal functions with Lua
   std::map<const char*, LuaFunction>::iterator it;
-  for (it = registered_functions->begin(); it != registered_functions->end(); it++)
+  for (it = m_parent->m_registered_functions->begin(); it != m_parent->m_registered_functions->end(); it++)
   {
     lua_register(state, it->first, it->second);
   }
 
-  if (luaL_loadfile(state, file_path) != LUA_OK)
+  if (luaL_loadfile(state, m_file_path) != LUA_OK)
   {
-    parent->Log("Error opening file.\n");
+    m_parent->Log("Error opening file.\n");
 
     return nullptr;
   }
 
   if (lua_pcall(state, 0, LUA_MULTRET, 0) != LUA_OK)
   {
-    parent->Log(lua_tostring(state, 1));
+    m_parent->Log(lua_tostring(state, 1));
 
     return nullptr;
   }
 
-  return parent;
+  return m_parent;
 }
 }  // namespace Lua

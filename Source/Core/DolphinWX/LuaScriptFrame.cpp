@@ -4,8 +4,9 @@
 
 #pragma once
 
-#include "LuaScripting.h"
+#include "DolphinWX\LuaScripting.h"
 
+#include <lua5.3\include\lua.hpp>
 #include <wx/button.h>
 #include <wx/filedlg.h>
 #include <wx/menu.h>
@@ -13,7 +14,6 @@
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
-#include <lua5.3\include\lua.hpp>
 
 #include "Core\Core.h"
 #include "Core\HW\GCPad.h"
@@ -59,7 +59,6 @@ int setTriggers(lua_State* L);
 LuaScriptFrame* currentWindow;
 
 // External symbols
-std::map<const char*, LuaFunction>* registered_functions;
 std::mutex lua_mutex;
 
 LuaScriptFrame::LuaScriptFrame(wxWindow* parent)
@@ -73,37 +72,37 @@ LuaScriptFrame::LuaScriptFrame(wxWindow* parent)
   Show();
 
   currentWindow = this;
-  lua_thread = nullptr;
+  m_lua_thread = nullptr;
 
   // Create function map if it doesn't already exist
-  if (!registered_functions)
+  if (!m_registered_functions)
   {
-    registered_functions = new std::map<const char*, LuaFunction>;
+    m_registered_functions = new std::map<const char*, LuaFunction>;
 
-    registered_functions->insert(std::pair<const char*, LuaFunction>("print", printToTextCtrl));
-    registered_functions->insert(std::pair<const char*, LuaFunction>("frameAdvance", frameAdvance));
-    registered_functions->insert(
+    m_registered_functions->insert(std::pair<const char*, LuaFunction>("print", printToTextCtrl));
+    m_registered_functions->insert(std::pair<const char*, LuaFunction>("frameAdvance", frameAdvance));
+    m_registered_functions->insert(
         std::pair<const char*, LuaFunction>("getFrameCount", getFrameCount));
-    registered_functions->insert(
+    m_registered_functions->insert(
         std::pair<const char*, LuaFunction>("getMovieLength", getMovieLength));
-    registered_functions->insert(std::pair<const char*, LuaFunction>("softReset", softReset));
-    registered_functions->insert(std::pair<const char*, LuaFunction>("saveState", saveState));
-    registered_functions->insert(std::pair<const char*, LuaFunction>("loadState", loadState));
-    registered_functions->insert(
+    m_registered_functions->insert(std::pair<const char*, LuaFunction>("softReset", softReset));
+    m_registered_functions->insert(std::pair<const char*, LuaFunction>("saveState", saveState));
+    m_registered_functions->insert(std::pair<const char*, LuaFunction>("loadState", loadState));
+    m_registered_functions->insert(
         std::pair<const char*, LuaFunction>("setEmulatorSpeed", setEmulatorSpeed));
-    registered_functions->insert(std::pair<const char*, LuaFunction>("getAnalog", getAnalog));
-    registered_functions->insert(std::pair<const char*, LuaFunction>("setAnalog", setAnalog));
-    registered_functions->insert(std::pair<const char*, LuaFunction>("getCStick", getCStick));
-    registered_functions->insert(std::pair<const char*, LuaFunction>("setCStick", setCStick));
-    registered_functions->insert(
+    m_registered_functions->insert(std::pair<const char*, LuaFunction>("getAnalog", getAnalog));
+    m_registered_functions->insert(std::pair<const char*, LuaFunction>("setAnalog", setAnalog));
+    m_registered_functions->insert(std::pair<const char*, LuaFunction>("getCStick", getCStick));
+    m_registered_functions->insert(std::pair<const char*, LuaFunction>("setCStick", setCStick));
+    m_registered_functions->insert(
         std::pair<const char*, LuaFunction>("setCStickPolar", setCStickPolar));
-    registered_functions->insert(
+    m_registered_functions->insert(
         std::pair<const char*, LuaFunction>("setAnalogPolar", setAnalogPolar));
-    registered_functions->insert(std::pair<const char*, LuaFunction>("getButtons", getButtons));
-    registered_functions->insert(std::pair<const char*, LuaFunction>("setButtons", setButtons));
-    registered_functions->insert(std::pair<const char*, LuaFunction>("setDPad", setDPad));
-    registered_functions->insert(std::pair<const char*, LuaFunction>("getTriggers", getTriggers));
-    registered_functions->insert(std::pair<const char*, LuaFunction>("setTriggers", setTriggers));
+    m_registered_functions->insert(std::pair<const char*, LuaFunction>("getButtons", getButtons));
+    m_registered_functions->insert(std::pair<const char*, LuaFunction>("setButtons", setButtons));
+    m_registered_functions->insert(std::pair<const char*, LuaFunction>("setDPad", setDPad));
+    m_registered_functions->insert(std::pair<const char*, LuaFunction>("getTriggers", getTriggers));
+    m_registered_functions->insert(std::pair<const char*, LuaFunction>("setTriggers", setTriggers));
   }
 }
 
@@ -112,18 +111,19 @@ LuaScriptFrame::~LuaScriptFrame()
   // Disconnect Events
   this->Disconnect(wxID_ANY, wxEVT_COMMAND_MENU_SELECTED,
                    wxCommandEventHandler(LuaScriptFrame::OnClearClicked));
-  browse_button->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED,
-                            wxCommandEventHandler(LuaScriptFrame::BrowseOnButtonClick), NULL, this);
-  run_button->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED,
-                         wxCommandEventHandler(LuaScriptFrame::RunOnButtonClick), NULL, this);
-  stop_button->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED,
-                          wxCommandEventHandler(LuaScriptFrame::StopOnButtonClick), NULL, this);
+  m_browse_button->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED,
+                              wxCommandEventHandler(LuaScriptFrame::BrowseOnButtonClick), NULL,
+                              this);
+  m_run_button->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED,
+                           wxCommandEventHandler(LuaScriptFrame::RunOnButtonClick), NULL, this);
+  m_stop_button->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED,
+                            wxCommandEventHandler(LuaScriptFrame::StopOnButtonClick), NULL, this);
 
   // Stop currently executing Lua thread
-  if (lua_thread != nullptr && lua_thread->IsRunning())
+  if (m_lua_thread != nullptr && m_lua_thread->IsRunning())
   {
-    lua_thread->Kill();
-    lua_thread = nullptr;
+    m_lua_thread->Kill();
+    m_lua_thread = nullptr;
   }
 
   main_frame->m_lua_script_frame = nullptr;
@@ -142,58 +142,59 @@ void LuaScriptFrame::CreateGUI()
   this->SetSizeHints(wxDefaultSize, wxDefaultSize);
 
   m_menubar = new wxMenuBar(0);
-  console_menu = new wxMenu();
-  clear =
-      new wxMenuItem(console_menu, wxID_ANY, wxString(_("Clear")), wxEmptyString, wxITEM_NORMAL);
-  console_menu->Append(clear);
-  help_menu = new wxMenu();
-  documentation = new wxMenuItem(help_menu, wxID_ANY, wxString(_("Lua Documentation")),
-                                 wxEmptyString, wxITEM_NORMAL);
-  api = new wxMenuItem(help_menu, wxID_ANY, wxString(_("Dolphin Lua API")), wxEmptyString,
-                       wxITEM_NORMAL);
-  help_menu->Append(documentation);
-  help_menu->Append(api);
+  m_console_menu = new wxMenu();
+  m_clear =
+      new wxMenuItem(m_console_menu, wxID_ANY, wxString(_("Clear")), wxEmptyString, wxITEM_NORMAL);
+  m_console_menu->Append(m_clear);
+  m_help_menu = new wxMenu();
+  m_documentation = new wxMenuItem(m_help_menu, wxID_ANY, wxString(_("Lua Documentation")),
+                                   wxEmptyString, wxITEM_NORMAL);
+  m_api = new wxMenuItem(m_help_menu, wxID_ANY, wxString(_("Dolphin Lua API")), wxEmptyString,
+                         wxITEM_NORMAL);
+  m_help_menu->Append(m_documentation);
+  m_help_menu->Append(m_api);
 
-  m_menubar->Append(console_menu, _("Console"));
-  m_menubar->Append(help_menu, _("Help"));
+  m_menubar->Append(m_console_menu, _("Console"));
+  m_menubar->Append(m_help_menu, _("Help"));
 
   this->SetMenuBar(m_menubar);
 
   wxBoxSizer* main_sizer;
   main_sizer = new wxBoxSizer(wxVERTICAL);
 
-  script_file_label =
+  m_script_file_label =
       new wxStaticText(this, wxID_ANY, _("Script File:"), wxDefaultPosition, wxDefaultSize, 0);
-  script_file_label->Wrap(-1);
-  main_sizer->Add(script_file_label, 0, wxALL, 5);
+  m_script_file_label->Wrap(-1);
+  main_sizer->Add(m_script_file_label, 0, wxALL, 5);
 
-  file_path = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(300, -1), 0);
-  file_path->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT));
+  m_file_path =
+      new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(300, -1), 0);
+  m_file_path->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT));
 
-  main_sizer->Add(file_path, 0, wxALL, 5);
+  main_sizer->Add(m_file_path, 0, wxALL, 5);
 
   wxBoxSizer* buttons;
   buttons = new wxBoxSizer(wxHORIZONTAL);
 
-  browse_button = new wxButton(this, wxID_ANY, _("Browse..."), wxPoint(-1, -1), wxDefaultSize, 0);
-  buttons->Add(browse_button, 0, wxALL, 5);
+  m_browse_button = new wxButton(this, wxID_ANY, _("Browse..."), wxPoint(-1, -1), wxDefaultSize, 0);
+  buttons->Add(m_browse_button, 0, wxALL, 5);
 
-  run_button = new wxButton(this, wxID_ANY, _("Run"), wxDefaultPosition, wxDefaultSize, 0);
-  buttons->Add(run_button, 0, wxALL, 5);
+  m_run_button = new wxButton(this, wxID_ANY, _("Run"), wxDefaultPosition, wxDefaultSize, 0);
+  buttons->Add(m_run_button, 0, wxALL, 5);
 
-  stop_button = new wxButton(this, wxID_ANY, _("Stop"), wxDefaultPosition, wxDefaultSize, 0);
-  buttons->Add(stop_button, 0, wxALL, 5);
+  m_stop_button = new wxButton(this, wxID_ANY, _("Stop"), wxDefaultPosition, wxDefaultSize, 0);
+  buttons->Add(m_stop_button, 0, wxALL, 5);
 
   main_sizer->Add(buttons, 1, wxEXPAND, 5);
 
-  output_console_literal =
+  m_output_console_literal =
       new wxStaticText(this, wxID_ANY, _("Output Console:"), wxDefaultPosition, wxDefaultSize, 0);
-  output_console_literal->Wrap(-1);
-  main_sizer->Add(output_console_literal, 0, wxALL, 5);
+  m_output_console_literal->Wrap(-1);
+  main_sizer->Add(m_output_console_literal, 0, wxALL, 5);
 
-  output_console = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition,
-                                  wxSize(415, 200), wxHSCROLL | wxTE_MULTILINE | wxTE_READONLY);
-  main_sizer->Add(output_console, 0, wxALL, 6);
+  m_output_console = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition,
+                                    wxSize(415, 200), wxHSCROLL | wxTE_MULTILINE | wxTE_READONLY);
+  main_sizer->Add(m_output_console, 0, wxALL, 6);
 
   this->SetSizer(main_sizer);
   this->Layout();
@@ -201,28 +202,28 @@ void LuaScriptFrame::CreateGUI()
   this->Centre(wxBOTH);
 
   // Connect Events
-  this->Connect(clear->GetId(), wxEVT_COMMAND_MENU_SELECTED,
+  this->Connect(m_clear->GetId(), wxEVT_COMMAND_MENU_SELECTED,
                 wxCommandEventHandler(LuaScriptFrame::OnClearClicked));
-  this->Connect(documentation->GetId(), wxEVT_COMMAND_MENU_SELECTED,
+  this->Connect(m_documentation->GetId(), wxEVT_COMMAND_MENU_SELECTED,
                 wxCommandEventHandler(LuaScriptFrame::OnDocumentationClicked));
-  this->Connect(api->GetId(), wxEVT_COMMAND_MENU_SELECTED,
+  this->Connect(m_api->GetId(), wxEVT_COMMAND_MENU_SELECTED,
                 wxCommandEventHandler(LuaScriptFrame::OnAPIClicked));
-  browse_button->Connect(wxEVT_COMMAND_BUTTON_CLICKED,
-                         wxCommandEventHandler(LuaScriptFrame::BrowseOnButtonClick), NULL, this);
-  run_button->Connect(wxEVT_COMMAND_BUTTON_CLICKED,
-                      wxCommandEventHandler(LuaScriptFrame::RunOnButtonClick), NULL, this);
-  stop_button->Connect(wxEVT_COMMAND_BUTTON_CLICKED,
-                       wxCommandEventHandler(LuaScriptFrame::StopOnButtonClick), NULL, this);
+  m_browse_button->Connect(wxEVT_COMMAND_BUTTON_CLICKED,
+                           wxCommandEventHandler(LuaScriptFrame::BrowseOnButtonClick), NULL, this);
+  m_run_button->Connect(wxEVT_COMMAND_BUTTON_CLICKED,
+                        wxCommandEventHandler(LuaScriptFrame::RunOnButtonClick), NULL, this);
+  m_stop_button->Connect(wxEVT_COMMAND_BUTTON_CLICKED,
+                         wxCommandEventHandler(LuaScriptFrame::StopOnButtonClick), NULL, this);
 }
 
 void LuaScriptFrame::Log(const char* message)
 {
-  output_console->AppendText(message);
+  m_output_console->AppendText(message);
 }
 
 void LuaScriptFrame::OnClearClicked(wxCommandEvent& event)
 {
-  output_console->Clear();
+  m_output_console->Clear();
 }
 
 void LuaScriptFrame::OnDocumentationClicked(wxCommandEvent& event)
@@ -242,26 +243,26 @@ void LuaScriptFrame::BrowseOnButtonClick(wxCommandEvent& event)
   if (dialog->ShowModal() == wxID_CANCEL)
     return;
 
-  file_path->SetValue(dialog->GetPath());
+  m_file_path->SetValue(dialog->GetPath());
   dialog->Destroy();
 }
 
 void LuaScriptFrame::RunOnButtonClick(wxCommandEvent& event)
 {
-  if (lua_thread == nullptr)
+  if (m_lua_thread == nullptr)
   {
-    lua_thread = new LuaThread(this, file_path->GetValue());
-    lua_thread->Run();
+    m_lua_thread = new LuaThread(this, m_file_path->GetValue());
+    m_lua_thread->Run();
   }
 }
 
 void LuaScriptFrame::StopOnButtonClick(wxCommandEvent& event)
 {
   // Kill current Lua thread
-  if (lua_thread != nullptr && lua_thread->IsRunning())
+  if (m_lua_thread != nullptr && m_lua_thread->IsRunning())
   {
-    lua_thread->Kill();
-    lua_thread = nullptr;
+    m_lua_thread->Kill();
+    m_lua_thread = nullptr;
   }
 }
 
@@ -272,7 +273,7 @@ void LuaScriptFrame::GetValues(GCPadStatus* status)
   // middle of this function's execution
   std::unique_lock<std::mutex> lock(lua_mutex);
 
-  if (lua_thread == nullptr)
+  if (m_lua_thread == nullptr)
     return;
 
   if (pad_status->stickX != GCPadStatus::MAIN_STICK_CENTER_X)
@@ -298,7 +299,7 @@ void LuaScriptFrame::GetValues(GCPadStatus* status)
 
 void LuaScriptFrame::NullifyLuaThread()
 {
-  lua_thread = nullptr;
+  m_lua_thread = nullptr;
 }
 
 // Sets status to the default values

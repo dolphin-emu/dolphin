@@ -27,9 +27,7 @@ namespace Lua
 {
 using LuaFunction = int (*)(lua_State* L);
 
-extern std::map<const char*, LuaFunction>* registered_functions;
-
-// pad_status is shared between the window thread and the script executing thread.
+// m_pad_status is shared between the window thread and the script executing thread.
 // so access to it must be mutex protected.
 extern GCPadStatus* pad_status;
 extern std::mutex lua_mutex;
@@ -38,17 +36,17 @@ void ClearPad(GCPadStatus*);
 
 class LuaScriptFrame;
 
-class LuaThread : public wxThread
+class LuaThread final : public wxThread
 {
 public:
-  LuaThread(LuaScriptFrame* p, wxString file);
+  LuaThread(LuaScriptFrame* p, const wxString& file);
   ~LuaThread();
 
-  wxThread::ExitCode Entry();
 
 private:
-  LuaScriptFrame* parent = nullptr;
-  wxString file_path;
+  LuaScriptFrame* m_parent = nullptr;
+  wxString m_file_path;
+  wxThread::ExitCode Entry() override;
 };
 
 class LuaScriptFrame final : public wxFrame
@@ -57,6 +55,7 @@ public:
   void Log(const char* message);
   void GetValues(GCPadStatus* status);
   void NullifyLuaThread();
+  std::map<const char*, LuaFunction>* m_registered_functions;
 
   LuaScriptFrame(wxWindow* parent);
 
@@ -71,18 +70,18 @@ private:
   void RunOnButtonClick(wxCommandEvent& event);
   void StopOnButtonClick(wxCommandEvent& event);
   wxMenuBar* m_menubar;
-  wxMenuItem* clear;
-  wxMenuItem* documentation;
-  wxMenuItem* api;
-  wxMenu* console_menu;
-  wxMenu* help_menu;
-  wxStaticText* script_file_label;
-  wxTextCtrl* file_path;
-  wxButton* browse_button;
-  wxButton* run_button;
-  wxButton* stop_button;
-  wxStaticText* output_console_literal;
-  wxTextCtrl* output_console;
-  LuaThread* lua_thread;
+  wxMenuItem* m_clear;
+  wxMenuItem* m_documentation;
+  wxMenuItem* m_api;
+  wxMenu* m_console_menu;
+  wxMenu* m_help_menu;
+  wxStaticText* m_script_file_label;
+  wxTextCtrl* m_file_path;
+  wxButton* m_browse_button;
+  wxButton* m_run_button;
+  wxButton* m_stop_button;
+  wxStaticText* m_output_console_literal;
+  wxTextCtrl* m_output_console;
+  LuaThread* m_lua_thread;
 };
 }  // namespace Lua
