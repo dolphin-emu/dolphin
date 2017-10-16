@@ -5,6 +5,7 @@
 #pragma once
 
 #include <map>
+#include <mutex>
 #include <wx/frame.h>
 
 // Forward Declarations
@@ -18,10 +19,6 @@ class wxMenu;
 class wxButton;
 struct GCPadStatus;
 struct lua_State;
-namespace std
-{
-class mutex;
-}
 
 namespace Lua
 {

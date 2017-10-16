@@ -3,7 +3,6 @@
 // Refer to the license.txt file included.
 
 #include <lua5.3\include\lua.hpp>
-#include <mutex>
 #include "Core\Core.h"
 #include "InputCommon\GCPadStatus.h"
 #include "DolphinWX\LuaScripting.h"

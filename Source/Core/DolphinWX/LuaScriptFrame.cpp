@@ -80,7 +80,8 @@ LuaScriptFrame::LuaScriptFrame(wxWindow* parent)
     m_registered_functions = new std::map<const char*, LuaFunction>;
 
     m_registered_functions->insert(std::pair<const char*, LuaFunction>("print", printToTextCtrl));
-    m_registered_functions->insert(std::pair<const char*, LuaFunction>("frameAdvance", frameAdvance));
+    m_registered_functions->insert(
+        std::pair<const char*, LuaFunction>("frameAdvance", frameAdvance));
     m_registered_functions->insert(
         std::pair<const char*, LuaFunction>("getFrameCount", getFrameCount));
     m_registered_functions->insert(
