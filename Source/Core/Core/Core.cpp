@@ -814,17 +814,28 @@ static bool PauseAndLock(bool do_lock, bool unpause_on_unlock)
   return was_unpaused;
 }
 
-void RunAsCPUThread(std::function<void()> function)
+template<typename T>
+T RunAsCPUThread(std::function<T()> function)
 {
   const bool is_cpu_thread = IsCPUThread();
   bool was_unpaused = false;
   if (!is_cpu_thread)
     was_unpaused = PauseAndLock(true, true);
 
-  function();
+  return function();
 
   if (!is_cpu_thread)
     PauseAndLock(false, was_unpaused);
+}
+
+void RunAsCPUThread(std::function<void()> function)
+{
+  return RunAsCPUThread<void>(function);
+}
+
+bool RunAsCPUThread(std::function<bool()> function)
+{
+  return RunAsCPUThread<bool>(function);
 }
 
 // Display FPS info

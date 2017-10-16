@@ -540,7 +540,7 @@ bool LoadAs(const std::string& filename)
     return false;
   }
 
-  Core::RunAsCPUThread([&] {
+  std::function<bool()> function = [&] {
     g_loadDepth++;
 
     // Save temp buffer for undo load state
@@ -581,7 +581,7 @@ bool LoadAs(const std::string& filename)
         if (File::Exists(filename + ".dtm"))
           Movie::LoadInput(filename + ".dtm");
         else if (!Movie::IsJustStartingRecordingInputFromSaveState() &&
-                 !Movie::IsJustStartingPlayingInputFromSaveState())
+          !Movie::IsJustStartingPlayingInputFromSaveState())
           Movie::EndPlayInput(false);
       }
       else
@@ -601,8 +601,9 @@ bool LoadAs(const std::string& filename)
       s_on_after_load_callback();
 
     g_loadDepth--;
-  });
-  return true; // FIXME get result from Core::RunAsCPUThread call somehow
+    return loadedSuccessfully;
+  };
+  return Core::RunAsCPUThread(function);
 }
 
 void SetOnAfterLoadCallback(AfterLoadCallbackFunc callback)

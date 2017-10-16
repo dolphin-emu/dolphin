@@ -83,6 +83,7 @@ void UpdateTitle();
 //
 // This should only be called from the CPU thread or the host thread.
 void RunAsCPUThread(std::function<void()> function);
+bool RunAsCPUThread(std::function<bool()> function);
 
 // for calling back into UI code without introducing a dependency on it in core
 using StateChangedCallbackFunc = std::function<void(Core::State)>;
