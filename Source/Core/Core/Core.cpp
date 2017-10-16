@@ -822,15 +822,26 @@ T RunAsCPUThread(std::function<T()> function)
   if (!is_cpu_thread)
     was_unpaused = PauseAndLock(true, true);
 
-  return function();
+  T result = function();
 
   if (!is_cpu_thread)
     PauseAndLock(false, was_unpaused);
+
+  return result;
 }
 
 void RunAsCPUThread(std::function<void()> function)
 {
-  return RunAsCPUThread<void>(function);
+  // FIXME avoid duplicate code somehow
+  const bool is_cpu_thread = IsCPUThread();
+  bool was_unpaused = false;
+  if (!is_cpu_thread)
+    was_unpaused = PauseAndLock(true, true);
+
+  function();
+
+  if (!is_cpu_thread)
+    PauseAndLock(false, was_unpaused);
 }
 
 bool RunAsCPUThread(std::function<bool()> function)

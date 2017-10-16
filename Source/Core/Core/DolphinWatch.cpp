@@ -150,27 +150,22 @@ namespace DolphinWatch {
 		}
 	}
 
-    Core::State SuspendSafely() {
-        // when MSR.DR isn't set, address translation is disabled.
-        // we do not want that. therefore we make sure to pause in
-        // an emulation state with MSR.DR set.
-        // see also WriteToHardware and ReadFromHardware in MMU.cpp
-        if (!Memory::IsInitialized()) {
-            WARN_LOG(DOLPHINWATCH, "trying to suspend while memory isn't initialized");
-            return Core::GetState();
-        }
-        Core::State previousState = Core::GetState();
-        Core::SetState(Core::State::Paused);
-        bool addressTranslationOn = UReg_MSR(MSR).DR;
-        while (!addressTranslationOn) {
-            WARN_LOG(DOLPHINWATCH, "paused in state with MSR.DR not set (address resolution would be disabled), resuming a bit...");
-            Core::SetState(Core::State::Running);
-            Common::SleepCurrentThread(1);
-            Core::SetState(Core::State::Paused);
-            addressTranslationOn = UReg_MSR(MSR).DR;
-        }
-        return previousState;
+  void ExecuteSafely(std::function<void()> function) {
+    std::function<bool()> inner_function = [&] {
+      UReg_MSR msr = MSR;
+      if (!msr.DR || !msr.IR) {
+        WARN_LOG(DOLPHINWATCH, "paused in state with MSR.DR not set (address resolution would be disabled), resuming a bit...");
+        return false; // wrong CPU configuration, try again later
+      }
+      function();
+      return true;
+    };
+    bool success = false;
+    while (!success) {
+      success = Core::RunAsCPUThread(inner_function);
+      if (!success) Common::SleepCurrentThread(1);
     }
+  }
 
 	void Init(unsigned short port) {
 		running = true;
@@ -184,13 +179,12 @@ namespace DolphinWatch {
 			while (running) {
 				{
                     if (!Memory::IsInitialized()) continue;
-					std::lock_guard<std::mutex> locked(client_mtx);
-                    Core::State previousState = SuspendSafely();
-					for (Client& client : clients) {
-						// check subscriptions
-						CheckSubs(client);
-					}
-                    Core::SetState(previousState);
+                    ExecuteSafely([&] {
+                      for (Client& client : clients) {
+                        // check subscriptions
+                        CheckSubs(client);
+                      }
+                    });
 				}
 				Common::SleepCurrentThread(WATCH_TIMEOUT);
 				CheckHijacks();
@@ -275,21 +269,21 @@ namespace DolphinWatch {
 			}
 
 			// Parsing OK
-            Core::State previousState = SuspendSafely();
-			switch (mode) {
-			case 8:
-                PowerPC::HostWrite_U8(val, addr);
-				break;
-			case 16:
-				PowerPC::HostWrite_U16(val, addr);
-				break;
-			case 32:
-				PowerPC::HostWrite_U32(val, addr);
-				break;
-			default:
-				ERROR_LOG(DOLPHINWATCH, "Wrong mode for writing, 8/16/32 required as 1st parameter. Command: %s", line.c_str());
-			}
-            Core::SetState(previousState);
+      ExecuteSafely([&] {
+        switch (mode) {
+        case 8:
+          PowerPC::HostWrite_U8(val, addr);
+          break;
+        case 16:
+          PowerPC::HostWrite_U16(val, addr);
+          break;
+        case 32:
+          PowerPC::HostWrite_U32(val, addr);
+          break;
+        default:
+          ERROR_LOG(DOLPHINWATCH, "Wrong mode for writing, 8/16/32 required as 1st parameter. Command: %s", line.c_str());
+        }
+      });
 		}
 		else if (cmd == "WRITE_MULTI") {
 
@@ -311,12 +305,12 @@ namespace DolphinWatch {
 			} while ((parts >> val));
 
 			// Parsing OK
-            Core::State previousState = SuspendSafely();
-			for (u32 v : vals) {
-				PowerPC::HostWrite_U8(v, addr);
-				addr++;
-			}
-            Core::SetState(previousState);
+      ExecuteSafely([&] {
+        for (u32 v : vals) {
+          PowerPC::HostWrite_U8(v, addr);
+          addr++;
+        }
+      });
 		}
 		else if (cmd == "READ") {
 
@@ -333,22 +327,22 @@ namespace DolphinWatch {
 			}
 
 			// Parsing OK
-            Core::State previousState = SuspendSafely();
-			switch (mode) {
-			case 8:
-				val = PowerPC::HostRead_U8(addr);
-				break;
-			case 16:
-				val = PowerPC::HostRead_U16(addr);
-				break;
-			case 32:
-                val = PowerPC::HostRead_U32(addr);
-				break;
-			default:
-				ERROR_LOG(DOLPHINWATCH, "Wrong mode for reading, 8/16/32 required as 1st parameter. Command: %s", line.c_str());
-				return;
-			}
-            Core::SetState(previousState);
+      ExecuteSafely([&] {
+        switch (mode) {
+        case 8:
+          val = PowerPC::HostRead_U8(addr);
+          break;
+        case 16:
+          val = PowerPC::HostRead_U16(addr);
+          break;
+        case 32:
+          val = PowerPC::HostRead_U32(addr);
+          break;
+        default:
+          ERROR_LOG(DOLPHINWATCH, "Wrong mode for reading, 8/16/32 required as 1st parameter. Command: %s", line.c_str());
+          return;
+        }
+      });
 
 			std::ostringstream message;
 			message << "MEM " << addr << " " << val << std::endl;
