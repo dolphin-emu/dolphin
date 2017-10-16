@@ -182,7 +182,7 @@ bool XAudio2::Start()
     return false;
   }
   m_xaudio2 = std::unique_ptr<IXAudio2, Releaser>(xaudptr);
-    
+
   // XAudio2 master voice
   // XAUDIO2_DEFAULT_CHANNELS instead of 2 for expansion?
   if (FAILED(hr = m_xaudio2->CreateMasteringVoice(&m_mastering_voice, 2, m_mixer->GetSampleRate())))

@@ -207,9 +207,8 @@ void AudioConfigPane::OnAudioBackendChanged(wxCommandEvent& event)
   SConfig::GetInstance().sBackend = m_audio_backend_choice->GetSelection() ?
                                         WxStrToStr(m_audio_backend_choice->GetStringSelection()) :
                                         BACKEND_NULLSOUND;
-
-  AudioCommon::UpdateSoundStream();
   ToggleBackendSpecificControls(WxStrToStr(m_audio_backend_choice->GetStringSelection()));
+  AudioCommon::UpdateSoundStream();
 }
 
 void AudioConfigPane::OnLatencySpinCtrlChanged(wxCommandEvent& event)
@@ -242,4 +241,3 @@ void AudioConfigPane::PopulateBackendChoiceBox()
   int num = m_audio_backend_choice->FindString(StrToWxStr(SConfig::GetInstance().sBackend));
   m_audio_backend_choice->SetSelection(num);
 }
-

@@ -185,6 +185,9 @@ void DolphinApp::ParseCommandLine()
   m_use_logger = options.is_set("logger");
   m_batch_mode = options.is_set("batch");
 
+  m_confirm_stop = options.is_set("confirm");
+  m_confirm_setting = options.get("confirm");
+
   m_select_video_backend = options.is_set("video_backend");
   m_video_backend_name = static_cast<const char*>(options.get("video_backend"));
 
