@@ -561,6 +561,17 @@ namespace DolphinWatch {
 			SetVolume(v);
 
 		}
+    else if (cmd == "SPEED") {
+      float speed;
+
+      if (!(parts >> speed)) {
+        // no valid parameters, skip
+        ERROR_LOG(DOLPHINWATCH, "Invalid command line: %s", line.c_str());
+        return;
+      }
+
+      SConfig::GetInstance().m_EmulationSpeed = speed;
+    }
 		else if (cmd == "STOP") {
 			//BootManager::Stop();
 			Core::Stop();

@@ -168,6 +168,10 @@ The server will either send "SUCCESS" or "FAIL" after this command was processed
 
 Sets Dolphin's volume. Must be a number between 0 and 100.
 
+#### `SPEED <speed>`
+
+Sets Dolphin's emulation speed. Must be a float. Normal speed is 1, half speed is 0.5 etc, and 0 means unlimited.
+
 #### `STOP`
 
 Stops the emulation. There is no command to start a different emulation, so this pretty much is a one-way command for shutdown.
