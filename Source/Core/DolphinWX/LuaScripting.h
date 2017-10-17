@@ -30,18 +30,19 @@ extern std::map<const char*, LuaFunction> m_registered_functions;
 // m_pad_status is shared between the window thread and the script executing thread.
 // so access to it must be mutex protected.
 extern std::unique_ptr<GCPadStatus> pad_status;
-extern std::mutex lua_mutex;
 
 class LuaThread final : public wxThread
 {
 public:
   LuaThread(LuaScriptFrame* p, const wxString& file);
   ~LuaThread();
+  static std::mutex* GetMutex();
 
 private:
   LuaScriptFrame* m_parent = nullptr;
   wxString m_file_path;
   wxThread::ExitCode Entry() override;
+  static std::mutex lua_mutex;
 };
 
 class LuaScriptFrame final : public wxFrame

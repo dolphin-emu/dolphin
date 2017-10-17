@@ -119,7 +119,7 @@ wxMenuBar* CFrame::CreateMenuBar() const
 {
   const auto menu_type =
       m_use_debugger ? MainMenuBar::MenuType::Debug : MainMenuBar::MenuType::Regular;
-
+  
   return new MainMenuBar{menu_type};
 }
 

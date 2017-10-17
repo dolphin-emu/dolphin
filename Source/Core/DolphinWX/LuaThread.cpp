@@ -11,7 +11,7 @@
 namespace Lua
 {
 std::unique_ptr<GCPadStatus> pad_status;
-std::mutex lua_mutex;
+std::mutex LuaThread::lua_mutex;
 
 LuaThread::LuaThread(LuaScriptFrame* p, const wxString& file)
     : m_parent(p), m_file_path(file), wxThread()
@@ -43,7 +43,6 @@ wxThread::ExitCode LuaThread::Entry()
   // Pause emu
   Core::SetState(Core::State::Paused);
 
-  //lua_State* state = luaL_newstate();
   std::unique_ptr<lua_State, decltype(&lua_close)> state(luaL_newstate(), lua_close);
 
   // Make standard libraries available to loaded script
@@ -70,5 +69,10 @@ wxThread::ExitCode LuaThread::Entry()
   }
 
   return (wxThread::ExitCode)0;
+}
+
+std::mutex* LuaThread::GetMutex()
+{
+  return &lua_mutex;
 }
 }  // namespace Lua

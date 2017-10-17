@@ -253,7 +253,7 @@ void LuaScriptFrame::GetValues(GCPadStatus* status)
 {
   // We lock here to prevent an issue where pad_status could be deleted during the
   // middle of this function's execution
-  std::unique_lock<std::mutex> lock(lua_mutex);
+  std::unique_lock<std::mutex> lock(*LuaThread::GetMutex());
 
   if (m_lua_thread == nullptr)
     return;
