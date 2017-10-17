@@ -21,15 +21,15 @@
 #include "Core\HW\ProcessorInterface.h"
 #include "Core\Movie.h"
 #include "Core\State.h"
+#include "DolphinWX/Frame.h"
 #include "DolphinWX/Main.h"
 #include "DolphinWX/WxUtils.h"
-#include "Frame.h"
 #include "InputCommon\GCPadStatus.h"
 #include "InputCommon\InputConfig.h"
 
 namespace Lua
 {
-std::map<const char*, LuaFunction>* m_registered_functions;
+std::map<const char*, LuaFunction> m_registered_functions;
 
 int printToTextCtrl(lua_State* L);
 int frameAdvance(lua_State* L);
@@ -73,51 +73,32 @@ LuaScriptFrame::LuaScriptFrame(wxWindow* parent)
   m_lua_thread = nullptr;
 
   // Create function map if it doesn't already exist
-  if (!m_registered_functions)
+  if (m_registered_functions.size() == 0)
   {
-    m_registered_functions = new std::map<const char*, LuaFunction>;
-
-    m_registered_functions->insert(std::pair<const char*, LuaFunction>("print", printToTextCtrl));
-    m_registered_functions->insert(
-        std::pair<const char*, LuaFunction>("frameAdvance", frameAdvance));
-    m_registered_functions->insert(
-        std::pair<const char*, LuaFunction>("getFrameCount", getFrameCount));
-    m_registered_functions->insert(
-        std::pair<const char*, LuaFunction>("getMovieLength", getMovieLength));
-    m_registered_functions->insert(std::pair<const char*, LuaFunction>("softReset", softReset));
-    m_registered_functions->insert(std::pair<const char*, LuaFunction>("saveState", saveState));
-    m_registered_functions->insert(std::pair<const char*, LuaFunction>("loadState", loadState));
-    m_registered_functions->insert(
-        std::pair<const char*, LuaFunction>("setEmulatorSpeed", setEmulatorSpeed));
-    m_registered_functions->insert(std::pair<const char*, LuaFunction>("getAnalog", getAnalog));
-    m_registered_functions->insert(std::pair<const char*, LuaFunction>("setAnalog", setAnalog));
-    m_registered_functions->insert(std::pair<const char*, LuaFunction>("getCStick", getCStick));
-    m_registered_functions->insert(std::pair<const char*, LuaFunction>("setCStick", setCStick));
-    m_registered_functions->insert(
-        std::pair<const char*, LuaFunction>("setCStickPolar", setCStickPolar));
-    m_registered_functions->insert(
-        std::pair<const char*, LuaFunction>("setAnalogPolar", setAnalogPolar));
-    m_registered_functions->insert(std::pair<const char*, LuaFunction>("getButtons", getButtons));
-    m_registered_functions->insert(std::pair<const char*, LuaFunction>("setButtons", setButtons));
-    m_registered_functions->insert(std::pair<const char*, LuaFunction>("setDPad", setDPad));
-    m_registered_functions->insert(std::pair<const char*, LuaFunction>("getTriggers", getTriggers));
-    m_registered_functions->insert(std::pair<const char*, LuaFunction>("setTriggers", setTriggers));
+    m_registered_functions.emplace("print", printToTextCtrl);
+    m_registered_functions.emplace("frameAdvance", frameAdvance);
+    m_registered_functions.emplace("getFrameCount", getFrameCount);
+    m_registered_functions.emplace("getMovieLength", getMovieLength);
+    m_registered_functions.emplace("softReset", softReset);
+    m_registered_functions.emplace("saveState", saveState);
+    m_registered_functions.emplace("loadState", loadState);
+    m_registered_functions.emplace("setEmulatorSpeed", setEmulatorSpeed);
+    m_registered_functions.emplace("getAnalog", getAnalog);
+    m_registered_functions.emplace("setAnalog", setAnalog);
+    m_registered_functions.emplace("getCStick", getCStick);
+    m_registered_functions.emplace("setCStick", setCStick);
+    m_registered_functions.emplace("setCStickPolar", setCStickPolar);
+    m_registered_functions.emplace("setAnalogPolar", setAnalogPolar);
+    m_registered_functions.emplace("getButtons", getButtons);
+    m_registered_functions.emplace("setButtons", setButtons);
+    m_registered_functions.emplace("setDPad", setDPad);
+    m_registered_functions.emplace("getTriggers", getTriggers);
+    m_registered_functions.emplace("setTriggers", setTriggers);
   }
 }
 
 LuaScriptFrame::~LuaScriptFrame()
 {
-  // Disconnect Events
-  this->Disconnect(wxID_ANY, wxEVT_COMMAND_MENU_SELECTED,
-                   wxCommandEventHandler(LuaScriptFrame::OnClearClicked));
-  m_browse_button->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED,
-                              wxCommandEventHandler(LuaScriptFrame::BrowseOnButtonClick), NULL,
-                              this);
-  m_run_button->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED,
-                           wxCommandEventHandler(LuaScriptFrame::RunOnButtonClick), NULL, this);
-  m_stop_button->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED,
-                            wxCommandEventHandler(LuaScriptFrame::StopOnButtonClick), NULL, this);
-
   // Stop currently executing Lua thread
   if (m_lua_thread != nullptr && m_lua_thread->IsRunning())
   {

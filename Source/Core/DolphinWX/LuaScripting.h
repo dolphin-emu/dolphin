@@ -26,7 +26,7 @@ using LuaFunction = int (*)(lua_State* L);
 
 class LuaScriptFrame;
 
-extern std::map<const char*, LuaFunction>* m_registered_functions;
+extern std::map<const char*, LuaFunction> m_registered_functions;
 // m_pad_status is shared between the window thread and the script executing thread.
 // so access to it must be mutex protected.
 extern std::unique_ptr<GCPadStatus> pad_status;

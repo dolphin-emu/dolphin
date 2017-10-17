@@ -50,7 +50,7 @@ wxThread::ExitCode LuaThread::Entry()
   luaL_openlibs(state.get());
 
   // Register additinal functions with Lua
-  for (const auto& entry : *m_registered_functions)
+  for (const auto& entry : m_registered_functions)
   {
     lua_register(state.get(), entry.first, entry.second);
   }
