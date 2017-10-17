@@ -1,6 +1,7 @@
 package org.dolphinemu.dolphinemu.utils;
 
 import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
 import android.hardware.usb.UsbConfiguration;
 import android.hardware.usb.UsbDevice;
@@ -33,22 +34,30 @@ public class Java_WiimoteAdapter
 
 	private static void RequestPermission()
 	{
-		HashMap<String, UsbDevice> devices = manager.getDeviceList();
-		for (Map.Entry<String, UsbDevice> pair : devices.entrySet())
+		Context context = NativeLibrary.sEmulationActivity.get();
+		if (context != null)
 		{
-			UsbDevice dev = pair.getValue();
-			if (dev.getProductId() == NINTENDO_WIIMOTE_PRODUCT_ID && dev.getVendorId() == NINTENDO_VENDOR_ID)
+			HashMap<String, UsbDevice> devices = manager.getDeviceList();
+			for (Map.Entry<String, UsbDevice> pair : devices.entrySet())
 			{
-				if (!manager.hasPermission(dev))
+				UsbDevice dev = pair.getValue();
+				if (dev.getProductId() == NINTENDO_WIIMOTE_PRODUCT_ID && dev.getVendorId() == NINTENDO_VENDOR_ID)
 				{
-					Log.warning("Requesting permission for Wii Remote adapter");
-					Intent intent = new Intent();
-					PendingIntent pend_intent;
-					intent.setClass(NativeLibrary.sEmulationActivity, USBPermService.class);
-					pend_intent = PendingIntent.getService(NativeLibrary.sEmulationActivity, 0, intent, 0);
-					manager.requestPermission(dev, pend_intent);
+					if (!manager.hasPermission(dev))
+					{
+						Log.warning("Requesting permission for Wii Remote adapter");
+						Intent intent = new Intent();
+						PendingIntent pend_intent;
+						intent.setClass(context, USBPermService.class);
+						pend_intent = PendingIntent.getService(context, 0, intent, 0);
+						manager.requestPermission(dev, pend_intent);
+					}
 				}
 			}
+		}
+		else
+		{
+			Log.warning("Cannot request Wiimote adapter permission as EmulationActivity is null.");
 		}
 	}
 

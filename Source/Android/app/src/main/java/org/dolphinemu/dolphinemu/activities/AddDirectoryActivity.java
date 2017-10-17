@@ -1,12 +1,12 @@
 package org.dolphinemu.dolphinemu.activities;
 
-import android.app.Activity;
 import android.content.AsyncQueryHandler;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -133,7 +133,7 @@ public class AddDirectoryActivity extends AppCompatActivity implements FileAdapt
 		mToolbar.setSubtitle(path);
 	}
 
-	public static void launch(Activity activity)
+	public static void launch(FragmentActivity activity)
 	{
 		Intent fileChooser = new Intent(activity, AddDirectoryActivity.class);
 		activity.startActivityForResult(fileChooser, MainPresenter.REQUEST_ADD_DIRECTORY);

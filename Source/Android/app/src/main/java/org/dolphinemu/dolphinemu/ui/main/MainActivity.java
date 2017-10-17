@@ -70,7 +70,8 @@ public final class MainActivity extends AppCompatActivity implements MainView
 
 		if (PermissionsHandler.hasWriteAccess(this))
 		{
-			PlatformPagerAdapter platformPagerAdapter = new PlatformPagerAdapter(getFragmentManager(), this);
+			PlatformPagerAdapter platformPagerAdapter = new PlatformPagerAdapter(
+					getSupportFragmentManager(), this);
 			mViewPager.setAdapter(platformPagerAdapter);
 		} else {
 			mViewPager.setVisibility(View.INVISIBLE);
@@ -162,7 +163,8 @@ public final class MainActivity extends AppCompatActivity implements MainView
 				if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
 					StartupHandler.copyAssetsIfNeeded(this);
 
-					PlatformPagerAdapter platformPagerAdapter = new PlatformPagerAdapter(getFragmentManager(), this);
+					PlatformPagerAdapter platformPagerAdapter = new PlatformPagerAdapter(
+							getSupportFragmentManager(), this);
 					mViewPager.setAdapter(platformPagerAdapter);
 					mTabLayout.setupWithViewPager(mViewPager);
 					mViewPager.setVisibility(View.VISIBLE);
@@ -205,6 +207,6 @@ public final class MainActivity extends AppCompatActivity implements MainView
 	{
 		String fragmentTag = "android:switcher:" + mViewPager.getId() + ":" + platform;
 
-		return (PlatformGamesView) getFragmentManager().findFragmentByTag(fragmentTag);
+		return (PlatformGamesView) getSupportFragmentManager().findFragmentByTag(fragmentTag);
 	}
 }
