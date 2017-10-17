@@ -1938,6 +1938,19 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstF
       }
       entry->may_have_overlapping_textures = true;
 
+      // There are cases (Rogue Squadron 2 / Texas Holdem on Wiiware) where
+      // for xfb copies the textures overlap which causes the hash of the first copy
+      // to be different (from when it was originally created).  This has no implications
+      // for XFB2Tex because the underlying memory doesn't change (dummy values) but
+      // can affect XFB2Ram when we compare the texture cache copy hash with the
+      // newly computed hash
+      // By calculating the hash when we receive overlapping xfbs, we are able
+      // to mitigate this
+      if (entry->is_xfb_copy && copy_to_ram)
+      {
+        entry->hash = entry->CalculateHash();
+      }
+
       // Do not load textures by hash, if they were at least partly overwritten by an efb copy.
       // In this case, comparing the hash is not enough to check, if two textures are identical.
       if (entry->textures_by_hash_iter != textures_by_hash.end())
