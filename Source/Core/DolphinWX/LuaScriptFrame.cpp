@@ -121,7 +121,7 @@ void LuaScriptFrame::CreateGUI()
 {
   SetSizeHints(wxDefaultSize, wxDefaultSize);
 
-  SetMenuBar(m_menubar);
+  CreateMenuBar();
 
   wxBoxSizer* main_sizer = new wxBoxSizer(wxVERTICAL);
 
@@ -194,6 +194,8 @@ void LuaScriptFrame::CreateMenuBar()
 
   m_menubar->Append(m_console_menu, _("Console"));
   m_menubar->Append(m_help_menu, _("Help"));
+
+  SetMenuBar(m_menubar);
 }
 
 void LuaScriptFrame::Log(const wxString& message)
