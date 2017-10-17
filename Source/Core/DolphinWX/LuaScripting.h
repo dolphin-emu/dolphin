@@ -50,7 +50,7 @@ public:
   LuaScriptFrame(wxWindow* parent);
   ~LuaScriptFrame();
 
-  void Log(const char* message);
+  void Log(const wxString& message);
   void GetValues(GCPadStatus* status);
   void NullifyLuaThread();
 

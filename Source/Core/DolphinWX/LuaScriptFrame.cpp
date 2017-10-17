@@ -168,12 +168,13 @@ void LuaScriptFrame::CreateGUI()
   Bind(wxEVT_MENU, &LuaScriptFrame::OnDocumentationClicked, this, m_documentation->GetId());
   Bind(wxEVT_MENU, &LuaScriptFrame::OnAPIClicked, this, m_api->GetId());
 
-  m_browse_button->Bind(wxEVT_BUTTON, &LuaScriptFrame::BrowseOnButtonClick, this, m_browse_button->GetId());
+  m_browse_button->Bind(wxEVT_BUTTON, &LuaScriptFrame::BrowseOnButtonClick, this,
+                        m_browse_button->GetId());
 
   m_run_button->Bind(wxEVT_BUTTON, &LuaScriptFrame::RunOnButtonClick, this, m_run_button->GetId());
 
-  m_stop_button->Bind(wxEVT_BUTTON, &LuaScriptFrame::StopOnButtonClick, this, m_stop_button->GetId());
-
+  m_stop_button->Bind(wxEVT_BUTTON, &LuaScriptFrame::StopOnButtonClick, this,
+                      m_stop_button->GetId());
 }
 
 void LuaScriptFrame::CreateMenuBar()
@@ -195,7 +196,7 @@ void LuaScriptFrame::CreateMenuBar()
   m_menubar->Append(m_help_menu, _("Help"));
 }
 
-void LuaScriptFrame::Log(const char* message)
+void LuaScriptFrame::Log(const wxString& message)
 {
   m_output_console->AppendText(message);
 }
@@ -217,13 +218,13 @@ void LuaScriptFrame::OnAPIClicked(wxCommandEvent& event)
 
 void LuaScriptFrame::BrowseOnButtonClick(wxCommandEvent& event)
 {
-  wxFileDialog* dialog = new wxFileDialog(this, _("Select Lua script."));
+  wxFileDialog dialog(this, _("Select Lua script."));
 
-  if (dialog->ShowModal() == wxID_CANCEL)
+  if (dialog.ShowModal() == wxID_CANCEL)
     return;
 
-  m_file_path->SetValue(dialog->GetPath());
-  dialog->Destroy();
+  m_file_path->SetValue(dialog.GetPath());
+  dialog.Destroy();
 }
 
 void LuaScriptFrame::RunOnButtonClick(wxCommandEvent& event)
@@ -296,13 +297,12 @@ int printToTextCtrl(lua_State* L)
 // Steps a frame if the emulator is paused, pauses it otherwise.
 int frameAdvance(lua_State* L)
 {
-  u64 currentFrame = Movie::GetCurrentFrame();
+  u64 current_frame = Movie::GetCurrentFrame();
   Core::DoFrameStep();
 
   // Block until a frame has actually processed
   // Prevents a script from executing it's main loop more than once per frame.
-  while (currentFrame == Movie::GetCurrentFrame())
-    ;
+  while (current_frame == Movie::GetCurrentFrame());
   return 0;
 }
 
@@ -317,12 +317,12 @@ int getMovieLength(lua_State* L)
   if (Movie::IsMovieActive())
   {
     lua_pushinteger(L, Movie::GetTotalFrames());
+    return 1;
   }
   else
   {
-    luaL_error(L, "No active movie.");
+    return 0;
   }
-  return 1;
 }
 
 int softReset(lua_State* L)
@@ -359,14 +359,15 @@ int setAnalog(lua_State* L)
 {
   if (lua_gettop(L) != 2)
   {
-    luaL_error(L, "Incorrect # of parameters passed to setAnalog.\n");
+    return luaL_error(
+        L, "Incorrect # of arguments passed to setAnalog. setAnalog expects two arguments\n");
   }
 
-  u8 xPos = lua_tointeger(L, 1);
-  u8 yPos = lua_tointeger(L, 2);
+  u8 x_pos = lua_tointeger(L, 1);
+  u8 y_pos = lua_tointeger(L, 2);
 
-  pad_status->stickX = xPos;
-  pad_status->stickY = yPos;
+  pad_status->stickX = x_pos;
+  pad_status->stickY = y_pos;
 
   return 0;
 }
@@ -378,7 +379,7 @@ int setAnalogPolar(lua_State* L)
   int m = lua_tointeger(L, 1);
   if (m < 0 || m >= 128)
   {
-    luaL_error(L, "m is outside of acceptable range [0, 128)");
+    return luaL_error(L, "m is outside of acceptable range [0, 128)");
   }
 
   // Gotta convert theta to radians
@@ -386,8 +387,8 @@ int setAnalogPolar(lua_State* L)
 
   // Round to the nearest whole number, then subtract 128 so that our
   //"origin" is the stick in neutral position.
-  pad_status->stickX = (u8)(floor(m * cos(theta)) + 128);
-  pad_status->stickY = (u8)(floor(m * sin(theta)) + 128);
+  pad_status->stickX = static_cast<u8>(floor(m * cos(theta)) + 128);
+  pad_status->stickY = static_cast<u8>(floor(m * sin(theta)) + 128);
 
   return 0;
 }
@@ -413,7 +414,7 @@ int setCStickPolar(lua_State* L)
   int m = lua_tointeger(L, 1);
   if (m < 0 || m >= 128)
   {
-    luaL_error(L, "m is outside of acceptable range [0, 128)");
+    return luaL_error(L, "m is outside of acceptable range [0, 128)");
   }
 
   int theta = lua_tointeger(L, 2);
@@ -438,7 +439,7 @@ int setButtons(lua_State* L)
 {
   const char* s = lua_tostring(L, 1);
 
-  for (int i = 0; i < strlen(s); i++)
+  for (size_t i = 0; i < strlen(s); i++)
   {
     if (s[i] == 'U')
     {
@@ -476,7 +477,7 @@ int setDPad(lua_State* L)
 {
   const char* str = lua_tostring(L, 1);
 
-  for (int i = 0; i < strlen(str); i++)
+  for (size_t i = 0; i < strlen(str); i++)
   {
     switch (str[i])
     {
