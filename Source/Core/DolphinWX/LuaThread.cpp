@@ -10,30 +10,26 @@
 
 namespace Lua
 {
-std::unique_ptr<GCPadStatus> pad_status;
-std::mutex LuaThread::lua_mutex;
+GCPadStatus LuaThread::m_pad_status;
+std::mutex LuaThread::m_lua_mutex;
 
 LuaThread::LuaThread(LuaScriptFrame* p, const wxString& file)
     : m_parent(p), m_file_path(file), wxThread()
 {
-  // Initialize virtual controller
-  pad_status = std::make_unique<GCPadStatus>();
-
   // Zero out controller
-  pad_status->button = 0;
-  pad_status->stickX = GCPadStatus::MAIN_STICK_CENTER_X;
-  pad_status->stickY = GCPadStatus::MAIN_STICK_CENTER_Y;
-  pad_status->triggerLeft = 0;
-  pad_status->triggerRight = 0;
-  pad_status->substickX = GCPadStatus::C_STICK_CENTER_X;
-  pad_status->substickY = GCPadStatus::C_STICK_CENTER_Y;
+  LuaThread::GetPadStatus()->button = 0;
+  LuaThread::GetPadStatus()->stickX = GCPadStatus::MAIN_STICK_CENTER_X;
+  LuaThread::GetPadStatus()->stickY = GCPadStatus::MAIN_STICK_CENTER_Y;
+  LuaThread::GetPadStatus()->triggerLeft = 0;
+  LuaThread::GetPadStatus()->triggerRight = 0;
+  LuaThread::GetPadStatus()->substickX = GCPadStatus::C_STICK_CENTER_X;
+  LuaThread::GetPadStatus()->substickY = GCPadStatus::C_STICK_CENTER_Y;
 }
 
 LuaThread::~LuaThread()
 {
-  // Delete virtual controller
-  std::unique_lock<std::mutex> lock(lua_mutex);
-  pad_status = nullptr;
+  // Lock mutex so that this thread can't be deleted during LuaScriptFrame::GetValues()
+  std::unique_lock<std::mutex> lock(m_lua_mutex);
 
   m_parent->NullifyLuaThread();
 }
@@ -71,8 +67,13 @@ wxThread::ExitCode LuaThread::Entry()
   return (wxThread::ExitCode)0;
 }
 
+GCPadStatus* LuaThread::GetPadStatus()
+{
+  return &m_pad_status;
+}
+
 std::mutex* LuaThread::GetMutex()
 {
-  return &lua_mutex;
+  return &m_lua_mutex;
 }
 }  // namespace Lua

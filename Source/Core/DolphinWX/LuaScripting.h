@@ -27,22 +27,21 @@ using LuaFunction = int (*)(lua_State* L);
 class LuaScriptFrame;
 
 extern std::map<const char*, LuaFunction> m_registered_functions;
-// m_pad_status is shared between the window thread and the script executing thread.
-// so access to it must be mutex protected.
-extern std::unique_ptr<GCPadStatus> pad_status;
 
 class LuaThread final : public wxThread
 {
 public:
   LuaThread(LuaScriptFrame* p, const wxString& file);
   ~LuaThread();
+  static GCPadStatus* GetPadStatus();
   static std::mutex* GetMutex();
 
 private:
   LuaScriptFrame* m_parent = nullptr;
   wxString m_file_path;
   wxThread::ExitCode Entry() override;
-  static std::mutex lua_mutex;
+  static GCPadStatus m_pad_status;
+  static std::mutex m_lua_mutex;
 };
 
 class LuaScriptFrame final : public wxFrame
