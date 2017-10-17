@@ -79,6 +79,7 @@
 #include "DolphinWX/Input/HotkeyInputConfigDiag.h"
 #include "DolphinWX/Input/InputConfigDiag.h"
 #include "DolphinWX/LogWindow.h"
+#include "DolphinWX/LuaScripting.h"
 #include "DolphinWX/MainMenuBar.h"
 #include "DolphinWX/MainToolBar.h"
 #include "DolphinWX/MemcardManager.h"
@@ -92,7 +93,6 @@
 
 #include "UICommon/UICommon.h"
 
-#include "LuaScripting.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"

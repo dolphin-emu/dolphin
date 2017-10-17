@@ -24,21 +24,19 @@ namespace Lua
 {
 using LuaFunction = int (*)(lua_State* L);
 
+class LuaScriptFrame;
+
+extern std::map<const char*, LuaFunction>* m_registered_functions;
 // m_pad_status is shared between the window thread and the script executing thread.
 // so access to it must be mutex protected.
-extern GCPadStatus* pad_status;
+extern std::unique_ptr<GCPadStatus> pad_status;
 extern std::mutex lua_mutex;
-
-void ClearPad(GCPadStatus*);
-
-class LuaScriptFrame;
 
 class LuaThread final : public wxThread
 {
 public:
   LuaThread(LuaScriptFrame* p, const wxString& file);
   ~LuaThread();
-
 
 private:
   LuaScriptFrame* m_parent = nullptr;
@@ -52,7 +50,6 @@ public:
   void Log(const char* message);
   void GetValues(GCPadStatus* status);
   void NullifyLuaThread();
-  std::map<const char*, LuaFunction>* m_registered_functions;
 
   LuaScriptFrame(wxWindow* parent);
 

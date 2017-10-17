@@ -29,6 +29,8 @@
 
 namespace Lua
 {
+std::map<const char*, LuaFunction>* m_registered_functions;
+
 int printToTextCtrl(lua_State* L);
 int frameAdvance(lua_State* L);
 int getFrameCount(lua_State* L);
@@ -55,11 +57,7 @@ int setDPad(lua_State* L);
 int getTriggers(lua_State* L);
 int setTriggers(lua_State* L);
 
-// GLOBAL IS NECESSARY FOR LOG TO WORK
 LuaScriptFrame* currentWindow;
-
-// External symbols
-std::mutex lua_mutex;
 
 LuaScriptFrame::LuaScriptFrame(wxWindow* parent)
     : wxFrame(parent, wxID_ANY, _("Lua Console"), wxDefaultPosition, wxSize(431, 397),
@@ -301,18 +299,6 @@ void LuaScriptFrame::GetValues(GCPadStatus* status)
 void LuaScriptFrame::NullifyLuaThread()
 {
   m_lua_thread = nullptr;
-}
-
-// Sets status to the default values
-void ClearPad(GCPadStatus* status)
-{
-  status->button = 0;
-  status->stickX = GCPadStatus::MAIN_STICK_CENTER_X;
-  status->stickY = GCPadStatus::MAIN_STICK_CENTER_Y;
-  status->triggerLeft = 0;
-  status->triggerRight = 0;
-  status->substickX = GCPadStatus::C_STICK_CENTER_X;
-  status->substickY = GCPadStatus::C_STICK_CENTER_Y;
 }
 
 // Functions to register with Lua
