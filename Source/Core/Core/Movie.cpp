@@ -92,6 +92,7 @@ static u32 s_DSPcoefHash = 0;
 
 static bool s_bRecordingFromSaveState = false;
 static bool s_bPolled = false;
+static GCManipFunction s_gc_manip_funcs[gc_manip_index_size];
 
 // s_InputDisplay is used by both CPU and GPU (is mutable).
 static std::mutex s_input_display_lock;
@@ -1354,7 +1355,7 @@ void CallGCInputManip(GCPadStatus* PadStatus, int controllerID)
   if (s_gc_manip_funcs[static_cast<size_t>(GCManipIndex::TASInputGCManip)])
     s_gc_manip_funcs[static_cast<size_t>(GCManipIndex::TASInputGCManip)](PadStatus, controllerID);
 
-  //With this ordering, the Lua script will have priority over the TASInput window
+  // With this ordering, the Lua script will have priority over the TASInput window
   if (s_gc_manip_funcs[static_cast<size_t>(GCManipIndex::LuaGCManip)])
     s_gc_manip_funcs[static_cast<size_t>(GCManipIndex::LuaGCManip)](PadStatus, controllerID);
 }
@@ -1483,4 +1484,4 @@ void Shutdown()
   s_temp_input.clear();
 }
 
-};
+};  // namespace Movie

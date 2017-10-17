@@ -47,16 +47,16 @@ private:
 class LuaScriptFrame final : public wxFrame
 {
 public:
+  LuaScriptFrame(wxWindow* parent);
+  ~LuaScriptFrame();
+
   void Log(const char* message);
   void GetValues(GCPadStatus* status);
   void NullifyLuaThread();
 
-  LuaScriptFrame(wxWindow* parent);
-
-  ~LuaScriptFrame();
-
 private:
   void CreateGUI();
+  void CreateMenuBar();
   void OnClearClicked(wxCommandEvent& event);
   void OnDocumentationClicked(wxCommandEvent& event);
   void OnAPIClicked(wxCommandEvent& event);

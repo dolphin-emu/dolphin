@@ -109,7 +109,7 @@ LuaScriptFrame::~LuaScriptFrame()
   main_frame->m_lua_script_frame = nullptr;
 
   // Nullify GC manipulator function to prevent crash when lua console is closed
-  Movie::s_gc_manip_funcs[static_cast<size_t>(Movie::GCManipIndex::LuaGCManip)] = nullptr;
+  Movie::SetGCInputManip(nullptr, Movie::GCManipIndex::LuaGCManip);
 }
 
 //
@@ -119,28 +119,11 @@ LuaScriptFrame::~LuaScriptFrame()
 //
 void LuaScriptFrame::CreateGUI()
 {
-  this->SetSizeHints(wxDefaultSize, wxDefaultSize);
+  SetSizeHints(wxDefaultSize, wxDefaultSize);
 
-  m_menubar = new wxMenuBar(0);
-  m_console_menu = new wxMenu();
-  m_clear =
-      new wxMenuItem(m_console_menu, wxID_ANY, wxString(_("Clear")), wxEmptyString, wxITEM_NORMAL);
-  m_console_menu->Append(m_clear);
-  m_help_menu = new wxMenu();
-  m_documentation = new wxMenuItem(m_help_menu, wxID_ANY, wxString(_("Lua Documentation")),
-                                   wxEmptyString, wxITEM_NORMAL);
-  m_api = new wxMenuItem(m_help_menu, wxID_ANY, wxString(_("Dolphin Lua API")), wxEmptyString,
-                         wxITEM_NORMAL);
-  m_help_menu->Append(m_documentation);
-  m_help_menu->Append(m_api);
+  SetMenuBar(m_menubar);
 
-  m_menubar->Append(m_console_menu, _("Console"));
-  m_menubar->Append(m_help_menu, _("Help"));
-
-  this->SetMenuBar(m_menubar);
-
-  wxBoxSizer* main_sizer;
-  main_sizer = new wxBoxSizer(wxVERTICAL);
+  wxBoxSizer* main_sizer = new wxBoxSizer(wxVERTICAL);
 
   m_script_file_label =
       new wxStaticText(this, wxID_ANY, _("Script File:"), wxDefaultPosition, wxDefaultSize, 0);
@@ -153,8 +136,7 @@ void LuaScriptFrame::CreateGUI()
 
   main_sizer->Add(m_file_path, 0, wxALL, 5);
 
-  wxBoxSizer* buttons;
-  buttons = new wxBoxSizer(wxHORIZONTAL);
+  wxBoxSizer* buttons = new wxBoxSizer(wxHORIZONTAL);
 
   m_browse_button = new wxButton(this, wxID_ANY, _("Browse..."), wxPoint(-1, -1), wxDefaultSize, 0);
   buttons->Add(m_browse_button, 0, wxALL, 5);
@@ -176,24 +158,41 @@ void LuaScriptFrame::CreateGUI()
                                     wxSize(415, 200), wxHSCROLL | wxTE_MULTILINE | wxTE_READONLY);
   main_sizer->Add(m_output_console, 0, wxALL, 6);
 
-  this->SetSizer(main_sizer);
-  this->Layout();
+  SetSizer(main_sizer);
+  Layout();
 
-  this->Centre(wxBOTH);
+  Centre(wxBOTH);
 
   // Connect Events
-  this->Connect(m_clear->GetId(), wxEVT_COMMAND_MENU_SELECTED,
-                wxCommandEventHandler(LuaScriptFrame::OnClearClicked));
-  this->Connect(m_documentation->GetId(), wxEVT_COMMAND_MENU_SELECTED,
-                wxCommandEventHandler(LuaScriptFrame::OnDocumentationClicked));
-  this->Connect(m_api->GetId(), wxEVT_COMMAND_MENU_SELECTED,
-                wxCommandEventHandler(LuaScriptFrame::OnAPIClicked));
-  m_browse_button->Connect(wxEVT_COMMAND_BUTTON_CLICKED,
-                           wxCommandEventHandler(LuaScriptFrame::BrowseOnButtonClick), NULL, this);
-  m_run_button->Connect(wxEVT_COMMAND_BUTTON_CLICKED,
-                        wxCommandEventHandler(LuaScriptFrame::RunOnButtonClick), NULL, this);
-  m_stop_button->Connect(wxEVT_COMMAND_BUTTON_CLICKED,
-                         wxCommandEventHandler(LuaScriptFrame::StopOnButtonClick), NULL, this);
+  Bind(wxEVT_MENU, &LuaScriptFrame::OnClearClicked, this, m_clear->GetId());
+  Bind(wxEVT_MENU, &LuaScriptFrame::OnDocumentationClicked, this, m_documentation->GetId());
+  Bind(wxEVT_MENU, &LuaScriptFrame::OnAPIClicked, this, m_api->GetId());
+
+  m_browse_button->Bind(wxEVT_BUTTON, &LuaScriptFrame::BrowseOnButtonClick, this, m_browse_button->GetId());
+
+  m_run_button->Bind(wxEVT_BUTTON, &LuaScriptFrame::RunOnButtonClick, this, m_run_button->GetId());
+
+  m_stop_button->Bind(wxEVT_BUTTON, &LuaScriptFrame::StopOnButtonClick, this, m_stop_button->GetId());
+
+}
+
+void LuaScriptFrame::CreateMenuBar()
+{
+  m_menubar = new wxMenuBar(0);
+  m_console_menu = new wxMenu();
+  m_clear =
+      new wxMenuItem(m_console_menu, wxID_ANY, wxString(_("Clear")), wxEmptyString, wxITEM_NORMAL);
+  m_console_menu->Append(m_clear);
+  m_help_menu = new wxMenu();
+  m_documentation = new wxMenuItem(m_help_menu, wxID_ANY, wxString(_("Lua Documentation")),
+                                   wxEmptyString, wxITEM_NORMAL);
+  m_api = new wxMenuItem(m_help_menu, wxID_ANY, wxString(_("Dolphin Lua API")), wxEmptyString,
+                         wxITEM_NORMAL);
+  m_help_menu->Append(m_documentation);
+  m_help_menu->Append(m_api);
+
+  m_menubar->Append(m_console_menu, _("Console"));
+  m_menubar->Append(m_help_menu, _("Help"));
 }
 
 void LuaScriptFrame::Log(const char* message)

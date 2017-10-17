@@ -190,5 +190,5 @@ void CallGCInputManip(GCPadStatus* PadStatus, int controllerID);
 void CallWiiInputManip(u8* core, WiimoteEmu::ReportFeatures rptf, int controllerID, int ext,
                        const wiimote_key key);
 
-static GCManipFunction s_gc_manip_funcs[gc_manip_index_size];
+//static GCManipFunction s_gc_manip_funcs[gc_manip_index_size];
 }
