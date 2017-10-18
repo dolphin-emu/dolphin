@@ -8,8 +8,6 @@ import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 
-import org.dolphinemu.dolphinemu.NativeLibrary;
-import org.dolphinemu.dolphinemu.model.settings.StringSetting;
 import org.dolphinemu.dolphinemu.model.settings.view.InputBindingSetting;
 import org.dolphinemu.dolphinemu.utils.Log;
 
@@ -49,9 +47,7 @@ public final class MotionAlertDialog extends AlertDialog
 		{
 			case KeyEvent.ACTION_DOWN:
 			case KeyEvent.ACTION_UP:
-
-				InputDevice input = event.getDevice();
-				saveInput(input, event, null, false);
+				saveKeyInput(event);
 
 				return true;
 
@@ -91,11 +87,11 @@ public final class MotionAlertDialog extends AlertDialog
 
 				if (m_values.get(a) > (event.getAxisValue(range.getAxis()) + 0.5f))
 				{
-					saveInput(input, null, range, false);
+					saveMotionInput(input, range, '-');
 				}
 				else if (m_values.get(a) < (event.getAxisValue(range.getAxis()) - 0.5f))
 				{
-					saveInput(input, null, range, true);
+					saveMotionInput(input, range, '+');
 				}
 			}
 		}
@@ -116,61 +112,46 @@ public final class MotionAlertDialog extends AlertDialog
 	}
 
 	/**
-	 * Saves the provided input setting both to the INI file (so native code can use it) and as an
-	 * Android preference (so it persists correctly, and is human-readable.)
+	 * Saves the provided key input setting both to the INI file (so native code can use it) and as
+	 * an Android preference (so it persists correctly and is human-readable.)
 	 *
-	 * @param device       Required; the InputDevice from which the input event originated.
-	 * @param keyEvent     If the event was a button push, this KeyEvent represents it and is required.
-	 * @param motionRange  If the event was an axis movement, this MotionRange represents it and is required.
-	 * @param axisPositive If the event was an axis movement, this boolean indicates the direction and is required.
+	 * @param keyEvent     KeyEvent of this key press.
 	 */
-	private void saveInput(InputDevice device, KeyEvent keyEvent, InputDevice.MotionRange motionRange, boolean axisPositive)
+	private void saveKeyInput(KeyEvent keyEvent)
 	{
-		String bindStr = null;
-		String uiString = null;
+		InputDevice device = keyEvent.getDevice();
+		String bindStr = "Device '" + device.getDescriptor() + "'-Button " + keyEvent.getKeyCode();
+		String uiString = device.getName() + ": Button " + keyEvent.getKeyCode();
 
-		if (keyEvent != null)
-		{
-			bindStr = "Device '" + device.getDescriptor() + "'-Button " + keyEvent.getKeyCode();
-			uiString = device.getName() + ": Button " + keyEvent.getKeyCode();
-		}
+		saveInput(bindStr, uiString);
+	}
 
-		if (motionRange != null)
-		{
-			if (axisPositive)
-			{
-				bindStr = "Device '" + device.getDescriptor() + "'-Axis " + motionRange.getAxis() + "+";
-				uiString = device.getName() + ": Axis " + motionRange.getAxis() + "+";
-			}
-			else
-			{
-				bindStr = "Device '" + device.getDescriptor() + "'-Axis " + motionRange.getAxis() + "-";
-				uiString = device.getName() + ": Axis " + motionRange.getAxis() + "-";
-			}
-		}
+	/**
+	 * Saves the provided motion input setting both to the INI file (so native code can use it) and as
+	 * an Android preference (so it persists correctly and is human-readable.)
+	 *
+	 * @param device       InputDevice from which the input event originated.
+	 * @param motionRange  MotionRange of the movement
+	 * @param axisDir      Either '-' or '+'
+	 */
+	private void saveMotionInput(InputDevice device, InputDevice.MotionRange motionRange, char axisDir)
+	{
+		String bindStr = "Device '" + device.getDescriptor() + "'-Axis " + motionRange.getAxis() + axisDir;
+		String uiString = device.getName() + ": Axis " + motionRange.getAxis() + axisDir;
 
-		if (bindStr != null)
-		{
-			setting.setValue(bindStr);
-		}
-		else
-		{
-			Log.error("[MotionAlertDialog] Failed to save input to INI.");
-		}
+		saveInput(bindStr, uiString);
+	}
 
+	/** Save the input string to settings and SharedPreferences, then dismiss this Dialog. */
+	private void saveInput(String bind, String ui)
+	{
+		setting.setValue(bind);
 
-		if (uiString != null)
-		{
-			SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getContext());
-			SharedPreferences.Editor editor = preferences.edit();
+		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+		SharedPreferences.Editor editor = preferences.edit();
 
-			editor.putString(setting.getKey(), uiString);
-			editor.apply();
-		}
-		else
-		{
-			Log.error("[MotionAlertDialog] Failed to save input to preference.");
-		}
+		editor.putString(setting.getKey(), ui);
+		editor.apply();
 
 		dismiss();
 	}
