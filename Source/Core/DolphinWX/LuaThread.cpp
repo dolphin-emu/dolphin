@@ -54,17 +54,17 @@ wxThread::ExitCode LuaThread::Entry()
   {
     m_parent->Log("Error opening file.\n");
 
-    return nullptr;
+    return reinterpret_cast<wxThread::ExitCode>(-1);
   }
 
   if (lua_pcall(state.get(), 0, LUA_MULTRET, 0) != LUA_OK)
   {
     m_parent->Log(lua_tostring(state.get(), 1));
 
-    return nullptr;
+    return reinterpret_cast<wxThread::ExitCode>(-1);
   }
 
-  return (wxThread::ExitCode)0;
+  return reinterpret_cast<wxThread::ExitCode>(0);
 }
 
 GCPadStatus* LuaThread::GetPadStatus()
