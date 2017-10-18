@@ -130,23 +130,23 @@ Section "Base" SEC01
   Delete "$INSTDIR\uninst.exe"
   Delete "$INSTDIR\license.txt"
   Delete "$INSTDIR\*.dll"
-  Delete "$INSTDIR\Dolphin.exe"
+  Delete "$INSTDIR\DolphinD.exe"
   Delete "$INSTDIR\DSPTool.exe"
   Delete "$INSTDIR\cpack_package_description.txt"
   Delete "$INSTDIR\qt.conf"
   RMDir /r "$INSTDIR\Sys"
   RMDir /r "$INSTDIR\Languages"
 
-  File "${BASE_DIR}\Dolphin.exe"
+  File "${BASE_DIR}\DolphinD.exe"
   File "${BASE_DIR}\license.txt"
   File "${BASE_DIR}\*.dll"
   File /r "${BASE_DIR}\Languages"
   File /r "${BASE_DIR}\Sys"
   
-  ; This needs to be done after Dolphin.exe is copied
+  ; This needs to be done after DolphinD.exe is copied
   CreateDirectory "$SMPROGRAMS\${PRODUCT_NAME}"
-  CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\${PRODUCT_NAME}.lnk" "$INSTDIR\Dolphin.exe"
-  CreateShortCut "$DESKTOP\${PRODUCT_NAME}.lnk" "$INSTDIR\Dolphin.exe"
+  CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\${PRODUCT_NAME}.lnk" "$INSTDIR\DolphinD.exe"
+  CreateShortCut "$DESKTOP\${PRODUCT_NAME}.lnk" "$INSTDIR\DolphinD.exe"
   
   SetOutPath "$TEMP"
   SetOverwrite on
@@ -172,10 +172,10 @@ SectionEnd
 
 Section -Post
   WriteUninstaller "$INSTDIR\uninst.exe"
-  WriteRegStr HKLM "${PRODUCT_DIR_REGKEY}" "" "$INSTDIR\Dolphin.exe"
+  WriteRegStr HKLM "${PRODUCT_DIR_REGKEY}" "" "$INSTDIR\DolphinD.exe"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayName" "$(^Name)"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "UninstallString" "$INSTDIR\uninst.exe"
-  WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayIcon" "$INSTDIR\Dolphin.exe"
+  WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayIcon" "$INSTDIR\DolphinD.exe"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayVersion" "${PRODUCT_VERSION}"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "URLInfoAbout" "${PRODUCT_WEB_SITE}"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "Publisher" "${PRODUCT_PUBLISHER}"
@@ -199,7 +199,7 @@ Section Uninstall
   Delete "$INSTDIR\uninst.exe"
   Delete "$INSTDIR\license.txt"
   Delete "$INSTDIR\*.dll"
-  Delete "$INSTDIR\Dolphin.exe"
+  Delete "$INSTDIR\DolphinD.exe"
 
   Delete "$SMPROGRAMS\${PRODUCT_NAME}\${UN_NAME}.lnk"
   Delete "$DESKTOP\${PRODUCT_NAME}.lnk"
