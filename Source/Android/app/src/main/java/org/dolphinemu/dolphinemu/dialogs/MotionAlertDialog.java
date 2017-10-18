@@ -11,7 +11,6 @@ import android.view.MotionEvent;
 import org.dolphinemu.dolphinemu.model.settings.view.InputBindingSetting;
 import org.dolphinemu.dolphinemu.utils.Log;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -22,9 +21,7 @@ public final class MotionAlertDialog extends AlertDialog
 {
 	// The selected input preference
 	private final InputBindingSetting setting;
-
-	private boolean firstEvent = true;
-	private final ArrayList<Float> m_values = new ArrayList<>();
+	private boolean mWaitingForEvent = true;
 
 	/**
 	 * Constructor
@@ -39,14 +36,12 @@ public final class MotionAlertDialog extends AlertDialog
 		this.setting = setting;
 	}
 
-	@Override
-	public boolean onKeyDown(int keyCode, KeyEvent event)
+	public boolean onKeyEvent(int keyCode, KeyEvent event)
 	{
 		Log.debug("[MotionAlertDialog] Received key event: " + event.getAction());
 		switch (event.getAction())
 		{
 			case KeyEvent.ACTION_DOWN:
-			case KeyEvent.ACTION_UP:
 				saveKeyInput(event);
 
 				return true;
@@ -56,9 +51,20 @@ public final class MotionAlertDialog extends AlertDialog
 		}
 	}
 
+	@Override
+	public boolean dispatchKeyEvent(KeyEvent event)
+	{
+		// Handle this key if we care about it, otherwise pass it down the framework
+		return onKeyEvent(event.getKeyCode(), event) || super.dispatchKeyEvent(event);
+	}
 
-	// Method that will be called within dispatchGenericMotionEvent
-	// that handles joystick/controller movements.
+	@Override
+	public boolean dispatchGenericMotionEvent(MotionEvent event)
+	{
+		// Handle this event if we care about it, otherwise pass it down the framework
+		return onMotionEvent(event) || super.dispatchGenericMotionEvent(event);
+	}
+
 	private boolean onMotionEvent(MotionEvent event)
 	{
 		if ((event.getSource() & InputDevice.SOURCE_CLASS_JOYSTICK) == 0)
@@ -67,48 +73,35 @@ public final class MotionAlertDialog extends AlertDialog
 		Log.debug("[MotionAlertDialog] Received motion event: " + event.getAction());
 
 		InputDevice input = event.getDevice();
-		List<InputDevice.MotionRange> motions = input.getMotionRanges();
-		if (firstEvent)
-		{
-			m_values.clear();
+		List<InputDevice.MotionRange> motionRanges = input.getMotionRanges();
 
-			for (InputDevice.MotionRange range : motions)
+		int numMovedAxis = 0;
+		InputDevice.MotionRange lastMovedRange = null;
+		char lastMovedDir = '?';
+		if (mWaitingForEvent)
+		{
+			// Get only the axis that seem to have moved (more than .5)
+			for (InputDevice.MotionRange range : motionRanges)
 			{
-				m_values.add(event.getAxisValue(range.getAxis()));
+				int axis = range.getAxis();
+				float value = event.getAxisValue(axis);
+				if (Math.abs(value) > 0.5f)
+				{
+					numMovedAxis++;
+					lastMovedRange = range;
+					lastMovedDir = value < 0.0f ? '-' : '+';
+				}
 			}
 
-			firstEvent = false;
-		}
-		else
-		{
-			for (int a = 0; a < motions.size(); ++a)
+			// If only one axis moved, that's the winner.
+			if (numMovedAxis == 1)
 			{
-				InputDevice.MotionRange range = motions.get(a);
-
-				if (m_values.get(a) > (event.getAxisValue(range.getAxis()) + 0.5f))
-				{
-					saveMotionInput(input, range, '-');
-				}
-				else if (m_values.get(a) < (event.getAxisValue(range.getAxis()) - 0.5f))
-				{
-					saveMotionInput(input, range, '+');
-				}
+				mWaitingForEvent = false;
+				saveMotionInput(input, lastMovedRange, lastMovedDir);
 			}
 		}
 
 		return true;
-	}
-
-	@Override
-	public boolean dispatchKeyEvent(KeyEvent event)
-	{
-		return onKeyDown(event.getKeyCode(), event) || super.dispatchKeyEvent(event);
-	}
-
-	@Override
-	public boolean dispatchGenericMotionEvent(MotionEvent event)
-	{
-		return onMotionEvent(event) || super.dispatchGenericMotionEvent(event);
 	}
 
 	/**
