@@ -31,31 +31,31 @@ namespace Lua
 {
 std::map<const char*, LuaFunction> m_registered_functions;
 
-int printToTextCtrl(lua_State* L);
-int frameAdvance(lua_State* L);
-int getFrameCount(lua_State* L);
-int getMovieLength(lua_State* L);
-int softReset(lua_State* L);
+static int printToTextCtrl(lua_State* L);
+static int frameAdvance(lua_State* L);
+static int getFrameCount(lua_State* L);
+static int getMovieLength(lua_State* L);
+static int softReset(lua_State* L);
 
 // Slots from 0-99.
-int saveState(lua_State* L);
-int loadState(lua_State* L);
+static int saveState(lua_State* L);
+static int loadState(lua_State* L);
 
 // The argument should be a percentage of speed. I.E. setEmulatorSpeed(100) would set it to normal
 // playback speed
-int setEmulatorSpeed(lua_State* L);
+static int setEmulatorSpeed(lua_State* L);
 
-int getAnalog(lua_State* L);
-int setAnalog(lua_State* L);
-int setAnalogPolar(lua_State* L);
-int getCStick(lua_State* L);
-int setCStick(lua_State* L);
-int setCStickPolar(lua_State* L);
-int getButtons(lua_State* L);
-int setButtons(lua_State* L);
-int setDPad(lua_State* L);
-int getTriggers(lua_State* L);
-int setTriggers(lua_State* L);
+static int getAnalog(lua_State* L);
+static int setAnalog(lua_State* L);
+static int setAnalogPolar(lua_State* L);
+static int getCStick(lua_State* L);
+static int setCStick(lua_State* L);
+static int setCStickPolar(lua_State* L);
+static int getButtons(lua_State* L);
+static int setButtons(lua_State* L);
+static int setDPad(lua_State* L);
+static int getTriggers(lua_State* L);
+static int setTriggers(lua_State* L);
 
 LuaScriptFrame* currentWindow;
 
@@ -245,37 +245,6 @@ void LuaScriptFrame::StopOnButtonClick(wxCommandEvent& event)
   }
 }
 
-// The callback function that tells the emulator what to actually press
-/*void LuaScriptFrame::GetValues(GCPadStatus* status)
-{
-  // We lock here to prevent an issue where LuaThread could be deleted during the
-  // middle of this function's execution
-  std::unique_lock<std::mutex> lock(*LuaThread::GetMutex());
-
-  if (m_lua_thread == nullptr)
-    return;
-
-  if (LuaThread::GetPadStatus()->stickX != GCPadStatus::MAIN_STICK_CENTER_X)
-    status->stickX = LuaThread::GetPadStatus()->stickX;
-
-  if (LuaThread::GetPadStatus()->stickY != GCPadStatus::MAIN_STICK_CENTER_Y)
-    status->stickY = LuaThread::GetPadStatus()->stickY;
-
-  if (LuaThread::GetPadStatus()->triggerLeft != 0)
-    status->triggerLeft = LuaThread::GetPadStatus()->triggerLeft;
-
-  if (LuaThread::GetPadStatus()->triggerRight != 0)
-    status->triggerRight = LuaThread::GetPadStatus()->triggerRight;
-
-  if (LuaThread::GetPadStatus()->substickX != GCPadStatus::C_STICK_CENTER_X)
-    status->substickX = LuaThread::GetPadStatus()->substickX;
-
-  if (LuaThread::GetPadStatus()->substickY != GCPadStatus::C_STICK_CENTER_Y)
-    status->substickY = LuaThread::GetPadStatus()->substickY;
-
-  status->button |= LuaThread::GetPadStatus()->button;
-}*/
-
 void LuaScriptFrame::NullifyLuaThread()
 {
   m_lua_thread = nullptr;
@@ -290,7 +259,7 @@ GCPadStatus& LuaScriptFrame::GetPadStatus()
 #pragma region Lua_Functs
 
 // Prints a string to the text control of this frame
-int printToTextCtrl(lua_State* L)
+static int printToTextCtrl(lua_State* L)
 {
   currentWindow->Log(lua_tostring(L, 1));
   currentWindow->Log("\n");
@@ -299,7 +268,7 @@ int printToTextCtrl(lua_State* L)
 }
 
 // Steps a frame if the emulator is paused, pauses it otherwise.
-int frameAdvance(lua_State* L)
+static int frameAdvance(lua_State* L)
 {
   u64 current_frame = Movie::GetCurrentFrame();
   Core::DoFrameStep();
@@ -310,13 +279,13 @@ int frameAdvance(lua_State* L)
   return 0;
 }
 
-int getFrameCount(lua_State* L)
+static int getFrameCount(lua_State* L)
 {
   lua_pushinteger(L, Movie::GetCurrentFrame());
   return 1;
 }
 
-int getMovieLength(lua_State* L)
+static int getMovieLength(lua_State* L)
 {
   if (Movie::IsMovieActive())
   {
@@ -329,13 +298,13 @@ int getMovieLength(lua_State* L)
   }
 }
 
-int softReset(lua_State* L)
+static int softReset(lua_State* L)
 {
   ProcessorInterface::ResetButton_Tap();
   return 0;
 }
 
-int saveState(lua_State* L)
+static int saveState(lua_State* L)
 {
   int slot = lua_tointeger(L, 1);
 
@@ -343,7 +312,7 @@ int saveState(lua_State* L)
   return 0;
 }
 
-int loadState(lua_State* L)
+static int loadState(lua_State* L)
 {
   int slot = lua_tointeger(L, 1);
 
@@ -351,7 +320,7 @@ int loadState(lua_State* L)
   return 0;
 }
 
-int getAnalog(lua_State* L)
+static int getAnalog(lua_State* L)
 {
   lua_pushinteger(L, currentWindow->GetPadStatus().stickX);
   lua_pushinteger(L, currentWindow->GetPadStatus().stickY);
@@ -359,7 +328,7 @@ int getAnalog(lua_State* L)
   return 2;
 }
 
-int setAnalog(lua_State* L)
+static int setAnalog(lua_State* L)
 {
   if (lua_gettop(L) != 2)
   {
@@ -378,7 +347,7 @@ int setAnalog(lua_State* L)
 
 // Same thing as setAnalog except it takes polar coordinates
 // Must use an m int the range [0, 128)
-int setAnalogPolar(lua_State* L)
+static int setAnalogPolar(lua_State* L)
 {
   int m = lua_tointeger(L, 1);
   if (m < 0 || m >= 128)
@@ -397,7 +366,7 @@ int setAnalogPolar(lua_State* L)
   return 0;
 }
 
-int getCStick(lua_State* L)
+static int getCStick(lua_State* L)
 {
   lua_pushinteger(L, currentWindow->GetPadStatus().substickX);
   lua_pushinteger(L, currentWindow->GetPadStatus().substickY);
@@ -405,7 +374,7 @@ int getCStick(lua_State* L)
   return 2;
 }
 
-int setCStick(lua_State* L)
+static int setCStick(lua_State* L)
 {
   currentWindow->GetPadStatus().substickX = lua_tointeger(L, 1);
   currentWindow->GetPadStatus().substickY = lua_tointeger(L, 2);
@@ -413,7 +382,7 @@ int setCStick(lua_State* L)
   return 0;
 }
 
-int setCStickPolar(lua_State* L)
+static int setCStickPolar(lua_State* L)
 {
   int m = lua_tointeger(L, 1);
   if (m < 0 || m >= 128)
@@ -432,14 +401,14 @@ int setCStickPolar(lua_State* L)
   return 0;
 }
 
-int getButtons(lua_State* L)
+static int getButtons(lua_State* L)
 {
   lua_pushinteger(L, currentWindow->GetPadStatus().button);
   return 1;
 }
 
 // Each button passed in is set to pressed.
-int setButtons(lua_State* L)
+static int setButtons(lua_State* L)
 {
   const char* s = lua_tostring(L, 1);
 
@@ -477,7 +446,7 @@ int setButtons(lua_State* L)
   return 0;
 }
 
-int setDPad(lua_State* L)
+static int setDPad(lua_State* L)
 {
   const char* str = lua_tostring(L, 1);
 
@@ -503,14 +472,14 @@ int setDPad(lua_State* L)
   return 0;
 }
 
-int setEmulatorSpeed(lua_State* L)
+static int setEmulatorSpeed(lua_State* L)
 {
   SConfig::GetInstance().m_EmulationSpeed = lua_tonumber(L, 1) * 0.01f;
 
   return 0;
 }
 
-int getTriggers(lua_State* L)
+static int getTriggers(lua_State* L)
 {
   lua_pushinteger(L, currentWindow->GetPadStatus().triggerLeft);
   lua_pushinteger(L, currentWindow->GetPadStatus().triggerRight);
@@ -518,7 +487,7 @@ int getTriggers(lua_State* L)
   return 2;
 }
 
-int setTriggers(lua_State* L)
+static int setTriggers(lua_State* L)
 {
   currentWindow->GetPadStatus().triggerLeft = lua_tointeger(L, 1);
   currentWindow->GetPadStatus().triggerRight = lua_tointeger(L, 2);
