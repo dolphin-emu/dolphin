@@ -6,30 +6,33 @@
 
 #include "Core\Core.h"
 #include "DolphinWX\LuaScripting.h"
-#include "InputCommon\GCPadStatus.h"
+#include "Core\Movie.h"
 
 namespace Lua
 {
-GCPadStatus LuaThread::m_pad_status;
-std::mutex LuaThread::m_lua_mutex;
-
 LuaThread::LuaThread(LuaScriptFrame* p, const wxString& file)
     : m_parent(p), m_file_path(file), wxThread()
 {
   // Zero out controller
-  LuaThread::GetPadStatus()->button = 0;
-  LuaThread::GetPadStatus()->stickX = GCPadStatus::MAIN_STICK_CENTER_X;
-  LuaThread::GetPadStatus()->stickY = GCPadStatus::MAIN_STICK_CENTER_Y;
-  LuaThread::GetPadStatus()->triggerLeft = 0;
-  LuaThread::GetPadStatus()->triggerRight = 0;
-  LuaThread::GetPadStatus()->substickX = GCPadStatus::C_STICK_CENTER_X;
-  LuaThread::GetPadStatus()->substickY = GCPadStatus::C_STICK_CENTER_Y;
+  m_pad_status.button = 0;
+  m_pad_status.stickX = GCPadStatus::MAIN_STICK_CENTER_X;
+  m_pad_status.stickY = GCPadStatus::MAIN_STICK_CENTER_Y;
+  m_pad_status.triggerLeft = 0;
+  m_pad_status.triggerRight = 0;
+  m_pad_status.substickX = GCPadStatus::C_STICK_CENTER_X;
+  m_pad_status.substickY = GCPadStatus::C_STICK_CENTER_Y;
+
+  // Register GetValues()
+  Movie::SetGCInputManip([this](GCPadStatus* status, int number)
+  {
+    GetValues(status);
+  }, Movie::GCManipIndex::LuaGCManip);
 }
 
 LuaThread::~LuaThread()
 {
-  // Lock mutex so that this thread can't be deleted during LuaScriptFrame::GetValues()
-  std::unique_lock<std::mutex> lock(m_lua_mutex);
+  // Nullify GC manipulator function to prevent crash when lua console is closed
+  Movie::SetGCInputManip(nullptr, Movie::GCManipIndex::LuaGCManip);
 
   m_parent->NullifyLuaThread();
 }
@@ -67,13 +70,26 @@ wxThread::ExitCode LuaThread::Entry()
   return reinterpret_cast<wxThread::ExitCode>(0);
 }
 
-GCPadStatus* LuaThread::GetPadStatus()
+void LuaThread::GetValues(GCPadStatus* status)
 {
-  return &m_pad_status;
-}
+  if (LuaThread::m_pad_status.stickX != GCPadStatus::MAIN_STICK_CENTER_X)
+    status->stickX = LuaThread::m_pad_status.stickX;
 
-std::mutex* LuaThread::GetMutex()
-{
-  return &m_lua_mutex;
+  if (LuaThread::m_pad_status.stickY != GCPadStatus::MAIN_STICK_CENTER_Y)
+    status->stickY = LuaThread::m_pad_status.stickY;
+
+  if (LuaThread::m_pad_status.triggerLeft != 0)
+    status->triggerLeft = LuaThread::m_pad_status.triggerLeft;
+
+  if (LuaThread::m_pad_status.triggerRight != 0)
+    status->triggerRight = LuaThread::m_pad_status.triggerRight;
+
+  if (LuaThread::m_pad_status.substickX != GCPadStatus::C_STICK_CENTER_X)
+    status->substickX = LuaThread::m_pad_status.substickX;
+
+  if (LuaThread::m_pad_status.substickY != GCPadStatus::C_STICK_CENTER_Y)
+    status->substickY = LuaThread::m_pad_status.substickY;
+
+  status->button |= LuaThread::m_pad_status.button;
 }
 }  // namespace Lua

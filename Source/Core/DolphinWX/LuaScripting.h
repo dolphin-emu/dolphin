@@ -8,6 +8,8 @@
 #include <mutex>
 #include <wx/frame.h>
 
+#include "InputCommon\GCPadStatus.h"
+
 // Forward Declarations
 class wxString;
 class wxFileDialog;
@@ -17,7 +19,6 @@ class wxMenuItem;
 class wxMenuBar;
 class wxMenu;
 class wxButton;
-struct GCPadStatus;
 struct lua_State;
 
 namespace Lua
@@ -33,15 +34,13 @@ class LuaThread final : public wxThread
 public:
   LuaThread(LuaScriptFrame* p, const wxString& file);
   ~LuaThread();
-  static GCPadStatus* GetPadStatus();
-  static std::mutex* GetMutex();
+  void GetValues(GCPadStatus* status);
+  GCPadStatus m_pad_status;
 
 private:
   LuaScriptFrame* m_parent = nullptr;
   wxString m_file_path;
   wxThread::ExitCode Entry() override;
-  static GCPadStatus m_pad_status;
-  static std::mutex m_lua_mutex;
 };
 
 class LuaScriptFrame final : public wxFrame
@@ -51,8 +50,8 @@ public:
   ~LuaScriptFrame();
 
   void Log(const wxString& message);
-  void GetValues(GCPadStatus* status);
   void NullifyLuaThread();
+  GCPadStatus& GetPadStatus();
 
 private:
   void CreateGUI();

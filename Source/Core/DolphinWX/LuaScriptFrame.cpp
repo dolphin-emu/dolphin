@@ -107,9 +107,6 @@ LuaScriptFrame::~LuaScriptFrame()
   }
 
   main_frame->m_lua_script_frame = nullptr;
-
-  // Nullify GC manipulator function to prevent crash when lua console is closed
-  Movie::SetGCInputManip(nullptr, Movie::GCManipIndex::LuaGCManip);
 }
 
 //
@@ -249,7 +246,7 @@ void LuaScriptFrame::StopOnButtonClick(wxCommandEvent& event)
 }
 
 // The callback function that tells the emulator what to actually press
-void LuaScriptFrame::GetValues(GCPadStatus* status)
+/*void LuaScriptFrame::GetValues(GCPadStatus* status)
 {
   // We lock here to prevent an issue where LuaThread could be deleted during the
   // middle of this function's execution
@@ -277,11 +274,16 @@ void LuaScriptFrame::GetValues(GCPadStatus* status)
     status->substickY = LuaThread::GetPadStatus()->substickY;
 
   status->button |= LuaThread::GetPadStatus()->button;
-}
+}*/
 
 void LuaScriptFrame::NullifyLuaThread()
 {
   m_lua_thread = nullptr;
+}
+
+GCPadStatus& LuaScriptFrame::GetPadStatus()
+{
+  return m_lua_thread->m_pad_status;
 }
 
 // Functions to register with Lua
@@ -351,8 +353,8 @@ int loadState(lua_State* L)
 
 int getAnalog(lua_State* L)
 {
-  lua_pushinteger(L, LuaThread::GetPadStatus()->stickX);
-  lua_pushinteger(L, LuaThread::GetPadStatus()->stickY);
+  lua_pushinteger(L, currentWindow->GetPadStatus().stickX);
+  lua_pushinteger(L, currentWindow->GetPadStatus().stickY);
 
   return 2;
 }
@@ -368,8 +370,8 @@ int setAnalog(lua_State* L)
   u8 x_pos = lua_tointeger(L, 1);
   u8 y_pos = lua_tointeger(L, 2);
 
-  LuaThread::GetPadStatus()->stickX = x_pos;
-  LuaThread::GetPadStatus()->stickY = y_pos;
+  currentWindow->GetPadStatus().stickX = x_pos;
+  currentWindow->GetPadStatus().stickY = y_pos;
 
   return 0;
 }
@@ -389,24 +391,24 @@ int setAnalogPolar(lua_State* L)
 
   // Round to the nearest whole number, then subtract 128 so that our
   //"origin" is the stick in neutral position.
-  LuaThread::GetPadStatus()->stickX = static_cast<u8>(floor(m * cos(theta)) + 128);
-  LuaThread::GetPadStatus()->stickY = static_cast<u8>(floor(m * sin(theta)) + 128);
+  currentWindow->GetPadStatus().stickX = static_cast<u8>(floor(m * cos(theta)) + 128);
+  currentWindow->GetPadStatus().stickY = static_cast<u8>(floor(m * sin(theta)) + 128);
 
   return 0;
 }
 
 int getCStick(lua_State* L)
 {
-  lua_pushinteger(L, LuaThread::GetPadStatus()->substickX);
-  lua_pushinteger(L, LuaThread::GetPadStatus()->substickY);
+  lua_pushinteger(L, currentWindow->GetPadStatus().substickX);
+  lua_pushinteger(L, currentWindow->GetPadStatus().substickY);
 
   return 2;
 }
 
 int setCStick(lua_State* L)
 {
-  LuaThread::GetPadStatus()->substickX = lua_tointeger(L, 1);
-  LuaThread::GetPadStatus()->substickY = lua_tointeger(L, 2);
+  currentWindow->GetPadStatus().substickX = lua_tointeger(L, 1);
+  currentWindow->GetPadStatus().substickY = lua_tointeger(L, 2);
 
   return 0;
 }
@@ -424,15 +426,15 @@ int setCStickPolar(lua_State* L)
   // Convert theta to radians
   theta = theta * M_PI / 180.0;
 
-  LuaThread::GetPadStatus()->substickX = (u8)(floor(m * cos(theta)) + 128);
-  LuaThread::GetPadStatus()->substickY = (u8)(floor(m * sin(theta)) + 128);
+  currentWindow->GetPadStatus().substickX = (u8)(floor(m * cos(theta)) + 128);
+  currentWindow->GetPadStatus().substickY = (u8)(floor(m * sin(theta)) + 128);
 
   return 0;
 }
 
 int getButtons(lua_State* L)
 {
-  lua_pushinteger(L, LuaThread::GetPadStatus()->button);
+  lua_pushinteger(L, currentWindow->GetPadStatus().button);
   return 1;
 }
 
@@ -445,29 +447,29 @@ int setButtons(lua_State* L)
   {
     if (s[i] == 'U')
     {
-      LuaThread::GetPadStatus()->button = 0;
+      currentWindow->GetPadStatus().button = 0;
       break;
     }
 
     switch (s[i])
     {
     case 'A':
-      LuaThread::GetPadStatus()->button |= PadButton::PAD_BUTTON_A;
+      currentWindow->GetPadStatus().button |= PadButton::PAD_BUTTON_A;
       break;
     case 'B':
-      LuaThread::GetPadStatus()->button |= PadButton::PAD_BUTTON_B;
+      currentWindow->GetPadStatus().button |= PadButton::PAD_BUTTON_B;
       break;
     case 'X':
-      LuaThread::GetPadStatus()->button |= PadButton::PAD_BUTTON_X;
+      currentWindow->GetPadStatus().button |= PadButton::PAD_BUTTON_X;
       break;
     case 'Y':
-      LuaThread::GetPadStatus()->button |= PadButton::PAD_BUTTON_Y;
+      currentWindow->GetPadStatus().button |= PadButton::PAD_BUTTON_Y;
       break;
     case 'S':
-      LuaThread::GetPadStatus()->button |= PadButton::PAD_BUTTON_START;
+      currentWindow->GetPadStatus().button |= PadButton::PAD_BUTTON_START;
       break;
     case 'Z':
-      LuaThread::GetPadStatus()->button |= PadButton::PAD_TRIGGER_Z;
+      currentWindow->GetPadStatus().button |= PadButton::PAD_TRIGGER_Z;
       break;
     }
   }
@@ -484,16 +486,16 @@ int setDPad(lua_State* L)
     switch (str[i])
     {
     case 'U':
-      LuaThread::GetPadStatus()->button |= PadButton::PAD_BUTTON_UP;
+      currentWindow->GetPadStatus().button |= PadButton::PAD_BUTTON_UP;
       break;
     case 'D':
-      LuaThread::GetPadStatus()->button |= PadButton::PAD_BUTTON_DOWN;
+      currentWindow->GetPadStatus().button |= PadButton::PAD_BUTTON_DOWN;
       break;
     case 'L':
-      LuaThread::GetPadStatus()->button |= PadButton::PAD_BUTTON_LEFT;
+      currentWindow->GetPadStatus().button |= PadButton::PAD_BUTTON_LEFT;
       break;
     case 'R':
-      LuaThread::GetPadStatus()->button |= PadButton::PAD_BUTTON_RIGHT;
+      currentWindow->GetPadStatus().button |= PadButton::PAD_BUTTON_RIGHT;
       break;
     }
   }
@@ -510,16 +512,16 @@ int setEmulatorSpeed(lua_State* L)
 
 int getTriggers(lua_State* L)
 {
-  lua_pushinteger(L, LuaThread::GetPadStatus()->triggerLeft);
-  lua_pushinteger(L, LuaThread::GetPadStatus()->triggerRight);
+  lua_pushinteger(L, currentWindow->GetPadStatus().triggerLeft);
+  lua_pushinteger(L, currentWindow->GetPadStatus().triggerRight);
 
   return 2;
 }
 
 int setTriggers(lua_State* L)
 {
-  LuaThread::GetPadStatus()->triggerLeft = lua_tointeger(L, 1);
-  LuaThread::GetPadStatus()->triggerRight = lua_tointeger(L, 2);
+  currentWindow->GetPadStatus().triggerLeft = lua_tointeger(L, 1);
+  currentWindow->GetPadStatus().triggerRight = lua_tointeger(L, 2);
 
   return 0;
 }
