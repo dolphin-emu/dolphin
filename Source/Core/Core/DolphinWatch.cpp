@@ -669,6 +669,7 @@ namespace DolphinWatch {
 
 				// Might contain semicolons to further split several commands.
 				// Doing that ensures that those commands are executed at once / in the same emulated frame.
+        // TODO not guaranteed in the same emulation frame, since we don't pause the emulation and it's concurrent
 				std::string s2;
 				std::istringstream subcmds(s);
 				while (getline(subcmds, s2, ';')) {

@@ -12,7 +12,7 @@ There are no automated builds for DolphinWatch, so you'd have to build it for yo
 
 ## How to get started
 
-To start Dolphin with the DolphinWatch extension, run it with the command-line flag `/w` (`-w` if you're not stuck on Windows) followed by the port to use. We usually use port 6000, so start it from the command line with `Dolphin.exe /w 6000` Dolphin then starts an internal DolphinWatch server on that port clients can connect to.
+To start Dolphin with the DolphinWatch extension, run it with the command-line flag `-w` followed by the port to use. We usually use port 6000, so start it from the command line with `Dolphin.exe -w 6000` Dolphin then starts an internal DolphinWatch server on that port clients can connect to.
 Once a server is running, a socket connection can be opened. The text-based protocol that is used to control is documented below. There is a [Python implementation](https://github.com/TwitchPlaysPokemon/PyDolphinWatch) of DolphinWatch that can be used too.
 
 ## The protocol
