@@ -15,7 +15,7 @@
 
 using namespace ciface::Core;
 
-namespace ciface
+namespace ControllerEmu
 {
 namespace ExpressionParser
 {

@@ -9,7 +9,7 @@
 #include <utility>
 #include "InputCommon/ControllerInterface/Device.h"
 
-namespace ciface
+namespace ControllerEmu
 {
 namespace ExpressionParser
 {
@@ -17,7 +17,7 @@ class ControlQualifier
 {
 public:
   bool has_device;
-  Core::DeviceQualifier device_qualifier;
+  ciface::Core::DeviceQualifier device_qualifier;
   std::string control_name;
 
   ControlQualifier() : has_device(false) {}
@@ -33,17 +33,17 @@ public:
 class ControlFinder
 {
 public:
-  ControlFinder(const Core::DeviceContainer& container_, const Core::DeviceQualifier& default_,
-                const bool is_input_)
+  ControlFinder(const ciface::Core::DeviceContainer& container_,
+                const ciface::Core::DeviceQualifier& default_, const bool is_input_)
       : container(container_), default_device(default_), is_input(is_input_)
   {
   }
-  std::shared_ptr<Core::Device> FindDevice(ControlQualifier qualifier) const;
-  Core::Device::Control* FindControl(ControlQualifier qualifier) const;
+  std::shared_ptr<ciface::Core::Device> FindDevice(ControlQualifier qualifier) const;
+  ciface::Core::Device::Control* FindControl(ControlQualifier qualifier) const;
 
 private:
-  const Core::DeviceContainer& container;
-  const Core::DeviceQualifier& default_device;
+  const ciface::Core::DeviceContainer& container;
+  const ciface::Core::DeviceQualifier& default_device;
   bool is_input;
 };
 

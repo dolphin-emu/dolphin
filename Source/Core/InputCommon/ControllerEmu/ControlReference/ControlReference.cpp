@@ -11,7 +11,7 @@
 
 #include "InputCommon/ControllerEmu/ControlReference/ControlReference.h"
 
-using namespace ciface::ExpressionParser;
+using namespace ControllerEmu::ExpressionParser;
 
 namespace ControllerEmu
 {

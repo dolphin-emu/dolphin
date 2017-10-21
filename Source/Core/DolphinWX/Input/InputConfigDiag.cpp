@@ -70,7 +70,7 @@
 #include "InputCommon/ControllerInterface/Device.h"
 #include "InputCommon/InputConfig.h"
 
-using ciface::ExpressionParser::ParseStatus;
+using ControllerEmu::ExpressionParser::ParseStatus;
 
 void InputConfigDialog::ConfigExtension(wxCommandEvent& event)
 {
