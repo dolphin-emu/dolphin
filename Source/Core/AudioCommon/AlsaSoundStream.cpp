@@ -80,7 +80,6 @@ void AlsaSound::SoundLoop()
 
 void AlsaSound::Clear(bool muted)
 {
-  m_muted = muted;
   m_thread_status.store(muted ? ALSAThreadStatus::PAUSED : ALSAThreadStatus::RUNNING);
   cv.notify_one();  // Notify thread that status has changed
 }

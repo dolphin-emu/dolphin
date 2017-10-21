@@ -200,11 +200,9 @@ void XAudio2_7::SetVolume(int volume)
 
 void XAudio2_7::Clear(bool mute)
 {
-  m_muted = mute;
-
   if (m_voice_context)
   {
-    if (m_muted)
+    if (mute)
       m_voice_context->Stop();
     else
       m_voice_context->Play();
