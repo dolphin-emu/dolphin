@@ -543,8 +543,8 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
     g_controller_interface.Shutdown();
   }};
 
-  AudioCommon::InitSoundStream();
-  Common::ScopeGuard audio_guard{&AudioCommon::ShutdownSoundStream};
+  AudioCommon::Init();
+  Common::ScopeGuard audio_guard{&AudioCommon::Shutdown};
 
   // The hardware is initialized.
   s_hardware_initialized = true;

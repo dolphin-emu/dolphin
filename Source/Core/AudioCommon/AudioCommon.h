@@ -16,8 +16,8 @@ class Mixer;
 namespace AudioCommon
 {
 Mixer* GetMixer();
-void InitSoundStream();
-void ShutdownSoundStream();
+void Init();
+void Shutdown();
 std::string GetDefaultSoundBackend();
 std::vector<std::string> GetSoundBackends();
 DPL2Quality GetDefaultDPL2Quality();

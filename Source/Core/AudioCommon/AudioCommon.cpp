@@ -51,7 +51,7 @@ static std::unique_ptr<SoundStream> CreateSoundStreamForBackend(std::string_view
   return {};
 }
 
-void InitSoundStream()
+void Init()
 {
   s_mixer = std::make_unique<Mixer>(48000);
   std::string backend = SConfig::GetInstance().sBackend;
@@ -80,7 +80,7 @@ void InitSoundStream()
     StartAudioDump();
 }
 
-void ShutdownSoundStream()
+void Shutdown()
 {
   INFO_LOG(AUDIO, "Shutting down sound stream");
 
