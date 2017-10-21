@@ -21,6 +21,7 @@
 std::unique_ptr<SoundStream> g_sound_stream;
 
 static bool s_audio_dump_start = false;
+static bool s_sound_stream_running = false;
 
 namespace AudioCommon
 {
@@ -151,6 +152,10 @@ void SetSoundStreamRunning(bool running)
 {
   if (!g_sound_stream)
     return;
+
+  if (s_sound_stream_running == running)
+    return;
+  s_sound_stream_running = running;
 
   if (g_sound_stream->SetRunning(running))
     return;
