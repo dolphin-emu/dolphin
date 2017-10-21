@@ -76,12 +76,23 @@ bool CubebStream::Start()
   return true;
 }
 
+void CubebStream::SetRunning(bool running)
+{
+  if (running)
+  {
+    if (cubeb_stream_start(m_stream) != CUBEB_OK)
+      ERROR_LOG(AUDIO, "Error starting cubeb stream");
+  }
+  else
+  {
+    if (cubeb_stream_stop(m_stream) != CUBEB_OK)
+      ERROR_LOG(AUDIO, "Error stopping cubeb stream");
+  }
+}
+
 void CubebStream::Stop()
 {
-  if (cubeb_stream_stop(m_stream) != CUBEB_OK)
-  {
-    ERROR_LOG(AUDIO, "Error stopping cubeb stream");
-  }
+  SetRunning(false);
   cubeb_stream_destroy(m_stream);
   m_ctx.reset();
 }

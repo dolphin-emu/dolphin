@@ -17,6 +17,7 @@ class CubebStream final : public SoundStream
 public:
   bool Start() override;
   void Stop() override;
+  void SetRunning(bool running) override;
   void SetVolume(int) override;
 
 private:
