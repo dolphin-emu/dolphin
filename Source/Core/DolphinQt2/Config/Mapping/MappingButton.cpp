@@ -26,7 +26,7 @@ static QString EscapeAmpersand(QString&& string)
   return string.replace(QStringLiteral("&"), QStringLiteral("&&"));
 }
 
-MappingButton::MappingButton(MappingWidget* widget, ControlReference* ref)
+MappingButton::MappingButton(MappingWidget* widget, ControllerEmu::ControlReference* ref)
     : ElidedButton(EscapeAmpersand(QString::fromStdString(ref->GetExpression()))), m_parent(widget),
       m_reference(ref)
 {

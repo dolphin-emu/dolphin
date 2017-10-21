@@ -7,16 +7,20 @@
 #include "Common/Flag.h"
 #include "DolphinQt2/QtUtils/ElidedButton.h"
 
-class ControlReference;
 class MappingWidget;
 class QEvent;
 class QMouseEvent;
+
+namespace ControllerEmu
+{
+class ControlReference;
+};
 
 class MappingButton : public ElidedButton
 {
   Q_OBJECT
 public:
-  MappingButton(MappingWidget* widget, ControlReference* ref);
+  MappingButton(MappingWidget* widget, ControllerEmu::ControlReference* ref);
 
   void Clear();
   void Update();
@@ -32,5 +36,5 @@ private:
   void Connect();
 
   MappingWidget* m_parent;
-  ControlReference* m_reference;
+  ControllerEmu::ControlReference* m_reference;
 };

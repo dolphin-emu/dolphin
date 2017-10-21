@@ -7,10 +7,10 @@
 #include <memory>
 #include <string>
 
-class ControlReference;
-
 namespace ControllerEmu
 {
+class ControlReference;
+
 class Control
 {
 public:

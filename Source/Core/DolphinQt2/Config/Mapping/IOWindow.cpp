@@ -29,7 +29,7 @@
 constexpr int SLIDER_TICK_COUNT = 100;
 
 IOWindow::IOWindow(QWidget* parent, ControllerEmu::EmulatedController* controller,
-                   ControlReference* ref, IOWindow::Type type)
+                   ControllerEmu::ControlReference* ref, IOWindow::Type type)
     : QDialog(parent), m_reference(ref), m_controller(controller), m_type(type)
 {
   CreateMainLayout();

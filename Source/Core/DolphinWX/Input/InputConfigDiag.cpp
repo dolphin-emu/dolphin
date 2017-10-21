@@ -193,7 +193,7 @@ void PadSettingSpin::UpdateValue()
 }
 
 ControlDialog::ControlDialog(InputConfigDialog* const parent, InputConfig& config,
-                             ControlReference* const ref)
+                             ControllerEmu::ControlReference* const ref)
     : wxDialog(parent, wxID_ANY, _("Configure Control"), wxDefaultPosition, wxDefaultSize,
                wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER),
       control_reference(ref), m_config(config), m_parent(parent)
@@ -236,7 +236,7 @@ ExtensionButton::ExtensionButton(wxWindow* const parent, ControllerEmu::Extensio
 {
 }
 
-ControlButton::ControlButton(wxWindow* const parent, ControlReference* const _ref,
+ControlButton::ControlButton(wxWindow* const parent, ControllerEmu::ControlReference* const _ref,
                              const std::string& name, const unsigned int width,
                              const std::string& label)
     : wxButton(parent, wxID_ANY), control_reference(_ref), m_name(name),

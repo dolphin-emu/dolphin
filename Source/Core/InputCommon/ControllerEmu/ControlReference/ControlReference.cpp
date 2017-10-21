@@ -13,6 +13,8 @@
 
 using namespace ciface::ExpressionParser;
 
+namespace ControllerEmu
+{
 constexpr ControlState INPUT_DETECT_THRESHOLD = 0.55;
 
 bool ControlReference::InputGateOn()
@@ -192,3 +194,5 @@ ciface::Core::Device::Control* OutputReference::Detect(const unsigned int ms,
   }
   return nullptr;
 }
+
+}  // namespace ControllerEmu

@@ -34,7 +34,7 @@ QString GetExpressionForControl(const QString& control_name,
   return expr;
 }
 
-QString DetectExpression(ControlReference* reference, ciface::Core::Device* device,
+QString DetectExpression(ControllerEmu::ControlReference* reference, ciface::Core::Device* device,
                          const ciface::Core::DeviceQualifier& m_devq,
                          const ciface::Core::DeviceQualifier& default_device)
 {

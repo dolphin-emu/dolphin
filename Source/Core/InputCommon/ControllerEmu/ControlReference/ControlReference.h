@@ -9,6 +9,8 @@
 #include "InputCommon/ControllerEmu/ControlReference/ExpressionParser.h"
 #include "InputCommon/ControllerInterface/Device.h"
 
+namespace ControllerEmu
+{
 // ControlReference
 //
 // These are what you create to actually use the inputs, InputReference or OutputReference.
@@ -75,3 +77,5 @@ public:
   ciface::Core::Device::Control* Detect(const unsigned int ms,
                                         ciface::Core::Device* const device) override;
 };
+
+}  // namespace ControllerEmu
