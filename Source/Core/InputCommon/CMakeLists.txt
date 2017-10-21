@@ -1,8 +1,5 @@
 set(SRCS InputConfig.cpp
   ControllerEmu/ControllerEmu.cpp
-  ControllerEmu/Control/Control.cpp
-  ControllerEmu/Control/Input.cpp
-  ControllerEmu/Control/Output.cpp
   ControllerEmu/ControlGroup/AnalogStick.cpp
   ControllerEmu/ControlGroup/Buttons.cpp
   ControllerEmu/ControlGroup/ControlGroup.cpp

@@ -37,9 +37,6 @@
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
     <ClCompile Include="ControllerEmu\ControllerEmu.cpp" />
-    <ClCompile Include="ControllerEmu\Control\Control.cpp" />
-    <ClCompile Include="ControllerEmu\Control\Input.cpp" />
-    <ClCompile Include="ControllerEmu\Control\Output.cpp" />
     <ClCompile Include="ControllerEmu\ControlGroup\AnalogStick.cpp" />
     <ClCompile Include="ControllerEmu\ControlGroup\Buttons.cpp" />
     <ClCompile Include="ControllerEmu\ControlGroup\ControlGroup.cpp" />
@@ -74,9 +71,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ControllerEmu\ControllerEmu.h" />
-    <ClInclude Include="ControllerEmu\Control\Control.h" />
-    <ClInclude Include="ControllerEmu\Control\Input.h" />
-    <ClInclude Include="ControllerEmu\Control\Output.h" />
     <ClInclude Include="ControllerEmu\ControlGroup\AnalogStick.h" />
     <ClInclude Include="ControllerEmu\ControlGroup\Buttons.h" />
     <ClInclude Include="ControllerEmu\ControlGroup\ControlGroup.h" />

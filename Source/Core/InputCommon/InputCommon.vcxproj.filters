@@ -16,9 +16,6 @@
     <Filter Include="ControllerEmu">
       <UniqueIdentifier>{4c839215-4085-4e34-a960-7960986ad015}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ControllerEmu\Control">
-      <UniqueIdentifier>{19ddd862-a1e3-479b-b638-bb31700c5171}</UniqueIdentifier>
-    </Filter>
     <Filter Include="ControllerEmu\ControlGroup">
       <UniqueIdentifier>{e805231c-dc4e-4540-8bf8-8c567f3d00ae}</UniqueIdentifier>
     </Filter>
@@ -34,15 +31,6 @@
     <ClCompile Include="InputConfig.cpp" />
     <ClCompile Include="ControllerEmu\ControllerEmu.cpp">
       <Filter>ControllerEmu</Filter>
-    </ClCompile>
-    <ClCompile Include="ControllerEmu\Control\Control.cpp">
-      <Filter>ControllerEmu\Control</Filter>
-    </ClCompile>
-    <ClCompile Include="ControllerEmu\Control\Input.cpp">
-      <Filter>ControllerEmu\Control</Filter>
-    </ClCompile>
-    <ClCompile Include="ControllerEmu\Control\Output.cpp">
-      <Filter>ControllerEmu\Control</Filter>
     </ClCompile>
     <ClCompile Include="ControllerEmu\ControlGroup\AnalogStick.cpp">
       <Filter>ControllerEmu\ControlGroup</Filter>
@@ -120,15 +108,6 @@
     <ClInclude Include="InputConfig.h" />
     <ClInclude Include="ControllerEmu\ControllerEmu.h">
       <Filter>ControllerEmu</Filter>
-    </ClInclude>
-    <ClInclude Include="ControllerEmu\Control\Control.h">
-      <Filter>ControllerEmu\Control</Filter>
-    </ClInclude>
-    <ClInclude Include="ControllerEmu\Control\Input.h">
-      <Filter>ControllerEmu\Control</Filter>
-    </ClInclude>
-    <ClInclude Include="ControllerEmu\Control\Output.h">
-      <Filter>ControllerEmu\Control</Filter>
     </ClInclude>
     <ClInclude Include="ControllerEmu\ControlGroup\AnalogStick.h">
       <Filter>ControllerEmu\ControlGroup</Filter>
