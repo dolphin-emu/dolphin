@@ -1,8 +1,8 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 25
-    buildToolsVersion '25.0.2'
+    compileSdkVersion 26
+    buildToolsVersion '26.0.2'
 
     lintOptions {
         // This is important as it will run lint but not abort on error
@@ -71,7 +71,7 @@ android {
 }
 
 ext {
-    androidSupportVersion = '25.3.0'
+    androidSupportVersion = '26.1.0'
 }
 
 dependencies {

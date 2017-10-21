@@ -4,7 +4,7 @@
     <objectAnimator
         android:propertyName="translationX"
         android:valueType="floatType"
-        android:valueFrom="1280"
+        android:valueFrom="1280dp"
         android:valueTo="0"
         android:interpolator="@android:interpolator/decelerate_quad"
         android:duration="300"/>

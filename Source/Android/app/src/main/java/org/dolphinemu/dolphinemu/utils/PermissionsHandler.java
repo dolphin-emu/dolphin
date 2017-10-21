@@ -1,11 +1,11 @@
 package org.dolphinemu.dolphinemu.utils;
 
 import android.annotation.TargetApi;
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.os.Build;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
 import android.widget.Toast;
 
@@ -17,7 +17,7 @@ public class PermissionsHandler {
 	public static final int REQUEST_CODE_WRITE_PERMISSION = 500;
 
 	@TargetApi(Build.VERSION_CODES.M)
-	public static boolean checkWritePermission(final Activity activity) {
+	public static boolean checkWritePermission(final FragmentActivity activity) {
 		if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
 			return true;
 		}
@@ -45,7 +45,7 @@ public class PermissionsHandler {
 		return true;
 	}
 
-	public static boolean hasWriteAccess(Activity activity) {
+	public static boolean hasWriteAccess(FragmentActivity activity) {
 		if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
 			int hasWritePermission = ContextCompat.checkSelfPermission(activity, WRITE_EXTERNAL_STORAGE);
 			return hasWritePermission == PackageManager.PERMISSION_GRANTED;
@@ -54,7 +54,7 @@ public class PermissionsHandler {
 		return true;
 	}
 
-	private static void showMessageOKCancel(final Activity activity, String message, DialogInterface.OnClickListener okListener) {
+	private static void showMessageOKCancel(final FragmentActivity activity, String message, DialogInterface.OnClickListener okListener) {
 		new AlertDialog.Builder(activity)
 				.setMessage(message)
 				.setPositiveButton(android.R.string.ok, okListener)

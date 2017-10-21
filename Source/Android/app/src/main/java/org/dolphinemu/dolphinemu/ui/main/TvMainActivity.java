@@ -1,12 +1,11 @@
 package org.dolphinemu.dolphinemu.ui.main;
 
-import android.app.Activity;
-import android.app.FragmentManager;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v17.leanback.app.BrowseFragment;
+import android.support.v17.leanback.app.BrowseSupportFragment;
 import android.support.v17.leanback.database.CursorMapper;
 import android.support.v17.leanback.widget.ArrayObjectAdapter;
 import android.support.v17.leanback.widget.CursorObjectAdapter;
@@ -17,6 +16,8 @@ import android.support.v17.leanback.widget.OnItemViewClickedListener;
 import android.support.v17.leanback.widget.Presenter;
 import android.support.v17.leanback.widget.Row;
 import android.support.v17.leanback.widget.RowPresenter;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
 import android.widget.Toast;
 
@@ -33,11 +34,11 @@ import org.dolphinemu.dolphinemu.utils.PermissionsHandler;
 import org.dolphinemu.dolphinemu.utils.StartupHandler;
 import org.dolphinemu.dolphinemu.viewholders.TvGameViewHolder;
 
-public final class TvMainActivity extends Activity implements MainView
+public final class TvMainActivity extends FragmentActivity implements MainView
 {
 	private MainPresenter mPresenter = new MainPresenter(this);
 
-	private BrowseFragment mBrowseFragment;
+	private BrowseSupportFragment mBrowseFragment;
 
 	private ArrayObjectAdapter mRowsAdapter;
 
@@ -57,8 +58,8 @@ public final class TvMainActivity extends Activity implements MainView
 	}
 
 	void setupUI() {
-		final FragmentManager fragmentManager = getFragmentManager();
-		mBrowseFragment = new BrowseFragment();
+		final FragmentManager fragmentManager = getSupportFragmentManager();
+		mBrowseFragment = new BrowseSupportFragment();
 		fragmentManager
 				.beginTransaction()
 				.add(R.id.content, mBrowseFragment, "BrowseFragment")

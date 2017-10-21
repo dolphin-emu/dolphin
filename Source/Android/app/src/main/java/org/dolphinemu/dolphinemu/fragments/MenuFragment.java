@@ -1,8 +1,8 @@
 package org.dolphinemu.dolphinemu.fragments;
 
-import android.app.Fragment;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
 import android.util.SparseIntArray;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,7 +16,7 @@ import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 
 public final class MenuFragment extends Fragment implements View.OnClickListener
 {
-	private TextView mTitleText;
+	private static final String KEY_TITLE = "title";
 	private static SparseIntArray buttonsActionsMap = new SparseIntArray();
 	static {
 		buttonsActionsMap.append(R.id.menu_take_screenshot, EmulationActivity.MENU_ACTION_TAKE_SCREENSHOT);
@@ -26,6 +26,17 @@ public final class MenuFragment extends Fragment implements View.OnClickListener
 		buttonsActionsMap.append(R.id.menu_emulation_load_root, EmulationActivity.MENU_ACTION_LOAD_ROOT);
 		buttonsActionsMap.append(R.id.menu_refresh_wiimotes, EmulationActivity.MENU_ACTION_REFRESH_WIIMOTES);
 		buttonsActionsMap.append(R.id.menu_exit, EmulationActivity.MENU_ACTION_EXIT);
+	}
+
+	public static MenuFragment newInstance(String title)
+	{
+		MenuFragment fragment = new MenuFragment();
+
+		Bundle arguments = new Bundle();
+		arguments.putSerializable(KEY_TITLE, title);
+		fragment.setArguments(arguments);
+
+		return fragment;
 	}
 
 	@Nullable
@@ -42,7 +53,12 @@ public final class MenuFragment extends Fragment implements View.OnClickListener
 			button.setOnClickListener(this);
 		}
 
-		mTitleText = (TextView) rootView.findViewById(R.id.text_game_title);
+		TextView titleText = rootView.findViewById(R.id.text_game_title);
+		String title = getArguments().getString(KEY_TITLE);
+		if (title != null)
+		{
+			titleText.setText(title);
+		}
 
 		return rootView;
 	}
@@ -56,10 +72,5 @@ public final class MenuFragment extends Fragment implements View.OnClickListener
 		{
 			((EmulationActivity) getActivity()).handleMenuAction(action);
 		}
-	}
-
-	public void setTitleText(String title)
-	{
-		mTitleText.setText(title);
 	}
 }
