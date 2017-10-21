@@ -7,7 +7,6 @@
 #include "Common/CommonTypes.h"
 #include "Common/IniFile.h"
 
-#include "InputCommon/ControllerEmu/Control/Control.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Extension.h"
 #include "InputCommon/ControllerEmu/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
@@ -58,12 +57,12 @@ void ControlGroup::LoadConfig(IniFile::Section* sec, const std::string& defdev,
       // control expression
       std::string expression;
       sec->Get(group + c->name, &expression, "");
-      c->control_ref->SetExpression(std::move(expression));
+      c->SetExpression(std::move(expression));
     }
 
     // range
-    sec->Get(group + c->name + "/Range", &c->control_ref->range, 100.0);
-    c->control_ref->range /= 100;
+    sec->Get(group + c->name + "/Range", &c->range, 100.0);
+    c->range /= 100;
   }
 
   // extensions
@@ -113,10 +112,10 @@ void ControlGroup::SaveConfig(IniFile::Section* sec, const std::string& defdev,
   for (auto& c : controls)
   {
     // control expression
-    sec->Set(group + c->name, c->control_ref->GetExpression(), "");
+    sec->Set(group + c->name, c->GetExpression(), "");
 
     // range
-    sec->Set(group + c->name + "/Range", c->control_ref->range * 100.0, 100.0);
+    sec->Set(group + c->name + "/Range", c->range * 100.0, 100.0);
   }
 
   // extensions
@@ -132,6 +131,6 @@ void ControlGroup::SaveConfig(IniFile::Section* sec, const std::string& defdev,
 
 void ControlGroup::SetControlExpression(int index, const std::string& expression)
 {
-  controls.at(index)->control_ref->SetExpression(expression);
+  controls.at(index)->SetExpression(expression);
 }
 }  // namespace ControllerEmu

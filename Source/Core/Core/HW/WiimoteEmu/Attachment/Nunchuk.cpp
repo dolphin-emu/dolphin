@@ -12,12 +12,12 @@
 #include "Common/MathUtil.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
-#include "InputCommon/ControllerEmu/Control/Input.h"
 #include "InputCommon/ControllerEmu/ControlGroup/AnalogStick.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Force.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Tilt.h"
+#include "InputCommon/ControllerEmu/ControlReference/ControlReference.h"
 
 namespace WiimoteEmu
 {
@@ -31,8 +31,8 @@ Nunchuk::Nunchuk(ExtensionReg& reg) : Attachment(_trans("Nunchuk"), reg)
 {
   // buttons
   groups.emplace_back(m_buttons = new ControllerEmu::Buttons(_trans("Buttons")));
-  m_buttons->controls.emplace_back(new ControllerEmu::Input("C"));
-  m_buttons->controls.emplace_back(new ControllerEmu::Input("Z"));
+  m_buttons->controls.emplace_back(new ControllerEmu::InputReference("C"));
+  m_buttons->controls.emplace_back(new ControllerEmu::InputReference("Z"));
 
   // stick
   groups.emplace_back(
@@ -47,11 +47,11 @@ Nunchuk::Nunchuk(ExtensionReg& reg) : Attachment(_trans("Nunchuk"), reg)
   // shake
   groups.emplace_back(m_shake = new ControllerEmu::Buttons(_trans("Shake")));
   // i18n: Refers to a 3D axis (used when mapping motion controls)
-  m_shake->controls.emplace_back(new ControllerEmu::Input(_trans("X")));
+  m_shake->controls.emplace_back(new ControllerEmu::InputReference(_trans("X")));
   // i18n: Refers to a 3D axis (used when mapping motion controls)
-  m_shake->controls.emplace_back(new ControllerEmu::Input(_trans("Y")));
+  m_shake->controls.emplace_back(new ControllerEmu::InputReference(_trans("Y")));
   // i18n: Refers to a 3D axis (used when mapping motion controls)
-  m_shake->controls.emplace_back(new ControllerEmu::Input(_trans("Z")));
+  m_shake->controls.emplace_back(new ControllerEmu::InputReference(_trans("Z")));
 
   m_id = nunchuk_id;
 }

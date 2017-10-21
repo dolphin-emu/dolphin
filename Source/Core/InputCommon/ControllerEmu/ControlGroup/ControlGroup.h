@@ -14,7 +14,7 @@
 namespace ControllerEmu
 {
 class BooleanSetting;
-class Control;
+class ControlReference;
 class NumericSetting;
 
 enum class GroupType
@@ -50,7 +50,7 @@ public:
   const std::string ui_name;
   const GroupType type;
 
-  std::vector<std::unique_ptr<Control>> controls;
+  std::vector<std::unique_ptr<ControlReference>> controls;
   std::vector<std::unique_ptr<NumericSetting>> numeric_settings;
   std::vector<std::unique_ptr<BooleanSetting>> boolean_settings;
 };

@@ -6,7 +6,6 @@
 
 #include <string>
 
-#include "InputCommon/ControllerEmu/Control/Control.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
@@ -24,7 +23,7 @@ public:
   {
     for (auto& control : controls)
     {
-      if (control->control_ref->State() > numeric_settings[0]->GetValue())  // threshold
+      if (control->State() > numeric_settings[0]->GetValue())  // threshold
         *buttons |= *bitmasks;
 
       bitmasks++;

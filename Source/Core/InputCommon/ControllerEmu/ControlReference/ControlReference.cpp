@@ -65,15 +65,16 @@ ControlReference::ControlReference() : range(1), m_parsed_expression(nullptr)
 {
 }
 
+ControlReference::ControlReference(const std::string& name_, const std::string& ui_name_)
+    : name(name_), ui_name(ui_name_)
+{
+}
+
+ControlReference::ControlReference(const std::string& name_) : ControlReference(name_, name_)
+{
+}
+
 ControlReference::~ControlReference() = default;
-
-InputReference::InputReference() : ControlReference()
-{
-}
-
-OutputReference::OutputReference() : ControlReference()
-{
-}
 
 bool InputReference::IsInput() const
 {

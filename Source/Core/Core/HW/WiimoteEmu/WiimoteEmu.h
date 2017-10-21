@@ -31,7 +31,7 @@ class Extension;
 class Force;
 class ModifySettingsButton;
 class NumericSetting;
-class Output;
+class OutputReference;
 class Tilt;
 }
 
@@ -251,7 +251,7 @@ private:
   ControllerEmu::Tilt* m_tilt;
   ControllerEmu::Force* m_swing;
   ControllerEmu::ControlGroup* m_rumble;
-  ControllerEmu::Output* m_motor;
+  ControllerEmu::OutputReference* m_motor;
   ControllerEmu::Extension* m_extension;
   ControllerEmu::BooleanSetting* m_motion_plus_setting;
   ControllerEmu::ControlGroup* m_options;

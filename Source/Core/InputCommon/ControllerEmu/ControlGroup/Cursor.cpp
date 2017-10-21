@@ -12,8 +12,6 @@
 #include "Common/Common.h"
 #include "Common/MathUtil.h"
 
-#include "InputCommon/ControllerEmu/Control/Control.h"
-#include "InputCommon/ControllerEmu/Control/Input.h"
 #include "InputCommon/ControllerEmu/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerEmu/Setting/BooleanSetting.h"
@@ -24,12 +22,12 @@ namespace ControllerEmu
 Cursor::Cursor(const std::string& name_) : ControlGroup(name_, GroupType::Cursor)
 {
   for (auto& named_direction : named_directions)
-    controls.emplace_back(std::make_unique<Input>(named_direction));
+    controls.emplace_back(std::make_unique<InputReference>(named_direction));
 
-  controls.emplace_back(std::make_unique<Input>(_trans("Forward")));
-  controls.emplace_back(std::make_unique<Input>(_trans("Backward")));
-  controls.emplace_back(std::make_unique<Input>(_trans("Hide")));
-  controls.emplace_back(std::make_unique<Input>(_trans("Recenter")));
+  controls.emplace_back(std::make_unique<InputReference>(_trans("Forward")));
+  controls.emplace_back(std::make_unique<InputReference>(_trans("Backward")));
+  controls.emplace_back(std::make_unique<InputReference>(_trans("Hide")));
+  controls.emplace_back(std::make_unique<InputReference>(_trans("Recenter")));
 
   numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Center"), 0.5));
   numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Width"), 0.5));
@@ -41,7 +39,7 @@ Cursor::Cursor(const std::string& name_) : ControlGroup(name_, GroupType::Cursor
 void Cursor::GetState(ControlState* const x, ControlState* const y, ControlState* const z,
                       const bool adjusted)
 {
-  const ControlState zz = controls[4]->control_ref->State() - controls[5]->control_ref->State();
+  const ControlState zz = controls[4]->State() - controls[5]->State();
 
   // silly being here
   if (zz > m_z)
@@ -52,15 +50,15 @@ void Cursor::GetState(ControlState* const x, ControlState* const y, ControlState
   *z = m_z;
 
   // hide
-  if (controls[6]->control_ref->State() > 0.5)
+  if (controls[6]->State() > 0.5)
   {
     *x = 10000;
     *y = 0;
   }
   else
   {
-    ControlState yy = controls[0]->control_ref->State() - controls[1]->control_ref->State();
-    ControlState xx = controls[3]->control_ref->State() - controls[2]->control_ref->State();
+    ControlState yy = controls[0]->State() - controls[1]->State();
+    ControlState xx = controls[3]->State() - controls[2]->State();
 
     // adjust cursor according to settings
     if (adjusted)
@@ -81,7 +79,7 @@ void Cursor::GetState(ControlState* const x, ControlState* const y, ControlState
         m_y = MathUtil::Clamp(m_y + yy * SPEED_MULTIPLIER, -1.0, 1.0);
 
       // recenter
-      if (controls[7]->control_ref->State() > 0.5)
+      if (controls[7]->State() > 0.5)
       {
         m_x = 0.0;
         m_y = 0.0;

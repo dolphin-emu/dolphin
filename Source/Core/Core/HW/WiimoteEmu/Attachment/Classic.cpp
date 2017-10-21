@@ -11,11 +11,11 @@
 #include "Common/CommonTypes.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
-#include "InputCommon/ControllerEmu/Control/Input.h"
 #include "InputCommon/ControllerEmu/ControlGroup/AnalogStick.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/ControlGroup/MixedTriggers.h"
+#include "InputCommon/ControllerEmu/ControlReference/ControlReference.h"
 
 namespace WiimoteEmu
 {
@@ -66,7 +66,7 @@ Classic::Classic(ExtensionReg& reg) : Attachment(_trans("Classic"), reg)
   for (const char* button_name : classic_button_names)
   {
     const std::string& ui_name = (button_name == std::string("Home")) ? "HOME" : button_name;
-    m_buttons->controls.emplace_back(new ControllerEmu::Input(button_name, ui_name));
+    m_buttons->controls.emplace_back(new ControllerEmu::InputReference(button_name, ui_name));
   }
 
   // sticks
@@ -78,12 +78,12 @@ Classic::Classic(ExtensionReg& reg) : Attachment(_trans("Classic"), reg)
   // triggers
   groups.emplace_back(m_triggers = new ControllerEmu::MixedTriggers(_trans("Triggers")));
   for (const char* trigger_name : classic_trigger_names)
-    m_triggers->controls.emplace_back(new ControllerEmu::Input(trigger_name));
+    m_triggers->controls.emplace_back(new ControllerEmu::InputReference(trigger_name));
 
   // dpad
   groups.emplace_back(m_dpad = new ControllerEmu::Buttons(_trans("D-Pad")));
   for (const char* named_direction : named_directions)
-    m_dpad->controls.emplace_back(new ControllerEmu::Input(named_direction));
+    m_dpad->controls.emplace_back(new ControllerEmu::InputReference(named_direction));
 
   // Set up register
   m_calibration = classic_calibration;

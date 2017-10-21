@@ -58,7 +58,6 @@
 #include "DolphinWX/UINeedsControllerState.h"
 #include "DolphinWX/WxUtils.h"
 
-#include "InputCommon/ControllerEmu/Control/Control.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Extension.h"
 #include "InputCommon/ControllerEmu/ControlReference/ControlReference.h"
@@ -968,7 +967,7 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
         new wxStaticText(parent, wxID_ANY, wxGetTranslation(StrToWxStr(control->ui_name)));
 
     ControlButton* const control_button =
-        new ControlButton(parent, control->control_ref.get(), control->ui_name, 80);
+        new ControlButton(parent, control.get(), control->ui_name, 80);
     control_button->SetFont(small_font);
 
     control_buttons.push_back(control_button);
@@ -978,7 +977,7 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
             exclude_buttons.end())
       eventsink->control_buttons.push_back(control_button);
 
-    if (control->control_ref->IsInput())
+    if (control->IsInput())
     {
       control_button->SetToolTip(
           _("Left-click to detect input.\nMiddle-click to clear.\nRight-click for more options."));

@@ -10,8 +10,6 @@
 #include <string>
 
 #include "Common/Common.h"
-#include "InputCommon/ControllerEmu/Control/Control.h"
-#include "InputCommon/ControllerEmu/Control/Input.h"
 #include "InputCommon/ControllerEmu/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 
@@ -19,12 +17,12 @@ namespace ControllerEmu
 {
 Tilt::Tilt(const std::string& name_) : ControlGroup(name_, GroupType::Tilt)
 {
-  controls.emplace_back(std::make_unique<Input>(_trans("Forward")));
-  controls.emplace_back(std::make_unique<Input>(_trans("Backward")));
-  controls.emplace_back(std::make_unique<Input>(_trans("Left")));
-  controls.emplace_back(std::make_unique<Input>(_trans("Right")));
+  controls.emplace_back(std::make_unique<InputReference>(_trans("Forward")));
+  controls.emplace_back(std::make_unique<InputReference>(_trans("Backward")));
+  controls.emplace_back(std::make_unique<InputReference>(_trans("Left")));
+  controls.emplace_back(std::make_unique<InputReference>(_trans("Right")));
 
-  controls.emplace_back(std::make_unique<Input>(_trans("Modifier")));
+  controls.emplace_back(std::make_unique<InputReference>(_trans("Modifier")));
 
   numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Dead Zone"), 0, 0, 50));
   numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Circle Stick"), 0));
@@ -35,13 +33,13 @@ void Tilt::GetState(ControlState* const x, ControlState* const y, const bool ste
 {
   // this is all a mess
 
-  ControlState yy = controls[0]->control_ref->State() - controls[1]->control_ref->State();
-  ControlState xx = controls[3]->control_ref->State() - controls[2]->control_ref->State();
+  ControlState yy = controls[0]->State() - controls[1]->State();
+  ControlState xx = controls[3]->State() - controls[2]->State();
 
   ControlState deadzone = numeric_settings[0]->GetValue();
   ControlState circle = numeric_settings[1]->GetValue();
   auto const angle = numeric_settings[2]->GetValue() / 1.8;
-  ControlState m = controls[4]->control_ref->State();
+  ControlState m = controls[4]->State();
 
   // deadzone / circle stick code
   // this section might be all wrong, but its working good enough, I think

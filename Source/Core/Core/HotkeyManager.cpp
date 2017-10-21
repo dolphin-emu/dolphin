@@ -13,9 +13,9 @@
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
 
-#include "InputCommon/ControllerEmu/Control/Input.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
+#include "InputCommon/ControllerEmu/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/GCPadStatus.h"
 
@@ -270,7 +270,7 @@ HotkeyManager::HotkeyManager()
     groups.emplace_back(m_hotkey_groups[group]);
     for (int key = groups_info[group].first; key <= groups_info[group].last; key++)
     {
-      m_keys[group]->controls.emplace_back(new ControllerEmu::Input(hotkey_labels[key]));
+      m_keys[group]->controls.emplace_back(new ControllerEmu::InputReference(hotkey_labels[key]));
     }
   }
 }
@@ -345,7 +345,7 @@ void HotkeyManager::LoadDefaults(const ControllerInterface& ciface)
   auto set_key_expression = [this](int index, const std::string& expression) {
     m_keys[FindGroupByID(index)]
         ->controls[GetIndexForGroup(FindGroupByID(index), index)]
-        ->control_ref->SetExpression(expression);
+        ->SetExpression(expression);
   };
 
   // General hotkeys

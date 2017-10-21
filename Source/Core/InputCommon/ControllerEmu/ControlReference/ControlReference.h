@@ -26,6 +26,8 @@ class ControlReference
 public:
   static bool InputGateOn();
 
+  ControlReference(const std::string& name, const std::string& ui_name);
+  ControlReference(const std::string& name);
   virtual ~ControlReference();
   virtual ControlState State(const ControlState state = 0) = 0;
   virtual ciface::Core::Device::Control* Detect(const unsigned int ms,
@@ -39,6 +41,8 @@ public:
   std::string GetExpression() const;
   void SetExpression(std::string expr);
 
+  const std::string name;
+  const std::string ui_name;
   ControlState range;
 
 protected:
@@ -56,7 +60,8 @@ protected:
 class InputReference : public ControlReference
 {
 public:
-  InputReference();
+  using ControlReference::ControlReference;
+
   bool IsInput() const override;
   ControlState State(const ControlState state) override;
   ciface::Core::Device::Control* Detect(const unsigned int ms,
@@ -71,7 +76,8 @@ public:
 class OutputReference : public ControlReference
 {
 public:
-  OutputReference();
+  using ControlReference::ControlReference;
+
   bool IsInput() const override;
   ControlState State(const ControlState state) override;
   ciface::Core::Device::Control* Detect(const unsigned int ms,
