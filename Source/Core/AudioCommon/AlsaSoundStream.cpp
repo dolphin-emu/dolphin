@@ -78,9 +78,9 @@ void AlsaSound::SoundLoop()
   m_thread_status.store(ALSAThreadStatus::STOPPED);
 }
 
-void AlsaSound::Clear(bool muted)
+void AlsaSound::SetRunning(bool running)
 {
-  m_thread_status.store(muted ? ALSAThreadStatus::PAUSED : ALSAThreadStatus::RUNNING);
+  m_thread_status.store(running ? ALSAThreadStatus::RUNNING : ALSAThreadStatus::PAUSED);
   cv.notify_one();  // Notify thread that status has changed
 }
 

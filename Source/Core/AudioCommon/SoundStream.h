@@ -24,5 +24,5 @@ public:
   virtual void SoundLoop() {}
   virtual void Stop() {}
   virtual void Update() {}
-  virtual void Clear(bool mute) {}
+  virtual void SetRunning(bool running) {}
 };

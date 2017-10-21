@@ -162,7 +162,7 @@ void UpdateSoundStream()
 void SetSoundStreamRunning(bool running)
 {
   if (g_sound_stream)
-    g_sound_stream->Clear(running);
+    g_sound_stream->SetRunning(running);
 }
 
 void SendAIBuffer(const short* samples, unsigned int num_samples)
