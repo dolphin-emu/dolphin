@@ -20,6 +20,7 @@
 #endif
 
 #include "AudioCommon/AudioCommon.h"
+#include "AudioCommon/Mixer.h"
 
 #include "Common/CPUDetect.h"
 #include "Common/CommonPaths.h"
@@ -954,11 +955,9 @@ void UpdateTitle()
   }
 
   // Update the audio timestretcher with the current speed
-  if (g_sound_stream)
-  {
-    Mixer* pMixer = g_sound_stream->GetMixer();
-    pMixer->UpdateSpeed((float)Speed / 100);
-  }
+  Mixer* mixer = AudioCommon::GetMixer();
+  if (mixer)
+    mixer->UpdateSpeed(static_cast<float>(Speed) / 100);
 
   Host_UpdateTitle(message);
 }

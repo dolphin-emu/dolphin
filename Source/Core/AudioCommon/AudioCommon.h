@@ -10,14 +10,12 @@
 #include <vector>
 
 #include "AudioCommon/Enums.h"
-#include "AudioCommon/SoundStream.h"
 
 class Mixer;
 
-extern std::unique_ptr<SoundStream> g_sound_stream;
-
 namespace AudioCommon
 {
+Mixer* GetMixer();
 void InitSoundStream();
 void ShutdownSoundStream();
 std::string GetDefaultSoundBackend();
