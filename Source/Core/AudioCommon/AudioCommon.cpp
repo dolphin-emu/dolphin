@@ -51,6 +51,12 @@ static std::unique_ptr<SoundStream> CreateSoundStreamForBackend(std::string_view
   return {};
 }
 
+static void DestroySoundStream()
+{
+  SetSoundStreamRunning(false);
+  s_sound_stream.reset();
+}
+
 void Init()
 {
   s_mixer = std::make_unique<Mixer>(48000);
@@ -87,9 +93,7 @@ void Shutdown()
   if (SConfig::GetInstance().m_DumpAudio && s_audio_dump_start)
     StopAudioDump();
 
-  SetSoundStreamRunning(false);
-  s_sound_stream.reset();
-
+  DestroySoundStream();
   s_mixer.reset();
 
   INFO_LOG(AUDIO, "Done shutting down sound stream");
