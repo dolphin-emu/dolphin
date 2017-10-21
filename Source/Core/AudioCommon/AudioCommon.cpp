@@ -16,6 +16,7 @@
 #include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
 
+static std::unique_ptr<Mixer> s_mixer;
 static std::unique_ptr<SoundStream> s_sound_stream;
 
 namespace AudioCommon
@@ -28,9 +29,7 @@ constexpr int AUDIO_VOLUME_MAX = 100;
 
 Mixer* GetMixer()
 {
-  if (!s_sound_stream)
-    return nullptr;
-  return s_sound_stream->GetMixer();
+  return s_mixer.get();
 }
 
 static std::unique_ptr<SoundStream> CreateSoundStreamForBackend(std::string_view backend)
@@ -54,6 +53,7 @@ static std::unique_ptr<SoundStream> CreateSoundStreamForBackend(std::string_view
 
 void InitSoundStream()
 {
+  s_mixer = std::make_unique<Mixer>(48000);
   std::string backend = SConfig::GetInstance().sBackend;
   s_sound_stream = CreateSoundStreamForBackend(backend);
 
@@ -89,6 +89,8 @@ void ShutdownSoundStream()
 
   SetSoundStreamRunning(false);
   s_sound_stream.reset();
+
+  s_mixer.reset();
 
   INFO_LOG(AUDIO, "Done shutting down sound stream");
 }

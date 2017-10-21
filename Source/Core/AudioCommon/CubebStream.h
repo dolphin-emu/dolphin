@@ -8,6 +8,7 @@
 #include <memory>
 #include <vector>
 
+#include "AudioCommon/AudioCommon.h"
 #include "AudioCommon/SoundStream.h"
 
 #include <cubeb/cubeb.h>

@@ -9,6 +9,8 @@
 #include <cstring>
 #include <thread>
 
+#include "AudioCommon/AudioCommon.h"
+#include "AudioCommon/Mixer.h"
 #include "AudioCommon/OpenALStream.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
@@ -228,7 +230,7 @@ void OpenALStream::SoundLoop()
   // we just check if one is being used.
   bool fixed32_capable = IsCreativeXFi();
 
-  u32 frequency = m_mixer->GetSampleRate();
+  u32 frequency = AudioCommon::GetMixer()->GetSampleRate();
 
   u32 frames_per_buffer;
   // Can't have zero samples per buffer
@@ -301,7 +303,7 @@ void OpenALStream::SoundLoop()
     if (use_surround)
     {
       std::array<float, OAL_MAX_FRAMES * SURROUND_CHANNELS> dpl2;
-      u32 rendered_frames = m_mixer->MixSurround(dpl2.data(), min_frames);
+      u32 rendered_frames = AudioCommon::GetMixer()->MixSurround(dpl2.data(), min_frames);
 
       if (rendered_frames < min_frames)
         continue;
@@ -359,7 +361,7 @@ void OpenALStream::SoundLoop()
     }
     else
     {
-      u32 rendered_frames = m_mixer->Mix(m_realtime_buffer.data(), min_frames);
+      u32 rendered_frames = AudioCommon::GetMixer()->Mix(m_realtime_buffer.data(), min_frames);
 
       if (!rendered_frames)
         continue;

@@ -15,6 +15,8 @@
 #include <thread>
 // clang-format on
 
+#include "AudioCommon/AudioCommon.h"
+#include "AudioCommon/Mixer.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
@@ -27,7 +29,7 @@ WASAPIStream::WASAPIStream()
 
   m_format.Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
   m_format.Format.nChannels = 2;
-  m_format.Format.nSamplesPerSec = GetMixer()->GetSampleRate();
+  m_format.Format.nSamplesPerSec = AudioCommon::GetMixer()->GetSampleRate();
   m_format.Format.nAvgBytesPerSec = m_format.Format.nSamplesPerSec * 4;
   m_format.Format.nBlockAlign = 4;
   m_format.Format.wBitsPerSample = 16;
@@ -435,7 +437,7 @@ void WASAPIStream::SoundLoop()
     WaitForSingleObject(m_need_data_event, 1000);
 
     m_audio_renderer->GetBuffer(m_frames_in_buffer, &data);
-    GetMixer()->Mix(reinterpret_cast<s16*>(data), m_frames_in_buffer);
+    AudioCommon::GetMixer()->Mix(reinterpret_cast<s16*>(data), m_frames_in_buffer);
 
     float volume = SConfig::GetInstance().m_IsMuted ? 0 : SConfig::GetInstance().m_Volume / 100.;
 

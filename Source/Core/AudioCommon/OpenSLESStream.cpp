@@ -11,6 +11,9 @@
 #include <SLES/OpenSLES.h>
 #include <SLES/OpenSLES_Android.h>
 
+#include "AudioCommon/AudioCommon.h"
+#include "AudioCommon/Mixer.h"
+#include "AudioCommon/OpenSLESStream.h"
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
@@ -69,7 +72,7 @@ bool OpenSLESStream::Init()
   SLDataLocator_AndroidSimpleBufferQueue loc_bufq = {SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE, 2};
   SLDataFormat_PCM format_pcm = {SL_DATAFORMAT_PCM,
                                  2,
-                                 m_mixer->GetSampleRate() * 1000,
+                                 AudioCommon::GetMixer()->GetSampleRate() * 1000,
                                  SL_PCMSAMPLEFORMAT_FIXED_16,
                                  SL_PCMSAMPLEFORMAT_FIXED_16,
                                  SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT,
@@ -105,7 +108,7 @@ bool OpenSLESStream::Init()
 
   // Render and enqueue a first buffer.
   curBuffer ^= 1;
-  g_mixer = m_mixer.get();
+  g_mixer = AudioCommon::GetMixer();
 
   result = (*bqPlayerBufferQueue)->Enqueue(bqPlayerBufferQueue, buffer[0], sizeof(buffer[0]));
   if (SL_RESULT_SUCCESS != result)
