@@ -555,6 +555,8 @@ add_subdirectory(Externals/pugixml)
 
 add_subdirectory(Externals/cpp-optparse)
 
+add_subdirectory(Externals/lua5.3/include)
+
 if(USE_SHARED_ENET)
   check_lib(ENET libenet enet enet/enet.h QUIET)
   include(CheckSymbolExists)

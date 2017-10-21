@@ -8,7 +8,7 @@
 #include <mutex>
 #include <wx/frame.h>
 
-#include "InputCommon\GCPadStatus.h"
+#include "InputCommon/GCPadStatus.h"
 
 // Forward Declarations
 class wxString;
