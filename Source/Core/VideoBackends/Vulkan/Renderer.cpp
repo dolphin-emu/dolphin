@@ -164,6 +164,12 @@ std::unique_ptr<AbstractTexture> Renderer::CreateTexture(const TextureConfig& co
   return VKTexture::Create(config);
 }
 
+std::unique_ptr<AbstractStagingTexture> Renderer::CreateStagingTexture(StagingTextureType type,
+                                                                       const TextureConfig& config)
+{
+  return VKStagingTexture::Create(type, config);
+}
+
 void Renderer::RenderText(const std::string& text, int left, int top, u32 color)
 {
   u32 backbuffer_width = m_swap_chain->GetWidth();

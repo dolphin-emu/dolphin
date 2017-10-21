@@ -27,6 +27,12 @@ std::unique_ptr<AbstractTexture> Renderer::CreateTexture(const TextureConfig& co
   return std::make_unique<NullTexture>(config);
 }
 
+std::unique_ptr<AbstractStagingTexture> Renderer::CreateStagingTexture(StagingTextureType type,
+                                                                       const TextureConfig& config)
+{
+  return std::make_unique<NullStagingTexture>(type, config);
+}
+
 void Renderer::RenderText(const std::string& text, int left, int top, u32 color)
 {
   NOTICE_LOG(VIDEO, "RenderText: %s", text.c_str());

@@ -58,7 +58,7 @@ struct VideoConfig
   bool bSupportsImageLoadStore;
   bool bSupportsAniso;
   bool bSupportsBitfield;
-  bool bSupportTextureSubImage;
+  bool bSupportsTextureSubImage;
 
   const char* gl_vendor;
   const char* gl_renderer;
@@ -78,6 +78,8 @@ public:
   void Shutdown();
 
   std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config) override;
+  std::unique_ptr<AbstractStagingTexture>
+  CreateStagingTexture(StagingTextureType type, const TextureConfig& config) override;
 
   void SetBlendingState(const BlendingState& state) override;
   void SetScissorRect(const EFBRectangle& rc) override;

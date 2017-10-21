@@ -21,6 +21,13 @@ enum class AbstractTextureFormat : u32
   Undefined
 };
 
+enum class StagingTextureType
+{
+  Readback,  // Optimize for CPU reads, GPU writes, no CPU writes
+  Upload,    // Optimize for CPU writes, GPU reads, no CPU reads
+  Mutable    // Optimize for CPU reads, GPU writes, allow slow CPU reads
+};
+
 struct TextureConfig
 {
   constexpr TextureConfig() = default;
@@ -32,7 +39,11 @@ struct TextureConfig
   }
 
   bool operator==(const TextureConfig& o) const;
+  bool operator!=(const TextureConfig& o) const;
   MathUtil::Rectangle<int> GetRect() const;
+  MathUtil::Rectangle<int> GetMipRect(u32 level) const;
+  size_t GetStride() const;
+  size_t GetMipStride(u32 level) const;
 
   u32 width = 0;
   u32 height = 0;

@@ -25,4 +25,43 @@ void NullTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u
 {
 }
 
+NullStagingTexture::NullStagingTexture(StagingTextureType type, const TextureConfig& config)
+    : AbstractStagingTexture(type, config)
+{
+  m_texture_buf.resize(m_texel_size * config.width * config.height);
+  m_map_pointer = reinterpret_cast<char*>(m_texture_buf.data());
+  m_map_stride = m_texel_size * config.width;
+}
+
+NullStagingTexture::~NullStagingTexture() = default;
+
+void NullStagingTexture::CopyFromTexture(const AbstractTexture* src,
+                                         const MathUtil::Rectangle<int>& src_rect, u32 src_layer,
+                                         u32 src_level, const MathUtil::Rectangle<int>& dst_rect)
+{
+  m_needs_flush = true;
+}
+
+void NullStagingTexture::CopyToTexture(const MathUtil::Rectangle<int>& src_rect,
+                                       AbstractTexture* dst,
+                                       const MathUtil::Rectangle<int>& dst_rect, u32 dst_layer,
+                                       u32 dst_level)
+{
+  m_needs_flush = true;
+}
+
+bool NullStagingTexture::Map()
+{
+  return true;
+}
+
+void NullStagingTexture::Unmap()
+{
+}
+
+void NullStagingTexture::Flush()
+{
+  m_needs_flush = false;
+}
+
 }  // namespace Null

@@ -59,11 +59,11 @@ public:
   static std::unique_ptr<StagingBuffer> Create(STAGING_BUFFER_TYPE type, VkDeviceSize size,
                                                VkBufferUsageFlags usage);
 
-protected:
   // Allocates the resources needed to create a staging buffer.
   static bool AllocateBuffer(STAGING_BUFFER_TYPE type, VkDeviceSize size, VkBufferUsageFlags usage,
                              VkBuffer* out_buffer, VkDeviceMemory* out_memory, bool* out_coherent);
 
+protected:
   STAGING_BUFFER_TYPE m_type;
   VkBuffer m_buffer;
   VkDeviceMemory m_memory;

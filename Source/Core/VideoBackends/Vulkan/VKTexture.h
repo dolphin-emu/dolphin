@@ -7,10 +7,12 @@
 #include <memory>
 #include <vulkan/vulkan.h>
 
+#include "VideoCommon/AbstractStagingTexture.h"
 #include "VideoCommon/AbstractTexture.h"
 
 namespace Vulkan
 {
+class StagingBuffer;
 class Texture2D;
 
 class VKTexture final : public AbstractTexture
@@ -54,6 +56,39 @@ private:
   std::unique_ptr<Texture2D> m_texture;
   std::unique_ptr<StagingTexture2D> m_staging_texture;
   VkFramebuffer m_framebuffer;
+};
+
+class VKStagingTexture final : public AbstractStagingTexture
+{
+public:
+  VKStagingTexture() = delete;
+  ~VKStagingTexture();
+
+  void CopyFromTexture(const AbstractTexture* src, const MathUtil::Rectangle<int>& src_rect,
+                       u32 src_layer, u32 src_level,
+                       const MathUtil::Rectangle<int>& dst_rect) override;
+  void CopyToTexture(const MathUtil::Rectangle<int>& src_rect, AbstractTexture* dst,
+                     const MathUtil::Rectangle<int>& dst_rect, u32 dst_layer,
+                     u32 dst_level) override;
+
+  bool Map() override;
+  void Unmap() override;
+  void Flush() override;
+
+  // This overload is provided for compatibility as we dropped StagingTexture2D.
+  // For now, FramebufferManager relies on them. But we can drop it once we move that to common.
+  void CopyFromTexture(Texture2D* src, const MathUtil::Rectangle<int>& src_rect, u32 src_layer,
+                       u32 src_level, const MathUtil::Rectangle<int>& dst_rect);
+
+  static std::unique_ptr<VKStagingTexture> Create(StagingTextureType type,
+                                                  const TextureConfig& config);
+
+private:
+  VKStagingTexture(StagingTextureType type, const TextureConfig& config,
+                   std::unique_ptr<StagingBuffer> buffer);
+
+  std::unique_ptr<StagingBuffer> m_staging_buffer;
+  VkFence m_flush_fence = VK_NULL_HANDLE;
 };
 
 }  // namespace Vulkan

@@ -8,6 +8,7 @@
 
 #include "Common/GL/GLUtil.h"
 
+#include "VideoCommon/AbstractStagingTexture.h"
 #include "VideoCommon/AbstractTexture.h"
 
 namespace OGL
@@ -41,6 +42,37 @@ private:
   GLuint m_texId;
   GLuint m_framebuffer = 0;
   std::vector<u8> m_staging_data;
+};
+
+class OGLStagingTexture final : public AbstractStagingTexture
+{
+public:
+  OGLStagingTexture() = delete;
+  ~OGLStagingTexture();
+
+  void CopyFromTexture(const AbstractTexture* src, const MathUtil::Rectangle<int>& src_rect,
+                       u32 src_layer, u32 src_level,
+                       const MathUtil::Rectangle<int>& dst_rect) override;
+  void CopyToTexture(const MathUtil::Rectangle<int>& src_rect, AbstractTexture* dst,
+                     const MathUtil::Rectangle<int>& dst_rect, u32 dst_layer,
+                     u32 dst_level) override;
+
+  bool Map() override;
+  void Unmap() override;
+  void Flush() override;
+
+  static std::unique_ptr<OGLStagingTexture> Create(StagingTextureType type,
+                                                   const TextureConfig& config);
+
+private:
+  OGLStagingTexture(StagingTextureType type, const TextureConfig& config, GLenum target,
+                    GLuint buffer_name, size_t buffer_size, char* map_ptr, size_t map_stride);
+
+private:
+  GLenum m_target;
+  GLuint m_buffer_name;
+  size_t m_buffer_size;
+  GLsync m_fence = 0;
 };
 
 }  // namespace OGL

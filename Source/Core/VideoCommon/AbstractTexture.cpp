@@ -100,7 +100,7 @@ AbstractTexture::MapRegionImpl(u32 level, u32 x, u32 y, u32 width, u32 height)
   return {};
 }
 
-bool AbstractTexture::IsCompressedHostTextureFormat(AbstractTextureFormat format)
+bool AbstractTexture::IsCompressedFormat(AbstractTextureFormat format)
 {
   switch (format)
   {
@@ -115,7 +115,7 @@ bool AbstractTexture::IsCompressedHostTextureFormat(AbstractTextureFormat format
   }
 }
 
-size_t AbstractTexture::CalculateHostTextureLevelPitch(AbstractTextureFormat format, u32 row_length)
+size_t AbstractTexture::CalculateStrideForFormat(AbstractTextureFormat format, u32 row_length)
 {
   switch (format)
   {
@@ -128,6 +128,25 @@ size_t AbstractTexture::CalculateHostTextureLevelPitch(AbstractTextureFormat for
   case AbstractTextureFormat::RGBA8:
   case AbstractTextureFormat::BGRA8:
     return static_cast<size_t>(row_length) * 4;
+  default:
+    PanicAlert("Unhandled texture format.");
+    return 0;
+  }
+}
+
+size_t AbstractTexture::GetTexelSizeForFormat(AbstractTextureFormat format)
+{
+  switch (format)
+  {
+  case AbstractTextureFormat::DXT1:
+    return 8;
+  case AbstractTextureFormat::DXT3:
+  case AbstractTextureFormat::DXT5:
+  case AbstractTextureFormat::BPTC:
+    return 16;
+  case AbstractTextureFormat::RGBA8:
+  case AbstractTextureFormat::BGRA8:
+    return 4;
   default:
     PanicAlert("Unhandled texture format.");
     return 0;

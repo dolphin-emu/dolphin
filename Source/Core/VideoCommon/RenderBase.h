@@ -34,9 +34,11 @@
 
 class AbstractRawTexture;
 class AbstractTexture;
+class AbstractStagingTexture;
 class PostProcessingShaderImplementation;
 struct TextureConfig;
 enum class EFBAccessType;
+enum class StagingTextureType;
 
 struct EfbPokeData
 {
@@ -81,6 +83,8 @@ public:
   virtual void ResetAPIState() {}
   virtual void RestoreAPIState() {}
   virtual std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config) = 0;
+  virtual std::unique_ptr<AbstractStagingTexture>
+  CreateStagingTexture(StagingTextureType type, const TextureConfig& config) = 0;
 
   // Ideal internal resolution - multiple of the native EFB resolution
   int GetTargetWidth() const { return m_target_width; }

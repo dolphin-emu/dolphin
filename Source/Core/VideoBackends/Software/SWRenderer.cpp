@@ -40,6 +40,12 @@ std::unique_ptr<AbstractTexture> SWRenderer::CreateTexture(const TextureConfig& 
   return std::make_unique<SW::SWTexture>(config);
 }
 
+std::unique_ptr<AbstractStagingTexture>
+SWRenderer::CreateStagingTexture(StagingTextureType type, const TextureConfig& config)
+{
+  return std::make_unique<SW::SWStagingTexture>(type, config);
+}
+
 void SWRenderer::RenderText(const std::string& pstr, int left, int top, u32 color)
 {
   SWOGLWindow::s_instance->PrintText(pstr, left, top, color);

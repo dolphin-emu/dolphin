@@ -216,6 +216,12 @@ std::unique_ptr<AbstractTexture> Renderer::CreateTexture(const TextureConfig& co
   return std::make_unique<DXTexture>(config);
 }
 
+std::unique_ptr<AbstractStagingTexture> Renderer::CreateStagingTexture(StagingTextureType type,
+                                                                       const TextureConfig& config)
+{
+  return DXStagingTexture::Create(type, config);
+}
+
 void Renderer::RenderText(const std::string& text, int left, int top, u32 color)
 {
   D3D::DrawTextScaled(static_cast<float>(left + 1), static_cast<float>(top + 1), 20.f, 0.0f,

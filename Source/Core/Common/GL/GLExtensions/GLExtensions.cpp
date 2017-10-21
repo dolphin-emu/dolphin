@@ -1870,6 +1870,9 @@ const GLFunc gl_function_array[] = {
     GLFUNC_REQUIRES(glDispatchCompute, "GL_ARB_compute_shader !VERSION_4_3 |VERSION_GLES_3_1"),
     GLFUNC_REQUIRES(glDispatchComputeIndirect,
                     "GL_ARB_compute_shader !VERSION_4_3 |VERSION_GLES_3_1"),
+
+    // ARB_get_texture_sub_image
+    GLFUNC_REQUIRES(glGetTextureSubImage, "GL_ARB_get_texture_sub_image !VERSION_4_5"),
 };
 
 namespace GLExtensions
