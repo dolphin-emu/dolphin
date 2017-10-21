@@ -173,7 +173,7 @@ void AudioPane::ConnectWidgets()
 {
   connect(m_backend_combo, qOverload<int>(&QComboBox::currentIndexChanged), this,
           &AudioPane::SaveSettings);
-  connect(m_volume_slider, &QSlider::valueChanged, this, &AudioPane::SaveSettings);
+  connect(m_volume_slider, &QSlider::valueChanged, this, &AudioPane::SaveVolume);
   if (m_latency_control_supported)
   {
     connect(m_latency_spin, qOverload<int>(&QSpinBox::valueChanged), this,
@@ -263,8 +263,6 @@ void AudioPane::LoadSettings()
 
 void AudioPane::SaveSettings()
 {
-  auto& settings = Settings::Instance();
-
   // DSP
   if (SConfig::GetInstance().bDSPHLE != m_dsp_hle->isChecked() ||
       SConfig::GetInstance().m_DSPEnableJIT != m_dsp_lle->isChecked())
@@ -285,14 +283,6 @@ void AudioPane::SaveSettings()
   {
     backend = selection;
     OnBackendChanged();
-  }
-
-  // Volume
-  if (m_volume_slider->value() != settings.GetVolume())
-  {
-    settings.SetVolume(m_volume_slider->value());
-    OnVolumeChanged(settings.GetVolume());
-    AudioCommon::UpdateVolume();
   }
 
   // DPL2
@@ -327,6 +317,19 @@ void AudioPane::SaveSettings()
 
   SConfig::GetInstance().sWASAPIDevice = device;
 #endif
+
+  AudioCommon::RebuildSoundStream();
+}
+
+void AudioPane::SaveVolume()
+{
+  auto& settings = Settings::Instance();
+  if (m_volume_slider->value() != settings.GetVolume())
+  {
+    settings.SetVolume(m_volume_slider->value());
+    OnVolumeChanged(settings.GetVolume());
+    AudioCommon::UpdateVolume();
+  }
 }
 
 void AudioPane::OnDspChanged()
@@ -377,18 +380,6 @@ void AudioPane::OnEmulationStateChanged(bool running)
   m_dsp_hle->setEnabled(!running);
   m_dsp_lle->setEnabled(!running);
   m_dsp_interpreter->setEnabled(!running);
-  m_backend_label->setEnabled(!running);
-  m_backend_combo->setEnabled(!running);
-  if (AudioCommon::SupportsDPL2Decoder(SConfig::GetInstance().sBackend) && !m_dsp_hle->isChecked())
-  {
-    m_dolby_pro_logic->setEnabled(!running);
-    EnableDolbyQualityWidgets(!running && m_dolby_pro_logic->isChecked());
-  }
-  if (m_latency_control_supported)
-  {
-    m_latency_label->setEnabled(!running);
-    m_latency_spin->setEnabled(!running);
-  }
 
 #ifdef _WIN32
   m_wasapi_device_combo->setEnabled(!running);
