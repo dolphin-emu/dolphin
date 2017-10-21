@@ -15,9 +15,19 @@ AlsaSound::AlsaSound()
 {
 }
 
-bool AlsaSound::Start()
+AlsaSound::~AlsaSound()
 {
-  m_thread_status.store(ALSAThreadStatus::RUNNING);
+  m_thread_status.store(ALSAThreadStatus::STOPPING);
+
+  // Give the opportunity to the audio thread
+  // to realize we are stopping the emulation
+  cv.notify_one();
+  thread.join();
+}
+
+bool AlsaSound::Init()
+{
+  m_thread_status.store(ALSAThreadStatus::PAUSED);
   if (!AlsaInit())
   {
     m_thread_status.store(ALSAThreadStatus::STOPPED);
@@ -26,16 +36,6 @@ bool AlsaSound::Start()
 
   thread = std::thread(&AlsaSound::SoundLoop, this);
   return true;
-}
-
-void AlsaSound::Stop()
-{
-  m_thread_status.store(ALSAThreadStatus::STOPPING);
-
-  // Give the opportunity to the audio thread
-  // to realize we are stopping the emulation
-  cv.notify_one();
-  thread.join();
 }
 
 void AlsaSound::Update()
@@ -78,10 +78,11 @@ void AlsaSound::SoundLoop()
   m_thread_status.store(ALSAThreadStatus::STOPPED);
 }
 
-void AlsaSound::SetRunning(bool running)
+bool AlsaSound::SetRunning(bool running)
 {
   m_thread_status.store(running ? ALSAThreadStatus::RUNNING : ALSAThreadStatus::PAUSED);
   cv.notify_one();  // Notify thread that status has changed
+  return true;
 }
 
 bool AlsaSound::AlsaInit()

@@ -50,23 +50,15 @@ void InitSoundStream()
   else if (backend == BACKEND_OPENSLES && OpenSLESStream::isValid())
     g_sound_stream = std::make_unique<OpenSLESStream>();
 
-  if (!g_sound_stream)
+  if (!g_sound_stream || !g_sound_stream->Init())
   {
     WARN_LOG(AUDIO, "Could not initialize backend %s, using %s instead.", backend.c_str(),
              BACKEND_NULLSOUND);
     g_sound_stream = std::make_unique<NullSound>();
   }
 
-  if (!g_sound_stream->Start())
-  {
-    ERROR_LOG(AUDIO, "Could not start backend %s, using %s instead", backend.c_str(),
-              BACKEND_NULLSOUND);
-
-    g_sound_stream = std::make_unique<NullSound>();
-    g_sound_stream->Start();
-  }
-
   UpdateSoundStream();
+  SetSoundStreamRunning(true);
 
   if (SConfig::GetInstance().m_DumpAudio && !s_audio_dump_start)
     StartAudioDump();
@@ -76,15 +68,11 @@ void ShutdownSoundStream()
 {
   INFO_LOG(AUDIO, "Shutting down sound stream");
 
-  if (g_sound_stream)
-  {
-    g_sound_stream->Stop();
+  if (SConfig::GetInstance().m_DumpAudio && s_audio_dump_start)
+    StopAudioDump();
 
-    if (SConfig::GetInstance().m_DumpAudio && s_audio_dump_start)
-      StopAudioDump();
-
-    g_sound_stream.reset();
-  }
+  SetSoundStreamRunning(false);
+  g_sound_stream.reset();
 
   INFO_LOG(AUDIO, "Done shutting down sound stream");
 }
@@ -161,8 +149,15 @@ void UpdateSoundStream()
 
 void SetSoundStreamRunning(bool running)
 {
-  if (g_sound_stream)
-    g_sound_stream->SetRunning(running);
+  if (!g_sound_stream)
+    return;
+
+  if (g_sound_stream->SetRunning(running))
+    return;
+  if (running)
+    ERROR_LOG(AUDIO, "Error starting stream.");
+  else
+    ERROR_LOG(AUDIO, "Error stopping stream.");
 }
 
 void SendAIBuffer(const short* samples, unsigned int num_samples)
@@ -198,6 +193,8 @@ void StartAudioDump()
 
 void StopAudioDump()
 {
+  if (!g_sound_stream)
+    return;
   g_sound_stream->GetMixer()->StopLogDTKAudio();
   g_sound_stream->GetMixer()->StopLogDSPAudio();
   s_audio_dump_start = false;

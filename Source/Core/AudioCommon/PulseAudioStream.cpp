@@ -19,7 +19,7 @@ PulseAudio::PulseAudio() : m_thread(), m_run_thread()
 {
 }
 
-bool PulseAudio::Start()
+bool PulseAudio::Init()
 {
   m_stereo = !SConfig::GetInstance().bDPL2Decoder;
   m_channels = m_stereo ? 2 : 5;  // will tell PA we use a Stereo or 5.0 channel setup
@@ -32,15 +32,10 @@ bool PulseAudio::Start()
   return true;
 }
 
-void PulseAudio::Stop()
+PulseAudio::~PulseAudio()
 {
   m_run_thread.Clear();
   m_thread.join();
-}
-
-void PulseAudio::Update()
-{
-  // don't need to do anything here.
 }
 
 // Called on audio thread.

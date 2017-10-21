@@ -49,7 +49,7 @@ static void bqPlayerCallback(SLAndroidSimpleBufferQueueItf bq, void* context)
   _assert_msg_(AUDIO, SL_RESULT_SUCCESS == result, "Couldn't enqueue audio stream.");
 }
 
-bool OpenSLESStream::Start()
+bool OpenSLESStream::Init()
 {
   SLresult result;
   // create engine
@@ -110,7 +110,7 @@ bool OpenSLESStream::Start()
   return true;
 }
 
-void OpenSLESStream::Stop()
+OpenSLESStream::~OpenSLESStream()
 {
   if (bqPlayerObject != nullptr)
   {
