@@ -6,7 +6,7 @@
 
 #include <memory>
 #include <string>
-#include "InputCommon/ControlReference/ControlReference.h"
+#include "InputCommon/ControllerEmu/ControlReference/ControlReference.h"
 
 namespace ControllerEmu
 {

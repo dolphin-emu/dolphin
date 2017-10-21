@@ -13,9 +13,9 @@
 #include "DolphinQt2/Config/Mapping/MappingButton.h"
 #include "DolphinQt2/Config/Mapping/MappingNumeric.h"
 #include "DolphinQt2/Config/Mapping/MappingWindow.h"
-#include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/Control/Control.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
+#include "InputCommon/ControllerEmu/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/Setting/BooleanSetting.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 

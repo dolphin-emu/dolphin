@@ -9,7 +9,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Host.h"
 
-#include "InputCommon/ControlReference/ControlReference.h"
+#include "InputCommon/ControllerEmu/ControlReference/ControlReference.h"
 
 using namespace ciface::ExpressionParser;
 

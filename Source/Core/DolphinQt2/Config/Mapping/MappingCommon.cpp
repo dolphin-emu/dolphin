@@ -7,7 +7,7 @@
 #include <QRegExp>
 #include <QString>
 
-#include "InputCommon/ControlReference/ControlReference.h"
+#include "InputCommon/ControllerEmu/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerInterface/Device.h"
 
 namespace MappingCommon

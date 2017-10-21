@@ -58,11 +58,11 @@
 #include "DolphinWX/UINeedsControllerState.h"
 #include "DolphinWX/WxUtils.h"
 
-#include "InputCommon/ControlReference/ControlReference.h"
-#include "InputCommon/ControlReference/ExpressionParser.h"
 #include "InputCommon/ControllerEmu/Control/Control.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Extension.h"
+#include "InputCommon/ControllerEmu/ControlReference/ControlReference.h"
+#include "InputCommon/ControllerEmu/ControlReference/ExpressionParser.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerEmu/Setting/BooleanSetting.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"

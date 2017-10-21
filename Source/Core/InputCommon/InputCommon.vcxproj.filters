@@ -22,6 +22,9 @@
     <Filter Include="ControllerEmu\ControlGroup">
       <UniqueIdentifier>{e805231c-dc4e-4540-8bf8-8c567f3d00ae}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ControllerEmu\ControlReference">
+      <UniqueIdentifier>{d381cb32-6b77-4b0c-9df1-4fa6f588b15e}</UniqueIdentifier>
+    </Filter>
     <Filter Include="ControllerEmu\Setting">
       <UniqueIdentifier>{ce661cb4-f23f-4ab2-952d-402d381735e5}</UniqueIdentifier>
     </Filter>
@@ -74,6 +77,12 @@
     <ClCompile Include="ControllerEmu\ControlGroup\Triggers.cpp">
       <Filter>ControllerEmu\ControlGroup</Filter>
     </ClCompile>
+    <ClCompile Include="ControllerEmu\ControlReference\ExpressionParser.cpp">
+      <Filter>ControllerEmu\ControlReference</Filter>
+    </ClCompile>
+    <ClCompile Include="ControllerEmu\ControlReference\ControlReference.cpp">
+      <Filter>ControllerEmu\ControlReference</Filter>
+    </ClCompile>
     <ClCompile Include="ControllerEmu\Setting\BooleanSetting.cpp">
       <Filter>ControllerEmu\Setting</Filter>
     </ClCompile>
@@ -103,12 +112,6 @@
     </ClCompile>
     <ClCompile Include="ControllerInterface\DInput\XInputFilter.cpp">
       <Filter>ControllerInterface\DInput</Filter>
-    </ClCompile>
-    <ClCompile Include="ControlReference\ExpressionParser.cpp">
-      <Filter>ControllerInterface</Filter>
-    </ClCompile>
-    <ClCompile Include="ControlReference\ControlReference.cpp">
-      <Filter>ControllerInterface</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -160,6 +163,12 @@
     <ClInclude Include="ControllerEmu\ControlGroup\Triggers.h">
       <Filter>ControllerEmu\ControlGroup</Filter>
     </ClInclude>
+    <ClInclude Include="ControllerEmu\ControlReference\ExpressionParser.h">
+      <Filter>ControllerEmu\ControlReference</Filter>
+    </ClInclude>
+    <ClInclude Include="ControllerEmu\ControlReference\ControlReference.h">
+      <Filter>ControllerEmu\ControlReference</Filter>
+    </ClInclude>
     <ClInclude Include="ControllerEmu\Setting\BooleanSetting.h">
       <Filter>ControllerEmu\Setting</Filter>
     </ClInclude>
@@ -195,12 +204,6 @@
     </ClInclude>
     <ClInclude Include="ControllerInterface\DInput\XInputFilter.h">
       <Filter>ControllerInterface\DInput</Filter>
-    </ClInclude>
-    <ClInclude Include="ControlReference\ExpressionParser.h">
-      <Filter>ControllerInterface</Filter>
-    </ClInclude>
-    <ClInclude Include="ControlReference\ControlReference.h">
-      <Filter>ControllerInterface</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

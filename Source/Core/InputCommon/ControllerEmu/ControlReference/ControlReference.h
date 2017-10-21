@@ -6,7 +6,7 @@
 
 #include <memory>
 
-#include "InputCommon/ControlReference/ExpressionParser.h"
+#include "InputCommon/ControllerEmu/ControlReference/ExpressionParser.h"
 #include "InputCommon/ControllerInterface/Device.h"
 
 // ControlReference
