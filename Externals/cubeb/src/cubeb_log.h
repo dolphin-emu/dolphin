@@ -23,6 +23,7 @@ extern "C" {
 extern cubeb_log_level g_cubeb_log_level;
 extern cubeb_log_callback g_cubeb_log_callback PRINTF_FORMAT(1, 2);
 void cubeb_async_log(const char * fmt, ...);
+void cubeb_async_log_reset_threads();
 
 #ifdef __cplusplus
 }

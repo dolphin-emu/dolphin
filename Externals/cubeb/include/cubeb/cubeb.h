@@ -33,11 +33,11 @@ extern "C" {
     cubeb * app_ctx;
     cubeb_init(&app_ctx, "Example Application");
     int rv;
-    int rate;
-    int latency_frames;
+    uint32_t rate;
+    uint32_t latency_frames;
     uint64_t ts;
 
-    rv = cubeb_get_min_latency(app_ctx, output_params, &latency_frames);
+    rv = cubeb_get_min_latency(app_ctx, &output_params, &latency_frames);
     if (rv != CUBEB_OK) {
       fprintf(stderr, "Could not get minimum latency");
       return rv;
@@ -144,28 +144,6 @@ typedef enum {
 #endif
 } cubeb_sample_format;
 
-#if defined(__ANDROID__)
-/**
- * This maps to the underlying stream types on supported platforms, e.g.
- * Android.
- */
-typedef enum {
-    CUBEB_STREAM_TYPE_VOICE_CALL = 0,
-    CUBEB_STREAM_TYPE_SYSTEM = 1,
-    CUBEB_STREAM_TYPE_RING = 2,
-    CUBEB_STREAM_TYPE_MUSIC = 3,
-    CUBEB_STREAM_TYPE_ALARM = 4,
-    CUBEB_STREAM_TYPE_NOTIFICATION = 5,
-    CUBEB_STREAM_TYPE_BLUETOOTH_SCO = 6,
-    CUBEB_STREAM_TYPE_SYSTEM_ENFORCED = 7,
-    CUBEB_STREAM_TYPE_DTMF = 8,
-    CUBEB_STREAM_TYPE_TTS = 9,
-    CUBEB_STREAM_TYPE_FM = 10,
-
-    CUBEB_STREAM_TYPE_MAX
-} cubeb_stream_type;
-#endif
-
 /** An opaque handle used to refer a particular input or output device
  *  across calls. */
 typedef void const * cubeb_devid;
@@ -239,12 +217,9 @@ typedef enum {
 typedef struct {
   cubeb_sample_format format;   /**< Requested sample format.  One of
                                      #cubeb_sample_format. */
-  unsigned int rate;            /**< Requested sample rate.  Valid range is [1000, 192000]. */
-  unsigned int channels;        /**< Requested channel count.  Valid range is [1, 8]. */
+  uint32_t rate;                /**< Requested sample rate.  Valid range is [1000, 192000]. */
+  uint32_t channels;            /**< Requested channel count.  Valid range is [1, 8]. */
   cubeb_channel_layout layout;  /**< Requested channel layout. This must be consistent with the provided channels. */
-#if defined(__ANDROID__)
-  cubeb_stream_type stream_type; /**< Used to map Android audio stream types */
-#endif
 } cubeb_stream_params;
 
 /** Audio device description */
@@ -348,13 +323,13 @@ typedef struct {
 
   cubeb_device_fmt format;    /**< Sample format supported. */
   cubeb_device_fmt default_format; /**< The default sample format for this device. */
-  unsigned int max_channels;  /**< Channels. */
-  unsigned int default_rate;  /**< Default/Preferred sample rate. */
-  unsigned int max_rate;      /**< Maximum sample rate supported. */
-  unsigned int min_rate;      /**< Minimum sample rate supported. */
+  uint32_t max_channels;      /**< Channels. */
+  uint32_t default_rate;      /**< Default/Preferred sample rate. */
+  uint32_t max_rate;          /**< Maximum sample rate supported. */
+  uint32_t min_rate;          /**< Minimum sample rate supported. */
 
-  unsigned int latency_lo;    /**< Lowest possible latency in frames. */
-  unsigned int latency_hi;    /**< Higest possible latency in frames. */
+  uint32_t latency_lo;        /**< Lowest possible latency in frames. */
+  uint32_t latency_hi;        /**< Higest possible latency in frames. */
 } cubeb_device_info;
 
 /** Device collection.
@@ -405,7 +380,7 @@ typedef void (* cubeb_device_changed_callback)(void * user_ptr);
 /**
  * User supplied callback called when the underlying device collection changed.
  * @param context A pointer to the cubeb context.
- * @param user_ptr The pointer passed to cubeb_stream_init. */
+ * @param user_ptr The pointer passed to cubeb_register_device_collection_changed. */
 typedef void (* cubeb_device_collection_changed_callback)(cubeb * context,
                                                           void * user_ptr);
 
@@ -455,7 +430,7 @@ CUBEB_EXPORT int cubeb_get_max_channel_count(cubeb * context, uint32_t * max_cha
     @retval CUBEB_ERROR_INVALID_PARAMETER
     @retval CUBEB_ERROR_NOT_SUPPORTED */
 CUBEB_EXPORT int cubeb_get_min_latency(cubeb * context,
-                                       cubeb_stream_params params,
+                                       cubeb_stream_params * params,
                                        uint32_t * latency_frames);
 
 /** Get the preferred sample rate for this backend: this is hardware and
@@ -512,7 +487,7 @@ CUBEB_EXPORT int cubeb_stream_init(cubeb * context,
                                    cubeb_stream_params * input_stream_params,
                                    cubeb_devid output_device,
                                    cubeb_stream_params * output_stream_params,
-                                   unsigned int latency_frames,
+                                   uint32_t latency_frames,
                                    cubeb_data_callback data_callback,
                                    cubeb_state_callback state_callback,
                                    void * user_ptr);
@@ -533,6 +508,14 @@ CUBEB_EXPORT int cubeb_stream_start(cubeb_stream * stream);
     @retval CUBEB_OK
     @retval CUBEB_ERROR */
 CUBEB_EXPORT int cubeb_stream_stop(cubeb_stream * stream);
+
+/** Reset stream to the default device.
+    @param stream
+    @retval CUBEB_OK
+    @retval CUBEB_ERROR_INVALID_PARAMETER
+    @retval CUBEB_ERROR_NOT_SUPPORTED
+    @retval CUBEB_ERROR */
+CUBEB_EXPORT int cubeb_stream_reset_default_device(cubeb_stream * stream);
 
 /** Get the current stream playback position.
     @param stream
