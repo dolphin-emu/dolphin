@@ -1,10 +1,10 @@
 package org.dolphinemu.dolphinemu.utils;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.v4.app.FragmentActivity;
 import android.text.TextUtils;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
@@ -13,7 +13,7 @@ import org.dolphinemu.dolphinemu.services.AssetCopyService;
 
 public final class StartupHandler
 {
-	public static boolean HandleInit(Activity parent)
+	public static boolean HandleInit(FragmentActivity parent)
 	{
 		NativeLibrary.SetUserDirectory(""); // Auto-Detect
 
@@ -46,7 +46,7 @@ public final class StartupHandler
 		return false;
 	}
 
-	public static void copyAssetsIfNeeded(Activity parent) {
+	public static void copyAssetsIfNeeded(FragmentActivity parent) {
 		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(parent);
 		boolean assetsCopied = preferences.getBoolean("assetsCopied", false);
 
