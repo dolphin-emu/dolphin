@@ -2,11 +2,11 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <lua5.3\include\lua.hpp>
+#include <lua5.3/include/lua.hpp>
 
-#include "Core\Core.h"
-#include "DolphinWX\LuaScripting.h"
-#include "Core\Movie.h"
+#include "Core/Core.h"
+#include "DolphinWX/LuaScripting.h"
+#include "Core/Movie.h"
 
 namespace Lua
 {
@@ -55,7 +55,7 @@ wxThread::ExitCode LuaThread::Entry()
 
   if (luaL_loadfile(state.get(), m_file_path) != LUA_OK)
   {
-    m_parent->Log("Error opening file.\n");
+    m_parent->Log("Error opening file./n");
 
     return reinterpret_cast<wxThread::ExitCode>(-1);
   }

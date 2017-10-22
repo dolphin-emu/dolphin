@@ -2,30 +2,29 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#pragma once
+#include "DolphinWX/LuaScripting.h"
 
-#include "DolphinWX\LuaScripting.h"
-
-#include <lua5.3\include\lua.hpp>
+#include <lua5.3/include/lua.hpp>
 #include <wx/button.h>
 #include <wx/filedlg.h>
 #include <wx/menu.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>
+#include <wx/settings.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
 
-#include "Core\Core.h"
-#include "Core\HW\GCPad.h"
-#include "Core\HW\GCPadEmu.h"
-#include "Core\HW\ProcessorInterface.h"
-#include "Core\Movie.h"
-#include "Core\State.h"
+#include "Core/Core.h"
+#include "Core/HW/GCPad.h"
+#include "Core/HW/GCPadEmu.h"
+#include "Core/HW/ProcessorInterface.h"
+#include "Core/Movie.h"
+#include "Core/State.h"
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/Main.h"
 #include "DolphinWX/WxUtils.h"
-#include "InputCommon\GCPadStatus.h"
-#include "InputCommon\InputConfig.h"
+#include "InputCommon/GCPadStatus.h"
+#include "InputCommon/InputConfig.h"
 
 namespace Lua
 {
@@ -262,7 +261,7 @@ GCPadStatus& LuaScriptFrame::GetPadStatus()
 static int printToTextCtrl(lua_State* L)
 {
   currentWindow->Log(lua_tostring(L, 1));
-  currentWindow->Log("\n");
+  currentWindow->Log("/n");
 
   return 0;
 }
@@ -333,7 +332,7 @@ static int setAnalog(lua_State* L)
   if (lua_gettop(L) != 2)
   {
     return luaL_error(
-        L, "Incorrect # of arguments passed to setAnalog. setAnalog expects two arguments\n");
+        L, "Incorrect # of arguments passed to setAnalog. setAnalog expects two arguments/n");
   }
 
   u8 x_pos = lua_tointeger(L, 1);
