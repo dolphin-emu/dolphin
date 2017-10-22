@@ -261,7 +261,7 @@ GCPadStatus& LuaScriptFrame::GetPadStatus()
 static int printToTextCtrl(lua_State* L)
 {
   currentWindow->Log(lua_tostring(L, 1));
-  currentWindow->Log("/n");
+  currentWindow->Log("\n");
 
   return 0;
 }
