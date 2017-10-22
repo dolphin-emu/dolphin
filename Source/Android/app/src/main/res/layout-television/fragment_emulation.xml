@@ -1,15 +1,7 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-             xmlns:tools="http://schemas.android.com/tools"
-             android:layout_width="match_parent"
-             android:layout_height="match_parent"
-             tools:context="org.dolphinemu.dolphinemu.fragments.EmulationFragment">
-
-    <!-- This is what everything is rendered to during emulation -->
-    <SurfaceView
-        android:id="@+id/surface_emulation"
-        android:layout_height="match_parent"
-        android:layout_width="match_parent"
-        android:focusable="false"
-        android:focusableInTouchMode="false"/>
-
-</FrameLayout>
+<SurfaceView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/surface_emulation"
+    android:layout_height="match_parent"
+    android:layout_width="match_parent"
+    android:focusable="false"
+    android:focusableInTouchMode="false"
+    />
