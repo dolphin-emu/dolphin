@@ -95,6 +95,12 @@ public:
       }
     }).detach();
   }
+  // Tell the underlying queue the producer thread has changed, so it does not
+  // assert in debug. This should be called with the thread stopped.
+  void reset_producer_thread()
+  {
+    msg_queue.reset_thread_ids();
+  }
 private:
 #ifndef _WIN32
   const struct timespec sleep_for = {
@@ -127,4 +133,12 @@ void cubeb_async_log(char const * fmt, ...)
   vsnprintf(msg, CUBEB_LOG_MESSAGE_MAX_SIZE, fmt, args);
   cubeb_async_logger::get().push(msg);
   va_end(args);
+}
+
+void cubeb_async_log_reset_threads()
+{
+  if (!g_cubeb_log_callback) {
+    return;
+  }
+  cubeb_async_logger::get().reset_producer_thread();
 }

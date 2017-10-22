@@ -17,7 +17,7 @@
 #include <assert.h>
 #include <mutex>
 #include <type_traits>
-#if defined(WIN32)
+#if defined(_WIN32)
 #include "cubeb_utils_win.h"
 #else
 #include "cubeb_utils_unix.h"
@@ -335,18 +335,5 @@ private:
 
 using auto_lock = std::lock_guard<owned_critical_section>;
 #endif // __cplusplus
-
-// C language helpers
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-int cubeb_utils_default_device_collection_destroy(cubeb * context,
-                                                  cubeb_device_collection * collection);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CUBEB_UTILS */
