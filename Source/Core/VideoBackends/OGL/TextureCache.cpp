@@ -52,7 +52,7 @@ TextureCache::TextureCache()
 
   if (g_ActiveConfig.backend_info.bSupportsPaletteConversion)
   {
-    s32 buffer_size_mb = (g_ActiveConfig.backend_info.bSupportsGPUTextureDecoding ? 32 : 1);
+    s32 buffer_size_mb = 32;
     s32 buffer_size = buffer_size_mb * 1024 * 1024;
     s32 max_buffer_size = 0;
 
