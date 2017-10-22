@@ -161,17 +161,15 @@ void OpenALStream::Update()
   m_sound_sync_event.Set();
 }
 
-void OpenALStream::Clear(bool mute)
+void OpenALStream::SetRunning(bool running)
 {
-  m_muted = mute;
-
-  if (m_muted)
+  if (running)
   {
-    palSourceStop(m_source);
+    palSourcePlay(m_source);
   }
   else
   {
-    palSourcePlay(m_source);
+    palSourceStop(m_source);
   }
 }
 
