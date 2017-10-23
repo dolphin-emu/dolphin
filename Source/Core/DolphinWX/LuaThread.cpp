@@ -55,7 +55,7 @@ wxThread::ExitCode LuaThread::Entry()
 
   if (luaL_loadfile(state.get(), m_file_path) != LUA_OK)
   {
-    m_parent->Log("Error opening file./n");
+    m_parent->Log("Error opening file.\n");
 
     return reinterpret_cast<wxThread::ExitCode>(-1);
   }
