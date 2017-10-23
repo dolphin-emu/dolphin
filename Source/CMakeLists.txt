@@ -1,3 +1,8 @@
+option(DOLPHIN_CXX_FLAGS "Flags used to compile Dolphin-only sources" "")
+if(DOLPHIN_CXX_FLAGS)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${DOLPHIN_CXX_FLAGS}")
+endif()
+
 if(CMAKE_SYSTEM_NAME MATCHES "Windows")
   add_definitions(-DNOMINMAX)
   add_definitions(-DUNICODE)
