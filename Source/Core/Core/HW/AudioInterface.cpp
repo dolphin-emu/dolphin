@@ -182,7 +182,10 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
           // AISFR rates below are intentionally inverted wrt yagcd
           DEBUG_LOG(AUDIO_INTERFACE, "Change AISFR to %s", tmpAICtrl.AISFR ? "48khz" : "32khz");
           m_Control.AISFR = tmpAICtrl.AISFR;
-          g_AISSampleRate = tmpAICtrl.AISFR ? 48000 : 32000;
+          if (SConfig::GetInstance().bWii)
+            g_AISSampleRate = tmpAICtrl.AISFR ? 48000 : 32000;
+          else
+            g_AISSampleRate = tmpAICtrl.AISFR ? 48043 : 32029;
           g_sound_stream->GetMixer()->SetStreamInputSampleRate(g_AISSampleRate);
           g_CPUCyclesPerSample = SystemTimers::GetTicksPerSecond() / g_AISSampleRate;
         }
@@ -191,7 +194,10 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
         {
           DEBUG_LOG(AUDIO_INTERFACE, "Change AIDFR to %s", tmpAICtrl.AIDFR ? "32khz" : "48khz");
           m_Control.AIDFR = tmpAICtrl.AIDFR;
-          g_AIDSampleRate = tmpAICtrl.AIDFR ? 32000 : 48000;
+          if (SConfig::GetInstance().bWii)
+            g_AIDSampleRate = tmpAICtrl.AIDFR ? 32000 : 48000;
+          else
+            g_AIDSampleRate = tmpAICtrl.AIDFR ? 32029 : 48043;
           g_sound_stream->GetMixer()->SetDMAInputSampleRate(g_AIDSampleRate);
         }
 
