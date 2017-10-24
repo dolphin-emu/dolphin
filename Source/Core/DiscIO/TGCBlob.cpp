@@ -32,10 +32,14 @@ void SplitInterval(T split_point, Interval<T> interval, Interval<T>* out_1, Inte
     *out_1 = {0, 0};
 
   if (interval.End() > split_point)
+  {
     *out_2 = {std::max(interval.start, split_point),
               std::min(interval.length, interval.End() - split_point)};
+  }
   else
+  {
     *out_2 = {0, 0};
+  }
 }
 
 u32 SubtractBE32(u32 minuend_be, u32 subtrahend_le)
@@ -71,46 +75,55 @@ TGCFileReader::TGCFileReader(File::IOFile file) : m_file(std::move(file))
 {
   m_file.Seek(0, SEEK_SET);
   m_file.ReadArray(&m_header, 1);
-  u32 header_size = Common::swap32(m_header.header_size);
+  u32 header_size = Common::swap32(m_header.tgc_header_size);
   m_size = m_file.GetSize();
-  m_file_offset = Common::swap32(m_header.unknown_important_2) -
-                  Common::swap32(m_header.unknown_important_1) + header_size;
+  m_file_area_shift = static_cast<s64>(Common::swap32(m_header.file_area_virtual_offset)) -
+                      Common::swap32(m_header.file_area_real_offset) + header_size;
 }
 
 u64 TGCFileReader::GetDataSize() const
 {
-  return m_size + Common::swap32(m_header.unknown_important_2) -
-         Common::swap32(m_header.unknown_important_1);
+  return m_size + Common::swap32(m_header.file_area_virtual_offset) -
+         Common::swap32(m_header.file_area_real_offset);
 }
 
 bool TGCFileReader::Read(u64 offset, u64 nbytes, u8* out_ptr)
 {
-  Interval<u64> first_part;
-  Interval<u64> empty_part;
-  Interval<u64> last_part;
+  Interval<u64> first_part = {0, 0};
+  Interval<u64> empty_part = {0, 0};
+  Interval<u64> file_part = {0, 0};
 
-  u32 header_size = Common::swap32(m_header.header_size);
-  SplitInterval(m_file_offset, Interval<u64>{offset, nbytes}, &first_part, &last_part);
-  SplitInterval(m_size - header_size, first_part, &first_part, &empty_part);
+  const u32 tgc_header_size = Common::swap32(m_header.tgc_header_size);
+  const u64 split_point = Common::swap32(m_header.file_area_real_offset) - tgc_header_size;
+  SplitInterval(split_point, Interval<u64>{offset, nbytes}, &first_part, &file_part);
+  if (m_file_area_shift > tgc_header_size)
+  {
+    SplitInterval(static_cast<u64>(m_file_area_shift - tgc_header_size), file_part, &empty_part,
+                  &file_part);
+  }
 
-  // Offsets before m_file_offset are read as usual
+  // Offsets in the initial areas of the disc are unshifted
+  // (except for InternalRead's constant shift by tgc_header_size).
   if (!first_part.IsEmpty())
   {
     if (!InternalRead(first_part.start, first_part.length, out_ptr + (first_part.start - offset)))
       return false;
   }
 
-  // If any offset before m_file_offset isn't actually in the file,
-  // treat it as 0x00 bytes (so e.g. MD5 calculation of the whole disc won't fail)
+  // The data between the file area and the area that precedes it is treated as all zeroes.
+  // The game normally won't attempt to access this part of the virtual disc, but let's not return
+  // an error if it gets accessed, in case someone wants to copy or hash the whole virtual disc.
   if (!empty_part.IsEmpty())
     std::fill_n(out_ptr + (empty_part.start - offset), empty_part.length, 0);
 
-  // Offsets after m_file_offset are read as if they are (offset - m_file_offset)
-  if (!last_part.IsEmpty())
+  // Offsets in the file area are shifted by m_file_area_shift.
+  if (!file_part.IsEmpty())
   {
-    if (!InternalRead(last_part.start - m_file_offset, last_part.length,
-                      out_ptr + (last_part.start - offset)))
+    if (!InternalRead(file_part.start - m_file_area_shift, file_part.length,
+                      out_ptr + (file_part.start - offset)))
+    {
       return false;
+    }
   }
 
   return true;
@@ -118,12 +131,14 @@ bool TGCFileReader::Read(u64 offset, u64 nbytes, u8* out_ptr)
 
 bool TGCFileReader::InternalRead(u64 offset, u64 nbytes, u8* out_ptr)
 {
-  u32 header_size = Common::swap32(m_header.header_size);
+  const u32 tgc_header_size = Common::swap32(m_header.tgc_header_size);
 
-  if (m_file.Seek(offset + header_size, SEEK_SET) && m_file.ReadBytes(out_ptr, nbytes))
+  if (m_file.Seek(offset + tgc_header_size, SEEK_SET) && m_file.ReadBytes(out_ptr, nbytes))
   {
-    Replace32(offset, nbytes, out_ptr, 0x420, SubtractBE32(m_header.dol_offset, header_size));
-    Replace32(offset, nbytes, out_ptr, 0x424, SubtractBE32(m_header.fst_offset, header_size));
+    Replace32(offset, nbytes, out_ptr, 0x420,
+              SubtractBE32(m_header.dol_real_offset, tgc_header_size));
+    Replace32(offset, nbytes, out_ptr, 0x424,
+              SubtractBE32(m_header.fst_real_offset, tgc_header_size));
     return true;
   }
 
