@@ -1469,8 +1469,7 @@ void Encode(u8* dst, const EFBCopyParams& params, u32 native_width, u32 bytes_pe
 {
   if (params.copy_format == EFBCopyFormat::XFB)
   {
-    EfbInterface::EncodeXFB(reinterpret_cast<EfbInterface::yuv422_packed*>(dst), native_width,
-                            src_rect, params.y_scale);
+    EfbInterface::EncodeXFB(dst, native_width, src_rect, params.y_scale);
   }
   else
   {
