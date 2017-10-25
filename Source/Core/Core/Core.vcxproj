@@ -237,6 +237,7 @@
     <ClCompile Include="IOS\USB\Bluetooth\WiimoteHIDAttr.cpp" />
     <ClCompile Include="IOS\WFS\WFSSRV.cpp" />
     <ClCompile Include="IOS\WFS\WFSI.cpp" />
+    <ClCompile Include="MemoryWatcher.cpp" />
     <ClCompile Include="MemTools.cpp" />
     <ClCompile Include="Movie.cpp" />
     <ClCompile Include="NetPlayClient.cpp" />
@@ -486,6 +487,7 @@
     <ClInclude Include="IOS\WFS\WFSSRV.h" />
     <ClInclude Include="IOS\WFS\WFSI.h" />
     <ClInclude Include="MachineContext.h" />
+    <ClInclude Include="MemoryWatcher.h" />
     <ClInclude Include="MemTools.h" />
     <ClInclude Include="Movie.h" />
     <ClInclude Include="NetPlayClient.h" />
