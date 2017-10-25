@@ -275,8 +275,6 @@ public final class EmulationActivity extends AppCompatActivity
 							mImageView.setVisibility(View.GONE);
 						}
 					});
-
-			mEmulationFragment.startEmulation();
 		}
 		else
 		{
