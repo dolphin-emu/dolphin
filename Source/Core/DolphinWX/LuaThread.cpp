@@ -92,4 +92,16 @@ void LuaThread::GetValues(GCPadStatus* status)
 
   status->button |= LuaThread::m_pad_status.button;
 }
+
+// Prints a string to the text control of this frame
+int LuaThread::printToTextCtrl(lua_State* L)
+{
+  m_parent->GetEventHandler()->CallAfter(&LuaScriptFrame::Log, wxString(lua_tostring(L, 1)));
+
+  //m_parent->Log(lua_tostring(L, 1));
+  //m_parent->Log("\n");
+
+  return 0;
+}
+
 }  // namespace Lua

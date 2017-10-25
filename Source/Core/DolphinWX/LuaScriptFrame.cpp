@@ -260,8 +260,8 @@ GCPadStatus& LuaScriptFrame::GetPadStatus()
 // Prints a string to the text control of this frame
 static int printToTextCtrl(lua_State* L)
 {
-  currentWindow->Log(lua_tostring(L, 1));
-  currentWindow->Log("\n");
+  currentWindow->GetEventHandler()->CallAfter(&LuaScriptFrame::Log, wxString(lua_tostring(L, 1)));
+  currentWindow->GetEventHandler()->CallAfter(&LuaScriptFrame::Log, wxString("\n"));
 
   return 0;
 }
