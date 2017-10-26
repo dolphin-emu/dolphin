@@ -35,6 +35,13 @@ enum class ES_TEXBUF_TYPE
   TEXBUF_EXT
 };
 
+enum class ES_FB_FETCH_TYPE
+{
+  FB_FETCH_NONE,
+  FB_FETCH_EXT,
+  FB_FETCH_ARM,
+};
+
 // ogl-only config, so not in VideoConfig.h
 struct VideoConfig
 {
@@ -59,6 +66,7 @@ struct VideoConfig
   bool bSupportsAniso;
   bool bSupportsBitfield;
   bool bSupportsTextureSubImage;
+  ES_FB_FETCH_TYPE SupportedFramebufferFetch;
 
   const char* gl_vendor;
   const char* gl_renderer;

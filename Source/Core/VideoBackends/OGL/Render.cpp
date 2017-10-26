@@ -522,6 +522,21 @@ Renderer::Renderer()
     // depth clamping.
     g_Config.backend_info.bSupportsDepthClamp = false;
 
+    if (GLExtensions::Supports("GL_EXT_shader_framebuffer_fetch"))
+    {
+      g_ogl_config.SupportedFramebufferFetch = ES_FB_FETCH_TYPE::FB_FETCH_EXT;
+    }
+    else if (GLExtensions::Supports("GL_ARM_shader_framebuffer_fetch"))
+    {
+      g_ogl_config.SupportedFramebufferFetch = ES_FB_FETCH_TYPE::FB_FETCH_ARM;
+    }
+    else
+    {
+      g_ogl_config.SupportedFramebufferFetch = ES_FB_FETCH_TYPE::FB_FETCH_NONE;
+    }
+    g_Config.backend_info.bSupportsFramebufferFetch =
+        g_ogl_config.SupportedFramebufferFetch != ES_FB_FETCH_TYPE::FB_FETCH_NONE;
+
     if (GLExtensions::Version() == 300)
     {
       g_ogl_config.eSupportedGLSLVersion = GLSLES_300;
@@ -1275,44 +1290,54 @@ void Renderer::SetBlendingState(const BlendingState& state)
   bool useDualSource =
       state.usedualsrc && g_ActiveConfig.backend_info.bSupportsDualSourceBlend &&
       (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING) || state.dstalpha);
+  // Only use shader blend if we need to and we don't support dual-source blending directly
+  bool useShaderBlend = !useDualSource && state.usedualsrc && state.dstalpha &&
+                        g_ActiveConfig.backend_info.bSupportsFramebufferFetch;
 
-  const GLenum src_factors[8] = {
-      GL_ZERO,
-      GL_ONE,
-      GL_DST_COLOR,
-      GL_ONE_MINUS_DST_COLOR,
-      useDualSource ? GL_SRC1_ALPHA : (GLenum)GL_SRC_ALPHA,
-      useDualSource ? GL_ONE_MINUS_SRC1_ALPHA : (GLenum)GL_ONE_MINUS_SRC_ALPHA,
-      GL_DST_ALPHA,
-      GL_ONE_MINUS_DST_ALPHA};
-  const GLenum dst_factors[8] = {
-      GL_ZERO,
-      GL_ONE,
-      GL_SRC_COLOR,
-      GL_ONE_MINUS_SRC_COLOR,
-      useDualSource ? GL_SRC1_ALPHA : (GLenum)GL_SRC_ALPHA,
-      useDualSource ? GL_ONE_MINUS_SRC1_ALPHA : (GLenum)GL_ONE_MINUS_SRC_ALPHA,
-      GL_DST_ALPHA,
-      GL_ONE_MINUS_DST_ALPHA};
-
-  if (state.blendenable)
-  {
-    glEnable(GL_BLEND);
-  }
-  else
+  if (useShaderBlend)
   {
     glDisable(GL_BLEND);
   }
+  else
+  {
+    const GLenum src_factors[8] = {
+        GL_ZERO,
+        GL_ONE,
+        GL_DST_COLOR,
+        GL_ONE_MINUS_DST_COLOR,
+        useDualSource ? GL_SRC1_ALPHA : (GLenum)GL_SRC_ALPHA,
+        useDualSource ? GL_ONE_MINUS_SRC1_ALPHA : (GLenum)GL_ONE_MINUS_SRC_ALPHA,
+        GL_DST_ALPHA,
+        GL_ONE_MINUS_DST_ALPHA};
+    const GLenum dst_factors[8] = {
+        GL_ZERO,
+        GL_ONE,
+        GL_SRC_COLOR,
+        GL_ONE_MINUS_SRC_COLOR,
+        useDualSource ? GL_SRC1_ALPHA : (GLenum)GL_SRC_ALPHA,
+        useDualSource ? GL_ONE_MINUS_SRC1_ALPHA : (GLenum)GL_ONE_MINUS_SRC_ALPHA,
+        GL_DST_ALPHA,
+        GL_ONE_MINUS_DST_ALPHA};
 
-  // Always call glBlendEquationSeparate and glBlendFuncSeparate, even when
-  // GL_BLEND is disabled, as a workaround for some bugs (possibly graphics
-  // driver issues?). See https://bugs.dolphin-emu.org/issues/10120 : "Sonic
-  // Adventure 2 Battle: graphics crash when loading first Dark level"
-  GLenum equation = state.subtract ? GL_FUNC_REVERSE_SUBTRACT : GL_FUNC_ADD;
-  GLenum equationAlpha = state.subtractAlpha ? GL_FUNC_REVERSE_SUBTRACT : GL_FUNC_ADD;
-  glBlendEquationSeparate(equation, equationAlpha);
-  glBlendFuncSeparate(src_factors[state.srcfactor], dst_factors[state.dstfactor],
-                      src_factors[state.srcfactoralpha], dst_factors[state.dstfactoralpha]);
+    if (state.blendenable)
+    {
+      glEnable(GL_BLEND);
+    }
+    else
+    {
+      glDisable(GL_BLEND);
+    }
+
+    // Always call glBlendEquationSeparate and glBlendFuncSeparate, even when
+    // GL_BLEND is disabled, as a workaround for some bugs (possibly graphics
+    // driver issues?). See https://bugs.dolphin-emu.org/issues/10120 : "Sonic
+    // Adventure 2 Battle: graphics crash when loading first Dark level"
+    GLenum equation = state.subtract ? GL_FUNC_REVERSE_SUBTRACT : GL_FUNC_ADD;
+    GLenum equationAlpha = state.subtractAlpha ? GL_FUNC_REVERSE_SUBTRACT : GL_FUNC_ADD;
+    glBlendEquationSeparate(equation, equationAlpha);
+    glBlendFuncSeparate(src_factors[state.srcfactor], dst_factors[state.dstfactor],
+                        src_factors[state.srcfactoralpha], dst_factors[state.dstfactoralpha]);
+  }
 
   const GLenum logic_op_codes[16] = {
       GL_CLEAR,         GL_AND,         GL_AND_REVERSE, GL_COPY,  GL_AND_INVERTED, GL_NOOP,

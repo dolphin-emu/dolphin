@@ -32,6 +32,7 @@ ShaderHostConfig ShaderHostConfig::GetCurrent()
   bits.backend_bitfield = g_ActiveConfig.backend_info.bSupportsBitfield;
   bits.backend_dynamic_sampler_indexing =
       g_ActiveConfig.backend_info.bSupportsDynamicSamplerIndexing;
+  bits.backend_shader_framebuffer_fetch = g_ActiveConfig.backend_info.bSupportsFramebufferFetch;
   return bits;
 }
 
@@ -68,9 +69,9 @@ std::string GetDiskShaderCacheFileName(APIType api_type, const char* type, bool 
 
   if (include_host_config)
   {
-    // We're using 20 bits, so 5 hex characters.
+    // We're using 21 bits, so 6 hex characters.
     ShaderHostConfig host_config = ShaderHostConfig::GetCurrent();
-    filename += StringFromFormat("-%05X", host_config.bits);
+    filename += StringFromFormat("-%06X", host_config.bits);
   }
 
   filename += ".cache";

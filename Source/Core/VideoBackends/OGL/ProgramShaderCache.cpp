@@ -885,6 +885,24 @@ void ProgramShaderCache::CreateHeader()
     }
   }
 
+  std::string framebuffer_fetch_string;
+  switch (g_ogl_config.SupportedFramebufferFetch)
+  {
+  case ES_FB_FETCH_TYPE::FB_FETCH_EXT:
+    framebuffer_fetch_string = "#extension GL_EXT_shader_framebuffer_fetch: enable\n"
+                               "#define FB_FETCH_VALUE ocol0\n"
+                               "#define FRAGMENT_INOUT inout";
+    break;
+  case ES_FB_FETCH_TYPE::FB_FETCH_ARM:
+    framebuffer_fetch_string = "#extension GL_ARM_shader_framebuffer_fetch: enable\n"
+                               "#define FB_FETCH_VALUE gl_LastFragColorARM\n"
+                               "#define FRAGMENT_INOUT out";
+    break;
+  case ES_FB_FETCH_TYPE::FB_FETCH_NONE:
+    framebuffer_fetch_string = "";
+    break;
+  }
+
   s_glsl_header = StringFromFormat(
       "%s\n"
       "%s\n"  // ubo
@@ -902,6 +920,7 @@ void ProgramShaderCache::CreateHeader()
       "%s\n"  // ES texture buffer
       "%s\n"  // ES dual source blend
       "%s\n"  // shader image load store
+      "%s\n"  // shader framebuffer fetch
 
       // Precision defines for GLSL ES
       "%s\n"
@@ -976,8 +995,8 @@ void ProgramShaderCache::CreateHeader()
               ((!is_glsles && v < GLSL_430) || (is_glsles && v < GLSLES_310)) ?
           "#extension GL_ARB_shader_image_load_store : enable" :
           "",
-      is_glsles ? "precision highp float;" : "", is_glsles ? "precision highp int;" : "",
-      is_glsles ? "precision highp sampler2DArray;" : "",
+      framebuffer_fetch_string.c_str(), is_glsles ? "precision highp float;" : "",
+      is_glsles ? "precision highp int;" : "", is_glsles ? "precision highp sampler2DArray;" : "",
       (is_glsles && g_ActiveConfig.backend_info.bSupportsPaletteConversion) ?
           "precision highp usamplerBuffer;" :
           "",
