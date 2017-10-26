@@ -104,9 +104,9 @@ LuaScriptFrame::~LuaScriptFrame()
     m_lua_thread->HaltExecution();
 
     // Wait until thread is finished
-    sleep(1);
-    main_frame->m_lua_script_frame = nullptr;
   }
+  m_current_instance = nullptr;
+  main_frame->m_lua_script_frame = nullptr;
 }
 
 //
