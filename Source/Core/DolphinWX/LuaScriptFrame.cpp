@@ -99,13 +99,14 @@ LuaScriptFrame::LuaScriptFrame(wxWindow* parent)
 LuaScriptFrame::~LuaScriptFrame()
 {
   // Stop currently executing Lua thread
-  if (m_lua_thread != nullptr && m_lua_thread->IsRunning())
+  if (m_lua_thread)
   {
-    m_lua_thread->Kill();
-    m_lua_thread = nullptr;
-  }
+    m_lua_thread->HaltExecution();
 
-  main_frame->m_lua_script_frame = nullptr;
+    // Wait until thread is finished
+    sleep(1);
+    main_frame->m_lua_script_frame = nullptr;
+  }
 }
 
 //
@@ -236,12 +237,7 @@ void LuaScriptFrame::RunOnButtonClick(wxCommandEvent& event)
 
 void LuaScriptFrame::StopOnButtonClick(wxCommandEvent& event)
 {
-  // Kill current Lua thread
-  if (m_lua_thread != nullptr && m_lua_thread->IsRunning())
-  {
-    m_lua_thread->Kill();
-    m_lua_thread = nullptr;
-  }
+  m_lua_thread->HaltExecution();
 }
 
 void LuaScriptFrame::NullifyLuaThread()
@@ -261,6 +257,8 @@ LuaThread* LuaScriptFrame::GetLuaThread()
 
 LuaScriptFrame* LuaScriptFrame::GetCurrentInstance()
 {
+  if (m_current_instance == nullptr)
+    m_current_instance = new LuaScriptFrame(main_frame);
   return m_current_instance;
 }
 

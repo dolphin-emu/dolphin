@@ -1182,7 +1182,7 @@ void CFrame::OnLua(wxCommandEvent& WXUNUSED(event))
 {
   if (!m_lua_script_frame)
   {
-    m_lua_script_frame = new Lua::LuaScriptFrame(this);
+    m_lua_script_frame = Lua::LuaScriptFrame::GetCurrentInstance();
   }
   else
   {

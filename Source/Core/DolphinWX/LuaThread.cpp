@@ -96,6 +96,16 @@ void LuaThread::GetValues(GCPadStatus* status)
   status->button |= LuaThread::m_pad_status.button;
 }
 
+bool LuaThread::GetExitFlag()
+{
+  return m_exit_flag;
+}
+
+void LuaThread::HaltExecution()
+{
+  m_exit_flag = true;
+}
+
 // Prints a string to the text control of this frame
 /*int LuaThread::printToTextCtrl(lua_State* L)
 {
@@ -109,9 +119,11 @@ void LuaThread::GetValues(GCPadStatus* status)
 
 void ExitHookFunction(lua_State* L, lua_Debug* ar)
 {
-  if (ar->event == LUA_HOOKLINE)
-    if (LuaScriptFrame::GetCurrentInstance()->GetLuaThread()->m_exit_flag)
-      luaL_error(L, "Script exited.\n");
+  if (LuaScriptFrame::GetCurrentInstance()->GetLuaThread()->GetExitFlag())
+    luaL_error(L, "Script exited.\n");
+  else
+
+  LuaScriptFrame::GetCurrentInstance()->GetEventHandler()->CallAfter(&LuaScriptFrame::Log, wxString("Flag is false lol.\n"));
 }
 
 }  // namespace Lua

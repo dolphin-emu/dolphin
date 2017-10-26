@@ -39,14 +39,16 @@ public:
   LuaThread(LuaScriptFrame* p, const wxString& file);
   ~LuaThread();
   void GetValues(GCPadStatus* status);
+  bool GetExitFlag();
   int printToTextCtrl(lua_State* L);
   GCPadStatus m_pad_status;
-  bool m_exit_flag = false;
+  void HaltExecution();
 
 private:
   LuaScriptFrame* m_parent = nullptr;
   wxString m_file_path;
   wxThread::ExitCode Entry() override;
+  bool m_exit_flag = false;
 };
 
 class LuaScriptFrame final : public wxFrame
