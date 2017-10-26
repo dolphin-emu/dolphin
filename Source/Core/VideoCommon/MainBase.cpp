@@ -67,7 +67,7 @@ void VideoBackendBase::Video_BeginField(u32 xfbAddr, u32 fbWidth, u32 fbStride, 
 
 u32 VideoBackendBase::Video_AccessEFB(EFBAccessType type, u32 x, u32 y, u32 InputData)
 {
-  if (!g_ActiveConfig.bEFBAccessEnable)
+  if (!g_ActiveConfig.bEFBAccessEnable || x >= EFB_WIDTH || y >= EFB_HEIGHT)
   {
     return 0;
   }
