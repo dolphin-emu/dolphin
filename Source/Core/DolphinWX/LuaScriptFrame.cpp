@@ -56,6 +56,8 @@ static int setDPad(lua_State* L);
 static int getTriggers(lua_State* L);
 static int setTriggers(lua_State* L);
 
+LuaScriptFrame* LuaScriptFrame::m_current_instance;
+
 LuaScriptFrame::LuaScriptFrame(wxWindow* parent)
     : wxFrame(parent, wxID_ANY, _("Lua Console"), wxDefaultPosition, wxSize(431, 397),
               wxDEFAULT_FRAME_STYLE ^ wxRESIZE_BORDER)
