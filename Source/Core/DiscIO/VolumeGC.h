@@ -15,8 +15,6 @@
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
 
-// --- this volume type is used for GC disc images ---
-
 namespace DiscIO
 {
 class BlobReader;

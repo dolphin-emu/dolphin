@@ -27,7 +27,6 @@
 #include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/IOSC.h"
 #include "Core/ec_wii.h"
-#include "DiscIO/NANDContentLoader.h"
 
 namespace IOS
 {
@@ -35,10 +34,6 @@ namespace HLE
 {
 namespace Device
 {
-// TODO: drop this and convert the title context into a member once the WAD launch hack is gone.
-static std::string s_content_file;
-static TitleContext s_title_context;
-
 // Title to launch after IOS has been reset and reloaded (similar to /sys/launch.sys).
 static u64 s_title_to_launch;
 
@@ -84,20 +79,12 @@ ES::ES(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
 
   FinishAllStaleImports();
 
-  s_content_file = "";
-  s_title_context = TitleContext{};
-
   if (s_title_to_launch != 0)
   {
     NOTICE_LOG(IOS, "Re-launching title after IOS reload.");
     LaunchTitle(s_title_to_launch, true);
     s_title_to_launch = 0;
   }
-}
-
-TitleContext& ES::GetTitleContext()
-{
-  return s_title_context;
 }
 
 void TitleContext::Clear()
@@ -112,13 +99,6 @@ void TitleContext::DoState(PointerWrap& p)
   ticket.DoState(p);
   tmd.DoState(p);
   p.Do(active);
-}
-
-void TitleContext::Update(const DiscIO::NANDContentLoader& content_loader)
-{
-  if (!content_loader.IsValid())
-    return;
-  Update(content_loader.GetTMD(), content_loader.GetTicket());
 }
 
 void TitleContext::Update(const IOS::ES::TMDReader& tmd_, const IOS::ES::TicketReader& ticket_)
@@ -141,16 +121,6 @@ void TitleContext::Update(const IOS::ES::TMDReader& tmd_, const IOS::ES::TicketR
   }
 }
 
-void ES::LoadWAD(const std::string& _rContentFile)
-{
-  s_content_file = _rContentFile;
-  // XXX: Ideally, this should be done during a launch, but because we support launching WADs
-  // without installing them (which is a bit of a hack), we have to do this manually here.
-  const auto& content_loader = DiscIO::NANDContentManager::Access().GetNANDLoader(s_content_file);
-  s_title_context.Update(content_loader);
-  INFO_LOG(IOS_ES, "LoadWAD: Title context changed: %016" PRIx64, s_title_context.tmd.GetTitleId());
-}
-
 IPCCommandResult ES::GetTitleDirectory(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 1))
@@ -167,9 +137,9 @@ IPCCommandResult ES::GetTitleDirectory(const IOCtlVRequest& request)
 
 ReturnCode ES::GetTitleId(u64* title_id) const
 {
-  if (!s_title_context.active)
+  if (!m_title_context.active)
     return ES_EINVAL;
-  *title_id = s_title_context.tmd.GetTitleId();
+  *title_id = m_title_context.tmd.GetTitleId();
   return IPC_SUCCESS;
 }
 
@@ -242,15 +212,10 @@ IPCCommandResult ES::SetUID(u32 uid, const IOCtlVRequest& request)
 
 bool ES::LaunchTitle(u64 title_id, bool skip_reload)
 {
-  s_title_context.Clear();
+  m_title_context.Clear();
   INFO_LOG(IOS_ES, "ES_Launch: Title context changed: (none)");
 
   NOTICE_LOG(IOS_ES, "Launching title %016" PRIx64 "...", title_id);
-
-  // ES_Launch should probably reset the whole state, which at least means closing all open files.
-  // leaving them open through ES_Launch may cause hangs and other funky behavior
-  // (supposedly when trying to re-open those files).
-  DiscIO::NANDContentManager::Access().ClearCache();
 
   u32 device_id;
   if (title_id == Titles::SHOP &&
@@ -275,13 +240,48 @@ bool ES::LaunchTitle(u64 title_id, bool skip_reload)
 
 bool ES::LaunchIOS(u64 ios_title_id)
 {
+  // A real Wii goes through several steps before getting to MIOS.
+  //
+  // * The System Menu detects a GameCube disc and launches BC (1-100) instead of the game.
+  // * BC (similar to boot1) lowers the clock speed to the Flipper's and then launches boot2.
+  // * boot2 sees the lowered clock speed and launches MIOS (1-101) instead of the System Menu.
+  //
+  // Because we don't have boot1 and boot2, and BC is only ever used to launch MIOS
+  // (indirectly via boot2), we can just launch MIOS when BC is launched.
+  if (ios_title_id == Titles::BC)
+  {
+    NOTICE_LOG(IOS, "BC: Launching MIOS...");
+    return LaunchIOS(Titles::MIOS);
+  }
+
+  // IOS checks whether the system title is installed and returns an error if it isn't.
+  // Unfortunately, we can't rely on titles being installed as we don't require system titles,
+  // so only have this check for MIOS (for which having the binary is *required*).
+  if (ios_title_id == Titles::MIOS)
+  {
+    const IOS::ES::TMDReader tmd = FindInstalledTMD(ios_title_id);
+    const IOS::ES::TicketReader ticket = FindSignedTicket(ios_title_id);
+    IOS::ES::Content content;
+    if (!tmd.IsValid() || !ticket.IsValid() || !tmd.GetContent(tmd.GetBootIndex(), &content) ||
+        !m_ios.BootIOS(ios_title_id, GetContentPath(ios_title_id, content)))
+    {
+      PanicAlertT("Could not launch IOS %016" PRIx64 " because it is missing from the NAND.\n"
+                  "The emulated software will likely hang now.",
+                  ios_title_id);
+      return false;
+    }
+    return true;
+  }
+
   return m_ios.BootIOS(ios_title_id);
 }
 
 bool ES::LaunchPPCTitle(u64 title_id, bool skip_reload)
 {
-  const DiscIO::NANDContentLoader& content_loader = AccessContentDevice(title_id);
-  if (!content_loader.IsValid())
+  const IOS::ES::TMDReader tmd = FindInstalledTMD(title_id);
+  const IOS::ES::TicketReader ticket = FindSignedTicket(title_id);
+
+  if (!tmd.IsValid() || !ticket.IsValid())
   {
     if (title_id == Titles::SYSTEM_MENU)
     {
@@ -297,33 +297,33 @@ bool ES::LaunchPPCTitle(u64 title_id, bool skip_reload)
     return false;
   }
 
-  if (!content_loader.GetTMD().IsValid() || !content_loader.GetTicket().IsValid())
-    return false;
-
   // Before launching a title, IOS first reads the TMD and reloads into the specified IOS version,
   // even when that version is already running. After it has reloaded, ES_Launch will be called
   // again with the reload skipped, and the PPC will be bootstrapped then.
   if (!skip_reload)
   {
     s_title_to_launch = title_id;
-    const u64 required_ios = content_loader.GetTMD().GetIOSId();
+    const u64 required_ios = tmd.GetIOSId();
     return LaunchTitle(required_ios);
   }
 
-  s_title_context.Update(content_loader);
-  INFO_LOG(IOS_ES, "LaunchPPCTitle: Title context changed: %016" PRIx64,
-           s_title_context.tmd.GetTitleId());
+  m_title_context.Update(tmd, ticket);
+  INFO_LOG(IOS_ES, "LaunchPPCTitle: Title context changed: %016" PRIx64, tmd.GetTitleId());
 
   // Note: the UID/GID is also updated for IOS titles, but since we have no guarantee IOS titles
   // are installed, we can only do this for PPC titles.
-  if (!UpdateUIDAndGID(m_ios, s_title_context.tmd))
+  if (!UpdateUIDAndGID(m_ios, m_title_context.tmd))
   {
-    s_title_context.Clear();
+    m_title_context.Clear();
     INFO_LOG(IOS_ES, "LaunchPPCTitle: Title context changed: (none)");
     return false;
   }
 
-  return m_ios.BootstrapPPC(content_loader);
+  IOS::ES::Content content;
+  if (!tmd.GetContent(tmd.GetBootIndex(), &content))
+    return false;
+
+  return m_ios.BootstrapPPC(GetContentPath(tmd.GetTitleId(), content));
 }
 
 void ES::Context::DoState(PointerWrap& p)
@@ -339,9 +339,21 @@ void ES::Context::DoState(PointerWrap& p)
 void ES::DoState(PointerWrap& p)
 {
   Device::DoState(p);
-  p.Do(s_content_file);
-  p.Do(m_content_table);
-  s_title_context.DoState(p);
+
+  for (auto& entry : m_content_table)
+  {
+    p.Do(entry.m_opened);
+    p.Do(entry.m_title_id);
+    p.Do(entry.m_content);
+    p.Do(entry.m_position);
+    p.Do(entry.m_uid);
+    if (entry.m_opened)
+      entry.m_opened = entry.m_file.Open(GetContentPath(entry.m_title_id, entry.m_content), "rb");
+    else
+      entry.m_file.Close();
+  }
+
+  m_title_context.DoState(p);
 
   for (auto& context : m_contexts)
     context.DoState(p);
@@ -383,8 +395,6 @@ ReturnCode ES::Close(u32 fd)
 
   INFO_LOG(IOS_ES, "ES: Close");
   m_is_active = false;
-  // clear the NAND content cache to make sure nothing remains open.
-  DiscIO::NANDContentManager::Access().ClearCache();
   return IPC_SUCCESS;
 }
 
@@ -603,21 +613,6 @@ IPCCommandResult ES::LaunchBC(const IOCtlVRequest& request)
   return GetNoReply();
 }
 
-const DiscIO::NANDContentLoader& ES::AccessContentDevice(u64 title_id)
-{
-  // for WADs, the passed title id and the stored title id match; along with s_content_file
-  // being set to the actual WAD file name. We cannot simply get a NAND Loader for the title id
-  // in those cases, since the WAD need not be installed in the NAND, but it could be opened
-  // directly from a WAD file anywhere on disk.
-  if (s_title_context.active && s_title_context.tmd.GetTitleId() == title_id &&
-      !s_content_file.empty())
-  {
-    return DiscIO::NANDContentManager::Access().GetNANDLoader(s_content_file);
-  }
-
-  return DiscIO::NANDContentManager::Access().GetNANDLoader(title_id, Common::FROM_SESSION_ROOT);
-}
-
 // This is technically an ioctlv in IOS's ES, but it is an internal API which cannot be
 // used from the PowerPC (for unpatched and up-to-date IOSes anyway).
 // So we block access to it from the IPC interface.
@@ -628,7 +623,7 @@ IPCCommandResult ES::DIVerify(const IOCtlVRequest& request)
 
 s32 ES::DIVerify(const IOS::ES::TMDReader& tmd, const IOS::ES::TicketReader& ticket)
 {
-  s_title_context.Clear();
+  m_title_context.Clear();
   INFO_LOG(IOS_ES, "ES_DIVerify: Title context changed: (none)");
 
   if (!tmd.IsValid() || !ticket.IsValid())
@@ -637,7 +632,7 @@ s32 ES::DIVerify(const IOS::ES::TMDReader& tmd, const IOS::ES::TicketReader& tic
   if (tmd.GetTitleId() != ticket.GetTitleId())
     return ES_EINVAL;
 
-  s_title_context.Update(tmd, ticket);
+  m_title_context.Update(tmd, ticket);
   INFO_LOG(IOS_ES, "ES_DIVerify: Title context changed: %016" PRIx64, tmd.GetTitleId());
 
   std::string tmd_path = Common::GetTMDFileName(tmd.GetTitleId(), Common::FROM_SESSION_ROOT);
@@ -655,11 +650,8 @@ s32 ES::DIVerify(const IOS::ES::TMDReader& tmd, const IOS::ES::TicketReader& tic
     if (!tmd_file.WriteBytes(tmd_bytes.data(), tmd_bytes.size()))
       ERROR_LOG(IOS_ES, "DIVerify failed to write disc TMD to NAND.");
   }
-  // DI_VERIFY writes to title.tmd, which is read and cached inside the NAND Content Manager.
-  // clear the cache to avoid content access mismatches.
-  DiscIO::NANDContentManager::Access().ClearCache();
 
-  if (!UpdateUIDAndGID(*GetIOS(), s_title_context.tmd))
+  if (!UpdateUIDAndGID(*GetIOS(), m_title_context.tmd))
   {
     return ES_SHORT_READ;
   }
@@ -724,7 +716,7 @@ ReturnCode ES::SetUpStreamKey(const u32 uid, const u8* ticket_view, const IOS::E
   // Find a signed ticket from the view.
   const u64 ticket_id = Common::swap64(&ticket_view[offsetof(IOS::ES::TicketView, ticket_id)]);
   const u64 title_id = Common::swap64(&ticket_view[offsetof(IOS::ES::TicketView, title_id)]);
-  const IOS::ES::TicketReader installed_ticket = DiscIO::FindSignedTicket(title_id);
+  const IOS::ES::TicketReader installed_ticket = FindSignedTicket(title_id);
   // Unlike the other "get ticket from view" function, this returns a FS error, not ES_NO_TICKET.
   if (!installed_ticket.IsValid())
     return FS_ENOENT;
@@ -803,10 +795,10 @@ IPCCommandResult ES::DeleteStreamKey(const IOCtlVRequest& request)
 
 bool ES::IsActiveTitlePermittedByTicket(const u8* ticket_view) const
 {
-  if (!GetTitleContext().active)
+  if (!m_title_context.active)
     return false;
 
-  const u32 title_identifier = static_cast<u32>(GetTitleContext().tmd.GetTitleId());
+  const u32 title_identifier = static_cast<u32>(m_title_context.tmd.GetTitleId());
   const u32 permitted_title_mask =
       Common::swap32(ticket_view + offsetof(IOS::ES::TicketView, permitted_title_mask));
   const u32 permitted_title_id =
@@ -831,6 +823,9 @@ bool ES::IsIssuerCorrect(VerifyContainerType type, const IOS::ES::CertReader& is
 
 ReturnCode ES::ReadCertStore(std::vector<u8>* buffer) const
 {
+  if (!SConfig::GetInstance().m_enable_signature_checks)
+    return IPC_SUCCESS;
+
   const std::string store_path = Common::RootUserPath(Common::FROM_SESSION_ROOT) + "/sys/cert.sys";
   File::IOFile store_file{store_path, "rb"};
   if (!store_file)

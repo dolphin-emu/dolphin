@@ -13,6 +13,8 @@ class wxLocale;
 
 extern CFrame* main_frame;
 
+struct BootParameters;
+
 // Define a new application
 class DolphinApp : public wxApp
 {
@@ -43,7 +45,6 @@ private:
   bool m_batch_mode = false;
   bool m_confirm_stop = false;
   bool m_is_active = true;
-  bool m_load_file = false;
   bool m_play_movie = false;
   bool m_use_debugger = false;
   bool m_use_logger = false;
@@ -53,7 +54,7 @@ private:
   wxString m_video_backend_name;
   wxString m_audio_emulation_name;
   wxString m_user_path;
-  wxString m_file_to_load;
+  std::unique_ptr<BootParameters> m_boot;
   wxString m_movie_file;
   std::unique_ptr<wxLocale> m_locale;
 };

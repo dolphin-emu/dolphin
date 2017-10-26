@@ -17,7 +17,6 @@
 #include "Core/Core.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/ES/Formats.h"
-#include "DiscIO/NANDContentLoader.h"
 
 namespace IOS
 {
@@ -49,10 +48,10 @@ IPCCommandResult ES::GetTicketViewCount(const IOCtlVRequest& request)
 
   u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
 
-  const IOS::ES::TicketReader ticket = DiscIO::FindSignedTicket(TitleID);
+  const IOS::ES::TicketReader ticket = FindSignedTicket(TitleID);
   u32 view_count = ticket.IsValid() ? static_cast<u32>(ticket.GetNumberOfTickets()) : 0;
 
-  if (ShouldReturnFakeViewsForIOSes(TitleID, GetTitleContext()))
+  if (ShouldReturnFakeViewsForIOSes(TitleID, m_title_context))
   {
     view_count = 1;
     WARN_LOG(IOS_ES, "GetViewCount: Faking IOS title %016" PRIx64 " being present", TitleID);
@@ -73,7 +72,7 @@ IPCCommandResult ES::GetTicketViews(const IOCtlVRequest& request)
   u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
   u32 maxViews = Memory::Read_U32(request.in_vectors[1].address);
 
-  const IOS::ES::TicketReader ticket = DiscIO::FindSignedTicket(TitleID);
+  const IOS::ES::TicketReader ticket = FindSignedTicket(TitleID);
 
   if (ticket.IsValid())
   {
@@ -85,7 +84,7 @@ IPCCommandResult ES::GetTicketViews(const IOCtlVRequest& request)
                         ticket_view.data(), ticket_view.size());
     }
   }
-  else if (ShouldReturnFakeViewsForIOSes(TitleID, GetTitleContext()))
+  else if (ShouldReturnFakeViewsForIOSes(TitleID, m_title_context))
   {
     Memory::Memset(request.io_vectors[0].address, 0, sizeof(IOS::ES::TicketView));
     WARN_LOG(IOS_ES, "GetViews: Faking IOS title %016" PRIx64 " being present", TitleID);
@@ -102,7 +101,7 @@ ReturnCode ES::GetV0TicketFromView(const u8* ticket_view, u8* ticket) const
   const u64 title_id = Common::swap64(&ticket_view[offsetof(IOS::ES::TicketView, title_id)]);
   const u64 ticket_id = Common::swap64(&ticket_view[offsetof(IOS::ES::TicketView, ticket_id)]);
 
-  const auto installed_ticket = DiscIO::FindSignedTicket(title_id);
+  const auto installed_ticket = FindSignedTicket(title_id);
   // TODO: when we get std::optional, check for presence instead of validity.
   // This is close enough, though.
   if (!installed_ticket.IsValid())
@@ -112,11 +111,11 @@ ReturnCode ES::GetV0TicketFromView(const u8* ticket_view, u8* ticket) const
   if (ticket_bytes.empty())
     return ES_NO_TICKET;
 
-  if (!GetTitleContext().active)
+  if (!m_title_context.active)
     return ES_EINVAL;
 
   // Check for permission to export the ticket.
-  const u32 title_identifier = static_cast<u32>(GetTitleContext().tmd.GetTitleId());
+  const u32 title_identifier = static_cast<u32>(m_title_context.tmd.GetTitleId());
   const u32 permitted_title_mask =
       Common::swap32(ticket_bytes.data() + offsetof(IOS::ES::Ticket, permitted_title_mask));
   const u32 permitted_title_id =
@@ -276,10 +275,10 @@ IPCCommandResult ES::DIGetTMDViewSize(const IOCtlVRequest& request)
   else
   {
     // If no TMD was passed in and no title is active, IOS returns -1017.
-    if (!GetTitleContext().active)
+    if (!m_title_context.active)
       return GetDefaultReply(ES_EINVAL);
 
-    tmd_view_size = GetTitleContext().tmd.GetRawView().size();
+    tmd_view_size = m_title_context.tmd.GetRawView().size();
   }
 
   Memory::Write_U32(static_cast<u32>(tmd_view_size), request.io_vectors[0].address);
@@ -319,10 +318,10 @@ IPCCommandResult ES::DIGetTMDView(const IOCtlVRequest& request)
   else
   {
     // If no TMD was passed in and no title is active, IOS returns -1017.
-    if (!GetTitleContext().active)
+    if (!m_title_context.active)
       return GetDefaultReply(ES_EINVAL);
 
-    tmd_view = GetTitleContext().tmd.GetRawView();
+    tmd_view = m_title_context.tmd.GetRawView();
   }
 
   if (tmd_view.size() > request.io_vectors[0].size)
@@ -352,10 +351,10 @@ IPCCommandResult ES::DIGetTicketView(const IOCtlVRequest& request)
   // Of course, this returns -1017 if no title is active and no ticket is passed.
   if (!has_ticket_vector)
   {
-    if (!GetTitleContext().active)
+    if (!m_title_context.active)
       return GetDefaultReply(ES_EINVAL);
 
-    view = GetTitleContext().ticket.GetRawTicketView(0);
+    view = m_title_context.ticket.GetRawTicketView(0);
   }
   else
   {
@@ -375,10 +374,10 @@ IPCCommandResult ES::DIGetTMDSize(const IOCtlVRequest& request)
   if (!request.HasNumberOfValidVectors(0, 1) || request.io_vectors[0].size != sizeof(u32))
     return GetDefaultReply(ES_EINVAL);
 
-  if (!GetTitleContext().active)
+  if (!m_title_context.active)
     return GetDefaultReply(ES_EINVAL);
 
-  Memory::Write_U32(static_cast<u32>(GetTitleContext().tmd.GetBytes().size()),
+  Memory::Write_U32(static_cast<u32>(m_title_context.tmd.GetBytes().size()),
                     request.io_vectors[0].address);
   return GetDefaultReply(IPC_SUCCESS);
 }
@@ -392,10 +391,10 @@ IPCCommandResult ES::DIGetTMD(const IOCtlVRequest& request)
   if (tmd_size != request.io_vectors[0].size)
     return GetDefaultReply(ES_EINVAL);
 
-  if (!GetTitleContext().active)
+  if (!m_title_context.active)
     return GetDefaultReply(ES_EINVAL);
 
-  const std::vector<u8>& tmd_bytes = GetTitleContext().tmd.GetBytes();
+  const std::vector<u8>& tmd_bytes = m_title_context.tmd.GetBytes();
 
   if (static_cast<u32>(tmd_bytes.size()) > tmd_size)
     return GetDefaultReply(ES_EINVAL);
