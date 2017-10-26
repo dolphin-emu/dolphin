@@ -39,7 +39,6 @@ public:
   LuaThread(LuaScriptFrame* p, const wxString& file);
   ~LuaThread();
   void GetValues(GCPadStatus* status);
-  int printToTextCtrl(lua_State* L);
   GCPadStatus m_pad_status;
   bool m_exit_flag = false;
 
