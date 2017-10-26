@@ -33,15 +33,13 @@ LuaThread::~LuaThread()
 {
   // Nullify GC manipulator function to prevent crash when lua console is closed
   Movie::SetGCInputManip(nullptr, Movie::GCManipIndex::LuaGCManip);
+  LuaScriptFrame::GetCurrentInstance()->GetEventHandler()->CallAfter(&LuaScriptFrame::Log, wxString("PFFFFFFFFFT\n"));
 
   m_parent->NullifyLuaThread();
 }
 
 wxThread::ExitCode LuaThread::Entry()
 {
-  // Pause emu
-  Core::SetState(Core::State::Paused);
-
   std::unique_ptr<lua_State, decltype(&lua_close)> state(luaL_newstate(), lua_close);
 
   // Register
@@ -62,6 +60,9 @@ wxThread::ExitCode LuaThread::Entry()
 
     return reinterpret_cast<wxThread::ExitCode>(-1);
   }
+
+  // Pause emu
+  Core::SetState(Core::State::Paused);
 
   if (lua_pcall(state.get(), 0, LUA_MULTRET, 0) != LUA_OK)
   {
