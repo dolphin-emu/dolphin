@@ -45,7 +45,7 @@ wxThread::ExitCode LuaThread::Entry()
   std::unique_ptr<lua_State, decltype(&lua_close)> state(luaL_newstate(), lua_close);
 
   // Register
-  lua_sethook(state.get(), &ExitHookFunction, LUA_MASKLINE, 0);
+  lua_sethook(state.get(), &HookFunction, LUA_MASKLINE, 0);
 
   // Make standard libraries available to loaded script
   luaL_openlibs(state.get());
@@ -96,34 +96,10 @@ void LuaThread::GetValues(GCPadStatus* status)
   status->button |= LuaThread::m_pad_status.button;
 }
 
-bool LuaThread::GetExitFlag()
+void HookFunction(lua_State* L, lua_Debug* ar)
 {
-  return m_exit_flag;
-}
-
-void LuaThread::HaltExecution()
-{
-  m_exit_flag = true;
-}
-
-// Prints a string to the text control of this frame
-/*int LuaThread::printToTextCtrl(lua_State* L)
-{
-  m_parent->GetEventHandler()->CallAfter(&LuaScriptFrame::Log, wxString(lua_tostring(L, 1)));
-
-  //m_parent->Log(lua_tostring(L, 1));
-  //m_parent->Log("\n");
-
-  return 0;
-}*/
-
-void ExitHookFunction(lua_State* L, lua_Debug* ar)
-{
-  if (LuaScriptFrame::GetCurrentInstance()->GetLuaThread()->GetExitFlag())
+  if (LuaScriptFrame::GetCurrentInstance()->GetLuaThread()->TestDestroy())
     luaL_error(L, "Script exited.\n");
-  else
-
-  LuaScriptFrame::GetCurrentInstance()->GetEventHandler()->CallAfter(&LuaScriptFrame::Log, wxString("Flag is false lol.\n"));
 }
 
 }  // namespace Lua

@@ -7,6 +7,7 @@
 #include <map>
 #include <mutex>
 #include <wx/frame.h>
+#include <lua5.3/include/lua.hpp>
 
 #include "InputCommon/GCPadStatus.h"
 
@@ -30,8 +31,7 @@ class LuaScriptFrame;
 
 extern std::map<const char*, LuaFunction> m_registered_functions;
 
-/* When this was a member of LuaThread, Lua didn't think it was a valid lua_Hook */
-void ExitHookFunction(lua_State*, lua_Debug*);
+void HookFunction(lua_State*, lua_Debug*);
 
 class LuaThread final : public wxThread
 {
@@ -39,16 +39,11 @@ public:
   LuaThread(LuaScriptFrame* p, const wxString& file);
   ~LuaThread();
   void GetValues(GCPadStatus* status);
-  bool GetExitFlag();
-  int printToTextCtrl(lua_State* L);
   GCPadStatus m_pad_status;
-  void HaltExecution();
-
 private:
   LuaScriptFrame* m_parent = nullptr;
   wxString m_file_path;
   wxThread::ExitCode Entry() override;
-  bool m_exit_flag = false;
 };
 
 class LuaScriptFrame final : public wxFrame

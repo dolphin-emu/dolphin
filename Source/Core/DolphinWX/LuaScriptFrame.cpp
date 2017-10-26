@@ -4,7 +4,6 @@
 
 #include "DolphinWX/LuaScripting.h"
 
-#include <lua5.3/include/lua.hpp>
 #include <wx/button.h>
 #include <wx/filedlg.h>
 #include <wx/menu.h>
@@ -101,7 +100,7 @@ LuaScriptFrame::~LuaScriptFrame()
   // Stop currently executing Lua thread
   if (m_lua_thread)
   {
-    m_lua_thread->HaltExecution();
+    m_lua_thread->Delete();
 
     // Wait until thread is finished
   }
@@ -237,7 +236,7 @@ void LuaScriptFrame::RunOnButtonClick(wxCommandEvent& event)
 
 void LuaScriptFrame::StopOnButtonClick(wxCommandEvent& event)
 {
-  m_lua_thread->HaltExecution();
+  m_lua_thread->Delete();
 }
 
 void LuaScriptFrame::NullifyLuaThread()
