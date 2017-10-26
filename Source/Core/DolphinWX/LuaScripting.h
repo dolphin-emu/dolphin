@@ -20,6 +20,7 @@ class wxMenuBar;
 class wxMenu;
 class wxButton;
 struct lua_State;
+struct lua_Debug;
 
 namespace Lua
 {
@@ -29,6 +30,9 @@ class LuaScriptFrame;
 
 extern std::map<const char*, LuaFunction> m_registered_functions;
 
+/* When this was a member of LuaThread, Lua didn't think it was a valid lua_Hook */
+void ExitHookFunction(lua_State*, lua_Debug*);
+
 class LuaThread final : public wxThread
 {
 public:
@@ -37,6 +41,7 @@ public:
   void GetValues(GCPadStatus* status);
   int printToTextCtrl(lua_State* L);
   GCPadStatus m_pad_status;
+  bool m_exit_flag = false;
 
 private:
   LuaScriptFrame* m_parent = nullptr;
@@ -53,6 +58,8 @@ public:
   void Log(const wxString& message);
   void NullifyLuaThread();
   GCPadStatus& GetPadStatus();
+  LuaThread* GetLuaThread();
+  static LuaScriptFrame* GetCurrentInstance();
 
 private:
   void CreateGUI();
@@ -77,5 +84,6 @@ private:
   wxStaticText* m_output_console_literal;
   wxTextCtrl* m_output_console;
   LuaThread* m_lua_thread;
+  static LuaScriptFrame* m_current_instance;
 };
 }  // namespace Lua
