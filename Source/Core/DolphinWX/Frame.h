@@ -112,6 +112,7 @@ public:
   void StatusBarMessage(const char* format, ...);
   void ClearStatusBar();
   void BootGame(const std::string& filename);
+  void StartGame(std::unique_ptr<BootParameters> boot);
   bool RendererHasFocus();
   bool RendererIsFullscreen();
   void OpenGeneralConfiguration(wxWindowID tab_id = wxID_ANY);
@@ -199,7 +200,6 @@ private:
   void InitializeTASDialogs();
   void InitializeCoreCallbacks();
 
-  void StartGame(std::unique_ptr<BootParameters> boot);
   void SetDebuggerStartupParameters() const;
 
   // Utility
@@ -280,9 +280,6 @@ private:
   void OnRescanGameList(wxCommandEvent& event);
 
   void OnUpdateInterpreterMenuItem(wxUpdateUIEvent& event);
-
-  void OnUpdateLoadWiiMenuItem(wxCommandEvent&);
-  void UpdateLoadWiiMenuItem() const;
 
   void OnOpen(wxCommandEvent& event);  // File menu
   void OnRefresh(wxCommandEvent& event);

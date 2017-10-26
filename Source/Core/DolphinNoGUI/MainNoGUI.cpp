@@ -360,14 +360,26 @@ int main(int argc, char* argv[])
   optparse::Values& options = CommandLineParse::ParseArguments(parser.get(), argc, argv);
   std::vector<std::string> args = parser->args();
 
-  std::string boot_filename;
+  std::unique_ptr<BootParameters> boot;
   if (options.is_set("exec"))
   {
-    boot_filename = static_cast<const char*>(options.get("exec"));
+    boot = BootParameters::GenerateFromFile(static_cast<const char*>(options.get("exec")));
+  }
+  else if (options.is_set("nand_title"))
+  {
+    const std::string hex_string = static_cast<const char*>(options.get("nand_title"));
+    if (hex_string.length() != 16)
+    {
+      fprintf(stderr, "Invalid title ID\n");
+      parser->print_help();
+      return 1;
+    }
+    const u64 title_id = std::stoull(hex_string, nullptr, 16);
+    boot = std::make_unique<BootParameters>(BootParameters::NANDTitle{title_id});
   }
   else if (args.size())
   {
-    boot_filename = args.front();
+    boot = BootParameters::GenerateFromFile(args.front());
     args.erase(args.begin());
   }
   else
@@ -408,9 +420,9 @@ int main(int argc, char* argv[])
 
   DolphinAnalytics::Instance()->ReportDolphinStart("nogui");
 
-  if (!BootManager::BootCore(BootParameters::GenerateFromFile(boot_filename)))
+  if (!BootManager::BootCore(std::move(boot)))
   {
-    fprintf(stderr, "Could not boot %s\n", boot_filename.c_str());
+    fprintf(stderr, "Could not boot the specified file\n");
     return 1;
   }
 

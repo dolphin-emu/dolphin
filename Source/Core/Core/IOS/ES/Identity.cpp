@@ -110,11 +110,11 @@ IPCCommandResult ES::Sign(const IOCtlVRequest& request)
   u32 data_size = request.in_vectors[0].size;
   u8* sig_out = Memory::GetPointer(request.io_vectors[0].address);
 
-  if (!GetTitleContext().active)
+  if (!m_title_context.active)
     return GetDefaultReply(ES_EINVAL);
 
   const EcWii& ec = EcWii::GetInstance();
-  MakeAPSigAndCert(sig_out, ap_cert_out, GetTitleContext().tmd.GetTitleId(), data, data_size,
+  MakeAPSigAndCert(sig_out, ap_cert_out, m_title_context.tmd.GetTitleId(), data, data_size,
                    ec.GetNGPriv(), ec.GetNGID());
 
   return GetDefaultReply(IPC_SUCCESS);

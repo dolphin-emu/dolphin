@@ -17,8 +17,6 @@
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
 
-// --- this volume type is used for Wii disc images ---
-
 namespace DiscIO
 {
 class BlobReader;

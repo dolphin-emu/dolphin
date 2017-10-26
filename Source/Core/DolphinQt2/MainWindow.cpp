@@ -65,7 +65,7 @@
 #include "UICommon/X11Utils.h"
 #endif
 
-MainWindow::MainWindow() : QMainWindow(nullptr)
+MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters) : QMainWindow(nullptr)
 {
   setWindowTitle(QString::fromStdString(Common::scm_rev_str));
   setWindowIcon(QIcon(Resources::GetMisc(Resources::LOGO_SMALL)));
@@ -84,6 +84,9 @@ MainWindow::MainWindow() : QMainWindow(nullptr)
   InitCoreCallbacks();
 
   NetPlayInit();
+
+  if (boot_parameters)
+    StartGame(std::move(boot_parameters));
 }
 
 MainWindow::~MainWindow()
@@ -652,8 +655,7 @@ void MainWindow::PerformOnlineUpdate(const std::string& region)
 
 void MainWindow::BootWiiSystemMenu()
 {
-  StartGame(QString::fromStdString(
-      Common::GetTitleContentPath(Titles::SYSTEM_MENU, Common::FROM_CONFIGURED_ROOT)));
+  StartGame(std::make_unique<BootParameters>(BootParameters::NANDTitle{Titles::SYSTEM_MENU}));
 }
 
 void MainWindow::NetPlayInit()

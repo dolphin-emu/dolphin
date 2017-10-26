@@ -43,8 +43,8 @@
 #include "VideoCommon/HiresTextures.h"
 
 #include "DiscIO/Enums.h"
-#include "DiscIO/NANDContentLoader.h"
 #include "DiscIO/Volume.h"
+#include "DiscIO/WiiWad.h"
 
 SConfig* SConfig::m_Instance;
 
@@ -888,14 +888,35 @@ struct SetGameMetadata
     return true;
   }
 
-  bool operator()(const BootParameters::NAND& nand) const
+  bool operator()(const DiscIO::WiiWAD& wad) const
   {
-    const auto& loader = DiscIO::NANDContentManager::Access().GetNANDLoader(nand.content_path);
-    if (!loader.IsValid())
+    if (!wad.IsValid() || !wad.GetTMD().IsValid())
+    {
+      PanicAlertT("This WAD is not valid.");
       return false;
+    }
+    if (!IOS::ES::IsChannel(wad.GetTMD().GetTitleId()))
+    {
+      PanicAlertT("This WAD is not bootable.");
+      return false;
+    }
 
-    const IOS::ES::TMDReader& tmd = loader.GetTMD();
+    const IOS::ES::TMDReader& tmd = wad.GetTMD();
+    config->SetRunningGameMetadata(tmd);
+    config->bWii = true;
+    *region = tmd.GetRegion();
+    return true;
+  }
 
+  bool operator()(const BootParameters::NANDTitle& nand_title) const
+  {
+    IOS::HLE::Kernel ios;
+    const IOS::ES::TMDReader tmd = ios.GetES()->FindInstalledTMD(nand_title.id);
+    if (!tmd.IsValid() || !IOS::ES::IsChannel(nand_title.id))
+    {
+      PanicAlertT("This title cannot be booted.");
+      return false;
+    }
     config->SetRunningGameMetadata(tmd);
     config->bWii = true;
     *region = tmd.GetRegion();

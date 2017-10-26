@@ -11,10 +11,12 @@
 #include "Core/CommonTitles.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/IOS/ES/ES.h"
+#include "Core/IOS/ES/Formats.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/State.h"
 #include "DiscIO/Enums.h"
-#include "DiscIO/NANDContentLoader.h"
+#include "DolphinWX/Frame.h"
 #include "DolphinWX/Globals.h"
 #include "DolphinWX/WxUtils.h"
 
@@ -30,6 +32,7 @@ MainMenuBar::MainMenuBar(MenuType type, long style) : wxMenuBar{style}, m_type{t
 {
   BindEvents();
   AddMenus();
+  RefreshWiiSystemMenuLabel();
 }
 
 void MainMenuBar::Refresh(bool erase_background, const wxRect* rect)
@@ -62,6 +65,7 @@ void MainMenuBar::AddMenus()
 void MainMenuBar::BindEvents()
 {
   Bind(EVT_POPULATE_PERSPECTIVES_MENU, &MainMenuBar::OnPopulatePerspectivesMenu, this);
+  Bind(DOLPHIN_EVT_UPDATE_LOAD_WII_MENU_ITEM, &MainMenuBar::OnUpdateWiiMenuTool, this);
 }
 
 wxMenu* MainMenuBar::CreateFileMenu() const
@@ -584,16 +588,11 @@ void MainMenuBar::RefreshWiiToolsLabels() const
   // result in the emulated software being confused, or even worse, exported saves having
   // inconsistent data.
   const bool enable_wii_tools = !Core::IsRunning() || !SConfig::GetInstance().bWii;
-  for (const int index :
-       {IDM_MENU_INSTALL_WAD, IDM_EXPORT_ALL_SAVE, IDM_IMPORT_SAVE, IDM_IMPORT_NAND, IDM_CHECK_NAND,
-        IDM_EXTRACT_CERTIFICATES, IDM_LOAD_WII_MENU, IDM_PERFORM_ONLINE_UPDATE_CURRENT,
-        IDM_PERFORM_ONLINE_UPDATE_EUR, IDM_PERFORM_ONLINE_UPDATE_JPN, IDM_PERFORM_ONLINE_UPDATE_KOR,
-        IDM_PERFORM_ONLINE_UPDATE_USA})
+  for (const int index : {IDM_MENU_INSTALL_WAD, IDM_EXPORT_ALL_SAVE, IDM_IMPORT_SAVE,
+                          IDM_IMPORT_NAND, IDM_CHECK_NAND, IDM_EXTRACT_CERTIFICATES})
   {
     FindItem(index)->Enable(enable_wii_tools);
   }
-  if (enable_wii_tools)
-    RefreshWiiSystemMenuLabel();
 }
 
 void MainMenuBar::EnableUpdateMenu(UpdateMenuMode mode) const
@@ -610,12 +609,23 @@ void MainMenuBar::RefreshWiiSystemMenuLabel() const
 {
   auto* const item = FindItem(IDM_LOAD_WII_MENU);
 
-  const auto& sys_menu_loader = DiscIO::NANDContentManager::Access().GetNANDLoader(
-      Titles::SYSTEM_MENU, Common::FROM_CONFIGURED_ROOT);
-
-  if (sys_menu_loader.IsValid())
+  if (Core::IsRunning())
   {
-    const u16 version_number = sys_menu_loader.GetTMD().GetTitleVersion();
+    item->Enable(false);
+    for (const int idm : {IDM_PERFORM_ONLINE_UPDATE_CURRENT, IDM_PERFORM_ONLINE_UPDATE_EUR,
+                          IDM_PERFORM_ONLINE_UPDATE_JPN, IDM_PERFORM_ONLINE_UPDATE_KOR,
+                          IDM_PERFORM_ONLINE_UPDATE_USA})
+    {
+      FindItem(idm)->Enable(false);
+    }
+    return;
+  }
+
+  IOS::HLE::Kernel ios;
+  const IOS::ES::TMDReader sys_menu_tmd = ios.GetES()->FindInstalledTMD(Titles::SYSTEM_MENU);
+  if (sys_menu_tmd.IsValid())
+  {
+    const u16 version_number = sys_menu_tmd.GetTitleVersion();
     const wxString version_string = StrToWxStr(DiscIO::GetSysMenuVersionString(version_number));
     item->Enable();
     item->SetItemLabel(wxString::Format(_("Load Wii System Menu %s"), version_string));
@@ -627,6 +637,11 @@ void MainMenuBar::RefreshWiiSystemMenuLabel() const
     item->SetItemLabel(_("Load Wii System Menu"));
     EnableUpdateMenu(UpdateMenuMode::SpecificRegionsOnly);
   }
+}
+
+void MainMenuBar::OnUpdateWiiMenuTool(wxCommandEvent&)
+{
+  RefreshWiiSystemMenuLabel();
 }
 
 void MainMenuBar::ClearSavedPerspectivesMenu() const

@@ -10,6 +10,7 @@
 
 #include "Common/MsgHandler.h"
 #include "Core/Analytics.h"
+#include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
 #include "Core/Core.h"
 #include "DolphinQt2/Host.h"
@@ -84,6 +85,21 @@ int main(int argc, char* argv[])
   QObject::connect(QAbstractEventDispatcher::instance(), &QAbstractEventDispatcher::aboutToBlock,
                    &app, &Core::HostDispatchJobs);
 
+  std::unique_ptr<BootParameters> boot;
+  if (options.is_set("nand_title"))
+  {
+    const std::string hex_string = static_cast<const char*>(options.get("nand_title"));
+    if (hex_string.length() == 16)
+    {
+      const u64 title_id = std::stoull(hex_string, nullptr, 16);
+      boot = std::make_unique<BootParameters>(BootParameters::NANDTitle{title_id});
+    }
+    else
+    {
+      QMessageBox::critical(nullptr, QObject::tr("Error"), QObject::tr("Invalid title ID."));
+    }
+  }
+
   int retval = 0;
 
   if (SConfig::GetInstance().m_show_development_warning)
@@ -95,7 +111,7 @@ int main(int argc, char* argv[])
   {
     DolphinAnalytics::Instance()->ReportDolphinStart("qt");
 
-    MainWindow win;
+    MainWindow win{std::move(boot)};
     win.show();
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
