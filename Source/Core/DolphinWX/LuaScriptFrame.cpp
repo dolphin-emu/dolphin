@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "DolphinWX/LuaScripting.h"
+#include <lua5.3/include/lua.hpp>
 
 #include <wx/button.h>
 #include <wx/filedlg.h>
@@ -103,6 +104,7 @@ LuaScriptFrame::~LuaScriptFrame()
     m_lua_thread->Delete();
 
     // Wait until thread is finished
+    sleep(1);
   }
   m_current_instance = nullptr;
   main_frame->m_lua_script_frame = nullptr;

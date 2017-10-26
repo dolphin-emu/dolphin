@@ -7,7 +7,6 @@
 #include <map>
 #include <mutex>
 #include <wx/frame.h>
-#include <lua5.3/include/lua.hpp>
 
 #include "InputCommon/GCPadStatus.h"
 
