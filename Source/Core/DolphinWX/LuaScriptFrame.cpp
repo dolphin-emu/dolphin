@@ -104,7 +104,7 @@ LuaScriptFrame::~LuaScriptFrame()
     m_lua_thread->Delete();
 
     // Wait until thread is finished
-    sleep(1);
+    wxThread::This()->Sleep(1);
   }
   m_current_instance = nullptr;
   main_frame->m_lua_script_frame = nullptr;
@@ -239,6 +239,7 @@ void LuaScriptFrame::RunOnButtonClick(wxCommandEvent& event)
 void LuaScriptFrame::StopOnButtonClick(wxCommandEvent& event)
 {
   m_lua_thread->Delete();
+  wxThread::This()->Sleep(1);
 }
 
 void LuaScriptFrame::NullifyLuaThread()

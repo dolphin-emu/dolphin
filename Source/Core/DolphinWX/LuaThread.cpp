@@ -45,7 +45,7 @@ wxThread::ExitCode LuaThread::Entry()
   std::unique_ptr<lua_State, decltype(&lua_close)> state(luaL_newstate(), lua_close);
 
   // Register
-  //lua_sethook(state.get(), &HookFunction, LUA_MASKLINE, 0);
+  lua_sethook(state.get(), &HookFunction, LUA_MASKLINE, 0);
 
   // Make standard libraries available to loaded script
   luaL_openlibs(state.get());
@@ -75,9 +75,6 @@ wxThread::ExitCode LuaThread::Entry()
 
 void LuaThread::GetValues(GCPadStatus* status)
 {
-
-  if (TestDestroy())
-    Exit();
   
   if (LuaThread::m_pad_status.stickX != GCPadStatus::MAIN_STICK_CENTER_X)
     status->stickX = LuaThread::m_pad_status.stickX;
@@ -100,13 +97,12 @@ void LuaThread::GetValues(GCPadStatus* status)
   status->button |= LuaThread::m_pad_status.button;
 }
 
-/*void HookFunction(lua_State* L, lua_Debug* ar)
+void HookFunction(lua_State* L, lua_Debug* ar)
 {
   if (LuaScriptFrame::GetCurrentInstance()->GetLuaThread()->TestDestroy())
   {
     luaL_error(L, "Script exited.\n");
-
   }
-}*/
+}
 
 }  // namespace Lua
