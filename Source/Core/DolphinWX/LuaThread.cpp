@@ -70,7 +70,7 @@ wxThread::ExitCode LuaThread::Entry()
 
     return reinterpret_cast<wxThread::ExitCode>(-1);
   }
-
+  Exit();
   return reinterpret_cast<wxThread::ExitCode>(0);
 }
 
@@ -100,9 +100,13 @@ void LuaThread::GetValues(GCPadStatus* status)
 
 void HookFunction(lua_State* L, lua_Debug* ar)
 {
-  if (LuaScriptFrame::GetCurrentInstance()->GetLuaThread()->TestDestroy())
+  if (LuaScriptFrame::GetCurrentInstance()->GetLuaThread()->m_destruction_flag)
   {
     luaL_error(L, "Script exited.\n");
+  }
+  else
+  {
+    LuaScriptFrame::GetCurrentInstance()->GetEventHandler()->CallAfter(&LuaScriptFrame::Log, wxString("TestDestroy is false still.\n"));
   }
 }
 

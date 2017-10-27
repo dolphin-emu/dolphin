@@ -38,6 +38,7 @@ public:
   LuaThread(LuaScriptFrame* p, const wxString& file);
   ~LuaThread();
   void GetValues(GCPadStatus* status);
+  bool m_destruction_flag = false;
   GCPadStatus m_pad_status;
 private:
   LuaScriptFrame* m_parent = nullptr;

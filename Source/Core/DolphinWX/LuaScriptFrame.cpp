@@ -101,9 +101,7 @@ LuaScriptFrame::~LuaScriptFrame()
   // Stop currently executing Lua thread
   if (m_lua_thread)
   {
-    m_lua_thread->Delete();
-
-    // Wait until thread is finished
+    m_lua_thread->m_destruction_flag = true;
     wxThread::This()->Sleep(1);
   }
   m_current_instance = nullptr;
@@ -238,8 +236,10 @@ void LuaScriptFrame::RunOnButtonClick(wxCommandEvent& event)
 
 void LuaScriptFrame::StopOnButtonClick(wxCommandEvent& event)
 {
-  m_lua_thread->Delete();
-  wxThread::This()->Sleep(1);
+  if (m_lua_thread)
+  {
+    m_lua_thread->m_destruction_flag = true;
+  }
 }
 
 void LuaScriptFrame::NullifyLuaThread()
