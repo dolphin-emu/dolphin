@@ -29,6 +29,7 @@ set(SRCS
   PcapFile.cpp
   PerformanceCounter.cpp
   Profiler.cpp
+  QoSSession.cpp
   SDCardUtil.cpp
   SettingsHandler.cpp
   StringUtil.cpp

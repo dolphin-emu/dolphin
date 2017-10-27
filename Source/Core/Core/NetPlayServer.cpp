@@ -21,10 +21,12 @@
 #include "Common/StringUtil.h"
 #include "Common/UPnP.h"
 #include "Common/Version.h"
+#include "Core/Config/NetplaySettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/Sram.h"
 #include "Core/NetPlayClient.h"  //for NetPlayUI
 #include "InputCommon/GCPadStatus.h"
+
 #if !defined(_WIN32)
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -273,6 +275,7 @@ unsigned int NetPlayServer::OnConnect(ENetPeer* socket)
   Client player;
   player.pid = pid;
   player.socket = socket;
+
   rpac >> player.revision;
   rpac >> player.name;
 
@@ -343,10 +346,13 @@ unsigned int NetPlayServer::OnConnect(ENetPeer* socket)
     Send(player.socket, spac);
   }
 
+  if (Config::Get(Config::NETPLAY_ENABLE_QOS))
+    player.qos_session = Common::QoSSession(player.socket);
+
   // add client to the player list
   {
     std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
-    m_players.emplace(*(PlayerId*)player.socket->data, player);
+    m_players.emplace(*(PlayerId*)player.socket->data, std::move(player));
     UpdatePadMapping();  // sync pad mappings with everyone
     UpdateWiimoteMapping();
   }

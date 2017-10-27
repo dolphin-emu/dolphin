@@ -6,12 +6,14 @@
 
 #include <SFML/Network/Packet.hpp>
 #include <map>
+#include <memory>
 #include <mutex>
 #include <queue>
 #include <sstream>
 #include <thread>
 #include <unordered_map>
 #include <unordered_set>
+#include "Common/QoSSession.h"
 #include "Common/SPSCQueue.h"
 #include "Common/Timer.h"
 #include "Common/TraversalClient.h"
@@ -70,6 +72,8 @@ private:
     ENetPeer* socket;
     u32 ping;
     u32 current_game;
+
+    Common::QoSSession qos_session;
 
     bool operator==(const Client& other) const { return this == &other; }
   };
