@@ -1119,6 +1119,11 @@ TextureCacheBase::GetXFBTexture(u32 address, u32 width, u32 height, TextureForma
 
   entry = CreateNormalTexture(tex_info.value());
 
+  // XFBs created for the purpose of being a container for textures from memory
+  // or as a container for overlapping textures, never need to be combined
+  // with other textures
+  entry->may_have_overlapping_textures = false;
+
   // At this point, the XFB wasn't found in cache
   // this means the address is most likely not pointing at an xfb copy but instead
   // an area of memory.  Let's attempt to stitch all entries in this memory space
