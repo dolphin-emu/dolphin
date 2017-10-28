@@ -25,7 +25,7 @@ private:
 #pragma pack(push, 1)
   struct NANDFSTEntry
   {
-    u8 name[12];
+    char name[12];
     u8 mode;   // 0x0C
     u8 attr;   // 0x0D
     u16 sub;   // 0x0E
