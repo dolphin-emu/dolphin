@@ -17,11 +17,6 @@ static std::list<ConfigChangedCallback> s_callbacks;
 
 void InvokeConfigChangedCallbacks();
 
-Section* GetOrCreateSection(System system, const std::string& section_name)
-{
-  return s_layers[LayerType::Meta]->GetOrCreateSection(system, section_name);
-}
-
 Layers* GetLayers()
 {
   return &s_layers;
@@ -83,8 +78,6 @@ void Init()
 {
   // These layers contain temporary values
   ClearCurrentRunLayer();
-  // This layer always has to exist
-  s_layers[LayerType::Meta] = std::make_unique<RecursiveLayer>();
 }
 
 void Shutdown()
@@ -129,7 +122,6 @@ const std::string& GetLayerName(LayerType layer)
       {LayerType::Movie, "Movie"},
       {LayerType::CommandLine, "Command Line"},
       {LayerType::CurrentRun, "Current Run"},
-      {LayerType::Meta, "Top"},
   };
   return layer_to_name.at(layer);
 }

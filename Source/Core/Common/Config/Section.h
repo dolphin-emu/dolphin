@@ -96,18 +96,4 @@ protected:
 
   std::vector<std::string> m_lines;
 };
-
-// Only to be used with the meta-layer
-class RecursiveSection final : public Section
-{
-public:
-  RecursiveSection(LayerType layer, System system, const std::string& name);
-
-  bool Exists(const std::string& key) const override;
-
-  bool Get(const std::string& key, std::string* value,
-           const std::string& default_value = NULL_STRING) const override;
-
-  void Set(const std::string& key, const std::string& value) override;
-};
 }

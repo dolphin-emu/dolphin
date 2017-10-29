@@ -67,15 +67,7 @@ Section* Layer::GetOrCreateSection(System system, const std::string& section_nam
   Section* section = GetSection(system, section_name);
   if (!section)
   {
-    if (m_layer == LayerType::Meta)
-    {
-      m_sections[system].emplace_back(
-          std::make_unique<RecursiveSection>(m_layer, system, section_name));
-    }
-    else
-    {
-      m_sections[system].emplace_back(std::make_unique<Section>(m_layer, system, section_name));
-    }
+    m_sections[system].emplace_back(std::make_unique<Section>(m_layer, system, section_name));
     section = m_sections[system].back().get();
   }
   return section;
@@ -123,27 +115,5 @@ void Layer::ClearDirty()
     std::for_each(system.second.begin(), system.second.end(),
                   [](auto& section) { section->ClearDirty(); });
   });
-}
-
-RecursiveLayer::RecursiveLayer() : Layer(LayerType::Meta)
-{
-}
-
-Section* RecursiveLayer::GetSection(System system, const std::string& section_name)
-{
-  // Always queries backwards recursively, so it doesn't matter if it exists or not on this layer
-  return GetOrCreateSection(system, section_name);
-}
-
-Section* RecursiveLayer::GetOrCreateSection(System system, const std::string& section_name)
-{
-  Section* section = Layer::GetSection(system, section_name);
-  if (!section)
-  {
-    m_sections[system].emplace_back(
-        std::make_unique<RecursiveSection>(m_layer, system, section_name));
-    section = m_sections[system].back().get();
-  }
-  return section;
 }
 }

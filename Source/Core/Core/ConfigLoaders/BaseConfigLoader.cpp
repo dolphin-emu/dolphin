@@ -26,7 +26,7 @@
 
 namespace ConfigLoaders
 {
-void SaveToSYSCONF(Config::Layer* layer)
+void SaveToSYSCONF(Config::LayerType layer)
 {
   if (Core::IsRunning())
     return;
@@ -40,9 +40,9 @@ void SaveToSYSCONF(Config::Layer* layer)
           const std::string key = info.location.section + "." + info.location.key;
 
           if (setting.type == SysConf::Entry::Type::Long)
-            sysconf.SetData<u32>(key, setting.type, layer->Get(info));
+            sysconf.SetData<u32>(key, setting.type, Config::Get(layer, info));
           else if (setting.type == SysConf::Entry::Type::Byte)
-            sysconf.SetData<u8>(key, setting.type, static_cast<u8>(layer->Get(info)));
+            sysconf.SetData<u8>(key, setting.type, static_cast<u8>(Config::Get(layer, info)));
         },
         setting.config_info);
   }
@@ -106,7 +106,7 @@ public:
     {
       if (system.first == Config::System::SYSCONF)
       {
-        SaveToSYSCONF(config_layer);
+        SaveToSYSCONF(config_layer->GetLayer());
         continue;
       }
 

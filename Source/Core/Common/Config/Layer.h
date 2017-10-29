@@ -84,12 +84,4 @@ protected:
   const LayerType m_layer;
   std::unique_ptr<ConfigLayerLoader> m_loader;
 };
-
-class RecursiveLayer final : public Layer
-{
-public:
-  RecursiveLayer();
-  Section* GetSection(System system, const std::string& section_name) override;
-  Section* GetOrCreateSection(System system, const std::string& section_name) override;
-};
-}
+} // namespace Config

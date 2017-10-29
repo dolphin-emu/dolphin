@@ -46,27 +46,27 @@ static void LoadFromDTM(Config::Layer* config_layer, Movie::DTMHeader* dtm)
   config_layer->Set(Config::GFX_HACK_EFB_EMULATE_FORMAT_CHANGES, dtm->bEFBEmulateFormatChanges);
 }
 
-void SaveToDTM(Config::Layer* config_layer, Movie::DTMHeader* dtm)
+void SaveToDTM(Movie::DTMHeader* dtm)
 {
-  dtm->bDualCore = config_layer->Get(Config::MAIN_CPU_THREAD);
-  dtm->bDSPHLE = config_layer->Get(Config::MAIN_DSP_HLE);
-  dtm->bFastDiscSpeed = config_layer->Get(Config::MAIN_FAST_DISC_SPEED);
-  dtm->CPUCore = config_layer->Get(Config::MAIN_CPU_CORE);
-  dtm->bSyncGPU = config_layer->Get(Config::MAIN_SYNC_GPU);
-  const std::string video_backend = config_layer->Get(Config::MAIN_GFX_BACKEND);
+  dtm->bDualCore = Config::Get(Config::MAIN_CPU_THREAD);
+  dtm->bDSPHLE = Config::Get(Config::MAIN_DSP_HLE);
+  dtm->bFastDiscSpeed = Config::Get(Config::MAIN_FAST_DISC_SPEED);
+  dtm->CPUCore = Config::Get(Config::MAIN_CPU_CORE);
+  dtm->bSyncGPU = Config::Get(Config::MAIN_SYNC_GPU);
+  const std::string video_backend = Config::Get(Config::MAIN_GFX_BACKEND);
 
-  dtm->bProgressive = config_layer->Get(Config::SYSCONF_PROGRESSIVE_SCAN);
-  dtm->bPAL60 = config_layer->Get(Config::SYSCONF_PAL60);
+  dtm->bProgressive = Config::Get(Config::SYSCONF_PROGRESSIVE_SCAN);
+  dtm->bPAL60 = Config::Get(Config::SYSCONF_PAL60);
   if (dtm->bWii)
-    dtm->language = config_layer->Get(Config::SYSCONF_LANGUAGE);
+    dtm->language = Config::Get(Config::SYSCONF_LANGUAGE);
   else
-    dtm->language = config_layer->Get(Config::MAIN_GC_LANGUAGE);
+    dtm->language = Config::Get(Config::MAIN_GC_LANGUAGE);
 
-  dtm->bUseXFB = config_layer->Get(Config::GFX_USE_XFB);
-  dtm->bUseRealXFB = config_layer->Get(Config::GFX_USE_REAL_XFB);
-  dtm->bEFBAccessEnable = config_layer->Get(Config::GFX_HACK_EFB_ACCESS_ENABLE);
-  dtm->bSkipEFBCopyToRam = config_layer->Get(Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM);
-  dtm->bEFBEmulateFormatChanges = config_layer->Get(Config::GFX_HACK_EFB_EMULATE_FORMAT_CHANGES);
+  dtm->bUseXFB = Config::Get(Config::GFX_USE_XFB);
+  dtm->bUseRealXFB = Config::Get(Config::GFX_USE_REAL_XFB);
+  dtm->bEFBAccessEnable = Config::Get(Config::GFX_HACK_EFB_ACCESS_ENABLE);
+  dtm->bSkipEFBCopyToRam = Config::Get(Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM);
+  dtm->bEFBEmulateFormatChanges = Config::Get(Config::GFX_HACK_EFB_EMULATE_FORMAT_CHANGES);
 
   // This never used the regular config
   dtm->bSkipIdle = true;

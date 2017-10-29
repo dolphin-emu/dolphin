@@ -36,9 +36,6 @@ struct ConfigInfo
 using Layers = std::map<LayerType, std::unique_ptr<Layer>>;
 using ConfigChangedCallback = std::function<void()>;
 
-// Common function used for getting configuration
-Section* GetOrCreateSection(System system, const std::string& section_name);
-
 // Layer management
 Layers* GetLayers();
 void AddLayer(std::unique_ptr<Layer> layer);
@@ -66,13 +63,15 @@ LayerType GetActiveLayerForConfig(const ConfigLocation&);
 template <typename T>
 T Get(LayerType layer, const ConfigInfo<T>& info)
 {
+  if (layer == LayerType::Meta)
+    return Get(info);
   return GetLayer(layer)->Get(info);
 }
 
 template <typename T>
 T Get(const ConfigInfo<T>& info)
 {
-  return Get(LayerType::Meta, info);
+  return GetLayer(GetActiveLayerForConfig(info.location))->Get(info);
 }
 
 template <typename T>
