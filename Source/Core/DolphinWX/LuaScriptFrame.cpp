@@ -101,8 +101,16 @@ LuaScriptFrame::~LuaScriptFrame()
   // Stop currently executing Lua thread
   if (m_lua_thread)
   {
+    // wxThread.Kill() crashes on non-windows platforms,
+    // and right now I don't have a solution for Mac/Linux,
+    // so I'm kind of cheating here.
+#ifdef _WIN32
+    m_lua_thread->Kill();
+    m_lua_thread = nullptr;
+#else
     m_lua_thread->m_destruction_flag = true;
     wxThread::This()->Sleep(1);
+#endif
   }
   m_current_instance = nullptr;
   main_frame->m_lua_script_frame = nullptr;

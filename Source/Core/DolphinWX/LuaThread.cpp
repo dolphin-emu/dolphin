@@ -33,7 +33,6 @@ LuaThread::~LuaThread()
 {
   // Nullify GC manipulator function to prevent crash when lua console is closed
   Movie::SetGCInputManip(nullptr, Movie::GCManipIndex::LuaGCManip);
-  LuaScriptFrame::GetCurrentInstance()->GetEventHandler()->CallAfter(&LuaScriptFrame::Log, wxString("PFFFFFFFFFT\n"));
 
   m_parent->NullifyLuaThread();
 }
@@ -103,10 +102,6 @@ void HookFunction(lua_State* L, lua_Debug* ar)
   if (LuaScriptFrame::GetCurrentInstance()->GetLuaThread()->m_destruction_flag)
   {
     luaL_error(L, "Script exited.\n");
-  }
-  else
-  {
-    LuaScriptFrame::GetCurrentInstance()->GetEventHandler()->CallAfter(&LuaScriptFrame::Log, wxString("TestDestroy is false still.\n"));
   }
 }
 
