@@ -28,7 +28,7 @@ namespace Vulkan
 {
 void VideoBackend::InitBackendInfo()
 {
-  VulkanContext::PopulateBackendInfo(&g_Config);
+  VulkanContext::PopulateBackendInfo(&g_Config.backend_info);
 
   if (LoadVulkanLibrary())
   {
@@ -38,7 +38,7 @@ void VideoBackend::InitBackendInfo()
       if (LoadVulkanInstanceFunctions(temp_instance))
       {
         VulkanContext::GPUList gpu_list = VulkanContext::EnumerateGPUs(temp_instance);
-        VulkanContext::PopulateBackendInfoAdapters(&g_Config, gpu_list);
+        VulkanContext::PopulateBackendInfoAdapters(&g_Config.backend_info, gpu_list);
 
         if (!gpu_list.empty())
         {
@@ -52,8 +52,10 @@ void VideoBackend::InitBackendInfo()
           vkGetPhysicalDeviceProperties(gpu, &properties);
           VkPhysicalDeviceFeatures features;
           vkGetPhysicalDeviceFeatures(gpu, &features);
-          VulkanContext::PopulateBackendInfoFeatures(&g_Config, gpu, properties, features);
-          VulkanContext::PopulateBackendInfoMultisampleModes(&g_Config, gpu, properties);
+          VulkanContext::PopulateBackendInfoFeatures(&g_Config.backend_info, gpu, properties,
+                                                     features);
+          VulkanContext::PopulateBackendInfoMultisampleModes(&g_Config.backend_info, gpu,
+                                                             properties);
         }
       }
 
@@ -139,8 +141,8 @@ bool VideoBackend::Initialize(void* window_handle)
   }
 
   // Populate BackendInfo with as much information as we can at this point.
-  VulkanContext::PopulateBackendInfo(&g_Config);
-  VulkanContext::PopulateBackendInfoAdapters(&g_Config, gpu_list);
+  VulkanContext::PopulateBackendInfo(&g_Config.backend_info);
+  VulkanContext::PopulateBackendInfoAdapters(&g_Config.backend_info, gpu_list);
 
   // We need the surface before we can create a device, as some parameters depend on it.
   VkSurfaceKHR surface = VK_NULL_HANDLE;
@@ -177,11 +179,12 @@ bool VideoBackend::Initialize(void* window_handle)
 
   // Since VulkanContext maintains a copy of the device features and properties, we can use this
   // to initialize the backend information, so that we don't need to enumerate everything again.
-  VulkanContext::PopulateBackendInfoFeatures(&g_Config, g_vulkan_context->GetPhysicalDevice(),
-                                             g_vulkan_context->GetDeviceProperties(),
-                                             g_vulkan_context->GetDeviceFeatures());
-  VulkanContext::PopulateBackendInfoMultisampleModes(
-      &g_Config, g_vulkan_context->GetPhysicalDevice(), g_vulkan_context->GetDeviceProperties());
+  VulkanContext::PopulateBackendInfoFeatures(
+      &g_Config.backend_info, g_vulkan_context->GetPhysicalDevice(),
+      g_vulkan_context->GetDeviceProperties(), g_vulkan_context->GetDeviceFeatures());
+  VulkanContext::PopulateBackendInfoMultisampleModes(&g_Config.backend_info,
+                                                     g_vulkan_context->GetPhysicalDevice(),
+                                                     g_vulkan_context->GetDeviceProperties());
 
   // With the backend information populated, we can now initialize videocommon.
   InitializeShared();

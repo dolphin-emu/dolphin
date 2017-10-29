@@ -223,84 +223,87 @@ VulkanContext::GPUList VulkanContext::EnumerateGPUs(VkInstance instance)
   return gpus;
 }
 
-void VulkanContext::PopulateBackendInfo(VideoConfig* config)
+void VulkanContext::PopulateBackendInfo(VideoConfig::BackendInfo* backend_info)
 {
-  config->backend_info.api_type = APIType::Vulkan;
-  config->backend_info.bSupportsExclusiveFullscreen = false;  // Currently WSI does not allow this.
-  config->backend_info.bSupports3DVision = false;             // D3D-exclusive.
-  config->backend_info.bSupportsOversizedViewports = true;    // Assumed support.
-  config->backend_info.bSupportsEarlyZ = true;                // Assumed support.
-  config->backend_info.bSupportsPrimitiveRestart = true;      // Assumed support.
-  config->backend_info.bSupportsBindingLayout = false;        // Assumed support.
-  config->backend_info.bSupportsPaletteConversion = true;     // Assumed support.
-  config->backend_info.bSupportsClipControl = true;           // Assumed support.
-  config->backend_info.bSupportsMultithreading = true;        // Assumed support.
-  config->backend_info.bSupportsComputeShaders = true;        // Assumed support.
-  config->backend_info.bSupportsGPUTextureDecoding = true;    // Assumed support.
-  config->backend_info.bSupportsBitfield = true;              // Assumed support.
-  config->backend_info.bSupportsDynamicSamplerIndexing = true;        // Assumed support.
-  config->backend_info.bSupportsInternalResolutionFrameDumps = true;  // Assumed support.
-  config->backend_info.bSupportsPostProcessing = true;                // Assumed support.
-  config->backend_info.bSupportsDualSourceBlend = false;              // Dependent on features.
-  config->backend_info.bSupportsGeometryShaders = false;              // Dependent on features.
-  config->backend_info.bSupportsGSInstancing = false;                 // Dependent on features.
-  config->backend_info.bSupportsBBox = false;                         // Dependent on features.
-  config->backend_info.bSupportsFragmentStoresAndAtomics = false;     // Dependent on features.
-  config->backend_info.bSupportsSSAA = false;                         // Dependent on features.
-  config->backend_info.bSupportsDepthClamp = false;                   // Dependent on features.
-  config->backend_info.bSupportsST3CTextures = false;                 // Dependent on features.
-  config->backend_info.bSupportsBPTCTextures = false;                 // Dependent on features.
-  config->backend_info.bSupportsReversedDepthRange = false;  // No support yet due to driver bugs.
+  backend_info->api_type = APIType::Vulkan;
+  backend_info->bSupportsExclusiveFullscreen = false;  // Currently WSI does not allow this.
+  backend_info->bSupports3DVision = false;             // D3D-exclusive.
+  backend_info->bSupportsOversizedViewports = true;    // Assumed support.
+  backend_info->bSupportsEarlyZ = true;                // Assumed support.
+  backend_info->bSupportsPrimitiveRestart = true;      // Assumed support.
+  backend_info->bSupportsBindingLayout = false;        // Assumed support.
+  backend_info->bSupportsPaletteConversion = true;     // Assumed support.
+  backend_info->bSupportsClipControl = true;           // Assumed support.
+  backend_info->bSupportsMultithreading = true;        // Assumed support.
+  backend_info->bSupportsComputeShaders = true;        // Assumed support.
+  backend_info->bSupportsGPUTextureDecoding = true;    // Assumed support.
+  backend_info->bSupportsBitfield = true;              // Assumed support.
+  backend_info->bSupportsDynamicSamplerIndexing = true;        // Assumed support.
+  backend_info->bSupportsInternalResolutionFrameDumps = true;  // Assumed support.
+  backend_info->bSupportsPostProcessing = true;                // Assumed support.
+  backend_info->bSupportsDualSourceBlend = false;              // Dependent on features.
+  backend_info->bSupportsGeometryShaders = false;              // Dependent on features.
+  backend_info->bSupportsGSInstancing = false;                 // Dependent on features.
+  backend_info->bSupportsBBox = false;                         // Dependent on features.
+  backend_info->bSupportsFragmentStoresAndAtomics = false;     // Dependent on features.
+  backend_info->bSupportsSSAA = false;                         // Dependent on features.
+  backend_info->bSupportsDepthClamp = false;                   // Dependent on features.
+  backend_info->bSupportsST3CTextures = false;                 // Dependent on features.
+  backend_info->bSupportsBPTCTextures = false;                 // Dependent on features.
+  backend_info->bSupportsReversedDepthRange = false;  // No support yet due to driver bugs.
 }
 
-void VulkanContext::PopulateBackendInfoAdapters(VideoConfig* config, const GPUList& gpu_list)
+void VulkanContext::PopulateBackendInfoAdapters(VideoConfig::BackendInfo* backend_info,
+                                                const GPUList& gpu_list)
 {
-  config->backend_info.Adapters.clear();
+  backend_info->Adapters.clear();
   for (VkPhysicalDevice physical_device : gpu_list)
   {
     VkPhysicalDeviceProperties properties;
     vkGetPhysicalDeviceProperties(physical_device, &properties);
-    config->backend_info.Adapters.push_back(properties.deviceName);
+    backend_info->Adapters.push_back(properties.deviceName);
   }
 }
 
-void VulkanContext::PopulateBackendInfoFeatures(VideoConfig* config, VkPhysicalDevice gpu,
+void VulkanContext::PopulateBackendInfoFeatures(VideoConfig::BackendInfo* backend_info,
+                                                VkPhysicalDevice gpu,
                                                 const VkPhysicalDeviceProperties& properties,
                                                 const VkPhysicalDeviceFeatures& features)
 {
-  config->backend_info.MaxTextureSize = properties.limits.maxImageDimension2D;
-  config->backend_info.bSupportsDualSourceBlend = (features.dualSrcBlend == VK_TRUE);
-  config->backend_info.bSupportsGeometryShaders = (features.geometryShader == VK_TRUE);
-  config->backend_info.bSupportsGSInstancing = (features.geometryShader == VK_TRUE);
-  config->backend_info.bSupportsBBox = config->backend_info.bSupportsFragmentStoresAndAtomics =
+  backend_info->MaxTextureSize = properties.limits.maxImageDimension2D;
+  backend_info->bSupportsDualSourceBlend = (features.dualSrcBlend == VK_TRUE);
+  backend_info->bSupportsGeometryShaders = (features.geometryShader == VK_TRUE);
+  backend_info->bSupportsGSInstancing = (features.geometryShader == VK_TRUE);
+  backend_info->bSupportsBBox = backend_info->bSupportsFragmentStoresAndAtomics =
       (features.fragmentStoresAndAtomics == VK_TRUE);
-  config->backend_info.bSupportsSSAA = (features.sampleRateShading == VK_TRUE);
+  backend_info->bSupportsSSAA = (features.sampleRateShading == VK_TRUE);
 
   // Disable geometry shader when shaderTessellationAndGeometryPointSize is not supported.
   // Seems this is needed for gl_Layer.
   if (!features.shaderTessellationAndGeometryPointSize)
   {
-    config->backend_info.bSupportsGeometryShaders = VK_FALSE;
-    config->backend_info.bSupportsGSInstancing = VK_FALSE;
+    backend_info->bSupportsGeometryShaders = VK_FALSE;
+    backend_info->bSupportsGSInstancing = VK_FALSE;
   }
 
   // Depth clamping implies shaderClipDistance and depthClamp
-  config->backend_info.bSupportsDepthClamp =
+  backend_info->bSupportsDepthClamp =
       (features.depthClamp == VK_TRUE && features.shaderClipDistance == VK_TRUE);
 
   // textureCompressionBC implies BC1 through BC7, which is a superset of DXT1/3/5, which we need.
   const bool supports_bc = features.textureCompressionBC == VK_TRUE;
-  config->backend_info.bSupportsST3CTextures = supports_bc;
-  config->backend_info.bSupportsBPTCTextures = supports_bc;
+  backend_info->bSupportsST3CTextures = supports_bc;
+  backend_info->bSupportsBPTCTextures = supports_bc;
 
   // Our usage of primitive restart appears to be broken on AMD's binary drivers.
   // Seems to be fine on GCN Gen 1-2, unconfirmed on GCN Gen 3, causes driver resets on GCN Gen 4.
   if (DriverDetails::HasBug(DriverDetails::BUG_PRIMITIVE_RESTART))
-    config->backend_info.bSupportsPrimitiveRestart = false;
+    backend_info->bSupportsPrimitiveRestart = false;
 }
 
 void VulkanContext::PopulateBackendInfoMultisampleModes(
-    VideoConfig* config, VkPhysicalDevice gpu, const VkPhysicalDeviceProperties& properties)
+    VideoConfig::BackendInfo* backend_info, VkPhysicalDevice gpu,
+    const VkPhysicalDeviceProperties& properties)
 {
   // Query image support for the EFB texture formats.
   VkImageFormatProperties efb_color_properties = {};
@@ -319,32 +322,32 @@ void VulkanContext::PopulateBackendInfoMultisampleModes(
                                                efb_depth_properties.sampleCounts;
 
   // No AA
-  config->backend_info.AAModes.clear();
-  config->backend_info.AAModes.emplace_back(1);
+  backend_info->AAModes.clear();
+  backend_info->AAModes.emplace_back(1);
 
   // 2xMSAA/SSAA
   if (supported_sample_counts & VK_SAMPLE_COUNT_2_BIT)
-    config->backend_info.AAModes.emplace_back(2);
+    backend_info->AAModes.emplace_back(2);
 
   // 4xMSAA/SSAA
   if (supported_sample_counts & VK_SAMPLE_COUNT_4_BIT)
-    config->backend_info.AAModes.emplace_back(4);
+    backend_info->AAModes.emplace_back(4);
 
   // 8xMSAA/SSAA
   if (supported_sample_counts & VK_SAMPLE_COUNT_8_BIT)
-    config->backend_info.AAModes.emplace_back(8);
+    backend_info->AAModes.emplace_back(8);
 
   // 16xMSAA/SSAA
   if (supported_sample_counts & VK_SAMPLE_COUNT_16_BIT)
-    config->backend_info.AAModes.emplace_back(16);
+    backend_info->AAModes.emplace_back(16);
 
   // 32xMSAA/SSAA
   if (supported_sample_counts & VK_SAMPLE_COUNT_32_BIT)
-    config->backend_info.AAModes.emplace_back(32);
+    backend_info->AAModes.emplace_back(32);
 
   // 64xMSAA/SSAA
   if (supported_sample_counts & VK_SAMPLE_COUNT_64_BIT)
-    config->backend_info.AAModes.emplace_back(64);
+    backend_info->AAModes.emplace_back(64);
 }
 
 std::unique_ptr<VulkanContext> VulkanContext::Create(VkInstance instance, VkPhysicalDevice gpu,
