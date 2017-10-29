@@ -45,18 +45,15 @@ public:
     }
   }
 
-  void Load(Config::Layer* config_layer) override
+  void Load(Config::Layer* layer) override
   {
     for (auto& value : m_values)
     {
-      const Config::ConfigLocation location = std::get<0>(value);
-      Config::Section* section =
-          config_layer->GetOrCreateSection(location.system, location.section);
-      section->Set(location.key, std::get<1>(value));
+      layer->Set(std::get<0>(value), std::get<1>(value));
     }
   }
 
-  void Save(Config::Layer* config_layer) override
+  void Save(Config::Layer* layer) override
   {
     // Save Nothing
   }

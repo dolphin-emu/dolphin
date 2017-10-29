@@ -6,7 +6,6 @@ set(SRCS
   Config/Config.cpp
   Config/ConfigInfo.cpp
   Config/Layer.cpp
-  Config/Section.cpp
   Crypto/AES.cpp
   Crypto/bn.cpp
   Crypto/ec.cpp

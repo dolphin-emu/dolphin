@@ -133,7 +133,7 @@ LayerType GetActiveLayerForConfig(const ConfigLocation& config)
     if (!LayerExists(layer))
       continue;
 
-    if (GetLayer(layer)->Exists(config.system, config.section, config.key))
+    if (GetLayer(layer)->Exists(config))
       return layer;
   }
 

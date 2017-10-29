@@ -12,7 +12,6 @@
 #include "Common/Config/ConfigInfo.h"
 #include "Common/Config/Enums.h"
 #include "Common/Config/Layer.h"
-#include "Common/Config/Section.h"
 
 namespace Config
 {
