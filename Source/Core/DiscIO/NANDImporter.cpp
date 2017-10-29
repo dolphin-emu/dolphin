@@ -122,10 +122,7 @@ void NANDImporter::FindSuperblock()
 
 std::string NANDImporter::GetPath(const NANDFSTEntry& entry, const std::string& parent_path)
 {
-  std::string name(reinterpret_cast<const char*>(&entry.name), sizeof(NANDFSTEntry::name));
-  // Get rid of any extra null characters
-  while (name.back() == '\0')
-    name.pop_back();
+  std::string name(entry.name, strnlen(entry.name, sizeof(NANDFSTEntry::name)));
 
   if (name.front() == '/' || parent_path.back() == '/')
     return parent_path + name;
