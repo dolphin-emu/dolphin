@@ -9,30 +9,13 @@
 #include <memory>
 #include <string>
 
+#include "Common/Config/ConfigInfo.h"
 #include "Common/Config/Enums.h"
 #include "Common/Config/Layer.h"
 #include "Common/Config/Section.h"
 
 namespace Config
 {
-struct ConfigLocation
-{
-  System system;
-  std::string section;
-  std::string key;
-
-  bool operator==(const ConfigLocation& other) const;
-  bool operator!=(const ConfigLocation& other) const;
-  bool operator<(const ConfigLocation& other) const;
-};
-
-template <typename T>
-struct ConfigInfo
-{
-  ConfigLocation location;
-  T default_value;
-};
-
 using Layers = std::map<LayerType, std::unique_ptr<Layer>>;
 using ConfigChangedCallback = std::function<void()>;
 

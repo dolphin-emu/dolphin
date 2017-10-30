@@ -126,21 +126,6 @@ const std::string& GetLayerName(LayerType layer)
   return layer_to_name.at(layer);
 }
 
-bool ConfigLocation::operator==(const ConfigLocation& other) const
-{
-  return std::tie(system, section, key) == std::tie(other.system, other.section, other.key);
-}
-
-bool ConfigLocation::operator!=(const ConfigLocation& other) const
-{
-  return !(*this == other);
-}
-
-bool ConfigLocation::operator<(const ConfigLocation& other) const
-{
-  return std::tie(system, section, key) < std::tie(other.system, other.section, other.key);
-}
-
 LayerType GetActiveLayerForConfig(const ConfigLocation& config)
 {
   for (auto layer : SEARCH_ORDER)
