@@ -34,9 +34,8 @@ namespace TextureConverter
 {
 using OGL::TextureCache;
 
-static GLuint s_texConvFrameBuffer[2] = {0, 0};
-static GLuint s_srcTexture = 0;  // for decoding from RAM
-static GLuint s_dstTexture = 0;  // for encoding to RAM
+std::unique_ptr<AbstractTexture> s_encoding_render_texture;
+std::unique_ptr<AbstractStagingTexture> s_encoding_readback_texture;
 
 const int renderBufferWidth = EFB_WIDTH * 4;
 const int renderBufferHeight = 1024;
@@ -48,8 +47,6 @@ struct EncodingProgram
   GLint y_scale_uniform;
 };
 static std::map<EFBCopyParams, EncodingProgram> s_encoding_programs;
-
-static GLuint s_PBO = 0;  // for readback with different strides
 
 static EncodingProgram& GetOrCreateEncodingShader(const EFBCopyParams& params)
 {
@@ -87,42 +84,21 @@ static EncodingProgram& GetOrCreateEncodingShader(const EFBCopyParams& params)
 
 void Init()
 {
-  glGenFramebuffers(2, s_texConvFrameBuffer);
-
-  glActiveTexture(GL_TEXTURE9);
-  glGenTextures(1, &s_srcTexture);
-  glBindTexture(GL_TEXTURE_2D, s_srcTexture);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-
-  glGenTextures(1, &s_dstTexture);
-  glBindTexture(GL_TEXTURE_2D, s_dstTexture);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, renderBufferWidth, renderBufferHeight, 0, GL_RGBA,
-               GL_UNSIGNED_BYTE, nullptr);
-
-  FramebufferManager::SetFramebuffer(s_texConvFrameBuffer[0]);
-  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, s_dstTexture, 0);
-  FramebufferManager::SetFramebuffer(0);
-
-  glGenBuffers(1, &s_PBO);
+  TextureConfig config(renderBufferWidth, renderBufferHeight, 1, 1, AbstractTextureFormat::BGRA8,
+                       true);
+  s_encoding_render_texture = g_renderer->CreateTexture(config);
+  s_encoding_readback_texture =
+      g_renderer->CreateStagingTexture(StagingTextureType::Readback, config);
 }
 
 void Shutdown()
 {
-  glDeleteTextures(1, &s_srcTexture);
-  glDeleteTextures(1, &s_dstTexture);
-  glDeleteBuffers(1, &s_PBO);
-  glDeleteFramebuffers(2, s_texConvFrameBuffer);
+  s_encoding_readback_texture.reset();
+  s_encoding_render_texture.reset();
 
   for (auto& program : s_encoding_programs)
     program.second.program.Destroy();
   s_encoding_programs.clear();
-
-  s_srcTexture = 0;
-  s_dstTexture = 0;
-  s_PBO = 0;
-  s_texConvFrameBuffer[0] = 0;
-  s_texConvFrameBuffer[1] = 0;
 }
 
 // dst_line_size, writeStride in bytes
@@ -130,9 +106,8 @@ void Shutdown()
 static void EncodeToRamUsingShader(GLuint srcTexture, u8* destAddr, u32 dst_line_size,
                                    u32 dstHeight, u32 writeStride, bool linearFilter, float y_scale)
 {
-  // switch to texture converter frame buffer
-  // attach render buffer as color destination
-  FramebufferManager::SetFramebuffer(s_texConvFrameBuffer[0]);
+  FramebufferManager::SetFramebuffer(
+      static_cast<OGLTexture*>(s_encoding_render_texture.get())->GetFramebuffer());
 
   OpenGL_BindAttributelessVAO();
 
@@ -153,33 +128,13 @@ static void EncodeToRamUsingShader(GLuint srcTexture, u8* destAddr, u32 dst_line
 
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-  int dstSize = dst_line_size * dstHeight;
+  MathUtil::Rectangle<int> copy_rect(0, 0, dst_line_size / 4, dstHeight);
+  s_encoding_readback_texture->CopyFromTexture(s_encoding_render_texture.get(), copy_rect, 0, 0,
+                                               copy_rect);
+  s_encoding_readback_texture->ReadTexels(copy_rect, destAddr, writeStride);
 
-  // When the dst_line_size and writeStride are the same, we could use glReadPixels directly to RAM.
-  // But instead we always copy the data via a PBO, because macOS inexplicably prefers this (most
-  // noticeably in the Super Mario Sunshine transition).
-  glBindBuffer(GL_PIXEL_PACK_BUFFER, s_PBO);
-  glBufferData(GL_PIXEL_PACK_BUFFER, dstSize, nullptr, GL_STREAM_READ);
-  glReadPixels(0, 0, (GLsizei)(dst_line_size / 4), (GLsizei)dstHeight, GL_BGRA, GL_UNSIGNED_BYTE,
-               nullptr);
-  u8* pbo = (u8*)glMapBufferRange(GL_PIXEL_PACK_BUFFER, 0, dstSize, GL_MAP_READ_BIT);
-
-  if (dst_line_size == writeStride)
-  {
-    memcpy(destAddr, pbo, dst_line_size * dstHeight);
-  }
-  else
-  {
-    for (size_t i = 0; i < dstHeight; ++i)
-    {
-      memcpy(destAddr, pbo, dst_line_size);
-      pbo += dst_line_size;
-      destAddr += writeStride;
-    }
-  }
-
-  glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
-  glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+  FramebufferManager::SetFramebuffer(0);
+  OGLTexture::SetStage();
 }
 
 void EncodeToRamFromTexture(u8* dest_ptr, const EFBCopyParams& params, u32 native_width,
