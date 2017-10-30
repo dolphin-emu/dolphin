@@ -6,8 +6,10 @@
 
 #include "Common/Assert.h"
 #include "Common/MsgHandler.h"
+#include "VideoCommon/AbstractStagingTexture.h"
 #include "VideoCommon/AbstractTexture.h"
 #include "VideoCommon/ImageWrite.h"
+#include "VideoCommon/RenderBase.h"
 
 AbstractTexture::AbstractTexture(const TextureConfig& c) : m_config(c)
 {
@@ -20,17 +22,33 @@ bool AbstractTexture::Save(const std::string& filename, unsigned int level)
   // We can't dump compressed textures currently (it would mean drawing them to a RGBA8
   // framebuffer, and saving that). TextureCache does not call Save for custom textures
   // anyway, so this is fine for now.
-  _assert_(m_config.format == AbstractTextureFormat::RGBA8);
+  _assert_(!IsCompressedFormat(m_config.format));
+  _assert_(level < m_config.levels);
 
-  auto result = level == 0 ? Map() : Map(level);
+  // Determine dimensions of image we want to save.
+  u32 level_width = std::max(1u, m_config.width >> level);
+  u32 level_height = std::max(1u, m_config.height >> level);
 
-  if (!result.has_value())
-  {
+  // Use a temporary staging texture for the download. Certainly not optimal,
+  // but this is not a frequently-executed code path..
+  TextureConfig readback_texture_config(level_width, level_height, 1, 1,
+                                        AbstractTextureFormat::RGBA8, false);
+  auto readback_texture =
+      g_renderer->CreateStagingTexture(StagingTextureType::Readback, readback_texture_config);
+  if (!readback_texture)
     return false;
-  }
 
-  auto raw_data = result.value();
-  return TextureToPng(raw_data.data, raw_data.stride, filename, raw_data.width, raw_data.height);
+  // Copy to the readback texture's buffer.
+  readback_texture->CopyFromTexture(this, 0, level);
+  readback_texture->Flush();
+
+  // Map it so we can encode it to the file.
+  if (!readback_texture->Map())
+    return false;
+
+  return TextureToPng(reinterpret_cast<const u8*>(readback_texture->GetMappedPointer()),
+                      static_cast<int>(readback_texture->GetMappedStride()), filename, level_width,
+                      level_height);
 }
 
 std::optional<AbstractTexture::RawTextureInfo> AbstractTexture::Map()
