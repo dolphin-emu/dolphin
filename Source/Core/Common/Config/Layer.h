@@ -62,6 +62,30 @@ private:
   const LayerType m_layer;
 };
 
+class Section
+{
+public:
+  using iterator = LayerMap::iterator;
+  Section(iterator begin_, iterator end_) : m_begin(begin_), m_end(end_) {}
+  iterator begin() const { return m_begin; }
+  iterator end() const { return m_end; }
+private:
+  iterator m_begin;
+  iterator m_end;
+};
+
+class ConstSection
+{
+public:
+  using iterator = LayerMap::const_iterator;
+  ConstSection(iterator begin_, iterator end_) : m_begin(begin_), m_end(end_) {}
+  iterator begin() const { return m_begin; }
+  iterator end() const { return m_end; }
+private:
+  iterator m_begin;
+  iterator m_end;
+};
+
 class Layer
 {
 public:
@@ -105,6 +129,9 @@ public:
     m_is_dirty = true;
     current_value = new_value;
   }
+
+  Section GetSection(System system, const std::string& section);
+  ConstSection GetSection(System system, const std::string& section) const;
 
   // Explicit load and save of layers
   void Load();

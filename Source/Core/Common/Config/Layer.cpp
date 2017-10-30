@@ -98,6 +98,18 @@ void Layer::DeleteAllKeys()
   }
 }
 
+Section Layer::GetSection(System system, const std::string& section)
+{
+  return Section{m_map.lower_bound(ConfigLocation{system, section, ""}),
+                 m_map.lower_bound(ConfigLocation{system, section + '\001', ""})};
+}
+
+ConstSection Layer::GetSection(System system, const std::string& section) const
+{
+  return ConstSection{m_map.lower_bound(ConfigLocation{system, section, ""}),
+                      m_map.lower_bound(ConfigLocation{system, section + '\001', ""})};
+}
+
 void Layer::Load()
 {
   if (m_loader)
