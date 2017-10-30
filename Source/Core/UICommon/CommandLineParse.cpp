@@ -10,7 +10,9 @@
 #include <OptionParser.h>
 
 #include "Common/Config/Config.h"
+#include "Common/StringUtil.h"
 #include "Common/Version.h"
+#include "Core/Config/MainSettings.h"
 #include "UICommon/CommandLineParse.h"
 
 namespace CommandLineParse
@@ -23,22 +25,23 @@ public:
       : ConfigLayerLoader(Config::LayerType::CommandLine)
   {
     if (video_backend.size())
-      m_values.emplace_back(std::make_tuple("Dolphin", "Core", "GFXBackend", video_backend));
+      m_values.emplace_back(std::make_tuple(Config::MAIN_GFX_BACKEND.location, video_backend));
 
     if (audio_backend.size())
       m_values.emplace_back(
-          std::make_tuple("Dolphin", "Core", "DSPHLE", audio_backend == "HLE" ? "True" : "False"));
+          std::make_tuple(Config::MAIN_DSP_HLE.location, StringFromBool(audio_backend == "HLE")));
 
     // Arguments are in the format of <System>.<Section>.<Key>=Value
     for (const auto& arg : args)
     {
       std::istringstream buffer(arg);
-      std::string system, section, key, value;
-      std::getline(buffer, system, '.');
+      std::string system_str, section, key, value;
+      std::getline(buffer, system_str, '.');
       std::getline(buffer, section, '.');
       std::getline(buffer, key, '=');
       std::getline(buffer, value, '=');
-      m_values.emplace_back(std::make_tuple(system, section, key, value));
+      Config::System system = Config::GetSystemFromName(system_str);
+      m_values.emplace_back(std::make_tuple(Config::ConfigLocation{system, section, key}, value));
     }
   }
 
@@ -46,9 +49,10 @@ public:
   {
     for (auto& value : m_values)
     {
-      Config::Section* section = config_layer->GetOrCreateSection(
-          Config::GetSystemFromName(std::get<0>(value)), std::get<1>(value));
-      section->Set(std::get<2>(value), std::get<3>(value));
+      const Config::ConfigLocation location = std::get<0>(value);
+      Config::Section* section =
+          config_layer->GetOrCreateSection(location.system, location.section);
+      section->Set(location.key, std::get<1>(value));
     }
   }
 
@@ -58,7 +62,7 @@ public:
   }
 
 private:
-  std::list<std::tuple<std::string, std::string, std::string, std::string>> m_values;
+  std::list<std::tuple<Config::ConfigLocation, std::string>> m_values;
 };
 
 std::unique_ptr<optparse::OptionParser> CreateParser(ParserOptions options)
