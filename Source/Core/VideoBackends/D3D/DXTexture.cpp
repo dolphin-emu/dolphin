@@ -165,29 +165,36 @@ void DXTexture::Unmap()
   D3D::context->Unmap(m_staging_texture, 0);
 }
 
-void DXTexture::CopyRectangleFromTexture(const AbstractTexture* source,
-                                         const MathUtil::Rectangle<int>& srcrect,
-                                         const MathUtil::Rectangle<int>& dstrect)
+void DXTexture::CopyRectangleFromTexture(const AbstractTexture* src,
+                                         const MathUtil::Rectangle<int>& src_rect, u32 src_layer,
+                                         u32 src_level, const MathUtil::Rectangle<int>& dst_rect,
+                                         u32 dst_layer, u32 dst_level)
+{
+  const DXTexture* srcentry = static_cast<const DXTexture*>(src);
+  _assert_(src_rect.GetWidth() == dst_rect.GetWidth() &&
+           src_rect.GetHeight() == dst_rect.GetHeight());
+
+  D3D11_BOX src_box;
+  src_box.left = src_rect.left;
+  src_box.top = src_rect.top;
+  src_box.right = src_rect.right;
+  src_box.bottom = src_rect.bottom;
+  src_box.front = 0;
+  src_box.back = 1;
+
+  D3D::context->CopySubresourceRegion(
+      m_texture->GetTex(), D3D11CalcSubresource(dst_level, dst_layer, m_config.levels),
+      dst_rect.left, dst_rect.top, 0, srcentry->m_texture->GetTex(),
+      D3D11CalcSubresource(src_level, src_layer, srcentry->m_config.levels), &src_box);
+}
+
+void DXTexture::ScaleRectangleFromTexture(const AbstractTexture* source,
+                                          const MathUtil::Rectangle<int>& srcrect,
+                                          const MathUtil::Rectangle<int>& dstrect)
 {
   const DXTexture* srcentry = static_cast<const DXTexture*>(source);
-  if (srcrect.GetWidth() == dstrect.GetWidth() && srcrect.GetHeight() == dstrect.GetHeight())
-  {
-    D3D11_BOX srcbox;
-    srcbox.left = srcrect.left;
-    srcbox.top = srcrect.top;
-    srcbox.right = srcrect.right;
-    srcbox.bottom = srcrect.bottom;
-    srcbox.front = 0;
-    srcbox.back = srcentry->m_config.layers;
+  _assert_(m_config.rendertarget);
 
-    D3D::context->CopySubresourceRegion(m_texture->GetTex(), 0, dstrect.left, dstrect.top, 0,
-                                        srcentry->m_texture->GetTex(), 0, &srcbox);
-    return;
-  }
-  else if (!m_config.rendertarget)
-  {
-    return;
-  }
   g_renderer->ResetAPIState();  // reset any game specific settings
 
   const D3D11_VIEWPORT vp = CD3D11_VIEWPORT(float(dstrect.left), float(dstrect.top),

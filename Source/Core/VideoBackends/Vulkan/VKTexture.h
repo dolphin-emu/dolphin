@@ -24,11 +24,15 @@ public:
   void Bind(unsigned int stage) override;
   void Unmap() override;
 
-  void CopyRectangleFromTexture(const AbstractTexture* source,
-                                const MathUtil::Rectangle<int>& srcrect,
-                                const MathUtil::Rectangle<int>& dstrect) override;
-  void CopyRectangleFromTexture(Texture2D* source, const MathUtil::Rectangle<int>& srcrect,
-                                const MathUtil::Rectangle<int>& dstrect);
+  void CopyRectangleFromTexture(const AbstractTexture* src,
+                                const MathUtil::Rectangle<int>& src_rect, u32 src_layer,
+                                u32 src_level, const MathUtil::Rectangle<int>& dst_rect,
+                                u32 dst_layer, u32 dst_level) override;
+  void ScaleRectangleFromTexture(const AbstractTexture* source,
+                                 const MathUtil::Rectangle<int>& src_rect,
+                                 const MathUtil::Rectangle<int>& dst_rect);
+  void ScaleRectangleFromTexture(Texture2D* src_texture, const MathUtil::Rectangle<int>& src_rect,
+                                 const MathUtil::Rectangle<int>& dst_rect);
   void Load(u32 level, u32 width, u32 height, u32 row_length, const u8* buffer,
             size_t buffer_size) override;
 
@@ -40,14 +44,6 @@ public:
 private:
   VKTexture(const TextureConfig& tex_config, std::unique_ptr<Texture2D> texture,
             VkFramebuffer framebuffer);
-
-  // Copies the contents of a texture using vkCmdCopyImage
-  void CopyTextureRectangle(const MathUtil::Rectangle<int>& dst_rect, Texture2D* src_texture,
-                            const MathUtil::Rectangle<int>& src_rect);
-
-  // Copies (and optionally scales) the contents of a texture using a framgent shader.
-  void ScaleTextureRectangle(const MathUtil::Rectangle<int>& dst_rect, Texture2D* src_texture,
-                             const MathUtil::Rectangle<int>& src_rect);
 
   std::optional<RawTextureInfo> MapFullImpl() override;
   std::optional<RawTextureInfo> MapRegionImpl(u32 level, u32 x, u32 y, u32 width,

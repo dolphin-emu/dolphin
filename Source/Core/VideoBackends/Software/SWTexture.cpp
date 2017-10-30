@@ -56,9 +56,19 @@ void SWTexture::Bind(unsigned int stage)
 {
 }
 
-void SWTexture::CopyRectangleFromTexture(const AbstractTexture* source,
-                                         const MathUtil::Rectangle<int>& srcrect,
-                                         const MathUtil::Rectangle<int>& dstrect)
+void SWTexture::CopyRectangleFromTexture(const AbstractTexture* src,
+                                         const MathUtil::Rectangle<int>& src_rect, u32 src_layer,
+                                         u32 src_level, const MathUtil::Rectangle<int>& dst_rect,
+                                         u32 dst_layer, u32 dst_level)
+{
+  _assert_(src_level == 0 && src_layer == 0 && dst_layer == 0 && dst_level == 0);
+  CopyTextureData(src->GetConfig(), static_cast<const SWTexture*>(src)->m_data.data(),
+                  src_rect.left, src_rect.top, src_rect.GetWidth(), src_rect.GetHeight(), m_config,
+                  m_data.data(), dst_rect.left, dst_rect.top);
+}
+void SWTexture::ScaleRectangleFromTexture(const AbstractTexture* source,
+                                          const MathUtil::Rectangle<int>& srcrect,
+                                          const MathUtil::Rectangle<int>& dstrect)
 {
   const SWTexture* software_source_texture = static_cast<const SWTexture*>(source);
 

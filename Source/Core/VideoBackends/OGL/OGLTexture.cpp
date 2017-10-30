@@ -236,20 +236,70 @@ void OGLTexture::MapRegionSlow(u32 level, u32 x, u32 y, u32 width, u32 height)
   m_staging_data.swap(partial_data);
 }
 
-void OGLTexture::CopyRectangleFromTexture(const AbstractTexture* source,
-                                          const MathUtil::Rectangle<int>& srcrect,
-                                          const MathUtil::Rectangle<int>& dstrect)
+void OGLTexture::CopyRectangleFromTexture(const AbstractTexture* src,
+                                          const MathUtil::Rectangle<int>& src_rect, u32 src_layer,
+                                          u32 src_level, const MathUtil::Rectangle<int>& dst_rect,
+                                          u32 dst_layer, u32 dst_level)
+{
+  const OGLTexture* srcentry = static_cast<const OGLTexture*>(src);
+  _assert_(src_rect.GetWidth() == dst_rect.GetWidth() &&
+           src_rect.GetHeight() == dst_rect.GetHeight());
+  if (g_ogl_config.bSupportsCopySubImage)
+  {
+    glCopyImageSubData(srcentry->m_texId, GL_TEXTURE_2D_ARRAY, src_level, src_rect.left,
+                       src_rect.top, src_layer, m_texId, GL_TEXTURE_2D_ARRAY, dst_level,
+                       dst_rect.left, dst_rect.top, dst_layer, dst_rect.GetWidth(),
+                       dst_rect.GetHeight(), 1);
+  }
+  else
+  {
+    // If it isn't a single leveled/layered texture, we need to update the framebuffer.
+    bool update_src_framebuffer =
+        srcentry->m_framebuffer == 0 || srcentry->m_config.layers != 0 || src_level != 0;
+    bool update_dst_framebuffer = m_framebuffer == 0 || m_config.layers != 0 || dst_level != 0;
+    if (!m_framebuffer)
+      glGenFramebuffers(1, &m_framebuffer);
+    if (!srcentry->m_framebuffer)
+      glGenFramebuffers(1, &const_cast<OGLTexture*>(srcentry)->m_framebuffer);
+
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, srcentry->m_framebuffer);
+    if (update_src_framebuffer)
+    {
+      glFramebufferTextureLayer(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, srcentry->m_texId,
+                                src_level, src_layer);
+    }
+
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_framebuffer);
+    if (update_dst_framebuffer)
+    {
+      glFramebufferTextureLayer(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_texId, dst_level,
+                                dst_layer);
+    }
+
+    glBlitFramebuffer(src_rect.left, src_rect.top, src_rect.right, src_rect.bottom, dst_rect.left,
+                      dst_rect.top, dst_rect.right, dst_rect.bottom, GL_COLOR_BUFFER_BIT,
+                      GL_NEAREST);
+
+    if (update_src_framebuffer)
+    {
+      FramebufferManager::FramebufferTexture(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                                             GL_TEXTURE_2D_ARRAY, srcentry->m_texId, 0);
+    }
+    if (update_dst_framebuffer)
+    {
+      FramebufferManager::FramebufferTexture(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                                             GL_TEXTURE_2D_ARRAY, m_texId, 0);
+    }
+
+    FramebufferManager::SetFramebuffer(0);
+  }
+}
+void OGLTexture::ScaleRectangleFromTexture(const AbstractTexture* source,
+                                           const MathUtil::Rectangle<int>& srcrect,
+                                           const MathUtil::Rectangle<int>& dstrect)
 {
   const OGLTexture* srcentry = static_cast<const OGLTexture*>(source);
-  if (srcrect.GetWidth() == dstrect.GetWidth() && srcrect.GetHeight() == dstrect.GetHeight() &&
-      g_ogl_config.bSupportsCopySubImage)
-  {
-    glCopyImageSubData(srcentry->m_texId, GL_TEXTURE_2D_ARRAY, 0, srcrect.left, srcrect.top, 0,
-                       m_texId, GL_TEXTURE_2D_ARRAY, 0, dstrect.left, dstrect.top, 0,
-                       dstrect.GetWidth(), dstrect.GetHeight(), srcentry->m_config.layers);
-    return;
-  }
-  else if (!m_framebuffer)
+  if (!m_framebuffer)
   {
     glGenFramebuffers(1, &m_framebuffer);
     FramebufferManager::SetFramebuffer(m_framebuffer);

@@ -14,9 +14,15 @@ void NullTexture::Bind(unsigned int stage)
 {
 }
 
-void NullTexture::CopyRectangleFromTexture(const AbstractTexture* source,
-                                           const MathUtil::Rectangle<int>& srcrect,
-                                           const MathUtil::Rectangle<int>& dstrect)
+void NullTexture::CopyRectangleFromTexture(const AbstractTexture* src,
+                                           const MathUtil::Rectangle<int>& src_rect, u32 src_layer,
+                                           u32 src_level, const MathUtil::Rectangle<int>& dst_rect,
+                                           u32 dst_layer, u32 dst_level)
+{
+}
+void NullTexture::ScaleRectangleFromTexture(const AbstractTexture* source,
+                                            const MathUtil::Rectangle<int>& srcrect,
+                                            const MathUtil::Rectangle<int>& dstrect)
 {
 }
 
