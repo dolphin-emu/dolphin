@@ -37,7 +37,7 @@ void AdvancedPane::CreateLayout()
   cpu_options->setLayout(cpu_options_layout);
   main_layout->addWidget(cpu_options);
 
-  m_cpu_clock_override_checkbox = new QCheckBox(tr("Enable CPU Clock Override"));
+  m_cpu_clock_override_checkbox = new QCheckBox(tr("Enable Emulated CPU Clock Override"));
   cpu_options_layout->addWidget(m_cpu_clock_override_checkbox);
 
   auto* cpu_clock_override_slider_layout = new QHBoxLayout();
@@ -52,10 +52,12 @@ void AdvancedPane::CreateLayout()
   cpu_clock_override_slider_layout->addWidget(m_cpu_clock_override_slider_label);
 
   auto* cpu_clock_override_description =
-      new QLabel(tr("Higher values can make variable-framerate games run at a higher framerate, at "
-                    "the expense of CPU. Lower values can make variable-framerate games run at a "
-                    "lower framerate, saving CPU.\n\nWARNING: Changing this from the default "
-                    "(100%) can and will break games and cause glitches. Do so at your own risk. "
+      new QLabel(tr("Adjusts the emulated CPU's clock rate.\n\n"
+                    "Higher values may make variable-framerate games run at a higher framerate, "
+                    "at the expense of performance. Lower values may activate a game's "
+                    "internal frameskip, potentially improving performance.\n\n"
+                    "WARNING: Changing this from the default (100%) can and will "
+                    "break games and cause glitches. Do so at your own risk. "
                     "Please do not report bugs that occur with a non-default clock."));
   cpu_clock_override_description->setWordWrap(true);
   cpu_options_layout->addWidget(cpu_clock_override_description);
