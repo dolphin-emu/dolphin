@@ -329,7 +329,7 @@ VkSampler ObjectCache::GetSampler(const SamplerState& info)
       address_modes[static_cast<u32>(info.wrap_u.Value())],  // VkSamplerAddressMode    addressModeU
       address_modes[static_cast<u32>(info.wrap_v.Value())],  // VkSamplerAddressMode    addressModeV
       VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,                 // VkSamplerAddressMode    addressModeW
-      info.lod_bias / 32.0f,                                 // float                   mipLodBias
+      info.lod_bias / 256.0f,                                // float                   mipLodBias
       VK_FALSE,                                 // VkBool32                anisotropyEnable
       0.0f,                                     // float                   maxAnisotropy
       VK_FALSE,                                 // VkBool32                compareEnable
