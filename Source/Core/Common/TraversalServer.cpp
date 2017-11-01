@@ -1,14 +1,17 @@
 // This file is public domain, in case it's useful to anyone. -comex
 
 // The central server implementation.
+#include <algorithm>
 #include <arpa/inet.h>
 #include <cerrno>
 #include <chrono>
+#include <climits>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <fcntl.h>
+#include <functional>
 #include <netinet/in.h>
+#include <random>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -108,7 +111,6 @@ struct hash<TraversalHostId>
 }
 
 static int sock;
-static int urandomFd;
 static std::unordered_map<TraversalRequestId, OutgoingPacketInfo> outgoingPackets;
 static std::unordered_map<TraversalHostId, EvictEntry<TraversalInetAddress>> connectedClients;
 
@@ -160,28 +162,48 @@ static sockaddr_in6 MakeSinAddr(const TraversalInetAddress& addr)
   return result;
 }
 
-static void GetRandomBytes(void* output, size_t size)
+// Seeding RNGs correctly is tough. See
+// http://open-std.org/JTC1/SC22/WG21/docs/papers/2016/p0205r0.html
+// Note that std::random_device is supposed to be non-deterministic, but may not be on less common
+// systems. See https://stackoverflow.com/questions/18880654/
+class RandomDeviceSeedSequence
 {
-  static u8 bytes[8192];
-  static size_t bytesLeft = 0;
-  if (bytesLeft < size)
+public:
+  using result_type = std::uint32_t;
+  template <typename It>
+  void generate(It begin, const It& end)
   {
-    ssize_t rv = read(urandomFd, bytes, sizeof(bytes));
-    if (rv != sizeof(bytes))
-    {
-      perror("read from /dev/urandom");
-      exit(1);
-    }
-    bytesLeft = sizeof(bytes);
+    std::generate(begin, end, std::ref(m_device));
   }
-  memcpy(output, bytes + (bytesLeft -= size), size);
+
+  // An object meeting the full SeedSequence requirements is supposed to expose the original values
+  // passed in to it (the seeds for the seed, if you will). This class does not actually do that,
+  // but defines the functions in case any code checks for them.
+  size_t size() const { return 0; }
+  template <typename It>
+  void param(It out) const
+  {
+  }
+
+private:
+  std::random_device m_device;
+};
+
+static void GetRandomBytes(unsigned char* output, size_t size)
+
+{
+  using RandomEngine =
+      std::independent_bits_engine<std::default_random_engine, CHAR_BIT, unsigned char>;
+  static RandomDeviceSeedSequence s_seed_seq;
+  static RandomEngine s_engine{s_seed_seq};
+  std::generate(output, output + size, std::ref(s_engine));
 }
 
 static void GetRandomHostId(TraversalHostId* hostId)
 {
   char buf[9];
   u32 num;
-  GetRandomBytes(&num, sizeof(num));
+  GetRandomBytes(reinterpret_cast<unsigned char*>(&num), sizeof(num));
   sprintf(buf, "%08x", num);
   memcpy(hostId->data(), buf, 8);
 }
@@ -209,7 +231,7 @@ static void TrySend(const void* buffer, size_t size, sockaddr_in6* addr)
 static TraversalPacket* AllocPacket(const sockaddr_in6& dest, TraversalRequestId misc = 0)
 {
   TraversalRequestId requestId;
-  GetRandomBytes(&requestId, sizeof(requestId));
+  GetRandomBytes(reinterpret_cast<unsigned char*>(&requestId), sizeof(requestId));
   OutgoingPacketInfo* info = &outgoingPackets[requestId];
   info->dest = dest;
   info->misc = misc;
@@ -370,13 +392,6 @@ static void HandlePacket(TraversalPacket* packet, sockaddr_in6* addr)
 int main()
 {
   int rv;
-
-  urandomFd = open("/dev/urandom", O_RDONLY);
-  if (urandomFd < 0)
-  {
-    perror("open /dev/urandom");
-    return 1;
-  }
 
   sock = socket(PF_INET6, SOCK_DGRAM, 0);
   if (sock == -1)
