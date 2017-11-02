@@ -986,12 +986,14 @@ TextureCacheBase::GetTexture(u32 address, u32 width, u32 height, const TextureFo
       dst_buffer = temp;
       if (!(texformat == TextureFormat::RGBA8 && from_tmem))
       {
-        TexDecoder_Decode(dst_buffer, src_data, expandedWidth, expandedHeight, texformat, tlut, tlutfmt);
+        TexDecoder_Decode(dst_buffer, src_data, expandedWidth, expandedHeight, texformat, tlut,
+                          tlutfmt);
       }
       else
       {
         u8* src_data_gb = &texMem[tmem_address_odd];
-        TexDecoder_DecodeRGBA8FromTmem(dst_buffer, src_data, src_data_gb, expandedWidth, expandedHeight);
+        TexDecoder_DecodeRGBA8FromTmem(dst_buffer, src_data, src_data_gb, expandedWidth,
+                                       expandedHeight);
       }
 
       entry->texture->Load(0, width, height, expandedWidth, dst_buffer, decoded_texture_size);
@@ -1148,8 +1150,7 @@ TextureCacheBase::GetXFBTexture(u32 address, u32 width, u32 height, TextureForma
     const std::string xfb_type = loaded_from_overlapping ? "combined" : "from_memory";
     entry->texture->Save(StringFromFormat("%sxfb_%s_%i.png",
                                           File::GetUserPath(D_DUMPTEXTURES_IDX).c_str(),
-                                          xfb_type.c_str(),
-                                          xfb_count++),
+                                          xfb_type.c_str(), xfb_count++),
                          0);
   }
 
