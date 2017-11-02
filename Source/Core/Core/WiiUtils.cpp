@@ -796,7 +796,7 @@ static NANDCheckResult CheckNAND(IOS::HLE::Kernel& ios, bool repair)
                                           [](const auto& content) { return !content.IsShared(); });
 
     if (is_installed && installed_contents != tmd.GetContents() &&
-        (tmd.GetTitleFlags() & IOS::ES::TitleFlags::TITLE_TYPE_WFS_MAYBE) == 0)
+        (tmd.GetTitleFlags() & IOS::ES::TitleFlags::TITLE_TYPE_DATA) == 0)
     {
       ERROR_LOG(CORE, "CheckNAND: Missing contents for title %016" PRIx64, title_id);
       result.titles_to_remove.insert(title_id);
