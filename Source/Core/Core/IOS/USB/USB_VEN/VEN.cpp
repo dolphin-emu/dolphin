@@ -186,20 +186,39 @@ IPCCommandResult USB_VEN::GetDeviceInfo(USBV5Device& device, const IOCtlRequest&
   if (request.buffer_out == 0 || request.buffer_out_size != 0xc0)
     return GetDefaultReply(IPC_EINVAL);
 
-  const auto host_device = GetDeviceById(device.host_id);
+  const std::shared_ptr<USB::Device> host_device = GetDeviceById(device.host_id);
   const u8 alt_setting = Memory::Read_U8(request.buffer_in + 8);
-  auto descriptors = host_device->GetDescriptorsUSBV5(device.interface_number, alt_setting);
-  if (descriptors.empty())
-    return GetDefaultReply(IPC_ENOENT);
-
-  descriptors.resize(request.buffer_out_size - 20);
-  if (descriptors.size() > request.buffer_out_size - 20)
-    WARN_LOG(IOS_USB, "Buffer is too large. Only the first 172 bytes will be copied.");
 
   Memory::Memset(request.buffer_out, 0, request.buffer_out_size);
   Memory::Write_U32(Memory::Read_U32(request.buffer_in), request.buffer_out);
   Memory::Write_U32(1, request.buffer_out + 4);
-  Memory::CopyToEmu(request.buffer_out + 20, descriptors.data(), descriptors.size());
+
+  USB::DeviceDescriptor device_descriptor = host_device->GetDeviceDescriptor();
+  device_descriptor.Swap();
+  Memory::CopyToEmu(request.buffer_out + 20, &device_descriptor, sizeof(device_descriptor));
+
+  // VEN only cares about the first configuration.
+  USB::ConfigDescriptor config_descriptor = host_device->GetConfigurations()[0];
+  config_descriptor.Swap();
+  Memory::CopyToEmu(request.buffer_out + 40, &config_descriptor, sizeof(config_descriptor));
+
+  std::vector<USB::InterfaceDescriptor> interfaces = host_device->GetInterfaces(0);
+  auto it = std::find_if(interfaces.begin(), interfaces.end(), [&](const auto& interface) {
+    return interface.bInterfaceNumber == device.interface_number &&
+           interface.bAlternateSetting == alt_setting;
+  });
+  if (it == interfaces.end())
+    return GetDefaultReply(IPC_EINVAL);
+  it->Swap();
+  Memory::CopyToEmu(request.buffer_out + 52, &*it, sizeof(*it));
+
+  auto endpoints = host_device->GetEndpoints(0, it->bInterfaceNumber, it->bAlternateSetting);
+  for (size_t i = 0; i < endpoints.size(); ++i)
+  {
+    endpoints[i].Swap();
+    Memory::CopyToEmu(request.buffer_out + 64 + 8 * static_cast<u8>(i), &endpoints[i],
+                      sizeof(endpoints[i]));
+  }
 
   return GetDefaultReply(IPC_SUCCESS);
 }
