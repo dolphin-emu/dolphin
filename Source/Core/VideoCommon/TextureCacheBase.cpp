@@ -1111,7 +1111,9 @@ TextureCacheBase::GetXFBTexture(u32 address, u32 width, u32 height, TextureForma
     return nullptr;
   }
 
-  TCacheEntry* entry = GetXFBFromCache(tex_info.value());
+  const TextureLookupInformation tex_info_value = tex_info.value();
+
+  TCacheEntry* entry = GetXFBFromCache(tex_info_value);
   if (entry != nullptr)
   {
     return entry;
@@ -1128,15 +1130,29 @@ TextureCacheBase::GetXFBTexture(u32 address, u32 width, u32 height, TextureForma
   // this means the address is most likely not pointing at an xfb copy but instead
   // an area of memory.  Let's attempt to stitch all entries in this memory space
   // together
-  if (LoadTextureFromOverlappingTextures(entry, tex_info.value()))
+  bool loaded_from_overlapping = LoadTextureFromOverlappingTextures(entry, tex_info_value);
+
+  if (!loaded_from_overlapping)
   {
-    return entry;
+    // At this point, the xfb address is truly "bogus"
+    // it likely is an area of memory defined by the CPU
+    // so load it from memory
+    LoadTextureFromMemory(entry, tex_info_value);
   }
 
-  // At this point, the xfb address is truly "bogus"
-  // it likely is an area of memory defined by the CPU
-  // so load it from memory
-  LoadTextureFromMemory(entry, tex_info.value());
+  if (g_ActiveConfig.bDumpXFBTarget)
+  {
+    // While this isn't really an xfb copy, we can treat it as such
+    // for dumping purposes
+    static int xfb_count = 0;
+    const std::string xfb_type = loaded_from_overlapping ? "combined" : "from_memory";
+    entry->texture->Save(StringFromFormat("%sxfb_%s_%i.png",
+                                          File::GetUserPath(D_DUMPTEXTURES_IDX).c_str(),
+                                          xfb_type.c_str(),
+                                          xfb_count++),
+                         0);
+  }
+
   return entry;
 }
 
@@ -1211,14 +1227,6 @@ std::optional<TextureLookupInformation> TextureCacheBase::ComputeTextureInformat
   else
   {
     tex_info.full_hash = tex_info.base_hash;
-  }
-
-  if (g_ActiveConfig.bDumpTextures)
-  {
-    tex_info.dump_base_name = HiresTexture::GenBaseName(
-        tex_info.src_data, tex_info.total_bytes, &texMem[tex_info.tlut_address],
-        tex_info.palette_size, tex_info.native_width, tex_info.native_height,
-        tex_info.full_format.texfmt, tex_info.use_mipmaps, true);
   }
 
   return tex_info;
@@ -1446,11 +1454,6 @@ TextureCacheBase::CreateNormalTexture(const TextureLookupInformation& tex_info)
 
   INCSTAT(stats.numTexturesUploaded);
   SETSTAT(stats.numTexturesAlive, textures_by_address.size());
-
-  if (g_ActiveConfig.bDumpTextures)
-  {
-    DumpTexture(entry, tex_info.dump_base_name, 0);
-  }
 
   return entry;
 }
@@ -2015,7 +2018,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstF
       if (g_ActiveConfig.bDumpXFBTarget && is_xfb_copy)
       {
         static int xfb_count = 0;
-        entry->texture->Save(StringFromFormat("%sxfb_frame_%i.png",
+        entry->texture->Save(StringFromFormat("%sxfb_copy_%i.png",
                                               File::GetUserPath(D_DUMPTEXTURES_IDX).c_str(),
                                               xfb_count++),
                              0);

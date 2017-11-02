@@ -100,8 +100,6 @@ struct TextureLookupInformation
   int texture_cache_safety_color_sample_size = 0;  // Default to safe hashing
 
   u8* src_data;
-
-  std::string dump_base_name;
 };
 
 class TextureCacheBase
