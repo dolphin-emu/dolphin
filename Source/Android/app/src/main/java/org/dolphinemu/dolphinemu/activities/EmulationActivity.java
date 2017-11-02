@@ -735,7 +735,16 @@ public final class EmulationActivity extends AppCompatActivity
 			int axis = range.getAxis();
 			float origValue = event.getAxisValue(axis);
 			float value = mControllerMappingHelper.scaleAxis(input, axis, origValue);
-			NativeLibrary.onGamePadMoveEvent(input.getDescriptor(), axis, value);
+			// If the input is still in the "flat" area, that means it's really zero.
+			// This is used to compensate for imprecision in joysticks.
+			if (Math.abs(value) > range.getFlat())
+			{
+				NativeLibrary.onGamePadMoveEvent(input.getDescriptor(), axis, value);
+			}
+			else
+			{
+				NativeLibrary.onGamePadMoveEvent(input.getDescriptor(), axis, 0.0f);
+			}
 		}
 
 		return true;
