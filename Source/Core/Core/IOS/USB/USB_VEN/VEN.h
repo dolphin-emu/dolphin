@@ -5,10 +5,8 @@
 #pragma once
 
 #include <functional>
-#include <map>
 #include <memory>
 #include <mutex>
-#include <set>
 #include <string>
 #include <vector>
 
@@ -38,39 +36,18 @@ public:
   void DoState(PointerWrap& p) override;
 
 private:
-#pragma pack(push, 1)
-  struct DeviceID
-  {
-    u8 unknown;
-    u8 interface_plus_1e;
-    u8 zero;
-    u8 counter;
-  };
+  struct USBV5Device;
+  USBV5Device* GetUSBV5Device(u32 in_buffer);
 
-  struct DeviceEntry
-  {
-    s32 device_id;
-    u16 vid;
-    u16 pid;
-    u8 unknown;
-    u8 device_number;
-    u8 interface_number;
-    u8 num_altsettings;
-  };
-#pragma pack(pop)
-
-  std::shared_ptr<USB::Device> GetDeviceByIOSID(s32 ios_id) const;
-  u8 GetInterfaceNumber(s32 ios_id) const;
-
-  IPCCommandResult CancelEndpoint(USB::Device& device, const IOCtlRequest& request);
+  IPCCommandResult CancelEndpoint(USBV5Device& device, const IOCtlRequest& request);
   IPCCommandResult GetDeviceChange(const IOCtlRequest& request);
-  IPCCommandResult GetDeviceInfo(USB::Device& device, const IOCtlRequest& request);
-  IPCCommandResult SetAlternateSetting(USB::Device& device, const IOCtlRequest& request);
+  IPCCommandResult GetDeviceInfo(USBV5Device& device, const IOCtlRequest& request);
+  IPCCommandResult SetAlternateSetting(USBV5Device& device, const IOCtlRequest& request);
   IPCCommandResult Shutdown(const IOCtlRequest& request);
-  IPCCommandResult SuspendResume(USB::Device& device, const IOCtlRequest& request);
+  IPCCommandResult SuspendResume(USBV5Device& device, const IOCtlRequest& request);
   s32 SubmitTransfer(USB::Device& device, const IOCtlVRequest& request);
 
-  using Handler = std::function<IPCCommandResult(USB_VEN*, USB::Device&, const IOCtlRequest&)>;
+  using Handler = std::function<IPCCommandResult(USB_VEN*, USBV5Device&, const IOCtlRequest&)>;
   IPCCommandResult HandleDeviceIOCtl(const IOCtlRequest& request, Handler handler);
 
   void OnDeviceChange(ChangeEvent, std::shared_ptr<USB::Device>) override;
@@ -83,12 +60,18 @@ private:
   std::mutex m_devicechange_hook_address_mutex;
   std::unique_ptr<IOCtlRequest> m_devicechange_hook_request;
 
-  mutable std::mutex m_id_map_mutex;
-  u8 m_device_number = 0x21;
-  // IOS device IDs => USB device IDs (one to one)
-  std::map<s32, u64> m_ios_ids;
-  // USB device IDs => IOS device IDs (one to many, because VEN exposes one device per interface)
-  std::map<u64, std::set<s32>> m_device_ids;
+  // Each interface of a USB device is internally considered as a unique device.
+  // USBv5 resource managers can handle up to 32 devices/interfaces.
+  struct USBV5Device
+  {
+    bool in_use = false;
+    u8 interface_number;
+    u16 number;
+    u64 host_id;
+  };
+  std::array<USBV5Device, 32> m_usbv5_devices;
+  mutable std::mutex m_usbv5_devices_mutex;
+  u16 m_current_device_number = 0x21;
 };
 }  // namespace Device
 }  // namespace HLE
