@@ -102,8 +102,6 @@ public:
   // Size on disc (compressed size)
   virtual u64 GetRawSize() const = 0;
 
-  static std::vector<u32> GetWiiBanner(int* width, int* height, u64 title_id);
-
 protected:
   template <u32 N>
   std::string DecodeString(const char (&data)[N]) const

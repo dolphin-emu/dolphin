@@ -12,13 +12,8 @@
 #include <utility>
 #include <vector>
 
-#include "Common/ColorUtil.h"
 #include "Common/CommonTypes.h"
-#include "Common/File.h"
-#include "Common/FileUtil.h"
-#include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
-#include "Common/Swap.h"
 
 #include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
@@ -28,41 +23,8 @@
 
 namespace DiscIO
 {
-static const unsigned int WII_BANNER_WIDTH = 192;
-static const unsigned int WII_BANNER_HEIGHT = 64;
-static const unsigned int WII_BANNER_SIZE = WII_BANNER_WIDTH * WII_BANNER_HEIGHT * 2;
-static const unsigned int WII_BANNER_OFFSET = 0xA0;
-
 const IOS::ES::TicketReader Volume::INVALID_TICKET{};
 const IOS::ES::TMDReader Volume::INVALID_TMD{};
-
-std::vector<u32> Volume::GetWiiBanner(int* width, int* height, u64 title_id)
-{
-  *width = 0;
-  *height = 0;
-
-  const std::string file_name =
-      Common::GetTitleDataPath(title_id, Common::FROM_CONFIGURED_ROOT) + "banner.bin";
-
-  File::IOFile file(file_name, "rb");
-  if (file.GetSize() < WII_BANNER_OFFSET + WII_BANNER_SIZE)
-    return std::vector<u32>();
-
-  if (!file.Seek(WII_BANNER_OFFSET, SEEK_SET))
-    return std::vector<u32>();
-
-  std::vector<u8> banner_file(WII_BANNER_SIZE);
-  if (!file.ReadBytes(banner_file.data(), banner_file.size()))
-    return std::vector<u32>();
-
-  std::vector<u32> image_buffer(WII_BANNER_WIDTH * WII_BANNER_HEIGHT);
-  ColorUtil::decode5A3image(image_buffer.data(), (u16*)banner_file.data(), WII_BANNER_WIDTH,
-                            WII_BANNER_HEIGHT);
-
-  *width = WII_BANNER_WIDTH;
-  *height = WII_BANNER_HEIGHT;
-  return image_buffer;
-}
 
 std::map<Language, std::string> Volume::ReadWiiNames(const std::vector<u8>& data)
 {
@@ -73,11 +35,8 @@ std::map<Language, std::string> Volume::ReadWiiNames(const std::vector<u8>& data
     size_t name_end = name_start + NAME_BYTES_LENGTH;
     if (data.size() >= name_end)
     {
-      u16* temp = (u16*)(data.data() + name_start);
-      std::wstring out_temp(NAME_STRING_LENGTH, '\0');
-      std::transform(temp, temp + out_temp.size(), out_temp.begin(), (u16(&)(u16))Common::swap16);
-      out_temp.erase(std::find(out_temp.begin(), out_temp.end(), 0x00), out_temp.end());
-      std::string name = UTF16ToUTF8(out_temp);
+      std::string name = UTF16BEToUTF8(reinterpret_cast<const char16_t*>(data.data() + name_start),
+                                       NAME_STRING_LENGTH);
       if (!name.empty())
         names[static_cast<Language>(i)] = name;
     }

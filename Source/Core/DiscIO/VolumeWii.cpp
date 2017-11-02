@@ -29,6 +29,7 @@
 #include "DiscIO/FileSystemGCWii.h"
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
+#include "DiscIO/WiiSaveBanner.h"
 
 namespace DiscIO
 {
@@ -316,7 +317,7 @@ std::vector<u32> VolumeWii::GetBanner(int* width, int* height) const
   if (!title_id)
     return std::vector<u32>();
 
-  return GetWiiBanner(width, height, *title_id);
+  return WiiSaveBanner(*title_id).GetBanner(width, height);
 }
 
 std::string VolumeWii::GetApploaderDate(const Partition& partition) const
