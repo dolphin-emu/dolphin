@@ -64,7 +64,7 @@ namespace
 #pragma pack(push, 1)
 struct DeviceID
 {
-  u8 ipc_address_shifted;
+  u8 reserved;
   u8 index;
   u16 number;
 };
@@ -263,10 +263,17 @@ void USBV5ResourceManager::TriggerDeviceChangeReply()
       continue;
 
     DeviceEntry entry;
-    // The actual value is static_cast<u8>(hook_internal_ipc_request >> 8).
-    // Since we don't actually emulate the IOS kernel and internal IPC,
-    // just pretend the value is 0xe7 (most common value according to hwtests).
-    entry.id.ipc_address_shifted = 0xe7;
+    if (HasInterfaceNumberInIDs())
+    {
+      entry.id.reserved = usbv5_device.interface_number;
+    }
+    else
+    {
+      // The actual value is static_cast<u8>(hook_internal_ipc_request >> 8).
+      // Since we don't actually emulate the IOS kernel and internal IPC,
+      // just pretend the value is 0xe7 (most common value according to hwtests).
+      entry.id.reserved = 0xe7;
+    }
     entry.id.index = static_cast<u8>(std::distance(m_usbv5_devices.cbegin(), it.base()) - 1);
     entry.id.number = Common::swap16(usbv5_device.number);
     entry.vid = Common::swap16(device->GetVid());

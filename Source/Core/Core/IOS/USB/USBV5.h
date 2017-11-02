@@ -94,6 +94,7 @@ protected:
   void OnDeviceChange(ChangeEvent event, std::shared_ptr<USB::Device> device) override;
   void OnDeviceChangeEnd() override;
   void TriggerDeviceChangeReply();
+  virtual bool HasInterfaceNumberInIDs() const = 0;
 
   bool m_devicechange_first_call = true;
   std::mutex m_devicechange_hook_address_mutex;

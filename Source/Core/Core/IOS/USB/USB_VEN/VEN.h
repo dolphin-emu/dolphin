@@ -28,6 +28,8 @@ public:
 private:
   IPCCommandResult CancelEndpoint(USBV5Device& device, const IOCtlRequest& request);
   IPCCommandResult GetDeviceInfo(USBV5Device& device, const IOCtlRequest& request);
+
+  bool HasInterfaceNumberInIDs() const override { return false; }
 };
 }  // namespace Device
 }  // namespace HLE
