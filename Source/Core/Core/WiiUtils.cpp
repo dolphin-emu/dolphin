@@ -723,30 +723,40 @@ UpdateResult DoDiscUpdate(UpdateCallback update_callback, const std::string& ima
   return updater.DoDiscUpdate();
 }
 
-NANDCheckResult CheckNAND(IOS::HLE::Kernel& ios)
+static NANDCheckResult CheckNAND(IOS::HLE::Kernel& ios, bool repair)
 {
   NANDCheckResult result;
   const auto es = ios.GetES();
 
   // Check for NANDs that were used with old Dolphin versions.
-  if (File::Exists(Common::RootUserPath(Common::FROM_CONFIGURED_ROOT) + "/sys/replace"))
+  const std::string sys_replace_path =
+      Common::RootUserPath(Common::FROM_CONFIGURED_ROOT) + "/sys/replace";
+  if (File::Exists(sys_replace_path))
   {
     ERROR_LOG(CORE, "CheckNAND: NAND was used with old versions, so it is likely to be damaged");
-    result.bad = true;
+    if (repair)
+      File::Delete(sys_replace_path);
+    else
+      result.bad = true;
   }
 
   for (const u64 title_id : es->GetInstalledTitles())
   {
+    const std::string title_dir = Common::GetTitlePath(title_id, Common::FROM_CONFIGURED_ROOT);
+    const std::string content_dir = title_dir + "/content";
+    const std::string data_dir = title_dir + "/data";
+
     // Check for missing title sub directories.
-    if (!File::IsDirectory(Common::GetTitleContentPath(title_id, Common::FROM_CONFIGURED_ROOT)))
+    for (const std::string& dir : {content_dir, data_dir})
     {
-      ERROR_LOG(CORE, "CheckNAND: Missing content directory for title %016" PRIx64, title_id);
-      result.bad = true;
-    }
-    if (!File::IsDirectory(Common::GetTitleDataPath(title_id, Common::FROM_CONFIGURED_ROOT)))
-    {
-      ERROR_LOG(CORE, "CheckNAND: Missing data directory for title %016" PRIx64, title_id);
-      result.bad = true;
+      if (File::IsDirectory(dir))
+        continue;
+
+      ERROR_LOG(CORE, "CheckNAND: Missing dir %s for title %016" PRIx64, dir.c_str(), title_id);
+      if (repair)
+        File::CreateDir(dir);
+      else
+        result.bad = true;
     }
 
     // Check for incomplete title installs (missing ticket, TMD or contents).
@@ -755,11 +765,11 @@ NANDCheckResult CheckNAND(IOS::HLE::Kernel& ios)
     {
       ERROR_LOG(CORE, "CheckNAND: Missing ticket for title %016" PRIx64, title_id);
       result.titles_to_remove.insert(title_id);
-      result.bad = true;
+      if (repair)
+        File::DeleteDirRecursively(title_dir);
+      else
+        result.bad = true;
     }
-
-    const std::string content_dir =
-        Common::GetTitleContentPath(title_id, Common::FROM_CONFIGURED_ROOT);
 
     const auto tmd = es->FindInstalledTMD(title_id);
     if (!tmd.IsValid())
@@ -772,7 +782,10 @@ NANDCheckResult CheckNAND(IOS::HLE::Kernel& ios)
       {
         ERROR_LOG(CORE, "CheckNAND: Missing TMD for title %016" PRIx64, title_id);
         result.titles_to_remove.insert(title_id);
-        result.bad = true;
+        if (repair)
+          File::DeleteDirRecursively(title_dir);
+        else
+          result.bad = true;
       }
       // Further checks require the TMD to be valid.
       continue;
@@ -787,41 +800,23 @@ NANDCheckResult CheckNAND(IOS::HLE::Kernel& ios)
     {
       ERROR_LOG(CORE, "CheckNAND: Missing contents for title %016" PRIx64, title_id);
       result.titles_to_remove.insert(title_id);
-      result.bad = true;
+      if (repair)
+        File::DeleteDirRecursively(title_dir);
+      else
+        result.bad = true;
     }
   }
 
   return result;
 }
 
+NANDCheckResult CheckNAND(IOS::HLE::Kernel& ios)
+{
+  return CheckNAND(ios, false);
+}
+
 bool RepairNAND(IOS::HLE::Kernel& ios)
 {
-  const auto es = ios.GetES();
-
-  // Delete an old, unneeded file
-  File::Delete(Common::RootUserPath(Common::FROM_CONFIGURED_ROOT) + "/sys/replace");
-
-  for (const u64 title_id : es->GetInstalledTitles())
-  {
-    // Create missing title sub directories.
-    const std::string content_dir =
-        Common::GetTitleContentPath(title_id, Common::FROM_CONFIGURED_ROOT);
-    const std::string data_dir = Common::GetTitleDataPath(title_id, Common::FROM_CONFIGURED_ROOT);
-    File::CreateDir(content_dir);
-    File::CreateDir(data_dir);
-
-    // If there's nothing in the content directory and no ticket,
-    // this title shouldn't exist at all on the NAND.
-    // WARNING: This will delete associated save data!
-    const auto content_files = File::ScanDirectoryTree(content_dir, false).children;
-    const bool has_no_tmd_but_contents =
-        !es->FindInstalledTMD(title_id).IsValid() && !content_files.empty();
-    if (has_no_tmd_but_contents || !es->FindSignedTicket(title_id).IsValid())
-    {
-      const std::string title_dir = Common::GetTitlePath(title_id, Common::FROM_CONFIGURED_ROOT);
-      File::DeleteDirRecursively(title_dir);
-    }
-  }
-  return !CheckNAND(ios).bad;
+  return !CheckNAND(ios, true).bad;
 }
 }
