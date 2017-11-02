@@ -441,9 +441,14 @@ void TextureCacheBase::DumpTexture(TCacheEntry* entry, std::string basename, uns
   if (!File::IsDirectory(szDir))
     File::CreateDir(szDir);
 
+  if (is_arbitrary)
+  {
+    basename += "_arb";
+  }
+
   if (level > 0)
   {
-    basename += StringFromFormat(is_arbitrary ? "_arb_mip%i" : "_mip%i", level);
+    basename += StringFromFormat("_mip%i", level);
   }
 
   std::string filename = szDir + "/" + basename + ".png";
@@ -500,25 +505,35 @@ public:
 
     // This is the average per-pixel, per-channel difference in percent between what we
     // expect a normal blurred mipmap to look like and what we actually received
-    constexpr auto THRESHOLD_PERCENT = 35.f;
+    // 4.5% was chosen because it's just below the lowest clearly-arbitrary texture
+    // I found in my tests, the background clouds in Mario Galaxy's Observatory lobby.
+    constexpr auto THRESHOLD_PERCENT = 4.5f;
+
+    auto* src = downsample_buffer;
+    auto* dst = downsample_buffer + levels[1].shape.row_length * levels[1].shape.height * 4;
+
+    float total_diff = 0.f;
 
     for (std::size_t i = 0; i < levels.size() - 1; ++i)
     {
       const auto& level = levels[i];
       const auto& mip = levels[i + 1];
 
-      // Manually downsample the current layer with a simple box blur
+      // Manually downsample the past downsample with a simple box blur
       // This is not necessarily close to whatever the original artists used, however
       // It should still be closer than a thing that's not a downscale at all
-      level.Downsample(downsample_buffer, mip);
+      Level::Downsample(i ? src : level.pixels, level.shape, dst, mip.shape);
 
       // Find the average difference between pixels in this level but downsampled
       // and the next level
-      auto diff = mip.AverageDiff(downsample_buffer);
-      if (diff > THRESHOLD_PERCENT)
-        return true;
+      auto diff = mip.AverageDiff(dst);
+      total_diff += diff;
+
+      std::swap(src, dst);
     }
-    return false;
+
+    auto all_levels = total_diff / (levels.size() - 1);
+    return all_levels > THRESHOLD_PERCENT;
   }
 
 private:
@@ -535,21 +550,26 @@ private:
     return static_cast<u8>(std::max(1.055f * std::pow(linear, 0.416666667f) - 0.055f, 0.f) * 256.f);
   }
 
-  struct Level
+  struct Shape
   {
     u32 width;
     u32 height;
     u32 row_length;
-    const u8* buffer;
+  };
 
-    PixelRGBAf Sample(u32 x, u32 y) const
+  struct Level
+  {
+    Shape shape;
+    const u8* pixels;
+
+    static PixelRGBAf Sample(const u8* src, const Shape& src_shape, u32 x, u32 y)
     {
-      const auto* p = buffer + (x + y * row_length) * 4;
+      const auto* p = src + (x + y * src_shape.row_length) * 4;
       return {SRGBToLinear(p[0]), SRGBToLinear(p[1]), SRGBToLinear(p[2]), SRGBToLinear(p[3])};
     }
 
     // Puts a downsampled image in dst. dst must be at least width*height*4
-    void Downsample(u8* dst, const Level& dst_shape) const
+    static void Downsample(const u8* src, const Shape& src_shape, u8* dst, const Shape& dst_shape)
     {
       for (u32 i = 0; i < dst_shape.height; ++i)
       {
@@ -557,17 +577,19 @@ private:
         {
           auto x = j * 2;
           auto y = i * 2;
-          const std::array<PixelRGBAf, 4> samples = {Sample(x, y), Sample(x + 1, y),
-                                                     Sample(x, y + 1), Sample(x + 1, y + 1)};
+          const std::array<PixelRGBAf, 4> samples = {
+              Sample(src, src_shape, x, y), Sample(src, src_shape, x + 1, y),
+              Sample(src, src_shape, x, y + 1), Sample(src, src_shape, x + 1, y + 1)};
+
           auto* dst_pixel = dst + (j + i * dst_shape.row_length) * 4;
           dst_pixel[0] =
-              LinearToSRGB((samples[0][0] + samples[0][1] + samples[0][2] + samples[0][3]) * 0.25f);
+              LinearToSRGB((samples[0][0] + samples[1][0] + samples[2][0] + samples[3][0]) * 0.25f);
           dst_pixel[1] =
-              LinearToSRGB((samples[1][0] + samples[1][1] + samples[1][2] + samples[1][3]) * 0.25f);
+              LinearToSRGB((samples[0][1] + samples[1][1] + samples[2][1] + samples[3][1]) * 0.25f);
           dst_pixel[2] =
-              LinearToSRGB((samples[2][0] + samples[2][1] + samples[2][2] + samples[2][3]) * 0.25f);
+              LinearToSRGB((samples[0][2] + samples[1][2] + samples[2][2] + samples[3][2]) * 0.25f);
           dst_pixel[3] =
-              LinearToSRGB((samples[3][0] + samples[3][1] + samples[3][2] + samples[3][3]) * 0.25f);
+              LinearToSRGB((samples[0][3] + samples[1][3] + samples[2][3] + samples[3][3]) * 0.25f);
         }
       }
     }
@@ -575,24 +597,24 @@ private:
     float AverageDiff(const u8* other) const
     {
       float average_diff = 0.f;
-      const auto* ptr1 = buffer;
+      const auto* ptr1 = pixels;
       const auto* ptr2 = other;
-      for (u32 i = 0; i < height; ++i)
+      for (u32 i = 0; i < shape.height; ++i)
       {
         const auto* row1 = ptr1;
         const auto* row2 = ptr2;
-        for (u32 j = 0; j < width; ++j, row1 += 4, row2 += 4)
+        for (u32 j = 0; j < shape.width; ++j, row1 += 4, row2 += 4)
         {
-          average_diff += std::abs(row1[0] - row2[0]);
-          average_diff += std::abs(row1[1] - row2[1]);
-          average_diff += std::abs(row1[2] - row2[2]);
-          average_diff += std::abs(row1[3] - row2[3]);
+          average_diff += std::abs(static_cast<float>(row1[0]) - static_cast<float>(row2[0]));
+          average_diff += std::abs(static_cast<float>(row1[1]) - static_cast<float>(row2[1]));
+          average_diff += std::abs(static_cast<float>(row1[2]) - static_cast<float>(row2[2]));
+          average_diff += std::abs(static_cast<float>(row1[3]) - static_cast<float>(row2[3]));
         }
-        ptr1 += row_length;
-        ptr2 += row_length;
+        ptr1 += shape.row_length;
+        ptr2 += shape.row_length;
       }
 
-      return average_diff / (width * height * 4) / 2.56f;
+      return average_diff / (shape.width * shape.height * 4) / 2.56f;
     }
   };
   std::vector<Level> levels;
@@ -926,7 +948,10 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::Load(const u32 stage)
 
     // Allocate memory for all levels at once
     size_t total_texture_size = decoded_texture_size;
-    size_t mip_downsample_buffer_size = decoded_texture_size / 4;
+
+    // For the downsample, we need 2 buffers; 1 is 1/4 of the original texture, the other 1/16
+    size_t mip_downsample_buffer_size = decoded_texture_size * 5 / 16;
+
     size_t prev_level_size = decoded_texture_size;
     for (u32 i = 1; i < tex_levels; ++i)
     {
