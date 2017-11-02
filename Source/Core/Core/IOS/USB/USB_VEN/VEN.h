@@ -54,8 +54,6 @@ private:
   void OnDeviceChangeEnd() override;
   void TriggerDeviceChangeReply();
 
-  static constexpr u32 VERSION = 0x50001;
-
   bool m_devicechange_first_call = true;
   std::mutex m_devicechange_hook_address_mutex;
   std::unique_ptr<IOCtlRequest> m_devicechange_hook_request;

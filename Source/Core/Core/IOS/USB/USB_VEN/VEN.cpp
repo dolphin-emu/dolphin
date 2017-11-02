@@ -49,6 +49,8 @@ struct DeviceEntry
 #pragma pack(pop)
 }
 
+constexpr u32 USBV5_VERSION = 0x50001;
+
 USB_VEN::USB_VEN(Kernel& ios, const std::string& device_name) : USBHost(ios, device_name)
 {
 }
@@ -72,7 +74,7 @@ IPCCommandResult USB_VEN::IOCtl(const IOCtlRequest& request)
   switch (request.request)
   {
   case USB::IOCTL_USBV5_GETVERSION:
-    Memory::Write_U32(VERSION, request.buffer_out);
+    Memory::Write_U32(USBV5_VERSION, request.buffer_out);
     return GetDefaultReply(IPC_SUCCESS);
   case USB::IOCTL_USBV5_GETDEVICECHANGE:
     return GetDeviceChange(request);
