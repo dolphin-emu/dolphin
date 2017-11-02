@@ -4,6 +4,8 @@
 
 #include "DolphinQt2/MenuBar.h"
 
+#include <cinttypes>
+
 #include <QAction>
 #include <QDesktopServices>
 #include <QFileDialog>
@@ -13,6 +15,7 @@
 
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
+#include "Common/StringUtil.h"
 #include "Core/CommonTitles.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -550,20 +553,23 @@ void MenuBar::CheckNAND()
                        "Do you want to try to repair the NAND?");
   if (!result.titles_to_remove.empty())
   {
-    message += tr("\n\nWARNING: Fixing this NAND requires the deletion of titles that have "
-                  "incomplete data on the NAND, including all associated save data. "
-                  "By continuing, the following title(s) will be removed:\n\n");
+    std::string title_listings;
     Core::TitleDatabase title_db;
     for (const u64 title_id : result.titles_to_remove)
     {
       const std::string name = title_db.GetTitleName(title_id);
-      message += !name.empty() ?
-                     QStringLiteral("%1 (%2)")
-                         .arg(QString::fromStdString(name))
-                         .arg(title_id, 16, 16, QLatin1Char('0')) :
-                     QStringLiteral("%1").arg(title_id, 16, 16, QLatin1Char('0'));
-      message += QStringLiteral("\n");
+      title_listings += !name.empty() ?
+                            StringFromFormat("%s (%016" PRIx64 ")", name.c_str(), title_id) :
+                            StringFromFormat("%016" PRIx64, title_id);
+      title_listings += "\n";
     }
+
+    message += tr("\n\nWARNING: Fixing this NAND requires the deletion of titles that have "
+                  "incomplete data on the NAND, including all associated save data. "
+                  "By continuing, the following title(s) will be removed:\n\n"
+                  "%1"
+                  "\nLaunching these titles may also fix the issues.")
+                   .arg(QString::fromStdString(title_listings));
   }
 
   if (QMessageBox::question(this, tr("NAND Check"), message) != QMessageBox::Yes)
