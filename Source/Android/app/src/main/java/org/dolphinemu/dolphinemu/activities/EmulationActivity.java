@@ -42,6 +42,7 @@ import org.dolphinemu.dolphinemu.ui.platform.Platform;
 import org.dolphinemu.dolphinemu.utils.Animations;
 import org.dolphinemu.dolphinemu.utils.Java_GCAdapter;
 import org.dolphinemu.dolphinemu.utils.Java_WiimoteAdapter;
+import org.dolphinemu.dolphinemu.utils.Log;
 
 import java.lang.annotation.Retention;
 import java.util.List;
@@ -226,8 +227,17 @@ public final class EmulationActivity extends AppCompatActivity
 		setContentView(R.layout.activity_emulation);
 
 		mImageView = (ImageView) findViewById(R.id.image_screenshot);
+
+		// Find or create the EmulationFragment
 		mEmulationFragment = (EmulationFragment) getSupportFragmentManager()
-				.findFragmentById(R.id.fragment_emulation);
+				.findFragmentById(R.id.frame_emulation_fragment);
+		if (mEmulationFragment == null)
+		{
+			mEmulationFragment = EmulationFragment.newInstance(path);
+			getSupportFragmentManager().beginTransaction()
+					.add(R.id.frame_emulation_fragment, mEmulationFragment)
+					.commit();
+		}
 
 		if (savedInstanceState == null)
 		{
@@ -265,9 +275,6 @@ public final class EmulationActivity extends AppCompatActivity
 							mImageView.setVisibility(View.GONE);
 						}
 					});
-
-			mEmulationFragment.setGamePath(path);
-			mEmulationFragment.startEmulation();
 		}
 		else
 		{
