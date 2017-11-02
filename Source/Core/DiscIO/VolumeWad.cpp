@@ -138,10 +138,10 @@ std::map<Language, std::string> VolumeWAD::GetLongNames() const
   if (!m_tmd.IsValid() || !IOS::ES::IsChannel(m_tmd.GetTitleId()))
     return {};
 
-  std::vector<u8> name_data(NAMES_TOTAL_BYTES);
-  if (!Read(m_opening_bnr_offset + 0x9C, NAMES_TOTAL_BYTES, name_data.data()))
+  std::vector<char16_t> names(NAMES_TOTAL_CHARS);
+  if (!Read(m_opening_bnr_offset + 0x9C, NAMES_TOTAL_BYTES, reinterpret_cast<u8*>(names.data())))
     return std::map<Language, std::string>();
-  return ReadWiiNames(name_data);
+  return ReadWiiNames(names);
 }
 
 std::vector<u32> VolumeWAD::GetBanner(int* width, int* height) const

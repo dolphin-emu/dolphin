@@ -26,17 +26,15 @@ namespace DiscIO
 const IOS::ES::TicketReader Volume::INVALID_TICKET{};
 const IOS::ES::TMDReader Volume::INVALID_TMD{};
 
-std::map<Language, std::string> Volume::ReadWiiNames(const std::vector<u8>& data)
+std::map<Language, std::string> Volume::ReadWiiNames(const std::vector<char16_t>& data)
 {
   std::map<Language, std::string> names;
   for (size_t i = 0; i < NUMBER_OF_LANGUAGES; ++i)
   {
-    size_t name_start = NAME_BYTES_LENGTH * i;
-    size_t name_end = name_start + NAME_BYTES_LENGTH;
-    if (data.size() >= name_end)
+    const size_t name_start = NAME_CHARS_LENGTH * i;
+    if (name_start + NAME_CHARS_LENGTH <= data.size())
     {
-      std::string name = UTF16BEToUTF8(reinterpret_cast<const char16_t*>(data.data() + name_start),
-                                       NAME_STRING_LENGTH);
+      const std::string name = UTF16BEToUTF8(data.data() + name_start, NAME_CHARS_LENGTH);
       if (!name.empty())
         names[static_cast<Language>(i)] = name;
     }
