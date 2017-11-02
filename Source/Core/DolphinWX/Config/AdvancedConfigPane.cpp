@@ -52,7 +52,7 @@ void AdvancedConfigPane::InitializeGUI()
                                          "WARNING: Changing this from the default (100%) "
                                          "can and will break games and cause glitches. "
                                          "Do so at your own risk. Please do not report "
-                                         "bugs that occur with a non-default clock. "));
+                                         "bugs that occur with a non-default clock."));
 
   wxStaticText* const custom_rtc_description = new wxStaticText(
       this, wxID_ANY,

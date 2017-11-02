@@ -399,9 +399,9 @@ void MenuBar::AddMovieMenu()
 {
   auto* movie_menu = addMenu(tr("&Movie"));
   m_recording_start =
-      AddAction(movie_menu, tr("Start Recording Input"), this, [this] { emit StartRecording(); });
+      AddAction(movie_menu, tr("Start Re&cording Input"), this, [this] { emit StartRecording(); });
   m_recording_play =
-      AddAction(movie_menu, tr("Play Input Recording..."), this, [this] { emit PlayRecording(); });
+      AddAction(movie_menu, tr("P&lay Input Recording..."), this, [this] { emit PlayRecording(); });
   m_recording_stop = AddAction(movie_menu, tr("Stop Playing/Recording Input"), this,
                                [this] { emit StopRecording(); });
   m_recording_export =
@@ -412,7 +412,7 @@ void MenuBar::AddMovieMenu()
   m_recording_stop->setEnabled(false);
   m_recording_export->setEnabled(false);
 
-  m_recording_read_only = movie_menu->addAction(tr("Read-Only Mode"));
+  m_recording_read_only = movie_menu->addAction(tr("&Read-Only Mode"));
   m_recording_read_only->setCheckable(true);
   m_recording_read_only->setChecked(Movie::IsReadOnly());
   connect(m_recording_read_only, &QAction::toggled, [](bool value) { Movie::SetReadOnly(value); });
