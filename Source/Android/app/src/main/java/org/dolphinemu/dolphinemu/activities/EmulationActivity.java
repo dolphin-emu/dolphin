@@ -8,7 +8,6 @@ import android.content.SharedPreferences;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Message;
 import android.preference.PreferenceManager;
 import android.support.annotation.IntDef;
 import android.support.v4.app.ActivityOptionsCompat;
@@ -63,24 +62,10 @@ public final class EmulationActivity extends AppCompatActivity
 	private int mPosition;
 
 	private boolean mDeviceHasTouchScreen;
-	private boolean mSystemUiVisible;
 	private boolean mMenuVisible;
 
 	private static boolean sIsGameCubeGame;
 
-	/**
-	 * Handlers are a way to pass a message to an Activity telling it to do something
-	 * on the UI thread. This Handler responds to any message, even blank ones, by
-	 * hiding the system UI.
-	 */
-	private Handler mSystemUiHider = new Handler()
-	{
-		@Override
-		public void handleMessage(Message msg)
-		{
-			hideSystemUI();
-		}
-	};
 	private String mScreenPath;
 	private String mSelectedTitle;
 
@@ -187,32 +172,28 @@ public final class EmulationActivity extends AppCompatActivity
 
 			// Get a handle to the Window containing the UI.
 			mDecorView = getWindow().getDecorView();
-
-			// Set these options now so that the SurfaceView the game renders into is the right size.
-			mDecorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
-					View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
-					View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
-
-			// Set the ActionBar to follow the navigation/status bar's visibility changes.
-			mDecorView.setOnSystemUiVisibilityChangeListener(
-					new View.OnSystemUiVisibilityChangeListener()
+			mDecorView.setOnSystemUiVisibilityChangeListener
+					(new View.OnSystemUiVisibilityChangeListener() {
+				@Override
+				public void onSystemUiVisibilityChange(int visibility) {
+					if ((visibility & View.SYSTEM_UI_FLAG_FULLSCREEN) == 0)
 					{
-						@Override
-						public void onSystemUiVisibilityChange(int flags)
+						// Go back to immersive fullscreen mode in 3s
+						Handler handler = new Handler(getMainLooper());
+						handler.postDelayed(new Runnable()
 						{
-							mSystemUiVisible = (flags & View.SYSTEM_UI_FLAG_HIDE_NAVIGATION) == 0;
-
-							if (mSystemUiVisible)
+							@Override
+							public void run()
 							{
-								getSupportActionBar().show();
-								hideSystemUiAfterDelay();
+								enableFullscreenImmersive();
 							}
-							else
-							{
-								getSupportActionBar().hide();
-							}
-						}
-					});
+						},
+						3000 /* 3s */);
+					}
+				}
+			});
+			// Set these options now so that the SurfaceView the game renders into is the right size.
+			enableFullscreenImmersive();
 		}
 		else
 		{
@@ -291,38 +272,6 @@ public final class EmulationActivity extends AppCompatActivity
 	}
 
 	@Override
-	protected void onPostCreate(Bundle savedInstanceState)
-	{
-		super.onPostCreate(savedInstanceState);
-
-		if (mDeviceHasTouchScreen)
-		{
-			// Give the user a few seconds to see what the controls look like, then hide them.
-			hideSystemUiAfterDelay();
-		}
-	}
-
-	@Override
-	public void onWindowFocusChanged(boolean hasFocus)
-	{
-		super.onWindowFocusChanged(hasFocus);
-
-		if (mDeviceHasTouchScreen)
-		{
-			if (hasFocus)
-			{
-				hideSystemUiAfterDelay();
-			}
-			else
-			{
-				// If the window loses focus (i.e. a dialog box, or a popup menu is on screen
-				// stop hiding the UI.
-				mSystemUiHider.removeMessages(0);
-			}
-		}
-	}
-
-	@Override
 	public void onBackPressed()
 	{
 		if (!mDeviceHasTouchScreen)
@@ -340,6 +289,18 @@ public final class EmulationActivity extends AppCompatActivity
 			exitWithAnimation();
 		}
 
+	}
+
+	private void enableFullscreenImmersive()
+	{
+		// It would be nice to use IMMERSIVE_STICKY, but that doesn't show the toolbar.
+		mDecorView.setSystemUiVisibility(
+				View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
+				View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
+				View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
+				View.SYSTEM_UI_FLAG_HIDE_NAVIGATION |
+				View.SYSTEM_UI_FLAG_FULLSCREEN |
+				View.SYSTEM_UI_FLAG_IMMERSIVE);
 	}
 
 	private void toggleMenu()
@@ -772,38 +733,6 @@ public final class EmulationActivity extends AppCompatActivity
 		}
 
 		return true;
-	}
-
-	private void hideSystemUiAfterDelay()
-	{
-		// Clear any pending hide events.
-		mSystemUiHider.removeMessages(0);
-
-		// Add a new hide event, to occur 3 seconds from now.
-		mSystemUiHider.sendEmptyMessageDelayed(0, 3000);
-	}
-
-	private void hideSystemUI()
-	{
-		mSystemUiVisible = false;
-
-		mDecorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
-				View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
-				View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
-				View.SYSTEM_UI_FLAG_HIDE_NAVIGATION |
-				View.SYSTEM_UI_FLAG_FULLSCREEN |
-				View.SYSTEM_UI_FLAG_IMMERSIVE);
-	}
-
-	private void showSystemUI()
-	{
-		mSystemUiVisible = true;
-
-		mDecorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
-				View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
-				View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
-
-		hideSystemUiAfterDelay();
 	}
 
 	private void showSubMenu(SaveLoadStateFragment.SaveOrLoad saveOrLoad)
