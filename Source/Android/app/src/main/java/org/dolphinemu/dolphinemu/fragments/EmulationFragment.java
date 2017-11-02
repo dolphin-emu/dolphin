@@ -21,6 +21,8 @@ import org.dolphinemu.dolphinemu.utils.Log;
 
 public final class EmulationFragment extends Fragment implements SurfaceHolder.Callback
 {
+	private static final String KEY_GAMEPATH = "gamepath";
+
 	private SharedPreferences mPreferences;
 
 	private Surface mSurface;
@@ -31,6 +33,17 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 
 	private String mGamePath;
 	private final EmulationState mEmulationState = new EmulationState();
+
+	public static EmulationFragment newInstance(String gamePath)
+	{
+
+		Bundle args = new Bundle();
+		args.putString(KEY_GAMEPATH, gamePath);
+
+		EmulationFragment fragment = new EmulationFragment();
+		fragment.setArguments(args);
+		return fragment;
+	}
 
 	@Override
 	public void onAttach(Context context)
@@ -59,6 +72,8 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 		setRetainInstance(true);
 
 		mPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
+
+		mGamePath = getArguments().getString(KEY_GAMEPATH);
 	}
 
 	/**
@@ -112,11 +127,6 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 	{
 		NativeLibrary.clearEmulationActivity();
 		super.onDetach();
-	}
-
-	public void setGamePath(String gamePath)
-	{
-		mGamePath = gamePath;
 	}
 
 	public void toggleInputOverlayVisibility()
