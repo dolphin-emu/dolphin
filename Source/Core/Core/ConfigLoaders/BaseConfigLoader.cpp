@@ -19,7 +19,6 @@
 #include "Common/Logging/Log.h"
 #include "Common/SysConf.h"
 
-#include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigLoaders/IsSettingSaveable.h"
 #include "Core/Core.h"
@@ -95,19 +94,7 @@ public:
         const IniFile::Section::SectionMap& section_map = section.GetValues();
 
         for (const auto& value : section_map)
-        {
-          const Config::ConfigLocation location{system.first, section_name, value.first};
-          if (location == Config::GFX_EFB_SCALE.location)
-          {
-            std::optional<int> efb_scale = Config::ConvertFromLegacyEFBScale(value.second);
-            if (efb_scale)
-              config_section->Set(value.first, *efb_scale);
-          }
-          else
-          {
-            config_section->Set(value.first, value.second);
-          }
-        }
+          config_section->Set(value.first, value.second);
       }
     }
   }
@@ -143,20 +130,10 @@ public:
 
         for (const auto& value : section_values)
         {
-          const Config::ConfigLocation location{system.first, section->GetName(), value.first};
-          if (!IsSettingSaveable(location))
+          if (!IsSettingSaveable({system.first, section->GetName(), value.first}))
             continue;
 
-          if (location == Config::GFX_EFB_SCALE.location)
-          {
-            std::optional<int> efb_scale = Config::ConvertToLegacyEFBScale(value.second);
-            if (efb_scale)
-              ini_section->Set(value.first, *efb_scale);
-          }
-          else
-          {
-            ini_section->Set(value.first, value.second);
-          }
+          ini_section->Set(value.first, value.second);
         }
       }
 
