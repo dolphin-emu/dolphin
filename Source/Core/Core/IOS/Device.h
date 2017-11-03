@@ -156,6 +156,7 @@ struct IOCtlVRequest final : Request
   // merging them into a single std::vector would make using the first out vector more complicated.
   std::vector<IOVector> in_vectors;
   std::vector<IOVector> io_vectors;
+  const IOVector* GetVector(size_t index) const;
   explicit IOCtlVRequest(u32 address);
   bool HasNumberOfValidVectors(size_t in_count, size_t io_count) const;
   void Dump(const std::string& description, LogTypes::LOG_TYPE type = LogTypes::IOS,
