@@ -37,7 +37,6 @@ public:
     MAPPING_GC_DANCEMAT,
     MAPPING_GC_KEYBOARD,
     MAPPING_GCPAD,
-    MAPPING_GCPAD_WIIU,
     MAPPING_GC_STEERINGWHEEL,
     // Wii
     MAPPING_WIIMOTE_EMU,
@@ -65,7 +64,6 @@ private:
   void CreateMainLayout();
   void ConnectWidgets();
 
-  void SetLayoutComplex(bool is_complex);
   void AddWidget(const QString& name, QWidget* widget);
 
   void RefreshDevices();
@@ -107,7 +105,6 @@ private:
 
   Type m_mapping_type;
   const int m_port;
-  bool m_is_complex;
   InputConfig* m_config;
   ciface::Core::DeviceQualifier m_devq;
 };

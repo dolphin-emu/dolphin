@@ -20,7 +20,6 @@
 #include "Core/Core.h"
 #include "DolphinQt2/Config/Mapping/GCKeyboardEmu.h"
 #include "DolphinQt2/Config/Mapping/GCPadEmu.h"
-#include "DolphinQt2/Config/Mapping/GCPadWiiU.h"
 #include "DolphinQt2/Config/Mapping/Hotkey3D.h"
 #include "DolphinQt2/Config/Mapping/HotkeyGeneral.h"
 #include "DolphinQt2/Config/Mapping/HotkeyGraphics.h"
@@ -240,8 +239,6 @@ void MappingWindow::RefreshDevices()
 
 void MappingWindow::SetMappingType(MappingWindow::Type type)
 {
-  m_controller = nullptr;
-
   MappingWidget* widget;
 
   switch (type)
@@ -258,11 +255,6 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
     widget = new GCPadEmu(this);
     setWindowTitle(tr("GameCube Controller at Port %1").arg(GetPort() + 1));
     AddWidget(tr("GameCube Controller"), widget);
-    break;
-  case Type::MAPPING_GCPAD_WIIU:
-    widget = new GCPadWiiU(this);
-    setWindowTitle(tr("GameCube Adapter for Wii U at Port %1").arg(GetPort() + 1));
-    AddWidget(tr("GameCube Adapter for Wii U"), widget);
     break;
   case Type::MAPPING_WIIMOTE_EMU:
   case Type::MAPPING_WIIMOTE_HYBRID:
@@ -295,22 +287,17 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
 
   m_config = widget->GetConfig();
 
-  if (m_config)
+  m_controller = m_config->GetController(GetPort());
+  m_profiles_combo->addItem(QStringLiteral(""));
+
+  const std::string profiles_path =
+      File::GetUserPath(D_CONFIG_IDX) + "Profiles/" + m_config->GetProfileName();
+  for (const auto& filename : Common::DoFileSearch({profiles_path}, {".ini"}))
   {
-    m_controller = m_config->GetController(GetPort());
-    m_profiles_combo->addItem(QStringLiteral(""));
-
-    const std::string profiles_path =
-        File::GetUserPath(D_CONFIG_IDX) + "Profiles/" + m_config->GetProfileName();
-    for (const auto& filename : Common::DoFileSearch({profiles_path}, {".ini"}))
-    {
-      std::string basename;
-      SplitPath(filename, nullptr, &basename, nullptr);
-      m_profiles_combo->addItem(QString::fromStdString(basename), QString::fromStdString(filename));
-    }
+    std::string basename;
+    SplitPath(filename, nullptr, &basename, nullptr);
+    m_profiles_combo->addItem(QString::fromStdString(basename), QString::fromStdString(filename));
   }
-
-  SetLayoutComplex(type != Type::MAPPING_GCPAD_WIIU);
 
   if (m_controller != nullptr)
     RefreshDevices();
@@ -319,15 +306,6 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
 void MappingWindow::AddWidget(const QString& name, QWidget* widget)
 {
   m_tab_widget->addTab(widget, name);
-}
-
-void MappingWindow::SetLayoutComplex(bool is_complex)
-{
-  m_reset_box->setHidden(!is_complex);
-  m_profiles_box->setHidden(!is_complex);
-  m_devices_box->setHidden(!is_complex);
-
-  m_is_complex = is_complex;
 }
 
 int MappingWindow::GetPort() const
