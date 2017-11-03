@@ -131,6 +131,11 @@ void Renderer::RenderToXFB(u32 xfbAddr, const EFBRectangle& sourceRc, u32 fbStri
   }
 }
 
+unsigned int Renderer::GetEFBScale() const
+{
+  return m_efb_scale;
+}
+
 int Renderer::EFBToScaledX(int x) const
 {
   return x * static_cast<int>(m_efb_scale);

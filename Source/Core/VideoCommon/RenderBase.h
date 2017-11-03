@@ -101,6 +101,8 @@ public:
   std::tuple<TargetRectangle, TargetRectangle>
   ConvertStereoRectangle(const TargetRectangle& rc) const;
 
+  unsigned int GetEFBScale() const;
+
   // Use this to upscale native EFB coordinates to IDEAL internal resolution
   int EFBToScaledX(int x) const;
   int EFBToScaledY(int y) const;
