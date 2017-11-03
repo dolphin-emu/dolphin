@@ -496,7 +496,7 @@ void CFrame::OnRecord(wxCommandEvent& WXUNUSED(event))
 void CFrame::OnPlayRecording(wxCommandEvent& WXUNUSED(event))
 {
   wxString path =
-      wxFileSelector(_("Select The Recording File"), wxEmptyString, wxEmptyString, wxEmptyString,
+      wxFileSelector(_("Select the Recording File"), wxEmptyString, wxEmptyString, wxEmptyString,
                      _("Dolphin TAS Movies (*.dtm)") +
                          wxString::Format("|*.dtm|%s", wxGetTranslation(wxALL_FILES)),
                      wxFD_OPEN | wxFD_PREVIEW | wxFD_FILE_MUST_EXIST, this);
@@ -992,7 +992,7 @@ void CFrame::DoRecordingSave()
     DoPause();
 
   wxString path =
-      wxFileSelector(_("Select The Recording File"), wxEmptyString, wxEmptyString, wxEmptyString,
+      wxFileSelector(_("Select the Recording File"), wxEmptyString, wxEmptyString, wxEmptyString,
                      _("Dolphin TAS Movies (*.dtm)") +
                          wxString::Format("|*.dtm|%s", wxGetTranslation(wxALL_FILES)),
                      wxFD_SAVE | wxFD_PREVIEW | wxFD_OVERWRITE_PROMPT, this);
