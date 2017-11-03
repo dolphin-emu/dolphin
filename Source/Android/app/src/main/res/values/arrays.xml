@@ -111,12 +111,12 @@
         <item>6x Native (3840x3168) for 4K</item>
     </string-array>
     <integer-array name="internalResolutionValues" translatable="false">
+        <item>1</item>
         <item>2</item>
+        <item>3</item>
         <item>4</item>
+        <item>5</item>
         <item>6</item>
-        <item>7</item>
-        <item>8</item>
-        <item>9</item>
     </integer-array>
 
     <!-- FSAA Preference -->

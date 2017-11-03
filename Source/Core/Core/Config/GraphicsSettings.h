@@ -4,18 +4,12 @@
 
 #pragma once
 
-#include <optional>
 #include <string>
 
 #include "Common/Config/Config.h"
 
 namespace Config
 {
-std::optional<int> ConvertFromLegacyEFBScale(int efb_scale);
-std::optional<int> ConvertFromLegacyEFBScale(const std::string& efb_scale);
-int ConvertToLegacyEFBScale(int efb_scale);
-std::optional<int> ConvertToLegacyEFBScale(const std::string& efb_scale);
-
 // Configuration Information
 
 // Graphics.Hardware
