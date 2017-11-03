@@ -71,10 +71,37 @@ IPCCommandResult USB_HIDv5::IOCtlV(const IOCtlVRequest& request)
     auto host_device = GetDeviceById(device->host_id);
     host_device->Attach(device->interface_number);
     return HandleTransfer(host_device, request.request,
-                          [&, this]() { return SubmitTransfer(*host_device, request); });
+                          [&, this]() { return SubmitTransfer(*device, *host_device, request); });
   }
   default:
     return GetDefaultReply(IPC_EINVAL);
+  }
+}
+
+s32 USB_HIDv5::SubmitTransfer(USBV5Device& device, USB::Device& host_device,
+                              const IOCtlVRequest& ioctlv)
+{
+  switch (ioctlv.request)
+  {
+  case USB::IOCTLV_USBV5_CTRLMSG:
+    return host_device.SubmitTransfer(std::make_unique<USB::V5CtrlMessage>(m_ios, ioctlv));
+  case USB::IOCTLV_USBV5_INTRMSG:
+  {
+    auto message = std::make_unique<USB::V5IntrMessage>(m_ios, ioctlv);
+
+    // Unlike VEN, the endpoint is determined by the value at 8-12.
+    // If it's non-zero, HID submits the request to the interrupt OUT endpoint.
+    // Otherwise, the request is submitted to the IN endpoint.
+    AdditionalDeviceData* data = &m_additional_device_data[&device - m_usbv5_devices.data()];
+    if (Memory::Read_U32(ioctlv.in_vectors[0].address + 8) != 0)
+      message->endpoint = data->interrupt_out_endpoint;
+    else
+      message->endpoint = data->interrupt_in_endpoint;
+
+    return host_device.SubmitTransfer(std::move(message));
+  }
+  default:
+    return IPC_EINVAL;
   }
 }
 
@@ -128,7 +155,15 @@ IPCCommandResult USB_HIDv5::GetDeviceInfo(USBV5Device& device, const IOCtlReques
     constexpr u8 ENDPOINT_IN = 0x80;
     if (endpoint.bmAttributes == ENDPOINT_INTERRUPT)
     {
-      const u32 offset = (endpoint.bEndpointAddress & ENDPOINT_IN) != 0 ? 80 : 88;
+      const bool is_in_endpoint = (endpoint.bEndpointAddress & ENDPOINT_IN) != 0;
+
+      AdditionalDeviceData* data = &m_additional_device_data[&device - m_usbv5_devices.data()];
+      if (is_in_endpoint)
+        data->interrupt_in_endpoint = endpoint.bEndpointAddress;
+      else
+        data->interrupt_out_endpoint = endpoint.bEndpointAddress;
+
+      const u32 offset = is_in_endpoint ? 80 : 88;
       endpoint.Swap();
       Memory::CopyToEmu(request.buffer_out + offset, &endpoint, sizeof(endpoint));
     }

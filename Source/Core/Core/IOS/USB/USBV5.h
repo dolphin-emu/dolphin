@@ -86,7 +86,6 @@ protected:
   IPCCommandResult SetAlternateSetting(USBV5Device& device, const IOCtlRequest& request);
   IPCCommandResult Shutdown(const IOCtlRequest& request);
   IPCCommandResult SuspendResume(USBV5Device& device, const IOCtlRequest& request);
-  s32 SubmitTransfer(USB::Device& device, const IOCtlVRequest& request);
 
   using Handler = std::function<IPCCommandResult(USBV5Device&)>;
   IPCCommandResult HandleDeviceIOCtl(const IOCtlRequest& request, Handler handler);

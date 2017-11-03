@@ -27,9 +27,16 @@ public:
 private:
   IPCCommandResult CancelEndpoint(USBV5Device& device, const IOCtlRequest& request);
   IPCCommandResult GetDeviceInfo(USBV5Device& device, const IOCtlRequest& request);
+  s32 SubmitTransfer(USBV5Device& device, USB::Device& host_device, const IOCtlVRequest& ioctlv);
 
   bool ShouldAddDevice(const USB::Device& device) const override;
   bool HasInterfaceNumberInIDs() const override { return true; }
+  struct AdditionalDeviceData
+  {
+    u8 interrupt_in_endpoint = 0;
+    u8 interrupt_out_endpoint = 0;
+  };
+  std::array<AdditionalDeviceData, 32> m_additional_device_data{};
 };
 }  // namespace Device
 }  // namespace HLE

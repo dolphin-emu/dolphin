@@ -29,6 +29,7 @@ private:
   IPCCommandResult CancelEndpoint(USBV5Device& device, const IOCtlRequest& request);
   IPCCommandResult GetDeviceInfo(USBV5Device& device, const IOCtlRequest& request);
 
+  s32 SubmitTransfer(USB::Device& device, const IOCtlVRequest& ioctlv);
   bool HasInterfaceNumberInIDs() const override { return false; }
 };
 }  // namespace Device

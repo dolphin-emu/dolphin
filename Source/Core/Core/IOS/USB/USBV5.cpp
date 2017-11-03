@@ -174,23 +174,6 @@ IPCCommandResult USBV5ResourceManager::SuspendResume(USBV5Device& device,
   return GetDefaultReply(IPC_SUCCESS);
 }
 
-s32 USBV5ResourceManager::SubmitTransfer(USB::Device& device, const IOCtlVRequest& ioctlv)
-{
-  switch (ioctlv.request)
-  {
-  case USB::IOCTLV_USBV5_CTRLMSG:
-    return device.SubmitTransfer(std::make_unique<USB::V5CtrlMessage>(m_ios, ioctlv));
-  case USB::IOCTLV_USBV5_INTRMSG:
-    return device.SubmitTransfer(std::make_unique<USB::V5IntrMessage>(m_ios, ioctlv));
-  case USB::IOCTLV_USBV5_BULKMSG:
-    return device.SubmitTransfer(std::make_unique<USB::V5BulkMessage>(m_ios, ioctlv));
-  case USB::IOCTLV_USBV5_ISOMSG:
-    return device.SubmitTransfer(std::make_unique<USB::V5IsoMessage>(m_ios, ioctlv));
-  default:
-    return IPC_EINVAL;
-  }
-}
-
 IPCCommandResult USBV5ResourceManager::HandleDeviceIOCtl(const IOCtlRequest& request,
                                                          Handler handler)
 {

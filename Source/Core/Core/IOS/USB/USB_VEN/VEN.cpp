@@ -95,6 +95,23 @@ IPCCommandResult USB_VEN::IOCtlV(const IOCtlVRequest& request)
   }
 }
 
+s32 USB_VEN::SubmitTransfer(USB::Device& device, const IOCtlVRequest& ioctlv)
+{
+  switch (ioctlv.request)
+  {
+  case USB::IOCTLV_USBV5_CTRLMSG:
+    return device.SubmitTransfer(std::make_unique<USB::V5CtrlMessage>(m_ios, ioctlv));
+  case USB::IOCTLV_USBV5_INTRMSG:
+    return device.SubmitTransfer(std::make_unique<USB::V5IntrMessage>(m_ios, ioctlv));
+  case USB::IOCTLV_USBV5_BULKMSG:
+    return device.SubmitTransfer(std::make_unique<USB::V5BulkMessage>(m_ios, ioctlv));
+  case USB::IOCTLV_USBV5_ISOMSG:
+    return device.SubmitTransfer(std::make_unique<USB::V5IsoMessage>(m_ios, ioctlv));
+  default:
+    return IPC_EINVAL;
+  }
+}
+
 IPCCommandResult USB_VEN::CancelEndpoint(USBV5Device& device, const IOCtlRequest& request)
 {
   const u8 endpoint = static_cast<u8>(Memory::Read_U32(request.buffer_in + 8));
