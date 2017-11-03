@@ -37,14 +37,16 @@ IPCCommandResult USB_HIDv5::IOCtl(const IOCtlRequest& request)
   case USB::IOCTL_USBV5_SHUTDOWN:
     return Shutdown(request);
   case USB::IOCTL_USBV5_GETDEVPARAMS:
-    return HandleDeviceIOCtl(request, [&](auto& device) { return GetDeviceInfo(device, request); });
+    return HandleDeviceIOCtl(request,
+                             [&](USBV5Device& device) { return GetDeviceInfo(device, request); });
   case USB::IOCTL_USBV5_ATTACHFINISH:
     return GetDefaultReply(IPC_SUCCESS);
   case USB::IOCTL_USBV5_SUSPEND_RESUME:
-    return HandleDeviceIOCtl(request, [&](auto& device) { return SuspendResume(device, request); });
+    return HandleDeviceIOCtl(request,
+                             [&](USBV5Device& device) { return SuspendResume(device, request); });
   case USB::IOCTL_USBV5_CANCELENDPOINT:
     return HandleDeviceIOCtl(request,
-                             [&](auto& device) { return CancelEndpoint(device, request); });
+                             [&](USBV5Device& device) { return CancelEndpoint(device, request); });
   default:
     request.DumpUnknown(GetDeviceName(), LogTypes::IOS_USB, LogTypes::LERROR);
     return GetDefaultReply(IPC_SUCCESS);
@@ -151,10 +153,11 @@ IPCCommandResult USB_HIDv5::GetDeviceInfo(USBV5Device& device, const IOCtlReques
   Memory::CopyToEmu(request.buffer_out + 56, &config_descriptor, sizeof(config_descriptor));
 
   std::vector<USB::InterfaceDescriptor> interfaces = host_device->GetInterfaces(0);
-  auto it = std::find_if(interfaces.begin(), interfaces.end(), [&](const auto& interface) {
-    return interface.bInterfaceNumber == device.interface_number &&
-           interface.bAlternateSetting == alt_setting;
-  });
+  auto it = std::find_if(interfaces.begin(), interfaces.end(),
+                         [&](const USB::InterfaceDescriptor& interface) {
+                           return interface.bInterfaceNumber == device.interface_number &&
+                                  interface.bAlternateSetting == alt_setting;
+                         });
   if (it == interfaces.end())
     return GetDefaultReply(IPC_EINVAL);
   it->Swap();
