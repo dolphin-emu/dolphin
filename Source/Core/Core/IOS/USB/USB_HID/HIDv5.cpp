@@ -107,12 +107,24 @@ s32 USB_HIDv5::SubmitTransfer(USBV5Device& device, USB::Device& host_device,
 
 IPCCommandResult USB_HIDv5::CancelEndpoint(USBV5Device& device, const IOCtlRequest& request)
 {
-  // FIXME: Unlike VEN, there are 3 valid values for the endpoint,
-  //        which determine the endpoint address that gets passed to the backend.
-  //        Valid values: 0 (control, endpoint 0), 1 (interrupt IN) and 2 (interrupt OUT)
-  //        This ioctl also cancels all queued transfers with return code -7022.
-  request.DumpUnknown(GetDeviceName(), LogTypes::IOS_USB);
-  const u8 endpoint = static_cast<u8>(Memory::Read_U32(request.buffer_in + 8));
+  const u8 value = Memory::Read_U8(request.buffer_in + 8);
+  u8 endpoint = 0;
+  switch (value)
+  {
+  case 0:
+    // TODO: cancel all queued control transfers with return code -7022.
+    endpoint = 0;
+    break;
+  case 1:
+    // TODO: cancel all queued interrupt transfers with return code -7022.
+    endpoint = m_additional_device_data[&device - m_usbv5_devices.data()].interrupt_in_endpoint;
+    break;
+  case 2:
+    // TODO: cancel all queued interrupt transfers with return code -7022.
+    endpoint = m_additional_device_data[&device - m_usbv5_devices.data()].interrupt_out_endpoint;
+    break;
+  }
+
   GetDeviceById(device.host_id)->CancelTransfer(endpoint);
   return GetDefaultReply(IPC_SUCCESS);
 }
