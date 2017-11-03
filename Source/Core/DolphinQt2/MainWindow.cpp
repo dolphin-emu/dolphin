@@ -73,6 +73,8 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters) : QMainW
   setUnifiedTitleAndToolBarOnMac(true);
   setAcceptDrops(true);
 
+  InitControllers();
+
   CreateComponents();
 
   ConnectGameList();
@@ -81,7 +83,6 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters) : QMainW
   ConnectStack();
   ConnectMenuBar();
 
-  InitControllers();
   InitCoreCallbacks();
 
   NetPlayInit();
@@ -154,7 +155,7 @@ void MainWindow::CreateComponents()
   m_stack = new QStackedWidget(this);
   m_controllers_window = new ControllersWindow(this);
   m_settings_window = new SettingsWindow(this);
-  m_hotkey_window = new MappingWindow(this, 0);
+  m_hotkey_window = new MappingWindow(this, MappingWindow::Type::MAPPING_HOTKEYS, 0);
   m_log_widget = new LogWidget(this);
   m_log_config_widget = new LogConfigWidget(this);
 
@@ -570,7 +571,6 @@ void MainWindow::ShowAboutDialog()
 
 void MainWindow::ShowHotkeyDialog()
 {
-  m_hotkey_window->ChangeMappingType(MappingWindow::Type::MAPPING_HOTKEYS);
   m_hotkey_window->show();
   m_hotkey_window->raise();
   m_hotkey_window->activateWindow();

@@ -78,12 +78,6 @@ ControllersWindow::ControllersWindow(QWidget* parent) : QDialog(parent)
   CreateMainLayout();
   LoadSettings();
   ConnectWidgets();
-
-  for (size_t i = 0; i < m_gc_mappings.size(); i++)
-    m_gc_mappings[i] = new MappingWindow(this, static_cast<int>(i));
-
-  for (size_t i = 0; i < m_wiimote_mappings.size(); i++)
-    m_wiimote_mappings[i] = new MappingWindow(this, static_cast<int>(i));
 }
 
 void ControllersWindow::CreateGamecubeLayout()
@@ -440,8 +434,8 @@ void ControllersWindow::OnGCPadConfigure()
   default:
     return;
   }
-  m_gc_mappings[index]->ChangeMappingType(type);
-  m_gc_mappings[index]->exec();
+
+  MappingWindow(this, type, static_cast<int>(index)).exec();
 }
 
 void ControllersWindow::OnWiimoteConfigure()
@@ -468,8 +462,8 @@ void ControllersWindow::OnWiimoteConfigure()
   default:
     return;
   }
-  m_wiimote_mappings[index]->ChangeMappingType(type);
-  m_wiimote_mappings[index]->exec();
+
+  MappingWindow(this, type, static_cast<int>(index)).exec();
 }
 
 void ControllersWindow::UnimplementedButton()

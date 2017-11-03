@@ -46,8 +46,7 @@ public:
     MAPPING_HOTKEYS
   };
 
-  explicit MappingWindow(QWidget* parent, int port_num);
-  void ChangeMappingType(Type type);
+  explicit MappingWindow(QWidget* parent, Type type, int port_num);
 
   int GetPort() const;
   const ciface::Core::DeviceQualifier& GetDeviceQualifier() const;
@@ -59,6 +58,7 @@ signals:
   void ClearFields();
 
 private:
+  void SetMappingType(Type type);
   void CreateDevicesLayout();
   void CreateProfilesLayout();
   void CreateResetLayout();
@@ -67,7 +67,6 @@ private:
 
   void SetLayoutComplex(bool is_complex);
   void AddWidget(const QString& name, QWidget* widget);
-  void ClearWidgets();
 
   void RefreshDevices();
 

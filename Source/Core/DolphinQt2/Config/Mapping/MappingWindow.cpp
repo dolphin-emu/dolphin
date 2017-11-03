@@ -32,12 +32,12 @@
 #include "DolphinQt2/Config/Mapping/WiimoteEmuMotionControl.h"
 #include "DolphinQt2/Settings.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/Device.h"
 #include "InputCommon/InputConfig.h"
 
-#include "InputCommon/ControllerInterface/ControllerInterface.h"
-
-MappingWindow::MappingWindow(QWidget* parent, int port_num) : QDialog(parent), m_port(port_num)
+MappingWindow::MappingWindow(QWidget* parent, Type type, int port_num)
+    : QDialog(parent), m_port(port_num)
 {
   setWindowTitle(tr("Port %1").arg(port_num + 1));
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
@@ -47,6 +47,7 @@ MappingWindow::MappingWindow(QWidget* parent, int port_num) : QDialog(parent), m
   CreateResetLayout();
   CreateMainLayout();
   ConnectWidgets();
+  SetMappingType(type);
 }
 
 void MappingWindow::CreateDevicesLayout()
@@ -237,13 +238,8 @@ void MappingWindow::RefreshDevices()
   });
 }
 
-void MappingWindow::ChangeMappingType(MappingWindow::Type type)
+void MappingWindow::SetMappingType(MappingWindow::Type type)
 {
-  if (m_mapping_type == type)
-    return;
-
-  ClearWidgets();
-
   m_controller = nullptr;
 
   MappingWidget* widget;
@@ -297,8 +293,6 @@ void MappingWindow::ChangeMappingType(MappingWindow::Type type)
 
   widget->LoadSettings();
 
-  m_profiles_combo->clear();
-
   m_config = widget->GetConfig();
 
   if (m_config)
@@ -320,13 +314,6 @@ void MappingWindow::ChangeMappingType(MappingWindow::Type type)
 
   if (m_controller != nullptr)
     RefreshDevices();
-
-  m_mapping_type = type;
-}
-
-void MappingWindow::ClearWidgets()
-{
-  m_tab_widget->clear();
 }
 
 void MappingWindow::AddWidget(const QString& name, QWidget* widget)
