@@ -323,6 +323,8 @@ private:
   // Removes and unlinks texture from texture cache and returns it to the pool
   TexAddrCache::iterator InvalidateTexture(TexAddrCache::iterator t_iter);
 
+  void UninitializeXFBMemory(u8* dst, u32 stride, u32 bytes_per_row, u32 num_blocks_y);
+
   TexAddrCache textures_by_address;
   TexHashCache textures_by_hash;
   TexPool texture_pool;
