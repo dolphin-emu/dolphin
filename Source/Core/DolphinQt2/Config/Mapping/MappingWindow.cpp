@@ -211,7 +211,7 @@ void MappingWindow::OnDeviceChanged(int index)
 {
   const auto device = m_devices_combo->currentText().toStdString();
   m_devq.FromString(device);
-  m_controller->default_device.FromString(device);
+  m_controller->SetDefaultDevice(device);
 }
 
 void MappingWindow::RefreshDevices()
@@ -221,9 +221,8 @@ void MappingWindow::RefreshDevices()
   Core::RunAsCPUThread([&] {
     g_controller_interface.RefreshDevices();
     m_controller->UpdateReferences(g_controller_interface);
-    m_controller->UpdateDefaultDevice();
 
-    const auto default_device = m_controller->default_device.ToString();
+    const auto default_device = m_controller->GetDefaultDevice().ToString();
 
     m_devices_combo->addItem(QString::fromStdString(default_device));
 

@@ -56,9 +56,9 @@ void MappingButton::OnButtonPressed()
     // Avoid that the button press itself is registered as an event
     Common::SleepCurrentThread(100);
 
-    const auto expr = MappingCommon::DetectExpression(m_reference, dev.get(),
-                                                      m_parent->GetParent()->GetDeviceQualifier(),
-                                                      m_parent->GetController()->default_device);
+    const auto expr = MappingCommon::DetectExpression(
+        m_reference, dev.get(), m_parent->GetParent()->GetDeviceQualifier(),
+        m_parent->GetController()->GetDefaultDevice());
 
     releaseMouse();
     releaseKeyboard();
