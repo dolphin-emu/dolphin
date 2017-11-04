@@ -87,15 +87,17 @@ std::string DeviceQualifier::ToString() const
 //
 void DeviceQualifier::FromString(const std::string& str)
 {
+  *this = {};
+
   std::istringstream ss(str);
 
-  std::getline(ss, source = "", '/');
+  std::getline(ss, source, '/');
 
   // silly
   std::getline(ss, name, '/');
-  std::istringstream(name) >> (cid = -1);
+  std::istringstream(name) >> cid;
 
-  std::getline(ss, name = "");
+  std::getline(ss, name);
 }
 
 //
