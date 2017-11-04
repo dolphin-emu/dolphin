@@ -47,6 +47,7 @@ void ControllerInterface::Initialize(void* const hwnd)
     return;
 
   m_hwnd = hwnd;
+  m_is_populating_devices = true;
 
 #ifdef CIFACE_USE_DINPUT
 // nothing needed
@@ -88,6 +89,8 @@ void ControllerInterface::RefreshDevices()
     m_devices.clear();
   }
 
+  m_is_populating_devices = true;
+
 #ifdef CIFACE_USE_DINPUT
   ciface::DInput::PopulateDevices(reinterpret_cast<HWND>(m_hwnd));
 #endif
@@ -113,6 +116,9 @@ void ControllerInterface::RefreshDevices()
 #ifdef CIFACE_USE_PIPES
   ciface::Pipes::PopulateDevices();
 #endif
+
+  m_is_populating_devices = false;
+  InvokeDevicesChangedCallbacks();
 }
 
 //
@@ -188,7 +194,9 @@ void ControllerInterface::AddDevice(std::shared_ptr<ciface::Core::Device> device
     NOTICE_LOG(SERIALINTERFACE, "Added device: %s", device->GetQualifiedName().c_str());
     m_devices.emplace_back(std::move(device));
   }
-  InvokeDevicesChangedCallbacks();
+
+  if (!m_is_populating_devices)
+    InvokeDevicesChangedCallbacks();
 }
 
 void ControllerInterface::RemoveDevice(std::function<bool(const ciface::Core::Device*)> callback)
@@ -205,7 +213,9 @@ void ControllerInterface::RemoveDevice(std::function<bool(const ciface::Core::De
     });
     m_devices.erase(it, m_devices.end());
   }
-  InvokeDevicesChangedCallbacks();
+
+  if (!m_is_populating_devices)
+    InvokeDevicesChangedCallbacks();
 }
 
 //

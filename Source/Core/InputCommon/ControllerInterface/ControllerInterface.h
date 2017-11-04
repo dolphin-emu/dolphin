@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <atomic>
 #include <functional>
 #include <memory>
 #include <mutex>
@@ -57,6 +58,7 @@ private:
   std::vector<std::function<void()>> m_devices_changed_callbacks;
   mutable std::mutex m_callbacks_mutex;
   bool m_is_init;
+  std::atomic<bool> m_is_populating_devices{false};
   void* m_hwnd;
 };
 
