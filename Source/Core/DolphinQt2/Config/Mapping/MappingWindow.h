@@ -48,7 +48,6 @@ public:
   explicit MappingWindow(QWidget* parent, Type type, int port_num);
 
   int GetPort() const;
-  const ciface::Core::DeviceQualifier& GetDeviceQualifier() const;
   std::shared_ptr<ciface::Core::Device> GetDevice() const;
 
   ControllerEmu::EmulatedController* GetController() const;
@@ -106,5 +105,4 @@ private:
   Type m_mapping_type;
   const int m_port;
   InputConfig* m_config;
-  ciface::Core::DeviceQualifier m_devq;
 };
