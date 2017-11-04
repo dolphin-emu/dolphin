@@ -188,7 +188,7 @@ void ControllerInterface::AddDevice(std::shared_ptr<ciface::Core::Device> device
     NOTICE_LOG(SERIALINTERFACE, "Added device: %s", device->GetQualifiedName().c_str());
     m_devices.emplace_back(std::move(device));
   }
-  InvokeHotplugCallbacks();
+  InvokeDevicesChangedCallbacks();
 }
 
 void ControllerInterface::RemoveDevice(std::function<bool(const ciface::Core::Device*)> callback)
@@ -205,7 +205,7 @@ void ControllerInterface::RemoveDevice(std::function<bool(const ciface::Core::De
     });
     m_devices.erase(it, m_devices.end());
   }
-  InvokeHotplugCallbacks();
+  InvokeDevicesChangedCallbacks();
 }
 
 //
@@ -225,23 +225,23 @@ void ControllerInterface::UpdateInput()
 }
 
 //
-// RegisterHotplugCallback
+// RegisterDevicesChangedCallback
 //
-// Register a callback to be called from the input backends' hotplug thread
-// when there is a new device
+// Register a callback to be called when a device is added or removed (as from the input backends'
+// hotplug thread), or when devices are refreshed
 //
-void ControllerInterface::RegisterHotplugCallback(std::function<void()> callback)
+void ControllerInterface::RegisterDevicesChangedCallback(std::function<void()> callback)
 {
-  m_hotplug_callbacks.emplace_back(std::move(callback));
+  m_devices_changed_callbacks.emplace_back(std::move(callback));
 }
 
 //
-// InvokeHotplugCallbacks
+// InvokeDevicesChangedCallbacks
 //
 // Invoke all callbacks that were registered
 //
-void ControllerInterface::InvokeHotplugCallbacks() const
+void ControllerInterface::InvokeDevicesChangedCallbacks() const
 {
-  for (const auto& callback : m_hotplug_callbacks)
+  for (const auto& callback : m_devices_changed_callbacks)
     callback();
 }

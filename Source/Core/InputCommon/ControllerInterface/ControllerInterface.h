@@ -53,12 +53,11 @@ public:
   bool IsInit() const { return m_is_init; }
   void UpdateInput();
 
-  void RegisterHotplugCallback(std::function<void(void)> callback);
+  void RegisterDevicesChangedCallback(std::function<void(void)> callback);
+  void InvokeDevicesChangedCallbacks() const;
 
 private:
-  void InvokeHotplugCallbacks() const;
-
-  std::vector<std::function<void()>> m_hotplug_callbacks;
+  std::vector<std::function<void()>> m_devices_changed_callbacks;
   bool m_is_init;
   void* m_hwnd;
 };

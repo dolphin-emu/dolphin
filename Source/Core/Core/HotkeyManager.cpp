@@ -213,7 +213,7 @@ void Initialize()
   if (s_config.ControllersNeedToBeCreated())
     s_config.CreateController<HotkeyManager>();
 
-  g_controller_interface.RegisterHotplugCallback(LoadConfig);
+  g_controller_interface.RegisterDevicesChangedCallback(LoadConfig);
 
   // load the saved controller config
   s_config.LoadConfig(true);
