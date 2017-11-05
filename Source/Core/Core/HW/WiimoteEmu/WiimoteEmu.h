@@ -151,6 +151,7 @@ struct ExtensionReg
   // address 0xFA
   u8 constant_id[6];
 };
+#pragma pack(pop)
 
 void EmulateShake(AccelData* const accel_data, ControllerEmu::Buttons* const buttons_group,
                   u8* const shake_step);
@@ -291,6 +292,7 @@ private:
 
   wiimote_key m_ext_key;
 
+#pragma pack(push, 1)
   u8 m_eeprom[WIIMOTE_EEPROM_SIZE];
   struct MotionPlusReg
   {
