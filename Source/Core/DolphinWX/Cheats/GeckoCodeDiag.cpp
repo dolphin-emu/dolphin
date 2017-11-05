@@ -26,9 +26,9 @@ wxDEFINE_EVENT(DOLPHIN_EVT_GECKOCODE_TOGGLED, wxCommandEvent);
 
 namespace Gecko
 {
-static const char str_name[] = wxTRANSLATE("Name: ");
-static const char str_notes[] = wxTRANSLATE("Notes: ");
-static const char str_creator[] = wxTRANSLATE("Creator: ");
+static const char str_name[] = wxTRANSLATE("Name:");
+static const char str_notes[] = wxTRANSLATE("Notes:");
+static const char str_creator[] = wxTRANSLATE("Creator:");
 
 CodeConfigPanel::CodeConfigPanel(wxWindow* const parent) : wxPanel(parent)
 {

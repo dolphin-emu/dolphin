@@ -85,6 +85,7 @@ static wxString GetValueByRowCol(int row, int col)
     case 2:
       return _("Hexadecimal");
     case 3:
+      // i18n: The base 10 numeral system. Not related to non-integer numbers
       return _("Decimal");
     case 4:
       // i18n: Data type used in computing

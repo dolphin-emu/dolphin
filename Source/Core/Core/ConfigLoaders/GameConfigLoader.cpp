@@ -86,7 +86,7 @@ static const INIToLocationMap& GetINIToLocationMap()
       {{"Video_Settings", "MSAA"}, {Config::GFX_MSAA.location}},
       {{"Video_Settings", "SSAA"}, {Config::GFX_SSAA.location}},
       {{"Video_Settings", "ForceTrueColor"}, {Config::GFX_ENHANCE_FORCE_TRUE_COLOR.location}},
-      {{"Video_Settings", "EFBScale"}, {Config::GFX_EFB_SCALE.location}},
+      {{"Video_Settings", "InternalResolution"}, {Config::GFX_EFB_SCALE.location}},
       {{"Video_Settings", "DisableFog"}, {Config::GFX_DISABLE_FOG.location}},
       {{"Video_Settings", "BackendMultithreading"}, {Config::GFX_BACKEND_MULTITHREADING.location}},
       {{"Video_Settings", "CommandBufferExecuteInterval"},
@@ -319,17 +319,7 @@ private:
 
       auto* config_section =
           config_layer->GetOrCreateSection(mapped_config.system, mapped_config.section);
-
-      if (mapped_config == Config::GFX_EFB_SCALE.location)
-      {
-        std::optional<int> efb_scale = Config::ConvertFromLegacyEFBScale(value.second);
-        if (efb_scale)
-          config_section->Set(mapped_config.key, *efb_scale);
-      }
-      else
-      {
-        config_section->Set(mapped_config.key, value.second);
-      }
+      config_section->Set(mapped_config.key, value.second);
     }
   }
 
@@ -352,25 +342,16 @@ void INIGameConfigLayerLoader::Save(Config::Layer* config_layer)
     {
       for (const auto& value : section->GetValues())
       {
-        const Config::ConfigLocation location{system.first, section->GetName(), value.first};
-        if (!IsSettingSaveable(location))
+        if (!IsSettingSaveable({system.first, section->GetName(), value.first}))
           continue;
 
-        const auto ini_location = GetINILocationFromConfig(location);
+        const auto ini_location =
+            GetINILocationFromConfig({system.first, section->GetName(), value.first});
         if (ini_location.first.empty() && ini_location.second.empty())
           continue;
 
         IniFile::Section* ini_section = ini.GetOrCreateSection(ini_location.first);
-        if (location == Config::GFX_EFB_SCALE.location)
-        {
-          std::optional<int> efb_scale = Config::ConvertToLegacyEFBScale(value.second);
-          if (efb_scale)
-            ini_section->Set(ini_location.second, *efb_scale);
-        }
-        else
-        {
-          ini_section->Set(ini_location.second, value.second);
-        }
+        ini_section->Set(ini_location.second, value.second);
       }
     }
   }

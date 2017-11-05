@@ -498,7 +498,7 @@ void CFrame::OnRecord(wxCommandEvent& WXUNUSED(event))
 void CFrame::OnPlayRecording(wxCommandEvent& WXUNUSED(event))
 {
   wxString path =
-      wxFileSelector(_("Select The Recording File"), wxEmptyString, wxEmptyString, wxEmptyString,
+      wxFileSelector(_("Select the Recording File"), wxEmptyString, wxEmptyString, wxEmptyString,
                      _("Dolphin TAS Movies (*.dtm)") +
                          wxString::Format("|*.dtm|%s", wxGetTranslation(wxALL_FILES)),
                      wxFD_OPEN | wxFD_PREVIEW | wxFD_FILE_MUST_EXIST, this);
@@ -995,7 +995,7 @@ void CFrame::DoRecordingSave()
     DoPause();
 
   wxString path =
-      wxFileSelector(_("Select The Recording File"), wxEmptyString, wxEmptyString, wxEmptyString,
+      wxFileSelector(_("Select the Recording File"), wxEmptyString, wxEmptyString, wxEmptyString,
                      _("Dolphin TAS Movies (*.dtm)") +
                          wxString::Format("|*.dtm|%s", wxGetTranslation(wxALL_FILES)),
                      wxFD_SAVE | wxFD_PREVIEW | wxFD_OVERWRITE_PROMPT, this);
@@ -1316,7 +1316,14 @@ void CFrame::OnImportBootMiiBackup(wxCommandEvent& WXUNUSED(event))
 
   wxProgressDialog dialog(_("Importing NAND backup"), _("Working..."), 100, this,
                           wxPD_APP_MODAL | wxPD_ELAPSED_TIME | wxPD_SMOOTH);
-  DiscIO::NANDImporter().ImportNANDBin(file_name, [&dialog] { dialog.Pulse(); });
+  DiscIO::NANDImporter().ImportNANDBin(
+      file_name, [&dialog] { dialog.Pulse(); },
+      [this] {
+        return WxStrToStr(wxFileSelector(
+            _("Select the OTP/SEEPROM dump"), wxEmptyString, wxEmptyString, wxEmptyString,
+            _("BootMii OTP/SEEPROM dump (*.bin)") + "|*.bin|" + wxGetTranslation(wxALL_FILES),
+            wxFD_OPEN | wxFD_PREVIEW | wxFD_FILE_MUST_EXIST, this));
+      });
   wxPostEvent(GetMenuBar(), wxCommandEvent{DOLPHIN_EVT_UPDATE_LOAD_WII_MENU_ITEM});
 }
 
@@ -1335,17 +1342,24 @@ void CFrame::OnCheckNAND(wxCommandEvent&)
                        "Do you want to try to repair the NAND?");
   if (!result.titles_to_remove.empty())
   {
-    message += _("\n\nWARNING: Fixing this NAND requires the deletion of titles that have "
-                 "incomplete data on the NAND, including all associated save data. "
-                 "By continuing, the following title(s) will be removed:\n\n");
+    std::string title_listings;
     Core::TitleDatabase title_db;
     for (const u64 title_id : result.titles_to_remove)
     {
       const std::string name = title_db.GetTitleName(title_id);
-      message += !name.empty() ? StringFromFormat("%s (%016" PRIx64 ")", name.c_str(), title_id) :
-                                 StringFromFormat("%016" PRIx64, title_id);
-      message += "\n";
+      title_listings += !name.empty() ?
+                            StringFromFormat("%s (%016" PRIx64 ")", name.c_str(), title_id) :
+                            StringFromFormat("%016" PRIx64, title_id);
+      title_listings += "\n";
     }
+
+    message += wxString::Format(
+        _("\n\nWARNING: Fixing this NAND requires the deletion of titles that have "
+          "incomplete data on the NAND, including all associated save data. "
+          "By continuing, the following title(s) will be removed:\n\n"
+          "%s"
+          "\nLaunching these titles may also fix the issues."),
+        title_listings.c_str());
   }
 
   if (wxMessageBox(message, _("NAND Check"), wxYES_NO) != wxYES)

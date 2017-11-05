@@ -51,6 +51,7 @@
 #include "DolphinQt2/NetPlay/NetPlayDialog.h"
 #include "DolphinQt2/NetPlay/NetPlaySetupDialog.h"
 #include "DolphinQt2/QtUtils/QueueOnObject.h"
+#include "DolphinQt2/QtUtils/RunOnObject.h"
 #include "DolphinQt2/QtUtils/WindowActivationEventFilter.h"
 #include "DolphinQt2/Resources.h"
 #include "DolphinQt2/Settings.h"
@@ -879,13 +880,24 @@ void MainWindow::OnImportNANDBackup()
   auto beginning = QDateTime::currentDateTime().toMSecsSinceEpoch();
 
   auto result = std::async(std::launch::async, [&] {
-    DiscIO::NANDImporter().ImportNANDBin(file.toStdString(), [&dialog, beginning] {
-      QueueOnObject(dialog, [&dialog, beginning] {
-        dialog->setLabelText(
-            tr("Importing NAND backup\n Time elapsed: %1s")
-                .arg((QDateTime::currentDateTime().toMSecsSinceEpoch() - beginning) / 1000));
-      });
-    });
+    DiscIO::NANDImporter().ImportNANDBin(
+        file.toStdString(),
+        [&dialog, beginning] {
+          QueueOnObject(dialog, [&dialog, beginning] {
+            dialog->setLabelText(
+                tr("Importing NAND backup\n Time elapsed: %1s")
+                    .arg((QDateTime::currentDateTime().toMSecsSinceEpoch() - beginning) / 1000));
+          });
+        },
+        [this] {
+          return RunOnObject(this, [this] {
+            return QFileDialog::getOpenFileName(this, tr("Select the OTP/SEEPROM dump"),
+                                                QDir::currentPath(),
+                                                tr("BootMii OTP/SEEPROM dump (*.bin);;"
+                                                   "All Files (*)"))
+                .toStdString();
+          });
+        });
     QueueOnObject(dialog, &QProgressDialog::close);
   });
 
@@ -898,7 +910,7 @@ void MainWindow::OnImportNANDBackup()
 
 void MainWindow::OnPlayRecording()
 {
-  QString dtm_file = QFileDialog::getOpenFileName(this, tr("Select The Recording File"), QString(),
+  QString dtm_file = QFileDialog::getOpenFileName(this, tr("Select the Recording File"), QString(),
                                                   tr("Dolphin TAS Movies (*.dtm)"));
 
   if (dtm_file.isEmpty())
@@ -968,7 +980,7 @@ void MainWindow::OnExportRecording()
   if (was_paused)
     Core::SetState(Core::State::Paused);
 
-  QString dtm_file = QFileDialog::getSaveFileName(this, tr("Select The Recording File"), QString(),
+  QString dtm_file = QFileDialog::getSaveFileName(this, tr("Select the Recording File"), QString(),
                                                   tr("Dolphin TAS Movies (*.dtm)"));
 
   if (was_paused)

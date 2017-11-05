@@ -35,13 +35,13 @@ AudioPane::AudioPane()
 
 void AudioPane::CreateWidgets()
 {
-  auto* dsp_box = new QGroupBox(tr("DSP Emulator Engine"));
+  auto* dsp_box = new QGroupBox(tr("DSP Emulation Engine"));
   auto* dsp_layout = new QVBoxLayout;
 
   dsp_box->setLayout(dsp_layout);
-  m_dsp_hle = new QRadioButton(tr("DSP HLE emulation (fast)"));
-  m_dsp_lle = new QRadioButton(tr("DSP LLE recompiler"));
-  m_dsp_interpreter = new QRadioButton(tr("DSP LLE interpreter (slow)"));
+  m_dsp_hle = new QRadioButton(tr("DSP HLE Emulation (fast)"));
+  m_dsp_lle = new QRadioButton(tr("DSP LLE Recompiler"));
+  m_dsp_interpreter = new QRadioButton(tr("DSP LLE Interpreter (slow)"));
 
   dsp_layout->addStretch(1);
   dsp_layout->addWidget(m_dsp_hle);
@@ -70,7 +70,7 @@ void AudioPane::CreateWidgets()
   m_backend_label = new QLabel(tr("Audio Backend:"));
   m_backend_combo = new QComboBox();
   m_latency_label = new QLabel(tr("Latency:"));
-  m_dolby_pro_logic = new QCheckBox(tr("Dolby Pro Logic II decoder"));
+  m_dolby_pro_logic = new QCheckBox(tr("Dolby Pro Logic II Decoder"));
   m_latency_spin = new QSpinBox();
 
   m_latency_spin->setMinimum(0);
