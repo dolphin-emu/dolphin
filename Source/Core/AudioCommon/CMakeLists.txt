@@ -3,7 +3,6 @@ add_library(audiocommon
   AudioStretcher.cpp
   CubebStream.cpp
   CubebUtils.cpp
-  DPL2Decoder.cpp
   Mixer.cpp
   SurroundDecoder.cpp
   NullSoundStream.cpp
