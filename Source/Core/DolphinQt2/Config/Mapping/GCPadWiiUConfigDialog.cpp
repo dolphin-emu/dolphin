@@ -7,12 +7,13 @@
 #include <QLabel>
 #include <QVBoxLayout>
 
-#include "DolphinQt2/Config/Mapping/GCPadWiiU.h"
+#include "DolphinQt2/Config/Mapping/GCPadWiiUConfigDialog.h"
 
 #include "Core/ConfigManager.h"
 #include "InputCommon/GCAdapter.h"
 
-GCPadWiiU::GCPadWiiU(int port, QWidget* parent) : QDialog(parent), m_port{port}
+GCPadWiiUConfigDialog::GCPadWiiUConfigDialog(int port, QWidget* parent)
+    : QDialog(parent), m_port{port}
 {
   CreateLayout();
   ConnectWidgets();
@@ -20,7 +21,7 @@ GCPadWiiU::GCPadWiiU(int port, QWidget* parent) : QDialog(parent), m_port{port}
   LoadSettings();
 }
 
-void GCPadWiiU::CreateLayout()
+void GCPadWiiUConfigDialog::CreateLayout()
 {
   setWindowTitle(tr("GameCube Adapter for Wii U at Port %1").arg(m_port + 1));
 
@@ -45,20 +46,20 @@ void GCPadWiiU::CreateLayout()
   setLayout(m_layout);
 }
 
-void GCPadWiiU::ConnectWidgets()
+void GCPadWiiUConfigDialog::ConnectWidgets()
 {
-  connect(m_rumble, &QCheckBox::toggled, this, &GCPadWiiU::SaveSettings);
-  connect(m_simulate_bongos, &QCheckBox::toggled, this, &GCPadWiiU::SaveSettings);
-  connect(m_button_box, &QDialogButtonBox::accepted, this, &GCPadWiiU::accept);
+  connect(m_rumble, &QCheckBox::toggled, this, &GCPadWiiUConfigDialog::SaveSettings);
+  connect(m_simulate_bongos, &QCheckBox::toggled, this, &GCPadWiiUConfigDialog::SaveSettings);
+  connect(m_button_box, &QDialogButtonBox::accepted, this, &GCPadWiiUConfigDialog::accept);
 }
 
-void GCPadWiiU::LoadSettings()
+void GCPadWiiUConfigDialog::LoadSettings()
 {
   m_rumble->setChecked(SConfig::GetInstance().m_AdapterRumble[m_port]);
   m_simulate_bongos->setChecked(SConfig::GetInstance().m_AdapterKonga[m_port]);
 }
 
-void GCPadWiiU::SaveSettings()
+void GCPadWiiUConfigDialog::SaveSettings()
 {
   SConfig::GetInstance().m_AdapterRumble[m_port] = m_rumble->isChecked();
   SConfig::GetInstance().m_AdapterKonga[m_port] = m_simulate_bongos->isChecked();

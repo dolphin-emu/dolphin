@@ -28,7 +28,7 @@
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/USB/Bluetooth/BTReal.h"
 #include "Core/NetPlayProto.h"
-#include "DolphinQt2/Config/Mapping/GCPadWiiU.h"
+#include "DolphinQt2/Config/Mapping/GCPadWiiUConfigDialog.h"
 #include "DolphinQt2/Config/Mapping/MappingWindow.h"
 #include "DolphinQt2/Settings.h"
 #include "UICommon/UICommon.h"
@@ -418,7 +418,7 @@ void ControllersWindow::OnGCPadConfigure()
     type = MappingWindow::Type::MAPPING_GCPAD;
     break;
   case 2:  // GameCube Adapter for Wii U
-    GCPadWiiU(index, this).exec();
+    GCPadWiiUConfigDialog(static_cast<int>(index), this).exec();
     return;
   case 3:  // Steering Wheel
     type = MappingWindow::Type::MAPPING_GC_STEERINGWHEEL;

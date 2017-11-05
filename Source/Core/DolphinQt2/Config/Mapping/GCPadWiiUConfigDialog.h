@@ -11,10 +11,10 @@ class QLabel;
 class QDialogButtonBox;
 class QVBoxLayout;
 
-class GCPadWiiU final : public QDialog
+class GCPadWiiUConfigDialog final : public QDialog
 {
 public:
-  explicit GCPadWiiU(int port, QWidget* parent = nullptr);
+  explicit GCPadWiiUConfigDialog(int port, QWidget* parent = nullptr);
 
 private:
   void LoadSettings();
