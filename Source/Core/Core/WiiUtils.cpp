@@ -561,7 +561,7 @@ public:
   UpdateResult DoDiscUpdate();
 
 private:
-#pragma pack(push, 8)
+#pragma pack(push, 1)
   struct ManifestHeader
   {
     char timestamp[0x10];  // YYYY/MM/DD
@@ -581,9 +581,10 @@ private:
     char path[0x40];
     u64 title_id;
     u16 title_version;
+    u16 unused1[3];
     char name[0x40];
     char info[0x40];
-    u8 unused[0x120];
+    u8 unused2[0x120];
   };
   static_assert(sizeof(Entry) == 512, "Wrong size");
 #pragma pack(pop)
