@@ -40,7 +40,6 @@
     <ClCompile Include="AudioStretcher.cpp" />
     <ClCompile Include="CubebStream.cpp" />
     <ClCompile Include="CubebUtils.cpp" />
-    <ClCompile Include="DPL2Decoder.cpp" />
     <ClCompile Include="Mixer.cpp" />
     <ClCompile Include="NullSoundStream.cpp" />
     <ClCompile Include="OpenALStream.cpp" />
@@ -58,7 +57,6 @@
     <ClInclude Include="AudioStretcher.h" />
     <ClInclude Include="CubebStream.h" />
     <ClInclude Include="CubebUtils.h" />
-    <ClInclude Include="DPL2Decoder.h" />
     <ClInclude Include="Mixer.h" />
     <ClInclude Include="NullSoundStream.h" />
     <ClInclude Include="OpenALStream.h" />

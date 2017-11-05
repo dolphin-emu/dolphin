@@ -6,7 +6,6 @@
 
 #include "AudioCommon/CubebStream.h"
 #include "AudioCommon/CubebUtils.h"
-#include "AudioCommon/DPL2Decoder.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/Thread.h"
