@@ -49,7 +49,6 @@ void GeneralPane::ConnectLayout()
   connect(m_checkbox_dualcore, &QCheckBox::clicked, this, &GeneralPane::OnSaveConfig);
   connect(m_checkbox_cheats, &QCheckBox::clicked, this, &GeneralPane::OnSaveConfig);
   // Advanced
-  connect(m_checkbox_force_ntsc, &QCheckBox::clicked, this, &GeneralPane::OnSaveConfig);
   connect(m_combobox_speedlimit,
           static_cast<void (QComboBox::*)(const QString&)>(&QComboBox::activated),
           [this](const QString& text) { OnSaveConfig(); });
@@ -132,15 +131,10 @@ void GeneralPane::CreateAdvanced()
   engine_group_layout->addWidget(m_radio_interpreter);
   engine_group_layout->addWidget(m_radio_cached_interpreter);
   engine_group_layout->addWidget(m_radio_jit);
-
-  // NTSC-J
-  m_checkbox_force_ntsc = new QCheckBox(tr("Force Console as NTSC-J"));
-  advanced_group_layout->addWidget(m_checkbox_force_ntsc);
 }
 
 void GeneralPane::LoadConfig()
 {
-  m_checkbox_force_ntsc->setChecked(SConfig::GetInstance().bForceNTSCJ);
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
   m_checkbox_enable_analytics->setChecked(SConfig::GetInstance().m_analytics_enabled);
 #endif
@@ -172,7 +166,6 @@ void GeneralPane::LoadConfig()
 
 void GeneralPane::OnSaveConfig()
 {
-  SConfig::GetInstance().bForceNTSCJ = m_checkbox_force_ntsc->isChecked();
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
   SConfig::GetInstance().m_analytics_enabled = m_checkbox_enable_analytics->isChecked();
 #endif

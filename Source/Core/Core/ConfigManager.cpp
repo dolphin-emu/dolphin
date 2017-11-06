@@ -190,7 +190,6 @@ void SConfig::SaveDisplaySettings(IniFile& ini)
   display->Set("RenderWindowAutoSize", bRenderWindowAutoSize);
   display->Set("KeepWindowOnTop", bKeepWindowOnTop);
   display->Set("DisableScreenSaver", bDisableScreenSaver);
-  display->Set("ForceNTSCJ", bForceNTSCJ);
 }
 
 void SConfig::SaveGameListSettings(IniFile& ini)
@@ -470,7 +469,6 @@ void SConfig::LoadDisplaySettings(IniFile& ini)
   display->Get("RenderWindowAutoSize", &bRenderWindowAutoSize, false);
   display->Get("KeepWindowOnTop", &bKeepWindowOnTop, false);
   display->Get("DisableScreenSaver", &bDisableScreenSaver, true);
-  display->Get("ForceNTSCJ", &bForceNTSCJ, false);
 }
 
 void SConfig::LoadGameListSettings(IniFile& ini)
