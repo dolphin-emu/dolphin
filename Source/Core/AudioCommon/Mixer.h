@@ -11,11 +11,15 @@
 #include "AudioCommon/WaveFile.h"
 #include "Common/CommonTypes.h"
 
+class PointerWrap;
+
 class Mixer final
 {
 public:
   explicit Mixer(unsigned int BackendSampleRate);
   ~Mixer();
+
+  void DoState(PointerWrap& p);
 
   // Called from audio threads
   unsigned int Mix(short* samples, unsigned int numSamples);
@@ -53,6 +57,7 @@ private:
     MixerFifo(Mixer* mixer, unsigned sample_rate) : m_mixer(mixer), m_input_sample_rate(sample_rate)
     {
     }
+    void DoState(PointerWrap& p);
     void PushSamples(const short* samples, unsigned int num_samples);
     unsigned int Mix(short* samples, unsigned int numSamples, bool consider_framelimit = true);
     void SetInputSampleRate(unsigned int rate);
