@@ -5,7 +5,9 @@
 #pragma once
 
 #include <array>
+#include <chrono>
 #include <cstddef>
+#include <optional>
 #include <tuple>
 #include <vector>
 
@@ -162,6 +164,9 @@ void InjectExternalCPUCore(CPUCoreBase* core);
 // Stepping requires the CPU Execution lock (CPU::PauseAndLock or CPU Thread)
 // It's not threadsafe otherwise.
 void SingleStep();
+// Stepping until it returns if no timeout is specified
+bool StepOut(std::optional<std::chrono::seconds> timeout = std::nullopt);
+bool WillInstructionReturn(UGeckoInstruction inst);
 void CheckExceptions();
 void CheckExternalExceptions();
 void CheckBreakPoints();
