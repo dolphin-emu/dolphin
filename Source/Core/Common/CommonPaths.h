@@ -85,6 +85,10 @@
 #define DEFAULT_THEME_DIR "Clean"
 
 // Filenames
+
+// Files in the directory returned by GetSysDirectory()
+#define GAMESETTINGS_ZIP "GameSettings.zip"
+
 // Files in the directory returned by GetUserPath(D_CONFIG_IDX)
 #define DOLPHIN_CONFIG "Dolphin.ini"
 #define GCPAD_CONFIG "GCPadNew.ini"

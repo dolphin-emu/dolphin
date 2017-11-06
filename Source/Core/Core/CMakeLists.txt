@@ -281,6 +281,7 @@ set(LIBS
   enet
   inputcommon
   ${LZO}
+  minizip
   pugixml
   sfml-network
   sfml-system

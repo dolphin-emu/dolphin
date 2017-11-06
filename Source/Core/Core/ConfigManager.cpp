@@ -6,7 +6,10 @@
 
 #include <cinttypes>
 #include <climits>
+#include <cstring>
 #include <memory>
+#include <minizip/unzip.h>
+#include <mutex>
 #include <optional>
 #include <sstream>
 #include <variant>
@@ -47,6 +50,8 @@
 #include "DiscIO/WiiWad.h"
 
 SConfig* SConfig::m_Instance;
+std::mutex SConfig::m_gamesettings_zip_mutex;
+unzFile SConfig::m_gamesettings_zip;
 
 SConfig::SConfig()
 {
@@ -58,12 +63,29 @@ SConfig::SConfig()
 void SConfig::Init()
 {
   m_Instance = new SConfig;
+
+  std::lock_guard<std::mutex> lk(m_gamesettings_zip_mutex);
+  if (!m_gamesettings_zip)
+  {
+    std::string gamesettings_path = File::GetSysDirectory() + GAMESETTINGS_ZIP;
+    if (File::Exists(gamesettings_path))
+    {
+      m_gamesettings_zip = unzOpen(gamesettings_path.c_str());
+    }
+  }
 }
 
 void SConfig::Shutdown()
 {
   delete m_Instance;
   m_Instance = nullptr;
+
+  std::lock_guard<std::mutex> lk(m_gamesettings_zip_mutex);
+  if (m_gamesettings_zip)
+  {
+    unzClose(m_gamesettings_zip);
+    m_gamesettings_zip = nullptr;
+  }
 }
 
 SConfig::~SConfig()
@@ -1053,28 +1075,78 @@ IniFile SConfig::LoadGameIni() const
   return LoadGameIni(GetGameID(), m_revision);
 }
 
+void SConfig::MergeDefaultGameIni(const std::string& id, std::optional<u16> revision, IniFile* out)
+{
+  for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(id, revision))
+  {
+    out->Load(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + filename, true);
+
+    std::optional<std::string> zip_contents = LoadGameSettingsFromZipFile(filename);
+    if (zip_contents.has_value())
+    {
+      out->LoadFromString(zip_contents.value(), true);
+    }
+  }
+}
+
 IniFile SConfig::LoadDefaultGameIni(const std::string& id, std::optional<u16> revision)
 {
   IniFile game_ini;
-  for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(id, revision))
-    game_ini.Load(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + filename, true);
+  MergeDefaultGameIni(id, revision, &game_ini);
   return game_ini;
+}
+
+void SConfig::MergeLocalGameIni(const std::string& id, std::optional<u16> revision, IniFile* out)
+{
+  for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(id, revision))
+    out->Load(File::GetUserPath(D_GAMESETTINGS_IDX) + filename, true);
 }
 
 IniFile SConfig::LoadLocalGameIni(const std::string& id, std::optional<u16> revision)
 {
   IniFile game_ini;
-  for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(id, revision))
-    game_ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + filename, true);
+  MergeLocalGameIni(id, revision, &game_ini);
   return game_ini;
 }
 
 IniFile SConfig::LoadGameIni(const std::string& id, std::optional<u16> revision)
 {
   IniFile game_ini;
-  for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(id, revision))
-    game_ini.Load(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + filename, true);
-  for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(id, revision))
-    game_ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + filename, true);
+  MergeDefaultGameIni(id, revision, &game_ini);
+  MergeLocalGameIni(id, revision, &game_ini);
   return game_ini;
+}
+
+namespace
+{
+int CompareFileNames(unzFile fp, const char* f1, const char* f2)
+{
+  return strcmp(f1, f2);
+}
+}  // namespace
+
+std::optional<std::string> SConfig::LoadGameSettingsFromZipFile(const std::string& filename)
+{
+  std::lock_guard<std::mutex> lk(m_gamesettings_zip_mutex);
+  if (m_gamesettings_zip == nullptr)
+    return {};
+
+  if (unzLocateFile(m_gamesettings_zip, filename.c_str(), CompareFileNames) != UNZ_OK)
+    return {};
+
+  if (unzOpenCurrentFile(m_gamesettings_zip) != UNZ_OK)
+    return {};
+
+  unz_file_info file_info;
+  if (unzGetCurrentFileInfo(m_gamesettings_zip, &file_info, nullptr, 0, nullptr, 0, nullptr, 0) !=
+      UNZ_OK)
+    return {};
+
+  std::string contents;
+  contents.resize(file_info.uncompressed_size);
+  if (unzReadCurrentFile(m_gamesettings_zip, &contents[0], file_info.uncompressed_size) !=
+      static_cast<int>(contents.size()))
+    return {};
+
+  return contents;
 }

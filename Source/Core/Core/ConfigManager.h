@@ -5,6 +5,8 @@
 #pragma once
 
 #include <limits>
+#include <minizip/unzip.h>
+#include <mutex>
 #include <optional>
 #include <set>
 #include <string>
@@ -367,10 +369,18 @@ private:
   void SetRunningGameMetadata(const std::string& game_id, u64 title_id, u16 revision,
                               Core::TitleDatabase::TitleType type);
 
+  static void MergeDefaultGameIni(const std::string& id, std::optional<u16> revision, IniFile* out);
+  static void MergeLocalGameIni(const std::string& id, std::optional<u16> revision, IniFile* out);
+
   static SConfig* m_Instance;
 
   std::string m_game_id;
   std::string m_title_description;
   u64 m_title_id;
   u16 m_revision;
+
+  // Used for loading GameSettings from zip files.
+  static std::optional<std::string> LoadGameSettingsFromZipFile(const std::string& filename);
+  static std::mutex m_gamesettings_zip_mutex;
+  static unzFile m_gamesettings_zip;
 };
