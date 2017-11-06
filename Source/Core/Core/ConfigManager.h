@@ -319,7 +319,9 @@ struct SConfig
   bool m_SSLDumpRootCA;
   bool m_SSLDumpPeerCert;
   bool m_NetworkDumpPCAP;
+  bool m_OpenSSLDumpPCAP;
   std::unique_ptr<Core::NetworkCaptureLogger> m_network_logger;
+  std::unique_ptr<Core::NetworkCaptureLogger> m_openssl_logger;
 
   SConfig(const SConfig&) = delete;
   SConfig& operator=(const SConfig&) = delete;

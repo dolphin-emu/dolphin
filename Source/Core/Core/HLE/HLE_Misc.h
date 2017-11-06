@@ -11,4 +11,6 @@ void UnimplementedFunction();
 void HBReload();
 void GeckoCodeHandlerICacheFlush();
 void GeckoReturnTrampoline();
+void OpenSSLRead();
+void OpenSSLWrite();
 }

@@ -385,4 +385,18 @@ void PCAPSSLCaptureLogger::LogUDP(bool is_sender, const void* data, std::size_t 
                 static_cast<const char*>(data) + length);
   m_file->AddPacket(packet.data(), packet.size());
 }
+
+PCAPOpenSSLCaptureLogger::PCAPOpenSSLCaptureLogger()
+{
+  std::time_t t = std::time(nullptr);
+  std::ostringstream ss;
+  ss << std::put_time(std::localtime(&t), " %Y-%m-%d %Hh%Mm%Ss openssl.pcap");
+
+  const std::string filename =
+      File::GetUserPath(D_DUMPSSL_IDX) + SConfig::GetInstance().GetGameID() + ss.str();
+  m_file = std::make_unique<PCAP>(new File::IOFile(filename, "wb"), PCAP::LinkType::Ethernet);
+}
+
+PCAPOpenSSLCaptureLogger::~PCAPOpenSSLCaptureLogger() = default;
+
 }  // namespace Core

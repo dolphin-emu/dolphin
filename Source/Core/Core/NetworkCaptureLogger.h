@@ -80,6 +80,9 @@ public:
   void LogRead(const void* data, std::size_t length, s32 socket) override;
   void LogWrite(const void* data, std::size_t length, s32 socket) override;
 
+protected:
+  std::unique_ptr<PCAP> m_file;
+
 private:
   enum class LogType
   {
@@ -115,8 +118,15 @@ private:
   void LogTCP(bool is_sender, const void* data, std::size_t length, s32 socket);
   void LogUDP(bool is_sender, const void* data, std::size_t length, s32 socket);
 
-  std::unique_ptr<PCAP> m_file;
   u32 m_read_sequence_number = 0;
   u32 m_write_sequence_number = 0;
 };
+
+class PCAPOpenSSLCaptureLogger : public PCAPSSLCaptureLogger
+{
+public:
+  PCAPOpenSSLCaptureLogger();
+  ~PCAPOpenSSLCaptureLogger();
+};
+
 }  // namespace Core

@@ -4,11 +4,16 @@
 
 #include "Core/HLE/HLE_Misc.h"
 
+#include <chrono>
+
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
+#include "Core/ConfigManager.h"
 #include "Core/GeckoCode.h"
+#include "Core/HLE/HLE.h"
 #include "Core/HW/CPU.h"
+#include "Core/HW/Memmap.h"
 #include "Core/Host.h"
 #include "Core/PowerPC/PowerPC.h"
 
@@ -76,4 +81,65 @@ void GeckoReturnTrampoline()
     riPS1(i) = PowerPC::HostRead_U64(SP + 24 + (2 * i + 1) * sizeof(u64));
   }
 }
+
+// int SSL_read(SSL *ssl, void *buf, int num);
+void OpenSSLRead()
+{
+  u32 ssl = GPR(3);
+  u32 buf = GPR(4);
+  u32 num = GPR(5);
+
+  HLE::UnPatch("SSL_read");
+  PowerPC::StepOut(std::chrono::seconds(5));
+  HLE::PatchFunctions();
+
+  auto& config = SConfig::GetInstance();
+  if (!config.m_OpenSSLDumpPCAP)
+    return;
+
+  s32 ret = GPR(3);
+  if (ret <= 0 || !PowerPC::HostIsRAMAddress(ssl) || !PowerPC::HostIsRAMAddress(buf) ||
+      !PowerPC::HostIsRAMAddress(buf + num))
+  {
+    ERROR_LOG(OSHLE, "Failed to log SSL_read(%08x, %08x, %08x) = %d", ssl, buf, num, ret);
+    return;
+  }
+  INFO_LOG(OSHLE, "SSL_read(%08x, %08x, %08x) = %d", ssl, buf, num, ret);
+
+  std::vector<u8> data(num);
+  Memory::CopyFromEmu(&data[0], buf, num);
+  (void)ssl;
+  config.m_openssl_logger->LogTCPRead(data.data(), data.size(), -1);
 }
+
+// int SSL_write(SSL *ssl, const void *buf, int num);
+void OpenSSLWrite()
+{
+  u32 ssl = GPR(3);
+  u32 buf = GPR(4);
+  u32 num = GPR(5);
+
+  HLE::UnPatch("SSL_write");
+  PowerPC::StepOut(std::chrono::seconds(5));
+  HLE::PatchFunctions();
+
+  auto& config = SConfig::GetInstance();
+  if (!config.m_OpenSSLDumpPCAP)
+    return;
+
+  s32 ret = GPR(3);
+  if (ret <= 0 || !PowerPC::HostIsRAMAddress(ssl) || !PowerPC::HostIsRAMAddress(buf) ||
+      !PowerPC::HostIsRAMAddress(buf + num))
+  {
+    ERROR_LOG(OSHLE, "Failed to log SSL_write(%08x, %08x, %08x) = %d", ssl, buf, num, ret);
+    return;
+  }
+  INFO_LOG(OSHLE, "SSL_write(%08x, %08x, %08x) = %d", ssl, buf, num, ret);
+
+  std::vector<u8> data(num);
+  Memory::CopyFromEmu(&data[0], buf, num);
+  (void)ssl;
+  config.m_openssl_logger->LogTCPWrite(data.data(), data.size(), -1);
+}
+
+}  // namespace HLE_Misc
