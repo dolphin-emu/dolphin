@@ -4,7 +4,7 @@
 
 #pragma once
 
-#if __has_include_next(<variant>)
+#if __cplusplus >= 201703L && __has_include_next(<variant>)
 #include_next <variant>
 #else
 // MPark.Variant
