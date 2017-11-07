@@ -258,7 +258,7 @@ static void SetSamplerState(u32 index, bool custom_tex, bool has_arbitrary_mips)
     // that have arbitrary contents, eg. are used for fog effects where the
     // distance they kick in at is important to preserve at any resolution.
     state.lod_bias =
-        state.lod_bias + std::log2(static_cast<float>(g_ActiveConfig.iEFBScale)) * 256.f;
+        state.lod_bias + std::log2(static_cast<float>(g_renderer->GetEFBScale())) * 256.f;
 
     // Anisotropic also pushes mips farther away so it cannot be used either
     state.anisotropic_filtering = 0;

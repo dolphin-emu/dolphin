@@ -250,7 +250,7 @@ void TextureConverter::EncodeTextureToMemory(VkImageView src_texture, u8* dest_p
   // We also linear filtering for both box filtering and downsampling higher resolutions to 1x
   // TODO: This only produces perfect downsampling for 2x IR, other resolutions will need more
   //       complex down filtering to average all pixels and produce the correct result.
-  bool linear_filter = (scale_by_half && !params.depth) || g_ActiveConfig.iEFBScale != 1;
+  bool linear_filter = (scale_by_half && !params.depth) || g_renderer->GetEFBScale() != 1;
   draw.SetPSSampler(0, src_texture, linear_filter ? g_object_cache->GetLinearSampler() :
                                                     g_object_cache->GetPointSampler());
 
