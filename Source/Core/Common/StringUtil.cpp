@@ -22,6 +22,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
+#include "Common/Swap.h"
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -576,3 +577,11 @@ std::string UTF16ToUTF8(const std::wstring& input)
 }
 
 #endif
+
+std::string UTF16BEToUTF8(const char16_t* str, size_t max_size)
+{
+  const char16_t* str_end = std::find(str, str + max_size, '\0');
+  std::wstring result(static_cast<size_t>(str_end - str), '\0');
+  std::transform(str, str_end, result.begin(), static_cast<u16 (&)(u16)>(Common::swap16));
+  return UTF16ToUTF8(result);
+}
