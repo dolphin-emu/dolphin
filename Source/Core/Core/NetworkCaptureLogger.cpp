@@ -240,9 +240,10 @@ PCAPSSLCaptureLogger::IPHeader PCAPSSLCaptureLogger::GetIPHeader(bool is_sender,
   ip_header[9] = protocol;
 
   // Get socket IP address
-  struct sockaddr_in addr;
+  struct sockaddr_in addr = {};
   socklen_t addr_len = sizeof(struct sockaddr_in);
-  getpeername(socket, reinterpret_cast<struct sockaddr*>(&addr), &addr_len);
+  if (socket >= 0)
+    getpeername(socket, reinterpret_cast<struct sockaddr*>(&addr), &addr_len);
 
   if (is_sender)
   {
@@ -287,11 +288,14 @@ void PCAPSSLCaptureLogger::LogTCP(bool is_sender, const void* data, std::size_t 
   TCPHeader tcp_header = {};
 
   // Get socket port
-  struct sockaddr_in sock_addr;
-  struct sockaddr_in peer_addr;
+  struct sockaddr_in sock_addr = {};
+  struct sockaddr_in peer_addr = {};
   socklen_t addr_len = sizeof(struct sockaddr_in);
-  getsockname(socket, reinterpret_cast<struct sockaddr*>(&sock_addr), &addr_len);
-  getpeername(socket, reinterpret_cast<struct sockaddr*>(&peer_addr), &addr_len);
+  if (socket >= 0)
+  {
+    getsockname(socket, reinterpret_cast<struct sockaddr*>(&sock_addr), &addr_len);
+    getpeername(socket, reinterpret_cast<struct sockaddr*>(&peer_addr), &addr_len);
+  }
 
   // Write port
   if (is_sender)
@@ -346,11 +350,14 @@ void PCAPSSLCaptureLogger::LogUDP(bool is_sender, const void* data, std::size_t 
   UDPHeader udp_header = {};
 
   // Get socket port
-  struct sockaddr_in sock_addr;
-  struct sockaddr_in peer_addr;
+  struct sockaddr_in sock_addr = {};
+  struct sockaddr_in peer_addr = {};
   socklen_t addr_len = sizeof(struct sockaddr_in);
-  getsockname(socket, reinterpret_cast<struct sockaddr*>(&sock_addr), &addr_len);
-  getpeername(socket, reinterpret_cast<struct sockaddr*>(&peer_addr), &addr_len);
+  if (socket >= 0)
+  {
+    getsockname(socket, reinterpret_cast<struct sockaddr*>(&sock_addr), &addr_len);
+    getpeername(socket, reinterpret_cast<struct sockaddr*>(&peer_addr), &addr_len);
+  }
 
   // Write port
   if (is_sender)
