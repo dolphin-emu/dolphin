@@ -39,6 +39,7 @@ import org.dolphinemu.dolphinemu.fragments.SaveLoadStateFragment;
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
 import org.dolphinemu.dolphinemu.utils.Animations;
+import org.dolphinemu.dolphinemu.utils.ControllerMappingHelper;
 import org.dolphinemu.dolphinemu.utils.Java_GCAdapter;
 import org.dolphinemu.dolphinemu.utils.Java_WiimoteAdapter;
 import org.dolphinemu.dolphinemu.utils.Log;
@@ -57,6 +58,7 @@ public final class EmulationActivity extends AppCompatActivity
 	private EmulationFragment mEmulationFragment;
 
 	private SharedPreferences mPreferences;
+	private ControllerMappingHelper mControllerMappingHelper;
 
 	// So that MainActivity knows which view to invalidate before the return animation.
 	private int mPosition;
@@ -164,6 +166,7 @@ public final class EmulationActivity extends AppCompatActivity
 		mScreenPath = gameToEmulate.getStringExtra("ScreenPath");
 		mPosition = gameToEmulate.getIntExtra("GridPosition", -1);
 		mDeviceHasTouchScreen = getPackageManager().hasSystemFeature("android.hardware.touchscreen");
+		mControllerMappingHelper = new ControllerMappingHelper();
 
 		int themeId;
 		if (mDeviceHasTouchScreen)
@@ -729,7 +732,19 @@ public final class EmulationActivity extends AppCompatActivity
 
 		for (InputDevice.MotionRange range : motions)
 		{
-			NativeLibrary.onGamePadMoveEvent(input.getDescriptor(), range.getAxis(), event.getAxisValue(range.getAxis()));
+			int axis = range.getAxis();
+			float origValue = event.getAxisValue(axis);
+			float value = mControllerMappingHelper.scaleAxis(input, axis, origValue);
+			// If the input is still in the "flat" area, that means it's really zero.
+			// This is used to compensate for imprecision in joysticks.
+			if (Math.abs(value) > range.getFlat())
+			{
+				NativeLibrary.onGamePadMoveEvent(input.getDescriptor(), axis, value);
+			}
+			else
+			{
+				NativeLibrary.onGamePadMoveEvent(input.getDescriptor(), axis, 0.0f);
+			}
 		}
 
 		return true;
