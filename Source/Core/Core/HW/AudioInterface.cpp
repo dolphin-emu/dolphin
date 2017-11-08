@@ -127,6 +127,8 @@ void DoState(PointerWrap& p)
   p.Do(g_AISSampleRate);
   p.Do(g_AIDSampleRate);
   p.Do(g_CPUCyclesPerSample);
+
+  g_sound_stream->GetMixer()->DoState(p);
 }
 
 static void GenerateAudioInterrupt();
