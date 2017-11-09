@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include <list>
-
 #include <SDL.h>
 
 #if SDL_VERSION_ATLEAST(1, 3, 0)
@@ -16,11 +14,14 @@
 #include <SDL_haptic.h>
 #endif
 
+#include "InputCommon/ControllerInterface/Device.h"
+
 namespace ciface
 {
 namespace SDL
 {
 void Init();
+void DeInit();
 void PopulateDevices();
 
 class Joystick : public Core::Device
@@ -148,6 +149,7 @@ public:
 
   std::string GetName() const override;
   std::string GetSource() const override;
+  SDL_Joystick* GetSDLJoystick() const;
 
 private:
   SDL_Joystick* const m_joystick;
