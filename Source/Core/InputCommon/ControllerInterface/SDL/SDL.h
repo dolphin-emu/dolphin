@@ -151,7 +151,7 @@ public:
 
 private:
   SDL_Joystick* const m_joystick;
-  const int m_sdl_index;
+  std::string m_name;
 
 #ifdef USE_SDL_HAPTIC
   SDL_Haptic* m_haptic;
