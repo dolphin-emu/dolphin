@@ -79,6 +79,7 @@ public:
   void SetId(int id) { m_id = id; }
   virtual std::string GetName() const = 0;
   virtual std::string GetSource() const = 0;
+  std::string GetQualifiedName() const;
   virtual void UpdateInput() {}
   virtual bool IsValid() const { return true; }
   const std::vector<Input*>& Inputs() const { return m_inputs; }

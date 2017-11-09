@@ -2,9 +2,11 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
+
 #include <mutex>
 
-#include "InputCommon/ControllerInterface/ControllerInterface.h"
+#include "Common/Logging/Log.h"
 
 #ifdef CIFACE_USE_XINPUT
 #include "InputCommon/ControllerInterface/XInput/XInput.h"
@@ -165,30 +167,45 @@ void ControllerInterface::Shutdown()
 
 void ControllerInterface::AddDevice(std::shared_ptr<ciface::Core::Device> device)
 {
-  std::lock_guard<std::mutex> lk(m_devices_mutex);
-  // Try to find an ID for this device
-  int id = 0;
-  while (true)
   {
-    const auto it = std::find_if(m_devices.begin(), m_devices.end(), [&device, &id](const auto& d) {
-      return d->GetSource() == device->GetSource() && d->GetName() == device->GetName() &&
-             d->GetId() == id;
-    });
-    if (it == m_devices.end())  // no device with the same name with this ID, so we can use it
-      break;
-    else
-      id++;
+    std::lock_guard<std::mutex> lk(m_devices_mutex);
+    // Try to find an ID for this device
+    int id = 0;
+    while (true)
+    {
+      const auto it =
+          std::find_if(m_devices.begin(), m_devices.end(), [&device, &id](const auto& d) {
+            return d->GetSource() == device->GetSource() && d->GetName() == device->GetName() &&
+                   d->GetId() == id;
+          });
+      if (it == m_devices.end())  // no device with the same name with this ID, so we can use it
+        break;
+      else
+        id++;
+    }
+    device->SetId(id);
+
+    NOTICE_LOG(SERIALINTERFACE, "Added device: %s", device->GetQualifiedName().c_str());
+    m_devices.emplace_back(std::move(device));
   }
-  device->SetId(id);
-  m_devices.emplace_back(std::move(device));
+  InvokeHotplugCallbacks();
 }
 
 void ControllerInterface::RemoveDevice(std::function<bool(const ciface::Core::Device*)> callback)
 {
-  std::lock_guard<std::mutex> lk(m_devices_mutex);
-  m_devices.erase(std::remove_if(m_devices.begin(), m_devices.end(),
-                                 [&callback](const auto& dev) { return callback(dev.get()); }),
-                  m_devices.end());
+  {
+    std::lock_guard<std::mutex> lk(m_devices_mutex);
+    auto it = std::remove_if(m_devices.begin(), m_devices.end(), [&callback](const auto& dev) {
+      if (callback(dev.get()))
+      {
+        NOTICE_LOG(SERIALINTERFACE, "Removed device: %s", dev->GetQualifiedName().c_str());
+        return true;
+      }
+      return false;
+    });
+    m_devices.erase(it, m_devices.end());
+  }
+  InvokeHotplugCallbacks();
 }
 
 //
