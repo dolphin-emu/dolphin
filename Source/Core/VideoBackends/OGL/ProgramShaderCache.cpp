@@ -890,7 +890,7 @@ void ProgramShaderCache::CreateHeader()
   {
   case ES_FB_FETCH_TYPE::FB_FETCH_EXT:
     framebuffer_fetch_string = "#extension GL_EXT_shader_framebuffer_fetch: enable\n"
-                               "#define FB_FETCH_VALUE ocol0\n"
+                               "#define FB_FETCH_VALUE real_ocol0\n"
                                "#define FRAGMENT_INOUT inout";
     break;
   case ES_FB_FETCH_TYPE::FB_FETCH_ARM:

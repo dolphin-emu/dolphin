@@ -556,13 +556,17 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
     }
     else if (use_shader_blend)
     {
+      // QComm's Adreno driver doesn't seem to like using the framebuffer_fetch value as an
+      // intermediate value with multiple reads & modifications, so pull out the "real" output value
+      // and use a temporary for calculations, then set the output value once at the end of the
+      // shader
       if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_FRAGMENT_SHADER_INDEX_DECORATION))
       {
-        out.Write("FRAGMENT_OUTPUT_LOCATION(0) FRAGMENT_INOUT vec4 ocol0;\n");
+        out.Write("FRAGMENT_OUTPUT_LOCATION(0) FRAGMENT_INOUT vec4 real_ocol0;\n");
       }
       else
       {
-        out.Write("FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 0) FRAGMENT_INOUT vec4 ocol0;\n");
+        out.Write("FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 0) FRAGMENT_INOUT vec4 real_ocol0;\n");
       }
     }
     else
@@ -609,6 +613,8 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
     {
       // Store off a copy of the initial fb value for blending
       out.Write("\tfloat4 initial_ocol0 = FB_FETCH_VALUE;\n");
+      out.Write("\tfloat4 ocol0;\n");
+      out.Write("\tfloat4 ocol1;\n");
     }
   }
   else  // D3D
@@ -1472,5 +1478,5 @@ static void WriteBlend(ShaderCode& out, const pixel_shader_uid_data* uid_data)
     out.Write("\tfloat4 blend_result = ocol0;\n");
   }
 
-  out.Write("\tocol0 = blend_result;\n");
+  out.Write("\treal_ocol0 = blend_result;\n");
 }
