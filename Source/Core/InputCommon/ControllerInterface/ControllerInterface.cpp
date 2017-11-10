@@ -4,7 +4,7 @@
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
-#include <mutex>
+#include <algorithm>
 
 #include "Common/Logging/Log.h"
 
@@ -232,6 +232,7 @@ void ControllerInterface::UpdateInput()
 //
 void ControllerInterface::RegisterDevicesChangedCallback(std::function<void()> callback)
 {
+  std::lock_guard<std::mutex> lk(m_callbacks_mutex);
   m_devices_changed_callbacks.emplace_back(std::move(callback));
 }
 
@@ -242,6 +243,7 @@ void ControllerInterface::RegisterDevicesChangedCallback(std::function<void()> c
 //
 void ControllerInterface::InvokeDevicesChangedCallbacks() const
 {
+  std::lock_guard<std::mutex> lk(m_callbacks_mutex);
   for (const auto& callback : m_devices_changed_callbacks)
     callback();
 }

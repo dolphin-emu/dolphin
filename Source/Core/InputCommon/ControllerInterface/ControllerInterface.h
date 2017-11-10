@@ -4,14 +4,11 @@
 
 #pragma once
 
-#include <algorithm>
 #include <functional>
-#include <map>
-#include <sstream>
-#include <string>
+#include <memory>
+#include <mutex>
 #include <vector>
 
-#include "Common/CommonTypes.h"
 #include "InputCommon/ControllerInterface/Device.h"
 
 // enable disable sources
@@ -58,6 +55,7 @@ public:
 
 private:
   std::vector<std::function<void()>> m_devices_changed_callbacks;
+  mutable std::mutex m_callbacks_mutex;
   bool m_is_init;
   void* m_hwnd;
 };
