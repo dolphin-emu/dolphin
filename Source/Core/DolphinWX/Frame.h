@@ -38,6 +38,7 @@ class CCodeWindow;
 class CConfigMain;
 class CLogWindow;
 class FifoPlayerDlg;
+class InputConfig;
 class LogConfigWindow;
 class NetPlaySetupFrame;
 class TASInputDlg;
@@ -146,6 +147,12 @@ private:
     ADD_PANE_CENTER
   };
 
+  enum class CycleDirection : int
+  {
+    Forward = 1,
+    Backward = -1
+  };
+
   static constexpr int MOUSE_HIDE_DELAY = 3000;
   GameListCtrl* m_game_list_ctrl = nullptr;
   CConfigMain* m_main_config_dialog = nullptr;
@@ -195,6 +202,8 @@ private:
   void InitializeCoreCallbacks();
 
   void SetDebuggerStartupParameters() const;
+
+  void CycleProfile(CycleDirection, InputConfig* controller_conf);
 
   // Utility
   wxWindow* GetNotebookPageFromId(wxWindowID Id);

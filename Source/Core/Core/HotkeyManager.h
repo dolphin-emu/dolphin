@@ -15,7 +15,7 @@ namespace ControllerEmu
 {
 class ControllerEmu;
 class Buttons;
-}
+}  // namespace ControllerEmu
 
 enum Hotkey
 {
@@ -66,6 +66,11 @@ enum Hotkey
   HK_WIIMOTE3_CONNECT,
   HK_WIIMOTE4_CONNECT,
   HK_BALANCEBOARD_CONNECT,
+
+  HK_NEXT_WIIMOTE_PROFILE,
+  HK_PREV_WIIMOTE_PROFILE,
+  HK_NEXT_PAD_PROFILE,
+  HK_PREV_PAD_PROFILE,
 
   HK_TOGGLE_CROP,
   HK_TOGGLE_AR,
@@ -164,6 +169,7 @@ enum HotkeyGroup : int
   HKGP_PC,
   HKGP_BREAKPOINT,
   HKGP_WII,
+  HKGP_CONTROLLER_PROFILE,
   HKGP_GRAPHICS_TOGGLES,
   HKGP_IR,
   HKGP_FREELOOK,
@@ -221,4 +227,4 @@ void GetStatus();
 bool IsEnabled();
 void Enable(bool enable_toggle);
 bool IsPressed(int Id, bool held);
-}
+}  // namespace HotkeyManagerEmu

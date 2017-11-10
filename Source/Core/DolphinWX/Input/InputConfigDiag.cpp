@@ -362,6 +362,9 @@ void InputConfigDialog::UpdateGUI()
   if (device_cbox != nullptr)
     device_cbox->SetValue(StrToWxStr(controller->default_device.ToString()));
 
+  if (profile_filter != nullptr)
+    profile_filter->SetValue(StrToWxStr(controller->profile_filter));
+
   for (ControlGroupBox* cgBox : control_groups)
   {
     for (ControlButton* button : cgBox->control_buttons)
@@ -425,6 +428,14 @@ void InputConfigDialog::SetDevice(wxCommandEvent&)
 
   // update references
   controller->UpdateReferences(g_controller_interface);
+}
+
+void InputConfigDialog::SetProfileFilter(wxCommandEvent&)
+{
+  if (!profile_filter)
+    return;
+
+  controller->profile_filter = WxStrToStr(profile_filter->GetValue());
 }
 
 void ControlDialog::SetDevice(wxCommandEvent&)

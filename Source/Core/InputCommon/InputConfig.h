@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <cstddef>
 #include <memory>
 #include <string>
 #include <utility>
@@ -32,6 +33,7 @@ public:
   }
 
   ControllerEmu::EmulatedController* GetController(int index);
+  size_t GetControllerCount() const;
   void ClearControllers();
   bool ControllersNeedToBeCreated() const;
   bool IsControllerControlledByGamepadDevice(int index) const;

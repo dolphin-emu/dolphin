@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <array>
 #include <chrono>
 #include <cinttypes>
@@ -292,6 +293,71 @@ void CFrame::OpenGeneralConfiguration(wxWindowID tab_id)
 
   m_main_config_dialog->Show();
   m_main_config_dialog->SetFocus();
+}
+
+void CFrame::CycleProfile(CycleDirection cycle_direction, InputConfig* controller_conf)
+{
+  // load the hotkey config
+  InputConfig* hk_conf = HotkeyManagerEmu::GetConfig();
+  auto* hotkey_controller = hk_conf->GetController(0);
+
+  // find all controller profiles
+  std::string profile_name(File::GetUserPath(D_CONFIG_IDX));
+  profile_name += "Profiles/" + controller_conf->GetProfileName();
+  std::vector<std::string> sv = Common::DoFileSearch({profile_name}, {".ini"});
+
+  // remove all profiles that do not fit the filter string
+  if (!hotkey_controller->profile_filter.empty())
+  {
+    sv.erase(std::remove_if(sv.begin(), sv.end(),
+                            [filter = hotkey_controller->profile_filter](const std::string& s) {
+                              return s.find(filter) == std::string::npos;
+                            }),
+             sv.end());
+  }
+
+  // check if there are any profiles to cycle through
+  if (sv.empty())
+  {
+    if (hotkey_controller->profile_filter.empty())
+    {
+      Core::DisplayMessage("No Profiles found", 3000);
+    }
+    else
+    {
+      Core::DisplayMessage(
+          "No Profiles found matching filter: " + hotkey_controller->profile_filter, 3000);
+    }
+
+    return;
+  }
+
+  size_t controller_count = controller_conf->GetControllerCount();
+
+  // update the index and bound it to the number of available strings
+  auto positive_modulo = [](int& i, int n) { i = (i % n + n) % n; };
+  hotkey_controller->profile_index += static_cast<int>(cycle_direction);
+  positive_modulo(hotkey_controller->profile_index, static_cast<int>(sv.size()));
+
+  const auto& filename = sv[hotkey_controller->profile_index];
+  std::string base;
+  SplitPath(filename, nullptr, &base, nullptr);
+
+  IniFile ini_file;
+  if (ini_file.Load(filename))
+  {
+    Core::DisplayMessage("Loading profile: " + base, 3000);
+    for (int i = 0; i < static_cast<int>(controller_count); ++i)
+    {
+      auto* controller = controller_conf->GetController(i);
+      controller->LoadConfig(ini_file.GetOrCreateSection("Profile"));
+      controller->UpdateReferences(g_controller_interface);
+    }
+  }
+  else
+  {
+    Core::DisplayMessage("Unable to load profile: " + base, 3000);
+  }
 }
 
 // Menu items
@@ -861,10 +927,11 @@ void CFrame::DoStop()
       }
 
       wxMessageDialog m_StopDlg(
-          this, !m_tried_graceful_shutdown ? _("Do you want to stop the current emulation?") :
-                                             _("A shutdown is already in progress. Unsaved data "
-                                               "may be lost if you stop the current emulation "
-                                               "before it completes. Force stop?"),
+          this,
+          !m_tried_graceful_shutdown ? _("Do you want to stop the current emulation?") :
+                                       _("A shutdown is already in progress. Unsaved data "
+                                         "may be lost if you stop the current emulation "
+                                         "before it completes. Force stop?"),
           _("Please confirm..."), wxYES_NO | wxSTAY_ON_TOP | wxICON_EXCLAMATION, wxDefaultPosition);
 
       HotkeyManagerEmu::Enable(false);

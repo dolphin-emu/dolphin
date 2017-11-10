@@ -6,10 +6,13 @@
 #include <wx/notebook.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>
+#include <wx/stattext.h>
+#include <wx/textctrl.h>
 
 #include "Core/ConfigManager.h"
 #include "Core/HotkeyManager.h"
 #include "DolphinWX/Input/HotkeyInputConfigDiag.h"
+#include "DolphinWX/WxUtils.h"
 
 HotkeyInputConfigDialog::HotkeyInputConfigDialog(wxWindow* parent, InputConfig& config,
                                                  const wxString& name, bool using_debugger,
@@ -116,6 +119,7 @@ void HotkeyInputConfigDialog::InitializeNotebook()
     m_notebook->AddPage(CreateDebuggingPanel(), _("Debugging"));
   }
 
+  m_notebook->AddPage(CreateControllerProfilePanel(), _("Controller Profile"));
   m_notebook->AddPage(CreateWiiPanel(), _("Wii and Wii Remote"));
   m_notebook->AddPage(CreateGraphicsPanel(), _("Graphics"));
 
@@ -211,9 +215,37 @@ wxPanel* HotkeyInputConfigDialog::CreateWiiPanel()
   wii_sizer->AddSpacer(space5);
   wii_sizer->Add(wii_group_box, 0, wxEXPAND | wxTOP, space5);
   wii_sizer->AddSpacer(space5);
-
   wii_panel->SetSizerAndFit(wii_sizer);
   return wii_panel;
+}
+
+wxPanel* HotkeyInputConfigDialog::CreateControllerProfilePanel()
+{
+  const int space5 = FromDIP(5);
+  auto* const controller_profile_panel = new wxPanel(m_notebook);
+
+  auto* const profile_group_box = new ControlGroupBox(
+      HotkeyManagerEmu::GetHotkeyGroup(HKGP_CONTROLLER_PROFILE), controller_profile_panel, this);
+
+  auto* const profile_filter_label =
+      new wxStaticText(controller_profile_panel, wxID_ANY, "Profile filter: ");
+
+  profile_filter =
+      new wxTextCtrl(controller_profile_panel, wxID_ANY, StrToWxStr(controller->profile_filter));
+  profile_filter->ToggleWindowStyle(wxTE_PROCESS_ENTER);
+  profile_filter->Bind(wxEVT_TEXT_ENTER, &InputConfigDialog::SetProfileFilter, this);
+  profile_filter->Bind(wxEVT_TEXT, &InputConfigDialog::SetProfileFilter, this);
+
+  profile_group_box->Add(profile_filter_label, 0, wxEXPAND | wxTOP, space5);
+  profile_group_box->Add(profile_filter, 0, wxEXPAND | wxTOP, space5);
+
+  auto* const profile_sizer = new wxBoxSizer(wxHORIZONTAL);
+  profile_sizer->AddSpacer(space5);
+  profile_sizer->Add(profile_group_box, 0, wxEXPAND | wxTOP, space5);
+  profile_sizer->AddSpacer(space5);
+  controller_profile_panel->SetSizerAndFit(profile_sizer);
+
+  return controller_profile_panel;
 }
 
 wxPanel* HotkeyInputConfigDialog::CreateGraphicsPanel()

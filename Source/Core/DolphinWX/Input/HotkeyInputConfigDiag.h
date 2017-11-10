@@ -26,6 +26,7 @@ private:
   wxPanel* CreateGeneralPanel();
   wxPanel* CreateTASToolsPanel();
   wxPanel* CreateDebuggingPanel();
+  wxPanel* CreateControllerProfilePanel();
   wxPanel* CreateWiiPanel();
   wxPanel* CreateGraphicsPanel();
   wxPanel* CreateStereoscopic3DPanel();
