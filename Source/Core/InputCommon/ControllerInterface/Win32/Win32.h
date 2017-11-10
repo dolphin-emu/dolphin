@@ -8,8 +8,8 @@ namespace ciface
 {
 namespace Win32
 {
-void Init();
-void PopulateDevices(void* hwnd);
+void Init(void* hwnd);
+void PopulateDevices();
 void DeInit();
 }
 }

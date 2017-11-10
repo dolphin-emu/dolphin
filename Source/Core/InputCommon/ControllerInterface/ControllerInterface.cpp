@@ -47,7 +47,7 @@ void ControllerInterface::Initialize(void* const hwnd)
   m_is_populating_devices = true;
 
 #ifdef CIFACE_USE_WIN32
-  ciface::Win32::Init();
+  ciface::Win32::Init(hwnd);
 #endif
 #ifdef CIFACE_USE_XLIB
 // nothing needed
@@ -86,7 +86,7 @@ void ControllerInterface::RefreshDevices()
   m_is_populating_devices = true;
 
 #ifdef CIFACE_USE_WIN32
-  ciface::Win32::PopulateDevices(m_hwnd);
+  ciface::Win32::PopulateDevices();
 #endif
 #ifdef CIFACE_USE_XLIB
   ciface::XInput2::PopulateDevices(m_hwnd);
