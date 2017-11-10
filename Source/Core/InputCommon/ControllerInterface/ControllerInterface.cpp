@@ -8,11 +8,8 @@
 
 #include "Common/Logging/Log.h"
 
-#ifdef CIFACE_USE_XINPUT
-#include "InputCommon/ControllerInterface/XInput/XInput.h"
-#endif
-#ifdef CIFACE_USE_DINPUT
-#include "InputCommon/ControllerInterface/DInput/DInput.h"
+#ifdef CIFACE_USE_WIN32
+#include "InputCommon/ControllerInterface/Win32/Win32.h"
 #endif
 #ifdef CIFACE_USE_XLIB
 #include "InputCommon/ControllerInterface/Xlib/XInput2.h"
@@ -48,11 +45,8 @@ void ControllerInterface::Initialize(const WindowSystemInfo& wsi)
 
   m_is_populating_devices = true;
 
-#ifdef CIFACE_USE_DINPUT
-// nothing needed
-#endif
-#ifdef CIFACE_USE_XINPUT
-  ciface::XInput::Init();
+#ifdef CIFACE_USE_WIN32
+  ciface::Win32::Init();
 #endif
 #ifdef CIFACE_USE_XLIB
 // nothing needed
@@ -99,12 +93,8 @@ void ControllerInterface::RefreshDevices()
 
   m_is_populating_devices = true;
 
-#ifdef CIFACE_USE_DINPUT
-  if (m_wsi.type == WindowSystemType::Windows)
-    ciface::DInput::PopulateDevices(reinterpret_cast<HWND>(m_wsi.render_surface));
-#endif
-#ifdef CIFACE_USE_XINPUT
-  ciface::XInput::PopulateDevices();
+#ifdef CIFACE_USE_WIN32
+  ciface::Win32::PopulateDevices(m_wsi.render_surface);
 #endif
 #ifdef CIFACE_USE_XLIB
   if (m_wsi.type == WindowSystemType::X11)
@@ -160,14 +150,11 @@ void ControllerInterface::Shutdown()
   // BEFORE we shutdown the backends.
   InvokeDevicesChangedCallbacks();
 
-#ifdef CIFACE_USE_XINPUT
-  ciface::XInput::DeInit();
-#endif
-#ifdef CIFACE_USE_DINPUT
-// nothing needed
+#ifdef CIFACE_USE_WIN32
+  ciface::Win32::DeInit();
 #endif
 #ifdef CIFACE_USE_XLIB
-// nothing needed
+  // nothing needed
 #endif
 #ifdef CIFACE_USE_OSX
   ciface::OSX::DeInit();
