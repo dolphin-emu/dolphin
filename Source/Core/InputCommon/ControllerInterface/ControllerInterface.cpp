@@ -46,7 +46,7 @@ void ControllerInterface::Initialize(const WindowSystemInfo& wsi)
   m_is_populating_devices = true;
 
 #ifdef CIFACE_USE_WIN32
-  ciface::Win32::Init();
+  ciface::Win32::Init(wsi.render_surface);
 #endif
 #ifdef CIFACE_USE_XLIB
 // nothing needed
@@ -154,7 +154,7 @@ void ControllerInterface::Shutdown()
   ciface::Win32::DeInit();
 #endif
 #ifdef CIFACE_USE_XLIB
-  // nothing needed
+// nothing needed
 #endif
 #ifdef CIFACE_USE_OSX
   ciface::OSX::DeInit();

@@ -92,6 +92,8 @@ void PopulateDevices()
   if (!hXInput)
     return;
 
+  g_controller_interface.RemoveDevice([](const auto* dev) { return dev->GetSource() == "XInput"; });
+
   XINPUT_CAPABILITIES caps;
   for (int i = 0; i != 4; ++i)
     if (ERROR_SUCCESS == PXInputGetCapabilities(i, 0, &caps))

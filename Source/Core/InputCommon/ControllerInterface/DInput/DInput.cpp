@@ -46,6 +46,8 @@ std::string GetDeviceName(const LPDIRECTINPUTDEVICE8 device)
 
 void PopulateDevices(HWND hwnd)
 {
+  g_controller_interface.RemoveDevice([](const auto* dev) { return dev->GetSource() == "DInput"; });
+
   IDirectInput8* idi8;
   if (FAILED(DirectInput8Create(GetModuleHandle(nullptr), DIRECTINPUT_VERSION, IID_IDirectInput8,
                                 (LPVOID*)&idi8, nullptr)))
