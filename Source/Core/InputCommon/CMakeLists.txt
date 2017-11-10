@@ -34,6 +34,7 @@ if(WIN32)
     ControllerInterface/DInput/DInputJoystick.cpp
     ControllerInterface/DInput/DInputKeyboardMouse.cpp
     ControllerInterface/DInput/XInputFilter.cpp
+    ControllerInterface/Win32/Win32.cpp
     ControllerInterface/XInput/XInput.cpp
     ControllerInterface/ForceFeedback/ForceFeedbackDevice.cpp
   )

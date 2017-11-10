@@ -62,6 +62,7 @@
     <ClCompile Include="ControlReference\ControlReference.cpp" />
     <ClCompile Include="ControlReference\ExpressionParser.cpp" />
     <ClCompile Include="ControllerInterface\ForceFeedback\ForceFeedbackDevice.cpp" />
+    <ClCompile Include="ControllerInterface\Win32\Win32.cpp" />
     <ClCompile Include="ControllerInterface\XInput\XInput.cpp" />
     <ClCompile Include="GCAdapter.cpp">
       <!--
@@ -102,6 +103,7 @@
     <ClInclude Include="ControlReference\ControlReference.h" />
     <ClInclude Include="ControlReference\ExpressionParser.h" />
     <ClInclude Include="ControllerInterface\ForceFeedback\ForceFeedbackDevice.h" />
+    <ClInclude Include="ControllerInterface\Win32\Win32.h" />
     <ClInclude Include="ControllerInterface\XInput\XInput.h" />
     <ClInclude Include="GCAdapter.h" />
     <ClInclude Include="GCPadStatus.h" />
