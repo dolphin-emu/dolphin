@@ -10,7 +10,7 @@
 MappingBool::MappingBool(MappingWidget* widget, ControllerEmu::BooleanSetting* setting)
     : QCheckBox(QString::fromStdString(setting->m_ui_name)), m_parent(widget), m_setting(setting)
 {
-  setChecked(setting->GetValue());
+  Update();
   Connect();
 }
 
@@ -18,18 +18,18 @@ void MappingBool::Connect()
 {
   connect(this, &QCheckBox::stateChanged, this, [this](int value) {
     m_setting->SetValue(value);
-    Update();
+    m_parent->SaveSettings();
   });
 }
 
 void MappingBool::Clear()
 {
-  setChecked(false);
+  m_setting->SetValue(false);
+  m_parent->SaveSettings();
   Update();
 }
 
 void MappingBool::Update()
 {
   setChecked(m_setting->GetValue());
-  m_parent->SaveSettings();
 }
