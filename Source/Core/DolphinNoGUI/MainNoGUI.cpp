@@ -241,6 +241,10 @@ class PlatformX11 : public Platform
           key = XLookupKeysym((XKeyEvent*)&event, 0);
           if (key == XK_Escape)
           {
+            s_shutdown_requested.Set();
+          }
+          else if (key == XK_F10)
+          {
             if (Core::GetState() == Core::State::Running)
             {
               if (SConfig::GetInstance().bHideCursor)
