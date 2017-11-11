@@ -717,10 +717,10 @@ void Renderer::CheckForSurfaceChange()
 void Renderer::CheckForConfigChanges()
 {
   // Save the video config so we can compare against to determine which settings have changed.
-  int old_anisotropy = g_ActiveConfig.iMaxAnisotropy;
-  int old_aspect_ratio = g_ActiveConfig.iAspectRatio;
-  int old_efb_scale = g_ActiveConfig.iEFBScale;
-  bool old_force_filtering = g_ActiveConfig.bForceFiltering;
+  const int old_anisotropy = g_ActiveConfig.iMaxAnisotropy;
+  const AspectMode old_aspect_mode = g_ActiveConfig.aspect_mode;
+  const int old_efb_scale = g_ActiveConfig.iEFBScale;
+  const bool old_force_filtering = g_ActiveConfig.bForceFiltering;
 
   // Copy g_Config to g_ActiveConfig.
   // NOTE: This can potentially race with the UI thread, however if it does, the changes will be
@@ -728,10 +728,11 @@ void Renderer::CheckForConfigChanges()
   UpdateActiveConfig();
 
   // Determine which (if any) settings have changed.
-  bool anisotropy_changed = old_anisotropy != g_ActiveConfig.iMaxAnisotropy;
-  bool force_texture_filtering_changed = old_force_filtering != g_ActiveConfig.bForceFiltering;
-  bool efb_scale_changed = old_efb_scale != g_ActiveConfig.iEFBScale;
-  bool aspect_changed = old_aspect_ratio != g_ActiveConfig.iAspectRatio;
+  const bool anisotropy_changed = old_anisotropy != g_ActiveConfig.iMaxAnisotropy;
+  const bool force_texture_filtering_changed =
+      old_force_filtering != g_ActiveConfig.bForceFiltering;
+  const bool efb_scale_changed = old_efb_scale != g_ActiveConfig.iEFBScale;
+  const bool aspect_changed = old_aspect_mode != g_ActiveConfig.aspect_mode;
 
   // Update texture cache settings with any changed options.
   TextureCache::GetInstance()->OnConfigChanged(g_ActiveConfig);

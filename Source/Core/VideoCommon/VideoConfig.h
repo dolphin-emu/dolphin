@@ -24,12 +24,12 @@
 
 constexpr int EFB_SCALE_AUTO_INTEGRAL = 0;
 
-enum AspectMode
+enum class AspectMode
 {
-  ASPECT_AUTO = 0,
-  ASPECT_ANALOG_WIDE = 1,
-  ASPECT_ANALOG = 2,
-  ASPECT_STRETCH = 3,
+  Auto,
+  AnalogWide,
+  Analog,
+  Stretch,
 };
 
 enum StereoMode
@@ -63,7 +63,7 @@ struct VideoConfig final
   // General
   bool bVSync;
   bool bWidescreenHack;
-  int iAspectRatio;
+  AspectMode aspect_mode;
   bool bCrop;  // Aspect ratio controls.
   bool bShaderCache;
 

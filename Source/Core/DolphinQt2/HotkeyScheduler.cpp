@@ -221,7 +221,10 @@ void HotkeyScheduler::Run()
       if (IsHotkey(HK_TOGGLE_CROP))
         g_Config.bCrop = !g_Config.bCrop;
       if (IsHotkey(HK_TOGGLE_AR))
-        g_Config.iAspectRatio = (g_Config.iAspectRatio + 1) & 3;
+      {
+        g_Config.aspect_mode =
+            static_cast<AspectMode>((static_cast<int>(g_Config.aspect_mode) + 1) & 3);
+      }
       if (IsHotkey(HK_TOGGLE_EFBCOPIES))
         g_Config.bSkipEFBCopyToRam = !g_Config.bSkipEFBCopyToRam;
       if (IsHotkey(HK_TOGGLE_XFBCOPIES))
