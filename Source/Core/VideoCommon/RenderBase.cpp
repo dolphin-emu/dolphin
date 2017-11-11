@@ -185,7 +185,7 @@ Renderer::ConvertStereoRectangle(const TargetRectangle& rc) const
 {
   // Resize target to half its original size
   TargetRectangle draw_rc = rc;
-  if (g_ActiveConfig.iStereoMode == STEREO_TAB)
+  if (g_ActiveConfig.stereo_mode == StereoMode::TAB)
   {
     // The height may be negative due to flipped rectangles
     int height = rc.bottom - rc.top;
@@ -202,7 +202,7 @@ Renderer::ConvertStereoRectangle(const TargetRectangle& rc) const
   // Create two target rectangle offset to the sides of the backbuffer
   TargetRectangle left_rc = draw_rc;
   TargetRectangle right_rc = draw_rc;
-  if (g_ActiveConfig.iStereoMode == STEREO_TAB)
+  if (g_ActiveConfig.stereo_mode == StereoMode::TAB)
   {
     left_rc.top -= m_backbuffer_height / 4;
     left_rc.bottom -= m_backbuffer_height / 4;

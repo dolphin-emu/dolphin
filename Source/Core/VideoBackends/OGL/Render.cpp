@@ -548,7 +548,7 @@ Renderer::Renderer()
       g_ogl_config.bSupports2DTextureStorageMultisample = true;
       g_Config.backend_info.bSupportsBitfield = true;
       g_Config.backend_info.bSupportsDynamicSamplerIndexing = g_ogl_config.bSupportsAEP;
-      if (g_ActiveConfig.iStereoMode > 0 && g_ActiveConfig.iMultisamples > 1 &&
+      if (g_ActiveConfig.stereo_mode != StereoMode::Off && g_ActiveConfig.iMultisamples > 1 &&
           !g_ogl_config.bSupports3DTextureStorageMultisample)
       {
         // GLES 3.1 can't support stereo rendering and MSAA
@@ -725,7 +725,7 @@ Renderer::Renderer()
   s_last_multisamples = g_ActiveConfig.iMultisamples;
   s_MSAASamples = s_last_multisamples;
 
-  s_last_stereo_mode = g_ActiveConfig.iStereoMode > 0;
+  s_last_stereo_mode = g_ActiveConfig.stereo_mode != StereoMode::Off;
 
   // Handle VSync on/off
   s_vsync = g_ActiveConfig.IsVSync();
@@ -1216,12 +1216,13 @@ void Renderer::BlitScreen(TargetRectangle src, TargetRectangle dst, GLuint src_t
                           int src_width, int src_height)
 {
   OpenGLPostProcessing* post_processor = static_cast<OpenGLPostProcessing*>(m_post_processor.get());
-  if (g_ActiveConfig.iStereoMode == STEREO_SBS || g_ActiveConfig.iStereoMode == STEREO_TAB)
+  if (g_ActiveConfig.stereo_mode == StereoMode::SBS ||
+      g_ActiveConfig.stereo_mode == StereoMode::TAB)
   {
     TargetRectangle leftRc, rightRc;
 
     // Top-and-Bottom mode needs to compensate for inverted vertical screen coordinates.
-    if (g_ActiveConfig.iStereoMode == STEREO_TAB)
+    if (g_ActiveConfig.stereo_mode == StereoMode::TAB)
       std::tie(rightRc, leftRc) = ConvertStereoRectangle(dst);
     else
       std::tie(leftRc, rightRc) = ConvertStereoRectangle(dst);
@@ -1229,7 +1230,7 @@ void Renderer::BlitScreen(TargetRectangle src, TargetRectangle dst, GLuint src_t
     post_processor->BlitFromTexture(src, leftRc, src_texture, src_width, src_height, 0);
     post_processor->BlitFromTexture(src, rightRc, src_texture, src_width, src_height, 1);
   }
-  else if (g_ActiveConfig.iStereoMode == STEREO_QUADBUFFER)
+  else if (g_ActiveConfig.stereo_mode == StereoMode::QuadBuffer)
   {
     glDrawBuffer(GL_BACK_LEFT);
     post_processor->BlitFromTexture(src, dst, src_texture, src_width, src_height, 0);
@@ -1378,7 +1379,7 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
   bool fb_needs_update = target_size_changed ||
                          s_last_multisamples != g_ActiveConfig.iMultisamples ||
                          stencil_buffer_enabled != BoundingBox::NeedsStencilBuffer() ||
-                         s_last_stereo_mode != (g_ActiveConfig.iStereoMode > 0);
+                         s_last_stereo_mode != (g_ActiveConfig.stereo_mode != StereoMode::Off);
 
   if (window_resized || fb_needs_update)
   {
@@ -1386,7 +1387,7 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
   }
   if (fb_needs_update)
   {
-    s_last_stereo_mode = g_ActiveConfig.iStereoMode > 0;
+    s_last_stereo_mode = g_ActiveConfig.stereo_mode != StereoMode::Off;
     s_last_multisamples = g_ActiveConfig.iMultisamples;
     s_MSAASamples = s_last_multisamples;
 

@@ -629,7 +629,8 @@ void Renderer::BlitScreen(VkRenderPass render_pass, const TargetRectangle& dst_r
                           const TargetRectangle& src_rect, const Texture2D* src_tex)
 {
   VulkanPostProcessing* post_processor = static_cast<VulkanPostProcessing*>(m_post_processor.get());
-  if (g_ActiveConfig.iStereoMode == STEREO_SBS || g_ActiveConfig.iStereoMode == STEREO_TAB)
+  if (g_ActiveConfig.stereo_mode == StereoMode::SBS ||
+      g_ActiveConfig.stereo_mode == StereoMode::TAB)
   {
     TargetRectangle left_rect;
     TargetRectangle right_rect;
@@ -638,7 +639,7 @@ void Renderer::BlitScreen(VkRenderPass render_pass, const TargetRectangle& dst_r
     post_processor->BlitFromTexture(left_rect, src_rect, src_tex, 0, render_pass);
     post_processor->BlitFromTexture(right_rect, src_rect, src_tex, 1, render_pass);
   }
-  else if (g_ActiveConfig.iStereoMode == STEREO_QUADBUFFER)
+  else if (g_ActiveConfig.stereo_mode == StereoMode::QuadBuffer)
   {
     post_processor->BlitFromTexture(dst_rect, src_rect, src_tex, -1, render_pass);
   }
@@ -771,7 +772,7 @@ void Renderer::CheckForConfigChanges()
 
   // For quad-buffered stereo we need to change the layer count, so recreate the swap chain.
   if (m_swap_chain &&
-      (g_ActiveConfig.iStereoMode == STEREO_QUADBUFFER) != m_swap_chain->IsStereoEnabled())
+      (g_ActiveConfig.stereo_mode == StereoMode::QuadBuffer) != m_swap_chain->IsStereoEnabled())
   {
     g_command_buffer_mgr->WaitForGPUIdle();
     m_swap_chain->RecreateSwapChain();

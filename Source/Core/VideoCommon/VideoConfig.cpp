@@ -122,7 +122,7 @@ void VideoConfig::Refresh()
   sPostProcessingShader = Config::Get(Config::GFX_ENHANCE_POST_SHADER);
   bForceTrueColor = Config::Get(Config::GFX_ENHANCE_FORCE_TRUE_COLOR);
 
-  iStereoMode = Config::Get(Config::GFX_STEREO_MODE);
+  stereo_mode = static_cast<StereoMode>(Config::Get(Config::GFX_STEREO_MODE));
   iStereoDepth = Config::Get(Config::GFX_STEREO_DEPTH);
   iStereoConvergencePercentage = Config::Get(Config::GFX_STEREO_CONVERGENCE_PERCENTAGE);
   bStereoSwapEyes = Config::Get(Config::GFX_STEREO_SWAP_EYES);
@@ -162,14 +162,14 @@ void VideoConfig::VerifyValidity()
       backend_info.AAModes.end())
     iMultisamples = 1;
 
-  if (iStereoMode > 0)
+  if (stereo_mode != StereoMode::Off)
   {
     if (!backend_info.bSupportsGeometryShaders)
     {
       OSD::AddMessage(
           "Stereoscopic 3D isn't supported by your GPU, support for OpenGL 3.2 is required.",
           10000);
-      iStereoMode = 0;
+      stereo_mode = StereoMode::Off;
     }
   }
 }

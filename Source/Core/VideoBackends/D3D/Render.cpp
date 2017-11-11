@@ -209,7 +209,7 @@ static void Create3DVisionTexture(int width, int height)
 Renderer::Renderer() : ::Renderer(D3D::GetBackBufferWidth(), D3D::GetBackBufferHeight())
 {
   s_last_multisamples = g_ActiveConfig.iMultisamples;
-  s_last_stereo_mode = g_ActiveConfig.iStereoMode > 0;
+  s_last_stereo_mode = g_ActiveConfig.stereo_mode != StereoMode::Off;
   s_last_fullscreen_mode = D3D::GetFullscreenState();
 
   g_framebuffer_manager = std::make_unique<FramebufferManager>(m_target_width, m_target_height);
@@ -658,7 +658,7 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
   // Resize the back buffers NOW to avoid flickering
   if (CalculateTargetSize() || window_resized || fs_changed ||
       s_last_multisamples != g_ActiveConfig.iMultisamples ||
-      s_last_stereo_mode != (g_ActiveConfig.iStereoMode > 0))
+      s_last_stereo_mode != (g_ActiveConfig.stereo_mode != StereoMode::Off))
   {
     s_last_multisamples = g_ActiveConfig.iMultisamples;
     s_last_fullscreen_mode = fullscreen;
@@ -676,7 +676,7 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
 
     UpdateDrawRectangle();
 
-    s_last_stereo_mode = g_ActiveConfig.iStereoMode > 0;
+    s_last_stereo_mode = g_ActiveConfig.stereo_mode != StereoMode::Off;
 
     D3D::context->OMSetRenderTargets(1, &D3D::GetBackBuffer()->GetRTV(), nullptr);
 
@@ -810,7 +810,8 @@ void Renderer::BBoxWrite(int index, u16 _value)
 void Renderer::BlitScreen(TargetRectangle src, TargetRectangle dst, D3DTexture2D* src_texture,
                           u32 src_width, u32 src_height, float Gamma)
 {
-  if (g_ActiveConfig.iStereoMode == STEREO_SBS || g_ActiveConfig.iStereoMode == STEREO_TAB)
+  if (g_ActiveConfig.stereo_mode == StereoMode::SBS ||
+      g_ActiveConfig.stereo_mode == StereoMode::TAB)
   {
     TargetRectangle leftRc, rightRc;
     std::tie(leftRc, rightRc) = ConvertStereoRectangle(dst);
@@ -832,7 +833,7 @@ void Renderer::BlitScreen(TargetRectangle src, TargetRectangle dst, D3DTexture2D
                            VertexShaderCache::GetSimpleVertexShader(),
                            VertexShaderCache::GetSimpleInputLayout(), nullptr, Gamma, 1);
   }
-  else if (g_ActiveConfig.iStereoMode == STEREO_3DVISION)
+  else if (g_ActiveConfig.stereo_mode == StereoMode::Nvidia3DVision)
   {
     if (!s_3d_vision_texture)
       Create3DVisionTexture(m_backbuffer_width, m_backbuffer_height);
@@ -872,10 +873,10 @@ void Renderer::BlitScreen(TargetRectangle src, TargetRectangle dst, D3DTexture2D
                                         (float)dst.GetHeight());
     D3D::context->RSSetViewports(1, &vp);
 
-    ID3D11PixelShader* pixelShader = (g_Config.iStereoMode == STEREO_ANAGLYPH) ?
+    ID3D11PixelShader* pixelShader = (g_Config.stereo_mode == StereoMode::Anaglyph) ?
                                          PixelShaderCache::GetAnaglyphProgram() :
                                          PixelShaderCache::GetColorCopyProgram(false);
-    ID3D11GeometryShader* geomShader = (g_ActiveConfig.iStereoMode == STEREO_QUADBUFFER) ?
+    ID3D11GeometryShader* geomShader = (g_ActiveConfig.stereo_mode == StereoMode::QuadBuffer) ?
                                            GeometryShaderCache::GetCopyGeometryShader() :
                                            nullptr;
     D3D::drawShadedTexQuad(src_texture->GetSRV(), src.AsRECT(), src_width, src_height, pixelShader,

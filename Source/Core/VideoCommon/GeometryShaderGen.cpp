@@ -20,7 +20,7 @@ constexpr std::array<const char*, 4> primitives_d3d = {{"point", "line", "triang
 
 bool geometry_shader_uid_data::IsPassthrough() const
 {
-  const bool stereo = g_ActiveConfig.iStereoMode > 0;
+  const bool stereo = g_ActiveConfig.stereo_mode != StereoMode::Off;
   const bool wireframe = g_ActiveConfig.bWireFrame;
   return primitive_type >= static_cast<u32>(PrimitiveType::Triangles) && !stereo && !wireframe;
 }

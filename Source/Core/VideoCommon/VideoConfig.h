@@ -32,14 +32,14 @@ enum class AspectMode
   Stretch,
 };
 
-enum StereoMode
+enum class StereoMode
 {
-  STEREO_OFF = 0,
-  STEREO_SBS,
-  STEREO_TAB,
-  STEREO_ANAGLYPH,
-  STEREO_QUADBUFFER,
-  STEREO_3DVISION
+  Off,
+  SBS,
+  TAB,
+  Anaglyph,
+  QuadBuffer,
+  Nvidia3DVision
 };
 
 struct ProjectionHackConfig final
@@ -130,7 +130,7 @@ struct VideoConfig final
   int iSaveTargetId;  // TODO: Should be dropped
 
   // Stereoscopy
-  int iStereoMode;
+  StereoMode stereo_mode;
   int iStereoDepth;
   int iStereoConvergence;
   int iStereoConvergencePercentage;

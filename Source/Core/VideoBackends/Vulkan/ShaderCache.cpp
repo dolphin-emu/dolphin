@@ -971,7 +971,7 @@ std::string ShaderCache::GetUtilityShaderHeader() const
       ss << "#define SSAA_ENABLED 1" << std::endl;
   }
 
-  u32 efb_layers = (g_ActiveConfig.iStereoMode != STEREO_OFF) ? 2 : 1;
+  u32 efb_layers = (g_ActiveConfig.stereo_mode != StereoMode::Off) ? 2 : 1;
   ss << "#define EFB_LAYERS " << efb_layers << std::endl;
 
   return ss.str();
@@ -1126,7 +1126,7 @@ bool ShaderCache::CompileSharedShaders()
     return false;
   }
 
-  if (g_ActiveConfig.iStereoMode != STEREO_OFF && g_vulkan_context->SupportsGeometryShaders())
+  if (g_ActiveConfig.stereo_mode != StereoMode::Off && g_vulkan_context->SupportsGeometryShaders())
   {
     m_screen_quad_geometry_shader =
         Util::CompileAndCreateGeometryShader(header + SCREEN_QUAD_GEOMETRY_SHADER_SOURCE);
