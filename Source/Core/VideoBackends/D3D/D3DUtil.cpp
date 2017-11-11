@@ -487,12 +487,6 @@ struct
 
 struct
 {
-  MathUtil::Rectangle<float> rdest;
-  float u1, v1, u2, v2, S, G;
-} tex_sub_quad_data;
-
-struct
-{
   float x1, y1, x2, y2, z;
   u32 col;
 } draw_quad_data;
@@ -504,10 +498,10 @@ struct
 } clear_quad_data;
 
 // ring buffer offsets
-int stq_offset, stsq_offset, cq_offset, clearq_offset;
+int stq_offset, cq_offset, clearq_offset;
 
 // observer variables for ring buffer wraps
-bool stq_observer, stsq_observer, cq_observer, clearq_observer;
+bool stq_observer, cq_observer, clearq_observer;
 
 void InitUtils()
 {
@@ -534,15 +528,13 @@ void InitUtils()
 
   // cached data used to avoid unnecessarily reloading the vertex buffers
   memset(&tex_quad_data, 0, sizeof(tex_quad_data));
-  memset(&tex_sub_quad_data, 0, sizeof(tex_sub_quad_data));
   memset(&draw_quad_data, 0, sizeof(draw_quad_data));
   memset(&clear_quad_data, 0, sizeof(clear_quad_data));
 
   // make sure to properly load the vertex data whenever the corresponding functions get called the
   // first time
-  stq_observer = stsq_observer = cq_observer = clearq_observer = true;
+  stq_observer = cq_observer = clearq_observer = true;
   util_vbuf->AddWrapObserver(&stq_observer);
-  util_vbuf->AddWrapObserver(&stsq_observer);
   util_vbuf->AddWrapObserver(&cq_observer);
   util_vbuf->AddWrapObserver(&clearq_observer);
 
