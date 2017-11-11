@@ -58,7 +58,7 @@ struct VideoConfig final
   void Refresh();
   void VerifyValidity();
   void UpdateProjectionHack();
-  bool IsVSync();
+  bool IsVSync() const;
 
   // General
   bool bVSync;
