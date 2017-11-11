@@ -569,11 +569,7 @@ std::string UTF8ToSHIFTJIS(const std::string& input)
 
 std::string UTF16ToUTF8(const std::wstring& input)
 {
-  std::string result = CodeToUTF8("UTF-16LE", input);
-
-  // TODO: why is this needed?
-  result.erase(std::remove(result.begin(), result.end(), 0x00), result.end());
-  return result;
+  return CodeToUTF8("UTF-16LE", input);
 }
 
 #endif
