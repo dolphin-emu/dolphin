@@ -102,7 +102,6 @@ void VideoBackend::InitBackendInfo()
     // TODO: These don't get updated on adapter change, yet
     if (adapter_index == g_Config.iAdapter)
     {
-      std::string samples;
       std::vector<DXGI_SAMPLE_DESC> modes = DX11::D3D::EnumAAModes(ad);
       // First iteration will be 1. This equals no AA.
       for (unsigned int i = 0; i < modes.size(); ++i)
