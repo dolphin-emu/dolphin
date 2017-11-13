@@ -182,7 +182,6 @@ BEGIN_EVENT_TABLE(CISOProperties, wxDialog)
 EVT_CLOSE(CISOProperties::OnClose)
 EVT_BUTTON(wxID_OK, CISOProperties::OnCloseClick)
 EVT_BUTTON(ID_EDITCONFIG, CISOProperties::OnEditConfig)
-EVT_BUTTON(ID_SHOWDEFAULTCONFIG, CISOProperties::OnShowDefaultConfig)
 EVT_CHOICE(ID_EMUSTATE, CISOProperties::OnEmustateChanged)
 EVT_LISTBOX(ID_PATCHES_LIST, CISOProperties::PatchListSelectionChanged)
 EVT_BUTTON(ID_EDITPATCH, CISOProperties::PatchButtonClicked)
@@ -233,11 +232,6 @@ void CISOProperties::CreateGUIControls()
 
   wxButton* const edit_config = new wxButton(this, ID_EDITCONFIG, _("Edit Config"));
   edit_config->SetToolTip(_("This will let you manually edit the INI config file."));
-
-  wxButton* const edit_default_config =
-      new wxButton(this, ID_SHOWDEFAULTCONFIG, _("Show Defaults"));
-  edit_default_config->SetToolTip(
-      _("Opens the default (read-only) configuration for this game in an external text editor."));
 
   // Notebook
   wxNotebook* const notebook = new wxNotebook(this, ID_NOTEBOOK);
@@ -442,19 +436,8 @@ void CISOProperties::CreateGUIControls()
   }
 
   wxStdDialogButtonSizer* buttons_sizer = CreateStdDialogButtonSizer(wxOK | wxNO_DEFAULT);
-  buttons_sizer->Prepend(edit_default_config);
   buttons_sizer->Prepend(edit_config);
   buttons_sizer->GetAffirmativeButton()->SetLabel(_("Close"));
-
-  // If there is no default gameini, disable the button.
-  const std::vector<std::string> ini_names =
-      ConfigLoaders::GetGameIniFilenames(m_game_id, m_open_iso->GetRevision());
-  const bool game_ini_exists =
-      std::any_of(ini_names.cbegin(), ini_names.cend(), [](const std::string& name) {
-        return File::Exists(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + name);
-      });
-  if (!game_ini_exists)
-    edit_default_config->Disable();
 
   // Add notebook and buttons to the dialog
   wxBoxSizer* main_sizer = new wxBoxSizer(wxVERTICAL);
@@ -750,19 +733,6 @@ void CISOProperties::OnCheatCodeToggled(wxCommandEvent&)
 void CISOProperties::OnChangeTitle(wxCommandEvent& event)
 {
   SetTitle(event.GetString());
-}
-
-// Opens all pre-defined INIs for the game. If there are multiple ones,
-// they will all be opened, but there is usually only one
-void CISOProperties::OnShowDefaultConfig(wxCommandEvent& WXUNUSED(event))
-{
-  for (const std::string& filename :
-       ConfigLoaders::GetGameIniFilenames(m_game_id, m_open_iso->GetRevision()))
-  {
-    std::string path = File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + filename;
-    if (File::Exists(path))
-      LaunchExternalEditor(path, false);
-  }
 }
 
 void CISOProperties::PatchListSelectionChanged(wxCommandEvent& event)

@@ -1079,8 +1079,6 @@ void SConfig::MergeDefaultGameIni(const std::string& id, std::optional<u16> revi
 {
   for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(id, revision))
   {
-    out->Load(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + filename, true);
-
     std::optional<std::string> zip_contents = LoadGameSettingsFromZipFile(filename);
     if (zip_contents.has_value())
     {

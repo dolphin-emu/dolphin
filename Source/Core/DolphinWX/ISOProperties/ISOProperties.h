@@ -115,7 +115,6 @@ private:
     ID_ENABLEPROGRESSIVESCAN,
     ID_ENABLEWIDESCREEN,
     ID_EDITCONFIG,
-    ID_SHOWDEFAULTCONFIG,
     ID_EMUSTATE,
     ID_EMU_ISSUES,
     ID_PATCHES_LIST,
@@ -134,7 +133,6 @@ private:
   void OnClose(wxCloseEvent& event);
   void OnCloseClick(wxCommandEvent& event);
   void OnEditConfig(wxCommandEvent& event);
-  void OnShowDefaultConfig(wxCommandEvent& event);
   void PatchListSelectionChanged(wxCommandEvent& event);
   void PatchButtonClicked(wxCommandEvent& event);
   void OnEmustateChanged(wxCommandEvent& event);
