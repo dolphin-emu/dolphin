@@ -13,9 +13,10 @@
 #include "VideoCommon/FramebufferManagerBase.h"
 #include "VideoCommon/RenderState.h"
 
+class AbstractStagingTexture;
+
 namespace Vulkan
 {
-class StagingTexture2D;
 class StateTracker;
 class StreamBuffer;
 class Texture2D;
@@ -138,8 +139,8 @@ private:
   VkFramebuffer m_depth_copy_framebuffer = VK_NULL_HANDLE;
 
   // CPU-side EFB readback texture
-  std::unique_ptr<StagingTexture2D> m_color_readback_texture;
-  std::unique_ptr<StagingTexture2D> m_depth_readback_texture;
+  std::unique_ptr<AbstractStagingTexture> m_color_readback_texture;
+  std::unique_ptr<AbstractStagingTexture> m_depth_readback_texture;
   bool m_color_readback_texture_valid = false;
   bool m_depth_readback_texture_valid = false;
 
