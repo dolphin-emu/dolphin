@@ -123,8 +123,6 @@ void AdvancedWidget::SaveSettings()
 
 void AdvancedWidget::OnBackendChanged()
 {
-  const auto supports_fr_framedumps = g_Config.backend_info.bSupportsInternalResolutionFrameDumps;
-  m_use_fullres_framedumps->setEnabled(supports_fr_framedumps);
 }
 
 void AdvancedWidget::OnEmulationStateChanged(bool running)
