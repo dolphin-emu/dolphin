@@ -110,6 +110,10 @@ void VideoConfig::Refresh()
   iShaderCompilerThreads = Config::Get(Config::GFX_SHADER_COMPILER_THREADS);
   iShaderPrecompilerThreads = Config::Get(Config::GFX_SHADER_PRECOMPILER_THREADS);
 
+  // Turn this on for testing on fifo ci
+  bUseXFB = true;
+  bUseRealXFB = false;
+
   bZComploc = Config::Get(Config::GFX_SW_ZCOMPLOC);
   bZFreeze = Config::Get(Config::GFX_SW_ZFREEZE);
   bDumpObjects = Config::Get(Config::GFX_SW_DUMP_OBJECTS);
