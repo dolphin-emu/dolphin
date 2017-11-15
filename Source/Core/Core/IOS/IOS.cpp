@@ -18,6 +18,7 @@
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
+#include "Common/Timer.h"
 #include "Core/Boot/DolReader.h"
 #include "Core/Boot/ElfReader.h"
 #include "Core/CommonTitles.h"
@@ -481,25 +482,45 @@ IPCCommandResult Kernel::HandleIPCCommand(const Request& request)
   if (!device)
     return Device::Device::GetDefaultReply(IPC_EINVAL);
 
+  IPCCommandResult ret;
+  u64 wall_time_before = Common::Timer::GetTimeUs();
+
   switch (request.command)
   {
   case IPC_CMD_CLOSE:
     m_fdmap[request.fd].reset();
-    return Device::Device::GetDefaultReply(device->Close(request.fd));
+    ret = Device::Device::GetDefaultReply(device->Close(request.fd));
+    break;
   case IPC_CMD_READ:
-    return device->Read(ReadWriteRequest{request.address});
+    ret = device->Read(ReadWriteRequest{request.address});
+    break;
   case IPC_CMD_WRITE:
-    return device->Write(ReadWriteRequest{request.address});
+    ret = device->Write(ReadWriteRequest{request.address});
+    break;
   case IPC_CMD_SEEK:
-    return device->Seek(SeekRequest{request.address});
+    ret = device->Seek(SeekRequest{request.address});
+    break;
   case IPC_CMD_IOCTL:
-    return device->IOCtl(IOCtlRequest{request.address});
+    ret = device->IOCtl(IOCtlRequest{request.address});
+    break;
   case IPC_CMD_IOCTLV:
-    return device->IOCtlV(IOCtlVRequest{request.address});
+    ret = device->IOCtlV(IOCtlVRequest{request.address});
+    break;
   default:
     _assert_msg_(IOS, false, "Unexpected command: %x", request.command);
-    return Device::Device::GetDefaultReply(IPC_EINVAL);
+    ret = Device::Device::GetDefaultReply(IPC_EINVAL);
+    break;
   }
+
+  u64 wall_time_after = Common::Timer::GetTimeUs();
+  constexpr u64 BLOCKING_IPC_COMMAND_THRESHOLD_US = 2000;
+  if (wall_time_after - wall_time_before > BLOCKING_IPC_COMMAND_THRESHOLD_US)
+  {
+    WARN_LOG(IOS, "Previous request to device %s blocked emulation for %" PRIu64 " microseconds.",
+             device->GetDeviceName().c_str(), wall_time_after - wall_time_before);
+  }
+
+  return ret;
 }
 
 void Kernel::ExecuteIPCCommand(const u32 address)
