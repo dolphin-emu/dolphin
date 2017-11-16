@@ -14,8 +14,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-11-04 15:44+0100\n"
-"PO-Revision-Date: 2017-11-04 14:45+0000\n"
+"POT-Creation-Date: 2017-11-16 15:41+0100\n"
+"PO-Revision-Date: 2017-11-16 14:41+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Norwegian Bokmål (http://www.transifex.com/delroth/dolphin-"
 "emu/language/nb/)\n"
@@ -25,7 +25,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:567
+#: Source/Core/DolphinQt2/MenuBar.cpp:586
 msgid ""
 "\n"
 "\n"
@@ -37,7 +37,7 @@ msgid ""
 "Launching these titles may also fix the issues."
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1342
+#: Source/Core/DolphinWX/FrameTools.cpp:1359
 #, c-format
 msgid ""
 "\n"
@@ -77,7 +77,7 @@ msgid " Game : "
 msgstr "Spill:"
 
 #: Source/Core/DolphinQt2/Config/Mapping/IOWindow.cpp:53
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:772
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:770
 msgid "! NOT"
 msgstr "! IKKE"
 
@@ -106,16 +106,16 @@ msgstr "\"%s\" er allerede komprimert! Kan ikke komprimere videre."
 msgid "\"%s\" is an invalid GCM/ISO file, or is not a GC/Wii ISO."
 msgstr "\"%s\" er en ugyldig GCM/ISO-fil, eller er ikke en GC/Wii-ISO."
 
-#: Source/Core/DolphinQt2/Settings/AudioPane.cpp:247
+#: Source/Core/DolphinQt2/Settings/AudioPane.cpp:263
 msgid "%1 %"
 msgstr "%1 %"
 
-#: Source/Core/DolphinQt2/Settings/AdvancedPane.cpp:136
+#: Source/Core/DolphinQt2/Settings/AdvancedPane.cpp:138
 msgid "%1 % (%2 MHz)"
 msgstr ""
 
-#: Source/Core/DolphinQt2/Settings/AudioPane.cpp:174
-#: Source/Core/DolphinQt2/Settings/AudioPane.cpp:216
+#: Source/Core/DolphinQt2/Settings/AudioPane.cpp:183
+#: Source/Core/DolphinQt2/Settings/AudioPane.cpp:226
 msgid "%1 ms"
 msgstr "%1 ms"
 
@@ -308,11 +308,11 @@ msgid "%zu memory bytes"
 msgstr "%zu minnebyte"
 
 #: Source/Core/DolphinQt2/Config/Mapping/IOWindow.cpp:51
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:771
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:769
 msgid "&& AND"
 msgstr "&& OG"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:287
+#: Source/Core/DolphinQt2/MenuBar.cpp:291
 #: Source/Core/DolphinWX/MainMenuBar.cpp:527
 msgid "&About"
 msgstr "&Om"
@@ -329,7 +329,7 @@ msgstr "&Legg til funksjon"
 msgid "&Address"
 msgstr "&Adresse"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:266
+#: Source/Core/DolphinQt2/MenuBar.cpp:270
 #: Source/Core/DolphinWX/MainMenuBar.cpp:179
 msgid "&Audio Settings"
 msgstr "&Lyd-innstillinger"
@@ -362,7 +362,7 @@ msgstr "&Tøm JIT-hurtiglager"
 msgid "&Clear Symbols"
 msgstr "&Tøm symboler"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:267
+#: Source/Core/DolphinQt2/MenuBar.cpp:271
 #: Source/Core/DolphinWX/MainMenuBar.cpp:180
 msgid "&Controller Settings"
 msgstr "&Kontroller-innstillinger"
@@ -402,12 +402,12 @@ msgstr "&Skru av JIT-hurtiglager"
 msgid "&Edit Code..."
 msgstr "&Rediger kode…"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:147
+#: Source/Core/DolphinQt2/MenuBar.cpp:151
 #: Source/Core/DolphinWX/MainMenuBar.cpp:48
 msgid "&Emulation"
 msgstr "&Emulering"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:86
+#: Source/Core/DolphinQt2/MenuBar.cpp:90
 #: Source/Core/DolphinWX/MainMenuBar.cpp:47
 msgid "&File"
 msgstr "&Fil"
@@ -416,7 +416,7 @@ msgstr "&Fil"
 msgid "&Font..."
 msgstr "&Skrift…"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:153
+#: Source/Core/DolphinQt2/MenuBar.cpp:157
 #: Source/Core/DolphinWX/MainMenuBar.cpp:130
 msgid "&Frame Advance"
 msgstr "&Bilde for bilde"
@@ -425,22 +425,22 @@ msgstr "&Bilde for bilde"
 msgid "&Generate Symbols From"
 msgstr ""
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:281
+#: Source/Core/DolphinQt2/MenuBar.cpp:285
 #: Source/Core/DolphinWX/MainMenuBar.cpp:525
 msgid "&GitHub Repository"
 msgstr "&GitHub-pakkebrønn"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:265
+#: Source/Core/DolphinQt2/MenuBar.cpp:269
 #: Source/Core/DolphinWX/MainMenuBar.cpp:178
 msgid "&Graphics Settings"
 msgstr "&Grafikkinstllinger"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:273
+#: Source/Core/DolphinQt2/MenuBar.cpp:277
 #: Source/Core/DolphinWX/MainMenuBar.cpp:62
 msgid "&Help"
 msgstr "&Hjelp"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:268
+#: Source/Core/DolphinQt2/MenuBar.cpp:272
 #: Source/Core/DolphinWX/MainMenuBar.cpp:181
 msgid "&Hotkey Settings"
 msgstr "Innstillinger for &hurtigtaster"
@@ -510,7 +510,7 @@ msgstr ""
 msgid "&Language:"
 msgstr "&Språk:"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:167
+#: Source/Core/DolphinQt2/MenuBar.cpp:171
 #: Source/Core/DolphinWX/MainMenuBar.cpp:134
 msgid "&Load State"
 msgstr "Åpne hurtiglagring"
@@ -531,17 +531,17 @@ msgstr "&Minne"
 msgid "&Memory Card Manager (GC)"
 msgstr ""
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:403
+#: Source/Core/DolphinQt2/MenuBar.cpp:407
 #: Source/Core/DolphinWX/MainMenuBar.cpp:49
 msgid "&Movie"
 msgstr "&Film"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:87
+#: Source/Core/DolphinQt2/MenuBar.cpp:91
 #: Source/Core/DolphinWX/MainMenuBar.cpp:84
 msgid "&Open..."
 msgstr "&Åpne…"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:262
+#: Source/Core/DolphinQt2/MenuBar.cpp:266
 #: Source/Core/DolphinWX/MainMenuBar.cpp:50
 msgid "&Options"
 msgstr "&Innstillinger"
@@ -550,12 +550,12 @@ msgstr "&Innstillinger"
 msgid "&Patch HLE Functions"
 msgstr ""
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:149
+#: Source/Core/DolphinQt2/MenuBar.cpp:153
 #: Source/Core/DolphinWX/MainMenuBar.cpp:556
 msgid "&Pause"
 msgstr "&Pause"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:148
+#: Source/Core/DolphinQt2/MenuBar.cpp:152
 #: Source/Core/DolphinWX/MainMenuBar.cpp:558
 msgid "&Play"
 msgstr "&Spill"
@@ -578,7 +578,7 @@ msgstr "&Egenskaper"
 msgid "&RSO Modules"
 msgstr ""
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:418
+#: Source/Core/DolphinQt2/MenuBar.cpp:422
 #: Source/Core/DolphinWX/MainMenuBar.cpp:150
 msgid "&Read-Only Mode"
 msgstr "&Skrivebeskyttet modus"
@@ -607,7 +607,7 @@ msgstr ""
 msgid "&Rename symbol"
 msgstr "&Gi symbol nytt navn"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:151
+#: Source/Core/DolphinQt2/MenuBar.cpp:155
 #: Source/Core/DolphinWX/MainMenuBar.cpp:127
 msgid "&Reset"
 msgstr "&Tilbakestill"
@@ -628,11 +628,11 @@ msgstr "&Signaturdatabase"
 msgid "&Sound"
 msgstr "&Lyd"
 
-#: Source/Core/DolphinQt2/Settings/GeneralPane.cpp:97
+#: Source/Core/DolphinQt2/Settings/GeneralPane.cpp:96
 msgid "&Speed Limit:"
 msgstr "&Fartsgrense:"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:150
+#: Source/Core/DolphinQt2/MenuBar.cpp:154
 #: Source/Core/DolphinWX/MainMenuBar.cpp:126
 msgid "&Stop"
 msgstr "S&topp"
@@ -645,7 +645,7 @@ msgstr "&Symboler"
 msgid "&Theme:"
 msgstr "&Drakt:"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:95
+#: Source/Core/DolphinQt2/MenuBar.cpp:99
 #: Source/Core/DolphinWX/MainMenuBar.cpp:51
 msgid "&Tools"
 msgstr "&Verktøy"
@@ -654,7 +654,7 @@ msgstr "&Verktøy"
 msgid "&Video"
 msgstr "&Video"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:232
+#: Source/Core/DolphinQt2/MenuBar.cpp:236
 #: Source/Core/DolphinWX/MainMenuBar.cpp:52
 msgid "&View"
 msgstr "Vi&s"
@@ -665,7 +665,7 @@ msgstr "Vi&s"
 msgid "&Watch"
 msgstr "&Se"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:274
+#: Source/Core/DolphinQt2/MenuBar.cpp:278
 #: Source/Core/DolphinWX/MainMenuBar.cpp:523
 msgid "&Website"
 msgstr "&Nettside"
@@ -692,7 +692,7 @@ msgid "(off)"
 msgstr "(av)"
 
 #: Source/Core/DolphinQt2/Config/Mapping/IOWindow.cpp:52
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:773
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:771
 msgid "+ ADD"
 msgstr "+ LEGG TIL"
 
@@ -731,7 +731,7 @@ msgstr "32-bit"
 #. i18n: Stereoscopic 3D
 #: Source/Core/Core/HotkeyManager.cpp:256
 #: Source/Core/DolphinQt2/Config/Mapping/Hotkey3D.cpp:22
-#: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:289
+#: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:276
 #: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:123
 msgid "3D"
 msgstr "3D"
@@ -836,7 +836,7 @@ msgid ""
 "Installing this WAD will replace it irreversibly. Continue?"
 msgstr ""
 
-#: Source/Core/Core/HW/DVD/DVDInterface.cpp:482
+#: Source/Core/Core/HW/DVD/DVDInterface.cpp:484
 msgid "A disc is already about to be inserted."
 msgstr "Ei plate er i ferd med å bli satt inn."
 
@@ -845,8 +845,8 @@ msgstr "Ei plate er i ferd med å bli satt inn."
 msgid "A game is not currently running."
 msgstr "Det kjøres ingen spill nå."
 
-#: Source/Core/DolphinQt2/MainWindow.cpp:396
-#: Source/Core/DolphinWX/FrameTools.cpp:863
+#: Source/Core/DolphinQt2/MainWindow.cpp:397
+#: Source/Core/DolphinWX/FrameTools.cpp:865
 msgid ""
 "A shutdown is already in progress. Unsaved data may be lost if you stop the "
 "current emulation before it completes. Force stop?"
@@ -862,7 +862,7 @@ msgstr ""
 "Det ble ikke funnet noen støttet Blåtannsenhet, så du må koble til Wii-"
 "fjernkontrollere manuelt."
 
-#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:365
+#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:360
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:550
 msgid "A sync can only be triggered when a Wii game is running."
 msgstr "Synkronisering kan bare utløses når et Wii-spill kjører."
@@ -1000,7 +1000,7 @@ msgstr "Action Replay: Normal kode 0: Ugyldig sub-type %08x (%s)"
 msgid "Active"
 msgstr "Aktiv"
 
-#: Source/Core/DolphinQt2/Config/Mapping/GCPadWiiU.cpp:26
+#: Source/Core/DolphinQt2/Config/Mapping/GCPadWiiUConfigDialog.cpp:30
 #: Source/Core/DolphinWX/Config/GCAdapterConfigDiag.cpp:42
 #: Source/Core/DolphinWX/Config/GCAdapterConfigDiag.cpp:76
 msgid "Adapter Detected"
@@ -1097,15 +1097,29 @@ msgid ""
 "Did you mean to strip the cheat opcode (0x%08X)?"
 msgstr ""
 
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1072
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1070
 msgid "Adjust the analog control pressure required to activate buttons."
 msgstr "Juster analogkontrolltrykket som kreves for å aktivere knapper."
+
+#: Source/Core/DolphinQt2/Settings/AdvancedPane.cpp:55
+#: Source/Core/DolphinWX/Config/AdvancedConfigPane.cpp:49
+msgid ""
+"Adjusts the emulated CPU's clock rate.\n"
+"\n"
+"Higher values may make variable-framerate games run at a higher framerate, "
+"at the expense of performance. Lower values may activate a game's internal "
+"frameskip, potentially improving performance.\n"
+"\n"
+"WARNING: Changing this from the default (100%) can and will break games and "
+"cause glitches. Do so at your own risk. Please do not report bugs that occur "
+"with a non-default clock."
+msgstr ""
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:41
 msgid "Advance Game Port"
 msgstr "Advance-spillport"
 
-#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:218
+#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:213
 #: Source/Core/DolphinQt2/Config/Graphics/GraphicsWindow.cpp:73
 #: Source/Core/DolphinQt2/Config/Graphics/GraphicsWindow.cpp:103
 #: Source/Core/DolphinQt2/Config/SettingsWindow.cpp:46
@@ -1114,13 +1128,13 @@ msgstr "Advance-spillport"
 msgid "Advanced"
 msgstr "Avansert"
 
-#: Source/Core/DolphinQt2/Settings/GeneralPane.cpp:117
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:126
+#: Source/Core/DolphinQt2/Settings/GeneralPane.cpp:116
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:122
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:240
 msgid "Advanced Settings"
 msgstr "Avanserte innstillinger"
 
-#: Source/Core/DolphinQt2/MainWindow.cpp:315
+#: Source/Core/DolphinQt2/MainWindow.cpp:316
 #: Source/Core/DolphinQt2/Settings/PathPane.cpp:42
 msgid ""
 "All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wad);;"
@@ -1133,7 +1147,7 @@ msgstr ""
 msgid "All GC/Wii files (elf, dol, gcm, iso, tgc, wbfs, ciso, gcz, wad)"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:349
+#: Source/Core/DolphinWX/FrameTools.cpp:351
 msgid "All GC/Wii files (elf, dol, gcm, iso, tgc, wbfs, ciso, gcz, wad, dff)"
 msgstr ""
 
@@ -1146,8 +1160,8 @@ msgstr "Alle GameCube GCM-filer (gcm)"
 msgid "All Save States (*.sav *.s##);; All Files (*)"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1529
-#: Source/Core/DolphinWX/FrameTools.cpp:1541
+#: Source/Core/DolphinWX/FrameTools.cpp:1546
+#: Source/Core/DolphinWX/FrameTools.cpp:1558
 msgid "All Save States (sav, s##)"
 msgstr "Alle hurtiglagringene (sav, s##)"
 
@@ -1261,7 +1275,7 @@ msgstr "Bruk signaturfil"
 msgid "Are you sure that you want to delete '%1'?"
 msgstr "Er du sikker på at du vil slette \"%1\"?"
 
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:899
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:897
 #, c-format
 msgid "Are you sure you want to delete \"%s\"?"
 msgstr "Er du sikker på at du vil slette \"%s\"?"
@@ -1312,13 +1326,13 @@ msgstr "Minst en rute må stå åpen."
 msgid "Audio"
 msgstr "Audio"
 
-#: Source/Core/DolphinQt2/Settings/AudioPane.cpp:70
-#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:73
+#: Source/Core/DolphinQt2/Settings/AudioPane.cpp:71
+#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:81
 msgid "Audio Backend:"
 msgstr "Lyd-bakende:"
 
-#: Source/Core/DolphinQt2/Settings/AudioPane.cpp:88
-#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:110
+#: Source/Core/DolphinQt2/Settings/AudioPane.cpp:93
+#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:121
 msgid "Audio Stretching Settings"
 msgstr "Innstillinger for lydstrekking"
 
@@ -1385,8 +1399,8 @@ msgstr "BAT ugyldig. Dolphin vil nå avslutte."
 msgid "BP register "
 msgstr "BP-register"
 
-#: Source/Core/DolphinQt2/Settings/AudioPane.cpp:67
-#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:85
+#: Source/Core/DolphinQt2/Settings/AudioPane.cpp:68
+#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:96
 msgid "Backend Settings"
 msgstr "Bakende-innstillinger"
 
@@ -1397,7 +1411,7 @@ msgstr "Bakende-innstillinger"
 msgid "Backend:"
 msgstr "Bakende:"
 
-#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:220
+#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:215
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:235
 #: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:60
 msgid "Background Input"
@@ -1411,7 +1425,7 @@ msgstr "Bakover"
 
 #: Source/Core/DolphinQt2/GameList/GameList.cpp:486
 #: Source/Core/DolphinQt2/GameList/GameListModel.cpp:128
-#: Source/Core/DolphinQt2/MenuBar.cpp:314
+#: Source/Core/DolphinQt2/MenuBar.cpp:318
 #: Source/Core/DolphinWX/GameListCtrl.cpp:462
 #: Source/Core/DolphinWX/MainMenuBar.cpp:308
 #: Source/Core/DolphinWX/MemcardManager.cpp:626
@@ -1437,8 +1451,8 @@ msgstr "Bjelke"
 msgid "Basic"
 msgstr "Grunnleggende"
 
-#: Source/Core/DolphinQt2/Settings/GeneralPane.cpp:69
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:107
+#: Source/Core/DolphinQt2/Settings/GeneralPane.cpp:68
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:103
 msgid "Basic Settings"
 msgstr "Grunnleggende Innstillinger"
 
@@ -1487,7 +1501,7 @@ msgstr ""
 msgid "Boot to Pause"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1296
+#: Source/Core/DolphinWX/FrameTools.cpp:1298
 msgid "BootMii NAND backup file (*.bin)"
 msgstr ""
 
@@ -1495,7 +1509,7 @@ msgstr ""
 msgid "BootMii NAND backup file (*.bin);;All Files (*)"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1309
+#: Source/Core/DolphinWX/FrameTools.cpp:1311
 msgid "BootMii OTP/SEEPROM dump (*.bin)"
 msgstr ""
 
@@ -1563,8 +1577,8 @@ msgstr "Se etter en mappe å legge til"
 msgid "Browse for output directory"
 msgstr "Se etter lagringssted"
 
-#: Source/Core/DolphinQt2/Settings/AudioPane.cpp:93
-#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:52
+#: Source/Core/DolphinQt2/Settings/AudioPane.cpp:98
+#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:56
 msgid "Buffer Size:"
 msgstr "Hurtiglagerstørrelse:"
 
@@ -1624,13 +1638,13 @@ msgstr "C-joystick"
 msgid "CP register "
 msgstr "CP-register"
 
-#: Source/Core/DolphinQt2/Settings/GeneralPane.cpp:123
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:71
+#: Source/Core/DolphinQt2/Settings/GeneralPane.cpp:122
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:70
 msgid "CPU Emulation Engine"
 msgstr ""
 
 #: Source/Core/DolphinQt2/Settings/AdvancedPane.cpp:35
-#: Source/Core/DolphinWX/Config/AdvancedConfigPane.cpp:77
+#: Source/Core/DolphinWX/Config/AdvancedConfigPane.cpp:79
 msgid "CPU Options"
 msgstr "CPU-alternativer"
 
@@ -1647,7 +1661,7 @@ msgstr ""
 "\n"
 "Hvis usikker, la stå umerket."
 
-#: Source/Core/DolphinQt2/Settings/GeneralPane.cpp:129
+#: Source/Core/DolphinQt2/Settings/GeneralPane.cpp:128
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:30
 msgid "Cached Interpreter (slower)"
 msgstr "Hurtiglagret fortolker (tregere)"
@@ -1770,7 +1784,7 @@ msgstr "&Juksekode-behandler"
 msgid "Cheat Search"
 msgstr "Juksekodesøk"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:122
+#: Source/Core/DolphinQt2/MenuBar.cpp:126
 #: Source/Core/DolphinWX/MainMenuBar.cpp:242
 msgid "Check NAND..."
 msgstr ""
@@ -1859,8 +1873,8 @@ msgstr "Oppsett av klassisk kontroller"
 #: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:93
 #: Source/Core/DolphinWX/Cheats/CheatsWindow.cpp:99
 #: Source/Core/DolphinWX/Debugger/BreakpointWindow.cpp:51
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:753
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1214
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:751
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1212
 #: Source/Core/DolphinWX/LogWindow.cpp:103
 msgid "Clear"
 msgstr "Tøm"
@@ -1894,7 +1908,7 @@ msgstr ""
 msgid "Close"
 msgstr "Lukk"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:263
+#: Source/Core/DolphinQt2/MenuBar.cpp:267
 #: Source/Core/DolphinWX/MainMenuBar.cpp:176
 msgid "Co&nfiguration"
 msgstr "&Oppsett"
@@ -1999,8 +2013,8 @@ msgstr "Beregner:"
 msgid "Config"
 msgstr "Oppsett"
 
-#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:100
-#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:194
+#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:95
+#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:189
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:66
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:167
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:339
@@ -2029,7 +2043,7 @@ msgstr "Sett opp utdata"
 msgid "Configure..."
 msgstr "Sett opp…"
 
-#: Source/Core/DolphinQt2/MainWindow.cpp:394
+#: Source/Core/DolphinQt2/MainWindow.cpp:395
 #: Source/Core/DolphinQt2/MainWindow.cpp:836
 #: Source/Core/DolphinQt2/WiiUpdate.cpp:134
 msgid "Confirm"
@@ -2092,7 +2106,7 @@ msgid "Connect Wii Remotes"
 msgstr "Koble til Wii-fjernkontrollere"
 
 #: Source/Core/DolphinQt2/WiiUpdate.cpp:135
-#: Source/Core/DolphinWX/FrameTools.cpp:1466
+#: Source/Core/DolphinWX/FrameTools.cpp:1483
 msgid "Connect to the Internet and perform an online system update?"
 msgstr "Koble til Internett og utfør nettbasert systemoppdatering?"
 
@@ -2105,7 +2119,7 @@ msgstr "Tilkoblingstype:"
 msgid "Continue"
 msgstr "Fortsett"
 
-#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:167
+#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:162
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:349
 msgid "Continuous Scanning"
 msgstr "Kontinuerlig skanning"
@@ -2119,7 +2133,7 @@ msgstr "Sirkel-joystick"
 msgid "Controller Ports"
 msgstr "Kontrollerporter"
 
-#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:72
+#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:73
 msgid "Controller Settings"
 msgstr "Kontroller-innstillinger"
 
@@ -2196,7 +2210,7 @@ msgstr "Kopier &heksadesimal"
 msgid "Copy code &line"
 msgstr "Kopiler kode&linje"
 
-#: Source/Core/Core/ConfigManager.cpp:1013
+#: Source/Core/Core/ConfigManager.cpp:1011
 msgid "Copy failed"
 msgstr "Kopi feilet"
 
@@ -2215,7 +2229,7 @@ msgid "Cost"
 msgstr "Kostnad"
 
 #: Source/Core/DolphinQt2/WiiUpdate.cpp:46
-#: Source/Core/DolphinWX/FrameTools.cpp:1407
+#: Source/Core/DolphinWX/FrameTools.cpp:1424
 msgid ""
 "Could not download update files from Nintendo. Please check your Internet "
 "connection and try again."
@@ -2224,7 +2238,7 @@ msgstr ""
 "internettilknytning og prøv igjen."
 
 #: Source/Core/DolphinQt2/WiiUpdate.cpp:41
-#: Source/Core/DolphinWX/FrameTools.cpp:1402
+#: Source/Core/DolphinWX/FrameTools.cpp:1419
 msgid ""
 "Could not download update information from Nintendo. Please check your "
 "Internet connection and try again."
@@ -2233,7 +2247,7 @@ msgstr ""
 "internettilknytning og prøv igjen."
 
 #: Source/Core/DolphinQt2/WiiUpdate.cpp:51
-#: Source/Core/DolphinWX/FrameTools.cpp:1412
+#: Source/Core/DolphinWX/FrameTools.cpp:1429
 msgid ""
 "Could not install an update to the Wii system memory. Please refer to logs "
 "for more information."
@@ -2425,12 +2439,12 @@ msgstr ""
 msgid "Crossfade"
 msgstr "Kryssutfasing"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:132
+#: Source/Core/DolphinQt2/MenuBar.cpp:136
 #: Source/Core/DolphinWX/MainMenuBar.cpp:245
 msgid "Current Region"
 msgstr "Nåværende region"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:361
+#: Source/Core/DolphinWX/FrameTools.cpp:363
 #, c-format
 msgid "Current directory changed from %s to %s after wxFileSelector!"
 msgstr "Nåværende mappe endret fra %s til %s etter wxFileSelector!"
@@ -2445,8 +2459,8 @@ msgstr "Nåværende spill"
 msgid "Custom"
 msgstr "Egendefinert"
 
-#: Source/Core/DolphinQt2/Settings/AdvancedPane.cpp:63
-#: Source/Core/DolphinWX/Config/AdvancedConfigPane.cpp:92
+#: Source/Core/DolphinQt2/Settings/AdvancedPane.cpp:65
+#: Source/Core/DolphinWX/Config/AdvancedConfigPane.cpp:94
 msgid "Custom RTC Options"
 msgstr "Egendefinerte RTC-valg"
 
@@ -2459,18 +2473,18 @@ msgstr "Egendefinerte RTC-valg"
 msgid "D-Pad"
 msgstr "D-Pad"
 
-#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:104
+#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:99
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:52
 msgid "DK Bongos"
 msgstr "DK-bongotrommer"
 
-#: Source/Core/DolphinQt2/Settings/AudioPane.cpp:38
-#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:39
+#: Source/Core/DolphinQt2/Settings/AudioPane.cpp:39
+#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:40
 msgid "DSP Emulation Engine"
 msgstr ""
 
-#: Source/Core/DolphinQt2/Settings/AudioPane.cpp:42
-#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:34
+#: Source/Core/DolphinQt2/Settings/AudioPane.cpp:43
+#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:35
 #: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:287
 msgid "DSP HLE Emulation (fast)"
 msgstr ""
@@ -2479,17 +2493,17 @@ msgstr ""
 msgid "DSP LLE Debugger"
 msgstr "DSP LLE-feilretter"
 
-#: Source/Core/DolphinQt2/Settings/AudioPane.cpp:44
-#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:36
+#: Source/Core/DolphinQt2/Settings/AudioPane.cpp:45
+#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:37
 msgid "DSP LLE Interpreter (slow)"
 msgstr ""
 
-#: Source/Core/DolphinQt2/Settings/AudioPane.cpp:43
-#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:35
+#: Source/Core/DolphinQt2/Settings/AudioPane.cpp:44
+#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:36
 msgid "DSP LLE Recompiler"
 msgstr ""
 
-#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:104
+#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:99
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:52
 msgid "Dance Mat"
 msgstr "Dansematte"
@@ -2573,7 +2587,7 @@ msgid "Decrease IR"
 msgstr "Reduser IR"
 
 #: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:94
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1212
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1210
 msgid "Default"
 msgstr "Standard"
 
@@ -2589,7 +2603,7 @@ msgstr "Forvalgt ISO-fil:"
 
 #: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:73
 #: Source/Core/DolphinWX/Debugger/BreakpointWindow.cpp:48
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1237
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1235
 msgid "Delete"
 msgstr "Slett"
 
@@ -2619,7 +2633,7 @@ msgstr "Dybde:"
 #: Source/Core/DolphinQt2/Config/Graphics/GraphicsWindow.cpp:37
 #: Source/Core/DolphinQt2/GameList/GameList.cpp:488
 #: Source/Core/DolphinQt2/GameList/GameListModel.cpp:130
-#: Source/Core/DolphinQt2/MenuBar.cpp:316
+#: Source/Core/DolphinQt2/MenuBar.cpp:320
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:1248
 msgid "Description"
 msgstr "Beskrivelse"
@@ -2631,7 +2645,7 @@ msgid "Description:"
 msgstr "Beskrivelse"
 
 #: Source/Core/DolphinQt2/Config/Mapping/IOWindow.cpp:49
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:751
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:749
 msgid "Detect"
 msgstr "Finn automatisk"
 
@@ -2641,7 +2655,7 @@ msgstr "Deterministisk dobbelkjerne:"
 
 #: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:55
 #: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:214
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1186
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1184
 msgid "Device"
 msgstr "Enhet"
 
@@ -2797,19 +2811,19 @@ msgstr ""
 msgid "Do you want to clear the list of symbol names?"
 msgstr ""
 
-#: Source/Core/DolphinQt2/MainWindow.cpp:399
-#: Source/Core/DolphinWX/FrameTools.cpp:862
+#: Source/Core/DolphinQt2/MainWindow.cpp:400
+#: Source/Core/DolphinWX/FrameTools.cpp:864
 msgid "Do you want to stop the current emulation?"
 msgstr "Vil du stoppe pågående emulering?"
 
 #: Source/Core/DolphinQt2/Settings/AudioPane.cpp:73
-#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:41
+#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:42
 msgid "Dolby Pro Logic II Decoder"
 msgstr ""
 
 #: Source/Core/DolphinQt2/AboutDialog.cpp:23
 #: Source/Core/DolphinWX/AboutDolphin.cpp:26
-#: Source/Core/DolphinWX/FrameTools.cpp:688
+#: Source/Core/DolphinWX/FrameTools.cpp:690
 msgid "Dolphin"
 msgstr "Dolphin"
 
@@ -2840,7 +2854,7 @@ msgstr ""
 msgid "Dolphin FIFO"
 msgstr "Dolphin FIFO"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1061
+#: Source/Core/DolphinWX/FrameTools.cpp:1063
 msgid "Dolphin Hotkeys"
 msgstr "Dolphin-hurtigtaster"
 
@@ -2874,8 +2888,8 @@ msgstr ""
 
 #: Source/Core/DolphinQt2/MainWindow.cpp:914
 #: Source/Core/DolphinQt2/MainWindow.cpp:984
-#: Source/Core/DolphinWX/FrameTools.cpp:500
-#: Source/Core/DolphinWX/FrameTools.cpp:996
+#: Source/Core/DolphinWX/FrameTools.cpp:502
+#: Source/Core/DolphinWX/FrameTools.cpp:998
 msgid "Dolphin TAS Movies (*.dtm)"
 msgstr "Dolphin TAS-Filmer (*.dtm)"
 
@@ -2995,7 +3009,7 @@ msgstr "Juksedukke"
 msgid "Dump"
 msgstr ""
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:463
+#: Source/Core/DolphinQt2/MenuBar.cpp:467
 #: Source/Core/DolphinWX/MainMenuBar.cpp:167
 msgid "Dump Audio"
 msgstr "Dump lyd"
@@ -3013,7 +3027,7 @@ msgstr ""
 msgid "Dump FakeVMEM"
 msgstr ""
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:457
+#: Source/Core/DolphinQt2/MenuBar.cpp:461
 #: Source/Core/DolphinWX/MainMenuBar.cpp:165
 msgid "Dump Frames"
 msgstr "Dumping av bilder"
@@ -3082,7 +3096,7 @@ msgstr ""
 msgid "Dutch"
 msgstr "Nederlansk"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:89
+#: Source/Core/DolphinQt2/MenuBar.cpp:93
 #: Source/Core/DolphinWX/MainMenuBar.cpp:91
 msgid "E&xit"
 msgstr "&Avslutt"
@@ -3199,11 +3213,11 @@ msgstr ""
 msgid "Emulate the Wii's Bluetooth Adapter"
 msgstr ""
 
-#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:166
+#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:161
 msgid "Emulate the Wii's Bluetooth adapter"
 msgstr "Emuler Wii-ens Blåtannsadapter"
 
-#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:197
+#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:192
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:313
 msgid "Emulated Wii Remote"
 msgstr "Emulert Wii-fjernkontroller"
@@ -3226,23 +3240,18 @@ msgstr ""
 msgid "Enable AR Logging"
 msgstr "Aktiver AR-logging"
 
-#: Source/Core/DolphinQt2/Settings/AudioPane.cpp:90
-#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:51
+#: Source/Core/DolphinQt2/Settings/AudioPane.cpp:95
+#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:55
 msgid "Enable Audio Stretching"
 msgstr ""
 
-#: Source/Core/DolphinQt2/Settings/AdvancedPane.cpp:40
-#: Source/Core/DolphinWX/Config/AdvancedConfigPane.cpp:32
-msgid "Enable CPU Clock Override"
-msgstr "Aktiver CPU-klokkeoverskrivning"
-
-#: Source/Core/DolphinQt2/Settings/GeneralPane.cpp:77
+#: Source/Core/DolphinQt2/Settings/GeneralPane.cpp:76
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:57
 msgid "Enable Cheats"
 msgstr "Aktiver juksekoder"
 
-#: Source/Core/DolphinQt2/Settings/AdvancedPane.cpp:67
-#: Source/Core/DolphinWX/Config/AdvancedConfigPane.cpp:37
+#: Source/Core/DolphinQt2/Settings/AdvancedPane.cpp:69
+#: Source/Core/DolphinWX/Config/AdvancedConfigPane.cpp:38
 msgid "Enable Custom RTC"
 msgstr ""
 
@@ -3250,10 +3259,15 @@ msgstr ""
 msgid "Enable Dual Core"
 msgstr "Aktiver bruk av dobbelkjerne"
 
-#: Source/Core/DolphinQt2/Settings/GeneralPane.cpp:74
+#: Source/Core/DolphinQt2/Settings/GeneralPane.cpp:73
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:56
 msgid "Enable Dual Core (speedup)"
 msgstr "Aktiver bruk av dobbelkjerne (for bedre ytelse)"
+
+#: Source/Core/DolphinQt2/Settings/AdvancedPane.cpp:40
+#: Source/Core/DolphinWX/Config/AdvancedConfigPane.cpp:33
+msgid "Enable Emulated CPU Clock Override"
+msgstr ""
 
 #: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:272
 msgid "Enable FPRF"
@@ -3272,7 +3286,7 @@ msgstr ""
 msgid "Enable Progressive Scan"
 msgstr "Aktiver progressiv skanning"
 
-#: Source/Core/DolphinQt2/Config/Mapping/GCPadWiiU.cpp:27
+#: Source/Core/DolphinQt2/Config/Mapping/GCPadWiiUConfigDialog.cpp:31
 #: Source/Core/DolphinWX/Config/GCAdapterConfigDiag.cpp:22
 msgid "Enable Rumble"
 msgstr ""
@@ -3281,13 +3295,13 @@ msgstr ""
 msgid "Enable Screen Saver"
 msgstr "Aktiver skjermbeskytter"
 
-#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:169
+#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:164
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:369
 msgid "Enable Speaker Data"
 msgstr "Tillat høytaler data"
 
-#: Source/Core/DolphinQt2/Settings/GeneralPane.cpp:108
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:60
+#: Source/Core/DolphinQt2/Settings/GeneralPane.cpp:107
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:59
 msgid "Enable Usage Statistics Reporting"
 msgstr "Skru på bruks- og statistikk-rapportering"
 
@@ -3352,8 +3366,8 @@ msgstr ""
 "\n"
 "Hvis usikker, la stå avslått."
 
-#: Source/Core/DolphinQt2/Settings/AudioPane.cpp:82
-#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:60
+#: Source/Core/DolphinQt2/Settings/AudioPane.cpp:86
+#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:68
 msgid ""
 "Enables Dolby Pro Logic II emulation using 5.1 surround. Certain backends "
 "only."
@@ -3393,8 +3407,8 @@ msgstr ""
 "\n"
 "Hvis usikker, la stå avslått."
 
-#: Source/Core/DolphinQt2/Settings/AudioPane.cpp:99
-#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:61
+#: Source/Core/DolphinQt2/Settings/AudioPane.cpp:104
+#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:69
 msgid "Enables stretching of the audio to match emulation speed."
 msgstr ""
 
@@ -3416,7 +3430,7 @@ msgstr ""
 "Tillater Memory Management Unit (MMU), som trengs for noen spill. (PÅ = "
 "Kompatibelt, AV = Raskt)"
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:83
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:79
 msgid ""
 "Enables the collection and sharing of usage statistics data with the Dolphin "
 "development team. This data is used to improve the emulator and help us "
@@ -3428,7 +3442,7 @@ msgstr ""
 "å forstå hvordan våre brukere nyttegjør seg systemet. Ingen privat data blir "
 "noensinne innsamlet."
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:77
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:76
 msgid "Enables the use of Action Replay and Gecko cheats."
 msgstr "Tillater bruk av Action-Replay og Gecko-koder."
 
@@ -3522,14 +3536,14 @@ msgstr "Lik"
 #: Source/Core/DolphinQt2/Config/GeckoCodeWidget.cpp:175
 #: Source/Core/DolphinQt2/Config/GeckoCodeWidget.cpp:181
 #: Source/Core/DolphinQt2/Config/LogConfigWidget.cpp:44
-#: Source/Core/DolphinQt2/Main.cpp:99 Source/Core/DolphinQt2/MainWindow.cpp:486
+#: Source/Core/DolphinQt2/Main.cpp:99 Source/Core/DolphinQt2/MainWindow.cpp:487
 #: Source/Core/DolphinQt2/MainWindow.cpp:680
 #: Source/Core/DolphinQt2/MainWindow.cpp:687
 #: Source/Core/DolphinQt2/MainWindow.cpp:721
 #: Source/Core/DolphinQt2/MainWindow.cpp:737
 #: Source/Core/DolphinQt2/MainWindow.cpp:744
 #: Source/Core/DolphinQt2/MainWindow.cpp:821
-#: Source/Core/DolphinQt2/MenuBar.cpp:598
+#: Source/Core/DolphinQt2/MenuBar.cpp:617
 #: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:377
 #: Source/Core/DolphinQt2/NetPlay/NetPlaySetupDialog.cpp:235
 #: Source/Core/DolphinQt2/Translation.cpp:288
@@ -3580,7 +3594,7 @@ msgid "Euphoria"
 msgstr "Euforia"
 
 #: Source/Core/DolphinQt2/GameList/GameFile.cpp:219
-#: Source/Core/DolphinQt2/MenuBar.cpp:135
+#: Source/Core/DolphinQt2/MenuBar.cpp:139
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:101
 #: Source/Core/DolphinWX/MainMenuBar.cpp:247
 msgid "Europe"
@@ -3594,7 +3608,7 @@ msgstr ""
 msgid "Exit"
 msgstr "Avslutt"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:98
+#: Source/Core/DolphinQt2/MenuBar.cpp:102
 #: Source/Core/DolphinWX/MainMenuBar.cpp:223
 msgid "Export All Wii Saves"
 msgstr "Eksporter alle Wii-lagringsfiler"
@@ -3603,7 +3617,7 @@ msgstr "Eksporter alle Wii-lagringsfiler"
 msgid "Export Recording"
 msgstr "Eksporter opptak"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:411
+#: Source/Core/DolphinQt2/MenuBar.cpp:415
 #: Source/Core/DolphinWX/MainMenuBar.cpp:149
 msgid "Export Recording..."
 msgstr "Eksporter opptak…"
@@ -3631,7 +3645,7 @@ msgid "Export save as..."
 msgstr "Eksporter lagringsfil som…"
 
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:287
-#: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:279
+#: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:266
 #: Source/Core/DolphinQt2/Config/Mapping/WiimoteEmuGeneral.cpp:40
 msgid "Extension"
 msgstr "Utvidelse"
@@ -3641,7 +3655,7 @@ msgstr "Utvidelse"
 msgid "External Frame Buffer (XFB)"
 msgstr "Eksternt bildebuffer (EFB)"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:123
+#: Source/Core/DolphinQt2/MenuBar.cpp:127
 #: Source/Core/DolphinWX/MainMenuBar.cpp:243
 msgid "Extract Certificates from NAND"
 msgstr "Pakk ut sertifikater fra NAND"
@@ -3743,7 +3757,7 @@ msgstr "Nedlasting av koder mislyktes."
 msgid "Failed to export save files!"
 msgstr "Klarte ikke å eksportere lagringsfiler!"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:598
+#: Source/Core/DolphinQt2/MenuBar.cpp:617
 msgid "Failed to extract certificates from NAND"
 msgstr "Klarte ikke å pakke ut sertifikater fra NAND"
 
@@ -3771,12 +3785,12 @@ msgstr ""
 "%s\n"
 "vil bli overskrevet"
 
-#: Source/Core/DolphinQt2/MainWindow.cpp:486
+#: Source/Core/DolphinQt2/MainWindow.cpp:487
 msgid "Failed to init core"
 msgstr "Klarte ikke å igangsette kjerne"
 
 #: Source/Core/DolphinQt2/GameList/GameList.cpp:343
-#: Source/Core/DolphinQt2/MenuBar.cpp:520
+#: Source/Core/DolphinQt2/MenuBar.cpp:524
 msgid "Failed to install this title to the NAND."
 msgstr "Klarte ikke å installere denne tittelen til NAND."
 
@@ -3901,7 +3915,7 @@ msgid "Failed to read unique ID from disc image"
 msgstr "Kunne ikke lese unik ID fra disk-avbildningen"
 
 #: Source/Core/DolphinQt2/GameList/GameList.cpp:365
-#: Source/Core/DolphinWX/FrameTools.cpp:1278
+#: Source/Core/DolphinWX/FrameTools.cpp:1280
 msgid "Failed to remove this title from the NAND."
 msgstr ""
 
@@ -3947,7 +3961,7 @@ msgstr "Fil-informasjon"
 
 #: Source/Core/DolphinQt2/GameList/GameList.cpp:495
 #: Source/Core/DolphinQt2/GameList/GameListModel.cpp:134
-#: Source/Core/DolphinQt2/MenuBar.cpp:318
+#: Source/Core/DolphinQt2/MenuBar.cpp:322
 #: Source/Core/DolphinWX/MainMenuBar.cpp:314
 msgid "File Name"
 msgstr "Filnavn"
@@ -3956,7 +3970,7 @@ msgstr "Filnavn"
 msgid "File Path:"
 msgstr "Filsti:"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:321
+#: Source/Core/DolphinQt2/MenuBar.cpp:325
 #: Source/Core/DolphinWX/MainMenuBar.cpp:320
 msgid "File Size"
 msgstr "Filstørrelse"
@@ -4109,11 +4123,6 @@ msgstr "Tving 24-biters farge"
 msgid "Force 4:3"
 msgstr "Tving 4:3"
 
-#: Source/Core/DolphinQt2/Settings/GeneralPane.cpp:137
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:58
-msgid "Force Console as NTSC-J"
-msgstr "Tving konsoll til NTSC-J"
-
 #: Source/Core/DolphinQt2/NetPlay/NetPlaySetupDialog.cpp:107
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:202
 msgid "Force Listen Port:"
@@ -4123,16 +4132,6 @@ msgstr ""
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:622
 msgid "Force Texture Filtering"
 msgstr "Tving teksturfiltrering"
-
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:79
-msgid ""
-"Forces NTSC-J mode for using the Japanese ROM font.\n"
-"If left unchecked, Dolphin defaults to NTSC-U and automatically enables this "
-"setting when playing Japanese games."
-msgstr ""
-"Tving NTSC-J-modus for å bruke den japanske ROM-skriften\n"
-"Er dette avslått, benytter Dolphin NTSC-U som forvalg og går automatisk over "
-"til denne innstillingen når japanske spill startes."
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:252
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:146
@@ -4246,7 +4245,7 @@ msgstr "Bildeinfo"
 msgid "Frame Range"
 msgstr "Bildespennvidde"
 
-#: Source/Core/VideoCommon/RenderBase.cpp:860
+#: Source/Core/VideoCommon/RenderBase.cpp:865
 #, c-format
 msgid "Frame dump image(s) '%s' already exists. Overwrite?"
 msgstr ""
@@ -4354,7 +4353,7 @@ msgstr ""
 msgid "Function calls"
 msgstr "Funksjonskall"
 
-#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:104
+#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:99
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:52
 msgid "GBA"
 msgstr "GBA"
@@ -4420,7 +4419,7 @@ msgstr "Game Boy Advance-disker (*.gba)"
 msgid "Game Folders"
 msgstr ""
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:319
+#: Source/Core/DolphinQt2/MenuBar.cpp:323
 #: Source/Core/DolphinWX/MainMenuBar.cpp:316
 msgid "Game ID"
 msgstr "Spill-ID"
@@ -4459,17 +4458,16 @@ msgstr "Spillkoppsett"
 msgid "GameCube"
 msgstr "GameCube"
 
-#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:103
-#: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:269
+#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:98
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:51
 msgid "GameCube Adapter for Wii U"
 msgstr "GameCube-adapter for Wii U"
 
-#: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:268
+#: Source/Core/DolphinQt2/Config/Mapping/GCPadWiiUConfigDialog.cpp:26
 msgid "GameCube Adapter for Wii U at Port %1"
 msgstr ""
 
-#: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:264
+#: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:256
 msgid "GameCube Controller"
 msgstr "GameCube-kontroller"
 
@@ -4478,16 +4476,16 @@ msgstr "GameCube-kontroller"
 msgid "GameCube Controller Configuration Port %i"
 msgstr "Oppsettsport for GameCube-kontroller %i"
 
-#: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:263
+#: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:255
 msgid "GameCube Controller at Port %1"
 msgstr "GameCube-kontroller på port %1"
 
-#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:91
+#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:86
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:148
 msgid "GameCube Controllers"
 msgstr "GameCube-kontrollere"
 
-#: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:255
+#: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:247
 msgid "GameCube Keyboard"
 msgstr "GameCube-tastatur"
 
@@ -4496,7 +4494,7 @@ msgstr "GameCube-tastatur"
 msgid "GameCube Keyboard Configuration Port %i"
 msgstr ""
 
-#: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:256
+#: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:248
 msgid "GameCube Keyboard at Port %1"
 msgstr ""
 
@@ -4527,7 +4525,7 @@ msgstr "Gecko-juksekoder"
 #: Source/Core/DolphinQt2/Config/Graphics/GraphicsWindow.cpp:70
 #: Source/Core/DolphinQt2/Config/Graphics/GraphicsWindow.cpp:100
 #: Source/Core/DolphinQt2/Config/Mapping/HotkeyGeneral.cpp:23
-#: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:285
+#: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:272
 #: Source/Core/DolphinQt2/Config/SettingsWindow.cpp:42
 #: Source/Core/DolphinWX/Config/ConfigMain.cpp:84
 #: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:108
@@ -4537,14 +4535,14 @@ msgstr "Gecko-juksekoder"
 msgid "General"
 msgstr "Generelt"
 
-#: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:277
+#: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:264
 #: Source/Core/DolphinWX/Input/WiimoteInputConfigDiag.cpp:67
 msgid "General and Options"
 msgstr ""
 
-#: Source/Core/DolphinQt2/Settings/GeneralPane.cpp:109
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:62
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:65
+#: Source/Core/DolphinQt2/Settings/GeneralPane.cpp:108
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:61
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:64
 msgid "Generate a New Statistics Identity"
 msgstr "Opprett en ny statistikk-identitet"
 
@@ -4573,7 +4571,7 @@ msgid "Go to the current instruction"
 msgstr "Gå til gjeldende instruks"
 
 #: Source/Core/DolphinQt2/Config/Graphics/GraphicsWindow.cpp:28
-#: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:288
+#: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:275
 #: Source/Core/DolphinQt2/ToolBar.cpp:60
 #: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:120
 #: Source/Core/DolphinWX/MainToolBar.cpp:186
@@ -4623,7 +4621,7 @@ msgstr "Grønn venstre"
 msgid "Green Right"
 msgstr "Grønn høyre"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:295
+#: Source/Core/DolphinQt2/MenuBar.cpp:299
 msgid "Grid View"
 msgstr ""
 
@@ -4689,18 +4687,6 @@ msgstr ""
 "\n"
 "Hvis usikker, la stå umerket."
 
-#: Source/Core/DolphinQt2/Settings/AdvancedPane.cpp:55
-#: Source/Core/DolphinWX/Config/AdvancedConfigPane.cpp:48
-msgid ""
-"Higher values can make variable-framerate games run at a higher framerate, "
-"at the expense of CPU. Lower values can make variable-framerate games run at "
-"a lower framerate, saving CPU.\n"
-"\n"
-"WARNING: Changing this from the default (100%) can and will break games and "
-"cause glitches. Do so at your own risk. Please do not report bugs that occur "
-"with a non-default clock."
-msgstr ""
-
 #: Source/Core/DolphinQt2/NetPlay/NetPlaySetupDialog.cpp:114
 #: Source/Core/DolphinQt2/NetPlay/NetPlaySetupDialog.cpp:144
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:147
@@ -4729,7 +4715,7 @@ msgstr "Vær vertskap med NetPlay"
 msgid "Host with Netplay"
 msgstr "Vær vertskap med NetPlay"
 
-#: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:291
+#: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:278
 msgid "Hotkey Settings"
 msgstr "Tastesnarveis-innstillinger"
 
@@ -4743,7 +4729,7 @@ msgstr "Hurtigtaster"
 msgid "Hybrid"
 msgstr "Hybrid"
 
-#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:197
+#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:192
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:313
 msgid "Hybrid Wii Remote"
 msgstr "Hybrid-Wii-fjernkontroller"
@@ -4817,8 +4803,8 @@ msgstr "ISO-størrelse:"
 msgid "Icon"
 msgstr "Ikon"
 
-#: Source/Core/DolphinQt2/Settings/GeneralPane.cpp:201
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:233
+#: Source/Core/DolphinQt2/Settings/GeneralPane.cpp:194
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:217
 msgid "Identity Generation"
 msgstr ""
 
@@ -4918,7 +4904,7 @@ msgstr ""
 "\n"
 "Hvis usikker, la stå umerket"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:120
+#: Source/Core/DolphinQt2/MenuBar.cpp:124
 #: Source/Core/DolphinWX/MainMenuBar.cpp:241
 msgid "Import BootMii NAND Backup..."
 msgstr ""
@@ -4927,7 +4913,7 @@ msgstr ""
 msgid "Import Save"
 msgstr "Importer lagringsfil"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:97
+#: Source/Core/DolphinQt2/MenuBar.cpp:101
 #: Source/Core/DolphinWX/MainMenuBar.cpp:222
 msgid "Import Wii Save..."
 msgstr ""
@@ -4957,7 +4943,7 @@ msgstr ""
 "men har ikke korrekt hode."
 
 #: Source/Core/DolphinQt2/MainWindow.cpp:877
-#: Source/Core/DolphinWX/FrameTools.cpp:1302
+#: Source/Core/DolphinWX/FrameTools.cpp:1304
 msgid "Importing NAND backup"
 msgstr ""
 
@@ -5001,7 +4987,7 @@ msgstr "Info"
 msgid "Information"
 msgstr "Informasjon"
 
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:741
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:739
 msgid "Input"
 msgstr "Inndata"
 
@@ -5013,7 +4999,7 @@ msgstr ""
 msgid "Insert SD Card"
 msgstr "Sett inn SD-kort"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:102
+#: Source/Core/DolphinQt2/MenuBar.cpp:106
 #: Source/Core/DolphinWX/MainMenuBar.cpp:239
 msgid "Install WAD..."
 msgstr "Installer WAD…"
@@ -5023,7 +5009,7 @@ msgstr "Installer WAD…"
 msgid "Install to the NAND"
 msgstr "Installer til NAND"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1254
+#: Source/Core/DolphinWX/FrameTools.cpp:1256
 msgid "Installing WAD..."
 msgstr "Installerer WAD…"
 
@@ -5096,7 +5082,7 @@ msgstr "Intern oppløsning"
 msgid "Internal Resolution:"
 msgstr "Intern bildeoppløsning:"
 
-#: Source/Core/DolphinQt2/Settings/GeneralPane.cpp:128
+#: Source/Core/DolphinQt2/Settings/GeneralPane.cpp:127
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:29
 msgid "Interpreter (slowest)"
 msgstr "Fortolker (tregest)"
@@ -5185,13 +5171,13 @@ msgstr "JIT Arm64 (eksperimentell)"
 msgid "JIT Block Viewer"
 msgstr "JIT-blokk -viser"
 
-#: Source/Core/DolphinQt2/Settings/GeneralPane.cpp:130
+#: Source/Core/DolphinQt2/Settings/GeneralPane.cpp:129
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:31
 msgid "JIT Recompiler (recommended)"
 msgstr "JIT rekompilator (anbefalt)"
 
 #: Source/Core/DolphinQt2/GameList/GameFile.cpp:221
-#: Source/Core/DolphinQt2/MenuBar.cpp:137
+#: Source/Core/DolphinQt2/MenuBar.cpp:141
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:117
 #: Source/Core/DolphinWX/MainMenuBar.cpp:248
 msgid "Japan"
@@ -5221,7 +5207,7 @@ msgstr ""
 " Hvis usikker, la stå deaktivert."
 
 #: Source/Core/Core/HW/GCKeyboard.cpp:21
-#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:104
+#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:99
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:53
 msgid "Keyboard"
 msgstr "Tastatur"
@@ -5241,7 +5227,7 @@ msgid "Kick Player"
 msgstr "Spark spiller"
 
 #: Source/Core/DolphinQt2/GameList/GameFile.cpp:233
-#: Source/Core/DolphinQt2/MenuBar.cpp:139
+#: Source/Core/DolphinQt2/MenuBar.cpp:143
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:119
 #: Source/Core/DolphinWX/MainMenuBar.cpp:249
 msgid "Korea"
@@ -5278,11 +5264,11 @@ msgstr "Språk:"
 msgid "Last %i"
 msgstr "Siste %i"
 
-#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:49
+#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:52
 msgid "Latency (ms):"
 msgstr "Forsinkelse (ms):"
 
-#: Source/Core/DolphinQt2/Settings/AudioPane.cpp:72
+#: Source/Core/DolphinQt2/Settings/AudioPane.cpp:77
 msgid "Latency:"
 msgstr "Forsinkelse:"
 
@@ -5309,7 +5295,7 @@ msgstr ""
 msgid "Left stick"
 msgstr "Venstre joystick"
 
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:986
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:984
 msgid ""
 "Left-click to detect input.\n"
 "Middle-click to clear.\n"
@@ -5319,7 +5305,7 @@ msgstr ""
 "Midtklikk for å tømme.\n"
 "Høyreklikk for flere alternativer."
 
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:991
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:989
 msgid ""
 "Left/Right-click for more options.\n"
 "Middle-click to clear."
@@ -5350,18 +5336,18 @@ msgstr "Lisens"
 msgid "Light Cmd"
 msgstr ""
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:92
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:88
 msgid ""
 "Limits the emulation speed to the specified percentage.\n"
 "Note that raising or lowering the emulation speed will also raise or lower "
 "the audio pitch unless audio stretching is enabled."
 msgstr ""
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:325
+#: Source/Core/DolphinQt2/MenuBar.cpp:329
 msgid "List Columns"
 msgstr ""
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:292
+#: Source/Core/DolphinQt2/MenuBar.cpp:296
 msgid "List View"
 msgstr ""
 
@@ -5369,7 +5355,7 @@ msgstr ""
 #: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:71
 #: Source/Core/DolphinWX/Debugger/BreakpointWindow.cpp:60
 #: Source/Core/DolphinWX/Debugger/WatchWindow.cpp:35
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1233
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1231
 msgid "Load"
 msgstr "Last inn"
 
@@ -5386,7 +5372,7 @@ msgstr ""
 msgid "Load Custom Textures"
 msgstr "Last inn brukerlagde teksturer"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:105
+#: Source/Core/DolphinQt2/MenuBar.cpp:109
 #: Source/Core/DolphinWX/MainMenuBar.cpp:232
 msgid "Load GameCube Main Menu"
 msgstr ""
@@ -5492,16 +5478,16 @@ msgstr "Åpne hurtiglagringsplass nr. 8"
 msgid "Load State Slot 9"
 msgstr "Last inn hurtiglagring siste 9"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:168
+#: Source/Core/DolphinQt2/MenuBar.cpp:172
 msgid "Load State from File"
 msgstr "Last inn tilstand fra fil"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:169
+#: Source/Core/DolphinQt2/MenuBar.cpp:173
 #: Source/Core/DolphinWX/MainMenuBar.cpp:100
 msgid "Load State from Selected Slot"
 msgstr "Last inn tilstand fra valgt kortplass"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:170
+#: Source/Core/DolphinQt2/MenuBar.cpp:174
 msgid "Load State from Slot"
 msgstr "Last inn tilstand fra kortplass"
 
@@ -5518,7 +5504,7 @@ msgstr "Last inn Wii-lagringsfil"
 msgid "Load Wii System Menu"
 msgstr "Last inn Wii systemmeny"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:492
+#: Source/Core/DolphinQt2/MenuBar.cpp:496
 msgid "Load Wii System Menu %1"
 msgstr "Last inn Wii-systemmeny %1"
 
@@ -5557,7 +5543,7 @@ msgstr ""
 msgid "Load from Selected Slot"
 msgstr ""
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:224
+#: Source/Core/DolphinQt2/MenuBar.cpp:228
 msgid "Load from Slot %1 - %2"
 msgstr "Last inn fra kortplass %1 - %2"
 
@@ -5667,7 +5653,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt2/GameList/GameList.cpp:490
 #: Source/Core/DolphinQt2/GameList/GameListModel.cpp:132
-#: Source/Core/DolphinQt2/MenuBar.cpp:317
+#: Source/Core/DolphinQt2/MenuBar.cpp:321
 #: Source/Core/DolphinWX/GameListCtrl.cpp:465
 #: Source/Core/DolphinWX/MainMenuBar.cpp:312
 msgid "Maker"
@@ -5730,7 +5716,7 @@ msgstr "Minnekort"
 msgid "Memory Card Manager"
 msgstr "Minnekortbehandler"
 
-#: Source/Core/Core/ConfigManager.cpp:1005
+#: Source/Core/Core/ConfigManager.cpp:1003
 #, c-format
 msgid ""
 "Memory Card filename in Slot %c is incorrect\n"
@@ -5783,7 +5769,7 @@ msgid "MemoryCard: Write called with invalid destination address (0x%x)"
 msgstr "Minnekort: Write ble kalt med ugyldig destinasjonsaddresse (0x%x)"
 
 #: Source/Core/DolphinQt2/MainWindow.cpp:859
-#: Source/Core/DolphinWX/FrameTools.cpp:1288
+#: Source/Core/DolphinWX/FrameTools.cpp:1290
 msgid ""
 "Merging a new NAND over your currently selected NAND will overwrite any "
 "channels and savegames that already exist. This process is not reversible, "
@@ -5838,7 +5824,7 @@ msgid "Monospaced Font"
 msgstr "Fastbreddeskrift"
 
 #. i18n: IR stands for infrared and refers to the pointer functionality of Wii Remotes
-#: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:278
+#: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:265
 #: Source/Core/DolphinWX/Input/WiimoteInputConfigDiag.cpp:102
 msgid "Motion Controls and IR"
 msgstr "Bevegelseskontroller og IR"
@@ -5872,14 +5858,14 @@ msgid ""
 "mega file."
 msgstr ""
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:547
-#: Source/Core/DolphinQt2/MenuBar.cpp:575
-#: Source/Core/DolphinQt2/MenuBar.cpp:580
-#: Source/Core/DolphinQt2/MenuBar.cpp:584
-#: Source/Core/DolphinWX/FrameTools.cpp:1321
-#: Source/Core/DolphinWX/FrameTools.cpp:1350
-#: Source/Core/DolphinWX/FrameTools.cpp:1355
-#: Source/Core/DolphinWX/FrameTools.cpp:1361
+#: Source/Core/DolphinQt2/MenuBar.cpp:551
+#: Source/Core/DolphinQt2/MenuBar.cpp:594
+#: Source/Core/DolphinQt2/MenuBar.cpp:599
+#: Source/Core/DolphinQt2/MenuBar.cpp:603
+#: Source/Core/DolphinWX/FrameTools.cpp:1323
+#: Source/Core/DolphinWX/FrameTools.cpp:1367
+#: Source/Core/DolphinWX/FrameTools.cpp:1372
+#: Source/Core/DolphinWX/FrameTools.cpp:1378
 msgid "NAND Check"
 msgstr ""
 
@@ -5888,12 +5874,12 @@ msgid "NOTE: Stream size doesn't match actual data length\n"
 msgstr ""
 "MERK: Strømningsstørrelsen samsvarer ikke med den faktiske datalengden\n"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:107
+#: Source/Core/DolphinQt2/MenuBar.cpp:111
 #: Source/Core/DolphinWX/MainMenuBar.cpp:226
 msgid "NTSC-J"
 msgstr "NTSC-J"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:109
+#: Source/Core/DolphinQt2/MenuBar.cpp:113
 #: Source/Core/DolphinWX/MainMenuBar.cpp:228
 msgid "NTSC-U"
 msgstr "NTSC-U"
@@ -5946,8 +5932,8 @@ msgstr "Nytt søk"
 msgid "New Texture"
 msgstr "Ny tekstur"
 
-#: Source/Core/DolphinQt2/Settings/GeneralPane.cpp:202
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:233
+#: Source/Core/DolphinQt2/Settings/GeneralPane.cpp:195
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:217
 msgid "New identity generated."
 msgstr "Ny identietet opprettet."
 
@@ -5965,7 +5951,7 @@ msgstr "Neste søk"
 msgid "Nickname:"
 msgstr "Brukernavn:"
 
-#: Source/Core/DolphinQt2/Config/Mapping/GCPadWiiU.cpp:26
+#: Source/Core/DolphinQt2/Config/Mapping/GCPadWiiUConfigDialog.cpp:30
 #: Source/Core/DolphinWX/Config/GCAdapterConfigDiag.cpp:30
 #: Source/Core/DolphinWX/Config/GCAdapterConfigDiag.cpp:78
 msgid "No Adapter Detected"
@@ -6004,8 +5990,8 @@ msgstr "Ingen ledige mappeindeks-oppføringer."
 msgid "No game is running."
 msgstr "Inget spill kjører"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:547
-#: Source/Core/DolphinWX/FrameTools.cpp:1321
+#: Source/Core/DolphinQt2/MenuBar.cpp:551
+#: Source/Core/DolphinWX/FrameTools.cpp:1323
 msgid "No issues have been detected."
 msgstr ""
 
@@ -6019,8 +6005,8 @@ msgstr ""
 "Ingen undo.dtm funnet, avbryter angring av lasting av savestate for å unngå "
 "film-desynkronisering"
 
-#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:103
-#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:197
+#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:98
+#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:192
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:141
 #: Source/Core/DolphinQt2/NetPlay/PadMappingDialog.cpp:55
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:51
@@ -6064,7 +6050,7 @@ msgstr ""
 msgid "Not implemented"
 msgstr "Ikke implementert"
 
-#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:480
+#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:475
 msgid "Not implemented yet."
 msgstr "Ikke implementert enda."
 
@@ -6131,7 +6117,7 @@ msgstr "Av"
 msgid "Offset:"
 msgstr "Offset:"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:277
+#: Source/Core/DolphinQt2/MenuBar.cpp:281
 #: Source/Core/DolphinWX/MainMenuBar.cpp:524
 msgid "Online &Documentation"
 msgstr "Nettbasert & dokumentasjon"
@@ -6241,7 +6227,7 @@ msgstr ""
 msgid "Other game"
 msgstr ""
 
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:741
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:739
 msgid "Output"
 msgstr "Utdata"
 
@@ -6254,12 +6240,12 @@ msgstr "Overleggs-informasjon"
 msgid "Override Language on NTSC Games"
 msgstr "Overskriv språk for NTSC-spill"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:407
+#: Source/Core/DolphinQt2/MenuBar.cpp:411
 #: Source/Core/DolphinWX/MainMenuBar.cpp:147
 msgid "P&lay Input Recording..."
 msgstr "Spi&ll av inndataopptak…"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:112
+#: Source/Core/DolphinQt2/MenuBar.cpp:116
 #: Source/Core/DolphinWX/MainMenuBar.cpp:230
 msgid "PAL"
 msgstr "PAL"
@@ -6302,7 +6288,7 @@ msgstr "Partisjon %zu"
 msgid "Passthrough a Bluetooth Adapter"
 msgstr ""
 
-#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:160
+#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:155
 msgid "Passthrough a Bluetooth adapter"
 msgstr ""
 
@@ -6328,7 +6314,7 @@ msgstr "Pause"
 msgid "Pause After"
 msgstr "Sett på pause etter"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:425
+#: Source/Core/DolphinQt2/MenuBar.cpp:429
 #: Source/Core/DolphinWX/MainMenuBar.cpp:153
 msgid "Pause at End of Movie"
 msgstr "Pause på slutten av filmen"
@@ -6351,7 +6337,7 @@ msgstr "Belysning per piksel"
 msgid "Perfect"
 msgstr "Perfekt"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:130
+#: Source/Core/DolphinQt2/MenuBar.cpp:134
 #: Source/Core/DolphinWX/MainMenuBar.cpp:252
 msgid "Perform Online System Update"
 msgstr "Utfør pålogget systemoppdatering"
@@ -6386,7 +6372,7 @@ msgid "Pixel Shader Constants"
 msgstr ""
 
 #: Source/Core/DolphinQt2/GameList/GameList.cpp:491
-#: Source/Core/DolphinQt2/MenuBar.cpp:313
+#: Source/Core/DolphinQt2/MenuBar.cpp:317
 #: Source/Core/DolphinWX/MainMenuBar.cpp:306
 msgid "Platform"
 msgstr "Plattform"
@@ -6415,7 +6401,7 @@ msgstr "Avspillingsalterntiver"
 msgid "Players"
 msgstr "Spillere"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:866
+#: Source/Core/DolphinWX/FrameTools.cpp:868
 msgid "Please confirm..."
 msgstr "Bekreft…"
 
@@ -6423,8 +6409,8 @@ msgstr "Bekreft…"
 msgid "Please create a perspective before saving"
 msgstr "Vennligst lag et persektiv før du lagrer"
 
-#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:98
-#: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:42
+#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:93
+#: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:41
 msgid "Port %1"
 msgstr "Port %1"
 
@@ -6474,7 +6460,7 @@ msgid "Premature movie end in PlayWiimote. %u > %zu"
 msgstr ""
 
 #: Source/Core/DolphinQt2/WiiUpdate.cpp:90
-#: Source/Core/DolphinWX/FrameTools.cpp:1438
+#: Source/Core/DolphinWX/FrameTools.cpp:1455
 msgid ""
 "Preparing to update...\n"
 "This can take a while."
@@ -6498,7 +6484,7 @@ msgid "Previous Page"
 msgstr "Forrige side"
 
 #: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:69
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1230
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1228
 msgid "Profile"
 msgstr "Profil"
 
@@ -6553,7 +6539,7 @@ msgid "Radius"
 msgstr "Radius"
 
 #: Source/Core/DolphinQt2/Config/Mapping/IOWindow.cpp:67
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:803
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:801
 msgid "Range"
 msgstr "Rekkevidde"
 
@@ -6593,12 +6579,12 @@ msgstr ""
 msgid "Real"
 msgstr "Ekte"
 
-#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:168
+#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:163
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:363
 msgid "Real Balance Board"
 msgstr "Ekte balansebrett"
 
-#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:197
+#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:192
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:313
 msgid "Real Wii Remote"
 msgstr "Ekte Wi-fjernkontroller"
@@ -6669,10 +6655,10 @@ msgstr ""
 "kantutjevning, i tillegg til å kantutjevne lys, skyggeleggings-effekter og "
 "teksturer."
 
-#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:163
+#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:158
 #: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:57
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:353
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1191
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1189
 #: Source/Core/DolphinWX/MainToolBar.cpp:178
 msgid "Refresh"
 msgstr "Oppdater"
@@ -6685,7 +6671,7 @@ msgstr ""
 msgid "Refresh game list"
 msgstr "Oppdater spilliste"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:320
+#: Source/Core/DolphinQt2/MenuBar.cpp:324
 #: Source/Core/DolphinWX/MainMenuBar.cpp:318
 msgid "Region"
 msgstr "Region"
@@ -6743,10 +6729,10 @@ msgid "Report: GCIFolder Writing to unallocated block 0x%x"
 msgstr "Rapport: GCIFolder Skriving til ikke tildelt blokk 0x%x"
 
 #: Source/Core/Core/HotkeyManager.cpp:30
-#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:162
+#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:157
 #: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:92
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:290
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1210
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1208
 msgid "Reset"
 msgstr "Restart"
 
@@ -6767,7 +6753,7 @@ msgstr "Tilbakestill traverseringsinnstillinger"
 msgid "Reset Wii Remote pairings"
 msgstr ""
 
-#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:165
+#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:160
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:288
 msgid "Reset all saved Wii Remote pairings"
 msgstr ""
@@ -6880,7 +6866,7 @@ msgstr "SD-kort"
 msgid "START"
 msgstr "START"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:183
+#: Source/Core/DolphinQt2/MenuBar.cpp:187
 #: Source/Core/DolphinWX/MainMenuBar.cpp:135
 msgid "Sa&ve State"
 msgstr "Lagre &stadie"
@@ -6895,7 +6881,7 @@ msgstr "Sikker"
 #: Source/Core/DolphinWX/Debugger/BreakpointWindow.cpp:63
 #: Source/Core/DolphinWX/Debugger/WatchWindow.cpp:38
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:164
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1235
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1233
 msgid "Save"
 msgstr "Lagre"
 
@@ -6965,20 +6951,20 @@ msgstr "Hurtiglagringsplass nr. 8"
 msgid "Save State Slot 9"
 msgstr "Lagre hurtiglagring nr 9"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:184
+#: Source/Core/DolphinQt2/MenuBar.cpp:188
 msgid "Save State to File"
 msgstr "Lagre tilstand til fil"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:186
+#: Source/Core/DolphinQt2/MenuBar.cpp:190
 msgid "Save State to Oldest Slot"
 msgstr "Lagre tilstand til eldste kortplass"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:185
+#: Source/Core/DolphinQt2/MenuBar.cpp:189
 #: Source/Core/DolphinWX/MainMenuBar.cpp:106
 msgid "Save State to Selected Slot"
 msgstr "Lagre tilstand til valgt kortplass"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:187
+#: Source/Core/DolphinQt2/MenuBar.cpp:191
 msgid "Save State to Slot"
 msgstr "Lagre tilstand til kortplass"
 
@@ -6990,7 +6976,7 @@ msgstr "Hurtiglagring…"
 msgid "Save Symbol Map &As..."
 msgstr ""
 
-#: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:290
+#: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:277
 #: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:124
 msgid "Save and Load State"
 msgstr "Lagre og last inn tilstand"
@@ -7050,7 +7036,7 @@ msgstr ""
 msgid "Save to Selected Slot"
 msgstr ""
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:225
+#: Source/Core/DolphinQt2/MenuBar.cpp:229
 msgid "Save to Slot %1 - %2"
 msgstr "Lagre til kortplass %1 - %2"
 
@@ -7058,7 +7044,7 @@ msgstr "Lagre til kortplass %1 - %2"
 msgid "Saved Perspectives"
 msgstr ""
 
-#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:345
+#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:340
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:565
 msgid "Saved Wii Remote pairings can only be reset when a Wii game is running."
 msgstr ""
@@ -7118,7 +7104,7 @@ msgid "Search for Hex Value:"
 msgstr ""
 
 #: Source/Core/DolphinQt2/Config/Mapping/IOWindow.cpp:48
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:755
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:753
 #: Source/Core/DolphinWX/NetPlay/ChangeGameDialog.cpp:23
 msgid "Select"
 msgstr "Velg"
@@ -7131,7 +7117,7 @@ msgstr "Velg kolonner"
 msgid "Select Game"
 msgstr "Velg spill"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:226
+#: Source/Core/DolphinQt2/MenuBar.cpp:230
 msgid "Select Slot %1 - %2"
 msgstr ""
 
@@ -7144,7 +7130,7 @@ msgstr "Velg kortplass %u - %s"
 msgid "Select State"
 msgstr "Velg tilstand"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:200
+#: Source/Core/DolphinQt2/MenuBar.cpp:204
 #: Source/Core/DolphinWX/MainMenuBar.cpp:136
 msgid "Select State Slot"
 msgstr "Velg kortplass for lagringsstadie"
@@ -7193,7 +7179,7 @@ msgstr "Velg lagringsstadie kortplass 9"
 msgid "Select Wii NAND Root"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1295
+#: Source/Core/DolphinWX/FrameTools.cpp:1297
 msgid "Select a BootMii NAND backup to import"
 msgstr "Velg en BootMii-NAND-sikkerhetskopi å importere"
 
@@ -7203,7 +7189,7 @@ msgid "Select a Directory"
 msgstr "Velg mappe"
 
 #: Source/Core/DolphinQt2/Config/InfoWidget.cpp:115
-#: Source/Core/DolphinQt2/MainWindow.cpp:314
+#: Source/Core/DolphinQt2/MainWindow.cpp:315
 #: Source/Core/DolphinQt2/MainWindow.cpp:595
 #: Source/Core/DolphinQt2/MainWindow.cpp:602
 msgid "Select a File"
@@ -7213,7 +7199,7 @@ msgstr "Velg ei fil"
 msgid "Select a Game"
 msgstr "Velg et spill"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1244
+#: Source/Core/DolphinWX/FrameTools.cpp:1246
 msgid "Select a Wii WAD file to install"
 msgstr "Velg en Wii WAD-fil å innstallere"
 
@@ -7221,7 +7207,7 @@ msgstr "Velg en Wii WAD-fil å innstallere"
 msgid "Select a save file to import"
 msgstr "Velg en lagringsfil å importere"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:504
+#: Source/Core/DolphinQt2/MenuBar.cpp:508
 msgid "Select a title to install to NAND"
 msgstr "Velg en tittel å installere til NAND"
 
@@ -7230,32 +7216,32 @@ msgid "Select floating windows"
 msgstr "Velg flytvindu"
 
 #: Source/Core/DolphinQt2/MainWindow.cpp:894
-#: Source/Core/DolphinWX/FrameTools.cpp:1308
+#: Source/Core/DolphinWX/FrameTools.cpp:1310
 msgid "Select the OTP/SEEPROM dump"
 msgstr ""
 
 #: Source/Core/DolphinQt2/MainWindow.cpp:913
 #: Source/Core/DolphinQt2/MainWindow.cpp:983
-#: Source/Core/DolphinWX/FrameTools.cpp:499
-#: Source/Core/DolphinWX/FrameTools.cpp:995
+#: Source/Core/DolphinWX/FrameTools.cpp:501
+#: Source/Core/DolphinWX/FrameTools.cpp:997
 msgid "Select the Recording File"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:348
+#: Source/Core/DolphinWX/FrameTools.cpp:350
 msgid "Select the file to load"
 msgstr "Velg fil å laste"
 
 #: Source/Core/DolphinQt2/MainWindow.cpp:867
-#: Source/Core/DolphinQt2/MenuBar.cpp:528
-#: Source/Core/DolphinWX/FrameTools.cpp:1205
+#: Source/Core/DolphinQt2/MenuBar.cpp:532
+#: Source/Core/DolphinWX/FrameTools.cpp:1207
 msgid "Select the save file"
 msgstr "Velg lagringsfil"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1528
+#: Source/Core/DolphinWX/FrameTools.cpp:1545
 msgid "Select the state to load"
 msgstr "Velg et lagringsstadie å laste"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1540
+#: Source/Core/DolphinWX/FrameTools.cpp:1557
 msgid "Select the state to save"
 msgstr "Velg et lagringsstadie å lagre"
 
@@ -7438,8 +7424,8 @@ msgstr ""
 msgid "Sets the Wii system language."
 msgstr "Sett Wii-systemspråket."
 
-#: Source/Core/DolphinQt2/Settings/AudioPane.cpp:78
-#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:57
+#: Source/Core/DolphinQt2/Settings/AudioPane.cpp:81
+#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:64
 msgid ""
 "Sets the latency (in ms). Higher values may reduce audio crackling. Certain "
 "backends only."
@@ -7473,7 +7459,7 @@ msgstr "Kortnavn:"
 msgid "Shoulder Buttons"
 msgstr "Skulderknapper"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:233
+#: Source/Core/DolphinQt2/MenuBar.cpp:237
 #: Source/Core/DolphinWX/MainMenuBar.cpp:331
 msgid "Show &Log"
 msgstr "Vis &logg"
@@ -7491,7 +7477,7 @@ msgstr "Vis &verktøylinje"
 msgid "Show Active Title in Window Title"
 msgstr "Vis aktiv tittel i vindustittel"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:372
+#: Source/Core/DolphinQt2/MenuBar.cpp:376
 #: Source/Core/DolphinWX/MainMenuBar.cpp:282
 msgid "Show Australia"
 msgstr "Vis Australia"
@@ -7504,7 +7490,7 @@ msgstr "Vis forvalgte verdier"
 msgid "Show Drives"
 msgstr "Vis DVD-stasjoner"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:347
+#: Source/Core/DolphinQt2/MenuBar.cpp:351
 #: Source/Core/DolphinWX/MainMenuBar.cpp:271
 msgid "Show ELF/DOL"
 msgstr "Vis ELF/DOL"
@@ -7514,47 +7500,47 @@ msgstr "Vis ELF/DOL"
 msgid "Show FPS"
 msgstr "Vis bildefrekvens (FPS)"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:437
+#: Source/Core/DolphinQt2/MenuBar.cpp:441
 #: Source/Core/DolphinWX/MainMenuBar.cpp:157
 msgid "Show Frame Counter"
 msgstr "Vis bildeteller"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:373
+#: Source/Core/DolphinQt2/MenuBar.cpp:377
 #: Source/Core/DolphinWX/MainMenuBar.cpp:284
 msgid "Show France"
 msgstr "Vis Frankrike"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:345
+#: Source/Core/DolphinQt2/MenuBar.cpp:349
 #: Source/Core/DolphinWX/MainMenuBar.cpp:267
 msgid "Show GameCube"
 msgstr "Vis GameCube"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:374
+#: Source/Core/DolphinQt2/MenuBar.cpp:378
 #: Source/Core/DolphinWX/MainMenuBar.cpp:286
 msgid "Show Germany"
 msgstr "Vis Tyskland"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:443
+#: Source/Core/DolphinQt2/MenuBar.cpp:447
 #: Source/Core/DolphinWX/MainMenuBar.cpp:160
 msgid "Show Input Display"
 msgstr "Vis Inndata"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:375
+#: Source/Core/DolphinQt2/MenuBar.cpp:379
 #: Source/Core/DolphinWX/MainMenuBar.cpp:288
 msgid "Show Italy"
 msgstr "Vis Italia"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:369
+#: Source/Core/DolphinQt2/MenuBar.cpp:373
 #: Source/Core/DolphinWX/MainMenuBar.cpp:275
 msgid "Show JAP"
 msgstr "Vis JAP"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:376
+#: Source/Core/DolphinQt2/MenuBar.cpp:380
 #: Source/Core/DolphinWX/MainMenuBar.cpp:290
 msgid "Show Korea"
 msgstr "Vis Korea"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:431
+#: Source/Core/DolphinQt2/MenuBar.cpp:435
 #: Source/Core/DolphinWX/MainMenuBar.cpp:155
 msgid "Show Lag Counter"
 msgstr "Vis lagteller"
@@ -7564,7 +7550,7 @@ msgstr "Vis lagteller"
 msgid "Show Language:"
 msgstr "Vis språk:"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:239
+#: Source/Core/DolphinQt2/MenuBar.cpp:243
 #: Source/Core/DolphinWX/MainMenuBar.cpp:332
 msgid "Show Log &Configuration"
 msgstr "Vis logg&oppsett"
@@ -7579,7 +7565,7 @@ msgstr "Vis NetPlay-meldinger"
 msgid "Show NetPlay Ping"
 msgstr "Vis NetPlay-ping"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:377
+#: Source/Core/DolphinQt2/MenuBar.cpp:381
 #: Source/Core/DolphinWX/MainMenuBar.cpp:292
 msgid "Show Netherlands"
 msgstr "Vis Nederland"
@@ -7589,7 +7575,7 @@ msgstr "Vis Nederland"
 msgid "Show On-Screen Messages"
 msgstr ""
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:370
+#: Source/Core/DolphinQt2/MenuBar.cpp:374
 #: Source/Core/DolphinWX/MainMenuBar.cpp:277
 msgid "Show PAL"
 msgstr "Vis PAL"
@@ -7601,22 +7587,22 @@ msgstr "Vis PAL"
 msgid "Show PC"
 msgstr "Vis PC"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:350
+#: Source/Core/DolphinQt2/MenuBar.cpp:354
 #: Source/Core/DolphinWX/MainMenuBar.cpp:354
 msgid "Show Platforms"
 msgstr "Vis plattformer"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:385
+#: Source/Core/DolphinQt2/MenuBar.cpp:389
 #: Source/Core/DolphinWX/MainMenuBar.cpp:355
 msgid "Show Regions"
 msgstr "Vis regioner"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:378
+#: Source/Core/DolphinQt2/MenuBar.cpp:382
 #: Source/Core/DolphinWX/MainMenuBar.cpp:294
 msgid "Show Russia"
 msgstr "Vis Russland"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:379
+#: Source/Core/DolphinQt2/MenuBar.cpp:383
 #: Source/Core/DolphinWX/MainMenuBar.cpp:296
 msgid "Show Spain"
 msgstr "Vis Spania"
@@ -7626,37 +7612,37 @@ msgstr "Vis Spania"
 msgid "Show Statistics"
 msgstr "Vis statistikker"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:449
+#: Source/Core/DolphinQt2/MenuBar.cpp:453
 #: Source/Core/DolphinWX/MainMenuBar.cpp:162
 msgid "Show System Clock"
 msgstr "Vis systemklokke"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:380
+#: Source/Core/DolphinQt2/MenuBar.cpp:384
 #: Source/Core/DolphinWX/MainMenuBar.cpp:298
 msgid "Show Taiwan"
 msgstr "Vis Taiwan"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:371
+#: Source/Core/DolphinQt2/MenuBar.cpp:375
 #: Source/Core/DolphinWX/MainMenuBar.cpp:279
 msgid "Show USA"
 msgstr "Vis USA"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:382
+#: Source/Core/DolphinQt2/MenuBar.cpp:386
 #: Source/Core/DolphinWX/MainMenuBar.cpp:302
 msgid "Show Unknown"
 msgstr "Vis ukjent"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:346
+#: Source/Core/DolphinQt2/MenuBar.cpp:350
 #: Source/Core/DolphinWX/MainMenuBar.cpp:269
 msgid "Show WAD"
 msgstr "Vis WAD"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:344
+#: Source/Core/DolphinQt2/MenuBar.cpp:348
 #: Source/Core/DolphinWX/MainMenuBar.cpp:265
 msgid "Show Wii"
 msgstr "Vis Wii"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:381
+#: Source/Core/DolphinQt2/MenuBar.cpp:385
 #: Source/Core/DolphinWX/MainMenuBar.cpp:300
 msgid "Show World"
 msgstr "Vis verden"
@@ -7754,7 +7740,7 @@ msgstr ""
 msgid "Simplified Chinese"
 msgstr "Forenklet Kinesisk"
 
-#: Source/Core/DolphinQt2/Config/Mapping/GCPadWiiU.cpp:28
+#: Source/Core/DolphinQt2/Config/Mapping/GCPadWiiUConfigDialog.cpp:32
 #: Source/Core/DolphinWX/Config/GCAdapterConfigDiag.cpp:26
 msgid "Simulate DK Bongos"
 msgstr "Simuler DK-bongotrommer"
@@ -7765,8 +7751,8 @@ msgstr "Simuler DK-bongotrommer"
 msgid "Size"
 msgstr "Størrelse"
 
-#: Source/Core/DolphinQt2/Settings/AudioPane.cpp:100
-#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:62
+#: Source/Core/DolphinQt2/Settings/AudioPane.cpp:105
+#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:70
 msgid ""
 "Size of stretch buffer in milliseconds. Values too low may cause audio "
 "crackling."
@@ -7874,7 +7860,7 @@ msgid ""
 "If unsure, select Native."
 msgstr ""
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:100
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:96
 msgid "Speed Limit:"
 msgstr "Fartsgrense:"
 
@@ -7882,7 +7868,7 @@ msgstr "Fartsgrense:"
 msgid "Speed up Disc Transfer Rate"
 msgstr "Øk diskoverføringshatighet"
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:75
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:74
 msgid ""
 "Splits the CPU and GPU threads so they can be run on separate cores.\n"
 "Provides major speed improvements on most modern PCs, but can cause "
@@ -7893,7 +7879,7 @@ msgstr ""
 "Øker ytelsen på datamaskiner med mer enn én kjerne, men kan også føre til "
 "feil/krasj."
 
-#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:103
+#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:98
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:51
 msgid "Standard Controller"
 msgstr "Forvalgt kontroller"
@@ -7905,12 +7891,12 @@ msgstr "Forvalgt kontroller"
 msgid "Start"
 msgstr "Start"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:114
+#: Source/Core/DolphinQt2/MenuBar.cpp:118
 #: Source/Core/DolphinWX/MainMenuBar.cpp:236
 msgid "Start &NetPlay..."
 msgstr "Start &NetPlay…"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:405
+#: Source/Core/DolphinQt2/MenuBar.cpp:409
 #: Source/Core/DolphinWX/MainMenuBar.cpp:146
 msgid "Start Re&cording Input"
 msgstr "Start Inndata-&opptak"
@@ -7929,7 +7915,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt2/GameList/GameList.cpp:494
 #: Source/Core/DolphinQt2/GameList/GameListModel.cpp:138
-#: Source/Core/DolphinQt2/MenuBar.cpp:322
+#: Source/Core/DolphinQt2/MenuBar.cpp:326
 #: Source/Core/DolphinWX/GameListCtrl.cpp:470
 #: Source/Core/DolphinWX/MainMenuBar.cpp:322
 msgid "State"
@@ -7939,7 +7925,7 @@ msgstr "Hurtiglagring"
 msgid "Statistics"
 msgstr "Statistikk"
 
-#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:104
+#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:99
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:52
 msgid "Steering Wheel"
 msgstr "Ratt"
@@ -8041,18 +8027,18 @@ msgstr "Joystick"
 msgid "Stop"
 msgstr "Stopp"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1747
+#: Source/Core/DolphinWX/FrameTools.cpp:1764
 msgid "Stop Playing Input"
 msgstr ""
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:408
-#: Source/Core/DolphinWX/FrameTools.cpp:1732
+#: Source/Core/DolphinQt2/MenuBar.cpp:412
 #: Source/Core/DolphinWX/FrameTools.cpp:1749
+#: Source/Core/DolphinWX/FrameTools.cpp:1766
 #: Source/Core/DolphinWX/MainMenuBar.cpp:148
 msgid "Stop Playing/Recording Input"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1745
+#: Source/Core/DolphinWX/FrameTools.cpp:1762
 msgid "Stop Recording Input"
 msgstr ""
 
@@ -8102,7 +8088,7 @@ msgstr "Klimpre"
 #: Source/Core/DolphinQt2/Config/FilesystemWidget.cpp:234
 #: Source/Core/DolphinQt2/Config/FilesystemWidget.cpp:282
 #: Source/Core/DolphinQt2/Config/FilesystemWidget.cpp:304
-#: Source/Core/DolphinQt2/MenuBar.cpp:593
+#: Source/Core/DolphinQt2/MenuBar.cpp:612
 msgid "Success"
 msgstr ""
 
@@ -8132,7 +8118,7 @@ msgstr "Eksportering av fil til %s vellykket"
 msgid "Successfully exported save files"
 msgstr ""
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:594
+#: Source/Core/DolphinQt2/MenuBar.cpp:613
 msgid "Successfully extracted certificates from NAND"
 msgstr ""
 
@@ -8149,7 +8135,7 @@ msgid "Successfully imported save file(s)"
 msgstr ""
 
 #: Source/Core/DolphinQt2/GameList/GameList.cpp:342
-#: Source/Core/DolphinQt2/MenuBar.cpp:515
+#: Source/Core/DolphinQt2/MenuBar.cpp:519
 msgid "Successfully installed this title to the NAND."
 msgstr ""
 
@@ -8197,7 +8183,7 @@ msgstr "Symbol"
 msgid "Symbols"
 msgstr "Symboler"
 
-#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:161
+#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:156
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:284
 msgid "Sync"
 msgstr "Synk"
@@ -8206,7 +8192,7 @@ msgstr "Synk"
 msgid "Sync Wii Remotes"
 msgstr ""
 
-#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:164
+#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:159
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:282
 msgid "Sync real Wii Remotes and pair them"
 msgstr ""
@@ -8232,7 +8218,7 @@ msgstr "Syntaksfeil"
 msgid "System Language:"
 msgstr "Systemspråk:"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1467
+#: Source/Core/DolphinWX/FrameTools.cpp:1484
 msgid "System Update"
 msgstr "Systemoppdatering"
 
@@ -8241,19 +8227,19 @@ msgstr "Systemoppdatering"
 msgid "TAS Input"
 msgstr "TAS-inndata"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:392
+#: Source/Core/DolphinWX/FrameTools.cpp:394
 #, c-format
 msgid "TAS Input - GameCube Controller %d"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:400
+#: Source/Core/DolphinWX/FrameTools.cpp:402
 #, c-format
 msgid "TAS Input - Wii Remote %d"
 msgstr ""
 
 #. i18n: TAS is short for tool-assisted speedrun. Read http://tasvideos.org/ for details.
 #. Frame advance is an example of a typical TAS tool.
-#: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:286
+#: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:273
 #: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:112
 msgid "TAS Tools"
 msgstr ""
@@ -8271,7 +8257,7 @@ msgstr ""
 msgid "Taiwan"
 msgstr "Taiwan"
 
-#: Source/Core/Core/HotkeyManager.cpp:32 Source/Core/DolphinQt2/MenuBar.cpp:155
+#: Source/Core/Core/HotkeyManager.cpp:32 Source/Core/DolphinQt2/MenuBar.cpp:159
 #: Source/Core/DolphinWX/MainMenuBar.cpp:132
 msgid "Take Screenshot"
 msgstr "Ta skjermbilde"
@@ -8281,7 +8267,7 @@ msgid "Take screenshot"
 msgstr "Ta skjermbilde"
 
 #: Source/Core/DolphinQt2/Config/Mapping/IOWindow.cpp:54
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:751
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:749
 msgid "Test"
 msgstr "Test"
 
@@ -8323,15 +8309,15 @@ msgstr ""
 "\n"
 "Hvis usikker, velg verdien lengst til høyre."
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:585
-#: Source/Core/DolphinWX/FrameTools.cpp:1359
+#: Source/Core/DolphinQt2/MenuBar.cpp:604
+#: Source/Core/DolphinWX/FrameTools.cpp:1376
 msgid ""
 "The NAND could not be repaired. It is recommended to back up your current "
 "data and start over with a fresh NAND."
 msgstr ""
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:580
-#: Source/Core/DolphinWX/FrameTools.cpp:1355
+#: Source/Core/DolphinQt2/MenuBar.cpp:599
+#: Source/Core/DolphinWX/FrameTools.cpp:1372
 msgid "The NAND has been repaired."
 msgstr ""
 
@@ -8380,12 +8366,12 @@ msgstr ""
 msgid "The disc image \"%s\" is truncated, some of the data is missing."
 msgstr "Diskavbildningen \"%s\" er forkortet, noe av dataen mangler."
 
-#: Source/Core/Core/HW/DVD/DVDInterface.cpp:466
+#: Source/Core/Core/HW/DVD/DVDInterface.cpp:468
 msgid "The disc that was about to be inserted couldn't be found."
 msgstr ""
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:551
-#: Source/Core/DolphinWX/FrameTools.cpp:1325
+#: Source/Core/DolphinQt2/MenuBar.cpp:555
+#: Source/Core/DolphinWX/FrameTools.cpp:1327
 msgid ""
 "The emulated NAND is damaged. System titles such as the Wii Menu and the Wii "
 "Shop Channel may not work correctly.\n"
@@ -8394,12 +8380,12 @@ msgid ""
 msgstr ""
 
 #: Source/Core/DolphinQt2/WiiUpdate.cpp:31
-#: Source/Core/DolphinWX/FrameTools.cpp:1392
+#: Source/Core/DolphinWX/FrameTools.cpp:1409
 msgid "The emulated Wii console has been updated."
 msgstr ""
 
 #: Source/Core/DolphinQt2/WiiUpdate.cpp:36
-#: Source/Core/DolphinWX/FrameTools.cpp:1397
+#: Source/Core/DolphinWX/FrameTools.cpp:1414
 msgid "The emulated Wii console is already up-to-date."
 msgstr ""
 
@@ -8439,12 +8425,12 @@ msgid "The file %s was already open, the file header will not be written."
 msgstr "Filen %s er allerede åpen, fil-hodet vil ikke bli skrevet."
 
 #: Source/Core/DolphinQt2/WiiUpdate.cpp:69
-#: Source/Core/DolphinWX/FrameTools.cpp:1429
+#: Source/Core/DolphinWX/FrameTools.cpp:1446
 msgid "The game disc does not contain any usable update information."
 msgstr "Spillplata inneholder ikke noen brukbar oppdateringsinformasjon."
 
 #: Source/Core/DolphinQt2/WiiUpdate.cpp:62
-#: Source/Core/DolphinWX/FrameTools.cpp:1422
+#: Source/Core/DolphinWX/FrameTools.cpp:1439
 msgid ""
 "The game's region does not match your console's. To avoid issues with the "
 "system menu, it is not possible to update the emulated console using this "
@@ -8519,7 +8505,7 @@ msgid "The title ID is invalid."
 msgstr ""
 
 #: Source/Core/DolphinQt2/WiiUpdate.cpp:57
-#: Source/Core/DolphinWX/FrameTools.cpp:1417
+#: Source/Core/DolphinWX/FrameTools.cpp:1434
 msgid ""
 "The update has been cancelled. It is strongly recommended to finish it in "
 "order to avoid inconsistent system software versions."
@@ -8572,11 +8558,11 @@ msgstr ""
 msgid "This WAD has not been signed by Nintendo. Continue to import?"
 msgstr ""
 
-#: Source/Core/Core/ConfigManager.cpp:900
+#: Source/Core/Core/ConfigManager.cpp:898
 msgid "This WAD is not bootable."
 msgstr ""
 
-#: Source/Core/Core/ConfigManager.cpp:895
+#: Source/Core/Core/ConfigManager.cpp:893
 msgid "This WAD is not valid."
 msgstr ""
 
@@ -8633,8 +8619,8 @@ msgid ""
 "fps."
 msgstr ""
 
-#: Source/Core/DolphinQt2/Settings/AdvancedPane.cpp:82
-#: Source/Core/DolphinWX/Config/AdvancedConfigPane.cpp:59
+#: Source/Core/DolphinQt2/Settings/AdvancedPane.cpp:84
+#: Source/Core/DolphinWX/Config/AdvancedConfigPane.cpp:61
 msgid ""
 "This setting allows you to set a custom real time clock (RTC) separate from "
 "your current system time.\n"
@@ -8646,7 +8632,7 @@ msgstr ""
 msgid "This software should not be used to play games you do not legally own."
 msgstr ""
 
-#: Source/Core/Core/ConfigManager.cpp:917
+#: Source/Core/Core/ConfigManager.cpp:915
 msgid "This title cannot be booted."
 msgstr ""
 
@@ -8707,7 +8693,7 @@ msgstr "Tilt"
 
 #: Source/Core/DolphinQt2/GameList/GameList.cpp:493
 #: Source/Core/DolphinQt2/GameList/GameListModel.cpp:124
-#: Source/Core/DolphinQt2/MenuBar.cpp:315
+#: Source/Core/DolphinQt2/MenuBar.cpp:319
 #: Source/Core/DolphinWX/GameListCtrl.cpp:463
 #: Source/Core/DolphinWX/MainMenuBar.cpp:310
 #: Source/Core/DolphinWX/MemcardManager.cpp:627
@@ -8723,7 +8709,7 @@ msgstr "Til"
 msgid "Toggle &Breakpoint"
 msgstr ""
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:152
+#: Source/Core/DolphinQt2/MenuBar.cpp:156
 #: Source/Core/DolphinWX/MainMenuBar.cpp:129
 msgid "Toggle &Fullscreen"
 msgstr ""
@@ -8913,13 +8899,13 @@ msgid "Uncompressed GC/Wii images (*.iso *.gcm)"
 msgstr ""
 
 #: Source/Core/Core/HotkeyManager.cpp:151
-#: Source/Core/DolphinQt2/MenuBar.cpp:171
+#: Source/Core/DolphinQt2/MenuBar.cpp:175
 #: Source/Core/DolphinWX/MainMenuBar.cpp:101
 msgid "Undo Load State"
 msgstr "Angre åpning av hurtiglagring"
 
 #: Source/Core/Core/HotkeyManager.cpp:152
-#: Source/Core/DolphinQt2/MenuBar.cpp:188
+#: Source/Core/DolphinQt2/MenuBar.cpp:192
 #: Source/Core/DolphinWX/MainMenuBar.cpp:108
 msgid "Undo Save State"
 msgstr "Angre hurtiglagring"
@@ -8934,13 +8920,13 @@ msgid "Uninstall from the NAND"
 msgstr ""
 
 #: Source/Core/DolphinQt2/GameList/GameList.cpp:352
-#: Source/Core/DolphinWX/FrameTools.cpp:1268
+#: Source/Core/DolphinWX/FrameTools.cpp:1270
 msgid ""
 "Uninstalling the WAD will remove the currently installed version of this "
 "title from the NAND without deleting its save data. Continue?"
 msgstr ""
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:141
+#: Source/Core/DolphinQt2/MenuBar.cpp:145
 #: Source/Core/DolphinWX/MainMenuBar.cpp:250
 msgid "United States"
 msgstr ""
@@ -8955,7 +8941,7 @@ msgstr ""
 msgid "Unknown"
 msgstr "Ukjent"
 
-#: Source/Core/Core/HW/DVD/DVDInterface.cpp:1050
+#: Source/Core/Core/HW/DVD/DVDInterface.cpp:1052
 #, c-format
 msgid "Unknown DVD command %08x - fatal error"
 msgstr "Ukjent DVD-kommando%08x - fatal feil"
@@ -8980,7 +8966,7 @@ msgstr "Ukjent melding mottatt med ID: %d"
 msgid "Unknown message with id:%d received from player:%d Kicking player!"
 msgstr "Ukjent melding mottatt med ID: %d fra spiller: %d Sparker spiller!"
 
-#: Source/Core/DolphinQt2/Settings/GeneralPane.cpp:85
+#: Source/Core/DolphinQt2/Settings/GeneralPane.cpp:84
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:44
 msgid "Unlimited"
 msgstr "Ubegrenset"
@@ -9005,14 +8991,14 @@ msgid "Update Screen"
 msgstr "Oppdateringsskjerm"
 
 #: Source/Core/DolphinQt2/WiiUpdate.cpp:56
-#: Source/Core/DolphinWX/FrameTools.cpp:1419
+#: Source/Core/DolphinWX/FrameTools.cpp:1436
 msgid "Update cancelled"
 msgstr "Oppdatering avbrutt"
 
 #: Source/Core/DolphinQt2/WiiUpdate.cpp:30
 #: Source/Core/DolphinQt2/WiiUpdate.cpp:35
-#: Source/Core/DolphinWX/FrameTools.cpp:1392
-#: Source/Core/DolphinWX/FrameTools.cpp:1397
+#: Source/Core/DolphinWX/FrameTools.cpp:1409
+#: Source/Core/DolphinWX/FrameTools.cpp:1414
 msgid "Update completed"
 msgstr "Oppdatering fullført"
 
@@ -9021,11 +9007,11 @@ msgstr "Oppdatering fullført"
 #: Source/Core/DolphinQt2/WiiUpdate.cpp:50
 #: Source/Core/DolphinQt2/WiiUpdate.cpp:61
 #: Source/Core/DolphinQt2/WiiUpdate.cpp:68
-#: Source/Core/DolphinWX/FrameTools.cpp:1404
-#: Source/Core/DolphinWX/FrameTools.cpp:1409
-#: Source/Core/DolphinWX/FrameTools.cpp:1414
-#: Source/Core/DolphinWX/FrameTools.cpp:1425
-#: Source/Core/DolphinWX/FrameTools.cpp:1430
+#: Source/Core/DolphinWX/FrameTools.cpp:1421
+#: Source/Core/DolphinWX/FrameTools.cpp:1426
+#: Source/Core/DolphinWX/FrameTools.cpp:1431
+#: Source/Core/DolphinWX/FrameTools.cpp:1442
+#: Source/Core/DolphinWX/FrameTools.cpp:1447
 msgid "Update failed"
 msgstr "Oppdatering mislyktes"
 
@@ -9034,11 +9020,11 @@ msgid "Update the Wii system software to the latest version from Nintendo."
 msgstr "Oppdater Wii-systemets programvare til siste versjon fra Nintendo."
 
 #: Source/Core/DolphinQt2/WiiUpdate.cpp:91
-#: Source/Core/DolphinWX/FrameTools.cpp:1438
+#: Source/Core/DolphinWX/FrameTools.cpp:1455
 msgid "Updating"
 msgstr "Oppdaterer"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1447
+#: Source/Core/DolphinWX/FrameTools.cpp:1464
 #, c-format
 msgid ""
 "Updating title %016<PRIx64>...\n"
@@ -9063,8 +9049,8 @@ msgstr ""
 msgid "Upright Wii Remote"
 msgstr ""
 
-#: Source/Core/DolphinQt2/Settings/GeneralPane.cpp:103
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:117
+#: Source/Core/DolphinQt2/Settings/GeneralPane.cpp:102
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:113
 msgid "Usage Statistics Reporting Settings"
 msgstr "Innstillinger for rapportering av bruksstatistikk"
 
@@ -9072,7 +9058,7 @@ msgstr "Innstillinger for rapportering av bruksstatistikk"
 msgid "Usage statistics reporting"
 msgstr "Rapportering av brukerstatistikk"
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:87
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:83
 msgid ""
 "Usage statistics reporting uses a unique random per-machine identifier to "
 "distinguish users from one another. This button generates a new random "
@@ -9262,8 +9248,8 @@ msgstr "Virtuell"
 
 #: Source/Core/Core/HotkeyManager.cpp:245
 #: Source/Core/DolphinQt2/Config/Mapping/HotkeyGeneral.cpp:26
-#: Source/Core/DolphinQt2/Settings/AudioPane.cpp:52
-#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:67
+#: Source/Core/DolphinQt2/Settings/AudioPane.cpp:53
+#: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:75
 msgid "Volume"
 msgstr "Volum"
 
@@ -9279,7 +9265,7 @@ msgstr "Demp/avdemp lydstyrke"
 msgid "Volume Up"
 msgstr "Øk lydstyrke"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:505
+#: Source/Core/DolphinQt2/MenuBar.cpp:509
 msgid "WAD files (*.wad)"
 msgstr ""
 
@@ -9462,8 +9448,8 @@ msgstr "Wii NAND-rot:"
 msgid "Wii Remote"
 msgstr "Wii-fjernkontroller"
 
-#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:192
-#: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:276
+#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:187
+#: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:263
 #: Source/Core/DolphinQt2/NetPlay/PadMappingDialog.cpp:34
 msgid "Wii Remote %1"
 msgstr "Wii-fjernkontroller %1"
@@ -9481,7 +9467,7 @@ msgstr ""
 msgid "Wii Remote Settings"
 msgstr "Innstillinger for Wii-fjernkontroller"
 
-#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:157
+#: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:152
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:250
 msgid "Wii Remotes"
 msgstr "Wi-fjernkontrollere"
@@ -9491,20 +9477,20 @@ msgstr "Wi-fjernkontrollere"
 msgid "Wii U GameCube Controller Adapter Configuration Port %i"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1245
+#: Source/Core/DolphinWX/FrameTools.cpp:1247
 msgid "Wii WAD files (*.wad)"
 msgstr "Wii WAD-filer (*.wad)"
 
-#: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:287
+#: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:274
 #: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:119
 msgid "Wii and Wii Remote"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1206
+#: Source/Core/DolphinWX/FrameTools.cpp:1208
 msgid "Wii save files (*.bin)"
 msgstr "Wii-lagringsfiler (*:bin)"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:529
+#: Source/Core/DolphinQt2/MenuBar.cpp:533
 msgid "Wii save files (*.bin);;All Files (*)"
 msgstr ""
 
@@ -9529,8 +9515,8 @@ msgstr "Innenfor et område"
 msgid "Word Wrap"
 msgstr "Tekstbryting"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1254
-#: Source/Core/DolphinWX/FrameTools.cpp:1302
+#: Source/Core/DolphinWX/FrameTools.cpp:1256
+#: Source/Core/DolphinWX/FrameTools.cpp:1304
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1417
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1536
 #: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:319
@@ -9626,7 +9612,7 @@ msgstr "Du må skrive inn en gyldig desimal, heksadesimal eller oktal verdi."
 msgid "You must enter a valid hexadecimal value."
 msgstr ""
 
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:888
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:886
 msgid "You must enter a valid profile name."
 msgstr "Du må skrive inn et gyldig profilnavn."
 
@@ -9665,8 +9651,8 @@ msgstr "Zero 3-kode støttes ikke"
 msgid "Zero code unknown to Dolphin: %08x"
 msgstr "Zero-kode ukjent for Dolphin: %08x"
 
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:660
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:707
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:658
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:705
 msgid "[ waiting ]"
 msgstr "[ venter ]"
 
@@ -9695,7 +9681,7 @@ msgid "x86 Size"
 msgstr "x86-størrelse"
 
 #: Source/Core/DolphinQt2/Config/Mapping/IOWindow.cpp:50
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:758
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:756
 msgid "| OR"
 msgstr "| ELLER"
 
