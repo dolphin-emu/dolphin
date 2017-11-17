@@ -1306,7 +1306,7 @@ void SaveRecording(const std::string& filename)
   header.recordingStartTime = s_recordingStartTime;
 
   header.bSaveConfig = true;
-  ConfigLoaders::SaveToDTM(Config::GetLayer(Config::LayerType::Meta), &header);
+  ConfigLoaders::SaveToDTM(&header);
   header.memcards = s_memcards;
   header.bClearSave = s_bClearSave;
   header.bNetPlay = s_bNetPlay;
