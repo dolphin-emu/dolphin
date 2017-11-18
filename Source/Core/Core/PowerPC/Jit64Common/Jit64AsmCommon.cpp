@@ -24,22 +24,6 @@
 
 using namespace Gen;
 
-void CommonAsmRoutines::GenFifoWrite(int size)
-{
-  const void* start = GetCodePtr();
-
-  // Assume value in RSCRATCH
-  MOV(64, R(RSCRATCH2), ImmPtr(&PowerPC::ppcState.gather_pipe_ptr));
-  MOV(64, R(RSCRATCH2), MatR(RSCRATCH2));
-  SwapAndStore(size, MatR(RSCRATCH2), RSCRATCH);
-  MOV(64, R(RSCRATCH), ImmPtr(&PowerPC::ppcState.gather_pipe_ptr));
-  ADD(64, R(RSCRATCH2), Imm8(size >> 3));
-  MOV(64, MatR(RSCRATCH), R(RSCRATCH2));
-  RET();
-
-  JitRegister::Register(start, GetCodePtr(), "JIT_FifoWrite_%i", size);
-}
-
 void CommonAsmRoutines::GenFrsqrte()
 {
   const void* start = GetCodePtr();

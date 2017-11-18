@@ -203,28 +203,6 @@ bool EmuCodeBlock::UnsafeLoadToReg(X64Reg reg_value, OpArg opAddress, int access
   return offsetAddedToAddress;
 }
 
-void EmuCodeBlock::UnsafeWriteGatherPipe(int accessSize)
-{
-  // No need to protect these, they don't touch any state
-  // question - should we inline them instead? Pro: Lose a CALL   Con: Code bloat
-  switch (accessSize)
-  {
-  case 8:
-    CALL(g_jit->GetAsmRoutines()->fifoDirectWrite8);
-    break;
-  case 16:
-    CALL(g_jit->GetAsmRoutines()->fifoDirectWrite16);
-    break;
-  case 32:
-    CALL(g_jit->GetAsmRoutines()->fifoDirectWrite32);
-    break;
-  case 64:
-    CALL(g_jit->GetAsmRoutines()->fifoDirectWrite64);
-    break;
-  }
-  g_jit->js.fifoBytesSinceCheck += accessSize >> 3;
-}
-
 // Visitor that generates code to read a MMIO value.
 template <typename T>
 class MMIOReadCodeGenerator : public MMIO::ReadHandlingMethodVisitor<T>
@@ -622,10 +600,22 @@ bool EmuCodeBlock::WriteToConstAddress(int accessSize, OpArg arg, u32 address,
   // fun tricks...
   if (g_jit->jo.optimizeGatherPipe && PowerPC::IsOptimizableGatherPipeWrite(address))
   {
-    if (!arg.IsSimpleReg(RSCRATCH))
-      MOV(accessSize, R(RSCRATCH), arg);
+    X64Reg arg_reg = RSCRATCH;
 
-    UnsafeWriteGatherPipe(accessSize);
+    // With movbe, we can store inplace without temporary register
+    if (arg.IsSimpleReg() && cpu_info.bMOVBE)
+      arg_reg = arg.GetSimpleReg();
+
+    if (!arg.IsSimpleReg(arg_reg))
+      MOV(accessSize, R(arg_reg), arg);
+
+    // And store it in the gather pipe
+    MOV(64, R(RSCRATCH2), PPCSTATE(gather_pipe_ptr));
+    SwapAndStore(accessSize, MatR(RSCRATCH2), arg_reg);
+    ADD(64, R(RSCRATCH2), Imm8(accessSize >> 3));
+    MOV(64, PPCSTATE(gather_pipe_ptr), R(RSCRATCH2));
+
+    g_jit->js.fifoBytesSinceCheck += accessSize >> 3;
     return false;
   }
   else if (PowerPC::IsOptimizableRAMAddress(address))

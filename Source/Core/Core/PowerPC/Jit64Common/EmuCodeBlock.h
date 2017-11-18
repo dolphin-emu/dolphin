@@ -61,7 +61,6 @@ public:
 
   bool UnsafeLoadToReg(Gen::X64Reg reg_value, Gen::OpArg opAddress, int accessSize, s32 offset,
                        bool signExtend, Gen::MovInfo* info = nullptr);
-  void UnsafeWriteGatherPipe(int accessSize);
 
   // Generate a load/write from the MMIO handler for a given address. Only
   // call for known addresses in MMIO range (MMIO::IsMMIOAddress).
