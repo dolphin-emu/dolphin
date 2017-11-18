@@ -15,9 +15,6 @@ enum
   GATHER_PIPE_SIZE = 32
 };
 
-// pipe pointer for JIT access
-extern u8* g_gather_pipe_ptr;
-
 // Init
 void Init();
 void DoState(PointerWrap& p);

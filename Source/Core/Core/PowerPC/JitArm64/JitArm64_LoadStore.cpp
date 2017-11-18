@@ -10,7 +10,6 @@
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/DSP.h"
-#include "Core/HW/GPFifo.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/JitArm64/Jit.h"
@@ -242,7 +241,7 @@ void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s
     if (accessSize != 8)
       WA = gpr.GetReg();
 
-    MOVP2R(X1, &GPFifo::g_gather_pipe_ptr);
+    MOVP2R(X1, &PowerPC::ppcState.gather_pipe_ptr);
     LDR(INDEX_UNSIGNED, X0, X1, 0);
     if (accessSize == 32)
     {

@@ -10,7 +10,6 @@
 
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
-#include "Core/HW/GPFifo.h"
 #include "Core/PowerPC/JitArm64/Jit.h"
 #include "Core/PowerPC/JitArm64/JitArm64_RegCache.h"
 #include "Core/PowerPC/PPCTables.h"
@@ -357,7 +356,7 @@ void JitArm64::stfXX(UGeckoInstruction inst)
       else
         accessSize = 32;
 
-      MOVP2R(X1, &GPFifo::g_gather_pipe_ptr);
+      MOVP2R(X1, &PowerPC::ppcState.gather_pipe_ptr);
       LDR(INDEX_UNSIGNED, X0, X1, 0);
       if (flags & BackPatchInfo::FLAG_SIZE_F64)
       {

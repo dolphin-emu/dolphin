@@ -93,6 +93,9 @@ struct PowerPCState
   // lscbx
   u16 xer_stringctrl;
 
+  // gather pipe pointer for JIT access
+  u8* gather_pipe_ptr;
+
 #if _M_X86_64
   // This member exists for the purpose of an assertion in x86 JitBase.cpp
   // that its offset <= 0x100.  To minimize code size on x86, we want as much
