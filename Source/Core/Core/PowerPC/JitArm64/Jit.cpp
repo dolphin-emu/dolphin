@@ -231,8 +231,13 @@ void JitArm64::Cleanup()
 {
   if (jo.optimizeGatherPipe && js.fifoBytesSinceCheck > 0)
   {
-    MOVP2R(X0, &GPFifo::FastCheckGatherPipe);
+    LDP(INDEX_SIGNED, X0, X1, PPC_REG, PPCSTATE_OFF(gather_pipe_ptr));
+    SUB(X0, X0, X1);
+    CMP(X0, GPFifo::GATHER_PIPE_SIZE);
+    FixupBranch exit = B(CC_LT);
+    MOVP2R(X0, &GPFifo::UpdateGatherPipe);
     BLR(X0);
+    SetJumpTarget(exit);
   }
 }
 
