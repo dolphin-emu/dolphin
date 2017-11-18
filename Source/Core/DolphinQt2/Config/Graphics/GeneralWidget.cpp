@@ -47,7 +47,6 @@ void GeneralWidget::CreateWidgets()
   m_video_layout = new QGridLayout();
 
   m_backend_combo = new QComboBox();
-  m_resolution_combo = new QComboBox();
   m_aspect_combo =
       new GraphicsChoice({tr("Auto"), tr("Force 16:9"), tr("Force 4:3"), tr("Stretch to Window")},
                          Config::GFX_ASPECT_RATIO);
@@ -60,23 +59,12 @@ void GeneralWidget::CreateWidgets()
   for (auto& backend : g_available_video_backends)
     m_backend_combo->addItem(tr(backend->GetDisplayName().c_str()));
 
-#ifndef __APPLE__
-  m_resolution_combo->addItem(tr("Auto"));
-
-  for (const auto& res : VideoUtils::GetAvailableResolutions(m_xrr_config))
-    m_resolution_combo->addItem(QString::fromStdString(res));
-#endif
-
   m_video_layout->addWidget(new QLabel(tr("Backend:")), 0, 0);
   m_video_layout->addWidget(m_backend_combo, 0, 1);
+
 #ifdef _WIN32
   m_video_layout->addWidget(new QLabel(tr("Adapter:")), 1, 0);
   m_video_layout->addWidget(m_adapter_combo, 1, 1);
-#endif
-
-#ifndef __APPLE__
-  m_video_layout->addWidget(new QLabel(tr("Fullscreen Resolution:")), 2, 0);
-  m_video_layout->addWidget(m_resolution_combo, 2, 1);
 #endif
 
   m_video_layout->addWidget(new QLabel(tr("Aspect Ratio:")), 3, 0);
@@ -126,10 +114,6 @@ void GeneralWidget::ConnectWidgets()
   // Video Backend
   connect(m_backend_combo, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
           [this](int) { SaveSettings(); });
-  // Fullscreen Resolution
-  connect(m_resolution_combo,
-          static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
-          [this](int) { SaveSettings(); });
   // Enable Fullscreen
   for (QCheckBox* checkbox : {m_enable_fullscreen, m_hide_cursor, m_render_main_window})
     connect(checkbox, &QCheckBox::toggled, this, &GeneralWidget::SaveSettings);
@@ -149,10 +133,6 @@ void GeneralWidget::LoadSettings()
     }
   }
 
-  // Fullscreen Resolution
-  auto resolution = SConfig::GetInstance().strFullscreenResolution;
-  m_resolution_combo->setCurrentIndex(
-      resolution == "Auto" ? 0 : m_resolution_combo->findText(QString::fromStdString(resolution)));
   // Enable Fullscreen
   m_enable_fullscreen->setChecked(SConfig::GetInstance().bFullscreen);
   // Hide Cursor
@@ -210,10 +190,6 @@ void GeneralWidget::SaveSettings()
     }
   }
 
-  // Fullscreen Resolution
-  SConfig::GetInstance().strFullscreenResolution =
-      m_resolution_combo->currentIndex() == 0 ? "Auto" :
-                                                m_resolution_combo->currentText().toStdString();
   // Enable Fullscreen
   SConfig::GetInstance().bFullscreen = m_enable_fullscreen->isChecked();
   // Hide Cursor
@@ -230,9 +206,6 @@ void GeneralWidget::OnEmulationStateChanged(bool running)
 {
   m_backend_combo->setEnabled(!running);
   m_render_main_window->setEnabled(!running);
-#ifndef __APPLE__
-  m_resolution_combo->setEnabled(!running);
-#endif
 
 #ifdef _WIN32
   m_adapter_combo->setEnabled(!running);
@@ -257,10 +230,6 @@ void GeneralWidget::AddDescriptions()
                  "slow and only useful for debugging, so unless you have a reason to use it you'll "
                  "want to select OpenGL here.\n\nIf unsure, select OpenGL.");
 #endif
-  static const char* TR_RESOLUTION_DESCRIPTION =
-      QT_TR_NOOP("Selects the display resolution used in fullscreen mode.\nThis should always be "
-                 "bigger than or equal to the internal resolution. Performance impact is "
-                 "negligible.\n\nIf unsure, select auto.");
   static const char* TR_FULLSCREEN_DESCRIPTION = QT_TR_NOOP(
       "Enable this if you want the whole screen to be used for rendering.\nIf this is disabled, a "
       "render window will be created instead.\n\nIf unsure, leave this unchecked.");
@@ -301,7 +270,6 @@ void GeneralWidget::AddDescriptions()
 #ifdef _WIN32
   AddDescription(m_adapter_combo, TR_ADAPTER_DESCRIPTION);
 #endif
-  AddDescription(m_resolution_combo, TR_RESOLUTION_DESCRIPTION);
   AddDescription(m_enable_fullscreen, TR_FULLSCREEN_DESCRIPTION);
   AddDescription(m_autoadjust_window_size, TR_AUTOSIZE_DESCRIPTION);
   AddDescription(m_hide_cursor, TR_HIDE_MOUSE_CURSOR_DESCRIPTION);

@@ -180,7 +180,7 @@ void SConfig::SaveDisplaySettings(IniFile& ini)
 {
   IniFile::Section* display = ini.GetOrCreateSection("Display");
 
-  display->Set("FullscreenResolution", strFullscreenResolution);
+  display->Set("FullscreenDisplayRes", strFullscreenResolution);
   display->Set("Fullscreen", bFullscreen);
   display->Set("RenderToMain", bRenderToMain);
   display->Set("RenderWindowXPos", iRenderWindowXPos);
@@ -460,7 +460,7 @@ void SConfig::LoadDisplaySettings(IniFile& ini)
   IniFile::Section* display = ini.GetOrCreateSection("Display");
 
   display->Get("Fullscreen", &bFullscreen, false);
-  display->Get("FullscreenResolution", &strFullscreenResolution, "Auto");
+  display->Get("FullscreenDisplayRes", &strFullscreenResolution, "Auto");
   display->Get("RenderToMain", &bRenderToMain, false);
   display->Get("RenderWindowXPos", &iRenderWindowXPos, -1);
   display->Get("RenderWindowYPos", &iRenderWindowYPos, -1);
