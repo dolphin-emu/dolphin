@@ -21,6 +21,7 @@ void DoState(PointerWrap& p);
 
 // ResetGatherPipe
 void ResetGatherPipe();
+void UpdateGatherPipe();
 void CheckGatherPipe();
 void FastCheckGatherPipe();
 

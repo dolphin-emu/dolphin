@@ -53,6 +53,7 @@ void DoState(PointerWrap& p)
 void Init()
 {
   ResetGatherPipe();
+  PowerPC::ppcState.gather_pipe_base_ptr = s_gather_pipe;
   memset(s_gather_pipe, 0, sizeof(s_gather_pipe));
 }
 
@@ -66,7 +67,7 @@ void ResetGatherPipe()
   SetGatherPipeCount(0);
 }
 
-static void UpdateGatherPipe()
+void UpdateGatherPipe()
 {
   size_t pipe_count = GetGatherPipeCount();
   size_t processed;

@@ -95,6 +95,7 @@ struct PowerPCState
 
   // gather pipe pointer for JIT access
   u8* gather_pipe_ptr;
+  u8* gather_pipe_base_ptr;
 
 #if _M_X86_64
   // This member exists for the purpose of an assertion in x86 JitBase.cpp
