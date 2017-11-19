@@ -611,7 +611,6 @@ void Renderer::DrawScreen(VKTexture* xfb_texture, const EFBRectangle& xfb_region
                        VK_SUBPASS_CONTENTS_INLINE);
 
   // Draw
-  TargetRectangle source_rc = xfb_texture->GetConfig().GetRect();
   BlitScreen(m_swap_chain->GetRenderPass(), GetTargetRectangle(), xfb_region,
              xfb_texture->GetRawTexIdentifier());
 
