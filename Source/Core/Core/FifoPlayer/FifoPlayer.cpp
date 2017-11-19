@@ -11,6 +11,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/FifoPlayer/FifoAnalyzer.h"
 #include "Core/FifoPlayer/FifoDataFile.h"
@@ -65,6 +66,11 @@ void FifoPlayer::Close()
 
   m_FrameRangeStart = 0;
   m_FrameRangeEnd = 0;
+}
+
+bool FifoPlayer::IsPlaying() const
+{
+  return GetFile() != nullptr && Core::IsRunning();
 }
 
 class FifoPlayer::CPUCore final : public CPUCoreBase
