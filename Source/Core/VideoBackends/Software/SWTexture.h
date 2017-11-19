@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <vector>
+
 #include "Common/CommonTypes.h"
 
 #include "VideoCommon/AbstractTexture.h"
@@ -23,6 +25,14 @@ public:
                                 const MathUtil::Rectangle<int>& dstrect) override;
   void Load(u32 level, u32 width, u32 height, u32 row_length, const u8* buffer,
             size_t buffer_size) override;
+
+  const u8* GetData() const;
+  u8* GetData();
+
+private:
+  std::optional<RawTextureInfo> MapFullImpl() override;
+
+  std::vector<u8> m_data;
 };
 
 }  // namespace SW

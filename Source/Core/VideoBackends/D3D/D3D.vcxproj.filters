@@ -48,9 +48,6 @@
     <ClCompile Include="Render.cpp">
       <Filter>Render</Filter>
     </ClCompile>
-    <ClCompile Include="Television.cpp">
-      <Filter>Render</Filter>
-    </ClCompile>
     <ClCompile Include="TextureCache.cpp">
       <Filter>Render</Filter>
     </ClCompile>
@@ -58,9 +55,6 @@
       <Filter>Render</Filter>
     </ClCompile>
     <ClCompile Include="VertexShaderCache.cpp">
-      <Filter>Render</Filter>
-    </ClCompile>
-    <ClCompile Include="XFBEncoder.cpp">
       <Filter>Render</Filter>
     </ClCompile>
     <ClCompile Include="main.cpp" />
@@ -108,9 +102,6 @@
     <ClInclude Include="Render.h">
       <Filter>Render</Filter>
     </ClInclude>
-    <ClInclude Include="Television.h">
-      <Filter>Render</Filter>
-    </ClInclude>
     <ClInclude Include="TextureCache.h">
       <Filter>Render</Filter>
     </ClInclude>
@@ -118,9 +109,6 @@
       <Filter>Render</Filter>
     </ClInclude>
     <ClInclude Include="VertexShaderCache.h">
-      <Filter>Render</Filter>
-    </ClInclude>
-    <ClInclude Include="XFBEncoder.h">
       <Filter>Render</Filter>
     </ClInclude>
     <ClInclude Include="VideoBackend.h" />

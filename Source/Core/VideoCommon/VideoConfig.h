@@ -65,8 +65,6 @@ struct VideoConfig final
   bool bWidescreenHack;
   int iAspectRatio;
   bool bCrop;  // Aspect ratio controls.
-  bool bUseXFB;
-  bool bUseRealXFB;
   bool bShaderCache;
 
   // Enhancements
@@ -98,6 +96,7 @@ struct VideoConfig final
   bool bConvertHiresTextures;
   bool bCacheHiresTextures;
   bool bDumpEFBTarget;
+  bool bDumpXFBTarget;
   bool bDumpFramesAsImages;
   bool bUseFFV1;
   std::string sDumpCodec;
@@ -118,6 +117,8 @@ struct VideoConfig final
 
   bool bEFBEmulateFormatChanges;
   bool bSkipEFBCopyToRam;
+  bool bSkipXFBCopyToRam;
+  bool bImmediateXFB;
   bool bCopyEFBScaled;
   int iSafeTextureCache_ColorSamples;
   ProjectionHackConfig phack;
@@ -221,14 +222,14 @@ struct VideoConfig final
     bool bSupportsInternalResolutionFrameDumps;
     bool bSupportsGPUTextureDecoding;
     bool bSupportsST3CTextures;
+    bool bSupportsCopyToVram;
+    bool bForceCopyToRam;                  // Needed by Software Renderer
     bool bSupportsBitfield;                // Needed by UberShaders, so must stay in VideoCommon
     bool bSupportsDynamicSamplerIndexing;  // Needed by UberShaders, so must stay in VideoCommon
     bool bSupportsBPTCTextures;
   } backend_info;
 
   // Utility
-  bool RealXFBEnabled() const { return bUseXFB && bUseRealXFB; }
-  bool VirtualXFBEnabled() const { return bUseXFB && !bUseRealXFB; }
   bool MultisamplingEnabled() const { return iMultisamples > 1; }
   bool ExclusiveFullscreenEnabled() const
   {

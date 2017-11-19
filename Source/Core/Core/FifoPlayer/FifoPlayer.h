@@ -94,6 +94,8 @@ public:
   void SetFrameWrittenCallback(CallbackFunc callback) { m_FrameWrittenCb = callback; }
   static FifoPlayer& GetInstance();
 
+  bool IsRunningWithFakeVideoInterfaceUpdates() const;
+
 private:
   class CPUCore;
 

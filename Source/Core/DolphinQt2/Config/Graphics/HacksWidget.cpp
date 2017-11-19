@@ -20,7 +20,6 @@ HacksWidget::HacksWidget(GraphicsWindow* parent) : GraphicsWidget(parent)
   CreateWidgets();
   LoadSettings();
   ConnectWidgets();
-  OnXFBToggled();
   AddDescriptions();
 }
 
@@ -68,13 +67,12 @@ void HacksWidget::CreateWidgets()
   auto* xfb_layout = new QGridLayout();
   xfb_box->setLayout(xfb_layout);
 
-  m_disable_xfb = new GraphicsBool(tr("Disable"), Config::GFX_USE_XFB, true);
-  m_real_xfb = new GraphicsBoolEx(tr("Real"), Config::GFX_USE_REAL_XFB, false);
-  m_virtual_xfb = new GraphicsBoolEx(tr("Virtual"), Config::GFX_USE_REAL_XFB, true);
+  m_store_xfb_copies = new GraphicsBool(tr("Store XFB Copies to Texture Only"),
+                                        Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM);
+  m_immediate_xfb = new GraphicsBool(tr("Immediately Present XFB"), Config::GFX_HACK_IMMEDIATE_XFB);
 
-  xfb_layout->addWidget(m_disable_xfb, 0, 0);
-  xfb_layout->addWidget(m_virtual_xfb, 0, 1);
-  xfb_layout->addWidget(m_real_xfb, 0, 2);
+  xfb_layout->addWidget(m_store_xfb_copies, 1, 0);
+
   // Other
   auto* other_box = new QGroupBox(tr("Other"));
   auto* other_layout = new QGridLayout();
@@ -101,14 +99,7 @@ void HacksWidget::CreateWidgets()
 
 void HacksWidget::ConnectWidgets()
 {
-  connect(m_disable_xfb, &QCheckBox::toggled, this, &HacksWidget::OnXFBToggled);
   connect(m_accuracy, &QSlider::valueChanged, [this](int) { SaveSettings(); });
-}
-
-void HacksWidget::OnXFBToggled()
-{
-  m_real_xfb->setEnabled(!m_disable_xfb->isChecked());
-  m_virtual_xfb->setEnabled(!m_disable_xfb->isChecked());
 }
 
 void HacksWidget::LoadSettings()
@@ -179,20 +170,18 @@ void HacksWidget::AddDescriptions()
       "from RAM.\nLower accuracies cause in-game text to appear garbled in certain "
       "games.\n\nIf unsure, use the rightmost value.");
 
-  static const char* TR_DISABLE_XFB_DESCRIPTION = QT_TR_NOOP(
-      "Disable any XFB emulation.\nSpeeds up emulation a lot but causes heavy glitches in many "
-      "games "
-      "which rely on them (especially homebrew applications).\n\nIf unsure, leave this checked.");
-  static const char* TR_VIRTUAL_XFB_DESCRIPTION = QT_TR_NOOP(
-      "Emulate XFBs using GPU texture objects.\nFixes many games which don't work without XFB "
-      "emulation while not being as slow as real XFB emulation. However, it may still fail for "
-      "a lot "
-      "of other games (especially homebrew applications).\n\nIf unsure, leave this checked.");
+  static const char* TR_STORE_XFB_TO_TEXTURE_DESCRIPTION = QT_TR_NOOP(
+      "Stores XFB Copies exclusively on the GPU, bypassing system memory. Causes graphical defects "
+      "in a small number of games that need to readback from memory.\n\nEnabled = XFB Copies to "
+      "Texture\nDisabled = XFB Copies to RAM "
+      "(and Texture)\n\nIf unsure, leave this checked.");
 
-  static const char* TR_REAL_XFB_DESCRIPTION =
-      QT_TR_NOOP("Emulate XFBs accurately.\nSlows down emulation a lot and prohibits "
-                 "high-resolution rendering but is necessary to emulate a number of games "
-                 "properly.\n\nIf unsure, check virtual XFB emulation instead.");
+  static const char* TR_IMMEDIATE_XFB_DESCRIPTION =
+      QT_TR_NOOP("Displays the XFB copies as soon as they are created, without waiting for "
+                 "scanout. Can cause graphical defects "
+                 "in some games if the game doesn't expect all XFB copies to be displayed. "
+                 "However, turning this setting on reduces latency."
+                 "\n\nIf unsure, leave this unchecked.");
 
   static const char* TR_GPU_DECODING_DESCRIPTION =
       QT_TR_NOOP("Enables texture decoding using the GPU instead of the CPU. This may result in "
@@ -215,9 +204,8 @@ void HacksWidget::AddDescriptions()
   AddDescription(m_ignore_format_changes, TR_IGNORE_FORMAT_CHANGE_DESCRIPTION);
   AddDescription(m_store_efb_copies, TR_STORE_EFB_TO_TEXTURE_DESCRIPTION);
   AddDescription(m_accuracy, TR_ACCUARCY_DESCRIPTION);
-  AddDescription(m_disable_xfb, TR_DISABLE_XFB_DESCRIPTION);
-  AddDescription(m_virtual_xfb, TR_VIRTUAL_XFB_DESCRIPTION);
-  AddDescription(m_real_xfb, TR_REAL_XFB_DESCRIPTION);
+  AddDescription(m_store_xfb_copies, TR_STORE_XFB_TO_TEXTURE_DESCRIPTION);
+  AddDescription(m_immediate_xfb, TR_STORE_XFB_TO_TEXTURE_DESCRIPTION);
   AddDescription(m_gpu_texture_decoding, TR_GPU_DECODING_DESCRIPTION);
   AddDescription(m_fast_depth_calculation, TR_FAST_DEPTH_CALC_DESCRIPTION);
   AddDescription(m_disable_bounding_box, TR_DISABLE_BOUNDINGBOX_DESCRIPTION);

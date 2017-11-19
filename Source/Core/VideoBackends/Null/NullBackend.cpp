@@ -7,7 +7,6 @@
 // This backend tries not to do anything in the backend,
 // but everything in VideoCommon.
 
-#include "VideoBackends/Null/FramebufferManager.h"
 #include "VideoBackends/Null/PerfQuery.h"
 #include "VideoBackends/Null/Render.h"
 #include "VideoBackends/Null/ShaderCache.h"
@@ -15,6 +14,7 @@
 #include "VideoBackends/Null/VertexManager.h"
 #include "VideoBackends/Null/VideoBackend.h"
 
+#include "VideoCommon/FramebufferManagerBase.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
@@ -68,7 +68,7 @@ void VideoBackend::Video_Prepare()
   g_renderer = std::make_unique<Renderer>();
   g_vertex_manager = std::make_unique<VertexManager>();
   g_perf_query = std::make_unique<PerfQuery>();
-  g_framebuffer_manager = std::make_unique<FramebufferManager>();
+  g_framebuffer_manager = std::make_unique<FramebufferManagerBase>();
   g_texture_cache = std::make_unique<TextureCache>();
   VertexShaderCache::s_instance = std::make_unique<VertexShaderCache>();
   GeometryShaderCache::s_instance = std::make_unique<GeometryShaderCache>();

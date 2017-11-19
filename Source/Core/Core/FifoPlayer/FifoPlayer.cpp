@@ -162,6 +162,16 @@ std::unique_ptr<CPUCoreBase> FifoPlayer::GetCPUCore()
   return std::make_unique<CPUCore>(this);
 }
 
+bool FifoPlayer::IsRunningWithFakeVideoInterfaceUpdates() const
+{
+  if (!m_File || m_File->GetFrameCount() == 0)
+  {
+    return false;
+  }
+
+  return m_File->ShouldGenerateFakeVIUpdates();
+}
+
 u32 FifoPlayer::GetFrameObjectCount() const
 {
   if (m_CurrentFrame < m_FrameInfo.size())

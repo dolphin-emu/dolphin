@@ -219,13 +219,13 @@ void DolphinAnalytics::MakePerGameBuilder()
   builder.AddData("cfg-gfx-multisamples", g_Config.iMultisamples);
   builder.AddData("cfg-gfx-ssaa", g_Config.bSSAA);
   builder.AddData("cfg-gfx-anisotropy", g_Config.iMaxAnisotropy);
-  builder.AddData("cfg-gfx-realxfb", g_Config.RealXFBEnabled());
-  builder.AddData("cfg-gfx-virtualxfb", g_Config.VirtualXFBEnabled());
   builder.AddData("cfg-gfx-vsync", g_Config.bVSync);
   builder.AddData("cfg-gfx-aspect-ratio", g_Config.iAspectRatio);
   builder.AddData("cfg-gfx-efb-access", g_Config.bEFBAccessEnable);
   builder.AddData("cfg-gfx-efb-copy-format-changes", g_Config.bEFBEmulateFormatChanges);
   builder.AddData("cfg-gfx-efb-copy-ram", !g_Config.bSkipEFBCopyToRam);
+  builder.AddData("cfg-gfx-xfb-copy-ram", !g_Config.bSkipXFBCopyToRam);
+  builder.AddData("cfg-gfx-immediate-xfb", !g_Config.bImmediateXFB);
   builder.AddData("cfg-gfx-efb-copy-scaled", g_Config.bCopyEFBScaled);
   builder.AddData("cfg-gfx-internal-resolution", g_Config.iEFBScale);
   builder.AddData("cfg-gfx-tc-samples", g_Config.iSafeTextureCache_ColorSamples);

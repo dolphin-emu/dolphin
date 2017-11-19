@@ -41,6 +41,7 @@
 #include "VideoCommon/SamplerCommon.h"
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VideoBackendBase.h"
+#include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
 
@@ -60,11 +61,6 @@ Renderer::~Renderer()
 {
   UpdateActiveConfig();
 
-  // Ensure all frames are written to frame dump at shutdown.
-  if (m_frame_dumping_active)
-    EndFrameDumping();
-
-  DestroyFrameDumpResources();
   DestroyShaders();
   DestroySemaphores();
 }
@@ -485,26 +481,13 @@ void Renderer::ReinterpretPixelData(unsigned int convtype)
   BindEFBToStateTracker();
 }
 
-void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height,
-                        const EFBRectangle& rc, u64 ticks, float gamma)
+void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region, u64 ticks,
+                        float Gamma)
 {
   // Pending/batched EFB pokes should be included in the final image.
   FramebufferManager::GetInstance()->FlushEFBPokes();
 
-  // Check that we actually have an image to render in XFB-on modes.
-  if ((!m_xfb_written && !g_ActiveConfig.RealXFBEnabled()) || !fb_width || !fb_height)
-  {
-    Core::Callback_VideoCopiedToXFB(false);
-    return;
-  }
-  u32 xfb_count = 0;
-  const XFBSourceBase* const* xfb_sources =
-      FramebufferManager::GetXFBSource(xfb_addr, fb_stride, fb_height, &xfb_count);
-  if (g_ActiveConfig.VirtualXFBEnabled() && (!xfb_sources || xfb_count == 0))
-  {
-    Core::Callback_VideoCopiedToXFB(false);
-    return;
-  }
+  auto* xfb_texture = static_cast<VKTexture*>(texture);
 
   // End the current render pass.
   StateTracker::GetInstance()->EndRenderPass();
@@ -514,31 +497,6 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
   // are determined by guest state. Currently, the only way to catch these is to update every frame.
   UpdateDrawRectangle();
 
-  // Scale the source rectangle to the internal resolution when XFB is disabled.
-  TargetRectangle scaled_efb_rect = Renderer::ConvertEFBRectangle(rc);
-
-  // If MSAA is enabled, and we're not using XFB, we need to resolve the EFB framebuffer before
-  // rendering the final image to the screen, or dumping the frame. This is because we can't resolve
-  // an image within a render pass, which will have already started by the time it is used.
-  TransitionBuffersForSwap(scaled_efb_rect, xfb_sources, xfb_count);
-
-  // Render the frame dump image if enabled.
-  if (IsFrameDumping())
-  {
-    // If we haven't dumped a single frame yet, set up frame dumping.
-    if (!m_frame_dumping_active)
-      StartFrameDumping();
-
-    DrawFrameDump(scaled_efb_rect, xfb_addr, xfb_sources, xfb_count, fb_width, fb_stride, fb_height,
-                  ticks);
-  }
-  else
-  {
-    // If frame dumping was previously enabled, flush all frames and remove the fence callback.
-    if (m_frame_dumping_active)
-      EndFrameDumping();
-  }
-
   // Ensure the worker thread is not still submitting a previous command buffer.
   // In other words, the last frame has been submitted (otherwise the next call would
   // be a race, as the image may not have been consumed yet).
@@ -547,7 +505,7 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
   // Draw to the screen if we have a swap chain.
   if (m_swap_chain)
   {
-    DrawScreen(scaled_efb_rect, xfb_addr, xfb_sources, xfb_count, fb_width, fb_stride, fb_height);
+    DrawScreen(xfb_texture, xfb_region);
 
     // Submit the current command buffer, signaling rendering finished semaphore when it's done
     // Because this final command buffer is rendering to the swap chain, we need to wait for
@@ -581,15 +539,12 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
   // Handle host window resizes.
   CheckForSurfaceChange();
 
-  // Handle output size changes from the guest.
-  // There is a downside to doing this here is that if the game changes its XFB source area,
-  // the changes will be delayed by one frame. For the moment it has to be done here because
-  // this can cause a target size change, which would result in a black frame if done earlier.
-  CheckForTargetResize(fb_width, fb_stride, fb_height);
+  if (CalculateTargetSize())
+    ResizeEFBTextures();
 
   // Update the window size based on the frame that was just rendered.
   // Due to depending on guest state, we need to call this every frame.
-  SetWindowSize(static_cast<int>(fb_stride), static_cast<int>(fb_height));
+  SetWindowSize(xfb_texture->GetConfig().width, xfb_texture->GetConfig().height);
 
   // Clean up stale textures.
   TextureCache::GetInstance()->Cleanup(frameCount);
@@ -598,125 +553,7 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
   g_shader_cache->RetrieveAsyncShaders();
 }
 
-void Renderer::TransitionBuffersForSwap(const TargetRectangle& scaled_rect,
-                                        const XFBSourceBase* const* xfb_sources, u32 xfb_count)
-{
-  VkCommandBuffer command_buffer = g_command_buffer_mgr->GetCurrentCommandBuffer();
-
-  if (!g_ActiveConfig.bUseXFB)
-  {
-    // Drawing EFB direct.
-    if (g_ActiveConfig.iMultisamples > 1)
-    {
-      // While the source rect can be out-of-range when drawing, the resolve rectangle must be
-      // within the bounds of the texture.
-      VkRect2D region = {
-          {scaled_rect.left, scaled_rect.top},
-          {static_cast<u32>(scaled_rect.GetWidth()), static_cast<u32>(scaled_rect.GetHeight())}};
-      region = Util::ClampRect2D(region, FramebufferManager::GetInstance()->GetEFBWidth(),
-                                 FramebufferManager::GetInstance()->GetEFBHeight());
-
-      Vulkan::Texture2D* rtex = FramebufferManager::GetInstance()->ResolveEFBColorTexture(region);
-      rtex->TransitionToLayout(command_buffer, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-    }
-    else
-    {
-      FramebufferManager::GetInstance()->GetEFBColorTexture()->TransitionToLayout(
-          command_buffer, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-    }
-
-    return;
-  }
-
-  // Drawing XFB sources, so transition all of them.
-  // Don't need the EFB, so leave it as-is.
-  for (u32 i = 0; i < xfb_count; i++)
-  {
-    const XFBSource* xfb_source = static_cast<const XFBSource*>(xfb_sources[i]);
-    xfb_source->GetTexture()->GetRawTexIdentifier()->TransitionToLayout(
-        command_buffer, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-  }
-}
-
-void Renderer::DrawFrame(VkRenderPass render_pass, const TargetRectangle& target_rect,
-                         const TargetRectangle& scaled_efb_rect, u32 xfb_addr,
-                         const XFBSourceBase* const* xfb_sources, u32 xfb_count, u32 fb_width,
-                         u32 fb_stride, u32 fb_height)
-{
-  if (!g_ActiveConfig.bUseXFB)
-    DrawEFB(render_pass, target_rect, scaled_efb_rect);
-  else if (!g_ActiveConfig.bUseRealXFB)
-    DrawVirtualXFB(render_pass, target_rect, xfb_addr, xfb_sources, xfb_count, fb_width, fb_stride,
-                   fb_height);
-  else
-    DrawRealXFB(render_pass, target_rect, xfb_sources, xfb_count, fb_width, fb_stride, fb_height);
-}
-
-void Renderer::DrawEFB(VkRenderPass render_pass, const TargetRectangle& target_rect,
-                       const TargetRectangle& scaled_efb_rect)
-{
-  // Transition the EFB render target to a shader resource.
-  Texture2D* efb_color_texture =
-      g_ActiveConfig.iMultisamples > 1 ?
-          FramebufferManager::GetInstance()->GetResolvedEFBColorTexture() :
-          FramebufferManager::GetInstance()->GetEFBColorTexture();
-
-  // Copy EFB -> backbuffer
-  BlitScreen(render_pass, target_rect, scaled_efb_rect, efb_color_texture);
-}
-
-void Renderer::DrawVirtualXFB(VkRenderPass render_pass, const TargetRectangle& target_rect,
-                              u32 xfb_addr, const XFBSourceBase* const* xfb_sources, u32 xfb_count,
-                              u32 fb_width, u32 fb_stride, u32 fb_height)
-{
-  for (u32 i = 0; i < xfb_count; ++i)
-  {
-    const XFBSource* xfb_source = static_cast<const XFBSource*>(xfb_sources[i]);
-    TargetRectangle source_rect = xfb_source->sourceRc;
-    TargetRectangle draw_rect;
-
-    int xfb_width = static_cast<int>(xfb_source->srcWidth);
-    int xfb_height = static_cast<int>(xfb_source->srcHeight);
-    int h_offset = (static_cast<s32>(xfb_source->srcAddr) - static_cast<s32>(xfb_addr)) /
-                   (static_cast<s32>(fb_stride) * 2);
-    draw_rect.top =
-        target_rect.top + h_offset * target_rect.GetHeight() / static_cast<s32>(fb_height);
-    draw_rect.bottom =
-        target_rect.top +
-        (h_offset + xfb_height) * target_rect.GetHeight() / static_cast<s32>(fb_height);
-    draw_rect.left = target_rect.left +
-                     (target_rect.GetWidth() -
-                      xfb_width * target_rect.GetWidth() / static_cast<s32>(fb_stride)) /
-                         2;
-    draw_rect.right = target_rect.left +
-                      (target_rect.GetWidth() +
-                       xfb_width * target_rect.GetWidth() / static_cast<s32>(fb_stride)) /
-                          2;
-
-    source_rect.right -= Renderer::EFBToScaledX(fb_stride - fb_width);
-    BlitScreen(render_pass, draw_rect, source_rect,
-               xfb_source->GetTexture()->GetRawTexIdentifier());
-  }
-}
-
-void Renderer::DrawRealXFB(VkRenderPass render_pass, const TargetRectangle& target_rect,
-                           const XFBSourceBase* const* xfb_sources, u32 xfb_count, u32 fb_width,
-                           u32 fb_stride, u32 fb_height)
-{
-  for (u32 i = 0; i < xfb_count; ++i)
-  {
-    const XFBSource* xfb_source = static_cast<const XFBSource*>(xfb_sources[i]);
-    TargetRectangle source_rect = xfb_source->sourceRc;
-    TargetRectangle draw_rect = target_rect;
-    source_rect.right -= fb_stride - fb_width;
-    BlitScreen(render_pass, draw_rect, source_rect,
-               xfb_source->GetTexture()->GetRawTexIdentifier());
-  }
-}
-
-void Renderer::DrawScreen(const TargetRectangle& scaled_efb_rect, u32 xfb_addr,
-                          const XFBSourceBase* const* xfb_sources, u32 xfb_count, u32 fb_width,
-                          u32 fb_stride, u32 fb_height)
+void Renderer::DrawScreen(VKTexture* xfb_texture, const EFBRectangle& xfb_region)
 {
   VkResult res;
   if (!g_command_buffer_mgr->CheckLastPresentFail())
@@ -767,9 +604,10 @@ void Renderer::DrawScreen(const TargetRectangle& scaled_efb_rect, u32 xfb_addr,
   vkCmdBeginRenderPass(g_command_buffer_mgr->GetCurrentCommandBuffer(), &info,
                        VK_SUBPASS_CONTENTS_INLINE);
 
-  // Draw guest buffers (EFB or XFB)
-  DrawFrame(m_swap_chain->GetRenderPass(), GetTargetRectangle(), scaled_efb_rect, xfb_addr,
-            xfb_sources, xfb_count, fb_width, fb_stride, fb_height);
+  // Draw
+  TargetRectangle source_rc = xfb_texture->GetConfig().GetRect();
+  BlitScreen(m_swap_chain->GetRenderPass(), GetTargetRectangle(), xfb_region,
+             xfb_texture->GetRawTexIdentifier());
 
   // Draw OSD
   Util::SetViewportAndScissor(g_command_buffer_mgr->GetCurrentCommandBuffer(), 0, 0,
@@ -785,173 +623,6 @@ void Renderer::DrawScreen(const TargetRectangle& scaled_efb_rect, u32 xfb_addr,
   // to it have finished before present.
   backbuffer->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                                  VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
-}
-
-bool Renderer::DrawFrameDump(const TargetRectangle& scaled_efb_rect, u32 xfb_addr,
-                             const XFBSourceBase* const* xfb_sources, u32 xfb_count, u32 fb_width,
-                             u32 fb_stride, u32 fb_height, u64 ticks)
-{
-  TargetRectangle target_rect = CalculateFrameDumpDrawRectangle();
-  u32 width = std::max(1u, static_cast<u32>(target_rect.GetWidth()));
-  u32 height = std::max(1u, static_cast<u32>(target_rect.GetHeight()));
-  if (!ResizeFrameDumpBuffer(width, height))
-    return false;
-
-  // If there was a previous frame dumped, we'll still be in TRANSFER_SRC layout.
-  m_frame_dump_render_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                                                  VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-
-  VkClearValue clear_value = {{{0.0f, 0.0f, 0.0f, 1.0f}}};
-  VkClearRect clear_rect = {{{0, 0}, {width, height}}, 0, 1};
-  VkClearAttachment clear_attachment = {VK_IMAGE_ASPECT_COLOR_BIT, 0, clear_value};
-  VkRenderPassBeginInfo info = {
-      VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
-      nullptr,
-      FramebufferManager::GetInstance()->GetColorCopyForReadbackRenderPass(),
-      m_frame_dump_framebuffer,
-      {{0, 0}, {width, height}},
-      1,
-      &clear_value};
-  vkCmdBeginRenderPass(g_command_buffer_mgr->GetCurrentCommandBuffer(), &info,
-                       VK_SUBPASS_CONTENTS_INLINE);
-  vkCmdClearAttachments(g_command_buffer_mgr->GetCurrentCommandBuffer(), 1, &clear_attachment, 1,
-                        &clear_rect);
-  DrawFrame(FramebufferManager::GetInstance()->GetColorCopyForReadbackRenderPass(), target_rect,
-            scaled_efb_rect, xfb_addr, xfb_sources, xfb_count, fb_width, fb_stride, fb_height);
-  vkCmdEndRenderPass(g_command_buffer_mgr->GetCurrentCommandBuffer());
-
-  // Prepare the readback texture for copying.
-  StagingTexture2D* readback_texture = PrepareFrameDumpImage(width, height, ticks);
-  if (!readback_texture)
-    return false;
-
-  // Queue a copy to the current frame dump buffer. It will be written to the frame dump later.
-  m_frame_dump_render_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                                                  VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-  readback_texture->CopyFromImage(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                                  m_frame_dump_render_texture->GetImage(),
-                                  VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, width, height, 0, 0);
-  return true;
-}
-
-void Renderer::StartFrameDumping()
-{
-  _assert_(!m_frame_dumping_active);
-
-  // Register fence callback so that we know when frames are ready to be written to the dump.
-  // This is done by clearing the fence pointer, so WriteFrameDumpFrame doesn't have to wait.
-  auto queued_callback = [](VkCommandBuffer, VkFence) {};
-  auto signaled_callback = std::bind(&Renderer::OnFrameDumpImageReady, this, std::placeholders::_1);
-
-  // We use the array pointer as a key here, that way if Renderer needed fence callbacks in
-  // the future it could be used without conflicting.
-  // We're not interested in when fences are submitted, so the first callback is a no-op.
-  g_command_buffer_mgr->AddFencePointCallback(
-      m_frame_dump_images.data(), std::move(queued_callback), std::move(signaled_callback));
-  m_frame_dumping_active = true;
-}
-
-void Renderer::EndFrameDumping()
-{
-  _assert_(m_frame_dumping_active);
-
-  // Write any pending frames to the frame dump.
-  FlushFrameDump();
-
-  // Remove the fence callback that we registered earlier, one less function that needs to be
-  // called when preparing a command buffer.
-  g_command_buffer_mgr->RemoveFencePointCallback(m_frame_dump_images.data());
-  m_frame_dumping_active = false;
-}
-
-void Renderer::OnFrameDumpImageReady(VkFence fence)
-{
-  for (FrameDumpImage& frame : m_frame_dump_images)
-  {
-    // fence being a null handle means that we don't have to wait to re-use this image.
-    if (frame.fence == fence)
-      frame.fence = VK_NULL_HANDLE;
-  }
-}
-
-void Renderer::WriteFrameDumpImage(size_t index)
-{
-  FrameDumpImage& frame = m_frame_dump_images[index];
-  _assert_(frame.pending);
-
-  // Check fence has been signaled.
-  // The callback here should set fence to null.
-  if (frame.fence != VK_NULL_HANDLE)
-  {
-    g_command_buffer_mgr->WaitForFence(frame.fence);
-    _assert_(frame.fence == VK_NULL_HANDLE);
-  }
-
-  // Copy the now-populated image data to the output file.
-  DumpFrameData(reinterpret_cast<const u8*>(frame.readback_texture->GetMapPointer()),
-                static_cast<int>(frame.readback_texture->GetWidth()),
-                static_cast<int>(frame.readback_texture->GetHeight()),
-                static_cast<int>(frame.readback_texture->GetRowStride()), frame.dump_state);
-
-  frame.pending = false;
-}
-
-StagingTexture2D* Renderer::PrepareFrameDumpImage(u32 width, u32 height, u64 ticks)
-{
-  // Ensure the last frame that was sent to the frame dump has completed encoding before we send
-  // the next image to it.
-  FinishFrameData();
-
-  // If the last image hasn't been written to the frame dump yet, write it now.
-  // This is necessary so that the worker thread is no more than one frame behind, and the pointer
-  // (which is actually the buffer) is safe for us to re-use next time.
-  if (m_frame_dump_images[m_current_frame_dump_image].pending)
-    WriteFrameDumpImage(m_current_frame_dump_image);
-
-  // Move to the next image buffer
-  m_current_frame_dump_image = (m_current_frame_dump_image + 1) % FRAME_DUMP_BUFFERED_FRAMES;
-  FrameDumpImage& image = m_frame_dump_images[m_current_frame_dump_image];
-
-  // Ensure the dimensions of the readback texture are sufficient.
-  if (!image.readback_texture || width != image.readback_texture->GetWidth() ||
-      height != image.readback_texture->GetHeight())
-  {
-    // Allocate a new readback texture.
-    // The reset() call is here so that the memory is released before allocating the new texture.
-    image.readback_texture.reset();
-    image.readback_texture = StagingTexture2D::Create(STAGING_BUFFER_TYPE_READBACK, width, height,
-                                                      EFB_COLOR_TEXTURE_FORMAT);
-
-    if (!image.readback_texture || !image.readback_texture->Map())
-    {
-      // Not actually fatal, just means we can't dump this frame.
-      PanicAlert("Failed to allocate frame dump readback texture.");
-      image.readback_texture.reset();
-      return nullptr;
-    }
-  }
-
-  // The copy happens immediately after this function returns, so flag this frame as pending.
-  image.fence = g_command_buffer_mgr->GetCurrentCommandBufferFence();
-  image.dump_state = AVIDump::FetchState(ticks);
-  image.pending = true;
-  return image.readback_texture.get();
-}
-
-void Renderer::FlushFrameDump()
-{
-  // We must write frames in order, so this is why we use a counter rather than a range.
-  for (size_t i = 0; i < FRAME_DUMP_BUFFERED_FRAMES; i++)
-  {
-    if (m_frame_dump_images[m_current_frame_dump_image].pending)
-      WriteFrameDumpImage(m_current_frame_dump_image);
-
-    m_current_frame_dump_image = (m_current_frame_dump_image + 1) % FRAME_DUMP_BUFFERED_FRAMES;
-  }
-
-  // Since everything has been written now, may as well start at index zero.
-  // count-1 here because the index is incremented before usage.
-  m_current_frame_dump_image = FRAME_DUMP_BUFFERED_FRAMES - 1;
 }
 
 void Renderer::BlitScreen(VkRenderPass render_pass, const TargetRectangle& dst_rect,
@@ -975,100 +646,6 @@ void Renderer::BlitScreen(VkRenderPass render_pass, const TargetRectangle& dst_r
   {
     post_processor->BlitFromTexture(dst_rect, src_rect, src_tex, 0, render_pass);
   }
-}
-
-bool Renderer::ResizeFrameDumpBuffer(u32 new_width, u32 new_height)
-{
-  if (m_frame_dump_render_texture && m_frame_dump_render_texture->GetWidth() == new_width &&
-      m_frame_dump_render_texture->GetHeight() == new_height)
-  {
-    return true;
-  }
-
-  // Ensure all previous frames have been dumped, since we are destroying a framebuffer
-  // that may still be in use.
-  FlushFrameDump();
-
-  if (m_frame_dump_framebuffer != VK_NULL_HANDLE)
-  {
-    vkDestroyFramebuffer(g_vulkan_context->GetDevice(), m_frame_dump_framebuffer, nullptr);
-    m_frame_dump_framebuffer = VK_NULL_HANDLE;
-  }
-
-  m_frame_dump_render_texture =
-      Texture2D::Create(new_width, new_height, 1, 1, EFB_COLOR_TEXTURE_FORMAT,
-                        VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_TILING_OPTIMAL,
-                        VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT);
-
-  if (!m_frame_dump_render_texture)
-  {
-    WARN_LOG(VIDEO, "Failed to resize frame dump render texture");
-    m_frame_dump_render_texture.reset();
-    return false;
-  }
-
-  VkImageView attachment = m_frame_dump_render_texture->GetView();
-  VkFramebufferCreateInfo info = {};
-  info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-  info.renderPass = FramebufferManager::GetInstance()->GetColorCopyForReadbackRenderPass();
-  info.attachmentCount = 1;
-  info.pAttachments = &attachment;
-  info.width = new_width;
-  info.height = new_height;
-  info.layers = 1;
-
-  VkResult res =
-      vkCreateFramebuffer(g_vulkan_context->GetDevice(), &info, nullptr, &m_frame_dump_framebuffer);
-  if (res != VK_SUCCESS)
-  {
-    WARN_LOG(VIDEO, "Failed to create frame dump framebuffer");
-    m_frame_dump_render_texture.reset();
-    return false;
-  }
-
-  // Render pass expects texture is in transfer src to start with.
-  m_frame_dump_render_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                                                  VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-
-  return true;
-}
-
-void Renderer::DestroyFrameDumpResources()
-{
-  if (m_frame_dump_framebuffer != VK_NULL_HANDLE)
-  {
-    vkDestroyFramebuffer(g_vulkan_context->GetDevice(), m_frame_dump_framebuffer, nullptr);
-    m_frame_dump_framebuffer = VK_NULL_HANDLE;
-  }
-
-  m_frame_dump_render_texture.reset();
-
-  for (FrameDumpImage& image : m_frame_dump_images)
-  {
-    image.readback_texture.reset();
-    image.fence = VK_NULL_HANDLE;
-    image.dump_state = {};
-    image.pending = false;
-  }
-  m_current_frame_dump_image = FRAME_DUMP_BUFFERED_FRAMES - 1;
-}
-
-void Renderer::CheckForTargetResize(u32 fb_width, u32 fb_stride, u32 fb_height)
-{
-  if (FramebufferManagerBase::LastXfbWidth() == fb_stride &&
-      FramebufferManagerBase::LastXfbHeight() == fb_height)
-  {
-    return;
-  }
-
-  u32 new_width = (fb_stride < 1 || fb_stride > MAX_XFB_WIDTH) ? MAX_XFB_WIDTH : fb_stride;
-  u32 new_height = (fb_height < 1 || fb_height > MAX_XFB_HEIGHT) ? MAX_XFB_HEIGHT : fb_height;
-  FramebufferManagerBase::SetLastXfbWidth(new_width);
-  FramebufferManagerBase::SetLastXfbHeight(new_height);
-
-  // Changing the XFB source area may alter the target size.
-  if (CalculateTargetSize())
-    ResizeEFBTextures();
 }
 
 void Renderer::CheckForSurfaceChange()
@@ -1144,8 +721,6 @@ void Renderer::CheckForConfigChanges()
   int old_aspect_ratio = g_ActiveConfig.iAspectRatio;
   int old_efb_scale = g_ActiveConfig.iEFBScale;
   bool old_force_filtering = g_ActiveConfig.bForceFiltering;
-  bool old_use_xfb = g_ActiveConfig.bUseXFB;
-  bool old_use_realxfb = g_ActiveConfig.bUseRealXFB;
 
   // Copy g_Config to g_ActiveConfig.
   // NOTE: This can potentially race with the UI thread, however if it does, the changes will be
@@ -1157,14 +732,12 @@ void Renderer::CheckForConfigChanges()
   bool force_texture_filtering_changed = old_force_filtering != g_ActiveConfig.bForceFiltering;
   bool efb_scale_changed = old_efb_scale != g_ActiveConfig.iEFBScale;
   bool aspect_changed = old_aspect_ratio != g_ActiveConfig.iAspectRatio;
-  bool use_xfb_changed = old_use_xfb != g_ActiveConfig.bUseXFB;
-  bool use_realxfb_changed = old_use_realxfb != g_ActiveConfig.bUseRealXFB;
 
   // Update texture cache settings with any changed options.
   TextureCache::GetInstance()->OnConfigChanged(g_ActiveConfig);
 
   // Handle settings that can cause the target rectangle to change.
-  if (efb_scale_changed || aspect_changed || use_xfb_changed || use_realxfb_changed)
+  if (efb_scale_changed || aspect_changed)
   {
     if (CalculateTargetSize())
       ResizeEFBTextures();

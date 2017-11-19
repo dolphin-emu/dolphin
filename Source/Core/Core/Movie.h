@@ -87,10 +87,10 @@ struct DTMHeader
   bool bEFBAccessEnable;
   bool bEFBCopyEnable;
   bool bSkipEFBCopyToRam;
+  bool bSkipXFBCopyToRam;
+  bool bImmediateXFB;
   bool bEFBCopyCacheEnable;
   bool bEFBEmulateFormatChanges;
-  bool bUseXFB;
-  bool bUseRealXFB;
   u8 memcards;      // Memcards inserted (from least to most significant, the bits are slot A and B)
   bool bClearSave;  // Create a new memory card when playing back a movie if true
   u8 bongos;        // Bongos plugged in (from least to most significant, the bits are ports 1-4)

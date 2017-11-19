@@ -201,6 +201,17 @@ static wxString skip_efb_copy_to_ram_desc = wxTRANSLATE(
     "Stores EFB Copies exclusively on the GPU, bypassing system memory. Causes graphical defects "
     "in a small number of games.\n\nEnabled = EFB Copies to Texture\nDisabled = EFB Copies to RAM "
     "(and Texture)\n\nIf unsure, leave this checked.");
+static wxString skip_xfb_copy_to_ram_desc = wxTRANSLATE(
+    "Stores XFB Copies exclusively on the GPU, bypassing system memory. Causes graphical defects "
+    "in a small number of games that need to readback from memory.\n\nEnabled = XFB Copies to "
+    "Texture\nDisabled = XFB Copies to RAM "
+    "(and Texture)\n\nIf unsure, leave this checked.");
+static wxString immediate_xfb_desc =
+    wxTRANSLATE("Displays the XFB copies as soon as they are created, without waiting for scanout. "
+                "Can cause graphical defects "
+                "in some games if the game doesn't expect all XFB copies to be displayed. However, "
+                "turning this setting on reduces latency."
+                "\n\nIf unsure, leave this unchecked.");
 static wxString stc_desc =
     wxTRANSLATE("The \"Safe\" setting eliminates the likelihood of the GPU missing texture updates "
                 "from RAM.\nLower accuracies cause in-game text to appear garbled in certain "
@@ -229,17 +240,6 @@ static wxString show_netplay_messages_desc =
 static wxString texfmt_desc =
     wxTRANSLATE("Modify textures to show the format they're encoded in. Needs an emulation reset "
                 "in most cases.\n\nIf unsure, leave this unchecked.");
-static wxString xfb_desc = wxTRANSLATE(
-    "Disable any XFB emulation.\nSpeeds up emulation a lot but causes heavy glitches in many games "
-    "which rely on them (especially homebrew applications).\n\nIf unsure, leave this checked.");
-static wxString xfb_virtual_desc = wxTRANSLATE(
-    "Emulate XFBs using GPU texture objects.\nFixes many games which don't work without XFB "
-    "emulation while not being as slow as real XFB emulation. However, it may still fail for a lot "
-    "of other games (especially homebrew applications).\n\nIf unsure, leave this checked.");
-static wxString xfb_real_desc =
-    wxTRANSLATE("Emulate XFBs accurately.\nSlows down emulation a lot and prohibits "
-                "high-resolution rendering but is necessary to emulate a number of games "
-                "properly.\n\nIf unsure, check virtual XFB emulation instead.");
 static wxString dump_textures_desc =
     wxTRANSLATE("Dump decoded game textures to User/Dump/Textures/<game_id>/.\n\nIf unsure, leave "
                 "this unchecked.");
@@ -250,6 +250,8 @@ static wxString cache_hires_textures_desc =
                 "more RAM but fixes possible stuttering.\n\nIf unsure, leave this unchecked.");
 static wxString dump_efb_desc = wxTRANSLATE(
     "Dump the contents of EFB copies to User/Dump/Textures/.\n\nIf unsure, leave this unchecked.");
+static wxString dump_xfb_desc = wxTRANSLATE(
+    "Dump the contents of XFB copies to User/Dump/Textures/.\n\nIf unsure, leave this unchecked.");
 static wxString internal_resolution_frame_dumping_desc = wxTRANSLATE(
     "Create frame dumps and screenshots at the internal resolution of the renderer, rather than "
     "the size of the window it is displayed within. If the aspect ratio is widescreen, the output "
@@ -750,20 +752,16 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
       wxStaticBoxSizer* const group_xfb =
           new wxStaticBoxSizer(wxVERTICAL, page_hacks, _("External Frame Buffer (XFB)"));
 
-      SettingCheckBox* disable_xfb = CreateCheckBox(
-          page_hacks, _("Disable"), wxGetTranslation(xfb_desc), Config::GFX_USE_XFB, true);
-      virtual_xfb = CreateRadioButton(page_hacks, _("Virtual"), wxGetTranslation(xfb_virtual_desc),
-                                      Config::GFX_USE_REAL_XFB, true, wxRB_GROUP);
-      real_xfb = CreateRadioButton(page_hacks, _("Real"), wxGetTranslation(xfb_real_desc),
-                                   Config::GFX_USE_REAL_XFB);
+      group_xfb->Add(CreateCheckBox(page_hacks, _("Store XFB Copies to Texture Only"),
+                                    wxGetTranslation(skip_xfb_copy_to_ram_desc),
+                                    Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM),
+                     0, wxLEFT | wxRIGHT, space5);
+      group_xfb->AddSpacer(space5);
 
-      wxBoxSizer* const szr = new wxBoxSizer(wxHORIZONTAL);
-      szr->Add(disable_xfb, 0, wxALIGN_CENTER_VERTICAL);
-      szr->AddStretchSpacer(1);
-      szr->Add(virtual_xfb, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, space5);
-      szr->Add(real_xfb, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, space5);
-
-      group_xfb->Add(szr, 1, wxEXPAND | wxLEFT | wxRIGHT, space5);
+      group_xfb->Add(CreateCheckBox(page_hacks, _("Immediately Present XFB"),
+                                    wxGetTranslation(immediate_xfb_desc),
+                                    Config::GFX_HACK_IMMEDIATE_XFB),
+                     0, wxLEFT | wxRIGHT, space5);
       group_xfb->AddSpacer(space5);
 
       szr_hacks->AddSpacer(space5);
@@ -855,6 +853,9 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
       szr_utility->Add(CreateCheckBox(page_advanced, _("Dump EFB Target"),
                                       wxGetTranslation(dump_efb_desc),
                                       Config::GFX_DUMP_EFB_TARGET));
+      szr_utility->Add(CreateCheckBox(page_advanced, _("Dump XFB Target"),
+                                      wxGetTranslation(dump_xfb_desc),
+                                      Config::GFX_DUMP_XFB_TARGET));
       szr_utility->Add(CreateCheckBox(page_advanced, _("Free Look"),
                                       wxGetTranslation(free_look_desc), Config::GFX_FREE_LOOK));
 #if defined(HAVE_FFMPEG)
@@ -1052,10 +1053,6 @@ void VideoConfigDiag::OnUpdateUI(wxUpdateUIEvent& ev)
   // Anti-aliasing
   choice_aamode->Enable(vconfig.backend_info.AAModes.size() > 1);
   text_aamode->Enable(vconfig.backend_info.AAModes.size() > 1);
-
-  // XFB
-  virtual_xfb->Enable(vconfig.bUseXFB);
-  real_xfb->Enable(vconfig.bUseXFB);
 
   // custom textures
   cache_hires_textures->Enable(vconfig.bHiresTextures);

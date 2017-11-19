@@ -8,6 +8,8 @@
 #include <bitset>
 #include <map>
 #include <memory>
+#include <optional>
+#include <string>
 #include <tuple>
 #include <unordered_map>
 #include <unordered_set>
@@ -45,21 +47,59 @@ struct TextureAndTLUTFormat
 struct EFBCopyParams
 {
   EFBCopyParams(PEControl::PixelFormat efb_format_, EFBCopyFormat copy_format_, bool depth_,
-                bool yuv_)
-      : efb_format(efb_format_), copy_format(copy_format_), depth(depth_), yuv(yuv_)
+                bool yuv_, float y_scale_)
+      : efb_format(efb_format_), copy_format(copy_format_), depth(depth_), yuv(yuv_),
+        y_scale(y_scale_)
   {
   }
 
   bool operator<(const EFBCopyParams& rhs) const
   {
-    return std::tie(efb_format, copy_format, depth, yuv) <
-           std::tie(rhs.efb_format, rhs.copy_format, rhs.depth, rhs.yuv);
+    return std::tie(efb_format, copy_format, depth, yuv, y_scale) <
+           std::tie(rhs.efb_format, rhs.copy_format, rhs.depth, rhs.yuv, rhs.y_scale);
   }
 
   PEControl::PixelFormat efb_format;
   EFBCopyFormat copy_format;
   bool depth;
   bool yuv;
+  float y_scale;
+};
+
+struct TextureLookupInformation
+{
+  u32 address;
+
+  u32 block_width;
+  u32 block_height;
+  u32 bytes_per_block;
+
+  u32 expanded_width;
+  u32 expanded_height;
+  u32 native_width;
+  u32 native_height;
+  u32 total_bytes;
+  u32 native_levels = 1;
+  u32 computed_levels;
+
+  u64 base_hash;
+  u64 full_hash;
+
+  TextureAndTLUTFormat full_format;
+  u32 tlut_address = 0;
+
+  bool is_palette_texture = false;
+  u32 palette_size = 0;
+
+  bool use_mipmaps = false;
+
+  bool from_tmem = false;
+  u32 tmem_address_even = 0;
+  u32 tmem_address_odd = 0;
+
+  int texture_cache_safety_color_sample_size = 0;  // Default to safe hashing
+
+  u8* src_data;
 };
 
 class TextureCacheBase
@@ -84,6 +124,13 @@ public:
     bool tmem_only = false;           // indicates that this texture only exists in the tmem cache
     bool has_arbitrary_mips = false;  // indicates that the mips in this texture are arbitrary
                                       // content, aren't just downscaled
+    bool should_force_safe_hashing = false;  // for XFB
+    bool is_xfb_copy = false;
+    float y_scale = 1.0f;
+    float gamma = 1.0f;
+    u64 id;
+
+    bool reference_changed = false;  // used by xfb to determine when a reference xfb changed
 
     unsigned int native_width,
         native_height;  // Texture dimensions from the GameCube's point of view
@@ -105,11 +152,13 @@ public:
 
     ~TCacheEntry();
 
-    void SetGeneralParameters(u32 _addr, u32 _size, TextureAndTLUTFormat _format)
+    void SetGeneralParameters(u32 _addr, u32 _size, TextureAndTLUTFormat _format,
+                              bool force_safe_hashing)
     {
       addr = _addr;
       size_in_bytes = _size;
       format = _format;
+      should_force_safe_hashing = force_safe_hashing;
     }
 
     void SetDimensions(unsigned int _native_width, unsigned int _native_height,
@@ -135,16 +184,20 @@ public:
       other_entry->references.emplace(this);
     }
 
+    void SetXfbCopy(u32 stride);
     void SetEfbCopy(u32 stride);
+    void SetNotCopy();
 
     bool OverlapsMemoryRange(u32 range_address, u32 range_size) const;
 
     bool IsEfbCopy() const { return is_efb_copy; }
+    bool IsCopy() const { return is_xfb_copy || is_efb_copy; }
     u32 NumBlocksY() const;
     u32 BytesPerRow() const;
 
     u64 CalculateHash() const;
 
+    int HashSampleSize() const;
     u32 GetWidth() const { return texture->GetConfig().width; }
     u32 GetHeight() const { return texture->GetConfig().height; }
     u32 GetNumLevels() const { return texture->GetConfig().levels; }
@@ -172,10 +225,31 @@ public:
   TCacheEntry* Load(const u32 stage);
   static void InvalidateAllBindPoints() { valid_bind_points.reset(); }
   static bool IsValidBindPoint(u32 i) { return valid_bind_points.test(i); }
-  void BindTextures();
+  TCacheEntry* GetTexture(u32 address, u32 width, u32 height, const TextureFormat texformat,
+                          const int textureCacheSafetyColorSampleSize, u32 tlutaddr = 0,
+                          TLUTFormat tlutfmt = TLUTFormat::IA8, bool use_mipmaps = false,
+                          u32 tex_levels = 1, bool from_tmem = false, u32 tmem_address_even = 0,
+                          u32 tmem_address_odd = 0);
+
+  TCacheEntry* GetXFBTexture(u32 address, u32 width, u32 height, TextureFormat texformat,
+                             int textureCacheSafetyColorSampleSize);
+  std::optional<TextureLookupInformation>
+  ComputeTextureInformation(u32 address, u32 width, u32 height, TextureFormat texformat,
+                            int textureCacheSafetyColorSampleSize, bool from_tmem,
+                            u32 tmem_address_even, u32 tmem_address_odd, u32 tlutaddr,
+                            TLUTFormat tlutfmt, u32 levels);
+  TCacheEntry* GetXFBFromCache(const TextureLookupInformation& tex_info);
+  bool LoadTextureFromOverlappingTextures(TCacheEntry* entry_to_update,
+                                          const TextureLookupInformation& tex_info);
+  TCacheEntry* CreateNormalTexture(const TextureLookupInformation& tex_info);
+  void LoadTextureFromMemory(TCacheEntry* entry_to_update,
+                             const TextureLookupInformation& tex_info);
+  void LoadTextureLevelZeroFromMemory(TCacheEntry* entry_to_update,
+                                      const TextureLookupInformation& tex_info, bool decode_on_gpu);
+  virtual void BindTextures();
   void CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstFormat, u32 dstStride,
                                  bool is_depth_copy, const EFBRectangle& srcRect, bool isIntensity,
-                                 bool scaleByHalf);
+                                 bool scaleByHalf, float y_scale, float gamma);
 
   virtual void ConvertTexture(TCacheEntry* entry, TCacheEntry* unconverted, const void* palette,
                               TLUTFormat format) = 0;
@@ -196,6 +270,10 @@ public:
                                   const u8* palette, TLUTFormat palette_format)
   {
   }
+
+  void ScaleTextureCacheEntryTo(TCacheEntry* entry, u32 new_width, u32 new_height);
+
+  virtual std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config) = 0;
 
 protected:
   TextureCacheBase();
@@ -222,7 +300,6 @@ private:
 
   TCacheEntry* ApplyPaletteToEntry(TCacheEntry* entry, u8* palette, TLUTFormat tlutfmt);
 
-  void ScaleTextureCacheEntryTo(TCacheEntry* entry, u32 new_width, u32 new_height);
   TCacheEntry* DoPartialTextureUpdates(TCacheEntry* entry_to_update, u8* palette,
                                        TLUTFormat tlutfmt);
 
@@ -239,8 +316,6 @@ private:
   std::pair<TexAddrCache::iterator, TexAddrCache::iterator>
   FindOverlappingTextures(u32 addr, u32 size_in_bytes);
 
-  virtual std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config) = 0;
-
   virtual void CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy,
                                    const EFBRectangle& src_rect, bool scale_by_half,
                                    unsigned int cbuf_id, const float* colmat) = 0;
@@ -248,11 +323,12 @@ private:
   // Removes and unlinks texture from texture cache and returns it to the pool
   TexAddrCache::iterator InvalidateTexture(TexAddrCache::iterator t_iter);
 
-  TCacheEntry* ReturnEntry(unsigned int stage, TCacheEntry* entry);
+  void UninitializeXFBMemory(u8* dst, u32 stride, u32 bytes_per_row, u32 num_blocks_y);
 
   TexAddrCache textures_by_address;
   TexHashCache textures_by_hash;
   TexPool texture_pool;
+  u64 last_entry_id = 0;
 
   // Backup configuration values
   struct BackupConfig

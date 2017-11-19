@@ -77,10 +77,6 @@ SoftwareVideoConfigDialog::SoftwareVideoConfigDialog(wxWindow* parent, const std
         label_backend->Disable();
         choice_backend->Disable();
       }
-
-      // xfb
-      szr_rendering->Add(
-          new SettingCheckBox(page_general, _("Bypass XFB"), "", Config::GFX_USE_XFB, true));
     }
 
     // - info

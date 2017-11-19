@@ -393,7 +393,7 @@ static void CpuThread()
   s_is_started = false;
 
   if (!_CoreParameter.bCPUThread)
-    g_video_backend->Video_Cleanup();
+    g_video_backend->Video_CleanupShared();
 
   if (_CoreParameter.bFastmem)
     EMM::UninstallExceptionHandler();
@@ -445,7 +445,7 @@ static void FifoPlayerThread()
   }
 
   if (!_CoreParameter.bCPUThread)
-    g_video_backend->Video_Cleanup();
+    g_video_backend->Video_CleanupShared();
 }
 
 // Initialize and create emulation thread
@@ -654,7 +654,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot)
   INFO_LOG(CONSOLE, "%s", StopMessage(true, "CPU thread stopped.").c_str());
 
   if (core_parameter.bCPUThread)
-    g_video_backend->Video_Cleanup();
+    g_video_backend->Video_CleanupShared();
 
   // If we shut down normally, the stop message does not need to be triggered.
   stop_message_guard.Dismiss();

@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <vector>
+
 #include "Common/GL/GLUtil.h"
 
 #include "VideoCommon/AbstractTexture.h"
@@ -17,7 +19,6 @@ public:
   ~OGLTexture();
 
   void Bind(unsigned int stage) override;
-  bool Save(const std::string& filename, unsigned int level) override;
 
   void CopyRectangleFromTexture(const AbstractTexture* source,
                                 const MathUtil::Rectangle<int>& srcrect,
@@ -32,8 +33,14 @@ public:
   static void SetStage();
 
 private:
+  std::optional<RawTextureInfo> MapFullImpl() override;
+  std::optional<RawTextureInfo> MapRegionImpl(u32 level, u32 x, u32 y, u32 width,
+                                              u32 height) override;
+  void MapRegionSlow(u32 level, u32 x, u32 y, u32 width, u32 height);
+
   GLuint m_texId;
   GLuint m_framebuffer = 0;
+  std::vector<u8> m_staging_data;
 };
 
 }  // namespace OGL

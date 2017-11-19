@@ -18,6 +18,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
+#include "Core/FifoPlayer/FifoPlayer.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/SI/SI.h"
@@ -549,8 +550,9 @@ float GetAspectRatio()
 
   // 5. Calculate the final ratio and scale to 4:3
   float ratio = horizontal_active_ratio / vertical_active_ratio;
-  if (std::isnormal(
-          ratio))  // Check we have a sane ratio and haven't propagated any infs/nans/zeros
+  bool running_fifo_log = FifoPlayer::GetInstance().IsRunningWithFakeVideoInterfaceUpdates();
+  if (std::isnormal(ratio) &&      // Check we have a sane ratio without any infs/nans/zeros
+      !running_fifo_log)           // we don't know the correct ratio for fifos
     return ratio * (4.0f / 3.0f);  // Scale to 4:3
   else
     return (4.0f / 3.0f);  // VI isn't initialized correctly, just return 4:3 instead
@@ -773,6 +775,46 @@ void Update(u64 ticks)
   }
 
   UpdateInterrupts();
+}
+
+// Create a fake VI mode for a fifolog
+void FakeVIUpdate(u32 xfb_address, u32 fb_width, u32 fb_height)
+{
+  u32 fb_stride = fb_width;
+
+  bool interlaced = fb_height > 480 / 2;
+  if (interlaced)
+  {
+    fb_height = fb_height / 2;
+    fb_stride = fb_stride * 2;
+  }
+
+  m_XFBInfoTop.POFF = 1;
+  m_XFBInfoBottom.POFF = 1;
+  m_VerticalTimingRegister.ACV = fb_height;
+  m_VerticalTimingRegister.EQU = 6;
+  m_VBlankTimingOdd.PRB = 502 - fb_height * 2;
+  m_VBlankTimingOdd.PSB = 5;
+  m_VBlankTimingEven.PRB = 503 - fb_height * 2;
+  m_VBlankTimingEven.PSB = 4;
+  m_PictureConfiguration.WPL = fb_width / 16;
+  m_PictureConfiguration.STD = fb_stride / 16;
+
+  UpdateParameters();
+
+  u32 total_halflines = GetHalfLinesPerEvenField() + GetHalfLinesPerOddField();
+
+  if ((s_half_line_count - s_even_field_first_hl) % total_halflines <
+      (s_half_line_count - s_odd_field_first_hl) % total_halflines)
+  {
+    // Even/Bottom field is next.
+    m_XFBInfoBottom.FBB = interlaced ? (xfb_address + fb_width * 2) >> 5 : xfb_address >> 5;
+  }
+  else
+  {
+    // Odd/Top field is next
+    m_XFBInfoTop.FBB = (xfb_address >> 5);
+  }
 }
 
 }  // namespace
