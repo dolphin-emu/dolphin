@@ -97,13 +97,6 @@ private:
   std::list<bool*> observers;
 };
 
-// Font creation flags
-#define D3DFONT_BOLD 0x0001
-#define D3DFONT_ITALIC 0x0002
-
-// Font rendering flags
-#define D3DFONT_CENTERED 0x0001
-
 class CD3DFont
 {
 public:
