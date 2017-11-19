@@ -20,6 +20,8 @@ public:
   void StartRecording(s32 numFrames, CallbackFunc finishedCb);
   void StopRecording();
 
+  bool IsRecordingDone() const;
+
   FifoDataFile* GetRecordedFile() const;
   // Called from video thread
 
