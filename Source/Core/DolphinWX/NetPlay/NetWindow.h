@@ -9,7 +9,7 @@
 #include <wx/frame.h>
 
 #include "Common/CommonTypes.h"
-#include "Common/FifoQueue.h"
+#include "Common/SPSCQueue.h"
 #include "Core/NetPlayClient.h"
 #include "Core/NetPlayProto.h"
 #include "Core/NetPlayServer.h"
@@ -161,7 +161,7 @@ private:
   std::string m_desync_player;
 
   std::vector<int> m_playerids;
-  Common::FifoQueue<std::string> m_chat_msgs;
+  Common::SPSCQueue<std::string> m_chat_msgs;
 
   const GameListCtrl* const m_game_list;
 
