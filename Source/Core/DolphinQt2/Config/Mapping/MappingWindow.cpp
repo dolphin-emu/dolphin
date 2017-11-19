@@ -298,8 +298,7 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
     m_profiles_combo->addItem(QString::fromStdString(basename), QString::fromStdString(filename));
   }
 
-  if (m_controller != nullptr)
-    RefreshDevices();
+  RefreshDevices();
 }
 
 void MappingWindow::AddWidget(const QString& name, QWidget* widget)
@@ -329,9 +328,6 @@ std::shared_ptr<ciface::Core::Device> MappingWindow::GetDevice() const
 
 void MappingWindow::OnDefaultFieldsPressed()
 {
-  if (m_controller == nullptr)
-    return;
-
   m_controller->LoadDefaults(g_controller_interface);
   m_controller->UpdateReferences(g_controller_interface);
   emit Update();
