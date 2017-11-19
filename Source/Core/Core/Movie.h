@@ -52,6 +52,8 @@ struct ControllerState
 static_assert(sizeof(ControllerState) == 8, "ControllerState should be 8 bytes");
 #pragma pack(pop)
 
+// When making changes to the DTM format, keep in mind that there are programs other
+// than Dolphin that parse DTM files. The format is expected to be relatively stable.
 #pragma pack(push, 1)
 struct DTMHeader
 {
@@ -88,10 +90,10 @@ struct DTMHeader
   bool bEFBAccessEnable;
   bool bEFBCopyEnable;
   bool bSkipEFBCopyToRam;
-  bool bSkipXFBCopyToRam;
-  bool bImmediateXFB;
   bool bEFBCopyCacheEnable;
   bool bEFBEmulateFormatChanges;
+  bool bImmediateXFB;
+  bool bSkipXFBCopyToRam;
   u8 memcards;      // Memcards inserted (from least to most significant, the bits are slot A and B)
   bool bClearSave;  // Create a new memory card when playing back a movie if true
   u8 bongos;        // Bongos plugged in (from least to most significant, the bits are ports 1-4)
