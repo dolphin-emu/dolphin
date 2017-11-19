@@ -237,17 +237,9 @@ void CompileExceptionCheck(ExceptionType type)
     break;
   }
 
-  if (PC != 0 && (exception_addresses->find(PC)) == (exception_addresses->end()))
+  auto insert = exception_addresses->insert(PC);
+  if (insert.second)
   {
-    if (type == ExceptionType::FIFOWrite)
-    {
-      // Check in case the code has been replaced since: do we need to do this?
-      const OpType optype = PPCTables::GetOpInfo(PowerPC::HostRead_U32(PC))->type;
-      if (optype != OpType::Store && optype != OpType::StoreFP && optype != OpType::StorePS)
-        return;
-    }
-    exception_addresses->insert(PC);
-
     // Invalidate the JIT block so that it gets recompiled with the external exception check
     // included.
     g_jit->GetBlockCache()->InvalidateICache(PC, 4, true);
