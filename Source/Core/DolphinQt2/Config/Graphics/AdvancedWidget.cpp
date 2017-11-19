@@ -62,7 +62,7 @@ void AdvancedWidget::CreateWidgets()
   m_load_custom_textures = new GraphicsBool(tr("Load Custom Textures"), Config::GFX_HIRES_TEXTURES);
   m_prefetch_custom_textures =
       new GraphicsBool(tr("Prefetch Custom Textures"), Config::GFX_CACHE_HIRES_TEXTURES);
-  m_use_fullres_framedumps = new GraphicsBool(tr("Full Resolution Frame Dumps"),
+  m_use_fullres_framedumps = new GraphicsBool(tr("Internal Resolution Frame Dumps"),
                                               Config::GFX_INTERNAL_RESOLUTION_FRAME_DUMPS);
   m_dump_efb_target = new GraphicsBool(tr("Dump EFB Target"), Config::GFX_DUMP_EFB_TARGET);
   m_enable_freelook = new GraphicsBool(tr("Free Look"), Config::GFX_FREE_LOOK);
