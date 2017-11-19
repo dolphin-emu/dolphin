@@ -60,7 +60,6 @@ extern ID3D11Device* device;
 extern ID3D11Device1* device1;
 extern ID3D11DeviceContext* context;
 extern HWND hWnd;
-extern bool bFrameInProgress;
 
 void Reset();
 void Present();
@@ -93,8 +92,6 @@ typedef HRESULT(WINAPI* D3D11CREATEDEVICE)(IDXGIAdapter*, D3D_DRIVER_TYPE, HMODU
                                            CONST D3D_FEATURE_LEVEL*, UINT, UINT, ID3D11Device**,
                                            D3D_FEATURE_LEVEL*, ID3D11DeviceContext**);
 
-typedef HRESULT(WINAPI* D3DREFLECT)(LPCVOID, SIZE_T, REFIID, void**);
-extern D3DREFLECT PD3DReflect;
 extern pD3DCompile PD3DCompile;
 
 }  // namespace DX11
