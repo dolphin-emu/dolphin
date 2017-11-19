@@ -35,7 +35,7 @@
 std::unique_ptr<VertexManagerBase> g_vertex_manager;
 
 // GX primitive -> RenderState primitive, no primitive restart
-constexpr std::array<PrimitiveType, 8> primitive_from_gx = {
+constexpr std::array<PrimitiveType, 8> primitive_from_gx{{
     PrimitiveType::Triangles,  // GX_DRAW_QUADS
     PrimitiveType::Triangles,  // GX_DRAW_QUADS_2
     PrimitiveType::Triangles,  // GX_DRAW_TRIANGLES
@@ -44,10 +44,10 @@ constexpr std::array<PrimitiveType, 8> primitive_from_gx = {
     PrimitiveType::Lines,      // GX_DRAW_LINES
     PrimitiveType::Lines,      // GX_DRAW_LINE_STRIP
     PrimitiveType::Points,     // GX_DRAW_POINTS
-};
+}};
 
 // GX primitive -> RenderState primitive, using primitive restart
-constexpr std::array<PrimitiveType, 8> primitive_from_gx_pr = {
+constexpr std::array<PrimitiveType, 8> primitive_from_gx_pr{{
     PrimitiveType::TriangleStrip,  // GX_DRAW_QUADS
     PrimitiveType::TriangleStrip,  // GX_DRAW_QUADS_2
     PrimitiveType::TriangleStrip,  // GX_DRAW_TRIANGLES
@@ -56,7 +56,7 @@ constexpr std::array<PrimitiveType, 8> primitive_from_gx_pr = {
     PrimitiveType::Lines,          // GX_DRAW_LINES
     PrimitiveType::Lines,          // GX_DRAW_LINE_STRIP
     PrimitiveType::Points,         // GX_DRAW_POINTS
-};
+}};
 
 // Due to the BT.601 standard which the GameCube is based on being a compromise
 // between PAL and NTSC, neither standard gets square pixels. They are each off
