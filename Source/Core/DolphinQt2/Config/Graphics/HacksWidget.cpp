@@ -205,7 +205,7 @@ void HacksWidget::AddDescriptions()
   AddDescription(m_store_efb_copies, TR_STORE_EFB_TO_TEXTURE_DESCRIPTION);
   AddDescription(m_accuracy, TR_ACCUARCY_DESCRIPTION);
   AddDescription(m_store_xfb_copies, TR_STORE_XFB_TO_TEXTURE_DESCRIPTION);
-  AddDescription(m_immediate_xfb, TR_STORE_XFB_TO_TEXTURE_DESCRIPTION);
+  AddDescription(m_immediate_xfb, TR_IMMEDIATE_XFB_DESCRIPTION);
   AddDescription(m_gpu_texture_decoding, TR_GPU_DECODING_DESCRIPTION);
   AddDescription(m_fast_depth_calculation, TR_FAST_DEPTH_CALC_DESCRIPTION);
   AddDescription(m_disable_bounding_box, TR_DISABLE_BOUNDINGBOX_DESCRIPTION);
