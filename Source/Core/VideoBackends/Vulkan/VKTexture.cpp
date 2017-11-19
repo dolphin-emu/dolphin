@@ -113,56 +113,6 @@ void VKTexture::Bind(unsigned int stage)
   StateTracker::GetInstance()->SetTexture(stage, m_texture->GetView());
 }
 
-std::optional<AbstractTexture::RawTextureInfo> VKTexture::MapFullImpl()
-{
-  // No support for optimization of full copy
-  return MapRegionImpl(0, 0, 0, m_config.width, m_config.height);
-}
-
-std::optional<AbstractTexture::RawTextureInfo> VKTexture::MapRegionImpl(u32 level, u32 x, u32 y,
-                                                                        u32 width, u32 height)
-{
-  m_staging_texture = StagingTexture2D::Create(STAGING_BUFFER_TYPE_READBACK, width, height,
-                                               TEXTURECACHE_TEXTURE_FORMAT);
-
-  // Transition image to transfer source, and invalidate the current state,
-  // since we'll be executing the command buffer.
-  m_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                                VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-  StateTracker::GetInstance()->EndRenderPass();
-
-  // Copy to download buffer.
-  m_staging_texture->CopyFromImage(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                                   m_texture->GetImage(), VK_IMAGE_ASPECT_COLOR_BIT, x, y, width,
-                                   height, level, 0);
-
-  // Restore original state of texture.
-  m_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                                VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-
-  // Block until the GPU has finished copying to the staging texture.
-  Util::ExecuteCurrentCommandsAndRestoreState(false, true);
-
-  // Map the staging texture so we can copy the contents out.
-  if (!m_staging_texture->Map())
-  {
-    PanicAlert("Failed to map staging texture");
-    return {};
-  }
-
-  return AbstractTexture::RawTextureInfo{reinterpret_cast<u8*>(m_staging_texture->GetMapPointer()),
-                                         static_cast<u32>(m_staging_texture->GetRowStride()), width,
-                                         height};
-}
-
-void VKTexture::Unmap()
-{
-  if (!m_staging_texture)
-    return;
-
-  m_staging_texture->Unmap();
-}
-
 void VKTexture::CopyRectangleFromTexture(const AbstractTexture* src,
                                          const MathUtil::Rectangle<int>& src_rect, u32 src_layer,
                                          u32 src_level, const MathUtil::Rectangle<int>& dst_rect,

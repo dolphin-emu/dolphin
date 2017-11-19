@@ -38,14 +38,8 @@ public:
   static void SetStage();
 
 private:
-  std::optional<RawTextureInfo> MapFullImpl() override;
-  std::optional<RawTextureInfo> MapRegionImpl(u32 level, u32 x, u32 y, u32 width,
-                                              u32 height) override;
-  void MapRegionSlow(u32 level, u32 x, u32 y, u32 width, u32 height);
-
   GLuint m_texId;
   GLuint m_framebuffer = 0;
-  std::vector<u8> m_staging_data;
 };
 
 class OGLStagingTexture final : public AbstractStagingTexture

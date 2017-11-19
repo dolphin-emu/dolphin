@@ -107,12 +107,6 @@ u8* SWTexture::GetData()
   return m_data.data();
 }
 
-std::optional<AbstractTexture::RawTextureInfo> SWTexture::MapFullImpl()
-{
-  return AbstractTexture::RawTextureInfo{GetData(), m_config.width * 4, m_config.width,
-                                         m_config.height};
-}
-
 SWStagingTexture::SWStagingTexture(StagingTextureType type, const TextureConfig& config)
     : AbstractStagingTexture(type, config)
 {

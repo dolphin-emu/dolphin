@@ -20,7 +20,6 @@ public:
   ~DXTexture();
 
   void Bind(unsigned int stage) override;
-  void Unmap() override;
 
   void CopyRectangleFromTexture(const AbstractTexture* src,
                                 const MathUtil::Rectangle<int>& src_rect, u32 src_layer,
@@ -35,12 +34,7 @@ public:
   D3DTexture2D* GetRawTexIdentifier() const;
 
 private:
-  std::optional<RawTextureInfo> MapFullImpl() override;
-  std::optional<RawTextureInfo> MapRegionImpl(u32 level, u32 x, u32 y, u32 width,
-                                              u32 height) override;
-
   D3DTexture2D* m_texture;
-  ID3D11Texture2D* m_staging_texture = nullptr;
 };
 
 class DXStagingTexture final : public AbstractStagingTexture
