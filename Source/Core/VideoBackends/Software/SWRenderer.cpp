@@ -4,18 +4,15 @@
 
 #include "VideoBackends/Software/SWRenderer.h"
 
-#include <algorithm>
-#include <atomic>
-#include <mutex>
 #include <string>
 
 #include "Common/CommonTypes.h"
-#include "Common/Logging/Log.h"
 
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/HW/Memmap.h"
 
 #include "VideoBackends/Software/EfbCopy.h"
+#include "VideoBackends/Software/EfbInterface.h"
 #include "VideoBackends/Software/SWOGLWindow.h"
 
 #include "VideoCommon/BoundingBox.h"

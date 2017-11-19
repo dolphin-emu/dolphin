@@ -12,7 +12,6 @@
 #include <string>
 #include <strsafe.h>
 #include <tuple>
-#include <unordered_map>
 
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
@@ -31,13 +30,10 @@
 #include "VideoBackends/D3D/TextureCache.h"
 #include "VideoBackends/D3D/VertexShaderCache.h"
 
-#include "VideoCommon/AVIDump.h"
 #include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/PixelEngine.h"
-#include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/RenderState.h"
-#include "VideoCommon/SamplerCommon.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"

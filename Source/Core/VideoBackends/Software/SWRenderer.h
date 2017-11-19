@@ -6,8 +6,6 @@
 
 #include "Common/CommonTypes.h"
 
-#include "VideoBackends/Software/EfbInterface.h"
-
 #include "VideoCommon/RenderBase.h"
 
 class SWRenderer : public Renderer

@@ -20,14 +20,12 @@
 #include "VideoBackends/Vulkan/StateTracker.h"
 #include "VideoBackends/Vulkan/StreamBuffer.h"
 #include "VideoBackends/Vulkan/Texture2D.h"
-#include "VideoBackends/Vulkan/TextureConverter.h"
 #include "VideoBackends/Vulkan/Util.h"
 #include "VideoBackends/Vulkan/VKTexture.h"
 #include "VideoBackends/Vulkan/VertexFormat.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 
 #include "VideoCommon/RenderBase.h"
-#include "VideoCommon/TextureConfig.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace Vulkan

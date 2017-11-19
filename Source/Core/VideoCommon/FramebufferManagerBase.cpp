@@ -4,13 +4,9 @@
 
 #include "VideoCommon/FramebufferManagerBase.h"
 
-#include <algorithm>
-#include <array>
 #include <memory>
-#include <tuple>
 
 #include "VideoCommon/RenderBase.h"
-#include "VideoCommon/VideoConfig.h"
 
 std::unique_ptr<FramebufferManagerBase> g_framebuffer_manager;
 
