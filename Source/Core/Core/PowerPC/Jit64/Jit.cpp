@@ -355,9 +355,14 @@ bool Jit64::Cleanup()
 
   if (jo.optimizeGatherPipe && js.fifoBytesSinceCheck > 0)
   {
+    MOV(64, R(RSCRATCH), PPCSTATE(gather_pipe_ptr));
+    SUB(64, R(RSCRATCH), PPCSTATE(gather_pipe_base_ptr));
+    CMP(64, R(RSCRATCH), Imm32(GPFifo::GATHER_PIPE_SIZE));
+    FixupBranch exit = J_CC(CC_L);
     ABI_PushRegistersAndAdjustStack({}, 0);
-    ABI_CallFunction(GPFifo::FastCheckGatherPipe);
+    ABI_CallFunction(GPFifo::UpdateGatherPipe);
     ABI_PopRegistersAndAdjustStack({}, 0);
+    SetJumpTarget(exit);
     did_something = true;
   }
 

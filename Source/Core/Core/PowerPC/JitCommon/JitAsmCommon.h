@@ -15,11 +15,6 @@ alignas(16) extern const float m_dequantizeTableS[128];
 class CommonAsmRoutinesBase
 {
 public:
-  const u8* fifoDirectWrite8;
-  const u8* fifoDirectWrite16;
-  const u8* fifoDirectWrite32;
-  const u8* fifoDirectWrite64;
-
   const u8* enterCode;
 
   const u8* dispatcherMispredictedBLR;
