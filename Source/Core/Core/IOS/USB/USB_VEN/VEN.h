@@ -21,7 +21,6 @@ public:
   using USBV5ResourceManager::USBV5ResourceManager;
   ~USB_VEN() override;
 
-  ReturnCode Open(const OpenRequest& request) override;
   IPCCommandResult IOCtl(const IOCtlRequest& request) override;
   IPCCommandResult IOCtlV(const IOCtlVRequest& request) override;
 

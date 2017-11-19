@@ -2,7 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Core/IOS/MemoryValues.h"
+#include "Core/IOS/VersionInfo.h"
 
 #include <array>
 
@@ -334,6 +334,45 @@ constexpr std::array<MemoryValues, 41> ios_memory_values = {
 const std::array<MemoryValues, 41>& GetMemoryValues()
 {
   return ios_memory_values;
+}
+
+Feature GetFeatures(u32 version)
+{
+  // Common features that are present in most versions.
+  Feature features = Feature::Core | Feature::SDIO | Feature::SO | Feature::Ethernet;
+
+  // IOS4 is a tiny IOS that was presumably used during manufacturing. It lacks network support.
+  if (version != 4)
+    features |= Feature::KD | Feature::SSL | Feature::NCD | Feature::WiFi;
+
+  if (version == 48 || (version >= 56 && version <= 62) || version == 70 || version == 80)
+    features |= Feature::SDv2;
+
+  if (version == 57 || version == 58 || version == 59)
+    features |= Feature::NewUSB;
+  if (version == 58 || version == 59)
+    features |= Feature::EHCI;
+  if (version == 59)
+    features |= Feature::WFS;
+
+  // No IOS earlier than IOS30 has USB_KBD. Any IOS with the new USB modules lacks this module.
+  // TODO(IOS): it is currently unknown which other versions don't have it.
+  if (version >= 30 && !HasFeature(features, Feature::NewUSB))
+    features |= Feature::USB_KBD;
+
+  // Just like KBD, USB_HIDv4 is not present on any IOS with the new USB modules
+  // (since it's been replaced with USB_HIDv5 there).
+  // Additionally, it appears that HIDv4 and KBD are never both present.
+  // TODO(IOS): figure out which versions have HIDv4. For now we just include both KBD and HIDv4.
+  if (!HasFeature(features, Feature::NewUSB))
+    features |= Feature::USB_HIDv4;
+
+  return features;
+}
+
+bool HasFeature(u32 major_version, Feature feature)
+{
+  return HasFeature(GetFeatures(major_version), feature);
 }
 }
 }

@@ -185,8 +185,8 @@
     <ClCompile Include="IOS\DeviceStub.cpp" />
     <ClCompile Include="IOS\IOS.cpp" />
     <ClCompile Include="IOS\IOSC.cpp" />
-    <ClCompile Include="IOS\MemoryValues.cpp" />
     <ClCompile Include="IOS\MIOS.cpp" />
+    <ClCompile Include="IOS\VersionInfo.cpp" />
     <ClCompile Include="IOS\DI\DI.cpp" />
     <ClCompile Include="IOS\ES\ES.cpp" />
     <ClCompile Include="IOS\ES\Formats.cpp" />
@@ -442,8 +442,8 @@
     <ClInclude Include="IOS\DeviceStub.h" />
     <ClInclude Include="IOS\IOS.h" />
     <ClInclude Include="IOS\IOSC.h" />
-    <ClInclude Include="IOS\MemoryValues.h" />
     <ClInclude Include="IOS\MIOS.h" />
+    <ClInclude Include="IOS\VersionInfo.h" />
     <ClInclude Include="IOS\DI\DI.h" />
     <ClInclude Include="IOS\ES\ES.h" />
     <ClInclude Include="IOS\ES\Formats.h" />

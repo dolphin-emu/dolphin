@@ -24,14 +24,6 @@ constexpr u32 USBV5_VERSION = 0x50001;
 
 USB_VEN::~USB_VEN() = default;
 
-ReturnCode USB_VEN::Open(const OpenRequest& request)
-{
-  const u32 ios_major_version = m_ios.GetVersion();
-  if (ios_major_version != 57 && ios_major_version != 58 && ios_major_version != 59)
-    return IPC_ENOENT;
-  return USBHost::Open(request);
-}
-
 IPCCommandResult USB_VEN::IOCtl(const IOCtlRequest& request)
 {
   request.Log(GetDeviceName(), LogTypes::IOS_USB);

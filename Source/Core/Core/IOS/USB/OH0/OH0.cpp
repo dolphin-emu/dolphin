@@ -18,6 +18,7 @@
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/USB/Common.h"
 #include "Core/IOS/USB/USBV0.h"
+#include "Core/IOS/VersionInfo.h"
 
 namespace IOS
 {
@@ -36,8 +37,7 @@ OH0::~OH0()
 
 ReturnCode OH0::Open(const OpenRequest& request)
 {
-  const u32 ios_major_version = m_ios.GetVersion();
-  if (ios_major_version == 57 || ios_major_version == 58 || ios_major_version == 59)
+  if (HasFeature(m_ios.GetVersion(), Feature::NewUSB))
     return IPC_EACCES;
   return USBHost::Open(request);
 }

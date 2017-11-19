@@ -18,6 +18,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/IOS.h"
+#include "Core/IOS/VersionInfo.h"
 
 namespace IOS
 {
@@ -25,28 +26,8 @@ namespace HLE
 {
 namespace Device
 {
-constexpr bool SupportsSDHC(u32 ios_version)
-{
-  switch (ios_version)
-  {
-  // Known versions to support SDHC
-  case 48:
-  case 56:
-  case 57:
-  case 58:
-  case 59:
-  case 60:
-  case 61:
-  case 70:
-  case 80:
-    return true;
-  default:
-    return false;
-  };
-}
-
 SDIOSlot0::SDIOSlot0(Kernel& ios, const std::string& device_name)
-    : Device(ios, device_name), m_sdhc_supported(SupportsSDHC(ios.GetVersion()))
+    : Device(ios, device_name), m_sdhc_supported(HasFeature(ios.GetVersion(), Feature::SDv2))
 {
 }
 
