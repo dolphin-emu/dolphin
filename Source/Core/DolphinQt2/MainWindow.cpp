@@ -1,3 +1,4 @@
+
 // Copyright 2015 Dolphin Emulator Project
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
@@ -46,10 +47,10 @@
 #include "DolphinQt2/Config/LogWidget.h"
 #include "DolphinQt2/Config/Mapping/MappingWindow.h"
 #include "DolphinQt2/Config/SettingsWindow.h"
-#include "DolphinQt2/FIFOPlayerWindow.h"
 #include "DolphinQt2/Debugger/BreakpointWidget.h"
 #include "DolphinQt2/Debugger/RegisterWidget.h"
 #include "DolphinQt2/Debugger/WatchWidget.h"
+#include "DolphinQt2/FIFOPlayerWindow.h"
 #include "DolphinQt2/Host.h"
 #include "DolphinQt2/HotkeyScheduler.h"
 #include "DolphinQt2/MainWindow.h"
@@ -174,6 +175,11 @@ void MainWindow::CreateComponents()
   m_register_widget = new RegisterWidget(this);
   m_watch_widget = new WatchWidget(this);
   m_breakpoint_widget = new BreakpointWidget(this);
+
+  connect(m_watch_widget, &WatchWidget::RequestMemoryBreakpoint,
+          [this](u32 addr) { m_breakpoint_widget->AddAddressMBP(addr); });
+  connect(m_register_widget, &RegisterWidget::RequestMemoryBreakpoint,
+          [this](u32 addr) { m_breakpoint_widget->AddAddressMBP(addr); });
 
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
   m_graphics_window = new GraphicsWindow(

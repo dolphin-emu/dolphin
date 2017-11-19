@@ -117,7 +117,8 @@ void RegisterWidget::ShowContextMenu()
       auto type = static_cast<RegisterType>(item->data(DATA_TYPE).toInt());
       auto display = item->GetDisplay();
 
-      menu->addAction(tr("Add to &watch"));
+      AddAction(menu, tr("Add to &watch"), this,
+                [this, item] { emit RequestMemoryBreakpoint(item->GetValue()); });
       menu->addAction(tr("View &memory"));
       menu->addAction(tr("View &code"));
 

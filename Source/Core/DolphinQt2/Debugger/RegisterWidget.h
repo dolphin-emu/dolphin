@@ -23,6 +23,7 @@ public:
 
 signals:
   void RequestTableUpdate();
+  void RequestMemoryBreakpoint(u32 addr);
   void UpdateTable();
   void UpdateValue(QTableWidgetItem* item);
   void UpdateValueType(QTableWidgetItem* item);
