@@ -45,6 +45,7 @@
 #include "DolphinQt2/Config/LogWidget.h"
 #include "DolphinQt2/Config/Mapping/MappingWindow.h"
 #include "DolphinQt2/Config/SettingsWindow.h"
+#include "DolphinQt2/FIFOPlayerWindow.h"
 #include "DolphinQt2/Host.h"
 #include "DolphinQt2/HotkeyScheduler.h"
 #include "DolphinQt2/MainWindow.h"
@@ -155,9 +156,15 @@ void MainWindow::CreateComponents()
   m_stack = new QStackedWidget(this);
   m_controllers_window = new ControllersWindow(this);
   m_settings_window = new SettingsWindow(this);
+
   m_hotkey_window = new MappingWindow(this, MappingWindow::Type::MAPPING_HOTKEYS, 0);
+
   m_log_widget = new LogWidget(this);
   m_log_config_widget = new LogConfigWidget(this);
+  m_fifo_window = new FIFOPlayerWindow(this);
+
+  connect(m_fifo_window, &FIFOPlayerWindow::LoadFIFORequested, this,
+          static_cast<void (MainWindow::*)(const QString&)>(&MainWindow::StartGame));
 
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
   m_graphics_window = new GraphicsWindow(
@@ -215,6 +222,7 @@ void MainWindow::ConnectMenuBar()
   connect(m_menu_bar, &MenuBar::PerformOnlineUpdate, this, &MainWindow::PerformOnlineUpdate);
   connect(m_menu_bar, &MenuBar::BootWiiSystemMenu, this, &MainWindow::BootWiiSystemMenu);
   connect(m_menu_bar, &MenuBar::StartNetPlay, this, &MainWindow::ShowNetPlaySetupDialog);
+  connect(m_menu_bar, &MenuBar::ShowFIFOPlayer, this, &MainWindow::ShowFIFOPlayer);
 
   // Movie
   connect(m_menu_bar, &MenuBar::PlayRecording, this, &MainWindow::OnPlayRecording);
@@ -588,6 +596,13 @@ void MainWindow::ShowNetPlaySetupDialog()
   m_netplay_setup_dialog->show();
   m_netplay_setup_dialog->raise();
   m_netplay_setup_dialog->activateWindow();
+}
+
+void MainWindow::ShowFIFOPlayer()
+{
+  m_fifo_window->show();
+  m_fifo_window->raise();
+  m_fifo_window->activateWindow();
 }
 
 void MainWindow::StateLoad()

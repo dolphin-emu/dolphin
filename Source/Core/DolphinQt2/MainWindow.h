@@ -17,6 +17,7 @@
 #include "DolphinQt2/ToolBar.h"
 
 struct BootParameters;
+class FIFOPlayerWindow;
 class HotkeyScheduler;
 class LogConfigWidget;
 class LogWidget;
@@ -98,6 +99,7 @@ private:
   void ShowAboutDialog();
   void ShowHotkeyDialog();
   void ShowNetPlaySetupDialog();
+  void ShowFIFOPlayer();
 
   void NetPlayInit();
   bool NetPlayJoin();
@@ -137,4 +139,5 @@ private:
   GraphicsWindow* m_graphics_window;
   LogWidget* m_log_widget;
   LogConfigWidget* m_log_config_widget;
+  FIFOPlayerWindow* m_fifo_window;
 };

@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <functional>
 #include <memory>
 #include <string>
 #include <vector>
@@ -56,7 +57,7 @@ extern bool IsPlayingBackFifologWithBrokenEFBCopies;
 class FifoPlayer
 {
 public:
-  typedef void (*CallbackFunc)(void);
+  using CallbackFunc = std::function<void()>;
 
   ~FifoPlayer();
 
@@ -69,6 +70,8 @@ public:
   // Play/Pause/Stop of the FifoLog can be controlled normally via the
   // PowerPC state.
   std::unique_ptr<CPUCoreBase> GetCPUCore();
+
+  bool IsPlaying() const;
 
   FifoDataFile* GetFile() const { return m_File.get(); }
   u32 GetFrameObjectCount() const;
