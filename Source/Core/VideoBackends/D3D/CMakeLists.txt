@@ -29,8 +29,6 @@ set(SRCS
   PSTextureEncoder.h
   Render.cpp
   Render.h
-  Television.cpp
-  Television.h
   TextureCache.cpp
   TextureCache.h
   VertexManager.cpp
