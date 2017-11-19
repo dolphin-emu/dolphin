@@ -601,34 +601,41 @@ static void SetInputDisplayString(ControllerState padState, int controllerID)
 {
   std::string display_str = StringFromFormat("P%d:", controllerID + 1);
 
-  if (padState.A)
-    display_str += " A";
-  if (padState.B)
-    display_str += " B";
-  if (padState.X)
-    display_str += " X";
-  if (padState.Y)
-    display_str += " Y";
-  if (padState.Z)
-    display_str += " Z";
-  if (padState.Start)
-    display_str += " START";
+  if (padState.is_connected)
+  {
+    if (padState.A)
+      display_str += " A";
+    if (padState.B)
+      display_str += " B";
+    if (padState.X)
+      display_str += " X";
+    if (padState.Y)
+      display_str += " Y";
+    if (padState.Z)
+      display_str += " Z";
+    if (padState.Start)
+      display_str += " START";
 
-  if (padState.DPadUp)
-    display_str += " UP";
-  if (padState.DPadDown)
-    display_str += " DOWN";
-  if (padState.DPadLeft)
-    display_str += " LEFT";
-  if (padState.DPadRight)
-    display_str += " RIGHT";
-  if (padState.reset)
-    display_str += " RESET";
+    if (padState.DPadUp)
+      display_str += " UP";
+    if (padState.DPadDown)
+      display_str += " DOWN";
+    if (padState.DPadLeft)
+      display_str += " LEFT";
+    if (padState.DPadRight)
+      display_str += " RIGHT";
+    if (padState.reset)
+      display_str += " RESET";
 
-  display_str += Analog1DToString(padState.TriggerL, " L");
-  display_str += Analog1DToString(padState.TriggerR, " R");
-  display_str += Analog2DToString(padState.AnalogStickX, padState.AnalogStickY, " ANA");
-  display_str += Analog2DToString(padState.CStickX, padState.CStickY, " C");
+    display_str += Analog1DToString(padState.TriggerL, " L");
+    display_str += Analog1DToString(padState.TriggerR, " R");
+    display_str += Analog2DToString(padState.AnalogStickX, padState.AnalogStickY, " ANA");
+    display_str += Analog2DToString(padState.CStickX, padState.CStickY, " C");
+  }
+  else
+  {
+    display_str += " DISCONNECTED";
+  }
 
   std::lock_guard<std::mutex> guard(s_input_display_lock);
   s_InputDisplay[controllerID] = std::move(display_str);
@@ -781,6 +788,8 @@ void CheckPadStatus(GCPadStatus* PadStatus, int controllerID)
 
   s_padState.CStickX = PadStatus->substickX;
   s_padState.CStickY = PadStatus->substickY;
+
+  s_padState.is_connected = PadStatus->isConnected;
 
   s_padState.disc = s_bDiscChange;
   s_bDiscChange = false;
@@ -1031,24 +1040,25 @@ void LoadInput(const std::string& filename)
               "is %d frames long.\n\n"
               "On frame %td, the current movie presses:\n"
               "Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight=%d, "
-              "L=%d, R=%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX=%d, CY=%d"
+              "L=%d, R=%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX=%d, CY=%d, Connected=%d"
               "\n\n"
               "On frame %td, the savestate's movie presses:\n"
               "Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight=%d, "
-              "L=%d, R=%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX=%d, CY=%d",
+              "L=%d, R=%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX=%d, CY=%d, Connected=%d",
               frame, (int)s_totalFrames, (int)tmpHeader.frameCount, frame, (int)curPadState.Start,
               (int)curPadState.A, (int)curPadState.B, (int)curPadState.X, (int)curPadState.Y,
               (int)curPadState.Z, (int)curPadState.DPadUp, (int)curPadState.DPadDown,
               (int)curPadState.DPadLeft, (int)curPadState.DPadRight, (int)curPadState.L,
               (int)curPadState.R, (int)curPadState.TriggerL, (int)curPadState.TriggerR,
               (int)curPadState.AnalogStickX, (int)curPadState.AnalogStickY,
-              (int)curPadState.CStickX, (int)curPadState.CStickY, frame, (int)movPadState.Start,
-              (int)movPadState.A, (int)movPadState.B, (int)movPadState.X, (int)movPadState.Y,
-              (int)movPadState.Z, (int)movPadState.DPadUp, (int)movPadState.DPadDown,
-              (int)movPadState.DPadLeft, (int)movPadState.DPadRight, (int)movPadState.L,
-              (int)movPadState.R, (int)movPadState.TriggerL, (int)movPadState.TriggerR,
-              (int)movPadState.AnalogStickX, (int)movPadState.AnalogStickY,
-              (int)movPadState.CStickX, (int)movPadState.CStickY);
+              (int)curPadState.CStickX, (int)curPadState.CStickY, (int)curPadState.is_connected,
+              frame, (int)movPadState.Start, (int)movPadState.A, (int)movPadState.B,
+              (int)movPadState.X, (int)movPadState.Y, (int)movPadState.Z, (int)movPadState.DPadUp,
+              (int)movPadState.DPadDown, (int)movPadState.DPadLeft, (int)movPadState.DPadRight,
+              (int)movPadState.L, (int)movPadState.R, (int)movPadState.TriggerL,
+              (int)movPadState.TriggerR, (int)movPadState.AnalogStickX,
+              (int)movPadState.AnalogStickY, (int)movPadState.CStickX, (int)movPadState.CStickY,
+              (int)curPadState.is_connected);
         }
       }
     }
@@ -1110,14 +1120,10 @@ void PlayController(GCPadStatus* PadStatus, int controllerID)
     return;
   }
 
-  // dtm files don't save the mic button or error bit. not sure if they're actually used, but better
-  // safe than sorry
-  signed char e = PadStatus->err;
-  memset(PadStatus, 0, sizeof(GCPadStatus));
-  PadStatus->err = e;
-
   memcpy(&s_padState, &s_temp_input[s_currentByte], sizeof(ControllerState));
   s_currentByte += sizeof(ControllerState);
+
+  PadStatus->isConnected = s_padState.is_connected;
 
   PadStatus->triggerLeft = s_padState.TriggerL;
   PadStatus->triggerRight = s_padState.TriggerR;
