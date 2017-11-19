@@ -44,6 +44,7 @@ constexpr u16 USBHDR(u8 dir, u8 type, u8 recipient, u8 request)
 
 struct DeviceDescriptor
 {
+  void Swap();
   u8 bLength;
   u8 bDescriptorType;
   u16 bcdUSB;
@@ -62,6 +63,7 @@ struct DeviceDescriptor
 
 struct ConfigDescriptor
 {
+  void Swap();
   u8 bLength;
   u8 bDescriptorType;
   u16 wTotalLength;
@@ -74,6 +76,7 @@ struct ConfigDescriptor
 
 struct InterfaceDescriptor
 {
+  void Swap();
   u8 bLength;
   u8 bDescriptorType;
   u8 bInterfaceNumber;
@@ -87,6 +90,7 @@ struct InterfaceDescriptor
 
 struct EndpointDescriptor
 {
+  void Swap();
   u8 bLength;
   u8 bDescriptorType;
   u8 bEndpointAddress;
@@ -158,8 +162,6 @@ public:
   u16 GetVid() const;
   u16 GetPid() const;
   bool HasClass(u8 device_class) const;
-  std::vector<u8> GetDescriptorsUSBV4() const;
-  std::vector<u8> GetDescriptorsUSBV5(u8 interface, u8 alt_setting) const;
 
   virtual DeviceDescriptor GetDeviceDescriptor() const = 0;
   virtual std::vector<ConfigDescriptor> GetConfigurations() const = 0;
@@ -178,7 +180,6 @@ public:
   virtual int SubmitTransfer(std::unique_ptr<IsoMessage> message) = 0;
 
 protected:
-  std::vector<u8> GetDescriptors(std::function<bool(const InterfaceDescriptor&)> predicate) const;
   u64 m_id = 0xFFFFFFFFFFFFFFFF;
 };
 }  // namespace USB
