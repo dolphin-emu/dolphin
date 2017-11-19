@@ -10,7 +10,6 @@
 
 #include "Common/CommonTypes.h"
 #include "VideoBackends/Vulkan/Constants.h"
-#include "VideoCommon/AVIDump.h"
 #include "VideoCommon/RenderBase.h"
 
 struct XFBSourceBase;
