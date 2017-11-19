@@ -384,6 +384,41 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
       wxFlexGridSizer* const szr_display = new wxFlexGridSizer(2, space5, space5);
 
       {
+#if !defined(__APPLE__)
+        // display resolution
+        {
+          wxArrayString res_list;
+          res_list.Add(_("Auto"));
+#if defined(HAVE_XRANDR) && HAVE_XRANDR
+          const auto resolutions = VideoUtils::GetAvailableResolutions(main_frame->m_xrr_config);
+#else
+          const auto resolutions = VideoUtils::GetAvailableResolutions(nullptr);
+#endif
+
+          for (const auto& res : resolutions)
+            res_list.Add(res);
+
+          if (res_list.empty())
+            res_list.Add(_("<No resolutions found>"));
+          label_display_resolution =
+              new wxStaticText(page_general, wxID_ANY, _("Fullscreen Resolution:"));
+          choice_display_resolution =
+              new wxChoice(page_general, wxID_ANY, wxDefaultPosition, wxDefaultSize, res_list);
+          RegisterControl(choice_display_resolution, wxGetTranslation(display_res_desc));
+          choice_display_resolution->Bind(wxEVT_CHOICE, &VideoConfigDiag::Event_DisplayResolution,
+                                          this);
+
+          choice_display_resolution->SetStringSelection(
+              StrToWxStr(SConfig::GetInstance().strFullscreenResolution));
+          // "Auto" is used as a keyword, convert to translated string
+          if (SConfig::GetInstance().strFullscreenResolution == "Auto")
+            choice_display_resolution->SetSelection(0);
+
+          szr_display->Add(label_display_resolution, 0, wxALIGN_CENTER_VERTICAL);
+          szr_display->Add(choice_display_resolution, 0, wxALIGN_CENTER_VERTICAL);
+        }
+#endif
+
         // aspect-ratio
         {
           const wxString ar_choices[] = {_("Auto"), _("Force 16:9"), _("Force 4:3"),
@@ -976,6 +1011,26 @@ void VideoConfigDiag::Event_Backend(wxCommandEvent& ev)
   ev.Skip();
 }
 
+void VideoConfigDiag::Event_DisplayResolution(wxCommandEvent& ev)
+{
+  // "Auto" has been translated, it needs to be the English string "Auto" to work
+  switch (choice_display_resolution->GetSelection())
+  {
+  case 0:
+    SConfig::GetInstance().strFullscreenResolution = "Auto";
+    break;
+  case wxNOT_FOUND:
+    break;  // Nothing is selected.
+  default:
+    SConfig::GetInstance().strFullscreenResolution =
+        WxStrToStr(choice_display_resolution->GetStringSelection());
+  }
+#if defined(HAVE_XRANDR) && HAVE_XRANDR
+  main_frame->m_xrr_config->Update();
+#endif
+  ev.Skip();
+}
+
 void VideoConfigDiag::Event_ProgressiveScan(wxCommandEvent& ev)
 {
   Config::SetBase(Config::SYSCONF_PROGRESSIVE_SCAN, ev.IsChecked());
@@ -1076,6 +1131,13 @@ void VideoConfigDiag::OnUpdateUI(wxUpdateUIEvent& ev)
       choice_adapter->Disable();
       label_adapter->Disable();
     }
+
+#ifndef __APPLE__
+    // This isn't supported on OS X.
+
+    choice_display_resolution->Disable();
+    label_display_resolution->Disable();
+#endif
 
     progressive_scan_checkbox->Disable();
     render_to_main_checkbox->Disable();

@@ -100,6 +100,7 @@ public:
 
 protected:
   void Event_Backend(wxCommandEvent& ev);
+  void Event_DisplayResolution(wxCommandEvent& ev);
   void Event_ProgressiveScan(wxCommandEvent& ev);
   void Event_SafeTextureCache(wxCommandEvent& ev);
 
@@ -143,6 +144,7 @@ protected:
 
   wxChoice* choice_backend;
   wxChoice* choice_adapter;
+  wxChoice* choice_display_resolution;
 
   wxStaticText* label_backend;
   wxStaticText* label_adapter;

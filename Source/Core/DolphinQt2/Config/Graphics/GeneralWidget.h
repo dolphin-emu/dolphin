@@ -38,6 +38,7 @@ private:
   // Video
   QGridLayout* m_video_layout;
   QComboBox* m_backend_combo;
+  QComboBox* m_resolution_combo;
   QComboBox* m_adapter_combo;
   QComboBox* m_aspect_combo;
   QCheckBox* m_enable_vsync;
