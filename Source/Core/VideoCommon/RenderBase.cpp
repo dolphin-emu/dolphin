@@ -711,8 +711,18 @@ void Renderer::DoDumpFrame()
 void Renderer::UpdateFrameDumpTexture()
 {
   int target_width, target_height;
-  std::tie(target_width, target_height) = CalculateOutputDimensions(
-      m_last_xfb_texture->GetConfig().width, m_last_xfb_texture->GetConfig().height);
+  if (!g_ActiveConfig.bInternalResolutionFrameDumps)
+  {
+    auto target_rect = GetTargetRectangle();
+    target_width = target_rect.GetWidth();
+    target_height = target_rect.GetHeight();
+  }
+  else
+  {
+    std::tie(target_width, target_height) = CalculateOutputDimensions(
+        m_last_xfb_texture->GetConfig().width, m_last_xfb_texture->GetConfig().height);
+  }
+
   if (m_dump_texture == nullptr ||
       m_dump_texture->GetConfig().width != static_cast<u32>(target_width) ||
       m_dump_texture->GetConfig().height != static_cast<u32>(target_height))
