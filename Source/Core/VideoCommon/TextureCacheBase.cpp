@@ -483,7 +483,7 @@ public:
 
   void AddLevel(u32 width, u32 height, u32 row_length, const u8* buffer)
   {
-    levels.push_back({width, height, row_length, buffer});
+    levels.push_back({{width, height, row_length}, buffer});
   }
 
   bool HasArbitraryMipmaps(u8* downsample_buffer) const
@@ -553,7 +553,7 @@ private:
     static PixelRGBAf Sample(const u8* src, const Shape& src_shape, u32 x, u32 y)
     {
       const auto* p = src + (x + y * src_shape.row_length) * 4;
-      return {SRGBToLinear(p[0]), SRGBToLinear(p[1]), SRGBToLinear(p[2]), SRGBToLinear(p[3])};
+      return {{SRGBToLinear(p[0]), SRGBToLinear(p[1]), SRGBToLinear(p[2]), SRGBToLinear(p[3])}};
     }
 
     // Puts a downsampled image in dst. dst must be at least width*height*4
@@ -565,9 +565,10 @@ private:
         {
           auto x = j * 2;
           auto y = i * 2;
-          const std::array<PixelRGBAf, 4> samples = {
+          const std::array<PixelRGBAf, 4> samples{{
               Sample(src, src_shape, x, y), Sample(src, src_shape, x + 1, y),
-              Sample(src, src_shape, x, y + 1), Sample(src, src_shape, x + 1, y + 1)};
+              Sample(src, src_shape, x, y + 1), Sample(src, src_shape, x + 1, y + 1),
+          }};
 
           auto* dst_pixel = dst + (j + i * dst_shape.row_length) * 4;
           dst_pixel[0] =
