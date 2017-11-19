@@ -43,6 +43,9 @@ Visual Studio 2017 is a hard requirement. Other compilers might be
 able to build Dolphin on Windows but have not been tested and are not
 recommended to be used. Git and Windows 10 SDK 10.0.15063.0 must be installed when building.
 
+The "Release" solution configuration includes performance optimizations for the best user experience but complicates debugging Dolphin.
+The "Debug" solution configuration is significantly slower, more verbose and less permissive but makes debugging Dolphin easier.
+
 An installer can be created by using the `Installer.nsi` script in the
 Installer directory. This will require the Nullsoft Scriptable Install System
 (NSIS) to be installed. Creating an installer is not necessary to run Dolphin
@@ -125,9 +128,9 @@ see where it's stored) if you don't plan to reinstall Dolphin.
 `Usage: Dolphin [-h] [-d] [-l] [-e <str>] [-b] [-V <str>] [-A <str>]`
 
 * -h, --help Show this help message
-* -d, --debugger Opens the debugger
-* -l, --logger Opens the logger
-* -e, --exec=<str> Loads the specified file (DOL,ELF,WAD,GCM,ISO)
+* -d, --debugger Show the debugger pane and additional View menu options
+* -l, --logger Open the logger
+* -e, --exec=<str> Load the specified file (DOL,ELF,WAD,GCM,ISO)
 * -b, --batch Exit Dolphin with emulator
 * -V, --video_backend=<str> Specify a video backend
 * -A, --audio_emulation=<str> Low level (LLE) or high level (HLE) audio
