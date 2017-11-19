@@ -9,7 +9,7 @@
 #include "VideoCommon/AbstractTexture.h"
 #include "VideoCommon/ImageWrite.h"
 
-AbstractTexture::AbstractTexture(const TextureConfig& c) : m_config(c), m_currently_mapped(false)
+AbstractTexture::AbstractTexture(const TextureConfig& c) : m_config(c)
 {
 }
 
