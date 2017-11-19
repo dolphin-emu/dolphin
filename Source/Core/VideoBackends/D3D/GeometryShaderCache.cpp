@@ -37,11 +37,11 @@ LinearDiskCache<GeometryShaderUid, u8> g_gs_disk_cache;
 
 ID3D11GeometryShader* GeometryShaderCache::GetClearGeometryShader()
 {
-  return (g_ActiveConfig.iStereoMode > 0) ? ClearGeometryShader : nullptr;
+  return (g_ActiveConfig.stereo_mode != StereoMode::Off) ? ClearGeometryShader : nullptr;
 }
 ID3D11GeometryShader* GeometryShaderCache::GetCopyGeometryShader()
 {
-  return (g_ActiveConfig.iStereoMode > 0) ? CopyGeometryShader : nullptr;
+  return (g_ActiveConfig.stereo_mode != StereoMode::Off) ? CopyGeometryShader : nullptr;
 }
 
 ID3D11Buffer* gscbuf = nullptr;

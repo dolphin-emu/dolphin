@@ -22,9 +22,9 @@ const ConfigInfo<int> GFX_ADAPTER{{System::GFX, "Hardware", "Adapter"}, 0};
 
 const ConfigInfo<bool> GFX_WIDESCREEN_HACK{{System::GFX, "Settings", "wideScreenHack"}, false};
 const ConfigInfo<int> GFX_ASPECT_RATIO{{System::GFX, "Settings", "AspectRatio"},
-                                       static_cast<int>(ASPECT_AUTO)};
+                                       static_cast<int>(AspectMode::Auto)};
 const ConfigInfo<int> GFX_SUGGESTED_ASPECT_RATIO{{System::GFX, "Settings", "SuggestedAspectRatio"},
-                                                 static_cast<int>(ASPECT_AUTO)};
+                                                 static_cast<int>(AspectMode::Auto)};
 const ConfigInfo<bool> GFX_CROP{{System::GFX, "Settings", "Crop"}, false};
 const ConfigInfo<int> GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES{
     {System::GFX, "Settings", "SafeTextureCacheColorSamples"}, 128};

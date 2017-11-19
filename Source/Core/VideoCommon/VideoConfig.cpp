@@ -61,11 +61,11 @@ void VideoConfig::Refresh()
   iAdapter = Config::Get(Config::GFX_ADAPTER);
 
   bWidescreenHack = Config::Get(Config::GFX_WIDESCREEN_HACK);
-  const int aspect_ratio = Config::Get(Config::GFX_ASPECT_RATIO);
-  if (aspect_ratio == ASPECT_AUTO)
-    iAspectRatio = Config::Get(Config::GFX_SUGGESTED_ASPECT_RATIO);
+  const auto config_aspect_mode = static_cast<AspectMode>(Config::Get(Config::GFX_ASPECT_RATIO));
+  if (config_aspect_mode == AspectMode::Auto)
+    aspect_mode = static_cast<AspectMode>(Config::Get(Config::GFX_SUGGESTED_ASPECT_RATIO));
   else
-    iAspectRatio = aspect_ratio;
+    aspect_mode = config_aspect_mode;
   bCrop = Config::Get(Config::GFX_CROP);
   iSafeTextureCache_ColorSamples = Config::Get(Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES);
   bShowFPS = Config::Get(Config::GFX_SHOW_FPS);
@@ -122,7 +122,7 @@ void VideoConfig::Refresh()
   sPostProcessingShader = Config::Get(Config::GFX_ENHANCE_POST_SHADER);
   bForceTrueColor = Config::Get(Config::GFX_ENHANCE_FORCE_TRUE_COLOR);
 
-  iStereoMode = Config::Get(Config::GFX_STEREO_MODE);
+  stereo_mode = static_cast<StereoMode>(Config::Get(Config::GFX_STEREO_MODE));
   iStereoDepth = Config::Get(Config::GFX_STEREO_DEPTH);
   iStereoConvergencePercentage = Config::Get(Config::GFX_STEREO_CONVERGENCE_PERCENTAGE);
   bStereoSwapEyes = Config::Get(Config::GFX_STEREO_SWAP_EYES);
@@ -162,14 +162,14 @@ void VideoConfig::VerifyValidity()
       backend_info.AAModes.end())
     iMultisamples = 1;
 
-  if (iStereoMode > 0)
+  if (stereo_mode != StereoMode::Off)
   {
     if (!backend_info.bSupportsGeometryShaders)
     {
       OSD::AddMessage(
           "Stereoscopic 3D isn't supported by your GPU, support for OpenGL 3.2 is required.",
           10000);
-      iStereoMode = 0;
+      stereo_mode = StereoMode::Off;
     }
   }
 }

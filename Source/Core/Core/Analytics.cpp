@@ -220,7 +220,7 @@ void DolphinAnalytics::MakePerGameBuilder()
   builder.AddData("cfg-gfx-ssaa", g_Config.bSSAA);
   builder.AddData("cfg-gfx-anisotropy", g_Config.iMaxAnisotropy);
   builder.AddData("cfg-gfx-vsync", g_Config.bVSync);
-  builder.AddData("cfg-gfx-aspect-ratio", g_Config.iAspectRatio);
+  builder.AddData("cfg-gfx-aspect-ratio", static_cast<int>(g_Config.aspect_mode));
   builder.AddData("cfg-gfx-efb-access", g_Config.bEFBAccessEnable);
   builder.AddData("cfg-gfx-efb-copy-format-changes", g_Config.bEFBEmulateFormatChanges);
   builder.AddData("cfg-gfx-efb-copy-ram", !g_Config.bSkipEFBCopyToRam);
@@ -229,7 +229,7 @@ void DolphinAnalytics::MakePerGameBuilder()
   builder.AddData("cfg-gfx-efb-copy-scaled", g_Config.bCopyEFBScaled);
   builder.AddData("cfg-gfx-internal-resolution", g_Config.iEFBScale);
   builder.AddData("cfg-gfx-tc-samples", g_Config.iSafeTextureCache_ColorSamples);
-  builder.AddData("cfg-gfx-stereo-mode", g_Config.iStereoMode);
+  builder.AddData("cfg-gfx-stereo-mode", static_cast<int>(g_Config.stereo_mode));
   builder.AddData("cfg-gfx-per-pixel-lighting", g_Config.bEnablePixelLighting);
   builder.AddData("cfg-gfx-ubershader-mode", GetUbershaderMode(g_Config));
   builder.AddData("cfg-gfx-fast-depth", g_Config.bFastDepthCalc);

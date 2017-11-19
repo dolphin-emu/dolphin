@@ -624,7 +624,8 @@ void Renderer::BlitScreen(VkRenderPass render_pass, const TargetRectangle& dst_r
                           const TargetRectangle& src_rect, const Texture2D* src_tex)
 {
   VulkanPostProcessing* post_processor = static_cast<VulkanPostProcessing*>(m_post_processor.get());
-  if (g_ActiveConfig.iStereoMode == STEREO_SBS || g_ActiveConfig.iStereoMode == STEREO_TAB)
+  if (g_ActiveConfig.stereo_mode == StereoMode::SBS ||
+      g_ActiveConfig.stereo_mode == StereoMode::TAB)
   {
     TargetRectangle left_rect;
     TargetRectangle right_rect;
@@ -633,7 +634,7 @@ void Renderer::BlitScreen(VkRenderPass render_pass, const TargetRectangle& dst_r
     post_processor->BlitFromTexture(left_rect, src_rect, src_tex, 0, render_pass);
     post_processor->BlitFromTexture(right_rect, src_rect, src_tex, 1, render_pass);
   }
-  else if (g_ActiveConfig.iStereoMode == STEREO_QUADBUFFER)
+  else if (g_ActiveConfig.stereo_mode == StereoMode::QuadBuffer)
   {
     post_processor->BlitFromTexture(dst_rect, src_rect, src_tex, -1, render_pass);
   }
@@ -712,10 +713,10 @@ void Renderer::CheckForSurfaceChange()
 void Renderer::CheckForConfigChanges()
 {
   // Save the video config so we can compare against to determine which settings have changed.
-  int old_anisotropy = g_ActiveConfig.iMaxAnisotropy;
-  int old_aspect_ratio = g_ActiveConfig.iAspectRatio;
-  int old_efb_scale = g_ActiveConfig.iEFBScale;
-  bool old_force_filtering = g_ActiveConfig.bForceFiltering;
+  const int old_anisotropy = g_ActiveConfig.iMaxAnisotropy;
+  const AspectMode old_aspect_mode = g_ActiveConfig.aspect_mode;
+  const int old_efb_scale = g_ActiveConfig.iEFBScale;
+  const bool old_force_filtering = g_ActiveConfig.bForceFiltering;
 
   // Copy g_Config to g_ActiveConfig.
   // NOTE: This can potentially race with the UI thread, however if it does, the changes will be
@@ -723,10 +724,11 @@ void Renderer::CheckForConfigChanges()
   UpdateActiveConfig();
 
   // Determine which (if any) settings have changed.
-  bool anisotropy_changed = old_anisotropy != g_ActiveConfig.iMaxAnisotropy;
-  bool force_texture_filtering_changed = old_force_filtering != g_ActiveConfig.bForceFiltering;
-  bool efb_scale_changed = old_efb_scale != g_ActiveConfig.iEFBScale;
-  bool aspect_changed = old_aspect_ratio != g_ActiveConfig.iAspectRatio;
+  const bool anisotropy_changed = old_anisotropy != g_ActiveConfig.iMaxAnisotropy;
+  const bool force_texture_filtering_changed =
+      old_force_filtering != g_ActiveConfig.bForceFiltering;
+  const bool efb_scale_changed = old_efb_scale != g_ActiveConfig.iEFBScale;
+  const bool aspect_changed = old_aspect_mode != g_ActiveConfig.aspect_mode;
 
   // Update texture cache settings with any changed options.
   TextureCache::GetInstance()->OnConfigChanged(g_ActiveConfig);
@@ -765,7 +767,7 @@ void Renderer::CheckForConfigChanges()
 
   // For quad-buffered stereo we need to change the layer count, so recreate the swap chain.
   if (m_swap_chain &&
-      (g_ActiveConfig.iStereoMode == STEREO_QUADBUFFER) != m_swap_chain->IsStereoEnabled())
+      (g_ActiveConfig.stereo_mode == StereoMode::QuadBuffer) != m_swap_chain->IsStereoEnabled())
   {
     g_command_buffer_mgr->WaitForGPUIdle();
     m_swap_chain->RecreateSwapChain();

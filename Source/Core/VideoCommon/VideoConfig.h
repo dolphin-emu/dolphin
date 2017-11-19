@@ -24,22 +24,22 @@
 
 constexpr int EFB_SCALE_AUTO_INTEGRAL = 0;
 
-enum AspectMode
+enum class AspectMode
 {
-  ASPECT_AUTO = 0,
-  ASPECT_ANALOG_WIDE = 1,
-  ASPECT_ANALOG = 2,
-  ASPECT_STRETCH = 3,
+  Auto,
+  AnalogWide,
+  Analog,
+  Stretch,
 };
 
-enum StereoMode
+enum class StereoMode
 {
-  STEREO_OFF = 0,
-  STEREO_SBS,
-  STEREO_TAB,
-  STEREO_ANAGLYPH,
-  STEREO_QUADBUFFER,
-  STEREO_3DVISION
+  Off,
+  SBS,
+  TAB,
+  Anaglyph,
+  QuadBuffer,
+  Nvidia3DVision
 };
 
 struct ProjectionHackConfig final
@@ -63,7 +63,7 @@ struct VideoConfig final
   // General
   bool bVSync;
   bool bWidescreenHack;
-  int iAspectRatio;
+  AspectMode aspect_mode;
   bool bCrop;  // Aspect ratio controls.
   bool bShaderCache;
 
@@ -130,7 +130,7 @@ struct VideoConfig final
   int iSaveTargetId;  // TODO: Should be dropped
 
   // Stereoscopy
-  int iStereoMode;
+  StereoMode stereo_mode;
   int iStereoDepth;
   int iStereoConvergence;
   int iStereoConvergencePercentage;

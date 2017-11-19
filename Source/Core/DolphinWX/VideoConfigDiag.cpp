@@ -1199,7 +1199,7 @@ void VideoConfigDiag::CreateDescriptionArea(wxPanel* const page, wxBoxSizer* con
 void VideoConfigDiag::PopulatePostProcessingShaders()
 {
   std::vector<std::string> shaders =
-      vconfig.iStereoMode == STEREO_ANAGLYPH ?
+      vconfig.stereo_mode == StereoMode::Anaglyph ?
           PostProcessingShaderImplementation::GetAnaglyphShaderList(vconfig.backend_info.api_type) :
           PostProcessingShaderImplementation::GetShaderList(vconfig.backend_info.api_type);
 
@@ -1223,7 +1223,7 @@ void VideoConfigDiag::PopulatePostProcessingShaders()
     // Invalid shader, reset it to default
     choice_ppshader->Select(0);
 
-    if (vconfig.iStereoMode == STEREO_ANAGLYPH)
+    if (vconfig.stereo_mode == StereoMode::Anaglyph)
     {
       Config::SetBaseOrCurrent(Config::GFX_ENHANCE_POST_SHADER, std::string("dubois"));
       choice_ppshader->SetStringSelection(StrToWxStr(vconfig.sPostProcessingShader));

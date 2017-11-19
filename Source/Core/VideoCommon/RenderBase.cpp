@@ -185,7 +185,7 @@ Renderer::ConvertStereoRectangle(const TargetRectangle& rc) const
 {
   // Resize target to half its original size
   TargetRectangle draw_rc = rc;
-  if (g_ActiveConfig.iStereoMode == STEREO_TAB)
+  if (g_ActiveConfig.stereo_mode == StereoMode::TAB)
   {
     // The height may be negative due to flipped rectangles
     int height = rc.bottom - rc.top;
@@ -202,7 +202,7 @@ Renderer::ConvertStereoRectangle(const TargetRectangle& rc) const
   // Create two target rectangle offset to the sides of the backbuffer
   TargetRectangle left_rc = draw_rc;
   TargetRectangle right_rc = draw_rc;
-  if (g_ActiveConfig.iStereoMode == STEREO_TAB)
+  if (g_ActiveConfig.stereo_mode == StereoMode::TAB)
   {
     left_rc.top -= m_backbuffer_height / 4;
     left_rc.bottom -= m_backbuffer_height / 4;
@@ -312,19 +312,20 @@ void Renderer::DrawDebugText()
       break;
     }
     const char* ar_text = "";
-    switch (g_ActiveConfig.iAspectRatio)
+    switch (g_ActiveConfig.aspect_mode)
     {
-    case ASPECT_AUTO:
+    case AspectMode::Auto:
       ar_text = "Auto";
       break;
-    case ASPECT_STRETCH:
+    case AspectMode::Stretch:
       ar_text = "Stretch";
       break;
-    case ASPECT_ANALOG:
+    case AspectMode::Analog:
       ar_text = "Force 4:3";
       break;
-    case ASPECT_ANALOG_WIDE:
+    case AspectMode::AnalogWide:
       ar_text = "Force 16:9";
+      break;
     }
 
     const char* const efbcopy_text = g_ActiveConfig.bSkipEFBCopyToRam ? "to Texture" : "to RAM";
@@ -381,15 +382,15 @@ void Renderer::DrawDebugText()
 
 float Renderer::CalculateDrawAspectRatio() const
 {
-  if (g_ActiveConfig.iAspectRatio == ASPECT_STRETCH)
+  if (g_ActiveConfig.aspect_mode == AspectMode::Stretch)
   {
     // If stretch is enabled, we prefer the aspect ratio of the window.
     return (static_cast<float>(m_backbuffer_width) / static_cast<float>(m_backbuffer_height));
   }
 
   // The rendering window aspect ratio as a proportion of the 4:3 or 16:9 ratio
-  if (g_ActiveConfig.iAspectRatio == ASPECT_ANALOG_WIDE ||
-      (g_ActiveConfig.iAspectRatio != ASPECT_ANALOG && m_aspect_wide))
+  if (g_ActiveConfig.aspect_mode == AspectMode::AnalogWide ||
+      (g_ActiveConfig.aspect_mode != AspectMode::Analog && m_aspect_wide))
   {
     return AspectToWidescreen(VideoInterface::GetAspectRatio());
   }
@@ -428,21 +429,20 @@ void Renderer::UpdateDrawRectangle()
     float source_aspect = VideoInterface::GetAspectRatio();
     if (m_aspect_wide)
       source_aspect = AspectToWidescreen(source_aspect);
-    float target_aspect;
+    float target_aspect = 0.0f;
 
-    switch (g_ActiveConfig.iAspectRatio)
+    switch (g_ActiveConfig.aspect_mode)
     {
-    case ASPECT_STRETCH:
+    case AspectMode::Stretch:
       target_aspect = win_width / win_height;
       break;
-    case ASPECT_ANALOG:
+    case AspectMode::Analog:
       target_aspect = VideoInterface::GetAspectRatio();
       break;
-    case ASPECT_ANALOG_WIDE:
+    case AspectMode::AnalogWide:
       target_aspect = AspectToWidescreen(VideoInterface::GetAspectRatio());
       break;
-    default:
-      // ASPECT_AUTO
+    case AspectMode::Auto:
       target_aspect = source_aspect;
       break;
     }
@@ -475,10 +475,10 @@ void Renderer::UpdateDrawRectangle()
   draw_height = crop_height = 1;
 
   // crop the picture to a standard aspect ratio
-  if (g_ActiveConfig.bCrop && g_ActiveConfig.iAspectRatio != ASPECT_STRETCH)
+  if (g_ActiveConfig.bCrop && g_ActiveConfig.aspect_mode != AspectMode::Stretch)
   {
-    float expected_aspect = (g_ActiveConfig.iAspectRatio == ASPECT_ANALOG_WIDE ||
-                             (g_ActiveConfig.iAspectRatio != ASPECT_ANALOG && m_aspect_wide)) ?
+    float expected_aspect = (g_ActiveConfig.aspect_mode == AspectMode::AnalogWide ||
+                             (g_ActiveConfig.aspect_mode != AspectMode::Analog && m_aspect_wide)) ?
                                 (16.0f / 9.0f) :
                                 (4.0f / 3.0f);
     if (crop_width / crop_height >= expected_aspect)
@@ -550,8 +550,8 @@ std::tuple<int, int> Renderer::CalculateOutputDimensions(int width, int height)
   {
     // Force 4:3 or 16:9 by cropping the image.
     float current_aspect = scaled_width / scaled_height;
-    float expected_aspect = (g_ActiveConfig.iAspectRatio == ASPECT_ANALOG_WIDE ||
-                             (g_ActiveConfig.iAspectRatio != ASPECT_ANALOG && m_aspect_wide)) ?
+    float expected_aspect = (g_ActiveConfig.aspect_mode == AspectMode::AnalogWide ||
+                             (g_ActiveConfig.aspect_mode != AspectMode::Analog && m_aspect_wide)) ?
                                 (16.0f / 9.0f) :
                                 (4.0f / 3.0f);
     if (current_aspect > expected_aspect)
