@@ -64,14 +64,15 @@ void HacksWidget::CreateWidgets()
 
   // XFB
   auto* xfb_box = new QGroupBox(tr("External Frame Buffer (XFB)"));
-  auto* xfb_layout = new QGridLayout();
+  auto* xfb_layout = new QVBoxLayout();
   xfb_box->setLayout(xfb_layout);
 
   m_store_xfb_copies = new GraphicsBool(tr("Store XFB Copies to Texture Only"),
                                         Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM);
   m_immediate_xfb = new GraphicsBool(tr("Immediately Present XFB"), Config::GFX_HACK_IMMEDIATE_XFB);
 
-  xfb_layout->addWidget(m_store_xfb_copies, 1, 0);
+  xfb_layout->addWidget(m_store_xfb_copies);
+  xfb_layout->addWidget(m_immediate_xfb);
 
   // Other
   auto* other_box = new QGroupBox(tr("Other"));
