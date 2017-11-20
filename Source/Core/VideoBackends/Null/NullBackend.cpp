@@ -15,6 +15,7 @@
 #include "VideoBackends/Null/VideoBackend.h"
 
 #include "VideoCommon/FramebufferManagerBase.h"
+#include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
@@ -69,7 +70,7 @@ void VideoBackend::Video_Prepare()
   g_vertex_manager = std::make_unique<VertexManager>();
   g_perf_query = std::make_unique<PerfQuery>();
   g_framebuffer_manager = std::make_unique<FramebufferManagerBase>();
-  g_texture_cache = std::make_unique<TextureCache>();
+  g_texture_cache = std::make_unique<TextureCacheBase>(std::make_unique<TextureCache>());
   VertexShaderCache::s_instance = std::make_unique<VertexShaderCache>();
   GeometryShaderCache::s_instance = std::make_unique<GeometryShaderCache>();
   PixelShaderCache::s_instance = std::make_unique<PixelShaderCache>();

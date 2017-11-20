@@ -14,7 +14,7 @@
 
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/LookUpTables.h"
-#include "VideoCommon/TextureCacheBase.h"
+#include "VideoCommon/TextureCacheBackend.h"
 #include "VideoCommon/TextureDecoder.h"
 
 namespace TextureEncoder

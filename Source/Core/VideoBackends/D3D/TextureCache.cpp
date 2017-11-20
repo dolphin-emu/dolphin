@@ -24,6 +24,7 @@
 
 #include "VideoCommon/ImageWrite.h"
 #include "VideoCommon/RenderBase.h"
+#include "VideoCommon/TextureCacheEntry.h"
 #include "VideoCommon/TextureConfig.h"
 #include "VideoCommon/VideoConfig.h"
 

@@ -8,12 +8,12 @@
 
 #include "VideoBackends/Null/NullTexture.h"
 
-#include "VideoCommon/TextureCacheBase.h"
+#include "VideoCommon/TextureCacheBackend.h"
 #include "VideoCommon/TextureConfig.h"
 
 namespace Null
 {
-class TextureCache : public TextureCacheBase
+class TextureCache : public TextureCacheBackend
 {
 public:
   TextureCache() {}

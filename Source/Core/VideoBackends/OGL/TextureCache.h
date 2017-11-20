@@ -11,7 +11,7 @@
 #include "Common/GL/GLUtil.h"
 #include "VideoBackends/OGL/ProgramShaderCache.h"
 
-#include "VideoCommon/TextureCacheBase.h"
+#include "VideoCommon/TextureCacheBackend.h"
 #include "VideoCommon/TextureConversionShader.h"
 #include "VideoCommon/VideoCommon.h"
 
@@ -21,7 +21,7 @@ struct TextureConfig;
 
 namespace OGL
 {
-class TextureCache : public TextureCacheBase
+class TextureCache : public TextureCacheBackend
 {
 public:
   TextureCache();

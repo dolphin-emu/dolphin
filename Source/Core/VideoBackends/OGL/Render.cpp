@@ -42,6 +42,7 @@
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/RenderState.h"
 #include "VideoCommon/ShaderGenCommon.h"
+#include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"

@@ -21,6 +21,7 @@
 #include "VideoBackends/D3D/VertexShaderCache.h"
 #include "VideoBackends/D3D/VideoBackend.h"
 
+#include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -157,7 +158,7 @@ void VideoBackend::Video_Prepare()
 
   // internal interfaces
   g_renderer = std::make_unique<Renderer>();
-  g_texture_cache = std::make_unique<TextureCache>();
+  g_texture_cache = std::make_unique<TextureCacheBase>(std::make_unique<TextureCache>());
   g_vertex_manager = std::make_unique<VertexManager>();
   g_perf_query = std::make_unique<PerfQuery>();
   VertexShaderCache::Init();

@@ -35,7 +35,9 @@ set(SRCS
   UberShaderCommon.cpp
   UberShaderPixel.cpp
   UberShaderVertex.cpp
+  TextureCacheBackend.cpp
   TextureCacheBase.cpp
+  TextureCacheEntry.cpp
   TextureConfig.cpp
   TextureConversionShader.cpp
   TextureDecoder_Common.cpp

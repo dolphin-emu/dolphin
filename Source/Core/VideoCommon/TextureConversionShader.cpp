@@ -13,7 +13,7 @@
 #include "Common/MathUtil.h"
 #include "Common/MsgHandler.h"
 #include "VideoCommon/RenderBase.h"
-#include "VideoCommon/TextureCacheBase.h"
+#include "VideoCommon/TextureCacheBackend.h"
 #include "VideoCommon/TextureConversionShader.h"
 #include "VideoCommon/VideoCommon.h"
 
