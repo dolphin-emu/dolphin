@@ -21,9 +21,8 @@ WIP UWP Sample
 ### Desktop
 
 * OS
-    * Windows (7 SP1 or higher is officially supported, but Vista SP2 might also work).
-    * Linux.
-    * macOS (10.9 Mavericks or higher).
+    * Windows 10
+    * Xbox One
     * Unix-like systems other than Linux are not officially supported but might work.
 * Processor
     * A CPU with SSE2 support.
