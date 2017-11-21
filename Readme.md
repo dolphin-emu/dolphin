@@ -10,6 +10,12 @@ of the GNU General Public License, version 2 or later (GPLv2+).
 
 Please read the [FAQ](https://dolphin-emu.org/docs/faq/) before using Dolphin.
 
+# UI Example
+
+WIP UWP Sample
+
+![dolphinUWP](https://github.com/UWP-Team/dolphinUWP/raw/master/UI/Screenshots/Dolphin%20UWP%20(1).jpg)
+
 ## System Requirements
 
 ### Desktop
@@ -25,18 +31,6 @@ Please read the [FAQ](https://dolphin-emu.org/docs/faq/) before using Dolphin.
 * Graphics
     * A reasonably modern graphics card (Direct3D 10.0 / OpenGL 3.0).
     * A graphics card that supports Direct3D 11 / OpenGL 4.4 is recommended.
-
-### Android
-
-* OS
-    * Android (5.0 Lollipop or higher).
-* Processor
-    * A processor with support for 64-bit applications (either ARMv8 or x86-64).
-* Graphics
-    * A graphics processor that supports OpenGL ES 3.0 or higher. Performance varies heavily with [driver quality](https://dolphin-emu.org/blog/2013/09/26/dolphin-emulator-and-opengl-drivers-hall-fameshame/).
-    * A graphics processor that supports standard desktop OpenGL features is recommended for best performance.
-
-Dolphin can only be installed on devices that satisfy the above requirements. Attempting to install on an unsupported device will fail and display an error message.
 
 ## Building for Windows
 
