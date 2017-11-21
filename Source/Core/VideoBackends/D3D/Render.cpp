@@ -86,7 +86,6 @@ Renderer::Renderer() : ::Renderer(D3D::GetBackBufferWidth(), D3D::GetBackBufferH
 Renderer::~Renderer()
 {
   TeardownDeviceObjects();
-  D3D::Close();
 }
 
 void Renderer::SetupDeviceObjects()

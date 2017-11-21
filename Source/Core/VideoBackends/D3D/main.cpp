@@ -181,6 +181,8 @@ void VideoBackend::Shutdown()
   g_texture_cache.reset();
   g_renderer.reset();
 
+  D3D::Close();
+
   ShutdownShared();
 }
 
