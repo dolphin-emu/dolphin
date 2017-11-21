@@ -26,7 +26,7 @@ void WriteProtectMemory(void* ptr, size_t size, bool allowExecute)
 {
 }
 
-void UnWriteProtectMemory(void* ptr, size_t size, bool allowExecute)
+void UnWriteProtectMemory(void* ptr, size_t size)
 {
 }
 

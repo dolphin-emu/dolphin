@@ -134,15 +134,15 @@ void WriteProtectMemory(void* ptr, size_t size, bool allowExecute)
 #endif
 }
 
-void UnWriteProtectMemory(void* ptr, size_t size, bool allowExecute)
+// Do not modify this to allow execution, allowing RWE is a bad idea
+void UnWriteProtectMemory(void* ptr, size_t size)
 {
 #ifdef _WIN32
   DWORD oldValue;
-  if (!VirtualProtect(ptr, size, allowExecute ? PAGE_EXECUTE_READWRITE : PAGE_READWRITE, &oldValue))
+  if (!VirtualProtect(ptr, size, PAGE_READWRITE, &oldValue))
     PanicAlert("UnWriteProtectMemory failed!\nVirtualProtect: %s", GetLastErrorString().c_str());
 #else
-  if (mprotect(ptr, size,
-               allowExecute ? (PROT_READ | PROT_WRITE | PROT_EXEC) : PROT_WRITE | PROT_READ) != 0)
+  if (mprotect(ptr, size, PROT_WRITE | PROT_READ) != 0)
   {
     PanicAlert("UnWriteProtectMemory failed!\nmprotect: %s", LastStrerrorString().c_str());
   }

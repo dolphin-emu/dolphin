@@ -38,7 +38,7 @@ public:
   virtual bool HandleFault(uintptr_t access_address, SContext* ctx) override
   {
     m_pre_unprotect_time = std::chrono::high_resolution_clock::now();
-    Common::UnWriteProtectMemory(m_data, PAGE_GRAN, /*allowExecute*/ false);
+    Common::UnWriteProtectMemory(m_data, PAGE_GRAN);
     m_post_unprotect_time = std::chrono::high_resolution_clock::now();
     return true;
   }
