@@ -81,14 +81,11 @@ Renderer::Renderer() : ::Renderer(D3D::GetBackBufferWidth(), D3D::GetBackBufferH
   D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, (float)m_target_width, (float)m_target_height);
   D3D::context->RSSetViewports(1, &vp);
   FramebufferManager::BindEFBRenderTarget();
-  D3D::BeginFrame();
 }
 
 Renderer::~Renderer()
 {
   TeardownDeviceObjects();
-  D3D::EndFrame();
-  D3D::Present();
   D3D::Close();
 }
 
@@ -607,7 +604,6 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
   Renderer::DrawDebugText();
 
   OSD::DrawMessages();
-  D3D::EndFrame();
 
   g_texture_cache->Cleanup(frameCount);
 
@@ -668,7 +664,6 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
 
   // begin next frame
   RestoreAPIState();
-  D3D::BeginFrame();
   FramebufferManager::BindEFBRenderTarget();
   SetViewport();
 }
