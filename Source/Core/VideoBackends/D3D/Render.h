@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <array>
 #include <string>
 #include "VideoBackends/D3D/D3DState.h"
 #include "VideoCommon/RenderBase.h"
@@ -66,10 +67,27 @@ private:
     RasterizationState raster;
   };
 
+  void SetupDeviceObjects();
+  void TeardownDeviceObjects();
+  void Create3DVisionTexture(int width, int height);
+
   void BlitScreen(TargetRectangle src, TargetRectangle dst, D3DTexture2D* src_texture,
                   u32 src_width, u32 src_height, float Gamma);
 
   StateCache m_state_cache;
   GXPipelineState m_gx_state;
+
+  std::array<ID3D11BlendState*, 4> m_clear_blend_states{};
+  std::array<ID3D11DepthStencilState*, 3> m_clear_depth_states{};
+  ID3D11BlendState* m_reset_blend_state = nullptr;
+  ID3D11DepthStencilState* m_reset_depth_state = nullptr;
+  ID3D11RasterizerState* m_reset_rast_state = nullptr;
+
+  ID3D11Texture2D* m_screenshot_texture = nullptr;
+  D3DTexture2D* m_3d_vision_texture = nullptr;
+
+  u32 m_last_multisamples = 1;
+  bool m_last_stereo_mode = false;
+  bool m_last_fullscreen_mode = false;
 };
 }
