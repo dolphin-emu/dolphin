@@ -51,6 +51,7 @@
 #include "DolphinQt2/NetPlay/NetPlayDialog.h"
 #include "DolphinQt2/NetPlay/NetPlaySetupDialog.h"
 #include "DolphinQt2/QtUtils/QueueOnObject.h"
+#include "DolphinQt2/QtUtils/RunOnObject.h"
 #include "DolphinQt2/QtUtils/WindowActivationEventFilter.h"
 #include "DolphinQt2/Resources.h"
 #include "DolphinQt2/Settings.h"
@@ -65,7 +66,7 @@
 #include "UICommon/X11Utils.h"
 #endif
 
-MainWindow::MainWindow() : QMainWindow(nullptr)
+MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters) : QMainWindow(nullptr)
 {
   setWindowTitle(QString::fromStdString(Common::scm_rev_str));
   setWindowIcon(QIcon(Resources::GetMisc(Resources::LOGO_SMALL)));
@@ -84,6 +85,9 @@ MainWindow::MainWindow() : QMainWindow(nullptr)
   InitCoreCallbacks();
 
   NetPlayInit();
+
+  if (boot_parameters)
+    StartGame(std::move(boot_parameters));
 }
 
 MainWindow::~MainWindow()
@@ -652,8 +656,7 @@ void MainWindow::PerformOnlineUpdate(const std::string& region)
 
 void MainWindow::BootWiiSystemMenu()
 {
-  StartGame(QString::fromStdString(
-      Common::GetTitleContentPath(Titles::SYSTEM_MENU, Common::FROM_CONFIGURED_ROOT)));
+  StartGame(std::make_unique<BootParameters>(BootParameters::NANDTitle{Titles::SYSTEM_MENU}));
 }
 
 void MainWindow::NetPlayInit()
@@ -877,13 +880,24 @@ void MainWindow::OnImportNANDBackup()
   auto beginning = QDateTime::currentDateTime().toMSecsSinceEpoch();
 
   auto result = std::async(std::launch::async, [&] {
-    DiscIO::NANDImporter().ImportNANDBin(file.toStdString(), [&dialog, beginning] {
-      QueueOnObject(dialog, [&dialog, beginning] {
-        dialog->setLabelText(
-            tr("Importing NAND backup\n Time elapsed: %1s")
-                .arg((QDateTime::currentDateTime().toMSecsSinceEpoch() - beginning) / 1000));
-      });
-    });
+    DiscIO::NANDImporter().ImportNANDBin(
+        file.toStdString(),
+        [&dialog, beginning] {
+          QueueOnObject(dialog, [&dialog, beginning] {
+            dialog->setLabelText(
+                tr("Importing NAND backup\n Time elapsed: %1s")
+                    .arg((QDateTime::currentDateTime().toMSecsSinceEpoch() - beginning) / 1000));
+          });
+        },
+        [this] {
+          return RunOnObject(this, [this] {
+            return QFileDialog::getOpenFileName(this, tr("Select the OTP/SEEPROM dump"),
+                                                QDir::currentPath(),
+                                                tr("BootMii OTP/SEEPROM dump (*.bin);;"
+                                                   "All Files (*)"))
+                .toStdString();
+          });
+        });
     QueueOnObject(dialog, &QProgressDialog::close);
   });
 

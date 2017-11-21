@@ -69,6 +69,7 @@ struct cubeb_ops {
   void (* stream_destroy)(cubeb_stream * stream);
   int (* stream_start)(cubeb_stream * stream);
   int (* stream_stop)(cubeb_stream * stream);
+  int (* stream_reset_default_device)(cubeb_stream * stream);
   int (* stream_get_position)(cubeb_stream * stream, uint64_t * position);
   int (* stream_get_latency)(cubeb_stream * stream, uint32_t * latency);
   int (* stream_set_volume)(cubeb_stream * stream, float volumes);

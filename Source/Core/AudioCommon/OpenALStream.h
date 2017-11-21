@@ -59,7 +59,7 @@ public:
   void SoundLoop() override;
   void SetVolume(int volume) override;
   void Stop() override;
-  void Clear(bool mute) override;
+  void SetRunning(bool running) override;
   void Update() override;
 
   static bool isValid();

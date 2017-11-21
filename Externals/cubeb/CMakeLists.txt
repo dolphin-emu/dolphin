@@ -43,9 +43,11 @@ add_library(cubeb
   src/cubeb_resampler.cpp
   src/cubeb_panner.cpp
   src/cubeb_log.cpp
-  src/cubeb_utils.c
+  src/cubeb_strings.c
    $<TARGET_OBJECTS:speex>)
-target_include_directories(cubeb PUBLIC include)
+target_include_directories(cubeb
+  PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>
+)
 target_include_directories(cubeb PRIVATE src)
 target_compile_definitions(cubeb PRIVATE OUTSIDE_SPEEX)
 target_compile_definitions(cubeb PRIVATE FLOATING_POINT)
@@ -56,7 +58,42 @@ add_sanitizers(cubeb)
 
 include(GenerateExportHeader)
 generate_export_header(cubeb EXPORT_FILE_NAME ${CMAKE_BINARY_DIR}/exports/cubeb_export.h)
-target_include_directories(cubeb PUBLIC ${CMAKE_BINARY_DIR}/exports)
+target_include_directories(cubeb
+  PUBLIC $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/exports>
+)
+
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/include DESTINATION ${CMAKE_INSTALL_PREFIX})
+install(DIRECTORY ${CMAKE_BINARY_DIR}/exports/ DESTINATION ${CMAKE_INSTALL_PREFIX}/include/cubeb)
+
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+  "${PROJECT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
+  COMPATIBILITY SameMajorVersion
+)
+
+configure_package_config_file(
+  "Config.cmake.in"
+  "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+  INSTALL_DESTINATION "lib/cmake/${PROJECT_NAME}"
+)
+
+install(TARGETS cubeb
+  EXPORT "${PROJECT_NAME}Targets"
+  DESTINATION ${CMAKE_INSTALL_PREFIX}
+  LIBRARY DESTINATION "lib"
+  ARCHIVE DESTINATION "lib"
+  RUNTIME DESTINATION "bin"
+  INCLUDES DESTINATION "include"
+)
+install(
+  FILES "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake" "${PROJECT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
+  DESTINATION "lib/cmake/${PROJECT_NAME}"
+)
+install(
+  EXPORT "${PROJECT_NAME}Targets"
+  NAMESPACE "${PROJECT_NAME}::"
+  DESTINATION "lib/cmake/${PROJECT_NAME}"
+)
 
 add_library(speex OBJECT
   src/speex/resample.c)
@@ -82,6 +119,7 @@ if(USE_PULSE)
   target_sources(cubeb PRIVATE
     src/cubeb_pulse.c)
   target_compile_definitions(cubeb PRIVATE USE_PULSE)
+  target_link_libraries(cubeb PRIVATE pulse)
   if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     target_link_libraries(cubeb PRIVATE dl)
   endif()
@@ -93,6 +131,9 @@ if(USE_ALSA)
     src/cubeb_alsa.c)
   target_compile_definitions(cubeb PRIVATE USE_ALSA)
   target_link_libraries(cubeb PRIVATE asound pthread)
+  if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+    target_link_libraries(cubeb PRIVATE dl)
+  endif()
 endif()
 
 check_include_files(jack/jack.h USE_JACK)
@@ -100,10 +141,10 @@ if(USE_JACK)
   target_sources(cubeb PRIVATE
     src/cubeb_jack.cpp)
   target_compile_definitions(cubeb PRIVATE USE_JACK)
+  target_link_libraries(cubeb PRIVATE jack pthread)
   if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     target_link_libraries(cubeb PRIVATE dl)
   endif()
-  target_link_libraries(cubeb PRIVATE pthread)
 endif()
 
 check_include_files(audioclient.h USE_WASAPI)

@@ -147,7 +147,7 @@ static void RunAdjacentSystems(bool running)
 {
   // NOTE: We're assuming these will not try to call Break or EnableStepping.
   Fifo::EmulatorState(running);
-  AudioCommon::ClearAudioBuffer(!running);
+  AudioCommon::SetSoundStreamRunning(running);
 }
 
 void Stop()

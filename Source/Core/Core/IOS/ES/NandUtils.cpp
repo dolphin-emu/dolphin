@@ -50,6 +50,20 @@ IOS::ES::TMDReader ES::FindInstalledTMD(u64 title_id) const
   return FindTMD(title_id, Common::GetTMDFileName(title_id, Common::FROM_SESSION_ROOT));
 }
 
+IOS::ES::TicketReader ES::FindSignedTicket(u64 title_id) const
+{
+  const std::string path = Common::GetTicketFileName(title_id, Common::FROM_SESSION_ROOT);
+  File::IOFile ticket_file(path, "rb");
+  if (!ticket_file)
+    return {};
+
+  std::vector<u8> signed_ticket(ticket_file.GetSize());
+  if (!ticket_file.ReadBytes(signed_ticket.data(), signed_ticket.size()))
+    return {};
+
+  return IOS::ES::TicketReader{std::move(signed_ticket)};
+}
+
 static bool IsValidPartOfTitleID(const std::string& string)
 {
   if (string.length() != 8)
@@ -154,21 +168,15 @@ std::vector<IOS::ES::Content> ES::GetStoredContentsFromTMD(const IOS::ES::TMDRea
   if (!tmd.IsValid())
     return {};
 
-  const IOS::ES::SharedContentMap shared{Common::FROM_SESSION_ROOT};
+  const IOS::ES::SharedContentMap map{Common::FROM_SESSION_ROOT};
   const std::vector<IOS::ES::Content> contents = tmd.GetContents();
 
   std::vector<IOS::ES::Content> stored_contents;
 
   std::copy_if(contents.begin(), contents.end(), std::back_inserter(stored_contents),
-               [&tmd, &shared](const auto& content) {
-                 if (content.IsShared())
-                 {
-                   const auto path = shared.GetFilenameFromSHA1(content.sha1);
-                   return path && File::Exists(*path);
-                 }
-                 return File::Exists(
-                     Common::GetTitleContentPath(tmd.GetTitleId(), Common::FROM_SESSION_ROOT) +
-                     StringFromFormat("%08x.app", content.id));
+               [this, &tmd, &map](const IOS::ES::Content& content) {
+                 const std::string path = GetContentPath(tmd.GetTitleId(), content, map);
+                 return !path.empty() && File::Exists(path);
                });
 
   return stored_contents;
@@ -288,6 +296,16 @@ void ES::FinishAllStaleImports()
   const std::string import_dir = Common::RootUserPath(Common::FROM_SESSION_ROOT) + "/import";
   File::DeleteDirRecursively(import_dir);
   File::CreateDir(import_dir);
+}
+
+std::string ES::GetContentPath(const u64 title_id, const IOS::ES::Content& content,
+                               const IOS::ES::SharedContentMap& content_map) const
+{
+  if (content.IsShared())
+    return content_map.GetFilenameFromSHA1(content.sha1).value_or("");
+
+  return Common::GetTitleContentPath(title_id, Common::FROM_SESSION_ROOT) +
+         StringFromFormat("%08x.app", content.id);
 }
 }  // namespace Device
 }  // namespace HLE
