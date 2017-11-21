@@ -35,7 +35,7 @@
 std::unique_ptr<VertexManagerBase> g_vertex_manager;
 
 // GX primitive -> RenderState primitive, no primitive restart
-constexpr std::array<PrimitiveType, 8> primitive_from_gx = {
+constexpr std::array<PrimitiveType, 8> primitive_from_gx{{
     PrimitiveType::Triangles,  // GX_DRAW_QUADS
     PrimitiveType::Triangles,  // GX_DRAW_QUADS_2
     PrimitiveType::Triangles,  // GX_DRAW_TRIANGLES
@@ -44,10 +44,10 @@ constexpr std::array<PrimitiveType, 8> primitive_from_gx = {
     PrimitiveType::Lines,      // GX_DRAW_LINES
     PrimitiveType::Lines,      // GX_DRAW_LINE_STRIP
     PrimitiveType::Points,     // GX_DRAW_POINTS
-};
+}};
 
 // GX primitive -> RenderState primitive, using primitive restart
-constexpr std::array<PrimitiveType, 8> primitive_from_gx_pr = {
+constexpr std::array<PrimitiveType, 8> primitive_from_gx_pr{{
     PrimitiveType::TriangleStrip,  // GX_DRAW_QUADS
     PrimitiveType::TriangleStrip,  // GX_DRAW_QUADS_2
     PrimitiveType::TriangleStrip,  // GX_DRAW_TRIANGLES
@@ -56,7 +56,7 @@ constexpr std::array<PrimitiveType, 8> primitive_from_gx_pr = {
     PrimitiveType::Lines,          // GX_DRAW_LINES
     PrimitiveType::Lines,          // GX_DRAW_LINE_STRIP
     PrimitiveType::Points,         // GX_DRAW_POINTS
-};
+}};
 
 // Due to the BT.601 standard which the GameCube is based on being a compromise
 // between PAL and NTSC, neither standard gets square pixels. They are each off
@@ -209,7 +209,7 @@ std::pair<size_t, size_t> VertexManagerBase::ResetFlushAspectRatioCount()
   return val;
 }
 
-static void SetSamplerState(u32 index, bool custom_tex)
+static void SetSamplerState(u32 index, bool custom_tex, bool has_arbitrary_mips)
 {
   const FourTexUnits& tex = bpmem.tex[index / 4];
   const TexMode0& tm0 = tex.texMode0[index % 4];
@@ -249,6 +249,18 @@ static void SetSamplerState(u32 index, bool custom_tex)
   }
   else
   {
+    state.anisotropic_filtering = 0;
+  }
+
+  if (has_arbitrary_mips && SamplerCommon::AreBpTexMode0MipmapsEnabled(tm0))
+  {
+    // Apply a secondary bias calculated from the IR scale to pull inwards mipmaps
+    // that have arbitrary contents, eg. are used for fog effects where the
+    // distance they kick in at is important to preserve at any resolution.
+    state.lod_bias =
+        state.lod_bias + std::log2(static_cast<float>(g_renderer->GetEFBScale())) * 256.f;
+
+    // Anisotropic also pushes mips farther away so it cannot be used either
     state.anisotropic_filtering = 0;
   }
 
@@ -323,7 +335,7 @@ void VertexManagerBase::Flush()
 
       if (tentry)
       {
-        SetSamplerState(i, tentry->is_custom_tex);
+        SetSamplerState(i, tentry->is_custom_tex, tentry->has_arbitrary_mips);
         PixelShaderManager::SetTexDims(i, tentry->native_width, tentry->native_height);
       }
       else

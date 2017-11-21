@@ -63,6 +63,11 @@ void FifoRecorder::StopRecording()
   m_RequestedRecordingEnd = true;
 }
 
+bool FifoRecorder::IsRecordingDone() const
+{
+  return m_WasRecording && m_File != nullptr;
+}
+
 FifoDataFile* FifoRecorder::GetRecordedFile() const
 {
   return m_File.get();

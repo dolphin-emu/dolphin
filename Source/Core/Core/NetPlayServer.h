@@ -12,7 +12,7 @@
 #include <thread>
 #include <unordered_map>
 #include <unordered_set>
-#include "Common/FifoQueue.h"
+#include "Common/SPSCQueue.h"
 #include "Common/Timer.h"
 #include "Common/TraversalClient.h"
 #include "Core/NetPlayProto.h"
@@ -114,7 +114,7 @@ private:
 
   std::string m_selected_game;
   std::thread m_thread;
-  Common::FifoQueue<sf::Packet, false> m_async_queue;
+  Common::SPSCQueue<sf::Packet, false> m_async_queue;
 
   ENetHost* m_server = nullptr;
   TraversalClient* m_traversal_client = nullptr;

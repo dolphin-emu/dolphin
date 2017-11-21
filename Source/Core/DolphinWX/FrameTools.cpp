@@ -57,11 +57,13 @@
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/State.h"
+#include "Core/TitleDatabase.h"
 #include "Core/WiiUtils.h"
 
 #include "DiscIO/Enums.h"
 #include "DiscIO/NANDImporter.h"
 #include "DiscIO/VolumeWad.h"
+#include "DiscIO/WiiSaveBanner.h"
 
 #include "DolphinWX/AboutDolphin.h"
 #include "DolphinWX/Cheats/CheatsWindow.h"
@@ -496,7 +498,7 @@ void CFrame::OnRecord(wxCommandEvent& WXUNUSED(event))
 void CFrame::OnPlayRecording(wxCommandEvent& WXUNUSED(event))
 {
   wxString path =
-      wxFileSelector(_("Select The Recording File"), wxEmptyString, wxEmptyString, wxEmptyString,
+      wxFileSelector(_("Select the Recording File"), wxEmptyString, wxEmptyString, wxEmptyString,
                      _("Dolphin TAS Movies (*.dtm)") +
                          wxString::Format("|*.dtm|%s", wxGetTranslation(wxALL_FILES)),
                      wxFD_OPEN | wxFD_PREVIEW | wxFD_FILE_MUST_EXIST, this);
@@ -992,7 +994,7 @@ void CFrame::DoRecordingSave()
     DoPause();
 
   wxString path =
-      wxFileSelector(_("Select The Recording File"), wxEmptyString, wxEmptyString, wxEmptyString,
+      wxFileSelector(_("Select the Recording File"), wxEmptyString, wxEmptyString, wxEmptyString,
                      _("Dolphin TAS Movies (*.dtm)") +
                          wxString::Format("|*.dtm|%s", wxGetTranslation(wxALL_FILES)),
                      wxFD_SAVE | wxFD_PREVIEW | wxFD_OVERWRITE_PROMPT, this);
@@ -1327,17 +1329,39 @@ void CFrame::OnCheckNAND(wxCommandEvent&)
                        "Do you want to try to repair the NAND?");
   if (!result.titles_to_remove.empty())
   {
-    message += _("\n\nWARNING: Fixing this NAND requires the deletion of titles that have "
-                 "incomplete data on the NAND, including all associated save data. "
-                 "By continuing, the following title(s) will be removed:\n\n");
+    std::string title_listings;
     Core::TitleDatabase title_db;
     for (const u64 title_id : result.titles_to_remove)
     {
-      const std::string name = title_db.GetTitleName(title_id);
-      message += !name.empty() ? StringFromFormat("%s (%016" PRIx64 ")", name.c_str(), title_id) :
-                                 StringFromFormat("%016" PRIx64, title_id);
-      message += "\n";
+      title_listings += StringFromFormat("%016" PRIx64, title_id);
+
+      const std::string database_name = title_db.GetChannelName(title_id);
+      if (!database_name.empty())
+      {
+        title_listings += " - " + database_name;
+      }
+      else
+      {
+        DiscIO::WiiSaveBanner banner(title_id);
+        if (banner.IsValid())
+        {
+          title_listings += " - " + banner.GetName();
+          const std::string description = banner.GetDescription();
+          if (!StripSpaces(description).empty())
+            title_listings += " - " + description;
+        }
+      }
+
+      title_listings += "\n";
     }
+
+    message += wxString::Format(
+        _("\n\nWARNING: Fixing this NAND requires the deletion of titles that have "
+          "incomplete data on the NAND, including all associated save data. "
+          "By continuing, the following title(s) will be removed:\n\n"
+          "%s"
+          "\nLaunching these titles may also fix the issues."),
+        StrToWxStr(title_listings));
   }
 
   if (wxMessageBox(message, _("NAND Check"), wxYES_NO) != wxYES)

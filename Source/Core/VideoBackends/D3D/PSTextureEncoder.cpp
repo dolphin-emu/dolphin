@@ -26,6 +26,8 @@ struct EFBEncodeParams
   s32 SrcTop;
   u32 DestWidth;
   u32 ScaleFactor;
+  float y_scale;
+  u32 padding[3];
 };
 
 PSTextureEncoder::PSTextureEncoder()
@@ -41,8 +43,11 @@ void PSTextureEncoder::Init()
   HRESULT hr;
 
   // Create output texture RGBA format
-  D3D11_TEXTURE2D_DESC t2dd = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_B8G8R8A8_UNORM, EFB_WIDTH * 4,
-                                                    EFB_HEIGHT / 4, 1, 1, D3D11_BIND_RENDER_TARGET);
+  // TODO: This Texture is overly large and parts of it are unused
+  //       EFB2RAM copies use max (EFB_WIDTH * 4) by (EFB_HEIGHT / 4)
+  //       XFB2RAM copies use max (EFB_WIDTH / 2) by (EFB_HEIGHT)
+  D3D11_TEXTURE2D_DESC t2dd = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_B8G8R8A8_UNORM, EFB_WIDTH * 4, 1024,
+                                                    1, 1, D3D11_BIND_RENDER_TARGET);
   hr = D3D::device->CreateTexture2D(&t2dd, nullptr, &m_out);
   CHECK(SUCCEEDED(hr), "create efb encode output texture");
   D3D::SetDebugObjectName(m_out, "efb encoder output texture");
@@ -124,6 +129,7 @@ void PSTextureEncoder::Encode(u8* dst, const EFBCopyParams& params, u32 native_w
     encode_params.SrcTop = src_rect.top;
     encode_params.DestWidth = native_width;
     encode_params.ScaleFactor = scale_by_half ? 2 : 1;
+    encode_params.y_scale = params.y_scale;
     D3D::context->UpdateSubresource(m_encodeParams, 0, nullptr, &encode_params, 0, 0);
     D3D::stateman->SetPixelConstants(m_encodeParams);
 
@@ -131,7 +137,7 @@ void PSTextureEncoder::Encode(u8* dst, const EFBCopyParams& params, u32 native_w
     // TODO: This only produces perfect downsampling for 2x IR, other resolutions will need more
     //       complex down filtering to average all pixels and produce the correct result.
     // Also, box filtering won't be correct for anything other than 1x IR
-    if (scale_by_half || g_ActiveConfig.iEFBScale != 1)
+    if (scale_by_half || g_renderer->GetEFBScale() != 1 || params.y_scale > 1.0f)
       D3D::SetLinearCopySampler();
     else
       D3D::SetPointCopySampler();

@@ -7,6 +7,7 @@
 #include <memory>
 
 #include "Common/Config/Config.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/NetPlayProto.h"
 
@@ -20,29 +21,26 @@ public:
   {
   }
 
-  void Load(Config::Layer* config_layer) override
+  void Load(Config::Layer* layer) override
   {
-    Config::Section* core = config_layer->GetOrCreateSection(Config::System::Main, "Core");
-    Config::Section* dsp = config_layer->GetOrCreateSection(Config::System::Main, "DSP");
+    layer->Set(Config::MAIN_CPU_THREAD, m_settings.m_CPUthread);
+    layer->Set(Config::MAIN_CPU_CORE, m_settings.m_CPUcore);
+    layer->Set(Config::MAIN_GC_LANGUAGE, m_settings.m_SelectedLanguage);
+    layer->Set(Config::MAIN_OVERRIDE_GC_LANGUAGE, m_settings.m_OverrideGCLanguage);
+    layer->Set(Config::MAIN_DSP_HLE, m_settings.m_DSPHLE);
+    layer->Set(Config::MAIN_OVERCLOCK_ENABLE, m_settings.m_OCEnable);
+    layer->Set(Config::MAIN_OVERCLOCK, m_settings.m_OCFactor);
+    layer->Set(Config::MAIN_SLOT_A, static_cast<int>(m_settings.m_EXIDevice[0]));
+    layer->Set(Config::MAIN_SLOT_B, static_cast<int>(m_settings.m_EXIDevice[1]));
+    layer->Set(Config::MAIN_WII_SD_CARD_WRITABLE, m_settings.m_WriteToMemcard);
 
-    core->Set("CPUThread", m_settings.m_CPUthread);
-    core->Set("CPUCore", m_settings.m_CPUcore);
-    core->Set("SelectedLanguage", m_settings.m_SelectedLanguage);
-    core->Set("OverrideGCLang", m_settings.m_OverrideGCLanguage);
-    core->Set("DSPHLE", m_settings.m_DSPHLE);
-    core->Set("OverclockEnable", m_settings.m_OCEnable);
-    core->Set("Overclock", m_settings.m_OCFactor);
-    core->Set("SlotA", m_settings.m_EXIDevice[0]);
-    core->Set("SlotB", m_settings.m_EXIDevice[1]);
-    core->Set("EnableSaving", m_settings.m_WriteToMemcard);
+    layer->Set(Config::MAIN_DSP_JIT, m_settings.m_DSPEnableJIT);
 
-    dsp->Set("EnableJIT", m_settings.m_DSPEnableJIT);
-
-    config_layer->Set(Config::SYSCONF_PROGRESSIVE_SCAN, m_settings.m_ProgressiveScan);
-    config_layer->Set(Config::SYSCONF_PAL60, m_settings.m_PAL60);
+    layer->Set(Config::SYSCONF_PROGRESSIVE_SCAN, m_settings.m_ProgressiveScan);
+    layer->Set(Config::SYSCONF_PAL60, m_settings.m_PAL60);
   }
 
-  void Save(Config::Layer* config_layer) override
+  void Save(Config::Layer* layer) override
   {
     // Do Nothing
   }

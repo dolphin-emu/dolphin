@@ -7,11 +7,13 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstring>
+#include <vector>
 
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/Swap.h"
 
+#include "VideoBackends/Software/CopyRegion.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/LookUpTables.h"
 #include "VideoCommon/PerfQueryBase.h"
@@ -495,19 +497,16 @@ u8* GetPixelPointer(u16 x, u16 y, bool depth)
   return &efb[GetColorOffset(x, y)];
 }
 
-void CopyToXFB(yuv422_packed* xfb_in_ram, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc,
-               float Gamma)
+void EncodeXFB(u8* xfb_in_ram, u32 memory_stride, const EFBRectangle& source_rect, float y_scale)
 {
-  // FIXME: We should do Gamma correction
-
   if (!xfb_in_ram)
   {
     WARN_LOG(VIDEO, "Tried to copy to invalid XFB address");
     return;
   }
 
-  int left = sourceRc.left;
-  int right = sourceRc.right;
+  int left = source_rect.left;
+  int right = source_rect.right;
 
   // this assumes copies will always start on an even (YU) pixel and the
   // copy always has an even width, which might not be true.
@@ -520,16 +519,11 @@ void CopyToXFB(yuv422_packed* xfb_in_ram, u32 fbWidth, u32 fbHeight, const EFBRe
   // Scanline buffer, leave room for borders
   yuv444 scanline[EFB_WIDTH + 2];
 
-  // our internal yuv444 type is not normalized, so black is {0, 0, 0} instead of {16, 128, 128}
-  yuv444 black;
-  black.Y = 0;
-  black.U = 0;
-  black.V = 0;
+  static std::vector<yuv422_packed> source;
+  source.resize(EFB_WIDTH * EFB_HEIGHT);
+  yuv422_packed* src_ptr = &source[0];
 
-  scanline[0] = black;          // black border at start
-  scanline[right + 1] = black;  // black border at end
-
-  for (u16 y = sourceRc.top; y < sourceRc.bottom; y++)
+  for (float y = source_rect.top; y < source_rect.bottom; y++)
   {
     // Get a scanline of YUV pixels in 4:4:4 format
 
@@ -538,50 +532,38 @@ void CopyToXFB(yuv422_packed* xfb_in_ram, u32 fbWidth, u32 fbHeight, const EFBRe
       scanline[i] = GetColorYUV(x, y);
     }
 
+    // Flipper clamps the border colors
+    scanline[0] = scanline[1];
+    scanline[right + 1] = scanline[right];
+
     // And Downsample them to 4:2:2
     for (int i = 1, x = left; x < right; i += 2, x += 2)
     {
       // YU pixel
-      xfb_in_ram[x].Y = scanline[i].Y + 16;
+      src_ptr[x].Y = scanline[i].Y + 16;
       // we mix our color differences in 10 bit space so it will round more accurately
       // U[i] = 1/4 * U[i-1] + 1/2 * U[i] + 1/4 * U[i+1]
-      xfb_in_ram[x].UV =
-          128 + ((scanline[i - 1].U + (scanline[i].U << 1) + scanline[i + 1].U) >> 2);
+      src_ptr[x].UV = 128 + ((scanline[i - 1].U + (scanline[i].U << 1) + scanline[i + 1].U) >> 2);
 
       // YV pixel
-      xfb_in_ram[x + 1].Y = scanline[i + 1].Y + 16;
+      src_ptr[x + 1].Y = scanline[i + 1].Y + 16;
       // V[i] = 1/4 * V[i-1] + 1/2 * V[i] + 1/4 * V[i+1]
-      xfb_in_ram[x + 1].UV =
+      src_ptr[x + 1].UV =
           128 + ((scanline[i].V + (scanline[i + 1].V << 1) + scanline[i + 2].V) >> 2);
     }
-    xfb_in_ram += fbWidth;
-  }
-}
-
-// Like CopyToXFB, but we copy directly into the OpenGL color texture without going via GameCube
-// main memory or doing a yuyv conversion
-void BypassXFB(u8* texture, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc, float Gamma)
-{
-  if (fbWidth * fbHeight > MAX_XFB_WIDTH * MAX_XFB_HEIGHT)
-  {
-    ERROR_LOG(VIDEO, "Framebuffer is too large: %ix%i", fbWidth, fbHeight);
-    return;
+    src_ptr += memory_stride;
   }
 
-  size_t textureAddress = 0;
-  const int left = sourceRc.left;
-  const int right = sourceRc.right;
+  auto dest_rect = EFBRectangle{source_rect.left, source_rect.top, source_rect.right,
+                                static_cast<int>(static_cast<float>(source_rect.bottom) * y_scale)};
 
-  for (u16 y = sourceRc.top; y < sourceRc.bottom; y++)
-  {
-    for (u16 x = left; x < right; x++)
-    {
-      const u32 color = Common::swap32(GetColor(x, y) | 0xFF);
+  const std::size_t destination_size = dest_rect.GetWidth() * dest_rect.GetHeight() * 2;
+  static std::vector<yuv422_packed> destination;
+  destination.resize(dest_rect.GetWidth() * dest_rect.GetHeight());
 
-      std::memcpy(&texture[textureAddress], &color, sizeof(u32));
-      textureAddress += sizeof(u32);
-    }
-  }
+  SW::CopyRegion(source.data(), source_rect, destination.data(), dest_rect);
+
+  memcpy(xfb_in_ram, destination.data(), destination_size);
 }
 
 bool ZCompare(u16 x, u16 y, u32 z)

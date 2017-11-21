@@ -14,6 +14,7 @@
 
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/LookUpTables.h"
+#include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/TextureDecoder.h"
 
 namespace TextureEncoder
@@ -1416,37 +1417,64 @@ static void EncodeZ24halfscale(u8* dst, const u8* src, EFBCopyFormat format)
   }
 }
 
-void Encode(u8* dest_ptr)
+namespace
 {
-  auto pixelformat = bpmem.zcontrol.pixel_format;
-  bool bFromZBuffer = pixelformat == PEControl::Z24;
-  bool bIsIntensityFmt = bpmem.triggerEFBCopy.intensity_fmt > 0;
-  EFBCopyFormat copyfmt = bpmem.triggerEFBCopy.tp_realFormat();
+void EncodeEfbCopy(u8* dst, const EFBCopyParams& params, u32 native_width, u32 bytes_per_row,
+                   u32 num_blocks_y, u32 memory_stride, const EFBRectangle& src_rect,
+                   bool scale_by_half)
+{
+  const u8* src = EfbInterface::GetPixelPointer(src_rect.left, src_rect.top, params.depth);
 
-  const u8* src =
-      EfbInterface::GetPixelPointer(bpmem.copyTexSrcXY.x, bpmem.copyTexSrcXY.y, bFromZBuffer);
-
-  if (bpmem.triggerEFBCopy.half_scale)
+  if (scale_by_half)
   {
-    if (pixelformat == PEControl::RGBA6_Z24)
-      EncodeRGBA6halfscale(dest_ptr, src, copyfmt, bIsIntensityFmt);
-    else if (pixelformat == PEControl::RGB8_Z24)
-      EncodeRGB8halfscale(dest_ptr, src, copyfmt, bIsIntensityFmt);
-    else if (pixelformat == PEControl::RGB565_Z16)  // not supported
-      EncodeRGB8halfscale(dest_ptr, src, copyfmt, bIsIntensityFmt);
-    else if (pixelformat == PEControl::Z24)
-      EncodeZ24halfscale(dest_ptr, src, copyfmt);
+    switch (params.efb_format)
+    {
+    case PEControl::RGBA6_Z24:
+      EncodeRGBA6halfscale(dst, src, params.copy_format, params.yuv);
+      break;
+    case PEControl::RGB8_Z24:
+      EncodeRGB8halfscale(dst, src, params.copy_format, params.yuv);
+      break;
+    case PEControl::RGB565_Z16:
+      EncodeRGB8halfscale(dst, src, params.copy_format, params.yuv);
+      break;
+    case PEControl::Z24:
+      EncodeZ24halfscale(dst, src, params.copy_format);
+      break;
+    }
   }
   else
   {
-    if (pixelformat == PEControl::RGBA6_Z24)
-      EncodeRGBA6(dest_ptr, src, copyfmt, bIsIntensityFmt);
-    else if (pixelformat == PEControl::RGB8_Z24)
-      EncodeRGB8(dest_ptr, src, copyfmt, bIsIntensityFmt);
-    else if (pixelformat == PEControl::RGB565_Z16)  // not supported
-      EncodeRGB8(dest_ptr, src, copyfmt, bIsIntensityFmt);
-    else if (pixelformat == PEControl::Z24)
-      EncodeZ24(dest_ptr, src, copyfmt);
+    switch (params.efb_format)
+    {
+    case PEControl::RGBA6_Z24:
+      EncodeRGBA6(dst, src, params.copy_format, params.yuv);
+      break;
+    case PEControl::RGB8_Z24:
+      EncodeRGB8(dst, src, params.copy_format, params.yuv);
+      break;
+    case PEControl::RGB565_Z16:
+      EncodeRGB8(dst, src, params.copy_format, params.yuv);
+      break;
+    case PEControl::Z24:
+      EncodeZ24(dst, src, params.copy_format);
+      break;
+    }
+  }
+}
+}
+
+void Encode(u8* dst, const EFBCopyParams& params, u32 native_width, u32 bytes_per_row,
+            u32 num_blocks_y, u32 memory_stride, const EFBRectangle& src_rect, bool scale_by_half)
+{
+  if (params.copy_format == EFBCopyFormat::XFB)
+  {
+    EfbInterface::EncodeXFB(dst, native_width, src_rect, params.y_scale);
+  }
+  else
+  {
+    EncodeEfbCopy(dst, params, native_width, bytes_per_row, num_blocks_y, memory_stride, src_rect,
+                  scale_by_half);
   }
 }
 }

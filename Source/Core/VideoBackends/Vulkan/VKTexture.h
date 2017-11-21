@@ -20,7 +20,7 @@ public:
   ~VKTexture();
 
   void Bind(unsigned int stage) override;
-  bool Save(const std::string& filename, unsigned int level) override;
+  void Unmap() override;
 
   void CopyRectangleFromTexture(const AbstractTexture* source,
                                 const MathUtil::Rectangle<int>& srcrect,
@@ -47,7 +47,12 @@ private:
   void ScaleTextureRectangle(const MathUtil::Rectangle<int>& dst_rect, Texture2D* src_texture,
                              const MathUtil::Rectangle<int>& src_rect);
 
+  std::optional<RawTextureInfo> MapFullImpl() override;
+  std::optional<RawTextureInfo> MapRegionImpl(u32 level, u32 x, u32 y, u32 width,
+                                              u32 height) override;
+
   std::unique_ptr<Texture2D> m_texture;
+  std::unique_ptr<StagingTexture2D> m_staging_texture;
   VkFramebuffer m_framebuffer;
 };
 

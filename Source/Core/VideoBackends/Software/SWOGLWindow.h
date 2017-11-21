@@ -9,18 +9,22 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "VideoCommon/VideoCommon.h"
+
+class AbstractTexture;
 
 class SWOGLWindow
 {
 public:
   static void Init(void* window_handle);
   static void Shutdown();
+  void Prepare();
 
   // Will be printed on the *next* image
   void PrintText(const std::string& text, int x, int y, u32 color);
 
   // Image to show, will be swapped immediately
-  void ShowImage(const u8* data, int stride, int width, int height, float aspect);
+  void ShowImage(AbstractTexture* image, const EFBRectangle& xfb_region);
 
   int PeekMessages();
 
@@ -28,8 +32,6 @@ public:
 
 private:
   SWOGLWindow() {}
-  void Prepare();
-
   struct TextData
   {
     std::string text;

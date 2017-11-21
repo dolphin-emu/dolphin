@@ -5,6 +5,7 @@
 #include "VideoBackends/Vulkan/TextureConverter.h"
 
 #include <algorithm>
+#include <array>
 #include <cstddef>
 #include <cstring>
 #include <string>
@@ -32,6 +33,14 @@
 
 namespace Vulkan
 {
+namespace
+{
+struct EFBEncodeParams
+{
+  std::array<s32, 4> position_uniform;
+  float y_scale;
+};
+}
 TextureConverter::TextureConverter()
 {
 }
@@ -52,6 +61,8 @@ TextureConverter::~TextureConverter()
     vkDestroyBufferView(g_vulkan_context->GetDevice(), m_texel_buffer_view_r32g32_uint, nullptr);
   if (m_texel_buffer_view_rgba8_unorm != VK_NULL_HANDLE)
     vkDestroyBufferView(g_vulkan_context->GetDevice(), m_texel_buffer_view_rgba8_unorm, nullptr);
+  if (m_texel_buffer_view_rgba8_uint != VK_NULL_HANDLE)
+    vkDestroyBufferView(g_vulkan_context->GetDevice(), m_texel_buffer_view_rgba8_uint, nullptr);
 
   if (m_encoding_render_pass != VK_NULL_HANDLE)
     vkDestroyRenderPass(g_vulkan_context->GetDevice(), m_encoding_render_pass, nullptr);
@@ -150,7 +161,7 @@ TextureConverter::GetCommandBufferForTextureConversion(const TextureCache::TCach
   // EFB copies can be used as paletted textures as well. For these, we can't assume them to be
   // contain the correct data before the frame begins (when the init command buffer is executed),
   // so we must convert them at the appropriate time, during the drawing command buffer.
-  if (src_entry->IsEfbCopy())
+  if (src_entry->IsCopy())
   {
     StateTracker::GetInstance()->EndRenderPass();
     StateTracker::GetInstance()->SetPendingRebind();
@@ -243,14 +254,19 @@ void TextureConverter::EncodeTextureToMemory(VkImageView src_texture, u8* dest_p
                          VK_NULL_HANDLE, shader);
 
   // Uniform - int4 of left,top,native_width,scale
-  s32 position_uniform[4] = {src_rect.left, src_rect.top, static_cast<s32>(native_width),
-                             scale_by_half ? 2 : 1};
-  draw.SetPushConstants(position_uniform, sizeof(position_uniform));
+  EFBEncodeParams encoder_params;
+  encoder_params.position_uniform[0] = src_rect.left;
+  encoder_params.position_uniform[1] = src_rect.top;
+  encoder_params.position_uniform[2] = static_cast<s32>(native_width);
+  encoder_params.position_uniform[3] = scale_by_half ? 2 : 1;
+  encoder_params.y_scale = params.y_scale;
+  draw.SetPushConstants(&encoder_params, sizeof(encoder_params));
 
   // We also linear filtering for both box filtering and downsampling higher resolutions to 1x
   // TODO: This only produces perfect downsampling for 2x IR, other resolutions will need more
   //       complex down filtering to average all pixels and produce the correct result.
-  bool linear_filter = (scale_by_half && !params.depth) || g_ActiveConfig.iEFBScale != 1;
+  bool linear_filter =
+      (scale_by_half && !params.depth) || g_renderer->GetEFBScale() != 1 || params.y_scale > 1.0f;
   draw.SetPSSampler(0, src_texture, linear_filter ? g_object_cache->GetLinearSampler() :
                                                     g_object_cache->GetPointSampler());
 
@@ -407,7 +423,7 @@ bool TextureConverter::SupportsTextureDecoding(TextureFormat format, TLUTFormat 
   std::string shader_source =
       TextureConversionShader::GenerateDecodingShader(format, palette_format, APIType::Vulkan);
 
-  pipeline.compute_shader = Util::CompileAndCreateComputeShader(shader_source, true);
+  pipeline.compute_shader = Util::CompileAndCreateComputeShader(shader_source);
   if (pipeline.compute_shader == VK_NULL_HANDLE)
   {
     m_decoding_pipelines.emplace(key, pipeline);
@@ -473,10 +489,21 @@ void TextureConverter::DecodeTexture(VkCommandBuffer command_buffer,
 
   // Copy/commit upload buffer.
   u32 texel_buffer_offset = static_cast<u32>(m_texel_buffer->GetCurrentOffset());
+
+  Util::BufferMemoryBarrier(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                            m_texel_buffer->GetBuffer(), VK_ACCESS_SHADER_READ_BIT,
+                            VK_ACCESS_HOST_WRITE_BIT, texel_buffer_offset, total_upload_size,
+                            VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_HOST_BIT);
+
   std::memcpy(m_texel_buffer->GetCurrentHostPointer(), data, data_size);
   if (has_palette)
     std::memcpy(m_texel_buffer->GetCurrentHostPointer() + palette_offset, palette, palette_size);
   m_texel_buffer->CommitMemory(total_upload_size);
+
+  Util::BufferMemoryBarrier(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                            m_texel_buffer->GetBuffer(), VK_ACCESS_HOST_WRITE_BIT,
+                            VK_ACCESS_SHADER_READ_BIT, texel_buffer_offset, total_upload_size,
+                            VK_PIPELINE_STAGE_HOST_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
 
   // Determine uniforms.
   PushConstants constants = {
@@ -498,6 +525,9 @@ void TextureConverter::DecodeTexture(VkCommandBuffer command_buffer,
     break;
   case TextureConversionShader::BUFFER_FORMAT_R32G32_UINT:
     data_view = m_texel_buffer_view_r32g32_uint;
+    break;
+  case TextureConversionShader::BUFFER_FORMAT_RGBA8_UINT:
+    data_view = m_texel_buffer_view_rgba8_uint;
     break;
   default:
     break;
@@ -550,10 +580,12 @@ bool TextureConverter::CreateTexelBuffer()
   m_texel_buffer_view_r16_uint = CreateTexelBufferView(VK_FORMAT_R16_UINT);
   m_texel_buffer_view_r32g32_uint = CreateTexelBufferView(VK_FORMAT_R32G32_UINT);
   m_texel_buffer_view_rgba8_unorm = CreateTexelBufferView(VK_FORMAT_R8G8B8A8_UNORM);
+  m_texel_buffer_view_rgba8_uint = CreateTexelBufferView(VK_FORMAT_R8G8B8A8_UINT);
   return m_texel_buffer_view_r8_uint != VK_NULL_HANDLE &&
          m_texel_buffer_view_r16_uint != VK_NULL_HANDLE &&
          m_texel_buffer_view_r32g32_uint != VK_NULL_HANDLE &&
-         m_texel_buffer_view_rgba8_unorm != VK_NULL_HANDLE;
+         m_texel_buffer_view_rgba8_unorm != VK_NULL_HANDLE &&
+         m_texel_buffer_view_rgba8_uint != VK_NULL_HANDLE;
 }
 
 VkBufferView TextureConverter::CreateTexelBufferView(VkFormat format) const

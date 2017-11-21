@@ -37,13 +37,13 @@
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "Core/CoreTiming.h"
 #include "Core/FifoPlayer/FifoRecorder.h"
 #include "Core/HW/VideoInterface.h"
 #include "Core/Host.h"
 #include "Core/Movie.h"
 
 #include "VideoCommon/AVIDump.h"
+#include "VideoCommon/AbstractTexture.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/CommandProcessor.h"
@@ -84,9 +84,6 @@ static float AspectToWidescreen(float aspect)
 Renderer::Renderer(int backbuffer_width, int backbuffer_height)
     : m_backbuffer_width(backbuffer_width), m_backbuffer_height(backbuffer_height)
 {
-  FramebufferManagerBase::SetLastXfbWidth(MAX_XFB_WIDTH);
-  FramebufferManagerBase::SetLastXfbHeight(MAX_XFB_HEIGHT);
-
   UpdateActiveConfig();
   UpdateDrawRectangle();
   CalculateTargetSize();
@@ -100,11 +97,15 @@ Renderer::Renderer(int backbuffer_width, int backbuffer_height)
   m_last_host_config_bits = ShaderHostConfig::GetCurrent().bits;
 }
 
-Renderer::~Renderer()
+Renderer::~Renderer() = default;
+
+void Renderer::ExitFramedumping()
 {
   ShutdownFrameDumping();
   if (m_frame_dump_thread.joinable())
     m_frame_dump_thread.join();
+
+  m_dump_texture.reset();
 }
 
 void Renderer::RenderToXFB(u32 xfbAddr, const EFBRectangle& sourceRc, u32 fbStride, u32 fbHeight,
@@ -114,21 +115,11 @@ void Renderer::RenderToXFB(u32 xfbAddr, const EFBRectangle& sourceRc, u32 fbStri
 
   if (!fbStride || !fbHeight)
     return;
+}
 
-  m_xfb_written = true;
-
-  if (g_ActiveConfig.bUseXFB)
-  {
-    FramebufferManagerBase::CopyToXFB(xfbAddr, fbStride, fbHeight, sourceRc, Gamma);
-  }
-  else
-  {
-    // The timing is not predictable here. So try to use the XFB path to dump frames.
-    u64 ticks = CoreTiming::GetTicks();
-
-    // below div two to convert from bytes to pixels - it expects width, not stride
-    Swap(xfbAddr, fbStride / 2, fbStride / 2, fbHeight, sourceRc, ticks, Gamma);
-  }
+unsigned int Renderer::GetEFBScale() const
+{
+  return m_efb_scale;
 }
 
 int Renderer::EFBToScaledX(int x) const
@@ -162,8 +153,8 @@ bool Renderer::CalculateTargetSize()
   if (g_ActiveConfig.iEFBScale == EFB_SCALE_AUTO_INTEGRAL)
   {
     // Set a scale based on the window size
-    int width = FramebufferManagerBase::ScaleToVirtualXfbWidth(EFB_WIDTH, m_target_rectangle);
-    int height = FramebufferManagerBase::ScaleToVirtualXfbHeight(EFB_HEIGHT, m_target_rectangle);
+    int width = EFB_WIDTH * m_target_rectangle.GetWidth() / m_last_xfb_width;
+    int height = EFB_HEIGHT * m_target_rectangle.GetWidth() / m_last_xfb_height;
     m_efb_scale = std::max((width - 1) / EFB_WIDTH + 1, (height - 1) / EFB_HEIGHT + 1);
   }
   else
@@ -194,7 +185,7 @@ Renderer::ConvertStereoRectangle(const TargetRectangle& rc) const
 {
   // Resize target to half its original size
   TargetRectangle draw_rc = rc;
-  if (g_ActiveConfig.iStereoMode == STEREO_TAB)
+  if (g_ActiveConfig.stereo_mode == StereoMode::TAB)
   {
     // The height may be negative due to flipped rectangles
     int height = rc.bottom - rc.top;
@@ -211,7 +202,7 @@ Renderer::ConvertStereoRectangle(const TargetRectangle& rc) const
   // Create two target rectangle offset to the sides of the backbuffer
   TargetRectangle left_rc = draw_rc;
   TargetRectangle right_rc = draw_rc;
-  if (g_ActiveConfig.iStereoMode == STEREO_TAB)
+  if (g_ActiveConfig.stereo_mode == StereoMode::TAB)
   {
     left_rc.top -= m_backbuffer_height / 4;
     left_rc.bottom -= m_backbuffer_height / 4;
@@ -321,22 +312,24 @@ void Renderer::DrawDebugText()
       break;
     }
     const char* ar_text = "";
-    switch (g_ActiveConfig.iAspectRatio)
+    switch (g_ActiveConfig.aspect_mode)
     {
-    case ASPECT_AUTO:
+    case AspectMode::Auto:
       ar_text = "Auto";
       break;
-    case ASPECT_STRETCH:
+    case AspectMode::Stretch:
       ar_text = "Stretch";
       break;
-    case ASPECT_ANALOG:
+    case AspectMode::Analog:
       ar_text = "Force 4:3";
       break;
-    case ASPECT_ANALOG_WIDE:
+    case AspectMode::AnalogWide:
       ar_text = "Force 16:9";
+      break;
     }
 
     const char* const efbcopy_text = g_ActiveConfig.bSkipEFBCopyToRam ? "to Texture" : "to RAM";
+    const char* const xfbcopy_text = g_ActiveConfig.bSkipXFBCopyToRam ? "to Texture" : "to RAM";
 
     // The rows
     const std::string lines[] = {
@@ -348,6 +341,8 @@ void Renderer::DrawDebugText()
             "Speed Limit: Unlimited" :
             StringFromFormat("Speed Limit: %li%%",
                              std::lround(SConfig::GetInstance().m_EmulationSpeed * 100.f)),
+        std::string("Copy XFB: ") + xfbcopy_text +
+            (g_ActiveConfig.bImmediateXFB ? " (Immediate)" : ""),
     };
 
     enum
@@ -387,15 +382,15 @@ void Renderer::DrawDebugText()
 
 float Renderer::CalculateDrawAspectRatio() const
 {
-  if (g_ActiveConfig.iAspectRatio == ASPECT_STRETCH)
+  if (g_ActiveConfig.aspect_mode == AspectMode::Stretch)
   {
     // If stretch is enabled, we prefer the aspect ratio of the window.
     return (static_cast<float>(m_backbuffer_width) / static_cast<float>(m_backbuffer_height));
   }
 
   // The rendering window aspect ratio as a proportion of the 4:3 or 16:9 ratio
-  if (g_ActiveConfig.iAspectRatio == ASPECT_ANALOG_WIDE ||
-      (g_ActiveConfig.iAspectRatio != ASPECT_ANALOG && m_aspect_wide))
+  if (g_ActiveConfig.aspect_mode == AspectMode::AnalogWide ||
+      (g_ActiveConfig.aspect_mode != AspectMode::Analog && m_aspect_wide))
   {
     return AspectToWidescreen(VideoInterface::GetAspectRatio());
   }
@@ -420,36 +415,6 @@ std::tuple<float, float> Renderer::ScaleToDisplayAspectRatio(const int width,
   return std::make_tuple(scaled_width, scaled_height);
 }
 
-TargetRectangle Renderer::CalculateFrameDumpDrawRectangle() const
-{
-  // No point including any borders in the frame dump image, since they'd have to be cropped anyway.
-  TargetRectangle rc;
-  rc.left = 0;
-  rc.top = 0;
-
-  // If full-resolution frame dumping is disabled, just use the window draw rectangle.
-  // Also do this if RealXFB is enabled, since the image has been downscaled for the XFB copy
-  // anyway, and there's no point writing an upscaled frame with no filtering.
-  if (!g_ActiveConfig.bInternalResolutionFrameDumps || g_ActiveConfig.RealXFBEnabled())
-  {
-    // But still remove the borders, since the caller expects this.
-    rc.right = m_target_rectangle.GetWidth();
-    rc.bottom = m_target_rectangle.GetHeight();
-    return rc;
-  }
-
-  // Grab the dimensions of the EFB textures, we scale either of these depending on the ratio.
-  u32 efb_width, efb_height;
-  std::tie(efb_width, efb_height) = g_framebuffer_manager->GetTargetSize();
-
-  float draw_width, draw_height;
-  std::tie(draw_width, draw_height) = ScaleToDisplayAspectRatio(efb_width, efb_height);
-
-  rc.right = static_cast<int>(std::ceil(draw_width));
-  rc.bottom = static_cast<int>(std::ceil(draw_height));
-  return rc;
-}
-
 void Renderer::UpdateDrawRectangle()
 {
   // The rendering window size
@@ -464,21 +429,20 @@ void Renderer::UpdateDrawRectangle()
     float source_aspect = VideoInterface::GetAspectRatio();
     if (m_aspect_wide)
       source_aspect = AspectToWidescreen(source_aspect);
-    float target_aspect;
+    float target_aspect = 0.0f;
 
-    switch (g_ActiveConfig.iAspectRatio)
+    switch (g_ActiveConfig.aspect_mode)
     {
-    case ASPECT_STRETCH:
+    case AspectMode::Stretch:
       target_aspect = win_width / win_height;
       break;
-    case ASPECT_ANALOG:
+    case AspectMode::Analog:
       target_aspect = VideoInterface::GetAspectRatio();
       break;
-    case ASPECT_ANALOG_WIDE:
+    case AspectMode::AnalogWide:
       target_aspect = AspectToWidescreen(VideoInterface::GetAspectRatio());
       break;
-    default:
-      // ASPECT_AUTO
+    case AspectMode::Auto:
       target_aspect = source_aspect;
       break;
     }
@@ -511,10 +475,10 @@ void Renderer::UpdateDrawRectangle()
   draw_height = crop_height = 1;
 
   // crop the picture to a standard aspect ratio
-  if (g_ActiveConfig.bCrop && g_ActiveConfig.iAspectRatio != ASPECT_STRETCH)
+  if (g_ActiveConfig.bCrop && g_ActiveConfig.aspect_mode != AspectMode::Stretch)
   {
-    float expected_aspect = (g_ActiveConfig.iAspectRatio == ASPECT_ANALOG_WIDE ||
-                             (g_ActiveConfig.iAspectRatio != ASPECT_ANALOG && m_aspect_wide)) ?
+    float expected_aspect = (g_ActiveConfig.aspect_mode == AspectMode::AnalogWide ||
+                             (g_ActiveConfig.aspect_mode != AspectMode::Analog && m_aspect_wide)) ?
                                 (16.0f / 9.0f) :
                                 (4.0f / 3.0f);
     if (crop_width / crop_height >= expected_aspect)
@@ -559,12 +523,25 @@ void Renderer::UpdateDrawRectangle()
 
 void Renderer::SetWindowSize(int width, int height)
 {
-  width = std::max(width, 1);
-  height = std::max(height, 1);
-
   // Scale the window size by the EFB scale.
   if (g_ActiveConfig.iEFBScale != EFB_SCALE_AUTO_INTEGRAL)
     std::tie(width, height) = CalculateTargetScale(width, height);
+
+  std::tie(width, height) = CalculateOutputDimensions(width, height);
+
+  // Track the last values of width/height to avoid sending a window resize event every frame.
+  if (width != m_last_window_request_width || height != m_last_window_request_height)
+  {
+    m_last_window_request_width = width;
+    m_last_window_request_height = height;
+    Host_RequestRenderWindowSize(width, height);
+  }
+}
+
+std::tuple<int, int> Renderer::CalculateOutputDimensions(int width, int height)
+{
+  width = std::max(width, 1);
+  height = std::max(height, 1);
 
   float scaled_width, scaled_height;
   std::tie(scaled_width, scaled_height) = ScaleToDisplayAspectRatio(width, height);
@@ -573,8 +550,8 @@ void Renderer::SetWindowSize(int width, int height)
   {
     // Force 4:3 or 16:9 by cropping the image.
     float current_aspect = scaled_width / scaled_height;
-    float expected_aspect = (g_ActiveConfig.iAspectRatio == ASPECT_ANALOG_WIDE ||
-                             (g_ActiveConfig.iAspectRatio != ASPECT_ANALOG && m_aspect_wide)) ?
+    float expected_aspect = (g_ActiveConfig.aspect_mode == AspectMode::AnalogWide ||
+                             (g_ActiveConfig.aspect_mode != AspectMode::Analog && m_aspect_wide)) ?
                                 (16.0f / 9.0f) :
                                 (4.0f / 3.0f);
     if (current_aspect > expected_aspect)
@@ -597,13 +574,7 @@ void Renderer::SetWindowSize(int width, int height)
   width -= width % 4;
   height -= height % 4;
 
-  // Track the last values of width/height to avoid sending a window resize event every frame.
-  if (width != m_last_window_request_width || height != m_last_window_request_height)
-  {
-    m_last_window_request_width = width;
-    m_last_window_request_height = height;
-    Host_RequestRenderWindowSize(width, height);
-  }
+  return std::make_tuple(width, height);
 }
 
 void Renderer::CheckFifoRecording()
@@ -640,7 +611,7 @@ void Renderer::RecordVideoMemory()
 }
 
 void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const EFBRectangle& rc,
-                    u64 ticks, float Gamma)
+                    u64 ticks)
 {
   // Heuristic to detect if a GameCube game is in 16:9 anamorphic widescreen mode.
   if (!SConfig::GetInstance().bWii)
@@ -658,11 +629,49 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
       m_aspect_wide = flush_count_anamorphic > 0.75 * flush_total;
   }
 
-  // TODO: merge more generic parts into VideoCommon
-  SwapImpl(xfbAddr, fbWidth, fbStride, fbHeight, rc, ticks, Gamma);
+  if (IsFrameDumping() && m_last_xfb_texture)
+  {
+    FinishFrameData();
+  }
+  else
+  {
+    ShutdownFrameDumping();
+  }
 
-  if (m_xfb_written)
-    m_fps_counter.Update();
+  bool update_frame_count = false;
+  if (xfbAddr && fbWidth && fbStride && fbHeight)
+  {
+    constexpr int force_safe_texture_cache_hash = 0;
+    // Get the current XFB from texture cache
+    auto* xfb_entry = g_texture_cache->GetXFBTexture(
+        xfbAddr, fbStride, fbHeight, TextureFormat::XFB, force_safe_texture_cache_hash);
+
+    if (xfb_entry && xfb_entry->id != m_last_xfb_id)
+    {
+      m_last_xfb_texture = xfb_entry->texture.get();
+      m_last_xfb_id = xfb_entry->id;
+      m_last_xfb_ticks = ticks;
+
+      auto xfb_rect = xfb_entry->texture->GetConfig().GetRect();
+      xfb_rect.right -= EFBToScaledX(fbStride - fbWidth);
+
+      m_last_xfb_region = xfb_rect;
+
+      // TODO: merge more generic parts into VideoCommon
+      g_renderer->SwapImpl(xfb_entry->texture.get(), xfb_rect, ticks, xfb_entry->gamma);
+
+      m_fps_counter.Update();
+      update_frame_count = true;
+      if (IsFrameDumping())
+      {
+        DoDumpFrame();
+      }
+    }
+
+    // Update our last xfb values
+    m_last_xfb_width = (fbStride < 1 || fbStride > MAX_XFB_WIDTH) ? MAX_XFB_WIDTH : fbStride;
+    m_last_xfb_height = (fbHeight < 1 || fbHeight > MAX_XFB_HEIGHT) ? MAX_XFB_HEIGHT : fbHeight;
+  }
 
   frameCount++;
   GFX_DEBUGGER_PAUSE_AT(NEXT_FRAME, true);
@@ -672,9 +681,7 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
   // New frame
   stats.ResetFrame();
 
-  Core::Callback_VideoCopiedToXFB(m_xfb_written ||
-                                  (g_ActiveConfig.bUseXFB && g_ActiveConfig.bUseRealXFB));
-  m_xfb_written = false;
+  Core::Callback_VideoCopiedToXFB(update_frame_count);
 }
 
 bool Renderer::IsFrameDumping()
@@ -685,8 +692,39 @@ bool Renderer::IsFrameDumping()
   if (SConfig::GetInstance().m_DumpFrames)
     return true;
 
-  ShutdownFrameDumping();
   return false;
+}
+
+void Renderer::DoDumpFrame()
+{
+  UpdateFrameDumpTexture();
+
+  auto result = m_dump_texture->Map();
+  if (result.has_value())
+  {
+    auto raw_data = result.value();
+    DumpFrameData(raw_data.data, raw_data.width, raw_data.height, raw_data.stride,
+                  AVIDump::FetchState(m_last_xfb_ticks));
+  }
+}
+
+void Renderer::UpdateFrameDumpTexture()
+{
+  int target_width, target_height;
+  std::tie(target_width, target_height) = CalculateOutputDimensions(
+      m_last_xfb_texture->GetConfig().width, m_last_xfb_texture->GetConfig().height);
+  if (m_dump_texture == nullptr ||
+      m_dump_texture->GetConfig().width != static_cast<u32>(target_width) ||
+      m_dump_texture->GetConfig().height != static_cast<u32>(target_height))
+  {
+    TextureConfig config;
+    config.width = target_width;
+    config.height = target_height;
+    config.rendertarget = true;
+    m_dump_texture = g_texture_cache->CreateTexture(config);
+  }
+  m_dump_texture->CopyRectangleFromTexture(m_last_xfb_texture, m_last_xfb_region,
+                                           EFBRectangle{0, 0, target_width, target_height});
 }
 
 void Renderer::ShutdownFrameDumping()
@@ -699,12 +737,9 @@ void Renderer::ShutdownFrameDumping()
   m_frame_dump_start.Set();
 }
 
-void Renderer::DumpFrameData(const u8* data, int w, int h, int stride, const AVIDump::Frame& state,
-                             bool swap_upside_down)
+void Renderer::DumpFrameData(const u8* data, int w, int h, int stride, const AVIDump::Frame& state)
 {
-  FinishFrameData();
-
-  m_frame_dump_config = FrameDumpConfig{data, w, h, stride, swap_upside_down, state};
+  m_frame_dump_config = FrameDumpConfig{m_last_xfb_texture, data, w, h, stride, state};
 
   if (!m_frame_dump_thread_running.IsSet())
   {
@@ -725,6 +760,7 @@ void Renderer::FinishFrameData()
 
   m_frame_dump_done.Wait();
   m_frame_dump_frame_running = false;
+  m_frame_dump_config.texture->Unmap();
 }
 
 void Renderer::RunFrameDumps()
@@ -750,12 +786,6 @@ void Renderer::RunFrameDumps()
       break;
 
     auto config = m_frame_dump_config;
-
-    if (config.upside_down)
-    {
-      config.data = config.data + (config.height - 1) * config.stride;
-      config.stride = -config.stride;
-    }
 
     // Save screenshot
     if (m_screenshot_request.TestAndClear())

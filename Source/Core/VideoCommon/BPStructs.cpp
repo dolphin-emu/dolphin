@@ -12,8 +12,11 @@
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
 #include "Core/ConfigManager.h"
+#include "Core/CoreTiming.h"
+#include "Core/FifoPlayer/FifoPlayer.h"
 #include "Core/FifoPlayer/FifoRecorder.h"
 #include "Core/HW/Memmap.h"
+#include "Core/HW/VideoInterface.h"
 
 #include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/BPMemory.h"
@@ -230,7 +233,7 @@ static void BPWritten(const BPCmd& bp)
       bool is_depth_copy = bpmem.zcontrol.pixel_format == PEControl::Z24;
       g_texture_cache->CopyRenderTargetToTexture(destAddr, PE_copy.tp_realFormat(), destStride,
                                                  is_depth_copy, srcRect, !!PE_copy.intensity_fmt,
-                                                 !!PE_copy.half_scale);
+                                                 !!PE_copy.half_scale, 1.0f, 1.0f);
     }
     else
     {
@@ -250,17 +253,33 @@ static void BPWritten(const BPCmd& bp)
       float num_xfb_lines = 1.0f + bpmem.copyTexSrcWH.y * yScale;
 
       u32 height = static_cast<u32>(num_xfb_lines);
-      if (height > MAX_XFB_HEIGHT)
-      {
-        INFO_LOG(VIDEO, "Tried to scale EFB to too many XFB lines: %d (%f)", height, num_xfb_lines);
-        height = MAX_XFB_HEIGHT;
-      }
 
       DEBUG_LOG(VIDEO, "RenderToXFB: destAddr: %08x | srcRect {%d %d %d %d} | fbWidth: %u | "
                        "fbStride: %u | fbHeight: %u",
                 destAddr, srcRect.left, srcRect.top, srcRect.right, srcRect.bottom,
                 bpmem.copyTexSrcWH.x + 1, destStride, height);
+
+      bool is_depth_copy = bpmem.zcontrol.pixel_format == PEControl::Z24;
+      g_texture_cache->CopyRenderTargetToTexture(destAddr, EFBCopyFormat::XFB, destStride,
+                                                 is_depth_copy, srcRect, false, false, yScale,
+                                                 s_gammaLUT[PE_copy.gamma]);
+
+      // This stays in to signal end of a "frame"
       g_renderer->RenderToXFB(destAddr, srcRect, destStride, height, s_gammaLUT[PE_copy.gamma]);
+
+      if (g_ActiveConfig.bImmediateXFB)
+      {
+        // below div two to convert from bytes to pixels - it expects width, not stride
+        g_renderer->Swap(destAddr, destStride / 2, destStride / 2, height, srcRect,
+                         CoreTiming::GetTicks());
+      }
+      else
+      {
+        if (FifoPlayer::GetInstance().IsRunningWithFakeVideoInterfaceUpdates())
+        {
+          VideoInterface::FakeVIUpdate(destAddr, srcRect.GetWidth(), height);
+        }
+      }
     }
 
     // Clear the rectangular region after copying it.

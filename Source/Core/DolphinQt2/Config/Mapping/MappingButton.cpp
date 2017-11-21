@@ -56,9 +56,9 @@ void MappingButton::OnButtonPressed()
     // Avoid that the button press itself is registered as an event
     Common::SleepCurrentThread(100);
 
-    const auto expr = MappingCommon::DetectExpression(m_reference, dev.get(),
-                                                      m_parent->GetParent()->GetDeviceQualifier(),
-                                                      m_parent->GetController()->default_device);
+    const auto expr = MappingCommon::DetectExpression(
+        m_reference, dev.get(), m_parent->GetParent()->GetDeviceQualifier(),
+        m_parent->GetController()->GetDefaultDevice());
 
     releaseMouse();
     releaseKeyboard();
@@ -83,9 +83,8 @@ void MappingButton::OnButtonTimeout()
 
 void MappingButton::Clear()
 {
-  m_parent->Update();
   m_reference->SetExpression("");
-  Update();
+  m_parent->SaveSettings();
 }
 
 void MappingButton::Update()
@@ -93,7 +92,6 @@ void MappingButton::Update()
   const auto lock = ControllerEmu::EmulatedController::GetStateLock();
   m_reference->UpdateReference(g_controller_interface, m_parent->GetParent()->GetDeviceQualifier());
   setText(EscapeAmpersand(QString::fromStdString(m_reference->GetExpression())));
-  m_parent->SaveSettings();
 }
 
 void MappingButton::mouseReleaseEvent(QMouseEvent* event)

@@ -72,6 +72,8 @@ const std::string hotkey_labels[] = {
     _trans("Toggle Crop"),
     _trans("Toggle Aspect Ratio"),
     _trans("Toggle EFB Copies"),
+    _trans("Toggle XFB Copies"),
+    _trans("Toggle XFB Immediate Mode"),
     _trans("Toggle Fog"),
     _trans("Toggle Texture Dumping"),
     _trans("Toggle Custom Textures"),
@@ -172,8 +174,6 @@ InputConfig* GetConfig()
 
 void GetStatus()
 {
-  s_hotkey.err = PAD_ERR_NONE;
-
   // Get input
   static_cast<HotkeyManager*>(s_config.GetController(0))->GetInput(&s_hotkey);
 }

@@ -33,7 +33,6 @@ bool FramebufferManager::m_enable_stencil_buffer;
 
 GLenum FramebufferManager::m_textureType;
 std::vector<GLuint> FramebufferManager::m_efbFramebuffer;
-GLuint FramebufferManager::m_xfbFramebuffer;
 GLuint FramebufferManager::m_efbColor;
 GLuint FramebufferManager::m_efbDepth;
 GLuint FramebufferManager::m_efbColorSwap;  // for hot swap when reinterpreting EFB pixel formats
@@ -110,7 +109,6 @@ bool FramebufferManager::HasStencilBuffer()
 FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int msaaSamples,
                                        bool enable_stencil_buffer)
 {
-  m_xfbFramebuffer = 0;
   m_efbColor = 0;
   m_efbDepth = 0;
   m_efbColorSwap = 0;
@@ -135,7 +133,7 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 
   glActiveTexture(GL_TEXTURE9);
 
-  m_EFBLayers = (g_ActiveConfig.iStereoMode > 0) ? 2 : 1;
+  m_EFBLayers = (g_ActiveConfig.stereo_mode != StereoMode::Off) ? 2 : 1;
   m_efbFramebuffer.resize(m_EFBLayers);
   m_resolvedFramebuffer.resize(m_EFBLayers);
 
@@ -188,9 +186,6 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
   m_efbDepth =
       CreateTexture(m_textureType, depth_internal_format, depth_pixel_format, depth_data_type);
   m_efbColorSwap = CreateTexture(m_textureType, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
-
-  // Create XFB framebuffer; targets will be created elsewhere.
-  glGenFramebuffers(1, &m_xfbFramebuffer);
 
   // Bind target textures to EFB framebuffer.
   glGenFramebuffers(m_EFBLayers, m_efbFramebuffer.data());
@@ -419,9 +414,6 @@ FramebufferManager::~FramebufferManager()
   m_efbFramebuffer.clear();
   m_resolvedFramebuffer.clear();
 
-  glDeleteFramebuffers(1, &m_xfbFramebuffer);
-  m_xfbFramebuffer = 0;
-
   glObj[0] = m_resolvedColorTexture;
   glObj[1] = m_resolvedDepthTexture;
   glDeleteTextures(2, glObj);
@@ -527,21 +519,6 @@ void FramebufferManager::ResolveEFBStencilTexture()
   glBindFramebuffer(GL_FRAMEBUFFER, m_efbFramebuffer[0]);
 }
 
-void FramebufferManager::CopyToRealXFB(u32 xfbAddr, u32 fbStride, u32 fbHeight,
-                                       const EFBRectangle& sourceRc, float Gamma)
-{
-  u8* xfb_in_ram = Memory::GetPointer(xfbAddr);
-  if (!xfb_in_ram)
-  {
-    WARN_LOG(VIDEO, "Tried to copy to invalid XFB address");
-    return;
-  }
-
-  TargetRectangle targetRc = g_renderer->ConvertEFBRectangle(sourceRc);
-  TextureConverter::EncodeToRamYUYV(ResolveAndGetRenderTarget(sourceRc), targetRc, xfb_in_ram,
-                                    sourceRc.GetWidth(), fbStride, fbHeight);
-}
-
 GLuint FramebufferManager::GetResolvedFramebuffer()
 {
   if (m_msaaSamples <= 1)
@@ -608,61 +585,6 @@ void FramebufferManager::ReinterpretPixelData(unsigned int convtype)
   glBindTexture(m_textureType, 0);
 
   g_renderer->RestoreAPIState();
-}
-
-XFBSource::~XFBSource()
-{
-  glDeleteTextures(1, &texture);
-}
-
-void XFBSource::DecodeToTexture(u32 xfbAddr, u32 fbWidth, u32 fbHeight)
-{
-  TextureConverter::DecodeToTexture(xfbAddr, fbWidth, fbHeight, texture);
-}
-
-void XFBSource::CopyEFB(float Gamma)
-{
-  g_renderer->ResetAPIState();
-
-  // Copy EFB data to XFB and restore render target again
-  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, FramebufferManager::GetXFBFramebuffer());
-
-  for (int i = 0; i < m_layers; i++)
-  {
-    // Bind EFB and texture layer
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, FramebufferManager::GetEFBFramebuffer(i));
-    glFramebufferTextureLayer(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, texture, 0, i);
-
-    glBlitFramebuffer(0, 0, texWidth, texHeight, 0, 0, texWidth, texHeight, GL_COLOR_BUFFER_BIT,
-                      GL_NEAREST);
-  }
-
-  // Return to EFB.
-  FramebufferManager::SetFramebuffer(0);
-
-  g_renderer->RestoreAPIState();
-}
-
-std::unique_ptr<XFBSourceBase> FramebufferManager::CreateXFBSource(unsigned int target_width,
-                                                                   unsigned int target_height,
-                                                                   unsigned int layers)
-{
-  GLuint texture;
-
-  glGenTextures(1, &texture);
-
-  glActiveTexture(GL_TEXTURE9);
-  glBindTexture(GL_TEXTURE_2D_ARRAY, texture);
-  glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAX_LEVEL, 0);
-  glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA, target_width, target_height, layers, 0, GL_RGBA,
-               GL_UNSIGNED_BYTE, nullptr);
-
-  return std::make_unique<XFBSource>(texture, layers);
-}
-
-std::pair<u32, u32> FramebufferManager::GetTargetSize() const
-{
-  return std::make_pair(m_targetWidth, m_targetHeight);
 }
 
 void FramebufferManager::PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num_points)

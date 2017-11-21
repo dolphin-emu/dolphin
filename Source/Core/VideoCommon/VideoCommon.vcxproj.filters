@@ -173,6 +173,9 @@
     <ClCompile Include="AbstractTexture.cpp">
       <Filter>Base</Filter>
     </ClCompile>
+    <ClCompile Include="AbstractRawTexture.cpp">
+      <Filter>Base</Filter>
+    </ClCompile>
     <ClCompile Include="ShaderGenCommon.cpp">
       <Filter>Shader Generators</Filter>
     </ClCompile>
@@ -342,6 +345,9 @@
       <Filter>Base</Filter>
     </ClInclude>
     <ClInclude Include="AbstractTexture.h">
+      <Filter>Base</Filter>
+    </ClInclude>
+    <ClInclude Include="AbstractRawTexture.h">
       <Filter>Base</Filter>
     </ClInclude>
     <ClInclude Include="AsyncShaderCompiler.h">

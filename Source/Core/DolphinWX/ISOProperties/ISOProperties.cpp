@@ -284,7 +284,7 @@ void CISOProperties::CreateGUIControls()
   m_fast_disc_speed->SetToolTip(
       _("Enable fast disc access. This can cause crashes and other problems "
         "in some games. (ON = Fast, OFF = Compatible)"));
-  m_dps_hle = new wxCheckBox(m_GameConfig, ID_AUDIO_DSP_HLE, _("DSP HLE emulation (fast)"),
+  m_dps_hle = new wxCheckBox(m_GameConfig, ID_AUDIO_DSP_HLE, _("DSP HLE Emulation (fast)"),
                              wxDefaultPosition, wxDefaultSize, GetElementStyle("Core", "DSPHLE"));
 
   wxBoxSizer* const gpu_determinism_sizer = new wxBoxSizer(wxHORIZONTAL);

@@ -1484,6 +1484,20 @@ void CFrame::ParseHotkeys()
     Config::SetCurrent(Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM,
                        !Config::Get(Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM));
   }
+  if (IsHotkey(HK_TOGGLE_XFBCOPIES))
+  {
+    OSDChoice = 6;
+    // Toggle XFB copies between XFB2RAM and XFB2Texture
+    Config::SetCurrent(Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM,
+                       !Config::Get(Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM));
+  }
+  if (IsHotkey(HK_TOGGLE_IMMEDIATE_XFB))
+  {
+    OSDChoice = 6;
+    // Toggle immediate present of xfb
+    Config::SetCurrent(Config::GFX_HACK_IMMEDIATE_XFB,
+                       !Config::Get(Config::GFX_HACK_IMMEDIATE_XFB));
+  }
   if (IsHotkey(HK_TOGGLE_FOG))
   {
     OSDChoice = 4;
@@ -1535,7 +1549,7 @@ void CFrame::ParseHotkeys()
 
   if (IsHotkey(HK_TOGGLE_STEREO_SBS))
   {
-    if (g_Config.iStereoMode != STEREO_SBS)
+    if (g_Config.stereo_mode != StereoMode::SBS)
     {
       // Current implementation of anaglyph stereoscopy uses a
       // post-processing shader. Thus the shader needs to be to be
@@ -1544,56 +1558,56 @@ void CFrame::ParseHotkeys()
       {
         Config::SetCurrent(Config::GFX_ENHANCE_POST_SHADER, std::string(""));
       }
-      Config::SetCurrent(Config::GFX_STEREO_MODE, static_cast<int>(STEREO_SBS));
+      Config::SetCurrent(Config::GFX_STEREO_MODE, static_cast<int>(StereoMode::SBS));
     }
     else
     {
-      Config::SetCurrent(Config::GFX_STEREO_MODE, static_cast<int>(STEREO_OFF));
+      Config::SetCurrent(Config::GFX_STEREO_MODE, static_cast<int>(StereoMode::Off));
     }
   }
   if (IsHotkey(HK_TOGGLE_STEREO_TAB))
   {
-    if (g_Config.iStereoMode != STEREO_TAB)
+    if (g_Config.stereo_mode != StereoMode::TAB)
     {
       if (g_Config.sPostProcessingShader == "dubois")
       {
         Config::SetCurrent(Config::GFX_ENHANCE_POST_SHADER, std::string(""));
       }
-      Config::SetCurrent(Config::GFX_STEREO_MODE, static_cast<int>(STEREO_TAB));
+      Config::SetCurrent(Config::GFX_STEREO_MODE, static_cast<int>(StereoMode::TAB));
     }
     else
     {
-      Config::SetCurrent(Config::GFX_STEREO_MODE, static_cast<int>(STEREO_OFF));
+      Config::SetCurrent(Config::GFX_STEREO_MODE, static_cast<int>(StereoMode::Off));
     }
   }
   if (IsHotkey(HK_TOGGLE_STEREO_ANAGLYPH))
   {
-    if (g_Config.iStereoMode != STEREO_ANAGLYPH)
+    if (g_Config.stereo_mode != StereoMode::Anaglyph)
     {
       // Setting the anaglyph mode also requires a specific
       // post-processing shader to be activated.
-      Config::SetCurrent(Config::GFX_STEREO_MODE, static_cast<int>(STEREO_ANAGLYPH));
+      Config::SetCurrent(Config::GFX_STEREO_MODE, static_cast<int>(StereoMode::Anaglyph));
       Config::SetCurrent(Config::GFX_ENHANCE_POST_SHADER, std::string("dubois"));
     }
     else
     {
-      Config::SetCurrent(Config::GFX_STEREO_MODE, static_cast<int>(STEREO_OFF));
+      Config::SetCurrent(Config::GFX_STEREO_MODE, static_cast<int>(StereoMode::Off));
       Config::SetCurrent(Config::GFX_ENHANCE_POST_SHADER, std::string(""));
     }
   }
   if (IsHotkey(HK_TOGGLE_STEREO_3DVISION))
   {
-    if (g_Config.iStereoMode != STEREO_3DVISION)
+    if (g_Config.stereo_mode != StereoMode::Nvidia3DVision)
     {
       if (g_Config.sPostProcessingShader == "dubois")
       {
         Config::SetCurrent(Config::GFX_ENHANCE_POST_SHADER, std::string(""));
       }
-      Config::SetCurrent(Config::GFX_STEREO_MODE, static_cast<int>(STEREO_3DVISION));
+      Config::SetCurrent(Config::GFX_STEREO_MODE, static_cast<int>(StereoMode::Nvidia3DVision));
     }
     else
     {
-      Config::SetCurrent(Config::GFX_STEREO_MODE, static_cast<int>(STEREO_OFF));
+      Config::SetCurrent(Config::GFX_STEREO_MODE, static_cast<int>(StereoMode::Off));
     }
   }
 

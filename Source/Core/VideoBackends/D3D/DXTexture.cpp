@@ -80,6 +80,7 @@ DXTexture::DXTexture(const TextureConfig& tex_config) : AbstractTexture(tex_conf
 DXTexture::~DXTexture()
 {
   m_texture->Release();
+  SAFE_RELEASE(m_staging_texture);
 }
 
 D3DTexture2D* DXTexture::GetRawTexIdentifier() const
@@ -92,48 +93,72 @@ void DXTexture::Bind(unsigned int stage)
   D3D::stateman->SetTexture(stage, m_texture->GetSRV());
 }
 
-bool DXTexture::Save(const std::string& filename, unsigned int level)
+std::optional<AbstractTexture::RawTextureInfo> DXTexture::MapFullImpl()
 {
-  // We can't dump compressed textures currently (it would mean drawing them to a RGBA8
-  // framebuffer, and saving that). TextureCache does not call Save for custom textures
-  // anyway, so this is fine for now.
-  _assert_(m_config.format == AbstractTextureFormat::RGBA8);
+  CD3D11_TEXTURE2D_DESC staging_texture_desc(DXGI_FORMAT_R8G8B8A8_UNORM, m_config.width,
+                                             m_config.height, 1, 1, 0, D3D11_USAGE_STAGING,
+                                             D3D11_CPU_ACCESS_READ);
 
-  // Create a staging/readback texture with the dimensions of the specified mip level.
-  u32 mip_width = std::max(m_config.width >> level, 1u);
-  u32 mip_height = std::max(m_config.height >> level, 1u);
-  CD3D11_TEXTURE2D_DESC staging_texture_desc(DXGI_FORMAT_R8G8B8A8_UNORM, mip_width, mip_height, 1,
-                                             1, 0, D3D11_USAGE_STAGING, D3D11_CPU_ACCESS_READ);
-
-  ID3D11Texture2D* staging_texture;
-  HRESULT hr = D3D::device->CreateTexture2D(&staging_texture_desc, nullptr, &staging_texture);
+  HRESULT hr = D3D::device->CreateTexture2D(&staging_texture_desc, nullptr, &m_staging_texture);
   if (FAILED(hr))
   {
     WARN_LOG(VIDEO, "Failed to create texture dumping readback texture: %X", static_cast<u32>(hr));
-    return false;
+    return {};
   }
 
-  // Copy the selected mip level to the staging texture.
-  CD3D11_BOX src_box(0, 0, 0, mip_width, mip_height, 1);
-  D3D::context->CopySubresourceRegion(staging_texture, 0, 0, 0, 0, m_texture->GetTex(),
+  // Copy the selected data to the staging texture
+  D3D::context->CopyResource(m_staging_texture, m_texture->GetTex());
+
+  // Map the staging texture to client memory, and encode it as a .png image.
+  D3D11_MAPPED_SUBRESOURCE map;
+  hr = D3D::context->Map(m_staging_texture, 0, D3D11_MAP_READ, 0, &map);
+  if (FAILED(hr))
+  {
+    WARN_LOG(VIDEO, "Failed to map texture dumping readback texture: %X", static_cast<u32>(hr));
+    return {};
+  }
+
+  return AbstractTexture::RawTextureInfo{reinterpret_cast<u8*>(map.pData), map.RowPitch,
+                                         m_config.width, m_config.height};
+}
+
+std::optional<AbstractTexture::RawTextureInfo> DXTexture::MapRegionImpl(u32 level, u32 x, u32 y,
+                                                                        u32 width, u32 height)
+{
+  CD3D11_TEXTURE2D_DESC staging_texture_desc(DXGI_FORMAT_R8G8B8A8_UNORM, width, height, 1, 1, 0,
+                                             D3D11_USAGE_STAGING, D3D11_CPU_ACCESS_READ);
+
+  HRESULT hr = D3D::device->CreateTexture2D(&staging_texture_desc, nullptr, &m_staging_texture);
+  if (FAILED(hr))
+  {
+    WARN_LOG(VIDEO, "Failed to create texture dumping readback texture: %X", static_cast<u32>(hr));
+    return {};
+  }
+
+  // Copy the selected data to the staging texture
+  CD3D11_BOX src_box(x, y, 0, width, height, 1);
+  D3D::context->CopySubresourceRegion(m_staging_texture, 0, 0, 0, 0, m_texture->GetTex(),
                                       D3D11CalcSubresource(level, 0, m_config.levels), &src_box);
 
   // Map the staging texture to client memory, and encode it as a .png image.
   D3D11_MAPPED_SUBRESOURCE map;
-  hr = D3D::context->Map(staging_texture, 0, D3D11_MAP_READ, 0, &map);
+  hr = D3D::context->Map(m_staging_texture, 0, D3D11_MAP_READ, 0, &map);
   if (FAILED(hr))
   {
     WARN_LOG(VIDEO, "Failed to map texture dumping readback texture: %X", static_cast<u32>(hr));
-    staging_texture->Release();
-    return false;
+    return {};
   }
 
-  bool encode_result =
-      TextureToPng(reinterpret_cast<u8*>(map.pData), map.RowPitch, filename, mip_width, mip_height);
-  D3D::context->Unmap(staging_texture, 0);
-  staging_texture->Release();
+  return AbstractTexture::RawTextureInfo{reinterpret_cast<u8*>(map.pData), map.RowPitch,
+                                         m_config.width, m_config.height};
+}
 
-  return encode_result;
+void DXTexture::Unmap()
+{
+  if (!m_staging_texture)
+    return;
+
+  D3D::context->Unmap(m_staging_texture, 0);
 }
 
 void DXTexture::CopyRectangleFromTexture(const AbstractTexture* source,

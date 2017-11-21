@@ -4,48 +4,13 @@
 
 #include "Core/Config/GraphicsSettings.h"
 
-#include <optional>
 #include <string>
 
 #include "Common/Config/Config.h"
-#include "Common/StringUtil.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace Config
 {
-std::optional<int> ConvertFromLegacyEFBScale(int efb_scale)
-{
-  // In game INIs, -1 was used as a special value meaning
-  // "use the value from the base layer but round it to an integer scale".
-  // We only support integer scales nowadays, so we can simply ignore -1
-  // in game INIs in order to automatically use a previous layer's value.
-  if (efb_scale < 0)
-    return {};
-
-  return efb_scale - (efb_scale > 0) - (efb_scale > 2) - (efb_scale > 4);
-}
-
-std::optional<int> ConvertFromLegacyEFBScale(const std::string& efb_scale)
-{
-  int efb_scale_int;
-  if (!TryParse(efb_scale, &efb_scale_int))
-    return {};
-  return ConvertFromLegacyEFBScale(efb_scale_int);
-}
-
-int ConvertToLegacyEFBScale(int efb_scale)
-{
-  return efb_scale + (efb_scale >= 0) + (efb_scale > 1) + (efb_scale > 2);
-}
-
-std::optional<int> ConvertToLegacyEFBScale(const std::string& efb_scale)
-{
-  int efb_scale_int;
-  if (!TryParse(efb_scale, &efb_scale_int))
-    return {};
-  return ConvertToLegacyEFBScale(efb_scale_int);
-}
-
 // Configuration Information
 
 // Graphics.Hardware
@@ -57,12 +22,10 @@ const ConfigInfo<int> GFX_ADAPTER{{System::GFX, "Hardware", "Adapter"}, 0};
 
 const ConfigInfo<bool> GFX_WIDESCREEN_HACK{{System::GFX, "Settings", "wideScreenHack"}, false};
 const ConfigInfo<int> GFX_ASPECT_RATIO{{System::GFX, "Settings", "AspectRatio"},
-                                       static_cast<int>(ASPECT_AUTO)};
+                                       static_cast<int>(AspectMode::Auto)};
 const ConfigInfo<int> GFX_SUGGESTED_ASPECT_RATIO{{System::GFX, "Settings", "SuggestedAspectRatio"},
-                                                 static_cast<int>(ASPECT_AUTO)};
+                                                 static_cast<int>(AspectMode::Auto)};
 const ConfigInfo<bool> GFX_CROP{{System::GFX, "Settings", "Crop"}, false};
-const ConfigInfo<bool> GFX_USE_XFB{{System::GFX, "Settings", "UseXFB"}, false};
-const ConfigInfo<bool> GFX_USE_REAL_XFB{{System::GFX, "Settings", "UseRealXFB"}, false};
 const ConfigInfo<int> GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES{
     {System::GFX, "Settings", "SafeTextureCacheColorSamples"}, 128};
 const ConfigInfo<bool> GFX_SHOW_FPS{{System::GFX, "Settings", "ShowFPS"}, false};
@@ -80,6 +43,7 @@ const ConfigInfo<bool> GFX_CONVERT_HIRES_TEXTURES{{System::GFX, "Settings", "Con
 const ConfigInfo<bool> GFX_CACHE_HIRES_TEXTURES{{System::GFX, "Settings", "CacheHiresTextures"},
                                                 false};
 const ConfigInfo<bool> GFX_DUMP_EFB_TARGET{{System::GFX, "Settings", "DumpEFBTarget"}, false};
+const ConfigInfo<bool> GFX_DUMP_XFB_TARGET{{System::GFX, "Settings", "DumpXFBTarget"}, false};
 const ConfigInfo<bool> GFX_DUMP_FRAMES_AS_IMAGES{{System::GFX, "Settings", "DumpFramesAsImages"},
                                                  false};
 const ConfigInfo<bool> GFX_FREE_LOOK{{System::GFX, "Settings", "FreeLook"}, false};
@@ -97,7 +61,7 @@ const ConfigInfo<bool> GFX_ENABLE_PIXEL_LIGHTING{{System::GFX, "Settings", "Enab
 const ConfigInfo<bool> GFX_FAST_DEPTH_CALC{{System::GFX, "Settings", "FastDepthCalc"}, true};
 const ConfigInfo<u32> GFX_MSAA{{System::GFX, "Settings", "MSAA"}, 1};
 const ConfigInfo<bool> GFX_SSAA{{System::GFX, "Settings", "SSAA"}, false};
-const ConfigInfo<int> GFX_EFB_SCALE{{System::GFX, "Settings", "EFBScale"}, 1};
+const ConfigInfo<int> GFX_EFB_SCALE{{System::GFX, "Settings", "InternalResolution"}, 1};
 const ConfigInfo<bool> GFX_TEXFMT_OVERLAY_ENABLE{{System::GFX, "Settings", "TexFmtOverlayEnable"},
                                                  false};
 const ConfigInfo<bool> GFX_TEXFMT_OVERLAY_CENTER{{System::GFX, "Settings", "TexFmtOverlayCenter"},
@@ -167,6 +131,9 @@ const ConfigInfo<bool> GFX_HACK_BBOX_PREFER_STENCIL_IMPLEMENTATION{
 const ConfigInfo<bool> GFX_HACK_FORCE_PROGRESSIVE{{System::GFX, "Hacks", "ForceProgressive"}, true};
 const ConfigInfo<bool> GFX_HACK_SKIP_EFB_COPY_TO_RAM{{System::GFX, "Hacks", "EFBToTextureEnable"},
                                                      true};
+const ConfigInfo<bool> GFX_HACK_SKIP_XFB_COPY_TO_RAM{{System::GFX, "Hacks", "XFBToTextureEnable"},
+                                                     true};
+const ConfigInfo<bool> GFX_HACK_IMMEDIATE_XFB{{System::GFX, "Hacks", "ImmediateXFBEnable"}, false};
 const ConfigInfo<bool> GFX_HACK_COPY_EFB_ENABLED{{System::GFX, "Hacks", "EFBScaledCopy"}, true};
 const ConfigInfo<bool> GFX_HACK_EFB_EMULATE_FORMAT_CHANGES{
     {System::GFX, "Hacks", "EFBEmulateFormatChanges"}, false};

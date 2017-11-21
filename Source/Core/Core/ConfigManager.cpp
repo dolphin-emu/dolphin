@@ -180,7 +180,7 @@ void SConfig::SaveDisplaySettings(IniFile& ini)
 {
   IniFile::Section* display = ini.GetOrCreateSection("Display");
 
-  display->Set("FullscreenResolution", strFullscreenResolution);
+  display->Set("FullscreenDisplayRes", strFullscreenResolution);
   display->Set("Fullscreen", bFullscreen);
   display->Set("RenderToMain", bRenderToMain);
   display->Set("RenderWindowXPos", iRenderWindowXPos);
@@ -190,7 +190,6 @@ void SConfig::SaveDisplaySettings(IniFile& ini)
   display->Set("RenderWindowAutoSize", bRenderWindowAutoSize);
   display->Set("KeepWindowOnTop", bKeepWindowOnTop);
   display->Set("DisableScreenSaver", bDisableScreenSaver);
-  display->Set("ForceNTSCJ", bForceNTSCJ);
 }
 
 void SConfig::SaveGameListSettings(IniFile& ini)
@@ -461,7 +460,7 @@ void SConfig::LoadDisplaySettings(IniFile& ini)
   IniFile::Section* display = ini.GetOrCreateSection("Display");
 
   display->Get("Fullscreen", &bFullscreen, false);
-  display->Get("FullscreenResolution", &strFullscreenResolution, "Auto");
+  display->Get("FullscreenDisplayRes", &strFullscreenResolution, "Auto");
   display->Get("RenderToMain", &bRenderToMain, false);
   display->Get("RenderWindowXPos", &iRenderWindowXPos, -1);
   display->Get("RenderWindowYPos", &iRenderWindowYPos, -1);
@@ -470,7 +469,6 @@ void SConfig::LoadDisplaySettings(IniFile& ini)
   display->Get("RenderWindowAutoSize", &bRenderWindowAutoSize, false);
   display->Get("KeepWindowOnTop", &bKeepWindowOnTop, false);
   display->Get("DisableScreenSaver", &bDisableScreenSaver, true);
-  display->Get("ForceNTSCJ", &bForceNTSCJ, false);
 }
 
 void SConfig::LoadGameListSettings(IniFile& ini)

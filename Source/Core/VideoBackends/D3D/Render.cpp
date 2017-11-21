@@ -12,7 +12,6 @@
 #include <string>
 #include <strsafe.h>
 #include <tuple>
-#include <unordered_map>
 
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
@@ -24,21 +23,19 @@
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DState.h"
 #include "VideoBackends/D3D/D3DUtil.h"
+#include "VideoBackends/D3D/DXTexture.h"
 #include "VideoBackends/D3D/FramebufferManager.h"
 #include "VideoBackends/D3D/GeometryShaderCache.h"
 #include "VideoBackends/D3D/PixelShaderCache.h"
-#include "VideoBackends/D3D/Television.h"
 #include "VideoBackends/D3D/TextureCache.h"
 #include "VideoBackends/D3D/VertexShaderCache.h"
 
-#include "VideoCommon/AVIDump.h"
 #include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/PixelEngine.h"
-#include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/RenderState.h"
-#include "VideoCommon/SamplerCommon.h"
 #include "VideoCommon/VideoBackendBase.h"
+#include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
 
@@ -66,10 +63,7 @@ struct GXPipelineState
 
 static u32 s_last_multisamples = 1;
 static bool s_last_stereo_mode = false;
-static bool s_last_xfb_mode = false;
 static bool s_last_fullscreen_mode = false;
-
-static Television s_television;
 
 static std::array<ID3D11BlendState*, 4> s_clear_blend_states{};
 static std::array<ID3D11DepthStencilState*, 3> s_clear_depth_states{};
@@ -85,8 +79,6 @@ static StateCache s_gx_state_cache;
 
 static void SetupDeviceObjects()
 {
-  s_television.Init();
-
   HRESULT hr;
 
   D3D11_DEPTH_STENCIL_DESC ddesc;
@@ -182,34 +174,7 @@ static void TeardownDeviceObjects()
   SAFE_RELEASE(s_screenshot_texture);
   SAFE_RELEASE(s_3d_vision_texture);
 
-  s_television.Shutdown();
-
   s_gx_state_cache.Clear();
-}
-
-static void CreateScreenshotTexture()
-{
-  // We can't render anything outside of the backbuffer anyway, so use the backbuffer size as the
-  // screenshot buffer size.
-  // This texture is released to be recreated when the window is resized in Renderer::SwapImpl.
-  D3D11_TEXTURE2D_DESC scrtex_desc = CD3D11_TEXTURE2D_DESC(
-      DXGI_FORMAT_R8G8B8A8_UNORM, D3D::GetBackBufferWidth(), D3D::GetBackBufferHeight(), 1, 1, 0,
-      D3D11_USAGE_STAGING, D3D11_CPU_ACCESS_READ | D3D11_CPU_ACCESS_WRITE);
-  HRESULT hr = D3D::device->CreateTexture2D(&scrtex_desc, nullptr, &s_screenshot_texture);
-  CHECK(hr == S_OK, "Create screenshot staging texture");
-  D3D::SetDebugObjectName(s_screenshot_texture, "staging screenshot texture");
-}
-
-static D3D11_BOX GetScreenshotSourceBox(const TargetRectangle& targetRc)
-{
-  // Since the screenshot buffer is copied back to the CPU via Map(), we can't access pixels that
-  // fall outside the backbuffer bounds. Therefore, when crop is enabled and the target rect is
-  // off-screen to the top/left, we clamp the origin at zero, as well as the bottom/right
-  // coordinates at the backbuffer dimensions. This will result in a rectangle that can be
-  // smaller than the backbuffer, but never larger.
-  return CD3D11_BOX(std::max(targetRc.left, 0), std::max(targetRc.top, 0), 0,
-                    std::min(D3D::GetBackBufferWidth(), (unsigned int)targetRc.right),
-                    std::min(D3D::GetBackBufferHeight(), (unsigned int)targetRc.bottom), 1);
 }
 
 static void Create3DVisionTexture(int width, int height)
@@ -240,8 +205,7 @@ static void Create3DVisionTexture(int width, int height)
 Renderer::Renderer() : ::Renderer(D3D::GetBackBufferWidth(), D3D::GetBackBufferHeight())
 {
   s_last_multisamples = g_ActiveConfig.iMultisamples;
-  s_last_stereo_mode = g_ActiveConfig.iStereoMode > 0;
-  s_last_xfb_mode = g_ActiveConfig.bUseRealXFB;
+  s_last_stereo_mode = g_ActiveConfig.stereo_mode != StereoMode::Off;
   s_last_fullscreen_mode = D3D::GetFullscreenState();
 
   g_framebuffer_manager = std::make_unique<FramebufferManager>(m_target_width, m_target_height);
@@ -279,9 +243,9 @@ Renderer::~Renderer()
 
 void Renderer::RenderText(const std::string& text, int left, int top, u32 color)
 {
-  D3D::font.DrawTextScaled((float)(left + 1), (float)(top + 1), 20.f, 0.0f, color & 0xFF000000,
-                           text);
-  D3D::font.DrawTextScaled((float)left, (float)top, 20.f, 0.0f, color, text);
+  D3D::DrawTextScaled(static_cast<float>(left + 1), static_cast<float>(top + 1), 20.f, 0.0f,
+                      color & 0xFF000000, text);
+  D3D::DrawTextScaled(static_cast<float>(left), static_cast<float>(top), 20.f, 0.0f, color, text);
 }
 
 TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
@@ -640,24 +604,9 @@ void Renderer::SetBlendingState(const BlendingState& state)
 }
 
 // This function has the final picture. We adjust the aspect ratio here.
-void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
-                        const EFBRectangle& rc, u64 ticks, float Gamma)
+void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region, u64 ticks,
+                        float Gamma)
 {
-  if ((!m_xfb_written && !g_ActiveConfig.RealXFBEnabled()) || !fbWidth || !fbHeight)
-  {
-    Core::Callback_VideoCopiedToXFB(false);
-    return;
-  }
-
-  u32 xfbCount = 0;
-  const XFBSourceBase* const* xfbSourceList =
-      FramebufferManager::GetXFBSource(xfbAddr, fbStride, fbHeight, &xfbCount);
-  if ((!xfbSourceList || xfbCount == 0) && g_ActiveConfig.bUseXFB && !g_ActiveConfig.bUseRealXFB)
-  {
-    Core::Callback_VideoCopiedToXFB(false);
-    return;
-  }
-
   ResetAPIState();
 
   // Prepare to copy the XFBs to our backbuffer
@@ -671,90 +620,10 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
 
   // activate linear filtering for the buffer copies
   D3D::SetLinearCopySampler();
+  auto* xfb_texture = static_cast<DXTexture*>(texture);
 
-  if (g_ActiveConfig.bUseXFB && g_ActiveConfig.bUseRealXFB)
-  {
-    // TODO: Television should be used to render Virtual XFB mode as well.
-    D3D11_VIEWPORT vp = CD3D11_VIEWPORT((float)targetRc.left, (float)targetRc.top,
-                                        (float)targetRc.GetWidth(), (float)targetRc.GetHeight());
-    D3D::context->RSSetViewports(1, &vp);
-
-    s_television.Submit(xfbAddr, fbStride, fbWidth, fbHeight);
-    s_television.Render();
-  }
-  else if (g_ActiveConfig.bUseXFB)
-  {
-    // draw each xfb source
-    for (u32 i = 0; i < xfbCount; ++i)
-    {
-      const auto* const xfbSource = static_cast<const XFBSource*>(xfbSourceList[i]);
-
-      // use virtual xfb with offset
-      int xfbHeight = xfbSource->srcHeight;
-      int xfbWidth = xfbSource->srcWidth;
-      int hOffset = ((s32)xfbSource->srcAddr - (s32)xfbAddr) / ((s32)fbStride * 2);
-
-      TargetRectangle drawRc;
-      drawRc.top = targetRc.top + hOffset * targetRc.GetHeight() / (s32)fbHeight;
-      drawRc.bottom = targetRc.top + (hOffset + xfbHeight) * targetRc.GetHeight() / (s32)fbHeight;
-      drawRc.left = targetRc.left +
-                    (targetRc.GetWidth() - xfbWidth * targetRc.GetWidth() / (s32)fbStride) / 2;
-      drawRc.right = targetRc.left +
-                     (targetRc.GetWidth() + xfbWidth * targetRc.GetWidth() / (s32)fbStride) / 2;
-
-      // The following code disables auto stretch.  Kept for reference.
-      // scale draw area for a 1 to 1 pixel mapping with the draw target
-      // float vScale = (float)fbHeight / (float)s_backbuffer_height;
-      // float hScale = (float)fbWidth / (float)s_backbuffer_width;
-      // drawRc.top *= vScale;
-      // drawRc.bottom *= vScale;
-      // drawRc.left *= hScale;
-      // drawRc.right *= hScale;
-
-      TargetRectangle sourceRc;
-      sourceRc.left = xfbSource->sourceRc.left;
-      sourceRc.top = xfbSource->sourceRc.top;
-      sourceRc.right = xfbSource->sourceRc.right;
-      sourceRc.bottom = xfbSource->sourceRc.bottom;
-
-      sourceRc.right -= Renderer::EFBToScaledX(fbStride - fbWidth);
-
-      BlitScreen(sourceRc, drawRc, xfbSource->tex, xfbSource->texWidth, xfbSource->texHeight,
-                 Gamma);
-    }
-  }
-  else
-  {
-    TargetRectangle sourceRc = Renderer::ConvertEFBRectangle(rc);
-
-    // TODO: Improve sampling algorithm for the pixel shader so that we can use the multisampled EFB
-    // texture as source
-    D3DTexture2D* read_texture = FramebufferManager::GetResolvedEFBColorTexture();
-    BlitScreen(sourceRc, targetRc, read_texture, GetTargetWidth(), GetTargetHeight(), Gamma);
-  }
-
-  // Dump frames
-  if (IsFrameDumping())
-  {
-    if (!s_screenshot_texture)
-      CreateScreenshotTexture();
-
-    D3D11_BOX source_box = GetScreenshotSourceBox(targetRc);
-    unsigned int source_width = source_box.right - source_box.left;
-    unsigned int source_height = source_box.bottom - source_box.top;
-    D3D::context->CopySubresourceRegion(s_screenshot_texture, 0, 0, 0, 0,
-                                        D3D::GetBackBuffer()->GetTex(), 0, &source_box);
-
-    D3D11_MAPPED_SUBRESOURCE map;
-    D3D::context->Map(s_screenshot_texture, 0, D3D11_MAP_READ, 0, &map);
-
-    AVIDump::Frame state = AVIDump::FetchState(ticks);
-    DumpFrameData(reinterpret_cast<const u8*>(map.pData), source_width, source_height, map.RowPitch,
-                  state);
-    FinishFrameData();
-
-    D3D::context->Unmap(s_screenshot_texture, 0);
-  }
+  BlitScreen(xfb_region, targetRc, xfb_texture->GetRawTexIdentifier(),
+             xfb_texture->GetConfig().width, xfb_texture->GetConfig().height, Gamma);
 
   // Reset viewport for drawing text
   D3D11_VIEWPORT vp =
@@ -773,33 +642,20 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
   g_texture_cache->OnConfigChanged(g_ActiveConfig);
   VertexShaderCache::RetreiveAsyncShaders();
 
-  SetWindowSize(fbStride, fbHeight);
+  SetWindowSize(xfb_texture->GetConfig().width, xfb_texture->GetConfig().height);
 
   const bool window_resized = CheckForResize();
   const bool fullscreen = D3D::GetFullscreenState();
   const bool fs_changed = s_last_fullscreen_mode != fullscreen;
 
-  bool xfbchanged = s_last_xfb_mode != g_ActiveConfig.bUseRealXFB;
-
-  if (FramebufferManagerBase::LastXfbWidth() != fbStride ||
-      FramebufferManagerBase::LastXfbHeight() != fbHeight)
-  {
-    xfbchanged = true;
-    unsigned int xfb_w = (fbStride < 1 || fbStride > MAX_XFB_WIDTH) ? MAX_XFB_WIDTH : fbStride;
-    unsigned int xfb_h = (fbHeight < 1 || fbHeight > MAX_XFB_HEIGHT) ? MAX_XFB_HEIGHT : fbHeight;
-    FramebufferManagerBase::SetLastXfbWidth(xfb_w);
-    FramebufferManagerBase::SetLastXfbHeight(xfb_h);
-  }
-
   // Flip/present backbuffer to frontbuffer here
   D3D::Present();
 
   // Resize the back buffers NOW to avoid flickering
-  if (CalculateTargetSize() || xfbchanged || window_resized || fs_changed ||
+  if (CalculateTargetSize() || window_resized || fs_changed ||
       s_last_multisamples != g_ActiveConfig.iMultisamples ||
-      s_last_stereo_mode != (g_ActiveConfig.iStereoMode > 0))
+      s_last_stereo_mode != (g_ActiveConfig.stereo_mode != StereoMode::Off))
   {
-    s_last_xfb_mode = g_ActiveConfig.bUseRealXFB;
     s_last_multisamples = g_ActiveConfig.iMultisamples;
     s_last_fullscreen_mode = fullscreen;
     PixelShaderCache::InvalidateMSAAShaders();
@@ -816,7 +672,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
 
     UpdateDrawRectangle();
 
-    s_last_stereo_mode = g_ActiveConfig.iStereoMode > 0;
+    s_last_stereo_mode = g_ActiveConfig.stereo_mode != StereoMode::Off;
 
     D3D::context->OMSetRenderTargets(1, &D3D::GetBackBuffer()->GetRTV(), nullptr);
 
@@ -950,7 +806,8 @@ void Renderer::BBoxWrite(int index, u16 _value)
 void Renderer::BlitScreen(TargetRectangle src, TargetRectangle dst, D3DTexture2D* src_texture,
                           u32 src_width, u32 src_height, float Gamma)
 {
-  if (g_ActiveConfig.iStereoMode == STEREO_SBS || g_ActiveConfig.iStereoMode == STEREO_TAB)
+  if (g_ActiveConfig.stereo_mode == StereoMode::SBS ||
+      g_ActiveConfig.stereo_mode == StereoMode::TAB)
   {
     TargetRectangle leftRc, rightRc;
     std::tie(leftRc, rightRc) = ConvertStereoRectangle(dst);
@@ -972,7 +829,7 @@ void Renderer::BlitScreen(TargetRectangle src, TargetRectangle dst, D3DTexture2D
                            VertexShaderCache::GetSimpleVertexShader(),
                            VertexShaderCache::GetSimpleInputLayout(), nullptr, Gamma, 1);
   }
-  else if (g_ActiveConfig.iStereoMode == STEREO_3DVISION)
+  else if (g_ActiveConfig.stereo_mode == StereoMode::Nvidia3DVision)
   {
     if (!s_3d_vision_texture)
       Create3DVisionTexture(m_backbuffer_width, m_backbuffer_height);
@@ -1012,10 +869,10 @@ void Renderer::BlitScreen(TargetRectangle src, TargetRectangle dst, D3DTexture2D
                                         (float)dst.GetHeight());
     D3D::context->RSSetViewports(1, &vp);
 
-    ID3D11PixelShader* pixelShader = (g_Config.iStereoMode == STEREO_ANAGLYPH) ?
+    ID3D11PixelShader* pixelShader = (g_Config.stereo_mode == StereoMode::Anaglyph) ?
                                          PixelShaderCache::GetAnaglyphProgram() :
                                          PixelShaderCache::GetColorCopyProgram(false);
-    ID3D11GeometryShader* geomShader = (g_ActiveConfig.iStereoMode == STEREO_QUADBUFFER) ?
+    ID3D11GeometryShader* geomShader = (g_ActiveConfig.stereo_mode == StereoMode::QuadBuffer) ?
                                            GeometryShaderCache::GetCopyGeometryShader() :
                                            nullptr;
     D3D::drawShadedTexQuad(src_texture->GetSRV(), src.AsRECT(), src_width, src_height, pixelShader,

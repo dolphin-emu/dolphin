@@ -100,7 +100,6 @@ struct SConfig
   bool bDSPThread = false;
   bool bDSPHLE = true;
   bool bSyncGPUOnSkipIdleHack = true;
-  bool bForceNTSCJ = false;
   bool bHLE_BS2 = true;
   bool bEnableCheats = false;
   bool bEnableMemcardSdWriting = true;

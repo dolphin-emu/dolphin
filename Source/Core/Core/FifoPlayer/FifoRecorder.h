@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <functional>
 #include <memory>
 #include <mutex>
 #include <vector>
@@ -13,12 +14,14 @@
 class FifoRecorder
 {
 public:
-  typedef void (*CallbackFunc)(void);
+  using CallbackFunc = std::function<void()>;
 
   FifoRecorder();
 
   void StartRecording(s32 numFrames, CallbackFunc finishedCb);
   void StopRecording();
+
+  bool IsRecordingDone() const;
 
   FifoDataFile* GetRecordedFile() const;
   // Called from video thread
@@ -54,7 +57,7 @@ private:
   bool m_WasRecording = false;
   bool m_RequestedRecordingEnd = false;
   s32 m_RecordFramesRemaining = 0;
-  CallbackFunc m_FinishedCb = nullptr;
+  CallbackFunc m_FinishedCb;
   std::unique_ptr<FifoDataFile> m_File;
 
   // Accessed only from video thread

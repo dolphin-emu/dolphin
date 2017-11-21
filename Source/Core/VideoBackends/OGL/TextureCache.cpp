@@ -178,7 +178,7 @@ bool TextureCache::CompileShaders()
       "	gl_Position = vec4(rawpos*2.0-1.0, 0.0, 1.0);\n"
       "}\n";
 
-  const std::string geo_program = g_ActiveConfig.iStereoMode > 0 ?
+  const std::string geo_program = g_ActiveConfig.stereo_mode != StereoMode::Off ?
                                       "layout(triangles) in;\n"
                                       "layout(triangle_strip, max_vertices = 6) out;\n"
                                       "in vec3 v_uv0[3];\n"
@@ -388,9 +388,10 @@ void main()
 void TextureCache::CreateTextureDecodingResources()
 {
   static const GLenum gl_view_types[TextureConversionShader::BUFFER_FORMAT_COUNT] = {
-      GL_R8UI,    // BUFFER_FORMAT_R8_UINT
-      GL_R16UI,   // BUFFER_FORMAT_R16_UINT
-      GL_RG32UI,  // BUFFER_FORMAT_R32G32_UINT
+      GL_R8UI,     // BUFFER_FORMAT_R8_UINT
+      GL_R16UI,    // BUFFER_FORMAT_R16_UINT
+      GL_RG32UI,   // BUFFER_FORMAT_R32G32_UINT
+      GL_RGBA8UI,  // BUFFER_FORMAT_RGBA8_UINT
   };
 
   glGenTextures(TextureConversionShader::BUFFER_FORMAT_COUNT,

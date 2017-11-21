@@ -16,12 +16,10 @@
 #include "VideoBackends/D3D/PixelShaderCache.h"
 #include "VideoBackends/D3D/Render.h"
 #include "VideoBackends/D3D/VertexShaderCache.h"
-#include "VideoBackends/D3D/XFBEncoder.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace DX11
 {
-static XFBEncoder s_xfbEncoder;
 static bool s_integer_efb_render_target = false;
 
 FramebufferManager::Efb FramebufferManager::m_efb;
@@ -139,7 +137,7 @@ FramebufferManager::FramebufferManager(int target_width, int target_height)
   D3D11_TEXTURE2D_DESC texdesc;
   HRESULT hr;
 
-  m_EFBLayers = m_efb.slices = (g_ActiveConfig.iStereoMode > 0) ? 2 : 1;
+  m_EFBLayers = m_efb.slices = (g_ActiveConfig.stereo_mode != StereoMode::Off) ? 2 : 1;
 
   // EFB color texture - primary render target
   texdesc =
@@ -282,15 +280,11 @@ FramebufferManager::FramebufferManager(int target_width, int target_height)
     m_efb.resolved_color_tex = nullptr;
     m_efb.resolved_depth_tex = nullptr;
   }
-
-  s_xfbEncoder.Init();
   s_integer_efb_render_target = false;
 }
 
 FramebufferManager::~FramebufferManager()
 {
-  s_xfbEncoder.Shutdown();
-
   SAFE_RELEASE(m_efb.color_tex);
   SAFE_RELEASE(m_efb.color_int_rtv);
   SAFE_RELEASE(m_efb.color_temp_tex);
@@ -302,60 +296,6 @@ FramebufferManager::~FramebufferManager()
   SAFE_RELEASE(m_efb.depth_staging_buf);
   SAFE_RELEASE(m_efb.depth_read_texture);
   SAFE_RELEASE(m_efb.resolved_depth_tex);
-}
-
-void FramebufferManager::CopyToRealXFB(u32 xfbAddr, u32 fbStride, u32 fbHeight,
-                                       const EFBRectangle& sourceRc, float Gamma)
-{
-  u8* dst = Memory::GetPointer(xfbAddr);
-
-  // The destination stride can differ from the copy region width, in which case the pixels
-  // outside the copy region should not be written to.
-  s_xfbEncoder.Encode(dst, static_cast<u32>(sourceRc.GetWidth()), fbHeight, sourceRc, Gamma);
-}
-
-std::unique_ptr<XFBSourceBase> FramebufferManager::CreateXFBSource(unsigned int target_width,
-                                                                   unsigned int target_height,
-                                                                   unsigned int layers)
-{
-  return std::make_unique<XFBSource>(
-      D3DTexture2D::Create(target_width, target_height,
-                           (D3D11_BIND_FLAG)(D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE),
-                           D3D11_USAGE_DEFAULT, DXGI_FORMAT_R8G8B8A8_UNORM, 1, layers),
-      layers);
-}
-
-std::pair<u32, u32> FramebufferManager::GetTargetSize() const
-{
-  return std::make_pair(m_target_width, m_target_height);
-}
-
-void XFBSource::DecodeToTexture(u32 xfbAddr, u32 fbWidth, u32 fbHeight)
-{
-  // DX11's XFB decoder does not use this function.
-  // YUYV data is decoded in Render::Swap.
-}
-
-void XFBSource::CopyEFB(float Gamma)
-{
-  g_renderer->ResetAPIState();  // reset any game specific settings
-
-  // Copy EFB data to XFB and restore render target again
-  const D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, (float)texWidth, (float)texHeight);
-  const D3D11_RECT rect = CD3D11_RECT(0, 0, texWidth, texHeight);
-
-  D3D::context->RSSetViewports(1, &vp);
-  D3D::context->OMSetRenderTargets(1, &tex->GetRTV(), nullptr);
-  D3D::SetPointCopySampler();
-
-  D3D::drawShadedTexQuad(
-      FramebufferManager::GetEFBColorTexture()->GetSRV(), &rect, g_renderer->GetTargetWidth(),
-      g_renderer->GetTargetHeight(), PixelShaderCache::GetColorCopyProgram(true),
-      VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(),
-      GeometryShaderCache::GetCopyGeometryShader(), Gamma);
-
-  FramebufferManager::BindEFBRenderTarget();
-  g_renderer->RestoreAPIState();
 }
 
 }  // namespace DX11

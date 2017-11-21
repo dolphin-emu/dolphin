@@ -146,7 +146,7 @@ void EnhancementsWidget::LoadSettings()
 
   // Post Processing Shader
   std::vector<std::string> shaders =
-      g_Config.iStereoMode == STEREO_ANAGLYPH ?
+      g_Config.stereo_mode == StereoMode::Anaglyph ?
           PostProcessingShaderImplementation::GetAnaglyphShaderList(
               g_Config.backend_info.api_type) :
           PostProcessingShaderImplementation::GetShaderList(g_Config.backend_info.api_type);

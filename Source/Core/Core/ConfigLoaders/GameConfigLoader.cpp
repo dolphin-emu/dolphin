@@ -74,8 +74,6 @@ static const INIToLocationMap& GetINIToLocationMap()
       {{"Video_Settings", "AspectRatio"}, {Config::GFX_ASPECT_RATIO.location}},
       {{"Video_Settings", "SuggestedAspectRatio"}, {Config::GFX_SUGGESTED_ASPECT_RATIO.location}},
       {{"Video_Settings", "Crop"}, {Config::GFX_CROP.location}},
-      {{"Video_Settings", "UseXFB"}, {Config::GFX_USE_XFB.location}},
-      {{"Video_Settings", "UseRealXFB"}, {Config::GFX_USE_REAL_XFB.location}},
       {{"Video_Settings", "SafeTextureCacheColorSamples"},
        {Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES.location}},
       {{"Video_Settings", "HiresTextures"}, {Config::GFX_HIRES_TEXTURES.location}},
@@ -86,7 +84,7 @@ static const INIToLocationMap& GetINIToLocationMap()
       {{"Video_Settings", "MSAA"}, {Config::GFX_MSAA.location}},
       {{"Video_Settings", "SSAA"}, {Config::GFX_SSAA.location}},
       {{"Video_Settings", "ForceTrueColor"}, {Config::GFX_ENHANCE_FORCE_TRUE_COLOR.location}},
-      {{"Video_Settings", "EFBScale"}, {Config::GFX_EFB_SCALE.location}},
+      {{"Video_Settings", "InternalResolution"}, {Config::GFX_EFB_SCALE.location}},
       {{"Video_Settings", "DisableFog"}, {Config::GFX_DISABLE_FOG.location}},
       {{"Video_Settings", "BackendMultithreading"}, {Config::GFX_BACKEND_MULTITHREADING.location}},
       {{"Video_Settings", "CommandBufferExecuteInterval"},
@@ -109,6 +107,8 @@ static const INIToLocationMap& GetINIToLocationMap()
       {{"Video_Hacks", "BBoxEnable"}, {Config::GFX_HACK_BBOX_ENABLE.location}},
       {{"Video_Hacks", "ForceProgressive"}, {Config::GFX_HACK_FORCE_PROGRESSIVE.location}},
       {{"Video_Hacks", "EFBToTextureEnable"}, {Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM.location}},
+      {{"Video_Hacks", "XFBToTextureEnable"}, {Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM.location}},
+      {{"Video_Hacks", "ImmediateXFBEnable"}, {Config::GFX_HACK_IMMEDIATE_XFB.location}},
       {{"Video_Hacks", "EFBScaledCopy"}, {Config::GFX_EFB_SCALE.location}},
       {{"Video_Hacks", "EFBEmulateFormatChanges"},
        {Config::GFX_HACK_EFB_EMULATE_FORMAT_CHANGES.location}},
@@ -199,10 +199,10 @@ public:
   {
   }
 
-  void Load(Config::Layer* config_layer) override
+  void Load(Config::Layer* layer) override
   {
     IniFile ini;
-    if (config_layer->GetLayer() == Config::LayerType::GlobalGame)
+    if (layer->GetLayer() == Config::LayerType::GlobalGame)
     {
       for (const std::string& filename : GetGameIniFilenames(m_id, m_revision))
         ini.Load(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + filename, true);
@@ -217,16 +217,16 @@ public:
 
     for (const auto& section : system_sections)
     {
-      LoadFromSystemSection(config_layer, section);
+      LoadFromSystemSection(layer, section);
     }
 
-    LoadControllerConfig(config_layer);
+    LoadControllerConfig(layer);
   }
 
-  void Save(Config::Layer* config_layer) override;
+  void Save(Config::Layer* layer) override;
 
 private:
-  void LoadControllerConfig(Config::Layer* config_layer) const
+  void LoadControllerConfig(Config::Layer* layer) const
   {
     // Game INIs can have controller profiles embedded in to them
     static const std::array<char, 4> nums = {{'1', '2', '3', '4'}};
@@ -244,92 +244,53 @@ private:
       std::string type = std::get<0>(use_data);
       std::string path = "Profiles/" + std::get<1>(use_data) + "/";
 
-      Config::Section* control_section =
-          config_layer->GetOrCreateSection(std::get<2>(use_data), "Controls");
+      const auto control_section = [&](std::string key) {
+        return Config::ConfigLocation{std::get<2>(use_data), "Controls", key};
+      };
 
       for (const char num : nums)
       {
-        bool use_profile = false;
-        std::string profile;
-        if (control_section->Exists(type + "Profile" + num))
+        if (auto profile = layer->Get<std::string>(control_section(type + "Profile" + num)))
         {
-          if (control_section->Get(type + "Profile" + num, &profile))
+          std::string ini_path = File::GetUserPath(D_CONFIG_IDX) + path + *profile + ".ini";
+          if (!File::Exists(ini_path))
           {
-            if (File::Exists(File::GetUserPath(D_CONFIG_IDX) + path + profile + ".ini"))
-            {
-              use_profile = true;
-            }
-            else
-            {
-              // TODO: PanicAlert shouldn't be used for this.
-              PanicAlertT("Selected controller profile does not exist");
-            }
+            // TODO: PanicAlert shouldn't be used for this.
+            PanicAlertT("Selected controller profile does not exist");
+            continue;
           }
-        }
 
-        if (use_profile)
-        {
           IniFile profile_ini;
-          profile_ini.Load(File::GetUserPath(D_CONFIG_IDX) + path + profile + ".ini");
+          profile_ini.Load(ini_path);
 
           const IniFile::Section* ini_section = profile_ini.GetOrCreateSection("Profile");
           const IniFile::Section::SectionMap& section_map = ini_section->GetValues();
           for (const auto& value : section_map)
           {
-            Config::Section* section = config_layer->GetOrCreateSection(
-                std::get<2>(use_data), std::get<1>(use_data) + num);
-            section->Set(value.first, value.second);
+            Config::ConfigLocation location{std::get<2>(use_data), std::get<1>(use_data) + num,
+                                            value.first};
+            layer->Set(location, value.second);
           }
         }
       }
     }
   }
 
-  void LoadFromSystemSection(Config::Layer* config_layer, const IniFile::Section& section) const
+  void LoadFromSystemSection(Config::Layer* layer, const IniFile::Section& section) const
   {
     const std::string section_name = section.GetName();
-    if (section.HasLines())
-    {
-      // Trash INI File chunks
-      std::vector<std::string> chunk;
-      section.GetLines(&chunk, true);
-
-      if (chunk.size())
-      {
-        const auto mapped_config = MapINIToRealLocation(section_name, "");
-
-        if (mapped_config.section.empty() && mapped_config.key.empty())
-          return;
-
-        auto* config_section =
-            config_layer->GetOrCreateSection(mapped_config.system, mapped_config.section);
-        config_section->SetLines(chunk);
-      }
-    }
 
     // Regular key,value pairs
     const IniFile::Section::SectionMap& section_map = section.GetValues();
 
     for (const auto& value : section_map)
     {
-      const auto mapped_config = MapINIToRealLocation(section_name, value.first);
+      const auto location = MapINIToRealLocation(section_name, value.first);
 
-      if (mapped_config.section.empty() && mapped_config.key.empty())
+      if (location.section.empty() && location.key.empty())
         continue;
 
-      auto* config_section =
-          config_layer->GetOrCreateSection(mapped_config.system, mapped_config.section);
-
-      if (mapped_config == Config::GFX_EFB_SCALE.location)
-      {
-        std::optional<int> efb_scale = Config::ConvertFromLegacyEFBScale(value.second);
-        if (efb_scale)
-          config_section->Set(mapped_config.key, *efb_scale);
-      }
-      else
-      {
-        config_section->Set(mapped_config.key, value.second);
-      }
+      layer->Set(location, value.second);
     }
   }
 
@@ -337,41 +298,35 @@ private:
   const u16 m_revision;
 };
 
-void INIGameConfigLayerLoader::Save(Config::Layer* config_layer)
+void INIGameConfigLayerLoader::Save(Config::Layer* layer)
 {
-  if (config_layer->GetLayer() != Config::LayerType::LocalGame)
+  if (layer->GetLayer() != Config::LayerType::LocalGame)
     return;
 
   IniFile ini;
   for (const std::string& file_name : GetGameIniFilenames(m_id, m_revision))
     ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + file_name, true);
 
-  for (const auto& system : config_layer->GetLayerMap())
+  for (const auto& config : layer->GetLayerMap())
   {
-    for (const auto& section : system.second)
+    const Config::ConfigLocation& location = config.first;
+    const std::optional<std::string>& value = config.second;
+
+    if (!IsSettingSaveable(location))
+      continue;
+
+    const auto ini_location = GetINILocationFromConfig(location);
+    if (ini_location.first.empty() && ini_location.second.empty())
+      continue;
+
+    if (value)
     {
-      for (const auto& value : section->GetValues())
-      {
-        const Config::ConfigLocation location{system.first, section->GetName(), value.first};
-        if (!IsSettingSaveable(location))
-          continue;
-
-        const auto ini_location = GetINILocationFromConfig(location);
-        if (ini_location.first.empty() && ini_location.second.empty())
-          continue;
-
-        IniFile::Section* ini_section = ini.GetOrCreateSection(ini_location.first);
-        if (location == Config::GFX_EFB_SCALE.location)
-        {
-          std::optional<int> efb_scale = Config::ConvertToLegacyEFBScale(value.second);
-          if (efb_scale)
-            ini_section->Set(ini_location.second, *efb_scale);
-        }
-        else
-        {
-          ini_section->Set(ini_location.second, value.second);
-        }
-      }
+      IniFile::Section* ini_section = ini.GetOrCreateSection(ini_location.first);
+      ini_section->Set(ini_location.second, *value);
+    }
+    else
+    {
+      ini.DeleteKey(ini_location.first, ini_location.second);
     }
   }
 

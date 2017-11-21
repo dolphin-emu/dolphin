@@ -302,7 +302,7 @@ void FilesystemWidget::CheckIntegrity(const DiscIO::Partition& partition)
 
   if (is_valid.get())
     QMessageBox::information(nullptr, tr("Success"),
-                             tr("Integrity check completed. No errors have been found"));
+                             tr("Integrity check completed. No errors have been found."));
   else
     QMessageBox::critical(nullptr, tr("Error"),
                           tr("Integrity check for partition failed. The disc image is most "

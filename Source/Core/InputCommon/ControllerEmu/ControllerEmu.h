@@ -32,7 +32,11 @@ public:
 
   virtual void LoadConfig(IniFile::Section* sec, const std::string& base = "");
   virtual void SaveConfig(IniFile::Section* sec, const std::string& base = "");
-  void UpdateDefaultDevice();
+
+  bool IsDefaultDeviceConnected() const;
+  const ciface::Core::DeviceQualifier& GetDefaultDevice() const;
+  void SetDefaultDevice(const std::string& device);
+  void SetDefaultDevice(ciface::Core::DeviceQualifier devq);
 
   void UpdateReferences(const ControllerInterface& devi);
 
@@ -44,6 +48,8 @@ public:
 
   std::vector<std::unique_ptr<ControlGroup>> groups;
 
-  ciface::Core::DeviceQualifier default_device;
+private:
+  ciface::Core::DeviceQualifier m_default_device;
+  bool m_default_device_is_connected{false};
 };
 }  // namespace ControllerEmu
