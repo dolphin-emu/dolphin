@@ -843,12 +843,9 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
                                             Config::GFX_CACHE_HIRES_TEXTURES);
       szr_utility->Add(cache_hires_textures);
 
-      if (vconfig.backend_info.bSupportsInternalResolutionFrameDumps)
-      {
-        szr_utility->Add(CreateCheckBox(page_advanced, _("Full Resolution Frame Dumps"),
-                                        wxGetTranslation(internal_resolution_frame_dumping_desc),
-                                        Config::GFX_INTERNAL_RESOLUTION_FRAME_DUMPS));
-      }
+      szr_utility->Add(CreateCheckBox(page_advanced, _("Internal Resolution Frame Dumps"),
+                                      wxGetTranslation(internal_resolution_frame_dumping_desc),
+                                      Config::GFX_INTERNAL_RESOLUTION_FRAME_DUMPS));
 
       szr_utility->Add(CreateCheckBox(page_advanced, _("Dump EFB Target"),
                                       wxGetTranslation(dump_efb_desc),
