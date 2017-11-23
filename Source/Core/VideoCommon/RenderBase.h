@@ -94,6 +94,7 @@ public:
 
   const TargetRectangle& GetTargetRectangle() const { return m_target_rectangle; }
   float CalculateDrawAspectRatio() const;
+  bool IsHeadless() const;
 
   std::tuple<float, float> ScaleToDisplayAspectRatio(int width, int height) const;
   void UpdateDrawRectangle();
@@ -176,9 +177,10 @@ protected:
 
   static const float GX_MAX_DEPTH;
 
+  void* m_surface_handle = nullptr;
+  void* m_new_surface_handle = nullptr;
   Common::Flag m_surface_needs_change;
   Common::Event m_surface_changed;
-  void* m_new_surface_handle = nullptr;
 
   u32 m_last_host_config_bits = 0;
 

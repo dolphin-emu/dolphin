@@ -1349,25 +1349,35 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
   // Flip top and bottom for some reason; TODO: Fix the code to suck less?
   std::swap(flipped_trc.top, flipped_trc.bottom);
 
-  // Copy the framebuffer to screen.
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
-  BlitScreen(sourceRc, flipped_trc, xfb_texture->GetRawTexIdentifier(),
-             xfb_texture->GetConfig().width, xfb_texture->GetConfig().height);
-
-  // Finish up the current frame, print some stats
-  glEnable(GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-  // Reset viewport for drawing text
-  glViewport(0, 0, GLInterface->GetBackBufferWidth(), GLInterface->GetBackBufferHeight());
-  DrawDebugText();
-
   // Do our OSD callbacks
   OSD::DoCallbacks(OSD::CallbackType::OnFrame);
-  OSD::DrawMessages();
 
-  // Copy the rendered frame to the real window.
-  GLInterface->Swap();
+  // Skip screen rendering when running in headless mode.
+  if (!IsHeadless())
+  {
+    // Copy the framebuffer to screen.
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    BlitScreen(sourceRc, flipped_trc, xfb_texture->GetRawTexIdentifier(),
+               xfb_texture->GetConfig().width, xfb_texture->GetConfig().height);
+
+    // Finish up the current frame, print some stats
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    // Reset viewport for drawing text
+    glViewport(0, 0, GLInterface->GetBackBufferWidth(), GLInterface->GetBackBufferHeight());
+    DrawDebugText();
+    OSD::DrawMessages();
+
+    // Copy the rendered frame to the real window.
+    GLInterface->Swap();
+  }
+  else
+  {
+    // Since we're not swapping in headless mode, ensure all commands are sent to the GPU.
+    // Otherwise the driver could batch several frames togehter.
+    glFlush();
+  }
 
 #ifdef ANDROID
   // Handle surface changes on Android.
@@ -1375,6 +1385,7 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
   {
     GLInterface->UpdateHandle(m_new_surface_handle);
     GLInterface->UpdateSurface();
+    m_surface_handle = m_new_surface_handle;
     m_new_surface_handle = nullptr;
     m_surface_needs_change.Clear();
     m_surface_changed.Set();
@@ -1431,8 +1442,11 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
   }
 
   // Clear framebuffer
-  glClearColor(0, 0, 0, 0);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  if (!IsHeadless())
+  {
+    glClearColor(0, 0, 0, 0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  }
 
   if (s_vsync != g_ActiveConfig.IsVSync())
   {
