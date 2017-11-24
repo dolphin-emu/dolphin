@@ -39,8 +39,12 @@ FIFOPlayerWindow::FIFOPlayerWindow(QWidget* parent) : QDialog(parent)
 
   FifoPlayer::GetInstance().SetFileLoadedCallback(
       [this] { QueueOnObject(this, &FIFOPlayerWindow::OnFIFOLoaded); });
-  FifoPlayer::GetInstance().SetFrameWrittenCallback(
-      [this] { QueueOnObject(this, &FIFOPlayerWindow::OnFIFOLoaded); });
+  FifoPlayer::GetInstance().SetFrameWrittenCallback([this] {
+    QueueOnObject(this, [this] {
+      UpdateInfo();
+      UpdateControls();
+    });
+  });
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
     if (state == Core::State::Running)
