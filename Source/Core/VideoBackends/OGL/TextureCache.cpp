@@ -337,16 +337,16 @@ void main()
 
 void TextureCache::CreateTextureDecodingResources()
 {
-  static const GLenum gl_view_types[TextureConversionShader::BUFFER_FORMAT_COUNT] = {
+  static const GLenum gl_view_types[TextureConversionShaderTiled::BUFFER_FORMAT_COUNT] = {
       GL_R8UI,     // BUFFER_FORMAT_R8_UINT
       GL_R16UI,    // BUFFER_FORMAT_R16_UINT
       GL_RG32UI,   // BUFFER_FORMAT_R32G32_UINT
       GL_RGBA8UI,  // BUFFER_FORMAT_RGBA8_UINT
   };
 
-  glGenTextures(TextureConversionShader::BUFFER_FORMAT_COUNT,
+  glGenTextures(TextureConversionShaderTiled::BUFFER_FORMAT_COUNT,
                 m_texture_decoding_buffer_views.data());
-  for (size_t i = 0; i < TextureConversionShader::BUFFER_FORMAT_COUNT; i++)
+  for (size_t i = 0; i < TextureConversionShaderTiled::BUFFER_FORMAT_COUNT; i++)
   {
     glBindTexture(GL_TEXTURE_BUFFER, m_texture_decoding_buffer_views[i]);
     glTexBuffer(GL_TEXTURE_BUFFER, gl_view_types[i], m_palette_stream_buffer->m_buffer);
@@ -355,7 +355,7 @@ void TextureCache::CreateTextureDecodingResources()
 
 void TextureCache::DestroyTextureDecodingResources()
 {
-  glDeleteTextures(TextureConversionShader::BUFFER_FORMAT_COUNT,
+  glDeleteTextures(TextureConversionShaderTiled::BUFFER_FORMAT_COUNT,
                    m_texture_decoding_buffer_views.data());
   m_texture_decoding_buffer_views.fill(0);
   m_texture_decoding_program_info.clear();
@@ -369,7 +369,7 @@ bool TextureCache::SupportsGPUTextureDecode(TextureFormat format, TLUTFormat pal
     return iter->second.valid;
 
   TextureDecodingProgramInfo info;
-  info.base_info = TextureConversionShader::GetDecodingShaderInfo(format);
+  info.base_info = TextureConversionShaderTiled::GetDecodingShaderInfo(format);
   if (!info.base_info)
   {
     m_texture_decoding_program_info.emplace(key, info);
@@ -377,7 +377,7 @@ bool TextureCache::SupportsGPUTextureDecode(TextureFormat format, TLUTFormat pal
   }
 
   std::string shader_source =
-      TextureConversionShader::GenerateDecodingShader(format, palette_format, APIType::OpenGL);
+      TextureConversionShaderTiled::GenerateDecodingShader(format, palette_format, APIType::OpenGL);
   if (shader_source.empty())
   {
     m_texture_decoding_program_info.emplace(key, info);
@@ -417,7 +417,7 @@ void TextureCache::DecodeTextureOnGPU(TCacheEntry* entry, u32 dst_level, const u
   // Copy to GPU-visible buffer, aligned to the data type.
   auto info = iter->second;
   u32 bytes_per_buffer_elem =
-      TextureConversionShader::GetBytesPerBufferElement(info.base_info->buffer_format);
+      TextureConversionShaderTiled::GetBytesPerBufferElement(info.base_info->buffer_format);
 
   // Only copy palette if it is required.
   bool has_palette = info.base_info->palette_size > 0;
@@ -470,7 +470,7 @@ void TextureCache::DecodeTextureOnGPU(TCacheEntry* entry, u32 dst_level, const u
   }
 
   auto dispatch_groups =
-      TextureConversionShader::GetDispatchCount(info.base_info, aligned_width, aligned_height);
+      TextureConversionShaderTiled::GetDispatchCount(info.base_info, aligned_width, aligned_height);
   glBindImageTexture(0, static_cast<OGLTexture*>(entry->texture.get())->GetRawTexIdentifier(),
                      dst_level, GL_TRUE, 0, GL_WRITE_ONLY, GL_RGBA8);
   glDispatchCompute(dispatch_groups.first, dispatch_groups.second, 1);

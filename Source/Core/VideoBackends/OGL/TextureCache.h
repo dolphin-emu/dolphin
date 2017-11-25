@@ -50,7 +50,7 @@ private:
 
   struct TextureDecodingProgramInfo
   {
-    const TextureConversionShader::DecodingShaderInfo* base_info = nullptr;
+    const TextureConversionShaderTiled::DecodingShaderInfo* base_info = nullptr;
     SHADER program;
     GLint uniform_dst_size = -1;
     GLint uniform_src_size = -1;
@@ -96,6 +96,7 @@ private:
   GLuint m_palette_resolv_texture = 0;
 
   std::map<std::pair<u32, u32>, TextureDecodingProgramInfo> m_texture_decoding_program_info;
-  std::array<GLuint, TextureConversionShader::BUFFER_FORMAT_COUNT> m_texture_decoding_buffer_views;
+  std::array<GLuint, TextureConversionShaderTiled::BUFFER_FORMAT_COUNT>
+      m_texture_decoding_buffer_views;
 };
 }
