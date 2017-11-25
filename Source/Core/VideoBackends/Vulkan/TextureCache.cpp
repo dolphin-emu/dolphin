@@ -307,7 +307,8 @@ void TextureCache::CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy,
   texture->GetRawTexIdentifier()->TransitionToLayout(command_buffer,
                                                      VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
-  auto uid = GetTextureConverterShaderUid(dst_format, is_depth_copy, is_intensity, scale_by_half);
+  auto uid = TextureConversionShaderGen::GetShaderUid(dst_format, is_depth_copy, is_intensity,
+                                                      scale_by_half);
 
   auto it = m_efb_copy_to_tex_shaders.emplace(uid, VkShaderModule(VK_NULL_HANDLE));
   VkShaderModule& shader = it.first->second;
@@ -316,7 +317,8 @@ void TextureCache::CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy,
   if (created)
   {
     std::string source = g_shader_cache->GetUtilityShaderHeader();
-    source += GenerateTextureConverterShaderCode(APIType::Vulkan, uid.GetUidData()).GetBuffer();
+    source +=
+        TextureConversionShaderGen::GenerateShader(APIType::Vulkan, uid.GetUidData()).GetBuffer();
 
     shader = Util::CompileAndCreateFragmentShader(source);
   }

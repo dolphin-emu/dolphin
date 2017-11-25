@@ -10,10 +10,12 @@
 
 enum class APIType;
 
-#pragma pack(1)
-struct convertion_shader_uid_data
+namespace TextureConversionShaderGen
 {
-  u32 NumValues() const { return sizeof(convertion_shader_uid_data); }
+#pragma pack(1)
+struct UidData
+{
+  u32 NumValues() const { return sizeof(UidData); }
   EFBCopyFormat dst_format;
 
   u32 efb_has_alpha : 1;
@@ -23,10 +25,11 @@ struct convertion_shader_uid_data
 };
 #pragma pack()
 
-using TextureConverterShaderUid = ShaderUid<convertion_shader_uid_data>;
+using TCShaderUid = ShaderUid<UidData>;
 
-ShaderCode GenerateTextureConverterShaderCode(APIType api_type,
-                                              const convertion_shader_uid_data* uid_data);
+ShaderCode GenerateShader(APIType api_type, const UidData* uid_data);
 
-TextureConverterShaderUid GetTextureConverterShaderUid(EFBCopyFormat dst_format, bool is_depth_copy,
-                                                       bool is_intensity, bool scale_by_half);
+TCShaderUid GetShaderUid(EFBCopyFormat dst_format, bool is_depth_copy, bool is_intensity,
+                         bool scale_by_half);
+
+}  // namespace TextureConversionShaderGen

@@ -12,11 +12,13 @@
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
-TextureConverterShaderUid GetTextureConverterShaderUid(EFBCopyFormat dst_format, bool is_depth_copy,
-                                                       bool is_intensity, bool scale_by_half)
+namespace TextureConversionShaderGen
 {
-  TextureConverterShaderUid out;
-  convertion_shader_uid_data* uid_data = out.GetUidData<convertion_shader_uid_data>();
+TCShaderUid GetShaderUid(EFBCopyFormat dst_format, bool is_depth_copy, bool is_intensity,
+                         bool scale_by_half)
+{
+  TCShaderUid out;
+  UidData* uid_data = out.GetUidData<UidData>();
   memset(uid_data, 0, sizeof(*uid_data));
 
   uid_data->dst_format = dst_format;
@@ -28,8 +30,7 @@ TextureConverterShaderUid GetTextureConverterShaderUid(EFBCopyFormat dst_format,
   return out;
 }
 
-ShaderCode GenerateTextureConverterShaderCode(APIType api_type,
-                                              const convertion_shader_uid_data* uid_data)
+ShaderCode GenerateShader(APIType api_type, const UidData* uid_data)
 {
   ShaderCode out;
 
@@ -299,3 +300,5 @@ ShaderCode GenerateTextureConverterShaderCode(APIType api_type,
 
   return out;
 }
+
+}  // namespace TextureConversionShaderGen

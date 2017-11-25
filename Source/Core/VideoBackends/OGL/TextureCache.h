@@ -86,7 +86,7 @@ private:
     GLuint position_uniform;
   };
 
-  std::map<TextureConverterShaderUid, EFBCopyShader> m_efb_copy_programs;
+  std::map<TextureConversionShaderGen::TCShaderUid, EFBCopyShader> m_efb_copy_programs;
 
   SHADER m_colorCopyProgram;
   GLuint m_colorCopyPositionUniform;

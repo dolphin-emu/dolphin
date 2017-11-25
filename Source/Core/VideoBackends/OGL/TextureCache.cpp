@@ -510,7 +510,8 @@ void TextureCache::CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy,
 
   glViewport(0, 0, destination_texture->GetConfig().width, destination_texture->GetConfig().height);
 
-  auto uid = GetTextureConverterShaderUid(dst_format, is_depth_copy, is_intensity, scale_by_half);
+  auto uid = TextureConversionShaderGen::GetShaderUid(dst_format, is_depth_copy, is_intensity,
+                                                      scale_by_half);
 
   auto it = m_efb_copy_programs.emplace(uid, EFBCopyShader());
   EFBCopyShader& shader = it.first->second;
@@ -518,7 +519,7 @@ void TextureCache::CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy,
 
   if (created)
   {
-    ShaderCode code = GenerateTextureConverterShaderCode(APIType::OpenGL, uid.GetUidData());
+    ShaderCode code = TextureConversionShaderGen::GenerateShader(APIType::OpenGL, uid.GetUidData());
 
     std::string geo_program = "";
     char prefix = 'f';

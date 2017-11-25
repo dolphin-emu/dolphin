@@ -65,7 +65,7 @@ private:
   std::unique_ptr<TextureConverter> m_texture_converter;
 
   VkShaderModule m_copy_shader = VK_NULL_HANDLE;
-  std::map<TextureConverterShaderUid, VkShaderModule> m_efb_copy_to_tex_shaders;
+  std::map<TextureConversionShaderGen::TCShaderUid, VkShaderModule> m_efb_copy_to_tex_shaders;
 };
 
 }  // namespace Vulkan
