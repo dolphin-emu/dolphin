@@ -135,6 +135,8 @@ void SHADER::SetProgramBindings(bool is_compute)
       // So we do support extended blending
       // So we need to set a few more things here.
       // Bind our out locations
+      // Note: on macOS, this can cause graphical issues if ocol1 exists in the fragment shader but
+      // we're not actually doing dual-source blending.
       glBindFragDataLocationIndexed(glprogid, 0, 0, "ocol0");
       glBindFragDataLocationIndexed(glprogid, 0, 1, "ocol1");
     }

@@ -16,6 +16,7 @@
 #include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/LightingShaderGen.h"
 #include "VideoCommon/NativeVertexFormat.h"
+#include "VideoCommon/RenderState.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
@@ -176,6 +177,11 @@ PixelShaderUid GetPixelShaderUid()
       bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24 && !g_ActiveConfig.bForceTrueColor;
   uid_data->dither = bpmem.blendmode.dither && uid_data->rgba6_format;
   uid_data->uint_output = bpmem.blendmode.UseLogicOp();
+
+  BlendingState state{};
+  state.Generate(bpmem);
+  uid_data->blendEnable = state.blendenable;
+  uid_data->useDualSource = state.usedualsrc;
 
   u32 numStages = uid_data->genMode_numtevstages + 1;
 
@@ -516,7 +522,7 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
 
   // Only use dual-source blending when required on drivers that don't support it very well.
   const bool use_dual_source =
-      host_config.backend_dual_source_blend &&
+      uid_data->blendEnable && uid_data->useDualSource && host_config.backend_dual_source_blend &&
       (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING) ||
        uid_data->useDstAlpha);
 

@@ -44,7 +44,9 @@ struct pixel_shader_uid_data
   u32 rgba6_format : 1;
   u32 dither : 1;
   u32 uint_output : 1;
-  u32 pad : 15;
+  u32 blendEnable : 1;
+  u32 useDualSource : 1;
+  u32 pad : 13;
 
   u32 texMtxInfo_n_projection : 8;  // 8x1 bit
   u32 tevindref_bi0 : 3;
