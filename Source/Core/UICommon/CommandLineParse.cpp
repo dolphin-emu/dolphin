@@ -107,9 +107,9 @@ std::unique_ptr<optparse::OptionParser> CreateParser(ParserOptions options)
 
 static void AddConfigLayer(const optparse::Values& options)
 {
-  const std::list<std::string>& config_args = options.all("config");
-  if (!config_args.empty())
+  if (options.is_set_by_user("config"))
   {
+    const std::list<std::string>& config_args = options.all("config");
     Config::AddLayer(std::make_unique<CommandLineConfigLayerLoader>(
         config_args, static_cast<const char*>(options.get("video_backend")),
         static_cast<const char*>(options.get("audio_emulation"))));
