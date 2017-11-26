@@ -600,7 +600,6 @@ void Renderer::DrawScreen(VKTexture* xfb_texture, const EFBRectangle& xfb_region
                        VK_SUBPASS_CONTENTS_INLINE);
 
   // Draw
-  TargetRectangle source_rc = xfb_texture->GetConfig().GetRect();
   BlitScreen(m_swap_chain->GetRenderPass(), GetTargetRectangle(), xfb_region,
              xfb_texture->GetRawTexIdentifier());
 
@@ -702,6 +701,7 @@ void Renderer::CheckForSurfaceChange()
 
     // Notify calling thread.
     m_surface_needs_change.Clear();
+    m_surface_handle = m_new_surface_handle;
     m_new_surface_handle = nullptr;
     m_surface_changed.Set();
   }
