@@ -7,6 +7,7 @@
 #include <functional>
 #include <map>
 #include <memory>
+#include <optional>
 #include <string>
 
 #include "Common/Config/ConfigInfo.h"
@@ -38,7 +39,7 @@ void Shutdown();
 void ClearCurrentRunLayer();
 
 const std::string& GetSystemName(System system);
-System GetSystemFromName(const std::string& system);
+std::optional<System> GetSystemFromName(const std::string& system);
 const std::string& GetLayerName(LayerType layer);
 LayerType GetActiveLayerForConfig(const ConfigLocation&);
 

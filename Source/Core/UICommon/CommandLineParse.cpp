@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <list>
+#include <optional>
 #include <sstream>
 #include <string>
 #include <tuple>
@@ -40,8 +41,12 @@ public:
       std::getline(buffer, section, '.');
       std::getline(buffer, key, '=');
       std::getline(buffer, value, '=');
-      Config::System system = Config::GetSystemFromName(system_str);
-      m_values.emplace_back(std::make_tuple(Config::ConfigLocation{system, section, key}, value));
+      const std::optional<Config::System> system = Config::GetSystemFromName(system_str);
+      if (system)
+      {
+        m_values.emplace_back(
+            std::make_tuple(Config::ConfigLocation{*system, section, key}, value));
+      }
     }
   }
 
