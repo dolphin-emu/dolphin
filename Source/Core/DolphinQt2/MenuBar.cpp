@@ -123,7 +123,7 @@ void MenuBar::AddToolsMenu()
   // Label will be set by a NANDRefresh later
   m_boot_sysmenu =
       AddAction(tools_menu, QStringLiteral(""), this, [this] { emit BootWiiSystemMenu(); });
-  m_import_backup = AddAction(gc_ipl, tr("Import BootMii NAND Backup..."), this,
+  m_import_backup = AddAction(tools_menu, tr("Import BootMii NAND Backup..."), this,
                               [this] { emit ImportNANDBackup(); });
   m_check_nand = AddAction(tools_menu, tr("Check NAND..."), this, &MenuBar::CheckNAND);
   m_extract_certificates = AddAction(tools_menu, tr("Extract Certificates from NAND"), this,
