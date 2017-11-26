@@ -86,7 +86,11 @@ int main(int argc, char* argv[])
                    &app, &Core::HostDispatchJobs);
 
   std::unique_ptr<BootParameters> boot;
-  if (options.is_set("nand_title"))
+  if (options.is_set("exec"))
+  {
+    boot = BootParameters::GenerateFromFile(static_cast<const char*>(options.get("exec")));
+  }
+  else if (options.is_set("nand_title"))
   {
     const std::string hex_string = static_cast<const char*>(options.get("nand_title"));
     if (hex_string.length() == 16)
