@@ -40,10 +40,7 @@ void Force::GetState(ControlState* axis)
         controls[i + 1]->control_ref->State() - controls[i]->control_ref->State();
     if (fabs(state) > deadzone)
       tmpf = ((state - (deadzone * sign(state))) / (1 - deadzone));
-
-    ControlState& ax = m_swing[i >> 1];
-    *axis++ = (tmpf - ax);
-    ax = tmpf;
+    *axis++ = tmpf;
   }
 }
 }  // namespace ControllerEmu
