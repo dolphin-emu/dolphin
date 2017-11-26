@@ -105,17 +105,29 @@ std::unique_ptr<optparse::OptionParser> CreateParser(ParserOptions options)
   return parser;
 }
 
-optparse::Values& ParseArguments(optparse::OptionParser* parser, int argc, char** argv)
+static void AddConfigLayer(const optparse::Values& options)
 {
-  optparse::Values& options = parser->parse_args(argc, argv);
-
   const std::list<std::string>& config_args = options.all("config");
-  if (config_args.size())
+  if (!config_args.empty())
   {
     Config::AddLayer(std::make_unique<CommandLineConfigLayerLoader>(
         config_args, static_cast<const char*>(options.get("video_backend")),
         static_cast<const char*>(options.get("audio_emulation"))));
   }
+}
+
+optparse::Values& ParseArguments(optparse::OptionParser* parser, int argc, char** argv)
+{
+  optparse::Values& options = parser->parse_args(argc, argv);
+  AddConfigLayer(options);
+  return options;
+}
+
+optparse::Values& ParseArguments(optparse::OptionParser* parser,
+                                 const std::vector<std::string>& arguments)
+{
+  optparse::Values& options = parser->parse_args(arguments);
+  AddConfigLayer(options);
   return options;
 }
 }
