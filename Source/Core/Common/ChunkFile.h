@@ -249,16 +249,16 @@ public:
     std::string cookie = "[" + prevName + "]";
 
     Do(cookie);
-
+    /*
     if (mode == PointerWrap::MODE_READ && cookie != prevName.c_str())
-    {/*
+    {
       PanicAlertT("Error: After \"%s\", found %d (0x%X) instead of save marker %d (0x%X). Aborting "
         "savestate load...",
         prevName.c_str(), cookie, cookie, arbitraryNumber, arbitraryNumber);
-        */
+        
       mode = PointerWrap::MODE_MEASURE;
-      
     }
+    */
   }
 
   template <typename T, typename Functor>
