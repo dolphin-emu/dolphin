@@ -100,6 +100,7 @@ public:
 
 protected:
   void Event_Backend(wxCommandEvent& ev);
+  void Event_FullscreenModeOverride(wxCommandEvent& ev);
   void Event_DisplayResolution(wxCommandEvent& ev);
   void Event_ProgressiveScan(wxCommandEvent& ev);
   void Event_SafeTextureCache(wxCommandEvent& ev);
@@ -153,6 +154,7 @@ protected:
   wxChoice* choice_aamode;
   DolphinSlider* conv_slider;
 
+  wxCheckBox* fullscreen_mode_override;
   wxStaticText* label_display_resolution;
 
   wxButton* button_config_pp;

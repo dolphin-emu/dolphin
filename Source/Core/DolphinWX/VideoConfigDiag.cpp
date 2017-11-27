@@ -116,10 +116,6 @@ static wxString backend_desc =
 #endif
 static wxString adapter_desc =
     wxTRANSLATE("Selects a hardware adapter to use.\n\nIf unsure, use the first one.");
-static wxString display_res_desc =
-    wxTRANSLATE("Selects the display resolution used in fullscreen mode.\nThis should always be "
-                "bigger than or equal to the internal resolution. Performance impact is "
-                "negligible.\n\nIf unsure, select auto.");
 static wxString use_fullscreen_desc = wxTRANSLATE(
     "Enable this if you want the whole screen to be used for rendering.\nIf this is disabled, a "
     "render window will be created instead.\n\nIf unsure, leave this unchecked.");
@@ -317,6 +313,13 @@ static wxString ubershader_desc =
                 "stuttering. Balances performance and smoothness.\n\n"
                 "Exclusive: Ubershaders will always be used. Only recommended for high-end "
                 "systems.");
+static wxString fullscreen_mode_override_desc =
+    wxTRANSLATE("Lets you force the monitor to change display mode when emulation is running in "
+                "fullscreen.\n\nIf unsure, leave this unchecked.");
+static wxString display_res_desc =
+    wxTRANSLATE("Selects the display resolution used in fullscreen mode.\nThis should always be "
+                "bigger than or equal to the internal resolution. Performance impact is "
+                "negligible.\n\nIf unsure, select auto.");
 
 VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
     : wxDialog(parent, wxID_ANY, wxString::Format(_("Dolphin %s Graphics Configuration"),
@@ -384,41 +387,6 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
       wxFlexGridSizer* const szr_display = new wxFlexGridSizer(2, space5, space5);
 
       {
-#if !defined(__APPLE__)
-        // display resolution
-        {
-          wxArrayString res_list;
-          res_list.Add(_("Auto"));
-#if defined(HAVE_XRANDR) && HAVE_XRANDR
-          const auto resolutions = VideoUtils::GetAvailableResolutions(main_frame->m_xrr_config);
-#else
-          const auto resolutions = VideoUtils::GetAvailableResolutions(nullptr);
-#endif
-
-          for (const auto& res : resolutions)
-            res_list.Add(res);
-
-          if (res_list.empty())
-            res_list.Add(_("<No resolutions found>"));
-          label_display_resolution =
-              new wxStaticText(page_general, wxID_ANY, _("Fullscreen Resolution:"));
-          choice_display_resolution =
-              new wxChoice(page_general, wxID_ANY, wxDefaultPosition, wxDefaultSize, res_list);
-          RegisterControl(choice_display_resolution, wxGetTranslation(display_res_desc));
-          choice_display_resolution->Bind(wxEVT_CHOICE, &VideoConfigDiag::Event_DisplayResolution,
-                                          this);
-
-          choice_display_resolution->SetStringSelection(
-              StrToWxStr(SConfig::GetInstance().strFullscreenResolution));
-          // "Auto" is used as a keyword, convert to translated string
-          if (SConfig::GetInstance().strFullscreenResolution == "Auto")
-            choice_display_resolution->SetSelection(0);
-
-          szr_display->Add(label_display_resolution, 0, wxALIGN_CENTER_VERTICAL);
-          szr_display->Add(choice_display_resolution, 0, wxALIGN_CENTER_VERTICAL);
-        }
-#endif
-
         // aspect-ratio
         {
           const wxString ar_choices[] = {_("Auto"), _("Force 16:9"), _("Force 4:3"),
@@ -944,6 +912,66 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
       szr_advanced->Add(group_misc, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
     }
 
+#if !defined(__APPLE__)
+    // - override monitor mode
+    {
+      wxGridBagSizer* const szr_override_monitor_mode = new wxGridBagSizer(space5, space5);
+
+      // Override Monitor Mode when in Fullscreen
+      fullscreen_mode_override =
+          new wxCheckBox(page_advanced, wxID_ANY, _("Override Monitor Mode when in Fullscreen"));
+      RegisterControl(fullscreen_mode_override, wxGetTranslation(fullscreen_mode_override_desc));
+      fullscreen_mode_override->Bind(wxEVT_CHECKBOX, &VideoConfigDiag::Event_FullscreenModeOverride,
+                                     this);
+      fullscreen_mode_override->SetValue(SConfig::GetInstance().m_fullscreen_mode_override);
+      szr_override_monitor_mode->Add(fullscreen_mode_override, wxGBPosition(0, 0), wxGBSpan(1, 2));
+
+      // Monitor Resolution
+      {
+        wxArrayString res_list;
+        res_list.Add(_("Auto"));
+#if defined(HAVE_XRANDR) && HAVE_XRANDR
+        const auto resolutions = VideoUtils::GetAvailableResolutions(main_frame->m_xrr_config);
+#else
+        const auto resolutions = VideoUtils::GetAvailableResolutions(nullptr);
+#endif
+
+        for (const auto& res : resolutions)
+          res_list.Add(res);
+
+        if (res_list.empty())
+          res_list.Add(_("<No resolutions found>"));
+        label_display_resolution =
+            new wxStaticText(page_advanced, wxID_ANY, _("Monitor Resolution:"));
+        choice_display_resolution =
+            new wxChoice(page_advanced, wxID_ANY, wxDefaultPosition, wxDefaultSize, res_list);
+        RegisterControl(choice_display_resolution, wxGetTranslation(display_res_desc));
+        choice_display_resolution->Bind(wxEVT_CHOICE, &VideoConfigDiag::Event_DisplayResolution,
+                                        this);
+
+        choice_display_resolution->SetStringSelection(
+            StrToWxStr(SConfig::GetInstance().strFullscreenResolution));
+        // "Auto" is used as a keyword, convert to translated string
+        if (SConfig::GetInstance().strFullscreenResolution == "Auto")
+          choice_display_resolution->SetSelection(0);
+
+        szr_override_monitor_mode->Add(label_display_resolution, wxGBPosition(1, 0), wxDefaultSpan,
+                                       wxALIGN_CENTER_VERTICAL);
+        szr_override_monitor_mode->Add(choice_display_resolution, wxGBPosition(1, 1), wxDefaultSpan,
+                                       wxALIGN_CENTER_VERTICAL);
+      }
+
+      wxStaticBoxSizer* const group_override_monitor_mode =
+          new wxStaticBoxSizer(wxVERTICAL, page_advanced, _("Override Monitor Mode"));
+      group_override_monitor_mode->Add(szr_override_monitor_mode, 1, wxEXPAND | wxLEFT | wxRIGHT,
+                                       space5);
+      group_override_monitor_mode->AddSpacer(space5);
+
+      szr_advanced->AddSpacer(space5);
+      szr_advanced->Add(group_override_monitor_mode, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+    }
+#endif
+
     szr_advanced->AddSpacer(space5);
     szr_advanced->AddStretchSpacer();
     CreateDescriptionArea(page_advanced, szr_advanced);
@@ -1009,6 +1037,13 @@ void VideoConfigDiag::Event_Backend(wxCommandEvent& ev)
   }
 
   ev.Skip();
+}
+
+void VideoConfigDiag::Event_FullscreenModeOverride(wxCommandEvent& ev)
+{
+  SConfig::GetInstance().m_fullscreen_mode_override = fullscreen_mode_override->IsChecked();
+  ev.Skip();
+  Update();
 }
 
 void VideoConfigDiag::Event_DisplayResolution(wxCommandEvent& ev)
@@ -1132,16 +1167,17 @@ void VideoConfigDiag::OnUpdateUI(wxUpdateUIEvent& ev)
       label_adapter->Disable();
     }
 
-#ifndef __APPLE__
-    // This isn't supported on OS X.
-
-    choice_display_resolution->Disable();
-    label_display_resolution->Disable();
-#endif
-
     progressive_scan_checkbox->Disable();
     render_to_main_checkbox->Disable();
   }
+
+#ifndef __APPLE__
+  // This isn't supported on OS X.
+  const bool enable_fullscreen_mode_override_subsettings =
+      !Core::IsRunning() && SConfig::GetInstance().m_fullscreen_mode_override;
+  choice_display_resolution->Enable(enable_fullscreen_mode_override_subsettings);
+  label_display_resolution->Enable(enable_fullscreen_mode_override_subsettings);
+#endif
 
   ev.Skip();
 }
