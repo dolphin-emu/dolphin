@@ -24,6 +24,9 @@
 #include <type_traits>
 #include <utility>
 #include <vector>
+#include <sstream>
+#include <iostream>
+#include <string>
 
 #include "Common/Assert.h"
 #include "Common/Common.h"
@@ -240,16 +243,19 @@ public:
     }
   }
 
-  void DoMarker(const std::string& prevName, u32 arbitraryNumber = 0x42)
+  void DoMarker(const std::string& prevName, long long arbitraryNumber = 0xBADBADB00B15)
   {
-    u32 cookie = arbitraryNumber;
-    Do(cookie);
 
-    if (mode == PointerWrap::MODE_READ && cookie != arbitraryNumber)
+    std::string cookie = prevName.c_str();
+    //long long cookie = arbitraryNumber;
+
+    Do(cookie);
+    
+    if (mode == PointerWrap::MODE_READ && cookie != prevName.c_str())
     {
       PanicAlertT("Error: After \"%s\", found %d (0x%X) instead of save marker %d (0x%X). Aborting "
-                  "savestate load...",
-                  prevName.c_str(), cookie, cookie, arbitraryNumber, arbitraryNumber);
+        "savestate load...",
+        prevName.c_str(), cookie, cookie, arbitraryNumber, arbitraryNumber);
       mode = PointerWrap::MODE_MEASURE;
     }
   }

@@ -99,7 +99,7 @@ enum
   STATE_LOAD = 2,
 };
 
-static bool g_use_compression = true;
+static bool g_use_compression = false;
 
 void EnableCompression(bool compression)
 {
