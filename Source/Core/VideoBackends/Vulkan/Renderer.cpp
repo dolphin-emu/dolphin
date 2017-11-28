@@ -542,7 +542,7 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
   SetWindowSize(xfb_texture->GetConfig().width, xfb_texture->GetConfig().height);
 
   // Clean up stale textures.
-  TextureCache::GetInstance()->Cleanup(frameCount);
+  g_texture_cache->Cleanup(frameCount);
 
   // Pull in now-ready async shaders.
   g_shader_cache->RetrieveAsyncShaders();
@@ -731,7 +731,7 @@ void Renderer::CheckForConfigChanges()
   const bool aspect_changed = old_aspect_mode != g_ActiveConfig.aspect_mode;
 
   // Update texture cache settings with any changed options.
-  TextureCache::GetInstance()->OnConfigChanged(g_ActiveConfig);
+  g_texture_cache->OnConfigChanged(g_ActiveConfig);
 
   // Handle settings that can cause the target rectangle to change.
   if (efb_scale_changed || aspect_changed)

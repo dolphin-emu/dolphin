@@ -5,14 +5,13 @@
 #pragma once
 
 #include "VideoBackends/D3D/D3DTexture.h"
-#include "VideoCommon/TextureCacheBase.h"
+#include "VideoCommon/TextureCacheBackend.h"
 
-class AbstractTexture;
 struct TextureConfig;
 
 namespace DX11
 {
-class TextureCache : public TextureCacheBase
+class TextureCache : public TextureCacheBackend
 {
 public:
   TextureCache();

@@ -67,6 +67,8 @@
     <ClCompile Include="RenderState.cpp" />
     <ClCompile Include="LightingShaderGen.cpp" />
     <ClCompile Include="ShaderGenCommon.cpp" />
+    <ClCompile Include="TextureCacheBackend.cpp" />
+    <ClCompile Include="TextureCacheEntry.cpp" />
     <ClCompile Include="UberShaderCommon.cpp" />
     <ClCompile Include="UberShaderPixel.cpp" />
     <ClCompile Include="Statistics.cpp" />
@@ -112,6 +114,8 @@
     <ClInclude Include="Fifo.h" />
     <ClInclude Include="FPSCounter.h" />
     <ClInclude Include="FramebufferManagerBase.h" />
+    <ClInclude Include="TextureCacheBackend.h" />
+    <ClInclude Include="TextureCacheEntry.h" />
     <ClInclude Include="UberShaderCommon.h" />
     <ClInclude Include="UberShaderPixel.h" />
     <ClInclude Include="HiresTextures.h" />

@@ -3,11 +3,12 @@
 #include <memory>
 #include "VideoBackends/Software/SWTexture.h"
 #include "VideoBackends/Software/TextureEncoder.h"
-#include "VideoCommon/TextureCacheBase.h"
+#include "VideoCommon/TextureCacheBackend.h"
+#include "VideoCommon/TextureCacheEntry.h"
 
 namespace SW
 {
-class TextureCache : public TextureCacheBase
+class TextureCache : public TextureCacheBackend
 {
 public:
   bool CompileShaders() override { return true; }

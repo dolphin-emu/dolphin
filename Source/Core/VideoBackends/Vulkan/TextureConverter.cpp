@@ -27,6 +27,7 @@
 #include "VideoBackends/Vulkan/VKTexture.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 
+#include "VideoCommon/TextureCacheEntry.h"
 #include "VideoCommon/TextureConversionShader.h"
 #include "VideoCommon/TextureDecoder.h"
 #include "VideoCommon/VideoConfig.h"
@@ -155,8 +156,7 @@ bool TextureConverter::ReserveTexelBufferStorage(size_t size, size_t alignment)
   return true;
 }
 
-VkCommandBuffer
-TextureConverter::GetCommandBufferForTextureConversion(const TextureCache::TCacheEntry* src_entry)
+VkCommandBuffer TextureConverter::GetCommandBufferForTextureConversion(const TCacheEntry* src_entry)
 {
   // EFB copies can be used as paletted textures as well. For these, we can't assume them to be
   // contain the correct data before the frame begins (when the init command buffer is executed),
@@ -174,8 +174,7 @@ TextureConverter::GetCommandBufferForTextureConversion(const TextureCache::TCach
   }
 }
 
-void TextureConverter::ConvertTexture(TextureCacheBase::TCacheEntry* dst_entry,
-                                      TextureCacheBase::TCacheEntry* src_entry,
+void TextureConverter::ConvertTexture(TCacheEntry* dst_entry, TCacheEntry* src_entry,
                                       VkRenderPass render_pass, const void* palette,
                                       TLUTFormat palette_format)
 {
@@ -435,11 +434,11 @@ bool TextureConverter::SupportsTextureDecoding(TextureFormat format, TLUTFormat 
   return true;
 }
 
-void TextureConverter::DecodeTexture(VkCommandBuffer command_buffer,
-                                     TextureCache::TCacheEntry* entry, u32 dst_level,
-                                     const u8* data, size_t data_size, TextureFormat format,
-                                     u32 width, u32 height, u32 aligned_width, u32 aligned_height,
-                                     u32 row_stride, const u8* palette, TLUTFormat palette_format)
+void TextureConverter::DecodeTexture(VkCommandBuffer command_buffer, TCacheEntry* entry,
+                                     u32 dst_level, const u8* data, size_t data_size,
+                                     TextureFormat format, u32 width, u32 height, u32 aligned_width,
+                                     u32 aligned_height, u32 row_stride, const u8* palette,
+                                     TLUTFormat palette_format)
 {
   VKTexture* destination_texture = static_cast<VKTexture*>(entry->texture.get());
   auto key = std::make_pair(format, palette_format);

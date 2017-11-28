@@ -25,6 +25,7 @@
 #include "VideoBackends/OGL/TextureConverter.h"
 
 #include "VideoCommon/ImageWrite.h"
+#include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/TextureConversionShader.h"
 #include "VideoCommon/TextureDecoder.h"
 #include "VideoCommon/VideoConfig.h"
@@ -88,7 +89,7 @@ TextureCache::~TextureCache()
 
 TextureCache* TextureCache::GetInstance()
 {
-  return static_cast<TextureCache*>(g_texture_cache.get());
+  return static_cast<TextureCache*>(g_texture_cache->GetBackendImpl());
 }
 
 const SHADER& TextureCache::GetColorCopyProgram() const

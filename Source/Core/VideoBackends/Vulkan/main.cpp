@@ -21,6 +21,7 @@
 #include "VideoBackends/Vulkan/VulkanContext.h"
 
 #include "VideoCommon/OnScreenDisplay.h"
+#include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -228,7 +229,7 @@ bool VideoBackend::Initialize(void* window_handle)
 
   // Create remaining wrapper instances.
   g_vertex_manager = std::make_unique<VertexManager>();
-  g_texture_cache = std::make_unique<TextureCache>();
+  g_texture_cache = std::make_unique<TextureCacheBase>(std::make_unique<TextureCache>());
   g_perf_query = std::make_unique<PerfQuery>();
   if (!VertexManager::GetInstance()->Initialize() || !TextureCache::GetInstance()->Initialize() ||
       !PerfQuery::GetInstance()->Initialize())

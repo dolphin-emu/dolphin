@@ -125,7 +125,7 @@ void VideoSoftware::Video_Prepare()
   g_renderer = std::make_unique<SWRenderer>();
   g_vertex_manager = std::make_unique<SWVertexLoader>();
   g_perf_query = std::make_unique<PerfQuery>();
-  g_texture_cache = std::make_unique<TextureCache>();
+  g_texture_cache = std::make_unique<TextureCacheBase>(std::make_unique<TextureCache>());
   SWRenderer::Init();
 }
 

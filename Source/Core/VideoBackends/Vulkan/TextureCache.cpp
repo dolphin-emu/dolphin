@@ -27,6 +27,7 @@
 #include "VideoBackends/Vulkan/VulkanContext.h"
 
 #include "VideoCommon/ImageWrite.h"
+#include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/TextureConfig.h"
 
 namespace Vulkan
@@ -59,7 +60,7 @@ StreamBuffer* TextureCache::GetTextureUploadBuffer() const
 
 TextureCache* TextureCache::GetInstance()
 {
-  return static_cast<TextureCache*>(g_texture_cache.get());
+  return static_cast<TextureCache*>(g_texture_cache->GetBackendImpl());
 }
 
 bool TextureCache::Initialize()

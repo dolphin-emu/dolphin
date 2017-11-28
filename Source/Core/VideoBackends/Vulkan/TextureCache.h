@@ -8,7 +8,9 @@
 
 #include "Common/CommonTypes.h"
 #include "VideoBackends/Vulkan/StreamBuffer.h"
-#include "VideoCommon/TextureCacheBase.h"
+#include "VideoCommon/TextureCacheBackend.h"
+
+struct TextureConfig;
 
 namespace Vulkan
 {
@@ -17,7 +19,7 @@ class StateTracker;
 class Texture2D;
 class VKTexture;
 
-class TextureCache : public TextureCacheBase
+class TextureCache : public TextureCacheBackend
 {
 public:
   TextureCache();

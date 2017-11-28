@@ -53,6 +53,7 @@ Make AA apply instantly during gameplay if possible
 #include "VideoBackends/OGL/VideoBackend.h"
 
 #include "VideoCommon/OnScreenDisplay.h"
+#include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -192,7 +193,7 @@ void VideoBackend::Video_Prepare()
   g_vertex_manager = std::make_unique<VertexManager>();
   g_perf_query = GetPerfQuery();
   ProgramShaderCache::Init();
-  g_texture_cache = std::make_unique<TextureCache>();
+  g_texture_cache = std::make_unique<TextureCacheBase>(std::make_unique<TextureCache>());
   g_sampler_cache = std::make_unique<SamplerCache>();
   static_cast<Renderer*>(g_renderer.get())->Init();
   TextureConverter::Init();
