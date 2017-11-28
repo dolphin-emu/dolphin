@@ -45,9 +45,11 @@ void SWRenderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_regi
 {
   OSD::DoCallbacks(OSD::CallbackType::OnFrame);
 
-  DrawDebugText();
-
-  SWOGLWindow::s_instance->ShowImage(texture, xfb_region);
+  if (!IsHeadless())
+  {
+    DrawDebugText();
+    SWOGLWindow::s_instance->ShowImage(texture, xfb_region);
+  }
 
   UpdateActiveConfig();
 }

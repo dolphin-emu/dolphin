@@ -54,6 +54,7 @@ GLuint FramebufferManager::CreateTexture(GLenum texture_type, GLenum internal_fo
                                          GLenum pixel_format, GLenum data_type)
 {
   GLuint texture;
+  glActiveTexture(GL_TEXTURE9);
   glGenTextures(1, &texture);
   glBindTexture(texture_type, texture);
   if (texture_type == GL_TEXTURE_2D_ARRAY)

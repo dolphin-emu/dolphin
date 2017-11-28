@@ -94,6 +94,7 @@ Renderer::Renderer(int backbuffer_width, int backbuffer_height)
   if (SConfig::GetInstance().bWii)
     m_aspect_wide = Config::Get(Config::SYSCONF_WIDESCREEN);
 
+  m_surface_handle = Host_GetRenderHandle();
   m_last_host_config_bits = ShaderHostConfig::GetCurrent().bits;
 }
 
@@ -398,6 +399,11 @@ float Renderer::CalculateDrawAspectRatio() const
   {
     return VideoInterface::GetAspectRatio();
   }
+}
+
+bool Renderer::IsHeadless() const
+{
+  return !m_surface_handle;
 }
 
 std::tuple<float, float> Renderer::ScaleToDisplayAspectRatio(const int width,
@@ -711,8 +717,18 @@ void Renderer::DoDumpFrame()
 void Renderer::UpdateFrameDumpTexture()
 {
   int target_width, target_height;
-  std::tie(target_width, target_height) = CalculateOutputDimensions(
-      m_last_xfb_texture->GetConfig().width, m_last_xfb_texture->GetConfig().height);
+  if (!g_ActiveConfig.bInternalResolutionFrameDumps && !IsHeadless())
+  {
+    auto target_rect = GetTargetRectangle();
+    target_width = target_rect.GetWidth();
+    target_height = target_rect.GetHeight();
+  }
+  else
+  {
+    std::tie(target_width, target_height) = CalculateOutputDimensions(
+        m_last_xfb_texture->GetConfig().width, m_last_xfb_texture->GetConfig().height);
+  }
+
   if (m_dump_texture == nullptr ||
       m_dump_texture->GetConfig().width != static_cast<u32>(target_width) ||
       m_dump_texture->GetConfig().height != static_cast<u32>(target_height))

@@ -321,7 +321,7 @@ static void LightAlpha(const Vec3& pos, const Vec3& normal, u8 lightNum, const L
 
 void TransformColor(const InputVertexData* src, OutputVertexData* dst)
 {
-  for (u32 chan = 0; chan < xfmem.numChan.numColorChans; chan++)
+  for (u32 chan = 0; chan < NUM_XF_COLOR_CHANNELS; chan++)
   {
     // abgr
     std::array<u8, 4> matcolor;

@@ -36,7 +36,6 @@ VideoConfig::VideoConfig()
   backend_info.MaxTextureSize = 16384;
   backend_info.bSupportsExclusiveFullscreen = false;
   backend_info.bSupportsMultithreading = false;
-  backend_info.bSupportsInternalResolutionFrameDumps = false;
   backend_info.bSupportsST3CTextures = false;
   backend_info.bSupportsBPTCTextures = false;
 

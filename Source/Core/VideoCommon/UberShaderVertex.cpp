@@ -171,6 +171,19 @@ ShaderCode GenVertexShader(APIType ApiType, const ShaderHostConfig& host_config,
   if (numTexgen > 0)
     GenVertexShaderTexGens(ApiType, numTexgen, out);
 
+  out.Write("if (xfmem_numColorChans == 0u) {\n");
+  out.Write("  if ((components & %uu) != 0u)\n", VB_HAS_COL0);
+  out.Write("    o.colors_0 = rawcolor0;\n");
+  out.Write("  else\n");
+  out.Write("    o.colors_1 = float4(1.0, 1.0, 1.0, 1.0);\n");
+  out.Write("}\n");
+  out.Write("if (xfmem_numColorChans < 2u) {\n");
+  out.Write("  if ((components & %uu) != 0u)\n", VB_HAS_COL1);
+  out.Write("    o.colors_0 = rawcolor1;\n");
+  out.Write("  else\n");
+  out.Write("    o.colors_1 = float4(1.0, 1.0, 1.0, 1.0);\n");
+  out.Write("}\n");
+
   // clipPos/w needs to be done in pixel shader, not here
   out.Write("o.clipPos = o.pos;\n");
 
