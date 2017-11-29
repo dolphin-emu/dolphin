@@ -45,6 +45,14 @@ public class ControllerMappingHelper
 				return 0.0f;
 			}
 		}
+		else if (isMogaPro2Hid(inputDevice))
+		{
+			// This controller has a broken axis that reports a constant value. Ignore it.
+			if (axis == MotionEvent.AXIS_GENERIC_1)
+			{
+				return 0.0f;
+			}
+		}
 		return value;
 	}
 
@@ -58,5 +66,11 @@ public class ControllerMappingHelper
 	{
 		// Microsoft Xbox One controller
 		return inputDevice.getVendorId() == 0x45e && inputDevice.getProductId() == 0x2e0;
+	}
+
+	private boolean isMogaPro2Hid(InputDevice inputDevice)
+	{
+		// Moga Pro 2 HID
+		return inputDevice.getVendorId() == 0x20d6 && inputDevice.getProductId() == 0x6271;
 	}
 }
