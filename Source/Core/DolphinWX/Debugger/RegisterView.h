@@ -19,6 +19,7 @@
 // LR
 // CTR
 // CR0-7
+// XER
 // FPSCR
 // MSR
 // SRR0
@@ -51,7 +52,7 @@ public:
   void UpdateCachedRegs();
 
 private:
-  static constexpr int NUM_SPECIALS = 14;
+  static constexpr int NUM_SPECIALS = 15;
 
   std::array<u32, 32> m_CachedRegs{};
   std::array<u32, NUM_SPECIALS> m_CachedSpecialRegs{};

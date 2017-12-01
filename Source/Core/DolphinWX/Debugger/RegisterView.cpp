@@ -39,9 +39,9 @@ enum
   IDM_VIEW_INT
 };
 
-constexpr const char* special_reg_names[] = {"PC",        "LR",    "CTR",  "CR",         "FPSCR",
-                                             "MSR",       "SRR0",  "SRR1", "Exceptions", "Int Mask",
-                                             "Int Cause", "DSISR", "DAR",  "PT hashmask"};
+constexpr const char* special_reg_names[] = {
+    "PC",   "LR",         "CTR",      "CR",        "XER",   "FPSCR", "MSR",        "SRR0",
+    "SRR1", "Exceptions", "Int Mask", "Int Cause", "DSISR", "DAR",   "PT hashmask"};
 
 wxString GetFormatString(CRegTable::FormatSpecifier specifier)
 {
@@ -77,24 +77,26 @@ u32 GetSpecialRegValue(int reg)
   case 3:
     return GetCR();
   case 4:
-    return PowerPC::ppcState.fpscr;
+    return GetXER().Hex;
   case 5:
-    return PowerPC::ppcState.msr;
+    return PowerPC::ppcState.fpscr;
   case 6:
-    return PowerPC::ppcState.spr[SPR_SRR0];
+    return PowerPC::ppcState.msr;
   case 7:
-    return PowerPC::ppcState.spr[SPR_SRR1];
+    return PowerPC::ppcState.spr[SPR_SRR0];
   case 8:
-    return PowerPC::ppcState.Exceptions;
+    return PowerPC::ppcState.spr[SPR_SRR1];
   case 9:
-    return ProcessorInterface::GetMask();
+    return PowerPC::ppcState.Exceptions;
   case 10:
-    return ProcessorInterface::GetCause();
+    return ProcessorInterface::GetMask();
   case 11:
-    return PowerPC::ppcState.spr[SPR_DSISR];
+    return ProcessorInterface::GetCause();
   case 12:
-    return PowerPC::ppcState.spr[SPR_DAR];
+    return PowerPC::ppcState.spr[SPR_DSISR];
   case 13:
+    return PowerPC::ppcState.spr[SPR_DAR];
+  case 14:
     return (PowerPC::ppcState.pagetable_hashmask << 6) | PowerPC::ppcState.pagetable_base;
   default:
     return 0;
@@ -118,31 +120,34 @@ void SetSpecialRegValue(int reg, u32 value)
     SetCR(value);
     break;
   case 4:
-    PowerPC::ppcState.fpscr = value;
+    SetXER(UReg_XER(value));
     break;
   case 5:
-    PowerPC::ppcState.msr = value;
+    PowerPC::ppcState.fpscr = value;
     break;
   case 6:
-    PowerPC::ppcState.spr[SPR_SRR0] = value;
+    PowerPC::ppcState.msr = value;
     break;
   case 7:
-    PowerPC::ppcState.spr[SPR_SRR1] = value;
+    PowerPC::ppcState.spr[SPR_SRR0] = value;
     break;
   case 8:
+    PowerPC::ppcState.spr[SPR_SRR1] = value;
+    break;
+  case 9:
     PowerPC::ppcState.Exceptions = value;
     break;
   // Should we just change the value, or use ProcessorInterface::SetInterrupt() to make the system
   // aware?
-  // case 9: return ProcessorInterface::GetMask();
-  // case 10: return ProcessorInterface::GetCause();
-  case 11:
+  // case 10: return ProcessorInterface::GetMask();
+  // case 11: return ProcessorInterface::GetCause();
+  case 12:
     PowerPC::ppcState.spr[SPR_DSISR] = value;
     break;
-  case 12:
+  case 13:
     PowerPC::ppcState.spr[SPR_DAR] = value;
     break;
-  // case 13: (PowerPC::ppcState.pagetable_hashmask << 6) | PowerPC::ppcState.pagetable_base;
+  // case 14: (PowerPC::ppcState.pagetable_hashmask << 6) | PowerPC::ppcState.pagetable_base;
   default:
     return;
   }
