@@ -20,8 +20,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-11-16 15:41+0100\n"
-"PO-Revision-Date: 2017-11-16 14:41+0000\n"
+"POT-Creation-Date: 2017-12-01 20:33+0100\n"
+"PO-Revision-Date: 2017-12-01 19:33+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Spanish (http://www.transifex.com/delroth/dolphin-emu/"
 "language/es/)\n"
@@ -31,7 +31,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:586
+#: Source/Core/DolphinQt2/MenuBar.cpp:588
 msgid ""
 "\n"
 "\n"
@@ -42,6 +42,14 @@ msgid ""
 "%1\n"
 "Launching these titles may also fix the issues."
 msgstr ""
+"\n"
+"\n"
+"ADVERTENCIA: Arreglar la NAND supone borrar los juegos y paquetes con datos "
+"incompletos, incluyendo todos los datos de partida asociados. Al continuar "
+"se borrarán los siguientes juegos y paquetes:\n"
+"\n"
+"%1\n"
+"Lanzar o ejecutar estos juegos o paquetes también puede ayudar a arreglarlos."
 
 #: Source/Core/DolphinWX/FrameTools.cpp:1359
 #, c-format
@@ -55,6 +63,14 @@ msgid ""
 "%s\n"
 "Launching these titles may also fix the issues."
 msgstr ""
+"\n"
+"\n"
+"ADVERTENCIA: Arreglar la NAND supone borrar los juegos y paquetes con datos "
+"incompletos, incluyendo todos los datos de partida asociados. Al continuar "
+"se borrarán los siguientes juegos y paquetes:\n"
+"\n"
+"%s\n"
+"Lanzar o ejecutar estos juegos o paquetes también puede ayudar a arreglarlos."
 
 #: Source/Core/DolphinWX/AboutDolphin.cpp:36
 msgid ""
@@ -118,6 +134,20 @@ msgstr "%1 %"
 
 #: Source/Core/DolphinQt2/Settings/AdvancedPane.cpp:138
 msgid "%1 % (%2 MHz)"
+msgstr "%1 % (%2 MHz)"
+
+#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:256
+msgid ""
+"%1 FIFO bytes\n"
+"%2 memory bytes\n"
+"%3 frames"
+msgstr ""
+
+#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:236
+msgid ""
+"%1 frame(s)\n"
+"%2 object(s)\n"
+"Current Frame: %3"
 msgstr ""
 
 #: Source/Core/DolphinQt2/Settings/AudioPane.cpp:183
@@ -233,6 +263,9 @@ msgid ""
 "overwriting.\n"
 "Overwrite now?"
 msgstr ""
+"%s ya existe, te recomendamos que hagas una copia de respaldo de los "
+"archivos de partida antes de sobrescribirlos.\n"
+"¿Quieres sobrescribirlos ahora?"
 
 #: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:67
 #, c-format
@@ -322,7 +355,7 @@ msgstr "%zu bytes de memoria"
 msgid "&& AND"
 msgstr "&& Y"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:291
+#: Source/Core/DolphinQt2/MenuBar.cpp:293
 #: Source/Core/DolphinWX/MainMenuBar.cpp:527
 msgid "&About"
 msgstr "&Acerca de"
@@ -339,7 +372,7 @@ msgstr "&Añadir función"
 msgid "&Address"
 msgstr "&Dirección"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:270
+#: Source/Core/DolphinQt2/MenuBar.cpp:272
 #: Source/Core/DolphinWX/MainMenuBar.cpp:179
 msgid "&Audio Settings"
 msgstr "Ajustes de &audio"
@@ -372,7 +405,7 @@ msgstr "Borrar &caché JIT"
 msgid "&Clear Symbols"
 msgstr "&Borrar símbolos"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:271
+#: Source/Core/DolphinQt2/MenuBar.cpp:273
 #: Source/Core/DolphinWX/MainMenuBar.cpp:180
 msgid "&Controller Settings"
 msgstr "Ajustes de &control"
@@ -412,7 +445,7 @@ msgstr "&Desactivar caché JIT"
 msgid "&Edit Code..."
 msgstr "&Editar código..."
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:151
+#: Source/Core/DolphinQt2/MenuBar.cpp:153
 #: Source/Core/DolphinWX/MainMenuBar.cpp:48
 msgid "&Emulation"
 msgstr "&Emulación"
@@ -426,7 +459,7 @@ msgstr "&Archivo"
 msgid "&Font..."
 msgstr "&Tipo de letra..."
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:157
+#: Source/Core/DolphinQt2/MenuBar.cpp:159
 #: Source/Core/DolphinWX/MainMenuBar.cpp:130
 msgid "&Frame Advance"
 msgstr "Avanzar &cuadro"
@@ -435,22 +468,22 @@ msgstr "Avanzar &cuadro"
 msgid "&Generate Symbols From"
 msgstr "&Generar el mapa de símbolos desde"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:285
+#: Source/Core/DolphinQt2/MenuBar.cpp:287
 #: Source/Core/DolphinWX/MainMenuBar.cpp:525
 msgid "&GitHub Repository"
 msgstr "&Repositorio en GitHub"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:269
+#: Source/Core/DolphinQt2/MenuBar.cpp:271
 #: Source/Core/DolphinWX/MainMenuBar.cpp:178
 msgid "&Graphics Settings"
 msgstr "Ajustes &gráficos"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:277
+#: Source/Core/DolphinQt2/MenuBar.cpp:279
 #: Source/Core/DolphinWX/MainMenuBar.cpp:62
 msgid "&Help"
 msgstr "&Ayuda"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:272
+#: Source/Core/DolphinQt2/MenuBar.cpp:274
 #: Source/Core/DolphinWX/MainMenuBar.cpp:181
 msgid "&Hotkey Settings"
 msgstr "Ajustes de a&tajos"
@@ -520,7 +553,7 @@ msgstr "Sin RegistrosDelSistema &JIT"
 msgid "&Language:"
 msgstr "&Idioma:"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:171
+#: Source/Core/DolphinQt2/MenuBar.cpp:173
 #: Source/Core/DolphinWX/MainMenuBar.cpp:134
 msgid "&Load State"
 msgstr "&Cargar estado"
@@ -541,7 +574,7 @@ msgstr "&Memoria"
 msgid "&Memory Card Manager (GC)"
 msgstr "&Administrador de tarjetas de memoria (GC)"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:407
+#: Source/Core/DolphinQt2/MenuBar.cpp:409
 #: Source/Core/DolphinWX/MainMenuBar.cpp:49
 msgid "&Movie"
 msgstr "Grabar p&elícula"
@@ -551,7 +584,7 @@ msgstr "Grabar p&elícula"
 msgid "&Open..."
 msgstr "&Abrir..."
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:266
+#: Source/Core/DolphinQt2/MenuBar.cpp:268
 #: Source/Core/DolphinWX/MainMenuBar.cpp:50
 msgid "&Options"
 msgstr "&Opciones"
@@ -560,12 +593,12 @@ msgstr "&Opciones"
 msgid "&Patch HLE Functions"
 msgstr "&Parchear funciones HLE"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:153
+#: Source/Core/DolphinQt2/MenuBar.cpp:155
 #: Source/Core/DolphinWX/MainMenuBar.cpp:556
 msgid "&Pause"
 msgstr "&Pausa"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:152
+#: Source/Core/DolphinQt2/MenuBar.cpp:154
 #: Source/Core/DolphinWX/MainMenuBar.cpp:558
 msgid "&Play"
 msgstr "&Jugar"
@@ -588,7 +621,7 @@ msgstr "&Propiedades"
 msgid "&RSO Modules"
 msgstr "Módulos &RSO"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:422
+#: Source/Core/DolphinQt2/MenuBar.cpp:424
 #: Source/Core/DolphinWX/MainMenuBar.cpp:150
 msgid "&Read-Only Mode"
 msgstr "&Modo de sólo lectura"
@@ -617,7 +650,7 @@ msgstr "&Renombrar símbolos desde archivo..."
 msgid "&Rename symbol"
 msgstr "&Renombrar símbolo"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:155
+#: Source/Core/DolphinQt2/MenuBar.cpp:157
 #: Source/Core/DolphinWX/MainMenuBar.cpp:127
 msgid "&Reset"
 msgstr "&Restablecer"
@@ -642,7 +675,7 @@ msgstr "&Sonido"
 msgid "&Speed Limit:"
 msgstr "&Límite de velocidad:"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:154
+#: Source/Core/DolphinQt2/MenuBar.cpp:156
 #: Source/Core/DolphinWX/MainMenuBar.cpp:126
 msgid "&Stop"
 msgstr "&Detener"
@@ -664,7 +697,7 @@ msgstr "&Herramientas"
 msgid "&Video"
 msgstr "&Vídeo"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:236
+#: Source/Core/DolphinQt2/MenuBar.cpp:238
 #: Source/Core/DolphinWX/MainMenuBar.cpp:52
 msgid "&View"
 msgstr "&Vista"
@@ -675,7 +708,7 @@ msgstr "&Vista"
 msgid "&Watch"
 msgstr "&Ver"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:278
+#: Source/Core/DolphinQt2/MenuBar.cpp:280
 #: Source/Core/DolphinWX/MainMenuBar.cpp:523
 msgid "&Website"
 msgstr "&Página Web"
@@ -716,22 +749,22 @@ msgid "16-bit"
 msgstr "16-bits"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:63
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:558
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:525
 msgid "16x"
 msgstr "x16"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:63
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:558
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:525
 msgid "1x"
 msgstr "x1"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:63
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:558
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:525
 msgid "2x"
 msgstr "x2"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:47
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:524
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:491
 msgid "2x Native (1280x1056) for 720p"
 msgstr "Nativa x2 (1280x1056) a 720p"
 
@@ -753,32 +786,32 @@ msgid "3D Depth"
 msgstr "Profundidad 3D"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:48
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:524
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:491
 msgid "3x Native (1920x1584) for 1080p"
 msgstr "Nativa x3 (1920x1584) a 1080p"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:63
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:558
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:525
 msgid "4x"
 msgstr "x4"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:49
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:525
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:492
 msgid "4x Native (2560x2112) for 1440p"
 msgstr "Nativa x4 (2560x2112) a 1440p"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:50
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:525
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:492
 msgid "5x Native (3200x2640)"
 msgstr "Nativa x5 (3200x2640)"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:50
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:526
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:493
 msgid "6x Native (3840x3168) for 4K"
 msgstr "Nativa x6 (3840x3168) a 4K"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:51
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:526
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:493
 msgid "7x Native (4480x3696)"
 msgstr "Nativa x7 (4480x3696)"
 
@@ -787,22 +820,18 @@ msgid "8-bit"
 msgstr "8 bits"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:63
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:558
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:525
 msgid "8x"
 msgstr "x8"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:51
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:527
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:494
 msgid "8x Native (5120x4224) for 5K"
 msgstr "Nativa x8 (5120x4224) a 5K"
 
 #: Source/Core/DolphinWX/PatchAddEdit.cpp:40
 msgid "<Insert name here>"
 msgstr "<Insertar nombre aquí>"
-
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:400
-msgid "<No resolutions found>"
-msgstr "<No resolutions found>"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:34
 msgid "<Nothing>"
@@ -836,8 +865,8 @@ msgstr ""
 "las cosas que faltan en DolphinQt, ya que los desarrolladores lo saben y "
 "están en ello.</p>\n"
 
-#: Source/Core/DolphinQt2/MainWindow.cpp:688
-#: Source/Core/DolphinQt2/MainWindow.cpp:745
+#: Source/Core/DolphinQt2/MainWindow.cpp:703
+#: Source/Core/DolphinQt2/MainWindow.cpp:760
 msgid "A NetPlay Session is already in progress!"
 msgstr "Ya hay una sesión de juego en red."
 
@@ -855,6 +884,12 @@ msgid ""
 "\n"
 "Installing this WAD will replace it irreversibly. Continue?"
 msgstr ""
+"Ya hay una versión distinta del mismo paquete en la NAND.\n"
+"\n"
+"Versión instalada: %u\n"
+"Versión del WAD: %u\n"
+"\n"
+"Instalarlo sobrescribirá el WAD de forma irreversible. ¿Quieres continuar?"
 
 #: Source/Core/Core/HW/DVD/DVDInterface.cpp:484
 msgid "A disc is already about to be inserted."
@@ -865,7 +900,7 @@ msgstr "Ya hay un disco en proceso de inserción."
 msgid "A game is not currently running."
 msgstr "No hay ningún juego en ejecución."
 
-#: Source/Core/DolphinQt2/MainWindow.cpp:397
+#: Source/Core/DolphinQt2/MainWindow.cpp:405
 #: Source/Core/DolphinWX/FrameTools.cpp:865
 msgid ""
 "A shutdown is already in progress. Unsaved data may be lost if you stop the "
@@ -928,8 +963,8 @@ msgstr "Cancelar"
 msgid "About Dolphin"
 msgstr "Acerca de Dolphin"
 
-#: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:60
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:749
+#: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:59
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:716
 msgid "Accuracy:"
 msgstr "Exactitud:"
 
@@ -1038,8 +1073,8 @@ msgstr "Activo"
 msgid "Adapter Detected"
 msgstr "Adaptador detectado"
 
-#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:73
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:376
+#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:66
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:378
 msgid "Adapter:"
 msgstr "Adaptador:"
 
@@ -1081,7 +1116,7 @@ msgstr "Añadir punto de interrupción en memoria"
 
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:141
 msgid "Add address"
-msgstr ""
+msgstr "Añadir dirección"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:493
 msgid ""
@@ -1097,7 +1132,7 @@ msgstr "Añadir punto de &interrupción en memoria"
 
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:133
 msgid "Add the specified address manually."
-msgstr ""
+msgstr "Añadir la dirección de forma manual."
 
 #. i18n: This kind of "watch" is used for watching emulated memory.
 #. It's not related to timekeeping devices.
@@ -1130,6 +1165,8 @@ msgid ""
 "Address too large (greater than RAM size).\n"
 "Did you mean to strip the cheat opcode (0x%08X)?"
 msgstr ""
+"La dirección es demasiado grande (rebasa el tamaño de la RAM).\n"
+"¿Quieres reducir el «opcode» del truco (0x%08X)?"
 
 #: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1070
 msgid "Adjust the analog control pressure required to activate buttons."
@@ -1150,6 +1187,18 @@ msgid ""
 "cause glitches. Do so at your own risk. Please do not report bugs that occur "
 "with a non-default clock."
 msgstr ""
+"Ajusta la velocidad de la CPU emulada.\n"
+"\n"
+"Valores altos pueden hacer que los juegos con una tasa de refresco variable "
+"funcionen a una velocidad de fotogramas mayor, a expensas del rendimiento "
+"del procesador. Valores bajos pueden hacer que juegos con tasa de refresco "
+"variable funcionen a una velocidad de fotogramas más baja, ahorrando "
+"recursos del procesador.\n"
+"\n"
+"ADVERTENCIA: Cambiar el valor predeterminado (100%) puede causar fallos y "
+"dar problemas durante el juego. Hazlo bajo tu propio riesgo. Por favor, no "
+"informes de errores que surjan cuando juegues a una velocidad de reloj "
+"distinta a la oficial."
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:41
 msgid "Advance Game Port"
@@ -1160,7 +1209,7 @@ msgstr "Puerto de juego avanzado"
 #: Source/Core/DolphinQt2/Config/Graphics/GraphicsWindow.cpp:103
 #: Source/Core/DolphinQt2/Config/SettingsWindow.cpp:46
 #: Source/Core/DolphinWX/Config/ConfigMain.cpp:90
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:840
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:803
 msgid "Advanced"
 msgstr "Avanzado"
 
@@ -1170,7 +1219,7 @@ msgstr "Avanzado"
 msgid "Advanced Settings"
 msgstr "Configuración avanzada"
 
-#: Source/Core/DolphinQt2/MainWindow.cpp:316
+#: Source/Core/DolphinQt2/MainWindow.cpp:324
 #: Source/Core/DolphinQt2/Settings/PathPane.cpp:42
 msgid ""
 "All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wad);;"
@@ -1193,8 +1242,8 @@ msgstr ""
 msgid "All GameCube GCM files (gcm)"
 msgstr "Todos los archivos GameCube GCM (gcm)"
 
-#: Source/Core/DolphinQt2/MainWindow.cpp:596
-#: Source/Core/DolphinQt2/MainWindow.cpp:603
+#: Source/Core/DolphinQt2/MainWindow.cpp:611
+#: Source/Core/DolphinQt2/MainWindow.cpp:618
 msgid "All Save States (*.sav *.s##);; All Files (*)"
 msgstr "Todos los estados guardados (*.sav *.s##);; Todos los archivos (*)"
 
@@ -1211,8 +1260,14 @@ msgstr "Todos los archivos ISO de Wii (iso)"
 msgid "All compressed GC/Wii ISO files (gcz)"
 msgstr "Todos los archivos ISO comprimidos de GC/Wii (gcz)"
 
+#. i18n: Treat a controller as always being connected regardless of what
+#. devices the user actually has plugged in
+#: Source/Core/Core/HW/GCPadEmu.cpp:89
+msgid "Always Connected"
+msgstr ""
+
 #: Source/Core/DolphinQt2/Settings/InterfacePane.cpp:144
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:464
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:431
 msgid "Always Hide Mouse Cursor"
 msgstr "Ocultar el cursor de forma permanente"
 
@@ -1221,6 +1276,8 @@ msgid ""
 "An address to add manually. The 0x prefix is optional - all addresses are "
 "always in hexadecimal."
 msgstr ""
+"Escribe una dirección en memoria de forma manual. El prefijo 0x es opcional, "
+"pero el número tiene que estar en hexadecimal."
 
 #: Source/Core/Common/Assert.h:46
 #, c-format
@@ -1244,7 +1301,7 @@ msgid "An inserted disc was expected but not found."
 msgstr "Se esperaba la inserción de un disco pero no se encontró ninguno."
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:100
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:653
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:620
 msgid "Anaglyph"
 msgstr "Anaglifos"
 
@@ -1257,12 +1314,12 @@ msgid "Angle"
 msgstr "Ángulo"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:81
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:559
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:526
 msgid "Anisotropic Filtering:"
 msgstr "Filtrado anisotrópico:"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:79
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:545
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:512
 msgid "Anti-Aliasing:"
 msgstr "Antialias:"
 
@@ -1297,12 +1354,15 @@ msgstr ""
 "\n"
 "Si no estás seguro déjalo desactivado."
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:271
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:273
 msgid ""
 "Apply a post-processing effect after finishing a frame.\n"
 "\n"
 "If unsure, select Off."
 msgstr ""
+"Aplica un efecto de pos-procesamiento después de terminar un fotograma.\n"
+"\n"
+"Si no estás seguro déjalo desactivado."
 
 #: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:317
 #: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:401
@@ -1342,9 +1402,9 @@ msgstr "¿Estás seguro?"
 msgid "Are you trying to use the same file in both slots?"
 msgstr "¿Estás intentando usar el mismo archivo en ambas ranuras?"
 
-#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:82
+#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:70
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:102
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:425
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:392
 msgid "Aspect Ratio:"
 msgstr "Relación de aspecto:"
 
@@ -1382,25 +1442,23 @@ msgstr "Australia"
 msgid "Authors"
 msgstr "Autores"
 
-#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:52
-#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:64
+#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:51
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:389
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:422
 msgid "Auto"
 msgstr "Automático"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:46
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:523
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:490
 msgid "Auto (Multiple of 640x528)"
 msgstr "Autom. (múltiplo de 640x528)"
 
-#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:96
+#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:84
 #: Source/Core/DolphinQt2/Settings/InterfacePane.cpp:122
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:455
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:422
 msgid "Auto-Adjust Window Size"
 msgstr "Autoajustar tamaño de ventana"
 
-#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:268
+#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:237
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:127
 msgid ""
 "Automatically adjusts the window size to your internal resolution.\n"
@@ -1450,10 +1508,10 @@ msgstr "Registro BP"
 msgid "Backend Settings"
 msgstr "Configuración del motor"
 
-#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:70
-#: Source/Core/DolphinQt2/Config/Graphics/SoftwareRendererWidget.cpp:44
+#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:62
+#: Source/Core/DolphinQt2/Config/Graphics/SoftwareRendererWidget.cpp:43
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:60
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:346
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:348
 msgid "Backend:"
 msgstr "Motor:"
 
@@ -1471,7 +1529,7 @@ msgstr "Atrás"
 
 #: Source/Core/DolphinQt2/GameList/GameList.cpp:486
 #: Source/Core/DolphinQt2/GameList/GameListModel.cpp:128
-#: Source/Core/DolphinQt2/MenuBar.cpp:318
+#: Source/Core/DolphinQt2/MenuBar.cpp:320
 #: Source/Core/DolphinWX/GameListCtrl.cpp:462
 #: Source/Core/DolphinWX/MainMenuBar.cpp:308
 #: Source/Core/DolphinWX/MemcardManager.cpp:626
@@ -1493,7 +1551,7 @@ msgid "Bar"
 msgstr "Barra"
 
 #: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:46
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:481
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:448
 msgid "Basic"
 msgstr "Básico"
 
@@ -1556,20 +1614,20 @@ msgstr "Arrancar pausado"
 msgid "BootMii NAND backup file (*.bin)"
 msgstr "Archivo de respaldo BootMii NAND (*.bin)"
 
-#: Source/Core/DolphinQt2/MainWindow.cpp:868
+#: Source/Core/DolphinQt2/MainWindow.cpp:883
 msgid "BootMii NAND backup file (*.bin);;All Files (*)"
 msgstr "Archivo de respaldo BootMii NAND (*.bin);;Todos los archivos (*) "
 
 #: Source/Core/DolphinWX/FrameTools.cpp:1311
 msgid "BootMii OTP/SEEPROM dump (*.bin)"
-msgstr ""
+msgstr "Archivo de volcado OTP/SEEPROM (*.bin)"
 
-#: Source/Core/DolphinQt2/MainWindow.cpp:896
+#: Source/Core/DolphinQt2/MainWindow.cpp:911
 msgid "BootMii OTP/SEEPROM dump (*.bin);;All Files (*)"
-msgstr ""
+msgstr "Archivo de volcado OTP/SEEPROM (*.bin);;Todos los archivos (*) "
 
 #: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:95
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:931
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:894
 msgid "Borderless Fullscreen"
 msgstr "Pantalla completa sin bordes"
 
@@ -1667,11 +1725,6 @@ msgstr "Botón"
 msgid "Buttons"
 msgstr "Botones"
 
-#: Source/Core/DolphinQt2/Config/Graphics/SoftwareRendererWidget.cpp:41
-#: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:83
-msgid "Bypass XFB"
-msgstr "Saltarse el uso de XFB"
-
 #: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:270
 msgid ""
 "Bypass the clearing of the data cache by the DCBZ instruction. Usually leave "
@@ -1700,7 +1753,7 @@ msgstr "Motor de emulación de CPU"
 msgid "CPU Options"
 msgstr "Opciones del procesador"
 
-#: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:154
+#: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:152
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:249
 msgid ""
 "Cache custom textures to system RAM on startup.\n"
@@ -1747,8 +1800,8 @@ msgstr ""
 "No se puede encontrar ningún mando de Wii con el identificador de conexión "
 "%02x"
 
-#: Source/Core/DolphinQt2/MainWindow.cpp:681
-#: Source/Core/DolphinQt2/MainWindow.cpp:738
+#: Source/Core/DolphinQt2/MainWindow.cpp:696
+#: Source/Core/DolphinQt2/MainWindow.cpp:753
 msgid "Can't start a NetPlay Session while a game is still running!"
 msgstr "No puedes empezar el juego en red con un juego en ejecución."
 
@@ -1756,14 +1809,14 @@ msgstr "No puedes empezar el juego en red con un juego en ejecución."
 msgid "Cancel"
 msgstr "Cancelar"
 
-#: Source/Core/Core/FifoPlayer/FifoPlayer.cpp:96
+#: Source/Core/Core/FifoPlayer/FifoPlayer.cpp:102
 msgid "Cannot SingleStep the FIFO. Use Frame Advance instead."
 msgstr ""
 "No se puede ir paso a paso en FIFO, tienes que utilizar «Avanzar fotograma»."
 
 #: Source/Core/Core/Boot/Boot_WiiWAD.cpp:43
 msgid "Cannot boot this WAD because it could not be installed to the NAND."
-msgstr ""
+msgstr "El juego no puede iniciar el WAD al no poder instalarlo en la NAND."
 
 #: Source/Core/Core/Boot/Boot.cpp:379
 msgid "Cannot find the GC IPL."
@@ -1806,7 +1859,7 @@ msgstr "Cambiar &disco..."
 msgid "Change Disc"
 msgstr "Cambiar disco"
 
-#: Source/Core/Core/Movie.cpp:1188
+#: Source/Core/Core/Movie.cpp:1194
 #, c-format
 msgid "Change the disc to %s"
 msgstr "Cambiar el disco a %s"
@@ -1841,10 +1894,10 @@ msgstr "Administrador de trucos"
 msgid "Cheat Search"
 msgstr "Buscar trucos"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:126
+#: Source/Core/DolphinQt2/MenuBar.cpp:128
 #: Source/Core/DolphinWX/MainMenuBar.cpp:242
 msgid "Check NAND..."
-msgstr ""
+msgstr "Comprobar NAND..."
 
 #: Source/Core/DolphinQt2/Config/FilesystemWidget.cpp:194
 #: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:211
@@ -1962,12 +2015,12 @@ msgstr "Clonar y &editar código..."
 #: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:447
 #: Source/Core/DolphinWX/MemcardManager.cpp:233
 #: Source/Core/DolphinWX/PostProcessingConfigDiag.cpp:135
-#: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:151
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:953
+#: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:147
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:916
 msgid "Close"
 msgstr "Cerrar"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:267
+#: Source/Core/DolphinQt2/MenuBar.cpp:269
 #: Source/Core/DolphinWX/MainMenuBar.cpp:176
 msgid "Co&nfiguration"
 msgstr "Co&nfiguración"
@@ -2069,7 +2122,7 @@ msgstr "Calculando:"
 
 #: Source/Core/DolphinQt2/ToolBar.cpp:59
 #: Source/Core/DolphinWX/MainToolBar.cpp:185
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:595
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:562
 msgid "Config"
 msgstr "Configuración"
 
@@ -2103,8 +2156,8 @@ msgstr "Configurar salida"
 msgid "Configure..."
 msgstr "Configurar..."
 
-#: Source/Core/DolphinQt2/MainWindow.cpp:395
-#: Source/Core/DolphinQt2/MainWindow.cpp:836
+#: Source/Core/DolphinQt2/MainWindow.cpp:403
+#: Source/Core/DolphinQt2/MainWindow.cpp:851
 #: Source/Core/DolphinQt2/WiiUpdate.cpp:134
 msgid "Confirm"
 msgstr "Confirmar"
@@ -2208,7 +2261,7 @@ msgid "Controllers"
 msgstr "Mandos"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:271
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:286
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:288
 msgid ""
 "Controls the distance of the convergence plane. This is the distance at "
 "which virtual objects will appear to be in front of the screen.\n"
@@ -2221,7 +2274,7 @@ msgstr ""
 "pequeño es más agradable."
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:268
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:283
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:285
 msgid ""
 "Controls the separation distance between the virtual cameras.\n"
 "A higher value creates a stronger feeling of depth while a lower value is "
@@ -2232,7 +2285,7 @@ msgstr ""
 "pequeño es más agradable."
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:110
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:679
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:646
 msgid "Convergence:"
 msgstr "Convergencia:"
 
@@ -2322,6 +2375,8 @@ msgid ""
 "Could not launch IOS %016<PRIx64> because it is missing from the NAND.\n"
 "The emulated software will likely hang now."
 msgstr ""
+"No se ha podido cargar el IOS %016<PRIx64> al no estar en la NAND.\n"
+"Es posible que programa emulado se cuelgue en cualquier momento."
 
 #: Source/Core/Core/IOS/ES/ES.cpp:288
 msgid ""
@@ -2452,8 +2507,8 @@ msgstr ""
 "Crea un archivo .dsy que se puede emplear para reconocer las mismas "
 "funciones en otros juegos."
 
-#: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:160
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:254
+#: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:158
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:256
 msgid ""
 "Create frame dumps and screenshots at the internal resolution of the "
 "renderer, rather than the size of the window it is displayed within. If the "
@@ -2477,19 +2532,19 @@ msgstr "Crear nueva perspectiva"
 #: Source/Core/DolphinQt2/Config/GeckoCodeWidget.cpp:74
 #: Source/Core/DolphinWX/Cheats/GeckoCodeDiag.cpp:31
 msgid "Creator:"
-msgstr ""
+msgstr "Creador:"
 
 #: Source/Core/Common/MsgHandler.cpp:68
 msgid "Critical"
 msgstr "Crítico"
 
 #: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:86
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:914
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:877
 msgid "Crop"
 msgstr "Recortar"
 
-#: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:178
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:268
+#: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:176
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:270
 msgid ""
 "Crop the picture from its native aspect ratio to 4:3 or 16:9.\n"
 "\n"
@@ -2504,7 +2559,7 @@ msgstr ""
 msgid "Crossfade"
 msgstr "Deslizador del mezclador"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:136
+#: Source/Core/DolphinQt2/MenuBar.cpp:138
 #: Source/Core/DolphinWX/MainMenuBar.cpp:245
 msgid "Current Region"
 msgstr "Región actual"
@@ -2520,7 +2575,7 @@ msgid "Current game"
 msgstr "Juego actual"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:56
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:527
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:494
 msgid "Custom"
 msgstr "Personalizado"
 
@@ -2546,13 +2601,13 @@ msgstr "Bongos de DK"
 #: Source/Core/DolphinQt2/Settings/AudioPane.cpp:39
 #: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:40
 msgid "DSP Emulation Engine"
-msgstr ""
+msgstr "Método de emulación DSP"
 
 #: Source/Core/DolphinQt2/Settings/AudioPane.cpp:43
 #: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:35
 #: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:287
 msgid "DSP HLE Emulation (fast)"
-msgstr ""
+msgstr "Emular DSP mediante HLE (rápido)"
 
 #: Source/Core/DolphinWX/Debugger/DSPDebugWindow.cpp:34
 msgid "DSP LLE Debugger"
@@ -2561,12 +2616,12 @@ msgstr "Depurador de DSP LLE"
 #: Source/Core/DolphinQt2/Settings/AudioPane.cpp:45
 #: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:37
 msgid "DSP LLE Interpreter (slow)"
-msgstr ""
+msgstr "Interpretar DSP con LLE (lento)"
 
 #: Source/Core/DolphinQt2/Settings/AudioPane.cpp:44
 #: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:36
 msgid "DSP LLE Recompiler"
-msgstr ""
+msgstr "Recompilar DSP con LLE"
 
 #: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:99
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:52
@@ -2599,15 +2654,15 @@ msgstr "Zona muerta"
 msgid "Debug"
 msgstr "Depurar"
 
-#: Source/Core/DolphinQt2/Config/Graphics/SoftwareRendererWidget.cpp:67
-#: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:117
+#: Source/Core/DolphinQt2/Config/Graphics/SoftwareRendererWidget.cpp:65
+#: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:113
 msgid "Debug Only"
 msgstr "Opciones de depuración"
 
 #: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:40
 #: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:166
 #: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:116
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:860
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:823
 msgid "Debugging"
 msgstr "Depuración"
 
@@ -2634,11 +2689,11 @@ msgstr "Descomprimir ISO"
 msgid "Decompressing..."
 msgstr "Descomprimiendo..."
 
-#: Source/Core/Core/HotkeyManager.cpp:101
+#: Source/Core/Core/HotkeyManager.cpp:103
 msgid "Decrease Convergence"
 msgstr "Reducir convergencia"
 
-#: Source/Core/Core/HotkeyManager.cpp:99
+#: Source/Core/Core/HotkeyManager.cpp:101
 msgid "Decrease Depth"
 msgstr "Reducir profundidad"
 
@@ -2647,7 +2702,7 @@ msgid "Decrease Emulation Speed"
 msgstr "Reducir velocidad de emulación"
 
 #. i18n: IR stands for internal resolution
-#: Source/Core/Core/HotkeyManager.cpp:82
+#: Source/Core/Core/HotkeyManager.cpp:84
 msgid "Decrease IR"
 msgstr "Reducir IR"
 
@@ -2691,15 +2746,15 @@ msgid "Depth Percentage: "
 msgstr "Porcentaje de profundidad:"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:108
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:668
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:635
 msgid "Depth:"
 msgstr "Profundidad:"
 
 #: Source/Core/DolphinQt2/Config/Graphics/GraphicsWindow.cpp:37
 #: Source/Core/DolphinQt2/GameList/GameList.cpp:488
 #: Source/Core/DolphinQt2/GameList/GameListModel.cpp:130
-#: Source/Core/DolphinQt2/MenuBar.cpp:320
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:1248
+#: Source/Core/DolphinQt2/MenuBar.cpp:322
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:1180
 msgid "Description"
 msgstr "Descripción"
 
@@ -2761,13 +2816,8 @@ msgstr ""
 "Tanto la suma de verificación de la carpeta como la de su copia de respaldo "
 "han fallado. Los datos están corruptos."
 
-#: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:71
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:789
-msgid "Disable"
-msgstr "Desactivar"
-
-#: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:86
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:814
+#: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:85
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:777
 msgid "Disable Bounding Box"
 msgstr "Desactivar delimitado rectangular"
 
@@ -2780,32 +2830,15 @@ msgid "Disable Emulation Speed Limit"
 msgstr "Desactivar límite de velocidad de emulación"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:73
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:627
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:594
 msgid "Disable Fog"
 msgstr "Desactivar niebla"
-
-#: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:183
-#: Source/Core/DolphinQt2/Config/Graphics/SoftwareRendererWidget.cpp:160
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:233
-msgid ""
-"Disable any XFB emulation.\n"
-"Speeds up emulation a lot but causes heavy glitches in many games which rely "
-"on them (especially homebrew applications).\n"
-"\n"
-"If unsure, leave this checked."
-msgstr ""
-"Desactivar cualquier emulación de XFB.\n"
-"\n"
-"Acelera la velocidad de emulación en gran medida, pero causa fallos graves "
-"en muchos juegos que dependen de ellos (especialmente juegos caseros).\n"
-"\n"
-"Si no estás seguro déjala sin marcar."
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:434
 msgid "Disable docking of perspective panes to main window"
 msgstr "Desactiva los paneles empotrados en la ventana principal"
 
-#: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:207
+#: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:197
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:175
 msgid ""
 "Disable the bounding box emulation.\n"
@@ -2821,11 +2854,11 @@ msgstr ""
 "\n"
 "Si no estás seguro deja esta opción marcada."
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:569
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:536
 msgid "Disabled"
 msgstr "Desactivados"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:311
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:313
 msgid ""
 "Disabled: Ubershaders are never used. Stuttering will occur during shader "
 "compilation, but GPU demands are low. Recommended for low-end hardware.\n"
@@ -2866,7 +2899,7 @@ msgstr "Número de disco:"
 msgid "Disc Read Error"
 msgstr "Error de lectura de disco"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:486
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:453
 msgid "Display"
 msgstr "Pantalla"
 
@@ -2880,12 +2913,23 @@ msgstr ""
 "Estos mensajes incluyen escritura de tarjetas de memoria, sobre el motor de "
 "vídeo, información sobre la CPU y limpieza de la caché JIT."
 
-#: Source/Core/DolphinQt2/Main.cpp:125
+#: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:181
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:210
+msgid ""
+"Displays the XFB copies as soon as they are created, without waiting for "
+"scanout. Can cause graphical defects in some games if the game doesn't "
+"expect all XFB copies to be displayed. However, turning this setting on "
+"reduces latency.\n"
+"\n"
+"If unsure, leave this unchecked."
+msgstr ""
+
+#: Source/Core/DolphinQt2/Main.cpp:129
 msgid "Do you authorize Dolphin to report information to Dolphin's developers?"
 msgstr ""
 "¿Nos permites compartir estadísticas con los desarrolladores de Dolphin?"
 
-#: Source/Core/DolphinQt2/MainWindow.cpp:837
+#: Source/Core/DolphinQt2/MainWindow.cpp:852
 msgid "Do you want to add \"%1\" to the list of Game Paths?"
 msgstr "¿Quieres añadir «%1» a la lista de carpetas de juegos?"
 
@@ -2893,7 +2937,7 @@ msgstr "¿Quieres añadir «%1» a la lista de carpetas de juegos?"
 msgid "Do you want to clear the list of symbol names?"
 msgstr "¿Seguro que quieres borrar la lista de nombres simbólicos?"
 
-#: Source/Core/DolphinQt2/MainWindow.cpp:400
+#: Source/Core/DolphinQt2/MainWindow.cpp:408
 #: Source/Core/DolphinWX/FrameTools.cpp:864
 msgid "Do you want to stop the current emulation?"
 msgstr "¿Quieres detener la emulación?"
@@ -2901,7 +2945,7 @@ msgstr "¿Quieres detener la emulación?"
 #: Source/Core/DolphinQt2/Settings/AudioPane.cpp:73
 #: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:42
 msgid "Dolby Pro Logic II Decoder"
-msgstr ""
+msgstr "Decodificador Dolby Pro Logic II"
 
 #: Source/Core/DolphinQt2/AboutDialog.cpp:23
 #: Source/Core/DolphinWX/AboutDolphin.cpp:26
@@ -2914,7 +2958,7 @@ msgid "Dolphin %1 Graphics Configuration"
 msgstr "Configuración gráfica para «%1» de Dolphin"
 
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:37
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:320
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:322
 #, c-format
 msgid "Dolphin %s Graphics Configuration"
 msgstr "Configuración gráfica para «%s» de Dolphin"
@@ -2935,6 +2979,11 @@ msgstr "Ajustes del mando de Wii emulado en el puerto %i"
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:378
 msgid "Dolphin FIFO"
 msgstr "Dolphin FIFO"
+
+#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:166
+#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:177
+msgid "Dolphin FIFO Log (*.dff)"
+msgstr ""
 
 #: Source/Core/DolphinWX/FrameTools.cpp:1063
 msgid "Dolphin Hotkeys"
@@ -2968,8 +3017,8 @@ msgstr "Archivo de firmas de Dolphin (*.dsy)"
 msgid "Dolphin Symbol Rename File (*.sym)"
 msgstr "Archivo de renombrado de símbolos de Dolphin (*.sym)"
 
-#: Source/Core/DolphinQt2/MainWindow.cpp:914
-#: Source/Core/DolphinQt2/MainWindow.cpp:984
+#: Source/Core/DolphinQt2/MainWindow.cpp:929
+#: Source/Core/DolphinQt2/MainWindow.cpp:999
 #: Source/Core/DolphinWX/FrameTools.cpp:502
 #: Source/Core/DolphinWX/FrameTools.cpp:998
 msgid "Dolphin TAS Movies (*.dtm)"
@@ -3037,7 +3086,7 @@ msgstr "Interfaz experimental DolphinQt2"
 
 #: Source/Core/DolphinQt2/InDevelopmentWarning.cpp:45
 msgid "Don't show me this warning again"
-msgstr ""
+msgstr "Entendido, no volver a advertir"
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:332
 msgid "Done compressing disc image."
@@ -3057,19 +3106,19 @@ msgstr "Descargar códigos (base de datos de WiiRD)"
 
 #: Source/Core/DolphinQt2/Config/GeckoCodeWidget.cpp:201
 msgid "Download complete"
-msgstr ""
+msgstr "Se ha terminado la descarga"
 
 #: Source/Core/DolphinQt2/Config/GeckoCodeWidget.cpp:202
 msgid "Downloaded %1 codes. (added %2)"
-msgstr ""
+msgstr "Se descargaron %1 códigos. (%2 de ellos nuevos)"
 
 #: Source/Core/DolphinWX/Cheats/GeckoCodeDiag.cpp:199
 #, c-format
 msgid "Downloaded %lu codes. (added %lu)"
 msgstr "Se descargaron %lu códigos. (%lu añadidos)"
 
-#: Source/Core/DolphinQt2/Config/Graphics/SoftwareRendererWidget.cpp:82
-#: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:134
+#: Source/Core/DolphinQt2/Config/Graphics/SoftwareRendererWidget.cpp:80
+#: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:130
 msgid "Drawn Object Range"
 msgstr "Distancia de dibujado de objetos"
 
@@ -3094,13 +3143,13 @@ msgstr "Falso"
 msgid "Dump"
 msgstr "Volcar"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:467
+#: Source/Core/DolphinQt2/MenuBar.cpp:469
 #: Source/Core/DolphinWX/MainMenuBar.cpp:167
 msgid "Dump Audio"
 msgstr "Volcar audio"
 
 #: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:67
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:890
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:850
 msgid "Dump EFB Target"
 msgstr "Volcar superficie EFB"
 
@@ -3112,7 +3161,7 @@ msgstr "Volcar EXRAM"
 msgid "Dump FakeVMEM"
 msgstr "Volcar FakeVMEM"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:461
+#: Source/Core/DolphinQt2/MenuBar.cpp:463
 #: Source/Core/DolphinWX/MainMenuBar.cpp:165
 msgid "Dump Frames"
 msgstr "Volcar cuadros"
@@ -3121,8 +3170,8 @@ msgstr "Volcar cuadros"
 msgid "Dump MRAM"
 msgstr "Volcar MRAM"
 
-#: Source/Core/DolphinQt2/Config/Graphics/SoftwareRendererWidget.cpp:61
-#: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:113
+#: Source/Core/DolphinQt2/Config/Graphics/SoftwareRendererWidget.cpp:59
+#: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:109
 msgid "Dump Objects"
 msgstr "Volcar objetos"
 
@@ -3130,25 +3179,29 @@ msgstr "Volcar objetos"
 msgid "Dump Path:"
 msgstr "Ubicación de volcado:"
 
-#: Source/Core/DolphinQt2/Config/Graphics/SoftwareRendererWidget.cpp:69
-#: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:125
+#: Source/Core/DolphinQt2/Config/Graphics/SoftwareRendererWidget.cpp:67
+#: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:121
 msgid "Dump TEV Stages"
 msgstr "Volcar etapas TEV"
 
-#: Source/Core/DolphinQt2/Config/Graphics/SoftwareRendererWidget.cpp:71
-#: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:127
+#: Source/Core/DolphinQt2/Config/Graphics/SoftwareRendererWidget.cpp:69
+#: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:123
 msgid "Dump Texture Fetches"
 msgstr "Volcar capturas de textura"
 
 #: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:61
-#: Source/Core/DolphinQt2/Config/Graphics/SoftwareRendererWidget.cpp:60
-#: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:111
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:872
+#: Source/Core/DolphinQt2/Config/Graphics/SoftwareRendererWidget.cpp:58
+#: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:107
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:835
 msgid "Dump Textures"
 msgstr "Volcar texturas"
 
-#: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:148
-#: Source/Core/DolphinQt2/Config/Graphics/SoftwareRendererWidget.cpp:168
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:853
+msgid "Dump XFB Target"
+msgstr ""
+
+#: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:146
+#: Source/Core/DolphinQt2/Config/Graphics/SoftwareRendererWidget.cpp:161
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:244
 msgid ""
 "Dump decoded game textures to User/Dump/Textures/<game_id>/.\n"
@@ -3160,7 +3213,7 @@ msgstr ""
 "\n"
 "Si no estás seguro déjala sin marcar."
 
-#: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:157
+#: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:155
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:252
 msgid ""
 "Dump the contents of EFB copies to User/Dump/Textures/.\n"
@@ -3170,6 +3223,13 @@ msgstr ""
 "Vuelca el contenido de las copias de EFB a «User/Dump/Textures/».\n"
 "\n"
 "Si no estás seguro déjala sin marcar."
+
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:254
+msgid ""
+"Dump the contents of XFB copies to User/Dump/Textures/.\n"
+"\n"
+"If unsure, leave this unchecked."
+msgstr ""
 
 #: Source/Core/DolphinWX/Cheats/ActionReplayCodesPanel.cpp:262
 msgid "Duplicate Bundled ActionReplay Code"
@@ -3208,6 +3268,7 @@ msgstr ""
 "Dolphin puede que se necesites reiniciar para que Windows reconozca el nuevo "
 "controlador de dispositivo."
 
+#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:106
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:101
 msgid "Early Memory Updates"
 msgstr "Refresco temprano de memoria"
@@ -3241,7 +3302,7 @@ msgstr "Efectos"
 #: Source/Core/Core/HotkeyManager.cpp:26
 #: Source/Core/DolphinWX/MainMenuBar.cpp:86
 msgid "Eject Disc"
-msgstr ""
+msgstr "Expulsar disco"
 
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:48
 msgid ""
@@ -3251,8 +3312,8 @@ msgstr ""
 "Quitar elementos de los resultados de búsqueda que no coincidan con los "
 "ajustes actuales."
 
-#: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:32
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:708
+#: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:31
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:675
 msgid "Embedded Frame Buffer (EFB)"
 msgstr "Búfer de fotogramas embebido (EFB)"
 
@@ -3264,42 +3325,9 @@ msgstr "Vacío"
 msgid "Emu Thread already running"
 msgstr "El hilo de emulación ya está ejecutándose"
 
-#: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:193
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:240
-msgid ""
-"Emulate XFBs accurately.\n"
-"Slows down emulation a lot and prohibits high-resolution rendering but is "
-"necessary to emulate a number of games properly.\n"
-"\n"
-"If unsure, check virtual XFB emulation instead."
-msgstr ""
-"Emular XFB con exactitud.\n"
-"Ralentiza la emulación en gran medida y hace impráctico el dibujado en alta "
-"resolución, pero es necesario para emular unos cuantos juegos "
-"correctamente.\n"
-"\n"
-"Si no estás seguro, activa Emulación virtual de XFB."
-
-#: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:187
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:236
-msgid ""
-"Emulate XFBs using GPU texture objects.\n"
-"Fixes many games which don't work without XFB emulation while not being as "
-"slow as real XFB emulation. However, it may still fail for a lot of other "
-"games (especially homebrew applications).\n"
-"\n"
-"If unsure, leave this checked."
-msgstr ""
-"Emular XFB usando texturas de objetos de la GPU.\n"
-"Arregla muchos juegos que no funcionan sin la emulación XFB, si bien no es "
-"tan lenta como la emulación real de XFB. Sin embargo, puede fallar con "
-"muchos otros juegos (especialmente aplicaciones caseras).\n"
-"\n"
-"Si no estás seguro deja esta opción marcada."
-
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:263
 msgid "Emulate the Wii's Bluetooth Adapter"
-msgstr ""
+msgstr "Emular el adaptador Bluetooth de la Wii"
 
 #: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:161
 msgid "Emulate the Wii's Bluetooth adapter"
@@ -3320,7 +3348,7 @@ msgid "Emulation State: "
 msgstr "Estado de emulación:"
 
 #: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:49
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:855
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:818
 msgid "Enable API Validation Layers"
 msgstr "Activar capas de validación de la API"
 
@@ -3355,7 +3383,7 @@ msgstr "Activar doble núcleo (más rápido)"
 #: Source/Core/DolphinQt2/Settings/AdvancedPane.cpp:40
 #: Source/Core/DolphinWX/Config/AdvancedConfigPane.cpp:33
 msgid "Enable Emulated CPU Clock Override"
-msgstr ""
+msgstr "Forzar ciclos de reloj de CPU"
 
 #: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:272
 msgid "Enable FPRF"
@@ -3365,12 +3393,12 @@ msgstr "Activar FPRF"
 msgid "Enable MMU"
 msgstr "Activar MMU"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:474
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:441
 msgid "Enable Multi-threading"
 msgstr "Procesamiento multinúcleo."
 
 #: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:88
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:919
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:882
 msgid "Enable Progressive Scan"
 msgstr "Activar escaneo progresivo"
 
@@ -3398,7 +3426,7 @@ msgid "Enable WideScreen"
 msgstr "Activar modo panorámico"
 
 #: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:44
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:847
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:810
 msgid "Enable Wireframe"
 msgstr "Ver alambrado de polígonos"
 
@@ -3429,7 +3457,7 @@ msgstr ""
 msgid "Enable pages"
 msgstr "Activar páginas"
 
-#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:265
+#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:234
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:124
 msgid ""
 "Enable this if you want the whole screen to be used for rendering.\n"
@@ -3443,7 +3471,7 @@ msgstr ""
 "\n"
 "Si no estás seguro déjala sin marcar."
 
-#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:276
+#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:245
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:135
 msgid ""
 "Enable this if you want to use the main Dolphin window for rendering rather "
@@ -3477,7 +3505,7 @@ msgstr ""
 msgid "Enables Wii Remote vibration."
 msgstr "Activa la vibración en el mando de Wii."
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:296
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:298
 msgid ""
 "Enables multi-threading in the video backend, which may result in "
 "performance gains in some scenarios.\n"
@@ -3489,7 +3517,7 @@ msgstr ""
 "\n"
 "Si no estás seguro déjala sin marcar."
 
-#: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:181
+#: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:179
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:138
 msgid ""
 "Enables progressive scan if supported by the emulated software.\n"
@@ -3507,8 +3535,8 @@ msgstr ""
 msgid "Enables stretching of the audio to match emulation speed."
 msgstr "Sincroniza el audio con la velocidad de emulación."
 
-#: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:198
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:307
+#: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:188
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:309
 msgid ""
 "Enables texture decoding using the GPU instead of the CPU. This may result "
 "in performance gains in some scenarios, or on systems where the CPU is the "
@@ -3546,8 +3574,8 @@ msgstr ""
 msgid "Enables the use of Action Replay and Gecko cheats."
 msgstr "Permite usar los trucos «Action Replay» y «Gecko»."
 
-#: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:145
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:293
+#: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:143
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:295
 msgid ""
 "Enables validation of API calls made by the video backend, which may assist "
 "in debugging graphical issues.\n"
@@ -3559,8 +3587,8 @@ msgstr ""
 "\n"
 "Si no estás seguro déjala sin marcar."
 
-#: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:167
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:260
+#: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:165
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:262
 msgid ""
 "Encode frame dumps using the FFV1 codec.\n"
 "\n"
@@ -3571,7 +3599,7 @@ msgstr ""
 "Si no estás seguro déjala sin marcar."
 
 #: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:31
-#: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:143
+#: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:139
 msgid "End"
 msgstr "Fin"
 
@@ -3589,8 +3617,8 @@ msgstr "Inglés"
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:42
 #: Source/Core/DolphinQt2/Config/Graphics/GraphicsWindow.cpp:71
 #: Source/Core/DolphinQt2/Config/Graphics/GraphicsWindow.cpp:101
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:512
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:635
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:479
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:602
 msgid "Enhancements"
 msgstr "Mejoras"
 
@@ -3640,14 +3668,16 @@ msgstr "Igual"
 #: Source/Core/DolphinQt2/Config/GeckoCodeWidget.cpp:175
 #: Source/Core/DolphinQt2/Config/GeckoCodeWidget.cpp:181
 #: Source/Core/DolphinQt2/Config/LogConfigWidget.cpp:44
-#: Source/Core/DolphinQt2/Main.cpp:99 Source/Core/DolphinQt2/MainWindow.cpp:487
-#: Source/Core/DolphinQt2/MainWindow.cpp:680
-#: Source/Core/DolphinQt2/MainWindow.cpp:687
-#: Source/Core/DolphinQt2/MainWindow.cpp:721
-#: Source/Core/DolphinQt2/MainWindow.cpp:737
-#: Source/Core/DolphinQt2/MainWindow.cpp:744
-#: Source/Core/DolphinQt2/MainWindow.cpp:821
-#: Source/Core/DolphinQt2/MenuBar.cpp:617
+#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:187
+#: Source/Core/DolphinQt2/Main.cpp:103
+#: Source/Core/DolphinQt2/MainWindow.cpp:495
+#: Source/Core/DolphinQt2/MainWindow.cpp:695
+#: Source/Core/DolphinQt2/MainWindow.cpp:702
+#: Source/Core/DolphinQt2/MainWindow.cpp:736
+#: Source/Core/DolphinQt2/MainWindow.cpp:752
+#: Source/Core/DolphinQt2/MainWindow.cpp:759
+#: Source/Core/DolphinQt2/MainWindow.cpp:836
+#: Source/Core/DolphinQt2/MenuBar.cpp:619
 #: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:377
 #: Source/Core/DolphinQt2/NetPlay/NetPlaySetupDialog.cpp:235
 #: Source/Core/DolphinQt2/Translation.cpp:288
@@ -3704,13 +3734,13 @@ msgid "Euphoria"
 msgstr "Euforia"
 
 #: Source/Core/DolphinQt2/GameList/GameFile.cpp:219
-#: Source/Core/DolphinQt2/MenuBar.cpp:139
+#: Source/Core/DolphinQt2/MenuBar.cpp:141
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:101
 #: Source/Core/DolphinWX/MainMenuBar.cpp:247
 msgid "Europe"
 msgstr "Europa"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:569
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:536
 msgid "Exclusive"
 msgstr "Siempre"
 
@@ -3727,7 +3757,7 @@ msgstr "Exportar todas las partidas guardadas de Wii"
 msgid "Export Recording"
 msgstr "Exportar grabación"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:415
+#: Source/Core/DolphinQt2/MenuBar.cpp:417
 #: Source/Core/DolphinWX/MainMenuBar.cpp:149
 msgid "Export Recording..."
 msgstr "Exportar grabación..."
@@ -3760,12 +3790,12 @@ msgstr "Exportar partida guardada como..."
 msgid "Extension"
 msgstr "Extensión"
 
-#: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:67
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:786
+#: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:66
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:753
 msgid "External Frame Buffer (XFB)"
 msgstr "Superficie de dibujado externo (XFB)"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:127
+#: Source/Core/DolphinQt2/MenuBar.cpp:129
 #: Source/Core/DolphinWX/MainMenuBar.cpp:243
 msgid "Extract Certificates from NAND"
 msgstr "Extraer certificados de la NAND"
@@ -3810,7 +3840,7 @@ msgstr "Extrayendo todos los archivos"
 
 #: Source/Core/DolphinQt2/Config/FilesystemWidget.cpp:260
 msgid "Extracting All Files..."
-msgstr ""
+msgstr "Extrayendo todos los archivos..."
 
 #: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:371
 msgid "Extracting Directory"
@@ -3818,12 +3848,14 @@ msgstr "Extrayendo carpeta"
 
 #: Source/Core/DolphinQt2/Config/FilesystemWidget.cpp:260
 msgid "Extracting Directory..."
-msgstr ""
+msgstr "Extrayendo carpeta..."
 
 #: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:372
 msgid "Extracting..."
 msgstr "Extrayendo..."
 
+#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:31
+#: Source/Core/DolphinQt2/MenuBar.cpp:119
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:48
 #: Source/Core/DolphinWX/MainMenuBar.cpp:237
 msgid "FIFO Player"
@@ -3845,7 +3877,7 @@ msgstr "¡Hubo un fallo al conectar!"
 msgid "Failed to claim interface for BT passthrough"
 msgstr "No se pudo controlar la interfaz para la cesión de BT real"
 
-#: Source/Core/DolphinQt2/MainWindow.cpp:722
+#: Source/Core/DolphinQt2/MainWindow.cpp:737
 msgid "Failed to connect to server"
 msgstr "No se pudo conectar con el servidor"
 
@@ -3869,17 +3901,17 @@ msgstr "Hubo un fallo al descargar los códigos."
 msgid "Failed to export save files!"
 msgstr "No se pudieron exportar los archivos de guardado."
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:617
+#: Source/Core/DolphinQt2/MenuBar.cpp:619
 msgid "Failed to extract certificates from NAND"
 msgstr "No se han podido extraer los certificados de la NAND."
 
 #: Source/Core/DolphinQt2/Config/FilesystemWidget.cpp:284
 msgid "Failed to extract file."
-msgstr ""
+msgstr "Hubo un fallo al extraer el archivo."
 
 #: Source/Core/DolphinQt2/Config/FilesystemWidget.cpp:236
 msgid "Failed to extract system data."
-msgstr ""
+msgstr "Hubo un fallo al extraer los datos del sistema."
 
 #: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:265
 #, c-format
@@ -3897,12 +3929,12 @@ msgstr ""
 "%s\n"
 "por lo que se sobrescribirá."
 
-#: Source/Core/DolphinQt2/MainWindow.cpp:487
+#: Source/Core/DolphinQt2/MainWindow.cpp:495
 msgid "Failed to init core"
 msgstr "No se pudo iniciar el núcleo"
 
 #: Source/Core/DolphinQt2/GameList/GameList.cpp:343
-#: Source/Core/DolphinQt2/MenuBar.cpp:524
+#: Source/Core/DolphinQt2/MenuBar.cpp:526
 msgid "Failed to install this title to the NAND."
 msgstr "No se ha podido instalar el juego en la NAND."
 
@@ -3910,7 +3942,7 @@ msgstr "No se ha podido instalar el juego en la NAND."
 msgid "Failed to launch"
 msgstr "No se pudo ejecutar"
 
-#: Source/Core/DolphinQt2/MainWindow.cpp:771
+#: Source/Core/DolphinQt2/MainWindow.cpp:786
 msgid ""
 "Failed to listen on port %1. Is another instance of the NetPlay server "
 "running?"
@@ -3924,7 +3956,7 @@ msgstr ""
 "Fallo al recibir conexiones. ¿Hay otra instancia del servidor de juego en "
 "red funcionando?"
 
-#: Source/Core/VideoBackends/D3D/D3DBase.cpp:117
+#: Source/Core/VideoBackends/D3D/D3DBase.cpp:119
 #, c-format
 msgid ""
 "Failed to load %s. If you are using Windows 7, try installing the KB4019990 "
@@ -3937,7 +3969,7 @@ msgstr ""
 msgid "Failed to load the executable to memory."
 msgstr "No se pudo cargar el ejecutable en memoria."
 
-#: Source/Core/DolphinQt2/MainWindow.cpp:821
+#: Source/Core/DolphinQt2/MainWindow.cpp:836
 msgid "Failed to open '%1'"
 msgstr "No se pudo abrir «%1»"
 
@@ -3946,7 +3978,7 @@ msgstr "No se pudo abrir «%1»"
 msgid "Failed to open Bluetooth device: %s"
 msgstr "No se pudo abrir el dispositivo Bluetooth: %s"
 
-#: Source/Core/DolphinQt2/MainWindow.cpp:769
+#: Source/Core/DolphinQt2/MainWindow.cpp:784
 msgid "Failed to open server"
 msgstr "No se pudo contactar con el servidor"
 
@@ -3968,7 +4000,7 @@ msgstr ""
 "Comprueba que tienes permisos de escritura en la carpeta de destino y que el "
 "archivo se puede escribir."
 
-#: Source/Core/Core/Movie.cpp:927
+#: Source/Core/Core/Movie.cpp:936
 #, c-format
 msgid "Failed to read %s"
 msgstr "Error al leer %s"
@@ -4038,6 +4070,10 @@ msgstr "Fallo al leer la ID única de la imagen de disco"
 msgid "Failed to remove this title from the NAND."
 msgstr "No se ha podido desinstalar el juego de la NAND."
 
+#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:187
+msgid "Failed to save FIFO log."
+msgstr ""
+
 #: Source/Core/Core/IOS/USB/Bluetooth/BTEmu.cpp:85
 msgid "Failed to write BT.DINF to SYSCONF"
 msgstr "Fallo al escribir BT.DINF a SYSCONF"
@@ -4052,17 +4088,17 @@ msgstr ""
 "No se pudo escribir el archivo de salida «%s».\n"
 "Comprueba que tienes espacio suficiente disponible en la unidad de destino."
 
-#: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:63
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:755
+#: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:62
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:722
 msgid "Fast"
 msgstr "Rápido"
 
-#: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:84
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:811
+#: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:83
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:774
 msgid "Fast Depth Calculation"
 msgstr "Cálculo de profundidad rápido"
 
-#: Source/Core/Core/Movie.cpp:1220
+#: Source/Core/Core/Movie.cpp:1226
 #, c-format
 msgid ""
 "Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s"
@@ -4074,13 +4110,14 @@ msgstr ""
 msgid "File"
 msgstr "Archivo"
 
+#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:64
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:103
 msgid "File Info"
 msgstr "Información del archivo"
 
 #: Source/Core/DolphinQt2/GameList/GameList.cpp:495
 #: Source/Core/DolphinQt2/GameList/GameListModel.cpp:134
-#: Source/Core/DolphinQt2/MenuBar.cpp:322
+#: Source/Core/DolphinQt2/MenuBar.cpp:324
 #: Source/Core/DolphinWX/MainMenuBar.cpp:314
 msgid "File Name"
 msgstr "Nombre del archivo"
@@ -4089,7 +4126,7 @@ msgstr "Nombre del archivo"
 msgid "File Path:"
 msgstr "Ruta del archivo:"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:325
+#: Source/Core/DolphinQt2/MenuBar.cpp:327
 #: Source/Core/DolphinWX/MainMenuBar.cpp:320
 msgid "File Size"
 msgstr "Tamaño del archivo"
@@ -4229,21 +4266,21 @@ msgstr "Cmd de niebla"
 msgid "Follow &branch"
 msgstr "Seguir &rama"
 
-#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:52
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:422
+#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:51
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:389
 msgid "Force 16:9"
 msgstr "Forzar 16:9"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:629
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:596
 msgid "Force 24-Bit Color"
-msgstr ""
+msgstr "Forzar color de 24-bit"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:75
 msgid "Force 24-bit Color"
 msgstr "Forzar color de 24-bit"
 
-#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:52
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:422
+#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:51
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:389
 msgid "Force 4:3"
 msgstr "Forzar 4:3"
 
@@ -4253,7 +4290,7 @@ msgid "Force Listen Port:"
 msgstr "Forzar escucha en puerto:"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:71
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:622
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:589
 msgid "Force Texture Filtering"
 msgstr "Forzar filtrado de texturas"
 
@@ -4282,7 +4319,7 @@ msgstr ""
 "Si no estás seguro déjala sin marcar."
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:278
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:299
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:301
 msgid ""
 "Forces the game to render the RGB color channels in 24-bit, thereby "
 "increasing quality by reducing color banding.\n"
@@ -4314,7 +4351,7 @@ msgstr "Adelante"
 
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:225
 msgid "Forward Port (UPnP)"
-msgstr ""
+msgstr "Reenviar puerto (UPnP)"
 
 #: Source/Core/DolphinQt2/NetPlay/NetPlaySetupDialog.cpp:111
 msgid "Forward port (UPnP)"
@@ -4328,7 +4365,7 @@ msgstr "Encontrado %u resultados para '"
 #: Source/Core/Core/HW/WiiSaveCrypted.cpp:88
 #, c-format
 msgid "Found %zu save file(s)"
-msgstr ""
+msgstr "Se han encontrado %zu archivos de guardado"
 
 #: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:48
 msgid "Frame"
@@ -4366,7 +4403,7 @@ msgid "Frame Buffer"
 msgstr "Búfer de cuadros"
 
 #: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:69
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:896
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:859
 msgid "Frame Dumps Use FFV1"
 msgstr "Usar FFV1 al volcar fotogramas"
 
@@ -4374,11 +4411,12 @@ msgstr "Usar FFV1 al volcar fotogramas"
 msgid "Frame Info"
 msgstr "Información de fotograma"
 
+#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:89
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:113
 msgid "Frame Range"
 msgstr "Información de la grabación"
 
-#: Source/Core/VideoCommon/RenderBase.cpp:865
+#: Source/Core/VideoCommon/RenderBase.cpp:955
 #, c-format
 msgid "Frame dump image(s) '%s' already exists. Overwrite?"
 msgstr "Ya existe un volcado de imagen(es) llamado «%s». ¿Quieres sustituirlo?"
@@ -4387,13 +4425,17 @@ msgstr "Ya existe un volcado de imagen(es) llamado «%s». ¿Quieres sustituirlo
 msgid "Frames to Record"
 msgstr "Fotogramas a grabar"
 
+#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:117
+msgid "Frames to Record:"
+msgstr ""
+
 #: Source/Core/DolphinQt2/GameList/GameFile.cpp:227
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:103
 msgid "France"
 msgstr "Francia"
 
 #: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:68
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:893
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:856
 msgid "Free Look"
 msgstr "Cámara libre"
 
@@ -4402,43 +4444,43 @@ msgstr "Cámara libre"
 msgid "Freelook"
 msgstr "Cámara libre"
 
-#: Source/Core/Core/HotkeyManager.cpp:84
+#: Source/Core/Core/HotkeyManager.cpp:86
 msgid "Freelook Decrease Speed"
 msgstr "Desacelerar cámara libre"
 
-#: Source/Core/Core/HotkeyManager.cpp:85
+#: Source/Core/Core/HotkeyManager.cpp:87
 msgid "Freelook Increase Speed"
 msgstr "Acelerar cámara libre"
 
-#: Source/Core/Core/HotkeyManager.cpp:88
+#: Source/Core/Core/HotkeyManager.cpp:90
 msgid "Freelook Move Down"
 msgstr "Bajar cámara libre"
 
-#: Source/Core/Core/HotkeyManager.cpp:89
+#: Source/Core/Core/HotkeyManager.cpp:91
 msgid "Freelook Move Left"
 msgstr "Mover cámara libre a la izquierda"
 
-#: Source/Core/Core/HotkeyManager.cpp:90
+#: Source/Core/Core/HotkeyManager.cpp:92
 msgid "Freelook Move Right"
 msgstr "Mover cámara libre a la derecha"
 
-#: Source/Core/Core/HotkeyManager.cpp:87
+#: Source/Core/Core/HotkeyManager.cpp:89
 msgid "Freelook Move Up"
 msgstr "Subir cámara libre"
 
-#: Source/Core/Core/HotkeyManager.cpp:93
+#: Source/Core/Core/HotkeyManager.cpp:95
 msgid "Freelook Reset"
 msgstr "Restablecer cámara libre"
 
-#: Source/Core/Core/HotkeyManager.cpp:86
+#: Source/Core/Core/HotkeyManager.cpp:88
 msgid "Freelook Reset Speed"
 msgstr "Restablecer velocidad de cámara libre"
 
-#: Source/Core/Core/HotkeyManager.cpp:91
+#: Source/Core/Core/HotkeyManager.cpp:93
 msgid "Freelook Zoom In"
 msgstr "Acercar cámara libre"
 
-#: Source/Core/Core/HotkeyManager.cpp:92
+#: Source/Core/Core/HotkeyManager.cpp:94
 msgid "Freelook Zoom Out"
 msgstr "Alejar cámara libre"
 
@@ -4459,20 +4501,15 @@ msgstr "Trastes"
 msgid "From"
 msgstr "Desde"
 
-#: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:65
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:885
-msgid "Full Resolution Frame Dumps"
-msgstr "Volcados de pantalla en resolución original"
+#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:78
+#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:93
+msgid "From:"
+msgstr ""
 
 #: Source/Core/DolphinQt2/ToolBar.cpp:54
 #: Source/Core/DolphinWX/MainToolBar.cpp:182
 msgid "FullScr"
 msgstr "Pant. completa"
-
-#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:78
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:402
-msgid "Fullscreen Resolution:"
-msgstr "Resolución en pantalla completa:"
 
 #: Source/Core/DolphinWX/Debugger/BreakpointView.cpp:35
 msgid "Function"
@@ -4540,8 +4577,8 @@ msgstr ""
 "Se enviarán errores adicionales al registro del «backend» de vídeo, y es "
 "probable que Dolphin se cuelgue en breve. ¡Buena suerte!"
 
-#: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:55
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:761
+#: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:54
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:728
 msgid "GPU Texture Decoding"
 msgstr "Decodificar texturas en GPU"
 
@@ -4553,7 +4590,7 @@ msgstr "Cartuchos de Game Boy Advance (*.gba)"
 msgid "Game Folders"
 msgstr "Carpetas de juego"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:323
+#: Source/Core/DolphinQt2/MenuBar.cpp:325
 #: Source/Core/DolphinWX/MainMenuBar.cpp:316
 msgid "Game ID"
 msgstr "Id. de juego"
@@ -4665,7 +4702,7 @@ msgstr "Códigos Gecko"
 #: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:108
 #: Source/Core/DolphinWX/PostProcessingConfigDiag.cpp:130
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:46
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:337
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:339
 msgid "General"
 msgstr "General"
 
@@ -4756,7 +4793,7 @@ msgstr "Verde izquierda"
 msgid "Green Right"
 msgstr "Verde derecha"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:299
+#: Source/Core/DolphinQt2/MenuBar.cpp:301
 msgid "Grid View"
 msgstr "Vista en cuadrícula"
 
@@ -4769,17 +4806,17 @@ msgstr "Guitarra"
 msgid "Guitar Configuration"
 msgstr "Configuración de la guitarra"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:653
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:620
 msgid "HDMI 3D"
 msgstr "HDMI 3D"
 
 #: Source/Core/DolphinQt2/Config/Graphics/GraphicsWindow.cpp:72
 #: Source/Core/DolphinQt2/Config/Graphics/GraphicsWindow.cpp:102
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:703
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:670
 msgid "Hacks"
 msgstr "Arreglos temporales"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:770
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:737
 #, c-format
 msgid ""
 "Hash tap count is set to %d which is non-standard.\n"
@@ -4809,11 +4846,11 @@ msgstr "Hexadecimal"
 msgid "Hide"
 msgstr "Esconder"
 
-#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:100
+#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:88
 msgid "Hide Mouse Cursor"
 msgstr "Esconder cursor"
 
-#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:273
+#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:242
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:132
 msgid ""
 "Hides the mouse cursor if it's on top of the emulation window.\n"
@@ -4857,13 +4894,13 @@ msgstr "Anfitrión con juego en red"
 msgid "Hotkey Settings"
 msgstr "Ajustes de atajos"
 
-#: Source/Core/Core/HotkeyManager.cpp:166
+#: Source/Core/Core/HotkeyManager.cpp:168
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:323
 #: Source/Core/DolphinQt2/Config/Mapping/WiimoteEmuGeneral.cpp:37
 msgid "Hotkeys"
 msgstr "Atajos del teclado"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:569
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:536
 msgid "Hybrid"
 msgstr "Híbridos"
 
@@ -4876,7 +4913,7 @@ msgstr "Mando Wii híbrido"
 #: Source/Core/DolphinQt2/GameList/GameListModel.cpp:126
 #: Source/Core/DolphinWX/GameListCtrl.cpp:467
 msgid "ID"
-msgstr "ID"
+msgstr "Id."
 
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:232
 msgid "IOS Version:"
@@ -4952,7 +4989,7 @@ msgstr "Icono"
 msgid "Identity Generation"
 msgstr "Generación de identidad"
 
-#: Source/Core/DolphinQt2/Main.cpp:127
+#: Source/Core/DolphinQt2/Main.cpp:131
 msgid ""
 "If authorized, Dolphin can collect data on its performance, feature usage, "
 "and configuration, as well as data on your system's hardware and operating "
@@ -5002,12 +5039,12 @@ msgstr ""
 "\n"
 "¿Nos permites compartir estos datos con los desarrolladores de Dolphin?"
 
-#: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:37
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:715
+#: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:36
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:682
 msgid "Ignore Format Changes"
 msgstr "Ignorar cambios de formato"
 
-#: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:169
+#: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:161
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:197
 msgid ""
 "Ignore any changes to the EFB format.\n"
@@ -5023,7 +5060,7 @@ msgstr ""
 "\n"
 "Si no estás seguro déjala marcada."
 
-#: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:165
+#: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:157
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:193
 msgid ""
 "Ignore any requests from the CPU to read from or write to the EFB.\n"
@@ -5039,7 +5076,12 @@ msgstr ""
 "\n"
 "Si no estás seguro déjala sin marcar."
 
-#: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:185
+#: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:72
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:761
+msgid "Immediately Present XFB"
+msgstr ""
+
+#: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:183
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:182
 msgid ""
 "Implement fullscreen mode with a borderless window spanning the whole screen "
@@ -5063,7 +5105,7 @@ msgstr ""
 "\n"
 "Si no estás seguro déjala sin marcar."
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:124
+#: Source/Core/DolphinQt2/MenuBar.cpp:126
 #: Source/Core/DolphinWX/MainMenuBar.cpp:241
 msgid "Import BootMii NAND Backup..."
 msgstr "Importar copia BootMii NAND de respaldo..."
@@ -5101,12 +5143,12 @@ msgstr ""
 "El archivo importado tiene extensión sav\n"
 "pero no tiene el título correcto."
 
-#: Source/Core/DolphinQt2/MainWindow.cpp:877
+#: Source/Core/DolphinQt2/MainWindow.cpp:892
 #: Source/Core/DolphinWX/FrameTools.cpp:1304
 msgid "Importing NAND backup"
 msgstr "Se está importando la copia de respaldo NAND"
 
-#: Source/Core/DolphinQt2/MainWindow.cpp:888
+#: Source/Core/DolphinQt2/MainWindow.cpp:903
 #, c-format
 msgid ""
 "Importing NAND backup\n"
@@ -5120,11 +5162,11 @@ msgstr ""
 msgid "In Game"
 msgstr "En juego"
 
-#: Source/Core/Core/HotkeyManager.cpp:102
+#: Source/Core/Core/HotkeyManager.cpp:104
 msgid "Increase Convergence"
 msgstr "Aumentar convergencia"
 
-#: Source/Core/Core/HotkeyManager.cpp:100
+#: Source/Core/Core/HotkeyManager.cpp:102
 msgid "Increase Depth"
 msgstr "Aumentar profundidad"
 
@@ -5133,7 +5175,7 @@ msgid "Increase Emulation Speed"
 msgstr "Subir velocidad de emulación"
 
 #. i18n: IR stands for internal resolution
-#: Source/Core/Core/HotkeyManager.cpp:80
+#: Source/Core/Core/HotkeyManager.cpp:82
 msgid "Increase IR"
 msgstr "Aumentar IR"
 
@@ -5201,6 +5243,8 @@ msgid ""
 "Integrity check for partition failed. The disc image is most likely "
 "corrupted or has been patched incorrectly."
 msgstr ""
+"Ha fallado la comprobación de integridad de la partición. Es posible que la "
+"imagen de disco esté dañada o haya sido parcheada de forma incorrecta."
 
 #: Source/Core/DolphinQt2/Config/SettingsWindow.cpp:43
 #: Source/Core/DolphinWX/Config/ConfigMain.cpp:85
@@ -5238,8 +5282,13 @@ msgstr "Nombre interno:"
 msgid "Internal Resolution"
 msgstr "Resolución interna"
 
+#: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:65
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:846
+msgid "Internal Resolution Frame Dumps"
+msgstr ""
+
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:77
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:537
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:504
 msgid "Internal Resolution:"
 msgstr "Resolución interna:"
 
@@ -5277,7 +5326,7 @@ msgstr "Host no válido"
 msgid "Invalid index"
 msgstr "Índice no válido"
 
-#: Source/Core/Core/Movie.cpp:870
+#: Source/Core/Core/Movie.cpp:879
 msgid "Invalid recording file"
 msgstr "Archivo de grabación erróneo"
 
@@ -5294,9 +5343,9 @@ msgid "Invalid search string (only even string lengths supported)"
 msgstr ""
 "La cadena de búsqueda no vale (solo se permiten tamaños de texto pares)"
 
-#: Source/Core/DolphinQt2/Main.cpp:99
+#: Source/Core/DolphinQt2/Main.cpp:103
 msgid "Invalid title ID."
-msgstr ""
+msgstr "Id. de juego incorrecto."
 
 #: Source/Core/DolphinWX/Cheats/CreateCodeDialog.cpp:77
 msgid "Invalid value."
@@ -5319,7 +5368,7 @@ msgstr "Italiano"
 msgid "Italy"
 msgstr "Italia"
 
-#: Source/Core/Core/HW/GCKeyboardEmu.cpp:84 Source/Core/Core/HW/GCPadEmu.cpp:87
+#: Source/Core/Core/HW/GCKeyboardEmu.cpp:84 Source/Core/Core/HW/GCPadEmu.cpp:91
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:316
 #: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:65
 msgid "Iterative Input"
@@ -5339,7 +5388,7 @@ msgid "JIT Recompiler (recommended)"
 msgstr "Recompilador JIT (recomendado)"
 
 #: Source/Core/DolphinQt2/GameList/GameFile.cpp:221
-#: Source/Core/DolphinQt2/MenuBar.cpp:141
+#: Source/Core/DolphinQt2/MenuBar.cpp:143
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:117
 #: Source/Core/DolphinWX/MainMenuBar.cpp:248
 msgid "Japan"
@@ -5351,13 +5400,13 @@ msgstr "Japón"
 msgid "Japanese"
 msgstr "Japonés"
 
-#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:99
+#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:87
 #: Source/Core/DolphinQt2/Settings/InterfacePane.cpp:123
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:461
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:428
 msgid "Keep Window on Top"
 msgstr "Mantener siempre en primer plano"
 
-#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:271
+#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:240
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:130
 msgid ""
 "Keep the game window on top of all other windows.\n"
@@ -5389,7 +5438,7 @@ msgid "Kick Player"
 msgstr "Echar al jugador"
 
 #: Source/Core/DolphinQt2/GameList/GameFile.cpp:233
-#: Source/Core/DolphinQt2/MenuBar.cpp:143
+#: Source/Core/DolphinQt2/MenuBar.cpp:145
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:119
 #: Source/Core/DolphinWX/MainMenuBar.cpp:249
 msgid "Korea"
@@ -5509,11 +5558,11 @@ msgstr ""
 "Ten en cuenta que subir o bajar la velocidad de emulación también afectará "
 "al tono del audio, hacemos esto para intentar prevenir los cortes de sonido."
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:329
+#: Source/Core/DolphinQt2/MenuBar.cpp:331
 msgid "List Columns"
 msgstr "Columnas en la lista"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:296
+#: Source/Core/DolphinQt2/MenuBar.cpp:298
 msgid "List View"
 msgstr "Vista en cuadrícula"
 
@@ -5534,7 +5583,7 @@ msgid "Load &Other Map File..."
 msgstr "Cargar archiv&o de mapa adicional..."
 
 #: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:62
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:875
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:838
 msgid "Load Custom Textures"
 msgstr "Cargar texturas personalizadas"
 
@@ -5559,101 +5608,101 @@ msgstr "Carga un menú principal NTSC-U de GameCube desde la carpeta USA."
 msgid "Load PAL GameCube Main Menu from the EUR folder."
 msgstr "Carga un menú principal PAL de GameCube desde la carpeta EUR."
 
-#: Source/Core/Core/HotkeyManager.cpp:154
+#: Source/Core/Core/HotkeyManager.cpp:156
 #: Source/Core/Core/HotkeyManager.cpp:258
 msgid "Load State"
 msgstr "Cargar estado"
 
-#: Source/Core/Core/HotkeyManager.cpp:139
+#: Source/Core/Core/HotkeyManager.cpp:141
 msgid "Load State Last 1"
 msgstr "Cargar último estado 1"
 
-#: Source/Core/Core/HotkeyManager.cpp:148
+#: Source/Core/Core/HotkeyManager.cpp:150
 msgid "Load State Last 10"
 msgstr "Cargar último estado 10"
 
-#: Source/Core/Core/HotkeyManager.cpp:140
+#: Source/Core/Core/HotkeyManager.cpp:142
 msgid "Load State Last 2"
 msgstr "Cargar último estado 2"
 
-#: Source/Core/Core/HotkeyManager.cpp:141
+#: Source/Core/Core/HotkeyManager.cpp:143
 msgid "Load State Last 3"
 msgstr "Cargar último estado 3"
 
-#: Source/Core/Core/HotkeyManager.cpp:142
+#: Source/Core/Core/HotkeyManager.cpp:144
 msgid "Load State Last 4"
 msgstr "Cargar último estado 4"
 
-#: Source/Core/Core/HotkeyManager.cpp:143
+#: Source/Core/Core/HotkeyManager.cpp:145
 msgid "Load State Last 5"
 msgstr "Cargar último estado 5"
 
-#: Source/Core/Core/HotkeyManager.cpp:144
+#: Source/Core/Core/HotkeyManager.cpp:146
 msgid "Load State Last 6"
 msgstr "Cargar último estado 6"
 
-#: Source/Core/Core/HotkeyManager.cpp:145
+#: Source/Core/Core/HotkeyManager.cpp:147
 msgid "Load State Last 7"
 msgstr "Cargar último estado 7"
 
-#: Source/Core/Core/HotkeyManager.cpp:146
+#: Source/Core/Core/HotkeyManager.cpp:148
 msgid "Load State Last 8"
 msgstr "Cargar último estado 8"
 
-#: Source/Core/Core/HotkeyManager.cpp:147
+#: Source/Core/Core/HotkeyManager.cpp:149
 msgid "Load State Last 9"
 msgstr "Cargar último estado 9"
 
-#: Source/Core/Core/HotkeyManager.cpp:104
+#: Source/Core/Core/HotkeyManager.cpp:106
 msgid "Load State Slot 1"
 msgstr "Cargar estado 1"
 
-#: Source/Core/Core/HotkeyManager.cpp:113
+#: Source/Core/Core/HotkeyManager.cpp:115
 msgid "Load State Slot 10"
 msgstr "Cargar estado 10"
 
-#: Source/Core/Core/HotkeyManager.cpp:105
+#: Source/Core/Core/HotkeyManager.cpp:107
 msgid "Load State Slot 2"
 msgstr "Cargar estado 2"
 
-#: Source/Core/Core/HotkeyManager.cpp:106
+#: Source/Core/Core/HotkeyManager.cpp:108
 msgid "Load State Slot 3"
 msgstr "Cargar estado 3"
 
-#: Source/Core/Core/HotkeyManager.cpp:107
+#: Source/Core/Core/HotkeyManager.cpp:109
 msgid "Load State Slot 4"
 msgstr "Cargar estado 4"
 
-#: Source/Core/Core/HotkeyManager.cpp:108
+#: Source/Core/Core/HotkeyManager.cpp:110
 msgid "Load State Slot 5"
 msgstr "Cargar estado 5"
 
-#: Source/Core/Core/HotkeyManager.cpp:109
+#: Source/Core/Core/HotkeyManager.cpp:111
 msgid "Load State Slot 6"
 msgstr "Cargar estado 6"
 
-#: Source/Core/Core/HotkeyManager.cpp:110
+#: Source/Core/Core/HotkeyManager.cpp:112
 msgid "Load State Slot 7"
 msgstr "Cargar estado 7"
 
-#: Source/Core/Core/HotkeyManager.cpp:111
+#: Source/Core/Core/HotkeyManager.cpp:113
 msgid "Load State Slot 8"
 msgstr "Cargar estado 8"
 
-#: Source/Core/Core/HotkeyManager.cpp:112
+#: Source/Core/Core/HotkeyManager.cpp:114
 msgid "Load State Slot 9"
 msgstr "Cargar estado 9"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:172
+#: Source/Core/DolphinQt2/MenuBar.cpp:174
 msgid "Load State from File"
 msgstr "Cargar estado desde un archivo"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:173
+#: Source/Core/DolphinQt2/MenuBar.cpp:175
 #: Source/Core/DolphinWX/MainMenuBar.cpp:100
 msgid "Load State from Selected Slot"
 msgstr "Cargar estado desde la ranura seleccionada"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:174
+#: Source/Core/DolphinQt2/MenuBar.cpp:176
 msgid "Load State from Slot"
 msgstr "Cargar estado desde una ranura"
 
@@ -5670,7 +5719,7 @@ msgstr "Cargar partida de Wii"
 msgid "Load Wii System Menu"
 msgstr "Cargar menú del sistema Wii"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:496
+#: Source/Core/DolphinQt2/MenuBar.cpp:498
 msgid "Load Wii System Menu %1"
 msgstr "Cargar menú del sistema Wii %1"
 
@@ -5694,7 +5743,7 @@ msgstr ""
 msgid "Load bad map file"
 msgstr "Cargar archivo de mapa malo"
 
-#: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:151
+#: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:149
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:247
 msgid ""
 "Load custom textures from User/Load/Textures/<game_id>/.\n"
@@ -5705,17 +5754,21 @@ msgstr ""
 "\n"
 "Si no estás seguro déjala sin marcar."
 
-#: Source/Core/Core/HotkeyManager.cpp:114
+#: Source/Core/Core/HotkeyManager.cpp:116
 msgid "Load from Selected Slot"
-msgstr ""
+msgstr "Cargar desde la ranura seleccionada"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:228
+#: Source/Core/DolphinQt2/MenuBar.cpp:230
 msgid "Load from Slot %1 - %2"
 msgstr "Cargar desde la ranura %1 - %2"
 
 #: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:262
 msgid "Load map file"
 msgstr "Cargar archivo de mapa"
+
+#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:130
+msgid "Load..."
+msgstr ""
 
 #: Source/Core/Core/PowerPC/PPCSymbolDB.cpp:387
 #, c-format
@@ -5739,8 +5792,8 @@ msgstr "Registrar"
 msgid "Log Configuration"
 msgstr "Configuración de registro"
 
-#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:95
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:452
+#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:83
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:419
 msgid "Log Render Time to File"
 msgstr "Guardar tiempos de dibujado en archivo"
 
@@ -5749,8 +5802,8 @@ msgstr "Guardar tiempos de dibujado en archivo"
 msgid "Log Types"
 msgstr "Tipos de registro"
 
-#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:293
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:221
+#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:262
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:232
 msgid ""
 "Log the render time of every frame to User/Logs/render_time.txt. Use this "
 "feature when you want to measure the performance of Dolphin.\n"
@@ -5822,7 +5875,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt2/GameList/GameList.cpp:490
 #: Source/Core/DolphinQt2/GameList/GameListModel.cpp:132
-#: Source/Core/DolphinQt2/MenuBar.cpp:321
+#: Source/Core/DolphinQt2/MenuBar.cpp:323
 #: Source/Core/DolphinWX/GameListCtrl.cpp:465
 #: Source/Core/DolphinWX/MainMenuBar.cpp:312
 msgid "Maker"
@@ -5839,7 +5892,7 @@ msgid "Maker:"
 msgstr "Creador:"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:257
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:211
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:222
 msgid ""
 "Makes distant objects more visible by removing fog, thus increasing the "
 "overall detail.\n"
@@ -5942,7 +5995,7 @@ msgstr "MemoryCard: Lectura en dirección de destino incorrecta (0x%x)"
 msgid "MemoryCard: Write called with invalid destination address (0x%x)"
 msgstr "MemoryCard: Escritura en dirección de destino incorrecta (0x%x)"
 
-#: Source/Core/DolphinQt2/MainWindow.cpp:859
+#: Source/Core/DolphinQt2/MainWindow.cpp:874
 #: Source/Core/DolphinWX/FrameTools.cpp:1290
 msgid ""
 "Merging a new NAND over your currently selected NAND will overwrite any "
@@ -5965,7 +6018,7 @@ msgid "Min"
 msgstr "Mín."
 
 #: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:82
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:938
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:901
 msgid "Misc"
 msgstr "Varios"
 
@@ -5978,8 +6031,8 @@ msgstr "Otros ajustes"
 msgid "Modifier"
 msgstr "Modificador"
 
-#: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:142
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:230
+#: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:140
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:241
 msgid ""
 "Modify textures to show the format they're encoded in. Needs an emulation "
 "reset in most cases.\n"
@@ -6039,16 +6092,16 @@ msgstr ""
 "los nombres de las funciones de biblioteca estándar utilizadas por múltiples "
 "juegos, cargándolos desde un archivo «.dsy», «.csv» o «.mega»."
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:551
-#: Source/Core/DolphinQt2/MenuBar.cpp:594
-#: Source/Core/DolphinQt2/MenuBar.cpp:599
-#: Source/Core/DolphinQt2/MenuBar.cpp:603
+#: Source/Core/DolphinQt2/MenuBar.cpp:553
+#: Source/Core/DolphinQt2/MenuBar.cpp:596
+#: Source/Core/DolphinQt2/MenuBar.cpp:601
+#: Source/Core/DolphinQt2/MenuBar.cpp:605
 #: Source/Core/DolphinWX/FrameTools.cpp:1323
 #: Source/Core/DolphinWX/FrameTools.cpp:1367
 #: Source/Core/DolphinWX/FrameTools.cpp:1372
 #: Source/Core/DolphinWX/FrameTools.cpp:1378
 msgid "NAND Check"
-msgstr ""
+msgstr "Verificar NAND"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:635
 msgid "NOTE: Stream size doesn't match actual data length\n"
@@ -6081,7 +6134,7 @@ msgid "Name: "
 msgstr "Nombre:"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:46
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:523
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:490
 msgid "Native (640x528)"
 msgstr "Nativa (640x528)"
 
@@ -6138,7 +6191,7 @@ msgstr "No se ha detectado ningún adaptador"
 
 #: Source/Core/Core/ConfigManager.h:35
 msgid "No Audio Output"
-msgstr ""
+msgstr "Sin salida de audio"
 
 #: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:480
 msgid "No Match"
@@ -6161,6 +6214,10 @@ msgstr "No has elegido ninguna extensión."
 msgid "No file loaded"
 msgstr "No se ha cargado ningún fichero"
 
+#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:268
+msgid "No file loaded / recorded."
+msgstr ""
+
 #: Source/Core/DolphinWX/MemcardManager.cpp:429
 msgid "No free directory index entries."
 msgstr "No hay entradas de índice de directorio libres."
@@ -6169,10 +6226,10 @@ msgstr "No hay entradas de índice de directorio libres."
 msgid "No game is running."
 msgstr "No hay ningún juego en ejecución."
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:551
+#: Source/Core/DolphinQt2/MenuBar.cpp:553
 #: Source/Core/DolphinWX/FrameTools.cpp:1323
 msgid "No issues have been detected."
-msgstr ""
+msgstr "No se ha detectado ningún problema."
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:918
 msgid "No recorded file"
@@ -6191,7 +6248,7 @@ msgstr ""
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:51
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:313
 #: Source/Core/DolphinWX/NetPlay/PadMapDialog.cpp:27
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:1316
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:1248
 msgid "None"
 msgstr "Ninguno"
 
@@ -6235,7 +6292,7 @@ msgstr "Sin implementar."
 
 #: Source/Core/DolphinWX/Cheats/GeckoCodeDiag.cpp:30
 msgid "Notes:"
-msgstr ""
+msgstr "Notas:"
 
 #: Source/Core/DolphinQt2/Config/LogConfigWidget.cpp:43
 #: Source/Core/DolphinWX/FrameAui.cpp:82 Source/Core/DolphinWX/FrameAui.cpp:86
@@ -6273,7 +6330,7 @@ msgstr "Orientación del Nunchuk"
 msgid "Nunchuk stick"
 msgstr "Palanca del Nunchuk"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:653
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:620
 msgid "Nvidia 3D Vision"
 msgstr "Nvidia 3D Vision"
 
@@ -6282,13 +6339,14 @@ msgstr "Nvidia 3D Vision"
 msgid "Object %zu"
 msgstr "Objeto %zu"
 
+#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:74
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:125
 msgid "Object Range"
 msgstr "Rango de objeto"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:100
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:652
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:1274
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:619
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:1206
 msgid "Off"
 msgstr "No"
 
@@ -6296,7 +6354,7 @@ msgstr "No"
 msgid "Offset:"
 msgstr "Offset:"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:281
+#: Source/Core/DolphinQt2/MenuBar.cpp:283
 #: Source/Core/DolphinWX/MainMenuBar.cpp:524
 msgid "Online &Documentation"
 msgstr "&Documentación en línea"
@@ -6328,6 +6386,10 @@ msgstr "Abrir"
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1153
 msgid "Open &containing folder"
 msgstr "Abrir ubi&cación"
+
+#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:165
+msgid "Open FIFO log"
+msgstr ""
 
 #: Source/Core/DolphinQt2/GameList/GameList.cpp:220
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1139
@@ -6391,10 +6453,10 @@ msgstr ""
 msgid "Orientation"
 msgstr "Orientación"
 
-#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:89
-#: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:79
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:491
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:823
+#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:77
+#: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:78
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:458
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:786
 msgid "Other"
 msgstr "Otros"
 
@@ -6415,8 +6477,8 @@ msgstr "Otro juego"
 msgid "Output"
 msgstr "Salida"
 
-#: Source/Core/DolphinQt2/Config/Graphics/SoftwareRendererWidget.cpp:51
-#: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:89
+#: Source/Core/DolphinQt2/Config/Graphics/SoftwareRendererWidget.cpp:49
+#: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:85
 msgid "Overlay Information"
 msgstr "Superponer información"
 
@@ -6424,7 +6486,7 @@ msgstr "Superponer información"
 msgid "Override Language on NTSC Games"
 msgstr "Forzar selección de idioma en los juegos NTSC"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:411
+#: Source/Core/DolphinQt2/MenuBar.cpp:413
 #: Source/Core/DolphinWX/MainMenuBar.cpp:147
 msgid "P&lay Input Recording..."
 msgstr "Reproducir pu&lsaciones grabadas..."
@@ -6461,7 +6523,7 @@ msgstr "No se entiende el formato"
 
 #: Source/Core/DolphinQt2/Config/FilesystemWidget.cpp:88
 msgid "Partition %1"
-msgstr ""
+msgstr "Partición %1"
 
 #: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:162
 #, c-format
@@ -6470,7 +6532,7 @@ msgstr "Partición %zu"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:252
 msgid "Passthrough a Bluetooth Adapter"
-msgstr ""
+msgstr "Ceder el control de un adaptador Bluetooth real"
 
 #: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:155
 msgid "Passthrough a Bluetooth adapter"
@@ -6498,7 +6560,7 @@ msgstr "Pausa"
 msgid "Pause After"
 msgstr "Pausar después"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:429
+#: Source/Core/DolphinQt2/MenuBar.cpp:431
 #: Source/Core/DolphinWX/MainMenuBar.cpp:153
 msgid "Pause at End of Movie"
 msgstr "Pausar al terminar la grabación"
@@ -6515,7 +6577,7 @@ msgstr ""
 "emulación y estés utilizando otro programa."
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:69
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:619
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:586
 msgid "Per-Pixel Lighting"
 msgstr "Iluminación por píxel"
 
@@ -6523,7 +6585,7 @@ msgstr "Iluminación por píxel"
 msgid "Perfect"
 msgstr "Perfecto"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:134
+#: Source/Core/DolphinQt2/MenuBar.cpp:136
 #: Source/Core/DolphinWX/MainMenuBar.cpp:252
 msgid "Perform Online System Update"
 msgstr "Actualizar la consola por Internet"
@@ -6560,7 +6622,7 @@ msgid "Pixel Shader Constants"
 msgstr "Constantes del sombreador de píxeles"
 
 #: Source/Core/DolphinQt2/GameList/GameList.cpp:491
-#: Source/Core/DolphinQt2/MenuBar.cpp:317
+#: Source/Core/DolphinQt2/MenuBar.cpp:319
 #: Source/Core/DolphinWX/MainMenuBar.cpp:306
 msgid "Platform"
 msgstr "Plataforma"
@@ -6580,6 +6642,7 @@ msgstr "Reproducir grabación"
 msgid "Playable"
 msgstr "Jugable"
 
+#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:104
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:137
 msgid "Playback Options"
 msgstr "Opciones de reproducción"
@@ -6624,26 +6687,26 @@ msgid "Post Processing Shader Configuration"
 msgstr "Ajustes de sombreadores de posprocesado"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:83
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:602
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:569
 msgid "Post-Processing Effect:"
 msgstr "Efecto de posprocesado:"
 
 #: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:64
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:878
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:841
 msgid "Prefetch Custom Textures"
 msgstr "Precargar texturas personalizadas"
 
-#: Source/Core/Core/Movie.cpp:1107
+#: Source/Core/Core/Movie.cpp:1117
 #, c-format
 msgid "Premature movie end in PlayController. %u + %zu > %zu"
 msgstr "Final prematuro de la grabación en PlayController. %u +  %zu > %zu"
 
-#: Source/Core/Core/Movie.cpp:1234
+#: Source/Core/Core/Movie.cpp:1240
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u + %d > %zu"
 msgstr "Final prematuro de la grabación en PlayWiimote. %u + %d > %zu"
 
-#: Source/Core/Core/Movie.cpp:1208
+#: Source/Core/Core/Movie.cpp:1214
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u > %zu"
 msgstr "Final prematuro de la grabación en PlayWiimote. %u > %zu"
@@ -6700,7 +6763,7 @@ msgid "Put Main Menu roms in User/GC/{region}."
 msgstr "Guarda las roms del menú principal de GameCube en «User/GC/{región}»"
 
 #: Source/Core/Common/MsgHandler.cpp:66
-#: Source/Core/DolphinQt2/MainWindow.cpp:858
+#: Source/Core/DolphinQt2/MainWindow.cpp:873
 msgid "Question"
 msgstr "Pregunta"
 
@@ -6766,12 +6829,7 @@ msgstr "Sólo lectura"
 
 #: Source/Core/Core/HotkeyManager.cpp:51
 msgid "Read-Only Mode"
-msgstr ""
-
-#: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:72
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:792
-msgid "Real"
-msgstr "Real"
+msgstr "Modo de sólo lectura"
 
 #: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:163
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:363
@@ -6799,6 +6857,7 @@ msgstr ""
 msgid "Recommended for normal users"
 msgstr "Recomendado para usuarios normales"
 
+#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:132
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:163
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:204
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:406
@@ -6815,9 +6874,14 @@ msgstr "Grabar pulsaciones"
 msgid "Recording Info"
 msgstr "Información de la grabación"
 
+#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:114
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:187
 msgid "Recording Options"
 msgstr "Opciones de grabación"
+
+#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:264
+msgid "Recording..."
+msgstr ""
 
 #: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:28
 #: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:44
@@ -6865,13 +6929,13 @@ msgstr "Actualizar"
 
 #: Source/Core/Core/HotkeyManager.cpp:27
 msgid "Refresh Game List"
-msgstr ""
+msgstr "Actualizar lista de juegos"
 
 #: Source/Core/DolphinWX/MainToolBar.cpp:178
 msgid "Refresh game list"
 msgstr "Actualizar lista de juegos"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:324
+#: Source/Core/DolphinQt2/MenuBar.cpp:326
 #: Source/Core/DolphinWX/MainMenuBar.cpp:318
 msgid "Region"
 msgstr "Región"
@@ -6901,8 +6965,8 @@ msgstr "Desnombrar todas las funciones y variables"
 msgid "Rename symbol:"
 msgstr "Renombrar símbolo:"
 
-#: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:138
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:209
+#: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:136
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:220
 msgid ""
 "Render the scene as a wireframe.\n"
 "\n"
@@ -6914,9 +6978,9 @@ msgstr ""
 "\n"
 "Si no estás seguro déjala sin marcar."
 
-#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:101
+#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:89
 #: Source/Core/DolphinQt2/Settings/InterfacePane.cpp:124
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:468
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:435
 msgid "Render to Main Window"
 msgstr "Mostrar en la ventana principal"
 
@@ -7019,8 +7083,8 @@ msgstr "Id. de sala"
 msgid "Room ID:"
 msgstr "Id. de sala:"
 
-#: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:210
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:303
+#: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:200
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:305
 msgid ""
 "Rounds 2D vertices to whole pixels. Fixes graphical problems in some games "
 "at higher internal resolutions. This setting has no effect when native "
@@ -7073,13 +7137,13 @@ msgstr "Tarjeta SD"
 msgid "START"
 msgstr "START"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:187
+#: Source/Core/DolphinQt2/MenuBar.cpp:189
 #: Source/Core/DolphinWX/MainMenuBar.cpp:135
 msgid "Sa&ve State"
 msgstr "Guardar estado"
 
-#: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:57
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:752
+#: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:56
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:719
 msgid "Safe"
 msgstr "Seguro"
 
@@ -7096,15 +7160,19 @@ msgstr "Guardar"
 msgid "Save Code"
 msgstr "Guardar código"
 
+#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:176
+msgid "Save FIFO log"
+msgstr ""
+
 #: Source/Core/DolphinQt2/Config/FilesystemWidget.cpp:207
 msgid "Save File to"
-msgstr ""
+msgstr "Guardar archivo en"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:529
 msgid "Save GCI as..."
 msgstr "Guardar GCI como..."
 
-#: Source/Core/Core/HotkeyManager.cpp:150
+#: Source/Core/Core/HotkeyManager.cpp:152
 #: Source/Core/DolphinWX/MainMenuBar.cpp:107
 msgid "Save Oldest State"
 msgstr "Guardar el estado más antiguo"
@@ -7113,65 +7181,65 @@ msgstr "Guardar el estado más antiguo"
 msgid "Save Perspectives"
 msgstr "Guardar perspectivas"
 
-#: Source/Core/Core/HotkeyManager.cpp:153
+#: Source/Core/Core/HotkeyManager.cpp:155
 #: Source/Core/Core/HotkeyManager.cpp:259
 msgid "Save State"
 msgstr "Guardar estado"
 
-#: Source/Core/Core/HotkeyManager.cpp:116
+#: Source/Core/Core/HotkeyManager.cpp:118
 msgid "Save State Slot 1"
 msgstr "Ranura de guardado 1"
 
-#: Source/Core/Core/HotkeyManager.cpp:125
+#: Source/Core/Core/HotkeyManager.cpp:127
 msgid "Save State Slot 10"
 msgstr "Ranura de guardado 10"
 
-#: Source/Core/Core/HotkeyManager.cpp:117
+#: Source/Core/Core/HotkeyManager.cpp:119
 msgid "Save State Slot 2"
 msgstr "Ranura de guardado 2"
 
-#: Source/Core/Core/HotkeyManager.cpp:118
+#: Source/Core/Core/HotkeyManager.cpp:120
 msgid "Save State Slot 3"
 msgstr "Ranura de guardado 3"
 
-#: Source/Core/Core/HotkeyManager.cpp:119
+#: Source/Core/Core/HotkeyManager.cpp:121
 msgid "Save State Slot 4"
 msgstr "Ranura de guardado 4"
 
-#: Source/Core/Core/HotkeyManager.cpp:120
+#: Source/Core/Core/HotkeyManager.cpp:122
 msgid "Save State Slot 5"
 msgstr "Ranura de guardado 5"
 
-#: Source/Core/Core/HotkeyManager.cpp:121
+#: Source/Core/Core/HotkeyManager.cpp:123
 msgid "Save State Slot 6"
 msgstr "Ranura de guardado 6"
 
-#: Source/Core/Core/HotkeyManager.cpp:122
+#: Source/Core/Core/HotkeyManager.cpp:124
 msgid "Save State Slot 7"
 msgstr "Ranura de guardado 7"
 
-#: Source/Core/Core/HotkeyManager.cpp:123
+#: Source/Core/Core/HotkeyManager.cpp:125
 msgid "Save State Slot 8"
 msgstr "Ranura de guardado 8"
 
-#: Source/Core/Core/HotkeyManager.cpp:124
+#: Source/Core/Core/HotkeyManager.cpp:126
 msgid "Save State Slot 9"
 msgstr "Ranura de guardado 9"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:188
+#: Source/Core/DolphinQt2/MenuBar.cpp:190
 msgid "Save State to File"
 msgstr "Guardar estado en un archivo"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:190
+#: Source/Core/DolphinQt2/MenuBar.cpp:192
 msgid "Save State to Oldest Slot"
 msgstr "Guardar estado en la ranura más antigua"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:189
+#: Source/Core/DolphinQt2/MenuBar.cpp:191
 #: Source/Core/DolphinWX/MainMenuBar.cpp:106
 msgid "Save State to Selected Slot"
 msgstr "Guardar estado en la ranura seleccionada"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:191
+#: Source/Core/DolphinQt2/MenuBar.cpp:193
 msgid "Save State to Slot"
 msgstr "Guardar estado en ranura"
 
@@ -7251,13 +7319,17 @@ msgstr ""
 "\n"
 "«Ajustes de Dolphin»/Maps/«ID del juego»/«Mi archivo».map"
 
-#: Source/Core/Core/HotkeyManager.cpp:126
+#: Source/Core/Core/HotkeyManager.cpp:128
 msgid "Save to Selected Slot"
-msgstr ""
+msgstr "Guardar en la ranura seleccionada"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:229
+#: Source/Core/DolphinQt2/MenuBar.cpp:231
 msgid "Save to Slot %1 - %2"
 msgstr "Guardar en la ranura %1 - %2"
+
+#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:131
+msgid "Save..."
+msgstr ""
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:429
 msgid "Saved Perspectives"
@@ -7272,13 +7344,13 @@ msgstr "Sólo es posible reemparejar los mandos de Wii en mitad de la partida."
 msgid "Saved to /Wii/sd.raw (default size is 128mb)"
 msgstr "Guardado en /Wii/sd.raw (tamaño predeterminado de 128mb)"
 
-#: Source/Core/Core/Movie.cpp:936
+#: Source/Core/Core/Movie.cpp:945
 #, c-format
 msgid "Savestate movie %s is corrupted, movie recording stopping..."
 msgstr "El estado de la grabación %s está corrupto, deteniendo la grabación..."
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:67
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:616
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:583
 msgid "Scaled EFB Copy"
 msgstr "Copia de EFB a escala"
 
@@ -7336,7 +7408,7 @@ msgstr "Seleccionar columnas"
 msgid "Select Game"
 msgstr "Elegir juego"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:230
+#: Source/Core/DolphinQt2/MenuBar.cpp:232
 msgid "Select Slot %1 - %2"
 msgstr "Ranura de guardado %1 - %2"
 
@@ -7349,48 +7421,48 @@ msgstr "Seleccionar ranura %u - %s"
 msgid "Select State"
 msgstr "Cargar ranura de guardado"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:204
+#: Source/Core/DolphinQt2/MenuBar.cpp:206
 #: Source/Core/DolphinWX/MainMenuBar.cpp:136
 msgid "Select State Slot"
 msgstr "Seleccionar ranura de guardado"
 
-#: Source/Core/Core/HotkeyManager.cpp:128
+#: Source/Core/Core/HotkeyManager.cpp:130
 msgid "Select State Slot 1"
 msgstr "Seleccionar ranura de guardado 1"
 
-#: Source/Core/Core/HotkeyManager.cpp:137
+#: Source/Core/Core/HotkeyManager.cpp:139
 msgid "Select State Slot 10"
 msgstr "Seleccionar ranura de guardado 10"
 
-#: Source/Core/Core/HotkeyManager.cpp:129
+#: Source/Core/Core/HotkeyManager.cpp:131
 msgid "Select State Slot 2"
 msgstr "Seleccionar ranura de guardado 2"
 
-#: Source/Core/Core/HotkeyManager.cpp:130
+#: Source/Core/Core/HotkeyManager.cpp:132
 msgid "Select State Slot 3"
 msgstr "Seleccionar ranura de guardado 3"
 
-#: Source/Core/Core/HotkeyManager.cpp:131
+#: Source/Core/Core/HotkeyManager.cpp:133
 msgid "Select State Slot 4"
 msgstr "Seleccionar ranura de guardado 4"
 
-#: Source/Core/Core/HotkeyManager.cpp:132
+#: Source/Core/Core/HotkeyManager.cpp:134
 msgid "Select State Slot 5"
 msgstr "Seleccionar ranura de guardado 5"
 
-#: Source/Core/Core/HotkeyManager.cpp:133
+#: Source/Core/Core/HotkeyManager.cpp:135
 msgid "Select State Slot 6"
 msgstr "Seleccionar ranura de guardado 6"
 
-#: Source/Core/Core/HotkeyManager.cpp:134
+#: Source/Core/Core/HotkeyManager.cpp:136
 msgid "Select State Slot 7"
 msgstr "Seleccionar ranura de guardado 7"
 
-#: Source/Core/Core/HotkeyManager.cpp:135
+#: Source/Core/Core/HotkeyManager.cpp:137
 msgid "Select State Slot 8"
 msgstr "Seleccionar ranura de guardado 8"
 
-#: Source/Core/Core/HotkeyManager.cpp:136
+#: Source/Core/Core/HotkeyManager.cpp:138
 msgid "Select State Slot 9"
 msgstr "Seleccionar ranura de guardado 9"
 
@@ -7408,9 +7480,9 @@ msgid "Select a Directory"
 msgstr "Elige una carpeta"
 
 #: Source/Core/DolphinQt2/Config/InfoWidget.cpp:115
-#: Source/Core/DolphinQt2/MainWindow.cpp:315
-#: Source/Core/DolphinQt2/MainWindow.cpp:595
-#: Source/Core/DolphinQt2/MainWindow.cpp:602
+#: Source/Core/DolphinQt2/MainWindow.cpp:323
+#: Source/Core/DolphinQt2/MainWindow.cpp:610
+#: Source/Core/DolphinQt2/MainWindow.cpp:617
 msgid "Select a File"
 msgstr "Elige un archivo"
 
@@ -7426,7 +7498,7 @@ msgstr "Elige un WAD de Wii para instalar"
 msgid "Select a save file to import"
 msgstr "Selecciona el archivo con las partidas guardadas a importar"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:508
+#: Source/Core/DolphinQt2/MenuBar.cpp:510
 msgid "Select a title to install to NAND"
 msgstr "Elige un juego para instalar en la NAND"
 
@@ -7434,24 +7506,24 @@ msgstr "Elige un juego para instalar en la NAND"
 msgid "Select floating windows"
 msgstr "Selecciona las ventanas flotantes"
 
-#: Source/Core/DolphinQt2/MainWindow.cpp:894
+#: Source/Core/DolphinQt2/MainWindow.cpp:909
 #: Source/Core/DolphinWX/FrameTools.cpp:1310
 msgid "Select the OTP/SEEPROM dump"
-msgstr ""
+msgstr "Elige el archivo de volcado OTP/SEEPROM"
 
-#: Source/Core/DolphinQt2/MainWindow.cpp:913
-#: Source/Core/DolphinQt2/MainWindow.cpp:983
+#: Source/Core/DolphinQt2/MainWindow.cpp:928
+#: Source/Core/DolphinQt2/MainWindow.cpp:998
 #: Source/Core/DolphinWX/FrameTools.cpp:501
 #: Source/Core/DolphinWX/FrameTools.cpp:997
 msgid "Select the Recording File"
-msgstr ""
+msgstr "Seleccionar archivo de grabación"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:350
 msgid "Select the file to load"
 msgstr "Selecciona el archivo para cargar"
 
-#: Source/Core/DolphinQt2/MainWindow.cpp:867
-#: Source/Core/DolphinQt2/MenuBar.cpp:532
+#: Source/Core/DolphinQt2/MainWindow.cpp:882
+#: Source/Core/DolphinQt2/MenuBar.cpp:534
 #: Source/Core/DolphinWX/FrameTools.cpp:1207
 msgid "Select the save file"
 msgstr "Selecciona el archivo de guardado"
@@ -7464,7 +7536,7 @@ msgstr "Selecciona el estado para cargar"
 msgid "Select the state to save"
 msgstr "Selecciona el estado para guardar"
 
-#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:279
+#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:248
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:141
 msgid ""
 "Select what aspect ratio to use when rendering:\n"
@@ -7493,14 +7565,14 @@ msgstr "Elige dónde guardar la imagen descomprimida"
 
 #: Source/Core/DolphinWX/LogWindow.cpp:69
 msgid "Selected Font"
-msgstr ""
+msgstr "Tipografía seleccionada"
 
-#: Source/Core/Core/ConfigLoaders/GameConfigLoader.cpp:265
+#: Source/Core/Core/ConfigLoaders/GameConfigLoader.cpp:259
 #: Source/Core/InputCommon/InputConfig.cpp:63
 msgid "Selected controller profile does not exist"
 msgstr "El perfil del mando seleccionado no existe"
 
-#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:253
+#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:226
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:118
 msgid ""
 "Selects a hardware adapter to use.\n"
@@ -7511,7 +7583,6 @@ msgstr ""
 "\n"
 "Si no estás seguro, utiliza el primero."
 
-#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:261
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:120
 msgid ""
 "Selects the display resolution used in fullscreen mode.\n"
@@ -7527,7 +7598,7 @@ msgstr ""
 "Si no estás seguro selecciona «automático»."
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:262
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:277
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:279
 msgid ""
 "Selects the stereoscopic 3D mode. Stereoscopy allows you to get a better "
 "feeling of depth if you have the necessary hardware.\n"
@@ -7549,7 +7620,7 @@ msgstr ""
 "\n"
 "Si no estás seguro no actives ninguna opción."
 
-#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:256
+#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:229
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:113
 msgid ""
 "Selects what graphics API to use internally.\n"
@@ -7566,8 +7637,8 @@ msgstr ""
 "\n"
 "Si no estás seguro utiliza OpenGL."
 
-#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:247
-#: Source/Core/DolphinQt2/Config/Graphics/SoftwareRendererWidget.cpp:153
+#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:220
+#: Source/Core/DolphinQt2/Config/Graphics/SoftwareRendererWidget.cpp:151
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:106
 msgid ""
 "Selects what graphics API to use internally.\n"
@@ -7695,7 +7766,7 @@ msgstr "Nombre corto:"
 msgid "Shoulder Buttons"
 msgstr "Botones laterales"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:237
+#: Source/Core/DolphinQt2/MenuBar.cpp:239
 #: Source/Core/DolphinWX/MainMenuBar.cpp:331
 msgid "Show &Log"
 msgstr "Mostrar &registro"
@@ -7713,7 +7784,7 @@ msgstr "Mostrar barra de herramien&tas"
 msgid "Show Active Title in Window Title"
 msgstr "Mostrar juego actual en el título de la ventana"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:376
+#: Source/Core/DolphinQt2/MenuBar.cpp:378
 #: Source/Core/DolphinWX/MainMenuBar.cpp:282
 msgid "Show Australia"
 msgstr "Australianos"
@@ -7726,57 +7797,57 @@ msgstr "Mostrar valores predeterminados"
 msgid "Show Drives"
 msgstr "Mostrar unidades"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:351
+#: Source/Core/DolphinQt2/MenuBar.cpp:353
 #: Source/Core/DolphinWX/MainMenuBar.cpp:271
 msgid "Show ELF/DOL"
 msgstr "Mostrar ELF/DOL"
 
-#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:92
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:447
+#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:80
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:414
 msgid "Show FPS"
 msgstr "Mostrar FPS"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:441
+#: Source/Core/DolphinQt2/MenuBar.cpp:443
 #: Source/Core/DolphinWX/MainMenuBar.cpp:157
 msgid "Show Frame Counter"
 msgstr "Mostrar fotogramas por segundo (FPS)"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:377
+#: Source/Core/DolphinQt2/MenuBar.cpp:379
 #: Source/Core/DolphinWX/MainMenuBar.cpp:284
 msgid "Show France"
 msgstr "Franceses"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:349
+#: Source/Core/DolphinQt2/MenuBar.cpp:351
 #: Source/Core/DolphinWX/MainMenuBar.cpp:267
 msgid "Show GameCube"
 msgstr "Mostrar GameCube"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:378
+#: Source/Core/DolphinQt2/MenuBar.cpp:380
 #: Source/Core/DolphinWX/MainMenuBar.cpp:286
 msgid "Show Germany"
 msgstr "Alemanes"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:447
+#: Source/Core/DolphinQt2/MenuBar.cpp:449
 #: Source/Core/DolphinWX/MainMenuBar.cpp:160
 msgid "Show Input Display"
 msgstr "Mostrar registro de teclas"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:379
+#: Source/Core/DolphinQt2/MenuBar.cpp:381
 #: Source/Core/DolphinWX/MainMenuBar.cpp:288
 msgid "Show Italy"
 msgstr "Italianos"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:373
+#: Source/Core/DolphinQt2/MenuBar.cpp:375
 #: Source/Core/DolphinWX/MainMenuBar.cpp:275
 msgid "Show JAP"
 msgstr "Mostrar juegos JAP"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:380
+#: Source/Core/DolphinQt2/MenuBar.cpp:382
 #: Source/Core/DolphinWX/MainMenuBar.cpp:290
 msgid "Show Korea"
 msgstr "Coreanos"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:435
+#: Source/Core/DolphinQt2/MenuBar.cpp:437
 #: Source/Core/DolphinWX/MainMenuBar.cpp:155
 msgid "Show Lag Counter"
 msgstr "Mostrar indicador de retardo"
@@ -7786,22 +7857,22 @@ msgstr "Mostrar indicador de retardo"
 msgid "Show Language:"
 msgstr "Mostrar idioma:"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:243
+#: Source/Core/DolphinQt2/MenuBar.cpp:245
 #: Source/Core/DolphinWX/MainMenuBar.cpp:332
 msgid "Show Log &Configuration"
 msgstr "Mostrar configuración de &registro"
 
-#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:98
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:458
+#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:86
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:425
 msgid "Show NetPlay Messages"
 msgstr "Mostrar mensajes de juego en red"
 
-#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:93
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:449
+#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:81
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:416
 msgid "Show NetPlay Ping"
 msgstr "Mostrar «pings» de juego en red"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:381
+#: Source/Core/DolphinQt2/MenuBar.cpp:383
 #: Source/Core/DolphinWX/MainMenuBar.cpp:292
 msgid "Show Netherlands"
 msgstr "Holandeses"
@@ -7811,7 +7882,7 @@ msgstr "Holandeses"
 msgid "Show On-Screen Messages"
 msgstr "Mostrar mensajes en pantalla"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:374
+#: Source/Core/DolphinQt2/MenuBar.cpp:376
 #: Source/Core/DolphinWX/MainMenuBar.cpp:277
 msgid "Show PAL"
 msgstr "Mostrar juegos PAL"
@@ -7823,62 +7894,62 @@ msgstr "Mostrar juegos PAL"
 msgid "Show PC"
 msgstr "Mostrar PC"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:354
+#: Source/Core/DolphinQt2/MenuBar.cpp:356
 #: Source/Core/DolphinWX/MainMenuBar.cpp:354
 msgid "Show Platforms"
 msgstr "Mostrar plataformas"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:389
+#: Source/Core/DolphinQt2/MenuBar.cpp:391
 #: Source/Core/DolphinWX/MainMenuBar.cpp:355
 msgid "Show Regions"
 msgstr "Mostrar regiones"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:382
+#: Source/Core/DolphinQt2/MenuBar.cpp:384
 #: Source/Core/DolphinWX/MainMenuBar.cpp:294
 msgid "Show Russia"
 msgstr "Rusos"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:383
+#: Source/Core/DolphinQt2/MenuBar.cpp:385
 #: Source/Core/DolphinWX/MainMenuBar.cpp:296
 msgid "Show Spain"
 msgstr "Españoles"
 
 #: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:45
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:850
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:813
 msgid "Show Statistics"
 msgstr "Mostrar estadísticas"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:453
+#: Source/Core/DolphinQt2/MenuBar.cpp:455
 #: Source/Core/DolphinWX/MainMenuBar.cpp:162
 msgid "Show System Clock"
 msgstr "Mostrar reloj del sistema"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:384
+#: Source/Core/DolphinQt2/MenuBar.cpp:386
 #: Source/Core/DolphinWX/MainMenuBar.cpp:298
 msgid "Show Taiwan"
 msgstr "Taiwaneses"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:375
+#: Source/Core/DolphinQt2/MenuBar.cpp:377
 #: Source/Core/DolphinWX/MainMenuBar.cpp:279
 msgid "Show USA"
 msgstr "Mostrar juegos USA"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:386
+#: Source/Core/DolphinQt2/MenuBar.cpp:388
 #: Source/Core/DolphinWX/MainMenuBar.cpp:302
 msgid "Show Unknown"
 msgstr "Otros"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:350
+#: Source/Core/DolphinQt2/MenuBar.cpp:352
 #: Source/Core/DolphinWX/MainMenuBar.cpp:269
 msgid "Show WAD"
 msgstr "Mostrar WAD"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:348
+#: Source/Core/DolphinQt2/MenuBar.cpp:350
 #: Source/Core/DolphinWX/MainMenuBar.cpp:265
 msgid "Show Wii"
 msgstr "Mostrar Wii"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:385
+#: Source/Core/DolphinQt2/MenuBar.cpp:387
 #: Source/Core/DolphinWX/MainMenuBar.cpp:300
 msgid "Show World"
 msgstr "Mostrar juegos internacionales"
@@ -7924,8 +7995,8 @@ msgstr "Mostrar título de partida"
 msgid "Show the active title name in the emulation window title."
 msgstr "Muestra el nombre del juego actual en la ventana del emulador."
 
-#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:287
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:215
+#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:256
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:226
 msgid ""
 "Show the number of frames rendered per second as a measure of emulation "
 "speed.\n"
@@ -7937,8 +8008,8 @@ msgstr ""
 "\n"
 "Si no estás seguro déjala sin marcar."
 
-#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:290
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:218
+#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:259
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:229
 msgid ""
 "Show the players' maximum Ping while playing on NetPlay.\n"
 "\n"
@@ -7950,9 +8021,9 @@ msgstr ""
 "\n"
 "Si no estás seguro déjala sin marcar."
 
-#: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:140
-#: Source/Core/DolphinQt2/Config/Graphics/SoftwareRendererWidget.cpp:165
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:225
+#: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:138
+#: Source/Core/DolphinQt2/Config/Graphics/SoftwareRendererWidget.cpp:158
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:236
 msgid ""
 "Show various rendering statistics.\n"
 "\n"
@@ -7963,7 +8034,7 @@ msgstr ""
 "Si no estás seguro déjala sin marcar."
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:100
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:652
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:619
 msgid "Side-by-Side"
 msgstr "En paralelo"
 
@@ -8014,8 +8085,8 @@ msgstr "Saltar"
 msgid "Skip DCBZ clearing"
 msgstr "Saltar limpieza DCBZ"
 
-#: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:36
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:710
+#: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:35
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:677
 msgid "Skip EFB Access from CPU"
 msgstr "Saltar el acceso al EFB desde la CPU"
 
@@ -8031,7 +8102,7 @@ msgstr "Salta completamente la ejecución de la siguiente instrucción"
 msgid "Slider Bar"
 msgstr "Barra de desplazamiento"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:273
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:275
 msgid ""
 "Slightly speeds up EFB to RAM copies by sacrificing emulation accuracy.\n"
 "If you're experiencing any issues, try raising texture cache accuracy or "
@@ -8066,8 +8137,8 @@ msgstr "Ranura B"
 msgid "Software Renderer"
 msgstr "Dibujado por software"
 
-#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:187
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:985
+#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:167
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:948
 msgid ""
 "Software rendering is an order of magnitude slower than using the other "
 "backends.\n"
@@ -8143,7 +8214,7 @@ msgstr "Mando de juego estándar"
 #: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:62
 #: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:29
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:248
-#: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:142
+#: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:138
 msgid "Start"
 msgstr "Start"
 
@@ -8152,7 +8223,7 @@ msgstr "Start"
 msgid "Start &NetPlay..."
 msgstr "Comenzar &juego en red..."
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:409
+#: Source/Core/DolphinQt2/MenuBar.cpp:411
 #: Source/Core/DolphinWX/MainMenuBar.cpp:146
 msgid "Start Re&cording Input"
 msgstr "&Grabar pulsaciones"
@@ -8171,7 +8242,7 @@ msgstr "Juego en ejecución"
 
 #: Source/Core/DolphinQt2/GameList/GameList.cpp:494
 #: Source/Core/DolphinQt2/GameList/GameListModel.cpp:138
-#: Source/Core/DolphinQt2/MenuBar.cpp:326
+#: Source/Core/DolphinQt2/MenuBar.cpp:328
 #: Source/Core/DolphinWX/GameListCtrl.cpp:470
 #: Source/Core/DolphinWX/MainMenuBar.cpp:322
 msgid "State"
@@ -8256,13 +8327,13 @@ msgid "Stepping"
 msgstr "Avanzar"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:106
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:649
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:616
 msgid "Stereoscopic 3D Mode:"
 msgstr "Modo 3D estereoscópico:"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:95
 #: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:371
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:686
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:653
 msgid "Stereoscopy"
 msgstr "Estereoscopía"
 
@@ -8277,7 +8348,9 @@ msgstr "Estereoscopía"
 msgid "Stick"
 msgstr "Palanca"
 
-#: Source/Core/Core/HotkeyManager.cpp:29 Source/Core/DolphinQt2/ToolBar.cpp:53
+#: Source/Core/Core/HotkeyManager.cpp:29
+#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:133
+#: Source/Core/DolphinQt2/ToolBar.cpp:53
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:414
 #: Source/Core/DolphinWX/MainToolBar.cpp:181
 msgid "Stop"
@@ -8287,7 +8360,7 @@ msgstr "Detener"
 msgid "Stop Playing Input"
 msgstr "Detener la reproducción de pulsaciones"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:412
+#: Source/Core/DolphinQt2/MenuBar.cpp:414
 #: Source/Core/DolphinWX/FrameTools.cpp:1749
 #: Source/Core/DolphinWX/FrameTools.cpp:1766
 #: Source/Core/DolphinWX/MainMenuBar.cpp:148
@@ -8302,12 +8375,17 @@ msgstr "Detener la grabación de pulsaciones"
 msgid "Stopped game"
 msgstr "Juego detenido"
 
-#: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:39
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:720
+#: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:38
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:687
 msgid "Store EFB Copies to Texture Only"
 msgstr "Almacenar copias de EFB como de «sólo lectura»"
 
-#: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:173
+#: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:70
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:755
+msgid "Store XFB Copies to Texture Only"
+msgstr ""
+
+#: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:165
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:201
 msgid ""
 "Stores EFB Copies exclusively on the GPU, bypassing system memory. Causes "
@@ -8326,8 +8404,21 @@ msgstr ""
 "\n"
 "Si no estás seguro deja esta opción marcada."
 
-#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:52
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:423
+#: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:175
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:205
+msgid ""
+"Stores XFB Copies exclusively on the GPU, bypassing system memory. Causes "
+"graphical defects in a small number of games that need to readback from "
+"memory.\n"
+"\n"
+"Enabled = XFB Copies to Texture\n"
+"Disabled = XFB Copies to RAM (and Texture)\n"
+"\n"
+"If unsure, leave this checked."
+msgstr ""
+
+#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:51
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:390
 msgid "Stretch to Window"
 msgstr "Estirar a la ventana"
 
@@ -8344,7 +8435,7 @@ msgstr "Rasgueo"
 #: Source/Core/DolphinQt2/Config/FilesystemWidget.cpp:234
 #: Source/Core/DolphinQt2/Config/FilesystemWidget.cpp:282
 #: Source/Core/DolphinQt2/Config/FilesystemWidget.cpp:304
-#: Source/Core/DolphinQt2/MenuBar.cpp:612
+#: Source/Core/DolphinQt2/MenuBar.cpp:614
 msgid "Success"
 msgstr "Todo correcto"
 
@@ -8363,7 +8454,7 @@ msgstr "«%1» se ha borrado correctamente."
 #: Source/Core/Core/HW/WiiSaveCrypted.cpp:96
 #, c-format
 msgid "Successfully exported %u save(s) to %s"
-msgstr ""
+msgstr "Se han exportado correctamente %u partidas a %s"
 
 #: Source/Core/Core/HW/WiiSaveCrypted.cpp:51
 #, c-format
@@ -8374,24 +8465,24 @@ msgstr "Se exportó correctamente al archivo %s"
 msgid "Successfully exported save files"
 msgstr "Las partidas guardadas se han exportado correctamente."
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:613
+#: Source/Core/DolphinQt2/MenuBar.cpp:615
 msgid "Successfully extracted certificates from NAND"
 msgstr "Los certificados se han instalado correctamente en la NAND."
 
 #: Source/Core/DolphinQt2/Config/FilesystemWidget.cpp:282
 msgid "Successfully extracted file."
-msgstr ""
+msgstr "El archivo se ha extraído correctamente."
 
 #: Source/Core/DolphinQt2/Config/FilesystemWidget.cpp:234
 msgid "Successfully extracted system data."
-msgstr ""
+msgstr "Los datos del sistema se han extraído correctamente."
 
 #: Source/Core/Core/HW/WiiSaveCrypted.cpp:115
 msgid "Successfully imported save file(s)"
-msgstr ""
+msgstr "Las partidas guardadas se han importado correctamente."
 
 #: Source/Core/DolphinQt2/GameList/GameList.cpp:342
-#: Source/Core/DolphinQt2/MenuBar.cpp:519
+#: Source/Core/DolphinQt2/MenuBar.cpp:521
 msgid "Successfully installed this title to the NAND."
 msgstr "El juego se ha instalado correctamente en la NAND."
 
@@ -8405,12 +8496,12 @@ msgid "Support"
 msgstr "Soporte"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:104
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:682
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:649
 msgid "Swap Eyes"
 msgstr "Invertir ojos"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:275
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:290
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:292
 msgid ""
 "Swaps the left and right eye. Mostly useful if you want to view side-by-side "
 "cross-eyed.\n"
@@ -8515,7 +8606,7 @@ msgstr "División de pestaña"
 msgid "Taiwan"
 msgstr "Taiwán"
 
-#: Source/Core/Core/HotkeyManager.cpp:32 Source/Core/DolphinQt2/MenuBar.cpp:159
+#: Source/Core/Core/HotkeyManager.cpp:32 Source/Core/DolphinQt2/MenuBar.cpp:161
 #: Source/Core/DolphinWX/MainMenuBar.cpp:132
 msgid "Take Screenshot"
 msgstr "Captura de pantalla"
@@ -8533,8 +8624,8 @@ msgstr "Probar"
 msgid "Texture"
 msgstr "Textura"
 
-#: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:47
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:732
+#: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:46
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:699
 msgid "Texture Cache"
 msgstr "Caché de texturas"
 
@@ -8543,7 +8634,7 @@ msgid "Texture Cmd"
 msgstr "Cmd de textura"
 
 #: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:47
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:852
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:815
 msgid "Texture Format Overlay"
 msgstr "Superponer formato de textura"
 
@@ -8551,8 +8642,8 @@ msgstr "Superponer formato de textura"
 msgid "Textures"
 msgstr "Texturas"
 
-#: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:178
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:205
+#: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:170
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:216
 msgid ""
 "The \"Safe\" setting eliminates the likelihood of the GPU missing texture "
 "updates from RAM.\n"
@@ -8567,17 +8658,19 @@ msgstr ""
 "\n"
 "Si no estás seguro, utiliza el valor más a la derecha."
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:604
+#: Source/Core/DolphinQt2/MenuBar.cpp:606
 #: Source/Core/DolphinWX/FrameTools.cpp:1376
 msgid ""
 "The NAND could not be repaired. It is recommended to back up your current "
 "data and start over with a fresh NAND."
 msgstr ""
+"No se ha podido reparar la NAND. Recomendamos que vuelvas a volcar los datos "
+"de la consola original y pruebes otra vez desde cero."
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:599
+#: Source/Core/DolphinQt2/MenuBar.cpp:601
 #: Source/Core/DolphinWX/FrameTools.cpp:1372
 msgid "The NAND has been repaired."
-msgstr ""
+msgstr "NAND arreglada sin problemas."
 
 #: Source/Core/DolphinWX/Debugger/BreakpointDlg.cpp:50
 #, c-format
@@ -8630,7 +8723,7 @@ msgstr ""
 msgid "The disc that was about to be inserted couldn't be found."
 msgstr "No se encontró el disco que se iba a insertar."
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:555
+#: Source/Core/DolphinQt2/MenuBar.cpp:557
 #: Source/Core/DolphinWX/FrameTools.cpp:1327
 msgid ""
 "The emulated NAND is damaged. System titles such as the Wii Menu and the Wii "
@@ -8638,6 +8731,10 @@ msgid ""
 "\n"
 "Do you want to try to repair the NAND?"
 msgstr ""
+"Se ha dañado la NAND emulada. Puede que no funcionen algunos paquetes "
+"(«titles») del sistema como el menú de Wii y el canal de compras Wii.\n"
+"\n"
+"¿Quieres intentar arreglar la NAND?"
 
 #: Source/Core/DolphinQt2/WiiUpdate.cpp:31
 #: Source/Core/DolphinWX/FrameTools.cpp:1409
@@ -8770,7 +8867,7 @@ msgstr "El archivo que has elegido («%s») no existe"
 
 #: Source/Core/DolphinWX/Main.cpp:185
 msgid "The title ID is invalid."
-msgstr ""
+msgstr "El Id. de juego no es correcto."
 
 #: Source/Core/DolphinQt2/WiiUpdate.cpp:57
 #: Source/Core/DolphinWX/FrameTools.cpp:1434
@@ -8838,7 +8935,7 @@ msgstr "No se puede arrancar desde este WAD."
 
 #: Source/Core/Core/ConfigManager.cpp:893
 msgid "This WAD is not valid."
-msgstr ""
+msgstr "Este WAD no es correcto."
 
 #: Source/Core/Core/ActionReplay.cpp:856
 msgid ""
@@ -8853,8 +8950,8 @@ msgstr ""
 msgid "This cannot be undone!"
 msgstr "No puede deshacerse."
 
-#: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:170
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:263
+#: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:168
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:265
 msgid ""
 "This feature allows you to change the game's camera.\n"
 "Move the mouse while holding the right mouse button to pan and while holding "
@@ -8879,8 +8976,9 @@ msgstr ""
 #: Source/Core/DiscIO/NANDImporter.cpp:62
 msgid "This file does not look like a BootMii NAND backup."
 msgstr ""
+"Este archivo no tiene el formato de una copia de respaldo NAND de BootMii.%zx"
 
-#: Source/Core/VideoCommon/MainBase.cpp:137
+#: Source/Core/VideoCommon/MainBase.cpp:146
 msgid ""
 "This game requires bounding box emulation to run properly but your graphics "
 "card or its drivers do not support it. As a result you will experience bugs "
@@ -8920,7 +9018,7 @@ msgstr "No debes utilizarlo con juegos que no poseas legalmente."
 
 #: Source/Core/Core/ConfigManager.cpp:915
 msgid "This title cannot be booted."
-msgstr ""
+msgstr "Este juego no se puede arrancar."
 
 #: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:295
 #, c-format
@@ -8984,7 +9082,7 @@ msgstr "Inclinar"
 
 #: Source/Core/DolphinQt2/GameList/GameList.cpp:493
 #: Source/Core/DolphinQt2/GameList/GameListModel.cpp:124
-#: Source/Core/DolphinQt2/MenuBar.cpp:319
+#: Source/Core/DolphinQt2/MenuBar.cpp:321
 #: Source/Core/DolphinWX/GameListCtrl.cpp:463
 #: Source/Core/DolphinWX/MainMenuBar.cpp:310
 #: Source/Core/DolphinWX/MemcardManager.cpp:627
@@ -8996,11 +9094,16 @@ msgstr "Título"
 msgid "To"
 msgstr "A"
 
+#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:80
+#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:95
+msgid "To:"
+msgstr ""
+
 #: Source/Core/DolphinWX/MainMenuBar.cpp:440
 msgid "Toggle &Breakpoint"
 msgstr "Des/activar punto de interru&pción"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:156
+#: Source/Core/DolphinQt2/MenuBar.cpp:158
 #: Source/Core/DolphinWX/MainMenuBar.cpp:129
 msgid "Toggle &Fullscreen"
 msgstr "Des/activar pantalla &completa"
@@ -9009,19 +9112,19 @@ msgstr "Des/activar pantalla &completa"
 msgid "Toggle &memory"
 msgstr "Ver/ocultar &memoria"
 
-#: Source/Core/Core/HotkeyManager.cpp:97
+#: Source/Core/Core/HotkeyManager.cpp:99
 msgid "Toggle 3D Anaglyph"
 msgstr "Des/activar anaglifos 3D"
 
-#: Source/Core/Core/HotkeyManager.cpp:95
+#: Source/Core/Core/HotkeyManager.cpp:97
 msgid "Toggle 3D Side-by-Side"
-msgstr ""
-
-#: Source/Core/Core/HotkeyManager.cpp:96
-msgid "Toggle 3D Top-Bottom"
-msgstr ""
+msgstr "Des/activar 3D paralelo"
 
 #: Source/Core/Core/HotkeyManager.cpp:98
+msgid "Toggle 3D Top-Bottom"
+msgstr "Des/activar 3D vertical"
+
+#: Source/Core/Core/HotkeyManager.cpp:100
 msgid "Toggle 3D Vision"
 msgstr "Des/activar «Nvidia 3D vision»"
 
@@ -9042,7 +9145,7 @@ msgstr "Des/activar punto de interrupción"
 msgid "Toggle Crop"
 msgstr "Recortar imagen"
 
-#: Source/Core/Core/HotkeyManager.cpp:77
+#: Source/Core/Core/HotkeyManager.cpp:79
 msgid "Toggle Custom Textures"
 msgstr "Ver/ocultar texturas personalizadas"
 
@@ -9050,7 +9153,7 @@ msgstr "Ver/ocultar texturas personalizadas"
 msgid "Toggle EFB Copies"
 msgstr "Activar copias de EFB"
 
-#: Source/Core/Core/HotkeyManager.cpp:75
+#: Source/Core/Core/HotkeyManager.cpp:77
 msgid "Toggle Fog"
 msgstr "Activar niebla"
 
@@ -9062,9 +9165,17 @@ msgstr "Cambiar a pantalla completa"
 msgid "Toggle Pause"
 msgstr "Des/pausar"
 
-#: Source/Core/Core/HotkeyManager.cpp:76
+#: Source/Core/Core/HotkeyManager.cpp:78
 msgid "Toggle Texture Dumping"
 msgstr "Des/activar volcado de texturas"
+
+#: Source/Core/Core/HotkeyManager.cpp:75
+msgid "Toggle XFB Copies"
+msgstr ""
+
+#: Source/Core/Core/HotkeyManager.cpp:76
+msgid "Toggle XFB Immediate Mode"
+msgstr ""
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:426
 msgid "Toggle editing of perspectives"
@@ -9080,7 +9191,7 @@ msgid "Top"
 msgstr "Superior"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:100
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:652
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:619
 msgid "Top-and-Bottom"
 msgstr "En vertical"
 
@@ -9164,7 +9275,7 @@ msgstr "EE. UU."
 msgid "USB Gecko"
 msgstr "Gecko USB"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:575
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:542
 msgid "Ubershaders:"
 msgstr "Supersombreadores:"
 
@@ -9198,14 +9309,14 @@ msgstr "Hubo un fallo al escribir los datos en el archivo %s"
 msgid "Uncompressed GC/Wii images (*.iso *.gcm)"
 msgstr "Archivos ISO de GC/Wii sin comprimir (*.iso *.gcm)"
 
-#: Source/Core/Core/HotkeyManager.cpp:151
-#: Source/Core/DolphinQt2/MenuBar.cpp:175
+#: Source/Core/Core/HotkeyManager.cpp:153
+#: Source/Core/DolphinQt2/MenuBar.cpp:177
 #: Source/Core/DolphinWX/MainMenuBar.cpp:101
 msgid "Undo Load State"
 msgstr "Deshacer cargar estado"
 
-#: Source/Core/Core/HotkeyManager.cpp:152
-#: Source/Core/DolphinQt2/MenuBar.cpp:192
+#: Source/Core/Core/HotkeyManager.cpp:154
+#: Source/Core/DolphinQt2/MenuBar.cpp:194
 #: Source/Core/DolphinWX/MainMenuBar.cpp:108
 msgid "Undo Save State"
 msgstr "Deshacer estado guardado"
@@ -9228,7 +9339,7 @@ msgstr ""
 "Desinstalar el archivo WAD quitará la versión actual del juego de la NAND "
 "sin borrar las partidas guardadas. ¿Quieres continuar?"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:145
+#: Source/Core/DolphinQt2/MenuBar.cpp:147
 #: Source/Core/DolphinWX/MainMenuBar.cpp:250
 msgid "United States"
 msgstr "Estados Unidos"
@@ -9261,13 +9372,14 @@ msgstr "Error de tarjeta de memoria desconocido"
 #: Source/Core/Core/NetPlayClient.cpp:562
 #, c-format
 msgid "Unknown message received with id : %d"
-msgstr "Se recibió un mensaje desconocido de id: %d"
+msgstr "Se recibió un mensaje desconocido con identificador: %d"
 
-#: Source/Core/Core/NetPlayServer.cpp:720
+#: Source/Core/Core/NetPlayServer.cpp:721
 #, c-format
 msgid "Unknown message with id:%d received from player:%d Kicking player!"
 msgstr ""
-"Mensaje desconocido con id:%d recibido del jugador:%d ¡Echando al jugador!"
+"Mensaje desconocido con identificador:%d recibido del jugador:%d ¡Echando al "
+"jugador!"
 
 #: Source/Core/DolphinQt2/Settings/GeneralPane.cpp:84
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:44
@@ -9387,8 +9499,8 @@ msgstr "Utilizar base de datos de nombres de juegos propia"
 msgid "Use DolphinQt Anyway"
 msgstr "Me da igual, seguir en DolphinQt"
 
-#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:56
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:437
+#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:55
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:404
 msgid "Use Fullscreen"
 msgstr "Usar pantalla completa"
 
@@ -9405,7 +9517,7 @@ msgstr "Usar modo PAL60 (EuRGB60)"
 msgid "Use Panic Handlers"
 msgstr "Notificar errores y advertencias"
 
-#: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:203
+#: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:193
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:171
 msgid ""
 "Use a less accurate algorithm to calculate depth values.\n"
@@ -9435,14 +9547,14 @@ msgid "User Interface"
 msgstr "Interfaz de usuario"
 
 #: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:57
-#: Source/Core/DolphinQt2/Config/Graphics/SoftwareRendererWidget.cpp:58
-#: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:103
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:901
+#: Source/Core/DolphinQt2/Config/Graphics/SoftwareRendererWidget.cpp:56
+#: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:99
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:864
 msgid "Utility"
 msgstr "Opciones útiles para el desarrollo"
 
-#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:55
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:435
+#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:54
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:402
 msgid "V-Sync"
 msgstr "Sincronización vertical"
 
@@ -9480,8 +9592,8 @@ msgstr "Valor:"
 msgid "Value: "
 msgstr "Valor:"
 
-#: Source/Core/DolphinQt2/Config/Graphics/SoftwareRendererWidget.cpp:54
-#: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:96
+#: Source/Core/DolphinQt2/Config/Graphics/SoftwareRendererWidget.cpp:52
+#: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:92
 msgid "Various Statistics"
 msgstr "Todo tipo de estadísticas"
 
@@ -9492,7 +9604,7 @@ msgstr "Nivel de detalle"
 
 #: Source/Core/DolphinQt2/Config/FilesystemWidget.cpp:293
 msgid "Verifying integrity of partition..."
-msgstr ""
+msgstr "Comprobando integridad de la partición..."
 
 #: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:60
 msgid "Vertex Cmd"
@@ -9506,8 +9618,8 @@ msgstr "Descripción de vértices"
 msgid "Vertex Matrices"
 msgstr "Matrices de vértices"
 
-#: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:87
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:818
+#: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:86
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:781
 msgid "Vertex Rounding"
 msgstr "Redondeo de vértices"
 
@@ -9556,11 +9668,6 @@ msgstr "Ver como entero con signo"
 msgid "View as unsigned integer"
 msgstr "Ver como entero sin signo"
 
-#: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:73
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:790
-msgid "Virtual"
-msgstr "Virtual"
-
 #: Source/Core/Core/HotkeyManager.cpp:245
 #: Source/Core/DolphinQt2/Config/Mapping/HotkeyGeneral.cpp:26
 #: Source/Core/DolphinQt2/Settings/AudioPane.cpp:53
@@ -9580,7 +9687,7 @@ msgstr "Silenciar volumen"
 msgid "Volume Up"
 msgstr "Subir volumen"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:509
+#: Source/Core/DolphinQt2/MenuBar.cpp:511
 msgid "WAD files (*.wad)"
 msgstr "Archivos WAD (*.wad)"
 
@@ -9598,13 +9705,15 @@ msgstr "La instalación del WAD falló: No se pudo importar el contenido %08x."
 #, c-format
 msgid "WAD installation failed: Could not initialise title import (error %d)."
 msgstr ""
+"La instalación del WAD falló: No se pudo comenzar la importación del juego "
+"(error %d)."
 
 #: Source/Core/Core/WiiUtils.cpp:53
 msgid "WAD installation failed: The selected file is not a valid WAD."
 msgstr ""
 "La instalación del WAD falló: El archivo seleccionado no tiene formato WAD."
 
-#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:284
+#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:253
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:151
 msgid ""
 "Wait for vertical blanks in order to reduce tearing.\n"
@@ -9630,7 +9739,7 @@ msgstr ""
 #: Source/Core/DolphinWX/LogConfigWindow.cpp:43
 #: Source/Core/DolphinWX/MemcardManager.cpp:587
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:354
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:988
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:951
 msgid "Warning"
 msgstr "Advertencia"
 
@@ -9657,7 +9766,7 @@ msgstr ""
 "y tengan el mismo nombre que el archivo en tu tarjeta de memoria. ¿Seguro "
 "que quieres continuar?"
 
-#: Source/Core/Core/Movie.cpp:984
+#: Source/Core/Core/Movie.cpp:993
 #, c-format
 msgid ""
 "Warning: You loaded a save that's after the end of the current movie. (byte "
@@ -9669,7 +9778,7 @@ msgstr ""
 "partida antes de continuar, o cargar ésta sin el modo de «sólo lectura» "
 "activo."
 
-#: Source/Core/Core/Movie.cpp:959
+#: Source/Core/Core/Movie.cpp:968
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie ends before the current frame in the "
@@ -9680,7 +9789,7 @@ msgstr ""
 "cuadro actual de la partida. (byte %u < %u) (frame %u > %u). Deberías cargar "
 "otra partida guardada antes de continuar."
 
-#: Source/Core/Core/Movie.cpp:1010
+#: Source/Core/Core/Movie.cpp:1019
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on byte %zu (0x%zX). You "
@@ -9692,7 +9801,7 @@ msgstr ""
 "con el modo de solo lectura desactivado. De lo contrario probablemente "
 "obtengas una desincronización."
 
-#: Source/Core/Core/Movie.cpp:1027
+#: Source/Core/Core/Movie.cpp:1036
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on frame %td. You should "
@@ -9704,27 +9813,14 @@ msgid ""
 "\n"
 "On frame %td, the current movie presses:\n"
 "Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight="
-"%d, L=%d, R=%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX=%d, CY=%d\n"
+"%d, L=%d, R=%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX=%d, CY=%d, "
+"Connected=%d\n"
 "\n"
 "On frame %td, the savestate's movie presses:\n"
 "Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight="
-"%d, L=%d, R=%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX=%d, CY=%d"
+"%d, L=%d, R=%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX=%d, CY=%d, "
+"Connected=%d"
 msgstr ""
-"Advertencia: Has cargado una partida guardada con desajustes en %td cuadros. "
-"Debes cargar otro guardado antes de continuar, o cargar este guardado con el "
-"modo de solo lectura desactivado. De lo contrario, probablemente obtengas "
-"una desincronización.\n"
-"\n"
-" Más información: La película actual dura %d fotogramas y el guardado de la "
-"película dura %d fotogramas.\n"
-"\n"
-"On frame %td, the current movie presses:\n"
-"Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight="
-"%d, L=%d, R=%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX=%d, CY=%d\n"
-"\n"
-"On frame %td, the savestate's movie presses:\n"
-"Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight="
-"%d, L=%d, R=%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX=%d, CY=%d"
 
 #. i18n: This kind of "watch" is used for watching emulated memory.
 #. It's not related to timekeeping devices.
@@ -9741,8 +9837,8 @@ msgstr "WaveFileWriter - el archivo no está abierto."
 msgid "Whammy"
 msgstr "Brazo de trémolo"
 
-#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:297
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:227
+#: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:266
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:238
 msgid ""
 "When playing on NetPlay, show chat messages, buffer changes and desync "
 "alerts.\n"
@@ -9759,7 +9855,7 @@ msgid "Whitelisted USB Passthrough Devices"
 msgstr "Dispositivos USB permitidos en la cesión de Bluetooth"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:72
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:625
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:592
 msgid "Widescreen Hack"
 msgstr "Hack de pantalla panorámica"
 
@@ -9840,7 +9936,7 @@ msgstr "Wii y su mando"
 msgid "Wii save files (*.bin)"
 msgstr "Archivos de partida Wii (*.bin)"
 
-#: Source/Core/DolphinQt2/MenuBar.cpp:533
+#: Source/Core/DolphinQt2/MenuBar.cpp:535
 msgid "Wii save files (*.bin);;All Files (*)"
 msgstr "Archivos de partida Wii (*.bin);;Todos los archivos (*)"
 
@@ -9964,7 +10060,7 @@ msgstr "Tienes que escribir un valor decimal o hexadecimal o octal válido."
 
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:240
 msgid "You must enter a valid hexadecimal value."
-msgstr ""
+msgstr "Tienes que escribir un valor hexadecimal válido."
 
 #: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:886
 msgid "You must enter a valid profile name."
@@ -10049,3 +10145,6 @@ msgid ""
 "© 2003-2015+ Dolphin Team. “GameCube” and “Wii” are trademarks of Nintendo. "
 "Dolphin is not affiliated with Nintendo in any way."
 msgstr ""
+"© 2003-2015+ El equipo de Dolphin. «GameCube» y «Wii» son marcas comerciales "
+"de Nintendo. Dolphin no está afiliado a Nintendo y es completamente "
+"independiente."
