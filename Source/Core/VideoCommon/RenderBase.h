@@ -34,8 +34,11 @@
 
 class AbstractRawTexture;
 class AbstractTexture;
+class AbstractStagingTexture;
 class PostProcessingShaderImplementation;
+struct TextureConfig;
 enum class EFBAccessType;
+enum class StagingTextureType;
 
 struct EfbPokeData
 {
@@ -79,6 +82,10 @@ public:
   virtual void RestoreState() {}
   virtual void ResetAPIState() {}
   virtual void RestoreAPIState() {}
+  virtual std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config) = 0;
+  virtual std::unique_ptr<AbstractStagingTexture>
+  CreateStagingTexture(StagingTextureType type, const TextureConfig& config) = 0;
+
   // Ideal internal resolution - multiple of the native EFB resolution
   int GetTargetWidth() const { return m_target_width; }
   int GetTargetHeight() const { return m_target_height; }
@@ -145,7 +152,7 @@ public:
   virtual void ChangeSurface(void* new_surface_handle) {}
   bool UseVertexDepthRange() const;
 
-  void ExitFramedumping();
+  void ShutdownFrameDumping();
 
 protected:
   std::tuple<int, int> CalculateTargetScale(int x, int y) const;
@@ -185,11 +192,8 @@ protected:
   u32 m_last_host_config_bits = 0;
 
 private:
-  void DoDumpFrame();
   void RunFrameDumps();
-  void ShutdownFrameDumping();
   std::tuple<int, int> CalculateOutputDimensions(int width, int height);
-  void UpdateFrameDumpTexture();
 
   PEControl::PixelFormat m_prev_efb_format = PEControl::INVALID_FMT;
   unsigned int m_efb_scale = 1;
@@ -207,7 +211,6 @@ private:
   bool m_frame_dump_frame_running = false;
   struct FrameDumpConfig
   {
-    AbstractTexture* texture;
     const u8* data;
     int width;
     int height;
@@ -215,12 +218,17 @@ private:
     AVIDump::Frame state;
   } m_frame_dump_config;
 
+  // Texture used for screenshot/frame dumping
+  std::unique_ptr<AbstractTexture> m_frame_dump_render_texture;
+  std::array<std::unique_ptr<AbstractStagingTexture>, 2> m_frame_dump_readback_textures;
+  AVIDump::Frame m_last_frame_state;
+  bool m_last_frame_exported = false;
+
+  // Tracking of XFB textures so we don't render duplicate frames.
   AbstractTexture* m_last_xfb_texture = nullptr;
   u64 m_last_xfb_id = std::numeric_limits<u64>::max();
   u64 m_last_xfb_ticks = 0;
   EFBRectangle m_last_xfb_region;
-
-  std::unique_ptr<AbstractTexture> m_dump_texture;
 
   // Note: Only used for auto-ir
   u32 m_last_xfb_width = MAX_XFB_WIDTH;
@@ -235,7 +243,23 @@ private:
   void DumpFrameToImage(const FrameDumpConfig& config);
 
   bool IsFrameDumping();
+
+  // Asynchronously encodes the current staging texture to the frame dump.
+  void DumpCurrentFrame();
+
+  // Fills the frame dump render texture with the current XFB texture.
+  void RenderFrameDump();
+
+  // Queues the current frame for readback, which will be written to AVI next frame.
+  void QueueFrameDumpReadback();
+
+  // Asynchronously encodes the specified pointer of frame data to the frame dump.
   void DumpFrameData(const u8* data, int w, int h, int stride, const AVIDump::Frame& state);
+
+  // Ensures all rendered frames are queued for encoding.
+  void FlushFrameDump();
+
+  // Ensures all encoded frames have been written to the output file.
   void FinishFrameData();
 };
 

@@ -59,7 +59,6 @@ private:
     bool valid = false;
   };
 
-  std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config) override;
   void ConvertTexture(TCacheEntry* destination, TCacheEntry* source, const void* palette,
                       TLUTFormat format) override;
 
@@ -98,7 +97,4 @@ private:
   std::map<std::pair<u32, u32>, TextureDecodingProgramInfo> m_texture_decoding_program_info;
   std::array<GLuint, TextureConversionShader::BUFFER_FORMAT_COUNT> m_texture_decoding_buffer_views;
 };
-
-bool SaveTexture(const std::string& filename, u32 textarget, u32 tex, int virtual_width,
-                 int virtual_height, unsigned int level);
 }

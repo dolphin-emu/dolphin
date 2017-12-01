@@ -273,8 +273,6 @@ public:
 
   void ScaleTextureCacheEntryTo(TCacheEntry* entry, u32 new_width, u32 new_height);
 
-  virtual std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config) = 0;
-
 protected:
   TextureCacheBase();
 

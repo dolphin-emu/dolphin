@@ -63,8 +63,6 @@ extern HWND hWnd;
 extern bool bFrameInProgress;
 
 void Reset();
-bool BeginFrame();
-void EndFrame();
 void Present();
 
 unsigned int GetBackBufferWidth();

@@ -19,8 +19,6 @@ public:
   ~TextureCache();
 
 private:
-  std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config) override;
-
   u64 EncodeToRamFromTexture(u32 address, void* source_texture, u32 SourceW, u32 SourceH,
                              bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, int bScaleByHalf,
                              const EFBRectangle& source)

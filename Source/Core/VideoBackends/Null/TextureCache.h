@@ -35,12 +35,6 @@ public:
                            bool scale_by_half, unsigned int cbuf_id, const float* colmat) override
   {
   }
-
-private:
-  std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config) override
-  {
-    return std::make_unique<NullTexture>(config);
-  }
 };
 
 }  // Null name space

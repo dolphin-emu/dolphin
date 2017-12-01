@@ -16,7 +16,6 @@
 
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
-#include "VideoBackends/Vulkan/StagingTexture2D.h"
 #include "VideoBackends/Vulkan/StateTracker.h"
 #include "VideoBackends/Vulkan/StreamBuffer.h"
 #include "VideoBackends/Vulkan/Texture2D.h"
@@ -698,7 +697,7 @@ u32 FramebufferManager::PeekEFBColor(u32 x, u32 y)
     return 0;
 
   u32 value;
-  m_color_readback_texture->ReadTexel(x, y, &value, sizeof(value));
+  m_color_readback_texture->ReadTexel(x, y, &value);
   return value;
 }
 
@@ -711,7 +710,6 @@ bool FramebufferManager::PopulateColorReadbackTexture()
   // Issue a copy from framebuffer -> copy texture if we have >1xIR or MSAA on.
   VkRect2D src_region = {{0, 0}, {GetEFBWidth(), GetEFBHeight()}};
   Texture2D* src_texture = m_efb_color_texture.get();
-  VkImageAspectFlags src_aspect = VK_IMAGE_ASPECT_COLOR_BIT;
   if (GetEFBSamples() > 1)
     src_texture = ResolveEFBColorTexture(src_region);
 
@@ -750,9 +748,9 @@ bool FramebufferManager::PopulateColorReadbackTexture()
   // Copy from EFB or copy texture to staging texture.
   src_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                                   VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-  m_color_readback_texture->CopyFromImage(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                                          src_texture->GetImage(), src_aspect, 0, 0, EFB_WIDTH,
-                                          EFB_HEIGHT, 0, 0);
+  static_cast<VKStagingTexture*>(m_color_readback_texture.get())
+      ->CopyFromTexture(src_texture, m_color_readback_texture->GetConfig().GetRect(), 0, 0,
+                        m_color_readback_texture->GetConfig().GetRect());
 
   // Restore original layout if we used the EFB as a source.
   if (src_texture == m_efb_color_texture.get())
@@ -762,12 +760,7 @@ bool FramebufferManager::PopulateColorReadbackTexture()
   }
 
   // Wait until the copy is complete.
-  Util::ExecuteCurrentCommandsAndRestoreState(false, true);
-
-  // Map to host memory.
-  if (!m_color_readback_texture->IsMapped() && !m_color_readback_texture->Map())
-    return false;
-
+  m_color_readback_texture->Flush();
   m_color_readback_texture_valid = true;
   return true;
 }
@@ -778,7 +771,7 @@ float FramebufferManager::PeekEFBDepth(u32 x, u32 y)
     return 0.0f;
 
   float value;
-  m_depth_readback_texture->ReadTexel(x, y, &value, sizeof(value));
+  m_depth_readback_texture->ReadTexel(x, y, &value);
   return value;
 }
 
@@ -791,12 +784,10 @@ bool FramebufferManager::PopulateDepthReadbackTexture()
   // Issue a copy from framebuffer -> copy texture if we have >1xIR or MSAA on.
   VkRect2D src_region = {{0, 0}, {GetEFBWidth(), GetEFBHeight()}};
   Texture2D* src_texture = m_efb_depth_texture.get();
-  VkImageAspectFlags src_aspect = VK_IMAGE_ASPECT_DEPTH_BIT;
   if (GetEFBSamples() > 1)
   {
     // EFB depth resolves are written out as color textures
     src_texture = ResolveEFBDepthTexture(src_region);
-    src_aspect = VK_IMAGE_ASPECT_COLOR_BIT;
   }
   if (GetEFBWidth() != EFB_WIDTH || GetEFBHeight() != EFB_HEIGHT)
   {
@@ -828,15 +819,14 @@ bool FramebufferManager::PopulateDepthReadbackTexture()
 
     // Use this as a source texture now.
     src_texture = m_depth_copy_texture.get();
-    src_aspect = VK_IMAGE_ASPECT_COLOR_BIT;
   }
 
   // Copy from EFB or copy texture to staging texture.
   src_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                                   VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-  m_depth_readback_texture->CopyFromImage(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                                          src_texture->GetImage(), src_aspect, 0, 0, EFB_WIDTH,
-                                          EFB_HEIGHT, 0, 0);
+  static_cast<VKStagingTexture*>(m_depth_readback_texture.get())
+      ->CopyFromTexture(src_texture, m_depth_readback_texture->GetConfig().GetRect(), 0, 0,
+                        m_depth_readback_texture->GetConfig().GetRect());
 
   // Restore original layout if we used the EFB as a source.
   if (src_texture == m_efb_depth_texture.get())
@@ -846,12 +836,7 @@ bool FramebufferManager::PopulateDepthReadbackTexture()
   }
 
   // Wait until the copy is complete.
-  Util::ExecuteCurrentCommandsAndRestoreState(false, true);
-
-  // Map to host memory.
-  if (!m_depth_readback_texture->IsMapped() && !m_depth_readback_texture->Map())
-    return false;
-
+  m_depth_readback_texture->Flush();
   m_depth_readback_texture_valid = true;
   return true;
 }
@@ -1011,32 +996,27 @@ bool FramebufferManager::CreateReadbackTextures()
                         VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
                             VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT);
 
-  m_color_readback_texture = StagingTexture2D::Create(STAGING_BUFFER_TYPE_READBACK, EFB_WIDTH,
-                                                      EFB_HEIGHT, EFB_COLOR_TEXTURE_FORMAT);
-  if (!m_color_copy_texture || !m_color_readback_texture)
-  {
-    ERROR_LOG(VIDEO, "Failed to create EFB color readback texture");
-    return false;
-  }
-
   m_depth_copy_texture =
       Texture2D::Create(EFB_WIDTH, EFB_HEIGHT, 1, 1, EFB_DEPTH_AS_COLOR_TEXTURE_FORMAT,
                         VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_TILING_OPTIMAL,
                         VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
                             VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT);
 
-  m_depth_readback_texture = StagingTexture2D::Create(STAGING_BUFFER_TYPE_READBACK, EFB_WIDTH,
-                                                      EFB_HEIGHT, EFB_DEPTH_TEXTURE_FORMAT);
-  if (!m_depth_copy_texture || !m_depth_readback_texture)
+  if (!m_color_copy_texture || !m_depth_copy_texture)
   {
-    ERROR_LOG(VIDEO, "Failed to create EFB depth readback texture");
+    ERROR_LOG(VIDEO, "Failed to create EFB copy textures");
     return false;
   }
 
-  // With Vulkan, we can leave these textures mapped and use invalidate/flush calls instead.
-  if (!m_color_readback_texture->Map() || !m_depth_readback_texture->Map())
+  TextureConfig readback_texture_config(EFB_WIDTH, EFB_HEIGHT, 1, 1, AbstractTextureFormat::RGBA8,
+                                        false);
+  m_color_readback_texture =
+      g_renderer->CreateStagingTexture(StagingTextureType::Mutable, readback_texture_config);
+  m_depth_readback_texture =
+      g_renderer->CreateStagingTexture(StagingTextureType::Mutable, readback_texture_config);
+  if (!m_color_readback_texture || !m_depth_readback_texture)
   {
-    ERROR_LOG(VIDEO, "Failed to map EFB readback textures");
+    ERROR_LOG(VIDEO, "Failed to create EFB readback textures");
     return false;
   }
 
@@ -1113,7 +1093,7 @@ void FramebufferManager::PokeEFBColor(u32 x, u32 y, u32 color)
 
   // Update the peek cache if it's valid, since we know the color of the pixel now.
   if (m_color_readback_texture_valid)
-    m_color_readback_texture->WriteTexel(x, y, &color, sizeof(color));
+    m_color_readback_texture->WriteTexel(x, y, &color);
 }
 
 void FramebufferManager::PokeEFBDepth(u32 x, u32 y, float depth)
@@ -1126,7 +1106,7 @@ void FramebufferManager::PokeEFBDepth(u32 x, u32 y, float depth)
 
   // Update the peek cache if it's valid, since we know the color of the pixel now.
   if (m_depth_readback_texture_valid)
-    m_depth_readback_texture->WriteTexel(x, y, &depth, sizeof(depth));
+    m_depth_readback_texture->WriteTexel(x, y, &depth);
 }
 
 void FramebufferManager::CreatePokeVertices(std::vector<EFBPokeVertex>* destination_list, u32 x,

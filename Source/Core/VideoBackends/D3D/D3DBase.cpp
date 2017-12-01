@@ -52,8 +52,6 @@ const D3D_FEATURE_LEVEL supported_feature_levels[NUM_SUPPORTED_FEATURE_LEVELS] =
 
 unsigned int xres, yres;
 
-bool bFrameInProgress = false;
-
 HRESULT LoadDXGI()
 {
   if (dxgi_dll_ref++ > 0)
@@ -600,27 +598,6 @@ void Reset()
   CHECK(backbuf != nullptr, "Create back buffer texture");
   SetDebugObjectName(backbuf->GetTex(), "backbuffer texture");
   SetDebugObjectName(backbuf->GetRTV(), "backbuffer render target view");
-}
-
-bool BeginFrame()
-{
-  if (bFrameInProgress)
-  {
-    PanicAlert("BeginFrame called although a frame is already in progress");
-    return false;
-  }
-  bFrameInProgress = true;
-  return (device != nullptr);
-}
-
-void EndFrame()
-{
-  if (!bFrameInProgress)
-  {
-    PanicAlert("EndFrame called although no frame is in progress");
-    return;
-  }
-  bFrameInProgress = false;
 }
 
 void Present()

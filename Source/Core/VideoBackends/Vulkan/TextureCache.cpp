@@ -178,11 +178,6 @@ void TextureCache::DecodeTextureOnGPU(TCacheEntry* entry, u32 dst_level, const u
   }
 }
 
-std::unique_ptr<AbstractTexture> TextureCache::CreateTexture(const TextureConfig& config)
-{
-  return VKTexture::Create(config);
-}
-
 bool TextureCache::CreateRenderPasses()
 {
   static constexpr VkAttachmentDescription update_attachment = {

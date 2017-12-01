@@ -1,4 +1,5 @@
 set(SRCS
+  AbstractStagingTexture.cpp
   AbstractTexture.cpp
   AsyncRequests.cpp
   AsyncShaderCompiler.cpp

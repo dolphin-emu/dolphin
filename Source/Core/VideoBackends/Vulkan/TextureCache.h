@@ -31,8 +31,6 @@ public:
   bool CompileShaders() override;
   void DeleteShaders() override;
 
-  std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config) override;
-
   void ConvertTexture(TCacheEntry* destination, TCacheEntry* source, const void* palette,
                       TLUTFormat format) override;
 
