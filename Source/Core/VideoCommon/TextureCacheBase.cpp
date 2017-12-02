@@ -1565,265 +1565,12 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstF
   // For historical reasons, Dolphin doesn't actually implement "pure" EFB to RAM emulation, but
   // only EFB to texture and hybrid EFB copies.
 
-  float colmat[28] = {0};
-  float* const fConstAdd = colmat + 16;
-  float* const ColorMask = colmat + 20;
-  ColorMask[0] = ColorMask[1] = ColorMask[2] = ColorMask[3] = 255.0f;
-  ColorMask[4] = ColorMask[5] = ColorMask[6] = ColorMask[7] = 1.0f / 255.0f;
-  unsigned int cbufid = UINT_MAX;
-  PEControl::PixelFormat srcFormat = bpmem.zcontrol.pixel_format;
-  bool efbHasAlpha = srcFormat == PEControl::RGBA6_Z24;
+  bool is_xfb_copy = !is_depth_copy && !isIntensity && dstFormat == EFBCopyFormat::XFB;
 
-  bool copy_to_ram =
-      !g_ActiveConfig.bSkipEFBCopyToRam || g_ActiveConfig.backend_info.bForceCopyToRam;
   bool copy_to_vram = g_ActiveConfig.backend_info.bSupportsCopyToVram;
-  bool is_xfb_copy = false;
-
-  if (is_depth_copy)
-  {
-    switch (dstFormat)
-    {
-    case EFBCopyFormat::R4:  // Z4
-      colmat[3] = colmat[7] = colmat[11] = colmat[15] = 1.0f;
-      cbufid = 0;
-      break;
-    case EFBCopyFormat::R8_0x1:  // Z8
-    case EFBCopyFormat::R8:      // Z8H
-      colmat[0] = colmat[4] = colmat[8] = colmat[12] = 1.0f;
-      cbufid = 1;
-      break;
-
-    case EFBCopyFormat::RA8:  // Z16
-      colmat[1] = colmat[5] = colmat[9] = colmat[12] = 1.0f;
-      cbufid = 2;
-      break;
-
-    case EFBCopyFormat::RG8:  // Z16 (reverse order)
-      colmat[0] = colmat[4] = colmat[8] = colmat[13] = 1.0f;
-      cbufid = 3;
-      break;
-
-    case EFBCopyFormat::RGBA8:  // Z24X8
-      colmat[0] = colmat[5] = colmat[10] = 1.0f;
-      cbufid = 4;
-      break;
-
-    case EFBCopyFormat::G8:  // Z8M
-      colmat[1] = colmat[5] = colmat[9] = colmat[13] = 1.0f;
-      cbufid = 5;
-      break;
-
-    case EFBCopyFormat::B8:  // Z8L
-      colmat[2] = colmat[6] = colmat[10] = colmat[14] = 1.0f;
-      cbufid = 6;
-      break;
-
-    case EFBCopyFormat::GB8:  // Z16L - copy lower 16 depth bits
-      // expected to be used as an IA8 texture (upper 8 bits stored as intensity, lower 8 bits
-      // stored as alpha)
-      // Used e.g. in Zelda: Skyward Sword
-      colmat[1] = colmat[5] = colmat[9] = colmat[14] = 1.0f;
-      cbufid = 7;
-      break;
-
-    default:
-      ERROR_LOG(VIDEO, "Unknown copy zbuf format: 0x%X", static_cast<int>(dstFormat));
-      colmat[2] = colmat[5] = colmat[8] = 1.0f;
-      cbufid = 8;
-      break;
-    }
-  }
-  else if (isIntensity)
-  {
-    fConstAdd[0] = fConstAdd[1] = fConstAdd[2] = 16.0f / 255.0f;
-    switch (dstFormat)
-    {
-    case EFBCopyFormat::R4:      // I4
-    case EFBCopyFormat::R8_0x1:  // I8
-    case EFBCopyFormat::R8:      // I8
-    case EFBCopyFormat::RA4:     // IA4
-    case EFBCopyFormat::RA8:     // IA8
-      // TODO - verify these coefficients
-      colmat[0] = 0.257f;
-      colmat[1] = 0.504f;
-      colmat[2] = 0.098f;
-      colmat[4] = 0.257f;
-      colmat[5] = 0.504f;
-      colmat[6] = 0.098f;
-      colmat[8] = 0.257f;
-      colmat[9] = 0.504f;
-      colmat[10] = 0.098f;
-
-      if (dstFormat == EFBCopyFormat::R4 || dstFormat == EFBCopyFormat::R8_0x1 ||
-          dstFormat == EFBCopyFormat::R8)
-      {
-        colmat[12] = 0.257f;
-        colmat[13] = 0.504f;
-        colmat[14] = 0.098f;
-        fConstAdd[3] = 16.0f / 255.0f;
-        if (dstFormat == EFBCopyFormat::R4)
-        {
-          ColorMask[0] = ColorMask[1] = ColorMask[2] = 255.0f / 16.0f;
-          ColorMask[4] = ColorMask[5] = ColorMask[6] = 1.0f / 15.0f;
-          cbufid = 9;
-        }
-        else
-        {
-          cbufid = 10;
-        }
-      }
-      else  // alpha
-      {
-        colmat[15] = 1;
-        if (dstFormat == EFBCopyFormat::RA4)
-        {
-          ColorMask[0] = ColorMask[1] = ColorMask[2] = ColorMask[3] = 255.0f / 16.0f;
-          ColorMask[4] = ColorMask[5] = ColorMask[6] = ColorMask[7] = 1.0f / 15.0f;
-          cbufid = 11;
-        }
-        else
-        {
-          cbufid = 12;
-        }
-      }
-      break;
-
-    default:
-      ERROR_LOG(VIDEO, "Unknown copy intensity format: 0x%X", static_cast<int>(dstFormat));
-      colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1.0f;
-      cbufid = 13;
-      break;
-    }
-  }
-  else
-  {
-    switch (dstFormat)
-    {
-    case EFBCopyFormat::R4:  // R4
-      colmat[0] = colmat[4] = colmat[8] = colmat[12] = 1;
-      ColorMask[0] = 255.0f / 16.0f;
-      ColorMask[4] = 1.0f / 15.0f;
-      cbufid = 14;
-      break;
-    case EFBCopyFormat::R8_0x1:  // R8
-    case EFBCopyFormat::R8:      // R8
-      colmat[0] = colmat[4] = colmat[8] = colmat[12] = 1;
-      cbufid = 15;
-      break;
-
-    case EFBCopyFormat::RA4:  // RA4
-      colmat[0] = colmat[4] = colmat[8] = colmat[15] = 1.0f;
-      ColorMask[0] = ColorMask[3] = 255.0f / 16.0f;
-      ColorMask[4] = ColorMask[7] = 1.0f / 15.0f;
-
-      cbufid = 16;
-      if (!efbHasAlpha)
-      {
-        ColorMask[3] = 0.0f;
-        fConstAdd[3] = 1.0f;
-        cbufid = 17;
-      }
-      break;
-    case EFBCopyFormat::RA8:  // RA8
-      colmat[0] = colmat[4] = colmat[8] = colmat[15] = 1.0f;
-
-      cbufid = 18;
-      if (!efbHasAlpha)
-      {
-        ColorMask[3] = 0.0f;
-        fConstAdd[3] = 1.0f;
-        cbufid = 19;
-      }
-      break;
-
-    case EFBCopyFormat::A8:  // A8
-      colmat[3] = colmat[7] = colmat[11] = colmat[15] = 1.0f;
-
-      cbufid = 20;
-      if (!efbHasAlpha)
-      {
-        ColorMask[3] = 0.0f;
-        fConstAdd[0] = 1.0f;
-        fConstAdd[1] = 1.0f;
-        fConstAdd[2] = 1.0f;
-        fConstAdd[3] = 1.0f;
-        cbufid = 21;
-      }
-      break;
-
-    case EFBCopyFormat::G8:  // G8
-      colmat[1] = colmat[5] = colmat[9] = colmat[13] = 1.0f;
-      cbufid = 22;
-      break;
-    case EFBCopyFormat::B8:  // B8
-      colmat[2] = colmat[6] = colmat[10] = colmat[14] = 1.0f;
-      cbufid = 23;
-      break;
-
-    case EFBCopyFormat::RG8:  // RG8
-      colmat[0] = colmat[4] = colmat[8] = colmat[13] = 1.0f;
-      cbufid = 24;
-      break;
-
-    case EFBCopyFormat::GB8:  // GB8
-      colmat[1] = colmat[5] = colmat[9] = colmat[14] = 1.0f;
-      cbufid = 25;
-      break;
-
-    case EFBCopyFormat::RGB565:  // RGB565
-      colmat[0] = colmat[5] = colmat[10] = 1.0f;
-      ColorMask[0] = ColorMask[2] = 255.0f / 8.0f;
-      ColorMask[4] = ColorMask[6] = 1.0f / 31.0f;
-      ColorMask[1] = 255.0f / 4.0f;
-      ColorMask[5] = 1.0f / 63.0f;
-      fConstAdd[3] = 1.0f;  // set alpha to 1
-      cbufid = 26;
-      break;
-
-    case EFBCopyFormat::RGB5A3:  // RGB5A3
-      colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1.0f;
-      ColorMask[0] = ColorMask[1] = ColorMask[2] = 255.0f / 8.0f;
-      ColorMask[4] = ColorMask[5] = ColorMask[6] = 1.0f / 31.0f;
-      ColorMask[3] = 255.0f / 32.0f;
-      ColorMask[7] = 1.0f / 7.0f;
-
-      cbufid = 27;
-      if (!efbHasAlpha)
-      {
-        ColorMask[3] = 0.0f;
-        fConstAdd[3] = 1.0f;
-        cbufid = 28;
-      }
-      break;
-    case EFBCopyFormat::RGBA8:  // RGBA8
-      colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1.0f;
-
-      cbufid = 29;
-      if (!efbHasAlpha)
-      {
-        ColorMask[3] = 0.0f;
-        fConstAdd[3] = 1.0f;
-        cbufid = 30;
-      }
-      break;
-
-    case EFBCopyFormat::XFB:  // XFB copy, we just pretend it's an RGBX copy
-      colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1.0f;
-      ColorMask[3] = 0.0f;
-      fConstAdd[3] = 1.0f;
-      cbufid = 30;  // just re-use the RGBX8 cbufid from above
-      copy_to_ram =
-          !g_ActiveConfig.bSkipXFBCopyToRam || g_ActiveConfig.backend_info.bForceCopyToRam;
-      is_xfb_copy = true;
-      break;
-
-    default:
-      ERROR_LOG(VIDEO, "Unknown copy color format: 0x%X", static_cast<int>(dstFormat));
-      colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1.0f;
-      cbufid = 31;
-      break;
-    }
-  }
+  bool copy_to_ram =
+      !(is_xfb_copy ? g_ActiveConfig.bSkipXFBCopyToRam : g_ActiveConfig.bSkipEFBCopyToRam) ||
+      g_ActiveConfig.backend_info.bForceCopyToRam;
 
   u8* dst = Memory::GetPointer(dstAddr);
   if (dst == nullptr)
@@ -1861,6 +1608,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstF
 
   if (copy_to_ram)
   {
+    PEControl::PixelFormat srcFormat = bpmem.zcontrol.pixel_format;
     EFBCopyParams format(srcFormat, dstFormat, is_depth_copy, isIntensity, y_scale);
     CopyEFB(dst, format, tex_w, bytes_per_row, num_blocks_y, dstStride, srcRect, scaleByHalf);
   }
@@ -1997,8 +1745,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstF
       entry->may_have_overlapping_textures = false;
       entry->is_custom_tex = false;
 
-      CopyEFBToCacheEntry(entry, is_depth_copy, srcRect, scaleByHalf, cbufid, colmat, dstFormat,
-                          isIntensity);
+      CopyEFBToCacheEntry(entry, is_depth_copy, srcRect, scaleByHalf, dstFormat, isIntensity);
 
       u64 hash = entry->CalculateHash();
       entry->SetHashes(hash, hash);

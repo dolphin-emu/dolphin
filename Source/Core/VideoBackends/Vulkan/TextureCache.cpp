@@ -266,7 +266,6 @@ void TextureCache::DeleteShaders()
 
 void TextureCache::CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy,
                                        const EFBRectangle& src_rect, bool scale_by_half,
-                                       unsigned int cbuf_id, const float* colmat,
                                        EFBCopyFormat dst_format, bool is_intensity)
 {
   VKTexture* texture = static_cast<VKTexture*>(entry->texture.get());

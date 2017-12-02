@@ -37,8 +37,8 @@ private:
                bool scale_by_half) override;
 
   void CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy, const EFBRectangle& src_rect,
-                           bool scale_by_half, unsigned int cbuf_id, const float* colmat,
-                           EFBCopyFormat dst_format, bool is_intensity) override;
+                           bool scale_by_half, EFBCopyFormat dst_format,
+                           bool is_intensity) override;
 
   bool CompileShaders() override { return true; }
   void DeleteShaders() override {}
