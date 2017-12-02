@@ -130,13 +130,10 @@ ShaderCode GenerateShader(APIType api_type, const UidData* uid_data)
   }
   else if (uid_data->is_intensity)
   {
-    std::array<float, 28> colmat = {};
-    float* const const_add = &colmat[16];
-    float* const color_mask = &colmat[20];
-    color_mask[0] = color_mask[1] = color_mask[2] = color_mask[3] = 255.0f;
-    color_mask[4] = color_mask[5] = color_mask[6] = color_mask[7] = 1.0f / 255.0f;
-
-    const_add[0] = const_add[1] = const_add[2] = 16.0f / 255.0f;
+    bool has_four_bits =
+        (uid_data->dst_format == EFBCopyFormat::R4 || uid_data->dst_format == EFBCopyFormat::RA4);
+    bool has_alpha =
+        (uid_data->dst_format == EFBCopyFormat::RA4 || uid_data->dst_format == EFBCopyFormat::RA8);
 
     switch (uid_data->dst_format)
     {
@@ -145,49 +142,14 @@ ShaderCode GenerateShader(APIType api_type, const UidData* uid_data)
     case EFBCopyFormat::R8:      // I8
     case EFBCopyFormat::RA4:     // IA4
     case EFBCopyFormat::RA8:     // IA8
-      // TODO - verify these coefficients
-      colmat[0] = 0.257f;
-      colmat[1] = 0.504f;
-      colmat[2] = 0.098f;
-      colmat[4] = 0.257f;
-      colmat[5] = 0.504f;
-      colmat[6] = 0.098f;
-      colmat[8] = 0.257f;
-      colmat[9] = 0.504f;
-      colmat[10] = 0.098f;
+      if (has_four_bits)
+        out.Write("  texcol = float4(int4(texcol * 255.0) & 0xF0) * (1.0 / 240.0);\n");
 
-      if (uid_data->dst_format == EFBCopyFormat::R4 ||
-          uid_data->dst_format == EFBCopyFormat::R8_0x1 ||
-          uid_data->dst_format == EFBCopyFormat::R8)
-      {
-        colmat[12] = 0.257f;
-        colmat[13] = 0.504f;
-        colmat[14] = 0.098f;
-        const_add[3] = 16.0f / 255.0f;
-        if (uid_data->dst_format == EFBCopyFormat::R4)
-        {
-          color_mask[0] = color_mask[1] = color_mask[2] = 255.0f / 16.0f;
-          color_mask[4] = color_mask[5] = color_mask[6] = 1.0f / 15.0f;
-        }
-      }
-      else  // alpha
-      {
-        colmat[15] = 1;
-        if (uid_data->dst_format == EFBCopyFormat::RA4)
-        {
-          color_mask[0] = color_mask[1] = color_mask[2] = color_mask[3] = 255.0f / 16.0f;
-          color_mask[4] = color_mask[5] = color_mask[6] = color_mask[7] = 1.0f / 15.0f;
-        }
-      }
-      out.Write("  float4 colmat[7];\n");
-      for (size_t i = 0; i < colmat.size() / 4; i++)
-      {
-        out.Write("  colmat[%zu] = float4(%f, %f, %f, %f);\n", i, colmat[i * 4 + 0],
-                  colmat[i * 4 + 1], colmat[i * 4 + 2], colmat[i * 4 + 3]);
-      }
-      out.Write("  texcol = floor(texcol * colmat[5]) * colmat[6];\n"
-                "  ocol0 = float4(dot(texcol, colmat[0]), dot(texcol, colmat[1]), dot(texcol, "
-                "colmat[2]), dot(texcol, colmat[3])) + colmat[4];\n");
+      // TODO - verify these coefficients
+      out.Write("  const float3 coefficients = float3(0.257, 0.504, 0.098);\n"
+                "  float intensity = dot(texcol.rgb, coefficients) + 16.0 / 255.0;\n"
+                "  ocol0 = float4(intensity, intensity, intensity, %s);\n",
+                has_alpha ? "texcol.a" : "intensity");
       break;
 
     default:
