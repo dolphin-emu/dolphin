@@ -389,7 +389,7 @@ bool TextureConverter::SupportsTextureDecoding(TextureFormat format, TLUTFormat 
     return iter->second.valid;
 
   TextureDecodingPipeline pipeline;
-  pipeline.base_info = TextureConversionShader::GetDecodingShaderInfo(format);
+  pipeline.base_info = TextureConversionShaderTiled::GetDecodingShaderInfo(format);
   pipeline.compute_shader = VK_NULL_HANDLE;
   pipeline.valid = false;
 
@@ -400,7 +400,7 @@ bool TextureConverter::SupportsTextureDecoding(TextureFormat format, TLUTFormat 
   }
 
   std::string shader_source =
-      TextureConversionShader::GenerateDecodingShader(format, palette_format, APIType::Vulkan);
+      TextureConversionShaderTiled::GenerateDecodingShader(format, palette_format, APIType::Vulkan);
 
   pipeline.compute_shader = Util::CompileAndCreateComputeShader(shader_source);
   if (pipeline.compute_shader == VK_NULL_HANDLE)
@@ -438,7 +438,7 @@ void TextureConverter::DecodeTexture(VkCommandBuffer command_buffer,
   // Copy to GPU-visible buffer, aligned to the data type
   auto info = iter->second;
   u32 bytes_per_buffer_elem =
-      TextureConversionShader::GetBytesPerBufferElement(info.base_info->buffer_format);
+      TextureConversionShaderTiled::GetBytesPerBufferElement(info.base_info->buffer_format);
 
   // Calculate total data size, including palette.
   // Only copy palette if it is required.
@@ -496,16 +496,16 @@ void TextureConverter::DecodeTexture(VkCommandBuffer command_buffer,
   VkBufferView data_view = VK_NULL_HANDLE;
   switch (iter->second.base_info->buffer_format)
   {
-  case TextureConversionShader::BUFFER_FORMAT_R8_UINT:
+  case TextureConversionShaderTiled::BUFFER_FORMAT_R8_UINT:
     data_view = m_texel_buffer_view_r8_uint;
     break;
-  case TextureConversionShader::BUFFER_FORMAT_R16_UINT:
+  case TextureConversionShaderTiled::BUFFER_FORMAT_R16_UINT:
     data_view = m_texel_buffer_view_r16_uint;
     break;
-  case TextureConversionShader::BUFFER_FORMAT_R32G32_UINT:
+  case TextureConversionShaderTiled::BUFFER_FORMAT_R32G32_UINT:
     data_view = m_texel_buffer_view_r32g32_uint;
     break;
-  case TextureConversionShader::BUFFER_FORMAT_RGBA8_UINT:
+  case TextureConversionShaderTiled::BUFFER_FORMAT_RGBA8_UINT:
     data_view = m_texel_buffer_view_rgba8_uint;
     break;
   default:
@@ -522,8 +522,8 @@ void TextureConverter::DecodeTexture(VkCommandBuffer command_buffer,
   dispatcher.SetTexelBuffer(0, data_view);
   if (has_palette)
     dispatcher.SetTexelBuffer(1, m_texel_buffer_view_r16_uint);
-  auto groups = TextureConversionShader::GetDispatchCount(iter->second.base_info, aligned_width,
-                                                          aligned_height);
+  auto groups = TextureConversionShaderTiled::GetDispatchCount(iter->second.base_info,
+                                                               aligned_width, aligned_height);
   dispatcher.Dispatch(groups.first, groups.second, 1);
 
   // Copy from temporary texture to final destination.
@@ -691,7 +691,8 @@ bool TextureConverter::CompilePaletteConversionShaders()
 
 VkShaderModule TextureConverter::CompileEncodingShader(const EFBCopyParams& params)
 {
-  const char* shader = TextureConversionShader::GenerateEncodingShader(params, APIType::Vulkan);
+  const char* shader =
+      TextureConversionShaderTiled::GenerateEncodingShader(params, APIType::Vulkan);
   VkShaderModule module = Util::CompileAndCreateFragmentShader(shader);
   if (module == VK_NULL_HANDLE)
     PanicAlert("Failed to compile texture encoding shader.");

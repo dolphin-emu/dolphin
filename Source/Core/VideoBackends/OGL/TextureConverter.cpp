@@ -54,7 +54,8 @@ static EncodingProgram& GetOrCreateEncodingShader(const EFBCopyParams& params)
   if (iter != s_encoding_programs.end())
     return iter->second;
 
-  const char* shader = TextureConversionShader::GenerateEncodingShader(params, APIType::OpenGL);
+  const char* shader =
+      TextureConversionShaderTiled::GenerateEncodingShader(params, APIType::OpenGL);
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
   if (g_ActiveConfig.iLog & CONF_SAVESHADERS && shader)

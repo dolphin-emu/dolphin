@@ -22,7 +22,7 @@
 static char text[16384];
 static bool IntensityConstantAdded = false;
 
-namespace TextureConversionShader
+namespace TextureConversionShaderTiled
 {
 u16 GetEncodedSampleCount(EFBCopyFormat format)
 {

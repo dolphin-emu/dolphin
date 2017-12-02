@@ -143,7 +143,7 @@ ID3D11PixelShader* PSTextureEncoder::GetEncodingPixelShader(const EFBCopyParams&
     return iter->second;
 
   D3DBlob* bytecode = nullptr;
-  const char* shader = TextureConversionShader::GenerateEncodingShader(params, APIType::D3D);
+  const char* shader = TextureConversionShaderTiled::GenerateEncodingShader(params, APIType::D3D);
   if (!D3D::CompilePixelShader(shader, &bytecode))
   {
     PanicAlert("Failed to compile texture encoding shader.");

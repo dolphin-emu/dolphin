@@ -4,11 +4,13 @@
 
 #pragma once
 
+#include <map>
 #include <memory>
 
 #include "Common/CommonTypes.h"
 #include "VideoBackends/Vulkan/StreamBuffer.h"
 #include "VideoCommon/TextureCacheBase.h"
+#include "VideoCommon/TextureConverterShaderGen.h"
 
 namespace Vulkan
 {
@@ -53,7 +55,8 @@ private:
   bool CreateRenderPasses();
 
   void CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy, const EFBRectangle& src_rect,
-                           bool scale_by_half, unsigned int cbuf_id, const float* colmat) override;
+                           bool scale_by_half, unsigned int cbuf_id, const float* colmat,
+                           EFBCopyFormat dst_format, bool is_intensity) override;
 
   VkRenderPass m_render_pass = VK_NULL_HANDLE;
 
@@ -62,8 +65,7 @@ private:
   std::unique_ptr<TextureConverter> m_texture_converter;
 
   VkShaderModule m_copy_shader = VK_NULL_HANDLE;
-  VkShaderModule m_efb_color_to_tex_shader = VK_NULL_HANDLE;
-  VkShaderModule m_efb_depth_to_tex_shader = VK_NULL_HANDLE;
+  std::map<TextureConversionShaderGen::TCShaderUid, VkShaderModule> m_efb_copy_to_tex_shaders;
 };
 
 }  // namespace Vulkan

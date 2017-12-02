@@ -316,7 +316,8 @@ private:
 
   virtual void CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy,
                                    const EFBRectangle& src_rect, bool scale_by_half,
-                                   unsigned int cbuf_id, const float* colmat) = 0;
+                                   unsigned int cbuf_id, const float* colmat,
+                                   EFBCopyFormat dst_format, bool is_intensity) = 0;
 
   // Removes and unlinks texture from texture cache and returns it to the pool
   TexAddrCache::iterator InvalidateTexture(TexAddrCache::iterator t_iter);

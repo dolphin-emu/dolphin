@@ -15,7 +15,7 @@ enum class EFBCopyFormat;
 enum class TLUTFormat;
 struct EFBCopyParams;
 
-namespace TextureConversionShader
+namespace TextureConversionShaderTiled
 {
 u16 GetEncodedSampleCount(EFBCopyFormat format);
 
@@ -58,4 +58,4 @@ std::pair<u32, u32> GetDispatchCount(const DecodingShaderInfo* info, u32 width, 
 std::string GenerateDecodingShader(TextureFormat format, TLUTFormat palette_format,
                                    APIType api_type);
 
-}  // namespace TextureConversionShader
+}  // namespace TextureConversionShaderTiled

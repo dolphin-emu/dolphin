@@ -83,6 +83,9 @@
     <ClCompile Include="TextureConversionShader.cpp">
       <Filter>Shader Generators</Filter>
     </ClCompile>
+    <ClCompile Include="TextureConverterShaderGen.cpp">
+      <Filter>Shader Generators</Filter>
+    </ClCompile>
     <ClCompile Include="VertexShaderGen.cpp">
       <Filter>Shader Generators</Filter>
     </ClCompile>
@@ -261,6 +264,9 @@
       <Filter>Shader Generators</Filter>
     </ClInclude>
     <ClInclude Include="TextureConversionShader.h">
+      <Filter>Shader Generators</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureConvertionShaderGen.h">
       <Filter>Shader Generators</Filter>
     </ClInclude>
     <ClInclude Include="VertexShaderGen.h">

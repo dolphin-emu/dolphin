@@ -114,7 +114,7 @@ private:
   // Texture decoding - GX format in memory->RGBA8
   struct TextureDecodingPipeline
   {
-    const TextureConversionShader::DecodingShaderInfo* base_info;
+    const TextureConversionShaderTiled::DecodingShaderInfo* base_info;
     VkShaderModule compute_shader;
     bool valid;
   };
