@@ -14,6 +14,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"  // Local core functions
 #include "Core/HW/Memmap.h"
+#include "InputCommon/ControlReference/ControlReference.h"  // For background input check
 
 #ifdef _WIN32
 #include <windows.h>
@@ -72,7 +73,8 @@ IPCCommandResult USB_KBD::Write(const ReadWriteRequest& request)
 
 IPCCommandResult USB_KBD::IOCtl(const IOCtlRequest& request)
 {
-  if (SConfig::GetInstance().m_WiiKeyboard && !Core::WantsDeterminism() && !m_MessageQueue.empty())
+  if (SConfig::GetInstance().m_WiiKeyboard && !Core::WantsDeterminism() &&
+      ControlReference::InputGateOn() && !m_MessageQueue.empty())
   {
     Memory::CopyToEmu(request.buffer_out, &m_MessageQueue.front(), sizeof(SMessageData));
     m_MessageQueue.pop();
