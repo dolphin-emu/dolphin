@@ -1017,7 +1017,7 @@ void GetBPRegInfo(const u8* data, std::string* name, std::string* desc)
                              (copy.clamp0 && copy.clamp1) ? "Top and Bottom" : (copy.clamp0) ?
                                                             "Top only" :
                                                             (copy.clamp1) ? "Bottom only" : "None",
-                             no_yes[copy.yuv], copy.tp_realFormat(),
+                             no_yes[copy.yuv], static_cast<int>(copy.tp_realFormat()),
                              (copy.gamma == 0) ? "1.0" : (copy.gamma == 1) ?
                                                  "1.7" :
                                                  (copy.gamma == 2) ? "2.2" : "Invalid value 0x3?",

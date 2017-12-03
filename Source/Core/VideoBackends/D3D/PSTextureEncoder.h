@@ -5,10 +5,14 @@
 #pragma once
 
 #include <map>
+#include <memory>
 
 #include "Common/CommonTypes.h"
 #include "VideoCommon/TextureConversionShader.h"
 #include "VideoCommon/VideoCommon.h"
+
+class AbstractTexture;
+class AbstractStagingTexture;
 
 struct ID3D11Texture2D;
 struct ID3D11RenderTargetView;
@@ -29,6 +33,7 @@ class PSTextureEncoder final
 {
 public:
   PSTextureEncoder();
+  ~PSTextureEncoder();
 
   void Init();
   void Shutdown();
@@ -39,12 +44,9 @@ public:
 private:
   ID3D11PixelShader* GetEncodingPixelShader(const EFBCopyParams& params);
 
-  bool m_ready;
-
-  ID3D11Texture2D* m_out;
-  ID3D11RenderTargetView* m_outRTV;
-  ID3D11Texture2D* m_outStage;
-  ID3D11Buffer* m_encodeParams;
+  ID3D11Buffer* m_encode_params = nullptr;
+  std::unique_ptr<AbstractTexture> m_encoding_render_texture;
+  std::unique_ptr<AbstractStagingTexture> m_encoding_readback_texture;
   std::map<EFBCopyParams, ID3D11PixelShader*> m_encoding_shaders;
 };
 }

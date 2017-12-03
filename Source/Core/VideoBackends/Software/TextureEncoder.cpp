@@ -1441,6 +1441,8 @@ void EncodeEfbCopy(u8* dst, const EFBCopyParams& params, u32 native_width, u32 b
     case PEControl::Z24:
       EncodeZ24halfscale(dst, src, params.copy_format);
       break;
+    default:
+      break;
     }
   }
   else
@@ -1458,6 +1460,8 @@ void EncodeEfbCopy(u8* dst, const EFBCopyParams& params, u32 native_width, u32 b
       break;
     case PEControl::Z24:
       EncodeZ24(dst, src, params.copy_format);
+      break;
+    default:
       break;
     }
   }

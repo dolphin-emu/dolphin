@@ -19,7 +19,6 @@
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/FramebufferManager.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
-#include "VideoBackends/Vulkan/StagingTexture2D.h"
 #include "VideoBackends/Vulkan/StateTracker.h"
 #include "VideoBackends/Vulkan/StreamBuffer.h"
 #include "VideoBackends/Vulkan/Texture2D.h"
@@ -67,9 +66,6 @@ TextureConverter::~TextureConverter()
   if (m_encoding_render_pass != VK_NULL_HANDLE)
     vkDestroyRenderPass(g_vulkan_context->GetDevice(), m_encoding_render_pass, nullptr);
 
-  if (m_encoding_render_framebuffer != VK_NULL_HANDLE)
-    vkDestroyFramebuffer(g_vulkan_context->GetDevice(), m_encoding_render_framebuffer, nullptr);
-
   for (auto& it : m_encoding_shaders)
     vkDestroyShaderModule(g_vulkan_context->GetDevice(), it.second, nullptr);
 
@@ -108,12 +104,6 @@ bool TextureConverter::Initialize()
   if (!CreateEncodingTexture())
   {
     PanicAlert("Failed to create encoding texture");
-    return false;
-  }
-
-  if (!CreateEncodingDownloadTexture())
-  {
-    PanicAlert("Failed to create download texture");
     return false;
   }
 
@@ -245,8 +235,10 @@ void TextureConverter::EncodeTextureToMemory(VkImageView src_texture, u8* dest_p
   // Can't do our own draw within a render pass.
   StateTracker::GetInstance()->EndRenderPass();
 
-  m_encoding_render_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                                                VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+  static_cast<VKTexture*>(m_encoding_render_texture.get())
+      ->GetRawTexIdentifier()
+      ->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                           VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
   UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                          g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_PUSH_CONSTANT),
@@ -276,23 +268,15 @@ void TextureConverter::EncodeTextureToMemory(VkImageView src_texture, u8* dest_p
                               render_height);
 
   VkRect2D render_region = {{0, 0}, {render_width, render_height}};
-  draw.BeginRenderPass(m_encoding_render_framebuffer, render_region);
+  draw.BeginRenderPass(static_cast<VKTexture*>(m_encoding_render_texture.get())->GetFramebuffer(),
+                       render_region);
   draw.DrawWithoutVertexBuffer(4);
   draw.EndRenderPass();
 
-  // Transition the image before copying
-  m_encoding_render_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                                                VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-  m_encoding_download_texture->CopyFromImage(
-      g_command_buffer_mgr->GetCurrentCommandBuffer(), m_encoding_render_texture->GetImage(),
-      VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, render_width, render_height, 0, 0);
-
-  // Block until the GPU has finished copying to the staging texture.
-  Util::ExecuteCurrentCommandsAndRestoreState(false, true);
-
-  // Copy from staging texture to the final destination, adjusting pitch if necessary.
-  m_encoding_download_texture->ReadTexels(0, 0, render_width, render_height, dest_ptr,
-                                          memory_stride);
+  MathUtil::Rectangle<int> copy_rect(0, 0, render_width, render_height);
+  m_encoding_readback_texture->CopyFromTexture(m_encoding_render_texture.get(), copy_rect, 0, 0,
+                                               copy_rect);
+  m_encoding_readback_texture->ReadTexels(copy_rect, dest_ptr, memory_stride);
 }
 
 void TextureConverter::EncodeTextureToMemoryYUYV(void* dst_ptr, u32 dst_width, u32 dst_stride,
@@ -304,8 +288,9 @@ void TextureConverter::EncodeTextureToMemoryYUYV(void* dst_ptr, u32 dst_width, u
   // Borrow framebuffer from EFB2RAM encoder.
   VkCommandBuffer command_buffer = g_command_buffer_mgr->GetCurrentCommandBuffer();
   src_texture->TransitionToLayout(command_buffer, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-  m_encoding_render_texture->TransitionToLayout(command_buffer,
-                                                VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+  static_cast<VKTexture*>(m_encoding_render_texture.get())
+      ->GetRawTexIdentifier()
+      ->TransitionToLayout(command_buffer, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
   // Use fragment shader to convert RGBA to YUYV.
   // Use linear sampler for downscaling. This texture is in BGRA order, so the data is already in
@@ -317,7 +302,8 @@ void TextureConverter::EncodeTextureToMemoryYUYV(void* dst_ptr, u32 dst_width, u
                          m_encoding_render_pass, g_shader_cache->GetPassthroughVertexShader(),
                          VK_NULL_HANDLE, m_rgb_to_yuyv_shader);
   VkRect2D region = {{0, 0}, {output_width, dst_height}};
-  draw.BeginRenderPass(m_encoding_render_framebuffer, region);
+  draw.BeginRenderPass(static_cast<VKTexture*>(m_encoding_render_texture.get())->GetFramebuffer(),
+                       region);
   draw.SetPSSampler(0, src_texture->GetView(), g_object_cache->GetLinearSampler());
   draw.DrawQuad(0, 0, static_cast<int>(output_width), static_cast<int>(dst_height), src_rect.left,
                 src_rect.top, 0, src_rect.GetWidth(), src_rect.GetHeight(),
@@ -325,18 +311,11 @@ void TextureConverter::EncodeTextureToMemoryYUYV(void* dst_ptr, u32 dst_width, u
                 static_cast<int>(src_texture->GetHeight()));
   draw.EndRenderPass();
 
-  // Render pass transitions to TRANSFER_SRC.
-  m_encoding_render_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                                                VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-
   // Copy from encoding texture to download buffer.
-  m_encoding_download_texture->CopyFromImage(command_buffer, m_encoding_render_texture->GetImage(),
-                                             VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, output_width,
-                                             dst_height, 0, 0);
-  Util::ExecuteCurrentCommandsAndRestoreState(false, true);
-
-  // Finally, copy to guest memory. This may have a different stride.
-  m_encoding_download_texture->ReadTexels(0, 0, output_width, dst_height, dst_ptr, dst_stride);
+  MathUtil::Rectangle<int> copy_rect(0, 0, output_width, dst_height);
+  m_encoding_readback_texture->CopyFromTexture(m_encoding_render_texture.get(), copy_rect, 0, 0,
+                                               copy_rect);
+  m_encoding_readback_texture->ReadTexels(copy_rect, dst_ptr, dst_stride);
 }
 
 void TextureConverter::DecodeYUYVTextureFromMemory(VKTexture* dst_texture, const void* src_ptr,
@@ -410,7 +389,7 @@ bool TextureConverter::SupportsTextureDecoding(TextureFormat format, TLUTFormat 
     return iter->second.valid;
 
   TextureDecodingPipeline pipeline;
-  pipeline.base_info = TextureConversionShader::GetDecodingShaderInfo(format);
+  pipeline.base_info = TextureConversionShaderTiled::GetDecodingShaderInfo(format);
   pipeline.compute_shader = VK_NULL_HANDLE;
   pipeline.valid = false;
 
@@ -421,7 +400,7 @@ bool TextureConverter::SupportsTextureDecoding(TextureFormat format, TLUTFormat 
   }
 
   std::string shader_source =
-      TextureConversionShader::GenerateDecodingShader(format, palette_format, APIType::Vulkan);
+      TextureConversionShaderTiled::GenerateDecodingShader(format, palette_format, APIType::Vulkan);
 
   pipeline.compute_shader = Util::CompileAndCreateComputeShader(shader_source);
   if (pipeline.compute_shader == VK_NULL_HANDLE)
@@ -459,7 +438,7 @@ void TextureConverter::DecodeTexture(VkCommandBuffer command_buffer,
   // Copy to GPU-visible buffer, aligned to the data type
   auto info = iter->second;
   u32 bytes_per_buffer_elem =
-      TextureConversionShader::GetBytesPerBufferElement(info.base_info->buffer_format);
+      TextureConversionShaderTiled::GetBytesPerBufferElement(info.base_info->buffer_format);
 
   // Calculate total data size, including palette.
   // Only copy palette if it is required.
@@ -517,16 +496,16 @@ void TextureConverter::DecodeTexture(VkCommandBuffer command_buffer,
   VkBufferView data_view = VK_NULL_HANDLE;
   switch (iter->second.base_info->buffer_format)
   {
-  case TextureConversionShader::BUFFER_FORMAT_R8_UINT:
+  case TextureConversionShaderTiled::BUFFER_FORMAT_R8_UINT:
     data_view = m_texel_buffer_view_r8_uint;
     break;
-  case TextureConversionShader::BUFFER_FORMAT_R16_UINT:
+  case TextureConversionShaderTiled::BUFFER_FORMAT_R16_UINT:
     data_view = m_texel_buffer_view_r16_uint;
     break;
-  case TextureConversionShader::BUFFER_FORMAT_R32G32_UINT:
+  case TextureConversionShaderTiled::BUFFER_FORMAT_R32G32_UINT:
     data_view = m_texel_buffer_view_r32g32_uint;
     break;
-  case TextureConversionShader::BUFFER_FORMAT_RGBA8_UINT:
+  case TextureConversionShaderTiled::BUFFER_FORMAT_RGBA8_UINT:
     data_view = m_texel_buffer_view_rgba8_uint;
     break;
   default:
@@ -543,8 +522,8 @@ void TextureConverter::DecodeTexture(VkCommandBuffer command_buffer,
   dispatcher.SetTexelBuffer(0, data_view);
   if (has_palette)
     dispatcher.SetTexelBuffer(1, m_texel_buffer_view_r16_uint);
-  auto groups = TextureConversionShader::GetDispatchCount(iter->second.base_info, aligned_width,
-                                                          aligned_height);
+  auto groups = TextureConversionShaderTiled::GetDispatchCount(iter->second.base_info,
+                                                               aligned_width, aligned_height);
   dispatcher.Dispatch(groups.first, groups.second, 1);
 
   // Copy from temporary texture to final destination.
@@ -712,7 +691,8 @@ bool TextureConverter::CompilePaletteConversionShaders()
 
 VkShaderModule TextureConverter::CompileEncodingShader(const EFBCopyParams& params)
 {
-  const char* shader = TextureConversionShader::GenerateEncodingShader(params, APIType::Vulkan);
+  const char* shader =
+      TextureConversionShaderTiled::GenerateEncodingShader(params, APIType::Vulkan);
   VkShaderModule module = Util::CompileAndCreateFragmentShader(shader);
   if (module == VK_NULL_HANDLE)
     PanicAlert("Failed to compile texture encoding shader.");
@@ -734,10 +714,10 @@ VkShaderModule TextureConverter::GetEncodingShader(const EFBCopyParams& params)
 bool TextureConverter::CreateEncodingRenderPass()
 {
   VkAttachmentDescription attachments[] = {
-      {0, ENCODING_TEXTURE_FORMAT, VK_SAMPLE_COUNT_1_BIT, VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-       VK_ATTACHMENT_STORE_OP_STORE, VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-       VK_ATTACHMENT_STORE_OP_DONT_CARE, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-       VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL}};
+      {0, Util::GetVkFormatForHostTextureFormat(ENCODING_TEXTURE_FORMAT), VK_SAMPLE_COUNT_1_BIT,
+       VK_ATTACHMENT_LOAD_OP_DONT_CARE, VK_ATTACHMENT_STORE_OP_STORE,
+       VK_ATTACHMENT_LOAD_OP_DONT_CARE, VK_ATTACHMENT_STORE_OP_DONT_CARE,
+       VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL}};
 
   VkAttachmentReference color_attachment_references[] = {
       {0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL}};
@@ -769,43 +749,14 @@ bool TextureConverter::CreateEncodingRenderPass()
 
 bool TextureConverter::CreateEncodingTexture()
 {
-  m_encoding_render_texture = Texture2D::Create(
-      ENCODING_TEXTURE_WIDTH, ENCODING_TEXTURE_HEIGHT, 1, 1, ENCODING_TEXTURE_FORMAT,
-      VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_TILING_OPTIMAL,
-      VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT |
-          VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT);
-  if (!m_encoding_render_texture)
-    return false;
+  TextureConfig config(ENCODING_TEXTURE_WIDTH, ENCODING_TEXTURE_HEIGHT, 1, 1,
+                       ENCODING_TEXTURE_FORMAT, true);
 
-  VkImageView framebuffer_attachments[] = {m_encoding_render_texture->GetView()};
-  VkFramebufferCreateInfo framebuffer_info = {VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
-                                              nullptr,
-                                              0,
-                                              m_encoding_render_pass,
-                                              static_cast<u32>(ArraySize(framebuffer_attachments)),
-                                              framebuffer_attachments,
-                                              m_encoding_render_texture->GetWidth(),
-                                              m_encoding_render_texture->GetHeight(),
-                                              m_encoding_render_texture->GetLayers()};
+  m_encoding_render_texture = g_renderer->CreateTexture(config);
+  m_encoding_readback_texture =
+      g_renderer->CreateStagingTexture(StagingTextureType::Readback, config);
 
-  VkResult res = vkCreateFramebuffer(g_vulkan_context->GetDevice(), &framebuffer_info, nullptr,
-                                     &m_encoding_render_framebuffer);
-  if (res != VK_SUCCESS)
-  {
-    LOG_VULKAN_ERROR(res, "vkCreateFramebuffer failed: ");
-    return false;
-  }
-
-  return true;
-}
-
-bool TextureConverter::CreateEncodingDownloadTexture()
-{
-  m_encoding_download_texture =
-      StagingTexture2D::Create(STAGING_BUFFER_TYPE_READBACK, ENCODING_TEXTURE_WIDTH,
-                               ENCODING_TEXTURE_HEIGHT, ENCODING_TEXTURE_FORMAT);
-
-  return m_encoding_download_texture && m_encoding_download_texture->Map();
+  return m_encoding_render_texture && m_encoding_readback_texture;
 }
 
 bool TextureConverter::CreateDecodingTexture()

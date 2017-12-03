@@ -371,6 +371,12 @@ void CommandBufferManager::OnCommandBufferExecuted(size_t index)
   FrameResources& resources = m_frame_resources[index];
 
   // Fire fence tracking callbacks.
+  for (auto iter = m_fence_point_callbacks.begin(); iter != m_fence_point_callbacks.end();)
+  {
+    auto backup_iter = iter++;
+    backup_iter->second.second(resources.fence);
+  }
+
   for (const auto& iter : m_fence_point_callbacks)
     iter.second.second(resources.fence);
 

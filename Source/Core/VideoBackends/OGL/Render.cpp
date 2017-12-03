@@ -458,7 +458,7 @@ Renderer::Renderer()
        GLExtensions::Supports("GL_EXT_copy_image") ||
        GLExtensions::Supports("GL_OES_copy_image")) &&
       !DriverDetails::HasBug(DriverDetails::BUG_BROKEN_COPYIMAGE);
-  g_ogl_config.bSupportTextureSubImage = GLExtensions::Supports("ARB_get_texture_sub_image");
+  g_ogl_config.bSupportsTextureSubImage = GLExtensions::Supports("ARB_get_texture_sub_image");
 
   // Desktop OpenGL supports the binding layout if it supports 420pack
   // OpenGL ES 3.1 supports it implicitly without an extension
@@ -623,6 +623,8 @@ Renderer::Renderer()
 
       // Compute shaders are core in GL4.3.
       g_Config.backend_info.bSupportsComputeShaders = true;
+      if (GLExtensions::Version() >= 450)
+        g_ogl_config.bSupportsTextureSubImage = true;
     }
     else
     {
@@ -812,6 +814,17 @@ void Renderer::Init()
   s_raster_font = std::make_unique<RasterFont>();
 
   OpenGL_CreateAttributelessVAO();
+}
+
+std::unique_ptr<AbstractTexture> Renderer::CreateTexture(const TextureConfig& config)
+{
+  return std::make_unique<OGLTexture>(config);
+}
+
+std::unique_ptr<AbstractStagingTexture> Renderer::CreateStagingTexture(StagingTextureType type,
+                                                                       const TextureConfig& config)
+{
+  return OGLStagingTexture::Create(type, config);
 }
 
 void Renderer::RenderText(const std::string& text, int left, int top, u32 color)

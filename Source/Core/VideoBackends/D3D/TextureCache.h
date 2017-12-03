@@ -19,8 +19,6 @@ public:
   ~TextureCache();
 
 private:
-  std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config) override;
-
   u64 EncodeToRamFromTexture(u32 address, void* source_texture, u32 SourceW, u32 SourceH,
                              bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, int bScaleByHalf,
                              const EFBRectangle& source)
@@ -36,7 +34,8 @@ private:
                bool scale_by_half) override;
 
   void CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy, const EFBRectangle& src_rect,
-                           bool scale_by_half, unsigned int cbuf_id, const float* colmat) override;
+                           bool scale_by_half, unsigned int cbuf_id, const float* colmat,
+                           EFBCopyFormat dst_format, bool is_intensity) override;
 
   bool CompileShaders() override { return true; }
   void DeleteShaders() override {}

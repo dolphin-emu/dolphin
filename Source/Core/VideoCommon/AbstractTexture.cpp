@@ -5,9 +5,11 @@
 #include <algorithm>
 
 #include "Common/Assert.h"
-
+#include "Common/MsgHandler.h"
+#include "VideoCommon/AbstractStagingTexture.h"
 #include "VideoCommon/AbstractTexture.h"
 #include "VideoCommon/ImageWrite.h"
+#include "VideoCommon/RenderBase.h"
 
 AbstractTexture::AbstractTexture(const TextureConfig& c) : m_config(c)
 {
@@ -20,93 +22,51 @@ bool AbstractTexture::Save(const std::string& filename, unsigned int level)
   // We can't dump compressed textures currently (it would mean drawing them to a RGBA8
   // framebuffer, and saving that). TextureCache does not call Save for custom textures
   // anyway, so this is fine for now.
-  _assert_(m_config.format == AbstractTextureFormat::RGBA8);
+  _assert_(!IsCompressedFormat(m_config.format));
+  _assert_(level < m_config.levels);
 
-  auto result = level == 0 ? Map() : Map(level);
+  // Determine dimensions of image we want to save.
+  u32 level_width = std::max(1u, m_config.width >> level);
+  u32 level_height = std::max(1u, m_config.height >> level);
 
-  if (!result.has_value())
+  // Use a temporary staging texture for the download. Certainly not optimal,
+  // but this is not a frequently-executed code path..
+  TextureConfig readback_texture_config(level_width, level_height, 1, 1,
+                                        AbstractTextureFormat::RGBA8, false);
+  auto readback_texture =
+      g_renderer->CreateStagingTexture(StagingTextureType::Readback, readback_texture_config);
+  if (!readback_texture)
+    return false;
+
+  // Copy to the readback texture's buffer.
+  readback_texture->CopyFromTexture(this, 0, level);
+  readback_texture->Flush();
+
+  // Map it so we can encode it to the file.
+  if (!readback_texture->Map())
+    return false;
+
+  return TextureToPng(reinterpret_cast<const u8*>(readback_texture->GetMappedPointer()),
+                      static_cast<int>(readback_texture->GetMappedStride()), filename, level_width,
+                      level_height);
+}
+
+bool AbstractTexture::IsCompressedFormat(AbstractTextureFormat format)
+{
+  switch (format)
   {
+  case AbstractTextureFormat::DXT1:
+  case AbstractTextureFormat::DXT3:
+  case AbstractTextureFormat::DXT5:
+  case AbstractTextureFormat::BPTC:
+    return true;
+
+  default:
     return false;
   }
-
-  auto raw_data = result.value();
-  return TextureToPng(raw_data.data, raw_data.stride, filename, raw_data.width, raw_data.height);
 }
 
-std::optional<AbstractTexture::RawTextureInfo> AbstractTexture::Map()
-{
-  if (m_currently_mapped)
-  {
-    Unmap();
-    m_currently_mapped = false;
-  }
-  auto result = MapFullImpl();
-
-  if (!result.has_value())
-  {
-    m_currently_mapped = false;
-    return {};
-  }
-
-  m_currently_mapped = true;
-  return result;
-}
-
-std::optional<AbstractTexture::RawTextureInfo> AbstractTexture::Map(u32 level, u32 x, u32 y,
-                                                                    u32 width, u32 height)
-{
-  _assert_(level < m_config.levels);
-
-  u32 max_level_width = std::max(m_config.width >> level, 1u);
-  u32 max_level_height = std::max(m_config.height >> level, 1u);
-
-  _assert_(width < max_level_width);
-  _assert_(height < max_level_height);
-
-  auto result = MapRegionImpl(level, x, y, width, height);
-
-  if (!result.has_value())
-  {
-    m_currently_mapped = false;
-    return {};
-  }
-
-  m_currently_mapped = true;
-  return result;
-}
-
-std::optional<AbstractTexture::RawTextureInfo> AbstractTexture::Map(u32 level)
-{
-  _assert_(level < m_config.levels);
-
-  u32 level_width = std::max(m_config.width >> level, 1u);
-  u32 level_height = std::max(m_config.height >> level, 1u);
-
-  return Map(level, 0, 0, level_width, level_height);
-}
-
-void AbstractTexture::Unmap()
-{
-}
-
-std::optional<AbstractTexture::RawTextureInfo> AbstractTexture::MapFullImpl()
-{
-  return {};
-}
-
-std::optional<AbstractTexture::RawTextureInfo>
-AbstractTexture::MapRegionImpl(u32 level, u32 x, u32 y, u32 width, u32 height)
-{
-  return {};
-}
-
-bool AbstractTexture::IsCompressedHostTextureFormat(AbstractTextureFormat format)
-{
-  // This will need to be changed if we add any other uncompressed formats.
-  return format != AbstractTextureFormat::RGBA8;
-}
-
-size_t AbstractTexture::CalculateHostTextureLevelPitch(AbstractTextureFormat format, u32 row_length)
+size_t AbstractTexture::CalculateStrideForFormat(AbstractTextureFormat format, u32 row_length)
 {
   switch (format)
   {
@@ -117,8 +77,30 @@ size_t AbstractTexture::CalculateHostTextureLevelPitch(AbstractTextureFormat for
   case AbstractTextureFormat::BPTC:
     return static_cast<size_t>(std::max(1u, row_length / 4)) * 16;
   case AbstractTextureFormat::RGBA8:
-  default:
+  case AbstractTextureFormat::BGRA8:
     return static_cast<size_t>(row_length) * 4;
+  default:
+    PanicAlert("Unhandled texture format.");
+    return 0;
+  }
+}
+
+size_t AbstractTexture::GetTexelSizeForFormat(AbstractTextureFormat format)
+{
+  switch (format)
+  {
+  case AbstractTextureFormat::DXT1:
+    return 8;
+  case AbstractTextureFormat::DXT3:
+  case AbstractTextureFormat::DXT5:
+  case AbstractTextureFormat::BPTC:
+    return 16;
+  case AbstractTextureFormat::RGBA8:
+  case AbstractTextureFormat::BGRA8:
+    return 4;
+  default:
+    PanicAlert("Unhandled texture format.");
+    return 0;
   }
 }
 

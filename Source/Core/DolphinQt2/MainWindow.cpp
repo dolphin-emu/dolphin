@@ -906,9 +906,9 @@ void MainWindow::OnImportNANDBackup()
         },
         [this] {
           return RunOnObject(this, [this] {
-            return QFileDialog::getOpenFileName(this, tr("Select the OTP/SEEPROM dump"),
+            return QFileDialog::getOpenFileName(this, tr("Select the keys file (OTP/SEEPROM dump)"),
                                                 QDir::currentPath(),
-                                                tr("BootMii OTP/SEEPROM dump (*.bin);;"
+                                                tr("BootMii keys file (*.bin);;"
                                                    "All Files (*)"))
                 .toStdString();
           });

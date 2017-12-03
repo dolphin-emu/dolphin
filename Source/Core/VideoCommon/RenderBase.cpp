@@ -43,6 +43,7 @@
 #include "Core/Movie.h"
 
 #include "VideoCommon/AVIDump.h"
+#include "VideoCommon/AbstractStagingTexture.h"
 #include "VideoCommon/AbstractTexture.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/CPMemory.h"
@@ -99,15 +100,6 @@ Renderer::Renderer(int backbuffer_width, int backbuffer_height)
 }
 
 Renderer::~Renderer() = default;
-
-void Renderer::ExitFramedumping()
-{
-  ShutdownFrameDumping();
-  if (m_frame_dump_thread.joinable())
-    m_frame_dump_thread.join();
-
-  m_dump_texture.reset();
-}
 
 void Renderer::RenderToXFB(u32 xfbAddr, const EFBRectangle& sourceRc, u32 fbStride, u32 fbHeight,
                            float Gamma)
@@ -635,14 +627,10 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
       m_aspect_wide = flush_count_anamorphic > 0.75 * flush_total;
   }
 
-  if (IsFrameDumping() && m_last_xfb_texture)
-  {
-    FinishFrameData();
-  }
-  else
-  {
-    ShutdownFrameDumping();
-  }
+  // Ensure the last frame was written to the dump.
+  // This is required even if frame dumping has stopped, since the frame dump is one frame
+  // behind the renderer.
+  FlushFrameDump();
 
   bool update_frame_count = false;
   if (xfbAddr && fbWidth && fbStride && fbHeight)
@@ -668,10 +656,9 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
 
       m_fps_counter.Update();
       update_frame_count = true;
+
       if (IsFrameDumping())
-      {
-        DoDumpFrame();
-      }
+        DumpCurrentFrame();
     }
 
     // Update our last xfb values
@@ -701,20 +688,16 @@ bool Renderer::IsFrameDumping()
   return false;
 }
 
-void Renderer::DoDumpFrame()
+void Renderer::DumpCurrentFrame()
 {
-  UpdateFrameDumpTexture();
+  // Scale/render to frame dump texture.
+  RenderFrameDump();
 
-  auto result = m_dump_texture->Map();
-  if (result.has_value())
-  {
-    auto raw_data = result.value();
-    DumpFrameData(raw_data.data, raw_data.width, raw_data.height, raw_data.stride,
-                  AVIDump::FetchState(m_last_xfb_ticks));
-  }
+  // Queue a readback for the next frame.
+  QueueFrameDumpReadback();
 }
 
-void Renderer::UpdateFrameDumpTexture()
+void Renderer::RenderFrameDump()
 {
   int target_width, target_height;
   if (!g_ActiveConfig.bInternalResolutionFrameDumps && !IsHeadless())
@@ -729,33 +712,99 @@ void Renderer::UpdateFrameDumpTexture()
         m_last_xfb_texture->GetConfig().width, m_last_xfb_texture->GetConfig().height);
   }
 
-  if (m_dump_texture == nullptr ||
-      m_dump_texture->GetConfig().width != static_cast<u32>(target_width) ||
-      m_dump_texture->GetConfig().height != static_cast<u32>(target_height))
+  // Ensure framebuffer exists (we lazily allocate it in case frame dumping isn't used).
+  // Or, resize texture if it isn't large enough to accommodate the current frame.
+  if (!m_frame_dump_render_texture ||
+      m_frame_dump_render_texture->GetConfig().width != static_cast<u32>(target_width) ||
+      m_frame_dump_render_texture->GetConfig().height == static_cast<u32>(target_height))
   {
-    TextureConfig config;
-    config.width = target_width;
-    config.height = target_height;
-    config.rendertarget = true;
-    m_dump_texture = g_texture_cache->CreateTexture(config);
+    // Recreate texture objects. Release before creating so we don't temporarily use twice the RAM.
+    TextureConfig config(target_width, target_height, 1, 1, AbstractTextureFormat::RGBA8, true);
+    m_frame_dump_render_texture.reset();
+    m_frame_dump_render_texture = CreateTexture(config);
+    _assert_(m_frame_dump_render_texture);
   }
-  m_dump_texture->CopyRectangleFromTexture(m_last_xfb_texture, m_last_xfb_region,
-                                           EFBRectangle{0, 0, target_width, target_height});
+
+  // Scaling is likely to occur here, but if possible, do a bit-for-bit copy.
+  if (m_last_xfb_region.GetWidth() != target_width ||
+      m_last_xfb_region.GetHeight() != target_height)
+  {
+    m_frame_dump_render_texture->ScaleRectangleFromTexture(
+        m_last_xfb_texture, m_last_xfb_region, EFBRectangle{0, 0, target_width, target_height});
+  }
+  else
+  {
+    m_frame_dump_render_texture->CopyRectangleFromTexture(
+        m_last_xfb_texture, m_last_xfb_region, 0, 0,
+        EFBRectangle{0, 0, target_width, target_height}, 0, 0);
+  }
+}
+
+void Renderer::QueueFrameDumpReadback()
+{
+  // Index 0 was just sent to AVI dump. Swap with the second texture.
+  if (m_frame_dump_readback_textures[0])
+    std::swap(m_frame_dump_readback_textures[0], m_frame_dump_readback_textures[1]);
+
+  std::unique_ptr<AbstractStagingTexture>& rbtex = m_frame_dump_readback_textures[0];
+  if (!rbtex || rbtex->GetConfig() != m_frame_dump_render_texture->GetConfig())
+  {
+    rbtex = CreateStagingTexture(StagingTextureType::Readback,
+                                 m_frame_dump_render_texture->GetConfig());
+  }
+
+  m_last_frame_state = AVIDump::FetchState(m_last_xfb_ticks);
+  m_last_frame_exported = true;
+  rbtex->CopyFromTexture(m_frame_dump_render_texture.get(), 0, 0);
+}
+
+void Renderer::FlushFrameDump()
+{
+  if (!m_last_frame_exported)
+    return;
+
+  // Ensure the previously-queued frame was encoded.
+  FinishFrameData();
+
+  // Queue encoding of the last frame dumped.
+  std::unique_ptr<AbstractStagingTexture>& rbtex = m_frame_dump_readback_textures[0];
+  rbtex->Flush();
+  if (rbtex->Map())
+  {
+    DumpFrameData(reinterpret_cast<u8*>(rbtex->GetMappedPointer()), rbtex->GetConfig().width,
+                  rbtex->GetConfig().height, static_cast<int>(rbtex->GetMappedStride()),
+                  m_last_frame_state);
+    rbtex->Unmap();
+  }
+
+  m_last_frame_exported = false;
+
+  // Shutdown frame dumping if it is no longer active.
+  if (!IsFrameDumping())
+    ShutdownFrameDumping();
 }
 
 void Renderer::ShutdownFrameDumping()
 {
+  // Ensure the last queued readback has been sent to the encoder.
+  FlushFrameDump();
+
   if (!m_frame_dump_thread_running.IsSet())
     return;
 
+  // Ensure previous frame has been encoded.
   FinishFrameData();
+
+  // Wake thread up, and wait for it to exit.
   m_frame_dump_thread_running.Clear();
   m_frame_dump_start.Set();
+  if (m_frame_dump_thread.joinable())
+    m_frame_dump_thread.join();
 }
 
 void Renderer::DumpFrameData(const u8* data, int w, int h, int stride, const AVIDump::Frame& state)
 {
-  m_frame_dump_config = FrameDumpConfig{m_last_xfb_texture, data, w, h, stride, state};
+  m_frame_dump_config = FrameDumpConfig{data, w, h, stride, state};
 
   if (!m_frame_dump_thread_running.IsSet())
   {
@@ -765,6 +814,7 @@ void Renderer::DumpFrameData(const u8* data, int w, int h, int stride, const AVI
     m_frame_dump_thread = std::thread(&Renderer::RunFrameDumps, this);
   }
 
+  // Wake worker thread up.
   m_frame_dump_start.Set();
   m_frame_dump_frame_running = true;
 }
@@ -776,7 +826,6 @@ void Renderer::FinishFrameData()
 
   m_frame_dump_done.Wait();
   m_frame_dump_frame_running = false;
-  m_frame_dump_config.texture->Unmap();
 }
 
 void Renderer::RunFrameDumps()

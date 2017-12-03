@@ -1306,10 +1306,11 @@ void CFrame::OnImportBootMiiBackup(wxCommandEvent& WXUNUSED(event))
   DiscIO::NANDImporter().ImportNANDBin(
       file_name, [&dialog] { dialog.Pulse(); },
       [this] {
-        return WxStrToStr(wxFileSelector(
-            _("Select the OTP/SEEPROM dump"), wxEmptyString, wxEmptyString, wxEmptyString,
-            _("BootMii OTP/SEEPROM dump (*.bin)") + "|*.bin|" + wxGetTranslation(wxALL_FILES),
-            wxFD_OPEN | wxFD_PREVIEW | wxFD_FILE_MUST_EXIST, this));
+        return WxStrToStr(wxFileSelector(_("Select the keys file (OTP/SEEPROM dump)"),
+                                         wxEmptyString, wxEmptyString, wxEmptyString,
+                                         _("BootMii keys file (*.bin)") + "|*.bin|" +
+                                             wxGetTranslation(wxALL_FILES),
+                                         wxFD_OPEN | wxFD_PREVIEW | wxFD_FILE_MUST_EXIST, this));
       });
   wxPostEvent(GetMenuBar(), wxCommandEvent{DOLPHIN_EVT_UPDATE_LOAD_WII_MENU_ITEM});
 }

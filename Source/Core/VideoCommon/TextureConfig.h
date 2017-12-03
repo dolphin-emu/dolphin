@@ -13,17 +13,37 @@
 enum class AbstractTextureFormat : u32
 {
   RGBA8,
+  BGRA8,
   DXT1,
   DXT3,
   DXT5,
-  BPTC
+  BPTC,
+  Undefined
+};
+
+enum class StagingTextureType
+{
+  Readback,  // Optimize for CPU reads, GPU writes, no CPU writes
+  Upload,    // Optimize for CPU writes, GPU reads, no CPU reads
+  Mutable    // Optimize for CPU reads, GPU writes, allow slow CPU reads
 };
 
 struct TextureConfig
 {
   constexpr TextureConfig() = default;
+  constexpr TextureConfig(u32 width_, u32 height_, u32 levels_, u32 layers_,
+                          AbstractTextureFormat format_, bool rendertarget_)
+      : width(width_), height(height_), levels(levels_), layers(layers_), format(format_),
+        rendertarget(rendertarget_)
+  {
+  }
+
   bool operator==(const TextureConfig& o) const;
+  bool operator!=(const TextureConfig& o) const;
   MathUtil::Rectangle<int> GetRect() const;
+  MathUtil::Rectangle<int> GetMipRect(u32 level) const;
+  size_t GetStride() const;
+  size_t GetMipStride(u32 level) const;
 
   u32 width = 0;
   u32 height = 0;

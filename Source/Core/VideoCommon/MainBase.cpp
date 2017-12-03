@@ -49,7 +49,7 @@ void VideoBackendBase::Video_CleanupShared()
 {
   // First stop any framedumping, which might need to dump the last xfb frame. This process
   // can require additional graphics sub-systems so it needs to be done first
-  g_renderer->ExitFramedumping();
+  g_renderer->ShutdownFrameDumping();
 
   Video_Cleanup();
 }

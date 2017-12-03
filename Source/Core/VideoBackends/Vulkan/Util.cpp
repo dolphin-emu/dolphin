@@ -107,7 +107,13 @@ VkFormat GetVkFormatForHostTextureFormat(AbstractTextureFormat format)
     return VK_FORMAT_BC7_UNORM_BLOCK;
 
   case AbstractTextureFormat::RGBA8:
+    return VK_FORMAT_R8G8B8A8_UNORM;
+
+  case AbstractTextureFormat::BGRA8:
+    return VK_FORMAT_B8G8R8A8_UNORM;
+
   default:
+    PanicAlert("Unhandled texture format.");
     return VK_FORMAT_R8G8B8A8_UNORM;
   }
 }

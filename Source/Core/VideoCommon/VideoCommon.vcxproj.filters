@@ -83,6 +83,9 @@
     <ClCompile Include="TextureConversionShader.cpp">
       <Filter>Shader Generators</Filter>
     </ClCompile>
+    <ClCompile Include="TextureConverterShaderGen.cpp">
+      <Filter>Shader Generators</Filter>
+    </ClCompile>
     <ClCompile Include="VertexShaderGen.cpp">
       <Filter>Shader Generators</Filter>
     </ClCompile>
@@ -191,6 +194,9 @@
     <ClCompile Include="UberShaderVertex.cpp">
       <Filter>Shader Generators</Filter>
     </ClCompile>
+    <ClCompile Include="AbstractStagingTexture.cpp">
+      <Filter>Base</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommandProcessor.h" />
@@ -258,6 +264,9 @@
       <Filter>Shader Generators</Filter>
     </ClInclude>
     <ClInclude Include="TextureConversionShader.h">
+      <Filter>Shader Generators</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureConvertionShaderGen.h">
       <Filter>Shader Generators</Filter>
     </ClInclude>
     <ClInclude Include="VertexShaderGen.h">
@@ -361,6 +370,9 @@
     </ClInclude>
     <ClInclude Include="UberShaderVertex.h">
       <Filter>Shader Generators</Filter>
+    </ClInclude>
+    <ClInclude Include="AbstractStagingTexture.h">
+      <Filter>Base</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

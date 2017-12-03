@@ -263,6 +263,21 @@ void StateManager::SetTextureByMask(u32 textureSlotMask, ID3D11ShaderResourceVie
 
 }  // namespace D3D
 
+StateCache::~StateCache()
+{
+  for (auto& it : m_depth)
+    SAFE_RELEASE(it.second);
+
+  for (auto& it : m_raster)
+    SAFE_RELEASE(it.second);
+
+  for (auto& it : m_blend)
+    SAFE_RELEASE(it.second);
+
+  for (auto& it : m_sampler)
+    SAFE_RELEASE(it.second);
+}
+
 ID3D11SamplerState* StateCache::Get(SamplerState state)
 {
   auto it = m_sampler.find(state.hex);
@@ -469,33 +484,6 @@ ID3D11DepthStencilState* StateCache::Get(DepthState state)
   m_depth.emplace(state.hex, res);
 
   return res;
-}
-
-void StateCache::Clear()
-{
-  for (auto it : m_depth)
-  {
-    SAFE_RELEASE(it.second);
-  }
-  m_depth.clear();
-
-  for (auto it : m_raster)
-  {
-    SAFE_RELEASE(it.second);
-  }
-  m_raster.clear();
-
-  for (auto it : m_blend)
-  {
-    SAFE_RELEASE(it.second);
-  }
-  m_blend.clear();
-
-  for (auto it : m_sampler)
-  {
-    SAFE_RELEASE(it.second);
-  }
-  m_sampler.clear();
 }
 
 D3D11_PRIMITIVE_TOPOLOGY StateCache::GetPrimitiveTopology(PrimitiveType primitive)

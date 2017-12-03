@@ -33,11 +33,6 @@ static const size_t MAX_COPY_BUFFERS = 32;
 static ID3D11Buffer* s_efbcopycbuf[MAX_COPY_BUFFERS] = {0};
 static std::unique_ptr<PSTextureEncoder> g_encoder;
 
-std::unique_ptr<AbstractTexture> TextureCache::CreateTexture(const TextureConfig& config)
-{
-  return std::make_unique<DXTexture>(config);
-}
-
 void TextureCache::CopyEFB(u8* dst, const EFBCopyParams& params, u32 native_width,
                            u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
                            const EFBRectangle& src_rect, bool scale_by_half)
@@ -227,7 +222,8 @@ TextureCache::~TextureCache()
 
 void TextureCache::CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy,
                                        const EFBRectangle& src_rect, bool scale_by_half,
-                                       unsigned int cbuf_id, const float* colmat)
+                                       unsigned int cbuf_id, const float* colmat,
+                                       EFBCopyFormat dst_format, bool is_intensity)
 {
   auto* destination_texture = static_cast<DXTexture*>(entry->texture.get());
 
