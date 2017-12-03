@@ -21,11 +21,11 @@
 
 namespace WiimoteReal
 {
-WiimoteScannerDarwin::~WiimoteScannerDarwin() 
+WiimoteScannerDarwin::~WiimoteScannerDarwin()
 {
-	stopScanning = true;
+  stopScanning = true;
 }
-	
+
 void WiimoteScannerDarwin::FindWiimotes(std::vector<Wiimote*>& found_wiimotes,
                                         Wiimote*& found_board)
 {
