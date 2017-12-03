@@ -32,8 +32,6 @@ namespace OGL
 {
 namespace TextureConverter
 {
-using OGL::TextureCache;
-
 namespace
 {
 struct EncodingProgram
