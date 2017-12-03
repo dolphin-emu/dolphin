@@ -21,6 +21,11 @@
 
 namespace WiimoteReal
 {
+WiimoteScannerDarwin::~WiimoteScannerDarwin() 
+{
+	stopScanning = true;
+}
+	
 void WiimoteScannerDarwin::FindWiimotes(std::vector<Wiimote*>& found_wiimotes,
                                         Wiimote*& found_board)
 {
@@ -55,7 +60,7 @@ void WiimoteScannerDarwin::FindWiimotes(std::vector<Wiimote*>& found_wiimotes,
   do
   {
     CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0, false);
-  } while (!sbt->done);
+  } while (!sbt->done && !stopScanning);
 
   int found_devices = [[bti foundDevices] count];
 
