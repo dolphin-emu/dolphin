@@ -34,12 +34,6 @@ ShaderCode GenerateShader(APIType api_type, const UidData* uid_data)
 {
   ShaderCode out;
 
-  std::array<float, 28> colmat = {};
-  float* const const_add = &colmat[16];
-  float* const color_mask = &colmat[20];
-  color_mask[0] = color_mask[1] = color_mask[2] = color_mask[3] = 255.0f;
-  color_mask[4] = color_mask[5] = color_mask[6] = color_mask[7] = 1.0f / 255.0f;
-
   if (api_type == APIType::OpenGL)
     out.Write("SAMPLER_BINDING(9) uniform sampler2DArray samp9;\n"
               "#define samp0 samp9\n"
@@ -60,52 +54,76 @@ ShaderCode GenerateShader(APIType api_type, const UidData* uid_data)
 
   if (uid_data->is_depth_copy)
   {
+    if (api_type == APIType::Vulkan)
+      out.Write("texcol.x = 1.0 - texcol.x;\n");
+
+    out.Write("  int depth = int(texcol.x * 16777216.0);\n"
+
+              // Convert to Z24 format
+              "  ivec4 workspace;\n"
+              "  workspace.r = (depth >> 16) & 255;\n"
+              "  workspace.g = (depth >> 8) & 255;\n"
+              "  workspace.b = depth & 255;\n"
+
+              // Convert to Z4 format
+              "  workspace.a = (depth >> 16) & 0xF0;\n"
+
+              // Normalize components to [0.0..1.0]
+              "  texcol = vec4(workspace) / 255.0;\n");
     switch (uid_data->dst_format)
     {
     case EFBCopyFormat::R4:  // Z4
-      colmat[3] = colmat[7] = colmat[11] = colmat[15] = 1.0f;
+      out.Write("  ocol0 = texcol.aaaa;\n");
       break;
+
     case EFBCopyFormat::R8_0x1:  // Z8
     case EFBCopyFormat::R8:      // Z8H
-      colmat[0] = colmat[4] = colmat[8] = colmat[12] = 1.0f;
+      out.Write("  ocol0 = texcol.rrrr;\n");
       break;
 
     case EFBCopyFormat::RA8:  // Z16
-      colmat[1] = colmat[5] = colmat[9] = colmat[12] = 1.0f;
+      out.Write("  ocol0 = texcol.gggr;\n");
       break;
 
     case EFBCopyFormat::RG8:  // Z16 (reverse order)
-      colmat[0] = colmat[4] = colmat[8] = colmat[13] = 1.0f;
+      out.Write("  ocol0 = texcol.rrrg;\n");
       break;
 
     case EFBCopyFormat::RGBA8:  // Z24X8
-      colmat[0] = colmat[5] = colmat[10] = 1.0f;
+      out.Write("  ocol0 = vec4(texcol.rgb, 0.0);\n");
       break;
 
     case EFBCopyFormat::G8:  // Z8M
-      colmat[1] = colmat[5] = colmat[9] = colmat[13] = 1.0f;
+      out.Write("  ocol0 = texcol.gggg;\n");
       break;
 
     case EFBCopyFormat::B8:  // Z8L
-      colmat[2] = colmat[6] = colmat[10] = colmat[14] = 1.0f;
+      out.Write("  ocol0 = texcol.bbbb;\n");
       break;
 
     case EFBCopyFormat::GB8:  // Z16L - copy lower 16 depth bits
       // expected to be used as an IA8 texture (upper 8 bits stored as intensity, lower 8 bits
       // stored as alpha)
       // Used e.g. in Zelda: Skyward Sword
-      colmat[1] = colmat[5] = colmat[9] = colmat[14] = 1.0f;
+      out.Write("  ocol0 = texcol.gggb;\n");
       break;
 
     default:
       ERROR_LOG(VIDEO, "Unknown copy zbuf format: 0x%X", static_cast<int>(uid_data->dst_format));
-      colmat[2] = colmat[5] = colmat[8] = 1.0f;
+      out.Write("  ocol0 = vec4(texcol.bgr, 0.0);\n");
       break;
     }
   }
   else if (uid_data->is_intensity)
   {
+    std::array<float, 28> colmat = {};
+    float* const const_add = &colmat[16];
+    float* const color_mask = &colmat[20];
+    color_mask[0] = color_mask[1] = color_mask[2] = color_mask[3] = 255.0f;
+    color_mask[4] = color_mask[5] = color_mask[6] = color_mask[7] = 1.0f / 255.0f;
+
     const_add[0] = const_add[1] = const_add[2] = 16.0f / 255.0f;
+
     switch (uid_data->dst_format)
     {
     case EFBCopyFormat::R4:      // I4
@@ -147,156 +165,101 @@ ShaderCode GenerateShader(APIType api_type, const UidData* uid_data)
           color_mask[4] = color_mask[5] = color_mask[6] = color_mask[7] = 1.0f / 15.0f;
         }
       }
+      out.Write("  const vec4 colmat[7] = {\n");
+      for (size_t i = 0; i < colmat.size() / 4; i++)
+      {
+        out.Write("    vec4(%f, %f, %f, %f)%s\n", colmat[i * 4 + 0], colmat[i * 4 + 1],
+                  colmat[i * 4 + 2], colmat[i * 4 + 3], i < 7 ? "," : "");
+      }
+      out.Write(
+          "  };\n"
+          "  texcol = floor(texcol * colmat[5]) * colmat[6];\n"
+          "  ocol0 = texcol * mat4(colmat[0], colmat[1], colmat[2], colmat[3]) + colmat[4];\n");
       break;
 
     default:
       ERROR_LOG(VIDEO, "Unknown copy intensity format: 0x%X",
                 static_cast<int>(uid_data->dst_format));
-      colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1.0f;
+      out.Write("  ocol0 = texcol;\n");
       break;
     }
   }
   else
   {
+    if (!uid_data->efb_has_alpha)
+      out.Write("  texcol.a = 1.0;\n");
+
     switch (uid_data->dst_format)
     {
     case EFBCopyFormat::R4:  // R4
-      colmat[0] = colmat[4] = colmat[8] = colmat[12] = 1;
-      color_mask[0] = 255.0f / 16.0f;
-      color_mask[4] = 1.0f / 15.0f;
+      out.Write("  float red = float(int(texcol.r * 255.0) & 0xF0) * (1.0 / 240.0);\n"
+                "  ocol0 = vec4(red, red, red, red);\n");
       break;
+
     case EFBCopyFormat::R8_0x1:  // R8
     case EFBCopyFormat::R8:      // R8
-      colmat[0] = colmat[4] = colmat[8] = colmat[12] = 1;
+      out.Write("  ocol0 = texcol.rrrr;\n");
       break;
 
     case EFBCopyFormat::RA4:  // RA4
-      colmat[0] = colmat[4] = colmat[8] = colmat[15] = 1.0f;
-      color_mask[0] = color_mask[3] = 255.0f / 16.0f;
-      color_mask[4] = color_mask[7] = 1.0f / 15.0f;
-
-      if (!uid_data->efb_has_alpha)
-      {
-        color_mask[3] = 0.0f;
-        const_add[3] = 1.0f;
-      }
+      out.Write("  vec2 red_alpha = vec2(ivec2(texcol.ra * 255.0) & 0xF0) * (1.0 / 240.0);\n"
+                "  ocol0 = red_alpha.rrrg;\n");
       break;
-    case EFBCopyFormat::RA8:  // RA8
-      colmat[0] = colmat[4] = colmat[8] = colmat[15] = 1.0f;
 
-      if (!uid_data->efb_has_alpha)
-      {
-        color_mask[3] = 0.0f;
-        const_add[3] = 1.0f;
-      }
+    case EFBCopyFormat::RA8:  // RA8
+      out.Write("  ocol0 = texcol.rrra;\n");
       break;
 
     case EFBCopyFormat::A8:  // A8
-      colmat[3] = colmat[7] = colmat[11] = colmat[15] = 1.0f;
-
-      if (!uid_data->efb_has_alpha)
-      {
-        color_mask[3] = 0.0f;
-        const_add[0] = 1.0f;
-        const_add[1] = 1.0f;
-        const_add[2] = 1.0f;
-        const_add[3] = 1.0f;
-      }
+      out.Write("  ocol0 = texcol.aaaa;\n");
       break;
 
     case EFBCopyFormat::G8:  // G8
-      colmat[1] = colmat[5] = colmat[9] = colmat[13] = 1.0f;
+      out.Write("  ocol0 = texcol.gggg;\n");
       break;
+
     case EFBCopyFormat::B8:  // B8
-      colmat[2] = colmat[6] = colmat[10] = colmat[14] = 1.0f;
+      out.Write("  ocol0 = texcol.bbbb;\n");
       break;
 
     case EFBCopyFormat::RG8:  // RG8
-      colmat[0] = colmat[4] = colmat[8] = colmat[13] = 1.0f;
+      out.Write("  ocol0 = texcol.rrrg;\n");
       break;
 
     case EFBCopyFormat::GB8:  // GB8
-      colmat[1] = colmat[5] = colmat[9] = colmat[14] = 1.0f;
+      out.Write("  ocol0 = texcol.gggb;\n");
       break;
 
     case EFBCopyFormat::RGB565:  // RGB565
-      colmat[0] = colmat[5] = colmat[10] = 1.0f;
-      color_mask[0] = color_mask[2] = 255.0f / 8.0f;
-      color_mask[4] = color_mask[6] = 1.0f / 31.0f;
-      color_mask[1] = 255.0f / 4.0f;
-      color_mask[5] = 1.0f / 63.0f;
-      const_add[3] = 1.0f;  // set alpha to 1
+      out.Write("  vec2 red_blue = vec2(ivec2(texcol.rb * 255.0) & 0xF8) * (1.0 / 248.0);\n"
+                "  float green = float(int(texcol.g * 255.0) & 0xFC) * (1.0 / 252.0);\n"
+                "  ocol0 = vec4(red_blue.r, green, red_blue.g, 1.0);\n");
       break;
 
     case EFBCopyFormat::RGB5A3:  // RGB5A3
-      colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1.0f;
-      color_mask[0] = color_mask[1] = color_mask[2] = 255.0f / 8.0f;
-      color_mask[4] = color_mask[5] = color_mask[6] = 1.0f / 31.0f;
-      color_mask[3] = 255.0f / 32.0f;
-      color_mask[7] = 1.0f / 7.0f;
-
-      if (!uid_data->efb_has_alpha)
-      {
-        color_mask[3] = 0.0f;
-        const_add[3] = 1.0f;
-      }
+      // TODO: The MSB controls whether we have RGB5 or RGB4A3, this selection
+      // will need to be implemented once we move away from floats.
+      out.Write("  vec3 color = vec3(ivec3(texcol.rgb * 255.0) & 0xF8) * (1.0 / 248.0);\n"
+                "  float alpha = float(int(texcol.a * 255.0) & 0xE0) * (1.0 / 224.0);\n"
+                "  ocol0 = vec4(color, alpha);\n");
       break;
-    case EFBCopyFormat::RGBA8:  // RGBA8
-      colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1.0f;
 
-      if (!uid_data->efb_has_alpha)
-      {
-        color_mask[3] = 0.0f;
-        const_add[3] = 1.0f;
-      }
+    case EFBCopyFormat::RGBA8:  // RGBA8
+      out.Write("  ocol0 = texcol;\n");
       break;
 
     case EFBCopyFormat::XFB:  // XFB copy, we just pretend it's an RGBX copy
-      colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1.0f;
-      color_mask[3] = 0.0f;
-      const_add[3] = 1.0f;
+      out.Write("  ocol0 = vec4(texcol.rgb, 1.0);\n");
       break;
 
     default:
       ERROR_LOG(VIDEO, "Unknown copy color format: 0x%X", static_cast<int>(uid_data->dst_format));
-      colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1.0f;
+      out.Write("  ocol0 = texcol;\n");
       break;
     }
   }
 
-  out.Write("  const vec4 colmat[7] = {\n");
-  for (size_t i = 0; i < colmat.size() / 4; i++)
-  {
-    out.Write("    vec4(%f, %f, %f, %f)%s\n", colmat[i * 4 + 0], colmat[i * 4 + 1],
-              colmat[i * 4 + 2], colmat[i * 4 + 3], i < 7 ? "," : "");
-  }
-  out.Write("  };\n");
-
-  if (uid_data->is_depth_copy)
-  {
-    if (api_type == APIType::Vulkan)
-      out.Write("texcol.x = 1.0 - texcol.x;\n");
-
-    out.Write("  int depth = int(texcol.x * 16777216.0);\n"
-
-              // Convert to Z24 format
-              "  ivec4 workspace;\n"
-              "  workspace.r = (depth >> 16) & 255;\n"
-              "  workspace.g = (depth >> 8) & 255;\n"
-              "  workspace.b = depth & 255;\n"
-
-              // Convert to Z4 format
-              "  workspace.a = (depth >> 16) & 0xF0;\n"
-
-              // Normalize components to [0.0..1.0]
-              "  texcol = vec4(workspace) / 255.0;\n");
-  }
-  else
-  {
-    out.Write("  texcol = floor(texcol * colmat[5]) * colmat[6];\n");
-  }
-  out.Write("  ocol0 = texcol * mat4(colmat[0], colmat[1], colmat[2], colmat[3]) + colmat[4];\n"
-            "}\n");
+  out.Write("}\n");
 
   return out;
 }
