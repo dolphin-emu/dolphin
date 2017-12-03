@@ -30,8 +30,7 @@ public:
   void ScaleRectangleFromTexture(const AbstractTexture* source,
                                  const MathUtil::Rectangle<int>& src_rect,
                                  const MathUtil::Rectangle<int>& dst_rect);
-  void ScaleRectangleFromTexture(Texture2D* src_texture, const MathUtil::Rectangle<int>& src_rect,
-                                 const MathUtil::Rectangle<int>& dst_rect);
+
   void Load(u32 level, u32 width, u32 height, u32 row_length, const u8* buffer,
             size_t buffer_size) override;
 
