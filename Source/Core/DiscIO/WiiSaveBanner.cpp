@@ -29,7 +29,7 @@ WiiSaveBanner::WiiSaveBanner(u64 title_id)
 {
 }
 
-WiiSaveBanner::WiiSaveBanner(const std::string& path) : m_path(path), m_valid(true)
+WiiSaveBanner::WiiSaveBanner(const std::string& path) : m_path(path)
 {
   constexpr size_t MINIMUM_SIZE = sizeof(Header) + BANNER_SIZE + ICON_SIZE;
   File::IOFile file(path, "rb");

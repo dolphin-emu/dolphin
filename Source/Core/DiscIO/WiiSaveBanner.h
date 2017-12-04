@@ -35,7 +35,7 @@ private:
     char16_t description[32];
   } m_header;
 
-  bool m_valid;
+  bool m_valid = true;
   std::string m_path;
 };
 }
