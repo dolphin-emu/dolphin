@@ -7,12 +7,11 @@
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
 
-#include "InputCommon/ControllerEmu/Control/Input.h"
-#include "InputCommon/ControllerEmu/Control/Output.h"
 #include "InputCommon/ControllerEmu/ControlGroup/AnalogStick.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/ControlGroup/MixedTriggers.h"
+#include "InputCommon/ControllerEmu/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/Setting/BooleanSetting.h"
 #include "InputCommon/GCPadStatus.h"
 
@@ -54,7 +53,7 @@ GCPad::GCPad(const unsigned int index) : m_index(index)
     const std::string& ui_name =
         // i18n: The START/PAUSE button on GameCube controllers
         (named_button == std::string("Start")) ? _trans("START") : named_button;
-    m_buttons->controls.emplace_back(new ControllerEmu::Input(named_button, ui_name));
+    m_buttons->controls.emplace_back(new ControllerEmu::InputReference(named_button, ui_name));
   }
 
   // sticks
@@ -66,20 +65,20 @@ GCPad::GCPad(const unsigned int index) : m_index(index)
   // triggers
   groups.emplace_back(m_triggers = new ControllerEmu::MixedTriggers(_trans("Triggers")));
   for (const char* named_trigger : named_triggers)
-    m_triggers->controls.emplace_back(new ControllerEmu::Input(named_trigger));
+    m_triggers->controls.emplace_back(new ControllerEmu::InputReference(named_trigger));
 
   // rumble
   groups.emplace_back(m_rumble = new ControllerEmu::ControlGroup(_trans("Rumble")));
-  m_rumble->controls.emplace_back(new ControllerEmu::Output(_trans("Motor")));
+  m_rumble->controls.emplace_back(new ControllerEmu::OutputReference(_trans("Motor")));
 
   // Microphone
   groups.emplace_back(m_mic = new ControllerEmu::Buttons(_trans("Microphone")));
-  m_mic->controls.emplace_back(new ControllerEmu::Input(_trans("Button")));
+  m_mic->controls.emplace_back(new ControllerEmu::InputReference(_trans("Button")));
 
   // dpad
   groups.emplace_back(m_dpad = new ControllerEmu::Buttons(_trans("D-Pad")));
   for (const char* named_direction : named_directions)
-    m_dpad->controls.emplace_back(new ControllerEmu::Input(named_direction));
+    m_dpad->controls.emplace_back(new ControllerEmu::InputReference(named_direction));
 
   // options
   groups.emplace_back(m_options = new ControllerEmu::ControlGroup(_trans("Options")));
@@ -170,7 +169,7 @@ GCPadStatus GCPad::GetInput() const
 void GCPad::SetOutput(const ControlState strength)
 {
   const auto lock = GetStateLock();
-  m_rumble->controls[0]->control_ref->State(strength);
+  m_rumble->controls[0]->State(strength);
 }
 
 void GCPad::LoadDefaults(const ControllerInterface& ciface)
@@ -191,8 +190,8 @@ void GCPad::LoadDefaults(const ControllerInterface& ciface)
 #endif
 
   // stick modifiers to 50 %
-  m_main_stick->controls[4]->control_ref->range = 0.5f;
-  m_c_stick->controls[4]->control_ref->range = 0.5f;
+  m_main_stick->controls[4]->range = 0.5f;
+  m_c_stick->controls[4]->range = 0.5f;
 
   // D-Pad
   m_dpad->SetControlExpression(0, "T");  // Up
@@ -245,5 +244,5 @@ void GCPad::LoadDefaults(const ControllerInterface& ciface)
 bool GCPad::GetMicButton() const
 {
   const auto lock = GetStateLock();
-  return (0.0f != m_mic->controls.back()->control_ref->State());
+  return (0.0f != m_mic->controls.back()->State());
 }

@@ -10,8 +10,7 @@
 #include <string>
 
 #include "Common/Common.h"
-#include "InputCommon/ControlReference/ControlReference.h"
-#include "InputCommon/ControllerEmu/Control/Control.h"
+#include "InputCommon/ControllerEmu/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 
 namespace ControllerEmu
@@ -27,6 +26,6 @@ void Triggers::GetState(ControlState* analog)
   const ControlState deadzone = numeric_settings[0]->GetValue();
 
   for (size_t i = 0; i < trigger_count; ++i, ++analog)
-    *analog = std::max(controls[i]->control_ref->State() - deadzone, 0.0) / (1 - deadzone);
+    *analog = std::max(controls[i]->State() - deadzone, 0.0) / (1 - deadzone);
 }
 }  // namespace ControllerEmu

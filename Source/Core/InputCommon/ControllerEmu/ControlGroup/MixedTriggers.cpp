@@ -11,8 +11,7 @@
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
 
-#include "InputCommon/ControlReference/ControlReference.h"
-#include "InputCommon/ControllerEmu/Control/Control.h"
+#include "InputCommon/ControllerEmu/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 
 namespace ControllerEmu
@@ -29,14 +28,14 @@ void MixedTriggers::GetState(u16* const digital, const u16* bitmasks, ControlSta
 
   for (size_t i = 0; i < trigger_count; ++i, ++bitmasks, ++analog)
   {
-    if (controls[i]->control_ref->State() > numeric_settings[0]->GetValue())  // threshold
+    if (controls[i]->State() > numeric_settings[0]->GetValue())  // threshold
     {
       *analog = 1.0;
       *digital |= *bitmasks;
     }
     else
     {
-      *analog = controls[i + trigger_count]->control_ref->State();
+      *analog = controls[i + trigger_count]->State();
     }
   }
 }

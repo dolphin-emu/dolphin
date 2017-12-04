@@ -32,8 +32,6 @@
 #include "Core/Movie.h"
 #include "Core/NetPlayClient.h"
 
-#include "InputCommon/ControllerEmu/Control/Input.h"
-#include "InputCommon/ControllerEmu/Control/Output.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Cursor.h"
@@ -41,6 +39,7 @@
 #include "InputCommon/ControllerEmu/ControlGroup/Force.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ModifySettingsButton.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Tilt.h"
+#include "InputCommon/ControllerEmu/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/Setting/BooleanSetting.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 
@@ -261,7 +260,7 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index), ir_sin(0), ir_cos(1
   for (const char* named_button : named_buttons)
   {
     const std::string& ui_name = (named_button == std::string("Home")) ? "HOME" : named_button;
-    m_buttons->controls.emplace_back(new ControllerEmu::Input(named_button, ui_name));
+    m_buttons->controls.emplace_back(new ControllerEmu::InputReference(named_button, ui_name));
   }
 
   // ir
@@ -277,11 +276,11 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index), ir_sin(0), ir_cos(1
   // shake
   groups.emplace_back(m_shake = new ControllerEmu::Buttons(_trans("Shake")));
   // i18n: Refers to a 3D axis (used when mapping motion controls)
-  m_shake->controls.emplace_back(new ControllerEmu::Input(_trans("X")));
+  m_shake->controls.emplace_back(new ControllerEmu::InputReference(_trans("X")));
   // i18n: Refers to a 3D axis (used when mapping motion controls)
-  m_shake->controls.emplace_back(new ControllerEmu::Input(_trans("Y")));
+  m_shake->controls.emplace_back(new ControllerEmu::InputReference(_trans("Y")));
   // i18n: Refers to a 3D axis (used when mapping motion controls)
-  m_shake->controls.emplace_back(new ControllerEmu::Input(_trans("Z")));
+  m_shake->controls.emplace_back(new ControllerEmu::InputReference(_trans("Z")));
 
   // extension
   groups.emplace_back(m_extension = new ControllerEmu::Extension(_trans("Extension")));
@@ -297,12 +296,12 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index), ir_sin(0), ir_cos(1
 
   // rumble
   groups.emplace_back(m_rumble = new ControllerEmu::ControlGroup(_trans("Rumble")));
-  m_rumble->controls.emplace_back(m_motor = new ControllerEmu::Output(_trans("Motor")));
+  m_rumble->controls.emplace_back(m_motor = new ControllerEmu::OutputReference(_trans("Motor")));
 
   // dpad
   groups.emplace_back(m_dpad = new ControllerEmu::Buttons(_trans("D-Pad")));
   for (const char* named_direction : named_directions)
-    m_dpad->controls.emplace_back(new ControllerEmu::Input(named_direction));
+    m_dpad->controls.emplace_back(new ControllerEmu::InputReference(named_direction));
 
   // options
   groups.emplace_back(m_options = new ControllerEmu::ControlGroup(_trans("Options")));
@@ -400,7 +399,7 @@ bool Wiimote::Step()
 {
   m_motion_plus_present = m_motion_plus_setting->GetValue();
 
-  m_motor->control_ref->State(m_rumble_on);
+  m_motor->State(m_rumble_on);
 
   // when a movie is active, this button status update is disabled (moved), because movies only
   // record data reports.

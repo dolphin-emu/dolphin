@@ -13,12 +13,12 @@
 #include "Common/CommonTypes.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
-#include "InputCommon/ControllerEmu/Control/Input.h"
 #include "InputCommon/ControllerEmu/ControlGroup/AnalogStick.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Slider.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Triggers.h"
+#include "InputCommon/ControllerEmu/ControlReference/ControlReference.h"
 
 namespace WiimoteEmu
 {
@@ -57,17 +57,17 @@ Guitar::Guitar(ExtensionReg& reg) : Attachment(_trans("Guitar"), reg)
   // frets
   groups.emplace_back(m_frets = new ControllerEmu::Buttons(_trans("Frets")));
   for (auto& guitar_fret_name : guitar_fret_names)
-    m_frets->controls.emplace_back(new ControllerEmu::Input(guitar_fret_name));
+    m_frets->controls.emplace_back(new ControllerEmu::InputReference(guitar_fret_name));
 
   // strum
   groups.emplace_back(m_strum = new ControllerEmu::Buttons(_trans("Strum")));
-  m_strum->controls.emplace_back(new ControllerEmu::Input(_trans("Up")));
-  m_strum->controls.emplace_back(new ControllerEmu::Input(_trans("Down")));
+  m_strum->controls.emplace_back(new ControllerEmu::InputReference(_trans("Up")));
+  m_strum->controls.emplace_back(new ControllerEmu::InputReference(_trans("Down")));
 
   // buttons
   groups.emplace_back(m_buttons = new ControllerEmu::Buttons(_trans("Buttons")));
-  m_buttons->controls.emplace_back(new ControllerEmu::Input("-"));
-  m_buttons->controls.emplace_back(new ControllerEmu::Input("+"));
+  m_buttons->controls.emplace_back(new ControllerEmu::InputReference("-"));
+  m_buttons->controls.emplace_back(new ControllerEmu::InputReference("+"));
 
   // stick
   groups.emplace_back(
@@ -75,7 +75,7 @@ Guitar::Guitar(ExtensionReg& reg) : Attachment(_trans("Guitar"), reg)
 
   // whammy
   groups.emplace_back(m_whammy = new ControllerEmu::Triggers(_trans("Whammy")));
-  m_whammy->controls.emplace_back(new ControllerEmu::Input(_trans("Bar")));
+  m_whammy->controls.emplace_back(new ControllerEmu::InputReference(_trans("Bar")));
 
   // slider bar
   groups.emplace_back(m_slider_bar = new ControllerEmu::Slider(_trans("Slider Bar")));
@@ -101,7 +101,7 @@ void Guitar::GetState(u8* const data)
   }
 
   // slider bar
-  if (m_slider_bar->controls[0]->control_ref->BoundCount())
+  if (m_slider_bar->controls[0]->BoundCount())
   {
     ControlState slider_bar;
     m_slider_bar->GetState(&slider_bar);

@@ -6,9 +6,11 @@
 
 #include <memory>
 
-#include "InputCommon/ControlReference/ExpressionParser.h"
+#include "InputCommon/ControllerEmu/ControlReference/ExpressionParser.h"
 #include "InputCommon/ControllerInterface/Device.h"
 
+namespace ControllerEmu
+{
 // ControlReference
 //
 // These are what you create to actually use the inputs, InputReference or OutputReference.
@@ -24,6 +26,8 @@ class ControlReference
 public:
   static bool InputGateOn();
 
+  ControlReference(const std::string& name, const std::string& ui_name);
+  ControlReference(const std::string& name);
   virtual ~ControlReference();
   virtual ControlState State(const ControlState state = 0) = 0;
   virtual ciface::Core::Device::Control* Detect(const unsigned int ms,
@@ -31,19 +35,21 @@ public:
   virtual bool IsInput() const = 0;
 
   int BoundCount() const;
-  ciface::ExpressionParser::ParseStatus GetParseStatus() const;
+  ExpressionParser::ParseStatus GetParseStatus() const;
   void UpdateReference(const ciface::Core::DeviceContainer& devices,
                        const ciface::Core::DeviceQualifier& default_device);
   std::string GetExpression() const;
   void SetExpression(std::string expr);
 
+  const std::string name;
+  const std::string ui_name;
   ControlState range;
 
 protected:
   ControlReference();
   std::string m_expression;
-  std::unique_ptr<ciface::ExpressionParser::Expression> m_parsed_expression;
-  ciface::ExpressionParser::ParseStatus m_parse_status;
+  std::unique_ptr<ExpressionParser::Expression> m_parsed_expression;
+  ExpressionParser::ParseStatus m_parse_status;
 };
 
 //
@@ -54,7 +60,8 @@ protected:
 class InputReference : public ControlReference
 {
 public:
-  InputReference();
+  using ControlReference::ControlReference;
+
   bool IsInput() const override;
   ControlState State(const ControlState state) override;
   ciface::Core::Device::Control* Detect(const unsigned int ms,
@@ -69,9 +76,12 @@ public:
 class OutputReference : public ControlReference
 {
 public:
-  OutputReference();
+  using ControlReference::ControlReference;
+
   bool IsInput() const override;
   ControlState State(const ControlState state) override;
   ciface::Core::Device::Control* Detect(const unsigned int ms,
                                         ciface::Core::Device* const device) override;
 };
+
+}  // namespace ControllerEmu

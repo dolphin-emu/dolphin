@@ -16,7 +16,7 @@
 #include "DolphinQt2/Config/Mapping/MappingWidget.h"
 #include "DolphinQt2/Config/Mapping/MappingWindow.h"
 #include "DolphinQt2/QtUtils/BlockUserInputFilter.h"
-#include "InputCommon/ControlReference/ControlReference.h"
+#include "InputCommon/ControllerEmu/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/Device.h"
@@ -26,7 +26,7 @@ static QString EscapeAmpersand(QString&& string)
   return string.replace(QStringLiteral("&"), QStringLiteral("&&"));
 }
 
-MappingButton::MappingButton(MappingWidget* widget, ControlReference* ref)
+MappingButton::MappingButton(MappingWidget* widget, ControllerEmu::ControlReference* ref)
     : ElidedButton(EscapeAmpersand(QString::fromStdString(ref->GetExpression()))), m_parent(widget),
       m_reference(ref)
 {

@@ -1,8 +1,5 @@
 set(SRCS InputConfig.cpp
   ControllerEmu/ControllerEmu.cpp
-  ControllerEmu/Control/Control.cpp
-  ControllerEmu/Control/Input.cpp
-  ControllerEmu/Control/Output.cpp
   ControllerEmu/ControlGroup/AnalogStick.cpp
   ControllerEmu/ControlGroup/Buttons.cpp
   ControllerEmu/ControlGroup/ControlGroup.cpp
@@ -14,12 +11,12 @@ set(SRCS InputConfig.cpp
   ControllerEmu/ControlGroup/Slider.cpp
   ControllerEmu/ControlGroup/Tilt.cpp
   ControllerEmu/ControlGroup/Triggers.cpp
+  ControllerEmu/ControlReference/ControlReference.cpp
+  ControllerEmu/ControlReference/ExpressionParser.cpp
   ControllerEmu/Setting/BooleanSetting.cpp
   ControllerEmu/Setting/NumericSetting.cpp
   ControllerInterface/ControllerInterface.cpp
   ControllerInterface/Device.cpp
-  ControlReference/ControlReference.cpp
-  ControlReference/ExpressionParser.cpp
 )
 set(LIBS common)
 

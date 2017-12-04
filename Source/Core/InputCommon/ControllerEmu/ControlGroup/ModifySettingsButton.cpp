@@ -10,9 +10,7 @@
 #include <utility>
 
 #include "Common/Common.h"
-#include "InputCommon/ControlReference/ControlReference.h"
-#include "InputCommon/ControllerEmu/Control/Control.h"
-#include "InputCommon/ControllerEmu/Control/Input.h"
+#include "InputCommon/ControllerEmu/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/Setting/BooleanSetting.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 #include "VideoCommon/OnScreenDisplay.h"
@@ -27,7 +25,7 @@ ModifySettingsButton::ModifySettingsButton(std::string button_name)
 
 void ModifySettingsButton::AddInput(std::string button_name, bool toggle)
 {
-  controls.emplace_back(new Input(std::move(button_name)));
+  controls.emplace_back(std::make_unique<InputReference>(std::move(button_name)));
   threshold_exceeded.emplace_back(false);
   associated_settings.emplace_back(false);
   associated_settings_toggle.emplace_back(toggle);
@@ -37,7 +35,7 @@ void ModifySettingsButton::GetState()
 {
   for (size_t i = 0; i < controls.size(); ++i)
   {
-    ControlState state = controls[i]->control_ref->State();
+    ControlState state = controls[i]->State();
 
     if (!associated_settings_toggle[i])
     {

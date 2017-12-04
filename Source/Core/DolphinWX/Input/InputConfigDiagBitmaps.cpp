@@ -22,7 +22,6 @@
 #include "DolphinWX/Input/InputConfigDiag.h"
 #include "DolphinWX/WxUtils.h"
 
-#include "InputCommon/ControllerEmu/Control/Control.h"
 #include "InputCommon/ControllerEmu/ControlGroup/AnalogStick.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
@@ -31,6 +30,7 @@
 #include "InputCommon/ControllerEmu/ControlGroup/Slider.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Tilt.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Triggers.h"
+#include "InputCommon/ControllerEmu/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/Device.h"
@@ -133,7 +133,7 @@ static void DrawButton(const std::vector<unsigned int>& bitmasks, unsigned int b
   }
   else
   {
-    unsigned char amt = 255 - g->control_group->controls[(row * 8) + n]->control_ref->State() * 128;
+    unsigned char amt = 255 - g->control_group->controls[(row * 8) + n]->State() * 128;
     gc->SetBrush(wxBrush(wxColour(amt, amt, amt)));
   }
   gc->DrawRectangle(n * 12, (row == 0) ? 0 : (row * 11), 14, 12);
@@ -255,10 +255,10 @@ static void DrawControlGroupBox(wxGraphicsContext* gc, ControlGroupBox* g)
 
     // raw dot
     ControlState xx, yy;
-    xx = g->control_group->controls[3]->control_ref->State();
-    xx -= g->control_group->controls[2]->control_ref->State();
-    yy = g->control_group->controls[1]->control_ref->State();
-    yy -= g->control_group->controls[0]->control_ref->State();
+    xx = g->control_group->controls[3]->State();
+    xx -= g->control_group->controls[2]->State();
+    yy = g->control_group->controls[1]->State();
+    yy -= g->control_group->controls[0]->State();
 
     gc->SetPen(*wxTRANSPARENT_PEN);
     gc->SetBrush(*wxGREY_BRUSH);
@@ -287,8 +287,8 @@ static void DrawControlGroupBox(wxGraphicsContext* gc, ControlGroupBox* g)
     // raw
     for (unsigned int i = 0; i < 3; ++i)
     {
-      raw_dot[i] = (g->control_group->controls[i * 2 + 1]->control_ref->State() -
-                    g->control_group->controls[i * 2]->control_ref->State());
+      raw_dot[i] = (g->control_group->controls[i * 2 + 1]->State() -
+                    g->control_group->controls[i * 2]->State());
     }
 
     // deadzone rect for forward/backward visual
@@ -382,7 +382,7 @@ static void DrawControlGroupBox(wxGraphicsContext* gc, ControlGroupBox* g)
 
     for (unsigned int n = 0; n < trigger_count; ++n)
     {
-      ControlState trig_r = g->control_group->controls[n]->control_ref->State();
+      ControlState trig_r = g->control_group->controls[n]->State();
 
       // outline
       gc->SetBrush(*wxWHITE_BRUSH);
@@ -423,10 +423,10 @@ static void DrawControlGroupBox(wxGraphicsContext* gc, ControlGroupBox* g)
     {
       gc->SetBrush(*wxRED_BRUSH);
 
-      ControlState trig_d = g->control_group->controls[n]->control_ref->State();
+      ControlState trig_d = g->control_group->controls[n]->State();
 
       ControlState trig_a =
-          trig_d > thresh ? 1 : g->control_group->controls[n + trigger_count]->control_ref->State();
+          trig_d > thresh ? 1 : g->control_group->controls[n + trigger_count]->State();
 
       gc->DrawRectangle(0, n * 12, 64 + 20, 14);
       if (trig_d <= thresh)
@@ -455,8 +455,8 @@ static void DrawControlGroupBox(wxGraphicsContext* gc, ControlGroupBox* g)
   {
     const ControlState deadzone = g->control_group->numeric_settings[0]->GetValue();
 
-    ControlState state = g->control_group->controls[1]->control_ref->State() -
-                         g->control_group->controls[0]->control_ref->State();
+    ControlState state =
+        g->control_group->controls[1]->State() - g->control_group->controls[0]->State();
     gc->SetPen(*wxTRANSPARENT_PEN);
     gc->SetBrush(*wxGREY_BRUSH);
     gc->DrawRectangle(31 + state * 30, 0, 2, 14);

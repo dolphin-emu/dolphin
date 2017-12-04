@@ -10,9 +10,7 @@
 
 #include "Common/Common.h"
 
-#include "InputCommon/ControlReference/ControlReference.h"
-#include "InputCommon/ControllerEmu/Control/Control.h"
-#include "InputCommon/ControllerEmu/Control/Input.h"
+#include "InputCommon/ControllerEmu/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 
@@ -28,9 +26,9 @@ AnalogStick::AnalogStick(const char* const name_, const char* const ui_name_,
     : ControlGroup(name_, ui_name_, GroupType::Stick)
 {
   for (auto& named_direction : named_directions)
-    controls.emplace_back(std::make_unique<Input>(named_direction));
+    controls.emplace_back(std::make_unique<InputReference>(named_direction));
 
-  controls.emplace_back(std::make_unique<Input>(_trans("Modifier")));
+  controls.emplace_back(std::make_unique<InputReference>(_trans("Modifier")));
   numeric_settings.emplace_back(
       std::make_unique<NumericSetting>(_trans("Radius"), default_radius, 0, 100));
   numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Dead Zone"), 0, 0, 50));
@@ -38,12 +36,12 @@ AnalogStick::AnalogStick(const char* const name_, const char* const ui_name_,
 
 void AnalogStick::GetState(ControlState* const x, ControlState* const y)
 {
-  ControlState yy = controls[0]->control_ref->State() - controls[1]->control_ref->State();
-  ControlState xx = controls[3]->control_ref->State() - controls[2]->control_ref->State();
+  ControlState yy = controls[0]->State() - controls[1]->State();
+  ControlState xx = controls[3]->State() - controls[2]->State();
 
   ControlState radius = numeric_settings[SETTING_RADIUS]->GetValue();
   ControlState deadzone = numeric_settings[SETTING_DEADZONE]->GetValue();
-  ControlState m = controls[4]->control_ref->State();
+  ControlState m = controls[4]->State();
 
   ControlState ang = atan2(yy, xx);
   ControlState ang_sin = sin(ang);
