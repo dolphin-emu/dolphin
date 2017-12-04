@@ -32,21 +32,22 @@ namespace OGL
 {
 namespace TextureConverter
 {
-using OGL::TextureCache;
-
-std::unique_ptr<AbstractTexture> s_encoding_render_texture;
-std::unique_ptr<AbstractStagingTexture> s_encoding_readback_texture;
-
-const int renderBufferWidth = EFB_WIDTH * 4;
-const int renderBufferHeight = 1024;
-
+namespace
+{
 struct EncodingProgram
 {
   SHADER program;
   GLint copy_position_uniform;
   GLint y_scale_uniform;
 };
-static std::map<EFBCopyParams, EncodingProgram> s_encoding_programs;
+
+std::map<EFBCopyParams, EncodingProgram> s_encoding_programs;
+std::unique_ptr<AbstractTexture> s_encoding_render_texture;
+std::unique_ptr<AbstractStagingTexture> s_encoding_readback_texture;
+
+const int renderBufferWidth = EFB_WIDTH * 4;
+const int renderBufferHeight = 1024;
+}
 
 static EncodingProgram& GetOrCreateEncodingShader(const EFBCopyParams& params)
 {
