@@ -503,7 +503,7 @@ void Host_YieldToUI()
 void Host_UpdateProgressDialog(const char* caption, int position, int total)
 {
   wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATE_PROGRESS_DIALOG);
-  event.SetString(caption);
+  event.SetString(StrToWxStr(caption));
   event.SetInt(position);
   event.SetExtraLong(total);
   main_frame->GetEventHandler()->AddPendingEvent(event);
