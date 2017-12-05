@@ -32,9 +32,7 @@ public:
 
   static ID3D11Buffer* GetConstantBuffer();
 
-  static ID3D11PixelShader* GetColorMatrixProgram(bool multisampled);
   static ID3D11PixelShader* GetColorCopyProgram(bool multisampled);
-  static ID3D11PixelShader* GetDepthMatrixProgram(bool multisampled);
   static ID3D11PixelShader* GetClearProgram();
   static ID3D11PixelShader* GetAnaglyphProgram();
   static ID3D11PixelShader* GetDepthResolveProgram();

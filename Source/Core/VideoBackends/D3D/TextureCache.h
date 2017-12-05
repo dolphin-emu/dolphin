@@ -4,8 +4,11 @@
 
 #pragma once
 
+#include <map>
+
 #include "VideoBackends/D3D/D3DTexture.h"
 #include "VideoCommon/TextureCacheBase.h"
+#include "VideoCommon/TextureConverterShaderGen.h"
 
 class AbstractTexture;
 struct TextureConfig;
@@ -39,9 +42,13 @@ private:
 
   bool CompileShaders() override { return true; }
   void DeleteShaders() override {}
+  ID3D11PixelShader* GetEFBToTexPixelShader(const TextureConversionShaderGen::TCShaderUid& uid);
+
   ID3D11Buffer* palette_buf;
   ID3D11ShaderResourceView* palette_buf_srv;
   ID3D11Buffer* palette_uniform;
   ID3D11PixelShader* palette_pixel_shader[3];
+
+  std::map<TextureConversionShaderGen::TCShaderUid, ID3D11PixelShader*> m_efb_to_tex_pixel_shaders;
 };
 }
