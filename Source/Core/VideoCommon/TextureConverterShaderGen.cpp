@@ -32,35 +32,49 @@ TCShaderUid GetShaderUid(EFBCopyFormat dst_format, bool is_depth_copy, bool is_i
 
 ShaderCode GenerateShader(APIType api_type, const UidData* uid_data)
 {
-  ShaderCode out;
+  const bool mono_depth = uid_data->is_depth_copy && g_ActiveConfig.bStereoEFBMonoDepth;
 
+  ShaderCode out;
   if (api_type == APIType::OpenGL)
+  {
     out.Write("SAMPLER_BINDING(9) uniform sampler2DArray samp9;\n"
               "#define samp0 samp9\n"
               "#define uv0 f_uv0\n"
               "in vec3 uv0;\n"
-              "out vec4 ocol0;\n");
-
+              "out vec4 ocol0;\n"
+              "void main(){\n"
+              "  vec4 texcol = texture(samp0, %s);\n",
+              mono_depth ? "vec3(uv0.xy, 0.0)" : "uv0");
+  }
   else if (api_type == APIType::Vulkan)
+  {
     out.Write("SAMPLER_BINDING(0) uniform sampler2DArray samp0;\n"
               "layout(location = 0) in vec3 uv0;\n"
               "layout(location = 1) in vec4 col0;\n"
-              "layout(location = 0) out vec4 ocol0;");
-
-  bool mono_depth = uid_data->is_depth_copy && g_ActiveConfig.bStereoEFBMonoDepth;
-  out.Write("void main(){\n"
-            "  vec4 texcol = texture(samp0, %s);\n",
-            mono_depth ? "vec3(uv0.xy, 0.0)" : "uv0");
+              "layout(location = 0) out vec4 ocol0;"
+              "void main(){\n"
+              "  vec4 texcol = texture(samp0, %s);\n",
+              mono_depth ? "vec3(uv0.xy, 0.0)" : "uv0");
+  }
+  else if (api_type == APIType::D3D)
+  {
+    out.Write("Texture2DArray tex0 : register(t0);\n"
+              "SamplerState samp0 : register(s0);\n"
+              "void main(out float4 ocol0 : SV_Target,\n"
+              "          in float4 pos : SV_Position,\n"
+              "          in float3 uv0 : TEXCOORD0) {\n"
+              "  float4 texcol = tex0.Sample(samp0, uv0);\n");
+  }
 
   if (uid_data->is_depth_copy)
   {
-    if (api_type == APIType::Vulkan)
+    if (api_type == APIType::D3D || api_type == APIType::Vulkan)
       out.Write("texcol.x = 1.0 - texcol.x;\n");
 
     out.Write("  int depth = int(texcol.x * 16777216.0);\n"
 
               // Convert to Z24 format
-              "  ivec4 workspace;\n"
+              "  int4 workspace;\n"
               "  workspace.r = (depth >> 16) & 255;\n"
               "  workspace.g = (depth >> 8) & 255;\n"
               "  workspace.b = depth & 255;\n"
@@ -69,7 +83,7 @@ ShaderCode GenerateShader(APIType api_type, const UidData* uid_data)
               "  workspace.a = (depth >> 16) & 0xF0;\n"
 
               // Normalize components to [0.0..1.0]
-              "  texcol = vec4(workspace) / 255.0;\n");
+              "  texcol = float4(workspace) / 255.0;\n");
     switch (uid_data->dst_format)
     {
     case EFBCopyFormat::R4:  // Z4
@@ -90,7 +104,7 @@ ShaderCode GenerateShader(APIType api_type, const UidData* uid_data)
       break;
 
     case EFBCopyFormat::RGBA8:  // Z24X8
-      out.Write("  ocol0 = vec4(texcol.rgb, 0.0);\n");
+      out.Write("  ocol0 = float4(texcol.rgb, 0.0);\n");
       break;
 
     case EFBCopyFormat::G8:  // Z8M
@@ -110,7 +124,7 @@ ShaderCode GenerateShader(APIType api_type, const UidData* uid_data)
 
     default:
       ERROR_LOG(VIDEO, "Unknown copy zbuf format: 0x%X", static_cast<int>(uid_data->dst_format));
-      out.Write("  ocol0 = vec4(texcol.bgr, 0.0);\n");
+      out.Write("  ocol0 = float4(texcol.bgr, 0.0);\n");
       break;
     }
   }
@@ -165,16 +179,16 @@ ShaderCode GenerateShader(APIType api_type, const UidData* uid_data)
           color_mask[4] = color_mask[5] = color_mask[6] = color_mask[7] = 1.0f / 15.0f;
         }
       }
-      out.Write("  const vec4 colmat[7] = {\n");
+      out.Write("  const float4 colmat[7] = {\n");
       for (size_t i = 0; i < colmat.size() / 4; i++)
       {
-        out.Write("    vec4(%f, %f, %f, %f)%s\n", colmat[i * 4 + 0], colmat[i * 4 + 1],
+        out.Write("    float4(%f, %f, %f, %f)%s\n", colmat[i * 4 + 0], colmat[i * 4 + 1],
                   colmat[i * 4 + 2], colmat[i * 4 + 3], i < 7 ? "," : "");
       }
-      out.Write(
-          "  };\n"
-          "  texcol = floor(texcol * colmat[5]) * colmat[6];\n"
-          "  ocol0 = texcol * mat4(colmat[0], colmat[1], colmat[2], colmat[3]) + colmat[4];\n");
+      out.Write("  };\n"
+                "  texcol = floor(texcol * colmat[5]) * colmat[6];\n"
+                "  ocol0 = float4(dot(texcol, colmat[0]), dot(texcol, colmat[1]), dot(texcol, "
+                "colmat[2]), dot(texcol, colmat[3])) + colmat[4];\n");
       break;
 
     default:
@@ -193,7 +207,7 @@ ShaderCode GenerateShader(APIType api_type, const UidData* uid_data)
     {
     case EFBCopyFormat::R4:  // R4
       out.Write("  float red = float(int(texcol.r * 255.0) & 0xF0) * (1.0 / 240.0);\n"
-                "  ocol0 = vec4(red, red, red, red);\n");
+                "  ocol0 = float4(red, red, red, red);\n");
       break;
 
     case EFBCopyFormat::R8_0x1:  // R8
@@ -202,7 +216,7 @@ ShaderCode GenerateShader(APIType api_type, const UidData* uid_data)
       break;
 
     case EFBCopyFormat::RA4:  // RA4
-      out.Write("  vec2 red_alpha = vec2(ivec2(texcol.ra * 255.0) & 0xF0) * (1.0 / 240.0);\n"
+      out.Write("  float2 red_alpha = float2(int2(texcol.ra * 255.0) & 0xF0) * (1.0 / 240.0);\n"
                 "  ocol0 = red_alpha.rrrg;\n");
       break;
 
@@ -231,17 +245,17 @@ ShaderCode GenerateShader(APIType api_type, const UidData* uid_data)
       break;
 
     case EFBCopyFormat::RGB565:  // RGB565
-      out.Write("  vec2 red_blue = vec2(ivec2(texcol.rb * 255.0) & 0xF8) * (1.0 / 248.0);\n"
+      out.Write("  float2 red_blue = float2(int2(texcol.rb * 255.0) & 0xF8) * (1.0 / 248.0);\n"
                 "  float green = float(int(texcol.g * 255.0) & 0xFC) * (1.0 / 252.0);\n"
-                "  ocol0 = vec4(red_blue.r, green, red_blue.g, 1.0);\n");
+                "  ocol0 = float4(red_blue.r, green, red_blue.g, 1.0);\n");
       break;
 
     case EFBCopyFormat::RGB5A3:  // RGB5A3
       // TODO: The MSB controls whether we have RGB5 or RGB4A3, this selection
       // will need to be implemented once we move away from floats.
-      out.Write("  vec3 color = vec3(ivec3(texcol.rgb * 255.0) & 0xF8) * (1.0 / 248.0);\n"
+      out.Write("  float3 color = float3(int3(texcol.rgb * 255.0) & 0xF8) * (1.0 / 248.0);\n"
                 "  float alpha = float(int(texcol.a * 255.0) & 0xE0) * (1.0 / 224.0);\n"
-                "  ocol0 = vec4(color, alpha);\n");
+                "  ocol0 = float4(color, alpha);\n");
       break;
 
     case EFBCopyFormat::RGBA8:  // RGBA8
@@ -249,7 +263,7 @@ ShaderCode GenerateShader(APIType api_type, const UidData* uid_data)
       break;
 
     case EFBCopyFormat::XFB:  // XFB copy, we just pretend it's an RGBX copy
-      out.Write("  ocol0 = vec4(texcol.rgb, 1.0);\n");
+      out.Write("  ocol0 = float4(texcol.rgb, 1.0);\n");
       break;
 
     default:
