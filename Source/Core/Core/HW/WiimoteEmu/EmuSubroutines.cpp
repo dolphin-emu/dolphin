@@ -400,8 +400,8 @@ void Wiimote::ReadData(const wm_read_data* const rd)
     {
       // TODO Only read the Mii block parts required
       std::ifstream file;
-      file.open((File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/mii.bin").c_str(),
-                std::ios::binary | std::ios::in);
+      File::OpenFStream(file, (File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/mii.bin").c_str(),
+                        std::ios::binary | std::ios::in);
       file.read((char*)m_eeprom + 0x0FCA, 0x02f0);
       file.close();
     }

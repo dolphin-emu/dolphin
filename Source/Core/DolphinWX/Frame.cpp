@@ -150,7 +150,8 @@ void CRenderFrame::OnDropFiles(wxDropFilesEvent& event)
 bool CRenderFrame::IsValidSavestateDropped(const std::string& filepath)
 {
   const int game_id_length = 6;
-  std::ifstream file(filepath, std::ios::in | std::ios::binary);
+  std::ifstream file;
+  File::OpenFStream(file, filepath, std::ios::in | std::ios::binary);
 
   if (!file)
     return false;
