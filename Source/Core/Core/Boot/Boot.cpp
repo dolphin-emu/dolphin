@@ -335,7 +335,6 @@ bool CBoot::BootUp(std::unique_ptr<BootParameters> boot)
 
       if (config.bWii)
       {
-        HID4.SBE = 1;
         // Because there is no TMD to get the requested system (IOS) version from,
         // we default to IOS58, which is the version used by the Homebrew Channel.
         SetupWiiMemory();
