@@ -72,6 +72,12 @@ static void WriteSwizzler(char*& p, EFBCopyFormat format, APIType ApiType)
     WRITE(p, "uniform float y_scale;\n");
   }
 
+  // D3D does not have roundEven(), only round(), which is specified "to the nearest integer".
+  // This differs from the roundEven() behavior, but to get consistency across drivers in OpenGL
+  // we need to use roundEven().
+  if (ApiType == APIType::D3D)
+    WRITE(p, "#define roundEven(x) round(x)\n");
+
   // Alpha channel in the copy is set to 1 the EFB format does not have an alpha channel.
   WRITE(p, "float4 RGBA8ToRGB8(float4 src)\n");
   WRITE(p, "{\n");

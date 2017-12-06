@@ -38,9 +38,7 @@ LinearDiskCache<PixelShaderUid, u8> g_ps_disk_cache;
 LinearDiskCache<UberShader::PixelShaderUid, u8> g_uber_ps_disk_cache;
 extern std::unique_ptr<VideoCommon::AsyncShaderCompiler> g_async_compiler;
 
-ID3D11PixelShader* s_ColorMatrixProgram[2] = {nullptr};
 ID3D11PixelShader* s_ColorCopyProgram[2] = {nullptr};
-ID3D11PixelShader* s_DepthMatrixProgram[2] = {nullptr};
 ID3D11PixelShader* s_ClearProgram = nullptr;
 ID3D11PixelShader* s_AnaglyphProgram = nullptr;
 ID3D11PixelShader* s_DepthResolveProgram = nullptr;
@@ -102,106 +100,6 @@ const char color_copy_program_code_msaa[] = {
     "for(int i = 0; i < SAMPLES; ++i)\n"
     "	ocol0 += Tex0.Load(int3(uv0.x*(width), uv0.y*(height), uv0.z), i);\n"
     "ocol0 /= SAMPLES;\n"
-    "}\n"};
-
-const char color_matrix_program_code[] = {"sampler samp0 : register(s0);\n"
-                                          "Texture2DArray Tex0 : register(t0);\n"
-                                          "uniform float4 cColMatrix[7] : register(c0);\n"
-                                          "void main(\n"
-                                          "out float4 ocol0 : SV_Target,\n"
-                                          "in float4 pos : SV_Position,\n"
-                                          "in float3 uv0 : TEXCOORD0){\n"
-                                          "float4 texcol = Tex0.Sample(samp0,uv0);\n"
-                                          "texcol = floor(texcol * cColMatrix[5])*cColMatrix[6];\n"
-                                          "ocol0 = "
-                                          "float4(dot(texcol,cColMatrix[0]),dot(texcol,cColMatrix["
-                                          "1]),dot(texcol,cColMatrix[2]),dot(texcol,cColMatrix[3]))"
-                                          " + cColMatrix[4];\n"
-                                          "}\n"};
-
-const char color_matrix_program_code_msaa[] = {
-    "#define SAMPLES %d\n"
-    "sampler samp0 : register(s0);\n"
-    "Texture2DMSArray<float4, SAMPLES> Tex0 : register(t0);\n"
-    "uniform float4 cColMatrix[7] : register(c0);\n"
-    "void main(\n"
-    "out float4 ocol0 : SV_Target,\n"
-    "in float4 pos : SV_Position,\n"
-    "in float3 uv0 : TEXCOORD0){\n"
-    "int width, height, slices, samples;\n"
-    "Tex0.GetDimensions(width, height, slices, samples);\n"
-    "float4 texcol = 0;\n"
-    "for(int i = 0; i < SAMPLES; ++i)\n"
-    "	texcol += Tex0.Load(int3(uv0.x*(width), uv0.y*(height), uv0.z), i);\n"
-    "texcol /= SAMPLES;\n"
-    "texcol = floor(texcol * cColMatrix[5])*cColMatrix[6];\n"
-    "ocol0 = "
-    "float4(dot(texcol,cColMatrix[0]),dot(texcol,cColMatrix[1]),dot(texcol,cColMatrix[2]),dot("
-    "texcol,cColMatrix[3])) + cColMatrix[4];\n"
-    "}\n"};
-
-const char depth_matrix_program[] = {"sampler samp0 : register(s0);\n"
-                                     "Texture2DArray Tex0 : register(t0);\n"
-                                     "uniform float4 cColMatrix[7] : register(c0);\n"
-                                     "void main(\n"
-                                     "out float4 ocol0 : SV_Target,\n"
-                                     " in float4 pos : SV_Position,\n"
-                                     " in float3 uv0 : TEXCOORD0){\n"
-                                     "	float4 texcol = Tex0.Sample(samp0,uv0);\n"
-                                     "	int depth = int((1.0 - texcol.x) * 16777216.0);\n"
-
-                                     // Convert to Z24 format
-                                     "	int4 workspace;\n"
-                                     "	workspace.r = (depth >> 16) & 255;\n"
-                                     "	workspace.g = (depth >> 8) & 255;\n"
-                                     "	workspace.b = depth & 255;\n"
-
-                                     // Convert to Z4 format
-                                     "	workspace.a = (depth >> 16) & 0xF0;\n"
-
-                                     // Normalize components to [0.0..1.0]
-                                     "	texcol = float4(workspace) / 255.0;\n"
-
-                                     // Apply color matrix
-                                     "	ocol0 = "
-                                     "float4(dot(texcol,cColMatrix[0]),dot(texcol,cColMatrix[1]),"
-                                     "dot(texcol,cColMatrix[2]),dot(texcol,cColMatrix[3])) + "
-                                     "cColMatrix[4];\n"
-                                     "}\n"};
-
-const char depth_matrix_program_msaa[] = {
-    "#define SAMPLES %d\n"
-    "sampler samp0 : register(s0);\n"
-    "Texture2DMSArray<float4, SAMPLES> Tex0 : register(t0);\n"
-    "uniform float4 cColMatrix[7] : register(c0);\n"
-    "void main(\n"
-    "out float4 ocol0 : SV_Target,\n"
-    " in float4 pos : SV_Position,\n"
-    " in float3 uv0 : TEXCOORD0){\n"
-    "	int width, height, slices, samples;\n"
-    "	Tex0.GetDimensions(width, height, slices, samples);\n"
-    "	float4 texcol = 0;\n"
-    "	for(int i = 0; i < SAMPLES; ++i)\n"
-    "		texcol += Tex0.Load(int3(uv0.x*(width), uv0.y*(height), uv0.z), i);\n"
-    "	texcol /= SAMPLES;\n"
-    "	int depth = int((1.0 - texcol.x) * 16777216.0);\n"
-
-    // Convert to Z24 format
-    "	int4 workspace;\n"
-    "	workspace.r = (depth >> 16) & 255;\n"
-    "	workspace.g = (depth >> 8) & 255;\n"
-    "	workspace.b = depth & 255;\n"
-
-    // Convert to Z4 format
-    "	workspace.a = (depth >> 16) & 0xF0;\n"
-
-    // Normalize components to [0.0..1.0]
-    "	texcol = float4(workspace) / 255.0;\n"
-
-    // Apply color matrix
-    "	ocol0 = "
-    "float4(dot(texcol,cColMatrix[0]),dot(texcol,cColMatrix[1]),dot(texcol,cColMatrix[2]),dot("
-    "texcol,cColMatrix[3])) + cColMatrix[4];\n"
     "}\n"};
 
 const char depth_resolve_program[] = {
@@ -368,49 +266,6 @@ ID3D11PixelShader* PixelShaderCache::GetColorCopyProgram(bool multisampled)
   }
 }
 
-ID3D11PixelShader* PixelShaderCache::GetColorMatrixProgram(bool multisampled)
-{
-  if (!multisampled || g_ActiveConfig.iMultisamples <= 1)
-  {
-    return s_ColorMatrixProgram[0];
-  }
-  else if (s_ColorMatrixProgram[1])
-  {
-    return s_ColorMatrixProgram[1];
-  }
-  else
-  {
-    // create MSAA shader for current AA mode
-    std::string buf =
-        StringFromFormat(color_matrix_program_code_msaa, g_ActiveConfig.iMultisamples);
-    s_ColorMatrixProgram[1] = D3D::CompileAndCreatePixelShader(buf);
-    CHECK(s_ColorMatrixProgram[1] != nullptr, "Create color matrix MSAA pixel shader");
-    D3D::SetDebugObjectName(s_ColorMatrixProgram[1], "color matrix MSAA pixel shader");
-    return s_ColorMatrixProgram[1];
-  }
-}
-
-ID3D11PixelShader* PixelShaderCache::GetDepthMatrixProgram(bool multisampled)
-{
-  if (!multisampled || g_ActiveConfig.iMultisamples <= 1)
-  {
-    return s_DepthMatrixProgram[0];
-  }
-  else if (s_DepthMatrixProgram[1])
-  {
-    return s_DepthMatrixProgram[1];
-  }
-  else
-  {
-    // create MSAA shader for current AA mode
-    std::string buf = StringFromFormat(depth_matrix_program_msaa, g_ActiveConfig.iMultisamples);
-    s_DepthMatrixProgram[1] = D3D::CompileAndCreatePixelShader(buf);
-    CHECK(s_DepthMatrixProgram[1] != nullptr, "Create depth matrix MSAA pixel shader");
-    D3D::SetDebugObjectName(s_DepthMatrixProgram[1], "depth matrix MSAA pixel shader");
-    return s_DepthMatrixProgram[1];
-  }
-}
-
 ID3D11PixelShader* PixelShaderCache::GetClearProgram()
 {
   return s_ClearProgram;
@@ -490,16 +345,6 @@ void PixelShaderCache::Init()
   CHECK(s_ColorCopyProgram[0] != nullptr, "Create color copy pixel shader");
   D3D::SetDebugObjectName(s_ColorCopyProgram[0], "color copy pixel shader");
 
-  // used for color conversion
-  s_ColorMatrixProgram[0] = D3D::CompileAndCreatePixelShader(color_matrix_program_code);
-  CHECK(s_ColorMatrixProgram[0] != nullptr, "Create color matrix pixel shader");
-  D3D::SetDebugObjectName(s_ColorMatrixProgram[0], "color matrix pixel shader");
-
-  // used for depth copy
-  s_DepthMatrixProgram[0] = D3D::CompileAndCreatePixelShader(depth_matrix_program);
-  CHECK(s_DepthMatrixProgram[0] != nullptr, "Create depth matrix pixel shader");
-  D3D::SetDebugObjectName(s_DepthMatrixProgram[0], "depth matrix pixel shader");
-
   Clear();
 
   SETSTAT(stats.numPixelShadersCreated, 0);
@@ -557,8 +402,6 @@ void PixelShaderCache::Clear()
 void PixelShaderCache::InvalidateMSAAShaders()
 {
   SAFE_RELEASE(s_ColorCopyProgram[1]);
-  SAFE_RELEASE(s_ColorMatrixProgram[1]);
-  SAFE_RELEASE(s_DepthMatrixProgram[1]);
   SAFE_RELEASE(s_rgb8_to_rgba6[1]);
   SAFE_RELEASE(s_rgba6_to_rgb8[1]);
   SAFE_RELEASE(s_DepthResolveProgram);
@@ -574,8 +417,6 @@ void PixelShaderCache::Shutdown()
   for (int i = 0; i < 2; ++i)
   {
     SAFE_RELEASE(s_ColorCopyProgram[i]);
-    SAFE_RELEASE(s_ColorMatrixProgram[i]);
-    SAFE_RELEASE(s_DepthMatrixProgram[i]);
     SAFE_RELEASE(s_rgba6_to_rgb8[i]);
     SAFE_RELEASE(s_rgb8_to_rgba6[i]);
   }
