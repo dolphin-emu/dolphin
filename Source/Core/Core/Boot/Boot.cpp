@@ -282,6 +282,18 @@ static void SetDefaultDisc()
     SetDisc(DiscIO::CreateVolumeFromFilename(config.m_strDefaultISO));
 }
 
+static void CopyDefaultExceptionHandlers()
+{
+  constexpr u32 EXCEPTION_HANDLER_ADDRESSES[] = {0x00000100, 0x00000200, 0x00000300, 0x00000400,
+                                                 0x00000500, 0x00000600, 0x00000700, 0x00000800,
+                                                 0x00000900, 0x00000C00, 0x00000D00, 0x00000F00,
+                                                 0x00001300, 0x00001400, 0x00001700};
+
+  constexpr u32 RFI_INSTRUCTION = 0x4C000064;
+  for (const u32 address : EXCEPTION_HANDLER_ADDRESSES)
+    Memory::Write_U32(RFI_INSTRUCTION, address);
+}
+
 // Third boot step after BootManager and Core. See Call schedule in BootManager.cpp
 bool CBoot::BootUp(std::unique_ptr<BootParameters> boot)
 {
@@ -332,6 +344,7 @@ bool CBoot::BootUp(std::unique_ptr<BootParameters> boot)
 
       SetupMSR();
       SetupBAT(config.bWii);
+      CopyDefaultExceptionHandlers();
 
       if (config.bWii)
       {
