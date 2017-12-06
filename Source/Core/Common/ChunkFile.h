@@ -242,7 +242,7 @@ public:
       x = base + offset;
     }
   }
-
+  //narrysmod_hijack
   void DoMarker(const std::string& prevName, u32 arbitraryNumber = 0x42)
   {
 

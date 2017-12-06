@@ -96,13 +96,15 @@ struct SConfig
   bool bAccurateNaNs = false;
 
   int iTimingVariance = 40;  // in milli secounds
-  bool bCPUThread = true;
+  //narrysmod_hijack
+  bool bCPUThread = false;
   bool bDSPThread = false;
   bool bDSPHLE = true;
   bool bSyncGPUOnSkipIdleHack = true;
   bool bForceNTSCJ = false;
   bool bHLE_BS2 = true;
-  bool bEnableCheats = false;
+  //narrysmod_hijack
+  bool bEnableCheats = true;
   bool bEnableMemcardSdWriting = true;
   bool bCopyWiiSaveNetplay = true;
 
@@ -134,7 +136,9 @@ struct SConfig
   // Interface settings
   bool bConfirmStop = false;
   bool bHideCursor = false;
-  bool bUsePanicHandlers = true;
+
+  //Narrysmod_hijack
+  bool bUsePanicHandlers = false;
   bool bOnScreenDisplayMessages = true;
   std::string theme_name;
 

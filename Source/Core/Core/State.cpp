@@ -99,6 +99,7 @@ enum
   STATE_LOAD = 2,
 };
 
+//narrysmod_hijack
 static bool g_use_compression = false;
 
 void EnableCompression(bool compression)
