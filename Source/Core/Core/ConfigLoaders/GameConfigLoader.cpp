@@ -157,8 +157,9 @@ static ConfigLocation MapINIToRealLocation(const std::string& section, const std
     std::getline(buffer, config_section, '.');
     fail |= buffer.fail();
 
-    if (!fail)
-      return {Config::GetSystemFromName(system_str), config_section, key};
+    const std::optional<Config::System> system = Config::GetSystemFromName(system_str);
+    if (!fail && system)
+      return {*system, config_section, key};
 
     WARN_LOG(CORE, "Unknown game INI option in section %s: %s", section.c_str(), key.c_str());
     return {Config::System::Main, "", ""};

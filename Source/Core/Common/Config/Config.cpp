@@ -101,15 +101,14 @@ const std::string& GetSystemName(System system)
   return system_to_name.at(system);
 }
 
-System GetSystemFromName(const std::string& name)
+std::optional<System> GetSystemFromName(const std::string& name)
 {
   const auto system = std::find_if(system_to_name.begin(), system_to_name.end(),
                                    [&name](const auto& entry) { return entry.second == name; });
   if (system != system_to_name.end())
     return system->first;
 
-  _assert_msg_(COMMON, false, "Programming error! Couldn't convert '%s' to system!", name.c_str());
-  return System::Main;
+  return {};
 }
 
 const std::string& GetLayerName(LayerType layer)

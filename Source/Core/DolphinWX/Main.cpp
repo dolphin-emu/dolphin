@@ -165,7 +165,14 @@ bool DolphinApp::OnInit()
 void DolphinApp::ParseCommandLine()
 {
   auto parser = CommandLineParse::CreateParser(CommandLineParse::ParserOptions::IncludeGUIOptions);
-  optparse::Values& options = CommandLineParse::ParseArguments(parser.get(), argc, argv);
+
+  // Manually convert each argument to a UTF-8 std::string, because the implicit
+  // conversion of wxCmdLineArgsArray to char** calls ToAscii (which is undesired).
+  std::vector<std::string> utf8_argv;
+  for (int i = 1; i < argc; ++i)
+    utf8_argv.emplace_back(argv[i].utf8_str());
+  optparse::Values& options = CommandLineParse::ParseArguments(parser.get(), utf8_argv);
+
   std::vector<std::string> args = parser->args();
 
   if (options.is_set("exec"))

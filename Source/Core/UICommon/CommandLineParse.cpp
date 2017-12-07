@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <list>
+#include <optional>
 #include <sstream>
 #include <string>
 #include <tuple>
@@ -40,8 +41,12 @@ public:
       std::getline(buffer, section, '.');
       std::getline(buffer, key, '=');
       std::getline(buffer, value, '=');
-      Config::System system = Config::GetSystemFromName(system_str);
-      m_values.emplace_back(std::make_tuple(Config::ConfigLocation{system, section, key}, value));
+      const std::optional<Config::System> system = Config::GetSystemFromName(system_str);
+      if (system)
+      {
+        m_values.emplace_back(
+            std::make_tuple(Config::ConfigLocation{*system, section, key}, value));
+      }
     }
   }
 
@@ -105,17 +110,29 @@ std::unique_ptr<optparse::OptionParser> CreateParser(ParserOptions options)
   return parser;
 }
 
-optparse::Values& ParseArguments(optparse::OptionParser* parser, int argc, char** argv)
+static void AddConfigLayer(const optparse::Values& options)
 {
-  optparse::Values& options = parser->parse_args(argc, argv);
-
-  const std::list<std::string>& config_args = options.all("config");
-  if (config_args.size())
+  if (options.is_set_by_user("config"))
   {
+    const std::list<std::string>& config_args = options.all("config");
     Config::AddLayer(std::make_unique<CommandLineConfigLayerLoader>(
         config_args, static_cast<const char*>(options.get("video_backend")),
         static_cast<const char*>(options.get("audio_emulation"))));
   }
+}
+
+optparse::Values& ParseArguments(optparse::OptionParser* parser, int argc, char** argv)
+{
+  optparse::Values& options = parser->parse_args(argc, argv);
+  AddConfigLayer(options);
+  return options;
+}
+
+optparse::Values& ParseArguments(optparse::OptionParser* parser,
+                                 const std::vector<std::string>& arguments)
+{
+  optparse::Values& options = parser->parse_args(arguments);
+  AddConfigLayer(options);
   return options;
 }
 }
