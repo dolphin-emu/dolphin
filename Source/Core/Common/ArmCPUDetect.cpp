@@ -12,6 +12,7 @@
 
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
+#include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 
 const char procfile[] = "/proc/cpuinfo";
@@ -22,7 +23,8 @@ static std::string GetCPUString()
   std::string cpu_string = "Unknown";
 
   std::string line;
-  std::ifstream file(procfile);
+  std::ifstream file;
+  File::OpenFStream(file, procfile, std::ios_base::in);
 
   if (!file)
     return cpu_string;

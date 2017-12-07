@@ -58,7 +58,8 @@ MemoryWatcher::~MemoryWatcher()
 
 bool MemoryWatcher::LoadAddresses(const std::string& path)
 {
-  std::ifstream locations(path);
+  std::ifstream locations;
+  File::OpenFStream(locations, path, std::ios_base::in);
   if (!locations)
     return false;
 
