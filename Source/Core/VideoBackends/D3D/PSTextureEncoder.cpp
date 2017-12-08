@@ -66,8 +66,8 @@ void PSTextureEncoder::Shutdown()
   SAFE_RELEASE(m_encode_params);
 }
 
-void PSTextureEncoder::Encode(u8* dst, const EFBCopyParams& params, u32 native_width,
-                              u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
+void PSTextureEncoder::Encode(AbstractStagingTexture* dst, const EFBCopyParams& params,
+                              u32 native_width, u32 bytes_per_row, u32 num_blocks_y,
                               const EFBRectangle& src_rect, bool scale_by_half)
 {
   // Resolve MSAA targets before copying.
@@ -121,14 +121,7 @@ void PSTextureEncoder::Encode(u8* dst, const EFBCopyParams& params, u32 native_w
 
     // Copy to staging buffer
     MathUtil::Rectangle<int> copy_rect(0, 0, words_per_row, num_blocks_y);
-    m_encoding_readback_texture->CopyFromTexture(m_encoding_render_texture.get(), copy_rect, 0, 0,
-                                                 copy_rect);
-    m_encoding_readback_texture->Flush();
-    if (m_encoding_readback_texture->Map())
-    {
-      m_encoding_readback_texture->ReadTexels(copy_rect, dst, memory_stride);
-      m_encoding_readback_texture->Unmap();
-    }
+    dst->CopyFromTexture(m_encoding_render_texture.get(), copy_rect, 0, 0, copy_rect);
   }
 
   // Restore API

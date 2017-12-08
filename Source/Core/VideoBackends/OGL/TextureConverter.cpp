@@ -105,8 +105,9 @@ void Shutdown()
 
 // dst_line_size, writeStride in bytes
 
-static void EncodeToRamUsingShader(GLuint srcTexture, u8* destAddr, u32 dst_line_size,
-                                   u32 dstHeight, u32 writeStride, bool linearFilter, float y_scale)
+static void EncodeToRamUsingShader(GLuint srcTexture, AbstractStagingTexture* dst_tex,
+                                   u32 dst_line_size, u32 dstHeight, bool linearFilter,
+                                   float y_scale)
 {
   FramebufferManager::SetFramebuffer(
       static_cast<OGLTexture*>(s_encoding_render_texture.get())->GetFramebuffer());
@@ -131,16 +132,14 @@ static void EncodeToRamUsingShader(GLuint srcTexture, u8* destAddr, u32 dst_line
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
   MathUtil::Rectangle<int> copy_rect(0, 0, dst_line_size / 4, dstHeight);
-  s_encoding_readback_texture->CopyFromTexture(s_encoding_render_texture.get(), copy_rect, 0, 0,
-                                               copy_rect);
-  s_encoding_readback_texture->ReadTexels(copy_rect, destAddr, writeStride);
+  dst_tex->CopyFromTexture(s_encoding_render_texture.get(), copy_rect, 0, 0, copy_rect);
 
   FramebufferManager::SetFramebuffer(0);
   OGLTexture::SetStage();
 }
 
-void EncodeToRamFromTexture(u8* dest_ptr, const EFBCopyParams& params, u32 native_width,
-                            u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
+void EncodeToRamFromTexture(AbstractStagingTexture* dest_tex, const EFBCopyParams& params,
+                            u32 native_width, u32 bytes_per_row, u32 num_blocks_y,
                             const EFBRectangle& src_rect, bool scale_by_half)
 {
   g_renderer->ResetAPIState();
@@ -156,7 +155,7 @@ void EncodeToRamFromTexture(u8* dest_ptr, const EFBCopyParams& params, u32 nativ
                                   FramebufferManager::ResolveAndGetDepthTarget(src_rect) :
                                   FramebufferManager::ResolveAndGetRenderTarget(src_rect);
 
-  EncodeToRamUsingShader(read_texture, dest_ptr, bytes_per_row, num_blocks_y, memory_stride,
+  EncodeToRamUsingShader(read_texture, dest_tex, bytes_per_row, num_blocks_y,
                          scale_by_half && !params.depth, params.y_scale);
 
   FramebufferManager::SetFramebuffer(0);

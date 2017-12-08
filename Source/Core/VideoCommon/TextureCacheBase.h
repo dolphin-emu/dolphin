@@ -13,8 +13,10 @@
 #include <tuple>
 #include <unordered_map>
 #include <unordered_set>
+#include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Core/HW/Memmap.h"
 #include "VideoCommon/AbstractTexture.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/TextureConfig.h"
@@ -22,6 +24,7 @@
 #include "VideoCommon/VideoCommon.h"
 
 struct VideoConfig;
+class AbstractStagingTexture;
 
 struct TextureAndTLUTFormat
 {
@@ -82,14 +85,15 @@ struct TextureLookupInformation
   u32 native_levels = 1;
   u32 computed_levels;
 
-  u64 base_hash;
-  u64 full_hash;
+  // TODO: Drop this mutable
+  mutable u64 base_hash;
+  mutable u64 full_hash;
 
   TextureAndTLUTFormat full_format;
   u32 tlut_address = 0;
 
   bool is_palette_texture = false;
-  u32 palette_size = 0;
+  mutable u32 palette_size = 0;
 
   bool use_mipmaps = false;
 
@@ -100,6 +104,10 @@ struct TextureLookupInformation
   int texture_cache_safety_color_sample_size = 0;  // Default to safe hashing
 
   u8* src_data;
+
+  mutable bool hash_done;
+
+  u64 GetHash() const;
 };
 
 class TextureCacheBase
@@ -146,6 +154,15 @@ public:
     //   * efb copies used by this partially updated texture
     //   * partially updated textures which refer to this efb copy
     std::unordered_set<TCacheEntry*> references;
+
+    // Whether or not the texture needs to be hashed again
+    bool needs_rehash = true;
+    Memory::Lock::SharedPtr memory_lock;
+
+    // Pending EFB copy
+    std::unique_ptr<AbstractStagingTexture> pending_efb_copy;
+    u32 pending_efb_copy_width = 0;
+    u32 pending_efb_copy_height = 0;
 
     explicit TCacheEntry(std::unique_ptr<AbstractTexture> tex);
 
@@ -214,8 +231,8 @@ public:
 
   void Invalidate();
 
-  virtual void CopyEFB(u8* dst, const EFBCopyParams& params, u32 native_width, u32 bytes_per_row,
-                       u32 num_blocks_y, u32 memory_stride, const EFBRectangle& src_rect,
+  virtual void CopyEFB(AbstractStagingTexture* dst, const EFBCopyParams& params, u32 native_width,
+                       u32 bytes_per_row, u32 num_blocks_y, const EFBRectangle& src_rect,
                        bool scale_by_half) = 0;
 
   virtual bool CompileShaders() = 0;
@@ -318,9 +335,14 @@ private:
                                    EFBCopyFormat dst_format, bool is_intensity) = 0;
 
   // Removes and unlinks texture from texture cache and returns it to the pool
-  TexAddrCache::iterator InvalidateTexture(TexAddrCache::iterator t_iter);
+  TexAddrCache::iterator InvalidateTexture(TexAddrCache::iterator t_iter,
+                                           bool flush_efb_copies = true);
 
   void UninitializeXFBMemory(u8* dst, u32 stride, u32 bytes_per_row, u32 num_blocks_y);
+
+  void LockEntry(TCacheEntry* entry);
+  void FlushEFBCopy(TCacheEntry* entry);
+  void DiscardEFBCopy(TCacheEntry* entry);
 
   TexAddrCache textures_by_address;
   TexHashCache textures_by_hash;
@@ -341,6 +363,13 @@ private:
     bool gpu_texture_decoding;
   };
   BackupConfig backup_config = {};
+
+  // readback texture pool
+  // TODO: Waste less VRAM
+
+  std::vector<std::unique_ptr<AbstractStagingTexture>> m_readback_texture_pool;
+  std::unique_ptr<AbstractStagingTexture> GetReadbackTexture();
+  void ReleaseReadbackTexture(std::unique_ptr<AbstractStagingTexture> tex);
 };
 
 extern std::unique_ptr<TextureCacheBase> g_texture_cache;

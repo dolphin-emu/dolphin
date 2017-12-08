@@ -66,12 +66,12 @@ constexpr const char* geometry_program = "layout(triangles) in;\n"
 
 //#define TIME_TEXTURE_DECODING 1
 
-void TextureCache::CopyEFB(u8* dst, const EFBCopyParams& params, u32 native_width,
-                           u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
+void TextureCache::CopyEFB(AbstractStagingTexture* dst, const EFBCopyParams& params,
+                           u32 native_width, u32 bytes_per_row, u32 num_blocks_y,
                            const EFBRectangle& src_rect, bool scale_by_half)
 {
   TextureConverter::EncodeToRamFromTexture(dst, params, native_width, bytes_per_row, num_blocks_y,
-                                           memory_stride, src_rect, scale_by_half);
+                                           src_rect, scale_by_half);
 }
 
 TextureCache::TextureCache()

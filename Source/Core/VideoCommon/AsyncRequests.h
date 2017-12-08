@@ -28,6 +28,7 @@ public:
       SWAP_EVENT,
       BBOX_READ,
       PERF_QUERY,
+      EFB_COPY,
     } type;
     u64 time;
 
@@ -64,6 +65,10 @@ public:
       struct
       {
       } perf_query;
+
+      struct
+      {
+      } efb_copy;
     };
   };
 
