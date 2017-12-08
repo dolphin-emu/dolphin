@@ -11,12 +11,17 @@
 
 #include <algorithm>
 #include <cstring>
+#include <map>
 #include <memory>
+#include <mutex>
+#include <optional>
 
+#include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MemArena.h"
+#include "Common/MemoryUtil.h"
 #include "Common/Swap.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/AudioInterface.h"
@@ -113,6 +118,8 @@ struct LogicalMemoryView
 {
   void* mapped_pointer;
   u32 mapped_size;
+  u32 logical_address;
+  u32 physical_offset;
 };
 
 // Dolphin allocates memory to represent four regions:
@@ -216,6 +223,7 @@ void Init()
   else
     mmio_mapping = InitMMIO();
 
+  SetDCacheEmulationEnabled(SConfig::GetInstance().bDCache);
   Clear();
 
   INFO_LOG(MEMMAP, "Memory system initialized. RAM at %p", m_pRAM);
@@ -246,7 +254,8 @@ void UpdateLogicalMemory(const PowerPC::BatTable& dbat_table)
         if (intersection_start < intersection_end)
         {
           // Found an overlapping region; map it.
-          u32 position = physical_region.shm_position + intersection_start - mapping_address;
+          u32 physical_offset = intersection_start - mapping_address;
+          u32 position = physical_region.shm_position + physical_offset;
           u8* base = logical_base + logical_address + intersection_start - translated_address;
           u32 mapped_size = intersection_end - intersection_start;
 
@@ -256,7 +265,8 @@ void UpdateLogicalMemory(const PowerPC::BatTable& dbat_table)
             PanicAlert("MemoryMap_Setup: Failed finding a memory base.");
             exit(0);
           }
-          logical_mapped_entries.push_back({mapped_pointer, mapped_size});
+          u32 la = logical_address + intersection_start - translated_address;
+          logical_mapped_entries.push_back({mapped_pointer, mapped_size, la, physical_offset});
         }
       }
     }
@@ -459,6 +469,388 @@ void Write_U32_Swap(u32 value, u32 address)
 void Write_U64_Swap(u64 value, u32 address)
 {
   std::memcpy(GetPointer(address), &value, sizeof(u64));
+}
+
+using PhysicalAddressType = u32;
+
+template <typename T>
+static bool Overlaps(T a_addr, size_t a_len, T b_addr, size_t b_len)
+{
+  T a1 = a_addr;
+  T a2 = a1 + static_cast<T>(a_len);
+  T b1 = b_addr;
+  T b2 = a2 + static_cast<T>(b_len);
+
+  return !((a1 >= b2) || (b1 >= a2));
+}
+
+static std::optional<PhysicalAddressType> GetPhysicalAddressForHostAddress(uintptr_t host_address)
+{
+  // physical addresses
+  for (const PhysicalMemoryRegion& region : physical_regions)
+  {
+    uintptr_t ptr = reinterpret_cast<uintptr_t>(*region.out_pointer);
+    if (Overlaps(host_address, 1, ptr, region.size))
+      return (region.physical_address + (host_address - ptr)) & 0x3FFFFFFF;
+  }
+
+  // fastmem/logical base
+  for (const LogicalMemoryView& view : logical_mapped_entries)
+  {
+    uintptr_t ptr = reinterpret_cast<uintptr_t>(view.mapped_pointer);
+    if (Overlaps(host_address, 1, ptr, view.mapped_size))
+      return (view.physical_offset + (host_address - ptr)) & 0x3FFFFFFF;
+  }
+
+  return {};
+}
+
+enum class PageLockState
+{
+  ReadWrite,
+  ReadOnly,
+  NoAccess
+};
+
+// Indexed by physical_address+length.
+// This way we can use lower_bound() to identify overlapping locks.
+using LockMap = std::multimap<PhysicalAddressType, Lock::SharedPtr>;
+static LockMap s_locks_by_physical_addr;
+static std::mutex s_lock_map_mutex;
+static bool s_dcache_emulation = false;
+
+bool GetDCacheEmulationEnabled()
+{
+  return s_dcache_emulation;
+}
+
+void SetDCacheEmulationEnabled(bool enabled)
+{
+  std::lock_guard<std::mutex> guard(s_lock_map_mutex);
+  if (s_dcache_emulation == enabled)
+    return;
+
+  // Flush all locks upon changing mode.
+  FlushAllLocks(LockAccessType::Write);
+  s_dcache_emulation = enabled;
+}
+
+static void UpdateHostPageState(PhysicalAddressType phys_addr, u32 size, PageLockState state)
+{
+  auto DoPages = [phys_addr, size, state](u32 region_physical_address, u32 region_size,
+                                          void* region_base_ptr, u32 region_virt_addr) {
+    if ((phys_addr + size) <= region_physical_address)
+      return;
+
+    u32 offset_into_region;
+    u32 size_in_region;
+    if (region_physical_address < phys_addr)
+    {
+      offset_into_region = phys_addr - region_physical_address;
+      if (offset_into_region >= region_size)
+        return;
+      size_in_region = std::min(region_size - offset_into_region, size);
+    }
+    else
+    {
+      offset_into_region = 0;
+      size_in_region = std::min(region_size, size - (region_physical_address - phys_addr));
+    }
+
+    u32 page_size = static_cast<u32>(Common::MemPageSize());
+    uintptr_t page_mask = ~static_cast<uintptr_t>(page_size - 1);
+    uintptr_t offset_base_ptr = reinterpret_cast<uintptr_t>(region_base_ptr) + offset_into_region;
+    uintptr_t start_page = (offset_base_ptr & page_mask);
+    uintptr_t end_page = ((offset_base_ptr + (size_in_region - 1)) & page_mask);
+
+    // WARN_LOG(VIDEO, "Physical %08X Virtual %08X Offset %u Overlapping %u", phys_addr,
+    // region_virt_addr, offset_into_region, size_in_region);
+
+    void* prot_ptr = reinterpret_cast<void*>(start_page);
+    size_t prot_size = end_page - start_page + page_size;
+    switch (state)
+    {
+    case PageLockState::ReadWrite:
+      Common::UnWriteProtectMemory(prot_ptr, prot_size, false);
+      // WARN_LOG(VIDEO, "R/W Physical %08X Virtual %p Size %u", phys_addr, prot_ptr,
+      // (u32)prot_size);
+      break;
+    case PageLockState::ReadOnly:
+      Common::WriteProtectMemory(prot_ptr, prot_size, false);
+      // WARN_LOG(VIDEO, "R/O Physical %08X Virtual %p Size %u", phys_addr, prot_ptr,
+      // (u32)prot_size);
+      break;
+    case PageLockState::NoAccess:
+      Common::ReadProtectMemory(prot_ptr, prot_size);
+      // WARN_LOG(VIDEO, "N/A Physical %08X Virtual %p Size %u", phys_addr, prot_ptr,
+      // (u32)prot_size);
+      break;
+    }
+  };
+
+  // physical addresses
+  for (PhysicalMemoryRegion& region : physical_regions)
+    DoPages(region.physical_address, region.size, *region.out_pointer, 0);
+
+  // fastmem/logical base
+  for (const LogicalMemoryView& view : logical_mapped_entries)
+    DoPages(view.physical_offset, view.mapped_size, view.mapped_pointer, view.logical_address);
+}
+
+static std::optional<std::pair<LockMap::iterator, LockMap::iterator>>
+GetOverlappingLocks(PhysicalAddressType address, u32 size)
+{
+  PhysicalAddressType physical_end = address + size;
+
+  auto start = s_locks_by_physical_addr.lower_bound(address);
+  if (start == s_locks_by_physical_addr.end() || start->second->guest_address > physical_end)
+    return {};
+
+  auto next = start;
+  auto end = ++next;
+  while (next != s_locks_by_physical_addr.end() && next->second->guest_address < physical_end)
+    end = ++next;
+
+  return std::make_pair(start, end);
+}
+
+static void UpdateGuestPageState(PhysicalAddressType address, u32 size, PageLockState to_state)
+{
+  auto SkipLockedRegion = [to_state](LockType type) {
+    switch (type)
+    {
+    case LockType::Read:
+      // Read locks are the highest level of locking, so we can't raise the protection any higher.
+      return true;
+    case LockType::Write:
+      // Write locks are only outclassed by read locks.
+      return to_state != PageLockState::NoAccess;
+    default:
+      return true;
+    }
+  };
+
+  auto overlapping_locks = GetOverlappingLocks(address, size);
+  if (!overlapping_locks)
+  {
+    // Nothing overlapping, so just update the whole region.
+    UpdateHostPageState(address, size, to_state);
+    return;
+  }
+
+  // Basically, we look for locks which lie either after, or overlap with the range we're
+  // updating. If there is a gap between the range and the lock, we modify that range's
+  // protection, and move the range forward. If there is an overlap, the overlapped segment
+  // is either skipped if no update is needed, otherwise it is modified, and the range
+  // incremented as before.
+  // TODO: Improve this explanation.
+  while (size > 0)
+  {
+    u32 modify_size = size;
+    for (auto iter = overlapping_locks->first; iter != overlapping_locks->second; iter++)
+    {
+      const Lock* lock = iter->second.get();
+
+      if (address < lock->guest_address)
+      {
+        // Case A: |mem   |locked region|
+        modify_size = std::min(modify_size, lock->guest_address - address);
+      }
+      else
+      {
+        // Case B: |locked region|   mem
+        u32 overlap_start = address - lock->guest_address;
+        if (overlap_start >= lock->length)
+        {
+          // mem is past the locked region
+          continue;
+        }
+
+        u32 covered_size = std::min(lock->length - overlap_start, size);
+        if (SkipLockedRegion(lock->type))
+        {
+          // No need to change the overlap.
+          address += covered_size;
+          size -= covered_size;
+          modify_size = 0;
+          break;
+        }
+        else
+        {
+          // Still need to update this overlapped area.
+          modify_size = std::min(modify_size, covered_size);
+        }
+      }
+    }
+
+    if (modify_size > 0)
+    {
+      UpdateHostPageState(address, modify_size, to_state);
+      address += modify_size;
+      size -= modify_size;
+    }
+  }
+}
+
+Lock::SharedPtr CreateLock(u32 address, u32 length, LockType type, void* userdata,
+                           const Lock::Callback& callback)
+{
+  _assert_(length > 0);
+  // WARN_LOG(VIDEO, "NEW_LOCK(%08X, %u)", address, length);
+
+  // Align the guest address to the host page size.
+  // This way, when multiple locks exist which occupy the same host pages, we do not need
+  // to repeatedly change the protection on host pages, saving expensive system calls.
+  const u32 page_size = static_cast<u32>(Common::MemPageSize());
+  const u32 page_offset_mask = page_size - 1;
+  const u32 page_mask = ~page_offset_mask;
+  length = (length + (address & page_offset_mask) + (page_size - 1)) & page_mask;
+  address &= page_mask;
+
+  Lock::SharedPtr lock = std::make_shared<Lock>();
+  lock->guest_address = address;
+  lock->length = length;
+  lock->userdata = userdata;
+  lock->type = type;
+  lock->callback = callback;
+
+  std::lock_guard<std::mutex> guard(s_lock_map_mutex);
+
+  if (!s_dcache_emulation)
+  {
+    PageLockState new_state =
+        (type == LockType::Read) ? PageLockState::NoAccess : PageLockState::ReadOnly;
+    UpdateGuestPageState(address, length, new_state);
+  }
+
+  s_locks_by_physical_addr.emplace(lock->guest_address + lock->length, lock);
+  return lock;
+}
+
+static void InternalRemoveLock(Lock::SharedPtr& lock)
+{
+  // WARN_LOG(VIDEO, "REMOVE_LOCK(%08X, %u)", lock->guest_address, lock->length);
+  auto it_range = s_locks_by_physical_addr.equal_range(lock->guest_address + lock->length);
+  for (auto it = it_range.first; it != it_range.second; it++)
+  {
+    if (it->second == lock)
+    {
+      s_locks_by_physical_addr.erase(it);
+      break;
+    }
+  }
+
+  if (!s_dcache_emulation)
+    UpdateGuestPageState(lock->guest_address, lock->length, PageLockState::ReadWrite);
+}
+
+void RemoveLock(Lock::SharedPtr& lock)
+{
+  std::lock_guard<std::mutex> guard(s_lock_map_mutex);
+  InternalRemoveLock(lock);
+}
+
+bool HandlePageFault(uintptr_t host_address)
+{
+  if (s_dcache_emulation)
+    return false;
+
+  size_t page_size = Common::MemPageSize();
+  uintptr_t page_mask = ~static_cast<uintptr_t>(page_size - 1);
+  uintptr_t host_page_address = host_address & page_mask;
+
+  auto fault_physical_address = GetPhysicalAddressForHostAddress(host_page_address);
+  // WARN_LOG(VIDEO, "Host fault %p guest physical %08X", host_address, fault_physical_address ?
+  // *fault_physical_address : 0);
+  if (!fault_physical_address)
+    return false;
+
+  // If we faulted on a page that is read-protected, it could have been either a read or
+  // a write. For the purposes of the callback, we assume it to be a write, as we would
+  // not be faulting on reading a write-protected page.
+  // TODO: Use the operating system exception code here to better detect the access type.
+  LockAccessType access_type = LockAccessType::Write;
+  return FlushLocksInPhysicalRange(*fault_physical_address, static_cast<u32>(page_size),
+                                   access_type);
+}
+
+void FlushAllLocks(LockAccessType access_type)
+{
+  s_lock_map_mutex.lock();
+
+  while (!s_locks_by_physical_addr.empty())
+  {
+    auto temp = s_locks_by_physical_addr.begin()->second;
+    InternalRemoveLock(temp);
+
+    s_lock_map_mutex.unlock();
+    temp->callback(temp, access_type);
+    s_lock_map_mutex.lock();
+  }
+
+  s_lock_map_mutex.unlock();
+}
+
+// Must be called with the mutex held.
+static bool InternalFlushLocksInPhysicalRange(u32 start_address, u32 length,
+                                              LockAccessType access_type)
+{
+  auto iter = s_locks_by_physical_addr.lower_bound(start_address);
+  if (iter == s_locks_by_physical_addr.end())
+    return false;
+
+  bool result = false;
+  u32 max_address = start_address + length;
+  while (iter != s_locks_by_physical_addr.end() && iter->second->guest_address <= max_address)
+  {
+    Lock::SharedPtr& lock = iter->second;
+
+    // Check for an overlap between this lock and the provided range.
+    if (!Overlaps(start_address, length, lock->guest_address, length))
+    {
+      iter++;
+      continue;
+    }
+
+    // With dcache emulation on, the below is a noop, so remove the lock.
+    Lock::SharedPtr temp = lock;
+    InternalRemoveLock(temp);
+
+    // Flush all overlapping locks.
+    // This is needed because otherwise we'll fault during the handler.
+    // Faulting during the handler can be both slower (due to the extra context switch),
+    // or cause issues (e.g. EFB copies with async events cannot be re-entrant).
+    if (!s_dcache_emulation)
+      InternalFlushLocksInPhysicalRange(temp->guest_address, temp->length, access_type);
+
+    // Now run the callbacks.
+    // We don't want to hold the lock map lock while executing the handler.
+    // Cross-thread handlers could deadlock otherwise, e.g. CPU thread faults,
+    // video thread gets kicked to run, a previous opcode creates a new lock while
+    // the CPU thread still holds the mutex.
+    s_lock_map_mutex.unlock();
+    temp->callback(temp, access_type);
+    s_lock_map_mutex.lock();
+
+    // iter may be invalidated by the above callback.
+    iter = s_locks_by_physical_addr.lower_bound(start_address);
+    result = true;
+  }
+
+  return result;
+}
+
+bool FlushLocksInPhysicalRange(u32 start_address, u32 length, LockAccessType access_type)
+{
+  s_lock_map_mutex.lock();
+  bool result = InternalFlushLocksInPhysicalRange(start_address, length, access_type);
+  s_lock_map_mutex.unlock();
+  return result;
+}
+
+void FlushOverlappingLocks(const Lock* lock, LockAccessType access_type)
+{
+  FlushLocksInPhysicalRange(lock->guest_address, lock->length, access_type);
 }
 
 }  // namespace

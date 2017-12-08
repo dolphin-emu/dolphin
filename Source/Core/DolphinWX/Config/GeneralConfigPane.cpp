@@ -22,6 +22,7 @@
 #include "Core/Analytics.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/HW/Memmap.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "DolphinWX/WxEventUtils.h"
 
@@ -69,6 +70,7 @@ void GeneralConfigPane::InitializeGUI()
   m_cpu_engine_radiobox =
       new wxRadioBox(this, wxID_ANY, _("CPU Emulation Engine"), wxDefaultPosition, wxDefaultSize,
                      m_cpu_engine_array_string, 0, wxRA_SPECIFY_ROWS);
+  m_dcache_checkbox = new wxCheckBox(this, wxID_ANY, _("Enable D-Cache Emulation"));
 
   m_dual_core_checkbox->SetToolTip(
       _("Splits the CPU and GPU threads so they can be run on separate cores.\nProvides major "
@@ -123,6 +125,8 @@ void GeneralConfigPane::InitializeGUI()
   advanced_settings_sizer->AddSpacer(space5);
   advanced_settings_sizer->Add(m_cpu_engine_radiobox, 0, wxLEFT | wxRIGHT, space5);
   advanced_settings_sizer->AddSpacer(space5);
+  advanced_settings_sizer->Add(m_dcache_checkbox, 0, wxLEFT | wxRIGHT, space5);
+  advanced_settings_sizer->AddSpacer(space5);
 
   wxBoxSizer* const main_sizer = new wxBoxSizer(wxVERTICAL);
   main_sizer->AddSpacer(space5);
@@ -159,6 +163,8 @@ void GeneralConfigPane::LoadGUIValues()
     if (cpu_cores[i] == startup_params.iCPUCore)
       m_cpu_engine_radiobox->SetSelection(i);
   }
+
+  m_dcache_checkbox->SetValue(startup_params.bDCache);
 }
 
 void GeneralConfigPane::BindEvents()
@@ -179,6 +185,8 @@ void GeneralConfigPane::BindEvents()
 
   m_cpu_engine_radiobox->Bind(wxEVT_RADIOBOX, &GeneralConfigPane::OnCPUEngineRadioBoxChanged, this);
   m_cpu_engine_radiobox->Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreNotRunning);
+
+  m_dcache_checkbox->Bind(wxEVT_CHECKBOX, &GeneralConfigPane::OnDCacheChoiceChanged, this);
 }
 
 void GeneralConfigPane::OnDualCoreCheckBoxChanged(wxCommandEvent& event)
@@ -215,4 +223,14 @@ void GeneralConfigPane::OnAnalyticsNewIdButtonClick(wxCommandEvent& event)
 {
   DolphinAnalytics::Instance()->GenerateNewIdentity();
   wxMessageBox(_("New identity generated."), _("Identity Generation"), wxICON_INFORMATION);
+}
+
+void GeneralConfigPane::OnDCacheChoiceChanged(wxCommandEvent& event)
+{
+  SConfig::GetInstance().bDCache = m_dcache_checkbox->IsChecked();
+  if (Core::IsRunning())
+  {
+    Core::RunAsCPUThread(
+        []() { Memory::SetDCacheEmulationEnabled(SConfig::GetInstance().bDCache); });
+  }
 }
