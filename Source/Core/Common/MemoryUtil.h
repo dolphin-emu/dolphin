@@ -18,5 +18,6 @@ void ReadProtectMemory(void* ptr, size_t size);
 void WriteProtectMemory(void* ptr, size_t size, bool executable = false);
 void UnWriteProtectMemory(void* ptr, size_t size, bool allowExecute = false);
 size_t MemPhysical();
+size_t MemPageSize();
 
 }  // namespace Common

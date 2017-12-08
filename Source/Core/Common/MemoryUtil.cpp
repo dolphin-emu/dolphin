@@ -181,4 +181,10 @@ size_t MemPhysical()
 #endif
 }
 
+size_t MemPageSize()
+{
+  // TODO: Get correct value here
+  return 4096;
+}
+
 }  // namespace Common
