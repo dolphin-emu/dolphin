@@ -105,5 +105,6 @@ void MemoryWatcher::Step()
     return;
 
   std::string message = ComposeMessages();
-  sendto(m_fd, message.c_str(), message.size() + 1, 0, reinterpret_cast<sockaddr*>(&m_addr), sizeof(m_addr));
+  sendto(m_fd, message.c_str(), message.size() + 1, 0, reinterpret_cast<sockaddr*>(&m_addr),
+         sizeof(m_addr));
 }
