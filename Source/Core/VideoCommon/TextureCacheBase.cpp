@@ -1090,7 +1090,7 @@ TextureCacheBase::GetTexture(u32 address, u32 width, u32 height, const TextureFo
 
   entry->has_arbitrary_mips = arbitrary_mip_detector.HasArbitraryMipmaps(dst_buffer);
 
-  if (g_ActiveConfig.bDumpTextures)
+  if (g_ActiveConfig.bDumpTextures && !hires_tex)
   {
     for (u32 level = 0; level < texLevels; ++level)
     {
