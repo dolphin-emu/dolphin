@@ -94,7 +94,7 @@ void WriteVertexLighting(ShaderCode& out, APIType api_type, const char* world_po
                          const char* out_color_1_var)
 {
   out.Write("// Lighting\n");
-  out.Write("%sfor (uint chan = 0u; chan < %zu; chan++) {\n",
+  out.Write("%sfor (uint chan = 0u; chan < %zuu; chan++) {\n",
             api_type == APIType::D3D ? "[loop] " : "", NUM_XF_COLOR_CHANNELS);
   out.Write("  uint colorreg = xfmem_color(chan);\n"
             "  uint alphareg = xfmem_alpha(chan);\n"
