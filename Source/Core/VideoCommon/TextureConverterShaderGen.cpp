@@ -179,14 +179,13 @@ ShaderCode GenerateShader(APIType api_type, const UidData* uid_data)
           color_mask[4] = color_mask[5] = color_mask[6] = color_mask[7] = 1.0f / 15.0f;
         }
       }
-      out.Write("  const float4 colmat[7] = {\n");
+      out.Write("  float4 colmat[7];\n");
       for (size_t i = 0; i < colmat.size() / 4; i++)
       {
-        out.Write("    float4(%f, %f, %f, %f)%s\n", colmat[i * 4 + 0], colmat[i * 4 + 1],
-                  colmat[i * 4 + 2], colmat[i * 4 + 3], i < 7 ? "," : "");
+        out.Write("  colmat[%zu] = float4(%f, %f, %f, %f);\n", i, colmat[i * 4 + 0],
+                  colmat[i * 4 + 1], colmat[i * 4 + 2], colmat[i * 4 + 3]);
       }
-      out.Write("  };\n"
-                "  texcol = floor(texcol * colmat[5]) * colmat[6];\n"
+      out.Write("  texcol = floor(texcol * colmat[5]) * colmat[6];\n"
                 "  ocol0 = float4(dot(texcol, colmat[0]), dot(texcol, colmat[1]), dot(texcol, "
                 "colmat[2]), dot(texcol, colmat[3])) + colmat[4];\n");
       break;
