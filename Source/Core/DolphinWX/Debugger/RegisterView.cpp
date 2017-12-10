@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <cinttypes>
 #include <wx/colour.h>
 #include <wx/grid.h>
 #include <wx/menu.h>
@@ -301,6 +302,9 @@ wxString CRegTable::GetValue(int row, int col)
       if (row < 16)
         return wxString::Format("IBAT%01d", row - 8);
 
+      if (row == 16)
+        return wxString::Format("TB");
+
       break;
     }
     case 6:
@@ -324,6 +328,11 @@ wxString CRegTable::GetValue(int row, int col)
                                                    << 32 |
                                                PowerPC::ppcState.spr[SPR_IBAT4L + (row - 16) * 2]);
 
+      if (row == 16)
+        return wxString::Format("%016" PRIx64, static_cast<u64>(PowerPC::ppcState.spr[SPR_TU])
+                                                       << 32 |
+                                                   PowerPC::ppcState.spr[SPR_TL]);
+
       break;
     }
     case 7:
@@ -331,12 +340,18 @@ wxString CRegTable::GetValue(int row, int col)
       if (row < 16)
         return wxString::Format("SR%02d", row);
 
+      if (row < 24)
+        return wxString::Format("GQR%01d", row - 16);
+
       break;
     }
     case 8:
     {
       if (row < 16)
         return wxString::Format("%08x", PowerPC::ppcState.sr[row]);
+
+      if (row < 24)
+        return wxString::Format("%08x", PowerPC::ppcState.spr[SPR_GQR0 + (row - 16)]);
 
       break;
     }
