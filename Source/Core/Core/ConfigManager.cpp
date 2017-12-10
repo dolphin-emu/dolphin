@@ -435,7 +435,7 @@ void SConfig::LoadInterfaceSettings(IniFile& ini)
   IniFile::Section* interface = ini.GetOrCreateSection("Interface");
 
   interface->Get("ConfirmStop", &bConfirmStop, true);
-  interface->Get("UsePanicHandlers", &bUsePanicHandlers, true);
+  interface->Get("UsePanicHandlers", &bUsePanicHandlers, false);
   interface->Get("OnScreenDisplayMessages", &bOnScreenDisplayMessages, true);
   interface->Get("HideCursor", &bHideCursor, false);
   interface->Get("MainWindowPosX", &iPosX, INT_MIN);
