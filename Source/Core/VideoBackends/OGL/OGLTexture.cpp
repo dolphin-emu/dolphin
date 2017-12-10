@@ -427,12 +427,10 @@ void OGLStagingTexture::CopyFromTexture(const AbstractTexture* src,
   }
   else
   {
-    glActiveTexture(GL_TEXTURE9);
-    glBindTexture(GL_TEXTURE_2D_ARRAY, gltex->GetRawTexIdentifier());
     if (g_ogl_config.bSupportsTextureSubImage)
     {
       glGetTextureSubImage(
-          GL_TEXTURE_2D_ARRAY, src_level, src_rect.left, src_rect.top, src_layer,
+          gltex->GetRawTexIdentifier(), src_level, src_rect.left, src_rect.top, src_layer,
           src_rect.GetWidth(), src_rect.GetHeight(), 1,
           GetGLFormatForTextureFormat(m_config.format), GetGLTypeForTextureFormat(m_config.format),
           static_cast<GLsizei>(m_buffer_size - dst_offset), reinterpret_cast<void*>(dst_offset));
@@ -442,11 +440,12 @@ void OGLStagingTexture::CopyFromTexture(const AbstractTexture* src,
       // TODO: Investigate whether it's faster to use glReadPixels() with a framebuffer, since we're
       // copying the whole texture, which may waste bandwidth. So we're trading CPU work in creating
       // the framebuffer for GPU work in copying potentially redundant texels.
+      glActiveTexture(GL_TEXTURE9);
+      glBindTexture(GL_TEXTURE_2D_ARRAY, gltex->GetRawTexIdentifier());
       glGetTexImage(GL_TEXTURE_2D_ARRAY, src_level, GetGLFormatForTextureFormat(m_config.format),
                     GetGLTypeForTextureFormat(m_config.format), nullptr);
+      OGLTexture::SetStage();
     }
-
-    OGLTexture::SetStage();
   }
 
   glPixelStorei(GL_PACK_ROW_LENGTH, 0);
