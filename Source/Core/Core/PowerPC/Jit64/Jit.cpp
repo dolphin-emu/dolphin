@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/PowerPC/Jit64/Jit.h"
+
 #include <map>
 #include <string>
 
@@ -22,8 +24,6 @@
 #include "Core/HW/GPFifo.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/PatchEngine.h"
-#include "Core/PowerPC/Jit64/Jit.h"
-#include "Core/PowerPC/Jit64/Jit64_Tables.h"
 #include "Core/PowerPC/Jit64/JitAsm.h"
 #include "Core/PowerPC/Jit64/JitRegCache.h"
 #include "Core/PowerPC/Jit64Common/FarCodeCache.h"
@@ -216,6 +216,7 @@ bool Jit64::HandleFault(uintptr_t access_address, SContext* ctx)
 
 void Jit64::Init()
 {
+  InitializeInstructionTables();
   EnableBlockLink();
 
   jo.optimizeGatherPipe = true;
@@ -874,7 +875,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
           fpr.BindToRegister(reg, true, false);
       }
 
-      Jit64Tables::CompileInstruction(*this, ops[i]);
+      CompileInstruction(ops[i]);
 
       if (jo.memcheck && (opinfo->flags & FL_LOADSTORE))
       {

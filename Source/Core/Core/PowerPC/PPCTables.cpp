@@ -15,7 +15,6 @@
 #include "Common/StringUtil.h"
 
 #include "Core/PowerPC/Interpreter/Interpreter.h"
-#include "Core/PowerPC/Interpreter/Interpreter_Tables.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
 
@@ -108,15 +107,6 @@ bool UsesFPU(UGeckoInstruction inst)
   GekkoOPInfo* const info = GetOpInfo(inst);
 
   return (info->flags & FL_USE_FPU) != 0;
-}
-
-void InitTables(int cpu_core)
-{
-  // Interpreter ALWAYS needs to be initialized
-  InterpreterTables::InitTables();
-
-  if (cpu_core != PowerPC::CORE_INTERPRETER)
-    JitInterface::InitTables(cpu_core);
 }
 
 #define OPLOG

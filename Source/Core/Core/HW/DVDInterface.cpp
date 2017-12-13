@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <cinttypes>
 #include <cmath>
 #include <memory>
@@ -31,6 +32,7 @@
 #include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeCreator.h"
+#include "DiscIO/VolumeWiiCrypted.h"
 
 // The minimum time it takes for the DVD drive to process a command (in
 // microseconds)
@@ -273,8 +275,7 @@ bool ExecuteReadCommand(u64 DVD_offset, u32 output_address, u32 DVD_length, u32 
 
 u64 PackFinishExecutingCommandUserdata(ReplyType reply_type, DIInterruptType interrupt_type);
 
-void ScheduleReads(u64 dvd_offset, u32 length, bool decrypt, u32 output_address,
-                   ReplyType reply_type);
+void ScheduleReads(u64 offset, u32 length, bool decrypt, u32 output_address, ReplyType reply_type);
 double CalculatePhysicalDiscPosition(u64 offset);
 u64 CalculateSeekTime(u64 offset_from, u64 offset_to);
 u64 CalculateRawDiscReadTime(u64 offset, u64 length);
@@ -1174,8 +1175,7 @@ void FinishExecutingCommand(ReplyType reply_type, DIInterruptType interrupt_type
 
 // Determines from a given read request how much of the request is buffered,
 // and how much is required to be read from disc.
-void ScheduleReads(u64 dvd_offset, u32 dvd_length, bool decrypt, u32 output_address,
-                   ReplyType reply_type)
+void ScheduleReads(u64 offset, u32 length, bool decrypt, u32 output_address, ReplyType reply_type)
 {
   // The drive continues to read 1 MiB beyond the last read position when idle.
   // If a future read falls within this window, part of the read may be returned
@@ -1195,6 +1195,15 @@ void ScheduleReads(u64 dvd_offset, u32 dvd_length, bool decrypt, u32 output_addr
   // Compute the start (inclusive) and end (exclusive) of the buffer.
   // If we fall within its bounds, we get DMA-speed reads.
   u64 buffer_start, buffer_end;
+
+  // The variable offset uses the same addressing as games do.
+  // The variable dvd_offset tracks the actual offset on the DVD
+  // that the disc drive starts reading at, which differs in two ways:
+  // It's rounded to a whole ECC block and never uses Wii partition addressing.
+  u64 dvd_offset = offset;
+  if (decrypt)
+    dvd_offset = s_inserted_volume->PartitionOffsetToRawOffset(offset);
+  dvd_offset = Common::AlignDown(dvd_offset, DVD_ECC_BLOCK_SIZE);
 
   if (SConfig::GetInstance().bFastDiscSpeed)
   {
@@ -1250,8 +1259,8 @@ void ScheduleReads(u64 dvd_offset, u32 dvd_length, bool decrypt, u32 output_addr
             buffer_start, buffer_end, buffer_end - buffer_start);
 
   DEBUG_LOG(DVDINTERFACE,
-            "Schedule reads: offset=0x%" PRIx64 " length=0x%" PRIx32 " address=0x%" PRIx32,
-            dvd_offset, dvd_length, output_address);
+            "Schedule reads: offset=0x%" PRIx64 " length=0x%" PRIx32 " address=0x%" PRIx32, offset,
+            length, output_address);
 
   // The DVD drive's minimum turnaround time on a command, based on a hardware test.
   s64 ticks_until_completion = COMMAND_LATENCY_US * (SystemTimers::GetTicksPerSecond() / 1000000);
@@ -1259,23 +1268,23 @@ void ScheduleReads(u64 dvd_offset, u32 dvd_length, bool decrypt, u32 output_addr
   u32 buffered_blocks = 0;
   u32 unbuffered_blocks = 0;
 
-  while (dvd_length > 0)
-  {
-    // Where the read actually takes place on disc
-    u64 rounded_offset = Common::AlignDown(dvd_offset, DVD_ECC_BLOCK_SIZE);
+  const u32 bytes_per_chunk =
+      decrypt ? DiscIO::CVolumeWiiCrypted::BLOCK_DATA_SIZE : DVD_ECC_BLOCK_SIZE;
 
+  while (length > 0)
+  {
     // The length of this read - "+1" so that if this read is already
-    // aligned to an ECC block we'll read the entire block.
-    u32 chunk_length =
-        static_cast<u32>(Common::AlignUp(dvd_offset + 1, DVD_ECC_BLOCK_SIZE) - dvd_offset);
+    // aligned to a block we'll read the entire block.
+    u32 chunk_length = static_cast<u32>(Common::AlignUp(offset + 1, bytes_per_chunk) - offset);
 
     // The last chunk may be short
-    if (chunk_length > dvd_length)
-      chunk_length = dvd_length;
+    chunk_length = std::min(chunk_length, length);
 
-    if (rounded_offset >= buffer_start && rounded_offset < buffer_end)
+    if (dvd_offset >= buffer_start && dvd_offset < buffer_end)
     {
       // Number of ticks it takes to transfer the data from the buffer to memory.
+      // TODO: This calculation is slightly wrong when decrypt is true - it uses the size of
+      // the copy from IOS to PPC but is supposed to model the copy from the disc drive to IOS.
       ticks_until_completion +=
           static_cast<u64>(chunk_length) * SystemTimers::GetTicksPerSecond() / BUFFER_TRANSFER_RATE;
       buffered_blocks++;
@@ -1284,39 +1293,40 @@ void ScheduleReads(u64 dvd_offset, u32 dvd_length, bool decrypt, u32 output_addr
     {
       // In practice we'll only ever seek if this is the first time
       // through this loop.
-      if (rounded_offset != head_position)
+      if (dvd_offset != head_position)
       {
         // Unbuffered seek+read
-        ticks_until_completion += CalculateSeekTime(head_position, rounded_offset);
+        ticks_until_completion += CalculateSeekTime(head_position, dvd_offset);
         DEBUG_LOG(DVDINTERFACE, "Seek+read 0x%" PRIx32 " bytes @ 0x%" PRIx64 " ticks=%" PRId64,
-                  chunk_length, rounded_offset, ticks_until_completion);
+                  chunk_length, offset, ticks_until_completion);
       }
       else
       {
         // Unbuffered read
-        ticks_until_completion += CalculateRawDiscReadTime(rounded_offset, DVD_ECC_BLOCK_SIZE);
+        ticks_until_completion += CalculateRawDiscReadTime(dvd_offset, DVD_ECC_BLOCK_SIZE);
       }
 
       unbuffered_blocks++;
-      head_position = rounded_offset + DVD_ECC_BLOCK_SIZE;
+      head_position = dvd_offset + DVD_ECC_BLOCK_SIZE;
     }
 
     // Schedule this read to complete at the appropriate time
-    const ReplyType chunk_reply_type = chunk_length == dvd_length ? reply_type : ReplyType::NoReply;
-    DVDThread::StartReadToEmulatedRAM(output_address, dvd_offset, chunk_length, decrypt,
+    const ReplyType chunk_reply_type = chunk_length == length ? reply_type : ReplyType::NoReply;
+    DVDThread::StartReadToEmulatedRAM(output_address, offset, chunk_length, decrypt,
                                       chunk_reply_type, ticks_until_completion);
 
     // Advance the read window
     output_address += chunk_length;
-    dvd_offset += chunk_length;
-    dvd_length -= chunk_length;
+    offset += chunk_length;
+    length -= chunk_length;
+    dvd_offset += DVD_ECC_BLOCK_SIZE;
   }
 
   // Update the buffer based on this read. Based on experimental testing,
   // we will only reuse the old buffer while reading forward. Note that the
   // buffer start we calculate here is not the actual start of the buffer -
   // it is just the start of the portion we need to read.
-  u64 last_block = Common::AlignUp(dvd_offset, DVD_ECC_BLOCK_SIZE);
+  const u64 last_block = dvd_offset;
   if (last_block == buffer_start + DVD_ECC_BLOCK_SIZE && buffer_start != buffer_end)
   {
     // Special case: reading less than one block at the start of the

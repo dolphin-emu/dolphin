@@ -19,12 +19,15 @@ using namespace Arm64Gen;
 void JitArm64::GenerateAsm()
 {
   // This value is all of the callee saved registers that we are required to save.
-  // According to the AACPS64 we need to save R19 ~ R30.
+  // According to the AACPS64 we need to save R19 ~ R30 and Q8 ~ Q15.
   const u32 ALL_CALLEE_SAVED = 0x7FF80000;
+  const u32 ALL_CALLEE_SAVED_FPR = 0x0000FF00;
   BitSet32 regs_to_save(ALL_CALLEE_SAVED);
+  BitSet32 regs_to_save_fpr(ALL_CALLEE_SAVED_FPR);
   enterCode = GetCodePtr();
 
   ABI_PushRegisters(regs_to_save);
+  m_float_emit.ABI_PushRegisters(regs_to_save_fpr, X30);
 
   MOVP2R(PPC_REG, &PowerPC::ppcState);
 
@@ -175,6 +178,7 @@ void JitArm64::GenerateAsm()
   LDR(INDEX_UNSIGNED, X0, X1, 0);
   ADD(SP, X0, 0);
 
+  m_float_emit.ABI_PopRegisters(regs_to_save_fpr, X30);
   ABI_PopRegisters(regs_to_save);
   RET(X30);
 

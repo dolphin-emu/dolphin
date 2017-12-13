@@ -149,12 +149,17 @@ set(SRCS	ActionReplay.cpp
 			IOS/ES/Formats.cpp
 			IOS/FS/FileIO.cpp
 			IOS/FS/FS.cpp
-			IOS/Network/Config.cpp
 			IOS/Network/ICMPLin.cpp
-			IOS/Network/NWC24Config.cpp
+			IOS/Network/MACUtils.cpp
 			IOS/Network/Socket.cpp
-			IOS/Network/Net.cpp
 			IOS/Network/SSL.cpp
+			IOS/Network/IP/Top.cpp
+			IOS/Network/KD/NetKDRequest.cpp
+			IOS/Network/KD/NetKDTime.cpp
+			IOS/Network/KD/NWC24Config.cpp
+			IOS/Network/NCD/Config.cpp
+			IOS/Network/NCD/Manage.cpp
+			IOS/Network/WD/Command.cpp
 			IOS/SDIO/SDIOSlot0.cpp
 			IOS/STM/STM.cpp
 			IOS/USB/Common.cpp

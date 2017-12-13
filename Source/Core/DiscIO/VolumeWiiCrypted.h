@@ -17,6 +17,7 @@
 
 namespace DiscIO
 {
+class IBlobReader;
 enum class BlobType;
 enum class Country;
 enum class Language;
@@ -32,6 +33,7 @@ public:
   bool Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt) const override;
   bool GetTitleID(u64* buffer) const override;
   std::vector<u8> GetTMD() const override;
+  u64 PartitionOffsetToRawOffset(u64 offset) const override;
   std::string GetGameID() const override;
   std::string GetMakerID() const override;
   u16 GetRevision() const override;
@@ -53,11 +55,11 @@ public:
   u64 GetSize() const override;
   u64 GetRawSize() const override;
 
-private:
-  static const unsigned int s_block_header_size = 0x0400;
-  static const unsigned int s_block_data_size = 0x7C00;
-  static const unsigned int s_block_total_size = s_block_header_size + s_block_data_size;
+  static constexpr unsigned int BLOCK_HEADER_SIZE = 0x0400;
+  static constexpr unsigned int BLOCK_DATA_SIZE = 0x7C00;
+  static constexpr unsigned int BLOCK_TOTAL_SIZE = BLOCK_HEADER_SIZE + BLOCK_DATA_SIZE;
 
+private:
   std::unique_ptr<IBlobReader> m_pReader;
   std::unique_ptr<mbedtls_aes_context> m_AES_ctx;
 
@@ -65,7 +67,7 @@ private:
   u64 m_dataOffset;
 
   mutable u64 m_LastDecryptedBlockOffset;
-  mutable unsigned char m_LastDecryptedBlock[s_block_data_size];
+  mutable unsigned char m_LastDecryptedBlock[BLOCK_DATA_SIZE];
 };
 
 }  // namespace

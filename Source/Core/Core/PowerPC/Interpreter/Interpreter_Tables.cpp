@@ -6,7 +6,6 @@
 
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/Interpreter/Interpreter.h"
-#include "Core/PowerPC/Interpreter/Interpreter_Tables.h"
 #include "Core/PowerPC/PPCTables.h"
 
 struct GekkoOPTemplate
@@ -355,8 +354,6 @@ static std::array<GekkoOPTemplate, 10> table63_2 =
 }};
 // clang-format on
 
-namespace InterpreterTables
-{
 constexpr size_t TotalInstructionFunctionCount()
 {
   return primarytable.size() + table4_2.size() + table4_3.size() + table4.size() + table31.size() +
@@ -366,7 +363,7 @@ constexpr size_t TotalInstructionFunctionCount()
 static_assert(TotalInstructionFunctionCount() < m_allInstructions.size(),
               "m_allInstructions is too small");
 
-void InitTables()
+void Interpreter::InitializeInstructionTables()
 {
   // once initialized, tables are read-only
   static bool initialized = false;
@@ -376,22 +373,22 @@ void InitTables()
   // clear
   for (int i = 0; i < 64; i++)
   {
-    Interpreter::m_op_table[i] = Interpreter::unknown_instruction;
+    m_op_table[i] = Interpreter::unknown_instruction;
     m_infoTable[i] = &unknownopinfo;
   }
 
   for (int i = 0; i < 32; i++)
   {
-    Interpreter::m_op_table59[i] = Interpreter::unknown_instruction;
+    m_op_table59[i] = Interpreter::unknown_instruction;
     m_infoTable59[i] = &unknownopinfo;
   }
 
   for (int i = 0; i < 1024; i++)
   {
-    Interpreter::m_op_table4[i] = Interpreter::unknown_instruction;
-    Interpreter::m_op_table19[i] = Interpreter::unknown_instruction;
-    Interpreter::m_op_table31[i] = Interpreter::unknown_instruction;
-    Interpreter::m_op_table63[i] = Interpreter::unknown_instruction;
+    m_op_table4[i] = Interpreter::unknown_instruction;
+    m_op_table19[i] = Interpreter::unknown_instruction;
+    m_op_table31[i] = Interpreter::unknown_instruction;
+    m_op_table63[i] = Interpreter::unknown_instruction;
     m_infoTable4[i] = &unknownopinfo;
     m_infoTable19[i] = &unknownopinfo;
     m_infoTable31[i] = &unknownopinfo;
@@ -400,7 +397,7 @@ void InitTables()
 
   for (auto& tpl : primarytable)
   {
-    Interpreter::m_op_table[tpl.opcode] = tpl.Inst;
+    m_op_table[tpl.opcode] = tpl.Inst;
     m_infoTable[tpl.opcode] = &tpl.opinfo;
   }
 
@@ -410,7 +407,7 @@ void InitTables()
     for (auto& tpl : table4_2)
     {
       int op = fill + tpl.opcode;
-      Interpreter::m_op_table4[op] = tpl.Inst;
+      m_op_table4[op] = tpl.Inst;
       m_infoTable4[op] = &tpl.opinfo;
     }
   }
@@ -421,7 +418,7 @@ void InitTables()
     for (auto& tpl : table4_3)
     {
       int op = fill + tpl.opcode;
-      Interpreter::m_op_table4[op] = tpl.Inst;
+      m_op_table4[op] = tpl.Inst;
       m_infoTable4[op] = &tpl.opinfo;
     }
   }
@@ -429,35 +426,35 @@ void InitTables()
   for (auto& tpl : table4)
   {
     int op = tpl.opcode;
-    Interpreter::m_op_table4[op] = tpl.Inst;
+    m_op_table4[op] = tpl.Inst;
     m_infoTable4[op] = &tpl.opinfo;
   }
 
   for (auto& tpl : table31)
   {
     int op = tpl.opcode;
-    Interpreter::m_op_table31[op] = tpl.Inst;
+    m_op_table31[op] = tpl.Inst;
     m_infoTable31[op] = &tpl.opinfo;
   }
 
   for (auto& tpl : table19)
   {
     int op = tpl.opcode;
-    Interpreter::m_op_table19[op] = tpl.Inst;
+    m_op_table19[op] = tpl.Inst;
     m_infoTable19[op] = &tpl.opinfo;
   }
 
   for (auto& tpl : table59)
   {
     int op = tpl.opcode;
-    Interpreter::m_op_table59[op] = tpl.Inst;
+    m_op_table59[op] = tpl.Inst;
     m_infoTable59[op] = &tpl.opinfo;
   }
 
   for (auto& tpl : table63)
   {
     int op = tpl.opcode;
-    Interpreter::m_op_table63[op] = tpl.Inst;
+    m_op_table63[op] = tpl.Inst;
     m_infoTable63[op] = &tpl.opinfo;
   }
 
@@ -467,7 +464,7 @@ void InitTables()
     for (auto& tpl : table63_2)
     {
       int op = fill + tpl.opcode;
-      Interpreter::m_op_table63[op] = tpl.Inst;
+      m_op_table63[op] = tpl.Inst;
       m_infoTable63[op] = &tpl.opinfo;
     }
   }
@@ -494,4 +491,3 @@ void InitTables()
 
   initialized = true;
 }
-}  // namespace InterpreterTables

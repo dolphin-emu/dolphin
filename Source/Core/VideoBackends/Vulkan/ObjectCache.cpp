@@ -72,6 +72,14 @@ bool ObjectCache::Initialize()
   return true;
 }
 
+static bool IsStripPrimitiveTopology(VkPrimitiveTopology topology)
+{
+  return topology == VK_PRIMITIVE_TOPOLOGY_LINE_STRIP ||
+         topology == VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP ||
+         topology == VK_PRIMITIVE_TOPOLOGY_LINE_STRIP_WITH_ADJACENCY ||
+         topology == VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP_WITH_ADJACENCY;
+}
+
 static VkPipelineRasterizationStateCreateInfo
 GetVulkanRasterizationState(const RasterizationState& state)
 {
@@ -185,8 +193,19 @@ VkPipeline ObjectCache::CreatePipeline(const PipelineInfo& info)
       nullptr,                  // const void*                                pNext
       0,                        // VkPipelineInputAssemblyStateCreateFlags    flags
       info.primitive_topology,  // VkPrimitiveTopology                        topology
-      VK_TRUE                   // VkBool32                                   primitiveRestartEnable
+      VK_FALSE                  // VkBool32                                   primitiveRestartEnable
   };
+
+  // See Vulkan spec, section 19:
+  // If topology is VK_PRIMITIVE_TOPOLOGY_POINT_LIST, VK_PRIMITIVE_TOPOLOGY_LINE_LIST,
+  // VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, VK_PRIMITIVE_TOPOLOGY_LINE_LIST_WITH_ADJACENCY,
+  // VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST_WITH_ADJACENCY or VK_PRIMITIVE_TOPOLOGY_PATCH_LIST,
+  // primitiveRestartEnable must be VK_FALSE
+  if (g_ActiveConfig.backend_info.bSupportsPrimitiveRestart &&
+      IsStripPrimitiveTopology(info.primitive_topology))
+  {
+    input_assembly_state.primitiveRestartEnable = VK_TRUE;
+  }
 
   // Shaders to stages
   VkPipelineShaderStageCreateInfo shader_stages[3];

@@ -134,6 +134,7 @@ CEXIMemoryCard::CEXIMemoryCard(const int index, bool gciFolder) : card_index(ind
   // WTA Tour Tennis GWTEA4 GWTJA4 GWTPA4
   // Disney Sports : Skate Boarding GDXEA4 GDXPA4 GDXJA4
   // Disney Sports : Soccer GDKEA4
+  // Wallace and Gromit in Pet Zoo GWLE6L GWLX6L
   // Use a 16Mb (251 block) memory card for these games
   bool useMC251;
   IniFile gameIni = SConfig::GetInstance().LoadGameIni();

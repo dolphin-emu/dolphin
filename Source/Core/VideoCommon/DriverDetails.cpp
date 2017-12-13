@@ -90,6 +90,8 @@ static BugInfo m_known_bugs[] = {
      BUG_BROKEN_DUAL_SOURCE_BLENDING, -1.0, -1.0, true},
     {API_OPENGL, OS_OSX, VENDOR_INTEL, DRIVER_INTEL, Family::UNKNOWN,
      BUG_BROKEN_DUAL_SOURCE_BLENDING, -1.0, -1.0, true},
+    {API_VULKAN, OS_ALL, VENDOR_ATI, DRIVER_ATI, Family::UNKNOWN, BUG_PRIMITIVE_RESTART, -1.0, -1.0,
+     true},
 };
 
 static std::map<Bug, BugInfo> m_bugs;

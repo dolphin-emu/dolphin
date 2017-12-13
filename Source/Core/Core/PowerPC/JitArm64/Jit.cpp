@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/PowerPC/JitArm64/Jit.h"
+
 #include <cstdio>
 
 #include "Common/Arm64Emitter.h"
@@ -19,9 +21,7 @@
 #include "Core/HW/Memmap.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/PatchEngine.h"
-#include "Core/PowerPC/JitArm64/Jit.h"
 #include "Core/PowerPC/JitArm64/JitArm64_RegCache.h"
-#include "Core/PowerPC/JitArm64/JitArm64_Tables.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/Profiler.h"
 
@@ -47,6 +47,8 @@ static bool HasCycleCounters()
 
 void JitArm64::Init()
 {
+  InitializeInstructionTables();
+
   size_t child_code_size = SConfig::GetInstance().bMMU ? FARCODE_SIZE_MMU : FARCODE_SIZE;
   AllocCodeSpace(CODE_SIZE + child_code_size);
   AddChildCodeSpace(&farcode, child_code_size);
@@ -323,20 +325,10 @@ void JitArm64::WriteExit(u32 destination, bool LK, u32 exit_address_after_return
   linkData.call = LK;
   b->linkData.push_back(linkData);
 
-  MOVI2R(DISPATCHER_PC, destination);
+  blocks.WriteLinkBlock(*this, linkData);
 
-  if (!LK)
+  if (LK)
   {
-    B(dispatcher);
-  }
-  else
-  {
-    BL(dispatcher);
-
-    // MOVI2R might only require one instruction. So the const offset of 20 bytes
-    // might be wrong. Be sure and just add a NOP here.
-    HINT(HINT_NOP);
-
     // Write the regular exit node after the return.
     linkData.exitAddress = exit_address_after_return;
     linkData.exitPtrs = GetWritableCodePtr();
@@ -344,8 +336,7 @@ void JitArm64::WriteExit(u32 destination, bool LK, u32 exit_address_after_return
     linkData.call = false;
     b->linkData.push_back(linkData);
 
-    MOVI2R(DISPATCHER_PC, exit_address_after_return);
-    B(dispatcher);
+    blocks.WriteLinkBlock(*this, linkData);
   }
 }
 
@@ -385,8 +376,7 @@ void JitArm64::WriteExit(Arm64Gen::ARM64Reg dest, bool LK, u32 exit_address_afte
     linkData.call = false;
     b->linkData.push_back(linkData);
 
-    MOVI2R(DISPATCHER_PC, exit_address_after_return);
-    B(dispatcher);
+    blocks.WriteLinkBlock(*this, linkData);
   }
 }
 
@@ -415,8 +405,7 @@ void JitArm64::FakeLKExit(u32 exit_address_after_return)
   linkData.call = false;
   b->linkData.push_back(linkData);
 
-  MOVI2R(DISPATCHER_PC, exit_address_after_return);
-  B(dispatcher);
+  blocks.WriteLinkBlock(*this, linkData);
 
   SetJumpTarget(skip_exit);
 }
@@ -753,6 +742,7 @@ void JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBlock*
 
       gpr.Lock(W30);
       BitSet32 regs_in_use = gpr.GetCallerSavedUsed();
+      BitSet32 fprs_in_use = fpr.GetCallerSavedUsed();
       regs_in_use[W30] = 0;
 
       FixupBranch Exception = B();
@@ -761,8 +751,10 @@ void JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBlock*
       FixupBranch exit = B();
       SetJumpTarget(Exception);
       ABI_PushRegisters(regs_in_use);
+      m_float_emit.ABI_PushRegisters(fprs_in_use, X30);
       MOVP2R(X30, &GPFifo::FastCheckGatherPipe);
       BLR(X30);
+      m_float_emit.ABI_PopRegisters(fprs_in_use, X30);
       ABI_PopRegisters(regs_in_use);
 
       // Inline exception check
@@ -846,7 +838,7 @@ void JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBlock*
         js.firstFPInstructionFound = true;
       }
 
-      JitArm64Tables::CompileInstruction(*this, ops[i]);
+      CompileInstruction(ops[i]);
       if (!MergeAllowedNextInstructions(1) || js.op[1].opinfo->type != OPTYPE_INTEGER)
         FlushCarry();
 

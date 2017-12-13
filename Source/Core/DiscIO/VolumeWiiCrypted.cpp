@@ -60,26 +60,26 @@ bool CVolumeWiiCrypted::Read(u64 _ReadOffset, u64 _Length, u8* _pBuffer, bool de
 
   FileMon::FindFilename(_ReadOffset);
 
-  std::vector<u8> read_buffer(s_block_total_size);
+  std::vector<u8> read_buffer(BLOCK_TOTAL_SIZE);
   while (_Length > 0)
   {
     // Calculate block offset
-    u64 Block = _ReadOffset / s_block_data_size;
-    u64 Offset = _ReadOffset % s_block_data_size;
+    u64 Block = _ReadOffset / BLOCK_DATA_SIZE;
+    u64 Offset = _ReadOffset % BLOCK_DATA_SIZE;
 
     if (m_LastDecryptedBlockOffset != Block)
     {
       // Read the current block
-      if (!m_pReader->Read(m_VolumeOffset + m_dataOffset + Block * s_block_total_size,
-                           s_block_total_size, read_buffer.data()))
+      if (!m_pReader->Read(m_VolumeOffset + m_dataOffset + Block * BLOCK_TOTAL_SIZE,
+                           BLOCK_TOTAL_SIZE, read_buffer.data()))
         return false;
 
       // Decrypt the block's data.
       // 0x3D0 - 0x3DF in m_pBuffer will be overwritten,
       // but that won't affect anything, because we won't
       // use the content of m_pBuffer anymore after this
-      mbedtls_aes_crypt_cbc(m_AES_ctx.get(), MBEDTLS_AES_DECRYPT, s_block_data_size,
-                            &read_buffer[0x3D0], &read_buffer[s_block_header_size],
+      mbedtls_aes_crypt_cbc(m_AES_ctx.get(), MBEDTLS_AES_DECRYPT, BLOCK_DATA_SIZE,
+                            &read_buffer[0x3D0], &read_buffer[BLOCK_HEADER_SIZE],
                             m_LastDecryptedBlock);
       m_LastDecryptedBlockOffset = Block;
 
@@ -90,7 +90,7 @@ bool CVolumeWiiCrypted::Read(u64 _ReadOffset, u64 _Length, u8* _pBuffer, bool de
     }
 
     // Copy the decrypted data
-    u64 MaxSizeToCopy = s_block_data_size - Offset;
+    u64 MaxSizeToCopy = BLOCK_DATA_SIZE - Offset;
     u64 CopySize = (_Length > MaxSizeToCopy) ? MaxSizeToCopy : _Length;
     memcpy(_pBuffer, &m_LastDecryptedBlock[Offset], (size_t)CopySize);
 
@@ -138,6 +138,12 @@ std::vector<u8> CVolumeWiiCrypted::GetTMD() const
   Read(m_VolumeOffset + tmd_address, tmd_size, buffer.data(), false);
 
   return buffer;
+}
+
+u64 CVolumeWiiCrypted::PartitionOffsetToRawOffset(u64 offset) const
+{
+  return m_VolumeOffset + m_dataOffset + (offset / BLOCK_DATA_SIZE * BLOCK_TOTAL_SIZE) +
+         (offset % BLOCK_DATA_SIZE);
 }
 
 std::string CVolumeWiiCrypted::GetGameID() const

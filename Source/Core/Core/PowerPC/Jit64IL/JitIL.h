@@ -35,10 +35,9 @@ public:
   // Initialization, etc
 
   void Init() override;
+  void Shutdown() override;
 
   void EnableBlockLink();
-
-  void Shutdown() override;
 
   // Jit!
 
@@ -77,4 +76,8 @@ public:
   void DynaRunTable31(UGeckoInstruction _inst) override;
   void DynaRunTable59(UGeckoInstruction _inst) override;
   void DynaRunTable63(UGeckoInstruction _inst) override;
+
+private:
+  static void InitializeInstructionTables();
+  void CompileInstruction(PPCAnalyst::CodeOp& op);
 };

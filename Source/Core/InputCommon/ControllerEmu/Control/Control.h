@@ -20,6 +20,6 @@ public:
   const std::string name;
 
 protected:
-  Control(ControlReference* ref, const std::string& name);
+  Control(std::unique_ptr<ControlReference> ref, const std::string& name);
 };
 }  // namespace ControllerEmu

@@ -203,7 +203,7 @@ void ES::Close()
   m_ContentAccessMap.clear();
   m_TitleIDs.clear();
   m_TitleID = -1;
-  m_AccessIdentID = 0x6000000;
+  m_AccessIdentID = 0;
 
   INFO_LOG(IOS_ES, "ES: Close");
   m_is_active = false;
@@ -1200,7 +1200,7 @@ IPCCommandResult ES::LaunchBC(const IOCtlVRequest& request)
   if (GetVersion() == 0x101)
     return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
-  ResetAfterLaunch(0x00000001'00000100);
+  ResetAfterLaunch(0x0000000100000100);
   EnqueueCommandAcknowledgement(request.address, 0);
   return GetNoReply();
 }

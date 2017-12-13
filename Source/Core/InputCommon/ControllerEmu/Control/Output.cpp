@@ -4,12 +4,13 @@
 
 #include "InputCommon/ControllerEmu/Control/Output.h"
 
+#include <memory>
 #include <string>
 #include "InputCommon/ControlReference/ControlReference.h"
 
 namespace ControllerEmu
 {
-Output::Output(const std::string& name_) : Control(new OutputReference, name_)
+Output::Output(const std::string& name_) : Control(std::make_unique<OutputReference>(), name_)
 {
 }
 }  // namespace ControllerEmu

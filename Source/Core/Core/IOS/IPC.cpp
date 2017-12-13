@@ -16,6 +16,8 @@
 //   Ioctlv: Depends on the handler
 // Replies may be sent immediately or asynchronously for ioctls and ioctlvs.
 
+#include "Core/IOS/IPC.h"
+
 #include <algorithm>
 #include <array>
 #include <cinttypes>
@@ -41,11 +43,14 @@
 #include "Core/IOS/ES/ES.h"
 #include "Core/IOS/FS/FS.h"
 #include "Core/IOS/FS/FileIO.h"
-#include "Core/IOS/IPC.h"
 #include "Core/IOS/MIOS.h"
-#include "Core/IOS/Network/Net.h"
+#include "Core/IOS/Network/IP/Top.h"
+#include "Core/IOS/Network/KD/NetKDRequest.h"
+#include "Core/IOS/Network/KD/NetKDTime.h"
+#include "Core/IOS/Network/NCD/Manage.h"
 #include "Core/IOS/Network/SSL.h"
 #include "Core/IOS/Network/Socket.h"
+#include "Core/IOS/Network/WD/Command.h"
 #include "Core/IOS/SDIO/SDIOSlot0.h"
 #include "Core/IOS/STM/STM.h"
 #include "Core/IOS/USB/Bluetooth/BTEmu.h"
@@ -165,9 +170,16 @@ CONSTEXPR(u32, RAM_VENDOR_MIOS, 0xCAFEBABE);
 // The writes are usually contained in a single function that
 // mostly writes raw literals to the relevant locations.
 // e.g. IOS9, version 1034, content id 0x00000006, function at 0xffff6884
-constexpr std::array<IosMemoryValues, 31> ios_memory_values = {
+constexpr std::array<IosMemoryValues, 40> ios_memory_values = {
     {{
          9,          0x9040a,     0x030110,         MEM1_SIZE,
+         MEM1_SIZE,  MEM1_END,    MEM1_ARENA_BEGIN, MEM1_ARENA_END,
+         MEM2_SIZE,  MEM2_SIZE,   0x93400000,       MEM2_ARENA_BEGIN,
+         0x933E0000, 0x933E0000,  0x93400000,       HOLLYWOOD_REVISION,
+         RAM_VENDOR, PLACEHOLDER, PLACEHOLDER,      0,
+     },
+     {
+         11,         0xb000a,     0x102506,         MEM1_SIZE,
          MEM1_SIZE,  MEM1_END,    MEM1_ARENA_BEGIN, MEM1_ARENA_END,
          MEM2_SIZE,  MEM2_SIZE,   0x93400000,       MEM2_ARENA_BEGIN,
          0x933E0000, 0x933E0000,  0x93400000,       HOLLYWOOD_REVISION,
@@ -209,6 +221,13 @@ constexpr std::array<IosMemoryValues, 31> ios_memory_values = {
          RAM_VENDOR, PLACEHOLDER, PLACEHOLDER,      0,
      },
      {
+         20,         0x14000c,    0x102506,         MEM1_SIZE,
+         MEM1_SIZE,  MEM1_END,    MEM1_ARENA_BEGIN, MEM1_ARENA_END,
+         MEM2_SIZE,  MEM2_SIZE,   0x93400000,       MEM2_ARENA_BEGIN,
+         0x933E0000, 0x933E0000,  0x93400000,       HOLLYWOOD_REVISION,
+         RAM_VENDOR, PLACEHOLDER, PLACEHOLDER,      0,
+     },
+     {
          21,         0x15040f,    0x030110,         MEM1_SIZE,
          MEM1_SIZE,  MEM1_END,    MEM1_ARENA_BEGIN, MEM1_ARENA_END,
          MEM2_SIZE,  MEM2_SIZE,   0x93400000,       MEM2_ARENA_BEGIN,
@@ -228,6 +247,13 @@ constexpr std::array<IosMemoryValues, 31> ios_memory_values = {
          MEM2_SIZE,  MEM2_SIZE,  0x93800000,       MEM2_ARENA_BEGIN,
          0x937E0000, 0x937E0000, 0x93800000,       HOLLYWOOD_REVISION,
          RAM_VENDOR, 0x93800000, 0x93820000,       0,
+     },
+     {
+         30,         0x1e0a10,   0x40308,          MEM1_SIZE,
+         MEM1_SIZE,  MEM1_END,   MEM1_ARENA_BEGIN, MEM1_ARENA_END,
+         MEM2_SIZE,  MEM2_SIZE,  0x93600000,       MEM2_ARENA_BEGIN,
+         0x935E0000, 0x935E0000, 0x93600000,       HOLLYWOOD_REVISION,
+         RAM_VENDOR, 0x93600000, 0x93620000,       0,
      },
      {
          31,         0x1f0e18,   0x030110,         MEM1_SIZE,
@@ -279,6 +305,13 @@ constexpr std::array<IosMemoryValues, 31> ios_memory_values = {
          RAM_VENDOR, 0x93600000, 0x93620000,       0,
      },
      {
+         40,         0x280911,   0x022308,         MEM1_SIZE,
+         MEM1_SIZE,  MEM1_END,   MEM1_ARENA_BEGIN, MEM1_ARENA_END,
+         MEM2_SIZE,  MEM2_SIZE,  0x93600000,       MEM2_ARENA_BEGIN,
+         0x935E0000, 0x935E0000, 0x93600000,       HOLLYWOOD_REVISION,
+         RAM_VENDOR, 0x93600000, 0x93620000,       0,
+     },
+     {
          41,         0x290e17,   0x030110,         MEM1_SIZE,
          MEM1_SIZE,  MEM1_END,   MEM1_ARENA_BEGIN, MEM1_ARENA_END,
          MEM2_SIZE,  MEM2_SIZE,  0x93600000,       MEM2_ARENA_BEGIN,
@@ -308,6 +341,27 @@ constexpr std::array<IosMemoryValues, 31> ios_memory_values = {
      },
      {
          48,         0x30101c,   0x030110,         MEM1_SIZE,
+         MEM1_SIZE,  MEM1_END,   MEM1_ARENA_BEGIN, MEM1_ARENA_END,
+         MEM2_SIZE,  MEM2_SIZE,  0x93600000,       MEM2_ARENA_BEGIN,
+         0x935E0000, 0x935E0000, 0x93600000,       HOLLYWOOD_REVISION,
+         RAM_VENDOR, 0x93600000, 0x93620000,       0,
+     },
+     {
+         50,         0x321319,   0x101008,         MEM1_SIZE,
+         MEM1_SIZE,  MEM1_END,   MEM1_ARENA_BEGIN, MEM1_ARENA_END,
+         MEM2_SIZE,  MEM2_SIZE,  0x93600000,       MEM2_ARENA_BEGIN,
+         0x935E0000, 0x935E0000, 0x93600000,       HOLLYWOOD_REVISION,
+         RAM_VENDOR, 0x93600000, 0x93620000,       0,
+     },
+     {
+         51,         0x331219,   0x071108,         MEM1_SIZE,
+         MEM1_SIZE,  MEM1_END,   MEM1_ARENA_BEGIN, MEM1_ARENA_END,
+         MEM2_SIZE,  MEM2_SIZE,  0x93600000,       MEM2_ARENA_BEGIN,
+         0x935E0000, 0x935E0000, 0x93600000,       HOLLYWOOD_REVISION,
+         RAM_VENDOR, 0x93600000, 0x93620000,       0,
+     },
+     {
+         52,         0x34161d,   0x101008,         MEM1_SIZE,
          MEM1_SIZE,  MEM1_END,   MEM1_ARENA_BEGIN, MEM1_ARENA_END,
          MEM2_SIZE,  MEM2_SIZE,  0x93600000,       MEM2_ARENA_BEGIN,
          0x935E0000, 0x935E0000, 0x93600000,       HOLLYWOOD_REVISION,
@@ -356,6 +410,13 @@ constexpr std::array<IosMemoryValues, 31> ios_memory_values = {
          RAM_VENDOR, 0x93600000, 0x93620000,       0,
      },
      {
+         60,         0x3c181e,   0x112408,         MEM1_SIZE,
+         MEM1_SIZE,  MEM1_END,   MEM1_ARENA_BEGIN, MEM1_ARENA_END,
+         MEM2_SIZE,  MEM2_SIZE,  0x93600000,       MEM2_ARENA_BEGIN,
+         0x935E0000, 0x935E0000, 0x93600000,       HOLLYWOOD_REVISION,
+         RAM_VENDOR, 0x93600000, 0x93620000,       0,
+     },
+     {
          61,         0x3d161e,   0x030110,         MEM1_SIZE,
          MEM1_SIZE,  MEM1_END,   MEM1_ARENA_BEGIN, MEM1_ARENA_END,
          MEM2_SIZE,  MEM2_SIZE,  0x93600000,       MEM2_ARENA_BEGIN,
@@ -364,6 +425,13 @@ constexpr std::array<IosMemoryValues, 31> ios_memory_values = {
      },
      {
          62,         0x3e191e,   0x022712,         MEM1_SIZE,
+         MEM1_SIZE,  MEM1_END,   MEM1_ARENA_BEGIN, MEM1_ARENA_END,
+         MEM2_SIZE,  MEM2_SIZE,  0x93600000,       MEM2_ARENA_BEGIN,
+         0x935E0000, 0x935E0000, 0x93600000,       HOLLYWOOD_REVISION,
+         RAM_VENDOR, 0x93600000, 0x93620000,       0,
+     },
+     {
+         70,         0x461a1f,   0x060309,         MEM1_SIZE,
          MEM1_SIZE,  MEM1_END,   MEM1_ARENA_BEGIN, MEM1_ARENA_END,
          MEM2_SIZE,  MEM2_SIZE,  0x93600000,       MEM2_ARENA_BEGIN,
          0x935E0000, 0x935E0000, 0x93600000,       HOLLYWOOD_REVISION,

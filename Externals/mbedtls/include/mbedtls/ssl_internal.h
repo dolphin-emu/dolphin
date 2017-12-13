@@ -41,7 +41,12 @@
 #include "sha512.h"
 #endif
 
-#if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && !defined(inline)
+#if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
+#include "ecjpake.h"
+#endif
+
+#if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
+    !defined(inline) && !defined(__cplusplus)
 #define inline __inline
 #endif
 
@@ -146,6 +151,7 @@
  * of state of the renegotiation flag, so no indicator is required)
  */
 #define MBEDTLS_TLS_EXT_SUPPORTED_POINT_FORMATS_PRESENT (1 << 0)
+#define MBEDTLS_TLS_EXT_ECJPAKE_KKPP_OK                 (1 << 1)
 
 #ifdef __cplusplus
 extern "C" {
@@ -160,7 +166,6 @@ struct mbedtls_ssl_handshake_params
      * Handshake specific crypto variables
      */
     int sig_alg;                        /*!<  Hash algorithm for signature   */
-    int cert_type;                      /*!<  Requested cert type            */
     int verify_sig_alg;                 /*!<  Signature algorithm for verify */
 #if defined(MBEDTLS_DHM_C)
     mbedtls_dhm_context dhm_ctx;                /*!<  DHM key exchange        */
@@ -168,7 +173,15 @@ struct mbedtls_ssl_handshake_params
 #if defined(MBEDTLS_ECDH_C)
     mbedtls_ecdh_context ecdh_ctx;              /*!<  ECDH key exchange       */
 #endif
-#if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
+    mbedtls_ecjpake_context ecjpake_ctx;        /*!< EC J-PAKE key exchange */
+#if defined(MBEDTLS_SSL_CLI_C)
+    unsigned char *ecjpake_cache;               /*!< Cache for ClientHello ext */
+    size_t ecjpake_cache_len;                   /*!< Length of cached data */
+#endif
+#endif
+#if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
+    defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     const mbedtls_ecp_curve_info **curves;      /*!<  Supported elliptic curves */
 #endif
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
@@ -342,6 +355,11 @@ int mbedtls_ssl_send_fatal_handshake_failure( mbedtls_ssl_context *ssl );
 void mbedtls_ssl_reset_checksum( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl );
 
+int mbedtls_ssl_read_record_layer( mbedtls_ssl_context *ssl );
+int mbedtls_ssl_handle_message_type( mbedtls_ssl_context *ssl );
+int mbedtls_ssl_prepare_handshake_record( mbedtls_ssl_context *ssl );
+void mbedtls_ssl_update_handshake_status( mbedtls_ssl_context *ssl );
+
 int mbedtls_ssl_read_record( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_fetch_input( mbedtls_ssl_context *ssl, size_t nb_want );
 
@@ -371,12 +389,13 @@ mbedtls_pk_type_t mbedtls_ssl_pk_alg_from_sig( unsigned char sig );
 
 mbedtls_md_type_t mbedtls_ssl_md_alg_from_hash( unsigned char hash );
 unsigned char mbedtls_ssl_hash_from_md_alg( int md );
+int mbedtls_ssl_set_calc_verify_md( mbedtls_ssl_context *ssl, int md );
 
 #if defined(MBEDTLS_ECP_C)
 int mbedtls_ssl_check_curve( const mbedtls_ssl_context *ssl, mbedtls_ecp_group_id grp_id );
 #endif
 
-#if defined(MBEDTLS_KEY_EXCHANGE__SOME__SIGNATURE_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
 int mbedtls_ssl_check_sig_hash( const mbedtls_ssl_context *ssl,
                                 mbedtls_md_type_t md );
 #endif

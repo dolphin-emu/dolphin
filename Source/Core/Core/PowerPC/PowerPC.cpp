@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/PowerPC/PowerPC.h"
+
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
@@ -18,8 +20,6 @@
 #include "Core/PowerPC/CPUCoreBase.h"
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/JitInterface.h"
-#include "Core/PowerPC/PPCTables.h"
-#include "Core/PowerPC/PowerPC.h"
 
 namespace PowerPC
 {
@@ -148,8 +148,6 @@ static void ResetRegisters()
 
 static void InitializeCPUCore(int cpu_core)
 {
-  PPCTables::InitTables(cpu_core);
-
   // We initialize the interpreter because
   // it is used on boot and code window independently.
   s_interpreter->Init();

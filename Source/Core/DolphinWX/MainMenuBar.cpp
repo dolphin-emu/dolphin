@@ -152,6 +152,7 @@ wxMenu* MainMenuBar::CreateMovieMenu() const
 
   movie_menu->Append(IDM_RECORD, _("Start Re&cording Input"));
   movie_menu->Append(IDM_PLAY_RECORD, _("P&lay Input Recording..."));
+  movie_menu->Append(IDM_STOP_RECORD, _("Stop Playing/Recording Input"));
   movie_menu->Append(IDM_RECORD_EXPORT, _("Export Recording..."));
   movie_menu->AppendCheckItem(IDM_RECORD_READ_ONLY, _("&Read-Only Mode"));
   movie_menu->Append(IDM_TAS_INPUT, _("TAS Input"));

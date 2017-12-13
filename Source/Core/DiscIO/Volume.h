@@ -37,6 +37,7 @@ public:
 
   virtual bool GetTitleID(u64*) const { return false; }
   virtual std::vector<u8> GetTMD() const { return {}; }
+  virtual u64 PartitionOffsetToRawOffset(u64 offset) const { return offset; }
   virtual std::string GetGameID() const = 0;
   virtual std::string GetMakerID() const = 0;
   virtual u16 GetRevision() const = 0;

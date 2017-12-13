@@ -1,37 +1,33 @@
-// Copyright 2008 Dolphin Emulator Project
+// Copyright 2017 Dolphin Emulator Project
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/IOS/Network/IP/Top.h"
+
 #include <algorithm>
-#include <cinttypes>
 #include <cstddef>
-#include <cstdio>
 #include <cstring>
-#include <map>
 #include <memory>
 #include <string>
 #include <utility>
 #include <vector>
+
 #ifndef _WIN32
 #include <netdb.h>
 #include <poll.h>
 #endif
 
 #include "Common/Assert.h"
-#include "Common/CommonFuncs.h"
-#include "Common/CommonPaths.h"
-#include "Common/FileUtil.h"
+#include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
-#include "Common/NandPaths.h"
 #include "Common/Network.h"
-#include "Common/SettingsHandler.h"
 #include "Common/StringUtil.h"
-#include "Core/ConfigManager.h"
+
 #include "Core/Core.h"
+#include "Core/HW/Memmap.h"
 #include "Core/IOS/Network/ICMP.h"
-#include "Core/IOS/Network/Net.h"
+#include "Core/IOS/Network/MACUtils.h"
 #include "Core/IOS/Network/Socket.h"
-#include "Core/ec_wii.h"
 
 #ifdef _WIN32
 #include <iphlpapi.h>
@@ -65,409 +61,6 @@ namespace HLE
 {
 namespace Device
 {
-// **********************************************************************************
-// Handle /dev/net/kd/request requests
-NetKDRequest::NetKDRequest(u32 device_id, const std::string& device_name)
-    : Device(device_id, device_name)
-{
-}
-
-NetKDRequest::~NetKDRequest()
-{
-  WiiSockMan::GetInstance().Clean();
-}
-
-IPCCommandResult NetKDRequest::IOCtl(const IOCtlRequest& request)
-{
-  s32 return_value = 0;
-  switch (request.request)
-  {
-  case IOCTL_NWC24_SUSPEND_SCHEDULAR:
-    // NWC24iResumeForCloseLib  from NWC24SuspendScheduler (Input: none, Output: 32 bytes)
-    INFO_LOG(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_SUSPEND_SCHEDULAR - NI");
-    Memory::Write_U32(0, request.buffer_out);  // no error
-    break;
-
-  case IOCTL_NWC24_EXEC_TRY_SUSPEND_SCHEDULAR:  // NWC24iResumeForCloseLib
-    INFO_LOG(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_EXEC_TRY_SUSPEND_SCHEDULAR - NI");
-    break;
-
-  case IOCTL_NWC24_EXEC_RESUME_SCHEDULAR:  // NWC24iResumeForCloseLib
-    INFO_LOG(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_EXEC_RESUME_SCHEDULAR - NI");
-    Memory::Write_U32(0, request.buffer_out);  // no error
-    break;
-
-  case IOCTL_NWC24_STARTUP_SOCKET:  // NWC24iStartupSocket
-    Memory::Write_U32(0, request.buffer_out);
-    Memory::Write_U32(0, request.buffer_out + 4);
-    return_value = 0;
-    INFO_LOG(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_STARTUP_SOCKET - NI");
-    break;
-
-  case IOCTL_NWC24_CLEANUP_SOCKET:
-    INFO_LOG(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_CLEANUP_SOCKET - NI");
-    break;
-
-  case IOCTL_NWC24_LOCK_SOCKET:  // WiiMenu
-    INFO_LOG(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_LOCK_SOCKET - NI");
-    break;
-
-  case IOCTL_NWC24_UNLOCK_SOCKET:
-    INFO_LOG(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_UNLOCK_SOCKET - NI");
-    break;
-
-  case IOCTL_NWC24_REQUEST_REGISTER_USER_ID:
-    INFO_LOG(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_REQUEST_REGISTER_USER_ID");
-    Memory::Write_U32(0, request.buffer_out);
-    Memory::Write_U32(0, request.buffer_out + 4);
-    break;
-
-  case IOCTL_NWC24_REQUEST_GENERATED_USER_ID:  // (Input: none, Output: 32 bytes)
-    INFO_LOG(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_REQUEST_GENERATED_USER_ID");
-    if (config.CreationStage() == NWC24::NWC24Config::NWC24_IDCS_INITIAL)
-    {
-      const std::string settings_file_path(
-          Common::GetTitleDataPath(TITLEID_SYSMENU, Common::FROM_SESSION_ROOT) + WII_SETTING);
-      SettingsHandler gen;
-      std::string area, model;
-      bool got_settings = false;
-
-      if (File::Exists(settings_file_path) && gen.Open(settings_file_path))
-      {
-        area = gen.GetValue("AREA");
-        model = gen.GetValue("MODEL");
-        got_settings = true;
-      }
-      if (got_settings)
-      {
-        u8 area_code = GetAreaCode(area);
-        u8 id_ctr = config.IdGen();
-        u8 hardware_model = GetHardwareModel(model);
-
-        const EcWii& ec = EcWii::GetInstance();
-        u32 HollywoodID = ec.GetNGID();
-        u64 UserID = 0;
-
-        s32 ret = NWC24MakeUserID(&UserID, HollywoodID, id_ctr, hardware_model, area_code);
-        config.SetId(UserID);
-        config.IncrementIdGen();
-        config.SetCreationStage(NWC24::NWC24Config::NWC24_IDCS_GENERATED);
-        config.WriteConfig();
-
-        Memory::Write_U32(ret, request.buffer_out);
-      }
-      else
-      {
-        Memory::Write_U32(NWC24::WC24_ERR_FATAL, request.buffer_out);
-      }
-    }
-    else if (config.CreationStage() == NWC24::NWC24Config::NWC24_IDCS_GENERATED)
-    {
-      Memory::Write_U32(NWC24::WC24_ERR_ID_GENERATED, request.buffer_out);
-    }
-    else if (config.CreationStage() == NWC24::NWC24Config::NWC24_IDCS_REGISTERED)
-    {
-      Memory::Write_U32(NWC24::WC24_ERR_ID_REGISTERED, request.buffer_out);
-    }
-    Memory::Write_U64(config.Id(), request.buffer_out + 4);
-    Memory::Write_U32(config.CreationStage(), request.buffer_out + 0xC);
-    break;
-
-  case IOCTL_NWC24_GET_SCHEDULAR_STAT:
-    INFO_LOG(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_GET_SCHEDULAR_STAT - NI");
-    break;
-
-  case IOCTL_NWC24_SAVE_MAIL_NOW:
-    INFO_LOG(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_SAVE_MAIL_NOW - NI");
-    break;
-
-  case IOCTL_NWC24_REQUEST_SHUTDOWN:
-    // if ya set the IOS version to a very high value this happens ...
-    INFO_LOG(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_REQUEST_SHUTDOWN - NI");
-    break;
-
-  default:
-    request.Log(GetDeviceName(), LogTypes::IOS_WC24);
-  }
-
-  return GetDefaultReply(return_value);
-}
-
-u8 NetKDRequest::GetAreaCode(const std::string& area) const
-{
-  static std::map<const std::string, u8> regions = {
-      {"JPN", 0}, {"USA", 1}, {"EUR", 2}, {"AUS", 2}, {"BRA", 1}, {"TWN", 3}, {"ROC", 3},
-      {"KOR", 4}, {"HKG", 5}, {"ASI", 5}, {"LTN", 1}, {"SAF", 2}, {"CHN", 6},
-  };
-
-  auto entryPos = regions.find(area);
-  if (entryPos != regions.end())
-    return entryPos->second;
-  else
-    return 7;  // Unknown
-}
-
-u8 NetKDRequest::GetHardwareModel(const std::string& model) const
-{
-  static std::map<const std::string, u8> models = {
-      {"RVL", MODEL_RVL}, {"RVT", MODEL_RVT}, {"RVV", MODEL_RVV}, {"RVD", MODEL_RVD},
-  };
-
-  auto entryPos = models.find(model);
-  if (entryPos != models.end())
-    return entryPos->second;
-  else
-    return MODEL_ELSE;
-}
-
-static inline u8 u64_get_byte(u64 value, u8 shift)
-{
-  return (u8)(value >> (shift * 8));
-}
-
-static inline u64 u64_insert_byte(u64 value, u8 shift, u8 byte)
-{
-  u64 mask = 0x00000000000000FFULL << (shift * 8);
-  u64 inst = (u64)byte << (shift * 8);
-  return (value & ~mask) | inst;
-}
-
-s32 NetKDRequest::NWC24MakeUserID(u64* nwc24_id, u32 hollywood_id, u16 id_ctr, u8 hardware_model,
-                                  u8 area_code)
-{
-  const u8 table2[8] = {0x1, 0x5, 0x0, 0x4, 0x2, 0x3, 0x6, 0x7};
-  const u8 table1[16] = {0x4, 0xB, 0x7, 0x9, 0xF, 0x1, 0xD, 0x3,
-                         0xC, 0x2, 0x6, 0xE, 0x8, 0x0, 0xA, 0x5};
-
-  u64 mix_id = ((u64)area_code << 50) | ((u64)hardware_model << 47) | ((u64)hollywood_id << 15) |
-               ((u64)id_ctr << 10);
-  u64 mix_id_copy1 = mix_id;
-
-  int ctr = 0;
-  for (ctr = 0; ctr <= 42; ctr++)
-  {
-    u64 value = mix_id >> (52 - ctr);
-    if (value & 1)
-    {
-      value = 0x0000000000000635ULL << (42 - ctr);
-      mix_id ^= value;
-    }
-  }
-
-  mix_id = (mix_id_copy1 | (mix_id & 0xFFFFFFFFUL)) ^ 0x0000B3B3B3B3B3B3ULL;
-  mix_id = (mix_id >> 10) | ((mix_id & 0x3FF) << (11 + 32));
-
-  for (ctr = 0; ctr <= 5; ctr++)
-  {
-    u8 ret = u64_get_byte(mix_id, ctr);
-    u8 foobar = ((table1[(ret >> 4) & 0xF]) << 4) | (table1[ret & 0xF]);
-    mix_id = u64_insert_byte(mix_id, ctr, foobar & 0xff);
-  }
-  u64 mix_id_copy2 = mix_id;
-
-  for (ctr = 0; ctr <= 5; ctr++)
-  {
-    u8 ret = u64_get_byte(mix_id_copy2, ctr);
-    mix_id = u64_insert_byte(mix_id, table2[ctr], ret);
-  }
-
-  mix_id &= 0x001FFFFFFFFFFFFFULL;
-  mix_id = (mix_id << 1) | ((mix_id >> 52) & 1);
-
-  mix_id ^= 0x00005E5E5E5E5E5EULL;
-  mix_id &= 0x001FFFFFFFFFFFFFULL;
-
-  *nwc24_id = mix_id;
-
-  if (mix_id > 9999999999999999ULL)
-    return NWC24::WC24_ERR_FATAL;
-
-  return NWC24::WC24_OK;
-}
-
-static void SaveMacAddress(u8* mac)
-{
-  SConfig::GetInstance().m_WirelessMac = Common::MacAddressToString(mac);
-  SConfig::GetInstance().SaveSettings();
-}
-
-static void GetMacAddress(u8* mac)
-{
-  // Parse MAC address from config, and generate a new one if it doesn't
-  // exist or can't be parsed.
-  std::string wireless_mac = SConfig::GetInstance().m_WirelessMac;
-
-  if (Core::g_want_determinism)
-    wireless_mac = "12:34:56:78:9a:bc";
-
-  if (!Common::StringToMacAddress(wireless_mac, mac))
-  {
-    Common::GenerateMacAddress(Common::MACConsumer::IOS, mac);
-    SaveMacAddress(mac);
-    if (!wireless_mac.empty())
-    {
-      ERROR_LOG(IOS_NET, "The MAC provided (%s) is invalid. We have "
-                         "generated another one for you.",
-                Common::MacAddressToString(mac).c_str());
-    }
-  }
-  INFO_LOG(IOS_NET, "Using MAC address: %s", Common::MacAddressToString(mac).c_str());
-}
-
-// **********************************************************************************
-// Handle /dev/net/ncd/manage requests
-NetNCDManage::NetNCDManage(u32 device_id, const std::string& device_name)
-    : Device(device_id, device_name)
-{
-}
-
-IPCCommandResult NetNCDManage::IOCtlV(const IOCtlVRequest& request)
-{
-  s32 return_value = IPC_SUCCESS;
-  u32 common_result = 0;
-  u32 common_vector = 0;
-
-  switch (request.request)
-  {
-  case IOCTLV_NCD_LOCKWIRELESSDRIVER:
-    break;
-
-  case IOCTLV_NCD_UNLOCKWIRELESSDRIVER:
-    // Memory::Read_U32(request.in_vectors.at(0).address);
-    break;
-
-  case IOCTLV_NCD_GETCONFIG:
-    INFO_LOG(IOS_NET, "NET_NCD_MANAGE: IOCTLV_NCD_GETCONFIG");
-    config.WriteToMem(request.io_vectors.at(0).address);
-    common_vector = 1;
-    break;
-
-  case IOCTLV_NCD_SETCONFIG:
-    INFO_LOG(IOS_NET, "NET_NCD_MANAGE: IOCTLV_NCD_SETCONFIG");
-    config.ReadFromMem(request.in_vectors.at(0).address);
-    break;
-
-  case IOCTLV_NCD_READCONFIG:
-    INFO_LOG(IOS_NET, "NET_NCD_MANAGE: IOCTLV_NCD_READCONFIG");
-    config.ReadConfig();
-    config.WriteToMem(request.io_vectors.at(0).address);
-    break;
-
-  case IOCTLV_NCD_WRITECONFIG:
-    INFO_LOG(IOS_NET, "NET_NCD_MANAGE: IOCTLV_NCD_WRITECONFIG");
-    config.ReadFromMem(request.in_vectors.at(0).address);
-    config.WriteConfig();
-    break;
-
-  case IOCTLV_NCD_GETLINKSTATUS:
-    INFO_LOG(IOS_NET, "NET_NCD_MANAGE: IOCTLV_NCD_GETLINKSTATUS");
-    // Always connected
-    Memory::Write_U32(Net::ConnectionSettings::LINK_WIRED, request.io_vectors.at(0).address + 4);
-    break;
-
-  case IOCTLV_NCD_GETWIRELESSMACADDRESS:
-    INFO_LOG(IOS_NET, "NET_NCD_MANAGE: IOCTLV_NCD_GETWIRELESSMACADDRESS");
-
-    u8 address[Common::MAC_ADDRESS_SIZE];
-    GetMacAddress(address);
-    Memory::CopyToEmu(request.io_vectors.at(1).address, address, sizeof(address));
-    break;
-
-  default:
-    INFO_LOG(IOS_NET, "NET_NCD_MANAGE IOCtlV: %#x", request.request);
-    break;
-  }
-
-  Memory::Write_U32(common_result, request.io_vectors.at(common_vector).address);
-  if (common_vector == 1)
-  {
-    Memory::Write_U32(common_result, request.io_vectors.at(common_vector).address + 4);
-  }
-  return GetDefaultReply(return_value);
-}
-
-// **********************************************************************************
-// Handle /dev/net/wd/command requests
-NetWDCommand::NetWDCommand(u32 device_id, const std::string& device_name)
-    : Device(device_id, device_name)
-{
-}
-
-// This is just for debugging / playing around.
-// There really is no reason to implement wd unless we can bend it such that
-// we can talk to the DS.
-IPCCommandResult NetWDCommand::IOCtlV(const IOCtlVRequest& request)
-{
-  s32 return_value = IPC_SUCCESS;
-
-  switch (request.request)
-  {
-  case IOCTLV_WD_SCAN:
-  {
-    // Gives parameters detailing type of scan and what to match
-    // XXX - unused
-    // ScanInfo *scan = (ScanInfo *)Memory::GetPointer(request.in_vectors.at(0).m_Address);
-
-    u16* results = (u16*)Memory::GetPointer(request.io_vectors.at(0).address);
-    // first u16 indicates number of BSSInfo following
-    results[0] = Common::swap16(1);
-
-    BSSInfo* bss = (BSSInfo*)&results[1];
-    memset(bss, 0, sizeof(BSSInfo));
-
-    bss->length = Common::swap16(sizeof(BSSInfo));
-    bss->rssi = Common::swap16(0xffff);
-
-    for (int i = 0; i < BSSID_SIZE; ++i)
-      bss->bssid[i] = i;
-
-    const char* ssid = "dolphin-emu";
-    strcpy((char*)bss->ssid, ssid);
-    bss->ssid_length = Common::swap16((u16)strlen(ssid));
-
-    bss->channel = Common::swap16(2);
-  }
-  break;
-
-  case IOCTLV_WD_GET_INFO:
-  {
-    Info* info = (Info*)Memory::GetPointer(request.io_vectors.at(0).address);
-    memset(info, 0, sizeof(Info));
-    // Probably used to disallow certain channels?
-    memcpy(info->country, "US", 2);
-    info->ntr_allowed_channels = Common::swap16(0xfffe);
-
-    u8 address[Common::MAC_ADDRESS_SIZE];
-    GetMacAddress(address);
-    memcpy(info->mac, address, sizeof(info->mac));
-  }
-  break;
-
-  case IOCTLV_WD_GET_MODE:
-  case IOCTLV_WD_SET_LINKSTATE:
-  case IOCTLV_WD_GET_LINKSTATE:
-  case IOCTLV_WD_SET_CONFIG:
-  case IOCTLV_WD_GET_CONFIG:
-  case IOCTLV_WD_CHANGE_BEACON:
-  case IOCTLV_WD_DISASSOC:
-  case IOCTLV_WD_MP_SEND_FRAME:
-  case IOCTLV_WD_SEND_FRAME:
-  case IOCTLV_WD_CALL_WL:
-  case IOCTLV_WD_MEASURE_CHANNEL:
-  case IOCTLV_WD_GET_LASTERROR:
-  case IOCTLV_WD_CHANGE_GAMEINFO:
-  case IOCTLV_WD_CHANGE_VTSF:
-  case IOCTLV_WD_RECV_FRAME:
-  case IOCTLV_WD_RECV_NOTIFICATION:
-  default:
-    request.Dump(GetDeviceName(), LogTypes::IOS_NET, LogTypes::LINFO);
-  }
-
-  return GetDefaultReply(return_value);
-}
-
-// **********************************************************************************
-// Handle /dev/net/ip/top requests
 NetIPTop::NetIPTop(u32 device_id, const std::string& device_name) : Device(device_id, device_name)
 {
 #ifdef _WIN32
@@ -526,12 +119,34 @@ static int inet_pton(const char* src, unsigned char* dst)
   return 1;
 }
 
-// Maps SOCKOPT level from native to Wii
-static unsigned int opt_level_mapping[][2] = {{SOL_SOCKET, 0xFFFF}};
+// Maps SOCKOPT level from Wii to native
+static s32 MapWiiSockOptLevelToNative(u32 level)
+{
+  if (level == 0xFFFF)
+    return SOL_SOCKET;
+
+  INFO_LOG(IOS_NET, "SO_SETSOCKOPT: unknown level %u", level);
+  return level;
+}
 
 // Maps SOCKOPT optname from native to Wii
-static unsigned int opt_name_mapping[][2] = {
-    {SO_REUSEADDR, 0x4}, {SO_SNDBUF, 0x1001}, {SO_RCVBUF, 0x1002}, {SO_ERROR, 0x1009}};
+static s32 MapWiiSockOptNameToNative(u32 optname)
+{
+  switch (optname)
+  {
+  case 0x4:
+    return SO_REUSEADDR;
+  case 0x1001:
+    return SO_SNDBUF;
+  case 0x1002:
+    return SO_RCVBUF;
+  case 0x1009:
+    return SO_ERROR;
+  }
+
+  INFO_LOG(IOS_NET, "SO_SETSOCKOPT: unknown optname %u", optname);
+  return optname;
+}
 
 IPCCommandResult NetIPTop::IOCtl(const IOCtlRequest& request)
 {
@@ -623,15 +238,8 @@ IPCCommandResult NetIPTop::IOCtl(const IOCtlRequest& request)
     request.Log(GetDeviceName(), LogTypes::IOS_WC24);
 
     // Do the level/optname translation
-    int nat_level = -1, nat_optname = -1;
-
-    for (auto& map : opt_level_mapping)
-      if (level == map[1])
-        nat_level = map[0];
-
-    for (auto& map : opt_name_mapping)
-      if (optname == map[1])
-        nat_optname = map[0];
+    int nat_level = MapWiiSockOptLevelToNative(level);
+    int nat_optname = MapWiiSockOptNameToNative(optname);
 
     u8 optval[20];
     u32 optlen = 4;
@@ -681,24 +289,8 @@ IPCCommandResult NetIPTop::IOCtl(const IOCtlRequest& request)
     }
 
     // Do the level/optname translation
-    int nat_level = -1, nat_optname = -1;
-
-    for (auto& map : opt_level_mapping)
-      if (level == map[1])
-        nat_level = map[0];
-
-    for (auto& map : opt_name_mapping)
-      if (optname == map[1])
-        nat_optname = map[0];
-
-    if (nat_level == -1 || nat_optname == -1)
-    {
-      INFO_LOG(IOS_NET, "SO_SETSOCKOPT: unknown level %d or optname %d", level, optname);
-
-      // Default to the given level/optname. They match on Windows...
-      nat_level = level;
-      nat_optname = optname;
-    }
+    int nat_level = MapWiiSockOptLevelToNative(level);
+    int nat_optname = MapWiiSockOptNameToNative(optname);
 
     int ret = setsockopt(fd, nat_level, nat_optname, (char*)optval, optlen);
     return_value = WiiSockMan::GetNetErrorCode(ret, "SO_SETSOCKOPT", false);
@@ -1153,7 +745,7 @@ IPCCommandResult NetIPTop::IOCtlV(const IOCtlVRequest& request)
 
     case 0x1004:  // mac address
       u8 address[Common::MAC_ADDRESS_SIZE];
-      GetMacAddress(address);
+      IOS::Net::GetMACAddress(address);
       Memory::CopyToEmu(request.io_vectors[0].address, address, sizeof(address));
       break;
 

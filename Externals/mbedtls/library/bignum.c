@@ -18,12 +18,21 @@
  *
  *  This file is part of mbed TLS (https://tls.mbed.org)
  */
+
 /*
- *  This MPI implementation is based on:
+ *  The following sources were referenced in the design of this Multi-precision
+ *  Integer library:
  *
- *  http://www.cacr.math.uwaterloo.ca/hac/about/chap14.pdf
- *  http://www.stillhq.com/extracted/gnupg-api/mbedtls_mpi/
- *  http://math.libtomcrypt.com/files/tommath.pdf
+ *  [1] Handbook of Applied Cryptography - 1997
+ *      Menezes, van Oorschot and Vanstone
+ *
+ *  [2] Multi-Precision Math
+ *      Tom St Denis
+ *      https://github.com/libtom/libtommath/blob/develop/tommath.pdf
+ *
+ *  [3] GNU Multi-Precision Arithmetic Library
+ *      https://gmplib.org/manual/index.html
+ *
  */
 
 #if !defined(MBEDTLS_CONFIG_FILE)
@@ -50,19 +59,22 @@
 #endif
 
 /* Implementation that should never be optimized out by the compiler */
-static void mbedtls_zeroize( void *v, size_t n ) {
-    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+static void mbedtls_mpi_zeroize( mbedtls_mpi_uint *v, size_t n ) {
+    volatile mbedtls_mpi_uint *p = v; while( n-- ) *p++ = 0;
 }
 
 #define ciL    (sizeof(mbedtls_mpi_uint))         /* chars in limb  */
 #define biL    (ciL << 3)               /* bits  in limb  */
 #define biH    (ciL << 2)               /* half limb size */
 
+#define MPI_SIZE_T_MAX  ( (size_t) -1 ) /* SIZE_T_MAX is not standard */
+
 /*
  * Convert between bits/chars and number of limbs
+ * Divide first in order to avoid potential overflows
  */
-#define BITS_TO_LIMBS(i)  (((i) + biL - 1) / biL)
-#define CHARS_TO_LIMBS(i) (((i) + ciL - 1) / ciL)
+#define BITS_TO_LIMBS(i)  ( (i) / biL + ( (i) % biL != 0 ) )
+#define CHARS_TO_LIMBS(i) ( (i) / ciL + ( (i) % ciL != 0 ) )
 
 /*
  * Initialize one MPI
@@ -87,7 +99,7 @@ void mbedtls_mpi_free( mbedtls_mpi *X )
 
     if( X->p != NULL )
     {
-        mbedtls_zeroize( X->p, X->n * ciL );
+        mbedtls_mpi_zeroize( X->p, X->n );
         mbedtls_free( X->p );
     }
 
@@ -108,13 +120,13 @@ int mbedtls_mpi_grow( mbedtls_mpi *X, size_t nblimbs )
 
     if( X->n < nblimbs )
     {
-        if( ( p = mbedtls_calloc( nblimbs, ciL ) ) == NULL )
+        if( ( p = (mbedtls_mpi_uint*)mbedtls_calloc( nblimbs, ciL ) ) == NULL )
             return( MBEDTLS_ERR_MPI_ALLOC_FAILED );
 
         if( X->p != NULL )
         {
             memcpy( p, X->p, X->n * ciL );
-            mbedtls_zeroize( X->p, X->n * ciL );
+            mbedtls_mpi_zeroize( X->p, X->n );
             mbedtls_free( X->p );
         }
 
@@ -146,13 +158,13 @@ int mbedtls_mpi_shrink( mbedtls_mpi *X, size_t nblimbs )
     if( i < nblimbs )
         i = nblimbs;
 
-    if( ( p = mbedtls_calloc( i, ciL ) ) == NULL )
+    if( ( p = (mbedtls_mpi_uint*)mbedtls_calloc( i, ciL ) ) == NULL )
         return( MBEDTLS_ERR_MPI_ALLOC_FAILED );
 
     if( X->p != NULL )
     {
         memcpy( p, X->p, i * ciL );
-        mbedtls_zeroize( X->p, X->n * ciL );
+        mbedtls_mpi_zeroize( X->p, X->n );
         mbedtls_free( X->p );
     }
 
@@ -345,6 +357,24 @@ size_t mbedtls_mpi_lsb( const mbedtls_mpi *X )
 }
 
 /*
+ * Count leading zero bits in a given integer
+ */
+static size_t mbedtls_clz( const mbedtls_mpi_uint x )
+{
+    size_t j;
+    mbedtls_mpi_uint mask = (mbedtls_mpi_uint) 1 << (biL - 1);
+
+    for( j = 0; j < biL; j++ )
+    {
+        if( x & mask ) break;
+
+        mask >>= 1;
+    }
+
+    return j;
+}
+
+/*
  * Return the number of bits
  */
 size_t mbedtls_mpi_bitlen( const mbedtls_mpi *X )
@@ -358,9 +388,7 @@ size_t mbedtls_mpi_bitlen( const mbedtls_mpi *X )
         if( X->p[i] != 0 )
             break;
 
-    for( j = biL; j > 0; j-- )
-        if( ( ( X->p[i] >> ( j - 1 ) ) & 1 ) != 0 )
-            break;
+    j = biL - mbedtls_clz( X->p[i] );
 
     return( ( i * biL ) + j );
 }
@@ -409,6 +437,9 @@ int mbedtls_mpi_read_string( mbedtls_mpi *X, int radix, const char *s )
 
     if( radix == 16 )
     {
+        if( slen > MPI_SIZE_T_MAX >> 2 )
+            return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
+
         n = BITS_TO_LIMBS( slen << 2 );
 
         MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, n ) );
@@ -852,7 +883,7 @@ int mbedtls_mpi_add_abs( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
 {
     int ret;
     size_t i, j;
-    mbedtls_mpi_uint *o, *p, c;
+    mbedtls_mpi_uint *o, *p, c, tmp;
 
     if( X == B )
     {
@@ -875,10 +906,14 @@ int mbedtls_mpi_add_abs( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
 
     o = B->p; p = X->p; c = 0;
 
+    /*
+     * tmp is used because it might happen that p == o
+     */
     for( i = 0; i < j; i++, o++, p++ )
     {
+        tmp= *o;
         *p +=  c; c  = ( *p <  c );
-        *p += *o; c += ( *p < *o );
+        *p += tmp; c += ( *p < tmp );
     }
 
     while( c != 0 )
@@ -1181,6 +1216,102 @@ int mbedtls_mpi_mul_int( mbedtls_mpi *X, const mbedtls_mpi *A, mbedtls_mpi_uint 
 }
 
 /*
+ * Unsigned integer divide - double mbedtls_mpi_uint dividend, u1/u0, and
+ * mbedtls_mpi_uint divisor, d
+ */
+static mbedtls_mpi_uint mbedtls_int_div_int( mbedtls_mpi_uint u1,
+            mbedtls_mpi_uint u0, mbedtls_mpi_uint d, mbedtls_mpi_uint *r )
+{
+#if defined(MBEDTLS_HAVE_UDBL)
+    mbedtls_t_udbl dividend, quotient;
+#else
+    const mbedtls_mpi_uint radix = (mbedtls_mpi_uint) 1 << biH;
+    const mbedtls_mpi_uint uint_halfword_mask = ( (mbedtls_mpi_uint) 1 << biH ) - 1;
+    mbedtls_mpi_uint d0, d1, q0, q1, rAX, r0, quotient;
+    mbedtls_mpi_uint u0_msw, u0_lsw;
+    size_t s;
+#endif
+
+    /*
+     * Check for overflow
+     */
+    if( 0 == d || u1 >= d )
+    {
+        if (r != NULL) *r = ~0;
+
+        return ( ~0 );
+    }
+
+#if defined(MBEDTLS_HAVE_UDBL)
+    dividend  = (mbedtls_t_udbl) u1 << biL;
+    dividend |= (mbedtls_t_udbl) u0;
+    quotient = dividend / d;
+    if( quotient > ( (mbedtls_t_udbl) 1 << biL ) - 1 )
+        quotient = ( (mbedtls_t_udbl) 1 << biL ) - 1;
+
+    if( r != NULL )
+        *r = (mbedtls_mpi_uint)( dividend - (quotient * d ) );
+
+    return (mbedtls_mpi_uint) quotient;
+#else
+
+    /*
+     * Algorithm D, Section 4.3.1 - The Art of Computer Programming
+     *   Vol. 2 - Seminumerical Algorithms, Knuth
+     */
+
+    /*
+     * Normalize the divisor, d, and dividend, u0, u1
+     */
+    s = mbedtls_clz( d );
+    d = d << s;
+
+    u1 = u1 << s;
+    u1 |= ( u0 >> ( biL - s ) ) & ( -(mbedtls_mpi_sint)s >> ( biL - 1 ) );
+    u0 =  u0 << s;
+
+    d1 = d >> biH;
+    d0 = d & uint_halfword_mask;
+
+    u0_msw = u0 >> biH;
+    u0_lsw = u0 & uint_halfword_mask;
+
+    /*
+     * Find the first quotient and remainder
+     */
+    q1 = u1 / d1;
+    r0 = u1 - d1 * q1;
+
+    while( q1 >= radix || ( q1 * d0 > radix * r0 + u0_msw ) )
+    {
+        q1 -= 1;
+        r0 += d1;
+
+        if ( r0 >= radix ) break;
+    }
+
+    rAX = ( u1 * radix ) + ( u0_msw - q1 * d );
+    q0 = rAX / d1;
+    r0 = rAX - q0 * d1;
+
+    while( q0 >= radix || ( q0 * d0 > radix * r0 + u0_lsw ) )
+    {
+        q0 -= 1;
+        r0 += d1;
+
+        if ( r0 >= radix ) break;
+    }
+
+    if (r != NULL)
+        *r = ( rAX * radix + u0_lsw - q0 * d ) >> s;
+
+    quotient = q1 * radix + q0;
+
+    return quotient;
+#endif
+}
+
+/*
  * Division by mbedtls_mpi: A = Q * B + R  (HAC 14.20)
  */
 int mbedtls_mpi_div_mpi( mbedtls_mpi *Q, mbedtls_mpi *R, const mbedtls_mpi *A, const mbedtls_mpi *B )
@@ -1237,57 +1368,8 @@ int mbedtls_mpi_div_mpi( mbedtls_mpi *Q, mbedtls_mpi *R, const mbedtls_mpi *A, c
             Z.p[i - t - 1] = ~0;
         else
         {
-#if defined(MBEDTLS_HAVE_UDBL)
-            mbedtls_t_udbl r;
-
-            r  = (mbedtls_t_udbl) X.p[i] << biL;
-            r |= (mbedtls_t_udbl) X.p[i - 1];
-            r /= Y.p[t];
-            if( r > ( (mbedtls_t_udbl) 1 << biL ) - 1 )
-                r = ( (mbedtls_t_udbl) 1 << biL ) - 1;
-
-            Z.p[i - t - 1] = (mbedtls_mpi_uint) r;
-#else
-            /*
-             * __udiv_qrnnd_c, from gmp/longlong.h
-             */
-            mbedtls_mpi_uint q0, q1, r0, r1;
-            mbedtls_mpi_uint d0, d1, d, m;
-
-            d  = Y.p[t];
-            d0 = ( d << biH ) >> biH;
-            d1 = ( d >> biH );
-
-            q1 = X.p[i] / d1;
-            r1 = X.p[i] - d1 * q1;
-            r1 <<= biH;
-            r1 |= ( X.p[i - 1] >> biH );
-
-            m = q1 * d0;
-            if( r1 < m )
-            {
-                q1--, r1 += d;
-                while( r1 >= d && r1 < m )
-                    q1--, r1 += d;
-            }
-            r1 -= m;
-
-            q0 = r1 / d1;
-            r0 = r1 - d1 * q0;
-            r0 <<= biH;
-            r0 |= ( X.p[i - 1] << biH ) >> biH;
-
-            m = q0 * d0;
-            if( r0 < m )
-            {
-                q0--, r0 += d;
-                while( r0 >= d && r0 < m )
-                    q0--, r0 += d;
-            }
-            r0 -= m;
-
-            Z.p[i - t - 1] = ( q1 << biH ) | q0;
-#endif /* MBEDTLS_HAVE_UDBL && !64-bit Apple with Clang 5.0 */
+            Z.p[i - t - 1] = mbedtls_int_div_int( X.p[i], X.p[i - 1],
+                                                            Y.p[t], NULL);
         }
 
         Z.p[i - t - 1]++;
@@ -1460,11 +1542,14 @@ static void mpi_montg_init( mbedtls_mpi_uint *mm, const mbedtls_mpi *N )
 /*
  * Montgomery multiplication: A = A * B * R^-1 mod N  (HAC 14.36)
  */
-static void mpi_montmul( mbedtls_mpi *A, const mbedtls_mpi *B, const mbedtls_mpi *N, mbedtls_mpi_uint mm,
+static int mpi_montmul( mbedtls_mpi *A, const mbedtls_mpi *B, const mbedtls_mpi *N, mbedtls_mpi_uint mm,
                          const mbedtls_mpi *T )
 {
     size_t i, n, m;
     mbedtls_mpi_uint u0, u1, *d;
+
+    if( T->n < N->n + 1 || T->p == NULL )
+        return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
 
     memset( T->p, 0, T->n * ciL );
 
@@ -1493,12 +1578,14 @@ static void mpi_montmul( mbedtls_mpi *A, const mbedtls_mpi *B, const mbedtls_mpi
     else
         /* prevent timing attacks */
         mpi_sub_hlp( n, A->p, T->p );
+
+    return( 0 );
 }
 
 /*
  * Montgomery reduction: A = A * R^-1 mod N
  */
-static void mpi_montred( mbedtls_mpi *A, const mbedtls_mpi *N, mbedtls_mpi_uint mm, const mbedtls_mpi *T )
+static int mpi_montred( mbedtls_mpi *A, const mbedtls_mpi *N, mbedtls_mpi_uint mm, const mbedtls_mpi *T )
 {
     mbedtls_mpi_uint z = 1;
     mbedtls_mpi U;
@@ -1506,7 +1593,7 @@ static void mpi_montred( mbedtls_mpi *A, const mbedtls_mpi *N, mbedtls_mpi_uint 
     U.n = U.s = (int) z;
     U.p = &z;
 
-    mpi_montmul( A, &U, N, mm, T );
+    return( mpi_montmul( A, &U, N, mm, T ) );
 }
 
 /*
@@ -1583,13 +1670,13 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
     else
         MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &W[1], A ) );
 
-    mpi_montmul( &W[1], &RR, N, mm, &T );
+    MBEDTLS_MPI_CHK( mpi_montmul( &W[1], &RR, N, mm, &T ) );
 
     /*
      * X = R^2 * R^-1 mod N = R mod N
      */
     MBEDTLS_MPI_CHK( mbedtls_mpi_copy( X, &RR ) );
-    mpi_montred( X, N, mm, &T );
+    MBEDTLS_MPI_CHK( mpi_montred( X, N, mm, &T ) );
 
     if( wsize > 1 )
     {
@@ -1602,7 +1689,7 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
         MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &W[j], &W[1]    ) );
 
         for( i = 0; i < wsize - 1; i++ )
-            mpi_montmul( &W[j], &W[j], N, mm, &T );
+            MBEDTLS_MPI_CHK( mpi_montmul( &W[j], &W[j], N, mm, &T ) );
 
         /*
          * W[i] = W[i - 1] * W[1]
@@ -1612,7 +1699,7 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
             MBEDTLS_MPI_CHK( mbedtls_mpi_grow( &W[i], N->n + 1 ) );
             MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &W[i], &W[i - 1] ) );
 
-            mpi_montmul( &W[i], &W[1], N, mm, &T );
+            MBEDTLS_MPI_CHK( mpi_montmul( &W[i], &W[1], N, mm, &T ) );
         }
     }
 
@@ -1649,7 +1736,7 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
             /*
              * out of window, square X
              */
-            mpi_montmul( X, X, N, mm, &T );
+            MBEDTLS_MPI_CHK( mpi_montmul( X, X, N, mm, &T ) );
             continue;
         }
 
@@ -1667,12 +1754,12 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
              * X = X^wsize R^-1 mod N
              */
             for( i = 0; i < wsize; i++ )
-                mpi_montmul( X, X, N, mm, &T );
+                MBEDTLS_MPI_CHK( mpi_montmul( X, X, N, mm, &T ) );
 
             /*
              * X = X * W[wbits] R^-1 mod N
              */
-            mpi_montmul( X, &W[wbits], N, mm, &T );
+            MBEDTLS_MPI_CHK( mpi_montmul( X, &W[wbits], N, mm, &T ) );
 
             state--;
             nbits = 0;
@@ -1685,18 +1772,18 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
      */
     for( i = 0; i < nbits; i++ )
     {
-        mpi_montmul( X, X, N, mm, &T );
+        MBEDTLS_MPI_CHK( mpi_montmul( X, X, N, mm, &T ) );
 
         wbits <<= 1;
 
         if( ( wbits & ( one << wsize ) ) != 0 )
-            mpi_montmul( X, &W[1], N, mm, &T );
+            MBEDTLS_MPI_CHK( mpi_montmul( X, &W[1], N, mm, &T ) );
     }
 
     /*
      * X = A^E * R * R^-1 mod N = A^E mod N
      */
-    mpi_montred( X, N, mm, &T );
+    MBEDTLS_MPI_CHK( mpi_montred( X, N, mm, &T ) );
 
     if( neg )
     {

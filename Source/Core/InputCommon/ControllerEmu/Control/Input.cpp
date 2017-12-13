@@ -4,12 +4,13 @@
 
 #include "InputCommon/ControllerEmu/Control/Input.h"
 
+#include <memory>
 #include <string>
 #include "InputCommon/ControlReference/ControlReference.h"
 
 namespace ControllerEmu
 {
-Input::Input(const std::string& name_) : Control(new InputReference, name_)
+Input::Input(const std::string& name_) : Control(std::make_unique<InputReference>(), name_)
 {
 }
 }  // namespace ControllerEmu

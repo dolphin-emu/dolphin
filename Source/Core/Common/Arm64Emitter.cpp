@@ -2079,106 +2079,58 @@ bool ARM64XEmitter::MOVI2R2(ARM64Reg Rd, u64 imm1, u64 imm2)
 
 void ARM64XEmitter::ABI_PushRegisters(BitSet32 registers)
 {
-  unsigned int num_regs = registers.Count();
+  int num_regs = registers.Count();
+  int stack_size = (num_regs + (num_regs & 1)) * 8;
+  auto it = registers.begin();
 
-  if (num_regs % 2)
-  {
-    bool first = true;
+  if (!num_regs)
+    return;
 
-    // Stack is required to be quad-word aligned.
-    u32 stack_size = Common::AlignUp(num_regs * 8, 16);
-    u32 current_offset = 0;
-    std::vector<ARM64Reg> reg_pair;
+  // 8 byte per register, but 16 byte alignment, so we may have to padd one register.
+  // Only update the SP on the last write to avoid the dependency between those stores.
 
-    for (auto it : registers)
-    {
-      if (first)
-      {
-        STR(INDEX_PRE, (ARM64Reg)(X0 + it), SP, -(s32)stack_size);
-        first = false;
-        current_offset += 16;
-      }
-      else
-      {
-        reg_pair.push_back((ARM64Reg)(X0 + it));
-        if (reg_pair.size() == 2)
-        {
-          STP(INDEX_SIGNED, reg_pair[0], reg_pair[1], SP, current_offset);
-          reg_pair.clear();
-          current_offset += 16;
-        }
-      }
-    }
-  }
+  // The first push must adjust the SP, else a context switch may invalidate everything below SP.
+  if (num_regs & 1)
+    STR(INDEX_PRE, (ARM64Reg)(X0 + *it++), SP, -stack_size);
   else
-  {
-    std::vector<ARM64Reg> reg_pair;
+    STP(INDEX_PRE, (ARM64Reg)(X0 + *it++), (ARM64Reg)(X0 + *it++), SP, -stack_size);
 
-    for (auto it : registers)
-    {
-      reg_pair.push_back((ARM64Reg)(X0 + it));
-      if (reg_pair.size() == 2)
-      {
-        STP(INDEX_PRE, reg_pair[0], reg_pair[1], SP, -16);
-        reg_pair.clear();
-      }
-    }
-  }
+  // Fast store for all other registers, this is always an even number.
+  for (int i = 0; i < (num_regs - 1) / 2; i++)
+    STP(INDEX_SIGNED, (ARM64Reg)(X0 + *it++), (ARM64Reg)(X0 + *it++), SP, 16 * (i + 1));
+
+  _assert_msg_(DYNA_REC, it == registers.end(), "%s registers don't match.", __FUNCTION__);
 }
 
 void ARM64XEmitter::ABI_PopRegisters(BitSet32 registers, BitSet32 ignore_mask)
 {
   int num_regs = registers.Count();
+  int stack_size = (num_regs + (num_regs & 1)) * 8;
+  auto it = registers.begin();
 
-  if (num_regs % 2)
-  {
-    bool first = true;
+  if (!num_regs)
+    return;
 
-    std::vector<ARM64Reg> reg_pair;
+  // We must adjust the SP in the end, so load the first (two) registers at least.
+  ARM64Reg first = (ARM64Reg)(X0 + *it++);
+  ARM64Reg second;
+  if (!(num_regs & 1))
+    second = (ARM64Reg)(X0 + *it++);
 
-    for (auto it : registers)
-    {
-      if (ignore_mask[it])
-        it = WSP;
+  // 8 byte per register, but 16 byte alignment, so we may have to padd one register.
+  // Only update the SP on the last load to avoid the dependency between those loads.
 
-      if (first)
-      {
-        LDR(INDEX_POST, (ARM64Reg)(X0 + it), SP, 16);
-        first = false;
-      }
-      else
-      {
-        reg_pair.push_back((ARM64Reg)(X0 + it));
-        if (reg_pair.size() == 2)
-        {
-          LDP(INDEX_POST, reg_pair[0], reg_pair[1], SP, 16);
-          reg_pair.clear();
-        }
-      }
-    }
-  }
+  // Fast load for all but the first (two) registers, this is always an even number.
+  for (int i = 0; i < (num_regs - 1) / 2; i++)
+    LDP(INDEX_SIGNED, (ARM64Reg)(X0 + *it++), (ARM64Reg)(X0 + *it++), SP, 16 * (i + 1));
+
+  // Post loading the first (two) registers.
+  if (num_regs & 1)
+    LDR(INDEX_POST, first, SP, stack_size);
   else
-  {
-    std::vector<ARM64Reg> reg_pair;
+    LDP(INDEX_POST, first, second, SP, stack_size);
 
-    for (int i = 31; i >= 0; --i)
-    {
-      if (!registers[i])
-        continue;
-
-      int reg = i;
-
-      if (ignore_mask[reg])
-        reg = WSP;
-
-      reg_pair.push_back((ARM64Reg)(X0 + reg));
-      if (reg_pair.size() == 2)
-      {
-        LDP(INDEX_POST, reg_pair[1], reg_pair[0], SP, 16);
-        reg_pair.clear();
-      }
-    }
-  }
+  _assert_msg_(DYNA_REC, it == registers.end(), "%s registers don't match.", __FUNCTION__);
 }
 
 // Float Emitter

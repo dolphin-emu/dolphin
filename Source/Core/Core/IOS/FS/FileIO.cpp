@@ -193,40 +193,40 @@ IPCCommandResult FileIO::Seek(const SeekRequest& request)
 
 IPCCommandResult FileIO::Read(const ReadWriteRequest& request)
 {
-  s32 return_value = FS_EACCESS;
-  if (m_file->IsOpen())
+  if (!m_file->IsOpen())
   {
-    if (m_Mode == IOS_OPEN_WRITE)
-    {
-      WARN_LOG(IOS_FILEIO, "FileIO: Attempted to read 0x%x bytes to 0x%08x on a write-only file %s",
-               request.size, request.buffer, m_name.c_str());
-    }
-    else
-    {
-      DEBUG_LOG(IOS_FILEIO, "FileIO: Read 0x%x bytes to 0x%08x from %s", request.size,
-                request.buffer, m_name.c_str());
-      m_file->Seek(m_SeekPos, SEEK_SET);  // File might be opened twice, need to seek before we read
-      return_value = static_cast<u32>(
-          fread(Memory::GetPointer(request.buffer), 1, request.size, m_file->GetHandle()));
-      if (static_cast<u32>(return_value) != request.size && ferror(m_file->GetHandle()))
-      {
-        return_value = FS_EACCESS;
-      }
-      else
-      {
-        m_SeekPos += request.size;
-      }
-    }
-  }
-  else
-  {
-    ERROR_LOG(IOS_FILEIO, "FileIO: Failed to read from %s (Addr=0x%08x Size=0x%x) - file could "
+    ERROR_LOG(IOS_FILEIO, "Failed to read from %s (Addr=0x%08x Size=0x%x) - file could "
                           "not be opened or does not exist",
               m_name.c_str(), request.buffer, request.size);
-    return_value = FS_ENOENT;
+    return GetDefaultReply(FS_ENOENT);
   }
 
-  return GetDefaultReply(return_value);
+  if (m_Mode == IOS_OPEN_WRITE)
+  {
+    WARN_LOG(IOS_FILEIO, "Attempted to read 0x%x bytes to 0x%08x on a write-only file %s",
+             request.size, request.buffer, m_name.c_str());
+    return GetDefaultReply(FS_EACCESS);
+  }
+
+  u32 requested_read_length = request.size;
+  const u32 file_size = static_cast<u32>(m_file->GetSize());
+  // IOS has this check in the read request handler.
+  if (requested_read_length + m_SeekPos > file_size)
+    requested_read_length = file_size - m_SeekPos;
+
+  DEBUG_LOG(IOS_FILEIO, "Read 0x%x bytes to 0x%08x from %s", request.size, request.buffer,
+            m_name.c_str());
+  m_file->Seek(m_SeekPos, SEEK_SET);  // File might be opened twice, need to seek before we read
+  const u32 number_of_bytes_read = static_cast<u32>(
+      fread(Memory::GetPointer(request.buffer), 1, requested_read_length, m_file->GetHandle()));
+
+  if (number_of_bytes_read != requested_read_length && ferror(m_file->GetHandle()))
+    return GetDefaultReply(FS_EACCESS);
+
+  // IOS returns the number of bytes read and adds that value to the seek position,
+  // instead of adding the *requested* read length.
+  m_SeekPos += number_of_bytes_read;
+  return GetDefaultReply(number_of_bytes_read);
 }
 
 IPCCommandResult FileIO::Write(const ReadWriteRequest& request)

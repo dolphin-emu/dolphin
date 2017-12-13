@@ -127,6 +127,18 @@
     <Filter Include="IOS\Network">
       <UniqueIdentifier>{ab9cdd90-54d7-4f42-9248-d7903ce52cc8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="IOS\Network\IP">
+      <UniqueIdentifier>{f20fc3ea-846b-4629-b86c-fd7860f73ee9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="IOS\Network\KD">
+      <UniqueIdentifier>{165768ae-ee50-4789-8051-5c5b7023fa4b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="IOS\Network\NCD">
+      <UniqueIdentifier>{a749993a-d2cf-46b6-9f7f-f76294e9ad02}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="IOS\Network\WD">
+      <UniqueIdentifier>{fc3080d6-d99a-44c6-bdd4-140cec1c6bf0}</UniqueIdentifier>
+    </Filter>
     <Filter Include="IOS\DI">
       <UniqueIdentifier>{3db8c364-1d72-4660-9179-86d1c46904b9}</UniqueIdentifier>
     </Filter>
@@ -728,9 +740,6 @@
     <ClCompile Include="ARBruteForcer.cpp">
       <Filter>ActionReplay</Filter>
     </ClCompile>
-    <ClCompile Include="IOS\Network\Config.cpp">
-      <Filter>IOS\Network</Filter>
-    </ClCompile>
     <ClCompile Include="IOS\Device.cpp">
       <Filter>IOS</Filter>
     </ClCompile>
@@ -761,20 +770,38 @@
     <ClCompile Include="IOS\MIOS.cpp">
       <Filter>IOS</Filter>
     </ClCompile>
-    <ClCompile Include="IOS\Network\Net.cpp">
+    <ClCompile Include="IOS\Network\MACUtils.cpp">
       <Filter>IOS\Network</Filter>
-    </ClCompile>
-    <ClCompile Include="IOS\Network\NWC24Config.cpp">
-      <Filter>IOS\Network</Filter>
-    </ClCompile>
-    <ClCompile Include="IOS\SDIO\SDIOSlot0.cpp">
-      <Filter>IOS\SDIO</Filter>
     </ClCompile>
     <ClCompile Include="IOS\Network\Socket.cpp">
       <Filter>IOS\Network</Filter>
     </ClCompile>
     <ClCompile Include="IOS\Network\SSL.cpp">
       <Filter>IOS\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\Network\IP\Top.cpp">
+      <Filter>IOS\Network\IP</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\Network\KD\NetKDRequest.cpp">
+      <Filter>IOS\Network\KD</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\Network\KD\NetKDTime.cpp">
+      <Filter>IOS\Network\KD</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\Network\KD\NWC24Config.cpp">
+      <Filter>IOS\Network\KD</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\Network\NCD\Config.cpp">
+      <Filter>IOS\Network\NCD</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\Network\NCD\Manage.cpp">
+      <Filter>IOS\Network\NCD</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\Network\WD\Command.cpp">
+      <Filter>IOS\Network\WD</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\SDIO\SDIOSlot0.cpp">
+      <Filter>IOS\SDIO</Filter>
     </ClCompile>
     <ClCompile Include="IOS\STM\STM.cpp">
       <Filter>IOS\STM</Filter>
@@ -937,13 +964,7 @@
     <ClInclude Include="PowerPC\Interpreter\Interpreter_FPUtils.h">
       <Filter>PowerPC\Interpreter</Filter>
     </ClInclude>
-    <ClInclude Include="PowerPC\Interpreter\Interpreter_Tables.h">
-      <Filter>PowerPC\Interpreter</Filter>
-    </ClInclude>
     <ClInclude Include="PowerPC\Jit64\Jit.h">
-      <Filter>PowerPC\Jit64</Filter>
-    </ClInclude>
-    <ClInclude Include="PowerPC\Jit64\Jit64_Tables.h">
       <Filter>PowerPC\Jit64</Filter>
     </ClInclude>
     <ClInclude Include="HW\AudioInterface.h">
@@ -1258,9 +1279,6 @@
     <ClInclude Include="PowerPC\Jit64IL\JitIL.h">
       <Filter>PowerPC\JitIL</Filter>
     </ClInclude>
-    <ClInclude Include="PowerPC\Jit64IL\JitIL_Tables.h">
-      <Filter>PowerPC\JitIL</Filter>
-    </ClInclude>
     <ClInclude Include="PowerPC\Jit64\FPURegCache.h">
       <Filter>PowerPC\Jit64</Filter>
     </ClInclude>
@@ -1326,9 +1344,6 @@
     <ClInclude Include="IOS\USB\Bluetooth\BTStub.h">
       <Filter>IOS\USB\Bluetooth</Filter>
     </ClInclude>
-    <ClInclude Include="IOS\Network\Config.h">
-      <Filter>IOS\Network</Filter>
-    </ClInclude>
     <ClInclude Include="IOS\DeviceStub.h">
       <Filter>IOS</Filter>
     </ClInclude>
@@ -1350,29 +1365,47 @@
     <ClInclude Include="IOS\USB\Bluetooth\hci.h">
       <Filter>IOS\USB\Bluetooth</Filter>
     </ClInclude>
+    <ClInclude Include="IOS\USB\Bluetooth\l2cap.h">
+      <Filter>IOS\USB\Bluetooth</Filter>
+    </ClInclude>
     <ClInclude Include="IOS\Network\ICMP.h">
       <Filter>IOS\Network</Filter>
     </ClInclude>
     <ClInclude Include="IOS\Network\ICMPLin.h">
       <Filter>IOS\Network</Filter>
     </ClInclude>
-    <ClInclude Include="IOS\USB\Bluetooth\l2cap.h">
-      <Filter>IOS\USB\Bluetooth</Filter>
-    </ClInclude>
-    <ClInclude Include="IOS\Network\Net.h">
+    <ClInclude Include="IOS\Network\MACUtils.h">
       <Filter>IOS\Network</Filter>
-    </ClInclude>
-    <ClInclude Include="IOS\Network\NWC24Config.h">
-      <Filter>IOS\Network</Filter>
-    </ClInclude>
-    <ClInclude Include="IOS\SDIO\SDIOSlot0.h">
-      <Filter>IOS\SDIO</Filter>
     </ClInclude>
     <ClInclude Include="IOS\Network\Socket.h">
       <Filter>IOS\Network</Filter>
     </ClInclude>
     <ClInclude Include="IOS\Network\SSL.h">
       <Filter>IOS\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\Network\IP\Top.h">
+      <Filter>IOS\Network\IP</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\Network\KD\NetKDRequest.h">
+      <Filter>IOS\Network\KD</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\Network\KD\NetKDTime.h">
+      <Filter>IOS\Network\KD</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\Network\KD\NWC24Config.h">
+      <Filter>IOS\Network\KD</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\Network\NCD\Config.h">
+      <Filter>IOS\Network\NCD</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\Network\NCD\Manage.h">
+      <Filter>IOS\Network\NCD</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\Network\WD\Command.h">
+      <Filter>IOS\Network\WD</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\SDIO\SDIOSlot0.h">
+      <Filter>IOS\SDIO</Filter>
     </ClInclude>
     <ClInclude Include="IOS\STM\STM.h">
       <Filter>IOS\STM</Filter>

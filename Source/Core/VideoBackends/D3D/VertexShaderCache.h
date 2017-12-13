@@ -30,7 +30,7 @@ public:
   static ID3D11InputLayout* GetSimpleInputLayout();
   static ID3D11InputLayout* GetClearInputLayout();
 
-  static bool VertexShaderCache::InsertByteCode(const VertexShaderUid& uid, D3DBlob* bcodeblob);
+  static bool InsertByteCode(const VertexShaderUid& uid, D3DBlob* bcodeblob);
 
 private:
   struct VSCacheEntry

@@ -22,7 +22,6 @@ enum class ExceptionType
 void DoState(PointerWrap& p);
 
 CPUCoreBase* InitJitCore(int core);
-void InitTables(int core);
 CPUCoreBase* GetCore();
 
 // Debugging

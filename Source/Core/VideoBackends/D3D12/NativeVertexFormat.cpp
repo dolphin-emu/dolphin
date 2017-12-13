@@ -13,10 +13,10 @@
 
 namespace DX12
 {
-NativeVertexFormat*
+std::unique_ptr<NativeVertexFormat>
 VertexManager::CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl)
 {
-  return new D3DVertexFormat(vtx_decl);
+  return std::make_unique<D3DVertexFormat>(vtx_decl);
 }
 
 static const constexpr DXGI_FORMAT d3d_format_lookup[5 * 4 * 2] = {

@@ -148,6 +148,7 @@ void CFrame::BindMenuBarEvents()
   // Movie menu
   Bind(wxEVT_MENU, &CFrame::OnRecord, this, IDM_RECORD);
   Bind(wxEVT_MENU, &CFrame::OnPlayRecording, this, IDM_PLAY_RECORD);
+  Bind(wxEVT_MENU, &CFrame::OnStopRecording, this, IDM_STOP_RECORD);
   Bind(wxEVT_MENU, &CFrame::OnRecordExport, this, IDM_RECORD_EXPORT);
   Bind(wxEVT_MENU, &CFrame::OnRecordReadOnly, this, IDM_RECORD_READ_ONLY);
   Bind(wxEVT_MENU, &CFrame::OnTASInput, this, IDM_TAS_INPUT);
@@ -502,6 +503,23 @@ void CFrame::OnPlayRecording(wxCommandEvent& WXUNUSED(event))
 
   if (Movie::PlayInput(WxStrToStr(path)))
     BootGame("");
+}
+
+void CFrame::OnStopRecording(wxCommandEvent& WXUNUSED(event))
+{
+  if (Movie::IsRecordingInput())
+  {
+    const bool was_paused = Core::GetState() == Core::State::Paused;
+    DoRecordingSave();
+    const bool is_paused = Core::GetState() == Core::State::Paused;
+    if (is_paused && !was_paused)
+      CPU::EnableStepping(false);
+  }
+
+  Movie::EndPlayInput(false);
+
+  GetMenuBar()->FindItem(IDM_STOP_RECORD)->Enable(Movie::IsMovieActive());
+  GetMenuBar()->FindItem(IDM_RECORD)->Enable(!Movie::IsMovieActive());
 }
 
 void CFrame::OnRecordExport(wxCommandEvent& WXUNUSED(event))
@@ -1684,6 +1702,7 @@ void CFrame::UpdateGUI()
   GetMenuBar()->FindItem(IDM_RESET)->Enable(Running || Paused);
   GetMenuBar()->FindItem(IDM_RECORD)->Enable(!Movie::IsRecordingInput());
   GetMenuBar()->FindItem(IDM_PLAY_RECORD)->Enable(!Initialized);
+  GetMenuBar()->FindItem(IDM_STOP_RECORD)->Enable(Movie::IsMovieActive());
   GetMenuBar()->FindItem(IDM_RECORD_EXPORT)->Enable(Movie::IsMovieActive());
   GetMenuBar()->FindItem(IDM_FRAMESTEP)->Enable(Running || Paused);
   GetMenuBar()->FindItem(IDM_SCREENSHOT)->Enable(Running || Paused);
@@ -1768,6 +1787,9 @@ void CFrame::UpdateGUI()
       GetMenuBar()->FindItem(IDM_RECORD)->Enable();
       GetMenuBar()->FindItem(IDM_PLAY_RECORD)->Enable();
     }
+
+    // Reset the stop playing/recording input menu item
+    GetMenuBar()->FindItem(IDM_STOP_RECORD)->SetItemLabel(_("Stop Playing/Recording Input"));
   }
   else if (Initialized)
   {
@@ -1777,6 +1799,14 @@ void CFrame::UpdateGUI()
 
     // Reset game loading flag
     m_bGameLoading = false;
+
+    // Rename the stop playing/recording menu item depending on current movie state
+    if (Movie::IsRecordingInput())
+      GetMenuBar()->FindItem(IDM_STOP_RECORD)->SetItemLabel(_("Stop Recording Input"));
+    else if (Movie::IsPlayingInput())
+      GetMenuBar()->FindItem(IDM_STOP_RECORD)->SetItemLabel(_("Stop Playing Input"));
+    else
+      GetMenuBar()->FindItem(IDM_STOP_RECORD)->SetItemLabel(_("Stop Playing/Recording Input"));
   }
 
   GetToolBar()->Refresh(false);

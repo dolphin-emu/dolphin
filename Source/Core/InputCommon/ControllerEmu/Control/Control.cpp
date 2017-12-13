@@ -3,11 +3,14 @@
 // Refer to the license.txt file included.
 
 #include "InputCommon/ControllerEmu/Control/Control.h"
+
+#include <utility>
 #include "InputCommon/ControlReference/ControlReference.h"
 
 namespace ControllerEmu
 {
-Control::Control(ControlReference* ref, const std::string& name_) : control_ref(ref), name(name_)
+Control::Control(std::unique_ptr<ControlReference> ref, const std::string& name_)
+    : control_ref(std::move(ref)), name(name_)
 {
 }
 

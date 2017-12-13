@@ -282,6 +282,8 @@ public:
   static u32 Helper_Carry(u32 value1, u32 value2);
 
 private:
+  static void InitializeInstructionTables();
+
   // flag helper
   static void Helper_UpdateCR0(u32 value);
   static void Helper_UpdateCR1();

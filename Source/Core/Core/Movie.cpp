@@ -897,9 +897,9 @@ void RecordInput(GCPadStatus* PadStatus, int controllerID)
 
   CheckPadStatus(PadStatus, controllerID);
 
-  EnsureTmpInputSize((size_t)(s_currentByte + 8));
-  memcpy(&(tmpInput[s_currentByte]), &s_padState, 8);
-  s_currentByte += 8;
+  EnsureTmpInputSize((size_t)(s_currentByte + sizeof(ControllerState)));
+  memcpy(&tmpInput[s_currentByte], &s_padState, sizeof(ControllerState));
+  s_currentByte += sizeof(ControllerState);
   s_totalBytes = s_currentByte;
 }
 
@@ -1135,11 +1135,11 @@ void LoadInput(const std::string& filename)
         }
         else
         {
-          const ptrdiff_t frame = mismatch_index / 8;
+          const ptrdiff_t frame = mismatch_index / sizeof(ControllerState);
           ControllerState curPadState;
-          memcpy(&curPadState, &tmpInput[frame * 8], 8);
+          memcpy(&curPadState, &tmpInput[frame * sizeof(ControllerState)], sizeof(ControllerState));
           ControllerState movPadState;
-          memcpy(&movPadState, &movInput[frame * 8], 8);
+          memcpy(&movPadState, &movInput[frame * sizeof(ControllerState)], sizeof(ControllerState));
           PanicAlertT(
               "Warning: You loaded a save whose movie mismatches on frame %td. You should load "
               "another save before continuing, or load this state with read-only mode off. "
@@ -1219,10 +1219,10 @@ void PlayController(GCPadStatus* PadStatus, int controllerID)
   if (!IsPlayingInput() || !IsUsingPad(controllerID) || tmpInput == nullptr)
     return;
 
-  if (s_currentByte + 8 > s_totalBytes)
+  if (s_currentByte + sizeof(ControllerState) > s_totalBytes)
   {
-    PanicAlertT("Premature movie end in PlayController. %u + 8 > %u", (u32)s_currentByte,
-                (u32)s_totalBytes);
+    PanicAlertT("Premature movie end in PlayController. %u + %zu > %u", (u32)s_currentByte,
+                sizeof(ControllerState), (u32)s_totalBytes);
     EndPlayInput(!s_bReadOnly);
     return;
   }
@@ -1233,8 +1233,8 @@ void PlayController(GCPadStatus* PadStatus, int controllerID)
   memset(PadStatus, 0, sizeof(GCPadStatus));
   PadStatus->err = e;
 
-  memcpy(&s_padState, &(tmpInput[s_currentByte]), 8);
-  s_currentByte += 8;
+  memcpy(&s_padState, &tmpInput[s_currentByte], sizeof(ControllerState));
+  s_currentByte += sizeof(ControllerState);
 
   PadStatus->triggerLeft = s_padState.TriggerL;
   PadStatus->triggerRight = s_padState.TriggerR;

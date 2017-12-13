@@ -4,7 +4,6 @@
 
 #include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/Gekko.h"
-#include "Core/PowerPC/Jit64/Jit64_Tables.h"
 
 static Jit64::Instruction dynaOpTable[64];
 static Jit64::Instruction dynaOpTable4[1024];
@@ -358,26 +357,25 @@ static GekkoOPTemplate table63_2[] = {
     {31, &Jit64::fmaddXX},   // fnmaddx
 };
 
-namespace Jit64Tables
+void Jit64::CompileInstruction(PPCAnalyst::CodeOp& op)
 {
-void CompileInstruction(Jit64& jit, PPCAnalyst::CodeOp& op)
-{
-  (jit.*dynaOpTable[op.inst.OPCD])(op.inst);
+  (this->*dynaOpTable[op.inst.OPCD])(op.inst);
+
   GekkoOPInfo* info = op.opinfo;
   if (info)
   {
 #ifdef OPLOG
     if (!strcmp(info->opname, OP_TO_LOG))  // "mcrfs"
     {
-      rsplocations.push_back(jit.js.compilerPC);
+      rsplocations.push_back(js.compilerPC);
     }
 #endif
     info->compileCount++;
-    info->lastUse = jit.js.compilerPC;
+    info->lastUse = js.compilerPC;
   }
 }
 
-void InitTables()
+void Jit64::InitializeInstructionTables()
 {
   // once initialized, tables are read-only
   static bool initialized = false;
@@ -470,5 +468,3 @@ void InitTables()
 
   initialized = true;
 }
-
-}  // namespace

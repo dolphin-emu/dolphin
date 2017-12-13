@@ -16,6 +16,7 @@
 
 namespace DiscIO
 {
+class IBlobReader;
 enum class BlobType;
 enum class Country;
 enum class Language;
