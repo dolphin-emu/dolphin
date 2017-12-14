@@ -87,8 +87,7 @@ bool DolphinApp::Initialize(int& c, wxChar** v)
 
 void DolphinApp::OnInitCmdLine(wxCmdLineParser& parser)
 {
-   wxApp::OnInitCmdLine(parser);
-   parser.SetCmdLine("");
+  parser.SetCmdLine("");
 }
 
 bool DolphinApp::OnCmdLineParsed(wxCmdLineParser& parser)
