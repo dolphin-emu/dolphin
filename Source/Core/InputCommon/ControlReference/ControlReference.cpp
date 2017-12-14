@@ -43,7 +43,7 @@ int ControlReference::BoundCount() const
     return 0;
 }
 
-ExpressionParseStatus ControlReference::GetParseStatus() const
+ParseStatus ControlReference::GetParseStatus() const
 {
   return m_parse_status;
 }
