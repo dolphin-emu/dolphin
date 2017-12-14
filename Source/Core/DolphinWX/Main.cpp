@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <OptionParser.h>
 #include <cstdio>
 #include <cstring>
 #include <fstream>
@@ -52,6 +53,7 @@
 #include "DolphinWX/VideoConfigDiag.h"
 #include "DolphinWX/WxUtils.h"
 
+#include "UICommon/CommandLineParse.h"
 #include "UICommon/UICommon.h"
 
 #include "VideoCommon/VR.h"
@@ -83,6 +85,12 @@ bool DolphinApp::Initialize(int& c, wxChar** v)
 
 // The 'main program' equivalent that creates the main window and return the main frame
 
+void DolphinApp::OnInitCmdLine(wxCmdLineParser& parser)
+{
+   wxApp::OnInitCmdLine(parser);
+   parser.SetCmdLine("");
+}
+
 bool DolphinApp::OnInit()
 {
   std::lock_guard<std::mutex> lk(s_init_mutex);
@@ -101,6 +109,8 @@ bool DolphinApp::OnInit()
 #if wxUSE_ON_FATAL_EXCEPTION
   wxHandleFatalExceptions(true);
 #endif
+
+  ParseCommandLine();
 
   UICommon::SetUserDirectory(m_user_path.ToStdString());
   UICommon::CreateDirectories();
@@ -137,81 +147,37 @@ bool DolphinApp::OnInit()
   return true;
 }
 
-void DolphinApp::OnInitCmdLine(wxCmdLineParser& parser)
+void DolphinApp::ParseCommandLine()
 {
-  static const wxCmdLineEntryDesc desc[] = {
-      {wxCMD_LINE_SWITCH, "h", "help", "Show this help message", wxCMD_LINE_VAL_NONE,
-       wxCMD_LINE_OPTION_HELP},
-      {wxCMD_LINE_SWITCH, "d", "debugger", "Opens the debugger", wxCMD_LINE_VAL_NONE,
-       wxCMD_LINE_PARAM_OPTIONAL},
-      {wxCMD_LINE_SWITCH, "l", "logger", "Opens the logger", wxCMD_LINE_VAL_NONE,
-       wxCMD_LINE_PARAM_OPTIONAL},
-      {wxCMD_LINE_OPTION, "e", "exec",
-       "Loads the specified file (ELF, DOL, GCM, ISO, TGC, WBFS, CISO, GCZ, WAD)",
-       wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL},
-      {wxCMD_LINE_SWITCH, "b", "batch", "Exit Dolphin with emulator", wxCMD_LINE_VAL_NONE,
-       wxCMD_LINE_PARAM_OPTIONAL},
-      {wxCMD_LINE_OPTION, "c", "confirm", "Set Confirm on Stop", wxCMD_LINE_VAL_STRING,
-       wxCMD_LINE_PARAM_OPTIONAL},
-      {wxCMD_LINE_OPTION, "v", "video_backend", "Specify a video backend", wxCMD_LINE_VAL_STRING,
-       wxCMD_LINE_PARAM_OPTIONAL},
-      {wxCMD_LINE_OPTION, "a", "audio_emulation", "Low level (LLE) or high level (HLE) audio",
-       wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL},
-      {wxCMD_LINE_OPTION, "m", "movie", "Play a movie file", wxCMD_LINE_VAL_STRING,
-       wxCMD_LINE_PARAM_OPTIONAL},
-      {wxCMD_LINE_OPTION, "u", "user", "User folder path", wxCMD_LINE_VAL_STRING,
-       wxCMD_LINE_PARAM_OPTIONAL},
-      // -vr option like in Oculus Rift Source engine games and Doom 3 BFG
-      {wxCMD_LINE_SWITCH, "vr", nullptr, "force Virtual Reality on", wxCMD_LINE_VAL_NONE,
-       wxCMD_LINE_PARAM_OPTIONAL},
-      // -steamvr option to use SteamVR instead of Oculus
-      {wxCMD_LINE_SWITCH, "steamvr", nullptr, "use SteamVR instead of Oculus", wxCMD_LINE_VAL_NONE,
-       wxCMD_LINE_PARAM_OPTIONAL},
-      // -oculus option to use Oculus instead of SteamVR, and to force virtual reality on
-      {wxCMD_LINE_SWITCH, "oculus", nullptr, "use Oculus instead of SteamVR, and force VR on",
-       wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL},
-       // -oculus option to use Oculus instead of SteamVR, and to force virtual reality on
-      {wxCMD_LINE_SWITCH, "onehmd", nullptr, "only use a single HMD if multiple are present",
-       wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL },
-       // -force-d3d11 and -force-ogl options like in Oculus Rift unity demos
-      // note, wxwidgets had to be modified to allow this
-      {wxCMD_LINE_SWITCH, "force-d3d11", nullptr, "force use of Direct3D 11 backend",
-       wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL},
-      {wxCMD_LINE_SWITCH, "force-opengl", nullptr, "force use of OpenGL backend",
-       wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL},
-      {wxCMD_LINE_OPTION, "bruteforce", "bruteforce", "return value for brute forcing Action "
-                                                      "Replay culling codes (needs save state 1 "
-                                                      "and map file)",
-       wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL},
-      {wxCMD_LINE_NONE, nullptr, nullptr, nullptr, wxCMD_LINE_VAL_NONE, 0}};
+  auto parser = CommandLineParse::CreateParser(CommandLineParse::ParserOptions::IncludeGUIOptions);
+  optparse::Values& options = CommandLineParse::ParseArguments(parser.get(), argc, argv);
+  std::vector<std::string> args = parser->args();
 
-  parser.SetDesc(desc);
-}
-
-bool DolphinApp::OnCmdLineParsed(wxCmdLineParser& parser)
-{
-  if (argc == 2 && File::Exists(argv[1].ToUTF8().data()))
+  if (options.is_set("exec"))
   {
     m_load_file = true;
-    m_file_to_load = argv[1];
+    m_file_to_load = static_cast<const char*>(options.get("exec"));
   }
-  else if (parser.Parse() != 0)
+  else if (args.size())
   {
-    return false;
+    m_load_file = true;
+    m_file_to_load = args.front();
+    args.erase(args.begin());
   }
 
-  if (!m_load_file)
-    m_load_file = parser.Found("exec", &m_file_to_load);
-  g_force_vr = parser.Found("vr") || parser.Found("oculus");
-  if (parser.Found("oculus"))
+  m_use_debugger = options.is_set("debugger");
+  m_use_logger = options.is_set("logger");
+  m_batch_mode = options.is_set("batch");
+  g_force_vr = options.is_set("vr") || options.is_set("oculus");
+  if (options.is_set("oculus"))
     g_prefer_openvr = false;
-  else if (parser.Found("steamvr"))
+  else if (options.is_set("steamvr"))
     g_prefer_openvr = true;
-  if (parser.Found("onehmd"))
+  if (options.is_set("onehmd"))
     g_one_hmd = true;
   wxString bruteforceResult;
-  ARBruteForcer::ch_bruteforce = parser.Found("bruteforce", &bruteforceResult);
-  ARBruteForcer::ch_code = WxStrToStr(bruteforceResult);
+  ARBruteForcer::ch_bruteforce = options.is_set("bruteforce");
+  ARBruteForcer::ch_code = static_cast<const char*>(options.get("bruteforce"));
   if (ARBruteForcer::ch_bruteforce)
   {
     ARBruteForcer::ch_dont_save_settings = true;
@@ -220,30 +186,33 @@ bool DolphinApp::OnCmdLineParsed(wxCmdLineParser& parser)
     {
       PanicAlert("Valid option not specified in -bruteforce command.\nPlease use only a single hex "
                  "digit: e.g. -bruteforce 1");
-      return false;
     }
   }
 
-  m_use_debugger = parser.Found("debugger");
-  m_use_logger = parser.Found("logger");
-  m_batch_mode = parser.Found("batch");
-  m_confirm_stop = parser.Found("confirm", &m_confirm_setting);
-  m_select_video_backend = parser.Found("video_backend", &m_video_backend_name);
-  m_select_audio_emulation = parser.Found("audio_emulation", &m_audio_emulation_name);
-  if (parser.Found("force-d3d11"))
-  {
-    m_select_video_backend = true;
-    m_video_backend_name = "D3D";
-  }
-  else if (parser.Found("force-opengl"))
-  {
-    m_select_video_backend = true;
-    m_video_backend_name = "OGL";
-  }
-  m_play_movie = parser.Found("movie", &m_movie_file);
-  parser.Found("user", &m_user_path);
+  m_confirm_stop = options.is_set("confirm");
+  m_confirm_setting = options.get("confirm");
 
-  return true;
+  m_select_video_backend = options.is_set("video_backend");
+  m_video_backend_name = static_cast<const char*>(options.get("video_backend"));
+
+  if (options.is_set("force-d3d11"))
+  {
+     m_select_video_backend = true;
+     m_video_backend_name = "D3D";
+  }
+  else if (options.is_set("force-opengl"))
+  {
+     m_select_video_backend = true;
+     m_video_backend_name = "OGL";
+  }
+
+  m_select_audio_emulation = options.is_set("audio_emulation");
+  m_audio_emulation_name = static_cast<const char*>(options.get("audio_emulation"));
+
+  m_play_movie = options.is_set("movie");
+  m_movie_file = static_cast<const char*>(options.get("movie"));
+
+  m_user_path = static_cast<const char*>(options.get("user"));
 }
 
 #ifdef __APPLE__
@@ -284,12 +253,7 @@ void DolphinApp::AfterInit()
   }
 
   if (m_confirm_stop)
-  {
-    if (m_confirm_setting.Upper() == "TRUE")
-      SConfig::GetInstance().bConfirmStop = true;
-    else if (m_confirm_setting.Upper() == "FALSE")
-      SConfig::GetInstance().bConfirmStop = false;
-  }
+    SConfig::GetInstance().bConfirmStop = m_confirm_setting;
 
   if (m_play_movie && !m_movie_file.empty())
   {

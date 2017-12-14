@@ -11,12 +11,12 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{604C8368-F34A-4D55-82C8-CC92A0C13254}</ProjectGuid>
+    <ProjectGuid>{C636D9D1-82FE-42B5-9987-63B7D4836341}</ProjectGuid>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
-	<PlatformToolset Condition="'$(VisualStudioVersion)' == '12.0'">v120</PlatformToolset>
+    <PlatformToolset Condition="'$(VisualStudioVersion)' == '12.0'">v120</PlatformToolset>
     <PlatformToolset Condition="'$(VisualStudioVersion)' == '14.0'">v140</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -31,46 +31,21 @@
   </ImportGroup>
   <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\VSProps\Base.props" />
-    <Import Project="..\..\VSProps\PCHUse.props" />
+    <Import Project="..\..\Source\VSProps\Base.props" />
+    <Import Project="..\..\Source\VSProps\ClDisableAllWarnings.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <ClCompile>
-      <AdditionalIncludeDirectories>$(ExternalsDir)zlib;$(ExternalsDir)cpp-optparse;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
+    <ClCompile />
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <ClCompile>
-      <AdditionalIncludeDirectories>$(ExternalsDir)zlib;$(ExternalsDir)cpp-optparse;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
+    <ClCompile />
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Text Include="CMakeLists.txt" />
+    <ClCompile Include="OptionParser.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="$(CoreDir)Core\Core.vcxproj">
-      <Project>{E54CF649-140E-4255-81A5-30A673C1FB36}</Project>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="CommandLineParse.cpp" />
-    <ClCompile Include="UICommon.cpp" />
-    <ClCompile Include="Disassembler.cpp" />
-    <ClCompile Include="USBUtils.cpp">
-      <DisableSpecificWarnings>4200;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="CommandLineParse.h" />
-    <ClInclude Include="UICommon.h" />
-    <ClInclude Include="Disassembler.h" />
-    <ClInclude Include="USBUtils.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="$(ExternalsDir)cpp-optparse\cpp-optparse.vcxproj">
-      <Project>{C636D9D1-82FE-42B5-9987-63B7D4836341}</Project>
-    </ProjectReference>
+    <ClInclude Include="OptionParser.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

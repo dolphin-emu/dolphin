@@ -94,7 +94,7 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 	set(WXLIBS ${WXLIBS} dl)
 endif()
 
-list(APPEND LIBS core uicommon OVR.a)
+list(APPEND LIBS core uicommon cpp-optparse OVR.a)
 
 if(APPLE)
 	if(wxWidgets_FOUND)

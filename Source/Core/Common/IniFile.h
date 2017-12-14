@@ -76,11 +76,15 @@ public:
     bool Get(const std::string& key, std::vector<std::string>* values) const;
 
     bool operator<(const Section& other) const { return name < other.name; }
+    using SectionMap = std::map<std::string, std::string, CaseInsensitiveStringCompare>;
+
+    const std::string& GetName() const { return name; }
+    const SectionMap& GetValues() const { return values; }
   protected:
     std::string name;
 
     std::vector<std::string> keys_order;
-    std::map<std::string, std::string, CaseInsensitiveStringCompare> values;
+    SectionMap values;
 
     std::vector<std::string> lines;
   };
@@ -142,6 +146,7 @@ public:
   // In particular it is used in PostProcessing for its configuration
   static void ParseLine(const std::string& line, std::string* keyOut, std::string* valueOut);
 
+  const std::list<Section>& GetSections() const { return sections; }
 private:
   std::list<Section> sections;
 

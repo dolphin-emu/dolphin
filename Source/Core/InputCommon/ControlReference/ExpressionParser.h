@@ -20,7 +20,7 @@ public:
   std::string control_name;
 
   ControlQualifier() : has_device(false) {}
-  operator std::string()
+  operator std::string() const
   {
     if (has_device)
       return device_qualifier.ToString() + ":" + control_name;
@@ -37,8 +37,8 @@ public:
       : container(container_), default_device(default_), is_input(is_input_)
   {
   }
-  std::shared_ptr<Core::Device> FindDevice(ControlQualifier qualifier);
-  Core::Device::Control* FindControl(ControlQualifier qualifier);
+  std::shared_ptr<Core::Device> FindDevice(ControlQualifier qualifier) const;
+  Core::Device::Control* FindControl(ControlQualifier qualifier) const;
 
 private:
   const Core::DeviceContainer& container;
@@ -53,7 +53,7 @@ public:
   Expression() : node(nullptr) {}
   Expression(ExpressionNode* node);
   ~Expression();
-  ControlState GetValue();
+  ControlState GetValue() const;
   void SetValue(ControlState state);
   int num_controls;
   ExpressionNode* node;
