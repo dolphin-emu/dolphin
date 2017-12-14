@@ -114,6 +114,9 @@ public:
   JitOptions jo;
   JitState js;
 
+  JitBase();
+  ~JitBase() override;
+
   static const u8* Dispatch() { return g_jit->GetBlockCache()->Dispatch(); };
   virtual JitBaseBlockCache* GetBlockCache() = 0;
 

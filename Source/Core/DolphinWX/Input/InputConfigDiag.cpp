@@ -147,7 +147,8 @@ void PadSettingExtension::UpdateValue()
 
 PadSettingCheckBox::PadSettingCheckBox(wxWindow* const parent,
                                        ControllerEmu::ControlGroup::BooleanSetting* const _setting)
-    : PadSetting(new wxCheckBox(parent, wxID_ANY, wxGetTranslation(StrToWxStr(_setting->m_name)))),
+    : PadSetting(
+          new wxCheckBox(parent, wxID_ANY, wxGetTranslation(StrToWxStr(_setting->m_ui_name)))),
       setting(_setting)
 {
   UpdateGUI();

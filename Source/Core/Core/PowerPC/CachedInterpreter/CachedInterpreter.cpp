@@ -14,6 +14,42 @@
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PowerPC.h"
 
+struct CachedInterpreter::Instruction
+{
+  typedef void (*CommonCallback)(UGeckoInstruction);
+  typedef bool (*ConditionalCallback)(u32 data);
+
+  Instruction() : type(INSTRUCTION_ABORT) {}
+  Instruction(const CommonCallback c, UGeckoInstruction i)
+      : common_callback(c), data(i.hex), type(INSTRUCTION_TYPE_COMMON)
+  {
+  }
+
+  Instruction(const ConditionalCallback c, u32 d)
+      : conditional_callback(c), data(d), type(INSTRUCTION_TYPE_CONDITIONAL)
+  {
+  }
+
+  union
+  {
+    const CommonCallback common_callback;
+    const ConditionalCallback conditional_callback;
+  };
+  u32 data;
+  enum
+  {
+    INSTRUCTION_ABORT,
+    INSTRUCTION_TYPE_COMMON,
+    INSTRUCTION_TYPE_CONDITIONAL,
+  } type;
+};
+
+CachedInterpreter::CachedInterpreter() : code_buffer(32000)
+{
+}
+
+CachedInterpreter::~CachedInterpreter() = default;
+
 void CachedInterpreter::Init()
 {
   m_code.reserve(CODE_SIZE / sizeof(Instruction));
@@ -31,6 +67,11 @@ void CachedInterpreter::Init()
 void CachedInterpreter::Shutdown()
 {
   m_block_cache.Shutdown();
+}
+
+const u8* CachedInterpreter::GetCodePtr() const
+{
+  return reinterpret_cast<const u8*>(m_code.data() + m_code.size());
 }
 
 void CachedInterpreter::ExecuteOneBlock()

@@ -692,7 +692,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
       MOV(32, PPCSTATE(pc), Imm32(js.blockStart));
       ABI_PushRegistersAndAdjustStack({}, 0);
       ABI_CallFunctionC(JitInterface::CompileExceptionCheck,
-                        (u32)JitInterface::ExceptionType::EXCEPTIONS_PAIRED_QUANTIZE);
+                        static_cast<u32>(JitInterface::ExceptionType::PairedQuantize));
       ABI_PopRegistersAndAdjustStack({}, 0);
       JMP(asm_routines.dispatcherNoCheck, true);
       SwitchToNearCode();
@@ -1015,9 +1015,8 @@ void Jit64::IntializeSpeculativeConstants()
         target = GetCodePtr();
         MOV(32, PPCSTATE(pc), Imm32(js.blockStart));
         ABI_PushRegistersAndAdjustStack({}, 0);
-        ABI_CallFunctionC(
-            JitInterface::CompileExceptionCheck,
-            static_cast<u32>(JitInterface::ExceptionType::EXCEPTIONS_SPECULATIVE_CONSTANTS));
+        ABI_CallFunctionC(JitInterface::CompileExceptionCheck,
+                          static_cast<u32>(JitInterface::ExceptionType::SpeculativeConstants));
         ABI_PopRegistersAndAdjustStack({}, 0);
         JMP(asm_routines.dispatcher, true);
         SwitchToNearCode();

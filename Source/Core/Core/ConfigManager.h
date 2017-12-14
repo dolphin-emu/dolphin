@@ -311,9 +311,6 @@ struct SConfig : NonCopyable
   bool m_showStateColumn;
   bool m_showVRStateColumn;
 
-  // Toggles whether compressed titles show up in blue in the game list
-  bool m_ColorCompressed;
-
   std::string m_WirelessMac;
   bool m_PauseMovie;
   bool m_ShowLag;

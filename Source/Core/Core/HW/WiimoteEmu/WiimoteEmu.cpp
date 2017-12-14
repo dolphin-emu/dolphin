@@ -314,11 +314,11 @@ Wiimote::Wiimote(const unsigned int index)
       std::make_unique<ControllerEmu::ControlGroup::BackgroundInputSetting>(
           _trans("Background Input")));
   m_options->boolean_settings.emplace_back(
-      std::make_unique<ControllerEmu::ControlGroup::BooleanSetting>(_trans("Sideways Wii Remote"),
-                                                                    false));
+      std::make_unique<ControllerEmu::ControlGroup::BooleanSetting>(
+          "Sideways Wiimote", _trans("Sideways Wii Remote"), false));
   m_options->boolean_settings.emplace_back(
-      std::make_unique<ControllerEmu::ControlGroup::BooleanSetting>(_trans("Upright Wii Remote"),
-                                                                    false));
+      std::make_unique<ControllerEmu::ControlGroup::BooleanSetting>(
+          "Upright Wiimote", _trans("Upright Wii Remote"), false));
   m_options->boolean_settings.emplace_back(
       std::make_unique<ControllerEmu::ControlGroup::BooleanSetting>(
           _trans("Iterative Input"), false, ControllerEmu::ControlGroup::SettingType::VIRTUAL));

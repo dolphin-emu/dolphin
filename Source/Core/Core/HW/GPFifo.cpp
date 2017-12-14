@@ -98,7 +98,7 @@ void CheckGatherPipe()
     UpdateGatherPipe();
 
     // Profile where slow FIFO writes are occurring.
-    JitInterface::CompileExceptionCheck(JitInterface::ExceptionType::EXCEPTIONS_FIFO_WRITE);
+    JitInterface::CompileExceptionCheck(JitInterface::ExceptionType::FIFOWrite);
   }
 }
 

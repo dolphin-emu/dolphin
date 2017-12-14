@@ -38,7 +38,7 @@ struct GekkoOPTemplate
   Jit64::Instruction Inst;
 };
 
-static GekkoOPTemplate primarytable[] = {
+const GekkoOPTemplate primarytable[] = {
     {4, &Jit64::DynaRunTable4},    // RunTable4
     {19, &Jit64::DynaRunTable19},  // RunTable19
     {31, &Jit64::DynaRunTable31},  // RunTable31
@@ -108,7 +108,7 @@ static GekkoOPTemplate primarytable[] = {
     // missing: 0, 1, 2, 5, 6, 9, 22, 30, 62, 58
 };
 
-static GekkoOPTemplate table4[] = {
+const GekkoOPTemplate table4[] = {
     // SUBOP10
     {0, &Jit64::ps_cmpXX},      // ps_cmpu0
     {32, &Jit64::ps_cmpXX},     // ps_cmpo0
@@ -126,7 +126,7 @@ static GekkoOPTemplate table4[] = {
     {1014, &Jit64::FallBackToInterpreter},  // dcbz_l
 };
 
-static GekkoOPTemplate table4_2[] = {
+const GekkoOPTemplate table4_2[] = {
     {10, &Jit64::ps_sum},     // ps_sum0
     {11, &Jit64::ps_sum},     // ps_sum1
     {12, &Jit64::ps_muls},    // ps_muls0
@@ -146,14 +146,14 @@ static GekkoOPTemplate table4_2[] = {
     {31, &Jit64::fmaddXX},    // ps_nmadd
 };
 
-static GekkoOPTemplate table4_3[] = {
+const GekkoOPTemplate table4_3[] = {
     {6, &Jit64::psq_lXX},    // psq_lx
     {7, &Jit64::psq_stXX},   // psq_stx
     {38, &Jit64::psq_lXX},   // psq_lux
     {39, &Jit64::psq_stXX},  // psq_stux
 };
 
-static GekkoOPTemplate table19[] = {
+const GekkoOPTemplate table19[] = {
     {528, &Jit64::bcctrx},  // bcctrx
     {16, &Jit64::bclrx},    // bclrx
     {257, &Jit64::crXXX},   // crand
@@ -171,7 +171,7 @@ static GekkoOPTemplate table19[] = {
     {50, &Jit64::rfi},  // rfi
 };
 
-static GekkoOPTemplate table31[] = {
+const GekkoOPTemplate table31[] = {
     {266, &Jit64::addx},      // addx
     {778, &Jit64::addx},      // addox
     {10, &Jit64::arithcx},    // addcx
@@ -313,7 +313,7 @@ static GekkoOPTemplate table31[] = {
     {566, &Jit64::DoNothing},              // tlbsync
 };
 
-static GekkoOPTemplate table59[] = {
+const GekkoOPTemplate table59[] = {
     {18, &Jit64::fp_arith},  // fdivsx
     {20, &Jit64::fp_arith},  // fsubsx
     {21, &Jit64::fp_arith},  // faddsx
@@ -325,7 +325,7 @@ static GekkoOPTemplate table59[] = {
     {31, &Jit64::fmaddXX},   // fnmaddsx
 };
 
-static GekkoOPTemplate table63[] = {
+const GekkoOPTemplate table63[] = {
     {264, &Jit64::fsign},  // fabsx
     {32, &Jit64::fcmpX},   // fcmpo
     {0, &Jit64::fcmpX},    // fcmpu
@@ -344,7 +344,7 @@ static GekkoOPTemplate table63[] = {
     {711, &Jit64::mtfsfx},   // mtfsfx
 };
 
-static GekkoOPTemplate table63_2[] = {
+const GekkoOPTemplate table63_2[] = {
     {18, &Jit64::fp_arith},  // fdivx
     {20, &Jit64::fp_arith},  // fsubx
     {21, &Jit64::fp_arith},  // faddx
@@ -409,7 +409,7 @@ void Jit64::InitializeInstructionTables()
   for (int i = 0; i < 32; i++)
   {
     int fill = i << 5;
-    for (auto& tpl : table4_2)
+    for (const auto& tpl : table4_2)
     {
       int op = fill + tpl.opcode;
       dynaOpTable4[op] = tpl.Inst;
@@ -419,38 +419,38 @@ void Jit64::InitializeInstructionTables()
   for (int i = 0; i < 16; i++)
   {
     int fill = i << 6;
-    for (auto& tpl : table4_3)
+    for (const auto& tpl : table4_3)
     {
       int op = fill + tpl.opcode;
       dynaOpTable4[op] = tpl.Inst;
     }
   }
 
-  for (auto& tpl : table4)
+  for (const auto& tpl : table4)
   {
     int op = tpl.opcode;
     dynaOpTable4[op] = tpl.Inst;
   }
 
-  for (auto& tpl : table31)
+  for (const auto& tpl : table31)
   {
     int op = tpl.opcode;
     dynaOpTable31[op] = tpl.Inst;
   }
 
-  for (auto& tpl : table19)
+  for (const auto& tpl : table19)
   {
     int op = tpl.opcode;
     dynaOpTable19[op] = tpl.Inst;
   }
 
-  for (auto& tpl : table59)
+  for (const auto& tpl : table59)
   {
     int op = tpl.opcode;
     dynaOpTable59[op] = tpl.Inst;
   }
 
-  for (auto& tpl : table63)
+  for (const auto& tpl : table63)
   {
     int op = tpl.opcode;
     dynaOpTable63[op] = tpl.Inst;
@@ -459,7 +459,7 @@ void Jit64::InitializeInstructionTables()
   for (int i = 0; i < 32; i++)
   {
     int fill = i << 5;
-    for (auto& tpl : table63_2)
+    for (const auto& tpl : table63_2)
     {
       int op = fill + tpl.opcode;
       dynaOpTable63[op] = tpl.Inst;

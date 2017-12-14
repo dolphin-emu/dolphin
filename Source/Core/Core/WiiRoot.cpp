@@ -77,13 +77,13 @@ void InitializeWiiRoot(bool use_temporary)
     // Generate a SYSCONF with default settings for the temporary Wii NAND.
     SysConf sysconf{Common::FromWhichRoot::FROM_SESSION_ROOT};
     sysconf.Save();
+
+    InitializeDeterministicWiiSaves();
   }
   else
   {
     File::SetUserPath(D_SESSION_WIIROOT_IDX, File::GetUserPath(D_WIIROOT_IDX));
   }
-
-  InitializeDeterministicWiiSaves();
 }
 
 void ShutdownWiiRoot()

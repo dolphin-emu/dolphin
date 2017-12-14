@@ -56,7 +56,6 @@ public:
   const std::string& GetVRIssues() const { return m_vr_issues; }
   int GetEmuState() const { return m_emu_state; }
   int GetVRState() const { return m_vr_state; }
-  bool IsCompressed() const;
   u64 GetFileSize() const { return m_FileSize; }
   u64 GetVolumeSize() const { return m_VolumeSize; }
   // 0 is the first disc, 1 is the second disc

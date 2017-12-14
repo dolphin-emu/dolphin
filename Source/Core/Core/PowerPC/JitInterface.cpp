@@ -220,20 +220,20 @@ void CompileExceptionCheck(ExceptionType type)
 
   switch (type)
   {
-  case ExceptionType::EXCEPTIONS_FIFO_WRITE:
+  case ExceptionType::FIFOWrite:
     exception_addresses = &g_jit->js.fifoWriteAddresses;
     break;
-  case ExceptionType::EXCEPTIONS_PAIRED_QUANTIZE:
+  case ExceptionType::PairedQuantize:
     exception_addresses = &g_jit->js.pairedQuantizeAddresses;
     break;
-  case ExceptionType::EXCEPTIONS_SPECULATIVE_CONSTANTS:
+  case ExceptionType::SpeculativeConstants:
     exception_addresses = &g_jit->js.noSpeculativeConstantsAddresses;
     break;
   }
 
   if (PC != 0 && (exception_addresses->find(PC)) == (exception_addresses->end()))
   {
-    if (type == ExceptionType::EXCEPTIONS_FIFO_WRITE)
+    if (type == ExceptionType::FIFOWrite)
     {
       // Check in case the code has been replaced since: do we need to do this?
       int optype = GetOpInfo(PowerPC::HostRead_U32(PC))->type;

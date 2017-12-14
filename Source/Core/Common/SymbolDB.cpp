@@ -72,14 +72,12 @@ Symbol* SymbolDB::GetSymbolFromHash(u32 hash)
 
 std::vector<Symbol*> SymbolDB::GetSymbolsFromHash(u32 hash)
 {
-  std::vector<Symbol*> symbols;
+  const auto iter = checksumToFunction.find(hash);
 
-  for (const auto& iter : checksumToFunction)
-    if (iter.first == hash)
-      for (const auto& symbol : iter.second)
-        symbols.push_back(symbol);
+  if (iter == checksumToFunction.cend())
+    return {};
 
-  return symbols;
+  return {iter->second.cbegin(), iter->second.cend()};
 }
 
 void SymbolDB::AddCompleteSymbol(const Symbol& symbol)

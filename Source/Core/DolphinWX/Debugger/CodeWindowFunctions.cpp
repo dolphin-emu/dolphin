@@ -24,10 +24,11 @@
 #include "Common/SymbolDB.h"
 
 #include "Core/Boot/Boot.h"
+#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HLE/HLE.h"
 #include "Core/Host.h"
-#include "Core/PowerPC/JitCommon/JitBase.h"
+#include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -124,8 +125,7 @@ void CCodeWindow::OnProfilerMenu(wxCommandEvent& event)
   {
   case IDM_PROFILE_BLOCKS:
     Core::SetState(Core::State::Paused);
-    if (g_jit != nullptr)
-      g_jit->ClearCache();
+    JitInterface::ClearCache();
     Profiler::g_ProfileBlocks = GetParentMenuBar()->IsChecked(IDM_PROFILE_BLOCKS);
     Core::SetState(Core::State::Running);
     break;
@@ -135,25 +135,21 @@ void CCodeWindow::OnProfilerMenu(wxCommandEvent& event)
 
     if (Core::GetState() == Core::State::Paused && PowerPC::GetMode() == PowerPC::CoreMode::JIT)
     {
-      if (g_jit != nullptr)
-      {
-        std::string filename = File::GetUserPath(D_DUMP_IDX) + "Debug/profiler.txt";
-        File::CreateFullPath(filename);
-        Profiler::WriteProfileResults(filename);
+      std::string filename = File::GetUserPath(D_DUMP_IDX) + "Debug/profiler.txt";
+      File::CreateFullPath(filename);
+      Profiler::WriteProfileResults(filename);
 
-        wxFileType* filetype = nullptr;
-        if (!(filetype = wxTheMimeTypesManager->GetFileTypeFromExtension("txt")))
-        {
-          // From extension failed, trying with MIME type now
-          if (!(filetype = wxTheMimeTypesManager->GetFileTypeFromMimeType("text/plain")))
-            // MIME type failed, aborting mission
-            break;
-        }
-        wxString OpenCommand;
-        OpenCommand = filetype->GetOpenCommand(StrToWxStr(filename));
-        if (!OpenCommand.IsEmpty())
-          wxExecute(OpenCommand, wxEXEC_SYNC);
+      wxFileType* filetype = nullptr;
+      if (!(filetype = wxTheMimeTypesManager->GetFileTypeFromExtension("txt")))
+      {
+        // From extension failed, trying with MIME type now
+        if (!(filetype = wxTheMimeTypesManager->GetFileTypeFromMimeType("text/plain")))
+          // MIME type failed, aborting mission
+          break;
       }
+      wxString OpenCommand = filetype->GetOpenCommand(StrToWxStr(filename));
+      if (!OpenCommand.IsEmpty())
+        wxExecute(OpenCommand, wxEXEC_SYNC);
     }
     break;
   }

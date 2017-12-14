@@ -4,19 +4,10 @@
 
 #pragma once
 
-// HACK: Xlib.h (included from gtk/gdk headers and directly) uses #defines on
-// common names such as "Status", "BadRequest" or "Response", causing SFML
-// headers to be completely broken.
-//
-// We work around that issue by including SFML first before X11 headers. This
-// is terrible, but such is the life with Xlib.
-#include <SFML/Network.hpp>  // NOLINT
-
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
 #include <X11/extensions/Xrandr.h>
 #endif
 #include <X11/X.h>
-#include <X11/Xlib.h>
 
 // EWMH state actions, see
 // http://freedesktop.org/wiki/Specifications/wm-spec?action=show&redirect=Standards%2Fwm-spec

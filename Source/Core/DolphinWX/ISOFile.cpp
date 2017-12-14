@@ -471,9 +471,3 @@ const std::string GameListItem::GetWiiFSPath() const
 
   return ret;
 }
-
-bool GameListItem::IsCompressed() const
-{
-  return m_blob_type == DiscIO::BlobType::GCZ || m_blob_type == DiscIO::BlobType::CISO ||
-         m_blob_type == DiscIO::BlobType::WBFS;
-}

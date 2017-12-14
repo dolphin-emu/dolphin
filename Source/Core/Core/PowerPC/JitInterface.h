@@ -14,9 +14,9 @@ namespace JitInterface
 {
 enum class ExceptionType
 {
-  EXCEPTIONS_FIFO_WRITE,
-  EXCEPTIONS_PAIRED_QUANTIZE,
-  EXCEPTIONS_SPECULATIVE_CONSTANTS
+  FIFOWrite,
+  PairedQuantize,
+  SpeculativeConstants
 };
 
 void DoState(PointerWrap& p);

@@ -467,8 +467,6 @@ void SConfig::SaveGameListSettings(IniFile& ini)
   gamelist->Set("ListSort", m_ListSort);
   gamelist->Set("ListSortSecondary", m_ListSort2);
 
-  gamelist->Set("ColorCompressed", m_ColorCompressed);
-
   gamelist->Set("ColumnPlatform", m_showSystemColumn);
   gamelist->Set("ColumnBanner", m_showBannerColumn);
   gamelist->Set("ColumnNotes", m_showMakerColumn);
@@ -871,9 +869,6 @@ void SConfig::LoadGameListSettings(IniFile& ini)
   gamelist->Get("ListUnknown", &m_ListUnknown, true);
   gamelist->Get("ListSort", &m_ListSort, 3);
   gamelist->Get("ListSortSecondary", &m_ListSort2, 0);
-
-  // Determines if compressed games display in blue
-  gamelist->Get("ColorCompressed", &m_ColorCompressed, true);
 
   // Gamelist columns toggles
   gamelist->Get("ColumnPlatform", &m_showSystemColumn, true);
