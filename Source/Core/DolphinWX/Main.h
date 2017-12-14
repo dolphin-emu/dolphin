@@ -23,6 +23,7 @@ public:
 private:
   bool OnInit() override;
   void OnInitCmdLine(wxCmdLineParser& parser) override;
+  bool OnCmdLineParsed(wxCmdLineParser& parser) override;
   int OnExit() override;
   void OnFatalException() override;
   bool Initialize(int& c, wxChar** v) override;

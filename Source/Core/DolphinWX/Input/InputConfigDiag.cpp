@@ -1087,10 +1087,10 @@ ControlGroupBox::~ControlGroupBox()
 
 bool ControlGroupBox::HasBitmapHeading() const
 {
-  return control_group->type == ControllerEmu::GROUP_TYPE_STICK ||
-         control_group->type == ControllerEmu::GROUP_TYPE_TILT ||
-         control_group->type == ControllerEmu::GROUP_TYPE_CURSOR ||
-         control_group->type == ControllerEmu::GROUP_TYPE_FORCE;
+  return control_group->type == ControllerEmu::GroupType::Stick ||
+         control_group->type == ControllerEmu::GroupType::Tilt ||
+         control_group->type == ControllerEmu::GroupType::Cursor ||
+         control_group->type == ControllerEmu::GroupType::Force;
 }
 
 ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWindow* const parent,
@@ -1148,10 +1148,10 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
 
   switch (group->type)
   {
-  case ControllerEmu::GROUP_TYPE_STICK:
-  case ControllerEmu::GROUP_TYPE_TILT:
-  case ControllerEmu::GROUP_TYPE_CURSOR:
-  case ControllerEmu::GROUP_TYPE_FORCE:
+  case ControllerEmu::GroupType::Stick:
+  case ControllerEmu::GroupType::Tilt:
+  case ControllerEmu::GroupType::Cursor:
+  case ControllerEmu::GroupType::Force:
   {
     wxSize bitmap_size = parent->FromDIP(wxSize(64, 64));
     m_scale = bitmap_size.GetWidth() / 64.0;
@@ -1193,7 +1193,7 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
     Add(h_szr, 0, wxEXPAND | wxLEFT | wxRIGHT, space3);
   }
   break;
-  case ControllerEmu::GROUP_TYPE_BUTTONS:
+  case ControllerEmu::GroupType::Buttons:
   {
     // Draw buttons in rows of 8
     unsigned int button_cols = group->controls.size() > 8 ? 8 : group->controls.size();
@@ -1231,17 +1231,17 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
     Add(static_bitmap, 0, wxALIGN_CENTER_HORIZONTAL | wxLEFT | wxRIGHT, space3);
   }
   break;
-  case ControllerEmu::GROUP_TYPE_MIXED_TRIGGERS:
-  case ControllerEmu::GROUP_TYPE_TRIGGERS:
-  case ControllerEmu::GROUP_TYPE_SLIDER:
+  case ControllerEmu::GroupType::MixedTriggers:
+  case ControllerEmu::GroupType::Triggers:
+  case ControllerEmu::GroupType::Slider:
   {
     int height = (int)(12 * group->controls.size());
     int width = 64;
 
-    if (ControllerEmu::GROUP_TYPE_MIXED_TRIGGERS == group->type)
+    if (group->type == ControllerEmu::GroupType::MixedTriggers)
       width = 64 + 12 + 1;
 
-    if (ControllerEmu::GROUP_TYPE_TRIGGERS != group->type)
+    if (group->type != ControllerEmu::GroupType::Triggers)
       height /= 2;
     height += 1;
 
@@ -1275,7 +1275,7 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
     Add(static_bitmap, 0, wxALIGN_CENTER_HORIZONTAL | wxLEFT | wxRIGHT, space3);
   }
   break;
-  case ControllerEmu::GROUP_TYPE_EXTENSION:
+  case ControllerEmu::GroupType::Extension:
   {
     PadSettingExtension* const attachments =
         new PadSettingExtension(parent, (ControllerEmu::Extension*)group);

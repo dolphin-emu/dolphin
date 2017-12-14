@@ -91,6 +91,11 @@ void DolphinApp::OnInitCmdLine(wxCmdLineParser& parser)
    parser.SetCmdLine("");
 }
 
+bool DolphinApp::OnCmdLineParsed(wxCmdLineParser& parser)
+{
+  return true;
+}
+
 bool DolphinApp::OnInit()
 {
   std::lock_guard<std::mutex> lk(s_init_mutex);
