@@ -420,8 +420,8 @@ void ProgramShaderCache::Init()
   // Then once more to get bytes
   s_buffer = StreamBuffer::Create(GL_UNIFORM_BUFFER, UBO_LENGTH);
 
-  // Read our shader cache, only if supported
-  if (g_ogl_config.bSupportsGLSLCache)
+  // Read our shader cache, only if supported and enabled
+  if (g_ogl_config.bSupportsGLSLCache && g_ActiveConfig.bShaderCache)
   {
     GLint Supported;
     glGetIntegerv(GL_NUM_PROGRAM_BINARY_FORMATS, &Supported);

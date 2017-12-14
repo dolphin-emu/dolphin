@@ -17,7 +17,7 @@
 #include <vector>
 #include "Common/TraversalProto.h"
 
-#define DEBUG 1
+#define DEBUG 0
 #define NUMBER_OF_TRIES 5
 
 static u64 currentTime;

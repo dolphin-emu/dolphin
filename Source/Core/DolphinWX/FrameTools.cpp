@@ -1346,23 +1346,7 @@ void CFrame::OnInstallWAD(wxCommandEvent& event)
 
 void CFrame::UpdateLoadWiiMenuItem() const
 {
-  auto* const menu_item = GetMenuBar()->FindItem(IDM_LOAD_WII_MENU);
-
-  const auto& sys_menu_loader = DiscIO::CNANDContentManager::Access().GetNANDLoader(
-      TITLEID_SYSMENU, Common::FROM_CONFIGURED_ROOT);
-
-  if (sys_menu_loader.IsValid())
-  {
-    const int version = sys_menu_loader.GetTitleVersion();
-    const char region = sys_menu_loader.GetCountryChar();
-    menu_item->Enable();
-    menu_item->SetItemLabel(wxString::Format(_("Load Wii System Menu %d%c"), version, region));
-  }
-  else
-  {
-    menu_item->Enable(false);
-    menu_item->SetItemLabel(_("Load Wii System Menu"));
-  }
+  GetMenuBar()->Refresh(true, nullptr);
 }
 
 void CFrame::OnFifoPlayer(wxCommandEvent& WXUNUSED(event))

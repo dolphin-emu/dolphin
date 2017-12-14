@@ -85,6 +85,7 @@ struct VideoConfig final
   bool bCrop;  // Aspect ratio controls.
   bool bUseXFB;
   bool bUseRealXFB;
+  bool bShaderCache;
 
   // Enhancements
   int iMultisamples;
@@ -120,6 +121,7 @@ struct VideoConfig final
   bool bInternalResolutionFrameDumps;
   bool bFreeLook;
   bool bBorderlessFullscreen;
+  int iBitrateKbps;
 
   // Hacks
   bool bEFBAccessEnable;

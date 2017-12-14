@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Core/IOS/ES/Formats.h"
 #include "DiscIO/Volume.h"
 
 // --- this volume type is used for Wad files ---
@@ -32,7 +33,7 @@ public:
   ~CVolumeWAD();
   bool Read(u64 offset, u64 length, u8* buffer, bool decrypt = false) const override;
   bool GetTitleID(u64* buffer) const override;
-  std::vector<u8> GetTMD() const override;
+  IOS::ES::TMDReader GetTMD() const override;
   std::string GetGameID() const override;
   std::string GetMakerID() const override;
   u16 GetRevision() const override;
@@ -51,6 +52,7 @@ public:
 
 private:
   std::unique_ptr<IBlobReader> m_reader;
+  IOS::ES::TMDReader m_tmd;
   u32 m_offset = 0;
   u32 m_tmd_offset = 0;
   u32 m_opening_bnr_offset = 0;

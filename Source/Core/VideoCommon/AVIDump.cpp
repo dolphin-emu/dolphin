@@ -6,6 +6,7 @@
 #define __STDC_CONSTANT_MACROS 1
 #endif
 
+#include <sstream>
 #include <string>
 
 extern "C" {
@@ -18,6 +19,7 @@ extern "C" {
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
+#include "Common/StringUtil.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/HW/SystemTimers.h"
@@ -136,7 +138,7 @@ bool AVIDump::CreateVideoFile()
     s_codec_context->codec_tag =
         MKTAG('X', 'V', 'I', 'D');  // Force XVID FourCC for better compatibility
   s_codec_context->codec_type = AVMEDIA_TYPE_VIDEO;
-  s_codec_context->bit_rate = 400000;
+  s_codec_context->bit_rate = g_Config.iBitrateKbps * 1000;
   s_codec_context->width = s_width;
   s_codec_context->height = s_height;
   s_codec_context->time_base.num = 1;
@@ -323,7 +325,13 @@ void AVIDump::CloseVideoFile()
   av_frame_free(&s_scaled_frame);
 
   avcodec_free_context(&s_codec_context);
+
+  if (s_format_context)
+  {
+    avio_closep(&s_format_context->pb);
+  }
   avformat_free_context(s_format_context);
+  s_format_context = nullptr;
 
   if (s_sws_context)
   {

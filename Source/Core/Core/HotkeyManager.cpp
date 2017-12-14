@@ -9,6 +9,7 @@
 
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
+#include "Common/StringUtil.h"
 
 #include "InputCommon/ControllerEmu/Control/Input.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"

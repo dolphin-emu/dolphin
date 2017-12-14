@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Core/IOS/ES/Formats.h"
 #include "DiscIO/Volume.h"
 
 // --- this volume type is used for encrypted Wii images ---
@@ -32,7 +33,7 @@ public:
   ~CVolumeWiiCrypted();
   bool Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt) const override;
   bool GetTitleID(u64* buffer) const override;
-  std::vector<u8> GetTMD() const override;
+  IOS::ES::TMDReader GetTMD() const override;
   u64 PartitionOffsetToRawOffset(u64 offset) const override;
   std::string GetGameID() const override;
   std::string GetMakerID() const override;

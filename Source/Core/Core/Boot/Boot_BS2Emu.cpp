@@ -349,11 +349,9 @@ bool CBoot::EmulatedBS2_Wii()
 
   PowerPC::ppcState.gpr[1] = 0x816ffff0;  // StackPointer
 
-  std::vector<u8> tmd = DVDInterface::GetVolume().GetTMD();
+  IOS::ES::TMDReader tmd = DVDInterface::GetVolume().GetTMD();
 
-  IOS::HLE::TMDReader tmd_reader{std::move(tmd)};
-
-  if (!SetupWiiMemory(tmd_reader.GetIOSId()))
+  if (!SetupWiiMemory(tmd.GetIOSId()))
     return false;
 
   // Execute the apploader

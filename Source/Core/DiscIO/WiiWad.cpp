@@ -88,9 +88,9 @@ bool WiiWAD::ParseWAD(IBlobReader& reader)
   u32 offset = 0x40;
   m_certificate_chain = CreateWADEntry(reader, certificate_chain_size, offset);
   offset += Common::AlignUp(certificate_chain_size, 0x40);
-  m_ticket = CreateWADEntry(reader, ticket_size, offset);
+  m_ticket.SetBytes(CreateWADEntry(reader, ticket_size, offset));
   offset += Common::AlignUp(ticket_size, 0x40);
-  m_tmd = CreateWADEntry(reader, tmd_size, offset);
+  m_tmd.SetBytes(CreateWADEntry(reader, tmd_size, offset));
   offset += Common::AlignUp(tmd_size, 0x40);
   m_data_app = CreateWADEntry(reader, data_app_size, offset);
   offset += Common::AlignUp(data_app_size, 0x40);

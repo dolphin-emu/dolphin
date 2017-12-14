@@ -5,6 +5,7 @@
 // HideObjectEngine
 // Supports the removal of objects/effects from the rendering loop
 
+#include "Common/StringUtil.h"
 #include "Core/HideObjectEngine.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"

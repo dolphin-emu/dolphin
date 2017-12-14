@@ -12,7 +12,6 @@
 
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
-#include "Common/StringUtil.h"
 
 struct CaseInsensitiveStringCompare
 {
@@ -37,24 +36,14 @@ public:
 
     void Set(const std::string& key, const std::string& newValue);
     void Set(const std::string& key, const std::string& newValue, const std::string& defaultValue);
+    void Set(const std::string& key, u32 newValue);
+    void Set(const std::string& key, u64 new_value);
+    void Set(const std::string& key, float newValue);
+    void Set(const std::string& key, double newValue);
+    void Set(const std::string& key, int newValue);
+    void Set(const std::string& key, s64 new_value);
+    void Set(const std::string& key, bool newValue);
 
-    void Set(const std::string& key, u32 newValue)
-    {
-      Set(key, StringFromFormat("0x%08x", newValue));
-    }
-
-    void Set(const std::string& key, float newValue)
-    {
-      Set(key, StringFromFormat("%#.9g", newValue));
-    }
-
-    void Set(const std::string& key, double newValue)
-    {
-      Set(key, StringFromFormat("%#.17g", newValue));
-    }
-
-    void Set(const std::string& key, int newValue) { Set(key, StringFromInt(newValue)); }
-    void Set(const std::string& key, bool newValue) { Set(key, StringFromBool(newValue)); }
     template <typename T>
     void Set(const std::string& key, T newValue, const T defaultValue)
     {
@@ -69,7 +58,9 @@ public:
     bool Get(const std::string& key, std::string* value,
              const std::string& defaultValue = NULL_STRING) const;
     bool Get(const std::string& key, int* value, int defaultValue = 0) const;
+    bool Get(const std::string& key, s64* value, s64 default_value = 0) const;
     bool Get(const std::string& key, u32* value, u32 defaultValue = 0) const;
+    bool Get(const std::string& key, u64* value, u64 default_value = 0) const;
     bool Get(const std::string& key, bool* value, bool defaultValue = false) const;
     bool Get(const std::string& key, float* value, float defaultValue = 0.0f) const;
     bool Get(const std::string& key, double* value, double defaultValue = 0.0) const;

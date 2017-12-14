@@ -2,19 +2,22 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "DolphinWX/X11Utils.h"
+
+#include <algorithm>
+#include <cstdio>
+#include <cstdlib>
 #include <spawn.h>
+#include <string>
 #include <sys/wait.h>
 #include <unistd.h>
 
 #include "Common/Logging/Log.h"
+#include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "DolphinWX/X11Utils.h"
 
 extern char** environ;
-
-#include <algorithm>
-#include <string>
 
 namespace X11Utils
 {

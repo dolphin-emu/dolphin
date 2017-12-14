@@ -36,6 +36,16 @@ CVolumeWAD::CVolumeWAD(std::unique_ptr<IBlobReader> reader) : m_reader(std::move
                  Common::AlignUp(m_tick_size, 0x40);
   m_opening_bnr_offset =
       m_tmd_offset + Common::AlignUp(m_tmd_size, 0x40) + Common::AlignUp(m_data_size, 0x40);
+
+  if (m_tmd_size > 1024 * 1024 * 4)
+  {
+    ERROR_LOG(DISCIO, "TMD is too large: %u bytes", m_tmd_size);
+    return;
+  }
+
+  std::vector<u8> tmd_buffer(m_tmd_size);
+  Read(m_tmd_offset, m_tmd_size, tmd_buffer.data(), false);
+  m_tmd.SetBytes(std::move(tmd_buffer));
 }
 
 CVolumeWAD::~CVolumeWAD()
@@ -55,40 +65,26 @@ bool CVolumeWAD::Read(u64 offset, u64 length, u8* buffer, bool decrypt) const
 
 Region CVolumeWAD::GetRegion() const
 {
-  u8 country_code;
-  if (!Read(m_tmd_offset + 0x0193, 1, &country_code))
+  if (!m_tmd.IsValid())
     return Region::UNKNOWN_REGION;
-
-  return RegionSwitchWii(country_code);
+  return m_tmd.GetRegion();
 }
 
 Country CVolumeWAD::GetCountry() const
 {
-  // read the last digit of the titleID in the ticket
-  u8 country_code;
-  if (!Read(m_tmd_offset + 0x0193, 1, &country_code))
+  if (!m_tmd.IsValid())
     return Country::COUNTRY_UNKNOWN;
 
+  u8 country_code = static_cast<u8>(m_tmd.GetTitleId() & 0xff);
   if (country_code == 2)  // SYSMENU
-  {
-    u16 title_version = 0;
-    Read(m_tmd_offset + 0x01dc, 2, (u8*)&title_version);
-    country_code = GetSysMenuRegion(Common::swap16(title_version));
-  }
+    country_code = GetSysMenuRegion(m_tmd.GetTitleVersion());
 
   return CountrySwitch(country_code);
 }
 
-std::vector<u8> CVolumeWAD::GetTMD() const
+IOS::ES::TMDReader CVolumeWAD::GetTMD() const
 {
-  if (m_tmd_size > 1024 * 1024 * 4)
-  {
-    ERROR_LOG(DISCIO, "TMD is too large: %u bytes", m_tmd_size);
-    return {};
-  }
-  std::vector<u8> buffer(m_tmd_size);
-  Read(m_tmd_offset, m_tmd_size, buffer.data(), false);
-  return buffer;
+  return m_tmd;
 }
 
 std::string CVolumeWAD::GetGameID() const
@@ -125,11 +121,10 @@ bool CVolumeWAD::GetTitleID(u64* buffer) const
 
 u16 CVolumeWAD::GetRevision() const
 {
-  u16 revision;
-  if (!m_reader->Read(m_tmd_offset + 0x1dc, 2, (u8*)&revision))
+  if (!m_tmd.IsValid())
     return 0;
 
-  return Common::swap16(revision);
+  return m_tmd.GetTitleVersion();
 }
 
 Platform CVolumeWAD::GetVolumeType() const

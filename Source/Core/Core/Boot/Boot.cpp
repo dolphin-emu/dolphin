@@ -110,7 +110,7 @@ bool CBoot::FindMapFile(std::string* existing_map_file, std::string* writable_ma
         DiscIO::CNANDContentManager::Access().GetNANDLoader(_StartupPara.m_strFilename);
     if (Loader.IsValid())
     {
-      u64 TitleID = Loader.GetTitleID();
+      u64 TitleID = Loader.GetTMD().GetTitleId();
       title_id_str = StringFromFormat("%08X_%08X", (u32)(TitleID >> 32) & 0xFFFFFFFF,
                                       (u32)TitleID & 0xFFFFFFFF);
     }
@@ -294,11 +294,7 @@ bool CBoot::BootUp()
     //if (game_id.size() >= 4)
     //  VideoInterface::SetRegionReg(game_id.at(3));
 
-    std::vector<u8> tmd_buffer = pVolume.GetTMD();
-    if (!tmd_buffer.empty())
-    {
-      IOS::HLE::ES_DIVerify(tmd_buffer);
-    }
+    IOS::HLE::ES_DIVerify(pVolume.GetTMD());
 
     _StartupPara.bWii = pVolume.GetVolumeType() == DiscIO::Platform::WII_DISC;
 

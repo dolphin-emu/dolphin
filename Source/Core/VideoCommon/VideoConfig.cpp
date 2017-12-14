@@ -180,6 +180,7 @@ void VideoConfig::Load(const std::string& ini_file)
   settings->Get("DumpFramesAsImages", &bDumpFramesAsImages, false);
   settings->Get("FreeLook", &bFreeLook, false);
   settings->Get("UseFFV1", &bUseFFV1, false);
+  settings->Get("BitrateKbps", &iBitrateKbps, 2500);
   settings->Get("InternalResolutionFrameDumps", &bInternalResolutionFrameDumps, false);
   settings->Get("EnablePixelLighting", &bEnablePixelLighting, false);
   settings->Get("FastDepthCalc", &bFastDepthCalc, true);
@@ -203,6 +204,7 @@ void VideoConfig::Load(const std::string& ini_file)
   settings->Get("EnableValidationLayer", &bEnableValidationLayer, false);
   settings->Get("BackendMultithreading", &bBackendMultithreading, true);
   settings->Get("CommandBufferExecuteInterval", &iCommandBufferExecuteInterval, 100);
+  settings->Get("ShaderCache", &bShaderCache, true);
 
   settings->Get("SWZComploc", &bZComploc, true);
   settings->Get("SWZFreeze", &bZFreeze, true);
@@ -685,6 +687,7 @@ void VideoConfig::Save(const std::string& ini_file)
   settings->Set("DumpFramesAsImages", bDumpFramesAsImages);
   settings->Set("FreeLook", bFreeLook);
   settings->Set("UseFFV1", bUseFFV1);
+  settings->Set("BitrateKbps", iBitrateKbps);
   settings->Set("InternalResolutionFrameDumps", bInternalResolutionFrameDumps);
   settings->Set("EnablePixelLighting", bEnablePixelLighting);
   settings->Set("FastDepthCalc", bFastDepthCalc);
@@ -702,6 +705,7 @@ void VideoConfig::Save(const std::string& ini_file)
   settings->Set("EnableValidationLayer", bEnableValidationLayer);
   settings->Set("BackendMultithreading", bBackendMultithreading);
   settings->Set("CommandBufferExecuteInterval", iCommandBufferExecuteInterval);
+  settings->Set("ShaderCache", bShaderCache);
 
   settings->Set("SWZComploc", bZComploc);
   settings->Set("SWZFreeze", bZFreeze);

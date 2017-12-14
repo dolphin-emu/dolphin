@@ -12,6 +12,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/NandPaths.h"
+#include "Core/IOS/ES/Formats.h"
 
 namespace File
 {
@@ -22,10 +23,8 @@ namespace DiscIO
 {
 enum class Region;
 
-bool AddTicket(const std::vector<u8>& signed_ticket);
-std::vector<u8> FindSignedTicket(u64 title_id);
-std::vector<u8> FindTicket(u64 title_id);
-std::vector<u8> GetKeyFromTicket(const std::vector<u8>& ticket);
+bool AddTicket(const IOS::ES::TicketReader& signed_ticket);
+IOS::ES::TicketReader FindSignedTicket(u64 title_id);
 
 class CNANDContentData
 {
@@ -67,13 +66,7 @@ private:
 
 struct SNANDContent
 {
-  u32 m_ContentID;
-  u16 m_Index;
-  u16 m_Type;
-  u32 m_Size;
-  u8 m_SHA1Hash[20];
-  u8 m_Header[36];  // all of the above
-
+  IOS::ES::Content m_metadata;
 #if defined(_MSC_VER) && _MSC_VER <= 1800
 	std::shared_ptr<CNANDContentData> m_Data;
 #else
@@ -88,47 +81,22 @@ public:
   explicit CNANDContentLoader(const std::string& content_name);
   ~CNANDContentLoader();
 
-  bool IsValid() const { return m_Valid; }
+  bool IsValid() const;
   void RemoveTitle() const;
-  u64 GetTitleID() const { return m_TitleID; }
-  u16 GetIosVersion() const { return m_IosVersion; }
-  u32 GetBootIndex() const { return m_BootIndex; }
-  size_t GetContentSize() const { return m_Content.size(); }
+  const SNANDContent* GetContentByID(u32 id) const;
   const SNANDContent* GetContentByIndex(int index) const;
-  const u8* GetTMDView() const { return m_TMDView; }
-  const u8* GetTMDHeader() const { return m_TMDHeader; }
-  const std::vector<u8>& GetTicket() const { return m_Ticket; }
+  const IOS::ES::TMDReader& GetTMD() const { return m_tmd; }
+  const IOS::ES::TicketReader& GetTicket() const { return m_ticket; }
   const std::vector<SNANDContent>& GetContent() const { return m_Content; }
-  u16 GetTitleVersion() const { return m_TitleVersion; }
-  u16 GetNumEntries() const { return m_NumEntries; }
-  DiscIO::Region GetRegion() const;
-  u8 GetCountryChar() const { return m_Country; }
-  enum
-  {
-    TMD_VIEW_SIZE = 0x58,
-    TMD_HEADER_SIZE = 0x1E4,
-    CONTENT_HEADER_SIZE = 0x24,
-    TICKET_SIZE = 0x2A4
-  };
-
 private:
   bool Initialize(const std::string& name);
-  void InitializeContentEntries(const std::vector<u8>& tmd,
-                                const std::vector<u8>& decrypted_title_key,
-                                const std::vector<u8>& data_app);
+  void InitializeContentEntries(const std::vector<u8>& data_app);
 
-  bool m_Valid;
-  bool m_IsWAD;
+  bool m_Valid = false;
+  bool m_IsWAD = false;
   std::string m_Path;
-  u64 m_TitleID;
-  u16 m_IosVersion;
-  u32 m_BootIndex;
-  u16 m_NumEntries;
-  u16 m_TitleVersion;
-  u8 m_TMDView[TMD_VIEW_SIZE];
-  u8 m_TMDHeader[TMD_HEADER_SIZE];
-  std::vector<u8> m_Ticket;
-  u8 m_Country;
+  IOS::ES::TMDReader m_tmd;
+  IOS::ES::TicketReader m_ticket;
 
   std::vector<SNANDContent> m_Content;
 };

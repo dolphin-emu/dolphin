@@ -35,6 +35,9 @@ namespace Device
 {
 FS::FS(u32 device_id, const std::string& device_name) : Device(device_id, device_name)
 {
+  const std::string tmp_dir = BuildFilename("/tmp");
+  File::DeleteDirRecursively(tmp_dir);
+  File::CreateDir(tmp_dir);
 }
 
 void FS::DoState(PointerWrap& p)
@@ -134,13 +137,6 @@ void FS::DoState(PointerWrap& p)
 
 ReturnCode FS::Open(const OpenRequest& request)
 {
-  // clear tmp folder
-  {
-    std::string Path = BuildFilename("/tmp");
-    File::DeleteDirRecursively(Path);
-    File::CreateDir(Path);
-  }
-
   m_is_active = true;
   return IPC_SUCCESS;
 }

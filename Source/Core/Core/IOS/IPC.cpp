@@ -32,6 +32,7 @@
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
+#include "Core/Boot/Boot_DOL.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -62,6 +63,8 @@
 #include "Core/IOS/USB/USB_VEN/VEN.h"
 #include "Core/IOS/WFS/WFSI.h"
 #include "Core/IOS/WFS/WFSSRV.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "DiscIO/NANDContentLoader.h"
 
 namespace CoreTiming
 {
@@ -99,9 +102,16 @@ static CoreTiming::EventType* s_event_sdio_notify;
 static u64 s_last_reply_time;
 
 static u64 s_active_title_id;
+static u64 s_title_to_launch;
 
 static CONSTEXPR(u64, ENQUEUE_REQUEST_FLAG, 0x100000000ULL);
 static CONSTEXPR(u64, ENQUEUE_ACKNOWLEDGEMENT_FLAG, 0x200000000ULL);
+
+enum class MemorySetupType
+{
+  IOSReload,
+  Full,
+};
 
 struct IosMemoryValues
 {
@@ -499,7 +509,7 @@ u32 GetVersion()
   return static_cast<u32>(s_active_title_id);
 }
 
-static bool SetupMemory(u64 ios_title_id)
+static bool SetupMemory(u64 ios_title_id, MemorySetupType setup_type)
 {
   auto target_imv = std::find_if(
       ios_memory_values.begin(), ios_memory_values.end(),
@@ -509,6 +519,32 @@ static bool SetupMemory(u64 ios_title_id)
   {
     ERROR_LOG(IOS, "Unknown IOS version: %016" PRIx64, ios_title_id);
     return false;
+  }
+
+  if (setup_type == MemorySetupType::IOSReload)
+  {
+    Memory::Write_U32(target_imv->ios_version, ADDR_IOS_VERSION);
+
+    // These values are written by the IOS kernel as part of its boot process (for IOS28 and newer).
+    //
+    // This works in a slightly different way on a real console: older IOS versions (< IOS28) all
+    // have the same range (933E0000 - 93400000), thus they don't write it at boot and just inherit
+    // all values. However, the range has changed since IOS28. To make things work properly
+    // after a reload, newer IOSes always write the legacy range before loading an IOS kernel;
+    // the new IOS either updates the range (>= IOS28) or inherits it (< IOS28).
+    //
+    // We can skip this convoluted process and just write the correct range directly.
+    Memory::Write_U32(target_imv->mem2_physical_size, ADDR_MEM2_SIZE);
+    Memory::Write_U32(target_imv->mem2_simulated_size, ADDR_MEM2_SIM_SIZE);
+    Memory::Write_U32(target_imv->mem2_end, ADDR_MEM2_END);
+    Memory::Write_U32(target_imv->mem2_arena_begin, ADDR_MEM2_ARENA_BEGIN);
+    Memory::Write_U32(target_imv->mem2_arena_end, ADDR_MEM2_ARENA_END);
+    Memory::Write_U32(target_imv->ipc_buffer_begin, ADDR_IPC_BUFFER_BEGIN);
+    Memory::Write_U32(target_imv->ipc_buffer_end, ADDR_IPC_BUFFER_END);
+    Memory::Write_U32(target_imv->unknown_begin, ADDR_UNKNOWN_BEGIN);
+    Memory::Write_U32(target_imv->unknown_end, ADDR_UNKNOWN_END);
+
+    return true;
   }
 
   Memory::Write_U32(target_imv->mem1_physical_size, ADDR_MEM1_SIZE);
@@ -593,10 +629,20 @@ static void AddStaticDevices()
   AddDevice<Device::WFSI>("/dev/wfsi");
 }
 
+// IOS used by the latest System Menu (4.3).
+constexpr u64 IOS80_TITLE_ID = 0x0000000100000050;
+
 void Init()
 {
   s_event_enqueue = CoreTiming::RegisterEvent("IPCEvent", EnqueueEvent);
   s_event_sdio_notify = CoreTiming::RegisterEvent("SDIO_EventNotify", SDIO_EventNotify_CPUThread);
+
+  // On a Wii, boot2 launches the system menu IOS, which then launches the system menu
+  // (which bootstraps the PPC). This means that after a normal boot process, the constants
+  // in the 0x3100 region will always have been set up.
+  // This is necessary because booting games from the game list skips a significant part
+  // of a Wii's boot process.
+  SetupMemory(IOS80_TITLE_ID, MemorySetupType::Full);
 }
 
 void Reset(const bool clear_devices)
@@ -632,6 +678,9 @@ void Shutdown()
 CONSTEXPR(u64, BC_TITLE_ID, 0x0000000100000100);
 CONSTEXPR(u64, MIOS_TITLE_ID, 0x0000000100000101);
 
+// Similar to syscall 0x42 (ios_boot); this is used to change the current active IOS.
+// IOS writes the new version to 0x3140 before restarting, but it does *not* poke any
+// of the other constants to the memory.
 bool Reload(const u64 ios_title_id)
 {
   // A real Wii goes through several steps before getting to MIOS.
@@ -643,18 +692,67 @@ bool Reload(const u64 ios_title_id)
   // Because we currently don't have boot1 and boot2, and BC is only ever used to launch MIOS
   // (indirectly via boot2), we can just launch MIOS when BC is launched.
   if (ios_title_id == BC_TITLE_ID)
+  {
+    NOTICE_LOG(IOS, "BC: Launching MIOS...");
     return Reload(MIOS_TITLE_ID);
+  }
 
-  if (!SetupMemory(ios_title_id))
+  if (!SetupMemory(ios_title_id, MemorySetupType::IOSReload))
     return false;
 
   s_active_title_id = ios_title_id;
   Reset(true);
 
   if (ios_title_id == MIOS_TITLE_ID)
+  {
+    // MIOS is a special case. It does not have the same syscalls as regular IOSes
+    // and writes the magic values at a different time (here) in the boot process.
+    SetupMemory(ios_title_id, MemorySetupType::Full);
     return MIOS::Load();
+  }
 
   AddStaticDevices();
+
+  if (s_title_to_launch != 0)
+  {
+    NOTICE_LOG(IOS, "Re-launching title after IOS reload.");
+    s_es_handles[0]->LaunchTitle(s_title_to_launch, true);
+    s_title_to_launch = 0;
+  }
+  return true;
+}
+
+void SetTitleToLaunch(const u64 title_id)
+{
+  s_title_to_launch = title_id;
+}
+
+// This corresponds to syscall 0x41, which loads a binary from the NAND and bootstraps the PPC.
+// Unlike 0x42, IOS will set up some constants in memory before booting the PPC.
+bool BootstrapPPC(const DiscIO::CNANDContentLoader& content_loader)
+{
+  if (!content_loader.IsValid())
+    return false;
+
+  const auto* content = content_loader.GetContentByIndex(content_loader.GetTMD().GetBootIndex());
+  if (!content)
+    return false;
+
+  const auto dol_loader = std::make_unique<CDolLoader>(content->m_Data->Get());
+  if (!dol_loader->IsValid())
+    return false;
+
+  if (!SetupMemory(s_active_title_id, MemorySetupType::Full))
+    return false;
+
+  dol_loader->Load();
+
+  // NAND titles start with address translation off at 0x3400 (via the PPC bootstub)
+  // The state of other CPU registers (like the BAT registers) doesn't matter much
+  // because the realmode code at 0x3400 initializes everything itself anyway.
+  MSR = 0;
+  PC = 0x3400;
+
   return true;
 }
 
@@ -665,7 +763,7 @@ void SetDefaultContentFile(const std::string& file_name)
     es->LoadWAD(file_name);
 }
 
-void ES_DIVerify(const std::vector<u8>& tmd)
+void ES_DIVerify(const ES::TMDReader& tmd)
 {
   Device::ES::ES_DIVerify(tmd);
 }

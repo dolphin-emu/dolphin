@@ -144,6 +144,7 @@
     <ClInclude Include="x64ABI.h" />
     <ClInclude Include="x64Emitter.h" />
     <ClInclude Include="x64Reg.h" />
+    <ClInclude Include="Crypto\AES.h" />
     <ClInclude Include="Crypto\bn.h" />
     <ClInclude Include="Crypto\ec.h" />
     <ClInclude Include="Logging\ConsoleListener.h" />
@@ -196,6 +197,7 @@
     <ClCompile Include="x64CPUDetect.cpp" />
     <ClCompile Include="x64Emitter.cpp" />
     <ClCompile Include="x64FPURoundMode.cpp" />
+    <ClCompile Include="Crypto\AES.cpp" />
     <ClCompile Include="Crypto\bn.cpp" />
     <ClCompile Include="Crypto\ec.cpp" />
     <ClCompile Include="Logging\LogManager.cpp" />

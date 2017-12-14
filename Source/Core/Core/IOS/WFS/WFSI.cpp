@@ -109,14 +109,14 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
     Memory::CopyFromEmu(tmd_bytes.data(), tmd_addr, tmd_size);
     m_tmd.SetBytes(std::move(tmd_bytes));
 
-    std::vector<u8> ticket = DiscIO::FindSignedTicket(m_tmd.GetTitleId());
-    if (ticket.size() == 0)
+    ES::TicketReader ticket = DiscIO::FindSignedTicket(m_tmd.GetTitleId());
+    if (!ticket.IsValid())
     {
       return_error_code = -11028;
       break;
     }
 
-    memcpy(m_aes_key, DiscIO::GetKeyFromTicket(ticket).data(), sizeof(m_aes_key));
+    memcpy(m_aes_key, ticket.GetTitleKey().data(), sizeof(m_aes_key));
     mbedtls_aes_setkey_dec(&m_aes_ctx, m_aes_key, 128);
 
     break;
@@ -134,7 +134,7 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
 
     // Initializes the IV from the index of the content in the TMD contents.
     u32 content_id = Memory::Read_U32(request.buffer_in + 8);
-    TMDReader::Content content_info;
+    ES::Content content_info;
     if (!m_tmd.FindContentById(content_id, &content_info))
     {
       WARN_LOG(IOS, "%s: Content id %08x not found", ioctl_name, content_id);

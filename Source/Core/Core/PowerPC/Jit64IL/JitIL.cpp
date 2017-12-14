@@ -583,8 +583,6 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
   ibuild.Reset();
 
   js.downcountAmount = 0;
-  if (!SConfig::GetInstance().bEnableDebugging)
-    js.downcountAmount += PatchEngine::GetSpeedhackCycles(code_block.m_address);
 
   // Translate instructions
   for (u32 i = 0; i < code_block.m_num_instructions; i++)
@@ -594,6 +592,9 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
     js.instructionNumber = i;
     const GekkoOPInfo* opinfo = GetOpInfo(ops[i].inst);
     js.downcountAmount += opinfo->numCycles;
+
+    if (!SConfig::GetInstance().bEnableDebugging)
+      js.downcountAmount += PatchEngine::GetSpeedhackCycles(js.compilerPC);
 
     if (i == (code_block.m_num_instructions - 1))
       js.isLastInstruction = true;

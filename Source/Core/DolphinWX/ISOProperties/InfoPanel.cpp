@@ -182,7 +182,7 @@ void InfoPanel::LoadISODetails()
   m_fst->SetValue(StrToWxStr(std::to_string(m_opened_iso->GetFSTSize())));
   if (m_ios_version)
   {
-    IOS::HLE::TMDReader tmd{m_opened_iso->GetTMD()};
+    const IOS::ES::TMDReader tmd = m_opened_iso->GetTMD();
     if (tmd.IsValid())
       m_ios_version->SetValue(StringFromFormat("IOS%u", static_cast<u32>(tmd.GetIOSId())));
   }
@@ -223,7 +223,7 @@ wxStaticBoxSizer* InfoPanel::CreateISODetailsSizer()
       {_("Apploader Date:"), m_date},
       {_("FST Size:"), m_fst},
   }};
-  if (!m_opened_iso->GetTMD().empty())
+  if (m_opened_iso->GetTMD().IsValid())
     controls.emplace_back(_("IOS Version:"), m_ios_version);
 
   const int space_10 = FromDIP(10);

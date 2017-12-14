@@ -2,9 +2,10 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-// see IniFile.h
+#include "Common/IniFile.h"
 
 #include <algorithm>
+#include <cinttypes>
 #include <cstddef>
 #include <cstring>
 #include <fstream>
@@ -15,7 +16,6 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
-#include "Common/IniFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 
@@ -72,6 +72,41 @@ void IniFile::Section::Set(const std::string& key, const std::vector<std::string
   // remove last ,
   temp.resize(temp.length() - 1);
   Set(key, temp);
+}
+
+void IniFile::Section::Set(const std::string& key, u32 newValue)
+{
+  Set(key, StringFromFormat("0x%08x", newValue));
+}
+
+void IniFile::Section::Set(const std::string& key, u64 new_value)
+{
+  Set(key, StringFromFormat("0x%016" PRIx64, new_value));
+}
+
+void IniFile::Section::Set(const std::string& key, float newValue)
+{
+  Set(key, StringFromFormat("%#.9g", newValue));
+}
+
+void IniFile::Section::Set(const std::string& key, double newValue)
+{
+  Set(key, StringFromFormat("%#.17g", newValue));
+}
+
+void IniFile::Section::Set(const std::string& key, int newValue)
+{
+  Set(key, StringFromInt(newValue));
+}
+
+void IniFile::Section::Set(const std::string& key, s64 newValue)
+{
+  Set(key, StringFromFormat("%" PRId64, newValue));
+}
+
+void IniFile::Section::Set(const std::string& key, bool newValue)
+{
+  Set(key, StringFromBool(newValue));
 }
 
 bool IniFile::Section::Get(const std::string& key, std::string* value,
@@ -134,6 +169,18 @@ bool IniFile::Section::Get(const std::string& key, int* value, int defaultValue)
   return false;
 }
 
+bool IniFile::Section::Get(const std::string& key, s64* value, s64 default_value) const
+{
+  std::string temp;
+  bool retval = Get(key, &temp);
+
+  if (retval && TryParse(temp, value))
+    return true;
+
+  *value = default_value;
+  return false;
+}
+
 bool IniFile::Section::Get(const std::string& key, u32* value, u32 defaultValue) const
 {
   std::string temp;
@@ -143,6 +190,18 @@ bool IniFile::Section::Get(const std::string& key, u32* value, u32 defaultValue)
     return true;
 
   *value = defaultValue;
+  return false;
+}
+
+bool IniFile::Section::Get(const std::string& key, u64* value, u64 default_value) const
+{
+  std::string temp;
+  bool retval = Get(key, &temp);
+
+  if (retval && TryParse(temp, value))
+    return true;
+
+  *value = default_value;
   return false;
 }
 

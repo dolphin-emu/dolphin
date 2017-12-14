@@ -16,8 +16,8 @@
 //               Boot.cpp               CBoot::BootUp()
 //                                      CBoot::EmulatedBS2_Wii() / GC() or Load_BS2()
 
-// Includes
-// ----------------
+#include "Core/BootManager.h"
+
 #include <algorithm>
 #include <array>
 #include <string>
@@ -28,8 +28,8 @@
 #include "Common/IniFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
+#include "Common/StringUtil.h"
 
-#include "Core/BootManager.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/EXI/EXI.h"

@@ -669,9 +669,6 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
   fpr.Start();
 
   js.downcountAmount = 0;
-  if (!SConfig::GetInstance().bEnableDebugging)
-    js.downcountAmount += PatchEngine::GetSpeedhackCycles(code_block.m_address);
-
   js.skipInstructions = 0;
   js.carryFlagSet = false;
   js.carryFlagInverted = false;
@@ -728,6 +725,9 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
     js.fixupExceptionHandler = false;
     js.revertGprLoad = -1;
     js.revertFprLoad = -1;
+
+    if (!SConfig::GetInstance().bEnableDebugging)
+      js.downcountAmount += PatchEngine::GetSpeedhackCycles(js.compilerPC);
 
     if (i == (code_block.m_num_instructions - 1))
     {

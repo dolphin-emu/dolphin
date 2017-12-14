@@ -227,25 +227,6 @@ std::string StripQuotes(const std::string& s)
     return s;
 }
 
-bool TryParse(const std::string& str, u64* const output)
-{
-  char* endptr = nullptr;
-
-  // Reset errno to a value other than ERANGE
-  errno = 0;
-
-  unsigned long long value = strtoull(str.c_str(), &endptr, 0);
-
-  if (!endptr || *endptr)
-    return false;
-
-  if (errno == ERANGE)
-    return false;
-
-  *output = static_cast<u64>(value);
-  return true;
-}
-
 bool TryParse(const std::string& str, u32* const output)
 {
   char* endptr = nullptr;
@@ -267,6 +248,25 @@ bool TryParse(const std::string& str, u32* const output)
 #endif
 
   *output = static_cast<u32>(value);
+  return true;
+}
+
+bool TryParse(const std::string& str, u64* const output)
+{
+  char* end_ptr = nullptr;
+
+  // Set errno to a clean slate
+  errno = 0;
+
+  u64 value = strtoull(str.c_str(), &end_ptr, 0);
+
+  if (end_ptr == nullptr || *end_ptr != '\0')
+    return false;
+
+  if (errno == ERANGE)
+    return false;
+
+  *output = value;
   return true;
 }
 

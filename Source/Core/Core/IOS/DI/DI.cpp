@@ -14,6 +14,7 @@
 #include "Core/HW/DVDInterface.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/DI/DI.h"
+#include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/IPC.h"
 #include "DiscIO/Volume.h"
 
@@ -105,9 +106,10 @@ IPCCommandResult DI::IOCtlV(const IOCtlVRequest& request)
     INFO_LOG(IOS_DI, "DVDLowOpenPartition: partition_offset 0x%016" PRIx64, partition_offset);
 
     // Read TMD to the buffer
-    std::vector<u8> tmd_buffer = DVDInterface::GetVolume().GetTMD();
-    Memory::CopyToEmu(request.io_vectors[0].address, tmd_buffer.data(), tmd_buffer.size());
-    ES_DIVerify(tmd_buffer);
+    const ES::TMDReader tmd = DVDInterface::GetVolume().GetTMD();
+    const std::vector<u8> raw_tmd = tmd.GetRawTMD();
+    Memory::CopyToEmu(request.io_vectors[0].address, raw_tmd.data(), raw_tmd.size());
+    ES_DIVerify(tmd);
 
     return_value = 1;
     break;
