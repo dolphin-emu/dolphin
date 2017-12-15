@@ -156,8 +156,6 @@ static void DeviceRemovalCallback(void* inContext, IOReturn inResult, void* inSe
 
     return false;
   });
-  g_controller_interface.InvokeHotplugCallbacks();
-  NOTICE_LOG(SERIALINTERFACE, "Removed device: %s", GetDeviceRefName(inIOHIDDeviceRef).c_str());
 }
 
 static void DeviceMatchingCallback(void* inContext, IOReturn inResult, void* inSender,
@@ -174,9 +172,6 @@ static void DeviceMatchingCallback(void* inContext, IOReturn inResult, void* inS
   {
     g_controller_interface.AddDevice(std::make_shared<Joystick>(inIOHIDDeviceRef, name));
   }
-
-  NOTICE_LOG(SERIALINTERFACE, "Added device: %s", name.c_str());
-  g_controller_interface.InvokeHotplugCallbacks();
 }
 
 void Init(void* window)

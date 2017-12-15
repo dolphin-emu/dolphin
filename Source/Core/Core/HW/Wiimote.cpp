@@ -80,7 +80,7 @@ void Initialize(InitializeMode init_mode)
       s_config.CreateController<WiimoteEmu::Wiimote>(i);
   }
 
-  g_controller_interface.RegisterHotplugCallback(LoadConfig);
+  g_controller_interface.RegisterDevicesChangedCallback(LoadConfig);
 
   LoadConfig();
 
