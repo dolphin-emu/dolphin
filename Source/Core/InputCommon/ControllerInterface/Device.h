@@ -18,9 +18,6 @@ namespace ciface
 {
 namespace Core
 {
-// Forward declarations
-class DeviceQualifier;
-
 //
 // Device
 //

@@ -210,7 +210,6 @@ void MappingWindow::OnSaveProfilePressed()
 void MappingWindow::OnDeviceChanged(int index)
 {
   const auto device = m_devices_combo->currentText().toStdString();
-  m_devq.FromString(device);
   m_controller->SetDefaultDevice(device);
 }
 
@@ -298,8 +297,7 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
     m_profiles_combo->addItem(QString::fromStdString(basename), QString::fromStdString(filename));
   }
 
-  if (m_controller != nullptr)
-    RefreshDevices();
+  RefreshDevices();
 }
 
 void MappingWindow::AddWidget(const QString& name, QWidget* widget)
@@ -317,21 +315,13 @@ ControllerEmu::EmulatedController* MappingWindow::GetController() const
   return m_controller;
 }
 
-const ciface::Core::DeviceQualifier& MappingWindow::GetDeviceQualifier() const
-{
-  return m_devq;
-}
-
 std::shared_ptr<ciface::Core::Device> MappingWindow::GetDevice() const
 {
-  return g_controller_interface.FindDevice(m_devq);
+  return g_controller_interface.FindDevice(GetController()->GetDefaultDevice());
 }
 
 void MappingWindow::OnDefaultFieldsPressed()
 {
-  if (m_controller == nullptr)
-    return;
-
   m_controller->LoadDefaults(g_controller_interface);
   m_controller->UpdateReferences(g_controller_interface);
   emit Update();

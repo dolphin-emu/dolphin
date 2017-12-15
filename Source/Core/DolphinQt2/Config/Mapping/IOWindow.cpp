@@ -114,7 +114,7 @@ void IOWindow::Update()
   m_range_spinbox->setValue(m_reference->range * SLIDER_TICK_COUNT);
   m_range_slider->setValue(m_reference->range * SLIDER_TICK_COUNT);
 
-  m_devq.FromString(m_controller->GetDefaultDevice().ToString());
+  m_devq = m_controller->GetDefaultDevice();
 
   UpdateDeviceList();
   UpdateOptionList();
@@ -183,7 +183,7 @@ void IOWindow::OnDetectButtonPressed()
     btn->setText(QStringLiteral("..."));
 
     const auto expr = MappingCommon::DetectExpression(
-        m_reference, g_controller_interface.FindDevice(m_devq).get(), m_devq, m_devq);
+        m_reference, g_controller_interface.FindDevice(m_devq).get(), m_devq);
 
     btn->setText(old_label);
 
