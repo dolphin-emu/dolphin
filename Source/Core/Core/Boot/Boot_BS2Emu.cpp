@@ -78,6 +78,7 @@ void CBoot::SetupBAT(bool is_wii)
     PowerPC::ppcState.spr[SPR_DBAT4L] = 0x10000002;
     PowerPC::ppcState.spr[SPR_DBAT5U] = 0xd0001fff;
     PowerPC::ppcState.spr[SPR_DBAT5L] = 0x1000002a;
+    HID4.SBE = 1;
   }
   PowerPC::DBATUpdated();
   PowerPC::IBATUpdated();
