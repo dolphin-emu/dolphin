@@ -75,9 +75,10 @@ void VideoBackend::InitBackendInfo()
   g_Config.backend_info.bSupportsDepthClamp = true;
   g_Config.backend_info.bSupportsReversedDepthRange = false;
   g_Config.backend_info.bSupportsMultithreading = false;
-  g_Config.backend_info.bSupportsInternalResolutionFrameDumps = false;
   g_Config.backend_info.bSupportsGPUTextureDecoding = false;
   g_Config.backend_info.bSupportsST3CTextures = false;
+  g_Config.backend_info.bSupportsCopyToVram = true;
+  g_Config.backend_info.bForceCopyToRam = false;
   g_Config.backend_info.bSupportsBitfield = false;
   g_Config.backend_info.bSupportsDynamicSamplerIndexing = false;
   g_Config.backend_info.bSupportsBPTCTextures = false;
@@ -102,7 +103,6 @@ void VideoBackend::InitBackendInfo()
     // TODO: These don't get updated on adapter change, yet
     if (adapter_index == g_Config.iAdapter)
     {
-      std::string samples;
       std::vector<DXGI_SAMPLE_DESC> modes = DX11::D3D::EnumAAModes(ad);
       // First iteration will be 1. This equals no AA.
       for (unsigned int i = 0; i < modes.size(); ++i)
@@ -180,6 +180,8 @@ void VideoBackend::Shutdown()
   g_vertex_manager.reset();
   g_texture_cache.reset();
   g_renderer.reset();
+
+  D3D::Close();
 
   ShutdownShared();
 }

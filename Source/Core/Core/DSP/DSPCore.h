@@ -16,6 +16,8 @@
 
 namespace DSP
 {
+class Accelerator;
+
 namespace JIT
 {
 namespace x86
@@ -298,6 +300,8 @@ struct SDSP
 
   // Accelerator / DMA / other hardware registers. Not GPRs.
   std::array<u16, 256> ifx_regs;
+
+  std::unique_ptr<Accelerator> accelerator;
 
   // When state saving, all of the above can just be memcpy'd into the save state.
   // The below needs special handling.

@@ -12,13 +12,15 @@ import android.widget.Toast;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 import org.dolphinemu.dolphinemu.utils.Log;
 
+import java.lang.ref.WeakReference;
+
 /**
  * Class which contains methods that interact
  * with the native side of the Dolphin code.
  */
 public final class NativeLibrary
 {
-	public static EmulationActivity sEmulationActivity;
+	public static WeakReference<EmulationActivity> sEmulationActivity = new WeakReference<>(null);
 
 	/**
 	 * Button type for use in onTouchEvent
@@ -379,25 +381,34 @@ public final class NativeLibrary
 	public static void displayAlertMsg(final String alert)
 	{
 		Log.error("[NativeLibrary] Alert: " + alert);
-		sEmulationActivity.runOnUiThread(new Runnable()
+		final EmulationActivity emulationActivity = sEmulationActivity.get();
+		if (emulationActivity != null)
 		{
-			@Override
-			public void run()
+			emulationActivity.runOnUiThread(new Runnable()
 			{
-				Toast.makeText(sEmulationActivity, "Panic Alert: " + alert, Toast.LENGTH_LONG).show();
-			}
-		});
-	}
-
-	public static void endEmulationActivity()
-	{
-		Log.verbose("[NativeLibrary]Ending EmulationActivity.");
-		sEmulationActivity.exitWithAnimation();
+				@Override
+				public void run()
+				{
+					Toast.makeText(emulationActivity, "Panic Alert: " + alert, Toast.LENGTH_LONG).show();
+				}
+			});
+		}
+		else
+		{
+			Log.warning("[NativeLibrary] EmulationActivity is null, can't do panic toast.");
+		}
 	}
 
 	public static void setEmulationActivity(EmulationActivity emulationActivity)
 	{
-		Log.verbose("[NativeLibrary]Registering EmulationActivity.");
-		sEmulationActivity = emulationActivity;
+		Log.verbose("[NativeLibrary] Registering EmulationActivity.");
+		sEmulationActivity = new WeakReference<>(emulationActivity);
+	}
+
+	public static void clearEmulationActivity()
+	{
+		Log.verbose("[NativeLibrary] Unregistering EmulationActivity.");
+
+		sEmulationActivity.clear();
 	}
 }

@@ -13,8 +13,10 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
+#include "DiscIO/WiiWad.h"
 
 namespace File
 {
@@ -45,9 +47,9 @@ struct BootParameters
     std::unique_ptr<BootExecutableReader> reader;
   };
 
-  struct NAND
+  struct NANDTitle
   {
-    std::string content_path;
+    u64 id;
   };
 
   struct IPL
@@ -67,7 +69,7 @@ struct BootParameters
 
   static std::unique_ptr<BootParameters> GenerateFromFile(const std::string& path);
 
-  using Parameters = std::variant<Disc, Executable, NAND, IPL, DFF>;
+  using Parameters = std::variant<Disc, Executable, DiscIO::WiiWAD, NANDTitle, IPL, DFF>;
   BootParameters(Parameters&& parameters_);
 
   Parameters parameters;
@@ -98,7 +100,8 @@ private:
 
   static void UpdateDebugger_MapLoaded();
 
-  static bool Boot_WiiWAD(const std::string& filename);
+  static bool Boot_WiiWAD(const DiscIO::WiiWAD& wad);
+  static bool BootNANDTitle(u64 title_id);
 
   static void SetupMSR();
   static void SetupBAT(bool is_wii);
@@ -109,7 +112,7 @@ private:
   static bool Load_BS2(const std::string& boot_rom_filename);
 
   static void SetupGCMemory();
-  static bool SetupWiiMemory(u64 ios_title_id);
+  static bool SetupWiiMemory();
 };
 
 class BootExecutableReader

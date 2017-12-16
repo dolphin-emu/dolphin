@@ -194,9 +194,7 @@ bool VideoBackend::Initialize(void* window_handle)
     if (!swap_chain)
     {
       PanicAlert("Failed to create Vulkan swap chain.");
-      g_vulkan_context.reset();
-      ShutdownShared();
-      UnloadVulkanLibrary();
+      Shutdown();
       return false;
     }
   }
@@ -206,10 +204,7 @@ bool VideoBackend::Initialize(void* window_handle)
   if (!g_command_buffer_mgr->Initialize())
   {
     PanicAlert("Failed to create Vulkan command buffers");
-    g_command_buffer_mgr.reset();
-    g_vulkan_context.reset();
-    ShutdownShared();
-    UnloadVulkanLibrary();
+    Shutdown();
     return false;
   }
 
@@ -223,19 +218,11 @@ bool VideoBackend::Initialize(void* window_handle)
   // These have to be done before the others because the destructors
   // for the remaining classes may call methods on these.
   if (!g_object_cache->Initialize() || !g_shader_cache->Initialize() ||
-      !FramebufferManager::GetInstance()->Initialize() || !StateTracker::CreateInstance() ||
+      !StateTracker::CreateInstance() || !FramebufferManager::GetInstance()->Initialize() ||
       !Renderer::GetInstance()->Initialize())
   {
     PanicAlert("Failed to initialize Vulkan classes.");
-    g_renderer.reset();
-    StateTracker::DestroyInstance();
-    g_framebuffer_manager.reset();
-    g_shader_cache.reset();
-    g_object_cache.reset();
-    g_command_buffer_mgr.reset();
-    g_vulkan_context.reset();
-    ShutdownShared();
-    UnloadVulkanLibrary();
+    Shutdown();
     return false;
   }
 
@@ -247,19 +234,7 @@ bool VideoBackend::Initialize(void* window_handle)
       !PerfQuery::GetInstance()->Initialize())
   {
     PanicAlert("Failed to initialize Vulkan classes.");
-    g_perf_query.reset();
-    g_texture_cache.reset();
-    g_vertex_manager.reset();
-    g_renderer.reset();
-    StateTracker::DestroyInstance();
-    g_framebuffer_manager.reset();
-    g_shader_cache->Shutdown();
-    g_shader_cache.reset();
-    g_object_cache.reset();
-    g_command_buffer_mgr.reset();
-    g_vulkan_context.reset();
-    ShutdownShared();
-    UnloadVulkanLibrary();
+    Shutdown();
     return false;
   }
 
@@ -287,33 +262,32 @@ void VideoBackend::Video_Prepare()
 
 void VideoBackend::Shutdown()
 {
-  g_command_buffer_mgr->WaitForGPUIdle();
+  if (g_command_buffer_mgr)
+    g_command_buffer_mgr->WaitForGPUIdle();
 
+  g_perf_query.reset();
+  g_texture_cache.reset();
+  g_vertex_manager.reset();
+  g_renderer.reset();
+  g_framebuffer_manager.reset();
+  StateTracker::DestroyInstance();
+  if (g_shader_cache)
+    g_shader_cache->Shutdown();
   g_shader_cache.reset();
   g_object_cache.reset();
   g_command_buffer_mgr.reset();
   g_vulkan_context.reset();
-
-  UnloadVulkanLibrary();
-
   ShutdownShared();
+  UnloadVulkanLibrary();
 }
 
 void VideoBackend::Video_Cleanup()
 {
   g_command_buffer_mgr->WaitForGPUIdle();
-  g_shader_cache->Shutdown();
 
   // Save all cached pipelines out to disk for next time.
   if (g_ActiveConfig.bShaderCache)
     g_shader_cache->SavePipelineCache();
-
-  g_perf_query.reset();
-  g_texture_cache.reset();
-  g_vertex_manager.reset();
-  g_framebuffer_manager.reset();
-  StateTracker::DestroyInstance();
-  g_renderer.reset();
 
   CleanupShared();
 }

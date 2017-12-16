@@ -284,7 +284,7 @@ std::string HiresTexture::GenBaseName(const u8* texture, size_t texture_size, co
     std::string basename = s_format_prefix + StringFromFormat("%dx%d%s_%016" PRIx64, width, height,
                                                               has_mipmaps ? "_m" : "", tex_hash);
     std::string tlutname = tlut_size ? StringFromFormat("_%016" PRIx64, tlut_hash) : "";
-    std::string formatname = StringFromFormat("_%d", format);
+    std::string formatname = StringFromFormat("_%d", static_cast<int>(format));
     std::string fullname = basename + tlutname + formatname;
 
     for (int level = 0; level < 10 && convert; level++)

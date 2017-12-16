@@ -13,17 +13,37 @@
 enum class AbstractTextureFormat : u32
 {
   RGBA8,
+  BGRA8,
   DXT1,
   DXT3,
   DXT5,
-  BPTC
+  BPTC,
+  Undefined
+};
+
+enum class StagingTextureType
+{
+  Readback,  // Optimize for CPU reads, GPU writes, no CPU writes
+  Upload,    // Optimize for CPU writes, GPU reads, no CPU reads
+  Mutable    // Optimize for CPU reads, GPU writes, allow slow CPU reads
 };
 
 struct TextureConfig
 {
   constexpr TextureConfig() = default;
+  constexpr TextureConfig(u32 width_, u32 height_, u32 levels_, u32 layers_,
+                          AbstractTextureFormat format_, bool rendertarget_)
+      : width(width_), height(height_), levels(levels_), layers(layers_), format(format_),
+        rendertarget(rendertarget_)
+  {
+  }
+
   bool operator==(const TextureConfig& o) const;
+  bool operator!=(const TextureConfig& o) const;
   MathUtil::Rectangle<int> GetRect() const;
+  MathUtil::Rectangle<int> GetMipRect(u32 level) const;
+  size_t GetStride() const;
+  size_t GetMipStride(u32 level) const;
 
   u32 width = 0;
   u32 height = 0;
@@ -31,14 +51,22 @@ struct TextureConfig
   u32 layers = 1;
   AbstractTextureFormat format = AbstractTextureFormat::RGBA8;
   bool rendertarget = false;
-
-  struct Hasher : std::hash<u64>
-  {
-    size_t operator()(const TextureConfig& c) const
-    {
-      u64 id = (u64)c.rendertarget << 63 | (u64)c.format << 50 | (u64)c.layers << 48 |
-               (u64)c.levels << 32 | (u64)c.height << 16 | (u64)c.width;
-      return std::hash<u64>::operator()(id);
-    }
-  };
 };
+
+namespace std
+{
+template <>
+struct hash<TextureConfig>
+{
+  using argument_type = TextureConfig;
+  using result_type = size_t;
+
+  result_type operator()(const argument_type& c) const noexcept
+  {
+    const u64 id = static_cast<u64>(c.rendertarget) << 63 | static_cast<u64>(c.format) << 50 |
+                   static_cast<u64>(c.layers) << 48 | static_cast<u64>(c.levels) << 32 |
+                   static_cast<u64>(c.height) << 16 | static_cast<u64>(c.width);
+    return std::hash<u64>{}(id);
+  }
+};
+}  // namespace std

@@ -17,6 +17,7 @@
 #include "DolphinQt2/ToolBar.h"
 
 struct BootParameters;
+class FIFOPlayerWindow;
 class HotkeyScheduler;
 class LogConfigWidget;
 class LogWidget;
@@ -35,7 +36,7 @@ class MainWindow final : public QMainWindow
   Q_OBJECT
 
 public:
-  explicit MainWindow();
+  explicit MainWindow(std::unique_ptr<BootParameters> boot_parameters);
   ~MainWindow();
 
   bool eventFilter(QObject* object, QEvent* event) override;
@@ -91,12 +92,14 @@ private:
   void HideRenderWidget();
 
   void ShowSettingsWindow();
+  void ShowGeneralWindow();
   void ShowAudioWindow();
   void ShowControllersWindow();
   void ShowGraphicsWindow();
   void ShowAboutDialog();
   void ShowHotkeyDialog();
   void ShowNetPlaySetupDialog();
+  void ShowFIFOPlayer();
 
   void NetPlayInit();
   bool NetPlayJoin();
@@ -136,4 +139,5 @@ private:
   GraphicsWindow* m_graphics_window;
   LogWidget* m_log_widget;
   LogConfigWidget* m_log_config_widget;
+  FIFOPlayerWindow* m_fifo_window;
 };

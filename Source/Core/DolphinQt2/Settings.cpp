@@ -7,12 +7,13 @@
 #include <QSize>
 
 #include "AudioCommon/AudioCommon.h"
-#include "Common/FileSearch.h"
+#include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "DolphinQt2/GameList/GameListModel.h"
+#include "DolphinQt2/QtUtils/QueueOnObject.h"
 #include "DolphinQt2/Settings.h"
 #include "InputCommon/InputConfig.h"
 
@@ -21,6 +22,9 @@ Settings::Settings()
   qRegisterMetaType<Core::State>();
   Core::SetOnStateChangedCallback(
       [this](Core::State new_state) { emit EmulationStateChanged(new_state); });
+
+  Config::AddConfigChangedCallback(
+      [this] { QueueOnObject(this, [this] { emit ConfigChanged(); }); });
 }
 
 Settings& Settings::Instance()
@@ -33,17 +37,6 @@ void Settings::SetThemeName(const QString& theme_name)
 {
   SConfig::GetInstance().theme_name = theme_name.toStdString();
   emit ThemeChanged();
-}
-
-QString Settings::GetProfilesDir() const
-{
-  return QString::fromStdString(File::GetUserPath(D_CONFIG_IDX) + "Profiles/");
-}
-
-QString Settings::GetProfileINIPath(const InputConfig* config, const QString& name) const
-{
-  return GetProfilesDir() + QString::fromStdString(config->GetProfileName()) + QDir::separator() +
-         name + QStringLiteral(".ini");
 }
 
 QStringList Settings::GetPaths() const
@@ -136,21 +129,6 @@ void Settings::DecreaseVolume(int volume)
   emit VolumeChanged(GetVolume());
 }
 
-QVector<QString> Settings::GetProfiles(const InputConfig* config) const
-{
-  const std::string path = GetProfilesDir().toStdString() + config->GetProfileName();
-  QVector<QString> vec;
-
-  for (const auto& file : Common::DoFileSearch({path}, {".ini"}))
-  {
-    std::string basename;
-    SplitPath(file, nullptr, &basename, nullptr);
-    vec.push_back(QString::fromStdString(basename));
-  }
-
-  return vec;
-}
-
 bool Settings::IsLogVisible() const
 {
   return QSettings().value(QStringLiteral("logging/logvisible")).toBool();
@@ -203,4 +181,18 @@ NetPlayServer* Settings::GetNetPlayServer()
 void Settings::ResetNetPlayServer(NetPlayServer* server)
 {
   m_server.reset(server);
+}
+
+bool Settings::GetCheatsEnabled() const
+{
+  return SConfig::GetInstance().bEnableCheats;
+}
+
+void Settings::SetCheatsEnabled(bool enabled)
+{
+  if (SConfig::GetInstance().bEnableCheats != enabled)
+  {
+    SConfig::GetInstance().bEnableCheats = enabled;
+    emit EnableCheatsChanged(enabled);
+  }
 }

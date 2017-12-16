@@ -530,9 +530,9 @@ void DSPEmitter::dmem_write(X64Reg value)
   FixupBranch end = J(true);
   //	else if (saddr == 0xf)
   SetJumpTarget(ifx);
-  // Does it mean gdsp_ifx_write needs u32 rather than u16?
   DSPJitRegCache c(m_gpr);
   X64Reg abisafereg = m_gpr.MakeABICallSafe(value);
+  MOVZX(32, 16, abisafereg, R(abisafereg));
   m_gpr.PushRegs();
   ABI_CallFunctionRR(gdsp_ifx_write, EAX, abisafereg);
   m_gpr.PopRegs();

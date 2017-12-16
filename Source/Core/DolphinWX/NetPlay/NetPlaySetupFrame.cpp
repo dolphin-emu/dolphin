@@ -222,7 +222,7 @@ wxNotebook* NetPlaySetupFrame::CreateNotebookGUI(wxWindow* parent)
     top_szr->Add(m_host_port_lbl, 0, wxALIGN_CENTER_VERTICAL);
     top_szr->Add(m_host_port_text, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, space5);
 #ifdef USE_UPNP
-    m_upnp_chk = new wxCheckBox(host_tab, wxID_ANY, _("Forward port (UPnP)"));
+    m_upnp_chk = new wxCheckBox(host_tab, wxID_ANY, _("Forward Port (UPnP)"));
     top_szr->Add(m_upnp_chk, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, space5);
 #endif
 

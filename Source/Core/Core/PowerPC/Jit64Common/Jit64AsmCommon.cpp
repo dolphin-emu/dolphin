@@ -12,7 +12,6 @@
 #include "Common/MathUtil.h"
 #include "Common/x64ABI.h"
 #include "Common/x64Emitter.h"
-#include "Core/HW/GPFifo.h"
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/Jit64Common/Jit64Base.h"
 #include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
@@ -24,22 +23,6 @@
 #define QUANTIZED_REGS_TO_SAVE_LOAD (QUANTIZED_REGS_TO_SAVE | BitSet32{RSCRATCH2})
 
 using namespace Gen;
-
-void CommonAsmRoutines::GenFifoWrite(int size)
-{
-  const void* start = GetCodePtr();
-
-  // Assume value in RSCRATCH
-  MOV(64, R(RSCRATCH2), ImmPtr(&GPFifo::g_gather_pipe_ptr));
-  MOV(64, R(RSCRATCH2), MatR(RSCRATCH2));
-  SwapAndStore(size, MatR(RSCRATCH2), RSCRATCH);
-  MOV(64, R(RSCRATCH), ImmPtr(&GPFifo::g_gather_pipe_ptr));
-  ADD(64, R(RSCRATCH2), Imm8(size >> 3));
-  MOV(64, MatR(RSCRATCH), R(RSCRATCH2));
-  RET();
-
-  JitRegister::Register(start, GetCodePtr(), "JIT_FifoWrite_%i", size);
-}
 
 void CommonAsmRoutines::GenFrsqrte()
 {

@@ -60,6 +60,7 @@ public:
   void SetIsWii(bool isWii);
   bool GetIsWii() const;
   bool HasBrokenEFBCopies() const;
+  bool ShouldGenerateFakeVIUpdates() const;
 
   u32* GetBPMem() { return m_BPMem; }
   u32* GetCPMem() { return m_CPMem; }

@@ -1,12 +1,12 @@
 package org.dolphinemu.dolphinemu.activities;
 
-import android.app.Activity;
 import android.content.AsyncQueryHandler;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -15,7 +15,6 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 
-import org.dolphinemu.dolphinemu.BuildConfig;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.adapters.FileAdapter;
 import org.dolphinemu.dolphinemu.model.GameDatabase;
@@ -28,7 +27,7 @@ import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
  */
 public class AddDirectoryActivity extends AppCompatActivity implements FileAdapter.FileClickListener
 {
-	public static final String KEY_CURRENT_PATH = BuildConfig.APPLICATION_ID + ".path";
+	private static final String KEY_CURRENT_PATH = "path";
 
 	private FileAdapter mAdapter;
 	private Toolbar mToolbar;
@@ -134,7 +133,7 @@ public class AddDirectoryActivity extends AppCompatActivity implements FileAdapt
 		mToolbar.setSubtitle(path);
 	}
 
-	public static void launch(Activity activity)
+	public static void launch(FragmentActivity activity)
 	{
 		Intent fileChooser = new Intent(activity, AddDirectoryActivity.class);
 		activity.startActivityForResult(fileChooser, MainPresenter.REQUEST_ADD_DIRECTORY);

@@ -80,9 +80,11 @@ public final class SettingsFile
 	public static final String KEY_OVERCLOCK_PERCENT = "Overclock";
 	public static final String KEY_VIDEO_BACKEND = "GFXBackend";
 	public static final String KEY_AUDIO_STRETCH = "AudioStretch";
+	public static final String KEY_SLOT_A_DEVICE = "SlotA";
+	public static final String KEY_SLOT_B_DEVICE = "SlotB";
 
 	public static final String KEY_SHOW_FPS = "ShowFPS";
-	public static final String KEY_INTERNAL_RES = "EFBScale";
+	public static final String KEY_INTERNAL_RES = "InternalResolution";
 	public static final String KEY_FSAA = "MSAA";
 	public static final String KEY_ANISOTROPY = "MaxAnisotropy";
 	public static final String KEY_POST_SHADER = "PostProcessingShader";

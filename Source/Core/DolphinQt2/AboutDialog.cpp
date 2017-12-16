@@ -14,22 +14,20 @@ AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent)
 {
   setWindowTitle(tr("About Dolphin"));
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
-  setAttribute(Qt::WA_DeleteOnClose);
 
   QString text = QStringLiteral("");
-  QString small = QStringLiteral("<p style='margin-top:0px; margin-bottom:0px; font-size:9pt;'>");
-  QString medium = QStringLiteral("<p style='margin-top:15px; font-size:11pt;'>");
+  QString small = QStringLiteral("<p style='margin-top:0; margin-bottom:0; font-size:small;'>");
+  QString medium = QStringLiteral("<p style='margin-top:15px;'>");
 
-  text.append(QStringLiteral("<p style='font-size:50pt; font-weight:400; margin-bottom:0px;'>") +
+  text.append(QStringLiteral("<p style='font-size:38pt; font-weight:400; margin-bottom:0;'>") +
               tr("Dolphin") + QStringLiteral("</p>"));
-  text.append(QStringLiteral("<p style='font-size:18pt; margin-top:0px;'>%1</p>")
+  text.append(QStringLiteral("<p style='font-size:18pt; margin-top:0;'>%1</p>")
                   .arg(QString::fromUtf8(Common::scm_desc_str.c_str())));
 
   text.append(small + tr("Branch: ") + QString::fromUtf8(Common::scm_branch_str.c_str()) +
               QStringLiteral("</p>"));
   text.append(small + tr("Revision: ") + QString::fromUtf8(Common::scm_rev_git_str.c_str()) +
               QStringLiteral("</p>"));
-  text.append(small + tr("Compiled: ") + QStringLiteral(__DATE__ " " __TIME__ "</p>"));
 
   text.append(medium + tr("Check for updates: ") +
               QStringLiteral(
@@ -58,13 +56,14 @@ AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent)
   text_label->setOpenExternalLinks(true);
 
   QLabel* copyright =
-      // i18n: This message uses curly quotes in English. If you want to use curly quotes
-      // in your translation, please use the type of curly quotes that's appropriate for
-      // your language. If you aren't sure which type is appropriate, see
-      // https://en.wikipedia.org/wiki/Quotation_mark#Specific_language_features
-      new QLabel(tr("\u00A9 2003-%1 Dolphin Team. \u201cGameCube\u201d and \u201cWii\u201d are "
-                    "trademarks of Nintendo. Dolphin is not affiliated with Nintendo in any way.")
-                     .arg(QStringLiteral(__DATE__).right(4)));
+      new QLabel(small +
+                 // i18n: This message uses curly quotes in English. If you want to use curly quotes
+                 // in your translation, please use the type of curly quotes that's appropriate for
+                 // your language. If you aren't sure which type is appropriate, see
+                 // https://en.wikipedia.org/wiki/Quotation_mark#Specific_language_features
+                 tr("\u00A9 2003-2015+ Dolphin Team. \u201cGameCube\u201d and \u201cWii\u201d are "
+                    "trademarks of Nintendo. Dolphin is not affiliated with Nintendo in any way.") +
+                 QStringLiteral("</p>"));
 
   QLabel* logo = new QLabel();
   logo->setPixmap(Resources::GetMisc(Resources::LOGO_LARGE));

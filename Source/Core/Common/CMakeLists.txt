@@ -4,8 +4,8 @@ set(SRCS
   ColorUtil.cpp
   CommonFuncs.cpp
   Config/Config.cpp
+  Config/ConfigInfo.cpp
   Config/Layer.cpp
-  Config/Section.cpp
   Crypto/AES.cpp
   Crypto/bn.cpp
   Crypto/ec.cpp
@@ -29,8 +29,8 @@ set(SRCS
   PcapFile.cpp
   PerformanceCounter.cpp
   Profiler.cpp
-  SettingsHandler.cpp
   SDCardUtil.cpp
+  SettingsHandler.cpp
   StringUtil.cpp
   SymbolDB.cpp
   SysConf.cpp

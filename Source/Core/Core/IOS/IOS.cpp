@@ -18,7 +18,9 @@
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
+#include "Common/Timer.h"
 #include "Core/Boot/DolReader.h"
+#include "Core/Boot/ElfReader.h"
 #include "Core/CommonTitles.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -32,7 +34,6 @@
 #include "Core/IOS/FS/FS.h"
 #include "Core/IOS/FS/FileIO.h"
 #include "Core/IOS/MIOS.h"
-#include "Core/IOS/MemoryValues.h"
 #include "Core/IOS/Network/IP/Top.h"
 #include "Core/IOS/Network/KD/NetKDRequest.h"
 #include "Core/IOS/Network/KD/NetKDTime.h"
@@ -50,11 +51,11 @@
 #include "Core/IOS/USB/USB_HID/HIDv5.h"
 #include "Core/IOS/USB/USB_KBD.h"
 #include "Core/IOS/USB/USB_VEN/VEN.h"
+#include "Core/IOS/VersionInfo.h"
 #include "Core/IOS/WFS/WFSI.h"
 #include "Core/IOS/WFS/WFSSRV.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/WiiRoot.h"
-#include "DiscIO/NANDContentLoader.h"
 
 namespace IOS
 {
@@ -275,23 +276,17 @@ u16 Kernel::GetGidForPPC() const
 
 // This corresponds to syscall 0x41, which loads a binary from the NAND and bootstraps the PPC.
 // Unlike 0x42, IOS will set up some constants in memory before booting the PPC.
-bool Kernel::BootstrapPPC(const DiscIO::NANDContentLoader& content_loader)
+bool Kernel::BootstrapPPC(const std::string& boot_content_path)
 {
-  if (!content_loader.IsValid())
-    return false;
+  const DolReader dol{boot_content_path};
 
-  const auto* content = content_loader.GetContentByIndex(content_loader.GetTMD().GetBootIndex());
-  if (!content)
-    return false;
-
-  const auto dol_loader = std::make_unique<DolReader>(content->m_Data->Get());
-  if (!dol_loader->IsValid())
+  if (!dol.IsValid())
     return false;
 
   if (!SetupMemory(m_title_id, MemorySetupType::Full))
     return false;
 
-  if (!dol_loader->LoadIntoMemory())
+  if (!dol.LoadIntoMemory())
     return false;
 
   // NAND titles start with address translation off at 0x3400 (via the PPC bootstub)
@@ -303,23 +298,60 @@ bool Kernel::BootstrapPPC(const DiscIO::NANDContentLoader& content_loader)
   return true;
 }
 
+struct ARMBinary final
+{
+  explicit ARMBinary(std::vector<u8>&& bytes) : m_bytes(std::move(bytes)) {}
+  bool IsValid() const
+  {
+    // The header is at least 0x10.
+    if (m_bytes.size() < 0x10)
+      return false;
+    return m_bytes.size() >= (GetHeaderSize() + GetElfOffset() + GetElfSize());
+  }
+
+  std::vector<u8> GetElf() const
+  {
+    const auto iterator = m_bytes.cbegin() + GetHeaderSize() + GetElfOffset();
+    return std::vector<u8>(iterator, iterator + GetElfSize());
+  }
+
+  u32 GetHeaderSize() const { return Common::swap32(m_bytes.data()); }
+  u32 GetElfOffset() const { return Common::swap32(m_bytes.data() + 0x4); }
+  u32 GetElfSize() const { return Common::swap32(m_bytes.data() + 0x8); }
+private:
+  std::vector<u8> m_bytes;
+};
+
 // Similar to syscall 0x42 (ios_boot); this is used to change the current active IOS.
 // IOS writes the new version to 0x3140 before restarting, but it does *not* poke any
 // of the other constants to the memory. Warning: this resets the kernel instance.
-bool Kernel::BootIOS(const u64 ios_title_id)
+//
+// Passing a boot content path is optional because we do not require IOSes
+// to be installed at the moment. If one is passed, the boot binary must exist
+// on the NAND, or the call will fail like on a Wii.
+bool Kernel::BootIOS(const u64 ios_title_id, const std::string& boot_content_path)
 {
-  // A real Wii goes through several steps before getting to MIOS.
-  //
-  // * The System Menu detects a GameCube disc and launches BC (1-100) instead of the game.
-  // * BC (similar to boot1) lowers the clock speed to the Flipper's and then launches boot2.
-  // * boot2 sees the lowered clock speed and launches MIOS (1-101) instead of the System Menu.
-  //
-  // Because we currently don't have boot1 and boot2, and BC is only ever used to launch MIOS
-  // (indirectly via boot2), we can just launch MIOS when BC is launched.
-  if (ios_title_id == Titles::BC)
+  if (!boot_content_path.empty())
   {
-    NOTICE_LOG(IOS, "BC: Launching MIOS...");
-    return BootIOS(Titles::MIOS);
+    // Load the ARM binary to memory (if possible).
+    // Because we do not actually emulate the Starlet, only load the sections that are in MEM1.
+
+    File::IOFile file{boot_content_path, "rb"};
+    // TODO: should return IPC_ERROR_MAX.
+    if (file.GetSize() > 0xB00000)
+      return false;
+
+    std::vector<u8> data(file.GetSize());
+    if (!file.ReadBytes(data.data(), data.size()))
+      return false;
+
+    ARMBinary binary{std::move(data)};
+    if (!binary.IsValid())
+      return false;
+
+    ElfReader elf{binary.GetElf()};
+    if (!elf.LoadIntoMemory(true))
+      return false;
   }
 
   // Shut down the active IOS first before switching to the new one.
@@ -345,32 +377,69 @@ void Kernel::AddStaticDevices()
 {
   std::lock_guard<std::mutex> lock(m_device_map_mutex);
 
+  const Feature features = GetFeatures(GetVersion());
+
+  // OH1 (Bluetooth)
+  AddDevice(std::make_unique<Device::Stub>(*this, "/dev/usb/oh1"));
   if (!SConfig::GetInstance().m_bt_passthrough_enabled)
     AddDevice(std::make_unique<Device::BluetoothEmu>(*this, "/dev/usb/oh1/57e/305"));
   else
     AddDevice(std::make_unique<Device::BluetoothReal>(*this, "/dev/usb/oh1/57e/305"));
 
+  // Other core modules
   AddDevice(std::make_unique<Device::STMImmediate>(*this, "/dev/stm/immediate"));
   AddDevice(std::make_unique<Device::STMEventHook>(*this, "/dev/stm/eventhook"));
   AddDevice(std::make_unique<Device::DI>(*this, "/dev/di"));
-  AddDevice(std::make_unique<Device::NetKDRequest>(*this, "/dev/net/kd/request"));
-  AddDevice(std::make_unique<Device::NetKDTime>(*this, "/dev/net/kd/time"));
-  AddDevice(std::make_unique<Device::NetNCDManage>(*this, "/dev/net/ncd/manage"));
-  AddDevice(std::make_unique<Device::NetWDCommand>(*this, "/dev/net/wd/command"));
-  AddDevice(std::make_unique<Device::NetIPTop>(*this, "/dev/net/ip/top"));
-  AddDevice(std::make_unique<Device::NetSSL>(*this, "/dev/net/ssl"));
-  AddDevice(std::make_unique<Device::USB_KBD>(*this, "/dev/usb/kbd"));
   AddDevice(std::make_unique<Device::SDIOSlot0>(*this, "/dev/sdio/slot0"));
   AddDevice(std::make_unique<Device::Stub>(*this, "/dev/sdio/slot1"));
-  if (GetVersion() == 59)
-    AddDevice(std::make_unique<Device::USB_HIDv5>(*this, "/dev/usb/hid"));
-  else
-    AddDevice(std::make_unique<Device::USB_HIDv4>(*this, "/dev/usb/hid"));
+
+  // Network modules
+  if (HasFeature(features, Feature::KD))
+  {
+    AddDevice(std::make_unique<Device::NetKDRequest>(*this, "/dev/net/kd/request"));
+    AddDevice(std::make_unique<Device::NetKDTime>(*this, "/dev/net/kd/time"));
+  }
+  if (HasFeature(features, Feature::NCD))
+  {
+    AddDevice(std::make_unique<Device::NetNCDManage>(*this, "/dev/net/ncd/manage"));
+  }
+  if (HasFeature(features, Feature::WiFi))
+  {
+    AddDevice(std::make_unique<Device::NetWDCommand>(*this, "/dev/net/wd/command"));
+  }
+  if (HasFeature(features, Feature::SO))
+  {
+    AddDevice(std::make_unique<Device::NetIPTop>(*this, "/dev/net/ip/top"));
+  }
+  if (HasFeature(features, Feature::SSL))
+  {
+    AddDevice(std::make_unique<Device::NetSSL>(*this, "/dev/net/ssl"));
+  }
+
+  // USB modules
+  // OH0 is unconditionally added because this device path is registered in all cases.
   AddDevice(std::make_unique<Device::OH0>(*this, "/dev/usb/oh0"));
-  AddDevice(std::make_unique<Device::Stub>(*this, "/dev/usb/oh1"));
-  AddDevice(std::make_unique<Device::USB_VEN>(*this, "/dev/usb/ven"));
-  AddDevice(std::make_unique<Device::WFSSRV>(*this, "/dev/usb/wfssrv"));
-  AddDevice(std::make_unique<Device::WFSI>(*this, "/dev/wfsi"));
+  if (HasFeature(features, Feature::NewUSB))
+  {
+    AddDevice(std::make_unique<Device::USB_HIDv5>(*this, "/dev/usb/hid"));
+    AddDevice(std::make_unique<Device::USB_VEN>(*this, "/dev/usb/ven"));
+
+    // TODO(IOS): register /dev/usb/usb, /dev/usb/msc, /dev/usb/hub and /dev/usb/ehc
+    //            as stubs that return IPC_EACCES.
+  }
+  else
+  {
+    if (HasFeature(features, Feature::USB_HIDv4))
+      AddDevice(std::make_unique<Device::USB_HIDv4>(*this, "/dev/usb/hid"));
+    if (HasFeature(features, Feature::USB_KBD))
+      AddDevice(std::make_unique<Device::USB_KBD>(*this, "/dev/usb/kbd"));
+  }
+
+  if (HasFeature(features, Feature::WFS))
+  {
+    AddDevice(std::make_unique<Device::WFSSRV>(*this, "/dev/usb/wfssrv"));
+    AddDevice(std::make_unique<Device::WFSI>(*this, "/dev/wfsi"));
+  }
 }
 
 s32 Kernel::GetFreeDeviceID()
@@ -411,7 +480,8 @@ s32 Kernel::OpenDevice(OpenRequest& request)
   request.fd = new_fd;
 
   std::shared_ptr<Device::Device> device;
-  if (request.path.find("/dev/usb/oh0/") == 0 && !GetDeviceByName(request.path))
+  if (request.path.find("/dev/usb/oh0/") == 0 && !GetDeviceByName(request.path) &&
+      !HasFeature(GetVersion(), Feature::NewUSB))
   {
     device = std::make_shared<Device::OH0Device>(*this, request.path);
   }
@@ -450,25 +520,45 @@ IPCCommandResult Kernel::HandleIPCCommand(const Request& request)
   if (!device)
     return Device::Device::GetDefaultReply(IPC_EINVAL);
 
+  IPCCommandResult ret;
+  u64 wall_time_before = Common::Timer::GetTimeUs();
+
   switch (request.command)
   {
   case IPC_CMD_CLOSE:
     m_fdmap[request.fd].reset();
-    return Device::Device::GetDefaultReply(device->Close(request.fd));
+    ret = Device::Device::GetDefaultReply(device->Close(request.fd));
+    break;
   case IPC_CMD_READ:
-    return device->Read(ReadWriteRequest{request.address});
+    ret = device->Read(ReadWriteRequest{request.address});
+    break;
   case IPC_CMD_WRITE:
-    return device->Write(ReadWriteRequest{request.address});
+    ret = device->Write(ReadWriteRequest{request.address});
+    break;
   case IPC_CMD_SEEK:
-    return device->Seek(SeekRequest{request.address});
+    ret = device->Seek(SeekRequest{request.address});
+    break;
   case IPC_CMD_IOCTL:
-    return device->IOCtl(IOCtlRequest{request.address});
+    ret = device->IOCtl(IOCtlRequest{request.address});
+    break;
   case IPC_CMD_IOCTLV:
-    return device->IOCtlV(IOCtlVRequest{request.address});
+    ret = device->IOCtlV(IOCtlVRequest{request.address});
+    break;
   default:
     _assert_msg_(IOS, false, "Unexpected command: %x", request.command);
-    return Device::Device::GetDefaultReply(IPC_EINVAL);
+    ret = Device::Device::GetDefaultReply(IPC_EINVAL);
+    break;
   }
+
+  u64 wall_time_after = Common::Timer::GetTimeUs();
+  constexpr u64 BLOCKING_IPC_COMMAND_THRESHOLD_US = 2000;
+  if (wall_time_after - wall_time_before > BLOCKING_IPC_COMMAND_THRESHOLD_US)
+  {
+    WARN_LOG(IOS, "Previous request to device %s blocked emulation for %" PRIu64 " microseconds.",
+             device->GetDeviceName().c_str(), wall_time_after - wall_time_before);
+  }
+
+  return ret;
 }
 
 void Kernel::ExecuteIPCCommand(const u32 address)

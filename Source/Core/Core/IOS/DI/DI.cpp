@@ -113,7 +113,7 @@ IPCCommandResult DI::IOCtlV(const IOCtlVRequest& request)
     const IOS::ES::TMDReader tmd = DVDThread::GetTMD(partition);
     const std::vector<u8>& raw_tmd = tmd.GetBytes();
     Memory::CopyToEmu(request.io_vectors[0].address, raw_tmd.data(), raw_tmd.size());
-    ES::DIVerify(tmd, DVDThread::GetTicket(partition));
+    m_ios.GetES()->DIVerify(tmd, DVDThread::GetTicket(partition));
 
     return_value = 1;
     break;

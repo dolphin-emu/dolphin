@@ -32,7 +32,7 @@ class TMDReader;
 }
 
 // DSP Backend Types
-#define BACKEND_NULLSOUND _trans("No audio output")
+#define BACKEND_NULLSOUND _trans("No Audio Output")
 #define BACKEND_ALSA "ALSA"
 #define BACKEND_CUBEB "Cubeb"
 #define BACKEND_OPENAL "OpenAL"
@@ -101,7 +101,6 @@ struct SConfig
   bool bDSPThread = false;
   bool bDSPHLE = true;
   bool bSyncGPUOnSkipIdleHack = true;
-  bool bForceNTSCJ = false;
   bool bHLE_BS2 = true;
   //narrysmod_hijack
   bool bEnableCheats = true;

@@ -40,7 +40,11 @@ DXGI_FORMAT GetDXGIFormatForHostFormat(AbstractTextureFormat format)
   case AbstractTextureFormat::BPTC:
     return DXGI_FORMAT_BC7_UNORM;
   case AbstractTextureFormat::RGBA8:
+    return DXGI_FORMAT_R8G8B8A8_UNORM;
+  case AbstractTextureFormat::BGRA8:
+    return DXGI_FORMAT_B8G8R8A8_UNORM;
   default:
+    PanicAlert("Unhandled texture format.");
     return DXGI_FORMAT_R8G8B8A8_UNORM;
   }
 }
@@ -92,73 +96,36 @@ void DXTexture::Bind(unsigned int stage)
   D3D::stateman->SetTexture(stage, m_texture->GetSRV());
 }
 
-bool DXTexture::Save(const std::string& filename, unsigned int level)
+void DXTexture::CopyRectangleFromTexture(const AbstractTexture* src,
+                                         const MathUtil::Rectangle<int>& src_rect, u32 src_layer,
+                                         u32 src_level, const MathUtil::Rectangle<int>& dst_rect,
+                                         u32 dst_layer, u32 dst_level)
 {
-  // We can't dump compressed textures currently (it would mean drawing them to a RGBA8
-  // framebuffer, and saving that). TextureCache does not call Save for custom textures
-  // anyway, so this is fine for now.
-  _assert_(m_config.format == AbstractTextureFormat::RGBA8);
+  const DXTexture* srcentry = static_cast<const DXTexture*>(src);
+  _assert_(src_rect.GetWidth() == dst_rect.GetWidth() &&
+           src_rect.GetHeight() == dst_rect.GetHeight());
 
-  // Create a staging/readback texture with the dimensions of the specified mip level.
-  u32 mip_width = std::max(m_config.width >> level, 1u);
-  u32 mip_height = std::max(m_config.height >> level, 1u);
-  CD3D11_TEXTURE2D_DESC staging_texture_desc(DXGI_FORMAT_R8G8B8A8_UNORM, mip_width, mip_height, 1,
-                                             1, 0, D3D11_USAGE_STAGING, D3D11_CPU_ACCESS_READ);
+  D3D11_BOX src_box;
+  src_box.left = src_rect.left;
+  src_box.top = src_rect.top;
+  src_box.right = src_rect.right;
+  src_box.bottom = src_rect.bottom;
+  src_box.front = 0;
+  src_box.back = 1;
 
-  ID3D11Texture2D* staging_texture;
-  HRESULT hr = D3D::device->CreateTexture2D(&staging_texture_desc, nullptr, &staging_texture);
-  if (FAILED(hr))
-  {
-    WARN_LOG(VIDEO, "Failed to create texture dumping readback texture: %X", static_cast<u32>(hr));
-    return false;
-  }
-
-  // Copy the selected mip level to the staging texture.
-  CD3D11_BOX src_box(0, 0, 0, mip_width, mip_height, 1);
-  D3D::context->CopySubresourceRegion(staging_texture, 0, 0, 0, 0, m_texture->GetTex(),
-                                      D3D11CalcSubresource(level, 0, m_config.levels), &src_box);
-
-  // Map the staging texture to client memory, and encode it as a .png image.
-  D3D11_MAPPED_SUBRESOURCE map;
-  hr = D3D::context->Map(staging_texture, 0, D3D11_MAP_READ, 0, &map);
-  if (FAILED(hr))
-  {
-    WARN_LOG(VIDEO, "Failed to map texture dumping readback texture: %X", static_cast<u32>(hr));
-    staging_texture->Release();
-    return false;
-  }
-
-  bool encode_result =
-      TextureToPng(reinterpret_cast<u8*>(map.pData), map.RowPitch, filename, mip_width, mip_height);
-  D3D::context->Unmap(staging_texture, 0);
-  staging_texture->Release();
-
-  return encode_result;
+  D3D::context->CopySubresourceRegion(
+      m_texture->GetTex(), D3D11CalcSubresource(dst_level, dst_layer, m_config.levels),
+      dst_rect.left, dst_rect.top, 0, srcentry->m_texture->GetTex(),
+      D3D11CalcSubresource(src_level, src_layer, srcentry->m_config.levels), &src_box);
 }
 
-void DXTexture::CopyRectangleFromTexture(const AbstractTexture* source,
-                                         const MathUtil::Rectangle<int>& srcrect,
-                                         const MathUtil::Rectangle<int>& dstrect)
+void DXTexture::ScaleRectangleFromTexture(const AbstractTexture* source,
+                                          const MathUtil::Rectangle<int>& srcrect,
+                                          const MathUtil::Rectangle<int>& dstrect)
 {
   const DXTexture* srcentry = static_cast<const DXTexture*>(source);
-  if (srcrect.GetWidth() == dstrect.GetWidth() && srcrect.GetHeight() == dstrect.GetHeight())
-  {
-    D3D11_BOX srcbox;
-    srcbox.left = srcrect.left;
-    srcbox.top = srcrect.top;
-    srcbox.right = srcrect.right;
-    srcbox.bottom = srcrect.bottom;
-    srcbox.front = 0;
-    srcbox.back = srcentry->m_config.layers;
+  _assert_(m_config.rendertarget);
 
-    D3D::context->CopySubresourceRegion(m_texture->GetTex(), 0, dstrect.left, dstrect.top, 0,
-                                        srcentry->m_texture->GetTex(), 0, &srcbox);
-    return;
-  }
-  else if (!m_config.rendertarget)
-  {
-    return;
-  }
   g_renderer->ResetAPIState();  // reset any game specific settings
 
   const D3D11_VIEWPORT vp = CD3D11_VIEWPORT(float(dstrect.left), float(dstrect.top),
@@ -188,8 +155,140 @@ void DXTexture::CopyRectangleFromTexture(const AbstractTexture* source,
 void DXTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8* buffer,
                      size_t buffer_size)
 {
-  size_t src_pitch = CalculateHostTextureLevelPitch(m_config.format, row_length);
+  size_t src_pitch = CalculateStrideForFormat(m_config.format, row_length);
   D3D::context->UpdateSubresource(m_texture->GetTex(), level, nullptr, buffer,
                                   static_cast<UINT>(src_pitch), 0);
 }
+
+DXStagingTexture::DXStagingTexture(StagingTextureType type, const TextureConfig& config,
+                                   ID3D11Texture2D* tex)
+    : AbstractStagingTexture(type, config), m_tex(tex)
+{
+}
+
+DXStagingTexture::~DXStagingTexture()
+{
+  if (IsMapped())
+    DXStagingTexture::Unmap();
+  SAFE_RELEASE(m_tex);
+}
+
+std::unique_ptr<DXStagingTexture> DXStagingTexture::Create(StagingTextureType type,
+                                                           const TextureConfig& config)
+{
+  D3D11_USAGE usage;
+  UINT cpu_flags;
+  if (type == StagingTextureType::Readback)
+  {
+    usage = D3D11_USAGE_STAGING;
+    cpu_flags = D3D11_CPU_ACCESS_READ;
+  }
+  else if (type == StagingTextureType::Upload)
+  {
+    usage = D3D11_USAGE_DYNAMIC;
+    cpu_flags = D3D11_CPU_ACCESS_WRITE;
+  }
+  else
+  {
+    usage = D3D11_USAGE_STAGING;
+    cpu_flags = D3D11_CPU_ACCESS_READ | D3D11_CPU_ACCESS_WRITE;
+  }
+
+  CD3D11_TEXTURE2D_DESC desc(GetDXGIFormatForHostFormat(config.format), config.width, config.height,
+                             1, 1, 0, usage, cpu_flags);
+
+  ID3D11Texture2D* texture;
+  HRESULT hr = D3D::device->CreateTexture2D(&desc, nullptr, &texture);
+  CHECK(SUCCEEDED(hr), "Create staging texture");
+  if (FAILED(hr))
+    return nullptr;
+
+  return std::unique_ptr<DXStagingTexture>(new DXStagingTexture(type, config, texture));
+}
+
+void DXStagingTexture::CopyFromTexture(const AbstractTexture* src,
+                                       const MathUtil::Rectangle<int>& src_rect, u32 src_layer,
+                                       u32 src_level, const MathUtil::Rectangle<int>& dst_rect)
+{
+  _assert_(m_type == StagingTextureType::Readback);
+  _assert_(src_rect.GetWidth() == dst_rect.GetWidth() &&
+           src_rect.GetHeight() == dst_rect.GetHeight());
+  _assert_(src_rect.left >= 0 && static_cast<u32>(src_rect.right) <= src->GetConfig().width &&
+           src_rect.top >= 0 && static_cast<u32>(src_rect.bottom) <= src->GetConfig().height);
+  _assert_(dst_rect.left >= 0 && static_cast<u32>(dst_rect.right) <= m_config.width &&
+           dst_rect.top >= 0 && static_cast<u32>(dst_rect.bottom) <= m_config.height);
+
+  if (IsMapped())
+    DXStagingTexture::Unmap();
+
+  CD3D11_BOX src_box(src_rect.left, src_rect.top, 0, src_rect.right, src_rect.bottom, 1);
+  D3D::context->CopySubresourceRegion(
+      m_tex, 0, static_cast<u32>(dst_rect.left), static_cast<u32>(dst_rect.top), 0,
+      static_cast<const DXTexture*>(src)->GetRawTexIdentifier()->GetTex(),
+      D3D11CalcSubresource(src_level, src_layer, src->GetConfig().levels), &src_box);
+
+  m_needs_flush = true;
+}
+
+void DXStagingTexture::CopyToTexture(const MathUtil::Rectangle<int>& src_rect, AbstractTexture* dst,
+                                     const MathUtil::Rectangle<int>& dst_rect, u32 dst_layer,
+                                     u32 dst_level)
+{
+  _assert_(m_type == StagingTextureType::Upload);
+  _assert_(src_rect.GetWidth() == dst_rect.GetWidth() &&
+           src_rect.GetHeight() == dst_rect.GetHeight());
+  _assert_(src_rect.left >= 0 && static_cast<u32>(src_rect.right) <= m_config.width &&
+           src_rect.top >= 0 && static_cast<u32>(src_rect.bottom) <= m_config.height);
+  _assert_(dst_rect.left >= 0 && static_cast<u32>(dst_rect.right) <= dst->GetConfig().width &&
+           dst_rect.top >= 0 && static_cast<u32>(dst_rect.bottom) <= dst->GetConfig().height);
+
+  if (IsMapped())
+    DXStagingTexture::Unmap();
+
+  CD3D11_BOX src_box(src_rect.left, src_rect.top, 0, src_rect.right, src_rect.bottom, 1);
+  D3D::context->CopySubresourceRegion(
+      static_cast<const DXTexture*>(dst)->GetRawTexIdentifier()->GetTex(),
+      D3D11CalcSubresource(dst_level, dst_layer, dst->GetConfig().levels),
+      static_cast<u32>(dst_rect.left), static_cast<u32>(dst_rect.top), 0, m_tex, 0, &src_box);
+}
+
+bool DXStagingTexture::Map()
+{
+  if (m_map_pointer)
+    return true;
+
+  D3D11_MAP map_type;
+  if (m_type == StagingTextureType::Readback)
+    map_type = D3D11_MAP_READ;
+  else if (m_type == StagingTextureType::Upload)
+    map_type = D3D11_MAP_WRITE;
+  else
+    map_type = D3D11_MAP_READ_WRITE;
+
+  D3D11_MAPPED_SUBRESOURCE sr;
+  HRESULT hr = D3D::context->Map(m_tex, 0, map_type, 0, &sr);
+  CHECK(SUCCEEDED(hr), "Map readback texture");
+  if (FAILED(hr))
+    return false;
+
+  m_map_pointer = reinterpret_cast<char*>(sr.pData);
+  m_map_stride = sr.RowPitch;
+  return true;
+}
+
+void DXStagingTexture::Unmap()
+{
+  if (!m_map_pointer)
+    return;
+
+  D3D::context->Unmap(m_tex, 0);
+  m_map_pointer = nullptr;
+}
+
+void DXStagingTexture::Flush()
+{
+  // Flushing is handled by the API.
+  m_needs_flush = false;
+}
+
 }  // namespace DX11

@@ -4,6 +4,8 @@
 
 #include "DolphinQt2/MenuBar.h"
 
+#include <cinttypes>
+
 #include <QAction>
 #include <QDesktopServices>
 #include <QFileDialog>
@@ -13,6 +15,8 @@
 
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
+#include "Common/StringUtil.h"
+
 #include "Core/CommonTitles.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -22,7 +26,12 @@
 #include "Core/IOS/IOS.h"
 #include "Core/Movie.h"
 #include "Core/State.h"
+#include "Core/TitleDatabase.h"
+#include "Core/WiiUtils.h"
+
 #include "DiscIO/NANDImporter.h"
+#include "DiscIO/WiiSaveBanner.h"
+
 #include "DolphinQt2/AboutDialog.h"
 #include "DolphinQt2/GameList/GameFile.h"
 #include "DolphinQt2/QtUtils/ActionHelper.h"
@@ -107,14 +116,16 @@ void MenuBar::AddToolsMenu()
       AddAction(gc_ipl, tr("PAL"), this, [this] { emit BootGameCubeIPL(DiscIO::Region::PAL); });
 
   AddAction(tools_menu, tr("Start &NetPlay..."), this, &MenuBar::StartNetPlay);
+  AddAction(tools_menu, tr("FIFO Player"), this, &MenuBar::ShowFIFOPlayer);
+
   tools_menu->addSeparator();
 
   // Label will be set by a NANDRefresh later
   m_boot_sysmenu =
       AddAction(tools_menu, QStringLiteral(""), this, [this] { emit BootWiiSystemMenu(); });
-  m_import_backup = AddAction(gc_ipl, tr("Import BootMii NAND Backup..."), this,
+  m_import_backup = AddAction(tools_menu, tr("Import BootMii NAND Backup..."), this,
                               [this] { emit ImportNANDBackup(); });
-
+  m_check_nand = AddAction(tools_menu, tr("Check NAND..."), this, &MenuBar::CheckNAND);
   m_extract_certificates = AddAction(tools_menu, tr("Extract Certificates from NAND"), this,
                                      &MenuBar::NANDExtractCertificates);
 
@@ -397,9 +408,9 @@ void MenuBar::AddMovieMenu()
 {
   auto* movie_menu = addMenu(tr("&Movie"));
   m_recording_start =
-      AddAction(movie_menu, tr("Start Recording Input"), this, [this] { emit StartRecording(); });
+      AddAction(movie_menu, tr("Start Re&cording Input"), this, [this] { emit StartRecording(); });
   m_recording_play =
-      AddAction(movie_menu, tr("Play Input Recording..."), this, [this] { emit PlayRecording(); });
+      AddAction(movie_menu, tr("P&lay Input Recording..."), this, [this] { emit PlayRecording(); });
   m_recording_stop = AddAction(movie_menu, tr("Stop Playing/Recording Input"), this,
                                [this] { emit StopRecording(); });
   m_recording_export =
@@ -410,7 +421,7 @@ void MenuBar::AddMovieMenu()
   m_recording_stop->setEnabled(false);
   m_recording_export->setEnabled(false);
 
-  m_recording_read_only = movie_menu->addAction(tr("Read-Only Mode"));
+  m_recording_read_only = movie_menu->addAction(tr("&Read-Only Mode"));
   m_recording_read_only->setCheckable(true);
   m_recording_read_only->setChecked(Movie::IsReadOnly());
   connect(m_recording_read_only, &QAction::toggled, [](bool value) { Movie::SetReadOnly(value); });
@@ -473,6 +484,7 @@ void MenuBar::UpdateToolsMenu(bool emulation_started)
   m_pal_ipl->setEnabled(!emulation_started &&
                         File::Exists(SConfig::GetInstance().GetBootROMPath(EUR_DIR)));
   m_import_backup->setEnabled(!emulation_started);
+  m_check_nand->setEnabled(!emulation_started);
 
   if (!emulation_started)
   {
@@ -530,6 +542,69 @@ void MenuBar::ImportWiiSave()
 void MenuBar::ExportWiiSaves()
 {
   CWiiSaveCrypted::ExportAllSaves();
+}
+
+void MenuBar::CheckNAND()
+{
+  IOS::HLE::Kernel ios;
+  WiiUtils::NANDCheckResult result = WiiUtils::CheckNAND(ios);
+  if (!result.bad)
+  {
+    QMessageBox::information(this, tr("NAND Check"), tr("No issues have been detected."));
+    return;
+  }
+
+  QString message = tr("The emulated NAND is damaged. System titles such as the Wii Menu and "
+                       "the Wii Shop Channel may not work correctly.\n\n"
+                       "Do you want to try to repair the NAND?");
+  if (!result.titles_to_remove.empty())
+  {
+    std::string title_listings;
+    Core::TitleDatabase title_db;
+    for (const u64 title_id : result.titles_to_remove)
+    {
+      title_listings += StringFromFormat("%016" PRIx64, title_id);
+
+      const std::string database_name = title_db.GetChannelName(title_id);
+      if (!database_name.empty())
+      {
+        title_listings += " - " + database_name;
+      }
+      else
+      {
+        DiscIO::WiiSaveBanner banner(title_id);
+        if (banner.IsValid())
+        {
+          title_listings += " - " + banner.GetName();
+          const std::string description = banner.GetDescription();
+          if (!StripSpaces(description).empty())
+            title_listings += " - " + description;
+        }
+      }
+
+      title_listings += "\n";
+    }
+
+    message += tr("\n\nWARNING: Fixing this NAND requires the deletion of titles that have "
+                  "incomplete data on the NAND, including all associated save data. "
+                  "By continuing, the following title(s) will be removed:\n\n"
+                  "%1"
+                  "\nLaunching these titles may also fix the issues.")
+                   .arg(QString::fromStdString(title_listings));
+  }
+
+  if (QMessageBox::question(this, tr("NAND Check"), message) != QMessageBox::Yes)
+    return;
+
+  if (WiiUtils::RepairNAND(ios))
+  {
+    QMessageBox::information(this, tr("NAND Check"), tr("The NAND has been repaired."));
+    return;
+  }
+
+  QMessageBox::critical(this, tr("NAND Check"),
+                        tr("The NAND could not be repaired. It is recommended to back up "
+                           "your current data and start over with a fresh NAND."));
 }
 
 void MenuBar::NANDExtractCertificates()

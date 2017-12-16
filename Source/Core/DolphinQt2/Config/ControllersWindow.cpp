@@ -28,6 +28,7 @@
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/USB/Bluetooth/BTReal.h"
 #include "Core/NetPlayProto.h"
+#include "DolphinQt2/Config/Mapping/GCPadWiiUConfigDialog.h"
 #include "DolphinQt2/Config/Mapping/MappingWindow.h"
 #include "DolphinQt2/Settings.h"
 #include "UICommon/UICommon.h"
@@ -78,12 +79,6 @@ ControllersWindow::ControllersWindow(QWidget* parent) : QDialog(parent)
   CreateMainLayout();
   LoadSettings();
   ConnectWidgets();
-
-  for (size_t i = 0; i < m_gc_mappings.size(); i++)
-    m_gc_mappings[i] = new MappingWindow(this, static_cast<int>(i));
-
-  for (size_t i = 0; i < m_wiimote_mappings.size(); i++)
-    m_wiimote_mappings[i] = new MappingWindow(this, static_cast<int>(i));
 }
 
 void ControllersWindow::CreateGamecubeLayout()
@@ -423,8 +418,8 @@ void ControllersWindow::OnGCPadConfigure()
     type = MappingWindow::Type::MAPPING_GCPAD;
     break;
   case 2:  // GameCube Adapter for Wii U
-    type = MappingWindow::Type::MAPPING_GCPAD_WIIU;
-    break;
+    GCPadWiiUConfigDialog(static_cast<int>(index), this).exec();
+    return;
   case 3:  // Steering Wheel
     type = MappingWindow::Type::MAPPING_GC_STEERINGWHEEL;
     break;
@@ -440,8 +435,8 @@ void ControllersWindow::OnGCPadConfigure()
   default:
     return;
   }
-  m_gc_mappings[index]->ChangeMappingType(type);
-  m_gc_mappings[index]->exec();
+
+  MappingWindow(this, type, static_cast<int>(index)).exec();
 }
 
 void ControllersWindow::OnWiimoteConfigure()
@@ -468,8 +463,8 @@ void ControllersWindow::OnWiimoteConfigure()
   default:
     return;
   }
-  m_wiimote_mappings[index]->ChangeMappingType(type);
-  m_wiimote_mappings[index]->exec();
+
+  MappingWindow(this, type, static_cast<int>(index)).exec();
 }
 
 void ControllersWindow::UnimplementedButton()

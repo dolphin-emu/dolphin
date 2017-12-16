@@ -29,7 +29,6 @@ private:
   void AddDescriptions();
 
   QComboBox* m_backend_combo;
-  QCheckBox* m_bypass_xfb;
   QCheckBox* m_enable_statistics;
   QCheckBox* m_dump_textures;
   QCheckBox* m_dump_objects;

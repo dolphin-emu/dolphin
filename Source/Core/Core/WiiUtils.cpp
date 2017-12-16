@@ -29,6 +29,7 @@
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
+#include "Common/SysConf.h"
 #include "Core/CommonTitles.h"
 #include "Core/ConfigManager.h"
 #include "Core/IOS/Device.h"
@@ -38,7 +39,6 @@
 #include "DiscIO/DiscExtractor.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/Filesystem.h"
-#include "DiscIO/NANDContentLoader.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeFileBlobReader.h"
 #include "DiscIO/VolumeWii.h"
@@ -46,7 +46,7 @@
 
 namespace WiiUtils
 {
-static bool InstallWAD(IOS::HLE::Kernel& ios, const DiscIO::WiiWAD& wad)
+static bool ImportWAD(IOS::HLE::Kernel& ios, const DiscIO::WiiWAD& wad)
 {
   if (!wad.IsValid())
   {
@@ -65,7 +65,8 @@ static bool InstallWAD(IOS::HLE::Kernel& ios, const DiscIO::WiiWAD& wad)
   // Ensure the common key index is correct, as it's checked by IOS.
   ticket.FixCommonKeyIndex();
 
-  while ((ret = es->ImportTicket(ticket.GetBytes(), wad.GetCertificateChain())) < 0 ||
+  while ((ret = es->ImportTicket(ticket.GetBytes(), wad.GetCertificateChain(),
+                                 IOS::HLE::Device::ES::TicketImportType::Unpersonalised)) < 0 ||
          (ret = es->ImportTitleInit(context, tmd.GetBytes(), wad.GetCertificateChain())) < 0)
   {
     if (checks_enabled && ret == IOS::HLE::IOSC_FAIL_CHECKVALUE &&
@@ -75,8 +76,9 @@ static bool InstallWAD(IOS::HLE::Kernel& ios, const DiscIO::WiiWAD& wad)
       continue;
     }
 
+    if (ret != IOS::HLE::IOSC_FAIL_CHECKVALUE)
+      PanicAlertT("WAD installation failed: Could not initialise title import (error %d).", ret);
     SConfig::GetInstance().m_enable_signature_checks = checks_enabled;
-    PanicAlertT("WAD installation failed: Could not initialise title import.");
     return false;
   }
   SConfig::GetInstance().m_enable_signature_checks = checks_enabled;
@@ -108,14 +110,54 @@ static bool InstallWAD(IOS::HLE::Kernel& ios, const DiscIO::WiiWAD& wad)
   return true;
 }
 
+bool InstallWAD(IOS::HLE::Kernel& ios, const DiscIO::WiiWAD& wad, InstallType install_type)
+{
+  if (!wad.GetTMD().IsValid())
+    return false;
+
+  // Skip the install if the WAD is already installed.
+  const auto installed_contents = ios.GetES()->GetStoredContentsFromTMD(wad.GetTMD());
+  if (wad.GetTMD().GetContents() == installed_contents)
+    return true;
+
+  // If a different version is currently installed, warn the user to make sure
+  // they don't overwrite the current version by mistake.
+  const u64 title_id = wad.GetTMD().GetTitleId();
+  const IOS::ES::TMDReader installed_tmd = ios.GetES()->FindInstalledTMD(title_id);
+  const bool has_another_version =
+      installed_tmd.IsValid() && installed_tmd.GetTitleVersion() != wad.GetTMD().GetTitleVersion();
+  if (has_another_version &&
+      !AskYesNoT("A different version of this title is already installed on the NAND.\n\n"
+                 "Installed version: %u\nWAD version: %u\n\n"
+                 "Installing this WAD will replace it irreversibly. Continue?",
+                 installed_tmd.GetTitleVersion(), wad.GetTMD().GetTitleVersion()))
+  {
+    return false;
+  }
+
+  // Delete a previous temporary title, if it exists.
+  SysConf sysconf{Common::FROM_SESSION_ROOT};
+  SysConf::Entry* tid_entry = sysconf.GetOrAddEntry("IPL.TID", SysConf::Entry::Type::LongLong);
+  if (const u64 previous_temporary_title_id = Common::swap64(tid_entry->GetData<u64>(0)))
+    ios.GetES()->DeleteTitleContent(previous_temporary_title_id);
+
+  if (!ImportWAD(ios, wad))
+    return false;
+
+  // Keep track of the title ID so this title can be removed to make room for any future install.
+  // We use the same mechanism as the System Menu for temporary SD card title data.
+  if (!has_another_version && install_type == InstallType::Temporary)
+    tid_entry->SetData<u64>(Common::swap64(title_id));
+  else
+    tid_entry->SetData<u64>(0);
+
+  return true;
+}
+
 bool InstallWAD(const std::string& wad_path)
 {
   IOS::HLE::Kernel ios;
-  const DiscIO::WiiWAD wad{wad_path};
-  const bool result = InstallWAD(ios, wad);
-
-  DiscIO::NANDContentManager::Access().ClearCache();
-  return result;
+  return InstallWAD(ios, DiscIO::WiiWAD{wad_path}, InstallType::Permanent);
 }
 
 // Common functionality for system updaters.
@@ -519,7 +561,7 @@ public:
   UpdateResult DoDiscUpdate();
 
 private:
-#pragma pack(push, 8)
+#pragma pack(push, 1)
   struct ManifestHeader
   {
     char timestamp[0x10];  // YYYY/MM/DD
@@ -539,9 +581,10 @@ private:
     char path[0x40];
     u64 title_id;
     u16 title_version;
+    u16 unused1[3];
     char name[0x40];
     char info[0x40];
-    u8 unused[0x120];
+    u8 unused2[0x120];
   };
   static_assert(sizeof(Entry) == 512, "Wrong size");
 #pragma pack(pop)
@@ -647,7 +690,7 @@ UpdateResult DiscSystemUpdater::ProcessEntry(u32 type, std::bitset<32> attrs,
     return UpdateResult::AlreadyUpToDate;
 
   const IOS::ES::TMDReader tmd = m_ios.GetES()->FindInstalledTMD(title.id);
-  const IOS::ES::TicketReader ticket = DiscIO::FindSignedTicket(title.id);
+  const IOS::ES::TicketReader ticket = m_ios.GetES()->FindSignedTicket(title.id);
 
   // Optional titles can be skipped if the ticket is present, even when the title isn't installed.
   if (attrs.test(16) && ticket.IsValid())
@@ -666,22 +709,115 @@ UpdateResult DiscSystemUpdater::ProcessEntry(u32 type, std::bitset<32> attrs,
     return UpdateResult::DiscReadFailed;
   }
   const DiscIO::WiiWAD wad{std::move(blob)};
-  return InstallWAD(m_ios, wad) ? UpdateResult::Succeeded : UpdateResult::ImportFailed;
+  return ImportWAD(m_ios, wad) ? UpdateResult::Succeeded : UpdateResult::ImportFailed;
 }
 
 UpdateResult DoOnlineUpdate(UpdateCallback update_callback, const std::string& region)
 {
   OnlineSystemUpdater updater{std::move(update_callback), region};
-  const UpdateResult result = updater.DoOnlineUpdate();
-  DiscIO::NANDContentManager::Access().ClearCache();
-  return result;
+  return updater.DoOnlineUpdate();
 }
 
 UpdateResult DoDiscUpdate(UpdateCallback update_callback, const std::string& image_path)
 {
   DiscSystemUpdater updater{std::move(update_callback), image_path};
-  const UpdateResult result = updater.DoDiscUpdate();
-  DiscIO::NANDContentManager::Access().ClearCache();
+  return updater.DoDiscUpdate();
+}
+
+static NANDCheckResult CheckNAND(IOS::HLE::Kernel& ios, bool repair)
+{
+  NANDCheckResult result;
+  const auto es = ios.GetES();
+
+  // Check for NANDs that were used with old Dolphin versions.
+  const std::string sys_replace_path =
+      Common::RootUserPath(Common::FROM_CONFIGURED_ROOT) + "/sys/replace";
+  if (File::Exists(sys_replace_path))
+  {
+    ERROR_LOG(CORE, "CheckNAND: NAND was used with old versions, so it is likely to be damaged");
+    if (repair)
+      File::Delete(sys_replace_path);
+    else
+      result.bad = true;
+  }
+
+  for (const u64 title_id : es->GetInstalledTitles())
+  {
+    const std::string title_dir = Common::GetTitlePath(title_id, Common::FROM_CONFIGURED_ROOT);
+    const std::string content_dir = title_dir + "/content";
+    const std::string data_dir = title_dir + "/data";
+
+    // Check for missing title sub directories.
+    for (const std::string& dir : {content_dir, data_dir})
+    {
+      if (File::IsDirectory(dir))
+        continue;
+
+      ERROR_LOG(CORE, "CheckNAND: Missing dir %s for title %016" PRIx64, dir.c_str(), title_id);
+      if (repair)
+        File::CreateDir(dir);
+      else
+        result.bad = true;
+    }
+
+    // Check for incomplete title installs (missing ticket, TMD or contents).
+    const auto ticket = es->FindSignedTicket(title_id);
+    if (!IOS::ES::IsDiscTitle(title_id) && !ticket.IsValid())
+    {
+      ERROR_LOG(CORE, "CheckNAND: Missing ticket for title %016" PRIx64, title_id);
+      result.titles_to_remove.insert(title_id);
+      if (repair)
+        File::DeleteDirRecursively(title_dir);
+      else
+        result.bad = true;
+    }
+
+    const auto tmd = es->FindInstalledTMD(title_id);
+    if (!tmd.IsValid())
+    {
+      if (File::ScanDirectoryTree(content_dir, false).children.empty())
+      {
+        WARN_LOG(CORE, "CheckNAND: Missing TMD for title %016" PRIx64, title_id);
+      }
+      else
+      {
+        ERROR_LOG(CORE, "CheckNAND: Missing TMD for title %016" PRIx64, title_id);
+        result.titles_to_remove.insert(title_id);
+        if (repair)
+          File::DeleteDirRecursively(title_dir);
+        else
+          result.bad = true;
+      }
+      // Further checks require the TMD to be valid.
+      continue;
+    }
+
+    const auto installed_contents = es->GetStoredContentsFromTMD(tmd);
+    const bool is_installed = std::any_of(installed_contents.begin(), installed_contents.end(),
+                                          [](const auto& content) { return !content.IsShared(); });
+
+    if (is_installed && installed_contents != tmd.GetContents() &&
+        (tmd.GetTitleFlags() & IOS::ES::TitleFlags::TITLE_TYPE_DATA) == 0)
+    {
+      ERROR_LOG(CORE, "CheckNAND: Missing contents for title %016" PRIx64, title_id);
+      result.titles_to_remove.insert(title_id);
+      if (repair)
+        File::DeleteDirRecursively(title_dir);
+      else
+        result.bad = true;
+    }
+  }
+
   return result;
+}
+
+NANDCheckResult CheckNAND(IOS::HLE::Kernel& ios)
+{
+  return CheckNAND(ios, false);
+}
+
+bool RepairNAND(IOS::HLE::Kernel& ios)
+{
+  return !CheckNAND(ios, true).bad;
 }
 }

@@ -207,3 +207,8 @@ void LogWidget::Log(LogTypes::LOG_LEVELS level, const char* text)
                             QString::fromStdString(color),
                             QString::fromStdString(std::string(text).substr(TIMESTAMP_LENGTH))));
 }
+
+void LogWidget::closeEvent(QCloseEvent*)
+{
+  Settings::Instance().SetLogVisible(false);
+}

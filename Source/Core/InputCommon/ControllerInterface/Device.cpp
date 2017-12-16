@@ -2,12 +2,14 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "InputCommon/ControllerInterface/Device.h"
+
 #include <memory>
 #include <sstream>
 #include <string>
 #include <tuple>
 
-#include "InputCommon/ControllerInterface/Device.h"
+#include "Common/StringUtil.h"
 
 namespace ciface
 {
@@ -37,6 +39,11 @@ void Device::AddInput(Device::Input* const i)
 void Device::AddOutput(Device::Output* const o)
 {
   m_outputs.push_back(o);
+}
+
+std::string Device::GetQualifiedName() const
+{
+  return StringFromFormat("%s/%i/%s", this->GetSource().c_str(), GetId(), this->GetName().c_str());
 }
 
 Device::Input* Device::FindInput(const std::string& name) const
@@ -87,15 +94,17 @@ std::string DeviceQualifier::ToString() const
 //
 void DeviceQualifier::FromString(const std::string& str)
 {
+  *this = {};
+
   std::istringstream ss(str);
 
-  std::getline(ss, source = "", '/');
+  std::getline(ss, source, '/');
 
   // silly
   std::getline(ss, name, '/');
-  std::istringstream(name) >> (cid = -1);
+  std::istringstream(name) >> cid;
 
-  std::getline(ss, name = "");
+  std::getline(ss, name);
 }
 
 //
@@ -198,6 +207,12 @@ Device::Input* DeviceContainer::FindInput(const std::string& name, const Device*
 Device::Output* DeviceContainer::FindOutput(const std::string& name, const Device* def_dev) const
 {
   return def_dev->FindOutput(name);
+}
+
+bool DeviceContainer::HasConnectedDevice(const DeviceQualifier& qualifier) const
+{
+  const auto device = FindDevice(qualifier);
+  return device != nullptr && device->IsValid();
 }
 }
 }

@@ -14,7 +14,7 @@
 
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/FramebufferManager.h"
-#include "VideoBackends/Vulkan/StagingTexture2D.h"
+#include "VideoBackends/Vulkan/StagingBuffer.h"
 #include "VideoBackends/Vulkan/StateTracker.h"
 #include "VideoBackends/Vulkan/Texture2D.h"
 #include "VideoBackends/Vulkan/Util.h"
@@ -113,64 +113,13 @@ void VKTexture::Bind(unsigned int stage)
   StateTracker::GetInstance()->SetTexture(stage, m_texture->GetView());
 }
 
-bool VKTexture::Save(const std::string& filename, unsigned int level)
+void VKTexture::CopyRectangleFromTexture(const AbstractTexture* src,
+                                         const MathUtil::Rectangle<int>& src_rect, u32 src_layer,
+                                         u32 src_level, const MathUtil::Rectangle<int>& dst_rect,
+                                         u32 dst_layer, u32 dst_level)
 {
-  _assert_(level < m_config.levels);
+  Texture2D* src_texture = static_cast<const VKTexture*>(src)->GetRawTexIdentifier();
 
-  // We can't dump compressed textures currently (it would mean drawing them to a RGBA8
-  // framebuffer, and saving that). TextureCache does not call Save for custom textures
-  // anyway, so this is fine for now.
-  _assert_(m_config.format == AbstractTextureFormat::RGBA8);
-
-  // Determine dimensions of image we want to save.
-  u32 level_width = std::max(1u, m_config.width >> level);
-  u32 level_height = std::max(1u, m_config.height >> level);
-
-  // Use a temporary staging texture for the download. Certainly not optimal,
-  // but since we have to idle the GPU anyway it doesn't really matter.
-  std::unique_ptr<StagingTexture2D> staging_texture = StagingTexture2D::Create(
-      STAGING_BUFFER_TYPE_READBACK, level_width, level_height, TEXTURECACHE_TEXTURE_FORMAT);
-
-  // Transition image to transfer source, and invalidate the current state,
-  // since we'll be executing the command buffer.
-  m_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                                VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-  StateTracker::GetInstance()->EndRenderPass();
-
-  // Copy to download buffer.
-  staging_texture->CopyFromImage(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                                 m_texture->GetImage(), VK_IMAGE_ASPECT_COLOR_BIT, 0, 0,
-                                 level_width, level_height, level, 0);
-
-  // Restore original state of texture.
-  m_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                                VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-
-  // Block until the GPU has finished copying to the staging texture.
-  Util::ExecuteCurrentCommandsAndRestoreState(false, true);
-
-  // Map the staging texture so we can copy the contents out.
-  if (!staging_texture->Map())
-  {
-    PanicAlert("Failed to map staging texture");
-    return false;
-  }
-
-  // Write texture out to file.
-  // It's okay to throw this texture away immediately, since we're done with it, and
-  // we blocked until the copy completed on the GPU anyway.
-  bool result = TextureToPng(reinterpret_cast<u8*>(staging_texture->GetMapPointer()),
-                             static_cast<u32>(staging_texture->GetRowStride()), filename,
-                             level_width, level_height);
-
-  staging_texture->Unmap();
-  return result;
-}
-
-void VKTexture::CopyTextureRectangle(const MathUtil::Rectangle<int>& dst_rect,
-                                     Texture2D* src_texture,
-                                     const MathUtil::Rectangle<int>& src_rect)
-{
   _assert_msg_(VIDEO, static_cast<u32>(src_rect.GetWidth()) <= src_texture->GetWidth() &&
                           static_cast<u32>(src_rect.GetHeight()) <= src_texture->GetHeight(),
                "Source rect is too large for CopyRectangleFromTexture");
@@ -180,15 +129,11 @@ void VKTexture::CopyTextureRectangle(const MathUtil::Rectangle<int>& dst_rect,
                "Dest rect is too large for CopyRectangleFromTexture");
 
   VkImageCopy image_copy = {
-      {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0,
-       src_texture->GetLayers()},        // VkImageSubresourceLayers    srcSubresource
-      {src_rect.left, src_rect.top, 0},  // VkOffset3D                  srcOffset
-      {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0,  // VkImageSubresourceLayers    dstSubresource
-       m_config.layers},
-      {dst_rect.left, dst_rect.top, 0},  // VkOffset3D                  dstOffset
-      {static_cast<uint32_t>(src_rect.GetWidth()), static_cast<uint32_t>(src_rect.GetHeight()),
-       1}  // VkExtent3D                  extent
-  };
+      {VK_IMAGE_ASPECT_COLOR_BIT, src_level, src_layer, src_texture->GetLayers()},
+      {src_rect.left, src_rect.top, 0},
+      {VK_IMAGE_ASPECT_COLOR_BIT, dst_level, dst_layer, m_config.layers},
+      {dst_rect.left, dst_rect.top, 0},
+      {static_cast<uint32_t>(src_rect.GetWidth()), static_cast<uint32_t>(src_rect.GetHeight()), 1}};
 
   // Must be called outside of a render pass.
   StateTracker::GetInstance()->EndRenderPass();
@@ -201,12 +146,20 @@ void VKTexture::CopyTextureRectangle(const MathUtil::Rectangle<int>& dst_rect,
   vkCmdCopyImage(g_command_buffer_mgr->GetCurrentCommandBuffer(), src_texture->GetImage(),
                  VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, m_texture->GetImage(),
                  VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &image_copy);
+
+  // Ensure both textures remain in the SHADER_READ_ONLY layout so they can be bound.
+  src_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                  VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+  m_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 }
 
-void VKTexture::ScaleTextureRectangle(const MathUtil::Rectangle<int>& dst_rect,
-                                      Texture2D* src_texture,
-                                      const MathUtil::Rectangle<int>& src_rect)
+void VKTexture::ScaleRectangleFromTexture(const AbstractTexture* source,
+                                          const MathUtil::Rectangle<int>& src_rect,
+                                          const MathUtil::Rectangle<int>& dst_rect)
 {
+  Texture2D* src_texture = static_cast<const VKTexture*>(source)->GetRawTexIdentifier();
+
   // Can't do this within a game render pass.
   StateTracker::GetInstance()->EndRenderPass();
   StateTracker::GetInstance()->SetPendingRebind();
@@ -239,27 +192,10 @@ void VKTexture::ScaleTextureRectangle(const MathUtil::Rectangle<int>& dst_rect,
                 static_cast<int>(src_texture->GetWidth()),
                 static_cast<int>(src_texture->GetHeight()));
   draw.EndRenderPass();
-}
-
-void VKTexture::CopyRectangleFromTexture(const AbstractTexture* source,
-                                         const MathUtil::Rectangle<int>& srcrect,
-                                         const MathUtil::Rectangle<int>& dstrect)
-{
-  auto* raw_source_texture = static_cast<const VKTexture*>(source)->GetRawTexIdentifier();
-  CopyRectangleFromTexture(raw_source_texture, srcrect, dstrect);
-}
-
-void VKTexture::CopyRectangleFromTexture(Texture2D* source, const MathUtil::Rectangle<int>& srcrect,
-                                         const MathUtil::Rectangle<int>& dstrect)
-{
-  if (srcrect.GetWidth() == dstrect.GetWidth() && srcrect.GetHeight() == dstrect.GetHeight())
-    CopyTextureRectangle(dstrect, source, srcrect);
-  else
-    ScaleTextureRectangle(dstrect, source, srcrect);
 
   // Ensure both textures remain in the SHADER_READ_ONLY layout so they can be bound.
-  source->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                             VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+  src_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                  VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
   m_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                                 VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 }
@@ -295,7 +231,7 @@ void VKTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8*
   u32 upload_alignment = static_cast<u32>(g_vulkan_context->GetBufferImageGranularity());
   u32 block_size = Util::GetBlockSize(m_texture->GetFormat());
   u32 num_rows = Common::AlignUp(height, block_size) / block_size;
-  size_t source_pitch = CalculateHostTextureLevelPitch(m_config.format, row_length);
+  size_t source_pitch = CalculateStrideForFormat(m_config.format, row_length);
   size_t upload_size = source_pitch * num_rows;
   std::unique_ptr<StagingBuffer> temp_buffer;
   VkBuffer upload_buffer;
@@ -358,6 +294,226 @@ void VKTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8*
     m_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
                                   VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
   }
+}
+
+VKStagingTexture::VKStagingTexture(StagingTextureType type, const TextureConfig& config,
+                                   std::unique_ptr<StagingBuffer> buffer)
+    : AbstractStagingTexture(type, config), m_staging_buffer(std::move(buffer))
+{
+}
+
+VKStagingTexture::~VKStagingTexture()
+{
+  if (m_needs_flush)
+    VKStagingTexture::Flush();
+}
+
+std::unique_ptr<VKStagingTexture> VKStagingTexture::Create(StagingTextureType type,
+                                                           const TextureConfig& config)
+{
+  size_t stride = config.GetStride();
+  size_t buffer_size = stride * static_cast<size_t>(config.height);
+
+  STAGING_BUFFER_TYPE buffer_type;
+  VkImageUsageFlags buffer_usage;
+  if (type == StagingTextureType::Readback)
+  {
+    buffer_type = STAGING_BUFFER_TYPE_READBACK;
+    buffer_usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+  }
+  else if (type == StagingTextureType::Upload)
+  {
+    buffer_type = STAGING_BUFFER_TYPE_UPLOAD;
+    buffer_usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+  }
+  else
+  {
+    buffer_type = STAGING_BUFFER_TYPE_READBACK;
+    buffer_usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+  }
+
+  VkBuffer buffer;
+  VkDeviceMemory memory;
+  bool coherent;
+  if (!StagingBuffer::AllocateBuffer(buffer_type, buffer_size, buffer_usage, &buffer, &memory,
+                                     &coherent))
+  {
+    return nullptr;
+  }
+
+  std::unique_ptr<StagingBuffer> staging_buffer =
+      std::make_unique<StagingBuffer>(buffer_type, buffer, memory, buffer_size, coherent);
+  std::unique_ptr<VKStagingTexture> staging_tex = std::unique_ptr<VKStagingTexture>(
+      new VKStagingTexture(type, config, std::move(staging_buffer)));
+
+  // Use persistent mapping.
+  if (!staging_tex->m_staging_buffer->Map())
+    return nullptr;
+  staging_tex->m_map_pointer = staging_tex->m_staging_buffer->GetMapPointer();
+  staging_tex->m_map_stride = stride;
+  return staging_tex;
+}
+
+void VKStagingTexture::CopyFromTexture(const AbstractTexture* src,
+                                       const MathUtil::Rectangle<int>& src_rect, u32 src_layer,
+                                       u32 src_level, const MathUtil::Rectangle<int>& dst_rect)
+{
+  _assert_(m_type == StagingTextureType::Readback);
+  _assert_(src_rect.GetWidth() == dst_rect.GetWidth() &&
+           src_rect.GetHeight() == dst_rect.GetHeight());
+  _assert_(src_rect.left >= 0 && static_cast<u32>(src_rect.right) <= src->GetConfig().width &&
+           src_rect.top >= 0 && static_cast<u32>(src_rect.bottom) <= src->GetConfig().height);
+  _assert_(dst_rect.left >= 0 && static_cast<u32>(dst_rect.right) <= m_config.width &&
+           dst_rect.top >= 0 && static_cast<u32>(dst_rect.bottom) <= m_config.height);
+
+  Texture2D* src_tex = static_cast<const VKTexture*>(src)->GetRawTexIdentifier();
+  CopyFromTexture(src_tex, src_rect, src_layer, src_level, dst_rect);
+}
+
+void VKStagingTexture::CopyFromTexture(Texture2D* src, const MathUtil::Rectangle<int>& src_rect,
+                                       u32 src_layer, u32 src_level,
+                                       const MathUtil::Rectangle<int>& dst_rect)
+{
+  if (m_needs_flush)
+  {
+    // Drop copy before reusing it.
+    g_command_buffer_mgr->RemoveFencePointCallback(this);
+    m_flush_fence = VK_NULL_HANDLE;
+    m_needs_flush = false;
+  }
+
+  VkImageLayout old_layout = src->GetLayout();
+  src->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                          VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+
+  // Issue the image->buffer copy, but delay it for now.
+  VkBufferImageCopy image_copy = {};
+  VkImageAspectFlags aspect =
+      Util::IsDepthFormat(src->GetFormat()) ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
+  image_copy.bufferOffset =
+      static_cast<VkDeviceSize>(static_cast<size_t>(dst_rect.top) * m_config.GetStride() +
+                                static_cast<size_t>(dst_rect.left) * m_texel_size);
+  image_copy.bufferRowLength = static_cast<u32>(m_config.width);
+  image_copy.bufferImageHeight = 0;
+  image_copy.imageSubresource = {aspect, src_level, src_layer, 1};
+  image_copy.imageOffset = {src_rect.left, src_rect.top, 0};
+  image_copy.imageExtent = {static_cast<u32>(src_rect.GetWidth()),
+                            static_cast<u32>(src_rect.GetHeight()), 1u};
+  vkCmdCopyImageToBuffer(g_command_buffer_mgr->GetCurrentCommandBuffer(), src->GetImage(),
+                         VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, m_staging_buffer->GetBuffer(), 1,
+                         &image_copy);
+
+  // Restore old source texture layout.
+  src->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(), old_layout);
+
+  m_needs_flush = true;
+  g_command_buffer_mgr->AddFencePointCallback(this,
+                                              [this](VkCommandBuffer buf, VkFence fence) {
+                                                _assert_(m_needs_flush);
+                                                m_flush_fence = fence;
+                                              },
+                                              [this](VkFence fence) {
+                                                m_flush_fence = VK_NULL_HANDLE;
+                                                m_needs_flush = false;
+                                                g_command_buffer_mgr->RemoveFencePointCallback(
+                                                    this);
+                                              });
+}
+
+void VKStagingTexture::CopyToTexture(const MathUtil::Rectangle<int>& src_rect, AbstractTexture* dst,
+                                     const MathUtil::Rectangle<int>& dst_rect, u32 dst_layer,
+                                     u32 dst_level)
+{
+  _assert_(m_type == StagingTextureType::Upload);
+  _assert_(src_rect.GetWidth() == dst_rect.GetWidth() &&
+           src_rect.GetHeight() == dst_rect.GetHeight());
+  _assert_(src_rect.left >= 0 && static_cast<u32>(src_rect.right) <= m_config.width &&
+           src_rect.top >= 0 && static_cast<u32>(src_rect.bottom) <= m_config.height);
+  _assert_(dst_rect.left >= 0 && static_cast<u32>(dst_rect.right) <= dst->GetConfig().width &&
+           dst_rect.top >= 0 && static_cast<u32>(dst_rect.bottom) <= dst->GetConfig().height);
+
+  if (m_needs_flush)
+  {
+    // Drop copy before reusing it.
+    g_command_buffer_mgr->RemoveFencePointCallback(this);
+    m_flush_fence = VK_NULL_HANDLE;
+    m_needs_flush = false;
+  }
+
+  // Flush caches before copying.
+  m_staging_buffer->FlushCPUCache();
+
+  Texture2D* dst_tex = static_cast<const VKTexture*>(dst)->GetRawTexIdentifier();
+  VkImageLayout old_layout = dst_tex->GetLayout();
+  dst_tex->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                              VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+
+  // Issue the image->buffer copy, but delay it for now.
+  VkBufferImageCopy image_copy = {};
+  image_copy.bufferOffset =
+      static_cast<VkDeviceSize>(static_cast<size_t>(src_rect.top) * m_config.GetStride() +
+                                static_cast<size_t>(src_rect.left) * m_texel_size);
+  image_copy.bufferRowLength = static_cast<u32>(m_config.width);
+  image_copy.bufferImageHeight = 0;
+  image_copy.imageSubresource = {VK_IMAGE_ASPECT_COLOR_BIT, dst_level, dst_layer, 1};
+  image_copy.imageOffset = {dst_rect.left, dst_rect.top, 0};
+  image_copy.imageExtent = {static_cast<u32>(dst_rect.GetWidth()),
+                            static_cast<u32>(dst_rect.GetHeight()), 1u};
+  vkCmdCopyBufferToImage(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                         m_staging_buffer->GetBuffer(), dst_tex->GetImage(),
+                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &image_copy);
+
+  // Restore old source texture layout.
+  dst_tex->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(), old_layout);
+
+  m_needs_flush = true;
+  g_command_buffer_mgr->AddFencePointCallback(this,
+                                              [this](VkCommandBuffer buf, VkFence fence) {
+                                                _assert_(m_needs_flush);
+                                                m_flush_fence = fence;
+                                              },
+                                              [this](VkFence fence) {
+                                                m_flush_fence = VK_NULL_HANDLE;
+                                                m_needs_flush = false;
+                                                g_command_buffer_mgr->RemoveFencePointCallback(
+                                                    this);
+                                              });
+}
+
+bool VKStagingTexture::Map()
+{
+  // Always mapped.
+  return true;
+}
+
+void VKStagingTexture::Unmap()
+{
+  // Always mapped.
+}
+
+void VKStagingTexture::Flush()
+{
+  if (!m_needs_flush)
+    return;
+
+  // Either of the below two calls will cause the callback to fire.
+  g_command_buffer_mgr->RemoveFencePointCallback(this);
+  if (m_flush_fence != VK_NULL_HANDLE)
+  {
+    // WaitForFence should fire the callback.
+    g_command_buffer_mgr->WaitForFence(m_flush_fence);
+  }
+  else
+  {
+    // We don't have a fence, and are pending. That means the readback is in the current
+    // command buffer, and must execute it to populate the staging texture.
+    Util::ExecuteCurrentCommandsAndRestoreState(false, true);
+  }
+  m_needs_flush = false;
+
+  // For readback textures, invalidate the CPU cache as there is new data there.
+  if (m_type == StagingTextureType::Readback)
+    m_staging_buffer->InvalidateCPUCache();
 }
 
 }  // namespace Vulkan

@@ -14,9 +14,9 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
-#include "Common/FifoQueue.h"
 #include "Common/Flag.h"
 #include "Common/HttpRequest.h"
+#include "Common/SPSCQueue.h"
 
 // Utilities for analytics reporting in Dolphin. This reporting is designed to
 // provide anonymous data about how well Dolphin performs in the wild. It also
@@ -157,7 +157,7 @@ protected:
   std::thread m_reporter_thread;
   Common::Event m_reporter_event;
   Common::Flag m_reporter_stop_request;
-  FifoQueue<std::string> m_reports_queue;
+  SPSCQueue<std::string> m_reports_queue;
 };
 
 // Analytics backend to be used for debugging purpose, which dumps reports to

@@ -24,7 +24,7 @@ const std::string hotkey_labels[] = {
     _trans("Open"),
     _trans("Change Disc"),
     _trans("Eject Disc"),
-    _trans("Refresh List"),
+    _trans("Refresh Game List"),
     _trans("Toggle Pause"),
     _trans("Stop"),
     _trans("Reset"),
@@ -48,7 +48,7 @@ const std::string hotkey_labels[] = {
     _trans("Start Recording"),
     _trans("Play Recording"),
     _trans("Export Recording"),
-    _trans("Read-only mode"),
+    _trans("Read-Only Mode"),
 
     _trans("Step Into"),
     _trans("Step Over"),
@@ -72,6 +72,8 @@ const std::string hotkey_labels[] = {
     _trans("Toggle Crop"),
     _trans("Toggle Aspect Ratio"),
     _trans("Toggle EFB Copies"),
+    _trans("Toggle XFB Copies"),
+    _trans("Toggle XFB Immediate Mode"),
     _trans("Toggle Fog"),
     _trans("Toggle Texture Dumping"),
     _trans("Toggle Custom Textures"),
@@ -92,8 +94,8 @@ const std::string hotkey_labels[] = {
     _trans("Freelook Zoom Out"),
     _trans("Freelook Reset"),
 
-    _trans("Toggle 3D Side-by-side"),
-    _trans("Toggle 3D Top-bottom"),
+    _trans("Toggle 3D Side-by-Side"),
+    _trans("Toggle 3D Top-Bottom"),
     _trans("Toggle 3D Anaglyph"),
     _trans("Toggle 3D Vision"),
     _trans("Decrease Depth"),
@@ -111,7 +113,7 @@ const std::string hotkey_labels[] = {
     _trans("Load State Slot 8"),
     _trans("Load State Slot 9"),
     _trans("Load State Slot 10"),
-    _trans("Load from selected slot"),
+    _trans("Load from Selected Slot"),
 
     _trans("Save State Slot 1"),
     _trans("Save State Slot 2"),
@@ -123,7 +125,7 @@ const std::string hotkey_labels[] = {
     _trans("Save State Slot 8"),
     _trans("Save State Slot 9"),
     _trans("Save State Slot 10"),
-    _trans("Save to selected slot"),
+    _trans("Save to Selected Slot"),
 
     _trans("Select State Slot 1"),
     _trans("Select State Slot 2"),
@@ -172,8 +174,6 @@ InputConfig* GetConfig()
 
 void GetStatus()
 {
-  s_hotkey.err = PAD_ERR_NONE;
-
   // Get input
   static_cast<HotkeyManager*>(s_config.GetController(0))->GetInput(&s_hotkey);
 }
@@ -213,7 +213,7 @@ void Initialize()
   if (s_config.ControllersNeedToBeCreated())
     s_config.CreateController<HotkeyManager>();
 
-  g_controller_interface.RegisterHotplugCallback(LoadConfig);
+  g_controller_interface.RegisterDevicesChangedCallback(LoadConfig);
 
   // load the saved controller config
   s_config.LoadConfig(true);

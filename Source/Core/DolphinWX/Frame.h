@@ -106,6 +106,7 @@ public:
   void StatusBarMessage(const char* format, ...);
   void ClearStatusBar();
   void BootGame(const std::string& filename);
+  void StartGame(std::unique_ptr<BootParameters> boot);
   bool RendererHasFocus();
   bool RendererIsFullscreen();
   void OpenGeneralConfiguration(wxWindowID tab_id = wxID_ANY);
@@ -193,7 +194,6 @@ private:
   void InitializeTASDialogs();
   void InitializeCoreCallbacks();
 
-  void StartGame(std::unique_ptr<BootParameters> boot);
   void SetDebuggerStartupParameters() const;
 
   // Utility
@@ -275,9 +275,6 @@ private:
 
   void OnUpdateInterpreterMenuItem(wxUpdateUIEvent& event);
 
-  void OnUpdateLoadWiiMenuItem(wxCommandEvent&);
-  void UpdateLoadWiiMenuItem() const;
-
   void OnOpen(wxCommandEvent& event);  // File menu
   void OnRefresh(wxCommandEvent& event);
   void OnBootDrive(wxCommandEvent& event);
@@ -348,6 +345,7 @@ private:
   void OnInstallWAD(wxCommandEvent& event);
   void OnUninstallWAD(wxCommandEvent& event);
   void OnImportBootMiiBackup(wxCommandEvent& event);
+  void OnCheckNAND(wxCommandEvent& event);
   void OnExtractCertificates(wxCommandEvent& event);
   void OnPerformOnlineWiiUpdate(wxCommandEvent& event);
   void OnPerformDiscWiiUpdate(wxCommandEvent& event);

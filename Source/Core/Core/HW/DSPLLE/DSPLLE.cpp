@@ -17,6 +17,7 @@
 #include "Common/Thread.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/DSP/DSPAccelerator.h"
 #include "Core/DSP/DSPCaptureLogger.h"
 #include "Core/DSP/DSPCore.h"
 #include "Core/DSP/DSPHWInterface.h"
@@ -71,6 +72,7 @@ void DSPLLE::DoState(PointerWrap& p)
 
   p.Do(g_dsp.step_counter);
   p.DoArray(g_dsp.ifx_regs);
+  g_dsp.accelerator->DoState(p);
   p.Do(g_dsp.mbox[0]);
   p.Do(g_dsp.mbox[1]);
   Common::UnWriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);

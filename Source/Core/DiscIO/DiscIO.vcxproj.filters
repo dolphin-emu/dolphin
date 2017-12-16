@@ -33,9 +33,6 @@
     <ClCompile Include="WiiWad.cpp">
       <Filter>NAND</Filter>
     </ClCompile>
-    <ClCompile Include="NANDContentLoader.cpp">
-      <Filter>NAND</Filter>
-    </ClCompile>
     <ClCompile Include="NANDImporter.cpp">
       <Filter>NAND</Filter>
     </ClCompile>
@@ -84,6 +81,9 @@
     <ClCompile Include="DiscExtractor.cpp">
       <Filter>DiscExtractor</Filter>
     </ClCompile>
+    <ClCompile Include="WiiSaveBanner.cpp">
+      <Filter>NAND</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DiscScrubber.h">
@@ -96,9 +96,6 @@
       <Filter>FileSystem</Filter>
     </ClInclude>
     <ClInclude Include="WiiWad.h">
-      <Filter>NAND</Filter>
-    </ClInclude>
-    <ClInclude Include="NANDContentLoader.h">
       <Filter>NAND</Filter>
     </ClInclude>
     <ClInclude Include="NANDImporter.h">
@@ -148,6 +145,9 @@
     </ClInclude>
     <ClInclude Include="DiscExtractor.h">
       <Filter>DiscExtractor</Filter>
+    </ClInclude>
+    <ClInclude Include="WiiSaveBanner.h">
+      <Filter>NAND</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

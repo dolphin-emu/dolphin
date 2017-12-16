@@ -155,8 +155,8 @@ set(SRCS
   IOS/DeviceStub.cpp
   IOS/IOS.cpp
   IOS/IOSC.cpp
-  IOS/MemoryValues.cpp
   IOS/MIOS.cpp
+  IOS/VersionInfo.cpp
   IOS/DI/DI.cpp
   IOS/ES/ES.cpp
   IOS/ES/Formats.cpp

@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
+import org.dolphinemu.dolphinemu.ui.platform.Platform;
 import org.dolphinemu.dolphinemu.utils.Log;
 
 import java.io.File;
@@ -77,6 +78,7 @@ public final class GameDatabase extends SQLiteOpenHelper
 			+ KEY_DB_ID + TYPE_PRIMARY + SEPARATOR
 			+ KEY_FOLDER_PATH + TYPE_STRING + CONSTRAINT_UNIQUE + ")";
 
+	private static final String SQL_DELETE_FOLDERS = "DROP TABLE IF EXISTS " + TABLE_NAME_FOLDERS;
 	private static final String SQL_DELETE_GAMES = "DROP TABLE IF EXISTS " + TABLE_NAME_GAMES;
 
 	public GameDatabase(Context context)
@@ -90,11 +92,19 @@ public final class GameDatabase extends SQLiteOpenHelper
 	{
 		Log.debug("[GameDatabase] GameDatabase - Creating database...");
 
-		Log.verbose("[GameDatabase] Executing SQL: " + SQL_CREATE_GAMES);
-		database.execSQL(SQL_CREATE_GAMES);
+		execSqlAndLog(database, SQL_CREATE_GAMES);
+		execSqlAndLog(database, SQL_CREATE_FOLDERS);
+	}
 
-		Log.verbose("[GameDatabase] Executing SQL: " + SQL_CREATE_FOLDERS);
-		database.execSQL(SQL_CREATE_FOLDERS);
+	@Override
+	public void onDowngrade(SQLiteDatabase database, int oldVersion, int newVersion)
+	{
+		Log.verbose("[GameDatabase] Downgrades not supporting, clearing databases..");
+		execSqlAndLog(database, SQL_DELETE_FOLDERS);
+		execSqlAndLog(database, SQL_CREATE_FOLDERS);
+
+		execSqlAndLog(database, SQL_DELETE_GAMES);
+		execSqlAndLog(database, SQL_CREATE_GAMES);
 	}
 
 	@Override
@@ -102,11 +112,9 @@ public final class GameDatabase extends SQLiteOpenHelper
 	{
 		Log.info("[GameDatabase] Upgrading database from schema version " + oldVersion + " to " + newVersion);
 
-		Log.verbose("[GameDatabase] Executing SQL: " + SQL_DELETE_GAMES);
-		database.execSQL(SQL_DELETE_GAMES);
-
-		Log.verbose("[GameDatabase] Executing SQL: " + SQL_CREATE_GAMES);
-		database.execSQL(SQL_CREATE_GAMES);
+		// Delete all the games
+		execSqlAndLog(database, SQL_DELETE_GAMES);
+		execSqlAndLog(database, SQL_CREATE_GAMES);
 
 		Log.verbose("[GameDatabase] Re-scanning library with new schema.");
 		scanLibrary(database);
@@ -200,12 +208,7 @@ public final class GameDatabase extends SQLiteOpenHelper
 									gameId = filePath.substring(filePath.lastIndexOf("/") + 1, filePath.lastIndexOf("."));
 								}
 
-								// If the game's platform field is empty, file under Wiiware. // TODO Something less dum
-								int platform = NativeLibrary.GetPlatform(filePath);
-								if (platform == -1)
-								{
-									platform = Game.PLATFORM_WII_WARE;
-								}
+								Platform platform = Platform.fromNativeInt(NativeLibrary.GetPlatform(filePath));
 
 								ContentValues game = Game.asContentValues(platform,
 										name,
@@ -257,31 +260,22 @@ public final class GameDatabase extends SQLiteOpenHelper
 		database.close();
 	}
 
-	public Observable<Cursor> getGamesForPlatform(final int platform)
+	public Observable<Cursor> getGamesForPlatform(final Platform platform)
 	{
 		return Observable.create(new Observable.OnSubscribe<Cursor>()
 		{
 			@Override
 			public void call(Subscriber<? super Cursor> subscriber)
 			{
-				Log.info("[GameDatabase] [GameDatabase] Reading games list...");
+				Log.info("[GameDatabase] Reading games list...");
 
-				String whereClause = null;
-				String[] whereArgs = null;
-
-				// If -1 passed in, return all games. Else, return games for one platform only.
-				if (platform >= 0)
-				{
-					whereClause = KEY_GAME_PLATFORM + " = ?";
-					whereArgs = new String[]{Integer.toString(platform)};
-				}
+				String[] whereArgs = new String[]{Integer.toString(platform.toInt())};
 
 				SQLiteDatabase database = getReadableDatabase();
-
 				Cursor resultCursor = database.query(
 						TABLE_NAME_GAMES,
 						null,
-						whereClause,
+						KEY_GAME_PLATFORM + " = ?",
 						whereArgs,
 						null,
 						null,
@@ -295,5 +289,11 @@ public final class GameDatabase extends SQLiteOpenHelper
 				subscriber.onCompleted();
 			}
 		});
+	}
+
+	private void execSqlAndLog(SQLiteDatabase database, String sql)
+	{
+		Log.verbose("[GameDatabase] Executing SQL: " + sql);
+		database.execSQL(sql);
 	}
 }

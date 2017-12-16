@@ -8,12 +8,10 @@ import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 
-import org.dolphinemu.dolphinemu.NativeLibrary;
-import org.dolphinemu.dolphinemu.model.settings.StringSetting;
 import org.dolphinemu.dolphinemu.model.settings.view.InputBindingSetting;
+import org.dolphinemu.dolphinemu.utils.ControllerMappingHelper;
 import org.dolphinemu.dolphinemu.utils.Log;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -24,9 +22,8 @@ public final class MotionAlertDialog extends AlertDialog
 {
 	// The selected input preference
 	private final InputBindingSetting setting;
-
-	private boolean firstEvent = true;
-	private final ArrayList<Float> m_values = new ArrayList<>();
+	private final ControllerMappingHelper mControllerMappingHelper;
+	private boolean mWaitingForEvent = true;
 
 	/**
 	 * Constructor
@@ -39,20 +36,20 @@ public final class MotionAlertDialog extends AlertDialog
 		super(context);
 
 		this.setting = setting;
+		this.mControllerMappingHelper = new ControllerMappingHelper();
 	}
 
-	@Override
-	public boolean onKeyDown(int keyCode, KeyEvent event)
+	public boolean onKeyEvent(int keyCode, KeyEvent event)
 	{
 		Log.debug("[MotionAlertDialog] Received key event: " + event.getAction());
 		switch (event.getAction())
 		{
 			case KeyEvent.ACTION_DOWN:
-			case KeyEvent.ACTION_UP:
-
-				InputDevice input = event.getDevice();
-				saveInput(input, event, null, false);
-
+				if (!mControllerMappingHelper.shouldKeyBeIgnored(event.getDevice(), keyCode))
+				{
+					saveKeyInput(event);
+				}
+				// Even if we ignore the key, we still consume it. Thus return true regardless.
 				return true;
 
 			default:
@@ -60,117 +57,113 @@ public final class MotionAlertDialog extends AlertDialog
 		}
 	}
 
+	@Override
+	public boolean dispatchKeyEvent(KeyEvent event)
+	{
+		// Handle this key if we care about it, otherwise pass it down the framework
+		return onKeyEvent(event.getKeyCode(), event) || super.dispatchKeyEvent(event);
+	}
 
-	// Method that will be called within dispatchGenericMotionEvent
-	// that handles joystick/controller movements.
+	@Override
+	public boolean dispatchGenericMotionEvent(MotionEvent event)
+	{
+		// Handle this event if we care about it, otherwise pass it down the framework
+		return onMotionEvent(event) || super.dispatchGenericMotionEvent(event);
+	}
+
 	private boolean onMotionEvent(MotionEvent event)
 	{
 		if ((event.getSource() & InputDevice.SOURCE_CLASS_JOYSTICK) == 0)
 			return false;
-
-		Log.debug("[MotionAlertDialog] Received motion event: " + event.getAction());
+		if (event.getAction() != MotionEvent.ACTION_MOVE)
+			return false;
 
 		InputDevice input = event.getDevice();
-		List<InputDevice.MotionRange> motions = input.getMotionRanges();
-		if (firstEvent)
-		{
-			m_values.clear();
 
-			for (InputDevice.MotionRange range : motions)
+		List<InputDevice.MotionRange> motionRanges = input.getMotionRanges();
+
+		int numMovedAxis = 0;
+		float axisMoveValue = 0.0f;
+		InputDevice.MotionRange lastMovedRange = null;
+		char lastMovedDir = '?';
+		if (mWaitingForEvent)
+		{
+			// Get only the axis that seem to have moved (more than .5)
+			for (InputDevice.MotionRange range : motionRanges)
 			{
-				m_values.add(event.getAxisValue(range.getAxis()));
+				int axis = range.getAxis();
+				float origValue = event.getAxisValue(axis);
+				float value = mControllerMappingHelper.scaleAxis(input, axis, origValue);
+				if (Math.abs(value) > 0.5f)
+				{
+					// It is common to have multiple axis with the same physical input. For example,
+					// shoulder butters are provided as both AXIS_LTRIGGER and AXIS_BRAKE.
+					// To handle this, we ignore an axis motion that's the exact same as a motion
+					// we already saw. This way, we ignore axis with two names, but catch the case
+					// where a joystick is moved in two directions.
+					// ref: bottom of https://developer.android.com/training/game-controllers/controller-input.html
+					if (value != axisMoveValue)
+					{
+						axisMoveValue = value;
+						numMovedAxis++;
+						lastMovedRange = range;
+						lastMovedDir = value < 0.0f ? '-' : '+';
+					}
+				}
 			}
 
-			firstEvent = false;
-		}
-		else
-		{
-			for (int a = 0; a < motions.size(); ++a)
+			// If only one axis moved, that's the winner.
+			if (numMovedAxis == 1)
 			{
-				InputDevice.MotionRange range = motions.get(a);
-
-				if (m_values.get(a) > (event.getAxisValue(range.getAxis()) + 0.5f))
-				{
-					saveInput(input, null, range, false);
-				}
-				else if (m_values.get(a) < (event.getAxisValue(range.getAxis()) - 0.5f))
-				{
-					saveInput(input, null, range, true);
-				}
+				mWaitingForEvent = false;
+				saveMotionInput(input, lastMovedRange, lastMovedDir);
 			}
 		}
 
 		return true;
 	}
 
-	@Override
-	public boolean dispatchKeyEvent(KeyEvent event)
+	/**
+	 * Saves the provided key input setting both to the INI file (so native code can use it) and as
+	 * an Android preference (so it persists correctly and is human-readable.)
+	 *
+	 * @param keyEvent     KeyEvent of this key press.
+	 */
+	private void saveKeyInput(KeyEvent keyEvent)
 	{
-		return onKeyDown(event.getKeyCode(), event) || super.dispatchKeyEvent(event);
-	}
+		InputDevice device = keyEvent.getDevice();
+		String bindStr = "Device '" + device.getDescriptor() + "'-Button " + keyEvent.getKeyCode();
+		String uiString = device.getName() + ": Button " + keyEvent.getKeyCode();
 
-	@Override
-	public boolean dispatchGenericMotionEvent(MotionEvent event)
-	{
-		return onMotionEvent(event) || super.dispatchGenericMotionEvent(event);
+		saveInput(bindStr, uiString);
 	}
 
 	/**
-	 * Saves the provided input setting both to the INI file (so native code can use it) and as an
-	 * Android preference (so it persists correctly, and is human-readable.)
+	 * Saves the provided motion input setting both to the INI file (so native code can use it) and as
+	 * an Android preference (so it persists correctly and is human-readable.)
 	 *
-	 * @param device       Required; the InputDevice from which the input event originated.
-	 * @param keyEvent     If the event was a button push, this KeyEvent represents it and is required.
-	 * @param motionRange  If the event was an axis movement, this MotionRange represents it and is required.
-	 * @param axisPositive If the event was an axis movement, this boolean indicates the direction and is required.
+	 * @param device       InputDevice from which the input event originated.
+	 * @param motionRange  MotionRange of the movement
+	 * @param axisDir      Either '-' or '+'
 	 */
-	private void saveInput(InputDevice device, KeyEvent keyEvent, InputDevice.MotionRange motionRange, boolean axisPositive)
+	private void saveMotionInput(InputDevice device, InputDevice.MotionRange motionRange, char axisDir)
 	{
-		String bindStr = null;
-		String uiString = null;
+		String bindStr = "Device '" + device.getDescriptor() + "'-Axis " + motionRange.getAxis() + axisDir;
+		String uiString = device.getName() + ": Axis " + motionRange.getAxis() + axisDir;
 
-		if (keyEvent != null)
-		{
-			bindStr = "Device '" + device.getDescriptor() + "'-Button " + keyEvent.getKeyCode();
-			uiString = device.getName() + ": Button " + keyEvent.getKeyCode();
-		}
+		saveInput(bindStr, uiString);
+	}
 
-		if (motionRange != null)
-		{
-			if (axisPositive)
-			{
-				bindStr = "Device '" + device.getDescriptor() + "'-Axis " + motionRange.getAxis() + "+";
-				uiString = device.getName() + ": Axis " + motionRange.getAxis() + "+";
-			}
-			else
-			{
-				bindStr = "Device '" + device.getDescriptor() + "'-Axis " + motionRange.getAxis() + "-";
-				uiString = device.getName() + ": Axis " + motionRange.getAxis() + "-";
-			}
-		}
+	/** Save the input string to settings and SharedPreferences, then dismiss this Dialog. */
+	private void saveInput(String bind, String ui)
+	{
+		setting.setValue(bind);
 
-		if (bindStr != null)
-		{
-			setting.setValue(bindStr);
-		}
-		else
-		{
-			Log.error("[MotionAlertDialog] Failed to save input to INI.");
-		}
+		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+		SharedPreferences.Editor editor = preferences.edit();
 
-
-		if (uiString != null)
-		{
-			SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getContext());
-			SharedPreferences.Editor editor = preferences.edit();
-
-			editor.putString(setting.getKey(), uiString);
-			editor.apply();
-		}
-		else
-		{
-			Log.error("[MotionAlertDialog] Failed to save input to preference.");
-		}
+		editor.putString(setting.getKey(), ui);
+		editor.apply();
 
 		dismiss();
 	}

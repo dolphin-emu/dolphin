@@ -51,7 +51,6 @@ private:
   QDialogButtonBox* m_button_box;
 
   // Gamecube
-  std::array<MappingWindow*, 4> m_gc_mappings;
   QGroupBox* m_gc_box;
   QGridLayout* m_gc_layout;
   std::array<QComboBox*, 4> m_gc_controller_boxes;
@@ -59,7 +58,6 @@ private:
   std::array<QHBoxLayout*, 4> m_gc_groups;
 
   // Wii Remote
-  std::array<MappingWindow*, 4> m_wiimote_mappings;
   QGroupBox* m_wiimote_box;
   QGridLayout* m_wiimote_layout;
   std::array<QLabel*, 4> m_wiimote_labels;

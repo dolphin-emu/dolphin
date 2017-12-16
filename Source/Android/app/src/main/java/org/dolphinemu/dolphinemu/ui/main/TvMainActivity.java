@@ -1,12 +1,11 @@
 package org.dolphinemu.dolphinemu.ui.main;
 
-import android.app.Activity;
-import android.app.FragmentManager;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v17.leanback.app.BrowseFragment;
+import android.support.v17.leanback.app.BrowseSupportFragment;
 import android.support.v17.leanback.database.CursorMapper;
 import android.support.v17.leanback.widget.ArrayObjectAdapter;
 import android.support.v17.leanback.widget.CursorObjectAdapter;
@@ -17,6 +16,8 @@ import android.support.v17.leanback.widget.OnItemViewClickedListener;
 import android.support.v17.leanback.widget.Presenter;
 import android.support.v17.leanback.widget.Row;
 import android.support.v17.leanback.widget.RowPresenter;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
 import android.widget.Toast;
 
@@ -27,16 +28,17 @@ import org.dolphinemu.dolphinemu.adapters.GameRowPresenter;
 import org.dolphinemu.dolphinemu.adapters.SettingsRowPresenter;
 import org.dolphinemu.dolphinemu.model.Game;
 import org.dolphinemu.dolphinemu.model.TvSettingsItem;
+import org.dolphinemu.dolphinemu.ui.platform.Platform;
 import org.dolphinemu.dolphinemu.ui.settings.SettingsActivity;
 import org.dolphinemu.dolphinemu.utils.PermissionsHandler;
 import org.dolphinemu.dolphinemu.utils.StartupHandler;
 import org.dolphinemu.dolphinemu.viewholders.TvGameViewHolder;
 
-public final class TvMainActivity extends Activity implements MainView
+public final class TvMainActivity extends FragmentActivity implements MainView
 {
 	private MainPresenter mPresenter = new MainPresenter(this);
 
-	private BrowseFragment mBrowseFragment;
+	private BrowseSupportFragment mBrowseFragment;
 
 	private ArrayObjectAdapter mRowsAdapter;
 
@@ -56,8 +58,8 @@ public final class TvMainActivity extends Activity implements MainView
 	}
 
 	void setupUI() {
-		final FragmentManager fragmentManager = getFragmentManager();
-		mBrowseFragment = new BrowseFragment();
+		final FragmentManager fragmentManager = getSupportFragmentManager();
+		mBrowseFragment = new BrowseSupportFragment();
 		fragmentManager
 				.beginTransaction()
 				.add(R.id.content, mBrowseFragment, "BrowseFragment")
@@ -130,9 +132,9 @@ public final class TvMainActivity extends Activity implements MainView
 	}
 
 	@Override
-	public void showGames(int platformIndex, Cursor games)
+	public void showGames(Platform platform, Cursor games)
 	{
-		ListRow row = buildGamesRow(platformIndex, games);
+		ListRow row = buildGamesRow(platform, games);
 
 		// Add row to the adapter only if it is not empty.
 		if (row != null)
@@ -187,13 +189,12 @@ public final class TvMainActivity extends Activity implements MainView
 	}
 
 	private void loadGames() {
-		// For each platform
-		for (int platformIndex = 0; platformIndex <= Game.PLATFORM_ALL; ++platformIndex) {
-			mPresenter.loadGames(platformIndex);
+		for (Platform platform : Platform.values()) {
+			mPresenter.loadGames(platform);
 		}
 	}
 
-	private ListRow buildGamesRow(int platform, Cursor games)
+	private ListRow buildGamesRow(Platform platform, Cursor games)
 	{
 		// Create an adapter for this row.
 		CursorObjectAdapter row = new CursorObjectAdapter(new GameRowPresenter());
@@ -220,32 +221,10 @@ public final class TvMainActivity extends Activity implements MainView
 			}
 		});
 
-		String headerName;
-		switch (platform)
-		{
-			case Game.PLATFORM_GC:
-				headerName = "GameCube Games";
-				break;
-
-			case Game.PLATFORM_WII:
-				headerName = "Wii Games";
-				break;
-
-			case Game.PLATFORM_WII_WARE:
-				headerName = "WiiWare";
-				break;
-
-			case Game.PLATFORM_ALL:
-				headerName = "All Games";
-				break;
-
-			default:
-				headerName = "Error";
-				break;
-		}
+		String headerName = platform.getHeaderName();
 
 		// Create a header for this row.
-		HeaderItem header = new HeaderItem(platform, headerName);
+		HeaderItem header = new HeaderItem(platform.toInt(), platform.getHeaderName());
 
 		// Create the row, passing it the filled adapter and the header, and give it to the master adapter.
 		return new ListRow(header, row);

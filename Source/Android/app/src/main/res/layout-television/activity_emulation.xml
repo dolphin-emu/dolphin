@@ -8,8 +8,11 @@
     <FrameLayout
         android:id="@+id/frame_emulation_fragment"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:visibility="invisible"/>
+        android:layout_height="match_parent"/>
+
+    <org.dolphinemu.dolphinemu.ui.NVidiaShieldWorkaroundView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
 
     <ImageView
         android:layout_width="match_parent"
@@ -17,28 +20,24 @@
         android:id="@+id/image_screenshot"
         android:transitionName="image_game_screenshot"/>
 
+
     <LinearLayout
-        android:id="@+id/layout_ingame_menu"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="horizontal"
-        android:visibility="gone"
-        tools:visibility="visible"
-        android:baselineAligned="false">
+        android:orientation="horizontal">
 
-        <fragment
-            android:id="@+id/fragment_menu"
+        <FrameLayout
+            android:id="@+id/frame_menu"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:name="org.dolphinemu.dolphinemu.fragments.MenuFragment"
+            android:layout_weight=".25"
             tools:layout="@layout/fragment_ingame_menu"/>
 
         <FrameLayout
             android:id="@+id/frame_submenu"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="3"/>
+            android:layout_weight=".75"/>
 
     </LinearLayout>
 

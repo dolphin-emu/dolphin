@@ -8,6 +8,8 @@
 
 #include "Common/CommonTypes.h"
 
+class PointerWrap;
+
 namespace StreamADPCM
 {
 enum
@@ -17,5 +19,6 @@ enum
 };
 
 void InitFilter();
+void DoState(PointerWrap& p);
 void DecodeBlock(s16* pcm, const u8* adpcm);
 }

@@ -13,8 +13,8 @@
 
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
-#include "Common/FifoQueue.h"
 #include "Common/Logging/Log.h"
+#include "Common/SPSCQueue.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
 
@@ -63,7 +63,7 @@ static std::unordered_map<std::string, EventType> s_event_types;
 static std::vector<Event> s_event_queue;
 static u64 s_event_fifo_id;
 static std::mutex s_ts_write_lock;
-static Common::FifoQueue<Event, false> s_ts_queue;
+static Common::SPSCQueue<Event, false> s_ts_queue;
 
 static float s_last_OC_factor;
 static constexpr int MAX_SLICE_LENGTH = 20000;
@@ -241,7 +241,8 @@ void ScheduleEvent(s64 cycles_into_future, EventType* event_type, u64 userdata, 
   {
     from_cpu_thread = from == FromThread::CPU;
     _assert_msg_(POWERPC, from_cpu_thread == Core::IsCPUThread(),
-                 "ScheduleEvent from wrong thread (%s)", from_cpu_thread ? "CPU" : "non-CPU");
+                 "A \"%s\" event was scheduled from the wrong thread (%s)",
+                 event_type->name->c_str(), from_cpu_thread ? "CPU" : "non-CPU");
   }
 
   if (from_cpu_thread)

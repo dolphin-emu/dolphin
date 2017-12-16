@@ -24,7 +24,7 @@ bool SupportsDPL2Decoder(const std::string& backend);
 bool SupportsLatencyControl(const std::string& backend);
 bool SupportsVolumeChanges(const std::string& backend);
 void UpdateSoundStream();
-void ClearAudioBuffer(bool mute);
+void SetSoundStreamRunning(bool running);
 void SendAIBuffer(const short* samples, unsigned int num_samples);
 void StartAudioDump();
 void StopAudioDump();

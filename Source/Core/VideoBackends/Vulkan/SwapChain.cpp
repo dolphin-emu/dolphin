@@ -321,7 +321,7 @@ bool SwapChain::CreateSwapChain()
   }
 
   // Select the number of image layers for Quad-Buffered stereoscopy
-  uint32_t image_layers = g_ActiveConfig.iStereoMode == STEREO_QUADBUFFER ? 2 : 1;
+  uint32_t image_layers = g_ActiveConfig.stereo_mode == StereoMode::QuadBuffer ? 2 : 1;
 
   // Store the old/current swap chain when recreating for resize
   VkSwapchainKHR old_swap_chain = m_swap_chain;
@@ -472,14 +472,27 @@ bool SwapChain::ResizeSwapChain()
   return true;
 }
 
+bool SwapChain::RecreateSwapChain()
+{
+  DestroySwapChainImages();
+  DestroySwapChain();
+  if (!CreateSwapChain() || !SetupSwapChainImages())
+  {
+    PanicAlert("Failed to re-configure swap chain images, this is fatal (for now)");
+    return false;
+  }
+
+  return true;
+}
+
 bool SwapChain::SetVSync(bool enabled)
 {
   if (m_vsync_enabled == enabled)
     return true;
 
-  // Resizing recreates the swap chain with the new present mode.
+  // Recreate the swap chain with the new present mode.
   m_vsync_enabled = enabled;
-  return ResizeSwapChain();
+  return RecreateSwapChain();
 }
 
 bool SwapChain::RecreateSurface(void* native_handle)

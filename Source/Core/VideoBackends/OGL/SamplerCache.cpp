@@ -100,7 +100,7 @@ void SamplerCache::SetParameters(GLuint sampler_id, const SamplerState& params)
   glSamplerParameterf(sampler_id, GL_TEXTURE_MAX_LOD, params.max_lod / 16.f);
 
   if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL)
-    glSamplerParameterf(sampler_id, GL_TEXTURE_LOD_BIAS, params.lod_bias / 32.f);
+    glSamplerParameterf(sampler_id, GL_TEXTURE_LOD_BIAS, params.lod_bias / 256.f);
 
   if (params.anisotropic_filtering && g_ogl_config.bSupportsAniso)
   {

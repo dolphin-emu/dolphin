@@ -1,0 +1,64 @@
+incdir  "tests"
+include "dsp_base.inc"
+
+; Test parameters
+lri $AC0.M, #0x0000 ; start
+lri $AC0.L, #0x0000 ; start
+lri $AC1.M, #0x0000 ; end
+lri $AC1.L, #0x0011 ; end
+
+; Reset some registers
+lri $AC0.H, #0xffff
+sr @0xffda, $AC0.H ; pred scale
+sr @0xffdb, $AC0.H ; yn1
+sr @0xffdc, $AC0.H ; yn2
+
+; Set the sample format
+lri $AC0.H, #0x0
+sr @0xffd1, $AC0.H
+; Set the starting and current address
+srs @ACSAH, $AC0.M
+srs @ACCAH, $AC0.M
+srs @ACSAL, $AC0.L
+srs @ACCAL, $AC0.L
+; Set the ending address
+srs @ACEAH, $AC1.M
+srs @ACEAL, $AC1.L
+
+call load_hw_reg_to_regs
+call send_back ; check the accelerator regs before a read
+
+bloopi #40, end_of_loop
+  lr $IX3, @ARAM
+  call load_hw_reg_to_regs
+  call send_back ; after a read
+end_of_loop:
+  nop
+
+jmp end_of_test
+
+load_hw_reg_to_regs:
+  lr $AR0, @0xffd1 ; format
+  lr $AR1, @0xffd2 ; unknown
+  lr $AR2, @0xffda ; pred scale
+  lr $AR3, @0xffdb ; yn1
+  lr $IX0, @0xffdc ; yn2
+  lr $IX1, @0xffdf ; unknown accelerator register
+
+  lri $AC0.H, #0
+  lrs $AC0.M, @ACSAH
+  lrs $AC0.L, @ACSAL
+
+  lri $AC1.H, #0
+  lrs $AC1.M, @ACEAH
+  lrs $AC1.L, @ACEAL
+
+  lrs $AX0.H, @ACCAH
+  lrs $AX0.L, @ACCAL
+  lrs $AX1.H, @ACCAH
+  lrs $AX1.L, @ACCAL
+
+  lrs $AX1.H, @ACCAH
+  lrs $AX1.L, @ACCAL
+
+  ret

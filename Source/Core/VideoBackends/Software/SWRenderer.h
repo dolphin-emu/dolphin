@@ -6,23 +6,19 @@
 
 #include "Common/CommonTypes.h"
 
-#include "VideoBackends/Software/EfbInterface.h"
-
 #include "VideoCommon/RenderBase.h"
 
 class SWRenderer : public Renderer
 {
 public:
   SWRenderer();
-  ~SWRenderer() override;
 
   static void Init();
   static void Shutdown();
 
-  static u8* GetNextColorTexture();
-  static u8* GetCurrentColorTexture();
-  void SwapColorTexture();
-  void UpdateColorTexture(EfbInterface::yuv422_packed* xfb, u32 fbWidth, u32 fbHeight);
+  std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config) override;
+  std::unique_ptr<AbstractStagingTexture>
+  CreateStagingTexture(StagingTextureType type, const TextureConfig& config) override;
 
   void RenderText(const std::string& pstr, int left, int top, u32 color) override;
   u32 AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data) override;
@@ -32,8 +28,7 @@ public:
 
   TargetRectangle ConvertEFBRectangle(const EFBRectangle& rc) override;
 
-  void SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const EFBRectangle& rc,
-                u64 ticks, float Gamma) override;
+  void SwapImpl(AbstractTexture* texture, const EFBRectangle& rc, u64 ticks, float Gamma) override;
 
   void ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable,
                    u32 color, u32 z) override;

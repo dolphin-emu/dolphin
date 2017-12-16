@@ -43,8 +43,8 @@
 #include "VideoCommon/HiresTextures.h"
 
 #include "DiscIO/Enums.h"
-#include "DiscIO/NANDContentLoader.h"
 #include "DiscIO/Volume.h"
+#include "DiscIO/WiiWad.h"
 
 SConfig* SConfig::m_Instance;
 
@@ -180,7 +180,7 @@ void SConfig::SaveDisplaySettings(IniFile& ini)
 {
   IniFile::Section* display = ini.GetOrCreateSection("Display");
 
-  display->Set("FullscreenResolution", strFullscreenResolution);
+  display->Set("FullscreenDisplayRes", strFullscreenResolution);
   display->Set("Fullscreen", bFullscreen);
   display->Set("RenderToMain", bRenderToMain);
   display->Set("RenderWindowXPos", iRenderWindowXPos);
@@ -190,7 +190,6 @@ void SConfig::SaveDisplaySettings(IniFile& ini)
   display->Set("RenderWindowAutoSize", bRenderWindowAutoSize);
   display->Set("KeepWindowOnTop", bKeepWindowOnTop);
   display->Set("DisableScreenSaver", bDisableScreenSaver);
-  display->Set("ForceNTSCJ", bForceNTSCJ);
 }
 
 void SConfig::SaveGameListSettings(IniFile& ini)
@@ -461,7 +460,7 @@ void SConfig::LoadDisplaySettings(IniFile& ini)
   IniFile::Section* display = ini.GetOrCreateSection("Display");
 
   display->Get("Fullscreen", &bFullscreen, false);
-  display->Get("FullscreenResolution", &strFullscreenResolution, "Auto");
+  display->Get("FullscreenDisplayRes", &strFullscreenResolution, "Auto");
   display->Get("RenderToMain", &bRenderToMain, false);
   display->Get("RenderWindowXPos", &iRenderWindowXPos, -1);
   display->Get("RenderWindowYPos", &iRenderWindowYPos, -1);
@@ -470,7 +469,6 @@ void SConfig::LoadDisplaySettings(IniFile& ini)
   display->Get("RenderWindowAutoSize", &bRenderWindowAutoSize, false);
   display->Get("KeepWindowOnTop", &bKeepWindowOnTop, false);
   display->Get("DisableScreenSaver", &bDisableScreenSaver, true);
-  display->Get("ForceNTSCJ", &bForceNTSCJ, false);
 }
 
 void SConfig::LoadGameListSettings(IniFile& ini)
@@ -888,14 +886,35 @@ struct SetGameMetadata
     return true;
   }
 
-  bool operator()(const BootParameters::NAND& nand) const
+  bool operator()(const DiscIO::WiiWAD& wad) const
   {
-    const auto& loader = DiscIO::NANDContentManager::Access().GetNANDLoader(nand.content_path);
-    if (!loader.IsValid())
+    if (!wad.IsValid() || !wad.GetTMD().IsValid())
+    {
+      PanicAlertT("This WAD is not valid.");
       return false;
+    }
+    if (!IOS::ES::IsChannel(wad.GetTMD().GetTitleId()))
+    {
+      PanicAlertT("This WAD is not bootable.");
+      return false;
+    }
 
-    const IOS::ES::TMDReader& tmd = loader.GetTMD();
+    const IOS::ES::TMDReader& tmd = wad.GetTMD();
+    config->SetRunningGameMetadata(tmd);
+    config->bWii = true;
+    *region = tmd.GetRegion();
+    return true;
+  }
 
+  bool operator()(const BootParameters::NANDTitle& nand_title) const
+  {
+    IOS::HLE::Kernel ios;
+    const IOS::ES::TMDReader tmd = ios.GetES()->FindInstalledTMD(nand_title.id);
+    if (!tmd.IsValid() || !IOS::ES::IsChannel(nand_title.id))
+    {
+      PanicAlertT("This title cannot be booted.");
+      return false;
+    }
     config->SetRunningGameMetadata(tmd);
     config->bWii = true;
     *region = tmd.GetRegion();

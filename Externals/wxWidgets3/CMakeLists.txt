@@ -825,7 +825,7 @@ target_compile_definitions(wx PRIVATE "WXBUILDING")
 target_compile_options(wx PRIVATE "-w")
 
 if(APPLE)
-        target_compile_definitions(wx PRIVATE "__WXOSX_COCOA__")
+        target_compile_definitions(wx PRIVATE "__WXOSX_COCOA__" "__ASSERT_MACROS_DEFINE_VERSIONS_WITHOUT_UNDERSCORES=1")
         target_sources(wx PRIVATE 
 		${SRCS_GENERICOSX}
 		${SRCS_OSX}

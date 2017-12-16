@@ -12,6 +12,7 @@
 #include "Core/Config/GraphicsSettings.h"
 
 #include "VideoBackends/OGL/FramebufferManager.h"
+#include "VideoBackends/OGL/OGLTexture.h"
 #include "VideoBackends/OGL/ProgramShaderCache.h"
 #include "VideoBackends/OGL/SamplerCache.h"
 
@@ -25,7 +26,7 @@ static const char s_vertex_shader[] = "out vec2 uv0;\n"
                                       "void main(void) {\n"
                                       "	vec2 rawpos = vec2(gl_VertexID&1, gl_VertexID&2);\n"
                                       "	gl_Position = vec4(rawpos*2.0-1.0, 0.0, 1.0);\n"
-                                      "	uv0 = rawpos * src_rect.zw + src_rect.xy;\n"
+                                      "	uv0 = vec2(mix(src_rect.xy, src_rect.zw, rawpos));\n"
                                       "}\n";
 
 OpenGLPostProcessing::OpenGLPostProcessing() : m_initialized(false)
@@ -52,8 +53,8 @@ void OpenGLPostProcessing::BlitFromTexture(TargetRectangle src, TargetRectangle 
 
   glUniform4f(m_uniform_resolution, (float)src_width, (float)src_height, 1.0f / (float)src_width,
               1.0f / (float)src_height);
-  glUniform4f(m_uniform_src_rect, src.left / (float)src_width, src.bottom / (float)src_height,
-              src.GetWidth() / (float)src_width, src.GetHeight() / (float)src_height);
+  glUniform4f(m_uniform_src_rect, src.left / (float)src_width, src.top / (float)src_height,
+              src.right / (float)src_width, src.bottom / (float)src_height);
   glUniform1ui(m_uniform_time, (GLuint)m_timer.GetTimeElapsed());
   glUniform1i(m_uniform_layer, layer);
 
@@ -121,6 +122,7 @@ void OpenGLPostProcessing::BlitFromTexture(TargetRectangle src, TargetRectangle 
   glBindTexture(GL_TEXTURE_2D_ARRAY, src_texture);
   g_sampler_cache->BindLinearSampler(9);
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+  OGLTexture::SetStage();
 }
 
 void OpenGLPostProcessing::ApplyShader()

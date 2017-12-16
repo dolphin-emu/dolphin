@@ -89,7 +89,7 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
     {
       out.Write("VARYING_LOCATION(0) in VertexData {\n");
       GenerateVSOutputMembers(out, ApiType, numTexgen, per_pixel_lighting,
-                              GetInterpolationQualifier(msaa, ssaa));
+                              GetInterpolationQualifier(msaa, ssaa, true, true));
 
       if (stereo)
         out.Write("  flat int layer;\n");

@@ -45,12 +45,14 @@
 #include "DolphinQt2/Config/LogWidget.h"
 #include "DolphinQt2/Config/Mapping/MappingWindow.h"
 #include "DolphinQt2/Config/SettingsWindow.h"
+#include "DolphinQt2/FIFOPlayerWindow.h"
 #include "DolphinQt2/Host.h"
 #include "DolphinQt2/HotkeyScheduler.h"
 #include "DolphinQt2/MainWindow.h"
 #include "DolphinQt2/NetPlay/NetPlayDialog.h"
 #include "DolphinQt2/NetPlay/NetPlaySetupDialog.h"
 #include "DolphinQt2/QtUtils/QueueOnObject.h"
+#include "DolphinQt2/QtUtils/RunOnObject.h"
 #include "DolphinQt2/QtUtils/WindowActivationEventFilter.h"
 #include "DolphinQt2/Resources.h"
 #include "DolphinQt2/Settings.h"
@@ -65,12 +67,14 @@
 #include "UICommon/X11Utils.h"
 #endif
 
-MainWindow::MainWindow() : QMainWindow(nullptr)
+MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters) : QMainWindow(nullptr)
 {
   setWindowTitle(QString::fromStdString(Common::scm_rev_str));
   setWindowIcon(QIcon(Resources::GetMisc(Resources::LOGO_SMALL)));
   setUnifiedTitleAndToolBarOnMac(true);
   setAcceptDrops(true);
+
+  InitControllers();
 
   CreateComponents();
 
@@ -80,10 +84,12 @@ MainWindow::MainWindow() : QMainWindow(nullptr)
   ConnectStack();
   ConnectMenuBar();
 
-  InitControllers();
   InitCoreCallbacks();
 
   NetPlayInit();
+
+  if (boot_parameters)
+    StartGame(std::move(boot_parameters));
 }
 
 MainWindow::~MainWindow()
@@ -150,9 +156,15 @@ void MainWindow::CreateComponents()
   m_stack = new QStackedWidget(this);
   m_controllers_window = new ControllersWindow(this);
   m_settings_window = new SettingsWindow(this);
-  m_hotkey_window = new MappingWindow(this, 0);
+
+  m_hotkey_window = new MappingWindow(this, MappingWindow::Type::MAPPING_HOTKEYS, 0);
+
   m_log_widget = new LogWidget(this);
   m_log_config_widget = new LogConfigWidget(this);
+  m_fifo_window = new FIFOPlayerWindow(this);
+
+  connect(m_fifo_window, &FIFOPlayerWindow::LoadFIFORequested, this,
+          static_cast<void (MainWindow::*)(const QString&)>(&MainWindow::StartGame));
 
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
   m_graphics_window = new GraphicsWindow(
@@ -210,6 +222,7 @@ void MainWindow::ConnectMenuBar()
   connect(m_menu_bar, &MenuBar::PerformOnlineUpdate, this, &MainWindow::PerformOnlineUpdate);
   connect(m_menu_bar, &MenuBar::BootWiiSystemMenu, this, &MainWindow::BootWiiSystemMenu);
   connect(m_menu_bar, &MenuBar::StartNetPlay, this, &MainWindow::ShowNetPlaySetupDialog);
+  connect(m_menu_bar, &MenuBar::ShowFIFOPlayer, this, &MainWindow::ShowFIFOPlayer);
 
   // Movie
   connect(m_menu_bar, &MenuBar::PlayRecording, this, &MainWindow::OnPlayRecording);
@@ -279,6 +292,8 @@ void MainWindow::ConnectGameList()
 {
   connect(m_game_list, &GameList::GameSelected, this, &MainWindow::Play);
   connect(m_game_list, &GameList::NetPlayHost, this, &MainWindow::NetPlayHost);
+
+  connect(m_game_list, &GameList::OpenGeneralSettings, this, &MainWindow::ShowGeneralWindow);
 }
 
 void MainWindow::ConnectRenderWidget()
@@ -353,7 +368,7 @@ void MainWindow::Pause()
 void MainWindow::OnStopComplete()
 {
   m_stop_requested = false;
-  m_render_widget->hide();
+  HideRenderWidget();
 
   if (m_exit_requested)
     QGuiApplication::instance()->quit();
@@ -425,7 +440,6 @@ bool MainWindow::RequestStop()
 void MainWindow::ForceStop()
 {
   BootManager::Stop();
-  HideRenderWidget();
 }
 
 void MainWindow::Reset()
@@ -551,15 +565,20 @@ void MainWindow::ShowAudioWindow()
   ShowSettingsWindow();
 }
 
+void MainWindow::ShowGeneralWindow()
+{
+  m_settings_window->SelectGeneralPane();
+  ShowSettingsWindow();
+}
+
 void MainWindow::ShowAboutDialog()
 {
-  AboutDialog* about = new AboutDialog(this);
-  about->show();
+  AboutDialog about{this};
+  about.exec();
 }
 
 void MainWindow::ShowHotkeyDialog()
 {
-  m_hotkey_window->ChangeMappingType(MappingWindow::Type::MAPPING_HOTKEYS);
   m_hotkey_window->show();
   m_hotkey_window->raise();
   m_hotkey_window->activateWindow();
@@ -577,6 +596,13 @@ void MainWindow::ShowNetPlaySetupDialog()
   m_netplay_setup_dialog->show();
   m_netplay_setup_dialog->raise();
   m_netplay_setup_dialog->activateWindow();
+}
+
+void MainWindow::ShowFIFOPlayer()
+{
+  m_fifo_window->show();
+  m_fifo_window->raise();
+  m_fifo_window->activateWindow();
 }
 
 void MainWindow::StateLoad()
@@ -645,8 +671,7 @@ void MainWindow::PerformOnlineUpdate(const std::string& region)
 
 void MainWindow::BootWiiSystemMenu()
 {
-  StartGame(QString::fromStdString(
-      Common::GetTitleContentPath(Titles::SYSTEM_MENU, Common::FROM_CONFIGURED_ROOT)));
+  StartGame(std::make_unique<BootParameters>(BootParameters::NANDTitle{Titles::SYSTEM_MENU}));
 }
 
 void MainWindow::NetPlayInit()
@@ -870,13 +895,24 @@ void MainWindow::OnImportNANDBackup()
   auto beginning = QDateTime::currentDateTime().toMSecsSinceEpoch();
 
   auto result = std::async(std::launch::async, [&] {
-    DiscIO::NANDImporter().ImportNANDBin(file.toStdString(), [&dialog, beginning] {
-      QueueOnObject(dialog, [&dialog, beginning] {
-        dialog->setLabelText(
-            tr("Importing NAND backup\n Time elapsed: %1s")
-                .arg((QDateTime::currentDateTime().toMSecsSinceEpoch() - beginning) / 1000));
-      });
-    });
+    DiscIO::NANDImporter().ImportNANDBin(
+        file.toStdString(),
+        [&dialog, beginning] {
+          QueueOnObject(dialog, [&dialog, beginning] {
+            dialog->setLabelText(
+                tr("Importing NAND backup\n Time elapsed: %1s")
+                    .arg((QDateTime::currentDateTime().toMSecsSinceEpoch() - beginning) / 1000));
+          });
+        },
+        [this] {
+          return RunOnObject(this, [this] {
+            return QFileDialog::getOpenFileName(this, tr("Select the keys file (OTP/SEEPROM dump)"),
+                                                QDir::currentPath(),
+                                                tr("BootMii keys file (*.bin);;"
+                                                   "All Files (*)"))
+                .toStdString();
+          });
+        });
     QueueOnObject(dialog, &QProgressDialog::close);
   });
 
@@ -889,7 +925,7 @@ void MainWindow::OnImportNANDBackup()
 
 void MainWindow::OnPlayRecording()
 {
-  QString dtm_file = QFileDialog::getOpenFileName(this, tr("Select The Recording File"), QString(),
+  QString dtm_file = QFileDialog::getOpenFileName(this, tr("Select the Recording File"), QString(),
                                                   tr("Dolphin TAS Movies (*.dtm)"));
 
   if (dtm_file.isEmpty())
@@ -959,7 +995,7 @@ void MainWindow::OnExportRecording()
   if (was_paused)
     Core::SetState(Core::State::Paused);
 
-  QString dtm_file = QFileDialog::getSaveFileName(this, tr("Select The Recording File"), QString(),
+  QString dtm_file = QFileDialog::getSaveFileName(this, tr("Select the Recording File"), QString(),
                                                   tr("Dolphin TAS Movies (*.dtm)"));
 
   if (was_paused)

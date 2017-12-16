@@ -24,7 +24,6 @@ private:
 class CommonAsmRoutines : public CommonAsmRoutinesBase, public QuantizedMemoryRoutines
 {
 public:
-  void GenFifoWrite(int size);
   void GenFrsqrte();
   void GenFres();
   void GenMfcr();

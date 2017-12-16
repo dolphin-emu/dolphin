@@ -17,11 +17,6 @@ static std::list<ConfigChangedCallback> s_callbacks;
 
 void InvokeConfigChangedCallbacks();
 
-Section* GetOrCreateSection(System system, const std::string& section_name)
-{
-  return s_layers[LayerType::Meta]->GetOrCreateSection(system, section_name);
-}
-
 Layers* GetLayers()
 {
   return &s_layers;
@@ -83,8 +78,6 @@ void Init()
 {
   // These layers contain temporary values
   ClearCurrentRunLayer();
-  // This layer always has to exist
-  s_layers[LayerType::Meta] = std::make_unique<RecursiveLayer>();
 }
 
 void Shutdown()
@@ -108,15 +101,14 @@ const std::string& GetSystemName(System system)
   return system_to_name.at(system);
 }
 
-System GetSystemFromName(const std::string& name)
+std::optional<System> GetSystemFromName(const std::string& name)
 {
   const auto system = std::find_if(system_to_name.begin(), system_to_name.end(),
                                    [&name](const auto& entry) { return entry.second == name; });
   if (system != system_to_name.end())
     return system->first;
 
-  _assert_msg_(COMMON, false, "Programming error! Couldn't convert '%s' to system!", name.c_str());
-  return System::Main;
+  return {};
 }
 
 const std::string& GetLayerName(LayerType layer)
@@ -129,24 +121,8 @@ const std::string& GetLayerName(LayerType layer)
       {LayerType::Movie, "Movie"},
       {LayerType::CommandLine, "Command Line"},
       {LayerType::CurrentRun, "Current Run"},
-      {LayerType::Meta, "Top"},
   };
   return layer_to_name.at(layer);
-}
-
-bool ConfigLocation::operator==(const ConfigLocation& other) const
-{
-  return std::tie(system, section, key) == std::tie(other.system, other.section, other.key);
-}
-
-bool ConfigLocation::operator!=(const ConfigLocation& other) const
-{
-  return !(*this == other);
-}
-
-bool ConfigLocation::operator<(const ConfigLocation& other) const
-{
-  return std::tie(system, section, key) < std::tie(other.system, other.section, other.key);
 }
 
 LayerType GetActiveLayerForConfig(const ConfigLocation& config)
@@ -156,7 +132,7 @@ LayerType GetActiveLayerForConfig(const ConfigLocation& config)
     if (!LayerExists(layer))
       continue;
 
-    if (GetLayer(layer)->Exists(config.system, config.section, config.key))
+    if (GetLayer(layer)->Exists(config))
       return layer;
   }
 

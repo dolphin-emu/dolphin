@@ -10,17 +10,13 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Common/File.h"
 #include "Core/IOS/Device.h"
 #include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/IOSC.h"
 
 class PointerWrap;
-
-namespace DiscIO
-{
-class NANDContentLoader;
-}
 
 namespace IOS
 {
@@ -32,7 +28,6 @@ struct TitleContext
 {
   void Clear();
   void DoState(PointerWrap& p);
-  void Update(const DiscIO::NANDContentLoader& content_loader);
   void Update(const IOS::ES::TMDReader& tmd_, const IOS::ES::TicketReader& ticket_);
 
   IOS::ES::TicketReader ticket;
@@ -46,8 +41,7 @@ class ES final : public Device
 public:
   ES(Kernel& ios, const std::string& device_name);
 
-  static s32 DIVerify(const IOS::ES::TMDReader& tmd, const IOS::ES::TicketReader& ticket);
-  static void LoadWAD(const std::string& _rContentFile);
+  s32 DIVerify(const IOS::ES::TMDReader& tmd, const IOS::ES::TicketReader& ticket);
   bool LaunchTitle(u64 title_id, bool skip_reload = false);
 
   void DoState(PointerWrap& p) override;
@@ -87,6 +81,7 @@ public:
 
   IOS::ES::TMDReader FindImportTMD(u64 title_id) const;
   IOS::ES::TMDReader FindInstalledTMD(u64 title_id) const;
+  IOS::ES::TicketReader FindSignedTicket(u64 title_id) const;
 
   // Get installed titles (in /title) without checking for TMDs at all.
   std::vector<u64> GetInstalledTitles() const;
@@ -106,7 +101,15 @@ public:
   s32 SeekContent(u32 cfd, u32 offset, SeekMode mode, u32 uid);
 
   // Title management
-  ReturnCode ImportTicket(const std::vector<u8>& ticket_bytes, const std::vector<u8>& cert_chain);
+  enum class TicketImportType
+  {
+    // Ticket may be personalised, so use console specific data for decryption if needed.
+    PossiblyPersonalised,
+    // Ticket is unpersonalised, so ignore any console specific decryption data.
+    Unpersonalised,
+  };
+  ReturnCode ImportTicket(const std::vector<u8>& ticket_bytes, const std::vector<u8>& cert_chain,
+                          TicketImportType type = TicketImportType::PossiblyPersonalised);
   ReturnCode ImportTmd(Context& context, const std::vector<u8>& tmd_bytes);
   ReturnCode ImportTitleInit(Context& context, const std::vector<u8>& tmd_bytes,
                              const std::vector<u8>& cert_chain);
@@ -298,7 +301,6 @@ private:
 
   bool LaunchIOS(u64 ios_title_id);
   bool LaunchPPCTitle(u64 title_id, bool skip_reload);
-  static TitleContext& GetTitleContext();
   bool IsActiveTitlePermittedByTicket(const u8* ticket_view) const;
 
   ReturnCode CheckStreamKeyPermissions(u32 uid, const u8* ticket_view,
@@ -333,12 +335,15 @@ private:
   void FinishStaleImport(u64 title_id);
   void FinishAllStaleImports();
 
-  static const DiscIO::NANDContentLoader& AccessContentDevice(u64 title_id);
+  std::string GetContentPath(u64 title_id, const IOS::ES::Content& content,
+                             const IOS::ES::SharedContentMap& map = IOS::ES::SharedContentMap{
+                                 Common::FROM_SESSION_ROOT}) const;
 
   // TODO: reuse the FS code.
   struct OpenedContent
   {
     bool m_opened = false;
+    File::IOFile m_file;
     u64 m_title_id = 0;
     IOS::ES::Content m_content;
     u32 m_position = 0;
@@ -349,6 +354,7 @@ private:
   ContentTable m_content_table;
 
   ContextArray m_contexts;
+  TitleContext m_title_context{};
 };
 }  // namespace Device
 }  // namespace HLE

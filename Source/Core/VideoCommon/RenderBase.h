@@ -32,8 +32,13 @@
 #include "VideoCommon/RenderState.h"
 #include "VideoCommon/VideoCommon.h"
 
+class AbstractRawTexture;
+class AbstractTexture;
+class AbstractStagingTexture;
 class PostProcessingShaderImplementation;
+struct TextureConfig;
 enum class EFBAccessType;
+enum class StagingTextureType;
 
 struct EfbPokeData
 {
@@ -77,6 +82,10 @@ public:
   virtual void RestoreState() {}
   virtual void ResetAPIState() {}
   virtual void RestoreAPIState() {}
+  virtual std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config) = 0;
+  virtual std::unique_ptr<AbstractStagingTexture>
+  CreateStagingTexture(StagingTextureType type, const TextureConfig& config) = 0;
+
   // Ideal internal resolution - multiple of the native EFB resolution
   int GetTargetWidth() const { return m_target_width; }
   int GetTargetHeight() const { return m_target_height; }
@@ -92,14 +101,16 @@ public:
 
   const TargetRectangle& GetTargetRectangle() const { return m_target_rectangle; }
   float CalculateDrawAspectRatio() const;
+  bool IsHeadless() const;
 
   std::tuple<float, float> ScaleToDisplayAspectRatio(int width, int height) const;
-  TargetRectangle CalculateFrameDumpDrawRectangle() const;
   void UpdateDrawRectangle();
 
   // Use this to convert a single target rectangle to two stereo rectangles
   std::tuple<TargetRectangle, TargetRectangle>
   ConvertStereoRectangle(const TargetRectangle& rc) const;
+
+  unsigned int GetEFBScale() const;
 
   // Use this to upscale native EFB coordinates to IDEAL internal resolution
   int EFBToScaledX(int x) const;
@@ -128,10 +139,10 @@ public:
   virtual void BBoxWrite(int index, u16 value) = 0;
 
   // Finish up the current frame, print some stats
-  void Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const EFBRectangle& rc, u64 ticks,
-            float Gamma = 1.0f);
-  virtual void SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
-                        const EFBRectangle& rc, u64 ticks, float Gamma = 1.0f) = 0;
+  void Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const EFBRectangle& rc,
+            u64 ticks);
+  virtual void SwapImpl(AbstractTexture* texture, const EFBRectangle& rc, u64 ticks,
+                        float Gamma = 1.0f) = 0;
 
   PEControl::PixelFormat GetPrevPixelFormat() const { return m_prev_efb_format; }
   void StorePixelFormat(PEControl::PixelFormat new_format) { m_prev_efb_format = new_format; }
@@ -141,6 +152,8 @@ public:
   virtual void ChangeSurface(void* new_surface_handle) {}
   bool UseVertexDepthRange() const;
 
+  void ShutdownFrameDumping();
+
 protected:
   std::tuple<int, int> CalculateTargetScale(int x, int y) const;
   bool CalculateTargetSize();
@@ -149,11 +162,6 @@ protected:
 
   void CheckFifoRecording();
   void RecordVideoMemory();
-
-  bool IsFrameDumping();
-  void DumpFrameData(const u8* data, int w, int h, int stride, const AVIDump::Frame& state,
-                     bool swap_upside_down = false);
-  void FinishFrameData();
 
   Common::Flag m_screenshot_request;
   Common::Event m_screenshot_completed;
@@ -169,7 +177,6 @@ protected:
   int m_backbuffer_width = 0;
   int m_backbuffer_height = 0;
   TargetRectangle m_target_rectangle = {};
-  bool m_xfb_written = false;
 
   FPSCounter m_fps_counter;
 
@@ -177,15 +184,16 @@ protected:
 
   static const float GX_MAX_DEPTH;
 
+  void* m_surface_handle = nullptr;
+  void* m_new_surface_handle = nullptr;
   Common::Flag m_surface_needs_change;
   Common::Event m_surface_changed;
-  void* m_new_surface_handle = nullptr;
 
   u32 m_last_host_config_bits = 0;
 
 private:
   void RunFrameDumps();
-  void ShutdownFrameDumping();
+  std::tuple<int, int> CalculateOutputDimensions(int width, int height);
 
   PEControl::PixelFormat m_prev_efb_format = PEControl::INVALID_FMT;
   unsigned int m_efb_scale = 1;
@@ -207,9 +215,24 @@ private:
     int width;
     int height;
     int stride;
-    bool upside_down;
     AVIDump::Frame state;
   } m_frame_dump_config;
+
+  // Texture used for screenshot/frame dumping
+  std::unique_ptr<AbstractTexture> m_frame_dump_render_texture;
+  std::array<std::unique_ptr<AbstractStagingTexture>, 2> m_frame_dump_readback_textures;
+  AVIDump::Frame m_last_frame_state;
+  bool m_last_frame_exported = false;
+
+  // Tracking of XFB textures so we don't render duplicate frames.
+  AbstractTexture* m_last_xfb_texture = nullptr;
+  u64 m_last_xfb_id = std::numeric_limits<u64>::max();
+  u64 m_last_xfb_ticks = 0;
+  EFBRectangle m_last_xfb_region;
+
+  // Note: Only used for auto-ir
+  u32 m_last_xfb_width = MAX_XFB_WIDTH;
+  u32 m_last_xfb_height = MAX_XFB_HEIGHT;
 
   // NOTE: The methods below are called on the framedumping thread.
   bool StartFrameDumpToAVI(const FrameDumpConfig& config);
@@ -218,6 +241,26 @@ private:
   std::string GetFrameDumpNextImageFileName() const;
   bool StartFrameDumpToImage(const FrameDumpConfig& config);
   void DumpFrameToImage(const FrameDumpConfig& config);
+
+  bool IsFrameDumping();
+
+  // Asynchronously encodes the current staging texture to the frame dump.
+  void DumpCurrentFrame();
+
+  // Fills the frame dump render texture with the current XFB texture.
+  void RenderFrameDump();
+
+  // Queues the current frame for readback, which will be written to AVI next frame.
+  void QueueFrameDumpReadback();
+
+  // Asynchronously encodes the specified pointer of frame data to the frame dump.
+  void DumpFrameData(const u8* data, int w, int h, int stride, const AVIDump::Frame& state);
+
+  // Ensures all rendered frames are queued for encoding.
+  void FlushFrameDump();
+
+  // Ensures all encoded frames have been written to the output file.
+  void FinishFrameData();
 };
 
 extern std::unique_ptr<Renderer> g_renderer;

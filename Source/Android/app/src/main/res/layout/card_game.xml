@@ -18,7 +18,6 @@
             android:id="@+id/image_game_screen"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:transitionName="image_game_screenshot"
             android:layout_weight="1"
             tools:src="@drawable/placeholder_screenshot"
             tools:scaleType="centerCrop"/>

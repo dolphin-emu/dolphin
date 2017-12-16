@@ -6,8 +6,7 @@
     <FrameLayout
         android:id="@+id/frame_emulation_fragment"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:visibility="invisible"/>
+        android:layout_height="match_parent"/>
 
     <ImageView
         android:layout_width="match_parent"

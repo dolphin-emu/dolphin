@@ -29,7 +29,8 @@ AdvancedConfigPane::AdvancedConfigPane(wxWindow* parent, wxWindowID id) : wxPane
 
 void AdvancedConfigPane::InitializeGUI()
 {
-  m_clock_override_checkbox = new wxCheckBox(this, wxID_ANY, _("Enable CPU Clock Override"));
+  m_clock_override_checkbox =
+      new wxCheckBox(this, wxID_ANY, _("Enable Emulated CPU Clock Override"));
   m_clock_override_slider =
       new DolphinSlider(this, wxID_ANY, 100, 0, 150, wxDefaultPosition, FromDIP(wxSize(200, -1)));
   m_clock_override_text = new wxStaticText(this, wxID_ANY, "");
@@ -45,14 +46,15 @@ void AdvancedConfigPane::InitializeGUI()
   m_custom_rtc_time_picker = new wxTimePickerCtrl(this, wxID_ANY);
 
   wxStaticText* const clock_override_description =
-      new wxStaticText(this, wxID_ANY, _("Higher values can make variable-framerate games "
-                                         "run at a higher framerate, at the expense of CPU. "
-                                         "Lower values can make variable-framerate games "
-                                         "run at a lower framerate, saving CPU.\n\n"
+      new wxStaticText(this, wxID_ANY, _("Adjusts the emulated CPU's clock rate.\n\n"
+                                         "Higher values may make variable-framerate games run "
+                                         "at a higher framerate, at the expense of performance. "
+                                         "Lower values may activate a game's internal "
+                                         "frameskip, potentially improving performance.\n\n"
                                          "WARNING: Changing this from the default (100%) "
                                          "can and will break games and cause glitches. "
                                          "Do so at your own risk. Please do not report "
-                                         "bugs that occur with a non-default clock. "));
+                                         "bugs that occur with a non-default clock."));
 
   wxStaticText* const custom_rtc_description = new wxStaticText(
       this, wxID_ANY,
@@ -110,7 +112,8 @@ void AdvancedConfigPane::InitializeGUI()
 
 void AdvancedConfigPane::LoadGUIValues()
 {
-  int ocFactor = (int)(std::log2f(SConfig::GetInstance().m_OCFactor) * 25.f + 100.f + 0.5f);
+  int ocFactor =
+      static_cast<int>(std::ceil(std::log2f(SConfig::GetInstance().m_OCFactor) * 25.f + 100.f));
   bool oc_enabled = SConfig::GetInstance().m_OCEnable;
   m_clock_override_checkbox->SetValue(oc_enabled);
   m_clock_override_slider->SetValue(ocFactor);
@@ -199,7 +202,7 @@ void AdvancedConfigPane::OnCustomRTCTimeChanged(wxDateEvent& event)
 
 void AdvancedConfigPane::UpdateCPUClock()
 {
-  int core_clock = SystemTimers::GetTicksPerSecond() / pow(10, 6);
+  int core_clock = SystemTimers::GetTicksPerSecond() / std::pow(10, 6);
   int percent = static_cast<int>(std::round(SConfig::GetInstance().m_OCFactor * 100.f));
   int clock = static_cast<int>(std::round(SConfig::GetInstance().m_OCFactor * core_clock));
 

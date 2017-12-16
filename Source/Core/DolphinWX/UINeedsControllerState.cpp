@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "DolphinWX/UINeedsControllerState.h"
+
 #include <atomic>
 
 static std::atomic<bool> s_needs_controller_state{false};

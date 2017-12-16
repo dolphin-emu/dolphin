@@ -37,7 +37,7 @@ void Initialize()
       s_config.CreateController<GCKeyboard>(i);
   }
 
-  g_controller_interface.RegisterHotplugCallback(LoadConfig);
+  g_controller_interface.RegisterDevicesChangedCallback(LoadConfig);
 
   // Load the saved controller config
   s_config.LoadConfig(true);

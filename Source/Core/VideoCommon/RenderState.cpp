@@ -180,8 +180,8 @@ void SamplerState::Generate(const BPMemory& bp, u32 index)
 
   // If mipmaps are disabled, clamp min/max lod
   max_lod = SamplerCommon::AreBpTexMode0MipmapsEnabled(tm0) ? tm1.max_lod : 0;
-  min_lod = std::min(max_lod.Value(), tm1.min_lod);
-  lod_bias = SamplerCommon::AreBpTexMode0MipmapsEnabled(tm0) ? tm0.lod_bias : 0;
+  min_lod = std::min(max_lod.Value(), static_cast<u64>(tm1.min_lod));
+  lod_bias = SamplerCommon::AreBpTexMode0MipmapsEnabled(tm0) ? tm0.lod_bias * (256 / 32) : 0;
 
   // Address modes
   static constexpr std::array<AddressMode, 4> address_modes = {

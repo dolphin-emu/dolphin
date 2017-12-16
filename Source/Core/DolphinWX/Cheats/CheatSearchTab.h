@@ -42,6 +42,7 @@ private:
   bool ParseUserEnteredValue(u32* out) const;
   u32 SwapValue(u32 value) const;
 
+  void OnAddAddressClicked(wxCommandEvent&);
   void OnNewScanClicked(wxCommandEvent&);
   void OnNextScanClicked(wxCommandEvent&);
   void OnCreateARCodeClicked(wxCommandEvent&);
@@ -57,6 +58,9 @@ private:
   wxListView* m_lview_search_results;
   wxStaticText* m_label_results_count;
   wxTextCtrl* m_textctrl_value_x;
+
+  wxTextCtrl* m_textctrl_address;
+  wxButton* m_btn_add_address;
 
   wxButton* m_btn_create_code;
   wxButton* m_btn_init_scan;

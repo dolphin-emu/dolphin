@@ -62,6 +62,8 @@ signals:
 
   // Tools
   void BootGameCubeIPL(DiscIO::Region region);
+  void ShowFIFOPlayer();
+  void ShowAboutDialog();
 
   // Options
   void Configure();
@@ -76,8 +78,6 @@ signals:
   void ColumnVisibilityToggled(const QString& row, bool visible);
   void GameListPlatformVisibilityToggled(const QString& row, bool visible);
   void GameListRegionVisibilityToggled(const QString& row, bool visible);
-
-  void ShowAboutDialog();
 
   // Movie
   void PlayRecording();
@@ -113,6 +113,7 @@ private:
   void InstallWAD();
   void ImportWiiSave();
   void ExportWiiSaves();
+  void CheckNAND();
   void NANDExtractCertificates();
 
   void OnSelectionChanged(QSharedPointer<GameFile> game_file);
@@ -131,6 +132,7 @@ private:
   QAction* m_ntscu_ipl;
   QAction* m_pal_ipl;
   QAction* m_import_backup;
+  QAction* m_check_nand;
   QAction* m_extract_certificates;
 
   // Emulation

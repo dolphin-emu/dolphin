@@ -90,7 +90,8 @@ void VideoBackend::InitBackendInfo()
   g_Config.backend_info.bSupportsSSAA = true;
   g_Config.backend_info.bSupportsReversedDepthRange = true;
   g_Config.backend_info.bSupportsMultithreading = false;
-  g_Config.backend_info.bSupportsInternalResolutionFrameDumps = true;
+  g_Config.backend_info.bSupportsCopyToVram = true;
+  g_Config.backend_info.bForceCopyToRam = false;
 
   // TODO: There is a bug here, if texel buffers are not supported the graphics options
   // will show the option when it is not supported. The only way around this would be
@@ -168,7 +169,7 @@ bool VideoBackend::Initialize(void* window_handle)
 
   InitInterface();
   GLInterface->SetMode(GLInterfaceMode::MODE_DETECT);
-  if (!GLInterface->Create(window_handle, g_ActiveConfig.iStereoMode == STEREO_QUADBUFFER))
+  if (!GLInterface->Create(window_handle, g_ActiveConfig.stereo_mode == StereoMode::QuadBuffer))
     return false;
 
   return true;

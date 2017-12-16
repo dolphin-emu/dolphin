@@ -156,7 +156,7 @@ void PPCDebugInterface::ToggleMemCheck(unsigned int address, bool read, bool wri
   }
 }
 
-void PPCDebugInterface::InsertBLR(unsigned int address, unsigned int value)
+void PPCDebugInterface::Patch(unsigned int address, unsigned int value)
 {
   PowerPC::HostWrite_U32(value, address);
   PowerPC::ScheduleInvalidateCacheThreadSafe(address);

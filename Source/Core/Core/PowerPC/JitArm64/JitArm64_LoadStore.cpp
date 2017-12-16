@@ -10,7 +10,6 @@
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/DSP.h"
-#include "Core/HW/GPFifo.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/JitArm64/Jit.h"
@@ -230,7 +229,6 @@ void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s
 
   if (is_immediate && jo.optimizeGatherPipe && PowerPC::IsOptimizableGatherPipeWrite(imm_addr))
   {
-    ARM64Reg WA = INVALID_REG;
     int accessSize;
     if (flags & BackPatchInfo::FLAG_SIZE_32)
       accessSize = 32;
@@ -239,30 +237,23 @@ void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s
     else
       accessSize = 8;
 
-    if (accessSize != 8)
-      WA = gpr.GetReg();
-
-    MOVP2R(X1, &GPFifo::g_gather_pipe_ptr);
-    LDR(INDEX_UNSIGNED, X0, X1, 0);
+    LDR(INDEX_UNSIGNED, X0, PPC_REG, PPCSTATE_OFF(gather_pipe_ptr));
     if (accessSize == 32)
     {
-      REV32(WA, RS);
-      STR(INDEX_POST, WA, X0, 4);
+      REV32(W1, RS);
+      STR(INDEX_POST, W1, X0, 4);
     }
     else if (accessSize == 16)
     {
-      REV16(WA, RS);
-      STRH(INDEX_POST, WA, X0, 2);
+      REV16(W1, RS);
+      STRH(INDEX_POST, W1, X0, 2);
     }
     else
     {
       STRB(INDEX_POST, RS, X0, 1);
     }
-    STR(INDEX_UNSIGNED, X0, X1, 0);
+    STR(INDEX_UNSIGNED, X0, PPC_REG, PPCSTATE_OFF(gather_pipe_ptr));
     js.fifoBytesSinceCheck += accessSize >> 3;
-
-    if (accessSize != 8)
-      gpr.Unlock(WA);
   }
   else if (is_immediate && PowerPC::IsOptimizableRAMAddress(imm_addr))
   {

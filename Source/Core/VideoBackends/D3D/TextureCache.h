@@ -4,8 +4,11 @@
 
 #pragma once
 
+#include <map>
+
 #include "VideoBackends/D3D/D3DTexture.h"
 #include "VideoCommon/TextureCacheBase.h"
+#include "VideoCommon/TextureConverterShaderGen.h"
 
 class AbstractTexture;
 struct TextureConfig;
@@ -19,8 +22,6 @@ public:
   ~TextureCache();
 
 private:
-  std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config) override;
-
   u64 EncodeToRamFromTexture(u32 address, void* source_texture, u32 SourceW, u32 SourceH,
                              bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, int bScaleByHalf,
                              const EFBRectangle& source)
@@ -36,13 +37,18 @@ private:
                bool scale_by_half) override;
 
   void CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy, const EFBRectangle& src_rect,
-                           bool scale_by_half, unsigned int cbuf_id, const float* colmat) override;
+                           bool scale_by_half, EFBCopyFormat dst_format,
+                           bool is_intensity) override;
 
   bool CompileShaders() override { return true; }
   void DeleteShaders() override {}
+  ID3D11PixelShader* GetEFBToTexPixelShader(const TextureConversionShaderGen::TCShaderUid& uid);
+
   ID3D11Buffer* palette_buf;
   ID3D11ShaderResourceView* palette_buf_srv;
   ID3D11Buffer* palette_uniform;
   ID3D11PixelShader* palette_pixel_shader[3];
+
+  std::map<TextureConversionShaderGen::TCShaderUid, ID3D11PixelShader*> m_efb_to_tex_pixel_shaders;
 };
 }

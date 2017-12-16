@@ -10,6 +10,7 @@
 #include "DolphinQt2/QtUtils/ListTabWidget.h"
 #include "DolphinQt2/Resources.h"
 #include "DolphinQt2/Settings.h"
+#include "DolphinQt2/Settings/AdvancedPane.h"
 #include "DolphinQt2/Settings/AudioPane.h"
 #include "DolphinQt2/Settings/GeneralPane.h"
 #include "DolphinQt2/Settings/InterfacePane.h"
@@ -38,10 +39,11 @@ SettingsWindow::SettingsWindow(QWidget* parent) : QDialog(parent)
   m_tabs = new ListTabWidget();
   layout->addWidget(m_tabs);
 
-  AddTab(m_tabs, tr("General"), new GeneralPane(), "config");
+  m_general_pane_index = AddTab(m_tabs, tr("General"), new GeneralPane(), "config");
   AddTab(m_tabs, tr("Interface"), new InterfacePane(), "browse");
   m_audio_pane_index = AddTab(m_tabs, tr("Audio"), new AudioPane(), "play");
   AddTab(m_tabs, tr("Paths"), new PathPane(), "browse");
+  AddTab(m_tabs, tr("Advanced"), new AdvancedPane(), "config");
 
   // Dialog box buttons
   QDialogButtonBox* ok_box = new QDialogButtonBox(QDialogButtonBox::Ok);
@@ -54,4 +56,9 @@ SettingsWindow::SettingsWindow(QWidget* parent) : QDialog(parent)
 void SettingsWindow::SelectAudioPane()
 {
   m_tabs->setCurrentIndex(m_audio_pane_index);
+}
+
+void SettingsWindow::SelectGeneralPane()
+{
+  m_tabs->setCurrentIndex(m_general_pane_index);
 }

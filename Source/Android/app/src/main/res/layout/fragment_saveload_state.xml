@@ -1,0 +1,52 @@
+<GridLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/grid_state_slots"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:columnCount="3"
+    android:rowCount="2"
+    android:layout_gravity="center"
+    android:background="#af000000">
+
+    <Button
+        android:id="@+id/loadsave_state_button_1"
+        android:layout_width="128dp"
+        android:layout_height="128dp"
+        android:text="@string/emulation_slot1"
+        style="@style/OverlayInGameMenuOption"/>
+
+    <Button
+        android:id="@+id/loadsave_state_button_2"
+        android:layout_width="128dp"
+        android:layout_height="128dp"
+        android:text="@string/emulation_slot2"
+        style="@style/OverlayInGameMenuOption"/>
+
+    <Button
+        android:id="@+id/loadsave_state_button_3"
+        android:layout_width="128dp"
+        android:layout_height="128dp"
+        android:text="@string/emulation_slot3"
+        style="@style/OverlayInGameMenuOption"/>
+
+    <Button
+        android:id="@+id/loadsave_state_button_4"
+        android:layout_width="128dp"
+        android:layout_height="128dp"
+        android:text="@string/emulation_slot4"
+        style="@style/OverlayInGameMenuOption"/>
+
+    <Button
+        android:id="@+id/loadsave_state_button_5"
+        android:layout_width="128dp"
+        android:layout_height="128dp"
+        android:text="@string/emulation_slot5"
+        style="@style/OverlayInGameMenuOption"/>
+
+    <Button
+        android:id="@+id/loadsave_state_button_6"
+        android:layout_width="128dp"
+        android:layout_height="128dp"
+        android:text="@string/emulation_slot6"
+        style="@style/OverlayInGameMenuOption"/>
+
+</GridLayout>

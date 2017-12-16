@@ -22,7 +22,7 @@
 static char text[16384];
 static bool IntensityConstantAdded = false;
 
-namespace TextureConversionShader
+namespace TextureConversionShaderTiled
 {
 u16 GetEncodedSampleCount(EFBCopyFormat format)
 {
@@ -49,6 +49,8 @@ u16 GetEncodedSampleCount(EFBCopyFormat format)
   case EFBCopyFormat::RG8:
   case EFBCopyFormat::GB8:
     return 2;
+  case EFBCopyFormat::XFB:
+    return 2;
   default:
     PanicAlert("Invalid EFB Copy Format (0x%X)! (GetEncodedSampleCount)", static_cast<int>(format));
     return 1;
@@ -62,9 +64,19 @@ static void WriteSwizzler(char*& p, EFBCopyFormat format, APIType ApiType)
   // left, top, of source rectangle within source texture
   // width of the destination rectangle, scale_factor (1 or 2)
   if (ApiType == APIType::Vulkan)
-    WRITE(p, "layout(std140, push_constant) uniform PCBlock { int4 position; } PC;\n");
+    WRITE(p,
+          "layout(std140, push_constant) uniform PCBlock { int4 position; float y_scale; } PC;\n");
   else
+  {
     WRITE(p, "uniform int4 position;\n");
+    WRITE(p, "uniform float y_scale;\n");
+  }
+
+  // D3D does not have roundEven(), only round(), which is specified "to the nearest integer".
+  // This differs from the roundEven() behavior, but to get consistency across drivers in OpenGL
+  // we need to use roundEven().
+  if (ApiType == APIType::D3D)
+    WRITE(p, "#define roundEven(x) round(x)\n");
 
   // Alpha channel in the copy is set to 1 the EFB format does not have an alpha channel.
   WRITE(p, "float4 RGBA8ToRGB8(float4 src)\n");
@@ -74,13 +86,13 @@ static void WriteSwizzler(char*& p, EFBCopyFormat format, APIType ApiType)
 
   WRITE(p, "float4 RGBA8ToRGBA6(float4 src)\n");
   WRITE(p, "{\n");
-  WRITE(p, "  int4 val = int4(src * 255.0) >> 2;\n");
+  WRITE(p, "  int4 val = int4(roundEven(src * 255.0)) >> 2;\n");
   WRITE(p, "  return float4(val) / 63.0;\n");
   WRITE(p, "}\n");
 
   WRITE(p, "float4 RGBA8ToRGB565(float4 src)\n");
   WRITE(p, "{\n");
-  WRITE(p, "  int4 val = int4(src * 255.0);\n");
+  WRITE(p, "  int4 val = int4(roundEven(src * 255.0));\n");
   WRITE(p, "  val = int4(val.r >> 3, val.g >> 2, val.b >> 3, 1);\n");
   WRITE(p, "  return float4(val) / float4(31.0, 63.0, 31.0, 1.0);\n");
   WRITE(p, "}\n");
@@ -109,7 +121,8 @@ static void WriteSwizzler(char*& p, EFBCopyFormat format, APIType ApiType)
     WRITE(p, "{\n"
              "  int2 sampleUv;\n"
              "  int2 uv1 = int2(gl_FragCoord.xy);\n"
-             "  int4 position = PC.position;\n");
+             "  int4 position = PC.position;\n"
+             "  float y_scale = PC.y_scale;\n");
   }
   else  // D3D
   {
@@ -148,6 +161,7 @@ static void WriteSwizzler(char*& p, EFBCopyFormat format, APIType ApiType)
                                               // pixel)
   WRITE(p, "  uv0 += float2(position.xy);\n");                    // move to copied rect
   WRITE(p, "  uv0 /= float2(%d, %d);\n", EFB_WIDTH, EFB_HEIGHT);  // normalize to [0:1]
+  WRITE(p, "  uv0 /= float2(1, y_scale);\n");                     // apply the y scaling
   if (ApiType == APIType::OpenGL)                                 // ogl has to flip up and down
   {
     WRITE(p, "  uv0.y = 1.0-uv0.y;\n");
@@ -656,6 +670,28 @@ static void WriteZ24Encoder(char*& p, APIType ApiType, const EFBCopyParams& para
   WriteEncoderEnd(p);
 }
 
+static void WriteXFBEncoder(char*& p, APIType ApiType, const EFBCopyParams& params)
+{
+  WriteSwizzler(p, EFBCopyFormat::XFB, ApiType);
+
+  WRITE(p, "  float3 y_const = float3(0.257, 0.504, 0.098);\n");
+  WRITE(p, "  float3 u_const = float3(-0.148, -0.291, 0.439);\n");
+  WRITE(p, "  float3 v_const = float3(0.439, -0.368, -0.071);\n");
+  WRITE(p, "  float3 color0;\n");
+  WRITE(p, "  float3 color1;\n");
+
+  WriteSampleColor(p, "rgb", "color0", 0, ApiType, params);
+  WriteSampleColor(p, "rgb", "color1", 1, ApiType, params);
+  WRITE(p, "  float3 average = (color0 + color1) * 0.5;\n");
+
+  WRITE(p, "  ocol0.b = dot(color0,  y_const) + 0.0625;\n");
+  WRITE(p, "  ocol0.g = dot(average, u_const) + 0.5;\n");
+  WRITE(p, "  ocol0.r = dot(color1,  y_const) + 0.0625;\n");
+  WRITE(p, "  ocol0.a = dot(average, v_const) + 0.5;\n");
+
+  WriteEncoderEnd(p);
+}
+
 const char* GenerateEncodingShader(const EFBCopyParams& params, APIType api_type)
 {
   text[sizeof(text) - 1] = 0x7C;  // canary
@@ -727,6 +763,9 @@ const char* GenerateEncodingShader(const EFBCopyParams& params, APIType api_type
       WriteZ16LEncoder(p, api_type, params);  // Z16L
     else
       WriteCC8Encoder(p, "gb", api_type, params);
+    break;
+  case EFBCopyFormat::XFB:
+    WriteXFBEncoder(p, api_type, params);
     break;
   default:
     PanicAlert("Invalid EFB Copy Format (0x%X)! (GenerateEncodingShader)",
@@ -1230,12 +1269,41 @@ static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
         vec4 norm_color = GetPaletteColorNormalized(index);
         imageStore(output_image, ivec3(ivec2(coords), 0), norm_color);
       }
+      )"}},
+
+    // We do the inverse BT.601 conversion for YCbCr to RGB
+    // http://www.equasys.de/colorconversion.html#YCbCr-RGBColorFormatConversion
+    {TextureFormat::XFB,
+     {BUFFER_FORMAT_RGBA8_UINT, 0, 8, 8, false,
+      R"(
+      layout(local_size_x = 8, local_size_y = 8) in;
+
+      void main()
+      {
+        uvec2 uv = gl_GlobalInvocationID.xy;
+        int buffer_pos = int(u_src_offset + (uv.y * u_src_row_stride) + (uv.x / 2));
+        vec4 yuyv = texelFetch(s_input_buffer, buffer_pos);
+
+        float y = mix(yuyv.r, yuyv.b, (uv.x & 1u) == 1u);
+
+        float yComp = 1.164 * (y - 16);
+        float uComp = yuyv.g - 128;
+        float vComp = yuyv.a - 128;
+
+        vec4 rgb = vec4(yComp + (1.596 * vComp),
+                        yComp - (0.813 * vComp) - (0.391 * uComp),
+                        yComp + (2.018 * uComp),
+                        255.0);
+        vec4 rgba_norm = rgb / 255.0;
+        imageStore(output_image, ivec3(ivec2(uv), 0), rgba_norm);
+      }
       )"}}};
 
 static const std::array<u32, BUFFER_FORMAT_COUNT> s_buffer_bytes_per_texel = {{
     1,  // BUFFER_FORMAT_R8_UINT
     2,  // BUFFER_FORMAT_R16_UINT
     8,  // BUFFER_FORMAT_R32G32_UINT
+    4,  // BUFFER_FORMAT_RGBA8_UINT
 }};
 
 const DecodingShaderInfo* GetDecodingShaderInfo(TextureFormat format)

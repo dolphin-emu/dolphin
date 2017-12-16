@@ -16,6 +16,9 @@
 #include "VideoCommon/TextureDecoder.h"
 #include "VideoCommon/VideoCommon.h"
 
+class AbstractTexture;
+class AbstractStagingTexture;
+
 namespace Vulkan
 {
 class StagingTexture2D;
@@ -58,7 +61,7 @@ public:
 private:
   static const u32 ENCODING_TEXTURE_WIDTH = EFB_WIDTH * 4;
   static const u32 ENCODING_TEXTURE_HEIGHT = 1024;
-  static const VkFormat ENCODING_TEXTURE_FORMAT = VK_FORMAT_B8G8R8A8_UNORM;
+  static const AbstractTextureFormat ENCODING_TEXTURE_FORMAT = AbstractTextureFormat::BGRA8;
   static const size_t NUM_PALETTE_CONVERSION_SHADERS = 3;
 
   // Maximum size of a texture based on BP registers.
@@ -75,8 +78,6 @@ private:
 
   bool CreateEncodingRenderPass();
   bool CreateEncodingTexture();
-  bool CreateEncodingDownloadTexture();
-
   bool CreateDecodingTexture();
 
   bool CompileYUYVConversionShaders();
@@ -97,6 +98,7 @@ private:
   VkBufferView m_texel_buffer_view_r8_uint = VK_NULL_HANDLE;
   VkBufferView m_texel_buffer_view_r16_uint = VK_NULL_HANDLE;
   VkBufferView m_texel_buffer_view_r32g32_uint = VK_NULL_HANDLE;
+  VkBufferView m_texel_buffer_view_rgba8_uint = VK_NULL_HANDLE;
   VkBufferView m_texel_buffer_view_rgba8_unorm = VK_NULL_HANDLE;
   size_t m_texel_buffer_size = 0;
 
@@ -105,15 +107,14 @@ private:
 
   // Texture encoding - RGBA8->GX format in memory
   std::map<EFBCopyParams, VkShaderModule> m_encoding_shaders;
+  std::unique_ptr<AbstractTexture> m_encoding_render_texture;
+  std::unique_ptr<AbstractStagingTexture> m_encoding_readback_texture;
   VkRenderPass m_encoding_render_pass = VK_NULL_HANDLE;
-  std::unique_ptr<Texture2D> m_encoding_render_texture;
-  VkFramebuffer m_encoding_render_framebuffer = VK_NULL_HANDLE;
-  std::unique_ptr<StagingTexture2D> m_encoding_download_texture;
 
   // Texture decoding - GX format in memory->RGBA8
   struct TextureDecodingPipeline
   {
-    const TextureConversionShader::DecodingShaderInfo* base_info;
+    const TextureConversionShaderTiled::DecodingShaderInfo* base_info;
     VkShaderModule compute_shader;
     bool valid;
   };

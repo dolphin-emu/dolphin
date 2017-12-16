@@ -17,7 +17,6 @@
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
 #include "Core/IOS/ES/Formats.h"
-#include "DiscIO/NANDContentLoader.h"
 
 namespace DiscIO
 {
@@ -28,11 +27,12 @@ NANDImporter::NANDImporter() = default;
 NANDImporter::~NANDImporter() = default;
 
 void NANDImporter::ImportNANDBin(const std::string& path_to_bin,
-                                 std::function<void()> update_callback)
+                                 std::function<void()> update_callback,
+                                 std::function<std::string()> get_otp_dump_path)
 {
   m_update_callback = std::move(update_callback);
 
-  if (!ReadNANDBin(path_to_bin))
+  if (!ReadNANDBin(path_to_bin, get_otp_dump_path))
     return;
 
   const std::string nand_root = File::GetUserPath(D_WIIROOT_IDX);
@@ -44,25 +44,22 @@ void NANDImporter::ImportNANDBin(const std::string& path_to_bin,
   ProcessEntry(0, nand_root);
   ExportKeys(nand_root);
   ExtractCertificates(nand_root);
-
-  // We have to clear the cache so the new NAND takes effect
-  DiscIO::NANDContentManager::Access().ClearCache();
 }
 
-bool NANDImporter::ReadNANDBin(const std::string& path_to_bin)
+bool NANDImporter::ReadNANDBin(const std::string& path_to_bin,
+                               std::function<std::string()> get_otp_dump_path)
 {
   constexpr size_t NAND_TOTAL_BLOCKS = 0x40000;
   constexpr size_t NAND_BLOCK_SIZE = 0x800;
   constexpr size_t NAND_ECC_BLOCK_SIZE = 0x40;
   constexpr size_t NAND_BIN_SIZE =
-      (NAND_BLOCK_SIZE + NAND_ECC_BLOCK_SIZE) * NAND_TOTAL_BLOCKS + NAND_KEYS_SIZE;  // 0x21000400
+      (NAND_BLOCK_SIZE + NAND_ECC_BLOCK_SIZE) * NAND_TOTAL_BLOCKS;  // 0x21000000
 
   File::IOFile file(path_to_bin, "rb");
-  if (file.GetSize() != NAND_BIN_SIZE)
+  const u64 image_size = file.GetSize();
+  if (image_size != NAND_BIN_SIZE + NAND_KEYS_SIZE && image_size != NAND_BIN_SIZE)
   {
-    PanicAlertT("This file does not look like a BootMii NAND backup. (0x%" PRIx64
-                " does not equal 0x%zx)",
-                file.GetSize(), NAND_BIN_SIZE);
+    PanicAlertT("This file does not look like a BootMii NAND backup.");
     return false;
   }
 
@@ -80,8 +77,20 @@ bool NANDImporter::ReadNANDBin(const std::string& path_to_bin)
   }
 
   m_nand_keys.resize(NAND_KEYS_SIZE);
-  file.ReadBytes(m_nand_keys.data(), NAND_KEYS_SIZE);
-  return true;
+
+  // Read the OTP/SEEPROM dump.
+  // If it is not included in the NAND image, get a path to the dump and read key data from it.
+  if (image_size == NAND_BIN_SIZE)
+  {
+    const std::string otp_dump_path = get_otp_dump_path();
+    if (otp_dump_path.empty())
+      return false;
+    File::IOFile keys_file{otp_dump_path, "rb"};
+    return keys_file.ReadBytes(m_nand_keys.data(), NAND_KEYS_SIZE);
+  }
+
+  // Otherwise, just read the key data from the NAND image.
+  return file.ReadBytes(m_nand_keys.data(), NAND_KEYS_SIZE);
 }
 
 void NANDImporter::FindSuperblock()
@@ -113,10 +122,7 @@ void NANDImporter::FindSuperblock()
 
 std::string NANDImporter::GetPath(const NANDFSTEntry& entry, const std::string& parent_path)
 {
-  std::string name(reinterpret_cast<const char*>(&entry.name), sizeof(NANDFSTEntry::name));
-  // Get rid of any extra null characters
-  while (name.back() == '\0')
-    name.pop_back();
+  std::string name(entry.name, strnlen(entry.name, sizeof(NANDFSTEntry::name)));
 
   if (name.front() == '/' || parent_path.back() == '/')
     return parent_path + name;

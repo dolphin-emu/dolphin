@@ -47,7 +47,6 @@
     <ClCompile Include="FileBlob.cpp" />
     <ClCompile Include="Filesystem.cpp" />
     <ClCompile Include="FileSystemGCWii.cpp" />
-    <ClCompile Include="NANDContentLoader.cpp" />
     <ClCompile Include="NANDImporter.cpp" />
     <ClCompile Include="TGCBlob.cpp" />
     <ClCompile Include="Volume.cpp" />
@@ -56,6 +55,7 @@
     <ClCompile Include="VolumeWad.cpp" />
     <ClCompile Include="VolumeWii.cpp" />
     <ClCompile Include="WbfsBlob.cpp" />
+    <ClCompile Include="WiiSaveBanner.cpp" />
     <ClCompile Include="WiiWad.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -70,7 +70,6 @@
     <ClInclude Include="FileBlob.h" />
     <ClInclude Include="Filesystem.h" />
     <ClInclude Include="FileSystemGCWii.h" />
-    <ClInclude Include="NANDContentLoader.h" />
     <ClInclude Include="NANDImporter.h" />
     <ClInclude Include="TGCBlob.h" />
     <ClInclude Include="Volume.h" />
@@ -79,6 +78,7 @@
     <ClInclude Include="VolumeWad.h" />
     <ClInclude Include="VolumeWii.h" />
     <ClInclude Include="WbfsBlob.h" />
+    <ClInclude Include="WiiSaveBanner.h" />
     <ClInclude Include="WiiWad.h" />
   </ItemGroup>
   <ItemGroup>

@@ -12,6 +12,7 @@
 #include "Common/Logging/LogManager.h"
 
 class QCheckBox;
+class QCloseEvent;
 class QComboBox;
 class QPushButton;
 class QVBoxLayout;
@@ -24,6 +25,9 @@ class LogWidget final : public QDockWidget, LogListener
 public:
   explicit LogWidget(QWidget* parent = nullptr);
   ~LogWidget();
+
+protected:
+  void closeEvent(QCloseEvent*) override;
 
 private:
   void UpdateLog();

@@ -13,9 +13,10 @@
 #include "VideoCommon/FramebufferManagerBase.h"
 #include "VideoCommon/RenderState.h"
 
+class AbstractStagingTexture;
+
 namespace Vulkan
 {
-class StagingTexture2D;
 class StateTracker;
 class StreamBuffer;
 class Texture2D;
@@ -43,15 +44,6 @@ public:
   u32 GetEFBLayers() const;
   VkSampleCountFlagBits GetEFBSamples() const;
   MultisamplingState GetEFBMultisamplingState() const;
-  std::pair<u32, u32> GetTargetSize() const override;
-
-  std::unique_ptr<XFBSourceBase> CreateXFBSource(unsigned int target_width,
-                                                 unsigned int target_height,
-                                                 unsigned int layers) override;
-
-  // GPU EFB textures -> Guest
-  void CopyToRealXFB(u32 xfb_addr, u32 fb_stride, u32 fb_height, const EFBRectangle& source_rc,
-                     float gamma = 1.0f) override;
 
   void ResizeEFBTextures();
 
@@ -147,8 +139,8 @@ private:
   VkFramebuffer m_depth_copy_framebuffer = VK_NULL_HANDLE;
 
   // CPU-side EFB readback texture
-  std::unique_ptr<StagingTexture2D> m_color_readback_texture;
-  std::unique_ptr<StagingTexture2D> m_depth_readback_texture;
+  std::unique_ptr<AbstractStagingTexture> m_color_readback_texture;
+  std::unique_ptr<AbstractStagingTexture> m_depth_readback_texture;
   bool m_color_readback_texture_valid = false;
   bool m_depth_readback_texture_valid = false;
 
@@ -167,25 +159,6 @@ private:
   VkShaderModule m_poke_vertex_shader = VK_NULL_HANDLE;
   VkShaderModule m_poke_geometry_shader = VK_NULL_HANDLE;
   VkShaderModule m_poke_fragment_shader = VK_NULL_HANDLE;
-};
-
-// The XFB source class simply wraps a texture cache entry.
-// All the required functionality is provided by TextureCache.
-class XFBSource final : public XFBSourceBase
-{
-public:
-  explicit XFBSource(std::unique_ptr<AbstractTexture> texture);
-  ~XFBSource();
-
-  VKTexture* GetTexture() const;
-  // Guest -> GPU EFB Textures
-  void DecodeToTexture(u32 xfb_addr, u32 fb_width, u32 fb_height) override;
-
-  // Used for virtual XFB
-  void CopyEFB(float gamma) override;
-
-private:
-  std::unique_ptr<AbstractTexture> m_texture;
 };
 
 }  // namespace Vulkan

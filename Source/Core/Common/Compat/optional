@@ -4,7 +4,7 @@
 
 #pragma once
 
-#if __has_include_next(<optional>)
+#if __cplusplus >= 201703L && __has_include_next(<optional>)
 #include_next <optional>
 #else
 /* Copyright 2017 The TensorFlow Authors. All Rights Reserved.

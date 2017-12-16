@@ -1,9 +1,6 @@
 package org.dolphinemu.dolphinemu.activities;
 
-import android.app.Activity;
-import android.app.ActivityOptions;
 import android.app.AlertDialog;
-import android.app.Fragment;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -11,9 +8,12 @@ import android.content.SharedPreferences;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Message;
 import android.preference.PreferenceManager;
 import android.support.annotation.IntDef;
+import android.support.v4.app.ActivityOptionsCompat;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.SparseIntArray;
 import android.view.InputDevice;
@@ -23,10 +23,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewTreeObserver;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -37,11 +34,12 @@ import com.squareup.picasso.Picasso;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.fragments.EmulationFragment;
-import org.dolphinemu.dolphinemu.fragments.LoadStateFragment;
 import org.dolphinemu.dolphinemu.fragments.MenuFragment;
-import org.dolphinemu.dolphinemu.fragments.SaveStateFragment;
+import org.dolphinemu.dolphinemu.fragments.SaveLoadStateFragment;
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
+import org.dolphinemu.dolphinemu.ui.platform.Platform;
 import org.dolphinemu.dolphinemu.utils.Animations;
+import org.dolphinemu.dolphinemu.utils.ControllerMappingHelper;
 import org.dolphinemu.dolphinemu.utils.Java_GCAdapter;
 import org.dolphinemu.dolphinemu.utils.Java_WiimoteAdapter;
 import org.dolphinemu.dolphinemu.utils.Log;
@@ -53,40 +51,24 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
 
 public final class EmulationActivity extends AppCompatActivity
 {
+	private static final String BACKSTACK_NAME_MENU = "menu";
+	private static final String BACKSTACK_NAME_SUBMENU = "submenu";
 	private View mDecorView;
 	private ImageView mImageView;
-
-	private FrameLayout mFrameEmulation;
-	private LinearLayout mMenuLayout;
-
-	private String mSubmenuFragmentTag;
+	private EmulationFragment mEmulationFragment;
 
 	private SharedPreferences mPreferences;
+	private ControllerMappingHelper mControllerMappingHelper;
 
 	// So that MainActivity knows which view to invalidate before the return animation.
 	private int mPosition;
 
 	private boolean mDeviceHasTouchScreen;
-	private boolean mSystemUiVisible;
 	private boolean mMenuVisible;
 
-	private static boolean mIsGameCubeGame;
+	private static boolean sIsGameCubeGame;
 
-	/**
-	 * Handlers are a way to pass a message to an Activity telling it to do something
-	 * on the UI thread. This Handler responds to any message, even blank ones, by
-	 * hiding the system UI.
-	 */
-	private Handler mSystemUiHider = new Handler()
-	{
-		@Override
-		public void handleMessage(Message msg)
-		{
-			hideSystemUI();
-		}
-	};
 	private String mScreenPath;
-	private FrameLayout mFrameContent;
 	private String mSelectedTitle;
 
 	@Retention(SOURCE)
@@ -150,14 +132,41 @@ public final class EmulationActivity extends AppCompatActivity
 		buttonsActionsMap.append(R.id.menu_emulation_load_4, EmulationActivity.MENU_ACTION_LOAD_SLOT4);
 		buttonsActionsMap.append(R.id.menu_emulation_load_5, EmulationActivity.MENU_ACTION_LOAD_SLOT5);
 		buttonsActionsMap.append(R.id.menu_exit, EmulationActivity.MENU_ACTION_EXIT);
+	}
 
+	public static void launch(FragmentActivity activity, String path, String title, String screenshotPath, int position, View sharedView)
+	{
+		Intent launcher = new Intent(activity, EmulationActivity.class);
 
+		launcher.putExtra("SelectedGame", path);
+		launcher.putExtra("SelectedTitle", title);
+		launcher.putExtra("ScreenPath", screenshotPath);
+		launcher.putExtra("GridPosition", position);
+
+		ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(
+				activity,
+				sharedView,
+				"image_game_screenshot");
+
+		// I believe this warning is a bug. Activities are FragmentActivity from the support lib
+		//noinspection RestrictedApi
+		activity.startActivityForResult(launcher, MainPresenter.REQUEST_EMULATE_GAME, options.toBundle());
 	}
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
 	{
+		super.onCreate(savedInstanceState);
+
+		// Get params we were passed
+		Intent gameToEmulate = getIntent();
+		String path = gameToEmulate.getStringExtra("SelectedGame");
+		sIsGameCubeGame = Platform.fromNativeInt(NativeLibrary.GetPlatform(path)) == Platform.GAMECUBE;
+		mSelectedTitle = gameToEmulate.getStringExtra("SelectedTitle");
+		mScreenPath = gameToEmulate.getStringExtra("ScreenPath");
+		mPosition = gameToEmulate.getIntExtra("GridPosition", -1);
 		mDeviceHasTouchScreen = getPackageManager().hasSystemFeature("android.hardware.touchscreen");
+		mControllerMappingHelper = new ControllerMappingHelper();
 
 		int themeId;
 		if (mDeviceHasTouchScreen)
@@ -166,32 +175,28 @@ public final class EmulationActivity extends AppCompatActivity
 
 			// Get a handle to the Window containing the UI.
 			mDecorView = getWindow().getDecorView();
-
-			// Set these options now so that the SurfaceView the game renders into is the right size.
-			mDecorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
-					View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
-					View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
-
-			// Set the ActionBar to follow the navigation/status bar's visibility changes.
-			mDecorView.setOnSystemUiVisibilityChangeListener(
-					new View.OnSystemUiVisibilityChangeListener()
+			mDecorView.setOnSystemUiVisibilityChangeListener
+					(new View.OnSystemUiVisibilityChangeListener() {
+				@Override
+				public void onSystemUiVisibilityChange(int visibility) {
+					if ((visibility & View.SYSTEM_UI_FLAG_FULLSCREEN) == 0)
 					{
-						@Override
-						public void onSystemUiVisibilityChange(int flags)
+						// Go back to immersive fullscreen mode in 3s
+						Handler handler = new Handler(getMainLooper());
+						handler.postDelayed(new Runnable()
 						{
-							mSystemUiVisible = (flags & View.SYSTEM_UI_FLAG_HIDE_NAVIGATION) == 0;
-
-							if (mSystemUiVisible)
+							@Override
+							public void run()
 							{
-								getSupportActionBar().show();
-								hideSystemUiAfterDelay();
+								enableFullscreenImmersive();
 							}
-							else
-							{
-								getSupportActionBar().hide();
-							}
-						}
-					});
+						},
+						3000 /* 3s */);
+					}
+				}
+			});
+			// Set these options now so that the SurfaceView the game renders into is the right size.
+			enableFullscreenImmersive();
 		}
 		else
 		{
@@ -199,30 +204,31 @@ public final class EmulationActivity extends AppCompatActivity
 		}
 
 		setTheme(themeId);
-		super.onCreate(savedInstanceState);
 
 		Java_GCAdapter.manager = (UsbManager) getSystemService(Context.USB_SERVICE);
 		Java_WiimoteAdapter.manager = (UsbManager) getSystemService(Context.USB_SERVICE);
 
-		// Picasso will take a while to load these big-ass screenshots. So don't run
-		// the animation until we say so.
-		postponeEnterTransition();
-
 		setContentView(R.layout.activity_emulation);
 
 		mImageView = (ImageView) findViewById(R.id.image_screenshot);
-		mFrameContent = (FrameLayout) findViewById(R.id.frame_content);
-		mFrameEmulation = (FrameLayout) findViewById(R.id.frame_emulation_fragment);
-		mMenuLayout = (LinearLayout) findViewById(R.id.layout_ingame_menu);
 
-		Intent gameToEmulate = getIntent();
-		String path = gameToEmulate.getStringExtra("SelectedGame");
-		mSelectedTitle = gameToEmulate.getStringExtra("SelectedTitle");
-		mScreenPath = gameToEmulate.getStringExtra("ScreenPath");
-		mPosition = gameToEmulate.getIntExtra("GridPosition", -1);
+		// Find or create the EmulationFragment
+		mEmulationFragment = (EmulationFragment) getSupportFragmentManager()
+				.findFragmentById(R.id.frame_emulation_fragment);
+		if (mEmulationFragment == null)
+		{
+			mEmulationFragment = EmulationFragment.newInstance(path);
+			getSupportFragmentManager().beginTransaction()
+					.add(R.id.frame_emulation_fragment, mEmulationFragment)
+					.commit();
+		}
 
 		if (savedInstanceState == null)
 		{
+			// Picasso will take a while to load these big-ass screenshots. So don't run
+			// the animation until we say so.
+			postponeEnterTransition();
+
 			Picasso.with(this)
 					.load(mScreenPath)
 					.noFade()
@@ -232,27 +238,19 @@ public final class EmulationActivity extends AppCompatActivity
 						@Override
 						public void onSuccess()
 						{
-							scheduleStartPostponedTransition(mImageView);
+							supportStartPostponedEnterTransition();
 						}
 
 						@Override
 						public void onError()
 						{
 							// Still have to do this, or else the app will crash.
-							scheduleStartPostponedTransition(mImageView);
+							supportStartPostponedEnterTransition();
 						}
 					});
 
 			Animations.fadeViewOut(mImageView)
 					.setStartDelay(2000)
-					.withStartAction(new Runnable()
-					{
-						@Override
-						public void run()
-						{
-							mFrameEmulation.setVisibility(View.VISIBLE);
-						}
-					})
 					.withEndAction(new Runnable()
 					{
 						@Override
@@ -261,88 +259,19 @@ public final class EmulationActivity extends AppCompatActivity
 							mImageView.setVisibility(View.GONE);
 						}
 					});
-
-			// Instantiate an EmulationFragment.
-			EmulationFragment emulationFragment = EmulationFragment.newInstance(path);
-
-			// Add fragment to the activity - this triggers all its lifecycle callbacks.
-			getFragmentManager().beginTransaction()
-					.add(R.id.frame_emulation_fragment, emulationFragment, EmulationFragment.FRAGMENT_TAG)
-					.commit();
 		}
 		else
 		{
 			mImageView.setVisibility(View.GONE);
-			mFrameEmulation.setVisibility(View.VISIBLE);
 		}
 
 		if (mDeviceHasTouchScreen)
 		{
 			setTitle(mSelectedTitle);
 		}
-		else
-		{
-			MenuFragment menuFragment = (MenuFragment) getFragmentManager()
-					.findFragmentById(R.id.fragment_menu);
-
-			if (menuFragment != null)
-			{
-				menuFragment.setTitleText(mSelectedTitle);
-			}
-		}
 
 		mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 
-		mIsGameCubeGame = (NativeLibrary.GetPlatform(path) == 0);
-	}
-
-	@Override
-	protected void onStart()
-	{
-		super.onStart();
-		Log.debug("[EmulationActivity] EmulationActivity starting.");
-		NativeLibrary.setEmulationActivity(this);
-	}
-
-	@Override
-	protected void onStop()
-	{
-		super.onStop();
-		Log.debug("[EmulationActivity] EmulationActivity stopping.");
-
-		NativeLibrary.setEmulationActivity(null);
-	}
-
-	@Override
-	protected void onPostCreate(Bundle savedInstanceState)
-	{
-		super.onPostCreate(savedInstanceState);
-
-		if (mDeviceHasTouchScreen)
-		{
-			// Give the user a few seconds to see what the controls look like, then hide them.
-			hideSystemUiAfterDelay();
-		}
-	}
-
-	@Override
-	public void onWindowFocusChanged(boolean hasFocus)
-	{
-		super.onWindowFocusChanged(hasFocus);
-
-		if (mDeviceHasTouchScreen)
-		{
-			if (hasFocus)
-			{
-				hideSystemUiAfterDelay();
-			}
-			else
-			{
-				// If the window loses focus (i.e. a dialog box, or a popup menu is on screen
-				// stop hiding the UI.
-				mSystemUiHider.removeMessages(0);
-			}
-		}
 	}
 
 	@Override
@@ -350,54 +279,53 @@ public final class EmulationActivity extends AppCompatActivity
 	{
 		if (!mDeviceHasTouchScreen)
 		{
-			if (mSubmenuFragmentTag != null)
-			{
-				removeSubMenu();
-			}
-			else
+			boolean popResult = getSupportFragmentManager().popBackStackImmediate(
+				BACKSTACK_NAME_SUBMENU, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+			if (!popResult)
 			{
 				toggleMenu();
 			}
 		}
 		else
 		{
-			stopEmulation();
+			mEmulationFragment.stopEmulation();
+			exitWithAnimation();
 		}
+
+	}
+
+	private void enableFullscreenImmersive()
+	{
+		// It would be nice to use IMMERSIVE_STICKY, but that doesn't show the toolbar.
+		mDecorView.setSystemUiVisibility(
+				View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
+				View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
+				View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
+				View.SYSTEM_UI_FLAG_HIDE_NAVIGATION |
+				View.SYSTEM_UI_FLAG_FULLSCREEN |
+				View.SYSTEM_UI_FLAG_IMMERSIVE);
 	}
 
 	private void toggleMenu()
 	{
-		if (mMenuVisible)
-		{
-			mMenuVisible = false;
+		boolean result = getSupportFragmentManager().popBackStackImmediate(
+				BACKSTACK_NAME_MENU, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+		mMenuVisible = false;
 
-			Animations.fadeViewOutToLeft(mMenuLayout)
-					.withEndAction(new Runnable()
-					{
-						@Override
-						public void run()
-						{
-							if (mMenuVisible)
-							{
-								mMenuLayout.setVisibility(View.GONE);
-							}
-						}
-					});
-		}
-		else
-		{
+		if (!result) {
+			// Removing the menu failed, so that means it wasn't visible. Add it.
+			Fragment fragment = MenuFragment.newInstance(mSelectedTitle);
+			getSupportFragmentManager().beginTransaction()
+					.setCustomAnimations(
+							R.animator.menu_slide_in_from_left,
+							R.animator.menu_slide_out_to_left,
+							R.animator.menu_slide_in_from_left,
+							R.animator.menu_slide_out_to_left)
+					.add(R.id.frame_menu, fragment)
+					.addToBackStack(BACKSTACK_NAME_MENU)
+					.commit();
 			mMenuVisible = true;
-			Animations.fadeViewInFromLeft(mMenuLayout);
 		}
-	}
-
-	private void stopEmulation()
-	{
-		EmulationFragment fragment = (EmulationFragment) getFragmentManager()
-				.findFragmentByTag(EmulationFragment.FRAGMENT_TAG);
-		fragment.notifyEmulationStopped();
-
-		NativeLibrary.StopEmulation();
 	}
 
 	public void exitWithAnimation()
@@ -443,9 +371,8 @@ public final class EmulationActivity extends AppCompatActivity
 		@Override
 		public void run()
 		{
-			mFrameContent.removeView(mFrameEmulation);
 			setResult(mPosition);
-			finishAfterTransition();
+			supportFinishAfterTransition();
 		}
 	};
 
@@ -453,7 +380,7 @@ public final class EmulationActivity extends AppCompatActivity
 	public boolean onCreateOptionsMenu(Menu menu)
 	{
 		// Inflate the menu; this adds items to the action bar if it is present.
-		if (mIsGameCubeGame)
+		if (sIsGameCubeGame)
 		{
 			getMenuInflater().inflate(R.menu.menu_emulation, menu);
 		}
@@ -522,14 +449,14 @@ public final class EmulationActivity extends AppCompatActivity
 			case MENU_ACTION_SAVE_ROOT:
 				if (!mDeviceHasTouchScreen)
 				{
-					showMenu(SaveStateFragment.FRAGMENT_ID);
+					showSubMenu(SaveLoadStateFragment.SaveOrLoad.SAVE);
 				}
 				return;
 
 			case MENU_ACTION_LOAD_ROOT:
 				if (!mDeviceHasTouchScreen)
 				{
-					showMenu(LoadStateFragment.FRAGMENT_ID);
+					showSubMenu(SaveLoadStateFragment.SaveOrLoad.LOAD);
 				}
 				return;
 
@@ -584,20 +511,23 @@ public final class EmulationActivity extends AppCompatActivity
 				return;
 
 			case MENU_ACTION_EXIT:
-				toggleMenu();
-				stopEmulation();
+				toggleMenu();  // Hide the menu (it will be showing since we just clicked it)
+				mEmulationFragment.stopEmulation();
+				exitWithAnimation();
 				return;
 		}
 	}
 
 
-	private void editControlsPlacement() {
-		EmulationFragment emulationFragment = (EmulationFragment) getFragmentManager()
-				.findFragmentById(R.id.frame_emulation_fragment);
-		if (emulationFragment.isConfiguringControls()) {
-			emulationFragment.stopConfiguringControls();
-		} else {
-			emulationFragment.startConfiguringControls();
+	private void editControlsPlacement()
+	{
+		if (mEmulationFragment.isConfiguringControls())
+		{
+			mEmulationFragment.stopConfiguringControls();
+		}
+		else
+		{
+			mEmulationFragment.startConfiguringControls();
 		}
 	}
 
@@ -640,7 +570,7 @@ public final class EmulationActivity extends AppCompatActivity
 		boolean[] enabledButtons = new boolean[14];
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setTitle(R.string.emulation_toggle_controls);
-		if (mIsGameCubeGame || mPreferences.getInt("wiiController", 3) == 0) {
+		if (sIsGameCubeGame || mPreferences.getInt("wiiController", 3) == 0) {
 			for (int i = 0; i < enabledButtons.length; i++) {
 				enabledButtons[i] = mPreferences.getBoolean("buttonToggleGc" + i, true);
 			}
@@ -686,20 +616,18 @@ public final class EmulationActivity extends AppCompatActivity
 		}
 		builder.setNeutralButton(getString(R.string.emulation_toggle_all), new DialogInterface.OnClickListener() {
 			@Override
-			public void onClick(DialogInterface dialogInterface, int i) {
-				EmulationFragment emulationFragment = (EmulationFragment) getFragmentManager()
-						.findFragmentByTag(EmulationFragment.FRAGMENT_TAG);
-				emulationFragment.toggleInputOverlayVisibility();
+			public void onClick(DialogInterface dialogInterface, int i)
+			{
+				mEmulationFragment.toggleInputOverlayVisibility();
 			}
 		});
 		builder.setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
 			@Override
-			public void onClick(DialogInterface dialogInterface, int i) {
+			public void onClick(DialogInterface dialogInterface, int i)
+			{
 				editor.apply();
 
-				EmulationFragment emulationFragment = (EmulationFragment) getFragmentManager()
-						.findFragmentByTag(EmulationFragment.FRAGMENT_TAG);
-				emulationFragment.refreshInputOverlay();
+				mEmulationFragment.refreshInputOverlay();
 			}
 		});
 
@@ -744,9 +672,7 @@ public final class EmulationActivity extends AppCompatActivity
 				editor.putInt("controlScale", seekbar.getProgress());
 				editor.apply();
 
-				EmulationFragment emulationFragment = (EmulationFragment) getFragmentManager()
-						.findFragmentByTag(EmulationFragment.FRAGMENT_TAG);
-				emulationFragment.refreshInputOverlay();
+				mEmulationFragment.refreshInputOverlay();
 			}
 		});
 
@@ -773,9 +699,7 @@ public final class EmulationActivity extends AppCompatActivity
 			public void onClick(DialogInterface dialogInterface, int i) {
 				editor.apply();
 
-				EmulationFragment emulationFragment = (EmulationFragment) getFragmentManager()
-						.findFragmentByTag(EmulationFragment.FRAGMENT_TAG);
-				emulationFragment.refreshInputOverlay();
+				mEmulationFragment.refreshInputOverlay();
 
 				Toast.makeText(getApplication(), R.string.emulation_controller_changed, Toast.LENGTH_SHORT).show();
 			}
@@ -808,122 +732,40 @@ public final class EmulationActivity extends AppCompatActivity
 
 		for (InputDevice.MotionRange range : motions)
 		{
-			NativeLibrary.onGamePadMoveEvent(input.getDescriptor(), range.getAxis(), event.getAxisValue(range.getAxis()));
+			int axis = range.getAxis();
+			float origValue = event.getAxisValue(axis);
+			float value = mControllerMappingHelper.scaleAxis(input, axis, origValue);
+			// If the input is still in the "flat" area, that means it's really zero.
+			// This is used to compensate for imprecision in joysticks.
+			if (Math.abs(value) > range.getFlat())
+			{
+				NativeLibrary.onGamePadMoveEvent(input.getDescriptor(), axis, value);
+			}
+			else
+			{
+				NativeLibrary.onGamePadMoveEvent(input.getDescriptor(), axis, 0.0f);
+			}
 		}
 
 		return true;
 	}
 
-	private void hideSystemUiAfterDelay()
+	private void showSubMenu(SaveLoadStateFragment.SaveOrLoad saveOrLoad)
 	{
-		// Clear any pending hide events.
-		mSystemUiHider.removeMessages(0);
+		// Get rid of any visible submenu
+		getSupportFragmentManager().popBackStack(
+				BACKSTACK_NAME_SUBMENU, FragmentManager.POP_BACK_STACK_INCLUSIVE);
 
-		// Add a new hide event, to occur 3 seconds from now.
-		mSystemUiHider.sendEmptyMessageDelayed(0, 3000);
-	}
-
-	private void hideSystemUI()
-	{
-		mSystemUiVisible = false;
-
-		mDecorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
-				View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
-				View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
-				View.SYSTEM_UI_FLAG_HIDE_NAVIGATION |
-				View.SYSTEM_UI_FLAG_FULLSCREEN |
-				View.SYSTEM_UI_FLAG_IMMERSIVE);
-	}
-
-	private void showSystemUI()
-	{
-		mSystemUiVisible = true;
-
-		mDecorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
-				View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
-				View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
-
-		hideSystemUiAfterDelay();
-	}
-
-
-	private void scheduleStartPostponedTransition(final View sharedElement)
-	{
-		sharedElement.getViewTreeObserver().addOnPreDrawListener(
-				new ViewTreeObserver.OnPreDrawListener()
-				{
-					@Override
-					public boolean onPreDraw()
-					{
-						sharedElement.getViewTreeObserver().removeOnPreDrawListener(this);
-						startPostponedEnterTransition();
-						return true;
-					}
-				});
-	}
-
-	private void showMenu(int menuId)
-	{
-		Fragment fragment;
-
-		switch (menuId)
-		{
-			case SaveStateFragment.FRAGMENT_ID:
-				fragment = SaveStateFragment.newInstance();
-				mSubmenuFragmentTag = SaveStateFragment.FRAGMENT_TAG;
-				break;
-
-			case LoadStateFragment.FRAGMENT_ID:
-				fragment = LoadStateFragment.newInstance();
-				mSubmenuFragmentTag = LoadStateFragment.FRAGMENT_TAG;
-				break;
-
-			default:
-				return;
-		}
-
-		getFragmentManager().beginTransaction()
-				.setCustomAnimations(R.animator.menu_slide_in, R.animator.menu_slide_out)
-				.replace(R.id.frame_submenu, fragment, mSubmenuFragmentTag)
+		Fragment fragment = SaveLoadStateFragment.newInstance(saveOrLoad);
+		getSupportFragmentManager().beginTransaction()
+				.setCustomAnimations(
+						R.animator.menu_slide_in_from_right,
+						R.animator.menu_slide_out_to_right,
+						R.animator.menu_slide_in_from_right,
+						R.animator.menu_slide_out_to_right)
+				.replace(R.id.frame_submenu, fragment)
+				.addToBackStack(BACKSTACK_NAME_SUBMENU)
 				.commit();
-	}
-
-	private void removeSubMenu()
-	{
-		if (mSubmenuFragmentTag != null)
-		{
-			final Fragment fragment = getFragmentManager().findFragmentByTag(mSubmenuFragmentTag);
-
-			if (fragment != null)
-			{
-				// When removing a fragment without replacement, its animation must be done
-				// manually beforehand.
-				Animations.fadeViewOutToRight(fragment.getView())
-						.withEndAction(new Runnable()
-						{
-							@Override
-							public void run()
-							{
-								if (mMenuVisible)
-								{
-									getFragmentManager().beginTransaction()
-											.remove(fragment)
-											.commit();
-								}
-							}
-						});
-			}
-			else
-			{
-				Log.error("[EmulationActivity] Fragment not found, can't remove.");
-			}
-
-			mSubmenuFragmentTag = null;
-		}
-		else
-		{
-			Log.error("[EmulationActivity] Fragment Tag empty.");
-		}
 	}
 
 	public String getSelectedTitle()
@@ -933,23 +775,6 @@ public final class EmulationActivity extends AppCompatActivity
 
 	public static boolean isGameCubeGame()
 	{
-		return mIsGameCubeGame;
-	}
-
-	public static void launch(Activity activity, String path, String title, String screenshotPath, int position, View sharedView)
-	{
-		Intent launcher = new Intent(activity, EmulationActivity.class);
-
-		launcher.putExtra("SelectedGame", path);
-		launcher.putExtra("SelectedTitle", title);
-		launcher.putExtra("ScreenPath", screenshotPath);
-		launcher.putExtra("GridPosition", position);
-
-		ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(
-				activity,
-				sharedView,
-				"image_game_screenshot");
-
-		activity.startActivityForResult(launcher, MainPresenter.REQUEST_EMULATE_GAME, options.toBundle());
+		return sIsGameCubeGame;
 	}
 }
