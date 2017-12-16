@@ -633,6 +633,8 @@ void Wiimote::ThreadFunc()
   Common::SetCurrentThreadName("Wiimote Device Thread");
 
   bool ok = ConnectInternal();
+  //Narrysmod_hijack
+  //Fixes a bug I reported
   Common::SleepCurrentThread(500);
 
   if (!ok)
