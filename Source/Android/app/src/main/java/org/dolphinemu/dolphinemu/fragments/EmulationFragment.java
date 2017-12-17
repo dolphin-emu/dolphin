@@ -96,14 +96,7 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 		Button doneButton = contents.findViewById(R.id.done_control_config);
 		if (doneButton != null)
 		{
-			doneButton.setOnClickListener(new View.OnClickListener()
-			{
-				@Override
-				public void onClick(View v)
-				{
-					stopConfiguringControls();
-				}
-			});
+			doneButton.setOnClickListener(v -> stopConfiguringControls());
 		}
 
 		// The new Surface created here will get passed to the native code via onSurfaceChanged.
@@ -327,15 +320,11 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 			{
 				Log.debug("[EmulationFragment] Starting emulation thread.");
 
-				mEmulationThread = new Thread(new Runnable()
+				mEmulationThread = new Thread(() ->
 				{
-					@Override
-					public void run()
-					{
-						NativeLibrary.SurfaceChanged(mSurface);
-						NativeLibrary.Run(mGamePath);
-					}},
-					"NativeEmulation");
+					NativeLibrary.SurfaceChanged(mSurface);
+					NativeLibrary.Run(mGamePath);
+				}, "NativeEmulation");
 				mEmulationThread.start();
 
 			}

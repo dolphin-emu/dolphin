@@ -27,13 +27,8 @@ public class PermissionsHandler {
 		if (hasWritePermission != PackageManager.PERMISSION_GRANTED) {
 			if (activity.shouldShowRequestPermissionRationale(WRITE_EXTERNAL_STORAGE)) {
 				showMessageOKCancel(activity, activity.getString(R.string.write_permission_needed),
-						new DialogInterface.OnClickListener() {
-							@Override
-							public void onClick(DialogInterface dialog, int which) {
-								activity.requestPermissions(new String[] {WRITE_EXTERNAL_STORAGE},
-										REQUEST_CODE_WRITE_PERMISSION);
-							}
-						});
+                        (dialog, which) -> activity.requestPermissions(new String[] {WRITE_EXTERNAL_STORAGE},
+                                REQUEST_CODE_WRITE_PERMISSION));
 				return false;
 			}
 
@@ -58,13 +53,8 @@ public class PermissionsHandler {
 		new AlertDialog.Builder(activity)
 				.setMessage(message)
 				.setPositiveButton(android.R.string.ok, okListener)
-				.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
-					@Override
-					public void onClick(DialogInterface dialogInterface, int i) {
-						Toast.makeText(activity, R.string.write_permission_needed, Toast.LENGTH_SHORT)
-								.show();
-					}
-				})
+				.setNegativeButton(android.R.string.cancel, (dialogInterface, i) ->
+						Toast.makeText(activity, R.string.write_permission_needed, Toast.LENGTH_SHORT).show())
 				.create()
 				.show();
 	}

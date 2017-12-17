@@ -201,34 +201,26 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 		dialog.setTitle(R.string.input_binding);
 		dialog.setMessage(String.format(mContext.getString(R.string.input_binding_descrip), mContext.getString(item.getNameId())));
 		dialog.setButton(AlertDialog.BUTTON_NEGATIVE, mContext.getString(R.string.cancel), this);
-		dialog.setButton(AlertDialog.BUTTON_NEUTRAL, mContext.getString(R.string.clear), new AlertDialog.OnClickListener()
+		dialog.setButton(AlertDialog.BUTTON_NEUTRAL, mContext.getString(R.string.clear), (dialogInterface, i) ->
 		{
-			@Override
-			public void onClick(DialogInterface dialogInterface, int i)
-			{
-				item.setValue("");
+			item.setValue("");
 
-				SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(mContext);
-				SharedPreferences.Editor editor = sharedPreferences.edit();
-				editor.remove(item.getKey());
-				editor.apply();
-			}
+			SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(mContext);
+			SharedPreferences.Editor editor = sharedPreferences.edit();
+			editor.remove(item.getKey());
+			editor.apply();
 		});
-		dialog.setOnDismissListener(new AlertDialog.OnDismissListener()
+		dialog.setOnDismissListener(dialog1 ->
 		{
-			@Override
-			public void onDismiss(DialogInterface dialog)
+			StringSetting setting = new StringSetting(item.getKey(), item.getSection(), item.getFile(), item.getValue());
+			notifyItemChanged(position);
+
+			if (setting != null)
 			{
-				StringSetting setting = new StringSetting(item.getKey(), item.getSection(), item.getFile(), item.getValue());
-				notifyItemChanged(position);
-
-				if (setting != null)
-				{
-					mView.putSetting(setting);
-				}
-
-				mView.onSettingChanged();
+				mView.putSetting(setting);
 			}
+
+			mView.onSettingChanged();
 		});
 		dialog.setCanceledOnTouchOutside(false);
 		dialog.show();

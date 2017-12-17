@@ -52,14 +52,7 @@ public final class MainActivity extends AppCompatActivity implements MainView
 		mTabLayout.setupWithViewPager(mViewPager);
 
 		// Set up the FAB.
-		mFab.setOnClickListener(new View.OnClickListener()
-		{
-			@Override
-			public void onClick(View view)
-			{
-				mPresenter.onFabClick();
-			}
-		});
+		mFab.setOnClickListener(view -> mPresenter.onFabClick());
 
 		mPresenter.onCreate();
 
