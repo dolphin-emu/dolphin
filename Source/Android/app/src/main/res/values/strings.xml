@@ -244,4 +244,6 @@
     <string name="header_controllers">Controllers</string>
 
     <string name="write_permission_needed">You need to allow write access to external storage for the emulator to work</string>
+
+    <string name="load_settings">Loading Settings...</string>
 </resources>
