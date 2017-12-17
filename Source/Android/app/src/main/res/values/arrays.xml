@@ -91,18 +91,6 @@
         <item>0</item>
     </integer-array>
 
-    <!-- External Frame Buffer Preference -->
-    <string-array name="externalFrameBufferEntries" translatable="false">
-        <item>Disabled</item>
-        <item>Virtual</item>
-        <item>Real</item>
-    </string-array>
-    <integer-array name="externalFrameBufferValues" translatable="false">
-        <item>0</item>
-        <item>1</item>
-        <item>2</item>
-    </integer-array>
-
     <!-- Ubershader Mode Preference -->
     <string-array name="uberShaderModeEntries" translatable="false">
         <item>Disabled</item>
