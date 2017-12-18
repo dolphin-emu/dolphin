@@ -132,15 +132,11 @@ public final class FileAdapter extends RecyclerView.Adapter<FileViewHolder> impl
 				// Delay the loading of the new directory to give a little bit of time for UI feedback
 				// to happen. Hacky, but good enough for now; this is necessary because we're modifying
 				// the RecyclerView's contents, rather than constructing a new one.
-				view.getHandler().postDelayed(new Runnable()
+				view.getHandler().postDelayed(() ->
 				{
-					@Override
-					public void run()
-					{
-						mFileList = fileList;
-						notifyDataSetChanged();
-						mListener.updateSubtitle(path);
-					}
+					mFileList = fileList;
+					notifyDataSetChanged();
+					mListener.updateSubtitle(path);
 				}, 200);
 			}
 		}

@@ -137,14 +137,7 @@ public class Java_GCAdapter {
 					final Activity emulationActivity = NativeLibrary.sEmulationActivity.get();
 					if (emulationActivity != null)
 					{
-						emulationActivity.runOnUiThread(new Runnable()
-						{
-							@Override
-							public void run()
-							{
-								Toast.makeText(emulationActivity, "GameCube Adapter couldn't be opened. Please re-plug the device.", Toast.LENGTH_LONG).show();
-							}
-						});
+						emulationActivity.runOnUiThread(() -> Toast.makeText(emulationActivity, "GameCube Adapter couldn't be opened. Please re-plug the device.", Toast.LENGTH_LONG).show());
 					}
 					else
 					{

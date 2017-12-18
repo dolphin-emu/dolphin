@@ -384,14 +384,7 @@ public final class NativeLibrary
 		final EmulationActivity emulationActivity = sEmulationActivity.get();
 		if (emulationActivity != null)
 		{
-			emulationActivity.runOnUiThread(new Runnable()
-			{
-				@Override
-				public void run()
-				{
-					Toast.makeText(emulationActivity, "Panic Alert: " + alert, Toast.LENGTH_LONG).show();
-				}
-			});
+			emulationActivity.runOnUiThread(() -> Toast.makeText(emulationActivity, "Panic Alert: " + alert, Toast.LENGTH_LONG).show());
 		}
 		else
 		{

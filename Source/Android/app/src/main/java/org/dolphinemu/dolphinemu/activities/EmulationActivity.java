@@ -175,24 +175,13 @@ public final class EmulationActivity extends AppCompatActivity
 
 			// Get a handle to the Window containing the UI.
 			mDecorView = getWindow().getDecorView();
-			mDecorView.setOnSystemUiVisibilityChangeListener
-					(new View.OnSystemUiVisibilityChangeListener() {
-				@Override
-				public void onSystemUiVisibilityChange(int visibility) {
-					if ((visibility & View.SYSTEM_UI_FLAG_FULLSCREEN) == 0)
-					{
-						// Go back to immersive fullscreen mode in 3s
-						Handler handler = new Handler(getMainLooper());
-						handler.postDelayed(new Runnable()
-						{
-							@Override
-							public void run()
-							{
-								enableFullscreenImmersive();
-							}
-						},
-						3000 /* 3s */);
-					}
+			mDecorView.setOnSystemUiVisibilityChangeListener(visibility ->
+			{
+				if ((visibility & View.SYSTEM_UI_FLAG_FULLSCREEN) == 0)
+				{
+					// Go back to immersive fullscreen mode in 3s
+					Handler handler = new Handler(getMainLooper());
+					handler.postDelayed(this::enableFullscreenImmersive, 3000 /* 3s */);
 				}
 			});
 			// Set these options now so that the SurfaceView the game renders into is the right size.
@@ -251,14 +240,7 @@ public final class EmulationActivity extends AppCompatActivity
 
 			Animations.fadeViewOut(mImageView)
 					.setStartDelay(2000)
-					.withEndAction(new Runnable()
-					{
-						@Override
-						public void run()
-						{
-							mImageView.setVisibility(View.GONE);
-						}
-					});
+					.withEndAction(() -> mImageView.setVisibility(View.GONE));
 		}
 		else
 		{
@@ -328,35 +310,27 @@ public final class EmulationActivity extends AppCompatActivity
 		}
 	}
 
-	public void exitWithAnimation()
-	{
-		runOnUiThread(new Runnable()
+	public void exitWithAnimation() {
+		runOnUiThread(() ->
 		{
-			@Override
-			public void run()
-			{
-				Picasso.with(EmulationActivity.this)
-						.invalidate(mScreenPath);
+			Picasso.with(EmulationActivity.this)
+					.invalidate(mScreenPath);
 
-				Picasso.with(EmulationActivity.this)
-						.load(mScreenPath)
-						.noFade()
-						.noPlaceholder()
-						.into(mImageView, new Callback()
-						{
-							@Override
-							public void onSuccess()
-							{
-								showScreenshot();
-							}
+			Picasso.with(EmulationActivity.this)
+					.load(mScreenPath)
+					.noFade()
+					.noPlaceholder()
+					.into(mImageView, new Callback() {
+						@Override
+						public void onSuccess() {
+							showScreenshot();
+						}
 
-							@Override
-							public void onError()
-							{
-								finish();
-							}
-						});
-			}
+						@Override
+						public void onError() {
+							finish();
+						}
+					});
 		});
 	}
 
@@ -575,60 +549,31 @@ public final class EmulationActivity extends AppCompatActivity
 				enabledButtons[i] = mPreferences.getBoolean("buttonToggleGc" + i, true);
 			}
 			builder.setMultiChoiceItems(R.array.gcpadButtons, enabledButtons,
-					new DialogInterface.OnMultiChoiceClickListener() {
-						@Override
-						public void onClick(DialogInterface dialog, int indexSelected, boolean isChecked) {
-							editor.putBoolean("buttonToggleGc" + indexSelected, isChecked);
-						}
-					});
+					(dialog, indexSelected, isChecked) -> editor.putBoolean("buttonToggleGc" + indexSelected, isChecked));
 		} else if (mPreferences.getInt("wiiController", 3) == 4) {
 			for (int i = 0; i < enabledButtons.length; i++) {
 				enabledButtons[i] = mPreferences.getBoolean("buttonToggleClassic" + i, true);
 			}
 			builder.setMultiChoiceItems(R.array.classicButtons, enabledButtons,
-					new DialogInterface.OnMultiChoiceClickListener() {
-						@Override
-						public void onClick(DialogInterface dialog, int indexSelected, boolean isChecked) {
-							editor.putBoolean("buttonToggleClassic" + indexSelected, isChecked);
-						}
-					});
+					(dialog, indexSelected, isChecked) -> editor.putBoolean("buttonToggleClassic" + indexSelected, isChecked));
 		} else {
 			for (int i = 0; i < enabledButtons.length; i++) {
 				enabledButtons[i] = mPreferences.getBoolean("buttonToggleWii" + i, true);
 			}
 			if (mPreferences.getInt("wiiController", 3) == 3) {
 				builder.setMultiChoiceItems(R.array.nunchukButtons, enabledButtons,
-						new DialogInterface.OnMultiChoiceClickListener() {
-							@Override
-							public void onClick(DialogInterface dialog, int indexSelected, boolean isChecked) {
-								editor.putBoolean("buttonToggleWii" + indexSelected, isChecked);
-							}
-						});
+						(dialog, indexSelected, isChecked) -> editor.putBoolean("buttonToggleWii" + indexSelected, isChecked));
 			} else {
 				builder.setMultiChoiceItems(R.array.wiimoteButtons, enabledButtons,
-						new DialogInterface.OnMultiChoiceClickListener() {
-							@Override
-							public void onClick(DialogInterface dialog, int indexSelected, boolean isChecked) {
-								editor.putBoolean("buttonToggleWii" + indexSelected, isChecked);
-							}
-						});
+						(dialog, indexSelected, isChecked) -> editor.putBoolean("buttonToggleWii" + indexSelected, isChecked));
 			}
 		}
-		builder.setNeutralButton(getString(R.string.emulation_toggle_all), new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialogInterface, int i)
-			{
-				mEmulationFragment.toggleInputOverlayVisibility();
-			}
-		});
-		builder.setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialogInterface, int i)
-			{
-				editor.apply();
+		builder.setNeutralButton(getString(R.string.emulation_toggle_all), (dialogInterface, i) -> mEmulationFragment.toggleInputOverlayVisibility());
+		builder.setPositiveButton(getString(R.string.ok), (dialogInterface, i) ->
+		{
+			editor.apply();
 
-				mEmulationFragment.refreshInputOverlay();
-			}
+			mEmulationFragment.refreshInputOverlay();
 		});
 
 		AlertDialog alertDialog = builder.create();
@@ -665,15 +610,13 @@ public final class EmulationActivity extends AppCompatActivity
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setTitle(R.string.emulation_control_scale);
 		builder.setView(view);
-		builder.setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialogInterface, int i) {
-				SharedPreferences.Editor editor = mPreferences.edit();
-				editor.putInt("controlScale", seekbar.getProgress());
-				editor.apply();
+		builder.setPositiveButton(getString(R.string.ok), (dialogInterface, i) ->
+		{
+			SharedPreferences.Editor editor = mPreferences.edit();
+			editor.putInt("controlScale", seekbar.getProgress());
+			editor.apply();
 
-				mEmulationFragment.refreshInputOverlay();
-			}
+			mEmulationFragment.refreshInputOverlay();
 		});
 
 		AlertDialog alertDialog = builder.create();
@@ -685,24 +628,20 @@ public final class EmulationActivity extends AppCompatActivity
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setTitle(R.string.emulation_choose_controller);
 		builder.setSingleChoiceItems(R.array.controllersEntries, mPreferences.getInt("wiiController", 3),
-				new DialogInterface.OnClickListener() {
-					@Override
-					public void onClick(DialogInterface dialog, int indexSelected) {
-						editor.putInt("wiiController", indexSelected);
+				(dialog, indexSelected) ->
+				{
+					editor.putInt("wiiController", indexSelected);
 
-						NativeLibrary.SetConfig("WiimoteNew.ini", "Wiimote1", "Extension",
-								getResources().getStringArray(R.array.controllersValues)[indexSelected]);
-					}
+					NativeLibrary.SetConfig("WiimoteNew.ini", "Wiimote1", "Extension",
+							getResources().getStringArray(R.array.controllersValues)[indexSelected]);
 				});
-		builder.setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialogInterface, int i) {
-				editor.apply();
+		builder.setPositiveButton(getString(R.string.ok), (dialogInterface, i) ->
+		{
+			editor.apply();
 
-				mEmulationFragment.refreshInputOverlay();
+			mEmulationFragment.refreshInputOverlay();
 
-				Toast.makeText(getApplication(), R.string.emulation_controller_changed, Toast.LENGTH_SHORT).show();
-			}
+			Toast.makeText(getApplication(), R.string.emulation_controller_changed, Toast.LENGTH_SHORT).show();
 		});
 
 		AlertDialog alertDialog = builder.create();

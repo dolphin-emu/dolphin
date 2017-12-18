@@ -262,32 +262,28 @@ public final class GameDatabase extends SQLiteOpenHelper
 
 	public Observable<Cursor> getGamesForPlatform(final Platform platform)
 	{
-		return Observable.create(new Observable.OnSubscribe<Cursor>()
+		return Observable.create(subscriber ->
 		{
-			@Override
-			public void call(Subscriber<? super Cursor> subscriber)
-			{
-				Log.info("[GameDatabase] Reading games list...");
+			Log.info("[GameDatabase] Reading games list...");
 
-				String[] whereArgs = new String[]{Integer.toString(platform.toInt())};
+			String[] whereArgs = new String[]{Integer.toString(platform.toInt())};
 
-				SQLiteDatabase database = getReadableDatabase();
-				Cursor resultCursor = database.query(
-						TABLE_NAME_GAMES,
-						null,
-						KEY_GAME_PLATFORM + " = ?",
-						whereArgs,
-						null,
-						null,
-						KEY_GAME_TITLE + " ASC"
-				);
+			SQLiteDatabase database = getReadableDatabase();
+			Cursor resultCursor = database.query(
+					TABLE_NAME_GAMES,
+					null,
+					KEY_GAME_PLATFORM + " = ?",
+					whereArgs,
+					null,
+					null,
+					KEY_GAME_TITLE + " ASC"
+			);
 
-				// Pass the result cursor to the consumer.
-				subscriber.onNext(resultCursor);
+			// Pass the result cursor to the consumer.
+			subscriber.onNext(resultCursor);
 
-				// Tell the consumer we're done; it will unsubscribe implicitly.
-				subscriber.onCompleted();
-			}
+			// Tell the consumer we're done; it will unsubscribe implicitly.
+			subscriber.onCompleted();
 		});
 	}
 
