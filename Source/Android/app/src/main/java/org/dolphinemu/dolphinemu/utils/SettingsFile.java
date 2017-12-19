@@ -103,11 +103,10 @@ public final class SettingsFile
 	public static final String KEY_EFB_TEXTURE = "EFBToTextureEnable";
 	public static final String KEY_TEXCACHE_ACCURACY = "SafeTextureCacheColorSamples";
 	public static final String KEY_GPU_TEXTURE_DECODING = "EnableGPUTextureDecoding";
-	public static final String KEY_XFB = "UseXFB";
-	public static final String KEY_XFB_REAL = "UseRealXFB";
+	public static final String KEY_XFB_TEXTURE = "XFBToTextureEnable";
+	public static final String KEY_IMMEDIATE_XFB = "ImmediateXFBEnable";
 	public static final String KEY_FAST_DEPTH = "FastDepthCalc";
 	public static final String KEY_ASPECT_RATIO = "AspectRatio";
-	public static final String KEY_UBERSHADER_MODE = "UberShaderMode";
 	public static final String KEY_DISABLE_SPECIALIZED_SHADERS = "DisableSpecializedShaders";
 	public static final String KEY_BACKGROUND_SHADER_COMPILING = "BackgroundShaderCompiling";
 
@@ -267,7 +266,7 @@ public final class SettingsFile
 
 	// Internal only, not actually found in settings file.
 	public static final String KEY_VIDEO_BACKEND_INDEX = "VideoBackendIndex";
-	public static final String KEY_XFB_METHOD = "XFBMethod";
+	public static final String KEY_UBERSHADER_MODE = "UberShaderMode";
 
 	private SettingsFile()
 	{

@@ -317,14 +317,14 @@ public final class SettingsFragmentPresenter
 	{
 		boolean skipEFBValue = getInvertedBooleanValue(SettingsFile.SETTINGS_GFX, SettingsFile.SECTION_GFX_HACKS, SettingsFile.KEY_SKIP_EFB, false);
 		boolean ignoreFormatValue = getInvertedBooleanValue(SettingsFile.SETTINGS_GFX, SettingsFile.SECTION_GFX_HACKS, SettingsFile.KEY_IGNORE_FORMAT, true);
-		int xfbValue = getXfbValue();
 
 		BooleanSetting skipEFB = new BooleanSetting(SettingsFile.KEY_SKIP_EFB, SettingsFile.SECTION_GFX_HACKS, SettingsFile.SETTINGS_GFX, skipEFBValue);
 		BooleanSetting ignoreFormat = new BooleanSetting(SettingsFile.KEY_IGNORE_FORMAT, SettingsFile.SECTION_GFX_HACKS, SettingsFile.SETTINGS_GFX, ignoreFormatValue);
 		Setting efbToTexture = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_GFX_HACKS).getSetting(SettingsFile.KEY_EFB_TEXTURE);
 		Setting texCacheAccuracy = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_GFX_SETTINGS).getSetting(SettingsFile.KEY_TEXCACHE_ACCURACY);
 		Setting gpuTextureDecoding = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_GFX_SETTINGS).getSetting(SettingsFile.KEY_GPU_TEXTURE_DECODING);
-		IntSetting xfb = new IntSetting(SettingsFile.KEY_XFB, SettingsFile.SECTION_GFX_HACKS, SettingsFile.SETTINGS_GFX, xfbValue);
+		Setting xfbToTexture = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_GFX_HACKS).getSetting(SettingsFile.KEY_XFB_TEXTURE);
+		Setting immediateXfb = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_GFX_HACKS).getSetting(SettingsFile.KEY_IMMEDIATE_XFB);
 		Setting fastDepth = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_GFX_HACKS).getSetting(SettingsFile.KEY_FAST_DEPTH);
 		Setting aspectRatio = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_GFX_SETTINGS).getSetting(SettingsFile.KEY_ASPECT_RATIO);
 
@@ -338,7 +338,8 @@ public final class SettingsFragmentPresenter
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_GPU_TEXTURE_DECODING, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.gpu_texture_decoding, R.string.gpu_texture_decoding_descrip, false, gpuTextureDecoding));
 
 		sl.add(new HeaderSetting(null, null, R.string.external_frame_buffer, 0));
-		sl.add(new SingleChoiceSetting(SettingsFile.KEY_XFB_METHOD, SettingsFile.SECTION_GFX_HACKS, SettingsFile.SETTINGS_GFX, R.string.external_frame_buffer, R.string.external_frame_buffer_descrip, R.array.externalFrameBufferEntries, R.array.externalFrameBufferValues, 0, xfb));
+		sl.add(new CheckBoxSetting(SettingsFile.KEY_XFB_TEXTURE, SettingsFile.SECTION_GFX_HACKS, SettingsFile.SETTINGS_GFX, R.string.xfb_copy_method, R.string.xfb_copy_method_descrip, true, xfbToTexture));
+		sl.add(new CheckBoxSetting(SettingsFile.KEY_IMMEDIATE_XFB, SettingsFile.SECTION_GFX_HACKS, SettingsFile.SETTINGS_GFX, R.string.immediate_xfb, R.string.immediate_xfb_descrip, false, immediateXfb));
 
 		sl.add(new HeaderSetting(null, null, R.string.other, 0));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_FAST_DEPTH, SettingsFile.SECTION_GFX_HACKS, SettingsFile.SETTINGS_GFX, R.string.fast_depth_calculation, R.string.fast_depth_calculation_descrip, true, fastDepth));
@@ -796,36 +797,6 @@ public final class SettingsFragmentPresenter
 		}
 
 		return videoBackendValue;
-	}
-
-	private int getXfbValue()
-	{
-		int xfbValue;
-
-		try
-		{
-			boolean usingXFB = ((BooleanSetting) mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_GFX_SETTINGS).getSetting(SettingsFile.KEY_XFB)).getValue();
-			boolean usingRealXFB = ((BooleanSetting) mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_GFX_SETTINGS).getSetting(SettingsFile.KEY_XFB_REAL)).getValue();
-
-			if (!usingXFB)
-			{
-				xfbValue = 0;
-			}
-			else if (!usingRealXFB)
-			{
-				xfbValue = 1;
-			}
-			else
-			{
-				xfbValue = 2;
-			}
-		}
-		catch (NullPointerException ex)
-		{
-			xfbValue = 0;
-		}
-
-		return xfbValue;
 	}
 
 	private int getUberShaderModeValue()

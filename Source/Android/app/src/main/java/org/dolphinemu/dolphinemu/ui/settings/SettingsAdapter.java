@@ -262,10 +262,6 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 				{
 					putVideoBackendSetting(which);
 				}
-				else if (scSetting.getKey().equals(SettingsFile.KEY_XFB_METHOD))
-				{
-					putXfbSetting(which);
-				}
 				else if (scSetting.getKey().equals(SettingsFile.KEY_UBERSHADER_MODE))
 				{
 					putUberShaderModeSetting(which);
@@ -404,33 +400,6 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 		}
 
 		mView.putSetting(gfxBackend);
-	}
-
-	public void putXfbSetting(int which)
-	{
-		BooleanSetting xfbEnable = null;
-		BooleanSetting xfbReal = null;
-
-		switch (which)
-		{
-			case 0:
-				xfbEnable = new BooleanSetting(SettingsFile.KEY_XFB, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, false);
-				xfbReal = new BooleanSetting(SettingsFile.KEY_XFB_REAL, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, false);
-				break;
-
-			case 1:
-				xfbEnable = new BooleanSetting(SettingsFile.KEY_XFB, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, true);
-				xfbReal = new BooleanSetting(SettingsFile.KEY_XFB_REAL, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, false);
-				break;
-
-			case 2:
-				xfbEnable = new BooleanSetting(SettingsFile.KEY_XFB, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, true);
-				xfbReal = new BooleanSetting(SettingsFile.KEY_XFB_REAL, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, true);
-				break;
-		}
-
-		mView.putSetting(xfbEnable);
-		mView.putSetting(xfbReal);
 	}
 
   public void putUberShaderModeSetting(int which)
