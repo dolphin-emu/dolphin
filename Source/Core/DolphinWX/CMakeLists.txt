@@ -36,6 +36,8 @@ add_executable(dolphin-emu-wx
   Debugger/MemoryCheckDlg.cpp
   Debugger/MemoryView.cpp
   Debugger/MemoryWindow.cpp
+  Debugger/PatchView.cpp
+  Debugger/PatchWindow.cpp
   Debugger/RegisterView.cpp
   Debugger/RegisterWindow.cpp
   Debugger/WatchView.cpp

@@ -72,6 +72,7 @@
 #include "DolphinWX/ControllerConfigDiag.h"
 #include "DolphinWX/Debugger/BreakpointWindow.h"
 #include "DolphinWX/Debugger/CodeWindow.h"
+#include "DolphinWX/Debugger/PatchWindow.h"
 #include "DolphinWX/Debugger/WatchWindow.h"
 #include "DolphinWX/FifoPlayerDlg.h"
 #include "DolphinWX/Frame.h"
@@ -201,7 +202,7 @@ void CFrame::BindMenuBarEvents()
   // View menu
   Bind(wxEVT_MENU, &CFrame::OnToggleToolbar, this, IDM_TOGGLE_TOOLBAR);
   Bind(wxEVT_MENU, &CFrame::OnToggleStatusbar, this, IDM_TOGGLE_STATUSBAR);
-  Bind(wxEVT_MENU, &CFrame::OnToggleWindow, this, IDM_LOG_WINDOW, IDM_VIDEO_WINDOW);
+  Bind(wxEVT_MENU, &CFrame::OnToggleWindow, this, IDM_LOG_WINDOW, IDM_PATCH_WINDOW);
   Bind(wxEVT_MENU, &CFrame::GameListChanged, this, IDM_LIST_WAD, IDM_LIST_DRIVES);
   Bind(wxEVT_MENU, &CFrame::GameListChanged, this, IDM_PURGE_GAME_LIST_CACHE);
   Bind(wxEVT_MENU, &CFrame::OnChangeColumnsVisible, this, IDM_SHOW_SYSTEM, IDM_SHOW_SIZE);
@@ -887,6 +888,8 @@ void CFrame::DoStop()
       PowerPC::debug_interface.Clear();
       if (m_code_window->HasPanel<CBreakPointWindow>())
         m_code_window->GetPanel<CBreakPointWindow>()->NotifyUpdate();
+      if (m_code_window->HasPanel<PatchWindow>())
+        m_code_window->GetPanel<PatchWindow>()->NotifyUpdate();
       g_symbolDB.Clear();
       Host_NotifyMapLoaded();
       Core::SetState(state);

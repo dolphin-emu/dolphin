@@ -23,6 +23,7 @@ class CMemoryWindow;
 class CJitWindow;
 class DSPDebuggerLLE;
 class GFXDebuggerPanel;
+class PatchWindow;
 
 class DolphinAuiToolBar;
 class wxListBox;
@@ -70,6 +71,11 @@ template <>
 struct DebugPanelToID<GFXDebuggerPanel>
 {
   static constexpr int ID = IDM_VIDEO_WINDOW;
+};
+template <>
+struct DebugPanelToID<PatchWindow>
+{
+  static constexpr int ID = IDM_PATCH_WINDOW;
 };
 }
 

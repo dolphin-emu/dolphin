@@ -48,6 +48,7 @@
 #include "DolphinWX/Debugger/MemoryWindow.h"
 #include "DolphinWX/Debugger/RegisterWindow.h"
 #include "DolphinWX/Debugger/WatchWindow.h"
+#include "DolphinWX/Debugger/PatchWindow.h"
 #include "DolphinWX/AuiToolBar.h"
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/Globals.h"
@@ -174,6 +175,11 @@ void CCodeWindow::OnHostMessage(wxCommandEvent& event)
       GetPanel<CBreakPointWindow>()->NotifyUpdate();
     if (HasPanel<CMemoryWindow>())
       GetPanel<CMemoryWindow>()->Refresh();
+    break;
+
+  case IDM_UPDATE_PATCHES:
+    if (HasPanel<PatchWindow>())
+      GetPanel<PatchWindow>()->NotifyUpdate();
     break;
 
   case IDM_UPDATE_JIT_PANE:

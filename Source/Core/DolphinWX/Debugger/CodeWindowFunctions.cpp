@@ -49,6 +49,7 @@
 #include "DolphinWX/Debugger/DebuggerUIUtil.h"
 #include "DolphinWX/Debugger/JitWindow.h"
 #include "DolphinWX/Debugger/MemoryWindow.h"
+#include "DolphinWX/Debugger/PatchWindow.h"
 #include "DolphinWX/Debugger/RegisterWindow.h"
 #include "DolphinWX/Debugger/WatchWindow.h"
 #include "DolphinWX/Frame.h"
@@ -75,8 +76,8 @@ void CCodeWindow::Load()
   if (!fontDesc.empty())
     DebuggerFont.SetNativeFontInfoUserDesc(StrToWxStr(fontDesc));
 
-  const char* SettingName[] = {"Log",    "LogConfig", "Console", "Registers", "Breakpoints",
-                               "Memory", "JIT",       "Sound",   "Video",     "Code"};
+  const char* SettingName[] = {"Log", "LogConfig", "Console", "Registers", "Breakpoints", "Memory",
+                               "JIT", "Sound",     "Video",   "Patches",   "Code"};
 
   // Decide what windows to show
   for (int i = 0; i <= IDM_VIDEO_WINDOW - IDM_LOG_WINDOW; i++)
@@ -581,6 +582,9 @@ wxPanel* CCodeWindow::CreateSiblingPanel(int id)
     break;
   case IDM_VIDEO_WINDOW:
     panel = new GFXDebuggerPanel(Parent, IDM_VIDEO_WINDOW);
+    break;
+  case IDM_PATCH_WINDOW:
+    panel = new PatchWindow(Parent, IDM_PATCH_WINDOW);
     break;
   case IDM_CODE_WINDOW:
     panel = this;

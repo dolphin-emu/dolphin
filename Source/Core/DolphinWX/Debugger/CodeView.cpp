@@ -207,6 +207,10 @@ void CCodeView::InsertBlrNop(int blr)
   m_debugger->UnsetPatch(m_selection);
   m_debugger->SetPatch(m_selection, (blr == 0) ? 0x4e800020 : 0x60000000);
   Refresh();
+
+  // Propagate back to the parent window to update the patch list.
+  wxCommandEvent evt(wxEVT_HOST_COMMAND, IDM_UPDATE_PATCHES);
+  GetEventHandler()->AddPendingEvent(evt);
 }
 
 void CCodeView::OnPopupMenu(wxCommandEvent& event)
@@ -298,15 +302,25 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
         m_debugger->UnsetPatch(m_selection);
         m_debugger->SetPatch(m_selection, code);
         Refresh();
+
+        // Propagate back to the parent window to update the patch list.
+        wxCommandEvent evt(wxEVT_HOST_COMMAND, IDM_UPDATE_PATCHES);
+        GetEventHandler()->AddPendingEvent(evt);
       }
     }
     break;
   }
 
   case IDM_RESTORE:
+  {
     m_debugger->UnsetPatch(m_selection);
     Refresh();
-    break;
+
+    // Propagate back to the parent window to update the patch list.
+    wxCommandEvent evt(wxEVT_HOST_COMMAND, IDM_UPDATE_PATCHES);
+    GetEventHandler()->AddPendingEvent(evt);
+  }
+  break;
 
   case IDM_JITRESULTS:
   {

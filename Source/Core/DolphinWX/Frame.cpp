@@ -817,6 +817,7 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
   break;
 
   case IDM_UPDATE_BREAKPOINTS:
+  case IDM_UPDATE_PATCHES:
     m_code_window->GetEventHandler()->AddPendingEvent(event);
     break;
   }
