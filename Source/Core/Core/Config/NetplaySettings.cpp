@@ -33,4 +33,5 @@ const ConfigInfo<std::string> NETPLAY_SELECTED_HOST_GAME{
     {System::Main, "NetPlay", "SelectedHostGame"}, ""};
 const ConfigInfo<bool> NETPLAY_USE_UPNP{{System::Main, "NetPlay", "UseUPNP"}, false};
 
+const ConfigInfo<bool> NETPLAY_COPY_WII_SAVE{{System::Main, "NetPlay", "CopyWiiSave"}, true};
 }  // namespace Config

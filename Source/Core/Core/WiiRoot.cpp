@@ -12,6 +12,7 @@
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
 #include "Common/SysConf.h"
+#include "Core/Config/NetplaySettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayClient.h"
@@ -28,7 +29,7 @@ static void InitializeDeterministicWiiSaves()
       Common::GetTitleDataPath(SConfig::GetInstance().GetTitleID(), Common::FROM_CONFIGURED_ROOT);
   if (Movie::IsRecordingInput())
   {
-    if (NetPlay::IsNetPlayRunning() && !SConfig::GetInstance().bCopyWiiSaveNetplay)
+    if (NetPlay::IsNetPlayRunning() && !Config::Get(Config::NETPLAY_COPY_WII_SAVE))
     {
       Movie::SetClearSave(true);
     }
@@ -39,7 +40,7 @@ static void InitializeDeterministicWiiSaves()
     }
   }
 
-  if ((NetPlay::IsNetPlayRunning() && SConfig::GetInstance().bCopyWiiSaveNetplay) ||
+  if ((NetPlay::IsNetPlayRunning() && Config::Get(Config::NETPLAY_COPY_WII_SAVE)) ||
       (Movie::IsMovieActive() && !Movie::IsStartingFromClearSave()))
   {
     // Copy the current user's save to the Blank NAND

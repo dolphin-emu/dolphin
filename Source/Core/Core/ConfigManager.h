@@ -94,7 +94,6 @@ struct SConfig
   bool bSyncGPUOnSkipIdleHack = true;
   bool bEnableCheats = false;
   bool bEnableMemcardSdWriting = true;
-  bool bCopyWiiSaveNetplay = true;
 
   bool bDPL2Decoder = false;
   int iLatency = 20;

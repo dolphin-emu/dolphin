@@ -8,6 +8,7 @@
 
 #include "Common/Config/Config.h"
 #include "Core/Config/MainSettings.h"
+#include "Core/Config/NetplaySettings.h"
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/NetPlayProto.h"
 
@@ -33,6 +34,7 @@ public:
     layer->Set(Config::MAIN_SLOT_A, static_cast<int>(m_settings.m_EXIDevice[0]));
     layer->Set(Config::MAIN_SLOT_B, static_cast<int>(m_settings.m_EXIDevice[1]));
     layer->Set(Config::MAIN_WII_SD_CARD_WRITABLE, m_settings.m_WriteToMemcard);
+    layer->Set(Config::NETPLAY_COPY_WII_SAVE, m_settings.m_CopyWiiSave);
 
     layer->Set(Config::MAIN_DSP_JIT, m_settings.m_DSPEnableJIT);
 
