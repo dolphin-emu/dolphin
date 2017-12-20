@@ -11,6 +11,8 @@
 #include <QTabWidget>
 #include <QVBoxLayout>
 
+#include "Common/Config/Config.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "DolphinQt2/Config/Graphics/AdvancedWidget.h"
 #include "DolphinQt2/Config/Graphics/EnhancementsWidget.h"
@@ -28,7 +30,7 @@ GraphicsWindow::GraphicsWindow(X11Utils::XRRConfiguration* xrr_config, MainWindo
   setWindowTitle(tr("Graphics"));
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
-  OnBackendChanged(QString::fromStdString(SConfig::GetInstance().m_strVideoBackend));
+  OnBackendChanged(QString::fromStdString(Config::Get(Config::MAIN_GFX_BACKEND)));
 }
 
 void GraphicsWindow::CreateMainLayout()
@@ -65,7 +67,7 @@ void GraphicsWindow::CreateMainLayout()
   connect(m_software_renderer, &SoftwareRendererWidget::BackendChanged, this,
           &GraphicsWindow::OnBackendChanged);
 
-  if (SConfig::GetInstance().m_strVideoBackend != "Software Renderer")
+  if (Config::Get(Config::MAIN_GFX_BACKEND) != "Software Renderer")
   {
     m_tab_widget->addTab(m_general_widget, tr("General"));
     m_tab_widget->addTab(m_enhancements_widget, tr("Enhancements"));

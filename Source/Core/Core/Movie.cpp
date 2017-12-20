@@ -1368,16 +1368,6 @@ void CallWiiInputManip(u8* data, WiimoteEmu::ReportFeatures rptf, int controller
     s_wii_manip_func(data, rptf, controllerID, ext, key);
 }
 
-// NOTE: GPU Thread
-void SetGraphicsConfig()
-{
-  g_Config.bEFBAccessEnable = tmpHeader.bEFBAccessEnable;
-  g_Config.bSkipEFBCopyToRam = tmpHeader.bSkipEFBCopyToRam;
-  g_Config.bEFBEmulateFormatChanges = tmpHeader.bEFBEmulateFormatChanges;
-  g_Config.bImmediateXFB = tmpHeader.bImmediateXFB;
-  g_Config.bSkipXFBCopyToRam = tmpHeader.bSkipXFBCopyToRam;
-}
-
 // NOTE: EmuThread / Host Thread
 void GetSettings()
 {

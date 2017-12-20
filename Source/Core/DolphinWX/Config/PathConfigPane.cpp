@@ -15,7 +15,9 @@
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 
+#include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "DolphinWX/Config/ConfigMain.h"
@@ -97,10 +99,8 @@ void PathConfigPane::InitializeGUI()
 
 void PathConfigPane::LoadGUIValues()
 {
-  const SConfig& startup_params = SConfig::GetInstance();
-
   m_recursive_iso_paths_checkbox->SetValue(SConfig::GetInstance().m_RecursiveISOFolder);
-  m_default_iso_filepicker->SetPath(StrToWxStr(startup_params.m_strDefaultISO));
+  m_default_iso_filepicker->SetPath(StrToWxStr(Config::Get(Config::MAIN_DEFAULT_ISO)));
   m_nand_root_dirpicker->SetPath(StrToWxStr(SConfig::GetInstance().m_NANDPath));
   m_dump_path_dirpicker->SetPath(StrToWxStr(SConfig::GetInstance().m_DumpPath));
   m_wii_sdcard_filepicker->SetPath(StrToWxStr(SConfig::GetInstance().m_strWiiSDCardPath));
@@ -183,7 +183,8 @@ void PathConfigPane::OnRemoveISOPath(wxCommandEvent& event)
 
 void PathConfigPane::OnDefaultISOChanged(wxCommandEvent& event)
 {
-  SConfig::GetInstance().m_strDefaultISO = WxStrToStr(m_default_iso_filepicker->GetPath());
+  Config::SetBaseOrCurrent(Config::MAIN_DEFAULT_ISO,
+                           WxStrToStr(m_default_iso_filepicker->GetPath()));
 }
 
 void PathConfigPane::OnSdCardPathChanged(wxCommandEvent& event)

@@ -6,7 +6,9 @@
 
 #include "AudioCommon/AudioCommon.h"
 #include "Common/CommonTypes.h"
+#include "Common/Config/Config.h"
 #include "Common/Logging/Log.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
@@ -70,7 +72,7 @@ void stopdamnwav()
 
 void Wiimote::SpeakerData(const wm_speaker_data* sd)
 {
-  if (!SConfig::GetInstance().m_WiimoteEnableSpeaker)
+  if (!Config::Get(Config::MAIN_WIIMOTE_ENABLE_SPEAKER))
     return;
   if (m_reg_speaker.volume == 0 || m_reg_speaker.sample_rate == 0 || sd->length == 0)
     return;

@@ -12,10 +12,12 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+#include "Common/Config/Config.h"
 #include "Common/IniFile.h"
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
 #include "Common/Thread.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/Wiimote.h"
@@ -186,7 +188,7 @@ void Wiimote::InterruptChannel(const u16 channel, const void* const data, const 
       leds_rpt.leds = 0xf;
     }
   }
-  else if (rpt[1] == RT_WRITE_SPEAKER_DATA && (!SConfig::GetInstance().m_WiimoteEnableSpeaker ||
+  else if (rpt[1] == RT_WRITE_SPEAKER_DATA && (!Config::Get(Config::MAIN_WIIMOTE_ENABLE_SPEAKER) ||
                                                (!wm->m_status.speaker || wm->m_speaker_mute)))
   {
     // Translate speaker data reports into rumble reports.
@@ -704,7 +706,7 @@ void Initialize(::Wiimote::InitializeMode init_mode)
     g_wiimote_scanner.StartThread();
   }
 
-  if (SConfig::GetInstance().m_WiimoteContinuousScanning &&
+  if (Config::Get(Config::MAIN_WIIMOTE_CONTINUOUS_SCANNING) &&
       !SConfig::GetInstance().m_bt_passthrough_enabled)
     g_wiimote_scanner.SetScanMode(WiimoteScanMode::CONTINUOUSLY_SCAN);
   else
@@ -851,7 +853,7 @@ void HandleWiimoteDisconnect(int index)
 // This is called from the GUI thread
 void Refresh()
 {
-  if (!SConfig::GetInstance().m_WiimoteContinuousScanning)
+  if (!Config::Get(Config::MAIN_WIIMOTE_CONTINUOUS_SCANNING))
     g_wiimote_scanner.SetScanMode(WiimoteScanMode::SCAN_ONCE);
 }
 

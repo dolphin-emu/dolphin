@@ -10,6 +10,8 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 
+#include "Common/Config/Config.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 
 #include "DolphinQt2/Settings.h"
@@ -44,7 +46,7 @@ void PathPane::BrowseDefaultGame()
   if (!file.isEmpty())
   {
     m_game_edit->setText(file);
-    SConfig::GetInstance().m_strDefaultISO = file.toStdString();
+    Config::SetBaseOrCurrent(Config::MAIN_DEFAULT_ISO, file.toStdString());
   }
 }
 
@@ -97,9 +99,10 @@ QGridLayout* PathPane::MakePathsLayout()
   QGridLayout* layout = new QGridLayout;
   layout->setColumnStretch(1, 1);
 
-  m_game_edit = new QLineEdit(QString::fromStdString(SConfig::GetInstance().m_strDefaultISO));
-  connect(m_game_edit, &QLineEdit::editingFinished,
-          [=] { SConfig::GetInstance().m_strDefaultISO = m_game_edit->text().toStdString(); });
+  m_game_edit = new QLineEdit(QString::fromStdString(Config::Get(Config::MAIN_DEFAULT_ISO)));
+  connect(m_game_edit, &QLineEdit::editingFinished, [=] {
+    Config::SetBaseOrCurrent(Config::MAIN_DEFAULT_ISO, m_game_edit->text().toStdString());
+  });
   QPushButton* game_open = new QPushButton;
   connect(game_open, &QPushButton::clicked, this, &PathPane::BrowseDefaultGame);
   layout->addWidget(new QLabel(tr("Default ISO:")), 0, 0);

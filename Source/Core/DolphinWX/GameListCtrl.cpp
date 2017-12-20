@@ -39,6 +39,7 @@
 #include "Common/CDUtils.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
+#include "Common/Config/Config.h"
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 #include "Common/MathUtil.h"
@@ -46,6 +47,7 @@
 #include "Common/SysConf.h"
 #include "Common/Thread.h"
 #include "Core/Boot/Boot.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/Config/NetplaySettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -1156,7 +1158,7 @@ void GameListCtrl::OnRightClick(wxMouseEvent& event)
         popupMenu.AppendCheckItem(IDM_SET_DEFAULT_ISO, _("Set as &default ISO"));
 
       // First we have to decide a starting value when we append it
-      if (selected_iso->GetFileName() == SConfig::GetInstance().m_strDefaultISO)
+      if (selected_iso->GetFileName() == Config::Get(Config::MAIN_DEFAULT_ISO))
         popupMenu.FindItem(IDM_SET_DEFAULT_ISO)->Check();
 
       popupMenu.AppendSeparator();
@@ -1289,13 +1291,13 @@ void GameListCtrl::OnSetDefaultISO(wxCommandEvent& event)
   if (event.IsChecked())
   {
     // Write the new default value and save it the ini file
-    SConfig::GetInstance().m_strDefaultISO = iso->GetFileName();
+    Config::SetBaseOrCurrent(Config::MAIN_DEFAULT_ISO, iso->GetFileName());
     SConfig::GetInstance().SaveSettings();
   }
   else
   {
     // Otherwise blank the value and save it
-    SConfig::GetInstance().m_strDefaultISO = "";
+    Config::SetBaseOrCurrent(Config::MAIN_DEFAULT_ISO, {});
     SConfig::GetInstance().SaveSettings();
   }
 }

@@ -25,6 +25,7 @@
 #include "Common/Assert.h"
 #include "Common/FileUtil.h"
 #include "Common/SysConf.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -959,7 +960,7 @@ void VideoConfigDiag::Event_Backend(wxCommandEvent& ev)
       Close();
 
       g_video_backend = new_backend.get();
-      SConfig::GetInstance().m_strVideoBackend = g_video_backend->GetName();
+      Config::SetBaseOrCurrent(Config::MAIN_GFX_BACKEND, g_video_backend->GetName());
 
       g_video_backend->ShowConfig(GetParent());
     }

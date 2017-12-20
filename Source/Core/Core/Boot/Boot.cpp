@@ -26,6 +26,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
+#include "Core/Config/MainSettings.h"
 
 #include "Core/Boot/DolReader.h"
 #include "Core/Boot/ElfReader.h"
@@ -277,9 +278,9 @@ bool CBoot::Load_BS2(const std::string& boot_rom_filename)
 
 static void SetDefaultDisc()
 {
-  const SConfig& config = SConfig::GetInstance();
-  if (!config.m_strDefaultISO.empty())
-    SetDisc(DiscIO::CreateVolumeFromFilename(config.m_strDefaultISO));
+  const std::string default_iso = Config::Get(Config::MAIN_DEFAULT_ISO);
+  if (!default_iso.empty())
+    SetDisc(DiscIO::CreateVolumeFromFilename(default_iso));
 }
 
 static void CopyDefaultExceptionHandlers()

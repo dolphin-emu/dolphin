@@ -26,6 +26,7 @@
 #include "Common/CPUDetect.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
+#include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/Logging/LogManager.h"
@@ -35,6 +36,7 @@
 
 #include "Core/Analytics.h"
 #include "Core/Boot/Boot.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/Wiimote.h"
@@ -131,12 +133,15 @@ bool DolphinApp::OnInit()
   UICommon::Init();
 
   if (m_select_video_backend && !m_video_backend_name.empty())
-    SConfig::GetInstance().m_strVideoBackend = WxStrToStr(m_video_backend_name);
+  {
+    Config::Set(Config::LayerType::CommandLine, Config::MAIN_GFX_BACKEND,
+                WxStrToStr(m_video_backend_name));
+  }
 
   if (m_select_audio_emulation)
     SConfig::GetInstance().bDSPHLE = (m_audio_emulation_name.Upper() == "HLE");
 
-  VideoBackendBase::ActivateBackend(SConfig::GetInstance().m_strVideoBackend);
+  VideoBackendBase::ActivateBackend(Config::Get(Config::MAIN_GFX_BACKEND));
 
   DolphinAnalytics::Instance()->ReportDolphinStart("wx");
 

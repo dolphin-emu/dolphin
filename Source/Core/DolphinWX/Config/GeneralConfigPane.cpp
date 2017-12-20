@@ -19,7 +19,9 @@
 #include <wx/stattext.h>
 
 #include "Common/Common.h"
+#include "Common/Config/Config.h"
 #include "Core/Analytics.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -154,9 +156,10 @@ void GeneralConfigPane::LoadGUIValues()
     m_throttler_choice->SetSelection(selection);
 
   const std::vector<PowerPC::CPUCore>& cpu_cores = PowerPC::AvailableCPUCores();
+  const int cpu_core = Config::Get(Config::MAIN_CPU_CORE);
   for (size_t i = 0; i < cpu_cores.size(); ++i)
   {
-    if (cpu_cores[i] == startup_params.iCPUCore)
+    if (cpu_cores[i] == cpu_core)
       m_cpu_engine_radiobox->SetSelection(i);
   }
 }
@@ -202,7 +205,8 @@ void GeneralConfigPane::OnThrottlerChoiceChanged(wxCommandEvent& event)
 
 void GeneralConfigPane::OnCPUEngineRadioBoxChanged(wxCommandEvent& event)
 {
-  SConfig::GetInstance().iCPUCore = PowerPC::AvailableCPUCores()[event.GetSelection()];
+  Config::SetBaseOrCurrent(Config::MAIN_CPU_CORE,
+                           static_cast<int>(PowerPC::AvailableCPUCores()[event.GetSelection()]));
 }
 
 void GeneralConfigPane::OnAnalyticsCheckBoxChanged(wxCommandEvent& event)

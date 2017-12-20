@@ -12,6 +12,7 @@
 #include <wx/stattext.h>
 
 #include "Common/Config/Config.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -185,8 +186,8 @@ void WiiConfigPane::LoadGUIValues()
   m_aspect_ratio_choice->SetSelection(Config::Get(Config::SYSCONF_WIDESCREEN));
   m_system_language_choice->SetSelection(Config::Get(Config::SYSCONF_LANGUAGE));
 
-  m_sd_card_checkbox->SetValue(SConfig::GetInstance().m_WiiSDCard);
-  m_connect_keyboard_checkbox->SetValue(SConfig::GetInstance().m_WiiKeyboard);
+  m_sd_card_checkbox->SetValue(Config::Get(Config::MAIN_WII_SD_CARD));
+  m_connect_keyboard_checkbox->SetValue(Config::Get(Config::MAIN_WII_KEYBOARD));
 
   PopulateUSBPassthroughListbox();
 
@@ -284,7 +285,7 @@ void WiiConfigPane::OnPAL60CheckBoxChanged(wxCommandEvent& event)
 
 void WiiConfigPane::OnSDCardCheckBoxChanged(wxCommandEvent& event)
 {
-  SConfig::GetInstance().m_WiiSDCard = m_sd_card_checkbox->IsChecked();
+  Config::SetBaseOrCurrent(Config::MAIN_WII_SD_CARD, m_sd_card_checkbox->IsChecked());
   const auto ios = IOS::HLE::GetIOS();
   if (ios)
     ios->SDIO_EventNotify();
@@ -292,7 +293,7 @@ void WiiConfigPane::OnSDCardCheckBoxChanged(wxCommandEvent& event)
 
 void WiiConfigPane::OnConnectKeyboardCheckBoxChanged(wxCommandEvent& event)
 {
-  SConfig::GetInstance().m_WiiKeyboard = m_connect_keyboard_checkbox->IsChecked();
+  Config::SetBaseOrCurrent(Config::MAIN_WII_KEYBOARD, m_connect_keyboard_checkbox->IsChecked());
 }
 
 void WiiConfigPane::OnSystemLanguageChoiceChanged(wxCommandEvent& event)

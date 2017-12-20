@@ -17,7 +17,9 @@
 #include <QSettings>
 #include <QUrl>
 
+#include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/DVD/DVDInterface.h"
@@ -368,7 +370,8 @@ void GameList::UninstallWAD()
 
 void GameList::SetDefaultISO()
 {
-  SConfig::GetInstance().m_strDefaultISO = GetSelectedGame()->GetFilePath().toStdString();
+  Config::SetBaseOrCurrent(Config::MAIN_DEFAULT_ISO,
+                           GetSelectedGame()->GetFilePath().toStdString());
 }
 
 void GameList::OpenContainingFolder()

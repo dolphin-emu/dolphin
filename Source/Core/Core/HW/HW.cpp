@@ -6,7 +6,8 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
-
+#include "Common/Config/Config.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -45,7 +46,7 @@ void Init()
   DSP::Init(SConfig::GetInstance().bDSPHLE);
   DVDInterface::Init();
   GPFifo::Init();
-  CPU::Init(SConfig::GetInstance().iCPUCore);
+  CPU::Init(Config::Get(Config::MAIN_CPU_CORE));
   SystemTimers::Init();
 
   if (SConfig::GetInstance().bWii)

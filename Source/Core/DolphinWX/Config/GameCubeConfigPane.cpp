@@ -18,8 +18,10 @@
 
 #include "Common/Common.h"
 #include "Common/CommonPaths.h"
+#include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/EXI/EXI.h"
@@ -148,7 +150,7 @@ void GameCubeConfigPane::LoadGUIValues()
   const SConfig& startup_params = SConfig::GetInstance();
 
   m_system_lang_choice->SetSelection(startup_params.SelectedLanguage);
-  m_skip_ipl_checkbox->SetValue(startup_params.bHLE_BS2);
+  m_skip_ipl_checkbox->SetValue(Config::Get(Config::MAIN_SKIP_IPL));
   m_override_lang_checkbox->SetValue(startup_params.bOverrideGCLanguage);
 
   wxArrayString slot_devices;
@@ -249,7 +251,7 @@ void GameCubeConfigPane::OnOverrideLanguageCheckBoxChanged(wxCommandEvent& event
 
 void GameCubeConfigPane::OnSkipIPLCheckBoxChanged(wxCommandEvent& event)
 {
-  SConfig::GetInstance().bHLE_BS2 = m_skip_ipl_checkbox->IsChecked();
+  Config::SetBaseOrCurrent(Config::MAIN_SKIP_IPL, m_skip_ipl_checkbox->IsChecked());
 }
 
 void GameCubeConfigPane::OnSlotAChanged(wxCommandEvent& event)

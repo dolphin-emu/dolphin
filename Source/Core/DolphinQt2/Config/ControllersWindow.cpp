@@ -20,6 +20,8 @@
 
 #include <map>
 
+#include "Common/Config/Config.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/SI/SI.h"
@@ -485,8 +487,8 @@ void ControllersWindow::LoadSettings()
   }
   m_wiimote_real_balance_board->setChecked(g_wiimote_sources[WIIMOTE_BALANCE_BOARD] ==
                                            WIIMOTE_SRC_REAL);
-  m_wiimote_speaker_data->setChecked(SConfig::GetInstance().m_WiimoteEnableSpeaker);
-  m_wiimote_continuous_scanning->setChecked(SConfig::GetInstance().m_WiimoteContinuousScanning);
+  m_wiimote_speaker_data->setChecked(Config::Get(Config::MAIN_WIIMOTE_ENABLE_SPEAKER));
+  m_wiimote_continuous_scanning->setChecked(Config::Get(Config::MAIN_WIIMOTE_CONTINUOUS_SCANNING));
 
   m_advanced_bg_input->setChecked(SConfig::GetInstance().m_BackgroundInput);
 
@@ -500,8 +502,10 @@ void ControllersWindow::LoadSettings()
 
 void ControllersWindow::SaveSettings()
 {
-  SConfig::GetInstance().m_WiimoteEnableSpeaker = m_wiimote_speaker_data->isChecked();
-  SConfig::GetInstance().m_WiimoteContinuousScanning = m_wiimote_continuous_scanning->isChecked();
+  Config::SetBaseOrCurrent(Config::MAIN_WIIMOTE_ENABLE_SPEAKER,
+                           m_wiimote_speaker_data->isChecked());
+  Config::SetBaseOrCurrent(Config::MAIN_WIIMOTE_CONTINUOUS_SCANNING,
+                           m_wiimote_continuous_scanning->isChecked());
   SConfig::GetInstance().m_bt_passthrough_enabled = m_wiimote_passthrough->isChecked();
   SConfig::GetInstance().m_BackgroundInput = m_advanced_bg_input->isChecked();
 

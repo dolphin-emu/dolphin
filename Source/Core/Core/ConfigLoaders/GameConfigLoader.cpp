@@ -25,6 +25,7 @@
 
 #include "Common/Config/Config.h"
 #include "Core/Config/GraphicsSettings.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigLoaders/IsSettingSaveable.h"
 
@@ -121,6 +122,7 @@ static const INIToLocationMap& GetINIToLocationMap()
       {{"Video", "PH_ZFar"}, {Config::GFX_PROJECTION_HACK_ZFAR.location}},
       {{"Video", "PerfQueriesEnable"}, {Config::GFX_PERF_QUERIES_ENABLE.location}},
 
+      {{"Core", "GameCubeLanguage"}, Config::MAIN_GC_LANGUAGE.location},
       {{"Core", "ProgressiveScan"}, {Config::SYSCONF_PROGRESSIVE_SCAN.location}},
       {{"Core", "PAL60"}, {Config::SYSCONF_PAL60.location}},
       {{"Wii", "Widescreen"}, {Config::SYSCONF_WIDESCREEN.location}},
@@ -145,6 +147,10 @@ static ConfigLocation MapINIToRealLocation(const std::string& section, const std
     it = ini_to_location.find({section, ""});
     if (it != ini_to_location.end())
       return {it->second.system, it->second.section, key};
+
+    // Other special cases
+    if (section == "Controls" && key.find("PadType") == 0)
+      return Config::GetInfoForSIDevice(strtol(&key.back(), nullptr, 10)).location;
 
     // Attempt to load it as a configuration option
     // It will be in the format of '<System>.<Section>'

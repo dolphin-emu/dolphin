@@ -12,6 +12,8 @@
 
 #include <wx/dialog.h>
 
+#include "Common/Config/Config.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
@@ -31,7 +33,7 @@ public:
       Close();
 
       g_video_backend = new_backend.get();
-      SConfig::GetInstance().m_strVideoBackend = g_video_backend->GetName();
+      Config::SetBaseOrCurrent(Config::MAIN_GFX_BACKEND, g_video_backend->GetName());
 
       g_video_backend->ShowConfig(GetParent());
     }

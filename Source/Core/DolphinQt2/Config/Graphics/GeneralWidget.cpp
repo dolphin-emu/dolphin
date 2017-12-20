@@ -13,7 +13,9 @@
 #include <QMessageBox>
 #include <QVBoxLayout>
 
+#include "Common/Config/Config.h"
 #include "Core/Config/GraphicsSettings.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "DolphinQt2/Config/Graphics/GraphicsBool.h"
@@ -31,7 +33,7 @@ GeneralWidget::GeneralWidget(X11Utils::XRRConfiguration* xrr_config, GraphicsWin
   LoadSettings();
   ConnectWidgets();
   AddDescriptions();
-  emit BackendChanged(QString::fromStdString(SConfig::GetInstance().m_strVideoBackend));
+  emit BackendChanged(QString::fromStdString(Config::Get(Config::MAIN_GFX_BACKEND)));
 
   connect(parent, &GraphicsWindow::BackendChanged, this, &GeneralWidget::OnBackendChanged);
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
@@ -124,7 +126,7 @@ void GeneralWidget::LoadSettings()
   // Video Backend
   for (const auto& backend : g_available_video_backends)
   {
-    if (backend->GetName() == SConfig::GetInstance().m_strVideoBackend)
+    if (backend->GetName() == Config::Get(Config::MAIN_GFX_BACKEND))
     {
       backend->InitBackendInfo();
       m_backend_combo->setCurrentIndex(
@@ -153,9 +155,9 @@ void GeneralWidget::SaveSettings()
     if (backend->GetDisplayName() == m_backend_combo->currentText().toStdString())
     {
       const auto current_backend = backend->GetName();
-      if (SConfig::GetInstance().m_strVideoBackend != current_backend)
+      if (Config::Get(Config::MAIN_GFX_BACKEND) != current_backend)
       {
-        SConfig::GetInstance().m_strVideoBackend = current_backend;
+        Config::SetBaseOrCurrent(Config::MAIN_GFX_BACKEND, current_backend);
 
         if (backend->GetName() == "Software Renderer")
         {
@@ -172,7 +174,7 @@ void GeneralWidget::SaveSettings()
           {
             for (const auto& prv_backend : g_available_video_backends)
             {
-              if (prv_backend->GetName() == SConfig::GetInstance().m_strVideoBackend)
+              if (prv_backend->GetName() == Config::Get(Config::MAIN_GFX_BACKEND))
               {
                 m_backend_combo->setCurrentIndex(
                     m_backend_combo->findText(tr(prv_backend->GetDisplayName().c_str())));
@@ -182,7 +184,7 @@ void GeneralWidget::SaveSettings()
             return;
           }
         }
-        SConfig::GetInstance().m_strVideoBackend = current_backend;
+        Config::SetBaseOrCurrent(Config::MAIN_GFX_BACKEND, current_backend);
         backend->InitBackendInfo();
         emit BackendChanged(QString::fromStdString(current_backend));
         break;

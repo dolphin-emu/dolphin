@@ -33,9 +33,11 @@
 #include "Common/StringUtil.h"
 #include "Common/Version.h"
 
+#include "Common/Config/Config.h"
 #include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
 #include "Core/CommonTitles.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/CPU.h"
@@ -304,7 +306,6 @@ void CFrame::OpenGeneralConfiguration(wxWindowID tab_id)
 void CFrame::BootGame(const std::string& filename)
 {
   std::string bootfile = filename;
-  SConfig& StartUp = SConfig::GetInstance();
 
   if (Core::GetState() != Core::State::Uninitialized)
     return;
@@ -312,6 +313,7 @@ void CFrame::BootGame(const std::string& filename)
   // Start filename if non empty.
   // Start the selected ISO, or try one of the saved paths.
   // If all that fails, ask to add a dir and don't boot
+  const std::string default_iso = Config::Get(Config::MAIN_DEFAULT_ISO);
   if (bootfile.empty())
   {
     if (m_game_list_ctrl->GetSelectedISO() != nullptr)
@@ -319,9 +321,9 @@ void CFrame::BootGame(const std::string& filename)
       if (m_game_list_ctrl->GetSelectedISO()->IsValid())
         bootfile = m_game_list_ctrl->GetSelectedISO()->GetFileName();
     }
-    else if (!StartUp.m_strDefaultISO.empty() && File::Exists(StartUp.m_strDefaultISO))
+    else if (!default_iso.empty() && File::Exists(default_iso))
     {
-      bootfile = StartUp.m_strDefaultISO;
+      bootfile = default_iso;
     }
     else
     {
@@ -1131,7 +1133,7 @@ void CFrame::OnUpdateInterpreterMenuItem(wxUpdateUIEvent& event)
   if (GetMenuBar()->FindItem(IDM_INTERPRETER)->IsChecked())
     return;
 
-  event.Check(SConfig::GetInstance().iCPUCore == PowerPC::CORE_INTERPRETER);
+  event.Check(Config::Get(Config::MAIN_CPU_CORE) == PowerPC::CORE_INTERPRETER);
 }
 
 void CFrame::ClearStatusBar()
@@ -1714,7 +1716,7 @@ void CFrame::UpdateGUI()
     if (m_game_list_ctrl->IsEnabled())
     {
       // Prepare to load Default ISO, enable play button
-      if (!SConfig::GetInstance().m_strDefaultISO.empty())
+      if (!Config::Get(Config::MAIN_DEFAULT_ISO).empty())
       {
         GetToolBar()->EnableTool(IDM_PLAY, true);
         GetMenuBar()->FindItem(IDM_PLAY)->Enable();

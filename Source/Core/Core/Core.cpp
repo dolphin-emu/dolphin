@@ -21,6 +21,7 @@
 #include "Common/CPUDetect.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
+#include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
 #include "Common/Flag.h"
 #include "Common/Logging/LogManager.h"
@@ -33,6 +34,7 @@
 
 #include "Core/Analytics.h"
 #include "Core/BootManager.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
 #include "Core/DSPEmulator.h"
@@ -500,6 +502,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot)
     HLE::Clear();
   }};
 
+  VideoBackendBase::ActivateBackend(Config::Get(Config::MAIN_GFX_BACKEND));
   if (!g_video_backend->Initialize(s_window_handle))
   {
     PanicAlert("Failed to initialize video backend!");
@@ -586,7 +589,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot)
   UndeclareAsCPUThread();
 
   // Setup our core, but can't use dynarec if we are compare server
-  if (core_parameter.iCPUCore != PowerPC::CORE_INTERPRETER &&
+  if (Config::Get(Config::MAIN_CPU_CORE) != PowerPC::CORE_INTERPRETER &&
       (!core_parameter.bRunCompareServer || core_parameter.bRunCompareClient))
   {
     PowerPC::SetMode(PowerPC::CoreMode::JIT);

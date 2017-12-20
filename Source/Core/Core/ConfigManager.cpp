@@ -27,6 +27,7 @@
 #include "Core/Analytics.h"
 #include "Core/Boot/Boot.h"
 #include "Core/CommonTitles.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigLoaders/GameConfigLoader.h"
 #include "Core/Core.h"
@@ -51,7 +52,17 @@ SConfig* SConfig::m_Instance;
 SConfig::SConfig()
 {
   LoadDefaults();
-  // Make sure we have log manager
+
+  // XXX: Config change callbacks are currently never deleted, so SConfig::Init
+  // should not be called after a shutdown.
+  Config::AddConfigChangedCallback([this] {
+    // Only reload what is being managed by the layered config system.
+    // Eventually this should just call LoadSettings() when everything is ported over.
+    LoadCoreSettings();
+    LoadDSPSettings();
+  });
+
+  Config::Load();
   LoadSettings();
 }
 
@@ -81,9 +92,7 @@ void SConfig::SaveSettings()
   SaveInterfaceSettings(ini);
   SaveDisplaySettings(ini);
   SaveGameListSettings(ini);
-  SaveCoreSettings(ini);
   SaveMovieSettings(ini);
-  SaveDSPSettings(ini);
   SaveInputSettings(ini);
   SaveFifoPlayerSettings(ini);
   SaveAnalyticsSettings(ini);
@@ -230,63 +239,6 @@ void SConfig::SaveGameListSettings(IniFile& ini)
   gamelist->Set("ColumnState", m_showStateColumn);
 }
 
-void SConfig::SaveCoreSettings(IniFile& ini)
-{
-  IniFile::Section* core = ini.GetOrCreateSection("Core");
-
-  core->Set("SkipIPL", bHLE_BS2);
-  core->Set("TimingVariance", iTimingVariance);
-  core->Set("CPUCore", iCPUCore);
-  core->Set("Fastmem", bFastmem);
-  core->Set("CPUThread", bCPUThread);
-  core->Set("DSPHLE", bDSPHLE);
-  core->Set("SyncOnSkipIdle", bSyncGPUOnSkipIdleHack);
-  core->Set("SyncGPU", bSyncGPU);
-  core->Set("SyncGpuMaxDistance", iSyncGpuMaxDistance);
-  core->Set("SyncGpuMinDistance", iSyncGpuMinDistance);
-  core->Set("SyncGpuOverclock", fSyncGpuOverclock);
-  core->Set("FPRF", bFPRF);
-  core->Set("AccurateNaNs", bAccurateNaNs);
-  core->Set("DefaultISO", m_strDefaultISO);
-  core->Set("EnableCheats", bEnableCheats);
-  core->Set("SelectedLanguage", SelectedLanguage);
-  core->Set("OverrideGCLang", bOverrideGCLanguage);
-  core->Set("DPL2Decoder", bDPL2Decoder);
-  core->Set("AudioLatency", iLatency);
-  core->Set("AudioStretch", m_audio_stretch);
-  core->Set("AudioStretchMaxLatency", m_audio_stretch_max_latency);
-  core->Set("MemcardAPath", m_strMemoryCardA);
-  core->Set("MemcardBPath", m_strMemoryCardB);
-  core->Set("AgpCartAPath", m_strGbaCartA);
-  core->Set("AgpCartBPath", m_strGbaCartB);
-  core->Set("SlotA", m_EXIDevice[0]);
-  core->Set("SlotB", m_EXIDevice[1]);
-  core->Set("SerialPort1", m_EXIDevice[2]);
-  core->Set("BBA_MAC", m_bba_mac);
-  for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
-  {
-    core->Set(StringFromFormat("SIDevice%i", i), m_SIDevice[i]);
-    core->Set(StringFromFormat("AdapterRumble%i", i), m_AdapterRumble[i]);
-    core->Set(StringFromFormat("SimulateKonga%i", i), m_AdapterKonga[i]);
-  }
-  core->Set("WiiSDCard", m_WiiSDCard);
-  core->Set("WiiKeyboard", m_WiiKeyboard);
-  core->Set("WiimoteContinuousScanning", m_WiimoteContinuousScanning);
-  core->Set("WiimoteEnableSpeaker", m_WiimoteEnableSpeaker);
-  core->Set("RunCompareServer", bRunCompareServer);
-  core->Set("RunCompareClient", bRunCompareClient);
-  core->Set("EmulationSpeed", m_EmulationSpeed);
-  core->Set("FrameSkip", m_FrameSkip);
-  core->Set("Overclock", m_OCFactor);
-  core->Set("OverclockEnable", m_OCEnable);
-  core->Set("GFXBackend", m_strVideoBackend);
-  core->Set("GPUDeterminismMode", m_strGPUDeterminismMode);
-  core->Set("PerfMapDir", m_perfDir);
-  core->Set("EnableCustomRTC", bEnableCustomRTC);
-  core->Set("CustomRTCValue", m_customRTCValue);
-  core->Set("EnableSignatureChecks", m_enable_signature_checks);
-}
-
 void SConfig::SaveMovieSettings(IniFile& ini)
 {
   IniFile::Section* movie = ini.GetOrCreateSection("Movie");
@@ -297,19 +249,6 @@ void SConfig::SaveMovieSettings(IniFile& ini)
   movie->Set("DumpFramesSilent", m_DumpFramesSilent);
   movie->Set("ShowInputDisplay", m_ShowInputDisplay);
   movie->Set("ShowRTC", m_ShowRTC);
-}
-
-void SConfig::SaveDSPSettings(IniFile& ini)
-{
-  IniFile::Section* dsp = ini.GetOrCreateSection("DSP");
-
-  dsp->Set("EnableJIT", m_DSPEnableJIT);
-  dsp->Set("DumpAudio", m_DumpAudio);
-  dsp->Set("DumpAudioSilent", m_DumpAudioSilent);
-  dsp->Set("DumpUCode", m_DumpUCode);
-  dsp->Set("Backend", sBackend);
-  dsp->Set("Volume", m_Volume);
-  dsp->Set("CaptureLog", m_DSPCaptureLog);
 }
 
 void SConfig::SaveInputSettings(IniFile& ini)
@@ -372,8 +311,6 @@ void SConfig::SaveUSBPassthroughSettings(IniFile& ini)
 
 void SConfig::LoadSettings()
 {
-  Config::Load();
-
   INFO_LOG(BOOT, "Loading Settings from %s", File::GetUserPath(F_DOLPHINCONFIG_IDX).c_str());
   IniFile ini;
   ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
@@ -382,9 +319,9 @@ void SConfig::LoadSettings()
   LoadInterfaceSettings(ini);
   LoadDisplaySettings(ini);
   LoadGameListSettings(ini);
-  LoadCoreSettings(ini);
+  LoadCoreSettings();
   LoadMovieSettings(ini);
-  LoadDSPSettings(ini);
+  LoadDSPSettings();
   LoadInputSettings(ini);
   LoadFifoPlayerSettings(ini);
   LoadNetworkSettings(ini);
@@ -511,74 +448,71 @@ void SConfig::LoadGameListSettings(IniFile& ini)
   gamelist->Get("ColumnState", &m_showStateColumn, true);
 }
 
-void SConfig::LoadCoreSettings(IniFile& ini)
+static GPUDeterminismMode ParseGPUDeterminismMode(const std::string& mode)
 {
-  IniFile::Section* core = ini.GetOrCreateSection("Core");
+  if (mode == "auto")
+    return GPU_DETERMINISM_AUTO;
+  if (mode == "none")
+    return GPU_DETERMINISM_NONE;
+  if (mode == "fake-completion")
+    return GPU_DETERMINISM_FAKE_COMPLETION;
 
-  core->Get("SkipIPL", &bHLE_BS2, true);
-#ifdef _M_X86
-  core->Get("CPUCore", &iCPUCore, PowerPC::CORE_JIT64);
-#elif _M_ARM_64
-  core->Get("CPUCore", &iCPUCore, PowerPC::CORE_JITARM64);
-#else
-  core->Get("CPUCore", &iCPUCore, PowerPC::CORE_INTERPRETER);
-#endif
-  core->Get("Fastmem", &bFastmem, true);
-  core->Get("DSPHLE", &bDSPHLE, true);
-  core->Get("TimingVariance", &iTimingVariance, 40);
-  core->Get("CPUThread", &bCPUThread, true);
-  core->Get("SyncOnSkipIdle", &bSyncGPUOnSkipIdleHack, true);
-  core->Get("DefaultISO", &m_strDefaultISO);
-  core->Get("EnableCheats", &bEnableCheats, false);
-  core->Get("SelectedLanguage", &SelectedLanguage, 0);
-  core->Get("OverrideGCLang", &bOverrideGCLanguage, false);
-  core->Get("DPL2Decoder", &bDPL2Decoder, false);
-  core->Get("AudioLatency", &iLatency, 20);
-  core->Get("AudioStretch", &m_audio_stretch, false);
-  core->Get("AudioStretchMaxLatency", &m_audio_stretch_max_latency, 80);
-  core->Get("MemcardAPath", &m_strMemoryCardA);
-  core->Get("MemcardBPath", &m_strMemoryCardB);
-  core->Get("AgpCartAPath", &m_strGbaCartA);
-  core->Get("AgpCartBPath", &m_strGbaCartB);
-  core->Get("SlotA", (int*)&m_EXIDevice[0], ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER);
-  core->Get("SlotB", (int*)&m_EXIDevice[1], ExpansionInterface::EXIDEVICE_NONE);
-  core->Get("SerialPort1", (int*)&m_EXIDevice[2], ExpansionInterface::EXIDEVICE_NONE);
-  core->Get("BBA_MAC", &m_bba_mac);
+  NOTICE_LOG(BOOT, "Unknown GPU determinism mode %s", mode.c_str());
+  return GPU_DETERMINISM_AUTO;
+}
+
+void SConfig::LoadCoreSettings()
+{
+  bFastmem = Config::Get(Config::MAIN_FASTMEM);
+  bDSPHLE = Config::Get(Config::MAIN_DSP_HLE);
+  iTimingVariance = Config::Get(Config::MAIN_TIMING_VARIANCE);
+  bCPUThread = Config::Get(Config::MAIN_CPU_THREAD);
+  bSyncGPUOnSkipIdleHack = Config::Get(Config::MAIN_SYNC_ON_SKIP_IDLE);
+  bEnableCheats = Config::Get(Config::MAIN_ENABLE_CHEATS);
+  SelectedLanguage = Config::Get(Config::MAIN_GC_LANGUAGE);
+  bOverrideGCLanguage = Config::Get(Config::MAIN_OVERRIDE_GC_LANGUAGE);
+  bDPL2Decoder = Config::Get(Config::MAIN_DPL2_DECODER);
+  iLatency = Config::Get(Config::MAIN_AUDIO_LATENCY);
+  m_audio_stretch = Config::Get(Config::MAIN_AUDIO_STRETCH);
+  m_audio_stretch_max_latency = Config::Get(Config::MAIN_AUDIO_STRETCH_LATENCY);
+  m_strMemoryCardA = Config::Get(Config::MAIN_MEMCARD_A_PATH);
+  m_strMemoryCardB = Config::Get(Config::MAIN_MEMCARD_B_PATH);
+  m_strGbaCartA = Config::Get(Config::MAIN_AGP_CART_A_PATH);
+  m_strGbaCartB = Config::Get(Config::MAIN_AGP_CART_B_PATH);
+  m_EXIDevice[0] = static_cast<ExpansionInterface::TEXIDevices>(Config::Get(Config::MAIN_SLOT_A));
+  m_EXIDevice[1] = static_cast<ExpansionInterface::TEXIDevices>(Config::Get(Config::MAIN_SLOT_B));
+  m_EXIDevice[2] =
+      static_cast<ExpansionInterface::TEXIDevices>(Config::Get(Config::MAIN_SERIAL_PORT_1));
+  m_bba_mac = Config::Get(Config::MAIN_BBA_MAC);
+
   for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
   {
-    core->Get(StringFromFormat("SIDevice%i", i), (u32*)&m_SIDevice[i],
-              (i == 0) ? SerialInterface::SIDEVICE_GC_CONTROLLER : SerialInterface::SIDEVICE_NONE);
-    core->Get(StringFromFormat("AdapterRumble%i", i), &m_AdapterRumble[i], true);
-    core->Get(StringFromFormat("SimulateKonga%i", i), &m_AdapterKonga[i], false);
+    m_SIDevice[i] =
+        static_cast<SerialInterface::SIDevices>(Config::Get(Config::GetInfoForSIDevice(i)));
+    m_AdapterRumble[i] = Config::Get(Config::GetInfoForAdapterRumble(i));
+    m_AdapterKonga[i] = Config::Get(Config::GetInfoForSimulateKonga(i));
   }
-  core->Get("WiiSDCard", &m_WiiSDCard, false);
-  core->Get("WiiKeyboard", &m_WiiKeyboard, false);
-  core->Get("WiimoteContinuousScanning", &m_WiimoteContinuousScanning, false);
-  core->Get("WiimoteEnableSpeaker", &m_WiimoteEnableSpeaker, false);
-  core->Get("RunCompareServer", &bRunCompareServer, false);
-  core->Get("RunCompareClient", &bRunCompareClient, false);
-  core->Get("MMU", &bMMU, false);
-  core->Get("BBDumpPort", &iBBDumpPort, -1);
-  core->Get("SyncGPU", &bSyncGPU, false);
-  core->Get("SyncGpuMaxDistance", &iSyncGpuMaxDistance, 200000);
-  core->Get("SyncGpuMinDistance", &iSyncGpuMinDistance, -200000);
-  core->Get("SyncGpuOverclock", &fSyncGpuOverclock, 1.0f);
-  core->Get("FastDiscSpeed", &bFastDiscSpeed, false);
-  core->Get("DCBZ", &bDCBZOFF, false);
-  core->Get("LowDCBZHack", &bLowDCBZHack, false);
-  core->Get("FPRF", &bFPRF, false);
-  core->Get("AccurateNaNs", &bAccurateNaNs, false);
-  core->Get("EmulationSpeed", &m_EmulationSpeed, 1.0f);
-  core->Get("Overclock", &m_OCFactor, 1.0f);
-  core->Get("OverclockEnable", &m_OCEnable, false);
-  core->Get("FrameSkip", &m_FrameSkip, 0);
-  core->Get("GFXBackend", &m_strVideoBackend, "");
-  core->Get("GPUDeterminismMode", &m_strGPUDeterminismMode, "auto");
-  core->Get("PerfMapDir", &m_perfDir, "");
-  core->Get("EnableCustomRTC", &bEnableCustomRTC, false);
-  // Default to seconds between 1.1.1970 and 1.1.2000
-  core->Get("CustomRTCValue", &m_customRTCValue, 946684800);
-  core->Get("EnableSignatureChecks", &m_enable_signature_checks, true);
+
+  bRunCompareServer = Config::Get(Config::MAIN_RUN_COMPARE_SERVER);
+  bRunCompareClient = Config::Get(Config::MAIN_RUN_COMPARE_CLIENT);
+  bMMU = Config::Get(Config::MAIN_MMU);
+  iBBDumpPort = Config::Get(Config::MAIN_BB_DUMP_PORT);
+  bSyncGPU = Config::Get(Config::MAIN_SYNC_GPU);
+  iSyncGpuMaxDistance = Config::Get(Config::MAIN_SYNC_GPU_MAX_DISTANCE);
+  iSyncGpuMinDistance = Config::Get(Config::MAIN_SYNC_GPU_MIN_DISTANCE);
+  fSyncGpuOverclock = Config::Get(Config::MAIN_SYNC_GPU_OVERCLOCK);
+  bFastDiscSpeed = Config::Get(Config::MAIN_FAST_DISC_SPEED);
+  bDCBZOFF = Config::Get(Config::MAIN_DCBZ);
+  bLowDCBZHack = Config::Get(Config::MAIN_LOW_DCBZ_HACK);
+  bFPRF = Config::Get(Config::MAIN_FPRF);
+  bAccurateNaNs = Config::Get(Config::MAIN_ACCURATE_NANS);
+  m_EmulationSpeed = Config::Get(Config::MAIN_EMULATION_SPEED);
+  m_OCFactor = Config::Get(Config::MAIN_OVERCLOCK);
+  m_OCEnable = Config::Get(Config::MAIN_OVERCLOCK_ENABLE);
+  m_GPUDeterminismMode = ParseGPUDeterminismMode(Config::Get(Config::MAIN_GPU_DETERMINISM_MODE));
+  m_perfDir = Config::Get(Config::MAIN_PERF_MAP_DIR);
+  bEnableCustomRTC = Config::Get(Config::MAIN_CUSTOM_RTC_ENABLE);
+  m_customRTCValue = Config::Get(Config::MAIN_CUSTOM_RTC_VALUE);
 }
 
 void SConfig::LoadMovieSettings(IniFile& ini)
@@ -593,18 +527,15 @@ void SConfig::LoadMovieSettings(IniFile& ini)
   movie->Get("ShowRTC", &m_ShowRTC, false);
 }
 
-void SConfig::LoadDSPSettings(IniFile& ini)
+void SConfig::LoadDSPSettings()
 {
-  IniFile::Section* dsp = ini.GetOrCreateSection("DSP");
-
-  dsp->Get("EnableJIT", &m_DSPEnableJIT, true);
-  dsp->Get("DumpAudio", &m_DumpAudio, false);
-  dsp->Get("DumpAudioSilent", &m_DumpAudioSilent, false);
-  dsp->Get("DumpUCode", &m_DumpUCode, false);
-  dsp->Get("Backend", &sBackend, AudioCommon::GetDefaultSoundBackend());
-  dsp->Get("Volume", &m_Volume, 100);
-  dsp->Get("CaptureLog", &m_DSPCaptureLog, false);
-
+  m_DSPEnableJIT = Config::Get(Config::MAIN_DSP_JIT);
+  m_DumpAudio = Config::Get(Config::MAIN_DUMP_AUDIO);
+  m_DumpAudioSilent = Config::Get(Config::MAIN_DUMP_AUDIO_SILENT);
+  m_DumpUCode = Config::Get(Config::MAIN_DUMP_UCODE);
+  sBackend = Config::Get(Config::MAIN_AUDIO_BACKEND);
+  m_Volume = Config::Get(Config::MAIN_AUDIO_VOLUME);
+  m_DSPCaptureLog = Config::Get(Config::MAIN_DSP_CAPTURE_LOG);
   m_IsMuted = false;
 }
 
@@ -763,7 +694,6 @@ void SConfig::LoadDefaults()
 #endif
 #endif
 
-  iCPUCore = PowerPC::DefaultCPUCore();
   iTimingVariance = 40;
   bCPUThread = false;
   bSyncGPUOnSkipIdleHack = true;

@@ -11,7 +11,9 @@
 #include <QSpinBox>
 #include <QVBoxLayout>
 
+#include "Common/Config/Config.h"
 #include "Core/Config/GraphicsSettings.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "DolphinQt2/Config/Graphics/GraphicsBool.h"
 #include "DolphinQt2/Config/Graphics/GraphicsWindow.h"
@@ -116,7 +118,7 @@ void SoftwareRendererWidget::LoadSettings()
 {
   for (const auto& backend : g_available_video_backends)
   {
-    if (backend->GetName() == SConfig::GetInstance().m_strVideoBackend)
+    if (backend->GetName() == Config::Get(Config::MAIN_GFX_BACKEND))
       m_backend_combo->setCurrentIndex(
           m_backend_combo->findText(tr(backend->GetDisplayName().c_str())));
   }
@@ -132,9 +134,9 @@ void SoftwareRendererWidget::SaveSettings()
     if (tr(backend->GetDisplayName().c_str()) == m_backend_combo->currentText())
     {
       const auto backend_name = backend->GetName();
-      if (backend_name != SConfig::GetInstance().m_strVideoBackend)
+      if (backend_name != Config::Get(Config::MAIN_GFX_BACKEND))
       {
-        SConfig::GetInstance().m_strVideoBackend = backend_name;
+        Config::SetBaseOrCurrent(Config::MAIN_GFX_BACKEND, backend_name);
         emit BackendChanged(QString::fromStdString(backend_name));
       }
       break;

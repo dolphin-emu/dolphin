@@ -53,12 +53,6 @@ struct BootParameters;
 
 struct SConfig
 {
-  // Wii Devices
-  bool m_WiiSDCard;
-  bool m_WiiKeyboard;
-  bool m_WiimoteContinuousScanning;
-  bool m_WiimoteEnableSpeaker;
-
   // ISO folder
   std::vector<std::string> m_ISOFolder;
   bool m_RecursiveISOFolder;
@@ -73,8 +67,6 @@ struct SConfig
 #endif
   bool bAutomaticStart = false;
   bool bBootToPause = false;
-
-  int iCPUCore;  // Uses the values of PowerPC::CPUCore
 
   bool bJITNoBlockCache = false;
   bool bJITNoBlockLinking = false;
@@ -100,7 +92,6 @@ struct SConfig
   bool bDSPThread = false;
   bool bDSPHLE = true;
   bool bSyncGPUOnSkipIdleHack = true;
-  bool bHLE_BS2 = true;
   bool bEnableCheats = false;
   bool bEnableMemcardSdWriting = true;
   bool bCopyWiiSaveNetplay = true;
@@ -164,8 +155,6 @@ struct SConfig
   std::set<std::pair<u16, u16>> m_usb_passthrough_devices;
   bool IsUSBDeviceWhitelisted(std::pair<u16, u16> vid_pid) const;
 
-  bool m_enable_signature_checks = true;
-
   // Fifo Player related settings
   bool bLoopFifoReplay = true;
 
@@ -175,16 +164,11 @@ struct SConfig
 
   DiscIO::Region m_region;
 
-  std::string m_strVideoBackend;
-  std::string m_strGPUDeterminismMode;
-
-  // set based on the string version
   GPUDeterminismMode m_GPUDeterminismMode;
 
   // files
   std::string m_strBootROM;
   std::string m_strSRAM;
-  std::string m_strDefaultISO;
   std::string m_strWiiSDCardPath;
 
   std::string m_perfDir;
@@ -285,7 +269,6 @@ struct SConfig
   bool m_ShowFrameCount;
   bool m_ShowRTC;
   std::string m_strMovieAuthor;
-  unsigned int m_FrameSkip;
   bool m_DumpFrames;
   bool m_DumpFramesSilent;
   bool m_ShowInputDisplay;
@@ -340,8 +323,6 @@ private:
   void SaveInterfaceSettings(IniFile& ini);
   void SaveDisplaySettings(IniFile& ini);
   void SaveGameListSettings(IniFile& ini);
-  void SaveCoreSettings(IniFile& ini);
-  void SaveDSPSettings(IniFile& ini);
   void SaveInputSettings(IniFile& ini);
   void SaveMovieSettings(IniFile& ini);
   void SaveFifoPlayerSettings(IniFile& ini);
@@ -354,8 +335,8 @@ private:
   void LoadInterfaceSettings(IniFile& ini);
   void LoadDisplaySettings(IniFile& ini);
   void LoadGameListSettings(IniFile& ini);
-  void LoadCoreSettings(IniFile& ini);
-  void LoadDSPSettings(IniFile& ini);
+  void LoadCoreSettings();
+  void LoadDSPSettings();
   void LoadInputSettings(IniFile& ini);
   void LoadMovieSettings(IniFile& ini);
   void LoadFifoPlayerSettings(IniFile& ini);

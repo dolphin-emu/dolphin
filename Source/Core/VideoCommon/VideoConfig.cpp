@@ -20,8 +20,6 @@ static bool s_has_registered_callback = false;
 
 void UpdateActiveConfig()
 {
-  if (Movie::IsPlayingInput() && Movie::IsConfigSaved())
-    Movie::SetGraphicsConfig();
   g_ActiveConfig = g_Config;
 }
 

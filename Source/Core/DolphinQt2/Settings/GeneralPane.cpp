@@ -16,7 +16,9 @@
 #include <QVBoxLayout>
 #include <QWidget>
 
+#include "Common/Config/Config.h"
 #include "Core/Analytics.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "DolphinQt2/Settings.h"
@@ -145,7 +147,7 @@ void GeneralPane::LoadConfig()
     m_combobox_speedlimit->setCurrentIndex(selection);
   m_checkbox_dualcore->setChecked(SConfig::GetInstance().bCPUThread);
 
-  switch (SConfig::GetInstance().iCPUCore)
+  switch (Config::Get(Config::MAIN_CPU_CORE))
   {
   case PowerPC::CPUCore::CORE_INTERPRETER:
     m_radio_interpreter->setChecked(true);
@@ -182,7 +184,7 @@ void GeneralPane::OnSaveConfig()
   else
     engine_value = PowerPC::CPUCore::CORE_JIT64;
 
-  SConfig::GetInstance().iCPUCore = engine_value;
+  Config::SetBaseOrCurrent(Config::MAIN_CPU_CORE, engine_value);
 }
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS

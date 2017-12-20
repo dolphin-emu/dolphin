@@ -14,6 +14,7 @@
 #include <mbedtls/sha1.h>
 
 #include "Common/ChunkFile.h"
+#include "Common/Config/Config.h"
 #include "Common/File.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
@@ -22,6 +23,7 @@
 #include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
 #include "Core/CommonTitles.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/ES/Formats.h"
@@ -823,7 +825,7 @@ bool ES::IsIssuerCorrect(VerifyContainerType type, const IOS::ES::CertReader& is
 
 ReturnCode ES::ReadCertStore(std::vector<u8>* buffer) const
 {
-  if (!SConfig::GetInstance().m_enable_signature_checks)
+  if (!Config::Get(Config::MAIN_ENABLE_SIGNATURE_CHECKS))
     return IPC_SUCCESS;
 
   const std::string store_path = Common::RootUserPath(Common::FROM_SESSION_ROOT) + "/sys/cert.sys";
@@ -862,7 +864,7 @@ ReturnCode ES::VerifyContainer(VerifyContainerType type, VerifyMode mode,
                                const IOS::ES::SignedBlobReader& signed_blob,
                                const std::vector<u8>& cert_chain, u32 iosc_handle)
 {
-  if (!SConfig::GetInstance().m_enable_signature_checks)
+  if (!Config::Get(Config::MAIN_ENABLE_SIGNATURE_CHECKS))
     return IPC_SUCCESS;
 
   if (!signed_blob.IsSignatureValid())

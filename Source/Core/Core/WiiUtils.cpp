@@ -22,6 +22,7 @@
 #include "Common/Assert.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
+#include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
 #include "Common/HttpRequest.h"
 #include "Common/Logging/Log.h"
@@ -31,6 +32,7 @@
 #include "Common/Swap.h"
 #include "Common/SysConf.h"
 #include "Core/CommonTitles.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/IOS/Device.h"
 #include "Core/IOS/ES/ES.h"
@@ -59,7 +61,6 @@ static bool ImportWAD(IOS::HLE::Kernel& ios, const DiscIO::WiiWAD& wad)
 
   IOS::HLE::Device::ES::Context context;
   IOS::HLE::ReturnCode ret;
-  const bool checks_enabled = SConfig::GetInstance().m_enable_signature_checks;
 
   IOS::ES::TicketReader ticket = wad.GetTicket();
   // Ensure the common key index is correct, as it's checked by IOS.
@@ -69,19 +70,20 @@ static bool ImportWAD(IOS::HLE::Kernel& ios, const DiscIO::WiiWAD& wad)
                                  IOS::HLE::Device::ES::TicketImportType::Unpersonalised)) < 0 ||
          (ret = es->ImportTitleInit(context, tmd.GetBytes(), wad.GetCertificateChain())) < 0)
   {
-    if (checks_enabled && ret == IOS::HLE::IOSC_FAIL_CHECKVALUE &&
+    if (Config::Get(Config::MAIN_ENABLE_SIGNATURE_CHECKS) &&
+        ret == IOS::HLE::IOSC_FAIL_CHECKVALUE &&
         AskYesNoT("This WAD has not been signed by Nintendo. Continue to import?"))
     {
-      SConfig::GetInstance().m_enable_signature_checks = false;
+      Config::SetCurrent(Config::MAIN_ENABLE_SIGNATURE_CHECKS, false);
       continue;
     }
 
     if (ret != IOS::HLE::IOSC_FAIL_CHECKVALUE)
       PanicAlertT("WAD installation failed: Could not initialise title import (error %d).", ret);
-    SConfig::GetInstance().m_enable_signature_checks = checks_enabled;
+    Config::DeleteCurrent(Config::MAIN_ENABLE_SIGNATURE_CHECKS);
     return false;
   }
-  SConfig::GetInstance().m_enable_signature_checks = checks_enabled;
+  Config::DeleteCurrent(Config::MAIN_ENABLE_SIGNATURE_CHECKS);
 
   const bool contents_imported = [&]() {
     const u64 title_id = tmd.GetTitleId();

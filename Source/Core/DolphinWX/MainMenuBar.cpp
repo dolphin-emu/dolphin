@@ -8,7 +8,9 @@
 #include <vector>
 
 #include "Common/CDUtils.h"
+#include "Common/Config/Config.h"
 #include "Core/CommonTitles.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/IOS/ES/ES.h"
@@ -366,14 +368,13 @@ wxMenu* MainMenuBar::CreateViewMenu() const
 wxMenu* MainMenuBar::CreateJITMenu() const
 {
   auto* const jit_menu = new wxMenu;
-  const auto& config_instance = SConfig::GetInstance();
 
   auto* const interpreter = jit_menu->AppendCheckItem(
       IDM_INTERPRETER, _("&Interpreter Core"),
       _("This is necessary to get break points"
         " and stepping to work as explained in the Developer Documentation. But it can be very"
         " slow, perhaps slower than 1 fps."));
-  interpreter->Check(config_instance.iCPUCore == PowerPC::CORE_INTERPRETER);
+  interpreter->Check(Config::Get(Config::MAIN_CPU_CORE) == PowerPC::CORE_INTERPRETER);
 
   jit_menu->AppendSeparator();
   jit_menu->AppendCheckItem(IDM_JIT_NO_BLOCK_LINKING, _("&JIT Block Linking Off"),

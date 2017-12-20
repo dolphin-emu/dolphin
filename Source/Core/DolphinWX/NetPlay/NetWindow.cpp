@@ -38,6 +38,7 @@
 #include "Common/SPSCQueue.h"
 #include "Common/StringUtil.h"
 
+#include "Core/Config/MainSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/EXI/EXI_Device.h"
@@ -314,7 +315,7 @@ void NetPlayDialog::GetNetSettings(NetSettings& settings)
 {
   SConfig& instance = SConfig::GetInstance();
   settings.m_CPUthread = instance.bCPUThread;
-  settings.m_CPUcore = instance.iCPUCore;
+  settings.m_CPUcore = Config::Get(Config::MAIN_CPU_CORE);
   settings.m_EnableCheats = instance.bEnableCheats;
   settings.m_SelectedLanguage = instance.SelectedLanguage;
   settings.m_OverrideGCLanguage = instance.bOverrideGCLanguage;

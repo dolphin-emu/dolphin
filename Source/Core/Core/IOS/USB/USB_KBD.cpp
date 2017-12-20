@@ -7,10 +7,12 @@
 #include <cstring>
 #include <queue>
 
+#include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/Swap.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"  // Local core functions
 #include "Core/HW/Memmap.h"
@@ -73,7 +75,7 @@ IPCCommandResult USB_KBD::Write(const ReadWriteRequest& request)
 
 IPCCommandResult USB_KBD::IOCtl(const IOCtlRequest& request)
 {
-  if (SConfig::GetInstance().m_WiiKeyboard && !Core::WantsDeterminism() &&
+  if (Config::Get(Config::MAIN_WII_KEYBOARD) && !Core::WantsDeterminism() &&
       ControlReference::InputGateOn() && !m_MessageQueue.empty())
   {
     Memory::CopyToEmu(request.buffer_out, &m_MessageQueue.front(), sizeof(SMessageData));
@@ -97,7 +99,7 @@ bool USB_KBD::IsKeyPressed(int _Key)
 
 void USB_KBD::Update()
 {
-  if (!SConfig::GetInstance().m_WiiKeyboard || Core::WantsDeterminism() || !m_is_active)
+  if (!Config::Get(Config::MAIN_WII_KEYBOARD) || Core::WantsDeterminism() || !m_is_active)
     return;
 
   u8 Modifiers = 0x00;

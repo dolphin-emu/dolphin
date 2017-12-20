@@ -17,8 +17,10 @@
 #include <wx/stattext.h>
 
 #include "Common/CommonTypes.h"
+#include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/GCKeyboard.h"
@@ -349,7 +351,7 @@ wxSizer* ControllerConfigDiag::CreateEmulatedBTConfigSizer()
   m_enable_continuous_scanning = new wxCheckBox(this, wxID_ANY, _("Continuous Scanning"));
   m_enable_continuous_scanning->Bind(wxEVT_CHECKBOX, &ControllerConfigDiag::OnContinuousScanning,
                                      this);
-  m_enable_continuous_scanning->SetValue(SConfig::GetInstance().m_WiimoteContinuousScanning);
+  m_enable_continuous_scanning->SetValue(Config::Get(Config::MAIN_WIIMOTE_CONTINUOUS_SCANNING));
   m_refresh_wm_button = new wxButton(this, wxID_ANY, _("Refresh"), wxDefaultPosition,
                                      wxDLG_UNIT(this, wxSize(60, -1)));
   m_refresh_wm_button->Bind(wxEVT_BUTTON, &ControllerConfigDiag::OnWiimoteRefreshButton, this);
@@ -368,7 +370,7 @@ wxSizer* ControllerConfigDiag::CreateEmulatedBTConfigSizer()
   // Speaker data
   m_enable_speaker_data = new wxCheckBox(this, wxID_ANY, _("Enable Speaker Data"));
   m_enable_speaker_data->Bind(wxEVT_CHECKBOX, &ControllerConfigDiag::OnEnableSpeaker, this);
-  m_enable_speaker_data->SetValue(SConfig::GetInstance().m_WiimoteEnableSpeaker);
+  m_enable_speaker_data->SetValue(Config::Get(Config::MAIN_WIIMOTE_ENABLE_SPEAKER));
 
   auto* const checkbox_sizer = new wxBoxSizer(wxVERTICAL);
   checkbox_sizer->Add(m_enable_continuous_scanning);
@@ -579,7 +581,7 @@ void ControllerConfigDiag::OnBalanceBoardChanged(wxCommandEvent& event)
 
 void ControllerConfigDiag::OnContinuousScanning(wxCommandEvent& event)
 {
-  SConfig::GetInstance().m_WiimoteContinuousScanning = event.IsChecked();
+  Config::SetBaseOrCurrent(Config::MAIN_WIIMOTE_CONTINUOUS_SCANNING, event.IsChecked());
   WiimoteReal::Initialize(Wiimote::InitializeMode::DO_NOT_WAIT_FOR_WIIMOTES);
 }
 
@@ -590,5 +592,5 @@ void ControllerConfigDiag::OnWiimoteRefreshButton(wxCommandEvent&)
 
 void ControllerConfigDiag::OnEnableSpeaker(wxCommandEvent& event)
 {
-  SConfig::GetInstance().m_WiimoteEnableSpeaker = event.IsChecked();
+  Config::SetBaseOrCurrent(Config::MAIN_WIIMOTE_ENABLE_SPEAKER, event.IsChecked());
 }

@@ -96,4 +96,10 @@ void SetBaseOrCurrent(const ConfigInfo<T>& info, const T& value)
   else
     Set<T>(LayerType::CurrentRun, info, value);
 }
+
+template <typename T>
+void DeleteCurrent(const ConfigInfo<T>& info)
+{
+  GetLayer(LayerType::CurrentRun)->DeleteKey(info.location);
+}
 }

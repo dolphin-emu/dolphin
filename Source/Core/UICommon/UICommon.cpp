@@ -13,6 +13,7 @@
 #include "Common/Logging/LogManager.h"
 #include "Common/MsgHandler.h"
 
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigLoaders/BaseConfigLoader.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -39,7 +40,7 @@ void Init()
   VideoBackendBase::PopulateList();
   WiimoteReal::LoadSettings();
   GCAdapter::Init();
-  VideoBackendBase::ActivateBackend(SConfig::GetInstance().m_strVideoBackend);
+  VideoBackendBase::ActivateBackend(Config::Get(Config::MAIN_GFX_BACKEND));
 
   SetEnableAlert(SConfig::GetInstance().bUsePanicHandlers);
 }

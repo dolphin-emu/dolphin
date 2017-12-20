@@ -142,7 +142,6 @@ void SetReset(bool reset);
 bool IsConfigSaved();
 bool IsStartingFromClearSave();
 bool IsUsingMemcard(int memcard);
-void SetGraphicsConfig();
 bool IsNetPlayRecording();
 
 bool IsUsingPad(int controller);
