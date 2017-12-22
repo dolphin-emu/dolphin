@@ -83,7 +83,7 @@ public final class DirectoryInitializationService extends IntentService
         // Always copy over the GCPad config in case of change or corruption.
         // Not a user configurable file.
         copyAsset("GCPadNew.ini", ConfigDir + File.separator + "GCPadNew.ini", true);
-        copyAsset("WiimoteNew.ini", ConfigDir + File.separator + "WiimoteNew.ini", true);
+        copyAsset("WiimoteNew.ini", ConfigDir + File.separator + "WiimoteNew.ini", false);
     }
 
     public static boolean areDolphinDirectoriesReady()
