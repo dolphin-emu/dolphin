@@ -214,14 +214,14 @@ static void BPWritten(const BPCmd& bp)
     u32 destStride = bpmem.copyMipMapStrideChannels << 5;
 
     EFBRectangle srcRect;
-    srcRect.left = (int)bpmem.copyTexSrcXY.x;
-    srcRect.top = (int)bpmem.copyTexSrcXY.y;
+    srcRect.left = static_cast<int>(bpmem.copyTexSrcXY.x);
+    srcRect.top = static_cast<int>(bpmem.copyTexSrcXY.y);
 
     // Here Width+1 like Height, otherwise some textures are corrupted already since the native
     // resolution.
     // TODO: What's the behavior of out of bound access?
-    srcRect.right = (int)(bpmem.copyTexSrcXY.x + bpmem.copyTexSrcWH.x + 1);
-    srcRect.bottom = (int)(bpmem.copyTexSrcXY.y + bpmem.copyTexSrcWH.y + 1);
+    srcRect.right = static_cast<int>(bpmem.copyTexSrcXY.x + bpmem.copyTexSrcWH.x + 1);
+    srcRect.bottom = static_cast<int>(bpmem.copyTexSrcXY.y + bpmem.copyTexSrcWH.y + 1);
 
     UPE_Copy PE_copy = bpmem.triggerEFBCopy;
 
@@ -246,18 +246,20 @@ static void BPWritten(const BPCmd& bp)
 
       float yScale;
       if (PE_copy.scale_invert)
-        yScale = 256.0f / (float)bpmem.dispcopyyscale;
+        yScale = 256.0f / static_cast<float>(bpmem.dispcopyyscale);
       else
-        yScale = (float)bpmem.dispcopyyscale / 256.0f;
+        yScale = static_cast<float>(bpmem.dispcopyyscale) / 256.0f;
 
       float num_xfb_lines = 1.0f + bpmem.copyTexSrcWH.y * yScale;
+
+      srcRect.bottom = static_cast<int>(bpmem.copyTexSrcXY.y + num_xfb_lines);
 
       u32 height = static_cast<u32>(num_xfb_lines);
 
       DEBUG_LOG(VIDEO, "RenderToXFB: destAddr: %08x | srcRect {%d %d %d %d} | fbWidth: %u | "
-                       "fbStride: %u | fbHeight: %u",
+                       "fbStride: %u | fbHeight: %u | yScale: %f",
                 destAddr, srcRect.left, srcRect.top, srcRect.right, srcRect.bottom,
-                bpmem.copyTexSrcWH.x + 1, destStride, height);
+                bpmem.copyTexSrcWH.x + 1, destStride, height, yScale);
 
       bool is_depth_copy = bpmem.zcontrol.pixel_format == PEControl::Z24;
       g_texture_cache->CopyRenderTargetToTexture(destAddr, EFBCopyFormat::XFB, destStride,
