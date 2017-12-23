@@ -138,34 +138,32 @@ static ConfigLocation MapINIToRealLocation(const std::string& section, const std
   static const INIToLocationMap& ini_to_location = GetINIToLocationMap();
 
   auto it = ini_to_location.find({section, key});
-  if (it == ini_to_location.end())
-  {
-    // Try again, but this time with an empty key
-    // Certain sections like 'Speedhacks' has keys that are variable
-    it = ini_to_location.find({section, ""});
-    if (it != ini_to_location.end())
-      return {it->second.system, it->second.section, key};
+  if (it != ini_to_location.end())
+    return it->second;
 
-    // Attempt to load it as a configuration option
-    // It will be in the format of '<System>.<Section>'
-    std::istringstream buffer(section);
-    std::string system_str, config_section;
+  // Try again, but this time with an empty key
+  // Certain sections like 'Speedhacks' has keys that are variable
+  it = ini_to_location.find({section, ""});
+  if (it != ini_to_location.end())
+    return {it->second.system, it->second.section, key};
 
-    bool fail = false;
-    std::getline(buffer, system_str, '.');
-    fail |= buffer.fail();
-    std::getline(buffer, config_section, '.');
-    fail |= buffer.fail();
+  // Attempt to load it as a configuration option
+  // It will be in the format of '<System>.<Section>'
+  std::istringstream buffer(section);
+  std::string system_str, config_section;
 
-    const std::optional<Config::System> system = Config::GetSystemFromName(system_str);
-    if (!fail && system)
-      return {*system, config_section, key};
+  bool fail = false;
+  std::getline(buffer, system_str, '.');
+  fail |= buffer.fail();
+  std::getline(buffer, config_section, '.');
+  fail |= buffer.fail();
 
-    WARN_LOG(CORE, "Unknown game INI option in section %s: %s", section.c_str(), key.c_str());
-    return {Config::System::Main, "", ""};
-  }
+  const std::optional<Config::System> system = Config::GetSystemFromName(system_str);
+  if (!fail && system)
+    return {*system, config_section, key};
 
-  return ini_to_location.at({section, key});
+  WARN_LOG(CORE, "Unknown game INI option in section %s: %s", section.c_str(), key.c_str());
+  return {Config::System::Main, "", ""};
 }
 
 static std::pair<std::string, std::string> GetINILocationFromConfig(const ConfigLocation& location)
