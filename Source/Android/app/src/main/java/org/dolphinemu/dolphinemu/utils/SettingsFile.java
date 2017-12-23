@@ -336,6 +336,11 @@ public final class SettingsFile
 			}
 		}
 
+		if (fileName.equals(SettingsFile.FILE_NAME_DOLPHIN))
+		{
+			addGcPadSettingsIfTheyDontExist(sections);
+		}
+
 		return sections;
 	}
 
@@ -396,6 +401,23 @@ public final class SettingsFile
 	{
 		String sectionName = line.substring(1, line.length() - 1);
 		return new SettingSection(sectionName);
+	}
+
+	private static void addGcPadSettingsIfTheyDontExist(HashMap<String, SettingSection> sections)
+	{
+		SettingSection coreSection = sections.get(SettingsFile.SECTION_CORE);
+
+		for (int i = 0; i < 4; i++)
+		{
+			String key = SettingsFile.KEY_GCPAD_TYPE + i;
+			if (coreSection.getSetting(key) == null)
+			{
+				Setting gcPadSetting = new IntSetting(key, SettingsFile.SECTION_CORE, SettingsFile.SETTINGS_DOLPHIN, 0);
+				coreSection.putSetting(gcPadSetting);
+			}
+		}
+
+		sections.put(SettingsFile.SECTION_CORE, coreSection);
 	}
 
 	/**
