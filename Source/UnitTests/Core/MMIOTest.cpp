@@ -36,6 +36,7 @@ TEST(IsMMIOAddress, SpecialAddresses)
   const std::string profile_path = File::CreateTempDir();
   UICommon::SetUserDirectory(profile_path);
   Config::Init();
+  Config::AddLayer(std::make_unique<Config::Layer>(Config::LayerType::Base));
   SConfig::Init();
   SConfig::GetInstance().bWii = true;
 

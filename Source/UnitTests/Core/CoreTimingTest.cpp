@@ -42,6 +42,7 @@ public:
     Core::DeclareAsCPUThread();
     UICommon::SetUserDirectory(m_profile_path);
     Config::Init();
+    Config::AddLayer(std::make_unique<Config::Layer>(Config::LayerType::Base));
     SConfig::Init();
     PowerPC::Init(PowerPC::CORE_INTERPRETER);
     CoreTiming::Init();
