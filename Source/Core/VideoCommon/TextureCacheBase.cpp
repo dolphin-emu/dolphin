@@ -1494,8 +1494,8 @@ void TextureCacheBase::LoadTextureLevelZeroFromMemory(TCacheEntry* entry_to_upda
   }
 }
 
-void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstFormat,
-                                                 u32 dstStride, bool is_depth_copy,
+void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstFormat, u32 width,
+                                                 u32 height, u32 dstStride, bool is_depth_copy,
                                                  const EFBRectangle& srcRect, bool isIntensity,
                                                  bool scaleByHalf, float y_scale, float gamma)
 {
@@ -1575,12 +1575,29 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstF
     return;
   }
 
-  const unsigned int tex_w = scaleByHalf ? srcRect.GetWidth() / 2 : srcRect.GetWidth();
-  const unsigned int tex_h = scaleByHalf ? srcRect.GetHeight() / 2 : srcRect.GetHeight();
+  // tex_w and tex_h are the native size of the texture in the GC memory.
+  // The size scaled_* represents the emulated texture. Those differ
+  // because of upscaling and because of yscaling of XFB copies.
+  // For the latter, we keep the EFB resolution for the virtual XFB blit.
+  u32 tex_w = width;
+  u32 tex_h = height;
+  u32 scaled_tex_w = g_renderer->EFBToScaledX(srcRect.GetWidth());
+  u32 scaled_tex_h = g_renderer->EFBToScaledY(srcRect.GetHeight());
 
-  const bool upscale = is_xfb_copy || g_ActiveConfig.bCopyEFBScaled;
-  unsigned int scaled_tex_w = upscale ? g_renderer->EFBToScaledX(tex_w) : tex_w;
-  unsigned int scaled_tex_h = upscale ? g_renderer->EFBToScaledY(tex_h) : tex_h;
+  if (scaleByHalf)
+  {
+    tex_w /= 2;
+    tex_h /= 2;
+    scaled_tex_w /= 2;
+    scaled_tex_h /= 2;
+  }
+
+  if (!is_xfb_copy && !g_ActiveConfig.bCopyEFBScaled)
+  {
+    // No upscaling
+    scaled_tex_w = tex_w;
+    scaled_tex_h = tex_h;
+  }
 
   // Get the base (in memory) format of this efb copy.
   TextureFormat baseFormat = TexDecoder_GetEFBCopyBaseFormat(dstFormat);
@@ -1739,13 +1756,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstF
       entry->may_have_overlapping_textures = false;
       entry->is_custom_tex = false;
 
-      // For XFB, the resulting XFB copy texture is the height of the actual texture + the y-scaling
-      // however, the actual Wii/GC texture that we want to "stretch" to this copy is without the
-      // y-scaling so we need to remove it here
-      // The best use-case for this is PAL games which have a different aspect ratio
-      EFBRectangle unscaled_rect = srcRect;
-      unscaled_rect.bottom /= y_scale;
-      CopyEFBToCacheEntry(entry, is_depth_copy, unscaled_rect, scaleByHalf, dstFormat, isIntensity);
+      CopyEFBToCacheEntry(entry, is_depth_copy, srcRect, scaleByHalf, dstFormat, isIntensity);
 
       u64 hash = entry->CalculateHash();
       entry->SetHashes(hash, hash);
