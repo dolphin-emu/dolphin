@@ -12,6 +12,7 @@
 #include <vector>
 
 #include "Common/IniFile.h"
+#include "Common/Subscribable.h"
 #include "Core/HW/EXI/EXI_Device.h"
 #include "Core/HW/SI/SI_Device.h"
 #include "Core/TitleDatabase.h"
@@ -353,4 +354,5 @@ private:
   std::string m_title_description;
   u64 m_title_id;
   u16 m_revision;
+  Subscribable<>::Subscription m_config_changed_subscription;
 };

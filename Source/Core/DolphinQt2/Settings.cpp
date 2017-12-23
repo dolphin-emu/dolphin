@@ -23,7 +23,7 @@ Settings::Settings()
   Core::SetOnStateChangedCallback(
       [this](Core::State new_state) { emit EmulationStateChanged(new_state); });
 
-  Config::AddConfigChangedCallback(
+  m_config_changed_subscription = Config::OnConfigChanged().Subscribe(
       [this] { QueueOnObject(this, [this] { emit ConfigChanged(); }); });
 }
 

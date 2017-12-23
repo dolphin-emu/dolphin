@@ -6,6 +6,7 @@
 
 #include <wx/dialog.h>
 #include "Common/CommonTypes.h"
+#include "Common/Subscribable.h"
 
 class wxNotebook;
 class wxPanel;
@@ -14,6 +15,8 @@ class wxPanel;
 wxDECLARE_EVENT(wxDOLPHIN_CFG_REFRESH_LIST, wxCommandEvent);
 // Rescan and refresh - modifies cache
 wxDECLARE_EVENT(wxDOLPHIN_CFG_RESCAN_LIST, wxCommandEvent);
+
+wxDECLARE_EVENT(wxDOLPHIN_CFG_CONFIG_CHANGED, wxCommandEvent);
 
 class CConfigMain : public wxDialog
 {
@@ -48,4 +51,5 @@ private:
 
   wxNotebook* Notebook;
   wxEventType m_event_on_close;
+  Subscribable<>::Subscription m_config_changed_subscription;
 };

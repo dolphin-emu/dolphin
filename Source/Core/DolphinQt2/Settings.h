@@ -9,6 +9,7 @@
 #include <QObject>
 #include <QVector>
 
+#include "Common/Subscribable.h"
 #include "Core/NetPlayClient.h"
 #include "Core/NetPlayServer.h"
 
@@ -97,6 +98,7 @@ signals:
 private:
   std::unique_ptr<NetPlayClient> m_client;
   std::unique_ptr<NetPlayServer> m_server;
+  Subscribable<>::Subscription m_config_changed_subscription;
   Settings();
 };
 

@@ -7,6 +7,7 @@
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
+#include "Common/Subscribable.h"
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/Core.h"
 #include "Core/Movie.h"
@@ -16,7 +17,6 @@
 
 VideoConfig g_Config;
 VideoConfig g_ActiveConfig;
-static bool s_has_registered_callback = false;
 
 void UpdateActiveConfig()
 {
@@ -43,16 +43,13 @@ VideoConfig::VideoConfig()
 
 void VideoConfig::Refresh()
 {
-  if (!s_has_registered_callback)
-  {
-    // There was a race condition between the video thread and the host thread here, if
-    // corrections need to be made by VerifyValidity(). Briefly, the config will contain
-    // invalid values. Instead, pause emulation first, which will flush the video thread,
-    // update the config and correct it, then resume emulation, after which the video
-    // thread will detect the config has changed and act accordingly.
-    Config::AddConfigChangedCallback([]() { Core::RunAsCPUThread([]() { g_Config.Refresh(); }); });
-    s_has_registered_callback = true;
-  }
+  // There was a race condition between the video thread and the host thread here, if
+  // corrections need to be made by VerifyValidity(). Briefly, the config will contain
+  // invalid values. Instead, pause emulation first, which will flush the video thread,
+  // update the config and correct it, then resume emulation, after which the video
+  // thread will detect the config has changed and act accordingly.
+  static auto s_config_changed_subscription =
+      Config::OnConfigChanged().Subscribe([] { Core::RunAsCPUThread([] { g_Config.Refresh(); }); });
 
   bVSync = Config::Get(Config::GFX_VSYNC);
   iAdapter = Config::Get(Config::GFX_ADAPTER);

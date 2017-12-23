@@ -53,17 +53,15 @@ SConfig::SConfig()
 {
   LoadDefaults();
 
-  // XXX: Config change callbacks are currently never deleted, so SConfig::Init
-  // should not be called after a shutdown.
-  Config::AddConfigChangedCallback([this] {
+  Config::Load();
+  // Make sure we have log manager
+  LoadSettings();
+  m_config_changed_subscription = Config::OnConfigChanged().Subscribe([this] {
     // Only reload what is being managed by the layered config system.
     // Eventually this should just call LoadSettings() when everything is ported over.
     LoadCoreSettings();
     LoadDSPSettings();
   });
-
-  Config::Load();
-  LoadSettings();
 }
 
 void SConfig::Init()

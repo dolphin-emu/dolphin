@@ -3,7 +3,6 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
-#include <list>
 #include <map>
 #include <tuple>
 
@@ -13,9 +12,7 @@
 namespace Config
 {
 static Layers s_layers;
-static std::list<ConfigChangedCallback> s_callbacks;
-
-void InvokeConfigChangedCallbacks();
+static Subscribable<> s_on_config_changed;
 
 Layers* GetLayers()
 {
@@ -25,7 +22,7 @@ Layers* GetLayers()
 void AddLayer(std::unique_ptr<Layer> layer)
 {
   s_layers[layer->GetLayer()] = std::move(layer);
-  InvokeConfigChangedCallbacks();
+  OnConfigChanged().Send();
 }
 
 void AddLayer(std::unique_ptr<ConfigLayerLoader> loader)
@@ -43,22 +40,16 @@ Layer* GetLayer(LayerType layer)
 void RemoveLayer(LayerType layer)
 {
   s_layers.erase(layer);
-  InvokeConfigChangedCallbacks();
+  OnConfigChanged().Send();
 }
 bool LayerExists(LayerType layer)
 {
   return s_layers.find(layer) != s_layers.end();
 }
 
-void AddConfigChangedCallback(ConfigChangedCallback func)
+Subscribable<>& OnConfigChanged()
 {
-  s_callbacks.emplace_back(func);
-}
-
-void InvokeConfigChangedCallbacks()
-{
-  for (const auto& callback : s_callbacks)
-    callback();
+  return s_on_config_changed;
 }
 
 // Explicit load and save of layers
@@ -66,14 +57,14 @@ void Load()
 {
   for (auto& layer : s_layers)
     layer.second->Load();
-  InvokeConfigChangedCallbacks();
+  OnConfigChanged().Send();
 }
 
 void Save()
 {
   for (auto& layer : s_layers)
     layer.second->Save();
-  InvokeConfigChangedCallbacks();
+  OnConfigChanged().Send();
 }
 
 void Init()
@@ -85,7 +76,6 @@ void Init()
 void Shutdown()
 {
   s_layers.clear();
-  s_callbacks.clear();
 }
 
 void ClearCurrentRunLayer()

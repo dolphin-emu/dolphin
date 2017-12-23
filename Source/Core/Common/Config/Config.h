@@ -13,11 +13,11 @@
 #include "Common/Config/ConfigInfo.h"
 #include "Common/Config/Enums.h"
 #include "Common/Config/Layer.h"
+#include "Common/Subscribable.h"
 
 namespace Config
 {
 using Layers = std::map<LayerType, std::unique_ptr<Layer>>;
-using ConfigChangedCallback = std::function<void()>;
 
 // Layer management
 Layers* GetLayers();
@@ -27,8 +27,7 @@ Layer* GetLayer(LayerType layer);
 void RemoveLayer(LayerType layer);
 bool LayerExists(LayerType layer);
 
-void AddConfigChangedCallback(ConfigChangedCallback func);
-void InvokeConfigChangedCallbacks();
+Subscribable<>& OnConfigChanged();
 
 // Explicit load and save of layers
 void Load();
@@ -73,7 +72,7 @@ template <typename T>
 void Set(LayerType layer, const ConfigInfo<T>& info, const T& value)
 {
   GetLayer(layer)->Set(info, value);
-  InvokeConfigChangedCallbacks();
+  OnConfigChanged().Send();
 }
 
 template <typename T>

@@ -18,6 +18,7 @@
 #include "Core/Core.h"
 #include "Core/IOS/IOS.h"
 #include "DolphinWX/Config/AddUSBDeviceDiag.h"
+#include "DolphinWX/Config/ConfigMain.h"
 #include "DolphinWX/Config/WiiConfigPane.h"
 #include "DolphinWX/DolphinSlider.h"
 #include "DolphinWX/WxEventUtils.h"
@@ -43,9 +44,6 @@ WiiConfigPane::WiiConfigPane(wxWindow* parent, wxWindowID id) : wxPanel(parent, 
   InitializeGUI();
   LoadGUIValues();
   BindEvents();
-  // This is only safe because WiiConfigPane is owned by CConfigMain, which exists
-  // as long as the DolphinWX app exists.
-  Config::AddConfigChangedCallback([&] { Core::QueueHostJob([&] { LoadGUIValues(); }, true); });
 }
 
 void WiiConfigPane::InitializeGUI()
@@ -212,6 +210,9 @@ void WiiConfigPane::PopulateUSBPassthroughListbox()
 
 void WiiConfigPane::BindEvents()
 {
+  const std::function<void(wxCommandEvent&)> on_config_changed = [this](auto&) { LoadGUIValues(); };
+  Bind(wxDOLPHIN_CFG_CONFIG_CHANGED, on_config_changed);
+
   m_screensaver_checkbox->Bind(wxEVT_CHECKBOX, &WiiConfigPane::OnScreenSaverCheckBoxChanged, this);
   m_screensaver_checkbox->Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreNotRunning);
 

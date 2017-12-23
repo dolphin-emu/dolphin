@@ -11,6 +11,7 @@
 #include <wx/stattext.h>
 
 #include "Common/CommonTypes.h"
+#include "Common/Config/Config.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/NetPlayProto.h"
@@ -26,6 +27,7 @@
 
 wxDEFINE_EVENT(wxDOLPHIN_CFG_REFRESH_LIST, wxCommandEvent);
 wxDEFINE_EVENT(wxDOLPHIN_CFG_RESCAN_LIST, wxCommandEvent);
+wxDEFINE_EVENT(wxDOLPHIN_CFG_CONFIG_CHANGED, wxCommandEvent);
 
 CConfigMain::CConfigMain(wxWindow* parent, wxWindowID id, const wxString& title,
                          const wxPoint& position, const wxSize& size, long style)
@@ -41,6 +43,15 @@ CConfigMain::CConfigMain(wxWindow* parent, wxWindowID id, const wxString& title,
   Bind(wxDOLPHIN_CFG_RESCAN_LIST, &CConfigMain::OnSetRescanGameListOnClose, this);
 
   wxDialog::SetExtraStyle(GetExtraStyle() & ~wxWS_EX_BLOCK_EVENTS);
+
+  m_config_changed_subscription = Config::OnConfigChanged().Subscribe([this] {
+    for (const int page_id : {ID_GENERALPAGE, ID_DISPLAYPAGE, ID_AUDIOPAGE, ID_GAMECUBEPAGE,
+                              ID_WIIPAGE, ID_PATHSPAGE, ID_ADVANCEDPAGE})
+    {
+      Notebook->FindWindowById(page_id)->GetEventHandler()->AddPendingEvent(
+          wxCommandEvent{wxDOLPHIN_CFG_CONFIG_CHANGED});
+    }
+  });
 
   CreateGUIControls();
 }
