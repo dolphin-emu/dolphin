@@ -1,9 +1,12 @@
 package org.dolphinemu.dolphinemu.ui.settings;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -12,6 +15,8 @@ import android.widget.Toast;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.model.settings.SettingSection;
+import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
+import org.dolphinemu.dolphinemu.utils.DirectoryStateReceiver;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -21,6 +26,8 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
 	private static final String ARG_FILE_NAME = "file_name";
 	private static final String FRAGMENT_TAG = "settings";
 	private SettingsActivityPresenter mPresenter = new SettingsActivityPresenter(this);
+
+	private ProgressDialog dialog;
 
 	public static void launch(Context context, String menuTag)
 	{
@@ -65,6 +72,13 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
 		mPresenter.saveState(outState);
 	}
 
+	@Override
+	protected void onStart()
+	{
+		super.onStart();
+		mPresenter.onStart();
+	}
+
 	/**
 	 * If this is called, the user has left the settings screen (potentially through the
 	 * home button) and will expect their changes to be persisted. So we kick off an
@@ -104,6 +118,47 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
 		transaction.replace(R.id.frame_content, SettingsFragment.newInstance(menuTag), FRAGMENT_TAG);
 
 		transaction.commit();
+	}
+
+	@Override
+	public void startDirectoryInitializationService(DirectoryStateReceiver receiver, IntentFilter filter)
+	{
+		LocalBroadcastManager.getInstance(this).registerReceiver(
+				receiver,
+				filter);
+		DirectoryInitializationService.startService(this);
+	}
+
+	@Override
+	public void stopListeningToDirectoryInitializationService(DirectoryStateReceiver receiver)
+	{
+		LocalBroadcastManager.getInstance(this).unregisterReceiver(receiver);
+	}
+
+	@Override
+	public void showLoading()
+	{
+		if (dialog == null)
+		{
+			dialog = new ProgressDialog(this);
+			dialog.setMessage(getString(R.string.load_settings));
+			dialog.setIndeterminate(true);
+		}
+
+		dialog.show();
+	}
+
+	@Override
+	public void hideLoading()
+	{
+		dialog.dismiss();
+	}
+
+	@Override
+	public void showPermissionNeededHint()
+	{
+		Toast.makeText(this, R.string.write_permission_needed, Toast.LENGTH_SHORT)
+				.show();
 	}
 
 	@Override
