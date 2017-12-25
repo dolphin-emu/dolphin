@@ -56,15 +56,9 @@ public:
   {
     using std::ios_base;
 
-// Since we're reading/writing directly to the storage of K instances,
-// K must be trivially copyable. TODO: Remove #if once GCC 5.0 is a
-// minimum requirement.
-#if defined(__GNUC__) && !defined(__clang__) && __GNUC__ < 5
-    static_assert(std::has_trivial_copy_constructor<K>::value,
-                  "K must be a trivially copyable type");
-#else
+    // Since we're reading/writing directly to the storage of K instances,
+    // K must be trivially copyable.
     static_assert(std::is_trivially_copyable<K>::value, "K must be a trivially copyable type");
-#endif
 
     // close any currently opened file
     Close();

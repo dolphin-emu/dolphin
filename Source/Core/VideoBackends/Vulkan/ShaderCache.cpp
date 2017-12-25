@@ -532,14 +532,8 @@ struct VK_PIPELINE_CACHE_HEADER
   u8 uuid[VK_UUID_SIZE];
 };
 #pragma pack(pop)
-// TODO: Remove the #if here when GCC 5 is a minimum build requirement.
-#if defined(__GNUC__) && !defined(__clang__) && __GNUC__ < 5
-static_assert(std::has_trivial_copy_constructor<VK_PIPELINE_CACHE_HEADER>::value,
-              "VK_PIPELINE_CACHE_HEADER must be trivially copyable");
-#else
 static_assert(std::is_trivially_copyable<VK_PIPELINE_CACHE_HEADER>::value,
               "VK_PIPELINE_CACHE_HEADER must be trivially copyable");
-#endif
 
 bool ShaderCache::ValidatePipelineCache(const u8* data, size_t data_length)
 {
