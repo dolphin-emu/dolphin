@@ -186,7 +186,7 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
 
   case IOCTL_WFSI_PREPARE_PROFILE:
     m_base_extract_path = StringFromFormat("/vol/%s/tmp/", m_device_name.c_str());
-    // Fall through intended.
+    [[fallthrough]];
 
   case IOCTL_WFSI_PREPARE_CONTENT:
   {

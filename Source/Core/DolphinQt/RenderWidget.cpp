@@ -189,8 +189,8 @@ bool RenderWidget::event(QEvent* event)
   case QEvent::MouseMove:
     if (g_Config.bFreeLook)
       OnFreeLookMouseMove(static_cast<QMouseEvent*>(event));
+    [[fallthrough]];
 
-  // [[fallthrough]]
   case QEvent::MouseButtonPress:
     if (!Settings::Instance().GetHideCursor() && isActiveWindow())
     {
