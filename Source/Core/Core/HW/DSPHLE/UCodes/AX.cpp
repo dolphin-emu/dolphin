@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
+
 #include "Core/HW/DSPHLE/UCodes/AX.h"
 
 #include "Common/ChunkFile.h"
@@ -9,7 +11,6 @@
 #include "Common/File.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
-#include "Common/MathUtil.h"
 #include "Common/Swap.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/DSPHLE/DSPHLE.h"
@@ -535,8 +536,8 @@ void AXUCode::OutputSamples(u32 lr_addr, u32 surround_addr)
   // Output samples clamped to 16 bits and interlaced RLRLRLRLRL...
   for (u32 i = 0; i < 5 * 32; ++i)
   {
-    int left = MathUtil::Clamp(m_samples_left[i], -32767, 32767);
-    int right = MathUtil::Clamp(m_samples_right[i], -32767, 32767);
+    int left = std::clamp(m_samples_left[i], -32767, 32767);
+    int right = std::clamp(m_samples_right[i], -32767, 32767);
 
     buffer[2 * i + 0] = Common::swap16(right);
     buffer[2 * i + 1] = Common::swap16(left);

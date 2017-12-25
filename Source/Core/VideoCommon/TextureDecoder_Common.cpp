@@ -7,7 +7,6 @@
 #include <cstddef>
 
 #include "Common/CommonTypes.h"
-#include "Common/MathUtil.h"
 #include "Common/MsgHandler.h"
 #include "Common/Swap.h"
 
@@ -705,9 +704,9 @@ void TexDecoder_DecodeTexel(u8* dst, const u8* src, int s, int t, int imageWidth
 
     // We do the inverse BT.601 conversion for YCbCr to RGB
     // http://www.equasys.de/colorconversion.html#YCbCr-RGBColorFormatConversion
-    u8 R = MathUtil::Clamp(int(1.164f * Y + 1.596f * V), 0, 255);
-    u8 G = MathUtil::Clamp(int(1.164f * Y - 0.392f * U - 0.813f * V), 0, 255);
-    u8 B = MathUtil::Clamp(int(1.164f * Y + 2.017f * U), 0, 255);
+    u8 R = std::clamp(int(1.164f * Y + 1.596f * V), 0, 255);
+    u8 G = std::clamp(int(1.164f * Y - 0.392f * U - 0.813f * V), 0, 255);
+    u8 B = std::clamp(int(1.164f * Y + 2.017f * U), 0, 255);
     dst[t * imageWidth + s] = 0xff000000 | B << 16 | G << 8 | R;
   }
   break;
@@ -770,13 +769,13 @@ void TexDecoder_DecodeXFB(u8* dst, const u8* src, u32 width, u32 height, u32 str
 
       // We do the inverse BT.601 conversion for YCbCr to RGB
       // http://www.equasys.de/colorconversion.html#YCbCr-RGBColorFormatConversion
-      u8 R1 = static_cast<u8>(MathUtil::Clamp(int(1.164f * Y1 + 1.596f * V), 0, 255));
-      u8 G1 = static_cast<u8>(MathUtil::Clamp(int(1.164f * Y1 - 0.392f * U - 0.813f * V), 0, 255));
-      u8 B1 = static_cast<u8>(MathUtil::Clamp(int(1.164f * Y1 + 2.017f * U), 0, 255));
+      u8 R1 = static_cast<u8>(std::clamp(int(1.164f * Y1 + 1.596f * V), 0, 255));
+      u8 G1 = static_cast<u8>(std::clamp(int(1.164f * Y1 - 0.392f * U - 0.813f * V), 0, 255));
+      u8 B1 = static_cast<u8>(std::clamp(int(1.164f * Y1 + 2.017f * U), 0, 255));
 
-      u8 R2 = static_cast<u8>(MathUtil::Clamp(int(1.164f * Y2 + 1.596f * V), 0, 255));
-      u8 G2 = static_cast<u8>(MathUtil::Clamp(int(1.164f * Y2 - 0.392f * U - 0.813f * V), 0, 255));
-      u8 B2 = static_cast<u8>(MathUtil::Clamp(int(1.164f * Y2 + 2.017f * U), 0, 255));
+      u8 R2 = static_cast<u8>(std::clamp(int(1.164f * Y2 + 1.596f * V), 0, 255));
+      u8 G2 = static_cast<u8>(std::clamp(int(1.164f * Y2 - 0.392f * U - 0.813f * V), 0, 255));
+      u8 B2 = static_cast<u8>(std::clamp(int(1.164f * Y2 + 2.017f * U), 0, 255));
 
       u32 rgba = 0xff000000 | B1 << 16 | G1 << 8 | R1;
       std::memcpy(dst_ptr, &rgba, sizeof(rgba));

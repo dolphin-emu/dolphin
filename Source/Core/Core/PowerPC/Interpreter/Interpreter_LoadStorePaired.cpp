@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <tuple>
 #include <type_traits>
 #include <utility>
@@ -63,7 +64,7 @@ SType ScaleAndClamp(double ps, u32 stScale)
   float min = (float)std::numeric_limits<SType>::min();
   float max = (float)std::numeric_limits<SType>::max();
 
-  return (SType)MathUtil::Clamp(convPS, min, max);
+  return (SType)std::clamp(convPS, min, max);
 }
 
 template <typename T>

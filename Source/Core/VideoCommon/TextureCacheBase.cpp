@@ -556,7 +556,7 @@ static void SetSamplerState(u32 index, float custom_tex_scale, bool custom_tex,
     // distance they kick in at is important to preserve at any resolution.
     // Correct this with the upscaling factor of custom textures.
     s64 lod_offset = std::log2(g_renderer->GetEFBScale() / custom_tex_scale) * 256.f;
-    state.lod_bias = MathUtil::Clamp<s64>(state.lod_bias + lod_offset, -32768, 32767);
+    state.lod_bias = std::clamp<s64>(state.lod_bias + lod_offset, -32768, 32767);
 
     // Anisotropic also pushes mips farther away so it cannot be used either
     state.anisotropic_filtering = 0;

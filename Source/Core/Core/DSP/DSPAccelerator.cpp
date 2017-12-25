@@ -2,12 +2,13 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
+
 #include "Core/DSP/DSPAccelerator.h"
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
-#include "Common/MathUtil.h"
 
 namespace DSP
 {
@@ -89,7 +90,7 @@ u16 Accelerator::Read(const s16* coefs)
       temp -= 16;
 
     s32 val32 = (scale * temp) + ((0x400 + coef1 * m_yn1 + coef2 * m_yn2) >> 11);
-    val = static_cast<s16>(MathUtil::Clamp<s32>(val32, -0x7FFF, 0x7FFF));
+    val = static_cast<s16>(std::clamp<s32>(val32, -0x7FFF, 0x7FFF));
     step_size_bytes = 2;
 
     m_yn2 = m_yn1;

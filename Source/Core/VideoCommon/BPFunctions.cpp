@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
+
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 
@@ -90,8 +92,8 @@ void SetViewport()
   {
     // There's no way to support oversized depth ranges in this situation. Let's just clamp the
     // range to the maximum value supported by the console GPU and hope for the best.
-    min_depth = MathUtil::Clamp(min_depth, 0.0f, GX_MAX_DEPTH);
-    max_depth = MathUtil::Clamp(max_depth, 0.0f, GX_MAX_DEPTH);
+    min_depth = std::clamp(min_depth, 0.0f, GX_MAX_DEPTH);
+    max_depth = std::clamp(max_depth, 0.0f, GX_MAX_DEPTH);
   }
 
   if (g_renderer->UseVertexDepthRange())
@@ -131,10 +133,10 @@ void SetViewport()
   {
     const float max_width = static_cast<float>(g_renderer->GetCurrentFramebuffer()->GetWidth());
     const float max_height = static_cast<float>(g_renderer->GetCurrentFramebuffer()->GetHeight());
-    x = MathUtil::Clamp(x, 0.0f, max_width - 1.0f);
-    y = MathUtil::Clamp(y, 0.0f, max_height - 1.0f);
-    width = MathUtil::Clamp(width, 1.0f, max_width - x);
-    height = MathUtil::Clamp(height, 1.0f, max_height - y);
+    x = std::clamp(x, 0.0f, max_width - 1.0f);
+    y = std::clamp(y, 0.0f, max_height - 1.0f);
+    width = std::clamp(width, 1.0f, max_width - x);
+    height = std::clamp(height, 1.0f, max_height - y);
   }
 
   // Lower-left flip.

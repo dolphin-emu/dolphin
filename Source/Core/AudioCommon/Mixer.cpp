@@ -4,13 +4,13 @@
 
 #include "AudioCommon/Mixer.h"
 
+#include <algorithm>
 #include <cmath>
 #include <cstring>
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
-#include "Common/MathUtil.h"
 #include "Common/Swap.h"
 #include "Core/ConfigManager.h"
 
@@ -86,14 +86,14 @@ unsigned int Mixer::MixerFifo::Mix(short* samples, unsigned int numSamples,
     int sampleL = ((l1 << 16) + (l2 - l1) * (u16)m_frac) >> 16;
     sampleL = (sampleL * lvolume) >> 8;
     sampleL += samples[currentSample + 1];
-    samples[currentSample + 1] = MathUtil::Clamp(sampleL, -32767, 32767);
+    samples[currentSample + 1] = std::clamp(sampleL, -32767, 32767);
 
     s16 r1 = Common::swap16(m_buffer[(indexR + 1) & INDEX_MASK]);   // current
     s16 r2 = Common::swap16(m_buffer[(indexR2 + 1) & INDEX_MASK]);  // next
     int sampleR = ((r1 << 16) + (r2 - r1) * (u16)m_frac) >> 16;
     sampleR = (sampleR * rvolume) >> 8;
     sampleR += samples[currentSample];
-    samples[currentSample] = MathUtil::Clamp(sampleR, -32767, 32767);
+    samples[currentSample] = std::clamp(sampleR, -32767, 32767);
 
     m_frac += ratio;
     indexR += 2 * (u16)(m_frac >> 16);
@@ -111,8 +111,8 @@ unsigned int Mixer::MixerFifo::Mix(short* samples, unsigned int numSamples,
   s[1] = (s[1] * lvolume) >> 8;
   for (; currentSample < numSamples * 2; currentSample += 2)
   {
-    int sampleR = MathUtil::Clamp(s[0] + samples[currentSample + 0], -32767, 32767);
-    int sampleL = MathUtil::Clamp(s[1] + samples[currentSample + 1], -32767, 32767);
+    int sampleR = std::clamp(s[0] + samples[currentSample + 0], -32767, 32767);
+    int sampleL = std::clamp(s[1] + samples[currentSample + 1], -32767, 32767);
 
     samples[currentSample + 0] = sampleR;
     samples[currentSample + 1] = sampleL;

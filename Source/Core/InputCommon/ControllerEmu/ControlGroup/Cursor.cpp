@@ -109,7 +109,7 @@ Cursor::StateData Cursor::GetState(const bool adjusted)
 
   // Smooth out z movement:
   // FYI: Not using relative input for Z.
-  m_state.z += MathUtil::Clamp(z - m_state.z, -max_z_step, max_z_step);
+  m_state.z += std::clamp(z - m_state.z, -max_z_step, max_z_step);
 
   // Relative input:
   if (m_relative_setting.GetValue())
@@ -122,8 +122,8 @@ Cursor::StateData Cursor::GetState(const bool adjusted)
     }
     else
     {
-      m_state.x = MathUtil::Clamp(m_state.x + input.x * max_step, -1.0, 1.0);
-      m_state.y = MathUtil::Clamp(m_state.y + input.y * max_step, -1.0, 1.0);
+      m_state.x = std::clamp(m_state.x + input.x * max_step, -1.0, 1.0);
+      m_state.y = std::clamp(m_state.y + input.y * max_step, -1.0, 1.0);
     }
   }
   // Absolute input:
