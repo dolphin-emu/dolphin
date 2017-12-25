@@ -382,8 +382,10 @@ bool BootCore(std::unique_ptr<BootParameters> boot)
                         std::holds_alternative<BootParameters::Disc>(boot->parameters);
   if (load_ipl)
   {
-    return Core::Init(std::make_unique<BootParameters>(BootParameters::IPL{
-        StartUp.m_region, std::move(std::get<BootParameters::Disc>(boot->parameters))}));
+    return Core::Init(std::make_unique<BootParameters>(
+        BootParameters::IPL{StartUp.m_region,
+                            std::move(std::get<BootParameters::Disc>(boot->parameters))},
+        boot->savestate_path));
   }
   return Core::Init(std::move(boot));
 }

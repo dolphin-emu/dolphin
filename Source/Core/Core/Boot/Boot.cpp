@@ -48,11 +48,15 @@
 #include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
 
-BootParameters::BootParameters(Parameters&& parameters_) : parameters(std::move(parameters_))
+BootParameters::BootParameters(Parameters&& parameters_,
+                               const std::optional<std::string>& savestate_path_)
+    : parameters(std::move(parameters_)), savestate_path(savestate_path_)
 {
 }
 
-std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(const std::string& path)
+std::unique_ptr<BootParameters>
+BootParameters::GenerateFromFile(const std::string& path,
+                                 const std::optional<std::string>& savestate_path)
 {
   const bool is_drive = cdio_is_cdrom(path);
   // Check if the file exist, we may have gotten it from a --elf command line
@@ -73,13 +77,19 @@ std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(const std::stri
   {
     std::unique_ptr<DiscIO::Volume> volume = DiscIO::CreateVolumeFromFilename(path);
     if (volume)
-      return std::make_unique<BootParameters>(Disc{path, std::move(volume)});
+      return std::make_unique<BootParameters>(Disc{path, std::move(volume)}, savestate_path);
 
     if (extension == ".elf")
-      return std::make_unique<BootParameters>(Executable{path, std::make_unique<ElfReader>(path)});
+    {
+      return std::make_unique<BootParameters>(Executable{path, std::make_unique<ElfReader>(path)},
+                                              savestate_path);
+    }
 
     if (extension == ".dol")
-      return std::make_unique<BootParameters>(Executable{path, std::make_unique<DolReader>(path)});
+    {
+      return std::make_unique<BootParameters>(Executable{path, std::make_unique<DolReader>(path)},
+                                              savestate_path);
+    }
 
     if (is_drive)
     {
@@ -97,10 +107,10 @@ std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(const std::stri
   }
 
   if (extension == ".dff")
-    return std::make_unique<BootParameters>(DFF{path});
+    return std::make_unique<BootParameters>(DFF{path}, savestate_path);
 
   if (extension == ".wad")
-    return std::make_unique<BootParameters>(DiscIO::WiiWAD{path});
+    return std::make_unique<BootParameters>(DiscIO::WiiWAD{path}, savestate_path);
 
   PanicAlertT("Could not recognize file %s", path.c_str());
   return {};
