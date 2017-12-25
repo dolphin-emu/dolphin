@@ -298,11 +298,25 @@ public final class NativeLibrary
 	public static native void SaveState(int slot);
 
 	/**
+	 * Saves a game state to the specified path.
+	 *
+	 * @param path  The path to save state to.
+	 */
+	public static native void SaveStateAs(String path);
+
+	/**
 	 * Loads a game state from the slot number.
 	 *
 	 * @param slot  The slot location to load state from.
 	 */
 	public static native void LoadState(int slot);
+
+	/**
+	 * Loads a game state from the specified path.
+	 *
+	 * @param path  The path to load state from.
+	 */
+	public static native void LoadStateAs(String path);
 
 	/**
 	 * Sets the current working user directory
