@@ -2,7 +2,6 @@ package org.dolphinemu.dolphinemu.activities;
 
 import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.hardware.usb.UsbManager;
@@ -42,7 +41,6 @@ import org.dolphinemu.dolphinemu.utils.Animations;
 import org.dolphinemu.dolphinemu.utils.ControllerMappingHelper;
 import org.dolphinemu.dolphinemu.utils.Java_GCAdapter;
 import org.dolphinemu.dolphinemu.utils.Java_WiimoteAdapter;
-import org.dolphinemu.dolphinemu.utils.Log;
 
 import java.lang.annotation.Retention;
 import java.util.List;
@@ -68,8 +66,15 @@ public final class EmulationActivity extends AppCompatActivity
 
 	private static boolean sIsGameCubeGame;
 
+	private boolean activityRecreated;
 	private String mScreenPath;
 	private String mSelectedTitle;
+	private String mPath;
+
+	public static final String EXTRA_SELECTED_GAME = "SelectedGame";
+	public static final String EXTRA_SELECTED_TITLE = "SelectedTitle";
+	public static final String EXTRA_SCREEN_PATH = "ScreenPath";
+	public static final String EXTRA_GRID_POSITION = "GridPosition";
 
 	@Retention(SOURCE)
 	@IntDef({MENU_ACTION_EDIT_CONTROLS_PLACEMENT, MENU_ACTION_TOGGLE_CONTROLS, MENU_ACTION_ADJUST_SCALE,
@@ -138,10 +143,10 @@ public final class EmulationActivity extends AppCompatActivity
 	{
 		Intent launcher = new Intent(activity, EmulationActivity.class);
 
-		launcher.putExtra("SelectedGame", path);
-		launcher.putExtra("SelectedTitle", title);
-		launcher.putExtra("ScreenPath", screenshotPath);
-		launcher.putExtra("GridPosition", position);
+		launcher.putExtra(EXTRA_SELECTED_GAME, path);
+		launcher.putExtra(EXTRA_SELECTED_TITLE, title);
+		launcher.putExtra(EXTRA_SCREEN_PATH, screenshotPath);
+		launcher.putExtra(EXTRA_GRID_POSITION, position);
 
 		ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(
 				activity,
@@ -158,13 +163,23 @@ public final class EmulationActivity extends AppCompatActivity
 	{
 		super.onCreate(savedInstanceState);
 
-		// Get params we were passed
-		Intent gameToEmulate = getIntent();
-		String path = gameToEmulate.getStringExtra("SelectedGame");
-		sIsGameCubeGame = Platform.fromNativeInt(NativeLibrary.GetPlatform(path)) == Platform.GAMECUBE;
-		mSelectedTitle = gameToEmulate.getStringExtra("SelectedTitle");
-		mScreenPath = gameToEmulate.getStringExtra("ScreenPath");
-		mPosition = gameToEmulate.getIntExtra("GridPosition", -1);
+		if (savedInstanceState == null)
+		{
+			// Get params we were passed
+			Intent gameToEmulate = getIntent();
+			mPath = gameToEmulate.getStringExtra(EXTRA_SELECTED_GAME);
+			mSelectedTitle = gameToEmulate.getStringExtra(EXTRA_SELECTED_TITLE);
+			mScreenPath = gameToEmulate.getStringExtra(EXTRA_SCREEN_PATH);
+			mPosition = gameToEmulate.getIntExtra(EXTRA_GRID_POSITION, -1);
+			activityRecreated = false;
+		}
+		else
+		{
+			activityRecreated = true;
+			restoreState(savedInstanceState);
+		}
+
+		sIsGameCubeGame = Platform.fromNativeInt(NativeLibrary.GetPlatform(mPath)) == Platform.GAMECUBE;
 		mDeviceHasTouchScreen = getPackageManager().hasSystemFeature("android.hardware.touchscreen");
 		mControllerMappingHelper = new ControllerMappingHelper();
 
@@ -206,7 +221,7 @@ public final class EmulationActivity extends AppCompatActivity
 				.findFragmentById(R.id.frame_emulation_fragment);
 		if (mEmulationFragment == null)
 		{
-			mEmulationFragment = EmulationFragment.newInstance(path);
+			mEmulationFragment = EmulationFragment.newInstance(mPath);
 			getSupportFragmentManager().beginTransaction()
 					.add(R.id.frame_emulation_fragment, mEmulationFragment)
 					.commit();
@@ -254,6 +269,25 @@ public final class EmulationActivity extends AppCompatActivity
 
 		mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 
+	}
+
+	@Override
+	protected void onSaveInstanceState(Bundle outState)
+	{
+		mEmulationFragment.saveTemporaryState();
+		outState.putString(EXTRA_SELECTED_GAME, mPath);
+		outState.putString(EXTRA_SELECTED_TITLE, mSelectedTitle);
+		outState.putString(EXTRA_SCREEN_PATH, mScreenPath);
+		outState.putInt(EXTRA_GRID_POSITION, mPosition);
+		super.onSaveInstanceState(outState);
+	}
+
+	protected void restoreState(Bundle savedInstanceState)
+	{
+		mPath = savedInstanceState.getString(EXTRA_SELECTED_GAME);
+		mSelectedTitle = savedInstanceState.getString(EXTRA_SELECTED_TITLE);
+		mScreenPath = savedInstanceState.getString(EXTRA_SCREEN_PATH);
+		mPosition = savedInstanceState.getInt(EXTRA_GRID_POSITION);
 	}
 
 	@Override
@@ -715,5 +749,10 @@ public final class EmulationActivity extends AppCompatActivity
 	public static boolean isGameCubeGame()
 	{
 		return sIsGameCubeGame;
+	}
+
+	public boolean isActivityRecreated()
+	{
+		return activityRecreated;
 	}
 }
