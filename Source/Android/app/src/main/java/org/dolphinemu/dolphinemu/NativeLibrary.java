@@ -349,6 +349,9 @@ public final class NativeLibrary
 	/** Stops emulation. */
 	public static native void StopEmulation();
 
+	/** Returns true if emulation is running (or is paused). */
+	public static native boolean IsRunning();
+
 	/**
 	 * Enables or disables CPU block profiling
 	 * @param enable
