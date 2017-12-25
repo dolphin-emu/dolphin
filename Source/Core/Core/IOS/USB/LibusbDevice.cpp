@@ -22,11 +22,7 @@
 #include "Core/IOS/Device.h"
 #include "Core/IOS/IOS.h"
 
-namespace IOS
-{
-namespace HLE
-{
-namespace USB
+namespace IOS::HLE::USB
 {
 LibusbDevice::LibusbDevice(Kernel& ios, libusb_device* device,
                            const libusb_device_descriptor& descriptor)
@@ -436,6 +432,4 @@ LibusbConfigDescriptor::~LibusbConfigDescriptor()
   if (m_descriptor != nullptr)
     libusb_free_config_descriptor(m_descriptor);
 }
-}  // namespace USB
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::USB

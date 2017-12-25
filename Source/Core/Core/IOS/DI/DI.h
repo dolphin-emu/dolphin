@@ -18,11 +18,7 @@ namespace DVDInterface
 enum DIInterruptType : int;
 }
 
-namespace IOS
-{
-namespace HLE
-{
-namespace Device
+namespace IOS::HLE::Device
 {
 class DI : public Device
 {
@@ -41,6 +37,4 @@ private:
 
   std::deque<u32> m_commands_to_execute;
 };
-}  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::Device

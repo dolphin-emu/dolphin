@@ -15,9 +15,7 @@
 #include "Common/Logging/Log.h"
 #include "Core/SysConf.h"
 
-namespace IOS
-{
-namespace HLE
+namespace IOS::HLE
 {
 void BackUpBTInfoSection(const SysConf* sysconf)
 {
@@ -52,5 +50,4 @@ void RestoreBTInfoSection(SysConf* sysconf)
 
   File::Delete(filename);
 }
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE

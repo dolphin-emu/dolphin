@@ -22,9 +22,7 @@
 
 class PointerWrap;
 
-namespace IOS
-{
-namespace HLE
+namespace IOS::HLE
 {
 struct SQueuedEvent
 {
@@ -197,5 +195,4 @@ private:
 #pragma pack(pop)
 };
 }  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE

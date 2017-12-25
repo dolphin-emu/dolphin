@@ -55,11 +55,7 @@
 #define UNSUPPORTED_WSAPOLL 0
 #endif
 
-namespace IOS
-{
-namespace HLE
-{
-namespace Device
+namespace IOS::HLE::Device
 {
 enum SOResultCode : s32
 {
@@ -1111,6 +1107,4 @@ IPCCommandResult NetIPTop::HandleICMPPingRequest(const IOCtlVRequest& request)
   // TODO proper error codes
   return GetDefaultReply(0);
 }
-}  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::Device

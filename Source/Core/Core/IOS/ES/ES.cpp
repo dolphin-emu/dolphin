@@ -26,11 +26,7 @@
 #include "Core/IOS/Uids.h"
 #include "Core/IOS/VersionInfo.h"
 
-namespace IOS
-{
-namespace HLE
-{
-namespace Device
+namespace IOS::HLE::Device
 {
 // Title to launch after IOS has been reset and reloaded (similar to /sys/launch.sys).
 static u64 s_title_to_launch;
@@ -992,6 +988,4 @@ ReturnCode ES::VerifyContainer(VerifyContainerType type, VerifyMode mode,
   }
   return ret;
 }
-}  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::Device

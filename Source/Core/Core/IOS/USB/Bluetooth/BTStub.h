@@ -12,11 +12,7 @@
 
 class PointerWrap;
 
-namespace IOS
-{
-namespace HLE
-{
-namespace Device
+namespace IOS::HLE::Device
 {
 class BluetoothStub final : public BluetoothBase
 {
@@ -25,6 +21,4 @@ public:
   IPCCommandResult Open(const OpenRequest& request) override;
   void DoState(PointerWrap& p) override;
 };
-}  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::Device

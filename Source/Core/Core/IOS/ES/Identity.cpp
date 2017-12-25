@@ -18,11 +18,7 @@
 #include "Core/IOS/IOSC.h"
 #include "Core/IOS/Uids.h"
 
-namespace IOS
-{
-namespace HLE
-{
-namespace Device
+namespace IOS::HLE::Device
 {
 ReturnCode ES::GetDeviceId(u32* device_id) const
 {
@@ -213,6 +209,4 @@ IPCCommandResult ES::VerifySign(const IOCtlVRequest& request)
 
   return GetDefaultReply(VerifySign(hash, ecc_signature, certs));
 }
-}  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::Device

@@ -27,9 +27,7 @@ struct libusb_device;
 struct libusb_device_handle;
 struct libusb_transfer;
 
-namespace IOS
-{
-namespace HLE
+namespace IOS::HLE
 {
 enum class SyncButtonState
 {
@@ -129,20 +127,13 @@ private:
   void TransferThread();
 };
 }  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE
 
 #else
 #include "Core/IOS/USB/Bluetooth/BTStub.h"
 
-namespace IOS
-{
-namespace HLE
-{
-namespace Device
+namespace IOS::HLE::Device
 {
 using BluetoothReal = BluetoothStub;
-}  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::Device
 #endif

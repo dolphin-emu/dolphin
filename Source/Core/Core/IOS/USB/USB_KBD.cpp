@@ -20,11 +20,7 @@
 #include <windows.h>
 #endif
 
-namespace IOS
-{
-namespace HLE
-{
-namespace Device
+namespace IOS::HLE::Device
 {
 USB_KBD::SMessageData::SMessageData(u32 type, u8 modifiers, u8* pressed_keys)
 {
@@ -326,6 +322,4 @@ u8 USB_KBD::m_KeyCodesQWERTY[256] = {0};
 
 u8 USB_KBD::m_KeyCodesAZERTY[256] = {0};
 #endif
-}  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::Device

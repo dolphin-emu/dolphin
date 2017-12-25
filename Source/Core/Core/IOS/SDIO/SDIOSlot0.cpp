@@ -20,11 +20,7 @@
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/VersionInfo.h"
 
-namespace IOS
-{
-namespace HLE
-{
-namespace Device
+namespace IOS::HLE::Device
 {
 SDIOSlot0::SDIOSlot0(Kernel& ios, const std::string& device_name)
     : Device(ios, device_name), m_sdhc_supported(HasFeature(ios.GetVersion(), Feature::SDv2))
@@ -639,6 +635,4 @@ void SDIOSlot0::InitSDHC()
   m_status |= CARD_INITIALIZED;
 }
 
-}  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::Device

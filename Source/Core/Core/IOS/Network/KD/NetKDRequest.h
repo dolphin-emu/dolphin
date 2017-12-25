@@ -10,11 +10,7 @@
 #include "Core/IOS/Device.h"
 #include "Core/IOS/Network/KD/NWC24Config.h"
 
-namespace IOS
-{
-namespace HLE
-{
-namespace Device
+namespace IOS::HLE::Device
 {
 // KD is the IOS module responsible for implementing WiiConnect24 functionality.
 // It can perform HTTPS downloads, send and receive mail via SMTP, and execute a
@@ -70,6 +66,4 @@ private:
 
   NWC24::NWC24Config config;
 };
-}  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::Device

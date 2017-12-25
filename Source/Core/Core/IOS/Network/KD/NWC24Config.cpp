@@ -13,11 +13,7 @@
 #include "Core/IOS/FS/FileSystem.h"
 #include "Core/IOS/Uids.h"
 
-namespace IOS
-{
-namespace HLE
-{
-namespace NWC24
+namespace IOS::HLE::NWC24
 {
 constexpr const char CONFIG_PATH[] = "/" WII_WC24CONF_DIR "/nwc24msg.cfg";
 
@@ -210,6 +206,4 @@ void NWC24Config::SetEmail(const char* email)
   strncpy(m_data.email, email, MAX_EMAIL_LENGTH);
   m_data.email[MAX_EMAIL_LENGTH - 1] = '\0';
 }
-}  // namespace NWC24
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::NWC24

@@ -13,11 +13,7 @@
 #include "Common/CommonTypes.h"
 #include "Core/IOS/Device.h"
 
-namespace IOS
-{
-namespace HLE
-{
-namespace USB
+namespace IOS::HLE::USB
 {
 enum StandardDeviceRequestCodes
 {
@@ -182,6 +178,4 @@ public:
 protected:
   u64 m_id = 0xFFFFFFFFFFFFFFFF;
 };
-}  // namespace USB
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::USB

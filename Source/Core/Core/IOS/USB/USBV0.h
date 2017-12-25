@@ -9,9 +9,7 @@
 
 // Used by early USB interfaces, such as /dev/usb/oh0 (except in IOS57, 58, 59) and /dev/usb/oh1.
 
-namespace IOS
-{
-namespace HLE
+namespace IOS::HLE
 {
 struct IOCtlVRequest;
 
@@ -59,5 +57,4 @@ struct V0IsoMessage final : IsoMessage
   V0IsoMessage(Kernel& ios, const IOCtlVRequest& ioctlv);
 };
 }  // namespace USB
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE

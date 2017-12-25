@@ -20,11 +20,7 @@
 #include "Core/IOS/Network/Socket.h"
 #include "Core/IOS/Uids.h"
 
-namespace IOS
-{
-namespace HLE
-{
-namespace Device
+namespace IOS::HLE::Device
 {
 NetKDRequest::NetKDRequest(Kernel& ios, const std::string& device_name)
     : Device(ios, device_name), config{ios.GetFS()}
@@ -249,6 +245,4 @@ s32 NetKDRequest::NWC24MakeUserID(u64* nwc24_id, u32 hollywood_id, u16 id_ctr, u
 
   return NWC24::WC24_OK;
 }
-}  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::Device

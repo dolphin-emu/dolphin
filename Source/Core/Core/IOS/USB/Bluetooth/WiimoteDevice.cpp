@@ -22,9 +22,7 @@
 #include "Core/IOS/USB/Bluetooth/WiimoteHIDAttr.h"
 #include "Core/IOS/USB/Bluetooth/l2cap.h"
 
-namespace IOS
-{
-namespace HLE
+namespace IOS::HLE
 {
 WiimoteDevice::WiimoteDevice(Device::BluetoothEmu* host, int number, bdaddr_t bd, bool ready)
     : m_BD(bd),
@@ -896,8 +894,7 @@ void WiimoteDevice::ReceiveL2capData(u16 scid, const void* _pData, u32 _Size)
   // Send the report
   m_pHost->SendACLPacket(GetConnectionHandle(), DataFrame, Offset);
 }
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE
 
 namespace Core
 {

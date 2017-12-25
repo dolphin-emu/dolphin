@@ -27,9 +27,7 @@
 #include "Core/SysConf.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
-namespace IOS
-{
-namespace HLE
+namespace IOS::HLE
 {
 SQueuedEvent::SQueuedEvent(u32 size, u16 handle) : m_size(size), m_connectionHandle(handle)
 {
@@ -1769,5 +1767,4 @@ void BluetoothEmu::DisplayDisconnectMessage(const int wiimoteNumber, const int r
       StringFromFormat("Wii Remote %i disconnected by emulated software", wiimoteNumber), 3000);
 }
 }  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE

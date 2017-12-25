@@ -7,9 +7,7 @@
 #include <string>
 #include "Common/CommonTypes.h"
 
-namespace IOS
-{
-namespace HLE
+namespace IOS::HLE
 {
 namespace FS
 {
@@ -143,5 +141,4 @@ private:
   ConfigData m_data;
 };
 }  // namespace Net
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE

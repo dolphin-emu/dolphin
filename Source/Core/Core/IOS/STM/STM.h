@@ -12,9 +12,7 @@
 
 class PointerWrap;
 
-namespace IOS
-{
-namespace HLE
+namespace IOS::HLE::Device
 {
 enum
 {
@@ -40,8 +38,6 @@ enum
   STM_EVENT_POWER = 0x00000800
 };
 
-namespace Device
-{
 // The /dev/stm/immediate
 class STMImmediate final : public Device
 {
@@ -66,6 +62,4 @@ public:
 private:
   void TriggerEvent(u32 event) const;
 };
-}  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::Device

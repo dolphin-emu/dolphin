@@ -14,11 +14,7 @@
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/Uids.h"
 
-namespace IOS
-{
-namespace HLE
-{
-namespace Net
+namespace IOS::HLE::Net
 {
 static const std::string CONFIG_PATH = "/shared2/sys/net/02/config.dat";
 
@@ -66,6 +62,4 @@ void WiiNetConfig::ReadFromMem(const u32 address)
 {
   Memory::CopyFromEmu(&m_data, address, sizeof(m_data));
 }
-}  // namespace Net
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::Net

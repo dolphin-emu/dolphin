@@ -13,9 +13,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 
-namespace IOS
-{
-namespace Net
+namespace IOS::Net
 {
 static void SaveMACAddress(const u8* mac)
 {
@@ -47,5 +45,4 @@ void GetMACAddress(u8* mac)
 
   INFO_LOG(IOS_NET, "Using MAC address: %s", Common::MacAddressToString(mac).c_str());
 }
-}  // namespace Net
-}  // namespace IOS
+}  // namespace IOS::Net

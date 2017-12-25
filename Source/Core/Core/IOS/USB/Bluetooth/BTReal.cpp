@@ -31,9 +31,7 @@
 #include "Core/IOS/Device.h"
 #include "VideoCommon/OnScreenDisplay.h"
 
-namespace IOS
-{
-namespace HLE
+namespace IOS::HLE::Device
 {
 static bool IsWantedDevice(const libusb_device_descriptor& descriptor)
 {
@@ -56,8 +54,6 @@ static bool IsBluetoothDevice(const libusb_interface_descriptor& descriptor)
          descriptor.bInterfaceProtocol == PROTOCOL_BLUETOOTH;
 }
 
-namespace Device
-{
 BluetoothReal::BluetoothReal(Kernel& ios, const std::string& device_name)
     : BluetoothBase(ios, device_name)
 {
@@ -688,6 +684,4 @@ void BluetoothReal::HandleBulkOrIntrTransfer(libusb_transfer* tr)
                         CoreTiming::FromThread::NON_CPU);
   m_current_transfers.erase(tr);
 }
-}  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::Device

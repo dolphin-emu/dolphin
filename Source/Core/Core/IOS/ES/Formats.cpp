@@ -32,9 +32,7 @@
 #include "Core/IOS/IOSC.h"
 #include "Core/IOS/Uids.h"
 
-namespace IOS
-{
-namespace ES
+namespace IOS::ES
 {
 constexpr size_t CONTENT_VIEW_SIZE = 0x10;
 
@@ -771,5 +769,4 @@ std::map<std::string, CertReader> ParseCertChain(const std::vector<u8>& chain)
   }
   return certs;
 }
-}  // namespace ES
-}  // namespace IOS
+}  // namespace IOS::ES

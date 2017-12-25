@@ -22,9 +22,7 @@
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/Device.h"
 
-namespace IOS
-{
-namespace HLE
+namespace IOS::HLE
 {
 #define NET_SSL_MAXINSTANCES 4
 
@@ -106,5 +104,4 @@ private:
   bool m_cert_error_shown = false;
 };
 }  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE

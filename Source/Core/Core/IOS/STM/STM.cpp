@@ -12,11 +12,7 @@
 #include "Core/Core.h"
 #include "Core/HW/Memmap.h"
 
-namespace IOS
-{
-namespace HLE
-{
-namespace Device
+namespace IOS::HLE::Device
 {
 static std::unique_ptr<IOCtlRequest> s_event_hook_request;
 
@@ -121,6 +117,4 @@ void STMEventHook::PowerButton() const
 {
   TriggerEvent(STM_EVENT_POWER);
 }
-}  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::Device

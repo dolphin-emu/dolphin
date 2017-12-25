@@ -20,11 +20,7 @@
 #include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/Uids.h"
 
-namespace IOS
-{
-namespace HLE
-{
-namespace Device
+namespace IOS::HLE::Device
 {
 static IOS::ES::TMDReader FindTMD(FS::FileSystem* fs, u64 title_id, const std::string& tmd_path)
 {
@@ -376,6 +372,4 @@ std::string ES::GetContentPath(const u64 title_id, const IOS::ES::Content& conte
   IOS::ES::SharedContentMap map{m_ios.GetFS()};
   return GetContentPath(title_id, content, map);
 }
-}  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::Device

@@ -21,11 +21,7 @@
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/Network/Socket.h"
 
-namespace IOS
-{
-namespace HLE
-{
-namespace Device
+namespace IOS::HLE::Device
 {
 WII_SSL NetSSL::_SSL[NET_SSL_MAXINSTANCES];
 
@@ -575,6 +571,4 @@ IPCCommandResult NetSSL::IOCtlV(const IOCtlVRequest& request)
   // SSL return codes are written to BufferIn
   return GetDefaultReply(IPC_SUCCESS);
 }
-}  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::Device

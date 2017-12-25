@@ -14,9 +14,7 @@
 
 class PointerWrap;
 
-namespace IOS
-{
-namespace HLE
+namespace IOS::HLE
 {
 namespace Device
 {
@@ -139,5 +137,4 @@ private:
                                        u16 _StartAttrID, u16 _EndAttrID,
                                        u16 _MaximumAttributeByteCount, u8* _pContinuationState);
 };
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE

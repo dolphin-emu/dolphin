@@ -22,11 +22,7 @@ struct libusb_device_descriptor;
 struct libusb_device_handle;
 struct libusb_transfer;
 
-namespace IOS
-{
-namespace HLE
-{
-namespace USB
+namespace IOS::HLE::USB
 {
 // Simple wrapper around libusb_get_config_descriptor and libusb_free_config_descriptor.
 class LibusbConfigDescriptor final
@@ -92,7 +88,5 @@ private:
   int AttachInterface(u8 interface);
   int DetachInterface();
 };
-}  // namespace USB
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::USB
 #endif

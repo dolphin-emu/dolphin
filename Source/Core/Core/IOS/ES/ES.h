@@ -18,11 +18,7 @@
 
 class PointerWrap;
 
-namespace IOS
-{
-namespace HLE
-{
-namespace Device
+namespace IOS::HLE::Device
 {
 struct TitleContext
 {
@@ -365,6 +361,4 @@ private:
   ContextArray m_contexts;
   TitleContext m_title_context{};
 };
-}  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::Device

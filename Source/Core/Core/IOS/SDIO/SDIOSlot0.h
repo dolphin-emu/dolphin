@@ -16,11 +16,7 @@
 
 class PointerWrap;
 
-namespace IOS
-{
-namespace HLE
-{
-namespace Device
+namespace IOS::HLE::Device
 {
 // The front SD slot
 class SDIOSlot0 : public Device
@@ -169,6 +165,4 @@ private:
 
   File::IOFile m_card;
 };
-}  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::Device

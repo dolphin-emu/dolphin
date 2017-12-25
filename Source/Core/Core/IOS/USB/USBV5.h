@@ -20,9 +20,7 @@ class PointerWrap;
 // Used by late USB interfaces for /dev/usb/ven and /dev/usb/hid (since IOS57 which
 // reorganised the USB modules in IOS).
 
-namespace IOS
-{
-namespace HLE
+namespace IOS::HLE
 {
 struct IOCtlRequest;
 
@@ -113,5 +111,4 @@ protected:
   u16 m_current_device_number = 0x21;
 };
 }  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE

@@ -15,9 +15,7 @@
 #include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/IOS.h"
 
-namespace IOS
-{
-namespace HLE
+namespace IOS::HLE
 {
 class ARCUnpacker
 {
@@ -126,5 +124,4 @@ private:
   };
 };
 }  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE
