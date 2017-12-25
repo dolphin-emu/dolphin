@@ -340,10 +340,10 @@ void MainWindow::Play()
   }
   else
   {
-    QString selection = m_game_list->GetSelectedGame()->GetFilePath();
-    if (selection.length() > 0)
+    QSharedPointer<GameFile> selection = m_game_list->GetSelectedGame();
+    if (selection)
     {
-      StartGame(selection);
+      StartGame(selection->GetFilePath());
     }
     else
     {
