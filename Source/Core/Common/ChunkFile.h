@@ -33,10 +33,10 @@
 #include "Common/Flag.h"
 #include "Common/Logging/Log.h"
 
-// ewww
-
-#define IsTriviallyCopyable(T)                                                                     \
-  std::is_trivially_copyable<typename std::remove_volatile<T>::type>::value
+// XXX: Replace this with std::is_trivially_copyable<T> once we stop using volatile
+// on things that are put in savestates, as volatile types are not trivially copyable.
+template <typename T>
+constexpr bool IsTriviallyCopyable = std::is_trivially_copyable<std::remove_volatile_t<T>>::value;
 
 // Wrapper class
 class PointerWrap
@@ -155,7 +155,7 @@ public:
   template <typename T>
   void DoArray(T* x, u32 count)
   {
-    static_assert(IsTriviallyCopyable(T), "Only sane for trivially copyable types");
+    static_assert(IsTriviallyCopyable<T>, "Only sane for trivially copyable types");
     DoVoid(x, count * sizeof(T));
   }
 
@@ -185,7 +185,7 @@ public:
   template <typename T>
   void Do(T& x)
   {
-    static_assert(IsTriviallyCopyable(T), "Only sane for trivially copyable types");
+    static_assert(IsTriviallyCopyable<T>, "Only sane for trivially copyable types");
     // Note:
     // Usually we can just use x = **ptr, etc.  However, this doesn't work
     // for unions containing BitFields (long story, stupid language rules)
