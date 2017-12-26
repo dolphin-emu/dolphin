@@ -8,6 +8,7 @@
 #include <atomic>
 #include <cstddef>
 #include <fstream>
+#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -130,8 +131,9 @@ void CRenderFrame::OnDropFiles(wxDropFilesEvent& event)
       main_frame->GetMenuBar()->FindItem(IDM_RECORD_READ_ONLY)->Check(true);
     }
 
-    if (Movie::PlayInput(filepath))
-      main_frame->BootGame("");
+    std::optional<std::string> savestate_path;
+    if (Movie::PlayInput(filepath, &savestate_path))
+      main_frame->BootGame("", savestate_path);
   }
   else if (!Core::IsRunning())
   {

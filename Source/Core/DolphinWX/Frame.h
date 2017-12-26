@@ -8,6 +8,7 @@
 #include <cstddef>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <string>
 #include <vector>
 #include <wx/bitmap.h>
@@ -105,7 +106,7 @@ public:
   void ToggleLogConfigWindow(bool bShow);
   void StatusBarMessage(const char* format, ...);
   void ClearStatusBar();
-  void BootGame(const std::string& filename);
+  void BootGame(const std::string& filename, const std::optional<std::string>& savestate_path = {});
   void StartGame(std::unique_ptr<BootParameters> boot);
   bool RendererHasFocus();
   bool RendererIsFullscreen();

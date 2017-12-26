@@ -5,6 +5,7 @@
 #pragma once
 
 #include <functional>
+#include <optional>
 #include <string>
 
 #include "Common/CommonTypes.h"
@@ -157,8 +158,8 @@ bool BeginRecordingInput(int controllers);
 void RecordInput(GCPadStatus* PadStatus, int controllerID);
 void RecordWiimote(int wiimote, u8* data, u8 size);
 
-bool PlayInput(const std::string& filename);
-void LoadInput(const std::string& filename);
+bool PlayInput(const std::string& movie_path, std::optional<std::string>* savestate_path);
+void LoadInput(const std::string& movie_path);
 void ReadHeader();
 void PlayController(GCPadStatus* PadStatus, int controllerID);
 bool PlayWiimote(int wiimote, u8* data, const struct WiimoteEmu::ReportFeatures& rptf, int ext,
