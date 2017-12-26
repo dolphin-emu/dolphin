@@ -47,6 +47,7 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
   const bool ssaa = host_config.ssaa;
   const bool stereo = host_config.stereo;
   const bool use_dual_source = host_config.backend_dual_source_blend;
+  const bool use_shader_blend = !use_dual_source && host_config.backend_shader_framebuffer_fetch;
   const bool early_depth = uid_data->early_depth != 0;
   const bool per_pixel_depth = uid_data->per_pixel_depth != 0;
   const bool bounding_box =
@@ -75,6 +76,21 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
       {
         out.Write("FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 0) out vec4 ocol0;\n");
         out.Write("FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 1) out vec4 ocol1;\n");
+      }
+    }
+    else if (use_shader_blend)
+    {
+      // QComm's Adreno driver doesn't seem to like using the framebuffer_fetch value as an
+      // intermediate value with multiple reads & modifications, so pull out the "real" output value
+      // and use a temporary for calculations, then set the output value once at the end of the
+      // shader
+      if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_FRAGMENT_SHADER_INDEX_DECORATION))
+      {
+        out.Write("FRAGMENT_OUTPUT_LOCATION(0) FRAGMENT_INOUT vec4 real_ocol0;\n");
+      }
+      else
+      {
+        out.Write("FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 0) FRAGMENT_INOUT vec4 real_ocol0;\n");
       }
     }
     else
@@ -658,6 +674,13 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
 
     out.Write("void main()\n{\n");
     out.Write("  float4 rawpos = gl_FragCoord;\n");
+    if (use_shader_blend)
+    {
+      // Store off a copy of the initial fb value for blending
+      out.Write("  float4 initial_ocol0 = FB_FETCH_VALUE;\n");
+      out.Write("  float4 ocol0;\n");
+      out.Write("  float4 ocol1;\n");
+    }
   }
   else  // D3D
   {
@@ -1203,7 +1226,7 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
               "    ocol0.a = float(TevResult.a >> 2) / 63.0;\n"
               "  \n");
 
-    if (use_dual_source)
+    if (use_dual_source || use_shader_blend)
     {
       out.Write("  // Dest alpha override (dual source blending)\n"
                 "  // Colors will be blended against the alpha from ocol1 and\n"
@@ -1226,6 +1249,99 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
     out.Write("    if(bbox_data[3] < int(rawpos.y)) %sMax(bbox_data[3], int(rawpos.y));\n",
               atomic_op);
     out.Write("  }\n");
+  }
+
+  if (use_shader_blend)
+  {
+    static const std::array<const char*, 8> blendSrcFactor = {
+        "float3(0,0,0);",                      // ZERO
+        "float3(1,1,1);",                      // ONE
+        "initial_ocol0.rgb;",                  // DSTCLR
+        "float3(1,1,1) - initial_ocol0.rgb;",  // INVDSTCLR
+        "ocol1.aaa;",                          // SRCALPHA
+        "float3(1,1,1) - ocol1.aaa;",          // INVSRCALPHA
+        "initial_ocol0.aaa;",                  // DSTALPHA
+        "float3(1,1,1) - initial_ocol0.aaa;",  // INVDSTALPHA
+    };
+    static const std::array<const char*, 8> blendSrcFactorAlpha = {
+        "0.0;",                    // ZERO
+        "1.0;",                    // ONE
+        "initial_ocol0.a;",        // DSTCLR
+        "1.0 - initial_ocol0.a;",  // INVDSTCLR
+        "ocol1.a;",                // SRCALPHA
+        "1.0 - ocol1.a;",          // INVSRCALPHA
+        "initial_ocol0.a;",        // DSTALPHA
+        "1.0 - initial_ocol0.a;",  // INVDSTALPHA
+    };
+    static const std::array<const char*, 8> blendDstFactor = {
+        "float3(0,0,0);",                      // ZERO
+        "float3(1,1,1);",                      // ONE
+        "ocol0.rgb;",                          // SRCCLR
+        "float3(1,1,1) - ocol0.rgb;",          // INVSRCCLR
+        "ocol1.aaa;",                          // SRCALHA
+        "float3(1,1,1) - ocol1.aaa;",          // INVSRCALPHA
+        "initial_ocol0.aaa;",                  // DSTALPHA
+        "float3(1,1,1) - initial_ocol0.aaa;",  // INVDSTALPHA
+    };
+    static const std::array<const char*, 8> blendDstFactorAlpha = {
+        "0.0;",                    // ZERO
+        "1.0;",                    // ONE
+        "ocol0.a;",                // SRCCLR
+        "1.0 - ocol0.a;",          // INVSRCCLR
+        "ocol1.a;",                // SRCALPHA
+        "1.0 - ocol1.a;",          // INVSRCALPHA
+        "initial_ocol0.a;",        // DSTALPHA
+        "1.0 - initial_ocol0.a;",  // INVDSTALPHA
+    };
+
+    out.Write("  if (blend_enable) {\n"
+              "    float4 blend_src;\n"
+              "    switch (blend_src_factor) {\n");
+    for (unsigned i = 0; i < blendSrcFactor.size(); i++)
+    {
+      out.Write("      case %uu: blend_src.rgb = %s; break;\n", i, blendSrcFactor[i]);
+    }
+
+    out.Write("    }\n"
+              "    switch (blend_src_factor_alpha) {\n");
+    for (unsigned i = 0; i < blendSrcFactorAlpha.size(); i++)
+    {
+      out.Write("      case %uu: blend_src.a = %s; break;\n", i, blendSrcFactorAlpha[i]);
+    }
+
+    out.Write("    }\n"
+              "    float4 blend_dst;\n"
+              "    switch (blend_dst_factor) {\n");
+    for (unsigned i = 0; i < blendDstFactor.size(); i++)
+    {
+      out.Write("      case %uu: blend_dst.rgb = %s; break;\n", i, blendDstFactor[i]);
+    }
+    out.Write("    }\n"
+              "    switch (blend_dst_factor_alpha) {\n");
+    for (unsigned i = 0; i < blendDstFactorAlpha.size(); i++)
+    {
+      out.Write("      case %uu: blend_dst.a = %s; break;\n", i, blendDstFactorAlpha[i]);
+    }
+
+    out.Write(
+        "    }\n"
+        "    float4 blend_result;\n"
+        "    if (blend_subtract)\n"
+        "      blend_result.rgb = initial_ocol0.rgb * blend_dst.rgb - ocol0.rgb * blend_src.rgb;\n"
+        "    else\n"
+        "      blend_result.rgb = initial_ocol0.rgb * blend_dst.rgb + ocol0.rgb * "
+        "blend_src.rgb;\n");
+
+    out.Write("    if (blend_subtract_alpha)\n"
+              "      blend_result.a = initial_ocol0.a * blend_dst.a - ocol0.a * blend_src.a;\n"
+              "    else\n"
+              "      blend_result.a = initial_ocol0.a * blend_dst.a + ocol0.a * blend_src.a;\n");
+
+    out.Write("    real_ocol0 = blend_result;\n");
+
+    out.Write("  } else {\n"
+              "    real_ocol0 = ocol0;\n"
+              "  }\n");
   }
 
   out.Write("}\n"

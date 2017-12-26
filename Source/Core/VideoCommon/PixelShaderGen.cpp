@@ -413,6 +413,13 @@ void WritePixelShaderCommonHeader(ShaderCode& out, APIType ApiType, u32 num_texg
             "\tuint4 bpmem_pack1[16];\n"  // .xy - combiners, .z - tevind
             "\tuint4 bpmem_pack2[8];\n"   // .x - tevorder, .y - tevksel
             "\tint4  konstLookup[32];\n"
+            "\tbool  blend_enable;\n"
+            "\tuint  blend_src_factor;\n"
+            "\tuint  blend_src_factor_alpha;\n"
+            "\tuint  blend_dst_factor;\n"
+            "\tuint  blend_dst_factor_alpha;\n"
+            "\tbool  blend_subtract;\n"
+            "\tbool  blend_subtract_alpha;\n"
             "};\n\n");
   out.Write("#define bpmem_combiners(i) (bpmem_pack1[(i)].xy)\n"
             "#define bpmem_tevind(i) (bpmem_pack1[(i)].z)\n"
