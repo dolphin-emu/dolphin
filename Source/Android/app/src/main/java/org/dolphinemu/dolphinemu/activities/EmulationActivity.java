@@ -412,7 +412,7 @@ public final class EmulationActivity extends AppCompatActivity
 
 			// Quick save / load
 			case MENU_ACTION_QUICK_SAVE:
-				NativeLibrary.SaveState(9);
+				NativeLibrary.SaveState(9, false);
 				return;
 
 			case MENU_ACTION_QUICK_LOAD:
@@ -436,27 +436,27 @@ public final class EmulationActivity extends AppCompatActivity
 
 			// Save state slots
 			case MENU_ACTION_SAVE_SLOT1:
-				NativeLibrary.SaveState(0);
+				NativeLibrary.SaveState(0, false);
 				return;
 
 			case MENU_ACTION_SAVE_SLOT2:
-				NativeLibrary.SaveState(1);
+				NativeLibrary.SaveState(1, false);
 				return;
 
 			case MENU_ACTION_SAVE_SLOT3:
-				NativeLibrary.SaveState(2);
+				NativeLibrary.SaveState(2, false);
 				return;
 
 			case MENU_ACTION_SAVE_SLOT4:
-				NativeLibrary.SaveState(3);
+				NativeLibrary.SaveState(3, false);
 				return;
 
 			case MENU_ACTION_SAVE_SLOT5:
-				NativeLibrary.SaveState(4);
+				NativeLibrary.SaveState(4, false);
 				return;
 
 			case MENU_ACTION_SAVE_SLOT6:
-				NativeLibrary.SaveState(5);
+				NativeLibrary.SaveState(5, false);
 				return;
 
 			// Load state slots

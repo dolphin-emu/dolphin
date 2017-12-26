@@ -294,15 +294,19 @@ public final class NativeLibrary
 	 * Saves a game state to the slot number.
 	 *
 	 * @param slot  The slot location to save state to.
+	 * @param wait  If false, returns as early as possible.
+	 *              If true, returns once the savestate has been written to disk.
 	 */
-	public static native void SaveState(int slot);
+	public static native void SaveState(int slot, boolean wait);
 
 	/**
 	 * Saves a game state to the specified path.
 	 *
 	 * @param path  The path to save state to.
+	 * @param wait  If false, returns as early as possible.
+	 *              If true, returns once the savestate has been written to disk.
 	 */
-	public static native void SaveStateAs(String path);
+	public static native void SaveStateAs(String path, boolean wait);
 
 	/**
 	 * Loads a game state from the slot number.

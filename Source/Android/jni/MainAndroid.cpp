@@ -451,10 +451,12 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetFilename(
                                                                                 jstring jFile);
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SaveState(JNIEnv* env,
                                                                               jobject obj,
-                                                                              jint slot);
+                                                                              jint slot,
+                                                                              jboolean wait);
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SaveStateAs(JNIEnv* env,
                                                                                 jobject obj,
-                                                                                jstring path);
+                                                                                jstring path,
+                                                                                jboolean wait);
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_LoadState(JNIEnv* env,
                                                                               jobject obj,
                                                                               jint slot);
@@ -664,18 +666,20 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetConfig(
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SaveState(JNIEnv* env,
                                                                               jobject obj,
-                                                                              jint slot)
+                                                                              jint slot,
+                                                                              jboolean wait)
 {
   std::lock_guard<std::mutex> guard(s_host_identity_lock);
-  State::Save(slot);
+  State::Save(slot, wait);
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SaveStateAs(JNIEnv* env,
                                                                                 jobject obj,
-                                                                                jstring path)
+                                                                                jstring path,
+                                                                                jboolean wait)
 {
   std::lock_guard<std::mutex> guard(s_host_identity_lock);
-  State::SaveAs(GetJString(env, path));
+  State::SaveAs(GetJString(env, path), wait);
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_LoadState(JNIEnv* env,
