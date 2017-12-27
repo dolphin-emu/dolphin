@@ -13,33 +13,31 @@ public final class StartupHandler
 {
 	public static boolean HandleInit(FragmentActivity parent)
 	{
-		NativeLibrary.SetUserDirectory(""); // Auto-Detect
+		String user_dir = "";
+		String start_file = "";
 
-		if (PermissionsHandler.checkWritePermission(parent)) {
-			DirectoryInitializationService.startService(parent);
-		}
-
-		Intent intent = parent.getIntent();
-		Bundle extras = intent.getExtras();
-
+		Bundle extras = parent.getIntent().getExtras();
 		if (extras != null)
 		{
-			String user_dir = extras.getString("UserDir");
-			String start_file = extras.getString("AutoStartFile");
-
-			if (!TextUtils.isEmpty(user_dir))
-				NativeLibrary.SetUserDirectory(user_dir);
-
-			if (!TextUtils.isEmpty(start_file))
-			{
-				// Start the emulation activity, send the ISO passed in and finish the main activity
-				Intent emulation_intent = new Intent(parent, EmulationActivity.class);
-				emulation_intent.putExtra("SelectedGame", start_file);
-				parent.startActivity(emulation_intent);
-				parent.finish();
-				return false;
-			}
+			user_dir = extras.getString("UserDir");
+			start_file = extras.getString("AutoStartFile");
 		}
+
+		NativeLibrary.SetUserDirectory(user_dir);  // Uses default path if user_dir equals ""
+
+		if (PermissionsHandler.checkWritePermission(parent))
+			DirectoryInitializationService.startService(parent);
+
+		if (!TextUtils.isEmpty(start_file))
+		{
+			// Start the emulation activity, send the ISO passed in and finish the main activity
+			Intent emulation_intent = new Intent(parent, EmulationActivity.class);
+			emulation_intent.putExtra("SelectedGame", start_file);
+			parent.startActivity(emulation_intent);
+			parent.finish();
+			return false;
+		}
+
 		return false;
 	}
 }

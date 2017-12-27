@@ -9,6 +9,8 @@ package org.dolphinemu.dolphinemu.services;
 import android.app.IntentService;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
@@ -59,7 +61,8 @@ public final class DirectoryInitializationService extends IntentService
         }
         else if (PermissionsHandler.hasWriteAccess(this))
         {
-            initDolphinDirectories();
+            initializeInternalStorage();
+            initializeExternalStorage();
             directoryState = DirectoryInitializationState.DOLPHIN_DIRECTORIES_INITIALIZED;
             sendBroadcastState(directoryState);
         }
@@ -69,21 +72,55 @@ public final class DirectoryInitializationService extends IntentService
         }
     }
 
-    private void initDolphinDirectories()
+    private void initializeInternalStorage()
     {
-        String BaseDir = NativeLibrary.GetUserDirectory();
-        String ConfigDir = BaseDir + File.separator + "Config";
+        File sysDirectory = new File(getFilesDir(), "Sys");
 
-        // Copy assets if needed
-        NativeLibrary.CreateUserFolders();
-        copyAssetFolder("GC", BaseDir + File.separator + "GC", false);
-        copyAssetFolder("Shaders", BaseDir + File.separator + "Shaders", false);
-        copyAssetFolder("Wii", BaseDir + File.separator + "Wii", false);
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        String revision = NativeLibrary.GetGitRevision();
+        if (!preferences.getString("sysDirectoryVersion", "").equals(revision))
+        {
+            // There is no extracted Sys directory, or there is a Sys directory from another
+            // version of Dolphin that might contain outdated files. Let's (re-)extract Sys.
+            deleteDirectoryRecursively(sysDirectory);
+            copyAssetFolder("Sys", sysDirectory, true);
 
-        // Always copy over the GCPad config in case of change or corruption.
-        // Not a user configurable file.
-        copyAsset("GCPadNew.ini", ConfigDir + File.separator + "GCPadNew.ini", true);
-        copyAsset("WiimoteNew.ini", ConfigDir + File.separator + "WiimoteNew.ini", false);
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putString("sysDirectoryVersion", revision);
+            editor.apply();
+        }
+
+        // Let the native code know where the Sys directory is.
+        SetSysDirectory(sysDirectory.getPath());
+    }
+
+    private void initializeExternalStorage()
+    {
+        // Create User directory structure and copy some NAND files from the extracted Sys directory.
+        CreateUserDirectories();
+
+        // GCPadNew.ini and WiimoteNew.ini must contain specific values in order for controller
+        // input to work as intended (they aren't user configurable), so we overwrite them just
+        // in case the user has tried to modify them manually.
+        //
+        // ...Except WiimoteNew.ini contains the user configurable settings for Wii Remote
+        // extensions in addition to all of its lines that aren't user configurable, so since we
+        // don't want to lose the selected extensions, we don't overwrite that file if it exists.
+        //
+        // TODO: Redo the Android controller system so that we don't have to extract these INIs.
+        String configDirectory = NativeLibrary.GetUserDirectory() + File.separator + "Config";
+        copyAsset("GCPadNew.ini", new File(configDirectory, "GCPadNew.ini"), true);
+        copyAsset("WiimoteNew.ini", new File(configDirectory,"WiimoteNew.ini"), false);
+    }
+
+    private static void deleteDirectoryRecursively(File file)
+    {
+        if (file.isDirectory())
+        {
+            for (File child : file.listFiles())
+                deleteDirectoryRecursively(child);
+        }
+        file.delete();
     }
 
     public static boolean areDolphinDirectoriesReady()
@@ -99,19 +136,16 @@ public final class DirectoryInitializationService extends IntentService
         LocalBroadcastManager.getInstance(this).sendBroadcast(localIntent);
     }
 
-    private void copyAsset(String asset, String output, Boolean overwrite)
+    private void copyAsset(String asset, File output, Boolean overwrite)
     {
         Log.verbose("[DirectoryInitializationService] Copying File " + asset + " to " + output);
-        InputStream in;
-        OutputStream out;
 
         try
         {
-            File file = new File(output);
-            if (!file.exists() || overwrite)
+            if (!output.exists() || overwrite)
             {
-                in = getAssets().open(asset);
-                out = new FileOutputStream(output);
+                InputStream in = getAssets().open(asset);
+                OutputStream out = new FileOutputStream(output);
                 copyFile(in, out);
                 in.close();
                 out.close();
@@ -123,16 +157,22 @@ public final class DirectoryInitializationService extends IntentService
         }
     }
 
-    private void copyAssetFolder(String assetFolder, String outputFolder, Boolean overwrite)
+    private void copyAssetFolder(String assetFolder, File outputFolder, Boolean overwrite)
     {
         Log.verbose("[DirectoryInitializationService] Copying Folder " + assetFolder + " to " + outputFolder);
 
         try
         {
+            boolean createdFolder = false;
             for (String file : getAssets().list(assetFolder))
             {
-                copyAssetFolder(assetFolder + File.separator + file, outputFolder + File.separator + file, overwrite);
-                copyAsset(assetFolder + File.separator + file, outputFolder + File.separator + file, overwrite);
+                if (!createdFolder)
+                {
+                    outputFolder.mkdir();
+                    createdFolder = true;
+                }
+                copyAssetFolder(assetFolder + File.separator + file, new File(outputFolder, file), overwrite);
+                copyAsset(assetFolder + File.separator + file, new File(outputFolder, file), overwrite);
             }
         }
         catch (IOException e)
@@ -151,4 +191,7 @@ public final class DirectoryInitializationService extends IntentService
             out.write(buffer, 0, read);
         }
     }
+
+    private static native void CreateUserDirectories();
+    private static native void SetSysDirectory(String path);
 }
