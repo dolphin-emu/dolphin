@@ -343,7 +343,7 @@ public final class NativeLibrary
 	/**
 	 * Begins emulation from the specified savestate.
 	 */
-	public static native void Run(String path, String savestatePath);
+	public static native void Run(String path, String savestatePath, boolean deleteSavestate);
 
 	// Surface Handling
 	public static native void SurfaceChanged(Surface surf);

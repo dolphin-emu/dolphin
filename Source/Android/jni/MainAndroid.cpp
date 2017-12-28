@@ -14,6 +14,7 @@
 #include <optional>
 #include <string>
 #include <thread>
+#include <utility>
 
 #include "ButtonManager.h"
 
@@ -482,8 +483,8 @@ Java_org_dolphinemu_dolphinemu_NativeLibrary_CacheClassesAndMethods(JNIEnv* env,
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run__Ljava_lang_String_2(
     JNIEnv* env, jobject obj, jstring jFile);
 JNIEXPORT void JNICALL
-Java_org_dolphinemu_dolphinemu_NativeLibrary_Run__Ljava_lang_String_2Ljava_lang_String_2(
-    JNIEnv* env, jobject obj, jstring jFile, jstring jSavestate);
+Java_org_dolphinemu_dolphinemu_NativeLibrary_Run__Ljava_lang_String_2Ljava_lang_String_2Z(
+    JNIEnv* env, jobject obj, jstring jFile, jstring jSavestate, jboolean jDeleteSavestate);
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SurfaceChanged(JNIEnv* env,
                                                                                    jobject obj,
                                                                                    jobject surf);
@@ -805,7 +806,8 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_RefreshWiimo
   WiimoteReal::Refresh();
 }
 
-static void Run(const std::string& path, std::optional<std::string> savestate_path = {})
+static void Run(const std::string& path, std::optional<std::string> savestate_path = {},
+                bool delete_savestate = false)
 {
   __android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Running : %s", path.c_str());
 
@@ -823,7 +825,9 @@ static void Run(const std::string& path, std::optional<std::string> savestate_pa
 
   // No use running the loop when booting fails
   s_have_wm_user_stop = false;
-  if (BootManager::BootCore(BootParameters::GenerateFromFile(path, savestate_path)))
+  std::unique_ptr<BootParameters> boot = BootParameters::GenerateFromFile(path, savestate_path);
+  boot->delete_savestate = delete_savestate;
+  if (BootManager::BootCore(std::move(boot)))
   {
     static constexpr int TIMEOUT = 10000;
     static constexpr int WAIT_STEP = 25;
@@ -861,10 +865,10 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run__Ljava_l
 }
 
 JNIEXPORT void JNICALL
-Java_org_dolphinemu_dolphinemu_NativeLibrary_Run__Ljava_lang_String_2Ljava_lang_String_2(
-    JNIEnv* env, jobject obj, jstring jFile, jstring jSavestate)
+Java_org_dolphinemu_dolphinemu_NativeLibrary_Run__Ljava_lang_String_2Ljava_lang_String_2Z(
+    JNIEnv* env, jobject obj, jstring jFile, jstring jSavestate, jboolean jDeleteSavestate)
 {
-  Run(GetJString(env, jFile), GetJString(env, jSavestate));
+  Run(GetJString(env, jFile), GetJString(env, jSavestate), jDeleteSavestate);
 }
 
 #ifdef __cplusplus
