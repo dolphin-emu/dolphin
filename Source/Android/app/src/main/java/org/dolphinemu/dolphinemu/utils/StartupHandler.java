@@ -9,7 +9,7 @@ import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 
 public final class StartupHandler
 {
-	public static boolean HandleInit(FragmentActivity parent)
+	public static void HandleInit(FragmentActivity parent)
 	{
 		// Ask the user to grant write permission if it's not already granted
 		PermissionsHandler.checkWritePermission(parent);
@@ -26,9 +26,6 @@ public final class StartupHandler
 			emulation_intent.putExtra("SelectedGame", start_file);
 			parent.startActivity(emulation_intent);
 			parent.finish();
-			return false;
 		}
-
-		return false;
 	}
 }
