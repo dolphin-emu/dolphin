@@ -54,7 +54,6 @@ JavaVM* g_java_vm;
 namespace
 {
 ANativeWindow* s_surf;
-std::string s_set_userpath;
 
 jclass s_jni_class;
 jmethodID s_jni_method_alert;
@@ -677,9 +676,7 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetUserDirec
     JNIEnv* env, jobject obj, jstring jDirectory)
 {
   std::lock_guard<std::mutex> guard(s_host_identity_lock);
-  std::string directory = GetJString(env, jDirectory);
-  s_set_userpath = directory;
-  UICommon::SetUserDirectory(directory);
+  UICommon::SetUserDirectory(GetJString(env, jDirectory));
 }
 
 JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetUserDirectory(JNIEnv* env,
@@ -778,7 +775,6 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run(JNIEnv* 
   RegisterMsgAlertHandler(&MsgAlert);
 
   std::unique_lock<std::mutex> guard(s_host_identity_lock);
-  UICommon::SetUserDirectory(s_set_userpath);
   UICommon::Init();
 
   WiimoteReal::InitAdapterClass();

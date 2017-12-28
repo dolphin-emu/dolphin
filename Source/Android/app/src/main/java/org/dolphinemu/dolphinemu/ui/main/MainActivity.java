@@ -58,7 +58,6 @@ public final class MainActivity extends AppCompatActivity implements MainView
 		mPresenter.onCreate();
 
 		// Stuff in this block only happens when this activity is newly created (i.e. not a rotation)
-		// TODO Split some of this stuff into Application.onCreate()
 		if (savedInstanceState == null)
 			StartupHandler.HandleInit(this);
 
