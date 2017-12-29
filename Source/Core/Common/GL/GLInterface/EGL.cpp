@@ -63,6 +63,7 @@ void cInterfaceEGL::DetectMode()
     // 8 bits per color
     int attribs[] = {EGL_RED_SIZE,  8, EGL_GREEN_SIZE,      8,
                      EGL_BLUE_SIZE, 8, EGL_RENDERABLE_TYPE, renderable_type,
+                     EGL_SURFACE_TYPE, 0,
                      EGL_NONE};
 
     // Get how many configs there are
@@ -180,6 +181,7 @@ bool cInterfaceEGL::Create(void* window_handle, bool stereo, bool core)
                    8,
                    EGL_BLUE_SIZE,
                    8,
+                   EGL_SURFACE_TYPE, 0,
                    EGL_NONE};
 
   std::vector<EGLint> ctx_attribs;
