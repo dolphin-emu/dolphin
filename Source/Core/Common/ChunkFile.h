@@ -245,8 +245,15 @@ public:
   //narrysmod_hijack
   void DoMarker(const std::string& prevName, u32 arbitraryNumber = 0x42)
   {
-
-    std::string cookie = "[" + prevName + "]";
+    std::string cookie;
+    //Pad by 3 bytes to force alignment of exram
+    if (prevName == "Memory FakeVMEM")
+      cookie = "[" + prevName + "@@@]";
+    //Pad by 1 byte because padding the exram moves the aram
+    else if (prevName == "ProcessorInterface")
+      cookie = "[" + prevName + "@]";
+    else
+      cookie = "[" + prevName + "]";
 
     Do(cookie);
     /*

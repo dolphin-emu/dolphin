@@ -115,7 +115,9 @@ struct SConfig
   bool bRunCompareServer = false;
   bool bRunCompareClient = false;
 
-  bool bMMU = false;
+  //Narrysmod_Hijack. Enable mmu by default to handle bad calls.
+  bool bMMU = true;
+
   bool bDCBZOFF = false;
   bool bLowDCBZHack = false;
   int iBBDumpPort = 0;
