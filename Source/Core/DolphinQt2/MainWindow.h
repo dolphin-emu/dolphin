@@ -11,6 +11,7 @@
 
 #include <memory>
 #include <optional>
+#include <string>
 
 #include "DolphinQt2/GameList/GameList.h"
 #include "DolphinQt2/MenuBar.h"
@@ -94,6 +95,7 @@ private:
   void InitCoreCallbacks();
 
   void StartGame(const QString& path, const std::optional<std::string>& savestate_path = {});
+  void StartGame(const std::string& path, const std::optional<std::string>& savestate_path = {});
   void StartGame(std::unique_ptr<BootParameters>&& parameters);
   void ShowRenderWidget();
   void HideRenderWidget();

@@ -16,10 +16,10 @@
 #include "Core/ConfigManager.h"
 #include "DolphinQt2/Config/CheatCodeEditor.h"
 #include "DolphinQt2/Config/CheatWarningWidget.h"
-#include "DolphinQt2/GameList/GameFile.h"
+#include "UICommon/GameFile.h"
 
-ARCodeWidget::ARCodeWidget(const GameFile& game)
-    : m_game(game), m_game_id(game.GetGameID().toStdString()), m_game_revision(game.GetRevision())
+ARCodeWidget::ARCodeWidget(const UICommon::GameFile& game)
+    : m_game(game), m_game_id(game.GetGameID()), m_game_revision(game.GetRevision())
 {
   CreateWidgets();
   ConnectWidgets();

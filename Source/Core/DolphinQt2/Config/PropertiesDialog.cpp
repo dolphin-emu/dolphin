@@ -13,11 +13,15 @@
 #include "DolphinQt2/Config/InfoWidget.h"
 #include "DolphinQt2/Config/PatchesWidget.h"
 #include "DolphinQt2/Config/PropertiesDialog.h"
+#include "UICommon/GameFile.h"
 
-PropertiesDialog::PropertiesDialog(QWidget* parent, const GameFile& game) : QDialog(parent)
+PropertiesDialog::PropertiesDialog(QWidget* parent, const UICommon::GameFile& game)
+    : QDialog(parent)
 {
-  setWindowTitle(
-      QStringLiteral("%1: %2 - %3").arg(game.GetFileName(), game.GetGameID(), game.GetLongName()));
+  setWindowTitle(QStringLiteral("%1: %2 - %3")
+                     .arg(QString::fromStdString(game.GetFileName()),
+                          QString::fromStdString(game.GetGameID()),
+                          QString::fromStdString(game.GetLongName())));
   QVBoxLayout* layout = new QVBoxLayout();
 
   QTabWidget* tab_widget = new QTabWidget(this);
@@ -39,7 +43,7 @@ PropertiesDialog::PropertiesDialog(QWidget* parent, const GameFile& game) : QDia
   tab_widget->addTab(gecko, tr("Gecko Codes"));
   tab_widget->addTab(info, tr("Info"));
 
-  if (DiscIO::IsDisc(game.GetPlatformID()))
+  if (DiscIO::IsDisc(game.GetPlatform()))
   {
     FilesystemWidget* filesystem = new FilesystemWidget(game);
     tab_widget->addTab(filesystem, tr("Filesystem"));

@@ -97,7 +97,6 @@
     <QtMoc Include="Debugger\NewBreakpointDialog.h" />
     <QtMoc Include="Debugger\RegisterWidget.h" />
     <QtMoc Include="Debugger\WatchWidget.h" />
-    <QtMoc Include="GameList\GameFile.h" />
     <QtMoc Include="GameList\GameList.h" />
     <QtMoc Include="GameList\GameListModel.h" />
     <QtMoc Include="GameList\GameTracker.h" />
@@ -250,8 +249,6 @@
     <ClCompile Include="Debugger\RegisterWidget.cpp" />
     <ClCompile Include="Debugger\WatchWidget.cpp" />
     <ClCompile Include="GCMemcardManager.cpp" />
-    <ClCompile Include="GameList\GameFile.cpp" />
-    <ClCompile Include="GameList\GameFileCache.cpp" />
     <ClCompile Include="GameList\GameList.cpp" />
     <ClCompile Include="GameList\GameListModel.cpp" />
     <ClCompile Include="GameList\GameTracker.cpp" />
@@ -271,6 +268,7 @@
     <ClCompile Include="NetPlay\PadMappingDialog.cpp" />
     <ClCompile Include="QtUtils\DoubleClickEventFilter.cpp" />
     <ClCompile Include="QtUtils\ElidedButton.cpp" />
+    <ClCompile Include="QtUtils\ImageConverter.cpp" />
     <ClCompile Include="QtUtils\ListTabWidget.cpp" />
     <ClCompile Include="QtUtils\WindowActivationEventFilter.cpp" />
     <ClCompile Include="QtUtils\AspectRatioWidget.cpp" />
@@ -311,9 +309,9 @@
     <ClInclude Include="Config\Mapping\WiimoteEmuMotionControl.h" />
     <ClInclude Include="Config\RegisterColumn.h" />
     <ClInclude Include="Config\RegisterWidget.h" />
-    <ClInclude Include="GameList\GameFileCache.h" />
     <ClInclude Include="QtUtils\BlockUserInputFilter.h" />
     <ClInclude Include="QtUtils\ElidedButton.h" />
+    <ClInclude Include="QtUtils\ImageConverter.h" />
     <ClInclude Include="QtUtils\ListTabWidget.h" />
     <ClInclude Include="Resources.h" />
     <ClInclude Include="Settings\GameCubePane.h" />

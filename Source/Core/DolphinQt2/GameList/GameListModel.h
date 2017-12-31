@@ -4,12 +4,14 @@
 
 #pragma once
 
+#include <memory>
+#include <string>
+
 #include <QAbstractTableModel>
 #include <QString>
 
-#include "Core/TitleDatabase.h"
-#include "DolphinQt2/GameList/GameFile.h"
 #include "DolphinQt2/GameList/GameTracker.h"
+#include "UICommon/GameFile.h"
 
 class GameListModel final : public QAbstractTableModel
 {
@@ -25,11 +27,14 @@ public:
   int rowCount(const QModelIndex& parent) const override;
   int columnCount(const QModelIndex& parent) const override;
 
-  QSharedPointer<GameFile> GetGameFile(int index) const;
-  // Path of the Game at the specified index.
-  QString GetPath(int index) const { return m_games[index]->GetFilePath(); }
-  // Unique ID of the Game at the specified index
-  QString GetUniqueID(int index) const { return m_games[index]->GetUniqueID(); }
+  std::shared_ptr<const UICommon::GameFile> GetGameFile(int index) const;
+  // Path of the game at the specified index.
+  QString GetPath(int index) const { return QString::fromStdString(m_games[index]->GetFilePath()); }
+  // Unique identifier of the game at the specified index.
+  QString GetUniqueIdentifier(int index) const
+  {
+    return QString::fromStdString(m_games[index]->GetUniqueIdentifier());
+  }
   bool ShouldDisplayGameListItem(int index) const;
   enum
   {
@@ -46,14 +51,13 @@ public:
     NUM_COLS
   };
 
-  void UpdateGame(const QSharedPointer<GameFile>& game);
-  void RemoveGame(const QString& path);
+  void UpdateGame(const std::shared_ptr<const UICommon::GameFile>& game);
+  void RemoveGame(const std::string& path);
 
 private:
   // Index in m_games, or -1 if it isn't found
-  int FindGame(const QString& path) const;
+  int FindGame(const std::string& path) const;
 
   GameTracker m_tracker;
-  QList<QSharedPointer<GameFile>> m_games;
-  Core::TitleDatabase m_title_database;
+  QList<std::shared_ptr<const UICommon::GameFile>> m_games;
 };

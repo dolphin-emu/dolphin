@@ -14,8 +14,8 @@
 #include "Core/ConfigManager.h"
 #include "DolphinQt2/Config/NewPatchDialog.h"
 
-PatchesWidget::PatchesWidget(const GameFile& game)
-    : m_game(game), m_game_id(game.GetGameID().toStdString()), m_game_revision(game.GetRevision())
+PatchesWidget::PatchesWidget(const UICommon::GameFile& game)
+    : m_game(game), m_game_id(game.GetGameID()), m_game_revision(game.GetRevision())
 {
   IniFile game_ini_local;
   game_ini_local.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini");

@@ -11,7 +11,11 @@
 
 #include "Common/IniFile.h"
 
+namespace UICommon
+{
 class GameFile;
+}
+
 class QCheckBox;
 class QComboBox;
 class QGroupBox;
@@ -25,7 +29,7 @@ class GameConfigWidget : public QWidget
 {
   Q_OBJECT
 public:
-  explicit GameConfigWidget(const GameFile& game);
+  explicit GameConfigWidget(const UICommon::GameFile& game);
 
 private:
   void CreateWidgets();
@@ -65,6 +69,6 @@ private:
   IniFile m_gameini_local;
   IniFile m_gameini_default;
 
-  const GameFile& m_game;
+  const UICommon::GameFile& m_game;
   std::string m_game_id;
 };

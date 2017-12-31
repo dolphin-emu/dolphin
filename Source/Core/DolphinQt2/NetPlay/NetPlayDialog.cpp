@@ -532,7 +532,7 @@ std::string NetPlayDialog::FindGame(const std::string& game)
   return RunOnObject(this, [this, game] {
     for (int i = 0; i < m_game_list_model->rowCount(QModelIndex()); i++)
     {
-      if (m_game_list_model->GetUniqueID(i).toStdString() == game)
+      if (m_game_list_model->GetUniqueIdentifier(i).toStdString() == game)
         return m_game_list_model->GetPath(i).toStdString();
     }
     return std::string("");

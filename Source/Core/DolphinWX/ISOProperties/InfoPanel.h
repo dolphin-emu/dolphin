@@ -7,7 +7,6 @@
 #include <memory>
 #include <wx/panel.h>
 
-class GameListItem;
 class wxButton;
 class wxChoice;
 class wxStaticBitmap;
@@ -16,14 +15,19 @@ class wxTextCtrl;
 
 namespace DiscIO
 {
-class Volume;
 enum class Language;
+class Volume;
+}
+
+namespace UICommon
+{
+class GameFile;
 }
 
 class InfoPanel final : public wxPanel
 {
 public:
-  InfoPanel(wxWindow* parent, wxWindowID id, const GameListItem& item,
+  InfoPanel(wxWindow* parent, wxWindowID id, const UICommon::GameFile& item,
             const std::unique_ptr<DiscIO::Volume>& opened_iso);
 
 private:
@@ -37,6 +41,7 @@ private:
   void LoadGUIData();
   void LoadISODetails();
   void LoadBannerDetails();
+  wxImage ConvertBannerImage();
   void LoadBannerImage();
 
   wxStaticBoxSizer* CreateISODetailsSizer();
@@ -52,7 +57,7 @@ private:
 
   void EmitTitleChangeEvent(const wxString& new_title);
 
-  const GameListItem& m_game_list_item;
+  const UICommon::GameFile& m_game_list_item;
   const std::unique_ptr<DiscIO::Volume>& m_opened_iso;
 
   wxTextCtrl* m_internal_name;

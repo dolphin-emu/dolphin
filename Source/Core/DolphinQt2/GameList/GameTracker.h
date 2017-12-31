@@ -4,15 +4,17 @@
 
 #pragma once
 
+#include <memory>
+
 #include <QFileSystemWatcher>
 #include <QMap>
 #include <QSet>
-#include <QSharedPointer>
 #include <QString>
 
 #include "Common/WorkQueueThread.h"
-#include "DolphinQt2/GameList/GameFile.h"
-#include "DolphinQt2/GameList/GameFileCache.h"
+#include "Core/TitleDatabase.h"
+#include "UICommon/GameFile.h"
+#include "UICommon/GameFileCache.h"
 
 // Watches directories and loads GameFiles in a separate thread.
 // To use this, just add directories using AddDirectory, and listen for the
@@ -28,7 +30,7 @@ public:
   void RemoveDirectory(const QString& dir);
 
 signals:
-  void GameLoaded(QSharedPointer<GameFile> game);
+  void GameLoaded(std::shared_ptr<const UICommon::GameFile> game);
   void GameRemoved(const QString& path);
 
 private:
@@ -40,7 +42,8 @@ private:
   // game path -> directories that track it
   QMap<QString, QSet<QString>> m_tracked_files;
   Common::WorkQueueThread<QString> m_load_thread;
-  GameFileCache cache;
+  UICommon::GameFileCache m_cache;
+  Core::TitleDatabase m_title_database;
 };
 
-Q_DECLARE_METATYPE(QSharedPointer<GameFile>)
+Q_DECLARE_METATYPE(std::shared_ptr<const UICommon::GameFile>)

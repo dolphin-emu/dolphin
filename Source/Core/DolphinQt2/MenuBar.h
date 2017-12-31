@@ -5,12 +5,11 @@
 #pragma once
 
 #include <array>
+#include <memory>
 #include <string>
 
 #include <QMenu>
 #include <QMenuBar>
-
-#include "DolphinQt2/GameList/GameFile.h"
 
 namespace Core
 {
@@ -21,6 +20,11 @@ namespace DiscIO
 {
 enum class Region;
 };
+
+namespace UICommon
+{
+class GameFile;
+}
 
 class MenuBar final : public QMenuBar
 {
@@ -89,7 +93,7 @@ signals:
   void ExportRecording();
   void ShowTASInput();
 
-  void SelectionChanged(QSharedPointer<GameFile> game_file);
+  void SelectionChanged(std::shared_ptr<const UICommon::GameFile> game_file);
   void RecordingStatusChanged(bool recording);
   void ReadOnlyModeChanged(bool read_only);
 
@@ -120,7 +124,7 @@ private:
   void CheckNAND();
   void NANDExtractCertificates();
 
-  void OnSelectionChanged(QSharedPointer<GameFile> game_file);
+  void OnSelectionChanged(std::shared_ptr<const UICommon::GameFile> game_file);
   void OnRecordingStatusChanged(bool recording);
   void OnReadOnlyModeChanged(bool read_only);
   void OnDebugModeToggled(bool enabled);

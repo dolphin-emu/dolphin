@@ -23,7 +23,7 @@
 #include "Core/ConfigLoaders/GameConfigLoader.h"
 #include "Core/ConfigManager.h"
 #include "DolphinQt2/Config/Graphics/GraphicsSlider.h"
-#include "DolphinQt2/GameList/GameFile.h"
+#include "UICommon/GameFile.h"
 
 constexpr int DETERMINISM_NOT_SET_INDEX = 0;
 constexpr int DETERMINISM_AUTO_INDEX = 1;
@@ -35,9 +35,9 @@ constexpr const char* DETERMINISM_AUTO_STRING = "auto";
 constexpr const char* DETERMINISM_NONE_STRING = "none";
 constexpr const char* DETERMINISM_FAKE_COMPLETION_STRING = "fake-completion";
 
-GameConfigWidget::GameConfigWidget(const GameFile& game) : m_game(game)
+GameConfigWidget::GameConfigWidget(const UICommon::GameFile& game) : m_game(game)
 {
-  m_game_id = m_game.GetGameID().toStdString();
+  m_game_id = m_game.GetGameID();
   m_gameini_local_path =
       QString::fromStdString(File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini");
   m_gameini_local = SConfig::LoadLocalGameIni(m_game_id, m_game.GetRevision());
@@ -241,8 +241,8 @@ void GameConfigWidget::SaveCheckBox(QCheckBox* checkbox, const std::string& sect
 void GameConfigWidget::LoadSettings()
 {
   // Load state information
-  m_state_combo->setCurrentIndex(m_game.GetRating());
-  m_state_comment_edit->setText(m_game.GetIssues());
+  m_state_combo->setCurrentIndex(m_game.GetEmuState());
+  m_state_comment_edit->setText(QString::fromStdString(m_game.GetIssues()));
 
   // Load game-specific settings
 
@@ -301,10 +301,10 @@ void GameConfigWidget::SaveSettings()
   QString comment = m_state_comment_edit->text();
   int state = m_state_combo->currentIndex();
 
-  if (comment != m_game.GetIssues())
+  if (comment != QString::fromStdString(m_game.GetIssues()))
     m_gameini_local.GetOrCreateSection("EmuState")->Set("EmulationIssues", comment.toStdString());
 
-  if (state != m_game.GetRating())
+  if (state != m_game.GetEmuState())
     m_gameini_local.GetOrCreateSection("EmuState")->Set("EmulationStateId", state);
 
   // Save game-specific settings

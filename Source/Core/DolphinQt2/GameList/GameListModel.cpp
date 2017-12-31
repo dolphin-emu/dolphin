@@ -3,17 +3,23 @@
 // Refer to the license.txt file included.
 
 #include "DolphinQt2/GameList/GameListModel.h"
+
+#include <QPixmap>
+
 #include "Core/ConfigManager.h"
 #include "DiscIO/Enums.h"
+#include "DolphinQt2/QtUtils/ImageConverter.h"
 #include "DolphinQt2/Resources.h"
 #include "DolphinQt2/Settings.h"
+#include "UICommon/UICommon.h"
 
 const QSize GAMECUBE_BANNER_SIZE(96, 32);
 
 GameListModel::GameListModel(QObject* parent) : QAbstractTableModel(parent)
 {
   connect(&m_tracker, &GameTracker::GameLoaded, this, &GameListModel::UpdateGame);
-  connect(&m_tracker, &GameTracker::GameRemoved, this, &GameListModel::RemoveGame);
+  connect(&m_tracker, &GameTracker::GameRemoved, this,
+          [this](const QString& path) { RemoveGame(path.toStdString()); });
   connect(&Settings::Instance(), &Settings::PathAdded, &m_tracker, &GameTracker::AddDirectory);
   connect(&Settings::Instance(), &Settings::PathRemoved, &m_tracker, &GameTracker::RemoveDirectory);
 
@@ -26,8 +32,6 @@ GameListModel::GameListModel(QObject* parent) : QAbstractTableModel(parent)
     emit layoutAboutToBeChanged();
     emit layoutChanged();
   });
-
-  // TODO: Reload m_title_database when the language changes
 }
 
 QVariant GameListModel::data(const QModelIndex& index, int role) const
@@ -35,78 +39,68 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
   if (!index.isValid())
     return QVariant();
 
-  QSharedPointer<GameFile> game = m_games[index.row()];
+  const UICommon::GameFile& game = *m_games[index.row()];
 
   switch (index.column())
   {
   case COL_PLATFORM:
     if (role == Qt::DecorationRole)
-      return Resources::GetPlatform(static_cast<int>(game->GetPlatformID()));
+      return Resources::GetPlatform(static_cast<int>(game.GetPlatform()));
     if (role == Qt::InitialSortOrderRole)
-      return static_cast<int>(game->GetPlatformID());
+      return static_cast<int>(game.GetPlatform());
     break;
   case COL_COUNTRY:
     if (role == Qt::DecorationRole)
-      return Resources::GetCountry(static_cast<int>(game->GetCountryID()));
+      return Resources::GetCountry(static_cast<int>(game.GetCountry()));
     if (role == Qt::InitialSortOrderRole)
-      return static_cast<int>(game->GetCountryID());
+      return static_cast<int>(game.GetCountry());
     break;
   case COL_RATING:
     if (role == Qt::DecorationRole)
-      return Resources::GetRating(game->GetRating());
+      return Resources::GetRating(game.GetEmuState());
     if (role == Qt::InitialSortOrderRole)
-      return game->GetRating();
+      return game.GetEmuState();
     break;
   case COL_BANNER:
     if (role == Qt::DecorationRole)
     {
       // GameCube banners are 96x32, but Wii banners are 192x64.
-      // TODO: use custom banners from rom directory like DolphinWX?
-      QPixmap banner = game->GetBanner();
+      QPixmap banner = ToQPixmap(game.GetBannerImage());
       if (banner.isNull())
         banner = Resources::GetMisc(Resources::BANNER_MISSING);
-      banner.setDevicePixelRatio(std::max(banner.width() / GAMECUBE_BANNER_SIZE.width(),
-                                          banner.height() / GAMECUBE_BANNER_SIZE.height()));
+
+      banner.setDevicePixelRatio(
+          std::max(static_cast<qreal>(banner.width()) / GAMECUBE_BANNER_SIZE.width(),
+                   static_cast<qreal>(banner.height()) / GAMECUBE_BANNER_SIZE.height()));
+
       return banner;
     }
     break;
   case COL_TITLE:
     if (role == Qt::DisplayRole || role == Qt::InitialSortOrderRole)
-    {
-      QString display_name = QString::fromStdString(m_title_database.GetTitleName(
-          game->GetGameID().toStdString(), game->GetPlatformID() == DiscIO::Platform::WII_WAD ?
-                                               Core::TitleDatabase::TitleType::Channel :
-                                               Core::TitleDatabase::TitleType::Other));
-      if (display_name.isEmpty())
-        display_name = game->GetLongName();
-
-      if (display_name.isEmpty())
-        display_name = game->GetFileName();
-
-      return display_name;
-    }
+      return QString::fromStdString(game.GetName());
     break;
   case COL_ID:
     if (role == Qt::DisplayRole || role == Qt::InitialSortOrderRole)
-      return game->GetGameID();
+      return QString::fromStdString(game.GetGameID());
     break;
   case COL_DESCRIPTION:
     if (role == Qt::DisplayRole || role == Qt::InitialSortOrderRole)
-      return game->GetDescription();
+      return QString::fromStdString(game.GetDescription());
     break;
   case COL_MAKER:
     if (role == Qt::DisplayRole || role == Qt::InitialSortOrderRole)
-      return game->GetMaker();
+      return QString::fromStdString(game.GetMaker());
     break;
   case COL_FILE_NAME:
     if (role == Qt::DisplayRole || role == Qt::InitialSortOrderRole)
-      return game->GetFileName();
+      return QString::fromStdString(game.GetFileName());
     break;
   case COL_SIZE:
     if (role == Qt::DisplayRole)
-      return FormatSize(game->GetFileSize());
+      return QString::fromStdString(UICommon::FormatSize(game.GetFileSize()));
     if (role == Qt::InitialSortOrderRole)
-      return game->GetFileSize();
+      return static_cast<quint64>(game.GetFileSize());
     break;
   }
 
@@ -154,10 +148,10 @@ int GameListModel::columnCount(const QModelIndex& parent) const
 
 bool GameListModel::ShouldDisplayGameListItem(int index) const
 {
-  QSharedPointer<GameFile> game = m_games[index];
+  const UICommon::GameFile& game = *m_games[index];
 
   const bool show_platform = [&game] {
-    switch (game->GetPlatformID())
+    switch (game.GetPlatform())
     {
     case DiscIO::Platform::GAMECUBE_DISC:
       return SConfig::GetInstance().m_ListGC;
@@ -175,7 +169,7 @@ bool GameListModel::ShouldDisplayGameListItem(int index) const
   if (!show_platform)
     return false;
 
-  switch (game->GetCountryID())
+  switch (game.GetCountry())
   {
   case DiscIO::Country::COUNTRY_AUSTRALIA:
     return SConfig::GetInstance().m_ListAustralia;
@@ -209,16 +203,14 @@ bool GameListModel::ShouldDisplayGameListItem(int index) const
   }
 }
 
-QSharedPointer<GameFile> GameListModel::GetGameFile(int index) const
+std::shared_ptr<const UICommon::GameFile> GameListModel::GetGameFile(int index) const
 {
   return m_games[index];
 }
 
-void GameListModel::UpdateGame(const QSharedPointer<GameFile>& game)
+void GameListModel::UpdateGame(const std::shared_ptr<const UICommon::GameFile>& game)
 {
-  QString path = game->GetFilePath();
-
-  int index = FindGame(path);
+  int index = FindGame(game->GetFilePath());
   if (index < 0)
   {
     beginInsertRows(QModelIndex(), m_games.size(), m_games.size());
@@ -232,7 +224,7 @@ void GameListModel::UpdateGame(const QSharedPointer<GameFile>& game)
   }
 }
 
-void GameListModel::RemoveGame(const QString& path)
+void GameListModel::RemoveGame(const std::string& path)
 {
   int entry = FindGame(path);
   if (entry < 0)
@@ -243,7 +235,7 @@ void GameListModel::RemoveGame(const QString& path)
   endRemoveRows();
 }
 
-int GameListModel::FindGame(const QString& path) const
+int GameListModel::FindGame(const std::string& path) const
 {
   for (int i = 0; i < m_games.size(); i++)
   {

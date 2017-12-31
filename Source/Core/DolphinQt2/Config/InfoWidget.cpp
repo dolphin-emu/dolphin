@@ -16,8 +16,10 @@
 #include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
 #include "DolphinQt2/Config/InfoWidget.h"
+#include "DolphinQt2/QtUtils/ImageConverter.h"
+#include "UICommon/UICommon.h"
 
-InfoWidget::InfoWidget(const GameFile& game) : m_game(game)
+InfoWidget::InfoWidget(const UICommon::GameFile& game) : m_game(game)
 {
   QVBoxLayout* layout = new QVBoxLayout();
   layout->addWidget(CreateISODetails());
@@ -32,17 +34,19 @@ QGroupBox* InfoWidget::CreateISODetails()
 
   QLineEdit* file_path = CreateValueDisplay(m_game.GetFilePath());
   QLineEdit* internal_name = CreateValueDisplay(m_game.GetInternalName());
-  QString game_id_string = m_game.GetGameID();
+
+  QString game_id_string = QString::fromStdString(m_game.GetGameID());
   if (const u64 title_id = m_game.GetTitleID())
     game_id_string += QStringLiteral(" (%1)").arg(title_id, 16, 16, QLatin1Char('0'));
   QLineEdit* game_id = CreateValueDisplay(game_id_string);
-  QLineEdit* country = CreateValueDisplay(m_game.GetCountry());
+
+  QLineEdit* country = CreateValueDisplay(DiscIO::GetName(m_game.GetCountry(), true));
   QLineEdit* maker = CreateValueDisplay(m_game.GetMaker());
-  QLineEdit* maker_id = CreateValueDisplay(QStringLiteral("0x") + m_game.GetMakerID());
+  QLineEdit* maker_id = CreateValueDisplay("0x" + m_game.GetMakerID());
   QLineEdit* disc_number = CreateValueDisplay(QString::number(m_game.GetDiscNumber()));
   QLineEdit* revision = CreateValueDisplay(QString::number(m_game.GetRevision()));
   QLineEdit* apploader_date = CreateValueDisplay(m_game.GetApploaderDate());
-  QLineEdit* iso_size = CreateValueDisplay(FormatSize(m_game.GetFileSize()));
+  QLineEdit* iso_size = CreateValueDisplay(UICommon::FormatSize(m_game.GetFileSize()));
   QWidget* checksum = CreateChecksumComputer();
 
   layout->addRow(tr("File Path:"), file_path);
@@ -75,7 +79,7 @@ QGroupBox* InfoWidget::CreateBannerDetails()
   CreateLanguageSelector();
 
   layout->addRow(tr("Show Language:"), m_language_selector);
-  if (m_game.GetPlatformID() == DiscIO::Platform::GAMECUBE_DISC)
+  if (m_game.GetPlatform() == DiscIO::Platform::GAMECUBE_DISC)
   {
     layout->addRow(tr("Short Name:"), m_short_name);
     layout->addRow(tr("Short Maker:"), m_short_maker);
@@ -83,27 +87,26 @@ QGroupBox* InfoWidget::CreateBannerDetails()
     layout->addRow(tr("Long Maker:"), m_long_maker);
     layout->addRow(tr("Description:"), m_description);
   }
-  else if (DiscIO::IsWii(m_game.GetPlatformID()))
+  else if (DiscIO::IsWii(m_game.GetPlatform()))
   {
     layout->addRow(tr("Name:"), m_long_name);
   }
 
-  if (!m_game.GetBanner().isNull())
-  {
-    layout->addRow(tr("Banner:"), CreateBannerGraphic());
-  }
+  QPixmap banner = ToQPixmap(m_game.GetBannerImage());
+  if (!banner.isNull())
+    layout->addRow(tr("Banner:"), CreateBannerGraphic(banner));
 
   group->setLayout(layout);
   return group;
 }
 
-QWidget* InfoWidget::CreateBannerGraphic()
+QWidget* InfoWidget::CreateBannerGraphic(const QPixmap& image)
 {
   QWidget* widget = new QWidget();
   QHBoxLayout* layout = new QHBoxLayout();
 
   QLabel* banner = new QLabel();
-  banner->setPixmap(m_game.GetBanner());
+  banner->setPixmap(image);
   QPushButton* save = new QPushButton(tr("Save as..."));
   connect(save, &QPushButton::clicked, this, &InfoWidget::SaveBanner);
 
@@ -117,7 +120,7 @@ void InfoWidget::SaveBanner()
 {
   QString path = QFileDialog::getSaveFileName(this, tr("Select a File"), QDir::currentPath(),
                                               tr("PNG image file (*.png);; All Files (*)"));
-  m_game.GetBanner().save(path, "PNG");
+  ToQPixmap(m_game.GetBannerImage()).save(path, "PNG");
 }
 
 QLineEdit* InfoWidget::CreateValueDisplay(const QString& value)
@@ -128,14 +131,18 @@ QLineEdit* InfoWidget::CreateValueDisplay(const QString& value)
   return value_display;
 }
 
+QLineEdit* InfoWidget::CreateValueDisplay(const std::string& value)
+{
+  return CreateValueDisplay(QString::fromStdString(value));
+}
+
 void InfoWidget::CreateLanguageSelector()
 {
   m_language_selector = new QComboBox();
-  QList<DiscIO::Language> languages = m_game.GetAvailableLanguages();
-  for (int i = 0; i < languages.count(); i++)
+  for (DiscIO::Language language : m_game.GetLanguages())
   {
-    DiscIO::Language language = languages.at(i);
-    m_language_selector->addItem(m_game.GetLanguage(language), static_cast<int>(language));
+    m_language_selector->addItem(QString::fromStdString(DiscIO::GetName(language, true)),
+                                 static_cast<int>(language));
   }
   if (m_language_selector->count() == 1)
     m_language_selector->setDisabled(true);
@@ -149,11 +156,11 @@ void InfoWidget::ChangeLanguage()
 {
   DiscIO::Language language =
       static_cast<DiscIO::Language>(m_language_selector->currentData().toInt());
-  m_short_name->setText(m_game.GetShortName(language));
-  m_short_maker->setText(m_game.GetShortMaker(language));
-  m_long_name->setText(m_game.GetLongName(language));
-  m_long_maker->setText(m_game.GetLongMaker(language));
-  m_description->setText(m_game.GetDescription(language));
+  m_short_name->setText(QString::fromStdString(m_game.GetShortName(language)));
+  m_short_maker->setText(QString::fromStdString(m_game.GetShortMaker(language)));
+  m_long_name->setText(QString::fromStdString(m_game.GetLongName(language)));
+  m_long_maker->setText(QString::fromStdString(m_game.GetLongMaker(language)));
+  m_description->setText(QString::fromStdString(m_game.GetDescription(language)));
 }
 
 QWidget* InfoWidget::CreateChecksumComputer()
@@ -176,8 +183,7 @@ void InfoWidget::ComputeChecksum()
 {
   QCryptographicHash hash(QCryptographicHash::Md5);
   hash.reset();
-  std::unique_ptr<DiscIO::BlobReader> file(
-      DiscIO::CreateBlobReader(m_game.GetFilePath().toStdString()));
+  std::unique_ptr<DiscIO::BlobReader> file(DiscIO::CreateBlobReader(m_game.GetFilePath()));
   std::vector<u8> file_data(8 * 1080 * 1080);  // read 1MB at a time
   u64 game_size = file->GetDataSize();
   u64 read_offset = 0;

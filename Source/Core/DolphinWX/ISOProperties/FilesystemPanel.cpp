@@ -28,7 +28,6 @@
 #include "DiscIO/Enums.h"
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
-#include "DolphinWX/ISOFile.h"
 #include "DolphinWX/WxUtils.h"
 
 namespace

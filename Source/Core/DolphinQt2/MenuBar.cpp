@@ -34,9 +34,10 @@
 #include "DiscIO/WiiSaveBanner.h"
 
 #include "DolphinQt2/AboutDialog.h"
-#include "DolphinQt2/GameList/GameFile.h"
 #include "DolphinQt2/QtUtils/ActionHelper.h"
 #include "DolphinQt2/Settings.h"
+
+#include "UICommon/GameFile.h"
 
 MenuBar::MenuBar(QWidget* parent) : QMenuBar(parent)
 {
@@ -593,8 +594,9 @@ void MenuBar::InstallWAD()
 
   QMessageBox result_dialog(this);
 
-  if (GameFile(wad_file).Install())
+  if (WiiUtils::InstallWAD(wad_file.toStdString()))
   {
+    Settings::Instance().NANDRefresh();
     result_dialog.setIcon(QMessageBox::Information);
     result_dialog.setText(tr("Successfully installed this title to the NAND."));
   }
@@ -698,12 +700,12 @@ void MenuBar::NANDExtractCertificates()
   }
 }
 
-void MenuBar::OnSelectionChanged(QSharedPointer<GameFile> game_file)
+void MenuBar::OnSelectionChanged(std::shared_ptr<const UICommon::GameFile> game_file)
 {
-  bool is_null = game_file.isNull();
+  const bool game_selected = !!game_file;
 
-  m_recording_play->setEnabled(!Core::IsRunning() && !is_null);
-  m_recording_start->setEnabled(!Movie::IsPlayingInput() && !is_null);
+  m_recording_play->setEnabled(game_selected && !Core::IsRunning());
+  m_recording_start->setEnabled(game_selected && !Movie::IsPlayingInput());
 }
 
 void MenuBar::OnRecordingStatusChanged(bool recording)

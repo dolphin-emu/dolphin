@@ -37,8 +37,8 @@ enum class EntryType
 };
 Q_DECLARE_METATYPE(EntryType);
 
-FilesystemWidget::FilesystemWidget(const GameFile& game)
-    : m_game(game), m_volume(DiscIO::CreateVolumeFromFilename(game.GetFilePath().toStdString()))
+FilesystemWidget::FilesystemWidget(const UICommon::GameFile& game)
+    : m_game(game), m_volume(DiscIO::CreateVolumeFromFilename(game.GetFilePath()))
 {
   CreateWidgets();
   ConnectWidgets();
