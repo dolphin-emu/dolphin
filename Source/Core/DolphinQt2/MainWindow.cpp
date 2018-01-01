@@ -338,6 +338,7 @@ void MainWindow::Play(const std::optional<std::string>& savestate_path)
   if (Core::GetState() == Core::State::Paused)
   {
     Core::SetState(Core::State::Running);
+    EnableScreenSaver(false);
   }
   else
   {
@@ -345,6 +346,7 @@ void MainWindow::Play(const std::optional<std::string>& savestate_path)
     if (selection)
     {
       StartGame(selection->GetFilePath(), savestate_path);
+      EnableScreenSaver(false);
     }
     else
     {
@@ -352,6 +354,7 @@ void MainWindow::Play(const std::optional<std::string>& savestate_path)
       if (!default_path.isEmpty() && QFile::exists(default_path))
       {
         StartGame(default_path, savestate_path);
+        EnableScreenSaver(false);
       }
       else
       {
@@ -364,6 +367,7 @@ void MainWindow::Play(const std::optional<std::string>& savestate_path)
 void MainWindow::Pause()
 {
   Core::SetState(Core::State::Paused);
+  EnableScreenSaver(true);
 }
 
 void MainWindow::OnStopComplete()
@@ -441,6 +445,7 @@ bool MainWindow::RequestStop()
 void MainWindow::ForceStop()
 {
   BootManager::Stop();
+  EnableScreenSaver(true);
 }
 
 void MainWindow::Reset()
@@ -799,6 +804,18 @@ void MainWindow::NetPlayQuit()
 {
   Settings::Instance().ResetNetPlayClient();
   Settings::Instance().ResetNetPlayServer();
+}
+
+void MainWindow::EnableScreenSaver(bool enable)
+{
+#if defined(HAVE_XRANDR) && HAVE_XRANDR
+  UICommon::EnableScreenSaver(
+      static_cast<Display*>(QGuiApplication::platformNativeInterface()->nativeResourceForWindow(
+          "display", windowHandle())),
+      winId(), enable);
+#else
+  UICommon::EnableScreenSaver(enable);
+#endif
 }
 
 bool MainWindow::eventFilter(QObject* object, QEvent* event)
