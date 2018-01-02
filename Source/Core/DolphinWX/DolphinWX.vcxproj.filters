@@ -268,7 +268,6 @@
     <ClCompile Include="DolphinSlider.cpp">
       <Filter>GUI\Widgets</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\Dolphin Narry%27s Mod\Source\Core\DolphinWX\test.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Main.h" />
@@ -496,7 +495,6 @@
     <ClInclude Include="DolphinSlider.h">
       <Filter>GUI\Widgets</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\Dolphin Narry%27s Mod\Source\Core\DolphinWX\test.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

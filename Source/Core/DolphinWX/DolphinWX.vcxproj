@@ -49,18 +49,6 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\Dolphin Narry%27s Mod\Source\Core\DolphinWX\test.cpp">
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</CompileAsManaged>
-      <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExceptionHandling>
-      <RuntimeTypeInfo Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</RuntimeTypeInfo>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-      </PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-      </PrecompiledHeaderOutputFile>
-      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-      </ForcedIncludeFiles>
-    </ClCompile>
     <ClCompile Include="AboutDolphin.cpp" />
     <ClCompile Include="Cheats\ActionReplayCodesPanel.cpp" />
     <ClCompile Include="Cheats\ARCodeAddEdit.cpp" />
@@ -145,7 +133,6 @@
     <ClCompile Include="WxUtils.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\..\Dolphin Narry%27s Mod\Source\Core\DolphinWX\test.h" />
     <ClInclude Include="Cheats\ActionReplayCodesPanel.h" />
     <ClInclude Include="Cheats\ARCodeAddEdit.h" />
     <ClInclude Include="Config\AddUSBDeviceDiag.h" />
