@@ -57,6 +57,9 @@
 
 #include "VideoCommon/VideoBackendBase.h"
 
+#include "test.h"
+
+
 #if defined HAVE_X11 && HAVE_X11
 #include <X11/Xlib.h>
 #endif
@@ -226,6 +229,23 @@ void DolphinApp::MacOpenFile(const wxString& fileName)
 
 void DolphinApp::AfterInit()
 {
+  /*
+  if (Test::getNum() == 1)
+  {
+    Test::
+      wxMessageBox(_("If authorized, Dolphin can collect data on its performance, "
+        "feature usage, and configuration, as well as data on your system's "
+        "hardware and operating system.\n\n"
+        "No private data is ever collected. This data helps us understand "
+        "how people and emulated games use Dolphin and prioritize our "
+        "efforts. It also helps us identify rare configurations that are "
+        "causing bugs, performance and stability issues.\n"
+        "This authorization can be revoked at any time through Dolphin's "
+        "settings.\n\n"
+        "Do you authorize Dolphin to report this information to Dolphin's "
+        "developers?"),
+        _("Usage statistics reporting"), wxYES_NO, main_frame);
+  }*/
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
   if (!SConfig::GetInstance().m_analytics_permission_asked)
   {
