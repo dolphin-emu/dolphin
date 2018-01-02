@@ -19,10 +19,9 @@ public:
   virtual ~SoundStream() {}
   static bool isValid() { return false; }
   Mixer* GetMixer() const { return m_mixer.get(); }
-  virtual bool Start() { return false; }
+  virtual bool Init() { return false; }
   virtual void SetVolume(int) {}
   virtual void SoundLoop() {}
-  virtual void Stop() {}
   virtual void Update() {}
-  virtual void SetRunning(bool running) {}
+  virtual bool SetRunning(bool running) { return false; }
 };

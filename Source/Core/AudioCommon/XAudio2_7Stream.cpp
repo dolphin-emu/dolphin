@@ -157,7 +157,7 @@ XAudio2_7::~XAudio2_7()
     CoUninitialize();
 }
 
-bool XAudio2_7::Start()
+bool XAudio2_7::Init()
 {
   HRESULT hr;
 
@@ -198,15 +198,17 @@ void XAudio2_7::SetVolume(int volume)
     m_mastering_voice->SetVolume(m_volume);
 }
 
-void XAudio2_7::SetRunning(bool running)
+bool XAudio2_7::SetRunning(bool running)
 {
-  if (m_voice_context)
-  {
-    if (running)
-      m_voice_context->Play();
-    else
-      m_voice_context->Stop();
-  }
+  if (!m_voice_context)
+    return false;
+
+  if (running)
+    m_voice_context->Play();
+  else
+    m_voice_context->Stop();
+
+  return true;
 }
 
 void XAudio2_7::Stop()

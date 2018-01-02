@@ -92,7 +92,7 @@ bool OpenALStream::isValid()
 //
 // AyuanX: Spec says OpenAL1.1 is thread safe already
 //
-bool OpenALStream::Start()
+bool OpenALStream::Init()
 {
   if (!palcIsExtensionPresent(nullptr, "ALC_ENUMERATION_EXT"))
   {
@@ -124,7 +124,7 @@ bool OpenALStream::Start()
   return true;
 }
 
-void OpenALStream::Stop()
+OpenALStream::~OpenALStream()
 {
   m_run_thread.Clear();
   // kick the thread if it's waiting
@@ -161,7 +161,7 @@ void OpenALStream::Update()
   m_sound_sync_event.Set();
 }
 
-void OpenALStream::SetRunning(bool running)
+bool OpenALStream::SetRunning(bool running)
 {
   if (running)
   {
@@ -171,6 +171,7 @@ void OpenALStream::SetRunning(bool running)
   {
     palSourceStop(m_source);
   }
+  return true;
 }
 
 static ALenum CheckALError(const char* desc)

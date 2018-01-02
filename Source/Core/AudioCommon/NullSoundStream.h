@@ -9,10 +9,10 @@
 class NullSound final : public SoundStream
 {
 public:
-  bool Start() override;
+  bool Init() override;
   void SoundLoop() override;
+  bool SetRunning(bool running) override;
   void SetVolume(int volume) override;
-  void Stop() override;
   void Update() override;
 
   static bool isValid() { return true; }
