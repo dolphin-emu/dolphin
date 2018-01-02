@@ -97,7 +97,8 @@ struct SConfig
 
   int iTimingVariance = 40;  // in milli secounds
   //narrysmod_hijack
-  bool bCPUThread = false;
+  //1-2-2018 HIJACK DISABLED BECAUSE I DON'T THINK IT WAS REALLY WORTH THE PERFORMANCE IMPACT. DIDN'T SEEM TO IMPROVE ANYTHING
+  bool bCPUThread = true;
   bool bDSPThread = false;
   bool bDSPHLE = true;
   bool bSyncGPUOnSkipIdleHack = true;
@@ -116,7 +117,8 @@ struct SConfig
   bool bRunCompareClient = false;
 
   //Narrysmod_Hijack. Enable mmu by default to handle bad calls.
-  bool bMMU = true;
+  //1-2-2018 HIJACK DISABLED BECAUSE I DON'T THINK IT WAS REALLY WORTH THE PERFORMANCE IMPACT. DIDN'T SEEM TO IMPROVE ANYTHING
+  bool bMMU = false;
 
   bool bDCBZOFF = false;
   bool bLowDCBZHack = false;
