@@ -159,7 +159,15 @@ bool AVIDump::CreateVideoFile()
 
   const AVCodec* codec = nullptr;
 
-  codec = avcodec_find_encoder(codec_id);
+  if (!g_Config.sDumpEncoder.empty())
+  {
+    codec = avcodec_find_encoder_by_name(g_Config.sDumpEncoder.c_str());
+    if (!codec)
+      WARN_LOG(VIDEO, "Invalid encoder %s", g_Config.sDumpEncoder.c_str());
+  }
+  if (!codec)
+    codec = avcodec_find_encoder(codec_id);
+
   s_codec_context = avcodec_alloc_context3(codec);
   if (!codec || !s_codec_context)
   {

@@ -41,6 +41,7 @@ extern const ConfigInfo<bool> GFX_FREE_LOOK;
 extern const ConfigInfo<bool> GFX_USE_FFV1;
 extern const ConfigInfo<std::string> GFX_DUMP_FORMAT;
 extern const ConfigInfo<std::string> GFX_DUMP_CODEC;
+extern const ConfigInfo<std::string> GFX_DUMP_ENCODER;
 extern const ConfigInfo<std::string> GFX_DUMP_PATH;
 extern const ConfigInfo<int> GFX_BITRATE_KBPS;
 extern const ConfigInfo<bool> GFX_INTERNAL_RESOLUTION_FRAME_DUMPS;
