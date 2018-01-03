@@ -27,10 +27,6 @@
 #include "UICommon/X11Utils.h"
 #endif
 
-#ifdef __APPLE__
-#include <IOKit/pwr_mgt/IOPMLib.h>
-#endif
-
 struct BootParameters;
 
 // Class declarations
@@ -244,13 +240,8 @@ private:
   WXLRESULT MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam);
 #endif
 
-// Screensaver
-#ifdef __APPLE__
-  IOPMAssertionID m_power_assertion = kIOPMNullAssertionID;
-#endif
-  void InhibitScreensaver();
-  void UninhibitScreensaver();
-
+  // Screensaver
+  void EnableScreenSaver(bool enable);
   void DoOpen(bool Boot);
   void DoPause();
   void DoToggleToolbar(bool);

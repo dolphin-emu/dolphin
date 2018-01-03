@@ -118,6 +118,8 @@ private:
   void OnStopRecording();
   void OnExportRecording();
 
+  void EnableScreenSaver(bool enable);
+
   void OnStopComplete();
   void dragEnterEvent(QDragEnterEvent* event) override;
   void dropEvent(QDropEvent* event) override;
