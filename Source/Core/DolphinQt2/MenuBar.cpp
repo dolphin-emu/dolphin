@@ -50,6 +50,7 @@ MenuBar::MenuBar(QWidget* parent) : QMenuBar(parent)
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
           [=](Core::State state) { OnEmulationStateChanged(state); });
   OnEmulationStateChanged(Core::GetState());
+  connect(&Settings::Instance(), &Settings::DebugModeToggled, this, &MenuBar::OnDebugModeToggled);
 
   connect(this, &MenuBar::SelectionChanged, this, &MenuBar::OnSelectionChanged);
   connect(this, &MenuBar::RecordingStatusChanged, this, &MenuBar::OnRecordingStatusChanged);
@@ -83,6 +84,15 @@ void MenuBar::OnEmulationStateChanged(Core::State state)
 
   UpdateStateSlotMenu();
   UpdateToolsMenu(running);
+
+  OnDebugModeToggled(Settings::Instance().IsDebugModeEnabled());
+}
+
+void MenuBar::OnDebugModeToggled(bool enabled)
+{
+  m_show_registers->setVisible(enabled);
+  m_show_watch->setVisible(enabled);
+  m_show_breakpoints->setVisible(enabled);
 }
 
 void MenuBar::AddFileMenu()
@@ -251,6 +261,34 @@ void MenuBar::AddViewMenu()
 
   connect(&Settings::Instance(), &Settings::LogVisibilityChanged, show_log, &QAction::setChecked);
   connect(&Settings::Instance(), &Settings::LogConfigVisibilityChanged, show_log_config,
+          &QAction::setChecked);
+
+  view_menu->addSeparator();
+
+  m_show_registers = view_menu->addAction(tr("&Registers"));
+  m_show_registers->setCheckable(true);
+  m_show_registers->setChecked(Settings::Instance().IsRegistersVisible());
+
+  connect(m_show_registers, &QAction::toggled, &Settings::Instance(),
+          &Settings::SetRegistersVisible);
+  connect(&Settings::Instance(), &Settings::RegistersVisibilityChanged, m_show_registers,
+          &QAction::setChecked);
+
+  m_show_watch = view_menu->addAction(tr("&Watch"));
+  m_show_watch->setCheckable(true);
+  m_show_watch->setChecked(Settings::Instance().IsWatchVisible());
+
+  connect(m_show_watch, &QAction::toggled, &Settings::Instance(), &Settings::SetWatchVisible);
+  connect(&Settings::Instance(), &Settings::WatchVisibilityChanged, m_show_watch,
+          &QAction::setChecked);
+
+  m_show_breakpoints = view_menu->addAction(tr("&Breakpoints"));
+  m_show_breakpoints->setCheckable(true);
+  m_show_breakpoints->setChecked(Settings::Instance().IsBreakpointsVisible());
+
+  connect(m_show_breakpoints, &QAction::toggled, &Settings::Instance(),
+          &Settings::SetBreakpointsVisible);
+  connect(&Settings::Instance(), &Settings::BreakpointsVisibilityChanged, m_show_breakpoints,
           &QAction::setChecked);
 
   view_menu->addSeparator();

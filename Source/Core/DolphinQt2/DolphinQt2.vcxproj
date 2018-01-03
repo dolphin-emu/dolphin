@@ -47,7 +47,7 @@
       <AdditionalDependencies>avrt.lib;iphlpapi.lib;winmm.lib;setupapi.lib;opengl32.lib;glu32.lib;rpcrt4.lib;comctl32.lib;avcodec.lib;avformat.lib;avutil.lib;swresample.lib;swscale.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(ProjectDir)VideoInterface;$(ProjectDir)GameList;$(ProjectDir)Settings;$(ProjectDir)Config;$(ProjectDir)Config\Mapping;$(ProjectDir)Config\Graphics;$(ProjectDir)NetPlay;$(ProjectDir)QtUtils;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)VideoInterface;$(ProjectDir)GameList;$(ProjectDir)Debugger;$(ProjectDir)Settings;$(ProjectDir)Config;$(ProjectDir)Config\Mapping;$(ProjectDir)Config\Graphics;$(ProjectDir)NetPlay;$(ProjectDir)QtUtils;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Manifest>
       <AdditionalManifestFiles>DolphinQt2.manifest;%(AdditionalManifestFiles)</AdditionalManifestFiles>
@@ -84,6 +84,10 @@
     <QtMoc Include="Config\PropertiesDialog.h" />
     <QtMoc Include="Config\SettingsWindow.h" />
     <QtMoc Include="FIFOPlayerWindow.h" />
+    <QtMoc Include="Debugger\BreakpointWidget.h" />
+    <QtMoc Include="Debugger\NewBreakpointDialog.h" />
+    <QtMoc Include="Debugger\RegisterWidget.h" />
+    <QtMoc Include="Debugger\WatchWidget.h" />
     <QtMoc Include="GameList\GameFile.h" />
     <QtMoc Include="GameList\GameList.h" />
     <QtMoc Include="GameList\GameListModel.h" />
@@ -116,6 +120,7 @@
     <ClCompile Include="$(QtMocOutPrefix)AdvancedPane.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)AudioPane.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)AdvancedWidget.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)BreakpointWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)CheatWarningWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)ControllersWindow.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)EnhancementsWidget.cpp" />
@@ -153,14 +158,17 @@
     <ClCompile Include="$(QtMocOutPrefix)MenuBar.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)NetPlayDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)NetPlaySetupDialog.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)NewBreakpointDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)PadMappingDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)PropertiesDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)DoubleClickEventFilter.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)RegisterWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)RenderWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)Settings.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)SettingsWindow.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)SoftwareRendererWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)ToolBar.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)WatchWidget.cpp" />
     <ClCompile Include="AboutDialog.cpp" />
     <ClCompile Include="Config\CheatWarningWidget.cpp" />
     <ClCompile Include="Config\ControllersWindow.cpp" />
@@ -201,6 +209,11 @@
     <ClCompile Include="Config\PropertiesDialog.cpp" />
     <ClCompile Include="Config\SettingsWindow.cpp" />
     <ClCompile Include="FIFOPlayerWindow.cpp" />
+    <ClCompile Include="Debugger\BreakpointWidget.cpp" />
+    <ClCompile Include="Debugger\NewBreakpointDialog.cpp" />
+    <ClCompile Include="Debugger\RegisterColumn.cpp" />
+    <ClCompile Include="Debugger\RegisterWidget.cpp" />
+    <ClCompile Include="Debugger\WatchWidget.cpp" />
     <ClCompile Include="GameList\GameFile.cpp" />
     <ClCompile Include="GameList\GameFileCache.cpp" />
     <ClCompile Include="GameList\GameList.cpp" />
@@ -255,6 +268,8 @@
     <ClInclude Include="Config\Mapping\WiimoteEmuExtension.h" />
     <ClInclude Include="Config\Mapping\WiimoteEmuGeneral.h" />
     <ClInclude Include="Config\Mapping\WiimoteEmuMotionControl.h" />
+    <ClInclude Include="Config\RegisterColumn.h" />
+    <ClInclude Include="Config\RegisterWidget.h" />
     <ClInclude Include="GameList\GameFileCache.h" />
     <ClInclude Include="QtUtils\BlockUserInputFilter.h" />
     <ClInclude Include="QtUtils\ElidedButton.h" />

@@ -73,6 +73,7 @@ int main(int argc, char* argv[])
   UICommon::CreateDirectories();
   UICommon::Init();
   Resources::Init();
+  Settings::Instance().SetDebugModeEnabled(options.is_set("debugger"));
 
   // Hook up alerts from core
   RegisterMsgAlertHandler(QtMsgAlertHandler);

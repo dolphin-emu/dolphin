@@ -70,6 +70,11 @@ set(SRCS
   Config/Mapping/WiimoteEmuMotionControl.cpp
   Config/PropertiesDialog.cpp
   Config/SettingsWindow.cpp
+  Debugger/BreakpointWidget.cpp
+  Debugger/NewBreakpointDialog.cpp
+  Debugger/RegisterColumn.cpp
+  Debugger/RegisterWidget.cpp
+  Debugger/WatchWidget.cpp
   GameList/GameFileCache.cpp
   GameList/GameFile.cpp
   GameList/GameList.cpp
