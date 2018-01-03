@@ -198,7 +198,7 @@ public final class MainActivity extends AppCompatActivity implements MainView
 	@Nullable
 	private PlatformGamesView getPlatformGamesView(Platform platform)
 	{
-		String fragmentTag = "android:switcher:" + mViewPager.getId() + ":" + platform;
+		String fragmentTag = "android:switcher:" + mViewPager.getId() + ":" + platform.toInt();
 
 		return (PlatformGamesView) getSupportFragmentManager().findFragmentByTag(fragmentTag);
 	}
