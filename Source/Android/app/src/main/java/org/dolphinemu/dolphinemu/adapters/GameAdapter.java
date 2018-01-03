@@ -18,9 +18,9 @@ import org.dolphinemu.dolphinemu.utils.PicassoUtils;
 import org.dolphinemu.dolphinemu.viewholders.GameViewHolder;
 
 /**
- * This adapter, unlike {@link FileAdapter} which is backed by an ArrayList, gets its
- * information from a database Cursor. This fact, paired with the usage of ContentProviders
- * and Loaders, allows for efficient display of a limited view into a (possibly) large dataset.
+ * This adapter gets its information from a database Cursor. This fact, paired with the usage of
+ * ContentProviders and Loaders, allows for efficient display of a limited view into a (possibly)
+ * large dataset.
  */
 public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> implements
 		View.OnClickListener,

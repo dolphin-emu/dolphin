@@ -96,6 +96,8 @@ dependencies {
 
     // Allows FRP-style asynchronous operations in Android.
     api 'io.reactivex:rxandroid:1.2.1'
+
+    compile 'com.nononsenseapps:filepicker:4.1.0'
 }
 
 def getVersion() {
