@@ -774,7 +774,7 @@ void GameListCtrl::RescanList()
     cached_paths.emplace_back(file->GetFileName());
   std::sort(cached_paths.begin(), cached_paths.end());
 
-  std::list<std::string> removed_paths;
+  std::vector<std::string> removed_paths;
   std::set_difference(cached_paths.cbegin(), cached_paths.cend(), search_results.cbegin(),
                       search_results.cend(), std::back_inserter(removed_paths));
 
@@ -795,14 +795,17 @@ void GameListCtrl::RescanList()
     std::unique_lock<std::mutex> lk(m_cache_mutex);
     for (const auto& path : removed_paths)
     {
-      auto it = std::find_if(m_cached_files.cbegin(), m_cached_files.cend(),
+      auto it = std::find_if(m_cached_files.begin(), m_cached_files.end(),
                              [&path](const std::shared_ptr<GameListItem>& file) {
                                return file->GetFileName() == path;
                              });
-      if (it != m_cached_files.cend())
+      if (it != m_cached_files.end())
       {
         cache_changed = true;
-        m_cached_files.erase(it);
+
+        // Efficiently remove the file without caring about preserving any order
+        *it = std::move(m_cached_files.back());
+        m_cached_files.pop_back();
       }
     }
     for (const auto& path : new_paths)
