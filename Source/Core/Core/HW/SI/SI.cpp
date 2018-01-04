@@ -559,7 +559,10 @@ void ChangeDeviceDeterministic(SIDevices device, int channel)
   if (GetDeviceType(channel) != device)
   {
     CoreTiming::ScheduleEvent(0, s_change_device_event, ((u64)channel << 32) | SIDEVICE_NONE);
-    CoreTiming::ScheduleEvent(SystemTimers::GetTicksPerSecond(), s_change_device_event,
+    //Narrysmod_Hijack. Do it 1 tick later so the user doesn't goof things up
+    //Workaround until https://bugs.dolphin-emu.org/issues/10764 is fixed
+    //CoreTiming::ScheduleEvent(SystemTimers::GetTicksPerSecond(), s_change_device_event,
+    CoreTiming::ScheduleEvent(1, s_change_device_event,
                               ((u64)channel << 32) | device);
   }
 }
