@@ -4,9 +4,9 @@
 
 #pragma once
 
-#include <QFile>
-
-#include <mutex>
+#include <QList>
+#include <QMap>
+#include <QString>
 
 #include "DolphinQt2/GameList/GameFile.h"
 
@@ -16,15 +16,14 @@ public:
   explicit GameFileCache();
 
   void Update(const GameFile& gamefile);
-  void Save();
+  void Save() const;
   void Load();
-  bool IsCached(const QString& path);
-  GameFile GetFile(const QString& path);
-  QList<QString> GetCached();
+  bool IsCached(const QString& path) const;
+  GameFile GetFile(const QString& path) const;
+  QList<QString> GetCached() const;
 
 private:
   QString m_path;
 
   QMap<QString, GameFile> m_gamefiles;
-  std::mutex m_mutex;
 };
