@@ -1056,7 +1056,7 @@ void VR_UpdateHeadTrackingIfNeeded()
 #ifdef OVR_MAJOR_VERSION
     if (g_has_rift && g_has_openvr)
       ConvertOpenVRToOculusPose();
-    else
+    else if (g_has_rift)
       UpdateOculusHeadTracking();
 #endif
   }
