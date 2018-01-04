@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Common/SysConf.h"
+
 #include <algorithm>
 #include <cinttypes>
 #include <cstdio>
@@ -9,13 +11,10 @@
 #include <string>
 #include <vector>
 
-#include "Common/CommonFuncs.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
-#include "Common/Logging/Log.h"
-#include "Common/SysConf.h"
-
+#include "Common/Swap.h"
 #include "Core/Movie.h"
 
 SysConf::SysConf(const Common::FromWhichRoot root_type)

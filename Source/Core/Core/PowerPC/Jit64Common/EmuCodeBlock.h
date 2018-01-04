@@ -10,6 +10,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/x64Emitter.h"
 
+#include "Core/PowerPC/Jit64Common/ConstantPool.h"
 #include "Core/PowerPC/Jit64Common/FarCodeCache.h"
 #include "Core/PowerPC/Jit64Common/TrampolineInfo.h"
 
@@ -27,6 +28,18 @@ public:
   // Simple functions to switch between near and far code emitting
   void SwitchToFarCode();
   void SwitchToNearCode();
+
+  template <typename T>
+  Gen::OpArg MConst(const T& value)
+  {
+    return m_const_pool.GetConstantOpArg(&value, sizeof(T), 1, 0);
+  }
+
+  template <typename T, size_t N>
+  Gen::OpArg MConst(const T (&value)[N], size_t index = 0)
+  {
+    return m_const_pool.GetConstantOpArg(&value, sizeof(T), N, index);
+  }
 
   Gen::FixupBranch CheckIfSafeAddress(const Gen::OpArg& reg_value, Gen::X64Reg reg_addr,
                                       BitSet32 registers_in_use);
@@ -105,6 +118,7 @@ public:
   void Clear();
 
 protected:
+  ConstantPool m_const_pool;
   FarCodeCache m_far_code;
   u8* m_near_code;  // Backed up when we switch to far code.
 

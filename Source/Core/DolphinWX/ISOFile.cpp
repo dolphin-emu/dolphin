@@ -36,7 +36,7 @@
 #include "DolphinWX/ISOFile.h"
 #include "DolphinWX/WxUtils.h"
 
-static const u32 CACHE_REVISION = 0x128;  // Last changed in PR 4542
+static const u32 CACHE_REVISION = 0x129;  // Last changed in PR 5102
 
 static std::string GetLanguageString(DiscIO::Language language,
                                      std::map<DiscIO::Language, std::string> strings)

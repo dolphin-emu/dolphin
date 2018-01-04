@@ -24,10 +24,10 @@
 
 namespace SerialInterface
 {
-static CoreTiming::EventType* changeDevice;
-static CoreTiming::EventType* et_transfer_pending;
+static CoreTiming::EventType* s_change_device_event;
+static CoreTiming::EventType* s_tranfer_pending_event;
 
-static void RunSIBuffer(u64 userdata, s64 cyclesLate);
+static void RunSIBuffer(u64 user_data, s64 cycles_late);
 static void UpdateInterrupts();
 
 // SI Interrupt Types
@@ -36,7 +36,7 @@ enum SIInterruptType
   INT_RDSTINT = 0,
   INT_TCINT = 1,
 };
-static void GenerateSIInterrupt(SIInterruptType _SIInterrupt);
+static void GenerateSIInterrupt(SIInterruptType type);
 
 // SI Internal Hardware Addresses
 enum
@@ -62,7 +62,7 @@ enum
 // SI Channel Output
 union USIChannelOut
 {
-  u32 Hex;
+  u32 hex;
   struct
   {
     u32 OUTPUT1 : 8;
@@ -75,7 +75,7 @@ union USIChannelOut
 // SI Channel Input High u32
 union USIChannelIn_Hi
 {
-  u32 Hex;
+  u32 hex;
   struct
   {
     u32 INPUT3 : 8;
@@ -90,7 +90,7 @@ union USIChannelIn_Hi
 // SI Channel Input Low u32
 union USIChannelIn_Lo
 {
-  u32 Hex;
+  u32 hex;
   struct
   {
     u32 INPUT7 : 8;
@@ -103,16 +103,16 @@ union USIChannelIn_Lo
 // SI Channel
 struct SSIChannel
 {
-  USIChannelOut m_Out;
-  USIChannelIn_Hi m_InHi;
-  USIChannelIn_Lo m_InLo;
-  std::unique_ptr<ISIDevice> m_device;
+  USIChannelOut out;
+  USIChannelIn_Hi in_hi;
+  USIChannelIn_Lo in_lo;
+  std::unique_ptr<ISIDevice> device;
 };
 
 // SI Poll: Controls how often a device is polled
 union USIPoll
 {
-  u32 Hex;
+  u32 hex;
   struct
   {
     u32 VBCPY3 : 1;  // 1: write to output buffer only on vblank
@@ -132,7 +132,7 @@ union USIPoll
 // SI Communication Control Status Register
 union USIComCSR
 {
-  u32 Hex;
+  u32 hex = 0;
   struct
   {
     u32 TSTART : 1;   // write: start transfer  read: transfer status
@@ -152,14 +152,14 @@ union USIComCSR
     u32 TCINTMSK : 1;    // Transfer Complete Interrupt Mask
     u32 TCINT : 1;       // Transfer Complete Interrupt
   };
-  USIComCSR() { Hex = 0; }
-  USIComCSR(u32 _hex) { Hex = _hex; }
+  USIComCSR() = default;
+  USIComCSR(u32 value) : hex{value} {}
 };
 
 // SI Status Register
 union USIStatusReg
 {
-  u32 Hex;
+  u32 hex = 0;
   struct
   {
     u32 UNRUN3 : 1;  // (RWC) write 1: bit cleared  read 1: main proc underrun error
@@ -192,14 +192,14 @@ union USIStatusReg
     u32 : 1;
     u32 WR : 1;  // (RW) write 1 start copy, read 0 copy done
   };
-  USIStatusReg() { Hex = 0; }
-  USIStatusReg(u32 _hex) { Hex = _hex; }
+  USIStatusReg() = default;
+  USIStatusReg(u32 value) : hex{value} {}
 };
 
 // SI EXI Clock Count
 union USIEXIClockCount
 {
-  u32 Hex;
+  u32 hex;
   struct
   {
     u32 LOCK : 1;  // 1: prevents CPU from setting EXI clock to 32MHz
@@ -208,22 +208,22 @@ union USIEXIClockCount
 };
 
 // STATE_TO_SAVE
-static std::array<SSIChannel, MAX_SI_CHANNELS> g_Channel;
-static USIPoll g_Poll;
-static USIComCSR g_ComCSR;
-static USIStatusReg g_StatusReg;
-static USIEXIClockCount g_EXIClockCount;
-static u8 g_SIBuffer[128];
+static std::array<SSIChannel, MAX_SI_CHANNELS> s_channel;
+static USIPoll s_poll;
+static USIComCSR s_com_csr;
+static USIStatusReg s_status_reg;
+static USIEXIClockCount s_exi_clock_count;
+static std::array<u8, 128> s_si_buffer;
 
 void DoState(PointerWrap& p)
 {
   for (int i = 0; i < MAX_SI_CHANNELS; i++)
   {
-    p.Do(g_Channel[i].m_InHi.Hex);
-    p.Do(g_Channel[i].m_InLo.Hex);
-    p.Do(g_Channel[i].m_Out.Hex);
+    p.Do(s_channel[i].in_hi.hex);
+    p.Do(s_channel[i].in_lo.hex);
+    p.Do(s_channel[i].out.hex);
 
-    std::unique_ptr<ISIDevice>& device = g_Channel[i].m_device;
+    std::unique_ptr<ISIDevice>& device = s_channel[i].device;
     SIDevices type = device->GetDeviceType();
     p.Do(type);
 
@@ -244,23 +244,23 @@ void DoState(PointerWrap& p)
     }
   }
 
-  p.Do(g_Poll);
-  p.DoPOD(g_ComCSR);
-  p.DoPOD(g_StatusReg);
-  p.Do(g_EXIClockCount);
-  p.Do(g_SIBuffer);
+  p.Do(s_poll);
+  p.DoPOD(s_com_csr);
+  p.DoPOD(s_status_reg);
+  p.Do(s_exi_clock_count);
+  p.Do(s_si_buffer);
 }
 
-static void ChangeDeviceCallback(u64 userdata, s64 cyclesLate);
-static void RunSIBuffer(u64 userdata, s64 cyclesLate);
+static void ChangeDeviceCallback(u64 user_data, s64 cycles_late);
+static void RunSIBuffer(u64 user_data, s64 cycles_late);
 
 void Init()
 {
   for (int i = 0; i < MAX_SI_CHANNELS; i++)
   {
-    g_Channel[i].m_Out.Hex = 0;
-    g_Channel[i].m_InHi.Hex = 0;
-    g_Channel[i].m_InLo.Hex = 0;
+    s_channel[i].out.hex = 0;
+    s_channel[i].in_hi.hex = 0;
+    s_channel[i].in_lo.hex = 0;
 
     if (Movie::IsMovieActive())
     {
@@ -284,20 +284,22 @@ void Init()
     }
   }
 
-  g_Poll.Hex = 0;
-  g_Poll.X = 492;
+  s_poll.hex = 0;
+  s_poll.X = 492;
 
-  g_ComCSR.Hex = 0;
+  s_com_csr.hex = 0;
 
-  g_StatusReg.Hex = 0;
+  s_status_reg.hex = 0;
 
-  g_EXIClockCount.Hex = 0;
-  // g_EXIClockCount.LOCK = 1; // Supposedly set on reset, but logs from real Wii don't look like it
-  // is...
-  memset(g_SIBuffer, 0, 128);
+  s_exi_clock_count.hex = 0;
 
-  changeDevice = CoreTiming::RegisterEvent("ChangeSIDevice", ChangeDeviceCallback);
-  et_transfer_pending = CoreTiming::RegisterEvent("SITransferPending", RunSIBuffer);
+  // Supposedly set on reset, but logs from real Wii don't look like it is...
+  // s_exi_clock_count.LOCK = 1;
+
+  s_si_buffer = {};
+
+  s_change_device_event = CoreTiming::RegisterEvent("ChangeSIDevice", ChangeDeviceCallback);
+  s_tranfer_pending_event = CoreTiming::RegisterEvent("SITransferPending", RunSIBuffer);
 }
 
 void Shutdown()
@@ -310,9 +312,13 @@ void Shutdown()
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 {
   // Register SI buffer direct accesses.
-  for (int i = 0; i < 0x80; i += 4)
-    mmio->Register(base | (0x80 + i), MMIO::DirectRead<u32>((u32*)&g_SIBuffer[i]),
-                   MMIO::DirectWrite<u32>((u32*)&g_SIBuffer[i]));
+  for (size_t i = 0; i < s_si_buffer.size(); i += sizeof(u32))
+  {
+    const u32 address = base | static_cast<u32>(s_si_buffer.size() + i);
+
+    mmio->Register(address, MMIO::DirectRead<u32>((u32*)&s_si_buffer[i]),
+                   MMIO::DirectWrite<u32>((u32*)&s_si_buffer[i]));
+  }
 
   // In and out for the 4 SI channels.
   for (int i = 0; i < MAX_SI_CHANNELS; ++i)
@@ -325,130 +331,130 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
     int rdst_bit = 8 * (3 - i) + 5;
 
     mmio->Register(base | (SI_CHANNEL_0_OUT + 0xC * i),
-                   MMIO::DirectRead<u32>(&g_Channel[i].m_Out.Hex),
-                   MMIO::DirectWrite<u32>(&g_Channel[i].m_Out.Hex));
+                   MMIO::DirectRead<u32>(&s_channel[i].out.hex),
+                   MMIO::DirectWrite<u32>(&s_channel[i].out.hex));
     mmio->Register(base | (SI_CHANNEL_0_IN_HI + 0xC * i),
                    MMIO::ComplexRead<u32>([i, rdst_bit](u32) {
-                     g_StatusReg.Hex &= ~(1 << rdst_bit);
+                     s_status_reg.hex &= ~(1 << rdst_bit);
                      UpdateInterrupts();
-                     return g_Channel[i].m_InHi.Hex;
+                     return s_channel[i].in_hi.hex;
                    }),
-                   MMIO::DirectWrite<u32>(&g_Channel[i].m_InHi.Hex));
+                   MMIO::DirectWrite<u32>(&s_channel[i].in_hi.hex));
     mmio->Register(base | (SI_CHANNEL_0_IN_LO + 0xC * i),
                    MMIO::ComplexRead<u32>([i, rdst_bit](u32) {
-                     g_StatusReg.Hex &= ~(1 << rdst_bit);
+                     s_status_reg.hex &= ~(1 << rdst_bit);
                      UpdateInterrupts();
-                     return g_Channel[i].m_InLo.Hex;
+                     return s_channel[i].in_lo.hex;
                    }),
-                   MMIO::DirectWrite<u32>(&g_Channel[i].m_InLo.Hex));
+                   MMIO::DirectWrite<u32>(&s_channel[i].in_lo.hex));
   }
 
-  mmio->Register(base | SI_POLL, MMIO::DirectRead<u32>(&g_Poll.Hex),
-                 MMIO::DirectWrite<u32>(&g_Poll.Hex));
+  mmio->Register(base | SI_POLL, MMIO::DirectRead<u32>(&s_poll.hex),
+                 MMIO::DirectWrite<u32>(&s_poll.hex));
 
-  mmio->Register(base | SI_COM_CSR, MMIO::DirectRead<u32>(&g_ComCSR.Hex),
+  mmio->Register(base | SI_COM_CSR, MMIO::DirectRead<u32>(&s_com_csr.hex),
                  MMIO::ComplexWrite<u32>([](u32, u32 val) {
-                   USIComCSR tmpComCSR(val);
+                   USIComCSR tmp_com_csr(val);
 
-                   g_ComCSR.CHANNEL = tmpComCSR.CHANNEL;
-                   g_ComCSR.INLNGTH = tmpComCSR.INLNGTH;
-                   g_ComCSR.OUTLNGTH = tmpComCSR.OUTLNGTH;
-                   g_ComCSR.RDSTINTMSK = tmpComCSR.RDSTINTMSK;
-                   g_ComCSR.TCINTMSK = tmpComCSR.TCINTMSK;
+                   s_com_csr.CHANNEL = tmp_com_csr.CHANNEL;
+                   s_com_csr.INLNGTH = tmp_com_csr.INLNGTH;
+                   s_com_csr.OUTLNGTH = tmp_com_csr.OUTLNGTH;
+                   s_com_csr.RDSTINTMSK = tmp_com_csr.RDSTINTMSK;
+                   s_com_csr.TCINTMSK = tmp_com_csr.TCINTMSK;
 
-                   g_ComCSR.COMERR = 0;
+                   s_com_csr.COMERR = 0;
 
-                   if (tmpComCSR.RDSTINT)
-                     g_ComCSR.RDSTINT = 0;
-                   if (tmpComCSR.TCINT)
-                     g_ComCSR.TCINT = 0;
+                   if (tmp_com_csr.RDSTINT)
+                     s_com_csr.RDSTINT = 0;
+                   if (tmp_com_csr.TCINT)
+                     s_com_csr.TCINT = 0;
 
                    // be careful: run si-buffer after updating the INT flags
-                   if (tmpComCSR.TSTART)
+                   if (tmp_com_csr.TSTART)
                    {
-                     g_ComCSR.TSTART = 1;
+                     s_com_csr.TSTART = 1;
                      RunSIBuffer(0, 0);
                    }
-                   else if (g_ComCSR.TSTART)
+                   else if (s_com_csr.TSTART)
                    {
-                     CoreTiming::RemoveEvent(et_transfer_pending);
+                     CoreTiming::RemoveEvent(s_tranfer_pending_event);
                    }
 
-                   if (!g_ComCSR.TSTART)
+                   if (!s_com_csr.TSTART)
                      UpdateInterrupts();
                  }));
 
-  mmio->Register(base | SI_STATUS_REG, MMIO::DirectRead<u32>(&g_StatusReg.Hex),
+  mmio->Register(base | SI_STATUS_REG, MMIO::DirectRead<u32>(&s_status_reg.hex),
                  MMIO::ComplexWrite<u32>([](u32, u32 val) {
-                   USIStatusReg tmpStatus(val);
+                   USIStatusReg tmp_status(val);
 
                    // clear bits ( if (tmp.bit) SISR.bit=0 )
-                   if (tmpStatus.NOREP0)
-                     g_StatusReg.NOREP0 = 0;
-                   if (tmpStatus.COLL0)
-                     g_StatusReg.COLL0 = 0;
-                   if (tmpStatus.OVRUN0)
-                     g_StatusReg.OVRUN0 = 0;
-                   if (tmpStatus.UNRUN0)
-                     g_StatusReg.UNRUN0 = 0;
+                   if (tmp_status.NOREP0)
+                     s_status_reg.NOREP0 = 0;
+                   if (tmp_status.COLL0)
+                     s_status_reg.COLL0 = 0;
+                   if (tmp_status.OVRUN0)
+                     s_status_reg.OVRUN0 = 0;
+                   if (tmp_status.UNRUN0)
+                     s_status_reg.UNRUN0 = 0;
 
-                   if (tmpStatus.NOREP1)
-                     g_StatusReg.NOREP1 = 0;
-                   if (tmpStatus.COLL1)
-                     g_StatusReg.COLL1 = 0;
-                   if (tmpStatus.OVRUN1)
-                     g_StatusReg.OVRUN1 = 0;
-                   if (tmpStatus.UNRUN1)
-                     g_StatusReg.UNRUN1 = 0;
+                   if (tmp_status.NOREP1)
+                     s_status_reg.NOREP1 = 0;
+                   if (tmp_status.COLL1)
+                     s_status_reg.COLL1 = 0;
+                   if (tmp_status.OVRUN1)
+                     s_status_reg.OVRUN1 = 0;
+                   if (tmp_status.UNRUN1)
+                     s_status_reg.UNRUN1 = 0;
 
-                   if (tmpStatus.NOREP2)
-                     g_StatusReg.NOREP2 = 0;
-                   if (tmpStatus.COLL2)
-                     g_StatusReg.COLL2 = 0;
-                   if (tmpStatus.OVRUN2)
-                     g_StatusReg.OVRUN2 = 0;
-                   if (tmpStatus.UNRUN2)
-                     g_StatusReg.UNRUN2 = 0;
+                   if (tmp_status.NOREP2)
+                     s_status_reg.NOREP2 = 0;
+                   if (tmp_status.COLL2)
+                     s_status_reg.COLL2 = 0;
+                   if (tmp_status.OVRUN2)
+                     s_status_reg.OVRUN2 = 0;
+                   if (tmp_status.UNRUN2)
+                     s_status_reg.UNRUN2 = 0;
 
-                   if (tmpStatus.NOREP3)
-                     g_StatusReg.NOREP3 = 0;
-                   if (tmpStatus.COLL3)
-                     g_StatusReg.COLL3 = 0;
-                   if (tmpStatus.OVRUN3)
-                     g_StatusReg.OVRUN3 = 0;
-                   if (tmpStatus.UNRUN3)
-                     g_StatusReg.UNRUN3 = 0;
+                   if (tmp_status.NOREP3)
+                     s_status_reg.NOREP3 = 0;
+                   if (tmp_status.COLL3)
+                     s_status_reg.COLL3 = 0;
+                   if (tmp_status.OVRUN3)
+                     s_status_reg.OVRUN3 = 0;
+                   if (tmp_status.UNRUN3)
+                     s_status_reg.UNRUN3 = 0;
 
                    // send command to devices
-                   if (tmpStatus.WR)
+                   if (tmp_status.WR)
                    {
-                     g_Channel[0].m_device->SendCommand(g_Channel[0].m_Out.Hex, g_Poll.EN0);
-                     g_Channel[1].m_device->SendCommand(g_Channel[1].m_Out.Hex, g_Poll.EN1);
-                     g_Channel[2].m_device->SendCommand(g_Channel[2].m_Out.Hex, g_Poll.EN2);
-                     g_Channel[3].m_device->SendCommand(g_Channel[3].m_Out.Hex, g_Poll.EN3);
+                     s_channel[0].device->SendCommand(s_channel[0].out.hex, s_poll.EN0);
+                     s_channel[1].device->SendCommand(s_channel[1].out.hex, s_poll.EN1);
+                     s_channel[2].device->SendCommand(s_channel[2].out.hex, s_poll.EN2);
+                     s_channel[3].device->SendCommand(s_channel[3].out.hex, s_poll.EN3);
 
-                     g_StatusReg.WR = 0;
-                     g_StatusReg.WRST0 = 0;
-                     g_StatusReg.WRST1 = 0;
-                     g_StatusReg.WRST2 = 0;
-                     g_StatusReg.WRST3 = 0;
+                     s_status_reg.WR = 0;
+                     s_status_reg.WRST0 = 0;
+                     s_status_reg.WRST1 = 0;
+                     s_status_reg.WRST2 = 0;
+                     s_status_reg.WRST3 = 0;
                    }
                  }));
 
-  mmio->Register(base | SI_EXI_CLOCK_COUNT, MMIO::DirectRead<u32>(&g_EXIClockCount.Hex),
-                 MMIO::DirectWrite<u32>(&g_EXIClockCount.Hex));
+  mmio->Register(base | SI_EXI_CLOCK_COUNT, MMIO::DirectRead<u32>(&s_exi_clock_count.hex),
+                 MMIO::DirectWrite<u32>(&s_exi_clock_count.hex));
 }
 
 static void UpdateInterrupts()
 {
   // check if we have to update the RDSTINT flag
-  if (g_StatusReg.RDST0 || g_StatusReg.RDST1 || g_StatusReg.RDST2 || g_StatusReg.RDST3)
-    g_ComCSR.RDSTINT = 1;
+  if (s_status_reg.RDST0 || s_status_reg.RDST1 || s_status_reg.RDST2 || s_status_reg.RDST3)
+    s_com_csr.RDSTINT = 1;
   else
-    g_ComCSR.RDSTINT = 0;
+    s_com_csr.RDSTINT = 0;
 
   // check if we have to generate an interrupt
-  if ((g_ComCSR.RDSTINT & g_ComCSR.RDSTINTMSK) || (g_ComCSR.TCINT & g_ComCSR.TCINTMSK))
+  if ((s_com_csr.RDSTINT & s_com_csr.RDSTINTMSK) || (s_com_csr.TCINT & s_com_csr.TCINTMSK))
   {
     ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_SI, true);
   }
@@ -458,15 +464,15 @@ static void UpdateInterrupts()
   }
 }
 
-void GenerateSIInterrupt(SIInterruptType _SIInterrupt)
+void GenerateSIInterrupt(SIInterruptType type)
 {
-  switch (_SIInterrupt)
+  switch (type)
   {
   case INT_RDSTINT:
-    g_ComCSR.RDSTINT = 1;
+    s_com_csr.RDSTINT = 1;
     break;
   case INT_TCINT:
-    g_ComCSR.TCINT = 1;
+    s_com_csr.TCINT = 1;
     break;
   }
 
@@ -475,7 +481,7 @@ void GenerateSIInterrupt(SIInterruptType _SIInterrupt)
 
 void RemoveDevice(int device_number)
 {
-  g_Channel.at(device_number).m_device.reset();
+  s_channel.at(device_number).device.reset();
 }
 
 void AddDevice(std::unique_ptr<ISIDevice> device)
@@ -486,7 +492,7 @@ void AddDevice(std::unique_ptr<ISIDevice> device)
   RemoveDevice(device_number);
 
   // Set the new one
-  g_Channel.at(device_number).m_device = std::move(device);
+  s_channel.at(device_number).device = std::move(device);
 }
 
 void AddDevice(const SIDevices device, int device_number)
@@ -500,32 +506,32 @@ static void SetNoResponse(u32 channel)
   switch (channel)
   {
   case 0:
-    g_StatusReg.NOREP0 = 1;
+    s_status_reg.NOREP0 = 1;
     break;
   case 1:
-    g_StatusReg.NOREP1 = 1;
+    s_status_reg.NOREP1 = 1;
     break;
   case 2:
-    g_StatusReg.NOREP2 = 1;
+    s_status_reg.NOREP2 = 1;
     break;
   case 3:
-    g_StatusReg.NOREP3 = 1;
+    s_status_reg.NOREP3 = 1;
     break;
   }
-  g_ComCSR.COMERR = 1;
+  s_com_csr.COMERR = 1;
 }
 
-static void ChangeDeviceCallback(u64 userdata, s64 cyclesLate)
+static void ChangeDeviceCallback(u64 user_data, s64 cycles_late)
 {
-  u8 channel = (u8)(userdata >> 32);
-  SIDevices device = (SIDevices)(u32)userdata;
+  u8 channel = (u8)(user_data >> 32);
+  SIDevices device = (SIDevices)(u32)user_data;
 
   // Skip redundant (spammed) device changes
   if (GetDeviceType(channel) != device)
   {
-    g_Channel[channel].m_Out.Hex = 0;
-    g_Channel[channel].m_InHi.Hex = 0;
-    g_Channel[channel].m_InLo.Hex = 0;
+    s_channel[channel].out.hex = 0;
+    s_channel[channel].in_hi.hex = 0;
+    s_channel[channel].in_lo.hex = 0;
 
     SetNoResponse(channel);
 
@@ -540,9 +546,9 @@ void ChangeDevice(SIDevices device, int channel)
   // TODO: Calling GetDeviceType here isn't threadsafe.
   if (GetDeviceType(channel) != device)
   {
-    CoreTiming::ScheduleEvent(0, changeDevice, ((u64)channel << 32) | SIDEVICE_NONE,
+    CoreTiming::ScheduleEvent(0, s_change_device_event, ((u64)channel << 32) | SIDEVICE_NONE,
                               CoreTiming::FromThread::NON_CPU);
-    CoreTiming::ScheduleEvent(SystemTimers::GetTicksPerSecond(), changeDevice,
+    CoreTiming::ScheduleEvent(SystemTimers::GetTicksPerSecond(), s_change_device_event,
                               ((u64)channel << 32) | device, CoreTiming::FromThread::NON_CPU);
   }
 }
@@ -552,8 +558,8 @@ void ChangeDeviceDeterministic(SIDevices device, int channel)
   // Called from savestates, so we don't use FromThread::NON_CPU.
   if (GetDeviceType(channel) != device)
   {
-    CoreTiming::ScheduleEvent(0, changeDevice, ((u64)channel << 32) | SIDEVICE_NONE);
-    CoreTiming::ScheduleEvent(SystemTimers::GetTicksPerSecond(), changeDevice,
+    CoreTiming::ScheduleEvent(0, s_change_device_event, ((u64)channel << 32) | SIDEVICE_NONE);
+    CoreTiming::ScheduleEvent(SystemTimers::GetTicksPerSecond(), s_change_device_event,
                               ((u64)channel << 32) | device);
   }
 }
@@ -565,14 +571,14 @@ void UpdateDevices()
   g_controller_interface.UpdateInput();
 
   // Update channels and set the status bit if there's new data
-  g_StatusReg.RDST0 =
-      !!g_Channel[0].m_device->GetData(g_Channel[0].m_InHi.Hex, g_Channel[0].m_InLo.Hex);
-  g_StatusReg.RDST1 =
-      !!g_Channel[1].m_device->GetData(g_Channel[1].m_InHi.Hex, g_Channel[1].m_InLo.Hex);
-  g_StatusReg.RDST2 =
-      !!g_Channel[2].m_device->GetData(g_Channel[2].m_InHi.Hex, g_Channel[2].m_InLo.Hex);
-  g_StatusReg.RDST3 =
-      !!g_Channel[3].m_device->GetData(g_Channel[3].m_InHi.Hex, g_Channel[3].m_InLo.Hex);
+  s_status_reg.RDST0 =
+      !!s_channel[0].device->GetData(s_channel[0].in_hi.hex, s_channel[0].in_lo.hex);
+  s_status_reg.RDST1 =
+      !!s_channel[1].device->GetData(s_channel[1].in_hi.hex, s_channel[1].in_lo.hex);
+  s_status_reg.RDST2 =
+      !!s_channel[2].device->GetData(s_channel[2].in_hi.hex, s_channel[2].in_lo.hex);
+  s_status_reg.RDST3 =
+      !!s_channel[3].device->GetData(s_channel[3].in_hi.hex, s_channel[3].in_lo.hex);
 
   UpdateInterrupts();
 }
@@ -582,48 +588,48 @@ SIDevices GetDeviceType(int channel)
   if (channel < 0 || channel > 3)
     return SIDEVICE_NONE;
 
-  return g_Channel[channel].m_device->GetDeviceType();
+  return s_channel[channel].device->GetDeviceType();
 }
 
-static void RunSIBuffer(u64 userdata, s64 cyclesLate)
+static void RunSIBuffer(u64 user_data, s64 cycles_late)
 {
-  if (g_ComCSR.TSTART)
+  if (s_com_csr.TSTART)
   {
-    // Math inLength
-    int inLength = g_ComCSR.INLNGTH;
-    if (inLength == 0)
-      inLength = 128;
+    // Math in_length
+    int in_length = s_com_csr.INLNGTH;
+    if (in_length == 0)
+      in_length = 128;
     else
-      inLength++;
+      in_length++;
 
-    // Math outLength
-    int outLength = g_ComCSR.OUTLNGTH;
-    if (outLength == 0)
-      outLength = 128;
+    // Math out_length
+    int out_length = s_com_csr.OUTLNGTH;
+    if (out_length == 0)
+      out_length = 128;
     else
-      outLength++;
+      out_length++;
 
-    std::unique_ptr<ISIDevice>& device = g_Channel[g_ComCSR.CHANNEL].m_device;
-    int numOutput = device->RunBuffer(g_SIBuffer, inLength);
+    std::unique_ptr<ISIDevice>& device = s_channel[s_com_csr.CHANNEL].device;
+    int numOutput = device->RunBuffer(s_si_buffer.data(), in_length);
 
     DEBUG_LOG(SERIALINTERFACE, "RunSIBuffer  chan: %d  inLen: %i  outLen: %i  processed: %i",
-              g_ComCSR.CHANNEL, inLength, outLength, numOutput);
+              s_com_csr.CHANNEL, in_length, out_length, numOutput);
 
     if (numOutput != 0)
     {
-      g_ComCSR.TSTART = 0;
+      s_com_csr.TSTART = 0;
       GenerateSIInterrupt(INT_TCINT);
     }
     else
     {
-      CoreTiming::ScheduleEvent(device->TransferInterval() - cyclesLate, et_transfer_pending);
+      CoreTiming::ScheduleEvent(device->TransferInterval() - cycles_late, s_tranfer_pending_event);
     }
   }
 }
 
 u32 GetPollXLines()
 {
-  return g_Poll.X;
+  return s_poll.X;
 }
 
 }  // end of namespace SerialInterface

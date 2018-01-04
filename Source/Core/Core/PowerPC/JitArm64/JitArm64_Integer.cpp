@@ -73,7 +73,7 @@ void JitArm64::ComputeCarry()
     return;
 
   js.carryFlagSet = true;
-  if (MergeAllowedNextInstructions(1) && js.op[1].opinfo->type == OPTYPE_INTEGER)
+  if (CanMergeNextInstructions(1) && js.op[1].opinfo->type == OPTYPE_INTEGER)
   {
     return;
   }
@@ -575,7 +575,7 @@ void JitArm64::srawix(UGeckoInstruction inst)
   int a = inst.RA;
   int s = inst.RS;
   int amount = inst.SH;
-  bool inplace_carry = MergeAllowedNextInstructions(1) && js.op[1].wantsCAInFlags;
+  bool inplace_carry = CanMergeNextInstructions(1) && js.op[1].wantsCAInFlags;
 
   if (gpr.IsImm(s))
   {
@@ -1157,28 +1157,31 @@ void JitArm64::divwx(UGeckoInstruction inst)
     gpr.BindToRegister(d, d == a || d == b);
 
     ARM64Reg WA = gpr.GetReg();
+    ARM64Reg RA = gpr.R(a);
+    ARM64Reg RB = gpr.R(b);
+    ARM64Reg RD = gpr.R(d);
 
-    FixupBranch slow1 = CBZ(gpr.R(b));
+    FixupBranch slow1 = CBZ(RB);
     MOVI2R(WA, -0x80000000LL);
-    CMP(gpr.R(a), WA);
-    CCMN(gpr.R(b), 1, 0, CC_EQ);
+    CMP(RA, WA);
+    CCMN(RB, 1, 0, CC_EQ);
     FixupBranch slow2 = B(CC_EQ);
-    SDIV(gpr.R(d), gpr.R(a), gpr.R(b));
+    SDIV(RD, RA, RB);
     FixupBranch done = B();
 
     SetJumpTarget(slow1);
     SetJumpTarget(slow2);
 
-    CMP(gpr.R(b), 0);
-    CCMP(gpr.R(a), 0, 0, CC_EQ);
-    CSETM(gpr.R(d), CC_LT);
+    CMP(RB, 0);
+    CCMP(RA, 0, 0, CC_EQ);
+    CSETM(RD, CC_LT);
 
     SetJumpTarget(done);
 
     gpr.Unlock(WA);
 
     if (inst.Rc)
-      ComputeRC(gpr.R(d));
+      ComputeRC(RD);
   }
 }
 
@@ -1283,7 +1286,7 @@ void JitArm64::srawx(UGeckoInstruction inst)
   JITDISABLE(bJITIntegerOff);
 
   int a = inst.RA, b = inst.RB, s = inst.RS;
-  bool inplace_carry = MergeAllowedNextInstructions(1) && js.op[1].wantsCAInFlags;
+  bool inplace_carry = CanMergeNextInstructions(1) && js.op[1].wantsCAInFlags;
 
   if (gpr.IsImm(b) && gpr.IsImm(s))
   {
@@ -1333,26 +1336,28 @@ void JitArm64::srawx(UGeckoInstruction inst)
     ARM64Reg WA = gpr.GetReg();
     ARM64Reg WB = gpr.GetReg();
     ARM64Reg WC = gpr.GetReg();
+    ARM64Reg RB = gpr.R(b);
+    ARM64Reg RS = gpr.R(s);
 
-    ANDI2R(WA, gpr.R(b), 32);
-    FixupBranch bit_is_not_zero = TBNZ(gpr.R(b), 5);
+    ANDI2R(WA, RB, 32);
+    FixupBranch bit_is_not_zero = TBNZ(RB, 5);
 
-    ANDSI2R(WC, gpr.R(b), 31);
-    MOV(WB, gpr.R(s));
+    ANDSI2R(WC, RB, 31);
+    MOV(WB, RS);
     FixupBranch is_zero = B(CC_EQ);
 
-    ASRV(WB, gpr.R(s), WC);
-    FixupBranch bit_is_zero = TBZ(gpr.R(s), 31);
+    ASRV(WB, RS, WC);
+    FixupBranch bit_is_zero = TBZ(RS, 31);
 
     MOVI2R(WA, 32);
     SUB(WC, WA, WC);
-    LSL(WC, gpr.R(s), WC);
+    LSL(WC, RS, WC);
     CMP(WC, 0);
     CSET(WA, CC_NEQ);
     FixupBranch end = B();
 
     SetJumpTarget(bit_is_not_zero);
-    CMP(gpr.R(s), 0);
+    CMP(RS, 0);
     CSET(WA, CC_LT);
     CSINV(WB, WZR, WZR, CC_GE);
 

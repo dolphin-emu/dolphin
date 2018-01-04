@@ -13,7 +13,6 @@
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
-#include "Common/LibusbContext.h"
 #include "Common/Logging/Log.h"
 #include "Common/Thread.h"
 #include "Core/ConfigManager.h"
@@ -30,6 +29,18 @@ namespace Device
 {
 USBHost::USBHost(u32 device_id, const std::string& device_name) : Device(device_id, device_name)
 {
+#ifdef __LIBUSB__
+  const int ret = libusb_init(&m_libusb_context);
+  _dbg_assert_msg_(IOS_USB, ret == 0, "Failed to init libusb for USB passthrough.");
+#endif
+}
+
+USBHost::~USBHost()
+{
+#ifdef __LIBUSB__
+  if (m_libusb_context)
+    libusb_exit(m_libusb_context);
+#endif
 }
 
 ReturnCode USBHost::Open(const OpenRequest& request)
@@ -116,11 +127,10 @@ bool USBHost::AddNewDevices(std::set<u64>& new_devices, DeviceChangeHooks& hooks
   if (SConfig::GetInstance().m_usb_passthrough_devices.empty())
     return true;
 
-  auto libusb_context = LibusbContext::Get();
-  if (libusb_context)
+  if (m_libusb_context)
   {
     libusb_device** list;
-    const ssize_t count = libusb_get_device_list(libusb_context.get(), &list);
+    const ssize_t count = libusb_get_device_list(m_libusb_context, &list);
     if (count < 0)
     {
       WARN_LOG(IOS_USB, "Failed to get device list: %s",
@@ -135,17 +145,25 @@ bool USBHost::AddNewDevices(std::set<u64>& new_devices, DeviceChangeHooks& hooks
       libusb_get_device_descriptor(device, &descriptor);
       if (!SConfig::GetInstance().IsUSBDeviceWhitelisted(
               {descriptor.idVendor, descriptor.idProduct}))
+      {
+        libusb_unref_device(device);
         continue;
+      }
 
       auto usb_device = std::make_unique<USB::LibusbDevice>(device, descriptor);
       if (!ShouldAddDevice(*usb_device))
+      {
+        libusb_unref_device(device);
         continue;
+      }
       const u64 id = usb_device->GetId();
       new_devices.insert(id);
       if (AddDevice(std::move(usb_device)) || always_add_hooks)
         hooks.emplace(GetDeviceById(id), ChangeEvent::Inserted);
+      else
+        libusb_unref_device(device);
     }
-    libusb_free_device_list(list, 1);
+    libusb_free_device_list(list, 0);
   }
 #endif
   return true;
@@ -200,12 +218,11 @@ void USBHost::StartThreads()
   }
 
 #ifdef __LIBUSB__
-  if (!m_event_thread_running.IsSet())
+  if (!m_event_thread_running.IsSet() && m_libusb_context)
   {
     m_event_thread_running.Set();
     m_event_thread = std::thread([this] {
       Common::SetCurrentThreadName("USB Passthrough Thread");
-      std::shared_ptr<libusb_context> context;
       while (m_event_thread_running.IsSet())
       {
         if (SConfig::GetInstance().m_usb_passthrough_devices.empty())
@@ -214,15 +231,8 @@ void USBHost::StartThreads()
           continue;
         }
 
-        if (!context)
-          context = LibusbContext::Get();
-
-        // If we failed to get a libusb context, stop the thread.
-        if (!context)
-          return;
-
         static timeval tv = {0, 50000};
-        libusb_handle_events_timeout_completed(context.get(), &tv, nullptr);
+        libusb_handle_events_timeout_completed(m_libusb_context, &tv, nullptr);
       }
     });
   }

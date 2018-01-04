@@ -23,8 +23,8 @@
 #include "Common/Event.h"
 #include "Common/Flag.h"
 #include "Common/Logging/LogManager.h"
-#include "Common/MathUtil.h"
 #include "Common/MemoryUtil.h"
+#include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
 #include "Common/Timer.h"
@@ -43,16 +43,12 @@
 #include "Core/Boot/Boot.h"
 #include "Core/FifoPlayer/FifoPlayer.h"
 #include "Core/HLE/HLE.h"
-#include "Core/HW/AudioInterface.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/EXI/EXI.h"
 #include "Core/HW/GCKeyboard.h"
 #include "Core/HW/GCPad.h"
-#include "Core/HW/GPFifo.h"
 #include "Core/HW/HW.h"
-#include "Core/HW/Memmap.h"
-#include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/HW/VideoInterface.h"
 #include "Core/HW/Wiimote.h"
@@ -70,9 +66,9 @@
 #include "Core/PowerPC/GDBStub.h"
 #endif
 
-#include "DiscIO/FileMonitor.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/GCAdapter.h"
+
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/RenderBase.h"
@@ -765,8 +761,6 @@ void EmuThread()
     g_video_backend->Video_Cleanup();
   }
 
-  FileMon::Close();
-
   // We must set up this flag before executing HW::Shutdown()
   s_hardware_initialized = false;
   INFO_LOG(CONSOLE, "%s", StopMessage(false, "Shutting down HW").c_str());
@@ -888,19 +882,19 @@ static std::string GenerateScreenshotName()
   return name;
 }
 
-void SaveScreenShot()
+void SaveScreenShot(bool wait_for_completion)
 {
   const bool bPaused = GetState() == State::Paused;
 
   SetState(State::Paused);
 
-  Renderer::SetScreenshot(GenerateScreenshotName());
+  g_renderer->SaveScreenshot(GenerateScreenshotName(), wait_for_completion);
 
   if (!bPaused)
     SetState(State::Running);
 }
 
-void SaveScreenShot(const std::string& name)
+void SaveScreenShot(const std::string& name, bool wait_for_completion)
 {
   const bool bPaused = GetState() == State::Paused;
 
@@ -908,7 +902,7 @@ void SaveScreenShot(const std::string& name)
 
   std::string filePath = GenerateScreenshotFolderPath() + name + ".png";
 
-  Renderer::SetScreenshot(filePath);
+  g_renderer->SaveScreenshot(filePath, wait_for_completion);
 
   if (!bPaused)
     SetState(State::Running);

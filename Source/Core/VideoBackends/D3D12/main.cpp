@@ -64,6 +64,7 @@ void VideoBackend::InitBackendInfo()
   }
 
   g_Config.backend_info.api_type = APIType::D3D;
+  g_Config.backend_info.MaxTextureSize = D3D12_REQ_TEXTURE2D_U_OR_V_DIMENSION;
   g_Config.backend_info.bSupportsExclusiveFullscreen = false;
   g_Config.backend_info.bSupportsDualSourceBlend = true;
   g_Config.backend_info.bSupportsPrimitiveRestart = true;
@@ -119,7 +120,8 @@ void VideoBackend::InitBackendInfo()
         g_Config.backend_info.bSupportsEarlyZ = true;
 
         // Requires full UAV functionality (only available in shader model 5)
-        g_Config.backend_info.bSupportsBBox = true;
+        g_Config.backend_info.bSupportsBBox =
+            g_Config.backend_info.bSupportsFragmentStoresAndAtomics = true;
 
         // Requires the instance attribute (only available in shader model 5)
         g_Config.backend_info.bSupportsGSInstancing = true;
@@ -169,7 +171,7 @@ bool VideoBackend::InitializeOtherThread(void *window_handle, std::thread *video
 void VideoBackend::Video_Prepare()
 {
   // internal interfaces
-  g_renderer = std::make_unique<Renderer>(m_window_handle);
+  g_renderer = std::make_unique<Renderer>();
   g_texture_cache = std::make_unique<TextureCache>();
   g_vertex_manager = std::make_unique<VertexManager>();
   g_perf_query = std::make_unique<PerfQuery>();

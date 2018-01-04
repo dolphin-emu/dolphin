@@ -3,20 +3,17 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
-#include <cstdio>
-#include <fstream>
-#include <stdlib.h>
 #include <string>
 #include <unordered_set>
 #include <utility>
+#include <vector>
 
-#include "Common/CommonFuncs.h"
-#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
+#include "Common/Swap.h"
 
 namespace Common
 {
@@ -24,6 +21,13 @@ std::string RootUserPath(FromWhichRoot from)
 {
   int idx = from == FROM_CONFIGURED_ROOT ? D_WIIROOT_IDX : D_SESSION_WIIROOT_IDX;
   return File::GetUserPath(idx);
+}
+
+std::string GetImportTitlePath(u64 title_id, FromWhichRoot from)
+{
+  return RootUserPath(from) + StringFromFormat("/import/%08x/%08x",
+                                               static_cast<u32>(title_id >> 32),
+                                               static_cast<u32>(title_id));
 }
 
 std::string GetTicketFileName(u64 _titleID, FromWhichRoot from)
@@ -46,38 +50,6 @@ std::string GetTitleContentPath(u64 _titleID, FromWhichRoot from)
 {
   return StringFromFormat("%s/title/%08x/%08x/content/", RootUserPath(from).c_str(),
                           (u32)(_titleID >> 32), (u32)_titleID);
-}
-
-bool CheckTitleTMD(u64 _titleID, FromWhichRoot from)
-{
-  const std::string TitlePath = GetTMDFileName(_titleID, from);
-  if (File::Exists(TitlePath))
-  {
-    File::IOFile pTMDFile(TitlePath, "rb");
-    u64 TitleID = 0;
-    pTMDFile.Seek(0x18C, SEEK_SET);
-    if (pTMDFile.ReadArray(&TitleID, 1) && _titleID == Common::swap64(TitleID))
-      return true;
-  }
-  INFO_LOG(DISCIO, "Invalid or no tmd for title %08x %08x", (u32)(_titleID >> 32),
-           (u32)(_titleID & 0xFFFFFFFF));
-  return false;
-}
-
-bool CheckTitleTIK(u64 _titleID, FromWhichRoot from)
-{
-  const std::string ticketFileName = Common::GetTicketFileName(_titleID, from);
-  if (File::Exists(ticketFileName))
-  {
-    File::IOFile pTIKFile(ticketFileName, "rb");
-    u64 TitleID = 0;
-    pTIKFile.Seek(0x1dC, SEEK_SET);
-    if (pTIKFile.ReadArray(&TitleID, 1) && _titleID == Common::swap64(TitleID))
-      return true;
-  }
-  INFO_LOG(DISCIO, "Invalid or no tik for title %08x %08x", (u32)(_titleID >> 32),
-           (u32)(_titleID & 0xFFFFFFFF));
-  return false;
 }
 
 std::string EscapeFileName(const std::string& filename)

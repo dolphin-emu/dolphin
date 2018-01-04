@@ -231,6 +231,8 @@ void JitArm64::bclrx(UGeckoInstruction inst)
       (inst.BO & BO_DONT_DECREMENT_FLAG) == 0 || (inst.BO & BO_DONT_CHECK_CONDITION) == 0;
 
   ARM64Reg WA = gpr.GetReg();
+  ARM64Reg WB = inst.LK ? gpr.GetReg() : INVALID_REG;
+
   FixupBranch pCTRDontBranch;
   if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)  // Decrement and test CTR
   {
@@ -263,7 +265,6 @@ void JitArm64::bclrx(UGeckoInstruction inst)
 
   if (inst.LK)
   {
-    ARM64Reg WB = gpr.GetReg();
     MOVI2R(WB, js.compilerPC + 4);
     STR(INDEX_UNSIGNED, WB, PPC_REG, PPCSTATE_OFF(spr[SPR_LR]));
     gpr.Unlock(WB);

@@ -37,6 +37,8 @@
 #include "InputCommon/ControllerEmu/ControlGroup/Force.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ModifySettingsButton.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Tilt.h"
+#include "InputCommon/ControllerEmu/Setting/BooleanSetting.h"
+#include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VR.h"
@@ -246,7 +248,7 @@ void Wiimote::Reset()
   //   0x33 - 0x43: level 2
   //   0x33 - 0x54: level 3
   //   0x55 - 0xff: level 4
-  m_status.battery = (u8)(m_options->numeric_settings[1]->GetValue() * 100);
+  m_status.battery = (u8)(m_battery_setting->GetValue() * 100);
 
   memset(m_shake_step, 0, sizeof(m_shake_step));
 
@@ -297,11 +299,11 @@ Wiimote::Wiimote(const unsigned int index)
   m_extension->attachments.emplace_back(new WiimoteEmu::Turntable(m_reg_ext));
 
   m_extension->boolean_settings.emplace_back(
-      std::make_unique<ControllerEmu::ControlGroup::BooleanSetting>(_trans("Motion Plus"), false));
+      m_motion_plus_setting = new ControllerEmu::BooleanSetting(_trans("Motion Plus"), false));
 
   // rumble
   groups.emplace_back(m_rumble = new ControllerEmu::ControlGroup(_trans("Rumble")));
-  m_rumble->controls.emplace_back(new ControllerEmu::Output(_trans("Motor")));
+  m_rumble->controls.emplace_back(m_motor = new ControllerEmu::Output(_trans("Motor")));
 
   // dpad
   groups.emplace_back(m_dpad = new ControllerEmu::Buttons("D-Pad"));
@@ -311,23 +313,17 @@ Wiimote::Wiimote(const unsigned int index)
   // options
   groups.emplace_back(m_options = new ControllerEmu::ControlGroup(_trans("Options")));
   m_options->boolean_settings.emplace_back(
-      std::make_unique<ControllerEmu::ControlGroup::BackgroundInputSetting>(
-          _trans("Background Input")));
+      m_sideways_setting = new ControllerEmu::BooleanSetting("Sideways Wiimote",
+                                                             _trans("Sideways Wii Remote"), false));
   m_options->boolean_settings.emplace_back(
-      std::make_unique<ControllerEmu::ControlGroup::BooleanSetting>(
-          "Sideways Wiimote", _trans("Sideways Wii Remote"), false));
-  m_options->boolean_settings.emplace_back(
-      std::make_unique<ControllerEmu::ControlGroup::BooleanSetting>(
-          "Upright Wiimote", _trans("Upright Wii Remote"), false));
-  m_options->boolean_settings.emplace_back(
-      std::make_unique<ControllerEmu::ControlGroup::BooleanSetting>(
-          _trans("Iterative Input"), false, ControllerEmu::ControlGroup::SettingType::VIRTUAL));
+      m_upright_setting = new ControllerEmu::BooleanSetting("Upright Wiimote",
+                                                            _trans("Upright Wii Remote"), false));
+  m_options->boolean_settings.emplace_back(std::make_unique<ControllerEmu::BooleanSetting>(
+      _trans("Iterative Input"), false, ControllerEmu::SettingType::VIRTUAL));
   m_options->numeric_settings.emplace_back(
-      std::make_unique<ControllerEmu::ControlGroup::NumericSetting>(_trans("Speaker Pan"), 0, -127,
-                                                                    127));
+      std::make_unique<ControllerEmu::NumericSetting>(_trans("Speaker Pan"), 0, -127, 127));
   m_options->numeric_settings.emplace_back(
-      std::make_unique<ControllerEmu::ControlGroup::NumericSetting>(_trans("Battery"), 95.0 / 100,
-                                                                    0, 255));
+      m_battery_setting = new ControllerEmu::NumericSetting(_trans("Battery"), 95.0 / 100, 0, 255));
 
   // hotkeys
   groups.emplace_back(m_hotkeys = new ControllerEmu::ModifySettingsButton(_trans("Hotkeys")));
@@ -409,10 +405,10 @@ ControllerEmu::ControlGroup* Wiimote::GetTurntableGroup(TurntableGroup group)
 bool Wiimote::Step()
 {
   // TODO: change this a bit
-  m_motion_plus_present = m_extension->boolean_settings[0]->GetValue();
+  m_motion_plus_present = m_motion_plus_setting->GetValue();
   m_motion_plus_active = m_reg_motion_plus.ext_identifier[2] == 0xa4;
 
-  m_rumble->controls[0]->control_ref->State(m_rumble_on);
+  m_motor->control_ref->State(m_rumble_on);
 
   // when a movie is active, this button status update is disabled (moved), because movies only
   // record data reports.
@@ -473,8 +469,8 @@ void Wiimote::UpdateButtonsStatus()
   m_status.buttons.hex = 0;
   const bool sideways_modifier_toggle = m_hotkeys->getSettingsModifier()[0];
   const bool sideways_modifier_switch = m_hotkeys->getSettingsModifier()[2];
-  const bool is_sideways = m_options->boolean_settings[1]->GetValue() ^ sideways_modifier_toggle ^
-                           sideways_modifier_switch;
+  const bool is_sideways =
+      m_sideways_setting->GetValue() ^ sideways_modifier_toggle ^ sideways_modifier_switch;
   m_buttons->GetState(&m_status.buttons.hex, button_bitmasks);
   m_dpad->GetState(&m_status.buttons.hex, is_sideways ? dpad_sideways_bitmasks : dpad_bitmasks);
   bool cycle_extension = false;
@@ -504,10 +500,10 @@ void Wiimote::GetAccelData(u8* const data, const ReportFeatures& rptf)
   const bool upright_modifier_toggle = m_hotkeys->getSettingsModifier()[1];
   const bool sideways_modifier_switch = m_hotkeys->getSettingsModifier()[2];
   const bool upright_modifier_switch = m_hotkeys->getSettingsModifier()[3];
-  const bool is_sideways = m_options->boolean_settings[1]->GetValue() ^ sideways_modifier_toggle ^
-                           sideways_modifier_switch;
-  const bool is_upright = m_options->boolean_settings[2]->GetValue() ^ upright_modifier_toggle ^
-                          upright_modifier_switch;
+  const bool is_sideways =
+      m_sideways_setting->GetValue() ^ sideways_modifier_toggle ^ sideways_modifier_switch;
+  const bool is_upright =
+      m_upright_setting->GetValue() ^ upright_modifier_toggle ^ upright_modifier_switch;
 
   EmulateTilt(&m_accel, m_tilt, is_sideways, is_upright);
 
@@ -798,7 +794,7 @@ void Wiimote::Update()
 
   Movie::SetPolledDevice();
 
-  m_status.battery = (u8)(m_options->numeric_settings[1]->GetValue() * 100);
+  m_status.battery = (u8)(m_battery_setting->GetValue() * 100);
 
   const ReportFeatures& rptf = reporting_mode_features[m_reporting_mode - WM_REPORT_CORE];
   s8 rptf_size = rptf.size;

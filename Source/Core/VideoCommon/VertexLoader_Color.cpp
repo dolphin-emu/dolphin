@@ -4,8 +4,9 @@
 
 #include <cstring>
 
-#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
+#include "Common/Swap.h"
+
 #include "VideoCommon/VertexLoader.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexLoaderUtils.h"

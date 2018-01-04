@@ -58,6 +58,7 @@
 #include "VideoCommon/FramebufferManagerBase.h"
 #include "VideoCommon/ImageWrite.h"
 #include "VideoCommon/OnScreenDisplay.h"
+#include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/PostProcessing.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/TextureCacheBase.h"
@@ -75,39 +76,6 @@ static int OSDTime;
 
 std::unique_ptr<Renderer> g_renderer;
 
-std::mutex Renderer::s_criticalScreenshot;
-std::string Renderer::s_sScreenshotName;
-
-Common::Event Renderer::s_screenshotCompleted;
-Common::Flag Renderer::s_screenshot;
-
-// The framebuffer size
-int Renderer::s_target_width;
-int Renderer::s_target_height;
-
-// TODO: Add functionality to reinit all the render targets when the window is resized.
-int Renderer::s_backbuffer_width;
-int Renderer::s_backbuffer_height;
-
-std::unique_ptr<PostProcessingShaderImplementation> Renderer::m_post_processor;
-
-// Final surface changing
-Common::Flag Renderer::s_surface_needs_change;
-Common::Event Renderer::s_surface_changed;
-void* Renderer::s_new_surface_handle;
-
-TargetRectangle Renderer::target_rc;
-
-int Renderer::s_last_efb_scale;
-
-bool Renderer::XFBWrited;
-
-PEControl::PixelFormat Renderer::prev_efb_format = PEControl::INVALID_FMT;
-unsigned int Renderer::efb_scale_numeratorX = 1;
-unsigned int Renderer::efb_scale_numeratorY = 1;
-unsigned int Renderer::efb_scale_denominatorX = 1;
-unsigned int Renderer::efb_scale_denominatorY = 1;
-
 // The maximum depth that is written to the depth buffer should never exceed this value.
 // This is necessary because we use a 2^24 divisor for all our depth values to prevent
 // floating-point round-trip errors. However the console GPU doesn't ever write a value
@@ -119,9 +87,16 @@ static float AspectToWidescreen(float aspect)
   return aspect * ((16.0f / 9.0f) / (4.0f / 3.0f));
 }
 
-Renderer::Renderer()
+Renderer::Renderer(int backbuffer_width, int backbuffer_height)
+    : m_backbuffer_width(backbuffer_width), m_backbuffer_height(backbuffer_height),
+      m_last_efb_scale(g_ActiveConfig.iEFBScale)
 {
+  FramebufferManagerBase::SetLastXfbWidth(MAX_XFB_WIDTH);
+  FramebufferManagerBase::SetLastXfbHeight(MAX_XFB_HEIGHT);
+
   UpdateActiveConfig();
+  UpdateDrawRectangle();
+  CalculateTargetSize();
 
   OSDChoice = 0;
   OSDTime = 0;
@@ -129,11 +104,6 @@ Renderer::Renderer()
 
 Renderer::~Renderer()
 {
-  // invalidate previous efb format
-  prev_efb_format = PEControl::INVALID_FMT;
-
-  efb_scale_numeratorX = efb_scale_numeratorY = efb_scale_denominatorX = efb_scale_denominatorY = 1;
-
   ShutdownFrameDumping();
   if (m_frame_dump_thread.joinable())
     m_frame_dump_thread.join();
@@ -147,7 +117,7 @@ void Renderer::RenderToXFB(u32 xfbAddr, const EFBRectangle& sourceRc, u32 fbStri
   if (!fbStride || !fbHeight)
     return;
 
-  XFBWrited = true;
+  m_xfb_written = true;
 
   if (g_ActiveConfig.bUseXFB)
   {
@@ -168,10 +138,10 @@ int Renderer::EFBToScaledX(int x)
   switch (g_ActiveConfig.iEFBScale)
   {
   case SCALE_AUTO:  // fractional
-    return FramebufferManagerBase::ScaleToVirtualXfbWidth(x);
+    return FramebufferManagerBase::ScaleToVirtualXfbWidth(x, m_target_rectangle);
 
   default:
-    return x * (int)efb_scale_numeratorX / (int)efb_scale_denominatorX;
+    return x * (int)m_efb_scale_numeratorX / (int)m_efb_scale_denominatorX;
   };
 }
 
@@ -180,10 +150,10 @@ int Renderer::EFBToScaledY(int y)
   switch (g_ActiveConfig.iEFBScale)
   {
   case SCALE_AUTO:  // fractional
-    return FramebufferManagerBase::ScaleToVirtualXfbHeight(y);
+    return FramebufferManagerBase::ScaleToVirtualXfbHeight(y, m_target_rectangle);
 
   default:
-    return y * (int)efb_scale_numeratorY / (int)efb_scale_denominatorY;
+    return y * (int)m_efb_scale_numeratorY / (int)m_efb_scale_denominatorY;
   };
 }
 
@@ -204,8 +174,8 @@ void Renderer::CalculateTargetScale(int x, int y, int* scaledX, int* scaledY)
   }
   else
   {
-    *scaledX = x * (int)efb_scale_numeratorX / (int)efb_scale_denominatorX;
-    *scaledY = y * (int)efb_scale_numeratorY / (int)efb_scale_denominatorY;
+    *scaledX = x * (int)m_efb_scale_numeratorX / (int)m_efb_scale_denominatorX;
+    *scaledY = y * (int)m_efb_scale_numeratorY / (int)m_efb_scale_denominatorY;
   }
 }
 
@@ -215,71 +185,74 @@ bool Renderer::CalculateTargetSize()
   int newEFBWidth, newEFBHeight;
   newEFBWidth = newEFBHeight = 0;
 
+  m_last_efb_scale = g_ActiveConfig.iEFBScale;
+
   // TODO: Ugly. Clean up
-  switch (s_last_efb_scale)
+  switch (m_last_efb_scale)
   {
   case SCALE_AUTO:
   case SCALE_AUTO_INTEGRAL:
-    newEFBWidth = FramebufferManagerBase::ScaleToVirtualXfbWidth(EFB_WIDTH);
-    newEFBHeight = FramebufferManagerBase::ScaleToVirtualXfbHeight(EFB_HEIGHT);
+    newEFBWidth = FramebufferManagerBase::ScaleToVirtualXfbWidth(EFB_WIDTH, m_target_rectangle);
+    newEFBHeight = FramebufferManagerBase::ScaleToVirtualXfbHeight(EFB_HEIGHT, m_target_rectangle);
 
-    if (s_last_efb_scale == SCALE_AUTO_INTEGRAL)
+    if (m_last_efb_scale == SCALE_AUTO_INTEGRAL)
     {
-      efb_scale_numeratorX = efb_scale_numeratorY =
+      m_efb_scale_numeratorX = m_efb_scale_numeratorY =
           std::max((newEFBWidth - 1) / EFB_WIDTH + 1, (newEFBHeight - 1) / EFB_HEIGHT + 1);
-      efb_scale_denominatorX = efb_scale_denominatorY = 1;
+      m_efb_scale_denominatorX = m_efb_scale_denominatorY = 1;
       newEFBWidth = EFBToScaledX(EFB_WIDTH);
       newEFBHeight = EFBToScaledY(EFB_HEIGHT);
     }
     else
     {
-      efb_scale_numeratorX = newEFBWidth;
-      efb_scale_denominatorX = EFB_WIDTH;
-      efb_scale_numeratorY = newEFBHeight;
-      efb_scale_denominatorY = EFB_HEIGHT;
+      m_efb_scale_numeratorX = newEFBWidth;
+      m_efb_scale_denominatorX = EFB_WIDTH;
+      m_efb_scale_numeratorY = newEFBHeight;
+      m_efb_scale_denominatorY = EFB_HEIGHT;
     }
     break;
 
   case SCALE_1X:
-    efb_scale_numeratorX = efb_scale_numeratorY = 1;
-    efb_scale_denominatorX = efb_scale_denominatorY = 1;
+    m_efb_scale_numeratorX = m_efb_scale_numeratorY = 1;
+    m_efb_scale_denominatorX = m_efb_scale_denominatorY = 1;
     break;
 
   case SCALE_1_5X:
-    efb_scale_numeratorX = efb_scale_numeratorY = 3;
-    efb_scale_denominatorX = efb_scale_denominatorY = 2;
+    m_efb_scale_numeratorX = m_efb_scale_numeratorY = 3;
+    m_efb_scale_denominatorX = m_efb_scale_denominatorY = 2;
     break;
 
   case SCALE_2X:
-    efb_scale_numeratorX = efb_scale_numeratorY = 2;
-    efb_scale_denominatorX = efb_scale_denominatorY = 1;
+    m_efb_scale_numeratorX = m_efb_scale_numeratorY = 2;
+    m_efb_scale_denominatorX = m_efb_scale_denominatorY = 1;
     break;
 
   case SCALE_2_5X:
-    efb_scale_numeratorX = efb_scale_numeratorY = 5;
-    efb_scale_denominatorX = efb_scale_denominatorY = 2;
+    m_efb_scale_numeratorX = m_efb_scale_numeratorY = 5;
+    m_efb_scale_denominatorX = m_efb_scale_denominatorY = 2;
     break;
 
   default:
-    efb_scale_numeratorX = efb_scale_numeratorY = s_last_efb_scale - 3;
-    efb_scale_denominatorX = efb_scale_denominatorY = 1;
+    m_efb_scale_numeratorX = m_efb_scale_numeratorY = m_last_efb_scale - 3;
+    m_efb_scale_denominatorX = m_efb_scale_denominatorY = 1;
 
-    const u32 max_size = GetMaxTextureSize();
-    if (max_size < EFB_WIDTH * efb_scale_numeratorX / efb_scale_denominatorX)
+    const u32 max_size = g_ActiveConfig.backend_info.MaxTextureSize;
+    if (max_size < EFB_WIDTH * m_efb_scale_numeratorX / m_efb_scale_denominatorX)
     {
-      efb_scale_numeratorX = efb_scale_numeratorY = (max_size / EFB_WIDTH);
-      efb_scale_denominatorX = efb_scale_denominatorY = 1;
+      m_efb_scale_numeratorX = m_efb_scale_numeratorY = (max_size / EFB_WIDTH);
+      m_efb_scale_denominatorX = m_efb_scale_denominatorY = 1;
     }
 
     break;
   }
-  if (s_last_efb_scale > SCALE_AUTO_INTEGRAL)
+  if (m_last_efb_scale > SCALE_AUTO_INTEGRAL)
     CalculateTargetScale(EFB_WIDTH, EFB_HEIGHT, &newEFBWidth, &newEFBHeight);
 
-  if (newEFBWidth != s_target_width || newEFBHeight != s_target_height)
+  if (newEFBWidth != m_target_width || newEFBHeight != m_target_height)
   {
-    s_target_width = newEFBWidth;
-    s_target_height = newEFBHeight;
+    m_target_width = newEFBWidth;
+    m_target_height = newEFBHeight;
+    PixelShaderManager::SetEfbScaleChanged(EFBToScaledXf(1), EFBToScaledYf(1));
     return true;
   }
   return false;
@@ -308,30 +281,39 @@ void Renderer::ConvertStereoRectangle(const TargetRectangle& rc, TargetRectangle
   leftRc = drawRc, rightRc = drawRc;
   if (g_ActiveConfig.iStereoMode == STEREO_TAB)
   {
-    leftRc.top -= s_backbuffer_height / 4;
-    leftRc.bottom -= s_backbuffer_height / 4;
-    rightRc.top += s_backbuffer_height / 4;
-    rightRc.bottom += s_backbuffer_height / 4;
+    leftRc.top -= m_backbuffer_height / 4;
+    leftRc.bottom -= m_backbuffer_height / 4;
+    rightRc.top += m_backbuffer_height / 4;
+    rightRc.bottom += m_backbuffer_height / 4;
   }
   else if (g_ActiveConfig.iStereoMode == STEREO_SBS)
   {
-    leftRc.left -= s_backbuffer_width / 4;
-    leftRc.right -= s_backbuffer_width / 4;
-    rightRc.left += s_backbuffer_width / 4;
-    rightRc.right += s_backbuffer_width / 4;
+    leftRc.left -= m_backbuffer_width / 4;
+    leftRc.right -= m_backbuffer_width / 4;
+    rightRc.left += m_backbuffer_width / 4;
+    rightRc.right += m_backbuffer_width / 4;
   }
   else
   {
-    rightRc.left += s_backbuffer_width / 2;
-    rightRc.right += s_backbuffer_width / 2;
+    rightRc.left += m_backbuffer_width / 2;
+    rightRc.right += m_backbuffer_width / 2;
   }
 }
 
-void Renderer::SetScreenshot(const std::string& filename)
+void Renderer::SaveScreenshot(const std::string& filename, bool wait_for_completion)
 {
-  std::lock_guard<std::mutex> lk(s_criticalScreenshot);
-  s_sScreenshotName = filename;
-  s_screenshot.Set();
+  // We must not hold the lock while waiting for the screenshot to complete.
+  {
+    std::lock_guard<std::mutex> lk(m_screenshot_lock);
+    m_screenshot_name = filename;
+    m_screenshot_request.Set();
+  }
+
+  if (wait_for_completion)
+  {
+    // This is currently only used by Android, and it was using a wait time of 2 seconds.
+    m_screenshot_completed.WaitFor(std::chrono::seconds(2));
+  }
 }
 
 // Create On-Screen-Messages
@@ -499,7 +481,7 @@ float Renderer::CalculateDrawAspectRatio(int target_width, int target_height)
   {
     // If stretch is enabled, we prefer the aspect ratio of the window.
     return (static_cast<float>(target_width) / static_cast<float>(target_height)) /
-           (static_cast<float>(s_backbuffer_width) / static_cast<float>(s_backbuffer_height));
+           (static_cast<float>(m_backbuffer_width) / static_cast<float>(m_backbuffer_height));
   }
 
   // The rendering window aspect ratio as a proportion of the 4:3 or 16:9 ratio
@@ -544,8 +526,8 @@ TargetRectangle Renderer::CalculateFrameDumpDrawRectangle()
   if (!g_ActiveConfig.bInternalResolutionFrameDumps || g_ActiveConfig.RealXFBEnabled())
   {
     // But still remove the borders, since the caller expects this.
-    rc.right = target_rc.GetWidth();
-    rc.bottom = target_rc.GetHeight();
+    rc.right = m_target_rectangle.GetWidth();
+    rc.bottom = m_target_rectangle.GetHeight();
     return rc;
   }
 
@@ -564,9 +546,9 @@ TargetRectangle Renderer::CalculateFrameDumpDrawRectangle()
 void Renderer::UpdateDrawRectangle()
 {
   float FloatGLWidth = (g_ActiveConfig.iStereoMode == STEREO_OSVR) ?
-                           static_cast<float>(s_backbuffer_width) / 2.0f :
-                           static_cast<float>(s_backbuffer_width);
-  float FloatGLHeight = static_cast<float>(s_backbuffer_height);
+                           static_cast<float>(m_backbuffer_width) / 2.0f :
+                           static_cast<float>(m_backbuffer_width);
+  float FloatGLHeight = static_cast<float>(m_backbuffer_height);
   float FloatXOffset = 0;
   float FloatYOffset = 0;
 
@@ -625,7 +607,7 @@ void Renderer::UpdateDrawRectangle()
   // Check for force-settings and override.
 
   // The rendering window aspect ratio as a proportion of the 4:3 or 16:9 ratio
-  float Ratio = CalculateDrawAspectRatio(s_backbuffer_width, s_backbuffer_height);
+  float Ratio = CalculateDrawAspectRatio(m_backbuffer_width, m_backbuffer_height);
   if (g_ActiveConfig.iAspectRatio != ASPECT_STRETCH)
   {
     if (Ratio >= 0.995f && Ratio <= 1.005f)
@@ -679,18 +661,16 @@ void Renderer::UpdateDrawRectangle()
       iWhidth % 4;  // ensure divisibility by 4 to make it compatible with all the video encoders
   iHeight -= iHeight % 4;
 
-  target_rc.left = XOffset;
-  target_rc.top = YOffset;
-  target_rc.right = XOffset + iWhidth;
-  target_rc.bottom = YOffset + iHeight;
+  m_target_rectangle.left = XOffset;
+  m_target_rectangle.top = YOffset;
+  m_target_rectangle.right = XOffset + iWhidth;
+  m_target_rectangle.bottom = YOffset + iHeight;
 }
 
 void Renderer::SetWindowSize(int width, int height)
 {
-  if (width < 1)
-    width = 1;
-  if (height < 1)
-    height = 1;
+  width = std::max(width, 1);
+  height = std::max(height, 1);
 
   // Scale the window size by the EFB scale.
   CalculateTargetScale(width, height, &width, &height);
@@ -727,7 +707,13 @@ void Renderer::SetWindowSize(int width, int height)
   width -= width % 4;
   height -= height % 4;
 
-  Host_RequestRenderWindowSize(width, height);
+  // Track the last values of width/height to avoid sending a window resize event every frame.
+  if (width != m_last_window_request_width || height != m_last_window_request_height)
+  {
+    m_last_window_request_width = width;
+    m_last_window_request_height = height;
+    Host_RequestRenderWindowSize(width, height);
+  }
 }
 
 void Renderer::CheckFifoRecording()
@@ -772,7 +758,7 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
   // TODO: merge more generic parts into VideoCommon
   g_renderer->SwapImpl(xfbAddr, fbWidth, fbStride, fbHeight, rc, ticks, Gamma);
 
-  if (XFBWrited && !g_opcode_replay_frame)
+  if (m_xfb_written && !g_opcode_replay_frame)
     g_renderer->m_fps_counter.Update();
 
   frameCount++;
@@ -784,14 +770,14 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
   stats.ResetFrame();
 
   Core::Callback_VideoCopiedToXFB(
-      (XFBWrited || (g_ActiveConfig.bUseXFB && g_ActiveConfig.bUseRealXFB)) &&
+      (m_xfb_written || (g_ActiveConfig.bUseXFB && g_ActiveConfig.bUseRealXFB)) &&
       !g_opcode_replay_frame);
-  XFBWrited = false;
+  m_xfb_written = false;
 }
 
 bool Renderer::IsFrameDumping()
 {
-  if (s_screenshot.IsSet())
+  if (m_screenshot_request.IsSet())
     return true;
 
 #if defined(HAVE_LIBAV)
@@ -872,17 +858,17 @@ void Renderer::RunFrameDumps()
     }
 
     // Save screenshot
-    if (s_screenshot.TestAndClear())
+    if (m_screenshot_request.TestAndClear())
     {
-      std::lock_guard<std::mutex> lk(s_criticalScreenshot);
+      std::lock_guard<std::mutex> lk(m_screenshot_lock);
 
-      if (TextureToPng(config.data, config.stride, s_sScreenshotName, config.width, config.height,
+      if (TextureToPng(config.data, config.stride, m_screenshot_name, config.width, config.height,
                        false))
-        OSD::AddMessage("Screenshot saved to " + s_sScreenshotName);
+        OSD::AddMessage("Screenshot saved to " + m_screenshot_name);
 
       // Reset settings
-      s_sScreenshotName.clear();
-      s_screenshotCompleted.Set();
+      m_screenshot_name.clear();
+      m_screenshot_completed.Set();
     }
 
     if (SConfig::GetInstance().m_DumpFrames)
@@ -984,4 +970,23 @@ void Renderer::DumpFrameToImage(const FrameDumpConfig& config)
   std::string filename = GetFrameDumpNextImageFileName();
   TextureToPng(config.data, config.stride, filename, config.width, config.height, false);
   m_frame_dump_image_counter++;
+}
+
+bool Renderer::UseVertexDepthRange() const
+{
+  // We can't compute the depth range in the vertex shader if we don't support depth clamp.
+  if (!g_ActiveConfig.backend_info.bSupportsDepthClamp)
+    return false;
+
+  // We need a full depth range if a ztexture is used.
+  if (bpmem.ztex2.type != ZTEXTURE_DISABLE && !bpmem.zcontrol.early_ztest)
+    return true;
+
+  // If an inverted depth range is unsupported, we also need to check if the range is inverted.
+  if (!g_ActiveConfig.backend_info.bSupportsReversedDepthRange && xfmem.viewport.zRange < 0.0f)
+    return true;
+
+  // If an oversized depth range or a ztexture is used, we need to calculate the depth range
+  // in the vertex shader.
+  return fabs(xfmem.viewport.zRange) > 16777215.0f || fabs(xfmem.viewport.farZ) > 16777215.0f;
 }

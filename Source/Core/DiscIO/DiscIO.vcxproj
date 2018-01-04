@@ -43,7 +43,6 @@
     <ClCompile Include="DriveBlob.cpp" />
     <ClCompile Include="Enums.cpp" />
     <ClCompile Include="FileBlob.cpp" />
-    <ClCompile Include="FileMonitor.cpp" />
     <ClCompile Include="Filesystem.cpp" />
     <ClCompile Include="FileSystemGCWii.cpp" />
     <ClCompile Include="NANDContentLoader.cpp" />
@@ -65,7 +64,6 @@
     <ClInclude Include="DriveBlob.h" />
     <ClInclude Include="Enums.h" />
     <ClInclude Include="FileBlob.h" />
-    <ClInclude Include="FileMonitor.h" />
     <ClInclude Include="Filesystem.h" />
     <ClInclude Include="FileSystemGCWii.h" />
     <ClInclude Include="NANDContentLoader.h" />

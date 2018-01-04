@@ -134,7 +134,7 @@ void TextureCache::TCacheEntry::Load(const u8* buffer, u32 width, u32 height, u3
                                      u32 level)
 {
   unsigned int src_pitch = 4 * expanded_width;
-  D3D::ReplaceRGBATexture2D(texture->GetTex(), buffer, width, height, src_pitch, level, usage);
+  D3D::context->UpdateSubresource(texture->GetTex(), level, nullptr, buffer, src_pitch, 0);
 }
 
 TextureCacheBase::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntryConfig& config)
@@ -149,18 +149,9 @@ TextureCacheBase::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntry
   }
   else
   {
-    D3D11_USAGE usage = D3D11_USAGE_DEFAULT;
-    D3D11_CPU_ACCESS_FLAG cpu_access = (D3D11_CPU_ACCESS_FLAG)0;
-
-    if (config.levels == 1)
-    {
-      usage = D3D11_USAGE_DYNAMIC;
-      cpu_access = D3D11_CPU_ACCESS_WRITE;
-    }
-
     const D3D11_TEXTURE2D_DESC texdesc =
         CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R8G8B8A8_UNORM, config.width, config.height, 1,
-                              config.levels, D3D11_BIND_SHADER_RESOURCE, usage, cpu_access);
+                              config.levels, D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0);
 
     ID3D11Texture2D* pTexture;
     const HRESULT hr = D3D::device->CreateTexture2D(&texdesc, nullptr, &pTexture);
@@ -168,7 +159,6 @@ TextureCacheBase::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntry
 
     TCacheEntry* const entry =
         new TCacheEntry(config, new D3DTexture2D(pTexture, D3D11_BIND_SHADER_RESOURCE));
-    entry->usage = usage;
 
     // TODO: better debug names
     D3D::SetDebugObjectName((ID3D11DeviceChild*)entry->texture->GetTex(),
@@ -240,7 +230,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(bool is_depth_copy, const EFBRe
 
   // Create texture copy
   D3D::drawShadedTexQuad(
-      efbTexSRV, &sourcerect, Renderer::GetTargetWidth(), Renderer::GetTargetHeight(),
+      efbTexSRV, &sourcerect, g_renderer->GetTargetWidth(), g_renderer->GetTargetHeight(),
       is_depth_copy ? PixelShaderCache::GetDepthMatrixProgram(multisampled) :
                       PixelShaderCache::GetColorMatrixProgram(multisampled),
       VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(),

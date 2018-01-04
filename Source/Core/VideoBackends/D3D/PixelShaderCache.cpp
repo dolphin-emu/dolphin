@@ -590,7 +590,7 @@ void PixelShaderCache::Init()
 
     std::string cache_filename =
         StringFromFormat("%sdx11-%s-ps.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
-                         SConfig::GetInstance().m_strGameID.c_str());
+                         SConfig::GetInstance().GetGameID().c_str());
     PixelShaderCacheInserter inserter;
     g_ps_disk_cache.OpenAndRead(cache_filename, inserter);
   }

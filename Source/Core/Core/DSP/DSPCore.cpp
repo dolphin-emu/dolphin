@@ -9,11 +9,9 @@
 #include <array>
 #include <memory>
 
-#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
 #include "Common/Hash.h"
-#include "Common/Logging/Log.h"
 #include "Common/MemoryUtil.h"
 #include "Common/MsgHandler.h"
 

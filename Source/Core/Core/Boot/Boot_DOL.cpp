@@ -2,14 +2,14 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/Boot/Boot_DOL.h"
+
 #include <cstring>
 #include <string>
 #include <vector>
 
-#include "Common/CommonFuncs.h"
 #include "Common/FileUtil.h"
-
-#include "Core/Boot/Boot_DOL.h"
+#include "Common/Swap.h"
 #include "Core/HW/Memmap.h"
 
 CDolLoader::CDolLoader(const std::vector<u8>& buffer)

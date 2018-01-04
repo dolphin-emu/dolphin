@@ -124,6 +124,7 @@ std::string VideoSoftware::GetDisplayName() const
 void VideoSoftware::InitBackendInfo()
 {
   g_Config.backend_info.api_type = APIType::Nothing;
+  g_Config.backend_info.MaxTextureSize = 16384;
   g_Config.backend_info.bSupports3DVision = false;
   g_Config.backend_info.bSupportsDualSourceBlend = true;
   g_Config.backend_info.bSupportsEarlyZ = true;

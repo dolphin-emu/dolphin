@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <array>
 #include <cstddef>
 #include <list>
 #include <vector>
@@ -52,8 +53,197 @@ public:
 
   void FallBackToInterpreter(UDSPInstruction inst);
 
-  // CC Util
-  void Update_SR_Register64(Gen::X64Reg val = Gen::EAX);
+  // Ext commands
+  void l(UDSPInstruction opc);
+  void ln(UDSPInstruction opc);
+  void ls(UDSPInstruction opc);
+  void lsn(UDSPInstruction opc);
+  void lsm(UDSPInstruction opc);
+  void lsnm(UDSPInstruction opc);
+  void sl(UDSPInstruction opc);
+  void sln(UDSPInstruction opc);
+  void slm(UDSPInstruction opc);
+  void slnm(UDSPInstruction opc);
+  void s(UDSPInstruction opc);
+  void sn(UDSPInstruction opc);
+  void ld(UDSPInstruction opc);
+  void ldax(UDSPInstruction opc);
+  void ldn(UDSPInstruction opc);
+  void ldaxn(UDSPInstruction opc);
+  void ldm(UDSPInstruction opc);
+  void ldaxm(UDSPInstruction opc);
+  void ldnm(UDSPInstruction opc);
+  void ldaxnm(UDSPInstruction opc);
+  void mv(UDSPInstruction opc);
+  void dr(UDSPInstruction opc);
+  void ir(UDSPInstruction opc);
+  void nr(UDSPInstruction opc);
+  void nop(const UDSPInstruction opc) {}
+  // Commands
+  void dar(UDSPInstruction opc);
+  void iar(UDSPInstruction opc);
+  void subarn(UDSPInstruction opc);
+  void addarn(UDSPInstruction opc);
+  void sbclr(UDSPInstruction opc);
+  void sbset(UDSPInstruction opc);
+  void srbith(UDSPInstruction opc);
+  void lri(UDSPInstruction opc);
+  void lris(UDSPInstruction opc);
+  void mrr(UDSPInstruction opc);
+  void nx(UDSPInstruction opc);
+
+  // Branch
+  void jcc(UDSPInstruction opc);
+  void jmprcc(UDSPInstruction opc);
+  void call(UDSPInstruction opc);
+  void callr(UDSPInstruction opc);
+  void ifcc(UDSPInstruction opc);
+  void ret(UDSPInstruction opc);
+  void rti(UDSPInstruction opc);
+  void halt(UDSPInstruction opc);
+  void loop(UDSPInstruction opc);
+  void loopi(UDSPInstruction opc);
+  void bloop(UDSPInstruction opc);
+  void bloopi(UDSPInstruction opc);
+
+  // Load/Store
+  void srs(UDSPInstruction opc);
+  void lrs(UDSPInstruction opc);
+  void lr(UDSPInstruction opc);
+  void sr(UDSPInstruction opc);
+  void si(UDSPInstruction opc);
+  void lrr(UDSPInstruction opc);
+  void lrrd(UDSPInstruction opc);
+  void lrri(UDSPInstruction opc);
+  void lrrn(UDSPInstruction opc);
+  void srr(UDSPInstruction opc);
+  void srrd(UDSPInstruction opc);
+  void srri(UDSPInstruction opc);
+  void srrn(UDSPInstruction opc);
+  void ilrr(UDSPInstruction opc);
+  void ilrrd(UDSPInstruction opc);
+  void ilrri(UDSPInstruction opc);
+  void ilrrn(UDSPInstruction opc);
+
+  // Arithmetic
+  void clr(UDSPInstruction opc);
+  void clrl(UDSPInstruction opc);
+  void andcf(UDSPInstruction opc);
+  void andf(UDSPInstruction opc);
+  void tst(UDSPInstruction opc);
+  void tstaxh(UDSPInstruction opc);
+  void cmp(UDSPInstruction opc);
+  void cmpar(UDSPInstruction opc);
+  void cmpi(UDSPInstruction opc);
+  void cmpis(UDSPInstruction opc);
+  void xorr(UDSPInstruction opc);
+  void andr(UDSPInstruction opc);
+  void orr(UDSPInstruction opc);
+  void andc(UDSPInstruction opc);
+  void orc(UDSPInstruction opc);
+  void xorc(UDSPInstruction opc);
+  void notc(UDSPInstruction opc);
+  void xori(UDSPInstruction opc);
+  void andi(UDSPInstruction opc);
+  void ori(UDSPInstruction opc);
+  void addr(UDSPInstruction opc);
+  void addax(UDSPInstruction opc);
+  void add(UDSPInstruction opc);
+  void addp(UDSPInstruction opc);
+  void addaxl(UDSPInstruction opc);
+  void addi(UDSPInstruction opc);
+  void addis(UDSPInstruction opc);
+  void incm(UDSPInstruction opc);
+  void inc(UDSPInstruction opc);
+  void subr(UDSPInstruction opc);
+  void subax(UDSPInstruction opc);
+  void sub(UDSPInstruction opc);
+  void subp(UDSPInstruction opc);
+  void decm(UDSPInstruction opc);
+  void dec(UDSPInstruction opc);
+  void neg(UDSPInstruction opc);
+  void abs(UDSPInstruction opc);
+  void movr(UDSPInstruction opc);
+  void movax(UDSPInstruction opc);
+  void mov(UDSPInstruction opc);
+  void lsl16(UDSPInstruction opc);
+  void lsr16(UDSPInstruction opc);
+  void asr16(UDSPInstruction opc);
+  void lsl(UDSPInstruction opc);
+  void lsr(UDSPInstruction opc);
+  void asl(UDSPInstruction opc);
+  void asr(UDSPInstruction opc);
+  void lsrn(UDSPInstruction opc);
+  void asrn(UDSPInstruction opc);
+  void lsrnrx(UDSPInstruction opc);
+  void asrnrx(UDSPInstruction opc);
+  void lsrnr(UDSPInstruction opc);
+  void asrnr(UDSPInstruction opc);
+
+  // Multipliers
+  void clrp(UDSPInstruction opc);
+  void tstprod(UDSPInstruction opc);
+  void movp(UDSPInstruction opc);
+  void movnp(UDSPInstruction opc);
+  void movpz(UDSPInstruction opc);
+  void addpaxz(UDSPInstruction opc);
+  void mulaxh(UDSPInstruction opc);
+  void mul(UDSPInstruction opc);
+  void mulac(UDSPInstruction opc);
+  void mulmv(UDSPInstruction opc);
+  void mulmvz(UDSPInstruction opc);
+  void mulx(UDSPInstruction opc);
+  void mulxac(UDSPInstruction opc);
+  void mulxmv(UDSPInstruction opc);
+  void mulxmvz(UDSPInstruction opc);
+  void mulc(UDSPInstruction opc);
+  void mulcac(UDSPInstruction opc);
+  void mulcmv(UDSPInstruction opc);
+  void mulcmvz(UDSPInstruction opc);
+  void maddx(UDSPInstruction opc);
+  void msubx(UDSPInstruction opc);
+  void maddc(UDSPInstruction opc);
+  void msubc(UDSPInstruction opc);
+  void madd(UDSPInstruction opc);
+  void msub(UDSPInstruction opc);
+
+  std::array<std::list<u16>, MAX_BLOCKS> m_unresolved_jumps;
+
+private:
+  void WriteBranchExit();
+  void WriteBlockLink(u16 dest);
+
+  void ReJitConditional(UDSPInstruction opc, void (DSPEmitter::*conditional_fn)(UDSPInstruction));
+  void r_jcc(UDSPInstruction opc);
+  void r_jmprcc(UDSPInstruction opc);
+  void r_call(UDSPInstruction opc);
+  void r_callr(UDSPInstruction opc);
+  void r_ifcc(UDSPInstruction opc);
+  void r_ret(UDSPInstruction opc);
+
+  void Update_SR_Register(Gen::X64Reg val = Gen::EAX, Gen::X64Reg scratch = Gen::EDX);
+
+  void get_long_prod(Gen::X64Reg long_prod = Gen::RAX);
+  void get_long_prod_round_prodl(Gen::X64Reg long_prod = Gen::RAX);
+  void set_long_prod();
+  void round_long_acc(Gen::X64Reg long_acc = Gen::EAX);
+  void set_long_acc(int _reg, Gen::X64Reg acc = Gen::EAX);
+  void get_acc_h(int _reg, Gen::X64Reg acc = Gen::EAX, bool sign = true);
+  void set_acc_h(int _reg, const Gen::OpArg& arg = R(Gen::EAX));
+  void get_acc_m(int _reg, Gen::X64Reg acc = Gen::EAX, bool sign = true);
+  void set_acc_m(int _reg, const Gen::OpArg& arg = R(Gen::EAX));
+  void get_acc_l(int _reg, Gen::X64Reg acc = Gen::EAX, bool sign = true);
+  void set_acc_l(int _reg, const Gen::OpArg& arg = R(Gen::EAX));
+  void get_long_acx(int _reg, Gen::X64Reg acx = Gen::EAX);
+  void get_ax_l(int _reg, Gen::X64Reg acx = Gen::EAX);
+  void get_ax_h(int _reg, Gen::X64Reg acc = Gen::EAX);
+  void get_long_acc(int _reg, Gen::X64Reg acc = Gen::EAX);
+
+  // Branch helpers
+  void HandleLoop();
+
+  // CC helpers
+  void Update_SR_Register64(Gen::X64Reg val = Gen::EAX, Gen::X64Reg scratch = Gen::EDX);
   void Update_SR_Register64_Carry(Gen::X64Reg val, Gen::X64Reg carry_ovfl, bool carry_eq = false);
   void Update_SR_Register16(Gen::X64Reg val = Gen::EAX);
   void Update_SR_Register16_OverS32(Gen::X64Reg val = Gen::EAX);
@@ -74,37 +264,6 @@ public:
   void dmem_write(Gen::X64Reg value);
   void dmem_write_imm(u16 addr, Gen::X64Reg value);
 
-  // Ext command helpers
-  void popExtValueToReg();
-  void pushExtValueFromMem(u16 dreg, u16 sreg);
-  void pushExtValueFromMem2(u16 dreg, u16 sreg);
-
-  // Ext commands
-  void l(const UDSPInstruction opc);
-  void ln(const UDSPInstruction opc);
-  void ls(const UDSPInstruction opc);
-  void lsn(const UDSPInstruction opc);
-  void lsm(const UDSPInstruction opc);
-  void lsnm(const UDSPInstruction opc);
-  void sl(const UDSPInstruction opc);
-  void sln(const UDSPInstruction opc);
-  void slm(const UDSPInstruction opc);
-  void slnm(const UDSPInstruction opc);
-  void s(const UDSPInstruction opc);
-  void sn(const UDSPInstruction opc);
-  void ld(const UDSPInstruction opc);
-  void ldax(const UDSPInstruction opc);
-  void ldn(const UDSPInstruction opc);
-  void ldaxn(const UDSPInstruction opc);
-  void ldm(const UDSPInstruction opc);
-  void ldaxm(const UDSPInstruction opc);
-  void ldnm(const UDSPInstruction opc);
-  void ldaxnm(const UDSPInstruction opc);
-  void mv(const UDSPInstruction opc);
-  void dr(const UDSPInstruction opc);
-  void ir(const UDSPInstruction opc);
-  void nr(const UDSPInstruction opc);
-  void nop(const UDSPInstruction opc) {}
   // Command helpers
   void dsp_reg_stack_push(StackRegister stack_reg);
   void dsp_reg_stack_pop(StackRegister stack_reg);
@@ -120,170 +279,24 @@ public:
   void dsp_op_read_reg(int reg, Gen::X64Reg host_dreg,
                        RegisterExtension extend = RegisterExtension::None);
 
-  // Commands
-  void dar(const UDSPInstruction opc);
-  void iar(const UDSPInstruction opc);
-  void subarn(const UDSPInstruction opc);
-  void addarn(const UDSPInstruction opc);
-  void sbclr(const UDSPInstruction opc);
-  void sbset(const UDSPInstruction opc);
-  void srbith(const UDSPInstruction opc);
-  void lri(const UDSPInstruction opc);
-  void lris(const UDSPInstruction opc);
-  void mrr(const UDSPInstruction opc);
-  void nx(const UDSPInstruction opc);
+  // SDSP memory offset helpers
+  Gen::OpArg M_SDSP_pc();
+  Gen::OpArg M_SDSP_exceptions();
+  Gen::OpArg M_SDSP_cr();
+  Gen::OpArg M_SDSP_external_interrupt_waiting();
+  Gen::OpArg M_SDSP_r_st(size_t index);
+  Gen::OpArg M_SDSP_reg_stack_ptr(size_t index);
 
-  // Branch
-  void HandleLoop();
-  void jcc(const UDSPInstruction opc);
-  void jmprcc(const UDSPInstruction opc);
-  void call(const UDSPInstruction opc);
-  void callr(const UDSPInstruction opc);
-  void ifcc(const UDSPInstruction opc);
-  void ret(const UDSPInstruction opc);
-  void rti(const UDSPInstruction opc);
-  void halt(const UDSPInstruction opc);
-  void loop(const UDSPInstruction opc);
-  void loopi(const UDSPInstruction opc);
-  void bloop(const UDSPInstruction opc);
-  void bloopi(const UDSPInstruction opc);
+  // Ext command helpers
+  void popExtValueToReg();
+  void pushExtValueFromMem(u16 dreg, u16 sreg);
+  void pushExtValueFromMem2(u16 dreg, u16 sreg);
 
-  // Load/Store
-  void srs(const UDSPInstruction opc);
-  void lrs(const UDSPInstruction opc);
-  void lr(const UDSPInstruction opc);
-  void sr(const UDSPInstruction opc);
-  void si(const UDSPInstruction opc);
-  void lrr(const UDSPInstruction opc);
-  void lrrd(const UDSPInstruction opc);
-  void lrri(const UDSPInstruction opc);
-  void lrrn(const UDSPInstruction opc);
-  void srr(const UDSPInstruction opc);
-  void srrd(const UDSPInstruction opc);
-  void srri(const UDSPInstruction opc);
-  void srrn(const UDSPInstruction opc);
-  void ilrr(const UDSPInstruction opc);
-  void ilrrd(const UDSPInstruction opc);
-  void ilrri(const UDSPInstruction opc);
-  void ilrrn(const UDSPInstruction opc);
-
-  // Arithmetic
-  void clr(const UDSPInstruction opc);
-  void clrl(const UDSPInstruction opc);
-  void andcf(const UDSPInstruction opc);
-  void andf(const UDSPInstruction opc);
-  void tst(const UDSPInstruction opc);
-  void tstaxh(const UDSPInstruction opc);
-  void cmp(const UDSPInstruction opc);
-  void cmpar(const UDSPInstruction opc);
-  void cmpi(const UDSPInstruction opc);
-  void cmpis(const UDSPInstruction opc);
-  void xorr(const UDSPInstruction opc);
-  void andr(const UDSPInstruction opc);
-  void orr(const UDSPInstruction opc);
-  void andc(const UDSPInstruction opc);
-  void orc(const UDSPInstruction opc);
-  void xorc(const UDSPInstruction opc);
-  void notc(const UDSPInstruction opc);
-  void xori(const UDSPInstruction opc);
-  void andi(const UDSPInstruction opc);
-  void ori(const UDSPInstruction opc);
-  void addr(const UDSPInstruction opc);
-  void addax(const UDSPInstruction opc);
-  void add(const UDSPInstruction opc);
-  void addp(const UDSPInstruction opc);
-  void addaxl(const UDSPInstruction opc);
-  void addi(const UDSPInstruction opc);
-  void addis(const UDSPInstruction opc);
-  void incm(const UDSPInstruction opc);
-  void inc(const UDSPInstruction opc);
-  void subr(const UDSPInstruction opc);
-  void subax(const UDSPInstruction opc);
-  void sub(const UDSPInstruction opc);
-  void subp(const UDSPInstruction opc);
-  void decm(const UDSPInstruction opc);
-  void dec(const UDSPInstruction opc);
-  void neg(const UDSPInstruction opc);
-  void abs(const UDSPInstruction opc);
-  void movr(const UDSPInstruction opc);
-  void movax(const UDSPInstruction opc);
-  void mov(const UDSPInstruction opc);
-  void lsl16(const UDSPInstruction opc);
-  void lsr16(const UDSPInstruction opc);
-  void asr16(const UDSPInstruction opc);
-  void lsl(const UDSPInstruction opc);
-  void lsr(const UDSPInstruction opc);
-  void asl(const UDSPInstruction opc);
-  void asr(const UDSPInstruction opc);
-  void lsrn(const UDSPInstruction opc);
-  void asrn(const UDSPInstruction opc);
-  void lsrnrx(const UDSPInstruction opc);
-  void asrnrx(const UDSPInstruction opc);
-  void lsrnr(const UDSPInstruction opc);
-  void asrnr(const UDSPInstruction opc);
-
-  // Multipliers
+  // Multiplier helpers
   void multiply();
   void multiply_add();
   void multiply_sub();
   void multiply_mulx(u8 axh0, u8 axh1);
-  void clrp(const UDSPInstruction opc);
-  void tstprod(const UDSPInstruction opc);
-  void movp(const UDSPInstruction opc);
-  void movnp(const UDSPInstruction opc);
-  void movpz(const UDSPInstruction opc);
-  void addpaxz(const UDSPInstruction opc);
-  void mulaxh(const UDSPInstruction opc);
-  void mul(const UDSPInstruction opc);
-  void mulac(const UDSPInstruction opc);
-  void mulmv(const UDSPInstruction opc);
-  void mulmvz(const UDSPInstruction opc);
-  void mulx(const UDSPInstruction opc);
-  void mulxac(const UDSPInstruction opc);
-  void mulxmv(const UDSPInstruction opc);
-  void mulxmvz(const UDSPInstruction opc);
-  void mulc(const UDSPInstruction opc);
-  void mulcac(const UDSPInstruction opc);
-  void mulcmv(const UDSPInstruction opc);
-  void mulcmvz(const UDSPInstruction opc);
-  void maddx(const UDSPInstruction opc);
-  void msubx(const UDSPInstruction opc);
-  void maddc(const UDSPInstruction opc);
-  void msubc(const UDSPInstruction opc);
-  void madd(const UDSPInstruction opc);
-  void msub(const UDSPInstruction opc);
-
-  std::list<u16> m_unresolved_jumps[MAX_BLOCKS];
-
-private:
-  void WriteBranchExit();
-  void WriteBlockLink(u16 dest);
-
-  void ReJitConditional(UDSPInstruction opc, void (DSPEmitter::*conditional_fn)(UDSPInstruction));
-  void r_jcc(UDSPInstruction opc);
-  void r_jmprcc(UDSPInstruction opc);
-  void r_call(UDSPInstruction opc);
-  void r_callr(UDSPInstruction opc);
-  void r_ifcc(UDSPInstruction opc);
-  void r_ret(UDSPInstruction opc);
-
-  void Update_SR_Register(Gen::X64Reg val = Gen::EAX);
-
-  void get_long_prod(Gen::X64Reg long_prod = Gen::RAX);
-  void get_long_prod_round_prodl(Gen::X64Reg long_prod = Gen::RAX);
-  void set_long_prod();
-  void round_long_acc(Gen::X64Reg long_acc = Gen::EAX);
-  void set_long_acc(int _reg, Gen::X64Reg acc = Gen::EAX);
-  void get_acc_h(int _reg, Gen::X64Reg acc = Gen::EAX, bool sign = true);
-  void set_acc_h(int _reg, const Gen::OpArg& arg = R(Gen::EAX));
-  void get_acc_m(int _reg, Gen::X64Reg acc = Gen::EAX, bool sign = true);
-  void set_acc_m(int _reg, const Gen::OpArg& arg = R(Gen::EAX));
-  void get_acc_l(int _reg, Gen::X64Reg acc = Gen::EAX, bool sign = true);
-  void set_acc_l(int _reg, const Gen::OpArg& arg = R(Gen::EAX));
-  void get_long_acx(int _reg, Gen::X64Reg acx = Gen::EAX);
-  void get_ax_l(int _reg, Gen::X64Reg acx = Gen::EAX);
-  void get_ax_h(int _reg, Gen::X64Reg acc = Gen::EAX);
-  void get_long_acc(int _reg, Gen::X64Reg acc = Gen::EAX);
 
   DSPJitRegCache m_gpr{*this};
 

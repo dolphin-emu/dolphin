@@ -18,9 +18,7 @@
 #include "Common/JitRegister.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "Core/CoreTiming.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
-#include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
 
 #ifdef _WIN32
@@ -28,13 +26,6 @@
 #endif
 
 using namespace Gen;
-
-static CoreTiming::EventType* s_clear_jit_cache_thread_safe;
-
-static void ClearCacheThreadSafe(u64 userdata, s64 cyclesdata)
-{
-  JitInterface::ClearCache();
-}
 
 bool JitBlock::OverlapsPhysicalRange(u32 address, u32 length) const
 {
@@ -50,7 +41,6 @@ JitBaseBlockCache::~JitBaseBlockCache() = default;
 
 void JitBaseBlockCache::Init()
 {
-  s_clear_jit_cache_thread_safe = CoreTiming::RegisterEvent("clearJitCache", ClearCacheThreadSafe);
   JitRegister::Init(SConfig::GetInstance().m_perfDir);
 
   Clear();
@@ -87,11 +77,6 @@ void JitBaseBlockCache::Reset()
 {
   Shutdown();
   Init();
-}
-
-void JitBaseBlockCache::SchedulateClearCacheThreadSafe()
-{
-  CoreTiming::ScheduleEvent(0, s_clear_jit_cache_thread_safe, 0, CoreTiming::FromThread::NON_CPU);
 }
 
 JitBlock** JitBaseBlockCache::GetFastBlockMap()

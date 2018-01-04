@@ -20,6 +20,7 @@ import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * Contains static methods for interacting with .ini files in which settings are stored.
@@ -322,8 +323,9 @@ public final class SettingsFile
 			writer = new PrintWriter(ini, "UTF-8");
 
 			Set<String> keySet = sections.keySet();
+			Set<String> sortedKeySet = new TreeSet<>(keySet);
 
-			for (String key : keySet)
+			for (String key : sortedKeySet)
 			{
 				SettingSection section = sections.get(key);
 				writeSection(writer, section);
@@ -437,8 +439,9 @@ public final class SettingsFile
 		// Write this section's values.
 		HashMap<String, Setting> settings = section.getSettings();
 		Set<String> keySet = settings.keySet();
+		Set<String> sortedKeySet = new TreeSet<>(keySet);
 
-		for (String key : keySet)
+		for (String key : sortedKeySet)
 		{
 			Setting setting = settings.get(key);
 			String settingString = settingAsString(setting);

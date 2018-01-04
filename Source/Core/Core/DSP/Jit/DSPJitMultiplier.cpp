@@ -6,6 +6,8 @@
 
 // Multiplier and product register control
 
+#include <cstddef>
+
 #include "Common/CommonTypes.h"
 
 #include "Core/DSP/DSPCore.h"
@@ -151,9 +153,10 @@ void DSPEmitter::multiply_mulx(u8 axh0, u8 axh1)
 // direct use of prod regs by AX/AXWII (look @that part of ucode).
 void DSPEmitter::clrp(const UDSPInstruction opc)
 {
+  int offset = static_cast<int>(offsetof(SDSP, r.prod.val));
   // 64bit move to memory does not work. use 2 32bits
-  MOV(32, M(((u32*)&g_dsp.r.prod.val) + 0), Imm32(0xfff00000U));
-  MOV(32, M(((u32*)&g_dsp.r.prod.val) + 1), Imm32(0x001000ffU));
+  MOV(32, MDisp(R15, offset + 0 * sizeof(u32)), Imm32(0xfff00000U));
+  MOV(32, MDisp(R15, offset + 1 * sizeof(u32)), Imm32(0x001000ffU));
 }
 
 // TSTPROD
@@ -393,7 +396,7 @@ void DSPEmitter::mulmvz(const UDSPInstruction opc)
   //	Update_SR_Register64(dsp_get_long_acc(rreg));
   if (FlagsNeeded())
   {
-    Update_SR_Register64(RDX);
+    Update_SR_Register64(RDX, RCX);
   }
 }
 

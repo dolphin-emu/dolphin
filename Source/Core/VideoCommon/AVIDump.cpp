@@ -58,6 +58,7 @@ static void InitAVCodec()
   if (first_run)
   {
     av_register_all();
+    avformat_network_init();
     first_run = false;
   }
 }
@@ -94,49 +95,81 @@ bool AVIDump::Start(int w, int h)
   return success;
 }
 
-bool AVIDump::CreateVideoFile()
+static std::string GetDumpPath(const std::string& format)
 {
-  AVCodec* codec = nullptr;
+  if (!g_Config.sDumpPath.empty())
+    return g_Config.sDumpPath;
 
-  s_format_context = avformat_alloc_context();
-  std::stringstream s_file_index_str;
-  s_file_index_str << s_file_index;
-  snprintf(s_format_context->filename, sizeof(s_format_context->filename), "%s",
-           (File::GetUserPath(D_DUMPFRAMES_IDX) + "framedump" + s_file_index_str.str() + ".avi")
-               .c_str());
-  File::CreateFullPath(s_format_context->filename);
+  std::string s_dump_path = File::GetUserPath(D_DUMPFRAMES_IDX) + "framedump" +
+                            std::to_string(s_file_index) + "." + format;
 
   // Ask to delete file
-  if (File::Exists(s_format_context->filename))
+  if (File::Exists(s_dump_path))
   {
     if (SConfig::GetInstance().m_DumpFramesSilent ||
-        AskYesNoT("Delete the existing file '%s'?", s_format_context->filename))
+        AskYesNoT("Delete the existing file '%s'?", s_dump_path.c_str()))
     {
-      File::Delete(s_format_context->filename);
+      File::Delete(s_dump_path);
     }
     else
     {
       // Stop and cancel dumping the video
-      return false;
+      return "";
     }
   }
 
-  if (!(s_format_context->oformat = av_guess_format("avi", nullptr, nullptr)))
+  return s_dump_path;
+}
+
+bool AVIDump::CreateVideoFile()
+{
+  const std::string& s_format = g_Config.sDumpFormat;
+
+  std::string s_dump_path = GetDumpPath(s_format);
+
+  if (s_dump_path.empty())
+    return false;
+
+  AVOutputFormat* output_format = av_guess_format(s_format.c_str(), s_dump_path.c_str(), nullptr);
+  if (!output_format)
   {
+    ERROR_LOG(VIDEO, "Invalid format %s", s_format.c_str());
     return false;
   }
 
-  AVCodecID codec_id =
-      g_Config.bUseFFV1 ? AV_CODEC_ID_FFV1 : s_format_context->oformat->video_codec;
+  if (avformat_alloc_output_context2(&s_format_context, output_format, nullptr,
+                                     s_dump_path.c_str()) < 0)
+  {
+    ERROR_LOG(VIDEO, "Could not allocate output context");
+    return false;
+  }
+
+  const std::string& codec_name = g_Config.bUseFFV1 ? "ffv1" : g_Config.sDumpCodec;
+
+  AVCodecID codec_id = output_format->video_codec;
+
+  if (!codec_name.empty())
+  {
+    const AVCodecDescriptor* codec_desc = avcodec_descriptor_get_by_name(codec_name.c_str());
+    if (codec_desc)
+      codec_id = codec_desc->id;
+    else
+      WARN_LOG(VIDEO, "Invalid codec %s", codec_name.c_str());
+  }
+
+  const AVCodec* codec = nullptr;
+
   if (!(codec = avcodec_find_encoder(codec_id)) ||
       !(s_codec_context = avcodec_alloc_context3(codec)))
   {
+    ERROR_LOG(VIDEO, "Could not find encoder or allocate codec context");
     return false;
   }
 
-  if (!g_Config.bUseFFV1)
-    s_codec_context->codec_tag =
-        MKTAG('X', 'V', 'I', 'D');  // Force XVID FourCC for better compatibility
+  // Force XVID FourCC for better compatibility
+  if (codec->id == AV_CODEC_ID_MPEG4)
+    s_codec_context->codec_tag = MKTAG('X', 'V', 'I', 'D');
+
   s_codec_context->codec_type = AVMEDIA_TYPE_VIDEO;
   s_codec_context->bit_rate = g_Config.iBitrateKbps * 1000;
   s_codec_context->width = s_width;
@@ -146,8 +179,12 @@ bool AVIDump::CreateVideoFile()
   s_codec_context->gop_size = 12;
   s_codec_context->pix_fmt = g_Config.bUseFFV1 ? AV_PIX_FMT_BGRA : AV_PIX_FMT_YUV420P;
 
+  if (output_format->flags & AVFMT_GLOBALHEADER)
+    s_codec_context->flags |= CODEC_FLAG_GLOBAL_HEADER;
+
   if (avcodec_open2(s_codec_context, codec, nullptr) < 0)
   {
+    ERROR_LOG(VIDEO, "Could not open codec");
     return false;
   }
 
@@ -169,6 +206,7 @@ bool AVIDump::CreateVideoFile()
   if (!(s_stream = avformat_new_stream(s_format_context, codec)) ||
       !AVStreamCopyContext(s_stream, s_codec_context))
   {
+    ERROR_LOG(VIDEO, "Could not create stream");
     return false;
   }
 
@@ -176,7 +214,7 @@ bool AVIDump::CreateVideoFile()
   if (avio_open(&s_format_context->pb, s_format_context->filename, AVIO_FLAG_WRITE) < 0 ||
       avformat_write_header(s_format_context, nullptr))
   {
-    WARN_LOG(VIDEO, "Could not open %s", s_format_context->filename);
+    ERROR_LOG(VIDEO, "Could not open %s", s_format_context->filename);
     return false;
   }
 
@@ -222,6 +260,25 @@ static int SendFrameAndReceivePacket(AVCodecContext* avctx, AVPacket* pkt, AVFra
 
   return ReceivePacket(avctx, pkt, got_packet);
 #endif
+}
+
+static void WritePacket(AVPacket& pkt)
+{
+  // Write the compressed frame in the media file.
+  if (pkt.pts != (s64)AV_NOPTS_VALUE)
+  {
+    pkt.pts = av_rescale_q(pkt.pts, s_codec_context->time_base, s_stream->time_base);
+  }
+  if (pkt.dts != (s64)AV_NOPTS_VALUE)
+  {
+    pkt.dts = av_rescale_q(pkt.dts, s_codec_context->time_base, s_stream->time_base);
+  }
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(56, 60, 100)
+  if (s_codec_context->coded_frame->key_frame)
+    pkt.flags |= AV_PKT_FLAG_KEY;
+#endif
+  pkt.stream_index = s_stream->index;
+  av_interleaved_write_frame(s_format_context, &pkt);
 }
 
 void AVIDump::AddFrame(const u8* data, int width, int height, int stride, const Frame& state)
@@ -284,34 +341,39 @@ void AVIDump::AddFrame(const u8* data, int width, int height, int stride, const 
     s_last_pts = pts_in_ticks;
     error = SendFrameAndReceivePacket(s_codec_context, &pkt, s_scaled_frame, &got_packet);
   }
-  while (!error && got_packet)
+  if (!error && got_packet)
   {
-    // Write the compressed frame in the media file.
-    if (pkt.pts != (s64)AV_NOPTS_VALUE)
-    {
-      pkt.pts = av_rescale_q(pkt.pts, s_codec_context->time_base, s_stream->time_base);
-    }
-    if (pkt.dts != (s64)AV_NOPTS_VALUE)
-    {
-      pkt.dts = av_rescale_q(pkt.dts, s_codec_context->time_base, s_stream->time_base);
-    }
-#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(56, 60, 100)
-    if (s_codec_context->coded_frame->key_frame)
-      pkt.flags |= AV_PKT_FLAG_KEY;
-#endif
-    pkt.stream_index = s_stream->index;
-    av_interleaved_write_frame(s_format_context, &pkt);
-
-    // Handle delayed frames.
-    PreparePacket(&pkt);
-    error = ReceivePacket(s_codec_context, &pkt, &got_packet);
+    WritePacket(pkt);
   }
   if (error)
     ERROR_LOG(VIDEO, "Error while encoding video: %d", error);
 }
 
+static void HandleDelayedPackets()
+{
+  AVPacket pkt;
+
+  while (true)
+  {
+    PreparePacket(&pkt);
+    int got_packet;
+    int error = ReceivePacket(s_codec_context, &pkt, &got_packet);
+    if (error)
+    {
+      ERROR_LOG(VIDEO, "Error while stopping video: %d", error);
+      break;
+    }
+
+    if (!got_packet)
+      break;
+
+    WritePacket(pkt);
+  }
+}
+
 void AVIDump::Stop()
 {
+  HandleDelayedPackets();
   av_write_trailer(s_format_context);
   CloseVideoFile();
   s_file_index = 0;

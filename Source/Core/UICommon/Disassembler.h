@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <memory>
 #include "Common/CommonTypes.h"
 
 class HostDisassembler
@@ -17,6 +18,6 @@ public:
   }
 };
 
-HostDisassembler* GetNewDisassembler(const std::string& arch);
+std::unique_ptr<HostDisassembler> GetNewDisassembler(const std::string& arch);
 std::string DisassembleBlock(HostDisassembler* disasm, u32* address, u32* host_instructions_count,
                              u32* code_size);

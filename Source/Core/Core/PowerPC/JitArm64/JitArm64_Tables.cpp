@@ -4,9 +4,8 @@
 
 #include "Core/PowerPC/JitArm64/Jit.h"
 
+#include <cstring>
 #include "Core/PowerPC/Gekko.h"
-#include "Core/PowerPC/JitInterface.h"
-#include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PPCTables.h"
 
 // Should be moved in to the Jit class

@@ -2,14 +2,17 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <array>
 #include <cstring>
 #include <memory>
 #include <vector>
 
 #include <mbedtls/md.h>
+#include <mbedtls/sha256.h>
 
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
+#include "Common/MsgHandler.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/Memmap.h"
@@ -83,6 +86,47 @@ IPCCommandResult NetSSL::IOCtl(const IOCtlRequest& request)
 {
   request.Log(GetDeviceName(), LogTypes::IOS_SSL, LogTypes::LINFO);
   return GetDefaultReply(IPC_SUCCESS);
+}
+
+constexpr std::array<u8, 32> s_client_cert_hash = {
+    {0x22, 0x9e, 0xc6, 0x78, 0x52, 0x5e, 0x06, 0x05, 0x88, 0xe8, 0xea,
+     0x23, 0xe5, 0x45, 0x9e, 0xc1, 0x4a, 0xf3, 0xc2, 0xeb, 0xb7, 0xb9,
+     0xe6, 0x9e, 0xc4, 0x6b, 0x0f, 0xaf, 0x01, 0x17, 0x30, 0xd9}};
+constexpr std::array<u8, 32> s_client_key_hash = {{0x72, 0x3b, 0xe9, 0xb3, 0x2c, 0x3a, 0xfb, 0x83,
+                                                   0xa4, 0xa3, 0x75, 0x7a, 0xdf, 0x35, 0x25, 0x29,
+                                                   0xe9, 0x0c, 0x0a, 0xd6, 0xfa, 0xd5, 0x25, 0x09,
+                                                   0x96, 0x3b, 0xa8, 0x94, 0x2a, 0xe6, 0x25, 0xdf}};
+constexpr std::array<u8, 32> s_root_ca_hash = {{0xc5, 0xb0, 0xf8, 0xdf, 0xce, 0xc6, 0xb9, 0xed,
+                                                0x2a, 0xc3, 0x8b, 0x8b, 0xc6, 0x9a, 0x4d, 0xb7,
+                                                0xc2, 0x09, 0xdc, 0x17, 0x7d, 0x24, 0x3c, 0x8d,
+                                                0xf2, 0xbd, 0xdf, 0x9e, 0x39, 0x17, 0x1e, 0x5f}};
+
+static std::vector<u8> ReadCertFile(const std::string& path, const std::array<u8, 32>& correct_hash)
+{
+  File::IOFile file(path, "rb");
+  std::vector<u8> bytes(file.GetSize());
+  if (!file.ReadBytes(bytes.data(), bytes.size()))
+  {
+    ERROR_LOG(IOS_SSL, "Failed to read %s", path.c_str());
+    PanicAlertT("IOS: Could not read a file required for SSL services (%s). Please refer to "
+                "https://dolphin-emu.org/docs/guides/wii-network-guide/ for "
+                "instructions on setting up Wii networking.",
+                path.c_str());
+    return {};
+  }
+
+  std::array<u8, 32> hash;
+  mbedtls_sha256(bytes.data(), bytes.size(), hash.data(), 0);
+  if (hash != correct_hash)
+  {
+    ERROR_LOG(IOS_SSL, "Wrong hash for %s", path.c_str());
+    PanicAlertT("IOS: A file required for SSL services (%s) is invalid. Please refer to "
+                "https://dolphin-emu.org/docs/guides/wii-network-guide/ for "
+                "instructions on setting up Wii networking.",
+                path.c_str());
+    return {};
+  }
+  return bytes;
 }
 
 IPCCommandResult NetSSL::IOCtlV(const IOCtlVRequest& request)
@@ -283,11 +327,14 @@ IPCCommandResult NetSSL::IOCtlV(const IOCtlVRequest& request)
     if (SSLID_VALID(sslID))
     {
       WII_SSL* ssl = &_SSL[sslID];
-      std::string cert_base_path = File::GetUserPath(D_SESSION_WIIROOT_IDX);
-      int ret =
-          mbedtls_x509_crt_parse_file(&ssl->clicert, (cert_base_path + "/clientca.pem").c_str());
-      int pk_ret = mbedtls_pk_parse_keyfile(&ssl->pk, (cert_base_path + "/clientcakey.pem").c_str(),
-                                            nullptr);
+      const std::string cert_base_path = File::GetUserPath(D_SESSION_WIIROOT_IDX);
+      const std::vector<u8> client_cert =
+          ReadCertFile(cert_base_path + "/clientca.pem", s_client_cert_hash);
+      const std::vector<u8> client_key =
+          ReadCertFile(cert_base_path + "/clientcakey.pem", s_client_key_hash);
+
+      int ret = mbedtls_x509_crt_parse(&ssl->clicert, client_cert.data(), client_cert.size());
+      int pk_ret = mbedtls_pk_parse_key(&ssl->pk, client_key.data(), client_key.size(), nullptr, 0);
       if (ret || pk_ret)
       {
         mbedtls_x509_crt_free(&ssl->clicert);
@@ -341,9 +388,10 @@ IPCCommandResult NetSSL::IOCtlV(const IOCtlVRequest& request)
     if (SSLID_VALID(sslID))
     {
       WII_SSL* ssl = &_SSL[sslID];
+      const std::string cert_base_path = File::GetUserPath(D_SESSION_WIIROOT_IDX);
+      const std::vector<u8> root_ca = ReadCertFile(cert_base_path + "/rootca.pem", s_root_ca_hash);
 
-      int ret = mbedtls_x509_crt_parse_file(
-          &ssl->cacert, (File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/rootca.pem").c_str());
+      int ret = mbedtls_x509_crt_parse(&ssl->cacert, root_ca.data(), root_ca.size());
       if (ret)
       {
         mbedtls_x509_crt_free(&ssl->clicert);

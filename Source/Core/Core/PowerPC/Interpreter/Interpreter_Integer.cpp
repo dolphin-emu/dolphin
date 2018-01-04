@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "Core/PowerPC/Interpreter/Interpreter.h"
+
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"

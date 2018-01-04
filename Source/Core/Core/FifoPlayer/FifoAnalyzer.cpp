@@ -2,14 +2,16 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/FifoPlayer/FifoAnalyzer.h"
+
 #include <algorithm>
 #include <numeric>
 
-#include "Core/FifoPlayer/FifoAnalyzer.h"
-
 #include "Common/Assert.h"
-#include "Core/Core.h"
+#include "Common/Swap.h"
+
 #include "Core/FifoPlayer/FifoRecordAnalyzer.h"
+
 #include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/VertexLoader.h"
 #include "VideoCommon/VertexLoader_Normal.h"

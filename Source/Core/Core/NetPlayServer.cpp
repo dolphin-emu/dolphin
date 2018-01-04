@@ -21,7 +21,10 @@
 #if !defined(_WIN32)
 #include <sys/socket.h>
 #include <sys/types.h>
-#ifndef ANDROID
+#ifdef __HAIKU__
+#define _BSD_SOURCE
+#include <bsd/ifaddrs.h>
+#elif !defined ANDROID
 #include <ifaddrs.h>
 #endif
 #include <arpa/inet.h>
@@ -129,7 +132,7 @@ void NetPlayServer::ThreadFunc()
     {
       {
         std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
-        SendToClients(*(m_async_queue.Front().get()));
+        SendToClients(m_async_queue.Front());
       }
       m_async_queue.Pop();
     }
@@ -342,7 +345,7 @@ unsigned int NetPlayServer::OnConnect(ENetPeer* socket)
 }
 
 // called from ---NETPLAY--- thread
-unsigned int NetPlayServer::OnDisconnect(Client& player)
+unsigned int NetPlayServer::OnDisconnect(const Client& player)
 {
   PlayerId pid = player.pid;
 
@@ -456,14 +459,14 @@ void NetPlayServer::AdjustPadBufferSize(unsigned int size)
   m_target_buffer_size = size;
 
   // tell clients to change buffer size
-  auto spac = std::make_unique<sf::Packet>();
-  *spac << static_cast<MessageId>(NP_MSG_PAD_BUFFER);
-  *spac << static_cast<u32>(m_target_buffer_size);
+  sf::Packet spac;
+  spac << static_cast<MessageId>(NP_MSG_PAD_BUFFER);
+  spac << static_cast<u32>(m_target_buffer_size);
 
   SendAsyncToClients(std::move(spac));
 }
 
-void NetPlayServer::SendAsyncToClients(std::unique_ptr<sf::Packet> packet)
+void NetPlayServer::SendAsyncToClients(sf::Packet&& packet)
 {
   {
     std::lock_guard<std::recursive_mutex> lkq(m_crit.async_queue_write);
@@ -723,10 +726,10 @@ void NetPlayServer::OnTraversalStateChanged()
 // called from ---GUI--- thread
 void NetPlayServer::SendChatMessage(const std::string& msg)
 {
-  auto spac = std::make_unique<sf::Packet>();
-  *spac << static_cast<MessageId>(NP_MSG_CHAT_MESSAGE);
-  *spac << static_cast<PlayerId>(0);  // server id always 0
-  *spac << msg;
+  sf::Packet spac;
+  spac << static_cast<MessageId>(NP_MSG_CHAT_MESSAGE);
+  spac << static_cast<PlayerId>(0);  // server id always 0
+  spac << msg;
 
   SendAsyncToClients(std::move(spac));
 }
@@ -739,9 +742,9 @@ bool NetPlayServer::ChangeGame(const std::string& game)
   m_selected_game = game;
 
   // send changed game to clients
-  auto spac = std::make_unique<sf::Packet>();
-  *spac << static_cast<MessageId>(NP_MSG_CHANGE_GAME);
-  *spac << game;
+  sf::Packet spac;
+  spac << static_cast<MessageId>(NP_MSG_CHANGE_GAME);
+  spac << game;
 
   SendAsyncToClients(std::move(spac));
 
@@ -751,9 +754,9 @@ bool NetPlayServer::ChangeGame(const std::string& game)
 // called from ---GUI--- thread
 bool NetPlayServer::ComputeMD5(const std::string& file_identifier)
 {
-  auto spac = std::make_unique<sf::Packet>();
-  *spac << static_cast<MessageId>(NP_MSG_COMPUTE_MD5);
-  *spac << file_identifier;
+  sf::Packet spac;
+  spac << static_cast<MessageId>(NP_MSG_COMPUTE_MD5);
+  spac << file_identifier;
 
   SendAsyncToClients(std::move(spac));
 
@@ -763,8 +766,8 @@ bool NetPlayServer::ComputeMD5(const std::string& file_identifier)
 // called from ---GUI--- thread
 bool NetPlayServer::AbortMD5()
 {
-  auto spac = std::make_unique<sf::Packet>();
-  *spac << static_cast<MessageId>(NP_MSG_MD5_ABORT);
+  sf::Packet spac;
+  spac << static_cast<MessageId>(NP_MSG_MD5_ABORT);
 
   SendAsyncToClients(std::move(spac));
 
@@ -794,26 +797,26 @@ bool NetPlayServer::StartGame()
     g_netplay_initial_rtc = Common::Timer::GetLocalTimeSinceJan1970();
 
   // tell clients to start game
-  auto spac = std::make_unique<sf::Packet>();
-  *spac << (MessageId)NP_MSG_START_GAME;
-  *spac << m_current_game;
-  *spac << m_settings.m_CPUthread;
-  *spac << m_settings.m_CPUcore;
-  *spac << m_settings.m_EnableCheats;
-  *spac << m_settings.m_SelectedLanguage;
-  *spac << m_settings.m_OverrideGCLanguage;
-  *spac << m_settings.m_ProgressiveScan;
-  *spac << m_settings.m_PAL60;
-  *spac << m_settings.m_DSPEnableJIT;
-  *spac << m_settings.m_DSPHLE;
-  *spac << m_settings.m_WriteToMemcard;
-  *spac << m_settings.m_CopyWiiSave;
-  *spac << m_settings.m_OCEnable;
-  *spac << m_settings.m_OCFactor;
-  *spac << m_settings.m_EXIDevice[0];
-  *spac << m_settings.m_EXIDevice[1];
-  *spac << (u32)g_netplay_initial_rtc;
-  *spac << (u32)(g_netplay_initial_rtc >> 32);
+  sf::Packet spac;
+  spac << (MessageId)NP_MSG_START_GAME;
+  spac << m_current_game;
+  spac << m_settings.m_CPUthread;
+  spac << m_settings.m_CPUcore;
+  spac << m_settings.m_EnableCheats;
+  spac << m_settings.m_SelectedLanguage;
+  spac << m_settings.m_OverrideGCLanguage;
+  spac << m_settings.m_ProgressiveScan;
+  spac << m_settings.m_PAL60;
+  spac << m_settings.m_DSPEnableJIT;
+  spac << m_settings.m_DSPHLE;
+  spac << m_settings.m_WriteToMemcard;
+  spac << m_settings.m_CopyWiiSave;
+  spac << m_settings.m_OCEnable;
+  spac << m_settings.m_OCFactor;
+  spac << m_settings.m_EXIDevice[0];
+  spac << m_settings.m_EXIDevice[1];
+  spac << (u32)g_netplay_initial_rtc;
+  spac << (u32)(g_netplay_initial_rtc >> 32);
 
   SendAsyncToClients(std::move(spac));
 
@@ -823,7 +826,7 @@ bool NetPlayServer::StartGame()
 }
 
 // called from multiple threads
-void NetPlayServer::SendToClients(sf::Packet& packet, const PlayerId skip_pid)
+void NetPlayServer::SendToClients(const sf::Packet& packet, const PlayerId skip_pid)
 {
   for (auto& p : m_players)
   {
@@ -834,7 +837,7 @@ void NetPlayServer::SendToClients(sf::Packet& packet, const PlayerId skip_pid)
   }
 }
 
-void NetPlayServer::Send(ENetPeer* socket, sf::Packet& packet)
+void NetPlayServer::Send(ENetPeer* socket, const sf::Packet& packet)
 {
   ENetPacket* epac =
       enet_packet_create(packet.getData(), packet.getDataSize(), ENET_PACKET_FLAG_RELIABLE);
@@ -853,7 +856,7 @@ void NetPlayServer::KickPlayer(PlayerId player)
   }
 }
 
-u16 NetPlayServer::GetPort()
+u16 NetPlayServer::GetPort() const
 {
   return m_server->address.port;
 }
@@ -864,7 +867,7 @@ void NetPlayServer::SetNetPlayUI(NetPlayUI* dialog)
 }
 
 // called from ---GUI--- thread
-std::unordered_set<std::string> NetPlayServer::GetInterfaceSet()
+std::unordered_set<std::string> NetPlayServer::GetInterfaceSet() const
 {
   std::unordered_set<std::string> result;
   auto lst = GetInterfaceListInternal();
@@ -874,7 +877,7 @@ std::unordered_set<std::string> NetPlayServer::GetInterfaceSet()
 }
 
 // called from ---GUI--- thread
-std::string NetPlayServer::GetInterfaceHost(const std::string& inter)
+std::string NetPlayServer::GetInterfaceHost(const std::string& inter) const
 {
   char buf[16];
   sprintf(buf, ":%d", GetPort());
@@ -890,7 +893,7 @@ std::string NetPlayServer::GetInterfaceHost(const std::string& inter)
 }
 
 // called from ---GUI--- thread
-std::vector<std::pair<std::string, std::string>> NetPlayServer::GetInterfaceListInternal()
+std::vector<std::pair<std::string, std::string>> NetPlayServer::GetInterfaceListInternal() const
 {
   std::vector<std::pair<std::string, std::string>> result;
 #if defined(_WIN32)

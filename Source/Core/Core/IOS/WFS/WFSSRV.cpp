@@ -11,7 +11,6 @@
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/NandPaths.h"
-#include "Core/HW/DVDInterface.h"
 #include "Core/HW/Memmap.h"
 
 namespace IOS

@@ -13,13 +13,9 @@
 
 using namespace FifoFileStruct;
 
-FifoDataFile::FifoDataFile() : m_Flags(0)
-{
-}
+FifoDataFile::FifoDataFile() = default;
 
-FifoDataFile::~FifoDataFile()
-{
-}
+FifoDataFile::~FifoDataFile() = default;
 
 bool FifoDataFile::HasBrokenEFBCopies() const
 {

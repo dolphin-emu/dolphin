@@ -288,7 +288,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(bool is_depth_copy, const EFBRe
 
   // Create texture copy
   D3D::DrawShadedTexQuad(
-      efb_tex, &sourcerect, Renderer::GetTargetWidth(), Renderer::GetTargetHeight(),
+      efb_tex, &sourcerect, g_renderer->GetTargetWidth(), g_renderer->GetTargetHeight(),
       is_depth_copy ? StaticShaderCache::GetDepthMatrixPixelShader(multisampled) :
                       StaticShaderCache::GetColorMatrixPixelShader(multisampled),
       StaticShaderCache::GetSimpleVertexShader(),

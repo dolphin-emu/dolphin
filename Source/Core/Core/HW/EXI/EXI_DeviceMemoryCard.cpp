@@ -22,9 +22,9 @@
 #include "Core/HW/EXI/EXI.h"
 #include "Core/HW/EXI/EXI_Channel.h"
 #include "Core/HW/EXI/EXI_Device.h"
-#include "Core/HW/GCMemcard.h"
-#include "Core/HW/GCMemcardDirectory.h"
-#include "Core/HW/GCMemcardRaw.h"
+#include "Core/HW/GCMemcard/GCMemcard.h"
+#include "Core/HW/GCMemcard/GCMemcardDirectory.h"
+#include "Core/HW/GCMemcard/GCMemcardRaw.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/Sram.h"
 #include "Core/HW/SystemTimers.h"
@@ -160,16 +160,21 @@ void CEXIMemoryCard::SetupGciFolder(u16 sizeMb)
 {
   DiscIO::Region region = SConfig::GetInstance().m_region;
 
-  std::string game_id = SConfig::GetInstance().m_strGameID;
+  const std::string& game_id = SConfig::GetInstance().GetGameID();
   u32 CurrentGameId = 0;
   if (game_id.length() >= 4 && game_id != "00000000" && game_id != TITLEID_SYSMENU_STRING)
     CurrentGameId = BE32((u8*)game_id.c_str());
 
   const bool shift_jis = region == DiscIO::Region::NTSC_J;
 
-  std::string strDirectoryName = File::GetUserPath(D_GCUSER_IDX) +
-                                 SConfig::GetDirectoryForRegion(region) + DIR_SEP +
-                                 StringFromFormat("Card %c", 'A' + card_index);
+  std::string strDirectoryName = File::GetUserPath(D_GCUSER_IDX);
+
+  if (Movie::IsPlayingInput() && Movie::IsConfigSaved() && Movie::IsUsingMemcard(card_index) &&
+      Movie::IsStartingFromClearSave())
+    strDirectoryName += "Movie" DIR_SEP;
+
+  strDirectoryName = strDirectoryName + SConfig::GetDirectoryForRegion(region) + DIR_SEP +
+                     StringFromFormat("Card %c", 'A' + card_index);
 
   if (!File::Exists(strDirectoryName))  // first use of memcard folder, migrate automatically
   {

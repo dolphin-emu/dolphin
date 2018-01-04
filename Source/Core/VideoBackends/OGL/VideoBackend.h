@@ -28,5 +28,9 @@ class VideoBackend : public VideoBackendBase
   void InitBackendInfo() override;
 
   unsigned int PeekMessages() override;
+
+private:
+  bool InitializeGLExtensions();
+  bool FillBackendInfo();
 };
 }

@@ -42,7 +42,10 @@
 
 namespace Vulkan
 {
-Renderer::Renderer(std::unique_ptr<SwapChain> swap_chain) : m_swap_chain(std::move(swap_chain))
+Renderer::Renderer(std::unique_ptr<SwapChain> swap_chain)
+    : ::Renderer(swap_chain ? static_cast<int>(swap_chain->GetWidth()) : 1,
+                 swap_chain ? static_cast<int>(swap_chain->GetHeight()) : 0),
+      m_swap_chain(std::move(swap_chain))
 {
   g_Config.bRunning = true;
   UpdateActiveConfig();
@@ -50,17 +53,6 @@ Renderer::Renderer(std::unique_ptr<SwapChain> swap_chain) : m_swap_chain(std::mo
   // Set to something invalid, forcing all states to be re-initialized.
   for (size_t i = 0; i < m_sampler_states.size(); i++)
     m_sampler_states[i].bits = std::numeric_limits<decltype(m_sampler_states[i].bits)>::max();
-
-  // These have to be initialized before FramebufferManager is created.
-  // If running surfaceless, assume a window size of MAX_XFB_{WIDTH,HEIGHT}.
-  FramebufferManagerBase::SetLastXfbWidth(MAX_XFB_WIDTH);
-  FramebufferManagerBase::SetLastXfbHeight(MAX_XFB_HEIGHT);
-  s_backbuffer_width = m_swap_chain ? m_swap_chain->GetWidth() : MAX_XFB_WIDTH;
-  s_backbuffer_height = m_swap_chain ? m_swap_chain->GetHeight() : MAX_XFB_HEIGHT;
-  s_last_efb_scale = g_ActiveConfig.iEFBScale;
-  UpdateDrawRectangle();
-  CalculateTargetSize();
-  PixelShaderManager::SetEfbScaleChanged();
 }
 
 Renderer::~Renderer()
@@ -274,12 +266,12 @@ u16 Renderer::BBoxRead(int index)
   if (index < 2)
   {
     // left/right
-    value = value * EFB_WIDTH / s_target_width;
+    value = value * EFB_WIDTH / m_target_width;
   }
   else
   {
     // up/down
-    value = value * EFB_HEIGHT / s_target_height;
+    value = value * EFB_HEIGHT / m_target_height;
   }
 
   // fix max values to describe the outer border
@@ -301,12 +293,12 @@ void Renderer::BBoxWrite(int index, u16 value)
   if (index < 2)
   {
     // left/right
-    scaled_value = scaled_value * s_target_width / EFB_WIDTH;
+    scaled_value = scaled_value * m_target_width / EFB_WIDTH;
   }
   else
   {
     // up/down
-    scaled_value = scaled_value * s_target_height / EFB_HEIGHT;
+    scaled_value = scaled_value * m_target_height / EFB_HEIGHT;
   }
 
   m_bounding_box->Set(static_cast<size_t>(index), scaled_value);
@@ -495,7 +487,7 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
   FramebufferManager::GetInstance()->FlushEFBPokes();
 
   // Check that we actually have an image to render in XFB-on modes.
-  if ((!XFBWrited && !g_ActiveConfig.RealXFBEnabled()) || !fb_width || !fb_height)
+  if ((!m_xfb_written && !g_ActiveConfig.RealXFBEnabled()) || !fb_width || !fb_height)
   {
     Core::Callback_VideoCopiedToXFB(false);
     return;
@@ -512,6 +504,10 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
   // End the current render pass.
   StateTracker::GetInstance()->EndRenderPass();
   StateTracker::GetInstance()->OnEndFrame();
+
+  // There are a few variables which can alter the final window draw rectangle, and some of them
+  // are determined by guest state. Currently, the only way to catch these is to update every frame.
+  UpdateDrawRectangle();
 
   // Render the frame dump image if enabled.
   if (IsFrameDumping())
@@ -572,6 +568,10 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
   // the changes will be delayed by one frame. For the moment it has to be done here because
   // this can cause a target size change, which would result in a black frame if done earlier.
   CheckForTargetResize(fb_width, fb_stride, fb_height);
+
+  // Update the window size based on the frame that was just rendered.
+  // Due to depending on guest state, we need to call this every frame.
+  SetWindowSize(static_cast<int>(fb_stride), static_cast<int>(fb_height));
 
   // Clean up stale textures.
   TextureCache::GetInstance()->Cleanup(frameCount);
@@ -1020,36 +1020,29 @@ void Renderer::CheckForTargetResize(u32 fb_width, u32 fb_stride, u32 fb_height)
   FramebufferManagerBase::SetLastXfbWidth(new_width);
   FramebufferManagerBase::SetLastXfbHeight(new_height);
 
-  // Changing the XFB source area will likely change the final drawing rectangle.
-  UpdateDrawRectangle();
+  // Changing the XFB source area may alter the target size.
   if (CalculateTargetSize())
-  {
-    PixelShaderManager::SetEfbScaleChanged();
     ResizeEFBTextures();
-  }
-
-  // This call is needed for auto-resizing to work.
-  SetWindowSize(static_cast<int>(fb_stride), static_cast<int>(fb_height));
 }
 
 void Renderer::CheckForSurfaceChange()
 {
-  if (!s_surface_needs_change.IsSet())
+  if (!m_surface_needs_change.IsSet())
     return;
 
   u32 old_width = m_swap_chain ? m_swap_chain->GetWidth() : 0;
   u32 old_height = m_swap_chain ? m_swap_chain->GetHeight() : 0;
 
   // Fast path, if the surface handle is the same, the window has just been resized.
-  if (m_swap_chain && s_new_surface_handle == m_swap_chain->GetNativeHandle())
+  if (m_swap_chain && m_new_surface_handle == m_swap_chain->GetNativeHandle())
   {
     INFO_LOG(VIDEO, "Detected window resize.");
     ResizeSwapChain();
 
     // Notify the main thread we are done.
-    s_surface_needs_change.Clear();
-    s_new_surface_handle = nullptr;
-    s_surface_changed.Set();
+    m_surface_needs_change.Clear();
+    m_new_surface_handle = nullptr;
+    m_surface_changed.Set();
   }
   else
   {
@@ -1059,7 +1052,7 @@ void Renderer::CheckForSurfaceChange()
     // Did we previously have a swap chain?
     if (m_swap_chain)
     {
-      if (!s_new_surface_handle)
+      if (!m_new_surface_handle)
       {
         // If there is no surface now, destroy the swap chain.
         m_swap_chain.reset();
@@ -1067,7 +1060,7 @@ void Renderer::CheckForSurfaceChange()
       else
       {
         // Recreate the surface. If this fails we're in trouble.
-        if (!m_swap_chain->RecreateSurface(s_new_surface_handle))
+        if (!m_swap_chain->RecreateSurface(m_new_surface_handle))
           PanicAlert("Failed to recreate Vulkan surface. Cannot continue.");
       }
     }
@@ -1075,10 +1068,10 @@ void Renderer::CheckForSurfaceChange()
     {
       // Previously had no swap chain. So create one.
       VkSurfaceKHR surface = SwapChain::CreateVulkanSurface(g_vulkan_context->GetVulkanInstance(),
-                                                            s_new_surface_handle);
+                                                            m_new_surface_handle);
       if (surface != VK_NULL_HANDLE)
       {
-        m_swap_chain = SwapChain::Create(s_new_surface_handle, surface, g_ActiveConfig.IsVSync());
+        m_swap_chain = SwapChain::Create(m_new_surface_handle, surface, g_ActiveConfig.IsVSync());
         if (!m_swap_chain)
           PanicAlert("Failed to create swap chain.");
       }
@@ -1089,9 +1082,9 @@ void Renderer::CheckForSurfaceChange()
     }
 
     // Notify calling thread.
-    s_surface_needs_change.Clear();
-    s_new_surface_handle = nullptr;
-    s_surface_changed.Set();
+    m_surface_needs_change.Clear();
+    m_new_surface_handle = nullptr;
+    m_surface_changed.Set();
   }
 
   if (m_swap_chain)
@@ -1109,8 +1102,11 @@ void Renderer::CheckForConfigChanges()
   int old_anisotropy = g_ActiveConfig.iMaxAnisotropy;
   int old_stereo_mode = g_ActiveConfig.iStereoMode;
   int old_aspect_ratio = g_ActiveConfig.iAspectRatio;
+  int old_efb_scale = g_ActiveConfig.iEFBScale;
   bool old_force_filtering = g_ActiveConfig.bForceFiltering;
   bool old_ssaa = g_ActiveConfig.bSSAA;
+  bool old_use_xfb = g_ActiveConfig.bUseXFB;
+  bool old_use_realxfb = g_ActiveConfig.bUseRealXFB;
 
   // Copy g_Config to g_ActiveConfig.
   // NOTE: This can potentially race with the UI thread, however if it does, the changes will be
@@ -1123,21 +1119,16 @@ void Renderer::CheckForConfigChanges()
   bool anisotropy_changed = old_anisotropy != g_ActiveConfig.iMaxAnisotropy;
   bool force_texture_filtering_changed = old_force_filtering != g_ActiveConfig.bForceFiltering;
   bool stereo_changed = old_stereo_mode != g_ActiveConfig.iStereoMode;
-  bool efb_scale_changed = s_last_efb_scale != g_ActiveConfig.iEFBScale;
+  bool efb_scale_changed = old_efb_scale != g_ActiveConfig.iEFBScale;
   bool aspect_changed = old_aspect_ratio != g_ActiveConfig.iAspectRatio;
+  bool use_xfb_changed = old_use_xfb != g_ActiveConfig.bUseXFB;
+  bool use_realxfb_changed = old_use_realxfb != g_ActiveConfig.bUseRealXFB;
 
   // Update texture cache settings with any changed options.
   TextureCache::GetInstance()->OnConfigChanged(g_ActiveConfig);
 
-  // Handle internal resolution changes.
-  if (efb_scale_changed)
-    s_last_efb_scale = g_ActiveConfig.iEFBScale;
-
-  // If the aspect ratio is changed, this changes the area that the game is drawn to.
-  if (aspect_changed)
-    UpdateDrawRectangle();
-
-  if (efb_scale_changed || aspect_changed)
+  // Handle settings that can cause the target rectangle to change.
+  if (efb_scale_changed || aspect_changed || use_xfb_changed || use_realxfb_changed)
   {
     if (CalculateTargetSize())
       ResizeEFBTextures();
@@ -1178,14 +1169,11 @@ void Renderer::CheckForConfigChanges()
 
 void Renderer::OnSwapChainResized()
 {
-  s_backbuffer_width = m_swap_chain->GetWidth();
-  s_backbuffer_height = m_swap_chain->GetHeight();
+  m_backbuffer_width = m_swap_chain->GetWidth();
+  m_backbuffer_height = m_swap_chain->GetHeight();
   UpdateDrawRectangle();
   if (CalculateTargetSize())
-  {
-    PixelShaderManager::SetEfbScaleChanged();
     ResizeEFBTextures();
-  }
 }
 
 void Renderer::BindEFBToStateTracker()
@@ -1650,10 +1638,8 @@ void Renderer::SetViewport()
   float y = Renderer::EFBToScaledYf(xfmem.viewport.yOrig + xfmem.viewport.ht - scissor_y_offset);
   float width = Renderer::EFBToScaledXf(2.0f * xfmem.viewport.wd);
   float height = Renderer::EFBToScaledYf(-2.0f * xfmem.viewport.ht);
-  float range = MathUtil::Clamp<float>(xfmem.viewport.zRange, -16777215.0f, 16777215.0f);
-  float min_depth =
-      MathUtil::Clamp<float>(xfmem.viewport.farZ - range, 0.0f, 16777215.0f) / 16777216.0f;
-  float max_depth = MathUtil::Clamp<float>(xfmem.viewport.farZ, 0.0f, 16777215.0f) / 16777216.0f;
+  float min_depth = (xfmem.viewport.farZ - xfmem.viewport.zRange) / 16777216.0f;
+  float max_depth = xfmem.viewport.farZ / 16777216.0f;
   if (width < 0.0f)
   {
     x += width;
@@ -1665,11 +1651,12 @@ void Renderer::SetViewport()
     height = -height;
   }
 
-  // If an inverted depth range is used, which the Vulkan drivers don't
-  // support, we need to calculate the depth range in the vertex shader.
-  // TODO: Make this into a DriverDetails bug and write a test for CTS.
-  if (xfmem.viewport.zRange < 0.0f)
+  // If an oversized or inverted depth range is used, we need to calculate the depth range in the
+  // vertex shader.
+  // TODO: Inverted depth ranges are bugged in all drivers, which should be added to DriverDetails.
+  if (UseVertexDepthRange())
   {
+    // We need to ensure depth values are clamped the maximum value supported by the console GPU.
     min_depth = 0.0f;
     max_depth = GX_MAX_DEPTH;
   }
@@ -1684,9 +1671,9 @@ void Renderer::SetViewport()
 void Renderer::ChangeSurface(void* new_surface_handle)
 {
   // Called by the main thread when the window is resized.
-  s_new_surface_handle = new_surface_handle;
-  s_surface_needs_change.Set();
-  s_surface_changed.Set();
+  m_new_surface_handle = new_surface_handle;
+  m_surface_needs_change.Set();
+  m_surface_changed.Set();
 }
 
 void Renderer::RecompileShaders()

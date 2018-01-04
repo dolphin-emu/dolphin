@@ -7,6 +7,8 @@
 // Licensed under the terms of the GNU GPL, version 2
 // http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt
 
+#include "Core/HW/WiiSaveCrypted.h"
+
 #include <cinttypes>
 #include <cstddef>
 #include <cstdio>
@@ -19,7 +21,6 @@
 #include <vector>
 
 #include "Common/Align.h"
-#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/Crypto/ec.h"
 #include "Common/FileUtil.h"
@@ -27,8 +28,7 @@
 #include "Common/MsgHandler.h"
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
-
-#include "Core/HW/WiiSaveCrypted.h"
+#include "Common/Swap.h"
 
 const u8 CWiiSaveCrypted::s_sd_key[16] = {0xAB, 0x01, 0xB9, 0xD8, 0xE1, 0x62, 0x2B, 0x08,
                                           0xAF, 0xBA, 0xD8, 0x4D, 0xBF, 0xC2, 0xA5, 0x5D};

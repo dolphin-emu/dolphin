@@ -91,7 +91,7 @@ void SettingChoice::UpdateValue(wxCommandEvent& ev)
 
 void VideoConfigDiag::Event_ClickSave(wxCommandEvent&)
 {
-  if (SConfig::GetInstance().m_strGameID != "")
+  if (SConfig::GetInstance().GetGameID() != "")
     g_Config.GameIniSave();
 }
 

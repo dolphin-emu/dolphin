@@ -5,6 +5,7 @@
 #pragma once
 
 #include <array>
+
 #include "Common/x64Emitter.h"
 
 namespace DSP
@@ -143,7 +144,7 @@ private:
   struct DynamicReg
   {
     Gen::OpArg loc;
-    void* mem;
+    Gen::OpArg mem;
     size_t size;
     bool dirty;
     bool used;

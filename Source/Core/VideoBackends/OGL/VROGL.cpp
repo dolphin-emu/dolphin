@@ -459,7 +459,7 @@ bool BInitGL()
 void RenderDistortion()
 {
   glDisable(GL_DEPTH_TEST);
-  glViewport(0, 0, Renderer::GetBackbufferWidth(), Renderer::GetBackbufferHeight());
+  glViewport(0, 0, g_renderer->GetBackbufferWidth(), g_renderer->GetBackbufferHeight());
 
   glBindVertexArray(m_unLensVAO);
   glUseProgram(m_unLensProgramID);
@@ -564,8 +564,8 @@ void VR_ConfigureHMD()
 #if defined(OVR_MAJOR_VERSION) && (OVR_PRODUCT_VERSION >= 1 || OVR_MAJOR_VERSION >= 6)
 void RecreateMirrorTextureIfNeeded()
 {
-  int w = Renderer::GetBackbufferWidth();
-  int h = Renderer::GetBackbufferHeight();
+  int w = g_renderer->GetBackbufferWidth();
+  int h = g_renderer->GetBackbufferHeight();
   bool bNoMirrorToWindow = g_ActiveConfig.iMirrorPlayer == VR_PLAYER_NONE ||
                            g_ActiveConfig.iMirrorStyle == VR_MIRROR_DISABLED;
   if (w != mirror_width || h != mirror_height || ((mirrorTexture == nullptr) != bNoMirrorToWindow))
@@ -855,10 +855,10 @@ void VR_PresentHMDFrame()
     {
       if (g_ActiveConfig.iMirrorStyle != VR_MIRROR_WARPED)
       {
-        GLint w = Renderer::GetTargetWidth();
-        GLint h = Renderer::GetTargetHeight();
-        GLint bbw = Renderer::GetBackbufferWidth();
-        GLint bbh = Renderer::GetBackbufferHeight();
+        GLint w = g_renderer->GetTargetWidth();
+        GLint h = g_renderer->GetTargetHeight();
+        GLint bbw = g_renderer->GetBackbufferWidth();
+        GLint bbh = g_renderer->GetBackbufferHeight();
         // warped or both eyes
         int eye = 0;
         if (g_ActiveConfig.iMirrorStyle >= VR_MIRROR_BOTH)
@@ -915,10 +915,10 @@ void VR_PresentHMDFrame()
         g_ActiveConfig.iMirrorStyle != VR_MIRROR_DISABLED)
     {
       glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-      GLint w = Renderer::GetTargetWidth();
-      GLint h = Renderer::GetTargetHeight();
-      GLint bbw = Renderer::GetBackbufferWidth();
-      GLint bbh = Renderer::GetBackbufferHeight();
+      GLint w = g_renderer->GetTargetWidth();
+      GLint h = g_renderer->GetTargetHeight();
+      GLint bbw = g_renderer->GetBackbufferWidth();
+      GLint bbh = g_renderer->GetBackbufferHeight();
       // warped or both eyes
       int eye = 0;
       if (g_ActiveConfig.iMirrorStyle >= VR_MIRROR_WARPED)

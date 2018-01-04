@@ -2,7 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "DolphinWX/X11Utils.h"
+#include "UICommon/X11Utils.h"
 
 #include <algorithm>
 #include <cstdio>

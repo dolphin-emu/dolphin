@@ -15,10 +15,12 @@ namespace JIT
 {
 namespace x86
 {
-// In: RAX: s64 _Value
-// Clobbers RDX
-void DSPEmitter::Update_SR_Register(Gen::X64Reg val)
+// In: val: s64 _Value
+// Clobbers scratch
+void DSPEmitter::Update_SR_Register(Gen::X64Reg val, Gen::X64Reg scratch)
 {
+  _assert_(val != scratch);
+
   const OpArg sr_reg = m_gpr.GetReg(DSP_REG_SR);
   //	// 0x04
   //	if (_Value == 0) g_dsp.r[DSP_REG_SR] |= SR_ARITH_ZERO;
@@ -36,18 +38,18 @@ void DSPEmitter::Update_SR_Register(Gen::X64Reg val)
 
   //	// 0x10
   //	if (_Value != (s32)_Value) g_dsp.r[DSP_REG_SR] |= SR_OVER_S32;
-  MOVSX(64, 32, RDX, R(val));
-  CMP(64, R(RDX), R(val));
+  MOVSX(64, 32, scratch, R(val));
+  CMP(64, R(scratch), R(val));
   FixupBranch noOverS32 = J_CC(CC_E);
   OR(16, sr_reg, Imm16(SR_OVER_S32));
   SetJumpTarget(noOverS32);
 
   //	// 0x20 - Checks if top bits of m are equal
   //	if (((_Value & 0xc0000000) == 0) || ((_Value & 0xc0000000) == 0xc0000000))
-  MOV(32, R(RDX), Imm32(0xc0000000));
-  AND(32, R(val), R(RDX));
+  MOV(32, R(scratch), Imm32(0xc0000000));
+  AND(32, R(val), R(scratch));
   FixupBranch zeroC = J_CC(CC_Z);
-  CMP(32, R(val), R(RDX));
+  CMP(32, R(val), R(scratch));
   FixupBranch cC = J_CC(CC_NE);
   SetJumpTarget(zeroC);
   //		g_dsp.r[DSP_REG_SR] |= SR_TOP2BITS;
@@ -57,15 +59,15 @@ void DSPEmitter::Update_SR_Register(Gen::X64Reg val)
   m_gpr.PutReg(DSP_REG_SR);
 }
 
-// In: RAX: s64 _Value
-// Clobbers RDX
-void DSPEmitter::Update_SR_Register64(Gen::X64Reg val)
+// In: val: s64 _Value
+// Clobbers scratch
+void DSPEmitter::Update_SR_Register64(Gen::X64Reg val, Gen::X64Reg scratch)
 {
   //	g_dsp.r[DSP_REG_SR] &= ~SR_CMP_MASK;
   const OpArg sr_reg = m_gpr.GetReg(DSP_REG_SR);
   AND(16, sr_reg, Imm16(~SR_CMP_MASK));
   m_gpr.PutReg(DSP_REG_SR);
-  Update_SR_Register(val);
+  Update_SR_Register(val, scratch);
 }
 
 // In: (val): s64 _Value

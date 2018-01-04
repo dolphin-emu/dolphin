@@ -18,6 +18,8 @@
 #include "Core/HW/SI/SI_DeviceKeyboard.h"
 #include "Core/HW/SI/SI_DeviceNull.h"
 
+namespace SerialInterface
+{
 ISIDevice::ISIDevice(SIDevices device_type, int device_number)
     : m_device_number(device_number), m_device_type(device_type)
 {
@@ -120,3 +122,4 @@ std::unique_ptr<ISIDevice> SIDevice_Create(const SIDevices device, const int por
     return std::make_unique<CSIDevice_Null>(device, port_number);
   }
 }
+}  // namespace SerialInterface

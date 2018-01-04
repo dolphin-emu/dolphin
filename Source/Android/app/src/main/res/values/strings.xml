@@ -238,4 +238,6 @@
 
     <!-- Package Names-->
     <string name="application_id">org.dolphinemu.dolphinemu</string>
+
+    <string name="write_permission_needed">You need to allow write access to external storage for the emulator to work</string>
 </resources>

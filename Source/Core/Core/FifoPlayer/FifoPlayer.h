@@ -130,21 +130,21 @@ private:
 
   bool m_Loop;
 
-  u32 m_CurrentFrame;
-  u32 m_FrameRangeStart;
-  u32 m_FrameRangeEnd;
+  u32 m_CurrentFrame = 0;
+  u32 m_FrameRangeStart = 0;
+  u32 m_FrameRangeEnd = 0;
 
-  u32 m_ObjectRangeStart;
-  u32 m_ObjectRangeEnd;
+  u32 m_ObjectRangeStart = 0;
+  u32 m_ObjectRangeEnd = 10000;
 
-  bool m_EarlyMemoryUpdates;
+  bool m_EarlyMemoryUpdates = false;
 
-  u64 m_CyclesPerFrame;
-  u32 m_ElapsedCycles;
-  u32 m_FrameFifoSize;
+  u64 m_CyclesPerFrame = 0;
+  u32 m_ElapsedCycles = 0;
+  u32 m_FrameFifoSize = 0;
 
-  CallbackFunc m_FileLoadedCb;
-  CallbackFunc m_FrameWrittenCb;
+  CallbackFunc m_FileLoadedCb = nullptr;
+  CallbackFunc m_FrameWrittenCb = nullptr;
 
   std::unique_ptr<FifoDataFile> m_File;
 

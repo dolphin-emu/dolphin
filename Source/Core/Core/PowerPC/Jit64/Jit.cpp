@@ -13,6 +13,7 @@
 #endif
 
 #include "Common/CommonTypes.h"
+#include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MemoryUtil.h"
 #include "Common/StringUtil.h"
@@ -228,8 +229,15 @@ void Jit64::Init()
   gpr.SetEmitter(this);
   fpr.SetEmitter(this);
 
-  trampolines.Init(jo.memcheck ? TRAMPOLINE_CODE_SIZE_MMU : TRAMPOLINE_CODE_SIZE);
-  AllocCodeSpace(CODE_SIZE);
+  const size_t routines_size = asm_routines.CODE_SIZE;
+  const size_t trampolines_size = jo.memcheck ? TRAMPOLINE_CODE_SIZE_MMU : TRAMPOLINE_CODE_SIZE;
+  const size_t farcode_size = jo.memcheck ? FARCODE_SIZE_MMU : FARCODE_SIZE;
+  const size_t constpool_size = m_const_pool.CONST_POOL_SIZE;
+  AllocCodeSpace(CODE_SIZE + routines_size + trampolines_size + farcode_size + constpool_size);
+  AddChildCodeSpace(&asm_routines, routines_size);
+  AddChildCodeSpace(&trampolines, trampolines_size);
+  AddChildCodeSpace(&m_far_code, farcode_size);
+  m_const_pool.Init(AllocChildCodeSpace(constpool_size), constpool_size);
 
   // BLR optimization has the same consequences as block linking, as well as
   // depending on the fault handler to be safe in the event of excessive BL.
@@ -247,7 +255,7 @@ void Jit64::Init()
   // important: do this *after* generating the global asm routines, because we can't use farcode in
   // them.
   // it'll crash because the farcode functions get cleared on JIT clears.
-  m_far_code.Init(jo.memcheck ? FARCODE_SIZE_MMU : FARCODE_SIZE);
+  m_far_code.Init();
   Clear();
 
   code_block.m_stats = &js.st;
@@ -261,6 +269,7 @@ void Jit64::ClearCache()
   blocks.Clear();
   trampolines.ClearCodeSpace();
   m_far_code.ClearCodeSpace();
+  m_const_pool.Clear();
   ClearCodeSpace();
   Clear();
   UpdateMemoryOptions();
@@ -272,9 +281,8 @@ void Jit64::Shutdown()
   FreeCodeSpace();
 
   blocks.Shutdown();
-  trampolines.Shutdown();
-  asm_routines.Shutdown();
   m_far_code.Shutdown();
+  m_const_pool.Shutdown();
 }
 
 void Jit64::FallBackToInterpreter(UGeckoInstruction inst)

@@ -31,7 +31,7 @@ int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bo
                 bool is_preprocess);
 
 // For debugging
-void AppendListToString(std::string* dest);
+std::string VertexLoadersToString();
 
 NativeVertexFormat* GetCurrentVertexFormat();
 

@@ -46,6 +46,7 @@ VideoConfig::VideoConfig()
 
   // disable all features by default
   backend_info.api_type = APIType::Nothing;
+  backend_info.MaxTextureSize = 16384;
   backend_info.bSupportsExclusiveFullscreen = false;
   backend_info.bSupportsMultithreading = false;
   backend_info.bSupportsInternalResolutionFrameDumps = false;
@@ -180,6 +181,9 @@ void VideoConfig::Load(const std::string& ini_file)
   settings->Get("DumpFramesAsImages", &bDumpFramesAsImages, false);
   settings->Get("FreeLook", &bFreeLook, false);
   settings->Get("UseFFV1", &bUseFFV1, false);
+  settings->Get("DumpFormat", &sDumpFormat, "avi");
+  settings->Get("DumpCodec", &sDumpCodec, "");
+  settings->Get("DumpPath", &sDumpPath, "");
   settings->Get("BitrateKbps", &iBitrateKbps, 2500);
   settings->Get("InternalResolutionFrameDumps", &bInternalResolutionFrameDumps, false);
   settings->Get("EnablePixelLighting", &bEnablePixelLighting, false);
@@ -231,6 +235,7 @@ void VideoConfig::Load(const std::string& ini_file)
   IniFile::Section* hacks = iniFile.GetOrCreateSection("Hacks");
   hacks->Get("EFBAccessEnable", &bEFBAccessEnable, true);
   hacks->Get("BBoxEnable", &bBBoxEnable, false);
+  hacks->Get("BBoxPreferStencilImplementation", &bBBoxPreferStencilImplementation, false);
   hacks->Get("ForceProgressive", &bForceProgressive, true);
   hacks->Get("EFBCopyEnable", &bEFBCopyEnable, true);
   hacks->Get("EFBCopyClearDisable", &bEFBCopyClearDisable, false);
@@ -687,6 +692,9 @@ void VideoConfig::Save(const std::string& ini_file)
   settings->Set("DumpFramesAsImages", bDumpFramesAsImages);
   settings->Set("FreeLook", bFreeLook);
   settings->Set("UseFFV1", bUseFFV1);
+  settings->Set("DumpFormat", sDumpFormat);
+  settings->Set("DumpCodec", sDumpCodec);
+  settings->Set("DumpPath", sDumpPath);
   settings->Set("BitrateKbps", iBitrateKbps);
   settings->Set("InternalResolutionFrameDumps", bInternalResolutionFrameDumps);
   settings->Set("EnablePixelLighting", bEnablePixelLighting);
@@ -730,6 +738,7 @@ void VideoConfig::Save(const std::string& ini_file)
   IniFile::Section* hacks = iniFile.GetOrCreateSection("Hacks");
   hacks->Set("EFBAccessEnable", bEFBAccessEnable);
   hacks->Set("BBoxEnable", bBBoxEnable);
+  hacks->Set("BBoxPreferStencilImplementation", bBBoxPreferStencilImplementation);
   hacks->Set("ForceProgressive", bForceProgressive);
   hacks->Set("EFBCopyEnable", bEFBCopyEnable);
   hacks->Set("EFBCopyClearDisable", bEFBCopyClearDisable);

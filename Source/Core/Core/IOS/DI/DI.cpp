@@ -11,11 +11,11 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
-#include "Core/HW/DVDInterface.h"
+#include "Core/HW/DVD/DVDInterface.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/DI/DI.h"
+#include "Core/IOS/ES/ES.h"
 #include "Core/IOS/ES/Formats.h"
-#include "Core/IOS/IPC.h"
 #include "DiscIO/Volume.h"
 
 namespace IOS
@@ -106,10 +106,10 @@ IPCCommandResult DI::IOCtlV(const IOCtlVRequest& request)
     INFO_LOG(IOS_DI, "DVDLowOpenPartition: partition_offset 0x%016" PRIx64, partition_offset);
 
     // Read TMD to the buffer
-    const ES::TMDReader tmd = DVDInterface::GetVolume().GetTMD();
+    const IOS::ES::TMDReader tmd = DVDInterface::GetVolume().GetTMD();
     const std::vector<u8> raw_tmd = tmd.GetRawTMD();
     Memory::CopyToEmu(request.io_vectors[0].address, raw_tmd.data(), raw_tmd.size());
-    ES_DIVerify(tmd);
+    ES::DIVerify(tmd, DVDInterface::GetVolume().GetTicket());
 
     return_value = 1;
     break;

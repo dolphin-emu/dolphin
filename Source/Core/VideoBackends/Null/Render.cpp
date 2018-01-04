@@ -11,7 +11,7 @@
 namespace Null
 {
 // Init functions
-Renderer::Renderer()
+Renderer::Renderer() : ::Renderer(1, 1)
 {
   g_Config.bRunning = true;
   UpdateActiveConfig();

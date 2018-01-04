@@ -8,8 +8,8 @@
 #include <map>
 #include <string>
 
-#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
+#include "Common/Swap.h"
 #include "Core/IOS/USB/Bluetooth/hci.h"
 
 class PointerWrap;

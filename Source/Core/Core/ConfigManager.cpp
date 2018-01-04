@@ -22,12 +22,19 @@
 #include "Core/Boot/Boot.h"
 #include "Core/Boot/Boot_DOL.h"
 #include "Core/ConfigManager.h"
-#include "Core/Core.h"  // for bWii
+#include "Core/Core.h"
 #include "Core/FifoPlayer/FifoDataFile.h"
+#include "Core/HLE/HLE.h"
+#include "Core/HW/DVD/DVDInterface.h"
+#include "Core/HW/DVD/DVDThread.h"
 #include "Core/HW/SI/SI.h"
+#include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/USB/Bluetooth/BTBase.h"
 #include "Core/HotkeyManager.h"
+#include "Core/PatchEngine.h"
+#include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "VideoCommon/HiresTextures.h"
 
 #include "DiscIO/Enums.h"
 #include "DiscIO/NANDContentLoader.h"
@@ -512,7 +519,7 @@ void SConfig::SaveCoreSettings(IniFile& ini)
   core->Set("SlotB", m_EXIDevice[1]);
   core->Set("SerialPort1", m_EXIDevice[2]);
   core->Set("BBA_MAC", m_bba_mac);
-  for (int i = 0; i < MAX_SI_CHANNELS; ++i)
+  for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
   {
     core->Set(StringFromFormat("SIDevice%i", i), m_SIDevice[i]);
     core->Set(StringFromFormat("AdapterRumble%i", i), m_AdapterRumble[i]);
@@ -582,7 +589,7 @@ void SConfig::SaveNetworkSettings(IniFile& ini)
 
   network->Set("SSLDumpRead", m_SSLDumpRead);
   network->Set("SSLDumpWrite", m_SSLDumpWrite);
-  network->Set("SSLVerifyCert", m_SSLVerifyCert);
+  network->Set("SSLVerifyCertificates", m_SSLVerifyCert);
   network->Set("SSLDumpRootCA", m_SSLDumpRootCA);
   network->Set("SSLDumpPeerCert", m_SSLDumpPeerCert);
 }
@@ -918,10 +925,10 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("BBA_MAC", &m_bba_mac);
   core->Get("TimeProfiling", &bJITILTimeProfiling, false);
   core->Get("OutputIR", &bJITILOutputIR, false);
-  for (int i = 0; i < MAX_SI_CHANNELS; ++i)
+  for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
   {
     core->Get(StringFromFormat("SIDevice%i", i), (u32*)&m_SIDevice[i],
-              (i == 0) ? SIDEVICE_GC_CONTROLLER : SIDEVICE_NONE);
+              (i == 0) ? SerialInterface::SIDEVICE_GC_CONTROLLER : SerialInterface::SIDEVICE_NONE);
     core->Get(StringFromFormat("AdapterRumble%i", i), &m_AdapterRumble[i], true);
     core->Get(StringFromFormat("SimulateKonga%i", i), &m_AdapterKonga[i], false);
   }
@@ -1010,7 +1017,7 @@ void SConfig::LoadNetworkSettings(IniFile& ini)
 
   network->Get("SSLDumpRead", &m_SSLDumpRead, false);
   network->Get("SSLDumpWrite", &m_SSLDumpWrite, false);
-  network->Get("SSLVerifyCert", &m_SSLVerifyCert, false);
+  network->Get("SSLVerifyCertificates", &m_SSLVerifyCert, true);
   network->Get("SSLDumpRootCA", &m_SSLDumpRootCA, false);
   network->Get("SSLDumpPeerCert", &m_SSLDumpPeerCert, false);
 }
@@ -1083,6 +1090,67 @@ void SConfig::LoadSettingsFromSysconf()
   bPAL60 = sysconf.GetData<u8>("IPL.E60") != 0;
 }
 
+void SConfig::ResetRunningGameMetadata()
+{
+  SetRunningGameMetadata("00000000", 0, 0);
+}
+
+void SConfig::SetRunningGameMetadata(const DiscIO::IVolume& volume)
+{
+  u64 title_id = 0;
+  volume.GetTitleID(&title_id);
+  SetRunningGameMetadata(volume.GetGameID(), title_id, volume.GetRevision());
+}
+
+void SConfig::SetRunningGameMetadata(const IOS::ES::TMDReader& tmd)
+{
+  const u64 tmd_title_id = tmd.GetTitleId();
+
+  // If we're launching a disc game, we want to read the revision from
+  // the disc header instead of the TMD. They can differ.
+  // (IOS HLE ES calls us with a TMDReader rather than a volume when launching
+  // a disc game, because ES has no reason to be accessing the disc directly.)
+  if (DVDInterface::IsDiscInside())
+  {
+    DVDThread::WaitUntilIdle();
+    const DiscIO::IVolume& volume = DVDInterface::GetVolume();
+    u64 volume_title_id;
+    if (volume.GetTitleID(&volume_title_id) && volume_title_id == tmd_title_id)
+    {
+      SetRunningGameMetadata(volume.GetGameID(), volume_title_id, volume.GetRevision());
+      return;
+    }
+  }
+
+  // If not launching a disc game, just read everything from the TMD.
+  SetRunningGameMetadata(tmd.GetGameID(), tmd_title_id, tmd.GetTitleVersion());
+}
+
+void SConfig::SetRunningGameMetadata(const std::string& game_id, u64 title_id, u16 revision)
+{
+  const bool was_changed = m_game_id != game_id || m_title_id != title_id || m_revision != revision;
+  m_game_id = game_id;
+  m_title_id = title_id;
+  m_revision = revision;
+
+  if (was_changed)
+  {
+    NOTICE_LOG(BOOT, "Game ID set to %s", game_id.c_str());
+
+    if (Core::IsRunning())
+    {
+      // TODO: have a callback mechanism for title changes?
+      g_symbolDB.Clear();
+      CBoot::LoadMapFromFilename();
+      HLE::Clear();
+      HLE::PatchFunctions();
+      PatchEngine::Shutdown();
+      PatchEngine::LoadPatches();
+      HiresTexture::Update();
+    }
+  }
+}
+
 void SConfig::LoadDefaults()
 {
   bEnableDebugging = false;
@@ -1141,10 +1209,7 @@ void SConfig::LoadDefaults()
   bJITSystemRegistersOff = false;
   bJITBranchOff = false;
 
-  m_strName = "NONE";
-  m_strGameID = "00000000";
-  m_title_id = 0;
-  m_revision = 0;
+  ResetRunningGameMetadata();
 }
 
 bool SConfig::IsUSBDeviceWhitelisted(const std::pair<u16, u16> vid_pid) const
@@ -1229,10 +1294,7 @@ bool SConfig::AutoSetup(EBootBS2 _BootBS2)
                       m_strFilename.c_str());
         return false;
       }
-      m_strName = pVolume->GetInternalName();
-      m_strGameID = pVolume->GetGameID();
-      pVolume->GetTitleID(&m_title_id);
-      m_revision = pVolume->GetRevision();
+      SetRunningGameMetadata(*pVolume);
 
       // Check if we have a Wii disc
       bWii = pVolume->GetVolumeType() == DiscIO::Platform::WII_DISC;
@@ -1276,11 +1338,11 @@ bool SConfig::AutoSetup(EBootBS2 _BootBS2)
     }
     else if (DiscIO::CNANDContentManager::Access().GetNANDLoader(m_strFilename).IsValid())
     {
-      std::unique_ptr<DiscIO::IVolume> pVolume(DiscIO::CreateVolumeFromFilename(m_strFilename));
-      const DiscIO::CNANDContentLoader& ContentLoader =
+      const DiscIO::CNANDContentLoader& content_loader =
           DiscIO::CNANDContentManager::Access().GetNANDLoader(m_strFilename);
+      const IOS::ES::TMDReader& tmd = content_loader.GetTMD();
 
-      if (ContentLoader.GetContentByIndex(ContentLoader.GetTMD().GetBootIndex()) == nullptr)
+      if (content_loader.GetContentByIndex(tmd.GetBootIndex()) == nullptr)
       {
         // WAD is valid yet cannot be booted. Install instead.
         u64 installed = DiscIO::CNANDContentManager::Access().Install_WiiWAD(m_strFilename);
@@ -1289,39 +1351,11 @@ bool SConfig::AutoSetup(EBootBS2 _BootBS2)
         return false;  // do not boot
       }
 
-      SetRegion(ContentLoader.GetTMD().GetRegion(), &set_region_dir);
+      SetRegion(tmd.GetRegion(), &set_region_dir);
+      SetRunningGameMetadata(tmd);
 
       bWii = true;
       m_BootType = BOOT_WII_NAND;
-
-      if (pVolume)
-      {
-        m_strName = pVolume->GetInternalName();
-        m_strGameID = pVolume->GetGameID();
-        pVolume->GetTitleID(&m_title_id);
-      }
-      else
-      {
-        // null pVolume means that we are loading from nand folder (Most Likely Wii Menu)
-        // if this is the second boot we would be using the Name and id of the last title
-        m_strName.clear();
-        m_strGameID.clear();
-        m_title_id = 0;
-      }
-
-      // Use the TitleIDhex for name and/or game ID if launching
-      // from nand folder or if it is not ascii characters
-      // (specifically sysmenu could potentially apply to other things)
-      std::string titleidstr = StringFromFormat("%016" PRIx64, m_title_id);
-
-      if (m_strName.empty())
-      {
-        m_strName = titleidstr;
-      }
-      if (m_strGameID.empty())
-      {
-        m_strGameID = titleidstr;
-      }
     }
     else
     {

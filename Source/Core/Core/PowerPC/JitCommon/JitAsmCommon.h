@@ -8,9 +8,9 @@
 
 extern const u8 GC_ALIGNED16(pbswapShuffle1x4[16]);
 extern const u8 GC_ALIGNED16(pbswapShuffle2x4[16]);
-extern const float GC_ALIGNED16(m_one[]);
-extern const float GC_ALIGNED16(m_quantizeTableS[]);
-extern const float GC_ALIGNED16(m_dequantizeTableS[]);
+extern const float GC_ALIGNED16(m_one[4]);
+extern const float GC_ALIGNED16(m_quantizeTableS[128]);
+extern const float GC_ALIGNED16(m_dequantizeTableS[128]);
 
 class CommonAsmRoutinesBase
 {

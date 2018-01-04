@@ -10,20 +10,20 @@
 #include <thread>
 #include "Common/Event.h"
 #include "Common/Flag.h"
-#include "Core/HW/GCMemcard.h"
+#include "Core/HW/GCMemcard/GCMemcard.h"
 
 class PointerWrap;
 
 class MemoryCard : public MemoryCardBase
 {
 public:
-  MemoryCard(const std::string& filename, int _card_index, u16 sizeMb = MemCard2043Mb);
+  MemoryCard(const std::string& filename, int card_index, u16 size_mbits = MemCard2043Mb);
   ~MemoryCard();
   void FlushThread();
   void MakeDirty();
 
-  s32 Read(u32 address, s32 length, u8* destaddress) override;
-  s32 Write(u32 destaddress, s32 length, const u8* srcaddress) override;
+  s32 Read(u32 src_address, s32 length, u8* dest_address) override;
+  s32 Write(u32 dest_address, s32 length, const u8* src_address) override;
   void ClearBlock(u32 address) override;
   void ClearAll() override;
   void DoState(PointerWrap& p) override;

@@ -834,8 +834,8 @@ void AvatarDrawer::Draw()
   D3D::stateman->PushDepthState(m_avatar_depth_state);
   D3D::stateman->PushRasterizerState(m_avatar_rast_state);
 
-  D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, (float)Renderer::GetTargetWidth(),
-                                      (float)Renderer::GetTargetHeight());
+  D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, (float)g_renderer->GetTargetWidth(),
+                                      (float)g_renderer->GetTargetHeight());
   D3D::context->RSSetViewports(1, &vp);
 
   D3D::stateman->SetInputLayout(m_vertex_layout);

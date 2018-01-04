@@ -151,20 +151,20 @@ std::string HostDisassemblerX86::DisassembleHostBlock(const u8* code_start, cons
   return x86_disasm.str();
 }
 
-HostDisassembler* GetNewDisassembler(const std::string& arch)
+std::unique_ptr<HostDisassembler> GetNewDisassembler(const std::string& arch)
 {
 #if defined(HAVE_LLVM)
   if (arch == "x86")
-    return new HostDisassemblerLLVM("x86_64-none-unknown");
-  else if (arch == "aarch64")
-    return new HostDisassemblerLLVM("aarch64-none-unknown", 4, "cortex-a57");
-  else if (arch == "armv7")
-    return new HostDisassemblerLLVM("armv7-none-unknown", 4, "cortex-a15");
+    return std::make_unique<HostDisassemblerLLVM>("x86_64-none-unknown");
+  if (arch == "aarch64")
+    return std::make_unique<HostDisassemblerLLVM>("aarch64-none-unknown", 4, "cortex-a57");
+  if (arch == "armv7")
+    return std::make_unique<HostDisassemblerLLVM>("armv7-none-unknown", 4, "cortex-a15");
 #elif defined(_M_X86)
   if (arch == "x86")
-    return new HostDisassemblerX86();
+    return std::make_unique<HostDisassemblerX86>();
 #endif
-  return new HostDisassembler();
+  return std::make_unique<HostDisassembler>();
 }
 
 std::string DisassembleBlock(HostDisassembler* disasm, u32* address, u32* host_instructions_count,

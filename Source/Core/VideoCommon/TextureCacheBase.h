@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <array>
 #include <map>
 #include <memory>
 #include <tuple>
@@ -179,7 +180,7 @@ protected:
   GC_ALIGNED16(u8* temp);
   size_t temp_size;
 
-  TCacheEntryBase* bound_textures[8] = {};
+  std::array<TCacheEntryBase*, 8> bound_textures{};
 
 private:
   typedef std::multimap<u32, TCacheEntryBase*> TexAddrCache;

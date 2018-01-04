@@ -6,10 +6,11 @@
 #include "Core/DSP/DSPHWInterface.h"
 
 #include "Common/CPUDetect.h"
-#include "Common/CommonFuncs.h"
+#include "Common/CommonTypes.h"
 #include "Common/Intrinsics.h"
 #include "Common/Logging/Log.h"
 #include "Common/MemoryUtil.h"
+#include "Common/Swap.h"
 
 #include "Core/DSP/DSPAccelerator.h"
 #include "Core/DSP/DSPCore.h"
@@ -252,25 +253,41 @@ static const u8* gdsp_idma_out(u16 dsp_addr, u32 addr, u32 size)
   return nullptr;
 }
 
-#if _M_SSE >= 0x301
+#if defined(_M_X86) || defined(_M_X86_64)
 static const __m128i s_mask = _mm_set_epi32(0x0E0F0C0DL, 0x0A0B0809L, 0x06070405L, 0x02030001L);
+
+FUNCTION_TARGET_SSSE3
+static void gdsp_ddma_in_SSSE3(u16 dsp_addr, u32 addr, u32 size, u8* dst)
+{
+  for (u32 i = 0; i < size; i += 16)
+  {
+    _mm_storeu_si128(
+        (__m128i*)&dst[dsp_addr + i],
+        _mm_shuffle_epi8(_mm_loadu_si128((__m128i*)&g_dsp.cpu_ram[(addr + i) & 0x7FFFFFFF]),
+                         s_mask));
+  }
+}
+
+FUNCTION_TARGET_SSSE3
+static void gdsp_ddma_out_SSSE3(u16 dsp_addr, u32 addr, u32 size, const u8* src)
+{
+  for (u32 i = 0; i < size; i += 16)
+  {
+    _mm_storeu_si128((__m128i*)&g_dsp.cpu_ram[(addr + i) & 0x7FFFFFFF],
+                     _mm_shuffle_epi8(_mm_loadu_si128((__m128i*)&src[dsp_addr + i]), s_mask));
+  }
+}
 #endif
 
 // TODO: These should eat clock cycles.
 static const u8* gdsp_ddma_in(u16 dsp_addr, u32 addr, u32 size)
 {
-  u8* dst = ((u8*)g_dsp.dram);
+  u8* dst = reinterpret_cast<u8*>(g_dsp.dram);
 
-#if _M_SSE >= 0x301
+#if defined(_M_X86) || defined(_M_X86_64)
   if (cpu_info.bSSSE3 && !(size % 16))
   {
-    for (u32 i = 0; i < size; i += 16)
-    {
-      _mm_storeu_si128(
-          (__m128i*)&dst[dsp_addr + i],
-          _mm_shuffle_epi8(_mm_loadu_si128((__m128i*)&g_dsp.cpu_ram[(addr + i) & 0x7FFFFFFF]),
-                           s_mask));
-    }
+    gdsp_ddma_in_SSSE3(dsp_addr, addr, size, dst);
   }
   else
 #endif
@@ -289,16 +306,12 @@ static const u8* gdsp_ddma_in(u16 dsp_addr, u32 addr, u32 size)
 
 static const u8* gdsp_ddma_out(u16 dsp_addr, u32 addr, u32 size)
 {
-  const u8* src = ((const u8*)g_dsp.dram);
+  const u8* src = reinterpret_cast<const u8*>(g_dsp.dram);
 
-#if _M_SSE >= 0x301
+#ifdef _M_X86
   if (cpu_info.bSSSE3 && !(size % 16))
   {
-    for (u32 i = 0; i < size; i += 16)
-    {
-      _mm_storeu_si128((__m128i*)&g_dsp.cpu_ram[(addr + i) & 0x7FFFFFFF],
-                       _mm_shuffle_epi8(_mm_loadu_si128((__m128i*)&src[dsp_addr + i]), s_mask));
-    }
+    gdsp_ddma_out_SSSE3(dsp_addr, addr, size, src);
   }
   else
 #endif

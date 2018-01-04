@@ -9,15 +9,17 @@
 
 #include "Core/ec_wii.h"
 
+#include <algorithm>
 #include <cstdio>
-#include <string.h>
+#include <cstring>
 
 #include <mbedtls/sha1.h>
 
-#include "Common/CommonFuncs.h"
+#include "Common/CommonTypes.h"
 #include "Common/Crypto/ec.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
+#include "Common/Swap.h"
 
 constexpr u32 default_NG_id = 0x0403AC68;
 constexpr u32 default_NG_key_id = 0x6AAB8C59;
@@ -176,6 +178,19 @@ const u8* EcWii::GetNGPriv() const
 const u8* EcWii::GetNGSig() const
 {
   return BootMiiKeysBin.ng_sig;
+}
+
+std::array<u8, 16> EcWii::GetSharedSecret(const EcWii::ECCKey& peer_public_key) const
+{
+  EcWii::ECCKey shared_secret;
+  point_mul(shared_secret.data(), GetNGPriv(), peer_public_key.data());
+
+  std::array<u8, 20> sha1;
+  mbedtls_sha1(shared_secret.data(), shared_secret.size() / 2, sha1.data());
+
+  std::array<u8, 16> aes_key;
+  std::copy_n(sha1.cbegin(), aes_key.size(), aes_key.begin());
+  return aes_key;
 }
 
 void EcWii::InitDefaults()

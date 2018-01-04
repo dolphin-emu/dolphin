@@ -29,7 +29,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
-#include "Core/HW/GCMemcard.h"
+#include "Core/HW/GCMemcard/GCMemcard.h"
 #include "DolphinWX/WxUtils.h"
 
 #define FIRSTPAGE 0

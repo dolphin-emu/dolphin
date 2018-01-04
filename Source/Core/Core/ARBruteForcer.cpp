@@ -172,7 +172,7 @@ void SetupScreenshotAndWriteCSV(Renderer *render)
       //filename = File::GetUserPath(D_SCREENSHOTS_IDX) + ch_title_id + "/" +
       //  std::to_string(ch_current_position) + "_" + addr +
       //  "_" + ch_code + ".png";
-      render->SetScreenshot(filename);
+      render->SaveScreenshot(filename, false);
       WARN_LOG(VR, "Requested screenshot");
     }
     else

@@ -177,7 +177,7 @@ void wxCheatsWindow::UpdateGUI()
   m_gameini_default = parameters.LoadDefaultGameIni();
   m_gameini_local = parameters.LoadLocalGameIni();
   m_game_id = parameters.GetGameID();
-  m_game_revision = parameters.m_revision;
+  m_game_revision = parameters.GetRevision();
   m_gameini_local_path = File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini";
   Load_ARCodes();
   Load_GeckoCodes();
@@ -190,7 +190,7 @@ void wxCheatsWindow::UpdateGUI()
 
   // write the ISO name in the title
   if (Core::IsRunning())
-    SetTitle(title + StrToWxStr(": " + m_game_id + " - " + parameters.m_strName));
+    SetTitle(title + StrToWxStr(": " + m_game_id));
   else
     SetTitle(title);
 }

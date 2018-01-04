@@ -6,11 +6,7 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/MsgHandler.h"
-
-namespace Core
-{
-void DisplayMessage(const std::string& message, int time_in_ms);
-}
+#include "Core/Core.h"
 
 namespace IOS
 {

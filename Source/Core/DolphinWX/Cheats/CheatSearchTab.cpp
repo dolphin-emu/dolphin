@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "DolphinWX/Cheats/CheatSearchTab.h"
+
 #include <algorithm>
 #include <array>
 #include <cstring>
@@ -17,13 +19,13 @@
 #include <wx/textctrl.h>
 #include <wx/timer.h>
 
-#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
-#include "Core/ActionReplay.h"
+#include "Common/Swap.h"
+
 #include "Core/Core.h"
 #include "Core/HW/Memmap.h"
-#include "DolphinWX/Cheats/CheatSearchTab.h"
+
 #include "DolphinWX/Cheats/CreateCodeDialog.h"
 #include "DolphinWX/WxUtils.h"
 

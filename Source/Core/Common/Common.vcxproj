@@ -110,6 +110,7 @@
     <ClInclude Include="GL\GLExtensions\gl_common.h" />
     <ClInclude Include="GL\GLExtensions\HP_occlusion_test.h" />
     <ClInclude Include="GL\GLExtensions\KHR_debug.h" />
+    <ClInclude Include="GL\GLExtensions\NV_depth_buffer_float.h" />
     <ClInclude Include="GL\GLExtensions\NV_occlusion_query_samples.h" />
     <ClInclude Include="GL\GLExtensions\NV_primitive_restart.h" />
     <ClInclude Include="GL\GLInterfaceBase.h" />
@@ -118,7 +119,6 @@
     <ClInclude Include="Hash.h" />
     <ClInclude Include="IniFile.h" />
     <ClInclude Include="JitRegister.h" />
-    <ClInclude Include="LibusbContext.h" />
     <ClInclude Include="LinearDiskCache.h" />
     <ClInclude Include="MathUtil.h" />
     <ClInclude Include="MD5.h" />
@@ -135,6 +135,7 @@
     <ClInclude Include="Semaphore.h" />
     <ClInclude Include="SettingsHandler.h" />
     <ClInclude Include="StringUtil.h" />
+    <ClInclude Include="Swap.h" />
     <ClInclude Include="SymbolDB.h" />
     <ClInclude Include="SysConf.h" />
     <ClInclude Include="Thread.h" />
@@ -169,9 +170,6 @@
     <ClCompile Include="Hash.cpp" />
     <ClCompile Include="IniFile.cpp" />
     <ClCompile Include="JitRegister.cpp" />
-    <ClCompile Include="LibusbContext.cpp">
-      <DisableSpecificWarnings>4200;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-    </ClCompile>
     <ClCompile Include="Logging\ConsoleListenerWin.cpp" />
     <ClCompile Include="MathUtil.cpp" />
     <ClCompile Include="MD5.cpp" />

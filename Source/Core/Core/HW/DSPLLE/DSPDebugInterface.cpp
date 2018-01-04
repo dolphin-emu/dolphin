@@ -4,6 +4,7 @@
 
 #include "Core/HW/DSPLLE/DSPDebugInterface.h"
 
+#include <cstddef>
 #include <string>
 
 #include "Common/MsgHandler.h"
@@ -116,7 +117,7 @@ void DSPDebugInterface::ToggleBreakpoint(unsigned int address)
   }
 }
 
-bool DSPDebugInterface::IsMemCheck(unsigned int address)
+bool DSPDebugInterface::IsMemCheck(unsigned int address, size_t size)
 {
   return false;
 }

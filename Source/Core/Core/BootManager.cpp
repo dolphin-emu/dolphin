@@ -63,8 +63,8 @@ public:
   bool bSetVolume;
   bool bSetFrameSkip;
   std::array<bool, MAX_BBMOTES> bSetWiimoteSource;
-  std::array<bool, MAX_SI_CHANNELS> bSetPads;
-  std::array<bool, MAX_EXI_CHANNELS> bSetEXIDevice;
+  std::array<bool, SerialInterface::MAX_SI_CHANNELS> bSetPads;
+  std::array<bool, ExpansionInterface::MAX_EXI_CHANNELS> bSetEXIDevice;
 
 private:
   bool valid;
@@ -96,8 +96,8 @@ private:
   std::string sBackend;
   std::string m_strGPUDeterminismMode;
   std::array<int, MAX_BBMOTES> iWiimoteSource;
-  std::array<SIDevices, MAX_SI_CHANNELS> Pads;
-  std::array<TEXIDevices, MAX_EXI_CHANNELS> m_EXIDevice;
+  std::array<SerialInterface::SIDevices, SerialInterface::MAX_SI_CHANNELS> Pads;
+  std::array<TEXIDevices, ExpansionInterface::MAX_EXI_CHANNELS> m_EXIDevice;
 };
 
 void ConfigCache::SaveConfig(const SConfig& config)
@@ -188,7 +188,7 @@ void ConfigCache::RestoreConfig(SConfig* config)
     config->m_wii_language = m_wii_language;
   }
 
-  for (unsigned int i = 0; i < MAX_SI_CHANNELS; ++i)
+  for (unsigned int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
   {
     if (bSetPads[i])
       config->m_SIDevice[i] = Pads[i];
@@ -203,7 +203,7 @@ void ConfigCache::RestoreConfig(SConfig* config)
     Movie::SetFrameSkipping(frameSkip);
   }
 
-  for (unsigned int i = 0; i < MAX_EXI_CHANNELS; ++i)
+  for (unsigned int i = 0; i < ExpansionInterface::MAX_EXI_CHANNELS; ++i)
   {
     if (bSetEXIDevice[i])
       config->m_EXIDevice[i] = m_EXIDevice[i];
@@ -304,13 +304,13 @@ bool BootCore(const std::string& _rFilename)
       StartUp.fAudioSlowDown = 1;
     }
 
-    for (unsigned int i = 0; i < MAX_SI_CHANNELS; ++i)
+    for (unsigned int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
     {
       int source;
       controls_section->Get(StringFromFormat("PadType%u", i), &source, -1);
-      if (source >= SIDEVICE_NONE && source < SIDEVICE_COUNT)
+      if (source >= SerialInterface::SIDEVICE_NONE && source < SerialInterface::SIDEVICE_COUNT)
       {
-        StartUp.m_SIDevice[i] = static_cast<SIDevices>(source);
+        StartUp.m_SIDevice[i] = static_cast<SerialInterface::SIDevices>(source);
         config_cache.bSetPads[i] = true;
       }
     }
@@ -380,6 +380,8 @@ bool BootCore(const std::string& _rFilename)
                          StringFromFormat("Movie%s.raw", (i == 0) ? "A" : "B")))
           File::Delete(File::GetUserPath(D_GCUSER_IDX) +
                        StringFromFormat("Movie%s.raw", (i == 0) ? "A" : "B"));
+        if (File::Exists(File::GetUserPath(D_GCUSER_IDX) + "Movie"))
+          File::DeleteDirRecursively(File::GetUserPath(D_GCUSER_IDX) + "Movie");
       }
     }
   }
@@ -449,8 +451,7 @@ void Stop()
 void RestoreConfig()
 {
   SConfig::GetInstance().LoadSettingsFromSysconf();
-  SConfig::GetInstance().m_strGameID = "00000000";
-  SConfig::GetInstance().m_title_id = 0;
+  SConfig::GetInstance().ResetRunningGameMetadata();
   config_cache.RestoreConfig(&SConfig::GetInstance());
 }
 

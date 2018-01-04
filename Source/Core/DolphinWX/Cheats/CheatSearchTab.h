@@ -8,6 +8,8 @@
 #include <wx/panel.h>
 #include <wx/timer.h>
 
+#include "Common/CommonTypes.h"
+
 class wxButton;
 class wxChoice;
 class wxFocusEvent;

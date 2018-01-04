@@ -170,11 +170,11 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
 bool NetPlayClient::Connect()
 {
   // send connect message
-  sf::Packet spac;
-  spac << scm_rev_git_str;
-  spac << netplay_dolphin_ver;
-  spac << m_player_name;
-  Send(spac);
+  sf::Packet packet;
+  packet << scm_rev_git_str;
+  packet << netplay_dolphin_ver;
+  packet << m_player_name;
+  Send(packet);
   enet_host_flush(m_client);
   sf::Packet rpac;
   // TODO: make this not hang
@@ -368,15 +368,15 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
     // update gui
     m_dialog->OnMsgChangeGame(m_selected_game);
 
-    sf::Packet spac;
-    spac << static_cast<MessageId>(NP_MSG_GAME_STATUS);
+    sf::Packet game_status_packet;
+    game_status_packet << static_cast<MessageId>(NP_MSG_GAME_STATUS);
 
     PlayerGameStatus status = m_dialog->FindGame(m_selected_game).empty() ?
                                   PlayerGameStatus::NotFound :
                                   PlayerGameStatus::Ok;
 
-    spac << static_cast<u32>(status);
-    Send(spac);
+    game_status_packet << static_cast<u32>(status);
+    Send(game_status_packet);
   }
   break;
 
@@ -445,11 +445,11 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
     u32 ping_key = 0;
     packet >> ping_key;
 
-    sf::Packet spac;
-    spac << (MessageId)NP_MSG_PONG;
-    spac << ping_key;
+    sf::Packet response_packet;
+    response_packet << static_cast<MessageId>(NP_MSG_PONG);
+    response_packet << ping_key;
 
-    Send(spac);
+    Send(response_packet);
   }
   break;
 
@@ -560,7 +560,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
   return 0;
 }
 
-void NetPlayClient::Send(sf::Packet& packet)
+void NetPlayClient::Send(const sf::Packet& packet)
 {
   ENetPacket* epac =
       enet_packet_create(packet.getData(), packet.getDataSize(), ENET_PACKET_FLAG_RELIABLE);
@@ -614,7 +614,7 @@ void NetPlayClient::Disconnect()
   m_server = nullptr;
 }
 
-void NetPlayClient::SendAsync(std::unique_ptr<sf::Packet> packet)
+void NetPlayClient::SendAsync(sf::Packet&& packet)
 {
   {
     std::lock_guard<std::recursive_mutex> lkq(m_crit.async_queue_write);
@@ -635,7 +635,7 @@ void NetPlayClient::ThreadFunc()
     net = enet_host_service(m_client, &netEvent, 250);
     while (!m_async_queue.Empty())
     {
-      Send(*(m_async_queue.Front().get()));
+      Send(m_async_queue.Front());
       m_async_queue.Pop();
     }
     if (net > 0)
@@ -733,57 +733,57 @@ std::vector<const Player*> NetPlayClient::GetPlayers()
 // called from ---GUI--- thread
 void NetPlayClient::SendChatMessage(const std::string& msg)
 {
-  auto spac = std::make_unique<sf::Packet>();
-  *spac << static_cast<MessageId>(NP_MSG_CHAT_MESSAGE);
-  *spac << msg;
+  sf::Packet packet;
+  packet << static_cast<MessageId>(NP_MSG_CHAT_MESSAGE);
+  packet << msg;
 
-  SendAsync(std::move(spac));
+  SendAsync(std::move(packet));
 }
 
 // called from ---CPU--- thread
 void NetPlayClient::SendPadState(const int in_game_pad, const GCPadStatus& pad)
 {
-  auto spac = std::make_unique<sf::Packet>();
-  *spac << static_cast<MessageId>(NP_MSG_PAD_DATA);
-  *spac << static_cast<PadMapping>(in_game_pad);
-  *spac << pad.button << pad.analogA << pad.analogB << pad.stickX << pad.stickY << pad.substickX
-        << pad.substickY << pad.triggerLeft << pad.triggerRight;
+  sf::Packet packet;
+  packet << static_cast<MessageId>(NP_MSG_PAD_DATA);
+  packet << static_cast<PadMapping>(in_game_pad);
+  packet << pad.button << pad.analogA << pad.analogB << pad.stickX << pad.stickY << pad.substickX
+         << pad.substickY << pad.triggerLeft << pad.triggerRight;
 
-  SendAsync(std::move(spac));
+  SendAsync(std::move(packet));
 }
 
 // called from ---CPU--- thread
 void NetPlayClient::SendWiimoteState(const int in_game_pad, const NetWiimote& nw)
 {
-  auto spac = std::make_unique<sf::Packet>();
-  *spac << static_cast<MessageId>(NP_MSG_WIIMOTE_DATA);
-  *spac << static_cast<PadMapping>(in_game_pad);
-  *spac << static_cast<u8>(nw.size());
+  sf::Packet packet;
+  packet << static_cast<MessageId>(NP_MSG_WIIMOTE_DATA);
+  packet << static_cast<PadMapping>(in_game_pad);
+  packet << static_cast<u8>(nw.size());
   for (auto it : nw)
   {
-    *spac << it;
+    packet << it;
   }
 
-  SendAsync(std::move(spac));
+  SendAsync(std::move(packet));
 }
 
 // called from ---GUI--- thread
 void NetPlayClient::SendStartGamePacket()
 {
-  auto spac = std::make_unique<sf::Packet>();
-  *spac << static_cast<MessageId>(NP_MSG_START_GAME);
-  *spac << m_current_game;
+  sf::Packet packet;
+  packet << static_cast<MessageId>(NP_MSG_START_GAME);
+  packet << m_current_game;
 
-  SendAsync(std::move(spac));
+  SendAsync(std::move(packet));
 }
 
 // called from ---GUI--- thread
 void NetPlayClient::SendStopGamePacket()
 {
-  auto spac = std::make_unique<sf::Packet>();
-  *spac << static_cast<MessageId>(NP_MSG_STOP_GAME);
+  sf::Packet packet;
+  packet << static_cast<MessageId>(NP_MSG_STOP_GAME);
 
-  SendAsync(std::move(spac));
+  SendAsync(std::move(packet));
 }
 
 // called from ---GUI--- thread
@@ -851,23 +851,23 @@ void NetPlayClient::UpdateDevices()
     // exotic devices are not supported on netplay.
     if (player_id == m_local_player->pid)
     {
-      if (SIDevice_IsGCController(SConfig::GetInstance().m_SIDevice[local_pad]))
+      if (SerialInterface::SIDevice_IsGCController(SConfig::GetInstance().m_SIDevice[local_pad]))
       {
         SerialInterface::AddDevice(SConfig::GetInstance().m_SIDevice[local_pad], pad);
       }
       else
       {
-        SerialInterface::AddDevice(SIDEVICE_GC_CONTROLLER, pad);
+        SerialInterface::AddDevice(SerialInterface::SIDEVICE_GC_CONTROLLER, pad);
       }
       local_pad++;
     }
     else if (player_id > 0)
     {
-      SerialInterface::AddDevice(SIDEVICE_GC_CONTROLLER, pad);
+      SerialInterface::AddDevice(SerialInterface::SIDEVICE_GC_CONTROLLER, pad);
     }
     else
     {
-      SerialInterface::AddDevice(SIDEVICE_NONE, pad);
+      SerialInterface::AddDevice(SerialInterface::SIDEVICE_NONE, pad);
     }
     pad++;
   }
@@ -967,10 +967,10 @@ bool NetPlayClient::GetNetPads(const int pad_nb, GCPadStatus* pad_status)
     {
       switch (SConfig::GetInstance().m_SIDevice[local_pad])
       {
-      case SIDEVICE_WIIU_ADAPTER:
+      case SerialInterface::SIDEVICE_WIIU_ADAPTER:
         *pad_status = GCAdapter::Input(local_pad);
         break;
-      case SIDEVICE_GC_CONTROLLER:
+      case SerialInterface::SIDEVICE_GC_CONTROLLER:
       default:
         *pad_status = Pad::GetStatus(local_pad);
         break;
@@ -1150,7 +1150,7 @@ int NetPlayClient::NumLocalPads() const
                     [this](PlayerId mapping) { return mapping == m_local_player->pid; }));
 }
 
-int NetPlayClient::InGamePadToLocalPad(int ingame_pad)
+int NetPlayClient::InGamePadToLocalPad(int ingame_pad) const
 {
   // not our pad
   if (m_pad_map[ingame_pad] != m_local_player->pid)
@@ -1168,7 +1168,7 @@ int NetPlayClient::InGamePadToLocalPad(int ingame_pad)
   return local_pad;
 }
 
-int NetPlayClient::LocalPadToInGamePad(int local_pad)
+int NetPlayClient::LocalPadToInGamePad(int local_pad) const
 {
   // Figure out which in-game pad maps to which local pad.
   // The logic we have here is that the local slots always
@@ -1193,13 +1193,13 @@ void NetPlayClient::SendTimeBase()
 
   u64 timebase = SystemTimers::GetFakeTimeBase();
 
-  auto spac = std::make_unique<sf::Packet>();
-  *spac << static_cast<MessageId>(NP_MSG_TIMEBASE);
-  *spac << static_cast<u32>(timebase);
-  *spac << static_cast<u32>(timebase << 32);
-  *spac << netplay_client->m_timebase_frame++;
+  sf::Packet packet;
+  packet << static_cast<MessageId>(NP_MSG_TIMEBASE);
+  packet << static_cast<u32>(timebase);
+  packet << static_cast<u32>(timebase << 32);
+  packet << netplay_client->m_timebase_frame++;
 
-  netplay_client->SendAsync(std::move(spac));
+  netplay_client->SendAsync(std::move(packet));
 }
 
 bool NetPlayClient::DoAllPlayersHaveGame()
@@ -1228,27 +1228,27 @@ void NetPlayClient::ComputeMD5(const std::string& file_identifier)
 
   if (file.empty() || !File::Exists(file))
   {
-    sf::Packet spac;
-    spac << static_cast<MessageId>(NP_MSG_MD5_ERROR);
-    spac << "file not found";
-    Send(spac);
+    sf::Packet packet;
+    packet << static_cast<MessageId>(NP_MSG_MD5_ERROR);
+    packet << "file not found";
+    Send(packet);
     return;
   }
 
   m_MD5_thread = std::thread([this, file]() {
     std::string sum = MD5::MD5Sum(file, [&](int progress) {
-      sf::Packet spac;
-      spac << static_cast<MessageId>(NP_MSG_MD5_PROGRESS);
-      spac << progress;
-      Send(spac);
+      sf::Packet packet;
+      packet << static_cast<MessageId>(NP_MSG_MD5_PROGRESS);
+      packet << progress;
+      Send(packet);
 
       return m_should_compute_MD5;
     });
 
-    sf::Packet spac;
-    spac << static_cast<MessageId>(NP_MSG_MD5_RESULT);
-    spac << sum;
-    Send(spac);
+    sf::Packet packet;
+    packet << static_cast<MessageId>(NP_MSG_MD5_RESULT);
+    packet << sum;
+    Send(packet);
   });
   m_MD5_thread.detach();
 }
@@ -1257,7 +1257,7 @@ void NetPlayClient::ComputeMD5(const std::string& file_identifier)
 
 // called from ---CPU--- thread
 // Actual Core function which is called on every frame
-bool CSIDevice_GCController::NetPlay_GetInput(int numPAD, GCPadStatus* PadStatus)
+bool SerialInterface::CSIDevice_GCController::NetPlay_GetInput(int numPAD, GCPadStatus* PadStatus)
 {
   std::lock_guard<std::mutex> lk(crit_netplay_client);
 
@@ -1293,7 +1293,7 @@ u64 CEXIIPL::NetPlay_GetEmulatedTime()
 
 // called from ---CPU--- thread
 // return the local pad num that should rumble given a ingame pad num
-int CSIDevice_GCController::NetPlay_InGamePadToLocalPad(int numPAD)
+int SerialInterface::CSIDevice_GCController::NetPlay_InGamePadToLocalPad(int numPAD)
 {
   std::lock_guard<std::mutex> lk(crit_netplay_client);
 

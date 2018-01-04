@@ -7,10 +7,10 @@
 #include <cstring>
 
 #include "Common/CPUDetect.h"
-#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/Intrinsics.h"
 #include "Common/MsgHandler.h"
+#include "Common/Swap.h"
 
 #include "VideoCommon/LookUpTables.h"
 #include "VideoCommon/TextureDecoder.h"
@@ -249,11 +249,11 @@ static void TexDecoder_DecodeImpl_C4(u32* dst, const u8* src, int width, int hei
   }
 }
 
+FUNCTION_TARGET_SSSE3
 static void TexDecoder_DecodeImpl_I4_SSSE3(u32* dst, const u8* src, int width, int height,
                                            int texformat, const u8* tlut, TlutFormat tlutfmt,
                                            int Wsteps4, int Wsteps8)
 {
-#if _M_SSE >= 0x301
   const __m128i kMask_x0f = _mm_set1_epi32(0x0f0f0f0fL);
   const __m128i kMask_xf0 = _mm_set1_epi32(0xf0f0f0f0L);
 
@@ -296,7 +296,6 @@ static void TexDecoder_DecodeImpl_I4_SSSE3(u32* dst, const u8* src, int width, i
       }
     }
   }
-#endif
 }
 
 static void TexDecoder_DecodeImpl_I4(u32* dst, const u8* src, int width, int height, int texformat,
@@ -389,11 +388,11 @@ static void TexDecoder_DecodeImpl_I4(u32* dst, const u8* src, int width, int hei
   }
 }
 
+FUNCTION_TARGET_SSSE3
 static void TexDecoder_DecodeImpl_I8_SSSE3(u32* dst, const u8* src, int width, int height,
                                            int texformat, const u8* tlut, TlutFormat tlutfmt,
                                            int Wsteps4, int Wsteps8)
 {
-#if _M_SSE >= 0x301
   // xsacha optimized with SSSE3 intrinsics
   // Produces a ~10% speed improvement over SSE2 implementation
   for (int y = 0; y < height; y += 4)
@@ -418,7 +417,6 @@ static void TexDecoder_DecodeImpl_I8_SSSE3(u32* dst, const u8* src, int width, i
       }
     }
   }
-#endif
 }
 
 static void TexDecoder_DecodeImpl_I8(u32* dst, const u8* src, int width, int height, int texformat,
@@ -572,11 +570,11 @@ static void TexDecoder_DecodeImpl_IA4(u32* dst, const u8* src, int width, int he
   }
 }
 
+FUNCTION_TARGET_SSSE3
 static void TexDecoder_DecodeImpl_IA8_SSSE3(u32* dst, const u8* src, int width, int height,
                                             int texformat, const u8* tlut, TlutFormat tlutfmt,
                                             int Wsteps4, int Wsteps8)
 {
-#if _M_SSE >= 0x301
   // xsacha optimized with SSSE3 intrinsics.
   // Produces an ~50% speed improvement over SSE2 implementation.
   for (int y = 0; y < height; y += 4)
@@ -595,7 +593,6 @@ static void TexDecoder_DecodeImpl_IA8_SSSE3(u32* dst, const u8* src, int width, 
       }
     }
   }
-#endif
 }
 
 static void TexDecoder_DecodeImpl_IA8(u32* dst, const u8* src, int width, int height, int texformat,
@@ -767,11 +764,11 @@ static void TexDecoder_DecodeImpl_RGB565(u32* dst, const u8* src, int width, int
   }
 }
 
+FUNCTION_TARGET_SSSE3
 static void TexDecoder_DecodeImpl_RGB5A3_SSSE3(u32* dst, const u8* src, int width, int height,
                                                int texformat, const u8* tlut, TlutFormat tlutfmt,
                                                int Wsteps4, int Wsteps8)
 {
-#if _M_SSE >= 0x301
   const __m128i kMask_x1f = _mm_set1_epi32(0x0000001fL);
   const __m128i kMask_x0f = _mm_set1_epi32(0x0000000fL);
   const __m128i kMask_x07 = _mm_set1_epi32(0x00000007L);
@@ -872,7 +869,6 @@ static void TexDecoder_DecodeImpl_RGB5A3_SSSE3(u32* dst, const u8* src, int widt
       }
     }
   }
-#endif
 }
 
 static void TexDecoder_DecodeImpl_RGB5A3(u32* dst, const u8* src, int width, int height,
@@ -995,11 +991,11 @@ static void TexDecoder_DecodeImpl_RGB5A3(u32* dst, const u8* src, int width, int
   }
 }
 
+FUNCTION_TARGET_SSSE3
 static void TexDecoder_DecodeImpl_RGBA8_SSSE3(u32* dst, const u8* src, int width, int height,
                                               int texformat, const u8* tlut, TlutFormat tlutfmt,
                                               int Wsteps4, int Wsteps8)
 {
-#if _M_SSE >= 0x301
   // xsacha optimized with SSSE3 instrinsics
   // Produces a ~30% speed improvement over SSE2 implementation
   for (int y = 0; y < height; y += 4)
@@ -1028,7 +1024,6 @@ static void TexDecoder_DecodeImpl_RGBA8_SSSE3(u32* dst, const u8* src, int width
       _mm_storeu_si128(dst128, rgba11);
     }
   }
-#endif
 }
 
 static void TexDecoder_DecodeImpl_RGBA8(u32* dst, const u8* src, int width, int height,
@@ -1414,14 +1409,6 @@ void _TexDecoder_DecodeImpl(u32* dst, const u8* src, int width, int height, int 
   int Wsteps4 = (width + 3) / 4;
   int Wsteps8 = (width + 7) / 8;
 
-// If the binary was not compiled with SSSE3 support, the functions turn into no-ops.
-// Therefore, we shouldn't call them based on what the CPU reports at runtime alone.
-#if _M_SSE >= 0x301
-  bool has_SSSE3 = cpu_info.bSSSE3;
-#else
-  bool has_SSSE3 = false;
-#endif
-
   switch (texformat)
   {
   case GX_TF_C4:
@@ -1429,7 +1416,7 @@ void _TexDecoder_DecodeImpl(u32* dst, const u8* src, int width, int height, int 
     break;
 
   case GX_TF_I4:
-    if (has_SSSE3)
+    if (cpu_info.bSSSE3)
       TexDecoder_DecodeImpl_I4_SSSE3(dst, src, width, height, texformat, tlut, tlutfmt, Wsteps4,
                                      Wsteps8);
     else
@@ -1437,7 +1424,7 @@ void _TexDecoder_DecodeImpl(u32* dst, const u8* src, int width, int height, int 
     break;
 
   case GX_TF_I8:
-    if (has_SSSE3)
+    if (cpu_info.bSSSE3)
       TexDecoder_DecodeImpl_I8_SSSE3(dst, src, width, height, texformat, tlut, tlutfmt, Wsteps4,
                                      Wsteps8);
     else
@@ -1453,7 +1440,7 @@ void _TexDecoder_DecodeImpl(u32* dst, const u8* src, int width, int height, int 
     break;
 
   case GX_TF_IA8:
-    if (has_SSSE3)
+    if (cpu_info.bSSSE3)
       TexDecoder_DecodeImpl_IA8_SSSE3(dst, src, width, height, texformat, tlut, tlutfmt, Wsteps4,
                                       Wsteps8);
     else
@@ -1472,7 +1459,7 @@ void _TexDecoder_DecodeImpl(u32* dst, const u8* src, int width, int height, int 
     break;
 
   case GX_TF_RGB5A3:
-    if (has_SSSE3)
+    if (cpu_info.bSSSE3)
       TexDecoder_DecodeImpl_RGB5A3_SSSE3(dst, src, width, height, texformat, tlut, tlutfmt, Wsteps4,
                                          Wsteps8);
     else
@@ -1481,7 +1468,7 @@ void _TexDecoder_DecodeImpl(u32* dst, const u8* src, int width, int height, int 
     break;
 
   case GX_TF_RGBA8:
-    if (has_SSSE3)
+    if (cpu_info.bSSSE3)
       TexDecoder_DecodeImpl_RGBA8_SSSE3(dst, src, width, height, texformat, tlut, tlutfmt, Wsteps4,
                                         Wsteps8);
     else

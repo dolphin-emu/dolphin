@@ -12,14 +12,13 @@ class Renderer : public ::Renderer
 {
 public:
   Renderer();
-  ~Renderer();
+  ~Renderer() override;
 
   void RenderText(const std::string& pstr, int left, int top, u32 color) override;
   u32 AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data) override { return 0; }
   void PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num_points) override {}
   u16 BBoxRead(int index) override { return 0; }
   void BBoxWrite(int index, u16 value) override {}
-  u32 GetMaxTextureSize() override { return 16 * 1024; }
   TargetRectangle ConvertEFBRectangle(const EFBRectangle& rc) override;
 
   void AsyncTimewarpDraw() override

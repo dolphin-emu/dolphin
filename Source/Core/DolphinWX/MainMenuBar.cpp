@@ -125,7 +125,7 @@ wxMenu* MainMenuBar::CreateEmulationMenu() const
   emulation_menu->Append(IDM_STOP, _("&Stop"));
   emulation_menu->Append(IDM_RESET, _("&Reset"));
   emulation_menu->AppendSeparator();
-  emulation_menu->Append(IDM_TOGGLE_FULLSCREEN, _("&Fullscreen"));
+  emulation_menu->Append(IDM_TOGGLE_FULLSCREEN, _("Toggle &Fullscreen"));
   emulation_menu->Append(IDM_FRAMESTEP, _("&Frame Advance"));
   wxMenu* skippingMenu = new wxMenu;
   emulation_menu->AppendSubMenu(skippingMenu, _("Frame S&kipping"));
@@ -444,9 +444,14 @@ wxMenu* MainMenuBar::CreateSymbolsMenu() const
   auto* const symbols_menu = new wxMenu;
   symbols_menu->Append(IDM_CLEAR_SYMBOLS, _("&Clear Symbols"),
                        _("Remove names from all functions and variables."));
-  symbols_menu->Append(IDM_SCAN_FUNCTIONS, _("&Generate Symbol Map"),
-                       _("Recognise standard functions from Sys/totaldb.dsy, and use generic zz_ "
-                         "names for other functions."));
+  auto* const generate_symbols_menu = new wxMenu;
+  generate_symbols_menu->Append(IDM_SCAN_FUNCTIONS, _("&Address"),
+                                _("Use generic zz_ names for functions."));
+  generate_symbols_menu->Append(
+      IDM_SCAN_SIGNATURES, _("&Signature Database"),
+      _("Recognise standard functions from Sys/totaldb.dsy, and use generic zz_ "
+        "names for other functions."));
+  symbols_menu->AppendSubMenu(generate_symbols_menu, _("&Generate Symbols From"));
   symbols_menu->AppendSeparator();
   symbols_menu->Append(IDM_LOAD_MAP_FILE, _("&Load Symbol Map"),
                        _("Try to load this game's function names automatically - but doesn't check "
@@ -485,8 +490,12 @@ wxMenu* MainMenuBar::CreateSymbolsMenu() const
                          "two existing files. The first input file has priority."));
   symbols_menu->Append(
       IDM_USE_SIGNATURE_FILE, _("Apply Signat&ure File..."),
-      _("Must use Generate Symbol Map first! Recognise names of any standard library functions "
+      _("Must use Generate Symbols first! Recognise names of any standard library functions "
         "used in multiple games, by loading them from a .dsy file."));
+  symbols_menu->Append(
+      IDM_USE_MEGA_SIGNATURE_FILE, _("Apply &MEGA Signature File..."),
+      _("Must use Generate Symbols first! Recognise names of any standard library functions "
+        "used in multiple games, by loading them from a .mega file."));
   symbols_menu->AppendSeparator();
   symbols_menu->Append(IDM_PATCH_HLE_FUNCTIONS, _("&Patch HLE Functions"));
   symbols_menu->Append(IDM_RENAME_SYMBOLS, _("&Rename Symbols from File..."));
@@ -573,11 +582,10 @@ void MainMenuBar::RefreshWiiSystemMenuLabel() const
 
   if (sys_menu_loader.IsValid())
   {
-    const u16 sys_menu_version = sys_menu_loader.GetTMD().GetTitleVersion();
-    const char sys_menu_region = DiscIO::GetSysMenuRegion(sys_menu_version);
+    const u16 version_number = sys_menu_loader.GetTMD().GetTitleVersion();
+    const wxString version_string = StrToWxStr(DiscIO::GetSysMenuVersionString(version_number));
     item->Enable();
-    item->SetItemLabel(
-        wxString::Format(_("Load Wii System Menu %u%c"), sys_menu_version, sys_menu_region));
+    item->SetItemLabel(wxString::Format(_("Load Wii System Menu %s"), version_string));
   }
   else
   {

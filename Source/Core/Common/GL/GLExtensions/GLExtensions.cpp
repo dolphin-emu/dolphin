@@ -984,6 +984,11 @@ PFNDOLCOPYIMAGESUBDATAPROC dolCopyImageSubData;
 // ARB_shader_storage_buffer_object
 PFNDOLSHADERSTORAGEBLOCKBINDINGPROC dolShaderStorageBlockBinding;
 
+// NV_depth_buffer_float
+PFNDOLDEPTHRANGEDNVPROC dolDepthRangedNV;
+PFNDOLCLEARDEPTHDNVPROC dolClearDepthdNV;
+PFNDOLDEPTHBOUNDSDNVPROC dolDepthBoundsdNV;
+
 // Creates a GLFunc object that requires a feature
 #define GLFUNC_REQUIRES(x, y)                                                                      \
   {                                                                                                \
@@ -1838,6 +1843,11 @@ const GLFunc gl_function_array[] = {
 
     // ARB_shader_storage_buffer_object
     GLFUNC_REQUIRES(glShaderStorageBlockBinding, "ARB_shader_storage_buffer_object !VERSION_4_3"),
+
+    // NV_depth_buffer_float
+    GLFUNC_REQUIRES(glDepthRangedNV, "GL_NV_depth_buffer_float"),
+    GLFUNC_REQUIRES(glClearDepthdNV, "GL_NV_depth_buffer_float"),
+    GLFUNC_REQUIRES(glDepthBoundsdNV, "GL_NV_depth_buffer_float"),
 };
 
 namespace GLExtensions
@@ -2060,26 +2070,21 @@ static void InitExtensionList()
       // Quite a lot of these had their names changed when merged in to core
       // Disable the ones that have
       std::string gl300exts[] = {
-          "GL_ARB_map_buffer_range",
+          "GL_ARB_map_buffer_range", "GL_ARB_color_buffer_float", "GL_ARB_texture_float",
+          "GL_ARB_half_float_pixel", "GL_ARB_framebuffer_object", "GL_ARB_texture_float",
+          "GL_ARB_vertex_array_object", "GL_ARB_depth_buffer_float",
+          //"GL_EXT_texture_integer",
           //"GL_EXT_gpu_shader4",
           //"GL_APPLE_flush_buffer_range",
-          "GL_ARB_color_buffer_float",
-          //"GL_NV_depth_buffer_float",
-          "GL_ARB_texture_float",
           //"GL_EXT_packed_float",
           //"GL_EXT_texture_shared_exponent",
-          "GL_ARB_half_float_pixel",
           //"GL_NV_half_float",
-          "GL_ARB_framebuffer_object",
           //"GL_EXT_framebuffer_sRGB",
-          "GL_ARB_texture_float",
-          //"GL_EXT_texture_integer",
           //"GL_EXT_draw_buffers2",
           //"GL_EXT_texture_integer",
           //"GL_EXT_texture_array",
           //"GL_EXT_texture_compression_rgtc",
           //"GL_EXT_transform_feedback",
-          "GL_ARB_vertex_array_object",
           //"GL_NV_conditional_render",
           "VERSION_3_0",
       };

@@ -15,13 +15,15 @@
 #include "Core/NetPlayProto.h"
 #include "InputCommon/GCAdapter.h"
 
-CSIDevice_GCAdapter::CSIDevice_GCAdapter(SIDevices device, int _iDeviceNumber)
-    : CSIDevice_GCController(device, _iDeviceNumber)
+namespace SerialInterface
+{
+CSIDevice_GCAdapter::CSIDevice_GCAdapter(SIDevices device, int device_number)
+    : CSIDevice_GCController(device, device_number)
 {
   // get the correct pad number that should rumble locally when using netplay
-  const int numPAD = NetPlay_InGamePadToLocalPad(m_device_number);
-  if (numPAD < 4)
-    m_simulate_konga = SConfig::GetInstance().m_AdapterKonga[numPAD];
+  const int pad_num = NetPlay_InGamePadToLocalPad(m_device_number);
+  if (pad_num < 4)
+    m_simulate_konga = SConfig::GetInstance().m_AdapterKonga[pad_num];
 }
 
 GCPadStatus CSIDevice_GCAdapter::GetPadStatus()
@@ -60,11 +62,12 @@ int CSIDevice_GCAdapter::RunBuffer(u8* buffer, int length)
   return CSIDevice_GCController::RunBuffer(buffer, length);
 }
 
-void CSIDevice_GCController::Rumble(int numPad, ControlState strength)
+void CSIDevice_GCController::Rumble(int pad_num, ControlState strength)
 {
-  SIDevices device = SConfig::GetInstance().m_SIDevice[numPad];
+  SIDevices device = SConfig::GetInstance().m_SIDevice[pad_num];
   if (device == SIDEVICE_WIIU_ADAPTER)
-    GCAdapter::Output(numPad, static_cast<u8>(strength));
+    GCAdapter::Output(pad_num, static_cast<u8>(strength));
   else if (SIDevice_IsGCController(device))
-    Pad::Rumble(numPad, strength);
+    Pad::Rumble(pad_num, strength);
 }
+}  // namespace SerialInterface

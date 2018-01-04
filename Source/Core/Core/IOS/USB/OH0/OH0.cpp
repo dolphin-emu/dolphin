@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/IOS/USB/OH0/OH0.h"
+
 #include <algorithm>
 #include <cstring>
 #include <istream>
@@ -9,15 +11,12 @@
 #include <tuple>
 #include <utility>
 
-#include "Common/Assert.h"
 #include "Common/ChunkFile.h"
-#include "Common/CommonFuncs.h"
 #include "Common/Logging/Log.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/USB/Common.h"
-#include "Core/IOS/USB/OH0/OH0.h"
 #include "Core/IOS/USB/USBV0.h"
 
 namespace IOS

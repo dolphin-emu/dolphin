@@ -252,8 +252,8 @@ void VR_ConfigureHMD()
 #if defined(OVR_MAJOR_VERSION) && (OVR_PRODUCT_VERSION >= 1 || OVR_MAJOR_VERSION >= 6)
 void RecreateMirrorTextureIfNeeded()
 {
-  int w = Renderer::GetBackbufferWidth();
-  int h = Renderer::GetBackbufferHeight();
+  int w = g_renderer->GetBackbufferWidth();
+  int h = g_renderer->GetBackbufferHeight();
   bool bNoMirrorToWindow = g_ActiveConfig.iMirrorPlayer == VR_PLAYER_NONE ||
                            g_ActiveConfig.iMirrorStyle == VR_MIRROR_DISABLED;
   if (w != mirror_width || h != mirror_height || ((mirrorTexture == nullptr) != bNoMirrorToWindow))
@@ -318,8 +318,8 @@ void VR_StartFramebuffer()
     for (int eye = 0; eye < 2; eye++)
     {
       ovrSizei target_size;
-      target_size.w = Renderer::GetTargetWidth();
-      target_size.h = Renderer::GetTargetHeight();
+      target_size.w = g_renderer->GetTargetWidth();
+      target_size.h = g_renderer->GetTargetHeight();
       pEyeRenderTexture[eye] = new OculusTexture(hmd, target_size);
       eyeRenderViewport[eye].Pos.x = 0;
       eyeRenderViewport[eye].Pos.y = 0;
@@ -530,12 +530,12 @@ void VR_PresentHMDFrame()
       TargetRectangle sourceRc;
       sourceRc.left = 0;
       sourceRc.top = 0;
-      sourceRc.right = Renderer::GetTargetWidth();
-      sourceRc.bottom = Renderer::GetTargetHeight();
+      sourceRc.right = g_renderer->GetTargetWidth();
+      sourceRc.bottom = g_renderer->GetTargetHeight();
 
       D3D::context->OMSetRenderTargets(1, &D3D::GetBackBuffer()->GetRTV(), nullptr);
-      D3D11_VIEWPORT vp = CD3D11_VIEWPORT((float)0, (float)0, (float)Renderer::GetBackbufferWidth(),
-                                          (float)Renderer::GetBackbufferHeight());
+      D3D11_VIEWPORT vp = CD3D11_VIEWPORT((float)0, (float)0, (float)g_renderer->GetBackbufferWidth(),
+                                          (float)g_renderer->GetBackbufferHeight());
       // warped or both eyes
       int eye = 0;
       if (g_ActiveConfig.iMirrorStyle >= VR_MIRROR_WARPED)
@@ -654,10 +654,10 @@ void VR_PresentHMDFrame()
       }
       else
       {
-        int w = Renderer::GetTargetWidth();
-        int h = Renderer::GetTargetHeight();
-        int bbw = Renderer::GetBackbufferWidth();
-        int bbh = Renderer::GetBackbufferHeight();
+        int w = g_renderer->GetTargetWidth();
+        int h = g_renderer->GetTargetHeight();
+        int bbw = g_renderer->GetBackbufferWidth();
+        int bbh = g_renderer->GetBackbufferHeight();
         // warped or both eyes
         int eye = 0;
         if (g_ActiveConfig.iMirrorStyle >= VR_MIRROR_WARPED)

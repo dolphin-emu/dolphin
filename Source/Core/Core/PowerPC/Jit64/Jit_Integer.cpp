@@ -66,7 +66,7 @@ void Jit64::FinalizeCarry(CCFlags cond)
   {
     // Not actually merging instructions, but the effect is equivalent (we can't have
     // breakpoints/etc in between).
-    if (MergeAllowedNextInstructions(1) && js.op[1].wantsCAInFlags)
+    if (CanMergeNextInstructions(1) && js.op[1].wantsCAInFlags)
     {
       if (cond == CC_C || cond == CC_NC)
       {
@@ -95,7 +95,7 @@ void Jit64::FinalizeCarry(bool ca)
   js.carryFlagInverted = false;
   if (js.op->wantsCA)
   {
-    if (MergeAllowedNextInstructions(1) && js.op[1].wantsCAInFlags)
+    if (CanMergeNextInstructions(1) && js.op[1].wantsCAInFlags)
     {
       if (ca)
         STC();
@@ -343,7 +343,7 @@ bool Jit64::CheckMergedBranch(int crf)
   if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_BRANCH_MERGE))
     return false;
 
-  if (!MergeAllowedNextInstructions(1))
+  if (!CanMergeNextInstructions(1))
     return false;
 
   const UGeckoInstruction& next = js.op[1].inst;

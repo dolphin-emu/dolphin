@@ -8,10 +8,12 @@
 #pragma once
 
 #include <array>
+#include <string>
 #include <vector>
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+#include "Common/NandPaths.h"
 #include "DiscIO/Enums.h"
 
 namespace IOS
@@ -30,6 +32,8 @@ enum class TitleType : u32
 };
 
 bool IsTitleType(u64 title_id, TitleType title_type);
+bool IsDiscTitle(u64 title_id);
+bool IsChannel(u64 title_id);
 
 #pragma pack(push, 4)
 struct TMDHeader
@@ -61,6 +65,7 @@ static_assert(sizeof(TMDHeader) == 0x1e4, "TMDHeader has the wrong size");
 
 struct Content
 {
+  bool IsShared() const;
   u32 id;
   u16 index;
   u16 type;
@@ -95,8 +100,10 @@ static_assert(sizeof(TicketView) == 0xd8, "TicketView has the wrong size");
 struct Ticket
 {
   u8 signature_issuer[0x40];
-  u8 ecdh_key[0x3c];
-  u8 unknown[0x03];
+  u8 server_public_key[0x3c];
+  u8 version;
+  u8 ca_crl_version;
+  u8 signer_crl_version;
   u8 title_key[0x10];
   u64 ticket_id;
   u32 device_id;
@@ -136,6 +143,12 @@ public:
   DiscIO::Region GetRegion() const;
   u64 GetTitleId() const;
   u16 GetTitleVersion() const;
+  u16 GetGroupId() const;
+
+  // Constructs a 6-character game ID in the format typically used by Dolphin.
+  // If the 6-character game ID would contain unprintable characters,
+  // the title ID converted to hexadecimal is returned instead.
+  std::string GetGameID() const;
 
   u16 GetNumContents() const;
   bool GetContent(u16 index, Content* content) const;
@@ -159,6 +172,7 @@ public:
   void SetBytes(std::vector<u8>&& bytes);
 
   bool IsValid() const;
+  void DoState(PointerWrap& p);
 
   const std::vector<u8>& GetRawTicket() const;
   u32 GetNumberOfTickets() const;
@@ -170,11 +184,47 @@ public:
   // more than just one ticket and generate ticket views for them, so we implement it too.
   std::vector<u8> GetRawTicketView(u32 ticket_num) const;
 
+  u32 GetDeviceId() const;
   u64 GetTitleId() const;
   std::vector<u8> GetTitleKey() const;
 
+  // Decrypts the title key field for a "personalised" ticket -- one that is device-specific
+  // and has a title key that must be decrypted first.
+  s32 Unpersonalise();
+
 private:
   std::vector<u8> m_bytes;
+};
+
+class SharedContentMap final
+{
+public:
+  explicit SharedContentMap(Common::FromWhichRoot root);
+  ~SharedContentMap();
+
+  std::string GetFilenameFromSHA1(const std::array<u8, 20>& sha1) const;
+  std::string AddSharedContent(const std::array<u8, 20>& sha1);
+
+private:
+  struct Entry;
+  Common::FromWhichRoot m_root;
+  u32 m_last_id = 0;
+  std::string m_file_path;
+  std::vector<Entry> m_entries;
+};
+
+class UIDSys final
+{
+public:
+  explicit UIDSys(Common::FromWhichRoot root);
+
+  u32 GetUIDFromTitle(u64 title_id);
+  void AddTitle(u64 title_id);
+  u32 GetNextUID() const;
+
+private:
+  std::string m_file_path;
+  std::map<u32, u64> m_entries;
 };
 }  // namespace ES
 }  // namespace IOS

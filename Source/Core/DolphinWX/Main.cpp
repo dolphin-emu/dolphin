@@ -97,7 +97,6 @@ bool DolphinApp::OnCmdLineParsed(wxCmdLineParser& parser)
 
 bool DolphinApp::OnInit()
 {
-  std::lock_guard<std::mutex> lk(s_init_mutex);
   if (!wxApp::OnInit())
     return false;
 
@@ -114,7 +113,19 @@ bool DolphinApp::OnInit()
   wxHandleFatalExceptions(true);
 #endif
 
+#ifdef _WIN32
+  const bool console_attached = AttachConsole(ATTACH_PARENT_PROCESS) != FALSE;
+  HANDLE stdout_handle = ::GetStdHandle(STD_OUTPUT_HANDLE);
+  if (console_attached && stdout_handle)
+  {
+    freopen("CONOUT$", "w", stdout);
+    freopen("CONOUT$", "w", stderr);
+  }
+#endif
+
   ParseCommandLine();
+
+  std::lock_guard<std::mutex> lk(s_init_mutex);
 
   UICommon::SetUserDirectory(m_user_path.ToStdString());
   UICommon::CreateDirectories();

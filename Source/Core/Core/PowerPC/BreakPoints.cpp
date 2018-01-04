@@ -5,14 +5,17 @@
 #include "Core/PowerPC/BreakPoints.h"
 
 #include <algorithm>
+#include <cstddef>
 #include <sstream>
 #include <string>
 #include <vector>
 
 #include "Common/CommonTypes.h"
 #include "Common/DebugInterface.h"
+#include "Core/Core.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/JitCommon/JitCache.h"
+#include "Core/PowerPC/PowerPC.h"
 
 bool BreakPoints::IsAddressBreakPoint(u32 address) const
 {
@@ -168,13 +171,18 @@ void MemChecks::AddFromStrings(const TMemChecksStr& mc_strings)
 
 void MemChecks::Add(const TMemCheck& memory_check)
 {
-  bool had_any = HasAny();
   if (GetMemCheck(memory_check.start_address) == nullptr)
+  {
+    bool had_any = HasAny();
+    bool lock = Core::PauseAndLock(true);
     m_mem_checks.push_back(memory_check);
-  // If this is the first one, clear the JIT cache so it can switch to
-  // watchpoint-compatible code.
-  if (!had_any && g_jit)
-    g_jit->GetBlockCache()->SchedulateClearCacheThreadSafe();
+    // If this is the first one, clear the JIT cache so it can switch to
+    // watchpoint-compatible code.
+    if (!had_any && g_jit)
+      g_jit->ClearCache();
+    PowerPC::DBATUpdated();
+    Core::PauseAndLock(false, lock);
+  }
 }
 
 void MemChecks::Remove(u32 address)
@@ -183,24 +191,22 @@ void MemChecks::Remove(u32 address)
   {
     if (i->start_address == address)
     {
+      bool lock = Core::PauseAndLock(true);
       m_mem_checks.erase(i);
       if (!HasAny() && g_jit)
-        g_jit->GetBlockCache()->SchedulateClearCacheThreadSafe();
+        g_jit->ClearCache();
+      PowerPC::DBATUpdated();
+      Core::PauseAndLock(false, lock);
       return;
     }
   }
 }
 
-TMemCheck* MemChecks::GetMemCheck(u32 address)
+TMemCheck* MemChecks::GetMemCheck(u32 address, size_t size)
 {
   for (TMemCheck& mc : m_mem_checks)
   {
-    if (mc.is_ranged)
-    {
-      if (address >= mc.start_address && address <= mc.end_address)
-        return &mc;
-    }
-    else if (mc.start_address == address)
+    if (mc.end_address >= address && address + size - 1 >= mc.start_address)
     {
       return &mc;
     }
@@ -210,16 +216,36 @@ TMemCheck* MemChecks::GetMemCheck(u32 address)
   return nullptr;
 }
 
-bool TMemCheck::Action(DebugInterface* debug_interface, u32 value, u32 addr, bool write, int size,
-                       u32 pc)
+bool MemChecks::OverlapsMemcheck(u32 address, u32 length)
+{
+  if (!HasAny())
+    return false;
+  u32 page_end_suffix = length - 1;
+  u32 page_end_address = address | page_end_suffix;
+  for (TMemCheck memcheck : m_mem_checks)
+  {
+    if (((memcheck.start_address | page_end_suffix) == page_end_address ||
+         (memcheck.end_address | page_end_suffix) == page_end_address) ||
+        ((memcheck.start_address | page_end_suffix) < page_end_address &&
+         (memcheck.end_address | page_end_suffix) > page_end_address))
+    {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool TMemCheck::Action(DebugInterface* debug_interface, u32 value, u32 addr, bool write,
+                       size_t size, u32 pc)
 {
   if ((write && is_break_on_write) || (!write && is_break_on_read))
   {
     if (log_on_hit)
     {
-      NOTICE_LOG(MEMMAP, "MBP %08x (%s) %s%i %0*x at %08x (%s)", pc,
+      NOTICE_LOG(MEMMAP, "MBP %08x (%s) %s%zu %0*x at %08x (%s)", pc,
                  debug_interface->GetDescription(pc).c_str(), write ? "Write" : "Read", size * 8,
-                 size * 2, value, addr, debug_interface->GetDescription(addr).c_str());
+                 static_cast<int>(size * 2), value, addr,
+                 debug_interface->GetDescription(addr).c_str());
     }
     if (break_on_hit)
       return true;

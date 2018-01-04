@@ -3,6 +3,7 @@ package org.dolphinemu.dolphinemu.ui.main;
 import android.app.Activity;
 import android.app.FragmentManager;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v17.leanback.app.BrowseFragment;
@@ -16,6 +17,7 @@ import android.support.v17.leanback.widget.OnItemViewClickedListener;
 import android.support.v17.leanback.widget.Presenter;
 import android.support.v17.leanback.widget.Row;
 import android.support.v17.leanback.widget.RowPresenter;
+import android.widget.Toast;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.AddDirectoryActivity;
@@ -25,6 +27,7 @@ import org.dolphinemu.dolphinemu.adapters.SettingsRowPresenter;
 import org.dolphinemu.dolphinemu.model.Game;
 import org.dolphinemu.dolphinemu.model.TvSettingsItem;
 import org.dolphinemu.dolphinemu.ui.settings.SettingsActivity;
+import org.dolphinemu.dolphinemu.utils.PermissionsHandler;
 import org.dolphinemu.dolphinemu.utils.StartupHandler;
 import org.dolphinemu.dolphinemu.viewholders.TvGameViewHolder;
 
@@ -148,19 +151,43 @@ public final class TvMainActivity extends Activity implements MainView
 		mPresenter.handleActivityResult(requestCode, resultCode);
 	}
 
+	@Override
+	public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+		switch (requestCode) {
+			case PermissionsHandler.REQUEST_CODE_WRITE_PERMISSION:
+				if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+					StartupHandler.copyAssetsIfNeeded(this);
+					loadGames();
+				} else {
+					Toast.makeText(this, R.string.write_permission_needed, Toast.LENGTH_SHORT)
+							.show();
+				}
+				break;
+			default:
+				super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+				break;
+		}
+	}
+
 	private void buildRowsAdapter()
 	{
 		mRowsAdapter = new ArrayObjectAdapter(new ListRowPresenter());
 
-		// For each platform
-		for (int platformIndex = 0; platformIndex <= Game.PLATFORM_ALL; ++platformIndex)
+		if (PermissionsHandler.hasWriteAccess(this))
 		{
-			mPresenter.loadGames(platformIndex);
+			loadGames();
 		}
 
 		mRowsAdapter.add(buildSettingsRow());
 
 		mBrowseFragment.setAdapter(mRowsAdapter);
+	}
+
+	private void loadGames() {
+		// For each platform
+		for (int platformIndex = 0; platformIndex <= Game.PLATFORM_ALL; ++platformIndex) {
+			mPresenter.loadGames(platformIndex);
+		}
 	}
 
 	private ListRow buildGamesRow(int platform, Cursor games)

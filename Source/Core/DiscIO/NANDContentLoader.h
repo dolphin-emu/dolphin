@@ -23,6 +23,7 @@ namespace DiscIO
 {
 enum class Region;
 
+// TODO: move some of these to Core/IOS/ES.
 bool AddTicket(const IOS::ES::TicketReader& signed_ticket);
 IOS::ES::TicketReader FindSignedTicket(u64 title_id);
 
@@ -125,51 +126,5 @@ private:
   void operator=(CNANDContentManager const&) = delete;
 
   std::unordered_map<std::string, std::unique_ptr<CNANDContentLoader>> m_map;
-};
-
-class CSharedContent final
-{
-public:
-  explicit CSharedContent(Common::FromWhichRoot root);
-
-  std::string GetFilenameFromSHA1(const u8* hash) const;
-  std::string AddSharedContent(const u8* hash);
-
-private:
-#pragma pack(push, 1)
-  struct SElement
-  {
-    u8 FileName[8];
-    u8 SHA1Hash[20];
-  };
-#pragma pack(pop)
-
-  Common::FromWhichRoot m_root;
-  u32 m_LastID;
-  std::string m_ContentMap;
-  std::vector<SElement> m_Elements;
-};
-
-class cUIDsys final
-{
-public:
-  explicit cUIDsys(Common::FromWhichRoot root);
-
-  u32 GetUIDFromTitle(u64 title_id);
-  void AddTitle(u64 title_id);
-  void GetTitleIDs(std::vector<u64>& title_ids, bool owned = false);
-
-private:
-#pragma pack(push, 1)
-  struct SElement
-  {
-    u8 titleID[8];
-    u8 UID[4];
-  };
-#pragma pack(pop)
-
-  u32 m_LastUID;
-  std::string m_UidSys;
-  std::vector<SElement> m_Elements;
 };
 }

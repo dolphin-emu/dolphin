@@ -2,7 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Core/PowerPC/Jit64/Jit.h"
+#include "Core/PowerPC/Jit64/JitAsm.h"
 #include "Common/CommonTypes.h"
 #include "Common/JitRegister.h"
 #include "Common/x64ABI.h"
@@ -11,14 +11,19 @@
 #include "Core/CoreTiming.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/Memmap.h"
-#include "Core/PowerPC/Jit64/JitAsm.h"
+#include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
 #include "Core/PowerPC/PowerPC.h"
 
 using namespace Gen;
 
-// Not PowerPC state.  Can't put in 'this' because it's out of range...
-static void* s_saved_rsp;
+void Jit64AsmRoutineManager::Init(u8* stack_top)
+{
+  m_const_pool.Init(AllocChildCodeSpace(4096), 4096);
+  m_stack_top = stack_top;
+  Generate();
+  WriteProtect();
+}
 
 // PLAN: no more block numbers - crazy opcodes just contain offset within
 // dynarec buffer
@@ -31,6 +36,11 @@ void Jit64AsmRoutineManager::Generate()
   // for the shadow region before calls in this function.  This call will
   // waste a bit of space for a second shadow, but whatever.
   ABI_PushRegistersAndAdjustStack(ABI_ALL_CALLEE_SAVED, 8, /*frame*/ 16);
+
+  // Two statically allocated registers.
+  // MOV(64, R(RMEM), Imm64((u64)Memory::physical_base));
+  MOV(64, R(RPPCSTATE), Imm64((u64)&PowerPC::ppcState + 0x80));
+
   if (m_stack_top)
   {
     // Pivot the stack to our custom one.
@@ -40,14 +50,10 @@ void Jit64AsmRoutineManager::Generate()
   }
   else
   {
-    MOV(64, M(&s_saved_rsp), R(RSP));
+    MOV(64, PPCSTATE(stored_stack_pointer), R(RSP));
   }
   // something that can't pass the BLR test
   MOV(64, MDisp(RSP, 8), Imm32((u32)-1));
-
-  // Two statically allocated registers.
-  // MOV(64, R(RMEM), Imm64((u64)Memory::physical_base));
-  MOV(64, R(RPPCSTATE), Imm64((u64)&PowerPC::ppcState + 0x80));
 
   const u8* outerLoop = GetCodePtr();
   ABI_PushRegistersAndAdjustStack({}, 0);
@@ -207,7 +213,7 @@ void Jit64AsmRoutineManager::ResetStack(X64CodeBlock& emitter)
   if (m_stack_top)
     emitter.MOV(64, R(RSP), Imm64((u64)m_stack_top - 0x20));
   else
-    emitter.MOV(64, R(RSP), M(&s_saved_rsp));
+    emitter.MOV(64, R(RSP), PPCSTATE(stored_stack_pointer));
 }
 
 void Jit64AsmRoutineManager::GenerateCommon()

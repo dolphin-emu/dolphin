@@ -21,7 +21,7 @@
 #include "InputCommon/GCPadStatus.h"
 
 #if defined(HAVE_X11) && HAVE_X11
-#include "DolphinWX/X11Utils.h"
+#include "UICommon/X11Utils.h"
 #endif
 
 // Class declarations
@@ -102,7 +102,6 @@ public:
   bool RendererIsFullscreen();
   void OpenGeneralConfiguration(wxWindowID tab_id = wxID_ANY);
 
-  const CGameListCtrl* GetGameListCtrl() const;
   wxMenuBar* GetMenuBar() const override;
 
   Common::Event panic_event;

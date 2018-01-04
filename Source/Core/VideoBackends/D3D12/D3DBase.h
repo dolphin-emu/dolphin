@@ -122,8 +122,6 @@ const std::string PixelShaderVersionString();
 const std::string GeometryShaderVersionString();
 const std::string VertexShaderVersionString();
 
-unsigned int GetMaxTextureSize();
-
 HRESULT SetFullscreenState(bool enable_fullscreen);
 bool GetFullscreenState();
 

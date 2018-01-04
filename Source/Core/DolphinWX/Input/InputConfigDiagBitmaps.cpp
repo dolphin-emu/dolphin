@@ -184,6 +184,14 @@ static void DrawControlGroupBox(wxGraphicsContext* gc, ControlGroupBox* g)
     case ControllerEmu::GroupType::Cursor:
       ((ControllerEmu::Cursor*)g->control_group)->GetState(&x, &y, &z);
       break;
+    case ControllerEmu::GroupType::Other:
+    case ControllerEmu::GroupType::MixedTriggers:
+    case ControllerEmu::GroupType::Buttons:
+    case ControllerEmu::GroupType::Force:
+    case ControllerEmu::GroupType::Extension:
+    case ControllerEmu::GroupType::Triggers:
+    case ControllerEmu::GroupType::Slider:
+      break;
     }
 
     // ir cursor forward movement

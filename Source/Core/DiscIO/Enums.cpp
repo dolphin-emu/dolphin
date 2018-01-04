@@ -18,6 +18,23 @@ bool IsNTSC(Region region)
 
 // Increment CACHE_REVISION (ISOFile.cpp & GameFile.cpp) if the code below is modified
 
+Country TypicalCountryForRegion(Region region)
+{
+  switch (region)
+  {
+  case Region::NTSC_J:
+    return Country::COUNTRY_JAPAN;
+  case Region::NTSC_U:
+    return Country::COUNTRY_USA;
+  case Region::PAL:
+    return Country::COUNTRY_EUROPE;
+  case Region::NTSC_K:
+    return Country::COUNTRY_KOREA;
+  default:
+    return Country::COUNTRY_UNKNOWN;
+  }
+}
+
 Region RegionSwitchGC(u8 country_code)
 {
   Region region = RegionSwitchWii(country_code);
@@ -124,55 +141,82 @@ Country CountrySwitch(u8 country_code)
   }
 }
 
-u8 GetSysMenuRegion(u16 title_version)
+Region GetSysMenuRegion(u16 title_version)
 {
-  switch (title_version)
+  if (title_version == 33)
+    return Region::UNKNOWN_REGION;  // 1.0 uses 33 as the version number in all regions
+
+  switch (title_version & 0xf)
   {
-  case 128:
-  case 192:
-  case 224:
-  case 256:
-  case 288:
-  case 352:
-  case 384:
-  case 416:
-  case 448:
-  case 480:
-  case 512:
-    return 'J';
-  case 97:
-  case 193:
-  case 225:
-  case 257:
-  case 289:
-  case 353:
-  case 385:
-  case 417:
-  case 449:
-  case 481:
-  case 513:
-    return 'E';
-  case 130:
-  case 162:
-  case 194:
-  case 226:
-  case 258:
-  case 290:
-  case 354:
-  case 386:
-  case 418:
-  case 450:
-  case 482:
-  case 514:
-    return 'P';
-  case 326:
-  case 390:
-  case 454:
-  case 486:
-  case 518:
-    return 'K';
+  case 0:
+    return Region::NTSC_J;
+  case 1:
+    return Region::NTSC_U;
+  case 2:
+    return Region::PAL;
+  case 6:
+    return Region::NTSC_K;
   default:
-    return 'A';
+    return Region::UNKNOWN_REGION;
+  }
+}
+
+std::string GetSysMenuVersionString(u16 title_version)
+{
+  if (title_version == 33)
+    return "1.0";  // 1.0 uses 33 as the version number in all regions
+
+  std::string region_letter;
+
+  switch (GetSysMenuRegion(title_version))
+  {
+  case Region::NTSC_J:
+    region_letter = "J";
+    break;
+  case Region::NTSC_U:
+    region_letter = "U";
+    break;
+  case Region::PAL:
+    region_letter = "E";
+    break;
+  case Region::NTSC_K:
+    region_letter = "K";
+    break;
+  case Region::UNKNOWN_REGION:
+    WARN_LOG(DISCIO, "Unknown region for Wii Menu version %u", title_version);
+    break;
+  }
+
+  switch (title_version & ~0xf)
+  {
+  case 96:
+  case 128:
+    return "2.0" + region_letter;
+  case 160:
+    return "2.1" + region_letter;
+  case 192:
+    return "2.2" + region_letter;
+  case 224:
+    return "3.0" + region_letter;
+  case 256:
+    return "3.1" + region_letter;
+  case 288:
+    return "3.2" + region_letter;
+  case 320:
+  case 352:
+    return "3.3" + region_letter;
+  case 384:
+    return (region_letter != "K" ? "3.4" : "3.5") + region_letter;
+  case 416:
+    return "4.0" + region_letter;
+  case 448:
+    return "4.1" + region_letter;
+  case 480:
+    return "4.2" + region_letter;
+  case 512:
+    return "4.3" + region_letter;
+  default:
+    return "?.?" + region_letter;
   }
 }
 

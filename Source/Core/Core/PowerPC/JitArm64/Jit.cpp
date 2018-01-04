@@ -834,7 +834,7 @@ void JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBlock*
       }
 
       CompileInstruction(ops[i]);
-      if (!MergeAllowedNextInstructions(1) || js.op[1].opinfo->type != OPTYPE_INTEGER)
+      if (!CanMergeNextInstructions(1) || js.op[1].opinfo->type != OPTYPE_INTEGER)
         FlushCarry();
 
       // If we have a register that will never be used again, flush it.

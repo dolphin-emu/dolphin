@@ -57,8 +57,8 @@ public:
   static void SetLastXfbHeight(unsigned int height) { s_last_xfb_height = height; }
   static unsigned int LastXfbWidth() { return s_last_xfb_width; }
   static unsigned int LastXfbHeight() { return s_last_xfb_height; }
-  static int ScaleToVirtualXfbWidth(int x);
-  static int ScaleToVirtualXfbHeight(int y);
+  static int ScaleToVirtualXfbWidth(int x, const TargetRectangle& target_rectangle);
+  static int ScaleToVirtualXfbHeight(int y, const TargetRectangle& target_rectangle);
 
   static unsigned int GetEFBLayers() { return m_EFBLayers; }
   virtual std::pair<u32, u32> GetTargetSize() const = 0;

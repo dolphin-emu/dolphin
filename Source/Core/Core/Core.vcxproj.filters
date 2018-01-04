@@ -170,6 +170,10 @@
     <ClCompile Include="NetPlayClient.cpp" />
     <ClCompile Include="NetPlayServer.cpp" />
     <ClCompile Include="PatchEngine.cpp" />
+    <ClCompile Include="ConfigLoaders\BaseConfigLoader.cpp" />
+    <ClCompile Include="ConfigLoaders\GameConfigLoader.cpp" />
+    <ClCompile Include="ConfigLoaders\MovieConfigLoader.cpp" />
+    <ClCompile Include="ConfigLoaders\NetPlayConfigLoader.cpp" />
     <ClCompile Include="State.cpp" />
     <ClCompile Include="WiiRoot.cpp" />
     <ClCompile Include="ActionReplay.cpp">
@@ -340,10 +344,16 @@
     <ClCompile Include="HW\StreamADPCM.cpp">
       <Filter>HW %28Flipper/Hollywood%29\AI - Audio Interface</Filter>
     </ClCompile>
-    <ClCompile Include="HW\DVDInterface.cpp">
+    <ClCompile Include="HW\DVD\DVDInterface.cpp">
       <Filter>HW %28Flipper/Hollywood%29\DI - Drive Interface</Filter>
     </ClCompile>
-    <ClCompile Include="HW\DVDThread.cpp">
+    <ClCompile Include="HW\DVD\DVDMath.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\DI - Drive Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\DVD\DVDThread.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\DI - Drive Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\DVD\FileMonitor.cpp">
       <Filter>HW %28Flipper/Hollywood%29\DI - Drive Interface</Filter>
     </ClCompile>
     <ClCompile Include="HW\DSPHLE\UCodes\AX.cpp">
@@ -436,13 +446,13 @@
     <ClCompile Include="HW\Sram.cpp">
       <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
     </ClCompile>
-    <ClCompile Include="HW\GCMemcard.cpp">
+    <ClCompile Include="HW\GCMemcard\GCMemcard.cpp">
       <Filter>HW %28Flipper/Hollywood%29\GCMemcard</Filter>
     </ClCompile>
-    <ClCompile Include="HW\GCMemcardDirectory.cpp">
+    <ClCompile Include="HW\GCMemcard\GCMemcardDirectory.cpp">
       <Filter>HW %28Flipper/Hollywood%29\GCMemcard</Filter>
     </ClCompile>
-    <ClCompile Include="HW\GCMemcardRaw.cpp">
+    <ClCompile Include="HW\GCMemcard\GCMemcardRaw.cpp">
       <Filter>HW %28Flipper/Hollywood%29\GCMemcard</Filter>
     </ClCompile>
     <ClCompile Include="HW\GCPad.cpp">
@@ -724,6 +734,7 @@
     <ClCompile Include="Analytics.cpp" />
     <ClCompile Include="PowerPC\SignatureDB\CSVSignatureDB.cpp" />
     <ClCompile Include="PowerPC\SignatureDB\DSYSignatureDB.cpp" />
+    <ClCompile Include="PowerPC\SignatureDB\MEGASignatureDB.cpp" />
     <ClCompile Include="PowerPC\SignatureDB\SignatureDB.cpp" />
     <ClCompile Include="IOS\USB\Bluetooth\BTBase.cpp">
       <Filter>IOS\USB\Bluetooth</Filter>
@@ -756,6 +767,24 @@
       <Filter>IOS\ES</Filter>
     </ClCompile>
     <ClCompile Include="IOS\ES\Formats.cpp">
+      <Filter>IOS\ES</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\ES\Identity.cpp">
+      <Filter>IOS\ES</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\ES\NandUtils.cpp">
+      <Filter>IOS\ES</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\ES\TitleContents.cpp">
+      <Filter>IOS\ES</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\ES\TitleInformation.cpp">
+      <Filter>IOS\ES</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\ES\TitleManagement.cpp">
+      <Filter>IOS\ES</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\ES\Views.cpp">
       <Filter>IOS\ES</Filter>
     </ClCompile>
     <ClCompile Include="IOS\FS\FS.cpp">
@@ -851,6 +880,9 @@
     <ClCompile Include="IOS\USB\Bluetooth\WiimoteHIDAttr.cpp">
       <Filter>IOS\USB\Bluetooth</Filter>
     </ClCompile>
+    <ClCompile Include="PowerPC\Jit64Common\ConstantPool.cpp">
+      <Filter>PowerPC\Jit64Common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BootManager.h" />
@@ -866,6 +898,10 @@
     <ClInclude Include="NetPlayProto.h" />
     <ClInclude Include="NetPlayServer.h" />
     <ClInclude Include="PatchEngine.h" />
+    <ClInclude Include="ConfigLoaders\BaseConfigLoader.h" />
+    <ClInclude Include="ConfigLoaders\GameConfigLoader.h" />
+    <ClInclude Include="ConfigLoaders\MovieConfigLoader.h" />
+    <ClInclude Include="ConfigLoaders\NetPlayConfigLoader.h" />
     <ClInclude Include="State.h" />
     <ClInclude Include="WiiRoot.h" />
     <ClInclude Include="ActionReplay.h">
@@ -973,10 +1009,16 @@
     <ClInclude Include="HW\StreamADPCM.h">
       <Filter>HW %28Flipper/Hollywood%29\AI - Audio Interface</Filter>
     </ClInclude>
-    <ClInclude Include="HW\DVDInterface.h">
+    <ClInclude Include="HW\DVD\DVDInterface.h">
       <Filter>HW %28Flipper/Hollywood%29\DI - Drive Interface</Filter>
     </ClInclude>
-    <ClInclude Include="HW\DVDThread.h">
+    <ClInclude Include="HW\DVD\DVDMath.h">
+      <Filter>HW %28Flipper/Hollywood%29\DI - Drive Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\DVD\DVDThread.h">
+      <Filter>HW %28Flipper/Hollywood%29\DI - Drive Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\DVD\FileMonitor.h">
       <Filter>HW %28Flipper/Hollywood%29\DI - Drive Interface</Filter>
     </ClInclude>
     <ClInclude Include="HW\DSPHLE\UCodes\AX.h">
@@ -1075,13 +1117,13 @@
     <ClInclude Include="HW\Sram.h">
       <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
     </ClInclude>
-    <ClInclude Include="HW\GCMemcard.h">
+    <ClInclude Include="HW\GCMemcard\GCMemcard.h">
       <Filter>HW %28Flipper/Hollywood%29\GCMemcard</Filter>
     </ClInclude>
-    <ClInclude Include="HW\GCMemcardDirectory.h">
+    <ClInclude Include="HW\GCMemcard\GCMemcardDirectory.h">
       <Filter>HW %28Flipper/Hollywood%29\GCMemcard</Filter>
     </ClInclude>
-    <ClInclude Include="HW\GCMemcardRaw.h">
+    <ClInclude Include="HW\GCMemcard\GCMemcardRaw.h">
       <Filter>HW %28Flipper/Hollywood%29\GCMemcard</Filter>
     </ClInclude>
     <ClInclude Include="HW\GCPadEmu.h">
@@ -1331,6 +1373,7 @@
     <ClInclude Include="Analytics.h" />
     <ClInclude Include="PowerPC\SignatureDB\CSVSignatureDB.h" />
     <ClInclude Include="PowerPC\SignatureDB\DSYSignatureDB.h" />
+    <ClCompile Include="PowerPC\SignatureDB\MEGASignatureDB.h" />
     <ClInclude Include="PowerPC\SignatureDB\SignatureDB.h" />
     <ClInclude Include="IOS\USB\Bluetooth\BTBase.h">
       <Filter>IOS\USB\Bluetooth</Filter>
@@ -1351,6 +1394,9 @@
       <Filter>IOS\DI</Filter>
     </ClInclude>
     <ClInclude Include="IOS\ES\ES.h">
+      <Filter>IOS\ES</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\ES\NandUtils.h">
       <Filter>IOS\ES</Filter>
     </ClInclude>
     <ClInclude Include="IOS\FS\FileIO.h">
@@ -1463,6 +1509,9 @@
     </ClInclude>
     <ClInclude Include="IOS\MIOS.h">
       <Filter>IOS</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\Jit64Common\ConstantPool.h">
+      <Filter>PowerPC\Jit64Common</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

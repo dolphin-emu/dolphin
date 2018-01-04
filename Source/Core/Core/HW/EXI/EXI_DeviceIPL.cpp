@@ -14,6 +14,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/MemoryUtil.h"
 #include "Common/StringUtil.h"
+#include "Common/Swap.h"
 #include "Common/Timer.h"
 
 #include "Core/ConfigManager.h"

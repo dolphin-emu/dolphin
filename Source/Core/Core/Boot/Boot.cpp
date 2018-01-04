@@ -30,7 +30,7 @@
 #include "Core/Debugger/Debugger_SymbolMap.h"
 #include "Core/GeckoCode.h"
 #include "Core/HLE/HLE.h"
-#include "Core/HW/DVDInterface.h"
+#include "Core/HW/DVD/DVDInterface.h"
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/VideoInterface.h"
@@ -56,9 +56,9 @@ bool CBoot::DVDRead(u64 dvd_offset, u32 output_address, u32 length, bool decrypt
   return true;
 }
 
-void CBoot::Load_FST(bool _bIsWii)
+void CBoot::Load_FST(bool is_wii)
 {
-  if (!DVDInterface::VolumeIsValid())
+  if (!DVDInterface::IsDiscInside())
     return;
 
   const DiscIO::IVolume& volume = DVDInterface::GetVolume();
@@ -70,22 +70,22 @@ void CBoot::Load_FST(bool _bIsWii)
   Memory::Write_U32(Memory::Read_U32(0x0000), 0x3180);
 
   u32 shift = 0;
-  if (_bIsWii)
+  if (is_wii)
     shift = 2;
 
   u32 fst_offset = 0;
   u32 fst_size = 0;
   u32 max_fst_size = 0;
 
-  volume.ReadSwapped(0x0424, &fst_offset, _bIsWii);
-  volume.ReadSwapped(0x0428, &fst_size, _bIsWii);
-  volume.ReadSwapped(0x042c, &max_fst_size, _bIsWii);
+  volume.ReadSwapped(0x0424, &fst_offset, is_wii);
+  volume.ReadSwapped(0x0428, &fst_size, is_wii);
+  volume.ReadSwapped(0x042c, &max_fst_size, is_wii);
 
   u32 arena_high = Common::AlignDown(0x817FFFFF - (max_fst_size << shift), 0x20);
   Memory::Write_U32(arena_high, 0x00000034);
 
   // load FST
-  DVDRead(fst_offset << shift, arena_high, fst_size << shift, _bIsWii);
+  DVDRead(fst_offset << shift, arena_high, fst_size << shift, is_wii);
   Memory::Write_U32(arena_high, 0x00000038);
   Memory::Write_U32(max_fst_size << shift, 0x0000003c);
 }
@@ -173,25 +173,31 @@ bool CBoot::LoadMapFromFilename()
 // If ipl.bin is not found, this function does *some* of what BS1 does:
 // loading IPL(BS2) and jumping to it.
 // It does not initialize the hardware or anything else like BS1 does.
-bool CBoot::Load_BS2(const std::string& _rBootROMFilename)
+bool CBoot::Load_BS2(const std::string& boot_rom_filename)
 {
-  // CRC32
-  const u32 USA_v1_0 =
-      0x6D740AE7;  // https://forums.dolphin-emu.org/Thread-unknown-hash-on-ipl-bin?pid=385344#pid385344
-  const u32 USA_v1_1 =
-      0xD5E6FEEA;  // https://forums.dolphin-emu.org/Thread-unknown-hash-on-ipl-bin?pid=385334#pid385334
-  const u32 USA_v1_2 =
-      0x86573808;  // https://forums.dolphin-emu.org/Thread-unknown-hash-on-ipl-bin?pid=385399#pid385399
-  const u32 BRA_v1_0 =
-      0x667D0B64;  // GameCubes sold in Brazil have this IPL. Same as USA v1.2 but localized
-  const u32 JAP_v1_0 = 0x6DAC1F2A;  // Redump
-  const u32 JAP_v1_1 = 0xD235E3F9;  // https://bugs.dolphin-emu.org/issues/8936
-  const u32 PAL_v1_0 = 0x4F319F43;  // Redump
-  const u32 PAL_v1_2 = 0xAD1B7F16;  // Redump
+  // CRC32 hashes of the IPL file; including source where known
+  // https://forums.dolphin-emu.org/Thread-unknown-hash-on-ipl-bin?pid=385344#pid385344
+  constexpr u32 USA_v1_0 = 0x6D740AE7;
+  // https://forums.dolphin-emu.org/Thread-unknown-hash-on-ipl-bin?pid=385334#pid385334
+  constexpr u32 USA_v1_1 = 0xD5E6FEEA;
+  // https://forums.dolphin-emu.org/Thread-unknown-hash-on-ipl-bin?pid=385399#pid385399
+  constexpr u32 USA_v1_2 = 0x86573808;
+  // GameCubes sold in Brazil have this IPL. Same as USA v1.2 but localized
+  constexpr u32 BRA_v1_0 = 0x667D0B64;
+  // Redump
+  constexpr u32 JAP_v1_0 = 0x6DAC1F2A;
+  // https://bugs.dolphin-emu.org/issues/8936
+  constexpr u32 JAP_v1_1 = 0xD235E3F9;
+  // Redump
+  constexpr u32 PAL_v1_0 = 0x4F319F43;
+  // https://forums.dolphin-emu.org/Thread-ipl-with-unknown-hash-dd8cab7c-problem-caused-by-my-pal-gamecube-bios?pid=435463#pid435463
+  constexpr u32 PAL_v1_1 = 0xDD8CAB7C;
+  // Redump
+  constexpr u32 PAL_v1_2 = 0xAD1B7F16;
 
   // Load the whole ROM dump
   std::string data;
-  if (!File::ReadFileToString(_rBootROMFilename, data))
+  if (!File::ReadFileToString(boot_rom_filename, data))
     return false;
 
   // Use zlibs crc32 implementation to compute the hash
@@ -211,6 +217,7 @@ bool CBoot::Load_BS2(const std::string& _rBootROMFilename)
     ipl_region = DiscIO::Region::NTSC_J;
     break;
   case PAL_v1_0:
+  case PAL_v1_1:
   case PAL_v1_2:
     ipl_region = DiscIO::Region::PAL;
     break;
@@ -275,8 +282,7 @@ bool CBoot::BootUp()
   case SConfig::BOOT_ISO:
   {
     DVDInterface::SetVolumeName(_StartupPara.m_strFilename);
-    DVDInterface::SetDiscInside(DVDInterface::VolumeIsValid());
-    if (!DVDInterface::VolumeIsValid())
+    if (!DVDInterface::IsDiscInside())
       return false;
 
     const DiscIO::IVolume& pVolume = DVDInterface::GetVolume();
@@ -294,8 +300,6 @@ bool CBoot::BootUp()
     //if (game_id.size() >= 4)
     //  VideoInterface::SetRegionReg(game_id.at(3));
 
-    IOS::HLE::ES_DIVerify(pVolume.GetTMD());
-
     _StartupPara.bWii = pVolume.GetVolumeType() == DiscIO::Platform::WII_DISC;
 
     // HLE BS2 or not
@@ -308,13 +312,10 @@ bool CBoot::BootUp()
       // If we can't load the bootrom file we HLE it instead
       EmulatedBS2(_StartupPara.bWii);
     }
-    else
-    {
-      // Load patches if they weren't already
-      PatchEngine::LoadPatches();
-      HideObjectEngine::LoadHideObjects();
-      HideObjectEngine::ApplyFrameHideObjects();
-    }
+
+    PatchEngine::LoadPatches();
+    HideObjectEngine::LoadHideObjects();
+    HideObjectEngine::ApplyFrameHideObjects();
 
     // Scan for common HLE functions
     if (_StartupPara.bSkipIdle && _StartupPara.bHLE_BS2 && !_StartupPara.bEnableDebugging)
@@ -357,7 +358,7 @@ bool CBoot::BootUp()
     {
       BS2Success = EmulatedBS2(dolWii);
     }
-    else if ((!DVDInterface::VolumeIsValid() ||
+    else if ((!DVDInterface::IsDiscInside() ||
               DVDInterface::GetVolume().GetVolumeType() != DiscIO::Platform::WII_DISC) &&
              !_StartupPara.m_strDefaultISO.empty())
     {
@@ -372,8 +373,6 @@ bool CBoot::BootUp()
                                        _StartupPara.m_strApploader, _StartupPara.m_strFilename);
       BS2Success = EmulatedBS2(dolWii);
     }
-
-    DVDInterface::SetDiscInside(DVDInterface::VolumeIsValid());
 
     if (!BS2Success)
     {
@@ -434,8 +433,6 @@ bool CBoot::BootUp()
       DVDInterface::SetVolumeDirectory(_StartupPara.m_strFilename, _StartupPara.bWii);
     }
 
-    DVDInterface::SetDiscInside(DVDInterface::VolumeIsValid());
-
     // Poor man's bootup
     if (_StartupPara.bWii)
     {
@@ -461,6 +458,8 @@ bool CBoot::BootUp()
   case SConfig::BOOT_WII_NAND:
     Boot_WiiWAD(_StartupPara.m_strFilename);
 
+    PatchEngine::LoadPatches();
+
     if (LoadMapFromFilename())
       HLE::PatchFunctions();
 
@@ -470,13 +469,11 @@ bool CBoot::BootUp()
     else if (!_StartupPara.m_strDefaultISO.empty())
       DVDInterface::SetVolumeName(_StartupPara.m_strDefaultISO);
 
-    DVDInterface::SetDiscInside(DVDInterface::VolumeIsValid());
     break;
 
   // Bootstrap 2 (AKA: Initial Program Loader, "BIOS")
   case SConfig::BOOT_BS2:
   {
-    DVDInterface::SetDiscInside(DVDInterface::VolumeIsValid());
     if (Load_BS2(_StartupPara.m_strBootROM))
     {
       if (LoadMapFromFilename())

@@ -36,8 +36,8 @@
 #include "VideoCommon/VideoConfig.h"
 
 static const u64 TEXHASH_INVALID = 0;
-static const int TEXTURE_KILL_THRESHOLD =
-    64;  // Sonic the Fighters (inside Sonic Gems Collection) loops a 64 frames animation
+// Sonic the Fighters (inside Sonic Gems Collection) loops a 64 frames animation
+static const int TEXTURE_KILL_THRESHOLD = 64;
 static const int TEXTURE_POOL_KILL_THRESHOLD = 3;
 static const int FRAMECOUNT_INVALID = 0;
 
@@ -242,7 +242,7 @@ void TextureCacheBase::ScaleTextureCacheEntryTo(TextureCacheBase::TCacheEntryBas
     return;
   }
 
-  u32 max = g_renderer->GetMaxTextureSize();
+  const u32 max = g_ActiveConfig.backend_info.MaxTextureSize;
   if (max < new_width || max < new_height)
   {
     ERROR_LOG(VIDEO, "Texture too big, width = %d, height = %d", new_width, new_height);
@@ -385,17 +385,17 @@ TextureCacheBase::DoPartialTextureUpdates(TCacheEntryBase* entry_to_update, u8* 
             entry->native_height != entry->config.height)
         {
           ScaleTextureCacheEntryTo(&entry_to_update,
-                                   Renderer::EFBToScaledX(entry_to_update->native_width),
-                                   Renderer::EFBToScaledY(entry_to_update->native_height));
-          ScaleTextureCacheEntryTo(&entry, Renderer::EFBToScaledX(entry->native_width),
-                                   Renderer::EFBToScaledY(entry->native_height));
+                                   g_renderer->EFBToScaledX(entry_to_update->native_width),
+                                   g_renderer->EFBToScaledY(entry_to_update->native_height));
+          ScaleTextureCacheEntryTo(&entry, g_renderer->EFBToScaledX(entry->native_width),
+                                   g_renderer->EFBToScaledY(entry->native_height));
 
-          src_x = Renderer::EFBToScaledX(src_x);
-          src_y = Renderer::EFBToScaledY(src_y);
-          dst_x = Renderer::EFBToScaledX(dst_x);
-          dst_y = Renderer::EFBToScaledY(dst_y);
-          copy_width = Renderer::EFBToScaledX(copy_width);
-          copy_height = Renderer::EFBToScaledY(copy_height);
+          src_x = g_renderer->EFBToScaledX(src_x);
+          src_y = g_renderer->EFBToScaledY(src_y);
+          dst_x = g_renderer->EFBToScaledX(dst_x);
+          dst_y = g_renderer->EFBToScaledY(dst_y);
+          copy_width = g_renderer->EFBToScaledX(copy_width);
+          copy_height = g_renderer->EFBToScaledY(copy_height);
         }
 
         MathUtil::Rectangle<int> srcrect, dstrect;
@@ -437,7 +437,7 @@ TextureCacheBase::DoPartialTextureUpdates(TCacheEntryBase* entry_to_update, u8* 
 
 void TextureCacheBase::DumpTexture(TCacheEntryBase* entry, std::string basename, unsigned int level)
 {
-  std::string szDir = File::GetUserPath(D_DUMPTEXTURES_IDX) + SConfig::GetInstance().m_strGameID;
+  std::string szDir = File::GetUserPath(D_DUMPTEXTURES_IDX) + SConfig::GetInstance().GetGameID();
 
   // make sure that the directory exists
   if (!File::Exists(szDir) || !File::IsDirectory(szDir))
@@ -472,16 +472,16 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::ReturnEntry(unsigned int st
 
 void TextureCacheBase::BindTextures()
 {
-  for (int i = 0; i < 8; ++i)
+  for (size_t i = 0; i < bound_textures.size(); ++i)
   {
     if (bound_textures[i])
-      bound_textures[i]->Bind(i);
+      bound_textures[i]->Bind(static_cast<u32>(i));
   }
 }
 
 void TextureCacheBase::UnbindTextures()
 {
-  std::fill(std::begin(bound_textures), std::end(bound_textures), nullptr);
+  bound_textures.fill(nullptr);
 }
 
 TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
@@ -1225,8 +1225,10 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
       scaleByHalf ? ourSrcRect.GetHeight() / 2 :
                     ourSrcRect.GetHeight();  // Currently unused. But Virtual Reality needs them.
 
-  unsigned int scaled_tex_w = g_ActiveConfig.bCopyEFBScaled ? Renderer::EFBToScaledX(tex_w) : tex_w;
-  unsigned int scaled_tex_h = g_ActiveConfig.bCopyEFBScaled ? Renderer::EFBToScaledY(tex_h) : tex_h;
+  unsigned int scaled_tex_w =
+      g_ActiveConfig.bCopyEFBScaled ? g_renderer->EFBToScaledX(tex_w) : tex_w;
+  unsigned int scaled_tex_h =
+      g_ActiveConfig.bCopyEFBScaled ? g_renderer->EFBToScaledY(tex_h) : tex_h;
 
   // Remove all texture cache entries at dstAddr
   //   It's not possible to have two EFB copies at the same address, this makes sure any old efb
@@ -1400,9 +1402,11 @@ TextureCacheBase::FindMatchingTextureFromPool(const TCacheEntryConfig& config)
   // Find a texture from the pool that does not have a frameCount of FRAMECOUNT_INVALID.
   // This prevents a texture from being used twice in a single frame with different data,
   // which potentially means that a driver has to maintain two copies of the texture anyway.
+  // Render-target textures are fine through, as they have to be generated in a seperated pass.
+  // As non-render-target textures are usually static, this should not matter much.
   auto range = texture_pool.equal_range(config);
   auto matching_iter = std::find_if(range.first, range.second, [](const std::pair<TCacheEntryConfig, TCacheEntryBase*> & iter) {
-    return iter.second->frameCount != FRAMECOUNT_INVALID;
+    return iter.first.rendertarget || iter.second->frameCount != FRAMECOUNT_INVALID;
   });
   return matching_iter != range.second ? matching_iter : texture_pool.end();
 }

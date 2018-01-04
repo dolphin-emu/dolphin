@@ -31,6 +31,10 @@
 
 bool IsPlayingBackFifologWithBrokenEFBCopies = false;
 
+FifoPlayer::FifoPlayer() : m_Loop{SConfig::GetInstance().bLoopFifoReplay}
+{
+}
+
 FifoPlayer::~FifoPlayer()
 {
 }
@@ -203,14 +207,6 @@ FifoPlayer& FifoPlayer::GetInstance()
 {
   static FifoPlayer instance;
   return instance;
-}
-
-FifoPlayer::FifoPlayer()
-    : m_CurrentFrame(0), m_FrameRangeStart(0), m_FrameRangeEnd(0), m_ObjectRangeStart(0),
-      m_ObjectRangeEnd(10000), m_EarlyMemoryUpdates(false), m_FileLoadedCb(nullptr),
-      m_FrameWrittenCb(nullptr), m_File(nullptr)
-{
-  m_Loop = SConfig::GetInstance().bLoopFifoReplay;
 }
 
 void FifoPlayer::WriteFrame(const FifoFrameInfo& frame, const AnalyzedFrameInfo& info)

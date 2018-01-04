@@ -2,18 +2,21 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/HW/GCMemcard/GCMemcard.h"
+
 #include <algorithm>
 #include <cinttypes>
 #include <cstring>
 #include <vector>
 
 #include "Common/ColorUtil.h"
+#include "Common/CommonFuncs.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
-#include "Core/HW/GCMemcard.h"
+#include "Common/Swap.h"
 
 static void ByteSwap(u8* valueA, u8* valueB)
 {

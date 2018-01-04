@@ -438,7 +438,7 @@ void ProgramShaderCache::Init()
 
       std::string cache_filename =
           StringFromFormat("%sogl-%s-shaders.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
-                           SConfig::GetInstance().m_strGameID.c_str());
+                           SConfig::GetInstance().GetGameID().c_str());
 
       ProgramShaderCacheInserter inserter;
       g_program_disk_cache.OpenAndRead(cache_filename, inserter);
@@ -619,7 +619,7 @@ void ProgramShaderCache::CreateHeader()
           "#define SAMPLER_BINDING(x)\n",
       // Input/output blocks are matched by name during program linking
       "#define VARYING_LOCATION(x)\n",
-      !is_glsles && g_ActiveConfig.backend_info.bSupportsBBox ?
+      !is_glsles && g_ActiveConfig.backend_info.bSupportsFragmentStoresAndAtomics ?
           "#extension GL_ARB_shader_storage_buffer_object : enable" :
           "",
       v < GLSL_400 && g_ActiveConfig.backend_info.bSupportsGSInstancing ?

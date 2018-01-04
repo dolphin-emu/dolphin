@@ -47,7 +47,7 @@
 #include "Core/Boot/Boot.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "Core/HW/DVDInterface.h"
+#include "Core/HW/DVD/DVDInterface.h"
 #include "Core/HW/WiiSaveCrypted.h"
 #include "Core/Movie.h"
 #include "DiscIO/Blob.h"
@@ -654,8 +654,8 @@ void CGameListCtrl::InsertItemInReportView(long index)
       UpdateItemAtColumn(item_index, i);
   }
 
-  // Background color
-  SetBackgroundColor();
+  // List colors
+  SetColors();
 }
 
 static wxColour blend50(const wxColour& c1, const wxColour& c2)
@@ -668,7 +668,15 @@ static wxColour blend50(const wxColour& c1, const wxColour& c2)
   return a << 24 | b << 16 | g << 8 | r;
 }
 
-void CGameListCtrl::SetBackgroundColor()
+static wxColour ContrastText(const wxColour& bgc)
+{
+  // Luminance threshold to determine whether to use black text on light background
+  static constexpr int LUM_THRESHOLD = 186;
+  int lum = 0.299 * bgc.Red() + 0.587 * bgc.Green() + 0.114 * bgc.Blue();
+  return (lum > LUM_THRESHOLD) ? *wxBLACK : *wxWHITE;
+}
+
+void CGameListCtrl::SetColors()
 {
   for (long i = 0; i < GetItemCount(); i++)
   {
@@ -676,6 +684,7 @@ void CGameListCtrl::SetBackgroundColor()
                                        wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW)) :
                                wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
     CGameListCtrl::SetItemBackgroundColour(i, color);
+    SetItemTextColour(i, ContrastText(color));
   }
 }
 
@@ -826,7 +835,7 @@ void CGameListCtrl::OnColumnClick(wxListEvent& event)
     SortItems(wxListCompare, last_sort);
   }
 
-  SetBackgroundColor();
+  SetColors();
 
   event.Skip();
 }

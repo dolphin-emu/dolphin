@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoCommon/HiresTextures.h"
+
 #include <SOIL/SOIL.h>
 #include <algorithm>
 #include <cinttypes>
@@ -22,10 +24,10 @@
 #include "Common/Logging/Log.h"
 #include "Common/MemoryUtil.h"
 #include "Common/StringUtil.h"
+#include "Common/Swap.h"
 #include "Common/Thread.h"
 #include "Common/Timer.h"
 #include "Core/ConfigManager.h"
-#include "VideoCommon/HiresTextures.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -90,7 +92,7 @@ void HiresTexture::Update()
     s_textureCache.clear();
   }
 
-  const std::string& game_id = SConfig::GetInstance().m_strGameID;
+  const std::string& game_id = SConfig::GetInstance().GetGameID();
   const std::string texture_directory = GetTextureDirectory(game_id);
   std::vector<std::string> extensions{
       ".png", ".bmp", ".tga", ".dds",
@@ -229,7 +231,7 @@ std::string HiresTexture::GenBaseName(const u8* texture, size_t texture_size, co
     u64 tlut_hash = tlut_size ? GetHashHiresTexture(tlut, (int)tlut_size,
                                                     g_ActiveConfig.iSafeTextureCache_ColorSamples) :
                                 0;
-    name = StringFromFormat("%s_%08x_%i", SConfig::GetInstance().m_strGameID.c_str(),
+    name = StringFromFormat("%s_%08x_%i", SConfig::GetInstance().GetGameID().c_str(),
                             (u32)(tex_hash ^ tlut_hash), (u16)format);
     if (s_textureMap.find(name) != s_textureMap.end())
     {

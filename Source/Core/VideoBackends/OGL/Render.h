@@ -69,10 +69,10 @@ class Renderer : public ::Renderer
 {
 public:
   Renderer();
-  ~Renderer();
+  ~Renderer() override;
 
-  static void Init();
-  static void Shutdown();
+  void Init();
+  void Shutdown();
 
   void SetBlendMode(bool forceUpdate) override;
   void SetScissorRect(const EFBRectangle& rc) override;
@@ -104,8 +104,6 @@ public:
   void SkipClearScreen(bool colorEnable, bool alphaEnable, bool zEnable) override;
 
   void ReinterpretPixelData(unsigned int convtype) override;
-
-  u32 GetMaxTextureSize() override;
 
   void ChangeSurface(void* new_surface_handle) override;
 

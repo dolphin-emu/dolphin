@@ -44,7 +44,7 @@
 #include "Core/ARBruteForcer.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "Core/HW/DVDInterface.h"
+#include "Core/HW/DVD/DVDInterface.h"
 #include "Core/HW/GCKeyboard.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/Wiimote.h"
@@ -1209,11 +1209,6 @@ void CFrame::DoExclusiveFullscreen(bool enable_fullscreen)
   bool was_unpaused = Core::PauseAndLock(true);
   g_renderer->SetFullscreen(enable_fullscreen);
   Core::PauseAndLock(false, was_unpaused);
-}
-
-const CGameListCtrl* CFrame::GetGameListCtrl() const
-{
-  return m_GameListCtrl;
 }
 
 void CFrame::PollHotkeys(wxTimerEvent& event)

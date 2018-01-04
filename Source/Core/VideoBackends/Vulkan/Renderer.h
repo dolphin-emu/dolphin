@@ -28,7 +28,7 @@ class Renderer : public ::Renderer
 {
 public:
   Renderer(std::unique_ptr<SwapChain> swap_chain);
-  ~Renderer();
+  ~Renderer() override;
 
   static Renderer* GetInstance();
 
@@ -41,7 +41,6 @@ public:
   void PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num_points) override;
   u16 BBoxRead(int index) override;
   void BBoxWrite(int index, u16 value) override;
-  u32 GetMaxTextureSize() override { return 16 * 1024; }
   TargetRectangle ConvertEFBRectangle(const EFBRectangle& rc) override;
 
   void AsyncTimewarpDraw() override;

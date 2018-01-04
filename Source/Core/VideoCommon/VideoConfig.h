@@ -118,6 +118,9 @@ struct VideoConfig final
   bool bDumpEFBTarget;
   bool bDumpFramesAsImages;
   bool bUseFFV1;
+  std::string sDumpCodec;
+  std::string sDumpFormat;
+  std::string sDumpPath;
   bool bInternalResolutionFrameDumps;
   bool bFreeLook;
   bool bBorderlessFullscreen;
@@ -127,6 +130,7 @@ struct VideoConfig final
   bool bEFBAccessEnable;
   bool bPerfQueriesEnable;
   bool bBBoxEnable;
+  bool bBBoxPreferStencilImplementation;  // OpenGL-only, to see how slow it is compared to SSBOs
   bool bForceProgressive;
 
   bool bEFBCopyEnable;
@@ -305,6 +309,8 @@ struct VideoConfig final
     // TODO: merge AdapterName and Adapters array
     std::string AdapterName;  // for OpenGL
 
+    u32 MaxTextureSize;
+
     bool bSupportsExclusiveFullscreen;
     bool bSupportsDualSourceBlend;
     bool bSupportsPrimitiveRestart;
@@ -319,6 +325,7 @@ struct VideoConfig final
     bool bSupportsPaletteConversion;
     bool bSupportsClipControl;  // Needed by VertexShaderGen, so must stay in VideoCommon
     bool bSupportsSSAA;
+    bool bSupportsFragmentStoresAndAtomics;  // a.k.a. OpenGL SSBOs a.k.a. Direct3D UAVs
     bool bSupportsDepthClamp;  // Needed by VertexShaderGen, so must stay in VideoCommon
     bool bSupportsReversedDepthRange;
     bool bSupportsMultithreading;
@@ -333,6 +340,12 @@ struct VideoConfig final
   bool ExclusiveFullscreenEnabled() const
   {
     return backend_info.bSupportsExclusiveFullscreen && !bBorderlessFullscreen;
+  }
+  bool BBoxUseFragmentShaderImplementation() const
+  {
+    if (backend_info.api_type == APIType::OpenGL && bBBoxPreferStencilImplementation)
+      return false;
+    return backend_info.bSupportsBBox && backend_info.bSupportsFragmentStoresAndAtomics;
   }
 };
 

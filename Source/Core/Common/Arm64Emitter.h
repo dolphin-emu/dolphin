@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <cstring>
 #include <functional>
 
 #include "Common/ArmCommon.h"
@@ -1137,14 +1138,16 @@ class ARM64CodeBlock : public CodeBlock<ARM64XEmitter>
 private:
   void PoisonMemory() override
   {
-    u32* ptr = (u32*)region;
-    u32* maxptr = (u32*)(region + region_size);
     // If our memory isn't a multiple of u32 then this won't write the last remaining bytes with
     // anything
     // Less than optimal, but there would be nothing we could do but throw a runtime warning anyway.
     // AArch64: 0xD4200000 = BRK 0
-    while (ptr < maxptr)
-      *ptr++ = 0xD4200000;
+    constexpr u32 brk_0 = 0xD4200000;
+
+    for (size_t i = 0; i < region_size; i += sizeof(u32))
+    {
+      std::memcpy(region + i, &brk_0, sizeof(u32));
+    }
   }
 };
 }

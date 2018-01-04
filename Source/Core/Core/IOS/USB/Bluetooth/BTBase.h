@@ -18,7 +18,7 @@ namespace IOS
 {
 namespace HLE
 {
-void BackUpBTInfoSection(SysConf* sysconf);
+void BackUpBTInfoSection(const SysConf* sysconf);
 void RestoreBTInfoSection(SysConf* sysconf);
 
 namespace Device

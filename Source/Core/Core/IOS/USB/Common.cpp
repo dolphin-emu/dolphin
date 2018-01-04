@@ -2,15 +2,16 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/IOS/USB/Common.h"
+
 #include <algorithm>
 
 #include "Common/Align.h"
 #include "Common/Assert.h"
-#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
+#include "Common/Swap.h"
 #include "Core/HW/Memmap.h"
-#include "Core/IOS/USB/Common.h"
 
 namespace IOS
 {

@@ -36,9 +36,6 @@ void Host_UpdateMainFrame()
 void Host_RequestRenderWindowSize(int, int)
 {
 }
-void Host_RequestFullscreen(bool)
-{
-}
 void Host_SetStartupDebuggingParameters()
 {
 }

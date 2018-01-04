@@ -2,19 +2,17 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/IOS/USB/Bluetooth/BTBase.h"
+
 #include <memory>
 #include <string>
 #include <vector>
 
-#include "Common/Assert.h"
-#include "Common/CommonFuncs.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/SysConf.h"
-#include "Core/HW/Memmap.h"
-#include "Core/IOS/USB/Bluetooth/BTBase.h"
 
 namespace IOS
 {
@@ -22,7 +20,7 @@ namespace HLE
 {
 constexpr u16 BT_INFO_SECTION_LENGTH = 0x460;
 
-void BackUpBTInfoSection(SysConf* sysconf)
+void BackUpBTInfoSection(const SysConf* sysconf)
 {
   const std::string filename = File::GetUserPath(D_SESSION_WIIROOT_IDX) + DIR_SEP WII_BTDINF_BACKUP;
   if (File::Exists(filename))

@@ -19,13 +19,14 @@ namespace MMIO
 class Mapping;
 }
 
+namespace ExpansionInterface
+{
 enum
 {
+  MAX_MEMORYCARD_SLOTS = 2,
   MAX_EXI_CHANNELS = 3
 };
 
-namespace ExpansionInterface
-{
 void Init();
 void Shutdown();
 void DoState(PointerWrap& p);

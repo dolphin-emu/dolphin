@@ -16,6 +16,8 @@
 #include <mach/mach.h>
 #elif defined BSD4_4 || defined __FreeBSD__ || defined __OpenBSD__
 #include <pthread_np.h>
+#elif defined __HAIKU__
+#include <OS.h>
 #endif
 
 #ifdef USE_VTUNE
@@ -136,6 +138,8 @@ void SetCurrentThreadName(const char* szThreadName)
   pthread_setname_np(szThreadName);
 #elif defined __FreeBSD__ || defined __OpenBSD__
   pthread_set_name_np(pthread_self(), szThreadName);
+#elif defined __HAIKU__
+  rename_thread(find_thread(nullptr), szThreadName);
 #else
   // linux doesn't allow to set more than 16 bytes, including \0.
   pthread_setname_np(pthread_self(), std::string(szThreadName).substr(0, 15).c_str());

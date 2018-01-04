@@ -180,8 +180,6 @@ void CommonAsmRoutines::GenMfcr()
   X64Reg tmp = RSCRATCH2;
   X64Reg cr_val = RSCRATCH_EXTRA;
   XOR(32, R(dst), R(dst));
-  // we only need to zero the high bits of tmp once
-  XOR(32, R(tmp), R(tmp));
   for (int i = 0; i < 8; i++)
   {
     static const u32 m_flagTable[8] = {0x0, 0x1, 0x8, 0x9, 0x0, 0x1, 0x8, 0x9};
@@ -190,9 +188,13 @@ void CommonAsmRoutines::GenMfcr()
 
     MOV(64, R(cr_val), PPCSTATE(cr_val[i]));
 
+    // Upper bits of tmp need to be zeroed.
+    // Note: tmp is used later for address calculations and thus
+    //       can't be zero-ed once. This also prevents partial
+    //       register stalls due to SETcc.
+    XOR(32, R(tmp), R(tmp));
     // EQ: Bits 31-0 == 0; set flag bit 1
     TEST(32, R(cr_val), R(cr_val));
-    // FIXME: is there a better way to do this without the partial register merging?
     SETcc(CC_Z, R(tmp));
     LEA(32, dst, MComplex(dst, tmp, SCALE_2, 0));
 
@@ -204,7 +206,8 @@ void CommonAsmRoutines::GenMfcr()
     // SO: Bit 61 set; set flag bit 0
     // LT: Bit 62 set; set flag bit 3
     SHR(64, R(cr_val), Imm8(61));
-    OR(32, R(dst), MScaled(cr_val, SCALE_4, PtrOffset(m_flagTable)));
+    LEA(64, tmp, MConst(m_flagTable));
+    OR(32, R(dst), MComplex(tmp, cr_val, SCALE_4, 0));
   }
   RET();
 
@@ -301,11 +304,12 @@ void QuantizedMemoryRoutines::GenQuantizedStore(bool single, EQuantizeType type,
     if (quantize == -1)
     {
       SHR(32, R(RSCRATCH2), Imm8(5));
-      MULSS(XMM0, MDisp(RSCRATCH2, PtrOffset(m_quantizeTableS)));
+      LEA(64, RSCRATCH, MConst(m_quantizeTableS));
+      MULSS(XMM0, MRegSum(RSCRATCH2, RSCRATCH));
     }
     else if (quantize > 0)
     {
-      MULSS(XMM0, M(&m_dequantizeTableS[quantize * 2]));
+      MULSS(XMM0, MConst(m_quantizeTableS, quantize * 2));
     }
 
     switch (type)
@@ -313,20 +317,20 @@ void QuantizedMemoryRoutines::GenQuantizedStore(bool single, EQuantizeType type,
     case QUANTIZE_U8:
       XORPS(XMM1, R(XMM1));
       MAXSS(XMM0, R(XMM1));
-      MINSS(XMM0, M(&m_255));
+      MINSS(XMM0, MConst(m_255));
       break;
     case QUANTIZE_S8:
-      MAXSS(XMM0, M(&m_m128));
-      MINSS(XMM0, M(&m_127));
+      MAXSS(XMM0, MConst(m_m128));
+      MINSS(XMM0, MConst(m_127));
       break;
     case QUANTIZE_U16:
       XORPS(XMM1, R(XMM1));
       MAXSS(XMM0, R(XMM1));
-      MINSS(XMM0, M(m_65535));
+      MINSS(XMM0, MConst(m_65535));
       break;
     case QUANTIZE_S16:
-      MAXSS(XMM0, M(&m_m32768));
-      MINSS(XMM0, M(&m_32767));
+      MAXSS(XMM0, MConst(m_m32768));
+      MINSS(XMM0, MConst(m_32767));
       break;
     default:
       break;
@@ -339,12 +343,13 @@ void QuantizedMemoryRoutines::GenQuantizedStore(bool single, EQuantizeType type,
     if (quantize == -1)
     {
       SHR(32, R(RSCRATCH2), Imm8(5));
-      MOVQ_xmm(XMM1, MDisp(RSCRATCH2, PtrOffset(m_quantizeTableS)));
+      LEA(64, RSCRATCH, MConst(m_quantizeTableS));
+      MOVQ_xmm(XMM1, MRegSum(RSCRATCH2, RSCRATCH));
       MULPS(XMM0, R(XMM1));
     }
     else if (quantize > 0)
     {
-      MOVQ_xmm(XMM1, M(&m_quantizeTableS[quantize * 2]));
+      MOVQ_xmm(XMM1, MConst(m_quantizeTableS, quantize * 2));
       MULPS(XMM0, R(XMM1));
     }
 
@@ -362,7 +367,7 @@ void QuantizedMemoryRoutines::GenQuantizedStore(bool single, EQuantizeType type,
     // is out of int32 range while it's OK for large negatives, it isn't for positives
     // I don't know whether the overflow actually happens in any games but it potentially can
     // cause problems, so we need some clamping
-    MINPS(XMM0, M(m_65535));
+    MINPS(XMM0, MConst(m_65535));
     CVTTPS2DQ(XMM0, R(XMM0));
 
     switch (type)
@@ -423,7 +428,7 @@ void QuantizedMemoryRoutines::GenQuantizedStoreFloat(bool single, bool isInline)
   {
     if (cpu_info.bSSSE3)
     {
-      PSHUFB(XMM0, M(pbswapShuffle2x4));
+      PSHUFB(XMM0, MConst(pbswapShuffle2x4));
       MOVQ_xmm(R(RSCRATCH), XMM0);
     }
     else
@@ -496,13 +501,14 @@ void QuantizedMemoryRoutines::GenQuantizedLoad(bool single, EQuantizeType type, 
     if (quantize == -1)
     {
       SHR(32, R(RSCRATCH2), Imm8(5));
-      MULSS(XMM0, MDisp(RSCRATCH2, PtrOffset(m_dequantizeTableS)));
+      LEA(64, RSCRATCH, MConst(m_dequantizeTableS));
+      MULSS(XMM0, MRegSum(RSCRATCH2, RSCRATCH));
     }
     else if (quantize > 0)
     {
-      MULSS(XMM0, M(&m_dequantizeTableS[quantize * 2]));
+      MULSS(XMM0, MConst(m_dequantizeTableS, quantize * 2));
     }
-    UNPCKLPS(XMM0, M(m_one));
+    UNPCKLPS(XMM0, MConst(m_one));
   }
   else
   {
@@ -568,12 +574,13 @@ void QuantizedMemoryRoutines::GenQuantizedLoad(bool single, EQuantizeType type, 
     if (quantize == -1)
     {
       SHR(32, R(RSCRATCH2), Imm8(5));
-      MOVQ_xmm(XMM1, MDisp(RSCRATCH2, PtrOffset(m_dequantizeTableS)));
+      LEA(64, RSCRATCH, MConst(m_dequantizeTableS));
+      MOVQ_xmm(XMM1, MRegSum(RSCRATCH2, RSCRATCH));
       MULPS(XMM0, R(XMM1));
     }
     else if (quantize > 0)
     {
-      MOVQ_xmm(XMM1, M(&m_dequantizeTableS[quantize * 2]));
+      MOVQ_xmm(XMM1, MConst(m_dequantizeTableS, quantize * 2));
       MULPS(XMM0, R(XMM1));
     }
   }
@@ -601,7 +608,7 @@ void QuantizedMemoryRoutines::GenQuantizedLoadFloat(bool single, bool isInline)
     else if (cpu_info.bSSSE3)
     {
       MOVD_xmm(XMM0, MRegSum(RMEM, RSCRATCH_EXTRA));
-      PSHUFB(XMM0, M(pbswapShuffle1x4));
+      PSHUFB(XMM0, MConst(pbswapShuffle1x4));
     }
     else
     {
@@ -609,7 +616,7 @@ void QuantizedMemoryRoutines::GenQuantizedLoadFloat(bool single, bool isInline)
       MOVD_xmm(XMM0, R(RSCRATCH_EXTRA));
     }
 
-    UNPCKLPS(XMM0, M(m_one));
+    UNPCKLPS(XMM0, MConst(m_one));
   }
   else
   {
@@ -627,7 +634,7 @@ void QuantizedMemoryRoutines::GenQuantizedLoadFloat(bool single, bool isInline)
     else if (cpu_info.bSSSE3)
     {
       MOVQ_xmm(XMM0, MRegSum(RMEM, RSCRATCH_EXTRA));
-      PSHUFB(XMM0, M(pbswapShuffle2x4));
+      PSHUFB(XMM0, MConst(pbswapShuffle2x4));
     }
     else
     {

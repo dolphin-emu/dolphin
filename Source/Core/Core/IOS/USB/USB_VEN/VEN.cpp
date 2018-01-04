@@ -2,17 +2,19 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/IOS/USB/USB_VEN/VEN.h"
+
 #include <cstring>
 
 #include "Common/ChunkFile.h"
-#include "Common/CommonFuncs.h"
 #include "Common/Logging/Log.h"
+#include "Common/Swap.h"
+
 #include "Core/CoreTiming.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/Device.h"
 #include "Core/IOS/USB/Common.h"
 #include "Core/IOS/USB/USBV5.h"
-#include "Core/IOS/USB/USB_VEN/VEN.h"
 
 namespace IOS
 {

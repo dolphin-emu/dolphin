@@ -242,6 +242,7 @@ void VulkanContext::PopulateBackendInfo(VideoConfig* config)
   config->backend_info.bSupportsGeometryShaders = false;              // Dependent on features.
   config->backend_info.bSupportsGSInstancing = false;                 // Dependent on features.
   config->backend_info.bSupportsBBox = false;                         // Dependent on features.
+  config->backend_info.bSupportsFragmentStoresAndAtomics = false;     // Dependent on features.
   config->backend_info.bSupportsSSAA = false;                         // Dependent on features.
   config->backend_info.bSupportsDepthClamp = false;                   // Dependent on features.
   config->backend_info.bSupportsReversedDepthRange = false;  // No support yet due to driver bugs.
@@ -259,12 +260,15 @@ void VulkanContext::PopulateBackendInfoAdapters(VideoConfig* config, const GPULi
 }
 
 void VulkanContext::PopulateBackendInfoFeatures(VideoConfig* config, VkPhysicalDevice gpu,
+                                                const VkPhysicalDeviceProperties& properties,
                                                 const VkPhysicalDeviceFeatures& features)
 {
+  config->backend_info.MaxTextureSize = properties.limits.maxImageDimension2D;
   config->backend_info.bSupportsDualSourceBlend = (features.dualSrcBlend == VK_TRUE);
   config->backend_info.bSupportsGeometryShaders = (features.geometryShader == VK_TRUE);
   config->backend_info.bSupportsGSInstancing = (features.geometryShader == VK_TRUE);
-  config->backend_info.bSupportsBBox = (features.fragmentStoresAndAtomics == VK_TRUE);
+  config->backend_info.bSupportsBBox = config->backend_info.bSupportsFragmentStoresAndAtomics =
+      (features.fragmentStoresAndAtomics == VK_TRUE);
   config->backend_info.bSupportsSSAA = (features.sampleRateShading == VK_TRUE);
 
   // Disable geometry shader when shaderTessellationAndGeometryPointSize is not supported.

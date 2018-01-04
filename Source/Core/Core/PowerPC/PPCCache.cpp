@@ -7,7 +7,7 @@
 #include <cstring>
 
 #include "Common/ChunkFile.h"
-#include "Common/CommonFuncs.h"
+#include "Common/Swap.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"

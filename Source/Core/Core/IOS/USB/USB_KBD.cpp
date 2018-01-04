@@ -2,16 +2,17 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/IOS/USB/USB_KBD.h"
+
 #include <cstring>
 
-#include "Common/CommonFuncs.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/Logging/Log.h"
+#include "Common/Swap.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"  // Local core functions
 #include "Core/HW/Memmap.h"
-#include "Core/IOS/USB/USB_KBD.h"
 
 #ifdef _WIN32
 #include <windows.h>

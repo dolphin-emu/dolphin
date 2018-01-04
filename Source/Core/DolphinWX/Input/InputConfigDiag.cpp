@@ -64,6 +64,8 @@
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Extension.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
+#include "InputCommon/ControllerEmu/Setting/BooleanSetting.h"
+#include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/Device.h"
 #include "InputCommon/InputConfig.h"
@@ -147,7 +149,7 @@ void PadSettingExtension::UpdateValue()
 }
 
 PadSettingCheckBox::PadSettingCheckBox(wxWindow* const parent,
-                                       ControllerEmu::ControlGroup::BooleanSetting* const _setting)
+                                       ControllerEmu::BooleanSetting* const _setting)
     : PadSetting(
           new wxCheckBox(parent, wxID_ANY, wxGetTranslation(StrToWxStr(_setting->m_ui_name)))),
       setting(_setting)
@@ -170,7 +172,7 @@ void PadSettingCheckBox::UpdateValue()
 }
 
 PadSettingSpin::PadSettingSpin(wxWindow* const parent,
-                               ControllerEmu::ControlGroup::NumericSetting* const settings)
+                               ControllerEmu::NumericSetting* const settings)
     : PadSetting(new wxSpinCtrl(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize,
                                 wxSP_ARROW_KEYS, settings->m_low, settings->m_high,
                                 (int)(settings->m_value * 100))),

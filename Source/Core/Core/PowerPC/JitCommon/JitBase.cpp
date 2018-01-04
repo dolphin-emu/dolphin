@@ -27,7 +27,7 @@ JitBase::JitBase() = default;
 
 JitBase::~JitBase() = default;
 
-bool JitBase::MergeAllowedNextInstructions(int count)
+bool JitBase::CanMergeNextInstructions(int count) const
 {
   if (CPU::GetState() == CPU::CPU_STEPPING || js.instructionsLeft < count)
     return false;
@@ -46,7 +46,6 @@ bool JitBase::MergeAllowedNextInstructions(int count)
 void JitBase::UpdateMemoryOptions()
 {
   bool any_watchpoints = PowerPC::memchecks.HasAny();
-  jo.fastmem = SConfig::GetInstance().bFastmem && !any_watchpoints;
+  jo.fastmem = SConfig::GetInstance().bFastmem && (UReg_MSR(MSR).DR || !any_watchpoints);
   jo.memcheck = SConfig::GetInstance().bMMU || any_watchpoints;
-  jo.alwaysUseMemFuncs = any_watchpoints;
 }
