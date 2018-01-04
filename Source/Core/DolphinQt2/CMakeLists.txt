@@ -50,6 +50,7 @@ set(SRCS
   Config/LogConfigWidget.cpp
   Config/LogWidget.cpp
   Config/Mapping/GCKeyboardEmu.cpp
+  Config/Mapping/GCMicrophone.cpp
   Config/Mapping/GCPadEmu.cpp
   Config/Mapping/GCPadWiiUConfigDialog.cpp
   Config/Mapping/Hotkey3D.cpp
