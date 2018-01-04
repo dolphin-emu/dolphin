@@ -6,6 +6,7 @@
 
 #include <QDataStream>
 #include <QDir>
+#include <QFile>
 #include <QFileInfo>
 
 #include "Common/FileUtil.h"
@@ -20,24 +21,18 @@ GameFileCache::GameFileCache()
 {
 }
 
-bool GameFileCache::IsCached(const QString& path)
+bool GameFileCache::IsCached(const QString& path) const
 {
-  std::lock_guard<std::mutex> guard(m_mutex);
-
   return m_gamefiles.contains(path);
 }
 
-GameFile GameFileCache::GetFile(const QString& path)
+GameFile GameFileCache::GetFile(const QString& path) const
 {
-  std::lock_guard<std::mutex> guard(m_mutex);
-
   return m_gamefiles[path];
 }
 
 void GameFileCache::Load()
 {
-  std::lock_guard<std::mutex> guard(m_mutex);
-
   QFile file(m_path);
 
   if (!file.open(QIODevice::ReadOnly))
@@ -56,10 +51,8 @@ void GameFileCache::Load()
   stream >> m_gamefiles;
 }
 
-void GameFileCache::Save()
+void GameFileCache::Save() const
 {
-  std::lock_guard<std::mutex> guard(m_mutex);
-
   QFile file(m_path);
 
   if (!file.open(QIODevice::WriteOnly))
@@ -74,14 +67,10 @@ void GameFileCache::Save()
 
 void GameFileCache::Update(const GameFile& gamefile)
 {
-  std::lock_guard<std::mutex> guard(m_mutex);
-
   m_gamefiles[gamefile.GetFilePath()] = gamefile;
 }
 
-QList<QString> GameFileCache::GetCached()
+QList<QString> GameFileCache::GetCached() const
 {
-  std::lock_guard<std::mutex> guard(m_mutex);
-
   return m_gamefiles.keys();
 }
