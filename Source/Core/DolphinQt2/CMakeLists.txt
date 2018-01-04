@@ -95,6 +95,7 @@ set(SRCS
   QtUtils/WindowActivationEventFilter.cpp
   Settings/AdvancedPane.cpp
   Settings/AudioPane.cpp
+  Settings/GameCubePane.cpp
   Settings/GeneralPane.cpp
   Settings/InterfacePane.cpp
   Settings/PathPane.cpp
