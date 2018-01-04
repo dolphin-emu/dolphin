@@ -251,8 +251,6 @@
   </ItemGroup>
   <!--Put standard C/C++ headers here-->
   <ItemGroup>
-    <ClInclude Include="Config\CheatWarningWidget.h" />
-    <ClInclude Include="Config\GeckoCodeWidget.h" />
     <ClInclude Include="Config\Mapping\GCKeyboardEmu.h" />
     <ClInclude Include="Config\Mapping\GCPadEmu.h" />
     <ClInclude Include="Config\Mapping\GCPadWiiU.h" />
