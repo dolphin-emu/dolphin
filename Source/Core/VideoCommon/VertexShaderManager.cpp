@@ -1166,12 +1166,12 @@ void VertexShaderManager::SetProjectionConstants()
 
     g_fProjectionMatrix[0] = rawProjection[0] * g_ActiveConfig.fAspectRatioHackW;
     g_fProjectionMatrix[1] = 0.0f;
-    g_fProjectionMatrix[2] = rawProjection[1];
+    g_fProjectionMatrix[2] = rawProjection[1] * g_ActiveConfig.fAspectRatioHackW;
     g_fProjectionMatrix[3] = 0.0f;
 
     g_fProjectionMatrix[4] = 0.0f;
     g_fProjectionMatrix[5] = rawProjection[2] * g_ActiveConfig.fAspectRatioHackH;
-    g_fProjectionMatrix[6] = rawProjection[3];
+    g_fProjectionMatrix[6] = rawProjection[3] * g_ActiveConfig.fAspectRatioHackH;
     g_fProjectionMatrix[7] = 0.0f;
 
     g_fProjectionMatrix[8] = 0.0f;
