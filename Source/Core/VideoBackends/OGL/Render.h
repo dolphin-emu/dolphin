@@ -15,31 +15,31 @@ namespace OGL
 {
 void ClearEFBCache();
 
-enum GLSL_VERSION
+enum GlslVersion
 {
-  GLSL_130,
-  GLSL_140,
-  GLSL_150,
-  GLSL_330,
-  GLSL_400,  // and above
-  GLSL_430,
-  GLSLES_300,  // GLES 3.0
-  GLSLES_310,  // GLES 3.1
-  GLSLES_320,  // GLES 3.2
+  Glsl130,
+  Glsl140,
+  Glsl150,
+  Glsl330,
+  Glsl400,  // and above
+  Glsl430,
+  GlslEs300,  // GLES 3.0
+  GlslEs310,  // GLES 3.1
+  GlslEs320,  // GLES 3.2
 };
-enum class ES_TEXBUF_TYPE
+enum class EsTexbufType
 {
-  TEXBUF_NONE,
-  TEXBUF_CORE,
-  TEXBUF_OES,
-  TEXBUF_EXT
+  TexbufNone,
+  TexbufCore,
+  TexbufOes,
+  TexbufExt
 };
 
-enum class ES_FB_FETCH_TYPE
+enum class EsFbFetchType
 {
-  FB_FETCH_NONE,
-  FB_FETCH_EXT,
-  FB_FETCH_ARM,
+  FbFetchNone,
+  FbFetchExt,
+  FbFetchArm,
 };
 
 // ogl-only config, so not in VideoConfig.h
@@ -51,13 +51,13 @@ struct VideoConfig
   bool bSupportsGLBaseVertex;
   bool bSupportsGLBufferStorage;
   bool bSupportsMSAA;
-  GLSL_VERSION eSupportedGLSLVersion;
+  GlslVersion eSupportedGLSLVersion;
   bool bSupportViewportFloat;
   bool bSupportsAEP;
   bool bSupportsDebug;
   bool bSupportsCopySubImage;
   u8 SupportedESPointSize;
-  ES_TEXBUF_TYPE SupportedESTextureBuffer;
+  EsTexbufType SupportedESTextureBuffer;
   bool bSupportsTextureStorage;
   bool bSupports2DTextureStorageMultisample;
   bool bSupports3DTextureStorageMultisample;
@@ -66,7 +66,7 @@ struct VideoConfig
   bool bSupportsAniso;
   bool bSupportsBitfield;
   bool bSupportsTextureSubImage;
-  ES_FB_FETCH_TYPE SupportedFramebufferFetch;
+  EsFbFetchType SupportedFramebufferFetch;
 
   const char* gl_vendor;
   const char* gl_renderer;

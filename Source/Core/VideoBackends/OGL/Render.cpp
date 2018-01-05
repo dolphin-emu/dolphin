@@ -508,12 +508,12 @@ Renderer::Renderer()
             1 :
             GLExtensions::Supports("GL_EXT_geometry_point_size") ? 2 : 0;
     g_ogl_config.SupportedESTextureBuffer = GLExtensions::Supports("VERSION_GLES_3_2") ?
-                                                ES_TEXBUF_TYPE::TEXBUF_CORE :
+                                                EsTexbufType::TexbufCore :
                                                 GLExtensions::Supports("GL_OES_texture_buffer") ?
-                                                ES_TEXBUF_TYPE::TEXBUF_OES :
+                                                EsTexbufType::TexbufOes :
                                                 GLExtensions::Supports("GL_EXT_texture_buffer") ?
-                                                ES_TEXBUF_TYPE::TEXBUF_EXT :
-                                                ES_TEXBUF_TYPE::TEXBUF_NONE;
+                                                EsTexbufType::TexbufExt :
+                                                EsTexbufType::TexbufNone;
 
     g_ogl_config.bSupportsGLSLCache = true;
     g_ogl_config.bSupportsGLSync = true;
@@ -524,29 +524,29 @@ Renderer::Renderer()
 
     if (GLExtensions::Supports("GL_EXT_shader_framebuffer_fetch"))
     {
-      g_ogl_config.SupportedFramebufferFetch = ES_FB_FETCH_TYPE::FB_FETCH_EXT;
+      g_ogl_config.SupportedFramebufferFetch = EsFbFetchType::FbFetchExt;
     }
     else if (GLExtensions::Supports("GL_ARM_shader_framebuffer_fetch"))
     {
-      g_ogl_config.SupportedFramebufferFetch = ES_FB_FETCH_TYPE::FB_FETCH_ARM;
+      g_ogl_config.SupportedFramebufferFetch = EsFbFetchType::FbFetchArm;
     }
     else
     {
-      g_ogl_config.SupportedFramebufferFetch = ES_FB_FETCH_TYPE::FB_FETCH_NONE;
+      g_ogl_config.SupportedFramebufferFetch = EsFbFetchType::FbFetchNone;
     }
     g_Config.backend_info.bSupportsFramebufferFetch =
-        g_ogl_config.SupportedFramebufferFetch != ES_FB_FETCH_TYPE::FB_FETCH_NONE;
+        g_ogl_config.SupportedFramebufferFetch != EsFbFetchType::FbFetchNone;
 
     if (GLExtensions::Version() == 300)
     {
-      g_ogl_config.eSupportedGLSLVersion = GLSLES_300;
+      g_ogl_config.eSupportedGLSLVersion = GlslEs300;
       g_ogl_config.bSupportsAEP = false;
       g_ogl_config.bSupportsTextureStorage = true;
       g_Config.backend_info.bSupportsGeometryShaders = false;
     }
     else if (GLExtensions::Version() == 310)
     {
-      g_ogl_config.eSupportedGLSLVersion = GLSLES_310;
+      g_ogl_config.eSupportedGLSLVersion = GlslEs310;
       g_ogl_config.bSupportsAEP = GLExtensions::Supports("GL_ANDROID_extension_pack_es31a");
       g_Config.backend_info.bSupportsBindingLayout = true;
       g_ogl_config.bSupportsImageLoadStore = true;
@@ -571,7 +571,7 @@ Renderer::Renderer()
     }
     else
     {
-      g_ogl_config.eSupportedGLSLVersion = GLSLES_320;
+      g_ogl_config.eSupportedGLSLVersion = GlslEs320;
       g_ogl_config.bSupportsAEP = GLExtensions::Supports("GL_ANDROID_extension_pack_es31a");
       g_Config.backend_info.bSupportsBindingLayout = true;
       g_ogl_config.bSupportsImageLoadStore = true;
@@ -604,7 +604,7 @@ Renderer::Renderer()
     }
     else if (GLExtensions::Version() == 300)
     {
-      g_ogl_config.eSupportedGLSLVersion = GLSL_130;
+      g_ogl_config.eSupportedGLSLVersion = Glsl130;
       g_ogl_config.bSupportsImageLoadStore = false;  // layout keyword is only supported on glsl150+
       g_ogl_config.bSupportsConservativeDepth =
           false;  // layout keyword is only supported on glsl150+
@@ -613,7 +613,7 @@ Renderer::Renderer()
     }
     else if (GLExtensions::Version() == 310)
     {
-      g_ogl_config.eSupportedGLSLVersion = GLSL_140;
+      g_ogl_config.eSupportedGLSLVersion = Glsl140;
       g_ogl_config.bSupportsImageLoadStore = false;  // layout keyword is only supported on glsl150+
       g_ogl_config.bSupportsConservativeDepth =
           false;  // layout keyword is only supported on glsl150+
@@ -622,16 +622,16 @@ Renderer::Renderer()
     }
     else if (GLExtensions::Version() == 320)
     {
-      g_ogl_config.eSupportedGLSLVersion = GLSL_150;
+      g_ogl_config.eSupportedGLSLVersion = Glsl150;
     }
     else if (GLExtensions::Version() == 330)
     {
-      g_ogl_config.eSupportedGLSLVersion = GLSL_330;
+      g_ogl_config.eSupportedGLSLVersion = Glsl330;
     }
     else if (GLExtensions::Version() >= 430)
     {
       // TODO: We should really parse the GL_SHADING_LANGUAGE_VERSION token.
-      g_ogl_config.eSupportedGLSLVersion = GLSL_430;
+      g_ogl_config.eSupportedGLSLVersion = Glsl430;
       g_ogl_config.bSupportsTextureStorage = true;
       g_ogl_config.bSupportsImageLoadStore = true;
       g_Config.backend_info.bSupportsSSAA = true;
@@ -643,7 +643,7 @@ Renderer::Renderer()
     }
     else
     {
-      g_ogl_config.eSupportedGLSLVersion = GLSL_400;
+      g_ogl_config.eSupportedGLSLVersion = Glsl400;
       g_Config.backend_info.bSupportsSSAA = true;
 
       if (GLExtensions::Version() == 420)

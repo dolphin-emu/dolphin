@@ -64,26 +64,26 @@ static std::string s_glsl_header = "";
 
 static std::string GetGLSLVersionString()
 {
-  GLSL_VERSION v = g_ogl_config.eSupportedGLSLVersion;
+  GlslVersion v = g_ogl_config.eSupportedGLSLVersion;
   switch (v)
   {
-  case GLSLES_300:
+  case GlslEs300:
     return "#version 300 es";
-  case GLSLES_310:
+  case GlslEs310:
     return "#version 310 es";
-  case GLSLES_320:
+  case GlslEs320:
     return "#version 320 es";
-  case GLSL_130:
+  case Glsl130:
     return "#version 130";
-  case GLSL_140:
+  case Glsl140:
     return "#version 140";
-  case GLSL_150:
+  case Glsl150:
     return "#version 150";
-  case GLSL_330:
+  case Glsl330:
     return "#version 330";
-  case GLSL_400:
+  case Glsl400:
     return "#version 400";
-  case GLSL_430:
+  case Glsl430:
     return "#version 430";
   default:
     // Shouldn't ever hit this
@@ -431,7 +431,7 @@ bool ProgramShaderCache::CompileComputeShader(SHADER& shader, const std::string&
   // but not GLSL 4.3. Mesa is one example.
   std::string header;
   if (g_ActiveConfig.backend_info.bSupportsComputeShaders &&
-      g_ogl_config.eSupportedGLSLVersion < GLSL_430)
+      g_ogl_config.eSupportedGLSLVersion < Glsl430)
   {
     header = "#extension GL_ARB_compute_shader : enable\n";
   }
@@ -839,8 +839,8 @@ void ProgramShaderCache::DestroyShaders()
 
 void ProgramShaderCache::CreateHeader()
 {
-  GLSL_VERSION v = g_ogl_config.eSupportedGLSLVersion;
-  bool is_glsles = v >= GLSLES_300;
+  GlslVersion v = g_ogl_config.eSupportedGLSLVersion;
+  bool is_glsles = v >= GlslEs300;
   std::string SupportedESPointSize;
   std::string SupportedESTextureBuffer;
   switch (g_ogl_config.SupportedESPointSize)
@@ -858,14 +858,14 @@ void ProgramShaderCache::CreateHeader()
 
   switch (g_ogl_config.SupportedESTextureBuffer)
   {
-  case ES_TEXBUF_TYPE::TEXBUF_EXT:
+  case EsTexbufType::TexbufExt:
     SupportedESTextureBuffer = "#extension GL_EXT_texture_buffer : enable";
     break;
-  case ES_TEXBUF_TYPE::TEXBUF_OES:
+  case EsTexbufType::TexbufOes:
     SupportedESTextureBuffer = "#extension GL_OES_texture_buffer : enable";
     break;
-  case ES_TEXBUF_TYPE::TEXBUF_CORE:
-  case ES_TEXBUF_TYPE::TEXBUF_NONE:
+  case EsTexbufType::TexbufCore:
+  case EsTexbufType::TexbufNone:
     SupportedESTextureBuffer = "";
     break;
   }
@@ -888,17 +888,17 @@ void ProgramShaderCache::CreateHeader()
   std::string framebuffer_fetch_string;
   switch (g_ogl_config.SupportedFramebufferFetch)
   {
-  case ES_FB_FETCH_TYPE::FB_FETCH_EXT:
+  case EsFbFetchType::FbFetchExt:
     framebuffer_fetch_string = "#extension GL_EXT_shader_framebuffer_fetch: enable\n"
                                "#define FB_FETCH_VALUE real_ocol0\n"
                                "#define FRAGMENT_INOUT inout";
     break;
-  case ES_FB_FETCH_TYPE::FB_FETCH_ARM:
+  case EsFbFetchType::FbFetchArm:
     framebuffer_fetch_string = "#extension GL_ARM_shader_framebuffer_fetch: enable\n"
                                "#define FB_FETCH_VALUE gl_LastFragColorARM\n"
                                "#define FRAGMENT_INOUT out";
     break;
-  case ES_FB_FETCH_TYPE::FB_FETCH_NONE:
+  case EsFbFetchType::FbFetchNone:
     framebuffer_fetch_string = "";
     break;
   }
@@ -947,11 +947,11 @@ void ProgramShaderCache::CreateHeader()
 
       ,
       GetGLSLVersionString().c_str(),
-      v < GLSL_140 ? "#extension GL_ARB_uniform_buffer_object : enable" : "", earlyz_string.c_str(),
-      (g_ActiveConfig.backend_info.bSupportsBindingLayout && v < GLSLES_310) ?
+      v < Glsl140 ? "#extension GL_ARB_uniform_buffer_object : enable" : "", earlyz_string.c_str(),
+      (g_ActiveConfig.backend_info.bSupportsBindingLayout && v < GlslEs310) ?
           "#extension GL_ARB_shading_language_420pack : enable" :
           "",
-      (g_ogl_config.bSupportsMSAA && v < GLSL_150) ?
+      (g_ogl_config.bSupportsMSAA && v < Glsl150) ?
           "#extension GL_ARB_texture_multisample : enable" :
           "",
       // Attribute and fragment output bindings are still done via glBindAttribLocation and
@@ -974,15 +974,15 @@ void ProgramShaderCache::CreateHeader()
       !is_glsles && g_ActiveConfig.backend_info.bSupportsFragmentStoresAndAtomics ?
           "#extension GL_ARB_shader_storage_buffer_object : enable" :
           "",
-      v < GLSL_400 && g_ActiveConfig.backend_info.bSupportsGSInstancing ?
+      v < Glsl400 && g_ActiveConfig.backend_info.bSupportsGSInstancing ?
           "#extension GL_ARB_gpu_shader5 : enable" :
           "",
-      v < GLSL_400 && g_ActiveConfig.backend_info.bSupportsSSAA ?
+      v < Glsl400 && g_ActiveConfig.backend_info.bSupportsSSAA ?
           "#extension GL_ARB_sample_shading : enable" :
           "",
       SupportedESPointSize.c_str(),
       g_ogl_config.bSupportsAEP ? "#extension GL_ANDROID_extension_pack_es31a : enable" : "",
-      v < GLSL_140 && g_ActiveConfig.backend_info.bSupportsPaletteConversion ?
+      v < Glsl140 && g_ActiveConfig.backend_info.bSupportsPaletteConversion ?
           "#extension GL_ARB_texture_buffer_object : enable" :
           "",
       SupportedESTextureBuffer.c_str(),
@@ -992,7 +992,7 @@ void ProgramShaderCache::CreateHeader()
 
       ,
       g_ogl_config.bSupportsImageLoadStore &&
-              ((!is_glsles && v < GLSL_430) || (is_glsles && v < GLSLES_310)) ?
+              ((!is_glsles && v < Glsl430) || (is_glsles && v < GlslEs310)) ?
           "#extension GL_ARB_shader_image_load_store : enable" :
           "",
       framebuffer_fetch_string.c_str(), is_glsles ? "precision highp float;" : "",
@@ -1000,8 +1000,8 @@ void ProgramShaderCache::CreateHeader()
       (is_glsles && g_ActiveConfig.backend_info.bSupportsPaletteConversion) ?
           "precision highp usamplerBuffer;" :
           "",
-      v > GLSLES_300 ? "precision highp sampler2DMS;" : "",
-      v >= GLSLES_310 ? "precision highp image2DArray;" : "");
+      v > GlslEs300 ? "precision highp sampler2DMS;" : "",
+      v >= GlslEs310 ? "precision highp image2DArray;" : "");
 }
 
 void ProgramShaderCache::PrecompileUberShaders()
