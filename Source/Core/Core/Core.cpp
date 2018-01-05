@@ -341,15 +341,6 @@ static void CpuThread(const std::optional<std::string>& savestate_path, bool del
   if (_CoreParameter.bFastmem)
     EMM::InstallExceptionHandler();  // Let's run under memory watch
 
-  if (savestate_path)
-  {
-    QueueHostJob([&savestate_path, delete_savestate] {
-      ::State::LoadAs(*savestate_path);
-      if (delete_savestate)
-        File::Delete(*savestate_path);
-    });
-  }
-
   s_is_started = true;
   CPUSetInitialExecutionState();
 
@@ -373,6 +364,13 @@ static void CpuThread(const std::optional<std::string>& savestate_path, bool del
 #ifdef USE_MEMORYWATCHER
   MemoryWatcher::Init();
 #endif
+
+  if (savestate_path)
+  {
+    ::State::LoadAs(*savestate_path);
+    if (delete_savestate)
+      File::Delete(*savestate_path);
+  }
 
   // Enter CPU run loop. When we leave it - we are done.
   CPU::Run();
