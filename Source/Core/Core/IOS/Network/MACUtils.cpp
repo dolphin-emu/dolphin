@@ -29,7 +29,7 @@ void GetMACAddress(u8* mac)
   // exist or can't be parsed.
   std::string wireless_mac = SConfig::GetInstance().m_WirelessMac;
 
-  if (Core::g_want_determinism)
+  if (Core::WantsDeterminism())
     wireless_mac = "12:34:56:78:9a:bc";
 
   if (!Common::StringToMacAddress(wireless_mac, mac))

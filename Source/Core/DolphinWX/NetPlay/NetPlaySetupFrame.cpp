@@ -174,15 +174,16 @@ wxNotebook* NetPlaySetupFrame::CreateNotebookGUI(wxWindow* parent)
 
   // connect tab
   {
-    m_ip_lbl = new wxStaticText(connect_tab, wxID_ANY, _("Host Code :"));
-    m_connect_ip_text = new wxTextCtrl(connect_tab, wxID_ANY, "127.0.0.1");
-    m_connect_hashcode_text = new wxTextCtrl(connect_tab, wxID_ANY, "00000000");
+    // The text of these three controls will be set by OnDirectTraversalChoice
+    m_ip_lbl = new wxStaticText(connect_tab, wxID_ANY, "");
+    m_connect_ip_text = new wxTextCtrl(connect_tab, wxID_ANY);
+    m_connect_hashcode_text = new wxTextCtrl(connect_tab, wxID_ANY);
 
     // Will be overridden by OnDirectTraversalChoice, but is necessary
     // so that both inputs do not take up space
     m_connect_hashcode_text->Hide();
 
-    m_client_port_lbl = new wxStaticText(connect_tab, wxID_ANY, _("Port :"));
+    m_client_port_lbl = new wxStaticText(connect_tab, wxID_ANY, _("Port:"));
     m_connect_port_text = new wxTextCtrl(connect_tab, wxID_ANY,
                                          std::to_string(NetPlayHostConfig::DEFAULT_LISTEN_PORT));
 
@@ -436,7 +437,7 @@ void NetPlaySetupFrame::OnDirectTraversalChoice(wxCommandEvent& event)
     // Traversal
     // client tab
     {
-      m_ip_lbl->SetLabelText("Host Code: ");
+      m_ip_lbl->SetLabelText(_("Host Code:"));
       m_client_port_lbl->Hide();
       m_connect_port_text->Hide();
     }
@@ -461,7 +462,7 @@ void NetPlaySetupFrame::OnDirectTraversalChoice(wxCommandEvent& event)
     // Direct
     // Client tab
     {
-      m_ip_lbl->SetLabelText("IP Address :");
+      m_ip_lbl->SetLabelText(_("IP Address:"));
 
       std::string address;
       netplay_section.Get("Address", &address, "127.0.0.1");

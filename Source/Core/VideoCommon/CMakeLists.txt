@@ -14,6 +14,7 @@ set(SRCS
   GeometryShaderGen.cpp
   GeometryShaderManager.cpp
   HiresTextures.cpp
+  HiresTextures_DDSLoader.cpp
   ImageWrite.cpp
   IndexGenerator.cpp
   LightingShaderGen.cpp

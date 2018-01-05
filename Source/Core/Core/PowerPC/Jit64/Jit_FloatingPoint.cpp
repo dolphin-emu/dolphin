@@ -260,7 +260,7 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
       Force25BitPrecision(XMM1, R(XMM1), XMM0);
     break;
   default:
-    bool special = inst.SUBOP5 == 30 && (!cpu_info.bFMA || Core::g_want_determinism);
+    bool special = inst.SUBOP5 == 30 && (!cpu_info.bFMA || Core::WantsDeterminism());
     X64Reg tmp1 = special ? XMM0 : XMM1;
     X64Reg tmp2 = special ? XMM1 : XMM0;
     if (single && round_input)
@@ -276,7 +276,7 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
   // Note that FMA isn't necessarily less correct (it may actually be closer to correct) compared
   // to what the Gekko does here; in deterministic mode, the important thing is multiple Dolphin
   // instances on different computers giving identical results.
-  if (cpu_info.bFMA && !Core::g_want_determinism)
+  if (cpu_info.bFMA && !Core::WantsDeterminism())
   {
     // Statistics suggests b is a lot less likely to be unbound in practice, so
     // if we have to pick one of a or b to bind, let's make it b.

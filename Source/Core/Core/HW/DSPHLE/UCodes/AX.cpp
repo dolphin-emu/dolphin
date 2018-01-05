@@ -422,7 +422,7 @@ void AXUCode::ProcessPBList(u32 pb_addr)
                           m_samples_auxA_right, m_samples_auxA_surround, m_samples_auxB_left,
                           m_samples_auxB_right, m_samples_auxB_surround}};
 
-    ReadPB(pb_addr, pb);
+    ReadPB(pb_addr, pb, m_crc);
 
     u32 updates_addr = HILO_TO_32(pb.updates.data);
     u16* updates = (u16*)HLEMemory_Get_Pointer(updates_addr);
@@ -439,7 +439,7 @@ void AXUCode::ProcessPBList(u32 pb_addr)
         buffers.ptrs[i] += spms;
     }
 
-    WritePB(pb_addr, pb);
+    WritePB(pb_addr, pb, m_crc);
     pb_addr = HILO_TO_32(pb.next_pb);
   }
 }

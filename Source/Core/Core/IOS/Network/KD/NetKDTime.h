@@ -18,7 +18,7 @@ namespace Device
 class NetKDTime : public Device
 {
 public:
-  NetKDTime(u32 device_id, const std::string& device_name);
+  NetKDTime(Kernel& ios, const std::string& device_name);
   ~NetKDTime() override;
 
   IPCCommandResult IOCtl(const IOCtlRequest& request) override;

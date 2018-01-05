@@ -336,7 +336,7 @@ u64 CNANDContentManager::Install_WiiWAD(const std::string& filename)
   }
 
   IOS::ES::UIDSys uid_sys{Common::FromWhichRoot::FROM_CONFIGURED_ROOT};
-  uid_sys.AddTitle(title_id);
+  uid_sys.GetOrInsertUIDForTitle(title_id);
 
   ClearCache();
 

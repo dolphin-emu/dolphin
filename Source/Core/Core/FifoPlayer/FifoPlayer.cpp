@@ -99,18 +99,21 @@ public:
   const char* GetName() override { return "FifoPlayer"; }
   void Run() override
   {
-    while (CPU::GetState() == CPU::CPU_RUNNING)
+    while (CPU::GetState() == CPU::State::Running)
     {
       switch (m_parent->AdvanceFrame())
       {
-      case CPU::CPU_POWERDOWN:
+      case CPU::State::PowerDown:
         CPU::Break();
         Host_Message(WM_USER_STOP);
         break;
 
-      case CPU::CPU_STEPPING:
+      case CPU::State::Stepping:
         CPU::Break();
         Host_UpdateMainFrame();
+        break;
+
+      case CPU::State::Running:
         break;
       }
     }
@@ -120,15 +123,15 @@ private:
   FifoPlayer* m_parent;
 };
 
-int FifoPlayer::AdvanceFrame()
+CPU::State FifoPlayer::AdvanceFrame()
 {
   if (m_CurrentFrame >= m_FrameRangeEnd)
   {
     if (!m_Loop)
-      return CPU::CPU_POWERDOWN;
+      return CPU::State::PowerDown;
     // If there are zero frames in the range then sleep instead of busy spinning
     if (m_FrameRangeStart >= m_FrameRangeEnd)
-      return CPU::CPU_STEPPING;
+      return CPU::State::Stepping;
 
     // When looping, reload the contents of all the BP/CP/CF registers.
     // This ensures that each time the first frame is played back, the state of the
@@ -148,7 +151,7 @@ int FifoPlayer::AdvanceFrame()
   WriteFrame(m_File->GetFrame(m_CurrentFrame), m_FrameInfo[m_CurrentFrame]);
 
   ++m_CurrentFrame;
-  return CPU::CPU_RUNNING;
+  return CPU::State::Running;
 }
 
 std::unique_ptr<CPUCoreBase> FifoPlayer::GetCPUCore()

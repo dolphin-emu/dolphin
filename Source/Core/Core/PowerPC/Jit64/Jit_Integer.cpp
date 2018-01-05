@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <array>
 #include <limits>
 #include <vector>
 
@@ -50,9 +51,9 @@ void Jit64::GenerateOverflow()
   // We need to do this without modifying flags so as not to break stuff that assumes flags
   // aren't clobbered (carry, branch merging): speed doesn't really matter here (this is really
   // rare).
-  static const u8 ovtable[4] = {0, 0, XER_SO_MASK, XER_SO_MASK};
+  static const std::array<u8, 4> ovtable = {0, 0, XER_SO_MASK, XER_SO_MASK};
   MOVZX(32, 8, RSCRATCH, PPCSTATE(xer_so_ov));
-  MOV(64, R(RSCRATCH2), ImmPtr(ovtable));
+  LEA(64, RSCRATCH2, MConst(ovtable));
   MOV(8, R(RSCRATCH), MRegSum(RSCRATCH, RSCRATCH2));
   MOV(8, PPCSTATE(xer_so_ov), R(RSCRATCH));
   SetJumpTarget(exit);

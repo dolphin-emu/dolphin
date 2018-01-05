@@ -29,7 +29,7 @@ JitBase::~JitBase() = default;
 
 bool JitBase::CanMergeNextInstructions(int count) const
 {
-  if (CPU::GetState() == CPU::CPU_STEPPING || js.instructionsLeft < count)
+  if (CPU::IsStepping() || js.instructionsLeft < count)
     return false;
   // Be careful: a breakpoint kills flags in between instructions
   for (int i = 1; i <= count; i++)

@@ -203,7 +203,7 @@ public:
       if (tok.type == TOK_EOF)
         break;
     }
-    return ParseStatus::Success;
+    return ParseStatus::Successful;
   }
 };
 
@@ -373,11 +373,11 @@ public:
   {
     ExpressionNode* node;
     ParseStatus status = Toplevel(&node);
-    if (status != ParseStatus::Success)
+    if (status != ParseStatus::Successful)
       return status;
 
     *expr_out = new Expression(node);
-    return ParseStatus::Success;
+    return ParseStatus::Successful;
   }
 
 private:
@@ -409,7 +409,7 @@ private:
       }
 
       *expr_out = new ControlExpression(tok.qualifier, device, control);
-      return ParseStatus::Success;
+      return ParseStatus::Successful;
     }
     case TOK_LPAREN:
       return Paren(expr_out);
@@ -439,7 +439,7 @@ private:
       if (status == ParseStatus::SyntaxError)
         return status;
       *expr_out = new UnaryExpression(tok.type, atom_expr);
-      return ParseStatus::Success;
+      return ParseStatus::Successful;
     }
 
     return Atom(expr_out);
@@ -478,7 +478,7 @@ private:
       *expr_out = new BinaryExpression(tok.type, *expr_out, unary_expr);
     }
 
-    return ParseStatus::Success;
+    return ParseStatus::Successful;
   }
 
   ParseStatus Paren(ExpressionNode** expr_out)
@@ -486,7 +486,7 @@ private:
     ParseStatus status;
 
     // lparen already chewed
-    if ((status = Toplevel(expr_out)) != ParseStatus::Success)
+    if ((status = Toplevel(expr_out)) != ParseStatus::Successful)
       return status;
 
     if (!Expects(TOK_RPAREN))
@@ -495,7 +495,7 @@ private:
       return ParseStatus::SyntaxError;
     }
 
-    return ParseStatus::Success;
+    return ParseStatus::Successful;
   }
 
   ParseStatus Toplevel(ExpressionNode** expr_out) { return Binary(expr_out); }
@@ -530,21 +530,21 @@ static ParseStatus ParseExpressionInner(const std::string& str, ControlFinder& f
   *expr_out = nullptr;
 
   if (str == "")
-    return ParseStatus::Success;
+    return ParseStatus::Successful;
 
   Lexer l(str);
   std::vector<Token> tokens;
   status = l.Tokenize(tokens);
-  if (status != ParseStatus::Success)
+  if (status != ParseStatus::Successful)
     return status;
 
   Parser p(tokens, finder);
   status = p.Parse(&expr);
-  if (status != ParseStatus::Success)
+  if (status != ParseStatus::Successful)
     return status;
 
   *expr_out = expr;
-  return ParseStatus::Success;
+  return ParseStatus::Successful;
 }
 
 ParseStatus ParseExpression(const std::string& str, ControlFinder& finder, Expression** expr_out)
@@ -561,7 +561,7 @@ ParseStatus ParseExpression(const std::string& str, ControlFinder& finder, Expre
   if (control)
   {
     *expr_out = new Expression(new ControlExpression(qualifier, device, control));
-    return ParseStatus::Success;
+    return ParseStatus::Successful;
   }
 
   return ParseExpressionInner(str, finder, expr_out);

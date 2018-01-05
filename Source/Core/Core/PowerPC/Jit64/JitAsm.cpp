@@ -84,12 +84,14 @@ void Jit64AsmRoutineManager::Generate()
 
   if (SConfig::GetInstance().bEnableDebugging)
   {
-    TEST(32, M(CPU::GetStatePtr()), Imm32(CPU::CPU_STEPPING));
+    MOV(64, R(RSCRATCH), ImmPtr(CPU::GetStatePtr()));
+    TEST(32, MatR(RSCRATCH), Imm32(static_cast<u32>(CPU::State::Stepping)));
     FixupBranch notStepping = J_CC(CC_Z);
     ABI_PushRegistersAndAdjustStack({}, 0);
     ABI_CallFunction(PowerPC::CheckBreakPoints);
     ABI_PopRegistersAndAdjustStack({}, 0);
-    TEST(32, M(CPU::GetStatePtr()), Imm32(0xFFFFFFFF));
+    MOV(64, R(RSCRATCH), ImmPtr(CPU::GetStatePtr()));
+    TEST(32, MatR(RSCRATCH), Imm32(0xFFFFFFFF));
     dbg_exit = J_CC(CC_NZ, true);
     SetJumpTarget(notStepping);
   }
@@ -187,7 +189,8 @@ void Jit64AsmRoutineManager::Generate()
 
   // Check the state pointer to see if we are exiting
   // Gets checked on at the end of every slice
-  TEST(32, M(CPU::GetStatePtr()), Imm32(0xFFFFFFFF));
+  MOV(64, R(RSCRATCH), ImmPtr(CPU::GetStatePtr()));
+  TEST(32, MatR(RSCRATCH), Imm32(0xFFFFFFFF));
   J_CC(CC_Z, outerLoop);
 
   // Landing pad for drec space
@@ -234,6 +237,7 @@ void Jit64AsmRoutineManager::GenerateCommon()
   GenMfcr();
 
   GenQuantizedLoads();
+  GenQuantizedSingleLoads();
   GenQuantizedStores();
   GenQuantizedSingleStores();
 

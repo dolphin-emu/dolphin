@@ -25,7 +25,7 @@
 namespace DiscIO
 {
 static u32 ComputeNameSize(const File::FSTEntry& parent_entry);
-static std::string ASCIIToLowercase(std::string str);
+static std::string ASCIIToUppercase(std::string str);
 
 #if defined(_MSC_VER) && _MSC_VER <= 1800
 #else
@@ -353,9 +353,10 @@ void CVolumeDirectory::BuildFST()
   m_fst_data.clear();
 
   File::FSTEntry rootEntry = File::ScanDirectoryTree(m_root_directory, true);
-  u32 name_table_size = ComputeNameSize(rootEntry);
+  u32 name_table_size = Common::AlignUp(ComputeNameSize(rootEntry), 1ull << m_address_shift);
+  u64 total_entries = rootEntry.size + 1;  // The root entry itself isn't counted in rootEntry.size
 
-  m_fst_name_offset = rootEntry.size * ENTRY_SIZE;  // offset of name table in FST
+  m_fst_name_offset = total_entries * ENTRY_SIZE;  // offset of name table in FST
   m_fst_data.resize(m_fst_name_offset + name_table_size);
 
   // if FST hasn't been assigned (ie no apploader/dol setup), set to default
@@ -371,12 +372,12 @@ void CVolumeDirectory::BuildFST()
   u32 root_offset = 0;  // Offset of root of FST
 
   // write root entry
-  WriteEntryData(&fst_offset, DIRECTORY_ENTRY, 0, 0, rootEntry.size);
+  WriteEntryData(&fst_offset, DIRECTORY_ENTRY, 0, 0, total_entries, m_address_shift);
 
   WriteDirectory(rootEntry, &fst_offset, &name_offset, &current_data_address, root_offset);
 
-  // overflow check
-  _dbg_assert_(DVDINTERFACE, name_offset == name_table_size);
+  // overflow check, compare the aligned name offset with the aligned name table size
+  _assert_(Common::AlignUp(name_offset, 1ull << m_address_shift) == name_table_size);
 
   // write FST size and location
   Write32((u32)(m_fst_address >> m_address_shift), 0x0424, &m_disk_header);
@@ -427,7 +428,7 @@ void CVolumeDirectory::Write32(u32 data, u32 offset, std::vector<u8>* const buff
 }
 
 void CVolumeDirectory::WriteEntryData(u32* entry_offset, u8 type, u32 name_offset, u64 data_offset,
-                                      u64 length)
+                                      u64 length, u32 address_shift)
 {
   m_fst_data[(*entry_offset)++] = type;
 
@@ -435,7 +436,7 @@ void CVolumeDirectory::WriteEntryData(u32* entry_offset, u8 type, u32 name_offse
   m_fst_data[(*entry_offset)++] = (name_offset >> 8) & 0xff;
   m_fst_data[(*entry_offset)++] = (name_offset)&0xff;
 
-  Write32((u32)(data_offset >> m_address_shift), *entry_offset, &m_fst_data);
+  Write32((u32)(data_offset >> address_shift), *entry_offset, &m_fst_data);
   *entry_offset += 4;
 
   Write32((u32)length, *entry_offset, &m_fst_data);
@@ -457,12 +458,9 @@ void CVolumeDirectory::WriteDirectory(const File::FSTEntry& parent_entry, u32* f
   // Sort for determinism
   std::sort(sorted_entries.begin(), sorted_entries.end(), [](const File::FSTEntry& one,
                                                              const File::FSTEntry& two) {
-    // For some reason, sorting by lowest ASCII value first prevents many games from
-    // fully booting. We make the comparison case insensitive to solve the problem.
-    // (Highest ASCII value first seems to work regardless of case sensitivity.)
-    const std::string one_lower = ASCIIToLowercase(one.virtualName);
-    const std::string two_lower = ASCIIToLowercase(two.virtualName);
-    return one_lower == two_lower ? one.virtualName < two.virtualName : one_lower < two_lower;
+    const std::string one_upper = ASCIIToUppercase(one.virtualName);
+    const std::string two_upper = ASCIIToUppercase(two.virtualName);
+    return one_upper == two_upper ? one.virtualName < two.virtualName : one_upper < two_upper;
   });
 
   for (const File::FSTEntry& entry : sorted_entries)
@@ -471,7 +469,7 @@ void CVolumeDirectory::WriteDirectory(const File::FSTEntry& parent_entry, u32* f
     {
       u32 entry_index = *fst_offset / ENTRY_SIZE;
       WriteEntryData(fst_offset, DIRECTORY_ENTRY, *name_offset, parent_entry_index,
-                     entry_index + entry.size + 1);
+                     entry_index + entry.size + 1, 0);
       WriteEntryName(name_offset, entry.virtualName);
 
       WriteDirectory(entry, fst_offset, name_offset, data_offset, entry_index);
@@ -479,7 +477,8 @@ void CVolumeDirectory::WriteDirectory(const File::FSTEntry& parent_entry, u32* f
     else
     {
       // put entry in FST
-      WriteEntryData(fst_offset, FILE_ENTRY, *name_offset, *data_offset, entry.size);
+      WriteEntryData(fst_offset, FILE_ENTRY, *name_offset, *data_offset, entry.size,
+                     m_address_shift);
       WriteEntryName(name_offset, entry.virtualName);
 
       // write entry to virtual disk
@@ -505,10 +504,10 @@ static u32 ComputeNameSize(const File::FSTEntry& parent_entry)
   return name_size;
 }
 
-static std::string ASCIIToLowercase(std::string str)
+static std::string ASCIIToUppercase(std::string str)
 {
   std::transform(str.begin(), str.end(), str.begin(),
-                 [](char c) { return std::tolower(c, std::locale::classic()); });
+                 [](char c) { return std::toupper(c, std::locale::classic()); });
   return str;
 }
 

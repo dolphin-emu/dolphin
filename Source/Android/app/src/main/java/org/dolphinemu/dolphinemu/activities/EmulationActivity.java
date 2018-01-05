@@ -468,7 +468,11 @@ public final class EmulationActivity extends AppCompatActivity
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item)
 	{
-		handleMenuAction(buttonsActionsMap.get(item.getItemId()));
+		int action = buttonsActionsMap.get(item.getItemId(), -1);
+		if (action >= 0)
+		{
+			handleMenuAction(action);
+		}
 		return true;
 	}
 

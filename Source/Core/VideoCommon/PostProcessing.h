@@ -60,6 +60,7 @@ public:
   bool IsDirty() { return m_any_options_dirty; }
   void SetDirty(bool dirty) { m_any_options_dirty = dirty; }
   bool HasOptions() { return m_options.size() > 0; }
+  const ConfigMap& GetOptions() const { return m_options; }
   ConfigMap& GetOptions() { return m_options; }
   const ConfigurationOption& GetOption(const std::string& option) { return m_options[option]; }
   // For updating option's values
@@ -82,12 +83,10 @@ public:
   PostProcessingShaderImplementation();
   virtual ~PostProcessingShaderImplementation();
 
-  PostProcessingShaderConfiguration* GetConfig() { return &m_config; }
-  // Should be implemented by the backends for backend specific code
-  virtual void BlitFromTexture(TargetRectangle src, TargetRectangle dst, int src_texture,
-                               int src_width, int src_height, int layer = 0) = 0;
-  virtual void ApplyShader() = 0;
+  static std::vector<std::string> GetShaderList(APIType api_type);
+  static std::vector<std::string> GetAnaglyphShaderList(APIType api_type);
 
+  PostProcessingShaderConfiguration* GetConfig() { return &m_config; }
 protected:
   // Timer for determining our time value
   Common::Timer m_timer;

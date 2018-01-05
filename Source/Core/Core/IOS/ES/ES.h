@@ -12,7 +12,7 @@
 #include "Common/CommonTypes.h"
 #include "Core/IOS/Device.h"
 #include "Core/IOS/ES/Formats.h"
-#include "Core/IOS/IPC.h"
+#include "Core/IOS/IOS.h"
 
 class PointerWrap;
 
@@ -43,14 +43,11 @@ struct TitleContext
 class ES final : public Device
 {
 public:
-  ES(u32 device_id, const std::string& device_name);
-
-  // Called after an IOS reload.
-  static void Init();
+  ES(Kernel& ios, const std::string& device_name);
 
   static s32 DIVerify(const IOS::ES::TMDReader& tmd, const IOS::ES::TicketReader& ticket);
   static void LoadWAD(const std::string& _rContentFile);
-  static bool LaunchTitle(u64 title_id, bool skip_reload = false);
+  bool LaunchTitle(u64 title_id, bool skip_reload = false);
 
   // Internal implementation of the ES_DECRYPT ioctlv.
   static void DecryptContent(u32 key_index, u8* iv, u8* input, u32 size, u8* new_iv, u8* output);
@@ -58,7 +55,7 @@ public:
   void DoState(PointerWrap& p) override;
 
   ReturnCode Open(const OpenRequest& request) override;
-  void Close() override;
+  ReturnCode Close(u32 fd) override;
   IPCCommandResult IOCtlV(const IOCtlVRequest& request) override;
 
 private:
@@ -112,7 +109,7 @@ private:
     IOCTL_ES_GETBOOT2VERSION = 0x2E,
     IOCTL_ES_ADDTITLECANCEL = 0x2F,
     IOCTL_ES_SIGN = 0x30,
-    // IOCTL_ES_VERIFYSIGN         = 0x31,
+    IOCTL_ES_VERIFYSIGN = 0x31,
     IOCTL_ES_GETSTOREDCONTENTCNT = 0x32,
     IOCTL_ES_GETSTOREDCONTENTS = 0x33,
     IOCTL_ES_GETSTOREDTMDSIZE = 0x34,
@@ -120,7 +117,18 @@ private:
     IOCTL_ES_GETSHAREDCONTENTCNT = 0x36,
     IOCTL_ES_GETSHAREDCONTENTS = 0x37,
     IOCTL_ES_DELETESHAREDCONTENT = 0x38,
-    //
+    IOCTL_ES_DIGETTMDSIZE = 0x39,
+    IOCTL_ES_DIGETTMD = 0x3A,
+    IOCTL_ES_UNKNOWN_3B = 0x3B,
+    IOCTL_ES_UNKNOWN_3C = 0x3C,
+    IOCTL_ES_UNKNOWN_3D = 0x3D,
+    IOCTL_ES_UNKNOWN_3E = 0x3E,
+    IOCTL_ES_UNKNOWN_3F = 0x3F,
+    IOCTL_ES_UNKNOWN_40 = 0x40,
+    IOCTL_ES_UNKNOWN_41 = 0x41,
+    IOCTL_ES_UNKNOWN_42 = 0x42,
+    IOCTL_ES_UNKNOWN_43 = 0x43,
+    IOCTL_ES_UNKNOWN_44 = 0x44,
     IOCTL_ES_CHECKKOREAREGION = 0x45,
   };
 
@@ -144,20 +152,57 @@ private:
     u8 padding[0x3c];
   };
 
+  struct TitleImportContext
+  {
+    IOS::ES::TMDReader tmd;
+    u32 content_id = 0xFFFFFFFF;
+    std::vector<u8> content_buffer;
+  };
+
+  // TODO: merge this with TitleImportContext. Also reuse the global content table.
+  struct TitleExportContext
+  {
+    struct ExportContent
+    {
+      OpenedContent content;
+      std::array<u8, 16> iv{};
+    };
+
+    bool valid = false;
+    IOS::ES::TMDReader tmd;
+    std::vector<u8> title_key;
+    std::map<u32, ExportContent> contents;
+  };
+
+  struct Context
+  {
+    void DoState(PointerWrap& p);
+
+    u16 gid = 0;
+    u32 uid = 0;
+    TitleImportContext title_import;
+    TitleExportContext title_export;
+    bool active = false;
+    // We use this to associate an IPC fd with an ES context.
+    u32 ipc_fd = -1;
+  };
+  // ES can only have 3 contexts at one time.
+  using ContextArray = std::array<Context, 3>;
+
   // Title management
   IPCCommandResult AddTicket(const IOCtlVRequest& request);
-  IPCCommandResult AddTMD(const IOCtlVRequest& request);
-  IPCCommandResult AddTitleStart(const IOCtlVRequest& request);
-  IPCCommandResult AddContentStart(const IOCtlVRequest& request);
-  IPCCommandResult AddContentData(const IOCtlVRequest& request);
-  IPCCommandResult AddContentFinish(const IOCtlVRequest& request);
-  IPCCommandResult AddTitleFinish(const IOCtlVRequest& request);
-  IPCCommandResult AddTitleCancel(const IOCtlVRequest& request);
-  IPCCommandResult ExportTitleInit(const IOCtlVRequest& request);
-  IPCCommandResult ExportContentBegin(const IOCtlVRequest& request);
-  IPCCommandResult ExportContentData(const IOCtlVRequest& request);
-  IPCCommandResult ExportContentEnd(const IOCtlVRequest& request);
-  IPCCommandResult ExportTitleDone(const IOCtlVRequest& request);
+  IPCCommandResult AddTMD(Context& context, const IOCtlVRequest& request);
+  IPCCommandResult AddTitleStart(Context& context, const IOCtlVRequest& request);
+  IPCCommandResult AddContentStart(Context& context, const IOCtlVRequest& request);
+  IPCCommandResult AddContentData(Context& context, const IOCtlVRequest& request);
+  IPCCommandResult AddContentFinish(Context& context, const IOCtlVRequest& request);
+  IPCCommandResult AddTitleFinish(Context& context, const IOCtlVRequest& request);
+  IPCCommandResult AddTitleCancel(Context& context, const IOCtlVRequest& request);
+  IPCCommandResult ExportTitleInit(Context& context, const IOCtlVRequest& request);
+  IPCCommandResult ExportContentBegin(Context& context, const IOCtlVRequest& request);
+  IPCCommandResult ExportContentData(Context& context, const IOCtlVRequest& request);
+  IPCCommandResult ExportContentEnd(Context& context, const IOCtlVRequest& request);
+  IPCCommandResult ExportTitleDone(Context& context, const IOCtlVRequest& request);
   IPCCommandResult DeleteTitle(const IOCtlVRequest& request);
   IPCCommandResult DeleteTicket(const IOCtlVRequest& request);
   IPCCommandResult DeleteTitleContent(const IOCtlVRequest& request);
@@ -167,23 +212,24 @@ private:
   IPCCommandResult GetDeviceCertificate(const IOCtlVRequest& request);
   IPCCommandResult CheckKoreaRegion(const IOCtlVRequest& request);
   IPCCommandResult Sign(const IOCtlVRequest& request);
-  IPCCommandResult Encrypt(const IOCtlVRequest& request);
-  IPCCommandResult Decrypt(const IOCtlVRequest& request);
+  IPCCommandResult Encrypt(u32 uid, const IOCtlVRequest& request);
+  IPCCommandResult Decrypt(u32 uid, const IOCtlVRequest& request);
 
   // Misc
-  IPCCommandResult SetUID(const IOCtlVRequest& request);
+  IPCCommandResult SetUID(u32 uid, const IOCtlVRequest& request);
   IPCCommandResult GetTitleDirectory(const IOCtlVRequest& request);
   IPCCommandResult GetTitleID(const IOCtlVRequest& request);
   IPCCommandResult GetConsumption(const IOCtlVRequest& request);
   IPCCommandResult Launch(const IOCtlVRequest& request);
   IPCCommandResult LaunchBC(const IOCtlVRequest& request);
+  IPCCommandResult DIVerify(const IOCtlVRequest& request);
 
   // Title contents
-  IPCCommandResult OpenTitleContent(const IOCtlVRequest& request);
-  IPCCommandResult OpenContent(const IOCtlVRequest& request);
-  IPCCommandResult ReadContent(const IOCtlVRequest& request);
-  IPCCommandResult CloseContent(const IOCtlVRequest& request);
-  IPCCommandResult SeekContent(const IOCtlVRequest& request);
+  IPCCommandResult OpenTitleContent(u32 uid, const IOCtlVRequest& request);
+  IPCCommandResult OpenContent(u32 uid, const IOCtlVRequest& request);
+  IPCCommandResult ReadContent(u32 uid, const IOCtlVRequest& request);
+  IPCCommandResult CloseContent(u32 uid, const IOCtlVRequest& request);
+  IPCCommandResult SeekContent(u32 uid, const IOCtlVRequest& request);
 
   // Title information
   IPCCommandResult GetTitleCount(const std::vector<u64>& titles, const IOCtlVRequest& request);
@@ -202,6 +248,8 @@ private:
   IPCCommandResult GetTMDStoredContents(const IOCtlVRequest& request);
   IPCCommandResult GetStoredTMDSize(const IOCtlVRequest& request);
   IPCCommandResult GetStoredTMD(const IOCtlVRequest& request);
+  IPCCommandResult GetSharedContentsCount(const IOCtlVRequest& request) const;
+  IPCCommandResult GetSharedContents(const IOCtlVRequest& request) const;
 
   // Views for tickets and TMDs
   IPCCommandResult GetTicketViewCount(const IOCtlVRequest& request);
@@ -211,9 +259,14 @@ private:
   IPCCommandResult DIGetTicketView(const IOCtlVRequest& request);
   IPCCommandResult DIGetTMDViewSize(const IOCtlVRequest& request);
   IPCCommandResult DIGetTMDView(const IOCtlVRequest& request);
+  IPCCommandResult DIGetTMDSize(const IOCtlVRequest& request);
+  IPCCommandResult DIGetTMD(const IOCtlVRequest& request);
 
-  static bool LaunchIOS(u64 ios_title_id);
-  static bool LaunchPPCTitle(u64 title_id, bool skip_reload);
+  ContextArray::iterator FindActiveContext(u32 fd);
+  ContextArray::iterator FindInactiveContext();
+
+  bool LaunchIOS(u64 ios_title_id);
+  bool LaunchPPCTitle(u64 title_id, bool skip_reload);
   static TitleContext& GetTitleContext();
 
   static const DiscIO::CNANDContentLoader& AccessContentDevice(u64 title_id);
@@ -225,24 +278,7 @@ private:
 
   u32 m_AccessIdentID = 0;
 
-  // For title installation (ioctls IOCTL_ES_ADDTITLE*).
-  IOS::ES::TMDReader m_addtitle_tmd;
-  u32 m_addtitle_content_id = 0xFFFFFFFF;
-  std::vector<u8> m_addtitle_content_buffer;
-
-  struct TitleExportContext
-  {
-    struct ExportContent
-    {
-      OpenedContent content;
-      std::array<u8, 16> iv{};
-    };
-
-    bool valid = false;
-    IOS::ES::TMDReader tmd;
-    std::vector<u8> title_key;
-    std::map<u32, ExportContent> contents;
-  } m_export_title_context;
+  ContextArray m_contexts;
 };
 }  // namespace Device
 }  // namespace HLE

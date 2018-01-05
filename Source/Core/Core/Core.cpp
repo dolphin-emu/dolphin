@@ -52,7 +52,7 @@
 #include "Core/HW/SystemTimers.h"
 #include "Core/HW/VideoInterface.h"
 #include "Core/HW/Wiimote.h"
-#include "Core/IOS/IPC.h"
+#include "Core/IOS/IOS.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayClient.h"
 #include "Core/NetPlayProto.h"
@@ -89,12 +89,9 @@
 
 namespace Core
 {
-// TODO: ugly, remove
-bool g_aspect_wide;
+static bool s_wants_determinism;
 
 std::atomic<u32> g_drawn_vr = 0;
-
-bool g_want_determinism;
 
 // Declarations and definitions
 static Common::Timer s_timer;
@@ -102,12 +99,6 @@ static Common::Timer s_vr_timer;
 static std::atomic<u32> s_drawn_frame;
 static std::atomic<u32> s_drawn_video;
 static float s_vr_fps = 0;
-
-// Function forwarding
-void Callback_WiimoteInterruptChannel(int _number, u16 _channelID, const void* _pData, u32 _Size);
-
-// Function declarations
-void EmuThread();
 
 static bool s_is_stopping = false;
 static bool s_hardware_initialized = false;
@@ -117,7 +108,7 @@ static void* s_window_handle = nullptr;
 static std::string s_state_filename;
 static std::thread s_emu_thread;
 static std::thread s_vr_thread;
-static StoppedCallbackFunc s_on_stopped_callback = nullptr;
+static StoppedCallbackFunc s_on_stopped_callback;
 
 static Common::Event s_vr_thread_ready;
 static Common::Event s_nonvr_thread_ready;
@@ -147,6 +138,8 @@ static void InitIsCPUKey()
   pthread_key_create(&s_tls_is_cpu_key, nullptr);
 }
 #endif
+
+static void EmuThread();
 
 bool GetIsThrottlerTempDisabled()
 {
@@ -236,6 +229,11 @@ bool IsGPUThread()
   {
     return IsCPUThread();
   }
+}
+
+bool WantsDeterminism()
+{
+  return s_wants_determinism;
 }
 
 // This is called from the GUI thread. See the booting call schedule in
@@ -385,7 +383,7 @@ static void CpuThread()
   if (!s_state_filename.empty())
   {
     // Needs to PauseAndLock the Core
-    // NOTE: EmuThread should have left us in CPU_STEPPING so nothing will happen
+    // NOTE: EmuThread should have left us in State::Stepping so nothing will happen
     //   until after the job is serviced.
     QueueHostJob([] {
       // Recheck in case Movie cleared it since.
@@ -467,11 +465,11 @@ static void FifoPlayerThread()
 
   // If we did not enter the CPU Run Loop above then run a fake one instead.
   // We need to be IsRunningAndStarted() for DolphinWX to stop us.
-  if (CPU::GetState() != CPU::CPU_POWERDOWN)
+  if (CPU::GetState() != CPU::State::PowerDown)
   {
     s_is_started = true;
     Host_Message(WM_USER_STOP);
-    while (CPU::GetState() != CPU::CPU_POWERDOWN)
+    while (CPU::GetState() != CPU::State::PowerDown)
     {
       if (!_CoreParameter.bCPUThread)
         g_video_backend->PeekMessages();
@@ -533,7 +531,7 @@ void VRThread()
 // Initialize and create emulation thread
 // Call browser: Init():s_emu_thread().
 // See the BootManager.cpp file description for a complete call schedule.
-void EmuThread()
+static void EmuThread()
 {
   const SConfig& core_parameter = SConfig::GetInstance();
   s_is_booting.Set();
@@ -724,7 +722,7 @@ void EmuThread()
     // Spawn the CPU+GPU thread
     s_cpu_thread = std::thread(cpuThreadFunc);
 
-    while (CPU::GetState() != CPU::CPU_POWERDOWN)
+    while (CPU::GetState() != CPU::State::PowerDown)
     {
       g_video_backend->PeekMessages();
       Common::SleepCurrentThread(20);
@@ -1199,7 +1197,7 @@ void KillDolphinAndRestart()
 
 void SetOnStoppedCallback(StoppedCallbackFunc callback)
 {
-  s_on_stopped_callback = callback;
+  s_on_stopped_callback = std::move(callback);
 }
 
 void UpdateWantDeterminism(bool initial)
@@ -1208,19 +1206,21 @@ void UpdateWantDeterminism(bool initial)
   // settings that depend on it, such as GPU determinism mode. should have
   // override options for testing,
   bool new_want_determinism = Movie::IsMovieActive() || NetPlay::IsNetPlayRunning();
-  if (new_want_determinism != g_want_determinism || initial)
+  if (new_want_determinism != s_wants_determinism || initial)
   {
     NOTICE_LOG(COMMON, "Want determinism <- %s", new_want_determinism ? "true" : "false");
 
     bool was_unpaused = Core::PauseAndLock(true);
 
-    g_want_determinism = new_want_determinism;
-    IOS::HLE::UpdateWantDeterminism(new_want_determinism);
+    s_wants_determinism = new_want_determinism;
+    const auto ios = IOS::HLE::GetIOS();
+    if (ios)
+      ios->UpdateWantDeterminism(new_want_determinism);
     Fifo::UpdateWantDeterminism(new_want_determinism);
     // We need to clear the cache because some parts of the JIT depend on want_determinism, e.g. use
     // of FMA.
     JitInterface::ClearCache();
-    Core::InitializeWiiRoot(g_want_determinism);
+    Core::InitializeWiiRoot(s_wants_determinism);
 
     Core::PauseAndLock(false, was_unpaused);
   }

@@ -470,6 +470,12 @@ Texture2D* FramebufferManager::ResolveEFBColorTexture(const VkRect2D& region)
   // Can't resolve within a render pass.
   StateTracker::GetInstance()->EndRenderPass();
 
+  // It's not valid to resolve out-of-bounds coordinates.
+  // Ensuring the region is within the image is the caller's responsibility.
+  _assert_(region.offset.x >= 0 && region.offset.y >= 0 &&
+           (static_cast<u32>(region.offset.x) + region.extent.width) <= m_efb_width &&
+           (static_cast<u32>(region.offset.y) + region.extent.height) <= m_efb_height);
+
   // Resolving is considered to be a transfer operation.
   m_efb_color_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                                           VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
@@ -1165,14 +1171,10 @@ void FramebufferManager::DrawPokeVertices(const EFBPokeVertex* vertices, size_t 
   pipeline_info.rasterization_state.bits = Util::GetNoCullRasterizationState().bits;
   pipeline_info.rasterization_state.samples = m_efb_samples;
   pipeline_info.depth_stencil_state.bits = Util::GetNoDepthTestingDepthStencilState().bits;
-  pipeline_info.blend_state.bits = Util::GetNoBlendingBlendState().bits;
-  pipeline_info.blend_state.write_mask = 0;
+  pipeline_info.blend_state.hex = Util::GetNoBlendingBlendState().hex;
+  pipeline_info.blend_state.colorupdate = write_color;
+  pipeline_info.blend_state.alphaupdate = write_color;
   pipeline_info.primitive_topology = m_poke_primitive_topology;
-  if (write_color)
-  {
-    pipeline_info.blend_state.write_mask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
-                                           VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-  }
   if (write_depth)
   {
     pipeline_info.depth_stencil_state.test_enable = VK_TRUE;

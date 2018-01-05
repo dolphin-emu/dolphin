@@ -7,6 +7,7 @@
 #include <array>
 #include <cstddef>
 #include <tuple>
+#include <vector>
 
 #include "Common/CommonTypes.h"
 
@@ -20,7 +21,7 @@ class PointerWrap;
 
 namespace PowerPC
 {
-enum
+enum CPUCore
 {
   CORE_INTERPRETER,
   CORE_JIT64,
@@ -135,6 +136,9 @@ extern BreakPoints breakpoints;
 extern MemChecks memchecks;
 extern PPCDebugInterface debug_interface;
 
+const std::vector<CPUCore>& AvailableCPUCores();
+CPUCore DefaultCPUCore();
+
 void Init(int cpu_core);
 void Reset();
 void Shutdown();
@@ -152,7 +156,7 @@ const char* GetCPUName();
 // Init() will be called when added and Shutdown() when removed.
 // [Threadsafety: Same as SetMode(), except it cannot be called from inside the CPU
 //  run loop on the CPU Thread - it doesn't make sense for a CPU to remove itself
-//  while it is CPU_RUNNING]
+//  while it is in State::Running]
 void InjectExternalCPUCore(CPUCoreBase* core);
 
 // Stepping requires the CPU Execution lock (CPU::PauseAndLock or CPU Thread)

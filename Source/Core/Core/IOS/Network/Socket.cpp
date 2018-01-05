@@ -16,7 +16,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/IOS/Device.h"
-#include "Core/IOS/IPC.h"
+#include "Core/IOS/IOS.h"
 #include "Core/IOS/Network/Socket.h"  // No Wii socket support while using NetPlay or TAS
 
 #ifdef _WIN32
@@ -579,7 +579,8 @@ void WiiSocket::Update(bool read, bool write, bool except)
                 it->is_ssl ? (int)it->ssl_type : (int)it->net_type, ReturnValue, nonBlock,
                 forceNonBlock);
 
-      EnqueueReply(it->request, ReturnValue);
+      // TODO: remove the dependency on a running IOS instance.
+      GetIOS()->EnqueueIPCReply(it->request, ReturnValue);
       it = pending_sockops.erase(it);
     }
     else

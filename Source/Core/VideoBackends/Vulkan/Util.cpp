@@ -53,6 +53,20 @@ bool IsDepthFormat(VkFormat format)
   }
 }
 
+bool IsCompressedFormat(VkFormat format)
+{
+  switch (format)
+  {
+  case VK_FORMAT_BC1_RGBA_UNORM_BLOCK:
+  case VK_FORMAT_BC2_UNORM_BLOCK:
+  case VK_FORMAT_BC3_UNORM_BLOCK:
+    return true;
+
+  default:
+    return false;
+  }
+}
+
 VkFormat GetLinearFormat(VkFormat format)
 {
   switch (format)
@@ -74,6 +88,25 @@ VkFormat GetLinearFormat(VkFormat format)
   }
 }
 
+VkFormat GetVkFormatForHostTextureFormat(HostTextureFormat format)
+{
+  switch (format)
+  {
+  case HostTextureFormat::DXT1:
+    return VK_FORMAT_BC1_RGBA_UNORM_BLOCK;
+
+  case HostTextureFormat::DXT3:
+    return VK_FORMAT_BC2_UNORM_BLOCK;
+
+  case HostTextureFormat::DXT5:
+    return VK_FORMAT_BC3_UNORM_BLOCK;
+
+  case HostTextureFormat::RGBA8:
+  default:
+    return VK_FORMAT_R8G8B8A8_UNORM;
+  }
+}
+
 u32 GetTexelSize(VkFormat format)
 {
   // Only contains pixel formats we use.
@@ -91,10 +124,41 @@ u32 GetTexelSize(VkFormat format)
   case VK_FORMAT_B8G8R8A8_UNORM:
     return 4;
 
+  case VK_FORMAT_BC1_RGBA_UNORM_BLOCK:
+    return 8;
+
+  case VK_FORMAT_BC2_UNORM_BLOCK:
+  case VK_FORMAT_BC3_UNORM_BLOCK:
+    return 16;
+
   default:
     PanicAlert("Unhandled pixel format");
     return 1;
   }
+}
+
+u32 GetBlockSize(VkFormat format)
+{
+  switch (format)
+  {
+  case VK_FORMAT_BC1_RGBA_UNORM_BLOCK:
+  case VK_FORMAT_BC2_UNORM_BLOCK:
+  case VK_FORMAT_BC3_UNORM_BLOCK:
+    return 4;
+
+  default:
+    return 1;
+  }
+}
+
+VkRect2D ClampRect2D(const VkRect2D& rect, u32 width, u32 height)
+{
+  VkRect2D out;
+  out.offset.x = MathUtil::Clamp(rect.offset.x, 0, static_cast<int32_t>(width - 1));
+  out.offset.y = MathUtil::Clamp(rect.offset.y, 0, static_cast<int32_t>(height - 1));
+  out.extent.width = std::min(rect.extent.width, width - static_cast<uint32_t>(rect.offset.x));
+  out.extent.height = std::min(rect.extent.height, height - static_cast<uint32_t>(rect.offset.y));
+  return out;
 }
 
 VkBlendFactor GetAlphaBlendFactor(VkBlendFactor factor)
@@ -133,20 +197,17 @@ DepthStencilState GetNoDepthTestingDepthStencilState()
   return state;
 }
 
-BlendState GetNoBlendingBlendState()
+BlendingState GetNoBlendingBlendState()
 {
-  BlendState state = {};
-  state.blend_enable = VK_FALSE;
-  state.blend_op = VK_BLEND_OP_ADD;
-  state.src_blend = VK_BLEND_FACTOR_ONE;
-  state.dst_blend = VK_BLEND_FACTOR_ZERO;
-  state.alpha_blend_op = VK_BLEND_OP_ADD;
-  state.src_alpha_blend = VK_BLEND_FACTOR_ONE;
-  state.dst_alpha_blend = VK_BLEND_FACTOR_ZERO;
-  state.logic_op_enable = VK_FALSE;
-  state.logic_op = VK_LOGIC_OP_CLEAR;
-  state.write_mask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
-                     VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+  BlendingState state = {};
+  state.blendenable = false;
+  state.srcfactor = BlendMode::ONE;
+  state.srcfactoralpha = BlendMode::ZERO;
+  state.dstfactor = BlendMode::ONE;
+  state.dstfactoralpha = BlendMode::ZERO;
+  state.logicopenable = false;
+  state.colorupdate = true;
+  state.alphaupdate = true;
   return state;
 }
 
@@ -250,6 +311,18 @@ VkShaderModule CompileAndCreateFragmentShader(const std::string& source_code, bo
   return CreateShaderModule(code.data(), code.size());
 }
 
+VkShaderModule CompileAndCreateComputeShader(const std::string& source_code, bool prepend_header)
+{
+  ShaderCompiler::SPIRVCodeVector code;
+  if (!ShaderCompiler::CompileComputeShader(&code, source_code.c_str(), source_code.length(),
+                                            prepend_header))
+  {
+    return VK_NULL_HANDLE;
+  }
+
+  return CreateShaderModule(code.data(), code.size());
+}
+
 }  // namespace Util
 
 UtilityShaderDraw::UtilityShaderDraw(VkCommandBuffer command_buffer,
@@ -267,7 +340,7 @@ UtilityShaderDraw::UtilityShaderDraw(VkCommandBuffer command_buffer,
   m_pipeline_info.ps = pixel_shader;
   m_pipeline_info.rasterization_state.bits = Util::GetNoCullRasterizationState().bits;
   m_pipeline_info.depth_stencil_state.bits = Util::GetNoDepthTestingDepthStencilState().bits;
-  m_pipeline_info.blend_state.bits = Util::GetNoBlendingBlendState().bits;
+  m_pipeline_info.blend_state.hex = Util::GetNoBlendingBlendState().hex;
   m_pipeline_info.primitive_topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 }
 
@@ -375,9 +448,9 @@ void UtilityShaderDraw::SetDepthStencilState(const DepthStencilState& state)
   m_pipeline_info.depth_stencil_state.bits = state.bits;
 }
 
-void UtilityShaderDraw::SetBlendState(const BlendState& state)
+void UtilityShaderDraw::SetBlendState(const BlendingState& state)
 {
-  m_pipeline_info.blend_state.bits = state.bits;
+  m_pipeline_info.blend_state.hex = state.hex;
 }
 
 void UtilityShaderDraw::BeginRenderPass(VkFramebuffer framebuffer, const VkRect2D& region,
@@ -667,6 +740,159 @@ bool UtilityShaderDraw::BindPipeline()
   }
 
   vkCmdBindPipeline(m_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+  return true;
+}
+
+ComputeShaderDispatcher::ComputeShaderDispatcher(VkCommandBuffer command_buffer,
+                                                 VkPipelineLayout pipeline_layout,
+                                                 VkShaderModule compute_shader)
+    : m_command_buffer(command_buffer)
+{
+  // Populate minimal pipeline state
+  m_pipeline_info.pipeline_layout = pipeline_layout;
+  m_pipeline_info.cs = compute_shader;
+}
+
+u8* ComputeShaderDispatcher::AllocateUniformBuffer(size_t size)
+{
+  if (!g_object_cache->GetUtilityShaderUniformBuffer()->ReserveMemory(
+          size, g_vulkan_context->GetUniformBufferAlignment(), true, true, true))
+    PanicAlert("Failed to allocate util uniforms");
+
+  return g_object_cache->GetUtilityShaderUniformBuffer()->GetCurrentHostPointer();
+}
+
+void ComputeShaderDispatcher::CommitUniformBuffer(size_t size)
+{
+  m_uniform_buffer.buffer = g_object_cache->GetUtilityShaderUniformBuffer()->GetBuffer();
+  m_uniform_buffer.offset = 0;
+  m_uniform_buffer.range = size;
+  m_uniform_buffer_offset =
+      static_cast<u32>(g_object_cache->GetUtilityShaderUniformBuffer()->GetCurrentOffset());
+
+  g_object_cache->GetUtilityShaderUniformBuffer()->CommitMemory(size);
+}
+
+void ComputeShaderDispatcher::SetPushConstants(const void* data, size_t data_size)
+{
+  _assert_(static_cast<u32>(data_size) < PUSH_CONSTANT_BUFFER_SIZE);
+
+  vkCmdPushConstants(m_command_buffer, m_pipeline_info.pipeline_layout, VK_SHADER_STAGE_COMPUTE_BIT,
+                     0, static_cast<u32>(data_size), data);
+}
+
+void ComputeShaderDispatcher::SetSampler(size_t index, VkImageView view, VkSampler sampler)
+{
+  m_samplers[index].sampler = sampler;
+  m_samplers[index].imageView = view;
+  m_samplers[index].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+}
+
+void ComputeShaderDispatcher::SetStorageImage(VkImageView view, VkImageLayout image_layout)
+{
+  m_storage_image.sampler = VK_NULL_HANDLE;
+  m_storage_image.imageView = view;
+  m_storage_image.imageLayout = image_layout;
+}
+
+void ComputeShaderDispatcher::SetTexelBuffer(size_t index, VkBufferView view)
+{
+  m_texel_buffers[index] = view;
+}
+
+void ComputeShaderDispatcher::Dispatch(u32 groups_x, u32 groups_y, u32 groups_z)
+{
+  BindDescriptors();
+  if (!BindPipeline())
+    return;
+
+  vkCmdDispatch(m_command_buffer, groups_x, groups_y, groups_z);
+}
+
+void ComputeShaderDispatcher::BindDescriptors()
+{
+  VkDescriptorSet set = g_command_buffer_mgr->AllocateDescriptorSet(
+      g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_LAYOUT_COMPUTE));
+  if (set == VK_NULL_HANDLE)
+  {
+    PanicAlert("Failed to allocate descriptor set for compute dispatch");
+    return;
+  }
+
+  // Reserve enough descriptors to write every binding.
+  std::array<VkWriteDescriptorSet, 7> set_writes = {};
+  u32 num_set_writes = 0;
+
+  if (m_uniform_buffer.buffer != VK_NULL_HANDLE)
+  {
+    set_writes[num_set_writes++] = {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                                    nullptr,
+                                    set,
+                                    0,
+                                    0,
+                                    1,
+                                    VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,
+                                    nullptr,
+                                    &m_uniform_buffer,
+                                    nullptr};
+  }
+
+  // Samplers
+  for (size_t i = 0; i < m_samplers.size(); i++)
+  {
+    const VkDescriptorImageInfo& info = m_samplers[i];
+    if (info.imageView != VK_NULL_HANDLE && info.sampler != VK_NULL_HANDLE)
+    {
+      set_writes[num_set_writes++] = {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                                      nullptr,
+                                      set,
+                                      static_cast<u32>(1 + i),
+                                      0,
+                                      1,
+                                      VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+                                      &info,
+                                      nullptr,
+                                      nullptr};
+    }
+  }
+
+  for (size_t i = 0; i < m_texel_buffers.size(); i++)
+  {
+    if (m_texel_buffers[i] != VK_NULL_HANDLE)
+    {
+      set_writes[num_set_writes++] = {
+          VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,  nullptr, set,     5 + static_cast<u32>(i), 0, 1,
+          VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, nullptr, nullptr, &m_texel_buffers[i]};
+    }
+  }
+
+  if (m_storage_image.imageView != VK_NULL_HANDLE)
+  {
+    set_writes[num_set_writes++] = {
+        VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET, nullptr,          set,     7,      0, 1,
+        VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,       &m_storage_image, nullptr, nullptr};
+  }
+
+  if (num_set_writes > 0)
+  {
+    vkUpdateDescriptorSets(g_vulkan_context->GetDevice(), num_set_writes, set_writes.data(), 0,
+                           nullptr);
+  }
+
+  vkCmdBindDescriptorSets(m_command_buffer, VK_PIPELINE_BIND_POINT_COMPUTE,
+                          m_pipeline_info.pipeline_layout, 0, 1, &set, 1, &m_uniform_buffer_offset);
+}
+
+bool ComputeShaderDispatcher::BindPipeline()
+{
+  VkPipeline pipeline = g_object_cache->GetComputePipeline(m_pipeline_info);
+  if (pipeline == VK_NULL_HANDLE)
+  {
+    PanicAlert("Failed to get pipeline for backend compute dispatch");
+    return false;
+  }
+
+  vkCmdBindPipeline(m_command_buffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipeline);
   return true;
 }
 

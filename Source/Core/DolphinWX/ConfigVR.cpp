@@ -9,10 +9,9 @@
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 
-#include "DolphinWX/WXInputBase.h"
-
 #include "Common/FileUtil.h"
 
+#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 
 #include "DolphinWX/ConfigVR.h"
@@ -21,6 +20,7 @@
 #include "DolphinWX/WxUtils.h"
 
 #include "InputCommon/HotkeysXInput.h"
+#include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VR.h"
 
 #include <wx/msgdlg.h>

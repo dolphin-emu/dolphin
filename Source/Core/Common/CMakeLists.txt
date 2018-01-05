@@ -2,6 +2,7 @@ set(SRCS
   Analytics.cpp
   CDUtils.cpp
   ColorUtil.cpp
+  CommonFuncs.cpp
   Config/Config.cpp
   Config/Layer.cpp
   Config/Section.cpp
@@ -15,7 +16,6 @@ set(SRCS
   MathUtil.cpp
   MemArena.cpp
   MemoryUtil.cpp
-  Misc.cpp
   MsgHandler.cpp
   NandPaths.cpp
   Network.cpp
@@ -39,6 +39,8 @@ set(SRCS
   Crypto/ec.cpp
   Logging/LogManager.cpp
 )
+
+set(LIBS ${LIBS} ${MBEDTLS_LIBRARIES})
 
 if(ANDROID)
   set(SRCS ${SRCS}

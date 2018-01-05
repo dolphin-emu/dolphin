@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 
+#include "Common/Align.h"
 #include "Common/Assert.h"
 #include "Common/CommonFuncs.h"
 #include "Common/Logging/Log.h"
@@ -88,19 +89,22 @@ void TextureCache::ConvertTexture(TCacheEntryBase* base_entry, TCacheEntryBase* 
   m_texture_converter->ConvertTexture(entry, unconverted, m_render_pass, palette, format);
 }
 
-void TextureCache::CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_row,
-                           u32 num_blocks_y, u32 memory_stride, bool is_depth_copy,
-                           const EFBRectangle& src_rect, bool is_intensity, bool scale_by_half)
+void TextureCache::CopyEFB(u8* dst, const EFBCopyFormat& format, u32 native_width,
+                           u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
+                           bool is_depth_copy, const EFBRectangle& src_rect, bool scale_by_half)
 {
   // Flush EFB pokes first, as they're expected to be included.
   FramebufferManager::GetInstance()->FlushEFBPokes();
 
   // MSAA case where we need to resolve first.
-  // TODO: Do in one pass.
+  // An out-of-bounds source region is valid here, and fine for the draw (since it is converted
+  // to texture coordinates), but it's not valid to resolve an out-of-range rectangle.
   TargetRectangle scaled_src_rect = g_renderer->ConvertEFBRectangle(src_rect);
   VkRect2D region = {{scaled_src_rect.left, scaled_src_rect.top},
                      {static_cast<u32>(scaled_src_rect.GetWidth()),
                       static_cast<u32>(scaled_src_rect.GetHeight())}};
+  region = Util::ClampRect2D(region, FramebufferManager::GetInstance()->GetEFBWidth(),
+                             FramebufferManager::GetInstance()->GetEFBHeight());
   Texture2D* src_texture;
   if (is_depth_copy)
     src_texture = FramebufferManager::GetInstance()->ResolveEFBDepthTexture(region);
@@ -120,7 +124,7 @@ void TextureCache::CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_
 
   m_texture_converter->EncodeTextureToMemory(src_texture->GetView(), dst, format, native_width,
                                              bytes_per_row, num_blocks_y, memory_stride,
-                                             is_depth_copy, is_intensity, scale_by_half, src_rect);
+                                             is_depth_copy, src_rect, scale_by_half);
 
   // Transition back to original state
   src_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(), original_layout);
@@ -136,6 +140,21 @@ void TextureCache::CopyRectangleFromTexture(TCacheEntry* dst_texture,
     CopyTextureRectangle(dst_texture, dst_rect, src_texture, src_rect);
   else
     ScaleTextureRectangle(dst_texture, dst_rect, src_texture, src_rect);
+}
+
+bool TextureCache::SupportsGPUTextureDecode(TextureFormat format, TlutFormat palette_format)
+{
+  return m_texture_converter->SupportsTextureDecoding(format, palette_format);
+}
+
+void TextureCache::DecodeTextureOnGPU(TCacheEntryBase* entry, u32 dst_level, const u8* data,
+                                      size_t data_size, TextureFormat format, u32 width, u32 height,
+                                      u32 aligned_width, u32 aligned_height, u32 row_stride,
+                                      const u8* palette, TlutFormat palette_format)
+{
+  m_texture_converter->DecodeTexture(static_cast<TCacheEntry*>(entry), dst_level, data, data_size,
+                                     format, width, height, aligned_width, aligned_height,
+                                     row_stride, palette, palette_format);
 }
 
 void TextureCache::CopyTextureRectangle(TCacheEntry* dst_texture,
@@ -220,9 +239,10 @@ TextureCacheBase::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntry
     usage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
   // Allocate texture object
+  VkFormat vk_format = Util::GetVkFormatForHostTextureFormat(config.format);
   std::unique_ptr<Texture2D> texture = Texture2D::Create(
-      config.width, config.height, config.levels, config.layers, TEXTURECACHE_TEXTURE_FORMAT,
-      VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_VIEW_TYPE_2D_ARRAY, VK_IMAGE_TILING_OPTIMAL, usage);
+      config.width, config.height, config.levels, config.layers, vk_format, VK_SAMPLE_COUNT_1_BIT,
+      VK_IMAGE_VIEW_TYPE_2D_ARRAY, VK_IMAGE_TILING_OPTIMAL, usage);
 
   if (!texture)
     return nullptr;
@@ -326,8 +346,8 @@ TextureCache::TCacheEntry::~TCacheEntry()
     g_command_buffer_mgr->DeferFramebufferDestruction(m_framebuffer);
 }
 
-void TextureCache::TCacheEntry::Load(const u8* buffer, unsigned int width, unsigned int height,
-                                     unsigned int expanded_width, unsigned int level)
+void TextureCache::TCacheEntry::Load(u32 level, u32 width, u32 height, u32 row_length,
+                                     const u8* buffer, size_t buffer_size)
 {
   // Can't copy data larger than the texture extents.
   width = std::max(1u, std::min(width, m_texture->GetWidth() >> level));
@@ -351,87 +371,68 @@ void TextureCache::TCacheEntry::Load(const u8* buffer, unsigned int width, unsig
   m_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
                                 VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
-  // Does this texture data fit within the streaming buffer?
-  u32 upload_width = width;
-  u32 upload_pitch = upload_width * sizeof(u32);
-  u32 upload_size = upload_pitch * height;
+  // For unaligned textures, we can save some memory in the transfer buffer by skipping the rows
+  // that lie outside of the texture's dimensions.
   u32 upload_alignment = static_cast<u32>(g_vulkan_context->GetBufferImageGranularity());
-  u32 source_pitch = expanded_width * 4;
-  if ((upload_size + upload_alignment) <= STAGING_TEXTURE_UPLOAD_THRESHOLD &&
-      (upload_size + upload_alignment) <= MAXIMUM_TEXTURE_UPLOAD_BUFFER_SIZE)
-  {
-    // Assume tightly packed rows, with no padding as the buffer source.
-    StreamBuffer* upload_buffer = TextureCache::GetInstance()->m_texture_upload_buffer.get();
+  u32 block_size = Util::GetBlockSize(m_texture->GetFormat());
+  u32 num_rows = Common::AlignUp(height, block_size) / block_size;
+  size_t source_pitch = CalculateHostTextureLevelPitch(config.format, row_length);
+  size_t upload_size = source_pitch * num_rows;
+  std::unique_ptr<StagingBuffer> temp_buffer;
+  VkBuffer upload_buffer;
+  VkDeviceSize upload_buffer_offset;
 
-    // Allocate memory from the streaming buffer for the texture data.
-    if (!upload_buffer->ReserveMemory(upload_size, g_vulkan_context->GetBufferImageGranularity()))
+  // Does this texture data fit within the streaming buffer?
+  if (upload_size <= STAGING_TEXTURE_UPLOAD_THRESHOLD &&
+      upload_size <= MAXIMUM_TEXTURE_UPLOAD_BUFFER_SIZE)
+  {
+    StreamBuffer* stream_buffer = TextureCache::GetInstance()->m_texture_upload_buffer.get();
+    if (!stream_buffer->ReserveMemory(upload_size, upload_alignment))
     {
       // Execute the command buffer first.
       WARN_LOG(VIDEO, "Executing command list while waiting for space in texture upload buffer");
       Util::ExecuteCurrentCommandsAndRestoreState(false);
 
       // Try allocating again. This may cause a fence wait.
-      if (!upload_buffer->ReserveMemory(upload_size, g_vulkan_context->GetBufferImageGranularity()))
+      if (!stream_buffer->ReserveMemory(upload_size, upload_alignment))
         PanicAlert("Failed to allocate space in texture upload buffer");
     }
 
-    // Grab buffer pointers
-    VkBuffer image_upload_buffer = upload_buffer->GetBuffer();
-    VkDeviceSize image_upload_buffer_offset = upload_buffer->GetCurrentOffset();
-    u8* image_upload_buffer_pointer = upload_buffer->GetCurrentHostPointer();
-
-    // Copy to the buffer using the stride from the subresource layout
-    const u8* source_ptr = buffer;
-    if (upload_pitch != source_pitch)
-    {
-      VkDeviceSize copy_pitch = std::min(source_pitch, upload_pitch);
-      for (unsigned int row = 0; row < height; row++)
-      {
-        memcpy(image_upload_buffer_pointer + row * upload_pitch, source_ptr + row * source_pitch,
-               copy_pitch);
-      }
-    }
-    else
-    {
-      // Can copy the whole thing in one block, the pitch matches
-      memcpy(image_upload_buffer_pointer, source_ptr, upload_size);
-    }
-
-    // Flush buffer memory if necessary
-    upload_buffer->CommitMemory(upload_size);
-
-    // Copy from the streaming buffer to the actual image.
-    VkBufferImageCopy image_copy = {
-        image_upload_buffer_offset,                // VkDeviceSize                bufferOffset
-        0,                                         // uint32_t                    bufferRowLength
-        0,                                         // uint32_t                    bufferImageHeight
-        {VK_IMAGE_ASPECT_COLOR_BIT, level, 0, 1},  // VkImageSubresourceLayers    imageSubresource
-        {0, 0, 0},                                 // VkOffset3D                  imageOffset
-        {width, height, 1}                         // VkExtent3D                  imageExtent
-    };
-    vkCmdCopyBufferToImage(g_command_buffer_mgr->GetCurrentInitCommandBuffer(), image_upload_buffer,
-                           m_texture->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1,
-                           &image_copy);
+    // Copy to the streaming buffer.
+    upload_buffer = stream_buffer->GetBuffer();
+    upload_buffer_offset = stream_buffer->GetCurrentOffset();
+    std::memcpy(stream_buffer->GetCurrentHostPointer(), buffer, upload_size);
+    stream_buffer->CommitMemory(upload_size);
   }
   else
   {
-    // Slow path. The data for the image is too large to fit in the streaming buffer, so we need
-    // to allocate a temporary texture to store the data in, then copy to the real texture.
-    std::unique_ptr<StagingTexture2D> staging_texture = StagingTexture2D::Create(
-        STAGING_BUFFER_TYPE_UPLOAD, width, height, TEXTURECACHE_TEXTURE_FORMAT);
-
-    if (!staging_texture || !staging_texture->Map())
+    // Create a temporary staging buffer that is destroyed after the image is copied.
+    temp_buffer = StagingBuffer::Create(STAGING_BUFFER_TYPE_UPLOAD, upload_size,
+                                        VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
+    if (!temp_buffer || !temp_buffer->Map())
     {
       PanicAlert("Failed to allocate staging texture for large texture upload.");
       return;
     }
 
-    // Copy data to staging texture first, then to the "real" texture.
-    staging_texture->WriteTexels(0, 0, width, height, buffer, source_pitch);
-    staging_texture->CopyToImage(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
-                                 m_texture->GetImage(), VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, width,
-                                 height, level, 0);
+    upload_buffer = temp_buffer->GetBuffer();
+    upload_buffer_offset = 0;
+    temp_buffer->Write(0, buffer, upload_size, true);
+    temp_buffer->Unmap();
   }
+
+  // Copy from the streaming buffer to the actual image.
+  VkBufferImageCopy image_copy = {
+      upload_buffer_offset,                      // VkDeviceSize                bufferOffset
+      row_length,                                // uint32_t                    bufferRowLength
+      0,                                         // uint32_t                    bufferImageHeight
+      {VK_IMAGE_ASPECT_COLOR_BIT, level, 0, 1},  // VkImageSubresourceLayers    imageSubresource
+      {0, 0, 0},                                 // VkOffset3D                  imageOffset
+      {width, height, 1}                         // VkExtent3D                  imageExtent
+  };
+  vkCmdCopyBufferToImage(g_command_buffer_mgr->GetCurrentInitCommandBuffer(), upload_buffer,
+                         m_texture->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1,
+                         &image_copy);
 }
 
 void TextureCache::TCacheEntry::FromRenderTarget(bool is_depth_copy, const EFBRectangle& src_rect,
@@ -453,10 +454,14 @@ void TextureCache::TCacheEntry::FromRenderTarget(bool is_depth_copy, const EFBRe
   VkCommandBuffer command_buffer = g_command_buffer_mgr->GetCurrentCommandBuffer();
   StateTracker::GetInstance()->EndRenderPass();
 
-  // Transition EFB to shader resource before binding
+  // Transition EFB to shader resource before binding.
+  // An out-of-bounds source region is valid here, and fine for the draw (since it is converted
+  // to texture coordinates), but it's not valid to resolve an out-of-range rectangle.
   VkRect2D region = {{scaled_src_rect.left, scaled_src_rect.top},
                      {static_cast<u32>(scaled_src_rect.GetWidth()),
                       static_cast<u32>(scaled_src_rect.GetHeight())}};
+  region = Util::ClampRect2D(region, FramebufferManager::GetInstance()->GetEFBWidth(),
+                             FramebufferManager::GetInstance()->GetEFBHeight());
   Texture2D* src_texture;
   if (is_depth_copy)
     src_texture = FramebufferManager::GetInstance()->ResolveEFBDepthTexture(region);
@@ -525,6 +530,11 @@ bool TextureCache::TCacheEntry::Save(const std::string& filename, unsigned int l
 {
   _assert_(level < config.levels);
 
+  // We can't dump compressed textures currently (it would mean drawing them to a RGBA8
+  // framebuffer, and saving that). TextureCache does not call Save for custom textures
+  // anyway, so this is fine for now.
+  _assert_(config.format == HostTextureFormat::RGBA8);
+
   // Determine dimensions of image we want to save.
   u32 level_width = std::max(1u, config.width >> level);
   u32 level_height = std::max(1u, config.height >> level);
@@ -563,7 +573,8 @@ bool TextureCache::TCacheEntry::Save(const std::string& filename, unsigned int l
   // It's okay to throw this texture away immediately, since we're done with it, and
   // we blocked until the copy completed on the GPU anyway.
   bool result = TextureToPng(reinterpret_cast<u8*>(staging_texture->GetMapPointer()),
-                             staging_texture->GetRowStride(), filename, level_width, level_height);
+                             static_cast<u32>(staging_texture->GetRowStride()), filename,
+                             level_width, level_height);
 
   staging_texture->Unmap();
   return result;

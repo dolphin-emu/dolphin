@@ -53,6 +53,7 @@ public final class SettingsFile
 	public static final String KEY_OVERCLOCK_ENABLE = "OverclockEnable";
 	public static final String KEY_OVERCLOCK_PERCENT = "Overclock";
 	public static final String KEY_VIDEO_BACKEND = "GFXBackend";
+	public static final String KEY_AUDIO_STRETCH = "AudioStretch";
 
 	public static final String KEY_SHOW_FPS = "ShowFPS";
 	public static final String KEY_INTERNAL_RES = "EFBScale";
@@ -73,6 +74,7 @@ public final class SettingsFile
 	public static final String KEY_IGNORE_FORMAT = "EFBEmulateFormatChanges";
 	public static final String KEY_EFB_TEXTURE = "EFBToTextureEnable";
 	public static final String KEY_TEXCACHE_ACCURACY = "SafeTextureCacheColorSamples";
+	public static final String KEY_GPU_TEXTURE_DECODING = "EnableGPUTextureDecoding";
 	public static final String KEY_XFB = "UseXFB";
 	public static final String KEY_XFB_REAL = "UseRealXFB";
 	public static final String KEY_FAST_DEPTH = "FastDepthCalc";

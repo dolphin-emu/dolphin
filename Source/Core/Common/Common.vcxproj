@@ -73,6 +73,7 @@
     <ClInclude Include="GL\GLExtensions\ARB_blend_func_extended.h" />
     <ClInclude Include="GL\GLExtensions\ARB_buffer_storage.h" />
     <ClInclude Include="GL\GLExtensions\ARB_clip_control.h" />
+    <ClInclude Include="GL\GLExtensions\ARB_compute_shader.h" />
     <ClInclude Include="GL\GLExtensions\ARB_copy_image.h" />
     <ClInclude Include="GL\GLExtensions\ARB_debug_output.h" />
     <ClInclude Include="GL\GLExtensions\ARB_draw_elements_base_vertex.h" />
@@ -84,13 +85,16 @@
     <ClInclude Include="GL\GLExtensions\ARB_occlusion_query2.h" />
     <ClInclude Include="GL\GLExtensions\ARB_sampler_objects.h" />
     <ClInclude Include="GL\GLExtensions\ARB_sample_shading.h" />
+    <ClInclude Include="GL\GLExtensions\ARB_shader_image_load_store.h" />
     <ClInclude Include="GL\GLExtensions\ARB_shader_storage_buffer_object.h" />
     <ClInclude Include="GL\GLExtensions\ARB_sync.h" />
     <ClInclude Include="GL\GLExtensions\ARB_texture_multisample.h" />
+    <ClInclude Include="GL\GLExtensions\ARB_texture_storage.h" />
     <ClInclude Include="GL\GLExtensions\ARB_texture_storage_multisample.h" />
     <ClInclude Include="GL\GLExtensions\ARB_uniform_buffer_object.h" />
     <ClInclude Include="GL\GLExtensions\ARB_vertex_array_object.h" />
     <ClInclude Include="GL\GLExtensions\ARB_viewport_array.h" />
+    <ClInclude Include="GL\GLExtensions\EXT_texture_compression_s3tc.h" />
     <ClInclude Include="GL\GLExtensions\EXT_texture_filter_anisotropic.h" />
     <ClInclude Include="GL\GLExtensions\GLExtensions.h" />
     <ClInclude Include="GL\GLExtensions\gl_1_1.h" />
@@ -156,6 +160,7 @@
     <ClCompile Include="Analytics.cpp" />
     <ClCompile Include="CDUtils.cpp" />
     <ClCompile Include="ColorUtil.cpp" />
+    <ClCompile Include="CommonFuncs.cpp" />
     <ClCompile Include="Config\Config.cpp" />
     <ClCompile Include="Config\Layer.cpp" />
     <ClCompile Include="Config\Section.cpp" />
@@ -175,7 +180,6 @@
     <ClCompile Include="MD5.cpp" />
     <ClCompile Include="MemArena.cpp" />
     <ClCompile Include="MemoryUtil.cpp" />
-    <ClCompile Include="Misc.cpp" />
     <ClCompile Include="MsgHandler.cpp" />
     <ClCompile Include="NandPaths.cpp" />
     <ClCompile Include="Network.cpp" />

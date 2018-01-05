@@ -48,7 +48,7 @@ u32 ES::OpenTitleContent(u32 CFD, u64 TitleID, u16 Index)
   return CFD;
 }
 
-IPCCommandResult ES::OpenTitleContent(const IOCtlVRequest& request)
+IPCCommandResult ES::OpenTitleContent(u32 uid, const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(3, 0))
     return GetDefaultReply(ES_EINVAL);
@@ -64,7 +64,7 @@ IPCCommandResult ES::OpenTitleContent(const IOCtlVRequest& request)
   return GetDefaultReply(CFD);
 }
 
-IPCCommandResult ES::OpenContent(const IOCtlVRequest& request)
+IPCCommandResult ES::OpenContent(u32 uid, const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 0))
     return GetDefaultReply(ES_EINVAL);
@@ -79,7 +79,7 @@ IPCCommandResult ES::OpenContent(const IOCtlVRequest& request)
   return GetDefaultReply(CFD);
 }
 
-IPCCommandResult ES::ReadContent(const IOCtlVRequest& request)
+IPCCommandResult ES::ReadContent(u32 uid, const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 1))
     return GetDefaultReply(ES_EINVAL);
@@ -131,7 +131,7 @@ IPCCommandResult ES::ReadContent(const IOCtlVRequest& request)
   return GetDefaultReply(Size);
 }
 
-IPCCommandResult ES::CloseContent(const IOCtlVRequest& request)
+IPCCommandResult ES::CloseContent(u32 uid, const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 0))
     return GetDefaultReply(ES_EINVAL);
@@ -160,7 +160,7 @@ IPCCommandResult ES::CloseContent(const IOCtlVRequest& request)
   return GetDefaultReply(IPC_SUCCESS);
 }
 
-IPCCommandResult ES::SeekContent(const IOCtlVRequest& request)
+IPCCommandResult ES::SeekContent(u32 uid, const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(3, 0))
     return GetDefaultReply(ES_EINVAL);

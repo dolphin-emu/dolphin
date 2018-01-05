@@ -246,4 +246,10 @@ void Shutdown()
   Gecko::Shutdown();
 }
 
+void Reload()
+{
+  Shutdown();
+  LoadPatches();
+}
+
 }  // namespace

@@ -28,7 +28,6 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Debugger/Debugger_SymbolMap.h"
-#include "Core/GeckoCode.h"
 #include "Core/HLE/HLE.h"
 #include "Core/HW/DVD/DVDInterface.h"
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
@@ -36,7 +35,7 @@
 #include "Core/HW/VideoInterface.h"
 #include "Core/HideObjectEngine.h"
 #include "Core/Host.h"
-#include "Core/IOS/IPC.h"
+#include "Core/IOS/IOS.h"
 #include "Core/PatchEngine.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
@@ -88,6 +87,12 @@ void CBoot::Load_FST(bool is_wii)
   DVDRead(fst_offset << shift, arena_high, fst_size << shift, is_wii);
   Memory::Write_U32(arena_high, 0x00000038);
   Memory::Write_U32(max_fst_size << shift, 0x0000003c);
+
+  if (is_wii)
+  {
+    // the apploader changes IOS MEM1_ARENA_END too
+    Memory::Write_U32(arena_high, 0x00003110);
+  }
 }
 
 void CBoot::UpdateDebugger_MapLoaded()
@@ -234,7 +239,7 @@ bool CBoot::Load_BS2(const std::string& boot_rom_filename)
                 SConfig::GetDirectoryForRegion(boot_region));
 
   // Run the descrambler over the encrypted section containing BS1/BS2
-  CEXIIPL::Descrambler((u8*)data.data() + 0x100, 0x1AFE00);
+  ExpansionInterface::CEXIIPL::Descrambler((u8*)data.data() + 0x100, 0x1AFE00);
 
   // TODO: Execution is supposed to start at 0xFFF00000, not 0x81200000;
   // copying the initial boot code to 0x81200000 is a hack.
@@ -352,29 +357,19 @@ bool CBoot::BootUp()
       PanicAlertT("Warning - starting DOL in wrong console mode!");
     }
 
-    bool BS2Success = false;
-
-    if (dolWii)
-    {
-      BS2Success = EmulatedBS2(dolWii);
-    }
-    else if ((!DVDInterface::IsDiscInside() ||
-              DVDInterface::GetVolume().GetVolumeType() != DiscIO::Platform::WII_DISC) &&
-             !_StartupPara.m_strDefaultISO.empty())
-    {
-      DVDInterface::SetVolumeName(_StartupPara.m_strDefaultISO);
-      BS2Success = EmulatedBS2(dolWii);
-    }
-
     if (!_StartupPara.m_strDVDRoot.empty())
     {
       NOTICE_LOG(BOOT, "Setting DVDRoot %s", _StartupPara.m_strDVDRoot.c_str());
       DVDInterface::SetVolumeDirectory(_StartupPara.m_strDVDRoot, dolWii,
                                        _StartupPara.m_strApploader, _StartupPara.m_strFilename);
-      BS2Success = EmulatedBS2(dolWii);
+    }
+    else if (!_StartupPara.m_strDefaultISO.empty())
+    {
+      NOTICE_LOG(BOOT, "Loading default ISO %s", _StartupPara.m_strDefaultISO.c_str());
+      DVDInterface::SetVolumeName(_StartupPara.m_strDefaultISO);
     }
 
-    if (!BS2Success)
+    if (!EmulatedBS2(dolWii))
     {
       // Set up MSR and the BAT SPR registers.
       UReg_MSR& m_MSR = ((UReg_MSR&)PowerPC::ppcState.msr);
@@ -428,10 +423,6 @@ bool CBoot::BootUp()
       NOTICE_LOG(BOOT, "Loading default ISO %s", _StartupPara.m_strDefaultISO.c_str());
       DVDInterface::SetVolumeName(_StartupPara.m_strDefaultISO);
     }
-    else
-    {
-      DVDInterface::SetVolumeDirectory(_StartupPara.m_strFilename, _StartupPara.bWii);
-    }
 
     // Poor man's bootup
     if (_StartupPara.bWii)
@@ -460,8 +451,9 @@ bool CBoot::BootUp()
 
     PatchEngine::LoadPatches();
 
-    if (LoadMapFromFilename())
-      HLE::PatchFunctions();
+    // Not bootstrapped yet, can't translate memory addresses. Thus, prevents Symbol Map usage.
+    // if (LoadMapFromFilename())
+    //   HLE::PatchFunctions();
 
     // load default image or create virtual drive from directory
     if (!_StartupPara.m_strDVDRoot.empty())
@@ -497,19 +489,6 @@ bool CBoot::BootUp()
   }
   }
 
-  // HLE jump to loader (homebrew).  Disabled when Gecko is active as it interferes with the code
-  // handler
-  if (!SConfig::GetInstance().bEnableCheats)
-  {
-    HLE::Patch(0x80001800, "HBReload");
-    Memory::CopyToEmu(0x00001804, "STUBHAXX", 8);
-  }
-
-  // Not part of the binary itself, but either we or Gecko OS might insert
-  // this, and it doesn't clear the icache properly.
-  HLE::Patch(Gecko::ENTRY_POINT, "GeckoCodehandler");
-  // This has to always be installed even if cheats are not enabled because of the possiblity of
-  // loading a savestate where PC is inside the code handler while cheats are disabled.
-  HLE::Patch(Gecko::HLE_TRAMPOLINE_ADDRESS, "GeckoHandlerReturnTrampoline");
+  HLE::PatchFixedFunctions();
   return true;
 }

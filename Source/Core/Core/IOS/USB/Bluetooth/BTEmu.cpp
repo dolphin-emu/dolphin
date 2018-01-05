@@ -23,7 +23,7 @@
 #include "Core/HW/Wiimote.h"
 #include "Core/Host.h"
 #include "Core/IOS/Device.h"
-#include "Core/IOS/IPC.h"
+#include "Core/IOS/IOS.h"
 #include "Core/IOS/USB/Bluetooth/BTEmu.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
@@ -40,12 +40,12 @@ SQueuedEvent::SQueuedEvent(u32 size, u16 handle) : m_size(size), m_connectionHan
 
 namespace Device
 {
-BluetoothEmu::BluetoothEmu(u32 device_id, const std::string& device_name)
-    : BluetoothBase(device_id, device_name)
+BluetoothEmu::BluetoothEmu(Kernel& ios, const std::string& device_name)
+    : BluetoothBase(ios, device_name)
 {
-  SysConf sysconf{Core::g_want_determinism ? Common::FromWhichRoot::FROM_SESSION_ROOT :
+  SysConf sysconf{Core::WantsDeterminism() ? Common::FromWhichRoot::FROM_SESSION_ROOT :
                                              Common::FromWhichRoot::FROM_CONFIGURED_ROOT};
-  if (!Core::g_want_determinism)
+  if (!Core::WantsDeterminism())
     BackUpBTInfoSection(&sysconf);
 
   _conf_pads BT_DINF;
@@ -106,14 +106,14 @@ BluetoothEmu::~BluetoothEmu()
 }
 
 template <typename T>
-static void DoStateForMessage(PointerWrap& p, std::unique_ptr<T>& message)
+static void DoStateForMessage(Kernel& ios, PointerWrap& p, std::unique_ptr<T>& message)
 {
   u32 request_address = (message != nullptr) ? message->ios_request.address : 0;
   p.Do(request_address);
   if (request_address != 0)
   {
     IOCtlVRequest request{request_address};
-    message = std::make_unique<T>(request);
+    message = std::make_unique<T>(ios, request);
   }
 }
 
@@ -130,9 +130,9 @@ void BluetoothEmu::DoState(PointerWrap& p)
 
   p.Do(m_is_active);
   p.Do(m_ControllerBD);
-  DoStateForMessage(p, m_CtrlSetup);
-  DoStateForMessage(p, m_HCIEndpoint);
-  DoStateForMessage(p, m_ACLEndpoint);
+  DoStateForMessage(m_ios, p, m_CtrlSetup);
+  DoStateForMessage(m_ios, p, m_HCIEndpoint);
+  DoStateForMessage(m_ios, p, m_ACLEndpoint);
   p.Do(m_last_ticks);
   p.DoArray(m_PacketCount);
   p.Do(m_ScanEnable);
@@ -148,7 +148,7 @@ bool BluetoothEmu::RemoteDisconnect(u16 _connectionHandle)
   return SendEventDisconnect(_connectionHandle, 0x13);
 }
 
-void BluetoothEmu::Close()
+ReturnCode BluetoothEmu::Close(u32 fd)
 {
   // Clean up state
   m_ScanEnable = 0;
@@ -157,7 +157,7 @@ void BluetoothEmu::Close()
   m_HCIEndpoint.reset();
   m_ACLEndpoint.reset();
 
-  m_is_active = false;
+  return Device::Close(fd);
 }
 
 IPCCommandResult BluetoothEmu::IOCtlV(const IOCtlVRequest& request)
@@ -167,7 +167,7 @@ IPCCommandResult BluetoothEmu::IOCtlV(const IOCtlVRequest& request)
   {
   case USB::IOCTLV_USBV0_CTRLMSG:  // HCI command is received from the stack
   {
-    m_CtrlSetup = std::make_unique<USB::V0CtrlMessage>(request);
+    m_CtrlSetup = std::make_unique<USB::V0CtrlMessage>(m_ios, request);
     // Replies are generated inside
     ExecuteHCICommandMessage(*m_CtrlSetup);
     m_CtrlSetup.reset();
@@ -177,7 +177,7 @@ IPCCommandResult BluetoothEmu::IOCtlV(const IOCtlVRequest& request)
 
   case USB::IOCTLV_USBV0_BLKMSG:
   {
-    const USB::V0BulkMessage ctrl{request};
+    const USB::V0BulkMessage ctrl{m_ios, request};
     switch (ctrl.endpoint)
     {
     case ACL_DATA_OUT:  // ACL data is received from the stack
@@ -196,7 +196,7 @@ IPCCommandResult BluetoothEmu::IOCtlV(const IOCtlVRequest& request)
     }
     case ACL_DATA_IN:  // We are given an ACL buffer to fill
     {
-      m_ACLEndpoint = std::make_unique<USB::V0BulkMessage>(request);
+      m_ACLEndpoint = std::make_unique<USB::V0BulkMessage>(m_ios, request);
       DEBUG_LOG(IOS_WIIMOTE, "ACL_DATA_IN: 0x%08x ", request.address);
       send_reply = false;
       break;
@@ -209,10 +209,10 @@ IPCCommandResult BluetoothEmu::IOCtlV(const IOCtlVRequest& request)
 
   case USB::IOCTLV_USBV0_INTRMSG:
   {
-    const USB::V0IntrMessage ctrl{request};
+    const USB::V0IntrMessage ctrl{m_ios, request};
     if (ctrl.endpoint == HCI_EVENT)  // We are given a HCI buffer to fill
     {
-      m_HCIEndpoint = std::make_unique<USB::V0IntrMessage>(request);
+      m_HCIEndpoint = std::make_unique<USB::V0IntrMessage>(m_ios, request);
       DEBUG_LOG(IOS_WIIMOTE, "HCI_EVENT: 0x%08x ", request.address);
       send_reply = false;
     }
@@ -266,7 +266,7 @@ void BluetoothEmu::SendACLPacket(u16 connection_handle, const u8* data, u32 size
     // Write the packet to the buffer
     memcpy(reinterpret_cast<u8*>(header) + sizeof(hci_acldata_hdr_t), data, header->length);
 
-    EnqueueReply(m_ACLEndpoint->ios_request, sizeof(hci_acldata_hdr_t) + size);
+    m_ios.EnqueueIPCReply(m_ACLEndpoint->ios_request, sizeof(hci_acldata_hdr_t) + size);
     m_ACLEndpoint.reset();
   }
   else
@@ -294,7 +294,7 @@ void BluetoothEmu::AddEventToQueue(const SQueuedEvent& _event)
       m_HCIEndpoint->FillBuffer(_event.m_buffer, _event.m_size);
 
       // Send a reply to indicate HCI buffer is filled
-      EnqueueReply(m_HCIEndpoint->ios_request, _event.m_size);
+      m_ios.EnqueueIPCReply(m_HCIEndpoint->ios_request, _event.m_size);
       m_HCIEndpoint.reset();
     }
     else  // push new one, pop oldest
@@ -310,7 +310,7 @@ void BluetoothEmu::AddEventToQueue(const SQueuedEvent& _event)
       m_HCIEndpoint->FillBuffer(event.m_buffer, event.m_size);
 
       // Send a reply to indicate HCI buffer is filled
-      EnqueueReply(m_HCIEndpoint->ios_request, event.m_size);
+      m_ios.EnqueueIPCReply(m_HCIEndpoint->ios_request, event.m_size);
       m_HCIEndpoint.reset();
       m_EventQueue.pop_front();
     }
@@ -336,7 +336,7 @@ void BluetoothEmu::Update()
     m_HCIEndpoint->FillBuffer(event.m_buffer, event.m_size);
 
     // Send a reply to indicate HCI buffer is filled
-    EnqueueReply(m_HCIEndpoint->ios_request, event.m_size);
+    m_ios.EnqueueIPCReply(m_HCIEndpoint->ios_request, event.m_size);
     m_HCIEndpoint.reset();
     m_EventQueue.pop_front();
   }
@@ -431,7 +431,7 @@ void BluetoothEmu::ACLPool::WriteToEndpoint(USB::V0BulkMessage& endpoint)
 
   m_queue.pop_front();
 
-  EnqueueReply(endpoint.ios_request, sizeof(hci_acldata_hdr_t) + size);
+  m_ios.EnqueueIPCReply(endpoint.ios_request, sizeof(hci_acldata_hdr_t) + size);
 }
 
 bool BluetoothEmu::SendEventInquiryComplete()
@@ -1142,7 +1142,7 @@ void BluetoothEmu::ExecuteHCICommandMessage(const USB::V0CtrlMessage& ctrl_messa
   }
 
   // HCI command is finished, send a reply to command
-  EnqueueReply(ctrl_message.ios_request, ctrl_message.length);
+  m_ios.EnqueueIPCReply(ctrl_message.ios_request, ctrl_message.length);
 }
 
 //

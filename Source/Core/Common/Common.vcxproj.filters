@@ -238,10 +238,24 @@
     <ClInclude Include="NonCopyable.h" />
     <ClInclude Include="Analytics.h" />
     <ClInclude Include="Semaphore.h" />
+    <ClInclude Include="MD5.h" />
+    <ClInclude Include="GL\GLExtensions\ARB_texture_storage.h">
+      <Filter>GL\GLExtensions</Filter>
+    </ClInclude>
+    <ClInclude Include="GL\GLExtensions\ARB_shader_image_load_store.h">
+      <Filter>GL\GLExtensions</Filter>
+    </ClInclude>
+    <ClInclude Include="GL\GLExtensions\ARB_compute_shader.h">
+      <Filter>GL\GLExtensions</Filter>
+    </ClInclude>
+    <ClInclude Include="GL\GLExtensions\EXT_texture_compression_s3tc.h">
+      <Filter>GL\GLExtensions</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CDUtils.cpp" />
     <ClCompile Include="ColorUtil.cpp" />
+    <ClCompile Include="CommonFuncs.cpp" />
     <ClCompile Include="Config\Config.cpp" />
     <ClCompile Include="Config\Layer.cpp" />
     <ClCompile Include="Config\Section.cpp" />
@@ -253,7 +267,6 @@
     <ClCompile Include="MathUtil.cpp" />
     <ClCompile Include="MemArena.cpp" />
     <ClCompile Include="MemoryUtil.cpp" />
-    <ClCompile Include="Misc.cpp" />
     <ClCompile Include="MsgHandler.cpp" />
     <ClCompile Include="NandPaths.cpp" />
     <ClCompile Include="Network.cpp" />
@@ -303,6 +316,7 @@
     </ClCompile>
     <ClCompile Include="ucrtFreadWorkaround.cpp" />
     <ClCompile Include="Analytics.cpp" />
+    <ClCompile Include="MD5.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

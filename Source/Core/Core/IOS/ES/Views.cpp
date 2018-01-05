@@ -12,6 +12,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/NandPaths.h"
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/ES/NandUtils.h"
@@ -25,14 +26,18 @@ namespace Device
 {
 // HACK: Since we do not want to require users to install disc updates when launching
 //       Wii games from the game list (which is the inaccurate game boot path anyway),
-//       IOSes have to be faked for games which reload IOS to work properly.
+//       or in TAS/netplay (because forcing every user to have a proper NAND setup in those cases
+//       is unrealistic), IOSes have to be faked for games and homebrew that reload IOS
+//       such as Gecko to work properly.
+//
 //       To minimize the effect of this hack, we should only do this for disc titles
 //       booted from the game list, though.
 static bool ShouldReturnFakeViewsForIOSes(u64 title_id, const TitleContext& context)
 {
   const bool ios = IsTitleType(title_id, IOS::ES::TitleType::System) && title_id != TITLEID_SYSMENU;
   const bool disc_title = context.active && IOS::ES::IsDiscTitle(context.tmd.GetTitleId());
-  return ios && SConfig::GetInstance().m_BootType == SConfig::BOOT_ISO && disc_title;
+  return Core::WantsDeterminism() ||
+         (ios && SConfig::GetInstance().m_BootType == SConfig::BOOT_ISO && disc_title);
 }
 
 IPCCommandResult ES::GetTicketViewCount(const IOCtlVRequest& request)
@@ -111,24 +116,27 @@ IPCCommandResult ES::GetTMDViewSize(const IOCtlVRequest& request)
 
 IPCCommandResult ES::GetTMDViews(const IOCtlVRequest& request)
 {
-  if (!request.HasNumberOfValidVectors(2, 1))
+  if (!request.HasNumberOfValidVectors(2, 1) ||
+      request.in_vectors[0].size != sizeof(IOS::ES::TMDHeader::title_id) ||
+      request.in_vectors[1].size != sizeof(u32) ||
+      Memory::Read_U32(request.in_vectors[1].address) != request.io_vectors[0].size)
+  {
     return GetDefaultReply(ES_EINVAL);
+  }
 
-  u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
-  u32 MaxCount = Memory::Read_U32(request.in_vectors[1].address);
-
-  const IOS::ES::TMDReader tmd = IOS::ES::FindInstalledTMD(TitleID);
+  const u64 title_id = Memory::Read_U64(request.in_vectors[0].address);
+  const IOS::ES::TMDReader tmd = IOS::ES::FindInstalledTMD(title_id);
 
   if (!tmd.IsValid())
     return GetDefaultReply(FS_ENOENT);
 
   const std::vector<u8> raw_view = tmd.GetRawView();
-  if (raw_view.size() != request.io_vectors[0].size)
+  if (request.io_vectors[0].size < raw_view.size())
     return GetDefaultReply(ES_EINVAL);
 
   Memory::CopyToEmu(request.io_vectors[0].address, raw_view.data(), raw_view.size());
 
-  INFO_LOG(IOS_ES, "GetTMDView: %u bytes for title %016" PRIx64, MaxCount, TitleID);
+  INFO_LOG(IOS_ES, "GetTMDView: %zu bytes for title %016" PRIx64, raw_view.size(), title_id);
   return GetDefaultReply(IPC_SUCCESS);
 }
 
@@ -212,7 +220,7 @@ IPCCommandResult ES::DIGetTMDView(const IOCtlVRequest& request)
     tmd_view = GetTitleContext().tmd.GetRawView();
   }
 
-  if (tmd_view.size() != request.io_vectors[0].size)
+  if (tmd_view.size() > request.io_vectors[0].size)
     return GetDefaultReply(ES_EINVAL);
 
   Memory::CopyToEmu(request.io_vectors[0].address, tmd_view.data(), tmd_view.size());
@@ -257,6 +265,39 @@ IPCCommandResult ES::DIGetTicketView(const IOCtlVRequest& request)
   return GetDefaultReply(IPC_SUCCESS);
 }
 
+IPCCommandResult ES::DIGetTMDSize(const IOCtlVRequest& request)
+{
+  if (!request.HasNumberOfValidVectors(0, 1) || request.io_vectors[0].size != sizeof(u32))
+    return GetDefaultReply(ES_EINVAL);
+
+  if (!GetTitleContext().active)
+    return GetDefaultReply(ES_EINVAL);
+
+  Memory::Write_U32(static_cast<u32>(GetTitleContext().tmd.GetRawTMD().size()),
+                    request.io_vectors[0].address);
+  return GetDefaultReply(IPC_SUCCESS);
+}
+
+IPCCommandResult ES::DIGetTMD(const IOCtlVRequest& request)
+{
+  if (!request.HasNumberOfValidVectors(1, 1) || request.in_vectors[0].size != sizeof(u32))
+    return GetDefaultReply(ES_EINVAL);
+
+  const u32 tmd_size = Memory::Read_U32(request.in_vectors[0].address);
+  if (tmd_size != request.io_vectors[0].size)
+    return GetDefaultReply(ES_EINVAL);
+
+  if (!GetTitleContext().active)
+    return GetDefaultReply(ES_EINVAL);
+
+  const std::vector<u8>& tmd_bytes = GetTitleContext().tmd.GetRawTMD();
+
+  if (static_cast<u32>(tmd_bytes.size()) > tmd_size)
+    return GetDefaultReply(ES_EINVAL);
+
+  Memory::CopyToEmu(request.io_vectors[0].address, tmd_bytes.data(), tmd_bytes.size());
+  return GetDefaultReply(IPC_SUCCESS);
+}
 }  // namespace Device
 }  // namespace HLE
 }  // namespace IOS

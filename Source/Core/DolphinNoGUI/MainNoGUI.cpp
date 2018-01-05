@@ -23,7 +23,7 @@
 #include "Core/Core.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/Host.h"
-#include "Core/IOS/IPC.h"
+#include "Core/IOS/IOS.h"
 #include "Core/IOS/STM/STM.h"
 #include "Core/IOS/USB/Bluetooth/BTEmu.h"
 #include "Core/IOS/USB/Bluetooth/WiimoteDevice.h"
@@ -140,19 +140,18 @@ bool Host_RendererIsFullscreen()
 
 void Host_ConnectWiimote(int wm_idx, bool connect)
 {
-  if (Core::IsRunning() && SConfig::GetInstance().bWii &&
-      !SConfig::GetInstance().m_bt_passthrough_enabled)
-  {
-    Core::QueueHostJob([=] {
-      bool was_unpaused = Core::PauseAndLock(true);
-      const auto bt = std::static_pointer_cast<IOS::HLE::Device::BluetoothEmu>(
-          IOS::HLE::GetDeviceByName("/dev/usb/oh1/57e/305"));
-      if (bt)
-        bt->AccessWiiMote(wm_idx | 0x100)->Activate(connect);
-      Host_UpdateMainFrame();
-      Core::PauseAndLock(false, was_unpaused);
-    });
-  }
+  Core::QueueHostJob([=] {
+    const auto ios = IOS::HLE::GetIOS();
+    if (!ios || SConfig::GetInstance().m_bt_passthrough_enabled)
+      return;
+    bool was_unpaused = Core::PauseAndLock(true);
+    const auto bt = std::static_pointer_cast<IOS::HLE::Device::BluetoothEmu>(
+        ios->GetDeviceByName("/dev/usb/oh1/57e/305"));
+    if (bt)
+      bt->AccessWiiMote(wm_idx | 0x100)->Activate(connect);
+    Host_UpdateMainFrame();
+    Core::PauseAndLock(false, was_unpaused);
+  });
 }
 
 void Host_SetWiiMoteConnectionState(int _State)
@@ -242,7 +241,8 @@ class PlatformX11 : public Platform
     {
       if (s_shutdown_requested.TestAndClear())
       {
-        const auto stm = IOS::HLE::GetDeviceByName("/dev/stm/eventhook");
+        const auto ios = IOS::HLE::GetIOS();
+        const auto stm = ios ? ios->GetDeviceByName("/dev/stm/eventhook") : nullptr;
         if (!s_tried_graceful_shutdown.IsSet() && stm &&
             std::static_pointer_cast<IOS::HLE::Device::STMEventHook>(stm)->HasHookInstalled())
         {

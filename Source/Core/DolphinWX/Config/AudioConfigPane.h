@@ -33,6 +33,8 @@ private:
   void OnVolumeSliderChanged(wxCommandEvent&);
   void OnAudioBackendChanged(wxCommandEvent&);
   void OnLatencySpinCtrlChanged(wxCommandEvent&);
+  void OnStretchCheckBoxChanged(wxCommandEvent&);
+  void OnStretchSliderChanged(wxCommandEvent&);
 
   wxArrayString m_dsp_engine_strings;
   wxArrayString m_audio_backend_strings;
@@ -44,4 +46,8 @@ private:
   wxChoice* m_audio_backend_choice;
   wxSpinCtrl* m_audio_latency_spinctrl;
   wxStaticText* m_audio_latency_label;
+  wxCheckBox* m_stretch_checkbox;
+  wxStaticText* m_stretch_label;
+  DolphinSlider* m_stretch_slider;
+  wxStaticText* m_stretch_text;
 };

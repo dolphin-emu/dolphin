@@ -9,6 +9,8 @@
 #include "Common/CommonTypes.h"
 #include "Core/HW/EXI/EXI_Device.h"
 
+namespace ExpansionInterface
+{
 // Just a dummy that logs reads and writes
 // to be used for EXI devices we haven't emulated
 // DOES NOT FUNCTION AS "NO DEVICE INSERTED" -> Appears as unknown device
@@ -30,3 +32,4 @@ private:
 
   std::string m_name;
 };
+}  // namespace ExpansionInterface

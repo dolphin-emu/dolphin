@@ -24,15 +24,20 @@ enum HookFlag
   HLE_TYPE_FIXED = 2,    // An arbitrary hook mapped to a fixed address instead of a symbol
 };
 
+void PatchFixedFunctions();
 void PatchFunctions();
 void Clear();
+void Reload();
 
 void Patch(u32 pc, const char* func_name);
 u32 UnPatch(const std::string& patchName);
 bool UnPatch(u32 addr, const std::string& name = {});
 void Execute(u32 _CurrentPC, u32 _Instruction);
 
-u32 GetFunctionIndex(u32 em_address);
+// Returns the HLE function index if the address is located in the function
+u32 GetFunctionIndex(u32 address);
+// Returns the HLE function index if the address matches the function start
+u32 GetFirstFunctionIndex(u32 address);
 int GetFunctionTypeByIndex(u32 index);
 int GetFunctionFlagsByIndex(u32 index);
 

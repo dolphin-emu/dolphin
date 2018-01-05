@@ -60,9 +60,9 @@ void ModifySettingsButton::GetState()
         associated_settings[i] = !associated_settings[i];
 
         if (associated_settings[i])
-          OSD::AddMessage(controls[i]->name + ": " + _trans("on"));
+          OSD::AddMessage(controls[i]->name + ": on");
         else
-          OSD::AddMessage(controls[i]->name + ": " + _trans("off"));
+          OSD::AddMessage(controls[i]->name + ": off");
 
         threshold_exceeded[i] = true;
       }

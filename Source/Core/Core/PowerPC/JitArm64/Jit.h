@@ -215,7 +215,6 @@ private:
   // AsmRoutines
   void GenerateAsm();
   void GenerateCommonAsm();
-  void GenMfcr();
 
   // Profiling
   void BeginTimeProfile(JitBlock* b);

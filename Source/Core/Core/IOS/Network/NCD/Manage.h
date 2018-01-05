@@ -20,7 +20,7 @@ namespace Device
 class NetNCDManage : public Device
 {
 public:
-  NetNCDManage(u32 device_id, const std::string& device_name);
+  NetNCDManage(Kernel& ios, const std::string& device_name);
 
   IPCCommandResult IOCtlV(const IOCtlVRequest& request) override;
 

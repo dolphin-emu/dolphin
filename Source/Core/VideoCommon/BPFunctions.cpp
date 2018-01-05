@@ -75,10 +75,7 @@ void SetBlendMode()
 {
   g_renderer->SetBlendMode(false);
 }
-void SetDitherMode()
-{
-  g_renderer->SetDitherMode();
-}
+
 void SetLogicOpMode()
 {
   g_renderer->SetLogicOpMode();

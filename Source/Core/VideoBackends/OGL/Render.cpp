@@ -12,6 +12,7 @@
 #include <memory>
 #include <sstream>
 #include <string>
+#include <tuple>
 #include <vector>
 
 #include "Common/Atomic.h"
@@ -465,15 +466,18 @@ Renderer::Renderer()
   g_ogl_config.bSupportViewportFloat = GLExtensions::Supports("GL_ARB_viewport_array");
   g_ogl_config.bSupportsDebug =
       GLExtensions::Supports("GL_KHR_debug") || GLExtensions::Supports("GL_ARB_debug_output");
-  g_ogl_config.bSupports3DTextureStorage =
+  g_ogl_config.bSupportsTextureStorage = GLExtensions::Supports("GL_ARB_texture_storage");
+  g_ogl_config.bSupports3DTextureStorageMultisample =
       GLExtensions::Supports("GL_ARB_texture_storage_multisample") ||
       GLExtensions::Supports("GL_OES_texture_storage_multisample_2d_array");
-  g_ogl_config.bSupports2DTextureStorage =
+  g_ogl_config.bSupports2DTextureStorageMultisample =
       GLExtensions::Supports("GL_ARB_texture_storage_multisample");
-  g_ogl_config.bSupportsEarlyFragmentTests =
-      GLExtensions::Supports("GL_ARB_shader_image_load_store");
+  g_ogl_config.bSupportsImageLoadStore = GLExtensions::Supports("GL_ARB_shader_image_load_store");
   g_ogl_config.bSupportsConservativeDepth = GLExtensions::Supports("GL_ARB_conservative_depth");
   g_ogl_config.bSupportsAniso = GLExtensions::Supports("GL_EXT_texture_filter_anisotropic");
+  g_Config.backend_info.bSupportsComputeShaders = GLExtensions::Supports("GL_ARB_compute_shader");
+  g_Config.backend_info.bSupportsST3CTextures =
+      GLExtensions::Supports("GL_EXT_texture_compression_s3tc");
 
   if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3)
   {
@@ -500,6 +504,7 @@ Renderer::Renderer()
     {
       g_ogl_config.eSupportedGLSLVersion = GLSLES_300;
       g_ogl_config.bSupportsAEP = false;
+      g_ogl_config.bSupportsTextureStorage = true;
       g_Config.backend_info.bSupportsGeometryShaders = false;
     }
     else if (GLExtensions::Version() == 310)
@@ -507,16 +512,18 @@ Renderer::Renderer()
       g_ogl_config.eSupportedGLSLVersion = GLSLES_310;
       g_ogl_config.bSupportsAEP = GLExtensions::Supports("GL_ANDROID_extension_pack_es31a");
       g_Config.backend_info.bSupportsBindingLayout = true;
-      g_ogl_config.bSupportsEarlyFragmentTests = true;
+      g_ogl_config.bSupportsImageLoadStore = true;
       g_Config.backend_info.bSupportsGeometryShaders = g_ogl_config.bSupportsAEP;
+      g_Config.backend_info.bSupportsComputeShaders = true;
       g_Config.backend_info.bSupportsGSInstancing =
           g_Config.backend_info.bSupportsGeometryShaders && g_ogl_config.SupportedESPointSize > 0;
       g_Config.backend_info.bSupportsSSAA = g_ogl_config.bSupportsAEP;
       g_Config.backend_info.bSupportsFragmentStoresAndAtomics = true;
       g_ogl_config.bSupportsMSAA = true;
-      g_ogl_config.bSupports2DTextureStorage = true;
+      g_ogl_config.bSupportsTextureStorage = true;
+      g_ogl_config.bSupports2DTextureStorageMultisample = true;
       if (g_ActiveConfig.iStereoMode > 0 && g_ActiveConfig.iMultisamples > 1 &&
-          !g_ogl_config.bSupports3DTextureStorage)
+          !g_ogl_config.bSupports3DTextureStorageMultisample)
       {
         // GLES 3.1 can't support stereo rendering and MSAA
         OSD::AddMessage("MSAA Stereo rendering isn't supported by your GPU.", 10000);
@@ -528,8 +535,9 @@ Renderer::Renderer()
       g_ogl_config.eSupportedGLSLVersion = GLSLES_320;
       g_ogl_config.bSupportsAEP = GLExtensions::Supports("GL_ANDROID_extension_pack_es31a");
       g_Config.backend_info.bSupportsBindingLayout = true;
-      g_ogl_config.bSupportsEarlyFragmentTests = true;
+      g_ogl_config.bSupportsImageLoadStore = true;
       g_Config.backend_info.bSupportsGeometryShaders = true;
+      g_Config.backend_info.bSupportsComputeShaders = true;
       g_Config.backend_info.bSupportsGSInstancing = g_ogl_config.SupportedESPointSize > 0;
       g_Config.backend_info.bSupportsPaletteConversion = true;
       g_Config.backend_info.bSupportsSSAA = true;
@@ -538,8 +546,9 @@ Renderer::Renderer()
       g_ogl_config.bSupportsGLBaseVertex = true;
       g_ogl_config.bSupportsDebug = true;
       g_ogl_config.bSupportsMSAA = true;
-      g_ogl_config.bSupports2DTextureStorage = true;
-      g_ogl_config.bSupports3DTextureStorage = true;
+      g_ogl_config.bSupportsTextureStorage = true;
+      g_ogl_config.bSupports2DTextureStorageMultisample = true;
+      g_ogl_config.bSupports3DTextureStorageMultisample = true;
     }
   }
   else
@@ -555,8 +564,7 @@ Renderer::Renderer()
     else if (GLExtensions::Version() == 300)
     {
       g_ogl_config.eSupportedGLSLVersion = GLSL_130;
-      g_ogl_config.bSupportsEarlyFragmentTests =
-          false;  // layout keyword is only supported on glsl150+
+      g_ogl_config.bSupportsImageLoadStore = false;  // layout keyword is only supported on glsl150+
       g_ogl_config.bSupportsConservativeDepth =
           false;  // layout keyword is only supported on glsl150+
       g_Config.backend_info.bSupportsGeometryShaders =
@@ -565,8 +573,7 @@ Renderer::Renderer()
     else if (GLExtensions::Version() == 310)
     {
       g_ogl_config.eSupportedGLSLVersion = GLSL_140;
-      g_ogl_config.bSupportsEarlyFragmentTests =
-          false;  // layout keyword is only supported on glsl150+
+      g_ogl_config.bSupportsImageLoadStore = false;  // layout keyword is only supported on glsl150+
       g_ogl_config.bSupportsConservativeDepth =
           false;  // layout keyword is only supported on glsl150+
       g_Config.backend_info.bSupportsGeometryShaders =
@@ -580,10 +587,28 @@ Renderer::Renderer()
     {
       g_ogl_config.eSupportedGLSLVersion = GLSL_330;
     }
+    else if (GLExtensions::Version() >= 430)
+    {
+      // TODO: We should really parse the GL_SHADING_LANGUAGE_VERSION token.
+      g_ogl_config.eSupportedGLSLVersion = GLSL_430;
+      g_ogl_config.bSupportsTextureStorage = true;
+      g_ogl_config.bSupportsImageLoadStore = true;
+      g_Config.backend_info.bSupportsSSAA = true;
+
+      // Compute shaders are core in GL4.3.
+      g_Config.backend_info.bSupportsComputeShaders = true;
+    }
     else
     {
       g_ogl_config.eSupportedGLSLVersion = GLSL_400;
       g_Config.backend_info.bSupportsSSAA = true;
+
+      if (GLExtensions::Version() == 420)
+      {
+        // Texture storage and shader image load/store are core in GL4.2.
+        g_ogl_config.bSupportsTextureStorage = true;
+        g_ogl_config.bSupportsImageLoadStore = true;
+      }
     }
 
     // Desktop OpenGL can't have the Android Extension Pack
@@ -592,11 +617,18 @@ Renderer::Renderer()
 
   // Either method can do early-z tests. See PixelShaderGen for details.
   g_Config.backend_info.bSupportsEarlyZ =
-      g_ogl_config.bSupportsEarlyFragmentTests || g_ogl_config.bSupportsConservativeDepth;
+      g_ogl_config.bSupportsImageLoadStore || g_ogl_config.bSupportsConservativeDepth;
 
   glGetIntegerv(GL_MAX_SAMPLES, &g_ogl_config.max_samples);
   if (g_ogl_config.max_samples < 1 || !g_ogl_config.bSupportsMSAA)
     g_ogl_config.max_samples = 1;
+
+  // We require texel buffers, image load store, and compute shaders to enable GPU texture decoding.
+  // If the driver doesn't expose the extensions, but supports GL4.3/GLES3.1, it will still be
+  // enabled in the version check below.
+  g_Config.backend_info.bSupportsGPUTextureDecoding =
+      g_Config.backend_info.bSupportsPaletteConversion &&
+      g_Config.backend_info.bSupportsComputeShaders && g_ogl_config.bSupportsImageLoadStore;
 
   if (g_ogl_config.bSupportsDebug)
   {
@@ -1257,6 +1289,7 @@ void Renderer::SkipClearScreen(bool colorEnable, bool alphaEnable, bool zEnable)
 void Renderer::BlitScreen(TargetRectangle src, TargetRectangle dst, GLuint src_texture,
                           int src_width, int src_height)
 {
+  OpenGLPostProcessing* post_processor = static_cast<OpenGLPostProcessing*>(m_post_processor.get());
   if (g_ActiveConfig.iStereoMode == STEREO_SBS || g_ActiveConfig.iStereoMode == STEREO_TAB ||
       g_ActiveConfig.iStereoMode == STEREO_OSVR)
   {
@@ -1264,16 +1297,16 @@ void Renderer::BlitScreen(TargetRectangle src, TargetRectangle dst, GLuint src_t
 
     // Top-and-Bottom mode needs to compensate for inverted vertical screen coordinates.
     if (g_ActiveConfig.iStereoMode == STEREO_TAB)
-      ConvertStereoRectangle(dst, rightRc, leftRc);
+      std::tie(rightRc, leftRc) = ConvertStereoRectangle(dst);
     else
-      ConvertStereoRectangle(dst, leftRc, rightRc);
+      std::tie(leftRc, rightRc) = ConvertStereoRectangle(dst);
 
-    m_post_processor->BlitFromTexture(src, leftRc, src_texture, src_width, src_height, 0);
-    m_post_processor->BlitFromTexture(src, rightRc, src_texture, src_width, src_height, 1);
+    post_processor->BlitFromTexture(src, leftRc, src_texture, src_width, src_height, 0);
+    post_processor->BlitFromTexture(src, rightRc, src_texture, src_width, src_height, 1);
   }
   else
   {
-    m_post_processor->BlitFromTexture(src, dst, src_texture, src_width, src_height);
+    post_processor->BlitFromTexture(src, dst, src_texture, src_width, src_height, 0);
   }
 }
 
@@ -1299,27 +1332,27 @@ void Renderer::SetBlendMode(bool forceUpdate)
   state.Generate(bpmem);
 
   bool useDualSource =
-      g_ActiveConfig.backend_info.bSupportsDualSourceBlend &&
+      state.usedualsrc && g_ActiveConfig.backend_info.bSupportsDualSourceBlend &&
       (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING) || state.dstalpha);
 
-  const GLenum src_factors[8] = {
-      GL_ZERO,
-      GL_ONE,
-      GL_DST_COLOR,
-      GL_ONE_MINUS_DST_COLOR,
-      useDualSource ? GL_SRC1_ALPHA : (GLenum)GL_SRC_ALPHA,
-      useDualSource ? GL_ONE_MINUS_SRC1_ALPHA : (GLenum)GL_ONE_MINUS_SRC_ALPHA,
-      GL_DST_ALPHA,
-      GL_ONE_MINUS_DST_ALPHA};
-  const GLenum dst_factors[8] = {
-      GL_ZERO,
-      GL_ONE,
-      GL_SRC_COLOR,
-      GL_ONE_MINUS_SRC_COLOR,
-      useDualSource ? GL_SRC1_ALPHA : (GLenum)GL_SRC_ALPHA,
-      useDualSource ? GL_ONE_MINUS_SRC1_ALPHA : (GLenum)GL_ONE_MINUS_SRC_ALPHA,
-      GL_DST_ALPHA,
-      GL_ONE_MINUS_DST_ALPHA};
+  const GLenum src_factors[8] = {GL_ZERO,
+                                 GL_ONE,
+                                 GL_DST_COLOR,
+                                 GL_ONE_MINUS_DST_COLOR,
+                                 useDualSource ? GL_SRC1_ALPHA : (GLenum)GL_SRC_ALPHA,
+                                 useDualSource ? GL_ONE_MINUS_SRC1_ALPHA :
+                                                 (GLenum)GL_ONE_MINUS_SRC_ALPHA,
+                                 GL_DST_ALPHA,
+                                 GL_ONE_MINUS_DST_ALPHA};
+  const GLenum dst_factors[8] = {GL_ZERO,
+                                 GL_ONE,
+                                 GL_SRC_COLOR,
+                                 GL_ONE_MINUS_SRC_COLOR,
+                                 useDualSource ? GL_SRC1_ALPHA : (GLenum)GL_SRC_ALPHA,
+                                 useDualSource ? GL_ONE_MINUS_SRC1_ALPHA :
+                                                 (GLenum)GL_ONE_MINUS_SRC_ALPHA,
+                                 GL_DST_ALPHA,
+                                 GL_ONE_MINUS_DST_ALPHA};
 
   if (state.blendenable)
   {
@@ -1358,11 +1391,6 @@ void Renderer::SetBlendMode(bool forceUpdate)
   {
     glDisable(GL_COLOR_LOGIC_OP);
   }
-
-  if (state.dither)
-    glEnable(GL_DITHER);
-  else
-    glDisable(GL_DITHER);
 
   glColorMask(state.colorupdate, state.colorupdate, state.colorupdate, state.alphaupdate);
 }
@@ -1436,7 +1464,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
 
   // Copy the framebuffer to screen.
   const XFBSource* xfbSource = nullptr;
-  //DrawFrame(0, flipped_trc, rc, xfbAddr, xfbSourceList, xfbCount, fbWidth, fbStride, fbHeight);
+  // DrawFrame(0, flipped_trc, rc, xfbAddr, xfbSourceList, xfbCount, fbWidth, fbStride, fbHeight);
 
   // The FlushFrameDump call here is necessary even after frame dumping is stopped.
   // If left out, screenshots are "one frame" behind, as an extra frame is dumped and buffered.
@@ -1458,6 +1486,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
       DumpFrame(flipped_trc, ticks);
     }
   }
+  OpenGLPostProcessing* post_processor = static_cast<OpenGLPostProcessing*>(m_post_processor.get());
   if (g_has_hmd && g_ActiveConfig.bEnableVR)
   {
     EFBRectangle sourceRc;
@@ -1516,29 +1545,29 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
         VR_RenderToEyebuffer(0);
         if (g_ActiveConfig.iStereoMode == STEREO_OCULUS)
         {
-          m_post_processor->BlitFromTexture(sourceRc, drawRc, xfbSource->texture,
-                                            xfbSource->texWidth, xfbSource->texHeight, 0);
+          post_processor->BlitFromTexture(sourceRc, drawRc, xfbSource->texture, xfbSource->texWidth,
+                                          xfbSource->texHeight, 0);
           if (g_has_two_hmds)
           {
             VR_RenderToEyebuffer(0, 1);
-            m_post_processor->BlitFromTexture(sourceRc, drawRc, xfbSource->texture,
-              xfbSource->texWidth, xfbSource->texHeight, 0);
+            post_processor->BlitFromTexture(sourceRc, drawRc, xfbSource->texture,
+                                            xfbSource->texWidth, xfbSource->texHeight, 0);
           }
 
           VR_RenderToEyebuffer(1);
-          m_post_processor->BlitFromTexture(sourceRc, drawRc, xfbSource->texture,
-                                            xfbSource->texWidth, xfbSource->texHeight, 1);
+          post_processor->BlitFromTexture(sourceRc, drawRc, xfbSource->texture, xfbSource->texWidth,
+                                          xfbSource->texHeight, 1);
           if (g_has_two_hmds)
           {
             VR_RenderToEyebuffer(1, 1);
-            m_post_processor->BlitFromTexture(sourceRc, drawRc, xfbSource->texture,
-              xfbSource->texWidth, xfbSource->texHeight, 1);
+            post_processor->BlitFromTexture(sourceRc, drawRc, xfbSource->texture,
+                                            xfbSource->texWidth, xfbSource->texHeight, 1);
           }
         }
         else
         {
-          m_post_processor->BlitFromTexture(sourceRc, drawRc, xfbSource->texture,
-                                            xfbSource->texWidth, xfbSource->texHeight);
+          post_processor->BlitFromTexture(sourceRc, drawRc, xfbSource->texture, xfbSource->texWidth,
+                                          xfbSource->texHeight, 0);
         }
       }
     }
@@ -1550,29 +1579,29 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
       VR_RenderToEyebuffer(0);
       if (g_ActiveConfig.iStereoMode == STEREO_OCULUS)
       {
-        m_post_processor->BlitFromTexture(targetRc, targetRc, tex, m_target_width, m_target_height,
-                                          0);
+        post_processor->BlitFromTexture(targetRc, targetRc, tex, m_target_width, m_target_height,
+                                        0);
         if (g_has_two_hmds)
         {
           VR_RenderToEyebuffer(0, 1);
-          m_post_processor->BlitFromTexture(targetRc, targetRc, tex, m_target_width, m_target_height,
-            0);
+          post_processor->BlitFromTexture(targetRc, targetRc, tex, m_target_width, m_target_height,
+                                          0);
         }
 
         VR_RenderToEyebuffer(1);
-        m_post_processor->BlitFromTexture(targetRc, targetRc, tex, m_target_width, m_target_height,
-                                          1);
+        post_processor->BlitFromTexture(targetRc, targetRc, tex, m_target_width, m_target_height,
+                                        1);
         if (g_has_two_hmds)
         {
           VR_RenderToEyebuffer(1, 1);
-          m_post_processor->BlitFromTexture(targetRc, targetRc, tex, m_target_width, m_target_height,
-            1);
+          post_processor->BlitFromTexture(targetRc, targetRc, tex, m_target_width, m_target_height,
+                                          1);
         }
       }
       else
       {
-        m_post_processor->BlitFromTexture(targetRc, flipped_trc, tex, m_target_width,
-                                          m_target_height);
+        post_processor->BlitFromTexture(targetRc, flipped_trc, tex, m_target_width,
+                                        m_target_height, 0);
       }
     }
     glEnable(GL_BLEND);
@@ -1828,7 +1857,6 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
 
   DumpFrame(flipped_trc, ticks);
 
-
   // Finish up the current frame, print some stats
 
   SetWindowSize(fbStride, fbHeight);
@@ -1968,8 +1996,10 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
   {
     if (g_Config.bLowPersistence != g_ActiveConfig.bLowPersistence ||
         g_Config.bDynamicPrediction != g_ActiveConfig.bDynamicPrediction ||
-        (g_Config.iMirrorPlayer == VR_PLAYER_NONE) != (g_ActiveConfig.iMirrorPlayer == VR_PLAYER_NONE) ||
-        (g_Config.iMirrorStyle == VR_MIRROR_DISABLED) != (g_ActiveConfig.iMirrorStyle == VR_MIRROR_DISABLED))
+        (g_Config.iMirrorPlayer == VR_PLAYER_NONE) !=
+            (g_ActiveConfig.iMirrorPlayer == VR_PLAYER_NONE) ||
+        (g_Config.iMirrorStyle == VR_MIRROR_DISABLED) !=
+            (g_ActiveConfig.iMirrorStyle == VR_MIRROR_DISABLED))
     {
       VR_ConfigureHMDPrediction();
     }

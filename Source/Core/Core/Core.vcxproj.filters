@@ -209,6 +209,9 @@
     <ClCompile Include="Debugger\PPCDebugInterface.cpp">
       <Filter>Debugger</Filter>
     </ClCompile>
+    <ClCompile Include="Debugger\RSO.cpp">
+      <Filter>Debugger</Filter>
+    </ClCompile>
     <ClCompile Include="DSP\Interpreter\DSPIntArithmetic.cpp">
       <Filter>DSPCore\Interpreter</Filter>
     </ClCompile>
@@ -793,7 +796,10 @@
     <ClCompile Include="IOS\Network\ICMPLin.cpp">
       <Filter>IOS\Network</Filter>
     </ClCompile>
-    <ClCompile Include="IOS\IPC.cpp">
+    <ClCompile Include="IOS\IOS.cpp">
+      <Filter>IOS</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\MemoryValues.cpp">
       <Filter>IOS</Filter>
     </ClCompile>
     <ClCompile Include="IOS\MIOS.cpp">
@@ -934,6 +940,9 @@
     <ClInclude Include="Debugger\PPCDebugInterface.h">
       <Filter>Debugger</Filter>
     </ClInclude>
+    <ClInclude Include="Debugger\RSO.h">
+      <Filter>Debugger</Filter>
+    </ClInclude>
     <ClInclude Include="DSP\Interpreter\DSPIntCCUtil.h">
       <Filter>DSPCore\Interpreter</Filter>
     </ClInclude>
@@ -956,9 +965,6 @@
       <Filter>FifoPlayer</Filter>
     </ClInclude>
     <ClInclude Include="FifoPlayer\FifoDataFile.h">
-      <Filter>FifoPlayer</Filter>
-    </ClInclude>
-    <ClInclude Include="FifoPlayer\FifoFileStruct.h">
       <Filter>FifoPlayer</Filter>
     </ClInclude>
     <ClInclude Include="FifoPlayer\FifoPlaybackAnalyzer.h">
@@ -1504,7 +1510,10 @@
     <ClInclude Include="IOS\Device.h">
       <Filter>IOS</Filter>
     </ClInclude>
-    <ClInclude Include="IOS\IPC.h">
+    <ClInclude Include="IOS\IOS.h">
+      <Filter>IOS</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\MemoryValues.h">
       <Filter>IOS</Filter>
     </ClInclude>
     <ClInclude Include="IOS\MIOS.h">

@@ -9,6 +9,7 @@
 #include <memory>
 #include <string>
 #include <strsafe.h>
+#include <tuple>
 #include <unordered_map>
 
 #include "Common/Align.h"
@@ -1121,11 +1122,6 @@ void Renderer::SetLogicOpMode()
   D3D::command_list_mgr->SetCommandListDirtyState(COMMAND_LIST_STATE_PSO, true);
 }
 
-void Renderer::SetDitherMode()
-{
-  // EXISTINGD3D11TODO: Set dither mode to bpmem.blendmode.dither
-}
-
 void Renderer::SetSamplerState(int stage, int tex_index, bool custom_tex)
 {
   const FourTexUnits& tex = bpmem.tex[tex_index];
@@ -1217,7 +1213,7 @@ void Renderer::BlitScreen(TargetRectangle src, TargetRectangle dst, D3DTexture2D
   if (g_ActiveConfig.iStereoMode == STEREO_SBS || g_ActiveConfig.iStereoMode == STEREO_TAB)
   {
     TargetRectangle left_rc, right_rc;
-    ConvertStereoRectangle(dst, left_rc, right_rc);
+    std::tie(left_rc, right_rc) = ConvertStereoRectangle(dst);
 
     // Swap chain backbuffer is never multisampled..
 

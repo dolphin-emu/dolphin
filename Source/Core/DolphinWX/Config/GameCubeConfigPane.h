@@ -7,12 +7,15 @@
 #include <wx/arrstr.h>
 #include <wx/panel.h>
 
-enum TEXIDevices : int;
-
 class wxButton;
 class wxCheckBox;
 class wxChoice;
 class wxString;
+
+namespace ExpansionInterface
+{
+enum TEXIDevices : int;
+}
 
 class GameCubeConfigPane final : public wxPanel
 {
@@ -35,7 +38,7 @@ private:
 
   void ChooseEXIDevice(const wxString& device_name, int device_id);
   void HandleEXISlotChange(int slot, const wxString& title);
-  void ChooseSlotPath(bool is_slot_a, TEXIDevices device_type);
+  void ChooseSlotPath(bool is_slot_a, ExpansionInterface::TEXIDevices device_type);
 
   wxArrayString m_ipl_language_strings;
 

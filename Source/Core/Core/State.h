@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <functional>
 #include <string>
 #include <vector>
 
@@ -61,6 +62,6 @@ void UndoLoadState();
 void Flush();
 
 // for calling back into UI code without introducing a dependency on it in core
-typedef void (*CallbackFunc)(void);
-void SetOnAfterLoadCallback(CallbackFunc callback);
+using AfterLoadCallbackFunc = std::function<void()>;
+void SetOnAfterLoadCallback(AfterLoadCallbackFunc callback);
 }

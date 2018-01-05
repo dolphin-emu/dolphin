@@ -4,26 +4,32 @@
 
 #pragma once
 
-#include <wx/bitmap.h>
-#include <wx/dcmemory.h>
+#include <array>
+
 #include <wx/dialog.h>
 #include <wx/sizer.h>
 
 #include "Common/CommonTypes.h"
-#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
-#include "InputCommon/GCPadStatus.h"
 
 class DolphinSlider;
+struct GCPadStatus;
+class wxBitmap;
 class wxCheckBox;
 class wxStaticBitmap;
 class wxTextCtrl;
 
+namespace WiimoteEmu
+{
+struct ReportFeatures;
+}
+
 class TASInputDlg : public wxDialog
 {
 public:
-  TASInputDlg(wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = _("TAS Input"),
-              const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize,
-              long style = wxDEFAULT_DIALOG_STYLE | wxSTAY_ON_TOP);
+  explicit TASInputDlg(wxWindow* parent, wxWindowID id = wxID_ANY,
+                       const wxString& title = _("TAS Input"),
+                       const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize,
+                       long style = wxDEFAULT_DIALOG_STYLE | wxSTAY_ON_TOP);
 
   void GetValues(GCPadStatus* PadStatus);
   void GetValues(u8* data, WiimoteEmu::ReportFeatures rptf, int ext, const wiimote_key key);
@@ -33,18 +39,18 @@ public:
   void CreateWiiLayout(int num);
 
 private:
-#if defined(_MSC_VER) && _MSC_VER <= 1800
-#define CONSTEXPR(datatype, name, value)                                                           \
-  enum name##_enum : datatype { name = value }
-#else
-#define CONSTEXPR(datatype, name, value) constexpr datatype name = value
-#endif
-  static CONSTEXPR(int, ID_C_STICK, 1001);
-  static CONSTEXPR(int, ID_MAIN_STICK, 1002);
-  static CONSTEXPR(int, ID_CC_L_STICK, 1003);
-  static CONSTEXPR(int, ID_CC_R_STICK, 1004);
+  enum : int
+  {
+    ID_C_STICK = 1001,
+    ID_MAIN_STICK = 1002,
+    ID_CC_L_STICK = 1003,
+    ID_CC_R_STICK = 1004
+  };
+
+  // Used in the context of creating controls on the fly
+  // This is greater than the last stick enum constant to
+  // prevent ID clashing in wx's event system.
   int m_eleID = 1005;
-#undef CONSTEXPR
 
   struct Control
   {
@@ -131,10 +137,10 @@ private:
 
   Stick m_cc_l_stick, m_cc_r_stick;
 
-  Button* m_buttons[13];
-  Button m_cc_buttons[15];
-  Control* m_controls[10];
-  Control* m_cc_controls[6];
+  std::array<Button*, 13> m_buttons;
+  std::array<Button, 15> m_cc_buttons;
+  std::array<Control*, 10> m_controls;
+  std::array<Control*, 6> m_cc_controls;
   u8 m_ext = 0;
   wxBoxSizer* m_main_szr;
   wxBoxSizer* m_wiimote_szr;

@@ -17,6 +17,8 @@
 
 class PointerWrap;
 
+namespace ExpansionInterface
+{
 // Network Control Register A
 enum NCRA
 {
@@ -338,3 +340,4 @@ public:
   Common::Flag readThreadShutdown;
 #endif
 };
+}  // namespace ExpansionInterface

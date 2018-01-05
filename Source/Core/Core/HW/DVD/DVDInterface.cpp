@@ -28,7 +28,7 @@
 #include "Core/HW/StreamADPCM.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/IOS/DI/DI.h"
-#include "Core/IOS/IPC.h"
+#include "Core/IOS/IOS.h"
 #include "Core/Movie.h"
 
 #include "DiscIO/Enums.h"
@@ -1136,7 +1136,7 @@ void FinishExecutingCommand(ReplyType reply_type, DIInterruptType interrupt_type
 
   case ReplyType::IOS:
   {
-    auto di = IOS::HLE::GetDeviceByName("/dev/di");
+    auto di = IOS::HLE::GetIOS()->GetDeviceByName("/dev/di");
     if (di)
       std::static_pointer_cast<IOS::HLE::Device::DI>(di)->FinishIOCtl(interrupt_type);
     break;

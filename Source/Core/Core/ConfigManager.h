@@ -32,7 +32,6 @@ class TMDReader;
 // DSP Backend Types
 #define BACKEND_NULLSOUND _trans("No audio output")
 #define BACKEND_ALSA "ALSA"
-#define BACKEND_AOSOUND "AOSound"
 #define BACKEND_COREAUDIO "CoreAudio"
 #define BACKEND_OPENAL "OpenAL"
 #define BACKEND_PULSEAUDIO "Pulse"
@@ -115,6 +114,8 @@ struct SConfig : NonCopyable
 
   bool bDPL2Decoder = false;
   int iLatency = 14;
+  bool m_audio_stretch = false;
+  int m_audio_stretch_max_latency = 80;
 
   bool bRunCompareServer = false;
   bool bRunCompareClient = false;
@@ -271,7 +272,7 @@ struct SConfig : NonCopyable
   std::string m_strMemoryCardB;
   std::string m_strGbaCartA;
   std::string m_strGbaCartB;
-  TEXIDevices m_EXIDevice[3];
+  ExpansionInterface::TEXIDevices m_EXIDevice[3];
   SerialInterface::SIDevices m_SIDevice[4];
   std::string m_bba_mac;
 
@@ -313,6 +314,7 @@ struct SConfig : NonCopyable
   // Game list column toggles
   bool m_showSystemColumn;
   bool m_showBannerColumn;
+  bool m_showTitleColumn;
   bool m_showMakerColumn;
   bool m_showFileNameColumn;
   bool m_showIDColumn;

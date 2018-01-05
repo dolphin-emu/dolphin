@@ -14,6 +14,8 @@
 #include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
 
+namespace ExpansionInterface
+{
 CEXIAgp::CEXIAgp(int index)
 {
   m_slot = index;
@@ -381,3 +383,4 @@ void CEXIAgp::DoState(PointerWrap& p)
   p.Do(m_rom_size);
   p.Do(m_rw_offset);
 }
+}  // namespace ExpansionInterface

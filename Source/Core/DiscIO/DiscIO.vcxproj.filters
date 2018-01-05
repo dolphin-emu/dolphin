@@ -33,6 +33,9 @@
     <ClCompile Include="NANDContentLoader.cpp">
       <Filter>NAND</Filter>
     </ClCompile>
+    <ClCompile Include="NANDImporter.cpp">
+      <Filter>NAND</Filter>
+    </ClCompile>
     <ClCompile Include="Blob.cpp">
       <Filter>Volume\Blob</Filter>
     </ClCompile>
@@ -92,6 +95,9 @@
     <ClInclude Include="NANDContentLoader.h">
       <Filter>NAND</Filter>
     </ClInclude>
+    <ClInclude Include="NANDImporter.h">
+      <Filter>NAND</Filter>
+    </ClInclude>
     <ClInclude Include="Blob.h">
       <Filter>Volume\Blob</Filter>
     </ClInclude>
@@ -131,9 +137,9 @@
     <ClInclude Include="Enums.h">
       <Filter>Volume</Filter>
     </ClInclude>
-    <ClCompile Include="TGCBlob.h">
+    <ClInclude Include="TGCBlob.h">
       <Filter>Volume\Blob</Filter>
-    </ClCompile>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

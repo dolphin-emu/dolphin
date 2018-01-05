@@ -3,7 +3,11 @@
 // Refer to the license.txt file included.
 
 #include <cstddef>
+#include <cstdlib>
+#include <fstream>
 #include <istream>
+#include <limits>
+#include <sstream>
 #include <string>
 #include <utility>
 #include <vector>
@@ -27,6 +31,7 @@
 #include "Core/Boot/Boot.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/Debugger/RSO.h"
 #include "Core/HLE/HLE.h"
 #include "Core/Host.h"
 #include "Core/PowerPC/JitInterface.h"
@@ -198,6 +203,35 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
     }
     // Update GUI
     NotifyMapLoaded();
+    break;
+  }
+  case IDM_SCAN_RSO:
+  {
+    wxTextEntryDialog dialog(this, _("Enter the RSO module address:"));
+    if (dialog.ShowModal() == wxID_OK)
+    {
+      unsigned long address;
+      if (dialog.GetValue().ToULong(&address, 0) && address <= std::numeric_limits<u32>::max())
+      {
+        RSOChainView rso_chain;
+        if (rso_chain.Load(static_cast<u32>(address)))
+        {
+          rso_chain.Apply(&g_symbolDB);
+          // Update GUI
+          NotifyMapLoaded();
+        }
+        else
+        {
+          Parent->StatusBarMessage("Failed to load RSO module at %s",
+                                   dialog.GetValue().ToStdString().c_str());
+        }
+      }
+      else
+      {
+        Parent->StatusBarMessage("Invalid RSO module address: %s",
+                                 dialog.GetValue().ToStdString().c_str());
+      }
+    }
     break;
   }
   case IDM_LOAD_MAP_FILE:

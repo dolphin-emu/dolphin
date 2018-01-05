@@ -3,7 +3,6 @@
 // Refer to the license.txt file included.
 
 #include "AudioCommon/AudioCommon.h"
-#include "AudioCommon/AOSoundStream.h"
 #include "AudioCommon/AlsaSoundStream.h"
 #include "AudioCommon/CoreAudioSoundStream.h"
 #include "AudioCommon/Mixer.h"
@@ -42,8 +41,6 @@ void InitSoundStream()
     else if (XAudio2_7::isValid())
       g_sound_stream = std::make_unique<XAudio2_7>();
   }
-  else if (backend == BACKEND_AOSOUND && AOSound::isValid())
-    g_sound_stream = std::make_unique<AOSound>();
   else if (backend == BACKEND_ALSA && AlsaSound::isValid())
     g_sound_stream = std::make_unique<AlsaSound>();
   else if (backend == BACKEND_COREAUDIO && CoreAudioSound::isValid())
@@ -60,8 +57,6 @@ void InitSoundStream()
     g_sound_stream = std::make_unique<NullSound>();
   }
 
-  UpdateSoundStream();
-
   if (!g_sound_stream->Start())
   {
     ERROR_LOG(AUDIO, "Could not start backend %s, using %s instead", backend.c_str(),
@@ -70,6 +65,8 @@ void InitSoundStream()
     g_sound_stream = std::make_unique<NullSound>();
     g_sound_stream->Start();
   }
+
+  UpdateSoundStream();
 
   if (SConfig::GetInstance().m_DumpAudio && !s_audio_dump_start)
     StartAudioDump();
@@ -115,8 +112,6 @@ std::vector<std::string> GetSoundBackends()
   backends.push_back(BACKEND_NULLSOUND);
   if (XAudio2_7::isValid() || XAudio2::isValid())
     backends.push_back(BACKEND_XAUDIO2);
-  if (AOSound::isValid())
-    backends.push_back(BACKEND_AOSOUND);
   if (AlsaSound::isValid())
     backends.push_back(BACKEND_ALSA);
   if (CoreAudioSound::isValid())

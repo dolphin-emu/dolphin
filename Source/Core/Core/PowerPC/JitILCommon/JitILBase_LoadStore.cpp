@@ -57,9 +57,8 @@ void JitILBase::lXz(UGeckoInstruction inst)
   // TODO: This really should be done somewhere else. Either lower in the IR
   // or higher in PPCAnalyst
   // TODO: We shouldn't use debug reads here.
-  if (SConfig::GetInstance().bSkipIdle && CPU::GetState() != CPU::CPU_STEPPING &&
-    inst.OPCD == 32 &&  // Lwx
-    (inst.hex & 0xFFFF0000) == 0x800D0000 &&
+  if (SConfig::GetInstance().bSkipIdle && !CPU::IsStepping() && inst.OPCD == 32 &&  // Lwx
+      (inst.hex & 0xFFFF0000) == 0x800D0000 &&
       (PowerPC::HostRead_U32(js.compilerPC + 4) == 0x28000000 ||
        (SConfig::GetInstance().bWii && PowerPC::HostRead_U32(js.compilerPC + 4) == 0x2C000000)) &&
       PowerPC::HostRead_U32(js.compilerPC + 8) == 0x4182fff8)

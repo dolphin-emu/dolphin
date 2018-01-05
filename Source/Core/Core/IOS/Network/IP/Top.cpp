@@ -61,7 +61,7 @@ namespace HLE
 {
 namespace Device
 {
-NetIPTop::NetIPTop(u32 device_id, const std::string& device_name) : Device(device_id, device_name)
+NetIPTop::NetIPTop(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
 {
 #ifdef _WIN32
   int ret = WSAStartup(MAKEWORD(2, 2), &InitData);
@@ -150,7 +150,7 @@ static s32 MapWiiSockOptNameToNative(u32 optname)
 
 IPCCommandResult NetIPTop::IOCtl(const IOCtlRequest& request)
 {
-  if (Core::g_want_determinism)
+  if (Core::WantsDeterminism())
   {
     return GetDefaultReply(IPC_EACCES);
   }
@@ -722,7 +722,7 @@ IPCCommandResult NetIPTop::HandleGetInterfaceOptRequest(const IOCtlVRequest& req
   {
     u32 address = 0;
 #ifdef _WIN32
-    if (!Core::g_want_determinism)
+    if (!Core::WantsDeterminism())
     {
       PIP_ADAPTER_ADDRESSES AdapterAddresses = nullptr;
       ULONG OutBufferLength = 0;

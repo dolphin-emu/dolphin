@@ -228,11 +228,15 @@ wxMenu* MainMenuBar::CreateToolsMenu() const
   tools_menu->Append(IDM_MEMCARD, _("&Memory Card Manager (GC)"));
   tools_menu->Append(IDM_IMPORT_SAVE, _("Import Wii Save..."));
   tools_menu->Append(IDM_EXPORT_ALL_SAVE, _("Export All Wii Saves"));
+  tools_menu->AppendSeparator();
   tools_menu->Append(IDM_CHEATS, _("&Cheat Manager"));
   tools_menu->Append(IDM_NETPLAY, _("Start &NetPlay..."));
+  tools_menu->Append(IDM_FIFOPLAYER, _("FIFO Player"));
+  tools_menu->AppendSeparator();
   tools_menu->Append(IDM_MENU_INSTALL_WAD, _("Install WAD..."));
   tools_menu->Append(IDM_LOAD_WII_MENU, dummy_string);
-  tools_menu->Append(IDM_FIFOPLAYER, _("FIFO Player"));
+  tools_menu->Append(IDM_IMPORT_NAND, _("Import BootMii NAND Backup..."));
+  tools_menu->Append(IDM_EXTRACT_CERTIFICATES, _("Extract Certificates from NAND"));
   tools_menu->AppendCheckItem(IDM_DEBUGGER, _("Debugger"));
   tools_menu->Enable(IDM_DEBUGGER, m_type != MenuType::Debug);
   tools_menu->Check(IDM_DEBUGGER, m_type == MenuType::Debug);
@@ -304,6 +308,8 @@ wxMenu* MainMenuBar::CreateViewMenu() const
   columns_menu->Check(IDM_SHOW_SYSTEM, config_instance.m_showSystemColumn);
   columns_menu->AppendCheckItem(IDM_SHOW_BANNER, _("Banner"));
   columns_menu->Check(IDM_SHOW_BANNER, config_instance.m_showBannerColumn);
+  columns_menu->AppendCheckItem(IDM_SHOW_TITLE, _("Title"));
+  columns_menu->Check(IDM_SHOW_TITLE, config_instance.m_showTitleColumn);
   columns_menu->AppendCheckItem(IDM_SHOW_MAKER, _("Maker"));
   columns_menu->Check(IDM_SHOW_MAKER, config_instance.m_showMakerColumn);
   columns_menu->AppendCheckItem(IDM_SHOW_FILENAME, _("File Name"));
@@ -451,6 +457,8 @@ wxMenu* MainMenuBar::CreateSymbolsMenu() const
       IDM_SCAN_SIGNATURES, _("&Signature Database"),
       _("Recognise standard functions from Sys/totaldb.dsy, and use generic zz_ "
         "names for other functions."));
+  generate_symbols_menu->Append(IDM_SCAN_RSO, _("&RSO Modules"),
+                                _("Find functions based on RSO modules (experimental)..."));
   symbols_menu->AppendSubMenu(generate_symbols_menu, _("&Generate Symbols From"));
   symbols_menu->AppendSeparator();
   symbols_menu->Append(IDM_LOAD_MAP_FILE, _("&Load Symbol Map"),
@@ -542,7 +550,7 @@ void MainMenuBar::RefreshMenuLabels() const
 {
   RefreshPlayMenuLabel();
   RefreshSaveStateMenuLabels();
-  RefreshWiiSystemMenuLabel();
+  RefreshWiiToolsLabels();
 }
 
 void MainMenuBar::RefreshPlayMenuLabel() const
@@ -571,6 +579,21 @@ void MainMenuBar::RefreshSaveStateMenuLabels() const
     FindItem(IDM_SELECT_SLOT_1 + i)
         ->SetItemLabel(wxString::Format(_("Select Slot %u - %s"), slot_number, slot_string));
   }
+}
+
+void MainMenuBar::RefreshWiiToolsLabels() const
+{
+  RefreshWiiSystemMenuLabel();
+
+  // The Install WAD option should not be enabled while emulation is running, because
+  // having unexpected title changes can confuse emulated software; and of course, this is
+  // not possible on a real Wii and won't be if we have IOS LLE (or simply more accurate IOS HLE).
+  //
+  // For similar reasons, it should not be possible to export or import saves, because this can
+  // result in the emulated software being confused, or even worse, exported saves having
+  // inconsistent data.
+  for (const int index : {IDM_MENU_INSTALL_WAD, IDM_EXPORT_ALL_SAVE, IDM_IMPORT_SAVE})
+    FindItem(index)->Enable(!Core::IsRunning() || !SConfig::GetInstance().bWii);
 }
 
 void MainMenuBar::RefreshWiiSystemMenuLabel() const

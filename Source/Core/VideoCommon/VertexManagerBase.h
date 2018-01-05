@@ -77,6 +77,8 @@ public:
 
   void DoState(PointerWrap& p);
 
+  std::pair<size_t, size_t> ResetFlushAspectRatioCount();
+
   int GetNumberOfVertices();
 
 protected:
@@ -105,6 +107,8 @@ protected:
 
 private:
   bool m_is_flushed = true;
+  size_t m_flush_count_4_3 = 0;
+  size_t m_flush_count_anamorphic = 0;
 
   virtual void vFlush() = 0;
 

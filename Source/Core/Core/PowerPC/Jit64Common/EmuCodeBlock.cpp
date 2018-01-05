@@ -89,27 +89,24 @@ FixupBranch EmuCodeBlock::CheckIfSafeAddress(const OpArg& reg_value, X64Reg reg_
   if (reg_value.IsSimpleReg())
     registers_in_use[reg_value.GetSimpleReg()] = true;
 
-  // Get ourselves a free register; try to pick one that doesn't involve pushing, if we can.
-  X64Reg scratch = RSCRATCH;
-  if (!registers_in_use[RSCRATCH])
-    scratch = RSCRATCH;
-  else if (!registers_in_use[RSCRATCH_EXTRA])
-    scratch = RSCRATCH_EXTRA;
-  else
-    scratch = reg_addr;
+  // Get ourselves two free registers
+  if (registers_in_use[RSCRATCH])
+    PUSH(RSCRATCH);
+  if (registers_in_use[RSCRATCH_EXTRA])
+    PUSH(RSCRATCH_EXTRA);
 
-  if (scratch == reg_addr)
-    PUSH(scratch);
-  else
-    MOV(32, R(scratch), R(reg_addr));
+  if (reg_addr != RSCRATCH_EXTRA)
+    MOV(32, R(RSCRATCH_EXTRA), R(reg_addr));
 
   // Perform lookup to see if we can use fast path.
-  SHR(32, R(scratch), Imm8(PowerPC::BAT_INDEX_SHIFT));
-  TEST(32, MScaled(scratch, SCALE_4, PtrOffset(&PowerPC::dbat_table[0])),
-       Imm32(PowerPC::BAT_PHYSICAL_BIT));
+  MOV(64, R(RSCRATCH), ImmPtr(&PowerPC::dbat_table[0]));
+  SHR(32, R(RSCRATCH_EXTRA), Imm8(PowerPC::BAT_INDEX_SHIFT));
+  TEST(32, MComplex(RSCRATCH, RSCRATCH_EXTRA, SCALE_4, 0), Imm32(PowerPC::BAT_PHYSICAL_BIT));
 
-  if (scratch == reg_addr)
-    POP(scratch);
+  if (registers_in_use[RSCRATCH_EXTRA])
+    POP(RSCRATCH_EXTRA);
+  if (registers_in_use[RSCRATCH])
+    POP(RSCRATCH);
 
   return J_CC(CC_Z, m_far_code.Enabled());
 }

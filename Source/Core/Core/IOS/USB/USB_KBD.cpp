@@ -39,7 +39,7 @@ USB_KBD::SMessageData::SMessageData(u32 type, u8 modifiers, u8* pressed_keys)
 
 // TODO: support in netplay/movies.
 
-USB_KBD::USB_KBD(u32 device_id, const std::string& device_name) : Device(device_id, device_name)
+USB_KBD::USB_KBD(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
 {
 }
 
@@ -71,7 +71,7 @@ IPCCommandResult USB_KBD::Write(const ReadWriteRequest& request)
 
 IPCCommandResult USB_KBD::IOCtl(const IOCtlRequest& request)
 {
-  if (SConfig::GetInstance().m_WiiKeyboard && !Core::g_want_determinism && !m_MessageQueue.empty())
+  if (SConfig::GetInstance().m_WiiKeyboard && !Core::WantsDeterminism() && !m_MessageQueue.empty())
   {
     Memory::CopyToEmu(request.buffer_out, &m_MessageQueue.front(), sizeof(SMessageData));
     m_MessageQueue.pop();
@@ -94,7 +94,7 @@ bool USB_KBD::IsKeyPressed(int _Key)
 
 void USB_KBD::Update()
 {
-  if (!SConfig::GetInstance().m_WiiKeyboard || Core::g_want_determinism || !m_is_active)
+  if (!SConfig::GetInstance().m_WiiKeyboard || Core::WantsDeterminism() || !m_is_active)
     return;
 
   u8 Modifiers = 0x00;

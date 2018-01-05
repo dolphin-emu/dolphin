@@ -21,7 +21,6 @@ option(ENABLE_LTO "Enables Link Time Optimization" OFF)
 option(ENABLE_GENERIC "Enables generic build that should run on any little-endian host" OFF)
 option(ENABLE_HEADLESS "Enables running Dolphin as a headless variant" OFF)
 option(ENABLE_ALSA "Enables ALSA sound backend" ON)
-option(ENABLE_AO "Enables libao sound backend" ON)
 option(ENABLE_PULSEAUDIO "Enables PulseAudio sound backend" ON)
 option(ENABLE_OPENAL "Enables OpenAL sound backend" ON)
 option(ENABLE_LLVM "Enables LLVM support, for disassembly" ON)
@@ -209,6 +208,13 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_L
   message(FATAL_ERROR "Dolphin requires at least GCC 5.0 (found ${CMAKE_CXX_COMPILER_VERSION})")
 endif()
 
+if(CMAKE_GENERATOR MATCHES "Ninja")
+  check_and_add_flag(DIAGNOSTICS_COLOR -fdiagnostics-color)
+elseif(CMAKE_GENERATOR MATCHES "Visual Studio")
+  # Only MSBuild needs this, other generators will compile one file at a time
+  add_compile_options("/MP")
+endif()
+
 if(CMAKE_C_COMPILER_ID MATCHES "MSVC")
   check_and_add_flag(EXCEPTIONS /EHsc)
   dolphin_compile_definitions(_DEBUG DEBUG_ONLY)
@@ -217,11 +223,6 @@ if(CMAKE_C_COMPILER_ID MATCHES "MSVC")
   string(APPEND CMAKE_EXE_LINKER_FLAGS " /BASE:0x00400000")
   string(APPEND CMAKE_EXE_LINKER_FLAGS " /DYNAMICBASE:NO")
   string(APPEND CMAKE_EXE_LINKER_FLAGS " /FIXED")
-
-  # Only MSBuild needs this, other generators will compile one file at a time
-  if(CMAKE_GENERATOR MATCHES "Visual Studio")
-    add_compile_options("/MP")
-  endif()
 else()
   add_definitions(-D_DEFAULT_SOURCE)
   check_and_add_flag(HAVE_WALL -Wall)
@@ -657,18 +658,11 @@ else()
 endif()
 
 find_package(OpenAL)
-if(OPENAL_FOUND)
-  if(NOT APPLE)
-    check_lib(SOUNDTOUCH soundtouch SoundTouch soundtouch/SoundTouch.h QUIET)
-  endif()
-  if (SOUNDTOUCH_FOUND)
-    message(STATUS "Using shared soundtouch")
-  else()
-    message(STATUS "Using static soundtouch from Externals")
-    add_subdirectory(Externals/soundtouch)
-    include_directories(Externals)
-  endif()
-endif()
+
+# Using static soundtouch from Externals
+# Unable to use system soundtouch library: We require shorts, not floats.
+add_subdirectory(Externals/soundtouch)
+include_directories(Externals)
 
 if(NOT ANDROID)
   add_definitions(-D__LIBUSB__)
@@ -803,79 +797,27 @@ if(NOT ANDROID)
 endif()
 
 if(NOT DISABLE_WX)
-  find_package(wxWidgets COMPONENTS core aui adv)
+  find_package(wxWidgets 3.1.0 COMPONENTS core aui adv)
 
   if(_ARCH_32)
     add_definitions(-DwxSIZE_T_IS_UINT)
   endif()
 
   if(wxWidgets_FOUND)
-    EXECUTE_PROCESS(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-      COMMAND sh "${wxWidgets_CONFIG_EXECUTABLE}"
-      ${wxWidgets_CONFIG_OPTIONS} --version
-      OUTPUT_VARIABLE wxWidgets_VERSION
-      OUTPUT_STRIP_TRAILING_WHITESPACE
-      ERROR_QUIET
-      )
-    message(STATUS "Found wxWidgets version ${wxWidgets_VERSION}")
-    set(wxMIN_VERSION "3.1.0")
-    if(${wxWidgets_VERSION} VERSION_LESS ${wxMIN_VERSION})
-      message(STATUS "At least ${wxMIN_VERSION} is required; ignoring found version")
-      unset(wxWidgets_FOUND)
-    endif()
-  endif()
-
-  if(UNIX AND NOT APPLE AND NOT HAIKU)
-    # There is a bug in the FindGTK module in cmake version 2.8.2 that
-    # does not find gdk-pixbuf-2.0.  On the other hand some 2.8.3
-    # users have complained that pkg-config does not find
-    # gdk-pixbuf-2.0.  On yet another hand, cmake version 2.8.3 in
-    # Ubuntu Natty does not find the glib libraries correctly.
-    # Ugly!!!
-    execute_process(COMMAND lsb_release -c -s
-        OUTPUT_VARIABLE DIST_NAME
-        ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
-    if(${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.${CMAKE_PATCH_VERSION}
-        VERSION_EQUAL 2.8.2 OR "${DIST_NAME}" STREQUAL "natty")
-      check_lib(GTK2 gtk+-2.0 gtk+-2.0 gtk.h REQUIRED)
-    else()
-      find_package(GTK2)
-      if(GTK2_FOUND)
-        include_directories(${GTK2_INCLUDE_DIRS})
-        list(APPEND LIBS ${GTK2_LIBRARIES})
-      else()
-        message(FATAL_ERROR "GTK is required to build the WX UI. Please install the GTK development libraries.")
-      endif()
-    endif()
-  endif()
-
-  if(wxWidgets_FOUND)
-    include(${wxWidgets_USE_FILE})
     message(STATUS "wxWidgets found, enabling GUI build")
+    if(NOT TARGET wxWidgets::wxWidgets)
+      add_library(wxWidgets::wxWidgets INTERFACE IMPORTED)
+      set_target_properties(wxWidgets::wxWidgets PROPERTIES
+        INTERFACE_LINK_LIBRARIES "${wxWidgets_LIBRARIES}"
+        INTERFACE_INCLUDE_DIRECTORIES "${wxWidgets_INCLUDE_DIRS}"
+        INTERFACE_COMPILE_DEFINITIONS "${wxWidgets_DEFINITIONS}"
+        INTERFACE_COMPILE_OPTIONS "${wxWidgets_CXX_FLAGS}"
+      )
+    endif()
   else()
     message(STATUS "Using static wxWidgets from Externals")
-
-    # These definitions and includes are used when building dolphin against wx,
-    # not when building wx itself (see wxw3 CMakeLists.txt for that)
-    if(APPLE)
-    elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux|FreeBSD")
-      # Check for required libs
-      check_lib(GTHREAD2 gthread-2.0 gthread-2.0 glib/gthread.h REQUIRED)
-      check_lib(PANGOCAIRO pangocairo pangocairo pango/pangocairo.h REQUIRED)
-      # On Linux "backtrace" is part of glibc. FreeBSD has a separate library.
-      # Required for wxUSE_STACKWALKER in Externals/wxWidgets3/wx/wxgtk.h
-      find_package(Backtrace REQUIRED)
-    elseif(WIN32)
-    else()
-      message(FATAL_ERROR "wxWidgets in Externals is not compatible with your platform")
-    endif()
-
-    include_directories(SYSTEM
-      Externals/wxWidgets3
-      Externals/wxWidgets3/include)
     add_subdirectory(Externals/wxWidgets3)
     set(wxWidgets_FOUND TRUE)
-    set(wxWidgets_LIBRARIES "wx")
   endif()
 endif()
 

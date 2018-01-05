@@ -33,6 +33,7 @@ set(SRCS
   Debugger/Debugger_SymbolMap.cpp
   Debugger/Dump.cpp
   Debugger/PPCDebugInterface.cpp
+  Debugger/RSO.cpp
   DSP/DSPAssembler.cpp
   DSP/DSPDisassembler.cpp
   DSP/DSPAccelerator.cpp
@@ -149,7 +150,8 @@ set(SRCS
   HW/WiiSaveCrypted.cpp
   IOS/Device.cpp
   IOS/DeviceStub.cpp
-  IOS/IPC.cpp
+  IOS/IOS.cpp
+  IOS/MemoryValues.cpp
   IOS/MIOS.cpp
   IOS/DI/DI.cpp
   IOS/ES/ES.cpp

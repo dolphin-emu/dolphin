@@ -30,16 +30,16 @@ public:
 #endif
     bool operator==(const TCacheEntryConfig& o) const
     {
-      return std::tie(width, height, levels, layers, rendertarget) ==
-             std::tie(o.width, o.height, o.levels, o.layers, o.rendertarget);
+      return std::tie(width, height, levels, layers, format, rendertarget) ==
+             std::tie(o.width, o.height, o.levels, o.layers, o.format, o.rendertarget);
     }
 
     struct Hasher : std::hash<u64>
     {
       size_t operator()(const TCacheEntryConfig& c) const
       {
-        u64 id = (u64)c.rendertarget << 63 | (u64)c.layers << 48 | (u64)c.levels << 32 |
-                 (u64)c.height << 16 | (u64)c.width;
+        u64 id = (u64)c.rendertarget << 63 | (u64)c.format << 50 | (u64)c.layers << 48 |
+                 (u64)c.levels << 32 | (u64)c.height << 16 | (u64)c.width;
         return std::hash<u64>::operator()(id);
       }
     };
@@ -48,6 +48,7 @@ public:
     u32 height = 0;
     u32 levels = 1;
     u32 layers = 1;
+    HostTextureFormat format = HostTextureFormat::RGBA8;
     bool rendertarget = false;
   };
 
@@ -132,7 +133,8 @@ public:
                                           const MathUtil::Rectangle<int>& srcrect,
                                           const MathUtil::Rectangle<int>& dstrect) = 0;
 
-    virtual void Load(const u8* buffer, u32 width, u32 height, u32 expanded_width, u32 level) = 0;
+    virtual void Load(u32 level, u32 width, u32 height, u32 row_length, const u8* buffer,
+                      size_t buffer_size) = 0;
     virtual void FromRenderTarget(bool is_depth_copy, const EFBRectangle& srcRect, bool scaleByHalf,
                                   unsigned int cbufid, const float* colmat) = 0;
 
@@ -147,6 +149,10 @@ public:
 
   virtual ~TextureCacheBase();  // needs virtual for DX11 dtor
 
+  // TODO: Move these to AbstractTexture once it is finished.
+  static bool IsCompressedHostTextureFormat(HostTextureFormat format);
+  static size_t CalculateHostTextureLevelPitch(HostTextureFormat format, u32 row_length);
+
   void OnConfigChanged(VideoConfig& config);
 
   // Removes textures which aren't used for more than TEXTURE_KILL_THRESHOLD frames,
@@ -157,9 +163,9 @@ public:
 
   virtual TCacheEntryBase* CreateTexture(const TCacheEntryConfig& config) = 0;
 
-  virtual void CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_row, u32 num_blocks_y,
-                       u32 memory_stride, bool is_depth_copy, const EFBRectangle& srcRect,
-                       bool isIntensity, bool scaleByHalf) = 0;
+  virtual void CopyEFB(u8* dst, const EFBCopyFormat& format, u32 native_width, u32 bytes_per_row,
+                       u32 num_blocks_y, u32 memory_stride, bool is_depth_copy,
+                       const EFBRectangle& src_rect, bool scale_by_half) = 0;
 
   virtual bool CompileShaders() = 0;
   virtual void DeleteShaders() = 0;
@@ -173,6 +179,23 @@ public:
 
   virtual void ConvertTexture(TCacheEntryBase* entry, TCacheEntryBase* unconverted, void* palette,
                               TlutFormat format) = 0;
+
+  // Returns true if the texture data and palette formats are supported by the GPU decoder.
+  virtual bool SupportsGPUTextureDecode(TextureFormat format, TlutFormat palette_format)
+  {
+    return false;
+  }
+
+  // Decodes the specified data to the GPU texture specified by entry.
+  // width, height are the size of the image in pixels.
+  // aligned_width, aligned_height are the size of the image in pixels, aligned to the block size.
+  // row_stride is the number of bytes for a row of blocks, not pixels.
+  virtual void DecodeTextureOnGPU(TCacheEntryBase* entry, u32 dst_level, const u8* data,
+                                  size_t data_size, TextureFormat format, u32 width, u32 height,
+                                  u32 aligned_width, u32 aligned_height, u32 row_stride,
+                                  const u8* palette, TlutFormat palette_format)
+  {
+  }
 
 protected:
   TextureCacheBase();
@@ -228,6 +251,7 @@ private:
     bool copy_cache_enable;
     bool stereo_3d;
     bool efb_mono_depth;
+    bool gpu_texture_decoding;
   };
   BackupConfig backup_config = {};
 };

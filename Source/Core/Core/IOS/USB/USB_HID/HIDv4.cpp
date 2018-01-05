@@ -23,8 +23,7 @@ namespace HLE
 {
 namespace Device
 {
-USB_HIDv4::USB_HIDv4(u32 device_id, const std::string& device_name)
-    : USBHost(device_id, device_name)
+USB_HIDv4::USB_HIDv4(Kernel& ios, const std::string& device_name) : USBHost(ios, device_name)
 {
 }
 
@@ -102,7 +101,7 @@ IPCCommandResult USB_HIDv4::Shutdown(const IOCtlRequest& request)
   if (m_devicechange_hook_request != 0)
   {
     Memory::Write_U32(0xffffffff, m_devicechange_hook_request->buffer_out);
-    EnqueueReply(*m_devicechange_hook_request, -1);
+    m_ios.EnqueueIPCReply(*m_devicechange_hook_request, -1);
     m_devicechange_hook_request.reset();
   }
   return GetDefaultReply(IPC_SUCCESS);
@@ -113,12 +112,12 @@ s32 USB_HIDv4::SubmitTransfer(USB::Device& device, const IOCtlRequest& request)
   switch (request.request)
   {
   case USB::IOCTL_USBV4_CTRLMSG:
-    return device.SubmitTransfer(std::make_unique<USB::V4CtrlMessage>(request));
+    return device.SubmitTransfer(std::make_unique<USB::V4CtrlMessage>(m_ios, request));
   case USB::IOCTL_USBV4_GET_US_STRING:
-    return device.SubmitTransfer(std::make_unique<USB::V4GetUSStringMessage>(request));
+    return device.SubmitTransfer(std::make_unique<USB::V4GetUSStringMessage>(m_ios, request));
   case USB::IOCTL_USBV4_INTRMSG_IN:
   case USB::IOCTL_USBV4_INTRMSG_OUT:
-    return device.SubmitTransfer(std::make_unique<USB::V4IntrMessage>(request));
+    return device.SubmitTransfer(std::make_unique<USB::V4IntrMessage>(m_ios, request));
   default:
     return IPC_EINVAL;
   }
@@ -204,7 +203,7 @@ void USB_HIDv4::TriggerDeviceChangeReply()
     Memory::Write_U32(0xffffffff, dest + offset);
   }
 
-  EnqueueReply(*m_devicechange_hook_request, IPC_SUCCESS, 0, CoreTiming::FromThread::ANY);
+  m_ios.EnqueueIPCReply(*m_devicechange_hook_request, IPC_SUCCESS, 0, CoreTiming::FromThread::ANY);
   m_devicechange_hook_request.reset();
 }
 

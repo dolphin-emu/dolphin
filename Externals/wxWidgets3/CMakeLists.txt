@@ -818,23 +818,20 @@ set(SRCS_UNIXGTK
 	"src/unix/uiactionx11.cpp"
 	"src/unix/utilsx11.cpp")
 
-include_directories(.)
-include_directories(include)
-
-set(SRCS
-	${SRCS_AUI}
-	${SRCS_COMMON}
-	${SRCS_GENERIC})
+add_library(wx STATIC ${SRCS_AUI} ${SRCS_COMMON} ${SRCS_GENERIC})
+target_include_directories(wx PUBLIC . include)
+target_compile_definitions(wx PRIVATE "WXBUILDING")
+# wxWidgets warnings are not our problem.
+target_compile_options(wx PRIVATE "-w")
 
 if(APPLE)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++98")
-	add_definitions(-D__WXOSX_COCOA__)
-	set(SRCS
-		${SRCS}
+        target_compile_definitions(wx PRIVATE "__WXOSX_COCOA__")
+        target_sources(wx PRIVATE 
 		${SRCS_GENERICOSX}
 		${SRCS_OSX}
-		${SRCS_UNIX})
-	set(LIBS
+		${SRCS_UNIX}
+        )
+        target_link_libraries(wx PRIVATE	
 		png
 		iconv
 		${APPKIT_LIBRARY}
@@ -847,23 +844,32 @@ if(APPLE)
 		${OPENGL_LIBRARY}
 	)
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux|FreeBSD")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
-	if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-		add_definitions(-D__LINUX__=1)
+        target_compile_options(wx PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:-std=gnu++11>")
+	if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+                target_compile_definitions(wx PRIVATE "__LINUX__=1")
 	else()
-		add_definitions(-D__BSD__=1)
+                target_compile_definitions(wx PRIVATE "__BSD__=1")
 	endif()
-	add_definitions(-D__WXGTK__)
-	set(SRCS
-		${SRCS}
+        target_compile_definitions(wx PRIVATE "__WXGTK__")
+        target_sources(wx PRIVATE 
 		${SRCS_GENERICGTK}
 		${SRCS_GTK}
 		${SRCS_UNIX}
-		${SRCS_UNIXGTK})
+		${SRCS_UNIXGTK}
+        )
 	if (NOT X11_xf86vmode_FOUND OR NOT X11_Xinerama_FOUND)
 		message(FATAL_ERROR "wxGTK2 needs Xinerama and Xxf86vm")
 	endif()
-	set(LIBS
+
+        find_package(GTK2 REQUIRED)
+        check_lib(GTHREAD2 gthread-2.0 gthread-2.0 glib/gthread.h REQUIRED)
+        check_lib(PANGOCAIRO pangocairo pangocairo pango/pangocairo.h REQUIRED)
+        # On Linux "backtrace" is part of glibc. FreeBSD has a separate library.
+        # Required for wxUSE_STACKWALKER in Externals/wxWidgets3/wx/wxgtk.h
+        find_package(Backtrace REQUIRED)
+
+        target_include_directories(wx PUBLIC ${GTK2_INCLUDE_DIRS})
+        target_link_libraries(wx PRIVATE
 		png
 		${GTHREAD2_LIBRARIES}
 		${PANGOCAIRO_LIBRARIES}
@@ -871,25 +877,22 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux|FreeBSD")
 		${Backtrace_LIBRARY}
 		${X11_X11_LIB}
 		${X11_Xxf86vm_LIB}
-		${X11_Xinerama_LIB})
-else()
-	add_definitions(-D__WXMSW__)
-	add_definitions(-DNOPCH)
+		${X11_Xinerama_LIB}
+        )
+elseif(WIN32)
 	remove_definitions(-DWIN32_LEAN_AND_MEAN)
-	set(SRCS
-		${SRCS}
+        target_compile_definitions(wx PRIVATE "__WXMSW__" "NOPCH")
+        target_sources(wx PRIVATE
 		${SRCS_GENERICMSW}
-		${SRCS_MSW})
-	set(LIBS
-	  Comctl32.lib
+		${SRCS_MSW}
+        )
+        target_link_libraries(wx PRIVATE
+	        Comctl32.lib
 		Rpcrt4.lib
 		${OPENGL_LIBRARIES}
 	)
+else()
+        message(FATAL_ERROR "wxWidgets in Externals is not compatible with your platform")
 endif()
 
-add_definitions(-DWXBUILDING)
-# wxWidgets warnings are not our problem.
-add_definitions(-w)
-
-add_library(wx STATIC ${PNG_SRCS} ${SRCS})
-target_link_libraries(wx ${LIBS})
+add_library(wxWidgets::wxWidgets ALIAS wx)

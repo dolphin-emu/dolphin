@@ -22,7 +22,7 @@ namespace Device
 class NetKDRequest : public Device
 {
 public:
-  NetKDRequest(u32 device_id, const std::string& device_name);
+  NetKDRequest(Kernel& ios, const std::string& device_name);
   ~NetKDRequest() override;
 
   IPCCommandResult IOCtl(const IOCtlRequest& request) override;

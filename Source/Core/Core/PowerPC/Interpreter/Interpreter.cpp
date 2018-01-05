@@ -102,7 +102,7 @@ static void Trace(UGeckoInstruction& inst)
 int Interpreter::SingleStepInner()
 {
   static UGeckoInstruction instCode;
-  u32 function = HLE::GetFunctionIndex(PC);
+  u32 function = HLE::GetFirstFunctionIndex(PC);
   if (function != 0)
   {
     int type = HLE::GetFunctionTypeByIndex(function);
@@ -205,7 +205,7 @@ void Interpreter::SingleStep()
   SingleStepInner();
 
   // The interpreter ignores instruction timing information outside the 'fast runloop'.
-  CoreTiming::g_slice_length = 1;
+  CoreTiming::g.slice_length = 1;
   PowerPC::ppcState.downcount = 0;
 
   if (PowerPC::ppcState.Exceptions)
@@ -226,7 +226,7 @@ int ShowSteps = 300;
 // FastRun - inspired by GCemu (to imitate the JIT so that they can be compared).
 void Interpreter::Run()
 {
-  while (!CPU::GetState())
+  while (CPU::GetState() == CPU::State::Running)
   {
     // CoreTiming Advance() ends the previous slice and declares the start of the next
     // one so it must always be called at the start. At boot, we are in slice -1 and must

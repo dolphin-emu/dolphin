@@ -4,6 +4,7 @@
 
 #include "DolphinWX/Frame.h"
 
+#include <algorithm>
 #include <atomic>
 #include <cstddef>
 #include <fstream>
@@ -48,8 +49,9 @@
 #include "Core/HW/GCKeyboard.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/Wiimote.h"
+#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HotkeyManager.h"
-#include "Core/IOS/IPC.h"
+#include "Core/IOS/IOS.h"
 #include "Core/IOS/USB/Bluetooth/BTBase.h"
 #include "Core/Movie.h"
 #include "Core/State.h"
@@ -65,6 +67,7 @@
 #include "DolphinWX/TASInputDlg.h"
 #include "DolphinWX/WxUtils.h"
 
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/GCPadStatus.h"
 
 #include "VideoCommon/OnScreenDisplay.h"
@@ -249,6 +252,7 @@ EVT_MENU_RANGE(IDM_FLOAT_LOG_WINDOW, IDM_FLOAT_CODE_WINDOW, CFrame::OnFloatWindo
 
 // Game list context menu
 EVT_MENU(IDM_LIST_INSTALL_WAD, CFrame::OnInstallWAD)
+EVT_MENU(IDM_LIST_UNINSTALL_WAD, CFrame::OnUninstallWAD)
 EVT_MENU(IDM_DEBUGGER, CFrame::OnDebugger)
 EVT_MENU(IDM_BRUTEFORCE0, CFrame::OnBruteForce)
 EVT_MENU(IDM_BRUTEFORCE1, CFrame::OnBruteForce)
@@ -332,8 +336,6 @@ CFrame::CFrame(wxFrame* parent, wxWindowID id, const wxString& title, wxRect geo
 {
   BindEvents();
 
-  m_main_config_dialog = new CConfigMain(this);
-
   for (int i = 0; i <= IDM_CODE_WINDOW - IDM_LOG_WINDOW; i++)
     bFloatWindow[i] = false;
 
@@ -403,14 +405,8 @@ CFrame::CFrame(wxFrame* parent, wxWindowID id, const wxString& title, wxRect geo
   m_LogWindow->Hide();
   m_LogWindow->Disable();
 
-  for (int i = 0; i < 8; ++i)
-    g_TASInputDlg[i] = new TASInputDlg(this);
-
-  Movie::SetGCInputManip(GCTASManipFunction);
-  Movie::SetWiiInputManip(WiiTASManipFunction);
-
-  State::SetOnAfterLoadCallback(OnAfterLoadCallback);
-  Core::SetOnStoppedCallback(OnStoppedCallback);
+  InitializeTASDialogs();
+  InitializeCoreCallbacks();
 
   // Setup perspectives
   if (g_pCodeWindow)
@@ -514,6 +510,35 @@ void CFrame::BindEvents()
   Bind(DOLPHIN_EVT_UPDATE_LOAD_WII_MENU_ITEM, &CFrame::OnUpdateLoadWiiMenuItem, this);
   Bind(DOLPHIN_EVT_BOOT_SOFTWARE, &CFrame::OnPlay, this);
   Bind(DOLPHIN_EVT_STOP_SOFTWARE, &CFrame::OnStop, this);
+}
+
+void CFrame::InitializeTASDialogs()
+{
+  std::generate(m_tas_input_dialogs.begin(), m_tas_input_dialogs.end(),
+                [this] { return new TASInputDlg{this}; });
+
+  Movie::SetGCInputManip([this](GCPadStatus* pad_status, int controller_id) {
+    m_tas_input_dialogs[controller_id]->GetValues(pad_status);
+  });
+
+  Movie::SetWiiInputManip([this](u8* data, WiimoteEmu::ReportFeatures rptf, int controller_id,
+                                 int ext, wiimote_key key) {
+    m_tas_input_dialogs[controller_id + 4]->GetValues(data, rptf, ext, key);
+  });
+}
+
+void CFrame::InitializeCoreCallbacks()
+{
+  // Warning: this gets called from the CPU thread, so we should
+  // only queue things to do on the proper thread
+  State::SetOnAfterLoadCallback([this] {
+    AddPendingEvent(wxCommandEvent{wxEVT_HOST_COMMAND, IDM_UPDATE_GUI});
+  });
+
+  // Warning: this gets called from the EmuThread
+  Core::SetOnStoppedCallback([this] {
+    AddPendingEvent(wxCommandEvent{wxEVT_HOST_COMMAND, IDM_STOPPED});
+  });
 }
 
 bool CFrame::RendererIsFullscreen()
@@ -1026,51 +1051,22 @@ static int GetMenuIDFromHotkey(unsigned int key)
   return -1;
 }
 
-void OnAfterLoadCallback()
-{
-  // warning: this gets called from the CPU thread, so we should only queue things to do on the
-  // proper thread
-  if (main_frame)
-  {
-    wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATE_GUI);
-    main_frame->GetEventHandler()->AddPendingEvent(event);
-  }
-}
-
-void OnStoppedCallback()
-{
-  // warning: this gets called from the EmuThread, so we should only queue things to do on the
-  // proper thread
-  if (main_frame)
-  {
-    wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_STOPPED);
-    main_frame->GetEventHandler()->AddPendingEvent(event);
-  }
-}
-
-void GCTASManipFunction(GCPadStatus* PadStatus, int controllerID)
-{
-  if (main_frame)
-    main_frame->g_TASInputDlg[controllerID]->GetValues(PadStatus);
-}
-
-void WiiTASManipFunction(u8* data, WiimoteEmu::ReportFeatures rptf, int controllerID, int ext,
-                         const wiimote_key key)
-{
-  if (main_frame)
-  {
-    main_frame->g_TASInputDlg[controllerID + 4]->GetValues(data, rptf, ext, key);
-  }
-}
-
 void CFrame::OnKeyDown(wxKeyEvent& event)
 {
-// On OS X, we claim all keyboard events while
-// emulation is running to avoid wxWidgets sounding
-// the system beep for unhandled key events when
-// receiving pad/Wiimote keypresses which take an
-// entirely different path through the HID subsystem.
-#ifndef __APPLE__
+#ifdef __APPLE__
+  // On OS X, we claim all keyboard events while
+  // emulation is running to avoid wxWidgets sounding
+  // the system beep for unhandled key events when
+  // receiving pad/Wiimote keypresses which take an
+  // entirely different path through the HID subsystem.
+  if (!m_bRendererHasFocus)
+  {
+    // We do however want to pass events on when the
+    // render window is out of focus: this allows use
+    // of the keyboard in the rest of the UI.
+    event.Skip();
+  }
+#else
   // On other platforms, we leave the key event alone
   // so it can be passed on to the windowing system.
   event.Skip();
@@ -1310,7 +1306,8 @@ void CFrame::ParseHotkeys()
 
   if (SConfig::GetInstance().m_bt_passthrough_enabled)
   {
-    auto device = IOS::HLE::GetDeviceByName("/dev/usb/oh1/57e/305");
+    const auto ios = IOS::HLE::GetIOS();
+    auto device = ios ? ios->GetDeviceByName("/dev/usb/oh1/57e/305") : nullptr;
     if (device != nullptr)
       std::static_pointer_cast<IOS::HLE::Device::BluetoothBase>(device)->UpdateSyncButtonState(
           IsHotkey(HK_TRIGGER_SYNC_BUTTON, true));

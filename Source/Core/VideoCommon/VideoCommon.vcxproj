@@ -72,6 +72,7 @@
     <ClCompile Include="FPSCounter.cpp" />
     <ClCompile Include="FramebufferManagerBase.cpp" />
     <ClCompile Include="HiresTextures.cpp" />
+    <ClCompile Include="HiresTextures_DDSLoader.cpp" />
     <ClCompile Include="ImageWrite.cpp" />
     <ClCompile Include="IndexGenerator.cpp" />
     <ClCompile Include="MainBase.cpp" />

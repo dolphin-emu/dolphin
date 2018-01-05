@@ -105,9 +105,6 @@
     <ClInclude Include="TextureCache.h">
       <Filter>Render</Filter>
     </ClInclude>
-    <ClInclude Include="TextureEncoder.h">
-      <Filter>Render</Filter>
-    </ClInclude>
     <ClInclude Include="VertexManager.h">
       <Filter>Render</Filter>
     </ClInclude>

@@ -21,7 +21,7 @@
 #include "Core/HW/SystemTimers.h"
 #include "Core/HW/VideoInterface.h"
 #include "Core/HW/WII_IPC.h"
-#include "Core/IOS/IPC.h"
+#include "Core/IOS/IOS.h"
 #include "Core/Movie.h"
 #include "Core/State.h"
 #include "Core/WiiRoot.h"
@@ -50,7 +50,7 @@ void Init()
 
   if (SConfig::GetInstance().bWii)
   {
-    Core::InitializeWiiRoot(Core::g_want_determinism);
+    Core::InitializeWiiRoot(Core::WantsDeterminism());
     IOS::Init();
     IOS::HLE::Init();  // Depends on Memory
   }
@@ -102,7 +102,7 @@ void DoState(PointerWrap& p)
   {
     IOS::DoState(p);
     p.DoMarker("IOS");
-    IOS::HLE::DoState(p);
+    IOS::HLE::GetIOS()->DoState(p);
     p.DoMarker("IOS::HLE");
   }
 

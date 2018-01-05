@@ -24,7 +24,7 @@ namespace HLE
 {
 namespace Device
 {
-DI::DI(u32 device_id, const std::string& device_name) : Device(device_id, device_name)
+DI::DI(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
 {
 }
 
@@ -76,7 +76,7 @@ void DI::FinishIOCtl(DVDInterface::DIInterruptType interrupt_type)
   // This command has been executed, so it's removed from the queue
   u32 command_address = m_commands_to_execute.front();
   m_commands_to_execute.pop_front();
-  EnqueueReply(IOCtlRequest{command_address}, interrupt_type);
+  m_ios.EnqueueIPCReply(IOCtlRequest{command_address}, interrupt_type);
 
   // DVDInterface is now ready to execute another command,
   // so we start executing a command from the queue if there is one

@@ -2,7 +2,6 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <cmath>
 #include <cstring>
 
 #include "Common/Assert.h"
@@ -38,6 +37,8 @@ VertexShaderUid GetVertexShaderUid()
   uid_data->numTexGens = xfmem.numTexGen.numTexGens;
   uid_data->components = VertexLoaderManager::g_current_components;
   uid_data->pixel_lighting = g_ActiveConfig.bEnablePixelLighting;
+  uid_data->vertex_rounding =
+      g_ActiveConfig.bVertexRounding && g_ActiveConfig.iEFBScale != SCALE_1X;
   uid_data->msaa = g_ActiveConfig.iMultisamples > 1;
   uid_data->ssaa = g_ActiveConfig.iMultisamples > 1 && g_ActiveConfig.bSSAA;
   uid_data->numColorChans = xfmem.numChan.numColorChans;
@@ -474,6 +475,29 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const vertex_shader_uid_da
   // Hence, we compensate for this pixel center difference so that primitives
   // get rasterized correctly.
   out.Write("o.pos.xy = o.pos.xy - o.pos.w * " I_PIXELCENTERCORRECTION ".xy;\n");
+
+  if (uid_data->vertex_rounding)
+  {
+    // By now our position is in clip space
+    // however, higher resolutions than the Wii outputs
+    // cause an additional pixel offset
+    // due to a higher pixel density
+    // we need to correct this by converting our
+    // clip-space position into the Wii's screen-space
+    // acquire the right pixel and then convert it back
+    out.Write("if (o.pos.w == 1.0f)\n");
+    out.Write("{\n");
+
+    out.Write("\tfloat ss_pixel_x = ((o.pos.x + 1.0f) * (" I_VIEWPORT_SIZE ".x * 0.5f));\n");
+    out.Write("\tfloat ss_pixel_y = ((o.pos.y + 1.0f) * (" I_VIEWPORT_SIZE ".y * 0.5f));\n");
+
+    out.Write("\tss_pixel_x = round(ss_pixel_x);\n");
+    out.Write("\tss_pixel_y = round(ss_pixel_y);\n");
+
+    out.Write("\to.pos.x = ((ss_pixel_x / (" I_VIEWPORT_SIZE ".x * 0.5f)) - 1.0f);\n");
+    out.Write("\to.pos.y = ((ss_pixel_y / (" I_VIEWPORT_SIZE ".y * 0.5f)) - 1.0f);\n");
+    out.Write("}\n");
+  }
 
   if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
   {

@@ -4,6 +4,8 @@
 
 #include "Core/HW/SI/SI_DeviceGCSteeringWheel.h"
 
+#include <cstring>
+
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Core/HW/GCPad.h"
@@ -28,15 +30,14 @@ int CSIDevice_GCSteeringWheel::RunBuffer(u8* buffer, int length)
   {
   case CMD_RESET:
   case CMD_ID:
-    *(u32*)&buffer[0] = SI_GC_STEERING;
-    break;
-
-  // DEFAULT
-  default:
   {
-    return CSIDevice_GCController::RunBuffer(buffer, length);
+    constexpr u32 id = SI_GC_STEERING;
+    std::memcpy(buffer, &id, sizeof(id));
+    break;
   }
-  break;
+
+  default:
+    return CSIDevice_GCController::RunBuffer(buffer, length);
   }
 
   return length;

@@ -27,7 +27,7 @@ namespace HLE
 {
 namespace Device
 {
-USBHost::USBHost(u32 device_id, const std::string& device_name) : Device(device_id, device_name)
+USBHost::USBHost(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
 {
 #ifdef __LIBUSB__
   const int ret = libusb_init(&m_libusb_context);
@@ -107,7 +107,7 @@ bool USBHost::ShouldAddDevice(const USB::Device& device) const
 // This is called from the scan thread. Returns false if we failed to update the device list.
 bool USBHost::UpdateDevices(const bool always_add_hooks)
 {
-  if (Core::g_want_determinism)
+  if (Core::WantsDeterminism())
     return true;
 
   DeviceChangeHooks hooks;
@@ -150,7 +150,7 @@ bool USBHost::AddNewDevices(std::set<u64>& new_devices, DeviceChangeHooks& hooks
         continue;
       }
 
-      auto usb_device = std::make_unique<USB::LibusbDevice>(device, descriptor);
+      auto usb_device = std::make_unique<USB::LibusbDevice>(m_ios, device, descriptor);
       if (!ShouldAddDevice(*usb_device))
       {
         libusb_unref_device(device);
@@ -201,7 +201,7 @@ void USBHost::DispatchHooks(const DeviceChangeHooks& hooks)
 
 void USBHost::StartThreads()
 {
-  if (Core::g_want_determinism)
+  if (Core::WantsDeterminism())
     return;
 
   if (!m_scan_thread_running.IsSet())

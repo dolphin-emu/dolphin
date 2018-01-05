@@ -185,6 +185,11 @@ RasterFont::~RasterFont()
     vkDestroyShaderModule(g_vulkan_context->GetDevice(), m_fragment_shader, nullptr);
 }
 
+const Texture2D* RasterFont::GetTexture() const
+{
+  return m_texture.get();
+}
+
 bool RasterFont::Initialize()
 {
   // Create shaders and texture
@@ -405,11 +410,10 @@ void RasterFont::PrintMultiLineText(VkRenderPass render_pass, const std::string&
   draw.SetPSSampler(0, m_texture->GetView(), g_object_cache->GetLinearSampler());
 
   // Setup alpha blending
-  BlendState blend_state = Util::GetNoBlendingBlendState();
-  blend_state.blend_enable = VK_TRUE;
-  blend_state.src_blend = VK_BLEND_FACTOR_SRC_ALPHA;
-  blend_state.blend_op = VK_BLEND_OP_ADD;
-  blend_state.dst_blend = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+  BlendingState blend_state = Util::GetNoBlendingBlendState();
+  blend_state.blendenable = true;
+  blend_state.srcfactor = BlendMode::SRCALPHA;
+  blend_state.dstfactor = BlendMode::INVSRCALPHA;
   draw.SetBlendState(blend_state);
 
   draw.Draw();

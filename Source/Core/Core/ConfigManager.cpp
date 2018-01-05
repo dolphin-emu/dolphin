@@ -476,6 +476,7 @@ void SConfig::SaveGameListSettings(IniFile& ini)
 
   gamelist->Set("ColumnPlatform", m_showSystemColumn);
   gamelist->Set("ColumnBanner", m_showBannerColumn);
+  gamelist->Set("ColumnTitle", m_showTitleColumn);
   gamelist->Set("ColumnNotes", m_showMakerColumn);
   gamelist->Set("ColumnFileName", m_showFileNameColumn);
   gamelist->Set("ColumnID", m_showIDColumn);
@@ -511,6 +512,8 @@ void SConfig::SaveCoreSettings(IniFile& ini)
   core->Set("OverrideGCLang", bOverrideGCLanguage);
   core->Set("DPL2Decoder", bDPL2Decoder);
   core->Set("Latency", iLatency);
+  core->Set("AudioStretch", m_audio_stretch);
+  core->Set("AudioStretchMaxLatency", m_audio_stretch_max_latency);
   core->Set("MemcardAPath", m_strMemoryCardA);
   core->Set("MemcardBPath", m_strMemoryCardB);
   core->Set("AgpCartAPath", m_strGbaCartA);
@@ -880,6 +883,7 @@ void SConfig::LoadGameListSettings(IniFile& ini)
   // Gamelist columns toggles
   gamelist->Get("ColumnPlatform", &m_showSystemColumn, true);
   gamelist->Get("ColumnBanner", &m_showBannerColumn, true);
+  gamelist->Get("ColumnTitle", &m_showTitleColumn, true);
   gamelist->Get("ColumnNotes", &m_showMakerColumn, true);
   gamelist->Get("ColumnFileName", &m_showFileNameColumn, false);
   gamelist->Get("ColumnID", &m_showIDColumn, false);
@@ -915,13 +919,15 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("OverrideGCLang", &bOverrideGCLanguage, false);
   core->Get("DPL2Decoder", &bDPL2Decoder, false);
   core->Get("Latency", &iLatency, 2);
+  core->Get("AudioStretch", &m_audio_stretch, false);
+  core->Get("AudioStretchMaxLatency", &m_audio_stretch_max_latency, 80);
   core->Get("MemcardAPath", &m_strMemoryCardA);
   core->Get("MemcardBPath", &m_strMemoryCardB);
   core->Get("AgpCartAPath", &m_strGbaCartA);
   core->Get("AgpCartBPath", &m_strGbaCartB);
-  core->Get("SlotA", (int*)&m_EXIDevice[0], EXIDEVICE_MEMORYCARD);
-  core->Get("SlotB", (int*)&m_EXIDevice[1], EXIDEVICE_NONE);
-  core->Get("SerialPort1", (int*)&m_EXIDevice[2], EXIDEVICE_NONE);
+  core->Get("SlotA", (int*)&m_EXIDevice[0], ExpansionInterface::EXIDEVICE_MEMORYCARD);
+  core->Get("SlotB", (int*)&m_EXIDevice[1], ExpansionInterface::EXIDEVICE_NONE);
+  core->Get("SerialPort1", (int*)&m_EXIDevice[2], ExpansionInterface::EXIDEVICE_NONE);
   core->Get("BBA_MAC", &m_bba_mac);
   core->Get("TimeProfiling", &bJITILTimeProfiling, false);
   core->Get("OutputIR", &bJITILOutputIR, false);
@@ -1142,10 +1148,8 @@ void SConfig::SetRunningGameMetadata(const std::string& game_id, u64 title_id, u
       // TODO: have a callback mechanism for title changes?
       g_symbolDB.Clear();
       CBoot::LoadMapFromFilename();
-      HLE::Clear();
-      HLE::PatchFunctions();
-      PatchEngine::Shutdown();
-      PatchEngine::LoadPatches();
+      HLE::Reload();
+      PatchEngine::Reload();
       HiresTexture::Update();
     }
   }
@@ -1164,7 +1168,7 @@ void SConfig::LoadDefaults()
 #endif
 #endif
 
-  iCPUCore = PowerPC::CORE_JIT64;
+  iCPUCore = PowerPC::DefaultCPUCore();
   iTimingVariance = 40;
   bCPUThread = false;
   bSkipIdle = false;
@@ -1187,6 +1191,8 @@ void SConfig::LoadDefaults()
   bWii = false;
   bDPL2Decoder = false;
   iLatency = 14;
+  m_audio_stretch = false;
+  m_audio_stretch_max_latency = 80;
 
   iPosX = INT_MIN;
   iPosY = INT_MIN;

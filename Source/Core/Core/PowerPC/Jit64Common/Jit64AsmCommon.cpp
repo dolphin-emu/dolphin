@@ -28,10 +28,12 @@ void CommonAsmRoutines::GenFifoWrite(int size)
   const void* start = GetCodePtr();
 
   // Assume value in RSCRATCH
-  MOV(32, R(RSCRATCH2), M(&GPFifo::m_gatherPipeCount));
-  SwapAndStore(size, MDisp(RSCRATCH2, PtrOffset(GPFifo::m_gatherPipe)), RSCRATCH);
-  ADD(32, R(RSCRATCH2), Imm8(size >> 3));
-  MOV(32, M(&GPFifo::m_gatherPipeCount), R(RSCRATCH2));
+  MOV(64, R(RSCRATCH2), ImmPtr(&GPFifo::g_gather_pipe_ptr));
+  MOV(64, R(RSCRATCH2), MatR(RSCRATCH2));
+  SwapAndStore(size, MatR(RSCRATCH2), RSCRATCH);
+  MOV(64, R(RSCRATCH), ImmPtr(&GPFifo::g_gather_pipe_ptr));
+  ADD(64, R(RSCRATCH2), Imm8(size >> 3));
+  MOV(64, MatR(RSCRATCH), R(RSCRATCH2));
   RET();
 
   JitRegister::Register(start, GetCodePtr(), "JIT_FifoWrite_%i", size);
@@ -69,13 +71,20 @@ void CommonAsmRoutines::GenFrsqrte()
   AND(32, R(RSCRATCH_EXTRA), Imm8(0x1F));
   XOR(32, R(RSCRATCH_EXTRA), Imm8(0x10));  // int index = i / 2048 + (odd_exponent ? 16 : 0);
 
+  PUSH(RSCRATCH2);
+  MOV(64, R(RSCRATCH2), ImmPtr(GetConstantFromPool(MathUtil::frsqrte_expected)));
+  static_assert(sizeof(MathUtil::BaseAndDec) == 8, "Unable to use SCALE_8; incorrect size");
+
   SHR(64, R(RSCRATCH), Imm8(37));
   AND(32, R(RSCRATCH), Imm32(0x7FF));
-  IMUL(32, RSCRATCH, MScaled(RSCRATCH_EXTRA, SCALE_4, PtrOffset(MathUtil::frsqrte_expected_dec)));
+  IMUL(32, RSCRATCH,
+       MComplex(RSCRATCH2, RSCRATCH_EXTRA, SCALE_8, offsetof(MathUtil::BaseAndDec, m_dec)));
   MOV(32, R(RSCRATCH_EXTRA),
-      MScaled(RSCRATCH_EXTRA, SCALE_4, PtrOffset(MathUtil::frsqrte_expected_base)));
+      MComplex(RSCRATCH2, RSCRATCH_EXTRA, SCALE_8, offsetof(MathUtil::BaseAndDec, m_base)));
   SUB(32, R(RSCRATCH_EXTRA), R(RSCRATCH));
   SHL(64, R(RSCRATCH_EXTRA), Imm8(26));
+
+  POP(RSCRATCH2);
   OR(64, R(RSCRATCH2), R(RSCRATCH_EXTRA));  // vali |= (s64)(frsqrte_expected_base[index] -
                                             // frsqrte_expected_dec[index] * (i % 2048)) << 26;
   MOVQ_xmm(XMM0, R(RSCRATCH2));
@@ -140,13 +149,22 @@ void CommonAsmRoutines::GenFres()
   AND(32, R(RSCRATCH), Imm32(0x3FF));  // i % 1024
   AND(32, R(RSCRATCH2), Imm8(0x1F));   // i / 1024
 
-  IMUL(32, RSCRATCH, MScaled(RSCRATCH2, SCALE_4, PtrOffset(MathUtil::fres_expected_dec)));
+  PUSH(RSCRATCH_EXTRA);
+  MOV(64, R(RSCRATCH_EXTRA), ImmPtr(GetConstantFromPool(MathUtil::fres_expected)));
+  static_assert(sizeof(MathUtil::BaseAndDec) == 8, "Unable to use SCALE_8; incorrect size");
+
+  IMUL(32, RSCRATCH,
+       MComplex(RSCRATCH_EXTRA, RSCRATCH2, SCALE_8, offsetof(MathUtil::BaseAndDec, m_dec)));
   ADD(32, R(RSCRATCH), Imm8(1));
   SHR(32, R(RSCRATCH), Imm8(1));
 
-  MOV(32, R(RSCRATCH2), MScaled(RSCRATCH2, SCALE_4, PtrOffset(MathUtil::fres_expected_base)));
+  MOV(32, R(RSCRATCH2),
+      MComplex(RSCRATCH_EXTRA, RSCRATCH2, SCALE_8, offsetof(MathUtil::BaseAndDec, m_base)));
   SUB(32, R(RSCRATCH2), R(RSCRATCH));
   SHL(64, R(RSCRATCH2), Imm8(29));
+
+  POP(RSCRATCH_EXTRA);
+
   OR(64, R(RSCRATCH2), R(RSCRATCH_EXTRA));  // vali |= (s64)(fres_expected_base[i / 1024] -
                                             // (fres_expected_dec[i / 1024] * (i % 1024) + 1) / 2)
                                             // << 29
@@ -231,7 +249,8 @@ constexpr std::array<u8, 8> sizes{{32, 0, 0, 0, 8, 16, 8, 16}};
 
 void CommonAsmRoutines::GenQuantizedStores()
 {
-  pairedStoreQuantized = reinterpret_cast<const u8**>(const_cast<u8*>(AlignCode16()));
+  // Aligned to 256 bytes as least significant byte needs to be zero (See: Jit64::psq_stXX).
+  pairedStoreQuantized = reinterpret_cast<const u8**>(const_cast<u8*>(AlignCodeTo(256)));
   ReserveCodeSpace(8 * sizeof(u8*));
 
   for (int type = 0; type < 8; type++)
@@ -241,7 +260,8 @@ void CommonAsmRoutines::GenQuantizedStores()
 // See comment in header for in/outs.
 void CommonAsmRoutines::GenQuantizedSingleStores()
 {
-  singleStoreQuantized = reinterpret_cast<const u8**>(const_cast<u8*>(AlignCode16()));
+  // Aligned to 256 bytes as least significant byte needs to be zero (See: Jit64::psq_stXX).
+  singleStoreQuantized = reinterpret_cast<const u8**>(const_cast<u8*>(AlignCodeTo(256)));
   ReserveCodeSpace(8 * sizeof(u8*));
 
   for (int type = 0; type < 8; type++)
@@ -261,13 +281,22 @@ const u8* CommonAsmRoutines::GenQuantizedStoreRuntime(bool single, EQuantizeType
 
 void CommonAsmRoutines::GenQuantizedLoads()
 {
-  pairedLoadQuantized = reinterpret_cast<const u8**>(const_cast<u8*>(AlignCode16()));
-  ReserveCodeSpace(16 * sizeof(u8*));
+  // Aligned to 256 bytes as least significant byte needs to be zero (See: Jit64::psq_lXX).
+  pairedLoadQuantized = reinterpret_cast<const u8**>(const_cast<u8*>(AlignCodeTo(256)));
+  ReserveCodeSpace(8 * sizeof(u8*));
 
   for (int type = 0; type < 8; type++)
     pairedLoadQuantized[type] = GenQuantizedLoadRuntime(false, static_cast<EQuantizeType>(type));
+}
+
+void CommonAsmRoutines::GenQuantizedSingleLoads()
+{
+  // Aligned to 256 bytes as least significant byte needs to be zero (See: Jit64::psq_lXX).
+  singleLoadQuantized = reinterpret_cast<const u8**>(const_cast<u8*>(AlignCodeTo(256)));
+  ReserveCodeSpace(8 * sizeof(u8*));
+
   for (int type = 0; type < 8; type++)
-    pairedLoadQuantized[type + 8] = GenQuantizedLoadRuntime(true, static_cast<EQuantizeType>(type));
+    singleLoadQuantized[type] = GenQuantizedLoadRuntime(true, static_cast<EQuantizeType>(type));
 }
 
 const u8* CommonAsmRoutines::GenQuantizedLoadRuntime(bool single, EQuantizeType type)

@@ -121,7 +121,8 @@
     <string name="wiimote_scanning_description">Leave this on if you are using a DolphinBar for real Wiimote support.</string>
     <string name="wiimote_speaker">Wii Remote Speaker</string>
     <string name="wiimote_speaker_description">Enable sound output through the speaker on a real Wiimote (DolphinBar required).</string>
-
+    <string name="audio_stretch">Audio Stretching</string>
+    <string name="audio_stretch_description">Stretches audio to reduce stuttering. Increases latency.</string>
 
     <!-- Video Preference Fragment -->
     <string name="video_backend">Video Backend</string>
@@ -168,6 +169,8 @@
     <string name="texture_cache">Texture Cache</string>
     <string name="texture_cache_accuracy">Texture Cache Accuracy</string>
     <string name="texture_cache_accuracy_descrip">The safer the selection, the less likely the emulator will be missing any texture updates from RAM.</string>
+    <string name="gpu_texture_decoding">GPU Texture Decoding</string>
+    <string name="gpu_texture_decoding_descrip">Decodes textures on the GPU using compute shaders where supported. May improve performance in some scenarios.</string>
     <string name="external_frame_buffer">External Frame Buffer</string>
     <string name="external_frame_buffer_descrip">Determines how the XFB will be emulated.</string>
     <string name="disable_destination_alpha">Disable Destination Alpha</string>

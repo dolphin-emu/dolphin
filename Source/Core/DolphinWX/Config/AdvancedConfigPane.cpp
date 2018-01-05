@@ -224,7 +224,7 @@ void AdvancedConfigPane::OnUpdateCPUClockControls(wxUpdateUIEvent& event)
     return;
   }
 
-  event.Enable(!Core::g_want_determinism);
+  event.Enable(!Core::WantsDeterminism());
 }
 
 void AdvancedConfigPane::OnUpdateRTCDateTimeEntries(wxUpdateUIEvent& event)

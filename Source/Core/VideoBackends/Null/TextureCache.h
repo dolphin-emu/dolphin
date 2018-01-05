@@ -20,9 +20,9 @@ public:
   {
   }
 
-  void CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_row, u32 num_blocks_y,
-               u32 memory_stride, bool is_depth_copy, const EFBRectangle& src_rect,
-               bool is_intensity, bool scale_by_half) override
+  void CopyEFB(u8* dst, const EFBCopyFormat& format, u32 native_width, u32 bytes_per_row,
+               u32 num_blocks_y, u32 memory_stride, bool is_depth_copy,
+               const EFBRectangle& src_rect, bool scale_by_half) override
   {
   }
 
@@ -31,7 +31,10 @@ private:
   {
     TCacheEntry(const TCacheEntryConfig& _config) : TCacheEntryBase(_config) {}
     ~TCacheEntry() {}
-    void Load(const u8* buffer, u32 width, u32 height, u32 expanded_width, u32 level) override {}
+    void Load(u32 level, u32 width, u32 height, u32 row_length, const u8* buffer,
+              size_t buffer_size) override
+    {
+    }
     void FromRenderTarget(bool is_depth_copy, const EFBRectangle& src_rect, bool scale_by_half,
                           unsigned int cbufid, const float* colmat) override
     {

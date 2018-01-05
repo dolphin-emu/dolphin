@@ -20,6 +20,8 @@
 
 #include <portaudio.h>
 
+namespace ExpansionInterface
+{
 void CEXIMic::StreamLog(const char* msg)
 {
   INFO_LOG(EXPANSIONINTERFACE, "%s: %s", msg, Pa_GetErrorText(pa_error));
@@ -268,4 +270,5 @@ void CEXIMic::TransferByte(u8& byte)
 
   m_position++;
 }
+}  // namespace ExpansionInterface
 #endif

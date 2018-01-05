@@ -151,7 +151,6 @@
     <ClCompile Include="PostProcessingConfigDiag.cpp" />
     <ClCompile Include="ControllerConfigDiag.cpp" />
     <ClCompile Include="WxEventUtils.cpp" />
-    <ClCompile Include="WXInputBase.cpp" />
     <ClCompile Include="WxUtils.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -231,7 +230,6 @@
     <ClInclude Include="PostProcessingConfigDiag.h" />
     <ClInclude Include="ControllerConfigDiag.h" />
     <ClInclude Include="WxEventUtils.h" />
-    <ClInclude Include="WXInputBase.h" />
     <ClInclude Include="WxUtils.h" />
   </ItemGroup>
   <ItemGroup>

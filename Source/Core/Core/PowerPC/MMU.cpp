@@ -212,26 +212,34 @@ static T ReadFromHardware(u32 em_address)
     // Handle RAM; the masking intentionally discards bits (essentially creating
     // mirrors of memory).
     // TODO: Only the first REALRAM_SIZE is supposed to be backed by actual memory.
-    return bswap((*(const T*)&Memory::m_pRAM[em_address & Memory::RAM_MASK]));
+    T value;
+    std::memcpy(&value, &Memory::m_pRAM[em_address & Memory::RAM_MASK], sizeof(T));
+    return bswap(value);
   }
 
   if (Memory::m_pEXRAM && (em_address >> 28) == 0x1 &&
       (em_address & 0x0FFFFFFF) < Memory::EXRAM_SIZE)
   {
-    return bswap((*(const T*)&Memory::m_pEXRAM[em_address & 0x0FFFFFFF]));
+    T value;
+    std::memcpy(&value, &Memory::m_pEXRAM[em_address & 0x0FFFFFFF], sizeof(T));
+    return bswap(value);
   }
 
   // Locked L1 technically doesn't have a fixed address, but games all use 0xE0000000.
   if ((em_address >> 28) == 0xE && (em_address < (0xE0000000 + Memory::L1_CACHE_SIZE)))
   {
-    return bswap((*(const T*)&Memory::m_pL1Cache[em_address & 0x0FFFFFFF]));
+    T value;
+    std::memcpy(&value, &Memory::m_pL1Cache[em_address & 0x0FFFFFFF], sizeof(T));
+    return bswap(value);
   }
   // In Fake-VMEM mode, we need to map the memory somewhere into
   // physical memory for BAT translation to work; we currently use
   // [0x7E000000, 0x80000000).
   if (Memory::m_pFakeVMEM && ((em_address & 0xFE000000) == 0x7E000000))
   {
-    return bswap(*(T*)&Memory::m_pFakeVMEM[em_address & Memory::RAM_MASK]);
+    T value;
+    std::memcpy(&value, &Memory::m_pFakeVMEM[em_address & Memory::RAM_MASK], sizeof(T));
+    return bswap(value);
   }
 
   if (flag == FLAG_READ && (em_address & 0xF8000000) == 0x08000000)
@@ -296,21 +304,24 @@ static void WriteToHardware(u32 em_address, const T data)
     // Handle RAM; the masking intentionally discards bits (essentially creating
     // mirrors of memory).
     // TODO: Only the first REALRAM_SIZE is supposed to be backed by actual memory.
-    *(T*)&Memory::m_pRAM[em_address & Memory::RAM_MASK] = bswap(data);
+    const T swapped_data = bswap(data);
+    std::memcpy(&Memory::m_pRAM[em_address & Memory::RAM_MASK], &swapped_data, sizeof(T));
     return;
   }
 
   if (Memory::m_pEXRAM && (em_address >> 28) == 0x1 &&
       (em_address & 0x0FFFFFFF) < Memory::EXRAM_SIZE)
   {
-    *(T*)&Memory::m_pEXRAM[em_address & 0x0FFFFFFF] = bswap(data);
+    const T swapped_data = bswap(data);
+    std::memcpy(&Memory::m_pEXRAM[em_address & 0x0FFFFFFF], &swapped_data, sizeof(T));
     return;
   }
 
   // Locked L1 technically doesn't have a fixed address, but games all use 0xE0000000.
   if ((em_address >> 28 == 0xE) && (em_address < (0xE0000000 + Memory::L1_CACHE_SIZE)))
   {
-    *(T*)&Memory::m_pL1Cache[em_address & 0x0FFFFFFF] = bswap(data);
+    const T swapped_data = bswap(data);
+    std::memcpy(&Memory::m_pL1Cache[em_address & 0x0FFFFFFF], &swapped_data, sizeof(T));
     return;
   }
 
@@ -319,7 +330,8 @@ static void WriteToHardware(u32 em_address, const T data)
   // [0x7E000000, 0x80000000).
   if (Memory::m_pFakeVMEM && ((em_address & 0xFE000000) == 0x7E000000))
   {
-    *(T*)&Memory::m_pFakeVMEM[em_address & Memory::RAM_MASK] = bswap(data);
+    const T swapped_data = bswap(data);
+    std::memcpy(&Memory::m_pFakeVMEM[em_address & Memory::RAM_MASK], &swapped_data, sizeof(T));
     return;
   }
 
@@ -406,7 +418,7 @@ TryReadInstResult TryReadInstruction(u32 address)
   // TODO: Refactor this. This icache implementation is totally wrong if used with the fake vmem.
   if (Memory::m_pFakeVMEM && ((address & 0xFE000000) == 0x7E000000))
   {
-    hex = bswap(*(const u32*)&Memory::m_pFakeVMEM[address & Memory::FAKEVMEM_MASK]);
+    hex = Common::swap32(&Memory::m_pFakeVMEM[address & Memory::FAKEVMEM_MASK]);
   }
   else
   {
@@ -558,20 +570,17 @@ void Write_F64(const double var, const u32 address)
 
 u8 HostRead_U8(const u32 address)
 {
-  u8 var = ReadFromHardware<FLAG_NO_EXCEPTION, u8>(address);
-  return var;
+  return ReadFromHardware<FLAG_NO_EXCEPTION, u8>(address);
 }
 
 u16 HostRead_U16(const u32 address)
 {
-  u16 var = ReadFromHardware<FLAG_NO_EXCEPTION, u16>(address);
-  return var;
+  return ReadFromHardware<FLAG_NO_EXCEPTION, u16>(address);
 }
 
 u32 HostRead_U32(const u32 address)
 {
-  u32 var = ReadFromHardware<FLAG_NO_EXCEPTION, u32>(address);
-  return var;
+  return ReadFromHardware<FLAG_NO_EXCEPTION, u32>(address);
 }
 
 u64 HostRead_U64(const u32 address)
@@ -676,7 +685,7 @@ void DMA_LCToMemory(const u32 memAddr, const u32 cacheAddr, const u32 numBlocks)
   {
     for (u32 i = 0; i < 32 * numBlocks; i += 4)
     {
-      u32 data = bswap(*(u32*)(Memory::m_pL1Cache + ((cacheAddr + i) & 0x3FFFF)));
+      const u32 data = Common::swap32(Memory::m_pL1Cache + ((cacheAddr + i) & 0x3FFFF));
       EFB_Write(data, memAddr + i);
     }
     return;
@@ -688,7 +697,7 @@ void DMA_LCToMemory(const u32 memAddr, const u32 cacheAddr, const u32 numBlocks)
   {
     for (u32 i = 0; i < 32 * numBlocks; i += 4)
     {
-      u32 data = bswap(*(u32*)(Memory::m_pL1Cache + ((cacheAddr + i) & 0x3FFFF)));
+      const u32 data = Common::swap32(Memory::m_pL1Cache + ((cacheAddr + i) & 0x3FFFF));
       Memory::mmio_mapping->Write(memAddr + i, data);
     }
     return;
@@ -713,8 +722,8 @@ void DMA_MemoryToLC(const u32 cacheAddr, const u32 memAddr, const u32 numBlocks)
   {
     for (u32 i = 0; i < 32 * numBlocks; i += 4)
     {
-      u32 data = EFB_Read(memAddr + i);
-      *(u32*)(Memory::m_pL1Cache + ((cacheAddr + i) & 0x3FFFF)) = bswap(data);
+      const u32 data = Common::swap32(EFB_Read(memAddr + i));
+      std::memcpy(Memory::m_pL1Cache + ((cacheAddr + i) & 0x3FFFF), &data, sizeof(u32));
     }
     return;
   }
@@ -725,8 +734,8 @@ void DMA_MemoryToLC(const u32 cacheAddr, const u32 memAddr, const u32 numBlocks)
   {
     for (u32 i = 0; i < 32 * numBlocks; i += 4)
     {
-      u32 data = Memory::mmio_mapping->Read<u32>(memAddr + i);
-      *(u32*)(Memory::m_pL1Cache + ((cacheAddr + i) & 0x3FFFF)) = bswap(data);
+      const u32 data = Common::swap32(Memory::mmio_mapping->Read<u32>(memAddr + i));
+      std::memcpy(Memory::m_pL1Cache + ((cacheAddr + i) & 0x3FFFF), &data, sizeof(u32));
     }
     return;
   }
@@ -1086,7 +1095,7 @@ static TranslateAddressResult TranslatePageAddress(const u32 address, const XChe
 
   // hash function no 1 "xor" .360
   u32 hash = (VSID ^ page_index);
-  u32 pte1 = bswap((VSID << 7) | api | PTE1_V);
+  u32 pte1 = Common::swap32((VSID << 7) | api | PTE1_V);
 
   for (int hash_func = 0; hash_func < 2; hash_func++)
   {
@@ -1102,10 +1111,13 @@ static TranslateAddressResult TranslatePageAddress(const u32 address, const XChe
 
     for (int i = 0; i < 8; i++, pteg_addr += 8)
     {
-      if (pte1 == *(u32*)&Memory::physical_base[pteg_addr])
+      u32 pteg;
+      std::memcpy(&pteg, &Memory::physical_base[pteg_addr], sizeof(u32));
+
+      if (pte1 == pteg)
       {
         UPTE2 PTE2;
-        PTE2.Hex = bswap((*(u32*)&Memory::physical_base[pteg_addr + 4]));
+        PTE2.Hex = Common::swap32(&Memory::physical_base[pteg_addr + 4]);
 
         // set the access bits
         switch (flag)
@@ -1126,7 +1138,10 @@ static TranslateAddressResult TranslatePageAddress(const u32 address, const XChe
         }
 
         if (!IsNoExceptionFlag(flag))
-          *(u32*)&Memory::physical_base[pteg_addr + 4] = bswap(PTE2.Hex);
+        {
+          const u32 swapped_pte2 = Common::swap32(PTE2.Hex);
+          std::memcpy(&Memory::physical_base[pteg_addr + 4], &swapped_pte2, sizeof(u32));
+        }
 
         // We already updated the TLB entry if this was caused by a C bit.
         if (res != TLB_UPDATE_C)

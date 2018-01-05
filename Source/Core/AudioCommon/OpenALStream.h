@@ -26,18 +26,6 @@
 #include <AL/alext.h>
 #endif
 
-#ifdef __APPLE__
-// Avoid conflict with objc.h (on Windows, ST uses the system BOOL type, so this doesn't work)
-#define BOOL SoundTouch_BOOL
-#endif
-
-#include <soundtouch/STTypes.h>
-#include <soundtouch/SoundTouch.h>
-
-#ifdef __APPLE__
-#undef BOOL
-#endif
-
 #define SFX_MAX_SOURCE 1
 #define OAL_MAX_BUFFERS 32
 #define OAL_MAX_SAMPLES 256
@@ -89,7 +77,7 @@ private:
   Common::Event soundSyncEvent;
 
   short realtimeBuffer[OAL_MAX_SAMPLES * STEREO_CHANNELS];
-  soundtouch::SAMPLETYPE sampleBuffer[OAL_MAX_SAMPLES * SURROUND_CHANNELS * OAL_MAX_BUFFERS];
+  float sampleBuffer[OAL_MAX_SAMPLES * SURROUND_CHANNELS * OAL_MAX_BUFFERS];
   ALuint uiBuffers[OAL_MAX_BUFFERS];
   ALuint uiSource;
   ALfloat fVolume;

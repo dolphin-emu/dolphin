@@ -40,6 +40,12 @@ public:
   const u8** pairedLoadQuantized;
 
   // In: array index: GQR to use.
+  // In: ECX: Address to read from.
+  // Out: XMM0: Bottom 32-bit slot holds the read value.
+  // Trashes: all three RSCRATCH
+  const u8** singleLoadQuantized;
+
+  // In: array index: GQR to use.
   // In: ECX: Address to write to.
   // In: XMM0: Bottom two 32-bit slots hold the pair of floats to be written.
   // Out: Nothing.

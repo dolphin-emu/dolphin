@@ -39,7 +39,6 @@
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MainNoGUI.cpp" />
     <ClCompile Include="WxEventUtils.cpp" />
-    <ClCompile Include="WXInputBase.cpp" />
     <ClCompile Include="WxUtils.cpp" />
     <ClCompile Include="Cheats\CheatsWindow.cpp">
       <Filter>GUI\Cheats</Filter>
@@ -273,7 +272,6 @@
   <ItemGroup>
     <ClInclude Include="Main.h" />
     <ClInclude Include="WxEventUtils.h" />
-    <ClInclude Include="WXInputBase.h" />
     <ClInclude Include="WxUtils.h" />
     <ClInclude Include="Cheats\CheatSearchTab.h">
       <Filter>GUI\Cheats</Filter>

@@ -33,6 +33,7 @@
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/Logging/LogManager.h"
+#include "Common/MsgHandler.h"
 #include "Common/Thread.h"
 
 #include "Core/ARBruteForcer.h"
@@ -244,6 +245,7 @@ void DolphinApp::AfterInit()
   if (!m_batch_mode)
     main_frame->UpdateGameList();
 
+#if defined(USE_ANALYTICS) && USE_ANALYTICS
   if (!SConfig::GetInstance().m_analytics_permission_asked)
   {
     int answer =
@@ -266,6 +268,7 @@ void DolphinApp::AfterInit()
 
     DolphinAnalytics::Instance()->ReloadConfig();
   }
+#endif
 
   if (m_confirm_stop)
     SConfig::GetInstance().bConfirmStop = m_confirm_setting;
@@ -597,14 +600,16 @@ void Host_ConnectWiimote(int wm_idx, bool connect)
 
 void Host_ShowVideoConfig(void* parent, const std::string& backend_name)
 {
+  wxWindow* const parent_window = static_cast<wxWindow*>(parent);
+
   if (backend_name == "Software Renderer")
   {
-    SoftwareVideoConfigDialog diag((wxWindow*)parent, backend_name);
+    SoftwareVideoConfigDialog diag(parent_window, backend_name);
     diag.ShowModal();
   }
   else
   {
-    VideoConfigDiag diag((wxWindow*)parent, backend_name);
+    VideoConfigDiag diag(parent_window, backend_name);
     diag.ShowModal();
   }
 }

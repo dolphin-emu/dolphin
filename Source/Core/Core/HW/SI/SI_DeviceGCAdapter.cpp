@@ -44,7 +44,7 @@ GCPadStatus CSIDevice_GCAdapter::GetPadStatus()
 
 int CSIDevice_GCAdapter::RunBuffer(u8* buffer, int length)
 {
-  if (!Core::g_want_determinism)
+  if (!Core::WantsDeterminism())
   {
     // The previous check is a hack to prevent a desync due to SI devices
     // being different and returning different values on RunBuffer();

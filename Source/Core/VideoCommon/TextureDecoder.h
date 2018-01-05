@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <tuple>
 #include "Common/CommonTypes.h"
 
 enum
@@ -65,6 +66,22 @@ enum TlutFormat
   GX_TL_IA8 = 0x0,
   GX_TL_RGB565 = 0x1,
   GX_TL_RGB5A3 = 0x2,
+};
+
+struct EFBCopyFormat
+{
+  EFBCopyFormat(u32 efb_format_, TextureFormat copy_format_)
+      : efb_format(efb_format_), copy_format(copy_format_)
+  {
+  }
+
+  bool operator<(const EFBCopyFormat& rhs) const
+  {
+    return std::tie(efb_format, copy_format) < std::tie(rhs.efb_format, rhs.copy_format);
+  }
+
+  u32 efb_format;
+  TextureFormat copy_format;
 };
 
 int TexDecoder_GetTexelSizeInNibbles(int format);

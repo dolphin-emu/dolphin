@@ -17,8 +17,8 @@ namespace HLE
 {
 namespace USB
 {
-V0CtrlMessage::V0CtrlMessage(const IOCtlVRequest& ioctlv)
-    : CtrlMessage(ioctlv, ioctlv.io_vectors[0].address)
+V0CtrlMessage::V0CtrlMessage(Kernel& ios, const IOCtlVRequest& ioctlv)
+    : CtrlMessage(ios, ioctlv, ioctlv.io_vectors[0].address)
 {
   request_type = Memory::Read_U8(ioctlv.in_vectors[0].address);
   request = Memory::Read_U8(ioctlv.in_vectors[1].address);
@@ -27,8 +27,8 @@ V0CtrlMessage::V0CtrlMessage(const IOCtlVRequest& ioctlv)
   length = Common::swap16(Memory::Read_U16(ioctlv.in_vectors[4].address));
 }
 
-V0BulkMessage::V0BulkMessage(const IOCtlVRequest& ioctlv, bool long_length)
-    : BulkMessage(ioctlv, ioctlv.io_vectors[0].address)
+V0BulkMessage::V0BulkMessage(Kernel& ios, const IOCtlVRequest& ioctlv, bool long_length)
+    : BulkMessage(ios, ioctlv, ioctlv.io_vectors[0].address)
 {
   endpoint = Memory::Read_U8(ioctlv.in_vectors[0].address);
   if (long_length)
@@ -37,15 +37,15 @@ V0BulkMessage::V0BulkMessage(const IOCtlVRequest& ioctlv, bool long_length)
     length = Memory::Read_U16(ioctlv.in_vectors[1].address);
 }
 
-V0IntrMessage::V0IntrMessage(const IOCtlVRequest& ioctlv)
-    : IntrMessage(ioctlv, ioctlv.io_vectors[0].address)
+V0IntrMessage::V0IntrMessage(Kernel& ios, const IOCtlVRequest& ioctlv)
+    : IntrMessage(ios, ioctlv, ioctlv.io_vectors[0].address)
 {
   endpoint = Memory::Read_U8(ioctlv.in_vectors[0].address);
   length = Memory::Read_U16(ioctlv.in_vectors[1].address);
 }
 
-V0IsoMessage::V0IsoMessage(const IOCtlVRequest& ioctlv)
-    : IsoMessage(ioctlv, ioctlv.io_vectors[1].address)
+V0IsoMessage::V0IsoMessage(Kernel& ios, const IOCtlVRequest& ioctlv)
+    : IsoMessage(ios, ioctlv, ioctlv.io_vectors[1].address)
 {
   endpoint = Memory::Read_U8(ioctlv.in_vectors[0].address);
   length = Memory::Read_U16(ioctlv.in_vectors[1].address);

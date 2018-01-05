@@ -17,6 +17,15 @@ class ObjectCache;
 class Texture2D
 {
 public:
+  // Custom image layouts, mainly used for switching to/from compute
+  enum class ComputeImageLayout
+  {
+    Undefined,
+    ReadOnly,
+    WriteOnly,
+    ReadWrite
+  };
+
   Texture2D(u32 width, u32 height, u32 levels, u32 layers, VkFormat format,
             VkSampleCountFlagBits samples, VkImageViewType view_type, VkImage image,
             VkDeviceMemory device_memory, VkImageView view);
@@ -50,6 +59,7 @@ public:
   void OverrideImageLayout(VkImageLayout new_layout);
 
   void TransitionToLayout(VkCommandBuffer command_buffer, VkImageLayout new_layout);
+  void TransitionToLayout(VkCommandBuffer command_buffer, ComputeImageLayout new_layout);
 
 private:
   u32 m_width;
@@ -60,6 +70,7 @@ private:
   VkSampleCountFlagBits m_samples;
   VkImageViewType m_view_type;
   VkImageLayout m_layout = VK_IMAGE_LAYOUT_UNDEFINED;
+  ComputeImageLayout m_compute_layout = ComputeImageLayout::Undefined;
 
   VkImage m_image;
   VkDeviceMemory m_device_memory;

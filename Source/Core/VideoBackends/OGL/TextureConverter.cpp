@@ -45,10 +45,12 @@ static int s_rgbToYuyvUniform_loc;
 
 static SHADER s_yuyvToRgbProgram;
 
-// Not all slots are taken - but who cares.
-const u32 NUM_ENCODING_PROGRAMS = 64;
-static SHADER s_encodingPrograms[NUM_ENCODING_PROGRAMS];
-static int s_encodingUniforms[NUM_ENCODING_PROGRAMS];
+struct EncodingProgram
+{
+  SHADER program;
+  GLint copy_position_uniform;
+};
+static std::map<EFBCopyFormat, EncodingProgram> s_encoding_programs;
 
 static GLuint s_PBO = 0;  // for readback with different strides
 
@@ -133,41 +135,37 @@ static void CreatePrograms()
   ProgramShaderCache::CompileShader(s_yuyvToRgbProgram, VProgramYuyvToRgb, FProgramYuyvToRgb);
 }
 
-static SHADER& GetOrCreateEncodingShader(u32 format)
+static EncodingProgram& GetOrCreateEncodingShader(const EFBCopyFormat& format)
 {
-  if (format >= NUM_ENCODING_PROGRAMS)
-  {
-    PanicAlert("Unknown texture copy format: 0x%x\n", format);
-    return s_encodingPrograms[0];
-  }
+  auto iter = s_encoding_programs.find(format);
+  if (iter != s_encoding_programs.end())
+    return iter->second;
 
-  if (s_encodingPrograms[format].glprogid == 0)
-  {
-    const char* shader = TextureConversionShader::GenerateEncodingShader(format, APIType::OpenGL);
+  const char* shader = TextureConversionShader::GenerateEncodingShader(format, APIType::OpenGL);
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
-    if (g_ActiveConfig.iLog & CONF_SAVESHADERS && shader)
-    {
-      static int counter = 0;
-      std::string filename =
-          StringFromFormat("%senc_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), counter++);
+  if (g_ActiveConfig.iLog & CONF_SAVESHADERS && shader)
+  {
+    static int counter = 0;
+    std::string filename =
+        StringFromFormat("%senc_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), counter++);
 
-      SaveData(filename, shader);
-    }
+    SaveData(filename, shader);
+  }
 #endif
 
-    const char* VProgram = "void main()\n"
-                           "{\n"
-                           "	vec2 rawpos = vec2(gl_VertexID&1, gl_VertexID&2);\n"
-                           "	gl_Position = vec4(rawpos*2.0-1.0, 0.0, 1.0);\n"
-                           "}\n";
+  const char* VProgram = "void main()\n"
+                         "{\n"
+                         "	vec2 rawpos = vec2(gl_VertexID&1, gl_VertexID&2);\n"
+                         "	gl_Position = vec4(rawpos*2.0-1.0, 0.0, 1.0);\n"
+                         "}\n";
 
-    ProgramShaderCache::CompileShader(s_encodingPrograms[format], VProgram, shader);
+  EncodingProgram program;
+  if (!ProgramShaderCache::CompileShader(program.program, VProgram, shader))
+    PanicAlert("Failed to compile texture encoding shader.");
 
-    s_encodingUniforms[format] =
-        glGetUniformLocation(s_encodingPrograms[format].glprogid, "position");
-  }
-  return s_encodingPrograms[format];
+  program.copy_position_uniform = glGetUniformLocation(program.program.glprogid, "position");
+  return s_encoding_programs.emplace(format, program).first->second;
 }
 
 void Init()
@@ -204,8 +202,9 @@ void Shutdown()
   s_rgbToYuyvProgram.Destroy();
   s_yuyvToRgbProgram.Destroy();
 
-  for (auto& program : s_encodingPrograms)
-    program.Destroy();
+  for (auto& program : s_encoding_programs)
+    program.second.program.Destroy();
+  s_encoding_programs.clear();
 
   s_srcTexture = 0;
   s_dstTexture = 0;
@@ -271,23 +270,24 @@ static void EncodeToRamUsingShader(GLuint srcTexture, u8* destAddr, u32 dst_line
   glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 }
 
-void EncodeToRamFromTexture(u8* dest_ptr, u32 format, u32 native_width, u32 bytes_per_row,
-                            u32 num_blocks_y, u32 memory_stride, bool is_depth_copy,
-                            bool bIsIntensityFmt, int bScaleByHalf, const EFBRectangle& source)
+void EncodeToRamFromTexture(u8* dest_ptr, const EFBCopyFormat& format, u32 native_width,
+                            u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
+                            bool is_depth_copy, const EFBRectangle& src_rect, bool scale_by_half)
 {
   g_renderer->ResetAPIState();
 
-  SHADER& texconv_shader = GetOrCreateEncodingShader(format);
+  EncodingProgram& texconv_shader = GetOrCreateEncodingShader(format);
 
-  texconv_shader.Bind();
-  glUniform4i(s_encodingUniforms[format], source.left, source.top, native_width,
-              bScaleByHalf ? 2 : 1);
+  texconv_shader.program.Bind();
+  glUniform4i(texconv_shader.copy_position_uniform, src_rect.left, src_rect.top, native_width,
+              scale_by_half ? 2 : 1);
 
-  const GLuint read_texture = is_depth_copy ? FramebufferManager::ResolveAndGetDepthTarget(source) :
-                                              FramebufferManager::ResolveAndGetRenderTarget(source);
+  const GLuint read_texture = is_depth_copy ?
+                                  FramebufferManager::ResolveAndGetDepthTarget(src_rect) :
+                                  FramebufferManager::ResolveAndGetRenderTarget(src_rect);
 
   EncodeToRamUsingShader(read_texture, dest_ptr, bytes_per_row, num_blocks_y, memory_stride,
-                         bScaleByHalf > 0 && !is_depth_copy);
+                         scale_by_half && !is_depth_copy);
 
   FramebufferManager::SetFramebuffer(0);
   g_renderer->RestoreAPIState();

@@ -37,7 +37,7 @@ static constexpr mbedtls_x509_crt_profile mbedtls_x509_crt_profile_wii = {
     0,         /* No RSA min key size */
 };
 
-NetSSL::NetSSL(u32 device_id, const std::string& device_name) : Device(device_id, device_name)
+NetSSL::NetSSL(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
 {
   for (WII_SSL& ssl : _SSL)
   {
@@ -171,7 +171,7 @@ IPCCommandResult NetSSL::IOCtlV(const IOCtlVRequest& request)
 
   // I don't trust SSL to be deterministic, and this is never going to sync
   // as such (as opposed to forwarding IPC results or whatever), so -
-  if (Core::g_want_determinism)
+  if (Core::WantsDeterminism())
     return GetDefaultReply(IPC_EACCES);
 
   switch (request.request)

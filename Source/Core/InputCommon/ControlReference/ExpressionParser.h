@@ -61,7 +61,7 @@ public:
 
 enum class ParseStatus
 {
-  Success,
+  Successful,
   SyntaxError,
   NoDevice,
 };

@@ -119,7 +119,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
     signExtend = true;
   }
 
-  if (SConfig::GetInstance().bSkipIdle && CPU::GetState() != CPU::CPU_STEPPING && inst.OPCD == 32 && CanMergeNextInstructions(2) &&
+  if (SConfig::GetInstance().bSkipIdle && !CPU::IsStepping() && inst.OPCD == 32 && CanMergeNextInstructions(2) &&
       (inst.hex & 0xFFFF0000) == 0x800D0000 &&
       (js.op[1].inst.hex == 0x28000000 ||
        (SConfig::GetInstance().bWii && js.op[1].inst.hex == 0x2C000000)) &&
@@ -345,10 +345,11 @@ void Jit64::dcbz(UGeckoInstruction inst)
   if (UReg_MSR(MSR).DR)
   {
     // Perform lookup to see if we can use fast path.
-    MOV(32, R(RSCRATCH2), R(RSCRATCH));
-    SHR(32, R(RSCRATCH2), Imm8(PowerPC::BAT_INDEX_SHIFT));
-    TEST(32, MScaled(RSCRATCH2, SCALE_4, PtrOffset(&PowerPC::dbat_table[0])),
-         Imm32(PowerPC::BAT_PHYSICAL_BIT));
+    MOV(64, R(RSCRATCH2), ImmPtr(&PowerPC::dbat_table[0]));
+    PUSH(RSCRATCH);
+    SHR(32, R(RSCRATCH), Imm8(PowerPC::BAT_INDEX_SHIFT));
+    TEST(32, MComplex(RSCRATCH2, RSCRATCH, SCALE_4, 0), Imm32(PowerPC::BAT_PHYSICAL_BIT));
+    POP(RSCRATCH);
     FixupBranch slow = J_CC(CC_Z, true);
 
     // Fast path: compute full address, then zero out 32 bytes of memory.

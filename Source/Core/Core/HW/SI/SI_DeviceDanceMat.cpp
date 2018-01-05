@@ -4,6 +4,8 @@
 
 #include "Core/HW/SI/SI_DeviceDanceMat.h"
 
+#include <cstring>
+
 #include "Common/CommonTypes.h"
 #include "InputCommon/GCPadStatus.h"
 
@@ -22,7 +24,9 @@ int CSIDevice_DanceMat::RunBuffer(u8* buffer, int length)
   if (command == CMD_RESET)
   {
     ISIDevice::RunBuffer(buffer, length);
-    *(u32*)&buffer[0] = SI_DANCEMAT;
+
+    constexpr u32 id = SI_DANCEMAT;
+    std::memcpy(buffer, &id, sizeof(id));
   }
   else
   {

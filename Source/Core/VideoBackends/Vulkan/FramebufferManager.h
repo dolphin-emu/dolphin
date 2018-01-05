@@ -67,6 +67,9 @@ public:
   Texture2D* ResolveEFBColorTexture(const VkRect2D& region);
   Texture2D* ResolveEFBDepthTexture(const VkRect2D& region);
 
+  // Returns the texture that the EFB color texture is resolved to when multisampling is enabled.
+  // Ensure ResolveEFBColorTexture is called before this method.
+  Texture2D* GetResolvedEFBColorTexture() const { return m_efb_resolve_color_texture.get(); }
   // Reads a framebuffer value back from the GPU. This may block if the cache is not current.
   u32 PeekEFBColor(u32 x, u32 y);
   float PeekEFBDepth(u32 x, u32 y);

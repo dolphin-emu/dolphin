@@ -30,9 +30,6 @@
     <ClInclude Include="DPL2Decoder.h" />
     <ClInclude Include="Mixer.h" />
     <ClInclude Include="WaveFile.h" />
-    <ClInclude Include="AOSoundStream.h">
-      <Filter>SoundStreams</Filter>
-    </ClInclude>
     <ClInclude Include="NullSoundStream.h">
       <Filter>SoundStreams</Filter>
     </ClInclude>

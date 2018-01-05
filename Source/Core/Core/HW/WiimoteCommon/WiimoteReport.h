@@ -1,38 +1,48 @@
-// Copyright 2008 Dolphin Emulator Project
+// Copyright 2017 Dolphin Emulator Project
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
 
+#include <vector>
+
 #include "Common/CommonTypes.h"
 
-// what is this ?
-#ifdef _MSC_VER
-#pragma warning(disable : 4200)
-#endif
+typedef std::vector<u8> Report;
 
-#pragma pack(push, 1)
-
-// Source: HID_010_SPC_PFL/1.0 (official HID specification)
-
-struct hid_packet
+// Report defines
+enum ReportType
 {
-  u8 param : 4;
-  u8 type : 4;
-  u8 data[0];
+  RT_RUMBLE = 0x10,
+  RT_LEDS = 0x11,
+  RT_REPORT_MODE = 0x12,
+  RT_IR_PIXEL_CLOCK = 0x13,
+  RT_SPEAKER_ENABLE = 0x14,
+  RT_REQUEST_STATUS = 0x15,
+  RT_WRITE_DATA = 0x16,
+  RT_READ_DATA = 0x17,
+  RT_WRITE_SPEAKER_DATA = 0x18,
+  RT_SPEAKER_MUTE = 0x19,
+  RT_IR_LOGIC = 0x1A,
+  RT_STATUS_REPORT = 0x20,
+  RT_READ_DATA_REPLY = 0x21,
+  RT_ACK_DATA = 0x22,
+  RT_REPORT_CORE = 0x30,
+  RT_REPORT_CORE_ACCEL = 0x31,
+  RT_REPORT_CORE_EXT8 = 0x32,
+  RT_REPORT_CORE_ACCEL_IR12 = 0x33,
+  RT_REPORT_CORE_EXT19 = 0x34,
+  RT_REPORT_CORE_ACCEL_EXT16 = 0x35,
+  RT_REPORT_CORE_IR10_EXT9 = 0x36,
+  RT_REPORT_CORE_ACCEL_IR10_EXT6 = 0x37,
+  RT_REPORT_EXT21 = 0x3d,  // never used?
+  RT_REPORT_INTERLEAVE1 = 0x3e,
+  RT_REPORT_INTERLEAVE2 = 0x3f
 };
 
-#define HID_TYPE_HANDSHAKE 0
-#define HID_TYPE_SET_REPORT 5
-#define HID_TYPE_DATA 0xA
-
-#define HID_HANDSHAKE_SUCCESS 0
-
-#define HID_PARAM_INPUT 1
-#define HID_PARAM_OUTPUT 2
-
 // Source: http://wiibrew.org/wiki/Wiimote
-
+// Custom structs
+#pragma pack(push, 1)
 union wm_buttons  // also just called "core data"
 {
   u16 hex;
@@ -57,11 +67,13 @@ union wm_buttons  // also just called "core data"
     u8 home : 1;
   };
 };
+static_assert(sizeof(wm_buttons) == 2, "Wrong size");
 
 struct wm_accel
 {
   u8 x, y, z;
 };
+static_assert(sizeof(wm_accel) == 3, "Wrong size");
 
 // Four bytes for two objects. Filled with 0xFF if empty
 struct wm_ir_basic
@@ -75,6 +87,7 @@ struct wm_ir_basic
   u8 x2;
   u8 y2;
 };
+static_assert(sizeof(wm_ir_basic) == 5, "Wrong size");
 
 // Three bytes for one object
 struct wm_ir_extended
@@ -85,6 +98,7 @@ struct wm_ir_extended
   u8 xhi : 2;
   u8 yhi : 2;
 };
+static_assert(sizeof(wm_ir_extended) == 3, "Wrong size");
 
 // Nunchuk
 union wm_nc_core
@@ -102,6 +116,7 @@ union wm_nc_core
     u8 acc_z_lsb : 2;
   };
 };
+static_assert(sizeof(wm_nc_core) == 1, "Wrong size");
 
 union wm_nc
 {
@@ -138,6 +153,7 @@ union wm_nc
     u8 acc_z_lsb : 2;
   } passthrough_data;
 };
+static_assert(sizeof(wm_nc) == 6, "Wrong size");
 
 union wm_classic_extension_buttons
 {
@@ -183,6 +199,7 @@ union wm_classic_extension_buttons
     u8 : 6;
   } passthrough_data;
 };
+static_assert(sizeof(wm_classic_extension_buttons) == 2, "Wrong size");
 
 union wm_classic_extension
 {
@@ -233,6 +250,7 @@ union wm_classic_extension
     unsigned : 32;
   } passthrough_data;
 };
+static_assert(sizeof(wm_classic_extension) == 6, "Wrong size");
 
 struct wm_guitar_extension
 {
@@ -250,6 +268,7 @@ struct wm_guitar_extension
 
   u16 bt;  // buttons
 };
+static_assert(sizeof(wm_guitar_extension) == 6, "Wrong size");
 
 struct wm_drums_extension
 {
@@ -270,6 +289,7 @@ struct wm_drums_extension
 
   u16 bt;  // buttons
 };
+static_assert(sizeof(wm_drums_extension) == 6, "Wrong size");
 
 struct wm_turntable_extension
 {
@@ -293,6 +313,7 @@ struct wm_turntable_extension
     u16 bt;  // buttons
   };
 };
+static_assert(sizeof(wm_turntable_extension) == 6, "Wrong size");
 
 struct wm_motionplus_data
 {
@@ -315,6 +336,7 @@ struct wm_motionplus_data
   u8 is_mp_data : 1;
   u8 pitch2 : 6;
 };
+static_assert(sizeof(wm_motionplus_data) == 6, "Wrong size");
 
 struct wm_report
 {
@@ -331,10 +353,8 @@ struct wm_report
     };
   };
 };
+static_assert(sizeof(wm_report) == 2, "Wrong size");
 
-#define WM_RUMBLE 0x10
-
-#define WM_LEDS 0x11
 struct wm_leds
 {
   u8 rumble : 1;
@@ -342,8 +362,8 @@ struct wm_leds
   u8 : 3;
   u8 leds : 4;
 };
+static_assert(sizeof(wm_leds) == 1, "Wrong size");
 
-#define WM_REPORT_MODE 0x12
 struct wm_report_mode
 {
   u8 rumble : 1;
@@ -353,18 +373,15 @@ struct wm_report_mode
   u8 : 5;
   u8 mode;
 };
+static_assert(sizeof(wm_report_mode) == 2, "Wrong size");
 
-#define WM_IR_PIXEL_CLOCK 0x13
-#define WM_IR_LOGIC 0x1A
-
-#define WM_REQUEST_STATUS 0x15
 struct wm_request_status
 {
   u8 rumble : 1;
   u8 : 7;
 };
+static_assert(sizeof(wm_request_status) == 1, "Wrong size");
 
-#define WM_STATUS_REPORT 0x20
 struct wm_status_report
 {
   wm_buttons buttons;
@@ -376,8 +393,8 @@ struct wm_status_report
   u8 padding2[2];  // two 00, TODO: this needs more investigation
   u8 battery;
 };
+static_assert(sizeof(wm_status_report) == 6, "Wrong size");
 
-#define WM_WRITE_DATA 0x16
 struct wm_write_data
 {
   u8 rumble : 1;
@@ -387,16 +404,16 @@ struct wm_write_data
   u8 size;
   u8 data[16];
 };
+static_assert(sizeof(wm_write_data) == 21, "Wrong size");
 
-#define WM_ACK_DATA 0x22
 struct wm_acknowledge
 {
   wm_buttons buttons;
   u8 reportID;
   u8 errorID;
 };
+static_assert(sizeof(wm_acknowledge) == 4, "Wrong size");
 
-#define WM_READ_DATA 0x17
 struct wm_read_data
 {
   u8 rumble : 1;
@@ -405,13 +422,8 @@ struct wm_read_data
   u8 address[3];
   u16 size;
 };
+static_assert(sizeof(wm_read_data) == 6, "Wrong size");
 
-#define WM_SPACE_EEPROM 0
-#define WM_SPACE_REGS1 1
-#define WM_SPACE_REGS2 2
-#define WM_SPACE_INVALID 3
-
-#define WM_READ_DATA_REPLY 0x21
 struct wm_read_data_reply
 {
   wm_buttons buttons;
@@ -420,37 +432,31 @@ struct wm_read_data_reply
   u16 address;
   u8 data[16];
 };
-
-#define WM_RDERR_WOREG 7
-#define WM_RDERR_NOMEM 8
+static_assert(sizeof(wm_read_data_reply) == 21, "Wrong size");
 
 // Data reports
 
-#define WM_REPORT_CORE 0x30
 struct wm_report_core
 {
   wm_buttons c;
 };
+static_assert(sizeof(wm_report_core) == 2, "Wrong size");
 
-#define WM_REPORT_CORE_ACCEL 0x31
 struct wm_report_core_accel
 {
   wm_buttons c;
   wm_accel a;
 };
+static_assert(sizeof(wm_report_core_accel) == 5, "Wrong size");
 
-#define WM_REPORT_CORE_EXT8 0x32
-
-#define WM_REPORT_CORE_ACCEL_IR12 0x33
 struct wm_report_core_accel_ir12
 {
   wm_buttons c;
   wm_accel a;
   wm_ir_extended ir[4];
 };
+static_assert(sizeof(wm_report_core_accel_ir12) == 17, "Wrong size");
 
-#define WM_REPORT_CORE_EXT19 0x34
-#define WM_REPORT_CORE_ACCEL_EXT16 0x35
 struct wm_report_core_accel_ext16
 {
   wm_buttons c;
@@ -459,10 +465,8 @@ struct wm_report_core_accel_ext16
   // wm_ir_basic ir[2];
   u8 pad[10];
 };
+static_assert(sizeof(wm_report_core_accel_ext16) == 21, "Wrong size");
 
-#define WM_REPORT_CORE_IR10_EXT9 0x36
-
-#define WM_REPORT_CORE_ACCEL_IR10_EXT6 0x37
 struct wm_report_core_accel_ir10_ext6
 {
   wm_buttons c;
@@ -471,26 +475,19 @@ struct wm_report_core_accel_ir10_ext6
   // u8 ext[6];
   wm_nc ext;  // TODO: Does this make any sense? Shouldn't it be just a general "extension" field?
 };
+static_assert(sizeof(wm_report_core_accel_ir10_ext6) == 21, "Wrong size");
 
-#define WM_REPORT_EXT21 0x3d  // never used?
 struct wm_report_ext21
 {
   u8 ext[21];
 };
+static_assert(sizeof(wm_report_ext21) == 21, "Wrong size");
 
-#define WM_REPORT_INTERLEAVE1 0x3e
-#define WM_REPORT_INTERLEAVE2 0x3f
-
-#define WM_SPEAKER_ENABLE 0x14
-#define WM_SPEAKER_MUTE 0x19
-#define WM_WRITE_SPEAKER_DATA 0x18
 struct wm_speaker_data
 {
   u8 unknown : 3;
   u8 length : 5;
   u8 data[20];
 };
-
-// Custom structs
-
+static_assert(sizeof(wm_speaker_data) == 21, "Wrong size");
 #pragma pack(pop)

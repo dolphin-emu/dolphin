@@ -27,6 +27,8 @@
 
 #include "DiscIO/Enums.h"
 
+namespace ExpansionInterface
+{
 // We should provide an option to choose from the above, or figure out the checksum (the algo in
 // yagcd seems wrong)
 // so that people can change default language.
@@ -429,9 +431,10 @@ u32 CEXIIPL::GetEmulatedTime(u32 epoch)
   }
   else
   {
-    _assert_(!Core::g_want_determinism);
+    _assert_(!Core::WantsDeterminism());
     ltime = Common::Timer::GetLocalTimeSinceJan1970() - SystemTimers::GetLocalTimeRTCOffset();
   }
 
   return static_cast<u32>(ltime) - epoch;
 }
+}  // namespace ExpansionInterface

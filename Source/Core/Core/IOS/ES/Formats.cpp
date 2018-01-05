@@ -285,17 +285,17 @@ const std::vector<u8>& TicketReader::GetRawTicket() const
 
 std::vector<u8> TicketReader::GetRawTicketView(u32 ticket_num) const
 {
-  // A ticket view is composed of a view ID + part of a ticket starting from the ticket_id field.
+  // A ticket view is composed of a version + part of a ticket starting from the ticket_id field.
   const auto ticket_start = m_bytes.cbegin() + GetOffset() + sizeof(Ticket) * ticket_num;
   const auto view_start = ticket_start + offsetof(Ticket, ticket_id);
 
-  // Copy the view ID to the buffer.
-  std::vector<u8> view(sizeof(TicketView::view));
-  const u32 view_id = Common::swap32(ticket_num);
-  std::memcpy(view.data(), &view_id, sizeof(view_id));
+  // Copy the ticket version to the buffer (a single byte extended to 4).
+  std::vector<u8> view(sizeof(TicketView::version));
+  const u32 version = Common::swap32(m_bytes.at(offsetof(Ticket, version)));
+  std::memcpy(view.data(), &version, sizeof(version));
 
   // Copy the rest of the ticket view structure from the ticket.
-  view.insert(view.end(), view_start, view_start + (sizeof(TicketView) - sizeof(view_id)));
+  view.insert(view.end(), view_start, view_start + (sizeof(TicketView) - sizeof(version)));
   _assert_(view.size() == sizeof(TicketView));
 
   return view;
@@ -385,6 +385,16 @@ std::string SharedContentMap::GetFilenameFromSHA1(const std::array<u8, 20>& sha1
   return Common::RootUserPath(m_root) + StringFromFormat("/shared1/%s.app", id_string.c_str());
 }
 
+std::vector<std::array<u8, 20>> SharedContentMap::GetHashes() const
+{
+  std::vector<std::array<u8, 20>> hashes;
+  hashes.reserve(m_entries.size());
+  for (const auto& content_entry : m_entries)
+    hashes.emplace_back(content_entry.sha1);
+
+  return hashes;
+}
+
 std::string SharedContentMap::AddSharedContent(const std::array<u8, 20>& sha1)
 {
   std::string filename = GetFilenameFromSHA1(sha1);
@@ -436,11 +446,11 @@ UIDSys::UIDSys(Common::FromWhichRoot root)
 
   if (m_entries.empty())
   {
-    AddTitle(TITLEID_SYSMENU);
+    GetOrInsertUIDForTitle(TITLEID_SYSMENU);
   }
 }
 
-u32 UIDSys::GetUIDFromTitle(u64 title_id)
+u32 UIDSys::GetUIDFromTitle(u64 title_id) const
 {
   const auto it = std::find_if(m_entries.begin(), m_entries.end(),
                                [title_id](const auto& entry) { return entry.second == title_id; });
@@ -454,26 +464,33 @@ u32 UIDSys::GetNextUID() const
   return m_entries.rbegin()->first + 1;
 }
 
-void UIDSys::AddTitle(u64 title_id)
+u32 UIDSys::GetOrInsertUIDForTitle(const u64 title_id)
 {
-  if (GetUIDFromTitle(title_id))
+  const u32 current_uid = GetUIDFromTitle(title_id);
+  if (current_uid)
   {
     INFO_LOG(IOS_ES, "Title %016" PRIx64 " already exists in uid.sys", title_id);
-    return;
+    return current_uid;
   }
 
-  u32 uid = GetNextUID();
+  const u32 uid = GetNextUID();
   m_entries.insert({uid, title_id});
 
   // Byte swap before writing.
-  title_id = Common::swap64(title_id);
-  uid = Common::swap32(uid);
+  const u64 swapped_title_id = Common::swap64(title_id);
+  const u32 swapped_uid = Common::swap32(uid);
 
   File::CreateFullPath(m_file_path);
   File::IOFile file(m_file_path, "ab");
 
-  if (!file.WriteBytes(&title_id, sizeof(title_id)) || !file.WriteBytes(&uid, sizeof(uid)))
+  if (!file.WriteBytes(&swapped_title_id, sizeof(title_id)) ||
+      !file.WriteBytes(&swapped_uid, sizeof(uid)))
+  {
     ERROR_LOG(IOS_ES, "Failed to write to /sys/uid.sys");
+    return 0;
+  }
+
+  return uid;
 }
 }  // namespace ES
 }  // namespace IOS

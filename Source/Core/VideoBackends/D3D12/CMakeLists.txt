@@ -38,7 +38,6 @@ set(SRCS
   StaticShaderCache.h
   TextureCache.cpp
   TextureCache.h
-  TextureEncoder.h
   VertexManager.cpp
   VertexManager.h
   VideoBackend.h

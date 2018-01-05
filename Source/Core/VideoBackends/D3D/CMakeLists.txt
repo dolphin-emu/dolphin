@@ -31,7 +31,6 @@ set(SRCS
   Television.h
   TextureCache.cpp
   TextureCache.h
-  TextureEncoder.h
   VertexManager.cpp
   VertexManager.h
   VertexShaderCache.cpp

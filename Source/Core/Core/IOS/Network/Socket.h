@@ -52,7 +52,7 @@ typedef struct pollfd pollfd_t;
 #include "Common/Logging/Log.h"
 #include "Common/NonCopyable.h"
 #include "Core/HW/Memmap.h"
-#include "Core/IOS/IPC.h"
+#include "Core/IOS/IOS.h"
 #include "Core/IOS/Network/IP/Top.h"
 #include "Core/IOS/Network/SSL.h"
 
@@ -234,7 +234,7 @@ public:
     {
       ERROR_LOG(IOS_NET, "DoSock: Error, fd not found (%08x, %08X, %08X)", sock, request.address,
                 type);
-      EnqueueReply(request, -SO_EBADF);
+      GetIOS()->EnqueueIPCReply(request, -SO_EBADF);
     }
     else
     {

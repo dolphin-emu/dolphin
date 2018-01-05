@@ -451,7 +451,7 @@ void AXWiiUCode::ProcessPBList(u32 pb_addr)
                           m_samples_aux1,      m_samples_wm2,        m_samples_aux2,
                           m_samples_wm3,       m_samples_aux3}};
 
-    ReadPB(pb_addr, pb);
+    ReadPB(pb_addr, pb, m_crc);
 
     u16 num_updates[3];
     u16 updates[1024];
@@ -476,7 +476,7 @@ void AXWiiUCode::ProcessPBList(u32 pb_addr)
                    m_coeffs_available ? m_coeffs : nullptr);
     }
 
-    WritePB(pb_addr, pb);
+    WritePB(pb_addr, pb, m_crc);
     pb_addr = HILO_TO_32(pb.next_pb);
   }
 }

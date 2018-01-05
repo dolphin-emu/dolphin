@@ -5,6 +5,7 @@
 #include "Core/PowerPC/PowerPC.h"
 
 #include <cstring>
+#include <vector>
 
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
@@ -180,6 +181,31 @@ static void InitializeCPUCore(int cpu_core)
   }
 }
 
+const std::vector<CPUCore>& AvailableCPUCores()
+{
+  static const std::vector<CPUCore> cpu_cores = {
+      CORE_INTERPRETER, CORE_CACHEDINTERPRETER,
+#ifdef _M_X86_64
+      CORE_JIT64, CORE_JITIL64,
+#elif defined(_M_ARM_64)
+      CORE_JITARM64,
+#endif
+  };
+
+  return cpu_cores;
+}
+
+CPUCore DefaultCPUCore()
+{
+#ifdef _M_X86_64
+  return CORE_JIT64;
+#elif defined(_M_ARM_64)
+  return CORE_JITARM64;
+#else
+  return CORE_CACHEDINTERPRETER;
+#endif
+}
+
 void Init(int cpu_core)
 {
   // NOTE: This function runs on EmuThread, not the CPU Thread.
@@ -210,11 +236,15 @@ void Reset()
 
 void ScheduleInvalidateCacheThreadSafe(u32 address)
 {
-  if (CPU::GetState() == CPU::State::CPU_RUNNING)
+  if (CPU::GetState() == CPU::State::Running)
+  {
     CoreTiming::ScheduleEvent(0, s_invalidate_cache_thread_safe, address,
                               CoreTiming::FromThread::NON_CPU);
+  }
   else
+  {
     PowerPC::ppcState.iCache.Invalidate(static_cast<u32>(address));
+  }
 }
 
 void Shutdown()

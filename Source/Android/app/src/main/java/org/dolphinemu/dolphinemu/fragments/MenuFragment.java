@@ -54,7 +54,11 @@ public final class MenuFragment extends Fragment implements View.OnClickListener
 	@Override
 	public void onClick(View button)
 	{
-		((EmulationActivity) getActivity()).handleMenuAction(buttonsActionsMap.get(button.getId()));
+		int action = buttonsActionsMap.get(button.getId());
+		if (action >= 0)
+		{
+			((EmulationActivity) getActivity()).handleMenuAction(action);
+		}
 	}
 
 	public void setTitleText(String title)

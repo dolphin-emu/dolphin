@@ -11,7 +11,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
-#include "Core/IOS/IPC.h"
+#include "Core/IOS/IOS.h"
 #include "Core/IOS/USB/Host.h"
 
 class PointerWrap;
@@ -25,7 +25,7 @@ namespace Device
 class USB_HIDv4 final : public USBHost
 {
 public:
-  USB_HIDv4(u32 device_id, const std::string& device_name);
+  USB_HIDv4(Kernel& ios, const std::string& device_name);
   ~USB_HIDv4() override;
 
   IPCCommandResult IOCtl(const IOCtlRequest& request) override;

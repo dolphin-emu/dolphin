@@ -45,7 +45,7 @@
 #include "Core/HW/Wiimote.h"
 #include "Core/Host.h"
 #include "Core/HotkeyManager.h"
-#include "Core/IOS/IPC.h"
+#include "Core/IOS/IOS.h"
 #include "Core/IOS/STM/STM.h"
 #include "Core/IOS/USB/Bluetooth/BTEmu.h"
 #include "Core/IOS/USB/Bluetooth/WiimoteDevice.h"
@@ -57,6 +57,9 @@
 #include "Core/State.h"
 
 #include "DiscIO/NANDContentLoader.h"
+#include "DiscIO/NANDImporter.h"
+#include "DiscIO/VolumeCreator.h"
+#include "DiscIO/VolumeWad.h"
 
 #include "DolphinWX/AboutDolphin.h"
 #include "DolphinWX/Cheats/CheatsWindow.h"
@@ -80,7 +83,6 @@
 #include "DolphinWX/NetPlay/NetPlaySetupFrame.h"
 #include "DolphinWX/NetPlay/NetWindow.h"
 #include "DolphinWX/TASInputDlg.h"
-#include "DolphinWX/WXInputBase.h"
 #include "DolphinWX/WxEventUtils.h"
 #include "DolphinWX/WxUtils.h"
 
@@ -176,6 +178,8 @@ void CFrame::BindMenuBarEvents()
   Bind(wxEVT_MENU, &CFrame::OnNetPlay, this, IDM_NETPLAY);
   Bind(wxEVT_MENU, &CFrame::OnInstallWAD, this, IDM_MENU_INSTALL_WAD);
   Bind(wxEVT_MENU, &CFrame::OnLoadWiiMenu, this, IDM_LOAD_WII_MENU);
+  Bind(wxEVT_MENU, &CFrame::OnImportBootMiiBackup, this, IDM_IMPORT_NAND);
+  Bind(wxEVT_MENU, &CFrame::OnExtractCertificates, this, IDM_EXTRACT_CERTIFICATES);
   Bind(wxEVT_MENU, &CFrame::OnFifoPlayer, this, IDM_FIFOPLAYER);
   Bind(wxEVT_MENU, &CFrame::OnConnectWiimote, this, IDM_CONNECT_WIIMOTE1, IDM_CONNECT_BALANCEBOARD);
 
@@ -240,6 +244,7 @@ void CFrame::BindDebuggerMenuBarUpdateEvents()
   Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreInitialized, IDM_CLEAR_SYMBOLS);
   Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreInitialized, IDM_SCAN_FUNCTIONS);
   Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreInitialized, IDM_SCAN_SIGNATURES);
+  Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreInitialized, IDM_SCAN_RSO);
   Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreInitialized, IDM_LOAD_MAP_FILE);
   Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreInitialized, IDM_SAVEMAPFILE);
   Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreInitialized, IDM_LOAD_MAP_FILE_AS);
@@ -267,6 +272,8 @@ wxToolBar* CFrame::OnCreateToolBar(long style, wxWindowID id, const wxString& na
 
 void CFrame::OpenGeneralConfiguration(wxWindowID tab_id)
 {
+  if (!m_main_config_dialog)
+    m_main_config_dialog = new CConfigMain(this);
   if (tab_id > wxID_ANY)
     m_main_config_dialog->SetSelectedTab(tab_id);
 
@@ -377,17 +384,18 @@ void CFrame::OnTASInput(wxCommandEvent& event)
     if (SConfig::GetInstance().m_SIDevice[i] != SerialInterface::SIDEVICE_NONE &&
         SConfig::GetInstance().m_SIDevice[i] != SerialInterface::SIDEVICE_GC_GBA)
     {
-      g_TASInputDlg[i]->CreateGCLayout();
-      g_TASInputDlg[i]->Show();
-      g_TASInputDlg[i]->SetTitle(wxString::Format(_("TAS Input - GameCube Controller %d"), i + 1));
+      m_tas_input_dialogs[i]->CreateGCLayout();
+      m_tas_input_dialogs[i]->Show();
+      m_tas_input_dialogs[i]->SetTitle(
+          wxString::Format(_("TAS Input - GameCube Controller %d"), i + 1));
     }
 
     if (g_wiimote_sources[i] == WIIMOTE_SRC_EMU &&
         !(Core::IsRunning() && !SConfig::GetInstance().bWii))
     {
-      g_TASInputDlg[i + 4]->CreateWiiLayout(i);
-      g_TASInputDlg[i + 4]->Show();
-      g_TASInputDlg[i + 4]->SetTitle(wxString::Format(_("TAS Input - Wii Remote %d"), i + 1));
+      m_tas_input_dialogs[i + 4]->CreateWiiLayout(i);
+      m_tas_input_dialogs[i + 4]->Show();
+      m_tas_input_dialogs[i + 4]->SetTitle(wxString::Format(_("TAS Input - Wii Remote %d"), i + 1));
     }
   }
 }
@@ -718,12 +726,12 @@ void CFrame::StartGame(const std::string& filename)
         position.x -= 4;
         position.y -= 4;
       }
-      m_RenderFrame = new CRenderFrame(this, wxID_ANY, _("Dolphin"), position);
+      m_RenderFrame = new CRenderFrame(nullptr, wxID_ANY, _("Dolphin"), position);
       m_RenderFrame->SetClientSize(size.GetWidth(), size.GetHeight());
     }
     else
     {
-      m_RenderFrame = new CRenderFrame(this, wxID_ANY, _("Dolphin"), wxDefaultPosition, default_size);
+      m_RenderFrame = new CRenderFrame(nullptr, wxID_ANY, _("Dolphin"), wxDefaultPosition, default_size);
       // Convert ClientSize coordinates to frame sizes.
       wxSize decoration_fudge = m_RenderFrame->GetSize() - m_RenderFrame->GetClientSize();
       default_size += decoration_fudge;
@@ -867,14 +875,15 @@ void CFrame::DoStop()
     std::lock_guard<std::recursive_mutex> lk(keystate_lock);
     wxMutexGuiEnter();
 #endif
+
+    // Pause the state during confirmation and restore it afterwards
+    Core::State state = Core::GetState();
+
     // Ask for confirmation in case the user accidentally clicked Stop / Escape
     if (SConfig::GetInstance().bConfirmStop)
     {
       // Exit fullscreen to ensure it does not cover the stop dialog.
       DoFullscreen(false);
-
-      // Pause the state during confirmation and restore it afterwards
-      Core::State state = Core::GetState();
 
       // Do not pause if netplay is running as CPU thread might be blocked
       // waiting on inputs
@@ -940,6 +949,7 @@ void CFrame::DoStop()
         g_pCodeWindow->GetPanel<CBreakPointWindow>()->NotifyUpdate();
       g_symbolDB.Clear();
       Host_NotifyMapLoaded();
+      Core::SetState(state);
     }
 
     // TODO: Show the author/description dialog here
@@ -963,13 +973,18 @@ void CFrame::DoStop()
 
 bool CFrame::TriggerSTMPowerEvent()
 {
-  const auto stm = IOS::HLE::GetDeviceByName("/dev/stm/eventhook");
+  const auto ios = IOS::HLE::GetIOS();
+  if (!ios)
+    return false;
+
+  const auto stm = ios->GetDeviceByName("/dev/stm/eventhook");
   if (!stm || !std::static_pointer_cast<IOS::HLE::Device::STMEventHook>(stm)->HasHookInstalled())
     return false;
 
   Core::DisplayMessage("Shutting down", 30000);
-  // Unpause because gracefully shutting down needs the game to actually request a shutdown
-  if (Core::GetState() == Core::State::Paused)
+  // Unpause because gracefully shutting down needs the game to actually request a shutdown.
+  // Do not unpause in debug mode to allow debugging until the complete shutdown.
+  if (Core::GetState() == Core::State::Paused && !UseDebugger)
     DoPause();
   ProcessorInterface::PowerButton_Tap();
   m_confirmStop = false;
@@ -996,6 +1011,9 @@ void CFrame::OnStopped()
 
   // Destroy the renderer frame when not rendering to main
   m_RenderParent->Unbind(wxEVT_SIZE, &CFrame::OnRenderParentResize, this);
+
+  // Keyboard
+  wxTheApp->Unbind(wxEVT_KEY_DOWN, &CFrame::OnKeyDown, this);
 
   // Mouse
   wxTheApp->Unbind(wxEVT_RIGHT_DOWN, &CFrame::OnMouse, this);
@@ -1286,10 +1304,11 @@ void CFrame::OnImportSave(wxCommandEvent& WXUNUSED(event))
 
 void CFrame::OnShowCheatsWindow(wxCommandEvent& WXUNUSED(event))
 {
-  if (!g_CheatsWindow)
-    g_CheatsWindow = new wxCheatsWindow(this);
-  else
-    g_CheatsWindow->Raise();
+  if (!m_cheats_window)
+    m_cheats_window = new wxCheatsWindow(this);
+
+  m_cheats_window->Show();
+  m_cheats_window->Raise();
 }
 
 void CFrame::OnLoadWiiMenu(wxCommandEvent& WXUNUSED(event))
@@ -1333,6 +1352,62 @@ void CFrame::OnInstallWAD(wxCommandEvent& event)
   {
     UpdateLoadWiiMenuItem();
   }
+}
+
+void CFrame::OnUninstallWAD(wxCommandEvent&)
+{
+  const GameListItem* file = m_GameListCtrl->GetSelectedISO();
+  if (!file)
+    return;
+
+  if (!AskYesNoT("Uninstalling the WAD will remove the currently installed version "
+                 "of this title from the NAND without deleting its save data. Continue?"))
+  {
+    return;
+  }
+
+  const auto volume = DiscIO::CreateVolumeFromFilename(file->GetFileName());
+  u64 title_id;
+  volume->GetTitleID(&title_id);
+  if (!DiscIO::CNANDContentManager::Access().RemoveTitle(title_id, Common::FROM_CONFIGURED_ROOT))
+  {
+    PanicAlertT("Failed to remove this title from the NAND.");
+    return;
+  }
+
+  if (title_id == TITLEID_SYSMENU)
+    UpdateLoadWiiMenuItem();
+}
+
+void CFrame::OnImportBootMiiBackup(wxCommandEvent& WXUNUSED(event))
+{
+  if (!AskYesNoT("Merging a new NAND over your currently selected NAND will overwrite any channels "
+                 "and savegames that already exist. This process is not reversible, so it is "
+                 "recommended that you keep backups of both NANDs. Are you sure you want to "
+                 "continue?"))
+    return;
+
+  wxString path = wxFileSelector(
+      _("Select a BootMii NAND backup to import"), wxEmptyString, wxEmptyString, wxEmptyString,
+      _("BootMii NAND backup file (*.bin)") + "|*.bin|" + wxGetTranslation(wxALL_FILES),
+      wxFD_OPEN | wxFD_PREVIEW | wxFD_FILE_MUST_EXIST, this);
+  const std::string file_name = WxStrToStr(path);
+  if (file_name.empty())
+    return;
+
+  wxProgressDialog dialog(_("Importing NAND backup"), _("Working..."), 100, this,
+                          wxPD_APP_MODAL | wxPD_ELAPSED_TIME | wxPD_SMOOTH);
+  DiscIO::NANDImporter().ImportNANDBin(file_name,
+                                       [&dialog](size_t current_entry, size_t total_entries) {
+                                         dialog.SetRange(total_entries);
+                                         dialog.Update(current_entry);
+                                       });
+  UpdateLoadWiiMenuItem();
+}
+
+void CFrame::OnExtractCertificates(wxCommandEvent& WXUNUSED(event))
+{
+  DiscIO::NANDImporter().ExtractCertificates(File::GetUserPath(D_WIIROOT_IDX));
 }
 
 void CFrame::UpdateLoadWiiMenuItem() const
@@ -1504,8 +1579,12 @@ void CFrame::ConnectWiimote(int wm_idx, bool connect)
       !SConfig::GetInstance().m_bt_passthrough_enabled)
   {
     bool was_unpaused = Core::PauseAndLock(true);
+    const auto ios = IOS::HLE::GetIOS();
+    if (!ios)
+      return;
+
     const auto bt = std::static_pointer_cast<IOS::HLE::Device::BluetoothEmu>(
-        IOS::HLE::GetDeviceByName("/dev/usb/oh1/57e/305"));
+        ios->GetDeviceByName("/dev/usb/oh1/57e/305"));
     if (bt)
       bt->AccessWiiMote(wm_idx | 0x100)->Activate(connect);
     const char* message = connect ? "Wii Remote %i connected" : "Wii Remote %i disconnected";
@@ -1517,11 +1596,12 @@ void CFrame::ConnectWiimote(int wm_idx, bool connect)
 
 void CFrame::OnConnectWiimote(wxCommandEvent& event)
 {
-  if (SConfig::GetInstance().m_bt_passthrough_enabled)
+  const auto ios = IOS::HLE::GetIOS();
+  if (!ios || SConfig::GetInstance().m_bt_passthrough_enabled)
     return;
   bool was_unpaused = Core::PauseAndLock(true);
   const auto bt = std::static_pointer_cast<IOS::HLE::Device::BluetoothEmu>(
-      IOS::HLE::GetDeviceByName("/dev/usb/oh1/57e/305"));
+      ios->GetDeviceByName("/dev/usb/oh1/57e/305"));
   const bool is_connected =
       bt && bt->AccessWiiMote((event.GetId() - IDM_CONNECT_WIIMOTE1) | 0x100)->IsConnected();
   ConnectWiimote(event.GetId() - IDM_CONNECT_WIIMOTE1, !is_connected);
@@ -1694,8 +1774,10 @@ void CFrame::UpdateGUI()
   // Tools
   GetMenuBar()->FindItem(IDM_CHEATS)->Enable(SConfig::GetInstance().bEnableCheats);
 
-  const auto bt = std::static_pointer_cast<IOS::HLE::Device::BluetoothEmu>(
-      IOS::HLE::GetDeviceByName("/dev/usb/oh1/57e/305"));
+  const auto ios = IOS::HLE::GetIOS();
+  const auto bt = ios ? std::static_pointer_cast<IOS::HLE::Device::BluetoothEmu>(
+                            ios->GetDeviceByName("/dev/usb/oh1/57e/305")) :
+                        nullptr;
   bool ShouldEnableWiimotes = Running && bt && !SConfig::GetInstance().m_bt_passthrough_enabled;
   GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE1)->Enable(ShouldEnableWiimotes);
   GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE2)->Enable(ShouldEnableWiimotes);
@@ -1790,12 +1872,12 @@ void CFrame::UpdateGUI()
   m_Mgr->Update();
 
   // Update non-modal windows
-  if (g_CheatsWindow)
+  if (m_cheats_window)
   {
     if (SConfig::GetInstance().bEnableCheats)
-      g_CheatsWindow->UpdateGUI();
+      m_cheats_window->UpdateGUI();
     else
-      g_CheatsWindow->Close();
+      m_cheats_window->Hide();
   }
 }
 
@@ -1869,7 +1951,7 @@ void CFrame::GameListChanged(wxCommandEvent& event)
     break;
   case IDM_PURGE_GAME_LIST_CACHE:
     std::vector<std::string> rFilenames =
-        DoFileSearch({".cache"}, {File::GetUserPath(D_CACHE_IDX)});
+        Common::DoFileSearch({".cache"}, {File::GetUserPath(D_CACHE_IDX)});
 
     for (const std::string& rFilename : rFilenames)
     {
@@ -1912,6 +1994,9 @@ void CFrame::OnChangeColumnsVisible(wxCommandEvent& event)
     break;
   case IDM_SHOW_BANNER:
     SConfig::GetInstance().m_showBannerColumn = !SConfig::GetInstance().m_showBannerColumn;
+    break;
+  case IDM_SHOW_TITLE:
+    SConfig::GetInstance().m_showTitleColumn = !SConfig::GetInstance().m_showTitleColumn;
     break;
   case IDM_SHOW_MAKER:
     SConfig::GetInstance().m_showMakerColumn = !SConfig::GetInstance().m_showMakerColumn;

@@ -100,7 +100,7 @@ void HiresTexture::Update()
   };
 
   std::vector<std::string> filenames =
-      DoFileSearch(extensions, {texture_directory}, /*recursive*/ true);
+      Common::DoFileSearch(extensions, {texture_directory}, /*recursive*/ true);
 
   const std::string code = game_id + "_";
 
@@ -371,6 +371,21 @@ std::string HiresTexture::GenBaseName(const u8* texture, size_t texture_size, co
   return name;
 }
 
+u32 HiresTexture::CalculateMipCount(u32 width, u32 height)
+{
+  u32 mip_width = width;
+  u32 mip_height = height;
+  u32 mip_count = 1;
+  while (mip_width > 1 || mip_height > 1)
+  {
+    mip_width = std::max(mip_width / 2, 1u);
+    mip_height = std::max(mip_height / 2, 1u);
+    mip_count++;
+  }
+
+  return mip_count;
+}
+
 std::shared_ptr<HiresTexture> HiresTexture::Search(const u8* texture, size_t texture_size,
                                                    const u8* tlut, size_t tlut_size, u32 width,
                                                    u32 height, int format, bool has_mipmaps)
@@ -400,88 +415,132 @@ std::shared_ptr<HiresTexture> HiresTexture::Search(const u8* texture, size_t tex
 std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filename, u32 width,
                                                  u32 height)
 {
-  std::unique_ptr<HiresTexture> ret;
-  for (int level = 0;; level++)
+  // We need to have a level 0 custom texture to even consider loading.
+  auto filename_iter = s_textureMap.find(base_filename);
+  if (filename_iter == s_textureMap.end())
+    return nullptr;
+
+  // Try to load level 0 (and any mipmaps) from a DDS file.
+  // If this fails, it's fine, we'll just load level0 again using SOIL.
+  // Can't use make_unique due to private constructor.
+  std::unique_ptr<HiresTexture> ret = std::unique_ptr<HiresTexture>(new HiresTexture());
+  const std::string& first_mip_filename = filename_iter->second;
+  LoadDDSTexture(ret.get(), first_mip_filename);
+
+  // Load remaining mip levels, or from the start if it's not a DDS texture.
+  for (u32 mip_level = static_cast<u32>(ret->m_levels.size());; mip_level++)
   {
     std::string filename = base_filename;
-    if (level)
-    {
-      filename += StringFromFormat("_mip%u", level);
-    }
+    if (mip_level != 0)
+      filename += StringFromFormat("_mip%u", mip_level);
 
-    if (s_textureMap.find(filename) != s_textureMap.end())
-    {
-      Level l;
+    filename_iter = s_textureMap.find(filename);
+    if (filename_iter == s_textureMap.end())
+      break;
 
+    // Try loading DDS textures first, that way we maintain compression of DXT formats.
+    // TODO: Reduce the number of open() calls here. We could use one fd.
+    Level level;
+    if (!LoadDDSTexture(level, filename_iter->second))
+    {
       File::IOFile file;
-      file.Open(s_textureMap[filename], "rb");
+      file.Open(filename_iter->second, "rb");
       std::vector<u8> buffer(file.GetSize());
       file.ReadBytes(buffer.data(), file.GetSize());
-
-      int channels;
-#if defined(_MSC_VER) && _MSC_VER <= 1800
-      l.data = SOIL_load_image_from_memory(buffer.data(), (int)buffer.size(), (int*)&l.width,
-                                           (int*)&l.height, &channels, SOIL_LOAD_RGBA);
-#else
-      l.data =
-          SOILPointer(SOIL_load_image_from_memory(buffer.data(), (int)buffer.size(), (int*)&l.width,
-                                                  (int*)&l.height, &channels, SOIL_LOAD_RGBA),
-                      SOIL_free_image_data);
-#endif
-      l.data_size = (size_t)l.width * l.height * 4;
-
-      if (l.data == nullptr)
+      if (!LoadTexture(level, buffer))
       {
         ERROR_LOG(VIDEO, "Custom texture %s failed to load", filename.c_str());
         break;
       }
+    }
 
-      if (!level)
-      {
-        if (l.width * height != l.height * width)
-          ERROR_LOG(VIDEO, "Invalid custom texture size %dx%d for texture %s. The aspect differs "
-                           "from the native size %dx%d.",
-                    l.width, l.height, filename.c_str(), width, height);
-        if (width && height && (l.width % width || l.height % height))
-          WARN_LOG(VIDEO, "Invalid custom texture size %dx%d for texture %s. Please use an integer "
-                          "upscaling factor based on the native size %dx%d.",
-                   l.width, l.height, filename.c_str(), width, height);
-        width = l.width;
-        height = l.height;
-      }
-      else if (width != l.width || height != l.height)
-      {
-        ERROR_LOG(
-            VIDEO,
-            "Invalid custom texture size %dx%d for texture %s. This mipmap layer _must_ be %dx%d.",
-            l.width, l.height, filename.c_str(), width, height);
-#if defined(_MSC_VER) && _MSC_VER <= 1800
-        SOIL_free_image_data(l.data);
-#else
-        l.data.reset();
-#endif
-        break;
-      }
+    ret->m_levels.push_back(std::move(level));
+  }
 
-      if (!ret)
-        ret = std::unique_ptr<HiresTexture>(new HiresTexture);
-      ret->m_levels.push_back(std::move(l));
+  // If we failed to load any mip levels, we can't use this texture at all.
+  if (ret->m_levels.empty())
+    return nullptr;
 
-      // no more mipmaps available
-      if (width == 1 && height == 1)
-        break;
+  // Verify that the aspect ratio of the texture hasn't changed, as this could have side-effects.
+  const Level& first_mip = ret->m_levels[0];
+  if (first_mip.width * height != first_mip.height * width)
+  {
+    ERROR_LOG(VIDEO, "Invalid custom texture size %ux%u for texture %s. The aspect differs "
+                     "from the native size %ux%u.",
+              first_mip.width, first_mip.height, first_mip_filename.c_str(), width, height);
+  }
 
-      // calculate the size of the next mipmap
-      width = std::max(1u, width >> 1);
-      height = std::max(1u, height >> 1);
+  // Same deal if the custom texture isn't a multiple of the native size.
+  if (width != 0 && height != 0 && (first_mip.width % width || first_mip.height % height))
+  {
+    ERROR_LOG(VIDEO, "Invalid custom texture size %ux%u for texture %s. Please use an integer "
+                     "upscaling factor based on the native size %ux%u.",
+              first_mip.width, first_mip.height, first_mip_filename.c_str(), width, height);
+  }
+
+  // Verify that each mip level is the correct size (divide by 2 each time).
+  u32 current_mip_width = first_mip.width;
+  u32 current_mip_height = first_mip.height;
+  for (u32 mip_level = 1; mip_level < static_cast<u32>(ret->m_levels.size()); mip_level++)
+  {
+    if (current_mip_width != 1 || current_mip_height != 1)
+    {
+      current_mip_width = std::max(current_mip_width / 2, 1u);
+      current_mip_height = std::max(current_mip_height / 2, 1u);
+
+      const Level& level = ret->m_levels[mip_level];
+      if (current_mip_width == level.width && current_mip_height == level.height)
+        continue;
+
+      ERROR_LOG(VIDEO,
+                "Invalid custom texture size %dx%d for texture %s. Mipmap level %u must be %dx%d.",
+                level.width, level.height, first_mip_filename.c_str(), mip_level, current_mip_width,
+                current_mip_height);
     }
     else
     {
-      break;
+      // It is invalid to have more than a single 1x1 mipmap.
+      ERROR_LOG(VIDEO, "Custom texture %s has too many 1x1 mipmaps. Skipping extra levels.",
+                first_mip_filename.c_str());
     }
+
+    // Drop this mip level and any others after it.
+    while (ret->m_levels.size() > mip_level)
+      ret->m_levels.pop_back();
+  }
+
+  // All levels have to have the same format.
+  if (std::any_of(ret->m_levels.begin(), ret->m_levels.end(),
+                  [&ret](const Level& l) { return l.format != ret->m_levels[0].format; }))
+  {
+    ERROR_LOG(VIDEO, "Custom texture %s has inconsistent formats across mip levels.",
+              first_mip_filename.c_str());
+
+    return nullptr;
   }
 
   return ret;
+}
+
+bool HiresTexture::LoadTexture(Level& level, const std::vector<u8>& buffer)
+{
+  int channels;
+  int width;
+  int height;
+
+  u8* data = SOIL_load_image_from_memory(buffer.data(), static_cast<int>(buffer.size()), &width,
+                                         &height, &channels, SOIL_LOAD_RGBA);
+  if (!data)
+    return false;
+
+  // Images loaded by SOIL are converted to RGBA.
+  level.width = static_cast<u32>(width);
+  level.height = static_cast<u32>(height);
+  level.format = HostTextureFormat::RGBA8;
+  level.data = ImageDataPointer(data, SOIL_free_image_data);
+  level.row_length = level.width;
+  level.data_size = static_cast<size_t>(level.row_length) * 4 * level.height;
+  return true;
 }
 
 std::string HiresTexture::GetTextureDirectory(const std::string& game_id)
@@ -503,4 +562,9 @@ HiresTexture::~HiresTexture()
     SOIL_free_image_data(l.data);
   }
 #endif
+}
+
+HostTextureFormat HiresTexture::GetFormat() const
+{
+  return m_levels.at(0).format;
 }

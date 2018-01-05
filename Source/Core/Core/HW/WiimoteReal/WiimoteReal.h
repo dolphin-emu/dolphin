@@ -16,11 +16,11 @@
 #include "Common/Flag.h"
 #include "Common/NonCopyable.h"
 #include "Core/HW/Wiimote.h"
-#include "Core/HW/WiimoteReal/WiimoteRealBase.h"
+#include "Core/HW/WiimoteCommon/WiimoteConstants.h"
+#include "Core/HW/WiimoteCommon/WiimoteHid.h"
+#include "Core/HW/WiimoteCommon/WiimoteReport.h"
 
 class PointerWrap;
-
-typedef std::vector<u8> Report;
 
 namespace WiimoteReal
 {
@@ -138,18 +138,18 @@ public:
   void StopThread();
   void SetScanMode(WiimoteScanMode scan_mode);
 
-  void AddScannerBackend(std::unique_ptr<WiimoteScannerBackend> backend);
   bool IsReady() const;
 
 private:
   void ThreadFunc();
+
+  std::vector<std::unique_ptr<WiimoteScannerBackend>> m_backends;
+  mutable std::mutex m_backends_mutex;
+
   std::thread m_scan_thread;
   Common::Flag m_scan_thread_running;
-
   Common::Event m_scan_mode_changed_event;
   std::atomic<WiimoteScanMode> m_scan_mode{WiimoteScanMode::DO_NOT_SCAN};
-
-  std::vector<std::unique_ptr<WiimoteScannerBackend>> m_scanner_backends;
 };
 
 extern std::mutex g_wiimotes_mutex;

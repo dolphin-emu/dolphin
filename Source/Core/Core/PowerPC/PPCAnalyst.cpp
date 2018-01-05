@@ -73,12 +73,11 @@ static u32 EvaluateBranchTarget(UGeckoInstruction instr, u32 pc)
 }
 
 // To find the size of each found function, scan
-// forward until we hit blr. In the meantime, collect information
+// forward until we hit blr or rfi. In the meantime, collect information
 // about which functions this function calls.
-// Also collect which internal branch goes the farthest
-// If any one goes farther than the blr, assume that there is more than
-// one blr, and keep scanning.
-
+// Also collect which internal branch goes the farthest.
+// If any one goes farther than the blr or rfi, assume that there is more than
+// one blr or rfi, and keep scanning.
 bool AnalyzeFunction(u32 startAddr, Symbol& func, int max_size)
 {
   if (!func.name.size())
@@ -97,10 +96,9 @@ bool AnalyzeFunction(u32 startAddr, Symbol& func, int max_size)
   while (true)
   {
     func.size += 4;
-    if (func.size >= CODEBUFFER_SIZE * 4)  // weird
+    if (func.size >= CODEBUFFER_SIZE * 4 || !PowerPC::HostIsRAMAddress(addr))  // weird
       return false;
 
-    const UGeckoInstruction instr = PowerPC::HostRead_Instruction(addr);
     if (max_size && func.size > max_size)
     {
       func.address = startAddr;
@@ -110,11 +108,14 @@ bool AnalyzeFunction(u32 startAddr, Symbol& func, int max_size)
         func.flags |= FFLAG_STRAIGHT;
       return true;
     }
-    if (PPCTables::IsValidInstruction(instr))
+    const PowerPC::TryReadInstResult read_result = PowerPC::TryReadInstruction(addr);
+    const UGeckoInstruction instr = read_result.hex;
+    if (read_result.valid && PPCTables::IsValidInstruction(instr))
     {
-      if (instr.hex == 0x4e800020)  // 4e800021 is blrl, not the end of a function
+      // BLR or RFI
+      // 4e800021 is blrl, not the end of a function
+      if (instr.hex == 0x4e800020 || instr.hex == 0x4C000064)
       {
-        // BLR
         if (farthestInternalBranchTarget > addr)
         {
           // bah, not this one, continue..
@@ -277,9 +278,10 @@ static void FindFunctionsFromBranches(u32 startAddr, u32 endAddr, SymbolDB* func
 {
   for (u32 addr = startAddr; addr < endAddr; addr += 4)
   {
-    const UGeckoInstruction instr = PowerPC::HostRead_Instruction(addr);
+    const PowerPC::TryReadInstResult read_result = PowerPC::TryReadInstruction(addr);
+    const UGeckoInstruction instr = read_result.hex;
 
-    if (PPCTables::IsValidInstruction(instr))
+    if (read_result.valid && PPCTables::IsValidInstruction(instr))
     {
       switch (instr.OPCD)
       {
@@ -304,7 +306,41 @@ static void FindFunctionsFromBranches(u32 startAddr, u32 endAddr, SymbolDB* func
   }
 }
 
-static void FindFunctionsAfterBLR(PPCSymbolDB* func_db)
+static void FindFunctionsFromHandlers(PPCSymbolDB* func_db)
+{
+  static const std::map<u32, const char* const> handlers = {
+      {0x80000100, "system_reset_exception_handler"},
+      {0x80000200, "machine_check_exception_handler"},
+      {0x80000300, "dsi_exception_handler"},
+      {0x80000400, "isi_exception_handler"},
+      {0x80000500, "external_interrupt_exception_handler"},
+      {0x80000600, "alignment_exception_handler"},
+      {0x80000700, "program_exception_handler"},
+      {0x80000800, "floating_point_unavailable_exception_handler"},
+      {0x80000900, "decrementer_exception_handler"},
+      {0x80000C00, "system_call_exception_handler"},
+      {0x80000D00, "trace_exception_handler"},
+      {0x80000E00, "floating_point_assist_exception_handler"},
+      {0x80000F00, "performance_monitor_interrupt_handler"},
+      {0x80001300, "instruction_address_breakpoint_exception_handler"},
+      {0x80001400, "system_management_interrupt_handler"},
+      {0x80001700, "thermal_management_interrupt_exception_handler"}};
+
+  for (const auto& entry : handlers)
+  {
+    const PowerPC::TryReadInstResult read_result = PowerPC::TryReadInstruction(entry.first);
+    if (read_result.valid && PPCTables::IsValidInstruction(read_result.hex))
+    {
+      // Check if this function is already mapped
+      Symbol* f = func_db->AddFunction(entry.first);
+      if (!f)
+        continue;
+      f->name = entry.second;
+    }
+  }
+}
+
+static void FindFunctionsAfterReturnInstruction(PPCSymbolDB* func_db)
 {
   std::vector<u32> funcAddrs;
 
@@ -315,11 +351,17 @@ static void FindFunctionsAfterBLR(PPCSymbolDB* func_db)
   {
     while (true)
     {
-      // skip zeroes that sometimes pad function to 16 byte boundary (e.g. Donkey Kong Country
-      // Returns)
-      while (PowerPC::HostRead_Instruction(location) == 0 && ((location & 0xf) != 0))
+      // Skip zeroes (e.g. Donkey Kong Country Returns) and nop (e.g. libogc)
+      // that sometimes pad function to 16 byte boundary.
+      PowerPC::TryReadInstResult read_result = PowerPC::TryReadInstruction(location);
+      while (read_result.valid && (location & 0xf) != 0)
+      {
+        if (read_result.hex != 0 && read_result.hex != 0x60000000)
+          break;
         location += 4;
-      if (PPCTables::IsValidInstruction(PowerPC::HostRead_Instruction(location)))
+        read_result = PowerPC::TryReadInstruction(location);
+      }
+      if (read_result.valid && PPCTables::IsValidInstruction(read_result.hex))
       {
         // check if this function is already mapped
         Symbol* f = func_db->AddFunction(location);
@@ -338,7 +380,8 @@ void FindFunctions(u32 startAddr, u32 endAddr, PPCSymbolDB* func_db)
 {
   // Step 1: Find all functions
   FindFunctionsFromBranches(startAddr, endAddr, func_db);
-  FindFunctionsAfterBLR(func_db);
+  FindFunctionsFromHandlers(func_db);
+  FindFunctionsAfterReturnInstruction(func_db);
 
   // Step 2:
   func_db->FillInCallers();

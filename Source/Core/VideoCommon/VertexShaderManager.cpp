@@ -38,13 +38,6 @@ static float GC_ALIGNED16(g_fProjectionMatrix[16]);
 static float s_locked_skybox[3 * 4];
 static bool s_had_skybox = false;
 
-// TODO: remove
-// VR Global variable shared from core. True if the Wii is set to Widescreen (so the game thinks it
-// is rendering to 16:9)
-//   or false if it isn't (so the game thinks it is rendering to 4:3). Which is different from how
-//   Dolphin will actually render it.
-extern bool Core::g_aspect_wide;
-
 // track changes
 static bool bTexMatricesChanged[2], bPosNormalMatrixChanged, bProjectionChanged, bViewportChanged,
     bFreeLookChanged, bFrameChanged;
@@ -667,23 +660,6 @@ static float PHackValue(std::string sValue)
   return f;
 }
 
-// Due to the BT.601 standard which the GameCube is based on being a compromise
-// between PAL and NTSC, neither standard gets square pixels. They are each off
-// by ~9% in opposite directions.
-// Just in case any game decides to take this into account, we do both these
-// tests with a large amount of slop.
-static bool AspectIs4_3(float width, float height)
-{
-  float aspect = fabsf(width / height);
-  return fabsf(aspect - 4.0f / 3.0f) < 4.0f / 3.0f * 0.11;  // within 11% of 4:3
-}
-
-static bool AspectIs16_9(float width, float height)
-{
-  float aspect = fabsf(width / height);
-  return fabsf(aspect - 16.0f / 9.0f) < 16.0f / 9.0f * 0.11;  // within 11% of 16:9
-}
-
 void UpdateProjectionHack(int iPhackvalue[], std::string sPhackvalue[])
 {
   float fhackvalue1 = 0, fhackvalue2 = 0;
@@ -1033,14 +1009,24 @@ void VertexShaderManager::SetViewportConstants()
   // NOTE: If we ever emulate antialiasing, the sample locations set by
   // BP registers 0x01-0x04 need to be considered here.
   const float pixel_center_correction = 7.0f / 12.0f - 0.5f;
-  const float pixel_size_x = 2.f / g_renderer->EFBToScaledXf(2.f * xfmem.viewport.wd);
-  const float pixel_size_y = 2.f / g_renderer->EFBToScaledXf(2.f * xfmem.viewport.ht);
+  const bool bUseVertexRounding =
+      g_ActiveConfig.bVertexRounding && g_ActiveConfig.iEFBScale != SCALE_1X;
+  const float viewport_width = bUseVertexRounding ?
+                                   (2.f * xfmem.viewport.wd) :
+                                   g_renderer->EFBToScaledXf(2.f * xfmem.viewport.wd);
+  const float viewport_height = bUseVertexRounding ?
+                                    (2.f * xfmem.viewport.ht) :
+                                    g_renderer->EFBToScaledXf(2.f * xfmem.viewport.ht);
+  const float pixel_size_x = 2.f / viewport_width;
+  const float pixel_size_y = 2.f / viewport_height;
   constants.pixelcentercorrection[0] = pixel_center_correction * pixel_size_x;
   constants.pixelcentercorrection[1] = pixel_center_correction * pixel_size_y;
 
   // By default we don't change the depth value at all in the vertex shader.
   constants.pixelcentercorrection[2] = 1.0f;
   constants.pixelcentercorrection[3] = 0.0f;
+  constants.viewport[0] = (2.f * xfmem.viewport.wd);
+  constants.viewport[1] = (2.f * xfmem.viewport.ht);
 
   if (g_renderer->UseVertexDepthRange())
   {
@@ -1456,7 +1442,7 @@ void VertexShaderManager::SetProjectionConstants()
         if (g_is_nes)
           vfov =
               180.0f / 3.14159f * 2 * atanf(tanf((hfov * 3.14159f / 180.0f) / 2) * 1.0f / 1.175f);
-        else if (Core::g_aspect_wide)
+        else if (g_renderer->m_aspect_wide)
           vfov =
               180.0f / 3.14159f * 2 * atanf(tanf((hfov * 3.14159f / 180.0f) / 2) * 9.0f /
                                             16.0f);  // 2D screen is meant to be 16:9 aspect ratio
@@ -1493,17 +1479,6 @@ void VertexShaderManager::SetProjectionConstants()
       g_fProjectionMatrix[14] = -1.0f;
       g_fProjectionMatrix[15] = 0.0f;
 
-      // Heuristic to detect if a GameCube game is in 16:9 anamorphic widescreen mode.
-      if (!SConfig::GetInstance().bWii)
-      {
-        bool viewport_is_4_3 = AspectIs4_3(xfmem.viewport.wd, xfmem.viewport.ht);
-        if (AspectIs16_9(rawProjection[2], rawProjection[0]) && viewport_is_4_3)
-          Core::g_aspect_wide = true;  // Projection is 16:9 and viewport is 4:3, we are rendering
-                                       // an anamorphic widescreen picture
-        else if (AspectIs4_3(rawProjection[2], rawProjection[0]) && viewport_is_4_3)
-          Core::g_aspect_wide =
-              false;  // Project and viewports are both 4:3, we are rendering a normal image.
-      }
     }
 
     Matrix44 proj_left, proj_right, hmd_left, hmd_right;
@@ -1768,7 +1743,7 @@ void VertexShaderManager::SetProjectionConstants()
         // http://forums.nesdev.com/viewtopic.php?t=8063
         if (g_is_nes)
           HudWidth = HudHeight * 1.175f;
-        else if (Core::g_aspect_wide)
+        else if (g_renderer->m_aspect_wide)
           HudWidth = HudHeight * (float)16 / 9;
         else
           HudWidth = HudHeight * (float)4 / 3;

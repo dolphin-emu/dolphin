@@ -505,6 +505,7 @@ private:
   u8* m_code;
   u8* m_lastCacheFlushEnd;
 
+  void AddImmediate(ARM64Reg Rd, ARM64Reg Rn, u64 imm, bool shift, bool negative, bool flags);
   void EncodeCompareBranchInst(u32 op, ARM64Reg Rt, const void* ptr);
   void EncodeTestBranchInst(u32 op, ARM64Reg Rt, u8 bits, const void* ptr);
   void EncodeUnconditionalBranchInst(u32 op, const void* ptr);

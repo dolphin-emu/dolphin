@@ -23,13 +23,26 @@
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/ES/ES.h"
 #include "Core/IOS/ES/Formats.h"
-#include "Core/IOS/IPC.h"
+#include "Core/IOS/IOS.h"
 #include "Core/HideObjectEngine.h"
 #include "Core/PatchEngine.h"
 #include "Core/PowerPC/PowerPC.h"
 
 #include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
+
+namespace
+{
+void PresetTimeBaseTicks()
+{
+  const u64 emulated_time =
+      ExpansionInterface::CEXIIPL::GetEmulatedTime(ExpansionInterface::CEXIIPL::GC_EPOCH);
+
+  const u64 time_base_ticks = emulated_time * 40500000ULL;
+
+  PowerPC::HostWrite_U64(time_base_ticks, 0x800030D8);
+}
+}  // Anonymous namespace
 
 void CBoot::RunFunction(u32 address)
 {
@@ -94,8 +107,8 @@ bool CBoot::EmulatedBS2_GC(bool skip_app_loader)
   PowerPC::HostWrite_U32(0x4c000064, 0x80000800);  // Write default FPU Handler:     rfi
   PowerPC::HostWrite_U32(0x4c000064, 0x80000C00);  // Write default Syscall Handler: rfi
 
-  PowerPC::HostWrite_U64((u64)CEXIIPL::GetEmulatedTime(CEXIIPL::GC_EPOCH) * (u64)40500000,
-                         0x800030D8);  // Preset time base ticks
+  PresetTimeBaseTicks();
+
   // HIO checks this
   // PowerPC::HostWrite_U16(0x8200,     0x000030e6); // Console type
 
@@ -213,7 +226,7 @@ bool CBoot::SetupWiiMemory(u64 ios_title_id)
 
   if (serno.empty() || serno == "000000000")
   {
-    if (Core::g_want_determinism)
+    if (Core::WantsDeterminism())
       serno = "123456789";
     else
       serno = SettingsHandler::GenerateSerialNumber();
@@ -280,7 +293,7 @@ bool CBoot::SetupWiiMemory(u64 ios_title_id)
   Memory::Write_U16(0x8201, 0x000030e6);                // Dev console / debug capable
   Memory::Write_U32(0x00000000, 0x000030f0);            // Apploader
 
-  if (!IOS::HLE::Reload(ios_title_id))
+  if (!IOS::HLE::GetIOS()->BootIOS(ios_title_id))
   {
     return false;
   }

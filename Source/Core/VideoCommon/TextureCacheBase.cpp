@@ -47,6 +47,29 @@ TextureCacheBase::TCacheEntryBase::~TCacheEntryBase()
 {
 }
 
+bool TextureCacheBase::IsCompressedHostTextureFormat(HostTextureFormat format)
+{
+  // This will need to be changed if we add any other uncompressed formats.
+  return format != HostTextureFormat::RGBA8;
+}
+
+size_t TextureCacheBase::CalculateHostTextureLevelPitch(HostTextureFormat format, u32 row_length)
+{
+  switch (format)
+  {
+  case HostTextureFormat::DXT1:
+    return static_cast<size_t>(std::max(1u, row_length / 4)) * 8;
+
+  case HostTextureFormat::DXT3:
+  case HostTextureFormat::DXT5:
+    return static_cast<size_t>(std::max(1u, row_length / 4)) * 16;
+
+  case HostTextureFormat::RGBA8:
+  default:
+    return static_cast<size_t>(row_length) * 4;
+  }
+}
+
 void TextureCacheBase::CheckTempSize(size_t required_size)
 {
   if (required_size <= temp_size)
@@ -110,7 +133,8 @@ void TextureCacheBase::OnConfigChanged(VideoConfig& config)
   if (config.iSafeTextureCache_ColorSamples != backup_config.color_samples ||
       config.bTexFmtOverlayEnable != backup_config.texfmt_overlay ||
       config.bTexFmtOverlayCenter != backup_config.texfmt_overlay_center ||
-      config.bHiresTextures != backup_config.hires_textures)
+      config.bHiresTextures != backup_config.hires_textures ||
+      config.bEnableGPUTextureDecoding != backup_config.gpu_texture_decoding)
   {
     Invalidate();
 
@@ -209,6 +233,7 @@ void TextureCacheBase::SetBackupConfig(const VideoConfig& config)
   backup_config.cache_hires_textures = config.bCacheHiresTextures;
   backup_config.stereo_3d = config.iStereoMode > 0;
   backup_config.efb_mono_depth = config.bStereoEFBMonoDepth;
+  backup_config.gpu_texture_decoding = config.bEnableGPUTextureDecoding;
 }
 
 TextureCacheBase::TCacheEntryBase* TextureCacheBase::ApplyPaletteToEntry(TCacheEntryBase* entry,
@@ -526,6 +551,7 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
 
   const u32 texture_size =
       TexDecoder_GetTextureSizeInBytes(expandedWidth, expandedHeight, texformat);
+  u32 bytes_per_block = (bsw * bsh * TexDecoder_GetTexelSizeInNibbles(texformat)) / 2;
   u32 additional_mips_size = 0;  // not including level 0, which is texture_size
 
   // GPUs don't like when the specified mipmap count would require more than one 1x1-sized LOD in
@@ -757,23 +783,29 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
       }
       expandedWidth = level.width;
       expandedHeight = level.height;
-      CheckTempSize(level.data_size);
-#if defined(_MSC_VER) && _MSC_VER <= 1800
-      memcpy(temp, level.data, level.data_size);
-#else
-      memcpy(temp, level.data.get(), level.data_size);
-#endif
     }
   }
 
   // how many levels the allocated texture shall have
   const u32 texLevels = hires_tex ? (u32)hires_tex->m_levels.size() : tex_levels;
 
+  // We can decode on the GPU if it is a supported format and the flag is enabled.
+  // Currently we don't decode RGBA8 textures from Tmem, as that would require copying from both
+  // banks, and if we're doing an copy we may as well just do the whole thing on the CPU, since
+  // there's no conversion between formats. In the future this could be extended with a separate
+  // shader, however.
+  bool decode_on_gpu =
+      !hires_tex && g_ActiveConfig.UseGPUTextureDecoding() &&
+      g_texture_cache->SupportsGPUTextureDecode(static_cast<TextureFormat>(texformat),
+                                                static_cast<TlutFormat>(tlutfmt)) &&
+      !(from_tmem && texformat == GX_TF_RGBA8);
+
   // create the entry/texture
   TCacheEntryConfig config;
   config.width = width;
   config.height = height;
   config.levels = texLevels;
+  config.format = hires_tex ? hires_tex->GetFormat() : HostTextureFormat::RGBA8;
 
   TCacheEntryBase* entry = AllocateTexture(config);
   GFX_DEBUGGER_PAUSE_AT(NEXT_NEW_TEXTURE, true);
@@ -781,11 +813,25 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
   if (!entry)
     return nullptr;
 
-  if (!hires_tex)
+  const u8* tlut = &texMem[tlutaddr];
+  if (hires_tex)
   {
+    const auto& level = hires_tex->m_levels[0];
+    entry->Load(0, level.width, level.height, level.row_length, level.data.get(), level.data_size);
+  }
+  if (!hires_tex && decode_on_gpu)
+  {
+    u32 row_stride = bytes_per_block * (expandedWidth / bsw);
+    g_texture_cache->DecodeTextureOnGPU(
+        entry, 0, src_data, texture_size, static_cast<TextureFormat>(texformat), width, height,
+        expandedWidth, expandedHeight, row_stride, tlut, static_cast<TlutFormat>(tlutfmt));
+  }
+  else if (!hires_tex)
+  {
+    size_t decoded_texture_size = expandedWidth * sizeof(u32) * expandedHeight;
+    CheckTempSize(decoded_texture_size);
     if (!(texformat == GX_TF_RGBA8 && from_tmem))
     {
-      const u8* tlut = &texMem[tlutaddr];
       TexDecoder_Decode(temp, src_data, expandedWidth, expandedHeight, texformat, tlut,
                         (TlutFormat)tlutfmt);
     }
@@ -795,6 +841,8 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
           &texMem[bpmem.tex[stage / 4].texImage2[stage % 4].tmem_odd * TMEM_LINE_SIZE];
       TexDecoder_DecodeRGBA8FromTmem(temp, src_data, src_data_gb, expandedWidth, expandedHeight);
     }
+
+    entry->Load(0, width, height, expandedWidth, temp, decoded_texture_size);
   }
 
   iter = textures_by_address.emplace(address, entry);
@@ -811,9 +859,6 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
   entry->is_efb_copy = false;
   entry->is_custom_tex = hires_tex != nullptr;
 
-  // load texture
-  entry->Load(temp, width, height, expandedWidth, 0);
-
   std::string basename = "";
   if (g_ActiveConfig.bDumpTextures && !hires_tex)
   {
@@ -827,13 +872,8 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
     for (u32 level_index = 1; level_index != texLevels; ++level_index)
     {
       const auto& level = hires_tex->m_levels[level_index];
-      CheckTempSize(level.data_size);
-#if defined(_MSC_VER) && _MSC_VER <= 1800
-      memcpy(temp, level.data, level.data_size);
-#else
-      memcpy(temp, level.data.get(), level.data_size);
-#endif
-      entry->Load(temp, level.width, level.height, level.width, level_index);
+      entry->Load(level_index, level.width, level.height, level.row_length, level.data.get(),
+                  level.data_size);
     }
   }
   else
@@ -858,13 +898,27 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
       const u32 expanded_mip_height = Common::AlignUp(mip_height, bsh);
 
       const u8*& mip_src_data = from_tmem ? ((level % 2) ? ptr_odd : ptr_even) : src_data;
-      const u8* tlut = &texMem[tlutaddr];
-      TexDecoder_Decode(temp, mip_src_data, expanded_mip_width, expanded_mip_height, texformat,
-                        tlut, (TlutFormat)tlutfmt);
-      mip_src_data +=
+      size_t mip_size =
           TexDecoder_GetTextureSizeInBytes(expanded_mip_width, expanded_mip_height, texformat);
 
-      entry->Load(temp, mip_width, mip_height, expanded_mip_width, level);
+      if (decode_on_gpu)
+      {
+        u32 row_stride = bytes_per_block * (expanded_mip_width / bsw);
+        g_texture_cache->DecodeTextureOnGPU(entry, level, mip_src_data, mip_size,
+                                            static_cast<TextureFormat>(texformat), mip_width,
+                                            mip_height, expanded_mip_width, expanded_mip_height,
+                                            row_stride, tlut, static_cast<TlutFormat>(tlutfmt));
+      }
+      else
+      {
+        // No need to call CheckTempSize here, as mips will always be smaller than the base level.
+        size_t decoded_mip_size = expanded_mip_width * sizeof(u32) * expanded_mip_height;
+        TexDecoder_Decode(temp, mip_src_data, expanded_mip_width, expanded_mip_height, texformat,
+                          tlut, (TlutFormat)tlutfmt);
+        entry->Load(level, mip_width, mip_height, expanded_mip_width, temp, decoded_mip_size);
+      }
+
+      mip_src_data += mip_size;
 
       if (g_ActiveConfig.bDumpTextures)
         DumpTexture(entry, basename, level);
@@ -955,7 +1009,8 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
   ColorMask[0] = ColorMask[1] = ColorMask[2] = ColorMask[3] = 255.0f;
   ColorMask[4] = ColorMask[5] = ColorMask[6] = ColorMask[7] = 1.0f / 255.0f;
   unsigned int cbufid = -1;
-  bool efbHasAlpha = bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24;
+  u32 srcFormat = bpmem.zcontrol.pixel_format;
+  bool efbHasAlpha = srcFormat == PEControl::RGBA6_Z24;
 
   if (is_depth_copy)
   {
@@ -1270,8 +1325,9 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
 
   if (copy_to_ram)
   {
-    CopyEFB(dst, dstFormat, tex_w, bytes_per_row, num_blocks_y, dstStride, is_depth_copy, gameSrcRect,
-            isIntensity, scaleByHalf);
+    EFBCopyFormat format(srcFormat, static_cast<TextureFormat>(dstFormat));
+    CopyEFB(dst, format, tex_w, bytes_per_row, num_blocks_y, dstStride, is_depth_copy, gameSrcRect,
+            scaleByHalf);
   }
   else
   {

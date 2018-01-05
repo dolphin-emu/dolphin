@@ -9,6 +9,8 @@
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 
+namespace Common
+{
 static std::vector<std::string>
 FileSearchWithTest(const std::vector<std::string>& directories, bool recursive,
                    std::function<bool(const File::FSTEntry&)> callback)
@@ -57,3 +59,4 @@ std::vector<std::string> FindSubdirectories(const std::vector<std::string>& dire
   return FileSearchWithTest(directories, true,
                             [&](const File::FSTEntry& entry) { return entry.isDirectory; });
 }
+}  // namespace Common

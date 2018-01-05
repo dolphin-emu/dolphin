@@ -33,7 +33,7 @@ static bool IsValidWiiPath(const std::string& path)
 
 namespace Device
 {
-FS::FS(u32 device_id, const std::string& device_name) : Device(device_id, device_name)
+FS::FS(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
 {
   const std::string tmp_dir = BuildFilename("/tmp");
   File::DeleteDirRecursively(tmp_dir);

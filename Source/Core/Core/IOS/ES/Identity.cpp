@@ -63,7 +63,7 @@ IPCCommandResult ES::GetConsoleID(const IOCtlVRequest& request)
   return GetDefaultReply(IPC_SUCCESS);
 }
 
-IPCCommandResult ES::Encrypt(const IOCtlVRequest& request)
+IPCCommandResult ES::Encrypt(u32 uid, const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(3, 2))
     return GetDefaultReply(ES_EINVAL);
@@ -85,7 +85,7 @@ IPCCommandResult ES::Encrypt(const IOCtlVRequest& request)
   return GetDefaultReply(IPC_SUCCESS);
 }
 
-IPCCommandResult ES::Decrypt(const IOCtlVRequest& request)
+IPCCommandResult ES::Decrypt(u32 uid, const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(3, 2))
     return GetDefaultReply(ES_EINVAL);

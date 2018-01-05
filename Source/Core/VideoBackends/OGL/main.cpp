@@ -38,8 +38,6 @@ Make AA apply instantly during gameplay if possible
 #include <string>
 #include <vector>
 
-#include "Common/CommonPaths.h"
-#include "Common/FileSearch.h"
 #include "Common/GL/GLInterfaceBase.h"
 #include "Common/GL/GLUtil.h"
 #include "Common/MsgHandler.h"
@@ -79,21 +77,6 @@ std::string VideoBackend::GetDisplayName() const
     return "OpenGL";
 }
 
-static std::vector<std::string> GetShaders(const std::string& sub_dir = "")
-{
-  std::vector<std::string> paths =
-      DoFileSearch({".glsl"}, {File::GetUserPath(D_SHADERS_IDX) + sub_dir,
-                               File::GetSysDirectory() + SHADERS_DIR DIR_SEP + sub_dir});
-  std::vector<std::string> result;
-  for (std::string path : paths)
-  {
-    std::string name;
-    SplitPath(path, nullptr, &name, nullptr);
-    result.push_back(name);
-  }
-  return result;
-}
-
 void VideoBackend::InitBackendInfo()
 {
   g_Config.backend_info.api_type = APIType::OpenGL;
@@ -101,6 +84,7 @@ void VideoBackend::InitBackendInfo()
   g_Config.backend_info.bSupportsExclusiveFullscreen = false;
   g_Config.backend_info.bSupportsOversizedViewports = true;
   g_Config.backend_info.bSupportsGeometryShaders = true;
+  g_Config.backend_info.bSupportsComputeShaders = false;
   g_Config.backend_info.bSupports3DVision = false;
   g_Config.backend_info.bSupportsPostProcessing = true;
   g_Config.backend_info.bSupportsSSAA = true;
@@ -108,21 +92,23 @@ void VideoBackend::InitBackendInfo()
   g_Config.backend_info.bSupportsMultithreading = false;
   g_Config.backend_info.bSupportsInternalResolutionFrameDumps = true;
 
+  // TODO: There is a bug here, if texel buffers are not supported the graphics options
+  // will show the option when it is not supported. The only way around this would be
+  // creating a context when calling this function to determine what is available.
+  g_Config.backend_info.bSupportsGPUTextureDecoding = true;
+
   // Overwritten in Render.cpp later
   g_Config.backend_info.bSupportsDualSourceBlend = true;
   g_Config.backend_info.bSupportsPrimitiveRestart = true;
   g_Config.backend_info.bSupportsPaletteConversion = true;
   g_Config.backend_info.bSupportsClipControl = true;
   g_Config.backend_info.bSupportsDepthClamp = true;
+  g_Config.backend_info.bSupportsST3CTextures = false;
 
   g_Config.backend_info.Adapters.clear();
 
   // aamodes - 1 is to stay consistent with D3D (means no AA)
   g_Config.backend_info.AAModes = {1, 2, 4, 8};
-
-  // pp shaders
-  g_Config.backend_info.PPShaders = GetShaders("");
-  g_Config.backend_info.AnaglyphShaders = GetShaders(ANAGLYPH_DIR DIR_SEP);
 }
 
 bool VideoBackend::InitializeGLExtensions()

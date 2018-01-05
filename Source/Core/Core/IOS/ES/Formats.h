@@ -82,7 +82,7 @@ struct TimeLimit
 
 struct TicketView
 {
-  u32 view;
+  u32 version;
   u64 ticket_id;
   u32 device_id;
   u64 title_id;
@@ -204,6 +204,7 @@ public:
 
   std::string GetFilenameFromSHA1(const std::array<u8, 20>& sha1) const;
   std::string AddSharedContent(const std::array<u8, 20>& sha1);
+  std::vector<std::array<u8, 20>> GetHashes() const;
 
 private:
   struct Entry;
@@ -218,8 +219,8 @@ class UIDSys final
 public:
   explicit UIDSys(Common::FromWhichRoot root);
 
-  u32 GetUIDFromTitle(u64 title_id);
-  void AddTitle(u64 title_id);
+  u32 GetUIDFromTitle(u64 title_id) const;
+  u32 GetOrInsertUIDForTitle(u64 title_id);
   u32 GetNextUID() const;
 
 private:

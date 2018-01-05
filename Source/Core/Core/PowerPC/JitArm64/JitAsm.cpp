@@ -66,7 +66,7 @@ void JitArm64::GenerateAsm()
   //   } while (PowerPC::ppcState.downcount > 0);
   // doTiming:
   //   NPC = PC = DISPATCHER_PC;
-  // } while (CPU::GetState() == CPU::CPU_RUNNING);
+  // } while (CPU::GetState() == CPU::State::Running);
   AlignCodePage();
   dispatcher = GetCodePtr();
   WARN_LOG(DYNA_REC, "Dispatcher is %p", dispatcher);
@@ -336,7 +336,7 @@ void JitArm64::GenerateCommonAsm()
   JitRegister::Register(start, GetCodePtr(), "JIT_QuantizedLoad");
 
   pairedLoadQuantized = reinterpret_cast<const u8**>(const_cast<u8*>(AlignCode16()));
-  ReserveCodeSpace(16 * sizeof(u8*));
+  ReserveCodeSpace(8 * sizeof(u8*));
 
   pairedLoadQuantized[0] = loadPairedFloatTwo;
   pairedLoadQuantized[1] = loadPairedIllegal;
@@ -347,14 +347,17 @@ void JitArm64::GenerateCommonAsm()
   pairedLoadQuantized[6] = loadPairedS8Two;
   pairedLoadQuantized[7] = loadPairedS16Two;
 
-  pairedLoadQuantized[8] = loadPairedFloatOne;
-  pairedLoadQuantized[9] = loadPairedIllegal;
-  pairedLoadQuantized[10] = loadPairedIllegal;
-  pairedLoadQuantized[11] = loadPairedIllegal;
-  pairedLoadQuantized[12] = loadPairedU8One;
-  pairedLoadQuantized[13] = loadPairedU16One;
-  pairedLoadQuantized[14] = loadPairedS8One;
-  pairedLoadQuantized[15] = loadPairedS16One;
+  singleLoadQuantized = reinterpret_cast<const u8**>(const_cast<u8*>(AlignCode16()));
+  ReserveCodeSpace(8 * sizeof(u8*));
+
+  singleLoadQuantized[0] = loadPairedFloatOne;
+  singleLoadQuantized[1] = loadPairedIllegal;
+  singleLoadQuantized[2] = loadPairedIllegal;
+  singleLoadQuantized[3] = loadPairedIllegal;
+  singleLoadQuantized[4] = loadPairedU8One;
+  singleLoadQuantized[5] = loadPairedU16One;
+  singleLoadQuantized[6] = loadPairedS8One;
+  singleLoadQuantized[7] = loadPairedS16One;
 
   // Stores
   start = GetCodePtr();
@@ -648,47 +651,5 @@ void JitArm64::GenerateCommonAsm()
   pairedStoreQuantized[30] = storeSingleS8Slow;
   pairedStoreQuantized[31] = storeSingleS16Slow;
 
-  GetAsmRoutines()->mfcr = AlignCode16();
-  GenMfcr();
-}
-
-void JitArm64::GenMfcr()
-{
-  // Input: Nothing
-  // Returns: W0
-  // Clobbers: X1, X2
-  const u8* start = GetCodePtr();
-  for (int i = 0; i < 8; i++)
-  {
-    LDR(INDEX_UNSIGNED, X1, PPC_REG, PPCSTATE_OFF(cr_val[i]));
-
-    // SO
-    if (i == 0)
-    {
-      UBFX(X0, X1, 61, 1);
-    }
-    else
-    {
-      ORR(W0, WZR, W0, ArithOption(W0, ST_LSL, 4));
-      UBFX(X2, X1, 61, 1);
-      ORR(X0, X0, X2);
-    }
-
-    // EQ
-    ORR(W2, W0, 32 - 1, 0);  // W0 | 1<<1
-    CMP(W1, WZR);
-    CSEL(W0, W2, W0, CC_EQ);
-
-    // GT
-    ORR(W2, W0, 32 - 2, 0);  // W0 | 1<<2
-    CMP(X1, ZR);
-    CSEL(W0, W2, W0, CC_GT);
-
-    // LT
-    UBFX(X2, X1, 62, 1);
-    ORR(W0, W0, W2, ArithOption(W2, ST_LSL, 3));
-  }
-
-  RET(X30);
-  JitRegister::Register(start, GetCodePtr(), "JIT_Mfcr");
+  GetAsmRoutines()->mfcr = nullptr;
 }

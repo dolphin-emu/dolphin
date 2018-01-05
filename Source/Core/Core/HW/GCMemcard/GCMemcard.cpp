@@ -232,7 +232,7 @@ void GCMemcard::InitDirBatPointers()
 
 bool GCMemcard::IsShiftJIS() const
 {
-  return hdr.Encoding == 1;
+  return hdr.Encoding != 0;
 }
 
 bool GCMemcard::Save()

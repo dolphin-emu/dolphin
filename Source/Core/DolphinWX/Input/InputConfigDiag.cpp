@@ -273,7 +273,7 @@ void InputConfigDialog::UpdateProfileComboBox()
   pname += PROFILES_PATH;
   pname += m_config.GetProfileName();
 
-  std::vector<std::string> sv = DoFileSearch({".ini"}, {pname});
+  std::vector<std::string> sv = Common::DoFileSearch({".ini"}, {pname});
 
   wxArrayString strs;
   for (const std::string& filename : sv)
@@ -288,7 +288,7 @@ void InputConfigDialog::UpdateProfileComboBox()
   pname += PROFILES_PATH;
   pname += m_config.GetProfileName();
 
-  sv = DoFileSearch({".ini"}, {pname});
+  sv = Common::DoFileSearch({".ini"}, {pname});
 
   for (const std::string& filename : sv)
   {
@@ -305,7 +305,7 @@ void InputConfigDialog::UpdateProfileComboBox()
 void InputConfigDialog::UpdateTextureComboBoxes()
 {
   std::string pname(File::GetSysDirectory() + RESOURCES_DIR + DIR_SEP + "Textures");
-  std::vector<std::string> sv = DoFileSearch({".png"}, {pname});
+  std::vector<std::string> sv = Common::DoFileSearch({".png"}, {pname});
 
   wxArrayString strs;
   for (const std::string& filename : sv)
@@ -530,7 +530,7 @@ bool ControlDialog::Validate()
   UpdateGUI();
 
   const auto parse_status = control_reference->GetParseStatus();
-  return parse_status == ParseStatus::Success || parse_status == ParseStatus::NoDevice;
+  return parse_status == ParseStatus::Successful || parse_status == ParseStatus::NoDevice;
 }
 
 void InputConfigDialog::SetDevice(wxCommandEvent&)

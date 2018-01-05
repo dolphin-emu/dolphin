@@ -124,6 +124,7 @@ struct VideoConfig final
   bool bInternalResolutionFrameDumps;
   bool bFreeLook;
   bool bBorderlessFullscreen;
+  bool bEnableGPUTextureDecoding;
   int iBitrateKbps;
 
   // Hacks
@@ -144,6 +145,7 @@ struct VideoConfig final
   float fAspectRatioHackW, fAspectRatioHackH;
   bool bEnablePixelLighting;
   bool bFastDepthCalc;
+  bool bVertexRounding;
   int iLog;           // CONF_ bits
   int iSaveTargetId;  // TODO: Should be dropped
 
@@ -303,8 +305,6 @@ struct VideoConfig final
 
     std::vector<std::string> Adapters;  // for D3D
     std::vector<int> AAModes;
-    std::vector<std::string> PPShaders;        // post-processing shaders
-    std::vector<std::string> AnaglyphShaders;  // anaglyph shaders
 
     // TODO: merge AdapterName and Adapters array
     std::string AdapterName;  // for OpenGL
@@ -316,6 +316,7 @@ struct VideoConfig final
     bool bSupportsPrimitiveRestart;
     bool bSupportsOversizedViewports;
     bool bSupportsGeometryShaders;
+    bool bSupportsComputeShaders;
     bool bSupports3DVision;
     bool bSupportsEarlyZ;         // needed by PixelShaderGen, so must stay in VideoCommon
     bool bSupportsBindingLayout;  // Needed by ShaderGen, so must stay in VideoCommon
@@ -330,6 +331,8 @@ struct VideoConfig final
     bool bSupportsReversedDepthRange;
     bool bSupportsMultithreading;
     bool bSupportsInternalResolutionFrameDumps;
+    bool bSupportsGPUTextureDecoding;
+    bool bSupportsST3CTextures;
   } backend_info;
 
   // Utility
@@ -346,6 +349,10 @@ struct VideoConfig final
     if (backend_info.api_type == APIType::OpenGL && bBBoxPreferStencilImplementation)
       return false;
     return backend_info.bSupportsBBox && backend_info.bSupportsFragmentStoresAndAtomics;
+  }
+  bool UseGPUTextureDecoding() const
+  {
+    return backend_info.bSupportsGPUTextureDecoding && bEnableGPUTextureDecoding;
   }
 };
 

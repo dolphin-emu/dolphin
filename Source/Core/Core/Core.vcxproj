@@ -52,6 +52,7 @@
     <ClCompile Include="Debugger\Debugger_SymbolMap.cpp" />
     <ClCompile Include="Debugger\Dump.cpp" />
     <ClCompile Include="Debugger\PPCDebugInterface.cpp" />
+    <ClCompile Include="Debugger\RSO.cpp" />
     <ClCompile Include="DSPEmulator.cpp" />
     <ClCompile Include="DSP\DSPAssembler.cpp" />
     <ClCompile Include="DSP\DSPDisassembler.cpp" />
@@ -175,7 +176,8 @@
     <ClCompile Include="HW\WiiSaveCrypted.cpp" />
     <ClCompile Include="IOS\Device.cpp" />
     <ClCompile Include="IOS\DeviceStub.cpp" />
-    <ClCompile Include="IOS\IPC.cpp" />
+    <ClCompile Include="IOS\IOS.cpp" />
+    <ClCompile Include="IOS\MemoryValues.cpp" />
     <ClCompile Include="IOS\MIOS.cpp" />
     <ClCompile Include="IOS\DI\DI.cpp" />
     <ClCompile Include="IOS\ES\ES.cpp" />
@@ -316,6 +318,7 @@
     <ClInclude Include="Debugger\Dump.h" />
     <ClInclude Include="Debugger\GCELF.h" />
     <ClInclude Include="Debugger\PPCDebugInterface.h" />
+    <ClInclude Include="Debugger\RSO.h" />
     <ClInclude Include="DSPEmulator.h" />
     <ClInclude Include="DSP\DSPAssembler.h" />
     <ClInclude Include="DSP\DSPDisassembler.h" />
@@ -341,7 +344,6 @@
     <ClInclude Include="ec_wii.h" />
     <ClInclude Include="FifoPlayer\FifoAnalyzer.h" />
     <ClInclude Include="FifoPlayer\FifoDataFile.h" />
-    <ClInclude Include="FifoPlayer\FifoFileStruct.h" />
     <ClInclude Include="FifoPlayer\FifoPlaybackAnalyzer.h" />
     <ClInclude Include="FifoPlayer\FifoPlayer.h" />
     <ClInclude Include="FifoPlayer\FifoRecordAnalyzer.h" />
@@ -435,7 +437,8 @@
     <ClInclude Include="HW\WII_IPC.h" />
     <ClInclude Include="IOS\Device.h" />
     <ClInclude Include="IOS\DeviceStub.h" />
-    <ClInclude Include="IOS\IPC.h" />
+    <ClInclude Include="IOS\IOS.h" />
+    <ClInclude Include="IOS\MemoryValues.h" />
     <ClInclude Include="IOS\MIOS.h" />
     <ClInclude Include="IOS\DI\DI.h" />
     <ClInclude Include="IOS\ES\ES.h" />

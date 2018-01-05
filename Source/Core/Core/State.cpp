@@ -62,7 +62,7 @@ static std::string g_last_filename;
 
 static std::string g_bruteforce_filename;
 
-static CallbackFunc g_onAfterLoadCb = nullptr;
+static AfterLoadCallbackFunc s_on_after_load_callback;
 
 // Temporary undo state buffer
 static std::vector<u8> g_undo_load_buffer;
@@ -78,7 +78,7 @@ static Common::Event g_compressAndDumpStateSyncEvent;
 static std::thread g_save_thread;
 
 // Don't forget to increase this after doing changes on the savestate system
-static const u32 STATE_VERSION = 79;  // Last changed in PR 4981
+static const u32 STATE_VERSION = 83;  // Last changed in PR 5340
 
 // Maps savestate versions to Dolphin versions.
 // Versions after 42 don't need to be added to this list,
@@ -635,8 +635,8 @@ void LoadAs(const std::string& filename)
     }
   }
 
-  if (g_onAfterLoadCb)
-    g_onAfterLoadCb();
+  if (s_on_after_load_callback)
+    s_on_after_load_callback();
 
   g_loadDepth--;
 
@@ -644,9 +644,9 @@ void LoadAs(const std::string& filename)
   Core::PauseAndLock(false, wasUnpaused);
 }
 
-void SetOnAfterLoadCallback(CallbackFunc callback)
+void SetOnAfterLoadCallback(AfterLoadCallbackFunc callback)
 {
-  g_onAfterLoadCb = callback;
+  s_on_after_load_callback = std::move(callback);
 }
 
 void VerifyAt(const std::string& filename)
