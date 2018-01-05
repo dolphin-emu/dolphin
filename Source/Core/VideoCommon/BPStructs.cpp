@@ -153,9 +153,7 @@ static void BPWritten(const BPCmd& bp)
 
       SetBlendMode();
 
-      // Dither
-      if (bp.changes & 0x04)
-        PixelShaderManager::SetBlendModeChanged();
+      PixelShaderManager::SetBlendModeChanged();
     }
     return;
   case BPMEM_CONSTANTALPHA:  // Set Destination Alpha

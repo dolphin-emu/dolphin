@@ -227,6 +227,7 @@ struct VideoConfig final
     bool bSupportsBitfield;                // Needed by UberShaders, so must stay in VideoCommon
     bool bSupportsDynamicSamplerIndexing;  // Needed by UberShaders, so must stay in VideoCommon
     bool bSupportsBPTCTextures;
+    bool bSupportsFramebufferFetch;  // Used as an alternative to dual-source blend on GLES
   } backend_info;
 
   // Utility

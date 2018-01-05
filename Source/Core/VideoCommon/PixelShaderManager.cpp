@@ -473,6 +473,43 @@ void PixelShaderManager::SetBlendModeChanged()
     constants.dither = dither;
     dirty = true;
   }
+  BlendingState state = {};
+  state.Generate(bpmem);
+  if (constants.blend_enable != state.blendenable)
+  {
+    constants.blend_enable = state.blendenable;
+    dirty = true;
+  }
+  if (constants.blend_src_factor != state.srcfactor)
+  {
+    constants.blend_src_factor = state.srcfactor;
+    dirty = true;
+  }
+  if (constants.blend_src_factor_alpha != state.srcfactoralpha)
+  {
+    constants.blend_src_factor_alpha = state.srcfactoralpha;
+    dirty = true;
+  }
+  if (constants.blend_dst_factor != state.dstfactor)
+  {
+    constants.blend_dst_factor = state.dstfactor;
+    dirty = true;
+  }
+  if (constants.blend_dst_factor_alpha != state.dstfactoralpha)
+  {
+    constants.blend_dst_factor_alpha = state.dstfactoralpha;
+    dirty = true;
+  }
+  if (constants.blend_subtract != state.subtract)
+  {
+    constants.blend_subtract = state.subtract;
+    dirty = true;
+  }
+  if (constants.blend_subtract_alpha != state.subtractAlpha)
+  {
+    constants.blend_subtract_alpha = state.subtractAlpha;
+    dirty = true;
+  }
   s_bDestAlphaDirty = true;
 }
 
