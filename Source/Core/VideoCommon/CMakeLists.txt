@@ -65,12 +65,14 @@ else()
   set(SRCS ${SRCS} TextureDecoder_Generic.cpp)
 endif()
 
-if(LIBAV_FOUND OR WIN32)
-  set(SRCS ${SRCS} AVIDump.cpp)
-endif()
-
 add_dolphin_library(videocommon "${SRCS}" "${LIBS}")
 
-if(LIBAV_FOUND)
-  target_link_libraries(videocommon PRIVATE ${LIBS} ${LIBAV_LIBRARIES})
+if(FFmpeg_FOUND)
+  target_sources(videocommon PRIVATE AVIDump.cpp)
+  target_link_libraries(videocommon PRIVATE
+    FFmpeg::avcodec
+    FFmpeg::avformat
+    FFmpeg::avutil
+    FFmpeg::swscale
+  )
 endif()

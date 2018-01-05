@@ -33,7 +33,7 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/State.h"
 
-#if defined(HAVE_LIBAV)
+#if defined(HAVE_FFMPEG)
 #include "VideoCommon/AVIDump.h"
 #endif
 #include "VideoCommon/OnScreenDisplay.h"
@@ -198,7 +198,7 @@ static std::string DoState(PointerWrap& p)
   Gecko::DoState(p);
   p.DoMarker("Gecko");
 
-#if defined(HAVE_LIBAV)
+#if defined(HAVE_FFMPEG)
   AVIDump::DoState();
 #endif
 

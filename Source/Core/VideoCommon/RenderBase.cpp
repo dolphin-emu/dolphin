@@ -47,7 +47,7 @@
 #include "Core/Host.h"
 #include "Core/Movie.h"
 
-#if defined(HAVE_LIBAV)
+#if defined(HAVE_FFMPEG)
 #include "VideoCommon/AVIDump.h"
 #endif
 #include "VideoCommon/BPMemory.h"
@@ -818,7 +818,7 @@ bool Renderer::IsFrameDumping()
   if (m_screenshot_request.IsSet())
     return true;
 
-#if defined(HAVE_LIBAV)
+#if defined(HAVE_FFMPEG)
   if (SConfig::GetInstance().m_DumpFrames)
     return true;
 #endif
@@ -872,7 +872,7 @@ void Renderer::RunFrameDumps()
   bool frame_dump_started = false;
 
 // If Dolphin was compiled without libav, we only support dumping to images.
-#if !defined(HAVE_LIBAV)
+#if !defined(HAVE_FFMPEG)
   if (dump_to_avi)
   {
     WARN_LOG(VIDEO, "AVI frame dump requested, but Dolphin was compiled without libav. "
@@ -944,7 +944,7 @@ void Renderer::RunFrameDumps()
   }
 }
 
-#if defined(HAVE_LIBAV)
+#if defined(HAVE_FFMPEG)
 
 bool Renderer::StartFrameDumpToAVI(const FrameDumpConfig& config)
 {
@@ -976,7 +976,7 @@ void Renderer::StopFrameDumpToAVI()
 {
 }
 
-#endif  // defined(HAVE_LIBAV)
+#endif  // defined(HAVE_FFMPEG)
 
 std::string Renderer::GetFrameDumpNextImageFileName() const
 {

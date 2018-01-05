@@ -35,7 +35,7 @@
 #include "VideoBackends/D3D/VRD3D.h"
 #include "VideoBackends/D3D/VertexShaderCache.h"
 
-#if defined(HAVE_LIBAV)
+#if defined(HAVE_FFMPEG)
 #include "VideoCommon/AVIDump.h"
 #endif
 #include "VideoCommon/BPFunctions.h"
@@ -1209,7 +1209,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
     WARN_LOG(VR, "ch_take_screenshot = %d", ARBruteForcer::ch_take_screenshot);
 
   // Dump frames
-#if defined(HAVE_LIBAV)
+#if defined(HAVE_FFMPEG)
   if (IsFrameDumping())
   {
     if (!s_screenshot_texture)

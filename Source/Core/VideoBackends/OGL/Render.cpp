@@ -38,7 +38,7 @@
 #include "VideoBackends/OGL/TextureCache.h"
 #include "VideoBackends/OGL/VertexManager.h"
 
-#if defined(HAVE_LIBAV)
+#if defined(HAVE_FFMPEG)
 #include "VideoCommon/AVIDump.h"
 #endif
 #include "VideoCommon/BPFunctions.h"
