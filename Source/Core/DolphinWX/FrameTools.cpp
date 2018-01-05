@@ -1399,11 +1399,7 @@ void CFrame::OnImportBootMiiBackup(wxCommandEvent& WXUNUSED(event))
 
   wxProgressDialog dialog(_("Importing NAND backup"), _("Working..."), 100, this,
                           wxPD_APP_MODAL | wxPD_ELAPSED_TIME | wxPD_SMOOTH);
-  DiscIO::NANDImporter().ImportNANDBin(file_name,
-                                       [&dialog](size_t current_entry, size_t total_entries) {
-                                         dialog.SetRange(total_entries);
-                                         dialog.Update(current_entry);
-                                       });
+  DiscIO::NANDImporter().ImportNANDBin(file_name, [&dialog] { dialog.Pulse(); });
   UpdateLoadWiiMenuItem();
 }
 
@@ -1549,7 +1545,7 @@ void CFrame::OnBruteForce(wxCommandEvent& event)
       if (db.Load(File::GetSysDirectory() + TOTALDB))
         db.Apply(&g_symbolDB);
       //todo: if debugger active, call NotifyMapLoaded();
-      g_symbolDB.SaveMap(writable_map_file);
+      g_symbolDB.SaveSymbolMap(writable_map_file);
     }
     ARBruteForcer::ParseMapFile(SConfig::GetInstance().GetGameID());
   }

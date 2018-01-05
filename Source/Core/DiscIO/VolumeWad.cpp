@@ -83,7 +83,7 @@ Country CVolumeWAD::GetCountry(const Partition& partition) const
   return CountrySwitch(country_code);
 }
 
-IOS::ES::TMDReader CVolumeWAD::GetTMD(const Partition& partition) const
+const IOS::ES::TMDReader& CVolumeWAD::GetTMD(const Partition& partition) const
 {
   return m_tmd;
 }

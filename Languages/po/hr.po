@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-05-13 11:35+0200\n"
-"PO-Revision-Date: 2017-05-13 09:35+0000\n"
+"POT-Creation-Date: 2017-05-23 15:16+0200\n"
+"PO-Revision-Date: 2017-05-23 13:17+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Croatian (http://www.transifex.com/delroth/dolphin-emu/"
 "language/hr/)\n"
@@ -63,7 +63,7 @@ msgstr ""
 msgid "\"%s\" is already compressed! Cannot compress it further."
 msgstr ""
 
-#: Source/Core/Core/ConfigManager.cpp:943
+#: Source/Core/Core/ConfigManager.cpp:919
 #, c-format
 msgid "\"%s\" is an invalid GCM/ISO file, or is not a GC/Wii ISO."
 msgstr ""
@@ -80,12 +80,12 @@ msgstr "%1$sKopiraj%1$s"
 msgid "%i of %i blocks. Compression ratio %i%%"
 msgstr ""
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:51
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:50
 #, c-format
 msgid "%i%%"
 msgstr ""
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:49
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:48
 #, c-format
 msgid "%i%% (Normal Speed)"
 msgstr ""
@@ -133,12 +133,12 @@ msgid ""
 "Total Blocks: %d; Free Blocks: %d"
 msgstr ""
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:578
+#: Source/Core/DolphinWX/GameListCtrl.cpp:547
 #, c-format
 msgid "%s (Disc %i)"
 msgstr ""
 
-#: Source/Core/Core/Boot/Boot.cpp:229
+#: Source/Core/Core/Boot/Boot.cpp:240
 #, c-format
 msgid "%s IPL found in %s directory. The disc might not be recognized"
 msgstr ""
@@ -283,11 +283,11 @@ msgstr ""
 msgid "&Debug"
 msgstr ""
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1033
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1002
 msgid "&Delete File..."
 msgstr ""
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1068
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1037
 msgid "&Delete selected ISOs..."
 msgstr "&Obriši odabrane ISO datoteke..."
 
@@ -456,7 +456,7 @@ msgstr ""
 msgid "&Profiler"
 msgstr ""
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1002
+#: Source/Core/DolphinWX/GameListCtrl.cpp:971
 msgid "&Properties"
 msgstr "&Svojstva"
 
@@ -542,7 +542,7 @@ msgstr ""
 msgid "&Website"
 msgstr ""
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1003
+#: Source/Core/DolphinWX/GameListCtrl.cpp:972
 msgid "&Wiki"
 msgstr "&Wiki"
 
@@ -665,7 +665,7 @@ msgstr ""
 msgid "A NetPlay window is already open!"
 msgstr ""
 
-#: Source/Core/Core/HW/DVD/DVDInterface.cpp:532
+#: Source/Core/Core/HW/DVD/DVDInterface.cpp:490
 msgid "A disc is already about to be inserted."
 msgstr ""
 
@@ -674,7 +674,7 @@ msgstr ""
 msgid "A game is not currently running."
 msgstr "Igra trenutno nije pokrenuta."
 
-#: Source/Core/DolphinWX/FrameTools.cpp:823
+#: Source/Core/DolphinWX/FrameTools.cpp:847
 msgid ""
 "A shutdown is already in progress. Unsaved data may be lost if you stop the "
 "current emulation before it completes. Force stop?"
@@ -706,7 +706,7 @@ msgid ""
 msgstr ""
 
 #: Source/Core/DolphinWX/Cheats/CheatsWindow.cpp:128
-#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:247
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:246
 msgid "AR Codes"
 msgstr "AR Kodovi"
 
@@ -847,7 +847,7 @@ msgstr ""
 msgid "Add New USB Device"
 msgstr ""
 
-#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:844
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:842
 msgid "Add Patch"
 msgstr "Dodaj zakrpu"
 
@@ -879,7 +879,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Config/PathConfigPane.cpp:38
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:74
-#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:394
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:393
 msgid "Add..."
 msgstr "Dodaj..."
 
@@ -909,30 +909,30 @@ msgstr ""
 msgid "Advanced"
 msgstr "Napredno"
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:127
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:126
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:240
 msgid "Advanced Settings"
 msgstr "Napredne Postavke"
 
 #: Source/Core/DolphinWX/Config/PathConfigPane.cpp:44
-#: Source/Core/DolphinWX/FrameTools.cpp:338
+#: Source/Core/DolphinWX/FrameTools.cpp:339
 msgid "All GC/Wii files (elf, dol, gcm, iso, tgc, wbfs, ciso, gcz, wad)"
 msgstr ""
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1377
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1346
 msgid "All GameCube GCM files (gcm)"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1344
-#: Source/Core/DolphinWX/FrameTools.cpp:1356
+#: Source/Core/DolphinWX/FrameTools.cpp:1355
+#: Source/Core/DolphinWX/FrameTools.cpp:1367
 msgid "All Save States (sav, s##)"
 msgstr "Sva Stanja Igre (sav, s##)"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1375
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1344
 msgid "All Wii ISO files (iso)"
 msgstr "Sve Wii ISO datoteke (iso)"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1390
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1359
 msgid "All compressed GC/Wii ISO files (gcz)"
 msgstr "Sve komprimirane GC/Wii ISO datoteke (gcz)"
 
@@ -947,7 +947,7 @@ msgid ""
 "Ignore and continue?"
 msgstr ""
 
-#: Source/Core/Core/HW/DVD/DVDInterface.cpp:299
+#: Source/Core/Core/HW/DVD/DVDThread.cpp:162
 msgid "An inserted disc was expected but not found."
 msgstr ""
 
@@ -983,11 +983,11 @@ msgstr ""
 msgid "Apploader Date:"
 msgstr ""
 
-#: Source/Core/DiscIO/VolumeDirectory.cpp:315
+#: Source/Core/DiscIO/VolumeDirectory.cpp:327
 msgid "Apploader is the wrong size...is it really an apploader?"
 msgstr "Apploader je pogrešne veličine...da li je to pravi Apploader?"
 
-#: Source/Core/DiscIO/VolumeDirectory.cpp:308
+#: Source/Core/DiscIO/VolumeDirectory.cpp:320
 msgid "Apploader unable to load from file"
 msgstr "Apploader nije uspio učitati datoteku"
 
@@ -1019,11 +1019,11 @@ msgstr ""
 msgid "Are you sure you want to delete \"%s\"?"
 msgstr "Da li ste sigurni da želite obrisati \"%s\"?"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1171
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1140
 msgid "Are you sure you want to delete these files? They will be gone forever!"
 msgstr ""
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1170
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1139
 msgid "Are you sure you want to delete this file? It will be gone forever!"
 msgstr ""
 
@@ -1140,7 +1140,7 @@ msgstr "Prati unos podataka i u pozadini"
 msgid "Backward"
 msgstr "Natrag"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:445
+#: Source/Core/DolphinWX/GameListCtrl.cpp:414
 #: Source/Core/DolphinWX/MainMenuBar.cpp:281
 #: Source/Core/DolphinWX/MemcardManager.cpp:626
 msgid "Banner"
@@ -1162,7 +1162,7 @@ msgstr "Tremolo"
 msgid "Basic"
 msgstr "Osnovno"
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:108
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:107
 msgid "Basic Settings"
 msgstr "Osnovne postavke"
 
@@ -1211,7 +1211,7 @@ msgstr ""
 msgid "Boot to Pause"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1253
+#: Source/Core/DolphinWX/FrameTools.cpp:1274
 msgid "BootMii NAND backup file (*.bin)"
 msgstr ""
 
@@ -1258,15 +1258,15 @@ msgstr ""
 msgid "Broadband Adapter"
 msgstr ""
 
-#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:331
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:330
 msgid "Broken"
 msgstr "Pokvaren"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:405
+#: Source/Core/DolphinWX/GameListCtrl.cpp:374
 msgid "Browse for a directory to add"
 msgstr "Potraži direktorij koji bi dodali"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1278
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1247
 msgid "Browse for output directory"
 msgstr "Potraži izlazni direktorij"
 
@@ -1299,7 +1299,7 @@ msgstr "Tipke"
 msgid "Bypass XFB"
 msgstr ""
 
-#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:267
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:266
 msgid ""
 "Bypass the clearing of the data cache by the DCBZ instruction. Usually leave "
 "this option disabled."
@@ -1320,7 +1320,7 @@ msgstr "C Gljiva"
 msgid "CP register "
 msgstr ""
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:72
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:71
 msgid "CPU Emulator Engine"
 msgstr "CPU Emulacijski Pogon"
 
@@ -1380,7 +1380,7 @@ msgstr ""
 msgid "Center"
 msgstr "Centar"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1042
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1011
 msgid "Change &Disc"
 msgstr ""
 
@@ -1397,7 +1397,7 @@ msgstr "Promjeni disk"
 msgid "Change the disc to %s"
 msgstr ""
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:119
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:125
 msgid ""
 "Change the language of the user interface.\n"
 "Requires restart."
@@ -1405,7 +1405,7 @@ msgstr ""
 "Mijenja jezik korisničkog sučelja.\n"
 "Program je potrebno ponovno pokrenuti."
 
-#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:158
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:157
 msgid "Changing cheats will only take effect when the game is restarted."
 msgstr ""
 
@@ -1425,7 +1425,7 @@ msgstr ""
 msgid "Cheat Search"
 msgstr "Tražilica"
 
-#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:297
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:284
 msgid "Check Partition Integrity"
 msgstr "Provjeri Integritet Diska/Particije"
 
@@ -1433,7 +1433,7 @@ msgstr "Provjeri Integritet Diska/Particije"
 msgid "Check for updates: "
 msgstr ""
 
-#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:381
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:368
 msgid "Checking integrity..."
 msgstr "Provjeravam integritet..."
 
@@ -1485,8 +1485,8 @@ msgstr ""
 msgid "Choose secondary input file"
 msgstr ""
 
-#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:321
-#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:340
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:308
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:327
 msgid "Choose the folder to extract to"
 msgstr "Odaberite direktorij u kojega želite raspakirati datoteke"
 
@@ -1531,7 +1531,7 @@ msgid "Clone and &Edit Code..."
 msgstr ""
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:278
-#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:444
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:442
 #: Source/Core/DolphinWX/MemcardManager.cpp:233
 #: Source/Core/DolphinWX/PostProcessingConfigDiag.cpp:135
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:153
@@ -1567,20 +1567,20 @@ msgstr ""
 msgid "Comment"
 msgstr "Komentar"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1040
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1009
 msgid "Compress ISO..."
 msgstr "Komprimiraj ISO..."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1070
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1039
 msgid "Compress selected ISOs..."
 msgstr "Komprimiraj odabrane ISO datoteke..."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1287
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1405
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1256
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1374
 msgid "Compressing ISO"
 msgstr "Komprimiram ISO"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1486
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1455
 msgid ""
 "Compressing a Wii disc image will irreversibly change the compressed copy by "
 "removing padding data. Your disc image will still work. Continue?"
@@ -1624,7 +1624,7 @@ msgstr "Podesi"
 msgid "Configure Control"
 msgstr "Podesi Kontrole"
 
-#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:109
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:108
 msgid "Configure Dolphin"
 msgstr ""
 
@@ -1632,9 +1632,9 @@ msgstr ""
 msgid "Configure..."
 msgstr "Podesi..."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1310
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1335
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1400
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1279
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1304
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1369
 msgid "Confirm File Overwrite"
 msgstr "Potvrdite pisanje preko datoteke"
 
@@ -1681,7 +1681,7 @@ msgstr ""
 msgid "Connect Wii Remotes"
 msgstr ""
 
-#: Source/Core/DolphinWX/Main.cpp:491
+#: Source/Core/DolphinWX/Main.cpp:475
 msgid "Connecting..."
 msgstr "Spajanje..."
 
@@ -1732,7 +1732,7 @@ msgstr ""
 msgid "Convergence:"
 msgstr ""
 
-#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:314
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:313
 msgid "Convergence: "
 msgstr ""
 
@@ -1765,7 +1765,7 @@ msgstr ""
 msgid "Copy &hex"
 msgstr ""
 
-#: Source/Core/Core/ConfigManager.cpp:1097
+#: Source/Core/Core/ConfigManager.cpp:1070
 msgid "Copy failed"
 msgstr "Kopiranje nije uspjelo"
 
@@ -1774,7 +1774,7 @@ msgstr "Kopiranje nije uspjelo"
 msgid "Copy to Memory Card %c"
 msgstr ""
 
-#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:344
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:343
 msgid "Core"
 msgstr "Jezgra"
 
@@ -1796,7 +1796,7 @@ msgid ""
 "The emulated software will likely hang now."
 msgstr ""
 
-#: Source/Core/Core/ConfigManager.cpp:937
+#: Source/Core/Core/ConfigManager.cpp:913
 #, c-format
 msgid ""
 "Could not read \"%s\". There is no disc in the drive or it is not a GameCube/"
@@ -1804,12 +1804,12 @@ msgid ""
 "original GameCube and Wii discs."
 msgstr ""
 
-#: Source/Core/Core/ConfigManager.cpp:1012
+#: Source/Core/Core/ConfigManager.cpp:985
 #, c-format
 msgid "Could not recognize ISO file %s"
 msgstr "Nije moguće prepoznati ISO datoteku %s"
 
-#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:479
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:477
 #, c-format
 msgid "Could not save %s."
 msgstr ""
@@ -1842,11 +1842,11 @@ msgstr ""
 msgid "Couldn't create peer."
 msgstr ""
 
-#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:694
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:692
 msgid "Couldn't find open command for extension 'ini'!"
 msgstr "Nije pronađena otvorena naredba za nastavak 'ini'!"
 
-#: Source/Core/Core/BootManager.cpp:400
+#: Source/Core/Core/BootManager.cpp:396
 msgid ""
 "Couldn't init the core.\n"
 "Check your configuration."
@@ -1932,7 +1932,7 @@ msgstr ""
 msgid "Crossfade"
 msgstr "Prijelaz"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:351
+#: Source/Core/DolphinWX/FrameTools.cpp:352
 #, c-format
 msgid "Current directory changed from %s to %s after wxFileSelector!"
 msgstr ""
@@ -1966,7 +1966,7 @@ msgid "DSP Emulator Engine"
 msgstr "DSP Emulacijski Pogon"
 
 #: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:34
-#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:282
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:281
 msgid "DSP HLE emulation (fast)"
 msgstr "DSP HLE emulacija (brzo)"
 
@@ -2030,16 +2030,16 @@ msgstr "Traženje/ispravljanje pogrešaka"
 msgid "Decimal"
 msgstr "Decimalan"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1038
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1007
 msgid "Decompress ISO..."
 msgstr "Dekomprimiram  ISO..."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1071
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1040
 msgid "Decompress selected ISOs..."
 msgstr "Dekomprimiraj odabrane ISO datoteke..."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1287
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1405
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1256
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1374
 msgid "Decompressing ISO"
 msgstr "Dekomprimiram ISO"
 
@@ -2087,7 +2087,7 @@ msgstr "Obriši snimljenu igru"
 msgid "Delete the existing file '%s'?"
 msgstr "Obrisati postojeću datoteku '%s'?"
 
-#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:305
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:304
 msgid "Depth Percentage: "
 msgstr ""
 
@@ -2107,7 +2107,7 @@ msgstr ""
 msgid "Detect"
 msgstr "Otkrij"
 
-#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:287
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:286
 msgid "Deterministic dual core: "
 msgstr ""
 
@@ -2200,7 +2200,7 @@ msgstr ""
 msgid "Disassembly"
 msgstr ""
 
-#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:188
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:186
 msgid "Disc"
 msgstr "Disk"
 
@@ -2212,7 +2212,7 @@ msgstr "Pogreška u čitanju diska"
 msgid "Display"
 msgstr "Prikaz"
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:114
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:118
 msgid ""
 "Display messages over the emulation screen area.\n"
 "These messages include memory card writes, video backend and CPU "
@@ -2223,7 +2223,7 @@ msgstr ""
 msgid "Do you want to clear the list of symbol names?"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:822
+#: Source/Core/DolphinWX/FrameTools.cpp:846
 msgid "Do you want to stop the current emulation?"
 msgstr "Želite li zaustaviti emulaciju?"
 
@@ -2232,7 +2232,7 @@ msgid "Dolby Pro Logic II decoder"
 msgstr "Dolby Pro Logic II dekoder"
 
 #: Source/Core/DolphinWX/AboutDolphin.cpp:26
-#: Source/Core/DolphinWX/FrameTools.cpp:671
+#: Source/Core/DolphinWX/FrameTools.cpp:672
 msgid "Dolphin"
 msgstr "Dolphin"
 
@@ -2259,7 +2259,7 @@ msgstr ""
 msgid "Dolphin FIFO"
 msgstr "Dolphin FIFO"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1028
+#: Source/Core/DolphinWX/FrameTools.cpp:1052
 msgid "Dolphin Hotkeys"
 msgstr ""
 
@@ -2289,18 +2289,18 @@ msgstr ""
 msgid "Dolphin Symbol Rename File (*.sym)"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:485
-#: Source/Core/DolphinWX/FrameTools.cpp:963
+#: Source/Core/DolphinWX/FrameTools.cpp:486
+#: Source/Core/DolphinWX/FrameTools.cpp:987
 msgid "Dolphin TAS Movies (*.dtm)"
 msgstr "Dolphin TAS Filmovi (*.dtm)"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:505
+#: Source/Core/DolphinWX/GameListCtrl.cpp:474
 msgid ""
 "Dolphin could not find any GameCube/Wii ISOs or WADs. Double-click here to "
 "set a games directory..."
 msgstr ""
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:501
+#: Source/Core/DolphinWX/GameListCtrl.cpp:470
 msgid ""
 "Dolphin is currently set to hide all games. Double-click here to show all "
 "games..."
@@ -2310,12 +2310,12 @@ msgstr ""
 msgid "Dolphin is too old for traversal server"
 msgstr ""
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1347
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1420
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1316
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1389
 msgid "Dolphin was unable to complete the requested action."
 msgstr "Dolphin nije uspio dovršiti zadani zadatak."
 
-#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:152
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:151
 msgid "Dolphin's cheat system is currently disabled."
 msgstr ""
 
@@ -2461,7 +2461,7 @@ msgstr "Rana Ažuriranja Memorije"
 msgid "Edit ActionReplay Code"
 msgstr "Uredi AR kod"
 
-#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:233
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:232
 msgid "Edit Config"
 msgstr "Urediti Konfiguraciju"
 
@@ -2474,7 +2474,7 @@ msgstr "Urediti Zakrpu"
 msgid "Edit Perspectives"
 msgstr ""
 
-#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:393
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:392
 msgid "Edit..."
 msgstr "Urediti..."
 
@@ -2538,7 +2538,7 @@ msgstr ""
 msgid "Emulated Wii Remote"
 msgstr ""
 
-#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:329
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:328
 msgid "Emulation State: "
 msgstr "Kvaliteta Emulacije:"
 
@@ -2562,7 +2562,7 @@ msgstr ""
 msgid "Enable CPU Clock Override"
 msgstr ""
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:58
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:57
 msgid "Enable Cheats"
 msgstr "Omogućite kodove za varanje"
 
@@ -2570,19 +2570,19 @@ msgstr "Omogućite kodove za varanje"
 msgid "Enable Custom RTC"
 msgstr ""
 
-#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:259
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:258
 msgid "Enable Dual Core"
 msgstr "Omogućite korištenje dvije jezgre"
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:57
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:56
 msgid "Enable Dual Core (speedup)"
 msgstr "Omogućite korištenje dvije jezgre (ubrzanje)"
 
-#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:269
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:268
 msgid "Enable FPRF"
 msgstr ""
 
-#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:261
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:260
 msgid "Enable MMU"
 msgstr "Omogući MMU"
 
@@ -2602,11 +2602,11 @@ msgstr "Omogućite Čuvar Zaslona"
 msgid "Enable Speaker Data"
 msgstr "Omogući Zvučne Podatke"
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:61
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:60
 msgid "Enable Usage Statistics Reporting"
 msgstr ""
 
-#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:299
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:298
 msgid "Enable WideScreen"
 msgstr "Omogućite Široki Ekran"
 
@@ -2623,7 +2623,7 @@ msgid ""
 "If unsure, select 1x."
 msgstr ""
 
-#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:280
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:279
 msgid ""
 "Enable fast disc access. This can cause crashes and other problems in some "
 "games. (ON = Fast, OFF = Compatible)"
@@ -2663,7 +2663,7 @@ msgid ""
 "only."
 msgstr ""
 
-#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:271
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:270
 msgid ""
 "Enables Floating Point Result Flag calculation, needed for a few games. (ON "
 "= Compatible, OFF = Fast)"
@@ -2703,7 +2703,7 @@ msgid ""
 "If unsure, leave this unchecked."
 msgstr ""
 
-#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:264
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:263
 msgid ""
 "Enables the Memory Management Unit, needed for some games. (ON = Compatible, "
 "OFF = Fast)"
@@ -2711,7 +2711,7 @@ msgstr ""
 "Omogućuje Jedinicu za Upravljanje Memorijom, koja je potrebna za nekoliko "
 "igrica. (UKLJUČENO= Kompatibilnost, ISKLJUČENO= Ubrzanje)"
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:84
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:83
 msgid ""
 "Enables the collection and sharing of usage statistics data with the Dolphin "
 "development team. This data is used to improve the emulator and help us "
@@ -2719,7 +2719,7 @@ msgid ""
 "collected."
 msgstr ""
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:78
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:77
 msgid "Enables the use of Action Replay and Gecko cheats."
 msgstr ""
 
@@ -2789,14 +2789,14 @@ msgstr "Jednako"
 
 #: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:67
 #: Source/Core/DolphinWX/LogConfigWindow.cpp:43
-#: Source/Core/DolphinWX/Main.cpp:313 Source/Core/DolphinWX/Main.cpp:321
+#: Source/Core/DolphinWX/Main.cpp:314 Source/Core/DolphinWX/Main.cpp:322
 #: Source/Core/DolphinWX/MemcardManager.cpp:554
 #: Source/Core/DolphinWX/PatchAddEdit.cpp:242
 #: Source/Core/DolphinWX/WxUtils.cpp:70
 msgid "Error"
 msgstr "Pogreška"
 
-#: Source/Core/DolphinWX/Main.cpp:312
+#: Source/Core/DolphinWX/Main.cpp:313
 msgid "Error loading selected language. Falling back to system default."
 msgstr ""
 "Pogreška u čitanju odabranoga jezika. Vraćam na standardne vrijednosti."
@@ -2855,7 +2855,7 @@ msgstr "Izvedi Snimku Videa..."
 msgid "Export Save"
 msgstr "Izvezi snimljenu igru"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1011
+#: Source/Core/DolphinWX/GameListCtrl.cpp:980
 msgid "Export Wii save (Experimental)"
 msgstr "Izvedi Wii snimljenu igru (Eksperimentalna funkcija)"
 
@@ -2880,11 +2880,11 @@ msgstr "Produžetak"
 msgid "External Frame Buffer (XFB)"
 msgstr ""
 
-#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:284
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:271
 msgid "Extract All Files..."
 msgstr "Raspakirati Sve Datoteke..."
 
-#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:290
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:277
 msgid "Extract Apploader..."
 msgstr "Raspakirati Apploader..."
 
@@ -2892,40 +2892,40 @@ msgstr "Raspakirati Apploader..."
 msgid "Extract Certificates from NAND"
 msgstr ""
 
-#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:291
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:278
 msgid "Extract DOL..."
 msgstr "Raspakirati DOL..."
 
-#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:277
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:264
 msgid "Extract Directory..."
 msgstr "Raspakirati Direktorij..."
 
-#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:309
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:296
 msgid "Extract File"
 msgstr ""
 
-#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:281
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:268
 msgid "Extract File..."
 msgstr "Raspakirati Datoteku..."
 
-#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:273
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:260
 msgid "Extract Partition..."
 msgstr "Raspakirati Particiju..."
 
-#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:579
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:567
 #, c-format
 msgid "Extracting %s"
 msgstr "Raspakiravam %s"
 
-#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:566
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:554
 msgid "Extracting All Files"
 msgstr "Raspakiravam Sve Datoteke"
 
-#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:566
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:554
 msgid "Extracting Directory"
 msgstr "Raspakiravam Direktorij..."
 
-#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:567
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:555
 msgid "Extracting..."
 msgstr "Raspakiravam..."
 
@@ -2963,7 +2963,7 @@ msgstr ""
 msgid "Failed to download codes."
 msgstr "Neuspjeh u preuzimanju kodova."
 
-#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:370
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:357
 #, c-format
 msgid "Failed to extract to %s!"
 msgstr "Raspakiravanje nije uspjelo u %s!"
@@ -2980,11 +2980,11 @@ msgstr ""
 msgid "Failed to listen. Is another instance of the NetPlay server running?"
 msgstr ""
 
-#: Source/Core/Core/IOS/MIOS.cpp:149
+#: Source/Core/Core/IOS/MIOS.cpp:141
 msgid "Failed to load MIOS ELF into memory."
 msgstr ""
 
-#: Source/Core/Core/IOS/MIOS.cpp:140
+#: Source/Core/Core/IOS/MIOS.cpp:132
 msgid ""
 "Failed to load MIOS. It is required for launching GameCube titles from Wii "
 "mode."
@@ -3072,7 +3072,7 @@ msgstr ""
 msgid "Failed to read unique ID from disc image"
 msgstr "Neuspjeh u čitanju jedinstvenog ID iz slike diska"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1235
+#: Source/Core/DolphinWX/FrameTools.cpp:1256
 msgid "Failed to remove this title from the NAND."
 msgstr ""
 
@@ -3104,7 +3104,7 @@ msgstr ""
 "Kobna desinkronizacija . Prekidam reprodukciju. ( Pogreška u PlayWiimote: "
 "%u != %u, byte %u.)%s"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:449
+#: Source/Core/DolphinWX/GameListCtrl.cpp:418
 msgid "File"
 msgstr ""
 
@@ -3161,11 +3161,11 @@ msgstr ""
 msgid "Files opened, ready to compress."
 msgstr ""
 
-#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:438
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:436
 msgid "Filesystem"
 msgstr "Datotečni sustav"
 
-#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:686
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:684
 msgid "Filetype 'ini' is unknown! Will not open!"
 msgstr "Vrsta datoteke 'ini' je nepoznata! Neuspjeh u otvaranju!"
 
@@ -3241,7 +3241,7 @@ msgstr ""
 msgid "Force 4:3"
 msgstr "Prisili 4:3"
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:59
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:58
 msgid "Force Console as NTSC-J"
 msgstr "Prisili Konzolu kao NTSC-J"
 
@@ -3253,7 +3253,7 @@ msgstr ""
 msgid "Force Texture Filtering"
 msgstr "Prisili Filtriranje Tekstura"
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:80
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:79
 msgid ""
 "Forces NTSC-J mode for using the Japanese ROM font.\n"
 "If left unchecked, Dolphin defaults to NTSC-U and automatically enables this "
@@ -3531,11 +3531,11 @@ msgid ""
 "Game overwrote with another games save. Data corruption ahead 0x%x, 0x%x"
 msgstr ""
 
-#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:372
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:371
 msgid "Game-Specific Settings"
 msgstr "Specifične postavke za igru"
 
-#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:243
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:242
 msgid "GameConfig"
 msgstr "Konfiguracija Igre"
 
@@ -3579,7 +3579,7 @@ msgid "GameCube Savegame files(*.gci;*.gcs;*.sav)"
 msgstr "GameCube Snimljene Igre(*.gci;*.gcs;*.sav)"
 
 #: Source/Core/DolphinWX/Cheats/CheatsWindow.cpp:129
-#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:249
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:248
 msgid "Gecko Codes"
 msgstr "Gecko Kodovi"
 
@@ -3596,8 +3596,8 @@ msgstr "Opće"
 msgid "General and Options"
 msgstr ""
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:63
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:66
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:62
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:65
 msgid "Generate a New Statistics Identity"
 msgstr ""
 
@@ -3753,7 +3753,7 @@ msgid ""
 "Please recheck that you have the correct code"
 msgstr ""
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1060
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1029
 msgid "Host with Netplay"
 msgstr ""
 
@@ -3766,7 +3766,7 @@ msgstr "Brze Tipke"
 msgid "Hybrid Wii Remote"
 msgstr ""
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:450
+#: Source/Core/DolphinWX/GameListCtrl.cpp:419
 msgid "ID"
 msgstr ""
 
@@ -3798,7 +3798,7 @@ msgstr ""
 msgid "IPL Settings"
 msgstr "IPL Postavke"
 
-#: Source/Core/Core/Boot/Boot.cpp:222
+#: Source/Core/Core/Boot/Boot.cpp:233
 #, c-format
 msgid "IPL with unknown hash %x"
 msgstr ""
@@ -3826,11 +3826,11 @@ msgstr "ISO Direktorij"
 msgid "Icon"
 msgstr "Ikona"
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:234
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:233
 msgid "Identity generation"
 msgstr ""
 
-#: Source/Core/DolphinWX/Main.cpp:214
+#: Source/Core/DolphinWX/Main.cpp:215
 msgid ""
 "If authorized, Dolphin can collect data on its performance, feature usage, "
 "and configuration, as well as data on your system's hardware and operating "
@@ -3912,11 +3912,11 @@ msgid ""
 "but does not have a correct header."
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1259
+#: Source/Core/DolphinWX/FrameTools.cpp:1280
 msgid "Importing NAND backup"
 msgstr ""
 
-#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:333
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:332
 msgid "In Game"
 msgstr "Neigrivo"
 
@@ -3937,7 +3937,7 @@ msgstr ""
 msgid "Increase IR"
 msgstr ""
 
-#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:251
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:250
 #: Source/Core/DolphinWX/LogConfigWindow.cpp:45
 msgid "Info"
 msgstr "Info"
@@ -3966,27 +3966,27 @@ msgstr "Umetni SD karticu"
 msgid "Install WAD..."
 msgstr ""
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1049
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1018
 msgid "Install to the NAND"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1208
+#: Source/Core/DolphinWX/FrameTools.cpp:1232
 msgid "Installing WAD..."
 msgstr "Instaliram WAD..."
 
-#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:407
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:395
 msgid "Integrity Check Error"
 msgstr "Greška pri provjeri integriteta"
 
-#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:400
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:388
 msgid "Integrity check completed"
 msgstr "Provjera integriteta je završena"
 
-#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:399
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:387
 msgid "Integrity check completed. No errors have been found."
 msgstr "Provjera integriteta je završena. Pogrešaka nema."
 
-#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:404
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:392
 #, c-format
 msgid ""
 "Integrity check for %s failed. The disc image is most likely corrupted or "
@@ -3997,7 +3997,7 @@ msgstr ""
 msgid "Interface"
 msgstr "Sučelje"
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:134
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:140
 msgid "Interface Settings"
 msgstr "Postavke Sučelja"
 
@@ -4034,7 +4034,7 @@ msgstr "Interna Rezolucija:"
 msgid "Interpreter (slowest)"
 msgstr ""
 
-#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:332
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:331
 msgid "Intro"
 msgstr "Uvod"
 
@@ -4100,7 +4100,7 @@ msgstr ""
 msgid "Iterative Input"
 msgstr ""
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:33
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:32
 msgid "JIT Arm64 (experimental)"
 msgstr ""
 
@@ -4111,10 +4111,6 @@ msgstr ""
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:31
 msgid "JIT Recompiler (recommended)"
 msgstr "JIT Rekompilator (preporučeno)"
-
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:32
-msgid "JITIL Recompiler (slow, experimental)"
-msgstr ""
 
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:110
 msgid "Japan"
@@ -4184,7 +4180,7 @@ msgstr "L-Analog"
 msgid "Label"
 msgstr ""
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:124
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:130
 msgid "Language:"
 msgstr "Jezik:"
 
@@ -4250,7 +4246,7 @@ msgstr ""
 msgid "Light Cmd"
 msgstr ""
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:93
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:92
 msgid ""
 "Limits the emulation speed to the specified percentage.\n"
 "Note that raising or lowering the emulation speed will also raise or lower "
@@ -4412,7 +4408,7 @@ msgstr ""
 msgid "Load state"
 msgstr ""
 
-#: Source/Core/Core/PowerPC/PPCSymbolDB.cpp:393
+#: Source/Core/Core/PowerPC/PPCSymbolDB.cpp:387
 #, c-format
 msgid "Loaded %d good functions, ignored %d bad functions."
 msgstr ""
@@ -4484,7 +4480,7 @@ msgid ""
 "existing files. The first input file has priority."
 msgstr ""
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:448
+#: Source/Core/DolphinWX/GameListCtrl.cpp:417
 #: Source/Core/DolphinWX/MainMenuBar.cpp:285
 msgid "Maker"
 msgstr ""
@@ -4542,7 +4538,7 @@ msgstr "Memorijska Kartica"
 msgid "Memory Card Manager"
 msgstr ""
 
-#: Source/Core/Core/ConfigManager.cpp:1089
+#: Source/Core/Core/ConfigManager.cpp:1062
 #, c-format
 msgid ""
 "Memory Card filename in Slot %c is incorrect\n"
@@ -4594,7 +4590,7 @@ msgstr ""
 msgid "MemoryCard: Write called with invalid destination address (0x%x)"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1245
+#: Source/Core/DolphinWX/FrameTools.cpp:1266
 msgid ""
 "Merging a new NAND over your currently selected NAND will overwrite any "
 "channels and savegames that already exist. This process is not reversible, "
@@ -4637,7 +4633,7 @@ msgstr ""
 "\n"
 "Ako niste sigurni ostavite ovu opciju isključenu."
 
-#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:323
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:322
 msgid "Monoscopic Shadows"
 msgstr ""
 
@@ -4717,7 +4713,7 @@ msgstr "Nova Pretraga"
 msgid "New Texture"
 msgstr ""
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:234
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:233
 msgid "New identity generated."
 msgstr ""
 
@@ -4742,7 +4738,7 @@ msgstr ""
 msgid "No Value Given"
 msgstr ""
 
-#: Source/Core/Core/ConfigManager.h:33
+#: Source/Core/Core/ConfigManager.h:35
 msgid "No audio output"
 msgstr "Nema izlaz za zvuk"
 
@@ -4782,9 +4778,9 @@ msgstr "Ništa"
 msgid "Not Equal"
 msgstr "Nije Jednako"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:918
-#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:288
-#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:330
+#: Source/Core/DolphinWX/GameListCtrl.cpp:887
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:287
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:329
 msgid "Not Set"
 msgstr "Nije Postavljeno"
 
@@ -4796,7 +4792,7 @@ msgstr ""
 msgid "Not all players have the game. Do you really want to start?"
 msgstr ""
 
-#: Source/Core/DolphinWX/Main.cpp:488
+#: Source/Core/DolphinWX/Main.cpp:472
 msgid "Not connected"
 msgstr "Nije spojen"
 
@@ -4903,11 +4899,11 @@ msgstr ""
 msgid "Open"
 msgstr "Otvori"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1023
+#: Source/Core/DolphinWX/GameListCtrl.cpp:992
 msgid "Open &containing folder"
 msgstr "Otvoriti &sadržavajuću mapu"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1009
+#: Source/Core/DolphinWX/GameListCtrl.cpp:978
 msgid "Open Wii &save folder"
 msgstr "Otvoriti Wii &direktorij snimaka"
 
@@ -4929,7 +4925,7 @@ msgstr "OpenAL: ne mogu pronaći uređaj za zvuk"
 msgid "OpenAL: can't open device %s"
 msgstr "OpenAL: ne mogu otvoriti uređaj %s"
 
-#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:238
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:237
 msgid ""
 "Opens the default (read-only) configuration for this game in an external "
 "text editor."
@@ -5010,16 +5006,16 @@ msgstr "Pad-ovi"
 msgid "Parsing Error"
 msgstr ""
 
-#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:246
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:235
 #, c-format
-msgid "Partition %u"
+msgid "Partition %zu"
 msgstr ""
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:252
 msgid "Passthrough a Bluetooth adapter"
 msgstr ""
 
-#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:245
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:244
 msgid "Patches"
 msgstr "Zakrpe"
 
@@ -5042,11 +5038,11 @@ msgstr ""
 msgid "Pause at End of Movie"
 msgstr ""
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:91
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:93
 msgid "Pause on Focus Lost"
 msgstr ""
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:117
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:123
 msgid "Pauses the emulator when focus is taken away from the emulation window."
 msgstr ""
 
@@ -5054,7 +5050,7 @@ msgstr ""
 msgid "Per-Pixel Lighting"
 msgstr "Osvjetljenje po pikselu"
 
-#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:335
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:334
 msgid "Perfect"
 msgstr "Savršeno"
 
@@ -5096,7 +5092,7 @@ msgstr "Pokreni"
 msgid "Play Recording"
 msgstr "Pokreni Video Snimak"
 
-#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:334
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:333
 msgid "Playable"
 msgstr "Igrivo"
 
@@ -5108,7 +5104,7 @@ msgstr "Postavke Reprodukcije"
 msgid "Players"
 msgstr "Igrači"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:826
+#: Source/Core/DolphinWX/FrameTools.cpp:850
 msgid "Please confirm..."
 msgstr "Molimo vas da potvrdite..."
 
@@ -5338,7 +5334,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Config/PathConfigPane.cpp:39
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:75
-#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:395
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:394
 #: Source/Core/DolphinWX/PatchAddEdit.cpp:87
 msgid "Remove"
 msgstr "Ukloni"
@@ -5396,7 +5392,7 @@ msgstr ""
 msgid "Reset all saved Wii Remote pairings"
 msgstr ""
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:229
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:243
 msgid "Restart Required"
 msgstr ""
 
@@ -5569,7 +5565,7 @@ msgstr "Snimi kao..."
 msgid "Save combined output file as"
 msgstr ""
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1388
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1357
 msgid "Save compressed GCM/ISO"
 msgstr "Spremi komprimiranu GCM/ISO datoteku"
 
@@ -5577,7 +5573,7 @@ msgstr "Spremi komprimiranu GCM/ISO datoteku"
 msgid "Save currently-toggled perspectives"
 msgstr ""
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1379
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1348
 msgid "Save decompressed GCM/ISO"
 msgstr "Spremi dekomprimirane GCM/ISO datoteke"
 
@@ -5639,16 +5635,16 @@ msgstr "Mjesto snimanja za video %s je oštećeno, snimanje videa se prekida..."
 msgid "Scaled EFB Copy"
 msgstr "Umanjena EFB kopija"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:688
+#: Source/Core/DolphinWX/GameListCtrl.cpp:657
 #, c-format
 msgid "Scanning %s"
 msgstr "Tražim %s"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:677
+#: Source/Core/DolphinWX/GameListCtrl.cpp:646
 msgid "Scanning for ISOs"
 msgstr "Tražim ISO datoteke..."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:677
+#: Source/Core/DolphinWX/GameListCtrl.cpp:646
 msgid "Scanning..."
 msgstr "Tražim..."
 
@@ -5755,16 +5751,16 @@ msgstr ""
 msgid "Select State Slot 9"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:484
-#: Source/Core/DolphinWX/FrameTools.cpp:962
+#: Source/Core/DolphinWX/FrameTools.cpp:485
+#: Source/Core/DolphinWX/FrameTools.cpp:986
 msgid "Select The Recording File"
 msgstr "Odaberite Video Snimak"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1252
+#: Source/Core/DolphinWX/FrameTools.cpp:1273
 msgid "Select a BootMii NAND backup to import"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1198
+#: Source/Core/DolphinWX/FrameTools.cpp:1222
 msgid "Select a Wii WAD file to install"
 msgstr "Odaberite Wii WAD datoteku za instalaciju"
 
@@ -5780,19 +5776,19 @@ msgstr ""
 msgid "Select state"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:337
+#: Source/Core/DolphinWX/FrameTools.cpp:338
 msgid "Select the file to load"
 msgstr "Odaberite datoteku za učitavanje"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1159
+#: Source/Core/DolphinWX/FrameTools.cpp:1183
 msgid "Select the save file"
 msgstr "Odaberite snimak igre"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1343
+#: Source/Core/DolphinWX/FrameTools.cpp:1354
 msgid "Select the state to load"
 msgstr "Odaberite stanje igre za učitavanje"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1355
+#: Source/Core/DolphinWX/FrameTools.cpp:1366
 msgid "Select the state to save"
 msgstr "Odaberite mjesto snimanja"
 
@@ -5891,7 +5887,7 @@ msgstr ""
 msgid "Set Value"
 msgstr ""
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1026
+#: Source/Core/DolphinWX/GameListCtrl.cpp:995
 msgid "Set as &default ISO"
 msgstr "Postavite kao &uobičajeni ISO"
 
@@ -5925,7 +5921,7 @@ msgid ""
 "backends only."
 msgstr ""
 
-#: Source/Core/Core/Boot/Boot_BS2Emu.cpp:271
+#: Source/Core/Core/Boot/Boot_BS2Emu.cpp:270
 msgid "SetupWiiMemory: Can't create setting.txt file"
 msgstr ""
 
@@ -5951,11 +5947,15 @@ msgstr ""
 msgid "Show &Toolbar"
 msgstr "Pokaži &Alatnu Traku"
 
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:92
+msgid "Show Active Title in Window Title"
+msgstr ""
+
 #: Source/Core/DolphinWX/MainMenuBar.cpp:255
 msgid "Show Australia"
 msgstr ""
 
-#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:236
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:235
 msgid "Show Defaults"
 msgstr ""
 
@@ -6086,11 +6086,11 @@ msgstr "Pokaži Wii"
 msgid "Show World"
 msgstr ""
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:108
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:112
 msgid "Show a confirmation box before stopping a game."
 msgstr "Pokaži prozor za potvrdu prije zaustavljanja igre."
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:110
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:114
 msgid ""
 "Show a message box when a potentially serious error has occurred.\n"
 "Disabling this may avoid annoying and non-fatal messages, but it may result "
@@ -6116,6 +6116,10 @@ msgstr "Pokaži ikone"
 #: Source/Core/DolphinWX/MemcardManager.cpp:830
 msgid "Show save title"
 msgstr "Prikaži naslove"
+
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:121
+msgid "Show the active title name in the emulation window title."
+msgstr ""
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:199
 msgid ""
@@ -6167,7 +6171,7 @@ msgstr "Pojednostavljeni Kineski"
 msgid "Simulate DK Bongos"
 msgstr ""
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:452
+#: Source/Core/DolphinWX/GameListCtrl.cpp:421
 msgid "Size"
 msgstr "Veličina"
 
@@ -6186,7 +6190,7 @@ msgstr ""
 msgid "Skip BIOS"
 msgstr "Preskoči BIOS"
 
-#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:265
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:264
 msgid "Skip DCBZ clearing"
 msgstr "Preskoči čišćenje DCBZ"
 
@@ -6264,15 +6268,15 @@ msgid ""
 "If unsure, select Native."
 msgstr ""
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:101
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:100
 msgid "Speed Limit:"
 msgstr ""
 
-#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:278
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:277
 msgid "Speed up Disc Transfer Rate"
 msgstr "Ubrzati Transfer sa Diska"
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:76
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:75
 msgid ""
 "Splits the CPU and GPU threads so they can be run on separate cores.\n"
 "Provides major speed improvements on most modern PCs, but can cause "
@@ -6307,7 +6311,7 @@ msgstr "Počni Snimati Video"
 msgid "Start the game directly instead of booting to pause"
 msgstr ""
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:453
+#: Source/Core/DolphinWX/GameListCtrl.cpp:422
 #: Source/Core/DolphinWX/MainMenuBar.cpp:295
 msgid "State"
 msgstr "Stanje"
@@ -6393,7 +6397,7 @@ msgstr ""
 msgid "Stereoscopic 3D Mode:"
 msgstr ""
 
-#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:366
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:365
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:693
 msgid "Stereoscopy"
 msgstr ""
@@ -6411,17 +6415,17 @@ msgstr "Gljiva"
 msgid "Stop"
 msgstr "Zaustavi"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1565
+#: Source/Core/DolphinWX/FrameTools.cpp:1576
 msgid "Stop Playing Input"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1550
-#: Source/Core/DolphinWX/FrameTools.cpp:1567
+#: Source/Core/DolphinWX/FrameTools.cpp:1561
+#: Source/Core/DolphinWX/FrameTools.cpp:1578
 #: Source/Core/DolphinWX/MainMenuBar.cpp:142
 msgid "Stop Playing/Recording Input"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1563
+#: Source/Core/DolphinWX/FrameTools.cpp:1574
 msgid "Stop Recording Input"
 msgstr ""
 
@@ -6510,11 +6514,11 @@ msgstr ""
 msgid "Sync real Wii Remotes and pair them"
 msgstr ""
 
-#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:273
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:272
 msgid "Synchronize GPU thread"
 msgstr "Sinkroniziraj GPU threadove"
 
-#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:275
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:274
 msgid ""
 "Synchronizes the GPU and CPU threads to help prevent random freezes in Dual "
 "Core mode. (ON = Compatible, OFF = Fast)"
@@ -6536,12 +6540,12 @@ msgstr "Jezik Sustava:"
 msgid "TAS Input"
 msgstr "TAS Unos"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:382
+#: Source/Core/DolphinWX/FrameTools.cpp:383
 #, c-format
 msgid "TAS Input - GameCube Controller %d"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:390
+#: Source/Core/DolphinWX/FrameTools.cpp:391
 #, c-format
 msgid "TAS Input - Wii Remote %d"
 msgstr ""
@@ -6614,10 +6618,6 @@ msgid ""
 "If unsure, use the rightmost value."
 msgstr ""
 
-#: Source/Core/Core/ConfigManager.cpp:1000
-msgid "The WAD has been installed successfully"
-msgstr "WAD je uspješno instaliran"
-
 #: Source/Core/DolphinWX/Debugger/BreakpointDlg.cpp:50
 #, c-format
 msgid "The address %s is invalid."
@@ -6642,7 +6642,7 @@ msgid ""
 "The filename of the disc image must not be longer than 40 characters."
 msgstr ""
 
-#: Source/Core/Core/HW/DVD/DVDThread.cpp:253
+#: Source/Core/Core/HW/DVD/DVDThread.cpp:340
 #, c-format
 msgid "The disc could not be read (at 0x%<PRIx64> - 0x%<PRIx64>)."
 msgstr ""
@@ -6659,7 +6659,7 @@ msgstr ""
 msgid "The disc image \"%s\" is truncated, some of the data is missing."
 msgstr ""
 
-#: Source/Core/Core/HW/DVD/DVDInterface.cpp:510
+#: Source/Core/Core/HW/DVD/DVDInterface.cpp:469
 msgid "The disc that was about to be inserted couldn't be found."
 msgstr ""
 
@@ -6673,9 +6673,9 @@ msgstr ""
 msgid "The entered VID is invalid."
 msgstr ""
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1308
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1333
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1398
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1277
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1302
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1367
 #, c-format
 msgid ""
 "The file %s already exists.\n"
@@ -6719,7 +6719,7 @@ msgstr "Rezultirajući de-šifrirani AR kod ne sadrži niti jedan redak."
 msgid "The save you are trying to copy has an invalid file size."
 msgstr ""
 
-#: Source/Core/DolphinWX/Main.cpp:320
+#: Source/Core/DolphinWX/Main.cpp:321
 msgid ""
 "The selected language is not supported by your system. Falling back to "
 "system default."
@@ -6741,7 +6741,7 @@ msgstr "Server je odgovorio: igra je već pokrenuta!"
 msgid "The server sent an unknown error message!"
 msgstr "Server je poslao poruku o nepoznatoj grešci!"
 
-#: Source/Core/Core/ConfigManager.cpp:921
+#: Source/Core/Core/ConfigManager.cpp:897
 #, c-format
 msgid "The specified file \"%s\" does not exist"
 msgstr "Naznačena datoteka \"%s\" ne postoji"
@@ -6750,7 +6750,7 @@ msgstr "Naznačena datoteka \"%s\" ne postoji"
 msgid "The value is invalid"
 msgstr "Nevažeća vrijednost"
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:128
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:134
 msgid "Theme:"
 msgstr "Tema:"
 
@@ -6766,7 +6766,7 @@ msgstr ""
 msgid "There is nothing to undo!"
 msgstr ""
 
-#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:255
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:254
 msgid ""
 "These settings override core Dolphin settings.\n"
 "Undetermined means the game uses Dolphin's setting."
@@ -6782,6 +6782,10 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Config/AddUSBDeviceDiag.cpp:159
 msgid "This USB device is already whitelisted."
+msgstr ""
+
+#: Source/Core/Core/ConfigManager.cpp:973
+msgid "This WAD is not bootable."
 msgstr ""
 
 #: Source/Core/Core/ActionReplay.cpp:852
@@ -6802,7 +6806,7 @@ msgid ""
 "If unsure, leave this unchecked."
 msgstr ""
 
-#: Source/Core/DiscIO/NANDImporter.cpp:55
+#: Source/Core/DiscIO/NANDImporter.cpp:60
 #, c-format
 msgid ""
 "This file does not look like a BootMii NAND backup. (0x%<PRIx64> does not "
@@ -6831,7 +6835,7 @@ msgid ""
 "If you're unsure, leave this disabled."
 msgstr ""
 
-#: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:301
+#: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:296
 #, c-format
 msgid ""
 "This title might be incompatible with DSP HLE emulation. Try using LLE if "
@@ -6840,7 +6844,7 @@ msgid ""
 "DSPHLE: Unknown ucode (CRC = %08x) - forcing AX."
 msgstr ""
 
-#: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:293
+#: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:288
 #, c-format
 msgid ""
 "This title might be incompatible with DSP HLE emulation. Try using LLE if "
@@ -6849,18 +6853,18 @@ msgid ""
 "Unknown ucode (CRC = %08x) - forcing AXWii."
 msgstr ""
 
-#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:318
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:317
 msgid ""
 "This value is added to the convergence value set in the graphics "
 "configuration."
 msgstr ""
 
-#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:308
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:307
 msgid ""
 "This value is multiplied with the depth set in the graphics configuration."
 msgstr ""
 
-#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:234
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:233
 msgid "This will let you manually edit the INI config file."
 msgstr ""
 
@@ -6875,7 +6879,7 @@ msgstr "Prag"
 msgid "Tilt"
 msgstr "Nagib"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:446
+#: Source/Core/DolphinWX/GameListCtrl.cpp:415
 #: Source/Core/DolphinWX/MainMenuBar.cpp:283
 #: Source/Core/DolphinWX/MemcardManager.cpp:627
 msgid "Title"
@@ -6989,12 +6993,7 @@ msgstr ""
 msgid "Traversal server timed out connecting to the host"
 msgstr ""
 
-#: Source/Core/DiscIO/VolumeDirectory.cpp:80 Source/Core/DiscIO/VolumeGC.cpp:38
-#: Source/Core/DiscIO/VolumeWad.cpp:62
-msgid "Tried to decrypt data from a non-Wii volume"
-msgstr ""
-
-#: Source/Core/Core/Boot/Boot.cpp:450
+#: Source/Core/Core/Boot/Boot.cpp:459
 msgid "Tried to load an unknown file type."
 msgstr "Pokušaj učitavanja nepoznatog tipa datoteke."
 
@@ -7062,7 +7061,7 @@ msgstr ""
 "Nije moguće kreirati zakrpu sa unesenim vrijednostima.\n"
 "Pristup nije promijenjen."
 
-#: Source/Core/DiscIO/NANDImporter.cpp:168
+#: Source/Core/DiscIO/NANDImporter.cpp:197
 #, c-format
 msgid ""
 "Unable to open %s! Refer to https://dolphin-emu.org/docs/guides/wii-network-"
@@ -7078,8 +7077,8 @@ msgid ""
 "Would you like to ignore this line and continue parsing?"
 msgstr ""
 
-#: Source/Core/DiscIO/NANDImporter.cpp:193
-#: Source/Core/DiscIO/NANDImporter.cpp:202
+#: Source/Core/DiscIO/NANDImporter.cpp:222
+#: Source/Core/DiscIO/NANDImporter.cpp:231
 #, c-format
 msgid "Unable to write to file %s"
 msgstr ""
@@ -7098,11 +7097,11 @@ msgstr ""
 msgid "Unexpected 0x80 call? Aborting..."
 msgstr "Neočekivani 0x80 poziv? Prekidanje..."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1051
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1020
 msgid "Uninstall from the NAND"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1225
+#: Source/Core/DolphinWX/FrameTools.cpp:1246
 msgid ""
 "Uninstalling the WAD will remove the currently installed version of this "
 "title from the NAND without deleting its save data. Continue?"
@@ -7115,7 +7114,7 @@ msgstr ""
 msgid "Unknown"
 msgstr "Nepoznato"
 
-#: Source/Core/Core/HW/DVD/DVDInterface.cpp:1091
+#: Source/Core/Core/HW/DVD/DVDInterface.cpp:1076
 #, c-format
 msgid "Unknown DVD command %08x - fatal error"
 msgstr "Nepoznata DVD naredba %08x - kobna greška"
@@ -7147,7 +7146,7 @@ msgstr ""
 "Nepoznata poruka sa identifikatorom:%d  primljena od igrača:%d Izbacujem "
 "igrača!"
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:45
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:44
 msgid "Unlimited"
 msgstr ""
 
@@ -7182,15 +7181,15 @@ msgstr ""
 msgid "Upright Wii Remote"
 msgstr ""
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:118
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:117
 msgid "Usage Statistics Reporting Settings"
 msgstr ""
 
-#: Source/Core/DolphinWX/Main.cpp:225
+#: Source/Core/DolphinWX/Main.cpp:226
 msgid "Usage statistics reporting"
 msgstr ""
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:88
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:87
 msgid ""
 "Usage statistics reporting uses a unique random per-machine identifier to "
 "distinguish users from one another. This button generates a new random "
@@ -7222,7 +7221,7 @@ msgid ""
 "If unsure, leave this checked."
 msgstr ""
 
-#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:325
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:324
 msgid "Use a single depth buffer for both eyes. Needed for a few games."
 msgstr ""
 
@@ -7361,15 +7360,22 @@ msgstr ""
 msgid "Volume Up"
 msgstr ""
 
-#: Source/Core/DiscIO/NANDContentLoader.cpp:268
-#: Source/Core/DiscIO/NANDContentLoader.cpp:290
-#, c-format
-msgid "WAD installation failed: error creating %s"
-msgstr "WAD instalacije nije uspjela: pogreška u stvaranju %s"
+#: Source/Core/UICommon/WiiUtils.cpp:57
+msgid "WAD installation failed: Could not finalise title import."
+msgstr ""
 
-#: Source/Core/DiscIO/NANDContentLoader.cpp:305
-msgid "WAD installation failed: error creating ticket"
-msgstr "WAD instalacije nije uspjela: pogreška u stvaranju karte"
+#: Source/Core/UICommon/WiiUtils.cpp:47
+#, c-format
+msgid "WAD installation failed: Could not import content %08x."
+msgstr ""
+
+#: Source/Core/UICommon/WiiUtils.cpp:33
+msgid "WAD installation failed: Could not initialise title import."
+msgstr ""
+
+#: Source/Core/UICommon/WiiUtils.cpp:21
+msgid "WAD installation failed: The selected file is not a valid WAD."
+msgstr ""
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:133
 msgid ""
@@ -7380,8 +7386,8 @@ msgid ""
 msgstr ""
 
 #: Source/Core/Common/MsgHandler.cpp:67
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1173
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1488
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1142
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1457
 #: Source/Core/DolphinWX/LogConfigWindow.cpp:44
 #: Source/Core/DolphinWX/MemcardManager.cpp:587
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:363
@@ -7389,11 +7395,11 @@ msgstr ""
 msgid "Warning"
 msgstr "Upozorenje"
 
-#: Source/Core/Core/Boot/Boot.cpp:339
+#: Source/Core/Core/Boot/Boot.cpp:341
 msgid "Warning - starting DOL in wrong console mode!"
 msgstr "Upozorenje - pokrećem DOL u krivom načinu rada konzole!"
 
-#: Source/Core/Core/Boot/Boot.cpp:289
+#: Source/Core/Core/Boot/Boot.cpp:299
 msgid "Warning - starting ISO in wrong console mode!"
 msgstr "Upozorenje - pokrećem ISO u krivom načinu rada konzole!"
 
@@ -7507,9 +7513,15 @@ msgstr "Širina"
 msgid "Wii"
 msgstr "Wii"
 
-#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:357
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:356
 msgid "Wii Console"
 msgstr "Wii Konzola"
+
+#. i18n: "Wii Menu" (or System Menu) refers to the Wii's main menu,
+#. which is (usually) the first thing users see when a Wii console starts.
+#: Source/Core/Core/TitleDatabase.cpp:113
+msgid "Wii Menu"
+msgstr ""
 
 #: Source/Core/DolphinWX/Config/PathConfigPane.cpp:91
 msgid "Wii NAND Root:"
@@ -7525,7 +7537,7 @@ msgstr ""
 msgid "Wii Remote %i"
 msgstr ""
 
-#: Source/Core/DolphinWX/Main.cpp:494
+#: Source/Core/DolphinWX/Main.cpp:478
 msgid "Wii Remote Connected"
 msgstr ""
 
@@ -7546,7 +7558,7 @@ msgstr ""
 msgid "Wii U GameCube Controller Adapter Configuration Port %i"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1199
+#: Source/Core/DolphinWX/FrameTools.cpp:1223
 msgid "Wii WAD files (*.wad)"
 msgstr ""
 
@@ -7554,7 +7566,7 @@ msgstr ""
 msgid "Wii and Wii Remote"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1160
+#: Source/Core/DolphinWX/FrameTools.cpp:1184
 msgid "Wii save files (*.bin)"
 msgstr ""
 
@@ -7578,11 +7590,11 @@ msgstr ""
 msgid "Word Wrap"
 msgstr "Word Wrap"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1208
-#: Source/Core/DolphinWX/FrameTools.cpp:1259
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1287
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1406
-#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:381
+#: Source/Core/DolphinWX/FrameTools.cpp:1232
+#: Source/Core/DolphinWX/FrameTools.cpp:1280
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1256
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1375
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:368
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:325
 msgid "Working..."
 msgstr "Obrada..."
@@ -7667,7 +7679,7 @@ msgstr ""
 msgid "You must enter a valid profile name."
 msgstr "Morate unijeti valjano ime za profil."
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:228
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:242
 msgid "You must restart Dolphin in order for the change to take effect."
 msgstr "Morate ponovno pokrenuti Dolphin da bi promjene imale efekta."
 
@@ -7681,7 +7693,7 @@ msgstr ""
 "Da li želite prekinuti izvođenje te riješiti problem?\n"
 "Ako odaberete \"Ne\", zvuk će vam biti izopačen."
 
-#: Source/Core/Core/ConfigManager.cpp:953
+#: Source/Core/Core/ConfigManager.cpp:929
 msgid ""
 "Your GCM/ISO file seems to be invalid (invalid country).\n"
 "Continue with PAL region?"
@@ -7732,15 +7744,15 @@ msgstr "[ čekanje ]"
 msgid "apploader (.img)"
 msgstr "apploader (.img)"
 
-#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:289
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:288
 msgid "auto"
 msgstr ""
 
-#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:291
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:290
 msgid "fake-completion"
 msgstr ""
 
-#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:290
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:289
 msgid "none"
 msgstr ""
 
@@ -7748,7 +7760,7 @@ msgstr ""
 msgid "or select a device"
 msgstr ""
 
-#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:708
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:706
 msgid "wxExecute returned -1 on application run!"
 msgstr "wxExecute je vratio vrijednost -1 prilikom pokretanja aplikacije!"
 

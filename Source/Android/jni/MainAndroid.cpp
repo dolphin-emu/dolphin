@@ -23,6 +23,7 @@
 #include "Common/FileUtil.h"
 #include "Common/GL/GLInterfaceBase.h"
 #include "Common/Logging/LogManager.h"
+#include "Common/MsgHandler.h"
 
 #include "Core/BootManager.h"
 #include "Core/ConfigManager.h"

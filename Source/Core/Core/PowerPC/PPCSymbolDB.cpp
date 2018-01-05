@@ -4,6 +4,7 @@
 
 #include <map>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "Common/CommonTypes.h"
@@ -38,28 +39,21 @@ PPCSymbolDB::~PPCSymbolDB()
 }
 
 // Adds the function to the list, unless it's already there
-Symbol* PPCSymbolDB::AddFunction(u32 startAddr)
+Symbol* PPCSymbolDB::AddFunction(u32 start_addr)
 {
-  if (startAddr < 0x80000010)
+  // It's already in the list
+  if (functions.find(start_addr) != functions.end())
     return nullptr;
-  XFuncMap::iterator iter = functions.find(startAddr);
-  if (iter != functions.end())
-  {
-    // it's already in the list
+
+  Symbol symbol;
+  if (!PPCAnalyst::AnalyzeFunction(start_addr, symbol))
     return nullptr;
-  }
-  else
-  {
-    Symbol tempFunc;  // the current one we're working on
-    u32 targetEnd = PPCAnalyst::AnalyzeFunction(startAddr, tempFunc);
-    if (targetEnd == 0)
-      return nullptr;  // found a dud :(
-    // LOG(OSHLE, "Symbol found at %08x", startAddr);
-    functions[startAddr] = tempFunc;
-    tempFunc.type = Symbol::Type::Function;
-    checksumToFunction[tempFunc.hash].insert(&functions[startAddr]);
-    return &functions[startAddr];
-  }
+
+  functions[start_addr] = std::move(symbol);
+  Symbol* ptr = &functions[start_addr];
+  ptr->type = Symbol::Type::Function;
+  checksumToFunction[ptr->hash].insert(ptr);
+  return ptr;
 }
 
 void PPCSymbolDB::AddKnownSymbol(u32 startAddr, u32 size, const std::string& name,
@@ -612,90 +606,65 @@ bool PPCSymbolDB::LoadMap(const std::string& filename, bool bad)
   return true;
 }
 
-// ===================================================
-/* Save the map file and save a code file */
-// ----------------
-bool PPCSymbolDB::SaveMap(const std::string& filename, bool WithCodes) const
+// Save symbol map similar to CodeWarrior's map file
+bool PPCSymbolDB::SaveSymbolMap(const std::string& filename) const
 {
-  // Format the name for the codes version
-  std::string mapFile = filename;
-  if (WithCodes)
-    mapFile = mapFile.substr(0, mapFile.find_last_of(".")) + "_code.map";
-
-  // Check size
-  const int wxYES_NO = 0x00000002 | 0x00000008;
-  if (functions.size() == 0)
-  {
-    if (!AskYesNo(
-            StringFromFormat(
-                "No symbol names are generated. Do you want to replace '%s' with a blank file?",
-                mapFile.c_str())
-                .c_str(),
-            "Confirm", wxYES_NO))
-      return false;
-  }
-
-  // Make a file
-  File::IOFile f(mapFile, "w");
+  File::IOFile f(filename, "w");
   if (!f)
     return false;
 
-  // --------------------------------------------------------------------
-  // Walk through every code row
-  // -------------------------
-  fprintf(f.GetHandle(), ".text\n");  // Write ".text" at the top
-  XFuncMap::const_iterator itr = functions.begin();
-  u32 LastAddress = 0x80004000;
-  std::string LastSymbolName;
-  while (itr != functions.end())
+  // Write ".text" at the top
+  fprintf(f.GetHandle(), ".text\n");
+
+  // Write symbol address, size, virtual address, alignment, name
+  for (const auto& function : functions)
   {
-    // Save a map file
-    const Symbol& rSymbol = itr->second;
-    if (!WithCodes)
-    {
-      fprintf(f.GetHandle(), "%08x %08x %08x %i %s\n", rSymbol.address, rSymbol.size,
-              rSymbol.address, 0, rSymbol.name.c_str());
-      ++itr;
-    }
-
-    // Save a code file
-    else
-    {
-      // Get the current and next address
-      LastAddress = rSymbol.address;
-      LastSymbolName = rSymbol.name;
-      ++itr;
-
-      /* To make nice straight lines we fill out the name with spaces, we also cut off
-         all names longer than 25 letters */
-      std::string TempSym;
-      for (u32 i = 0; i < 25; i++)
-      {
-        if (i < LastSymbolName.size())
-          TempSym += LastSymbolName[i];
-        else
-          TempSym += " ";
-      }
-
-      // We currently skip the last block because we don't know how long it goes
-      int space;
-      if (itr != functions.end())
-        space = itr->second.address - LastAddress;
-      else
-        space = 0;
-
-      for (int i = 0; i < space; i += 4)
-      {
-        int Address = LastAddress + i;
-
-        std::string disasm = debugger->Disassemble(Address);
-        fprintf(f.GetHandle(), "%08x %i %20s %s\n", Address, 0, TempSym.c_str(), disasm.c_str());
-      }
-      // Write a blank line after each block
-      fprintf(f.GetHandle(), "\n");
-    }
+    const Symbol& symbol = function.second;
+    fprintf(f.GetHandle(), "%08x %08x %08x %i %s\n", symbol.address, symbol.size, symbol.address, 0,
+            symbol.name.c_str());
   }
-
   return true;
 }
-// ===========
+
+// Save code map (won't work if Core is running)
+//
+// Notes:
+//  - Dolphin doesn't load back code maps
+//  - It's a custom code map format
+bool PPCSymbolDB::SaveCodeMap(const std::string& filename) const
+{
+  constexpr int SYMBOL_NAME_LIMIT = 30;
+  File::IOFile f(filename, "w");
+  if (!f)
+    return false;
+
+  // Write ".text" at the top
+  fprintf(f.GetHandle(), ".text\n");
+
+  u32 next_address = 0;
+  for (const auto& function : functions)
+  {
+    const Symbol& symbol = function.second;
+
+    // Skip functions which are inside bigger functions
+    if (symbol.address + symbol.size <= next_address)
+    {
+      // At least write the symbol name and address
+      fprintf(f.GetHandle(), "// %08x beginning of %s\n", symbol.address, symbol.name.c_str());
+      continue;
+    }
+
+    // Write the symbol full name
+    fprintf(f.GetHandle(), "\n%s:\n", symbol.name.c_str());
+    next_address = symbol.address + symbol.size;
+
+    // Write the code
+    for (u32 address = symbol.address; address < next_address; address += 4)
+    {
+      const std::string disasm = debugger->Disassemble(address);
+      fprintf(f.GetHandle(), "%08x %-*.*s %s\n", address, SYMBOL_NAME_LIMIT, SYMBOL_NAME_LIMIT,
+              symbol.name.c_str(), disasm.c_str());
+    }
+  }
+  return true;
+}

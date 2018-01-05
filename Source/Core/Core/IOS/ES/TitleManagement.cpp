@@ -440,6 +440,39 @@ IPCCommandResult ES::DeleteTitleContent(const IOCtlVRequest& request)
   return GetDefaultReply(DeleteTitleContent(Memory::Read_U64(request.in_vectors[0].address)));
 }
 
+ReturnCode ES::DeleteContent(u64 title_id, u32 content_id) const
+{
+  if (!CanDeleteTitle(title_id))
+    return ES_EINVAL;
+
+  const auto tmd = IOS::ES::FindInstalledTMD(title_id);
+  if (!tmd.IsValid())
+    return FS_ENOENT;
+
+  IOS::ES::Content content;
+  if (!tmd.FindContentById(content_id, &content))
+    return ES_EINVAL;
+
+  if (!File::Delete(Common::GetTitleContentPath(title_id, Common::FROM_SESSION_ROOT) +
+                    StringFromFormat("%08x.app", content_id)))
+  {
+    return FS_ENOENT;
+  }
+
+  return IPC_SUCCESS;
+}
+
+IPCCommandResult ES::DeleteContent(const IOCtlVRequest& request)
+{
+  if (!request.HasNumberOfValidVectors(2, 0) || request.in_vectors[0].size != sizeof(u64) ||
+      request.in_vectors[1].size != sizeof(u32))
+  {
+    return GetDefaultReply(ES_EINVAL);
+  }
+  return GetDefaultReply(DeleteContent(Memory::Read_U64(request.in_vectors[0].address),
+                                       Memory::Read_U32(request.in_vectors[1].address)));
+}
+
 ReturnCode ES::ExportTitleInit(Context& context, u64 title_id, u8* tmd_bytes, u32 tmd_size)
 {
   // No concurrent title import/export is allowed.
@@ -621,6 +654,51 @@ ReturnCode ES::ExportTitleDone(Context& context)
 IPCCommandResult ES::ExportTitleDone(Context& context, const IOCtlVRequest& request)
 {
   return GetDefaultReply(ExportTitleDone(context));
+}
+
+ReturnCode ES::DeleteSharedContent(const std::array<u8, 20>& sha1) const
+{
+  IOS::ES::SharedContentMap map{Common::FromWhichRoot::FROM_SESSION_ROOT};
+  const std::string content_path = map.GetFilenameFromSHA1(sha1);
+  if (content_path == "unk")
+    return ES_EINVAL;
+
+  // Check whether the shared content is used by a system title.
+  const std::vector<u64> titles = IOS::ES::GetInstalledTitles();
+  const bool is_used_by_system_title = std::any_of(titles.begin(), titles.end(), [&sha1](u64 id) {
+    if (!IOS::ES::IsTitleType(id, IOS::ES::TitleType::System))
+      return false;
+
+    const auto tmd = IOS::ES::FindInstalledTMD(id);
+    if (!tmd.IsValid())
+      return true;
+
+    const auto contents = tmd.GetContents();
+    return std::any_of(contents.begin(), contents.end(),
+                       [&sha1](const auto& content) { return content.sha1 == sha1; });
+  });
+
+  // Any shared content used by a system title cannot be deleted.
+  if (is_used_by_system_title)
+    return ES_EINVAL;
+
+  // Delete the shared content and update the content map.
+  if (!File::Delete(content_path))
+    return FS_ENOENT;
+
+  if (!map.DeleteSharedContent(sha1))
+    return ES_EIO;
+
+  return IPC_SUCCESS;
+}
+
+IPCCommandResult ES::DeleteSharedContent(const IOCtlVRequest& request)
+{
+  std::array<u8, 20> sha1;
+  if (!request.HasNumberOfValidVectors(1, 0) || request.in_vectors[0].size != sha1.size())
+    return GetDefaultReply(ES_EINVAL);
+  Memory::CopyFromEmu(sha1.data(), request.in_vectors[0].address, request.in_vectors[0].size);
+  return GetDefaultReply(DeleteSharedContent(sha1));
 }
 }  // namespace Device
 }  // namespace HLE

@@ -73,7 +73,8 @@ DSPEmulator* GetDSPEmulator();
 
 void DoState(PointerWrap& p);
 
-void GenerateDSPInterruptFromDSPEmu(DSPInterruptType type);
+// TODO: Maybe rethink this? The timing is unpredictable.
+void GenerateDSPInterruptFromDSPEmu(DSPInterruptType type, int cycles_into_future = 0);
 
 // Audio/DSP Helper
 u8 ReadARAM(u32 address);

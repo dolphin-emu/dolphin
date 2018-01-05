@@ -25,6 +25,8 @@ private:
   void OnSaveConfig();
 
   QVBoxLayout* m_main_layout;
+  QComboBox* m_combobox_language;
+
   QComboBox* m_combobox_theme;
   QCheckBox* m_checkbox_auto_window;
   QCheckBox* m_checkbox_top_window;
@@ -33,6 +35,7 @@ private:
   QCheckBox* m_checkbox_confirm_on_stop;
   QCheckBox* m_checkbox_use_panic_handlers;
   QCheckBox* m_checkbox_enable_osd;
+  QCheckBox* m_checkbox_show_active_title;
   QCheckBox* m_checkbox_pause_on_focus_lost;
   QCheckBox* m_checkbox_hide_mouse;
 };

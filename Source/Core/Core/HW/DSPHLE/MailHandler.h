@@ -21,7 +21,8 @@ public:
   CMailHandler();
   ~CMailHandler();
 
-  void PushMail(u32 _Mail, bool interrupt = false);
+  // TODO: figure out correct timing for interrupts rather than defaulting to "immediately."
+  void PushMail(u32 mail, bool interrupt = false, int cycles_into_future = 0);
   void Clear();
   void Halt(bool _Halt);
   void DoState(PointerWrap& p);

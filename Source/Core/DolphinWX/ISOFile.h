@@ -5,7 +5,6 @@
 #pragma once
 
 #include <string>
-#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -13,6 +12,11 @@
 
 #include <wx/bitmap.h>
 #include <wx/image.h>
+
+namespace Core
+{
+class TitleDatabase;
+}
 
 namespace DiscIO
 {
@@ -28,8 +32,7 @@ class PointerWrap;
 class GameListItem
 {
 public:
-  GameListItem(const std::string& _rFileName,
-               const std::unordered_map<std::string, std::string>& custom_titles);
+  GameListItem(const std::string& file_name, const Core::TitleDatabase& title_database);
   ~GameListItem();
 
   // Reload settings after INI changes

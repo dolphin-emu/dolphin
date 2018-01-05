@@ -5,9 +5,12 @@
 #include <QDir>
 #include <QSize>
 
+#include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
+#include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
 #include "DolphinQt2/Settings.h"
+#include "InputCommon/InputConfig.h"
 
 static QString GetSettingsPath()
 {
@@ -28,6 +31,17 @@ QString Settings::GetResourcesDir() const
 {
   return QString::fromStdString(File::GetSysDirectory().append("Resources"))
       .append(QDir::separator());
+}
+
+QString Settings::GetProfilesDir() const
+{
+  return QString::fromStdString(File::GetUserPath(D_CONFIG_IDX) + "Profiles/");
+}
+
+QString Settings::GetProfileINIPath(const InputConfig* config, const QString& name) const
+{
+  return GetProfilesDir() + QString::fromStdString(config->GetProfileName()) + QDir::separator() +
+         name + QStringLiteral(".ini");
 }
 
 bool Settings::IsInDevelopmentWarningEnabled() const
@@ -293,7 +307,52 @@ bool Settings::IsWiiGameRunning() const
   return SConfig::GetInstance().bWii;
 }
 
+bool Settings::IsGCAdapterRumbleEnabled(int port) const
+{
+  return SConfig::GetInstance().m_AdapterRumble[port];
+}
+
+void Settings::SetGCAdapterRumbleEnabled(int port, bool enabled)
+{
+  SConfig::GetInstance().m_AdapterRumble[port] = enabled;
+}
+
+bool Settings::IsGCAdapterSimulatingDKBongos(int port) const
+{
+  return SConfig::GetInstance().m_AdapterKonga[port];
+}
+
+void Settings::SetGCAdapterSimulatingDKBongos(int port, bool enabled)
+{
+  SConfig::GetInstance().m_AdapterKonga[port] = enabled;
+}
+
 void Settings::Save()
 {
   return SConfig::GetInstance().SaveSettings();
+}
+
+QVector<QString> Settings::GetProfiles(const InputConfig* config) const
+{
+  const std::string path = GetProfilesDir().toStdString() + config->GetProfileName();
+  QVector<QString> vec;
+
+  for (const auto& file : Common::DoFileSearch({".ini"}, {path}))
+  {
+    std::string basename;
+    SplitPath(file, nullptr, &basename, nullptr);
+    vec.push_back(QString::fromStdString(basename));
+  }
+
+  return vec;
+}
+
+bool Settings::HasAskedForAnalyticsPermission() const
+{
+  return SConfig::GetInstance().m_analytics_permission_asked;
+}
+
+void Settings::SetAskedForAnalyticsPermission(bool value)
+{
+  SConfig::GetInstance().m_analytics_permission_asked = value;
 }

@@ -55,6 +55,7 @@ private:
   static bool Boot_ELF(const std::string& filename);
   static bool Boot_WiiWAD(const std::string& filename);
 
+  static void SetupMSR();
   static void SetupBAT(bool is_wii);
   static bool RunApploader(bool is_wii, const DiscIO::IVolume& volume);
   static bool EmulatedBS2_GC(const DiscIO::IVolume* volume, bool skip_app_loader = false);

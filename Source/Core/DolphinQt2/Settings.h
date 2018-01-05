@@ -5,6 +5,7 @@
 #pragma once
 
 #include <QSettings>
+#include <QVector>
 
 #include "Core/HW/SI/SI.h"
 
@@ -12,6 +13,8 @@ namespace DiscIO
 {
 enum class Language;
 }
+
+class InputConfig;
 
 // UI settings to be stored in the config directory.
 class Settings final : public QSettings
@@ -24,6 +27,9 @@ public:
   // UI
   QString GetThemeDir() const;
   QString GetResourcesDir() const;
+  QString GetProfilesDir() const;
+  QVector<QString> GetProfiles(const InputConfig* config) const;
+  QString GetProfileINIPath(const InputConfig* config, const QString& name) const;
   bool IsInDevelopmentWarningEnabled() const;
 
   // GameList
@@ -56,6 +62,8 @@ public:
   void SetForceNTSCJ(bool val);
 
   // Analytics
+  bool HasAskedForAnalyticsPermission() const;
+  void SetAskedForAnalyticsPermission(bool value);
   bool GetAnalyticsEnabled() const;
   void SetAnalyticsEnabled(bool val);
 
@@ -91,6 +99,12 @@ public:
 
   bool IsContinuousScanningEnabled() const;
   void SetContinuousScanningEnabled(bool enabled);
+
+  bool IsGCAdapterRumbleEnabled(int port) const;
+  void SetGCAdapterRumbleEnabled(int port, bool enabled);
+
+  bool IsGCAdapterSimulatingDKBongos(int port) const;
+  void SetGCAdapterSimulatingDKBongos(int port, bool enabled);
 
   void Save();
 };

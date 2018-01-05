@@ -55,8 +55,11 @@ public:
   virtual Partition GetGamePartition() const { return PARTITION_NONE; }
   bool GetTitleID(u64* buffer) const { return GetTitleID(buffer, GetGamePartition()); }
   virtual bool GetTitleID(u64* buffer, const Partition& partition) const { return false; }
-  virtual IOS::ES::TicketReader GetTicket(const Partition& partition) const { return {}; }
-  virtual IOS::ES::TMDReader GetTMD(const Partition& partition) const { return {}; }
+  virtual const IOS::ES::TicketReader& GetTicket(const Partition& partition) const
+  {
+    return INVALID_TICKET;
+  }
+  virtual const IOS::ES::TMDReader& GetTMD(const Partition& partition) const { return INVALID_TMD; }
   std::string GetGameID() const { return GetGameID(GetGamePartition()); }
   virtual std::string GetGameID(const Partition& partition) const = 0;
   std::string GetMakerID() const { return GetMakerID(GetGamePartition()); }
@@ -111,6 +114,9 @@ protected:
   static const size_t NAME_STRING_LENGTH = 42;
   static const size_t NAME_BYTES_LENGTH = NAME_STRING_LENGTH * sizeof(u16);
   static const size_t NAMES_TOTAL_BYTES = NAME_BYTES_LENGTH * NUMBER_OF_LANGUAGES;
+
+  static const IOS::ES::TicketReader INVALID_TICKET;
+  static const IOS::ES::TMDReader INVALID_TMD;
 };
 
 std::unique_ptr<IVolume> CreateVolumeFromFilename(const std::string& filename);

@@ -77,7 +77,22 @@ void AXUCode::LoadResamplingCoefficients()
 void AXUCode::SignalWorkEnd()
 {
   // Signal end of processing
-  m_mail_handler.PushMail(DSP_YIELD, true);
+  // TODO: figure out how many cycles this is actually supposed to take
+
+  // The Clone Wars hangs upon initial boot if this interrupt happens too quickly after submitting a
+  // command list. When played in DSP-LLE, the interrupt lags by about 160,000 cycles, though any
+  // value greater than or equal to 814 will work here. In other games, the lag can be as small as
+  // 50,000 cycles (in Metroid Prime) and as large as 718,092 cycles (in Tales of Symphonia!).
+
+  // On the PowerPC side, hthh_ discovered that The Clone Wars tracks a "AXCommandListCycles"
+  // variable which matches the aforementioned 160,000 cycles. It's initialized to ~2500 cycles for
+  // a minimal, empty command list, so that should be a safe number for pretty much anything a game
+  // does.
+
+  // For more information, see https://bugs.dolphin-emu.org/issues/10265.
+  constexpr int AX_EMPTY_COMMAND_LIST_CYCLES = 2500;
+
+  m_mail_handler.PushMail(DSP_YIELD, true, AX_EMPTY_COMMAND_LIST_CYCLES);
 }
 
 void AXUCode::HandleCommandList()

@@ -814,12 +814,10 @@ include_directories("${PROJECT_BINARY_DIR}/Source/Core")
 message(STATUS "Using static gtest from Externals")
 add_subdirectory(Externals/gtest EXCLUDE_FROM_ALL)
 
-enable_testing()
-add_custom_target(unittests)
-add_custom_command(TARGET unittests POST_BUILD COMMAND ${CMAKE_CTEST_COMMAND})
-
+########################################
+# Process Dolphin source now that all setup is complete
+#
 add_subdirectory(Source)
-
 
 ########################################
 # Install shared data files

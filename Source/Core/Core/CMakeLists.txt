@@ -19,6 +19,7 @@ set(SRCS
   PatchEngine.cpp
   HideObjectEngine.cpp
   State.cpp
+  TitleDatabase.cpp
   WiiRoot.cpp
   Boot/Boot_BS2Emu.cpp
   Boot/Boot.cpp
@@ -91,7 +92,6 @@ set(SRCS
   HW/DSPLLE/DSPSymbols.cpp
   HW/DSPLLE/DSPLLEGlobals.cpp
   HW/DSPLLE/DSPLLE.cpp
-  HW/DSPLLE/DSPLLETools.cpp
   HW/DVD/DVDInterface.cpp
   HW/DVD/DVDMath.cpp
   HW/DVD/DVDThread.cpp

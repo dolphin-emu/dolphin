@@ -8,13 +8,16 @@
 #pragma once
 
 #include <array>
+#include <cstddef>
+#include <map>
 #include <string>
 #include <vector>
 
-#include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/NandPaths.h"
 #include "DiscIO/Enums.h"
+
+class PointerWrap;
 
 namespace IOS
 {
@@ -181,6 +184,7 @@ public:
   void DoState(PointerWrap& p);
 
   const std::vector<u8>& GetRawTicket() const;
+  std::vector<u8> GetRawTicket(u64 ticket_id) const;
   size_t GetNumberOfTickets() const;
 
   // Returns a "raw" ticket view, without byte swapping. Intended for use from ES.
@@ -189,6 +193,7 @@ public:
   // more than just one ticket and generate ticket views for them, so we implement it too.
   std::vector<u8> GetRawTicketView(u32 ticket_num) const;
 
+  std::string GetIssuer() const;
   u32 GetDeviceId() const;
   u64 GetTitleId() const;
   std::vector<u8> GetTitleKey() const;
@@ -212,9 +217,12 @@ public:
 
   std::string GetFilenameFromSHA1(const std::array<u8, 20>& sha1) const;
   std::string AddSharedContent(const std::array<u8, 20>& sha1);
+  bool DeleteSharedContent(const std::array<u8, 20>& sha1);
   std::vector<std::array<u8, 20>> GetHashes() const;
 
 private:
+  bool WriteEntries() const;
+
   struct Entry;
   Common::FromWhichRoot m_root;
   u32 m_last_id = 0;

@@ -14,6 +14,7 @@
 #include "Common/NonCopyable.h"
 #include "Core/HW/EXI/EXI_Device.h"
 #include "Core/HW/SI/SI_Device.h"
+#include "Core/TitleDatabase.h"
 
 namespace DiscIO
 {
@@ -241,6 +242,7 @@ struct SConfig : NonCopyable
   std::string m_perfDir;
 
   const std::string& GetGameID() const { return m_game_id; }
+  const std::string& GetTitleDescription() const { return m_title_description; }
   u64 GetTitleID() const { return m_title_id; }
   u16 GetRevision() const { return m_revision; }
   void ResetRunningGameMetadata();
@@ -286,6 +288,7 @@ struct SConfig : NonCopyable
   bool m_InterfaceLogWindow;
   bool m_InterfaceLogConfigWindow;
   bool m_InterfaceExtendedFPSInfo;
+  bool m_show_active_title = false;
 
   bool m_ListDrives;
   bool m_ListWad;
@@ -398,7 +401,6 @@ private:
   void SaveAnalyticsSettings(IniFile& ini);
   void SaveBluetoothPassthroughSettings(IniFile& ini);
   void SaveUSBPassthroughSettings(IniFile& ini);
-  void SaveSysconfSettings(IniFile& ini);
   void SaveVRSettings(IniFile& ini);
 
   void LoadGeneralSettings(IniFile& ini);
@@ -415,15 +417,16 @@ private:
   void LoadAnalyticsSettings(IniFile& ini);
   void LoadBluetoothPassthroughSettings(IniFile& ini);
   void LoadUSBPassthroughSettings(IniFile& ini);
-  void LoadSysconfSettings(IniFile& ini);
   void LoadVRSettings(IniFile& ini);
 
-  void SetRunningGameMetadata(const std::string& game_id, u64 title_id, u16 revision);
+  void SetRunningGameMetadata(const std::string& game_id, u64 title_id, u16 revision,
+                              Core::TitleDatabase::TitleType type);
   bool SetRegion(DiscIO::Region region, std::string* directory_name);
 
   static SConfig* m_Instance;
 
   std::string m_game_id;
+  std::string m_title_description;
   u64 m_title_id;
   u16 m_revision;
 };

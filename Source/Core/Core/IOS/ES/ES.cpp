@@ -417,6 +417,7 @@ IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
   case IOCTL_ES_SETUID:
     return SetUID(context->uid, request);
   case IOCTL_ES_DIVERIFY:
+  case IOCTL_ES_DIVERIFY_WITH_VIEW:
     return DIVerify(request);
 
   case IOCTL_ES_GETOWNEDTITLECNT:
@@ -471,6 +472,10 @@ IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
     return DeleteTicket(request);
   case IOCTL_ES_DELETETITLECONTENT:
     return DeleteTitleContent(request);
+  case IOCTL_ES_DELETESHAREDCONTENT:
+    return DeleteSharedContent(request);
+  case IOCTL_ES_DELETE_CONTENT:
+    return DeleteContent(request);
   case IOCTL_ES_GETSTOREDTMDSIZE:
     return GetStoredTMDSize(request);
   case IOCTL_ES_GETSTOREDTMD:
@@ -502,23 +507,26 @@ IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
   case IOCTL_ES_GETBOOT2VERSION:
     return GetBoot2Version(request);
 
+  case IOCTL_ES_GET_V0_TICKET_FROM_VIEW:
+    return GetV0TicketFromView(request);
+  case IOCTL_ES_GET_TICKET_SIZE_FROM_VIEW:
+    return GetTicketSizeFromView(request);
+  case IOCTL_ES_GET_TICKET_FROM_VIEW:
+    return GetTicketFromView(request);
+
+  case IOCTL_ES_DELETE_STREAM_KEY:
+    return DeleteStreamKey(request);
+
   case IOCTL_ES_VERIFYSIGN:
-  case IOCTL_ES_DELETESHAREDCONTENT:
-  case IOCTL_ES_UNKNOWN_3B:
   case IOCTL_ES_UNKNOWN_3C:
-  case IOCTL_ES_UNKNOWN_3D:
-  case IOCTL_ES_UNKNOWN_3E:
-  case IOCTL_ES_UNKNOWN_3F:
-  case IOCTL_ES_UNKNOWN_40:
   case IOCTL_ES_UNKNOWN_41:
   case IOCTL_ES_UNKNOWN_42:
-  case IOCTL_ES_UNKNOWN_43:
-  case IOCTL_ES_UNKNOWN_44:
     PanicAlert("IOS-ES: Unimplemented ioctlv 0x%x (%zu in vectors, %zu io vectors)",
                request.request, request.in_vectors.size(), request.io_vectors.size());
     request.DumpUnknown(GetDeviceName(), LogTypes::IOS_ES, LogTypes::LERROR);
     return GetDefaultReply(IPC_EINVAL);
 
+  case IOCTL_ES_INVALID_3F:
   default:
     return GetDefaultReply(IPC_EINVAL);
   }
@@ -636,6 +644,15 @@ s32 ES::DIVerify(const IOS::ES::TMDReader& tmd, const IOS::ES::TicketReader& tic
   }
 
   return IPC_SUCCESS;
+}
+
+IPCCommandResult ES::DeleteStreamKey(const IOCtlVRequest& request)
+{
+  if (!request.HasNumberOfValidVectors(1, 0) || request.in_vectors[0].size != sizeof(u32))
+    return GetDefaultReply(ES_EINVAL);
+
+  const u32 handle = Memory::Read_U32(request.in_vectors[0].address);
+  return GetDefaultReply(m_ios.GetIOSC().DeleteObject(handle, PID_ES));
 }
 }  // namespace Device
 }  // namespace HLE

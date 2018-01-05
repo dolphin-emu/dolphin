@@ -42,11 +42,20 @@ void InterfacePane::CreateUI()
   groupbox->setLayout(groupbox_layout);
   m_main_layout->addWidget(groupbox);
 
+  auto* combobox_layout = new QFormLayout;
+  groupbox_layout->addLayout(combobox_layout);
+
+  m_combobox_language = new QComboBox;
+  m_combobox_language->setMaximumWidth(300);
+  // TODO: Support more languages other then English
+  m_combobox_language->addItem(tr("English"));
+  combobox_layout->addRow(tr("&Language:"), m_combobox_language);
+
   // Theme Combobox
   auto* theme_layout = new QFormLayout;
   m_combobox_theme = new QComboBox;
-  theme_layout->addRow(tr("&Theme:"), m_combobox_theme);
-  groupbox_layout->addLayout(theme_layout);
+  m_combobox_theme->setMaximumWidth(300);
+  combobox_layout->addRow(tr("&Theme:"), m_combobox_theme);
 
   // List avalable themes
   auto file_search_results = Common::DoFileSearch(
@@ -80,12 +89,14 @@ void InterfacePane::CreateInGame()
   m_checkbox_confirm_on_stop = new QCheckBox(tr("Confirm on Stop"));
   m_checkbox_use_panic_handlers = new QCheckBox(tr("Use Panic Handlers"));
   m_checkbox_enable_osd = new QCheckBox(tr("Enable On Screen Messages"));
+  m_checkbox_show_active_title = new QCheckBox(tr("Show Active Title in Window Title"));
   m_checkbox_pause_on_focus_lost = new QCheckBox(tr("Pause on Focus Loss"));
   m_checkbox_hide_mouse = new QCheckBox(tr("Hide Mouse Cursor"));
 
   groupbox_layout->addWidget(m_checkbox_confirm_on_stop);
   groupbox_layout->addWidget(m_checkbox_use_panic_handlers);
   groupbox_layout->addWidget(m_checkbox_enable_osd);
+  groupbox_layout->addWidget(m_checkbox_show_active_title);
   groupbox_layout->addWidget(m_checkbox_pause_on_focus_lost);
   groupbox_layout->addWidget(m_checkbox_hide_mouse);
 }
@@ -97,6 +108,8 @@ void InterfacePane::ConnectLayout()
   connect(m_checkbox_render_to_window, &QCheckBox::clicked, this, &InterfacePane::OnSaveConfig);
   connect(m_combobox_theme, static_cast<void (QComboBox::*)(const QString&)>(&QComboBox::activated),
           [this](const QString& text) { OnSaveConfig(); });
+  connect(m_combobox_language, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated),
+          [this](int index) { OnSaveConfig(); });
   connect(m_checkbox_confirm_on_stop, &QCheckBox::clicked, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_use_panic_handlers, &QCheckBox::clicked, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_enable_osd, &QCheckBox::clicked, this, &InterfacePane::OnSaveConfig);
@@ -117,6 +130,7 @@ void InterfacePane::LoadConfig()
   m_checkbox_confirm_on_stop->setChecked(startup_params.bConfirmStop);
   m_checkbox_use_panic_handlers->setChecked(startup_params.bUsePanicHandlers);
   m_checkbox_enable_osd->setChecked(startup_params.bOnScreenDisplayMessages);
+  m_checkbox_show_active_title->setChecked(startup_params.m_show_active_title);
   m_checkbox_pause_on_focus_lost->setChecked(startup_params.m_PauseOnFocusLost);
   m_checkbox_hide_mouse->setChecked(startup_params.bAutoHideCursor);
 }
@@ -133,6 +147,7 @@ void InterfacePane::OnSaveConfig()
   settings.bConfirmStop = m_checkbox_confirm_on_stop->isChecked();
   settings.bUsePanicHandlers = m_checkbox_use_panic_handlers->isChecked();
   settings.bOnScreenDisplayMessages = m_checkbox_enable_osd->isChecked();
+  settings.m_show_active_title = m_checkbox_show_active_title->isChecked();
   settings.m_PauseOnFocusLost = m_checkbox_pause_on_focus_lost->isChecked();
   settings.bAutoHideCursor = m_checkbox_hide_mouse->isChecked();
 

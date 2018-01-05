@@ -168,6 +168,7 @@
     <ClCompile Include="NetPlayServer.cpp" />
     <ClCompile Include="PatchEngine.cpp" />
     <ClCompile Include="State.cpp" />
+    <ClCompile Include="TitleDatabase.cpp" />
     <ClCompile Include="WiiRoot.cpp" />
     <ClCompile Include="ActionReplay.cpp">
       <Filter>ActionReplay</Filter>
@@ -392,9 +393,6 @@
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\LLE</Filter>
     </ClCompile>
     <ClCompile Include="HW\DSPLLE\DSPLLEGlobals.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\LLE</Filter>
-    </ClCompile>
-    <ClCompile Include="HW\DSPLLE\DSPLLETools.cpp">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\LLE</Filter>
     </ClCompile>
     <ClCompile Include="HW\DSPLLE\DSPSymbols.cpp">
@@ -877,6 +875,7 @@
     <ClInclude Include="NetPlayServer.h" />
     <ClInclude Include="PatchEngine.h" />
     <ClInclude Include="State.h" />
+    <ClInclude Include="TitleDatabase.h" />
     <ClInclude Include="WiiRoot.h" />
     <ClInclude Include="ActionReplay.h">
       <Filter>ActionReplay</Filter>
@@ -1041,9 +1040,6 @@
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\LLE</Filter>
     </ClInclude>
     <ClInclude Include="HW\DSPLLE\DSPLLEGlobals.h">
-      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\LLE</Filter>
-    </ClInclude>
-    <ClInclude Include="HW\DSPLLE\DSPLLETools.h">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\LLE</Filter>
     </ClInclude>
     <ClInclude Include="HW\DSPLLE\DSPSymbols.h">

@@ -150,6 +150,7 @@ is intended for debugging purposes only.
 
 ## Sys Files
 
+* `wiitdb.txt`: Wii title database from [GameTDB](http://www.gametdb.com)
 * `totaldb.dsy`: Database of symbols (for devs only)
 * `GC/font_western.bin`: font dumps
 * `GC/font_japanese.bin`: font dumps

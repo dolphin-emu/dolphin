@@ -32,6 +32,9 @@ static const unsigned int WII_BANNER_HEIGHT = 64;
 static const unsigned int WII_BANNER_SIZE = WII_BANNER_WIDTH * WII_BANNER_HEIGHT * 2;
 static const unsigned int WII_BANNER_OFFSET = 0xA0;
 
+const IOS::ES::TicketReader IVolume::INVALID_TICKET{};
+const IOS::ES::TMDReader IVolume::INVALID_TMD{};
+
 std::vector<u32> IVolume::GetWiiBanner(int* width, int* height, u64 title_id)
 {
   *width = 0;

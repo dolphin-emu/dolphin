@@ -408,15 +408,14 @@ static void GenerateDSPInterrupt(u64 DSPIntType, s64 cyclesLate)
   // DSP_CONTROL - we mask by (INT_DSP | INT_ARAM | INT_AID) just to ensure people
   // don't call this with bogus values.
   s_dspState.Hex |= (DSPIntType & (INT_DSP | INT_ARAM | INT_AID));
-
   UpdateInterrupts();
 }
 
 // CALLED FROM DSP EMULATOR, POSSIBLY THREADED
-void GenerateDSPInterruptFromDSPEmu(DSPInterruptType type)
+void GenerateDSPInterruptFromDSPEmu(DSPInterruptType type, int cycles_into_future)
 {
-  // TODO: Maybe rethink this? The timing is unpredictable.
-  CoreTiming::ScheduleEvent(0, s_et_GenerateDSPInterrupt, type, CoreTiming::FromThread::ANY);
+  CoreTiming::ScheduleEvent(cycles_into_future, s_et_GenerateDSPInterrupt, type,
+                            CoreTiming::FromThread::ANY);
 }
 
 // called whenever SystemTimers thinks the DSP deserves a few more cycles

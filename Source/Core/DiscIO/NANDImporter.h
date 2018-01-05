@@ -18,8 +18,7 @@ public:
   NANDImporter();
   ~NANDImporter();
 
-  void ImportNANDBin(const std::string& path_to_bin,
-                     std::function<void(size_t, size_t)> update_callback);
+  void ImportNANDBin(const std::string& path_to_bin, std::function<void()> update_callback);
   void ExtractCertificates(const std::string& nand_root);
 
 private:
@@ -42,19 +41,17 @@ private:
   bool ReadNANDBin(const std::string& path_to_bin);
   void FindSuperblock();
   std::string GetPath(const NANDFSTEntry& entry, const std::string& parent_path);
+  std::string FormatDebugString(const NANDFSTEntry& entry);
   void ProcessEntry(u16 entry_number, const std::string& parent_path);
   void ProcessFile(const NANDFSTEntry& entry, const std::string& parent_path);
   void ProcessDirectory(const NANDFSTEntry& entry, const std::string& parent_path);
   void ExportKeys(const std::string& nand_root);
-  void CountEntries(u16 entry_number);
-  void UpdateStatus();
 
   std::vector<u8> m_nand;
   std::vector<u8> m_nand_keys;
   size_t m_nand_fat_offset = 0;
   size_t m_nand_fst_offset = 0;
-  std::function<void(size_t, size_t)> m_update_callback;
-  size_t m_total_entries = 0;
-  size_t m_current_entry = 0;
+  std::function<void()> m_update_callback;
+  size_t m_nand_root_length = 0;
 };
 }

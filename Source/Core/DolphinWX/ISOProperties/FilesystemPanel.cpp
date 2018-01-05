@@ -235,7 +235,7 @@ void FilesystemPanel::PopulateFileSystemTreeWii() const
     if (file_system)
     {
       wxTreeItemId partition_root = m_tree_ctrl->AppendItem(
-          m_tree_ctrl->GetRootItem(), wxString::Format(_("Partition %i"), i), ICON_DISC);
+          m_tree_ctrl->GetRootItem(), wxString::Format(_("Partition %zu"), i), ICON_DISC);
 
       WiiPartition* const partition = new WiiPartition(std::move(file_system));
 

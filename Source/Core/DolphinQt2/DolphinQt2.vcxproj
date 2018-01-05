@@ -70,7 +70,7 @@
       <AdditionalDependencies Condition="'$(Platform)'=='Win32' And Exists('$(ExternalsDir)openvr/lib/win32/openvr_api.lib')">openvr_api.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(ProjectDir)\VideoInterface;$(ProjectDir)\GameList;$(ProjectDir)\Settings;$(ProjectDir)\Config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\VideoInterface;$(ProjectDir)\GameList;$(ProjectDir)\Settings;$(ProjectDir)\Config;$(ProjectDir)\Config\Mapping;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <ResourceCompile>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -97,6 +97,8 @@
     <QtMoc Include="AboutDialog.h" />
     <QtMoc Include="Config\ControllersWindow.h" />
     <QtMoc Include="Config\FilesystemWidget.h" />
+    <QtMoc Include="Config\Mapping\MappingWidget.h" />
+    <QtMoc Include="Config\Mapping\MappingWindow.h" />
     <QtMoc Include="Config\InfoWidget.h" />
     <QtMoc Include="Config\PathDialog.h" />
     <QtMoc Include="Config\PropertiesDialog.h" />
@@ -134,6 +136,8 @@
     <ClCompile Include="$(QtMocOutPrefix)InterfacePane.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)ListProxyModel.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)MainWindow.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)MappingWidget.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)MappingWindow.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)MenuBar.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)PathDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)PropertiesDialog.cpp" />
@@ -147,6 +151,17 @@
     <ClCompile Include="Config\ControllersWindow.cpp" />
     <ClCompile Include="Config\FilesystemWidget.cpp" />
     <ClCompile Include="Config\InfoWidget.cpp" />
+    <ClCompile Include="Config\Mapping\GCKeyboardEmu.cpp" />
+    <ClCompile Include="Config\Mapping\GCPadEmu.cpp" />
+    <ClCompile Include="Config\Mapping\GCPadWiiU.cpp" />
+    <ClCompile Include="Config\Mapping\MappingBool.cpp" />
+    <ClCompile Include="Config\Mapping\MappingButton.cpp" />
+    <ClCompile Include="Config\Mapping\MappingNumeric.cpp" />
+    <ClCompile Include="Config\Mapping\MappingWidget.cpp" />
+    <ClCompile Include="Config\Mapping\MappingWindow.cpp" />
+    <ClCompile Include="Config\Mapping\WiimoteEmuExtension.cpp" />
+    <ClCompile Include="Config\Mapping\WiimoteEmuGeneral.cpp" />
+    <ClCompile Include="Config\Mapping\WiimoteEmuMotionControl.cpp" />
     <ClCompile Include="Config\PathDialog.cpp" />
     <ClCompile Include="Config\PropertiesDialog.cpp" />
     <ClCompile Include="Config\SettingsWindow.cpp" />

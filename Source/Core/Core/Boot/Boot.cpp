@@ -258,23 +258,23 @@ bool CBoot::Load_BS2(const std::string& boot_rom_filename)
   // to work around this.
   Memory::CopyToEmu(0x01200000, data.data() + 0x100, 0x700);
   Memory::CopyToEmu(0x01300000, data.data() + 0x820, 0x1AFE00);
+
   PowerPC::ppcState.gpr[3] = 0xfff0001f;
   PowerPC::ppcState.gpr[4] = 0x00002030;
   PowerPC::ppcState.gpr[5] = 0x0000009c;
-  PowerPC::ppcState.msr = 0x00002030;
+
+  UReg_MSR& m_MSR = ((UReg_MSR&)PowerPC::ppcState.msr);
+  m_MSR.FP = 1;
+  m_MSR.DR = 1;
+  m_MSR.IR = 1;
+
   PowerPC::ppcState.spr[SPR_HID0] = 0x0011c464;
-  PowerPC::ppcState.spr[SPR_IBAT0U] = 0x80001fff;
-  PowerPC::ppcState.spr[SPR_IBAT0L] = 0x00000002;
   PowerPC::ppcState.spr[SPR_IBAT3U] = 0xfff0001f;
   PowerPC::ppcState.spr[SPR_IBAT3L] = 0xfff00001;
-  PowerPC::ppcState.spr[SPR_DBAT0U] = 0x80001fff;
-  PowerPC::ppcState.spr[SPR_DBAT0L] = 0x00000002;
-  PowerPC::ppcState.spr[SPR_DBAT1U] = 0xc0001fff;
-  PowerPC::ppcState.spr[SPR_DBAT1L] = 0x0000002a;
   PowerPC::ppcState.spr[SPR_DBAT3U] = 0xfff0001f;
   PowerPC::ppcState.spr[SPR_DBAT3L] = 0xfff00001;
-  PowerPC::DBATUpdated();
-  PowerPC::IBATUpdated();
+  SetupBAT(/*is_wii*/ false);
+
   PC = 0x81200150;
   return true;
 }
@@ -377,6 +377,7 @@ bool CBoot::BootUp()
     if (dolWii)
     {
       HID4.SBE = 1;
+      SetupMSR();
       SetupBAT(dolWii);
 
       // Because there is no TMD to get the requested system (IOS) version from,

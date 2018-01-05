@@ -287,7 +287,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
   }
   break;
   case IDM_SAVEMAPFILE:
-    g_symbolDB.SaveMap(writable_map_file);
+    g_symbolDB.SaveSymbolMap(writable_map_file);
     break;
   case IDM_SAVE_MAP_FILE_AS:
   {
@@ -297,12 +297,17 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
         wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this);
 
     if (!path.IsEmpty())
-      g_symbolDB.SaveMap(WxStrToStr(path));
+      g_symbolDB.SaveSymbolMap(WxStrToStr(path));
   }
   break;
   case IDM_SAVE_MAP_FILE_WITH_CODES:
-    g_symbolDB.SaveMap(writable_map_file, true);
-    break;
+  {
+    // Format the name for the codes version
+    const std::string path =
+        writable_map_file.substr(0, writable_map_file.find_last_of(".")) + "_code.map";
+    g_symbolDB.SaveCodeMap(path);
+  }
+  break;
 
   case IDM_RENAME_SYMBOLS:
   {

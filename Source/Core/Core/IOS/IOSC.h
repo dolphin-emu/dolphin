@@ -7,7 +7,7 @@
 #pragma once
 
 #include <array>
-#include <map>
+#include <cstddef>
 #include <vector>
 
 #include "Common/CommonTypes.h"
@@ -24,10 +24,14 @@ enum ReturnCode : s32;
 class IOSC final
 {
 public:
-  IOSC();
-  ~IOSC();
-
   using Handle = u32;
+
+  enum class ConsoleType
+  {
+    Retail,
+    RVT,
+  };
+
   // We use the same default key handle IDs as the actual IOSC because there are ioctlvs
   // that accept arbitrary key handles from the PPC, so the IDs must match.
   // More information on default handles: https://wiibrew.org/wiki/IOS/Syscalls
@@ -75,6 +79,9 @@ public:
     SUBTYPE_VERSION = 6
   };
 
+  IOSC(ConsoleType console_type = ConsoleType::Retail);
+  ~IOSC();
+
   // Create an object for use with the other functions that operate on objects.
   ReturnCode CreateObject(Handle* handle, ObjectType type, ObjectSubType subtype, u32 pid);
   // Delete an object. Built-in objects cannot be deleted.
@@ -116,7 +123,7 @@ private:
   // The Wii's IOSC is limited to 32 entries, including 12 built-in entries.
   using KeyEntries = std::array<KeyEntry, 32>;
 
-  void LoadDefaultEntries();
+  void LoadDefaultEntries(ConsoleType console_type);
   KeyEntries::iterator FindFreeEntry();
   Handle GetHandleFromIterator(KeyEntries::iterator iterator) const;
   bool HasOwnership(Handle handle, u32 pid) const;

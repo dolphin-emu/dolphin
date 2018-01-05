@@ -11,12 +11,14 @@
 #include <QLabel>
 #include <QMessageBox>
 #include <QPushButton>
+#include <QRadioButton>
 #include <QSlider>
 #include <QVBoxLayout>
 #include <QWidget>
 
 #include "Core/Analytics.h"
 #include "Core/ConfigManager.h"
+#include "Core/PowerPC/PowerPC.h"
 #include "DolphinQt2/Settings.h"
 
 GeneralPane::GeneralPane(QWidget* parent) : QWidget(parent)
@@ -32,26 +34,26 @@ void GeneralPane::CreateLayout()
   m_main_layout = new QVBoxLayout;
   // Create layout here
   CreateBasic();
-
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
   CreateAnalytics();
 #endif
-
   CreateAdvanced();
-
   m_main_layout->addStretch(1);
   setLayout(m_main_layout);
 }
 
 void GeneralPane::ConnectLayout()
 {
-  connect(m_combobox_language, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated),
-          [this](int index) { OnSaveConfig(); });
-
+  connect(m_checkbox_dualcore, &QCheckBox::clicked, this, &GeneralPane::OnSaveConfig);
+  connect(m_checkbox_cheats, &QCheckBox::clicked, this, &GeneralPane::OnSaveConfig);
   // Advanced
   connect(m_checkbox_force_ntsc, &QCheckBox::clicked, this, &GeneralPane::OnSaveConfig);
-  connect(m_slider_speedlimit, static_cast<void (QSlider::*)(int)>(&QSlider::valueChanged),
-          [this](int index) { OnSaveConfig(); });
+  connect(m_combobox_speedlimit,
+          static_cast<void (QComboBox::*)(const QString&)>(&QComboBox::activated),
+          [this](const QString& text) { OnSaveConfig(); });
+  connect(m_radio_interpreter, &QRadioButton::clicked, this, &GeneralPane::OnSaveConfig);
+  connect(m_radio_cached_interpreter, &QRadioButton::clicked, this, &GeneralPane::OnSaveConfig);
+  connect(m_radio_jit, &QRadioButton::clicked, this, &GeneralPane::OnSaveConfig);
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
   connect(m_checkbox_enable_analytics, &QCheckBox::clicked, this, &GeneralPane::OnSaveConfig);
@@ -67,13 +69,31 @@ void GeneralPane::CreateBasic()
   basic_group->setLayout(basic_group_layout);
   m_main_layout->addWidget(basic_group);
 
-  auto* language_layout = new QFormLayout;
-  basic_group_layout->addLayout(language_layout);
+  m_checkbox_dualcore = new QCheckBox(tr("Enable Dual Core (speedup)"));
+  basic_group_layout->addWidget(m_checkbox_dualcore);
 
-  m_combobox_language = new QComboBox;
-  // TODO: Support more languages other then English
-  m_combobox_language->addItem(tr("English"));
-  language_layout->addRow(tr("&Language:"), m_combobox_language);
+  m_checkbox_cheats = new QCheckBox(tr("Enable Cheats"));
+  basic_group_layout->addWidget(m_checkbox_cheats);
+
+  auto* speed_limit_layout = new QFormLayout;
+  basic_group_layout->addLayout(speed_limit_layout);
+
+  m_combobox_speedlimit = new QComboBox();
+  m_combobox_speedlimit->setMaximumWidth(300);
+
+  m_combobox_speedlimit->addItem(tr("Unlimited"));
+  for (int i = 10; i <= 200; i += 10)  // from 10% to 200%
+  {
+    QString str;
+    if (i != 100)
+      str.sprintf("%i%%", i);
+    else
+      str.sprintf("%i%% (Normal Speed)", i);
+
+    m_combobox_speedlimit->addItem(str);
+  }
+
+  speed_limit_layout->addRow(tr("&Speed Limit:"), m_combobox_speedlimit);
 }
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
@@ -86,6 +106,7 @@ void GeneralPane::CreateAnalytics()
 
   m_checkbox_enable_analytics = new QCheckBox(tr("Enable Usage Statistics Reporting"));
   m_button_generate_new_identity = new QPushButton(tr("Generate a New Statistics Identity"));
+  m_button_generate_new_identity->setMaximumWidth(300);
   analytics_group_layout->addWidget(m_checkbox_enable_analytics);
   analytics_group_layout->addWidget(m_button_generate_new_identity);
 }
@@ -99,23 +120,18 @@ void GeneralPane::CreateAdvanced()
   m_main_layout->addWidget(advanced_group);
 
   // Speed Limit
-  auto* speed_limit_layout = new QFormLayout;
-  auto* speed_limit_container = new QHBoxLayout;
-  speed_limit_container->addLayout(speed_limit_layout);
-  advanced_group_layout->addLayout(speed_limit_container);
+  auto* engine_group = new QGroupBox(tr("CPU Emulation Engine"));
+  auto* engine_group_layout = new QVBoxLayout;
+  engine_group->setLayout(engine_group_layout);
+  advanced_group_layout->addWidget(engine_group);
 
-  m_slider_speedlimit = new QSlider(Qt::Orientation::Horizontal);
-  m_slider_speedlimit->setTickInterval(1);
-  m_slider_speedlimit->setMinimum(1);
-  m_slider_speedlimit->setMaximum(21);
-  m_slider_speedlimit->setTickPosition(QSlider::TicksBelow);
-  m_slider_speedlimit->setSingleStep(1);
-  speed_limit_layout->addRow(tr("&Speed Limit:"), m_slider_speedlimit);
+  m_radio_interpreter = new QRadioButton(tr("Interpreter (slowest)"));
+  m_radio_cached_interpreter = new QRadioButton(tr("Cached Interpreter (slower)"));
+  m_radio_jit = new QRadioButton(tr("JIT Recompiler (recommended)"));
 
-  m_label_speedlimit = new QLabel(tr("Unlimited"));
-  m_label_speedlimit->setMinimumWidth(48);
-  m_label_speedlimit->setAlignment(Qt::AlignRight | Qt::AlignCenter);
-  speed_limit_container->addWidget(m_label_speedlimit);
+  engine_group_layout->addWidget(m_radio_interpreter);
+  engine_group_layout->addWidget(m_radio_cached_interpreter);
+  engine_group_layout->addWidget(m_radio_jit);
 
   // NTSC-J
   m_checkbox_force_ntsc = new QCheckBox(tr("Force Console as NTSC-J"));
@@ -126,25 +142,29 @@ void GeneralPane::LoadConfig()
 {
   m_checkbox_force_ntsc->setChecked(Settings().GetForceNTSCJ());
   m_checkbox_enable_analytics->setChecked(Settings().GetAnalyticsEnabled());
-
+  m_checkbox_dualcore->setChecked(SConfig::GetInstance().bCPUThread);
+  m_checkbox_cheats->setChecked(SConfig::GetInstance().bEnableCheats);
   int selection = qRound(Settings().GetEmulationSpeed() * 10);
-  if (selection < m_slider_speedlimit->maximum())
-  {
-    if (selection == 0)
-    {
-      m_slider_speedlimit->setValue(21);
-      m_slider_speedlimit->setToolTip(tr("Unlimited"));
-      m_label_speedlimit->setText(tr("Unlimited"));
-    }
-    else
-    {
-      m_slider_speedlimit->setValue(selection);
+  if (selection < m_combobox_speedlimit->count())
+    m_combobox_speedlimit->setCurrentIndex(selection);
+  m_checkbox_dualcore->setChecked(SConfig::GetInstance().bCPUThread);
 
-      QString val = QString::fromStdString(std::to_string(m_slider_speedlimit->value() * 10)) +
-                    QStringLiteral("%");
-      m_slider_speedlimit->setToolTip(val);
-      m_label_speedlimit->setText(val);
-    }
+  switch (SConfig::GetInstance().iCPUCore)
+  {
+  case PowerPC::CPUCore::CORE_INTERPRETER:
+    m_radio_interpreter->setChecked(true);
+    break;
+  case PowerPC::CPUCore::CORE_CACHEDINTERPRETER:
+    m_radio_cached_interpreter->setChecked(true);
+    break;
+  case PowerPC::CPUCore::CORE_JIT64:
+    m_radio_jit->setChecked(true);
+    break;
+  case PowerPC::CPUCore::CORE_JITARM64:
+    // TODO: Implement JITARM
+    break;
+  default:
+    break;
   }
 }
 
@@ -152,20 +172,20 @@ void GeneralPane::OnSaveConfig()
 {
   Settings().SetForceNTSCJ(m_checkbox_force_ntsc->isChecked());
   Settings().SetAnalyticsEnabled(m_checkbox_enable_analytics->isChecked());
-  if (m_slider_speedlimit->value() < 21)
-  {
-    Settings().SetEmulationSpeed(m_slider_speedlimit->value() * 0.1f);
-    QString val = QString::fromStdString(std::to_string(m_slider_speedlimit->value() * 10)) +
-                  QStringLiteral("%");
-    m_slider_speedlimit->setToolTip(val);
-    m_label_speedlimit->setText(val);
-  }
+  SConfig::GetInstance().bCPUThread = m_checkbox_dualcore->isChecked();
+  SConfig::GetInstance().bEnableCheats = m_checkbox_cheats->isChecked();
+  SConfig::GetInstance().m_EmulationSpeed = m_combobox_speedlimit->currentIndex() * 0.1f;
+  int engine_value = 0;
+  if (m_radio_interpreter->isChecked())
+    engine_value = PowerPC::CPUCore::CORE_INTERPRETER;
+  else if (m_radio_cached_interpreter->isChecked())
+    engine_value = PowerPC::CPUCore::CORE_CACHEDINTERPRETER;
+  else if (m_radio_jit->isChecked())
+    engine_value = PowerPC::CPUCore::CORE_JIT64;
   else
-  {
-    Settings().SetEmulationSpeed(0);
-    m_slider_speedlimit->setToolTip(tr("Unlimited"));
-    m_label_speedlimit->setText(tr("Unlimited"));
-  }
+    engine_value = PowerPC::CPUCore::CORE_JIT64;
+
+  SConfig::GetInstance().iCPUCore = engine_value;
 }
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS

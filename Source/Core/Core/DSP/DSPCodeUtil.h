@@ -27,4 +27,6 @@ void BinaryStringBEToCode(const std::string& str, std::vector<u16>& code);
 // Load code (big endian binary).
 bool LoadBinary(const std::string& filename, std::vector<u16>& code);
 bool SaveBinary(const std::vector<u16>& code, const std::string& filename);
+
+bool DumpDSPCode(const u8* code_be, int size_in_bytes, u32 crc);
 }  // namespace DSP

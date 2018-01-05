@@ -52,13 +52,17 @@ void CBoot::RunFunction(u32 address)
     PowerPC::SingleStep();
 }
 
-void CBoot::SetupBAT(bool is_wii)
+void CBoot::SetupMSR()
 {
   UReg_MSR& m_MSR = ((UReg_MSR&)PowerPC::ppcState.msr);
   m_MSR.FP = 1;
   m_MSR.DR = 1;
   m_MSR.IR = 1;
   m_MSR.EE = 1;
+}
+
+void CBoot::SetupBAT(bool is_wii)
+{
   PowerPC::ppcState.spr[SPR_IBAT0U] = 0x80001fff;
   PowerPC::ppcState.spr[SPR_IBAT0L] = 0x00000002;
   PowerPC::ppcState.spr[SPR_DBAT0U] = 0x80001fff;
@@ -162,6 +166,7 @@ bool CBoot::EmulatedBS2_GC(const DiscIO::IVolume* volume, bool skip_app_loader)
 {
   INFO_LOG(BOOT, "Faking GC BS2...");
 
+  SetupMSR();
   SetupBAT(/*is_wii*/ false);
 
   // Write necessary values
@@ -354,6 +359,7 @@ bool CBoot::EmulatedBS2_Wii(const DiscIO::IVolume* volume)
   // after this check during booting.
   DVDRead(*volume, 0, 0x3180, 4, partition);
 
+  SetupMSR();
   SetupBAT(/*is_wii*/ true);
 
   Memory::Write_U32(0x4c000064, 0x00000300);  // Write default DSI Handler:   rfi

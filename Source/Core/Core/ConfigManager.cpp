@@ -18,6 +18,7 @@
 #include "Common/StringUtil.h"
 #include "Common/SysConf.h"
 
+#include "Core/Analytics.h"
 #include "Core/ARBruteForcer.h"
 #include "Core/Boot/Boot.h"
 #include "Core/Boot/Boot_DOL.h"
@@ -33,6 +34,7 @@
 #include "Core/PatchEngine.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/TitleDatabase.h"
 #include "VideoCommon/HiresTextures.h"
 
 #include "DiscIO/Enums.h"
@@ -286,7 +288,6 @@ void SConfig::SaveSettings()
   SaveNetworkSettings(ini);
   SaveBluetoothPassthroughSettings(ini);
   SaveUSBPassthroughSettings(ini);
-  SaveSysconfSettings(ini);
 
   ini.Save(File::GetUserPath(F_DOLPHINCONFIG_IDX));
 }
@@ -384,6 +385,7 @@ void SConfig::SaveInterfaceSettings(IniFile& ini)
   interface->Set("ShowLogWindow", m_InterfaceLogWindow);
   interface->Set("ShowLogConfigWindow", m_InterfaceLogConfigWindow);
   interface->Set("ExtendedFPSInfo", m_InterfaceExtendedFPSInfo);
+  interface->Set("ShowActiveTitle", m_show_active_title);
   interface->Set("ThemeName", theme_name);
   interface->Set("PauseOnFocusLost", m_PauseOnFocusLost);
   interface->Set("DisableTooltips", m_DisableTooltips);
@@ -629,19 +631,6 @@ void SConfig::SaveUSBPassthroughSettings(IniFile& ini)
   section->Set("Devices", devices_string);
 }
 
-void SConfig::SaveSysconfSettings(IniFile& ini)
-{
-  IniFile::Section* section = ini.GetOrCreateSection("Sysconf");
-
-  section->Set("SensorBarPosition", m_sensor_bar_position);
-  section->Set("SensorBarSensitivity", m_sensor_bar_sensitivity);
-  section->Set("SpeakerVolume", m_speaker_volume);
-  section->Set("WiimoteMotor", m_wiimote_motor);
-  section->Set("WiiLanguage", m_wii_language);
-  section->Set("AspectRatio", m_wii_aspect_ratio);
-  section->Set("Screensaver", m_wii_screensaver);
-}
-
 void SConfig::SaveSettingsToSysconf()
 {
   SysConf sysconf{Common::FromWhichRoot::FROM_CONFIGURED_ROOT};
@@ -688,7 +677,6 @@ void SConfig::LoadSettings()
   LoadAnalyticsSettings(ini);
   LoadBluetoothPassthroughSettings(ini);
   LoadUSBPassthroughSettings(ini);
-  LoadSysconfSettings(ini);
 }
 
 void SConfig::LoadGeneralSettings(IniFile& ini)
@@ -773,6 +761,7 @@ void SConfig::LoadInterfaceSettings(IniFile& ini)
   interface->Get("ShowLogWindow", &m_InterfaceLogWindow, false);
   interface->Get("ShowLogConfigWindow", &m_InterfaceLogConfigWindow, false);
   interface->Get("ExtendedFPSInfo", &m_InterfaceExtendedFPSInfo, false);
+  interface->Get("ShowActiveTitle", &m_show_active_title, true);
   interface->Get("ThemeName", &theme_name, DEFAULT_THEME_DIR);
   interface->Get("PauseOnFocusLost", &m_PauseOnFocusLost, false);
   interface->Get("DisableTooltips", &m_DisableTooltips, false);
@@ -1066,19 +1055,6 @@ void SConfig::LoadUSBPassthroughSettings(IniFile& ini)
   }
 }
 
-void SConfig::LoadSysconfSettings(IniFile& ini)
-{
-  IniFile::Section* section = ini.GetOrCreateSection("Sysconf");
-
-  section->Get("SensorBarPosition", &m_sensor_bar_position, m_sensor_bar_position);
-  section->Get("SensorBarSensitivity", &m_sensor_bar_sensitivity, m_sensor_bar_sensitivity);
-  section->Get("SpeakerVolume", &m_speaker_volume, m_speaker_volume);
-  section->Get("WiimoteMotor", &m_wiimote_motor, m_wiimote_motor);
-  section->Get("WiiLanguage", &m_wii_language, m_wii_language);
-  section->Get("AspectRatio", &m_wii_aspect_ratio, m_wii_aspect_ratio);
-  section->Get("Screensaver", &m_wii_screensaver, m_wii_screensaver);
-}
-
 void SConfig::LoadSettingsFromSysconf()
 {
   SysConf sysconf{Common::FromWhichRoot::FROM_CONFIGURED_ROOT};
@@ -1096,7 +1072,7 @@ void SConfig::LoadSettingsFromSysconf()
 
 void SConfig::ResetRunningGameMetadata()
 {
-  SetRunningGameMetadata("00000000", 0, 0);
+  SetRunningGameMetadata("00000000", 0, 0, Core::TitleDatabase::TitleType::Other);
 }
 
 void SConfig::SetRunningGameMetadata(const DiscIO::IVolume& volume,
@@ -1104,7 +1080,8 @@ void SConfig::SetRunningGameMetadata(const DiscIO::IVolume& volume,
 {
   u64 title_id = 0;
   volume.GetTitleID(&title_id, partition);
-  SetRunningGameMetadata(volume.GetGameID(partition), title_id, volume.GetRevision(partition));
+  SetRunningGameMetadata(volume.GetGameID(partition), title_id, volume.GetRevision(partition),
+                         Core::TitleDatabase::TitleType::Other);
 }
 
 void SConfig::SetRunningGameMetadata(const IOS::ES::TMDReader& tmd)
@@ -1118,30 +1095,41 @@ void SConfig::SetRunningGameMetadata(const IOS::ES::TMDReader& tmd)
   if (!DVDInterface::UpdateRunningGameMetadata(tmd_title_id))
   {
     // If not launching a disc game, just read everything from the TMD.
-    SetRunningGameMetadata(tmd.GetGameID(), tmd_title_id, tmd.GetTitleVersion());
+    SetRunningGameMetadata(tmd.GetGameID(), tmd_title_id, tmd.GetTitleVersion(),
+                           Core::TitleDatabase::TitleType::Channel);
   }
 }
 
-void SConfig::SetRunningGameMetadata(const std::string& game_id, u64 title_id, u16 revision)
+void SConfig::SetRunningGameMetadata(const std::string& game_id, u64 title_id, u16 revision,
+                                     Core::TitleDatabase::TitleType type)
 {
   const bool was_changed = m_game_id != game_id || m_title_id != title_id || m_revision != revision;
   m_game_id = game_id;
   m_title_id = title_id;
   m_revision = revision;
 
-  if (was_changed)
-  {
-    NOTICE_LOG(BOOT, "Game ID set to %s", game_id.c_str());
+  if (!was_changed)
+    return;
 
-    if (Core::IsRunning())
-    {
-      // TODO: have a callback mechanism for title changes?
-      g_symbolDB.Clear();
-      CBoot::LoadMapFromFilename();
-      HLE::Reload();
-      PatchEngine::Reload();
-      HiresTexture::Update();
-    }
+  if (game_id == "00000000")
+  {
+    m_title_description.clear();
+    return;
+  }
+
+  const Core::TitleDatabase title_database;
+  m_title_description = title_database.Describe(m_game_id, type);
+  NOTICE_LOG(CORE, "Active title: %s", m_title_description.c_str());
+
+  if (Core::IsRunning())
+  {
+    // TODO: have a callback mechanism for title changes?
+    g_symbolDB.Clear();
+    CBoot::LoadMapFromFilename();
+    HLE::Reload();
+    PatchEngine::Reload();
+    HiresTexture::Update();
+    DolphinAnalytics::Instance()->ReportGameStart();
   }
 }
 

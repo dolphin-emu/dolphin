@@ -29,6 +29,7 @@
 #include "Core/Boot/Boot.h"
 #include "Core/ConfigManager.h"
 #include "Core/IOS/ES/Formats.h"
+#include "Core/TitleDatabase.h"
 
 #include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
@@ -62,8 +63,7 @@ static std::string GetLanguageString(DiscIO::Language language,
   return "";
 }
 
-GameListItem::GameListItem(const std::string& _rFileName,
-                           const std::unordered_map<std::string, std::string>& custom_titles)
+GameListItem::GameListItem(const std::string& _rFileName, const Core::TitleDatabase& title_database)
     : m_FileName(_rFileName), m_title_id(0), m_emu_state(0), m_vr_state(0), m_FileSize(0),
       m_region(DiscIO::Region::UNKNOWN_REGION), m_Country(DiscIO::Country::COUNTRY_UNKNOWN),
       m_Revision(0), m_Valid(false), m_ImageWidth(0), m_ImageHeight(0), m_disc_number(0),
@@ -125,18 +125,10 @@ GameListItem::GameListItem(const std::string& _rFileName,
 
   if (IsValid())
   {
-    std::string short_game_id = m_game_id;
-
-    // Ignore publisher ID for WAD files
-    if (m_Platform == DiscIO::Platform::WII_WAD && short_game_id.size() > 4)
-      short_game_id.erase(4);
-
-    auto it = custom_titles.find(short_game_id);
-    if (it != custom_titles.end())
-    {
-      m_custom_name_titles_txt = it->second;
-    }
-
+    const auto type = m_Platform == DiscIO::Platform::WII_WAD ?
+                          Core::TitleDatabase::TitleType::Channel :
+                          Core::TitleDatabase::TitleType::Other;
+    m_custom_name_titles_txt = title_database.GetTitleName(m_game_id, type);
     ReloadINI();
   }
 

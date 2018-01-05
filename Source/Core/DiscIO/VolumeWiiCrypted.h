@@ -34,8 +34,8 @@ public:
   std::vector<Partition> GetPartitions() const override;
   Partition GetGamePartition() const override;
   bool GetTitleID(u64* buffer, const Partition& partition) const override;
-  IOS::ES::TicketReader GetTicket(const Partition& partition) const override;
-  IOS::ES::TMDReader GetTMD(const Partition& partition) const override;
+  const IOS::ES::TicketReader& GetTicket(const Partition& partition) const override;
+  const IOS::ES::TMDReader& GetTMD(const Partition& partition) const override;
   std::string GetGameID(const Partition& partition) const override;
   std::string GetMakerID(const Partition& partition) const override;
   u16 GetRevision(const Partition& partition) const override;
@@ -64,7 +64,9 @@ public:
 
 private:
   std::unique_ptr<IBlobReader> m_pReader;
-  std::map<Partition, std::unique_ptr<mbedtls_aes_context>> m_partitions;
+  std::map<Partition, std::unique_ptr<mbedtls_aes_context>> m_partition_keys;
+  std::map<Partition, IOS::ES::TicketReader> m_partition_tickets;
+  std::map<Partition, IOS::ES::TMDReader> m_partition_tmds;
   Partition m_game_partition;
 
   mutable u64 m_last_decrypted_block;

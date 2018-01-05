@@ -5,7 +5,6 @@
 #include <string>
 
 #include "Common/CommonTypes.h"
-#include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Core/PowerPC/PPCAnalyst.h"
@@ -18,15 +17,9 @@
 #include "Core/PowerPC/SignatureDB/DSYSignatureDB.h"
 #include "Core/PowerPC/SignatureDB/MEGASignatureDB.h"
 
-SignatureDB::SignatureDB(SignatureDB::HandlerType handler) : m_handler(CreateFormatHandler(handler))
+namespace
 {
-}
-
-SignatureDB::SignatureDB(const std::string& file_path) : SignatureDB(GetHandlerType(file_path))
-{
-}
-
-SignatureDB::HandlerType SignatureDB::GetHandlerType(const std::string& file_path)
+SignatureDB::HandlerType GetHandlerType(const std::string& file_path)
 {
   if (StringEndsWith(file_path, ".csv"))
     return SignatureDB::HandlerType::CSV;
@@ -35,8 +28,7 @@ SignatureDB::HandlerType SignatureDB::GetHandlerType(const std::string& file_pat
   return SignatureDB::HandlerType::DSY;
 }
 
-std::unique_ptr<SignatureDBFormatHandler>
-SignatureDB::CreateFormatHandler(SignatureDB::HandlerType handler) const
+std::unique_ptr<SignatureDBFormatHandler> CreateFormatHandler(SignatureDB::HandlerType handler)
 {
   switch (handler)
   {
@@ -48,6 +40,15 @@ SignatureDB::CreateFormatHandler(SignatureDB::HandlerType handler) const
   case SignatureDB::HandlerType::MEGA:
     return std::make_unique<MEGASignatureDB>();
   }
+}
+}  // Anonymous namespace
+
+SignatureDB::SignatureDB(HandlerType handler) : m_handler(CreateFormatHandler(handler))
+{
+}
+
+SignatureDB::SignatureDB(const std::string& file_path) : SignatureDB(GetHandlerType(file_path))
+{
 }
 
 void SignatureDB::Clear()
@@ -217,6 +218,4 @@ u32 HashSignatureDB::ComputeCodeChecksum(u32 offsetStart, u32 offsetEnd)
   return sum;
 }
 
-SignatureDBFormatHandler::~SignatureDBFormatHandler()
-{
-}
+SignatureDBFormatHandler::~SignatureDBFormatHandler() = default;

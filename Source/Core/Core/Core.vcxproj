@@ -118,7 +118,6 @@
     <ClCompile Include="HW\DSPLLE\DSPHost.cpp" />
     <ClCompile Include="HW\DSPLLE\DSPLLE.cpp" />
     <ClCompile Include="HW\DSPLLE\DSPLLEGlobals.cpp" />
-    <ClCompile Include="HW\DSPLLE\DSPLLETools.cpp" />
     <ClCompile Include="HW\DSPLLE\DSPSymbols.cpp" />
     <ClCompile Include="HW\DVD\DVDInterface.cpp" />
     <ClCompile Include="HW\DVD\DVDMath.cpp" />
@@ -289,6 +288,7 @@
     <ClCompile Include="HideObjectEngine.cpp" />
     <ClCompile Include="ARBruteForcer.cpp" />
     <ClCompile Include="State.cpp" />
+    <ClCompile Include="TitleDatabase.cpp" />
     <ClCompile Include="WiiRoot.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -367,7 +367,6 @@
     <ClInclude Include="HW\DSPLLE\DSPDebugInterface.h" />
     <ClInclude Include="HW\DSPLLE\DSPLLE.h" />
     <ClInclude Include="HW\DSPLLE\DSPLLEGlobals.h" />
-    <ClInclude Include="HW\DSPLLE\DSPLLETools.h" />
     <ClInclude Include="HW\DSPLLE\DSPSymbols.h" />
     <ClInclude Include="HW\DVD\DVDInterface.h" />
     <ClInclude Include="HW\DVD\DVDMath.h" />
@@ -519,6 +518,7 @@
     <ClInclude Include="PowerPC\Profiler.h" />
     <ClInclude Include="HideObjectEngine.h" />
     <ClInclude Include="State.h" />
+    <ClInclude Include="TitleDatabase.h" />
     <ClInclude Include="WiiRoot.h" />
   </ItemGroup>
   <ItemGroup>

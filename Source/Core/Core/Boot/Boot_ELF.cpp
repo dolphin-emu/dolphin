@@ -70,6 +70,7 @@ bool CBoot::Boot_ELF(const std::string& filename)
   const bool is_wii = IsElfWii(filename);
   if (is_wii)
     HID4.SBE = 1;
+  SetupMSR();
   SetupBAT(is_wii);
 
   if (!reader.LoadSymbols())

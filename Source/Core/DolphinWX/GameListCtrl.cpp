@@ -50,6 +50,7 @@
 #include "Core/HW/DVD/DVDInterface.h"
 #include "Core/HW/WiiSaveCrypted.h"
 #include "Core/Movie.h"
+#include "Core/TitleDatabase.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
@@ -165,37 +166,6 @@ static int CompareGameListItems(const GameListItem* iso1, const GameListItem* is
   }
 
   return 0;
-}
-
-static std::unordered_map<std::string, std::string> LoadCustomTitles()
-{
-  // Load custom game titles from titles.txt
-  // http://www.gametdb.com/Wii/Downloads
-  const std::string& load_directory = File::GetUserPath(D_LOAD_IDX);
-
-  std::ifstream titlestxt;
-  OpenFStream(titlestxt, load_directory + "titles.txt", std::ios::in);
-
-  if (!titlestxt.is_open())
-    OpenFStream(titlestxt, load_directory + "wiitdb.txt", std::ios::in);
-
-  if (!titlestxt.is_open())
-    return {};
-
-  std::unordered_map<std::string, std::string> custom_titles;
-
-  std::string line;
-  while (!titlestxt.eof() && std::getline(titlestxt, line))
-  {
-    const size_t equals_index = line.find('=');
-    if (equals_index != std::string::npos)
-    {
-      custom_titles.emplace(StripSpaces(line.substr(0, equals_index)),
-                            StripSpaces(line.substr(equals_index + 1)));
-    }
-  }
-
-  return custom_titles;
 }
 
 static std::vector<std::string> GetFileSearchExtensions()
@@ -696,7 +666,7 @@ void CGameListCtrl::ScanForISOs()
 {
   m_ISOFiles.clear();
 
-  const auto custom_titles = LoadCustomTitles();
+  const Core::TitleDatabase title_database;
   auto rFilenames =
       Common::DoFileSearch(GetFileSearchExtensions(), SConfig::GetInstance().m_ISOFolder,
                            SConfig::GetInstance().m_RecursiveISOFolder);
@@ -719,7 +689,7 @@ void CGameListCtrl::ScanForISOs()
       if (dialog.WasCancelled())
         break;
 
-      auto iso_file = std::make_unique<GameListItem>(rFilenames[i], custom_titles);
+      auto iso_file = std::make_unique<GameListItem>(rFilenames[i], title_database);
 
       if (iso_file->IsValid() && ShouldDisplayGameListItem(*iso_file))
       {
@@ -734,7 +704,7 @@ void CGameListCtrl::ScanForISOs()
 
     for (const auto& drive : drives)
     {
-      auto gli = std::make_unique<GameListItem>(drive, custom_titles);
+      auto gli = std::make_unique<GameListItem>(drive, title_database);
 
       if (gli->IsValid())
         m_ISOFiles.push_back(std::move(gli));

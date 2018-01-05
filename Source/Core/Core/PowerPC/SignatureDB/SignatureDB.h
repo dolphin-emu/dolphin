@@ -27,8 +27,6 @@ public:
   explicit SignatureDB(HandlerType handler);
   explicit SignatureDB(const std::string& file_path);
 
-  static HandlerType GetHandlerType(const std::string& file_path);
-
   void Clear();
   // Does not clear. Remember to clear first if that's what you want.
   bool Load(const std::string& file_path);
@@ -41,7 +39,6 @@ public:
   bool Add(u32 start_addr, u32 size, const std::string& name);
 
 private:
-  std::unique_ptr<SignatureDBFormatHandler> CreateFormatHandler(HandlerType handler) const;
   std::unique_ptr<SignatureDBFormatHandler> m_handler;
 };
 
@@ -66,23 +63,22 @@ class HashSignatureDB : public SignatureDBFormatHandler
 public:
   struct DBFunc
   {
-    u32 size;
+    u32 size = 0;
     std::string name;
     std::string object_name;
     std::string object_location;
-    DBFunc() : size(0) {}
   };
   using FuncDB = std::map<u32, DBFunc>;
 
   static u32 ComputeCodeChecksum(u32 offsetStart, u32 offsetEnd);
 
-  virtual void Clear() override;
-  virtual void List() const override;
+  void Clear() override;
+  void List() const override;
 
-  virtual void Populate(const PPCSymbolDB* func_db, const std::string& filter = "") override;
-  virtual void Apply(PPCSymbolDB* func_db) const override;
+  void Populate(const PPCSymbolDB* func_db, const std::string& filter = "") override;
+  void Apply(PPCSymbolDB* func_db) const override;
 
-  virtual bool Add(u32 startAddr, u32 size, const std::string& name) override;
+  bool Add(u32 startAddr, u32 size, const std::string& name) override;
 
 protected:
   // Map from signature to function. We store the DB in this map because it optimizes the

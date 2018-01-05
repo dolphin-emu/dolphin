@@ -1109,8 +1109,14 @@ void UpdateTitle()
           _CoreParameter.bSkipIdle ? "~" : "", TicksPercentage);
     }
   }
-  // This is our final "frame counter" string
-  std::string SMessage = StringFromFormat("%s | %s", SSettings.c_str(), SFPS.c_str());
+
+  std::string message = StringFromFormat("%s | %s", SSettings.c_str(), SFPS.c_str());
+  if (SConfig::GetInstance().m_show_active_title)
+  {
+    const std::string& title = SConfig::GetInstance().GetTitleDescription();
+    if (!title.empty())
+      message += " | " + title;
+  }
 
   // Update the audio timestretcher with the current speed
   if (g_sound_stream)
@@ -1119,7 +1125,7 @@ void UpdateTitle()
     pMixer->UpdateSpeed((float)Speed / (100 * SConfig::GetInstance().m_AudioSlowDown));
   }
 
-  Host_UpdateTitle(SMessage);
+  Host_UpdateTitle(message);
 }
 
 void Shutdown()

@@ -35,7 +35,7 @@ CVolumeWiiCrypted::CVolumeWiiCrypted(std::unique_ptr<IBlobReader> reader)
 {
   _assert_(m_pReader);
 
-  // Get decryption keys for all partitions
+  // Get tickets, TMDs, and decryption keys for all partitions
   for (u32 partition_group = 0; partition_group < 4; ++partition_group)
   {
     u32 number_of_partitions;
@@ -49,10 +49,12 @@ CVolumeWiiCrypted::CVolumeWiiCrypted(std::unique_ptr<IBlobReader> reader)
 
     for (u32 i = 0; i < number_of_partitions; i++)
     {
+      // Read the partition offset
       if (!m_pReader->ReadSwapped(partition_table_offset + (i * 8), &read_buffer))
         continue;
       const u64 partition_offset = (u64)read_buffer << 2;
 
+      // Set m_game_partition if this is the game partition
       if (m_game_partition == PARTITION_NONE)
       {
         u32 partition_type;
@@ -63,52 +65,49 @@ CVolumeWiiCrypted::CVolumeWiiCrypted(std::unique_ptr<IBlobReader> reader)
           m_game_partition = Partition(partition_offset);
       }
 
-      u8 sub_key[16];
-      if (!m_pReader->Read(partition_offset + 0x1bf, 16, sub_key))
+      // Read ticket
+      std::vector<u8> ticket_buffer(sizeof(IOS::ES::Ticket));
+      if (!m_pReader->Read(partition_offset, ticket_buffer.size(), ticket_buffer.data()))
+        continue;
+      IOS::ES::TicketReader ticket{std::move(ticket_buffer)};
+      if (!ticket.IsValid())
         continue;
 
-      u8 iv[16];
-      memset(iv, 0, 16);
-      if (!m_pReader->Read(partition_offset + 0x44c, 8, iv))
+      // Read TMD
+      u32 tmd_size = 0;
+      u32 tmd_address = 0;
+      if (!m_pReader->ReadSwapped(partition_offset + 0x2a4, &tmd_size))
         continue;
-
-      static const u8 common_key_standard[16] = {0xeb, 0xe4, 0x2a, 0x22, 0x5e, 0x85, 0x93, 0xe4,
-                                                 0x48, 0xd9, 0xc5, 0x45, 0x73, 0x81, 0xaa, 0xf7};
-      static const u8 common_key_korean[16] = {0x63, 0xb8, 0x2b, 0xb4, 0xf4, 0x61, 0x4e, 0x2e,
-                                               0x13, 0xf2, 0xfe, 0xfb, 0xba, 0x4c, 0x9b, 0x7e};
-      static const u8 common_key_rvt[16] = {0xa1, 0x60, 0x4a, 0x6a, 0x71, 0x23, 0xb5, 0x29,
-                                            0xae, 0x8b, 0xec, 0x32, 0xc8, 0x16, 0xfc, 0xaa};
-      static const char issuer_rvt[] = "Root-CA00000002-XS00000006";
-
-      const u8* common_key;
-
-      u8 issuer[sizeof(issuer_rvt)];
-      if (!m_pReader->Read(partition_offset + 0x140, sizeof(issuer), issuer))
+      if (!m_pReader->ReadSwapped(partition_offset + 0x2a8, &tmd_address))
         continue;
-
-      if (!memcmp(issuer, issuer_rvt, sizeof(issuer_rvt)))
+      tmd_address <<= 2;
+      if (tmd_size > 1024 * 1024 * 4)
       {
-        // RVT issuer. Use the RVT (debug) master key.
-        common_key = common_key_rvt;
+        // The size is checked so that a malicious or corrupt ISO
+        // can't force Dolphin to allocate up to 4 GiB of memory.
+        // 4 MiB should be much bigger than the size of TMDs and much smaller
+        // than the amount of RAM in a computer that can run Dolphin.
+        PanicAlert("TMD > 4 MiB");
+        continue;
       }
-      else
-      {
-        u8 key_number = 0;
-        if (!m_pReader->ReadSwapped(partition_offset + 0x1f1, &key_number))
-          continue;
-        common_key = (key_number == 1) ? common_key_korean : common_key_standard;
-      }
+      std::vector<u8> tmd_buffer(tmd_size);
+      if (!m_pReader->Read(partition_offset + tmd_address, tmd_size, tmd_buffer.data()))
+        continue;
+      IOS::ES::TMDReader tmd{std::move(tmd_buffer)};
 
-      mbedtls_aes_context aes_context;
-      mbedtls_aes_setkey_dec(&aes_context, common_key, 128);
+      // Get the decryption key
+      const std::vector<u8> key = ticket.GetTitleKey();
+      if (key.size() != 16)
+        continue;
+      std::unique_ptr<mbedtls_aes_context> aes_context = std::make_unique<mbedtls_aes_context>();
+      mbedtls_aes_setkey_dec(aes_context.get(), key.data(), 128);
 
-      u8 volume_key[16];
-      mbedtls_aes_crypt_cbc(&aes_context, MBEDTLS_AES_DECRYPT, 16, iv, sub_key, volume_key);
-
-      std::unique_ptr<mbedtls_aes_context> partition_AES_context =
-          std::make_unique<mbedtls_aes_context>();
-      mbedtls_aes_setkey_dec(partition_AES_context.get(), volume_key, 128);
-      m_partitions[Partition(partition_offset)] = std::move(partition_AES_context);
+      // We've read everything. Time to store it! (The reason we don't store anything
+      // earlier is because we want to be able to skip adding the partition if an error occurs.)
+      const Partition partition(partition_offset);
+      m_partition_keys[partition] = std::move(aes_context);
+      m_partition_tickets[partition] = std::move(ticket);
+      m_partition_tmds[partition] = std::move(tmd);
     }
   }
 }
@@ -124,8 +123,8 @@ bool CVolumeWiiCrypted::Read(u64 _ReadOffset, u64 _Length, u8* _pBuffer,
     return m_pReader->Read(_ReadOffset, _Length, _pBuffer);
 
   // Get the decryption key for the partition
-  auto it = m_partitions.find(partition);
-  if (it == m_partitions.end())
+  auto it = m_partition_keys.find(partition);
+  if (it == m_partition_keys.end())
     return false;
   mbedtls_aes_context* aes_context = it->second.get();
 
@@ -174,7 +173,7 @@ bool CVolumeWiiCrypted::Read(u64 _ReadOffset, u64 _Length, u8* _pBuffer,
 std::vector<Partition> CVolumeWiiCrypted::GetPartitions() const
 {
   std::vector<Partition> partitions;
-  for (const auto& pair : m_partitions)
+  for (const auto& pair : m_partition_keys)
     partitions.push_back(pair.first);
   return partitions;
 }
@@ -186,42 +185,23 @@ Partition CVolumeWiiCrypted::GetGamePartition() const
 
 bool CVolumeWiiCrypted::GetTitleID(u64* buffer, const Partition& partition) const
 {
-  return m_pReader->ReadSwapped(partition.offset + 0x1DC, buffer);
+  const IOS::ES::TicketReader& ticket = GetTicket(partition);
+  if (!ticket.IsValid())
+    return false;
+  *buffer = ticket.GetTitleId();
+  return true;
 }
 
-IOS::ES::TicketReader CVolumeWiiCrypted::GetTicket(const Partition& partition) const
+const IOS::ES::TicketReader& CVolumeWiiCrypted::GetTicket(const Partition& partition) const
 {
-  std::vector<u8> buffer(0x2a4);
-  m_pReader->Read(partition.offset, buffer.size(), buffer.data());
-  return IOS::ES::TicketReader{std::move(buffer)};
+  auto it = m_partition_tickets.find(partition);
+  return it != m_partition_tickets.end() ? it->second : INVALID_TICKET;
 }
 
-IOS::ES::TMDReader CVolumeWiiCrypted::GetTMD(const Partition& partition) const
+const IOS::ES::TMDReader& CVolumeWiiCrypted::GetTMD(const Partition& partition) const
 {
-  u32 tmd_size = 0;
-  u32 tmd_address = 0;
-
-  if (!m_pReader->ReadSwapped(partition.offset + 0x2a4, &tmd_size))
-    return {};
-  if (!m_pReader->ReadSwapped(partition.offset + 0x2a8, &tmd_address))
-    return {};
-  tmd_address <<= 2;
-
-  if (tmd_size > 1024 * 1024 * 4)
-  {
-    // The size is checked so that a malicious or corrupt ISO
-    // can't force Dolphin to allocate up to 4 GiB of memory.
-    // 4 MiB should be much bigger than the size of TMDs and much smaller
-    // than the amount of RAM in a computer that can run Dolphin.
-    PanicAlert("TMD > 4 MiB");
-    tmd_size = 1024 * 1024 * 4;
-  }
-
-  std::vector<u8> buffer(tmd_size);
-  if (!m_pReader->Read(partition.offset + tmd_address, tmd_size, buffer.data()))
-    return {};
-
-  return IOS::ES::TMDReader{std::move(buffer)};
+  auto it = m_partition_tmds.find(partition);
+  return it != m_partition_tmds.end() ? it->second : INVALID_TMD;
 }
 
 u64 CVolumeWiiCrypted::PartitionOffsetToRawOffset(u64 offset, const Partition& partition)
@@ -368,8 +348,8 @@ u64 CVolumeWiiCrypted::GetRawSize() const
 bool CVolumeWiiCrypted::CheckIntegrity(const Partition& partition) const
 {
   // Get the decryption key for the partition
-  auto it = m_partitions.find(partition);
-  if (it == m_partitions.end())
+  auto it = m_partition_keys.find(partition);
+  if (it == m_partition_keys.end())
     return false;
   mbedtls_aes_context* aes_context = it->second.get();
 

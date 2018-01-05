@@ -27,6 +27,7 @@
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/USB/Bluetooth/BTReal.h"
 #include "Core/NetPlayProto.h"
+#include "DolphinQt2/Config/Mapping/MappingWindow.h"
 #include "DolphinQt2/Settings.h"
 #include "UICommon/UICommon.h"
 
@@ -79,11 +80,17 @@ ControllersWindow::ControllersWindow(QWidget* parent)
   CreateMainLayout();
   LoadSettings();
   ConnectWidgets();
+
+  for (size_t i = 0; i < m_gc_mappings.size(); i++)
+    m_gc_mappings[i] = new MappingWindow(this, static_cast<int>(i));
+
+  for (size_t i = 0; i < m_wiimote_mappings.size(); i++)
+    m_wiimote_mappings[i] = new MappingWindow(this, static_cast<int>(i));
 }
 
 void ControllersWindow::CreateGamecubeLayout()
 {
-  m_gc_box = new QGroupBox(m_gc_label);
+  m_gc_box = new QGroupBox();
   m_gc_layout = new QFormLayout();
   m_gc_label = new QLabel();
   m_gc_label->setPixmap(QPixmap(m_gamecube_icon));
@@ -407,20 +414,36 @@ void ControllersWindow::OnGCPadConfigure()
       break;
   }
 
+  MappingWindow::Type type;
+
   switch (m_gc_controller_boxes[index]->currentIndex())
   {
   case 0:  // None
   case 6:  // GBA
     return;
   case 1:  // Standard Controller
+    type = MappingWindow::Type::MAPPING_GCPAD;
+    break;
   case 2:  // GameCube Adapter for Wii U
+    type = MappingWindow::Type::MAPPING_GCPAD_WIIU;
+    break;
   case 3:  // Steering Wheel
+    type = MappingWindow::Type::MAPPING_GC_STEERINGWHEEL;
+    break;
   case 4:  // Dance Mat
+    type = MappingWindow::Type::MAPPING_GC_DANCEMAT;
+    break;
   case 5:  // DK Bongos
+    type = MappingWindow::Type::MAPPING_GC_BONGOS;
+    break;
   case 7:  // Keyboard
-    UnimplementedButton();
+    type = MappingWindow::Type::MAPPING_GC_KEYBOARD;
+    break;
+  default:
     return;
   }
+  m_gc_mappings[index]->ChangeMappingType(type);
+  m_gc_mappings[index]->exec();
 }
 
 void ControllersWindow::OnWiimoteConfigure()
@@ -432,16 +455,23 @@ void ControllersWindow::OnWiimoteConfigure()
       break;
   }
 
+  MappingWindow::Type type;
   switch (m_wiimote_boxes[index]->currentIndex())
   {
   case 0:  // None
   case 2:  // Real Wii Remote
     return;
   case 1:  // Emulated Wii Remote
+    type = MappingWindow::Type::MAPPING_WIIMOTE_EMU;
+    break;
   case 3:  // Hybrid Wii Remote
-    UnimplementedButton();
+    type = MappingWindow::Type::MAPPING_WIIMOTE_HYBRID;
+    break;
+  default:
     return;
   }
+  m_wiimote_mappings[index]->ChangeMappingType(type);
+  m_wiimote_mappings[index]->exec();
 }
 
 void ControllersWindow::UnimplementedButton()
