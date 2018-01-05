@@ -423,7 +423,7 @@ int main(int argc, char* argv[])
 
   DolphinAnalytics::Instance()->ReportDolphinStart("nogui");
 
-  if (!BootManager::BootCore(boot_filename))
+  if (!BootManager::BootCore(boot_filename, SConfig::BOOT_DEFAULT))
   {
     fprintf(stderr, "Could not boot %s\n", boot_filename.c_str());
     return 1;

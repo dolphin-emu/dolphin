@@ -110,7 +110,6 @@
     <QtMoc Include="GameList\GameListModel.h" />
     <QtMoc Include="GameList\GameTracker.h" />
     <QtMoc Include="GameList\ListProxyModel.h" />
-    <QtMoc Include="GameList\TableDelegate.h" />
     <QtMoc Include="Host.h" />
     <QtMoc Include="InDevelopmentWarning.h" />
     <QtMoc Include="Settings\InterfacePane.h" />
@@ -145,7 +144,6 @@
     <ClCompile Include="$(QtMocOutPrefix)RenderWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)Settings.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)SettingsWindow.cpp" />
-    <ClCompile Include="$(QtMocOutPrefix)TableDelegate.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)ToolBar.cpp" />
     <ClCompile Include="AboutDialog.cpp" />
     <ClCompile Include="Config\ControllersWindow.cpp" />
@@ -170,7 +168,6 @@
     <ClCompile Include="GameList\GameListModel.cpp" />
     <ClCompile Include="GameList\GameTracker.cpp" />
     <ClCompile Include="GameList\ListProxyModel.cpp" />
-    <ClCompile Include="GameList\TableDelegate.cpp" />
     <ClCompile Include="Host.cpp" />
     <ClCompile Include="InDevelopmentWarning.cpp" />
     <ClCompile Include="Main.cpp" />

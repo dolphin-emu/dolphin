@@ -1228,6 +1228,15 @@ const char* SConfig::GetDirectoryForRegion(DiscIO::Region region)
   }
 }
 
+std::string SConfig::GetBootROMPath(const std::string& region_directory) const
+{
+  const std::string path =
+      File::GetUserPath(D_GCUSER_IDX) + DIR_SEP + region_directory + DIR_SEP GC_IPL;
+  if (!File::Exists(path))
+    return File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + region_directory + DIR_SEP GC_IPL;
+  return path;
+}
+
 // Sets m_region to the region parameter, or to PAL if the region parameter
 // is invalid. Set directory_name to the value returned by GetDirectoryForRegion
 // for m_region. Returns false if the region parameter is invalid.
@@ -1349,16 +1358,19 @@ bool SConfig::AutoSetup(EBootBS2 _BootBS2)
   case BOOT_BS2_USA:
     SetRegion(DiscIO::Region::NTSC_U, &set_region_dir);
     m_strFilename.clear();
+    m_BootType = SConfig::BOOT_BS2;
     break;
 
   case BOOT_BS2_JAP:
     SetRegion(DiscIO::Region::NTSC_J, &set_region_dir);
     m_strFilename.clear();
+    m_BootType = SConfig::BOOT_BS2;
     break;
 
   case BOOT_BS2_EUR:
     SetRegion(DiscIO::Region::PAL, &set_region_dir);
     m_strFilename.clear();
+    m_BootType = SConfig::BOOT_BS2;
     break;
   }
 
@@ -1370,10 +1382,7 @@ bool SConfig::AutoSetup(EBootBS2 _BootBS2)
   {
     if (!bHLE_BS2)
     {
-      m_strBootROM = File::GetUserPath(D_GCUSER_IDX) + DIR_SEP + set_region_dir + DIR_SEP GC_IPL;
-      if (!File::Exists(m_strBootROM))
-        m_strBootROM =
-            File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + set_region_dir + DIR_SEP GC_IPL;
+      m_strBootROM = GetBootROMPath(set_region_dir);
 
       if (!File::Exists(m_strBootROM))
       {

@@ -251,6 +251,7 @@ struct SConfig : NonCopyable
 
   void LoadDefaults();
   static const char* GetDirectoryForRegion(DiscIO::Region region);
+  std::string GetBootROMPath(const std::string& region_directory) const;
   bool AutoSetup(EBootBS2 _BootBS2);
   void CheckMemcardPath(std::string& memcardPath, const std::string& gameRegion, bool isSlotA);
   DiscIO::Language GetCurrentLanguage(bool wii) const;

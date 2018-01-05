@@ -39,9 +39,9 @@ Dolphin can only be installed on devices that satisfy the above requirements. At
 ## Building for Windows
 
 Use the solution file `Source/dolphin-emu.sln` to build Dolphin on Windows.
-Dolphin now requires Visual Studio 2015 Update 2 (get the free Community version).
-It no longer supports Visual Studio 2013.
-Previous versions don't support many C++ features that we use. Git must be installed.
+Dolphin VR now requires at least Visual Studio 2015 Update 2 (get the free Community version).
+It may build on Visual Studio 2017, but I haven't tested it. It no longer works on Visual Studio 2013.
+Previous versions don't support many C++ features that we use. Git must be installed when building.
 
 An installer can be created by using the `Installer.nsi` script in the
 Installer directory. This will require the Nullsoft Scriptable Install System

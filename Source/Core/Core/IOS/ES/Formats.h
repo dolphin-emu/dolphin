@@ -130,6 +130,8 @@ struct Ticket
 static_assert(sizeof(Ticket) == 0x2A4, "Ticket has the wrong size");
 #pragma pack(pop)
 
+bool IsValidTMDSize(size_t size);
+
 class TMDReader final
 {
 public:

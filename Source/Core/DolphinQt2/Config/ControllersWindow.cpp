@@ -12,7 +12,6 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QMessageBox>
-#include <QPixmap>
 #include <QPushButton>
 #include <QRadioButton>
 #include <QSpacerItem>
@@ -66,11 +65,7 @@ static int FromWiimoteMenuIndex(const int menudevice)
   return it->first;
 }
 
-ControllersWindow::ControllersWindow(QWidget* parent)
-    : QDialog(parent),
-      m_configure_icon(Settings().GetThemeDir().append(QStringLiteral("config.png"))),
-      m_gamecube_icon(Settings().GetResourcesDir().append(QStringLiteral("Platform_Gamecube.png"))),
-      m_wii_icon(Settings().GetResourcesDir().append(QStringLiteral("Platform_Wii.png")))
+ControllersWindow::ControllersWindow(QWidget* parent) : QDialog(parent)
 {
   setWindowTitle(tr("Controller Settings"));
 
@@ -90,17 +85,13 @@ ControllersWindow::ControllersWindow(QWidget* parent)
 
 void ControllersWindow::CreateGamecubeLayout()
 {
-  m_gc_box = new QGroupBox();
+  m_gc_box = new QGroupBox(tr("GameCube Controllers"));
   m_gc_layout = new QFormLayout();
-  m_gc_label = new QLabel();
-  m_gc_label->setPixmap(QPixmap(m_gamecube_icon));
-  m_gc_label->setAlignment(Qt::AlignCenter);
-  m_gc_layout->addRow(m_gc_label);
 
   for (size_t i = 0; i < m_gc_groups.size(); i++)
   {
     auto* gc_box = m_gc_controller_boxes[i] = new QComboBox();
-    auto* gc_button = m_gc_buttons[i] = new QPushButton(QIcon(m_configure_icon), QString());
+    auto* gc_button = m_gc_buttons[i] = new QPushButton(tr("Configure"));
     auto* gc_group = m_gc_groups[i] = new QHBoxLayout();
 
     gc_box->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
@@ -152,7 +143,7 @@ static QHBoxLayout* CreateSubItem(QWidget* label, QLayoutItem* item)
 
 void ControllersWindow::CreateWiimoteLayout()
 {
-  m_wiimote_box = new QGroupBox();
+  m_wiimote_box = new QGroupBox(tr("Wii Remotes"));
   m_wiimote_layout = new QFormLayout();
   m_wiimote_passthrough = new QRadioButton(tr("Use Bluetooth Passthrough"));
   m_wiimote_sync = new QPushButton(tr("Sync"));
@@ -166,11 +157,6 @@ void ControllersWindow::CreateWiimoteLayout()
   m_wiimote_speaker_data = new QCheckBox(tr("Enable Speaker Data"));
 
   m_wiimote_layout->setLabelAlignment(Qt::AlignLeft);
-
-  m_wii_label = new QLabel();
-  m_wii_label->setPixmap(QPixmap(m_wii_icon));
-  m_wii_label->setAlignment(Qt::AlignCenter);
-  m_wiimote_layout->addRow(m_wii_label);
 
   // Passthrough BT
 
@@ -190,7 +176,7 @@ void ControllersWindow::CreateWiimoteLayout()
   {
     auto* wm_label = m_wiimote_labels[i] = new QLabel(tr("Wii Remote %1").arg(i + 1));
     auto* wm_box = m_wiimote_boxes[i] = new QComboBox();
-    auto* wm_button = m_wiimote_buttons[i] = new QPushButton(QIcon(m_configure_icon), QString());
+    auto* wm_button = m_wiimote_buttons[i] = new QPushButton(tr("Configure"));
     auto* wm_group = m_wiimote_groups[i] = new QHBoxLayout();
 
     for (const auto& item :

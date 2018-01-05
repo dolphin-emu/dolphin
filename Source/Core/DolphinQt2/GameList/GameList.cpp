@@ -22,7 +22,6 @@
 #include "DolphinQt2/Config/PropertiesDialog.h"
 #include "DolphinQt2/GameList/GameList.h"
 #include "DolphinQt2/GameList/ListProxyModel.h"
-#include "DolphinQt2/GameList/TableDelegate.h"
 #include "DolphinQt2/Settings.h"
 
 static bool CompressCB(const std::string&, float, void*);
@@ -34,8 +33,6 @@ GameList::GameList(QWidget* parent) : QStackedWidget(parent)
   m_table_proxy->setSourceModel(m_model);
   m_list_proxy = new ListProxyModel(this);
   m_list_proxy->setSourceModel(m_model);
-
-  m_delegate = new TableDelegate(this);
 
   MakeTableView();
   MakeListView();
@@ -59,7 +56,7 @@ void GameList::MakeTableView()
 {
   m_table = new QTableView(this);
   m_table->setModel(m_table_proxy);
-  m_table->setItemDelegate(m_delegate);
+
   m_table->setSelectionMode(QAbstractItemView::SingleSelection);
   m_table->setSelectionBehavior(QAbstractItemView::SelectRows);
   m_table->setAlternatingRowColors(true);
@@ -67,6 +64,7 @@ void GameList::MakeTableView()
   m_table->setSortingEnabled(true);
   m_table->setCurrentIndex(QModelIndex());
   m_table->setContextMenuPolicy(Qt::CustomContextMenu);
+  m_table->setWordWrap(false);
 
   connect(m_table, &QTableView::customContextMenuRequested, this, &GameList::ShowContextMenu);
 
@@ -91,8 +89,7 @@ void GameList::MakeTableView()
   hor_header->setSectionResizeMode(GameListModel::COL_DESCRIPTION, QHeaderView::Stretch);
   hor_header->setSectionResizeMode(GameListModel::COL_RATING, QHeaderView::ResizeToContents);
 
-  QHeaderView* ver_header = m_table->verticalHeader();
-  ver_header->setSectionResizeMode(QHeaderView::ResizeToContents);
+  m_table->verticalHeader()->hide();
 }
 
 void GameList::MakeEmptyView()

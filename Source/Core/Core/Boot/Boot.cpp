@@ -284,7 +284,10 @@ bool CBoot::BootUp()
 {
   SConfig& _StartupPara = SConfig::GetInstance();
 
-  NOTICE_LOG(BOOT, "Booting %s", _StartupPara.m_strFilename.c_str());
+  if (_StartupPara.m_BootType == SConfig::BOOT_BS2)
+    NOTICE_LOG(BOOT, "Booting %s", _StartupPara.m_strBootROM.c_str());
+  else
+    NOTICE_LOG(BOOT, "Booting %s", _StartupPara.m_strFilename.c_str());
 
   g_symbolDB.Clear();
 

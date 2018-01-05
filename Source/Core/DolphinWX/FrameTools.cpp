@@ -176,6 +176,9 @@ void CFrame::BindMenuBarEvents()
   Bind(wxEVT_MENU, &CFrame::OnMemcard, this, IDM_MEMCARD);
   Bind(wxEVT_MENU, &CFrame::OnImportSave, this, IDM_IMPORT_SAVE);
   Bind(wxEVT_MENU, &CFrame::OnExportAllSaves, this, IDM_EXPORT_ALL_SAVE);
+  Bind(wxEVT_MENU, &CFrame::OnLoadGameCubeBIOSJAP, this, IDM_LOAD_GC_BIOS_JAP);
+  Bind(wxEVT_MENU, &CFrame::OnLoadGameCubeBIOSUSA, this, IDM_LOAD_GC_BIOS_USA);
+  Bind(wxEVT_MENU, &CFrame::OnLoadGameCubeBIOSEUR, this, IDM_LOAD_GC_BIOS_EUR);
   Bind(wxEVT_MENU, &CFrame::OnShowCheatsWindow, this, IDM_CHEATS);
   Bind(wxEVT_MENU, &CFrame::OnNetPlay, this, IDM_NETPLAY);
   Bind(wxEVT_MENU, &CFrame::OnInstallWAD, this, IDM_MENU_INSTALL_WAD);
@@ -653,7 +656,7 @@ void CFrame::ToggleDisplayMode(bool bFullscreen)
 }
 
 // Prepare the GUI to start the game.
-void CFrame::StartGame(const std::string& filename)
+void CFrame::StartGame(const std::string& filename, SConfig::EBootBS2 type)
 {
   if (m_is_game_loading)
     return;
@@ -775,7 +778,7 @@ void CFrame::StartGame(const std::string& filename)
 
   SetDebuggerStartupParameters();
 
-  if (!BootManager::BootCore(filename))
+  if (!BootManager::BootCore(filename, type))
   {
     DoFullscreen(false);
 
@@ -1292,6 +1295,21 @@ void CFrame::OnMemcard(wxCommandEvent& WXUNUSED(event))
   HotkeyManagerEmu::Enable(true);
 }
 
+void CFrame::OnLoadGameCubeBIOSJAP(wxCommandEvent&)
+{
+  StartGame("", SConfig::BOOT_BS2_JAP);
+}
+
+void CFrame::OnLoadGameCubeBIOSUSA(wxCommandEvent&)
+{
+  StartGame("", SConfig::BOOT_BS2_USA);
+}
+
+void CFrame::OnLoadGameCubeBIOSEUR(wxCommandEvent&)
+{
+  StartGame("", SConfig::BOOT_BS2_EUR);
+}
+
 void CFrame::OnExportAllSaves(wxCommandEvent& WXUNUSED(event))
 {
   CWiiSaveCrypted::ExportAllSaves();
@@ -1757,6 +1775,15 @@ void CFrame::UpdateGUI()
   GetMenuBar()->FindItem(IDM_SAVE_STATE)->Enable(Initialized);
   // Misc
   GetMenuBar()->FindItem(IDM_CHANGE_DISC)->Enable(Initialized);
+  GetMenuBar()
+      ->FindItem(IDM_LOAD_GC_BIOS_JAP)
+      ->Enable(!Initialized && File::Exists(SConfig::GetInstance().GetBootROMPath(JAP_DIR)));
+  GetMenuBar()
+      ->FindItem(IDM_LOAD_GC_BIOS_USA)
+      ->Enable(!Initialized && File::Exists(SConfig::GetInstance().GetBootROMPath(USA_DIR)));
+  GetMenuBar()
+      ->FindItem(IDM_LOAD_GC_BIOS_EUR)
+      ->Enable(!Initialized && File::Exists(SConfig::GetInstance().GetBootROMPath(EUR_DIR)));
   if (DiscIO::CNANDContentManager::Access()
           .GetNANDLoader(TITLEID_SYSMENU, Common::FROM_CONFIGURED_ROOT)
           .IsValid())

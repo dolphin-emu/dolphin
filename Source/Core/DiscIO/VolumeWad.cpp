@@ -41,7 +41,7 @@ CVolumeWAD::CVolumeWAD(std::unique_ptr<IBlobReader> reader) : m_reader(std::move
   m_opening_bnr_offset =
       m_tmd_offset + Common::AlignUp(m_tmd_size, 0x40) + Common::AlignUp(m_data_size, 0x40);
 
-  if (m_tmd_size > 1024 * 1024 * 4)
+  if (!IOS::ES::IsValidTMDSize(m_tmd_size))
   {
     ERROR_LOG(DISCIO, "TMD is too large: %u bytes", m_tmd_size);
     return;

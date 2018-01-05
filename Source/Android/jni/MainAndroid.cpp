@@ -794,7 +794,7 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run(JNIEnv* 
 
   // No use running the loop when booting fails
   s_have_wm_user_stop = false;
-  if (BootManager::BootCore(s_filename.c_str()))
+  if (BootManager::BootCore(s_filename.c_str(), SConfig::BOOT_DEFAULT))
   {
     static constexpr int TIMEOUT = 10000;
     static constexpr int WAIT_STEP = 25;

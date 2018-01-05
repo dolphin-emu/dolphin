@@ -574,24 +574,24 @@ bool PPCSymbolDB::LoadMap(const std::string& filename, bool bad)
     // Check if this is a valid entry.
     if (strcmp(name, ".text") != 0 && strcmp(name, ".init") != 0 && strlen(name) > 0)
     {
-      vaddress |= 0x80000000;
-      bool good = !bad;
+      // Can't compute the checksum if not in RAM
+      bool good = !bad && PowerPC::HostIsInstructionRAMAddress(vaddress) &&
+                  PowerPC::HostIsInstructionRAMAddress(vaddress + size - 4);
       if (!good)
       {
         // check for BLR before function
-        u32 opcode = PowerPC::HostRead_Instruction(vaddress - 4);
-        if (opcode == 0x4e800020)
+        PowerPC::TryReadInstResult read_result = PowerPC::TryReadInstruction(vaddress - 4);
+        if (read_result.valid && read_result.hex == 0x4e800020)
         {
           // check for BLR at end of function
-          opcode = PowerPC::HostRead_Instruction(vaddress + size - 4);
-          if (opcode == 0x4e800020)
-            good = true;
+          read_result = PowerPC::TryReadInstruction(vaddress + size - 4);
+          good = read_result.valid && read_result.hex == 0x4e800020;
         }
       }
       if (good)
       {
         ++good_count;
-        AddKnownSymbol(vaddress | 0x80000000, size, name);  // ST_FUNCTION
+        AddKnownSymbol(vaddress, size, name);  // ST_FUNCTION
       }
       else
       {

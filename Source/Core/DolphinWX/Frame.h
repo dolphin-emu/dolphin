@@ -17,6 +17,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
+#include "Core/ConfigManager.h"
 #include "DolphinWX/Globals.h"
 
 #if defined(HAVE_X11) && HAVE_X11
@@ -183,7 +184,7 @@ private:
   void InitializeTASDialogs();
   void InitializeCoreCallbacks();
 
-  void StartGame(const std::string& filename);
+  void StartGame(const std::string& filename, SConfig::EBootBS2 type = SConfig::BOOT_DEFAULT);
   void SetDebuggerStartupParameters() const;
 
   // Utility
@@ -329,6 +330,10 @@ private:
   void OnMemcard(wxCommandEvent& event);  // Misc
   void OnImportSave(wxCommandEvent& event);
   void OnExportAllSaves(wxCommandEvent& event);
+
+  void OnLoadGameCubeBIOSJAP(wxCommandEvent& event);
+  void OnLoadGameCubeBIOSUSA(wxCommandEvent& event);
+  void OnLoadGameCubeBIOSEUR(wxCommandEvent& event);
 
   void OnNetPlay(wxCommandEvent& event);
 
