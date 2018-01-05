@@ -52,7 +52,6 @@ void InterfacePane::CreateUI()
   combobox_layout->addRow(tr("&Language:"), m_combobox_language);
 
   // Theme Combobox
-  auto* theme_layout = new QFormLayout;
   m_combobox_theme = new QComboBox;
   m_combobox_theme->setMaximumWidth(300);
   combobox_layout->addRow(tr("&Theme:"), m_combobox_theme);
