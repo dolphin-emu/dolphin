@@ -41,7 +41,7 @@ Dolphin can only be installed on devices that satisfy the above requirements. At
 Use the solution file `Source/dolphin-emu.sln` to build Dolphin on Windows.
 Dolphin now requires Visual Studio 2015 Update 2 (get the free Community version).
 It no longer supports Visual Studio 2013.
-Previous versions don't support many C++ features that we use. Git and Windows 10 SDK 10.0.10586.0 must be installed.
+Previous versions don't support many C++ features that we use. Git must be installed.
 
 An installer can be created by using the `Installer.nsi` script in the
 Installer directory. This will require the Nullsoft Scriptable Install System

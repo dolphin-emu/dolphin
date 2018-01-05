@@ -76,9 +76,8 @@ struct SConfig : NonCopyable
   bool bAutomaticStart = false;
   bool bBootToPause = false;
 
-  int iCPUCore;
+  int iCPUCore;  // Uses the values of PowerPC::CPUCore
 
-  // JIT (shared between JIT and JITIL)
   bool bJITNoBlockCache = false;
   bool bJITNoBlockLinking = false;
   bool bJITOff = false;
@@ -93,8 +92,6 @@ struct SConfig : NonCopyable
   bool bJITPairedOff = false;
   bool bJITSystemRegistersOff = false;
   bool bJITBranchOff = false;
-  bool bJITILTimeProfiling = false;
-  bool bJITILOutputIR = false;
 
   bool bFastmem;
   bool bFPRF = false;

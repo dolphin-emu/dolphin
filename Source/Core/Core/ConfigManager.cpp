@@ -929,8 +929,6 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("SlotB", (int*)&m_EXIDevice[1], ExpansionInterface::EXIDEVICE_NONE);
   core->Get("SerialPort1", (int*)&m_EXIDevice[2], ExpansionInterface::EXIDEVICE_NONE);
   core->Get("BBA_MAC", &m_bba_mac);
-  core->Get("TimeProfiling", &bJITILTimeProfiling, false);
-  core->Get("OutputIR", &bJITILOutputIR, false);
   for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
   {
     core->Get(StringFromFormat("SIDevice%i", i), (u32*)&m_SIDevice[i],

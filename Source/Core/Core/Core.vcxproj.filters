@@ -43,9 +43,6 @@
     <Filter Include="PowerPC\JitCommon">
       <UniqueIdentifier>{c88ec388-371f-4401-851c-a32dcdc0b88b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="PowerPC\JitIL">
-      <UniqueIdentifier>{f26d3866-92d1-4623-9445-caf9a065ed74}</UniqueIdentifier>
-    </Filter>
     <Filter Include="DSPCore\Interpreter">
       <UniqueIdentifier>{6204f663-bbd0-4eb5-bc15-e3778d8b6091}</UniqueIdentifier>
     </Filter>
@@ -111,9 +108,6 @@
     </Filter>
     <Filter Include="HW %28Flipper/Hollywood%29\Wii IPC">
       <UniqueIdentifier>{2b41ab45-ba8c-45dc-92cc-9107c1fa3e36}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="PowerPC\JitILCommon">
-      <UniqueIdentifier>{827afa93-1a80-4835-93ae-b5516d95867f}</UniqueIdentifier>
     </Filter>
     <Filter Include="PowerPC\Jit64Common">
       <UniqueIdentifier>{81956f71-d9fe-454f-96a6-855195d611c4}</UniqueIdentifier>
@@ -631,15 +625,6 @@
     <ClCompile Include="PowerPC\JitCommon\JitCache.cpp">
       <Filter>PowerPC\JitCommon</Filter>
     </ClCompile>
-    <ClCompile Include="PowerPC\Jit64IL\IR_X86.cpp">
-      <Filter>PowerPC\JitIL</Filter>
-    </ClCompile>
-    <ClCompile Include="PowerPC\Jit64IL\JitIL.cpp">
-      <Filter>PowerPC\JitIL</Filter>
-    </ClCompile>
-    <ClCompile Include="PowerPC\Jit64IL\JitIL_Tables.cpp">
-      <Filter>PowerPC\JitIL</Filter>
-    </ClCompile>
     <ClCompile Include="PowerPC\Jit64\FPURegCache.cpp">
       <Filter>PowerPC\Jit64</Filter>
     </ClCompile>
@@ -675,33 +660,6 @@
     </ClCompile>
     <ClCompile Include="PowerPC\Jit64\JitRegCache.cpp">
       <Filter>PowerPC\Jit64</Filter>
-    </ClCompile>
-    <ClCompile Include="PowerPC\JitILCommon\JitILBase_Branch.cpp">
-      <Filter>PowerPC\JitILCommon</Filter>
-    </ClCompile>
-    <ClCompile Include="PowerPC\JitILCommon\JitILBase_FloatingPoint.cpp">
-      <Filter>PowerPC\JitILCommon</Filter>
-    </ClCompile>
-    <ClCompile Include="PowerPC\JitILCommon\JitILBase_Integer.cpp">
-      <Filter>PowerPC\JitILCommon</Filter>
-    </ClCompile>
-    <ClCompile Include="PowerPC\JitILCommon\JitILBase_LoadStore.cpp">
-      <Filter>PowerPC\JitILCommon</Filter>
-    </ClCompile>
-    <ClCompile Include="PowerPC\JitILCommon\JitILBase_LoadStoreFloating.cpp">
-      <Filter>PowerPC\JitILCommon</Filter>
-    </ClCompile>
-    <ClCompile Include="PowerPC\JitILCommon\JitILBase_LoadStorePaired.cpp">
-      <Filter>PowerPC\JitILCommon</Filter>
-    </ClCompile>
-    <ClCompile Include="PowerPC\JitILCommon\JitILBase_Paired.cpp">
-      <Filter>PowerPC\JitILCommon</Filter>
-    </ClCompile>
-    <ClCompile Include="PowerPC\JitILCommon\JitILBase_SystemRegisters.cpp">
-      <Filter>PowerPC\JitILCommon</Filter>
-    </ClCompile>
-    <ClCompile Include="PowerPC\JitILCommon\IR.cpp">
-      <Filter>PowerPC\JitILCommon</Filter>
     </ClCompile>
     <ClCompile Include="HW\GCKeyboardEmu.cpp">
       <Filter>HW %28Flipper/Hollywood%29\GCKeyboard</Filter>
@@ -1334,9 +1292,6 @@
     <ClInclude Include="PowerPC\JitCommon\JitCache.h">
       <Filter>PowerPC\JitCommon</Filter>
     </ClInclude>
-    <ClInclude Include="PowerPC\Jit64IL\JitIL.h">
-      <Filter>PowerPC\JitIL</Filter>
-    </ClInclude>
     <ClInclude Include="PowerPC\Jit64\FPURegCache.h">
       <Filter>PowerPC\Jit64</Filter>
     </ClInclude>
@@ -1348,12 +1303,6 @@
     </ClInclude>
     <ClInclude Include="PowerPC\Jit64\JitAsm.h">
       <Filter>PowerPC\Jit64</Filter>
-    </ClInclude>
-    <ClInclude Include="PowerPC\JitILCommon\JitILBase.h">
-      <Filter>PowerPC\JitILCommon</Filter>
-    </ClInclude>
-    <ClInclude Include="PowerPC\JitILCommon\IR.h">
-      <Filter>PowerPC\JitILCommon</Filter>
     </ClInclude>
     <ClInclude Include="MachineContext.h" />
     <ClInclude Include="HW\GCKeyboardEmu.h">

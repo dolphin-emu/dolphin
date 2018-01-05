@@ -22,7 +22,6 @@ class CodeBuffer;
 #if defined(_MSC_VER) && _MSC_VER <= 1800
 #define constexpr const
 #endif
-// The following register assignments are common to Jit64 and Jit64IL:
 // RSCRATCH and RSCRATCH2 are always scratch registers and can be used without
 // limitation.
 constexpr Gen::X64Reg RSCRATCH = Gen::RAX;

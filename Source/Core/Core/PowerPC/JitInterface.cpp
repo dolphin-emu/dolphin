@@ -30,7 +30,6 @@
 
 #if _M_X86
 #include "Core/PowerPC/Jit64/Jit.h"
-#include "Core/PowerPC/Jit64IL/JitIL.h"
 #endif
 
 #if _M_ARM_64
@@ -52,9 +51,6 @@ CPUCoreBase* InitJitCore(int core)
 #if _M_X86
   case PowerPC::CORE_JIT64:
     ptr = new Jit64();
-    break;
-  case PowerPC::CORE_JITIL64:
-    ptr = new JitIL();
     break;
 #endif
 #if _M_ARM_64
