@@ -116,13 +116,6 @@ void Host_RequestRenderWindowSize(int width, int height)
 {
 }
 
-void Host_SetStartupDebuggingParameters()
-{
-  SConfig& StartUp = SConfig::GetInstance();
-  StartUp.bEnableDebugging = false;
-  StartUp.bBootToPause = false;
-}
-
 bool Host_UIHasFocus()
 {
   return false;

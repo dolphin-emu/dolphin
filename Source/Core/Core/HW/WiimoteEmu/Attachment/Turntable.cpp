@@ -30,13 +30,15 @@ constexpr std::array<u16, 9> turntable_button_bitmasks{{
 
 constexpr std::array<const char*, 9> turntable_button_names{{
     _trans("Green Left"), _trans("Red Left"), _trans("Blue Left"), _trans("Green Right"),
-    _trans("Red Right"), _trans("Blue Right"), "-", "+", _trans("Euphoria"),
+    _trans("Red Right"), _trans("Blue Right"), "-", "+",
+    // i18n: This button name refers to a gameplay element in DJ Hero
+    _trans("Euphoria"),
 }};
 
 Turntable::Turntable(ExtensionReg& reg) : Attachment(_trans("Turntable"), reg)
 {
   // buttons
-  groups.emplace_back(m_buttons = new ControllerEmu::Buttons("Buttons"));
+  groups.emplace_back(m_buttons = new ControllerEmu::Buttons(_trans("Buttons")));
   for (auto& turntable_button_name : turntable_button_names)
     m_buttons->controls.emplace_back(new ControllerEmu::Input(turntable_button_name));
 
@@ -45,8 +47,8 @@ Turntable::Turntable(ExtensionReg& reg) : Attachment(_trans("Turntable"), reg)
   groups.emplace_back(m_right_table = new ControllerEmu::Slider(_trans("Table Right")));
 
   // stick
-  groups.emplace_back(m_stick =
-                          new ControllerEmu::AnalogStick("Stick", DEFAULT_ATTACHMENT_STICK_RADIUS));
+  groups.emplace_back(
+      m_stick = new ControllerEmu::AnalogStick(_trans("Stick"), DEFAULT_ATTACHMENT_STICK_RADIUS));
 
   // effect dial
   groups.emplace_back(m_effect_dial = new ControllerEmu::Triggers(_trans("Effect")));
@@ -61,7 +63,7 @@ Turntable::Turntable(ExtensionReg& reg) : Attachment(_trans("Turntable"), reg)
 
 void Turntable::GetState(u8* const data)
 {
-  wm_turntable_extension* const ttdata = (wm_turntable_extension*)data;
+  wm_turntable_extension* const ttdata = reinterpret_cast<wm_turntable_extension*>(data);
   ttdata->bt = 0;
 
   // stick

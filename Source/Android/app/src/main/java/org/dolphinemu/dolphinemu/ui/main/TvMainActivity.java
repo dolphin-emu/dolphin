@@ -46,8 +46,11 @@ public final class TvMainActivity extends Activity implements MainView
 		setContentView(R.layout.activity_tv_main);
 
 		final FragmentManager fragmentManager = getFragmentManager();
-		mBrowseFragment = (BrowseFragment) fragmentManager.findFragmentById(
-				R.id.fragment_game_list);
+		mBrowseFragment = new BrowseFragment();
+		fragmentManager
+				.beginTransaction()
+				.add(R.id.content, mBrowseFragment, "BrowseFragment")
+				.commit();
 
 		// Set display parameters for the BrowseFragment
 		mBrowseFragment.setHeadersState(BrowseFragment.HEADERS_ENABLED);
@@ -55,7 +58,6 @@ public final class TvMainActivity extends Activity implements MainView
 		mBrowseFragment.setBadgeDrawable(getResources().getDrawable(
 				R.drawable.ic_launcher, null));
 		mBrowseFragment.setBrandColor(getResources().getColor(R.color.dolphin_blue_dark));
-
 		buildRowsAdapter();
 
 		mPresenter.onCreate();

@@ -2,8 +2,11 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "DolphinQt2/Settings.h"
 #include "DolphinQt2/Config/SettingsWindow.h"
+#include "DolphinQt2/Settings.h"
+#include "DolphinQt2/Settings/GeneralPane.h"
+#include "DolphinQt2/Settings/InterfacePane.h"
+
 
 SettingsWindow::SettingsWindow(QWidget* parent) : QDialog(parent)
 {
@@ -47,6 +50,10 @@ void SettingsWindow::SetupSettingsWidget()
 {
   m_settings_outer = new QStackedWidget;
   m_settings_outer->setCurrentIndex(0);
+
+  // Panes initalised here
+  m_settings_outer->addWidget(new GeneralPane);
+  m_settings_outer->addWidget(new InterfacePane);
 }
 
 void SettingsWindow::MakeUnfinishedWarning()
@@ -61,8 +68,9 @@ void SettingsWindow::MakeUnfinishedWarning()
 
 void SettingsWindow::AddCategoryToList(const QString& title, const QString& icon)
 {
+  QString dir = Settings().GetThemeDir();
   QListWidgetItem* button = new QListWidgetItem();
-  button->setIcon(QIcon(icon));
+  button->setIcon(QIcon(dir.append(icon)));
   button->setText(title);
   button->setTextAlignment(Qt::AlignVCenter);
   button->setSizeHint(QSize(28, 28));
@@ -72,14 +80,14 @@ void SettingsWindow::AddCategoryToList(const QString& title, const QString& icon
 
 void SettingsWindow::MakeCategoryList()
 {
-  QString dir = Settings().GetThemeDir();
-
   m_categories = new QListWidget;
   m_categories->setMaximumWidth(175);
   m_categories->setIconSize(QSize(32, 32));
   m_categories->setMovement(QListView::Static);
   m_categories->setSpacing(0);
 
+  AddCategoryToList(tr("General"), QStringLiteral("config.png"));
+  AddCategoryToList(tr("Interface"), QStringLiteral("browse.png"));
   connect(m_categories, &QListWidget::currentItemChanged, this, &SettingsWindow::changePage);
 }
 

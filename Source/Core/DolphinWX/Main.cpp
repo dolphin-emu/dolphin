@@ -20,6 +20,7 @@
 #include <wx/imagpng.h>
 #include <wx/intl.h>
 #include <wx/language.h>
+#include <wx/menu.h>
 #include <wx/msgdlg.h>
 #include <wx/thread.h>
 #include <wx/timer.h>
@@ -294,9 +295,9 @@ void DolphinApp::AfterInit()
   }
   // If we have selected Automatic Start, start the default ISO,
   // or if no default ISO exists, start the last loaded ISO
-  else if (main_frame->g_pCodeWindow)
+  else if (m_use_debugger)
   {
-    if (main_frame->g_pCodeWindow->AutomaticStart())
+    if (main_frame->GetMenuBar()->IsChecked(IDM_AUTOMATIC_START))
     {
       main_frame->BootGame("");
     }
@@ -440,8 +441,8 @@ bool wxMsgAlert(const char* caption, const char* text, bool yes_no, int /*Style*
     event.SetString(StrToWxStr(caption) + ":" + StrToWxStr(text));
     event.SetInt(yes_no);
     main_frame->GetEventHandler()->AddPendingEvent(event);
-    main_frame->panic_event.Wait();
-    return main_frame->bPanicResult;
+    main_frame->m_panic_event.Wait();
+    return main_frame->m_panic_result;
   }
 }
 
@@ -480,9 +481,9 @@ void Host_NotifyMapLoaded()
   wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_NOTIFY_MAP_LOADED);
   main_frame->GetEventHandler()->AddPendingEvent(event);
 
-  if (main_frame->g_pCodeWindow)
+  if (main_frame->m_code_window)
   {
-    main_frame->g_pCodeWindow->GetEventHandler()->AddPendingEvent(event);
+    main_frame->m_code_window->GetEventHandler()->AddPendingEvent(event);
   }
 }
 
@@ -491,9 +492,9 @@ void Host_UpdateDisasmDialog()
   wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATE_DISASM_DIALOG);
   main_frame->GetEventHandler()->AddPendingEvent(event);
 
-  if (main_frame->g_pCodeWindow)
+  if (main_frame->m_code_window)
   {
-    main_frame->g_pCodeWindow->GetEventHandler()->AddPendingEvent(event);
+    main_frame->m_code_window->GetEventHandler()->AddPendingEvent(event);
   }
 }
 
@@ -502,9 +503,9 @@ void Host_UpdateMainFrame()
   wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATE_GUI);
   main_frame->GetEventHandler()->AddPendingEvent(event);
 
-  if (main_frame->g_pCodeWindow)
+  if (main_frame->m_code_window)
   {
-    main_frame->g_pCodeWindow->GetEventHandler()->AddPendingEvent(event);
+    main_frame->m_code_window->GetEventHandler()->AddPendingEvent(event);
   }
 }
 
@@ -520,23 +521,6 @@ void Host_RequestRenderWindowSize(int width, int height)
   wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_WINDOW_SIZE_REQUEST);
   event.SetClientData(new std::pair<int, int>(width, height));
   main_frame->GetEventHandler()->AddPendingEvent(event);
-}
-
-void Host_SetStartupDebuggingParameters()
-{
-  SConfig& StartUp = SConfig::GetInstance();
-  if (main_frame->g_pCodeWindow)
-  {
-    StartUp.bBootToPause = main_frame->g_pCodeWindow->BootToPause();
-    StartUp.bAutomaticStart = main_frame->g_pCodeWindow->AutomaticStart();
-    StartUp.bJITNoBlockCache = main_frame->g_pCodeWindow->JITNoBlockCache();
-    StartUp.bJITNoBlockLinking = main_frame->g_pCodeWindow->JITNoBlockLinking();
-  }
-  else
-  {
-    StartUp.bBootToPause = false;
-  }
-  StartUp.bEnableDebugging = main_frame->g_pCodeWindow ? true : false;  // RUNNING_DEBUG
 }
 
 void Host_SetWiiMoteConnectionState(int _State)

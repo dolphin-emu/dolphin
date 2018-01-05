@@ -65,7 +65,7 @@ public:
   T Get(const std::string& key, const T& default_value) const
   {
     T value;
-    Get(key, value, default_value);
+    Get(key, &value, default_value);
     return value;
   }
 

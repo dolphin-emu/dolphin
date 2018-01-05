@@ -146,6 +146,10 @@ public final class SettingsFragmentPresenter
 				addExtensionTypeSettings(sl, mControllerNumber, mControllerType);
 				break;
 
+			case SettingsFile.SECTION_STEREOSCOPY:
+				addStereoSettings(sl);
+				break;
+
 			default:
 				mView.showToastMessage("Unimplemented menu.");
 				return;
@@ -256,6 +260,13 @@ public final class SettingsFragmentPresenter
 			mView.passSettingsToActivity(mSettings);
 		}
 
+		if (mSettings.get(SettingsFile.SETTINGS_DOLPHIN).isEmpty())
+		{
+			mSettings.get(SettingsFile.SETTINGS_DOLPHIN).put(SettingsFile.SECTION_CORE, new SettingSection(SettingsFile.SECTION_CORE));
+
+			mView.passSettingsToActivity(mSettings);
+		}
+
 		sl.add(new SingleChoiceSetting(SettingsFile.KEY_VIDEO_BACKEND_INDEX, SettingsFile.SECTION_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.video_backend, R.string.video_backend_descrip, R.array.videoBackendEntries, R.array.videoBackendValues, 0, videoBackend));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_SHOW_FPS, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.show_fps, 0, true, showFps));
 
@@ -296,7 +307,7 @@ public final class SettingsFragmentPresenter
 		if ((helper.supportsOpenGL() && helper.GetVersion() >= 320) ||
 				(helper.supportsGLES3() && helper.GetVersion() >= 310 && helper.SupportsExtension("GL_ANDROID_extension_pack_es31a")))
 		{
-			sl.add(new SubmenuSetting(null, null, R.string.stereoscopy, 0, SettingsFile.SECTION_STEREOSCOPY));
+			sl.add(new SubmenuSetting(SettingsFile.KEY_STEREO_MODE, null, R.string.stereoscopy, R.string.stereoscopy_descrip, SettingsFile.SECTION_STEREOSCOPY));
 		}
 	}
 
@@ -330,6 +341,23 @@ public final class SettingsFragmentPresenter
 		sl.add(new HeaderSetting(null, null, R.string.other, 0));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_FAST_DEPTH, SettingsFile.SECTION_GFX_HACKS, SettingsFile.SETTINGS_GFX, R.string.fast_depth_calculation, R.string.fast_depth_calculation_descrip, true, fastDepth));
 		sl.add(new SingleChoiceSetting(SettingsFile.KEY_ASPECT_RATIO, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.aspect_ratio, R.string.aspect_ratio_descrip, R.array.aspectRatioEntries, R.array.aspectRatioValues, 0, aspectRatio));
+	}
+
+	private void addStereoSettings(ArrayList<SettingsItem> sl) {
+		if (mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_STEREOSCOPY) == null)
+		{
+			mSettings.get(SettingsFile.SETTINGS_GFX).put(SettingsFile.SECTION_STEREOSCOPY, new SettingSection(SettingsFile.SECTION_STEREOSCOPY));
+		}
+
+		Setting stereoModeValue = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_STEREOSCOPY).getSetting(SettingsFile.KEY_STEREO_MODE);
+		Setting stereoDepth = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_STEREOSCOPY).getSetting(SettingsFile.KEY_STEREO_DEPTH);
+		Setting convergence = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_STEREOSCOPY).getSetting(SettingsFile.KEY_STEREO_CONV);
+		Setting swapEyes = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_STEREOSCOPY).getSetting(SettingsFile.KEY_STEREO_SWAP);
+
+		sl.add(new SingleChoiceSetting(SettingsFile.KEY_STEREO_MODE, SettingsFile.SECTION_STEREOSCOPY, SettingsFile.SETTINGS_GFX, R.string.stereoscopy, R.string.stereoscopy_descrip, R.array.stereoscopyEntries, R.array.stereoscopyValues, 0, stereoModeValue));
+		sl.add(new SliderSetting(SettingsFile.KEY_STEREO_DEPTH, SettingsFile.SECTION_STEREOSCOPY, SettingsFile.SETTINGS_GFX, R.string.sterescopy_depth, R.string.sterescopy_depth_descrip, 100, "%", 20, stereoDepth));
+		sl.add(new SliderSetting(SettingsFile.KEY_STEREO_CONV, SettingsFile.SECTION_STEREOSCOPY, SettingsFile.SETTINGS_GFX, R.string.sterescopy_convergence, R.string.sterescopy_convergence_descrip, 200, "%", 0, convergence));
+		sl.add(new CheckBoxSetting(SettingsFile.KEY_STEREO_SWAP, SettingsFile.SECTION_STEREOSCOPY, SettingsFile.SETTINGS_GFX, R.string.sterescopy_swap_eyes, R.string.sterescopy_swap_eyes_descrip, false, swapEyes));
 	}
 
 	private void addGcPadSubSettings(ArrayList<SettingsItem> sl, int gcPadNumber, int gcPadType)

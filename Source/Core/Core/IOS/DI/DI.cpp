@@ -12,6 +12,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Core/HW/DVD/DVDInterface.h"
+#include "Core/HW/DVD/DVDThread.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/DI/DI.h"
 #include "Core/IOS/ES/ES.h"
@@ -100,16 +101,18 @@ IPCCommandResult DI::IOCtlV(const IOCtlVRequest& request)
     _dbg_assert_msg_(IOS_DI, request.in_vectors[2].address == 0,
                      "DVDLowOpenPartition with cert chain");
 
-    u64 const partition_offset = ((u64)Memory::Read_U32(request.in_vectors[0].address + 4) << 2);
-    DVDInterface::ChangePartition(partition_offset);
+    const u64 partition_offset =
+        static_cast<u64>(Memory::Read_U32(request.in_vectors[0].address + 4)) << 2;
+    const DiscIO::Partition partition(partition_offset);
+    DVDInterface::ChangePartition(partition);
 
     INFO_LOG(IOS_DI, "DVDLowOpenPartition: partition_offset 0x%016" PRIx64, partition_offset);
 
     // Read TMD to the buffer
-    const IOS::ES::TMDReader tmd = DVDInterface::GetVolume().GetTMD();
+    const IOS::ES::TMDReader tmd = DVDThread::GetTMD(partition);
     const std::vector<u8> raw_tmd = tmd.GetRawTMD();
     Memory::CopyToEmu(request.io_vectors[0].address, raw_tmd.data(), raw_tmd.size());
-    ES::DIVerify(tmd, DVDInterface::GetVolume().GetTicket());
+    ES::DIVerify(tmd, DVDThread::GetTicket(partition));
 
     return_value = 1;
     break;

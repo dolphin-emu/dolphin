@@ -122,6 +122,7 @@ bool StringEndsWith(const std::string& str, const std::string& end);
 
 std::string CP1252ToUTF8(const std::string& str);
 std::string SHIFTJISToUTF8(const std::string& str);
+std::string UTF8ToSHIFTJIS(const std::string& str);
 std::string UTF16ToUTF8(const std::wstring& str);
 
 #ifdef _WIN32

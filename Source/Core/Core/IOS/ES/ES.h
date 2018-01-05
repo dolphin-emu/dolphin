@@ -49,14 +49,71 @@ public:
   static void LoadWAD(const std::string& _rContentFile);
   bool LaunchTitle(u64 title_id, bool skip_reload = false);
 
-  // Internal implementation of the ES_DECRYPT ioctlv.
-  static void DecryptContent(u32 key_index, u8* iv, u8* input, u32 size, u8* new_iv, u8* output);
-
   void DoState(PointerWrap& p) override;
 
   ReturnCode Open(const OpenRequest& request) override;
   ReturnCode Close(u32 fd) override;
   IPCCommandResult IOCtlV(const IOCtlVRequest& request) override;
+
+  struct OpenedContent
+  {
+    u64 m_title_id;
+    IOS::ES::Content m_content;
+    u32 m_position;
+  };
+
+  struct TitleImportContext
+  {
+    IOS::ES::TMDReader tmd;
+    u32 content_id = 0xFFFFFFFF;
+    std::vector<u8> content_buffer;
+  };
+
+  // TODO: merge this with TitleImportContext. Also reuse the global content table.
+  struct TitleExportContext
+  {
+    struct ExportContent
+    {
+      OpenedContent content;
+      std::array<u8, 16> iv{};
+    };
+
+    bool valid = false;
+    IOS::ES::TMDReader tmd;
+    std::vector<u8> title_key;
+    std::map<u32, ExportContent> contents;
+  };
+
+  struct Context
+  {
+    void DoState(PointerWrap& p);
+
+    u16 gid = 0;
+    u32 uid = 0;
+    TitleImportContext title_import;
+    TitleExportContext title_export;
+    bool active = false;
+    // We use this to associate an IPC fd with an ES context.
+    u32 ipc_fd = -1;
+  };
+
+  // Title management
+  ReturnCode ImportTicket(const std::vector<u8>& ticket_bytes);
+  ReturnCode ImportTmd(Context& context, const std::vector<u8>& tmd_bytes);
+  ReturnCode ImportTitleInit(Context& context, const std::vector<u8>& tmd_bytes);
+  ReturnCode ImportContentBegin(Context& context, u64 title_id, u32 content_id);
+  ReturnCode ImportContentData(Context& context, u32 content_fd, const u8* data, u32 data_size);
+  ReturnCode ImportContentEnd(Context& context, u32 content_fd);
+  ReturnCode ImportTitleDone(Context& context);
+  ReturnCode ImportTitleCancel(Context& context);
+  ReturnCode ExportTitleInit(Context& context, u64 title_id, u8* tmd, u32 tmd_size);
+  ReturnCode ExportContentBegin(Context& context, u64 title_id, u32 content_id);
+  ReturnCode ExportContentData(Context& context, u32 content_fd, u8* data, u32 data_size);
+  ReturnCode ExportContentEnd(Context& context, u32 content_fd);
+  ReturnCode ExportTitleDone(Context& context);
+  ReturnCode DeleteTitle(u64 title_id);
+  ReturnCode DeleteTitleContent(u64 title_id) const;
+  ReturnCode DeleteTicket(const u8* ticket_view);
 
 private:
   enum
@@ -132,80 +189,26 @@ private:
     IOCTL_ES_CHECKKOREAREGION = 0x45,
   };
 
-  struct OpenedContent
-  {
-    u64 m_title_id;
-    IOS::ES::Content m_content;
-    u32 m_position;
-  };
-
-  struct ecc_cert_t
-  {
-    u32 sig_type;
-    u8 sig[0x3c];
-    u8 pad[0x40];
-    u8 issuer[0x40];
-    u32 key_type;
-    u8 key_name[0x40];
-    u32 ng_key_id;
-    u8 ecc_pubkey[0x3c];
-    u8 padding[0x3c];
-  };
-
-  struct TitleImportContext
-  {
-    IOS::ES::TMDReader tmd;
-    u32 content_id = 0xFFFFFFFF;
-    std::vector<u8> content_buffer;
-  };
-
-  // TODO: merge this with TitleImportContext. Also reuse the global content table.
-  struct TitleExportContext
-  {
-    struct ExportContent
-    {
-      OpenedContent content;
-      std::array<u8, 16> iv{};
-    };
-
-    bool valid = false;
-    IOS::ES::TMDReader tmd;
-    std::vector<u8> title_key;
-    std::map<u32, ExportContent> contents;
-  };
-
-  struct Context
-  {
-    void DoState(PointerWrap& p);
-
-    u16 gid = 0;
-    u32 uid = 0;
-    TitleImportContext title_import;
-    TitleExportContext title_export;
-    bool active = false;
-    // We use this to associate an IPC fd with an ES context.
-    u32 ipc_fd = -1;
-  };
   // ES can only have 3 contexts at one time.
   using ContextArray = std::array<Context, 3>;
 
   // Title management
-  IPCCommandResult AddTicket(const IOCtlVRequest& request);
-  IPCCommandResult AddTMD(Context& context, const IOCtlVRequest& request);
-  IPCCommandResult AddTitleStart(Context& context, const IOCtlVRequest& request);
-  IPCCommandResult AddContentStart(Context& context, const IOCtlVRequest& request);
-  IPCCommandResult AddContentData(Context& context, const IOCtlVRequest& request);
-  IPCCommandResult AddContentFinish(Context& context, const IOCtlVRequest& request);
-  IPCCommandResult AddTitleFinish(Context& context, const IOCtlVRequest& request);
-  IPCCommandResult AddTitleCancel(Context& context, const IOCtlVRequest& request);
+  IPCCommandResult ImportTicket(const IOCtlVRequest& request);
+  IPCCommandResult ImportTmd(Context& context, const IOCtlVRequest& request);
+  IPCCommandResult ImportTitleInit(Context& context, const IOCtlVRequest& request);
+  IPCCommandResult ImportContentBegin(Context& context, const IOCtlVRequest& request);
+  IPCCommandResult ImportContentData(Context& context, const IOCtlVRequest& request);
+  IPCCommandResult ImportContentEnd(Context& context, const IOCtlVRequest& request);
+  IPCCommandResult ImportTitleDone(Context& context, const IOCtlVRequest& request);
+  IPCCommandResult ImportTitleCancel(Context& context, const IOCtlVRequest& request);
   IPCCommandResult ExportTitleInit(Context& context, const IOCtlVRequest& request);
   IPCCommandResult ExportContentBegin(Context& context, const IOCtlVRequest& request);
   IPCCommandResult ExportContentData(Context& context, const IOCtlVRequest& request);
   IPCCommandResult ExportContentEnd(Context& context, const IOCtlVRequest& request);
   IPCCommandResult ExportTitleDone(Context& context, const IOCtlVRequest& request);
   IPCCommandResult DeleteTitle(const IOCtlVRequest& request);
-  IPCCommandResult DeleteTicket(const IOCtlVRequest& request);
   IPCCommandResult DeleteTitleContent(const IOCtlVRequest& request);
+  IPCCommandResult DeleteTicket(const IOCtlVRequest& request);
 
   // Device identity and encryption
   IPCCommandResult GetConsoleID(const IOCtlVRequest& request);

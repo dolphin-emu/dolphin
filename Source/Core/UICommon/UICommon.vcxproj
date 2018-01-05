@@ -60,12 +60,14 @@
     <ClCompile Include="USBUtils.cpp">
       <DisableSpecificWarnings>4200;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
+    <ClCompile Include="WiiUtils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommandLineParse.h" />
     <ClInclude Include="UICommon.h" />
     <ClInclude Include="Disassembler.h" />
     <ClInclude Include="USBUtils.h" />
+    <ClInclude Include="WiiUtils.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="$(ExternalsDir)cpp-optparse\cpp-optparse.vcxproj">

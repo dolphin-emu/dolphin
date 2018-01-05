@@ -35,7 +35,7 @@ public:
   // Reload settings after INI changes
   void ReloadINI();
 
-  bool IsValid() const { return m_Valid; }
+  bool IsValid() const;
   const std::string& GetFileName() const { return m_FileName; }
   std::string GetName(DiscIO::Language language) const;
   std::string GetName() const;
@@ -46,6 +46,7 @@ public:
   std::string GetCompany() const { return m_company; }
   u16 GetRevision() const { return m_Revision; }
   const std::string& GetGameID() const { return m_game_id; }
+  u64 GetTitleID() const { return m_title_id; }
   const std::string GetWiiFSPath() const;
   DiscIO::Region GetRegion() const { return m_region; }
   DiscIO::Country GetCountry() const { return m_Country; }
@@ -73,7 +74,7 @@ private:
   std::string m_company;
 
   std::string m_game_id;
-  u64 m_title_id;
+  u64 m_title_id = 0;
 
   std::string m_issues, m_vr_issues;
   int m_emu_state, m_vr_state;

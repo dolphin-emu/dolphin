@@ -94,7 +94,7 @@ void Wiimote::HidOutputReport(const wm_report* const sr, const bool send_ack)
     break;
 
   case RT_REPORT_MODE:  // 0x12
-    ReportMode((wm_report_mode*)sr->data);
+    ReportMode(reinterpret_cast<const wm_report_mode*>(sr->data));
     break;
 
   case RT_IR_PIXEL_CLOCK:  // 0x13
@@ -114,35 +114,27 @@ void Wiimote::HidOutputReport(const wm_report* const sr, const bool send_ack)
 
   case RT_REQUEST_STATUS:  // 0x15
     if (WIIMOTE_SRC_EMU & g_wiimote_sources[m_index])
-      RequestStatus((wm_request_status*)sr->data);
+      RequestStatus(reinterpret_cast<const wm_request_status*>(sr->data));
     return;  // sends its own ack
     break;
 
   case RT_WRITE_DATA:  // 0x16
-    err = WriteData((wm_write_data*)sr->data);
+    err = WriteData(reinterpret_cast<const wm_write_data*>(sr->data));
     break;
 
   case RT_READ_DATA:  // 0x17
     if (WIIMOTE_SRC_EMU & g_wiimote_sources[m_index])
-      ReadData((wm_read_data*)sr->data);
+      ReadData(reinterpret_cast<const wm_read_data*>(sr->data));
     return;  // sends its own ack
     break;
 
   case RT_WRITE_SPEAKER_DATA:  // 0x18
-    // wm_speaker_data *spkz = (wm_speaker_data*)sr->data;
-    // ERROR_LOG(WIIMOTE, "RT_WRITE_SPEAKER_DATA len:%x %s", spkz->length,
-    //	ArrayToString(spkz->data, spkz->length, 100, false).c_str());
     if (WIIMOTE_SRC_EMU & g_wiimote_sources[m_index] && !m_speaker_mute)
-      Wiimote::SpeakerData((wm_speaker_data*)sr->data);
+      Wiimote::SpeakerData(reinterpret_cast<const wm_speaker_data*>(sr->data));
     return;  // no ack
     break;
 
   case RT_SPEAKER_MUTE:  // 0x19
-    // ERROR_LOG(WIIMOTE, "WM Speaker Mute: %02x", sr->enable);
-    // PanicAlert( "WM Speaker Mute: %d", sr->data[0] & 0x04 );
-    // testing
-    // if (sr->data[0] & 0x04)
-    //	memset(&m_channel_status, 0, sizeof(m_channel_status));
     m_speaker_mute = sr->enable;
     if (false == sr->ack)
       return;
@@ -152,7 +144,6 @@ void Wiimote::HidOutputReport(const wm_report* const sr, const bool send_ack)
     // comment from old plugin:
     // This enables or disables the IR lights, we update the global variable g_IR
     // so that WmRequestStatus() knows about it
-    // INFO_LOG(WIIMOTE, "WM IR Enable: 0x%02x", sr->data[0]);
     m_status.ir = sr->enable;
     if (false == sr->ack)
       return;
@@ -174,17 +165,17 @@ void Wiimote::HidOutputReport(const wm_report* const sr, const bool send_ack)
    The first two bytes are the core buttons data,
    00 00 means nothing is pressed.
    The last byte is the success code 00. */
-void Wiimote::SendAck(u8 _reportID, u8 err)
+void Wiimote::SendAck(u8 _report_id, u8 err)
 {
   u8 data[6];
 
   data[0] = 0xA1;
   data[1] = RT_ACK_DATA;
 
-  wm_acknowledge* const ack = (wm_acknowledge*)(data + 2);
+  wm_acknowledge* ack = reinterpret_cast<wm_acknowledge*>(data + 2);
 
   ack->buttons = m_status.buttons;
-  ack->reportID = _reportID;
+  ack->reportID = _report_id;
   ack->errorID = err;
 
   Core::Callback_WiimoteInterruptChannel(m_index, m_reporting_channel, data, sizeof(data));
@@ -214,11 +205,6 @@ void Wiimote::HandleExtensionSwap()
   }
 }
 
-// old comment
-/* Here we produce a 0x20 status report to send to the Wii. We currently ignore
-   the status request rs and all its eventual instructions it may include (for
-   example turn off rumble or something else) and just send the status
-   report. */
 void Wiimote::RequestStatus(const wm_request_status* const rs, int ext)
 {
   HandleExtensionSwap();
@@ -235,7 +221,7 @@ void Wiimote::RequestStatus(const wm_request_status* const rs, int ext)
   data[1] = RT_STATUS_REPORT;
 
   // status values
-  *(wm_status_report*)(data + 2) = m_status;
+  *reinterpret_cast<wm_status_report*>(data + 2) = m_status;
 
   // hybrid Wiimote stuff
   if (WIIMOTE_SRC_REAL & g_wiimote_sources[m_index] && (m_extension->switch_extension <= 0))
@@ -286,10 +272,9 @@ u8 Wiimote::WriteData(const wm_write_data* const wd)
     memcpy(m_eeprom + address, wd->data, wd->size);
 
     // write mii data to file
-    // i need to improve this greatly
     if (address >= 0x0FCA && address < 0x12C0)
     {
-      // writing the whole mii block each write :/
+      // TODO Only write parts of the Mii block
       std::ofstream file;
       OpenFStream(file, File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/mii.bin",
                   std::ios::binary | std::ios::out);
@@ -339,9 +324,6 @@ u8 Wiimote::WriteData(const wm_write_data* const wd)
     case 0xB0:
       region_ptr = &m_reg_ir;
       region_size = WIIMOTE_REG_IR_SIZE;
-
-      // if (5 == m_reg_ir->mode)
-      //	PanicAlert("IR Full Mode is Unsupported!");
       break;
     }
 
@@ -354,14 +336,6 @@ u8 Wiimote::WriteData(const wm_write_data* const wd)
       // generate a writedata error reply
       return 8;
     }
-
-    /* TODO?
-    if (region_ptr == &m_reg_speaker)
-    {
-      ERROR_LOG(WIIMOTE, "Write to speaker register %x %s", address,
-        ArrayToString(wd->data, wd->size, 100, false).c_str());
-    }
-    */
 
     if (&m_reg_ext == region_ptr)
     {
@@ -471,7 +445,6 @@ void Wiimote::ReadData(const wm_read_data* const rd)
   {
   case WS_EEPROM:
   {
-    // PanicAlert("ReadData: reading from EEPROM: address: 0x%x size: 0x%x", address, size);
     // Read from EEPROM
     if (address + size >= WIIMOTE_EEPROM_FREE_SIZE)
     {
@@ -486,10 +459,9 @@ void Wiimote::ReadData(const wm_read_data* const rd)
     }
 
     // read mii data from file
-    // i need to improve this greatly
     if (address >= 0x0FCA && address < 0x12C0)
     {
-      // reading the whole mii block :/
+      // TODO Only read the Mii block parts required
       std::ifstream file;
       file.open((File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/mii.bin").c_str(),
                 std::ios::binary | std::ios::in);
@@ -585,23 +557,15 @@ void Wiimote::ReadData(const wm_read_data* const rd)
     delete[] rr.data;
 }
 
-// old comment
-/* Here we produce the actual 0x21 Input report that we send to the Wii. The
-   message is divided into 16 bytes pieces and sent piece by piece. There will
-   be five formatting bytes at the begging of all reports. A common format is
-   00 00 f0 00 20, the 00 00 means that no buttons are pressed, the f means 16
-   bytes in the message, the 0 means no error, the 00 20 means that the message
-   is at the 00 20 offest in the registry that was read.
-*/
-void Wiimote::SendReadDataReply(ReadRequest& _request)
+void Wiimote::SendReadDataReply(ReadRequest& request)
 {
   u8 data[23];
   data[0] = 0xA1;
   data[1] = RT_READ_DATA_REPLY;
 
-  wm_read_data_reply* const reply = (wm_read_data_reply*)(data + 2);
+  wm_read_data_reply* const reply = reinterpret_cast<wm_read_data_reply*>(data + 2);
   reply->buttons = m_status.buttons;
-  reply->address = Common::swap16(_request.address);
+  reply->address = Common::swap16(request.address);
 
   // generate a read error
   // Out of bounds. The real Wiimote generate an error for the first
@@ -609,10 +573,10 @@ void Wiimote::SendReadDataReply(ReadRequest& _request)
   // read the calibration data at the beginning of Eeprom. I think this
   // error is supposed to occur when we try to read above the freely
   // usable space that ends at 0x16ff.
-  if (0 == _request.size)
+  if (0 == request.size)
   {
     reply->size = 0x0f;
-    if ((_request.address & 0xFE0000) == 0xA60000)
+    if ((request.address & 0xFE0000) == 0xA60000)
       reply->error = 0x07;
     else
       reply->error = 0x08;
@@ -623,7 +587,7 @@ void Wiimote::SendReadDataReply(ReadRequest& _request)
   {
     // Limit the amt to 16 bytes
     // AyuanX: the MTU is 640B though... what a waste!
-    const int amt = std::min((unsigned int)16, _request.size);
+    const int amt = std::min((unsigned int)16, request.size);
 
     // no error
     reply->error = 0;
@@ -635,12 +599,12 @@ void Wiimote::SendReadDataReply(ReadRequest& _request)
     memset(reply->data, 0, sizeof(reply->data));
 
     // copy piece of mem
-    memcpy(reply->data, _request.data + _request.position, amt);
+    memcpy(reply->data, request.data + request.position, amt);
 
     // update request struct
-    _request.size -= amt;
-    _request.position += amt;
-    _request.address += amt;
+    request.size -= amt;
+    request.position += amt;
+    request.address += amt;
   }
 
   // Send a piece

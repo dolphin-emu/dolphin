@@ -26,7 +26,6 @@
 #include "Core/FifoPlayer/FifoDataFile.h"
 #include "Core/HLE/HLE.h"
 #include "Core/HW/DVD/DVDInterface.h"
-#include "Core/HW/DVD/DVDThread.h"
 #include "Core/HW/SI/SI.h"
 #include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/USB/Bluetooth/BTBase.h"
@@ -476,6 +475,7 @@ void SConfig::SaveGameListSettings(IniFile& ini)
 
   gamelist->Set("ColumnPlatform", m_showSystemColumn);
   gamelist->Set("ColumnBanner", m_showBannerColumn);
+  gamelist->Set("ColumnDescription", m_showDescriptionColumn);
   gamelist->Set("ColumnTitle", m_showTitleColumn);
   gamelist->Set("ColumnNotes", m_showMakerColumn);
   gamelist->Set("ColumnFileName", m_showFileNameColumn);
@@ -882,6 +882,7 @@ void SConfig::LoadGameListSettings(IniFile& ini)
 
   // Gamelist columns toggles
   gamelist->Get("ColumnPlatform", &m_showSystemColumn, true);
+  gamelist->Get("ColumnDescription", &m_showDescriptionColumn, false);
   gamelist->Get("ColumnBanner", &m_showBannerColumn, true);
   gamelist->Get("ColumnTitle", &m_showTitleColumn, true);
   gamelist->Get("ColumnNotes", &m_showMakerColumn, true);
@@ -918,7 +919,7 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("SelectedLanguage", &SelectedLanguage, 0);
   core->Get("OverrideGCLang", &bOverrideGCLanguage, false);
   core->Get("DPL2Decoder", &bDPL2Decoder, false);
-  core->Get("Latency", &iLatency, 2);
+  core->Get("Latency", &iLatency, 5);
   core->Get("AudioStretch", &m_audio_stretch, false);
   core->Get("AudioStretchMaxLatency", &m_audio_stretch_max_latency, 80);
   core->Get("MemcardAPath", &m_strMemoryCardA);
@@ -1101,11 +1102,12 @@ void SConfig::ResetRunningGameMetadata()
   SetRunningGameMetadata("00000000", 0, 0);
 }
 
-void SConfig::SetRunningGameMetadata(const DiscIO::IVolume& volume)
+void SConfig::SetRunningGameMetadata(const DiscIO::IVolume& volume,
+                                     const DiscIO::Partition& partition)
 {
   u64 title_id = 0;
-  volume.GetTitleID(&title_id);
-  SetRunningGameMetadata(volume.GetGameID(), title_id, volume.GetRevision());
+  volume.GetTitleID(&title_id, partition);
+  SetRunningGameMetadata(volume.GetGameID(partition), title_id, volume.GetRevision(partition));
 }
 
 void SConfig::SetRunningGameMetadata(const IOS::ES::TMDReader& tmd)
@@ -1116,20 +1118,11 @@ void SConfig::SetRunningGameMetadata(const IOS::ES::TMDReader& tmd)
   // the disc header instead of the TMD. They can differ.
   // (IOS HLE ES calls us with a TMDReader rather than a volume when launching
   // a disc game, because ES has no reason to be accessing the disc directly.)
-  if (DVDInterface::IsDiscInside())
+  if (!DVDInterface::UpdateRunningGameMetadata(tmd_title_id))
   {
-    DVDThread::WaitUntilIdle();
-    const DiscIO::IVolume& volume = DVDInterface::GetVolume();
-    u64 volume_title_id;
-    if (volume.GetTitleID(&volume_title_id) && volume_title_id == tmd_title_id)
-    {
-      SetRunningGameMetadata(volume.GetGameID(), volume_title_id, volume.GetRevision());
-      return;
-    }
+    // If not launching a disc game, just read everything from the TMD.
+    SetRunningGameMetadata(tmd.GetGameID(), tmd_title_id, tmd.GetTitleVersion());
   }
-
-  // If not launching a disc game, just read everything from the TMD.
-  SetRunningGameMetadata(tmd.GetGameID(), tmd_title_id, tmd.GetTitleVersion());
 }
 
 void SConfig::SetRunningGameMetadata(const std::string& game_id, u64 title_id, u16 revision)
@@ -1300,7 +1293,7 @@ bool SConfig::AutoSetup(EBootBS2 _BootBS2)
                       m_strFilename.c_str());
         return false;
       }
-      SetRunningGameMetadata(*pVolume);
+      SetRunningGameMetadata(*pVolume, pVolume->GetGamePartition());
 
       // Check if we have a Wii disc
       bWii = pVolume->GetVolumeType() == DiscIO::Platform::WII_DISC;
@@ -1348,13 +1341,10 @@ bool SConfig::AutoSetup(EBootBS2 _BootBS2)
           DiscIO::CNANDContentManager::Access().GetNANDLoader(m_strFilename);
       const IOS::ES::TMDReader& tmd = content_loader.GetTMD();
 
-      if (content_loader.GetContentByIndex(tmd.GetBootIndex()) == nullptr)
+      if (!IOS::ES::IsChannel(tmd.GetTitleId()))
       {
-        // WAD is valid yet cannot be booted. Install instead.
-        u64 installed = DiscIO::CNANDContentManager::Access().Install_WiiWAD(m_strFilename);
-        if (installed)
-          SuccessAlertT("The WAD has been installed successfully");
-        return false;  // do not boot
+        PanicAlertT("This WAD is not bootable.");
+        return false;
       }
 
       SetRegion(tmd.GetRegion(), &set_region_dir);

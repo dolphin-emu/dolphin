@@ -14,8 +14,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-04-30 10:15+0200\n"
-"PO-Revision-Date: 2017-04-30 08:15+0000\n"
+"POT-Creation-Date: 2017-05-13 11:35+0200\n"
+"PO-Revision-Date: 2017-05-13 09:35+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Japanese (http://www.transifex.com/delroth/dolphin-emu/"
 "language/ja/)\n"
@@ -74,7 +74,7 @@ msgstr "\"%s\" のスクラビングに失敗しました。おそらく壊れ�
 msgid "\"%s\" is already compressed! Cannot compress it further."
 msgstr "\"%s\" は圧縮済みです！これ以上圧縮することはできません。"
 
-#: Source/Core/Core/ConfigManager.cpp:941
+#: Source/Core/Core/ConfigManager.cpp:943
 #, c-format
 msgid "\"%s\" is an invalid GCM/ISO file, or is not a GC/Wii ISO."
 msgstr "\"%s\" は無効なファイル、またはゲームキューブ／Wii のISOではありません"
@@ -153,7 +153,7 @@ msgstr ""
 "ませんでした。\n"
 "合計ブロック数: %d; 空きブロック数: %d"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:575
+#: Source/Core/DolphinWX/GameListCtrl.cpp:578
 #, c-format
 msgid "%s (Disc %i)"
 msgstr "%s (ディスク %i)"
@@ -256,7 +256,7 @@ msgstr "%zu メモリ バイト"
 msgid "&& AND"
 msgstr "&& (...と...)"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:504
+#: Source/Core/DolphinWX/MainMenuBar.cpp:500
 msgid "&About"
 msgstr "Dolphinについて(&A)"
 
@@ -312,11 +312,11 @@ msgstr "&Create Signature File..."
 msgid "&Debug"
 msgstr "&Debug"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1032
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1033
 msgid "&Delete File..."
 msgstr "このタイトルの実体を削除(&D)"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1067
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1068
 msgid "&Delete selected ISOs..."
 msgstr "選択したタイトルの実体を全て削除(&D)"
 
@@ -359,7 +359,7 @@ msgstr "Frame Advance(&F)"
 msgid "&Generate Symbols From"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:502
+#: Source/Core/DolphinWX/MainMenuBar.cpp:498
 msgid "&GitHub Repository"
 msgstr "GitHub リポジトリ(&G)"
 
@@ -464,20 +464,20 @@ msgstr "開く(&O)"
 msgid "&Options"
 msgstr "設定(&O)"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:480
+#: Source/Core/DolphinWX/MainMenuBar.cpp:476
 msgid "&Patch HLE Functions"
 msgstr "&Patch HLE Functions"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:533
+#: Source/Core/DolphinWX/MainMenuBar.cpp:529
 msgid "&Pause"
 msgstr "一時停止(&P)"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:535
+#: Source/Core/DolphinWX/MainMenuBar.cpp:531
 msgid "&Play"
 msgstr "開始(&P)"
 
 #. i18n: "Profile" is used as a verb, not a noun.
-#: Source/Core/DolphinWX/MainMenuBar.cpp:490
+#: Source/Core/DolphinWX/MainMenuBar.cpp:486
 msgid "&Profile Blocks"
 msgstr "&Profile Blocks"
 
@@ -485,7 +485,7 @@ msgstr "&Profile Blocks"
 msgid "&Profiler"
 msgstr "&Profiler"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1004
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1002
 msgid "&Properties"
 msgstr "プロパティ(&P)"
 
@@ -513,7 +513,7 @@ msgstr "&Registers"
 msgid "&Remove Code"
 msgstr "コードを削除(&R)"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:481
+#: Source/Core/DolphinWX/MainMenuBar.cpp:477
 msgid "&Rename Symbols from File..."
 msgstr "&Rename Symbols from File..."
 
@@ -567,15 +567,15 @@ msgstr "表示(&V)"
 msgid "&Watch"
 msgstr "&Watch"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:500
+#: Source/Core/DolphinWX/MainMenuBar.cpp:496
 msgid "&Website"
 msgstr "公式ウェブサイト(&W)"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1005
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1003
 msgid "&Wiki"
 msgstr "公式Wiki(英語)で動作状況を確認(&W)"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:492
+#: Source/Core/DolphinWX/MainMenuBar.cpp:488
 msgid "&Write to profile.txt, Show"
 msgstr "&Write to profile.txt, Show"
 
@@ -705,7 +705,7 @@ msgstr ""
 msgid "A game is not currently running."
 msgstr "ゲームは現在、起動されていません"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:832
+#: Source/Core/DolphinWX/FrameTools.cpp:823
 msgid ""
 "A shutdown is already in progress. Unsaved data may be lost if you stop the "
 "current emulation before it completes. Force stop?"
@@ -713,7 +713,7 @@ msgstr ""
 "終了処理の実行中です。 この処理が完了する前にエミュレーションの強制終了をする"
 "とデータが失われる場合があります。それでも強制終了しますか？"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:357
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:358
 msgid ""
 "A supported Bluetooth device could not be found,\n"
 "so you must connect Wii Remotes manually."
@@ -721,11 +721,11 @@ msgstr ""
 "サポートしているBluetoothデバイスが見つかりませんでした。\n"
 "手動でWiiリモコンを接続する必要があります。"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:548
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:550
 msgid "A sync can only be triggered when a Wii game is running."
 msgstr "WiiリモコンとのSyncはWiiのゲームを実行中にのみ行なえます"
 
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:194
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:195
 msgid ""
 "ALERT:\n"
 "\n"
@@ -763,7 +763,7 @@ msgstr "Dolphinについて"
 msgid "Accuracy:"
 msgstr "精度："
 
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:69
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:78
 msgid "Action"
 msgstr "Action"
 
@@ -941,7 +941,7 @@ msgstr "追加"
 msgid "Address"
 msgstr "アドレス"
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:387
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:444
 msgid "Address Out of Range"
 msgstr "Address Out of Range"
 
@@ -958,8 +958,8 @@ msgstr "アドバンスコネクタ"
 msgid "Advanced"
 msgstr "高度な設定"
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:120
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:239
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:127
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:240
 msgid "Advanced Settings"
 msgstr "高度な設定"
 
@@ -968,20 +968,20 @@ msgstr "高度な設定"
 msgid "All GC/Wii files (elf, dol, gcm, iso, tgc, wbfs, ciso, gcz, wad)"
 msgstr "全ての GC/Wii ファイル (elf, dol, gcm, iso, tgc, wbfs, ciso, gcz, wad)"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1383
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1377
 msgid "All GameCube GCM files (gcm)"
 msgstr "ゲームキューブ GCMファイル (gcm)"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1355
-#: Source/Core/DolphinWX/FrameTools.cpp:1367
+#: Source/Core/DolphinWX/FrameTools.cpp:1344
+#: Source/Core/DolphinWX/FrameTools.cpp:1356
 msgid "All Save States (sav, s##)"
 msgstr "全てのステートセーブファイル (sav, s##)"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1381
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1375
 msgid "All Wii ISO files (iso)"
 msgstr "Wii ISOファイル (iso)"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1396
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1390
 msgid "All compressed GC/Wii ISO files (gcz)"
 msgstr "圧縮されたGC/Wii ISOファイル (gcz)"
 
@@ -1026,7 +1026,7 @@ msgstr "異方性フィルタリング："
 msgid "Anti-Aliasing:"
 msgstr "アンチエイリアス："
 
-#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:374
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:376
 msgid "Append signature to"
 msgstr "Append signature to"
 
@@ -1038,26 +1038,18 @@ msgstr "Append to &Existing Signature File..."
 msgid "Apploader Date:"
 msgstr "Apploaderの日付"
 
-#: Source/Core/DiscIO/VolumeDirectory.cpp:313
+#: Source/Core/DiscIO/VolumeDirectory.cpp:315
 msgid "Apploader is the wrong size...is it really an apploader?"
 msgstr ""
 "Apploader のサイズが間違っています。このファイルは本当にApploaderですか？"
 
-#: Source/Core/DiscIO/VolumeDirectory.cpp:306
+#: Source/Core/DiscIO/VolumeDirectory.cpp:308
 msgid "Apploader unable to load from file"
 msgstr "Apploader ファイルから読み込むことができません"
 
 #: Source/Core/DolphinWX/Config/PathConfigPane.cpp:88
 msgid "Apploader:"
 msgstr "Apploader:"
-
-#: Source/Core/DolphinWX/MainMenuBar.cpp:476
-msgid "Apply &MEGA Signature File..."
-msgstr ""
-
-#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:431
-msgid "Apply MEGA signature file"
-msgstr ""
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:472
 msgid "Apply Signat&ure File..."
@@ -1073,8 +1065,8 @@ msgstr ""
 "\n"
 "よく分からなければ、【オフ】を選択してください。"
 
-#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:309
-#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:391
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:310
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:394
 msgid "Apply signature file"
 msgstr "Apply signature file"
 
@@ -1083,12 +1075,12 @@ msgstr "Apply signature file"
 msgid "Are you sure you want to delete \"%s\"?"
 msgstr "\"%s\" このプロファイルを削除しますか？"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1177
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1171
 msgid "Are you sure you want to delete these files? They will be gone forever!"
 msgstr ""
 "これら複数のタイトルの実体ファイルを削除しますか？元に戻すことはできません！"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1176
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1170
 msgid "Are you sure you want to delete this file? It will be gone forever!"
 msgstr "このタイトルの実体ファイルを削除しますか？元に戻すことはできません！"
 
@@ -1202,16 +1194,18 @@ msgstr "出力設定"
 msgid "Backend:"
 msgstr "ビデオAPI："
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:234
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:235
 #: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:60
 msgid "Background Input"
 msgstr "バックグラウンド操作を許可"
 
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:30
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:27
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/Tilt.cpp:23
 msgid "Backward"
 msgstr "後方"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:426
+#: Source/Core/DolphinWX/GameListCtrl.cpp:445
 #: Source/Core/DolphinWX/MainMenuBar.cpp:281
 #: Source/Core/DolphinWX/MemcardManager.cpp:626
 msgid "Banner"
@@ -1233,7 +1227,7 @@ msgstr "バー"
 msgid "Basic"
 msgstr "基本設定"
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:103
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:108
 msgid "Basic Settings"
 msgstr "基本設定"
 
@@ -1241,7 +1235,7 @@ msgstr "基本設定"
 msgid "Bass"
 msgstr "バスドラ"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:312
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:315
 msgid "Battery"
 msgstr "バッテリ残量"
 
@@ -1254,6 +1248,7 @@ msgid "Blocks"
 msgstr "ブロック数"
 
 #: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:28
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:30
 msgid "Blue"
 msgstr "青"
 
@@ -1287,7 +1282,7 @@ msgstr ""
 msgid "Boot to Pause"
 msgstr "Boot to Pause"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1268
+#: Source/Core/DolphinWX/FrameTools.cpp:1253
 msgid "BootMii NAND backup file (*.bin)"
 msgstr ""
 
@@ -1310,11 +1305,11 @@ msgstr "コマンド数: %lu"
 msgid "Branch: %s"
 msgstr "Branch: %s"
 
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:47
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:56
 msgid "Break"
 msgstr "Break"
 
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:48
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:57
 msgid "Break and log"
 msgstr "Break and log"
 
@@ -1338,11 +1333,11 @@ msgstr "ブロードバンドアダプタ"
 msgid "Broken"
 msgstr "ダメダメ"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:386
+#: Source/Core/DolphinWX/GameListCtrl.cpp:405
 msgid "Browse for a directory to add"
 msgstr "ゲームリストに追加するフォルダを選択してください"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1284
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1278
 msgid "Browse for output directory"
 msgstr "出力先を選択"
 
@@ -1359,6 +1354,12 @@ msgid "Button"
 msgstr "ボタン"
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:51
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Classic.cpp:65
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:48
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:54
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Nunchuk.cpp:33
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:41
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:258
 #: Source/Core/DolphinWX/TASInputDlg.cpp:216
 #: Source/Core/DolphinWX/TASInputDlg.cpp:302
 #: Source/Core/DolphinWX/TASInputDlg.cpp:413
@@ -1391,7 +1392,7 @@ msgstr "Cスティック"
 msgid "CP register "
 msgstr "CP register "
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:70
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:72
 msgid "CPU Emulator Engine"
 msgstr "CPUエミュレーション方式"
 
@@ -1443,7 +1444,7 @@ msgstr "Can't find Wii Remote by connection handle %02x"
 msgid "Cannot SingleStep the FIFO. Use Frame Advance instead."
 msgstr "Cannot SingleStep the FIFO. Use Frame Advance instead."
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:172
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:230
 msgid "Cannot set uninitialized memory."
 msgstr "Cannot set uninitialized memory."
 
@@ -1463,7 +1464,7 @@ msgstr ""
 msgid "Center"
 msgstr "Center"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1041
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1042
 msgid "Change &Disc"
 msgstr "ディスクの入れ替え(&D)"
 
@@ -1475,7 +1476,7 @@ msgstr "ディスクの入れ替え(&D)"
 msgid "Change Disc"
 msgstr "ディスクの入れ替え"
 
-#: Source/Core/Core/Movie.cpp:1275
+#: Source/Core/Core/Movie.cpp:1277
 #, c-format
 msgid "Change the disc to %s"
 msgstr "次のディスクに変更：%s"
@@ -1560,11 +1561,11 @@ msgstr ""
 "apploaderとして使用するファイルを選択：(フォルダからのみ構築されたディスクに"
 "適用されます)"
 
-#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:406
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:410
 msgid "Choose priority input file"
 msgstr "Choose priority input file"
 
-#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:412
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:417
 msgid "Choose secondary input file"
 msgstr "Choose secondary input file"
 
@@ -1577,7 +1578,7 @@ msgstr "保存先のフォルダを選択してください"
 msgid "Circle Stick"
 msgstr "丸み"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Classic.cpp:55
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Classic.cpp:62
 msgid "Classic"
 msgstr "クラシックコントローラ"
 
@@ -1650,20 +1651,20 @@ msgstr "Combine Two Signature Files..."
 msgid "Comment"
 msgstr "コメント"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1039
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1040
 msgid "Compress ISO..."
 msgstr "このタイトルを圧縮"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1069
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1070
 msgid "Compress selected ISOs..."
 msgstr "選択したISOファイルを全て圧縮"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1293
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1411
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1287
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1405
 msgid "Compressing ISO"
 msgstr "圧縮しています..."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1517
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1486
 msgid ""
 "Compressing a Wii disc image will irreversibly change the compressed copy by "
 "removing padding data. Your disc image will still work. Continue?"
@@ -1701,8 +1702,8 @@ msgstr "計算中..."
 msgid "Config"
 msgstr "設定"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:166
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:338
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:167
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:339
 #: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:234
 msgid "Configure"
 msgstr "設定"
@@ -1719,9 +1720,9 @@ msgstr ""
 msgid "Configure..."
 msgstr "Dolphinの設定を行います"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1316
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1341
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1406
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1310
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1335
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1400
 msgid "Confirm File Overwrite"
 msgstr "ファイルの上書きを確認"
 
@@ -1730,7 +1731,7 @@ msgid "Confirm on Stop"
 msgstr "動作停止時に確認"
 
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:171
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:189
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:190
 msgid "Connect"
 msgstr "ホストに接続"
 
@@ -1768,7 +1769,7 @@ msgstr "4PのWiiリモコンを接続"
 msgid "Connect Wii Remotes"
 msgstr "Wiiリモコンの接続"
 
-#: Source/Core/DolphinWX/Main.cpp:489
+#: Source/Core/DolphinWX/Main.cpp:491
 msgid "Connecting..."
 msgstr "接続中..."
 
@@ -1780,7 +1781,7 @@ msgstr "接続方式："
 msgid "Continue"
 msgstr "Continue"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:348
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:349
 msgid "Continuous Scanning"
 msgstr "接続状況を常に監視"
 
@@ -1857,7 +1858,7 @@ msgstr "Copy &function"
 msgid "Copy &hex"
 msgstr "Copy &hex"
 
-#: Source/Core/Core/ConfigManager.cpp:1095
+#: Source/Core/Core/ConfigManager.cpp:1097
 msgid "Copy failed"
 msgstr "コピーに失敗"
 
@@ -1893,7 +1894,7 @@ msgstr ""
 "た。\n"
 "これによりDolphinは停止すると思われます。"
 
-#: Source/Core/Core/ConfigManager.cpp:935
+#: Source/Core/Core/ConfigManager.cpp:937
 #, c-format
 msgid ""
 "Could not read \"%s\". There is no disc in the drive or it is not a GameCube/"
@@ -1904,7 +1905,7 @@ msgstr ""
 "プディスクではありません。DolphinはオリジナルのGC/Wii のディスクは読み込めな"
 "い点に注意してください"
 
-#: Source/Core/Core/ConfigManager.cpp:1010
+#: Source/Core/Core/ConfigManager.cpp:1012
 #, c-format
 msgid "Could not recognize ISO file %s"
 msgstr "ISOファイル %s を認識できませんでした"
@@ -2033,7 +2034,7 @@ msgstr ""
 "\n"
 "よく分からなければ、チェックを入れないでください。"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:56
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:58
 msgid "Crossfade"
 msgstr "クロスフェーダー"
 
@@ -2055,10 +2056,12 @@ msgid "Custom RTC Options"
 msgstr "リアルタイムクロック設定"
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:75
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Classic.cpp:81
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:298
 msgid "D-Pad"
 msgstr "十字キー"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:51
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:52
 msgid "DK Bongos"
 msgstr "タルコンガ"
 
@@ -2087,7 +2090,7 @@ msgstr "DSP LLE recompiler"
 msgid "DVD Root:"
 msgstr "DVDルート"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:51
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:52
 msgid "Dance Mat"
 msgstr "マットコントローラ"
 
@@ -2095,7 +2098,7 @@ msgstr "マットコントローラ"
 msgid "Data Size"
 msgstr "データサイズ"
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:120
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:90
 msgid "Data Type"
 msgstr "Data Type"
 
@@ -2131,16 +2134,16 @@ msgstr "デバッグ用"
 msgid "Decimal"
 msgstr "Decimal"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1037
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1038
 msgid "Decompress ISO..."
 msgstr "ISOファイルへ復元"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1070
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1071
 msgid "Decompress selected ISOs..."
 msgstr "選択したファイルを全てISOファイルへ復元"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1293
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1411
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1287
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1405
 msgid "Decompressing ISO"
 msgstr "復元中..."
 
@@ -2235,7 +2238,7 @@ msgstr "デバイス PID (例：057e)"
 msgid "Device not found"
 msgstr "デバイスが見つかりません"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:53
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:55
 msgid "Dial"
 msgstr "ダイアル"
 
@@ -2329,11 +2332,11 @@ msgstr ""
 "メモリーカードへのアクセス、起動時のシステム情報、 JIT cacheの消去などが含ま"
 "れます"
 
-#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:180
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:181
 msgid "Do you want to clear the list of symbol names?"
 msgstr "Do you want to clear the list of symbol names?"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:831
+#: Source/Core/DolphinWX/FrameTools.cpp:822
 msgid "Do you want to stop the current emulation?"
 msgstr "動作中のゲームを停止しますか？"
 
@@ -2356,11 +2359,11 @@ msgstr "Dolphin %s グラフィック設定"
 msgid "Dolphin Configuration"
 msgstr "Dolphinの設定"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:48
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:49
 msgid "Dolphin Controller Configuration"
 msgstr "Dolphin コントローラ設定"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:530
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:531
 #, c-format
 msgid "Dolphin Emulated Wii Remote Configuration Port %i"
 msgstr "Wiiリモコンのエミュレーション設定 - ポート%i"
@@ -2369,13 +2372,13 @@ msgstr "Wiiリモコンのエミュレーション設定 - ポート%i"
 msgid "Dolphin FIFO"
 msgstr "Dolphin FIFO"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1042
+#: Source/Core/DolphinWX/FrameTools.cpp:1028
 msgid "Dolphin Hotkeys"
 msgstr "Dolphin ホットキー設定"
 
-#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:260
-#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:276
-#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:295
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:261
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:277
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:296
 msgid "Dolphin Map File (*.map)"
 msgstr "Dolphin Map File (*.map)"
 
@@ -2395,16 +2398,16 @@ msgstr "Dolphin Signature CSV File (*.csv)"
 msgid "Dolphin Signature File (*.dsy)"
 msgstr "Dolphin Signature File (*.dsy)"
 
-#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:310
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:311
 msgid "Dolphin Symbol Rename File (*.sym)"
 msgstr "Dolphin Symbol Rename File (*.sym)"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:485
-#: Source/Core/DolphinWX/FrameTools.cpp:977
+#: Source/Core/DolphinWX/FrameTools.cpp:963
 msgid "Dolphin TAS Movies (*.dtm)"
 msgstr "Dolphin TAS ムービー (*.dtm)"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:502
+#: Source/Core/DolphinWX/GameListCtrl.cpp:505
 msgid ""
 "Dolphin could not find any GameCube/Wii ISOs or WADs. Double-click here to "
 "set a games directory..."
@@ -2412,7 +2415,7 @@ msgstr ""
 "ゲームリストは空です。この文章をダブルクリックして GC/Wii の ディスクイメー"
 "ジ もしくは WAD ファイルのあるフォルダを選択してください。"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:498
+#: Source/Core/DolphinWX/GameListCtrl.cpp:501
 msgid ""
 "Dolphin is currently set to hide all games. Double-click here to show all "
 "games..."
@@ -2424,8 +2427,8 @@ msgstr ""
 msgid "Dolphin is too old for traversal server"
 msgstr "Dolphinのバージョンが古すぎます"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1353
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1426
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1347
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1420
 msgid "Dolphin was unable to complete the requested action."
 msgstr "要求された操作を完了することができませんでした。"
 
@@ -2437,6 +2440,7 @@ msgstr ""
 msgid "Done compressing disc image."
 msgstr "ディスクイメージの圧縮に成功しました"
 
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:51
 #: Source/Core/DolphinWX/TASInputDlg.cpp:97
 #: Source/Core/DolphinWX/TASInputDlg.cpp:249
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:23
@@ -2484,11 +2488,11 @@ msgstr "サウンドのダンプを行う(WAV形式)"
 msgid "Dump EFB Target"
 msgstr "EFBターゲットをダンプ"
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:98
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:135
 msgid "Dump EXRAM"
 msgstr "Dump EXRAM"
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:100
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:144
 msgid "Dump FakeVMEM"
 msgstr "Dump FakeVMEM"
 
@@ -2496,7 +2500,7 @@ msgstr "Dump FakeVMEM"
 msgid "Dump Frames"
 msgstr "フレームのダンプを行う(AVI形式)"
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:97
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:132
 msgid "Dump MRAM"
 msgstr "Dump MRAM"
 
@@ -2597,7 +2601,7 @@ msgstr "Edit Perspectives"
 msgid "Edit..."
 msgstr "編集"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:52
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:54
 msgid "Effect"
 msgstr "エフェクト"
 
@@ -2650,11 +2654,11 @@ msgstr ""
 "\n"
 "よく分からなければ、こちらを選択しておいてください。"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:262
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:263
 msgid "Emulate the Wii's Bluetooth adapter"
 msgstr "WiiのBluetoothアダプタをエミュレート"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:312
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:313
 msgid "Emulated Wii Remote"
 msgstr "Wiiリモコンをエミュレート"
 
@@ -2718,11 +2722,11 @@ msgstr "プログレッシブ表示を有効化"
 msgid "Enable Screen Saver"
 msgstr "スクリーンセーバーを有効化"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:368
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:369
 msgid "Enable Speaker Data"
 msgstr "Wiiリモコンのスピーカーを有効化"
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:60
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:61
 msgid "Enable Usage Statistics Reporting"
 msgstr "統計レポートの収集に協力する"
 
@@ -2845,7 +2849,7 @@ msgstr ""
 "メモリ管理機構を有効にします。いくつかのタイトルで必要です [有効＝互換性重視"
 "／無効＝速度向上]"
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:81
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:84
 msgid ""
 "Enables the collection and sharing of usage statistics data with the Dolphin "
 "development team. This data is used to improve the emulator and help us "
@@ -2856,7 +2860,7 @@ msgstr ""
 "ユーザー⇔システム間でどのようなやりとりをしているかの理解のためで、個人情報は"
 "一切収集されません"
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:76
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:78
 msgid "Enables the use of Action Replay and Gecko cheats."
 msgstr "有効にすることでアクションリプレイ/Geckoコードが作用するようになります"
 
@@ -2906,7 +2910,7 @@ msgstr "デバイス（ハードウェア）IDを入力"
 msgid "Enter a name for the new perspective:"
 msgstr "Enter a name for the new perspective:"
 
-#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:210
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:211
 msgid "Enter the RSO module address:"
 msgstr ""
 
@@ -2926,14 +2930,14 @@ msgstr "に一致する"
 
 #: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:67
 #: Source/Core/DolphinWX/LogConfigWindow.cpp:43
-#: Source/Core/DolphinWX/Main.cpp:311 Source/Core/DolphinWX/Main.cpp:319
+#: Source/Core/DolphinWX/Main.cpp:313 Source/Core/DolphinWX/Main.cpp:321
 #: Source/Core/DolphinWX/MemcardManager.cpp:554
 #: Source/Core/DolphinWX/PatchAddEdit.cpp:242
 #: Source/Core/DolphinWX/WxUtils.cpp:70
 msgid "Error"
 msgstr "エラー"
 
-#: Source/Core/DolphinWX/Main.cpp:310
+#: Source/Core/DolphinWX/Main.cpp:312
 msgid "Error loading selected language. Falling back to system default."
 msgstr ""
 "選択した言語の読み込みに失敗しました。＜システムの言語＞に設定を戻します"
@@ -2967,7 +2971,8 @@ msgstr ""
 "エラー： Windows-1252フォントにアクセスを試みましたが読み込めませんでした。"
 "ゲームはフォントを正しく表示できないか、クラッシュするでしょう"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:33
+#. i18n: This button name refers to a gameplay element in DJ Hero
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:35
 msgid "Euphoria"
 msgstr "Euphoria"
 
@@ -2995,7 +3000,7 @@ msgstr "録画ファイルのエクスポート"
 msgid "Export Save"
 msgstr "セーブデータをエクスポート"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1013
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1011
 msgid "Export Wii save (Experimental)"
 msgstr "セーブデータをエクスポート (実験的)"
 
@@ -3012,7 +3017,7 @@ msgstr "エクスポートに失敗"
 msgid "Export save as..."
 msgstr "セーブデータのエクスポート先を選択"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:279
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:282
 msgid "Extension"
 msgstr "拡張コントローラ"
 
@@ -3154,7 +3159,7 @@ msgstr ""
 "出力先が書き込み可能なメディアか、また書き込み権限があるかどうかを確認してく"
 "ださい"
 
-#: Source/Core/Core/Movie.cpp:1015
+#: Source/Core/Core/Movie.cpp:1017
 #, c-format
 msgid "Failed to read %s"
 msgstr "Failed to read %s"
@@ -3219,7 +3224,7 @@ msgstr ""
 msgid "Failed to read unique ID from disc image"
 msgstr "Failed to read unique ID from disc image"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1250
+#: Source/Core/DolphinWX/FrameTools.cpp:1235
 msgid "Failed to remove this title from the NAND."
 msgstr ""
 
@@ -3245,7 +3250,7 @@ msgstr "Fast"
 msgid "Fast Depth Calculation"
 msgstr "Fast Depth Calculation"
 
-#: Source/Core/Core/Movie.cpp:1307
+#: Source/Core/Core/Movie.cpp:1309
 #, c-format
 msgid ""
 "Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s"
@@ -3253,7 +3258,7 @@ msgstr ""
 "致命的なdesyncが発生したため再生を中止します。 (Error in PlayWiimote: %u != "
 "%u, byte %u.)%s"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:430
+#: Source/Core/DolphinWX/GameListCtrl.cpp:449
 msgid "File"
 msgstr "ファイル名"
 
@@ -3343,12 +3348,12 @@ msgstr ""
 msgid "Filter the symbol list by name. This is case-sensitive."
 msgstr "Filter the symbol list by name. This is case-sensitive."
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:103
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:155
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:234
 msgid "Find Next"
 msgstr "次へ"
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:105
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:158
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:235
 msgid "Find Previous"
 msgstr "前へ"
@@ -3369,7 +3374,7 @@ msgstr "チェックサムを修正"
 #. not the kinds of flags that represent e.g. countries
 #: Source/Core/DolphinWX/Debugger/BreakpointView.cpp:37
 #: Source/Core/DolphinWX/Debugger/JitWindow.cpp:180
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:75
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:84
 msgid "Flags"
 msgstr "Flags"
 
@@ -3401,15 +3406,15 @@ msgstr "強制的に 4:3 にする"
 msgid "Force Console as NTSC-J"
 msgstr "コンソールを日本向け (NTSC-J) に設定"
 
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:229
-msgid "Force Listen Port: "
-msgstr "接続待ちポートを次の番号で固定："
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:230
+msgid "Force Listen Port:"
+msgstr ""
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:630
 msgid "Force Texture Filtering"
 msgstr "Force Texture Filtering"
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:78
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:80
 msgid ""
 "Forces NTSC-J mode for using the Japanese ROM font.\n"
 "If left unchecked, Dolphin defaults to NTSC-U and automatically enables this "
@@ -3464,11 +3469,13 @@ msgstr ""
 "Shift JIS (日本用) コードでフォーマットしますか？\n"
 "「いいえ」ならWindows-1252 (海外用) コードでフォーマットされます"
 
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:29
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:26
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/Tilt.cpp:22
 msgid "Forward"
 msgstr "前方"
 
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:252
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:253
 msgid "Forward port (UPnP)"
 msgstr "ポート開放を自動で設定 (UPnP)"
 
@@ -3632,7 +3639,7 @@ msgstr "Function callers"
 msgid "Function calls"
 msgstr "Function calls"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:51
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:52
 msgid "GBA"
 msgstr "GBA"
 
@@ -3729,20 +3736,20 @@ msgstr "ゲーム設定"
 msgid "GameCube"
 msgstr "ゲームキューブ"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:50
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:51
 msgid "GameCube Adapter for Wii U"
 msgstr "Wii U GCコントローラ接続タップ"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:492
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:493
 #, c-format
 msgid "GameCube Controller Configuration Port %i"
 msgstr "ゲームキューブ コントローラ設定 - ポート%i"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:147
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:148
 msgid "GameCube Controllers"
 msgstr "ゲームキューブ デバイス設定"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:477
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:478
 #, c-format
 msgid "GameCube Keyboard Configuration Port %i"
 msgstr "ゲームキューブ キーボード設定 - ポート%i"
@@ -3782,8 +3789,8 @@ msgstr "一般"
 msgid "General and Options"
 msgstr "一般設定"
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:62
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:65
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:63
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:66
 msgid "Generate a New Statistics Identity"
 msgstr "新しい統計IDを作成する"
 
@@ -3843,6 +3850,7 @@ msgstr ""
 "よく分からなければ、チェックを外さないでください。"
 
 #: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:28
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:30
 msgid "Green"
 msgstr "緑"
 
@@ -3890,7 +3898,7 @@ msgid "Height"
 msgstr "範囲(縦)"
 
 #: Source/Core/DolphinWX/Debugger/MemoryView.cpp:324
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:108
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:163
 msgid "Hex"
 msgstr "Hex"
 
@@ -3946,13 +3954,13 @@ msgid "Home"
 msgstr "Home"
 
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:173
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:239
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:240
 msgid "Host"
 msgstr "ホストになる"
 
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:177
-msgid "Host Code :"
-msgstr "ホストコード:"
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:440
+msgid "Host Code:"
+msgstr ""
 
 #: Source/Core/Core/NetPlayClient.cpp:118
 msgid ""
@@ -3962,20 +3970,20 @@ msgstr ""
 "ホストコードが長すぎます\n"
 "正しいホストコードがもう一度確認してください"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1059
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1060
 msgid "Host with Netplay"
 msgstr "ネットプレイを開始（ホスト）"
 
 #: Source/Core/Core/HotkeyManager.cpp:164
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:315
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:318
 msgid "Hotkeys"
 msgstr "ホットキー"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:312
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:313
 msgid "Hybrid Wii Remote"
 msgstr ""
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:431
+#: Source/Core/DolphinWX/GameListCtrl.cpp:450
 msgid "ID"
 msgstr "ID"
 
@@ -4004,6 +4012,10 @@ msgstr ""
 "IOS: SSLサービスの動作に必要なファイル (%s) を読みこめませんでした。 https://"
 "dolphin-emu.org/docs/guides/wii-network-guide/ でWiiのネットワーク設定手順を"
 "確認できます。"
+
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:465
+msgid "IP Address:"
+msgstr ""
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:113
 msgid "IPL Settings"
@@ -4037,11 +4049,11 @@ msgstr "フォルダ一覧"
 msgid "Icon"
 msgstr "アイコン"
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:219
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:234
 msgid "Identity generation"
 msgstr "IDの作成"
 
-#: Source/Core/DolphinWX/Main.cpp:213
+#: Source/Core/DolphinWX/Main.cpp:214
 msgid ""
 "If authorized, Dolphin can collect data on its performance, feature usage, "
 "and configuration, as well as data on your system's hardware and operating "
@@ -4156,7 +4168,7 @@ msgstr ""
 "savファイルをインポートしました\n"
 "しかしファイルのヘッダが正しくありません"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1274
+#: Source/Core/DolphinWX/FrameTools.cpp:1259
 msgid "Importing NAND backup"
 msgstr ""
 
@@ -4210,11 +4222,11 @@ msgstr "SDカードの挿入をエミュレート"
 msgid "Install WAD..."
 msgstr "WiiメニューにWADファイルを追加"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1048
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1049
 msgid "Install to the NAND"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1222
+#: Source/Core/DolphinWX/FrameTools.cpp:1208
 msgid "Installing WAD..."
 msgstr "追加しています..."
 
@@ -4288,7 +4300,7 @@ msgstr "イントロ"
 msgid "Invalid Mixed Code"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:183
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:238
 #, c-format
 msgid "Invalid address: %s"
 msgstr "Invalid address: %s"
@@ -4305,7 +4317,7 @@ msgstr "このホストコードは無効です"
 msgid "Invalid index"
 msgstr "Invalid index"
 
-#: Source/Core/Core/Movie.cpp:956
+#: Source/Core/Core/Movie.cpp:958
 msgid "Invalid recording file"
 msgstr "不正な録画ファイル"
 
@@ -4325,7 +4337,7 @@ msgstr "無効な検索文字列。偶数の長さの検索文字列のみがサ
 msgid "Invalid value."
 msgstr "無効な値です"
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:189
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:246
 #, c-format
 msgid "Invalid value: %s"
 msgstr "Invalid value: %s"
@@ -4341,7 +4353,7 @@ msgid "Italy"
 msgstr "イタリア"
 
 #: Source/Core/Core/HW/GCKeyboardEmu.cpp:84 Source/Core/Core/HW/GCPadEmu.cpp:82
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:308
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:311
 #: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:65
 msgid "Iterative Input"
 msgstr "連続してボタン設定を行う"
@@ -4387,7 +4399,7 @@ msgstr ""
 "よく分からなければ、チェックを入れないでください。"
 
 #: Source/Core/Core/HW/GCKeyboard.cpp:21
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:52
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:53
 msgid "Keyboard"
 msgstr "キーボード"
 
@@ -4415,6 +4427,7 @@ msgstr "韓国語"
 
 #. i18n: The left trigger button (labeled L on real controllers)
 #: Source/Core/Core/HW/GCPadEmu.cpp:40
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Classic.cpp:49
 #: Source/Core/DolphinWX/TASInputDlg.cpp:250
 #: Source/Core/DolphinWX/TASInputDlg.cpp:393
 msgid "L"
@@ -4422,6 +4435,7 @@ msgstr "L"
 
 #. i18n: The left trigger button (labeled L on real controllers) used as an analog input
 #: Source/Core/Core/HW/GCPadEmu.cpp:44
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Classic.cpp:53
 msgid "L-Analog"
 msgstr "L (アナログ)"
 
@@ -4446,10 +4460,11 @@ msgstr "レイテンシ："
 #: Source/Core/DolphinWX/TASInputDlg.cpp:99
 #: Source/Core/DolphinWX/TASInputDlg.cpp:249
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:24
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/Tilt.cpp:24
 msgid "Left"
 msgstr "左"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Classic.cpp:64
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Classic.cpp:71
 msgid "Left Stick"
 msgstr "Lスティック"
 
@@ -4497,7 +4512,7 @@ msgstr "ライセンス"
 msgid "Light Cmd"
 msgstr "Light Cmd"
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:88
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:93
 msgid ""
 "Limits the emulation speed to the specified percentage.\n"
 "Note that raising or lowering the emulation speed will also raise or lower "
@@ -4618,11 +4633,11 @@ msgstr "ファイルからロード"
 msgid "Load Wii Save"
 msgstr "Wiiのセーブデータを読込む"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:588
+#: Source/Core/DolphinWX/MainMenuBar.cpp:587
 msgid "Load Wii System Menu"
 msgstr "Wiiメニューを起動"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:583
+#: Source/Core/DolphinWX/MainMenuBar.cpp:582
 #, c-format
 msgid "Load Wii System Menu %s"
 msgstr "Wiiメニューを起動 %s"
@@ -4633,7 +4648,7 @@ msgid ""
 msgstr ""
 "Load any .map file containing the function names and addresses for this game."
 
-#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:275
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:276
 msgid "Load bad map file"
 msgstr "Load bad map file"
 
@@ -4656,7 +4671,7 @@ msgstr "選択したスロットから読込"
 msgid "Load last state"
 msgstr "前回のステートをロード"
 
-#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:259
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:260
 msgid "Load map file"
 msgstr "Load map file"
 
@@ -4674,7 +4689,8 @@ msgstr "Loaded %d good functions, ignored %d bad functions."
 msgid "Localhost"
 msgstr "Localhost"
 
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:46
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:55
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:201
 #: Source/Core/DolphinWX/LogWindow.h:30
 msgid "Log"
 msgstr "ログ"
@@ -4709,7 +4725,7 @@ msgid "Logger Outputs"
 msgstr "ログ出力先"
 
 #: Source/Core/DolphinWX/Cheats/CheatsWindow.cpp:131
-#: Source/Core/DolphinWX/Frame.cpp:379
+#: Source/Core/DolphinWX/Frame.cpp:376
 msgid "Logging"
 msgstr "ログ"
 
@@ -4724,10 +4740,6 @@ msgstr "MD5チェックサム"
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:134
 msgid "MD5 check..."
 msgstr "MD5チェックサムを比較"
-
-#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:432
-msgid "MEGA Signature File (*.mega)"
-msgstr ""
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:524
 #: Source/Core/DolphinWX/MemcardManager.cpp:559
@@ -4746,7 +4758,7 @@ msgstr ""
 "Make a new .dsy file which can recognise more functions, by combining two "
 "existing files. The first input file has priority."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:429
+#: Source/Core/DolphinWX/GameListCtrl.cpp:448
 #: Source/Core/DolphinWX/MainMenuBar.cpp:285
 msgid "Maker"
 msgstr "メーカー"
@@ -4773,7 +4785,7 @@ msgstr ""
 "\n"
 "よく分からなければ、チェックを入れないでください。"
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:408
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:465
 msgid "Match Found"
 msgstr "Match Found"
 
@@ -4806,7 +4818,7 @@ msgstr "メモリーカード"
 msgid "Memory Card Manager"
 msgstr "GCメモリーカードマネージャ"
 
-#: Source/Core/Core/ConfigManager.cpp:1087
+#: Source/Core/Core/ConfigManager.cpp:1089
 #, c-format
 msgid ""
 "Memory Card filename in Slot %c is incorrect\n"
@@ -4823,9 +4835,13 @@ msgstr ""
 "%s\n"
 "この場所に古いファイルをコピーしますか？\n"
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:314
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:371
 msgid "Memory Not Ready"
 msgstr "Memory Not Ready"
+
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:206
+msgid "Memory breakpoint options"
+msgstr ""
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:438
 msgid "Memory card already has a save for this title."
@@ -4854,7 +4870,7 @@ msgstr "MemoryCard: Read called with invalid source address (0x%x)"
 msgid "MemoryCard: Write called with invalid destination address (0x%x)"
 msgstr "MemoryCard: Write called with invalid destination address (0x%x)"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1260
+#: Source/Core/DolphinWX/FrameTools.cpp:1245
 msgid ""
 "Merging a new NAND over your currently selected NAND will overwrite any "
 "channels and savegames that already exist. This process is not reversible, "
@@ -4910,12 +4926,12 @@ msgstr "等幅フォント"
 msgid "Motion Controls and IR"
 msgstr "モーションとポインタ動作"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:288
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:291
 msgid "Motion Plus"
 msgstr "モーションプラス"
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:68
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:292
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:295
 msgid "Motor"
 msgstr "モーター"
 
@@ -4931,13 +4947,8 @@ msgstr "記録"
 #: Source/Core/DolphinWX/MainMenuBar.cpp:473
 msgid ""
 "Must use Generate Symbols first! Recognise names of any standard library "
-"functions used in multiple games, by loading them from a .dsy file."
-msgstr ""
-
-#: Source/Core/DolphinWX/MainMenuBar.cpp:477
-msgid ""
-"Must use Generate Symbols first! Recognise names of any standard library "
-"functions used in multiple games, by loading them from a .mega file."
+"functions used in multiple games, by loading them from a .dsy, .csv, or ."
+"mega file."
 msgstr ""
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:635
@@ -4984,7 +4995,7 @@ msgstr "新規検索"
 msgid "New Texture"
 msgstr "New Texture"
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:219
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:234
 msgid "New identity generated."
 msgstr "新しいIDが作成されました。"
 
@@ -5001,11 +5012,11 @@ msgstr "続けて検索"
 msgid "Nickname:"
 msgstr "ニックネーム："
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:417
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:474
 msgid "No Match"
 msgstr "No Match"
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:359
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:416
 msgid "No Value Given"
 msgstr "No Value Given"
 
@@ -5040,8 +5051,8 @@ msgstr ""
 "undo.dtm ファイルが見つかりません。desync を防止するためステートロードの取消"
 "を中止します"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:50
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:312
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:51
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:313
 #: Source/Core/DolphinWX/NetPlay/PadMapDialog.cpp:27
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:1301
 msgid "None"
@@ -5051,13 +5062,13 @@ msgstr "なし"
 msgid "Not Equal"
 msgstr "に一致しない"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:915
+#: Source/Core/DolphinWX/GameListCtrl.cpp:918
 #: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:288
 #: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:330
 msgid "Not Set"
 msgstr "未定義"
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:337
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:394
 msgid "Not Valid Hex"
 msgstr "Not Valid Hex"
 
@@ -5065,7 +5076,7 @@ msgstr "Not Valid Hex"
 msgid "Not all players have the game. Do you really want to start?"
 msgstr "このタイトルを持っていないプレイヤーがいます。続けますか？"
 
-#: Source/Core/DolphinWX/Main.cpp:486
+#: Source/Core/DolphinWX/Main.cpp:488
 msgid "Not connected"
 msgstr "未接続"
 
@@ -5147,7 +5158,7 @@ msgstr "オフセット値："
 msgid "On-Screen Display Messages"
 msgstr "オンスクリーンメッセージを表示"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:501
+#: Source/Core/DolphinWX/MainMenuBar.cpp:497
 msgid "Online &Documentation"
 msgstr "オンラインガイドを表示(&D)"
 
@@ -5156,8 +5167,8 @@ msgstr "オンラインガイドを表示(&D)"
 msgid "Only %d blocks available"
 msgstr "残り %d ブロックしかありません！"
 
-#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:343
-#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:366
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:344
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:368
 msgid ""
 "Only export symbols with prefix:\n"
 "(Blank for all symbols)"
@@ -5174,11 +5185,11 @@ msgstr "Op?"
 msgid "Open"
 msgstr "開く"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1022
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1023
 msgid "Open &containing folder"
 msgstr "実体のあるフォルダを開く(&C)"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1011
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1009
 msgid "Open Wii &save folder"
 msgstr "セーブデータのあるフォルダを開く(&S)"
 
@@ -5207,12 +5218,13 @@ msgid ""
 msgstr "テキストエディタでこのタイトルのデフォルト設定を確認できます"
 
 #: Source/Core/Core/HW/GCKeyboardEmu.cpp:82 Source/Core/Core/HW/GCPadEmu.cpp:80
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:300
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:303
 #: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:70
 msgid "Options"
 msgstr "設定"
 
 #: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:28
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:30
 msgid "Orange"
 msgstr "オレンジ"
 
@@ -5288,7 +5300,7 @@ msgstr ""
 msgid "Partition %u"
 msgstr "パーティション %u"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:251
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:252
 msgid "Passthrough a Bluetooth adapter"
 msgstr "PC上のBluetoothアダプタでパススルー"
 
@@ -5382,7 +5394,7 @@ msgstr "再生に関する設定"
 msgid "Players"
 msgstr "プレイヤー一覧"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:835
+#: Source/Core/DolphinWX/FrameTools.cpp:826
 msgid "Please confirm..."
 msgstr "確認"
 
@@ -5390,15 +5402,15 @@ msgstr "確認"
 msgid "Please create a perspective before saving"
 msgstr "Please create a perspective before saving"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:160
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:161
 #, c-format
 msgid "Port %i"
 msgstr "ポート %i"
 
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:185
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:225
-msgid "Port :"
-msgstr "ポート:"
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:186
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:226
+msgid "Port:"
+msgstr ""
 
 #: Source/Core/DolphinWX/PostProcessingConfigDiag.cpp:22
 msgid "Post Processing Shader Configuration"
@@ -5412,17 +5424,17 @@ msgstr "ポストプロセス："
 msgid "Prefetch Custom Textures"
 msgstr "カスタムテクスチャの事前読込"
 
-#: Source/Core/Core/Movie.cpp:1194
+#: Source/Core/Core/Movie.cpp:1196
 #, c-format
 msgid "Premature movie end in PlayController. %u + %zu > %u"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:1321
+#: Source/Core/Core/Movie.cpp:1323
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u + %d > %u"
 msgstr "Premature movie end in PlayWiimote. %u + %d > %u"
 
-#: Source/Core/Core/Movie.cpp:1295
+#: Source/Core/Core/Movie.cpp:1297
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u > %u"
 msgstr "Premature movie end in PlayWiimote. %u > %u"
@@ -5477,6 +5489,7 @@ msgstr "終了"
 
 #. i18n: The right trigger button (labeled R on real controllers)
 #: Source/Core/Core/HW/GCPadEmu.cpp:42
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Classic.cpp:51
 #: Source/Core/DolphinWX/TASInputDlg.cpp:251
 #: Source/Core/DolphinWX/TASInputDlg.cpp:395
 msgid "R"
@@ -5484,6 +5497,7 @@ msgstr "R"
 
 #. i18n: The right trigger button (labeled R on real controllers) used as an analog input
 #: Source/Core/Core/HW/GCPadEmu.cpp:46
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Classic.cpp:55
 msgid "R-Analog"
 msgstr "R (アナログ)"
 
@@ -5495,13 +5509,21 @@ msgstr "範囲"
 msgid "Range"
 msgstr "範囲／強さ"
 
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:42
-msgid "Read"
-msgstr "Read"
-
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:44
+#. i18n: This string is used for a radio button that represents the type of
+#. memory breakpoint that gets triggered when a read operation or write operation occurs.
+#. The string is not a command to read and write something or to allow reading and writing.
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:53
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:185
 msgid "Read and write"
 msgstr "Read and write"
+
+#. i18n: This string is used for a radio button that represents the type of
+#. memory breakpoint that gets triggered when a read operation occurs.
+#. The string does not mean "read-only" in the sense that something cannot be written to.
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:44
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:192
+msgid "Read only"
+msgstr ""
 
 #: Source/Core/Core/HotkeyManager.cpp:49
 msgid "Read-only mode"
@@ -5511,13 +5533,17 @@ msgstr "読み込み専用 切替"
 msgid "Real"
 msgstr "Real"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:362
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:363
 msgid "Real Balance Board"
 msgstr "実機バランスWii ボードを接続"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:312
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:313
 msgid "Real Wii Remote"
 msgstr "実機Wiiリモコンを接続"
+
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:32
+msgid "Recenter"
+msgstr ""
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:430
 msgid ""
@@ -5547,6 +5573,7 @@ msgid "Recording Options"
 msgstr "録画設定"
 
 #: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:28
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:30
 msgid "Red"
 msgstr "赤"
 
@@ -5578,7 +5605,7 @@ msgstr ""
 "\n"
 "よく分からなければ、【なし】のままにしておいてください。"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:352
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:353
 #: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1192
 #: Source/Core/DolphinWX/MainToolBar.cpp:178
 msgid "Refresh"
@@ -5648,7 +5675,7 @@ msgid "Report: GCIFolder Writing to unallocated block 0x%x"
 msgstr "Report: GCIFolder Writing to unallocated block 0x%x"
 
 #: Source/Core/Core/HotkeyManager.cpp:28
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:289
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:290
 #: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1211
 msgid "Reset"
 msgstr "初期化"
@@ -5657,11 +5684,11 @@ msgstr "初期化"
 msgid "Reset Traversal Settings"
 msgstr "中継サーバー設定をリセット"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:563
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:566
 msgid "Reset Wii Remote pairings"
 msgstr "ペアリングの初期化"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:287
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:288
 msgid "Reset all saved Wii Remote pairings"
 msgstr "全てのペアリングを初期化する"
 
@@ -5690,10 +5717,11 @@ msgstr "Revision: %s"
 #: Source/Core/DolphinWX/TASInputDlg.cpp:95
 #: Source/Core/DolphinWX/TASInputDlg.cpp:249
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:25
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/Tilt.cpp:25
 msgid "Right"
 msgstr "右"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Classic.cpp:66
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Classic.cpp:73
 msgid "Right Stick"
 msgstr "Rスティック"
 
@@ -5715,7 +5743,7 @@ msgid ""
 msgstr ""
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:67
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:291
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:294
 #: Source/Core/DolphinWX/Config/GCAdapterConfigDiag.cpp:22
 msgid "Rumble"
 msgstr "振動"
@@ -5833,11 +5861,11 @@ msgstr "ステートセーブ／ロード"
 msgid "Save as..."
 msgstr "ファイルとして保存"
 
-#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:419
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:424
 msgid "Save combined output file as"
 msgstr "Save combined output file as"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1394
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1388
 msgid "Save compressed GCM/ISO"
 msgstr "圧縮するタイトルの保存先を選択"
 
@@ -5845,15 +5873,15 @@ msgstr "圧縮するタイトルの保存先を選択"
 msgid "Save currently-toggled perspectives"
 msgstr "Save currently-toggled perspectives"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1385
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1379
 msgid "Save decompressed GCM/ISO"
 msgstr "復元するタイトルの保存先を選択"
 
-#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:294
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:295
 msgid "Save map file as"
 msgstr "Save map file as"
 
-#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:350
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:351
 msgid "Save signature as"
 msgstr "Save signature as"
 
@@ -5899,7 +5927,7 @@ msgstr "選択したスロットに保存"
 msgid "Saved Perspectives"
 msgstr "Saved Perspectives"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:562
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:565
 msgid "Saved Wii Remote pairings can only be reset when a Wii game is running."
 msgstr "ペアリングの初期化はWiiのゲームを実行中にのみ行なえます"
 
@@ -5909,7 +5937,7 @@ msgstr ""
 "以下の場所に128MBの仮想SDファイルを作成します\n"
 "/Wii/sd.raw"
 
-#: Source/Core/Core/Movie.cpp:1024
+#: Source/Core/Core/Movie.cpp:1026
 #, c-format
 msgid "Savestate movie %s is corrupted, movie recording stopping..."
 msgstr "Savestate movie %s の破損を確認しました。録画を中止しています..."
@@ -5918,16 +5946,16 @@ msgstr "Savestate movie %s の破損を確認しました。録画を中止し�
 msgid "Scaled EFB Copy"
 msgstr "Scaled EFB Copy"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:685
+#: Source/Core/DolphinWX/GameListCtrl.cpp:688
 #, c-format
 msgid "Scanning %s"
 msgstr "確認しています... .%s"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:674
+#: Source/Core/DolphinWX/GameListCtrl.cpp:677
 msgid "Scanning for ISOs"
 msgstr "確認中..."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:674
+#: Source/Core/DolphinWX/GameListCtrl.cpp:677
 msgid "Scanning..."
 msgstr "確認中..."
 
@@ -5941,7 +5969,7 @@ msgid "Screenshot failed: Could not open file \"%s\" (error %d)"
 msgstr ""
 "スクリーンショットに失敗：ファイル \"%s\" を開けませんでした (error %d)"
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:102
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:170
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:233
 msgid "Search"
 msgstr "検索"
@@ -5951,7 +5979,7 @@ msgid "Search (clear to use previous value)"
 msgstr "検索 (空欄で前回の値を使用)"
 
 #: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:80
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:81
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:112
 msgid "Search Address"
 msgstr "Search Address"
 
@@ -5986,7 +6014,7 @@ msgstr "ゲームリストカラムの表示"
 msgid "Select Game"
 msgstr "タイトルを選択"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:552
+#: Source/Core/DolphinWX/MainMenuBar.cpp:548
 #, c-format
 msgid "Select Slot %u - %s"
 msgstr "スロット %u - %s"
@@ -6036,15 +6064,15 @@ msgid "Select State Slot 9"
 msgstr "ステートスロット 9"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:484
-#: Source/Core/DolphinWX/FrameTools.cpp:976
+#: Source/Core/DolphinWX/FrameTools.cpp:962
 msgid "Select The Recording File"
 msgstr "録画ファイルを選択"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1267
+#: Source/Core/DolphinWX/FrameTools.cpp:1252
 msgid "Select a BootMii NAND backup to import"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1212
+#: Source/Core/DolphinWX/FrameTools.cpp:1198
 msgid "Select a Wii WAD file to install"
 msgstr "追加するWADファイルを選択"
 
@@ -6064,15 +6092,15 @@ msgstr "ステートスロットの選択"
 msgid "Select the file to load"
 msgstr "ロードするファイルを選択"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1173
+#: Source/Core/DolphinWX/FrameTools.cpp:1159
 msgid "Select the save file"
 msgstr "セーブファイルを選択"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1354
+#: Source/Core/DolphinWX/FrameTools.cpp:1343
 msgid "Select the state to load"
 msgstr "ロードするステートセーブファイルを選択"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1366
+#: Source/Core/DolphinWX/FrameTools.cpp:1355
 msgid "Select the state to save"
 msgstr "ステートセーブの保存先を選択"
 
@@ -6202,11 +6230,11 @@ msgstr "サーバーが中継処理を拒否しました"
 msgid "Set PC"
 msgstr "Set PC"
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:94
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:119
 msgid "Set Value"
 msgstr "Set Value"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1025
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1026
 msgid "Set as &default ISO"
 msgstr "Wiiメニュー(ディスクチャンネル)に表示(&D)"
 
@@ -6245,10 +6273,11 @@ msgstr ""
 "レイテンシを調整します (単位:ms)。高くすることで音の問題を軽減できます。特定"
 "のAPIでのみ有効"
 
-#: Source/Core/Core/Boot/Boot_BS2Emu.cpp:248
+#: Source/Core/Core/Boot/Boot_BS2Emu.cpp:271
 msgid "SetupWiiMemory: Can't create setting.txt file"
 msgstr "SetupWiiMemory: Can't create setting.txt file"
 
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Nunchuk.cpp:48
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:273
 msgid "Shake"
 msgstr "シェイク"
@@ -6475,15 +6504,15 @@ msgstr ""
 msgid "Side-by-Side"
 msgstr "Side-by-Side"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:321
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:324
 msgid "Sideways Hold"
 msgstr "押下時のみ横持ち"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:318
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:321
 msgid "Sideways Toggle"
 msgstr "横持ち 切替"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:303
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:306
 msgid "Sideways Wii Remote"
 msgstr "横持ち(Sideways)で使用"
 
@@ -6496,7 +6525,7 @@ msgstr "簡体字中国語"
 msgid "Simulate DK Bongos"
 msgstr "タルコンガのシミュレート"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:433
+#: Source/Core/DolphinWX/GameListCtrl.cpp:452
 msgid "Size"
 msgstr "サイズ"
 
@@ -6541,8 +6570,8 @@ msgstr ""
 "\n"
 "よく分からなければ、チェックを入れないでください。"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:546
-#: Source/Core/DolphinWX/MainMenuBar.cpp:549
+#: Source/Core/DolphinWX/MainMenuBar.cpp:542
+#: Source/Core/DolphinWX/MainMenuBar.cpp:545
 #, c-format
 msgid "Slot %u - %s"
 msgstr "スロット %u - %s"
@@ -6576,7 +6605,7 @@ msgstr "スペイン"
 msgid "Spanish"
 msgstr "スペイン語"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:310
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:313
 msgid "Speaker Pan"
 msgstr "スピーカー パン調整"
 
@@ -6605,7 +6634,7 @@ msgstr ""
 "\n"
 "よく分からなければ、【Native】を選択してください。"
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:96
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:101
 msgid "Speed Limit:"
 msgstr "速度制限："
 
@@ -6613,7 +6642,7 @@ msgstr "速度制限："
 msgid "Speed up Disc Transfer Rate"
 msgstr "Speed up Disc Transfer Rate"
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:74
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:76
 msgid ""
 "Splits the CPU and GPU threads so they can be run on separate cores.\n"
 "Provides major speed improvements on most modern PCs, but can cause "
@@ -6623,7 +6652,7 @@ msgstr ""
 "有効にすると動作速度が大きく向上しますが、クラッシュやバグの原因になる場合も"
 "あります"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:50
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:51
 msgid "Standard Controller"
 msgstr "標準コントローラ"
 
@@ -6651,7 +6680,7 @@ msgstr "操作の記録を開始"
 msgid "Start the game directly instead of booting to pause"
 msgstr "Start the game directly instead of booting to pause"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:434
+#: Source/Core/DolphinWX/GameListCtrl.cpp:453
 #: Source/Core/DolphinWX/MainMenuBar.cpp:295
 msgid "State"
 msgstr "動作率"
@@ -6660,7 +6689,7 @@ msgstr "動作率"
 msgid "Statistics"
 msgstr "Statistics"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:51
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:52
 msgid "Steering Wheel"
 msgstr "SPEED FORCE"
 
@@ -6742,7 +6771,10 @@ msgstr "表示方式"
 msgid "Stereoscopy"
 msgstr "立体視"
 
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:45
 #: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:60
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Nunchuk.cpp:39
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:51
 msgid "Stick"
 msgstr "スティック"
 
@@ -6752,17 +6784,17 @@ msgstr "スティック"
 msgid "Stop"
 msgstr "停止"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1574
+#: Source/Core/DolphinWX/FrameTools.cpp:1565
 msgid "Stop Playing Input"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1559
-#: Source/Core/DolphinWX/FrameTools.cpp:1576
+#: Source/Core/DolphinWX/FrameTools.cpp:1550
+#: Source/Core/DolphinWX/FrameTools.cpp:1567
 #: Source/Core/DolphinWX/MainMenuBar.cpp:142
 msgid "Stop Playing/Recording Input"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1572
+#: Source/Core/DolphinWX/FrameTools.cpp:1563
 msgid "Stop Recording Input"
 msgstr ""
 
@@ -6834,6 +6866,7 @@ msgstr ""
 "\n"
 "よく分からなければ、チェックを入れないでください。"
 
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Nunchuk.cpp:42
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:267
 msgid "Swing"
 msgstr "動き"
@@ -6848,15 +6881,15 @@ msgstr "Symbol"
 msgid "Symbols"
 msgstr "Symbols"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:283
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:284
 msgid "Sync"
 msgstr "Sync"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:549
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:551
 msgid "Sync Wii Remotes"
 msgstr "WiiリモコンのSync"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:281
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:282
 msgid "Sync real Wii Remotes and pair them"
 msgstr "実機Wiiリモコンとのペアリングを行う"
 
@@ -6910,11 +6943,11 @@ msgstr "TLUT Cmd"
 msgid "Tab Split"
 msgstr "Tab Split"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:44
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:46
 msgid "Table Left"
 msgstr "左テーブル"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:45
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:47
 msgid "Table Right"
 msgstr "右テーブル"
 
@@ -6968,7 +7001,7 @@ msgstr ""
 "\n"
 "よく分からなければ、右端に合わせておいてください。"
 
-#: Source/Core/Core/ConfigManager.cpp:998
+#: Source/Core/Core/ConfigManager.cpp:1000
 msgid "The WAD has been installed successfully"
 msgstr "WADファイルの追加に成功"
 
@@ -7029,9 +7062,9 @@ msgstr "入力されたデバイス PIDは無効です。"
 msgid "The entered VID is invalid."
 msgstr "入力されたデバイス VIDは無効です。"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1314
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1339
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1404
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1308
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1333
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1398
 #, c-format
 msgid ""
 "The file %s already exists.\n"
@@ -7076,7 +7109,7 @@ msgstr "復号化しましたが、このコードにはひとつも行が含ま
 msgid "The save you are trying to copy has an invalid file size."
 msgstr "コピーしようとしているセーブデータのサイズが正しくありません"
 
-#: Source/Core/DolphinWX/Main.cpp:318
+#: Source/Core/DolphinWX/Main.cpp:320
 msgid ""
 "The selected language is not supported by your system. Falling back to "
 "system default."
@@ -7101,7 +7134,7 @@ msgstr "サーバーより：このゲームは、現在実行中です！"
 msgid "The server sent an unknown error message!"
 msgstr "サーバーは、不明なエラーメッセージを送信しました！"
 
-#: Source/Core/Core/ConfigManager.cpp:919
+#: Source/Core/Core/ConfigManager.cpp:921
 #, c-format
 msgid "The specified file \"%s\" does not exist"
 msgstr "指定されたファイル \"%s\" は存在しません"
@@ -7178,11 +7211,11 @@ msgstr ""
 "\n"
 "よく分からなければ、チェックを入れないでください。"
 
-#: Source/Core/DiscIO/NANDImporter.cpp:54
+#: Source/Core/DiscIO/NANDImporter.cpp:55
 #, c-format
 msgid ""
-"This file does not look like a BootMii NAND backup. (0x%lx does not equal 0x"
-"%zx)"
+"This file does not look like a BootMii NAND backup. (0x%<PRIx64> does not "
+"equal 0x%zx)"
 msgstr ""
 
 #: Source/Core/VideoCommon/MainBase.cpp:137
@@ -7264,11 +7297,12 @@ msgstr "このタイトルの設定をテキストで編集します"
 msgid "Threshold"
 msgstr "しきい値"
 
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Nunchuk.cpp:45
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:270
 msgid "Tilt"
 msgstr "傾き"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:427
+#: Source/Core/DolphinWX/GameListCtrl.cpp:446
 #: Source/Core/DolphinWX/MainMenuBar.cpp:283
 #: Source/Core/DolphinWX/MemcardManager.cpp:627
 msgid "Title"
@@ -7382,16 +7416,17 @@ msgstr "使用する中継サーバー: %s"
 msgid "Traversal server timed out connecting to the host"
 msgstr "中継サーバーからホストへの接続がタイムアウト"
 
-#: Source/Core/DiscIO/VolumeDirectory.cpp:78 Source/Core/DiscIO/VolumeGC.cpp:38
+#: Source/Core/DiscIO/VolumeDirectory.cpp:80 Source/Core/DiscIO/VolumeGC.cpp:38
 #: Source/Core/DiscIO/VolumeWad.cpp:62
 msgid "Tried to decrypt data from a non-Wii volume"
 msgstr "Tried to decrypt data from a non-Wii volume"
 
-#: Source/Core/Core/Boot/Boot.cpp:469
+#: Source/Core/Core/Boot/Boot.cpp:450
 msgid "Tried to load an unknown file type."
 msgstr "不明なファイルタイプを読み込もうとしました"
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:62
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Classic.cpp:76
 msgid "Triggers"
 msgstr "トリガー"
 
@@ -7425,7 +7460,7 @@ msgstr ""
 msgid "Turn off all JIT functions, but still use the JIT core from Jit.cpp"
 msgstr "Turn off all JIT functions, but still use the JIT core from Jit.cpp"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:36
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:38
 msgid "Turntable"
 msgstr "ターンテーブル"
 
@@ -7459,7 +7494,7 @@ msgstr ""
 "この値ではパッチを作成できません。\n"
 "入力された値が不正です。"
 
-#: Source/Core/DiscIO/NANDImporter.cpp:166
+#: Source/Core/DiscIO/NANDImporter.cpp:168
 #, c-format
 msgid ""
 "Unable to open %s! Refer to https://dolphin-emu.org/docs/guides/wii-network-"
@@ -7475,8 +7510,8 @@ msgid ""
 "Would you like to ignore this line and continue parsing?"
 msgstr ""
 
-#: Source/Core/DiscIO/NANDImporter.cpp:191
-#: Source/Core/DiscIO/NANDImporter.cpp:200
+#: Source/Core/DiscIO/NANDImporter.cpp:193
+#: Source/Core/DiscIO/NANDImporter.cpp:202
 #, c-format
 msgid "Unable to write to file %s"
 msgstr ""
@@ -7495,11 +7530,11 @@ msgstr "直前のステートセーブの取消"
 msgid "Unexpected 0x80 call? Aborting..."
 msgstr "Unexpected 0x80 call? Aborting..."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1050
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1051
 msgid "Uninstall from the NAND"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1239
+#: Source/Core/DolphinWX/FrameTools.cpp:1225
 msgid ""
 "Uninstalling the WAD will remove the currently installed version of this "
 "title from the NAND without deleting its save data. Continue?"
@@ -7550,6 +7585,7 @@ msgstr "制限なし"
 msgid "Unpacking"
 msgstr "復元処理を行っています..."
 
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:50
 #: Source/Core/DolphinWX/TASInputDlg.cpp:93
 #: Source/Core/DolphinWX/TASInputDlg.cpp:249
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:22
@@ -7564,27 +7600,27 @@ msgstr "再取得"
 msgid "Update Screen"
 msgstr "Update Screen"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:322
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:325
 msgid "Upright Hold"
 msgstr "押下時のみ直立状態"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:319
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:322
 msgid "Upright Toggle"
 msgstr "直立状態 切替"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:306
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:309
 msgid "Upright Wii Remote"
 msgstr "直立状態(Upright)で使用"
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:112
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:118
 msgid "Usage Statistics Reporting Settings"
 msgstr "統計レポートの設定"
 
-#: Source/Core/DolphinWX/Main.cpp:224
+#: Source/Core/DolphinWX/Main.cpp:225
 msgid "Usage statistics reporting"
 msgstr "統計レポートの収集について"
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:85
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:88
 msgid ""
 "Usage statistics reporting uses a unique random per-machine identifier to "
 "distinguish users from one another. This button generates a new random "
@@ -7656,7 +7692,7 @@ msgstr "値 (double)"
 msgid "Value (float)"
 msgstr "値 (float)"
 
-#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:353
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:410
 msgid "Value Too Large"
 msgstr "Value Too Large"
 
@@ -7764,13 +7800,13 @@ msgstr "無音 切替"
 msgid "Volume Up"
 msgstr "音量を上げる"
 
-#: Source/Core/DiscIO/NANDContentLoader.cpp:297
-#: Source/Core/DiscIO/NANDContentLoader.cpp:319
+#: Source/Core/DiscIO/NANDContentLoader.cpp:268
+#: Source/Core/DiscIO/NANDContentLoader.cpp:290
 #, c-format
 msgid "WAD installation failed: error creating %s"
 msgstr "WAD installation failed: error creating %s"
 
-#: Source/Core/DiscIO/NANDContentLoader.cpp:334
+#: Source/Core/DiscIO/NANDContentLoader.cpp:305
 msgid "WAD installation failed: error creating ticket"
 msgstr "WAD installation failed: error creating ticket"
 
@@ -7787,8 +7823,8 @@ msgstr ""
 "よく分からなければ、チェックを入れないでください。"
 
 #: Source/Core/Common/MsgHandler.cpp:67
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1179
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1519
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1173
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1488
 #: Source/Core/DolphinWX/LogConfigWindow.cpp:44
 #: Source/Core/DolphinWX/MemcardManager.cpp:587
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:363
@@ -7833,7 +7869,7 @@ msgid ""
 "Continue?"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:1073
+#: Source/Core/Core/Movie.cpp:1075
 #, c-format
 msgid ""
 "Warning: You loaded a save that's after the end of the current movie. (byte "
@@ -7841,7 +7877,7 @@ msgid ""
 "load this state with read-only mode off."
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:1047
+#: Source/Core/Core/Movie.cpp:1049
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie ends before the current frame in the "
@@ -7849,7 +7885,7 @@ msgid ""
 "continuing."
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:1099
+#: Source/Core/Core/Movie.cpp:1101
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on byte %zu (0x%zX). You "
@@ -7857,7 +7893,7 @@ msgid ""
 "only mode off. Otherwise you'll probably get a desync."
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:1114
+#: Source/Core/Core/Movie.cpp:1116
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on frame %td. You should "
@@ -7932,12 +7968,12 @@ msgstr "Wii NANDルート"
 msgid "Wii Remote"
 msgstr "Wiiリモコン"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:332
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:333
 #, c-format
 msgid "Wii Remote %i"
 msgstr "Wiiリモコン %i"
 
-#: Source/Core/DolphinWX/Main.cpp:492
+#: Source/Core/DolphinWX/Main.cpp:494
 msgid "Wii Remote Connected"
 msgstr ""
 
@@ -7949,16 +7985,16 @@ msgstr "Wiiリモコンの振動を有効化"
 msgid "Wii Remote Settings"
 msgstr "Wiiリモコンの設定"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:249
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:250
 msgid "Wii Remotes"
 msgstr "Wiiリモコン"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:483
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:484
 #, c-format
 msgid "Wii U GameCube Controller Adapter Configuration Port %i"
 msgstr "Wii U GCコントローラー接続タップの設定 - ポート%i"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1213
+#: Source/Core/DolphinWX/FrameTools.cpp:1199
 msgid "Wii WAD files (*.wad)"
 msgstr "Wii WADファイル (*.wad)"
 
@@ -7966,9 +8002,13 @@ msgstr "Wii WADファイル (*.wad)"
 msgid "Wii and Wii Remote"
 msgstr "WiiとWiiリモコン"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1174
+#: Source/Core/DolphinWX/FrameTools.cpp:1160
 msgid "Wii save files (*.bin)"
 msgstr "Wii セーブファイル (*.bin)"
+
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:169
+msgid "WiiTools Signature MEGA File (*.mega)"
+msgstr ""
 
 #: Source/Core/DiscIO/WiiWad.cpp:31
 msgid "WiiWAD: Could not read from file"
@@ -7986,10 +8026,10 @@ msgstr "Within a range"
 msgid "Word Wrap"
 msgstr "ワードラップ"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1222
-#: Source/Core/DolphinWX/FrameTools.cpp:1274
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1293
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1412
+#: Source/Core/DolphinWX/FrameTools.cpp:1208
+#: Source/Core/DolphinWX/FrameTools.cpp:1259
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1287
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1406
 #: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:381
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:325
 msgid "Working..."
@@ -7999,9 +8039,13 @@ msgstr "動作中..."
 msgid "World"
 msgstr "地域なし"
 
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:43
-msgid "Write"
-msgstr "Write"
+#. i18n: This string is used for a radio button that represents the type of
+#. memory breakpoint that gets triggered when a write operation occurs.
+#. The string does not mean "write-only" in the sense that something cannot be read from.
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:49
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:198
+msgid "Write only"
+msgstr ""
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:260
 msgid "Write save/SD data"
@@ -8019,9 +8063,12 @@ msgstr "ファイルに出力"
 msgid "Write to Window"
 msgstr "ウィンドウに出力"
 
+#. i18n: Refers to a 3D axis (used when mapping motion controls)
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Nunchuk.cpp:50
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:275
 #: Source/Core/DolphinWX/TASInputDlg.cpp:250
 #: Source/Core/DolphinWX/TASInputDlg.cpp:389
-#: Source/Core/DolphinWX/TASInputDlg.cpp:495
+#: Source/Core/DolphinWX/TASInputDlg.cpp:496
 msgid "X"
 msgstr "X"
 
@@ -8033,13 +8080,17 @@ msgstr "XF register "
 msgid "XFB Cmd"
 msgstr "XFB Cmd"
 
+#. i18n: Refers to a 3D axis (used when mapping motion controls)
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Nunchuk.cpp:52
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:277
 #: Source/Core/DolphinWX/TASInputDlg.cpp:250
 #: Source/Core/DolphinWX/TASInputDlg.cpp:391
-#: Source/Core/DolphinWX/TASInputDlg.cpp:496
+#: Source/Core/DolphinWX/TASInputDlg.cpp:498
 msgid "Y"
 msgstr "Y"
 
 #: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:28
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:30
 msgid "Yellow"
 msgstr "黄"
 
@@ -8047,7 +8098,7 @@ msgstr "黄"
 msgid "You can't close panes that have pages in them."
 msgstr "You can't close panes that have pages in them."
 
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:326
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:327
 msgid "You must choose a game!"
 msgstr "ゲームが選ばれていません！"
 
@@ -8077,7 +8128,7 @@ msgstr ""
 "この問題を修正するために動作を停止しますか？\n"
 "\"いいえ\"を選択した場合、歪んだ音のままゲームが始まるでしょう"
 
-#: Source/Core/Core/ConfigManager.cpp:951
+#: Source/Core/Core/ConfigManager.cpp:953
 msgid ""
 "Your GCM/ISO file seems to be invalid (invalid country).\n"
 "Continue with PAL region?"
@@ -8096,9 +8147,12 @@ msgstr ""
 "正しくは 0x%04x (このファイルは 0x%04<PRIx64>)\n"
 "新しいものを作成しますか？"
 
+#. i18n: Refers to a 3D axis (used when mapping motion controls)
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Nunchuk.cpp:54
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:279
 #: Source/Core/DolphinWX/TASInputDlg.cpp:193
 #: Source/Core/DolphinWX/TASInputDlg.cpp:397
-#: Source/Core/DolphinWX/TASInputDlg.cpp:497
+#: Source/Core/DolphinWX/TASInputDlg.cpp:500
 msgid "Z"
 msgstr "Z"
 
@@ -8139,14 +8193,6 @@ msgstr "擬似シングルコア (fake-completion)"
 #: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:290
 msgid "none"
 msgstr "なし"
-
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/ModifySettingsButton.cpp:59
-msgid "off"
-msgstr ""
-
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/ModifySettingsButton.cpp:57
-msgid "on"
-msgstr ""
 
 #: Source/Core/DolphinWX/Config/AddUSBDeviceDiag.cpp:43
 msgid "or select a device"

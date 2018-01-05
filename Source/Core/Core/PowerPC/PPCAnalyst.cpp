@@ -59,7 +59,15 @@ static u32 EvaluateBranchTarget(UGeckoInstruction instr, u32 pc)
 {
   switch (instr.OPCD)
   {
-  case 18:  // branch instruction
+  case 16:  // bcx - Branch Conditional instructions
+  {
+    u32 target = SignExt16(instr.BD << 2);
+    if (!instr.AA)
+      target += pc;
+
+    return target;
+  }
+  case 18:  // bx - Branch instructions
   {
     u32 target = SignExt26(instr.LI << 2);
     if (!instr.AA)
@@ -89,21 +97,21 @@ bool AnalyzeFunction(u32 startAddr, Symbol& func, int max_size)
   func.callers.clear();
   func.size = 0;
   func.flags = FFLAG_LEAF;
-  u32 addr = startAddr;
 
   u32 farthestInternalBranchTarget = startAddr;
   int numInternalBranches = 0;
-  while (true)
+  for (u32 addr = startAddr; true; addr += 4)
   {
     func.size += 4;
-    if (func.size >= CODEBUFFER_SIZE * 4 || !PowerPC::HostIsRAMAddress(addr))  // weird
+    if (func.size >= CODEBUFFER_SIZE * 4 || !PowerPC::HostIsInstructionRAMAddress(addr))  // weird
       return false;
 
     if (max_size && func.size > max_size)
     {
       func.address = startAddr;
       func.analyzed = true;
-      func.hash = SignatureDB::ComputeCodeChecksum(startAddr, addr);
+      func.size -= 4;
+      func.hash = HashSignatureDB::ComputeCodeChecksum(startAddr, addr - 4);
       if (numInternalBranches == 0)
         func.flags |= FFLAG_STRAIGHT;
       return true;
@@ -116,22 +124,19 @@ bool AnalyzeFunction(u32 startAddr, Symbol& func, int max_size)
       // 4e800021 is blrl, not the end of a function
       if (instr.hex == 0x4e800020 || instr.hex == 0x4C000064)
       {
+        // Not this one, continue..
         if (farthestInternalBranchTarget > addr)
-        {
-          // bah, not this one, continue..
-        }
-        else
-        {
-          // a final blr!
-          // We're done! Looks like we have a neat valid function. Perfect.
-          // Let's calc the checksum and get outta here
-          func.address = startAddr;
-          func.analyzed = true;
-          func.hash = SignatureDB::ComputeCodeChecksum(startAddr, addr);
-          if (numInternalBranches == 0)
-            func.flags |= FFLAG_STRAIGHT;
-          return true;
-        }
+          continue;
+
+        // A final blr!
+        // We're done! Looks like we have a neat valid function. Perfect.
+        // Let's calc the checksum and get outta here
+        func.address = startAddr;
+        func.analyzed = true;
+        func.hash = HashSignatureDB::ComputeCodeChecksum(startAddr, addr);
+        if (numInternalBranches == 0)
+          func.flags |= FFLAG_STRAIGHT;
+        return true;
       }
       /*
       else if ((instr.hex & 0xFC000000) == (0x4b000000 & 0xFC000000) && !instr.LK)
@@ -143,7 +148,7 @@ bool AnalyzeFunction(u32 startAddr, Symbol& func, int max_size)
           func.size *= 4; // into bytes
           func.address = startAddr;
           func.analyzed = 1;
-          func.hash = SignatureDB::ComputeCodeChecksum(startAddr, addr);
+          func.hash = HashSignatureDB::ComputeCodeChecksum(startAddr, addr);
           if (numInternalBranches == 0)
             func.flags |= FFLAG_STRAIGHT;
           return true;
@@ -161,28 +166,25 @@ bool AnalyzeFunction(u32 startAddr, Symbol& func, int max_size)
       }
       else
       {
-        if (instr.OPCD == 16)
+        u32 target = EvaluateBranchTarget(instr, addr);
+        if (target == INVALID_BRANCH_TARGET)
+          continue;
+
+        const bool is_external = target < startAddr || (max_size && target >= startAddr + max_size);
+        if (instr.LK || is_external)
         {
-          u32 target = SignExt16(instr.BD << 2);
-
-          if (!instr.AA)
-            target += addr;
-
-          if (target > farthestInternalBranchTarget && !instr.LK)
+          // Found a function call
+          func.calls.emplace_back(target, addr);
+          func.flags &= ~FFLAG_LEAF;
+        }
+        else if (instr.OPCD == 16)
+        {
+          // Found a conditional branch
+          if (target > farthestInternalBranchTarget)
           {
             farthestInternalBranchTarget = target;
           }
           numInternalBranches++;
-        }
-        else
-        {
-          u32 target = EvaluateBranchTarget(instr, addr);
-          if (target != INVALID_BRANCH_TARGET && instr.LK)
-          {
-            // we found a branch-n-link!
-            func.calls.emplace_back(target, addr);
-            func.flags &= ~FFLAG_LEAF;
-          }
         }
       }
     }
@@ -190,7 +192,6 @@ bool AnalyzeFunction(u32 startAddr, Symbol& func, int max_size)
     {
       return false;
     }
-    addr += 4;
   }
 }
 

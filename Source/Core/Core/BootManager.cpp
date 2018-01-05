@@ -36,7 +36,6 @@
 #include "Core/HW/SI/SI.h"
 #include "Core/HW/Sram.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
-#include "Core/Host.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayProto.h"
 
@@ -223,9 +222,6 @@ static ConfigCache config_cache;
 bool BootCore(const std::string& _rFilename)
 {
   SConfig& StartUp = SConfig::GetInstance();
-
-  // Use custom settings for debugging mode
-  Host_SetStartupDebuggingParameters();
 
   StartUp.m_BootType = SConfig::BOOT_ISO;
   StartUp.m_strFilename = _rFilename;

@@ -88,9 +88,9 @@ void ToolBar::MakeActions()
   m_config_action = addAction(tr("Settings"), this, SIGNAL(SettingsPressed()));
   widgetForAction(m_config_action)->setMinimumWidth(button_width);
 
-  m_controllers_action = addAction(tr("Controllers"));
+  m_controllers_action = addAction(tr("Controllers"), this, SIGNAL(ControllersPressed()));
   widgetForAction(m_controllers_action)->setMinimumWidth(button_width);
-  m_controllers_action->setEnabled(false);
+  m_controllers_action->setEnabled(true);
 }
 
 void ToolBar::UpdateIcons()

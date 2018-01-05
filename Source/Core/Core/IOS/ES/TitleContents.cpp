@@ -58,8 +58,8 @@ IPCCommandResult ES::OpenTitleContent(u32 uid, const IOCtlVRequest& request)
 
   s32 CFD = OpenTitleContent(m_AccessIdentID++, TitleID, Index);
 
-  INFO_LOG(IOS_ES, "IOCTL_ES_OPENTITLECONTENT: TitleID: %08x/%08x  Index %i -> got CFD %x",
-           (u32)(TitleID >> 32), (u32)TitleID, Index, CFD);
+  INFO_LOG(IOS_ES, "IOCTL_ES_OPENTITLECONTENT: TitleID: %016" PRIx64 "  Index %i -> got CFD %x",
+           TitleID, Index, CFD);
 
   return GetDefaultReply(CFD);
 }

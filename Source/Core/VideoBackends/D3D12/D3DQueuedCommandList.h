@@ -6,6 +6,7 @@
 
 #include <atomic>
 #include <d3d12.h>
+#include <dxgi.h>
 #include <thread>
 
 namespace DX12

@@ -19,7 +19,6 @@
 #include "Core/HLE/HLE.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/DVD/DVDInterface.h"
-#include "Core/HW/DVD/DVDThread.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/IOS/ES/Formats.h"
@@ -120,13 +119,6 @@ static void ReinitHardware()
   SystemTimers::ChangePPCClock(SystemTimers::Mode::GC);
 }
 
-static void UpdateRunningGame()
-{
-  DVDThread::WaitUntilIdle();
-  SConfig::GetInstance().m_BootType = SConfig::BOOT_MIOS;
-  SConfig::GetInstance().SetRunningGameMetadata(DVDInterface::GetVolume());
-}
-
 constexpr u32 ADDRESS_INIT_SEMAPHORE = 0x30f8;
 
 bool Load()
@@ -176,7 +168,8 @@ bool Load()
 
   Memory::Write_U32(0x00000000, ADDRESS_INIT_SEMAPHORE);
   NOTICE_LOG(IOS, "IPL ready.");
-  UpdateRunningGame();
+  SConfig::GetInstance().m_BootType = SConfig::BOOT_MIOS;
+  DVDInterface::UpdateRunningGameMetadata();
   return true;
 }
 }  // namespace MIOS

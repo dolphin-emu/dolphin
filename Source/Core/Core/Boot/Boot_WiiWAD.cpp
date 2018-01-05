@@ -15,6 +15,7 @@
 
 #include "Core/Boot/Boot.h"
 #include "Core/IOS/ES/ES.h"
+#include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/FS/FileIO.h"
 #include "Core/IOS/IOS.h"
 #include "Core/HideObjectEngine.h"
@@ -85,11 +86,19 @@ bool CBoot::Boot_WiiWAD(const std::string& _pFilename)
     IOS::HLE::CreateVirtualFATFilesystem();
   // setup Wii memory
 
-  if (!SetupWiiMemory(ContentLoader.GetTMD().GetIOSId()))
+  if (!SetupWiiMemory(nullptr, ContentLoader.GetTMD().GetIOSId()))
     return false;
 
   IOS::HLE::Device::ES::LoadWAD(_pFilename);
-  if (!IOS::HLE::GetIOS()->BootstrapPPC(ContentLoader))
+
+  // TODO: kill these manual calls and just use ES_Launch here, as soon as the direct WAD
+  //       launch hack is dropped.
+  auto* ios = IOS::HLE::GetIOS();
+  IOS::ES::UIDSys uid_map{Common::FROM_SESSION_ROOT};
+  ios->SetUidForPPC(uid_map.GetOrInsertUIDForTitle(titleID));
+  ios->SetGidForPPC(ContentLoader.GetTMD().GetGroupId());
+
+  if (!ios->BootstrapPPC(ContentLoader))
     return false;
 
   HideObjectEngine::LoadHideObjects();

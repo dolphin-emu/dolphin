@@ -97,6 +97,11 @@ static void APIENTRY ErrorCallback(GLenum source, GLenum type, GLuint id, GLenum
   const char* s_source;
   const char* s_type;
 
+  // Performance - DualCore driver performance warning:
+  // DualCore application thread syncing with server thread
+  if (id == 0x200b0)
+    return;
+
   switch (source)
   {
   case GL_DEBUG_SOURCE_API_ARB:

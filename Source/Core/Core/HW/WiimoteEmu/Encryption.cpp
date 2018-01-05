@@ -253,11 +253,6 @@ void WiimoteGenerateKey(wiimote_key* const key, const u8* const keydata)
   for (int i = 0; i < 6; ++i)
     skey[5 - i] = keydata[i + 10];
 
-  // DEBUG_LOG(WIIMOTE, "rand: %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x", rand[0], rand[1],
-  // rand[2], rand[3], rand[4], rand[5], rand[6], rand[7], rand[8], rand[9]);
-  // DEBUG_LOG(WIIMOTE, "key:  %02x %02x %02x %02x %02x %02x", skey[0], skey[1], skey[2], skey[3],
-  // skey[4], skey[5]);
-
   for (idx = 0; idx < 7; ++idx)
   {
     GenerateKey(rand, idx, testkey);
@@ -265,14 +260,8 @@ void WiimoteGenerateKey(wiimote_key* const key, const u8* const keydata)
       break;
   }
   // default case is idx = 7 which is valid (homebrew uses it for the 0x17 case)
-  // DEBUG_LOG(WIIMOTE, "idx:  %d", idx);
 
   GenerateTables(rand, skey, idx, key->ft, key->sb);
-
-  // DEBUG_LOG(WIIMOTE, "ft:   %02x %02x %02x %02x %02x %02x %02x %02x", key->ft[0], key->ft[1],
-  // key->ft[2], key->ft[3], key->ft[4], key->ft[5], key->ft[6], key->ft[7]);
-  // DEBUG_LOG(WIIMOTE, "sb:   %02x %02x %02x %02x %02x %02x %02x %02x", key->sb[0], key->sb[1],
-  // key->sb[2], key->sb[3], key->sb[4], key->sb[5], key->sb[6], key->sb[7]);
 
   // for homebrew, ft and sb are all 0x97 which is equivalent to 0x17
 }

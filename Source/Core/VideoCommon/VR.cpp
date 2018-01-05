@@ -1,4 +1,4 @@
-// Copyright 2014 Dolphin Emulator Project
+﻿// Copyright 2014 Dolphin Emulator Project
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
@@ -310,13 +310,13 @@ void SetTwoHmdFOV()
   memcpy(g_best_eye_fov, g_eye_fov, 2 * sizeof(g_eye_fov[0]));
   memcpy(g_last_eye_fov, g_eye_fov, 2 * sizeof(g_eye_fov[0]));
 //NOTICE_LOG(VR, "********** %f to %f, %f to %f", left, right, top, bottom);
-  //ERROR_LOG(VR, "********** %f� to %f�, %f� to %f�", RADIANS_TO_DEGREES(atan(left)), RADIANS_TO_DEGREES(atan(right)), RADIANS_TO_DEGREES(atan(top)), RADIANS_TO_DEGREES(atan(bottom)));
+  //ERROR_LOG(VR, "********** %f° to %f°, %f° to %f°", RADIANS_TO_DEGREES(atan(left)), RADIANS_TO_DEGREES(atan(right)), RADIANS_TO_DEGREES(atan(top)), RADIANS_TO_DEGREES(atan(bottom)));
 //#else
   //int eye = 0;
   //NOTICE_LOG(VR, "********** %f to %f, %f to %f", g_eye_fov[eye].LeftTan, g_eye_fov[eye].RightTan, g_eye_fov[eye].UpTan, g_eye_fov[eye].DownTan);
-  //ERROR_LOG(VR, "********** %f� to %f�, %f� to %f�", RADIANS_TO_DEGREES(atan(g_eye_fov[eye].LeftTan)), RADIANS_TO_DEGREES(atan(g_eye_fov[eye].RightTan)), RADIANS_TO_DEGREES(atan(g_eye_fov[eye].UpTan)), RADIANS_TO_DEGREES(atan(g_eye_fov[eye].DownTan)));
+  //ERROR_LOG(VR, "********** %f° to %f°, %f° to %f°", RADIANS_TO_DEGREES(atan(g_eye_fov[eye].LeftTan)), RADIANS_TO_DEGREES(atan(g_eye_fov[eye].RightTan)), RADIANS_TO_DEGREES(atan(g_eye_fov[eye].UpTan)), RADIANS_TO_DEGREES(atan(g_eye_fov[eye].DownTan)));
 //CV1: 0.964926 to 0.715264, 0.889498 to 1.110925
-//CV1: 43.977375� to 35.574768�, 41.653034� to 48.008022�
+//CV1: 43.977375° to 35.574768°, 41.653034° to 48.008022°
 #endif
 }
 

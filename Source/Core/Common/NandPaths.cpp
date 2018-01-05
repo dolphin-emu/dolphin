@@ -36,20 +36,25 @@ std::string GetTicketFileName(u64 _titleID, FromWhichRoot from)
                           (u32)(_titleID >> 32), (u32)_titleID);
 }
 
+std::string GetTitlePath(u64 title_id, FromWhichRoot from)
+{
+  return StringFromFormat("%s/title/%08x/%08x/", RootUserPath(from).c_str(),
+                          static_cast<u32>(title_id >> 32), static_cast<u32>(title_id));
+}
+
 std::string GetTitleDataPath(u64 _titleID, FromWhichRoot from)
 {
-  return StringFromFormat("%s/title/%08x/%08x/data/", RootUserPath(from).c_str(),
-                          (u32)(_titleID >> 32), (u32)_titleID);
+  return GetTitlePath(_titleID, from) + "data/";
+}
+
+std::string GetTitleContentPath(u64 _titleID, FromWhichRoot from)
+{
+  return GetTitlePath(_titleID, from) + "content/";
 }
 
 std::string GetTMDFileName(u64 _titleID, FromWhichRoot from)
 {
   return GetTitleContentPath(_titleID, from) + "title.tmd";
-}
-std::string GetTitleContentPath(u64 _titleID, FromWhichRoot from)
-{
-  return StringFromFormat("%s/title/%08x/%08x/content/", RootUserPath(from).c_str(),
-                          (u32)(_titleID >> 32), (u32)_titleID);
 }
 
 std::string EscapeFileName(const std::string& filename)

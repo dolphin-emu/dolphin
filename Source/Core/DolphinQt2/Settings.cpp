@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <QDir>
 #include <QSize>
 
 #include "Common/FileUtil.h"
@@ -21,6 +22,12 @@ QString Settings::GetThemeDir() const
 {
   QString theme_name = value(QStringLiteral("Theme"), QStringLiteral("Clean")).toString();
   return QString::fromStdString(File::GetThemeDir(theme_name.toStdString()));
+}
+
+QString Settings::GetResourcesDir() const
+{
+  return QString::fromStdString(File::GetSysDirectory().append("Resources"))
+      .append(QDir::separator());
 }
 
 bool Settings::IsInDevelopmentWarningEnabled() const
@@ -101,6 +108,36 @@ void Settings::SetWiiNAND(const QString& path)
   SConfig::GetInstance().SaveSettings();
 }
 
+float Settings::GetEmulationSpeed() const
+{
+  return SConfig::GetInstance().m_EmulationSpeed;
+}
+
+void Settings::SetEmulationSpeed(float val)
+{
+  SConfig::GetInstance().m_EmulationSpeed = val;
+}
+
+bool Settings::GetForceNTSCJ() const
+{
+  return SConfig::GetInstance().bForceNTSCJ;
+}
+
+void Settings::SetForceNTSCJ(bool val)
+{
+  SConfig::GetInstance().bForceNTSCJ = val;
+}
+
+bool Settings::GetAnalyticsEnabled() const
+{
+  return SConfig::GetInstance().m_analytics_enabled;
+}
+
+void Settings::SetAnalyticsEnabled(bool val)
+{
+  SConfig::GetInstance().m_analytics_enabled = val;
+}
+
 DiscIO::Language Settings::GetWiiSystemLanguage() const
 {
   return SConfig::GetInstance().GetCurrentLanguage(true);
@@ -149,4 +186,114 @@ bool Settings::GetFullScreen() const
 QSize Settings::GetRenderWindowSize() const
 {
   return value(QStringLiteral("Graphics/RenderWindowSize"), QSize(640, 480)).toSize();
+}
+
+bool& Settings::BannerVisible() const
+{
+  return SConfig::GetInstance().m_showBannerColumn;
+}
+
+bool& Settings::CountryVisible() const
+{
+  return SConfig::GetInstance().m_showRegionColumn;
+}
+
+bool& Settings::DescriptionVisible() const
+{
+  return SConfig::GetInstance().m_showDescriptionColumn;
+}
+
+bool& Settings::FilenameVisible() const
+{
+  return SConfig::GetInstance().m_showFileNameColumn;
+}
+
+bool& Settings::IDVisible() const
+{
+  return SConfig::GetInstance().m_showIDColumn;
+}
+
+bool& Settings::MakerVisible() const
+{
+  return SConfig::GetInstance().m_showMakerColumn;
+}
+
+bool& Settings::PlatformVisible() const
+{
+  return SConfig::GetInstance().m_showSystemColumn;
+}
+
+bool& Settings::TitleVisible() const
+{
+  return SConfig::GetInstance().m_showTitleColumn;
+}
+
+bool& Settings::SizeVisible() const
+{
+  return SConfig::GetInstance().m_showSizeColumn;
+}
+
+bool& Settings::StateVisible() const
+{
+  return SConfig::GetInstance().m_showStateColumn;
+}
+
+bool Settings::IsBluetoothPassthroughEnabled() const
+{
+  return SConfig::GetInstance().m_bt_passthrough_enabled;
+}
+
+void Settings::SetBluetoothPassthroughEnabled(bool enabled)
+{
+  SConfig::GetInstance().m_bt_passthrough_enabled = enabled;
+}
+
+bool Settings::IsContinuousScanningEnabled() const
+{
+  return SConfig::GetInstance().m_WiimoteContinuousScanning;
+}
+
+void Settings::SetContinuousScanningEnabled(bool enabled)
+{
+  SConfig::GetInstance().m_WiimoteContinuousScanning = enabled;
+}
+
+bool Settings::IsBackgroundInputEnabled() const
+{
+  return SConfig::GetInstance().m_BackgroundInput;
+}
+
+void Settings::SetBackgroundInputEnabled(bool enabled)
+{
+  SConfig::GetInstance().m_BackgroundInput = enabled;
+}
+
+bool Settings::IsWiimoteSpeakerEnabled() const
+{
+  return SConfig::GetInstance().m_WiimoteEnableSpeaker;
+}
+
+void Settings::SetWiimoteSpeakerEnabled(bool enabled)
+{
+  SConfig::GetInstance().m_WiimoteEnableSpeaker = enabled;
+}
+
+SerialInterface::SIDevices Settings::GetSIDevice(size_t i) const
+{
+  return SConfig::GetInstance().m_SIDevice[i];
+}
+
+void Settings::SetSIDevice(size_t i, SerialInterface::SIDevices device)
+{
+  SConfig::GetInstance().m_SIDevice[i] = device;
+}
+
+bool Settings::IsWiiGameRunning() const
+{
+  return SConfig::GetInstance().bWii;
+}
+
+void Settings::Save()
+{
+  return SConfig::GetInstance().SaveSettings();
 }

@@ -196,7 +196,7 @@ static ConfigLocation MapINIToRealLocation(const std::string& section, const std
     // Certain sections like 'Speedhacks' has keys that are variable
     it = ini_to_location.find({section, ""});
     if (it != ini_to_location.end())
-      return it->second;
+      return {it->second.system, it->second.section, key};
 
     // Attempt to load it as a configuration option
     // It will be in the format of '<System>.<Section>'
@@ -230,11 +230,11 @@ static std::pair<std::string, std::string> GetINILocationFromConfig(const Config
   // Try again, but this time with an empty key
   // Certain sections like 'Speedhacks' have keys that are variable
   it = std::find_if(ini_to_location.begin(), ini_to_location.end(), [&location](const auto& entry) {
-    return std::tie(entry.second.system, entry.second.key) ==
-           std::tie(location.system, location.key);
+    return std::tie(entry.second.system, entry.second.section) ==
+           std::tie(location.system, location.section);
   });
   if (it != ini_to_location.end())
-    return it->first;
+    return {it->first.first, location.key};
 
   WARN_LOG(CORE, "Unknown option: %s.%s", location.section.c_str(), location.key.c_str());
   return {"", ""};
@@ -391,10 +391,10 @@ void INIGameConfigLayerLoader::Save(Config::Layer* config_layer)
   {
     for (const auto& section : system.second)
     {
-      for (const auto& value : section.GetValues())
+      for (const auto& value : section->GetValues())
       {
         const auto ini_location =
-            GetINILocationFromConfig({system.first, section.GetName(), value.first});
+            GetINILocationFromConfig({system.first, section->GetName(), value.first});
         if (ini_location.first.empty() && ini_location.second.empty())
           continue;
 

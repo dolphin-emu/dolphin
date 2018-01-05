@@ -93,7 +93,7 @@
       <!--Enforce some behaviors as standards-conformant when they don't default as such-->
       <AdditionalOptions>/Zc:inline /Zc:rvalueCast /volatile:iso %(AdditionalOptions)</AdditionalOptions>
       <!--Enable detailed debug info-->
-      <AdditionalOptions>/Zo %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/Zo /utf-8 %(AdditionalOptions)</AdditionalOptions>
       <DebugInformationFormat>OldStyle</DebugInformationFormat>
       <!--
       This is for GetVersionEx being marked as depreciated - which is idiotic and there's

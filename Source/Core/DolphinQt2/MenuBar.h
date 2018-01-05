@@ -41,6 +41,7 @@ signals:
   // View
   void ShowTable();
   void ShowList();
+  void ColumnVisibilityToggled(const QString& row, bool visible);
 
   void ShowAboutDialog();
 
@@ -49,6 +50,9 @@ public slots:
   void EmulationPaused();
   void EmulationStopped();
   void UpdateStateSlotMenu();
+
+  // Tools
+  void InstallWAD();
 
 private:
   void AddFileMenu();
@@ -62,11 +66,15 @@ private:
   void AddGameListTypeSection(QMenu* view_menu);
   void AddTableColumnsMenu(QMenu* view_menu);
 
+  void AddToolsMenu();
   void AddHelpMenu();
 
   // File
   QAction* m_open_action;
   QAction* m_exit_action;
+
+  // Tools
+  QAction* m_wad_install_action;
 
   // Emulation
   QAction* m_play_action;

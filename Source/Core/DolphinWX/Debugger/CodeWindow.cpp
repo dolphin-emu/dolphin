@@ -482,7 +482,7 @@ void CCodeWindow::OnCPUMode(wxCommandEvent& event)
   switch (event.GetId())
   {
   case IDM_INTERPRETER:
-    PowerPC::SetMode(UseInterpreter() ? PowerPC::CoreMode::Interpreter : PowerPC::CoreMode::JIT);
+    PowerPC::SetMode(event.IsChecked() ? PowerPC::CoreMode::Interpreter : PowerPC::CoreMode::JIT);
     break;
   case IDM_BOOT_TO_PAUSE:
     SConfig::GetInstance().bBootToPause = event.IsChecked();
@@ -560,32 +560,6 @@ void CCodeWindow::OnJitMenu(wxCommandEvent& event)
     break;
   }
   }
-}
-
-// Shortcuts
-bool CCodeWindow::UseInterpreter()
-{
-  return GetParentMenuBar()->IsChecked(IDM_INTERPRETER);
-}
-
-bool CCodeWindow::BootToPause()
-{
-  return GetParentMenuBar()->IsChecked(IDM_BOOT_TO_PAUSE);
-}
-
-bool CCodeWindow::AutomaticStart()
-{
-  return GetParentMenuBar()->IsChecked(IDM_AUTOMATIC_START);
-}
-
-bool CCodeWindow::JITNoBlockCache()
-{
-  return GetParentMenuBar()->IsChecked(IDM_JIT_NO_BLOCK_CACHE);
-}
-
-bool CCodeWindow::JITNoBlockLinking()
-{
-  return GetParentMenuBar()->IsChecked(IDM_JIT_NO_BLOCK_LINKING);
 }
 
 // Update GUI

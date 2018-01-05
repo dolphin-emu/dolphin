@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -27,11 +28,16 @@ public:
   const IOS::ES::TMDReader& GetTMD() const { return m_tmd; }
   const std::vector<u8>& GetDataApp() const { return m_data_app; }
   const std::vector<u8>& GetFooter() const { return m_footer; }
+  std::vector<u8> GetContent(u16 index) const;
+
 private:
-  bool ParseWAD(IBlobReader& reader);
+  bool ParseWAD();
 
   bool m_valid;
 
+  std::unique_ptr<IBlobReader> m_reader;
+
+  u64 m_data_app_offset = 0;
   std::vector<u8> m_certificate_chain;
   IOS::ES::TicketReader m_ticket;
   IOS::ES::TMDReader m_tmd;

@@ -6,10 +6,10 @@
 
 #include "Core/PowerPC/SignatureDB/SignatureDB.h"
 
-class DSYSignatureDB final : public SignatureDBFormatHandler
+class DSYSignatureDB final : public HashSignatureDB
 {
 public:
   ~DSYSignatureDB() = default;
-  bool Load(const std::string& file_path, SignatureDB::FuncDB& database) const override;
-  bool Save(const std::string& file_path, const SignatureDB::FuncDB& database) const override;
+  bool Load(const std::string& file_path) override;
+  bool Save(const std::string& file_path) const override;
 };

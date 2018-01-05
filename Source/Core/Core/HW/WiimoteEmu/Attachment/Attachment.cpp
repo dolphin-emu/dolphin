@@ -63,7 +63,7 @@ namespace ControllerEmu
 {
 void Extension::GetState(u8* const data)
 {
-  ((WiimoteEmu::Attachment*)attachments[active_extension].get())->GetState(data);
+  static_cast<WiimoteEmu::Attachment*>(attachments[active_extension].get())->GetState(data);
 }
 
 bool Extension::IsButtonPressed() const
@@ -74,9 +74,11 @@ bool Extension::IsButtonPressed() const
   // Wiimotes (can? always?) have their active_extension set to -1, we also have to check the
   // switch_extension
   if (active_extension > 0)
-    return ((WiimoteEmu::Attachment*)attachments[active_extension].get())->IsButtonPressed();
+    return static_cast<WiimoteEmu::Attachment*>(attachments[active_extension].get())
+        ->IsButtonPressed();
   if (switch_extension > 0)
-    return ((WiimoteEmu::Attachment*)attachments[switch_extension].get())->IsButtonPressed();
+    return static_cast<WiimoteEmu::Attachment*>(attachments[switch_extension].get())
+        ->IsButtonPressed();
   return false;
 }
 }  // namespace ControllerEmu

@@ -9,11 +9,10 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "DiscIO/Volume.h"
 
 namespace DiscIO
 {
-class IVolume;
-
 // file info of an FST entry
 struct SFileInfo
 {
@@ -35,7 +34,7 @@ struct SFileInfo
 class IFileSystem
 {
 public:
-  IFileSystem(const IVolume* _rVolume);
+  IFileSystem(const IVolume* _rVolume, const Partition& partition);
 
   virtual ~IFileSystem();
   virtual bool IsValid() const = 0;
@@ -50,10 +49,12 @@ public:
   virtual u64 GetBootDOLOffset() const = 0;
   virtual u32 GetBootDOLSize(u64 dol_offset) const = 0;
 
+  virtual const Partition GetPartition() const { return m_partition; }
 protected:
-  const IVolume* m_rVolume;
+  const IVolume* const m_rVolume;
+  const Partition m_partition;
 };
 
-std::unique_ptr<IFileSystem> CreateFileSystem(const IVolume* volume);
+std::unique_ptr<IFileSystem> CreateFileSystem(const IVolume* volume, const Partition& partition);
 
 }  // namespace

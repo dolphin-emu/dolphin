@@ -272,7 +272,7 @@ Wiimote::Wiimote(const unsigned int index)
   // ---- set up all the controls ----
 
   // buttons
-  groups.emplace_back(m_buttons = new ControllerEmu::Buttons("Buttons"));
+  groups.emplace_back(m_buttons = new ControllerEmu::Buttons(_trans("Buttons")));
   for (auto& named_button : named_buttons)
     m_buttons->controls.emplace_back(new ControllerEmu::Input(named_button));
 
@@ -288,9 +288,12 @@ Wiimote::Wiimote(const unsigned int index)
 
   // shake
   groups.emplace_back(m_shake = new ControllerEmu::Buttons(_trans("Shake")));
-  m_shake->controls.emplace_back(new ControllerEmu::Input("X"));
-  m_shake->controls.emplace_back(new ControllerEmu::Input("Y"));
-  m_shake->controls.emplace_back(new ControllerEmu::Input("Z"));
+  // i18n: Refers to a 3D axis (used when mapping motion controls)
+  m_shake->controls.emplace_back(new ControllerEmu::Input(_trans("X")));
+  // i18n: Refers to a 3D axis (used when mapping motion controls)
+  m_shake->controls.emplace_back(new ControllerEmu::Input(_trans("Y")));
+  // i18n: Refers to a 3D axis (used when mapping motion controls)
+  m_shake->controls.emplace_back(new ControllerEmu::Input(_trans("Z")));
 
   // extension
   groups.emplace_back(m_extension = new ControllerEmu::Extension(_trans("Extension")));
@@ -309,7 +312,7 @@ Wiimote::Wiimote(const unsigned int index)
   m_rumble->controls.emplace_back(m_motor = new ControllerEmu::Output(_trans("Motor")));
 
   // dpad
-  groups.emplace_back(m_dpad = new ControllerEmu::Buttons("D-Pad"));
+  groups.emplace_back(m_dpad = new ControllerEmu::Buttons(_trans("D-Pad")));
   for (auto& named_direction : named_directions)
     m_dpad->controls.emplace_back(new ControllerEmu::Input(named_direction));
 
@@ -407,7 +410,6 @@ ControllerEmu::ControlGroup* Wiimote::GetTurntableGroup(TurntableGroup group)
 
 bool Wiimote::Step()
 {
-  // TODO: change this a bit
   m_motion_plus_present = m_motion_plus_setting->GetValue();
   m_motion_plus_active = m_reg_motion_plus.ext_identifier[2] == 0xa4;
 
@@ -426,7 +428,6 @@ bool Wiimote::Step()
     ReadRequest& rr = m_read_requests.front();
     // send up to 16 bytes to the Wii
     SendReadDataReply(rr);
-    // SendReadDataReply(rr.channel, rr);
 
     // if there is no more data, remove from queue
     if (0 == rr.size)
@@ -494,7 +495,7 @@ void Wiimote::GetButtonData(u8* const data)
     UpdateButtonsStatus();
   }
 
-  ((wm_buttons*)data)->hex |= m_status.buttons.hex;
+  reinterpret_cast<wm_buttons*>(data)->hex |= m_status.buttons.hex;
 }
 
 void Wiimote::GetAccelData(u8* const data, const ReportFeatures& rptf)
@@ -517,8 +518,8 @@ void Wiimote::GetAccelData(u8* const data, const ReportFeatures& rptf)
   EmulateSwing(&m_accel, m_swing, is_sideways, is_upright);
   EmulateShake(&m_accel, m_shake, m_shake_step);
 
-  wm_accel& accel = *(wm_accel*)(data + rptf.accel);
-  wm_buttons& core = *(wm_buttons*)(data + rptf.core);
+  wm_accel& accel = *reinterpret_cast<wm_accel*>(data + rptf.accel);
+  wm_buttons& core = *reinterpret_cast<wm_buttons*>(data + rptf.core);
 
   // We now use 2 bits more precision, so multiply by 4 before converting to int
   s16 x = (s16)(4 * (m_accel.x * ACCEL_RANGE + ACCEL_ZERO_G));
@@ -573,14 +574,11 @@ void Wiimote::GetIRData(u8* const data, bool use_accel)
       nsin = 0;
       ncos = 1;
     }
-    // PanicAlert("%d %d %d\nx:%f\nz:%f\nsin:%f\ncos:%f",accel->x,accel->y,accel->z,ax,az,sin,cos);
-    // PanicAlert("%d %d %d\n%d %d %d\n%d %d
-    // %d",accel->x,accel->y,accel->z,calib->zero_g.x,calib->zero_g.y,calib->zero_g.z,
-    // calib->one_g.x,calib->one_g.y,calib->one_g.z);
   }
   else
   {
-    nsin = 0;  // m_tilt stuff here (can't figure it out yet....)
+    // TODO m_tilt stuff
+    nsin = 0;
     ncos = 1;
   }
 
@@ -623,9 +621,7 @@ void Wiimote::GetIRData(u8* const data, bool use_accel)
   Matrix rot, tot;
   static Matrix scale;
   MatrixScale(scale, 1, camWidth / camHeight, 1);
-  // MatrixIdentity(scale);
   MatrixRotationByZ(rot, ir_sin, ir_cos);
-  // MatrixIdentity(rot);
   MatrixMultiply(tot, scale, rot);
 
   for (int i = 0; i < 4; i++)
@@ -636,10 +632,6 @@ void Wiimote::GetIRData(u8* const data, bool use_accel)
     x[i] = (u16)lround((v[i].x + 1) / 2 * (camWidth - 1));
     y[i] = (u16)lround((v[i].y + 1) / 2 * (camHeight - 1));
   }
-  // PanicAlert("%f %f\n%f %f\n%f %f\n%f %f\n%d %d\n%d %d\n%d %d\n%d %d",
-  //      v[0].x,v[0].y,v[1].x,v[1].y,v[2].x,v[2].y,v[3].x,v[3].y,
-  //      x[0],y[0],x[1],y[1],x[2],y[2],x[3],y[38]);
-
   // Fill report with valid data when full handshake was done
   if (m_reg_ir.data[0x30])
     // ir mode
@@ -649,7 +641,7 @@ void Wiimote::GetIRData(u8* const data, bool use_accel)
     case 1:
     {
       memset(data, 0xFF, 10);
-      wm_ir_basic* const irdata = (wm_ir_basic*)data;
+      wm_ir_basic* const irdata = reinterpret_cast<wm_ir_basic*>(data);
       for (unsigned int i = 0; i < 2; ++i)
       {
         if (x[i * 2] < 1024 && y[i * 2] < 768)
@@ -675,7 +667,7 @@ void Wiimote::GetIRData(u8* const data, bool use_accel)
     case 3:
     {
       memset(data, 0xFF, 12);
-      wm_ir_extended* const irdata = (wm_ir_extended*)data;
+      wm_ir_extended* const irdata = reinterpret_cast<wm_ir_extended*>(data);
       for (unsigned int i = 0; i < 4; ++i)
         if (x[i] < 1024 && y[i] < 768)
         {
@@ -706,7 +698,6 @@ void Wiimote::GetExtData(u8* const data)
   // i think it should be unencrpyted in the register, encrypted when read.
   memcpy(m_reg_ext.controller_data, data, sizeof(wm_nc));  // TODO: Should it be nc specific?
 
-  // motionplus pass-through modes
   if (GetMotionPlusActive())
   {
     if (m_motion_plus_passthrough)
@@ -747,13 +738,13 @@ void Wiimote::GetExtData(u8* const data)
         break;
       }
 
-      ((wm_motionplus_data*)data)->is_mp_data = 0;
+      reinterpret_cast<wm_motionplus_data*>(data)->is_mp_data = 0;
     }
     else
     {
       u16 yaw_speed = 0x1F7F, pitch_speed = 0x1F7F, roll_speed = 0x1F7F;
 
-      wm_motionplus_data* mp = (wm_motionplus_data*)data;
+      wm_motionplus_data* mp = reinterpret_cast<wm_motionplus_data*>(data);
       mp->yaw1 = yaw_speed & 0xFF;
       mp->yaw2 = ((yaw_speed >> 8) & 0x3f);
       mp->roll1 = roll_speed & 0xFF;
@@ -767,8 +758,8 @@ void Wiimote::GetExtData(u8* const data)
       mp->is_mp_data = 1;
     }
 
-    ((wm_motionplus_data*)data)->zero = 0;
-    ((wm_motionplus_data*)data)->extension_connected = (m_extension->active_extension > 0);
+    reinterpret_cast<wm_motionplus_data*>(data)->zero = 0;
+    reinterpret_cast<wm_motionplus_data*>(data)->extension_connected = (m_extension->active_extension > 0);
     m_motion_plus_passthrough = !m_motion_plus_passthrough;
   }
 
@@ -805,7 +796,7 @@ void Wiimote::Update()
       Movie::PlayWiimote(m_index, data, rptf, m_extension->active_extension, m_ext_key))
   {
     if (rptf.core)
-      m_status.buttons = *(wm_buttons*)(data + rptf.core);
+      m_status.buttons = *reinterpret_cast<wm_buttons*>(data + rptf.core);
   }
   else
   {
@@ -843,10 +834,10 @@ void Wiimote::Update()
       std::lock_guard<std::mutex> lk(g_wiimotes_mutex);
       if (g_wiimotes[m_index])
       {
-        const Report& rpt = g_wiimotes[m_index]->ProcessReadQueue();
+        Report& rpt = g_wiimotes[m_index]->ProcessReadQueue();
         if (!rpt.empty())
         {
-          const u8* real_data = rpt.data();
+          u8* real_data = rpt.data();
           switch (real_data[1])
           {
           // use data reports
@@ -864,8 +855,9 @@ void Wiimote::Update()
               // mix real-buttons with emu-buttons in the status struct, and in the report
               if (real_rptf.core && rptf.core)
               {
-                m_status.buttons.hex |= ((wm_buttons*)(real_data + real_rptf.core))->hex;
-                *(wm_buttons*)(data + rptf.core) = m_status.buttons;
+                m_status.buttons.hex |=
+                    reinterpret_cast<wm_buttons*>(real_data + real_rptf.core)->hex;
+                *reinterpret_cast<wm_buttons*>(data + rptf.core) = m_status.buttons;
               }
 
               // accel
@@ -891,10 +883,8 @@ void Wiimote::Update()
 
           // use all status reports, after modification of the extension bit
           case RT_STATUS_REPORT:
-            // if (m_extension->switch_extension)
-            //((wm_status_report*)(real_data + 2))->extension = (m_extension->active_extension > 0);
             if (m_extension->active_extension)
-              ((wm_status_report*)(real_data + 2))->extension = 1;
+              reinterpret_cast<wm_status_report*>(real_data + 2)->extension = 1;
             rptf_size = -1;
             break;
 
@@ -920,7 +910,7 @@ void Wiimote::Update()
   {
     NetPlay_GetWiimoteData(m_index, data, rptf.size, m_reporting_mode);
     if (rptf.core)
-      m_status.buttons = *(wm_buttons*)(data + rptf.core);
+      m_status.buttons = *reinterpret_cast<wm_buttons*>(data + rptf.core);
   }
 
   Movie::CheckWiimoteStatus(m_index, data, rptf, m_extension->active_extension, m_ext_key);
@@ -936,23 +926,23 @@ void Wiimote::Update()
   }
 }
 
-void Wiimote::ControlChannel(const u16 _channelID, const void* _pData, u32 _Size)
+void Wiimote::ControlChannel(const u16 channel_id, const void* data, u32 size)
 {
   // Check for custom communication
-  if (99 == _channelID)
+  if (99 == channel_id)
   {
     // Wii Remote disconnected
     // reset eeprom/register/reporting mode
     Reset();
     if (WIIMOTE_SRC_REAL & g_wiimote_sources[m_index])
-      WiimoteReal::ControlChannel(m_index, _channelID, _pData, _Size);
+      WiimoteReal::ControlChannel(m_index, channel_id, data, size);
     return;
   }
 
   // this all good?
-  m_reporting_channel = _channelID;
+  m_reporting_channel = channel_id;
 
-  const hid_packet* const hidp = (hid_packet*)_pData;
+  const hid_packet* hidp = reinterpret_cast<const hid_packet*>(data);
 
   DEBUG_LOG(WIIMOTE, "Emu ControlChannel (page: %i, type: 0x%02x, param: 0x%02x)", m_index,
             hidp->type, hidp->param);
@@ -972,10 +962,10 @@ void Wiimote::ControlChannel(const u16 _channelID, const void* _pData, u32 _Size
     {
       // AyuanX: My experiment shows Control Channel is never used
       // shuffle2: but lwbt uses this, so we'll do what we must :)
-      HidOutputReport((wm_report*)hidp->data);
+      HidOutputReport(reinterpret_cast<const wm_report*>(hidp->data));
 
       u8 handshake = HID_HANDSHAKE_SUCCESS;
-      Core::Callback_WiimoteInterruptChannel(m_index, _channelID, &handshake, 1);
+      Core::Callback_WiimoteInterruptChannel(m_index, channel_id, &handshake, 1);
     }
     break;
 
@@ -989,12 +979,12 @@ void Wiimote::ControlChannel(const u16 _channelID, const void* _pData, u32 _Size
   }
 }
 
-void Wiimote::InterruptChannel(const u16 _channelID, const void* _pData, u32 _Size)
+void Wiimote::InterruptChannel(const u16 channel_id, const void* data, u32 size)
 {
   // this all good?
-  m_reporting_channel = _channelID;
+  m_reporting_channel = channel_id;
 
-  const hid_packet* const hidp = (hid_packet*)_pData;
+  const hid_packet* hidp = reinterpret_cast<const hid_packet*>(data);
 
   switch (hidp->type)
   {
@@ -1003,7 +993,7 @@ void Wiimote::InterruptChannel(const u16 _channelID, const void* _pData, u32 _Si
     {
     case HID_PARAM_OUTPUT:
     {
-      const wm_report* const sr = (wm_report*)hidp->data;
+      const wm_report* sr = reinterpret_cast<const wm_report*>(hidp->data);
 
       if (WIIMOTE_SRC_REAL & g_wiimote_sources[m_index])
       {
@@ -1013,11 +1003,11 @@ void Wiimote::InterruptChannel(const u16 _channelID, const void* _pData, u32 _Si
         case RT_REQUEST_STATUS:
         case RT_READ_DATA:
           if (WIIMOTE_SRC_REAL == g_wiimote_sources[m_index])
-            WiimoteReal::InterruptChannel(m_index, _channelID, _pData, _Size);
+            WiimoteReal::InterruptChannel(m_index, channel_id, data, size);
           break;
 
         default:
-          WiimoteReal::InterruptChannel(m_index, _channelID, _pData, _Size);
+          WiimoteReal::InterruptChannel(m_index, channel_id, data, size);
           break;
         }
 

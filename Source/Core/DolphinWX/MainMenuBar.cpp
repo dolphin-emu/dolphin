@@ -499,11 +499,7 @@ wxMenu* MainMenuBar::CreateSymbolsMenu() const
   symbols_menu->Append(
       IDM_USE_SIGNATURE_FILE, _("Apply Signat&ure File..."),
       _("Must use Generate Symbols first! Recognise names of any standard library functions "
-        "used in multiple games, by loading them from a .dsy file."));
-  symbols_menu->Append(
-      IDM_USE_MEGA_SIGNATURE_FILE, _("Apply &MEGA Signature File..."),
-      _("Must use Generate Symbols first! Recognise names of any standard library functions "
-        "used in multiple games, by loading them from a .mega file."));
+        "used in multiple games, by loading them from a .dsy, .csv, or .mega file."));
   symbols_menu->AppendSeparator();
   symbols_menu->Append(IDM_PATCH_HLE_FUNCTIONS, _("&Patch HLE Functions"));
   symbols_menu->Append(IDM_RENAME_SYMBOLS, _("&Rename Symbols from File..."));
@@ -592,8 +588,11 @@ void MainMenuBar::RefreshWiiToolsLabels() const
   // For similar reasons, it should not be possible to export or import saves, because this can
   // result in the emulated software being confused, or even worse, exported saves having
   // inconsistent data.
-  for (const int index : {IDM_MENU_INSTALL_WAD, IDM_EXPORT_ALL_SAVE, IDM_IMPORT_SAVE})
+  for (const int index : {IDM_MENU_INSTALL_WAD, IDM_EXPORT_ALL_SAVE, IDM_IMPORT_SAVE,
+                          IDM_IMPORT_NAND, IDM_EXTRACT_CERTIFICATES})
+  {
     FindItem(index)->Enable(!Core::IsRunning() || !SConfig::GetInstance().bWii);
+  }
 }
 
 void MainMenuBar::RefreshWiiSystemMenuLabel() const

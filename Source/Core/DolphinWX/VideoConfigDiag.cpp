@@ -353,7 +353,7 @@ static wxArrayString GetListOfResolutions()
   }
 #elif defined(HAVE_XRANDR) && HAVE_XRANDR
   std::vector<std::string> resos;
-  main_frame->m_XRRConfig->AddResolutions(resos);
+  main_frame->m_xrr_config->AddResolutions(resos);
   for (auto res : resos)
     retlist.Add(StrToWxStr(res));
 #elif defined(__APPLE__)
@@ -1095,7 +1095,7 @@ void VideoConfigDiag::Event_DisplayResolution(wxCommandEvent& ev)
         WxStrToStr(choice_display_resolution->GetStringSelection());
   }
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
-  main_frame->m_XRRConfig->Update();
+  main_frame->m_xrr_config->Update();
 #endif
   ev.Skip();
 }

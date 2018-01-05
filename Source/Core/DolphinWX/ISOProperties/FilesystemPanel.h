@@ -21,7 +21,7 @@ class IVolume;
 class FilesystemPanel final : public wxPanel
 {
 public:
-  explicit FilesystemPanel(wxWindow* parent, wxWindowID id, const GameListItem& item,
+  explicit FilesystemPanel(wxWindow* parent, wxWindowID id,
                            const std::unique_ptr<DiscIO::IVolume>& opened_iso);
   ~FilesystemPanel();
 
@@ -69,7 +69,6 @@ private:
 
   wxTreeCtrl* m_tree_ctrl;
 
-  const GameListItem& m_game_list_item;
   const std::unique_ptr<DiscIO::IVolume>& m_opened_iso;
 
   std::unique_ptr<DiscIO::IFileSystem> m_filesystem;

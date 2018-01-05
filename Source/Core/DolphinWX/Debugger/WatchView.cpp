@@ -277,7 +277,7 @@ void CWatchView::OnPopupMenu(wxCommandEvent& event)
 {
   // FIXME: This is terrible. Generate events instead.
   CFrame* cframe = wxGetApp().GetCFrame();
-  CCodeWindow* code_window = cframe->g_pCodeWindow;
+  CCodeWindow* code_window = cframe->m_code_window;
   CWatchWindow* watch_window = code_window->GetPanel<CWatchWindow>();
   CMemoryWindow* memory_window = code_window->GetPanel<CMemoryWindow>();
   CBreakPointWindow* breakpoint_window = code_window->GetPanel<CBreakPointWindow>();

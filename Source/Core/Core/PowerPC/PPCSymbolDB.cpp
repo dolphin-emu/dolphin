@@ -72,7 +72,7 @@ void PPCSymbolDB::AddKnownSymbol(u32 startAddr, u32 size, const std::string& nam
     Symbol* tempfunc = &iter->second;
     tempfunc->name = Demangle(name);
     tempfunc->function_name = GetStrippedFunctionName(name);
-    tempfunc->hash = SignatureDB::ComputeCodeChecksum(startAddr, startAddr + size - 4);
+    tempfunc->hash = HashSignatureDB::ComputeCodeChecksum(startAddr, startAddr + size - 4);
     tempfunc->type = type;
     tempfunc->size = size;
   }

@@ -9,7 +9,11 @@
 #include "Common/CommonFuncs.h"
 #include "Common/Intrinsics.h"
 
-static u64 (*ptrHashFunction)(const u8* src, u32 len, u32 samples) = &GetMurmurHash3;
+#ifdef _M_ARM_64
+#include <arm_acle.h>
+#endif
+
+static u64 (*ptrHashFunction)(const u8* src, u32 len, u32 samples) = nullptr;
 
 // uint32_t
 // WARNING - may read one more byte!
@@ -102,7 +106,7 @@ u32 HashEctor(const u8* ptr, int length)
 // Block read - if your platform needs to do endian-swapping or can only
 // handle aligned reads, do the conversion here
 
-inline u64 getblock(const u64* p, int i)
+static u64 getblock(const u64* p, int i)
 {
   return p[i];
 }
@@ -110,7 +114,7 @@ inline u64 getblock(const u64* p, int i)
 //----------
 // Block mix - combine the key bits with the hash bits and scramble everything
 
-inline void bmix64(u64& h1, u64& h2, u64& k1, u64& k2, u64& c1, u64& c2)
+static void bmix64(u64& h1, u64& h2, u64& k1, u64& k2, u64& c1, u64& c2)
 {
   k1 *= c1;
   k1 = _rotl64(k1, 23);
@@ -136,7 +140,7 @@ inline void bmix64(u64& h1, u64& h2, u64& k1, u64& k2, u64& c1, u64& c2)
 //----------
 // Finalization mix - avalanches all bits to within 0.05% bias
 
-inline u64 fmix64(u64 k)
+static u64 fmix64(u64 k)
 {
   k ^= k >> 33;
   k *= 0xff51afd7ed558ccd;
@@ -147,7 +151,7 @@ inline u64 fmix64(u64 k)
   return k;
 }
 
-u64 GetMurmurHash3(const u8* src, u32 len, u32 samples)
+static u64 GetMurmurHash3(const u8* src, u32 len, u32 samples)
 {
   const u8* data = (const u8*)src;
   const int nblocks = len / 16;
@@ -241,7 +245,7 @@ u64 GetMurmurHash3(const u8* src, u32 len, u32 samples)
 #if defined(_M_X86_64)
 
 FUNCTION_TARGET_SSE42
-u64 GetCRC32(const u8* src, u32 len, u32 samples)
+static u64 GetCRC32(const u8* src, u32 len, u32 samples)
 {
   u64 h[4] = {len, 0, 0, 0};
   u32 Step = (len / 8);
@@ -281,7 +285,7 @@ u64 GetCRC32(const u8* src, u32 len, u32 samples)
 
 #elif defined(_M_ARM_64)
 
-u64 GetCRC32(const u8* src, u32 len, u32 samples)
+static u64 GetCRC32(const u8* src, u32 len, u32 samples)
 {
   u64 h[4] = {len, 0, 0, 0};
   u32 Step = (len / 8);
@@ -293,47 +297,26 @@ u64 GetCRC32(const u8* src, u32 len, u32 samples)
   if (Step < 1)
     Step = 1;
 
-  // We should be able to use intrinsics for this
-  // Too bad the intrinsics for this instruction was added in GCC 4.9.1
-  // The Android NDK (as of r10e) only has GCC 4.9
-  // Once the Android NDK has a newer GCC version, update these to use intrinsics
   while (data < end - Step * 3)
   {
-    asm("crc32x %w[res], %w[two], %x[three]"
-        : [res] "=r"(h[0])
-        : [two] "r"(h[0]), [three] "r"(data[Step * 0]));
-    asm("crc32x %w[res], %w[two], %x[three]"
-        : [res] "=r"(h[1])
-        : [two] "r"(h[1]), [three] "r"(data[Step * 1]));
-    asm("crc32x %w[res], %w[two], %x[three]"
-        : [res] "=r"(h[2])
-        : [two] "r"(h[2]), [three] "r"(data[Step * 2]));
-    asm("crc32x %w[res], %w[two], %x[three]"
-        : [res] "=r"(h[3])
-        : [two] "r"(h[3]), [three] "r"(data[Step * 3]));
-
+    h[0] = __crc32d(h[0], data[Step * 0]);
+    h[1] = __crc32d(h[1], data[Step * 1]);
+    h[2] = __crc32d(h[2], data[Step * 2]);
+    h[3] = __crc32d(h[3], data[Step * 3]);
     data += Step * 4;
   }
   if (data < end - Step * 0)
-    asm("crc32x %w[res], %w[two], %x[three]"
-        : [res] "=r"(h[0])
-        : [two] "r"(h[0]), [three] "r"(data[Step * 0]));
+    h[0] = __crc32d(h[0], data[Step * 0]);
   if (data < end - Step * 1)
-    asm("crc32x %w[res], %w[two], %x[three]"
-        : [res] "=r"(h[1])
-        : [two] "r"(h[1]), [three] "r"(data[Step * 1]));
+    h[1] = __crc32d(h[1], data[Step * 1]);
   if (data < end - Step * 2)
-    asm("crc32x %w[res], %w[two], %x[three]"
-        : [res] "=r"(h[2])
-        : [two] "r"(h[2]), [three] "r"(data[Step * 2]));
+    h[2] = __crc32d(h[2], data[Step * 2]);
 
   if (len & 7)
   {
     u64 temp = 0;
     memcpy(&temp, end, len & 7);
-    asm("crc32x %w[res], %w[two], %x[three]"
-        : [res] "=r"(h[0])
-        : [two] "r"(h[0]), [three] "r"(temp));
+    h[0] = __crc32d(h[0], temp);
   }
 
   // FIXME: is there a better way to combine these partial hashes?
@@ -342,7 +325,7 @@ u64 GetCRC32(const u8* src, u32 len, u32 samples)
 
 #else
 
-u64 GetCRC32(const u8* src, u32 len, u32 samples)
+static u64 GetCRC32(const u8* src, u32 len, u32 samples)
 {
   return 0;
 }
@@ -413,7 +396,7 @@ u64 GetHashHiresTexture(const u8* src, u32 len, u32 samples)
 #if defined(_M_X86)
 
 FUNCTION_TARGET_SSE42
-u64 GetCRC32(const u8* src, u32 len, u32 samples)
+static u64 GetCRC32(const u8* src, u32 len, u32 samples)
 {
   u32 h = len;
   u32 Step = (len / 4);
@@ -436,7 +419,7 @@ u64 GetCRC32(const u8* src, u32 len, u32 samples)
 
 #else
 
-u64 GetCRC32(const u8* src, u32 len, u32 samples)
+static u64 GetCRC32(const u8* src, u32 len, u32 samples)
 {
   return 0;
 }
@@ -447,7 +430,7 @@ u64 GetCRC32(const u8* src, u32 len, u32 samples)
 // Block read - if your platform needs to do endian-swapping or can only
 // handle aligned reads, do the conversion here
 
-inline u32 getblock(const u32* p, int i)
+static u32 getblock(const u32* p, int i)
 {
   return p[i];
 }
@@ -457,7 +440,7 @@ inline u32 getblock(const u32* p, int i)
 
 // avalanches all bits to within 0.25% bias
 
-inline u32 fmix32(u32 h)
+static u32 fmix32(u32 h)
 {
   h ^= h >> 16;
   h *= 0x85ebca6b;
@@ -468,7 +451,7 @@ inline u32 fmix32(u32 h)
   return h;
 }
 
-inline void bmix32(u32& h1, u32& h2, u32& k1, u32& k2, u32& c1, u32& c2)
+static void bmix32(u32& h1, u32& h2, u32& k1, u32& k2, u32& c1, u32& c2)
 {
   k1 *= c1;
   k1 = _rotl(k1, 11);
@@ -493,7 +476,7 @@ inline void bmix32(u32& h1, u32& h2, u32& k1, u32& k2, u32& c1, u32& c2)
 
 //----------
 
-u64 GetMurmurHash3(const u8* src, u32 len, u32 samples)
+static u64 GetMurmurHash3(const u8* src, u32 len, u32 samples)
 {
   const u8* data = (const u8*)src;
   u32 out[2];

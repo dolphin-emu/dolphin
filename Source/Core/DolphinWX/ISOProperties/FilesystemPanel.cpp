@@ -33,32 +33,31 @@ namespace
 class WiiPartition final : public wxTreeItemData
 {
 public:
-  WiiPartition(std::unique_ptr<DiscIO::IVolume> volume_,
-               std::unique_ptr<DiscIO::IFileSystem> filesystem_)
-      : volume{std::move(volume_)}, filesystem{std::move(filesystem_)}
+  WiiPartition(std::unique_ptr<DiscIO::IFileSystem> filesystem_)
+      : filesystem{std::move(filesystem_)}
   {
   }
 
-  std::unique_ptr<DiscIO::IVolume> volume;
   std::unique_ptr<DiscIO::IFileSystem> filesystem;
 };
 
 class IntegrityCheckThread final : public wxThread
 {
 public:
-  explicit IntegrityCheckThread(const WiiPartition& partition)
-      : wxThread{wxTHREAD_JOINABLE}, m_partition{partition}
+  explicit IntegrityCheckThread(const DiscIO::IVolume* volume, DiscIO::Partition partition)
+      : wxThread{wxTHREAD_JOINABLE}, m_volume{volume}, m_partition{partition}
   {
     Create();
   }
 
   ExitCode Entry() override
   {
-    return reinterpret_cast<ExitCode>(m_partition.volume->CheckIntegrity());
+    return reinterpret_cast<ExitCode>(m_volume->CheckIntegrity(m_partition));
   }
 
 private:
-  const WiiPartition& m_partition;
+  const DiscIO::IVolume* const m_volume;
+  const DiscIO::Partition m_partition;
 };
 
 enum : int
@@ -159,9 +158,9 @@ WiiPartition* FindWiiPartition(wxTreeCtrl* tree_ctrl, const wxString& label)
 }
 }  // Anonymous namespace
 
-FilesystemPanel::FilesystemPanel(wxWindow* parent, wxWindowID id, const GameListItem& item,
+FilesystemPanel::FilesystemPanel(wxWindow* parent, wxWindowID id,
                                  const std::unique_ptr<DiscIO::IVolume>& opened_iso)
-    : wxPanel{parent, id}, m_game_list_item{item}, m_opened_iso{opened_iso}
+    : wxPanel{parent, id}, m_opened_iso{opened_iso}
 {
   CreateGUI();
   BindEvents();
@@ -220,7 +219,7 @@ void FilesystemPanel::PopulateFileSystemTree()
 
 void FilesystemPanel::PopulateFileSystemTreeGC()
 {
-  m_filesystem = DiscIO::CreateFileSystem(m_opened_iso.get());
+  m_filesystem = DiscIO::CreateFileSystem(m_opened_iso.get(), DiscIO::PARTITION_NONE);
   if (!m_filesystem)
     return;
 
@@ -229,34 +228,23 @@ void FilesystemPanel::PopulateFileSystemTreeGC()
 
 void FilesystemPanel::PopulateFileSystemTreeWii() const
 {
-  u32 partition_count = 0;
-
-  for (u32 group = 0; group < 4; group++)
+  std::vector<DiscIO::Partition> partitions = m_opened_iso->GetPartitions();
+  for (size_t i = 0; i < partitions.size(); ++i)
   {
-    // yes, technically there can be OVER NINE THOUSAND partitions...
-    for (u32 i = 0; i < 0xFFFFFFFF; i++)
+    std::unique_ptr<DiscIO::IFileSystem> file_system(
+        DiscIO::CreateFileSystem(m_opened_iso.get(), partitions[i]));
+    if (file_system)
     {
-      auto volume = DiscIO::CreateVolumeFromFilename(m_game_list_item.GetFileName(), group, i);
-      if (volume == nullptr)
-        break;
+      wxTreeItemId partition_root = m_tree_ctrl->AppendItem(
+          m_tree_ctrl->GetRootItem(), wxString::Format(_("Partition %i"), i), ICON_DISC);
 
-      auto file_system = DiscIO::CreateFileSystem(volume.get());
-      if (file_system != nullptr)
-      {
-        auto* const partition = new WiiPartition(std::move(volume), std::move(file_system));
+      WiiPartition* const partition = new WiiPartition(std::move(file_system));
 
-        const wxTreeItemId partition_root = m_tree_ctrl->AppendItem(
-            m_tree_ctrl->GetRootItem(), wxString::Format(_("Partition %u"), partition_count),
-            ICON_DISC);
+      m_tree_ctrl->SetItemData(partition_root, partition);
+      CreateDirectoryTree(m_tree_ctrl, partition_root, partition->filesystem->GetFileList());
 
-        m_tree_ctrl->SetItemData(partition_root, partition);
-        CreateDirectoryTree(m_tree_ctrl, partition_root, partition->filesystem->GetFileList());
-
-        if (partition_count == 1)
-          m_tree_ctrl->Expand(partition_root);
-
-        partition_count++;
-      }
+      if (i == 1)
+        m_tree_ctrl->Expand(partition_root);
     }
   }
 }
@@ -385,8 +373,9 @@ void FilesystemPanel::OnCheckPartitionIntegrity(wxCommandEvent& WXUNUSED(event))
                           wxPD_APP_MODAL | wxPD_ELAPSED_TIME | wxPD_SMOOTH);
 
   const auto selection = m_tree_ctrl->GetSelection();
-
-  IntegrityCheckThread thread(*static_cast<WiiPartition*>(m_tree_ctrl->GetItemData(selection)));
+  WiiPartition* partition =
+      static_cast<WiiPartition*>(m_tree_ctrl->GetItemData(m_tree_ctrl->GetSelection()));
+  IntegrityCheckThread thread(m_opened_iso.get(), partition->filesystem->GetPartition());
   thread.Run();
 
   while (thread.IsAlive())

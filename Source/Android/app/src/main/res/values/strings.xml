@@ -153,10 +153,10 @@
     <string name="stereoscopy_mode_descrip">Select the stereoscopic 3D mode.</string>
     <string name="sterescopy_depth">Depth</string>
     <string name="sterescopy_depth_descrip">Control the distance between the virtual cameras.\nA higher value creates a stronger feeling of depth while a lower value is more comfortable.</string>
-    <string name="convergence">Convergence</string>
-    <string name="convergence_descrip">Control the distance of the convergence plane, this is the distance at which objects will appear to be in front of the screen.\nA higher value creates stronger out-of-screen effects while a lower value is more comfortable.</string>
-    <string name="swap_eyes">Swap Eyes</string>
-    <string name="swap_eyes_descrip">Swap the left and right eye, mostly useful if you want to view side-by-side cross-eyed.</string>
+    <string name="sterescopy_convergence">Convergence</string>
+    <string name="sterescopy_convergence_descrip">Control the distance of the convergence plane, this is the distance at which objects will appear to be in front of the screen.\nA higher value creates stronger out-of-screen effects while a lower value is more comfortable.</string>
+    <string name="sterescopy_swap_eyes">Swap Eyes</string>
+    <string name="sterescopy_swap_eyes_descrip">Swap the left and right eye, mostly useful if you want to view side-by-side cross-eyed.</string>
 
     <string name="hacks">Hacks</string>
     <string name="embedded_frame_buffer">Embedded Frame Buffer</string>
@@ -238,9 +238,6 @@
     <!-- Wii Remote Input Menu-->
     <string name="header_wiimote_general">General</string>
     <string name="header_controllers">Controllers</string>
-
-    <!-- Package Names-->
-    <string name="application_id">org.dolphinemu.dolphinemu</string>
 
     <string name="write_permission_needed">You need to allow write access to external storage for the emulator to work</string>
 </resources>

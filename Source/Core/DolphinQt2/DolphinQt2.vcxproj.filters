@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="Main.cpp" />
@@ -91,6 +91,22 @@
     <ClCompile Include="$(QtMocOutPrefix)InDevelopmentWarning.cpp">
       <Filter>Generated Files</Filter>
     </ClCompile>
+    <ClCompile Include="Settings\GeneralPane.cpp">
+      <Filter>Settings</Filter>
+    </ClCompile>
+    <ClCompile Include="$(QtMocOutPrefix)GeneralPane.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(QtMocOutPrefix)InterfacePane.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Config\ControllersWindow.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)ControllersWindow.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Settings\InterfacePane.cpp">
+      <Filter>Settings</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="MainWindow.h" />
@@ -124,6 +140,13 @@
     <QtMoc Include="Config\FilesystemWidget.h" />
     <QtMoc Include="Config\InfoWidget.h" />
     <QtMoc Include="InDevelopmentWarning.h" />
+    <QtMoc Include="Config\ControllersWindow.h" />
+    <QtMoc Include="Settings\InterfacePane.h">
+      <Filter>Settings</Filter>
+    </QtMoc>
+    <QtMoc Include="Settings\GeneralPane.h">
+      <Filter>Settings</Filter>
+    </QtMoc>
   </ItemGroup>
   <ItemGroup>
     <QtUi Include="*.ui" />
@@ -143,6 +166,9 @@
     </Filter>
     <Filter Include="Config">
       <UniqueIdentifier>{42f8a963-563e-420d-8aca-5761657dcff5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Settings">
+      <UniqueIdentifier>{d2a31121-7903-4a66-9b42-9358e92d36ff}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

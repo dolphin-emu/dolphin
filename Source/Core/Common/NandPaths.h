@@ -27,9 +27,10 @@ std::string RootUserPath(FromWhichRoot from);
 std::string GetImportTitlePath(u64 title_id, FromWhichRoot from = FROM_SESSION_ROOT);
 
 std::string GetTicketFileName(u64 _titleID, FromWhichRoot from);
-std::string GetTMDFileName(u64 _titleID, FromWhichRoot from);
+std::string GetTitlePath(u64 title_id, FromWhichRoot from);
 std::string GetTitleDataPath(u64 _titleID, FromWhichRoot from);
 std::string GetTitleContentPath(u64 _titleID, FromWhichRoot from);
+std::string GetTMDFileName(u64 _titleID, FromWhichRoot from);
 
 // Escapes characters that are invalid or have special meanings in the host file system
 std::string EscapeFileName(const std::string& filename);

@@ -89,11 +89,6 @@ public:
   void Load();
   void Save();
 
-  bool UseInterpreter();
-  bool BootToPause();
-  bool AutomaticStart();
-  bool JITNoBlockCache();
-  bool JITNoBlockLinking();
   bool JumpToAddress(u32 address);
 
   void Repopulate(bool refresh_codeview = true);

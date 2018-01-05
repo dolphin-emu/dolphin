@@ -23,10 +23,12 @@
 #include "Common/FileUtil.h"
 #include "Common/Hash.h"
 #include "Common/IniFile.h"
+#include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
 
 #include "Core/Boot/Boot.h"
 #include "Core/ConfigManager.h"
+#include "Core/IOS/ES/Formats.h"
 
 #include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
@@ -259,6 +261,17 @@ GameListItem::~GameListItem()
 {
 }
 
+bool GameListItem::IsValid() const
+{
+  if (!m_Valid)
+    return false;
+
+  if (m_Platform == DiscIO::Platform::WII_WAD && !IOS::ES::IsChannel(m_title_id))
+    return false;
+
+  return true;
+}
+
 void GameListItem::ReloadINI()
 {
   if (!IsValid())
@@ -445,29 +458,13 @@ std::vector<DiscIO::Language> GameListItem::GetLanguages() const
 
 const std::string GameListItem::GetWiiFSPath() const
 {
-  std::unique_ptr<DiscIO::IVolume> iso(DiscIO::CreateVolumeFromFilename(m_FileName));
-  std::string ret;
+  if (m_Platform != DiscIO::Platform::WII_DISC && m_Platform != DiscIO::Platform::WII_WAD)
+    return "";
 
-  if (iso == nullptr)
-    return ret;
+  const std::string path = Common::GetTitleDataPath(m_title_id, Common::FROM_CONFIGURED_ROOT);
 
-  if (iso->GetVolumeType() != DiscIO::Platform::GAMECUBE_DISC)
-  {
-    u64 title_id = 0;
-    iso->GetTitleID(&title_id);
+  if (path[0] == '.')
+    return WxStrToStr(wxGetCwd()) + path.substr(strlen(ROOT_DIR));
 
-    const std::string path =
-        StringFromFormat("%s/title/%08x/%08x/data/", File::GetUserPath(D_WIIROOT_IDX).c_str(),
-                         (u32)(title_id >> 32), (u32)title_id);
-
-    if (!File::Exists(path))
-      File::CreateFullPath(path);
-
-    if (path[0] == '.')
-      ret = WxStrToStr(wxGetCwd()) + path.substr(strlen(ROOT_DIR));
-    else
-      ret = path;
-  }
-
-  return ret;
+  return path;
 }

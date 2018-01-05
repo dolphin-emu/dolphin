@@ -17,6 +17,7 @@ set(SRCS
   Resources.cpp
   Settings.cpp
   ToolBar.cpp
+  Config/ControllersWindow.cpp
   Config/FilesystemWidget.cpp
   Config/InfoWidget.cpp
   Config/PathDialog.cpp
@@ -28,6 +29,8 @@ set(SRCS
   GameList/GameTracker.cpp
   GameList/ListProxyModel.cpp
   GameList/TableDelegate.cpp
+  Settings/GeneralPane.cpp
+  Settings/InterfacePane.cpp
 )
 
 list(APPEND LIBS core uicommon)

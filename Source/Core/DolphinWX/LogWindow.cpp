@@ -180,7 +180,7 @@ void CLogWindow::SaveSettings()
   IniFile ini;
   ini.Load(File::GetUserPath(F_LOGGERCONFIG_IDX));
 
-  if (!Parent->g_pCodeWindow)
+  if (!Parent->m_code_window)
   {
     IniFile::Section* log_window = ini.GetOrCreateSection("LogWindow");
     log_window->Set("x", x);

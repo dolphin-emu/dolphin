@@ -165,7 +165,7 @@ void AnalyticsReporter::Send(AnalyticsReportBuilder&& report)
 
 void AnalyticsReporter::ThreadProc()
 {
-  Common::SetCurrentThreadName("Reporter Thread");
+  Common::SetCurrentThreadName("Analytics");
   while (true)
   {
     m_reporter_event.Wait();

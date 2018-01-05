@@ -12,9 +12,11 @@
 #include "Core/Core.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/Movie.h"
+#include "Core/NetPlayProto.h"
 #include "Core/State.h"
 
 #include "DolphinQt2/AboutDialog.h"
+#include "DolphinQt2/Config/ControllersWindow.h"
 #include "DolphinQt2/Config/PathDialog.h"
 #include "DolphinQt2/Config/SettingsWindow.h"
 #include "DolphinQt2/Host.h"
@@ -51,6 +53,7 @@ void MainWindow::CreateComponents()
   m_render_widget = new RenderWidget;
   m_stack = new QStackedWidget(this);
   m_paths_dialog = new PathDialog(this);
+  m_controllers_window = new ControllersWindow(this);
   m_settings_window = new SettingsWindow(this);
 }
 
@@ -83,11 +86,18 @@ void MainWindow::ConnectMenuBar()
   // View
   connect(m_menu_bar, &MenuBar::ShowTable, m_game_list, &GameList::SetTableView);
   connect(m_menu_bar, &MenuBar::ShowList, m_game_list, &GameList::SetListView);
+  connect(m_menu_bar, &MenuBar::ColumnVisibilityToggled, m_game_list,
+          &GameList::OnColumnVisibilityToggled);
   connect(m_menu_bar, &MenuBar::ShowAboutDialog, this, &MainWindow::ShowAboutDialog);
 
   connect(this, &MainWindow::EmulationStarted, m_menu_bar, &MenuBar::EmulationStarted);
   connect(this, &MainWindow::EmulationPaused, m_menu_bar, &MenuBar::EmulationPaused);
   connect(this, &MainWindow::EmulationStopped, m_menu_bar, &MenuBar::EmulationStopped);
+
+  connect(this, &MainWindow::EmulationStarted, this,
+          [=]() { m_controllers_window->OnEmulationStateChanged(true); });
+  connect(this, &MainWindow::EmulationStopped, this,
+          [=]() { m_controllers_window->OnEmulationStateChanged(false); });
 }
 
 void MainWindow::ConnectToolBar()
@@ -101,6 +111,7 @@ void MainWindow::ConnectToolBar()
   connect(m_tool_bar, &ToolBar::ScreenShotPressed, this, &MainWindow::ScreenShot);
   connect(m_tool_bar, &ToolBar::PathsPressed, this, &MainWindow::ShowPathsDialog);
   connect(m_tool_bar, &ToolBar::SettingsPressed, this, &MainWindow::ShowSettingsWindow);
+  connect(m_tool_bar, &ToolBar::ControllersPressed, this, &MainWindow::ShowControllersWindow);
 
   connect(this, &MainWindow::EmulationStarted, m_tool_bar, &ToolBar::EmulationStarted);
   connect(this, &MainWindow::EmulationPaused, m_tool_bar, &ToolBar::EmulationPaused);
@@ -320,6 +331,13 @@ void MainWindow::ShowPathsDialog()
   m_paths_dialog->show();
   m_paths_dialog->raise();
   m_paths_dialog->activateWindow();
+}
+
+void MainWindow::ShowControllersWindow()
+{
+  m_controllers_window->show();
+  m_controllers_window->raise();
+  m_controllers_window->activateWindow();
 }
 
 void MainWindow::ShowSettingsWindow()

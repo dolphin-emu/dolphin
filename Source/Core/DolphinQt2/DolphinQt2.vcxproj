@@ -70,7 +70,7 @@
       <AdditionalDependencies Condition="'$(Platform)'=='Win32' And Exists('$(ExternalsDir)openvr/lib/win32/openvr_api.lib')">openvr_api.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(ProjectDir)\VideoInterface;$(ProjectDir)\GameList;$(ProjectDir)\Config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\VideoInterface;$(ProjectDir)\GameList;$(ProjectDir)\Settings;$(ProjectDir)\Config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <ResourceCompile>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -95,6 +95,7 @@
   <!--NOTE: When adding moc'd files, you must list the outputs in the following ItemGroup!-->
   <ItemGroup>
     <QtMoc Include="AboutDialog.h" />
+    <QtMoc Include="Config\ControllersWindow.h" />
     <QtMoc Include="Config\FilesystemWidget.h" />
     <QtMoc Include="Config\InfoWidget.h" />
     <QtMoc Include="Config\PathDialog.h" />
@@ -108,23 +109,29 @@
     <QtMoc Include="GameList\TableDelegate.h" />
     <QtMoc Include="Host.h" />
     <QtMoc Include="InDevelopmentWarning.h" />
+    <QtMoc Include="Settings\InterfacePane.h" />
     <QtMoc Include="MainWindow.h" />
     <QtMoc Include="MenuBar.h" />
     <QtMoc Include="RenderWidget.h" />
     <QtMoc Include="Settings.h" />
+    <QtMoc Include="Settings\GeneralPane.h" />
     <QtMoc Include="ToolBar.h" />
+
   </ItemGroup>
   <!--TODO figure out how to get QtMoc to add outputs to ClCompile's inputs...-->
   <ItemGroup>
     <ClCompile Include="$(QtMocOutPrefix)AboutDialog.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)ControllersWindow.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)FilesystemWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GameFile.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GameList.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GameListModel.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GameTracker.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)GeneralPane.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)Host.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)InDevelopmentWarning.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)InfoWidget.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)InterfacePane.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)ListProxyModel.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)MainWindow.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)MenuBar.cpp" />
@@ -135,7 +142,9 @@
     <ClCompile Include="$(QtMocOutPrefix)SettingsWindow.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)TableDelegate.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)ToolBar.cpp" />
+
     <ClCompile Include="AboutDialog.cpp" />
+    <ClCompile Include="Config\ControllersWindow.cpp" />
     <ClCompile Include="Config\FilesystemWidget.cpp" />
     <ClCompile Include="Config\InfoWidget.cpp" />
     <ClCompile Include="Config\PathDialog.cpp" />
@@ -155,6 +164,8 @@
     <ClCompile Include="RenderWidget.cpp" />
     <ClCompile Include="Resources.cpp" />
     <ClCompile Include="Settings.cpp" />
+    <ClCompile Include="Settings\GeneralPane.cpp" />
+    <ClCompile Include="Settings\InterfacePane.cpp" />
     <ClCompile Include="ToolBar.cpp" />
   </ItemGroup>
   <!--Put standard C/C++ headers here-->

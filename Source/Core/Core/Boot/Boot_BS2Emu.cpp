@@ -18,7 +18,6 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HLE/HLE.h"
-#include "Core/HW/DVD/DVDInterface.h"
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/ES/ES.h"
@@ -53,15 +52,8 @@ void CBoot::RunFunction(u32 address)
     PowerPC::SingleStep();
 }
 
-// __________________________________________________________________________________________________
-// GameCube Bootstrap 2 HLE:
-// copy the apploader to 0x81200000
-// execute the apploader, function by function, using the above utility.
-bool CBoot::EmulatedBS2_GC(bool skip_app_loader)
+void CBoot::SetupBAT(bool is_wii)
 {
-  INFO_LOG(BOOT, "Faking GC BS2...");
-
-  // Set up MSR and the BAT SPR registers.
   UReg_MSR& m_MSR = ((UReg_MSR&)PowerPC::ppcState.msr);
   m_MSR.FP = 1;
   m_MSR.DR = 1;
@@ -73,97 +65,56 @@ bool CBoot::EmulatedBS2_GC(bool skip_app_loader)
   PowerPC::ppcState.spr[SPR_DBAT0L] = 0x00000002;
   PowerPC::ppcState.spr[SPR_DBAT1U] = 0xc0001fff;
   PowerPC::ppcState.spr[SPR_DBAT1L] = 0x0000002a;
+  if (is_wii)
+  {
+    PowerPC::ppcState.spr[SPR_IBAT4U] = 0x90001fff;
+    PowerPC::ppcState.spr[SPR_IBAT4L] = 0x10000002;
+    PowerPC::ppcState.spr[SPR_DBAT4U] = 0x90001fff;
+    PowerPC::ppcState.spr[SPR_DBAT4L] = 0x10000002;
+    PowerPC::ppcState.spr[SPR_DBAT5U] = 0xd0001fff;
+    PowerPC::ppcState.spr[SPR_DBAT5L] = 0x1000002a;
+  }
   PowerPC::DBATUpdated();
   PowerPC::IBATUpdated();
+}
 
-  // Write necessary values
-  // Here we write values to memory that the apploader does not take care of. Game info goes
-  // to 0x80000000 according to YAGCD 4.2.
-
-  // It's possible to boot DOL and ELF files without a disc inserted
-  if (DVDInterface::IsDiscInside())
-    DVDRead(/*offset*/ 0x00000000, /*address*/ 0x00000000, 0x20, false);  // write disc info
-
-  PowerPC::HostWrite_U32(0x0D15EA5E,
-                         0x80000020);  // Booted from bootrom. 0xE5207C22 = booted from jtag
-  PowerPC::HostWrite_U32(Memory::REALRAM_SIZE,
-                         0x80000028);  // Physical Memory Size (24MB on retail)
-  // TODO determine why some games fail when using a retail ID. (Seem to take different EXI paths,
-  // see Ikaruga for example)
-  PowerPC::HostWrite_U32(
-      0x10000006,
-      0x8000002C);  // Console type - DevKit  (retail ID == 0x00000003) see YAGCD 4.2.1.1.2
-
-  const bool ntsc = DiscIO::IsNTSC(SConfig::GetInstance().m_region);
-  PowerPC::HostWrite_U32(ntsc ? 0 : 1, 0x800000CC);  // Fake the VI Init of the IPL (YAGCD 4.2.1.4)
-
-  PowerPC::HostWrite_U32(0x01000000, 0x800000d0);  // ARAM Size. 16MB main + 4/16/32MB external
-                                                   // (retail consoles have no external ARAM)
-
-  PowerPC::HostWrite_U32(0x09a7ec80, 0x800000F8);  // Bus Clock Speed
-  PowerPC::HostWrite_U32(0x1cf7c580, 0x800000FC);  // CPU Clock Speed
-
-  PowerPC::HostWrite_U32(0x4c000064, 0x80000300);  // Write default DFI Handler:     rfi
-  PowerPC::HostWrite_U32(0x4c000064, 0x80000800);  // Write default FPU Handler:     rfi
-  PowerPC::HostWrite_U32(0x4c000064, 0x80000C00);  // Write default Syscall Handler: rfi
-
-  PresetTimeBaseTicks();
-
-  // HIO checks this
-  // PowerPC::HostWrite_U16(0x8200,     0x000030e6); // Console type
-
-  HLE::Patch(0x81300000, "OSReport");  // HLE OSReport for Apploader
-
-  if (!DVDInterface::IsDiscInside())
-    return false;
+bool CBoot::RunApploader(bool is_wii, const DiscIO::IVolume& volume)
+{
+  const DiscIO::Partition partition = volume.GetGamePartition();
 
   // Load Apploader to Memory - The apploader is hardcoded to begin at 0x2440 on the disc,
   // but the size can differ between discs. Compare with YAGCD chap 13.
-  const DiscIO::IVolume& volume = DVDInterface::GetVolume();
   const u32 apploader_offset = 0x2440;
-  u32 apploader_entry, apploader_size, apploader_trailer;
-  if (skip_app_loader || !volume.ReadSwapped(apploader_offset + 0x10, &apploader_entry, false) ||
-      !volume.ReadSwapped(apploader_offset + 0x14, &apploader_size, false) ||
-      !volume.ReadSwapped(apploader_offset + 0x18, &apploader_trailer, false) ||
+  u32 apploader_entry = 0;
+  u32 apploader_size = 0;
+  u32 apploader_trailer = 0;
+  if (!volume.ReadSwapped(apploader_offset + 0x10, &apploader_entry, partition) ||
+      !volume.ReadSwapped(apploader_offset + 0x14, &apploader_size, partition) ||
+      !volume.ReadSwapped(apploader_offset + 0x18, &apploader_trailer, partition) ||
       apploader_entry == (u32)-1 || apploader_size + apploader_trailer == (u32)-1)
   {
-    INFO_LOG(BOOT, "GC BS2: Not running apploader!");
+    INFO_LOG(BOOT, "Invalid apploader. Your disc image is probably corrupted.");
     return false;
   }
-  DVDRead(apploader_offset + 0x20, 0x01200000, apploader_size + apploader_trailer, false);
-
-  // Setup pointers like real BS2 does
-  if (ntsc)
-  {
-    // StackPointer, used to be set to 0x816ffff0
-    PowerPC::ppcState.gpr[1] = 0x81566550;
-    // Global pointer to Small Data Area 2 Base (haven't seen anything use it...meh)
-    PowerPC::ppcState.gpr[2] = 0x81465cc0;
-    // Global pointer to Small Data Area Base (Luigi's Mansion's apploader uses it)
-    PowerPC::ppcState.gpr[13] = 0x81465320;
-  }
-  else
-  {
-    PowerPC::ppcState.gpr[1] = 0x815edca8;
-    PowerPC::ppcState.gpr[2] = 0x814b5b20;
-    PowerPC::ppcState.gpr[13] = 0x814b4fc0;
-  }
+  DVDRead(volume, apploader_offset + 0x20, 0x01200000, apploader_size + apploader_trailer,
+          partition);
 
   // TODO - Make Apploader(or just RunFunction()) debuggable!!!
 
   // Call iAppLoaderEntry.
   DEBUG_LOG(MASTER_LOG, "Call iAppLoaderEntry");
-  u32 iAppLoaderFuncAddr = 0x80003100;
+  const u32 iAppLoaderFuncAddr = is_wii ? 0x80004000 : 0x80003100;
   PowerPC::ppcState.gpr[3] = iAppLoaderFuncAddr + 0;
   PowerPC::ppcState.gpr[4] = iAppLoaderFuncAddr + 4;
   PowerPC::ppcState.gpr[5] = iAppLoaderFuncAddr + 8;
   RunFunction(apploader_entry);
-  u32 iAppLoaderInit = PowerPC::Read_U32(iAppLoaderFuncAddr + 0);
-  u32 iAppLoaderMain = PowerPC::Read_U32(iAppLoaderFuncAddr + 4);
-  u32 iAppLoaderClose = PowerPC::Read_U32(iAppLoaderFuncAddr + 8);
+  const u32 iAppLoaderInit = PowerPC::Read_U32(iAppLoaderFuncAddr + 0);
+  const u32 iAppLoaderMain = PowerPC::Read_U32(iAppLoaderFuncAddr + 4);
+  const u32 iAppLoaderClose = PowerPC::Read_U32(iAppLoaderFuncAddr + 8);
 
   // iAppLoaderInit
   DEBUG_LOG(MASTER_LOG, "Call iAppLoaderInit");
+  HLE::Patch(0x81300000, "AppLoaderReport");  // HLE OSReport for Apploader
   PowerPC::ppcState.gpr[3] = 0x81300000;
   RunFunction(iAppLoaderInit);
 
@@ -181,17 +132,18 @@ bool CBoot::EmulatedBS2_GC(bool skip_app_loader)
 
     u32 iRamAddress = PowerPC::Read_U32(0x81300004);
     u32 iLength = PowerPC::Read_U32(0x81300008);
-    u32 iDVDOffset = PowerPC::Read_U32(0x8130000c);
+    u32 iDVDOffset = PowerPC::Read_U32(0x8130000c) << (is_wii ? 2 : 0);
 
     INFO_LOG(MASTER_LOG, "DVDRead: offset: %08x   memOffset: %08x   length: %i", iDVDOffset,
              iRamAddress, iLength);
-    DVDRead(iDVDOffset, iRamAddress, iLength, false);
+    DVDRead(volume, iDVDOffset, iRamAddress, iLength, partition);
 
   } while (PowerPC::ppcState.gpr[3] != 0x00);
 
   // iAppLoaderClose
   DEBUG_LOG(MASTER_LOG, "call iAppLoaderClose");
   RunFunction(iAppLoaderClose);
+  HLE::UnPatch("AppLoaderReport");
 
   // return
   PC = PowerPC::ppcState.gpr[3];
@@ -202,7 +154,72 @@ bool CBoot::EmulatedBS2_GC(bool skip_app_loader)
   return true;
 }
 
-bool CBoot::SetupWiiMemory(u64 ios_title_id)
+// __________________________________________________________________________________________________
+// GameCube Bootstrap 2 HLE:
+// copy the apploader to 0x81200000
+// execute the apploader, function by function, using the above utility.
+bool CBoot::EmulatedBS2_GC(const DiscIO::IVolume* volume, bool skip_app_loader)
+{
+  INFO_LOG(BOOT, "Faking GC BS2...");
+
+  SetupBAT(/*is_wii*/ false);
+
+  // Write necessary values
+  // Here we write values to memory that the apploader does not take care of. Game info goes
+  // to 0x80000000 according to YAGCD 4.2.
+
+  // It's possible to boot DOL and ELF files without a disc inserted
+  if (volume)
+    DVDRead(*volume, /*offset*/ 0x00000000, /*address*/ 0x00000000, 0x20, DiscIO::PARTITION_NONE);
+
+  // Booted from bootrom. 0xE5207C22 = booted from jtag
+  PowerPC::HostWrite_U32(0x0D15EA5E, 0x80000020);
+
+  // Physical Memory Size (24MB on retail)
+  PowerPC::HostWrite_U32(Memory::REALRAM_SIZE, 0x80000028);
+
+  // Console type - DevKit  (retail ID == 0x00000003) see YAGCD 4.2.1.1.2
+  // TODO: determine why some games fail when using a retail ID.
+  // (Seem to take different EXI paths, see Ikaruga for example)
+  PowerPC::HostWrite_U32(0x10000006, 0x8000002C);
+
+  const bool ntsc = DiscIO::IsNTSC(SConfig::GetInstance().m_region);
+  PowerPC::HostWrite_U32(ntsc ? 0 : 1, 0x800000CC);  // Fake the VI Init of the IPL (YAGCD 4.2.1.4)
+
+  PowerPC::HostWrite_U32(0x01000000, 0x800000d0);  // ARAM Size. 16MB main + 4/16/32MB external
+                                                   // (retail consoles have no external ARAM)
+
+  PowerPC::HostWrite_U32(0x09a7ec80, 0x800000F8);  // Bus Clock Speed
+  PowerPC::HostWrite_U32(0x1cf7c580, 0x800000FC);  // CPU Clock Speed
+
+  PowerPC::HostWrite_U32(0x4c000064, 0x80000300);  // Write default DFI Handler:     rfi
+  PowerPC::HostWrite_U32(0x4c000064, 0x80000800);  // Write default FPU Handler:     rfi
+  PowerPC::HostWrite_U32(0x4c000064, 0x80000C00);  // Write default Syscall Handler: rfi
+
+  PresetTimeBaseTicks();
+
+  // HIO checks this
+  // PowerPC::HostWrite_U16(0x8200, 0x000030e6);   // Console type
+
+  if (!volume)
+    return false;
+
+  // Setup pointers like real BS2 does
+
+  // StackPointer, used to be set to 0x816ffff0
+  PowerPC::ppcState.gpr[1] = ntsc ? 0x81566550 : 0x815edca8;
+  // Global pointer to Small Data Area 2 Base (haven't seen anything use it...meh)
+  PowerPC::ppcState.gpr[2] = ntsc ? 0x81465cc0 : 0x814b5b20;
+  // Global pointer to Small Data Area Base (Luigi's Mansion's apploader uses it)
+  PowerPC::ppcState.gpr[13] = ntsc ? 0x81465320 : 0x814b4fc0;
+
+  if (skip_app_loader)
+    return false;
+
+  return RunApploader(/*is_wii*/ false, *volume);
+}
+
+bool CBoot::SetupWiiMemory(const DiscIO::IVolume* volume, u64 ios_title_id)
 {
   static const std::map<DiscIO::Region, const RegionSetting> region_settings = {
       {DiscIO::Region::NTSC_J, {"JPN", "NTSC", "JP", "LJ"}},
@@ -269,8 +286,8 @@ bool CBoot::SetupWiiMemory(u64 ios_title_id)
   */
 
   // When booting a WAD or the system menu, there will probably not be a disc inserted
-  if (DVDInterface::IsDiscInside())
-    DVDRead(0x00000000, 0x00000000, 0x20, false);  // Game Code
+  if (volume)
+    DVDRead(*volume, 0x00000000, 0x00000000, 0x20, DiscIO::PARTITION_NONE);  // Game Code
 
   Memory::Write_U32(0x0D15EA5E, 0x00000020);            // Another magic word
   Memory::Write_U32(0x00000001, 0x00000024);            // Unknown
@@ -294,9 +311,7 @@ bool CBoot::SetupWiiMemory(u64 ios_title_id)
   Memory::Write_U32(0x00000000, 0x000030f0);            // Apploader
 
   if (!IOS::HLE::GetIOS()->BootIOS(ios_title_id))
-  {
     return false;
-  }
 
   Memory::Write_U8(0x80, 0x0000315c);         // OSInit
   Memory::Write_U16(0x0000, 0x000030e0);      // PADInit
@@ -310,6 +325,7 @@ bool CBoot::SetupWiiMemory(u64 ios_title_id)
   {
     Memory::Write_U32(0x00000000, i);
   }
+
   return true;
 }
 
@@ -317,121 +333,49 @@ bool CBoot::SetupWiiMemory(u64 ios_title_id)
 // Wii Bootstrap 2 HLE:
 // copy the apploader to 0x81200000
 // execute the apploader
-bool CBoot::EmulatedBS2_Wii()
+bool CBoot::EmulatedBS2_Wii(const DiscIO::IVolume* volume)
 {
   INFO_LOG(BOOT, "Faking Wii BS2...");
-  if (!DVDInterface::IsDiscInside())
+  if (!volume)
     return false;
 
-  if (DVDInterface::GetVolume().GetVolumeType() != DiscIO::Platform::WII_DISC)
+  if (volume->GetVolumeType() != DiscIO::Platform::WII_DISC)
     return false;
 
-  const IOS::ES::TMDReader tmd = DVDInterface::GetVolume().GetTMD();
+  const DiscIO::Partition partition = volume->GetGamePartition();
+  const IOS::ES::TMDReader tmd = volume->GetTMD(partition);
 
-  if (!SetupWiiMemory(tmd.GetIOSId()))
+  if (!SetupWiiMemory(volume, tmd.GetIOSId()))
     return false;
 
   // This is some kind of consistency check that is compared to the 0x00
   // values as the game boots. This location keeps the 4 byte ID for as long
   // as the game is running. The 6 byte ID at 0x00 is overwritten sometime
   // after this check during booting.
-  DVDRead(0, 0x3180, 4, true);
+  DVDRead(*volume, 0, 0x3180, 4, partition);
 
-  // Set up MSR and the BAT SPR registers.
-  UReg_MSR& m_MSR = ((UReg_MSR&)PowerPC::ppcState.msr);
-  m_MSR.FP = 1;
-  m_MSR.DR = 1;
-  m_MSR.IR = 1;
-  m_MSR.EE = 1;
-  PowerPC::ppcState.spr[SPR_IBAT0U] = 0x80001fff;
-  PowerPC::ppcState.spr[SPR_IBAT0L] = 0x00000002;
-  PowerPC::ppcState.spr[SPR_IBAT4U] = 0x90001fff;
-  PowerPC::ppcState.spr[SPR_IBAT4L] = 0x10000002;
-  PowerPC::ppcState.spr[SPR_DBAT0U] = 0x80001fff;
-  PowerPC::ppcState.spr[SPR_DBAT0L] = 0x00000002;
-  PowerPC::ppcState.spr[SPR_DBAT1U] = 0xc0001fff;
-  PowerPC::ppcState.spr[SPR_DBAT1L] = 0x0000002a;
-  PowerPC::ppcState.spr[SPR_DBAT4U] = 0x90001fff;
-  PowerPC::ppcState.spr[SPR_DBAT4L] = 0x10000002;
-  PowerPC::ppcState.spr[SPR_DBAT5U] = 0xd0001fff;
-  PowerPC::ppcState.spr[SPR_DBAT5L] = 0x1000002a;
-  PowerPC::DBATUpdated();
-  PowerPC::IBATUpdated();
+  SetupBAT(/*is_wii*/ true);
 
   Memory::Write_U32(0x4c000064, 0x00000300);  // Write default DSI Handler:   rfi
   Memory::Write_U32(0x4c000064, 0x00000800);  // Write default FPU Handler:   rfi
   Memory::Write_U32(0x4c000064, 0x00000C00);  // Write default Syscall Handler: rfi
 
-  HLE::Patch(0x81300000, "OSReport");  // HLE OSReport for Apploader
-
   PowerPC::ppcState.gpr[1] = 0x816ffff0;  // StackPointer
 
-  // Execute the apploader
-  const u32 apploader_offset = 0x2440;  // 0x1c40;
-
-  // Load Apploader to Memory
-  const DiscIO::IVolume& volume = DVDInterface::GetVolume();
-  u32 apploader_entry, apploader_size;
-  if (!volume.ReadSwapped(apploader_offset + 0x10, &apploader_entry, true) ||
-      !volume.ReadSwapped(apploader_offset + 0x14, &apploader_size, true) ||
-      apploader_entry == (u32)-1 || apploader_size == (u32)-1)
-  {
-    ERROR_LOG(BOOT, "Invalid apploader. Probably your image is corrupted.");
+  if (!RunApploader(/*is_wii*/ true, *volume))
     return false;
-  }
-  DVDRead(apploader_offset + 0x20, 0x01200000, apploader_size, true);
 
-  // call iAppLoaderEntry
-  DEBUG_LOG(BOOT, "Call iAppLoaderEntry");
+  // Warning: This call will set incorrect running game metadata if our volume parameter
+  // doesn't point to the same disc as the one that's inserted in the emulated disc drive!
+  IOS::HLE::Device::ES::DIVerify(tmd, volume->GetTicket(partition));
 
-  u32 iAppLoaderFuncAddr = 0x80004000;
-  PowerPC::ppcState.gpr[3] = iAppLoaderFuncAddr + 0;
-  PowerPC::ppcState.gpr[4] = iAppLoaderFuncAddr + 4;
-  PowerPC::ppcState.gpr[5] = iAppLoaderFuncAddr + 8;
-  RunFunction(apploader_entry);
-  u32 iAppLoaderInit = PowerPC::Read_U32(iAppLoaderFuncAddr + 0);
-  u32 iAppLoaderMain = PowerPC::Read_U32(iAppLoaderFuncAddr + 4);
-  u32 iAppLoaderClose = PowerPC::Read_U32(iAppLoaderFuncAddr + 8);
-
-  // iAppLoaderInit
-  DEBUG_LOG(BOOT, "Run iAppLoaderInit");
-  PowerPC::ppcState.gpr[3] = 0x81300000;
-  RunFunction(iAppLoaderInit);
-
-  // Let the apploader load the exe to memory
-  DEBUG_LOG(BOOT, "Run iAppLoaderMain");
-  do
-  {
-    PowerPC::ppcState.gpr[3] = 0x81300004;
-    PowerPC::ppcState.gpr[4] = 0x81300008;
-    PowerPC::ppcState.gpr[5] = 0x8130000c;
-
-    RunFunction(iAppLoaderMain);
-
-    u32 iRamAddress = PowerPC::Read_U32(0x81300004);
-    u32 iLength = PowerPC::Read_U32(0x81300008);
-    u32 iDVDOffset = PowerPC::Read_U32(0x8130000c) << 2;
-
-    INFO_LOG(BOOT, "DVDRead: offset: %08x   memOffset: %08x   length: %i", iDVDOffset, iRamAddress,
-             iLength);
-    DVDRead(iDVDOffset, iRamAddress, iLength, true);
-  } while (PowerPC::ppcState.gpr[3] != 0x00);
-
-  // iAppLoaderClose
-  DEBUG_LOG(BOOT, "Run iAppLoaderClose");
-  RunFunction(iAppLoaderClose);
-    HideObjectEngine::LoadHideObjects();
-    HideObjectEngine::ApplyFrameHideObjects();
-
-  IOS::HLE::Device::ES::DIVerify(tmd, DVDInterface::GetVolume().GetTicket());
-
-  // return
-  PC = PowerPC::ppcState.gpr[3];
   return true;
 }
 
-// Returns true if apploader has run successfully
-bool CBoot::EmulatedBS2(bool is_wii)
+// Returns true if apploader has run successfully.
+// If is_wii is true and volume is not nullptr, the disc that volume
+// point to must currently be inserted into the emulated disc drive.
+bool CBoot::EmulatedBS2(bool is_wii, const DiscIO::IVolume* volume)
 {
-  return is_wii ? EmulatedBS2_Wii() : EmulatedBS2_GC();
+  return is_wii ? EmulatedBS2_Wii(volume) : EmulatedBS2_GC(volume);
 }

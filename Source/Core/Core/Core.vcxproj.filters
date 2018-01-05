@@ -7,6 +7,9 @@
     <Filter Include="Boot">
       <UniqueIdentifier>{2472fb36-5473-4d49-ad2d-3699b78ab6e2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ConfigLoader">
+      <UniqueIdentifier>{259a11eb-ca07-4b31-b849-7286dbd4550a}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Debugger">
       <UniqueIdentifier>{ed683a12-55f0-49cb-918b-c7edbcf57268}</UniqueIdentifier>
     </Filter>
@@ -170,10 +173,6 @@
     <ClCompile Include="NetPlayClient.cpp" />
     <ClCompile Include="NetPlayServer.cpp" />
     <ClCompile Include="PatchEngine.cpp" />
-    <ClCompile Include="ConfigLoaders\BaseConfigLoader.cpp" />
-    <ClCompile Include="ConfigLoaders\GameConfigLoader.cpp" />
-    <ClCompile Include="ConfigLoaders\MovieConfigLoader.cpp" />
-    <ClCompile Include="ConfigLoaders\NetPlayConfigLoader.cpp" />
     <ClCompile Include="State.cpp" />
     <ClCompile Include="WiiRoot.cpp" />
     <ClCompile Include="ActionReplay.cpp">
@@ -799,6 +798,9 @@
     <ClCompile Include="IOS\IOS.cpp">
       <Filter>IOS</Filter>
     </ClCompile>
+    <ClCompile Include="IOS\IOSC.cpp">
+      <Filter>IOS</Filter>
+    </ClCompile>
     <ClCompile Include="IOS\MemoryValues.cpp">
       <Filter>IOS</Filter>
     </ClCompile>
@@ -889,6 +891,18 @@
     <ClCompile Include="PowerPC\Jit64Common\ConstantPool.cpp">
       <Filter>PowerPC\Jit64Common</Filter>
     </ClCompile>
+    <ClCompile Include="ConfigLoaders\BaseConfigLoader.cpp">
+      <Filter>ConfigLoader</Filter>
+    </ClCompile>
+    <ClCompile Include="ConfigLoaders\GameConfigLoader.cpp">
+      <Filter>ConfigLoader</Filter>
+    </ClCompile>
+    <ClCompile Include="ConfigLoaders\MovieConfigLoader.cpp">
+      <Filter>ConfigLoader</Filter>
+    </ClCompile>
+    <ClCompile Include="ConfigLoaders\NetPlayConfigLoader.cpp">
+      <Filter>ConfigLoader</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BootManager.h" />
@@ -904,10 +918,6 @@
     <ClInclude Include="NetPlayProto.h" />
     <ClInclude Include="NetPlayServer.h" />
     <ClInclude Include="PatchEngine.h" />
-    <ClInclude Include="ConfigLoaders\BaseConfigLoader.h" />
-    <ClInclude Include="ConfigLoaders\GameConfigLoader.h" />
-    <ClInclude Include="ConfigLoaders\MovieConfigLoader.h" />
-    <ClInclude Include="ConfigLoaders\NetPlayConfigLoader.h" />
     <ClInclude Include="State.h" />
     <ClInclude Include="WiiRoot.h" />
     <ClInclude Include="ActionReplay.h">
@@ -1379,7 +1389,7 @@
     <ClInclude Include="Analytics.h" />
     <ClInclude Include="PowerPC\SignatureDB\CSVSignatureDB.h" />
     <ClInclude Include="PowerPC\SignatureDB\DSYSignatureDB.h" />
-    <ClCompile Include="PowerPC\SignatureDB\MEGASignatureDB.h" />
+    <ClInclude Include="PowerPC\SignatureDB\MEGASignatureDB.h" />
     <ClInclude Include="PowerPC\SignatureDB\SignatureDB.h" />
     <ClInclude Include="IOS\USB\Bluetooth\BTBase.h">
       <Filter>IOS\USB\Bluetooth</Filter>
@@ -1513,6 +1523,9 @@
     <ClInclude Include="IOS\IOS.h">
       <Filter>IOS</Filter>
     </ClInclude>
+    <ClInclude Include="IOS\IOSC.h">
+      <Filter>IOS</Filter>
+    </ClInclude>
     <ClInclude Include="IOS\MemoryValues.h">
       <Filter>IOS</Filter>
     </ClInclude>
@@ -1521,6 +1534,18 @@
     </ClInclude>
     <ClInclude Include="PowerPC\Jit64Common\ConstantPool.h">
       <Filter>PowerPC\Jit64Common</Filter>
+    </ClInclude>
+    <ClInclude Include="ConfigLoaders\BaseConfigLoader.h">
+      <Filter>ConfigLoader</Filter>
+    </ClInclude>
+    <ClInclude Include="ConfigLoaders\GameConfigLoader.h">
+      <Filter>ConfigLoader</Filter>
+    </ClInclude>
+    <ClInclude Include="ConfigLoaders\MovieConfigLoader.h">
+      <Filter>ConfigLoader</Filter>
+    </ClInclude>
+    <ClInclude Include="ConfigLoaders\NetPlayConfigLoader.h">
+      <Filter>ConfigLoader</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

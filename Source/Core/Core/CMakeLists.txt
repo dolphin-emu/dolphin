@@ -151,6 +151,7 @@ set(SRCS
   IOS/Device.cpp
   IOS/DeviceStub.cpp
   IOS/IOS.cpp
+  IOS/IOSC.cpp
   IOS/MemoryValues.cpp
   IOS/MIOS.cpp
   IOS/DI/DI.cpp
@@ -329,22 +330,27 @@ elseif(UNIX)
 endif()
 
 # Bluez doesn't support all the communication modes on FreeBSD, so only using it on Linux
-if(ENABLE_BLUEZ AND CMAKE_SYSTEM_NAME MATCHES "Linux")
-  find_package(BlueZ)
-  if(BLUEZ_FOUND)
-    message(STATUS "BlueZ found, enabling bluetooth support")
-    set(SRCS ${SRCS} HW/WiimoteReal/IOLinux.cpp)
-    set(LIBS ${LIBS} BlueZ::BlueZ)
-    add_definitions(-DHAVE_BLUEZ=1)
+if(CMAKE_SYSTEM_NAME MATCHES "Linux")
+  option(ENABLE_BLUEZ "Enables bluetooth support" ON)
+  if(ENABLE_BLUEZ)
+    find_package(BlueZ)
+    if(BLUEZ_FOUND)
+      message(STATUS "BlueZ found, enabling bluetooth support")
+      set(SRCS ${SRCS} HW/WiimoteReal/IOLinux.cpp)
+      set(LIBS ${LIBS} BlueZ::BlueZ)
+      add_definitions(-DHAVE_BLUEZ=1)
+    else()
+      message(STATUS "BlueZ NOT found, disabling bluetooth support")
+    endif()
   else()
-    message(STATUS "BlueZ NOT found, disabling bluetooth support")
+    message(STATUS "BlueZ explicitly disabled, disabling bluetooth support")
   endif()
-else()
-  message(STATUS "BlueZ explicitly disabled, disabling bluetooth support")
 endif()
 
-if(HIDAPI_FOUND)
+if(TARGET Hidapi::Hidapi)
   set(SRCS ${SRCS} HW/WiimoteReal/IOhidapi.cpp)
+  list(APPEND LIBS Hidapi::Hidapi)
+  add_definitions(-DHAVE_HIDAPI=1)
 endif()
 
 if(PORTAUDIO_FOUND)

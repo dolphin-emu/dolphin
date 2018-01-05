@@ -44,25 +44,24 @@ bool IsWiiWAD(const CBlobBigEndianReader& reader)
 }
 }  // Anonymous namespace
 
-WiiWAD::WiiWAD(const std::string& name)
+WiiWAD::WiiWAD(const std::string& name) : m_reader(CreateBlobReader(name))
 {
-  std::unique_ptr<IBlobReader> reader(CreateBlobReader(name));
-  if (reader == nullptr || File::IsDirectory(name))
+  if (m_reader == nullptr || File::IsDirectory(name))
   {
     m_valid = false;
     return;
   }
 
-  m_valid = ParseWAD(*reader);
+  m_valid = ParseWAD();
 }
 
 WiiWAD::~WiiWAD()
 {
 }
 
-bool WiiWAD::ParseWAD(IBlobReader& reader)
+bool WiiWAD::ParseWAD()
 {
-  CBlobBigEndianReader big_endian_reader(reader);
+  CBlobBigEndianReader big_endian_reader(*m_reader);
 
   if (!IsWiiWAD(big_endian_reader))
     return false;
@@ -86,18 +85,36 @@ bool WiiWAD::ParseWAD(IBlobReader& reader)
     _dbg_assert_msg_(BOOT, reserved == 0x00, "WiiWAD: Reserved must be 0x00");
 
   u32 offset = 0x40;
-  m_certificate_chain = CreateWADEntry(reader, certificate_chain_size, offset);
+  m_certificate_chain = CreateWADEntry(*m_reader, certificate_chain_size, offset);
   offset += Common::AlignUp(certificate_chain_size, 0x40);
-  m_ticket.SetBytes(CreateWADEntry(reader, ticket_size, offset));
+  m_ticket.SetBytes(CreateWADEntry(*m_reader, ticket_size, offset));
   offset += Common::AlignUp(ticket_size, 0x40);
-  m_tmd.SetBytes(CreateWADEntry(reader, tmd_size, offset));
+  m_tmd.SetBytes(CreateWADEntry(*m_reader, tmd_size, offset));
   offset += Common::AlignUp(tmd_size, 0x40);
-  m_data_app = CreateWADEntry(reader, data_app_size, offset);
+  m_data_app_offset = offset;
+  m_data_app = CreateWADEntry(*m_reader, data_app_size, offset);
   offset += Common::AlignUp(data_app_size, 0x40);
-  m_footer = CreateWADEntry(reader, footer_size, offset);
+  m_footer = CreateWADEntry(*m_reader, footer_size, offset);
   offset += Common::AlignUp(footer_size, 0x40);
 
   return true;
 }
 
+std::vector<u8> WiiWAD::GetContent(u16 index) const
+{
+  u64 offset = m_data_app_offset;
+  for (const IOS::ES::Content& content : m_tmd.GetContents())
+  {
+    const u64 aligned_size = Common::AlignUp(content.size, 0x40);
+    if (content.index == index)
+    {
+      std::vector<u8> data(aligned_size);
+      if (!m_reader->Read(offset, aligned_size, data.data()))
+        return {};
+      return data;
+    }
+    offset += aligned_size;
+  }
+  return {};
+}
 }  // namespace DiscIO

@@ -9,7 +9,7 @@
 
 #include "Core/ec_wii.h"
 
-#include <algorithm>
+#include <cinttypes>
 #include <cstdio>
 #include <cstring>
 
@@ -108,7 +108,7 @@ void MakeAPSigAndCert(u8* sig_out, u8* ap_cert_out, u64 title_id, u8* data, u32 
   memset(ap_cert_out + 4, 0, 60);
 
   sprintf(signer, "Root-CA00000001-MS00000002-NG%08x", NG_id);
-  sprintf(name, "AP%08x%08x", (u32)(title_id >> 32), (u32)(title_id & 0xffffffff));
+  sprintf(name, "AP%016" PRIx64, title_id);
   MakeBlankSigECCert(ap_cert_out, signer, name, ap_priv, 0);
 
   mbedtls_sha1(ap_cert_out + 0x80, 0x100, hash);
@@ -178,19 +178,6 @@ const u8* EcWii::GetNGPriv() const
 const u8* EcWii::GetNGSig() const
 {
   return BootMiiKeysBin.ng_sig;
-}
-
-std::array<u8, 16> EcWii::GetSharedSecret(const EcWii::ECCKey& peer_public_key) const
-{
-  EcWii::ECCKey shared_secret;
-  point_mul(shared_secret.data(), GetNGPriv(), peer_public_key.data());
-
-  std::array<u8, 20> sha1;
-  mbedtls_sha1(shared_secret.data(), shared_secret.size() / 2, sha1.data());
-
-  std::array<u8, 16> aes_key;
-  std::copy_n(sha1.cbegin(), aes_key.size(), aes_key.begin());
-  return aes_key;
 }
 
 void EcWii::InitDefaults()
