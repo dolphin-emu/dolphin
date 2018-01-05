@@ -10,7 +10,7 @@
 #include <cstring>
 #include <memory>
 #include <string>
-#include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 #include <wx/app.h>
@@ -760,27 +760,20 @@ void GameListCtrl::RescanList()
   const std::vector<std::string> search_extensions = {".gcm",  ".tgc", ".iso", ".ciso", ".gcz",
                                                       ".wbfs", ".wad", ".dol", ".elf"};
   // TODO This could process paths iteratively as they are found
-  auto search_results = Common::DoFileSearch(SConfig::GetInstance().m_ISOFolder, search_extensions,
-                                             SConfig::GetInstance().m_RecursiveISOFolder);
+  const std::vector<std::string> search_results_vector =
+      Common::DoFileSearch(SConfig::GetInstance().m_ISOFolder, search_extensions,
+                           SConfig::GetInstance().m_RecursiveISOFolder);
 
+  // Copy search results into a set, except ones that match DiscIO::ShouldHideFromGameList.
   // TODO Prevent DoFileSearch from looking inside /files/ directories of DirectoryBlobs at all?
   // TODO Make DoFileSearch support filter predicates so we don't have remove things afterwards?
-  search_results.erase(
-      std::remove_if(search_results.begin(), search_results.end(), DiscIO::ShouldHideFromGameList),
-      search_results.end());
-
-  std::vector<std::string> cached_paths;
-  for (const auto& file : m_cached_files)
-    cached_paths.emplace_back(file->GetFileName());
-  std::sort(cached_paths.begin(), cached_paths.end());
-
-  std::list<std::string> removed_paths;
-  std::set_difference(cached_paths.cbegin(), cached_paths.cend(), search_results.cbegin(),
-                      search_results.cend(), std::back_inserter(removed_paths));
-
-  std::vector<std::string> new_paths;
-  std::set_difference(search_results.cbegin(), search_results.cend(), cached_paths.cbegin(),
-                      cached_paths.cend(), std::back_inserter(new_paths));
+  std::unordered_set<std::string> search_results;
+  search_results.reserve(search_results_vector.size());
+  for (const std::string& path : search_results_vector)
+  {
+    if (!DiscIO::ShouldHideFromGameList(path))
+      search_results.insert(path);
+  }
 
   // Reload the TitleDatabase
   {
@@ -788,24 +781,35 @@ void GameListCtrl::RescanList()
     m_title_database = {};
   }
 
-  // For now, only scan new_paths. This could cause false negatives (file actively being written),
-  // but otherwise should be fine.
   bool cache_changed = false;
   {
     std::unique_lock<std::mutex> lk(m_cache_mutex);
-    for (const auto& path : removed_paths)
+
+    // Delete paths that aren't in search_results from m_cached_files,
+    // while simultaneously deleting paths that aren't in m_cached_files from search_results.
+    // For the sake of speed, we don't care about maintaining the order of m_cached_files.
     {
-      auto it = std::find_if(m_cached_files.cbegin(), m_cached_files.cend(),
-                             [&path](const std::shared_ptr<GameListItem>& file) {
-                               return file->GetFileName() == path;
-                             });
-      if (it != m_cached_files.cend())
+      auto it = m_cached_files.begin();
+      auto end = m_cached_files.end();
+      while (it != end)
       {
-        cache_changed = true;
-        m_cached_files.erase(it);
+        if (search_results.erase((*it)->GetFileName()))
+        {
+          ++it;
+        }
+        else
+        {
+          cache_changed = true;
+          --end;
+          *it = std::move(*end);
+        }
       }
+      m_cached_files.erase(it, m_cached_files.end());
     }
-    for (const auto& path : new_paths)
+
+    // Now that the previous loop has run, search_results only contains paths that
+    // aren't in m_cached_files, so we simply add all of them to m_cached_files.
+    for (const auto& path : search_results)
     {
       auto file = std::make_shared<GameListItem>(path);
       if (file->IsValid())
