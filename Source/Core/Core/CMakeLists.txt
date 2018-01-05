@@ -272,6 +272,7 @@ set(LIBS
   audiocommon
   bdisasm
   common
+  cubeb
   discio
   enet
   inputcommon
@@ -338,10 +339,6 @@ if(TARGET Hidapi::Hidapi)
   set(SRCS ${SRCS} HW/WiimoteReal/IOhidapi.cpp)
   list(APPEND LIBS Hidapi::Hidapi)
   add_definitions(-DHAVE_HIDAPI=1)
-endif()
-
-if(PORTAUDIO_FOUND)
-  set(LIBS ${LIBS} ${PORTAUDIO_LIBRARIES})
 endif()
 
 if(OPROFILE_FOUND)

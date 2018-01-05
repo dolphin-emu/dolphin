@@ -134,6 +134,12 @@ LogManager::~LogManager()
 void LogManager::Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, const char* file,
                      int line, const char* format, va_list args)
 {
+  return LogWithFullPath(level, type, file + m_path_cutoff_point, line, format, args);
+}
+
+void LogManager::LogWithFullPath(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
+                                 const char* file, int line, const char* format, va_list args)
+{
   char temp[MAX_MSGLEN];
   LogContainer* log = m_Log[type];
 
@@ -142,10 +148,8 @@ void LogManager::Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, const 
 
   CharArrayFromFormatV(temp, MAX_MSGLEN, format, args);
 
-  const char* path_to_print = file + m_path_cutoff_point;
-
   std::string msg = StringFromFormat(
-      "%s %s:%u %c[%s]: %s\n", Common::Timer::GetTimeFormatted().c_str(), path_to_print, line,
+      "%s %s:%u %c[%s]: %s\n", Common::Timer::GetTimeFormatted().c_str(), file, line,
       LogTypes::LOG_LEVEL_TO_CHAR[(int)level], log->GetShortName().c_str(), temp);
 
   for (auto listener_id : *log)

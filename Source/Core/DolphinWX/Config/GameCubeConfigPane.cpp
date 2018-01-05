@@ -158,10 +158,7 @@ void GameCubeConfigPane::LoadGUIValues()
   slot_devices.Add(_(EXIDEV_MEMDIR_STR));
   slot_devices.Add(_(EXIDEV_GECKO_STR));
   slot_devices.Add(_(EXIDEV_AGP_STR));
-
-#if HAVE_PORTAUDIO
   slot_devices.Add(_(EXIDEV_MIC_STR));
-#endif
 
   wxArrayString sp1_devices;
   sp1_devices.Add(_(DEV_NONE_STR));

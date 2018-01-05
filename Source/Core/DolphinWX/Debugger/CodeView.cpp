@@ -496,7 +496,7 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 
       // look for hex strings to decode branches
       std::string hex_str;
-      size_t pos = operands.find("0x8");
+      size_t pos = operands.find("0x");
       if (pos != std::string::npos)
       {
         hex_str = operands.substr(pos);

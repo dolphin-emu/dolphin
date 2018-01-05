@@ -5,11 +5,10 @@
 #include <cstring>
 #include <mutex>
 
+#include "AudioCommon/CubebUtils.h"
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
-
-#if HAVE_PORTAUDIO
 
 #include "Core/HW/EXI/EXI_DeviceMic.h"
 
@@ -18,22 +17,13 @@
 #include "Core/HW/GCPad.h"
 #include "Core/HW/SystemTimers.h"
 
-#include <portaudio.h>
+#include <cubeb/cubeb.h>
 
 namespace ExpansionInterface
 {
-void CEXIMic::StreamLog(const char* msg)
-{
-  INFO_LOG(EXPANSIONINTERFACE, "%s: %s", msg, Pa_GetErrorText(pa_error));
-}
-
 void CEXIMic::StreamInit()
 {
-  // Setup the wonderful c-interfaced lib...
-  pa_stream = nullptr;
-
-  if ((pa_error = Pa_Initialize()) != paNoError)
-    StreamLog("Pa_Initialize");
+  m_cubeb_ctx = CubebUtils::GetContext();
 
   stream_buffer = nullptr;
   samples_avail = stream_wpos = stream_rpos = 0;
@@ -42,74 +32,85 @@ void CEXIMic::StreamInit()
 void CEXIMic::StreamTerminate()
 {
   StreamStop();
-
-  if ((pa_error = Pa_Terminate()) != paNoError)
-    StreamLog("Pa_Terminate");
+  m_cubeb_ctx.reset();
 }
 
-static int Pa_Callback(const void* inputBuffer, void* outputBuffer, unsigned long framesPerBuffer,
-                       const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags,
-                       void* userData)
+static void state_callback(cubeb_stream* stream, void* user_data, cubeb_state state)
 {
-  (void)outputBuffer;
-  (void)timeInfo;
-  (void)statusFlags;
+}
 
-  CEXIMic* mic = (CEXIMic*)userData;
+static long data_callback(cubeb_stream* stream, void* user_data, const void* inputbuffer,
+                          void* /*outputbuffer*/, long nframes)
+{
+  CEXIMic* mic = static_cast<CEXIMic*>(user_data);
 
   std::lock_guard<std::mutex> lk(mic->ring_lock);
 
-  if (mic->stream_wpos + mic->buff_size_samples > mic->stream_size)
-    mic->stream_wpos = 0;
-
-  const s16* buff_in = static_cast<const s16*>(inputBuffer);
-  s16* buff_out = &mic->stream_buffer[mic->stream_wpos];
-
-  if (buff_in == nullptr)
+  const s16* buff_in = static_cast<const s16*>(inputbuffer);
+  for (long i = 0; i < nframes; i++)
   {
-    for (int i = 0; i < mic->buff_size_samples; i++)
-    {
-      buff_out[i] = 0;
-    }
-  }
-  else
-  {
-    for (int i = 0; i < mic->buff_size_samples; i++)
-    {
-      buff_out[i] = buff_in[i];
-    }
+    mic->stream_buffer[mic->stream_wpos] = buff_in[i];
+    mic->stream_wpos = (mic->stream_wpos + 1) % mic->stream_size;
   }
 
-  mic->samples_avail += mic->buff_size_samples;
+  mic->samples_avail += nframes;
   if (mic->samples_avail > mic->stream_size)
   {
     mic->samples_avail = 0;
     mic->status.buff_ovrflw = 1;
   }
 
-  mic->stream_wpos += mic->buff_size_samples;
-  mic->stream_wpos %= mic->stream_size;
-
-  return paContinue;
+  return nframes;
 }
 
 void CEXIMic::StreamStart()
 {
+  if (!m_cubeb_ctx)
+    return;
+
   // Open stream with current parameters
   stream_size = buff_size_samples * 500;
   stream_buffer = new s16[stream_size];
 
-  pa_error = Pa_OpenDefaultStream(&pa_stream, 1, 0, paInt16, sample_rate, buff_size_samples,
-                                  Pa_Callback, this);
-  StreamLog("Pa_OpenDefaultStream");
-  pa_error = Pa_StartStream(pa_stream);
-  StreamLog("Pa_StartStream");
+  cubeb_stream_params params;
+  params.format = CUBEB_SAMPLE_S16LE;
+  params.rate = sample_rate;
+  params.channels = 1;
+  params.layout = CUBEB_LAYOUT_MONO;
+
+  u32 minimum_latency;
+  if (cubeb_get_min_latency(m_cubeb_ctx.get(), params, &minimum_latency) != CUBEB_OK)
+  {
+    WARN_LOG(EXPANSIONINTERFACE, "Error getting minimum latency");
+  }
+
+  if (cubeb_stream_init(m_cubeb_ctx.get(), &m_cubeb_stream, "Dolphin Emulated GameCube Microphone",
+                        nullptr, &params, nullptr, nullptr,
+                        std::max<u32>(buff_size_samples, minimum_latency), data_callback,
+                        state_callback, this) != CUBEB_OK)
+  {
+    ERROR_LOG(EXPANSIONINTERFACE, "Error initializing cubeb stream");
+    return;
+  }
+
+  if (cubeb_stream_start(m_cubeb_stream) != CUBEB_OK)
+  {
+    ERROR_LOG(EXPANSIONINTERFACE, "Error starting cubeb stream");
+    return;
+  }
+
+  INFO_LOG(EXPANSIONINTERFACE, "started cubeb stream");
 }
 
 void CEXIMic::StreamStop()
 {
-  if (pa_stream != nullptr && Pa_IsStreamActive(pa_stream) >= paNoError)
-    Pa_AbortStream(pa_stream);
+  if (m_cubeb_stream)
+  {
+    if (cubeb_stream_stop(m_cubeb_stream) != CUBEB_OK)
+      ERROR_LOG(EXPANSIONINTERFACE, "Error stopping cubeb stream");
+    cubeb_stream_destroy(m_cubeb_stream);
+    m_cubeb_stream = nullptr;
+  }
 
   samples_avail = stream_wpos = stream_rpos = 0;
 
@@ -134,11 +135,11 @@ void CEXIMic::StreamReadOne()
 }
 
 // EXI Mic Device
-// This works by opening and starting a portaudio input stream when the is_active
+// This works by opening and starting an input stream when the is_active
 // bit is set. The interrupt is scheduled in the future based on sample rate and
 // buffer size settings. When the console handles the interrupt, it will send
 // cmdGetBuffer, which is when we actually read data from a buffer filled
-// in the background by Pa_Callback.
+// in the background.
 
 u8 const CEXIMic::exi_id[] = {0, 0x0a, 0, 0, 0};
 
@@ -271,4 +272,3 @@ void CEXIMic::TransferByte(u8& byte)
   m_position++;
 }
 }  // namespace ExpansionInterface
-#endif
