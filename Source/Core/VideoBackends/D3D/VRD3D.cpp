@@ -252,8 +252,13 @@ void VR_ConfigureHMD()
 #if defined(OVR_MAJOR_VERSION) && (OVR_PRODUCT_VERSION >= 1 || OVR_MAJOR_VERSION >= 6)
 void RecreateMirrorTextureIfNeeded()
 {
-  int w = g_renderer->GetBackbufferWidth();
-  int h = g_renderer->GetBackbufferHeight();
+  int w = 128;
+  int h = 128;
+  if (g_renderer)
+  {
+     w = g_renderer->GetBackbufferWidth();
+     h = g_renderer->GetBackbufferHeight();
+  }
   bool bNoMirrorToWindow = g_ActiveConfig.iMirrorPlayer == VR_PLAYER_NONE ||
                            g_ActiveConfig.iMirrorStyle == VR_MIRROR_DISABLED;
   if (w != mirror_width || h != mirror_height || ((mirrorTexture == nullptr) != bNoMirrorToWindow))
@@ -318,8 +323,8 @@ void VR_StartFramebuffer()
     for (int eye = 0; eye < 2; eye++)
     {
       ovrSizei target_size;
-      target_size.w = g_renderer->GetTargetWidth();
-      target_size.h = g_renderer->GetTargetHeight();
+      target_size.w = FramebufferManager::m_target_width;
+      target_size.h = FramebufferManager::m_target_height;
       pEyeRenderTexture[eye] = new OculusTexture(hmd, target_size);
       eyeRenderViewport[eye].Pos.x = 0;
       eyeRenderViewport[eye].Pos.y = 0;

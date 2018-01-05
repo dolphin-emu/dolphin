@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <cstddef>
 #include <stack>
 #include <unordered_map>
 
@@ -106,7 +107,7 @@ public:
   void PopDepthState();
   void PopRasterizerState();
 
-  void SetTexture(u32 index, ID3D11ShaderResourceView* texture)
+  void SetTexture(size_t index, ID3D11ShaderResourceView* texture)
   {
     if (m_current.textures[index] != texture)
       m_dirtyFlags |= DirtyFlag_Texture0 << index;
@@ -114,7 +115,7 @@ public:
     m_pending.textures[index] = texture;
   }
 
-  void SetSampler(u32 index, ID3D11SamplerState* sampler)
+  void SetSampler(size_t index, ID3D11SamplerState* sampler)
   {
     if (m_current.samplers[index] != sampler)
       m_dirtyFlags |= DirtyFlag_Sampler0 << index;
