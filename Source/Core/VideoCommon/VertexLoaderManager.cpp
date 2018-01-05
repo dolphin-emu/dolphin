@@ -48,7 +48,8 @@ static VertexLoaderMap s_vertex_loader_map;
 
 u8* cached_arraybases[12];
 
-// Used in D3D12 backend, to populate input layouts used by cached-to-disk PSOs.
+// Used in the Vulkan backend
+
 NativeVertexFormatMap* GetNativeVertexFormatMap()
 {
   return &s_native_vertex_map;

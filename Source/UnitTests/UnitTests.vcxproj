@@ -98,9 +98,6 @@
     <ProjectReference Include="$(CoreDir)VideoBackends\Vulkan\Vulkan.vcxproj">
       <Project>{29F29A19-F141-45AD-9679-5A2923B49DA3}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(CoreDir)VideoBackends\D3D12\D3D12.vcxproj" Condition="'$(VisualStudioVersion)' != '12.0'">
-      <Project>{570215b7-e32f-4438-95ae-c8d955f9fca3}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\Core\VideoCommon\VR.vcxproj">
       <Project>{2e6f41ca-9ead-4a12-97da-1b428c7dea76}</Project>
     </ProjectReference>
