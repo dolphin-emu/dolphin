@@ -76,6 +76,7 @@ struct BootParameters
 
   Parameters parameters;
   std::optional<std::string> savestate_path;
+  bool delete_savestate = false;
 };
 
 class CBoot
