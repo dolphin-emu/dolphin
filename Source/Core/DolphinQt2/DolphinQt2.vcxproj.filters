@@ -107,6 +107,19 @@
     <ClCompile Include="Settings\InterfacePane.cpp">
       <Filter>Settings</Filter>
     </ClCompile>
+    <ClCompile Include="$(QtMocOutPrefix)MappingWidget.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)MappingWindow.cpp" />
+    <ClCompile Include="Config\Mapping\GCKeyboardEmu.cpp" />
+    <ClCompile Include="Config\Mapping\GCPadEmu.cpp" />
+    <ClCompile Include="Config\Mapping\GCPadWiiU.cpp" />
+    <ClCompile Include="Config\Mapping\MappingBool.cpp" />
+    <ClCompile Include="Config\Mapping\MappingButton.cpp" />
+    <ClCompile Include="Config\Mapping\MappingNumeric.cpp" />
+    <ClCompile Include="Config\Mapping\MappingWidget.cpp" />
+    <ClCompile Include="Config\Mapping\MappingWindow.cpp" />
+    <ClCompile Include="Config\Mapping\WiimoteEmuExtension.cpp" />
+    <ClCompile Include="Config\Mapping\WiimoteEmuGeneral.cpp" />
+    <ClCompile Include="Config\Mapping\WiimoteEmuMotionControl.cpp" />
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="MainWindow.h" />
@@ -147,6 +160,8 @@
     <QtMoc Include="Settings\GeneralPane.h">
       <Filter>Settings</Filter>
     </QtMoc>
+    <QtMoc Include="Config\Mapping\MappingWidget.h" />
+    <QtMoc Include="Config\Mapping\MappingWindow.h" />
   </ItemGroup>
   <ItemGroup>
     <QtUi Include="*.ui" />
