@@ -210,7 +210,7 @@ void RunCodeHandler()
     {
       // Don't spam retry if the install failed. The corrupt / missing disk file is not likely to be
       // fixed within 1 frame of the last error.
-      if (s_code_handler_installed == Installation::Failed)
+      if (s_active_codes.empty() || s_code_handler_installed == Installation::Failed)
         return;
       s_code_handler_installed = InstallCodeHandlerLocked();
 

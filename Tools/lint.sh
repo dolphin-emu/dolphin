@@ -4,8 +4,11 @@
 
 fail=0
 
+# Default to staged files, unless a commit was passed.
+COMMIT=${1:---cached}
+
 # Loop through each modified file.
-for f in $(git diff --name-only --diff-filter=ACMRTUXB --cached); do
+for f in $(git diff --name-only --diff-filter=ACMRTUXB $COMMIT); do
   # Filter them.
   if ! echo "${f}" | egrep -q "[.](cpp|h|mm)$"; then
     continue

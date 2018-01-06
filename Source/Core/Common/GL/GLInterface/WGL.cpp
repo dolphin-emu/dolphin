@@ -2,9 +2,9 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <windows.h>
 #include <array>
 #include <string>
-#include <windows.h>
 
 #include "Common/GL/GLInterface/WGL.h"
 #include "Common/Logging/Log.h"

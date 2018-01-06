@@ -3,8 +3,8 @@
 // Refer to the license.txt file included.
 
 #ifdef _WIN32
-#include <io.h>
 #include <windows.h>
+#include <io.h>
 #endif
 
 #include <algorithm>
