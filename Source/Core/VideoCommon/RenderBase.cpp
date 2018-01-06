@@ -307,9 +307,6 @@ void Renderer::DrawDebugText()
     const char* ar_text = "";
     switch (g_ActiveConfig.aspect_mode)
     {
-    case AspectMode::Auto:
-      ar_text = "Auto";
-      break;
     case AspectMode::Stretch:
       ar_text = "Stretch";
       break;
@@ -318,6 +315,10 @@ void Renderer::DrawDebugText()
       break;
     case AspectMode::AnalogWide:
       ar_text = "Force 16:9";
+      break;
+    case AspectMode::Auto:
+    default:
+      ar_text = "Auto";
       break;
     }
 
@@ -441,6 +442,7 @@ void Renderer::UpdateDrawRectangle()
       target_aspect = AspectToWidescreen(VideoInterface::GetAspectRatio());
       break;
     case AspectMode::Auto:
+    default:
       target_aspect = source_aspect;
       break;
     }
