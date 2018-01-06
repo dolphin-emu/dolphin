@@ -4,8 +4,10 @@
 
 #pragma once
 
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) && !defined(__MWERKS__)
 #pragma warning(push)
 #pragma warning(disable: 4067)
+#endif
 #if __has_include_next(<optional>)
 #include_next <optional>
 #else
@@ -907,4 +909,6 @@ using ::gtl::make_optional;
 }  // namespace std
 
 #endif
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) && !defined(__MWERKS__)
 #pragma warning(pop)
+#endif
