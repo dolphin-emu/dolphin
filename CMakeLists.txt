@@ -218,9 +218,6 @@ if(CMAKE_C_COMPILER_ID MATCHES "MSVC")
   dolphin_compile_definitions(_DEBUG DEBUG_ONLY)
 
   string(APPEND CMAKE_EXE_LINKER_FLAGS " /NXCOMPAT")
-  string(APPEND CMAKE_EXE_LINKER_FLAGS " /BASE:0x00400000")
-  string(APPEND CMAKE_EXE_LINKER_FLAGS " /DYNAMICBASE:NO")
-  string(APPEND CMAKE_EXE_LINKER_FLAGS " /FIXED")
 else()
   add_definitions(-D_DEFAULT_SOURCE)
   check_and_add_flag(HAVE_WALL -Wall)
@@ -252,15 +249,6 @@ else()
 
   dolphin_compile_definitions(_DEBUG DEBUG_ONLY)
   check_and_add_flag(GGDB -ggdb DEBUG_ONLY)
-
-  if(NOT ANDROID AND _M_X86_64)
-    # PIE is required on Android, but not supported with the x86_64 jit currently
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fno-pie")
-    check_c_compiler_flag("-no-pie" NO_PIE_UPSTREAM)
-    if(NO_PIE_UPSTREAM)
-      set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -no-pie")
-    endif()
-  endif()
 endif()
 
 if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
@@ -283,10 +271,6 @@ if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
   # Linker flags.
   # Drop unreachable code and data.
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-dead_strip,-dead_strip_dylibs")
-  # Reserve the minimum size for the zero page.
-  # Our JIT requires virtual memory space below 2GB, while the default zero
-  # page on x86_64 is 4GB in size.
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-pagezero_size,0x1000")
 
   find_library(APPKIT_LIBRARY AppKit)
   find_library(APPSERV_LIBRARY ApplicationServices)

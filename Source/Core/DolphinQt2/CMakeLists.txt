@@ -39,6 +39,7 @@ set(SRCS
   GameList/GameListModel.cpp
   GameList/GameTracker.cpp
   GameList/ListProxyModel.cpp
+  QtUtils/ElidedButton.cpp
   Settings/GeneralPane.cpp
   Settings/InterfacePane.cpp
 )

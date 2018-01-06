@@ -6,6 +6,7 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <thread>
 #include <utility>
 #include <vector>
@@ -209,30 +210,22 @@ IOS::ES::TicketReader GetTicket(const DiscIO::Partition& partition)
   return s_disc->GetTicket(partition);
 }
 
-bool UpdateRunningGameMetadata(const DiscIO::Partition& partition, u64 title_id)
+bool UpdateRunningGameMetadata(const DiscIO::Partition& partition, std::optional<u64> title_id)
 {
   if (!s_disc)
     return false;
 
   WaitUntilIdle();
 
-  u64 volume_title_id;
-  if (!s_disc->GetTitleID(&volume_title_id, partition))
-    return false;
+  if (title_id)
+  {
+    u64 volume_title_id;
+    if (!s_disc->GetTitleID(&volume_title_id, partition))
+      return false;
 
-  if (volume_title_id != title_id)
-    return false;
-
-  SConfig::GetInstance().SetRunningGameMetadata(*s_disc, partition);
-  return true;
-}
-
-bool UpdateRunningGameMetadata(const DiscIO::Partition& partition)
-{
-  if (!s_disc)
-    return false;
-
-  DVDThread::WaitUntilIdle();
+    if (volume_title_id != *title_id)
+      return false;
+  }
 
   SConfig::GetInstance().SetRunningGameMetadata(*s_disc, partition);
   return true;

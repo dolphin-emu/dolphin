@@ -52,6 +52,7 @@ MainWindow::MainWindow() : QMainWindow(nullptr)
 MainWindow::~MainWindow()
 {
   m_render_widget->deleteLater();
+  ShutdownControllers();
 }
 
 void MainWindow::InitControllers()
@@ -64,6 +65,15 @@ void MainWindow::InitControllers()
   Keyboard::Initialize();
   Wiimote::Initialize(Wiimote::InitializeMode::DO_NOT_WAIT_FOR_WIIMOTES);
   HotkeyManagerEmu::Initialize();
+}
+
+void MainWindow::ShutdownControllers()
+{
+  g_controller_interface.Shutdown();
+  Pad::Shutdown();
+  Keyboard::Shutdown();
+  Wiimote::Shutdown();
+  HotkeyManagerEmu::Shutdown();
 }
 
 void MainWindow::CreateComponents()

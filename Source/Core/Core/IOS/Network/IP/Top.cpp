@@ -905,6 +905,7 @@ IPCCommandResult NetIPTop::HandleGetAddressInfoRequest(const IOCtlVRequest& requ
   u32 sockoffset = addr + 0x460;
   if (ret == 0)
   {
+    constexpr size_t WII_ADDR_INFO_SIZE = 0x20;
     for (addrinfo* result_iter = result; result_iter != nullptr; result_iter = result_iter->ai_next)
     {
       Memory::Write_U32(result_iter->ai_flags, addr);
@@ -918,9 +919,8 @@ IPCCommandResult NetIPTop::HandleGetAddressInfoRequest(const IOCtlVRequest& requ
       if (result_iter->ai_addr)
       {
         Memory::Write_U32(sockoffset, addr + 0x18);
-        Memory::Write_U16(((result_iter->ai_addr->sa_family & 0xFF) << 8) |
-                              (result_iter->ai_addrlen & 0xFF),
-                          sockoffset);
+        Memory::Write_U8(result_iter->ai_addrlen & 0xFF, sockoffset);
+        Memory::Write_U8(result_iter->ai_addr->sa_family & 0xFF, sockoffset + 0x01);
         Memory::CopyToEmu(sockoffset + 0x2, result_iter->ai_addr->sa_data,
                           sizeof(result_iter->ai_addr->sa_data));
         sockoffset += 0x1C;
@@ -932,14 +932,14 @@ IPCCommandResult NetIPTop::HandleGetAddressInfoRequest(const IOCtlVRequest& requ
 
       if (result_iter->ai_next)
       {
-        Memory::Write_U32(addr + sizeof(addrinfo), addr + 0x1C);
+        Memory::Write_U32(addr + WII_ADDR_INFO_SIZE, addr + 0x1C);
       }
       else
       {
         Memory::Write_U32(0, addr + 0x1C);
       }
 
-      addr += sizeof(addrinfo);
+      addr += WII_ADDR_INFO_SIZE;
     }
 
     freeaddrinfo(result);

@@ -50,14 +50,6 @@ using namespace PowerPC;
 // * Does not recompile all instructions - sometimes falls back to inserting a CALL to the
 // corresponding Interpreter function.
 
-// Various notes below
-
-// IMPORTANT:
-// Make sure that all generated code and all emulator state sits under the 2GB boundary so that
-// RIP addressing can be used easily. Windows will always allocate static code under the 2GB
-// boundary.
-// Also make sure to use VirtualAlloc and specify EXECUTE permission.
-
 // Open questions
 // * Should there be any statically allocated registers? r3, r4, r5, r8, r0 come to mind.. maybe sp
 // * Does it make sense to finish off the remaining non-jitted instructions? Seems we are hitting

@@ -21,17 +21,30 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
     return QVariant();
 
   QSharedPointer<GameFile> game = m_games[index.row()];
-  if (role == Qt::DecorationRole)
+
+  switch (index.column())
   {
-    switch (index.column())
-    {
-    case COL_PLATFORM:
+  case COL_PLATFORM:
+    if (role == Qt::DecorationRole)
       return Resources::GetPlatform(static_cast<int>(game->GetPlatformID()));
-    case COL_COUNTRY:
+    if (role == Qt::InitialSortOrderRole)
+      return static_cast<int>(game->GetPlatformID());
+    break;
+  case COL_COUNTRY:
+    if (role == Qt::DecorationRole)
       return Resources::GetCountry(static_cast<int>(game->GetCountryID()));
-    case COL_RATING:
+    if (role == Qt::InitialSortOrderRole)
+      return static_cast<int>(game->GetCountryID());
+    break;
+  case COL_RATING:
+    if (role == Qt::DecorationRole)
       return Resources::GetRating(game->GetRating());
-    case COL_BANNER:
+    if (role == Qt::InitialSortOrderRole)
+      return game->GetRating();
+    break;
+  case COL_BANNER:
+    if (role == Qt::DecorationRole)
+    {
       // GameCube banners are 96x32, but Wii banners are 192x64.
       // TODO: use custom banners from rom directory like DolphinWX?
       QPixmap banner = game->GetBanner();
@@ -39,23 +52,31 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
                                           banner.height() / GAMECUBE_BANNER_SIZE.height()));
       return banner;
     }
-  }
-  if (role == Qt::DisplayRole)
-  {
-    switch (index.column())
-    {
-    case COL_TITLE:
+    break;
+  case COL_TITLE:
+    if (role == Qt::DisplayRole || role == Qt::InitialSortOrderRole)
       return game->GetLongName();
-    case COL_ID:
+    break;
+  case COL_ID:
+    if (role == Qt::DisplayRole || role == Qt::InitialSortOrderRole)
       return game->GetGameID();
-    case COL_DESCRIPTION:
+    break;
+  case COL_DESCRIPTION:
+    if (role == Qt::DisplayRole || role == Qt::InitialSortOrderRole)
       return game->GetDescription();
-    case COL_MAKER:
+    break;
+  case COL_MAKER:
+    if (role == Qt::DisplayRole || role == Qt::InitialSortOrderRole)
       return game->GetMaker();
-    case COL_SIZE:
+    break;
+  case COL_SIZE:
+    if (role == Qt::DisplayRole)
       return FormatSize(game->GetFileSize());
-    }
+    if (role == Qt::InitialSortOrderRole)
+      return game->GetFileSize();
+    break;
   }
+
   return QVariant();
 }
 

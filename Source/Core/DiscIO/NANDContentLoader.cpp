@@ -94,7 +94,8 @@ bool CNANDContentDataBuffer::GetRange(u32 start, u32 size, u8* buffer)
   return true;
 }
 
-CNANDContentLoader::CNANDContentLoader(const std::string& content_name)
+CNANDContentLoader::CNANDContentLoader(const std::string& content_name, Common::FromWhichRoot from)
+    : m_root(from)
 {
   m_Valid = Initialize(content_name);
 }
@@ -185,7 +186,7 @@ void CNANDContentLoader::InitializeContentEntries(const std::vector<u8>& data_ap
 
   u32 data_app_offset = 0;
   const std::vector<u8> title_key = m_ticket.GetTitleKey();
-  IOS::ES::SharedContentMap shared_content{Common::FromWhichRoot::FROM_SESSION_ROOT};
+  IOS::ES::SharedContentMap shared_content{m_root};
 
   for (size_t i = 0; i < contents.size(); ++i)
   {
@@ -208,7 +209,7 @@ void CNANDContentLoader::InitializeContentEntries(const std::vector<u8>& data_ap
     {
       std::string filename;
       if (content.IsShared())
-        filename = shared_content.GetFilenameFromSHA1(content.sha1);
+        filename = *shared_content.GetFilenameFromSHA1(content.sha1);
       else
         filename = StringFromFormat("%s/%08x.app", m_Path.c_str(), content.id);
 
@@ -223,14 +224,15 @@ CNANDContentManager::~CNANDContentManager()
 {
 }
 
-const CNANDContentLoader& CNANDContentManager::GetNANDLoader(const std::string& content_path)
+const CNANDContentLoader& CNANDContentManager::GetNANDLoader(const std::string& content_path,
+                                                             Common::FromWhichRoot from)
 {
   auto it = m_map.find(content_path);
   if (it != m_map.end())
     return *it->second;
   return *m_map
-              .emplace_hint(it, std::make_pair(content_path,
-                                               std::make_unique<CNANDContentLoader>(content_path)))
+              .emplace_hint(it, std::make_pair(content_path, std::make_unique<CNANDContentLoader>(
+                                                                 content_path, from)))
               ->second;
 }
 
@@ -238,32 +240,12 @@ const CNANDContentLoader& CNANDContentManager::GetNANDLoader(u64 title_id,
                                                              Common::FromWhichRoot from)
 {
   std::string path = Common::GetTitleContentPath(title_id, from);
-  return GetNANDLoader(path);
+  return GetNANDLoader(path, from);
 }
 
 void CNANDContentManager::ClearCache()
 {
   m_map.clear();
-}
-
-bool AddTicket(const IOS::ES::TicketReader& signed_ticket)
-{
-  if (!signed_ticket.IsValid())
-  {
-    return false;
-  }
-
-  u64 title_id = signed_ticket.GetTitleId();
-
-  std::string ticket_filename = Common::GetTicketFileName(title_id, Common::FROM_CONFIGURED_ROOT);
-  File::CreateFullPath(ticket_filename);
-
-  File::IOFile ticket_file(ticket_filename, "wb");
-  if (!ticket_file)
-    return false;
-
-  const std::vector<u8>& raw_ticket = signed_ticket.GetRawTicket();
-  return ticket_file.WriteBytes(raw_ticket.data(), raw_ticket.size());
 }
 
 IOS::ES::TicketReader FindSignedTicket(u64 title_id)

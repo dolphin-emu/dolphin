@@ -4,16 +4,14 @@
 
 #pragma once
 
-#include <QPoint>
-#include <QPushButton>
-#include <QString>
+#include "DolphinQt2/QtUtils/ElidedButton.h"
 
 class ControlReference;
 class MappingWidget;
 class QEvent;
 class QMouseEvent;
 
-class MappingButton : public QPushButton
+class MappingButton : public ElidedButton
 {
 public:
   MappingButton(MappingWidget* widget, ControlReference* ref);
